@@ -1,6 +1,6 @@
 {
   "$schema": "https://cokret.dev/spec/v1/artifacts/registry/operations-error-mapping.schema.json",
-  "version": "2026-05-27",
+  "version": "2026-06-10",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
@@ -8,434 +8,30 @@
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, did_proof_required, invalid_signature, capability_denied, schema_violation, bad_json, bad_query, missing_param, invalid_param, rate_limited, too_large, conflict, internal_error, service_unavailable, not_implemented, unsupported_feature, unsupported_event_kind. These are the universal failure surface and are NOT repeated in each operation entry.",
     "operation_specific": "operation_specific[] lists the error codes that are semantically tied to this operation's domain logic (event ingest, key claim, blob upload, push gateway, directory ingest, ...). Receivers SHOULD recognize and surface these codes specifically.",
-    "endpoint_aliases": "Each operation entry lists its canonical HTTP method+path alias for human navigation; alternative bindings (gRPC, MQ) inherit the same error code set."
+    "endpoint_aliases": "Each operation entry lists its canonical HTTP method+path alias for human navigation; alternative bindings (gRPC, MQ) inherit the same error code set.",
+    "operation_coverage": "Every operation_id in artifacts/registry/operation-registry.json MUST appear exactly once in operations[]. An empty operation_specific[] means the operation has no domain-specific reply shape beyond the universal failure surface."
   },
   "operations": [
     {
-      "operation_id": "ck.self.events.submit",
-      "http_alias": "POST /_cokret/self/events",
+      "operation_id": "ck.gate.account.register",
+      "http_alias": "POST /_cokret/gate/account/register",
       "operation_specific": [
+        "proof_invalid",
         "duplicate_conflict",
-        "failed_precondition",
-        "schema_violation",
-        "actor_seq_invalid",
-        "anchor_ref_stale",
-        "anchor_ref_unknown",
-        "realm_frozen",
-        "unsupported_event_kind",
-        "quarantine"
-      ],
-      "description": "Event submission. Per-event rejections appear in response.rejected[] with one of these codes."
-    },
-    {
-      "operation_id": "ck.self.events.get",
-      "http_alias": "GET /_cokret/self/events/{event_id}",
-      "operation_specific": [
-        "not_found"
-      ],
-      "description": "not_found is returned both for nonexistent events and for events hidden by visibility (uniform failure surface)."
-    },
-    {
-      "operation_id": "ck.self.events.query",
-      "http_alias": "GET /_cokret/self/events",
-      "operation_specific": [
-        "cursor_invalid",
-        "cursor_revoked"
-      ]
-    },
-    {
-      "operation_id": "ck.self.events.query_post",
-      "http_alias": "POST /_cokret/self/events/query",
-      "operation_specific": [
-        "cursor_invalid",
-        "cursor_revoked"
-      ]
-    },
-    {
-      "operation_id": "ck.self.events.subscribe",
-      "http_alias": "GET /_cokret/self/events/subscribe",
-      "operation_specific": [
-        "cursor_invalid",
-        "cursor_revoked",
-        "stream_dropped",
-        "stream_resync_required"
-      ]
-    },
-    {
-      "operation_id": "ck.self.events.resolve",
-      "http_alias": "POST /_cokret/self/events/resolve",
-      "operation_specific": [
-        "not_found"
-      ]
-    },
-    {
-      "operation_id": "ck.self.events.frontier",
-      "http_alias": "GET /_cokret/self/events/frontier",
-      "operation_specific": [
-        "frontier_unavailable"
-      ]
-    },
-    {
-      "operation_id": "ck.self.account.subscribe",
-      "http_alias": "GET /_cokret/self/account/subscribe",
-      "operation_specific": [
-        "cursor_invalid",
-        "cursor_revoked",
-        "stream_dropped",
-        "stream_resync_required"
-      ]
-    },
-    {
-      "operation_id": "ck.self.account.viewer",
-      "http_alias": "GET /_cokret/self/account/viewer",
-      "operation_specific": [
-        "source_refs_unverifiable"
-      ],
-      "description": "Holder-bound account self-read. If signed handle-claim evidence or profile/device source refs cannot be verified, the service MUST fail or omit the unverifiable evidence according to disclosure policy; it MUST NOT return an unsigned bare handle as authoritative identity."
-    },
-    {
-      "operation_id": "ck.self.account.update_profile",
-      "http_alias": "POST /_cokret/self/account/profile",
-      "operation_specific": [
-        "invalid_avatar_blob_ref",
-        "unsupported_profile_patch_path",
         "failed_precondition"
       ],
-      "description": "Profile self-service update. The protocol request body is AccountUpdateProfileRequestBody {patch}; accepted paths are display_name, avatar_blob_ref, and profile_fields.<key>. Existing bio fields migrate to profile_fields.bio; avatar_url is rejected on the Cokret protocol path."
+      "description": "Account registration creates or binds a deployment-local account record to principal_id. The request uses principal_id rather than did, does not accept handle, and handle evidence can only be returned as signed ck.schema.handle_claim.v1 data or digest/ref."
     },
     {
-      "operation_id": "ck.self.account.cursor_revoke",
-      "http_alias": "POST /_cokret/self/account/cursor/revoke",
-      "operation_specific": [
-        "cursor_revoked"
-      ]
-    },
-    {
-      "operation_id": "ck.self.contact.request",
-      "http_alias": "POST /_cokret/self/contacts/request",
-      "operation_specific": [
-        "failed_precondition",
-        "duplicate_conflict",
-        "source_refs_unverifiable"
-      ],
-      "description": "Contact request writes requester-side contact fact and requester-side consent grants. The requester cannot write target-side consent or accepted state."
-    },
-    {
-      "operation_id": "ck.self.contact.respond",
-      "http_alias": "POST /_cokret/self/contacts/respond",
-      "operation_specific": [
-        "not_found",
-        "failed_precondition",
-        "source_refs_unverifiable"
-      ],
-      "description": "Only the request target may accept/reject a contact request. Accept writes target-controlled consent grants; reject writes no consent."
-    },
-    {
-      "operation_id": "ck.self.contact.list",
-      "http_alias": "GET /_cokret/self/contacts",
-      "operation_specific": [
-        "cursor_invalid",
-        "cursor_revoked"
-      ],
-      "description": "Holder contact projection from contact facts plus consent-derived directional scopes."
-    },
-    {
-      "operation_id": "ck.self.contact.tombstone",
-      "http_alias": "POST /_cokret/self/contacts/tombstone",
-      "operation_specific": [
-        "failed_precondition",
-        "source_refs_unverifiable"
-      ],
-      "description": "Holder-side contact tombstone. Default revocation is limited to contact-managed active consent dots."
-    },
-    {
-      "operation_id": "ck.self.direct_conversation.resolve",
-      "http_alias": "POST /_cokret/self/direct-conversations/resolve",
-      "operation_specific": [
-        "not_found",
-        "failed_precondition",
-        "contact_not_accepted",
-        "contact_consent_missing"
-      ],
-      "description": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent; create=true creates or repairs the canonical DM Realm/main Flow/binding."
-    },
-    {
-      "operation_id": "ck.self.snapshot.head",
-      "http_alias": "GET /_cokret/self/snapshot/head",
-      "operation_specific": [
-        "snapshot_unavailable",
-        "snapshot_authority_unverified"
-      ]
-    },
-    {
-      "operation_id": "ck.root.identity.resolve",
-      "http_alias": "POST /_cokret/root/identity/resolve",
-      "operation_specific": [
-        "unsupported_did_method",
-        "did_not_found",
-        "did_revoked"
-      ]
-    },
-    {
-      "operation_id": "ck.root.identity.get_document",
-      "http_alias": "GET /_cokret/root/identity/document",
-      "operation_specific": [
-        "unsupported_did_method",
-        "did_not_found",
-        "did_revoked"
-      ]
-    },
-    {
-      "operation_id": "ck.root.identity.get_log",
-      "http_alias": "GET /_cokret/root/identity/log",
-      "operation_specific": [
-        "unsupported_did_method",
-        "did_not_found"
-      ]
-    },
-    {
-      "operation_id": "ck.root.identity.submit_did_operation",
-      "http_alias": "POST /_cokret/root/identity/submit-did-operation",
-      "operation_specific": [
-        "unsupported_did_method",
-        "did_already_exists",
-        "failed_precondition",
-        "schema_violation"
-      ]
-    },
-    {
-      "operation_id": "ck.find.directory.search_realms",
-      "http_alias": "POST /_cokret/find/directory/search-realms",
-      "operation_specific": [
-        "cursor_invalid"
-      ]
-    },
-    {
-      "operation_id": "ck.find.directory.resolve_realm",
-      "http_alias": "POST /_cokret/find/directory/resolve-realm",
-      "operation_specific": [
-        "not_found"
-      ]
-    },
-    {
-      "operation_id": "ck.find.directory.resolve_target",
-      "http_alias": "POST /_cokret/find/directory/resolve-target",
-      "operation_specific": [
-        "not_found"
-      ]
-    },
-    {
-      "operation_id": "ck.find.directory.resolve_handle",
-      "http_alias": "POST /_cokret/find/directory/resolve-handle",
-      "operation_specific": [
-        "not_found",
-        "handle_unverified"
-      ]
-    },
-    {
-      "operation_id": "ck.find.directory.announce",
-      "http_alias": "POST /_cokret/find/directory/announce",
-      "operation_specific": [
-        "directory_not_authorized",
-        "accept_policy_denied",
-        "signature_invalid",
-        "signature_stale",
-        "source_refs_unverifiable",
-        "governance_key_invalid",
-        "ttl_out_of_range",
-        "takedown_in_force",
-        "policy_revision_rollback"
-      ]
-    },
-    {
-      "operation_id": "ck.find.directory.withdraw",
-      "http_alias": "POST /_cokret/find/directory/withdraw",
-      "operation_specific": [
-        "directory_not_authorized",
-        "signature_invalid",
-        "not_found"
-      ]
-    },
-    {
-      "operation_id": "ck.find.directory.private_contact_discovery",
-      "http_alias": "POST /_cokret/find/directory/private-contact-discovery",
-      "operation_specific": [
-        "rate_limited",
-        "unsupported_feature"
-      ]
-    },
-    {
-      "operation_id": "ck.self.blob.upload",
-      "http_alias": "POST /_cokret/self/blob/upload",
-      "operation_specific": [
-        "too_large",
-        "blob_quota_exceeded",
-        "unsupported_media_policy",
-        "blob_digest_mismatch"
-      ]
-    },
-    {
-      "operation_id": "ck.self.blob.get",
-      "http_alias": "GET /_cokret/self/blob/get",
-      "operation_specific": [
-        "not_found",
-        "blob_expired",
-        "blob_presign_invalid"
-      ]
-    },
-    {
-      "operation_id": "ck.self.blob.head",
-      "http_alias": "HEAD /_cokret/self/blob/get",
-      "operation_specific": [
-        "not_found",
-        "blob_expired",
-        "blob_presign_invalid"
-      ]
-    },
-    {
-      "operation_id": "ck.edge.push.register_device",
-      "http_alias": "POST /_cokret/edge/push/register-device",
-      "operation_specific": [
-        "push_gateway_unreachable",
-        "push_token_invalid"
-      ]
-    },
-    {
-      "operation_id": "ck.edge.push.unregister_device",
-      "http_alias": "POST /_cokret/edge/push/unregister-device",
-      "operation_specific": [
-        "push_token_unknown"
-      ]
-    },
-    {
-      "operation_id": "ck.edge.push.notify",
-      "http_alias": "POST /_cokret/edge/push/notify",
-      "operation_specific": [
-        "push_gateway_unreachable",
-        "push_target_unknown",
-        "push_payload_too_large",
-        "profile_unsupported"
-      ]
-    },
-    {
-      "operation_id": "ck.self.keys.upload",
-      "http_alias": "POST /_cokret/self/keys/upload",
-      "operation_specific": [
-        "device_unknown",
-        "key_replay",
-        "schema_violation"
-      ]
-    },
-    {
-      "operation_id": "ck.self.keys.claim",
-      "http_alias": "POST /_cokret/self/keys/claim",
-      "operation_specific": [
-        "one_time_keys_exhausted",
-        "device_unknown"
-      ]
-    },
-    {
-      "operation_id": "ck.self.keys.keypackages.claim",
-      "http_alias": "POST /_cokret/self/keys/keypackages/claim",
-      "operation_specific": [
-        "one_time_keys_exhausted",
-        "principal_unknown"
-      ]
-    },
-    {
-      "operation_id": "ck.self.keys.keypackages.consume",
-      "http_alias": "POST /_cokret/self/keys/keypackages/consume",
-      "operation_specific": [
-        "keypackage_already_consumed",
-        "keypackage_unknown"
-      ]
-    },
-    {
-      "operation_id": "ck.self.keys.keypackages.revoke",
-      "http_alias": "POST /_cokret/self/keys/keypackages/revoke",
-      "operation_specific": [
-        "keypackage_already_consumed",
-        "keypackage_unknown"
-      ]
-    },
-    {
-      "operation_id": "ck.self.keys.backups.put",
-      "http_alias": "PUT /_cokret/self/keys/backups/{backup_id}",
-      "operation_specific": [
-        "key_backup_wire_schema_required",
-        "series_chain_broken",
-        "series_seq_not_monotonic",
-        "series_predecessor_not_found",
-        "schema_violation"
-      ]
-    },
-    {
-      "operation_id": "ck.self.keys.backups.get",
-      "http_alias": "GET /_cokret/self/keys/backups/{backup_id}",
-      "operation_specific": [
-        "not_found"
-      ]
-    },
-    {
-      "operation_id": "ck.self.keys.backups.list",
-      "http_alias": "GET /_cokret/self/keys/backups",
-      "operation_specific": [
-        "cursor_invalid"
-      ]
-    },
-    {
-      "operation_id": "ck.self.keys.backups.delete",
-      "http_alias": "DELETE /_cokret/self/keys/backups/{backup_id}",
-      "operation_specific": [
-        "not_found"
-      ]
-    },
-    {
-      "operation_id": "ck.self.authz.check",
-      "http_alias": "POST /_cokret/self/authz/check",
-      "operation_specific": [
-        "capability_denied",
-        "policy_unavailable"
-      ]
-    },
-    {
-      "operation_id": "ck.self.policy.check",
-      "http_alias": "POST /_cokret/self/policy/check",
-      "operation_specific": [
-        "policy_unavailable",
-        "policy_stale"
-      ]
-    },
-    {
-      "operation_id": "ck.self.ephemeral.send",
-      "http_alias": "POST /_cokret/self/ephemeral",
-      "operation_specific": [
-        "ephemeral_kind_not_permitted",
-        "ephemeral_ttl_out_of_range",
-        "ephemeral_channel_unavailable"
-      ]
-    },
-    {
-      "operation_id": "ck.self.call.media.token_exchange",
-      "http_alias": "POST /_cokret/self/rtc/token",
-      "operation_specific": [
-        "focus_mismatch",
-        "unknown_focus_type",
-        "token_issuer_unauthorised",
-        "mls_governance_binding_stale",
-        "media_plaintext_service_not_authorised",
-        "capability_denied",
-        "media_service_foci_required"
-      ],
-      "description": "Media service token exchange (CKP-0010, zh/crypto-media/media-service-binding.md §3). Token issuer validates device proof / bearer, ck.call.join capability, focus_id against current foci[], session_focus persistence, MLS governance binding policy_root freshness, and media_service_decrypts pre-conditions before issuing backend_token + participant_binding. Services return media_service_foci_required when ck.realm.media_service does not declare explicit foci[]."
+      "operation_id": "ck.gate.account.device_pair",
+      "http_alias": "POST /_cokret/gate/account/device-pair",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
       "operation_id": "ck.gate.account.issue_session_grant",
       "http_alias": "POST /_cokret/gate/account/session-grants",
       "operation_specific": [
-        "did_proof_required",
-        "soft_logged_out",
-        "invalid_signature",
         "audience_unknown",
         "proof_invalid",
         "verification_method_principal_mismatch",
@@ -446,23 +42,11 @@
       "description": "Session grant issuance. Shared by human user_session and agent runtime branches (CKP-0008 §4.6): when `proof.proof_kind=\"agent_key_proof\"`, agent-specific failure codes apply — `proof_invalid` for transcript / nonce / audience binding failures of the agent_key_proof, `verification_method_principal_mismatch` when the verification_method DID does not match `principal_id`, `agent_paused` / `agent_deactivated` for lifecycle-gated rejections of the target agent principal, and `accountability_grant_missing` when the controller's accountability grant over the agent has been revoked or lapsed its freshness window so the agent is no longer eligible to receive a session grant (zh/identity/account-lifecycle.md §9.1)."
     },
     {
-      "operation_id": "ck.gate.account.register",
-      "http_alias": "POST /_cokret/gate/account/register",
-      "operation_specific": [
-        "did_proof_required",
-        "proof_invalid",
-        "duplicate_conflict",
-        "failed_precondition"
-      ],
-      "description": "Account registration creates or binds a deployment-local account record to principal_id. The request uses principal_id rather than did, does not accept handle, and handle evidence can only be returned as signed ck.schema.handle_claim.v1 data or digest/ref."
-    },
-    {
       "operation_id": "ck.gate.account.session_revoke",
       "http_alias": "POST /_cokret/gate/account/session-grants/revoke",
       "operation_specific": [
         "session_grant_not_found",
         "session_revoke_selector_conflict",
-        "did_proof_required",
         "proof_invalid"
       ],
       "description": "Session grant/access-token revocation. Empty body revokes the current request's session grant; cross grant/device/all_sessions selectors require fresh proof and never revoke device authorization or write durable ck.account.status."
@@ -477,41 +61,6 @@
         "agent_deactivated"
       ],
       "description": "Native personal agent runtime key pairing (CKP-0008 §4.5). 412 responses use these codes; pairing into an already-deactivated agent principal is terminal."
-    },
-    {
-      "operation_id": "ck.self.applet.install.preview",
-      "http_alias": "POST /_cokret/self/applets/install/preview",
-      "operation_specific": [
-        "applet_registration_unauthorized",
-        "unsupported_feature",
-        "schema_violation",
-        "conflict"
-      ],
-      "description": "Applet install preview validates controller proof, package schema, DID/key binding, namespace conflicts, requested capability actions, and Realm/Circle policy before returning an InstallPlan."
-    },
-    {
-      "operation_id": "ck.self.applet.install",
-      "http_alias": "POST /_cokret/self/applets/install",
-      "operation_specific": [
-        "duplicate_conflict",
-        "applet_install_plan_mismatch",
-        "applet_registration_unauthorized",
-        "unsupported_feature",
-        "schema_violation",
-        "conflict"
-      ],
-      "description": "Applet install commit recomputes the InstallPlan, binds approval to plan_digest, persists fan-out idempotency state, and emits registration/grant/profile/membership facts."
-    },
-    {
-      "operation_id": "ck.self.applet.revoke",
-      "http_alias": "POST /_cokret/self/applets/{applet_id}/revoke",
-      "operation_specific": [
-        "duplicate_conflict",
-        "applet_revoked",
-        "not_found",
-        "failed_precondition"
-      ],
-      "description": "Applet revoke stops future writes by revoking active grants and scoped tokens for the effective install; repeated revoke attempts may surface applet_revoked."
     },
     {
       "operation_id": "ck.self.agent.provision",
@@ -584,7 +133,6 @@
       "operation_specific": [
         "agent_paused",
         "agent_deactivated",
-        "capability_denied",
         "failed_precondition"
       ],
       "description": "Attaches a capability grant to the agent. capability_denied surfaces controller-side delegation refusal; agent_paused / agent_deactivated guard the lifecycle gate."
@@ -608,6 +156,864 @@
         "failed_precondition"
       ],
       "description": "Idempotent ensure (CKP-0009 §4.2.1): server-derived dedupe keys are `(realm_id, controller_principal_id)` for the sidecar Circle and `(controller_principal_id, normalized_context_ref)` for the private Flow / reuse identity — `agent_principal_id` is NOT part of either key, so all eligible agents of the same controller share one sidecar per Realm. Clients MUST NOT supply Idempotency-Key. sidecar_create_denied is a deliberately generic precondition that hides whether a sidecar with the same derived short_name already exists (existence privacy)."
+    },
+    {
+      "operation_id": "ck.self.agent.participation.set",
+      "http_alias": "PUT /_cokret/self/agents/{agent_principal_id}/participation",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.agent.participation.get",
+      "http_alias": "GET /_cokret/self/agents/{agent_principal_id}/participation",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.gate.account.oidc_callback",
+      "http_alias": "POST /_cokret/gate/account/oidc/callback",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.edge.applet.describe",
+      "http_alias": "GET /_cokret/edge/applet/describe",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.applet.install.preview",
+      "http_alias": "POST /_cokret/self/applets/install/preview",
+      "operation_specific": [
+        "applet_registration_unauthorized"
+      ],
+      "description": "Applet install preview validates controller proof, package schema, DID/key binding, namespace conflicts, requested capability actions, and Realm/Circle policy before returning an InstallPlan."
+    },
+    {
+      "operation_id": "ck.self.applet.install",
+      "http_alias": "POST /_cokret/self/applets/install",
+      "operation_specific": [
+        "duplicate_conflict",
+        "applet_install_plan_mismatch",
+        "applet_registration_unauthorized"
+      ],
+      "description": "Applet install commit recomputes the InstallPlan, binds approval to plan_digest, persists fan-out idempotency state, and emits registration/grant/profile/membership facts."
+    },
+    {
+      "operation_id": "ck.edge.applet.ping",
+      "http_alias": "GET /_cokret/edge/applet/ping",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.edge.applet.protocol_metadata",
+      "http_alias": "GET /_cokret/edge/applet/protocols/{protocol}",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.edge.applet.resolve_actor",
+      "http_alias": "GET /_cokret/edge/applet/actors/{actor_id}",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.edge.applet.resolve_realm",
+      "http_alias": "GET /_cokret/edge/applet/realms/{realm_id_or_alias}",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.applet.revoke",
+      "http_alias": "POST /_cokret/self/applets/{applet_id}/revoke",
+      "operation_specific": [
+        "duplicate_conflict",
+        "applet_revoked",
+        "not_found",
+        "failed_precondition"
+      ],
+      "description": "Applet revoke stops future writes by revoking active grants and scoped tokens for the effective install; repeated revoke attempts may surface applet_revoked."
+    },
+    {
+      "operation_id": "ck.edge.applet.third_party_locations",
+      "http_alias": "GET /_cokret/edge/applet/third_party/locations",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.edge.applet.third_party_users",
+      "http_alias": "GET /_cokret/edge/applet/third_party/users",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.edge.applet.transaction",
+      "http_alias": "POST /_cokret/edge/applet/transactions",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.authz.check",
+      "http_alias": "POST /_cokret/self/authz/check",
+      "operation_specific": [
+        "policy_unavailable"
+      ]
+    },
+    {
+      "operation_id": "ck.self.authz.get_effective_grants",
+      "http_alias": "GET /_cokret/self/authz/effective-grants",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.authz.get_invites",
+      "http_alias": "GET /_cokret/self/authz/invites",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.blob.get",
+      "http_alias": "GET /_cokret/self/blob/get",
+      "operation_specific": [
+        "not_found",
+        "blob_expired",
+        "blob_presign_invalid"
+      ]
+    },
+    {
+      "operation_id": "ck.self.blob.head",
+      "http_alias": "HEAD /_cokret/self/blob/get",
+      "operation_specific": [
+        "not_found",
+        "blob_expired",
+        "blob_presign_invalid"
+      ]
+    },
+    {
+      "operation_id": "ck.self.blob.upload",
+      "http_alias": "POST /_cokret/self/blob/upload",
+      "operation_specific": [
+        "blob_quota_exceeded",
+        "unsupported_media_policy",
+        "blob_digest_mismatch"
+      ]
+    },
+    {
+      "operation_id": "ck.self.blob.presign",
+      "http_alias": "POST /_cokret/self/blob/presign",
+      "operation_specific": [
+        "not_found",
+        "blob_expired",
+        "blob_presign_invalid",
+        "presign_invalid",
+        "presign_expired",
+        "presign_scope_mismatch",
+        "legal_hold_active",
+        "blob_redacted",
+        "private_attachment",
+        "direct_download_disallowed_presign_forbidden",
+        "minimal_metadata_presign_forbidden"
+      ]
+    },
+    {
+      "operation_id": "ck.self.device_messages.get",
+      "http_alias": "GET /_cokret/self/device_messages",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.device_messages.put",
+      "http_alias": "POST /_cokret/self/device_messages",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.contact.request",
+      "http_alias": "POST /_cokret/self/contacts/request",
+      "operation_specific": [
+        "failed_precondition",
+        "duplicate_conflict",
+        "source_refs_unverifiable"
+      ],
+      "description": "Contact request writes requester-side contact fact and requester-side consent grants. The requester cannot write target-side consent or accepted state."
+    },
+    {
+      "operation_id": "ck.self.contact.respond",
+      "http_alias": "POST /_cokret/self/contacts/respond",
+      "operation_specific": [
+        "not_found",
+        "failed_precondition",
+        "source_refs_unverifiable"
+      ],
+      "description": "Only the request target may accept/reject a contact request. Accept writes target-controlled consent grants; reject writes no consent."
+    },
+    {
+      "operation_id": "ck.self.contact.list",
+      "http_alias": "GET /_cokret/self/contacts",
+      "operation_specific": [
+        "cursor_invalid",
+        "cursor_revoked"
+      ],
+      "description": "Holder contact projection from contact facts plus consent-derived directional scopes."
+    },
+    {
+      "operation_id": "ck.self.contact.tombstone",
+      "http_alias": "POST /_cokret/self/contacts/tombstone",
+      "operation_specific": [
+        "failed_precondition",
+        "source_refs_unverifiable"
+      ],
+      "description": "Holder-side contact tombstone. Default revocation is limited to contact-managed active consent dots."
+    },
+    {
+      "operation_id": "ck.self.invite_receive_policy.get",
+      "http_alias": "GET /_cokret/self/invite-receive-policy",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.invite_receive_policy.set",
+      "http_alias": "POST /_cokret/self/invite-receive-policy",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.direct_conversation.resolve",
+      "http_alias": "POST /_cokret/self/direct-conversations/resolve",
+      "operation_specific": [
+        "not_found",
+        "failed_precondition",
+        "contact_not_accepted",
+        "contact_consent_missing"
+      ],
+      "description": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent; create=true creates or repairs the canonical DM Realm/main Flow/binding."
+    },
+    {
+      "operation_id": "ck.find.directory.announce",
+      "http_alias": "POST /_cokret/find/directory/announce",
+      "operation_specific": [
+        "directory_not_authorized",
+        "accept_policy_denied",
+        "signature_invalid",
+        "signature_stale",
+        "source_refs_unverifiable",
+        "governance_key_invalid",
+        "ttl_out_of_range",
+        "takedown_in_force",
+        "policy_revision_rollback"
+      ]
+    },
+    {
+      "operation_id": "ck.find.directory.describe",
+      "http_alias": "GET /_cokret/find/directory/describe",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.find.directory.private_contact_discovery",
+      "http_alias": "POST /_cokret/find/directory/private-contact-discovery",
+      "operation_specific": []
+    },
+    {
+      "operation_id": "ck.find.directory.resolve_handle",
+      "http_alias": "POST /_cokret/find/directory/resolve-handle",
+      "operation_specific": [
+        "not_found",
+        "handle_unverified"
+      ]
+    },
+    {
+      "operation_id": "ck.find.directory.list_handles_for_subject",
+      "http_alias": "POST /_cokret/find/directory/list-handles-for-subject",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.find.directory.resolve_organization",
+      "http_alias": "POST /_cokret/find/directory/resolve-organization",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.find.directory.resolve_realm",
+      "http_alias": "POST /_cokret/find/directory/resolve-realm",
+      "operation_specific": [
+        "not_found"
+      ]
+    },
+    {
+      "operation_id": "ck.find.directory.resolve_target",
+      "http_alias": "POST /_cokret/find/directory/resolve-target",
+      "operation_specific": [
+        "not_found"
+      ]
+    },
+    {
+      "operation_id": "ck.find.directory.search_actors",
+      "http_alias": "POST /_cokret/find/directory/search-actors",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.find.directory.search_organizations",
+      "http_alias": "POST /_cokret/find/directory/search-organizations",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.find.directory.search_realms",
+      "http_alias": "POST /_cokret/find/directory/search-realms",
+      "operation_specific": [
+        "cursor_invalid"
+      ]
+    },
+    {
+      "operation_id": "ck.find.directory.search_users",
+      "http_alias": "POST /_cokret/find/directory/search-users",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.find.directory.push.register",
+      "http_alias": "POST /_cokret/find/directory/push/register",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.find.directory.withdraw",
+      "http_alias": "POST /_cokret/find/directory/withdraw",
+      "operation_specific": [
+        "directory_not_authorized",
+        "signature_invalid",
+        "not_found"
+      ]
+    },
+    {
+      "operation_id": "ck.self.events.describe",
+      "http_alias": "GET /_cokret/self/events/describe",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.events.frontier",
+      "http_alias": "GET /_cokret/self/events/frontier",
+      "operation_specific": [
+        "frontier_unavailable"
+      ]
+    },
+    {
+      "operation_id": "ck.self.events.get",
+      "http_alias": "GET /_cokret/self/events/{event_id}",
+      "operation_specific": [
+        "not_found"
+      ],
+      "description": "not_found is returned both for nonexistent events and for events hidden by visibility (uniform failure surface)."
+    },
+    {
+      "operation_id": "ck.self.events.query",
+      "http_alias": "GET /_cokret/self/events",
+      "operation_specific": [
+        "cursor_invalid",
+        "cursor_revoked"
+      ]
+    },
+    {
+      "operation_id": "ck.self.events.query_post",
+      "http_alias": "POST /_cokret/self/events/query",
+      "operation_specific": [
+        "cursor_invalid",
+        "cursor_revoked"
+      ]
+    },
+    {
+      "operation_id": "ck.self.events.resolve",
+      "http_alias": "POST /_cokret/self/events/resolve",
+      "operation_specific": [
+        "not_found"
+      ]
+    },
+    {
+      "operation_id": "ck.self.events.subscribe",
+      "http_alias": "GET /_cokret/self/events/subscribe",
+      "operation_specific": [
+        "cursor_invalid",
+        "cursor_revoked",
+        "stream_dropped",
+        "stream_resync_required"
+      ]
+    },
+    {
+      "operation_id": "ck.self.events.submit",
+      "http_alias": "POST /_cokret/self/events",
+      "operation_specific": [
+        "duplicate_conflict",
+        "failed_precondition",
+        "actor_seq_invalid",
+        "anchor_ref_stale",
+        "anchor_ref_unknown",
+        "realm_frozen",
+        "quarantine"
+      ],
+      "description": "Event submission. Per-event rejections appear in response.rejected[] with one of these codes."
+    },
+    {
+      "operation_id": "ck.peer.events.describe",
+      "http_alias": "GET /_cokret/peer/events/describe",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.peer.events.frontier",
+      "http_alias": "GET /_cokret/peer/events/frontier",
+      "operation_specific": [
+        "frontier_unavailable"
+      ]
+    },
+    {
+      "operation_id": "ck.peer.events.query",
+      "http_alias": "GET /_cokret/peer/events",
+      "operation_specific": [
+        "cursor_invalid",
+        "cursor_revoked"
+      ]
+    },
+    {
+      "operation_id": "ck.peer.events.query_post",
+      "http_alias": "POST /_cokret/peer/events/query",
+      "operation_specific": [
+        "cursor_invalid",
+        "cursor_revoked"
+      ]
+    },
+    {
+      "operation_id": "ck.peer.events.resolve",
+      "http_alias": "POST /_cokret/peer/events/resolve",
+      "operation_specific": [
+        "not_found"
+      ]
+    },
+    {
+      "operation_id": "ck.peer.events.submit",
+      "http_alias": "POST /_cokret/peer/events",
+      "operation_specific": [
+        "duplicate_conflict",
+        "failed_precondition",
+        "actor_seq_invalid",
+        "anchor_ref_stale",
+        "anchor_ref_unknown",
+        "realm_frozen",
+        "quarantine",
+        "stale_peer",
+        "delivery_binding_stale",
+        "delivery_binding_handed_over"
+      ]
+    },
+    {
+      "operation_id": "ck.peer.invites.submit",
+      "http_alias": "POST /_cokret/peer/invites",
+      "operation_specific": [
+        "failed_precondition",
+        "duplicate_conflict",
+        "source_refs_unverifiable",
+        "stale_peer"
+      ]
+    },
+    {
+      "operation_id": "ck.peer.contacts.submit",
+      "http_alias": "POST /_cokret/peer/contacts",
+      "operation_specific": [
+        "failed_precondition",
+        "duplicate_conflict",
+        "source_refs_unverifiable",
+        "stale_peer"
+      ]
+    },
+    {
+      "operation_id": "ck.peer.snapshot.head",
+      "http_alias": "GET /_cokret/peer/snapshot/head",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.ephemeral.send",
+      "http_alias": "POST /_cokret/self/ephemeral",
+      "operation_specific": [
+        "ephemeral_kind_not_permitted",
+        "ephemeral_ttl_out_of_range",
+        "ephemeral_channel_unavailable"
+      ]
+    },
+    {
+      "operation_id": "ck.self.call.media.token_exchange",
+      "http_alias": "POST /_cokret/self/rtc/token",
+      "operation_specific": [
+        "focus_mismatch",
+        "unknown_focus_type",
+        "token_issuer_unauthorised",
+        "mls_governance_binding_stale",
+        "media_plaintext_service_not_authorised",
+        "media_service_foci_required"
+      ],
+      "description": "Media service token exchange (CKP-0010, zh/crypto-media/media-service-binding.md §3). Token issuer validates device proof / bearer, ck.call.join capability, focus_id against current foci[], session_focus persistence, MLS governance binding policy_root freshness, and media_service_decrypts pre-conditions before issuing backend_token + participant_binding. Services return media_service_foci_required when ck.realm.media_service does not declare explicit foci[]."
+    },
+    {
+      "operation_id": "ck.root.identity.describe_registry",
+      "http_alias": "GET /_cokret/root/identity/describe",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.root.identity.get_document",
+      "http_alias": "GET /_cokret/root/identity/document",
+      "operation_specific": [
+        "unsupported_did_method",
+        "did_not_found",
+        "did_revoked"
+      ]
+    },
+    {
+      "operation_id": "ck.root.identity.get_log",
+      "http_alias": "GET /_cokret/root/identity/log",
+      "operation_specific": [
+        "unsupported_did_method",
+        "did_not_found"
+      ]
+    },
+    {
+      "operation_id": "ck.root.identity.get_receipts",
+      "http_alias": "GET /_cokret/root/identity/receipts",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.root.identity.resolve",
+      "http_alias": "POST /_cokret/root/identity/resolve",
+      "operation_specific": [
+        "unsupported_did_method",
+        "did_not_found",
+        "did_revoked"
+      ]
+    },
+    {
+      "operation_id": "ck.root.identity.submit_did_operation",
+      "http_alias": "POST /_cokret/root/identity/submit-did-operation",
+      "operation_specific": [
+        "unsupported_did_method",
+        "did_already_exists",
+        "failed_precondition"
+      ]
+    },
+    {
+      "operation_id": "ck.root.identity.recovery_session.create",
+      "http_alias": "POST /_cokret/root/identity/recovery-sessions",
+      "operation_specific": [
+        "recovery_policy_mismatch"
+      ]
+    },
+    {
+      "operation_id": "ck.root.identity.recovery_session.get",
+      "http_alias": "GET /_cokret/root/identity/recovery-sessions/{recovery_session_id}",
+      "operation_specific": [
+        "not_found"
+      ]
+    },
+    {
+      "operation_id": "ck.root.identity.recovery_session.submit_proof",
+      "http_alias": "POST /_cokret/root/identity/recovery-sessions/{recovery_session_id}/proofs",
+      "operation_specific": [
+        "failed_precondition",
+        "recovery_policy_mismatch",
+        "recovery_evidence_unbound",
+        "recovery_session_challenge_mismatch"
+      ]
+    },
+    {
+      "operation_id": "ck.root.identity.recovery_session.complete",
+      "http_alias": "POST /_cokret/root/identity/recovery-sessions/{recovery_session_id}/complete",
+      "operation_specific": [
+        "not_found",
+        "failed_precondition",
+        "recovery_policy_mismatch",
+        "recovery_evidence_unbound",
+        "recovery_session_challenge_mismatch",
+        "device_recovery_ssk_generation_mismatch"
+      ]
+    },
+    {
+      "operation_id": "ck.self.keys.claim",
+      "http_alias": "POST /_cokret/self/keys/claim",
+      "operation_specific": [
+        "one_time_keys_exhausted",
+        "device_unknown"
+      ]
+    },
+    {
+      "operation_id": "ck.self.keys.backups.delete",
+      "http_alias": "DELETE /_cokret/self/keys/backups/{backup_id}",
+      "operation_specific": [
+        "not_found"
+      ]
+    },
+    {
+      "operation_id": "ck.self.keys.backups.get",
+      "http_alias": "GET /_cokret/self/keys/backups/{backup_id}",
+      "operation_specific": [
+        "not_found"
+      ]
+    },
+    {
+      "operation_id": "ck.self.keys.backups.list",
+      "http_alias": "GET /_cokret/self/keys/backups",
+      "operation_specific": [
+        "cursor_invalid"
+      ]
+    },
+    {
+      "operation_id": "ck.self.keys.backups.put",
+      "http_alias": "PUT /_cokret/self/keys/backups/{backup_id}",
+      "operation_specific": [
+        "key_backup_wire_schema_required",
+        "series_chain_broken",
+        "series_seq_not_monotonic",
+        "series_predecessor_not_found"
+      ]
+    },
+    {
+      "operation_id": "ck.self.keys.keypackages.claim",
+      "http_alias": "POST /_cokret/self/keys/keypackages/claim",
+      "operation_specific": [
+        "one_time_keys_exhausted",
+        "principal_unknown"
+      ]
+    },
+    {
+      "operation_id": "ck.self.keys.keypackages.consume",
+      "http_alias": "POST /_cokret/self/keys/keypackages/consume",
+      "operation_specific": [
+        "keypackage_already_consumed",
+        "keypackage_unknown"
+      ]
+    },
+    {
+      "operation_id": "ck.self.keys.keypackages.revoke",
+      "http_alias": "POST /_cokret/self/keys/keypackages/revoke",
+      "operation_specific": [
+        "keypackage_already_consumed",
+        "keypackage_unknown"
+      ]
+    },
+    {
+      "operation_id": "ck.self.keys.keypackages.upload",
+      "http_alias": "POST /_cokret/self/keys/keypackages/upload",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.keys.query",
+      "http_alias": "POST /_cokret/self/keys/query",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.keys.upload",
+      "http_alias": "POST /_cokret/self/keys/upload",
+      "operation_specific": [
+        "device_unknown",
+        "key_replay"
+      ]
+    },
+    {
+      "operation_id": "ck.self.media.ice_config",
+      "http_alias": "POST /_cokret/self/rtc/ice-config",
+      "operation_specific": [
+        "ice_config_denied",
+        "turn_credential_expired",
+        "media_service_binding_uncovered"
+      ]
+    },
+    {
+      "operation_id": "ck.open.invite_locator.resolve",
+      "http_alias": "POST /_cokret/open/invite-locators/resolve",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.open.mimi.group_info",
+      "http_alias": "GET /_cokret/open/mimi/flows/{flow_id}/group-info",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.open.mimi.identifier_query",
+      "http_alias": "POST /_cokret/open/mimi/identifiers/query",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.open.mimi.key_material",
+      "http_alias": "POST /_cokret/open/mimi/key-material",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.open.mimi.notify",
+      "http_alias": "POST /_cokret/open/mimi/flows/{flow_id}/notify",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.open.mimi.provider_directory",
+      "http_alias": "GET /_cokret/open/mimi/provider-directory",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.open.mimi.proxy_download",
+      "http_alias": "POST /_cokret/open/mimi/proxy-download",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.open.mimi.report_abuse",
+      "http_alias": "POST /_cokret/open/mimi/report-abuse",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.open.mimi.request_consent",
+      "http_alias": "POST /_cokret/open/mimi/consent/request",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.open.mimi.room_update",
+      "http_alias": "PUT /_cokret/open/mimi/flows/{flow_id}/update",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.open.mimi.submit_message",
+      "http_alias": "POST /_cokret/open/mimi/flows/{flow_id}/messages",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.open.mimi.update_consent",
+      "http_alias": "POST /_cokret/open/mimi/consent/update",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.moderation.report",
+      "http_alias": "POST /_cokret/self/moderation/report",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.policy.check",
+      "http_alias": "POST /_cokret/self/policy/check",
+      "operation_specific": [
+        "policy_unavailable",
+        "policy_stale"
+      ]
+    },
+    {
+      "operation_id": "ck.self.projection.flows",
+      "http_alias": "GET /_cokret/self/projection/flows",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.projection.morphs",
+      "http_alias": "GET /_cokret/self/projection/morphs",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.projection.spaces",
+      "http_alias": "GET /_cokret/self/projection/spaces",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.edge.push.notify",
+      "http_alias": "POST /_cokret/edge/push/notify",
+      "operation_specific": [
+        "push_gateway_unreachable",
+        "push_target_unknown",
+        "push_payload_too_large",
+        "profile_unsupported"
+      ]
+    },
+    {
+      "operation_id": "ck.edge.push.register_device",
+      "http_alias": "POST /_cokret/edge/push/register-device",
+      "operation_specific": [
+        "push_gateway_unreachable",
+        "push_token_invalid"
+      ]
+    },
+    {
+      "operation_id": "ck.edge.push.unregister_device",
+      "http_alias": "POST /_cokret/edge/push/unregister-device",
+      "operation_specific": [
+        "push_token_unknown"
+      ]
+    },
+    {
+      "operation_id": "ck.server.describe",
+      "http_alias": "GET /_cokret/describe",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.account.describe",
+      "http_alias": "GET /_cokret/self/account/describe",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.account.viewer",
+      "http_alias": "GET /_cokret/self/account/viewer",
+      "operation_specific": [
+        "source_refs_unverifiable"
+      ],
+      "description": "Holder-bound account self-read. If signed handle-claim evidence or profile/device source refs cannot be verified, the service MUST fail or omit the unverifiable evidence according to disclosure policy; it MUST NOT return an unsigned bare handle as authoritative identity."
+    },
+    {
+      "operation_id": "ck.self.account.update_profile",
+      "http_alias": "POST /_cokret/self/account/profile",
+      "operation_specific": [
+        "invalid_avatar_blob_ref",
+        "unsupported_profile_patch_path",
+        "failed_precondition"
+      ],
+      "description": "Profile self-service update. The protocol request body is AccountUpdateProfileRequestBody {patch}; accepted paths are display_name, avatar_blob_ref, and profile_fields.<key>. Existing bio fields migrate to profile_fields.bio; avatar_url is rejected on the Cokret protocol path."
+    },
+    {
+      "operation_id": "ck.self.account.subscribe",
+      "http_alias": "GET /_cokret/self/account/subscribe",
+      "operation_specific": [
+        "cursor_invalid",
+        "cursor_revoked",
+        "stream_dropped",
+        "stream_resync_required"
+      ]
+    },
+    {
+      "operation_id": "ck.self.account.cursor_revoke",
+      "http_alias": "POST /_cokret/self/account/cursor/revoke",
+      "operation_specific": [
+        "cursor_revoked"
+      ]
+    },
+    {
+      "operation_id": "ck.self.snapshot.head",
+      "http_alias": "GET /_cokret/self/snapshot/head",
+      "operation_specific": [
+        "snapshot_unavailable",
+        "snapshot_authority_unverified"
+      ]
     }
   ],
   "cross_links": {

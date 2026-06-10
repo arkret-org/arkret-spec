@@ -85,6 +85,8 @@ Content-Type: application/json
 
 请求 schema 见 [`media-operations.schema.json#/$defs/media_ice_config_request_body`](../../artifacts/schemas/media-operations.schema.json)。字段语义如下：
 
+客户端调用 `ice_config_endpoint` 前 MUST 读取当前 `ck.realm.media_service` state event，并校验该 event 被当前 epoch MLS governance binding 覆盖（见 [`media-service-binding.md` §2.1](./media-service-binding.md)）。覆盖校验失败 MUST fail closed(`media_service_binding_uncovered`)，不得向该 endpoint 请求 ICE/TURN credential。
+
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
 | `Authorization` | header | `bearer token` 或 `device proof` | required | 调用者认证，MUST 绑定 `actor_id` 与 `device_id`。 |

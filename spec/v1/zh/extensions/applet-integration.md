@@ -234,7 +234,7 @@ Commit MUST:
 - 将 package requested scopes、commit `approved_scopes`、当前 Realm/Circle policy 取交集后生成候选 Approved Capability Set。`approved_scopes` 是管理员意图，不是 grant truth。
 - 当 recomputed plan canonical `plan_digest` 与提交的 `plan_digest` 不一致时 MUST fail closed，返回 `applet_install_plan_mismatch`，并要求管理员重新 preview/approve。
 
-多事件 fan-out 不是分布式原子事务；安全性依赖 registration 无 grant 即无授权。preview-time reject MUST 不提交任何 durable event。reduce-time reject MUST 把 accepted refs 与 rejected refs 写入 install execution record 和 audit/projection。registration 成功但所有 grant 失败时 MUST 返回 rejected，标记 registration 无 effective install，并在 local projection / audit 显式显示 orphan registration。
+多事件 fan-out 不是分布式原子事务；安全性依赖 registration 无 grant 即无授权。preview-time reject MUST NOT 提交任何 durable event。reduce-time reject MUST 把 accepted refs 与 rejected refs 写入 install execution record 和 audit/projection。registration 成功但所有 grant 失败时 MUST 返回 rejected，标记 registration 无 effective install，并在 local projection / audit 显式显示 orphan registration。
 
 Revoke MUST revoke all active grants bound to applet + effective_scope + registration_epoch, revoke widget scoped token, revoke delegated session/device（若有），并在需要时触发 bot/ghost membership leave/remove 与 MLS epoch rotation requirement。`remove_ghost_membership` 依赖 active ghost projection 能枚举该 effective_scope 下仍 active 的 applet-managed ghost member；若 projection 不完整，MUST fail closed 并要求先重建 projection，不得按 namespace pattern 猜测成员。revoked effective install 继续尝试未来写入或调用 MUST fail closed，reason=`applet_revoked` 或更细 reason。
 

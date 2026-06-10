@@ -14,11 +14,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "bd3dd406d3b3ec13fffc032b49b6ed747546b74b5d6a06839a39ee971035547f"
+      "sha256": "428498153ea342ccba87f5882e3b91aeb2d570fe611dd14b0a05148c4b32e2c2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-envelope-negative-fixture.json",
-      "sha256": "c57a5221a17abf04bceace98aa58e4a75c1d7040d1b3d8aac58f42faaff3f8af"
+      "sha256": "c4219db560173555773dd2b791c895a10e44688ddade7c3ec1e019239ffa3bd0"
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
@@ -42,7 +42,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-      "sha256": "15eba51b541e87eba099396d9c0a1e9e3e19455bc346ca4ac91b87be592d9dc1"
+      "sha256": "8d702685d6921a053882ffa605b5d680cc049ec43230e0faed94677b3718531b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/reaction-fixture.json",
@@ -62,7 +62,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sync-fixture.json",
-      "sha256": "22452d88f6f039d93a58f48f84746e08a6fbf59d464e4f6a73663d6b96a4147e"
+      "sha256": "788216806a5c3023566d82336f16dddb876903bec61a4c26023ce3f700db235b"
     }
   ],
   "fixtures_root": "spec/v1/artifacts/fixtures",

@@ -48,7 +48,7 @@ Schema id: `ck.schema.circle.v1`
 | `metadata_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | 省略时继承父 Realm `metadata_encryption_floor`。effective = max(父 Realm, Circle)；只能收紧、不得放宽父 Realm floor，且 effective floor 是单向 ratchet(见 §7)。 | Circle 内对象的 metadata 加密下限，与 `content_encryption_floor` 对称;`e2ee_required` 时用户可读 metadata 进 `encrypted_metadata`。`encryption_profile=none` 时不得声明高于实际可执行能力的 metadata 加密保证。 |
 | `agent_participation` | no | `object{reply, accept_third_party_mention, act_on_behalf: boolean}` | 省略时继承父 Realm `agent_participation` ceiling。Circle ceiling 每一位只能收紧、不得放宽父 Realm ceiling（与 floor 同框架的 tighten-only 校验，违反返回 `failed_precondition`，`reason="agent_participation_ceiling_widen"`，见 §7）。它再被内层 Flow `agent_participation` 进一步收紧。详见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)。 | native personal agent 在该 Circle scope 内的参与上限。 |
 | `encryption_profile` | yes | `enum(none, mls_rfc9420)` | create-locked。父 Realm `encryption_profile=mls_rfc9420` 或 effective `content_encryption_floor=e2ee_required` 时 MUST 为 `mls_rfc9420`；父 Realm 允许明文时 MAY 为 `none`。未来 MLS 版本 / PQ-MLS / external provider 必须显式扩展 schema。 | Circle 内容加密形态。 |
-| `mls_group_ref` | conditional | `ref:mls` | 条件 `encryption_profile=mls_rfc9420`：满足时由 `ck.circle.create` reducer 派生、scope 绑定 `(realm_id, circle_id)`，`encryption_profile=none` 时 MUST 不存在。**reducer 派生，actor MUST NOT 携带**（actor-supplied create payload 出现该字段 reducer MUST `schema_violation`）。字段使用 `_ref` 是因为 `ck:mls:<profile>:<profile_id>` 是 profile-scoped typed reference；MLS 标准 payload 内的原始 group id 继续命名为 `mls_group_id`。 | 独立 MLS group 引用。 |
+| `mls_group_ref` | conditional | `ref:mls` | 条件 `encryption_profile=mls_rfc9420`：满足时由 `ck.circle.create` reducer 派生、scope 绑定 `(realm_id, circle_id)`，`encryption_profile=none` 时 MUST NOT exist。**reducer 派生，actor MUST NOT 携带**（actor-supplied create payload 出现该字段 reducer MUST `schema_violation`）。字段使用 `_ref` 是因为 `ck:mls:<profile>:<profile_id>` 是 profile-scoped typed reference；MLS 标准 payload 内的原始 group id 继续命名为 `mls_group_id`。 | 独立 MLS group 引用。 |
 | `state` | yes | `enum(active, archived, tombstoned)` | 同 [`common-fields.md` §5](./common-fields.md);tombstoned 不可逆。 | 生命周期。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `created_by` | yes | `did` | — | 创建者。 |
@@ -107,7 +107,7 @@ Morph.scope_circle_id         : id:circle | null
 - Reducer 在接受每个 event 时 MUST 固化 `effective_scope`。该值进入 Event envelope 与 Anchor/sub-anchor leaf；在 MLS-backed scope 中还进入 E2EE AAD 与 MLS governance binding 输入。后续 `scope_circle_id` 改绑不得重解释旧 event。
 - Effective history visibility = 父 Realm policy floor 与 Circle `history_visibility` 的更严格者。Circle MAY 收紧父 Realm,不得放宽父 Realm 的隐私/合规下限。
 - 改绑 `scope_circle_id` 默认 reducer 拒绝(`failed_precondition` `reason=scope_rebind_forbidden`);profile MAY 允许，但 MUST audit-paired high-risk update。所有已存在 Message / 子内容保留其写入时的 `effective_scope` 与旧 scope 的 history / key eligibility；新内容才进新 scope。客户端 MUST 把切分前后历史分段展示。
-- Structural Relation / position cell 的 `effective_scope` **MUST 不宽于参与端点中最窄的 scope**(取参与端点 scope 集合中最严格者作为关系事实自身的 scope)。具体例:`public Board (Realm-default)` 包含 `private Flow (Circle=HR-Conf)` 时,`contains` 关系事实与其 position cell 的 `effective_scope = Circle:HR-Conf`,**不是** Realm-default;非 Circle 成员看不到该 containment 关系、看不到 private Flow 的 rank/position,也看不到 board 上"此处有隐藏项"的可枚举元数据。
+- Structural Relation / position cell 的 `effective_scope` **MUST be no broader than 参与端点中最窄的 scope**(取参与端点 scope 集合中最严格者作为关系事实自身的 scope)。具体例:`public Board (Realm-default)` 包含 `private Flow (Circle=HR-Conf)` 时,`contains` 关系事实与其 position cell 的 `effective_scope = Circle:HR-Conf`,**不是** Realm-default;非 Circle 成员看不到该 containment 关系、看不到 private Flow 的 rank/position,也看不到 board 上"此处有隐藏项"的可枚举元数据。
 
 ### 6.2 `effective_scope` wire shape — submit-payload vs canonical reducer-output
 
@@ -179,38 +179,38 @@ Realm **不会**自动创建默认 Circle。Realm-default scope 是 Realm 自身
 | `realm` | 父 Realm membership / history visibility / policy floor | `Realm.encryption_profile` 指定的 Realm-default group / external provider / plaintext mode | `scope_circle_id=null` |
 | `circle` | Circle membership / history visibility / projection 裁剪，且受父 Realm policy floor 包裹 | `Circle.encryption_profile=none` 时为 plaintext delivery-only；`mls_rfc9420` 时为 Circle 独立 MLS group | `scope_circle_id` 指向 Circle |
 
-`encryption_profile`(Realm `enum(none, mls_rfc9420, external)` / Circle `enum(none, mls_rfc9420)`)是 **create-locked 的能力轴**:它只声明该 scope 用什么加密**机制**(有没有 MLS group),**不**决定哪些 Cokret 字段进入密文,也**不是**"内容是否加密"的开关。`none` 表示该 scope 结构上不是 / 不可能是 E2EE(bridge 到无 E2EE 外部网络、大型公开广播等诚实 opt-out);`mls_rfc9420` 表示该 scope 恒有一条 MLS group,具备随时启用 E2EE 的能力。**推荐默认**:任何将来可能加密的协作 Realm / Circle SHOULD 以 `mls_rfc9420` + `content_encryption_floor=allow_plaintext` 创建——钥匙常在手,后期把 floor 抬到 `e2ee_required` 即可原地启用加密,无需 tombstone 重建。
+`encryption_profile`（Realm `enum(none, mls_rfc9420, external)` / Circle `enum(none, mls_rfc9420)`）是 **create-locked 的能力轴**：它只声明该 scope 用什么加密**机制**（有没有 MLS group），**不**决定哪些 Cokret 字段进入密文，也**不是**“内容是否加密”的开关。`none` 表示该 scope 结构上不是 / 不可能是 E2EE（bridge 到无 E2EE 外部网络、大型公开广播等诚实 opt-out）；`mls_rfc9420` 表示该 scope 恒有一条 MLS group，具备随时启用 E2EE 的能力。**推荐默认**：任何将来可能加密的协作 Realm / Circle SHOULD 以 `mls_rfc9420` + `content_encryption_floor=allow_plaintext` 创建——钥匙常在手，后期把 floor 抬到 `e2ee_required` 即可原地启用加密，无需 tombstone 重建。
 
-是否真正加密、加密覆盖哪些字段,由两根 **enforcement floor** 独立声明,二者在 Realm 与 Circle 对称、Circle 不得低于 Realm、且只能单向收紧:
+是否真正加密、加密覆盖哪些字段，由两根 **enforcement floor** 独立声明，二者在 Realm 与 Circle 对称、Circle 不得低于 Realm、且只能单向收紧：
 
 | policy field | enum | 说明 |
 | --- | --- | --- |
-| `content_encryption_floor` | `allow_plaintext` / `e2ee_required` | 取值为 `e2ee_required` 时,Flow / Message / Morph / Blob content 的 `effective_scope` MUST 是 MLS-backed:Realm-default MLS 或 Circle MLS；这些写入不得落在 plaintext Circle。 |
-| `metadata_encryption_floor` | `allow_plaintext` / `e2ee_required` | Realm-wide metadata 加密下限，与 `content_encryption_floor` 对称;不得被 Circle、Space 或对象 profile 放宽。缺省规则：MLS 或 `content_encryption_floor=e2ee_required` Realm 为 `e2ee_required`，其他 Realm 为 `allow_plaintext`。 |
+| `content_encryption_floor` | `allow_plaintext` / `e2ee_required` | 取值为 `e2ee_required` 时，Flow / Message / Morph / Blob content 的 `effective_scope` MUST 是 MLS-backed：Realm-default MLS 或 Circle MLS；这些写入不得落在 plaintext Circle。 |
+| `metadata_encryption_floor` | `allow_plaintext` / `e2ee_required` | Realm-wide metadata 加密下限，与 `content_encryption_floor` 对称；不得被 Circle、Space 或对象 profile 放宽。缺省规则：MLS 或 `content_encryption_floor=e2ee_required` Realm 为 `e2ee_required`，其他 Realm 为 `allow_plaintext`。 |
 
 Circle encryption compatibility rules:
 
 - 父 Realm `encryption_profile=mls_rfc9420` 时，Circle `encryption_profile` MUST 为 `mls_rfc9420`。当 effective `content_encryption_floor` 取值为 `e2ee_required` 时适用同一规则。
   不满足上述规则的 `ck.circle.create` / `ck.circle.update` MUST `failed_precondition`(`reason=circle_encryption_below_realm_floor`)。
 - 父 Realm `encryption_profile=none` 且 effective `content_encryption_floor=allow_plaintext` 时，Circle `encryption_profile` MAY 为 `none` 或 `mls_rfc9420`。选择 `none` 只提供投递 / 查询 / projection 隔离；选择 `mls_rfc9420` 提供独立 cryptographic scope。
-- Circle 提供独立的 `content_encryption_floor` 收紧位,与 `metadata_encryption_floor` 对称:省略时继承父 Realm `content_encryption_floor`,effective content floor = max(父 Realm `content_encryption_floor`, Circle `content_encryption_floor`)。Circle 只能在父 Realm floor 之上**收紧**,不得放宽;声明低于 effective floor 的值 MUST `failed_precondition`(`reason=circle_encryption_below_realm_floor`)。`content_encryption_floor=e2ee_required` 仅在 `encryption_profile=mls_rfc9420` 时可声明;`encryption_profile=none` 的 Circle 声明 `e2ee_required` MUST `failed_precondition`(`reason=circle_encryption_below_realm_floor`,因 none scope 无 MLS-backed effective_scope 可承载密文)。
-- Circle `encryption_profile=none` 时，`mls_group_ref` MUST 不存在，`ck.mls.genesis` / `ck.mls.commit` / MLS Welcome 不适用于该 Circle。任何声明 `metadata_encryption_floor=e2ee_required` 的 plaintext Circle MUST 同时有可执行的 profile 说明如何加密对应 metadata；否则 reducer MUST reject。
+- Circle 提供独立的 `content_encryption_floor` 收紧位，与 `metadata_encryption_floor` 对称：省略时继承父 Realm `content_encryption_floor`，effective content floor = max（父 Realm `content_encryption_floor`，Circle `content_encryption_floor`）。Circle 只能在父 Realm floor 之上**收紧**，不得放宽；声明低于 effective floor 的值 MUST `failed_precondition`（`reason=circle_encryption_below_realm_floor`）。`content_encryption_floor=e2ee_required` 仅在 `encryption_profile=mls_rfc9420` 时可声明；`encryption_profile=none` 的 Circle 声明 `e2ee_required` MUST `failed_precondition`（`reason=circle_encryption_below_realm_floor`，因 none scope 无 MLS-backed effective_scope 可承载密文）。
+- Circle `encryption_profile=none` 时，`mls_group_ref` MUST NOT exist，`ck.mls.genesis` / `ck.mls.commit` / MLS Welcome 不适用于该 Circle。任何声明 `metadata_encryption_floor=e2ee_required` 的 plaintext Circle MUST 同时有可执行的 profile 说明如何加密对应 metadata；否则 reducer MUST reject。
 - Circle `encryption_profile=mls_rfc9420` 时，`mls_group_ref` 由 reducer 派生，Circle key MUST NOT 从 Realm-default MLS group 或其他 Circle key 派生。
 
 `metadata_encryption_floor` 语义:
 
 | value | 明文允许范围 | 必须加密范围 |
 | --- | --- | --- |
-| `allow_plaintext` | Realm / scope 路由字段、object id/kind、必要 causal refs、Flow / Message 用户可读 metadata、Space parent / rank 等结构 metadata | 无(metadata 不强制加密;content 是否加密由 `content_encryption_floor` 决定) |
+| `allow_plaintext` | Realm / scope 路由字段、object id/kind、必要 causal refs、Flow / Message 用户可读 metadata、Space parent / rank 等结构 metadata | 无（metadata 不强制加密；content 是否加密由 `content_encryption_floor` 决定） |
 | `e2ee_required` | 路由所需 `realm_id`、`effective_scope.kind`、不可逆 routing digest、policy-required subject、必要 causal refs、Flow `tracks`、`stage` / `state` | 用户可读 `metadata.title` / `metadata.summary` / `metadata.fields`、Message `metadata.fields`、mention / reply excerpt、search token、关系预览、附件文件名 |
 
-`e2ee_required` 档下,哪些 metadata 字段为换取服务端搜索 / projection 能力而对受托服务暴露明文,由独立的 `plaintext_visible_services` 声明控制(见 [`../crypto-media/encryption-and-audit.md` §2.3.0 / §2.8](../crypto-media/encryption-and-audit.md)),不再用额外的 metadata 加密档位表达。`realm_id`、kind、epoch、routing digest 等同步收敛边界字段在两档下都保持 wire 明文,不可加密。
+`e2ee_required` 档下，哪些 metadata 字段为换取服务端搜索 / projection 能力而对受托服务暴露明文，由独立的 `plaintext_visible_services` 声明控制（见 [`../crypto-media/encryption-and-audit.md` §2.3.0 / §2.8](../crypto-media/encryption-and-audit.md)）。`realm_id`、kind、epoch、routing digest 等同步收敛边界字段在两档下都保持 wire 明文，不可加密。
 
-Effective content floor = max(parent Realm `content_encryption_floor`, Circle `content_encryption_floor` if present)。比较顺序为 `allow_plaintext < e2ee_required`;`e2ee_required` 时该 scope 的 Flow / Message / Morph / Blob content `effective_scope` MUST 为 MLS-backed,plaintext content 写入 MUST `failed_precondition`(`reason=content_encryption_floor_violation`)。
+Effective content floor = max（parent Realm `content_encryption_floor`，Circle `content_encryption_floor` if present）。比较顺序为 `allow_plaintext < e2ee_required`；`e2ee_required` 时该 scope 的 Flow / Message / Morph / Blob content `effective_scope` MUST 为 MLS-backed，plaintext content 写入 MUST `failed_precondition`（`reason=content_encryption_floor_violation`）。
 
-Effective metadata floor = max(parent Realm `metadata_encryption_floor`, Circle `metadata_encryption_floor` if present, Space `child_scope_policy.metadata_encryption_floor` if in placement context, object profile requirement)。比较顺序为 `allow_plaintext < e2ee_required`;任何写入若低于 effective floor MUST `failed_precondition`(`reason=metadata_encryption_floor_violation`)。
+Effective metadata floor = max（parent Realm `metadata_encryption_floor`，Circle `metadata_encryption_floor` if present，Space `child_scope_policy.metadata_encryption_floor` if in placement context，object profile requirement）。比较顺序为 `allow_plaintext < e2ee_required`；任何写入若低于 effective floor MUST `failed_precondition`（`reason=metadata_encryption_floor_violation`）。
 
-**单向 ratchet(normative)**:任一 scope(Realm-default 或 Circle)的 effective content floor 与 effective metadata floor MUST 随时间**单调非降**。任何 `ck.realm.policy_components` / `ck.circle.update` 若使某 scope 的 effective content floor 从 `e2ee_required` 降回 `allow_plaintext`,MUST `failed_precondition`(`reason=content_encryption_floor_downgrade`);若使 effective metadata floor 降到更低等级,MUST `failed_precondition`(`reason=metadata_encryption_floor_downgrade`)。ratchet 约束的是 effective floor:抬高父 Realm floor(收紧)永远允许,只有**降低**被拒。该规则把"前期不加密、后期加密、不可撤销"做成密码学/治理双重不可逆,并堵住静默 downgrade 攻击面。对应负向向量 `ck.vector.e2ee.content_floor_downgrade_rejected.v1`、`ck.vector.e2ee.metadata_floor_downgrade_rejected.v1`、`ck.vector.circle.content_floor_below_realm_rejected.v1`,正向向量 `ck.vector.e2ee.in_place_enable.v1`。
+**单向 ratchet（normative）**：任一 scope（Realm-default 或 Circle）的 effective content floor 与 effective metadata floor MUST 随时间**单调非降**。任何 `ck.realm.policy_components` / `ck.circle.update` 若使某 scope 的 effective content floor 从 `e2ee_required` 降回 `allow_plaintext`，MUST `failed_precondition`（`reason=content_encryption_floor_downgrade`）；若使 effective metadata floor 降到更低等级，MUST `failed_precondition`（`reason=metadata_encryption_floor_downgrade`）。ratchet 约束的是 effective floor：抬高父 Realm floor（收紧）永远允许，只有**降低**被拒。该规则把 “前期不加密、后期加密、不可撤销” 做成密码学 / 治理双重不可逆，并堵住静默 downgrade 攻击面。对应负向向量 `ck.vector.e2ee.content_floor_downgrade_rejected.v1`、`ck.vector.e2ee.metadata_floor_downgrade_rejected.v1`、`ck.vector.circle.content_floor_below_realm_rejected.v1`，正向向量 `ck.vector.e2ee.in_place_enable.v1`。
 
 ### 7.1 Space child scope policy
 
@@ -336,7 +336,7 @@ Membership transition table（`membership` 复用 `ck.member.state` 的 `members
 - `encryption_profile=mls_rfc9420`:Circle 拥有独立 MLS group,独立 epoch,独立 key tree。**MUST NOT** 从 Realm-default MLS group key 派生 Circle key(否则全 Realm 都能解密)。
 - Realm 移除某 actor MUST 触发该 actor 所在所有 Circle 的 membership cascade；对 MLS-backed Circle 还 MUST 触发对应 MLS `remove` proposal,并在 Realm-default 也是 MLS-backed 时触发 Realm-default rotate。这是必要的密码学卫生,reducer-enforced。已知运维代价见 §10.3。
 - Circle MLS handshake (commit/welcome/proposal) 投递严格限于 Circle 成员，不进入 Realm-default sync 流。
-- MLS governance binding 的 scope 从单 `realm_id` 扩展为 tagged `effective_scope`。Realm-default MLS group 使用 `{kind:"realm", realm_id}`；Circle commit / welcome / genesis MUST 使用 `{kind:"circle", realm_id, circle_id}`，并绑定 `circle_id`、Circle membership frontier、Circle policy root 与父 Realm policy floor frontier。接收端验证时，`governance_binding.realm_id` / `circle_id` 与 `effective_scope` 任一不匹配 MUST fail closed；旧草案中的 Flow `track_name` 或 `flow_id` 不得参与 MLS key scope 判定。
+- MLS governance binding 的 scope 使用 tagged `effective_scope`。Realm-default MLS group 使用 `{kind:"realm", realm_id}`；Circle commit / welcome / genesis MUST 使用 `{kind:"circle", realm_id, circle_id}`，并绑定 `circle_id`、Circle membership frontier、Circle policy root 与父 Realm policy floor frontier。接收端验证时，`governance_binding.realm_id` / `circle_id` 与 `effective_scope` 任一不匹配 MUST fail closed；Flow `track_name` 或 `flow_id` 不得参与 MLS key scope 判定。
 
 ### 10.2 Anchor stream
 
@@ -351,7 +351,7 @@ Membership transition table（`membership` 复用 `ck.member.state` 的 `members
 操作上的缓解策略(profile MAY 实现,**不在 protocol normative 层强制**):
 
 - **批量 rotate**:profile MAY 把短时间窗内的多次 member removal 合并为单次 rotate proposal batch(MLS 协议本身支持 multi-proposal commit)。
-- **延迟 rotate 窗口**:profile MAY 声明 rotate 必须在 actor removal 后 ≤ X 完成。X 是该 profile 的 forward secrecy 窗口承诺,MUST 显式公开，且 MUST 不长于 profile 声明的最大可容忍泄露窗口(典型 ≤ 1 小时)。
+- **延迟 rotate 窗口**:profile MAY 声明 rotate 必须在 actor removal 后 ≤ X 完成。X 是该 profile 的 forward secrecy 窗口承诺,MUST 显式公开，且 MUST be no longer than profile 声明的最大可容忍泄露窗口(典型 ≤ 1 小时)。
 - **Circle 数量上限的运营建议**:产品上鼓励 Circle 少而稳定(参考 §11 UX 风险);profile MAY 软上限(例如单 Realm ≤ 64 Circle)以约束 delivery fanout 与 MLS rotate amplification 的最坏情况。
 
 对 MLS-backed Circle，替代方案(共享 Realm-default key 派生 Circle key、或惰性 rotate 直到下一次实际通信)会破坏 Circle 的密码学隔离前提，使其退化为 plaintext delivery-only scope,声明 MLS-backed 时 **MUST NOT** 采纳。

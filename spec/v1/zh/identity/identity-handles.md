@@ -107,7 +107,7 @@ Handle 分两层：**显示形态**面向用户，**canonical handle** 面向协
 
 每个 handle 都有唯一的 `user:domain` 形态。`acct:` MAY 在 claim 的 `handle_aliases[]` 中作为附加字段出现，但 **alsoKnownAs 比对、Directory 缓存键、Realm `delivery_binding` 物化** 一律 MUST 使用 `user:domain` 形态。verifier 收到只含 `acct:` 而无对应 `user:domain` 的 claim 时，MUST 把它视为外部互通别名，不得用它作 Cokret 内部权威 binding。
 
-`handle` 的 wire 形态由 [`artifacts/schemas/handle-claim.schema.json`](../../artifacts/schemas/handle-claim.schema.json) 强制：必须匹配 `<localpart>:<domain>`，且 `<localpart>` 已 canonicalize 为小写。`@<localpart>:<domain>`、`<localpart>@<domain>`、`acct:`、裸 host 等其它形态在 `handle` 中被 schema 拒绝；客户端 MAY 接受这种字符串作为输入捷径，但 normalize 前 MUST 不出现在签名 transcript、`alsoKnownAs`、缓存键或 Directory query 中。`acct:` 互通别名只能进入 `handle_aliases[]`。
+`handle` 的 wire 形态由 [`artifacts/schemas/handle-claim.schema.json`](../../artifacts/schemas/handle-claim.schema.json) 强制：必须匹配 `<localpart>:<domain>`，且 `<localpart>` 已 canonicalize 为小写。`@<localpart>:<domain>`、`<localpart>@<domain>`、`acct:`、裸 host 等其它形态在 `handle` 中被 schema 拒绝；客户端 MAY 接受这种字符串作为输入捷径，但 normalize 前 MUST NOT 出现在签名 transcript、`alsoKnownAs`、缓存键或 Directory query 中。`acct:` 互通别名只能进入 `handle_aliases[]`。
 
 ### 3.2 解析结果必含字段
 
@@ -259,7 +259,7 @@ claim_digest(c) = "sha256:" || hex( sha256( JCS( semantic_projection(c) ) ) )
 
 去除 `proofs` 与 server-attested hint 是为了让 `claim_digest` 只覆盖 claim 的**规范语义内容**而非签名包装与中间传输态，让同一 canonical claim 在任意 issuer 重签 / Directory 转发 / cache 层加注后始终产生相同 digest。
 
-**Forward-compat**: 未来 spec revision 在 handle_claim.v1 中加入新规范字段时，该字段名 MUST 同步加入上表；实现 MUST 拒绝白名单外字段进入 digest 计算，即便它出现在新 schema 里——直到 spec 显式扩表。同时新字段若是数组,MUST 在加入表的同时声明数组规范化策略(sorted / order-is-semantic 二选一);未声明的数组字段 MUST 不进入 digest。这保证不同 spec patch 版本之间 `claim_digest` 不会悄悄漂移。
+**Forward-compat**: 未来 spec revision 在 handle_claim.v1 中加入新规范字段时，该字段名 MUST 同步加入上表；实现 MUST 拒绝白名单外字段进入 digest 计算，即便它出现在新 schema 里——直到 spec 显式扩表。同时新字段若是数组,MUST 在加入表的同时声明数组规范化策略(sorted / order-is-semantic 二选一);未声明的数组字段 MUST NOT 进入 digest。这保证不同 spec patch 版本之间 `claim_digest` 不会悄悄漂移。
 
 #### 3.2.1.1 数组规范化规则（normative）
 
@@ -720,7 +720,7 @@ Handle 解析结果是带时间边界的绑定，不是永久身份事实。
 - verified handle cache MUST 绑定 `handle`（canonical `user:domain` 形态）、`subject`、issuer、DID Document version / digest、alsoKnownAs proof、issuer proof、verified_at、expires_at 和 resolver policy。claim 同时携带 `handle` 与 `handle_aliases[]` 时，缓存键 MUST 取 `handle`；`acct:` alias 只作为附加索引，但仍指向同一 cache entry。
 - alias lookup 命中缓存时，verifier MUST 跳转到 canonical `handle` 的 freshness re-check 路径：重新检查 TTL、issuer revocation、DID Document digest / version、alsoKnownAs proof 与 resolver policy。实现不得把 `handle_aliases[]` 中的 `acct:` 或其它互通别名当作独立 cache key 直接返回 verified claim，也不得为 alias 单独延长 freshness window。
 - handle cache 若含 `member_delivery_binding`，还 MUST 绑定 `member_delivery_binding.recipient_service_did`、claim digest、audience / scope、`service_acceptance_ref` / `policy_event_ref`（如有）；缓存结果不得跨 Realm 或跨组织上下文复用，除非 claim 明确授权。
-- DNS / HTTPS 解析结果的 TTL MUST 不超过底层 DNS TTL、HTTPS response cache headers、签名绑定 `expires_at`、DID Document cache TTL 和本地 resolver policy 上限中的最小值。未提供 TTL 时，verified cache SHOULD 不超过 24 小时；高风险授权或组织背书 SHOULD 使用更短 TTL 或实时 status check。
+- DNS / HTTPS 解析结果的 TTL MUST be no greater than底层 DNS TTL、HTTPS response cache headers、签名绑定 `expires_at`、DID Document cache TTL 和本地 resolver policy 上限中的最小值。未提供 TTL 时，verified cache SHOULD be no greater than 24 小时；高风险授权或组织背书 SHOULD 使用更短 TTL 或实时 status check。
 - 当 DID Document 移除对应 `alsoKnownAs`、issuer claim 被 revoke / expired、well-known 绑定变更、DNSSEC validation 失败、handle 被解析到不同 DID、或 resolver policy 更新时，缓存 MUST 失效或降级为 unverified。
 
 #### 6.1.2 撤销与失效信号

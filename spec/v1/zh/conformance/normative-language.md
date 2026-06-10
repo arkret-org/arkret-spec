@@ -42,7 +42,8 @@ see_also:
 - 默认章节为 normative；如果整节是解释、举例、迁移说明，节首应标 `_Informative._`。
 - JSON / YAML 示例统一以 `> _Example (informative)._` 引导，或在代码块前一行写 `*Example (informative).*`。
 - Mermaid 图与表格统一以 `*Figure N. <title> (informative).*` 或 `*Table N. <title> (normative).*` 引导。
-- 容器型表格（速查 / 决策树 / 字段速览）默认 informative；规范字段表（含 MUST / 必填）须显式标 normative。
+- 在 normative 章节内，字段表、schema 表、error code 表、operation 表和状态机表默认具有规范力；只有明确标为 quick reference、导航、示例、对照或 informative 的表格才是说明性内容。
+- 容器型表格（速查 / 决策树 / 字段速览）默认 informative；规范字段表（含 MUST / 必填）建议显式标 normative，但缺少显式标记不降低上一条所述规范力。
 
 ## 5. 关键字使用例
 

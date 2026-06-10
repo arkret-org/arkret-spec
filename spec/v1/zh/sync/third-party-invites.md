@@ -207,4 +207,4 @@ Realm 中的其他节点（Sync Service / 客户端本地 projection）在收到
 
 Claim 成功但 MLS Welcome / KeyPackage 派发尚未完成时，成员资格可以先进入 `claimed` / joined projection，但该成员对加密正文的客户端状态 MUST 走 [`client-sync.md` §15](./client-sync.md) 的 `decryption_pending` / timeout / recovery 机制；不得把 Welcome 缺失解释为 claim 回滚。若 KeyPackage 耗尽、过期或与 required capabilities 不匹配，邀请方或服务端 MUST 触发 `keypackage_refresh_required` 诊断/重试路径，并在新的 Welcome 到达后按普通 MLS governance binding 校验恢复。
 
-**统一不可枚举响应（normative）**：claim 失败响应 MUST 不区分上面 7 种触发；对外仅返回统一 `not_found`（或同形态错误），让攻击者无法通过响应差异判断 token 是否存在、是否过期、是否被撤销、邀请者是否离开 Realm。具体 reason_code 仅写入服务端 audit log。这条规则覆盖 §6 的"失败响应不得泄露 token 是否存在"。`ck.vector.invite.failure_indistinguishable.v1` 覆盖上面 7 种触发对外返回 byte-identical 响应（含 timing 类，差异 ≤ 50ms）。
+**统一不可枚举响应（normative）**：claim 失败响应 MUST NOT 区分上面 7 种触发；对外仅返回统一 `not_found`（或同形态错误），让攻击者无法通过响应差异判断 token 是否存在、是否过期、是否被撤销、邀请者是否离开 Realm。具体 reason_code 仅写入服务端 audit log。这条规则覆盖 §6 的"失败响应不得泄露 token 是否存在"。`ck.vector.invite.failure_indistinguishable.v1` 覆盖上面 7 种触发对外返回 byte-identical 响应（含 timing 类，差异 ≤ 50ms）。

@@ -44,6 +44,7 @@ Schema id: `ck.schema.event.v1`
 | `event_id` | yes | `id:event` | 事件稳定 typed ID。事件 canonical digest / proof hash 见 `conformance-vectors.md`。 | 事件 ID。 |
 | `kind` | yes | `string` | 标准 effect kind SHOULD 使用 `ck.` 前缀。Registry 可声明 `cell_family`、`cell_subject`、`lattice` 和 `bottom`，供 Move effect / 兼容 reducer 使用。 | 事件 kind。 |
 | `realm_id` | yes | `id:realm` | Realm create 可在 payload 中建立。 | 所属 Realm。 |
+| `effective_scope` | reducer-stamped | `object` | Reducer 接受 Event 时从 Realm/Circle scope 物化并 immutable 写入；进入 canonical Event bytes、Anchor/sub-anchor leaves、E2EE AAD 与 MLS governance binding input。Actor-supplied submit payload MUST NOT 携带该字段，reducer MUST `schema_violation` (`reason=effective_scope_reducer_managed`)。 | 事件有效作用域。 |
 | `actor_id` | yes | `did` | 必须匹配 proof 控制链(`executed_by` 缺失时);`executed_by` 存在时 proof 控制链对齐 `executed_by`。 | 事件归属的 principal of record。 |
 | `executed_by` | conditional | `did` | 仅 agent 代用户执行时出现。必须是 accountable to `actor_id` 的 native personal agent principal。出现时 MUST 与 `authorization_ref` 同时出现。进入 canonical bytes、event digest、E2EE AAD。Receiver MUST 校验 proof `verification_method` 解析到 `executed_by`。 | act-on-behalf 时实际签发该 wire write 的 agent。 |
 | `authorization_ref` | conditional | `id:grant` 或 `id:event` | 仅 `executed_by` 存在时必填。优先引用已物化的 `ck:grant:*`；若授权仍以 Event 表达，则引用产生该 grant / delegation 的 accepted Event。Reducer MUST 校验该 grant / delegation 覆盖目标 event kind / resource / fresh approval,并在 effective validity window 内。 | act-on-behalf grant / delegation 引用。 |
@@ -117,7 +118,7 @@ Event MUST 被签名。Reducer MUST 拒绝任何 signature、schema、capability
 
 ### 2.4 Payload 与 type 约定
 
-Event Envelope 的顶层 `kind` 是唯一 payload discriminator。State convergence 不再从 envelope 推导 state slot；Move effect 必须显式给出 cell id 与 lattice op。
+Event Envelope 的顶层 `kind` 是唯一 payload discriminator。State convergence 只能从 Move effect 显式给出的 cell id 与 lattice op 推导，不从 envelope kind 隐式推导 state slot。
 
 - `payload.type` 不得重复写入 `ck.*` Event kind。
 - Payload 引用被创建对象时通过 `payload.object.id` 或 `payload.target_ref` 等 typed-id 字段表达，前缀（`ck:flow:` 等）即对象种类，不写单独的 `payload.object.type`。
@@ -142,6 +143,8 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 - 相同 `(actor_id, actor_seq)` 的多个 event 是 sibling fork。它们没有隐含先后顺序；展示排序可使用 HLC，但协议状态生效必须使用 Move preconditions、Anchor frontier 与 Lattice join。
 - 实现 MUST 对同一 `(actor_id, actor_seq, prev_frontier_digest)` 接受的 sibling 数量设置上限；v1 public profile 的上限为 16，超过后 MUST quarantine 或要求 actor chain repair。
 - 被判定为 rejected 的 fork 不推进 actor accepted frontier，也不得作为后续 accepted event 的 predecessor。
+
+`prev_frontier_digest` 的 canonical 计算为 `sha256:` + hex(SHA-256(JCS(sort_unique(prev_refs))))；`prev_refs` 先按 bytewise UTF-8 升序排序并去重，输入为空数组时编码为 `[]`。若 Realm 的 `digest_algorithm` 不是 `sha256`，同一结构使用该 Realm 声明的 digest algorithm，并把算法名前缀写入结果。该 digest 只用于 sibling fork 计数分桶，不参与 winner 选择。
 
 ### 2.7 Requirements 与 critical extensions
 

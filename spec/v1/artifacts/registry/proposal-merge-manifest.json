@@ -11,7 +11,8 @@
       "CKP-0010",
       "CKP-0011",
       "CKP-0012",
-      "CKP-0013"
+      "CKP-0013",
+      "CKP-0016"
     ],
     "normative_source_rule": "Once a CKP is accepted and merged, implementation requirements live only in zh/, artifacts/schemas, artifacts/registry, artifacts/openapi, artifacts/profiles, and artifacts/fixtures. Proposal files remain rationale and history."
   },
@@ -202,6 +203,40 @@
             "artifacts/registry/operations-error-mapping.json",
             "artifacts/openapi/cokret-service-api.openapi.yaml",
             "artifacts/bindings/non-http-bindings.yaml"
+          ]
+        }
+      ]
+    },
+    {
+      "ckp": "CKP-0016",
+      "title": "Agent Participation Policy",
+      "status": "accepted_merged",
+      "merged_on": "2026-06-09",
+      "proposal_file": "proposals/0016-agent-participation-policy.md",
+      "merged_sections": [
+        {
+          "topic": "agent participation ceilings, selection, and dispatch gates",
+          "targets": [
+            "zh/models/realm-and-space.md",
+            "zh/models/circle.md",
+            "zh/models/flow-and-message.md",
+            "zh/authz/capabilities.md",
+            "zh/models/private-objects.md",
+            "zh/sync/service-surface.md",
+            "zh/sync/service-http-binding.md",
+            "zh/conformance/conformance-profiles.md"
+          ]
+        },
+        {
+          "topic": "agent participation machine contracts",
+          "targets": [
+            "artifacts/schemas/agent-operations.schema.json",
+            "artifacts/schemas/realm.schema.json",
+            "artifacts/schemas/circle.schema.json",
+            "artifacts/schemas/flow.schema.json",
+            "artifacts/registry/contract-catalog.json",
+            "artifacts/registry/operations-error-mapping.json",
+            "artifacts/profiles/conformance-profiles.json"
           ]
         }
       ]

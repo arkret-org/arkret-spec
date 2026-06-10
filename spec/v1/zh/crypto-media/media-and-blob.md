@@ -82,46 +82,20 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 
 ### 3.1 AEAD nonce uniqueness（normative）
 
-AEAD nonce 在同一 `key_ref` 下复用 = 该 key 在所有曾用 nonce 上的明文被同时解密 = **整个 key catastrophic compromise**。Cokret MLS application key 在同一 epoch 内被所有群成员设备共享，如果多设备并发加密大量 attachment / blob,**naive random 96-bit nonce** 在 ~2^48 次操作后(birthday bound)有显著碰撞概率，且任何单次碰撞都击穿整个 epoch。因此 v1 wire **MUST** 满足下列 nonce 构造规则:
+AEAD nonce 在同一 `key_ref` 下复用会使该 key 下使用相关 nonce 的密文同时失去机密性与完整性。通用 nonce 派生公式、`N_AEAD` 定义、counter 持久化、跨设备前缀校验、replay 防护与 AAD binding 的唯一规范源是 [`../conformance/encoding.md` §10.1](../conformance/encoding.md)。Blob / attachment envelope 的 `purpose` 取值固定为 `"blob-attachment"`。
 
-下文 `N_AEAD` 指所选 AEAD algorithm 的 nonce 字节长度:XChaCha20-Poly1305 → 24；AES-GCM → 12（与第 3 条 wire encoding 一致）。
+1. **Wire encoding**: `nonce` 字段 base64url 编码 N_AEAD 字节(XChaCha20-Poly1305 → 24 bytes;AES-GCM → 12 bytes);接收方 MUST 在解密前校验 nonce 长度匹配 AEAD algorithm 声明。
 
-1. **派生 schema (normative)**:`nonce = sender_nonce_prefix || device_nonce_counter_be64`。`sender_nonce_prefix` 是每个 `(key_ref, epoch, device_id, purpose, aead_profile)` 的发送者 nonce 域，长度为 `N_AEAD - 8` 字节；`device_nonce_counter_be64` 是 8 字节 unsigned big-endian 单调计数器。具体形态:
+2. **AAD binding**: Blob / attachment envelope 的 AEAD AAD 必须满足 encoding §10.1 的三元组绑定，并额外绑定本节 envelope 中的 `media_type`、`size_bytes` 与任何 profile 声明的 content policy digest。
 
-    ```text
-    sender_nonce_prefix = MLS-Exporter(
-        label   = "cokret-aead-sender-nonce-prefix-v1",
-        context = canonical-bytes(
-            { "key_ref": <key_ref-canonical>,
-              "epoch": <mls-epoch>,
-              "device_id": <sender-device-id>,
-              "purpose": "blob-attachment",
-              "aead_profile": <aead-profile-id> }
-        ),
-        length  = N_AEAD - 8
-    )
-
-    nonce = sender_nonce_prefix || device_nonce_counter_be64
-    ```
-
-    `device_nonce_counter` MUST 单调递增,**每设备**单独维护；同一设备同一 epoch 内 MUST NOT 重用同一 counter 值。设备 MUST 在持久化存储中保留 counter,以防进程重启回退；若无法恢复该 epoch 的本地 counter,设备 MUST 先发起 MLS Commit 推进到新 epoch,并在新 epoch 从 0 初始化 counter 后再发送新的 AEAD payload。MUST NOT 在未知历史的同一 epoch 内用 jump counter 继续发送。
-
-2. **跨设备保证**:同一 `(key_ref, epoch, purpose, aead_profile)` 下，每个 active sender 的 `sender_nonce_prefix` MUST 唯一。接收方按 sender `device_id` 重算 `sender_nonce_prefix` 并校验 nonce 前缀；若两个 active sender 的前缀冲突，或 nonce 前缀与声明 sender 不匹配，receiver MUST fail closed(`aead_nonce_sender_domain_collision`)。同一设备内的递增 counter 保证设备内 nonce 不同。
-
-3. **Wire encoding**: `nonce` 字段 base64url 编码 N_AEAD 字节(XChaCha20-Poly1305 → 24 bytes;AES-GCM → 12 bytes);接收方 MUST 在解密前校验 nonce 长度匹配 AEAD algorithm 声明。
-
-4. **AAD binding**: AEAD AAD MUST 至少绑定 `(key_ref, ciphertext_digest, nonce)` 三元组的 canonical 形态；这阻止把同一 (key, nonce) 下的 ciphertext 与另一 AAD 配对解密。
-
-5. **禁止形态**: 实现 **MUST NOT** 使用以下 nonce 来源:
+3. **禁止形态**: 实现 **MUST NOT** 使用以下 nonce 来源:
    - 纯随机 96-bit nonce(birthday bound 不够);
    - 全局共享 counter(协调成本 / 同步攻击面);
    - 用户输入派生(可控 = 可碰撞);
    - HMAC/Hash 输出截断后直接作为完整 nonce 的形态；
    - 任何不绑定 device_id + counter 的形态。
 
-6. **接收方 replay 防护**:接收方 MUST 维护 per-(key_ref, epoch, device_id) 已见 counter 集合或等价无误判结构；重复 counter MUST 触发 `failed_precondition` reason=`aead_nonce_counter_replay`。
-
-`cleartext_sha256` 字段 v1 不再作为附件 metadata 标准字段：在 E2EE Realm 中泄露明文 hash 会破坏内容机密性（短/可预测明文可被离线枚举）。Blob / attachment 加密 wire 形态是 [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json)；producer 必须提供 `ciphertext_digest`，不得提供明文 hash。若 deployment 出于审计需要保留 plaintext commitment，必须使用每事件随机 salt 的 commitment 或服务持有的 HMAC / pepper commitment，边界见 [`encryption-and-audit.md` §2.3.1](./encryption-and-audit.md)。普通 E2EE 附件 metadata 只暴露 `ciphertext_digest`。
+E2EE 附件 metadata MUST 使用 [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json) 的 wire 形态。Producer 必须提供 `ciphertext_digest`，不得提供明文 hash；若 deployment 出于审计需要保留 plaintext commitment，必须使用每事件随机 salt 的 commitment 或服务持有的 HMAC / pepper commitment，边界见 [`encryption-and-audit.md` §2.3.1](./encryption-and-audit.md)。普通 E2EE 附件 metadata 只暴露 `ciphertext_digest`。
 
 ## 4. Thumbnail
 

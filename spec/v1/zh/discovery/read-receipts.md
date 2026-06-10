@@ -118,7 +118,7 @@ Realm MAY 通过 `ck.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 
 - 该策略是**软声明 / 合规承诺**，不是密码学强制。`ck.receipt.read` 由客户端自愿生成，恶意或不合规客户端始终可以"看了不报"，与 audited E2EE 的 RYW receipt（[`crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md) §4）不同。Realm policy MUST NOT 把 `ck.receipt.read` 当作密码学审计回执使用。
 - 客户端 MUST 在 join Realm / 进入 Flow 时明示当前生效 `disclosure` 与 `visibility`，并在用户偏好 UI 中标注该 scope 的开关是否被 policy 锁定。
-- `disclosure="required"`：合规客户端 MUST 不允许用户在该 scope 把 `ck.read_receipt.preferences` 设为 `send=false`，并 SHOULD 在每次进入 track 时按 §2.2 发送至少一条覆盖当前可见 head 的 receipt。
+- `disclosure="required"`：合规客户端 MUST NOT 允许用户在该 scope 把 `ck.read_receipt.preferences` 设为 `send=false`，并 SHOULD 在每次进入 track 时按 §2.2 发送至少一条覆盖当前可见 head 的 receipt。
 - `disclosure="disabled"`：合规客户端 MUST NOT 生成该 scope 的 `ck.receipt.read`；Sync Service 收到时 SHOULD 丢弃并返回或广播 `policy_violation` 语义。Read Cursor 不受影响。
 - `visibility="private"`：Sync Service MUST 仅向 receipt 引用的 `event_id` 的发送者 fanout，不得广播给其他成员。Push Gateway 同样不得据此产生通知。
 - Child Realm policy MUST 等于或更严格于父策略，同时不得破坏父策略声明的合规下限。visibility 仅允许 `public→members→private` 方向收紧。disclosure 的隐私收紧方向是 `optional→disabled`；父策略为 `required` 时，child 不得降到 `optional` 或 `disabled`，除非父 policy 显式声明 `allow_child_privacy_tightening_against_required=true`。放宽方向（例如父 `disabled` → 子 `required`、父 `private` → 子 `public`）MUST 被 reducer 拒绝，与 `scope_overrides_allowed` 取值无关——`scope_overrides_allowed=true` 仅允许 child 在上述限制内进一步收紧，`scope_overrides_allowed=false` 要求 child 完全继承父策略。

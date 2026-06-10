@@ -169,7 +169,7 @@ MLS KeyPackage key 用于加入加密 Realm。
 - MUST 由有效 device key 或 principal signing key 签名
 - MUST 有发布时间与过期时间
 - SHOULD 单次或短期使用
-- 被撤销设备的 KeyPackage MUST 不再用于新加密
+- 被撤销设备的 KeyPackage MUST NOT 用于新加密
 
 ## 4. Device Record
 
@@ -195,7 +195,7 @@ MLS KeyPackage key 用于加入加密 Realm。
 
 ### 4.1 Principal Control Event Stream
 
-设备、session、recovery 和 KeyPackage 有效性属于 principal 级状态，不属于任意 Collaboration Realm。Cokret v1 使用 **Principal Control Event Stream** 承载这些 durable identity state（其归属的 Realm 即 [Principal Control Realm](../models/realm-and-space.md#27-realm-角色分类normative)，与 Collaboration Realm 在 `models/realm-and-space.md` §2.7 中正式分类）。
+设备、session、recovery 和 KeyPackage 有效性属于 principal 级状态，不属于任意 Collaboration Realm。Cokret v1 使用 **Principal Control Event Stream** 承载这些 durable identity state（其归属的 Realm 即 [Principal Control Realm](../models/realm-and-space.md#28-realm-角色分类normative)，与 Collaboration Realm 在 `models/realm-and-space.md` §2.8 中正式分类）。
 
 当 `ck.device.authorize`、`ck.device.revoke`、`ck.device.list_update` 或 `ck.session.grant` 以 `ck.schema.event.v1` Event Envelope 传播时：
 
@@ -306,6 +306,8 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
   "old_did": "did:web:<host>",
   "new_did": "did:webvh:<scid>:<host>",
   "purpose": "principal_method_upgrade",
+  "trust_domain": "ck:trust_domain:<deployment-or-realm>",
+  "audience": ["did:web:registry.example"],
   "issued_at": "2026-05-19T00:00:00Z",
   "transfer_evidence": {
     "old_did_document_canonical_digest": "sha256:<64-hex>",
@@ -338,7 +340,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 - `inception_public_key_fingerprint` 必须 byte-for-byte 等于 `did:web` DID Document 中 inception key 对应的那条 `verificationMethod[]` 条目（即 §5.0.5.3 step 3 中签名验证命中的条目；§5.0.2 只要求 inception key **出现在** `verificationMethod` 中，不固定其下标）的派生 fingerprint;同时必须在 `transfer_evidence` 中以 user-readable 形式呈现给 receiver(便于 receiver 二次校验)。
 - `user_oob_confirmation_id` 是 user-side 不透明 token——客户端 SHOULD 把 OOB 确认结果写入 user-private secret storage,服务端 / receiver 不 trust 该字段为真实人类确认证据，但**保留**以便审计回放与 UI 重现。`user_oob_confirmation_method` 是枚举 hint,receiver MAY 用它把"通过弱通道(independent_channel)确认的迁移"打上额外的低信任标记。
 - 整个 transfer envelope MUST 在签名 transcript 中包含 `old_did_document_canonical_digest`——这一字段 freezes 攻击者对 hosting domain 在升级时刻**之后**继续替换 DID Document 的可能性(任何替换都会让 hash 不再匹配 receiver 拉取的新 document)。
-- **Replay 域绑定(`audience`)**:升级 transition envelope 的 `audience`(见 `ck.schema.did_continuity_proof.v1`)在本流程中是 **OPTIONAL**——默认走 broadcast-style(`audience` 省略),因为升级证明的可信度由 `signature_chain` 双签(inception key + entry-0 controller key)与 `transfer_evidence` 完整承载，不依赖单一 verifier 范围。当部署希望把某次升级证明限定到特定 Realm / registry service 范围以防跨协议 / 跨 Realm replay 时,SHOULD 显式填写 `audience`;此时列在 `audience` 外的 verifier MUST reject(语义与 [identity-did.md §4.2](./identity-did.md) continuity proof 的 `audience` 一致)。
+- **Replay 域绑定(`trust_domain` / `audience`)**:升级 transition envelope MUST 在签名 transcript 中包含当前接收语境的 `trust_domain` 与至少一个 `audience`。Receiver MUST 校验 `trust_domain == current_receive_context.trust_domain`，且自身 service DID、Realm registry DID 或明确配置的 verifier id 位于 `audience` 中；任一不匹配 MUST reject `inception_upgrade_evidence_insufficient`。该绑定与 `signature_chain` 双签、`transfer_evidence` 一起构成升级证明，防止合法升级 envelope 被跨 verifier / 跨 trust domain 重放。
 - **反向 acceptance**:本节的双签 `signature_chain` 已在**同一 envelope 内**承载新 DID 侧的接受证明——`signature_chain[1]` 由 `did:webvh` entry-0 controller key(新 method 主体)签署，即等价于 [identity-did.md §4.2](./identity-did.md) 要求的反向 `CokretContinuityAccepted`,无需新 DID 侧再发独立 acceptance Event。即:跨 method 升级以"单 envelope 双签"满足双向 continuity,而 §4.2 的"`CokretContinuityProof` + 反向 `CokretContinuityAccepted` 两个 service entry"模式适用于原 DID 仍持续可解析的同 method / 一般迁移场景。
 
 ##### 5.0.5.3 Receiver 验证规则
@@ -351,8 +353,9 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
    > 说明：`inception_upgrade_evidence_max_age` 是**在线升级 transfer evidence 新鲜度**的独立常量，与 [`identity-did.md` §3.4](./identity-did.md) `did:webvh` outage 期 per-entry cache age 7 天上限**语义域不同**（前者约束升级证据的拉取时效，后者约束 outage cache entry 的可用性）。两者当前**取值恰好相同（168h / 7 天）但不绑定**：调整任一处不应自动推导改动另一处，引用方 MUST 各自独立解读。
 3. 校验 `signature_chain` 两段签名:inception key 签名(`verification_method` 必须出现在被 hash 的 old document `verificationMethod[]` 内)+ `did:webvh` entry-0 controller key 签名(必须能在 `did:webvh` `did.jsonl` entry 0 找到)。任一失败 → reject `inception_upgrade_signature_chain_invalid`。
 4. 校验 `inception_public_key_fingerprint`,确认它等于步骤 3 中签名验证命中的那条 `verificationMethod[]` 条目的派生 fingerprint(不要求该条目位于 index 0);失败 → reject `inception_upgrade_fingerprint_mismatch`。
-5. 校验 `did:webvh` `entry 0` 的 SCID / entry hash / controller proof(标准 `did:webvh` inception 验证)——这一段独立于 `did:web` 阶段。
-6. 写入"该 principal 已通过 §5.0.5 跨 method 升级"标记；后续 Event 的 `actor_id` MAY 是 `did:web:...`(历史 Event)或 `did:webvh:...`(升级后 Event);receiver MUST 把两者视作同一 principal,但**不接受**任何新签名的 Event 仍引用 `did:web` inception key——升级后 inception key MUST 进入 `did:webvh` rotation 链或销毁(§5.0.1 步骤 5)。
+5. 校验 `trust_domain` 与 `audience` 域绑定；失败 → reject `inception_upgrade_evidence_insufficient`。
+6. 校验 `did:webvh` `entry 0` 的 SCID / entry hash / controller proof(标准 `did:webvh` inception 验证)——这一段独立于 `did:web` 阶段。
+7. 写入"该 principal 已通过 §5.0.5 跨 method 升级"标记；后续 Event 的 `actor_id` MAY 是 `did:web:...`(历史 Event)或 `did:webvh:...`(升级后 Event);receiver MUST 把两者视作同一 principal,但**不接受**任何新签名的 Event 仍引用 `did:web` inception key——升级后 inception key MUST 进入 `did:webvh` rotation 链或销毁(§5.0.1 步骤 5)。
 
 ##### 5.0.5.4 不允许的简化
 

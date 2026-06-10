@@ -38,12 +38,27 @@
     "frank_to_franking_proof_noun": "Moderation franking objects use the full franking_proof noun (4 entries).",
     "verb_noun_bridge_collapse": "Capability actions converged back to noun form matching their target event kind. The earlier verb-form action names (.manage / .modify / create_*) are forbidden; new IAM tools can use the event kind string verbatim as the action token. 6 entries; v3 (2026-05-24). See authz/capabilities.md §5.0a.",
     "grant_constraint_single_kind_ids": "Grant constraint fields that carry one concrete protocol identifier kind use `_ids`; `_refs` remains reserved for causal/proof/schema/content-addressed or polymorphic reference material.",
+    "metadata_encryption_floor_rename": "Wire field metadata_encryption_profile renamed to metadata_encryption_floor.",
     "key_backup_kdf_hash_to_digest_algorithm": "Key backup KDF parameter algorithm selectors use digest_algorithm; hash is reserved for actual digest material and internal JSON Schema defs.",
     "brand_namespace_cx_to_ck": "Wire/brand namespace renamed from the legacy `contrix` brand to `cokret`. Every wire token prefix `ck.` becomes `ck.` and every typed-id prefix `ck:` becomes `ck:` across operation_id, event_kind, schema_id, capability action, id_kind, error code, vector id, and profile id. The bare brand strings `contrix` / `Contrix` and the token prefixes `ck.` / `ck:` are hard_reject on the current wire and in current identifiers (allowed only in CHANGELOG / migration docs / negative drift fixtures). HTTP paths additionally moved to the versionless trust-circle namespace `/_cokret/<segment>/...` (see sync/service-http-binding.md §2.1); the legacy flat paths and `/api/v1` / `/cokret/v1` prefixes are recorded in removed-operation-ids.json. Mechanical, single design decision; the entries below are representative anchors, the rule applies to the whole token space.",
     "operation_id_trust_surface_segment": "Scheme B: operation_id now encodes its trust-surface classifier as the mandatory leading segment (ck.<surface>.<resource>.<action>, surface in {self,peer,edge,root,find,gate,open}), matching the HTTP path's first segment 1:1. 108 operations gain the surface prefix; peer.* were already compliant and ck.server.describe (pre-auth root meta, no surface segment) is the sole exception. grpc service names gain the PascalCase surface prefix and mq topics the lowercase surface segment in lockstep. Single design decision; entries are mechanical applications.",
     "agent_applet_interop_session_rename": "Agent and applet session surfaces renamed from the ambiguous `protocol_session` (which reads as the ambient Cokret protocol) to `interop_session`, naming the external agent-to-agent interop relationship. Event kinds ck.{agent,applet}.protocol_session.* -> ck.{agent,applet}.interop_session.*; the agent capability action namespace ck.agent.session.* (start/cancel/stream_status/attach_artifact/read_transcript) -> ck.agent.interop_session.*; the typed id and schema payload defs use the agent_interop_session_* / applet_interop_session_* short form. Single design decision."
   },
   "entries": [
+    {
+      "id": "metadata_encryption_profile",
+      "kind_class": "wire_field_name",
+      "migration_group": "metadata_encryption_floor_rename",
+      "since_revision": "2026-06-08",
+      "rejection_level": "hard_reject",
+      "replacement": "metadata_encryption_floor",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Wire field renamed to metadata_encryption_floor. Current v1 parsers MUST reject metadata_encryption_profile."
+    },
     {
       "id": "cx.",
       "kind_class": "wire_value_format",

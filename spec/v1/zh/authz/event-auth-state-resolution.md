@@ -335,13 +335,16 @@ pre_state = joined_state(A.predecessor_refs)
 new_moves = A.frontier - union(predecessor.frontier)
 
 for M in deterministic_order(new_moves):
-  verify_move(M, pre_state)
+  if verify_move(M, pre_state) fails:
+    reject A with rejected_anchor(reason=move_verification_failed)
 
 post_state = apply_all_effects_atomically(pre_state, new_moves)
 assert merkle_root(post_state) == A.state_root
 ```
 
 同一 Anchor 内的 `new_moves` 视为并发批。一个 Move MUST NOT 通过读取同批另一个 Move 的 effect 满足 precondition。若需要顺序，提交方 MUST 分成多个 Anchor，或在 `refs(role="after")` 中声明并由 anchorer 按下一 Anchor 处理。
+
+Anchor frontier 是 all-or-nothing：anchorer MUST NOT 把在 batch pre-state 下无法通过 `verify_move` 的 Move 放入 frontier。Receiver 发现任一 `new_moves` 校验失败时 MUST 拒绝整个 Anchor；失败 Move 的 effects 不进入任何 cell `join()` 输入、不进入 `state_root`，也不得被标为 `effective`。节点 MAY 把这些 Move 保留为 pending / diagnostic 输入，但必须等生产者重新基于有效 Anchor frontier 提交。
 
 同批配对 invariant 是例外形式的**批级验证**，不允许读取同批 effect：若业务 Event 携带 `refs[role="audit_pair"]`，anchorer / reducer MUST 在应用任何 effect 前验证该 ref 指向同一 Anchor batch 内的 `ck.audit.accessed` event，且 audit payload 的 `paired_event_id` 与 `paired_event_digest` 回指该业务 Event。配对失败时拒绝业务 Event；audit Event 自身仍可按普通 durable Event 入库，供失败审计和告警使用。该规则用于 `ck.flow.watch.set.others` 等 fail-closed 隐私门槛，不改变 precondition 读取模型。
 
@@ -553,9 +556,13 @@ join(moves, cell_schema) -> value | ⊥:
       return ⊥
     if siblings is non-empty:
       // 取共享 basis 后唯一新 value（已在上一步保证唯一）
+      if count(distinct(siblings.map(b))) > 1:
+        return ⊥
       basis_required = unique(siblings.map(b))
       if basis_required != settled and basis_required is not null:
         return ⊥                  // basis 不匹配 pre-state
+      if count(distinct(siblings.map(v))) > 1:
+        return ⊥
       current = unique(siblings.map(v))
   return current
 
@@ -587,16 +594,16 @@ validate_op(op, cell_schema, move_envelope):
 
 ```text
 join(moves) -> state | ⊥:
-  ordered  = topological_sort(moves)
   state    = parameters.initial_state
-  for M in ordered:
-    eff = find transition effect for this cell
-    if eff.op.from != state: return ⊥          // 非法 transition
-    if eff.op.(from,to) ∉ parameters.allowed_transitions: return ⊥
-    state = eff.op.to
-  // 并发 sibling Move 在同 state 上选择不同 to，且都不可合并 → ⊥
-  if siblings produce divergent next_state:
-    return ⊥
+  batches  = group_by_anchor_index(moves)
+  for batch in batches ordered by anchor index:
+    transitions = transition effects for this cell in batch
+    if transitions is empty: continue
+    if any transition.from != state: return ⊥
+    if any (transition.from, transition.to) ∉ parameters.allowed_transitions: return ⊥
+    next_states = distinct(transitions.map(to))
+    if count(next_states) > 1: return ⊥
+    state = unique(next_states)
   return state
 
 validate_op(op):
@@ -606,6 +613,8 @@ validate_op(op):
 ```
 
 membership / lifecycle / invite-approval 多用 `bottom=reject`。
+
+同一 Anchor batch 内相同 `(from,to)` 的重复 transition 是幂等的；同一 `from` 指向不同 `to` 的 sibling transition 返回 `⊥`。跨 batch 顺序仅由 Anchor DAG index 决定；同 batch 内不得用 HLC、接收顺序或 actor id 选择状态机 winner。
 
 **Realm bootstrap exception**: `ck.realm.create` 的 reducer 既是 Realm metadata 的 genesis, 也是 `created_by` 首份成员资格的 genesis — 二者必须原子完成（详见 [`../models/realm-and-space.md` §2.5](../models/realm-and-space.md#25-ckrealmcreate-reducer-bootstrapnormative)）。任何后续 reducer / authz layer 在判定"`actor` 是否是 Realm 成员"时, MUST 以 `ck.component.member.state.v1` cell 的 reducer view 为准, 而该 cell 在 `ck.realm.create` commit 之后已经包含 `created_by`。"显式 `ck.member.state{join}` event 必须先到"是错误读法; create event 本身就是 genesis member 凭证。
 
@@ -653,7 +662,9 @@ join(moves) -> List<entry_record>:
   for issuer, items in per_issuer:
     items = dedupe_by_entry_id(items)
     items = sort_by(seq)
-    items MUST form a contiguous chain：item[i].seq == item[i-1].seq + 1
+    contiguous_prefix = longest prefix where item[i].seq == item[i-1].seq + 1
+    emit entries after the prefix as pending_gap diagnostics(reason=dependency_missing)
+    items = contiguous_prefix
   // 跨 issuer 不强制全局序；projection 可按 (effective_anchor_depth, hlc, issuer, seq) 展示
   return concat(per_issuer.values())
 
@@ -663,7 +674,7 @@ validate_op(op):
   op.value satisfies entry schema declared by cell parameters
 ```
 
-`bottom` 永远不出现。审计、消息历史、不可变操作日志均使用 `bottom=expose`，并发 append 不阻塞协议判断。
+`bottom` 永远不出现。审计、消息历史、不可变操作日志均使用 `bottom=expose`，并发 append 不阻塞协议判断。issuer 子链出现缺口时，缺口后的 entry MUST 保留为 pending / diagnostic 输入，但不得进入 cell value、state_root leaf 或授权判断；依赖补齐后按同一规则重算。
 
 #### 5.3.7 `lww_register`（扩展：`ck.profile.collaborative_text.v1`）
 
@@ -800,7 +811,7 @@ apply_anchor(A):
   1. 校验 predecessor_refs 均已知且属于同一 Realm。
   2. 校验 A.frontier 覆盖所有 predecessor frontier。
   3. 在 predecessor joined view 下读取 anchorer cell 并校验 A.anchorer_signature。
-  4. 以 predecessor joined state 批量 verify 所有 new_moves。
+  4. 以 predecessor joined state 批量 verify 所有 new_moves；任一失败则拒绝整个 Anchor。
   5. 原子应用 new_moves effects，重算 state_root。
   6. state_root 匹配则接受 Anchor；否则拒绝 Anchor 并生成 anchor_fault 诊断。
 ```
@@ -965,7 +976,7 @@ Redaction 是写入 redaction / erasure cell 的 Move。Redaction effect 必须�
 | --- | --- | --- |
 | `pending_anchor` | Move 已通过本地初检，等待 Anchor。 | — |
 | `effective` | Move 被已接受 Anchor frontier 覆盖，并已进入 state_root。 | — |
-| `failed_precondition` | Move 在 Anchor batch pre-state 下 precondition 不成立；包括 conflict-recovery Move 缺失或无效的 `state_witness` / `inclusion_proof` ref（§8.1）。`reason` 字段细分 `recovery_witness_missing` / `recovery_witness_invalid` / `recovery_witness_post_conflict` / `recovery_capability_not_anchored`。 | — |
+| `failed_precondition` | Move 在本地预检、pending 或被拒绝 Anchor 的诊断视图中不满足 precondition；包括 conflict-recovery Move 缺失或无效的 `state_witness` / `inclusion_proof` ref（§8.1）。进入已接受 Anchor frontier 的 Move 不得处于该状态；若 Anchor batch pre-state 下任一 Move 校验失败，整个 Anchor MUST `rejected_anchor`。`reason` 字段细分 `recovery_witness_missing` / `recovery_witness_invalid` / `recovery_witness_post_conflict` / `recovery_capability_not_anchored`。 | — |
 | `failed_bottom` | Move 依赖 `bottom=reject` 的 cell。 | 由 §5.1 中对应的 kind 触发（如 `conflict`、`invalid_transition`、`schema_error`）。 |
 | `rejected_anchor` | Anchor 签名、单调性、Move batch 或 state_root 校验失败。 | — |
 | `anchorer_paused` | anchorer cell 为 `⊥`；Realm-wide Anchor 推进暂停，只允许 recovery Anchor。 | `anchorer_split`（§5.1）。 |

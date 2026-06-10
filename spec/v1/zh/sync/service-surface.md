@@ -496,11 +496,11 @@ State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回�
 
 ```json
 {
-  "cell": "ck:cell:ck.component.realm.policy.v1:ck.realm.01j…",
+  "cell": "ck:cell:ck.component.realm.policy.v1:ck:realm:0196419b-0000-7000-8000-000000000000",
   "status": "bottom",
   "bottom": {
     "kind": "conflict",
-    "cells": ["ck:cell:ck.component.realm.policy.v1:ck.realm.01j…"],
+    "cells": ["ck:cell:ck.component.realm.policy.v1:ck:realm:0196419b-0000-7000-8000-000000000000"],
     "event_ids": [
       "ck:event:84210000-0000-7000-8000-000000000000…",
       "ck:event:a5294000-0000-7000-8000-000000000000…"
@@ -766,12 +766,16 @@ Native personal agent 的 management 与 sidecar operations 落在 `/_cokret/sel
 | `ck.self.agent.pause` / `resume` / `deactivate` / `rotate_key` | `POST /_cokret/self/agents/{agent_principal_id}/{pause,resume,deactivate,rotate-key}` | `ck.profile.personal_agent_provisioning.v1` |
 | `ck.self.agent.grant.attach` / `ck.self.agent.grant.detach` | `POST /_cokret/self/agents/{agent_principal_id}/grants` / `DELETE /_cokret/self/agents/{agent_principal_id}/grants/{grant_id}` | `ck.profile.personal_agent_provisioning.v1` |
 | `ck.self.agent.sidecar_thread.ensure` | `POST /_cokret/self/agent-sidecar-threads:ensure` | `ck.profile.agent_sidecar_thread.v1` |
+| `ck.self.agent.participation.set` | `PUT /_cokret/self/agents/{agent_principal_id}/participation` | `ck.profile.agent_participation_policy.v1` |
+| `ck.self.agent.participation.get` | `GET /_cokret/self/agents/{agent_principal_id}/participation` | `ck.profile.agent_participation_policy.v1` |
 
 约束:
 
 - 本 surface 不引入 custom URI scheme(`cokret://` 等);所有 deep-link 由客户端用 deployment 已知的 `cokret_base_url` 拼接标准 HTTPS URL,移动端依赖 OS Universal Links / App Links。
 - `pairing_request_id` 与 `approval_request_id` 都是 account/auth profile-local opaque UUIDv7 短期 artifact,不是 `ck:<kind>:<uuid>` 协议对象 id;agent runtime 收到 `approval_request_id` MUST NOT 解释成 URL 或尝试打开 UI,只能由 controller 的人类 session 带外查询。
 - `{agent_principal_id}` 是 DID,在 URL path 中 MUST 按 RFC 3986 percent-encoding。
+- participation operation 使用 `agent-operations.schema.json#/$defs/agent_participation_entry` 形态返回 `selection`、`ceiling` 与 `effective`。`set` 只能由 controller 调用，服务端 MUST 校验 `selection ⊆ effective_ceiling(scope)`；`get` 可由 controller 或该 agent runtime 调用。
+- `ck.gate.account.issue_session_grant` 为 agent runtime 签发 session 时，若 scope request 覆盖 participation-aware scope，`scope_details.participation[]` MUST 使用与 `agent_participation_entry` 同构的 `{scope, selection, ceiling, effective}` 条目。runtime MUST 把该数组视为行为契约；服务端仍以 capability grant、dispatcher gate 和 reducer 校验作为强制边界。
 
 详细 wire 规则见 [`service-http-binding.md` §2.4](./service-http-binding.md)、[`../identity/key-management.md` §3.6.1](../identity/key-management.md)、[`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md)、[`../models/circle.md` §11.1](../models/circle.md)、[`../models/private-objects.md` §4.1](../models/private-objects.md) 与 [`../authz/capabilities.md` §5](../authz/capabilities.md)。
 

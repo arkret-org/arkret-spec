@@ -259,8 +259,8 @@ Franking 信任链：
 客户端在渲染时：
 
 - SHOULD 隐藏被屏蔽用户的消息
-- SHOULD 不显示被屏蔽用户的 Typing 和 Presence 状态
-- SHOULD 不为被屏蔽用户的消息生成通知
+- SHOULD NOT 显示被屏蔽用户的 Typing 和 Presence 状态
+- SHOULD NOT 为被屏蔽用户的消息生成通知
 - SHOULD 默认拒绝被屏蔽用户发起的 DM、call invite、contact request 和 applet-mediated request
 - MAY 在共同 Realm 中显示折叠占位符，避免破坏上下文
 - MUST NOT 从网络层面丢弃被屏蔽用户的 Operation（这些 Operation 对其他成员仍然有效）
@@ -297,7 +297,7 @@ Franking 信任链：
 
 ### 5.2 用户封禁
 
-管理员通过 `ck.member.state{membership="ban"}` Event 封禁用户（成员状态机详见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)，policy 对象详见 [`../models/governance-objects.md` §3](../models/governance-objects.md)）。封禁后：
+管理员通过 `ck.member.state{membership="ban"}` Event 封禁用户（成员状态机详见 [`../models/realm-and-space.md` §2.7](../models/realm-and-space.md)，policy 对象详见 [`../models/governance-objects.md` §3](../models/governance-objects.md)）。封禁后：
 
 - 被封禁用户无法重新加入该 Realm
 - 其未来的 Operation 提交将被 Sync Service 拒绝

@@ -149,7 +149,7 @@ Client 在使用 snapshot 之前 MUST 校验 signature、`authority_binding`、`
 
 - `(now - manifest.created_at) ≤ snapshot_max_acceptance_age_ms`。默认 `snapshot_max_acceptance_age_ms = 2_592_000_000`（30 天）；`security_class=high_assurance` 的 Realm MUST 收紧到 ≤ `604_800_000`（7 天）。超出该窗口后，即使曾经有效的 snapshot 也 MUST 被拒绝——client MUST 请求新的 manifest，因为 auth state 与 policy 的漂移已使旧 snapshot 无法安全代表当前状态。
 - 签名者的权限链（Realm owner / admin / trusted issuer / witness quorum membership）在当前 auth state 下仍**可解析**。如果该链已被裁剪（例如 Realm tombstone、governance reset 或越过 manifest 时代的 auth-chain compaction），snapshot MUST 被拒绝。
-- 撤销新鲜度以 `authority_binding.auth_frontier` / `auth_state_digest` 解析出的签名者撤销状态为准（snapshot manifest 无独立 `signer.revoked_at` wire 字段；撤销时点是从该 auth state 派生的逻辑值）。判定规则:由 auth state 解析出的签名者撤销生效时点 MUST 不存在，**或** 严格晚于 `manifest.created_at`。严格在 `created_at` **之后**生效的撤销不追溯使 manifest 失效，但 client 在用当前状态写入新 Event 前 MUST 先重放 snapshot frontier 之后的事件。若该重放无法完整补齐（backfill 缺依赖、source 不可达或 frontier 之后事件无法完整重放），client MUST fail closed，MUST NOT 基于不完整的 post-snapshot 状态写入新 Event；此时按 §6.2 raw replay fallback 处理或要求新的 manifest / 重新初始同步。
+- 撤销新鲜度以 `authority_binding.auth_frontier` / `auth_state_digest` 解析出的签名者撤销状态为准（snapshot manifest 无独立 `signer.revoked_at` wire 字段；撤销时点是从该 auth state 派生的逻辑值）。判定规则:由 auth state 解析出的签名者撤销生效时点 MUST NOT exist，**或** 严格晚于 `manifest.created_at`。严格在 `created_at` **之后**生效的撤销不追溯使 manifest 失效，但 client 在用当前状态写入新 Event 前 MUST 先重放 snapshot frontier 之后的事件。若该重放无法完整补齐（backfill 缺依赖、source 不可达或 frontier 之后事件无法完整重放），client MUST fail closed，MUST NOT 基于不完整的 post-snapshot 状态写入新 Event；此时按 §6.2 raw replay fallback 处理或要求新的 manifest / 重新初始同步。
 
 `proof`、`verification_method`、`generator_signature` 与 `state_signature` 不是 v1 snapshot manifest 字段。
 

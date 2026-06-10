@@ -7,7 +7,7 @@ updated: 2026-05-25
 ---
 
 本目录是 Cokret v1 一致性规范的 normative prose 入口。它只承载文字化规范，
-不再保存 schema / fixture 镜像副本——canonical machine artifact 唯一来源是
+conformance 目录只引用 canonical machine artifact，不保存 schema / fixture 镜像副本；唯一来源是
 [`spec/v1/artifacts/`](../../artifacts/README.md)，由 `tools/artifact_pipeline.py`
 管理。
 
@@ -18,7 +18,7 @@ updated: 2026-05-25
 ## 文档清单
 
 - `encoding.md`：canonical JSON、hash、proof、HLC（§7）、cursor（§8）、rank、composite state key 的 wire 编码与操作伪代码。
-- `conformance-vectors.md`：合并的一致性测试向量（§1–§13 共 13 个向量域；域索引以该文件导言与 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 为准）。
+- `conformance-vectors.md`：合并的一致性测试向量；域索引以该文件导言与 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 为准。
 - `scalability-constraints.md`：v1 wire、授权、Move/Anchor/Lattice、Board/Relation/View 和 E2EE 的规模上限。
 - `schema-registry.md`：标准 schema / event type registry 的说明视图。
 - `conformance-profiles.md`：实现 profile 与一致性测试范围。

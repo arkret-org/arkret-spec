@@ -47,7 +47,7 @@ see_also:
 | Connection Identifier | 连接标识角色 | 外部体系字符串（邮箱、手机号、通讯录用户名、外部账号 ID 等）在**发现 / 邀请 / consent 阶段**所扮演的角色；可见性默认关系私有，不得自动写入 DID Document、Realm history 或 grant subject。同一字符串经 holder 显式 disclosure 后可升格为 Handle。区分点是 holder 意图与可见性，不在字符串形态。 |
 | Administrative Identifier | 管理标识角色 | 外部体系字符串（组织账号、计费账号、员工编号等）作为**组织本地管理标识**所扮演的角色；不出协议线，不得作为协议主体、grant subject 或 Event actor。 |
 | Display Name | 显示名 | UI 展示用名称，可变且不可用于 ACL、grant、审计归因或发送者验证。 |
-| Realm | 协作边界 | security/sync/auth/E2EE 边界。授权、policy、membership、history visibility、同步、加密、federation 都以 Realm 为根。`ck:realm:` 永远是边界，不承担产品导航树职责。底层只有一个 schema `ck.schema.realm.v1`；按用途分为 Principal Control Realm 与 Collaboration Realm 两类（见 [`models/realm-and-space.md` §2.7](../models/realm-and-space.md)）。 |
+| Realm | 协作边界 | security/sync/auth/E2EE 边界。授权、policy、membership、history visibility、同步、加密、federation 都以 Realm 为根。`ck:realm:` 永远是边界，不承担产品导航树职责。底层只有一个 schema `ck.schema.realm.v1`；按用途分为 Principal Control Realm 与 Collaboration Realm 两类（见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md)）。 |
 | Collaboration Realm | 协作 Realm（角色） | Realm 的一种用途，承载多方业务协作状态（Flow / Message / Space / Morph / Relation 等）。与 Principal Control Realm 互补。按是否含跨信任域成员再分 Internal / External 两类。 |
 | Internal Collaboration Realm | 域内协作 Realm | Collaboration Realm 的一种：`federation_policy ∈ {closed, restricted}` 且成员仅来自本部署 trust domain。组织主网络上的普通项目 / 团队 Realm 默认属于此类。 |
 | External Collaboration Realm | 跨域协作 Realm | Collaboration Realm 的一种：含跨信任域成员（external Organization DID / external principal）。Sovereign deployment 中其 policy 受 `ck.profile.sovereign_deployment.v1` 进一步约束（allowlist federation、独立 enclave、E2EE、deny-default applet/agent；见 [`sync/sovereign-deployment.md` §4](../sync/sovereign-deployment.md)）。 |

@@ -561,7 +561,7 @@ registry 的 `wire_scope` 决定 kind 能进入哪条 wire path：只有 active 
 
 本类别覆盖身份与加密写路径：`ck.profile.*`（update / realm_override）、`ck.device.*`（authorize / revoke / list_update）、`ck.mls.*`（keypackage / proposal / commit / commit_failed / welcome）、`ck.realm_key.*`（share / withheld）、`ck.audit.accessed` 与 `ck.redaction`。其中 profile / device / session 控制事件的作用域是 Principal Control Realm，MLS 与 realm_key 事件承载 E2EE 群与历史 key 状态。
 
-`ck.profile.update`、`ck.device.*` 与 `ck.session.grant` 是 durable Event Envelope kind，但其规范作用域是 Principal Control Realm。生产者 MUST 使用目标 principal 的 `principal_control_realm_id` 作为 `realm_id`；普通 Collaboration Realm 只能通过 `refs[role="authorized_by"]`、verified snapshot 或 policy proof 引用这些身份状态，不得把全局 profile、device 或 session 控制事件混入 Collaboration Realm history。Realm 角色分类（Principal Control Realm vs Collaboration Realm）见 [`models/realm-and-space.md` §2.7](../models/realm-and-space.md)。`ck.profile.realm_override` 若作为共享 Realm history 传播，MUST 使用目标 Realm 的 `realm_id` 并通过该 Realm policy；若作为 principal control profile state 传播，MUST 在 payload 中显式绑定目标 Realm。
+`ck.profile.update`、`ck.device.*` 与 `ck.session.grant` 是 durable Event Envelope kind，但其规范作用域是 Principal Control Realm。生产者 MUST 使用目标 principal 的 `principal_control_realm_id` 作为 `realm_id`；普通 Collaboration Realm 只能通过 `refs[role="authorized_by"]`、verified snapshot 或 policy proof 引用这些身份状态，不得把全局 profile、device 或 session 控制事件混入 Collaboration Realm history。Realm 角色分类（Principal Control Realm vs Collaboration Realm）见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md)。`ck.profile.realm_override` 若作为共享 Realm history 传播，MUST 使用目标 Realm 的 `realm_id` 并通过该 Realm policy；若作为 principal control profile state 传播，MUST 在 payload 中显式绑定目标 Realm。
 
 以下标准 kind 不属于共享 durable Realm history，不能列入本节 durable 写路径：
 
@@ -845,11 +845,11 @@ Cokret 初版不引入全网共识链。
 
 最终收敛到相同当前态。
 
-协议状态收敛以 `event-auth-state-resolution.md` 的 Move/Anchor/Lattice 规则为准：Move precondition 不成立则失败，Anchor frontier 决定 effective set，cell Lattice 返回 value 或 bottom。实现不得用 timeline tie-breaker、HLC、actor id 或本地接收顺序替代 Lattice 结果。
+协议状态收敛以 `event-auth-state-resolution.md` 的 Move/Anchor/Lattice 规则为准：Move precondition 不成立则失败，Anchor frontier 决定 effective set，cell Lattice 返回 value 或 bottom。实现不得用 timeline tie-breaker、HLC、actor id、本地接收顺序、数据库自增 ID 或 Sync Service 顺序替代 Lattice 结果。
 
-非 state 的并发对象操作也必须使用确定性顺序归约。除各对象规则另有更具体定义外，reducer 应先按依赖图验证候选可用性，再用 `(causal_depth DESC, HLC DESC, actor_id ASC, event_id ASC)` 选择唯一候选并记录 losers / conflict records。
+没有注册 cell family / lattice 的并发对象操作不得产生新的 canonical winner 规则。对象文档若需要唯一 winner，必须声明不可伪造、可复算的 tie-break key（例如 canonical `event_digest` 字典序）并把该规则写入对象规范；否则并发不可合并候选 MUST 输出 bottom / conflict diagnostic，等待显式修复。
 
-该 reducer 顺序不同于客户端 timeline 的展示顺序；timeline 通常先按 `prev_refs` / `refs` / payload causal refs 的 dependency graph 做稳定拓扑排序，再对互不可达事件按 `causal_depth ASC, hlc ASC, actor_id ASC, actor_seq ASC, event_id ASC` 递增展示。实现不得使用本地接收顺序、数据库自增 ID 或 Sync Service 顺序作为 tie-breaker。
+客户端 timeline 展示顺序不是协议状态顺序。展示层通常先按 `prev_refs` / `refs` / payload causal refs 的 dependency graph 做稳定拓扑排序，再对互不可达事件使用 `causal_depth`、`hlc`、`actor_seq`、`event_id` 等投影键给出 provisional 顺序。该顺序 MUST NOT 写入 canonical state、`state_root`、授权判断或 winner 选择。
 
 ### 16.1 Reducer Contract
 
@@ -877,26 +877,9 @@ Reducer 输出：
 
 ## 17. 字段级 merge 与对象级收敛
 
-### 17.1 标量字段
+字段级收敛语义由该字段所属的 cell family / lattice 唯一定义。标量字段、集合字段、排序字段和对象关系不得在本节另行声明通用 merge operator；没有 cell 声明的字段只能作为对象文档明确规定的 projection 输出，不能成为 canonical state 的独立真相源。
 
-例如：
-
-- `flow.metadata.title`
-- `flow.metadata.fields.status`
-- `flow.metadata.summary`
-- `morph.fields.severity`
-
-建议使用基于 deterministic event order 的 LWW。
-
-### 17.2 集合字段
-
-例如：
-
-- labels
-- watchers
-- linked refs
-
-建议使用 OR-Set。
+例如 `flow.metadata.title`、`flow.metadata.fields.status`、`morph.fields.severity` 这类标量字段是否走 CAS、LWW 或 conflict bottom，取决于其对象文档注册的 cell family；`labels`、`watchers`、`linked refs` 这类集合字段是否走 OR-Set，也必须由对应 cell family 声明。未声明 `ck.profile.collaborative_text.v1` 的实现 MUST NOT 启用 profile-gated `lww_register` / `rga` 语义。
 
 ### 17.3 Board position
 
@@ -906,11 +889,11 @@ Reducer 输出：
 ck:cell:ck.component.flow.position.v1:<board_space_id>:<flow_id>
 ```
 
-同一 key 下出现多个并发且互不兼容的 position write 时，Reducer MUST 按该 cell 的 lattice 规则返回 `⊥`（`bottom=reject`），依赖该 cell 的后续 `ck.flow.move` / `ck.flow.reorder` MUST `failed_bottom`，直到通过 §8 conflict-recovery 或专门的高权限恢复 event 修复。实现 MAY 在诊断投影中列出 competing writes / `conflict_records`，并 MAY 为 legacy UI 计算一个非规范的临时展示顺序；该展示顺序 MUST NOT 写回 canonical state、不得作为授权或后续 move 的 `expected_position` 真相，也不得替代 cell bottom。
+同一 key 下出现多个并发且互不兼容的 position write 时，Reducer MUST 按该 cell 的 lattice 规则返回 `⊥`（`bottom=reject`），依赖该 cell 的后续 `ck.flow.move` / `ck.flow.reorder` MUST `failed_bottom`，直到通过 §8 conflict-recovery 或专门的高权限恢复 event 修复。实现 MAY 在诊断投影中列出 competing writes / `conflict_records`，并 MAY 计算一个非规范的临时展示顺序；该展示顺序 MUST NOT 写回 canonical state、不得作为授权或后续 move 的 `expected_position` 真相，也不得替代 cell bottom。
 
 ### 17.4 Graph cycle
 
-对象在依赖图、引用图或容器图中产生循环时，Reducer MUST 按 deterministic event order 从高到低尝试保留候选；任何会形成非法循环的 candidate MUST 被标记为 `rejected_cycle`。
+对象在依赖图、引用图或容器图中产生循环时，Reducer MUST 先使用对象文档声明的 cell lattice 或唯一 winner key 处理。若对象文档没有给出可复算的 winner 规则，Reducer MUST 输出 `⊥` / conflict diagnostic，并把参与非法循环的候选标记为 `rejected_cycle`；不得用 HLC、actor id、本地接收顺序或服务端插入顺序挑选保留边。
 
 ## 18. Message
 
@@ -927,8 +910,8 @@ Cokret v1 要求：
 
 - grant / delegate / revoke 本身也是 event。
 - 某个业务 event 是否有效，由同一 reducer 顺序下的有效授权集合决定。
-- 若某个写入在 reducer 顺序上已经晚于相关 revoke，则 MUST 视为无效。
-- 若顺序无法确定，实现 SHOULD fail closed。
+- 某个业务 event 是否有效，MUST 以该 event 的 `anchor_ref` 对应 batch pre-state 下的授权集合判定。
+- 若接收方无法解析该 pre-state、grant/revoke frontier 或必要 inclusion proof，写入 MUST fail closed（soft-fail / quarantine），不得按墙上时钟、HLC 或本地到达顺序推断授权有效性。
 
 ## 20. 可见性、密文负载与 E2EE 索引
 

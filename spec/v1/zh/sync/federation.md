@@ -109,7 +109,7 @@ Cokret 是去中心化协议，不同用户或组织各自运行受控 Principal
   - 这几类失败 MUST 复用 `api-conventions.md` 的标准 JSON error envelope，并对所有这几类原因返回**同一个** HTTP status 与**同一个** `reason_code`（使用 `error-code-registry` 中已登记的统一鉴权失败码，如 `capability_denied`；不得为不同失败原因返回不同 status / `reason_code`）。错误 envelope 的可见字段 MUST NOT 携带 Realm、Actor、Event、binding 或 frontier 是否存在的任何可区分信息。
   - 响应 timing MUST 归一到统一时间桶（fixed timing bucket），使「destination 不匹配 / 签名失败」等不同原因之间不产生可被观测的时延侧信道；接收方 MUST NOT 在校验成功路径与上述失败路径之间，或在上述各失败原因之间，泄露可测量的处理时延差异。
   - 真实失败原因（audit-only reason）MUST 只写入接收方审计日志，MUST NOT 出现在对外响应的 status、`reason_code`、header、body 或 timing 中。
-  - 本要求覆盖联邦 ingress 的存在性枚举面：对外 MUST 不可区分「Realm / Actor / Event / member binding 不存在」与「存在但本请求鉴权 / 完整性失败」。
+  - 本要求覆盖联邦 ingress 的存在性枚举面：对外 MUST 保持不可区分「Realm / Actor / Event / member binding 不存在」与「存在但本请求鉴权 / 完整性失败」。
 
 ### 3.3 域信任模型
 
@@ -554,14 +554,14 @@ Probe 响应 payload：
 
 ### 5.2 Knock / Restricted 跨域加入流程
 
-Bob 也可以主动申请加入。具体流程取决于 Realm 的 `ck.realm.join_rule` 与 `ck.component.realm.join_policy.v1` cell 当前 value（`realm.join_policy` 是 candidate workflow concept/action 名称，不是 v1 wire `Event.kind`；见 [`../governance/join-policy.md`](../governance/join-policy.md)）。
+Bob 也可以主动申请加入。具体流程取决于 Realm 的 `ck.realm.join_rule` 当前 value，以及 Join Policy candidate workflow 的 `realm.join_policy` value（`realm.join_policy` 不是 v1 wire `Event.kind`；见 [`../governance/join-policy.md`](../governance/join-policy.md)）。
 
 **自动解析路径**（`join_rule ∈ {restricted, knock_restricted}`，且 Bob 拟使用的 gate 子集均 `auto_resolve=true`）：
 
 1. Bob 发现 Realm S 的元数据（通过公开的 Realm Directory、链接或 `directory_hint`），并取得 `join_candidates[]`
 2. Bob 直接提交 `ck.member.state{membership="join", gate_proofs=[...]}` Move，附带 claim presentation / challenge proof
 3. Bob 的客户端 / Principal Server 将 join Move 推送至所选未过期 candidate；candidate MUST 是 Realm policy / service delegation 授权的 shared anchorer、Sync Service、federation peer 或参与方 Principal Server
-4. 各参与方 reducer 加载当前 `ck.component.realm.join_policy.v1` cell value，按 `combinator` 校验 `gate_proofs[]`；通过则收敛 `membership=join`
+4. 各参与方 reducer 加载当前 Join Policy candidate value，按 `combinator` 校验 `gate_proofs[]`；通过则收敛 `membership=join`
 5. 若 Realm 启用了 E2EE，Bob join 后由现有成员通过 MLS commit + welcome 引入
 
 **申请-审核路径**（`join_rule ∈ {knock, knock_restricted}`，且至少一个 gate `auto_resolve=false`）：
@@ -799,7 +799,7 @@ Signature: sig1=:<base64>:
 
 - `origin`/`destination` service DID 必须与请求签名与 `target-uri` 一致；
 - 对签名失败、签名域缺失、`origin` 不在可接受集合的来源进入 `quarantine` 或 `hard_deny`；
-- 未通过身份校验的错误响应 MUST 不泄露可验证/不可验证来源的差异。
+- 未通过身份校验的错误响应 MUST NOT 泄露可验证/不可验证来源的差异。
 
 ### 8.4 元数据泄露防护
 

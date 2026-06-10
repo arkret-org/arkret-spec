@@ -255,9 +255,8 @@
       "write_event_kinds": [
         "ck.account_data.set"
       ],
-      "description": "Controller-owned per-scope agent participation selection (reply / accept_third_party_mention / act_on_behalf). scope_key is realm:<realm_uuid> | circle:<realm_uuid>:<circle_uuid> | flow:<realm_uuid>:<flow_uuid>. Effective participation = effective_ceiling ∩ selection, where the ceiling is the monotone deployment ⊇ Realm ⊇ Circle ⊇ Flow fold. accept_third_party_mention drives the dispatcher mention gate; reply / act_on_behalf materialize into ck.capability.grant. See CKP-0016 / private-objects.md §4.1.",
+      "description": "Controller-owned per-scope agent participation selection (reply / accept_third_party_mention / act_on_behalf). scope_key is realm:<realm_uuid> | circle:<realm_uuid>:<circle_uuid> | flow:<realm_uuid>:<flow_uuid>. Effective participation = effective_ceiling ∩ selection, where the ceiling is the monotone deployment ⊇ Realm ⊇ Circle ⊇ Flow fold. accept_third_party_mention drives the dispatcher mention gate; reply / act_on_behalf materialize into ck.capability.grant. See zh/models/private-objects.md §4.1.",
       "source_refs": [
-        "spec/v1/proposals/0016-agent-participation-policy.md",
         "spec/v1/zh/models/private-objects.md"
       ]
     },

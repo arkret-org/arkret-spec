@@ -37,7 +37,7 @@ Flow 适合：
 - 外部资产或业务对象的协作锚点
 - 会话主导的协作线程
 
-Flow 不再定义额外的顶层模式或分类字段；默认入口由 track primary 解析规则决定，业务语义由 Realm schema、profile、`metadata.fields`、Relation 或 Morph 扩展表达。业务语义分类不属于 Flow 顶层字段。实现 SHOULD 通过 Realm schema/profile、`metadata.fields`、Relation、labels 或 Morph profile 表达业务类型，并通过 View 定义选择 renderer。
+Flow 顶层字段不承载额外模式或业务分类；默认入口由 track primary 解析规则决定，业务语义由 Realm schema、profile、`metadata.fields`、Relation 或 Morph 扩展表达。业务语义分类不属于 Flow 顶层字段。实现 SHOULD 通过 Realm schema/profile、`metadata.fields`、Relation、labels 或 Morph profile 表达业务类型，并通过 View 定义选择 renderer。
 
 ## 3. Flow Schema 与字段
 
@@ -49,7 +49,7 @@ Schema id: `ck.schema.flow.v1`
 | `schema` | yes | `ck.schema.flow.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
 | `scope_circle_id` | no | `id:circle` | 必须是同 Realm 内的 Circle（`Circle.realm_id == Flow.realm_id`）；否则 `schema_violation` `reason=circle_realm_mismatch`。Reducer 把 `null` 物化为 `effective_scope={kind:"realm",...}`，把 Circle 引用物化为 `effective_scope={kind:"circle",...}`。改绑默认拒（`scope_rebind_forbidden`）。 | 整个 Flow 的 effective scope（含所有 track）。未设置时 Flow 落在 Realm-default scope；设置时整个 Flow（含 synthesis、discussion）落在该 Circle 的 membership / history / delivery / query / encryption profile 边界内。详见 §5 与 [`circle.md`](./circle.md)。 |
-| `agent_participation` | no | `object{reply, accept_third_party_mention, act_on_behalf: boolean}` | 扁平三位（native-agent-only，无 `native_agent` 外层包裹）。省略时继承有效父级 ceiling：`scope_circle_id` 指向 Circle 时取该 Circle ceiling，否则取 Realm-default `native_agent` ceiling。每一位只能收紧、不得放宽父级 ceiling（tighten-only，违反 `failed_precondition`，`reason="agent_participation_ceiling_widen"`）；第三方 mention 投递 gate 见 §9.4.5。详见 CKP-0016 与 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)。 | native personal agent 在该 Flow scope 内的参与上限。 |
+| `agent_participation` | no | `object{reply, accept_third_party_mention, act_on_behalf: boolean}` | 扁平三位（native-agent-only，无 `native_agent` 外层包裹）。省略时继承有效父级 ceiling：`scope_circle_id` 指向 Circle 时取该 Circle ceiling，否则取 Realm-default `native_agent` ceiling。每一位只能收紧、不得放宽父级 ceiling（tighten-only，违反 `failed_precondition`，`reason="agent_participation_ceiling_widen"`）；第三方 mention 投递 gate 见 §9.4.5。详见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)、[`realm-and-space.md` §2.2](./realm-and-space.md) 与 [`circle.md` §7](./circle.md)。 | native personal agent 在该 Flow scope 内的参与上限。 |
 | `metadata` | no | `object` | MAY contain `title`, `summary`, `fields` and profile-defined keys. `metadata.title` 1..512 chars；`metadata.summary` SHOULD <= 2048 chars。 | 用户可读 Flow metadata；MLS / E2EE 下按 `metadata_encryption_floor` 决定是否必须放入 `encrypted_metadata`。 |
 | `encrypted_metadata` | conditional | `EncryptedPayload` | 与 `metadata` 二选一；plaintext 是同一个 Flow metadata object。 | E2EE 场景下包裹 `title` / `summary` / 用户可读 `fields` 等 metadata。 |
 | `content` | no | `ContentBlock` | 见 [`content-types.md`](./content-types.md)。 | 富文本正文。 |
@@ -312,7 +312,7 @@ Flow 永远只有**一个** effective scope。整个 Flow（含所有 track：sy
 - `effective_scope` 是 reducer 在每个 event 接受时**immutable stamped**，进入 Event envelope / Anchor leaf；在 MLS-backed scope 中还进入 E2EE AAD / MLS governance binding。后续 `scope_circle_id` 改绑不得重解释旧 event。
 - 改绑 `scope_circle_id` 默认 reducer 拒绝（`failed_precondition` `reason=scope_rebind_forbidden`）；profile MAY 允许，但 MUST audit-paired high-risk update，且既有历史保留在原 scope，新内容才进新 scope。
 - 跨 Flow 的"宽 synthesis + 窄 discussion"模式见 [`circle.md` §7.2](./circle.md)：两个 Flow + `confidential_discussion_of` Relation。
-- Watch、通知、生命周期、metadata 加密 floor 等跨 scope 行为统一在 [`circle.md` §6 / §7 / §9 / §10](./circle.md) 描述，不再在本文件单独发明特例。
+- Watch、通知、生命周期、metadata 加密 floor 等跨 scope 行为统一在 [`circle.md` §6 / §7 / §9 / §10](./circle.md) 描述；本文件不定义额外特例。
 
 ### 5.1 Track 与 scope 关系图
 
@@ -529,7 +529,7 @@ Watch 级别参与 [`../discovery/push-notifications.md`](../discovery/push-noti
 
 ### 8.9 `scope_circle_id` 场景
 
-当 Flow 的 `scope_circle_id` 指向某个 [Circle](./circle.md) 时，watch 与通知行为按 Circle scope 收敛（不再有"跨两 Realm 双层校验"的特例）：
+当 Flow 的 `scope_circle_id` 指向某个 [Circle](./circle.md) 时，watch 与通知行为按 Circle scope 收敛：
 
 - Watch cell 落在 Circle scope namespace（单源），actor 写自己的 watch 需先是该 Circle 成员；非成员对该 Flow 的 watch 写入 MUST `failed_precondition`。
 - Flow synthesis 与 discussion 通知均按同一 effective scope 派发：Sync Service 用 [`circle.md` §9.3](./circle.md) 投递不变量过滤——actor 不属于 `Circle.members(at causal frontier)` 即不投递事件 envelope 或 payload，亦不产生通知，无论 watch level。
@@ -545,7 +545,7 @@ Message 是 Flow `discussion` track 时间线中的原子消息对象。
 
 Message 创建是 append-only。编辑通过 revision chain；撤回通过 redaction/tombstone。
 
-未加密消息的 `content` MUST 是 `content-types.md` 定义的 Content Block。Event wire 上，`ck.message.create` / `ck.message.revise` 的正文位于 Event Envelope 的 `payload.content`，E2EE 对偶位于 `payload.encrypted_content`；物化 Message 对象的字段名分别是顶层 `content` / `encrypted_content`。`flow_id` 等字段只表达归属或目标（Message 主键是顶层 `id`，不是 `message_id`）；回复关系不走标量字段，由 `replies_to` Relation 表达。Message 的用户可读扩展 metadata 使用 `metadata` / `encrypted_metadata`，不再使用顶层 `fields`。
+未加密消息的 `content` MUST 是 `content-types.md` 定义的 Content Block。Event wire 上，`ck.message.create` / `ck.message.revise` 的正文位于 Event Envelope 的 `payload.content`，E2EE 对偶位于 `payload.encrypted_content`；物化 Message 对象的字段名分别是顶层 `content` / `encrypted_content`。`flow_id` 等字段只表达归属或目标（Message 主键是顶层 `id`，不是 `message_id`）；回复关系不走标量字段，由 `replies_to` Relation 表达。Message 的用户可读扩展 metadata 使用 `metadata` / `encrypted_metadata`。
 
 Message MAY reply to another Message, mention Actor or object, reference Flow / Morph / Realm, or be redacted.
 
@@ -564,10 +564,10 @@ Schema id: `ck.schema.message.v1`
 | `encrypted_content` | conditional | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹消息正文与附件内容。 |
 | `metadata` | no | `object` | MAY contain `fields` and profile-defined keys. | 用户可读 Message metadata；MLS / E2EE 下按 `metadata_encryption_floor` 决定是否必须放入 `encrypted_metadata`。 |
 | `encrypted_metadata` | conditional | `EncryptedPayload` | 与 `metadata` 二选一；plaintext 是同一个 Message metadata object。 | E2EE 场景下包裹 Message metadata。 |
-| `state` | yes | `enum(active, redacted)` | 新建时 MUST 显式写 `active`(`state` 为 required,不靠默认补齐)。`redacted` 由 `ck.message.redact` reducer 设置（content / encrypted_content 被清空或替换为 redaction tombstone，但消息槽和审计元数据保留）。Message 不定义单独 `deleted` 终态；治理、retention 或 moderation 清除均落到 `redacted`。Message lifecycle 使用顶层 `state` 字段，不再用 `metadata.fields.visible_state` 表达可见性。 | 消息生命周期状态。 |
+| `state` | yes | `enum(active, redacted)` | 新建时 MUST 显式写 `active`(`state` 为 required,不靠默认补齐)。`redacted` 由 `ck.message.redact` reducer 设置（content / encrypted_content 被清空或替换为 redaction tombstone，但消息槽和审计元数据保留）。Message 不定义单独 `deleted` 终态；治理、retention 或 moderation 清除均落到 `redacted`。Message lifecycle 使用顶层 `state` 字段表达可见性。 | 消息生命周期状态。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `revision_root` | no | `id:message` | 第一条 revision MUST 等于 `id`；后续 revision 引用 chain 起点。同一 `revision_root` 下的 revision 形成有序 chain，由 `ck.message.revise` reducer 维护。**`ck.message.create` 的 payload MUST NOT 携带 `revision_root` 字段**（即使值与 `id` 相同）——首次创建时 reducer 自行初始化 `revision_root = id`；只有 `ck.message.revise` 与后续 revise event 才允许携带 `revision_root`，且其值 MUST 等于 chain 起点 message 的 `id`。create payload 出现 `revision_root` MUST 触发 `schema_violation`（见 [`artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。 | revision chain 起点（顶层 schema-validated）。 |
-| `edited_at` | no | `timestamp` | revision chain 中 latest revise event 的 `created_at`；首次 create 后未编辑时缺省。MUST 不早于 `created_at`。 | 最近一次编辑时间。 |
+| `edited_at` | no | `timestamp` | revision chain 中 latest revise event 的 `created_at`；首次 create 后未编辑时缺省。MUST be no earlier than `created_at`。 | 最近一次编辑时间。 |
 | `redaction_ref` | conditional | `id:event` | `state=redacted` 时必填，指向触发 redaction 的 `ck.message.redact` event；其他 state MUST 缺省。 | redaction event 引用。 |
 | `attachments` | no | `array` | 按 profile 声明，通常通过 Relation `attached_to` 表达。 | 附件 hint。 |
 | `created_by` | yes | `did` |  | 发送者。 |
@@ -699,7 +699,7 @@ DID 暂时无法解析时按 [`identity/identity-handles.md` §3.8.2](../identit
 - 同一 Message / revision 中重复出现同一 `subject_id` MUST 去重；同一 `(actor_id, source_event_id, notification_type=mention)` 最多产生一个 notification projection。
 - 默认情况下，发送者自己的 direct mention 不产生通知；用户可通过 actor-private push rule 显式 opt-in，但该 opt-in 不改变 shared history 或他人投影。
 - `level=muted`、个人 blocklist、DND 与更高优先级 `dont_notify` push rule MUST 覆盖 direct mention。
-- `ck.message.create` 可以产生 mention notification。`ck.message.revise` 只有在实现能证明某个 target 相比前一条 accepted visible revision 是**新增** mention 时，才 MAY 为该 revise event 派生新的 mention notification；无法证明差异时 MUST 不通知，避免通过反复编辑制造重复提醒。
+- `ck.message.create` 可以产生 mention notification。`ck.message.revise` 只有在实现能证明某个 target 相比前一条 accepted visible revision 是**新增** mention 时，才 MAY 为该 revise event 派生新的 mention notification；无法证明差异时 MUST NOT 通知，避免通过反复编辑制造重复提醒。
 - `ck.message.redact` 不产生新的 mention notification。既有 notification 的 preview MUST 按 redaction / history visibility 重新裁剪；不得继续展示已撤回正文。
 
 当 reply、assignment、reaction、watch 与 mention 同时命中同一 actor / device 时，dispatcher SHOULD 合并为单个 inbox row 或单个 push wakeup，并保留内部 reason set；若实现返回多条 inbox projection，也 MUST 在 push 出口按 [`push-notifications.md` §2.4](../discovery/push-notifications.md) 去重。
@@ -725,7 +725,7 @@ v1 定义 audience mention 作为一等结构化 AST 节点；它不是把所有
 
 `@here` 在 Cokret v1 中 **不是 presence-filtered**：它 MUST 映射为 `audience="flow_engaged"`，即“曾经参与当前 Flow discussion 或当前有效 watch 该 Flow 的接收者”。Presence 不能成为第三方 push timing oracle；实现若要提供真正在线态筛选的 `@online` / presence-based mention，MUST 声明独立 profile，并证明不泄露 presence 隐私。未声明该 profile 的接收端 MUST 按未知 critical semantics fail closed 或把该节点降级为普通文本。
 
-Audience expansion 的结果只用于 receiver-side notification / inbox / local highlight。它不得扩大访问权：不满足 Message effective scope、history visibility、Circle membership 或 target policy 的 actor MUST 不收到 Event、notification 或 push wakeup，也不得通过 recipient count、delivery error 或 timing 观察到该 Message 的存在。
+Audience expansion 的结果只用于 receiver-side notification / inbox / local highlight。它不得扩大访问权：不满足 Message effective scope、history visibility、Circle membership 或 target policy 的 actor MUST NOT 收到 Event、notification 或 push wakeup，也不得通过 recipient count、delivery error 或 timing 观察到该 Message 的存在。
 
 #### 9.4.4 Audience mention 授权与防滥用
 
@@ -755,11 +755,11 @@ Message timeline 的同步与 reducer 行为：
 
 | 场景 | 收敛规则 |
 | --- | --- |
-| Message 创建 | append-only。Timeline 排序 = causal_depth → HLC → actor_id → actor_seq → event_id。 |
+| Message 创建 | append-only。Timeline 展示排序是 projection-only，默认键为 causal_depth → HLC → actor_id → actor_seq → event_id；不得输入 canonical state、授权或 winner 选择。 |
 | Message 编辑 | 并发 revision 共存于 revision chain；默认视图显示最新可见 revision。 |
 | Message 撤回 | 若 revision 与 redaction 并发，默认视图 redaction 优先；审计视图保留完整历史。 |
-| 撤回先到、原消息后到 | 接收方 SHOULD 保留 dangling redaction，待原消息到达后再应用。 |
-| Reaction | OR-Set 收敛；同一 actor 对同一 emoji 的 add/remove 由因果关系决定最终成员。 |
+| 撤回先到、原消息后到 | 接收方 MUST 保留 dangling redaction，待原消息到达后再应用；保留键为 `redacts` 目标 id / digest。 |
+| Reaction | Reaction-specific remove-wins set 收敛；同一 actor 对同一 emoji 的 add/remove 由 §9.8.3 定义。 |
 
 历史可见性枚举与 canonical 语义见 [`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)。
 
@@ -813,13 +813,13 @@ v1 core 的 Reaction `target_ref` MUST 指向与该 reaction 同一 effective sc
 
 跨 effective scope 表态不允许：`target_ref` 必须落在 reaction event 自身 stamped 的 effective scope 内，否则 `failed_precondition`（`reason="reaction_scope_mismatch"`）。
 
-#### 9.8.3 OR-Set 收敛（authoritative）
+#### 9.8.3 Reaction-specific remove-wins set 收敛（authoritative）
 
 成员身份键为 `(actor_id, target_ref, key)`；本节为权威定义，[§9.5](#95-冲突与收敛规则) 表中的一行是其摘要：
 
 - **去重**：同一 actor 对同一 `(target_ref, key)` 的多次 `add` 收敛为一个成员条目（`count` 不重复累加）；per-event 审计日志保留全部 add event。
-- **add / remove**：`ck.reaction.remove` 对该 actor 在其因果过去内、同 `(target_ref, key)` 的所有 add 打 tombstone。并发（无因果序）的 (add, remove) 在默认视图按 remove 收敛（OR-Set 选择 remove-wins）；审计视图保留双方。
-- **dangling**：`target_ref` 尚未观测到时，reducer MUST 把该 reaction 挂起（pending，`reason="dependency_missing"`），目标 Message 物化后再落 OR-Set 条目。
+- **add / remove**：`ck.reaction.remove` 对该 actor 在其因果过去内、同 `(target_ref, key)` 的所有 add 打 tombstone。并发（无因果序）的 (add, remove) 在默认视图按 remove 收敛；审计视图保留双方。本规则是 reaction 专用的 remove-wins set，不引用 `event-auth-state-resolution.md` 的核心 `or_set` lattice。
+- **dangling**：`target_ref` 尚未观测到时，reducer MUST 把该 reaction 挂起（pending，`reason="dependency_missing"`），目标 Message 物化后再落 reaction set 条目。
 - **target redacted**：目标 Message 被 redact 后，默认视图 summary MUST NOT 暴露 reaction 成员；审计视图保留 reaction event 于 redaction stub 之下（与 [§9.5](#95-冲突与收敛规则) 撤回语义一致）。
 - **E2EE epoch**：routing tag 绑定当前 MLS epoch；同一真实 emoji 在不同 epoch 派生不同 tag，因此跨 epoch 不去重（见 §2.9 与 fixture `e2ee_epoch_rotation_breaks_dedup`）。
 

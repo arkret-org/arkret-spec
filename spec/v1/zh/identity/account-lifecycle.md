@@ -114,7 +114,7 @@ Current account status projection 是 ordered_log 上的确定性派生值，而
 - 保留 device keys 和 secret storage 本地密钥，除非用户选择清除。
 - 使用 refresh、OIDC 或 re-auth 恢复，但恢复请求仍必须携带 fresh DID/device proof。
 
-服务端返回 `401 soft_logged_out` 时 MUST 不要求客户端删除本地 E2EE 密钥。
+服务端返回 `401 soft_logged_out` 时 MUST NOT 要求客户端删除本地 E2EE 密钥。
 
 `soft_logged_out -> active` 的恢复 MUST 绑定 fresh DID proof：refresh token、OIDC callback 或 re-auth 只能作为会话恢复材料，不能单独把账号状态恢复为 `active`。服务端 MUST 要求当前 principal DID 的授权 device key、account auth key、passkey 或 recovery policy 允许的密钥对一次性 challenge 签名，并把签名覆盖 `principal_id`、`device_id`、`audience`、`request_canonical_digest`、`challenge`、`issued_at` 与 `expires_at`。**`device_id` 绑定要求**:multi-device principal（principal 控制 ≥1 个授权 device key）下 `device_id` **MUST** 必填并被签名覆盖，绑定到发起恢复请求的具体 device,使该 challenge-response proof 不能被同 principal 的其它设备复用完成会话恢复（满足"会话绑定到 DID 与 device"目标）;仅当 principal 在 control stream 中**无任何未撤销 device record**（即不持有任何当前有效的 device-bound key，例如纯 account-auth-key / passkey 恢复路径）时 `device_id` 方可省略。服务端 MUST 依据该 principal control stream 中 device record 的当前状态（存在 ≥1 条未撤销 device record 即豁免不成立）判定豁免，**MUST NOT** 仅凭本次 proof 的签名 key 类型判定——否则持有未撤销 device-bound key 的 multi-device principal 可用 passkey / account-auth-key 签 proof 伪造"无 device key"假象，从而绕过本节要关闭的同 principal 其它设备复用 proof 窗口。豁免不成立时 MUST NOT 接受缺 `device_id` 的 proof。其中 `issued_at` 与 `expires_at` 是 **必填**（不再是可选）：服务端 MUST 拒绝缺失任一字段、`expires_at` 已过当前时钟、`expires_at - issued_at > 300s`、`issued_at` 相对服务端时钟的偏移（双向）超出 skew 容忍（SHOULD ≤ 300s），或 `issued_at` 晚于服务端当前时钟加 skew 容忍（即 proof 自称在未来签发）的 proof。这把 soft-logout 重放窗口的上界固定为 ≤ 300s，与 [`identity-did.md` §5.1](./identity-did.md) `ck.did.proof` 的 replay window（`expires_at - issued_at ≤ 300s` + skew ≤ 300s）对齐——否则签发方可把 `expires_at` 任意拉远，使一份 soft-logout 恢复 proof 在无上界的时间内反复重放。缺失该证明时返回 `401 did_proof_required`；`expires_at` 缺失或新鲜度超限时返回 `401 did_proof_required`（reason `did_proof_replay_window_exceeded`）；refresh token 单独有效时也 MUST NOT 静默签发新的 active session grant。
 
@@ -161,7 +161,7 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 | **Session / access token** | 撤销全部 `ck.session.grant`（含 applet delegated session）；后续 token introspection MUST 返回 `inactive`。 | 服务端撤销表 + 可选 `ck.audit.accessed` |
 | **Device grant** | 全部 `ck.device.*` 标 `revoked`；后续 `ck.self.events.submit` 用 revoked device 签名 MUST `actor_signature_revoked`。 | reducer 状态转换 |
 | **Applet delegation** | 撤销所有 `ck.applet.registration` 持有的 delegated device；applet 服务后续调用 MUST `delegation_revoked`。 | reducer 状态转换 |
-| **KeyPackage** | 标记所有 unused MLS KeyPackage 为 retired；新邀请 MUST 不从该 principal 选 KeyPackage。 | reducer + KeyPackage store 失效 |
+| **KeyPackage** | 标记所有 unused MLS KeyPackage 为 retired；新邀请 MUST NOT 从该 principal 选 KeyPackage。 | reducer + KeyPackage store 失效 |
 | **Push route** | 撤销 `ck.device.push_route`；push gateway MUST 停止向该 principal 的注册 endpoint 投递。 | reducer + push gateway 缓存失效 |
 | **To-device queue** | 服务端 to-device 队列 drop 所有 `recipient_principal_id == deactivated_principal` 的 pending message；后续投递 MUST `recipient_unavailable`。 | server-side queue 状态 |
 | **Identity link cache** | 客户端与服务端可见缓存 MUST eager invalidate 所有 `(*, pairwise_did → deactivated_principal)` 映射；不得等待 7d TTL 或 MLS epoch 推进。 | `ck.identity_link` cache invalidation |

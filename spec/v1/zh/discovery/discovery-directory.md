@@ -415,7 +415,7 @@ ingest 是**双向 opt-in**，缺一不可：
 | 方向 | 资源端表达 | Directory 端表达 |
 | --- | --- | --- |
 | 资源 → Directory | 在 `ck.{realm,organization,actor,applet,handle}.discovery.directory_services` 列出本 Directory 的 service DID + governance key 签名整份 payload | — |
-| Directory → 资源 | — | 在 `ck.directory.describe.accept_policy_kind` 中声明可接受的资源类别、trust root、配额（§8.9） |
+| Directory → 资源 | — | 在 `ck.find.directory.describe.accept_policy_kind` 中声明可接受的资源类别、trust root、配额（§8.9） |
 
 Directory 接受 ingest 的前置条件：
 
@@ -425,7 +425,7 @@ Directory 接受 ingest 的前置条件：
 
 ### 8.2 两种 ingest 模式
 
-Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest 模式之一，且 MUST 在 `ck.directory.describe.ingest_modes` 中显式声明本实例支持的模式。
+Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest 模式之一，且 MUST 在 `ck.find.directory.describe.ingest_modes` 中显式声明本实例支持的模式。
 
 | 模式 | 触发方 | 适用场景 |
 | --- | --- | --- |
@@ -548,7 +548,7 @@ Directory 接受 ingest（无论 push 或 pull）前 MUST 顺序完成：
 2. **资源端主动 withdraw**：`POST /_cokret/find/directory/withdraw`，body 含 `resource_id`、`reason`、governance key 签名（与 announce 同等强度）。Directory MUST 在 ≤ 1h 内停止披露。
 3. **Directory operator takedown**：单方面下架（policy 违规、abuse、法律）。Directory MUST：
    - 在内部 audit log 记录 `takedown_id`、operator、reason、生效时间；
-   - 通过 `ck.directory.describe.takedown_contact` 暴露的入口或 DID document `service` entry 中声明的 governance contact 通知资源端；
+   - 通过 `ck.find.directory.describe.takedown_contact` 暴露的入口或 DID document `service` entry 中声明的 governance contact 通知资源端；
    - 不得伪装为"资源主动撤销"——audit log 与资源端通知 MUST 标记为 `operator_takedown`。
 
 Operator takedown 的申诉 / 恢复 MUST 形成可验证闭环：

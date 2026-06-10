@@ -24,7 +24,7 @@ sidebar:
 - 外部主体进入高安全网络的验证、授权、加密、审计和退出规则
 - sovereign client 与 DID resolver policy
 
-> Realm 角色分类（Principal Control Realm / Internal Collaboration Realm / External Collaboration Realm）见 [`models/realm-and-space.md` §2.7](../models/realm-and-space.md)。
+> Realm 角色分类（Principal Control Realm / Internal Collaboration Realm / External Collaboration Realm）见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md)。
 
 ## 2. 部署模型
 
@@ -185,7 +185,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
 
 ## 4. External Collaboration Realm 在 sovereign deployment 下的强制 policy
 
-启用 `ck.profile.sovereign_deployment.v1` 的部署中，组织 MAY 创建 External Collaboration Realm，允许外部网络的人员或组织加入特定协作范围。该 Realm 是隔离边界，不应让外部主体直接进入组织主网络。Realm 角色分类见 [`models/realm-and-space.md` §2.7](../models/realm-and-space.md)。
+启用 `ck.profile.sovereign_deployment.v1` 的部署中，组织 MAY 创建 External Collaboration Realm，允许外部网络的人员或组织加入特定协作范围。该 Realm 是隔离边界，不应让外部主体直接进入组织主网络。Realm 角色分类见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md)。
 
 在该部署下 External Collaboration Realm SHOULD 使用：
 

@@ -140,6 +140,7 @@
           },
           "on_conflict": {
             "type": "string",
+            "description": "Conflict handling for mutually unreachable Relation candidates. deterministic_winner selects the candidate with the bytewise-smallest canonical event_digest; it MUST NOT use HLC, actor id, local receive order, database id, or service insertion order.",
             "enum": [
               "reject",
               "close_previous",
@@ -219,7 +220,7 @@
     },
     "agent_participation": {
       "type": "object",
-      "description": "CKP-0016 Realm agent participation ceiling: { native_agent: { reply, accept_third_party_mention, act_on_behalf } } — the maximum native personal agent behavior permitted Realm-wide, written by a holder of ck.realm.admin via ck.realm.policy_components. It is the top of the deployment ⊇ Realm ⊇ Circle ⊇ Flow tighten-only chain (inner ceilings MUST NOT widen it; reducer rejects with agent_participation_ceiling_widen). When absent, inherits the deployment-default ceiling (deny-default under sovereign profiles). native_agent and applet_agent ceilings MUST be declared separately. See models/realm-and-space.md / CKP-0016.",
+      "description": "Realm agent participation ceiling: { native_agent: { reply, accept_third_party_mention, act_on_behalf } } — the maximum native personal agent behavior permitted Realm-wide, written by a holder of ck.realm.admin via ck.realm.policy_components. It is the top of the deployment ⊇ Realm ⊇ Circle ⊇ Flow tighten-only chain (inner ceilings MUST NOT widen it; reducer rejects with agent_participation_ceiling_widen). When absent, inherits the deployment-default ceiling (deny-default under sovereign profiles). native_agent and applet_agent ceilings MUST be declared separately. See zh/models/realm-and-space.md.",
       "properties": {
         "native_agent": {
           "type": "object",

@@ -30,7 +30,7 @@ Cokret 的访问授权由 **capability + invite** 两条路径承担。但二者
 
 ### 2.1 Consent 是 holder 私有状态
 
-Consent grant / revoke 表达的是 **holder 自己的决定**。它写入 holder 的 Principal Control Realm（或等价的 actor-private 流），不暴露给任何 Collaboration Realm。Realm 角色分类见 [`models/realm-and-space.md` §2.7](../models/realm-and-space.md)。
+Consent grant / revoke 表达的是 **holder 自己的决定**。它写入 holder 的 Principal Control Realm（或等价的 actor-private 流），不暴露给任何 Collaboration Realm。Realm 角色分类见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md)。
 
 > **术语**：principal control Realm 是 holder 个人控制下的 Realm（profile = `ck.profile.principal_control_realm.v1`，purpose = `principal_control`），用于承载 consent、device authorization、session grant、push registration 等 holder 私有状态。Realm 的创建、字段、生命周期与 device-key 引导见 [`identity/key-management.md` §4.1](./key-management.md)（bootstrap 见 §5.0）；下文凡是出现"holder principal control Realm"或"等价 actor-private 流"，含义均以此为准。
 
@@ -132,7 +132,7 @@ Payload-only schema 示例：
 
 Issuer MUST 是 holder 自己（或 holder DID Document 显式授权的 controller / agent）。其他 actor 提交的 grant Move 在 holder 的 principal control Realm MUST `unauthorized` reject。
 
-`dot` 由 `<enclosing event_id>:<effect_index>` 派生，全局唯一，不再使用 deterministic tag。Projection 层按 `intent` 把同一 (consent_id, peer, consent_scope) 下当前 active 的多个 dot 折叠成一条 effective consent。同一 holder 对同一 intent 重复 grant 会产生不同 dot，or_set 视为多个独立 add——effective consent 仍然 active；revoke 时需要枚举该 intent 当前所有 active dot 才能完整撤销（见 §3.3）。
+`dot` 由 `<enclosing event_id>:<effect_index>` 派生，全局唯一。Projection 层按 `intent` 把同一 (consent_id, peer, consent_scope) 下当前 active 的多个 dot 折叠成一条 effective consent。同一 holder 对同一 intent 重复 grant 会产生不同 dot，or_set 视为多个独立 add——effective consent 仍然 active；revoke 时需要枚举该 intent 当前所有 active dot 才能完整撤销（见 §3.3）。
 
 ### 3.3 `ck.consent.revoke` Move
 

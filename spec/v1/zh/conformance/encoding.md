@@ -337,9 +337,11 @@ function compare_hlc(hlc1, hlc2):
 causal_depth ASC, hlc ASC, actor_id ASC, actor_seq ASC, event_id ASC
 ```
 
-协议状态不再使用 timeline 排序选择 winner。Move precondition、Anchor frontier 与 Lattice join 决定当前 cell value；并发不可合并时返回 structured bottom。Timeline 展示顺序与 cell value 是两种不同 projection：前者排历史，后者由 Lattice 计算。实现 MUST 在 profile 中明确使用哪一个，MUST NOT 把 timeline 中最后出现的 Event 直接当作状态 value。
+协议状态 MUST NOT 使用 timeline 排序选择 winner。Move precondition、Anchor frontier 与 Lattice join 决定当前 cell value；并发不可合并时返回 structured bottom。Timeline 展示顺序与 cell value 是两种不同 projection：前者排历史，后者由 Lattice 计算。实现 MUST 在 profile 中明确使用哪一个，MUST NOT 把 timeline 中最后出现的 Event 直接当作状态 value。
 
 客户端只有在已知 causal closure 足以判断两个 Event 在 `prev_refs` 与 `refs[role="after"]` 图中互不可达时，才可把 HLC 用作最终 timeline tie-breaker。若 backfill、dependency fetch 或 snapshot-assisted verification 尚未补齐到可判断互不可达，客户端 MUST 把排序标记为 provisional（例如 pending/backfilling），或使用 `created_at` / 本地接收序作为临时 UI 占位；MUST NOT 把 HLC 排序结果写入持久 projection、审计导出或任何声称“最终顺序”的视图。
+
+`causal_depth` 只用于 timeline / batch 展示排序。它的 canonical projection 定义为：在已知 causal closure 内，仅沿 `prev_refs` 与 `refs[role="after"]` 边计算最长路径长度；genesis depth 为 0。若任一参与排序的 Event 缺失这些边上的 predecessor，接收方 MUST 把该 Event 的 depth 标记为 provisional，不得声称最终 timeline 顺序，也不得把该 depth 输入协议状态收敛、授权或 winner 选择。
 
 ## 8. Cursor
 
@@ -559,7 +561,7 @@ rank_between(left, right):
 
 例如 `rank_between("", "0")` MUST 返回 `rank_exhausted`，因为在 start sentinel 与最小 rank `"0"` 之间不存在合法 rank。客户端或 reducer 遇到 `rank_exhausted` MUST 触发 rebalance 或要求调用方提交 `ck.container.rebalance`，MUST NOT 生成非法 rank。
 - 当 rank 长度超过 128，或连续插入导致实现无法生成短 rank，客户端 SHOULD 请求或提交 `ck.container.rebalance`。Reducer MUST NOT 接受超过 128 字符的 rank。
-- 同一 container 内 rank 完全相同的对象 MUST 按 `rank_source_hlc`、`rank_source_actor_id`、`rank_source_event_id`、`object_id` 继续排序；如果 rank source 元数据缺失，MUST 使用 `object_id` 作为最终稳定 tie-break，并在 conformance report 中声明降级。
+- 同一 container 内 rank 完全相同的对象 MUST 按 `rank_source_event_hlc`、`rank_source_actor_id`、`rank_source_event_id`、`object_id` 继续排序；如果 rank source 元数据缺失，MUST 使用 `object_id` 作为最终稳定 tie-break，并在 conformance report 中声明降级。该 tie-break 仅用于 projection 展示序，不进入 canonical state、`state_root` 或授权判断。
 - `ck.container.rebalance` 的 assignment 生成 MUST 基于权限裁剪前的 canonical ordered set。先按 reducer 已确定的稳定顺序排列 active edges，再选择最小宽度 `w`，使 `alphabet_length^w >= 2 * (item_count + 1)`；第 `i` 个对象（1-based）的 rank number 为 `floor(i * alphabet_length^w / (item_count + 1))`，以固定宽度 base62 编码并用 alphabet 第一个字符左填充。若所需 `w > 128`，实现 MUST reject 该 rebalance。
 - Rebalance assignments MUST 覆盖 container 内全部 active edges，且 MUST NOT 新增、删除或跨 container 移动 edge。CAS 的 `expected_state_digest` 不匹配时，MUST 拒绝整个 operation，MUST NOT 部分应用。
 
@@ -623,11 +625,30 @@ payload_digest = sha256(payload_metadata_bytes || encrypted_payload_bytes)
 
 ### 10.1 AEAD nonce uniqueness（normative）
 
-任何在 v1 wire 上承载 AEAD 加密内容的 envelope（`encrypted_payload`、blob attachment、`to_device` payload 等）MUST 满足 AEAD nonce 唯一性 contract：
+任何在 v1 wire 上承载 AEAD 加密内容的 envelope（`encrypted_payload`、blob attachment、`to_device` payload 等）MUST 满足 AEAD nonce 唯一性 contract。下列公式是 v1 的 canonical nonce 派生定义；领域文档只声明各自的 `purpose` 取值和 envelope 字段位置。
 
-- **Nonce 唯一性**:实现 MUST NOT 在同一 `key_ref` 下重用 nonce — AEAD 在 nonce 复用时机密性 + 完整性同时被打破，影响所有曾用该 (key, nonce) 加密的密文。
-- **派生形态**:nonce MUST 从 MLS exporter secret 派生的 `nonce_key` 与 per-device `(device_id, monotonic_counter)` 通过 HMAC 派生而来; exporter context MUST 绑定 canonical `key_ref`、MLS `epoch` 和 AEAD purpose,具体公式与字段 schema 见 [`crypto-media/media-and-blob.md` §3.1](../crypto-media/media-and-blob.md)。
-- **不回退到 random**:实现 MUST NOT fallback 到 random nonce。96-bit AEAD (AES-GCM) 在 ~2^48 次操作上有显著 birthday-bound 碰撞率;Cokret MLS application key 跨多设备共享,naive random nonce **不满足** v1 normative。
-- **接收方 replay 防护**:接收方 MUST 维护 per-`(key_ref, epoch, device_id)` 已见 counter 集合或等价无误判结构，重复 counter MUST 触发 `failed_precondition` reason=`aead_nonce_counter_replay`。
-- **AAD binding**:AEAD AAD MUST 绑定 `(key_ref, ciphertext_digest, nonce)` canonical 形态，防止 (key, nonce) 下的 ciphertext 被与另一 AAD 配对解密。
-- **不同 AEAD 用途独立 nonce 域**:`label` 输入 MUST 至少包含 purpose 子域(例如 `"cokret-aead-nonce-derivation-v1"` + purpose),避免 `blob-attachment` 与 `to-device` 共享 nonce 计数器。
+下文 `N_AEAD` 指所选 AEAD algorithm 的 nonce 字节长度：XChaCha20-Poly1305 为 24，AES-GCM 为 12。
+
+```text
+sender_nonce_prefix = MLS-Exporter(
+    label   = "cokret-aead-sender-nonce-prefix-v1",
+    context = canonical-bytes({
+      "key_ref": <key_ref-canonical>,
+      "epoch": <mls-epoch>,
+      "device_id": <sender-device-id>,
+      "purpose": <aead-purpose>,
+      "aead_profile": <aead-profile-id>
+    }),
+    length  = N_AEAD - 8
+)
+
+nonce = sender_nonce_prefix || device_nonce_counter_be64
+```
+
+- **Nonce 唯一性**：实现 MUST NOT 在同一 `key_ref` 下重用 nonce。AEAD 在 nonce 复用时机密性与完整性同时被打破。
+- **Counter 规则**：`device_nonce_counter_be64` 是 8 字节 unsigned big-endian 单调计数器；同一 `(key_ref, epoch, device_id, purpose, aead_profile)` 下 MUST 单调递增且不得复用。设备 MUST 持久化 counter；若无法恢复该 epoch 的本地 counter，设备 MUST 先发起 MLS Commit 推进到新 epoch，并在新 epoch 从 0 初始化 counter。
+- **跨设备域分离**：同一 `(key_ref, epoch, purpose, aead_profile)` 下，每个 active sender 的 `sender_nonce_prefix` MUST 唯一。接收方按 sender `device_id` 重算前缀并校验；前缀冲突或与声明 sender 不匹配时 MUST fail closed (`aead_nonce_sender_domain_collision`)。
+- **不回退到 random**：实现 MUST NOT fallback 到 random nonce。96-bit AEAD (AES-GCM) 在 ~2^48 次操作上有显著 birthday-bound 碰撞率；Cokret MLS application key 跨多设备共享，naive random nonce 不满足 v1 normative。
+- **接收方 replay 防护**：接收方 MUST 维护 per-`(key_ref, epoch, device_id, purpose, aead_profile)` 已见 counter 集合或等价无误判结构，重复 counter MUST 触发 `failed_precondition` reason=`aead_nonce_counter_replay`。
+- **AAD binding**：AEAD AAD MUST 绑定 `(key_ref, ciphertext_digest, nonce)` canonical 形态，防止 (key, nonce) 下的 ciphertext 被与另一 AAD 配对解密。
+- **不同 AEAD 用途独立 nonce 域**：`purpose` MUST 写入 exporter context。标准 purpose 取值由消费域文档声明；未声明 purpose 的 AEAD envelope MUST fail closed。

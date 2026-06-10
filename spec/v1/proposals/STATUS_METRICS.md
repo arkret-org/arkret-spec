@@ -3,7 +3,7 @@ title: CKP Status Metrics
 status: candidate
 normative: false
 stability: v1
-updated: 2026-05-28
+updated: 2026-06-10
 ---
 
 ## 1. 目标
@@ -29,6 +29,9 @@ CKP 状态生命周期定义见 [`README.md` §2](./README.md);本文不重新�
 | [CKP-0011](./0011-shareable-object-addressing.md) | Shareable Object Addressing — web+cokret URI scheme & deep-link resolution | `accepted` | 2026-05-28 | 2026-05-28 → accepted (merged → `zh/discovery/object-addressing.md`) | — |
 | [CKP-0012](./0012-account-and-contact-self-operations.md) | Account Self-Service Operations | `accepted` | 2026-06-04 | 2026-06-04 → accepted (merged → `zh/sync/` + `artifacts/`) | — |
 | [CKP-0013](./0013-contact-and-direct-conversation-lifecycle.md) | Contact & Direct Conversation Lifecycle | `accepted` | 2026-06-04 | 2026-06-04 → accepted (merged → `zh/identity/contact-and-direct-conversation.md` + `artifacts/`) | — |
+| [CKP-0014](./0014-implementation-local-http-surfaces.md) | Implementation-local HTTP surfaces found in coauth / yougen audit | `draft` | 2026-06-06 | 2026-06-06 → draft | — |
+| [CKP-0015](./0015-contact-introduction-and-graded-disclosure.md) | Contact introduction evidence & graded invite-outcome disclosure | `draft` | 2026-06-08 | 2026-06-08 → draft | — |
+| [CKP-0016](./0016-agent-participation-policy.md) | Agent 参与策略与分层授权上限 | `accepted` | 2026-06-09 | 2026-06-09 → accepted (merged → `zh/models/realm-and-space.md` + `zh/authz/capabilities.md` + `artifacts/`) | internal（无公开 URL） |
 
 ## 3. 状态转移汇总
 
@@ -51,14 +54,17 @@ draft  ──►  review  ──►  accepted  ──►  (迁入 normative spec
 - `0011`: `draft` → `accepted` (2026-05-28 created and merged into `zh/discovery/object-addressing.md`; 客户端无关可分享对象地址 + `web+cokret:` scheme + `resolve_target`)
 - `0012`: `draft` → `accepted` (2026-06-04 merged into `zh/sync/` + `artifacts/`; account self-service 四项 — viewer/update_profile/register/session_revoke)
 - `0013`: `draft` → `accepted` (2026-06-04 merged into `zh/identity/contact-and-direct-conversation.md` + `artifacts/`; contact 关系生命周期 + DM 编排)
+- `0014`: `draft` (2026-06-06 implementation-local HTTP surface audit; not merged)
+- `0015`: `draft` (2026-06-08 contact introduction and graded disclosure; not merged)
+- `0016`: `draft` → `accepted` (2026-06-09 merged into agent participation policy zh/spec artifacts)
 
 ## 4. 状态健康度指标
 
 | 指标 | 当前值 | 阈值 / 备注 |
 | --- | --- | --- |
-| `total_proposals` | 13 | — |
-| `active_count` (`draft` + `review`) | 0 | — |
-| `accepted_count` | 7 | CKP-0007 (Circle), CKP-0008 (Personal Agent), CKP-0009 (Agent Sidecar Thread), CKP-0010 (Media Service Binding Framework), CKP-0011 (Shareable Object Addressing), CKP-0012 (Account Self-Service), CKP-0013 (Contact & Direct Conversation) |
+| `total_proposals` | 16 | — |
+| `active_count` (`draft` + `review`) | 2 | CKP-0014, CKP-0015 |
+| `accepted_count` | 8 | CKP-0007 (Circle), CKP-0008 (Personal Agent), CKP-0009 (Agent Sidecar Thread), CKP-0010 (Media Service Binding Framework), CKP-0011 (Shareable Object Addressing), CKP-0012 (Account Self-Service), CKP-0013 (Contact & Direct Conversation), CKP-0016 (Agent Participation Policy) |
 | `deferred_to_v11_count` | 6 | 0001–0006 |
 | `rejected_count` | 0 | — |
 | `withdrawn_count` | 0 | — |

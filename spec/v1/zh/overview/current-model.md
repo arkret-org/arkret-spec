@@ -21,7 +21,7 @@ Cokret 不是把某个产品的对象名搬进协议，而是把常见协作产�
 | 产品 / 场景概念 | Cokret 中的落点 | 不应误读为 |
 | --- | --- | --- |
 | 聊天群、即时通讯群组、频道 | `Realm` 提供成员与历史边界；一个或多个 `Flow(tracks.discussion)` 承载对话 | `Message` 本身不是房间；`discussion` track 也不是独立 ACL。 |
-| Matrix Room | 通常拆为 `Realm`（room state / membership / history 边界）+ `Flow/Message`（协作主题与消息）+ `View`（timeline / thread 投影） | v1 core 不使用 `Room` 作为通用对象根。 |
+| 房间式协作场景 | 通常拆为 `Realm`（状态、成员与历史边界）+ `Flow/Message`（协作主题与消息）+ `View`（时间线 / 话题投影） | v1 core 不使用通用 `Room` 对象根。 |
 | Trello Board / List / Card | `Space(kind=board)` / `Space(kind=list)` / `Flow`，位置由 `ck.flow.move` 与派生 `contains` Relation 表达 | View renderer 不是对象真相；拖拽不能只改 View。 |
 | Jira issue / workflow status / issue links | `Flow` / `stage` + workflow profile / `Relation(depends_on, blocks, assigned_to, references...)` | Jira-style workflow status 不等于 `state`，也不应塞进 `metadata.fields.status` 作为互操作真相。 |
 | Watchers、订阅、勿扰 | `ck.flow.watch.set` cell + actor-private push rules / DND | Watch 不是访问权；静音不改变别人是否能读对象。 |

@@ -651,7 +651,35 @@
           "field": "payload.actor_id"
         },
         "lattice": "fsm",
-        "bottom": "reject"
+        "bottom": "reject",
+        "parameters": {
+          "initial_state": "leave",
+          "states": [
+            "invite",
+            "join",
+            "knock",
+            "leave",
+            "ban"
+          ],
+          "allowed_transitions": [
+            ["leave", "invite"],
+            ["leave", "knock"],
+            ["leave", "join"],
+            ["invite", "join"],
+            ["invite", "leave"],
+            ["knock", "invite"],
+            ["knock", "join"],
+            ["knock", "leave"],
+            ["join", "join"],
+            ["join", "leave"],
+            ["leave", "ban"],
+            ["invite", "ban"],
+            ["knock", "ban"],
+            ["join", "ban"],
+            ["ban", "leave"],
+            ["ban", "invite"]
+          ]
+        }
       },
       {
         "event_kind": "ck.member.identity.update",
@@ -2822,7 +2850,7 @@
         "category": "identity",
         "status": "active",
         "wire_form": "ck:device:<uuid>",
-        "description": "Device ID"
+        "description": "Device identifier (ck:device:<uuid>). A device is a typed ID scoped to an owning principal, NOT a DID and NOT an actor principal. Device keys are registered as verification methods under the owning principal DID via ck.device.authorize."
       },
       {
         "kind": "device_message",
@@ -3280,7 +3308,9 @@
           "ck.self.agent.rotate_key",
           "ck.self.agent.grant.attach",
           "ck.self.agent.grant.detach",
-          "ck.self.agent.sidecar_thread.ensure"
+          "ck.self.agent.sidecar_thread.ensure",
+          "ck.self.agent.participation.set",
+          "ck.self.agent.participation.get"
         ]
       }
     ],

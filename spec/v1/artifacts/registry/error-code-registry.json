@@ -2695,7 +2695,7 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "A native personal agent attempted to author ck.message.create / ck.reaction.add in a scope where its effective participation reply bit is false (no reply-enabled selection ∩ ceiling covering the scope). See zh/authz/capabilities.md §5.4 / CKP-0016 §5.2."
+      "description": "A native personal agent attempted to author ck.message.create / ck.reaction.add in a scope where its effective participation reply bit is false (no reply-enabled selection ∩ ceiling covering the scope). See zh/authz/capabilities.md §5.4 and zh/models/private-objects.md §4.1."
     },
     {
       "code": "effective_scope_reducer_managed",
@@ -2752,6 +2752,22 @@
         "state_resolution"
       ],
       "description": "A key-backup envelope or recovery proof references a `recovery_policy.policy_id` / `policy_version` that is not the currently accepted policy for the principal. Recovery flows MUST surface this to the user as 'update recovery policy' rather than silently continuing. See zh/identity/key-management.md §7.5.4 / §7.7 and zh/crypto-media/device-lifecycle.md §15."
+    },
+    {
+      "code": "recovery_session_challenge_mismatch",
+      "applies_to": [
+        "device_recovery",
+        "schema_validation"
+      ],
+      "description": "A recovery proof echoes a challenge value that does not exactly match the server-issued challenge for the referenced recovery_session_id. Servers MUST reject the proof before completing device recovery. See zh/crypto-media/device-lifecycle.md §15 and artifacts/schemas/recovery-session.schema.json."
+    },
+    {
+      "code": "invalid_membership_transition",
+      "applies_to": [
+        "authz",
+        "state_resolution"
+      ],
+      "description": "A ck.member.state Move requests a membership FSM transition that is not listed as legal for the member's current state. Reducers MUST reject the Move with failed_precondition. See zh/models/realm-and-space.md §2.7."
     },
     {
       "code": "share_commitment_mismatch",

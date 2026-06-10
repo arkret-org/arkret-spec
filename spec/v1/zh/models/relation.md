@@ -36,7 +36,7 @@ Schema id: `ck.schema.relation.v1`
 | `to_ref` | yes | `string` | MUST 是 `ck:<kind>:...` 或 DID。 | 终点对象/Actor/Realm 引用。 |
 | `rank` | no | `string` | 见 `encoding.md` §9。**与 Space.rank 顶层字段对齐**——v1 把 rank 提升到顶层，`fields.rank` 在 wire 上 MUST 被拒绝（`schema_violation`），不接受双源并存。 | 有序关系（如 `contains list -> flow`）的稳定 rank。 |
 | `fields` | no | `object` | 可放 role、edge metadata；MUST NOT 包含 `rank`（已提升到顶层）。 | 关系属性。 |
-| `state` | no | `enum(active, tombstoned)` | `tombstoned` 同时覆盖删除与 redaction；原因保存在对应 `ck.relation.tombstone` / `ck.redaction` event 上，不再写入物化对象。 | 关系状态。 |
+| `state` | no | `enum(active, tombstoned)` | `tombstoned` 同时覆盖删除与 redaction；原因保存在对应 `ck.relation.tombstone` / `ck.redaction` event 上，物化对象只保留当前状态。 | 关系状态。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -91,7 +91,7 @@ confidential_discussion_of
 | `agent_sidecar_of` | `many_to_one` | weak-semantic、non-structural、non-cascading。`from_ref` MUST 是 sidecar private Flow,`to_ref` 可为目标 Flow / Message / Relation。该 relation fact MUST 提交 `scope_circle_id` 指向 sidecar Circle,使 `effective_scope = circle`;non-sidecar-member 不能从目标侧枚举该边。**实现 MUST NOT 在目标公开 Flow 写 target-side reverse relation**,因为这会泄露 sidecar 存在性。详见 [`circle.md` §6.1](./circle.md) 的 Relation effective_scope invariant 与 [`circle.md` §11.1](./circle.md) 的 sidecar profile 规则。 |
 | `confidential_discussion_of` | `many_to_one` | weak-semantic、non-structural、non-cascading。`from_ref` MUST 是 private Flow，`to_ref` MUST 是其 public anchor Flow。该 relation fact MUST 提交在 `from_ref` 所在 Circle scope（即 payload `scope_circle_id` 指向 private Flow 的 Circle，使 `effective_scope = circle`），使 Circle 成员能从 private Flow 回到 public anchor，而 non-member 不能从 public anchor 侧枚举该边。**实现 MUST NOT 在目标公开 Flow 写 target-side reverse relation**。 |
 
-未声明为 multi-edge 的 Relation MUST 由 reducer 按 `(realm_id, relation_kind, from_ref, to_ref)` 去重。Events API MAY 拒绝同一 frontier 下显然重复的写入，但不能作为唯一去重机制；两个离线设备并发创建同一关系时，reducer 必须确定性选择一个 active winner，并把 loser 记录为 conflict 或 tombstone。
+未声明为 multi-edge 的 Relation MUST 由 reducer 按 `(realm_id, relation_kind, from_ref, to_ref)` 去重。Events API MAY 拒绝同一 frontier 下显然重复的写入，但不能作为唯一去重机制；两个离线设备并发创建同一关系时，若 relation profile 未声明其它 `on_conflict` 值，reducer MUST 按 §6 的 `deterministic_winner` 规则选择一个 active winner，并把 loser 记录为 conflict 或 tombstone。
 
 ## 4. 跨 Realm 引用
 
@@ -121,7 +121,7 @@ Relation 的 `realm_id` 表示关系事实所在的源 Realm；`from_ref` / `to_
 | --- | --- | --- |
 | `accessible` | caller 已通过目标 Realm 的 discover/reference 与内容展开授权，可展示目标 policy 允许的 metadata / preview。 | 目标 policy 允许的最小 metadata；不得超出本次授权。 |
 | `lazy_link` | caller 可能有后续展开路径，但当前查询深度、范围、profile 或缺失依赖要求截断为惰性链接。 | 不解引用占位、必要的 source-side relation id / digest；不得自动 backfill 目标 Realm。 |
-| `locked` | 目标不存在、未发现、policy 拒绝或 caller 无权知道目标存在性；这些原因对 caller MUST 不可区分。 | 固定 locked stub；不得包含目标 `realm_id`、title、member_count、created_at、issuer set、preview 或任何可区分存在性的字段。 |
+| `locked` | 目标不存在、未发现、policy 拒绝或 caller 无权知道目标存在性；这些原因对 caller MUST 保持不可区分。 | 固定 locked stub；不得包含目标 `realm_id`、title、member_count、created_at、issuer set、preview 或任何可区分存在性的字段。 |
 
 响应实现 MAY 使用 `reference_projection.status`、`edge_status` 或等价字段名，但值 MUST 能无损映射到上述三值。`locked` 是 projection-only 派生状态，不写入 canonical Relation 对象，也不得与 account lifecycle 的 `locked` 混用。
 
@@ -150,7 +150,7 @@ Relation 的 `realm_id` 表示关系事实所在的源 Realm；`from_ref` / `to_
 
 ### 4.5 反枚举（normative）
 
-**存在性反枚举**：`ReferenceProjectionStatus.locked` 与"目标 Realm 不存在 / 未发现"对外 MUST 不可区分。projection 在两种情况下 MUST 返回**相同**的 wire 形态：相同 `status="locked"` 或等价字段、相同 metadata 集合、相同 error 字符串、相同 timing bucket。Timing 判定使用同一服务端测量点、同一请求类别和同一部署 profile 的分布式口径：实现 SHOULD 对每类至少采样 30 次，p95 差异 SHOULD ≤ 50ms；声明高安全 profile 时 MUST 使用 padding / jitter 使 p99 也落入该 bucket。网络传输时间不计入服务端本地口径，但 conformance runner MAY 在同一网络条件下做端到端抽样。MUST NOT 在 `locked` 响应中泄露目标 `realm_id`、`title`、`member_count`、`created_at`、issuer set 或任何能被探测者用于"目标存在 vs 不存在"区分的字段；客户端 UI MAY 显示通用 "reference not accessible" 而不是显示具体目标 ID。源 Realm reducer SHOULD 限制单一 actor 在固定窗口内创建跨 Realm `locked` Relation 的速率（默认 ≤ 20/min），防止枚举攻击。Conformance vector `ck.vector.relation.reference_projection_indistinguishable.v1` 固化该响应 shape、raw event/backfill masking 与 timing bucket。
+**存在性反枚举**：`ReferenceProjectionStatus.locked` 与"目标 Realm 不存在 / 未发现"对外 MUST 保持不可区分。projection 在两种情况下 MUST 返回**相同**的 wire 形态：相同 `status="locked"` 或等价字段、相同 metadata 集合、相同 error 字符串、相同 timing bucket。Timing 判定使用同一服务端测量点、同一请求类别和同一部署 profile 的分布式口径：实现 SHOULD 对每类至少采样 30 次，p95 差异 SHOULD ≤ 50ms；声明高安全 profile 时 MUST 使用 padding / jitter 使 p99 也落入该 bucket。网络传输时间不计入服务端本地口径，但 conformance runner MAY 在同一网络条件下做端到端抽样。MUST NOT 在 `locked` 响应中泄露目标 `realm_id`、`title`、`member_count`、`created_at`、issuer set 或任何能被探测者用于"目标存在 vs 不存在"区分的字段；客户端 UI MAY 显示通用 "reference not accessible" 而不是显示具体目标 ID。源 Realm reducer SHOULD 限制单一 actor 在固定窗口内创建跨 Realm `locked` Relation 的速率（默认 ≤ 20/min），防止枚举攻击。Conformance vector `ck.vector.relation.reference_projection_indistinguishable.v1` 固化该响应 shape、raw event/backfill masking 与 timing bucket。
 
 读取实现 MUST 对 projection caller、raw event caller、backfill consumer 与 federation peer 使用同一 reference-disclosure 决策。对 peer 传输 canonical bytes 仅在 peer 本身被授权接收完整 payload 且承诺对其本地 caller 继续执行本节 masking 时允许；否则发送方 MUST 只传 redacted event view / locked stub。签名验证工具需要证明原始事件存在时，服务端 MAY 返回 `payload_digest`、inclusion proof 与 redaction reason，但不得返回被 target policy 禁止的 target ref 明文字段。
 
@@ -172,7 +172,7 @@ Realm schema、Realm profile 或 `relation_profiles` MAY 对标准默认值收�
 | `max_from_per_to` | no | `integer` | 每个 `to_ref` 的 active `from_ref` 上限。 |
 | `multi_edge` | no | `boolean` | 只有 true 时允许同一 tuple 多条 active edge。 |
 | `rank_field` | no | `string` | 有序关系的 rank 字段，默认 `rank`（顶层）。仅当 profile 把 rank 显式放在另一字段时声明；MUST NOT 指向 `fields.rank`，该路径在 v1 不合法。 |
-| `on_conflict` | no | `enum(reject, close_previous, deterministic_winner, require_review)` | 并发冲突处理；默认 `deterministic_winner`。 |
+| `on_conflict` | no | `enum(reject, close_previous, deterministic_winner, require_review)` | 并发冲突处理；默认 `deterministic_winner`。该默认规则按 canonical `event_digest` 字典序选择 winner。 |
 
 ```json
 {
@@ -190,10 +190,11 @@ Realm schema、Realm profile 或 `relation_profiles` MAY 对标准默认值收�
 
 ## 6. 冲突处理
 
-Relation conflict 的默认处理为：候选先通过格式、签名、授权、时钟窗口和 causal dependency 检查；严格因果后继 supersede 前驱；互不可达候选不得靠 HLC、actor id、本地接收顺序、数据库 ID 或服务端插入顺序自动选边。若 relation profile 能用业务 lattice 合并则合并；否则输出 conflict bottom / diagnostic。
+Relation conflict 的默认处理为：候选先通过格式、签名、授权、时钟窗口和 causal dependency 检查；严格因果后继 supersede 前驱；互不可达候选不得靠 HLC、actor id、本地接收顺序、数据库 ID 或服务端插入顺序自动选边。若 relation profile 能用业务 lattice 合并则合并；否则按 `on_conflict` 处理。
 
 - `on_conflict="close_previous"` 只适用于因果上明确晚于旧 edge 的事件；并发互斥 edge 不得靠接收顺序关闭。
 - `on_conflict="reject"` 表示 reducer 输出无 active 新 edge，并要求客户端重新基于最新 Anchor frontier 提交修复 Move。
+- `on_conflict="deterministic_winner"` 表示 reducer 对互不可达候选按 canonical `event_digest` bytewise 升序选择最小值作为唯一 active winner；其它候选必须记录为 conflict loser 或 tombstone，并保留其 `event_id` / `event_digest` 以便审计和显式修复。`event_digest` 是签名覆盖的 canonical Event digest，不得由 HLC、actor id 或接收顺序替代。
 - `require_review` MUST 输出可投影的 conflict 诊断，不得让两个互斥 active edge 同时进入 canonical projection。
 
 ## 7. 常见关系（按对象）

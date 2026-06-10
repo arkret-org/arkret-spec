@@ -125,11 +125,11 @@ expected_<role>_<kind>_id
 | `created_by` | conditional | `did` | 系统派生对象可由 `derived_from` 替代。 | 创建主体（创建该对象的 Event 的 `actor_id`）。 |
 | `created_at` | yes | `timestamp` | 不能作为因果真相。 | 创建时间。 |
 | `updated_by` | no | `did` | 更新时 SHOULD 设置。 | 最近更新主体。 |
-| `updated_at` | no | `timestamp` | MUST 不早于 `created_at`。 | 最近更新时间。 |
+| `updated_at` | no | `timestamp` | MUST be no earlier than `created_at`。 | 最近更新时间。 |
 | `deleted_at` | no | `timestamp` | durable tombstone 可用。对没有独立 `deleted` / `tombstoned` 终态的对象（Flow / Morph，其不可逆终态是 `redacted`），`deleted_at` 仅表示该对象因 `ck.redaction` 进入 `redacted` 的逻辑删除时间，不暗示存在单独的 deleted 终态；对有 `tombstoned` / `deleted` 终态的对象（Space / Realm / Message 的相应终态），表示该终态发生时间。 | 逻辑删除时间。 |
-| `state_changed_at` | conditional | `timestamp` | **Reducer-derived,actor 不可信:** 所有具有 `state` 字段的对象（Flow / Space / Message / Morph / Relation）当 `state != active` 时 MUST 写入;reducer **MUST** 忽略任何 wire payload 中 actor-supplied 的 `state_changed_at` 值，以触发该 state transition 的 Event 的 `created_at`(或对应 anchor 的 `anchored_at`,以两者中较晚者为准)覆盖写入。MUST 不早于 `created_at`,MUST ≤ `updated_at`(当后者存在时)。 | 最近一次 state 转换时间。 |
+| `state_changed_at` | conditional | `timestamp` | **Reducer-derived,actor 不可信:** 所有具有 `state` 字段的对象（Flow / Space / Message / Morph / Relation）当 `state != active` 时 MUST 写入;reducer **MUST** 忽略任何 wire payload 中 actor-supplied 的 `state_changed_at` 值，以触发该 state transition 的 Event 的 `created_at`(或对应 anchor 的 `anchored_at`,以两者中较晚者为准)覆盖写入。MUST be no earlier than `created_at`,MUST ≤ `updated_at`(当后者存在时)。 | 最近一次 state 转换时间。 |
 | `stage` | conditional | `enum` | 适用对象自己的 schema 声明本字段时可用（v1 适用对象 = Flow / Morph，详见 §5.3）；Flow MAY 省略，Morph 必填。取值为 §5.3 的协议级 8 值枚举。**禁止与 `state` 混用**：`stage` 表达业务进度，`state` 表达物理生命周期，两者正交。Flow 的 `metadata.fields.stage` / `metadata.fields.lifecycle` / `metadata.fields.progress_state` / `metadata.fields.stage_reason`，以及 Morph 的 `fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` 等同名/近名 wire 路径 MUST 被拒绝（见 [`artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。stage 变更的"为什么"解释通过 discussion track Message 表达，不在对象字段中携带。 | 业务进度阶段。 |
-| `stage_changed_at` | conditional | `timestamp` | **Reducer-derived，actor 不可信：** 适用对象 `stage` 字段每次实际变更时 MUST 写入；Flow 缺少 `stage` 时 MUST NOT 单独出现。reducer **MUST** 忽略 wire payload 的 actor-supplied 值，以触发该 transition 的 `ck.<kind>.stage.set` event 的 `created_at` 覆盖写入。MUST 不早于 `created_at`。same-value self-transition（stage 值未变）reducer MUST NOT 更新本字段。 | 最近一次 stage 转换时间。 |
+| `stage_changed_at` | conditional | `timestamp` | **Reducer-derived，actor 不可信：** 适用对象 `stage` 字段每次实际变更时 MUST 写入；Flow 缺少 `stage` 时 MUST NOT 单独出现。reducer **MUST** 忽略 wire payload 的 actor-supplied 值，以触发该 transition 的 `ck.<kind>.stage.set` event 的 `created_at` 覆盖写入。MUST be no earlier than `created_at`。same-value self-transition（stage 值未变）reducer MUST NOT 更新本字段。 | 最近一次 stage 转换时间。 |
 | `labels` | no | `array<string>` | SHOULD 小写短标签。 | 用户或系统标签。 |
 | `fields` | no | `object` | 字段 schema 由对象类型自身的 `schema_refs` 决定。 | 扩展字段；v1 唯一标准扩展容器。 |
 
@@ -331,7 +331,7 @@ DID 是 Cokret 的主体标识，不是普通协作对象 ID。标准协作对�
 
 附加规则:
 
-- **未知对象容忍**:reducer 若收到的 event 指向尚未在本地物化的对象(create event 尚未通过 causal / backfill 到达),MUST 不返回 `failed_precondition` 也不改写任何状态——直接 `Ok` 跳过本次副作用。这是 causal-order 安全性，与"对已知对象的 state 校验"不冲突:校验只在物化对象存在时执行。Conformance 实现 MAY 把这种 event 标记为 `pending_causal_apply` 等内部 hint。
+- **未知对象容忍**:reducer 若收到的 event 指向尚未在本地物化的对象(create event 尚未通过 causal / backfill 到达),MUST NOT 返回 `failed_precondition` 也不改写任何状态——直接 `Ok` 跳过本次副作用。这是 causal-order 安全性，与"对已知对象的 state 校验"不冲突:校验只在物化对象存在时执行。Conformance 实现 MAY 把这种 event 标记为 `pending_causal_apply` 等内部 hint。
 - **终态等价**:`tombstoned` / `deleted` 在 state-machine 中等价，都属于"不可逆终态";`redacted` 单独占一格但对 archive / restore / tombstone 而言同样是"不可逆终态"(MUST NOT 被这些 event 修改)。
 - **不允许 same-state self-transition**:`ck.<kind>.archive` 在 `state == "archived"` 时 MUST 返回 `<kind>_not_active`,**MUST NOT** 当作 idempotent no-op。这保证 reducer 路径上每个 state transition 都对应一次 audit-able 状态变化；客户端如果想"重新 archive"应当先 restore 再 archive,或确认目标对象 state 后跳过事件提交。
 - **`state_changed_at` reducer-derived(normative)**:reducer **MUST** 忽略 wire payload 中任何 actor-supplied 的 `state_changed_at` 值。该字段的权威值是触发本次 state transition 的 Event 的 `created_at`,或 cell update 时该 Event 落在 anchor frontier 上的 `anchored_at`(两者较晚者),与 §3 字段表一致。客户端不得依赖 wire 上的 `state_changed_at` 做时序判断；若 wire 值与 reducer 派生值不一致,SDK SHOULD 报警并以 reducer 派生值为准。该规则防止 actor 通过填错时间戳干扰 retention、audit timeline、conflict tie-break(虽然 §6 已禁止 HLC / event id / actor_seq 作为 cell winner 选边，但 retention 与 audit query 仍可能 group by `state_changed_at`)。

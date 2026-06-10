@@ -30,21 +30,15 @@ see_also:
 ### 1.2 漂移检测 artifacts
 
 为了让下游实现（SDK、yougen、soland、cotest 等）能够机器化地发现已经从协议中移除或被弃用的概念，
-`artifacts/registry/` 下提供一组 drift detection artifacts。它们是 canonical source of truth，由
-`registry-manifest.json` 索引，cotest scanner 直接消费这些文件来识别旧 id / 旧字段 / 旧术语的残留：
+`artifacts/registry/` 与 `artifacts/migration/` 下提供 drift detection artifacts。registry 类文件由
+`artifacts/registry/registry-manifest.json` 索引；migration 类文件由 migration manifest / scanner 配置直接消费：
 
-- `artifacts/migration/removed-event-kinds.json`：已移除的 Event.kind 列表（例如 `ck.field.position.*`、
-  `ck.flow.track.*`、`ck.realm.lifecycle.set`、`ck.realm.policy.set`）。
-- `artifacts/migration/removed-operation-ids.json`：已移除的 operation id（与上述 event kind 对齐的 binding 端点）。
-- `artifacts/migration/deprecated-profile-ids.json`：已弃用或从未 canonical 化的 profile id
-  （例如 `chat_only_client`、`kanban_only_client`；现行替代命名为 `chat_mvp` / `kanban_mvp`，
-  见 [`release-readiness.md` §2.1](./overview/release-readiness.md)，与 `renames.json` 的 `replacement` 字段对齐）。
-- `artifacts/registry/forbidden-wire-fields.json`：在 current-wire 中禁止出现的字段（带上下文，例如
-  timeline event 顶层不得出现 `branch`、payload 中不得出现 `room_kind` 或 `kind=room`）。
-- `artifacts/registry/forbidden-model-terms.json`：在 current-model prose / code identifier / UI 文案中
-  禁止使用的术语（例如 `Room`、`Realm(kind=list)`、`flow_branch`、`track members`、`Room visibility`）及其替代物。
-- `artifacts/migration/renames.json`：从旧 id / 旧字段名到 v1 替代物的重命名映射（`replacement=null` 表示概念被删除、
-  无机械替代）。
+- `artifacts/migration/removed-event-kinds.json`：已移除的 Event.kind 列表。
+- `artifacts/migration/removed-operation-ids.json`：已移除的 operation id。
+- `artifacts/migration/deprecated-profile-ids.json`：已弃用或未 canonical 化的 profile id。
+- `artifacts/registry/forbidden-wire-fields.json`：current-wire 禁止字段及其适用上下文。
+- `artifacts/registry/forbidden-model-terms.json`：current-model prose / code identifier / UI 文案中的禁止术语及其替代物。
+- `artifacts/migration/renames.json`：移除或重命名概念到 v1 替代物的映射；`replacement=null` 表示概念被删除且无机械替代。
 
 每条 entry 公共字段：`id`、`since_revision`（生效起始的 spec revision）、`rejection_level`
 （`hard_reject` / `migration_only` / `compat_only` / `docs_only`）、`replacement`、`allowed_contexts`
@@ -91,7 +85,7 @@ see_also:
 
 | 产品概念 | Cokret 读法 | 先读 |
 | --- | --- | --- |
-| 群聊 / 频道 / Matrix Room | Realm 负责成员和历史边界；Flow + Message 负责话题和消息；View 负责 timeline / thread 展示。 | `overview/current-model.md`、`models/flow-and-message.md`、`governance/history-visibility.md` |
+| 群聊 / 频道类场景 | Realm 负责成员和历史边界；Flow + Message 负责话题和消息；View 负责 timeline / thread 展示。 | `overview/current-model.md`、`models/flow-and-message.md`、`governance/history-visibility.md` |
 | Trello 看板 / 列 / 卡片 | Board/List 是 Space.kind；卡片是 Flow；拖拽位置是 `ck.flow.move` / Relation 派生投影。 | `models/realm-and-space.md`、`models/views.md` |
 | Jira issue / workflow / issue links | Issue 对应 Flow；粗粒度进度是 `stage`；细粒度 workflow 由 Realm profile 声明；依赖、阻塞、指派是 Relation。 | `models/flow-and-message.md`、`models/relation.md`、`models/common-fields.md` |
 | Watchers / 通知规则 / 勿扰 | Watch cell 决定是否关注；push rule 决定如何投递；DND 和 blocklist 属于 actor-private account data。 | `models/flow-and-message.md` §8、`discovery/push-notifications.md`、`discovery/client-preferences.md` |
@@ -202,7 +196,7 @@ see_also:
 | `governance/member-delivery-binding.md` | 成员 effective delivery binding：接受准则、`binding_source`、`ck.realm.delivery_binding_policy`、路由不可降级、rebind 过渡、单 binding + 多设备策略与隐私边界（与 join gate 正交，从 join-policy.md 拆出）。 |
 | `governance/history-visibility.md` | `world_readable` / `shared` / `invited` / `joined` / `restricted` 的精确定义、preview / peek policy、public plaintext Realm 与 E2EE history key share。 |
 | `governance/content-moderation.md` | 举报、E2EE franking、Realm/Organization 审核策略、个人屏蔽入口。 |
-| `security/server-threat-model.md` | 服务端攻击模型与反滥用规则。 |
+| `security/server-threat-model.md` | 服务端攻击模型与反滥用规则；物理位于 `security/` 安全分析专项目录。 |
 
 ### 4.5 同步、服务与联邦
 
@@ -265,7 +259,7 @@ see_also:
 | `conformance/README.md` | conformance 目录入口、阅读顺序和 artifact/向量使用说明。 |
 | `conformance/normative-language.md` | RFC 2119 / 8174 规范关键字（MUST / SHOULD / MAY 等）的 canonical 定义与中英对照；几乎所有文档 §0 与 frontmatter `see_also` 引用。 |
 | `conformance/encoding.md` | Canonical JSON、ID、hash、signature、cursor、HLC、rank。 |
-| `conformance/conformance-vectors.md` | 合并的一致性测试向量，共 §1–§13 个向量域：§1 Encoding & Crypto、§2 Move · Anchor · Lattice、§3 Redaction、§4 Capability、§5 Sync、§6 Space Lifecycle、§7 Member Delivery Binding、§8 Handle、§9 Security Closure、§10 Service Closure、§11 Personal Agent & Sidecar、§12 Media Service Binding、§13 History Visibility / Preview / History Sharing；逐域 vector 清单以文件章节目录与 `artifacts/registry/vector-registry.json` 为准。 |
+| `conformance/conformance-vectors.md` | 合并的一致性测试向量；逐域 vector 清单以文件章节目录与 `artifacts/registry/vector-registry.json` 为准。 |
 | `conformance/schema-registry.md` | 标准 schema / event type registry。 |
 | `conformance/query-schema.md` | View / Search / Inbox 可复用查询形状。 |
 | `conformance/snapshot-schema.md` | Snapshot manifest、chunk、signature、encrypted envelope。 |

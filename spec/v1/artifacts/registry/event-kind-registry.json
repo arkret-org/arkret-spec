@@ -619,7 +619,83 @@
         "field": "payload.actor_id"
       },
       "lattice": "fsm",
-      "bottom": "reject"
+      "bottom": "reject",
+      "parameters": {
+        "initial_state": "leave",
+        "states": [
+          "invite",
+          "join",
+          "knock",
+          "leave",
+          "ban"
+        ],
+        "allowed_transitions": [
+          [
+            "leave",
+            "invite"
+          ],
+          [
+            "leave",
+            "knock"
+          ],
+          [
+            "leave",
+            "join"
+          ],
+          [
+            "invite",
+            "join"
+          ],
+          [
+            "invite",
+            "leave"
+          ],
+          [
+            "knock",
+            "invite"
+          ],
+          [
+            "knock",
+            "join"
+          ],
+          [
+            "knock",
+            "leave"
+          ],
+          [
+            "join",
+            "join"
+          ],
+          [
+            "join",
+            "leave"
+          ],
+          [
+            "leave",
+            "ban"
+          ],
+          [
+            "invite",
+            "ban"
+          ],
+          [
+            "knock",
+            "ban"
+          ],
+          [
+            "join",
+            "ban"
+          ],
+          [
+            "ban",
+            "leave"
+          ],
+          [
+            "ban",
+            "invite"
+          ]
+        ]
+      }
     },
     {
       "event_kind": "ck.member.identity.update",

@@ -12,7 +12,7 @@ updated: 2026-05-25
 
 ## 1. 目标与范围
 
-本文档定义 Realm 的 **Join Policy** 模型，覆盖 gate 组合、自动解析路径、申请-审核路径、加密语义、联邦传播、反滥用与 MIMI 映射。原本作为 `realm-and-space.md §3` 的子节存在；v1 拆出独立文件以便 governance / membership 相关讨论集中维护。`realm-and-space.md` 现在只承担 Realm 对象模型与 Space / hierarchy 部分。
+本文档定义 Realm 的 **Join Policy** 模型，覆盖 gate 组合、自动解析路径、申请-审核路径、加密语义、联邦传播、反滥用与 MIMI 映射。Realm 对象模型与 Space / hierarchy 由 `realm-and-space.md` 定义。
 
 术语层级（normative，消歧）——本文反复出现的四个相近名词分属不同层级，MUST NOT 互换：
 
@@ -45,7 +45,7 @@ updated: 2026-05-25
 
 ## 2. 设计原则
 
-1. **Gate 是组合的，不是命名的。** 不再以新 enum 区分"附加条件类型"。Realm 通过 `gates[]` + `combinator` 表达任意 AND/OR 组合；`knock_restricted` 等组合 enum 的语义由 `combinator` 直接表达，避免每加一类 gate 就要再造 enum。
+1. **Gate 是组合的，不是命名的。** Realm 通过 `gates[]` + `combinator` 表达任意 AND/OR 组合；`knock_restricted` 等组合 enum 的语义由 `combinator` 直接表达，避免每加一类 gate 就要再造 enum。
 2. **申请材料对外不可见。** Matrix `m.room.member{knock}` 的 free-text `reason` 因默认可见已成为 spam 通道。实现声明 `ck.profile.candidate.join_policy.v1` 并启用 application / review workflow 时，申请正文 MUST 仅对 `ck.realm.join.review` capability 持有方可见：E2EE Realm 中通过 reviewer-only encryption envelope；非 E2EE Realm 中由 Sync Service 强制访问控制并审计读取（`ck.audit.accessed`）。
 3. **审核决策必须有稳定审计材料。** 实现声明 `ck.profile.candidate.join_policy.v1` 时，所有审核接受 / 拒绝 MUST 是签名的 anchored Move、profile-private Event 或 signed receipt，记录 reviewer DID、review reason、引用证据 hash。事后审计与申诉（参见 [`./content-moderation.md` §5.5](./content-moderation.md) 申诉流程与 [`./content-moderation.md` §10](./content-moderation.md) 审计要求）依赖该 trail。
 4. **审核必须密码学绑定到 join。** 借鉴 Matrix `join_authorised_via_users_server` 的担保模式：candidate profile 下随后的 `ck.invite.create` MUST 通过 `refs[role="join_authorised_by"]` 引用对应 signed review accept receipt digest；若实现 profile 已注册私有 review Event kind，MAY 引用该 Event id。reducer 校验该 ref 在写入时仍指向有效 capability 持有者。
@@ -73,7 +73,7 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 | --- | --- | --- | --- | --- |
 | `gates` | yes | `array<Gate>` | 1..16 项；空数组 MUST schema_violation。 | 必须穿越的 gate 列表。 |
 | `combinator` | yes | `enum(all, any)` | 无默认值；producer MUST 显式写入。 | gate 之间的组合语义。 |
-| `review_capability` | conditional | `string` | 任一 gate `kind ∈ {manual_review, application_form}` 时必填；缺省 `ck.realm.join.review` 仅适用于旧本地配置，wire payload MUST 显式写入。 | 审核所需 capability，取 **capability action token** 形态（如 `ck.realm.join.review`），不是 grant id 引用；与 §7.3 `reviewer_capability_proof`（引用授予该 action 的 **grant id** + frontier digest）是两个不同概念。[^review-capability-alias] |
+| `review_capability` | conditional | `string` | 任一 gate `kind ∈ {manual_review, application_form}` 时必填；wire payload MUST 显式写入。 | 审核所需 capability，取 **capability action token** 形态（如 `ck.realm.join.review`），不是 grant id 引用；与 §7.3 `reviewer_capability_proof`（引用授予该 action 的 **grant id** + frontier digest）是两个不同概念。[^review-capability-alias] |
 
 [^review-capability-alias]: 该字段语义是 *被授权 reviewer 所持的 capability action token*，不是 grant id 引用。v1 wire 字段名为 `review_capability`，不会改变。（未来版本对该字段的 prose alias 规划属 roadmap 范畴，不在 v1 normative 范围内。）
 | `reviewer_quorum` | no | `enum(any, majority, all) \| object` | 默认 `any`。`object` 形式 `{ threshold: int, reviewers: did[] }` 表达 N-of-M。 | 审核法定人数。 |
@@ -433,7 +433,7 @@ Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声�
 }
 ```
 
-applicant 完成挑战后，重新提交 join / application Move，在 `gate_proofs[]` 中追加 `{gate_id: "runtime:<challenge_id>", challenge_proof: {...}}`。`challenge_proof.challenge_id` 是 runtime challenge 的唯一匹配键；历史占位 `gate_id="_runtime"` 只能作为 UI/display 兼容标签，MUST NOT 参与 verifier 选择。Policy Server 重新校验后返回 `decision=allow`。`must_satisfy_before_resubmit=true` 时 reducer MUST 拒绝缺失对应 `challenge_id` proof 的重提。
+applicant 完成挑战后，重新提交 join / application Move，在 `gate_proofs[]` 中追加 `{gate_id: "runtime:<challenge_id>", challenge_proof: {...}}`。`challenge_proof.challenge_id` 是 runtime challenge 的唯一匹配键；verifier MUST 仅按该键选择 challenge proof。Policy Server 重新校验后返回 `decision=allow`。`must_satisfy_before_resubmit=true` 时 reducer MUST 拒绝缺失对应 `challenge_id` proof 的重提。
 
 `bound_to.request_canonical_digest` 按 [`policy-server.md` §4.1](../authz/policy-server.md) 的 proof-stripped transcript 计算：它绑定首次被 challenge 的原始 join / application 请求，而不是包含 `challenge_proof` 自身的最终重提 Move。重提 Move 除追加 runtime challenge proof 外不得改变原始请求语义；任何字段变更都必须重新走 `/_cokret/self/policy/check` 并获取新的 challenge。
 
@@ -443,7 +443,7 @@ applicant 完成挑战后，重新提交 join / application Move，在 `gate_pro
 
 | 控制项 | 默认 | 强制要求 |
 | --- | --- | --- |
-| `application_ttl` | PT168H | reducer 到期自动转 `reason_code="ttl_expired"`（统一走 §7.3 受控枚举命名约定，`ttl_expired` 见 [`../../artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)；不再使用 `rejected_reason` 别名）；不计 cooldown。 |
+| `application_ttl` | PT168H | reducer 到期自动转 `reason_code="ttl_expired"`（统一走 §7.3 受控枚举命名约定，`ttl_expired` 见 [`../../artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）；不计 cooldown。 |
 | `cooldown_after_reject` | PT72H | reject 后 reducer MUST 拒绝同 actor 在窗口内的新 `member.application`。`request_changes` 不触发 cooldown。 |
 | `max_open_applications_per_actor` | 1 | reducer 校验 actor 当前 pending 数；超出 `failed_precondition`。 |
 | Quota constraint | 由 Realm `ck.realm.policy_components` 声明 | 推荐对 `ck.member.state{knock}` 配置 `quota.subtype=rate`（如 `max_operations=5/day`），通过既有 [`../authz/constraint-schema.md` §7](../authz/constraint-schema.md) 表达。 |

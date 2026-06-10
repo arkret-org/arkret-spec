@@ -228,7 +228,7 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
 | `user_signing_key` | required | USK 公钥 + 由 PSK 对 canonical USK record 的签名；MUST 与 `self_signing_key` 不同 `public_key`。 |
 | `expected_previous_generation` | required | CAS precondition。首次 publish 使用 `0`；后续 publish MUST 等于 receiver 当前 accepted generation。 |
 | `generation` | required | 单调递增整数。每次 cross-signing reset（§14）MUST `generation += 1`。Receiver 见到 `generation` 比已 accepted 状态低的 publish MUST 拒绝。 |
-| `issued_at` | required | 发布时间；MUST 不晚于接收方本地时钟 + protocol skew。 |
+| `issued_at` | required | 发布时间；MUST be no later than 接收方本地时钟 + protocol skew。 |
 
 `binding` 的 canonical signing input：
 
@@ -342,13 +342,13 @@ Cokret 推送通道设计的目标是在不向 push gateway / vendor、上游 Sy
 
 ### 5a.3 不可链接性要求
 
-- 同一 `principal_id` 在不同 `recipient_service_did`、不同设备或不同 push route 上的 `push_target_id` MUST 不可由 push gateway / 第三方 transport 关联（除非两侧自愿持有相同源 secret）。受托 Sync Service MAY 在自己的授权上下文内持有从成员 delivery binding 到本服务本地 push queue 的短期索引，但不得把该索引导出给 Push Gateway / vendor。
+- 同一 `principal_id` 在不同 `recipient_service_did`、不同设备或不同 push route 上的 `push_target_id` MUST NOT be linkable by push gateway / 第三方 transport（除非两侧自愿持有相同源 secret）。受托 Sync Service MAY 在自己的授权上下文内持有从成员 delivery binding 到本服务本地 push queue 的短期索引，但不得把该索引导出给 Push Gateway / vendor。
 - 同一设备的两条 `push_route` 的伪名 MUST 互相独立；其中一条被泄露不得让攻击者推导另一条。
 - 跨 Realm 投递 MUST 使用同一 `push_target_id`（按 device 而非按 Realm），但 push payload 内不得携带 plaintext `realm_id`/`flow_id`/`message_id`；目标拆分由 device 端解 envelope 后完成。
 
 ### 5a.4 Push Payload 形态
 
-- 协议层 push payload MUST 视作 `encrypted-envelope.schema.json` 形态或等价 ephemeral encrypted blob。AAD MUST 不包含可链接 wire 字段，仅可携带 routing-only `wakeup_kind`（参见 `discovery/push-notifications.md`）。
+- 协议层 push payload MUST 视作 `encrypted-envelope.schema.json` 形态或等价 ephemeral encrypted blob。AAD MUST NOT 包含可链接 wire 字段，仅可携带 routing-only `wakeup_kind`（参见 `discovery/push-notifications.md`）。
 - gateway / vendor MUST NOT 解密 payload。任何"丰富推送"扩展（如显示发件人）都属于 vendor-side 行为，需要 Realm 与 device 双方明确 opt-in，并对应单独的 plaintext-visible service profile，不在 v1 默认互操作范围。
 
 ### 5a.5 与其它子系统的边界
@@ -401,7 +401,7 @@ To-device wire object MUST 使用 `DeviceMessageEnvelope`，而不是持久 `Eve
 
 `recipient_principal_id` 和 `recipient_device_id` MUST 被签名、device proof 或加密 AAD 覆盖。发送接口使用 `messages.{principal_id}.{device_id}` 做批量路由时，服务端在入队前 MUST 把路径目标复制进 `DeviceMessageEnvelope`，且接收端 MUST 拒绝 envelope 目标与当前登录设备不一致的消息。
 
-To-device 消息是短期队列对象，不是长期 Event history。发送方 MUST 设置 `expires_at`；服务端 MUST 拒绝缺失 `expires_at`、已经过期、早于 `sent_at` 或超过当前 service / Realm / profile TTL 上限的消息。默认最大队列 TTL 为 24 小时；高安全 profile SHOULD 使用更短值。标准验证请求仍受第 8.2 节约束，`request.expires_at` MUST 不晚于 `timestamp + 10m`。过期消息 MUST 从投递队列中清除，`GET /_cokret/self/device_messages` 不得返回；服务 MAY 仅保留最小幂等记录和脱敏审计摘要到 `expires_at` 后的短 grace period。
+To-device 消息是短期队列对象，不是长期 Event history。发送方 MUST 设置 `expires_at`；服务端 MUST 拒绝缺失 `expires_at`、已经过期、早于 `sent_at` 或超过当前 service / Realm / profile TTL 上限的消息。默认最大队列 TTL 为 24 小时；高安全 profile SHOULD 使用更短值。标准验证请求仍受第 8.2 节约束，`request.expires_at` MUST be no later than `timestamp + 10m`。过期消息 MUST 从投递队列中清除，`GET /_cokret/self/device_messages` 不得返回；服务 MAY 仅保留最小幂等记录和脱敏审计摘要到 `expires_at` 后的短 grace period。
 
 发送接口：
 
@@ -581,13 +581,13 @@ POST /_cokret/self/keys/keypackages/revoke
 
 - `claim` MUST 原子地把 KeyPackage 从 `published` 转为 `claimed`。
 - 同一 `keypackage_ref` 不得被多个 active claim 使用。
-- 过期、撤销、设备被移除或 principal control state 失效时，服务 MUST 不再返回该 KeyPackage。
+- 过期、撤销、设备被移除或 principal control state 失效时，服务 MUST NOT 返回该 KeyPackage。
 - **`required_capabilities` ⊆ KeyPackage `capabilities`（normative subset rule）**：claim request 中的 `required_capabilities` 集合 MUST 是被领取 KeyPackage 上声明的 `capabilities`（见 [`encryption-and-audit.md` §2.6 KeyPackage payload](./encryption-and-audit.md)）的**子集**。任何 `required_capabilities ∖ capabilities ≠ ∅` 的 claim MUST 被服务端拒绝（与其它 claim 失败一致使用统一不透明错误码 `claim_failed`，但服务端 SHOULD 在内部审计日志中记录 `keypackage_capability_overreach` 以便滥用检测）。该规则避免了"客户端在 claim 时声明超过 KeyPackage 实际声明的能力，使后续 Welcome / Commit 在错误能力假设下进行"的隐性越权。
 - Device / Key Server 在 claim 成功响应中返回的每条 claim MUST 包含 `keypackage_digest = canonical_digest(KeyPackage bytes)`、`capabilities_digest = sha256(JCS(capabilities))` 与当前 accepted cross-signing `ssk_generation`。`ck.mls.welcome` MUST 回填同一 KeyPackage hash 到顶层 `payload.keypackage_digest` 和 `payload.claim_ref.keypackage_digest`，回填同一 digest 到 `payload.claim_ref.capabilities_digest`，并回填同一 generation 到 `payload.claim_ref.ssk_generation`；Welcome 接收端在解密前必须比对这些值与本地 claim 记录，并确认 `ssk_generation` 仍等于当前 accepted `ck.cross_signing.publish.generation`，防止 group manager 或中间服务在 Welcome 阶段替换 KeyPackage、扩大 KeyPackage 能力集合或复用旧 SSK generation 的 claim。
 - `claim` 失败响应 MUST 对不存在、不可见、无可用设备和 policy denied 做反枚举处理。对外错误码 SHOULD 合并为单一不透明错误码 `claim_failed`，不得返回可区分失败原因的 error message。服务端 SHOULD 使用统一状态码、最小响应体、限速和延迟填充降低时序侧信道；实现不得故意让不同失败原因产生稳定可测的响应差异。
 - 设备 SHOULD 维持 `keypackage_min_available` 低水位，默认 8。Device / Key Server 的 claim / query 响应 SHOULD 返回调用方可见的 `available_count`；客户端发现可用 KeyPackage 低于低水位时，MUST 在下一次 sync / device maintenance 周期补充上传，避免邀请路径因耗尽而失败。
 - claimed 但未 consume 的 KeyPackage 到达 claim `expires_at` 后 MUST 转为 revoked / unusable 状态；服务不得把它自动放回 `published`，也不得接受迟到的 consume。设备需要重新发布新的 KeyPackage。
-- Device / Key Server MUST 维护过期扫描或等价触发：KeyPackage `expires_at`、claim `expires_at`、device revoke、principal control state 失效、capability revoke 或 Realm policy 变更任一发生时，后续 `query` / `claim` MUST 不再返回该 KeyPackage；后台清理不得是唯一防线。扫描周期 SHOULD ≤ 60s，且每次 `claim` 路径必须先做同步 freshness 判定。
+- Device / Key Server MUST 维护过期扫描或等价触发：KeyPackage `expires_at`、claim `expires_at`、device revoke、principal control state 失效、capability revoke 或 Realm policy 变更任一发生时，后续 `query` / `claim` MUST NOT 返回该 KeyPackage；后台清理不得是唯一防线。扫描周期 SHOULD ≤ 60s，且每次 `claim` 路径必须先做同步 freshness 判定。
 - KeyPackage claim MUST 对 `(requester_service_did, target_principal_id)` 做限速，默认窗口为 60s 内最多 5 次 claim 尝试。超过限额时对外仍使用反枚举响应（`claim_failed` 或通用 rate-limited envelope，不泄露目标存在性）；服务端内部审计 reason 记录为 `keypackage_claim_rate_limited`。
 - claim record SHOULD 被 Principal Server / Device Key Server 保留到 Welcome 过期后的一段短 TTL，用于重试、诊断和滥用审计；不得长期保留可关联 private Realm / MLS group 的明文目标信息。
 
@@ -645,7 +645,7 @@ request -> ready -> start -> accept -> key -> mac -> done
 请求超时规则：
 
 - `request.timestamp` 不能比接收设备本地时间晚 5 分钟以上。
-- `request.expires_at` MUST 不晚于 `timestamp + 10m`。
+- `request.expires_at` MUST be no later than `timestamp + 10m`。
 - 用户在展示提示后 2 分钟内没有交互，客户端 SHOULD 本地取消或隐藏提示。
 - 过期交易的后续消息 MUST 被忽略或以 `code=timeout` 取消。
 
@@ -871,7 +871,7 @@ Cokret 使用 `ck.realm_key.share` 共享历史解密材料。共享前发送设
 - effective `ck.realm.history_sharing_policy` 允许该 receiver class、scope、epoch range 和 key source；当 Realm / Circle history visibility 为 `restricted` 时，必须命中 `restricted_rules[]`，否则 MUST withhold。
 - `key_scope.policy_digest` 绑定本次判定使用的 Realm policy / MLS governance policy root；如判定依赖 membership frontier，`key_scope.membership_frontier_digest` SHOULD 同时写入。
 - `sender_device_signature` MUST 覆盖发送设备、接收 principal/device、`key_scope`、`aad_digest?`、`ciphertext` 或 `encrypted_key_ref` 与 `created_at`。接收方 MUST 验证该签名链接到当前有效 sender device key，且不得只依赖传输层认证。
-- 对 `history_visibility=joined` 的 scope，join 前 epoch key MUST 被拒绝；对 `invited`，share range MUST 不早于 receiver 的有效 invite frontier；对 `shared`，join 前 history key share 仍需要 policy 明确允许；对 `world_readable`，E2EE key 不因 public history 自动公开。
+- 对 `history_visibility=joined` 的 scope，join 前 epoch key MUST 被拒绝；对 `invited`，share range MUST be no earlier than receiver 的有效 invite frontier；对 `shared`，join 前 history key share 仍需要 policy 明确允许；对 `world_readable`，E2EE key 不因 public history 自动公开。
 - Archive Node、Key Recovery Service、Recovery Service 或 peer 不能因为持有备份副本就绕过上述检查；服务端 operator 权限不是 key share 授权。
 
 拒绝共享时发送 `ck.realm_key.withheld`，其 payload 使用 `withheld_reason_code` 承载原因码：
@@ -1058,9 +1058,10 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
 3. **设备授权与列表更新**：proof 接受（session 进入 `verified`）后，授权材料 MUST 由**恢复客户端**产出，而不是服务端——服务端既无新设备私钥，也无 SSK，无法伪造合法 `cross_signing_binding`。客户端 MUST：
    1. 用已接受的 proof 解锁承载 SSK / recovery key 的 `did_recovery` backup（见 step 4），取出该 principal 的 self-signing key（SSK）；
    2. 用 SSK 对新设备 `verify_key` 按 §5.2 canonical 输入签出 `cross_signing_binding`，其 `ssk_generation` MUST 等于 session snapshot 的 `ssk_generation`；
-   3. 组装完整 `ck.device.authorize` payload（[`event-payload.schema.json#/$defs/device_authorize_payload`](../../artifacts/schemas/event-payload.schema.json)），其中 `recovery_session_id` MUST 等于本 session（供 step 7 receipt 审计对账），并通过 recovery 完成端点提交（[`recovery-session.schema.json#/$defs/recovery_session_complete_request_body`](../../artifacts/schemas/recovery-session.schema.json) 的 `device_authorize`）。
+   3. 组装完整 `ck.device.authorize` payload（[`event-payload.schema.json#/$defs/device_authorize_payload`](../../artifacts/schemas/event-payload.schema.json)），其中 `recovery_session_id` MUST 等于本 session（供 step 7 receipt 审计对账）。客户端 MUST 用已解锁的 SSK 签发普通 Event Envelope，并先提交到 principal control stream。
+   4. 提交 `ck.device.list_update` 普通 Event Envelope，引用新设备授权结果。两条 Event MUST 使用 principal control stream 的连续 `actor_seq` / `prev_refs`。
 
-   服务端在 `/complete` MUST 校验：`device_id == session.requesting_device_id`、`principal_id == session.principal_id`、`recovery_session_id == 本 session`，以及 `cross_signing_binding.ssk_generation == session.ssk_generation`；任一不符 MUST 拒绝（generation 不符时 reason=`device_recovery_ssk_generation_mismatch`）。校验通过后，服务端 MUST 把 `ck.device.authorize` accept 进 principal control stream，随后发布 `ck.device.list_update`，在 `complete_response` 回 `authorization_event_id` 与 `device_list_update_event_id`，并把 session 置为 `completed`。恢复不是 bootstrap-first-device 情形，MUST 用 `cross_signing_binding` 而非 `bootstrap_binding`。reducer 同样 MUST 在当前 accepted `ck.cross_signing.publish.generation` 与 `ssk_generation` 不一致时拒绝（`device_recovery_ssk_generation_mismatch`）。
+   服务端在 `/complete` 请求体中只接受 `authorization_event_id` 与 `device_list_update_event_id` 引用。服务端 MUST 从 event store 解析这两条 durable Event，校验 kind、签名、principal control stream 连续性、`device_id == session.requesting_device_id`、`principal_id == session.principal_id`、`recovery_session_id == 本 session`，以及 `cross_signing_binding.ssk_generation == session.ssk_generation`；任一不符 MUST 拒绝（generation 不符时 reason=`device_recovery_ssk_generation_mismatch`）。校验通过后，服务端把 session 置为 `completed` 并在 `complete_response` 回同一组 event id。服务端不得代 principal 签发 `ck.device.authorize` 或 `ck.device.list_update`。恢复不是 bootstrap-first-device 情形，MUST 用 `cross_signing_binding` 而非 `bootstrap_binding`。reducer 同样 MUST 在当前 accepted `ck.cross_signing.publish.generation` 与 `ssk_generation` 不一致时拒绝（`device_recovery_ssk_generation_mismatch`）。
 4. **Key backup / Secret storage unlock**：新设备只能拉取 policy 允许的 backup class（`did_recovery` / `secret_storage` / `mls_history`）。每个 backup decrypt proof MUST validate as `ck.schema.key_backup_unlock_proof.v1`，并绑定 `recovery_session_id`、新设备 key、active-series record、`backup_id`、`backup_class`、`series_id` 与 `ciphertext_digest`；解密后的明文 keybag MUST validate as `ck.schema.key_backup_plaintext.v1`，且外层 envelope 字段必须与明文字段一致。**解锁次序是 normative 的**：承载 SSK / recovery key 的 `did_recovery` backup MUST 在 step 3 签发 `ck.device.authorize` **之前**解锁（否则没有 SSK 去签 `cross_signing_binding`）；`secret_storage` 与 `mls_history` 等其余 class MUST 在设备授权 accepted **之后**、用已授权的新设备 key 解锁。服务端不得把恢复 proof 当作长期 bearer token。
 5. **MLS Welcome replay**：对每个可恢复 Realm，授权 peer / key service 重新发 Welcome 或 history key share；Welcome 的 `claim_ref.ssk_generation` MUST 等于当前 accepted cross-signing generation。旧 generation 的 Welcome MUST `claim_generation_mismatch`。
 6. **Secret storage ready**：客户端在本地 secret storage 解锁、device list 同步、关键 Realm Welcome 完成前，只能进入 `recovery_pending`；不得把设备显示为 fully verified。

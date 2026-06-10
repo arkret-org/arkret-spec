@@ -74,7 +74,7 @@
     },
     "agent_participation": {
       "type": "object",
-      "description": "Optional CKP-0016 agent participation ceiling for this Flow: the maximum native personal agent behavior permitted in this Flow. When omitted, inherits the enclosing Circle ceiling (or Realm-default ceiling when scope_circle_id is unset). Each bit MAY only tighten, never widen, the parent ceiling (reducer rejects a widening write with agent_participation_ceiling_widen). See models/flow-and-message.md / CKP-0016.",
+      "description": "Optional agent participation ceiling for this Flow: the maximum native personal agent behavior permitted in this Flow. When omitted, inherits the enclosing Circle ceiling (or Realm-default ceiling when scope_circle_id is unset). Each bit MAY only tighten, never widen, the parent ceiling (reducer rejects a widening write with agent_participation_ceiling_widen). See zh/models/flow-and-message.md.",
       "properties": {
         "reply": {
           "type": "boolean"

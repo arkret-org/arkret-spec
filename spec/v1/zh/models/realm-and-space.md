@@ -191,7 +191,7 @@ Realm 有两个终态 event，语义不同：
 3. **Successor / Tombstone 区分**：`ck.realm.destroy` MUST NOT 携带 `successor_realm_id`；如果产品需要迁移到新 Realm，使用 `ck.realm.tombstone` 而不是 destroy。
 4. **Erasure Receipt 与 Legal Hold**：destroy 不自动触发 erasure。若部署进入 erasure 阶段，发布 `ck.audit.erasure_receipt`（schema `ck.schema.erasure_receipt.v1`），可能 `outcome=blocked_by_legal_hold`。Legal hold 优先于 destroy 的 GC 路径。
 5. **Federation Fanout**：destroy event MUST 沿 federation 推送到所有曾持有该 Realm 状态的 peer Principal Server；peer 收到后 MUST 在 30 天内本地标记 `realm_terminal_state` 并停止接受该 Realm 的新 `ck.peer.events.submit`（包括 backfill 写入）。
-6. **Child Space / Flow cascade**：destroy accepted 后，home Realm 内所有 non-terminal Space、Flow placement 与 structural `contains` projection MUST 不再作为 live navigation surface 暴露。实现 MUST 在同一事务或后续 bounded cleanup job 中把这些对象标记为 `realm_destroyed_orphan`（只读 locked projection）或自动 tombstone/archive；不得继续允许 `ck.flow.move`、`ck.space.parent`、`ck.space.update` 等普通写入复活它们。跨 Realm `parent_space_id` 指向已 destroyed Realm 的 Space 时，引用方 MUST 在发现 destroy frontier 后将该 edge 降级为 locked/lazy link，并在 policy 窗口内 reparent、archive 或 tombstone；不得传播 destroyed Realm 的 membership、capability、history 或 E2EE key material。
+6. **Child Space / Flow cascade**：destroy accepted 后，home Realm 内所有 non-terminal Space、Flow placement 与 structural `contains` projection MUST NOT 作为 live navigation surface 暴露。实现 MUST 在同一事务或后续 bounded cleanup job 中把这些对象标记为 `realm_destroyed_orphan`（只读 locked projection）或自动 tombstone/archive；不得继续允许 `ck.flow.move`、`ck.space.parent`、`ck.space.update` 等普通写入复活它们。跨 Realm `parent_space_id` 指向已 destroyed Realm 的 Space 时，引用方 MUST 在发现 destroy frontier 后将该 edge 降级为 locked/lazy link，并在 policy 窗口内 reparent、archive 或 tombstone；不得传播 destroyed Realm 的 membership、capability、history 或 E2EE key material。
 7. **Circle scope cascade**：Realm 内的 [Circle](./circle.md) 在父 Realm destroy 时一并 tombstone（Circle 不持有独立 federation identity，无法独立存活）。对象 `scope_circle_id` 指向已 tombstone Circle 时，写入 MUST fail closed,projection 显示 `scope_unavailable`;`scope_circle_id` 不会被自动 rewrite。详见 [`circle.md` §9.2](./circle.md) lifecycle cascade 表。
 
 #### 2.6.2 跨 Principal Server Erasure Receipt Fanout（normative）
@@ -211,7 +211,29 @@ Realm 有两个终态 event，语义不同：
 
 **Hash chain 保护**：hard erasure 仍保留 event graph verification stub（`retained_stub_digest` 字段），允许后续 verifier 校验"该 event 曾合法存在但内容已擦除"，不破坏 hash chain。`retained_stub_digest` 的输入是 `canonical_json(retained_stub)`；`retained_stub` 使用 `ck.schema.erasure_verification_stub.v1` 结构，至少绑定 subject、scope、receipt_id、completed_at，并在适用时包含 event digest / proof `event_digest`、anchor inclusion、redaction authorization ref 与 legal-hold ref。Stub MUST NOT 保留已擦除 plaintext 或未加盐低熵 plaintext digest；若 receipt 不内联 `retained_stub`，签发服务必须在 erasure receipt endpoint 暴露同一 canonical stub。projection / UI MUST 显示 `[erased]` 占位而不是模糊化。
 
-### 2.7 Realm 角色分类（normative）
+### 2.7 Realm Membership FSM（normative）
+
+`ck.member.state` 写入 `ck.component.member.state.v1:<actor_did>`，lattice 为 `fsm`、`bottom=reject`。Realm membership FSM 的 `initial_state` 为 `leave`；wire 枚举仅使用 `invite / join / knock / leave / ban`，不存在单独的 `none` wire 值。`ck.realm.create` bootstrap 例外见 §2.5：它直接把 `created_by` 的 member cell 初始化为 `join`。
+
+| from | to | writer / capability | 语义 |
+| --- | --- | --- | --- |
+| `leave` | `invite` | `ck.member.invite` 或 `ck.realm.admin` | 发出邀请或重新邀请。 |
+| `leave` | `knock` | target actor，且当前 join rule / Join Policy 允许 knock | 申请加入；申请正文不得放入 member state Move。 |
+| `leave` | `join` | target actor 通过 public / restricted gate，或 `ck.realm.admin` | 直接加入或管理员加入。 |
+| `invite` | `join` | target actor，或 `ck.realm.admin` | 接受邀请或管理员完成加入。 |
+| `invite` | `leave` | target actor，inviter，或 `ck.realm.admin` | 拒绝 / 撤销邀请。 |
+| `knock` | `invite` | reviewer / `ck.realm.join.review` 或 `ck.realm.admin` | 批准申请并转为邀请。 |
+| `knock` | `join` | reviewer / `ck.realm.join.review` 或 `ck.realm.admin` | 直接批准加入。 |
+| `knock` | `leave` | target actor，reviewer，或 `ck.realm.admin` | 撤回、拒绝或 TTL 到期。 |
+| `join` | `join` | target actor 或 rebind-authorized service，且只更新 delivery binding / membership metadata | 成员保持加入状态的投递绑定迁移；不得借此改变 join gate 结果。 |
+| `join` | `leave` | target actor 或 `ck.realm.admin` | 主动离开或管理员移除。 |
+| `leave` / `invite` / `knock` / `join` | `ban` | `ck.realm.admin` | 封禁；同时触发投递、MLS remove 与 Circle cascade。 |
+| `ban` | `leave` | `ck.realm.admin` | 解封为非成员。 |
+| `ban` | `invite` | `ck.realm.admin` | 解封并重新邀请。 |
+
+未列出的 transition MUST `failed_precondition`，reason=`invalid_membership_transition` 或更具体的 join / delivery-binding reason。`join -> invite`、`ban -> join`、`invite -> knock`、`leave -> leave` 等均非法；需要重试时 producer 必须基于当前 state 重新提交合法 transition。父 Realm `join -> leave/ban` 的 cascade 对 Circle membership 的影响见 [`circle.md` §9.1](./circle.md)。
+
+### 2.8 Realm 角色分类（normative）
 
 schema 层只有一个 `ck.schema.realm.v1`；按 **用途** 把 Realm 分成两大类，Collaboration 再按 **成员是否跨信任域** 分两类。所有 Realm 共享同一组生命周期 event（`ck.realm.create` / `ck.realm.tombstone` / `ck.realm.destroy`）与同一套 reducer 规则；下面的分类影响的是 marker 字段、policy 字段默认值与允许的 event kind 集合。
 
@@ -223,7 +245,7 @@ Realm（ck.schema.realm.v1，schema 层统一）
 └── Principal Control Realm    ← 单 principal 身份基础设施流（device / session / KeyPackage / profile / consent / contact fact / DM binding）
 ```
 
-#### 2.7.1 Principal Control Realm（PCR）
+#### 2.8.1 Principal Control Realm（PCR）
 
 - 与 principal DID **1:1 绑定**，由 `principal_control_realm_id` 标识，由 DID method 的 inception 证据钉死（参见 [`identity/key-management.md` §4.1 与 §5.0](../identity/key-management.md)）。
 - Marker 字段 MUST：
@@ -235,7 +257,7 @@ Realm（ck.schema.realm.v1，schema 层统一）
 - 跨 principal 写入（另一个 principal 的 device / session 状态）MUST `unauthorized` reject。
 - "私有"语义由 **用途 + event-kind allowlist** 锁定，不是 access control。PCR 在结构上允许 multi-member（该 principal 的所有设备 / agent）。
 
-#### 2.7.2 Collaboration Realm
+#### 2.8.2 Collaboration Realm
 
 承载多方业务协作。除 PCR 之外的所有 Realm 都属于这一类。
 

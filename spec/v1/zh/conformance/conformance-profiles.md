@@ -438,7 +438,7 @@ MUST 支持：
 - 服务 DID allowlist
 - 默认 closed federation
 - 默认私有目录
-- 在 sovereign deployment 下 External Collaboration Realm 的强制 policy（见 [`models/realm-and-space.md` §2.7](../models/realm-and-space.md) 与 [`sync/sovereign-deployment.md` §4](../sync/sovereign-deployment.md)）
+- 在 sovereign deployment 下 External Collaboration Realm 的强制 policy（见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md) 与 [`sync/sovereign-deployment.md` §4](../sync/sovereign-deployment.md)）
 - restricted 或 invite-only 外部加入
 - Policy Server `closed` 或 `quarantine` 失败模式
 - sovereign deployment 下 External Collaboration Realm 默认 E2EE
@@ -635,7 +635,7 @@ MUST 支持:
 - Sidecar Circle `display.short_name = "AI-" + controller_agent_circle_key[:12].upper()`,short_name 碰撞且 caller 非 member 时 generic `failed_precondition` `reason=sidecar_create_denied`
 - `eligible_sidecar_agent(realm, controller, agent)` predicate;Circle membership 主动 fan-out `ck.circle.member.state`(不被动 reconcile)
 - Eligibility / Circle membership / encryption-readiness 三态(eligible+active / pending join 或 pending key material / not eligible)
-- `addressed_agent_principal_ids[]` per-ensure ephemeral(服务端不持久化);MUST 不包含 controller 自身
+- `addressed_agent_principal_ids[]` per-ensure ephemeral(服务端不持久化);MUST NOT 包含 controller 自身
 - 历史 backfill 经由 application-level resend(显式 plaintext 披露)；MLS-backed Circle 中不得使用 MLS exporter secret / past commit secret
 - Cross-Realm fan-out:agent deactivate 只影响该 agent 实际所在的 sidecar Circles
 - `agent_sidecar_of` relation kind(weak-semantic、non-structural、non-cascading);`fields` 不含 `target_realm_id`
@@ -649,6 +649,23 @@ MUST NOT:
 - 修改目标 Flow `tracks` map 或写入 target-side metadata / Relation / watch / unread / search / notification state
 - 接受 `participant_model` 等替代 reuse 字段;invariant 9 是 v1 取舍
 - 为单个 sidecar 静默创建第二个 Circle 以绕开 invariant 9
+
+### 18.5 Agent Participation Policy
+
+`ck.profile.agent_participation_policy.v1` 注册 native personal agent 的分层 participation ceiling 与 controller selection 面。它继承 `ck.profile.personal_agent_provisioning.v1`。
+
+MUST 支持:
+- `ck.self.agent.participation.set`
+- `ck.self.agent.participation.get`
+- deployment ⊇ Realm ⊇ Circle ⊇ Flow 的 tighten-only ceiling 校验
+- effective participation = effective ceiling ∩ controller selection
+- 第三方 mention gate：`accept_third_party_mention=false` 时不得向该 agent 派生 mention notification、inbox row、push wakeup 或 agent subscribe 投影
+- `scope_details.participation[]` session overlay，形态与 `agent-operations.schema.json#/$defs/agent_participation_entry` 对齐
+
+MUST NOT:
+- 允许 Flow / Circle ceiling 放宽父级 ceiling
+- 把 controller selection 当作安全边界；服务端仍必须通过 capability、dispatcher 和 reducer 强制执行
+- 在 effective ceiling unknown 或 stale 时默认允许 agent participation
 
 ## 19. Applet Service Family
 

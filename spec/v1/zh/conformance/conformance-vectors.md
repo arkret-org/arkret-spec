@@ -6,7 +6,7 @@ stability: v1
 updated: 2026-05-25
 ---
 
-本文整合所有 v1 conformance 测试向量，按域分组（共 §1–§13 个向量域；以下为各域索引，逐域 vector 清单以本文件章节目录与 `artifacts/registry/vector-registry.json` 为准）：
+本文整合所有 v1 conformance 测试向量，按域分组；以下为各域索引，逐域 vector 清单以本文件章节目录与 `artifacts/registry/vector-registry.json` 为准：
 
 1. Encoding & Crypto（canonical JSON、digest、signature binding、HLC、cursor、encrypted envelope）
 2. Move · Anchor · Lattice（并发 membership / capability / governance state 收敛、cas_register、Anchor DAG）
@@ -126,7 +126,7 @@ ck.vector.encoding.canonical_json.nested.v1
 
 - object key MUST 在每一层独立按 UTF-16 code unit 升序排序；补充平面字符按 surrogate pair 参与比较。
 - array item order MUST 保持输入顺序。
-- string value MUST 不因为 key 排序被改写。
+- string value MUST NOT 因为 key 排序被改写。
 
 ### 1.4.1 Vector: Canonical JSON UTF-16 Supplementary Keys
 
@@ -1531,7 +1531,7 @@ ck.vector.capability.approval_constraint.v1
 - `event_id` 是内容寻址或签名绑定后的稳定 ID。
 - `actor_seq` 在同一 actor 的单条因果路径上严格递增；并发 sibling fork 可出现相同高度。
 - `hlc` 是 Hybrid Logical Clock，不能单独决定因果顺序。
-- `unsigned.target_ref_hint` MAY 指向标准对象、Morph、Relation、View、Space 或 Realm，仅作为测试向量的阅读辅助；规范性目标必须来自 `payload.*` 字段、`payload.object.id`、precondition/effect cell key 或 reducer 规则。标准 Event envelope **top-level**（与 `kind` / `actor_id` / `payload` 同级）的 `target_ref` 是 legacy 字段，MUST NOT 出现；该禁令仅针对 envelope 顶层，**不**适用于 payload 内部合法使用的 `target_ref`（如 §3.2.1 redaction payload 的顶层 `target_ref`）。
+- `unsigned.target_ref_hint` MAY 指向标准对象、Morph、Relation、View、Space 或 Realm，仅作为测试向量的阅读辅助；规范性目标必须来自 `payload.*` 字段、`payload.object.id`、precondition/effect cell key 或 reducer 规则。标准 Event envelope **top-level**（与 `kind` / `actor_id` / `payload` 同级）MUST NOT 出现 `target_ref`；该禁令仅针对 envelope 顶层，**不**适用于 payload 内部合法使用的 `target_ref`（如 §3.2.1 redaction payload 的顶层 `target_ref`）。
 
 ### 5.2.1 Vector: Late Key Recovery T0 Determinism
 
@@ -1851,7 +1851,7 @@ ck.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 期望：
 
 - Reducer MUST 返回 `failed_precondition`，`reason == "space_not_archived"`。
-- Space 物化对象 MUST 不被修改；`state_changed_at` MUST 保持 archive 之前的值或缺省。
+- Space 物化对象 MUST NOT 被修改；`state_changed_at` MUST 保持 archive 之前的值或缺省。
 - Event 不进入 reducer，但 envelope 本身签名/schema 合法时 MAY 仍被持久化为 envelope 历史（按各实现的 envelope-vs-state 边界处理）；reducer state 不得反映本次写入。
 
 ### 6.4 Vector: Space Restore 在 `tombstoned` 状态被拒绝（不可复活）
@@ -2102,7 +2102,7 @@ Input — Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_unroutab
 期望：
 - 整个序列中 sender 解析投递目标 MUST 完全依赖 effective member cell 的 `delivery_binding`，DID Document service entry 永远不被 query。
 - `delivery_binding_frontier` 字段在所有 service-to-service push 中均存在；sender 端落后 frontier 收到 stale signal 后 MUST 切换、不重投。
-- 撤销后 sender 试图继续投递 MUST 收到 `member_not_in_space` 或 `capability_revoked`；MUST 不构造任何 "fallback to DID Document" 路径。
+- 撤销后 sender 试图继续投递 MUST 收到 `member_not_in_space` 或 `capability_revoked`；MUST NOT 构造任何 "fallback to DID Document" 路径。
 
 ### 7.6 覆盖矩阵
 
@@ -2264,7 +2264,7 @@ Steps：
 Expected：
 
 - 所有受影响 cache MUST 按 policy frontier 失效。
-- 未重新通过当前 policy gate 的旧 link MUST 不再返回；UI / API 只能显示当前允许的最小身份信息。
+- 未重新通过当前 policy gate 的旧 link MUST NOT 返回；UI / API 只能显示当前允许的最小身份信息。
 
 ### 9.5 Vector: Late Key Recovery Removed Actor
 
@@ -2277,7 +2277,7 @@ Steps：
 
 Expected：
 
-- T0 不可见时 MUST 不解密，reason_code 为 `late_recovery_rejected_membership` 或等价稳定码。
+- T0 不可见时 MUST NOT 解密，reason_code 为 `late_recovery_rejected_membership` 或等价稳定码。
 - key source 未重新校验时 MUST 拒绝 share，reason_code 为 `late_recovery_share_not_authorized`。
 - 客户端 UI 不得显示未授权明文或把其纳入 verified timeline。
 
@@ -2618,7 +2618,7 @@ Expected：
 - 第 1 步不得产生 audience mention notification；实现 MAY 拒绝整条 message 或接受消息但把 audience mention 降级为普通文本 / 不通知，取决于 Realm policy 声明。
 - 第 2 步 MUST fail closed：缺少 effective audience mention policy 时，持有 `ck.message.mention.broadcast` 本身不足以 fanout。
 - 第 3-4 步 recipient count 超过 `max_recipients` 时 MUST 在 fanout 前拒绝或进入 policy-declared review/quarantine；不得先发 push 再撤回。
-- `level=muted` 与 target policy 抑制的 receiver MUST 不收到 notification stub 或 push wakeup，且发送者不能通过 delivery response 区分原因。
+- `level=muted` 与 target policy 抑制的 receiver MUST NOT 收到 notification stub 或 push wakeup，且发送者不能通过 delivery response 区分原因。
 - 第 5 步 MUST 返回 `rate_limited` / `quota_exceeded` 或等价 policy denial；push payload 不得包含 audience 名称、recipient count、成员列表、Realm / Flow / Event 标识。
 
 ### 10.12 Vector: Flow Engaged Audience Mention
@@ -2635,8 +2635,8 @@ Steps：
 Expected：
 
 - `@here` MUST 按 `flow_engaged = flow_participants ∪ flow_watchers` 展开：Bob 因 active discussion participation 命中，Carol 因 effective watch level `all` 命中。
-- Dave（`mentions_only`）、Erin（`muted`）、Frank（仅 assignment）、Grace（无读取权）MUST 不因该 audience mention 收到 notification stub 或 push wakeup。
-- Presence / online 状态 MUST 不影响 `flow_engaged` 的 receiver set；实现不得把 `@here` 解释成 presence-filtered audience。
+- Dave（`mentions_only`）、Erin（`muted`）、Frank（仅 assignment）、Grace（无读取权）MUST NOT 因该 audience mention 收到 notification stub 或 push wakeup。
+- Presence / online 状态 MUST NOT 影响 `flow_engaged` 的 receiver set；实现不得把 `@here` 解释成 presence-filtered audience。
 - Sender、普通 Realm 成员、push gateway、公开日志与 delivery response MUST NOT 暴露 recipient count、watcher 列表、watch level、命中原因，且不得区分 Bob 是参与者命中还是 Carol 是 watcher 命中。
 
 ## 11. Personal Agent & Sidecar Vectors
@@ -3048,7 +3048,7 @@ Expected:
 
 ## 14. Encryption Floor Ratchet Vectors
 
-加密能力轴(`encryption_profile`)与加密下限(`content_encryption_floor` / `metadata_encryption_floor`)分离;两个 floor 均二元(比较序 `allow_plaintext < e2ee_required`)、Realm 与 Circle 对称,且 effective floor 是单向 ratchet。本节固化 reducer 权威层的四个向量(完整语义见 [`../models/circle.md` §7](../models/circle.md)、[`../models/realm-and-space.md` §2.5](../models/realm-and-space.md))。
+加密能力轴（`encryption_profile`）与加密下限（`content_encryption_floor` / `metadata_encryption_floor`）分离；两个 floor 均二元（比较序 `allow_plaintext < e2ee_required`）、Realm 与 Circle 对称，且 effective floor 是单向 ratchet。本节固化 reducer 权威层的四个向量（完整语义见 [`../models/circle.md` §7](../models/circle.md)、[`../models/realm-and-space.md` §2.5](../models/realm-and-space.md)）。
 
 ### 14.1 Content Floor Downgrade Rejected
 
@@ -3061,8 +3061,8 @@ Setup:
 
 Expected:
 
-- reducer MUST `failed_precondition`,reason=`content_encryption_floor_downgrade`。
-- 抬高(`allow_plaintext` → `e2ee_required`)或维持同级 MUST 接受;只有降级被拒。
+- reducer MUST `failed_precondition`，reason=`content_encryption_floor_downgrade`。
+- 抬高（`allow_plaintext` → `e2ee_required`）或维持同级 MUST 接受；只有降级被拒。
 
 ### 14.2 Metadata Floor Downgrade Rejected
 
@@ -3075,8 +3075,8 @@ Setup:
 
 Expected:
 
-- reducer MUST `failed_precondition`,reason=`metadata_encryption_floor_downgrade`。
-- 与 content floor 同为单向 ratchet;抬高或同级接受,降级被拒。
+- reducer MUST `failed_precondition`，reason=`metadata_encryption_floor_downgrade`。
+- 与 content floor 同为单向 ratchet；抬高或同级接受，降级被拒。
 
 ### 14.3 In-Place E2EE Enable
 
@@ -3084,13 +3084,13 @@ Expected:
 
 Setup:
 
-1. Realm R 以 `encryption_profile="mls_rfc9420"` + `content_encryption_floor="allow_plaintext"` 创建(钥匙在手、初期明文发送)。
+1. Realm R 以 `encryption_profile="mls_rfc9420"` + `content_encryption_floor="allow_plaintext"` 创建（钥匙在手、初期明文发送）。
 2. 后续 `ck.realm.policy_components` 把 `content_encryption_floor` 抬到 `e2ee_required`。
 
 Expected:
 
-- reducer MUST 接受该原地升级(正向向量),无需重建 Realm 或 MLS group。
-- 升级生效后,plaintext content 写入 MUST `failed_precondition`(reason=`content_encryption_floor_violation`),且 MLS governance send-pause 恢复完整约束。
+- reducer MUST 接受该原地升级（正向向量），无需重建 Realm 或 MLS group。
+- 升级生效后，plaintext content 写入 MUST `failed_precondition`（reason=`content_encryption_floor_violation`），且 MLS governance send-pause 恢复完整约束。
 
 ### 14.4 Circle Content Floor Below Realm Rejected
 
@@ -3098,10 +3098,10 @@ Expected:
 
 Setup:
 
-1. 父 Realm 的 effective `content_encryption_floor` 为 `e2ee_required`(或 `encryption_profile="mls_rfc9420"`)。
-2. `ck.circle.create` / `ck.circle.update` 声明 `encryption_profile="none"`,或 Circle `content_encryption_floor` 低于父 Realm effective floor。
+1. 父 Realm 的 effective `content_encryption_floor` 为 `e2ee_required`（或 `encryption_profile="mls_rfc9420"`）。
+2. `ck.circle.create` / `ck.circle.update` 声明 `encryption_profile="none"`，或 Circle `content_encryption_floor` 低于父 Realm effective floor。
 
 Expected:
 
-- reducer MUST `failed_precondition`,reason=`circle_encryption_below_realm_floor`。
-- Circle floor 只能在父 Realm floor 之上收紧;`none` scope 无 MLS-backed effective_scope 可承载密文,故不得声明 `e2ee_required`。
+- reducer MUST `failed_precondition`，reason=`circle_encryption_below_realm_floor`。
+- Circle floor 只能在父 Realm floor 之上收紧；`none` scope 无 MLS-backed effective_scope 可承载密文，故不得声明 `e2ee_required`。

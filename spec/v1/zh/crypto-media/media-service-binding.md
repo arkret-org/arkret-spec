@@ -81,10 +81,10 @@ sidebar:
 
 ### 2.1 完整性绑定（normative）
 
-`ck.realm.media_service` 的 `service_id` 与 `foci[].token_endpoint` 是媒体 token 签发权与 issuer DID 锚定的**信任根**(见 §3 / §7 与 [`call-state.md` §4.1](./call-state.md))。为保证"谁担保该 `service_id` / `token_endpoint` 列表未被篡改",本节固定:
+`ck.realm.media_service` 的 `service_id`、`ice_config_endpoint` 与 `foci[].token_endpoint` 是媒体 token / TURN credential 签发权与 issuer DID 锚定的**信任根**(见 §3 / §7 与 [`call-state.md` §4.1](./call-state.md))。为保证"谁担保该 `service_id` / endpoint 列表未被篡改",本节固定:
 
-- `ck.realm.media_service` state event(含其 `service_id` 与全部 `foci[].token_endpoint`)MUST 被纳入该 Realm policy 的 `policy_root`,并被**当前 epoch 的 MLS governance binding**(见 [`encryption-and-audit.md` §2.5](./encryption-and-audit.md))覆盖;`policy_root` 物化时 MUST 把该 event 的 canonical digest 作为输入之一。
-- 客户端在把 `service_id` / `foci[].token_endpoint` 锚定为 token issuer DID **之前**,MUST 校验该 event 处于当前 epoch governance binding 覆盖之下(即其 digest 可由当前 `policy_root` / governance binding 重建);覆盖校验失败 MUST fail closed(`media_service_binding_uncovered`),不得向未被治理绑定覆盖的 `token_endpoint` 兑换 token。
+- `ck.realm.media_service` state event(含其 `service_id`、`ice_config_endpoint` 与全部 `foci[].token_endpoint`)MUST 被纳入该 Realm policy 的 `policy_root`,并被**当前 epoch 的 MLS governance binding**(见 [`encryption-and-audit.md` §2.5](./encryption-and-audit.md))覆盖;`policy_root` 物化时 MUST 把该 event 的 canonical digest 作为输入之一。
+- 客户端在把 `service_id` / `ice_config_endpoint` / `foci[].token_endpoint` 锚定为 credential issuer DID **之前**,MUST 校验该 event 处于当前 epoch governance binding 覆盖之下(即其 digest 可由当前 `policy_root` / governance binding 重建);覆盖校验失败 MUST fail closed(`media_service_binding_uncovered`),不得向未被治理绑定覆盖的 endpoint 兑换 token 或 ICE/TURN credential。
 - 服务端 MUST NOT 在实时路径中接受或回填未被当前 epoch governance binding 覆盖的 `ck.realm.media_service`;epoch 推进后，旧 epoch 覆盖的媒体服务声明 MUST 重新经新 epoch governance binding 覆盖才继续作为 issuer 信任根。
 
 ## 3. Token Exchange (normative)

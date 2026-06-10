@@ -289,12 +289,12 @@ Client Sync 的事件顺序是展示顺序和增量恢复顺序，不是授权�
 
 服务器返回 `timeline.events` 时 MUST 满足：
 
-1. 同一响应内的事件按 deterministic timeline order 排列。
+1. 同一响应内的事件按 deterministic timeline projection order 排列。
 2. 若事件 B 直接依赖事件 A，且 A 在同一响应窗口中可见，则 A MUST 出现在 B 之前。
 3. 如果依赖事件因过滤、权限、分页或缺失而不在响应中，B MUST 带有足够 `prev_refs` / `refs[role=authorized_by]`，客户端可 soft fail、backfill 或延迟渲染。
 4. 服务器 MUST NOT 使用本地数据库自增 ID、接收顺序或 Sync Service 到达顺序作为跨实现排序依据。
 
-默认 timeline order：
+默认 timeline projection order（不输入 canonical state、授权判断或 winner 选择）：
 
 ```text
 causal_depth ASC,

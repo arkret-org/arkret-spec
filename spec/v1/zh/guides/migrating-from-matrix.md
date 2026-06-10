@@ -151,7 +151,7 @@ Matrix pusher 把 (user, device, push token) 映射作为 push gateway 可见标
 
 - per `(recipient_service_did, principal, device, push_route)` 伪名；至少 128 bit 熵，推荐 256 bit；高安全 deployment profile（`high_security_organization` / `sovereign_deployment` 等）MUST ≥ 256 bit（权威下限见 `device-lifecycle.md` §5a.1）。
 - MUST NOT 由公开 DID、`device_id`、平台 push token、handle、邮箱或电话号码推导。
-- 同一 principal 在不同 `recipient_service_did`、两台设备或同一 device 的两条 push_route 上的 `push_target_id`，对 push gateway / vendor / 第三方 transport MUST 不可关联。
+- 同一 principal 在不同 `recipient_service_did`、两台设备或同一 device 的两条 push_route 上的 `push_target_id`，对 push gateway / vendor / 第三方 transport MUST NOT be linkable。
 - gateway / vendor 不得保留可逆映射；被 member delivery binding 授权的 Sync Service 仅可在本服务上下文内持有运行时索引，轮换或失效后旧伪名不得被服务端链接回当前 `(recipient_service_did, principal, device)`。
 - 推送 payload 必须是 `encrypted-envelope.schema.json` 形态或等价 ephemeral encrypted blob；gateway / vendor 不得解密。
 
@@ -176,7 +176,7 @@ Matrix to-device 验证（SAS / QR）成功后，客户端实现常常顺势把�
 
 验证消息形状（`ck.key.verification.{request, ready, start, accept, key, mac, done, cancel}`）与 Matrix 一致，但 Cokret 进一步规范化：
 
-- `request.expires_at` MUST 不晚于 `timestamp + 10m`；用户 2 分钟未交互 SHOULD 本地取消。
+- `request.expires_at` MUST be no later than `timestamp + 10m`；用户 2 分钟未交互 SHOULD 本地取消。
 - SAS transcript MUST 绑定双方 principal id、device id、verify key、transaction id、method、算法选择、双方 ephemeral key 与待验证 key id。
 - QR payload MUST 至少绑定 transaction id、展示端 principal/device、intended verifier、一次性 secret 或 commitment、`expires_at`、supported method；MUST NOT 包含长期私钥、secret storage key、recovery secret 或 MLS group secret。
 - 跨 principal 验证只表达人工信任；本端 `user_signing_key` 签名对方 identity key，不改变对方设备授权状态。

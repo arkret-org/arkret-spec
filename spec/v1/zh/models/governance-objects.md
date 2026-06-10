@@ -59,7 +59,7 @@ Schema 引用的写入路径：
 
 ### 3.1 概念
 
-Policy 是 reducer 和服务节点判断请求是否可接受的输入。每个 Policy 对象的分类由 §3.2 `policy_type` 字段表达；下表把 `policy_type` enum 的每个取值与它所约束的维度对齐（概念列表与 enum 取值一一对应，不再使用与 enum 脱节的粗粒度词）：
+Policy 是 reducer 和服务节点判断请求是否可接受的输入。每个 Policy 对象的分类由 §3.2 `policy_type` 字段表达；下表把 `policy_type` enum 的每个取值与它所约束的维度对齐，概念列表与 enum 取值一一对应：
 
 | `policy_type` | 约束维度 |
 | --- | --- |
@@ -160,7 +160,7 @@ Schema id: `ck.schema.invite.v1`
 | `third_party_id` | no | `object` | 见 [`../sync/third-party-invites.md`](../sync/third-party-invites.md)。 | 邮箱/手机号等外部标识证明。 |
 | `join_rule_snapshot` | yes | `object` | 防止邀请后规则混淆。 | 邀请时 join rule。 |
 | `capability_grant_refs` | no | `array<id:grant>` | 接受后才生效；每项 MUST 以 `ck:grant:` 开头，不得指向 `ck:capability:`。 | 关联授权。 |
-| `expires_at` | yes | `timestamp` | 默认不超过 7 天；高安全 Realm SHOULD 不超过 24 小时。 | 过期时间。 |
+| `expires_at` | yes | `timestamp` | 默认不超过 7 天；高安全 Realm SHOULD be no greater than 24 小时。 | 过期时间。 |
 | `state` | yes | `enum(pending, accepted, rejected, revoked, expired, claimed, send_failed, revoked_by_capability_loss, revoked_by_inviter_left, invalidated_by_rate_limit)` | Invite 的流程对象状态；保留为 `state` 是 v1 兼容例外，不表示通用对象物理 lifecycle。 | 邀请状态。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_by` | no | `did` | 最近一次 invite state update 的 actor。 | 最近更新者。 |
@@ -170,7 +170,7 @@ Schema id: `ck.schema.invite.v1`
 
 ### 5.3 行为规则
 
-- Invite MUST 携带 `expires_at`。默认有效期 SHOULD 不超过 7 天，高安全 Realm SHOULD 不超过 24 小时；过期 invite 不得被 claim、accept 或用于派生新的 capability。
+- Invite MUST 携带 `expires_at`。默认有效期 SHOULD be no greater than 7 天，高安全 Realm SHOULD be no greater than 24 小时；过期 invite 不得被 claim、accept 或用于派生新的 capability。
 - 接受 invite 后，相关 capability grant 才进入有效集合。
 - Invite state 转换的真源分两层：直接 DID 邀请由本节定义；3PID 邀请（邮箱、手机号等）的认领、失败和异常清理流程见 [`../sync/third-party-invites.md`](../sync/third-party-invites.md) §6.1。直接 DID 邀请的合法转换为 `pending -> accepted`（invitee 提交 `ck.invite.accept` 且 capability / delivery target 校验通过）、`pending -> rejected`（invitee 显式拒绝）、`pending -> expired`（`expires_at` 到达）、`pending -> revoked`（inviter 或持有撤销 capability 的 actor 撤销）、`pending -> revoked_by_capability_loss`（inviter 失去 invite capability）、`pending -> revoked_by_inviter_left`（inviter 不再是可邀请成员）、`pending -> invalidated_by_rate_limit`（反滥用策略命中）。`send_failed` 仅由投递服务在无法送达私有 invite delivery target 时写入；`claimed` 仅用于 3PID 流程。每个非 `pending` 状态的写入事件 MUST 携带稳定 `reason_code`，并引用触发该转换的 event、policy frontier 或投递诊断。
 
