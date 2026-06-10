@@ -3,7 +3,7 @@ title: Transport Bindings
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-10
+updated: 2026-06-11
 ---
 
 ## 0. 规范语言
@@ -140,6 +140,15 @@ gRPC、WebSocket / SSE、Message Queue (Kafka / NATS / Pulsar / AMQP) 与 P2P / 
 v1.0 conformance suite 不测试任何非 HTTP binding；gRPC / WS / MQ / libp2p 等
 transport MUST 各自通过 binding profile 单独 normative 化。
 
+### 6.1 Per-operation HTTP 伴生 binding（normative）
+
+与上述 service-wide 替代 transport 不同，**per-operation HTTP 伴生 binding** 指仍运行在 HTTPS 之上、只覆盖单个 canonical `operation_id` 的替代 HTTP 交互形态（例如 `ck.self.blob.upload` 的 tus 可续传上传 binding，见 [`../crypto-media/media-and-blob.md` §2.1](../crypto-media/media-and-blob.md)）。这类 binding：
+
+- MUST 由 core 规范文档直接 normative 化（含 operation 映射、认证/capability 复用、错误语义与 discovery 声明），不要求独立 `ck.profile.binding.<transport>.v1` profile；
+- MUST 以对应 `ck.feature.*` id 在 `describe.supported_features` 声明，并在 `supported_bindings` 条目中通过 `operations` 限定其覆盖的 operation 集合，`extension_profile_required` 为 `null`；
+- MUST NOT 改变所覆盖 operation 的语义结果（响应对象、receipt、内容寻址等与 canonical HTTP/JSON binding 一致）；
+- 不改变本节对 service-wide 非 HTTP transport 的 binding profile 要求。
+
 ## 7. Binding Discovery
 
 服务描述 SHOULD 返回：
@@ -159,7 +168,7 @@ transport MUST 各自通过 binding profile 单独 normative 化。
 }
 ```
 
-其他 binding（gRPC / WebSocket / SSE / MQ / libp2p）是 extension profile，需声明对应 binding profile id 后才可出现在此处；v1 core 仅要求 `http_json`。
+其他 binding（gRPC / WebSocket / SSE / MQ / libp2p）是 extension profile，需声明对应 binding profile id 后才可出现在此处；v1 core 仅要求 `http_json`。§6.1 的 per-operation HTTP 伴生 binding（如 `kind="tus"`）以 `extension_profile_required: null` + 对应 `ck.feature.*` 声明出现，不需要 binding profile id。
 
 客户端 MUST 根据 `supported_bindings` 选择 transport，不得假设所有服务都有 REST path。
 

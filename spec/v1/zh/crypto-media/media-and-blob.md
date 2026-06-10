@@ -3,7 +3,7 @@ title: Media and Blob
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-10
+updated: 2026-06-11
 ---
 
 ## 0. 规范语言
@@ -58,6 +58,49 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 - 如果服务端发现声明 MIME 与内容明显冲突，MAY 把 `media_type` 降级为 `application/octet-stream`，并记录安全标记。
 - 文件名 MUST 做控制字符、路径分隔符和过长字段清理；不得影响 `blob_ref` 或存储路径。
 - `upload_receipt` 若返回，MUST 绑定 `blob_ref`、`content_digest`、`size_bytes`、`received_at` 与 `issuer_service_did`，并由 Blob Service DID 对 receipt canonical bytes 签名；不得作为开放实现私有对象返回。
+- 大文件 / 弱网场景 MAY 通过 §2.1 的可续传上传 binding 完成同一次上传；该 binding 是可选扩展，是否支持以及如何发现见 §2.1 与 [`sync/service-surface.md` §3](../sync/service-surface.md)。
+
+### 2.1 可续传上传（Resumable Upload binding，optional extension）
+
+可续传上传是 `ck.self.blob.upload` 操作的**可选替代传输 binding**，面向大文件与弱网下的断点续传。它不是新的 operation_id，也不改变 Blob 的内容寻址与 receipt 语义；§2 的上传规则（声明 metadata 不可信、文件名清理、receipt 签名）对该 binding 同样适用。普通实现 MAY 暴露该 binding；当服务端未在 `/_cokret/describe` 声明该能力时，客户端 MUST 回退到 §2 的 canonical `multipart/form-data` 上传，不得对猜测的 endpoint 直接发起续传。
+
+**协议绑定（normative）**
+
+- 该 binding MUST 采用 tus resumable upload 协议，当前 baseline 为 `tus 1.0.0`。服务端 MUST 支持 `creation` 扩展；SHOULD 支持 `creation-with-upload`、`checksum`、`expiration` 与 `termination`。
+- 创建续传资源（tus `POST`）所需的认证、capability（`ck.self.blob.upload`）与 quota（`blob_max_bytes`）与 canonical 上传完全一致。后续 `PATCH`（写入 segment）、`HEAD`（查询 `Upload-Offset` 续传点）、`DELETE`（终止）作用于服务端返回的 upload URL，是 tus 原生 verb，不注册为独立 cokret operation。
+
+**内容寻址不变式（normative）**
+
+- 续传只是字节传输方式。所有 segment 组装完成后，服务端 MUST 对完整字节计算 `content_digest`，最终 `blob_ref` 与 `content_digest` MUST 等于对同一字节序列走 §2 canonical multipart 上传所得的值，并按 §2 规则签发 `upload_receipt`。
+- tus 的 offset 分块（`Upload-Offset` / 每个 `PATCH` chunk）是**传输层切分**，与加密附件 `ck.blob.stream_aead.v1`（§3.3）的 **AEAD segment** 是两个独立维度：实现 MUST NOT 把 tus chunk 边界与 AEAD segment 边界互相约束或混为一谈。续传承载的始终是（可能已在客户端 AEAD 加密的）Blob 字节，加密形态由客户端在上传前决定。
+
+**能力发现（normative）**
+
+- 该 binding 按 [`sync/transport-bindings.md` §6.1](../sync/transport-bindings.md) 分类为 **per-operation HTTP 伴生 binding**：本节即其 normative binding 文档，不需要独立 `ck.profile.binding.*` profile。
+- 支持该 binding 的服务端 MUST 在 `/_cokret/describe` 同时声明：
+  - `supported_features` 含 `ck.feature.blob.resumable_upload.tus.v1`；
+  - `supported_bindings` 含一条 `kind="tus"` 的 binding，携带 tus endpoint 的 `base_url`、`operations: ["ck.self.blob.upload"]`、`extension_profile_required: null`、`tus_version`（支持的协议版本列表）与 `tus_extensions`（支持的扩展列表）；
+  - `limits` 携带下文的续传相关上限。
+- 客户端 MUST 先解析 DID Document 并校验 describe 后再使用该 binding（沿用 [`sync/service-surface.md` §2](../sync/service-surface.md) 的服务选择规则）。`/_cokret/describe` 是**服务级**权威发现面；tus `OPTIONS` 响应（`Tus-Resumable`、`Tus-Version`、`Tus-Extension`、`Tus-Max-Size`）是 **endpoint 级**的线上确认。二者 MUST 一致；冲突时客户端以 describe 与服务端实际拒绝为准，不得仅凭对猜测 endpoint 的裸 `OPTIONS` 探测作为发现手段。
+
+**隐私（normative）**
+
+- tus `Upload-Metadata` header MUST NOT 携带私有或 E2EE Blob 的明文文件名、MIME 或任何可枚举本地路径；此类 Blob 的 `Upload-Metadata` SHOULD 省略，至多携带字节数。原始文件名 / MIME 的归属与 [`models/file-transfer.md` §2](../models/file-transfer.md) 的 file-transfer 规则一致。
+- upload URL MUST 按 authenticated 资源处理：每个 tus 请求（`POST`/`PATCH`/`HEAD`/`DELETE`）MUST 独立认证；upload URL MUST NOT 作为可转发 bearer 凭证对待——这与 §5.4 presign 的只读 bearer URL 边界相反：presign 仅授权只读 `get`/`head`，续传是写路径。
+
+**过期与 GC**
+
+- 未完成的续传资源 MUST 有有限生命周期。服务端 SHOULD 支持 tus `expiration` 扩展并通过 `Upload-Expires` 暴露过期时间。未完成上传 MUST NOT 产生可被 Event / account-data 引用的 `blob_ref`；到期后服务端 MAY 直接回收已接收的部分字节。
+
+**`limits` 键**
+
+- `resumable_upload_incomplete_ttl_seconds`：未完成续传 part 的最长保留秒数。
+- `resumable_upload_max_bytes`（optional）：单次续传上传上限；省略时回退到 canonical `blob_max_bytes` / `max_body_bytes` 语义。
+- `resumable_upload_min_chunk_bytes`（optional）：服务端要求的最小非末段 `PATCH` chunk 字节数。
+
+**版本与前向兼容**
+
+- 当前 baseline 是 tus 1.0.0。IETF httpbis 的 *Resumable Uploads*（`draft-ietf-httpbis-resumable-upload`）标准化后，其 binding MUST 以新的 feature id（如 `ck.feature.blob.resumable_upload.ietf.v1`）与新的 `supported_bindings.kind` 增量声明，不改写本节 tus 1.0.0 语义；客户端按 describe 声明的 feature / binding 选择具体协议，对两者均可同时声明的服务端 SHOULD 优先选用其支持的最新标准化形态。
 
 ## 3. Encrypted Attachment
 

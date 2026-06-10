@@ -3,7 +3,7 @@ title: Service Surface And Bootstrap
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-10
+updated: 2026-06-11
 see_also:
   - sync/service-http-binding.md
   - sync/operations-sync.md
@@ -161,13 +161,22 @@ GET /_cokret/describe
     {
       "kind": "http_json",
       "base_url": "https://alice.example.net"
+    },
+    {
+      "kind": "tus",
+      "base_url": "https://alice.example.net/_cokret/self/blob/resumable",
+      "operations": ["ck.self.blob.upload"],
+      "extension_profile_required": null,
+      "tus_version": ["1.0.0"],
+      "tus_extensions": ["creation", "creation-with-upload", "checksum", "expiration", "termination"]
     }
   ],
   "supported_features": [
     "sync_stream",
     "snapshot",
     "invite_addressing",
-    "notifications"
+    "notifications",
+    "ck.feature.blob.resumable_upload.tus.v1"
   ],
   "x_invite_addressing": {
     "supported_introduction_kinds": [
@@ -191,7 +200,8 @@ GET /_cokret/describe
     "device_message_max_ttl_seconds": 86400,
     "read_cursor_debounce_ms": 1000,
     "dangling_redaction_min_retention_days": 30,
-    "snapshot_retention_heads": 2
+    "snapshot_retention_heads": 2,
+    "resumable_upload_incomplete_ttl_seconds": 86400
   },
   "plaintext_visibility": {
     "data_classes": [],
@@ -242,6 +252,8 @@ GET /_cokret/describe
   "development_mode": false
 }
 ```
+
+能力发现示例（normative 指引）：客户端判断服务端是否支持某项**可选传输能力**时，MUST 以 describe 的 `supported_features` / `supported_bindings` / `limits` 为权威发现面，而不是对猜测 endpoint 直接探测。以可续传 Blob 上传为例，服务端支持时 MUST 同时声明 `supported_features` 含 `ck.feature.blob.resumable_upload.tus.v1`、`supported_bindings` 含一条 `kind="tus"` 的 binding，并在 `limits` 暴露续传上限；客户端据此发现后再用 tus `OPTIONS`（`Tus-Resumable` / `Tus-Version` / `Tus-Extension`）做 endpoint 级线上确认。完整 binding 语义、内容寻址不变式与隐私约束见 [`crypto-media/media-and-blob.md` §2.1](../crypto-media/media-and-blob.md)。
 
 服务类型命名规则：
 
