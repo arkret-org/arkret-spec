@@ -14,16 +14,20 @@ const { layout = "modern", hideClientButton = false } = Astro.props;
 // so the page works on any host (including offline GitHub Pages mirrors).
 const yaml = readOpenApiYaml();
 
-// Scalar's stable declarative entry-point: <script id="api-reference"
-// type="application/json" data-configuration='{"spec": {"content": "..."}}'>
-// followed by the Scalar bundle. This contract has been stable across
-// Scalar majors, so we are not coupled to a specific JS API surface.
+// We mount Scalar programmatically via `Scalar.createApiReference(el, config)`
+// instead of the declarative `<script id="api-reference">` auto-mount.
 //
-// `darkMode` is set later by the inline script so that the Scalar UI
-// follows the site-wide dark/light toggle (Starlight's `data-theme`)
-// instead of being permanently locked.
-const config = {
-  spec: { content: yaml },
+// Why: the current Scalar standalone bundle treats the body of a
+// `#api-reference` script as the *raw OpenAPI document itself*, not as a
+// configuration object. Passing `{ spec: { content } }` or `{ content }` as
+// the body therefore parses that wrapper JSON as the spec — it has no
+// `paths`, so Scalar renders only an empty "Introduction" skeleton with no
+// operations. The programmatic API takes the spec via the `content` config
+// key explicitly, which is unambiguous.
+//
+// The spec is stashed in a `type="application/json"` island (a non-triggering
+// id, so the bundle does NOT try to auto-mount it) and read back at init.
+const baseConfig = {
   layout,
   hideClientButton,
   hideDownloadButton: false,
@@ -31,20 +35,24 @@ const config = {
 };
 ---
 
+<div id="scalar-mount"></div>
 <script
   is:inline
-  id="api-reference"
+  id="openapi-spec"
   type="application/json"
-  set:html={JSON.stringify(config).replace(/<\/script/gi, "<\\/script")}
+  set:html={JSON.stringify(yaml).replace(/<\/script/gi, "<\\/script")}
+></script>
+<script
+  is:inline
+  id="scalar-config"
+  type="application/json"
+  set:html={JSON.stringify(baseConfig).replace(/<\/script/gi, "<\\/script")}
 ></script>
 <script
   is:inline
   type="module"
   src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
 <script is:inline>
-  // Sync Scalar's darkMode with the site theme. Scalar reads its
-  // configuration once at boot, so we patch the JSON before the
-  // bundle initializes, then keep it in sync via storage events.
   (function () {
     function currentTheme() {
       var stored;
@@ -60,23 +68,32 @@ const config = {
         ? "light"
         : "dark";
     }
-    function patchConfig(dark) {
-      var el = document.getElementById("api-reference");
-      if (!el) return;
+    function readJson(id) {
+      var el = document.getElementById(id);
       try {
-        var cfg = JSON.parse(el.textContent || "{}");
-        cfg.darkMode = dark;
-        el.textContent = JSON.stringify(cfg).replace(/<\/script/gi, "<\\/script");
+        return JSON.parse((el && el.textContent) || "null");
       } catch (e) {
-        /* ignore */
+        return null;
       }
     }
-    patchConfig(currentTheme() === "dark");
-    window.addEventListener("storage", function (e) {
-      if (e.key === "starlight-theme") {
-        // Reload so Scalar re-reads its config under the new theme.
-        location.reload();
+    function mount() {
+      // The bundle is a deferred module; poll until it exposes the global.
+      if (!window.Scalar || typeof window.Scalar.createApiReference !== "function") {
+        return window.setTimeout(mount, 30);
       }
+      var content = readJson("openapi-spec");
+      var config = readJson("scalar-config") || {};
+      if (typeof content !== "string") return;
+      config.content = content;
+      config.darkMode = currentTheme() === "dark";
+      window.Scalar.createApiReference("#scalar-mount", config);
+    }
+    mount();
+
+    // Follow the site-wide dark/light toggle. Scalar reads `darkMode` once at
+    // boot, so the simplest correct behaviour is to reload on theme change.
+    window.addEventListener("storage", function (e) {
+      if (e.key === "starlight-theme") location.reload();
     });
   })();
 </script>
