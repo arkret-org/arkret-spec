@@ -12,6 +12,8 @@ sidebar:
 
 本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [normative-language.md](./normative-language.md) 解释；仅大写形式具规范约束力。
 
+> 本文是 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) 的说明视图，非穷尽；完整 profile 矩阵（含 `deployment_profiles`、`hardening_profiles` 等全集）以该 json 为准。
+
 ## 1. 目标
 
 Cokret 是模块化协议。为了避免“实现了 Cokret”变成不可验证的模糊声明，规范 MUST 定义可测试的实现 profile。
@@ -504,7 +506,7 @@ SHOULD 支持：
 
 ## 17. Deployment Profiles
 
-以下 deployment profile 用于发布与验收，不替代实现 profile：
+Deployment profile 用于发布与验收，不替代实现 profile。完整 deployment profile 集合以 [`artifacts/profiles/conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) 的 `deployment_profiles` 为准；本节为非穷尽说明视图，包括以下 profile 等：
 
 - `ck.profile.personal_node.v1`
 - `ck.profile.small_team.v1`

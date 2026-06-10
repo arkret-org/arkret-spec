@@ -661,7 +661,7 @@ components:
           type: array
           description: |
             Profiles the service self-claims membership in. `claim_kind` MUST
-            be `self_claimed`; cotest-verified entries MUST appear in
+            be `self_claimed`; conformance-verified entries MUST appear in
             `verified_profiles` instead. See §3.0.
           items:
             type: object
@@ -678,9 +678,11 @@ components:
         verified_profiles:
           type: array
           description: |
-            Profiles for which a cotest run has produced a passing artifact.
-            Each entry MUST carry `cotest_run_id`, `artifact_digest`,
-            `artifact_ref`, `cotest_issuer_did`, `signature` and `timestamp`.
+            Profiles for which a Conformance Verifier run has produced a
+            passing verification artifact (see
+            `zh/conformance/conformance-suite.md` §6.2). Each entry MUST carry
+            `verification_run_id`, `artifact_digest`, `artifact_ref`,
+            `verifier_did`, `signature` and `timestamp`.
             When `development_mode=true` this array MUST be
             empty (see `zh/sync/service-surface.md` §3.0 and
             `ck.schema.service_describe.v1`).
@@ -689,10 +691,10 @@ components:
             required:
             - profile_id
             - claim_kind
-            - cotest_run_id
+            - verification_run_id
             - artifact_digest
             - artifact_ref
-            - cotest_issuer_did
+            - verifier_did
             - signature
             - timestamp
             properties:
@@ -701,8 +703,8 @@ components:
               claim_kind:
                 type: string
                 enum:
-                - cotest_verified
-              cotest_run_id:
+                - conformance_verified
+              verification_run_id:
                 type: string
               artifact_digest:
                 type: string
@@ -710,15 +712,15 @@ components:
               artifact_ref:
                 type: string
                 minLength: 1
-                description: URI or transparency-log reference from which the cotest artifact can be fetched.
-              cotest_issuer_did:
+                description: URI or transparency-log reference from which the verification artifact can be fetched.
+              verifier_did:
                 type: string
                 pattern: ^did:[a-z0-9]+:[^\s#?]+$
-                description: DID of the cotest authority that signed the artifact statement.
+                description: DID of the Conformance Verifier that signed the artifact statement.
               signature:
                 type: string
                 minLength: 1
-                description: Signature over profile_id, cotest_run_id, artifact_digest, artifact_ref, issuer and timestamp.
+                description: Signature over profile_id, verification_run_id, artifact_digest, artifact_ref, verifier and timestamp.
               timestamp:
                 type: string
                 format: date-time

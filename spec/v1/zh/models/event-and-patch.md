@@ -63,7 +63,7 @@ Schema id: `ck.schema.event.v1`
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。 | 本地/传输附加信息。 |
 | `proofs` | yes | `array<Proof>` | 至少一个有效 proof（`minItems: 1`）。 | 签名证明。 |
 
-Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。扩展字段不得直接加在顶层；非关键扩展应放入 `payload.x_*` 或 profile 声明的 payload 字段，关键扩展必须通过 `requirements.critical_extensions[]` 声明并 fail closed。
+Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。扩展字段不得直接加在顶层；非关键扩展只能放入 `payload.x_*`，且仅当该 payload kind 的 schema 显式声明 `x_*` patternProperties 扩展槽时才可使用——未声明扩展槽的 payload kind 不接受任何未知字段（payload schema 的 `additionalProperties: false` 即权威判定；当前已声明扩展槽的 payload kind 以 schema 为准，现仅 `invite_payload`）。实现 MUST 在 canonical bytes、存储、转发和 backfill 中保留 schema 允许的 `x_*` 字段；需要扩展槽的 payload kind SHOULD 先在对应 schema 登记 `x_*` 槽再使用。关键扩展必须通过 `requirements.critical_extensions[]` 声明并 fail closed。
 
 ### 2.3 最小 reducer-input event 示例
 

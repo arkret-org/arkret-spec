@@ -27,18 +27,7 @@ see_also:
 - `artifacts/profiles/conformance-profiles.json` 是实现 profile 的机器矩阵；`conformance/conformance-profiles.md` 是其说明视图。
 - 语言权威：本规范权威文本为 `zh/` 下中文；`en/` 仅提供说明性入口，非规范源。`artifacts/` 下机读契约语言中立、跨语言共享。
 
-**ck.\* 命名空间的机读登记边界（normative）**：并非所有 `ck.*` 标识符都要求进入机读 registry。下列命名空间类别**豁免机读登记**，其权威定义由各自的定义文档承载；豁免类别之外、被正文当作真实 wire 标识符使用的 `ck.*` id 仍 MUST 有机读归属（registry、schema const 或 profile 矩阵），缺失即为漂移缺陷：
-
-| 豁免类别 | 例子 | 权威定义位置 |
-| --- | --- | --- |
-| 算法 / 编码 profile id | `ck.rank.lexofractional.v1`、`ck.reducer.v1` | 定义文档（encoding.md §9、snapshot-schema.md）；它们不是 conformance profile，不进 conformance-profiles.json |
-| 设备验证方法名 | `ck.sas.v1`、`ck.qr.v1` | device-lifecycle.md（`ck.key.verification.request.methods` 词表） |
-| client-local scheme id（不进 wire 互操作面） | `ck.secret_storage.v1`、secret storage 的 `ck.mls.v1` | device-lifecycle.md / key-management.md |
-| 信封 scheme 常量 | `ck.blob.presign.v1` | media-and-blob.md §5.4.2（与已进 schema const 的 scheme 并存是允许的；进 schema const 后以 schema 为准） |
-| hash / transcript 域分隔标签 | `ck.agent_sidecar_circle.v1`、`ck.invite.claim.subject_proof.v1` | 使用处定义文档（MLS exporter label 除外——它有专属 exporter-label-registry） |
-| feature id（`supported_features` / `experimental_features` 值） | `ck.feature.identity.webvh_native_log.v1`、`ck.feature.mls_governance_binding.full.v1` | service-surface.md 与对应能力文档；feature id 是 describe 协商值，未识别值按各 describe 消费方规则忽略或 fail closed |
-| DID Document / 外部生态 profile 值 | `ck.org.governance.v1` | identity-did.md 示例上下文 |
-| E2EE application message kind | `ck.identity_link` | 定义文档（encryption-and-audit.md）；其 payload schema（`ck.schema.identity_link.v1`）仍 MUST 注册，kind 本身不进 durable event registry（不经 reducer / Anchor 路径） |
+**ck.\* 命名空间的机读登记边界（导航摘要）**：本段是**导航摘要，非规范源**（与本文 frontmatter `normative: false` 一致）。并非所有 `ck.*` 标识符都要求进入机读 registry；算法 / 编码 profile id、设备验证方法名、client-local scheme id、信封 scheme 常量、hash / transcript 域分隔标签、feature id、DID Document / 外部生态 profile 值、E2EE application message kind 与标准 account-data tag 词表等类别豁免机读登记，其权威定义由各自的定义文档承载。豁免类别全表与配套 MUST 约束的 normative 定义见 [`conformance/schema-registry.md` §1.2](./conformance/schema-registry.md)；如本摘要与该权威源有出入，以 schema-registry.md §1.2 为准。
 
 ### 1.2 漂移检测 artifacts
 

@@ -18,6 +18,20 @@
     "x",
     "h"
   ],
+  "not": {
+    "anyOf": [
+      {
+        "required": [
+          "_mac"
+        ]
+      },
+      {
+        "required": [
+          "_sig"
+        ]
+      }
+    ]
+  },
   "properties": {
     "v": {
       "const": "1"
@@ -46,7 +60,7 @@
   },
   "patternProperties": {
     "^_[A-Za-z0-9_]*$": {
-      "description": "Server-private auxiliary fields (e.g. `_compress` / `_kid` flags). Names MUST start with underscore. Auxiliary `_*` fields are excluded from cursor migration translation. In v1 core (stateful-only) there is no `_mac` / `_sig` integrity field — handle lookup IS the integrity check — so the underscore namespace is fully private to the issuing server."
+      "description": "Server-private auxiliary fields (e.g. `_compress` / `_kid` flags). Names MUST start with underscore. Auxiliary `_*` fields are excluded from cursor migration translation. In v1 core (stateful-only) there is no `_mac` / `_sig` integrity field — handle lookup IS the integrity check — so the underscore namespace is fully private to the issuing server. `_mac` and `_sig` themselves are explicitly excluded by the top-level `not` clause: a core body carrying either MUST be rejected (encoding.md §8.3 rule 13); they are only meaningful under the ck.profile.stateless_cursor.v1 overlay schema."
     }
   },
   "additionalProperties": false

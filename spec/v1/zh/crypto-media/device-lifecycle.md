@@ -734,7 +734,7 @@ QR payload MUST NOT 包含长期私钥、secret storage key、recovery secret �
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `request_id` | `string` | required | 调用方生成的随机关联 id；MUST NOT 在被应答或取消后重用。 |
-| `secret_id` | `string` | required | 被请求 secret 的不透明标识，例如 `yougen_mls_account_secret`。 |
+| `secret_id` | `string` | required | 被请求 secret 的不透明标识，例如 `org.example.mls_account_secret`。 |
 | `from_device` | `id:device` | required | 请求（新）设备；MUST 等于 envelope 的 `sender_device_id`。 |
 | `recipient_hpke_public_key` | `string` | required | 请求设备控制的 base64url X25519 HPKE 公钥，被请求设备据此密封；SHOULD 是设备 `hpke_key` 或已绑定的 SAS 验证 transcript 中已建立的密钥。 |
 
@@ -852,10 +852,10 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
 备份 MUST 加密给 recovery public key 或 secret storage key。服务端 MUST NOT 能解密。
 
 > **Recipient method 与 fresh-device 恢复（normative）**：上例的 `recipient_method="secret_storage_key"` 仅适用于**已经持有 secret_storage root key 的现有设备**（见 `identity/key-management.md` §7.5.3）。**全新设备 / 新浏览器**在尚未解锁 secret_storage root 之前 MUST NOT 直接用 `secret_storage_key` envelope 恢复 `mls_history`；它 MUST 走以下两步之一：
-> 1. **recovery_public_key（推荐，HPKE）**：`mls_history` envelope 直接加密给 actor 的 recovery public key（`recipient_method="recovery_public_key"`，HPKE base mode，参数见 §7.5.2）。新设备用经 recovery policy 解锁的 recovery 私钥即可 HPKE-open，无需先持有 secret_storage root。这是 fresh-browser same-account MLS 恢复的规范路径。
-> 2. **先解 root，再用 secret_storage_key**：新设备先用 `passphrase_kdf`（遗留 vault passphrase 兼容路径，deprecated，见 `identity/key-management.md` §7.5.1；新流程的用户凭证是 Recovery Key），或经 recovery policy 释放 recovery private key 后用 `recovery_public_key` 解出 `secret_storage` 域的 root（取得 `mls_group_secrets_backup_key`），之后才能解 `secret_storage_key` 的 `mls_history` envelope。
+> 1. **recovery_public_key（推荐，HPKE）**：`mls_history` envelope 直接加密给 actor 的 recovery public key（`recipient_method="recovery_public_key"`，HPKE base mode，参数见 `identity/key-management.md` §7.5.2）。新设备用经 recovery policy 解锁的 recovery 私钥即可 HPKE-open，无需先持有 secret_storage root。这是 fresh-browser same-account MLS 恢复的规范路径。
+> 2. **先解 root，再用 secret_storage_key**：新设备先用 `passphrase_kdf`（`passphrase_kdf` envelope，见 `identity/key-management.md` §7.5.1），或经 recovery policy 释放 recovery private key 后用 `recovery_public_key` 解出 `secret_storage` 域的 root（取得 `mls_group_secrets_backup_key`），之后才能解 `secret_storage_key` 的 `mls_history` envelope。
 >
-> `recipient_method` 取值 MUST 来自 `ck.schema.key_backup.v1` 的枚举（`passphrase_kdf` / `recovery_public_key` / `secret_storage_key`）。实现 MUST NOT 发出枚举外的值（例如历史实现中的 `device_snapshot_secret`、`threshold_recovery`、`hardware_wrapped_key` 不是合法 wire 值，receiver/validator MUST fail closed）。threshold / hardware / trusted recovery service 是 recovery policy / proof 层的 unlock factor，不是 backup envelope recipient method。
+> `recipient_method` 取值 MUST 来自 `ck.schema.key_backup.v1` 的枚举（`passphrase_kdf` / `recovery_public_key` / `secret_storage_key`）。实现 MUST NOT 发出枚举外的值（例如 `device_snapshot_secret`、`threshold_recovery`、`hardware_wrapped_key` 不是合法 wire 值，receiver/validator MUST fail closed）。threshold / hardware / trusted recovery service 是 recovery policy / proof 层的 unlock factor，不是 backup envelope recipient method。
 
 规则：
 
@@ -883,9 +883,9 @@ DELETE /_cokret/self/keys/backups/{backup_id}
 
 `PUT` 还 MUST：(a) 校验 `series_seq` 严格大于该 series 已有的最大 sequence（首条 MUST `series_seq=0`）；(b) 校验 `supersedes` 引用的前一条 envelope 存在、`actor_id` / `series_id` 匹配，并由当前 caller 可见；(c) 校验 `supersedes_digest` 等于服务端持有的前一条 canonical_json digest（排除 `auth_data.signature`）；任一失败 MUST 返回 `409 Conflict`，reason 分别为 `series_seq_not_monotonic` / `series_predecessor_not_found` / `series_chain_broken`。
 
-`GET /_cokret/self/keys/backups` 支持 `?series_id=<series_id>` 与 `?backup_class=<class>` 过滤；响应 MUST 按 `series_seq` 升序返回该 series 的全部 envelope metadata，便于 client 重建链。当仅按 `backup_class` 查询且返回多个 series 时，server / client MUST NOT 用返回顺序、最大 `series_seq` 或最新 `created_at` 推断 active series；恢复方 MUST 使用 `identity/key-management.md` §7.6 的 `ck.key_backup.active_series` / `ck.schema.key_backup_active_series.v1` signed active-series record。`list` 响应只返回调用方可见的 backup metadata、digest 和 retention hints；不得越过 §7.8 的限速。
+`GET /_cokret/self/keys/backups` 支持 `?series_id=<series_id>` 与 `?backup_class=<class>` 过滤；响应 MUST 按 `series_seq` 升序返回该 series 的全部 envelope metadata，便于 client 重建链。当仅按 `backup_class` 查询且返回多个 series 时，server / client MUST NOT 用返回顺序、最大 `series_seq` 或最新 `created_at` 推断 active series；恢复方 MUST 使用 `identity/key-management.md` §7.6 的 `ck.key_backup.active_series` / `ck.schema.key_backup_active_series.v1` signed active-series record。`list` 响应只返回调用方可见的 backup metadata、digest 和 retention hints；不得越过 `identity/key-management.md` §7.8 的限速。
 
-`get` 返回完整 encrypted backup object，并受 §7.8 的 fresh device proof、`ck.schema.key_backup_unlock_proof.v1` 与 rate limit 约束。`delete` MUST 要求当前设备证明、DID proof 或 recovery policy 允许的高风险证明；active series 内的非尾部 envelope MUST NOT 被单独删除，删除链尾部 envelope MUST 同时附 §15 风格的 high-risk proof（principal_signing / device_quorum / trusted_recovery_service）并写入高风险审计。
+`get` 返回完整 encrypted backup object，并受 `identity/key-management.md` §7.8 的 fresh device proof、`ck.schema.key_backup_unlock_proof.v1` 与 rate limit 约束。`delete` MUST 要求当前设备证明、DID proof 或 recovery policy 允许的高风险证明；active series 内的非尾部 envelope MUST NOT 被单独删除，删除链尾部 envelope MUST 同时附 §15 风格的 high-risk proof（principal_signing / device_quorum / trusted_recovery_service）并写入高风险审计。
 
 ### 12.2 Retention and Erasure
 
@@ -900,7 +900,7 @@ DELETE /_cokret/self/keys/backups/{backup_id}
 要求：
 
 - 服务端 MUST 在收到 user erasure 请求（参见 `ck.audit.erasure_receipt` / `ck.schema.erasure_receipt.v1`）时，按 erasure receipt 的 `erasure_scope` 与 `subject` 处理对应 backup envelope：若 `subject.kind="principal"` 且 `erasure_scope.storage_boundary` 涵盖 `device_secret_store`，相应 `did_recovery` / `secret_storage` envelope MUST 被删除并产出 `ck.schema.erasure_receipt.v1` 子条目。
-- 用户主动删除自身备份与 erasure 流程区分清晰：常规 `DELETE` 不写 erasure receipt，但 §7.8 的高风险审计仍要求落地 `ck.audit.accessed` (`access_kind="key_backup_delete"`).
+- 用户主动删除自身备份与 erasure 流程区分清晰：常规 `DELETE` 不写 erasure receipt，但 `identity/key-management.md` §7.8 的高风险审计仍要求落地 `ck.audit.accessed` (`access_kind="key_backup_delete"`).
 - `legal_hold=true` 的 envelope MUST 被服务端拒绝删除（即便提供 high-risk proof）；解除 hold MUST 由声明该 hold 的 Policy Server 通过 policy update 完成，并写入审计。
 - 同一 series 内的 retention 必须保证链不被打破：服务端 MUST NOT 删除 active series 的非尾部 envelope；旧 series 只有在已经被 active-series record 移出 primary source 后，才 MAY 按 retention / erasure 策略整组删除或迁移。
 - erasure 完成后保留的 `retained_stub_digest` MUST 仅含 metadata 哈希，不含密文与 KDF 参数，以避免间接成为离线爆破证据。
@@ -1077,7 +1077,19 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
 
 设备恢复是一个端到端状态机，不能只靠单个 reset proof 或 key backup 下载完成。合规实现 MUST 按以下顺序闭环：
 
-`ck.schema.recovery_session.v1`（[`recovery-session.schema.json`](../../artifacts/schemas/recovery-session.schema.json)）规范化 recovery-session wire contract。状态机值固定为 `pending -> verified -> completed`，旁路终态为 `rejected` / `expired`；终态不得回到 `pending` 或 `verified`。Create/get/proofs/complete 的请求响应 shape、`principal_signing` proof 形态和 transcript fixture 均由该 schema 的 `$defs` 固定。
+`ck.schema.recovery_session.v1`（[`recovery-session.schema.json`](../../artifacts/schemas/recovery-session.schema.json)）规范化 recovery-session wire contract。Create/get/proofs/complete 的请求响应 shape、`principal_signing` proof 形态和 transcript fixture 均由该 schema 的 `$defs` 固定。
+
+状态机（normative）——状态值固定为 `pending` / `verified` / `completed` / `rejected` / `expired`，合法转换为下表的封闭集合；表外转换 MUST reject：
+
+| 当前状态 | 允许的出边 |
+| --- | --- |
+| `pending` | `verified` / `rejected` / `expired` |
+| `verified` | `completed` / `expired` / `rejected` |
+| `completed` / `rejected` / `expired` | 终态，无出边 |
+
+- **`expired` 语义**：`expires_at` 过后仍处于非终态（`pending` / `verified`）的 session MUST 视为 `expired`。实现 MAY 在读取时惰性求值，或 MAY 显式写入状态字段，但对外可观察状态 MUST 一致——同一时点对同一 session 的任何读取不得返回不同状态。`verified` 后未在 `expires_at` 前完成 `/complete` 的 session 同样按本条过期。
+- **`rejected` 进入条件**：proof 校验失败次数达到服务端策略上限，或服务端风控 / 操作员显式拒绝。进入 `rejected` 时 MUST 写入 `rejection_reason_code`，取值为封闭枚举：`proof_failed`（proof 校验失败达到策略上限）、`operator_rejected`（操作员 / 管理面显式拒绝）、`risk_policy`（服务端风控策略拒绝）、`superseded`（被同 principal / device 的新 recovery session 取代）。
+- **终态请求**：对处于终态（`completed` / `rejected` / `expired`）的 session 调用 `submit_proof` 或 `complete`，服务端 MUST 返回 `failed_precondition`，reason_code=`recovery_session_terminal`。
 
 1. **Recovery policy 触发**：新设备声明恢复意图，引用 principal DID 当前 `recovery_policy`、目标 `principal_id`、新 `device_id`、当前 `ssk_generation` 和 trust domain。服务端 / coordinator MUST 在创建 session 时 snapshot 当前 accepted `(policy_id, policy_version, ssk_generation)`，签发 256-bit CSPRNG `challenge`（base64url no padding, exactly 43 chars），并设置 `expires_at`。默认 TTL 为 900s；deployment MAY 配置更短 TTL，MUST NOT 配置更长 TTL，除非后续 recovery policy 字段显式授权覆盖。challenge MUST 单 session 单次使用；proof 失败或成功消费后不得在其它 session 复用。
 2. **新设备认证**：按 recovery policy 选择 `principal_signing`、`recovery_unlock`、`device_quorum` 或 `trusted_recovery_service` proof。`principal_signing` proof 的 canonical transcript MUST 是 `canonical_json` of exactly:

@@ -24,7 +24,7 @@
     "agent_session_namespace_collapse": "Superseded by agent_applet_interop_session_rename: the agent capability action namespace and the agent/applet session event kinds now both use the interop_session form.",
     "typed_id_prefix_unabbreviation": "Abbreviated typed-id prefixes expanded to full snake_case kind. Single rule: ck:<abbrev>: → ck:<full_kind>: (9 entries).",
     "realm_lifecycle_segment_realignment": "Realm lifecycle capability actions flattened from 4 segments (cx.realm.lifecycle.<verb>) to 3 segments (cx.realm.<verb>) to match the corresponding event kind (4 entries). target_event_kinds preserved.",
-    "did_id_suffix": "Protocol responsibility subjects use the _id suffix even when the value is a DID. actor_did / principal_did / subject_did renamed to actor_id / principal_id / subject_id, and the bare wire field `actor` (policy check request, bound_to, capability vector request) renamed to actor_id (4 entries).",
+    "did_id_suffix": "Protocol responsibility subjects use the _id suffix even when the value is a DID. actor_did / principal_did / subject_did renamed to actor_id / principal_id / subject_id, and the bare wire fields `actor` (policy check request, bound_to, capability vector request; MIMI consent update request) and `requester` (MIMI consent request) renamed to actor_id / requester_id (6 entries).",
     "agent_key_imperative_verbs": "Event kind verbs use imperative action names, not past participles. cx.agent.key.{authorized,revoked,rotated} → cx.agent.key.{authorize,revoke,rotate} (3 entries).",
     "device_imperative_verbs": "Same rule as agent_key_imperative_verbs but for device key events (2 entries).",
     "crdt_lattice_snake_case": "CRDT lattice enum values use snake_case (5 entries).",
@@ -40,9 +40,10 @@
     "grant_constraint_single_kind_ids": "Grant constraint fields that carry one concrete protocol identifier kind use `_ids`; `_refs` remains reserved for causal/proof/schema/content-addressed or polymorphic reference material.",
     "metadata_encryption_floor_rename": "Wire field metadata_encryption_profile renamed to metadata_encryption_floor.",
     "key_backup_kdf_hash_to_digest_algorithm": "Key backup KDF parameter algorithm selectors use digest_algorithm; hash is reserved for actual digest material and internal JSON Schema defs.",
-    "brand_namespace_cx_to_ck": "Wire/brand namespace renamed from the legacy `contrix` brand to `cokret`. Every wire token prefix `ck.` becomes `ck.` and every typed-id prefix `ck:` becomes `ck:` across operation_id, event_kind, schema_id, capability action, id_kind, error code, vector id, and profile id. The bare brand strings `contrix` / `Contrix` and the token prefixes `ck.` / `ck:` are hard_reject on the current wire and in current identifiers (allowed only in CHANGELOG / migration docs / negative drift fixtures). HTTP paths additionally moved to the versionless trust-circle namespace `/_cokret/<segment>/...` (see sync/service-http-binding.md §2.1); the legacy flat paths and `/api/v1` / `/cokret/v1` prefixes are recorded in removed-operation-ids.json. Mechanical, single design decision; the entries below are representative anchors, the rule applies to the whole token space.",
+    "brand_namespace_cx_to_ck": "Wire/brand namespace renamed from the legacy `contrix` brand to `cokret`. Every wire token prefix `cx.` becomes `ck.` and every typed-id prefix `cx:` becomes `ck:` across operation_id, event_kind, schema_id, capability action, id_kind, error code, vector id, and profile id. The bare brand strings `contrix` / `Contrix` and the token prefixes `cx.` / `cx:` are hard_reject on the current wire and in current identifiers (allowed only in CHANGELOG / migration docs / negative drift fixtures). HTTP paths additionally moved to the versionless trust-circle namespace `/_cokret/<segment>/...` (see sync/service-http-binding.md §2.1); the legacy flat paths and `/api/v1` / `/cokret/v1` prefixes are recorded in removed-operation-ids.json. Mechanical, single design decision; the entries below are representative anchors, the rule applies to the whole token space.",
     "operation_id_trust_surface_segment": "Scheme B: operation_id now encodes its trust-surface classifier as the mandatory leading segment (ck.<surface>.<resource>.<action>, surface in {self,peer,edge,root,find,gate,open}), matching the HTTP path's first segment 1:1. 108 operations gain the surface prefix; peer.* were already compliant and ck.server.describe (pre-auth root meta, no surface segment) is the sole exception. grpc service names gain the PascalCase surface prefix and mq topics the lowercase surface segment in lockstep. Single design decision; entries are mechanical applications.",
-    "agent_applet_interop_session_rename": "Agent and applet session surfaces renamed from the ambiguous `protocol_session` (which reads as the ambient Cokret protocol) to `interop_session`, naming the external agent-to-agent interop relationship. Event kinds ck.{agent,applet}.protocol_session.* -> ck.{agent,applet}.interop_session.*; the agent capability action namespace ck.agent.session.* (start/cancel/stream_status/attach_artifact/read_transcript) -> ck.agent.interop_session.*; the typed id and schema payload defs use the agent_interop_session_* / applet_interop_session_* short form. Single design decision."
+    "agent_applet_interop_session_rename": "Agent and applet session surfaces renamed from the ambiguous `protocol_session` (which reads as the ambient Cokret protocol) to `interop_session`, naming the external agent-to-agent interop relationship. Event kinds ck.{agent,applet}.protocol_session.* -> ck.{agent,applet}.interop_session.*; the agent capability action namespace ck.agent.session.* (start/cancel/stream_status/attach_artifact/read_transcript) -> ck.agent.interop_session.*; the typed id and schema payload defs use the agent_interop_session_* / applet_interop_session_* short form. Single design decision.",
+    "conformance_verifier_neutralization": "ServiceDescribe.verified_profiles neutralized away from the downstream tool name cotest: claim_kind enum value cotest_verified → conformance_verified, wire fields cotest_run_id → verification_run_id and cotest_issuer_did → verifier_did. The wire contract binds to the neutral Conformance Verifier role (conformance-suite.md §6.2); cotest survives only as an informative reference-implementation name in prose (3 entries)."
   },
   "entries": [
     {
@@ -71,7 +72,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Legacy contrix-brand wire token prefix. Every `ck.`-prefixed operation_id / event_kind / schema_id / capability action / error code / vector id / profile id is renamed to the `ck.` prefix. The `ck.` prefix MUST NOT appear on the current wire or in current identifiers."
+      "notes": "Legacy contrix-brand wire token prefix. Every `cx.`-prefixed operation_id / event_kind / schema_id / capability action / error code / vector id / profile id is renamed to the `ck.` prefix. The `cx.` prefix MUST NOT appear on the current wire or in current identifiers."
     },
     {
       "id": "contrix",
@@ -1683,6 +1684,81 @@
       "migration_group": "did_id_suffix"
     },
     {
+      "id": "actor#mimi_update_consent_field",
+      "wire_id": "actor",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-06-10",
+      "rejection_level": "hard_reject",
+      "replacement": "actor_id",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "MIMI consent update request body field `actor` (mimi_operations.schema.json $defs.mimi_update_consent_request_body) renamed to actor_id per the did_id_suffix rule: the field names the protocol responsibility subject, so it uses the _id suffix even though the value is a DID. The id carries a #scope suffix because the bare token `actor` remains a legitimate enum value and prose noun; literal scanners MUST NOT flag every `actor` token.",
+      "migration_group": "did_id_suffix"
+    },
+    {
+      "id": "cotest_verified#service_describe_claim_kind",
+      "wire_id": "cotest_verified",
+      "kind_class": "wire_enum_value",
+      "since_revision": "2026-06-10",
+      "rejection_level": "hard_reject",
+      "replacement": "conformance_verified",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "ServiceDescribe.verified_profiles claim_kind enum value cotest_verified renamed to conformance_verified: the wire contract binds to the neutral Conformance Verifier role (conformance-suite.md §6.2), not to a specific downstream tool name. The id carries a #scope suffix because the bare token `cotest` remains a legitimate informative prose name for the reference verifier implementation; literal scanners MUST NOT flag prose mentions of cotest.",
+      "migration_group": "conformance_verifier_neutralization"
+    },
+    {
+      "id": "cotest_run_id#service_describe_field",
+      "wire_id": "cotest_run_id",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-06-10",
+      "rejection_level": "hard_reject",
+      "replacement": "verification_run_id",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "ServiceDescribe.verified_profiles entry field cotest_run_id renamed to verification_run_id: the run identifier belongs to the neutral Conformance Verifier role (conformance-suite.md §6.2), not to a specific downstream tool name.",
+      "migration_group": "conformance_verifier_neutralization"
+    },
+    {
+      "id": "cotest_issuer_did#service_describe_field",
+      "wire_id": "cotest_issuer_did",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-06-10",
+      "rejection_level": "hard_reject",
+      "replacement": "verifier_did",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "ServiceDescribe.verified_profiles entry field cotest_issuer_did renamed to verifier_did: the signing authority is the neutral Conformance Verifier role (conformance-suite.md §6.2), not a specific downstream tool name. verifier_did keeps the role noun without the redundant issuer qualifier.",
+      "migration_group": "conformance_verifier_neutralization"
+    },
+    {
+      "id": "requester#mimi_request_consent_field",
+      "wire_id": "requester",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-06-10",
+      "rejection_level": "hard_reject",
+      "replacement": "requester_id",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "MIMI consent request body field `requester` (mimi_operations.schema.json $defs.mimi_request_consent_request_body) renamed to requester_id per the did_id_suffix rule: the field names the protocol responsibility subject, so it uses the _id suffix even though the value is a DID. The id carries a #scope suffix because this entry is scoped to the MIMI consent request body; the bare token `requester` remains in use on other interop surfaces and as a prose noun, so literal scanners MUST NOT flag every `requester` token.",
+      "migration_group": "did_id_suffix"
+    },
+    {
       "id": "space_frozen",
       "kind_class": "error_code",
       "since_revision": "2026-05-24",
@@ -1840,7 +1916,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Both the legacy event kind cx.read.cursor and the previously-renamed capability action cx.cursor.advance now collapse to the single canonical name cx.read_cursor.advance. This aligns the typed-id prefix (ck:read_cursor:), schema id (cx.schema.read_cursor.v1), event kind and capability action on the same noun root read_cursor."
+      "notes": "Both the legacy event kind cx.read.cursor and the previously-renamed capability action cx.cursor.advance now collapse to the single canonical name cx.read_cursor.advance. This aligns the typed-id prefix (cx:read_cursor:), schema id (cx.schema.read_cursor.v1), event kind and capability action on the same noun root read_cursor."
     },
     {
       "id": "cx.cursor.advance",
@@ -2158,6 +2234,19 @@
       ],
       "notes": "Key backup KDF params previously used params.hash for the PBKDF2 digest selector. Current v1 uses params.digest_algorithm because this value selects an algorithm, not digest bytes.",
       "migration_group": "key_backup_kdf_hash_to_digest_algorithm"
+    },
+    {
+      "id": "x_ssk_generation",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-06-10",
+      "rejection_level": "hard_reject",
+      "replacement": "ssk_generation",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Pre-final field name in the key backup auth_data object (ck.schema.key_backup.v1). Since v1 final, auth_data.ssk_generation is the single legitimate field binding the backup to the accepted cross-signing generation (ck.cross_signing.publish generation; see identity/key-management.md). Current v1 parsers MUST reject auth_data.x_ssk_generation without inspecting payload shape."
     },
     {
       "id": "endpoint_set",

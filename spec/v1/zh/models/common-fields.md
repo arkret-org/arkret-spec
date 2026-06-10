@@ -34,7 +34,7 @@ updated: 2026-06-10
 | `cursor` | `ck:cursor:<base64url>` opaque string。 |
 | `patch` | `ck.patch.v1` 形态的 JSON patch 片段，具体路径与 op 规则见 [`event-and-patch.md`](./event-and-patch.md)。 |
 
-注：`device_id` 不是例外字段；它的类型是 `id:device`，wire form MUST 为 `ck:device:<uuid>`。只有部分辅助标识符（如 `transaction_id`、`backup_version`、`stream_id`）使用领域特定前缀（如 `ver_`、`kb_`、`devstream_`），不遵循 `ck:<kind>:<uuid>` 格式。这些标识符的编码规则由各自所在章节定义。`recording_id` 的连字符长前缀 `rtc-recording-`（形如 `rtc-recording-<uuid>`）是已登记的领域前缀例外：它是 backend 媒体服务（如 LiveKit Egress）生成的 opaque 录制 lifecycle 句柄，进入 recording key exporter Context，**不是** `ck:*` typed ID（见 [`crypto-media/call-state.md`](../crypto-media/call-state.md) 录制生命周期一节）。
+注：`device_id` 不是例外字段；它的类型是 `id:device`，wire form MUST 为 `ck:device:<uuid>`。只有部分辅助标识符（如 `transaction_id`、`backup_version`、`stream_id`）使用领域特定前缀（如 `ver_`、`kb_`、`devstream_`），不遵循 `ck:<kind>:<uuid>` 格式。这些标识符的编码规则由各自所在章节定义。`recording_id` 是 [`crypto-media/call-state.md` §5](../crypto-media/call-state.md) 定义的 opaque 领域标识（示例形态 `rtc-recording-<uuid>`）：它是 backend 媒体服务（如 LiveKit Egress）生成的 opaque 录制 lifecycle 句柄，进入 recording key exporter Context，**不是** `ck:*` typed ID。
 
 `ck-` / `cx_` 前缀命名约定（normative）：`ck-` / `ck_` 是 Cokret 的正命名前缀；新增或推荐的 canonical 命名 **MUST NOT** 使用 `ck-` / `cx_` 前缀。MLS GroupContext extension 的当前 wire 名是 `mls_governance_binding`（codepoint 0xF1C0，非 ck 名），实现 MUST 用 `mls_governance_binding`、MUST NOT 把 `cx_governance_binding` 作为当前 wire 名。
 
@@ -42,7 +42,7 @@ updated: 2026-06-10
 
 - 未标记 optional 的字段为 required。
 - `null` 只有在类型中明确写出时才允许。
-- Event Envelope 顶层未知字段 MUST 被 schema validation 拒绝；非关键扩展只能放入 `payload.x_*` 或 profile 声明的 payload 字段。实现 MUST 在 canonical bytes、存储、转发和 backfill 中保留 schema 允许的未知 non-critical payload 字段，但 MUST NOT 让未知字段绕过 capability、schema、policy 或加密约束。未知 critical extension MUST fail closed。
+- Event Envelope 顶层未知字段 MUST 被 schema validation 拒绝；非关键扩展只能放入 `payload.x_*`，且仅当该 payload kind 的 schema 显式声明 `x_*` patternProperties 扩展槽时才可使用——未声明扩展槽的 payload kind 不接受任何未知字段（payload schema 的 `additionalProperties: false` 即权威判定）。实现 MUST 在 canonical bytes、存储、转发和 backfill 中保留 schema 允许的 `x_*` 字段，但 MUST NOT 让 `x_*` 字段绕过 capability、schema、policy 或加密约束。需要扩展槽的 payload kind SHOULD 先在对应 schema 登记 `x_*` patternProperties 槽再使用；当前已声明扩展槽的 payload kind 以 schema 为准（现仅 `invite_payload`）。未知 critical extension MUST fail closed。
 - 签名和 hash 输入 MUST 使用 canonical JSON。
 - `id:<kind>` 在 wire、canonical object、fixture、签名和跨服务引用中 MUST 使用完整 typed ID。数据库内部 MAY 只存 raw id，但在序列化、签名、hash、联邦、sync cursor 和审计回放前必须恢复 `ck:<kind>:` 前缀；不得把数据库主键或表名当作协议 ID 的替代品。
 - 当 `id:<kind>` 出现在 JSON object key 中时，它仍然属于 wire value；例如 `messages.{principal_id}.{device_id}` 中的 `{device_id}` MUST 使用完整 `ck:device:<uuid>`，MUST NOT 写成局部别名如 `dev_a` 或 `a`。
@@ -160,30 +160,31 @@ expected_<role>_<kind>_id
 
 | 字段 | 组 | Realm | Circle | Space | Flow | Message | Morph | Relation | View | Policy | Blob meta | Capability Grant | Invite | Read Cursor | Notification | Actor Profile |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `id` | Universal | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
+| `id` | Universal | Y | Y | Y | Y | Y | Y | Y | Y | Y | —（见 `blob_ref`，§3.2 第 2 类） | Y | Y | Y | Y | Y |
 | `schema` | Universal | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
-| `realm_id` | Universal | —（Realm 自身即边界，无 `realm_id` 字段，schema 拒绝） | Y | Y | Y | Y | Y | Y | Y | Y | O | Y | Y | O | O | O |
+| `realm_id` | Universal | —（Realm 自身即边界，无 `realm_id` 字段，schema 拒绝） | Y | Y | Y | Y | Y | Y | Y | O | O | O | Y | Y | O | O |
 | `created_by` | Authorship | Y | Y | Y | Y | Y (reducer-derived from Event `actor_id`) | Y | Y | Y | Y | Y | — (see `issuer`) | — (see `inviter`) | — (see `actor_id`) | — (see `actor_id`) | — (see `principal_id`) |
-| `created_at` | Authorship | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
+| `created_at` | Authorship | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | —（见 `issued_at`，§3.2） | Y | —（仅 `updated_at`，见 §3.2） | Y | Y |
 | `updated_by` | Authorship | O | O | O | O | O | O | O | O | O | O | O | O | — | — | O |
-| `updated_at` | Authorship | O | O | O | O | O | O | O | O | O | O | O | O | O | O | O |
-| `deleted_at` | Lifecycle | —（Realm 终态由 lifecycle facet 表达，schema 拒绝） | — | O | O | O | O | O | — | O | O | — | — | — | — | — |
-| `state` | Lifecycle | —（Realm 终态由 lifecycle facet 表达，schema 拒绝） | Y | O | O | Y | O | O | — | O | — | — | — | — | — | — (see `status`，mirrors account status) |
+| `updated_at` | Authorship | O | O | O | O | O | O | O | O | O | O | O | O | Y | O | O |
+| `deleted_at` | Lifecycle | —（Realm 终态由 lifecycle facet 表达，schema 拒绝） | — | — | O | O | O | — | — | — | O | — | — | — | — | — |
+| `state` | Lifecycle | —（Realm 终态由 lifecycle facet 表达，schema 拒绝） | Y | O | O | Y | O | O | — | — | — | — | Y（流程状态轴，见附注） | — | Y（特例语义，见附注） | — (see `status`，mirrors account status) |
 | `state_changed_at` | Lifecycle | —（Realm 终态由 lifecycle facet 表达，schema 拒绝） | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | — | — | — | — | — | — | — | — |
 | `stage` | Progress | — | — | — | O | — | Y | — | — | — | — | — | — | — | — | — |
 | `stage_changed_at` | Progress | — | — | — | R per `ck.flow.stage.set` | — | R per `ck.morph.stage.set` | — | — | — | — | — | — | — | — | — |
-| `labels` | Universal | O | — | O | O | O | O | O | O | — | O | — | — | — | — | O |
-| `fields` / `metadata.fields` | Universal | O | — | O | O (`metadata.fields`) | O (`metadata.fields`) | Y (主要载荷) | O | O | O | O | — | O | — | — | — (see `profile_fields`) |
+| `labels` | Universal | O | — | O | O | O | O | — | — | — | — | — | — | — | — | — |
+| `fields` / `metadata.fields` | Universal | O | — | O | O (`metadata.fields`) | O (`metadata.fields`) | Y (主要载荷) | O | — | — | — | — | — | — | — | — (see `profile_fields`) |
 
 附注：
 
 - Realm 使用通用 `created_by` 字段；其额外语义是 Realm create event 的 authorizing principal，并作为 genesis member bootstrap 主体（见 §4.1 / §4.2 与 [`realm-and-space.md` §2.5](./realm-and-space.md#25-ckrealmcreate-reducer-bootstrapnormative)）。
 - Capability Grant / Invite / Read Cursor / Notification / Actor Profile 用领域特有的 authorship 字段（`issuer` / `inviter` / `actor_id` / `principal_id`），各对象 schema 内部独立约束；本表对应格写"—"是因为它们不使用通用 `created_by`，并不表示没有创建主体记录。
-- Read Cursor / Notification 是 actor-private 状态，`realm_id` 通常存在但允许 actor-scoped 视图省略（按 schema 决定）；`updated_by` 不适用——这些对象由系统派生或 actor 本人推进。
-- 任何 `state != active` 的对象 MUST 写入 `state_changed_at`；该字段被 reducer 强制覆盖，actor wire 值 MUST 被忽略（详见 §5.1）。
+- Read Cursor / Notification 是 actor-private 状态：`realm_id` 在 Read Cursor 上必填（`read-cursor.schema.json` 列入 `required[]`），在 Notification 上可选（允许 actor-scoped 视图省略）；`updated_by` 均不适用——这些对象由系统派生或 actor 本人推进。
+- 任何承载物理 lifecycle `state` 轴的对象（Circle / Space / Flow / Message / Morph / Relation）在 `state != active` 时 MUST 写入 `state_changed_at`；该字段被 reducer 强制覆盖，actor wire 值 MUST 被忽略（详见 §5.1）。本条不适用于 Notification / Invite 的特例 `state` 轴（见下条）。
+- Notification 的 `state` 是 schema required 字段（enum `unread / read / dismissed / archived`）：它承载 actor-private 的通知处理轴，是 Notification 的特例语义，不是 §5 协作对象物理 lifecycle 枚举；字段名保留 `state`，且 Notification 无 `state_changed_at`。Invite 的 `state` 同为 schema required，承载邀请流程状态轴（命名例外，见 [`governance-objects.md` §5](./governance-objects.md)），同样不落入 §5 lifecycle 状态机。
 - `stage_changed_at` 仅 Flow / Morph 适用，且仅当 `stage` 存在并真正发生 stage 变更时写入；同值 self-transition reducer MUST NOT 更新（详见 §3 与 §5.3）。
-- `labels` 对 Policy / Capability Grant / Invite / Read Cursor / Notification 不适用：这些对象的 "标签" 语义由各自的 schema-specific 字段（如 `tags`、`reason`、`category`）承担，避免与协作对象 labels 投影冲突。
-- `fields` 是协作对象的扩展容器；Flow / Message 的用户可读扩展放入 `metadata.fields` 或 `encrypted_metadata`，不得作为顶层 `fields`；Capability Grant / Read Cursor / Notification 不暴露开放扩展容器。
+- `labels` 对 Relation / View / Policy / Blob meta / Capability Grant / Invite / Read Cursor / Notification / Actor Profile 不适用：这些对象的 "标签" 语义由各自的 schema-specific 字段（如 `tags`、`reason`、`category`）承担，避免与协作对象 labels 投影冲突。
+- `fields` 是协作对象的扩展容器；Flow / Message 的用户可读扩展放入 `metadata.fields` 或 `encrypted_metadata`，不得作为顶层 `fields`；View / Policy / Blob meta / Capability Grant / Invite / Read Cursor / Notification 不暴露开放扩展容器。
 - **View 无 durable 终态**：v1 的 View 只有 `ck.view.create` / `ck.view.update` / `ck.view.reconcile`，`view.schema.json` 不含 `state` / `deleted_at`，registry 也无 `ck.view.tombstone`；故本表 View 的 `state` / `deleted_at` 为 "—"。共享 View 的"移除"是 owner-private / 带外操作（或由后续 reconcile 覆盖），不走对象生命周期终态。这是有意取舍，待未来若出现"可治理删除"的需求再单独引入 lifecycle event。
 - **Realm 无 materialized `state` 字段**：Realm 的 `archived` / `frozen` / `tombstoned` / `destroyed` 由 `ck.component.realm.*` lifecycle facet 表达，`realm.schema.json` 拒绝 `state` / `state_changed_at` / `deleted_at`。Projection MAY 把 `ck.realm.tombstone` 与 `ck.realm.destroy` 均显示为 `realm_terminal_state`，并用 `terminal_kind=tombstone|destroy` 或同等字段区分 successor 迁移与永久退役；不得把该 projection 状态写回 Realm 对象。
 
@@ -328,7 +329,7 @@ DID 是 Cokret 的主体标识，不是普通协作对象 ID。标准协作对�
 
 > **Flow / Morph 豁免**:上表 `ck.<kind>.tombstone` 行是通用模板;Flow 与 Morph **没有** `tombstone` 终态(也不用 `deleted`),其不可逆终态经指向该对象的 `ck.redaction` 进入 `redacted`(见 §5.2 模板槽与 [flow-and-message.md §9.1](./flow-and-message.md))。对 Flow / Morph 提交 `ck.<kind>.tombstone` 不适用。
 
-`<kind>` 是 schema 类型短名(`flow`、`circle`、`space`、`morph`、`message`),所有 reducer 实现 MUST 用相同 reason_code,使跨实现错误诊断一致。具体值如:`flow_not_active` / `flow_not_archived` / `flow_already_terminal`,`circle_not_active` / `circle_not_archived` / `circle_already_terminal`,`space_not_active` / `space_not_archived` / `space_already_terminal`,`morph_not_active` / `morph_not_archived` / `morph_already_terminal`。
+`<kind>` 是 schema 类型短名(`flow`、`circle`、`space`、`morph`、`message`、`relation`),所有 reducer 实现 MUST 用相同 reason_code,使跨实现错误诊断一致。具体值如:`flow_not_active` / `flow_not_archived` / `flow_already_terminal`,`circle_not_active` / `circle_not_archived` / `circle_already_terminal`,`space_not_active` / `space_not_archived` / `space_already_terminal`,`morph_not_active` / `morph_not_archived` / `morph_already_terminal`,以及无 archived 态对象的 `message_already_terminal` / `relation_already_terminal`(见本节末段)。
 
 附加规则:
 
@@ -338,6 +339,8 @@ DID 是 Cokret 的主体标识，不是普通协作对象 ID。标准协作对�
 - **`state_changed_at` reducer-derived(normative)**:reducer **MUST** 忽略 wire payload 中任何 actor-supplied 的 `state_changed_at` 值。该字段的权威值是触发本次 state transition 的 Event 的 `created_at`,或 cell update 时该 Event 落在 anchor frontier 上的 `anchored_at`(两者较晚者),与 §3 字段表一致。客户端不得依赖 wire 上的 `state_changed_at` 做时序判断；若 wire 值与 reducer 派生值不一致,SDK SHOULD 报警并以 reducer 派生值为准。该规则防止 actor 通过填错时间戳干扰 retention、audit timeline、conflict tie-break(虽然 §6 已禁止 HLC / event id / actor_seq 作为 cell winner 选边，但 retention 与 audit query 仍可能 group by `state_changed_at`)。
 
 `*.create` 与 `*.update` 永远 set state 为 `active`(或保持当前 active);对一个非 active 对象提交 update MUST 失败(`failed_precondition`,reason 同 `archive_not_active` 家族),否则编辑会隐式复活已 archive/tombstone 的对象——这与 `*.restore` 的语义冲突。Conformance 实现 MUST 把"update on non-active object"视为 invariant 违反。
+
+Message 与 Relation 没有 `archived` 态(见 §5.2 模板使用约束):它们的非 `active` state 一律是不可逆终态。因此对非 active 的 Message / Relation 提交 update(如 `ck.message.revise`)MUST 返回 `failed_precondition`,`reason_code` 取 `<kind>_already_terminal`(即 `message_already_terminal` / `relation_already_terminal`),不使用 `_not_active` 家族。
 
 #### 5.2 Unified lifecycle event template（doc-only canonical）
 
@@ -354,7 +357,7 @@ DID 是 Cokret 的主体标识，不是普通协作对象 ID。标准协作对�
 
 模板使用约束:
 
-- **不是命名 mandate**,但 **MUST 与 registry 对齐**:模板槽列出的"已有实例"必须存在于 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 中;`ck.message.create`(非历史草案中的 `ck.message.send`)是 v1 标准 wire kind。新对象在注册时按模板选择需要的槽，但**不得**列出 registry 中不存在的 wire kind 当作示例。
+- **不是命名 mandate**,但 **MUST 与 registry 对齐**:模板槽列出的"已有实例"必须存在于 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 中;`ck.message.create` 是 v1 标准 wire kind。新对象在注册时按模板选择需要的槽，但**不得**列出 registry 中不存在的 wire kind 当作示例。
 - **不创造新槽**:新增 lifecycle 行为(例如"软隔离 / 待审 / 撤回审核")MUST 先在本节扩展模板；否则不得作为标准 lifecycle event 入 registry。
 - **patch 优先**:新对象 lifecycle 中的"字段更新"槽 SHOULD 由 `ck.patch.v1` 承载(参见 [`flow-and-message.md` §4.8](./flow-and-message.md) 的 `ck.flow.tracks.update` 实例);避免出现 `ck.<kind>.set_<field>` / `ck.<kind>.toggle_<field>` 这类单点 event 膨胀。**stage 是该原则的明确例外**:`ck.<kind>.stage.set` 走专用 event 是为了 capability 切分与审计过滤(见 §5.3),而非字段膨胀。
 - **stage 模板槽**:适配 §5.3 的对象 MUST 注册一条 `ck.<kind>.stage.set` event,走 `object_stage_set_payload` 形态(详见 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json));`ck.<kind>.update` patch 路径 MUST NOT 修改 `stage` / `stage_changed_at`(违者 `schema_violation`,单源约束)。**stage 变更不携带 reason 字段**:事件本身已经 durable 且 `created_by` / `created_at` 即审计归属；需要解释"为什么 cancel / block / supersede"时,actor SHOULD 在该对象的 discussion track 发一条 Message(`ck.message.create`),通过 `references` Relation 指向本次 `ck.<kind>.stage.set` event,而不是把 reason 藏在对象字段里。

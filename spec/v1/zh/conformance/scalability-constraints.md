@@ -109,6 +109,11 @@ Move / Anchor fallback 不得选择本地接收顺序或数据库 ID。Snapshot 
 | 单个 Calendar Event attendees 数 | 1,000 | 超过时 MUST reject 或要求拆分会议 / 日程实例；attendees 必须按 actor / handle / resource key 去重。 |
 | 单次 recurrence expansion 返回 occurrence 数 | 10,000 | 超过时 MUST paginate、截断为带 cursor 的 page，或返回 `limit_exceeded`；不得无界展开 RRULE。 |
 | 单个 File Transfer `recipient_device_ids` 数 | 1,000 | 超过时 MUST reject 或拆分 transfer；每个 device key wrap 必须保持独立可验证。 |
+| 单条 `ck.call.state` 的 `payload.participants[]` 数 | 1,000 | 超过时 MUST reject（`schema_violation`）或改用采样 / 摘要写入；schema 已声明 `maxItems: 1000`。见 [call-state.md](../crypto-media/call-state.md) §4.1。 |
+| join policy 单个 `application_form` gate 的 `questions[]` 数 | 64 | 超过时 MUST reject（`schema_violation`）。见 [join-policy.md](../governance/join-policy.md) §3.3。 |
+| `member.application` 的 `answers[]` 数 | 64 | 与 `questions[]` 上限对齐；超过时 MUST reject（`schema_violation`）。见 [join-policy.md](../governance/join-policy.md) §7.2。 |
+| join / application 的 `gate_proofs[]` 数 | 16 | 与 join policy `gates` 1..16 上限对齐（含 runtime challenge proof）；超过时 MUST reject（`schema_violation`）。见 [join-policy.md](../governance/join-policy.md) §5 / §7.2。 |
+| `member.application.encryption_envelope.recipients[]` 数 | 64 | 每个 recipient 是一组独立 HPKE 封装；超过时 MUST reject（`schema_violation`）。见 [join-policy.md](../governance/join-policy.md) §8.2。 |
 
 Board position edge 的 canonical key 是 `(board_space_id, flow_id)`。同一 key 下多个 active edge 只允许 reducer 选择一个 winner，并记录 losers；View projection MAY 暴露 loser conflict records，但不得把同一 Flow 渲染成多个主位置。
 

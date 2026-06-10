@@ -1838,7 +1838,8 @@
           "quarantine",
           "actor_frontier",
           "realm_frontier",
-          "cursor"
+          "cursor",
+          "original_outcome"
         ],
         "closed": true
       }
@@ -1986,7 +1987,8 @@
           "quarantine",
           "actor_frontier",
           "realm_frontier",
-          "cursor"
+          "cursor",
+          "original_outcome"
         ],
         "closed": true
       }
@@ -3140,12 +3142,12 @@
         "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_request_body",
         "schema_kind": "object",
         "required": [
-          "requester",
+          "requester_id",
           "target",
           "purpose"
         ],
         "properties": [
-          "requester",
+          "requester_id",
           "target",
           "purpose",
           "flow_id",
@@ -3246,13 +3248,13 @@
         "required": [
           "consent_id",
           "decision",
-          "actor",
+          "actor_id",
           "signature"
         ],
         "properties": [
           "consent_id",
           "decision",
-          "actor",
+          "actor_id",
           "signature",
           "reason",
           "expires_at"

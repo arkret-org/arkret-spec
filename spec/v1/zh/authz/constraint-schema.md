@@ -18,7 +18,7 @@ updated: 2026-06-10
 
 - **Constraint** 是 grant / policy 内的静态声明，描述“这个能力最多可在什么范围内、以什么附加条件行使”。它可以声明需要某类 claim、approval、device/session 或 challenge，但不直接携带一次运行时 allow 结果。
 - **Move precondition** 只表达 cell 原子性、state freshness 和 reducer 可验证的因果条件；它不替代授权，也不负责发起外部 claim 查询。
-- **Policy Server obligation** 是运行时 claim / approval / challenge 的唯一动态评估出口。任何需要检查 issuer revocation、presentation audience、request hash、approval nonce、challenge proof 或外部状态的 constraint，MUST 被归约为 `/_cokret/self/policy/check` obligation，并由 Policy Server 返回可签名、可重放防护的 proof；reducer 只验证 obligation proof 与原始 request / Move canonical hash 绑定一致。
+- **Policy Server obligation** 是运行时 claim / approval / challenge 的唯一动态评估出口。任何需要检查 issuer revocation、presentation audience、request hash、approval nonce、challenge proof 或外部状态的 constraint，MUST 被归约为 `ck.self.policy.check`（默认 path `/_cokret/self/policy/check`）obligation，并由 Policy Server 返回可签名、可重放防护的 proof；reducer 只验证 obligation proof 与原始 request / Move canonical hash 绑定一致。
 
 因此，`claim_based` constraint 中的 `requires_claims[]`、approval 字段和 challenge 字段是声明性要求，不得被实现解释成“只要 grant 中列出就自动通过”。没有对应 Policy Server proof / accepted approval Event / reducer 可验证 claim evidence 时，相关动作 MUST fail closed 或进入 pending。
 

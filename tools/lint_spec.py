@@ -77,7 +77,9 @@ PROPOSAL_FILE_RE = re.compile(r"^(?P<num>[0-9]{4})-[A-Za-z0-9_.-]+\.md$")
 OLD_CHINESE_NORMATIVE_DISCLAIMER_RE = re.compile(r"中文.*(?:不构成规范要求|只供阅读理解)")
 REQUIRED_CHINESE_NORMATIVE_ROWS = {
     "必须 / 要求": "`MUST` / `REQUIRED`",
+    "只能 / 仅限": "`MUST`",
     "不得 / 禁止 / 不允许 / 不可": "`MUST NOT`",
+    "不能": "`MUST NOT`",
     "应当 / 建议 / 推荐": "`SHOULD` / `RECOMMENDED`",
     "不应 / 不建议 / 不推荐": "`SHOULD NOT` / `NOT RECOMMENDED`",
     "可以 / 可选": "`MAY` / `OPTIONAL`",
@@ -85,11 +87,11 @@ REQUIRED_CHINESE_NORMATIVE_ROWS = {
 NORMATIVE_KEYWORD_PATTERNS = {
     "MUST NOT": [
         re.compile(r"\bMUST NOT\b"),
-        re.compile(r"不得|禁止|不允许|不可"),
+        re.compile(r"不得|禁止|不允许|不可|不能"),
     ],
     "MUST": [
         re.compile(r"\bMUST\b(?!\s+NOT)|\bREQUIRED\b|\bSHALL\b(?!\s+NOT)"),
-        re.compile(r"必须|要求"),
+        re.compile(r"必须|要求|只能|仅限"),
     ],
     "SHOULD NOT": [
         re.compile(r"\b(?:SHOULD NOT|NOT RECOMMENDED)\b"),

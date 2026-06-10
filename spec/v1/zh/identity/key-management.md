@@ -92,7 +92,7 @@ principal signing key 用于：
 
 recovery key 用于当前控制密钥丢失或泄露后的恢复。
 
-recovery key 同时是**内容恢复**（解密 `secret_storage` / `mls_history` 备份）的唯一面向用户凭证：备份接收密钥即恢复密钥（§7.5.2），客户端恢复 UI 的密钥备份解密凭证 MUST 是 Recovery Key（§7.7）。历史实现中独立于 recovery key 之外的 "vault passphrase" 用户凭证层已弃用（§7.5.1）。
+recovery key 同时是**内容恢复**（解密 `secret_storage` / `mls_history` 备份）的标准面向用户凭证：备份接收密钥即恢复密钥（§7.5.2），客户端恢复 UI 的密钥备份解密凭证 MUST 是 Recovery Key（§7.7）。实现 SHOULD NOT 在 recovery key 之外引入独立的 "vault passphrase" 用户凭证层（§7.5.1）。
 
 要求：
 
@@ -548,8 +548,8 @@ Cokret v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata 
 }
 ```
 
-实现 SHOULD 使用现代 KDF，例如 Argon2id。声明 `ck.profile.key_backup.memory_hard.v1` 时，`recipient_method="passphrase_kdf"` 的新备份 envelope MUST 满足 `ck.schema.key_backup.v1` 中的机器下限：Argon2id 至少 `memory_kib >= 65536`、`iterations >= 3`、`parallelism >= 1`；salt MUST 随 envelope 独立生成并进入 KDF 输入。
-如果平台限制只能使用 PBKDF2，迭代次数 MUST 足够高，并 MUST 在 backup metadata 中声明降级原因、迭代次数、salt、KDF 参数和 profile id。`ck.profile.key_backup.memory_hard.v1` 对 PBKDF2 的最低线是 `iterations >= 600000` 且 `digest_algorithm ∈ {sha256, sha384, sha512}`，并要求 `degraded_profile_reason`。旧草案 `params.hash` 是算法选择器，不是 digest bytes，current parser MUST reject；新创建的 `passphrase_kdf` envelope（遗留云保险箱路径，deprecated，见 §7.5.1）不得默认使用 PBKDF2。
+实现 SHOULD 使用现代 KDF，例如 Argon2id。新创建的 `recipient_method="passphrase_kdf"` envelope MUST 满足以下机器下限（base v1 无条件要求，`ck.schema.key_backup.v1` 同步编码）：Argon2id `memory_kib >= 65536`、`iterations >= 3`、`parallelism >= 1`；salt MUST 随 envelope 独立生成并进入 KDF 输入。
+如果平台限制只能使用 PBKDF2，新创建的 PBKDF2 envelope MUST 满足 `iterations >= 600000` 且 `digest_algorithm ∈ {sha256, sha384, sha512}`，并 MUST 在 backup metadata 中声明 `degraded_profile_reason`、迭代次数、salt、KDF 参数和 profile id。`params.digest_algorithm` 是 digest 算法选择器；`params.hash` 不是合法字段，current parser MUST reject（登记于 `artifacts/migration/renames.json`）。新创建的 `passphrase_kdf` envelope（§7.5.1）不得默认使用 PBKDF2：Argon2id 可用时 MUST 优先。声明 `ck.profile.key_backup.memory_hard.v1` 是在上述 base 下限之上的更强承诺：该 profile 下 `passphrase_kdf` envelope 的 KDF MUST 是 Argon2id；PBKDF2 只允许出现在显式 degraded profile（见下）中，不满足 memory-hard 要求。
 
 FIPS-only 部署若不能批准 Argon2id，MUST 使用显式降级 profile（例如 `fips_pbkdf2` key backup profile），并声明其安全级别低于默认 memory-hard backup profile。该 profile 至少要求 FIPS 批准的 KDF、强口令策略、在线恢复限速、失败审计和备份 metadata 中的 `degraded_profile_reason`；它不得作为公共网络默认 key backup profile。
 
@@ -581,7 +581,7 @@ nonce = HMAC-SHA256(
 )[0:N_AEAD]
 ```
 
-`aead_profile` 是可选但推荐的协商标识，绑定 AEAD 算法版本、nonce 长度、tag 长度、key 长度和 AAD 构造。接收方看到不支持的 `aead_profile` MUST fail closed；不得只凭 `aead.name` 推断可接受的参数组合。未携带 `aead_profile` 的历史 envelope 按 `aead.name` 的 v1 默认 profile 解释，但新写入 envelope SHOULD 显式携带 profile id。
+`aead_profile` 是可选但推荐的协商标识，绑定 AEAD 算法版本、nonce 长度、tag 长度、key 长度和 AAD 构造。接收方看到不支持的 `aead_profile` MUST fail closed；不得只凭 `aead.name` 推断可接受的参数组合。未携带 `aead_profile` 的 envelope 按 `aead.name` 的 v1 默认 profile 解释，但新写入 envelope SHOULD 显式携带 profile id。
 
 Producer MUST reject attempts to write two backup envelopes with the same nonce derivation tuple, including `nonce_salt`。`backup_id` 仍应按单写不可变处理；若需要更新备份内容，producer MUST 生成新的 `backup_id` 或至少新的 `nonce_salt` 并重新签名 envelope。Receiver MUST recompute the nonce for `passphrase_kdf` envelopes before decryption and reject mismatches or missing `nonce_salt` as `schema_violation`.
 
@@ -598,7 +598,7 @@ Producer MUST reject attempts to write two backup envelopes with the same nonce 
 恢复流程：
 
 1. 新设备生成 device key。
-2. 用户输入 Recovery Key（24 词助记词，§3.3），或按 recovery policy 收集 recovery shares / 完成硬件解锁；仅当目标是遗留 `passphrase_kdf` envelope 时才输入旧 vault passphrase（deprecated，见 §7.5.1）。
+2. 用户输入 Recovery Key（24 词助记词，§3.3），或按 recovery policy 收集 recovery shares / 完成硬件解锁；仅当目标是 `passphrase_kdf` envelope 时才输入对应口令（§7.5.1）。
 3. 客户端解密 backup envelope。
 4. 客户端验证 backup commitment。
 5. 客户端用 recovery policy 发布 `recover` 或 `ck.device.authorize`。
@@ -652,7 +652,7 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 
 这样 envelope 的真实性锚定在 actor 的交叉签名树，而不是“碰巧持有某个 device key”，与 series 链（§7.6，防回滚 / 扣留）正交：前者保证 authenticity，后者保证 freshness / 单调性。
 
-> **Schema 影响**：`ck.schema.key_backup.v1.auth_data.ssk_generation` 是 v1 final 的正式字段，绑定 [`ck.cross_signing.publish`](../crypto-media/device-lifecycle.md) 的 `generation`（见 [`../crypto-media/device-lifecycle.md` §5](../crypto-media/device-lifecycle.md)）。历史 `auth_data.x_ssk_generation` 只能作为 pre-final 兼容输入；新 envelope MUST 使用正式字段。
+> **Schema 影响**：`ck.schema.key_backup.v1.auth_data.ssk_generation` 绑定 [`ck.cross_signing.publish`](../crypto-media/device-lifecycle.md) 的 `generation`（见 [`../crypto-media/device-lifecycle.md` §5](../crypto-media/device-lifecycle.md)）。`auth_data.ssk_generation` 是唯一合法字段；携带 `auth_data.x_ssk_generation` 的 envelope MUST reject（`schema_violation`，登记于 `artifacts/migration/renames.json`）。
 
 ### 7.5 Recipient Method Profiles
 
@@ -665,7 +665,7 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 | `backup_class` ＼ `recipient_method` | `passphrase_kdf` | `recovery_public_key` | `secret_storage_key` |
 | --- | --- | --- | --- |
 | `did_recovery` | forbidden: `did_recovery_passphrase_forbidden` | allowed: MUST 带顶层 `recovery_policy_ref{policy_id, policy_version}` == 当前 accepted recovery policy，否则 `recovery_policy_mismatch` | forbidden: `did_recovery_secret_storage_key_forbidden`（DID recovery 不得依赖 device-local secret storage root） |
-| `secret_storage` | allowed（向后兼容；独立 vault passphrase 用户凭证层 deprecated，见 §7.5.1）: §7.2 / §7.5.1 Argon2id 或显式 degraded PBKDF2；声明 hardening profile 时满足机器下限 | allowed（新写入 SHOULD 优先，见 §7.5.1） | allowed: 仅现有持有 root key 的设备本地缓存/同步，新设备 MUST NOT 直接 bootstrap，否则循环依赖 |
+| `secret_storage` | allowed（见 §7.5.1）: §7.2 / §7.5.1 Argon2id 或显式 degraded PBKDF2；新创建 envelope 满足 §7.2 机器下限 | allowed（新写入 SHOULD 优先，见 §7.5.1） | allowed: 仅现有持有 root key 的设备本地缓存/同步，新设备 MUST NOT 直接 bootstrap，否则循环依赖 |
 | `mls_history` | forbidden: `mls_history_passphrase_forbidden` | allowed | allowed: MAY 带 `recovery_policy_ref` hint；释放仍以 active-series record / frontier_ref / Realm-MLS 授权 / 设备状态为准 |
 
 集中要点（与下列 §7.5.1–§7.5.5 的分散规则一致，本表为 normative summary）：
@@ -680,12 +680,10 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 
 参考 §7.2：Argon2id（或显式 degraded PBKDF2）派生 root key，HKDF 派生 `commitment_key` 与 `nonce_key`，AEAD AAD 覆盖全部 envelope metadata。`passphrase_kdf` 仅用于 `secret_storage` envelope；`mls_history` 与 `did_recovery` envelope MUST NOT 使用 `passphrase_kdf`，即使作为 fallback 也不允许。需要用户口令参与 DID recovery 或 MLS 历史恢复的实现 MUST 让口令先解锁 `secret_storage` root、recovery key、threshold share 或 hardware wrapper 的本地保护层，而不是在 wire 上发布 `backup_class="mls_history"` / `backup_class="did_recovery", recipient_method="passphrase_kdf"` 的 envelope。
 
-**独立 vault passphrase 已弃用（deprecated）**：历史实现曾把 `passphrase_kdf` 暴露为面向用户的独立"云保险箱口令"（Encrypted Cloud Vault passphrase），与 Recovery Key 并存为两套用户凭证。该用户凭证层自本版本起降级为向后兼容的实现细节：
+**与 Recovery Key 的关系（normative）**：内容恢复的标准用户凭证是 Recovery Key（§3.3 / §7.7）；实现 SHOULD NOT 引入独立 vault 口令作为密钥备份的面向用户凭证。
 
-- 新实现 SHOULD NOT 引入独立 vault 口令作为密钥备份的用户凭证；内容恢复的用户凭证统一为 Recovery Key（§3.3 / §7.7）。
-- 新写入的 `secret_storage` envelope SHOULD 使用 `recipient_method="recovery_public_key"`（加密给 recovery key，§7.5.2）；仅向后兼容或迁移过渡场景 MAY 继续写 `passphrase_kdf` envelope。
-- `passphrase_kdf` 仍是合法 wire `recipient_method`：服务端 key-backup 端点（§7.8、[`../crypto-media/device-lifecycle.md` §12.1](../crypto-media/device-lifecycle.md)）不区分凭证来源，既有 `passphrase_kdf` envelope MUST 仍可被列出、读取与删除，本节与 §7.2 的 KDF / nonce / commitment 约束对其继续适用。
-- 客户端 SHOULD 在用户用旧 vault passphrase 完成兼容恢复后，引导把内容迁移为加密给 recovery key 的新 envelope（按 §7.6 series 规则开新链或追加）。
+- 新写入的 `secret_storage` envelope SHOULD 使用 `recipient_method="recovery_public_key"`（加密给 recovery key，§7.5.2）；`passphrase_kdf` envelope MAY 用于实现自选的口令派生场景。
+- `passphrase_kdf` 是合法 wire `recipient_method`：服务端 key-backup 端点（§7.8、[`../crypto-media/device-lifecycle.md` §12.1](../crypto-media/device-lifecycle.md)）不区分凭证来源，`passphrase_kdf` envelope MUST 可被列出、读取与删除，本节与 §7.2 的 KDF / nonce / commitment 约束对其适用。
 
 #### 7.5.2 `recovery_public_key`
 
@@ -741,13 +739,13 @@ v1 core 不把 `hardware_wrapped_key` 作为 `ck.schema.key_backup.v1.encryption
   2. 按 `series_seq` 重建链，验证每条 `supersedes` / `supersedes_digest` 正确；任一 envelope 缺失或 hash 不匹配 → MUST `series_chain_broken`；
   3. 用链的**最尾**条进行解密；任何中间条目 MUST NOT 被用作主恢复源；
   4. 当存在 `frontier_ref` 时 MUST 用 control stream snapshot 验证 frontier_digest 落入当前 principal control stream，且 `ssk_generation` 不低于当前 accepted generation；否则 MUST `backup_frontier_stale`。
-- 服务端 MUST 把同一 series 内的删除视为高风险动作（参见 §12.1 / `device-lifecycle.md §12.1`）：active series 内的非尾部 envelope MUST NOT 被单独删除；删除尾部 envelope 等同于让 series 失效，MUST 在 audit 中可见。旧 series 只能按 retention / erasure 规则整组迁移或整组删除，不能留下断链作为可恢复来源。
+- 服务端 MUST 把同一 series 内的删除视为高风险动作（参见 `crypto-media/device-lifecycle.md` §12.1）：active series 内的非尾部 envelope MUST NOT 被单独删除；删除尾部 envelope 等同于让 series 失效，MUST 在 audit 中可见。旧 series 只能按 retention / erasure 规则整组迁移或整组删除，不能留下断链作为可恢复来源。
 
 ### 7.7 Recovery UI Requirements（normative）
 
 恢复 UI 是用户唯一能识别"我在恢复一个真实的自己 vs 我在被钓鱼"的界面。实现 MUST：
 
-- 密钥备份解密凭证 MUST 是 Recovery Key（24 词 BIP-39 助记词，§3.3）：由其派生 / 解锁 recovery private key 后按 §7.5.2 HPKE-open `recovery_public_key` envelope，或按 recovery policy（§8）以 threshold / hardware 因子释放同一 recovery private key。恢复 UI MUST NOT 在新流程中要求用户设置或输入独立 vault passphrase；仅当该 actor 名下只存在遗留 `passphrase_kdf` envelope 时，MAY 提示输入旧 vault passphrase 完成兼容恢复（deprecated，见 §7.5.1），并 SHOULD 在恢复成功后引导写入加密给 recovery key 的新 envelope。
+- 密钥备份解密凭证 MUST 是 Recovery Key（24 词 BIP-39 助记词，§3.3）：由其派生 / 解锁 recovery private key 后按 §7.5.2 HPKE-open `recovery_public_key` envelope，或按 recovery policy（§8）以 threshold / hardware 因子释放同一 recovery private key。恢复 UI MUST NOT 要求用户设置独立 vault passphrase 作为标准凭证；仅当目标 envelope 是 `passphrase_kdf`（§7.5.1）时，MAY 提示输入对应口令完成解密，并 SHOULD 在恢复成功后引导写入加密给 recovery key 的新 envelope（§7.5.2，按 §7.6 series 规则开新链或追加）。
 - 在尝试解密任何备份 envelope 之前，向用户展示：`backup_class`、`series_id`、`series_seq`、`backup_version`、`encryption.recipient_method`、`encryption.aead.aead_profile?`（缺省时显示 `aead.name`）、`principal_id`、`device_id`（当前请求恢复的新设备）、`frontier_ref.ssk_generation?`。
 - 在使用 `passphrase_kdf` 时，明确展示 KDF（Argon2id / PBKDF2）与参数；用 PBKDF2 的 envelope MUST 在 UI 中显示 `degraded_profile_reason`，且不得自动选用 PBKDF2 envelope 当 Argon2id envelope 同时存在。
 - 在 envelope 携带 `mixed_secret_storage=true` 时 MUST 显著警告"该备份同时保护身份签名与 E2EE 历史，单一口令被攻破将同时丢失两者"；非 `personal_node` profile 下 MUST 直接拒绝展示此类 envelope 作为 primary recovery source。
@@ -774,7 +772,7 @@ v1 core 不把 `hardware_wrapped_key` 作为 `ck.schema.key_backup.v1.encryption
 - **认证降级阻断**：`GET /_cokret/self/keys/backups/{backup_id}` 即便对自己的备份也 MUST 要求 fresh device proof（与 §7.4 fresh challenge 相同绑定：challenge / audience / service_did / principal_id / key_id / nonce / 过期时间）。bearer token 单独到达 MUST 被拒绝。
 - **审计记录**：超出阈值或在异常时间窗内的下载 MUST 写入 `ck.audit.accessed`，`access_kind="key_backup_read"`，并按 `ck.profile.attested_audit.e2ee.v1`（若声明）配对 audit pair。
 - **跨 actor 拒绝**：服务端 MUST 在 envelope `actor_id` 与请求 caller 不一致时返回 `forbidden`，并不得通过 metadata 暴露 envelope 是否存在。
-- **删除验证**：active series 内的非尾部 envelope MUST NOT 被单独删除。`DELETE` 尾部 envelope MUST 额外要求 §15 风格的 high-risk proof（principal_signing / device_quorum / trusted_recovery_service）并写入 `access_kind="key_backup_delete"` 审计。仅持普通 device proof 的 caller 只能删除 `expired_at < now` 且不属于 active series 的旧 envelope，或对已被 active-series record 移出 primary source 的旧 series 发起整组 erasure/retention 删除。
+- **删除验证**：active series 内的非尾部 envelope MUST NOT 被单独删除。`DELETE` 尾部 envelope MUST 额外要求 `crypto-media/device-lifecycle.md` §15 风格的 high-risk proof（principal_signing / device_quorum / trusted_recovery_service）并写入 `access_kind="key_backup_delete"` 审计。仅持普通 device proof 的 caller 只能删除 `expired_at < now` 且不属于 active series 的旧 envelope，或对已被 active-series record 移出 primary source 的旧 series 发起整组 erasure/retention 删除。
 
 实现 MAY 在 deployment policy 中收紧上述阈值；MUST NOT 放宽超过本节默认。
 
@@ -866,7 +864,7 @@ Recovery Key 配置完成（genesis recovery policy accepted 且 §5.0.1 first-b
 Recovery policy 是 principal control state；它的发布、轮换、撤销 MUST 通过当前 accepted principal signing key（或满足旧 policy 的 quorum）签名进入 principal control stream：
 
 - **publish**：首次发布或后续无中断更新。新 envelope 的 `version` MUST 严格大于当前 accepted policy 的 `version`，`supersedes` MUST 引用前一份 `policy_id`（首版为 `null`）。
-- **rotate**：用于 `reshare_policy` 触发的 proactive secret sharing 或更换 holder 集合；rotate envelope MUST 在 `signed_fields` 中覆盖 `threshold` 与 `device_quorum`，并 SHOULD 同时附带新 share commitment。轮换期内的 in-flight recovery session（参见 §15）MUST 使用其 `issued_at` 时点的 policy；服务端 / coordinator MUST 拒绝跨 policy 版本拼接 share。
+- **rotate**：用于 `reshare_policy` 触发的 proactive secret sharing 或更换 holder 集合；rotate envelope MUST 在 `signed_fields` 中覆盖 `threshold` 与 `device_quorum`，并 SHOULD 同时附带新 share commitment。轮换期内的 in-flight recovery session（参见 `crypto-media/device-lifecycle.md` §15）MUST 使用其 `issued_at` 时点的 policy；服务端 / coordinator MUST 拒绝跨 policy 版本拼接 share。
 - **revoke share**：当某个 share holder 被怀疑泄露时，policy holder 可发布只更新 `threshold.shares[i].revoked_at` 与 `revocation_reason_code` 的 rotate envelope。recovery coordinator MUST 拒绝任何 `revoked_at != null` 的 share，即便 commitment 仍能通过。`reshare_policy.max_share_age_seconds` 到期后未 reshare 的 share 在 coordinator 侧 MUST 被视为 stale，UI MUST 提醒用户。
 - **revoke policy**：用 `expires_at = now`、`allowed_proof_kinds = []`、或专门的 `policy_id` revoke 进入 principal control stream；revoke 之后只有写入新 policy 才能恢复账号——这是高代价动作，必须配 §7.7 UI 警告。
 
@@ -900,7 +898,7 @@ share holder（无论是个人 DID、托管服务 DID，还是 hardware module�
 
 1. **轮换 backup series**：按 §7.6 为受影响 `backup_class` 开启**新 `series_id`**（不是在旧 series 上追加），用轮换后的接收密钥重新加密当前需要保留的内容并上传新 series。新设备发现 canonical series 的方式见下方“active series 指针”。
 2. **推进受影响 MLS 群组 epoch（PCS）**：轮换备份密钥本身**不**提供 post-compromise security——它只更换“备份包装”。要使后续消息密钥与被泄状态解耦，MUST 对受影响 Realm 触发 MLS Remove / Update 推进 epoch（与 §9 step 3 同一动作），并按 `crypto-media/encryption-and-audit.md` 绑定 governance frontier。
-3. **删除旧 series**：在新 series 确认可恢复**之后**，按 §12.2 retention 流程删除旧 `series` 的服务端密文。删除 MUST 在确认新备份可用之后进行，且 MUST 整组迁移而非删除链中间节点。
+3. **删除旧 series**：在新 series 确认可恢复**之后**，按 `crypto-media/device-lifecycle.md` §12.2 retention 流程删除旧 `series` 的服务端密文。删除 MUST 在确认新备份可用之后进行，且 MUST 整组迁移而非删除链中间节点。
 
 **不可挽回边界（MUST 在 UI 明示）**：上述流程只缩小**后续**暴露面；攻击者在泄露窗口内**已经下载**的旧密文用旧密钥永远可解，轮换/删除无法撤销。
 
@@ -934,5 +932,5 @@ Cokret v1 对设备、会话和恢复要求如下：
 - Backup envelope test vector MUST 覆盖：加密备份、错误 recovery key 拒绝、weak passphrase policy、domain / audience 绑定、服务端不可解密要求、`series_seq` 严格单调、`supersedes` / `supersedes_digest` 链完整、`mixed_secret_storage=true` 在 non-personal_node profile 下被拒绝、`did_recovery` 域使用 `passphrase_kdf` 的 envelope 被拒绝(该域只允许 `recovery_public_key`)、§7.8 服务端限速与跨 actor 拒绝。
 - MLS KeyPackage binding MUST 覆盖 principal DID、device id、KeyPackage hash、签名 verification method、有效期和撤销检查；客户端 MUST 拒绝未绑定 DID / device trust chain 的 KeyPackage。
 - Recovery policy grammar 由 `ck.schema.recovery_policy.v1`（`artifacts/schemas/recovery-policy.schema.json`）规范化；publish / rotate / share-revoke 的 wire 形态由 §8.1 描述。grammar MUST 表达 threshold、share holder、not_before、expires_at、allowed_proof_kinds、approval requirement 与 audit event；恢复只改变控制链，不自动授予内容读取或业务 capability。
-- Recovery receipt 由 `ck.schema.recovery_receipt.v1`（`artifacts/schemas/recovery-receipt.schema.json`）规范化；§15 step 7 写入的 receipt MUST 通过该 schema 校验，并绑定 `recovery_session_id` / `policy_id` / `policy_version` / `new_device_id` / `proof_summary` / `backup_classes_unlocked` / `welcome_count` / `outcome`。
+- Recovery receipt 由 `ck.schema.recovery_receipt.v1`（`artifacts/schemas/recovery-receipt.schema.json`）规范化；`crypto-media/device-lifecycle.md` §15 step 7 写入的 receipt MUST 通过该 schema 校验，并绑定 `recovery_session_id` / `policy_id` / `policy_version` / `new_device_id` / `proof_summary` / `backup_classes_unlocked` / `welcome_count` / `outcome`。
 - Backup series MUST 满足 §7.6：客户端 `LIST` 后重建链 → 验证 `supersedes_digest` → 用尾部 envelope 解密；当 `frontier_ref` 存在时 MUST 用 control stream snapshot 验证 frontier_digest 与 `ssk_generation`。

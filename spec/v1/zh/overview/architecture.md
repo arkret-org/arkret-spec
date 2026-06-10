@@ -174,7 +174,7 @@ Cokret 的协议文档按“服务角色”定义能力；实际落地时可以�
 
 部署 profile 与服务角色契约的权威定义：
 
-- 部署 profile（`personal_node` / `small_team` / `organization` / `high_security_organization` / `isolated_sovereign_network` / `sovereign_deployment`）：见 [`artifacts/profiles/conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) `deployment_profiles`。
+- 部署 profile（包括 `personal_node` / `small_team` / `organization` / `high_security_organization` / `isolated_sovereign_network` / `sovereign_deployment` 等，非穷尽列举）：完整 deployment profile 集合以 [`artifacts/profiles/conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) 的 `deployment_profiles` 为准。
 - 服务角色与 `service_type` / 真相源 / 明文边界矩阵：informative 一览见 [`sync/service-surface.md` §2.5](../sync/service-surface.md)；`service_type` 机读真源见 [`artifacts/profiles/conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json)、namespace canonical 见 [`sync/service-http-binding.md` §2.1](../sync/service-http-binding.md)。
 - 高安全自建网络的额外约束：见 [`sync/sovereign-deployment.md`](../sync/sovereign-deployment.md)。
 

@@ -21,6 +21,8 @@ updated: 2026-06-10
 11. Personal Agent & Sidecar
 12. Media Service Binding
 13. History Visibility / Preview / History Sharing
+14. Encryption Floor Ratchet
+15. Moderation / Policy Server / Key Backup / Federation Ingress
 
 可执行向量数据集位于 [`spec/v1/artifacts/fixtures/`](../../artifacts/fixtures/)；
 本文档把对应规范条款与文件入口集中呈现，便于一致性测试 runner 引用。
@@ -542,7 +544,7 @@ cursor base64url 解码后对应 canonical JSON：
 - 客户端 MUST 把 cursor 当作不透明字符串保存和回传。即使 cursor 的内部结构是 `encoding.md` §8.2 规定的合法 stateful 或 stateless 形态，客户端 SDK / 应用层 MUST NOT 解析它的内部字段来构造请求。
 - 客户端 MUST NOT 依赖 base64url 解码后的 `h` handle、`x` 过期字段或其它内部字段构造下一页请求；这些字段只属于 issuing service。
 - 服务端 MAY 改变 cursor 内部编码或字段集合，只要同一 query/session 下 cursor 仍按 API contract 可用。
-- 服务端 MUST 在收到该 cursor 时，按 §8.3 校验 `v ∈ supported_versions`、`purpose`、`x`、core schema 形态和 `h` handle binding；语法失败返回顶层 `invalid_param`（reason `invalid_cursor`），过期返回 `cursor_expired`，handle lookup / binding 失败返回 `cursor_integrity_invalid`（见 `error-code-registry.json`）。
+- 服务端 MUST 在收到该 cursor 时，按 [`encoding.md`](./encoding.md) §8.3 校验 `v ∈ supported_versions`、`purpose`、`x`、core schema 形态和 `h` handle binding；语法失败返回顶层 `invalid_param`（reason `invalid_cursor`），过期返回 `cursor_expired`，handle lookup / binding 失败返回 `cursor_integrity_invalid`（见 `error-code-registry.json`）。
 
 失败条件：
 
@@ -854,7 +856,7 @@ ck.vector.state_root.incremental.v1
 
 输入：
 
-- 一个已被接受的 Anchor `A0`，其 frontier 写入 N 个 cell（`cell_1 … cell_N`，N ≥ 8）；实现已按 §4.2.1 缓存 `cell → leaf_digest` 表。
+- 一个已被接受的 Anchor `A0`，其 frontier 写入 N 个 cell（`cell_1 … cell_N`，N ≥ 8）；实现已按 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.1 缓存 `cell → leaf_digest` 表。
 - 一个新的 Anchor `A1`（`predecessor_refs=[A0]`），frontier 仅修改其中 K 个 cell（K ≤ N，包含 K=1 / K=N/2 / K=N 三种 case）。
 - 一个 corner-case Anchor `A2`：frontier 是空 set（无新 effect）。
 - 一个 schema-evolution case `A3`：frontier 包含一个新 cell（之前从未有过 effect），并删除一个旧 cell 的 effect（通过 lattice 的 ⊥/tombstone 机制）。
@@ -864,7 +866,7 @@ ck.vector.state_root.incremental.v1
 每个 case MUST 同时计算：
 
 - `state_root_incremental`：仅对受影响 cell 重算 leaf_digest 与 Merkle 分支，复用 `A0` 缓存。
-- `state_root_full`：丢弃缓存，按 §4.2.2 从 frontier 全量重算所有 cell 的 leaf_digest 与 Merkle root。
+- `state_root_full`：丢弃缓存，按 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.2 从 frontier 全量重算所有 cell 的 leaf_digest 与 Merkle root。
 
 判定要求：
 
@@ -914,7 +916,88 @@ ck.vector.flow_tracks_update.atomic.v1
 - Case B 把 patch 拆分为多个独立 cell write，破坏 atomic 语义（外部读取在中间能看到不一致的 tracks map）。
 - Case C 把违反 invariant 的 Event 部分接受（例如设了 enabled 但拒绝 is_primary），破坏 Event-level all-or-nothing 语义。
 
-实现 MUST 在 conformance 报告中分别报告三个 case 的 reducer 输出 cell value 与 invariant violation reason；该 vector 防御 §4.5 step 5 primary 解析规则的边界 case。
+实现 MUST 在 conformance 报告中分别报告三个 case 的 reducer 输出 cell value 与 invariant violation reason；该 vector 防御 [`flow-and-message.md`](../models/flow-and-message.md) §4.5 step 5 primary 解析规则的边界 case。
+
+### 2.11 Vector: `fsm` 家族 join 幂等与并发冲突
+
+向量名称：
+
+```text
+ck.vector.lattice.fsm_join.v1
+```
+
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §5.3.4 `fsm` lattice 的 join 规则：“同一 Anchor batch 内相同 `(from,to)` 的重复 transition 是幂等的；同一 `from` 指向不同 `to` 的 sibling transition 返回 ⊥。跨 batch 顺序仅由 Anchor DAG index 决定；同 batch 内不得用 HLC、接收顺序或 actor id 选择状态机 winner。”
+
+输入（cell schema：`fsm`，`bottom=reject`，`parameters.initial_state="invited"`，`allowed_transitions` 含 `(invited,join)`、`(invited,decline)`）：
+
+- **Case A — 幂等收敛**：同一 Anchor batch 内两条并发 Move 各自对同一 fsm cell 提交 transition `(from="invited", to="join")`（相同 `(from,to)`，不同 actor / event id / HLC）。
+- **Case B — 并发冲突 ⊥**：同一 Anchor batch 内两条并发 Move 分别提交 `(from="invited", to="join")` 与 `(from="invited", to="decline")`（同 `from` 不同 `to`）。
+
+期望：
+
+- **Case A**：join 收敛到 `state == "join"`，MUST NOT 返回 ⊥；两个 conformant reducer 以不同输入顺序重放 MUST 得到同一结果。
+- **Case B**：join MUST 返回 ⊥；`query(cell)` 返回 structured `Bottom{kind="conflict"}` 诊断。该 cell 配置 `bottom=reject`，后续依赖该 cell 的 Move MUST `fail_bottom`（spec 状态码 `failed_bottom`），直到 §8 conflict-recovery 路径修复。
+- 两个 case 中实现均 MUST NOT 用 HLC、actor id、event id 或本地接收顺序选择状态机 winner。
+
+失败条件：
+
+- Case A 把幂等重复 transition 错判为冲突返回 ⊥。
+- Case B 选出任一 `to` 作为 winner 继续推进，或冲突诊断在两个 reducer 间不一致。
+- transition `(from,to)` 不在 `allowed_transitions` 表内却未返回 ⊥ / 未被 validate_op 拒绝。
+
+### 2.12 Vector: `cas_register` 混合 basis（非初始态盲写拒绝）
+
+向量名称：
+
+```text
+ck.vector.move_anchor_lattice.cas_mixed_basis.v1
+```
+
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §5.3.3 的 **Basis 强制（normative）**：“cas_register 的 set effect 在目标 cell 的 settled 值为非初始态时，MUST 在同一 Move 上携带针对本 cell 的 `head_eq` precondition；缺失时，receiver MUST 在 verify_move（§6）阶段以 `failed_precondition` 拒绝该 Move 对该 cell 的 effect（按 §3 规则 2 多 cell 原子性，即整个 Move FAIL），不接受‘无 CAS 强制写’。”
+
+输入（cas_register cell，未声明 `initial_value`，初值 `null`；前置 Anchor 已把 settled 值推进到 `v1`，即非初始态）：
+
+- **Case A — 非初始态盲写**：一条 set Move 写入 `v2`，**不带**针对本 cell 的 `head_eq` precondition（null basis）。
+- **Case B — 正确 basis 收敛**：一条 set Move 写入 `v2`，携带 `head_eq: "v1"`（与 settled pre-state 一致）。
+
+期望：
+
+- **Case A**：receiver MUST 在 verify_move 阶段以 `failed_precondition` 拒绝整个 Move（多 cell 原子性，不得部分应用其余 effect）；cell 保持 `v1`。若此类 Move 越过 verify_move 进入 join（防御性路径），join MUST 返回 ⊥，MUST NOT 把 null-basis 盲写当作合法覆盖。
+- **Case B**：Move 接受，cell 收敛到 `v2`；两个 conformant reducer 以不同输入顺序重放 MUST 得到同一结果。
+- “无条件覆盖”语义 MUST 通过 profile 显式注册的专门高权限 event kind 或 §8 conflict-recovery 路径表达，不得通过省略普通 set Move 的 `head_eq` 实现。
+
+失败条件：
+
+- Case A 被当作 first set 放行（settled 非初始态时 null basis 仅在 settled == initial 时合法）。
+- Case A 在 join 阶段被静默接受为 last-write-wins 覆盖。
+- Case B 因实现把 basis 校验错误地提前到与 Case A 相同的拒绝路径而被误拒。
+
+### 2.13 Vector: `ordered_log` issuer 子链 seq 缺口
+
+向量名称：
+
+```text
+ck.vector.lattice.ordered_log_gap.v1
+```
+
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §5.3.6 `ordered_log` 的缺口规则：“issuer 子链出现缺口时，缺口后的 entry MUST 保留为 pending / diagnostic 输入，但不得进入 cell value、`state_root` leaf 或授权判断；依赖补齐后按同一规则重算。”
+
+输入（ordered_log cell，`bottom=expose`，cell schema 声明 `parameters.entry_id_field`）：
+
+- **Case A — 缺口存在**：issuer I 的 append entries 以 `issuer_seq ∈ {0, 1, 3}` 到达（seq 2 缺失）。
+- **Case B — 缺口补齐后重算**：在 Case A 状态上，seq 2 的 entry 通过 backfill 到达，reducer 重算同一 cell。
+
+期望：
+
+- **Case A**：join 产出的 cell value 仅含 `contiguous_prefix`（seq 0、1）；seq 3 的 entry MUST 作为 `pending_gap` 诊断（`reason=dependency_missing`）暴露，MUST NOT 进入 cell value、`state_root` leaf 或任何授权判断。`bottom` 永不出现（与 §5.1 对照表一致）。
+- **Case B**：补齐 seq 2 后，按同一 join 规则确定性重算，cell value 变为 seq 0–3 的完整子链；两个 conformant reducer 以不同到达顺序（先 3 后 2 / 先 2 后 3）重放 MUST 得到 bit-exact 相同的 cell value 与 `state_root` leaf。
+- 同一 `(issuer, seq)` 重复 entry MUST 按最小 `entry_id` 去重，不得产生双重 entry。
+
+失败条件：
+
+- Case A 把缺口后的 entry 直接并入 cell value 或 `state_root` leaf。
+- Case A 因缺口返回 ⊥ 或阻塞整个 cell（ordered_log 是 `bottom=expose`，并发 append 不阻塞协议判断）。
+- Case B 重算结果依赖本地接收顺序，两个 reducer 产出不同的 contiguous prefix。
 
 ## 3. Redaction 与 Snapshot Vectors
 
@@ -2925,7 +3008,7 @@ Expected:
 Steps:
 
 1. LiveKit Cloud key escrow 试图通过 backend channel 注入 SFrame key。
-2. Client binding adapter 收到非 §10.5.0 来源的 key。
+2. Client binding adapter 收到非 [`media-service-binding.md`](../crypto-media/media-service-binding.md) §8.1（E2EE Key Injection 通用契约）来源的 key。
 
 Expected:
 
@@ -3105,3 +3188,134 @@ Expected:
 
 - reducer MUST `failed_precondition`，reason=`circle_encryption_below_realm_floor`。
 - Circle floor 只能在父 Realm floor 之上收紧；`none` scope 无 MLS-backed effective_scope 可承载密文，故不得声明 `e2ee_required`。
+
+## 15. Moderation / Policy Server / Key Backup / Federation Ingress Vectors
+
+本节收拢治理域（content moderation、policy server、key backup）与 federation ingress 的 conformance 向量。每个 `vector_id` 均为规范性引用目标，登记于 [`vector-registry.json`](../../artifacts/registry/vector-registry.json)。
+
+### 15.1 Vector: E2EE Franking Roundtrip
+
+`vector_id`: `ck.vector.moderation.franking_roundtrip.v1`
+
+本向量固化 [`content-moderation.md`](../governance/content-moderation.md) §3.4 的 franking 构造与验证 MUST：franking proof “MUST 在 canonical event routing metadata、ciphertext digest、AAD digest、sender claim、receiving service DID、接收时间与 `replay_nonce` 之上生成”；moderator 验证时 “MUST 检查 reporter 可见性、目标消息 accepted state、encrypted envelope digest、franking service signature、AAD / ciphertext digest 和 evidence package 签名”。
+
+Steps：
+
+- **Case A — roundtrip 正路径**：
+  1. E2EE Realm 中 sender 发送密文消息；receiving service 按 §3.4 生成 `ck.moderation.franking_proof`（含 `routing_metadata_digest`、`ciphertext_digest`、`aad_digest`、`sender_claim`（仅 `mls_group_id_digest`，无 raw `mls_group_id` / 明文 `epoch`）、`received_by`、`received_at`、`replay_nonce`、`signature`，并通过 [`moderation-report.schema.json`](../../artifacts/schemas/moderation-report.schema.json) `franking_proof` 分支）。
+  2. reporter 提交 `ck.self.moderation.report`，附加密 evidence package（加密给 `effective_scope` 对应 moderator audience）与该 `franking_proof`。
+  3. moderator 按 §3.4.1 “Franking 信任链” 步骤 1–6 验证（receiving service DID 解析、verification method 在 `received_at` 有效且未撤销、service 在目标 Realm 被授权、payload hash 覆盖完整、`received_at` 时序新鲜度）。
+- **Case B — 篡改 / 最小披露违反**：(a) `franking_proof.ciphertext_digest` 与目标 encrypted envelope digest 不一致；(b) `sender_claim` 携带 raw `mls_group_id` 或明文整数 `epoch`，或 proof 包含 plaintext body。
+
+Expected：
+
+- **Case A**：全部校验通过后，moderator MAY 把 `franking_proof` 视为可验证投递证明；evidence package MUST NOT 包含 Realm / Circle 历史 key、MLS epoch secret、exporter secret 或允许 moderator 解密未举报消息的材料；举报 MUST NOT 触发任何治理密钥释放（§3.4.1：MUST NOT 把 `ck.self.moderation.report` 自动升级为 `ck.audit.session.request`）。
+- **Case B(a)**：任一 digest 环节不符时，moderator MAY 把材料作为人工线索，但 MUST NOT 将该 `franking_proof` 视为可验证投递证明。
+- **Case B(b)**：schema / receiver MUST 拒绝携带 raw `mls_group_id`、明文 `epoch` 或 plaintext body 的 `franking_proof`（§3.4 最小披露 MUST NOT 条款）。
+
+### 15.2 Vector: Moderation Appeal 状态转换原子性
+
+`vector_id`: `ck.vector.moderation.appeal_atomicity.v1`
+
+本向量固化 [`content-moderation.md`](../governance/content-moderation.md) §5.5.2 的 reducer 强制约束：“`ck.moderation.appeal.decision` `verdict=overturn` MUST 与一条 `ck.moderation.decision.lift`（target 等于 `decision_ref`）在同一 Anchor batch 中出现；否则 reducer 用 `appeal_overturn_missing_lift` 拒绝”；“`verdict=modify` MUST 与一条新的 `ck.moderation.decision`（其 `target_ref` 等于原 target）在同一 batch 中出现……reducer 校验 `modify_decision_ref` 与同 batch 新 decision 的 event id 一致”。
+
+Steps（前置：appeal cell 已沿 §5.5.1 状态机 `submitted → under_review` 推进，reviewer ≠ 原 decision issuer）：
+
+- **Case A — overturn 缺 lift**：reviewer 提交 `verdict=overturn` 的 `ck.moderation.appeal.decision`，但同一 Anchor batch 中**不**含 target 等于 `decision_ref` 的 `ck.moderation.decision.lift`；随后在另一次提交中补齐同 batch 的 decision + lift 对。
+- **Case B — modify 引用不符**：reviewer 提交 `verdict=modify` 的 decision，`modify_decision_ref` 指向的事件不在同一 batch，或同 batch 新 `ck.moderation.decision` 的 `target_ref` 不等于原 target。
+
+Expected：
+
+- **Case A**：缺 lift 的提交 MUST 被 reducer 以 `appeal_overturn_missing_lift` 拒绝，appeal cell 保持 `under_review`，原 moderation decision 继续生效（不存在“上诉胜诉但原 decision 仍生效”的中间窗口，反向亦然）；补齐后的同 batch decision + lift MUST 原子接受，cell 转入 `decided` 且原 decision 解除。
+- **Case B**：MUST 拒绝整个 modify 提交；不得出现“appeal 已 `decided` 但新 decision 缺失 / 指向错误”的部分状态。
+- 两个 case 中 cell 状态机 MUST 遵循 §5.5.1 转换表（`submitted → under_review → decided → closed`）；跳跃转换 MUST `failed_precondition`。
+
+### 15.3 Vector: Policy Decision 重放拒绝
+
+`vector_id`: `ck.vector.policy_server.decision_replay_rejected.v1`
+
+本向量固化 [`policy-server.md`](../authz/policy-server.md) §5 的反重放 / freshness MUST：“节点 MUST 拒绝过期 decision”；frontier 比较中“若本地 accepted authorization / policy / membership frontier 严格晚于 decision 绑定的 frontier……receiver MUST fail closed 并重新请求 `/_cokret/self/policy/check`；不得把旧 decision 复用到更新后的 auth state”。
+
+Steps：
+
+- **Case A — 过期 decision 重放**：一份签名有效的 allow decision 在 `expires_at` 之后被原样重放给 receiver。
+- **Case B — auth state 前进后复用**：decision 签发后，本地 accepted auth state 观察到相关 grant revoke / membership 变化（`auth_state_digest` 与 decision 绑定值不再一致，且本地 frontier 严格晚于 decision frontier）；调用方尝试复用缓存中的该 decision（cache key 含 `auth_state_digest` 五元组，见 §5）。
+
+Expected：
+
+- **Case A**：receiver MUST 拒绝（`expires_at > now` 校验失败），不得以任何 TTL 宽限接受。
+- **Case B**：cache hit 时 `auth_state_digest` constant-time 比较不一致 MUST 回退完整授权判定；本地 frontier 严格晚于 decision frontier 时 MUST fail closed 并重新请求 policy check，MUST NOT 把旧 allow decision 复用到更新后的 auth state。
+- 两个 case 的拒绝 MUST NOT 推进任何依赖该 decision 的写入。
+
+### 15.4 Vector: Request Canonical Digest 重算不符拒绝
+
+`vector_id`: `ck.vector.policy_server.request_digest_recompute.v1`
+
+本向量固化 [`policy-server.md`](../authz/policy-server.md) §5 的 transcript 绑定 MUST：“`request_canonical_digest` MUST 是 RFC 8785 JCS 在该请求 body 上的 SHA-256 digest”；接收方 MUST 校验 “`bound_to` 必须存在，且 `bound_to.realm_id` / `bound_to.actor_id` / `bound_to.action` / `bound_to.request_canonical_digest` 与本次 request 完全一致”。
+
+Steps：
+
+- **Case A — digest 不符**：调用方拿到一份对请求 body `B1` 签发的 decision（`bound_to.request_canonical_digest = JCS-SHA256(B1)`），将其附在内容已被修改的请求 body `B2` 上提交；receiver 对 `B2` 重算 JCS canonical digest。
+- **Case B — control 正路径**：decision 的 `bound_to` 四元组与本次 request 重算结果完全一致，signature / `expires_at` / frontier 校验全部通过。
+
+Expected：
+
+- **Case A**：重算 digest ≠ `bound_to.request_canonical_digest`，receiver MUST 拒绝该 decision，不得信任 decision 自带的 digest 字段而跳过本地重算；按 service-private 算法（非 JCS）计算 canonical hash 的实现 MUST NOT 声明通过 v1 conformance。
+- **Case B**：decision 接受（对照正样本）。
+- `bound_to.realm_id` / `actor_id` / `action` 任一与本次 request 不一致时同样 MUST 拒绝（防止 allow decision 跨 (realm, actor) 上下文泄漏）。
+
+### 15.5 Vector: Key Backup Unlock Proof 校验
+
+`vector_id`: `ck.vector.key_backup.unlock_proof.v1`
+
+本向量固化 [`key-management.md`](../identity/key-management.md) §7.7.1 / §7.8 的取回校验 MUST：“服务端在 `GET /_cokret/self/keys/backups/{backup_id}` 返回完整 ciphertext 之前，MUST 校验该 unlock proof 与请求 session、caller、新设备 key、active-series record 和目标 envelope 一致；任一不符 MUST fail closed”；“`GET /_cokret/self/keys/backups/{backup_id}` 即便对自己的备份也 MUST 要求 fresh device proof……bearer token 单独到达 MUST 被拒绝”。
+
+Steps：
+
+- **Case A — 正路径**：恢复设备在 recovery session 内提交符合 `ck.schema.key_backup_unlock_proof.v1` 的 proof（绑定 `recovery_session_id`、`principal_id`、`requesting_device_id`、`backup_id`、`backup_class`、`series_id`、`ciphertext_digest`、`proof_kind`、`proof_digest`、`issued_at`），服务端用当前 session state 重建 transcript 比对 `proof_digest` 后返回 ciphertext；客户端 AEAD/HPKE open 后校验明文符合 `ck.schema.key_backup_plaintext.v1` 且 `backup_id` / `backup_class` / `series_id` / `series_seq` byte-for-byte 等于外层 envelope。
+- **Case B — 绑定不符 / 凭证降级**：(a) proof 的 `ciphertext_digest` 指向另一 envelope，或 `requesting_device_id` 与本次 session 的新设备 key 不一致，或 `proof_digest` 与服务端重建的 transcript 不符；(b) 调用方仅携带 bearer token、无 fresh device proof 请求同一端点。
+
+Expected：
+
+- **Case A**：ciphertext 返回且明文校验通过；`items[].secret_id` / `item_type` 只作 keybag 内部路由，不得替代外层 envelope 的授权判断；明文 MUST 仅作本地瞬时材料，日志 / telemetry MUST NOT 记录 `secret_b64u`。
+- **Case B(a)**：MUST fail closed，错误码取 `recovery_evidence_unbound` / `backup_frontier_stale` / `series_chain_broken` / `invalid_signature` 中对应稳定码；服务端 MUST NOT 采信客户端自报的 policy / session metadata。
+- **Case B(b)**：MUST 拒绝；跨 actor 请求（envelope `actor_id` ≠ caller）MUST 返回 `forbidden` 且不得通过 metadata 暴露 envelope 是否存在。
+
+### 15.6 Vector: KDF 下限不满足的新建 Envelope 拒绝
+
+`vector_id`: `ck.vector.key_backup.kdf_floor_rejected.v1`
+
+本向量固化 [`key-management.md`](../identity/key-management.md) §7.2 的 base 无条件 MUST 下限：“新创建的 `recipient_method="passphrase_kdf"` envelope MUST 满足以下机器下限（base v1 无条件要求……）：Argon2id `memory_kib >= 65536`、`iterations >= 3`、`parallelism >= 1`”；“如果平台限制只能使用 PBKDF2，新创建的 PBKDF2 envelope MUST 满足 `iterations >= 600000` 且 `digest_algorithm ∈ {sha256, sha384, sha512}`，并 MUST 在 backup metadata 中声明 `degraded_profile_reason`”。
+
+Steps：
+
+- **Case A — Argon2id 低于下限**：新建 `passphrase_kdf` envelope 声明 Argon2id `memory_kib = 32768`（或 `iterations = 2`、`parallelism = 0`）。
+- **Case B — PBKDF2 低于下限 / 非法字段**：新建 PBKDF2 envelope 声明 `iterations = 310000`，或 `digest_algorithm` 不在 `{sha256, sha384, sha512}`，或使用非法字段 `params.hash` 代替 `params.digest_algorithm`。
+
+Expected：
+
+- **Case A / Case B**：receiver / 上传端点 MUST 拒绝该新建 envelope（schema 与 §7.2 机器下限同步编码于 `ck.schema.key_backup.v1`）；`params.hash` MUST 被 current parser reject。
+- 对照正样本：Argon2id `memory_kib >= 65536` 且 `iterations >= 3` 且 `parallelism >= 1` 的 envelope，以及 `iterations >= 600000`、合法 `digest_algorithm` 且声明 `degraded_profile_reason` 的 PBKDF2 envelope MUST accept。
+- Argon2id 可用时新建 envelope MUST NOT 默认选择 PBKDF2；未知 `encryption.kdf.name` MUST fail closed，不得回退到默认。
+
+### 15.7 Vector: Federation Ingress 鉴权失败 Timing Bucket
+
+`vector_id`: `ck.vector.federation.timing_bucket.v1`
+
+本向量固化 federation ingress 鉴权失败族的响应不可区分性（[`federation.md`](../sync/federation.md) §3.2），采样口径按 [`relation.md`](../models/relation.md) §4.5 既有口径执行。
+
+Steps：
+
+1. 对同一 federation ingress endpoint（如 `POST /_cokret/peer/events`）分别触发鉴权失败族中的不同原因：(a) 未知 peer（`Source-Service-DID` 无法解析 / 不在任何 binding 中）；(b) 签名可解析但 source 未被目标 Realm policy / 本地 peer policy 授权；(c) 目标 Realm 或资源不存在。
+2. 在同一服务端测量点、同一请求类别与同一部署 profile 下，对每类失败至少采样 30 次，记录 HTTP status、`reason_code`、响应字段集合与服务端处理时延（网络传输时间不计入服务端本地口径）。
+
+Expected：
+
+- 三类失败的对外响应 MUST 使用同一 HTTP status 与同一统一鉴权失败 `reason_code`（`error-code-registry` 已登记的统一码，如 `capability_denied`），error envelope 可见字段集合 MUST 相同，MUST NOT 携带 Realm / Actor / Event / binding / frontier 是否存在的任何可区分信息；真实失败原因 MUST 只写入接收方审计日志。
+- timing 同桶判定按 [`relation.md`](../models/relation.md) §4.5 口径：每类 ≥ 30 次采样下，各失败类别两两之间 p95 处理时延差异 SHOULD ≤ 50ms；声明高安全 profile 时 MUST 使用 padding / jitter 使 p99 也落入同一 timing bucket。
+- conformance runner MAY 在同一网络条件下补充端到端抽样，但判定以服务端本地口径为准。
+
+失败条件：
+
+- 任两类失败返回不同 status / `reason_code` / 字段集合，或错误 body 泄露目标是否存在。
+- p95（或高安全 profile 下 p99）超出同桶判定，形成可观测的存在性 timing 侧信道。

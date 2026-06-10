@@ -455,7 +455,7 @@ effective_expires_at = min(grant.expires_at?, temporal.expires_at[]?)
 | `allowed_write_fields` | `field_access` | — | `allowed_write_fields` |
 | `denied_write_fields` | `field_access` | — | `denied_write_fields` |
 | `allowed_read_fields` | `field_access` | — | `allowed_read_fields`（读取面字段允许列表，见 [`constraint-schema.md` §4.3](./constraint-schema.md)） |
-| `denied_read_fields` | `field_access` | — | `denied_read_fields`（读取面字段拒绝列表，§16.2 算法消费） |
+| `denied_read_fields` | `field_access` | — | `denied_read_fields`（读取面字段拒绝列表，[`constraint-schema.md` §16.2](./constraint-schema.md) 算法消费） |
 | `sensitive_fields` | `field_access` | — | `sensitive_fields`（读取时需特殊处理的敏感字段集） |
 | `sensitive_handling` | `field_access` | — | `sensitive_handling`（敏感字段处理方式：`redact` / `hash` / `omit`） |
 | `allowed_object_types` | `type_restriction` | — | `allowed_object_types` |
@@ -643,7 +643,7 @@ Delegation Move SHOULD 同时记录签发时点的 parent `auth_state_digest` / 
 
 上游 revoke 的本地可见性优先于 child grant 的 causal 视图：授权解析 `refs[role="parent_grant"]` / `parent_grant_id` 时，reducer MUST 主动查询本地已 accepted 的 grant/revoke index。若任一 ancestor parent grant 在本地已知为 revoked、superseded、expired 或 tombstoned，则 child grant 及依赖它的 Move MUST 立即 `failed_precondition`，`reason="grant_revoked_upstream"`，不得等待 child 的 `prev_refs` 或 Anchor frontier 自然包含该 revoke。若本地无法确认 parent freshness，则按 §18.2 风险表处理：高风险与跨域 grant 相关 action MUST fail closed，低风险只可进入 pending / limited 模式。
 
-`grant_id` 是授权图的唯一追踪键。所有 reducer-input Event 的 `refs[role="authorized_by"]` MUST 指向 `ck:grant:<uuid>` 或 profile 注册的不可变 grant record id；MUST NOT 指向一次 `/_cokret/self/policy/check` decision、human role、Event id alias 或当前 membership cell。节点 MUST 为每个 accepted / pending Event 记录 `authorized_by.grant_id[]` 与 grant canonical digest，用于 revoke 后的影响面枚举。revoke 生效后：
+`grant_id` 是授权图的唯一追踪键。所有 reducer-input Event 的 `refs[role="authorized_by"]` MUST 指向 `ck:grant:<uuid>` 或 profile 注册的不可变 grant record id；MUST NOT 指向一次 `ck.self.policy.check`（默认 path `/_cokret/self/policy/check`）decision、human role、Event id alias 或当前 membership cell。节点 MUST 为每个 accepted / pending Event 记录 `authorized_by.grant_id[]` 与 grant canonical digest，用于 revoke 后的影响面枚举。revoke 生效后：
 
 1. 该 grant 直接授权的 pending Event MUST fail closed；
 2. 该 grant 派生出的 child grant MUST 标记 `revoked_upstream`。child grant 的有效性 **MUST** 取其**所有** parent path freshness 的最严格值（min over paths）：只要有**任一**关键 ancestor 在该 child 的某条 parent path 上为 `revoked` / `superseded` / `expired` / `tombstoned` / freshness `unknown`，整个 child grant 即 **MUST** 降级 fail-closed，**MUST NOT** 因为存在另一条"仍有效的 alternate parent path"而保持有效。实现 **MUST NOT** 把 multi-path delegation 当作可漂白单条 path 撤销的冗余授权；多 path 只增加约束、不放宽约束。child grant 仅当其**每一条** parent path 上的全部关键 ancestor 都仍有效时才保持有效；
@@ -734,8 +734,6 @@ Cokret v1 至少区分：
 这能避免把"能改 Flow"和"能进入 discussion"混成一种权限——Realm-default discussion 按源 Realm capability 判断；若整个 Flow 落在 Circle，则还必须满足该 Circle 的 membership / effective scope 校验。
 
 ## 17. 决策执行位置
-
-权限检查不应只在客户端发生。
 
 权限检查 MUST 至少在以下位置执行：
 

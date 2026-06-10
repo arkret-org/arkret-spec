@@ -1,7 +1,7 @@
 {
-  "version": "2026-06-05",
+  "version": "2026-06-10",
   "source_of_truth": true,
-  "description": "Canonical registry of MLS-Exporter labels used for media key derivation (SFrame per-sender frame keys and backend recording-artifact keys). Each label is a wire-breaking security-domain-separation parameter: implementations MUST use the exact label string and Context field shape registered here, MUST NOT derive with an empty Context, and MUST NOT migrate or reuse keys across labels without declaring a new profile. See zh/crypto-media/media-service-binding.md §8 and conformance/conformance-vectors.md §12.7.",
+  "description": "Canonical registry of all normative MLS-Exporter labels in Cokret v1 (media key derivation, routing-tag HMAC keys, AEAD nonce-prefix derivation). Each label is a wire-breaking security-domain-separation parameter: implementations MUST use the exact label string and Context field shape registered here, MUST NOT derive with an empty Context, and MUST NOT migrate or reuse keys across labels without declaring a new profile. Per-entry `defined_in` points to the normative defining document. See zh/crypto-media/media-service-binding.md §8 and conformance/conformance-vectors.md §12.7.",
   "labels": [
     {
       "label": "ck-rtc-frame-key/v1",
@@ -46,6 +46,64 @@
       "forbid_reuse_with": [
         "ck-rtc-frame-key/v1"
       ]
+    },
+    {
+      "label": "cokret-reaction-routing-v1",
+      "purpose": "Keyed-HMAC key for the plaintext reaction routing tag in E2EE Realms (reaction_routing_hmac_v1 = HMAC-SHA256(key, utf8(canonical_emoji)); the exporter output is the HMAC key)",
+      "defined_in": "zh/crypto-media/encryption-and-audit.md (reaction visibility rules, reaction_routing_hmac_v1)",
+      "context_fields": [
+        "realm_id"
+      ],
+      "output_length": 32,
+      "applies_to_profiles": [
+        "ck.profile.e2ee_client.v1",
+        "ck.profile.mls.minimal_metadata_realm.v1"
+      ],
+      "grandfathered": false,
+      "empty_context_forbidden": true,
+      "empty_context_error": "e2ee_key_source_unauthorised",
+      "forbid_reuse_with": [
+        "cokret-mention-routing-v1"
+      ]
+    },
+    {
+      "label": "cokret-mention-routing-v1",
+      "purpose": "Keyed-HMAC key for the opt-in mention routing sidecar tag in E2EE Realms (mention_routing_hmac_v1 = HMAC-SHA256(key, utf8(mentioned_did)); the exporter output is the HMAC key; Sync Service MUST NOT derive, receive or persist the exporter secret)",
+      "defined_in": "zh/discovery/push-notifications.md (mention sidecar hint, mention_routing_hmac_v1)",
+      "context_fields": [
+        "realm_id"
+      ],
+      "output_length": 32,
+      "applies_to_profiles": [
+        "ck.profile.e2ee_client.v1"
+      ],
+      "grandfathered": false,
+      "empty_context_forbidden": true,
+      "empty_context_error": "e2ee_key_source_unauthorised",
+      "forbid_reuse_with": [
+        "cokret-reaction-routing-v1"
+      ]
+    },
+    {
+      "label": "cokret-aead-sender-nonce-prefix-v1",
+      "purpose": "Per-sender AEAD nonce prefix for every AEAD-bearing v1 envelope (nonce = sender_nonce_prefix || device_nonce_counter_be64); canonical derivation defined once in encoding.md, domain documents only declare their `purpose` value",
+      "defined_in": "zh/conformance/encoding.md §10.1 (AEAD nonce uniqueness)",
+      "context_fields": [
+        "key_ref",
+        "epoch",
+        "device_id",
+        "purpose",
+        "aead_profile"
+      ],
+      "context_encoding": "canonical-bytes of the JSON object {\"key_ref\", \"epoch\", \"device_id\", \"purpose\", \"aead_profile\"} (not a bare string)",
+      "output_length": "N_AEAD - 8 (16 for XChaCha20-Poly1305, 4 for AES-GCM)",
+      "applies_to_profiles": [
+        "ck.profile.e2ee_client.v1"
+      ],
+      "grandfathered": false,
+      "empty_context_forbidden": true,
+      "empty_context_error": "failed_precondition",
+      "forbid_reuse_with": []
     }
   ]
 }

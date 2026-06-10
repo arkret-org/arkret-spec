@@ -329,7 +329,7 @@ sequenceDiagram
 
 ## 7. Capability
 
-新增标准动作（capability actions; 对应 event kind 保留 `ck.agent.interop_session.*` 前缀以兼容已存在的 wire bytes）：
+新增标准动作（capability actions；对应 event kind 使用 `ck.agent.interop_session.*` 前缀，与 capability action 命名空间一致）：
 
 - `ck.agent.protocol.discover`
 - `ck.agent.interop_session.start`（authorize submitting `ck.agent.interop_session.start`）

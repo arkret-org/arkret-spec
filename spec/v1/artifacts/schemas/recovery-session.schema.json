@@ -157,7 +157,13 @@
         },
         "rejection_reason_code": {
           "type": "string",
-          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+          "enum": [
+            "proof_failed",
+            "operator_rejected",
+            "risk_policy",
+            "superseded"
+          ],
+          "description": "Closed enum. proof_failed: proof verification failures reached the server policy limit; operator_rejected: explicit operator/admin rejection; risk_policy: server risk policy rejection; superseded: replaced by a newer recovery session for the same principal/device."
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp",

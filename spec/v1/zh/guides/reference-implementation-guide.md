@@ -35,7 +35,7 @@ sidebar:
 - SDK：typed builders + validators。
 - 服务端：OpenAPI contract test + fixture runner。
 - 客户端：schema decode + sync/profile regression。
-- `cotest`：以 profile 为单位输出 pass/fail 与 coverage。
+- `cotest`：Conformance Verifier 角色（[`conformance-suite.md`](../conformance/conformance-suite.md) §6.2）的参考实现；以 profile 为单位输出 pass/fail 与 coverage，对通过结果签发 verification artifact。
 
 ## 4. 交接基线
 

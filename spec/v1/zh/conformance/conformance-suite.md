@@ -92,11 +92,11 @@ sidebar:
 - `conformance-vectors.md`：redaction 保留与审计可见性向量。
 - `conformance-vectors.md` 与 `capability-fixture.json`：委派、撤销回滚、Flow discussion track 不继承 Flow synthesis 权限与审批约束向量。
 - `privacy-security-fixture.json`：hidden resource、private contact discovery、plaintext-visible service、private blob 与 blind push 的隐私回归向量。
-- `mimi-interop-fixture.json`：MIMI provider directory、room binding、content mapping、identifier query、consent、proxy download 与 unsupported draft 向量。
+- `mimi-interop-fixture.json`：MIMI provider directory、room binding、content mapping、identifier query、consent、proxy download 与 unsupported draft 的 fixture cases（未注册向量）。
 
 ### 4.2 State resolution 向量
 
-v1 新增以下必测项：
+本节为优先级示例，完整必测集合以 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 为准。以下为优先必测项：
 
 - `ck.vector.move_anchor_lattice.cas_bottom.v1`
   - 输入同一成员 state key 的并发冲突事件（join/invite/leave/ban）。
@@ -110,6 +110,8 @@ v1 新增以下必测项：
 
 ### 4.3 Redaction 向量
 
+本节为优先级示例，完整必测集合以 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 为准。
+
 - `ck.vector.redaction.preserve_fields.v1`
   - 输入 target event + redaction event（不同时序）。
   - 期望输出：仅保留被允许的字段，其余不可逆地清除；事件 envelope 不可被改写。
@@ -118,6 +120,8 @@ v1 新增以下必测项：
   - 期望输出：索引与审计可见性一致，不可把 redaction 解读为物理删除。
 
 ### 4.4 Capability 向量
+
+本节为优先级示例，完整必测集合以 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 为准。
 
 - `ck.vector.capability.delegate_chain.v1`
   - grant 链条（多层委派）与 selector 条件（时间、对象、速率）冲突场景。
@@ -142,13 +146,13 @@ v1 新增以下必测项：
 | Moderation | report / queue item schema、E2EE evidence package、franking、operator ACL | appeal / audit trail |
 | Agent Runtime | capability grant 解释、knowledge source 声明、owner presence policy、join policy、capability revoke | approval UX、tool call audit |
 
-**向量覆盖现状（normative，gate 语义澄清）**：上表"MUST 覆盖"表达的是**认证测试范围承诺**，不等于每行当前都有已注册的可执行向量。截至本版本，下列行在 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 中**零覆盖或近零覆盖**，其 MUST 项当前由 fixture、schema 校验与 reference 实现承载，**不构成 §6.1 `v1-conformance-certified` 的 vector gate**：Moderation（franking、evidence package、appeal 原子性——0 向量）、Policy Server（decision 签名、replay 保护——0 向量）、key backup（unlock proof、KDF 下限——仅 device_recovery / late_key_recovery 侧面覆盖，`key-backup-fixture.json` 未被注册向量引用）、service-http-binding / api-conventions 行为语义（仅 OpenAPI 形状测试）、federation 最小披露与 idempotency 绑定（1 向量）。在对应向量补齐并注册进 vector-registry 之前，实现 MUST NOT 仅凭通过现有向量集合就宣称这些行"已认证覆盖"；补齐这些域的向量是 `v1-conformance-certified` 分级生效的前置条件（见 §6.1）。
+**向量覆盖现状（normative，gate 语义澄清）**：上表"MUST 覆盖"表达的是**认证测试范围承诺**，不等于每行当前都有已注册的可执行向量。截至本版本，下列行在 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 中**零覆盖或近零覆盖**（覆盖实况以 vector-registry.json 为准），其 MUST 项当前由 fixture、schema 校验与 reference 实现承载，**不构成 §6.1 `v1-conformance-certified` 的 vector gate**：MIMI Provider Facade（draft pinning、room binding、content/policy mapping——仅 `mimi-interop-fixture.json` fixture cases，0 注册向量）、service-http-binding / api-conventions 行为语义（仅 OpenAPI 形状测试）、Moderation evidence package（franking 与 appeal 原子性已由 `ck.vector.moderation.franking_roundtrip.v1` / `ck.vector.moderation.appeal_atomicity.v1` 覆盖，evidence package 仍无独立向量）。Policy Server（`ck.vector.policy_server.decision_replay_rejected.v1`、`ck.vector.policy_server.request_digest_recompute.v1`）、key backup（`ck.vector.key_backup.unlock_proof.v1`、`ck.vector.key_backup.kdf_floor_rejected.v1`）与 federation（`ck.vector.federation.idempotency_after_key_revoke.v1`、`ck.vector.federation.timing_bucket.v1`）已脱离零覆盖清单。在剩余缺口的向量补齐并注册进 vector-registry 之前，实现 MUST NOT 仅凭通过现有向量集合就宣称这些行"已认证覆盖"；补齐这些域的向量是 `v1-conformance-certified` 分级生效的前置条件（见 §6.1）。
 
 ## 6. 执行与发布要求
 
 - 每个实现 MUST 提供覆盖结果文档，声明通过/失败的 vector 列表。
 - 每条失败向量必须包含最小复现实例。
-- 未通过的 profile 可通过但不得标记为“完全互操作”。
+- 实现 MAY 发布未全部通过向量的 profile 支持声明，但 MUST NOT 将该 profile 标记为“完全互操作”；分级声明规则见 §6.1。
 - 本套件目标是在 v1 reducer/schema profile 下形成稳定收敛，避免为实现差异引入新 profile 版本。
 
 ### 6.1 发布分级
@@ -164,3 +168,17 @@ v1 新增以下必测项：
 当前仓库发布的是 `v1.0.0` 规范稳定基线。实现若未同时通过 reference validator / reducer / authz evaluator / runner 及核心 vectors，只能声明为“支持某些 v1 profile”，不得声明为 `v1-conformance-certified`。
 
 若某 profile 的 payload schema 仍使用宽泛结构（例如 `state_content` 或 `generic_standard_content`），该 profile 的 stable 声明必须额外依赖 reference reducer / validator 中的语义校验，不能只依赖 JSON Schema 通过。
+
+### 6.2 Conformance Verifier（一致性验证机构）
+
+**Conformance Verifier** 是协议定义的中立角色：运行本 conformance suite（按 §2 的 profile 入口与 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 注册的向量集合），并对**通过**结果签发 verification artifact 的机构。verification artifact MUST 至少包含：
+
+- `verification_run_id` — 本次 suite 运行的标识；
+- `artifact_digest` — artifact 内容 hash（`sha256:<hex>`）；
+- `artifact_ref` — artifact 的检索引用（URI 或 transparency-log 引用）；
+- verifier 的 DID（`verifier_did`）与其对 `profile_id`、`verification_run_id`、`artifact_digest`、`artifact_ref`、verifier 与时间戳的签名；
+- 验证时间戳（与可选 `expires_at`）。
+
+`ServiceDescribe.verified_profiles` 的每个条目（`claim_kind="conformance_verified"`）引用一个这样的 verification artifact；字段约束与客户端校验义务见 [`service-surface.md`](../sync/service-surface.md) §3.0 与 `ck.schema.service_describe.v1`。协议只绑定本节定义的角色与 artifact 形态，不绑定任何具体验证工具或机构名。
+
+> informative：`cotest` 是该角色的一个参考实现。

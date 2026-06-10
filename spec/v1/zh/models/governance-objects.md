@@ -161,7 +161,7 @@ Schema id: `ck.schema.invite.v1`
 | `join_rule_snapshot` | yes | `object` | 防止邀请后规则混淆。 | 邀请时 join rule。 |
 | `capability_grant_refs` | no | `array<id:grant>` | 接受后才生效；每项 MUST 以 `ck:grant:` 开头，不得指向 `ck:capability:`。 | 关联授权。 |
 | `expires_at` | yes | `timestamp` | 默认不超过 7 天；高安全 Realm SHOULD be no greater than 24 小时。 | 过期时间。 |
-| `state` | yes | `enum(pending, accepted, rejected, revoked, expired, claimed, send_failed, revoked_by_capability_loss, revoked_by_inviter_left, invalidated_by_rate_limit)` | Invite 的流程对象状态；保留为 `state` 是 v1 兼容例外，不表示通用对象物理 lifecycle。 | 邀请状态。 |
+| `state` | yes | `enum(pending, accepted, rejected, revoked, expired, claimed, send_failed, revoked_by_capability_loss, revoked_by_inviter_left, invalidated_by_rate_limit)` | Invite 的流程对象状态；命名例外：Invite 的 `state` 承载流程状态轴，与通用对象的物理 lifecycle 轴不同，不表示通用对象物理 lifecycle。 | 邀请状态。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_by` | no | `did` | 最近一次 invite state update 的 actor。 | 最近更新者。 |
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |

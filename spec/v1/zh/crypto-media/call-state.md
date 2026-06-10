@@ -111,6 +111,7 @@ sidebar:
 ### 4.1 字段语义（normative）
 
 - `session_focus`：本 call 唯一 authoritative `focus_id`。**reducer 写入规则**：第一个 `ck.call.state` 事件根据 [`media-service-binding.md` §5](./media-service-binding.md) 选举规则把 oldest member 的 `foci_preferred[0]` 写入；后续 `ck.call.state` MUST 保持同值，任何改写 MUST `failed_precondition` `reason="session_focus_already_committed"`。session 结束（所有 participants 离开）后才重置。
+- `participants[]`：单条 `ck.call.state` 事件的 `participants[]` MUST ≤ 1,000 项（v1 wire 上限，见 [`../conformance/scalability-constraints.md` §5](../conformance/scalability-constraints.md)；schema 声明 `maxItems: 1000`）；超过时 MUST reject 或改用采样 / 摘要写入。
 - `participants[].foci_preferred`：客户端本地排序的 focus 偏好列表，用于 [`media-service-binding.md` §5](./media-service-binding.md) 选举。后加入者写入的 `foci_preferred` 不影响已 committed 的 `session_focus`。
 - `participants[].participant_identity`：来自 token exchange 响应的 SFU-local handle（见 [`media-service-binding.md` §3](./media-service-binding.md)）；scope 限 `(call_id, focus_id, sfu_did)`。
 - `participants[].participant_binding`：token issuer 对 `(realm_id, call_id, focus_id, actor_id, device_id, participant_identity, expires_at)` 的签名承诺。reducer **MUST** 验证：
@@ -128,7 +129,7 @@ sidebar:
 
 | `state` | 语义 | 合法后继 | 终态? |
 | --- | --- | --- | --- |
-| `scheduled` | 已排期，未开始 | `ringing`、`connecting`、`cancelled`、`missed` | 否 |
+| `scheduled` | 已排期，未开始 | `ringing`、`connecting`、`cancelled`、`missed`、`failed`（排期通话自动启动失败） | 否 |
 | `ringing` | 呼叫已发起，待应答 | `connecting`、`active`、`missed`、`cancelled`、`failed` | 否 |
 | `connecting` | 应答后媒体协商中 | `active`、`failed`、`ended` | 否 |
 | `active` | 通话进行中 | `ended`、`failed` | 否 |
@@ -137,7 +138,9 @@ sidebar:
 | `failed` | 出错失败 | —（终态） | **是** |
 | `cancelled` | 连接前取消 | —（终态） | **是** |
 
+- **初始 state 集合**：某 `call_id` 的**首条** `ck.call.state` 事件，其 `state` MUST ∈ `{ scheduled, ringing, connecting }`——`scheduled` 对应预先排期，`ringing` 对应即时呼叫发起，`connecting` 对应无振铃阶段的直接加入（如会议直连）。首条事件携带其它取值（`active` 或任一终态）MUST `failed_precondition`，`reason_code="call_state_transition_invalid"`。
 - **终态集合**：`{ ended, missed, failed, cancelled }`。reducer MUST 拒绝从任一终态转出（单调推进），违反用 `failed_precondition` `reason="call_state_terminal"`。
+- **非法转换通用规则**：源 state 为非终态时，任何不在上表"合法后继"列内的 `state` 转换 MUST `failed_precondition`，`reason_code="call_state_transition_invalid"`（见 [`artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）；源为终态时用 `call_state_terminal`，二者不混用。
 - **并发仲裁**：多个并发 `ck.call.state` head 时，按 canonical order 取最终态；一旦达终态即吸收，不得回退。
 
 **`recording_state`（录制维度，与 `state` 正交，normative）**：`{ recording, stopped, ready, failed }`，缺省=未录制。录制随 `ck.call.recording.start` 进入 `recording`；人工停止时通过 `ck.call.state` 写 `recording_state="stopped"`；artifact 入 Cokret blob pipeline 后转 `ready`，失败转 `failed`。录制态**独立于** `state`——通话可在 `active` 期间为 `recording_state="recording"`，通话 `ended` 之后再写 `recording_state="ready"`。`recording_state ∈ { ready, failed, stopped }` 时 SHOULD 携带 `recording_result.recording_start_event_id` 绑定本段录制的 start event；`ready` / `failed` 还 SHOULD 携带 content digest / duration / media type / retention policy。v1 不为录制注册独立 result/stop event，录制态变化通过 `ck.call.state` 写入（见 §5）。

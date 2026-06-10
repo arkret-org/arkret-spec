@@ -1,6 +1,6 @@
 ---
 title: Member Delivery Binding
-status: stable
+status: candidate
 normative: true
 stability: v1
 updated: 2026-06-10
@@ -124,10 +124,12 @@ Realm 通过独立的 `ck.realm.delivery_binding_policy` event 声明对成员�
 `delivery_binding` 一旦进入 accepted member cell，**任何 sender** 在向该 Realm 投递面向该成员的事件 / sync delta / to-device 消息 / push 唤醒 / MLS KeyPackage 请求时：
 
 - MUST 解析当前 effective `delivery_binding.recipient_service_did` 作为唯一投递目标。
-- MUST NOT 退路到该 actor 的 DID Document `CokretPrincipalServer` service entry，即便 DID Document 当前可解析、`recipient_service_did` 临时不可达、binding 已 `expires_at` 过期或被撤销。失败时 MUST 进入 quarantine + retry（默认重试上限见 [`sync/federation.md` §4.1](../sync/federation.md)），并在第二次失败后向 sender 上游暴露 `delivery_binding_unresolvable` 诊断。
+- MUST NOT 退路到该 actor 的 DID Document `CokretPrincipalServer` service entry，即便 DID Document 当前可解析、`recipient_service_did` 临时不可达、binding 已 `expires_at` 过期或被撤销。失败时 MUST 进入 quarantine + retry（重试策略：quarantine + 指数退避，见 [`sync/federation.md`](../sync/federation.md) §4.1），并在第二次失败后向 sender 上游暴露 `delivery_binding_unresolvable` 诊断。
 - MUST NOT 把"recipient_service_did 在本地登记了该 DID 的内部账号 / OIDC subject / 员工目录条目"视为投递授权——所有授权 MUST 通过 binding 的 `service_acceptance_ref` / `policy_event_ref` 显式建立。
 
 `expires_at` 到期：sender MUST 停止向该 binding 投递、quarantine pending events，并提示该成员客户端通过 §6 rebind 流程提交新 binding。**未提供 fallback path**——这是设计约束。
+
+**权威划分（normative）**：路由不可降级原则（本节）、rebind 接受集合全分类与 `handover_grace_seconds`（§6）的**语义**权威是本文；[`sync/federation.md`](../sync/federation.md) §4.1 只承载对应的联邦 **wire 形态**（`delivery_binding_stale` 响应体与 `handover_proof` 校验、handover 限速与重定向边界）。两处表述如有分歧，语义以本文为准，wire 形态以 federation.md §4.1 为准。
 
 ## 6. Rebind 过渡（normative）
 

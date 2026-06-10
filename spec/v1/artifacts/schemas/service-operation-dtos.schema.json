@@ -1154,7 +1154,8 @@
           "enum": [
             "accepted",
             "duplicate",
-            "partial"
+            "partial",
+            "historical_only"
           ]
         },
         "accepted": {
@@ -1162,7 +1163,7 @@
           "items": {
             "type": "string"
           },
-          "description": "Event IDs that entered the accepted set (including idempotent re-accepts of identical bodies)."
+          "description": "Event IDs that entered the accepted set for the first time. Idempotent re-submissions of identical bodies are confirmed via duplicate[], not re-listed here."
         },
         "duplicate": {
           "type": "array",
@@ -1210,6 +1211,10 @@
         "cursor": {
           "type": "string",
           "description": "Optional barrier cursor (purpose=barrier) bound to the most recently accepted event."
+        },
+        "original_outcome": {
+          "$ref": "#/$defs/EventsSubmitOutcome",
+          "description": "Present only when status=\"historical_only\" (idempotency-cache replay after origin key revoke / binding or peer-policy change, see sync/federation.md section 8.5.1): carries the originally cached outcome verbatim as historical diagnostics. The nested outcome's status MUST NOT be \"historical_only\"; the top-level accepted[] MUST be empty in that case. Absent for all other status values."
         }
       },
       "additionalProperties": false

@@ -26,7 +26,9 @@ see_also:
 | 中文规范词 | 等价关键字 | 说明 |
 | --- | --- | --- |
 | 必须 / 要求 | `MUST` / `REQUIRED` | 绝对要求。 |
+| 只能 / 仅限 | `MUST` | 排他性绝对要求：除所述对象外的取值 / 行为均被禁止。 |
 | 不得 / 禁止 / 不允许 / 不可 | `MUST NOT` | 绝对禁止。 |
+| 不能 | `MUST NOT` | 绝对禁止（对能力 / 许可的否定）。 |
 | 应当 / 建议 / 推荐 | `SHOULD` / `RECOMMENDED` | 有强理由时可偏离，但实现需能解释。 |
 | 不应 / 不建议 / 不推荐 | `SHOULD NOT` / `NOT RECOMMENDED` | 有强理由时可偏离。 |
 | 可以 / 可选 | `MAY` / `OPTIONAL` | 可选能力或许可。 |
@@ -46,6 +48,8 @@ see_also:
 - Mermaid 图与表格统一以 `*Figure N. <title> (informative).*` 或 `*Table N. <title> (normative).*` 引导。
 - 在 normative 章节内，字段表、schema 表、error code 表、operation 表和状态机表默认具有规范力；只有明确标为 quick reference、导航、示例、对照或 informative 的表格才是说明性内容。
 - 容器型表格（速查 / 决策树 / 字段速览）默认 informative；规范字段表（含 MUST / 必填）建议显式标 normative，但缺少显式标记不降低上一条所述规范力。
+
+段落级行内标注 `**<标签>（normative）**`（例如 `**字段命名（normative）**：……`）表示对所在段落（含紧随其后的表格）规范力的**强调**：它提示读者该段承载规范要求，但不改变该段在所属章节中的默认规范力，也不把 informative 上下文升级为 normative。该标注仅在 frontmatter `normative: true` 的文档中有效；frontmatter `normative: false` 的文档不得承载 normative 规则，其中出现的此类标注无规范效力——此类文档只能以摘要 + 指针形式引用 normative 文档中的规则。
 
 ## 5. 关键字使用例
 

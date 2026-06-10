@@ -107,7 +107,7 @@ Cokret 是去中心化协议，不同用户或组织各自运行受控 Principal
 - 受保护联邦 endpoint MUST NOT 接受 query string 认证。
 - 签名失败、`destination` 不匹配、digest 不匹配或时间窗口失效，接收方 MUST 返回**统一最小披露**错误响应，对外形态在这几类原因之间 MUST NOT 可区分（详见 §8.3）。具体而言：
   - 这几类失败 MUST 复用 `api-conventions.md` 的标准 JSON error envelope，并对所有这几类原因返回**同一个** HTTP status 与**同一个** `reason_code`（使用 `error-code-registry` 中已登记的统一鉴权失败码，如 `capability_denied`；不得为不同失败原因返回不同 status / `reason_code`）。错误 envelope 的可见字段 MUST NOT 携带 Realm、Actor、Event、binding 或 frontier 是否存在的任何可区分信息。
-  - 响应 timing MUST 归一到统一时间桶（fixed timing bucket），使「destination 不匹配 / 签名失败」等不同原因之间不产生可被观测的时延侧信道；接收方 MUST NOT 在校验成功路径与上述失败路径之间，或在上述各失败原因之间，泄露可测量的处理时延差异。
+  - 响应 timing MUST 归一到统一时间桶（fixed timing bucket），使「destination 不匹配 / 签名失败」等不同原因之间不产生可被观测的时延侧信道；接收方 MUST NOT 在校验成功路径与上述失败路径之间，或在上述各失败原因之间，泄露可测量的处理时延差异。同桶判定使用与 [`models/relation.md` §4.5](../models/relation.md) 一致的可测口径：同一服务端测量点、同一请求类别、同一部署 profile 下，实现 SHOULD 对每类至少采样 30 次，p95 差异 SHOULD ≤ 50ms；声明高安全 profile 时 MUST 使用 padding / jitter 使 p99 也落入同一 bucket。网络传输时间不计入服务端本地口径。
   - 真实失败原因（audit-only reason）MUST 只写入接收方审计日志，MUST NOT 出现在对外响应的 status、`reason_code`、header、body 或 timing 中。
   - 本要求覆盖联邦 ingress 的存在性枚举面：对外 MUST 保持不可区分「Realm / Actor / Event / member binding 不存在」与「存在但本请求鉴权 / 完整性失败」。
 
@@ -259,7 +259,8 @@ Signature: sig1=:base64...:
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `accepted` | `id[]` | required | 已接受 Event ID。 |
+| `accepted` | `id[]` | required | 首次接受的 Event ID；不含幂等重复项。 |
+| `duplicate` | `id[]` | optional | 内容完全相同的幂等重复项（幂等 no-op）；同一 `event_id` MUST NOT 同时出现在 `accepted[]` 与 `duplicate[]`。 |
 | `rejected` | `object[]` | required | 被拒绝项；每项 SHOULD 包含 `id`、`reason_code` 和可审计说明。 |
 | `quarantine` | `id[]` | optional | 进入隔离队列等待人工或异步验证的 Event ID。 |
 
@@ -271,7 +272,7 @@ Cokret v1 的联邦批量传播采用依赖感知的 partial accept：最小原�
 
 `events[]` MUST 按数组顺序处理。同批中已接受的 Event 仅可作为**解析材料**（resolution-only）出现在后续 Event 中：可以满足 `prev_refs` 的 byte / event-id 解析、actor event chain 链接、payload-level causal reference 等结构性引用；但**不得**作为同批后续 Event 的**授权 pre-state**。换言之，`refs[role=authorized_by]`、capability grant freshness 校验、policy auth state 引用 MUST 命中后续 Event 自身 `anchor_ref` 指向的 Anchor pre-state；同批前序 Event 创建、delegate、恢复或扩权出的 grant **不**在同一 Anchor batch 内对后续高风险 Event 生效，依赖方必须等待下一 Anchor 覆盖，否则当前批 MUST 以 `dependency_missing` / `stale_frontier` / `capability_denied` 拒绝或隔离（与 [`service-http-binding.md`](./service-http-binding.md) §`POST /_cokret/peer/events` 同批授权可见性规则、[`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.3 `apply_anchor(A)` pre-state 模型完全一致）。同批中尚未处理、已拒绝或隔离的 Event 不能被视为已接受依赖。单条 Event 失败不得回滚同批已接受 Event；响应 MUST 将成功项放入 `accepted[]`，失败项放入 `rejected[]`，需要异步校验的项放入 `quarantine[]`。依赖同批失败或缺失 Event 的后续项 MUST 以 `dependency_missing`、`causal_conflict` 或等价原因拒绝/隔离。
 
-**partial accept 后的 retry 边界（normative）**：sender 收到包含非空 `accepted[]` 且仍有 `rejected[]` / `quarantine[]` / 未发送依赖的响应后，MUST 把下一次 retry 组装成新的 batch，只包含尚未 accepted 且仍需投递的 Event；不得原样重放包含已 accepted Event 的旧 `events[]` 来“补齐失败项”。内容完全相同的幂等重复项 MUST 放入 `accepted[]`，不另设 `duplicate[]` 字段，也不得当作 `rejected[]`。新 batch MUST 重新计算 `Content-Digest`、`Request-Canonical-Digest` 与签名 transcript；幂等缓存命中旧 batch 不得被当作新 retry 的成功证明。接收方 SHOULD 在 `rejected[]` 项内携带原数组 `index` 与 `id`，让 sender 能机械求差；若响应缺少 `index`，sender MUST 以 `id` 集合为准剔除 `accepted[]`。
+**partial accept 后的 retry 边界（normative）**：sender 收到包含非空 `accepted[]` / `duplicate[]` 且仍有 `rejected[]` / `quarantine[]` / 未发送依赖的响应后，MUST 把下一次 retry 组装成新的 batch，只包含尚未被 `accepted[]` ∪ `duplicate[]` 确认且仍需投递的 Event；不得原样重放包含已确认 Event 的旧 `events[]` 来“补齐失败项”。内容完全相同的幂等重复项 MUST 列入 `duplicate[]`（幂等 no-op），MUST NOT 当作 `rejected[]`。新 batch MUST 重新计算 `Content-Digest`、`Request-Canonical-Digest` 与签名 transcript；幂等缓存命中旧 batch 不得被当作新 retry 的成功证明。接收方 SHOULD 在 `rejected[]` 项内携带原数组 `index` 与 `id`，让 sender 能机械求差；若响应缺少 `index`，sender MUST 以 `id` 集合为准剔除 `accepted[] ∪ duplicate[]`（已投递集合）。
 
 接收方服务绑定规则（normative）：
 
@@ -284,7 +285,7 @@ v1 联邦投递有**两条互不重叠的路径**，sender MUST 明确区分：
 
 两条路径**不得互相代替**：member-level 投递不走 sync_endpoints，Realm-level fanout 不走 member binding。
 
-针对 member-level delivery，sender 的解析算法是确定性的（其中 `delivery_status ∈ {routable, unroutable}` 的定义见 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 与 [`governance/join-policy.md` §5.1](../governance/join-policy.md)，`unroutable` 表示该成员不接受服务端推送 / 同步 / to-device / push / key-package 投递）：
+针对 member-level delivery，sender 的解析算法是确定性的（其中 `delivery_status ∈ {routable, unroutable}` 的定义见 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 与 [`governance/member-delivery-binding.md`](../governance/member-delivery-binding.md) §2，`unroutable` 表示该成员不接受服务端推送 / 同步 / to-device / push / key-package 投递）：
 
 ```
 for each member m of Realm S that needs to receive event E:
@@ -298,11 +299,12 @@ for each member m of Realm S that needs to receive event E:
   fanout target = binding.recipient_service_did
 ```
 
-**MUST NOT fallback** 路径：
+**MUST NOT fallback** 路径（语义权威：[`governance/member-delivery-binding.md` §5](../governance/member-delivery-binding.md)，本节不另行定义）：
 
-- 即便 `recipient_service_did` 解析失败、binding 过期、或 binding 被撤销，sender **MUST NOT** 退回 actor DID Document 的 `CokretPrincipalServer` service entry 作为替代目的地。这是设计上的硬约束。
-- 即便 actor DID 在接收方 (或任何其它) Principal Server 上存在本地账号、OIDC/SSO 绑定、员工目录记录、device session，**这些都不构成 Realm-scoped 投递授权**。投递授权仅来自 member binding 的 `service_acceptance_ref` / `policy_event_ref` 链。
-- 即便 actor DID Document 当前可解析且其 service entry 指向某个 Principal Server，**这也不是 Realm-scoped 投递的目的地**——DID Document service entry 是 actor event source / 非 Realm 默认服务发现入口（§6.2），与 member-level delivery 解耦。
+- 即便 `recipient_service_did` 解析失败、binding 过期或被撤销，sender **MUST NOT** 退回 actor DID Document 的 `CokretPrincipalServer` service entry 作为替代目的地；本地账号、OIDC/SSO 绑定、员工目录记录、device session 均不构成 Realm-scoped 投递授权。投递授权来源与完整的路由不可降级原则以 [`governance/member-delivery-binding.md` §5](../governance/member-delivery-binding.md) 为准。
+- wire 侧补充：DID Document service entry 是 actor event source / 非 Realm 默认服务发现入口（§6.2），与 member-level delivery 解耦。
+
+**权威划分（normative）**：member-level delivery 与 rebind handover 的**语义**权威是 [`governance/member-delivery-binding.md`](../governance/member-delivery-binding.md)——路由不可降级原则见其 §5，handover 接受集合全分类与 `handover_grace_seconds` 见其 §6。本节只承载联邦 **wire 形态**：`delivery_binding_stale` 响应体、`handover_proof` 校验、handover 限速与重定向边界。两处表述如有分歧，语义以 member-delivery-binding.md 为准，wire 形态以本节为准。
 
 Rebind handover：
 
@@ -312,7 +314,7 @@ Rebind handover：
 - 当 `new_recipient_service_did` 所属信任域（`trust_domain`）≠ 当前 binding 的信任域时，sender MUST 拒绝该重定向，除非 `target_principal_id` actor 自身对该跨信任域 rebind 的签名证据在 Realm Event graph 中可见；缺该 actor 自签证据时 MUST NOT 跟随跨域重定向，MUST quarantine 并进入 operator diagnostic。
 - 对同一 `(target_principal_id, realm_id)`，sender 在 24h rolling window 内最多接受一次 successful handover。超过上限 MUST 返回 `delivery_binding_handover_rate_limited` 并进入 operator diagnostic；Realm policy 可以声明更短窗口，但不得放宽该默认上限。
 - `delivery_binding_stale` 重试是有界重定向，不是无限 fanout：sender 对同一 `(event_id, target_principal_id, handover_frontier)` 最多重试一次到 `new_recipient_service_did`；再次收到 stale / handed_over 时 MUST 停止投递并进入 backoff / operator diagnostic，避免跨服务循环。
-- 旧 `recipient_service_did` MUST 在 `handover_grace_seconds`（默认 86400）内继续接受迟到的 `prec(F)` event，超出 grace 后旧服务 MUST 返回 `delivery_binding_handed_over`。
+- 旧 `recipient_service_did` MUST 在 `handover_grace_seconds`（默认 86400）内继续接受迟到的 `prec(F)` 与 ∥F（与 F 并发）event，超出 grace 后旧服务 MUST 返回 `delivery_binding_handed_over`；接受集合全分类与 `handover_grace_seconds` 的语义以 [`governance/member-delivery-binding.md` §6](../governance/member-delivery-binding.md) 为准。
 
 `delivery_binding_stale` 响应体（normative 字段表，canonical schema [`delivery-binding-stale.schema.json`](../../artifacts/schemas/delivery-binding-stale.schema.json)，schema id `ck.schema.delivery_binding_stale.v1`，已登记于 `contract-catalog`）：符合规范的实现 MUST 按该 canonical schema 与下表产出 / 校验响应结构。下表与 §4.1 散文、canonical schema 之间若有歧义，以更严格者为准。
 
@@ -368,7 +370,7 @@ sequenceDiagram
 
 Cokret v1 联邦推送使用 `POST /_cokret/peer/events`（`ck.peer.events.submit`）：
 
-- 幂等以 `(Source-Service-DID, Destination-Service-DID, event_id)` 逐事件去重；接收方对重复 `event_id` 且内容一致 MUST 返回 `accepted[]` 而非报错，内容不一致 MUST 以 `duplicate_conflict`（409）拒绝（参见 §4.3）。
+- 幂等以 `(Source-Service-DID, Destination-Service-DID, event_id)` 逐事件去重；接收方对重复 `event_id` 且内容一致 MUST 在 `duplicate[]` 中确认（幂等 no-op）而非报错，内容不一致 MUST 以 `duplicate_conflict`（409）拒绝（参见 §4.3）。
 - 批次级重放检测使用签名 transcript 中的 `Request-Canonical-Digest` 与 `Idempotency-Key` header（详见 §8.5），不引入额外的 path 事务 ID。
 - `quarantine[]` 是 `EventsSubmitOutcome` 的独立响应字段；实现 MUST NOT 把隔离项折叠进 `rejected[]`，除非调用方明确使用不支持 `quarantine[]` 的旧本地 adapter，且该 adapter 不得声明 v1 wire conformance。
 - 持续同步、批量重试和 frontier 交换通过组合 `ck.peer.events.submit`（推送，本节）、`ck.peer.events.query` / `ck.peer.events.resolve`（拉取 / backfill / 补洞，§4.2）与 `ck.peer.events.frontier`（§4.5）完成；无需额外的有状态事务 endpoint。
@@ -467,7 +469,7 @@ Probe **MUST** 是 capability-gated：
 - 被 Realm service binding 授权为 federation peer 的服务方可读取该 Realm 的 frontier 完整形态；
 - 未授权 reader **MUST NOT** 通过该 endpoint 取得 frontier 完整形态（防止 actor 集合枚举）；服务端必须使用与不存在 Realm 不可区分的失败语义。
 - Probe 请求与响应都 **MUST** 走 §3 节点间认证。
-- 已授权 peer 的 probe 仍然 MUST 按 `(realm_id, peer_service_did)` 限速，并使用固定响应 timing bucket；服务端不得让授权 peer 通过高频轮询 `frontier_root` 推断 Realm 活跃度时间序列。
+- 已授权 peer 的 probe 仍然 MUST 按 `(realm_id, peer_service_did)` 限速，并使用固定响应 timing bucket（同桶判定口径同 §3.2：≥ 30 次采样下 p95 差异 SHOULD ≤ 50ms，高安全 profile 时 MUST 使 p99 也落入同一 bucket，对齐 [`models/relation.md` §4.5](../models/relation.md)）；服务端不得让授权 peer 通过高频轮询 `frontier_root` 推断 Realm 活跃度时间序列。
 
 Probe 响应 payload：
 
@@ -821,7 +823,7 @@ Signature: sig1=:<base64>:
 - Idempotency cache entry MUST 至少携带：`Source-Service-DID`、`origin verification_method`（key id 或 DID URL fragment）、`service_binding_ref`（参见 §4.1）、当时 origin 的 key state frontier（`origin_key_state_digest` = source service 在 origin Realm 上的 service binding state 的 canonical hash），以及 destination 本地 peer policy 的版本 / digest（`local_peer_policy_digest`）。
 - **撤销后重放**：destination 接收同一 `Idempotency-Key` 重复请求时 MUST 重新解析 origin 的 service binding：
   - 若当前 `verification_method` 仍 active、`origin_key_state_digest` 与 cache 一致，且当前本地 peer policy digest 仍与 `local_peer_policy_digest` 一致并允许该 source：MAY 返回 cached accepted 响应（真正幂等）。
-  - 若 `verification_method` 已被 revoke / `origin_key_state_digest` 已变 / 本地 peer policy digest 已变：MUST 重做完整 key、binding、Realm policy 与本地 peer policy 授权检查；不通过时返回**仅历史诊断**响应（`status="historical_only"`，附原 cache outcome），不得触发任何新副作用（不向下游 Realm reducer 推送、不刷新 frontier）。
+  - 若 `verification_method` 已被 revoke / `origin_key_state_digest` 已变 / 本地 peer policy digest 已变：MUST 重做完整 key、binding、Realm policy 与本地 peer policy 授权检查；不通过时返回**仅历史诊断**响应——`EventsSubmitOutcome.status="historical_only"`，原 cache outcome 通过响应的 `original_outcome` 字段原样带回（见 [`service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome`](../../artifacts/schemas/service-operation-dtos.schema.json)），此时顶层 `accepted[]` MUST 为 empty——不得触发任何新副作用（不向下游 Realm reducer 推送、不刷新 frontier）。
   - 若 destination 不能解析当前 service binding（federation peer 不可达）：MUST `temporarily_unavailable`，不允许 fall back to cached accept。
 - **Key revoke / peer policy 变化后 cache 入口必须重新校验**：cache hit 不豁免授权检查。每次 hit MUST 重新调用 capability check（destination Realm policy 对 source service 的 `federation_peer` 角色是否仍在）并检查部署本地 peer policy 是否仍 allow；不通过 MUST 拒绝（`capability_denied` 或 `policy_denied`），返回历史诊断而非继续推送。
 - **Negative vector** `ck.vector.federation.idempotency_after_key_revoke.v1` 覆盖：(a) origin service key revoke 后同 Idempotency-Key 重放 ⇒ destination 返回 historical_only；(b) origin service binding 被 Realm policy 移除后重放 ⇒ destination 返回 capability_denied；(c) origin_key_state_digest 不一致即使 cache 命中也 MUST 重做完整授权判定。

@@ -1138,6 +1138,58 @@
       "notes": "Policy check chain bare `actor` renamed to actor_id (did_id_suffix rule). Applies to PolicyCheckRequestBody.actor, PolicyCheckOutcome bound_to.actor, challenge obligation bound_to.actor and capability vector request.actor. Registered under the dotted bound_to.actor path because the bare token `actor` remains a legitimate enum value (resource selector kind, target.kind) and prose noun — literal scanners MUST NOT flag every `actor` token."
     },
     {
+      "id": "actor",
+      "context": "mimi_update_consent_request_body",
+      "since_revision": "2026-06-10",
+      "rejection_level": "hard_reject",
+      "replacement": "actor_id",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "MIMI consent update request body bare `actor` renamed to actor_id (did_id_suffix rule: protocol responsibility subjects use the _id suffix even when the value is a DID). Scoped to the mimi_update_consent_request_body context (mimi-operations.schema.json); the bare token `actor` remains a legitimate enum value and prose noun elsewhere — literal scanners MUST NOT flag every `actor` token."
+    },
+    {
+      "id": "requester",
+      "context": "mimi_request_consent_request_body",
+      "since_revision": "2026-06-10",
+      "rejection_level": "hard_reject",
+      "replacement": "requester_id",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "MIMI consent request body bare `requester` renamed to requester_id (did_id_suffix rule: protocol responsibility subjects use the _id suffix even when the value is a DID). Scoped to the mimi_request_consent_request_body context (mimi-operations.schema.json); `requester` remains in use on other interop request bodies (key material, identifier query, proxy download) and as a prose noun — literal scanners MUST NOT flag every `requester` token."
+    },
+    {
+      "id": "cotest_run_id",
+      "context": "service_describe_verified_profiles",
+      "since_revision": "2026-06-10",
+      "rejection_level": "hard_reject",
+      "replacement": "verification_run_id",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "ServiceDescribe.verified_profiles entry field cotest_run_id renamed to verification_run_id (conformance_verifier_neutralization): the wire contract binds to the neutral Conformance Verifier role (conformance-suite.md §6.2), not to a specific downstream tool name. cotest remains a legitimate informative prose name for the reference verifier implementation — literal scanners MUST NOT flag prose mentions of cotest."
+    },
+    {
+      "id": "cotest_issuer_did",
+      "context": "service_describe_verified_profiles",
+      "since_revision": "2026-06-10",
+      "rejection_level": "hard_reject",
+      "replacement": "verifier_did",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "ServiceDescribe.verified_profiles entry field cotest_issuer_did renamed to verifier_did (conformance_verifier_neutralization): the signing authority is the neutral Conformance Verifier role (conformance-suite.md §6.2), not a specific downstream tool name. The companion claim_kind enum value rename cotest_verified → conformance_verified is registered in renames.json (cotest_verified#service_describe_claim_kind)."
+    },
+    {
       "id": "name",
       "context": "directory_projection",
       "since_revision": "2026-05-24",

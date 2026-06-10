@@ -117,14 +117,15 @@ Move (reducer view of signed Event) {
 3. `anchor_ref` MUST 指向接收方已知的 Anchor DAG 节点，并且相对本地 current anchor view 不超过 Realm 声明的 `max_anchor_staleness_ms`。
 4. `refs[]` 是语义依赖，每个元素 `{id, role, critical?}`。常见 role 包括 `authorized_by`、`attestation`、`parent_event`、`after`、`audit_pair`（隐私敏感业务 Event 与 `ck.audit.accessed` 的同 batch 配对）、`recovery_capability`、`state_witness`（§8.1，conflict recovery Event 必备 — 引用签名 snapshot / compaction Anchor）、`inclusion_proof`（§8.1，conflict recovery Event 必备 — Merkle inclusion proof bytes 或 ref）。`critical` 默认 `true`；未识别的 critical role MUST fail closed，未识别的非 critical role MAY 被忽略。`role="authorized_by"` 的 `id` MUST 是 `ck:grant:<uuid>` 或 profile 明确注册的不可变 grant record id；不得引用裸 Event id、policy name、human-readable role 或可变 membership cell。reducer 必须能从该 id 反查 grant canonical digest、issuer、subject、actions、scope、parent grant 链和 revoke/supersede 状态。
 
-   **授权域 critical role 注册表（normative）**：除上列通用 role 外，委托 / 授权链路使用以下 role；每个 role 在此显式声明 critical 与否，消除 [`capabilities.md` §10.1 / §10.2](./capabilities.md) 防滚动续期与 cycle detection 依赖“未注册 role”的可实现性缺口（“未识别 critical role MUST fail closed”对这些 role 不再适用，因为它们已注册）：
+   **Critical role 注册表（normative）**：除上列通用 role 外，委托 / 授权链路与 lattice supersession 排序使用以下 role；每个 role 在此显式声明 critical 与否，消除 [`capabilities.md` §10.1 / §10.2](./capabilities.md) 防滚动续期与 cycle detection 依赖“未注册 role”的可实现性缺口（“未识别 critical role MUST fail closed”对这些 role 不再适用，因为它们已注册）：
 
    | role | critical | 语义与归属 |
    | --- | --- | --- |
-   | `parent_grant` | **critical (`true`)** | `ck.capability.delegate` event 指向父 grant id；cycle detection（§10.2）与 revoke 因果传播（§10.3）的图边来源。缺失或不可反查时 delegate Move MUST fail closed。 |
-   | `delegation_expiry_anchor` | **critical (`true`)** | 无限期 parent 派生 child 链时冻结的固定到期 anchor（capabilities §10.1“固定 anchor 防滚动续期”）。整条 child 链的 `effective_expires_at` MUST ≤ 该 anchor，re-delegate MUST NOT 刷新。携带它的 delegate Move 缺失该 anchor 绑定时 MUST fail closed。 |
-   | `auth_frontier` | 非 critical（advisory，`false`） | 记录签发时点 parent `auth_state_digest` / `auth_frontier`，用于审计 child grant 基于哪个 parent policy/frontier 派生（§10.2）。**它不替代实时 revoke/freshness 校验**：缺失时 reducer 仍 MUST 按当前 frontier 重新验证，因此标为非 critical。 |
-   | `policy_decision` | 非 critical（advisory，`false`） | 指向一次 `/_cokret/self/policy/check` 等 policy decision 的诊断引用，仅供审计；**MUST NOT** 被当作授权来源（grant 来源仍以 `authorized_by` 的 grant id 为准，见 capabilities §10.3）。缺失可忽略。 |
+   | `parent_grant` | **critical (`true`)** | `ck.capability.delegate` event 指向父 grant id；cycle detection（capabilities.md §10.2）与 revoke 因果传播（capabilities.md §10.3）的图边来源。缺失或不可反查时 delegate Move MUST fail closed。 |
+   | `delegation_expiry_anchor` | **critical (`true`)** | 无限期 parent 派生 child 链时冻结的固定到期 anchor（capabilities.md §10.1“固定 anchor 防滚动续期”）。整条 child 链的 `effective_expires_at` MUST ≤ 该 anchor，re-delegate MUST NOT 刷新。携带它的 delegate Move 缺失该 anchor 绑定时 MUST fail closed。 |
+   | `auth_frontier` | 非 critical（advisory，`false`） | 记录签发时点 parent `auth_state_digest` / `auth_frontier`，用于审计 child grant 基于哪个 parent policy/frontier 派生（capabilities.md §10.2）。**它不替代实时 revoke/freshness 校验**：缺失时 reducer 仍 MUST 按当前 frontier 重新验证，因此标为非 critical。 |
+   | `policy_decision` | 非 critical（advisory，`false`） | 指向一次 `ck.self.policy.check`（默认 path `/_cokret/self/policy/check`）等 policy decision 的诊断引用，仅供审计；**MUST NOT** 被当作授权来源（grant 来源仍以 `authorized_by` 的 grant id 为准，见 capabilities.md §10.3）。缺失可忽略。 |
+   | `after` | **critical（用作 supersession 排序边时，`true`）** | 声明跨 batch 的 supersession 边：携带方 Move 取代其指向的 predecessor Move。当被 `mv_register`（§5.3.2）或 `cas_register`（§5.3.3）join 用于 supersession / 链化排序时，该 ref MUST 视为 critical，MUST NOT 按非 critical role 忽略，且 MUST 可反查到已 anchored 的 predecessor Event；缺失或不可反查时该边 MUST NOT 参与排序，受影响 candidate 按并发多 head 处理（确定性 fallback 见 §5.3.2），实现 MUST NOT 静默选边。 |
 
    advisory（非 critical）授权域 role 的缺失 MAY 被忽略，但实现 MUST NOT 因为存在 `auth_frontier` / `policy_decision` ref 就跳过实时授权校验。
 5. `hlc` 是诊断与 freshness 辅助字段，不参与 winner 选择；核心收敛由 Anchor 与 Lattice 决定。
@@ -464,7 +465,7 @@ Flow position 冲突的影响是第一类：该 Flow 的 canonical placement 未
 | --- | --- | --- |
 | `or_set` | 永不 | bottom=expose 仅用于多 head 场景的 add/remove 并发可视化 |
 | `mv_register` | 永不 reject；多值即 expose | bottom=expose 是常态：projection 暴露多个 head 给 UI，授权路径 MUST NOT 据此选 winner |
-| `cas_register` | 出现：并发不同 set + 不同 basis 时返回 ⊥ | bottom=reject 是标准（anchorer / 关键 singleton）；依赖该 cell 的 Move fail closed |
+| `cas_register` | 出现：并发不同 set + 不同 basis 时返回 ⊥（非初始态缺 `head_eq` 的盲写在 verify_move 阶段即 `failed_precondition`，不进入 join，见 §5.3.3 Basis 强制） | bottom=reject 是标准（anchorer / 关键 singleton）；依赖该 cell 的 Move fail closed |
 | `fsm` | 出现：非法 transition / 并发 divergent next_state 时返回 ⊥ | bottom=reject 是标准（membership / lifecycle / invite-approval）|
 | `counter` | 永不 | bottom=expose 仅在配额跨界等场景作诊断 |
 | `ordered_log` | 永不 | bottom=expose 用于审计、消息历史；并发 append 不阻塞 |
@@ -535,25 +536,34 @@ validate_op(op):
   op.value satisfies schema
 ```
 
+**Supersession 偏序（normative）**：join 中 `m' > m` 的偏序按下列规则定义：
+
+- **基础边**：candidate Move A 携带 `refs[role="after"]` 指向 candidate Move B（以 B 的 `event_id` / `event_digest` 引用）时，记 A > B。该边仅当 A、B 均已 anchored、且 B 可在本地反查到对应 Event 时成立（见 §3 critical role 注册表 `after` 行）。
+- **传递闭包**：`>` 取上述基础边的传递闭包——A `after` B、B `after` C ⇒ A > C，即 A 同时覆盖 B 与 C。
+- **断链语义与确定性 fallback**：链上任一 predecessor 缺失、未 backfill 或不可反查时，缺失边 MUST NOT 参与闭包计算；受其影响的 candidate 按并发处理，全部保留为 exposed heads（退化为多 head expose）。实现 MUST NOT 因为部分链可达就静默选边，也 MUST NOT 用 HLC、接收顺序或 issuer id 补序；predecessor backfill 之后按同一规则确定性重算。
+
 `bottom=expose` 是 mv_register 的常态：projection 以 `{status:"conflict", heads:[...]}` 暴露多值。授权路径 MUST NOT 用 mv_register 表达。
 
 #### 5.3.3 `cas_register`
 
-Compare-and-swap register。Move 通过 precondition `head_eq` 声明 basis；并发不同 set 返回 `⊥`。Move 的因果序由 (a) Anchor batch 包含关系，与 (b) 跨 batch 时 `Move.refs(role="after")` 显式声明给出；同 Anchor batch 内的 sibling Moves 视为并发。
+Compare-and-swap register。Move 通过 precondition `head_eq` 声明 basis；并发不同 set 返回 `⊥`。Move 的因果序由 (a) Anchor batch 包含关系，与 (b) 跨 batch 时 `Move.refs(role="after")` 显式声明给出（`after` 边的偏序、反查与断链 fallback 语义同 §5.3.2）；同 Anchor batch 内的 sibling Moves 视为并发。
 
-**Cell schema 可选参数 `initial_value`**：cas_register cell schema MAY 声明 `initial_value`，该值在 cell 未被任何 Move 写过时作为 `current` 的初值。算法第一行原本 `current = null`，schema 声明 `initial_value` 时改为 `current = initial_value`。**单例 cell 模式**：schema 声明 `initial_value = "<sentinel>"` 时，配合 `head_eq: "<sentinel>"` predicate 的第一次 set Move 才能成功；后续 Move 因 `basis ≠ settled and basis is not null` 触发 `⊥`，从而强制 singleton 语义。
+**Basis 强制（normative）**：cas_register 的 set effect 在目标 cell 的 settled 值为**非初始态**（不等于 `cell_schema.initial_value`；未声明 `initial_value` 时即不为 `null`）时，MUST 在同一 Move 上携带针对**本 cell** 的 `head_eq` precondition；缺失时，receiver MUST 在 verify_move（§6）阶段以 `failed_precondition` 拒绝该 Move 对该 cell 的 effect（按 §3 规则 2 多 cell 原子性，即整个 Move FAIL），不接受“无 CAS 强制写”。省略 `head_eq`（null basis）**仅**在 settled 为初始态时放行，用于 first set。[`operations-sync.md` §9.1](../sync/operations-sync.md) 对 `ck.flow.move` 的既有规则（非初始态下省略 `expected_position` MUST `failed_precondition`）是本条的实例；本条把它泛化为所有 cas_register cell 的 lattice 级通用要求。policy 明确允许“无条件覆盖”的特殊场景（如管理员强制重置）MUST 使用 profile 显式注册的专门高权限 event kind 或 §8 conflict-recovery 路径表达，而不是省略普通 set Move 的 `head_eq`。
+
+**Cell schema 可选参数 `initial_value`**：cas_register cell schema MAY 声明 `initial_value`，该值在 cell 未被任何 Move 写过时作为 `current` 的初值。算法中 `initial` 即该初值（未声明时为 `null`），`current` 从 `initial` 起步。**单例 cell 模式**：schema 声明 `initial_value = "<sentinel>"` 时，配合 `head_eq: "<sentinel>"` predicate 的第一次 set Move 才能成功；后续携带过期 basis 的 Move 因 `basis ≠ settled` 触发 `⊥`，省略 `head_eq` 的 Move 因 settled 非初始态在 verify_move 阶段被 `failed_precondition` 拒绝（见上方 Basis 强制），从而强制 singleton 语义。
 
 ```text
 join(moves, cell_schema) -> value | ⊥:
   // 按 Anchor batch index 升序 + 同 batch 内按 head_eq 链化（pre-state value → effect value）
   // 跨 batch 时若需要绕过 head_eq 链化，使用 Move.refs(role="after")
-  current = cell_schema.initial_value if defined else null
+  initial = cell_schema.initial_value if defined else null
+  current = initial
   for batch in moves grouped by anchor_ref ordered by anchor index:
     settled = current
     siblings = []
     for M in batch with effect on this cell:
       pre = find precondition(head_eq) on this cell in M
-      basis = pre.value if pre else null   // null = 允许 first set
+      basis = pre.value if pre else null   // null basis 仅在 settled == initial 时合法（first set）
       siblings.append((basis, M.effect.value))
     if ∃ siblings (b1, v1), (b2, v2) with b1==b2 and v1!=v2:
       return ⊥
@@ -562,7 +572,12 @@ join(moves, cell_schema) -> value | ⊥:
       if count(distinct(siblings.map(b))) > 1:
         return ⊥
       basis_required = unique(siblings.map(b))
-      if basis_required != settled and basis_required is not null:
+      if basis_required is null:
+        if settled != initial:
+          return ⊥                // 非初始态盲写：此类 Move 本应已在 verify_move 阶段
+                                  // 以 failed_precondition 拒绝（见上方 Basis 强制）；
+                                  // join 防御性兜底为 ⊥，MUST NOT 当作合法覆盖
+      else if basis_required != settled:
         return ⊥                  // basis 不匹配 pre-state
       if count(distinct(siblings.map(v))) > 1:
         return ⊥
@@ -637,11 +652,20 @@ join(moves) -> integer:
       per_issuer_tag[key] = (pos, neg)
   return  Σ (pos - neg) over all keys
 
-validate_op(op):
+validate_op(op, cell_schema, pre_state_value):
   op.type ∈ {inc, dec}
-  op.value is a non-negative integer (overflow guard at parameters.max)
+  op.value is a non-negative integer
+  // 边界检查（normative）：越界 op 在 validate_op 阶段拒绝，不进入 join
+  if parameters.max is defined and op.type == "inc"
+     and pre_state_value + op.value > parameters.max:
+    FAIL_PRECONDITION(reason=counter_bound_exceeded)
+  if parameters.min is defined and op.type == "dec"
+     and pre_state_value - op.value < parameters.min:
+    FAIL_PRECONDITION(reason=counter_bound_exceeded)
   op.tag is optional but, when present, MUST match schema tag pattern
 ```
+
+**边界规则（normative）**：cell schema MAY 在 `parameters` 中声明 `max`（与可选的 `min`）。声明后，任何使该 cell 在 batch pre-state 下的累计值越过 `parameters.max`（或低于 `parameters.min`）的 inc / dec op MUST 在 validate_op / verify_move 阶段以 `failed_precondition`（`reason=counter_bound_exceeded`）拒绝，不进入 join。join 本身保持上述无界 PN 求和定义，因此 counter 的 join 永不返回 `⊥`（与 §5.1 对照表一致）。同一 batch 内多个各自通过 validate_op 的并发 op 求和后仍可能越界——此时 join 照常返回求和值，越界情况作为 `bottom=expose` 类诊断暴露（§5.1 对照表 counter 行）；后续越界 op 在新的 pre-state 下被 validate_op 拒绝。
 
 `bottom` 永远不出现。`bottom=expose` 仅在配额跨界等场景下作为诊断（actual value still defined）。
 
@@ -799,6 +823,10 @@ verify_move(M, pre_state):
        if not predicate(v): FAIL_PRECONDITION
   5. 对每个 (cell, op):
        schema.lattice(cell).validate(op)
+       if schema.lattice(cell).type == cas_register and op.kind == "set"
+          and pre_state[cell] != (schema.lattice(cell).initial_value if defined else null)
+          and M 无针对本 cell 的 head_eq precondition:
+         FAIL_PRECONDITION       // §5.3.3 Basis 强制：非初始态盲写
        self.authz.check(M.issuer, cell, op, M.refs)
   6. PASS
 ```

@@ -22,7 +22,7 @@ Circle 可以是 plaintext delivery-only scope，也可以是 MLS-backed cryptog
 
 ## 2. 设计原则
 
-1. **平面化，不嵌套**:Circle 不允许 `parent_circle_ref`。需要交叉成员关系时,actor 同时属于多个 Circle 即可；不需要 hierarchy。这条沿用 [`realm-links.md` §2.1](./realm-links.md) "link graph not tree" 的教训。
+1. **平面化，不嵌套**:Circle 不允许 `parent_circle_ref`。需要交叉成员关系时,actor 同时属于多个 Circle 即可；不需要 hierarchy。这条沿用 [`realm-links.md` §2](./realm-links.md) "link graph not tree" 的教训。
 2. **真子集 membership**:`Circle.members ⊆ Realm.members`,reducer 硬约束。
 3. **加密不降级父 Realm floor**:Circle 的 `encryption_profile` 可为 `none` 或 `mls_rfc9420`，但不得低于父 Realm / policy 的内容加密下限；E2EE Realm 或 `content_encryption_floor=e2ee_required` 下 MUST 为 `mls_rfc9420`。
 4. **MLS 独立，不可派生**:当 Circle 为 `mls_rfc9420` 时，其 MLS group 是独立 epoch 链,**MUST NOT** 从 Realm-default MLS group key 派生 Circle key。
@@ -71,6 +71,8 @@ Schema id: `ck.schema.circle.v1`
 **颜色 token 与 symbol 必须在 spec 受控集中**,目的是同一 Circle 在 Alice 与 Bob 的客户端上呈现一致视觉，否则跨设备社会工程攻击成立。
 
 ## 5. Event 家族
+
+本表为说明视图；完整集合与 `wire_scope` / `reducer_input` / lattice 属性以 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 为准。
 
 | event kind | reducer_input | payload 形态 | 说明 |
 | --- | --- | --- | --- |

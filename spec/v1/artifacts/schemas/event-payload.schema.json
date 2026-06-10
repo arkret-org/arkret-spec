@@ -1899,6 +1899,10 @@
         "expires_at": {
           "$ref": "#/$defs/nullable_timestamp"
         },
+        "supersedes_status_event_id": {
+          "$ref": "#/$defs/event_ref",
+          "description": "Event id of the ck.account.status event being superseded. Required by zh/identity/account-lifecycle.md §3 rule 2 when lowering severity (e.g. back to active after appeal). MUST NOT be used to downgrade erasure_pending (reason_code erasure_pending_is_terminal)."
+        },
         "admin_proof": {
           "$ref": "#/$defs/signature_material"
         }
@@ -2231,10 +2235,11 @@
         },
         "gate_proofs": {
           "type": "array",
+          "maxItems": 16,
           "items": {
             "type": "object"
           },
-          "description": "Join-policy gate proofs evaluated by governance/join-policy.md before accepting membership=join."
+          "description": "Join-policy gate proofs evaluated by governance/join-policy.md before accepting membership=join. maxItems aligns with the gates 1..16 bound in join_policy_payload; see zh/conformance/scalability-constraints.md."
         },
         "via_service_dids": {
           "type": "array",
@@ -2727,7 +2732,8 @@
                   "items": {
                     "$ref": "#/$defs/did"
                   },
-                  "minItems": 1
+                  "minItems": 1,
+                  "uniqueItems": true
                 }
               },
               "additionalProperties": false
@@ -2771,7 +2777,10 @@
                   "type": "object",
                   "properties": {
                     "kind": {
-                      "const": "application_form"
+                      "enum": [
+                        "application_form",
+                        "manual_review"
+                      ]
                     }
                   },
                   "required": [
@@ -7469,6 +7478,7 @@
         },
         "participants": {
           "type": "array",
+          "maxItems": 1000,
           "items": {
             "$ref": "#/$defs/call_participant"
           }

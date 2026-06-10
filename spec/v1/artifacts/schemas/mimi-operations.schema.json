@@ -538,12 +538,12 @@
     "mimi_request_consent_request_body": {
       "type": "object",
       "required": [
-        "requester",
+        "requester_id",
         "target",
         "purpose"
       ],
       "properties": {
-        "requester": {
+        "requester_id": {
           "$ref": "#/$defs/did"
         },
         "target": {
@@ -596,7 +596,7 @@
       "required": [
         "consent_id",
         "decision",
-        "actor",
+        "actor_id",
         "signature"
       ],
       "properties": {
@@ -611,7 +611,7 @@
             "revoke"
           ]
         },
-        "actor": {
+        "actor_id": {
           "$ref": "#/$defs/did"
         },
         "signature": {

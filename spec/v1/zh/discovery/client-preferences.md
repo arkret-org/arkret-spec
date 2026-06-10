@@ -62,6 +62,17 @@ updated: 2026-06-10
 
 客户端 SHOULD 根据这些标签将 Realm 在 UI 上分组或排序。`order` 是用于自定义排序的稳定 rank string（跨端确定性见 §6；客户端 MAY 在 UI 内用 float 计算临时位置，但写回 account data 时 MUST 归一为规范 rank string）。
 
+**Tag 命名保留规则（normative）**：`ck.*` tag 命名空间保留给本规范；客户端扩展 tag MUST 使用 `<vendor>.*` 反向域名风格前缀（例如 `org.example.work`）。§3.6 / §3.7 的私有 `tags` 字段沿用同一命名规则。
+
+**标准 tag 词表（normative）**：
+
+| tag | 语义 | 客户端行为 |
+| --- | --- | --- |
+| `ck.favorite` | 收藏 | 客户端 SHOULD 在分组 / 排序中置顶展示。 |
+| `ck.low_priority` | 低优先级 | 客户端 SHOULD 降权展示（折叠、置底或降低通知突出度）。 |
+
+未识别的 `ck.*` tag MUST 原样保留（存储与回写），客户端 MAY 不渲染；新增标准 tag MUST 登记到本词表。
+
 ### 3.2 勿扰与通知设置 (Notification Settings)
 
 控制各个 Realm 或全局的通知覆盖行为（详见 `push-notifications.md`）。

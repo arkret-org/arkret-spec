@@ -556,6 +556,15 @@
       ]
     },
     {
+      "vector_id": "ck.vector.federation.timing_bucket.v1",
+      "status": "active",
+      "domain": "federation",
+      "description": "Federation ingress authentication-failure family (unknown peer / not authorized / target absent) returns indistinguishable responses within one timing bucket per relation.md section 4.5 sampling rules.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ck.vector.flow_tracks_update.atomic.v1",
       "status": "active",
       "domain": "flow_tracks_update",
@@ -631,6 +640,24 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/sync/third-party-invites.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.key_backup.kdf_floor_rejected.v1",
+      "status": "active",
+      "domain": "key_backup",
+      "description": "New passphrase_kdf backup envelopes below the unconditional base KDF floor (Argon2id memory_kib>=65536 / iterations>=3 / parallelism>=1; PBKDF2 iterations>=600000 with allowed digest_algorithm) MUST be rejected.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.key_backup.unlock_proof.v1",
+      "status": "active",
+      "domain": "key_backup",
+      "description": "Key backup retrieval requires a session-bound unlock proof (ck.schema.key_backup_unlock_proof.v1); any binding mismatch or bearer-token-only access fails closed before ciphertext is returned.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
@@ -838,6 +865,24 @@
       ]
     },
     {
+      "vector_id": "ck.vector.moderation.appeal_atomicity.v1",
+      "status": "active",
+      "domain": "moderation",
+      "description": "Appeal verdict transitions are atomic: overturn without a same-batch ck.moderation.decision.lift is rejected with appeal_overturn_missing_lift; modify requires a same-batch new decision matched by modify_decision_ref.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.moderation.franking_roundtrip.v1",
+      "status": "active",
+      "domain": "moderation",
+      "description": "E2EE franking proof construction, report submission, and moderator-side verification roundtrip per content-moderation.md section 3.4; digest mismatch or minimal-disclosure violations downgrade or reject the proof.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ck.vector.move_anchor_lattice.anchor_batch_pre_state.v1",
       "status": "active",
       "domain": "move_anchor_lattice",
@@ -878,6 +923,15 @@
       ]
     },
     {
+      "vector_id": "ck.vector.move_anchor_lattice.cas_mixed_basis.v1",
+      "status": "active",
+      "domain": "move_anchor_lattice",
+      "description": "cas_register basis enforcement: blind set without head_eq on a non-initial settled cell fails verify_move with failed_precondition; set with the correct head_eq converges.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ck.vector.move_anchor_lattice.mls_covered_frontier.v1",
       "status": "active",
       "domain": "move_anchor_lattice",
@@ -897,6 +951,24 @@
       "vector_id": "ck.vector.move_anchor_lattice.signed_compaction_equivalent.v1",
       "status": "active",
       "domain": "move_anchor_lattice",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.policy_server.decision_replay_rejected.v1",
+      "status": "active",
+      "domain": "policy_server",
+      "description": "Expired policy decisions and decisions bound to an older auth/policy/membership frontier MUST be rejected on replay; receivers fail closed and re-request the policy check.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.policy_server.request_digest_recompute.v1",
+      "status": "active",
+      "domain": "policy_server",
+      "description": "Receivers recompute the RFC 8785 JCS request_canonical_digest of the presented request body; mismatch with the signed bound_to transcript MUST reject the decision.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
@@ -1206,6 +1278,26 @@
       "profile": "ck.profile.move_anchor_lattice_vectors.v1",
       "domain": "lattice",
       "description": "ordered_log join/validate_op convergence for same Move set.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.lattice.fsm_join.v1",
+      "status": "active",
+      "profile": "ck.profile.move_anchor_lattice_vectors.v1",
+      "domain": "lattice",
+      "description": "fsm join: identical (from,to) sibling transitions in one Anchor batch converge idempotently; same-from different-to siblings return bottom (reject path).",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.lattice.ordered_log_gap.v1",
+      "status": "active",
+      "profile": "ck.profile.move_anchor_lattice_vectors.v1",
+      "domain": "lattice",
+      "description": "ordered_log issuer sub-chain seq gap yields contiguous_prefix plus pending_gap diagnostics; deterministic recompute after backfill.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]

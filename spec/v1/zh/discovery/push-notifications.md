@@ -204,7 +204,7 @@ Track 不持有独立 membership / 权限（见 [`../models/flow-and-message.md`
   - `ck.flow.tracks.update`（track 配置 / primary / enabled 变更）→ patch 影响的每个 track key 各派生一条 `track_name`；同时影响多个 track 时 server 派生 set，`flow_track` pattern 匹配任一即匹配
   - `ck.flow.watch.set` → `track_name` 不派生（watch 是个人偏好，不属于任一 track 时间线）；`flow_track` condition 视为不匹配
 - Event 不属于任何 Flow（普通 Realm 消息）→ `flow_track` condition 视为不匹配（既不为真，也不报错）；用户希望覆盖普通 Realm 消息时应使用 `field_match` on `realm_id` 而非 `flow_track`
-- Flow 设置了 `scope_circle_id` 指向 Circle → Flow 的所有 track（含 discussion）的 `ck.message.*` 落在该 [Circle](../models/circle.md) scope；server MUST 按 §3.8 投递不变量校验通知 receiver 属于该 Circle 成员集合，否则 MUST `dont_notify` 并不暴露该 Flow 的存在性（与 [`../models/circle.md` §9.3](../models/circle.md) 一致）。
+- Flow 设置了 `scope_circle_id` 指向 Circle → Flow 的所有 track（含 discussion）的 `ck.message.*` 落在该 [Circle](../models/circle.md) scope；server MUST 校验通知 receiver 属于该 Circle 成员集合，否则 MUST `dont_notify` 并不暴露该 Flow 的存在性（与 [`../models/circle.md` §9.3](../models/circle.md) 一致）。
 
 `flow_track` MUST NOT 携带任何正文或 mention 信息进入推送 payload；它只参与 server-side 规则匹配并影响 `notify` / `dont_notify` 的最终决定。在 E2EE Realm 中，由于 track name 是公开 Flow 配置（非密文），此条件不需要 §4.5 的降级流程，仍按 `evaluation_locus: server` 评估。
 
@@ -244,7 +244,7 @@ Track 不持有独立 membership / 权限（见 [`../models/flow-and-message.md`
 
 **两层职责**：
 
-- **Watch level 决定"通知是否发生"**：Sync Service 在派发前解析 receiver effective level（含 §8.7 隐含订阅、`muted` 覆盖）。effective level 为 `mentions_only` 且当前 Event 不是 mention / assigned / reply 等定向事件时，结果为 `dont_notify`。
+- **Watch level 决定"通知是否发生"**：Sync Service 在派发前解析 receiver effective level（含 [`../models/flow-and-message.md` §8.7](../models/flow-and-message.md) 隐含订阅、`muted` 覆盖）。effective level 为 `mentions_only` 且当前 Event 不是 mention / assigned / reply 等定向事件时，结果为 `dont_notify`。
 - **Push rule 决定"通知如何投递"**：在 watch level 允许通知发生的前提下，push rule 决定提示音、是否高亮、是否进 DND 例外等。
 
 **`muted` 强约束的实现自由度**：`watch_state=muted` MUST 收敛到 `dont_notify`，但实现可以在以下三种等价路径中任选：

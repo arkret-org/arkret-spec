@@ -83,6 +83,11 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 | `applicant_visibility` | no | `enum(reviewer_only, members_after_join, public)` | 默认 `reviewer_only`。 | 申请正文谁可见；`members_after_join` 表示 join 成功后开放给 Realm 成员（用于自我介绍场景）。 |
 | `directory_hint` | no | `object` | 见 §3.2。 | Discovery Directory 公开投影所需 hint。 |
 
+**`reviewer_quorum` 解析规则（normative）**：
+
+- object 形式 `{ threshold, reviewers }`（N-of-M）写入时，reducer MUST 校验 `threshold <= |unique reviewers|`（`reviewers[]` 按 DID 去重后的元素数；[`event-payload.schema.json#/$defs/join_policy_payload`](../../artifacts/schemas/event-payload.schema.json) 已对 `reviewers` 声明 `uniqueItems: true`）。不满足时 MUST 以 `schema_violation` 拒绝该 policy 写入。
+- `majority` / `all` 的分母（reviewer 总数）与单个 reviewer 的资格（是否持有 `review_capability`）MUST 按**各 review accept event 所在 Anchor pre-state** 取值（与 §5 "Gate predicate 评估时点"同一模型）。某条 accept 按其 pre-state 计入后，该 reviewer 在后续 Anchor 失去 capability **不**追溯使既有 accept 失效；它只影响该 reviewer 此后新的 review 决策与新 envelope 投递（§8.2）。
+
 ### 3.1 Gate 类型
 
 每个 Gate 是 typed flat object，复用 [`../authz/constraint-schema.md` §2.1](../authz/constraint-schema.md) 的扁平结构传统：
@@ -188,6 +193,8 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 ```
 
 `auto_reject_if_choice_in` 让 reducer / 审核服务对明显错误答案直接生成 `decision=reject`，不进入人工队列。
+
+单个 `application_form` gate 的 `questions[]` MUST ≤ 64 项（v1 wire 上限，见 [`../conformance/scalability-constraints.md` §5](../conformance/scalability-constraints.md)）；超过时 MUST `schema_violation`。
 
 ## 4. 与 `default_join_rule` 的交叉表
 
@@ -298,7 +305,7 @@ reducer MUST 接受 stage 1 与 stage 2 在同一 batch 内提交；client SHOUL
 | `applicant_note` | no | `string` | 1..2000 chars 自由文本备注。 |
 | `encryption_envelope` | conditional | `object` | E2EE Realm 必填；见 §8。 |
 
-`Answer` 形态：`{question_id, value: string|string[]|boolean}`；reducer 仅做存在性 / shape 校验，语义评估留给 reviewer。
+`Answer` 形态：`{question_id, value: string|string[]|boolean}`；reducer 仅做存在性 / shape 校验，语义评估留给 reviewer。`answers[]` MUST ≤ 64 项（与 §3.3 `questions[]` 上限对齐）、`gate_proofs[]` MUST ≤ 16 项（与 §3 `gates` 1..16 上限对齐）；超过时 MUST `schema_violation`（v1 wire 上限，见 [`../conformance/scalability-constraints.md` §5](../conformance/scalability-constraints.md)）。
 
 ### 7.3 `member.application.review`
 
@@ -314,7 +321,7 @@ reducer MUST 接受 stage 1 与 stage 2 在同一 batch 内提交；client SHOUL
 | `evidence_refs` | no | `event_ref[]` / `hash[]` | 评审依据的其它 event 或 signed receipt（如 `ck.audit.*` 风险记录）。 |
 | `reviewer_capability_proof` | yes | `object` | 引用授予 reviewer `review_capability`（§3 中那个 capability **action token**）的 **grant id** 与当时 frontier digest；reducer 必须在写入时再校验一次。注意：本字段承载 grant id 引用，`review_capability` 承载 action token，二者勿混用。 |
 
-`reviewer_quorum != "any"` 时，reducer 需收集 N 个独立 reviewer 的 accept 才认为申请进入 `accepted` 状态；任一 reject 即终止。
+`reviewer_quorum != "any"` 时，reducer 需收集 N 个独立 reviewer 的 accept 才认为申请进入 `accepted` 状态；任一 reject 即终止。quorum 判定 MUST 遵循 §3 的 `reviewer_quorum` 解析规则：`majority` / `all` 的分母与 reviewer 资格按各 accept event 所在 Anchor pre-state 取值；accept 计入后 reviewer 失去 capability 不追溯使该 accept 失效。
 
 **review reason_code / reason_text 可见性（normative）**：§7.3 的细粒度 `reason_code` 与 `reason_text` 只在 applicant **已提交 stage 1 `ck.member.state{knock}`**（即进入半信任的申请-审核状态机）后，才 MAY 对该 applicant 自身可见。这与 §5 自动解析路径"外部 applicant 失败不可枚举"不冲突：尚未 knock 的外部探测者仍只能看到统一不可枚举错误，细粒度 review 原因 MUST NOT 出现在 directory hint、discovery surface、push / notification payload 或任何未经 knock 的 caller 可见响应中。换言之，半信任边界由"是否已 knock"划定——knock 之前等同自动路径的不可枚举约束，knock 之后才解锁面向本人的 review reason。
 
@@ -326,7 +333,7 @@ applicant 可主动撤回；写入独立 `member.application.cancel` record，�
 
 application 进入 `accepted` 状态后：
 
-1. 任一 reviewer 提交 `ck.invite.create`，`refs[role="join_authorised_by"]` MUST 引用对应 `member.application.review{accept}` 的 signed review receipt digest；若实现 profile 已注册私有 review Event kind，MAY 引用该 Event id；
+1. 任一 reviewer 提交 `ck.invite.create`，`refs[role="join_authorised_by"]` MUST 引用对应 `member.application.review{accept}` 的 signed review receipt digest；若实现 profile 已注册私有 review Event kind，MAY 引用该 Event id。`reviewer_quorum` 为 object 形式（N-of-M）时，`refs[role="join_authorised_by"]` MUST 引用**满足 `threshold` 的全部** review accept receipt digest（每条计入 quorum 的 accept 各一条 ref），使 reducer 与审计方可独立复核 quorum 在引用的 accept 集合上成立；
 2. applicant 提交 `ck.invite.accept`；
 3. reducer 在写入 `ck.invite.create` 时再次校验：被引用的 review accept 仍指向尚未消费的 application（防止同一 accept 被复用）、reviewer 在当前 frontier 仍持有 `review_capability`、application 未过 `application_ttl`、未被后续 `reject` / `cancel` 覆盖。
 
@@ -354,24 +361,32 @@ Realm 主 MLS group 不包含尚未 join 的 applicant，因此申请正文不�
    - applicant 加入 reviewer sub-group 的 commit 与将其移出的 commit MUST 在**同一或紧邻的 commit**内完成——投递正文后 applicant MUST 立刻被 remove，sub-group MUST 推进到不含该 applicant 的新 epoch；reducer / sub-group 维护方 MUST NOT 让 applicant 停留在 roster 中跨越多个 epoch。
    - MLS forward secrecy MUST 保证 applicant 仅能解密自己投递的那条 application message 所在 epoch 的密钥材料，不能解密其加入之前或被移出之后的任何 sub-group epoch。
    - 若实现无法保证上述单向移出（例如批处理无法在同一 Anchor batch 内完成 add+remove），SHOULD 改用 §8.2(2) Envelope Encryption 路径——后者天然单向，applicant 只持有面向 reviewer 的封装能力、无任何 sub-group 解密能力。
-2. **Envelope Encryption to Reviewer Devices**：当 reviewer 数小于阈值（默认 `<=5`）或 sub-group 维护成本不可接受时，applicant 可使用 `encryption_envelope` 字段对 reviewer 当前已 published `ck.mls.keypackage` 的接收方公钥逐一封装：
+2. **Envelope Encryption to Reviewer Devices**：当 reviewer 数小于阈值（默认 `<=5`）或 sub-group 维护成本不可接受时，applicant 可使用 `encryption_envelope` 字段，对 reviewer set 中每个 reviewer 的每台有效 device 的专用 `hpke_key`（device record 公布的 X25519 HPKE 接收公钥，见 [`../crypto-media/device-lifecycle.md` §4](../crypto-media/device-lifecycle.md)）逐一封装 content key：
+
+   - **接收公钥（normative）**：envelope 接收键 MUST 是目标 device 当前 device record 中的 `hpke_key`。**MUST NOT 以 MLS KeyPackage init key（`ck.mls.keypackage`）作为 envelope 接收键**——KeyPackage init key 是一次性 MLS join 材料，挪作通用 HPKE 接收键会破坏其一次性使用语义并构成跨协议密钥复用。
+   - **scheme（normative）**：`scheme` MUST 为已注册的 `ck.hpke_x25519_aead_xchacha20poly1305.v1`（用法与 [`../crypto-media/device-lifecycle.md` §10.7](../crypto-media/device-lifecycle.md) 的 `ck.secret.send` 一致）。
+   - **HPKE `info` 域分隔与 AAD 绑定（normative）**：每个 recipient 的 HPKE 封装 MUST 使用 `info = "ck.realm.member_application.envelope.v1" || 0x00 || <realm_id> || 0x00 || <application_ref>`（三段以单字节 `0x00` 连接；`application_ref` 取 §7.2 的 `application_receipt_digest`，封装时刻 receipt 尚未生成的实现 MUST 改用 stage 1 `knock_ref` event id，并在 profile 中固定所选形态）。HPKE AAD MUST 是对 `{realm_id, applicant_did, application_ref, device_id}`（`device_id` 为该 recipient 的目标 device）的 canonical JSON（RFC 8785 JCS）。`info` 域分隔与 AAD 共同把密文绑定到目标 Realm、本次申请与接收设备，防止 envelope 被搬运到其它 Realm / application / device 重放或解封。
+   - **recipients 上限**：`encryption_envelope.recipients[]` ≤ 64（v1 wire 上限，见 [`../conformance/scalability-constraints.md` §5](../conformance/scalability-constraints.md)）；超过时 MUST `schema_violation`。
 
 ```json
 {
   "encryption_envelope": {
-    "scheme": "hpke-base-x25519-aes256gcm",
+    "scheme": "ck.hpke_x25519_aead_xchacha20poly1305.v1",
+    "info": "ck.realm.member_application.envelope.v1 || 0x00 || ck:realm:0196419b-0000-7000-8000-000000000000 || 0x00 || sha256:...",
     "ciphertext": "base64url:...",
     "recipients": [
-      {"reviewer_did": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice", "device_id": "ck:device:...", "wrapped_key": "base64url:..."},
-      {"reviewer_did": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:carol", "device_id": "ck:device:...", "wrapped_key": "base64url:..."}
+      {"reviewer_did": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice", "device_id": "ck:device:...", "recipient_hpke_kid": "did:webvh:...#ck_device_01HV_hpke", "enc": "base64url:...", "wrapped_key": "base64url:..."},
+      {"reviewer_did": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:carol", "device_id": "ck:device:...", "recipient_hpke_kid": "did:webvh:...#ck_device_01HW_hpke", "enc": "base64url:...", "wrapped_key": "base64url:..."}
     ]
   }
 }
 ```
 
+（示例中 `info` 为说明性展开，wire 上由收发两端按上文规则确定性重建，不要求随密文携带；`enc` 是每个 recipient 的 HPKE（RFC 9180）KEM 封装输出。）
+
 reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applicant 重提。
 
-**Envelope recipient capability 绑定（normative）**：`encryption_envelope.recipients[]` 中列出的每个 reviewer device，applicant / 提交服务在构造 envelope 时 MUST 校验其对应 reviewer DID 在该 Anchor pre-state 下仍持有有效 `review_capability`，且该 device 仍是该 reviewer 当前有效 device；MUST NOT 向已撤销 capability 或已退役 device 封装 `wrapped_key`。reducer / 投递服务在投递**新** envelope 时 SHOULD 拒绝向已失去 `review_capability` 的 device 投递，reason `reviewer_capability_revoked`。注意这是 best-effort 前向控制：**reviewer 退职前已经解密的历史 application 正文无法被协议回收**——一旦某 device 在持有有效 capability 期间收到并解出 `wrapped_key`，撤销 capability 只能阻止后续新 envelope 投递，不能撤销既有明文副本。需要严格前向保密的部署 SHOULD 改用 §8.2(1) Reviewer Sub-Group MLS 并在 reviewer 退职时 rotate epoch。
+**Envelope recipient capability 绑定（normative）**：`encryption_envelope.recipients[]` 中列出的每个 reviewer device，applicant / 提交服务在构造 envelope 时 MUST 校验其对应 reviewer DID 在该 Anchor pre-state 下仍持有有效 `review_capability`，且该 device 仍是该 reviewer 当前有效 device；MUST NOT 向已撤销 capability 或已退役 device 封装 `wrapped_key`。reducer / 投递服务在投递**新** envelope 时 MUST 对每个 recipient device 重新校验上述两项（reviewer DID 仍持有有效 `review_capability`、device 仍有效未退役），任一不满足 MUST 拒绝向该 device 投递，reason `reviewer_capability_revoked`。注意这是 best-effort 前向控制：**reviewer 退职前已经解密的历史 application 正文无法被协议回收**——一旦某 device 在持有有效 capability 期间收到并解出 `wrapped_key`，撤销 capability 只能阻止后续新 envelope 投递，不能撤销既有明文副本。需要严格前向保密的部署 SHOULD 改用 §8.2(1) Reviewer Sub-Group MLS 并在 reviewer 退职时 rotate epoch。
 
 申请正文 MUST NOT 进入 `ck.member.state{knock}` Move（该 Move 公开），所有自由文本仅出现在受加密保护的 `member.application.encryption_envelope` 中。Matrix `m.room.member{knock}.reason` 因默认对部分客户端可见而成为 spam 通道——Cokret 通过结构上禁止 knock Move 携带正文规避该缺陷。
 
@@ -409,7 +424,7 @@ reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applica
 
 ## 11. Policy Server 运行时挑战
 
-Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声明 `applies_to` 包含 `join` 时，对每条 `ck.member.state{join}` Move 以及 `member.application` signed receipt / private record 调用 OpenAPI canonical path `/_cokret/self/policy/check`。除既有 `decision` 外，Join 场景新增 obligation 子规范：
+Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声明 `applies_to` 包含 `join` 时，对每条 `ck.member.state{join}` Move 以及 `member.application` signed receipt / private record 调用 `ck.self.policy.check` operation（默认 HTTP binding 为 `POST /_cokret/self/policy/check`）。除既有 `decision` 外，Join 场景新增 obligation 子规范：
 
 ```json
 {
@@ -435,7 +450,7 @@ Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声�
 
 applicant 完成挑战后，重新提交 join / application Move，在 `gate_proofs[]` 中追加 `{gate_id: "runtime:<challenge_id>", challenge_proof: {...}}`。`challenge_proof.challenge_id` 是 runtime challenge 的唯一匹配键；verifier MUST 仅按该键选择 challenge proof。Policy Server 重新校验后返回 `decision=allow`。`must_satisfy_before_resubmit=true` 时 reducer MUST 拒绝缺失对应 `challenge_id` proof 的重提。
 
-`bound_to.request_canonical_digest` 按 [`policy-server.md` §4.1](../authz/policy-server.md) 的 proof-stripped transcript 计算：它绑定首次被 challenge 的原始 join / application 请求，而不是包含 `challenge_proof` 自身的最终重提 Move。重提 Move 除追加 runtime challenge proof 外不得改变原始请求语义；任何字段变更都必须重新走 `/_cokret/self/policy/check` 并获取新的 challenge。
+`bound_to.request_canonical_digest` 按 [`policy-server.md` §4.1](../authz/policy-server.md) 的 proof-stripped transcript 计算：它绑定首次被 challenge 的原始 join / application 请求，而不是包含 `challenge_proof` 自身的最终重提 Move。重提 Move 除追加 runtime challenge proof 外不得改变原始请求语义；任何字段变更都必须重新走 `ck.self.policy.check` 并获取新的 challenge。
 
 `obligations[].type` 注册值（`rate_limit` / `challenge` / `review_hold` / `drop_attachment`）维护在 [`../authz/policy-server.md` §4](../authz/policy-server.md) 表中；本规范是 `challenge` 类型在 join 路径上的 normative wire schema，其它路径（如 `ck.message.create`）若使用 `challenge` 必须遵循同一 envelope。
 

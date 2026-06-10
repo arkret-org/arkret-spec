@@ -228,11 +228,11 @@ GET /_cokret/describe
   "verified_profiles": [
     {
       "profile_id": "ck.profile.core_event_store.v1",
-      "claim_kind": "cotest_verified",
-      "cotest_run_id": "cotest-2026-05-02T000000Z",
+      "claim_kind": "conformance_verified",
+      "verification_run_id": "verify-2026-05-02T000000Z",
       "artifact_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-      "artifact_ref": "https://cotest.example/log/cotest-2026-05-02T000000Z",
-      "cotest_issuer_did": "did:web:cotest.example",
+      "artifact_ref": "https://verifier.example/log/verify-2026-05-02T000000Z",
+      "verifier_did": "did:web:verifier.example",
       "signature": "base64url:...",
       "timestamp": "2026-05-02T00:00:00Z"
     }
@@ -262,9 +262,10 @@ GET /_cokret/describe
 - `implemented_features: feature_id[]` — 服务有实现代码、但 **不一定** 通过 conformance verification 的 feature。
   构建 conformance matrix 的工具 MUST 把它视为严格弱于 `claimed_profiles`。
 - `claimed_profiles: [{profile_id, claim_kind: "self_claimed", ...}]` — 服务自声明加入的 profile。
-  `claim_kind` 当前固定为 `self_claimed`；cotest 验证结果 MUST 改写到 `verified_profiles`，不得复制到本字段。
-- `verified_profiles: [{profile_id, claim_kind: "cotest_verified", cotest_run_id, artifact_digest, artifact_ref, cotest_issuer_did, signature, timestamp, expires_at?}]` —
-  附带 cotest run 标识、artifact hash、artifact 获取位置或 transparency-log 引用、cotest issuer DID、签名与验证时间戳的已验证 profile。**约束**：当 `development_mode=true`
+  `claim_kind` 当前固定为 `self_claimed`；Conformance Verifier 验证结果 MUST 改写到 `verified_profiles`，不得复制到本字段。
+- `verified_profiles: [{profile_id, claim_kind: "conformance_verified", verification_run_id, artifact_digest, artifact_ref, verifier_did, signature, timestamp, expires_at?}]` —
+  附带 verification run 标识、artifact hash、artifact 获取位置或 transparency-log 引用、verifier DID、签名与验证时间戳的已验证 profile。签发主体是中立角色 **Conformance Verifier**（定义见
+  [`conformance-suite.md`](../conformance/conformance-suite.md) §6.2）。**约束**：当 `development_mode=true`
   时，本数组 MUST 为空——dev / placeholder proof 路径不得用来宣告生产 conformance（见本节 §3.0）。
 - `experimental_features: feature_id[]` — 服务暴露但不承诺稳定互操作的 feature；客户端 MUST NOT
   把它当成协议级决策的依据，也不得继承到 `claimed_profiles`。
@@ -278,9 +279,9 @@ GET /_cokret/describe
 
 1. 在 describe 响应中同时输出上述 claim-level 字段。
 2. dev / placeholder posture 下，自检 `verified_profiles == []` 并在初始化时 fail closed。
-3. cotest 与 admin 等下游 MUST 按 claim level 渲染不同 badge：`self_claimed`、`cotest_verified`、
+3. conformance 报告工具与 admin 等下游 MUST 按 claim level 渲染不同 badge：`self_claimed`、`conformance_verified`、
    `experimental`、`compat`、`not_claimed`。
-4. 客户端不得只信任服务自报的 `verified_profiles`；使用生产 conformance 结论前 MUST 通过 `artifact_ref` 或等价 transparency log 取得 cotest artifact，校验 `artifact_digest`、`cotest_issuer_did`、`signature`、时间戳和可选 `expires_at`。
+4. 客户端不得只信任服务自报的 `verified_profiles`；使用生产 conformance 结论前 MUST 通过 `artifact_ref` 或等价 transparency log 取得 verification artifact，校验 `artifact_digest`、`verifier_did`、`signature`、时间戳和可选 `expires_at`。
 
 `plaintext_visibility.data_classes` 是机器可判定的明文类别白名单。`event_kinds`、`payload_paths`、`blob_purposes` 和 `projection_outputs` 只是进一步缩小或解释范围，不能替代 `data_classes`；`notes` 只供人读。Realm policy 的 `plaintext_visible_services[].data_classes` MUST 是目标 `ServiceDescribe.plaintext_visibility.data_classes` 的子集，且 `visibility` 不得高于 `max_visibility`。若 describe 缺失 `data_classes` 或只给出自由文本 `purposes`，客户端 / reducer MUST 把它视为不能接收私有明文。
 
@@ -869,6 +870,6 @@ Cokret v1 固定：
 - Directory search result MUST 使用 `query-schema.md` 的分页、过滤和 `visibility_explanation` 约束；对不可见或不可枚举资源，错误形态 MUST 与不存在一致。
 - Authz check response MUST 返回 `decision`、`matched_grants`、`applied_constraints`、`policy_results`、`missing_proofs`、`frontier` 和 `cache_expires_at`；`decision` 只能是 `allow`、`soft_deny`、`hard_deny`、`quarantine` 或 `require_review`。
 - Service describe MUST 声明 `service_did`、`trust_domain`、`service_type`、`protocol_version=1.0`、`supported_profiles`、`supported_operations`、`supported_bindings[]`、`supported_features[]`、`auth_metadata`、`limits`、`rate_limit_policy` 或 `rate_limit_policy_id`、`plaintext_visibility` 与 `development_mode`。其中 `supported_bindings[]` 是数组(每项描述一个 transport binding,例如 `{kind: "http_json", ...}`);单数字段名 `binding` 不出现在 describe response 顶层。客户端 MUST 拒绝 service DID、trust_domain、Realm policy 或 profile 不匹配的服务。`plaintext_visibility` 缺失视为该服务**不可信**用作 `plaintext_visible_services` 成员(见 OpenAPI ServiceDescribe schema description)。
-- Service describe 响应 MUST 同时按 §3.0 区分 `supported_operations` / `implemented_features` / `claimed_profiles` / `verified_profiles` / `experimental_features` / `compat_surfaces` 六个 claim level 字段，schema 见 `ck.schema.service_describe.v1`。当 `development_mode=true` 时 `verified_profiles` MUST 为空；当 `development_mode=false` 且声明 `verified_profiles` 时，客户端仍 MUST 通过 `artifact_ref` / transparency log 获取并校验对应 cotest artifact、issuer 签名和 hash 后才把它作为生产 conformance 依据。
+- Service describe 响应 MUST 同时按 §3.0 区分 `supported_operations` / `implemented_features` / `claimed_profiles` / `verified_profiles` / `experimental_features` / `compat_surfaces` 六个 claim level 字段，schema 见 `ck.schema.service_describe.v1`。当 `development_mode=true` 时 `verified_profiles` MUST 为空；当 `development_mode=false` 且声明 `verified_profiles` 时，客户端仍 MUST 通过 `artifact_ref` / transparency log 获取并校验对应 verification artifact、verifier 签名和 hash 后才把它作为生产 conformance 依据。
 - Sync cursor recovery MUST 按 `conformance-vectors.md` 执行：cursor 是 opaque token；过期或缺口时返回可恢复错误，并提供 backfill 起点或 snapshot frontier。
 - Event source consistency MUST 按 `conformance-vectors.md` 执行：重复 Event 幂等，冲突 Event 拒绝，event order、hash、签名和 `actor_seq` 必须可复现验证。
