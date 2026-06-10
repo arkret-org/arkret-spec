@@ -42,6 +42,8 @@ Token 不得跨 Realm、Circle、MLS epoch 或 index generation 复用。实现 
 
 Blind-index token 是 deterministic keyed token：它不向服务端暴露明文 term，但会暴露同一 `index_generation` 内的查询频次、候选集合大小、access pattern 以及 term 共现结构。实现 MUST 把这些泄漏写入 Realm search policy 的风险评估；高隐私 Realm SHOULD 缩短 `index_generation` / epoch 轮换窗口，并限制服务端跨 generation 关联。Forward-private SSE、PIR-backed candidate retrieval 或 ORAM-style access hiding 只能作为显式 search extension profile 引入；base v1 blind index 不声称隐藏 access pattern。
 
+> **路线图注记（informative，2026-06 评审采纳）**：上述 extension 方向引入时，约定的 **leakage class 分类法**为封闭枚举 `deterministic_token`（base v1 blind index：暴露频次 / 候选集合大小 / access pattern / term 共现）< `forward_private`（新写入不可被旧 token 检索；阻断 IKK / count 类 leakage-abuse 的增量面）< `access_hiding`（PIR / ORAM 级）。未来 schema profile 升级把该枚举落到 `ck.realm.search_policy` 的 `leakage_class` 字段，使部署可机器声明自身泄漏等级、客户端可协商"优先 forward-private provider"；index token 派生升级方向为 server-assisted OPRF（与联系人发现已强制的 RFC 9497 VOPRF 基建复用，使 index key 泄露不再允许离线全量字典回放）。本注记不预注册 profile id、不在 v1 schema 加字段；分类法在此钉定以保证未来加法引入时语义稳定。
+
 ## 4. Realm Search Policy
 
 `ck.realm.search_policy` 写入 Realm policy cell。默认行为是 fail closed：未声明允许的受托 search 服务不得接收 plaintext 或可逆派生数据，也不得接收 blind-index token。

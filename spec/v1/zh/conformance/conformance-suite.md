@@ -142,6 +142,8 @@ v1 新增以下必测项：
 | Moderation | report / queue item schema、E2EE evidence package、franking、operator ACL | appeal / audit trail |
 | Agent Runtime | capability grant 解释、knowledge source 声明、owner presence policy、join policy、capability revoke | approval UX、tool call audit |
 
+**向量覆盖现状（normative，gate 语义澄清）**：上表"MUST 覆盖"表达的是**认证测试范围承诺**，不等于每行当前都有已注册的可执行向量。截至本版本，下列行在 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 中**零覆盖或近零覆盖**，其 MUST 项当前由 fixture、schema 校验与 reference 实现承载，**不构成 §6.1 `v1-conformance-certified` 的 vector gate**：Moderation（franking、evidence package、appeal 原子性——0 向量）、Policy Server（decision 签名、replay 保护——0 向量）、key backup（unlock proof、KDF 下限——仅 device_recovery / late_key_recovery 侧面覆盖，`key-backup-fixture.json` 未被注册向量引用）、service-http-binding / api-conventions 行为语义（仅 OpenAPI 形状测试）、federation 最小披露与 idempotency 绑定（1 向量）。在对应向量补齐并注册进 vector-registry 之前，实现 MUST NOT 仅凭通过现有向量集合就宣称这些行"已认证覆盖"；补齐这些域的向量是 `v1-conformance-certified` 分级生效的前置条件（见 §6.1）。
+
 ## 6. 执行与发布要求
 
 - 每个实现 MUST 提供覆盖结果文档，声明通过/失败的 vector 列表。

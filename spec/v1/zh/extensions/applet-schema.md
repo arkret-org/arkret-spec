@@ -101,7 +101,7 @@ updated: 2026-06-10
 | `protocols` | yes | 外部协议标识数组。 |
 | `namespaces` | yes | `actors` / `realms` / `handles` 对象形态 namespace。 |
 | `requested_scopes` | yes | capability action 请求列表；只用于审批 UI。 |
-| `endpoint_set` | yes | 实际支持的 Applet API endpoint 与 auth requirement。 |
+| `endpoint_policy` | yes | 实际支持的 Applet API endpoint 与 auth requirement。 |
 | `webhook_auth` | yes | HTTP message signature key ref / accepted algorithms。 |
 | `receive_events` | yes | 派生 registration 的接收事件声明。 |
 | `receive_ephemeral` | yes | 派生 registration 的 ephemeral 接收声明。 |
@@ -128,7 +128,7 @@ Package -> registration 派生映射:
 | `bot_actor_id` | `bot_actor_id` | 原样复制；不得含 `#fragment`。 |
 | `protocols` | `protocols` | 原样复制；空数组非法。 |
 | `namespaces` | `namespaces` | canonicalize 后复制；只接受对象形态。 |
-| `receive_events` | `receive_events` | 原样复制；不得从 `endpoint_set` 猜测默认值。 |
+| `receive_events` | `receive_events` | 原样复制；不得从 `endpoint_policy` 猜测默认值。 |
 | `receive_ephemeral` | `receive_ephemeral` | 原样复制；不得省略。 |
 | `rate_limited` | `rate_limited` | 原样复制；不得省略。 |
 | `requested_scopes` | `requested_scopes` | 原样复制；仍只是请求声明。 |

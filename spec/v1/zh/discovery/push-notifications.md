@@ -52,6 +52,8 @@ Blind wakeup **不是可选 extension**，而是 push gateway 的**默认互操�
 
 Presence 不得作为精确 push timing oracle。服务端把 presence update、watch recompute 与 push activation 组合使用时，MUST 至少按 Realm policy 声明的 bucket 粒度（默认不小于 60s；高隐私部署 SHOULD 使用 5min 或更粗）批处理或延迟；不得在用户刚上线 / 刚离线的瞬间立即发出可被 provider 观察到的 per-event push burst。该规则不阻止本地客户端在已在线连接上立即显示通知；它只约束第三方 push provider 可见的出向时序。
 
+> **路线图注记（informative，2026-06 评审采纳）**：v1 的 provider 抽象（`push_gateway` URL + opaque `push_key`）可无损承载两条尚未显式注册的 route：**Web Push**（RFC 8030 协议 / RFC 8291 消息加密 / RFC 8292 VAPID——其 ECE 端到端加密 payload 与 blind wakeup 的"上游只见 pseudonym"模型天然互补）与 **UnifiedPush**（无 GMS Android 生态的事实标准；对 `sovereign_deployment` 目标场景是实际可用性问题）。注册显式 binding 时的工作集：route profile id、与 `blind_wakeup` 基线的兼容性矩阵、collapse-key 不可链接规则对这两类 provider 的对照行、UnifiedPush distributor（通常为用户自选第三方）是否纳入 `plaintext_visible_services` 披露框架。本注记不预注册 binding id；现有 APNs / FCM / 自建 gateway 路径不受影响。
+
 ## 3. 推送设备注册
 
 ### 3.1 注册接口

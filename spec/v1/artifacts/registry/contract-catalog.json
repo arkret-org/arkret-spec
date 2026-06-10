@@ -53,6 +53,7 @@
       "Entries with wire_scope=ephemeral_event MUST be carried only on ephemeral channels and MUST NOT advance Anchor frontier, Move state_root, or reducer state.",
       "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into a shared Realm Move/Anchor history.",
       "Reducer-input durable kinds MAY declare cell_family, cell_subject, lattice, bottom, and (cas_register only) initial_value. cell_family is a stable ck.component.*.v<n> URI; cell_subject is null, a payload field path, or a composite descriptor; bottom is reject or expose. initial_value declares the value the cas_register reports before any Move has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` Move predicates implements singleton-once-set cells.",
+      "Registered exemption: protocol-singleton cells that are not written through a single event_kind are NOT indexed here. Currently the only such cell family is ck.component.anchorer.v1 (per-Realm anchorer cell, lattice=cas_register, bottom=reject): its genesis value comes from the ck.realm.create payload anchorer object and subsequent changes are ordinary anchorer-finalized Moves; its canonical definition lives in zh/authz/event-auth-state-resolution.md section 4.4. Any future cell family without a single writer kind MUST be added to this exemption list explicitly.",
       "Lattice MUST be one of: core types or_set, mv_register, cas_register, fsm, counter, ordered_log; or extension types lww_register, rga (only declarable on cells with cell_role in {ui_affordance, content, draft, cosmetic} and only valid for receivers that implement ck.profile.collaborative_text.v1; receivers without that profile MUST fail closed with unsupported_lattice_type when an event_kind references a cell using lww_register or rga). Authorization, policy, anchorer, membership, and lifecycle cells MUST NOT use lww_register or rga.",
       "State convergence is defined by Move preconditions/effects, Anchor DAG finality, and per-cell Lattice join. Compatibility Event Envelope fields are payload routing only and MUST NOT be used as ordering authority.",
       "Every active durable reducer-input event_kind MUST have a machine-readable admission source: either at least one capability action targets it (capability_action_registry.target_event_kinds), or it declares an admission class from admission_class_definitions. capability_gated events MUST list the authorizing action(s) in admission_capabilities. Enforced by lint_artifacts.py; no active durable reducer-input event may lack an admission source (fail-closed)."
@@ -909,7 +910,11 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Message create"
+        "payload": "Message create",
+        "cell_family": "ck.component.flow.discussion.timeline.v1",
+        "cell_subject": {"type": "id:flow", "field": "payload.flow_id"},
+        "lattice": "ordered_log",
+        "bottom": "expose"
       },
       {
         "event_kind": "ck.message.revise",
@@ -933,7 +938,11 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Reaction add"
+        "payload": "Reaction add",
+        "cell_family": "ck.component.message.reactions.v1",
+        "cell_subject": {"type": "id:message", "field": "payload.target_ref"},
+        "lattice": "or_set",
+        "bottom": "expose"
       },
       {
         "event_kind": "ck.reaction.remove",
@@ -941,7 +950,11 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Reaction remove"
+        "payload": "Reaction remove",
+        "cell_family": "ck.component.message.reactions.v1",
+        "cell_subject": {"type": "id:message", "field": "payload.target_ref"},
+        "lattice": "or_set",
+        "bottom": "expose"
       },
       {
         "event_kind": "ck.rsvp.set",
@@ -959,7 +972,11 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Shared pin add or update",
-        "payload_schema": "ck.schema.pin.v1"
+        "payload_schema": "ck.schema.pin.v1",
+        "cell_family": "ck.component.pin.v1",
+        "cell_subject": {"type": "string", "field": "payload.pin_scope.id"},
+        "lattice": "or_set",
+        "bottom": "expose"
       },
       {
         "event_kind": "ck.pin.remove",
@@ -968,7 +985,11 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Shared pin remove",
-        "payload_schema": "ck.schema.pin.v1"
+        "payload_schema": "ck.schema.pin.v1",
+        "cell_family": "ck.component.pin.v1",
+        "cell_subject": {"type": "string", "field": "payload.pin_scope.id"},
+        "lattice": "or_set",
+        "bottom": "expose"
       },
       {
         "event_kind": "ck.pin.reorder",
@@ -977,7 +998,11 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Shared pin rank update",
-        "payload_schema": "ck.schema.pin.v1"
+        "payload_schema": "ck.schema.pin.v1",
+        "cell_family": "ck.component.pin.v1",
+        "cell_subject": {"type": "string", "field": "payload.pin_scope.id"},
+        "lattice": "or_set",
+        "bottom": "expose"
       },
       {
         "event_kind": "ck.redaction",

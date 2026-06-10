@@ -65,6 +65,8 @@ Canonical 方向由 `from_ref -> to_ref` 定义。反向语义 SHOULD 由查询�
 
 ### 3.1 标准 kind
 
+标准 `relation_kind` 词汇表的机器可读 source of truth 是 [`relation-kind-registry.json`](../../artifacts/registry/relation-kind-registry.json)（kind 清单、默认基数类别、truth-source 类别、可写性）；本节与 §3.2 表是其规范阅读视图，详细去重键、作用域与冲突语义以本文为权威。v1 active 集合：
+
 ```text
 contains, belongs_to, replies_to, depends_on, blocks, mentions,
 assigned_to, references, derived_from, attached_to, has_default_view,

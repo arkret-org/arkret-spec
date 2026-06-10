@@ -15,7 +15,7 @@
       "profile_id": "ck.profile.mls_governance_binding.full.v1",
       "carries": "Cokret Realm/Circle governance binding inside the MLS GroupContext",
       "iana_codepoint": null,
-      "migration": "If a network-wide registration is ever required, request a standard codepoint via the IETF MLS extensions registry (specification-required) and declare it in a new hardening profile as a separate wire version; do not override this binding with another codepoint inside v1.",
+      "migration": "If a network-wide registration is ever required, request a standard codepoint via the IETF MLS extensions registry (specification-required) and declare it in a new hardening profile as a separate wire version; do not override this binding with another codepoint inside v1. Target alignment (2026-06 review): restate governance_binding against the draft-ietf-mls-extensions Safe Extension API (safe GroupContext component semantics + IANA safe labels + LeafNode safe_extensions capability signal) so its security argument can ride the framework's generic analysis; after RFC, request both the standard codepoint and a safe label, and review Cokret exporter labels (e.g. ck-rtc-frame-key/v1) against the IANA label registration discipline. If the binding proves fully expressible as a safe GroupContext component, switching the wire form is a v2-cycle decision, not a v1 change.",
       "source_refs": [
         "spec/v1/zh/crypto-media/encryption-and-audit.md"
       ]

@@ -366,7 +366,7 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 - **短名**:`short_name`(如 `HR-Conf`)相比裸 Circle ID（如 `ck:circle:01964...`）更易人工识别；客户端 SHOULD 显示 `short_name` 以辅助 scope 识别。
 - **符号 / glyph**:无障碍 / 色盲场景的第二信号。
 
-客户端实现 MUST 满足以下可测试不变量；具体控件布局、文案与视觉形式属于 client UX guide / profile，不在本模型文件中固定：
+客户端实现 MUST 满足以下可测试不变量。**本节即这组不变量的 normative 归属地**：协议只约束下列可测试行为；具体控件布局、文案与视觉形式是实现自由，不属于协议面，v1 不另设独立 UX 文档或 conformance profile 承接。
 
 1. 在任何会导致写入、回复、转发、引用、mention 或发送通知的入口，当前 effective scope MUST 可被用户区分；Circle scope 至少呈现 `display.color_token`、`display.symbol` 与 `display.short_name` 中的两个互补信号。
 2. Plaintext Circle MUST 使用不会暗示 E2EE 的 glyph、标签或披露语义；MLS-backed Circle MAY 使用 lock/shield 类语义，但不得让 plaintext scope 与 E2EE scope 看起来等价。

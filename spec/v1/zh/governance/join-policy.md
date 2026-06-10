@@ -391,7 +391,7 @@ reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applica
 
 `request_changes` 不关闭 application，也不创建 invite；它把 projection 保持在 `awaiting_review` / `changes_requested` 子状态，允许 applicant 在同一 `application_ref` 下提交修订 answer 或补充 `gate_proofs`。`application_ttl` 从原申请提交时间继续计时，除非 Realm policy 显式允许 reviewer 延长并写入新的 signed receipt；`request_changes` 不触发 `cooldown_after_reject`，也不消费 `max_open_applications_per_actor` 之外的新名额。
 
-派生 view `ck.view.realm.applications.v1`（[`../models/views.md`](../models/views.md)）SHOULD 提供：
+客户端 / 服务端 SHOULD 提供一个申请列表派生 View（View 机制见 [`../models/views.md`](../models/views.md)；该投影属于 Realm schema / 实现自定义 View，v1 不注册标准 view id），按以下分组：
 
 - `pending`: 未决申请；
 - `awaiting_review`: 已提交但 reviewer 未决；

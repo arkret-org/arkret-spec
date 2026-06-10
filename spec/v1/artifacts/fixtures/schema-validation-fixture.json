@@ -1081,7 +1081,7 @@
         "requested_scopes": [
           "ck.flow.create"
         ],
-        "endpoint_set": {
+        "endpoint_policy": {
           "endpoints": [
             {
               "method": "POST",
@@ -1154,7 +1154,7 @@
         "requested_scopes": [
           "ck.flow.create"
         ],
-        "endpoint_set": {
+        "endpoint_policy": {
           "endpoints": [
             {
               "method": "POST",
@@ -1220,7 +1220,7 @@
         "requested_scopes": [
           "ck.flow.create"
         ],
-        "endpoint_set": {
+        "endpoint_policy": {
           "endpoints": [
             {
               "method": "POST",
@@ -1291,7 +1291,7 @@
         "requested_scopes": [
           "ck.flow.create"
         ],
-        "endpoint_set": {
+        "endpoint_policy": {
           "endpoints": [
             {
               "method": "POST",

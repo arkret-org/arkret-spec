@@ -140,13 +140,14 @@ Realm 通过独立的 `ck.realm.delivery_binding_policy` event 声明对成员�
    - `service_only`：仅当前 / 目标 recipient service DID 可发起（用于服务运维迁移）。
    - `any`：上述任一即可。
 2. **Precondition**：Move 的 `prev_refs` MUST 引用前一 accepted member cell 的 head；reducer 用 cas_register 校验前态。
-3. **Handover frontier `F`**：该 Move 被接受时的 accepted causal frontier 是 rebind 切换点。
-   - causal 上 `prec(F)`（不含 F）的 Realm events MUST 仍投递到旧 `recipient_service_did`。
-   - causal 上 `succ(F)`（含 F）的 Realm events MUST 投递到新 `recipient_service_did`。
-   - 这一切分对所有 sender 是确定性的——只要 sender 的本地 `service_binding_ref.delivery_binding_frontier ≥ F` 就 MUST 切换；frontier 落后的 sender 仍按旧 binding 投递（接收方负责回执并通知 sender 升级）。
-4. **Grace period**：旧 `recipient_service_did` MUST 在 `handover_grace_seconds`（默认 86400）内继续接受迟到的 `prec(F)` event；超过 grace 后旧服务 MUST reject 并返回 `delivery_binding_handed_over` + `new_recipient_service_did`。
-5. **In-flight 事件**：grace 内 sender 收到的"旧目标 reject"事件 MUST 按新 binding 重新投递；不得回退到 DID Document。
-6. 旧服务在 grace 结束后 MUST NOT 保留可逆映射到该 Realm membership 的 sync state / to-device queue / push registration。新服务从 handover frontier 起重建。
+3. **Handover frontier `F`**：该 Move 被接受时的 accepted causal frontier 是 rebind 切换点。事件因果图是偏序，切分 MUST 按下表**全分类**（任何 Realm event 恰好落入一类，不存在实现自由）：
+   - causal 上 `prec(F)`（严格先于 F，不含 F）的 Realm events MUST 仍投递到旧 `recipient_service_did`（grace 内；grace 外见第 4 条）。
+   - causal 上 `succ(F)`（含 F 及其后继）的 Realm events MUST 投递到新 `recipient_service_did`。
+   - **与 F 并发**（既非 `prec(F)` 也非 `succ(F)`）的 Realm events：grace 内 sender MUST 双投（旧 + 新两个 `recipient_service_did`），接收方按 `event_id` + canonical hash 去重（与 [`operations-sync.md` §2.1](../sync/operations-sync.md) 的 `duplicate_conflict` 配对规则一致）；grace 外 MUST 只投新服务。
+   - **sender frontier 判定**：sender 的本地 `service_binding_ref.delivery_binding_frontier` 与 F 的比较同样是偏序——frontier `≥ F`（F 在 sender 已观察 closure 内）时 MUST 切换到上述全分类规则；frontier `< F` 或**与 F 不可比**（含并发分支但缺 F 的部分前驱）时一律归入"落后"分支：仍按旧 binding 投递，并 MUST 触发 backfill 以推进本地 frontier（接收方负责回执并通知 sender 升级）。
+4. **Grace period**：旧 `recipient_service_did` MUST 在 `handover_grace_seconds`（默认 86400）内继续接受迟到的 `prec(F)` 与 ∥F（与 F 并发）event；超过 grace 后旧服务 MUST reject 并返回 `delivery_binding_handed_over` + `new_recipient_service_did`。
+5. **In-flight 事件**：sender 收到旧目标的 reject（无论 grace 内的临时失败还是 grace 外的 `delivery_binding_handed_over`）MUST 按新 binding 重新投递；不得回退到 DID Document，不得因 grace 已过而丢弃事件。
+6. 旧服务在 grace 结束后 MUST NOT 保留可逆映射到该 Realm membership 的 sync state / to-device queue / push registration。新服务从 handover frontier 起重建 sync state，但 MUST 接受 `prec(F)` ∪ ∥F 的迟到 / 重投事件写入 Realm 历史（重建基线只约束 sync state 起点，不构成对迟到事件的拒收理由）。
 
 未满足 rebind 授权或 precondition 的 Move **MUST fail closed**；服务不得仅因 DID Document 更新、本地 service account 切换、SSO subject 变更或员工目录调整自动迁移既有 Realm membership 的投递路径。
 

@@ -16,7 +16,7 @@
     "protocols",
     "namespaces",
     "requested_scopes",
-    "endpoint_set",
+    "endpoint_policy",
     "webhook_auth",
     "receive_events",
     "receive_ephemeral",
@@ -82,8 +82,8 @@
     "requested_scopes": {
       "$ref": "#/$defs/non_empty_string_array"
     },
-    "endpoint_set": {
-      "$ref": "#/$defs/endpoint_set"
+    "endpoint_policy": {
+      "$ref": "#/$defs/endpoint_policy"
     },
     "webhook_auth": {
       "$ref": "#/$defs/webhook_auth"
@@ -348,7 +348,7 @@
       },
       "additionalProperties": false
     },
-    "endpoint_set": {
+    "endpoint_policy": {
       "type": "object",
       "description": "Supported Applet API endpoints and their auth requirement.",
       "required": [

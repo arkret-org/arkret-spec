@@ -352,7 +352,7 @@ Cache-Control: public, immutable, max-age=31536000
 
 **MUST NOT**：
 
-- 用于 E2EE 附件 ciphertext fetch — E2EE 附件的 `blob_ref` + decryption key 都不应出现在服务端可记录的 URL；E2EE 客户端坚持 header auth 路径，由 client-side `fetch()` 配合 `Authorization` 完成
+- 用于 E2EE 附件 ciphertext fetch — E2EE 附件的 `blob_ref` + decryption key 都 MUST NOT 出现在服务端可记录的 URL；E2EE 客户端坚持 header auth 路径，由 client-side `fetch()` 配合 `Authorization` 完成
 - 用于 `ck.self.blob.upload`、删除、mutation 或任何写/副作用操作；presign 只对 envelope 明确授权的 `ck.self.blob.get` / `ck.self.blob.head` 只读路径有效
 - 由 user device 凭 capability 自签自用（必须经过 `ck.self.blob.presign` operation 走一次服务端签发，进 audit log 与 capability check）
 

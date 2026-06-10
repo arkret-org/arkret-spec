@@ -34,7 +34,7 @@
     },
     "relation_kind": {
       "type": "string",
-      "description": "Relation semantic. Cross-Realm constraint: structural relations 'contains' and 'belongs_to' MUST NOT cross Realm (resolved from_ref and to_ref MUST share the same realm_id). Reducer-enforced — see models/relation.md §3 cardinality table and §4 cross-Realm rules. Weak-semantic kinds (references, mentions, derived_from, summarized_from, depends_on, blocks, assigned_to, has_default_view, replies_to) MAY cross Realm subject to two-sided authorization."
+      "description": "Relation semantic. The standard kind vocabulary (kind list, cardinality class, truth-source class, weak_semantic flag) is machine-indexed in artifacts/registry/relation-kind-registry.json; detailed dedupe/scope/conflict semantics in models/relation.md §3-§6. Cross-Realm constraint: structural relations 'contains' and 'belongs_to' MUST NOT cross Realm (resolved from_ref and to_ref MUST share the same realm_id); weak_semantic=true kinds per the registry MAY cross Realm subject to two-sided authorization. Stays a free string so extension profiles can add kinds; unregistered kinds are opaque edges (unknown_relation_kind), never container/visibility semantics."
     },
     "from_ref": {
       "$ref": "#/$defs/ref"

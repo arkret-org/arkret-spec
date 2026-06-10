@@ -32,6 +32,8 @@ see_also:
 
 > **排序说明**：本表按术语**主题分组**排列（身份 / 边界对象 / 事件与同步 / 授权 / 服务角色等），便于按语义聚类阅读，**不是** canonical 对象序。canonical 对象清单及其权威顺序（Realm / Circle / Space（含 Board/List）/ Flow / Message / Relation / Morph / Event / View / Capability）以 [`index.md` §1](../index.md) 为准；§6 等引用对象集合时以该清单为锚点。
 
+*Table 1. 术语表（normative）。本表行内的大写规范关键字（MUST / MUST NOT 等）具规范约束力；声明"以本条为单一锚点"的条目即为该约束的 canonical 权威位置。这是 [normative-language.md §4](../conformance/normative-language.md) 容器表默认 informative 规则的已登记例外。*
+
 | 术语 | 中文说明 | 定义 |
 | --- | --- | --- |
 | Cokret | 协议名称 | 去中心化协作对象协议族，定义 identity、写入、同步、授权、显示与审计规则。 |

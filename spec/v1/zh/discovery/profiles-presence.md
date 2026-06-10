@@ -335,7 +335,7 @@ Presence / mention 语义补充：
 
 - 默认搜索当前 Realm 的成员
 - 可选扩展到同一组织域下的所有已知用户
-- 不应跨域搜索未授权的外部用户
+- MUST NOT 跨域搜索未授权的外部用户
 - `search-users` 是候选发现接口，不是身份解析接口；需要得到 `subject` DID 或 `member_delivery_binding` 时，客户端 MUST 调用 `resolve-handle` 并满足其 claim / audience / requester policy。
 
 ## 5. v1 规则

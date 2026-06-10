@@ -31,7 +31,7 @@ updated: 2026-06-10
 ```json
 {
   "kind": "ck.account_data.set",
-  "key": "ck.client.theme",
+  "key": "ck.client.ui_state",
   "body": {
     "mode": "dark",
     "accent_color": "#FF5733"

@@ -419,6 +419,8 @@ Lattice 的作用不是让并发冲突消失，而是让同一输入集合的结
 
 `lww_register` 与 `rga` 的"时间"由 Anchor 批次索引与批次内确定性 tiebreaker 提供，**不**读取 actor 自报 HLC 或外部 wall clock。这是它们被允许出现在 conformance core 之外但仍是封闭代数的前提。
 
+> **路线图注记（informative，2026-06 评审采纳）**：`rga`（2011）的已知短板是并发同位插入的 interleaving 异常（两段并发输入可能逐字符交错）与长历史 tombstone 增长。下一代候选方向：**Fugue**（interleaving-free 性质已形式化，并证明 RGA 不满足）与 **eg-walker**（event-graph 重放式，与 Cokret"Event 是事实日志、状态是重放投影"的模型天然同构，可直接消费 Move/Anchor event graph）。引入机制已就绪——新 lattice type 走本节既有的 profile-gated + `unsupported_lattice_type` fail-closed 加法路径，完全向后兼容。本注记不预占 type 名或 profile id；待选型验证（Fugue 纯 CRDT vs eg-walker 重放式）有实现结论后再注册。
+
 ### 5.1 Bottom Diagnostics
 
 协议判断只区分 value 与 `⊥`，但实现 MUST 保留结构化诊断（wire schema 见 [`bottom.schema.json`](../../artifacts/schemas/bottom.schema.json) `ck.schema.bottom.v1`）：

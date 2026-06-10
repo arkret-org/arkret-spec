@@ -585,7 +585,9 @@ nonce = HMAC-SHA256(
 
 Producer MUST reject attempts to write two backup envelopes with the same nonce derivation tuple, including `nonce_salt`。`backup_id` 仍应按单写不可变处理；若需要更新备份内容，producer MUST 生成新的 `backup_id` 或至少新的 `nonce_salt` 并重新签名 envelope。Receiver MUST recompute the nonce for `passphrase_kdf` envelopes before decryption and reject mismatches or missing `nonce_salt` as `schema_violation`.
 
-客户端 MAY 在尝试解密 `ciphertext` 前用用户输入的 passphrase 派生 key，计算 commitment 并与 envelope 中的 `key_commitment` 比对。不匹配时 MUST 拒绝解密并提示用户 passphrase 错误。`key_commitment` 只是本地快速拒绝错误口令和防止密文替换的辅助值，不是服务端认证材料；服务端不得要求用户上传 passphrase、derived key、commitment key 或使用 `key_commitment` 做在线口令检查。离线攻击者仍可对备份执行 KDF 级别的口令猜测，因此实现必须执行强口令策略、Argon2id 参数下限和速率受控的恢复 UI。
+客户端 MAY 在尝试解密 `ciphertext` 前用用户输入的 passphrase 派生 key，计算 commitment 并与 envelope 中的 `key_commitment` 比对。不匹配时 MUST 拒绝解密并提示用户 passphrase 错误。`key_commitment` 只是本地快速拒绝错误口令和防止密文替换的辅助值，不是服务端认证材料；服务端不得要求用户上传 passphrase、derived key、commitment key 或使用 `key_commitment` 做在线口令检查。**澄清（防误读）**：该禁令针对的是"服务端获得可离线验证口令的材料"；它**不禁止** aPAKE 形态的协议（如 OPAQUE，RFC 9807）——aPAKE 的设计不变量恰是服务端永不见口令也无法预计算字典，与本条约束相容。离线攻击者仍可对备份执行 KDF 级别的口令猜测，因此实现必须执行强口令策略、Argon2id 参数下限和速率受控的恢复 UI。
+
+> **路线图注记（informative，2026-06 评审采纳）**：对低熵口令的已声明残余风险（离线无限猜测），已识别的增量缓解方向是 **OPAQUE（RFC 9807）/ HSM·TEE 限速恢复服务**（Signal SVR、WhatsApp HSM vault 形态）：把暴露面从"离线无限猜"压缩为"在线限速猜"，且服务端攻破不可预计算。引入形态为与 `passphrase_kdf` **并存**的新 recipient_method（schema 枚举加法，不替代离线兜底），recovery service 的 attestation 要求可复用既有 attestation-evidence 框架。本注记不预注册 method 名或 profile id；待实现计划成立时按加法引入。
 
 域隔离 profile 的 conformance proof MUST 至少证明：不同 `backup_class` / subdomain 的 HKDF info 不同、AEAD AAD 覆盖域和 item type、key commitment 不能跨域复用、恢复流程不会把一个域的解锁成功当作另一个域的授权证明。
 

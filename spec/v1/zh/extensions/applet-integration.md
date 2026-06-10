@@ -66,7 +66,7 @@ Applet / Agent / Morph / Ghost Actor 的选择边界如下，实现 MUST 按最�
 - Applet 不自动拥有全网权限。
 - Applet 的每个写入仍需签名和 capability。
 - Applet namespace 只表示“该 Applet 可声明或接收这些对象”，不等于权限通过。
-- Ghost Actor 必须是可审计 Actor，不应伪装成人类 DID。
+- Ghost Actor 必须是可审计 Actor，MUST NOT 伪装成人类 DID。
 
 ## 3. 角色
 

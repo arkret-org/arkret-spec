@@ -51,6 +51,22 @@
       "description": "Canonical signature algorithm vocabulary for proof alg and raw signature_algorithm schema enums."
     },
     {
+      "name": "mls_ciphersuites",
+      "file": "registry/mls-ciphersuite-registry.json",
+      "kind": "mls_ciphersuite_registry",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Canonical MLS ciphersuite vocabulary for KeyPackage cipher_suites[] negotiation; unregistered suites fail closed."
+    },
+    {
+      "name": "relation_kinds",
+      "file": "registry/relation-kind-registry.json",
+      "kind": "relation_kind_registry",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Canonical machine index of the v1 standard relation_kind vocabulary (kind list, cardinality class, truth-source class, writability); detailed semantics stay in zh/models/relation.md."
+    },
+    {
       "name": "digest_suites",
       "file": "registry/digest-suite-registry.json",
       "kind": "digest_suite_registry",

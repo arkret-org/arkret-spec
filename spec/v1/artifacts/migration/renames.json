@@ -2145,6 +2145,20 @@
       "migration_group": "key_backup_kdf_hash_to_digest_algorithm"
     },
     {
+      "id": "endpoint_set",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-06-10",
+      "rejection_level": "hard_reject",
+      "replacement": "endpoint_policy",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Applet package top-level field renamed: normative-language.md section 7 forbids *_set suffixes on wire field names; the object carries endpoint entries plus their auth requirements, so endpoint_policy is the canonical name.",
+      "migration_group": "applet_package_endpoint_set_rename"
+    },
+    {
       "id": "previous_hash_profile",
       "kind_class": "wire_field_name",
       "since_revision": "2026-05-24",

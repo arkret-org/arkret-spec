@@ -45,7 +45,7 @@ Applet 是受注册、受授权、可审计的集成服务。它可以：
 - **Applet Service**：运行集成逻辑的服务端进程（独立 service DID）。
 - **Applet Controller**：管理该 Applet 的主体（组织、开发者、企业管理员）。
 - **Bot Actor**：Applet 的主要可见 Actor，可以加入 Realm、被 mention、发送消息或执行自动化。
-- **Ghost Actor**：外部网络用户在 Cokret 中的镜像 Actor；MUST 带有 `accountable_principal_ids` 指向 Applet controller，并用 `profile_fields.external_ref` 记录外部网络来源；不应伪装成人类 DID。
+- **Ghost Actor**：外部网络用户在 Cokret 中的镜像 Actor；MUST 带有 `accountable_principal_ids` 指向 Applet controller，并用 `profile_fields.external_ref` 记录外部网络来源；MUST NOT 伪装成人类 DID。
 - **Portal Realm**：外部网络 location 在 Cokret 中的镜像 Realm。
 
 ### 2.3 行为约束
@@ -53,7 +53,7 @@ Applet 是受注册、受授权、可审计的集成服务。它可以：
 - Applet **不**自动拥有全网权限。
 - Applet 的每个写入仍需签名和 capability。
 - Applet namespace 只表示"该 Applet 可声明或接收这些对象"，不等于权限通过。
-- Ghost Actor 必须是可审计 Actor，不应伪装成人类 DID。
+- Ghost Actor 必须是可审计 Actor，MUST NOT 伪装成人类 DID。
 - Applet 对 Portal Realm 写入仍需显式 Realm link、目标 Realm 的 explicit capability、目标 Realm 的 Policy Server / moderation 检查、E2EE 边界提示（如 bridge 到非 E2EE 外部系统）。详见 [`realm-links.md`](./realm-links.md)。
 
 ### 2.4 详细规范

@@ -54,7 +54,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "0d53cfd024d39b04a371284ce9bb83dc1a0973ecb20d023c4ba683f2d73e457d"
+      "sha256": "55b87ba904a967d39caef6f0bb2be6163e7d56f7601f756809d31903ad14d67c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-closure-vectors.json",

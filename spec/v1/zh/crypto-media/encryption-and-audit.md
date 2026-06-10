@@ -554,6 +554,8 @@ published -> claimed -> consumed
 }
 ```
 
+**MLS ciphersuite registered set（normative）**：`cipher_suites[]` 与 server describe 暴露的 MLS ciphersuite 合法值的机器可读 source of truth 是 [`mls-ciphersuite-registry.json`](../../artifacts/registry/mls-ciphersuite-registry.json)（与 hash 的 digest-suite registry、签名的 signature-alg registry 形成三大算法 agility 面的对称纪律）。v1 active 集合仅 `MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519`（default-MUST，RFC 9420 mandatory-to-implement suite）。KeyPackage claim / group 协商遇到未登记 suite MUST fail closed，即使底层 MLS 库支持；新 suite（如面向无 AES 硬件加速设备的 ChaCha20-Poly1305、上文 PQ 路线图的 hybrid suite）按 registry 规则加法注册，不预注册无实现计划的行。
+
 Claim 请求 MUST 绑定：
 
 - requester principal / service DID 和 device proof。
@@ -877,3 +879,5 @@ MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 > **PQ 迁移（informative，占位）**：v1 core 的 MLS cipher suite 与 KEM 仍是经典（X25519 / P-256）。后量子（PQ）抵抗——例如 PQ-MLS、ML-KEM（Kyber）与经典 KEM 的混合（hybrid）KEM——作为**未来 hardening profile** 规划，不属于 v1 core 互操作必需。迁移路径与 wire 版本化机制对齐：新 cipher suite / KEM 通过新的 `ck.profile.mls_governance_binding.full.v<n>` 配套 profile 与 envelope `scheme` / `version` 协商引入，作为可观察的 wire 版本切换，而不是在 v1 wire 内静默替换；KeyPackage `cipher_suites[]`、key backup 的 `ck.aead.hybrid_kem.*` 保留 namespace（见 [`key-management.md` §7.9](../identity/key-management.md)）为该迁移预留协商位。在该 profile 发布前，receiver 收到未注册的 PQ / hybrid cipher suite MUST fail closed。
 >
 > **v1 范围裁决（normative scoping）**：PQ / hybrid KEM 明确**不进入 v1 发布线**，仅作为 informative 路线图保留。v1 不定义、不要求 PQ-MLS negotiation、hybrid KeyPackage cipher suite、PQ backup envelope scheme 或对应 conformance 向量；现有 `ck.profile.signature.pqc.v1` 等名称是签名扩展占位，不构成 MLS hybrid hardening profile。是否推进该 hardening profile 是 v1 之后的独立路线图决定，届时按上述 wire 版本化机制以可选 profile gating 引入，未知 PQ / hybrid suite 在此之前持续 fail closed。
+>
+> **路线图注记（informative，2026-06 评审采纳）**：候选 hybrid KEM 方向以 X-Wing（X25519+ML-KEM-768，CFRG draft-connolly-cfrg-xwing-kem；MLS suite 见 draft-mahy-mls-xwing）为首选对照，引入时按 MIMI 同构的 draft-pinning 纪律（"draft 变更 = 新 profile 版本"）。覆盖面优先级：**key backup envelope 先于 MLS KeyPackage**——静态密文备份是 Harvest-Now-Decrypt-Later 威胁的首要目标，且 `ck.aead.hybrid_kem.*` namespace 已预留。本注记不预注册 profile id；加法注册机制（profile registry + fail-closed 协商位）已就绪，待实现计划成立时再占名。
