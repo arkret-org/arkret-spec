@@ -23,7 +23,7 @@
       "properties": {
         "blob_ref": {
           "type": "string",
-          "pattern": "^ck:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
+          "pattern": "^ck:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
         },
         "encrypted": {
           "const": true
@@ -49,7 +49,7 @@
         },
         "ciphertext_digest": {
           "type": "string",
-          "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+          "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
         },
         "size_bytes": {
           "type": "integer",
@@ -95,7 +95,7 @@
   "properties": {
     "blob_ref": {
       "type": "string",
-      "pattern": "^ck:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
+      "pattern": "^ck:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
     },
     "schema": {
       "const": "ck.schema.blob.v1"
@@ -106,7 +106,7 @@
     },
     "content_digest": {
       "type": "string",
-      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
     "size_bytes": {
       "type": "integer",
@@ -131,7 +131,7 @@
     },
     "thumbnail_blob_ref": {
       "type": "string",
-      "pattern": "^ck:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
+      "pattern": "^ck:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
     },
     "created_by": {
       "type": "string",

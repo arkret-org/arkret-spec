@@ -222,7 +222,7 @@ flow_part            ::= flow_id | "*"
 - `invite_id`：`ck:invite:` 后接 UUIDv7。
 - `schema_ref`：schema registry id，例如 `ck.schema.flow.v1` 或反向域名 schema id。历史 shorthand token 名 `schema_id` MAY 被 parser 接受，但 canonical JSON 字段名 MUST 是 `schema_ref`。
 - `did`：DID URI。
-- `blob_ref`：Blob typed ID，wire form 为 `ck:blob:` 前缀后接 UUIDv7（blob metadata ID），或 `ck:blob:<algo>:<hex>` content-addressed ref（algo ∈ `sha256` / `sha3_256` / `blake3` / `sha512`）。
+- `blob_ref`：Blob typed ID，wire form 为 `ck:blob:` 前缀后接 UUIDv7（blob metadata ID），或 `ck:blob:<suite>:<hex>` content-addressed ref（suite ∈ digest-suite registry active rows，v1 即 `sha256` / `blake3`）。
 - `morph_type`：Realm schema 中注册的开放对象类型。
 - `relation_kind`：关系类型，例如 `contains`、`assigned_to`、`promoted_from_discussion`、`summarized_from`。
 - `object_type`：标准对象类型或 `morph`。

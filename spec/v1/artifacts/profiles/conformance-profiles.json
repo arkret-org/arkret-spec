@@ -178,8 +178,6 @@
     "ck.profile.encoding.multihash.v1"
   ],
   "hash_extension_profiles": [
-    "ck.profile.hash.sha512.v1",
-    "ck.profile.hash.sha3.v1",
     "ck.profile.hash.blake3.v1",
     "ck.profile.hash_transition.v1"
   ],
@@ -249,8 +247,6 @@
     "ck.profile.matrix_compat.v1": "interop",
     "ck.profile.encoding.cbor.v1": "interop",
     "ck.profile.encoding.multihash.v1": "interop",
-    "ck.profile.hash.sha512.v1": "interop",
-    "ck.profile.hash.sha3.v1": "interop",
     "ck.profile.hash.blake3.v1": "interop",
     "ck.profile.hash_transition.v1": "interop",
     "ck.profile.candidate.join_policy.v1": "admin",

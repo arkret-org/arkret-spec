@@ -102,8 +102,6 @@
     "ck.profile.encoding.cbor.v1",
     "ck.profile.encoding.multihash.v1",
     "ck.profile.hash.blake3.v1",
-    "ck.profile.hash.sha3.v1",
-    "ck.profile.hash.sha512.v1",
     "ck.profile.hash_transition.v1",
     "ck.profile.signature.ecdsa_p256.v1",
     "ck.profile.signature.pqc.v1",

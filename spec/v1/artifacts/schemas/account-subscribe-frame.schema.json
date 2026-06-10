@@ -271,7 +271,7 @@
         },
         "member_display_state_digest": {
           "type": "string",
-          "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
+          "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
           "description": "Digest over the effective identity event references plus the current visible handle claim digest set for this roster entry."
         },
         "identity_events": {
@@ -286,7 +286,7 @@
           "description": "Digests of currently visible effective ck.schema.handle_claim.v1 objects for this member in the current Realm context. MUST be omitted unless subject_id is disclosed, because stable claim digests are linkable across contexts. Absence is not proof that the member has no handle.",
           "items": {
             "type": "string",
-            "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+            "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
           },
           "uniqueItems": true
         },

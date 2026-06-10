@@ -2967,7 +2967,7 @@
     },
     "hash": {
       "type": "string",
-      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
     "profile_ref": {
       "type": "string",
@@ -3103,7 +3103,7 @@
     },
     "anchor_ref": {
       "type": "string",
-      "pattern": "^ck:anchor:(?:(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
+      "pattern": "^ck:anchor:(?:(?:sha256|blake3):[0-9a-f]{64})$"
     },
     "cell_ref": {
       "type": "string",

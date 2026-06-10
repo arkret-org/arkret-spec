@@ -137,7 +137,7 @@
     },
     "hash": {
       "type": "string",
-      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
     "policy_id": {
       "type": "string",

@@ -53,12 +53,12 @@
           "uniqueItems": true,
           "items": {
             "type": "string",
-            "pattern": "^ck:anchor:(?:(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
+            "pattern": "^ck:anchor:(?:(?:sha256|blake3):[0-9a-f]{64})$"
           }
         },
         "state_root": {
           "type": "string",
-          "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
+          "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
           "description": "Effective anchor view state_root at observation time (recompute from leaves). Optional when the diagnostic is emitted before state_root is computable."
         }
       },

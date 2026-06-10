@@ -97,9 +97,9 @@ digest suite 的 canonical 机器来源是 [`digest-suite-registry.json`](../../
 | Algo | Digest 长度 | v1 角色 | 抗量子 / future-ready 评估 |
 | --- | ---: | --- | --- |
 | `sha256` | 32 bytes（64 hex） | **v1 default**；所有 receiver MUST 支持。Event digest、Merkle leaf、state_root、blob CID、receipt digest 等核心字段默认使用。 | 不抗量子（Grover 把搜索成本减半到 2^128，仍可用）；通过 `ck.profile.hash_transition.v1` 可平滑迁移到 stronger hash。 |
-| `sha512` | 64 bytes（128 hex） | v1 optional；声明 `ck.profile.hash.sha512.v1` 的实现 MUST 支持。可用于高安全 Realm 的 state_root、blob CID、long-lived audit hash。 | 与 sha256 同族；选择仅出于 digest size。 |
-| `sha3_256` | 32 bytes（64 hex） | v1 optional；声明 `ck.profile.hash.sha3.v1` 的实现 MUST 支持。提供 Keccak family 抗碰撞冗余，与 sha256 family 形成 algorithm diversity。 | 与 sha256 不同结构家族，抗结构性新攻击。 |
-| `blake3` | 32 bytes（64 hex） | v1 optional；声明 `ck.profile.hash.blake3.v1` 的实现 MUST 支持。性能最佳；blob CID 与高吞吐场景推荐。 | sha256-class 抗碰撞；非 NIST 但被 IRTF / RFC 路径认可。 |
+| `blake3` | 32 bytes（64 hex） | v1 optional；声明 `ck.profile.hash.blake3.v1` 的实现 MUST 支持。性能最佳（可并行）；blob CID 与高吞吐场景推荐。 | sha256-class 抗碰撞；非 NIST 但被 IRTF / RFC 路径认可。 |
+
+v1 active 集合刻意保持最小（`sha256` + `blake3`）。需要 algorithm diversity（如 SHA-3 / Keccak 家族对冲 SHA-2 结构性风险）或抗量子 hash 时，按 registry 规则**加法注册**新行（新 hash profile + conformance vector），wire 形态无需重写；不预注册无实际使用场景的算法。
 
 除上表 active rows 外，registry 还以 **reserved** 状态登记了备用归一化编码 suite（当前为 `cbor.sha256`，deterministic CBOR + SHA-256，gate 为 `ck.profile.encoding.cbor.v1`，见 §2.2）。reserved suite 钉定 wire 前缀与 gate，但在其 `activation_requirements`（编码细则 + CDDL + 类型映射 + conformance vectors）全部满足并在 registry release 中翻为 active 之前，**MUST NOT 出现在 wire 上**——接收方按未识别 suite 前缀 fail closed 处理即可，无需特判。
 

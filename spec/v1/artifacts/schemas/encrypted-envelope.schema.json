@@ -83,7 +83,7 @@
         },
         "event_ref_digest": {
           "type": "string",
-          "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+          "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
         },
         "causal_refs": {
           "type": "array",
@@ -96,7 +96,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+            "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
           }
         }
       },
@@ -137,7 +137,7 @@
             },
             {
               "type": "string",
-              "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
+              "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
               "description": "Equivalent group state proof hash."
             }
           ],
@@ -149,11 +149,11 @@
     },
     "payload_digest": {
       "type": "string",
-      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
     "aad_digest": {
       "type": "string",
-      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     }
   },
   "allOf": [

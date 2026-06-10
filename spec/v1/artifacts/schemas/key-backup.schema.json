@@ -329,7 +329,7 @@
         },
         "key_commitment": {
           "type": "string",
-          "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+          "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
         }
       },
       "allOf": [
@@ -472,11 +472,11 @@
     },
     "ciphertext_digest": {
       "type": "string",
-      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
     "plaintext_commitment": {
       "type": "string",
-      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
     "auth_data": {
       "type": "object",
@@ -859,7 +859,7 @@
     },
     "hash": {
       "type": "string",
-      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     }
   }
 }

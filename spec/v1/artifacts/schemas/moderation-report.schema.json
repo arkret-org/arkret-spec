@@ -67,11 +67,11 @@
         },
         "ciphertext_digest": {
           "type": "string",
-          "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+          "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
         },
         "plaintext_digest": {
           "type": "string",
-          "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+          "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
         }
       },
       "additionalProperties": true
@@ -121,7 +121,7 @@
   "$defs": {
     "hash": {
       "type": "string",
-      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
     "did": {
       "type": "string",
@@ -233,7 +233,7 @@
             },
             "mls_group_id_digest": {
               "type": "string",
-              "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
+              "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
               "description": "Digest of the MLS group id; raw group ids MUST NOT appear in franking proofs."
             }
           },

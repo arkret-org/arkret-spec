@@ -57,7 +57,7 @@
     },
     "state_digest": {
       "type": "string",
-      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
       "description": "Hash of the canonical reducer-derived state at the snapshot frontier (Lattice cell values keyed by cell_family/cell_subject, plus reducer_profile / schema_profile_refs). This binds *what the state is*. Paired with event_set_commitment which binds *which events produced it*: a verifier replays the events covered by event_set_commitment under reducer_profile and MUST obtain the same state_digest. The two digests are independent and BOTH required — state_digest alone cannot detect missing-event tampering, event_set_commitment alone cannot detect reducer divergence."
     },
     "frontier": {
@@ -99,7 +99,7 @@
         },
         "root": {
           "type": "string",
-          "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+          "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
         },
         "covered_event_count": {
           "type": "integer",
@@ -136,7 +136,7 @@
               },
               "root": {
                 "type": "string",
-                "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+                "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
               }
             },
             "additionalProperties": false
@@ -171,15 +171,15 @@
         },
         "conflict_records_digest": {
           "type": "string",
-          "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+          "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
         },
         "soft_failed_digest": {
           "type": "string",
-          "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+          "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
         },
         "quarantined_digest": {
           "type": "string",
-          "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+          "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
         }
       },
       "additionalProperties": true
@@ -196,11 +196,11 @@
         "properties": {
           "chunk_ref": {
             "type": "string",
-            "pattern": "^ck:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|sha3_256|blake3):[0-9a-f]{64}|sha512:[0-9a-f]{128})$"
+            "pattern": "^ck:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
           },
           "digest": {
             "type": "string",
-            "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$"
+            "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
           },
           "size_bytes": {
             "type": "integer",
@@ -248,7 +248,7 @@
         },
         "auth_state_digest": {
           "type": "string",
-          "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
+          "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
           "description": "Hash of the authorization state used to verify snapshot issuer authority."
         },
         "auth_frontier": {

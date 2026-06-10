@@ -322,7 +322,7 @@ Realm 一旦在 create event 中固定 `digest_algorithm`（取值为 [`digest-s
 1. **Transition Anchor**：anchorer 签发一个特殊的 compaction Anchor，其 wire 字段同时携带 `previous_state_root`（旧 suite）和 `state_root`（新 suite）。Receiver 按旧 suite 的完整定义（旧归一化 + 旧 hash）重算 frontier 验证 `previous_state_root` 与本地一致；按新 suite 的完整定义重算同 frontier 验证 `state_root`。两者都通过才能 accept transition Anchor。
 2. **`digest_algorithm` cell update**：transition Anchor 的 frontier 包含一个 Move 把 Realm 的 `digest_algorithm` cell（`cas_register, bottom=reject`）从旧值 `head_eq=<old>` 改为 `set=<new>`。
 3. **后续 Anchor**：新 anchor 只用新 suite。客户端做长历史 inclusion proof 时，跨 transition Anchor 的 proof 由 transition Anchor 的双 root 桥接——proof 在 transition 之前用旧 suite 验证，之后用新 suite 验证。transition 之前已签名的历史 bytes 不被改写（签名字节不可变根约束）。
-4. **hash 分量禁止降级**：suite 的 hash 分量只允许从更弱 algo 升级到更强 algo（按 digest-suite registry 声明的 strength order），MUST NOT 降级。Strength order：`sha256 < sha3_256 ≈ sha512 < blake3` 在性能侧；安全侧 v1 视为同等抗碰撞强度，差异在 algorithm diversity 与 bandwidth。未来加入抗量子 hash 时该 order 会被扩展。
+4. **hash 分量禁止降级**：suite 的 hash 分量只允许从更弱 algo 升级到更强 algo（按 digest-suite registry `hash_strength_order` 声明的顺序），MUST NOT 降级。v1 order：`sha256 < blake3` 在性能侧；安全侧 v1 视为同等抗碰撞强度。未来加法注册 algorithm-diversity 或抗量子 hash 时该 order 随 registry 扩展。
 5. **归一化分量横向切换**：canonicalization 分量之间无强弱序，切换是横向迁移，前提是新旧 suite 在 registry 中均为 active、且目标 suite 的 encoding profile（如 `ck.profile.encoding.cbor.v1`）已被 Realm 的参与方声明。单次 transition MAY 同时切换两个分量，但 hash 分量仍受第 4 条约束。
 
 实现不强制支持 suite transition；声明 `ck.profile.hash_transition.v1` 的实现 MUST 支持（该 profile 覆盖两类分量的切换，profile id 沿用历史名）。这条机制保证了未来 digest 定义升级路径不需要硬分叉。

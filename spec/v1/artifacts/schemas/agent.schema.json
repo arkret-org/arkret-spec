@@ -28,7 +28,7 @@
     },
     "did_document_digest": {
       "type": "string",
-      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
       "description": "Canonical hash of the DID Document used for agent endpoint validation."
     },
     "service_entry_id": {
@@ -37,7 +37,7 @@
     },
     "service_entry_digest": {
       "type": "string",
-      "pattern": "^(sha256|sha3_256|blake3):[0-9a-f]{64}$|^sha512:[0-9a-f]{128}$",
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
       "description": "Canonical digest of the matched DID service entry, bound into interop_session.start / status / result audit evidence."
     },
     "session_id": {
