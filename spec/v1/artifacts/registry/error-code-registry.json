@@ -723,7 +723,7 @@
       "code": "unsupported_digest_algorithm",
       "http_status": 422,
       "scope": "both",
-      "description": "The digest algorithm prefix in a typed digest value (e.g. ck:event:<algo>:<hex>) is not in the receiver's supported digest algorithm list. See zh/conformance/encoding.md §3.2."
+      "description": "The digest suite prefix in a typed digest value (e.g. sha256:<hex>, cbor.sha256:<hex>) is not an active row of artifacts/registry/digest-suite-registry.json supported by the receiver (unknown id, unregistered tuple, or reserved suite) on a critical field. See zh/conformance/encoding.md §3.1-§3.2."
     },
     {
       "code": "anchor_incomplete",

@@ -1,0 +1,86 @@
+{
+  "version": "2026-06-10",
+  "source_of_truth": true,
+  "description": "Canonical digest suite vocabulary for v1 typed digest values. A digest suite is the registered tuple (canonicalization, hash_algorithm). The suite canonical_id is the wire prefix in `<suite>:<lowercase_hex>` typed digest values and the value space of the Realm `digest_algorithm` field.",
+  "suite_id_grammar": "suite_id = hash_id | canonicalization_id '.' hash_id ; each segment matches [a-z0-9_]+ ; at most one dot. A bare hash_id (no dot) denotes canonicalization=json_jcs for historical wire compatibility.",
+  "registry_rules": [
+    "A digest suite id without a dot denotes canonicalization=json_jcs (canonical JSON per zh/conformance/encoding.md §2). The bare ids sha256/sha512/sha3_256/blake3 are therefore JSON-canonicalization suites; their wire semantics are unchanged from earlier v1 drafts and existing signed bytes are unaffected.",
+    "Suites are registered as explicit tuples. Implementations MUST NOT combine canonicalization ids and hash ids freely; only suites present as rows in this registry exist, and only status=active rows are valid on wire.",
+    "A suite prefix not present as an active row MUST fail closed with unsupported_digest_algorithm when it appears in a critical field (event_digest, state_root, prev_refs / refs digest, anchor id, receipt digest); in non-critical metadata receivers MAY record it as unknown and preserve raw bytes (zh/conformance/encoding.md §3.2).",
+    "status=reserved rows pin the wire prefix and profile gate but MUST NOT appear on wire until every activation_requirements entry is met and the row is flipped to active in a registry release.",
+    "Realm digest_algorithm MUST hold exactly one active suite id; every digest produced inside that Realm MUST use the declared suite. A digest whose suite prefix differs from the Realm's declared suite MUST be rejected (schema_violation), except on a Transition Anchor's previous_state_root. Suite transition only via ck.profile.hash_transition.v1 (zh/authz/event-auth-state-resolution.md §4.2.5).",
+    "Schema enum values for digest-suite selector fields (e.g. realm.digest_algorithm) MUST be generated from active rows' canonical_id.",
+    "The hash strength order used by the no-downgrade transition rule applies to the hash_algorithm component only; canonicalization component changes are lateral and carry no strength relation."
+  ],
+  "canonicalizations": [
+    {
+      "id": "json_jcs",
+      "status": "active",
+      "definition": "Cokret canonical JSON (RFC 8785 / JCS narrowed profile), zh/conformance/encoding.md §2.",
+      "notes": "Implied by bare (dot-free) suite ids; never written as an explicit dotted prefix segment in v1."
+    },
+    {
+      "id": "cbor",
+      "status": "reserved",
+      "definition": "CBOR deterministic encoding (RFC 8949 §4.2) under the Cokret profile to be pinned by ck.profile.encoding.cbor.v1 (encoding rules, CDDL, schema-agnostic JSON<->CBOR type mapping, conformance vectors).",
+      "notes": "Reserved until ck.profile.encoding.cbor.v1 is fully specified. The mapping MUST be schema-agnostic (JSON string -> CBOR text string, JSON integer -> CBOR integer); canonicalization MUST NOT depend on schema knowledge."
+    }
+  ],
+  "suites": [
+    {
+      "canonical_id": "sha256",
+      "canonicalization": "json_jcs",
+      "hash_algorithm": "sha256",
+      "digest_length_bytes": 32,
+      "status": "active",
+      "role": "v1_default_must",
+      "profile_gate": null,
+      "security_note": "v1 default; all receivers MUST support. SHA-2 family, not post-quantum but Grover-degraded strength remains acceptable; migration path via hash transition."
+    },
+    {
+      "canonical_id": "sha512",
+      "canonicalization": "json_jcs",
+      "hash_algorithm": "sha512",
+      "digest_length_bytes": 64,
+      "status": "active",
+      "role": "v1_optional_interop",
+      "profile_gate": "ck.profile.hash.sha512.v1",
+      "security_note": "Same SHA-2 family as sha256; chosen only for digest size."
+    },
+    {
+      "canonical_id": "sha3_256",
+      "canonicalization": "json_jcs",
+      "hash_algorithm": "sha3_256",
+      "digest_length_bytes": 32,
+      "status": "active",
+      "role": "v1_optional_interop",
+      "profile_gate": "ck.profile.hash.sha3.v1",
+      "security_note": "Keccak family; provides algorithm diversity against structural attacks on the SHA-2 family."
+    },
+    {
+      "canonical_id": "blake3",
+      "canonicalization": "json_jcs",
+      "hash_algorithm": "blake3",
+      "digest_length_bytes": 32,
+      "status": "active",
+      "role": "v1_optional_interop",
+      "profile_gate": "ck.profile.hash.blake3.v1",
+      "security_note": "Best throughput; recommended for blob CID and high-volume paths."
+    },
+    {
+      "canonical_id": "cbor.sha256",
+      "canonicalization": "cbor",
+      "hash_algorithm": "sha256",
+      "digest_length_bytes": 32,
+      "status": "reserved",
+      "role": "reserved_encoding_extension",
+      "profile_gate": "ck.profile.encoding.cbor.v1",
+      "activation_requirements": [
+        "ck.profile.encoding.cbor.v1 fully specified: deterministic encoding rules pinned (RFC 8949 §4.2 vs CDE), CDDL for envelope and canonical objects, schema-agnostic JSON<->CBOR type mapping",
+        "Per-suite conformance vectors published (canonical bytes, event_digest, state_root, receipt digest)",
+        "Suite transition vectors published for json_jcs -> cbor transition Anchors"
+      ],
+      "security_note": "Deterministic CBOR canonicalization with SHA-256. Same hash strength as sha256; the suite exists to enable encode-once/sign-the-bytes verification and MLS/COSE ecosystem alignment for Realms that opt in at create time."
+    }
+  ]
+}

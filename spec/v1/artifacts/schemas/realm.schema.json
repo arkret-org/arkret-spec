@@ -276,7 +276,7 @@
         "blake3"
       ],
       "default": "sha256",
-      "description": "Create-locked hash algorithm used for Move/Anchor ids, state_root, and Merkle leaves within this Realm. Defaults to sha256. Migration via hash-transition Anchor; see event-auth-state-resolution.md §4.2.5."
+      "description": "Create-locked digest suite (canonicalization x hash tuple) used for Move/Anchor ids, state_root, and Merkle leaves within this Realm. Defaults to sha256. Value space is the active rows of artifacts/registry/digest-suite-registry.json (this enum MUST be regenerated when a row flips active, e.g. cbor.sha256); bare ids denote canonical-JSON canonicalization, dotted ids denote alternate canonical encodings. Exactly one live suite per Realm; migration via suite-transition Anchor, see event-auth-state-resolution.md §4.2.5."
     },
     "anchorer": {
       "type": "object",

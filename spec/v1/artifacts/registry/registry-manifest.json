@@ -51,6 +51,14 @@
       "description": "Canonical signature algorithm vocabulary for proof alg and raw signature_algorithm schema enums."
     },
     {
+      "name": "digest_suites",
+      "file": "registry/digest-suite-registry.json",
+      "kind": "digest_suite_registry",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Canonical digest suite (canonicalization x hash tuple) vocabulary for typed digest wire prefixes and the Realm digest_algorithm value space."
+    },
+    {
       "name": "proposal_merges",
       "file": "registry/proposal-merge-manifest.json",
       "kind": "proposal_merge_manifest",

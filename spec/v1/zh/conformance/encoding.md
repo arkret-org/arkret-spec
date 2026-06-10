@@ -64,10 +64,15 @@ Event Envelope 的签名和 hash 输入 MUST 是去除 `proofs` 与 `unsigned` �
 
 v1 wire format 锁定为 canonical JSON。需要更紧凑或更适合受限设备的 binding 时，profile MAY 引入备用 canonical encoding：
 
-- **CBOR (RFC 8949) deterministic encoding** — 与 IETF MLS / COSE / WebAuthn 同源；适合 IoT、嵌入式与高密度 wire 场景。引入 CBOR profile 时 MUST 同时定义 JSON ↔ CBOR 等价规则，并在 conformance vector 中给出双向 digest 一致性测试。
+- **CBOR (RFC 8949) deterministic encoding** — 与 IETF MLS / COSE / WebAuthn 同源；适合 IoT、嵌入式与高密度 wire 场景。
 - 其他 binary encoding（如 protobuf、msgpack）SHOULD 通过 profile 单独引入，MUST NOT 静默替换 v1 canonical JSON。
 
-引入备用 encoding 的 profile id 形如 `ck.profile.encoding.cbor.v1`；事件 envelope 中通过 `requirements.features[]` 声明使用该 encoding，否则接收方按 canonical JSON 解析。
+备用 canonical encoding 通过 **digest suite 机制**（§3.1 / §3.2、[`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json)）进入协议，规则如下：
+
+- 引入备用 encoding 的 profile（id 形如 `ck.profile.encoding.cbor.v1`）MUST 在 digest-suite registry 注册对应 suite（如 `cbor.sha256`），并交付该 suite 的 activation requirements：deterministic 编码细则、CDDL、**schema 无关**的 JSON ↔ 该编码类型映射（string→text string、integer→integer 的哑映射；归一化 MUST NOT 依赖 schema 知识，否则 digest 会随 schema registry 版本漂移）、以及 per-suite conformance vectors。
+- **归一化编码是 Realm 级声明**：Realm 在 create event 的 `digest_algorithm` 字段锁定唯一 suite（§3.3），该声明是权威；事件 envelope 的 `requirements.features[]` 声明对应 encoding profile 作为能力要求，但 MUST NOT 与 Realm 声明的 suite 冲突。未声明备用 suite 的 Realm 一律按 canonical JSON 解析。
+- 由于 Realm 级 suite 排他（§3.3），同一 Realm 内不存在 JSON 与备用编码两套并行 digest，**跨编码的双向 digest 等价向量不是验证路径的需求**；仅当 profile 提供 json→备用编码的 suite transition 路径时，MUST 给出 transition Anchor 双 root 向量（见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.5）。
+- 实现 MAY 出于调试 / 退化传输目的输出备用编码 Realm 中对象的 JSON 渲染视图，但该视图是 informational 投影：MUST NOT 进入签名、digest、`prev_refs` 解析或任何 canonical 路径。
 
 ## 3. Hash
 
@@ -76,16 +81,18 @@ v1 wire format 锁定为 canonical JSON。需要更紧凑或更适合受限设�
 Cokret 所有 hash wire value MUST 形如：
 
 ```text
-<algo>:<lowercase_hex_digest>
+<suite>:<lowercase_hex_digest>
 ```
 
-- `<algo>` 是 hash 算法标识符，取自下表的 v1 registered set。
-- `<lowercase_hex_digest>` 是该算法的 raw digest 的小写 hex 编码，长度由算法决定。
-- 算法、长度、编码三者**任何一项**与算法 spec 不一致 → schema_violation。
+- `<suite>` 是 **digest suite** 标识符——digest 定义的注册元组 **(canonicalization, hash_algorithm)** 的 canonical id，取自 [`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json)（机器可读 source of truth，§3.2 表为其阅读视图）。文法：裸 id（无点号，如 `sha256`）表示 canonicalization = canonical JSON（§2），与既有 wire 语义完全一致；点分 id `<canonicalization>.<hash>`（如 `cbor.sha256`）表示备用归一化编码 suite。本文其他小节及兄弟文档中沿用的 `<algo>` 称谓即 `<suite>` ——对全部裸 id 二者同义。
+- `<lowercase_hex_digest>` 是按 suite 的 canonicalization 产出 canonical bytes、再以 suite 的 hash 算法计算的 raw digest 的小写 hex 编码，长度由 hash 算法决定。
+- suite、长度、编码三者**任何一项**与 registry 行不一致 → schema_violation。
+- suite 是**注册元组**：实现 MUST NOT 把 canonicalization id 与 hash id 自由组合出未注册前缀；registry 中不存在的组合不存在于协议中。
+- suite 前缀是 digest 字符串值的一部分，因而被签名字节覆盖：digest 定义本身不可在不破坏 proof 的情况下被改写或降级。
 
-### 3.2 Hash Agility Set
+### 3.2 Digest Suite / Hash Agility Set
 
-v1 conformance 锁定的 hash 算法集合：
+digest suite 的 canonical 机器来源是 [`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json)（与 §6.1 Signature Suite registry 对称）；schema 中 digest-suite 选择字段（如 Realm `digest_algorithm`）的 enum MUST 由 registry active rows 生成。下表是 v1 active 且 canonicalization = canonical JSON 的 suite 集合的规范阅读视图：
 
 | Algo | Digest 长度 | v1 角色 | 抗量子 / future-ready 评估 |
 | --- | ---: | --- | --- |
@@ -94,17 +101,23 @@ v1 conformance 锁定的 hash 算法集合：
 | `sha3_256` | 32 bytes（64 hex） | v1 optional；声明 `ck.profile.hash.sha3.v1` 的实现 MUST 支持。提供 Keccak family 抗碰撞冗余，与 sha256 family 形成 algorithm diversity。 | 与 sha256 不同结构家族，抗结构性新攻击。 |
 | `blake3` | 32 bytes（64 hex） | v1 optional；声明 `ck.profile.hash.blake3.v1` 的实现 MUST 支持。性能最佳；blob CID 与高吞吐场景推荐。 | sha256-class 抗碰撞；非 NIST 但被 IRTF / RFC 路径认可。 |
 
-扩展 profile MAY 通过新 hash profile 加入抗量子 hash（如 SLH-DSA hash family、SHAKE256 派生），v1 wire 形态 `<algo>:<hex>` 已经为这种加法准备好——**无需重写 wire**。
+除上表 active rows 外，registry 还以 **reserved** 状态登记了备用归一化编码 suite（当前为 `cbor.sha256`，deterministic CBOR + SHA-256，gate 为 `ck.profile.encoding.cbor.v1`，见 §2.2）。reserved suite 钉定 wire 前缀与 gate，但在其 `activation_requirements`（编码细则 + CDDL + 类型映射 + conformance vectors）全部满足并在 registry release 中翻为 active 之前，**MUST NOT 出现在 wire 上**——接收方按未识别 suite 前缀 fail closed 处理即可，无需特判。
+
+扩展 profile MAY 通过新 hash profile 加入抗量子 hash（如 SLH-DSA hash family、SHAKE256 派生），也 MAY 通过新 encoding profile 注册备用归一化 suite；v1 wire 形态 `<suite>:<hex>` 已经为这两类加法准备好——**无需重写 wire**。
 
 实现 MUST：
 
-- 默认按 `sha256:` 解析；遇到未识别的 algo prefix → 若位于 critical field（event_digest、state_root、prev_refs blob hash）→ fail closed (`unsupported_digest_algorithm`)；若位于非 critical metadata（如对象的 derived fingerprint）→ MAY 记录为 unknown 并 preserve raw bytes。
-- 在 `server/describe.crypto` 暴露支持的 hash algo 集合;client 可据此选择写入算法。（`describe.crypto` 还 MUST 暴露支持的**签名** algo 集合，该 MUST 的权威声明集中在 §6.1 Signature Suite registered set。）
+- 默认按 `sha256:` 解析；遇到未识别的 suite prefix（含 registry 中 reserved 状态、未注册点分组合、未知 id）→ 若位于 critical field（event_digest、state_root、prev_refs blob hash）→ fail closed (`unsupported_digest_algorithm`)；若位于非 critical metadata（如对象的 derived fingerprint）→ MAY 记录为 unknown 并 preserve raw bytes。
+- 在 `server/describe.crypto` 暴露支持的 digest suite 集合;client 可据此选择写入算法。（`describe.crypto` 还 MUST 暴露支持的**签名** algo 集合，该 MUST 的权威声明集中在 §6.1 Signature Suite registered set。）
 - MUST NOT "算法升级"已签名的 canonical bytes：一旦 Event 用 `sha256:` 发布，verify 路径永远按 sha256 重算；实现 MUST NOT 因为本地默认换成 blake3 就重算并替换。
 
 ### 3.3 State Root 与 Anchor Hash 编码
 
-`state_root`、Anchor `id`、Event `event_digest` / `event_id` 引用、receipt digest 这几条核心承诺字段的 wire 形态由所属 Realm 在 create event 中通过 `digest_algorithm` 字段固定（默认 `sha256`）。Move 是 reducer-input Event 的协议视图；Move 级引用 MUST 使用 enclosing Event 的 `event_id` 或 `event_digest`。Realm 内所有后续 Anchor / Event digest / state_root MUST 使用同一 algo；切换需要通过 `ck.profile.hash_transition.v1` snapshot commitment + signed compaction Anchor 在 frontier 上做一次 algorithm transition Anchor，新旧 algo 都能在 transition Anchor 上验证 inclusion。详细规则见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.5（hash transition）。
+`state_root`、Anchor `id`、Event `event_digest` / `event_id` 引用、receipt digest 这几条核心承诺字段的 wire 形态由所属 Realm 在 create event 中通过 `digest_algorithm` 字段固定（默认 `sha256`）。`digest_algorithm` 的取值是 [`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json) 的 **active suite id**——它锁定的不只是 hash 算法，而是完整 digest 定义（canonicalization × hash）。Move 是 reducer-input Event 的协议视图；Move 级引用 MUST 使用 enclosing Event 的 `event_id` 或 `event_digest`。
+
+**Realm 级 suite 排他（normative）**：一个 Realm 同一时刻 MUST 只有一个 live digest suite；Realm 内所有后续 Anchor / Event digest / state_root / receipt digest MUST 使用同一 suite。接收方在 Realm 上下文中遇到 suite 前缀与该 Realm 声明不符的 digest（Transition Anchor 的 `previous_state_root` 除外）MUST 按 schema_violation 拒绝，即使该 suite 本身是 receiver 支持的 active suite——这条排他规则消除"同一语义对象在同一 Realm 内拥有两个合法 digest"的去重 / 重放二义性（`duplicate_conflict` 配对、`prev_refs` 解析、幂等键均依赖单一 digest 定义）。跨 Realm 引用按 digest 值自带的 suite 前缀验证，无需上下文。
+
+切换 suite（hash 分量升级，或归一化编码分量切换）需要通过 `ck.profile.hash_transition.v1` snapshot commitment + signed compaction Anchor 在 frontier 上做一次 suite transition Anchor，新旧 suite 都能在 transition Anchor 上验证 inclusion。详细规则见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.5（digest suite transition）。
 
 ### 3.4 Multihash 兼容（profile-gated）
 
@@ -604,7 +617,7 @@ _Informative._ 本小节只做导航锚，不搬迁任何 normative 内容；各
 | Cell subject 编码(复合 subject hash 形态、标准复合 subject 表) | 本文 §9.5 |
 | `state_root` 的 Merkle 编码与 inclusion 规则 | [`authz/event-auth-state-resolution.md` §4.2](../authz/event-auth-state-resolution.md) |
 | `state_root` / Anchor hash 的 wire 形态与 algo 固定规则 | 本文 §3.3 |
-| Hash wire 形态(`<algo>:<hex>`)与 Hash registered set | 本文 §3.1 / §3.2 |
+| Hash wire 形态(`<suite>:<hex>`)与 Digest Suite registered set | 本文 §3.1 / §3.2 |
 | Cell tuple 引用形态(`ck:cell:<component>:<subject>`) | 本文 §4(special forms) |
 
 ## 10. Encrypted Envelope Digest

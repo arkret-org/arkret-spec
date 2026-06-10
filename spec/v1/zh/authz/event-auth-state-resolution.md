@@ -315,16 +315,17 @@ Anchor view，把同 view 写进 leaf 会造成自引用并破坏 root 的稳定
 偏离上述编码（不同 leaf shape、不同 tree 形、不同空 list 处理、错误的 hash algo）即视为
 v1 wire-incompatible，必须用独立 profile 声明。
 
-#### 4.2.5 Hash Algorithm Transition
+#### 4.2.5 Digest Suite Transition（hash / canonicalization）
 
-Realm 一旦在 create event 中固定 `digest_algorithm`，所有后续 Anchor / Move / state_root MUST 用同一 algo。需要切换 hash algo（例如 sha256 → blake3 性能升级，或 sha256 → 抗量子 hash family）时：
+Realm 一旦在 create event 中固定 `digest_algorithm`（取值为 [`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json) 的 active **digest suite** id，即 canonicalization × hash 元组，见 [`encoding.md`](../conformance/encoding.md) §3.1–§3.3），所有后续 Anchor / Move / state_root MUST 用同一 suite。需要切换 suite——无论是 hash 分量升级（例如 sha256 → blake3 性能升级、→ 抗量子 hash family），还是归一化编码分量切换（例如 canonical JSON → deterministic CBOR，即 `sha256` → `cbor.sha256`）——时：
 
-1. **Transition Anchor**：anchorer 签发一个特殊的 compaction Anchor，其 wire 字段同时携带 `previous_state_root`（旧 algo）和 `state_root`（新 algo）。Receiver 用旧 algo 重算 frontier 验证 `previous_state_root` 与本地一致；用新 algo 重算同 frontier 验证 `state_root`。两者都通过才能 accept transition Anchor。
+1. **Transition Anchor**：anchorer 签发一个特殊的 compaction Anchor，其 wire 字段同时携带 `previous_state_root`（旧 suite）和 `state_root`（新 suite）。Receiver 按旧 suite 的完整定义（旧归一化 + 旧 hash）重算 frontier 验证 `previous_state_root` 与本地一致；按新 suite 的完整定义重算同 frontier 验证 `state_root`。两者都通过才能 accept transition Anchor。
 2. **`digest_algorithm` cell update**：transition Anchor 的 frontier 包含一个 Move 把 Realm 的 `digest_algorithm` cell（`cas_register, bottom=reject`）从旧值 `head_eq=<old>` 改为 `set=<new>`。
-3. **后续 Anchor**：新 anchor 只用新 algo。客户端做长历史 inclusion proof 时，跨 transition Anchor 的 proof 由 transition Anchor 的双 root 桥接——proof 在 transition 之前用旧 algo 验证，之后用新 algo 验证。
-4. **禁止降级**：`digest_algorithm` 只允许从更弱 algo 升级到更强 algo（按 v1 hash registry 中声明的 strength order），MUST NOT 降级。Strength order：`sha256 < sha3_256 ≈ sha512 < blake3` 在性能侧；安全侧 v1 视为同等抗碰撞强度，差异在 algorithm diversity 与 bandwidth。未来加入抗量子 hash 时该 order 会被扩展。
+3. **后续 Anchor**：新 anchor 只用新 suite。客户端做长历史 inclusion proof 时，跨 transition Anchor 的 proof 由 transition Anchor 的双 root 桥接——proof 在 transition 之前用旧 suite 验证，之后用新 suite 验证。transition 之前已签名的历史 bytes 不被改写（签名字节不可变根约束）。
+4. **hash 分量禁止降级**：suite 的 hash 分量只允许从更弱 algo 升级到更强 algo（按 digest-suite registry 声明的 strength order），MUST NOT 降级。Strength order：`sha256 < sha3_256 ≈ sha512 < blake3` 在性能侧；安全侧 v1 视为同等抗碰撞强度，差异在 algorithm diversity 与 bandwidth。未来加入抗量子 hash 时该 order 会被扩展。
+5. **归一化分量横向切换**：canonicalization 分量之间无强弱序，切换是横向迁移，前提是新旧 suite 在 registry 中均为 active、且目标 suite 的 encoding profile（如 `ck.profile.encoding.cbor.v1`）已被 Realm 的参与方声明。单次 transition MAY 同时切换两个分量，但 hash 分量仍受第 4 条约束。
 
-实现不强制支持 hash transition；声明 `ck.profile.hash_transition.v1` 的实现 MUST 支持。这条机制保证了未来 hash algorithm 升级路径不需要硬分叉。
+实现不强制支持 suite transition；声明 `ck.profile.hash_transition.v1` 的实现 MUST 支持（该 profile 覆盖两类分量的切换，profile id 沿用历史名）。这条机制保证了未来 digest 定义升级路径不需要硬分叉。
 
 ### 4.3 Anchor Batch 语义
 
