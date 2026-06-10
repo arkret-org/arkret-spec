@@ -718,6 +718,51 @@ QR payload MUST NOT 包含长期私钥、secret storage key、recovery secret �
 | `accepted_by_other_device` | 同一请求已被另一设备接受。 |
 | `cross_signing_reset` | 验证过程中检测到 cross-signing reset，旧 SSK generation 已废止；详见 §14.3。 |
 
+### 10.7 Secret Sharing（`ck.secret.*`）
+
+§10.5(3) 允许已授权设备在验证成功后“通过加密 to-device 消息共享 `self_signing_key`、secret storage bootstrap 或 MLS Welcome”。本节把该动作收敛为两个标准 to-device kind，用于把账户级 secret（如 MLS account secret / secret storage bootstrap key）从一台已授权设备直传给同一 principal 的另一台已通过 §10.3 SAS 验证的设备，无需用户重新输入恢复口令。它是 [`identity/key-management.md` §7](../identity/key-management.md) 无口令恢复路径的设备直传分支，服务端零知识。
+
+标准 kind（均为 `wire_scope=ephemeral_event`，走 §7 to-device 通道，不进入任何持久 timeline）：
+
+- `ck.secret.request`：请求设备（通常是新设备）向已授权设备索取某个 `secret_id`。
+- `ck.secret.send`：被请求设备把 secret 以 HPKE 密封后回传给请求设备。
+
+两者 content 闭合形态见 [`schemas/device-message.schema.json`](../../artifacts/schemas/device-message.schema.json) 的 `secret_request_content` / `secret_send_content`。
+
+`ck.secret.request.content` 字段：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `request_id` | `string` | required | 调用方生成的随机关联 id；MUST NOT 在被应答或取消后重用。 |
+| `secret_id` | `string` | required | 被请求 secret 的不透明标识，例如 `yougen_mls_account_secret`。 |
+| `from_device` | `id:device` | required | 请求（新）设备；MUST 等于 envelope 的 `sender_device_id`。 |
+| `recipient_hpke_public_key` | `string` | required | 请求设备控制的 base64url X25519 HPKE 公钥，被请求设备据此密封；SHOULD 是设备 `hpke_key` 或已绑定的 SAS 验证 transcript 中已建立的密钥。 |
+
+`ck.secret.send.content` 字段：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `request_id` | `string` | required | 关联到 pending 的 `ck.secret.request`；MUST 等于密封 plaintext 内被认证的 `request_id`。 |
+| `secret_id` | `string` | required | 与请求一致的 secret 标识。 |
+| `from_device` | `id:device` | required | 授权（已有）设备；MUST 等于 envelope 的 `sender_device_id`，且 MUST 是接收 principal 的未撤销设备。 |
+| `scheme` | `string` | required | MUST 为 `ck.hpke_x25519_aead_xchacha20poly1305.v1`。 |
+| `enc` | `string` | required | base64url HPKE（RFC 9180）封装密钥（KEM 输出）。 |
+| `ciphertext` | `string` | required | base64url HPKE AEAD 密文。HPKE AAD 见下方定义。 |
+
+HPKE AAD（本 kind 的具体绑定）MUST 是对以下 6 个 envelope 字段的 canonical JSON（RFC 8785 JCS）：`kind`、`sender_principal_id`、`sender_device_id`、`recipient_principal_id`、`recipient_device_id`，以及把 `expires_at` 归一化为整数 Unix 秒后的字段 `expires_at_unix`。前五个为字符串、`expires_at_unix` 为整数，在收发两端都可从 `DeviceMessageEnvelope` 确定性重建（归一化为整数避免 RFC3339 字符串在 `DateTime` 往返序列化中重排——如 `Z` 与 `+00:00`、小数秒——导致 AAD 不一致；队列服务 MUST NOT 重写这些字段）。§7 的通用 AAD 最小集还要求覆盖 `sent_at`；由于 to-device 队列在物化时由服务端赋 `sent_at`，发送方在密封时无法预知它，因此本 kind 改由密封 plaintext 内携带的一次性 `request_id` 提供等价的抗重放/新鲜性绑定。
+
+`ck.secret.send` 的 plaintext（仅 HPKE 解封后可见，不出现在 wire 任何明文字段）MUST 至少携带被请求 secret 本体、其版本号与 `request_id`；接收方解封后 MUST 校验内层 `request_id` / `secret_id` 与外层 content 一致、且 `request_id` 命中本端某个 pending 请求，否则丢弃。
+
+规则（normative）：
+
+- 时序：`ck.secret.request` / `ck.secret.send` MUST 在两台设备完成 §10.3 SAS 验证之后发送。请求与发送绑定的设备 MUST 与该 SAS transcript 绑定的 device key 一致，防止“验证设备 A、把 secret 发给设备 B”。
+- TTL：二者受 §7 队列 TTL 约束；`ck.secret.send` SHOULD 使用更短 `expires_at`（推荐 10–60 分钟）。
+- 用户在环：被请求设备在发送 `ck.secret.send` 前 MUST 经用户显式授权，并 MUST 校验目标 device ∈ 本 principal 当前授权设备集合且未撤销。
+- 反滥用：接收方 MUST 丢弃 unsolicited `ck.secret.send`（无本端 pending `request_id`）；`request_id` 用后即作废；对同一 `from_device` 的重复请求 SHOULD 限速；多次拒绝 SHOULD 提示用户考虑撤销该设备。
+- 审计：被请求设备 SHOULD 记录一次 secret 共享审计（如 `ck.audit.accessed`，`access_kind=secret_share`）。
+- 止损：误授权后，用户从任一已授权设备发起 §2.2 设备撤销并轮换对应 account secret、重新封装全部备份即可使被泄露设备失效。
+- QR：与 §10.4 一致，QR payload 仍 MUST NOT 直接携带任何 secret 本体；secret 只经本节 HPKE 密封的 `ck.secret.send` 传输。
+
 ## 11. Secret Storage（client-local cache form）
 
 Secret storage 用于保存：
