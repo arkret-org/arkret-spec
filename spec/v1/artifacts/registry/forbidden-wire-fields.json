@@ -1125,6 +1125,19 @@
       "notes": "Protocol responsibility subjects use _id suffix even when the value is a DID."
     },
     {
+      "id": "bound_to.actor",
+      "context": "policy_check_bound_to",
+      "since_revision": "2026-06-10",
+      "rejection_level": "hard_reject",
+      "replacement": "bound_to.actor_id",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Policy check chain bare `actor` renamed to actor_id (did_id_suffix rule). Applies to PolicyCheckRequestBody.actor, PolicyCheckOutcome bound_to.actor, challenge obligation bound_to.actor and capability vector request.actor. Registered under the dotted bound_to.actor path because the bare token `actor` remains a legitimate enum value (resource selector kind, target.kind) and prose noun — literal scanners MUST NOT flag every `actor` token."
+    },
+    {
       "id": "name",
       "context": "directory_projection",
       "since_revision": "2026-05-24",

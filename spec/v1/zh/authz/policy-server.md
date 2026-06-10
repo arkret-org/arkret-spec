@@ -69,7 +69,7 @@ Content-Type: application/json
 | `realm_id` | body | `id` | required | 相关 Realm；进入 cache key、policy transcript 和 obligation `bound_to.realm_id`。纯账号级检查 MUST 使用 principal control Realm id。 |
 | `request_canonical_digest` | body | `sha256:<hash>` | required | 被检查请求或事件 preview 的 canonical hash。 |
 | `action` | body | `string` | required | 待检查动作，例如 `ck.message.create`。 |
-| `actor` | body | `did` | required | 发起动作的 Actor DID。 |
+| `actor_id` | body | `did` | required | 发起动作的 Actor DID。 |
 | `device_id` | body | `id` | optional | 发起设备。 |
 | `source` | body | `object` | required | 调用来源摘要。 |
 | `source.service_did` | body | `did` | required | 调用服务 DID。 |
@@ -87,7 +87,7 @@ Content-Type: application/json
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "action": "ck.message.create",
-  "actor": "did:webvh:...",
+  "actor_id": "did:webvh:...",
   "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
   "source": {
     "service_did": "did:web:server.example",
@@ -120,9 +120,9 @@ Content-Type: application/json
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `request_id` | `string` | required | 回显请求 ID。 |
-| `bound_to` | `object` | required | Policy Server 回签的请求绑定；MUST 至少包含 `realm_id`、`actor`、`action`、`request_canonical_digest`、`policy_server_id`，调用方缓存或复用 decision 前必须逐字段比较。 |
+| `bound_to` | `object` | required | Policy Server 回签的请求绑定；MUST 至少包含 `realm_id`、`actor_id`、`action`、`request_canonical_digest`、`policy_server_id`，调用方缓存或复用 decision 前必须逐字段比较。 |
 | `bound_to.realm_id` | `id` | required | 等于 request `realm_id`。 |
-| `bound_to.actor` | `did` | required | 等于 request `actor`。 |
+| `bound_to.actor_id` | `did` | required | 等于 request `actor_id`。 |
 | `bound_to.action` | `string` | required | 等于 request `action`。 |
 | `bound_to.request_canonical_digest` | `sha256:<hash>` | required | 等于 request `request_canonical_digest`。 |
 | `bound_to.policy_server_id` | `did` | required | 签发该 decision 的 Policy Server DID；必须与 declaration `server_id` 和 `signature.kid` 控制者一致。 |
@@ -145,7 +145,7 @@ Content-Type: application/json
   "request_id": "polreq_01",
   "bound_to": {
     "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-    "actor": "did:webvh:...",
+    "actor_id": "did:webvh:...",
     "action": "ck.message.create",
     "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "policy_server_id": "did:web:policy.example.com"
@@ -215,7 +215,7 @@ Content-Type: application/json
 
 ```json
 {
-  "actor": "did:webvh:z2dmjYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:bob",
+  "actor_id": "did:webvh:z2dmjYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:bob",
   "action": "member.application",
   "request_canonical_digest": "sha256:...",
   "device_id": "ck:device:..."
@@ -228,7 +228,7 @@ Content-Type: application/json
 
 1. 首次 `/_cokret/self/policy/check` 时，调用方对原始 Move preview / application private record body 做 JCS canonical SHA-256，作为 `request_canonical_digest`。
 2. 客户端重提时可以在 `gate_proofs[]` 或 envelope proof 区追加 runtime challenge proof；reducer 重新计算 hash 时 MUST 先移除 runtime challenge proof 条目（`gate_id="runtime:<challenge_id>"` 或等价 envelope proof 字段），再按同一 JCS 规则计算。
-3. provider 签发的 proof MUST 绑定该原始 hash、`challenge_id`、`actor`、`action`、`realm_id?`、`device_id?`、`expires_at` 和 issuer。实现 MUST NOT 要求 proof 内 hash 等于“包含 proof 自身的最终 Move hash”，否则会形成自引用 transcript。
+3. provider 签发的 proof MUST 绑定该原始 hash、`challenge_id`、`actor_id`、`action`、`realm_id?`、`device_id?`、`expires_at` 和 issuer。实现 MUST NOT 要求 proof 内 hash 等于“包含 proof 自身的最终 Move hash”，否则会形成自引用 transcript。
 
 provider 颁发的 challenge proof 形态：
 
@@ -252,7 +252,7 @@ reducer 校验顺序：
 
 1. provider signature 有效，`kid` 与 obligation `issuer` 匹配；
 2. `expires_at > now`；
-3. `bound_to` 必须存在；`bound_to.actor` 等于 Move envelope `actor`，`bound_to.action` 等于 Move kind，`bound_to.request_canonical_digest` 等于按 §4.1 proof-stripped 规则重算出的原始请求 canonical hash；
+3. `bound_to` 必须存在；`bound_to.actor_id` 等于 Move envelope `actor_id`，`bound_to.action` 等于 Move kind，`bound_to.request_canonical_digest` 等于按 §4.1 proof-stripped 规则重算出的原始请求 canonical hash；
 4. `challenge_id` 在 reducer 的 nonce 缓存中尚未消费；写入成功后入缓存（最少缓存到 `expires_at`）。
 
 任一项失败 `failed_precondition`，`reason_code="challenge_proof_invalid"`。
@@ -266,7 +266,7 @@ Policy decision 签名输入 MUST 包含：
 - `request_id`
 - `bound_to.request_canonical_digest`
 - `bound_to.realm_id`（被评估对象所属的 Realm ID;**v1 normative**）
-- `bound_to.actor`（被评估 actor DID;**v1 normative**）
+- `bound_to.actor_id`（被评估 actor DID;**v1 normative**）
 - `bound_to.action`（被评估的 capability action token）
 - `bound_to.policy_server_id`
 - decision
@@ -280,12 +280,12 @@ Policy decision 签名输入 MUST 包含：
 
 `request_canonical_digest` MUST 是 [RFC 8785](https://datatracker.ietf.org/doc/html/rfc8785) JSON Canonicalization Scheme (JCS) 在该请求 body 上的 SHA-256 digest（hex 或 base64url，与 hash 字段 prefix `sha256:` 一致）。本规范锁定 JCS 形态以保证跨实现 hash 输入一致；任何"按 service-private 算法计算 canonical hash"的实现 MUST NOT 与其他 conformant 实现互通，且 MUST NOT 声明通过 v1 conformance。
 
-节点 MUST 拒绝过期 decision。缓存 decision 时 MUST 以 `(bound_to.realm_id, bound_to.actor, bound_to.action, bound_to.request_canonical_digest, auth_state_digest)` 五元组为 key，或在 cache entry 中携带 `auth_state_digest` 并在每次命中时与当前 accepted auth state hash constant-time 比较；不一致 MUST 回退完整授权判定。`auth_state_digest` 的定义与 fast-path capability cache 相同（见 [`capabilities.md` §18.1](./capabilities.md)），覆盖当前 capability grant/revoke、membership、policy、必要 claim status、device/session control checkpoint 和相关 state event canonical digest。TTL 只能作为额外上限，不能掩盖 auth state 变化。不得仅按 `request_canonical_digest` 索引——后者会让一个 (realm, actor) 的 allow decision 泄漏到具有相同 body hash 但不同 (realm, actor) 上下文的请求中(攻击者可在 Realm A 中触发一次合法 allow,再在 Realm B 中用相同请求 body 通过缓存复用，从而绕过 Realm B 的实际 policy)。
+节点 MUST 拒绝过期 decision。缓存 decision 时 MUST 以 `(bound_to.realm_id, bound_to.actor_id, bound_to.action, bound_to.request_canonical_digest, auth_state_digest)` 五元组为 key，或在 cache entry 中携带 `auth_state_digest` 并在每次命中时与当前 accepted auth state hash constant-time 比较；不一致 MUST 回退完整授权判定。`auth_state_digest` 的定义与 fast-path capability cache 相同（见 [`capabilities.md` §18.1](./capabilities.md)），覆盖当前 capability grant/revoke、membership、policy、必要 claim status、device/session control checkpoint 和相关 state event canonical digest。TTL 只能作为额外上限，不能掩盖 auth state 变化。不得仅按 `request_canonical_digest` 索引——后者会让一个 (realm, actor) 的 allow decision 泄漏到具有相同 body hash 但不同 (realm, actor) 上下文的请求中(攻击者可在 Realm A 中触发一次合法 allow,再在 Realm B 中用相同请求 body 通过缓存复用，从而绕过 Realm B 的实际 policy)。
 
 接收方 MUST 同时校验:
 
 1. signature 由 `policy_server_id` 的当前 active verification method 签发;
-2. `bound_to` 必须存在，且 `bound_to.realm_id` / `bound_to.actor` / `bound_to.action` / `bound_to.request_canonical_digest` 与本次 request 完全一致;
+2. `bound_to` 必须存在，且 `bound_to.realm_id` / `bound_to.actor_id` / `bound_to.action` / `bound_to.request_canonical_digest` 与本次 request 完全一致;
 3. `expires_at > now`;
 4. `auth_state_digest`、`policy_frontier_digest`、`membership_frontier_digest` 与本地 accepted authorization / policy / membership frontier 一致；不一致 MUST 回退完整授权判定或重新请求 policy check;
 5. 该 decision 未被同一 policy_server 后续的 `ck.moderation.decision.lift` 或 anchored override 撤销。

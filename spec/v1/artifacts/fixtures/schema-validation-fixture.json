@@ -161,7 +161,7 @@
         "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
         "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "action": "ck.message.create",
-        "actor": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
+        "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
         "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
         "source": {
           "service_did": "did:web:server.example",
@@ -188,7 +188,7 @@
         "request_id": "polreq_01",
         "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "action": "ck.message.create",
-        "actor": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
+        "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
         "source": {
           "service_did": "did:web:server.example",
           "service_type": "principal_server",
@@ -204,7 +204,7 @@
         "request_id": "polreq_01",
         "bound_to": {
           "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-          "actor": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
+          "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
           "action": "ck.message.create",
           "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "policy_server_id": "did:web:policy.example.com"

@@ -1333,7 +1333,7 @@
         "realm_id",
         "request_canonical_digest",
         "action",
-        "actor",
+        "actor_id",
         "source"
       ],
       "properties": {
@@ -1350,7 +1350,7 @@
         "action": {
           "type": "string"
         },
-        "actor": {
+        "actor_id": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
         },
@@ -1417,7 +1417,7 @@
           "description": "Request context covered by the policy decision signature. Allows receivers to verify a forwarded decision without guessing transcript fields.",
           "required": [
             "realm_id",
-            "actor",
+            "actor_id",
             "action",
             "request_canonical_digest",
             "policy_server_id"
@@ -1426,7 +1426,7 @@
             "realm_id": {
               "$ref": "./common-ids.schema.json#/$defs/realm_id"
             },
-            "actor": {
+            "actor_id": {
               "type": "string",
               "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
             },

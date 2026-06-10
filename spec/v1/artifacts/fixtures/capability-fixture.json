@@ -23,7 +23,7 @@
         }
       ],
       "request": {
-        "actor": "did:web:alice.example",
+        "actor_id": "did:web:alice.example",
         "action": "ck.flow.update",
         "resource": {
           "kind": "flow",
@@ -59,7 +59,7 @@
         }
       ],
       "request": {
-        "actor": "did:web:alice.example",
+        "actor_id": "did:web:alice.example",
         "action": "ck.message.create",
         "resource": {
           "kind": "flow",

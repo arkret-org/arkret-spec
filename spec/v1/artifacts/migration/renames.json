@@ -24,7 +24,7 @@
     "agent_session_namespace_collapse": "Superseded by agent_applet_interop_session_rename: the agent capability action namespace and the agent/applet session event kinds now both use the interop_session form.",
     "typed_id_prefix_unabbreviation": "Abbreviated typed-id prefixes expanded to full snake_case kind. Single rule: ck:<abbrev>: → ck:<full_kind>: (9 entries).",
     "realm_lifecycle_segment_realignment": "Realm lifecycle capability actions flattened from 4 segments (cx.realm.lifecycle.<verb>) to 3 segments (cx.realm.<verb>) to match the corresponding event kind (4 entries). target_event_kinds preserved.",
-    "did_id_suffix": "Protocol responsibility subjects use the _id suffix even when the value is a DID. actor_did / principal_did / subject_did renamed to actor_id / principal_id / subject_id (3 entries).",
+    "did_id_suffix": "Protocol responsibility subjects use the _id suffix even when the value is a DID. actor_did / principal_did / subject_did renamed to actor_id / principal_id / subject_id, and the bare wire field `actor` (policy check request, bound_to, capability vector request) renamed to actor_id (4 entries).",
     "agent_key_imperative_verbs": "Event kind verbs use imperative action names, not past participles. cx.agent.key.{authorized,revoked,rotated} → cx.agent.key.{authorize,revoke,rotate} (3 entries).",
     "device_imperative_verbs": "Same rule as agent_key_imperative_verbs but for device key events (2 entries).",
     "crdt_lattice_snake_case": "CRDT lattice enum values use snake_case (5 entries).",
@@ -1665,6 +1665,21 @@
         "negative_test"
       ],
       "notes": "Protocol responsibility subjects use the _id suffix even when the value is a DID.",
+      "migration_group": "did_id_suffix"
+    },
+    {
+      "id": "actor#policy_check_subject_field",
+      "wire_id": "actor",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-06-10",
+      "rejection_level": "hard_reject",
+      "replacement": "actor_id",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Bare wire field `actor` (PolicyCheckRequestBody.actor, PolicyCheckOutcome bound_to.actor, challenge obligation bound_to.actor, capability vector request.actor) renamed to actor_id per the did_id_suffix rule. The id carries a #scope suffix because the bare token `actor` remains a legitimate enum value (resource selector kind, target.kind) and prose noun; literal scanners MUST NOT flag every `actor` token.",
       "migration_group": "did_id_suffix"
     },
     {

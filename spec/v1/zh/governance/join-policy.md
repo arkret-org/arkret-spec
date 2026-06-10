@@ -290,7 +290,7 @@ reducer MUST 接受 stage 1 与 stage 2 在同一 batch 内提交；client SHOUL
 | 字段 | 必填 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `realm_id` | yes | `id:realm` | 申请目标 Realm。 |
-| `applicant_did` | yes | `did` | 等于 envelope `actor`。 |
+| `applicant_did` | yes | `did` | 等于 envelope `actor_id`。 |
 | `knock_ref` | yes | `event_ref` | 引用 stage 1 的 `ck.member.state{knock}` event id。 |
 | `policy_version_digest` | yes | `hash` | 提交时 `realm.join_policy` cell value 的 canonical digest；reducer 校验 reviewer 决策时是否仍是同一 policy。 |
 | `answers` | conditional | `array<Answer>` | 任一 `application_form` gate 存在时必填，覆盖该 gate 所有 `required=true` 的 question_id。 |
@@ -423,7 +423,7 @@ Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声�
       "max_proof_age": "PT5M",
       "must_satisfy_before_resubmit": true,
       "bound_to": {
-        "actor": "did:webvh:z2dmjYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:applicant",
+        "actor_id": "did:webvh:z2dmjYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:applicant",
         "action": "member.application",
         "request_canonical_digest": "sha256:...",
         "device_id": "ck:device:01964137-0000-7000-8000-000000000000"
