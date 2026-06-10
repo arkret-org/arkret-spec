@@ -2822,7 +2822,7 @@
         "category": "identity",
         "status": "active",
         "wire_form": "ck:device:<uuid>",
-        "description": "Device ID"
+        "description": "Device identifier (ck:device:<uuid>). A device is a typed ID scoped to an owning principal, NOT a DID and NOT an actor principal. Device keys are registered as verification methods under the owning principal DID via ck.device.authorize."
       },
       {
         "kind": "device_message",

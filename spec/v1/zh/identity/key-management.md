@@ -92,12 +92,15 @@ principal signing key 用于：
 
 recovery key 用于当前控制密钥丢失或泄露后的恢复。
 
+recovery key 同时是**内容恢复**（解密 `secret_storage` / `mls_history` 备份）的唯一面向用户凭证：备份接收密钥即恢复密钥（§7.5.2），客户端恢复 UI 的密钥备份解密凭证 MUST 是 Recovery Key（§7.7）。历史实现中独立于 recovery key 之外的 "vault passphrase" 用户凭证层已弃用（§7.5.1）。
+
 要求：
 
 - SHOULD 与日常设备隔离
 - SHOULD 支持多份或门限方案
 - MUST 只能执行 recovery policy 允许的操作
 - recovery event MUST 写入 DID method history、key log 或等价 signed event
+- 面向最终用户的呈现 SHOULD 是 24 词 BIP-39 助记词（编码 recovery private key 的种子）；客户端 MUST NOT 把助记词明文或由其派生的 recovery private key 上传服务端，本地 MAY 仅保存指纹用于输入校验
 
 ### 3.4 Device Key
 
@@ -543,7 +546,7 @@ Cokret v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata 
 ```
 
 实现 SHOULD 使用现代 KDF，例如 Argon2id。声明 `ck.profile.key_backup.memory_hard.v1` 时，`recipient_method="passphrase_kdf"` 的新备份 envelope MUST 满足 `ck.schema.key_backup.v1` 中的机器下限：Argon2id 至少 `memory_kib >= 65536`、`iterations >= 3`、`parallelism >= 1`；salt MUST 随 envelope 独立生成并进入 KDF 输入。
-如果平台限制只能使用 PBKDF2，迭代次数 MUST 足够高，并 MUST 在 backup metadata 中声明降级原因、迭代次数、salt、KDF 参数和 profile id。`ck.profile.key_backup.memory_hard.v1` 对 PBKDF2 的最低线是 `iterations >= 600000` 且 `digest_algorithm ∈ {sha256, sha384, sha512}`，并要求 `degraded_profile_reason`。旧草案 `params.hash` 是算法选择器，不是 digest bytes，current parser MUST reject；新创建的云保险箱不得默认使用 PBKDF2。
+如果平台限制只能使用 PBKDF2，迭代次数 MUST 足够高，并 MUST 在 backup metadata 中声明降级原因、迭代次数、salt、KDF 参数和 profile id。`ck.profile.key_backup.memory_hard.v1` 对 PBKDF2 的最低线是 `iterations >= 600000` 且 `digest_algorithm ∈ {sha256, sha384, sha512}`，并要求 `degraded_profile_reason`。旧草案 `params.hash` 是算法选择器，不是 digest bytes，current parser MUST reject；新创建的 `passphrase_kdf` envelope（遗留云保险箱路径，deprecated，见 §7.5.1）不得默认使用 PBKDF2。
 
 FIPS-only 部署若不能批准 Argon2id，MUST 使用显式降级 profile（例如 `fips_pbkdf2` key backup profile），并声明其安全级别低于默认 memory-hard backup profile。该 profile 至少要求 FIPS 批准的 KDF、强口令策略、在线恢复限速、失败审计和备份 metadata 中的 `degraded_profile_reason`；它不得作为公共网络默认 key backup profile。
 
@@ -590,7 +593,7 @@ Producer MUST reject attempts to write two backup envelopes with the same nonce 
 恢复流程：
 
 1. 新设备生成 device key。
-2. 用户输入 passphrase 或收集 recovery shares。
+2. 用户输入 Recovery Key（24 词助记词，§3.3），或按 recovery policy 收集 recovery shares / 完成硬件解锁；仅当目标是遗留 `passphrase_kdf` envelope 时才输入旧 vault passphrase（deprecated，见 §7.5.1）。
 3. 客户端解密 backup envelope。
 4. 客户端验证 backup commitment。
 5. 客户端用 recovery policy 发布 `recover` 或 `ck.device.authorize`。
@@ -657,7 +660,7 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 | `backup_class` ＼ `recipient_method` | `passphrase_kdf` | `recovery_public_key` | `secret_storage_key` |
 | --- | --- | --- | --- |
 | `did_recovery` | forbidden: `did_recovery_passphrase_forbidden` | allowed: MUST 带顶层 `recovery_policy_ref{policy_id, policy_version}` == 当前 accepted recovery policy，否则 `recovery_policy_mismatch` | forbidden: `did_recovery_secret_storage_key_forbidden`（DID recovery 不得依赖 device-local secret storage root） |
-| `secret_storage` | allowed: §7.2 / §7.5.1 Argon2id 或显式 degraded PBKDF2；声明 hardening profile 时满足机器下限 | allowed | allowed: 仅现有持有 root key 的设备本地缓存/同步，新设备 MUST NOT 直接 bootstrap，否则循环依赖 |
+| `secret_storage` | allowed（向后兼容；独立 vault passphrase 用户凭证层 deprecated，见 §7.5.1）: §7.2 / §7.5.1 Argon2id 或显式 degraded PBKDF2；声明 hardening profile 时满足机器下限 | allowed（新写入 SHOULD 优先，见 §7.5.1） | allowed: 仅现有持有 root key 的设备本地缓存/同步，新设备 MUST NOT 直接 bootstrap，否则循环依赖 |
 | `mls_history` | forbidden: `mls_history_passphrase_forbidden` | allowed | allowed: MAY 带 `recovery_policy_ref` hint；释放仍以 active-series record / frontier_ref / Realm-MLS 授权 / 设备状态为准 |
 
 集中要点（与下列 §7.5.1–§7.5.5 的分散规则一致，本表为 normative summary）：
@@ -671,6 +674,13 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 #### 7.5.1 `passphrase_kdf`
 
 参考 §7.2：Argon2id（或显式 degraded PBKDF2）派生 root key，HKDF 派生 `commitment_key` 与 `nonce_key`，AEAD AAD 覆盖全部 envelope metadata。`passphrase_kdf` 仅用于 `secret_storage` envelope；`mls_history` 与 `did_recovery` envelope MUST NOT 使用 `passphrase_kdf`，即使作为 fallback 也不允许。需要用户口令参与 DID recovery 或 MLS 历史恢复的实现 MUST 让口令先解锁 `secret_storage` root、recovery key、threshold share 或 hardware wrapper 的本地保护层，而不是在 wire 上发布 `backup_class="mls_history"` / `backup_class="did_recovery", recipient_method="passphrase_kdf"` 的 envelope。
+
+**独立 vault passphrase 已弃用（deprecated）**：历史实现曾把 `passphrase_kdf` 暴露为面向用户的独立"云保险箱口令"（Encrypted Cloud Vault passphrase），与 Recovery Key 并存为两套用户凭证。该用户凭证层自本版本起降级为向后兼容的实现细节：
+
+- 新实现 SHOULD NOT 引入独立 vault 口令作为密钥备份的用户凭证；内容恢复的用户凭证统一为 Recovery Key（§3.3 / §7.7）。
+- 新写入的 `secret_storage` envelope SHOULD 使用 `recipient_method="recovery_public_key"`（加密给 recovery key，§7.5.2）；仅向后兼容或迁移过渡场景 MAY 继续写 `passphrase_kdf` envelope。
+- `passphrase_kdf` 仍是合法 wire `recipient_method`：服务端 key-backup 端点（§7.8、[`../crypto-media/device-lifecycle.md` §12.1](../crypto-media/device-lifecycle.md)）不区分凭证来源，既有 `passphrase_kdf` envelope MUST 仍可被列出、读取与删除，本节与 §7.2 的 KDF / nonce / commitment 约束对其继续适用。
+- 客户端 SHOULD 在用户用旧 vault passphrase 完成兼容恢复后，引导把内容迁移为加密给 recovery key 的新 envelope（按 §7.6 series 规则开新链或追加）。
 
 #### 7.5.2 `recovery_public_key`
 
@@ -732,6 +742,7 @@ v1 core 不把 `hardware_wrapped_key` 作为 `ck.schema.key_backup.v1.encryption
 
 恢复 UI 是用户唯一能识别"我在恢复一个真实的自己 vs 我在被钓鱼"的界面。实现 MUST：
 
+- 密钥备份解密凭证 MUST 是 Recovery Key（24 词 BIP-39 助记词，§3.3）：由其派生 / 解锁 recovery private key 后按 §7.5.2 HPKE-open `recovery_public_key` envelope，或按 recovery policy（§8）以 threshold / hardware 因子释放同一 recovery private key。恢复 UI MUST NOT 在新流程中要求用户设置或输入独立 vault passphrase；仅当该 actor 名下只存在遗留 `passphrase_kdf` envelope 时，MAY 提示输入旧 vault passphrase 完成兼容恢复（deprecated，见 §7.5.1），并 SHOULD 在恢复成功后引导写入加密给 recovery key 的新 envelope。
 - 在尝试解密任何备份 envelope 之前，向用户展示：`backup_class`、`series_id`、`series_seq`、`backup_version`、`encryption.recipient_method`、`encryption.aead.aead_profile?`（缺省时显示 `aead.name`）、`principal_id`、`device_id`（当前请求恢复的新设备）、`frontier_ref.ssk_generation?`。
 - 在使用 `passphrase_kdf` 时，明确展示 KDF（Argon2id / PBKDF2）与参数；用 PBKDF2 的 envelope MUST 在 UI 中显示 `degraded_profile_reason`，且不得自动选用 PBKDF2 envelope 当 Argon2id envelope 同时存在。
 - 在 envelope 携带 `mixed_secret_storage=true` 时 MUST 显著警告"该备份同时保护身份签名与 E2EE 历史，单一口令被攻破将同时丢失两者"；非 `personal_node` profile 下 MUST 直接拒绝展示此类 envelope 作为 primary recovery source。
@@ -770,6 +781,15 @@ v1 的备份枚举数量有限，但 envelope 结构需要支持未来 PQ / hybr
 - PQ / hybrid KEM agility MUST 通过未来 `recipient_method_profile` / `hpke_suite` / `kem_profile` 字段或 profile registry 声明，不得塞进 AEAD profile。`ck.aead.*` 只描述 AEAD 算法、nonce/tag/key 长度和 AAD 构造；receiver 收到把 KEM 语义编码进 `encryption.aead.aead_profile` 的 envelope MUST fail closed。
 - 当 `frontier_ref` 携带 `anchor_ref` 时，client 可以用 Anchor inclusion proof 来证明 envelope 创建时刻不晚于 Anchor commit；receiver MAY 在 sovereign / high_security_organization profile 中要求该证明。
 - 实现 MUST 在 envelope metadata 中保留 `additionalProperties` 与 `x_*` 前缀作为 forward-compat 扩展槽；MUST NOT 在 wire 上接受未知顶层字段（已由 schema `additionalProperties: false` 强制）。
+
+### 7.10 自动持续备份
+
+Recovery Key 配置完成（genesis recovery policy accepted 且 §5.0.1 first-backup gate 通过）后，客户端 SHOULD 自动、持续地维护密钥备份，而不是把备份当作一次性手动动作：
+
+- account secret（`self_signing_key` / `user_signing_key`、recovery secret 等 `secret_storage` 域材料）、历史密钥材料（MLS group state / epoch key material 等 `mls_history` 域材料）与 encrypted private account data cache 发生新增或轮换时，客户端 SHOULD 自动上传对应 `ck.schema.key_backup.v1` envelope，遵守 §7.6 series 链规则。
+- 自动备份 SHOULD NOT 要求用户手动触发或重复输入凭证；envelope 加密给 recovery public key（§7.5.2）只使用公钥，不需要用户在场。客户端 MAY 额外提供手动"立即备份"入口。
+- 自动备份失败（网络、§7.8 限速、series 冲突）时，客户端 SHOULD 退避重试，并在持续失败超过实现定义的窗口时向用户显式提示备份落后；SHOULD NOT 静默丢弃待备份材料。
+- 本节不放宽 §7.1 的禁止项：device private key、session key、已发布的 KeyPackage private key 等仍 MUST NOT 进入自动备份。
 
 ## 8. 社交恢复与门限恢复
 
