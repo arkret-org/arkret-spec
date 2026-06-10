@@ -3,7 +3,7 @@ title: Spec Map
 status: candidate
 normative: false
 stability: v1
-updated: 2026-06-07
+updated: 2026-06-10
 see_also:
   - index.md
   - conformance/normative-language.md

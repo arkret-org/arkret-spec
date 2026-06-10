@@ -3,7 +3,7 @@ title: HTTP/JSON Binding 通用约定
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-07
+updated: 2026-06-10
 ---
 
 ## 0. 规范语言
@@ -191,7 +191,7 @@ HTTP method 不是 operation 动词来源：同一 `query` 语义可以有 GET q
 - `stale_frontier` / 409 表示服务可用但本地因果前沿落后，客户端可等待或 backfill；服务故障、维护或无法追赶 frontier 时使用 `temporarily_unavailable` / 503 并 SHOULD 返回 `Retry-After`。
 - 格式错误的 cursor 使用 `invalid_param` / 400；格式正确但已过期的 cursor 使用 `cursor_expired` / 410。
 - `unsupported_feature` 用于 `Event.requirements.features[]` 与 `requirements.critical_extensions[]` 中出现该实现未声明支持的 feature 标识；`unsupported_event_kind` 用于该实现声明 profile 不接收的 active 标准 `ck.*` Event kind。二者不得互相替代。
-- `conflict` / 409 是抽象 base code；实现 SHOULD 返回 registry 中更精确的 409 子 code（`cas_conflict` / `causal_conflict` / `dependency_missing` / `discussion_track_disabled` / `duplicate_conflict` / `epoch_mismatch` / `key_unavailable` / `rank_exhausted` / `stale_frontier` / `state_mismatch` / `audit_receipt_invalidated`）。
+- `conflict` / 409 是抽象 base code；实现 SHOULD 返回 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 中 `http_status=409` 的更精确 code。本文不维护并行穷尽清单；示例包括 `cas_conflict`、`causal_conflict`、`dependency_missing`、`duplicate_conflict`、`stale_frontier`、`state_mismatch`。
 - 加密 envelope 相关 422 子 code（`aad_digest_mismatch` / `payload_digest_mismatch`）见 `crypto-media/encryption-and-audit.md` §2.3.4。
 
 CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字面 error code 字符串都登记在 registry 中，并 MUST 校验 `operations-error-mapping.json` 的 `universal_codes` 与 `operation_specific[]` 不引用 registry 外的 code。
@@ -247,6 +247,8 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 | `next_cursor` | 朝**更新事件 / 更晚未来**方向的延续位置 | `ck.self.events.query` 的 `after=` 参数；分页 `after=<next_cursor>` 取更新一批 |
 
 绝对方向与请求时所用的参数（`before` / `after` / `order`）和 selector 无关；服务端 MUST 始终按上述含义填充。客户端因此**不**需要记录"上一次请求的 direction"才能正确解释响应 cursor。
+
+HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` 的 cursor 只可出现在 stream / pagination context（例如 `/_cokret/self/account/subscribe` 的 `after=`、`ck.self.events.query` 的 `before` / `after`、响应 `prev_cursor` / `next_cursor`）；`purpose=barrier` 的 cursor 只可出现在 RYW barrier context（写接口响应中的 barrier `cursor` 字段、`X-Cokret-Wait-For` header，或 §7.2 列出的等价投影）。任一 context 收到不匹配的 `purpose` 时，服务端 MUST 返回 `invalid_param`。
 
 规则：
 
@@ -323,12 +325,12 @@ X-Cokret-Wait-For: <cursor>
 
 - `policy_version` 或等价版本/hash。
 - `entries[]`，每项绑定 `endpoint` 或 `operation_id`。
-- 适用范围：`scope`，例如 actor DID、service DID、device id、source IP、Realm id 或 blob quota。
+- 适用范围：`rate_limit_scope`，例如 actor DID、service DID、device id、source IP、Realm id 或 blob quota。
 - 窗口与额度：`window_seconds`、`max_requests`、`burst`；若是字节或批量限制，使用 `max_bytes`、`max_events_per_batch`、`max_body_bytes`。
 - 重试提示：`retry_after_ms`、`backoff_hint` 或 `next_retry_at` 的语义。
-- `effective_at` / `expires_at` 或缓存 TTL；未知时客户端 MUST 按保守策略重试。
+- `effective_at` / `expires_at` 或缓存 TTL。若这些时间界限未知，客户端 MUST 把该策略视为最多缓存 60 秒，并按默认退避重试：首次重试间隔 ≥ 1,000 ms，随后指数倍增（factor=2）到 ≥ 60,000 ms 上限，加入 0-20% jitter，且同一 `(endpoint, scope)` 在 5 分钟内最多重试 5 次。
 
-公开 describe MAY 只返回 coarse policy，避免暴露内部防滥用细节；认证后的 describe SHOULD 返回调用方当前可见的精确有效策略。ServiceDescribe MUST 携带 `rate_limit_policy` 或 `rate_limit_policy_id`；若服务除了通用滥用防护外没有可预期的端点级限流，也必须返回显式空策略（例如 `rate_limit_policy.entries=[]`），不得同时省略二者。一旦可能返回 `rate_limited`，就 MUST 暴露足够的策略信息供对端调度。
+公开 describe MAY 只返回 coarse policy，避免暴露内部防滥用细节；认证后的 describe SHOULD 返回调用方当前可见的精确有效策略。ServiceDescribe MUST 携带 `rate_limit_policy` 或 `rate_limit_policy_id`；若服务除了通用滥用防护外没有可预期的端点级限流，也必须返回显式空策略（例如 `rate_limit_policy.entries=[]`），不得同时省略二者。一旦可能返回 `rate_limited`，describe 中的策略信息至少 MUST 暴露：受影响的 `endpoint` 或 `operation_id`、`rate_limit_scope` 类别、窗口字段（`window_seconds` 与 `max_requests` / `max_bytes` / `max_events_per_batch` / `max_body_bytes` 之一）或明确的重试提示字段（`retry_after_ms` / `backoff_hint` / `next_retry_at` 之一）。若安全原因只能返回 coarse policy，服务端仍 MUST 在每次 `rate_limited` 响应中返回可执行的 `retry_after_ms` 或 HTTP `Retry-After`。
 
 触发限流时 MUST 返回 `rate_limited`，并 SHOULD 附带：
 

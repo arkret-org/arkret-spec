@@ -7477,14 +7477,15 @@
           "type": "string",
           "enum": [
             "recording",
+            "stopped",
             "ready",
             "failed"
           ],
-          "description": "Recording lifecycle, orthogonal to `state` (the recording dimension of a call, independent of call lifecycle). Absent = no recording. 'recording' = capture in progress (after ck.call.recording.start); 'ready' = artifact available via the Cokret blob pipeline; 'failed' = recording failed. recording_result SHOULD accompany recording_state ∈ {ready, failed}. See crypto-media/call-state.md §5."
+          "description": "Recording lifecycle, orthogonal to `state` (the recording dimension of a call, independent of call lifecycle). Absent = no recording. 'recording' = capture in progress (after ck.call.recording.start); 'stopped' = recording manually stopped without requiring an artifact; 'ready' = artifact available via the Cokret blob pipeline; 'failed' = recording failed. recording_result SHOULD accompany recording_state ∈ {stopped, ready, failed}. See crypto-media/call-state.md §5."
         },
         "recording_result": {
           "type": "object",
-          "description": "Typed recording outcome, present only when recording_state ∈ {ready, failed}. See crypto-media/call-state.md §4.2 / §5: the durable ck.call.state carries content digest, duration, media type, retention policy and recording_start_event_id as typed fields. All fields optional.",
+          "description": "Typed recording outcome, present when recording_state ∈ {stopped, ready, failed}. See crypto-media/call-state.md §4.2 / §5: the durable ck.call.state carries recording_start_event_id for every terminal recording segment, and carries content digest, duration, media type and retention policy when an artifact exists. All fields optional at schema level; prose defines state-specific requirements.",
           "properties": {
             "content_digest": {
               "$ref": "#/$defs/hash"

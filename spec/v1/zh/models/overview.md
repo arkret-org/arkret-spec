@@ -5,7 +5,7 @@ sidebar:
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-10
 see_also:
   - models/common-fields.md
   - models/realm-and-space.md

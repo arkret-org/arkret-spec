@@ -3,7 +3,7 @@ title: Event Auth、Move/Anchor/Lattice 与状态收敛
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-01
+updated: 2026-06-10
 sidebar:
   label: Event Auth & State Resolution
 ---

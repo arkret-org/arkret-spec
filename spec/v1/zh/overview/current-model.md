@@ -3,7 +3,7 @@ title: 当前模型说明
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-01
+updated: 2026-06-10
 ---
 
 ## 0. 规范语言

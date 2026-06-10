@@ -27,7 +27,8 @@
     "Profile matrices in artifacts/profiles/conformance-profiles.json define role-level MUST/SHOULD requirements; the surface groups below define machine-readable capability families for discovery, docs, and lint.",
     "Each operation MUST declare success_shape_kind so SDKs can determine success handling without endpoint-name hard-coding.",
     "Operations with typed OpenAPI bodies SHOULD declare request_schema_ref and/or response_schema_ref. The referenced schema fragment is the source for generated DTO docs and MUST match the OpenAPI component referenced by the HTTP binding.",
-    "Operations that still bind OpenAPI request/response bodies to OperationRequest or OperationResult MUST declare generic_binding with request/response booleans, reason, profile_gate, and migration_plan; core-tier operations MUST NOT use generic bindings."
+    "Operations that still bind OpenAPI request/response bodies to OperationRequest or OperationResult MUST declare generic_binding with request/response booleans, reason, profile_gate, and migration_plan; core-tier operations MUST NOT use generic bindings.",
+    "v1 preserves existing operation_id spellings even when an HTTP path segment uses plural nouns for collection resources. In particular, the contact lifecycle surface uses ck.self.contact.* operation_id values with /contacts/* HTTP paths; v2 may normalize naming, but v1 implementations and SDKs MUST NOT rename these operation_id values."
   ],
   "capability_tiers": {
     "core": "Base interoperable surfaces implied by claiming Cokret v1 protocol support (service discovery, identity registry, events/account aggregate).",

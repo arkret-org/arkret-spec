@@ -3,7 +3,7 @@ title: Encryption and Auditability
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-10
 sidebar:
   label: Encryption & Audit
 ---

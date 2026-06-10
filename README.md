@@ -14,7 +14,7 @@ under `spec/v1/artifacts/` are the source of truth for current v1 wire names.
 
 - 规范本体：[`spec/v1/`](./spec/v1/)
   - 中文 normative 正文：[`spec/v1/zh/index.md`](./spec/v1/zh/index.md)
-  - 英文翻译：占位（未发布，非 normative）
+  - 英文入口：[`spec/v1/en/index.md`](./spec/v1/en/index.md) 仅供说明；不存在完整英文版，且不承诺提供英文版
   - 机器构件：[`spec/v1/artifacts/`](./spec/v1/artifacts/)
   - **提案（非 normative）**：[`spec/v1/proposals/`](./spec/v1/proposals/) — Cokret Proposal (CKP) 草案，未 accepted 前不构成 wire contract
 - 协议站源码：[`site/`](./site/) — Astro Starlight + Scalar(OpenAPI) + 自定义 JSON Schema 渲染器
@@ -24,7 +24,7 @@ under `spec/v1/artifacts/` are the source of truth for current v1 wire names.
 
 ```
 spec/v1/
-├── zh/   en/                      # zh 为 normative prose；en 为未发布占位
+├── zh/   en/                      # zh 为 normative prose；en 仅为说明性入口，不是英文版承诺
 ├── proposals/                     # Cokret Proposals (CKP) — 非 normative
 └── artifacts/
     ├── registry/                  # contract-catalog (canonical) + 派生 view

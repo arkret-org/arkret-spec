@@ -4,7 +4,7 @@ status: candidate
 normative: true
 stability: v1
 profile: ck.profile.media_service_binding.cokret_native.v1
-updated: 2026-05-27
+updated: 2026-06-10
 sidebar:
   label: Cokret-native Binding
 ---

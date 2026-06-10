@@ -3,7 +3,7 @@ title: Conformance Suite（自动化互操作测试）
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-10
 sidebar:
   label: Conformance Suite
 ---

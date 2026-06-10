@@ -327,6 +327,7 @@ components:
               - audit_receipt_invalidated
               - unknown_did
               - quota_exceeded
+              - limit_exceeded
               - rate_limited
               - timeout
               - stale_frontier
@@ -388,6 +389,8 @@ components:
               - failed_precondition
               - contact_not_accepted
               - contact_consent_missing
+              - contact_request_not_pending
+              - contact_request_expired
               - unsupported_digest_algorithm
               - anchor_incomplete
               - franking_proof_unavailable

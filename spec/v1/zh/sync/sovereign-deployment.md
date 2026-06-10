@@ -3,7 +3,7 @@ title: Sovereign Deployment and External Collaboration
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-26
+updated: 2026-06-10
 sidebar:
   label: Sovereign Deployment
 ---

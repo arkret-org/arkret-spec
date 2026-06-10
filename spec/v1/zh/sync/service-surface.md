@@ -3,7 +3,7 @@ title: Service Surface And Bootstrap
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-07
+updated: 2026-06-10
 see_also:
   - sync/service-http-binding.md
   - sync/operations-sync.md

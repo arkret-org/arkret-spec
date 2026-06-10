@@ -3,7 +3,7 @@ title: Architecture
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-05
+updated: 2026-06-10
 see_also:
   - sync/operations-sync.md
   - sync/service-surface.md

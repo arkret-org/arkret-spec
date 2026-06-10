@@ -3,7 +3,7 @@ title: TSP Integration
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-10
 ---
 
 > **状态：interop extension profile（非 v1 core 互操作必需）**。Cokret v1 core 默认使用

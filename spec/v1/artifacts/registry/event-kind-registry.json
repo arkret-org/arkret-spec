@@ -2013,7 +2013,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Closes the appeal after the decided window expires (default 30 days). Transitions cell state decided → closed; locks against re-appeal of the same target by the same appellant. Schema: ck.schema.moderation_appeal.v1."
+      "payload": "Closes the appeal from submitted / under_review / decided via reviewer close, appellant withdrawal, or timer auto-close. Locks against re-appeal of the same target by the same appellant during the cool-off window. Schema: ck.schema.moderation_appeal.v1."
     },
     {
       "event_kind": "ck.read_cursor.advance",

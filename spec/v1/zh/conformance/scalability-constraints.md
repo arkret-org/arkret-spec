@@ -3,7 +3,7 @@ title: Scalability Constraints
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-10
 ---
 
 ## 0. 规范语言
@@ -20,6 +20,8 @@ Cokret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 
 本文的数值是 v1 wire interoperability bounds，不是产品体验目标。
 
+凡会导致实现 MUST reject、MUST quarantine、MUST fail closed 或影响跨实现验证结果的 wire 上限，MUST 在本文登记或从本文显式引用的 profile 参数派生；纯本地性能/SLA 建议可以留在领域文档，但不得作为对端可验证的 v1 互操作上限。
+
 ## 2. 通用 Wire 上限
 
 | 项 | v1 默认上限 | 规则 |
@@ -31,6 +33,7 @@ Cokret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | 单个 Event 的 `prev_refs` 数量 | 128 | 超过时 MUST reject（`schema_violation`，`reason_code=prev_refs_too_large`）或要求提交 snapshot / checkpoint 引用；数组项 MUST 去重。 |
 | 单个 Event `refs[]` 中 `role="authorized_by"` 的条目数量 | 64 | 超过时 MUST reject；authorized_by refs 必须是最小授权状态集合（见 [event-and-patch.md](../models/event-and-patch.md) §2.2）。 |
 | 单个 Event 的 `refs[]` 总条目数量 | 128 | 涵盖 `authorized_by` / `attestation` / `parent_event` / `after` / `recovery_capability` / `state_witness` / `inclusion_proof` 等所有 role；超过时 MUST reject（`schema_violation`，`reason_code=refs_too_large`）或拆分。 |
+| 同一 `(actor_id, actor_seq, prev_frontier_digest)` sibling fork 数 | 16 | 超过时 receiver MUST quarantine 或要求 actor chain repair；见 [event-and-patch.md](../models/event-and-patch.md) §2.6。 |
 | 单个 Relation / View / Morph `fields` canonical size | 256 KiB | 更大内容必须放入 Blob 或加密 payload。 |
 | 关系展开深度 | 32 | Projection executor / graph query MUST enforce，跨 Realm 引用必须按 Lazy Link 截断（Lazy Link 定义见 [glossary.md](../overview/glossary.md) "Lazy Link"）。 |
 | 单 actor 每毫秒 HLC 生成事件数 | 65,536（HLC logical 4 hex 段上限） | HLC wire 形态为 `<unix_ms_hex_12>-<logical_hex_4>-<node_id_hash_8>`，logical 段为 16-bit；同一 actor 在同一 ms 内最多分配 65,536 个 logical 值（`0x0000`–`0xFFFF`，即 0..65535），第 65,537 个 event 触发 HLC logical 段饱和，producer MUST 等待至下一 ms 再生成或返回本地错误 `hlc_logical_overflow`，MUST NOT wrap 或复用相同 HLC。HLC 仅作为时间线 advisory tie-breaker，不参与授权或状态收敛——饱和不影响协议正确性，只影响展示排序。[^hlc-throughput] [^hlc-logical-width] |
@@ -116,6 +119,8 @@ Board position edge 的 canonical key 是 `(board_space_id, flow_id)`。同一 k
 | 单 principal active device 数 | 100 | 超过时 Device / Key Server MAY require admin approval or device cleanup。 |
 | 单 MLS commit 绑定的 `membership_frontier` refs | 128 | 超过时 MUST 使用签名 state root / snapshot reference。 |
 | KeyPackage 有效期 | 1 hour（下限）– 30 days（默认上限） | 更长有效期必须由 profile 明确声明。接收方 MUST NOT 使用已过期 KeyPackage 建立新 MLS 会话（过期复用是已知 E2EE 风险）；签发方 SHOULD NOT 签发有效期短于 1 小时的 KeyPackage（避免正常 join 流程内即过期）。实现 MAY 声明一个不超过该有效期 10% 的接收侧时钟偏差宽限窗口。 |
+| to-device 队列 TTL | 24 hours（默认最大值） | `DeviceMessageEnvelope.expires_at` 不得晚于当前 service / Realm / profile TTL 上限；服务端 MUST 拒绝缺失、已过期、早于 `sent_at` 或超限的消息。高安全 profile SHOULD 声明更短 TTL。 |
+| KeyPackage claim 限速 | 60 seconds 内最多 5 次 / `(requester_service_did, target_principal_id)` | 超过限额时对外仍使用反枚举响应（`claim_failed` 或通用 rate-limited envelope），不得泄露目标存在性；服务端内部审计 reason 记录为 `keypackage_claim_rate_limited`。 |
 | 单次 to-device page | 1,000 | 服务端 MUST enforce。 |
 
 ## 7. Retention、Snapshot Pruning 与 Tombstone 上限

@@ -3,7 +3,7 @@ title: Contact & Direct Conversation Lifecycle
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-04
+updated: 2026-06-10
 see_also:
   - consent-model.md
   - ../discovery/discovery-directory.md
@@ -46,13 +46,13 @@ Consent 的有效状态只有 `active` / `no-consent`；`revoke` 是操作，不
 | `ck.contact.requested` | requester | `request_id`, `target`, `requested_scopes[]`, `requester_consent_refs[]` | 发出请求；requester 侧形成 `pending_outgoing`，target 收到后形成 `pending_incoming`；`requested_scopes[]` 非空时 `requester_consent_refs[]` 必填 |
 | `ck.contact.accepted` | request target | `request_id`, `requester`, `granted_scopes[]`, `consent_grant_refs[]` | 接受请求；MUST 引用原 request；MUST 写 target 控制的 consent grants |
 | `ck.contact.rejected` | request target | `request_id`, `requester` | 拒绝请求；MUST NOT 隐式写 consent grant |
-| `ck.contact.tombstoned` | 任一参与方 holder | `peer`, `revoke_scopes[]`, `consent_revoke_refs[]` | holder 终止自己这一侧的联系人关系；默认 revoke holder 给 peer 的 contact-managed consent |
+| `ck.contact.tombstoned` | 任一参与方 holder | `peer`, `revoke_scopes[]`, `consent_revoke_refs[]` | holder 终止自己这一侧的联系人关系；也可由 requester 用于撤回仍处 pending 的 request；默认 revoke holder 给 peer 的 contact-managed consent |
 
 Issuer 约束是硬边界：
 
 - requester 可以声明"我请求联系 target"，也可以预先给 target 写 requester 侧 consent grant。
 - target 才能声明"我接受或拒绝 requester"。requester MUST NOT 替 target 写 accepted / rejected，也 MUST NOT 替 target 写 consent。
-- 任一 holder 都可以 tombstone 自己与 peer 的关系视图。tombstone 不会修改 peer 的 contact fact log；peer 只能在收到 tombstone fact 后把关系投影降级。
+- 任一 holder 都可以 tombstone 自己与 peer 的关系视图。tombstone 不会修改 peer 的 contact fact log；peer 只能在收到 tombstone fact 后把关系投影降级。若 requester 在 `pending_outgoing` 阶段发布 tombstone，target 收到后 MUST 将对应 `pending_incoming` 降级为 non-active（`tombstoned` 或等价 withdrawn projection），且后续对该 `request_id` 的 accept MUST `failed_precondition`。
 
 `request_id` SHOULD 使用 `ck.contact.requested` 的 `event_id`。实现 MAY 用 `(holder, peer, outstanding_request)` 做幂等去重，但不得把重复 request 折叠成 consent grant。
 
@@ -62,7 +62,7 @@ Contact 负责关系状态：`pending_outgoing` / `pending_incoming` / `accepted
 
 `ck.self.contact.request` 默认请求 `requested_scopes=["direct_message"]`。若 request 请求某个 scope，requester MUST 在自己的 PCR 同步写一条给 target 的 `ck.consent.grant`，并在 `requester_consent_refs[]` 中引用它。若该 grant 写入失败，request MUST fail closed，或移除该 scope 后重新签名。该 requester-side grant 在 contact accepted 前只表示 requester 允许 target 发起对应动作；`ck.self.direct_conversation.resolve` 仍 MUST 检查 accepted contact，不得只凭 consent grant 创建联系人 DM。
 
-该 requester-side grant 的生命周期 MUST 与 request 绑定，不得在 request 终结后长期残留为开放的反向 consent gate：当 requester 看到该 request 对应的 `ck.contact.rejected`，或 request 在 `contact_request_pending_ttl`（部署可配，默认 SHOULD ≤ 14 天）内仍处 `pending_outgoing` 而超时（无论先到者），requester 的 PCR MUST 自动对 `requester_consent_refs[]` 引用的 active grant dots 发 `ck.consent.revoke`。这些 dots 同时是 contact-managed consent，故也纳入 §3 / `ck.self.contact.tombstone` 的级联枚举范围；若 requester 无法枚举完整 dots，MUST 按 partial / fail-closed 处理并标记，不得报告完整撤销。该自动 revoke 不依赖 target 配合，目的是关闭"已死 request 留下长期开放的 requester→target 反向 consent gate"的暴露面。
+该 requester-side grant 的生命周期 MUST 与 request 绑定，不得在 request 终结后长期残留为开放的反向 consent gate：当 requester 看到该 request 对应的 `ck.contact.rejected`、`ck.contact.tombstoned`，或 request 在 `contact_request_pending_ttl`（部署可配，默认 SHOULD ≤ 14 天）内仍处 `pending_outgoing` 而超时（无论先到者），requester 的 PCR MUST 自动对 `requester_consent_refs[]` 引用的 active grant dots 发 `ck.consent.revoke`。这些 dots 同时是 contact-managed consent，故也纳入 §3 / `ck.self.contact.tombstone` 的级联枚举范围；若 requester 无法枚举完整 dots，MUST 按 partial / fail-closed 处理并标记，不得报告完整撤销。该自动 revoke 不依赖 target 配合，目的是关闭"已死 request 留下长期开放的 requester→target 反向 consent gate"的暴露面。
 
 `ck.self.contact.respond(action="accept")` MUST：
 
@@ -79,6 +79,8 @@ Contact-managed consent dots 指通过该 contact request / accepted fact 的 `r
 `ck.self.contact.tombstone` MUST 写 `ck.contact.tombstoned`。`revoke_scopes[]` 缺省为 holder 给 peer 的全部 contact-managed active scopes；operation MUST 枚举并 revoke 这些 active grant dots，并把 revoke refs 写入 tombstone fact。若实现无法枚举完整 dots，必须返回 partial / fail-closed 结果，不得报告完整 tombstone。实现不得默认撤销 holder 给同一 peer 的非 contact-managed consent（例如独立组织 invite 授权），除非 UI / admin 明确选择 full peer revoke 并在 tombstone fact 中审计。
 
 Consent revoke 与 contact tombstone 仍是两条显式事实：单独 revoke consent 只会减少 `effective_scopes`，不得自动删除 accepted contact；tombstone 也不得伪造不存在的 revoke event。
+
+`ck.self.contact.tombstone` MAY 作用于 pending request：requester 对 `pending_outgoing` tombstone 表示撤回；target 对 `pending_incoming` tombstone 表示本地丢弃/拒收该 request 且不写 `ck.contact.rejected`。任一 pending tombstone 后，同一 `request_id` 的后续 accept/respond MUST 返回 `failed_precondition`（reason=`contact_request_not_pending` 或更具体的 `contact_request_expired`）。
 
 ## 4. Contact Operation Surface
 
@@ -97,7 +99,10 @@ Consent revoke 与 contact tombstone 仍是两条显式事实：单独 revoke co
 - `pending_incoming`：本 holder 收到 request，尚未 respond。
 - `accepted`：已看到合法 `ck.contact.accepted`，且本 holder 未 tombstone。
 - `rejected`：已看到合法 `ck.contact.rejected`。
+- `expired`：request 超过 `contact_request_pending_ttl` 后的派生投影态；过期不是新的 contact fact，但对该 `request_id` 的 accept/respond MUST fail closed。
 - `tombstoned`：本 holder 已 tombstone，或已看到 peer tombstone 且投影选择暴露该状态。
+
+request 到达 `rejected`、`expired` 或 `tombstoned` 后，后续重新发起 contact request 不复用旧 `request_id`；除非 Realm / holder policy 另有 cooldown 或 block_peer 限制，协议本身不禁止重新 request。
 
 `ContactListRow` 的 scope 投影 MUST 是方向化的，至少区分 `granted_by_me[]`（我允许 peer 发起的 scopes）、`granted_to_me[]`（peer 允许我发起的 scopes）与 `bidirectional_scopes[]`。若响应使用简写字段 `effective_scopes[]`，它 MUST 等价于 `bidirectional_scopes[]`，不得把单向 consent 显示成双方都可用。
 

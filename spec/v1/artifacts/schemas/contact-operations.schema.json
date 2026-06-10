@@ -99,6 +99,7 @@
         "pending_incoming",
         "accepted",
         "rejected",
+        "expired",
         "tombstoned"
       ]
     },

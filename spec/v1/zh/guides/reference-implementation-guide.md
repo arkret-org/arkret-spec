@@ -3,7 +3,7 @@ title: Reference Implementation Guide
 status: candidate
 normative: false
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-10
 sidebar:
   label: Reference Impl
 ---

@@ -3,7 +3,7 @@ title: 服务端攻击模型与反制
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-10
 sidebar:
   label: 服务端威胁模型
 ---

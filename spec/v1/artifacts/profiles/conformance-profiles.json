@@ -558,6 +558,24 @@
         "move-anchor-lattice-fixture.json",
         "privacy-security-fixture.json"
       ],
+      "prose_requirement_coverage": [
+        {
+          "requirement": "Flow discussion timeline",
+          "coverage": ["sync-fixture.json"]
+        },
+        {
+          "requirement": "message edit/redaction",
+          "coverage": ["sync-fixture.json", "redaction-fixture.json"]
+        },
+        {
+          "requirement": "reaction OR-Set",
+          "coverage": ["reaction-fixture.json", "move-anchor-lattice-fixture.json"]
+        },
+        {
+          "requirement": "discussion history visibility and membership trimming",
+          "coverage": ["privacy-security-fixture.json", "sync-fixture.json"]
+        }
+      ],
       "optional_extensions": [
         "ck.profile.e2ee_client.v1",
         "read_receipts",
@@ -642,6 +660,20 @@
       "required_fixtures": [
         "encoding-fixture.json",
         "sync-fixture.json"
+      ],
+      "prose_requirement_coverage": [
+        {
+          "requirement": "basic ordering and tie break",
+          "coverage": ["sync-fixture.json"]
+        },
+        {
+          "requirement": "pagination gap and backfill order",
+          "coverage": ["sync-fixture.json"]
+        },
+        {
+          "requirement": "token expiry recovery",
+          "coverage": ["encoding-fixture.json", "sync-fixture.json"]
+        }
       ],
       "optional_extensions": [
         "local_reducer",
@@ -1038,6 +1070,32 @@
         "federation-fixture.json",
         "event-envelope-negative-fixture.json",
         "sync-fixture.json"
+      ],
+      "prose_requirement_coverage": [
+        {
+          "requirement": "service DID authentication and destination binding validation",
+          "coverage": ["required_endpoints", "federation-fixture.json"]
+        },
+        {
+          "requirement": "federation transaction idempotency and per-item accepted/rejected/quarantine results",
+          "coverage": ["ck.schema.event_batch_receipt.v1", "federation-fixture.json"]
+        },
+        {
+          "requirement": "signed Event Envelope verification and authorization",
+          "coverage": ["ck.schema.event.v1", "ck.schema.event_payload.v1", "event-envelope-negative-fixture.json"]
+        },
+        {
+          "requirement": "dependency missing pull/backfill recovery",
+          "coverage": ["ck.peer.events.query", "ck.peer.events.resolve", "sync-fixture.json"]
+        },
+        {
+          "requirement": "duplicate conflict quarantine",
+          "coverage": ["event-envelope-negative-fixture.json"]
+        },
+        {
+          "requirement": "batch, event size and retry rules",
+          "coverage": ["scalability-constraints.md", "federation-fixture.json"]
+        }
       ],
       "optional_extensions": [
         "snapshot_assisted_bootstrap",

@@ -3,7 +3,7 @@ title: Personal Productivity
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-06
+updated: 2026-06-10
 see_also:
   - private-objects.md
   - flow-and-message.md

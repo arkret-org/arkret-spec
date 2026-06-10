@@ -3,7 +3,7 @@ title: Federation
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-10
 ---
 
 ## 0. 规范语言
@@ -132,7 +132,7 @@ Cokret 不要求全局信任列表。每个节点维护自己的**联邦许可�
 - `deny` MUST 先于 `allow` 评估；被 deny 命中的 peer 即使同时命中 allow 也必须拒绝。
 - `domain` 规则只匹配规范化 DNS A-label 的完整 label 边界；`*.example.com` 可以匹配 `a.example.com`，不得匹配 `example.com` 或 `badexample.com`。实现 MUST NOT 只做字符串后缀匹配。
 - service DID 规则优先于 domain 规则；当 DID Document endpoint host 与 service DID 所属域不一致时，接收方 MUST 同时校验 DID、endpoint digest 和 domain/trust-domain policy。
-- 入站被本地 peer policy 拒绝的 service-to-service 请求 MUST 在完成足够的签名与 DID 解析以识别来源后 fail closed，SHOULD 返回 `policy_denied` 或 `capability_denied`，并避免泄露 Realm 是否存在。
+- 入站被本地 peer policy 拒绝的 service-to-service 请求 MUST 先验证 HTTP Message Signature 能解析到 `Source-Service-DID`、`verification_method` 与 `trust_domain`，再 fail closed；验证失败按认证失败处理，验证成功但命中 peer policy 拒绝时 SHOULD 返回 `policy_denied` 或 `capability_denied`，并避免泄露 Realm 是否存在。
 - 出站被本地 peer policy 拒绝的 peer MUST 从 fanout、frontier probe、backfill、push、to-device、key-package 和 media/snapshot fetch 目标集中移除。该状态是 policy-suppressed，不是临时网络失败；发送方不得无限重试，直到 policy version 改变或 operator 解除规则。
 - 若 operator 执行整机级 defederation，入站和出站规则 MUST 同时生效：既拒收该 peer 的联邦写入 / backfill / probe，也不得向该 peer 投递新事件、推送或补发历史。
 
@@ -812,7 +812,7 @@ Signature: sig1=:<base64>:
 - 相同 `(origin, destination, Idempotency-Key)` 但 canonical hash 不同 MUST 拒绝；
 - 相同 `(origin, destination, Idempotency-Key)` 且 canonical hash 相同 MAY 幂等接受；
 - 单事件级别仍以 `event_id` 去重，规则见 4.3 节；
-- 同源短时重复失败、失败率异常上升时 MUST 暂停该源并返回 `rate_limited`/`temporarily_unavailable`。
+- 对同一 `(Source-Service-DID, Destination-Service-DID, endpoint, realm_id?)` 计数窗口，若 60 秒内相同 canonical request hash 被拒绝 ≥ 3 次，或 5 分钟内总请求数 ≥ 10 且失败率 ≥ 50%，接收方 MUST 将该来源在该 endpoint / Realm 范围内暂停至少 60 秒，并返回 `rate_limited`（可附 `retry_after_ms` / HTTP `Retry-After`）或 `temporarily_unavailable`。
 
 #### 8.5.1 Idempotency cache 绑定 service key state（normative）
 

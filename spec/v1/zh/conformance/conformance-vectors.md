@@ -3,7 +3,7 @@ title: Conformance Vectors
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-10
 ---
 
 本文整合所有 v1 conformance 测试向量，按域分组；以下为各域索引，逐域 vector 清单以本文件章节目录与 `artifacts/registry/vector-registry.json` 为准：

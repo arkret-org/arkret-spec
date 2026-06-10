@@ -3,7 +3,7 @@ title: Object Addressing & Shareable Links
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-28
+updated: 2026-06-10
 ---
 
 ## 0. 规范语言

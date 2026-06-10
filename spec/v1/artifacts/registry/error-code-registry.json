@@ -317,6 +317,12 @@
       "description": "Storage, bandwidth, or compute quota was exceeded."
     },
     {
+      "code": "limit_exceeded",
+      "http_status": 413,
+      "scope": "both",
+      "description": "A semantic protocol limit was exceeded even though the request body itself may be well-formed, such as a bounded recurrence expansion that cannot be returned within the v1 maximum result count."
+    },
+    {
       "code": "rate_limited",
       "http_status": 429,
       "scope": "both",
@@ -700,6 +706,18 @@
       "http_status": 409,
       "scope": "both",
       "description": "Sub-reason for failed_precondition when ck.self.direct_conversation.resolve has an accepted contact but cannot verify target-holder active consent_scope=direct_message or any for the requester. See zh/identity/contact-and-direct-conversation.md and zh/identity/consent-model.md §6.2."
+    },
+    {
+      "code": "contact_request_not_pending",
+      "http_status": 409,
+      "scope": "both",
+      "description": "Sub-reason for failed_precondition when ck.self.contact.respond attempts to accept or reject a request that has already been accepted, rejected, tombstoned, withdrawn, or otherwise left the pending state."
+    },
+    {
+      "code": "contact_request_expired",
+      "http_status": 409,
+      "scope": "both",
+      "description": "Sub-reason for failed_precondition when ck.self.contact.respond targets a contact request older than contact_request_pending_ttl. The request projection is expired and requester-side contact-managed consent must be revoked."
     },
     {
       "code": "unsupported_digest_algorithm",
@@ -2633,6 +2651,27 @@
         "state_resolution"
       ],
       "description": "Sub-reason for failed_precondition when scope_circle_id points at a Circle whose state is archived or tombstoned. See zh/models/circle.md §6.1."
+    },
+    {
+      "code": "circle_not_archived",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "Sub-reason for failed_precondition when ck.circle.restore targets a Circle whose current lifecycle state is not archived. See zh/models/common-fields.md §5.1 and zh/models/circle.md §9."
+    },
+    {
+      "code": "circle_already_terminal",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "Sub-reason for failed_precondition when a Circle lifecycle write targets a Circle that is already tombstoned or otherwise terminal. See zh/models/common-fields.md §5.1 and zh/models/circle.md §9."
+    },
+    {
+      "code": "scope_unavailable",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "Sub-reason for failed_precondition when an object write references an effective scope whose Circle or parent Realm has been tombstoned/destroyed and cannot accept new writes. Projections may surface the same string as a non-error status marker. See zh/models/realm-and-space.md §2.6.1 and zh/models/circle.md §9.2."
     },
     {
       "code": "circle_member_must_be_realm_member",

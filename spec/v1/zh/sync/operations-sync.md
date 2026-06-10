@@ -3,7 +3,7 @@ title: Operations And Sync
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-31
+updated: 2026-06-10
 see_also:
   - sync/service-surface.md
   - sync/client-sync.md

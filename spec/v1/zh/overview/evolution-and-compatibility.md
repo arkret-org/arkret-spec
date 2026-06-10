@@ -3,7 +3,7 @@ title: 协议演进与向后兼容
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-03
+updated: 2026-06-10
 see_also:
   - conformance/encoding.md
   - conformance/conformance-profiles.md

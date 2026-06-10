@@ -3,7 +3,7 @@ title: Discovery and Directory
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-07
+updated: 2026-06-10
 see_also:
   - ../governance/history-visibility.md
 ---

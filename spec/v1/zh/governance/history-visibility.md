@@ -3,7 +3,7 @@ title: History Visibility and Preview Policy
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-30
+updated: 2026-06-10
 see_also:
   - ../discovery/discovery-directory.md
   - ../discovery/object-addressing.md

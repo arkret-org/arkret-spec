@@ -3,7 +3,7 @@ title: Normative Language
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-10
 see_also:
   - conformance/conformance-suite.md
   - conformance/conformance-profiles.md
@@ -20,6 +20,8 @@ see_also:
 英文小写 "must" / "should" / "may"、首字母大写形式，以及未列入下表的自然语言建议，仅供阅读理解，不构成规范要求。
 
 由于 v1 中文正文是规范真源，以下中文规范词在 normative 段落、normative 表格和字段约束中具有与对应 RFC 2119 / RFC 8174 关键字相同的规范力。新增或重写规范要求时 SHOULD 优先同时给出英文关键字，以便下游 SDK、cotest 与翻译版本机械识别。
+
+任何 conformance 统计、lint、coverage report 或发布门禁在统计规范关键字时 MUST 按下表把中文规范词归一到对应 RFC 2119 / RFC 8174 bucket；不得只统计英文大写关键字。`tools/lint_spec.py --keyword-stats` 是本仓库的基线统计入口。
 
 | 中文规范词 | 等价关键字 | 说明 |
 | --- | --- | --- |

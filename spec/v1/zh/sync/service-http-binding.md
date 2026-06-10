@@ -3,7 +3,7 @@ title: Service HTTP/JSON Binding
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-07
+updated: 2026-06-10
 ---
 
 ## 0. 规范语言
@@ -812,7 +812,7 @@ POST /_cokret/root/identity/resolve
 }
 ```
 
-Resolver MUST 返回足够的方法相关证据，使客户端能够验证 control history。
+Resolver MUST 返回下列方法相关证据字段，供客户端验证 control history：`did_document`（normalized view）、`did_document_digest`、`verification_method`、`key_log_head` 或该 DID method 等价的 history head、`seq` / `version_id`、method-specific raw evidence 引用，以及 resolver 自身的 `resolver_service_did`、`resolved_at` 和覆盖上述字段的 `resolver_signature`。不具备可验证历史的 DID method MUST 显式返回 `history_evidence_kind="none"`，客户端按 [`identity-did.md`](../identity/identity-did.md) 的 method policy 决定是否接受。
 
 ## 5. Account API
 

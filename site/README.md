@@ -37,7 +37,7 @@ Astro Starlight 站点，把 `spec/v1/` 渲染成可浏览的协议规范网站�
 | --- | --- |
 | `/` | 首页 + catalog 概览 |
 | `/zh/v1/...` | 中文 normative 全文（`spec/v1/zh/...`） |
-| `/en/v1/...` | 英文占位（未发布，非 normative）；目前只有 `en/index.md` 是英文页面，其他可见 fallback 页面不得视为英文翻译 |
+| `/en/v1/...` | 英文说明性入口（非 normative）；目前只有 `en/index.md` 是英文页面，不存在完整英文版，且不承诺提供英文版 |
 | `/openapi/` | Scalar OpenAPI 视图 |
 | `/catalog/event-kinds/` 与 `/[kind]/` | event_kind 目录 + 详情 |
 | `/catalog/errors/` 与 `/[code]/` | 错误码目录 + 详情 |
@@ -86,7 +86,6 @@ site/
 ## 演进
 
 - 多版本：将来加 `spec/v1.1/zh/`，`docsLoader` 自动收录为 `/zh/v1.1/...`。
-- 英文：写 `spec/v1/en/<topic>.md`，路由自动生效；CKP-EN-MIRROR 完成前，
-  不得把 `/en/v1/...` fallback 页面当作英文 normative mirror 发布。
+- 英文：`spec/v1/en/index.md` 仅用于说明性入口；除非未来另行接受新的语言政策提案，否则不得把 `/en/v1/...` 页面当作英文 normative mirror 或完整英文版发布。
 - 新构件类型：在 `src/lib/artifacts.ts` 加 typed 入口 + 在 `src/components/` 加组件 +
   在 `src/pages/catalog/` 加 index/[param] 路由。crossref 脚本只需在 `checks` 数组里加一行。

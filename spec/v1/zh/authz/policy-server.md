@@ -3,7 +3,7 @@ title: Policy Server
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-10
 ---
 
 ## 0. 规范语言
@@ -328,7 +328,7 @@ Policy Server MAY 执行 Realm 级与组织级的 blocklist、allowlist、rate l
 
 - Policy rule 的 `resource[].kind` **MUST** 取自上表 5 项词表。在 policy rule 中误用 capability-only kind（如 `message` / `circle` / `notification` / `read_cursor` / `morph` / `relation` / `view` / `invite` 等）MUST 被 schema 拒绝（`policy.schema.json` 的 `enum` 不含它们），实现 MUST NOT 在本地放宽该 enum。
 - 需要比 5 项粒度更细的对象级治理时，policy rule MUST 用 `kind:"object"` + `ref`（canonical object id）表达，而不是新增 capability-only kind。
-- 两套词表**不统一**是有意设计：capability 词表面向细粒度授权，policy 词表面向粗粒度治理；读者 MUST NOT 假定 capability selector 的 kind 在 policy rule 中同样合法。
+- 两套词表**不统一**是有意设计：capability 词表面向细粒度授权，policy 词表面向粗粒度治理；实现 MUST NOT 把 capability selector 的 kind 当作 policy rule 的合法 kind，policy rule 校验只能接受上表 5 项词表。
 
 ### 7.1 Moderation State 必须进入 Anchor Frontier
 

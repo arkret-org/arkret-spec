@@ -3,7 +3,7 @@ title: 实现 Profile 与一致性要求
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-05
+updated: 2026-06-10
 sidebar:
   label: 实现 Profile
 ---
@@ -87,6 +87,8 @@ v1 stable + extension catalog 已包含较大的 implementation / deployment / v
 
 实现侧：客户端 SHOULD 在 conformance 声明中暴露 `inherits` 与 `adds` 信息，让对端能在 fast path 中按继承关系做能力命中判断，避免逐 profile 列举。
 
+Profile 正文中的 prose MUST 项必须能映射到 `artifacts/profiles/conformance-profiles.json#profile_requirements` 的 `required_endpoints` / `required_event_kinds` / `required_schemas` / `required_fixtures` / `feature_discovery`，或在 `prose_requirement_coverage` 中列出对应 registry、fixture 或 conformance runner。没有一一字段的 prose MUST 不得悬空；新增 profile 时 reviewer MUST 拒绝缺少覆盖映射的 prose MUST 清单。
+
 ## 2.2 场景化 Profile
 
 以下 profile 用于把 v1 启动范围降到可实现的产品子集。它们不是 `minimal_client` 的替代品，而是面向具体产品形态的互操作声明。声明 `ck.profile.chat_mvp.v1` 或 `ck.profile.kanban_mvp.v1` 时，仅实现一个闭环的实现 SHOULD 在 `rejected_event_kinds` 中列出本实现拒绝的另一闭环 wire scope。
@@ -105,6 +107,8 @@ MUST 支持：
 - dependency missing 的 pull / backfill 恢复
 - duplicate conflict quarantine
 - scalability constraints 中的 batch、event size 和 retry 规则
+
+Coverage mapping：endpoint 能力由 `required_endpoints` 覆盖；signed Event Envelope、destination binding 与分项结果由 `required_schemas` + `federation-fixture.json` 覆盖；dependency missing / duplicate conflict quarantine 由 `event-envelope-negative-fixture.json` 与 `sync-fixture.json` 覆盖；batch、event size 与 retry 规则由 `scalability-constraints.md` 和 `federation-fixture.json` 覆盖。
 
 MAY 支持 gossip、snapshot-assisted bootstrap、MIMI facade、Applet bridge 和 full-text search。
 
@@ -837,6 +841,8 @@ Client Sync 相关 profile MUST/SHOULD 按 `conformance-vectors.md` 执行对应
 - E2EE Client MUST 覆盖 MLS epoch backfill、decryption_pending recovery 和 removed member fail closed。
 - Principal Server SHOULD 覆盖 duplicate suppression、backfill order、encrypted payload forwarding 和不能转发解密材料。
 - Snapshot bootstrap MUST 覆盖 `event_set_commitment` root、covered frontier、conflict/soft-fail/quarantine 摘要和 inclusion / omission challenge hint。
+
+上述 Minimal Client 与 Chat MVP 的 prose MUST 覆盖项在 `conformance-profiles.json#profile_requirements` 中通过 `required_fixtures` 和 `prose_requirement_coverage` 建立映射；实现声明 profile 时必须同时提供这些 fixture / runner 的通过结果。
 
 Privacy / security hardening profile MUST 额外覆盖：
 

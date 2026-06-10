@@ -3,37 +3,39 @@ title: Artifact Consumption Guide
 status: candidate
 normative: false
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-10
 ---
 
 # Cokret v1 Artifact Consumption Guide
 
 本指南定义实现侧消费 `spec/v1/artifacts/` 的边界，避免各项目继续手抄协议事实表。
 
+> 本文件是 informative 实施指南，不是协议真相源；其中复述的 MUST / MUST NOT / SHOULD 规则，其权威来源为被引用的规范正文、schema 与 registry。找不到权威来源的实施建议不得作为 wire conformance 规则引用。
+
 > **另见** [`reference-implementation-guide.md`](./reference-implementation-guide.md)：本指南聚焦"哪些 artifact 是 source of truth 及其消费边界"；参考实现指南聚焦"按何种顺序接入这些 artifact 生成 stub / 跑一致性向量"。二者配合阅读。
 
 ## Source Of Truth
 
-实现侧必须把以下 artifact 作为 v1 协议事实来源:
+实现侧应把以下 artifact 作为 v1 协议事实来源:
 
 - `registry/event-kind-registry.json`: event kind 是否 active、wire scope、cell family、lattice、bottom、payload schema。
 - `registry/operation-registry.json`: service operation ID、surface group、profile tier。
-- `registry/schema-registry.json`: registered schema ID 到 schema artifact 的映射；consumer MUST 递归解析同目录 `$ref` 指向的 raw schema artifact（例如 `event-envelope.schema.json` 引用 `event-payload.schema.json`、`common-ids.schema.json` 与 `read-cursor.schema.json`），不得假设 registry 直接列出的文件就是全部需要发布或缓存的 schema 文件。
+- `registry/schema-registry.json`: registered schema ID 到 schema artifact 的映射；consumer 递归解析同目录 `$ref` 指向的 raw schema artifact（例如 `event-envelope.schema.json` 引用 `event-payload.schema.json`、`common-ids.schema.json` 与 `read-cursor.schema.json`），避免假设 registry 直接列出的文件就是全部需要发布或缓存的 schema 文件。该要求的权威来源是 [`../overview/release-readiness.md`](../overview/release-readiness.md)。
 - `registry/id-kind-registry.json`: typed ID kind 与 wire form。
 - `profiles/conformance-profiles.json`: profile inheritance、required operations、event kinds、schemas、fixtures、features、capability actions、cell namespaces、rejected event kinds。
 
-手写常量只能作为 ergonomics alias；admission、profile claim、conformance gate 不得以手写常量作为唯一事实来源。
+手写常量只能作为 ergonomics alias；admission、profile claim、conformance gate 应避免以手写常量作为唯一事实来源。
 
 ## JSON Schema `$id` 与发布形态
 
-仓库内 validator SHOULD 使用本地 resolver，把 `$id` 映射到 `spec/v1/artifacts/schemas/<file>.json`，避免测试依赖网络。发布站点则 MUST 在相同路径提供 raw JSON Schema artifact，而不是 HTML catalog 页面；`$id` URL 返回的 body 必须能被标准 JSON Schema validator 直接解析。
+仓库内 validator SHOULD 使用本地 resolver，把 `$id` 映射到 `spec/v1/artifacts/schemas/<file>.json`，避免测试依赖网络。发布站点在相同路径提供 raw JSON Schema artifact、而不是 HTML catalog 页面的要求，权威来源为 [`../overview/release-readiness.md`](../overview/release-readiness.md)；`$id` URL 返回的 body 需要能被标准 JSON Schema validator 直接解析。
 
 推荐响应头：
 
 - `Content-Type: application/schema+json`（至少 `application/json`）
 - `Cache-Control` 可按发布版本长期缓存，但 breaking schema 更新必须通过版本化 schema id 表达
 
-Markdown catalog 页面可以继续存在于 `/catalog/schemas/`；它是人类阅读视图，不得替代 `$id` URL 的机器消费形态。
+Markdown catalog 页面可以继续存在于 `/catalog/schemas/`；它是人类阅读视图，不应替代 `$id` URL 的机器消费形态。
 
 ## Rust SDK
 
@@ -44,7 +46,7 @@ Markdown catalog 页面可以继续存在于 `/catalog/schemas/`；它是人类�
 - `cokret_core::generated::profiles` 和 `cokret_core::generated::profile_requirements` 负责发布 generated profile/profile requirement 常量。
 - 新增协议字段时，先更新 artifact，再重新生成 SDK generated module，最后让服务端/客户端消费 SDK API。
 
-禁止在服务端或客户端复制 generated profile requirement 表。
+服务端或客户端不应复制 generated profile requirement 表；需要本地别名时，应能追溯到 SDK/generated artifact。
 
 ## Soland
 

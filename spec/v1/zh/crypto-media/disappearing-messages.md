@@ -3,7 +3,7 @@ title: Disappearing Messages
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-06
+updated: 2026-06-10
 see_also:
   - encryption-and-audit.md
   - ../models/flow-and-message.md

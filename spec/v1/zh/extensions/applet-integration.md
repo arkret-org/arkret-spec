@@ -3,7 +3,7 @@ title: Applet Integration
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-04
+updated: 2026-06-10
 ---
 
 > **状态：extension profile（非 v1 core 互操作必需）**。Applet registry、审核 SLA 与 capability

@@ -3,7 +3,7 @@ title: Encoding, IDs, Hashes, Signatures
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-10
 sidebar:
   label: Encoding & IDs
 ---
@@ -357,8 +357,8 @@ ck:cursor:<base64url>
 
 - 客户端 MUST 把 cursor 当作不透明字符串。
 - 客户端 MUST NOT 解码、解析或修改 cursor 内容。
-- 客户端 MUST 存储最新 stream `cursor`（来自 `/_cokret/self/account/subscribe` frame 或分页响应）用于恢复。
-- 客户端 MUST 在下次同步 / 查询请求中按原样使用 cursor。
+- 客户端 MUST 存储 binding 返回的最新 stream `cursor` 用于恢复。
+- 客户端 MUST 在下一次同语义用途的请求中按原样使用 cursor；具体出现位置由对应 transport / API binding 定义。
 
 ### 8.2 服务端 canonical 内部结构
 
@@ -366,7 +366,7 @@ ck:cursor:<base64url>
 
 下方 §8.2 表与 Stream / Barrier 示例同时列出 stateful core 字段与 stateless overlay 字段，仅为完整描述两种形态;**stateless 自描述形态(含 `s` / `d` / `target` / `issuer_kid` / `_mac` / `_sig` 的内联 body)不属于 v1 core,仅在实现声明 [`ck.profile.stateless_cursor.v1`](./conformance-profiles.md) overlay 时合法**(见 §1.11 失败条件与 conformance-profiles §19c)。core consumer（sync、federation、snapshot）无需实现 stateless 路径。客户端无论哪种形态都 MUST NOT 解析或修改 cursor;**服务器侧 core cursor 内部结构 MUST 遵循 core schema,MUST NOT 在 core 下使用 stateless 私有形态**。
 
-cursor 是 v1 中**唯一**的不透明 token 类型，统一承担增量同步、列表分页、写后读屏障所有用途。`purpose` 字段区分两个语义：`stream`（增量同步与列表分页，出现位置：`after` / `before` / `prev_cursor` / `next_cursor`）与 `barrier`（写后读屏障，出现位置：写接口响应中的 `cursor` 字段、`X-Cokret-Wait-For` header）。
+cursor 是 v1 中**唯一**的不透明 token 类型，统一承担增量同步、列表分页和写后读屏障用途。`purpose` 字段区分两个语义：`stream`（增量同步与列表分页位置承诺）与 `barrier`（读己之所写屏障）。每个 transport / API binding MUST 在自己的绑定文档中声明哪些 wire 位置接受哪一种 `purpose`。
 
 Stream 形态（**profile-only**,`ck.profile.stateless_cursor.v1`;core 下 stream cursor 的 body 是 `{v,purpose,t,x,h}`,positions 由 `h` handle 在服务端解析，不内联 `s` / `d`）：
 
@@ -430,7 +430,7 @@ Barrier 形态（**profile-only**,`ck.profile.stateless_cursor.v1`;core 下 barr
 
 服务端 MAY 添加其它 `_` 开头的私有字段（如 `_compression`）用于本地优化；这些字段不参与 §8.4 cursor 翻译，必须先于 base64url 编码进入 canonical bytes，并 MUST 进入 `_mac` / `_sig` transcript。
 
-**transcript-bound 但不在 wire body 的完整性绑定字段（normative）**：下列字段是 cursor 完整性校验（§8.3.1）的核心绑定项，但 **不作为 cursor body wire 字段出现**——它们在 stateful core 形态下由 `h` handle 在服务端绑定表中承载，在 `ck.profile.stateless_cursor.v1` stateless 形态下进入 `_mac` / `_sig` transcript。读者 MUST NOT 在上方 §8.2 wire body 表中寻找它们:
+**transcript-bound 但不在 wire body 的完整性绑定字段（normative）**：下列字段是 cursor 完整性校验（§8.3.1）的核心绑定项，但 **不作为 cursor body wire 字段出现**——它们在 stateful core 形态下由 `h` handle 在服务端绑定表中承载，在 `ck.profile.stateless_cursor.v1` stateless 形态下进入 `_mac` / `_sig` transcript。这些字段 MUST NOT 出现在上方 §8.2 定义的 cursor body wire 字段集合中:
 
 | 绑定字段 | 承载位置 | 说明 |
 |----------|----------|------|
@@ -455,7 +455,7 @@ Barrier 形态（**profile-only**,`ck.profile.stateless_cursor.v1`;core 下 barr
 8. 因果前沿中的所有 event id 合法（如 `s` 出现）。
 9. timeline 排序是合法 HLC 格式（如 `s` 出现）。
 10. `purpose=barrier` + stateless 形态时 `target.event_id` 与 `target.event_digest` 必填。
-11. cursor 出现的位置与 `purpose` 一致：barrier cursor 出现在任一 stream 位置（`/_cokret/self/account/subscribe after=`、`ck.self.events.query` 的 `before` / `after`、响应 `prev_cursor` / `next_cursor`）MUST `invalid_param`；stream cursor 出现在 barrier 位置（`X-Cokret-Wait-For` header、写接口响应的 barrier `cursor` 字段）MUST `invalid_param`。
+11. cursor 被消费的 binding context MUST 与 `purpose` 一致；binding context 的具体 wire 位置由对应 transport / API binding 定义。若 `purpose=barrier` 的 cursor 出现在 stream context，或 `purpose=stream` 的 cursor 出现在 barrier context，接收方 MUST 返回 `invalid_param`。
 12. **TTL 硬上限**：先校验 `t` 的 well-formedness——`t` MUST 是合法 RFC 3339 UTC 时间戳（§8.2 要求 `Z` 结尾），且 `t` 解析得到的 Unix ms MUST ≤ `x` 解析得到的 Unix ms；`t` 非法（不可解析、非 UTC / 非 `Z` 结尾）或 `t_ms > x` 的 cursor MUST reject `invalid_param`（否则 `x - t_ms` 为负或解析异常，可令损坏 / 恶意 cursor 绕过下方 TTL 硬上限）。随后以 `t` 解析为 Unix ms 后，`x - t_ms` MUST 满足以下硬上限：barrier cursor ≤ 3,600,000 ms（1 小时），stream cursor ≤ 604,800,000 ms（7 天）。超出上限的 cursor 视为 issuing 服务的协议错误，接收方 MUST reject `invalid_param`。理由：barrier cursor 仅是 RYW 等待屏障，过期意义随 frontier 追上而失去；stream cursor 在数周活动后已无因果对齐价值。
 13. **形态归属**：
     - **core（默认）** — body MUST 为 stateful 形态:含 `h`（opaque handle），且 MUST NOT 含 `_mac` / `_sig` / `s` / `d` / `target` / `issuer_kid`。这是 v1 core schema（[`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)）唯一接受的形态:`required` 含 `h`、`additionalProperties:false`。core 下收到缺 `h` 或含上述 stateless 字段的 body MUST reject `invalid_param`。
@@ -467,7 +467,7 @@ Barrier 形态（**profile-only**,`ck.profile.stateless_cursor.v1`;core 下 barr
 
 ### 8.3.1 完整性校验（normative）
 
-服务端 MUST 在使用客户端回传的 cursor 推进任何不可逆 server-side state（to-device ack、`/_cokret/self/account/subscribe after=` resume、`X-Cokret-Wait-For` barrier 解除、`dropped` / `resync_required` 恢复等；详见 [`client-sync.md` §10 / §12](../sync/client-sync.md)）之前，执行下列完整性校验。仅通过 §8.3 语法 / TTL / purpose 校验不足以信任 cursor 内部状态。
+服务端 MUST 在使用客户端回传的 cursor 推进任何不可逆 server-side state、恢复 stream 位置或解除读己之所写屏障之前，执行下列完整性校验；具体业务场景见对应 sync / API binding（例如 [`client-sync.md`](../sync/client-sync.md) §10 / §12）。仅通过 §8.3 语法 / TTL / purpose 校验不足以信任 cursor 内部状态。
 
 **Stateless 形态（含 `_mac` 或 `_sig`）**：
 
@@ -489,10 +489,10 @@ Barrier 形态（**profile-only**,`ck.profile.stateless_cursor.v1`;core 下 barr
 
 Cursor 对客户端不透明，但 **stateless 形态服务器之间可解析**。当用户从 Principal Server A 切换到 Principal Server B 时（service replacement、portability 平面操作），B SHOULD 支持以下迁移路径之一：
 
-1. **直接 reparse（仅 stateless 形态）**：B 收到 `after=ck:cursor:<base64url_from_A>` 时，按 §8.2 canonical schema 解码，提取 `s.<realm_id>.{p,o,h}` 与 `d` 信息，翻译为 B 本地 cursor 内部表示。前提是 A 与 B 看见相同 Realm 历史、且 `purpose=stream`、且 cursor 是 stateless 形态（含 `s` / `d`，不含 `h`）。B 在生成本地等价 cursor 时 MUST 用自己的 cursor key 重签 `_mac` / `_sig`（A 的 transcript 与 B 不兼容），MUST NOT 直接复用 A 的 `_mac`。barrier cursor 不可跨服务迁移（`target.event_digest` 已绑定到原服务的 frontier）。
+1. **直接 reparse（仅 stateless 形态）**：B 在 stream context 收到 `ck:cursor:<base64url_from_A>` 时，按 §8.2 canonical schema 解码，提取 `s.<realm_id>.{p,o,h}` 与 `d` 信息，翻译为 B 本地 cursor 内部表示。前提是 A 与 B 看见相同 Realm 历史、且 `purpose=stream`、且 cursor 是 stateless 形态（含 `s` / `d`，不含 `h`）。B 在生成本地等价 cursor 时 MUST 用自己的 cursor key 重签 `_mac` / `_sig`（A 的 transcript 与 B 不兼容），MUST NOT 直接复用 A 的 `_mac`。barrier cursor 不可跨服务迁移（`target.event_digest` 已绑定到原服务的 frontier）。
 2. **stateful 形态不可跨服务迁移**：含 `h` 的 cursor 中 handle 是 A 本地表的引用，B 无法解析。B 收到 stateful 形态 cursor 时 MUST 返回 `cursor_unrecognized`，客户端按全新初始同步处理。这是 stateful 形态在 portability 上的固有取舍。
 3. **重置兜底**：B 不支持直接 reparse 时 MUST 返回 `cursor_unrecognized`（不是 `cursor_expired`），客户端按全新初始同步处理；MUST NOT 静默丢失因果对齐。
-4. **可选 translate 端点**：未来 profile 可能在 `ck.profile.principal_server.v1` 之上引入 `POST /_cokret/self/account/translate-cursor`；该端点不属于 v1 强制范围。
+4. **可选 translate operation**：未来 profile 可能在 `ck.profile.principal_server.v1` 之上引入 cursor translation operation；该 operation 与 transport binding 不属于 v1 强制范围。
 
 `_` 前缀的服务器私有字段（`_compression`）在迁移时可被丢弃。该 frontier 恢复仅适用于 **stateless 形态**（路径 1）：其 canonical 字段（`v` `purpose` `t` `s` `d` `x`）足以恢复 frontier。core 默认 stateful 形态的 body 是 `{v,purpose,t,x,h}`（无 `s` / `d`），frontier 由 `h` handle 在原服务端绑定表承载、无法跨服务解析，故 core stateful 迁移不走 frontier 恢复，而以路径 2 返回 `cursor_unrecognized` 为准。`_mac` / `_sig` MUST 由目标服务器用自己的 key 重新生成（不可跨服务复用）。
 

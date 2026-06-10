@@ -3,7 +3,7 @@ title: Common Fields
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-01
+updated: 2026-06-10
 ---
 
 ## 0. 规范语言
@@ -167,9 +167,9 @@ expected_<role>_<kind>_id
 | `created_at` | Authorship | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
 | `updated_by` | Authorship | O | O | O | O | O | O | O | O | O | O | O | O | — | — | O |
 | `updated_at` | Authorship | O | O | O | O | O | O | O | O | O | O | O | O | O | O | O |
-| `deleted_at` | Lifecycle | O | — | O | O | O | O | O | — | O | O | — | — | — | — | — |
-| `state` | Lifecycle | O | Y | O | O | Y | O | O | — | O | — | — | — | — | — | — (see `status`，mirrors account status) |
-| `state_changed_at` | Lifecycle | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | — | — | — | — | — | — | — | — |
+| `deleted_at` | Lifecycle | —（Realm 终态由 lifecycle facet 表达，schema 拒绝） | — | O | O | O | O | O | — | O | O | — | — | — | — | — |
+| `state` | Lifecycle | —（Realm 终态由 lifecycle facet 表达，schema 拒绝） | Y | O | O | Y | O | O | — | O | — | — | — | — | — | — (see `status`，mirrors account status) |
+| `state_changed_at` | Lifecycle | —（Realm 终态由 lifecycle facet 表达，schema 拒绝） | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | — | — | — | — | — | — | — | — |
 | `stage` | Progress | — | — | — | O | — | Y | — | — | — | — | — | — | — | — | — |
 | `stage_changed_at` | Progress | — | — | — | R per `ck.flow.stage.set` | — | R per `ck.morph.stage.set` | — | — | — | — | — | — | — | — | — |
 | `labels` | Universal | O | — | O | O | O | O | O | O | — | O | — | — | — | — | O |
@@ -185,6 +185,7 @@ expected_<role>_<kind>_id
 - `labels` 对 Policy / Capability Grant / Invite / Read Cursor / Notification 不适用：这些对象的 "标签" 语义由各自的 schema-specific 字段（如 `tags`、`reason`、`category`）承担，避免与协作对象 labels 投影冲突。
 - `fields` 是协作对象的扩展容器；Flow / Message 的用户可读扩展放入 `metadata.fields` 或 `encrypted_metadata`，不得作为顶层 `fields`；Capability Grant / Read Cursor / Notification 不暴露开放扩展容器。
 - **View 无 durable 终态**：v1 的 View 只有 `ck.view.create` / `ck.view.update` / `ck.view.reconcile`，`view.schema.json` 不含 `state` / `deleted_at`，registry 也无 `ck.view.tombstone`；故本表 View 的 `state` / `deleted_at` 为 "—"。共享 View 的"移除"是 owner-private / 带外操作（或由后续 reconcile 覆盖），不走对象生命周期终态。这是有意取舍，待未来若出现"可治理删除"的需求再单独引入 lifecycle event。
+- **Realm 无 materialized `state` 字段**：Realm 的 `archived` / `frozen` / `tombstoned` / `destroyed` 由 `ck.component.realm.*` lifecycle facet 表达，`realm.schema.json` 拒绝 `state` / `state_changed_at` / `deleted_at`。Projection MAY 把 `ck.realm.tombstone` 与 `ck.realm.destroy` 均显示为 `realm_terminal_state`，并用 `terminal_kind=tombstone|destroy` 或同等字段区分 successor 迁移与永久退役；不得把该 projection 状态写回 Realm 对象。
 
 ### 3.2 字段声明 / 展示顺序约定（normative reference）
 
@@ -307,7 +308,7 @@ DID 是 Cokret 的主体标识，不是普通协作对象 ID。标准协作对�
 | `active` | 当前可用 | `active` | `active` | `active` | `active` | `active` | `active` | `active` |
 | `archived` | 软隐藏，UI 默认不展示，可撤销 | `archived` | `archived` | `archived` | — | `archived` | — | `archived` |
 | `redacted` | 内容已根据 redaction policy 清除，envelope 与审计元数据保留 | `redacted` | — | — | `redacted` | `redacted` | `tombstoned`（合并 deleted+redacted） | — |
-| `deleted` | 不可逆删除：content / encrypted_content / encrypted_payload 清空，仅保留 envelope 用于审计 | — | `tombstoned` | `tombstoned` | — | — | `tombstoned` | `tombstoned` |
+| `deleted` | 不可逆删除：content / encrypted_content / encrypted_payload 清空，仅保留 envelope 用于审计 | — | `tombstoned` | `tombstoned` | — | — | `tombstoned` | `realm_terminal_state`（projection；Realm 对象无 `state` 字段，`ck.realm.tombstone` / `ck.realm.destroy` 均映射到此终态类别） |
 
 约定：
 
@@ -327,7 +328,7 @@ DID 是 Cokret 的主体标识，不是普通协作对象 ID。标准协作对�
 
 > **Flow / Morph 豁免**:上表 `ck.<kind>.tombstone` 行是通用模板;Flow 与 Morph **没有** `tombstone` 终态(也不用 `deleted`),其不可逆终态经指向该对象的 `ck.redaction` 进入 `redacted`(见 §5.2 模板槽与 [flow-and-message.md §9.1](./flow-and-message.md))。对 Flow / Morph 提交 `ck.<kind>.tombstone` 不适用。
 
-`<kind>` 是 schema 类型短名(`flow`、`circle`、`space`、`morph`、`message`),所有 reducer 实现 MUST 用相同 reason_code,使跨实现错误诊断一致。具体值如:`flow_not_active` / `flow_not_archived` / `flow_already_terminal`,`circle_not_active`（Circle 的其它 lifecycle 诊断 MUST 先进入 error-code registry 再被规范文本点名）,`space_not_active` / `space_not_archived` / `space_already_terminal`,`morph_not_active` / `morph_not_archived` / `morph_already_terminal`。
+`<kind>` 是 schema 类型短名(`flow`、`circle`、`space`、`morph`、`message`),所有 reducer 实现 MUST 用相同 reason_code,使跨实现错误诊断一致。具体值如:`flow_not_active` / `flow_not_archived` / `flow_already_terminal`,`circle_not_active` / `circle_not_archived` / `circle_already_terminal`,`space_not_active` / `space_not_archived` / `space_already_terminal`,`morph_not_active` / `morph_not_archived` / `morph_already_terminal`。
 
 附加规则:
 

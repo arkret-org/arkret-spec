@@ -3,7 +3,7 @@ title: Media Service Binding
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-04
+updated: 2026-06-10
 sidebar:
   label: Media Service Binding
 ---

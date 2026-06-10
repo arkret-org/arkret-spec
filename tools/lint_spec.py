@@ -28,6 +28,7 @@ from __future__ import annotations
 import argparse
 import re
 import sys
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
@@ -81,6 +82,29 @@ REQUIRED_CHINESE_NORMATIVE_ROWS = {
     "不应 / 不建议 / 不推荐": "`SHOULD NOT` / `NOT RECOMMENDED`",
     "可以 / 可选": "`MAY` / `OPTIONAL`",
 }
+NORMATIVE_KEYWORD_PATTERNS = {
+    "MUST NOT": [
+        re.compile(r"\bMUST NOT\b"),
+        re.compile(r"不得|禁止|不允许|不可"),
+    ],
+    "MUST": [
+        re.compile(r"\bMUST\b(?!\s+NOT)|\bREQUIRED\b|\bSHALL\b(?!\s+NOT)"),
+        re.compile(r"必须|要求"),
+    ],
+    "SHOULD NOT": [
+        re.compile(r"\b(?:SHOULD NOT|NOT RECOMMENDED)\b"),
+        re.compile(r"不应|不建议|不推荐"),
+    ],
+    "SHOULD": [
+        re.compile(r"\bSHOULD\b(?!\s+NOT)|(?<!NOT\s)\bRECOMMENDED\b"),
+        re.compile(r"应当|(?<!不)建议|(?<!不)推荐"),
+    ],
+    "MAY": [
+        re.compile(r"\b(?:MAY|OPTIONAL)\b"),
+        re.compile(r"可以|可选"),
+    ],
+}
+NORMATIVE_KEYWORD_ORDER = ["MUST NOT", "MUST", "SHOULD NOT", "SHOULD", "MAY"]
 
 
 @dataclass
@@ -252,6 +276,27 @@ def lint_file(path: Path) -> list[Finding]:
     return findings
 
 
+def count_normative_keywords(path: Path) -> Counter[str]:
+    text = path.read_text(encoding="utf-8")
+    _, body_offset = parse_frontmatter(text)
+    counts: Counter[str] = Counter()
+    in_code = False
+
+    for idx, raw in enumerate(text.splitlines(), start=1):
+        stripped = raw.strip()
+        if stripped.startswith("```"):
+            in_code = not in_code
+            continue
+        if in_code or idx <= body_offset:
+            continue
+        scrubbed = re.sub(r"`[^`]*`", "", raw)
+        for keyword, patterns in NORMATIVE_KEYWORD_PATTERNS.items():
+            for pattern in patterns:
+                counts[keyword] += len(pattern.findall(scrubbed))
+
+    return counts
+
+
 def is_relative_to(path: Path, parent: Path) -> bool:
     try:
         path.resolve().relative_to(parent.resolve())
@@ -346,10 +391,16 @@ def main(argv: list[str]) -> int:
         action="store_true",
         help="Exit non-zero on warnings as well as errors.",
     )
+    parser.add_argument(
+        "--keyword-stats",
+        action="store_true",
+        help="Print RFC 2119 keyword counts with Chinese normative aliases normalized.",
+    )
     args = parser.parse_args(argv)
 
     all_findings: list[Finding] = []
-    for target in iter_targets(args.paths):
+    targets = list(iter_targets(args.paths))
+    for target in targets:
         if is_proposal_file(target):
             all_findings.extend(lint_proposal_file(target))
         elif is_relative_to(target, PROPOSALS):
@@ -359,6 +410,16 @@ def main(argv: list[str]) -> int:
 
     for finding in all_findings:
         print(finding.format(ROOT))
+
+    if args.keyword_stats:
+        counts: Counter[str] = Counter()
+        for target in targets:
+            if is_relative_to(target, PROPOSALS):
+                continue
+            counts.update(count_normative_keywords(target))
+        print("\nNormative keyword counts (English + Chinese aliases normalized):")
+        for keyword in NORMATIVE_KEYWORD_ORDER:
+            print(f"{keyword}: {counts[keyword]}")
 
     errors = sum(1 for f in all_findings if f.level == "error")
     warnings = sum(1 for f in all_findings if f.level == "warn")

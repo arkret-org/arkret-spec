@@ -3,7 +3,7 @@ title: 实现就绪与发布门槛
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-07
+updated: 2026-06-10
 ---
 
 ## 0. 规范语言

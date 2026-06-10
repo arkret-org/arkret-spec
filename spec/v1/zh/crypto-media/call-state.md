@@ -3,7 +3,7 @@ title: Call State and Recording
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-04
+updated: 2026-06-10
 sidebar:
   label: Call State
 ---
@@ -62,7 +62,7 @@ sidebar:
 - `failed`
 - `cancelled`
 
-> 录制**不是**通话生命周期的一部分，走**独立字段** `recording_state`（`{ recording, ready, failed }`，缺省=未录制），与 `state` 正交，见 §4.2 / §5。
+> 录制**不是**通话生命周期的一部分，走**独立字段** `recording_state`（`{ recording, stopped, ready, failed }`，缺省=未录制），与 `state` 正交，见 §4.2 / §5。
 
 ## 4. 会议状态事件
 
@@ -140,7 +140,7 @@ sidebar:
 - **终态集合**：`{ ended, missed, failed, cancelled }`。reducer MUST 拒绝从任一终态转出（单调推进），违反用 `failed_precondition` `reason="call_state_terminal"`。
 - **并发仲裁**：多个并发 `ck.call.state` head 时，按 canonical order 取最终态；一旦达终态即吸收，不得回退。
 
-**`recording_state`（录制维度，与 `state` 正交，normative）**：`{ recording, ready, failed }`，缺省=未录制。录制随 `ck.call.recording.start` 进入 `recording`；artifact 入 Cokret blob pipeline 后转 `ready`，失败转 `failed`。录制态**独立于** `state`——通话可在 `active` 期间为 `recording_state="recording"`，通话 `ended` 之后再写 `recording_state="ready"`。`recording_state ∈ { ready, failed }` 时 SHOULD 携带 `recording_result`（content digest / duration / media type / retention policy / `recording_start_event_id`）。v1 不为录制注册独立 event，录制态变化通过 `ck.call.state` 写入（见 §5）。
+**`recording_state`（录制维度，与 `state` 正交，normative）**：`{ recording, stopped, ready, failed }`，缺省=未录制。录制随 `ck.call.recording.start` 进入 `recording`；人工停止时通过 `ck.call.state` 写 `recording_state="stopped"`；artifact 入 Cokret blob pipeline 后转 `ready`，失败转 `failed`。录制态**独立于** `state`——通话可在 `active` 期间为 `recording_state="recording"`，通话 `ended` 之后再写 `recording_state="ready"`。`recording_state ∈ { ready, failed, stopped }` 时 SHOULD 携带 `recording_result.recording_start_event_id` 绑定本段录制的 start event；`ready` / `failed` 还 SHOULD 携带 content digest / duration / media type / retention policy。v1 不为录制注册独立 result/stop event，录制态变化通过 `ck.call.state` 写入（见 §5）。
 
 ## 5. 录制与转写
 
@@ -167,6 +167,8 @@ sidebar:
 - 需要 `ck.call.record` capability。
 - 客户端 MUST 对所有参会者显示录制中。
 - `payload.recording_id` MUST 是该录制 artifact lifecycle 的稳定 opaque string，并进入 recording key exporter Context；缺失时 recording start event MUST `schema_violation` reject。它不是 `ck:*` typed ID；最终持久化产物仍通过 Cokret blob / Morph / artifact 引用暴露。由于 `recording_id` 是跨实现密钥派生输入（进入 §5 第 3 步的 `Context`），其 canonical 形态 MUST 由 `ck.call.state` recording start event 一次性固定并逐字节保留：取值 MUST 为 ASCII 子集 `[A-Za-z0-9._-]`、长度 1–128 字节；发送方写入后该字符串即为 canonical，**接收方 MUST NOT 做任何 normalize**（大小写折叠、Unicode NFC/NFKC、trim、re-encode 等），并 MUST 在所有引用该录制的 event / key 派生中逐字节复用 start event 的原值。任何对 `recording_id` 的本地规范化都会令派生出的 recording key 与发送方分裂、导致解密失败。
+- 手动停止录制不注册独立 `ck.call.recording.stop` event；holder of `ck.call.record` 通过 `ck.call.state` 写 `recording_state="stopped"`，并在 `recording_result.recording_start_event_id` 指向被停止的 `ck.call.recording.start`。`stopped` 是该录制段的终态，不要求产生 artifact；若 backend 已经产出可用 artifact，后续 MAY 以同一 `recording_start_event_id` 写 `ready`，否则保持 `stopped`。
+- 同一通话允许多段录制。`ready` / `failed` / `stopped` 之后再次进入 `recording` 时，MUST 先接受新的 `ck.call.recording.start`，且新的 `recording_id` MUST 不同于该 call 任何既有 recording start 的 `recording_id`。物化投影 MAY 只展示最新 `recording_state`，但历史段以各自 `ck.call.recording.start` 与后续 `ck.call.state` event 保持可审计。
 - 录制 artifact MUST 作为 encrypted Blob 或受控 media object 存储。
 - **Backend-generated recording 必经 Cokret blob pipeline**（参见 [`media-service-binding.md` §8.1](./media-service-binding.md)）：backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等），但生成的 artifact MUST：
   1. 作为加密 blob 上传到 Cokret media service（通过 [`media-and-blob.md`](./media-and-blob.md) 的 authenticated upload 端点），不得 backend 自行托管。
@@ -174,5 +176,5 @@ sidebar:
   3. 加密 key MUST 由 Cokret 协议层提供（与 [`media-service-binding.md` §8.1](./media-service-binding.md) 同源，从 MLS exporter 派生），backend 不持久化明文。Recording artifact key label 固定为 `"ck-rtc-recording-key/v1"`，`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id})`，输出 32 bytes；不得复用 SFrame label `"ck-rtc-frame-key/v1"` 或空 Context。
   4. 入库后通过 `ck.call.state` 发布 lifecycle state，引用 content digest、duration、media type、retention policy 与 `recording_start_event_id`。
   绕过该 pipeline（如 backend 直接对外暴露 recording URL）MUST 被客户端拒绝并报 `recording_artifact_pipeline_bypassed`。这保证 backend 是 "录制执行单元" 而非 "录制档案库"。
-- 录制结果 MUST 通过已注册的 `ck.call.state` 写入**独立的 `recording_state` 字段**（`recording_state="ready"` / `recording_state="failed"`，与通话 `state` 正交，见 §4.2），并在 `recording_result` 中引用 content digest、duration、media type、retention policy 和 `recording_start_event_id`。v1 不注册独立的 `ck.call.recording.result` event kind；实现不得把该裸名写入 Event Envelope。
+- 录制结果 MUST 通过已注册的 `ck.call.state` 写入**独立的 `recording_state` 字段**（`recording_state="ready"` / `recording_state="failed"` / `recording_state="stopped"`，与通话 `state` 正交，见 §4.2），并在 `recording_result` 中引用 `recording_start_event_id`；ready/failed 结果还应引用 content digest、duration、media type 和 retention policy。v1 不注册独立的 `ck.call.recording.result` 或 `ck.call.recording.stop` event kind；实现不得把这些裸名写入 Event Envelope。
 - 转写需要 `ck.call.transcribe`，转写文本应作为 Morph 或 Artifact，并遵守同一 Realm policy。

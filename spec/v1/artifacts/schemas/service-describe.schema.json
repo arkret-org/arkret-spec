@@ -223,10 +223,100 @@
     },
     "rate_limit_policy_id": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "description": "Identifier for a cacheable, verifiable rate-limit policy object with the same minimum fields as rate_limit_policy. See zh/sync/api-conventions.md §8."
     },
     "rate_limit_policy": {
       "type": "object",
+      "description": "Inline rate-limit policy. If the service can return rate_limited, entries[] MUST expose at least endpoint or operation_id, rate_limit_scope, a window/limit tuple or a retry hint; an empty entries[] explicitly means no predictable endpoint-level rate limit beyond generic abuse protection.",
+      "properties": {
+        "policy_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "endpoint": {
+                "type": "string",
+                "minLength": 1
+              },
+              "operation_id": {
+                "type": "string",
+                "pattern": "^ck\\.[a-z0-9][a-z0-9_.-]*$"
+              },
+              "rate_limit_scope": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                  }
+                ]
+              },
+              "window_seconds": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "max_requests": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "burst": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "max_bytes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "max_events_per_batch": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "max_body_bytes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "retry_after_ms": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "backoff_hint": {
+                "type": "string",
+                "minLength": 1
+              },
+              "next_retry_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "effective_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "cache_ttl_seconds": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
       "additionalProperties": true
     },
     "egress_network_policy": {

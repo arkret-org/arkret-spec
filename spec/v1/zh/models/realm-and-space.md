@@ -3,7 +3,7 @@ title: Realm & Space
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-26
+updated: 2026-06-10
 ---
 
 ## 0. 规范语言
@@ -91,9 +91,9 @@ Schema id: `ck.schema.realm.v1`
 | `metadata_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | reducer 派生（Realm policy 字段，经 Realm policy facet event 写入，非直接 PATCH），与 `content_encryption_floor` 对称。比较序 `allow_plaintext < e2ee_required`；effective 值取父 Realm / Circle / Space `child_scope_policy` / 对象 profile 的最大值，低于 effective 的写入 MUST `failed_precondition`（reason=`metadata_encryption_floor_violation`），MUST NOT 被 Circle / Space / 对象 profile 放宽。**单向 ratchet**：一旦 effective 值达到 `e2ee_required`，后续降回 `allow_plaintext` 的写入 MUST `failed_precondition`（reason=`metadata_encryption_floor_downgrade`）。缺省：`mls_rfc9420` 或 `content_encryption_floor=e2ee_required` 的 Realm 为 `e2ee_required`，否则 `allow_plaintext`。完整语义见 [`circle.md` §7](./circle.md)。 | Realm 级 metadata 加密下限。 |
 | `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | reducer 派生。 | 联邦策略。 |
 | `sync_endpoints` | no | `array<ServiceBinding>` | Realm-level shared anchorer / Sync Service / mirror / federation 服务绑定；不是成员级 delivery binding。详见 [`../sync/federation.md`](../sync/federation.md)。 | Realm 委托同步与联邦入口。 |
-| `anchor_profile` | no | `enum(single_did, threshold, open_set, mixed)` | create-locked。 | Anchor finality profile。 |
+| `anchor_profile` | yes | `enum(single_did, threshold, open_set, mixed)` | create-locked。 | Anchor finality profile。 |
 | `digest_algorithm` | no | `enum(sha256, sha512, sha3_256, blake3)` | create-locked，默认 `sha256`。 | Hash 算法 profile。 |
-| `anchorer` | conditional | `object` | Genesis anchorer cell 初值。其 discriminator 子字段为 `type`（取值与 `anchor_profile` 枚举同源：`single_did` / `threshold` / `open_set` / `mixed`）。**这是协议内 discriminator 默认用 `kind` 约定的已登记例外**（schema `realm.schema.json` 锁定 `anchorer.type`），见 [`common-fields.md` §2](./common-fields.md)。 | 当前 Anchor 授权规则。 |
+| `anchorer` | yes | `object` | Genesis anchorer cell 初值；其 `type` MUST 与 `anchor_profile` 同源并满足对应 profile 的条件必填子字段。其 discriminator 子字段为 `type`（取值与 `anchor_profile` 枚举同源：`single_did` / `threshold` / `open_set` / `mixed`）。**这是协议内 discriminator 默认用 `kind` 约定的已登记例外**（schema `realm.schema.json` 锁定 `anchorer.type`），见 [`common-fields.md` §2](./common-fields.md)。 | 当前 Anchor 授权规则。 |
 | `max_anchor_staleness_ms` | no | `integer` | 默认 24h；这是 Realm 级兼容性硬上限，不是所有写入的推荐窗口。高风险 / 高频冲突写入 MUST 按 [`event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md) 的 action / cell / profile 有效窗口进一步收紧。 | Move `anchor_ref` freshness 上限。 |
 | `max_delegation_lifetime_ms` | no | `integer` | 默认 24h；用于 [`capabilities.md` §10.1](../authz/capabilities.md) 无限期 parent grant 首次转授时冻结 `delegation_expiry_anchor`。effective 值取 Realm 字段与任何 grant / policy / deployment / profile 更短窗口的最小值。 | 委托防滚动续期窗口。 |
 | `bottom_escalation_after_ms` | no | `integer` | cell `⊥` 持续超过该窗口后，reducer / Projection SHOULD 标记 `escalated_at` 并触发带外告警；详见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。 | bottom 诊断升级窗口。 |
@@ -192,7 +192,7 @@ Realm 有两个终态 event，语义不同：
 4. **Erasure Receipt 与 Legal Hold**：destroy 不自动触发 erasure。若部署进入 erasure 阶段，发布 `ck.audit.erasure_receipt`（schema `ck.schema.erasure_receipt.v1`），可能 `outcome=blocked_by_legal_hold`。Legal hold 优先于 destroy 的 GC 路径。
 5. **Federation Fanout**：destroy event MUST 沿 federation 推送到所有曾持有该 Realm 状态的 peer Principal Server；peer 收到后 MUST 在 30 天内本地标记 `realm_terminal_state` 并停止接受该 Realm 的新 `ck.peer.events.submit`（包括 backfill 写入）。
 6. **Child Space / Flow cascade**：destroy accepted 后，home Realm 内所有 non-terminal Space、Flow placement 与 structural `contains` projection MUST NOT 作为 live navigation surface 暴露。实现 MUST 在同一事务或后续 bounded cleanup job 中把这些对象标记为 `realm_destroyed_orphan`（只读 locked projection）或自动 tombstone/archive；不得继续允许 `ck.flow.move`、`ck.space.parent`、`ck.space.update` 等普通写入复活它们。跨 Realm `parent_space_id` 指向已 destroyed Realm 的 Space 时，引用方 MUST 在发现 destroy frontier 后将该 edge 降级为 locked/lazy link，并在 policy 窗口内 reparent、archive 或 tombstone；不得传播 destroyed Realm 的 membership、capability、history 或 E2EE key material。
-7. **Circle scope cascade**：Realm 内的 [Circle](./circle.md) 在父 Realm destroy 时一并 tombstone（Circle 不持有独立 federation identity，无法独立存活）。对象 `scope_circle_id` 指向已 tombstone Circle 时，写入 MUST fail closed,projection 显示 `scope_unavailable`;`scope_circle_id` 不会被自动 rewrite。详见 [`circle.md` §9.2](./circle.md) lifecycle cascade 表。
+7. **Circle scope cascade**：Realm 内的 [Circle](./circle.md) 在父 Realm destroy 时一并 tombstone（Circle 不持有独立 federation identity，无法独立存活）。对象 `scope_circle_id` 指向已 tombstone Circle 时，写入 MUST fail closed（`failed_precondition`, `reason_code=scope_unavailable`）；projection MAY 显示同名 `scope_unavailable` 状态标记；`scope_circle_id` 不会被自动 rewrite。详见 [`circle.md` §9.2](./circle.md) lifecycle cascade 表。
 
 #### 2.6.2 跨 Principal Server Erasure Receipt Fanout（normative）
 

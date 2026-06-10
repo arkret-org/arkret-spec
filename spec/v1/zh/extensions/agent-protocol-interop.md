@@ -3,7 +3,7 @@ title: Agent Protocol Interop and Upgrade
 status: candidate
 normative: true
 stability: v1
-updated: 2026-05-25
+updated: 2026-06-10
 sidebar:
   label: Agent Protocol Interop
 ---

@@ -3,7 +3,7 @@ title: 术语表
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-07
+updated: 2026-06-10
 see_also:
   - index.md
   - overview/architecture.md
