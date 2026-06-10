@@ -595,6 +595,8 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 
 **v1 core 采用单一 stateful opaque handle 形态**：canonical body 为 `{v, purpose, t, x, h}`，其中 `h` 是 issuing service 生成的不可猜测 handle（解码后熵 ≥ 128 bit），service 内部维护 handle → `(principal_id, device_id, service_id, filter_digest, purpose, positions, target?, expiry)` 映射。Handle 查表本身就是完整性校验 —— 无需在线 transcript 校验，无需 `_mac` / `_sig`，无需 `issuer_kid` 密钥管理。这是 Matrix `next_batch` / MSC4186 `pos` 的等价形式。
 
+服务端 SHOULD 将 handle → binding 映射持久化（或以其它方式保证其跨进程重启存活），使服务重启不会把所有未过期 cursor 同时变成未知 handle、迫使全部客户端按 §12.3 重做 initial sync。仅内存实现不违反完整性契约（未知 handle 仍按 `cursor_integrity_invalid` 失败 closed），但其重启代价随活跃客户端数线性放大；持久化实现 SHOULD 同时对未过期 handle 做超出 TTL 的及时清理（例如客户端出示更新 cursor 即可证明严格更旧的同流 handle 已被取代），避免 handle 表无界增长。
+
 > Stateless 自描述 cursor（body 内含 `s` / `d` / `target` / `issuer_kid` 并以 `_mac` / `_sig` 绑定 transcript）不属于 v1 core schema；需要 stateless cursor 的实现 MUST 显式声明 `ck.profile.stateless_cursor.v1` 扩展 profile（参见 [`conformance/conformance-profiles.md`](../conformance/conformance-profiles.md)）。Core consumer（sync / federation / snapshot）默认不实现这条路径。
 
 ### 12.2 校验流程 (normative)
