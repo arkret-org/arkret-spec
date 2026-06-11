@@ -52,14 +52,15 @@
             "realm",
             "circle",
             "space",
-            "flow"
+            "flow",
+            "thread"
           ],
-          "description": "Read-scope object kind per zh/models/private-objects.md ?2.2. Track-scoped read cursors use kind='flow' plus track_name."
+          "description": "Read-scope object kind per zh/models/private-objects.md §2.2. Track-scoped read cursors use kind='flow' plus track_name. Thread cursors use kind='thread' with ref = the thread root message id (zh/discovery/read-receipts.md §5); thread is a projection selector over the reply sub-timeline, not a first-class protocol object. Shares the read-scope discriminator family with read-receipt.schema.json; each schema declares its own supported subset."
         },
         "ref": {
           "type": "string",
-          "pattern": "^ck:(circle|space|flow):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-          "description": "Required when kind is circle, space, or flow; omitted for kind='realm'."
+          "pattern": "^ck:(circle|space|flow|message):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "description": "Required when kind is circle, space, flow, or thread; omitted for kind='realm'. Thread read scopes reference the root message."
         },
         "track_name": {
           "type": "string",
@@ -165,6 +166,30 @@
               "ref": {
                 "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
               }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "thread"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "ref": {
+                "pattern": "^ck:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              }
+            },
+            "not": {
+              "required": [
+                "track_name"
+              ]
             }
           }
         }

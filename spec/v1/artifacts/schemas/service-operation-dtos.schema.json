@@ -1490,7 +1490,8 @@
             },
             "source_ip_digest": {
               "type": "string",
-              "pattern": "^sha256:[0-9a-f]{64}$"
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "description": "Keyed, unlinkable derivation of the request source IP (e.g. HMAC-SHA256 under a service-private, salt-epoch-rotated secret bound to the calling service_did), encoded as sha256:<64 hex>. The sha256: prefix denotes the 32-byte digest container, NOT a bare SHA-256 of the IP address; unkeyed IP hashes are forbidden. Derivation, rotation and namespace rules: zh/authz/policy-server.md §3.1. High-privacy (relay/OHTTP) deployments MAY omit this field."
             },
             "signed_transport": {
               "type": "boolean"

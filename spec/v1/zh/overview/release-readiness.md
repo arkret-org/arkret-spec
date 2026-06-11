@@ -88,7 +88,7 @@ canonical catalog 或派生工件出现 drift，必须在合并前修复。每�
 - Event Envelope 必须先验证 envelope schema，再验证 kind-selected payload schema，最后才进入 auth / reducer
 - Snapshot 签名不能单独证明无遗漏；实现必须校验 `event_set_commitment`
 - Sync、Directory、Blob、Push、Moderation、Agent 和受托 search / projection 等服务 MUST NOT 绕过 capability、Realm policy、history visibility、plaintext-visible service 或 E2EE 边界
-- 未知 non-critical 字段必须在 canonical bytes、存储、转发和 backfill 中保留
+- canonical object schema 未声明的未知字段必须被 schema validation 拒绝；schema 显式声明扩展位（已登记的 `payload.x_*` 槽、`requirements.critical_extensions[].parameters`）中的未识别内容必须在 canonical bytes、存储、转发和 backfill 中保留
 - 未知 critical extension 必须 fail closed
 
 ## 5. 发布门槛

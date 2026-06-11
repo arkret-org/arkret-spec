@@ -391,7 +391,7 @@ Reducer MUST：
 - 验证 capability
 - 按 causal order 处理
 - 对相同 Event（相同 `event_id` 及其 effect 集合）保持幂等：重复 apply 同一已接受 Event MUST NOT 产生额外状态变化或副作用
-- 保留未知字段
+- 按 §2.2 处理未知字段：拒绝 schema 未声明的字段，保留 schema 显式声明扩展槽中的未识别内容
 - 输出可声明的 reducer profile
 
 具体 DataEvent / Control Move / Seal / Lattice / state resolution 细节、authority chain、E2EE covered Seals 等见 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。

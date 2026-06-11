@@ -17,13 +17,13 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 130,
+    "total_operations": 133,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 2,
       "service_describe": 7,
       "streaming_frame_schema": 2,
-      "typed_schema": 117
+      "typed_schema": 120
     },
     "by_tier_and_class": {
       "core": {
@@ -38,11 +38,11 @@
       "extension": {
         "binary_or_redirect": 2,
         "service_describe": 2,
-        "typed_schema": 74
+        "typed_schema": 76
       },
       "interop_bridge": {
         "service_describe": 1,
-        "typed_schema": 18
+        "typed_schema": 19
       }
     }
   },
@@ -259,6 +259,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/DirectoryPushRegisterRequestBody",
         "response": "#/components/schemas/DirectoryPushRegisterOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.find.directory.resolve_agent_selector",
+      "tier": "extension",
+      "http": "POST /_cokret/find/directory/resolve-agent-selector",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_agent_selector_request_body",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_agent_selector_resolution_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/DirectoryResolveAgentSelectorRequestBody",
+        "response": "#/components/schemas/DirectoryAgentSelectorResolutionOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1135,6 +1149,20 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
+      "operation_id": "ck.self.applet.ghost.provision",
+      "tier": "interop_bridge",
+      "http": "POST /_cokret/self/applets/{applet_id}/ghosts/provision",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body",
+      "response_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/GhostActorProvisionRequestBody",
+        "response": "#/components/schemas/GhostActorProvisionOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
       "operation_id": "ck.self.applet.install",
       "tier": "extension",
       "http": "POST /_cokret/self/applets/install",
@@ -1331,6 +1359,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/ContactTombstoneRequestBody",
         "response": "#/components/schemas/ContactTombstone"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.self.device_messages.ack",
+      "tier": "extension",
+      "http": "POST /_cokret/self/device_messages/ack",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckOutcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/DeviceMessagesAckRequestBody",
+        "response": "#/components/schemas/DeviceMessagesAckOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

@@ -44,6 +44,7 @@ PROFILE_REGISTRY_PATH = ARTIFACTS / "profiles" / "conformance-profiles.json"
 LINT_SCRIPT = Path(__file__).with_name("lint_artifacts.py")
 PROSE_LINT_SCRIPT = Path(__file__).with_name("lint_spec.py")
 FIXTURE_DIGEST_SCRIPT = Path(__file__).with_name("check_fixture_digests.py")
+COMPLETENESS_REPORT_SCRIPT = Path(__file__).with_name("gen_operation_completeness_report.py")
 SITE_META_PATH = ROOT / "site" / "src" / "lib" / "site-meta.ts"
 PUBLIC_V1 = ROOT / "site" / "public" / "v1"
 OPERATION_SCHEMA_INDEX_PATH = ARTIFACTS / "reports" / "operation-schema-index.json"
@@ -311,11 +312,19 @@ def run_fixture_digest_check() -> int:
     return result.returncode
 
 
+def run_operation_completeness_report(mode: str) -> int:
+    result = subprocess.run(
+        [sys.executable, str(COMPLETENESS_REPORT_SCRIPT), mode], cwd=ROOT
+    )
+    return result.returncode
+
+
 def cmd_generate(_: argparse.Namespace) -> int:
     write_generated_registries()
     write_operation_schema_index()
+    completeness_status = run_operation_completeness_report("generate")
     print_contract_status()
-    return 0
+    return completeness_status
 
 
 def cmd_check(_: argparse.Namespace) -> int:
@@ -329,10 +338,11 @@ def cmd_check(_: argparse.Namespace) -> int:
         print(f"registry diff: {len(errors)} pre-lint pipeline error(s)")
         return 1
     print_contract_status()
+    completeness_status = run_operation_completeness_report("check")
     fixture_status = run_fixture_digest_check()
     lint_status = run_lint()
     prose_lint_status = run_prose_lint()
-    return fixture_status or lint_status or prose_lint_status
+    return completeness_status or fixture_status or lint_status or prose_lint_status
 
 
 def cmd_snapshot(_: argparse.Namespace) -> int:

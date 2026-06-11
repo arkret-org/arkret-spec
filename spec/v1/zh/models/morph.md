@@ -210,7 +210,7 @@ Morph `schema_refs[]` 的 per-event 版本绑定与受控迁移规则见 [§4.1]
 
 - 新字段优先 optional。
 - 既有字段不得静默改变语义。
-- reducer 和客户端 MUST 保留未知字段。
+- reducer 和客户端 MUST 保留 schema 允许但实现未识别的字段（Morph payload 由 Realm 注册 schema 定义；canonical envelope 层 schema 未声明的字段按 [event-and-patch.md](./event-and-patch.md) §2.2 拒绝）。
 - UI 遇到未知 Morph type SHOULD 降级为 generic Morph card。
 - 标准对象不得阻止 Realm 定义自定义 Morph type。
 - 实现遇到未知标准类型 SHOULD fail closed；遇到未知 Morph facet SHOULD 保留数据，但不得让未知 facet 绕过 schema、capability、policy 或 encryption 约束。

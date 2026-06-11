@@ -40,7 +40,7 @@ Schema id: `ck.schema.read_cursor.v1`
 | `actor_id` | yes | `did` | 只对该 actor 生效。 | 读取主体。 |
 | `device_id` | yes | `id:device` | `ck:device:<uuidv7>`。多设备收敛 tiebreaker。 | 来源设备。 |
 | `realm_id` | yes | `id:realm` |  | Realm。 |
-| `read_scope` | yes | `object` | `{kind, ref?, track_name?}`。`kind ∈ enum(realm, circle, space, flow)`。ref 必填规则：`kind=realm` 时 `ref` MUST 省略（范围即本对象 `realm_id`）；`kind=circle` 时 `ref` MUST 是 `id:circle`；`kind=space` 时 `ref` MUST 是 `id:space`；`kind=flow` 时 `ref` MUST 是 `id:flow`。`track_name` 仅在 `kind=flow` 时 MAY 出现（限定到该 Flow 的某个 track 时间线，省略表示整个 Flow）；其余 kind MUST 省略 `track_name`。 | 已读范围。 |
+| `read_scope` | yes | `object` | `{kind, ref?, track_name?}`。`kind ∈ enum(realm, circle, space, flow, thread)`。ref 必填规则：`kind=realm` 时 `ref` MUST 省略（范围即本对象 `realm_id`）；`kind=circle` 时 `ref` MUST 是 `id:circle`；`kind=space` 时 `ref` MUST 是 `id:space`；`kind=flow` 时 `ref` MUST 是 `id:flow`；`kind=thread` 时 `ref` MUST 是 Thread 根消息的 `id:message`（Thread 是 root message 回复子时间线的投影选择器，不是一等协议对象，已读隔离语义见 [`../discovery/read-receipts.md` §5](../discovery/read-receipts.md)）。`track_name` 仅在 `kind=flow` 时 MAY 出现（限定到该 Flow 的某个 track 时间线，省略表示整个 Flow）；其余 kind MUST 省略 `track_name`。Read Receipt 的 `read_scope` 与本字段共享同一 discriminator 族，但各自声明支持子集（receipt 另支持 `view` / `message` / `morph`，不支持 `circle` / `space`），以各自 schema 为权威源。 | 已读范围。 |
 | `position` | yes | `object` | `{event_id, hlc}`。 | 已读位置。 |
 | `updated_at` | yes | `timestamp` |  | 更新时间。 |
 

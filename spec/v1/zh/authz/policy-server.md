@@ -74,7 +74,7 @@ Content-Type: application/json
 | `source` | body | `object` | required | 调用来源摘要。 |
 | `source.service_did` | body | `did` | required | 调用服务 DID。 |
 | `source.service_type` | body | `string` | required | 调用服务类型。 |
-| `source.source_ip_digest` | body | `sha256:<hash>` | optional | 来源 IP 的不可逆 hash。 |
+| `source.source_ip_digest` | body | `sha256:<hash>` | optional | 来源 IP 的 keyed 不可链接派生值；派生与轮换规则见 §3.1。MUST NOT 是对 IP 地址的裸 SHA-256。 |
 | `source.signed_transport` | body | `boolean` | required | 请求是否由签名 transport 保护。 |
 | `event_preview` | body | `object` | optional | 最小披露事件预览。 |
 | `auth_context` | body | `object` | optional | membership、capability、origin service 等授权上下文。 |
@@ -112,6 +112,15 @@ Content-Type: application/json
 ```
 
 请求 MUST 使用最小披露。E2EE 内容不得为策略检查强制明文上传；客户端 MAY 提供本地分类标签、hash、媒体 metadata 或用户确认的 report snippet。
+
+### 3.1 `source.source_ip_digest` 派生（normative）
+
+`source_ip_digest` 只用于限速、滥用聚类等策略维度，不用于身份识别。IP 地址空间很小，裸 hash 可被字典枚举，并可跨服务、跨 realm、跨时间关联请求来源，因此：
+
+- 该值 MUST 是调用服务私有 secret 下的 keyed 派生，例如 `HMAC-SHA256(policy_source_secret[salt_epoch], canonical_json({service_did, ip_or_prefix, salt_epoch}))`；wire 形态仍为 `sha256:<64 hex>`——`sha256:` 前缀表示 32 字节摘要容器，**不**表示对 IP 地址的裸 SHA-256。实现 MUST NOT 直接对 IPv4/IPv6 地址或其简单变形做无 key hash。
+- `policy_source_secret` MUST NOT 上 wire，MUST 按 salt epoch 轮换；同一来源 IP 在不同 epoch 的派生值 MUST 互不可链接。epoch 长度由部署 profile 决定，SHOULD 不超过限速窗口所需的最小期限。
+- 派生命名空间 MUST 绑定调用服务（如把 `service_did` 纳入派生输入）；secret 不得跨服务或跨 realm 复用，使 Policy Server 或旁观者无法据此跨服务关联同一来源。
+- relay / OHTTP 等高隐私部署形态（见 [`../security/server-threat-model.md`](../security/server-threat-model.md)）下，调用方 MAY 省略该字段，或以不可链接限速 token（如 Privacy Pass 类机制，informative）替代 IP 维度；Policy Server MUST 容忍该字段缺失。
 
 ## 4. Decision
 

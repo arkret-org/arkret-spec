@@ -242,7 +242,8 @@
                 "accepted",
                 "revoked",
                 "migrating"
-              ]
+              ],
+              "description": "Room binding lifecycle status. Initial status MUST be proposed or accepted; legal transitions are proposed->accepted, proposed->revoked, accepted->migrating, accepted->revoked, migrating->accepted (verified migration proof), migrating->revoked. revoked is the only terminal state; illegal transitions are rejected with mimi_room_binding_status_transition_invalid. Normative state machine: zh/extensions/mimi-interop.md §4.2."
             }
           },
           "additionalProperties": true

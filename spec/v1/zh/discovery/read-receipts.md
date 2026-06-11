@@ -196,6 +196,8 @@ Notification / unread count 是派生状态。服务 MAY 在一个 sync response
 在 Thread 模式下，Flow discussion timeline 和子 Thread 的阅读进度是分离的。
 如果 `ck.receipt.read` 或 `ck.read_cursor.advance` 的目标 `event_id` 是一个 Thread 内的回复，它只更新该 Thread 的已读游标，**不**更新父 Flow discussion timeline 的游标，反之亦然。
 
+Thread 在 read scope 中的 wire 表达（normative）：Thread **不是一等协议对象**，没有独立 id kind、membership 或生命周期；它是某条 root message 的回复子时间线（`replies_to` 链）的投影选择器。Read Receipt 与 Read Cursor 的 Thread 范围都使用 `read_scope.kind="thread"`、`ref` = Thread 根消息的 `id:message`（见 `ck.schema.read_receipt.v1` / `ck.schema.read_cursor.v1` 与 [`../models/private-objects.md` §2.2](../models/private-objects.md)）。两份 schema 的 `read_scope` 共享同一 discriminator 族，但各自声明支持子集，以各自 schema 为权威源。
+
 ## 6. Schema 与 Notification Projection
 
 ### 6.1 Read Cursor 字段

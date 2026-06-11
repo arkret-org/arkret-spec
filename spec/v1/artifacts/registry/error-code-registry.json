@@ -2531,6 +2531,13 @@
       "description": "Counterparty declared a MIMI Internet-Draft version not supported by this interop profile. Facade MUST reject instead of guessing a nearby draft shape. See zh/extensions/mimi-interop.md §4.1."
     },
     {
+      "code": "mimi_room_binding_status_transition_invalid",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "A ck.mimi.room_binding Control Move declared a payload.status value that is not a legal transition from the binding's current status (including an illegal initial status or any write after the terminal revoked state). Reducer MUST reject; the room binding status lifecycle is defined in zh/extensions/mimi-interop.md §4.2."
+    },
+    {
       "code": "expired_invite_token",
       "applies_to": [
         "state_resolution"

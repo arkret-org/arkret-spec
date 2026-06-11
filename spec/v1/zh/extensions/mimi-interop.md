@@ -120,7 +120,7 @@ GET /_cokret/open/mimi/provider-directory
 - `ck.mimi.room_binding` 的创建、更新和撤销 MUST require `ck.policy.manage`、`ck.realm.admin` 或等价 interop capability。
 - E2EE MIMI room MUST 绑定 `mls_group_id`，并按 [`../crypto-media/encryption-and-audit.md` §2.5](../crypto-media/encryption-and-audit.md)（MLS Governance Binding）的 `covered_seals_cell` precondition 校验 membership、policy 和 capability。
 - MIMI facade 在无法解析或验证 Cokret MLS Governance Binding 时 MUST fail closed：入站 MIMI room state、groupInfo、key material 或 message 不得直接投影到 Cokret Realm，而是进入 quarantine，reason=`mimi_governance_binding_missing` 或更具体的 binding mismatch 错误。
-- 撤销 binding 后，facade MUST 停止接受新的 MIMI writes，只允许 backfill、tombstone、report、legal hold 或 migration proof 等维护操作。
+- 撤销 binding 后，facade MUST 停止接受新的 MIMI writes，只允许 backfill、tombstone、report、legal hold 或 migration proof 等维护操作。`status` 的完整生命周期状态机（初始状态、合法迁移、终态、非法迁移拒绝、`migrating` 窗口与并发收敛）见 §4.2。
 
 ### 4.1 Fail-Closed Reason Taxonomy
 
@@ -134,6 +134,28 @@ MIMI facade 对 Cokret Realm 的入站投影失败时，MUST 使用稳定 reason
 | `mimi_room_state_incompatible` | MIMI room state 使用当前 profile 不支持的 lifecycle、membership 或 policy 形态。 | reject 或要求使用新 interop profile。 |
 | `mimi_provider_unreachable` | provider directory、key material 或 groupInfo 依赖暂时不可达。 | `temporarily_unavailable` + bounded retry；不得接受无 binding 的 fallback。 |
 | `mimi_draft_unsupported` | 对端声明的 MIMI draft version 不在本 profile 支持集合。 | reject；不得按相近草案猜测解析。 |
+
+### 4.2 `status` 生命周期状态机（normative）
+
+`payload.status` 是 binding 的生命周期判定字段，取值为封闭枚举 `proposed`、`accepted`、`revoked`、`migrating`（以 [`../../artifacts/schemas/mimi-interop.schema.json`](../../artifacts/schemas/mimi-interop.schema.json) 为权威源）。状态迁移规则：
+
+- **初始状态**：对某个 `mimi_room_uri` 的首个被接受的 `ck.mimi.room_binding` Control Move MUST 把 `status` 设为 `proposed`（跨 provider 协商中，等待对端确认）或 `accepted`（本地 facade 即 hub 且无需对端确认时可直接激活）。以 `revoked` 或 `migrating` 作为初始状态的写入 MUST 被拒绝。
+- **迁移表**：
+
+  | 当前状态 | 允许出边 | 触发条件 |
+  | --- | --- | --- |
+  | `proposed` | `accepted` | 协商完成：对端 provider 确认，或本地 hub 接受。 |
+  | `proposed` | `revoked` | 协商被拒绝、超时或发起方撤回。 |
+  | `accepted` | `migrating` | hub 迁移 / provider 拓扑替换开始。 |
+  | `accepted` | `revoked` | 持有 §4 要求 capability 的管理操作撤销 binding。 |
+  | `migrating` | `accepted` | migration proof 验证通过：迁移完成（新拓扑生效）或回滚（恢复原拓扑）。 |
+  | `migrating` | `revoked` | 迁移失败且不回滚，或管理操作撤销。 |
+
+- **终态**：`revoked` 是唯一终态；对 `revoked` binding 的任何 `status` 变更 MUST 被拒绝。同一对象若需重新导出为 MIMI room，MUST 以新的 `mimi_room_uri` 建立新 binding 并重新通过 §4 的 capability 校验，不得复活已撤销 binding。
+- **非法迁移**：不在上表中的迁移（含初始状态违例与 `revoked` 后写入）MUST 被 reducer 以 `mimi_room_binding_status_transition_invalid` 拒绝。
+- **`migrating` 窗口语义**：进入 `migrating` 后，facade 对该 binding MUST 停止接受新的 MIMI writes 投影，仅允许 backfill、tombstone、report、legal hold 与 migration 所需的 groupInfo / state 转移及 migration proof 提交；`migrating -> accepted` 的 Control Move MUST 引用已验证的 migration proof，hub / follower 拓扑变更只能随该迁移落地。
+- **可写性判定**：仅 `accepted` 状态接受新的 MIMI writes 投影。`proposed` 状态下 facade MUST NOT 把 MIMI room state 投影到 Realm（目录 / 协商类流量除外）；`revoked` 后行为见 §4 撤销规则。
+- **并发收敛**：`ck.mimi.room_binding` 是写入 `ck.component.mimi.room_binding.v1` cell 的 Control Move，并发更新由控制面 Seal 串行化仲裁，不存在数据面并发合并；后到的冲突 Move 在其 seal basis 下按本状态机重新校验，非法即拒绝。
 
 ## 5. Endpoint Surface
 

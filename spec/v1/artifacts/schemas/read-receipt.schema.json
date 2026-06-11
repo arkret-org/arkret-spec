@@ -60,7 +60,7 @@
             "message",
             "morph"
           ],
-          "description": "Same read-scope discriminator used by read-cursor.schema.json."
+          "description": "Read-scope discriminator from the same family as read-cursor.schema.json; each schema declares its own supported subset (receipt additionally supports view/message/morph; cursor additionally supports circle/space). kind='thread' selects the reply sub-timeline rooted at a message (zh/discovery/read-receipts.md §5); thread is a projection selector, not a first-class protocol object."
         },
         "ref": {
           "type": "string",

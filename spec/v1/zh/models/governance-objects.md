@@ -41,7 +41,7 @@ Schema 在 wire 上以 schema id（如 `ck.schema.flow.v1`、`ck.schema.message.
 
 ### 2.2 Schema Evolution
 
-Schema evolution MUST be additive by default。通用 evolution 约束（新字段优先 optional、既有字段不得静默改变语义、reducer 与客户端 MUST 保留未知字段、UI 遇未知 Morph type SHOULD 降级、标准对象不得阻止自定义 Morph type 等）以 [morph.md §6](./morph.md) 为单一权威源，本节不重复列举，避免漂移。
+Schema evolution MUST be additive by default。通用 evolution 约束（新字段优先 optional、既有字段不得静默改变语义、reducer 与客户端 MUST 保留 schema 允许的未识别字段、UI 遇未知 Morph type SHOULD 降级、标准对象不得阻止自定义 Morph type 等）以 [morph.md §6](./morph.md) 为单一权威源，本节不重复列举，避免漂移。
 
 完整迁移与兼容声明规则另见 [morph.md §6](./morph.md) 与 [`../conformance/conformance-profiles.md`](../conformance/conformance-profiles.md)。
 
