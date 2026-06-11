@@ -609,6 +609,16 @@
       ]
     },
     {
+      "vector_id": "ck.vector.federation.reducer_profile_digest.v1",
+      "status": "active",
+      "domain": "federation",
+      "description": "service_binding_ref.reducer_profile_digest is computed per federation.md section 4.1.1 from the reducer-profile-registry.json digest_input row (Cokret canonical JSON, sha256); receiver recomputes and byte-compares, rejecting the whole batch with reducer_profile_mismatch on any divergence.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/federation-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ck.vector.flow_tracks_update.atomic.v1",
       "status": "active",
       "domain": "flow_tracks_update",

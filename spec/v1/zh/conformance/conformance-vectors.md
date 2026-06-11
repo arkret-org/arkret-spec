@@ -3527,6 +3527,27 @@ Expected：
 - 任两类失败返回不同 status / `reason_code` / 字段集合，或错误 body 泄露目标是否存在。
 - p95（或高安全 profile 下 p99）超出同桶判定，形成可观测的存在性 timing 侧信道。
 
+### 15.8 Vector: Federation Reducer Profile Digest 计算与不一致拒绝
+
+`vector_id`: `ck.vector.federation.reducer_profile_digest.v1`
+
+本向量固化 [`federation.md`](../sync/federation.md) §4.1.1 的 `service_binding_ref.reducer_profile_digest` 计算规则与不一致时的整批拒绝语义。计算物唯一来源是 [`reducer-profile-registry.json`](../../artifacts/registry/reducer-profile-registry.json) 对应 `profile_id` row 的 `digest_input` 对象；canonical 编码按 [`encoding.md`](encoding.md) §2 的 Cokret canonical JSON。执行数据见 [`federation-fixture.json`](../../artifacts/fixtures/federation-fixture.json) 的 `reducer_profile_digest_federation_minimal` 与 `reducer_profile_mismatch` 两个 case。
+
+Steps：
+
+- **Case A — 计算正路径**：取 fixture case `reducer_profile_digest_federation_minimal` 的 `canonical_input`（即 registry 中 `ck.profile.federation_minimal.v1` row 的 `digest_input`），计算 `"sha256:" || lowercase_hex(sha256(canonical_json(digest_input)))`，与 `expected_digest` 逐字节比对。
+- **Case B — 不一致整批拒绝**：按 fixture case `reducer_profile_mismatch` 构造 `POST /_cokret/peer/events` 批次，sender 声明的 `service_binding_ref.reducer_profile_digest` 与 receiver 对同一 Realm 重算结果不一致。
+
+Expected：
+
+- **Case A**：实现重算结果 MUST 等于 `expected_digest`（`sha256:1fa83b8ca1719c604c298d83e89b0456f3af5ed1382cf8dcb025b074a34e0109`）；实现 MUST 以 registry row 的 `digest_input` 为唯一计算物，不得改用本地配置对象、ServiceDescribe 摘要或手写 `{domain, profile}` 对象。
+- **Case B**：receiver MUST 整批拒绝并返回 `reducer_profile_mismatch`，MUST NOT partial accept；缺少 registry row、`profile_id` 未声明、canonicalization 不支持或 digest suite 非 active `sha256` 时同样 MUST fail closed。
+
+失败条件：
+
+- Case A 重算值与 `expected_digest` 不符，或实现以非 registry `digest_input` 的对象作为计算物仍得到"匹配"结论。
+- Case B 出现 partial accept，或拒绝时返回 `reducer_profile_mismatch` 之外的可区分错误形态。
+
 ## 16. Streaming Chunked AEAD Attachment Vectors
 
 本节收拢分块流式 AEAD 加密附件 scheme `ck.blob.stream_aead.v1` 的 conformance 向量，固化 [`media-and-blob.md`](../crypto-media/media-and-blob.md) §3.2 形态选择与 §3.3 的分块构造 / nonce / AAD / 整体 digest / 解密验证 MUST。每个 `vector_id` 均为规范性引用目标，登记于 [`vector-registry.json`](../../artifacts/registry/vector-registry.json)；error envelope `reason_code` 取 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 已登记的稳定码。
