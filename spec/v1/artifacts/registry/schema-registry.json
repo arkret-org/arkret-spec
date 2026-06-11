@@ -391,6 +391,12 @@
       "description": "Closed request/response DTO bundle for ck.self.applet.install.preview and ck.applet.install."
     },
     {
+      "schema_id": "ck.schema.applet_ghost_operations.v1",
+      "file": "schemas/applet-ghost-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for ck.self.applet.ghost.provision (Applet-managed Ghost Actor provisioning by an installed bridge Applet)."
+    },
+    {
       "schema_id": "ck.schema.agent.v1",
       "file": "schemas/agent.schema.json",
       "status": "active",

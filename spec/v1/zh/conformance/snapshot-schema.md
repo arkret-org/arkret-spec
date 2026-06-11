@@ -118,18 +118,21 @@ Chunk descriptor 中的 `chunk_ref` 指向一个 snapshot chunk payload。Payloa
 - chunk `digest` MUST 是 `<alg>:<hex>` 形态，并覆盖 chunk payload 的 canonical JSON bytes。Manifest `state_digest` 不直接覆盖 descriptor 文本，而覆盖下节定义的 reducer output leaves。
 - `conflict_records`、`soft_failed` 和 `quarantined` 可为空，但 high-assurance snapshot MUST 通过 manifest `verification_hints` 提交这些集合的 digest，不能静默隐藏影响授权、可见性、E2EE epoch 或对象状态的非 accepted 输入。
 
+Chunk 边界 MAY 由实现按本地传输目标大小选择，但 MUST 以完整 `items[]` 元素为边界；实现 MUST NOT 把单个 item 或 JSON token 切开。每个 chunk payload 仍必须是上方 `snapshot_chunk` object 的完整 canonical JSON。把整份 reducer state bytes 先序列化、再按 byte range 切块的 dev bundle 形态不是合法的 `ck.schema.snapshot.v1` chunk payload；这类实现 MUST NOT 把 byte-range chunk 描述为 manifest `chunks[]` 的标准 chunk。
+
 Snapshot-assisted pruning 只能删除或压缩某个存储边界内的 raw payload / derived material；它不删除协议历史事实。若实现因 retention、track archive、Realm tombstone 或 hard erasure 裁剪了对象内容，snapshot chunk MUST 继续包含 reducer profile 声明的最小 verification stub，或在 `soft_failed` / `quarantined` / conflict digest 中提交其存在。Consumer 不得把 snapshot 中缺少 stub 的对象解释为“从未存在”，除非 event-set commitment 和 reducer profile 明确证明该对象不在 covered frontier 中。
 
 ## 4. State Hash
 
-`state_digest` MUST 是 canonical reducer 输出之上的 Merkle root。  
+`state_digest` MUST 是 canonical reducer 输出之上的 Merkle root。该 Merkle root 使用 [`encoding.md`](./encoding.md) §3.3.1 的 snapshot/event-set Merkle 规则：leaf 值是 `sha256:<hex>` wire hash，进入树组合前 MUST 解码为 raw 32 bytes；内部节点为 `sha256(left_raw || right_raw)`；奇数层尾节点提升到上一层且不复制；单 leaf root 等于该 leaf；空 leaf 集合 root 为 `sha256` 空字节，即 `sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`。
+
 Leaf hash：
 
 ```text
 sha256(kind || ":" || id || ":" || sha256(canonical_json(object)))
 ```
 
-Leaf 集合 MUST 与所有 chunk `items[].object` 一一对应。Merkle leaf 排序使用 `(kind, id)` canonical byte order；同一 `(kind,id)` 不得出现多个 leaf。不同 reducer profile 产生的 `state_digest` 不保证可比较，Snapshot consumer MUST 要求 `reducer_profile` 精确匹配或使用明确声明的 equivalent profile。
+Leaf 集合 MUST 与所有 chunk `items[].object` 一一对应。Merkle leaf 排序使用 `(kind, id)` canonical byte order；同一 `(kind,id)` 不得出现多个 leaf。空 Realm 或空 reducer output MAY 产生 `covered_event_count = 0` 与空 `frontier.event_ids`；此时 `state_digest` MUST 使用上文空 leaf 集合 root。不同 reducer profile 产生的 `state_digest` 不保证可比较，Snapshot consumer MUST 要求 `reducer_profile` 精确匹配或使用明确声明的 equivalent profile。
 
 ## 5. Snapshot Signature
 
@@ -143,7 +146,7 @@ Manifest MUST 仅包含一个 normative `signature` 字段。`signature` MUST �
 - witness quorum
 - policy-approved snapshot issuer
 
-Client 在使用 snapshot 之前 MUST 校验 signature、`authority_binding`、`state_digest`、frontier、`event_set_commitment` 与每个 chunk 的 digest。其中 manifest 内部一致性 MUST 包含：当 `event_set_commitment.covered_frontier` 存在时，consumer MUST 校验它与 `frontier.event_ids` 是**同一个 event id 集合**（集合相等；两个字段绑定的都是同一 snapshot frontier——`frontier` 声明 reducer state 的截止边界，`event_set_commitment` 承诺到达该同一边界的 event 集合，见 §2 示例与 §6），任何不一致 MUST 拒绝该 snapshot，不得以其中一侧为准继续 bootstrap。签名者权限 MUST 以 manifest `created_at` 为时点进行评估；manifest 必须携带 `authority_binding`，其中 `issuer` 必须等于 `created_by`，`auth_frontier` / `auth_state_digest` 必须覆盖 snapshot frontier 以及在 `created_at` 之前可知的全部相关 admin / snapshot-issuer grant 或 revoke 事件的 accepted Realm auth state。如果签名者在 `created_at` 之前已被撤销，或 verifier 无法确认其权限的撤销新鲜度，snapshot MUST 被隔离或以 `snapshot_issuer_revoked` 拒绝。
+Client 在使用 snapshot 之前 MUST 校验 signature、`authority_binding`、`state_digest`、frontier、`event_set_commitment` 与每个 chunk 的 digest。其中 manifest 内部一致性 MUST 包含：当 `event_set_commitment.covered_frontier` 存在时，consumer MUST 校验它与 `frontier.event_ids` 是**同一个 event id 集合**（集合相等；两个字段绑定的都是同一 snapshot frontier——`frontier` 声明 reducer state 的截止边界，`event_set_commitment` 承诺到达该同一边界的 event 集合，见 §2 示例与 §6），任何不一致 MUST 拒绝该 snapshot，不得以其中一侧为准继续 bootstrap。签名者权限 MUST 以 manifest `created_at` 为时点进行评估；manifest 必须携带 `authority_binding`，其中 `issuer` 必须等于 `created_by`，`auth_frontier` / `auth_state_digest` 必须覆盖 snapshot frontier 以及在 `created_at` 之前可知的全部相关 admin / snapshot-issuer grant 或 revoke 事件的 accepted Realm auth state。`auth_state_digest` 是 issuer-local opaque commitment：verifier MUST 检查它与 `auth_frontier` 绑定一致，并 MUST 按自己可取得的 accepted auth state 回放或查询来判定签名者在 `created_at` 的授权与撤销新鲜度；除非部署 profile 另行声明可复算的 auth-state canonical encoding，verifier MUST NOT 只因无法逐字重算该 digest 就接受或拒绝。若签名者在 `created_at` 之前已被撤销，或 verifier 无法确认其权限的撤销新鲜度，snapshot MUST 被隔离或以 `snapshot_issuer_revoked` 拒绝。
 
 **最大接受窗口（normative）**：仅当采纳时同时满足以下**全部**条件，manifest 才可用于 snapshot bootstrap：
 
@@ -157,10 +160,10 @@ Client 在使用 snapshot 之前 MUST 校验 signature、`authority_binding`、`
 
 Snapshot signer authority 只能证明谁签发了 reduced state；它不能证明签名者已包含本应包含的全部 accepted Event。因此 v1 snapshot manifest MUST 携带 `event_set_commitment`。
 
-`event_set_commitment.root` 承诺 snapshot frontier 覆盖的 Event Envelope ID 与 canonical event hash 的有序集合。实现 MUST 至少支持以下一种算法：
+`event_set_commitment.root` 承诺 snapshot frontier 覆盖的 Event Envelope ID 与 canonical event hash 的有序集合。输入 leaf entry MUST 按 `(actor_id, actor_seq, event_id)` 排序；每个 entry 的 canonical JSON object 字段语义为 `{event_id,event_digest,actor_id,actor_seq,hlc}`。实现 MUST 至少支持以下一种算法：
 
-- `ordered_event_id_sha256_v1`：对按 `(actor_id, actor_seq, event_id)` 排序的 canonical JSON 条目 `{event_id,event_digest,actor_id,actor_seq,hlc}` 计算 SHA-256。
-- `merkle_event_set_v1`：基于同样的 canonical 条目构造 Merkle root。
+- `ordered_event_id_sha256_v1`：对排序后的 entry array 计算 `sha256(canonical_json(entries))`；空集合输入为 canonical JSON `[]`。
+- `merkle_event_set_v1`：先对每个 entry 计算 `sha256(canonical_json(entry))` 作为 leaf，再按 [`encoding.md`](./encoding.md) §3.3.1 的 snapshot/event-set Merkle 规则构造 root；空集合 root 为 `sha256` 空字节。
 
 ### 6.1 能力边界（normative — what omission challenge can and cannot prove）
 
@@ -265,7 +268,7 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
 5. **失败处理**：若任一采样到的 accepted Event 缺失、任一分支验证失败、任一缺口缺少归因，或签名验证失败，client MUST 以错误 `inclusion_proof_failed` 拒绝（见 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）；若签名者在 `created_at` 当时或之前已被撤销，client MUST 以 `snapshot_issuer_revoked` 拒绝。
 6. **新鲜度**：响应 MUST 在 manifest 的 `verification_hints.challenge_window_seconds` 内收到；过期响应 MUST 重试，MUST NOT 静默接受。
 
-> **可执行向量**：上述采样规则 1（`n ≥ max(20, ceil(log2(covered_event_count)))` 的 event_id 抽样、至少 3 段 `actor_seq_range`）与规则 2 的 merkle branch 验证由 [`conformance-vectors.md` §3.6](./conformance-vectors.md) `ck.vector.snapshot.inclusion_challenge.v1` 固化（结构与断言在 prose 中给定，`commitment_root` / `samples[]` / `proofs[].merkle_branch` / `gap_attribution` 等具体字节值以 `spec/v1/artifacts/fixtures/` 的 fixture 生成物为权威）。实现 MUST 按该向量与本节 prose 规则执行挑战，MUST NOT 以“缺向量/缺 fixture”为由跳过 high-assurance bootstrap 校验。
+> **可执行向量**：上述采样规则 1（`n ≥ max(20, ceil(log2(covered_event_count)))` 的 event_id 抽样、至少 3 段 `actor_seq_range`）与规则 2 的 merkle branch 验证由 [`conformance-vectors.md` §3.6](./conformance-vectors.md) `ck.vector.snapshot.inclusion_challenge.v1` 固化。当前 v1 candidate 尚未发布该向量的机器 fixture；在 fixture 生成器与 `spec/v1/artifacts/fixtures/` 产物补齐前，结构与断言以该节 prose 为准，fixture 缺口按 Phase 2 tracking 处理。实现 MUST 按该向量与本节 prose 规则执行挑战，MUST NOT 以“缺向量/缺 fixture”为由跳过 high-assurance bootstrap 校验。
 
 `verification_hints.conflict_records_digest`、`soft_failed_digest` 与 `quarantined_digest` 承诺非 accepted 或未决输入的集合。snapshot MUST NOT 静默隐藏会影响授权、可见性、E2EE epoch 或对象状态的 conflict、soft-fail 或 quarantine 记录。
 

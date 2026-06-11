@@ -751,6 +751,56 @@
       }
     },
     {
+      "operation_id": "ck.self.applet.ghost.provision",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body",
+        "schema_kind": "object",
+        "required": [
+          "schema",
+          "applet_id",
+          "service_did",
+          "ghost_actor_id",
+          "protocol",
+          "tenant",
+          "external_user_id",
+          "realm_id",
+          "external_ref"
+        ],
+        "properties": [
+          "schema",
+          "applet_id",
+          "service_did",
+          "ghost_actor_id",
+          "protocol",
+          "tenant",
+          "external_user_id",
+          "display_name",
+          "realm_id",
+          "external_ref"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_outcome",
+        "schema_kind": "object",
+        "required": [
+          "ghost_actor_id",
+          "profile_event_ref",
+          "accountability_grant_ref",
+          "authorization_ref"
+        ],
+        "properties": [
+          "ghost_actor_id",
+          "profile_event_ref",
+          "accountability_grant_ref",
+          "authorization_ref",
+          "display_name"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ck.edge.applet.third_party_locations",
       "success_shape_kind": "typed_response",
       "response": {
@@ -973,9 +1023,11 @@
         ],
         "properties": [
           "messages",
+          "ack_token",
           "next_cursor",
           "has_more",
-          "limited"
+          "limited",
+          "lost"
         ],
         "closed": true
       }
@@ -1004,6 +1056,33 @@
           "ok",
           "delivered",
           "unknown_devices"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.device_messages.ack",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckRequestBody",
+        "schema_kind": "object",
+        "required": [
+          "ack_token"
+        ],
+        "properties": [
+          "ack_token"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckOutcome",
+        "schema_kind": "object",
+        "required": [
+          "ok"
+        ],
+        "properties": [
+          "ok",
+          "pruned_count"
         ],
         "closed": true
       }
@@ -1744,7 +1823,8 @@
           "prev_cursor",
           "next_cursor",
           "has_more",
-          "snapshot_bootstrap"
+          "snapshot_bootstrap",
+          "range_completeness"
         ],
         "closed": true
       }
@@ -1763,7 +1843,8 @@
           "after",
           "order",
           "limit",
-          "filters"
+          "filters",
+          "include_completeness"
         ],
         "closed": true
       },
@@ -1779,7 +1860,8 @@
           "prev_cursor",
           "next_cursor",
           "has_more",
-          "snapshot_bootstrap"
+          "snapshot_bootstrap",
+          "range_completeness"
         ],
         "closed": true
       }
@@ -1887,7 +1969,8 @@
           "prev_cursor",
           "next_cursor",
           "has_more",
-          "snapshot_bootstrap"
+          "snapshot_bootstrap",
+          "range_completeness"
         ],
         "closed": true
       }
@@ -1906,7 +1989,8 @@
           "after",
           "order",
           "limit",
-          "filters"
+          "filters",
+          "include_completeness"
         ],
         "closed": true
       },
@@ -1922,7 +2006,8 @@
           "prev_cursor",
           "next_cursor",
           "has_more",
-          "snapshot_bootstrap"
+          "snapshot_bootstrap",
+          "range_completeness"
         ],
         "closed": true
       }

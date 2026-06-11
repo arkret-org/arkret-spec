@@ -856,6 +856,10 @@ components:
       $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_revoke_request_body
     AppletRevokeOutcome:
       $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_revoke_outcome
+    GhostActorProvisionRequestBody:
+      $ref: ../schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body
+    GhostActorProvisionOutcome:
+      $ref: ../schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_outcome
     AppletPingOutcome:
       $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_ping_outcome
     AppletTransactionRequestBody:
@@ -1094,7 +1098,15 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome
     EventsSubscribeFrame:
       type: object
-      description: One NDJSON line emitted by ck.events.subscribe. `dropped` requires a usable recovery cursor; if no cursor exists, servers MUST emit `resync_required` instead.
+      description: 'One NDJSON line emitted by ck.events.subscribe. Per-kind constraints
+        mirror service-http-binding.md §3.4 and align in strictness with account-subscribe-frame.schema.json:
+        `event` carries realm_id + cursor + payload; `frontier` / `catchup_complete`
+        carry cursor (realm_id present = that Realm''s frontier/catchup, absent =
+        whole subscription); `epoch_rotation` is a realm-scoped boundary hint (realm_id
+        + payload, no cursor); `dropped` requires a usable recovery cursor + realm_id
+        — if no cursor exists, servers MUST emit `resync_required` instead; `resync_required`
+        / `unauthorized` carry no cursor (realm_id present = realm-scoped, absent
+        = whole subscription / session); `heartbeat` carries nothing.'
       required:
       - kind
       properties:
@@ -1113,7 +1125,9 @@ components:
           type: string
         cursor:
           type: string
-          description: Stream cursor. REQUIRED when kind=dropped.
+          description: Stream cursor. REQUIRED on event / frontier / catchup_complete
+            / dropped; forbidden on epoch_rotation / resync_required / unauthorized
+            / heartbeat.
         payload:
           type: object
         reconnect_after_ms:
@@ -1124,6 +1138,44 @@ components:
       - if:
           properties:
             kind:
+              const: event
+          required:
+          - kind
+        then:
+          required:
+          - realm_id
+          - cursor
+          - payload
+      - if:
+          properties:
+            kind:
+              const: epoch_rotation
+          required:
+          - kind
+        then:
+          required:
+          - realm_id
+          - payload
+          not:
+            required:
+            - cursor
+      - if:
+          properties:
+            kind:
+              enum:
+              - frontier
+              - catchup_complete
+          required:
+          - kind
+        then:
+          required:
+          - cursor
+          not:
+            required:
+            - payload
+      - if:
+          properties:
+            kind:
               const: dropped
           required:
           - kind
@@ -1131,16 +1183,62 @@ components:
           required:
           - realm_id
           - cursor
+          not:
+            required:
+            - payload
+      - if:
+          properties:
+            kind:
+              const: resync_required
+          required:
+          - kind
+        then:
+          not:
+            anyOf:
+            - required:
+              - cursor
+            - required:
+              - payload
+      - if:
+          properties:
+            kind:
+              const: unauthorized
+          required:
+          - kind
+        then:
+          not:
+            anyOf:
+            - required:
+              - cursor
+            - required:
+              - payload
+            - required:
+              - reconnect_after_ms
+      - if:
+          properties:
+            kind:
+              const: heartbeat
+          required:
+          - kind
+        then:
+          not:
+            anyOf:
+            - required:
+              - realm_id
+            - required:
+              - cursor
+            - required:
+              - payload
+            - required:
+              - reconnect_after_ms
       - if:
           properties:
             kind:
               enum:
               - event
               - frontier
-              - heartbeat
               - catchup_complete
               - epoch_rotation
-              - unauthorized
           required:
           - kind
         then:
@@ -1326,6 +1424,10 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesPutOutcome
     DeviceMessagesGetOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetOutcome
+    DeviceMessagesAckRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckRequestBody
+    DeviceMessagesAckOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckOutcome
     GrantList:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/GrantList
     AuthzInviteList:
@@ -3028,6 +3130,12 @@ paths:
           type: object
         style: deepObject
         explode: true
+      - name: include_completeness
+        in: query
+        description: Request range-completeness attestation references covering the returned page (zh/sync/service-http-binding.md §3.3.6). Only effective when the service advertises events_query_range_completeness in supported_features; services that do not advertise it MUST ignore this parameter.
+        schema:
+          type: boolean
+          default: false
       responses:
         '200':
           description: Event query page
@@ -3742,8 +3850,9 @@ paths:
         High-assurance optional endpoint. The issuing service records the cursor
         digest or stateful handle in a revocation set until the cursor's maximum
         TTL would have expired. A revoked cursor returns `cursor_revoked` and
-        MUST NOT advance to-device acknowledgement, account subscribe position,
-        wait-for barrier state, or dropped recovery state.
+        MUST NOT advance account subscribe position, wait-for barrier state,
+        or dropped recovery state. To-device queue deletion is decoupled from
+        cursors entirely and happens only via ck.self.device_messages.ack.
       requestBody:
         required: true
         content:
@@ -4511,6 +4620,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceMessagesGetOutcome'
+  /_cokret/self/device_messages/ack:
+    post:
+      operationId: ck.self.device_messages.ack
+      security:
+      - bearerAuth: []
+      summary: Explicit to-device delivery acknowledgement.
+      description: |
+        Cumulative, monotonic, naturally idempotent acknowledgement bound to the
+        authenticated (principal, device). Prunes delivered messages up to and
+        including the token's queue position. Stream cursor advancement never
+        deletes queued messages (client-sync.md §10.1). Unknown / expired /
+        cross-bound tokens return `invalid_param` (reason `invalid_ack_token`)
+        without deleting anything.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceMessagesAckRequestBody'
+      responses:
+        '200':
+          description: Acknowledgement accepted (including older-token no-op)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceMessagesAckOutcome'
   /_cokret/self/keys/upload:
     post:
       operationId: ck.self.keys.upload
@@ -5562,6 +5697,51 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AppletInstallRequestBody'
+  /_cokret/self/applets/{applet_id}/ghosts/provision:
+    post:
+      operationId: ck.self.applet.ghost.provision
+      summary: Provision an Applet-managed Ghost Actor for one external user.
+      description: |
+        Called by an installed bridge Applet (authenticating as its service DID)
+        to provision, or idempotently re-validate, an Applet-managed Ghost Actor
+        profile plus accountability grant for one external user. The server MUST
+        verify the active registration for `applet_id` covers the caller's
+        service DID and that `ghost_actor_id` falls inside the registration's
+        actor namespace before minting `ck.profile.create` /
+        `ck.identity.accountability_grant`. Re-provisioning the same
+        `(applet_id, protocol, tenant, external_user_id)` MUST return the
+        existing refs instead of minting duplicates.
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        contentDigest: []
+      parameters:
+      - in: path
+        name: applet_id
+        required: true
+        schema:
+          type: string
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+      responses:
+        '200':
+          description: Ghost Actor provisioned (or existing refs re-confirmed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GhostActorProvisionOutcome'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GhostActorProvisionRequestBody'
   /_cokret/self/applets/{applet_id}/revoke:
     post:
       operationId: ck.self.applet.revoke

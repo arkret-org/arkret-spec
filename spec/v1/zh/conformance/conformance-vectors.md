@@ -3,7 +3,7 @@ title: Conformance Vectors
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-10
+updated: 2026-06-11
 ---
 
 本文整合所有 v1 conformance 测试向量，按域分组；以下为各域索引，逐域 vector 清单以本文件章节目录与 `artifacts/registry/vector-registry.json` 为准：
@@ -1263,7 +1263,7 @@ ck.vector.redaction.snapshot_pruning_stub.v1
 ck.vector.snapshot.inclusion_challenge.v1
 ```
 
-本向量固化 [`snapshot-schema.md`](./snapshot-schema.md) §6 `event_set_commitment` 的 inclusion-challenge 采样与 merkle branch 校验规则，使 high-assurance bootstrap 不依赖单一实现的私有判断。fixture 中的 `commitment_root`、`samples[]`、`proofs[].merkle_branch` 等具体字节值由 fixture 生成器产出并以 `spec/v1/artifacts/fixtures/` 为权威；本节固定结构与断言。
+本向量固化 [`snapshot-schema.md`](./snapshot-schema.md) §6 `event_set_commitment` 的 inclusion-challenge 采样与 merkle branch 校验规则，使 high-assurance bootstrap 不依赖单一实现的私有判断。当前 v1 candidate 尚未发布该向量的机器 fixture；在 fixture 生成器与 `spec/v1/artifacts/fixtures/` 产物补齐前，结构与断言以本节为准，fixture 缺口按 Phase 2 tracking 处理。实现 MUST NOT 以“缺 fixture”为由跳过已由本节 prose 固化的 high-assurance bootstrap 校验。
 
 输入：
 
@@ -2634,7 +2634,7 @@ Steps：
 
 Expected：
 
-- 第 2 步 MUST 返回 `cursor_revoked`，且不推进 to-device ack / subscription position。
+- 第 2 步 MUST 返回 `cursor_revoked`，且不推进 subscription position（to-device 队列删除只由 `ck.self.device_messages.ack` 驱动，与 cursor 无关）。
 - 第 3 步 MUST 返回 `cursor_integrity_invalid`，不得泄露 revocation set 是否命中。
 
 ### 10.9 Vector: Device Recovery Lifecycle
@@ -2721,6 +2721,27 @@ Expected：
 - Dave（`mentions_only`）、Erin（`muted`）、Frank（仅 assignment）、Grace（无读取权）MUST NOT 因该 audience mention 收到 notification stub 或 push wakeup。
 - Presence / online 状态 MUST NOT 影响 `flow_engaged` 的 receiver set；实现不得把 `@here` 解释成 presence-filtered audience。
 - Sender、普通 Realm 成员、push gateway、公开日志与 delivery response MUST NOT 暴露 recipient count、watcher 列表、watch level、命中原因，且不得区分 Bob 是参与者命中还是 Carol 是 watcher 命中。
+
+### 10.13 Vector: Events Query Range Completeness Detection
+
+`vector_id`: `ck.vector.sync.range_completeness_client_query.v1`
+
+前置：服务端 `supported_features[]` 声明 `events_query_range_completeness`；Realm 配置 `audit.range_completeness_witnesses[]` 且已存在覆盖区间 `(F1, F2]` 的 `federation_witness_attested` attestation；区间内 actor Bob 产生过 `seq 10..20` 的 reducer-input event。
+
+Steps：
+
+1. 客户端因 `dropped` / cursor 失效按 [`client-sync.md` §12.3](../sync/client-sync.md) 恢复，调用 `ck.self.events.query`（`include_completeness=true`）backfill 区间 `(F1, F2]`。
+2. 服务端返回完整事件页 + `range_completeness.attestation_refs[]`；客户端按 [`operations-sync.md` §4.2.4](../sync/operations-sync.md) 重算 Merkle root 并核对 `actor_seq_ranges[]`。
+3. 变体 A：服务端从响应中扣下 Bob `seq 14..16` 的事件，但返回同一 attestation。
+4. 变体 B：服务端未声明该 feature，收到 `include_completeness=true`。
+5. 变体 C：attestation 仅为 `single_source`，而 Realm 声明 `security_class=high_assurance`。
+
+Expected：
+
+- 第 2 步：root 与 `actor_seq_ranges[]` 全部一致时，客户端方可把该区间标记为已 attest 的完整范围。
+- 变体 A：客户端 MUST 检出本地视图与 attestation 的差异（`range_completeness_actor_seq_gap` 或 root 重算不一致 `range_completeness_root_mismatch`），把该区间标记 degraded 并 fail closed；MUST NOT 向用户展示"历史完整"。
+- 变体 B：服务端 MUST 忽略该参数，响应不含 `range_completeness` 字段且不报错；客户端把范围视为未 attest。
+- 变体 C：客户端 MUST NOT 用 `single_source` attestation 解除 high-assurance Realm 的 completeness 关注；按未 attest 处理或继续等待 quorum attestation。
 
 ## 11. Personal Agent & Sidecar Vectors
 

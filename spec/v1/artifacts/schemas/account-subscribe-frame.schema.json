@@ -106,8 +106,34 @@
           "items": {
             "$ref": "./device-message.schema.json"
           }
+        },
+        "ack_token": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "description": "Server-issued opaque acknowledgement token, REQUIRED whenever messages[] is non-empty. Bound server-side to (principal_id, device_id, queue high-water position of this batch) and covering this batch plus all previously delivered messages. NOT a cursor: no ck:cursor: wire form, no cursor schema/TTL/purpose. The client passes it verbatim to ck.self.device_messages.ack AFTER durably persisting the batch payloads; queue deletion happens only through that explicit ack, never through stream cursor advancement (client-sync.md §10.1)."
+        },
+        "lost": {
+          "type": "boolean",
+          "description": "SHOULD be set true when the server has dropped unacknowledged messages for this device (expiry or capacity) since the device's last acknowledged position. Clients SHOULD trigger key recovery paths (key backup / key re-request) and MUST NOT silently assume the queue was complete."
         }
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "messages": {
+                "minItems": 1
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "ack_token"
+            ]
+          }
+        }
+      ],
       "additionalProperties": true
     },
     "timeline": {

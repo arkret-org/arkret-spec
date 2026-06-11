@@ -3,7 +3,7 @@ title: Client Sync
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-10
+updated: 2026-06-11
 ---
 
 ## 0. 规范语言
@@ -136,14 +136,14 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
 
 客户端 MUST 维护一个长期存在的 `/_cokret/self/account/subscribe` 连接，并:
 
-1. **持久化最近收到的 `cursor`**(任何带 cursor 的 frame 都更新本地高水位)。
+1. **原子持久化 frame 与 cursor**: 客户端 MUST 在同一本地事务中持久化 frame payload(timeline 事件、state、account_data、device_lists 等)与该 frame 的 `cursor`,之后才把它用作重连 `after=` 起点;MUST NOT 在 payload 落盘前单独推进本地 cursor 高水位。"先存 cursor、后落数据"的实现会在崩溃时产生本地静默缺口——其中 `device_lists` 缺口只能靠重做 initial sync 恢复。to-device 消息的投递安全由 §10.1 显式 ack 在协议层保证，不依赖本条；但 SHOULD 同样与 cursor 同事务落盘以减少重连后的重复处理。仅带 cursor 不带数据的 frame(`frontier` / `catchup_complete`)直接更新本地高水位即可。
 2. **网络断开**: 若没有服务端 `reconnect_after_ms` 或 HTTP `Retry-After` 指令，立即用最近 `cursor` 作为 `after=` 重连，并设置 `catchup=true`,确保断线期间的账号聚合 delta 不被跳过。若服务端返回 `cursor_expired` / `cursor_integrity_invalid` / `cursor_unrecognized`,按 §12.3 恢复。
 3. **`dropped` frame**: 用 frame 自带的 `cursor` 重新建立 `GET /_cokret/self/account/subscribe?after=<cursor>&catchup=true`,让服务端重放账号聚合 delta；若 frame 携带 `reconnect_after_ms`,MUST 先等待该时长。不得只用 `ck.self.events.query` 恢复，因为 `to_device`、`account_data`、`device_lists`、presence 与 notifications 不属于裸 Realm Event 查询面。
-4. **`resync_required` frame**: 清空本地 cursor 缓存，重新建立连接(`after=` 缺省 + `catchup=true`)执行 initial account sync;若 frame 携带 `reconnect_after_ms`,MUST 先等待该时长。大型 Realm 的当前态可走 snapshot bootstrap,见 §13。
+4. **`resync_required` frame**: 清空本地 cursor 缓存，重新建立连接(`after=` 缺省 + `catchup=true`)执行 initial account sync;若 frame 携带 `reconnect_after_ms`,MUST 先等待该时长。大型 Realm 的当前态可走 snapshot bootstrap,见 §12.3 与 §13。
 5. **`unauthorized` frame**: 关闭连接，触发 session 刷新或退出登录。
 6. **建议 reconnect 退避**: 指数退避，起始 1s,最大 60s;`dropped` / `resync_required` 未携带 `reconnect_after_ms` 时可立即重连以缩短数据不一致窗口。客户端收到 `reconnect_after_ms`、HTTP `Retry-After` 或错误 body `retry_after_ms` 时，MUST 优先遵守服务端指令，并 SHOULD 加 jitter 避免同批客户端同步重连。
 
-`reconnect_after_ms` 是 200 stream control frame 内的重连保持时间，不是错误响应字段。服务端发送后 MUST 按至少 `(principal_id, device_id, operation_id, filter_digest)` 维度强制执行；在保持时间内的同 scope `/_cokret/self/account/subscribe` 请求 MUST 返回 `429 rate_limited` 并设置 `Retry-After`，且不得推进 to-device ack、account subscribe position、barrier wait 或 dropped recovery state。服务端 MAY 在实现中加入 source IP / session id / trust domain 等更细维度，但不得把该限制扩大到无关 API。
+`reconnect_after_ms` 是 200 stream control frame 内的重连保持时间，不是错误响应字段。服务端发送后 MUST 按至少 `(principal_id, device_id, operation_id, filter_digest)` 维度强制执行；在保持时间内的同 scope `/_cokret/self/account/subscribe` 请求 MUST 返回 `429 rate_limited` 并设置 `Retry-After`，且不得推进 account subscribe position、barrier wait 或 dropped recovery state（to-device 队列删除只由 §10.1 显式 ack 驱动，本就与 subscribe cursor 无关）。服务端 MAY 在实现中加入 source IP / session id / trust domain 等更细维度，但不得把该限制扩大到无关 API。
 
 ## 3. Stream Classes
 
@@ -156,7 +156,7 @@ Account subscribe `delta` frame 包含以下 stream：
 | `state_after` | 派生 | timeline 末尾之后的状态，用于正确解释事件 |
 | `state_at_window_start` | 派生 | `timeline.limited=true` 时 window 起点 anchor 状态，见 §5 |
 | `account_data` | 私有持久 | 标签、UI 偏好、recent emoji、push rules |
-| `to_device` | 设备队列 | key verification、secret sharing、device messages |
+| `to_device` | 设备队列 | key verification、secret sharing、device messages（队列删除只由 §10.1 显式 ack 驱动，不随 cursor 推进） |
 | `ephemeral` | 短暂 | typing、presence、live cursor |
 | `receipts` | 可配置 | read receipt / read cursor delta（逻辑类，无独立 wire 字段；承载于 per-Realm `ephemeral` / `account_data`，见下表） |
 | `notifications` | 派生 | inbox / push notification delta |
@@ -543,9 +543,19 @@ Account data MUST 按 principal/device 授权隔离。联邦节点不得向其�
 
 `to_device.messages` MUST 只包含当前 access token 对应 device 的消息。
 
-**To-device 投递推断 (normative)**：服务器在收到客户端回传的 `after=<cursor>` 后，**MUST 先按 §12.2 完整性校验**通过，才可读取 stateful handle 解析出的 device-message position，并将该 position 之前的 to-device 消息视为已投递并从服务端队列清理。v1 core cursor body 不携带内联 `d` 字段；positions 只存在于服务端 handle 表。完整性校验失败时 MUST 返回 `cursor_integrity_invalid` 且 **MUST NOT** 推进 to-device 投递状态。客户端如果未处理成功，必须通过本地事务日志恢复。
+### 10.1 显式投递确认 (normative)
 
-> Rationale: 若服务端仅按语法 / TTL / purpose 校验就接受客户端提供的同步位置，byzantine 客户端（或被 XSS / 复制日志泄露后被重放的 cursor）可推进 to-device ack，导致 key verification、cross-signing reset、secret sharing 等 to-device 消息被永久丢弃。v1 core 通过不可猜测 handle 查表绑定 authenticated principal、device、service、filter 与 positions；stateless profile 若启用，必须由该 profile 的 MAC / 签名覆盖 positions。
+To-device 队列删除由**显式 ack** 驱动，与 stream cursor 解耦；任何 cursor（`after=` / `from=`）都 **MUST NOT** 触发队列删除：
+
+1. **`ack_token` 签发**：服务端在每个携带非空 `to_device.messages` 的 `delta` frame 中 MUST 附带 `to_device.ack_token`；`GET /_cokret/self/device_messages` 的每个非空响应页同样 MUST 携带顶层 `ack_token`。`ack_token` 是 server-issued 不透明确认令牌，绑定 `(principal_id, device_id, 该批次的队列高水位)`，覆盖该批次及其之前所有已投递消息。它**不是 cursor**：不使用 `ck:cursor:` wire 形态，不进入 cursor schema / TTL / purpose 体系；客户端 MUST 把它当作不透明字符串原样回传。令牌 MUST 不可伪造：不可猜测（解码后熵 ≥ 128 bit）或等价的服务端查表绑定。
+2. **显式 ack**：客户端把该批次所有消息**持久化处理完成**（密钥材料、verification transcript、secret 已落盘）后，MUST 调用 `ck.self.device_messages.ack`（`POST /_cokret/self/device_messages/ack`，body `{ack_token}`）。确认是**累计且单调**的：服务端删除该令牌覆盖位置（含）之前的全部已投递消息；ack 一个早于当前确认位置的令牌是合法 no-op，返回 `{ok: true}` 且 MUST NOT 回退确认位置。该操作天然幂等，不需要 `Idempotency-Key`。
+3. **ack 校验**：服务端 MUST 校验 `ack_token` 绑定与当前 authenticated `(principal_id, device_id)` 匹配；unknown / 过期 / cross-binding 令牌 MUST 返回 `invalid_param`（reason `invalid_ack_token`）且 MUST NOT 删除任何排队消息。
+4. **cursor 只读**：`/_cokret/self/account/subscribe` 的 `after=` 与 `GET /_cokret/self/device_messages` 的 `from=` 只决定读取 / 续传位置。客户端建立新的 subscribe 连接时（无论 `after=` 位置），服务端 MUST 重新投递所有未确认、未过期的 to-device 消息；客户端 MUST 容忍重复投递，并按消息内容的事务标识（`transaction_id` / `request_id` 等）幂等处理。
+5. **过期与丢失信号**：未确认消息仍受 `DeviceMessageEnvelope.expires_at` 与 [`device-lifecycle.md` §7](../crypto-media/device-lifecycle.md) 队列 TTL 约束，过期 MUST 清除。服务端自该设备上次确认位置以来因过期或容量约束丢弃过未确认消息时，SHOULD 在下一个含 `to_device` 的响应中设置 `to_device.lost=true`；客户端收到后 SHOULD 触发密钥恢复路径（key backup / key re-request），MUST NOT 静默假设队列完整。
+
+> Rationale: cursor 前进表达的是「客户端收到了 frame」，安全删除需要的是「客户端已把载荷持久化」。把删除绑在 cursor 推进上（Matrix `/sync` 的隐式 ack 模型）会留下崩溃窗口：客户端收到 frame、cursor 已推进、但 MLS Welcome / secret share 尚未落盘即崩溃 → 消息被服务端删除、密钥材料永久丢失。显式 ack 把两个语义拆开后，cursor 不再是 to-device 不可逆删除的闸门；§12 的 cursor 完整性校验仍然原样保留——它防护的是伪造 / 跨绑定位点导致的静默缺口（含 `device_lists` 缺口的 E2EE 后果）、barrier 存在性预言机与 catch-up 成本放大，而非 to-device 删除。
+
+### 10.2 队列分页
 
 To-device 队列过长时，服务器 MAY 返回 `limited=true` 并要求客户端调用：
 
@@ -553,7 +563,7 @@ To-device 队列过长时，服务器 MAY 返回 `limited=true` 并要求客户�
 GET /_cokret/self/device_messages?from=<cursor>&limit=...
 ```
 
-该 endpoint 的 `from` cursor 同样 MUST 通过 §12 完整性校验后才能用于服务端读位置推进。`from=` 是 `ck.self.device_messages.get` 的历史例外命名（见 [`api-conventions.md` §7.1](./api-conventions.md)）；新增接口 MUST 用 `before` / `after`，不得把 `from=` 当作推荐形态。
+该 endpoint 的 `from` cursor 同样 MUST 通过 §12 完整性校验后才能用作读取位置；该读取位置是只读的，MUST NOT 触发队列删除（删除只经 §10.1 显式 ack）。`from=` 是 `ck.self.device_messages.get` 的历史例外命名（见 [`api-conventions.md` §7.1](./api-conventions.md)）；新增接口 MUST 用 `before` / `after`，不得把 `from=` 当作推荐形态。
 
 ## 11. Filters
 
@@ -576,6 +586,17 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 
 服务端签发 stream cursor、强制 `reconnect_after_ms` cooldown 或验证 cursor binding 时 MUST 使用同一 `filter_digest`；客户端若持久化 cursor，也 SHOULD 同步持久化该 digest 以便诊断 `cursor_integrity_invalid`。
 
+### 11.1 Events 面的 query-scope digest（normative）
+
+`ck.self.events.query`、`ck.self.events.subscribe`、`ck.peer.events.query`（含各 binding variant，如 `ck.self.events.query_post`）签发的 stream cursor，其绑定中的 `filter_digest` MUST 覆盖**完整查询作用域**，不只是 `filters`：
+
+1. normalized scope object 包含全部**非位置性**、决定结果集合或结果形状的请求参数：selector（`realms`、`actors`）、`filters` object、`order`，以及 profile 引入的等价参数。
+2. 位置性参数（`before` / `after` / `limit` / cursor 本身）与认证材料 MUST NOT 进入 digest——它们随每次调用变化，不属于作用域身份。
+3. 集合语义字段（`realms`、`actors`、`event_types`、`not_event_types`）在计算前按元素字符串 lexicographic 排序并去重；未提供的 optional 字段省略，不得把实现默认值写入 normalized scope。
+4. 按 RFC 8785 JCS 编码为 UTF-8 bytes 计算 `sha256`，规则与本节 `filter_digest` 一致。
+
+客户端在与签发 scope 不同的查询作用域下回传 cursor（例如更换了 `actors` selector 或 `order`），服务端 MUST 视为 binding 不匹配并返回 `cursor_integrity_invalid`，MUST NOT 按新 scope 继续续读——跨 scope 复用 cursor 会产生静默跳读（新 scope 包含、旧 scope 排除的事件被跳过）或权限边界混淆。字段名继续沿用 `filter_digest`；在 events 面它语义上是 query-scope digest。
+
 ## 12. Cursor Semantics
 
 `cursor`（purpose=`stream`）MUST 绑定：
@@ -583,7 +604,7 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 - principal id
 - device id
 - service id
-- `filter_digest`
+- `filter_digest`（account 面为 §11 filter digest；events 面为 §11.1 query-scope digest，覆盖完整 selector + filters + order）
 - stream positions
 - expiry
 
@@ -591,11 +612,13 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 
 ### 12.1 Cursor Integrity (normative)
 
-无论 stream 还是 barrier cursor，wire 形态 `ck:cursor:<base64url(canonical_json)>` 都 **MUST** 是服务端可验证的同步位置；服务端 **MUST NOT** 仅按语法 / TTL / purpose 校验就把客户端回传的 cursor 当作"可信位置"用于推进 to-device ack、`/_cokret/self/account/subscribe` `after=` resume 起点、`X-Cokret-Wait-For` barrier 解除、`dropped` / `resync_required` 恢复或其他不可逆 server-side state。
+无论 stream 还是 barrier cursor，wire 形态 `ck:cursor:<base64url(canonical_json)>` 都 **MUST** 是服务端可验证的同步位置；服务端 **MUST NOT** 仅按语法 / TTL / purpose 校验就把客户端回传的 cursor 当作"可信位置"用于 `/_cokret/self/account/subscribe` `after=` resume 起点、`X-Cokret-Wait-For` barrier 解除、`dropped` / `resync_required` 恢复或其他不可逆 server-side state。v1 不存在 cursor 驱动的 to-device ack：to-device 队列删除只由 §10.1 显式 ack 驱动，cursor 的 to-device position 仅决定续传读取位置。
 
 **v1 core 采用单一 stateful opaque handle 形态**：canonical body 为 `{v, purpose, t, x, h}`，其中 `h` 是 issuing service 生成的不可猜测 handle（解码后熵 ≥ 128 bit），service 内部维护 handle → `(principal_id, device_id, service_id, filter_digest, purpose, positions, target?, expiry)` 映射。Handle 查表本身就是完整性校验 —— 无需在线 transcript 校验，无需 `_mac` / `_sig`，无需 `issuer_kid` 密钥管理。这是 Matrix `next_batch` / MSC4186 `pos` 的等价形式。
 
 服务端 SHOULD 将 handle → binding 映射持久化（或以其它方式保证其跨进程重启存活），使服务重启不会把所有未过期 cursor 同时变成未知 handle、迫使全部客户端按 §12.3 重做 initial sync。仅内存实现不违反完整性契约（未知 handle 仍按 `cursor_integrity_invalid` 失败 closed），但其重启代价随活跃客户端数线性放大；持久化实现 SHOULD 同时对未过期 handle 做超出 TTL 的及时清理（例如客户端出示更新 cursor 即可证明严格更旧的同流 handle 已被取代），避免 handle 表无界增长。
+
+对生产级部署，上述耐久性从 SHOULD 升级为 MUST：声明 `ck.profile.small_team.v1`、`ck.profile.organization.v1`、`ck.profile.high_security_organization.v1`、`ck.profile.sovereign_deployment.v1`、`ck.profile.sovereign_enclave.v1` 或 `ck.profile.isolated_sovereign_network.v1` 任一 deployment profile 的服务，MUST 保证未过期 cursor handle 绑定跨进程重启可解析，且 MUST 实现 TTL GC 与被取代 handle 的前进清理；常规重启或计划内升级把全部活跃客户端打回 initial sync 视为不满足该 profile 声明。`ck.profile.personal_node.v1`（个人/开发单机）维持 SHOULD。
 
 > Stateless 自描述 cursor（body 内含 `s` / `d` / `target` / `issuer_kid` 并以 `_mac` / `_sig` 绑定 transcript）不属于 v1 core schema；需要 stateless cursor 的实现 MUST 显式声明 `ck.profile.stateless_cursor.v1` 扩展 profile（参见 [`conformance/conformance-profiles.md`](../conformance/conformance-profiles.md)）。Core consumer（sync / federation / snapshot）默认不实现这条路径。
 
@@ -628,7 +651,7 @@ POST /_cokret/self/account/cursor/revoke
 - `same_device`：撤销与当前 cursor 同 `(principal_id, device_id)` 的所有未过期 cursor（跨会话）。
 - 当 cursor 来自浏览器或其它无稳定 `device_id` 的环境时，`same_device` MUST 在效果上退化为 `this_cursor`（服务端不得猜测设备同一性），并在响应 `revoke_scope_effective="this_cursor"` 中显式回执，以避免客户端误以为全设备已撤销。
 
-服务端接受后 MUST 将对应 cursor 写入 cursor revocation set（核心：按 stateful handle 匹配；可选 `ck.profile.stateless_cursor.v1`：还按 `_mac` / `_sig` digest 匹配），保留时间不少于该服务声明的最长 cursor TTL（stream / barrier cursor 的 TTL 硬上限唯一 canonical 数值见 [`encoding.md` §8.3 规则 12](../conformance/encoding.md)，本节不重复字面数值）。撤销命中时，任何 endpoint MUST 返回 `cursor_revoked`，并且不得推进 to-device ack、subscription position、barrier wait 或 dropped recovery state。
+服务端接受后 MUST 将对应 cursor 写入 cursor revocation set（核心：按 stateful handle 匹配；可选 `ck.profile.stateless_cursor.v1`：还按 `_mac` / `_sig` digest 匹配），保留时间不少于该服务声明的最长 cursor TTL（stream / barrier cursor 的 TTL 硬上限唯一 canonical 数值见 [`encoding.md` §8.3 规则 12](../conformance/encoding.md)，本节不重复字面数值）。撤销命中时，任何 endpoint MUST 返回 `cursor_revoked`，并且不得推进 subscription position、barrier wait 或 dropped recovery state（to-device 队列删除不经 cursor，见 §10.1；cursor revoke 不影响已签发 `ack_token` 的有效性）。
 
 Cursor revoke 不能替代 cursor integrity：服务端仍必须先做 §12.2 完整性校验；完整性失败返回 `cursor_integrity_invalid`，不泄露该 cursor 是否曾被 revoke。
 
@@ -639,6 +662,7 @@ Cursor revoke 不能替代 cursor integrity：服务端仍必须先做 §12.2 �
 3. 若 snapshot 可用，客户端 MUST 验证签名、签名者授权、state hash、frontier 和 chunk digest 后再采用。
 4. 从 snapshot frontier 或服务返回的 backfill 起点执行 `ck.self.events.query`（`GET /_cokret/self/events?after=<cursor>`），补齐 Realm Event 缺口；账号聚合缺口则重新建立 `ck.self.account.subscribe?after=<cursor>&catchup=true` 重放。
 5. 若 snapshot 校验失败，客户端 MUST 回退到 Event history replay 或 Event-only backfill，并可将来源标记为 degraded。
+6. 服务端声明 `events_query_range_completeness` feature 时，客户端 SHOULD 在恢复 backfill 的 `ck.self.events.query` 调用上设置 `include_completeness=true`，并在补齐后按 [`service-http-binding.md` §3.3.6](./service-http-binding.md) 验证覆盖该缺口区间的 `ck.attestation.range_completeness`——cursor + `has_more` 只证明"拿到了页"，attestation 才证明"该区间没有事件被静默扣下"。验证失败（`range_completeness_root_mismatch` / `range_completeness_actor_seq_gap` / `witness_disagreement`）时 MUST 把该区间标记 degraded 并 fail closed，不得向用户展示"历史完整"。high-assurance Realm（`security_class=high_assurance` 或 `ck.profile.federation.high_assurance.v1`）下该 SHOULD 升级为 MUST。
 
 ## 13. Initial Sync
 
@@ -657,6 +681,8 @@ Accept: application/x-ndjson
 - 返回 device list delta 的完整 baseline。
 
 大型账户 MAY 使用 sliding window subscriptions，避免一次性返回所有 Realm。
+
+大型 Realm 的当前态 MAY 在 initial sync 中通过 snapshot bootstrap 加速：客户端先调用 `ck.self.snapshot.head` 获取 `ck.schema.snapshot.v1` manifest，完成签名、authority binding、`event_set_commitment`、`state_digest` 与 chunk digest 校验后，把 snapshot frontier 作为该 Realm 的恢复起点；随后仍 MUST 从该 frontier 之后继续执行 `ck.self.events.query` / backfill，直至账号 baseline 与 Realm event stream 收敛。snapshot 校验失败、manifest 不可用或服务端未宣告 `ck.self.snapshot.head` 时，客户端 MUST 回退到原始 Event history replay，不得把未验证 snapshot 作为 accepted state。
 
 ## 14. E2EE Requirements
 

@@ -76,6 +76,7 @@ grpc:
       InstallPreview: ck.self.applet.install.preview
       Install: ck.self.applet.install
       Revoke: ck.self.applet.revoke
+      GhostProvision: ck.self.applet.ghost.provision
     SelfAuthz:
       Check: ck.self.authz.check
       GetEffectiveGrants: ck.self.authz.get_effective_grants
@@ -88,6 +89,7 @@ grpc:
     SelfDeviceMessages:
       Get: ck.self.device_messages.get
       Put: ck.self.device_messages.put
+      Ack: ck.self.device_messages.ack
     SelfContact:
       Request: ck.self.contact.request
       Respond: ck.self.contact.respond

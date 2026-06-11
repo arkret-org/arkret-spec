@@ -3,7 +3,7 @@ ckp: CKP-0014
 title: Implementation-local HTTP surfaces found in coauth / yougen audit
 normative: false
 stability: v1
-updated: 2026-06-06
+updated: 2026-06-11
 status: draft
 created: 2026-06-06
 authors:
@@ -101,7 +101,58 @@ such as `/_cokret/self/events`, `/_cokret/self/account/subscribe`,
 `/_cokret/gate/account/device-pair`, `/_cokret/self/rtc/ice-config`, or
 `/_cokret/self/moderation/report`, and which deserve new optional profiles.
 
-## 6. Required acceptance work
+## 6. Admin / operations surface adjudication (2026-06 sodmin audit)
+
+The 2026-06 sodmin audit found ~40+ admin endpoints called under `/_soland/admin/*`
+that neither soland mounts nor any planning registry lists (actors write ops,
+moderation report resolve, federation peers / allow-rules CRUD, authz
+capabilities CRUD, handles admin, directory approval, media statistics,
+policies CRUD, realm policy / links / member-routability / covered-frontier /
+handovers, anchorer signing-key GET, spaces hierarchy), plus an ops panel set
+(`server/info`, `server/stats`, `server/trust-domain`, `server/relaxed-window`,
+`audit/attestation-evidence`).
+
+**Adjudication (resolves SPEC-SOD-001 / SPEC-SOD-002):**
+
+1. None of these endpoints are protocol candidates. Administrative and
+   operations consoles are deployment products; the Cokret protocol surface
+   (`/_cokret/*`) intentionally does not define an admin plane. They will not
+   be added to the canonical operation registry, and this CKP does not reserve
+   `/_cokret` paths for them.
+2. Whether an implementation (soland) mounts any of them under its vendor
+   namespace (`/_soland/admin/*`) is product planning owned by that
+   implementation's repository, not by this spec.
+3. Admin clients (sodmin) MUST NOT hardcode assumptions that a vendor admin
+   endpoint exists: they MUST feature-gate UI on the server's advertised
+   extension operations (`*.describe` / `supported_operations`) or degrade
+   gracefully on 404 (`format_optional_endpoint_error`-style tolerance).
+   Hardcoded vendor paths that the server never advertised are a client
+   defect, not a spec gap.
+
+**Related adjudications from the same audit:**
+
+- *Agent provision wire body (SPEC-SOD-003)*: the protocol-plane body for
+  `POST /_cokret/self/agents` is already canonical
+  (`agent-operations.schema.json#/$defs/agent_provision_request_body`:
+  `display_name` / `requested_scope` / `accountability` / `pairing_ttl_ms`).
+  Implementations carrying a private body shape (`controller_did` +
+  `agent_key_proof`) are in drift and must converge on the registered schema;
+  no spec change is needed.
+- *Recovery policy/receipt write operations (SPEC-SOD-005)*: the protocol
+  plane defines read paths (`GET /_cokret/root/identity/recovery-policy`,
+  `GET /_cokret/root/identity/receipts`) and the recovery-session flow.
+  Write/configure operations (`POST recovery-policy`, `POST recovery-receipt`)
+  stay implementation-local (`/_soland/root/identity/*`, registered as
+  `org.cokret.soland.*` extension operations) for v1. Promoting them into
+  `/_cokret` requires a dedicated CKP with closed schemas per §7.
+- *Anchorer value wire shape (SPEC-SOD-004)*: adjudicated in normative prose —
+  `zh/authz/event-auth-state-resolution.md` §4.4 now pins the `type`-tagged
+  object from `realm.schema.json` as the only legal wire shape and forbids the
+  `kind` / `kind_raw` / `shape` / `k` / `n` / flattened-alias spellings.
+  SDK (`cokret_core::anchorer::AnchorerValue`, `kind`-tagged) and
+  soland/sodmin (flattened + alias tolerance) must both migrate.
+
+## 7. Required acceptance work
 
 For any candidate accepted from this proposal:
 

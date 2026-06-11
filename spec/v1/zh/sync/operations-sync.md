@@ -3,7 +3,7 @@ title: Operations And Sync
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-10
+updated: 2026-06-11
 see_also:
   - sync/service-surface.md
   - sync/client-sync.md
@@ -334,6 +334,8 @@ Batch receipt 是 best-effort RYW / 加速 / 审计 hint，**不是** range comp
 | `ck.attestation.range_completeness`（本节） | 显式 (from_frontier, to_frontier] + per-actor seq intervals | completeness with witness quorum | per-event payload 解密能力 |
 
 issuer / verifier 应根据需求选取；混用以补强各自边界。
+
+客户端读取面的暴露方式见 [`service-http-binding.md` §3.3.6](./service-http-binding.md)（optional feature `events_query_range_completeness`）：`ck.self.events.query` 可按请求（`include_completeness=true`）返回覆盖该页范围的 attestation 引用，供客户端在 backfill / 恢复路径（[`client-sync.md` §12.3](./client-sync.md)）运行 §4.2.4 verifier 协议；联邦面的 server-to-server 强制语义不变（[`federation.md` §4.5.3](./federation.md)）。
 
 ## 5. Wire Event
 

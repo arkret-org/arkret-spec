@@ -367,6 +367,17 @@ bottom = reject
 - `open_set`: 允许集合内任一 DID 签发 leaf Anchor，DAG join 后收敛。
 - `mixed`: 主 anchorer + fallback recovery anchorer。
 
+**Canonical wire 形态（normative）**：anchorer cell value 的唯一合法 wire 形态与 Realm create payload 的 `anchorer` 字段一致（权威 schema：[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) `anchorer`，封闭 schema）——以 `type` 为标签的对象：
+
+| `type` | 必填字段 | 说明 |
+| --- | --- | --- |
+| `single_did` | `did`（genesis 时还需 `recovery_members` / `controller_organization` / `recovery_controller_organizations`） | 单一 anchorer |
+| `threshold` | `members[]`、`threshold` | k-of-n committee（k=`threshold`，n=`members` 长度） |
+| `open_set` | `members[]` | 开放集合 |
+| `mixed` | `did`、`recovery_members[]` | `did` 为主 anchorer，`recovery_members` 为 fallback |
+
+该形态贯穿 genesis payload、anchorer cell 的 effective value 以及任何管理/产品面 API 对该 value 的下发。实现 MUST NOT 在 wire 上使用别名拼写——包括标签字段写作 `kind` / `kind_raw` / `shape`，阈值写作 `k` / `n`，或扁平化的 `single_did` / `threshold_dids` / `mixed_primary` / `mixed_recovery` 等字段名；读取端对这类别名 SHOULD 拒绝而非容错，避免多套拼写在生态内固化。
+
 变更 anchorer 是普通 Move，由旧 anchorer 签发的后续 Anchor finalize；新 anchorer MUST NOT 自签自己上位。
 
 如果 anchorer cell 在某个 effective view 下为 `⊥`，Anchor 层进入 Realm-wide pause：普通 Anchor MUST NOT 推进，只有 genesis 声明的 recovery anchorer / emergency quorum MAY 签发恢复 Anchor。该暂停不同于普通 cell-scoped bottom，MUST 在 API / UX 中明确暴露。

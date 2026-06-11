@@ -1254,6 +1254,15 @@
       ]
     },
     {
+      "vector_id": "ck.vector.sync.range_completeness_client_query.v1",
+      "status": "active",
+      "domain": "sync",
+      "description": "Client events.query backfill with include_completeness=true detects withheld actor branches via ck.attestation.range_completeness verification; feature-less servers ignore the parameter; single_source attestation does not satisfy high-assurance realms.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ck.vector.sync.soft_fail_reconcile.v1",
       "status": "active",
       "domain": "sync",

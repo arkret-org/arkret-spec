@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/applet-ghost-operations.schema.json",
+  "title": "Cokret Applet Ghost Actor Operation DTOs",
+  "description": "Closed request/response DTOs for ck.self.applet.ghost.provision. An installed Applet service / bridge asks the Principal Server to provision (or idempotently re-validate) an Applet-managed Ghost Actor profile plus accountability grant for one external user. The server MUST re-check applet_id / service_did / realm_id / ghost namespace against the active registration before minting anything.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/ghost_actor_provision_request_body"
+    },
+    {
+      "$ref": "#/$defs/ghost_actor_provision_outcome"
+    }
+  ],
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "applet_id": {
+      "type": "string",
+      "pattern": "^ck:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "realm_id": {
+      "type": "string",
+      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "event_ref": {
+      "type": "string",
+      "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "grant_ref": {
+      "type": "string",
+      "pattern": "^ck:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "external_ref": {
+      "$ref": "./event-envelope.schema.json#/$defs/external_ref"
+    },
+    "ghost_actor_provision_request_body": {
+      "type": "object",
+      "description": "Request body for ck.self.applet.ghost.provision. ghost_actor_id MUST fall inside the actor namespace declared by the applet_id registration; protocol / tenant / external_user_id identify the external principal being mirrored.",
+      "required": [
+        "schema",
+        "applet_id",
+        "service_did",
+        "ghost_actor_id",
+        "protocol",
+        "tenant",
+        "external_user_id",
+        "realm_id",
+        "external_ref"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ck.applet.ghost_actor.provision_request.v1"
+        },
+        "applet_id": {
+          "$ref": "#/$defs/applet_id"
+        },
+        "service_did": {
+          "$ref": "#/$defs/did"
+        },
+        "ghost_actor_id": {
+          "$ref": "#/$defs/did"
+        },
+        "protocol": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.-]{0,63}$"
+        },
+        "tenant": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "external_user_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "display_name": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "external_ref": {
+          "$ref": "#/$defs/external_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ghost_actor_provision_outcome": {
+      "type": "object",
+      "description": "Response for ck.self.applet.ghost.provision. Carries the durable event refs the Principal Server minted (or re-confirmed on idempotent re-provision): the Ghost Actor ck.profile.create ref and the ck.identity.accountability_grant ref, the latter also surfaced as the authorization_ref the bridge MUST place on subsequent ghost-authored Event Envelopes.",
+      "required": [
+        "ghost_actor_id",
+        "profile_event_ref",
+        "accountability_grant_ref",
+        "authorization_ref"
+      ],
+      "properties": {
+        "ghost_actor_id": {
+          "$ref": "#/$defs/did"
+        },
+        "profile_event_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "accountability_grant_ref": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "authorization_ref": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "display_name": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

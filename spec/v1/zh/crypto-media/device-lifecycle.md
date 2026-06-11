@@ -3,7 +3,7 @@ title: Device Lifecycle
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-10
+updated: 2026-06-11
 ---
 
 ## 0. 规范语言
@@ -460,7 +460,7 @@ Content-Type: application/json
 }
 ```
 
-服务端 MUST 以 `(sender, Idempotency-Key)` 幂等。设备收到 sync 响应并推进 `cursor` 后，服务端 MAY 删除已投递消息。To-device 消息 SHOULD 端到端加密；未加密消息只能用于能力发现和验证引导。
+服务端 MUST 以 `(sender, Idempotency-Key)` 幂等。已投递消息的队列删除只由接收设备的显式确认（`ck.self.device_messages.ack`，见下文与 [`client-sync.md` §10.1](../sync/client-sync.md)）驱动；sync cursor 推进 MUST NOT 触发删除。To-device 消息 SHOULD 端到端加密；未加密消息只能用于能力发现和验证引导。
 
 若 `content` 已端到端加密，加密 AAD MUST 至少覆盖 `kind`、`sender_principal_id`、`sender_device_id`、`recipient_principal_id`、`recipient_device_id`、`sent_at` 和 `expires_at`。队列服务不得重写这些字段。`Idempotency-Key` 是 HTTP 层语义，不进入 envelope，也不参与 AAD。
 
@@ -483,9 +483,36 @@ Authorization: Bearer <token>
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `events` | `object[]` | required | 当前设备可见的 to-device 消息。 |
-| `next_cursor` | `cursor` | optional | 下一次读取 stream cursor。 |
+| `messages` | `object[]` | required | 当前设备可见的 to-device 消息（`DeviceMessageEnvelope[]`，不是 Event Envelope）。 |
+| `ack_token` | `string` | optional | `messages` 非空时 MUST 返回。覆盖本页及之前所有已投递消息的不透明确认令牌；客户端持久化处理完成后回传给 `ck.self.device_messages.ack`。语义见 [`client-sync.md` §10.1](../sync/client-sync.md)。 |
+| `next_cursor` | `cursor` | optional | 下一次读取 stream cursor（只读位置，不触发删除）。 |
+| `has_more` | `boolean` | required | 是否还有后续消息页。 |
 | `limited` | `boolean` | optional | 是否因 limit 被截断。 |
+| `lost` | `boolean` | optional | 自该设备上次确认位置以来，服务端因过期或容量约束丢弃过未确认消息时 SHOULD 置 `true`；客户端 SHOULD 触发密钥恢复路径。 |
+
+确认接口：
+
+```http
+POST /_cokret/self/device_messages/ack
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+请求字段：
+
+| 字段 | 位置 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- | --- |
+| `Authorization` | header | `bearer token` 或 `device proof` | required | 必须绑定当前接收设备。 |
+| `ack_token` | body | `string` | required | 服务端先前签发给同一 `(principal_id, device_id)` 的确认令牌。 |
+
+响应字段：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `ok` | `boolean` | required | 确认是否被接受（含旧令牌 no-op 的情况）。 |
+| `pruned_count` | `int` | optional | 本次实际删除的消息数。 |
+
+确认语义（normative，完整定义见 [`client-sync.md` §10.1](../sync/client-sync.md)）：确认是累计且单调的——服务端删除令牌覆盖位置（含）之前的全部已投递消息；重复 ack 或 ack 旧令牌返回 `{ok: true}` 且不得回退确认位置（天然幂等，无需 `Idempotency-Key`）。unknown / 过期 / cross-binding 令牌 MUST 返回 `invalid_param`（reason `invalid_ack_token`）且 MUST NOT 删除任何排队消息。客户端 MUST 在该批次密钥材料 / verification transcript / secret **持久化落盘之后**才 ack；未 ack 的消息在重连时由服务端重新投递，客户端按 `transaction_id` / `request_id` 幂等处理重复投递。
 
 ## 8. One-Time and Fallback Keys
 

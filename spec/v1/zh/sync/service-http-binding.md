@@ -3,7 +3,7 @@ title: Service HTTP/JSON Binding
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-10
+updated: 2026-06-11
 ---
 
 ## 0. 规范语言
@@ -58,7 +58,7 @@ Cokret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织�
 | `/_cokret/self/snapshot/*` | 客户端、Principal Server | Realm snapshot manifest 入口(`GET /_cokret/self/snapshot/head`)。 | `client-sync.md`、`service-surface.md` |
 | `/_cokret/peer/snapshot/*` | 对等 Principal Server / Federation Server | federation snapshot-assisted bootstrap manifest 入口(`GET /_cokret/peer/snapshot/head`)。 | `federation.md`、`snapshot.schema.json` |
 | `/_cokret/self/projection/*`、`/_cokret/self/views/*` | 客户端、Principal Server | 派生 projection 读取：Space / Flow / Morph lifecycle 列表、collection View 物化、document Morph 单对象投影。 | `realm-and-space.md`、`flow-and-message.md`、`morph.md`、`views.md` |
-| `/_cokret/self/applets/*` | 客户端、Realm admin | self/admin 信任面的 Applet 安装聚合操作：install 预览、install、revoke（`ck.self.applet.install.preview` / `ck.self.applet.install` / `ck.self.applet.revoke`）。Applet 运行时桥接面在 `/_cokret/edge/applet/*`。 | `applet-integration.md` |
+| `/_cokret/self/applets/*` | 客户端、Realm admin、已安装 Applet service | self/admin 信任面的 Applet 安装聚合操作：install 预览、install、revoke（`ck.self.applet.install.preview` / `ck.self.applet.install` / `ck.self.applet.revoke`），以及 bridge Applet 的 Ghost Actor provisioning（`ck.self.applet.ghost.provision`）。Applet 运行时桥接面在 `/_cokret/edge/applet/*`。 | `applet-integration.md` |
 | `/_cokret/find/directory/*` | 客户端、服务 | Realm / Organization / Actor / handle 的授权发现与解析。 | `discovery-directory.md` |
 | `/_cokret/self/blob/*` | 客户端、服务 | Blob 上传、HEAD、authenticated download。 | `media-and-blob.md` |
 | `/_cokret/edge/push/*` | 客户端、Sync、Push Gateway | 推送设备注册、注销、脱敏唤醒投递。 | `push-notifications.md` |
@@ -166,7 +166,8 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `POST /_cokret/edge/push/unregister-device` | body `{device_id: id, push_key?: string, app_id?: string}` | `user_session` for same device/principal 或 device revocation path。 | `{ok: true}` |
 | `POST /_cokret/edge/push/notify` | body `schemas/push-operations.schema.json#/$defs/push_notify_request_body`；默认 `notification` 为 blind 形态 `{push_target_id, wakeup_kind, push_hint?, counts?, devices[]}`，可见通知必须使用互斥的 profile-gated visible 形态。 | 来自被授权 Sync 或通知服务的 `service_signature`；默认 MUST 遵守 `ck.profile.push_gateway.blind_wakeup.v1`，不得携带 event / realm / sender 识别字段。`visible_notification` 只在 profile、Realm policy、设备 opt-in 和 UI disclosure 同时满足时允许。 | `schemas/push-operations.schema.json#/$defs/push_notify_outcome` |
 | `POST /_cokret/self/device_messages` | header `Idempotency-Key` body `DeviceMessagesPutRequestBody {messages: {principal_id: {device_id: DeviceMessageTarget {kind, content, expires_at}}}}` | sender `user_session` / device key；目标必须是授权 device；服务端入队前 MUST materialize `DeviceMessageEnvelope` 并绑定 `recipient_principal_id` / `recipient_device_id` / `expires_at`；按 `(sender, Idempotency-Key)` 幂等。验证消息使用 `ck.key.verification.*` kind，且不得作为持久 Event history；缺失、已过期或超过 TTL 上限的消息 MUST reject。 | `{ok: true, delivered?, unknown_devices?}` |
-| `GET /_cokret/self/device_messages` | query `{from?: cursor, limit?: int}` | `user_session` bound to current device；只返回该 device 队列。 | `{messages: DeviceMessageEnvelope[], next_cursor?, has_more, limited?}` |
+| `GET /_cokret/self/device_messages` | query `{from?: cursor, limit?: int}` | `user_session` bound to current device；只返回该 device 队列；`from=` 是只读位置，MUST NOT 触发队列删除。 | `{messages: DeviceMessageEnvelope[], ack_token?, next_cursor?, has_more, limited?, lost?}`；`messages` 非空时 MUST 返回 `ack_token`。 |
+| `POST /_cokret/self/device_messages/ack` | body `{ack_token: string}` | `user_session` bound to current device；`ack_token` 绑定必须匹配当前 `(principal_id, device_id)`，unknown / 过期 / cross-binding 令牌返回 `invalid_param`（reason `invalid_ack_token`）且不得删除任何消息。 | `{ok: true, pruned_count?}`；累计单调确认，重复 / 旧令牌为 no-op；语义见 [`client-sync.md` §10.1](./client-sync.md)。 |
 | `POST /_cokret/self/keys/upload` | body `{device_id: id, one_time_keys?: object, fallback_keys?: object, device_signature: signature}` | current device proof；key 必须链接 self-signing / principal key。 | `{one_time_key_counts, fallback_keys?}` |
 | `POST /_cokret/self/keys/query` | body `{device_keys: {principal_id: string[]}, timeout_ms?: int}` | `user_session`; 查询范围可按关系 / Realm 限制。 | `{device_keys, failures?}` |
 | `POST /_cokret/self/keys/claim` | body `{one_time_keys: {principal_id: {device_id: algorithm}}}` | `user_session`; one-time key MUST 原子消费。 | `{one_time_keys, failures?}` |
@@ -472,7 +473,8 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `ck.edge.push.unregister_device` | `device_id: id` | `push_key: string`; `app_id: string` | `ok: boolean` | request_schema_ref=schemas/push-operations.schema.json#/$defs/push_unregister_device_request_body; response_schema_ref=schemas/push-operations.schema.json#/$defs/push_unregister_device_outcome。same device/principal 或 device revocation path。 |
 | `ck.edge.push.notify` | `notification.push_target_id: string`; `notification.wakeup_kind: enum(message,mention,reaction,call_invite,generic)`; `notification.devices: object[]` | `notification.push_hint: string`; `notification.counts: object`; visible profile only: `notification.event_id: id`, `notification.realm_id: id`, `notification.sender_actor_id: did` | `rejected: object[]` | request_schema_ref=schemas/push-operations.schema.json#/$defs/push_notify_request_body; response_schema_ref=schemas/push-operations.schema.json#/$defs/push_notify_outcome。来自授权 Sync 或 notification service；默认 blind wakeup 请求 MUST NOT 携带 event / realm / sender 字段。visible 字段只在 `ck.profile.push_gateway.visible_notification.v1` 且 Realm policy + device opt-in + UI disclosure 通过时允许。`service_signature` 的 transcript MUST 绑定 `push_target_id` 所对应 registration 的 registration service DID（即 `ck.edge.push.register_device` 注册作用域绑定的 Principal Server service DID）；且发起 notify 的来源服务 DID MUST 出现在该设备 registration 的 `recipient_service_did` 投递链内。push gateway MUST 拒绝来源服务不在目标设备投递链内、或 transcript 未绑定该 registration service DID 的请求（`capability_denied`），以阻止跨 Realm / 跨 Principal Server 的 push 注入。 |
 | `ck.self.device_messages.put` | `header.Idempotency-Key: string`; `messages: object` | 每个 target 必须含 `kind`、`content`、`expires_at` | `ok: boolean`; `delivered: object?`; `unknown_devices: object?` | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesPutRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesPutOutcome。`(sender, Idempotency-Key)` 幂等；目标必须是授权 device；过期或超过 TTL 上限的消息必须拒绝或逐项 reject。 |
-| `ck.self.device_messages.get` | 无 | `query.from: cursor`; `query.limit: int` | `messages: object[]`; `next_cursor: cursor?`; `has_more: boolean`; `limited: boolean?` | response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetOutcome。响应字段 `messages[]` 含 `DeviceMessageEnvelope` 对象, 不是 Event Envelope; 只返回当前 device 队列。 |
+| `ck.self.device_messages.get` | 无 | `query.from: cursor`; `query.limit: int` | `messages: object[]`; `ack_token: string?`; `next_cursor: cursor?`; `has_more: boolean`; `limited: boolean?`; `lost: boolean?` | response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetOutcome。响应字段 `messages[]` 含 `DeviceMessageEnvelope` 对象, 不是 Event Envelope; 只返回当前 device 队列；`from=` 是只读位置，不触发队列删除；`messages` 非空时 MUST 返回 `ack_token`。 |
+| `ck.self.device_messages.ack` | `ack_token: string` | 无 | `ok: boolean`; `pruned_count: int?` | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckOutcome。显式 to-device 投递确认（[`client-sync.md` §10.1](./client-sync.md)）：累计单调、天然幂等；unknown / 过期 / cross-binding 令牌返回 `invalid_param`（reason `invalid_ack_token`）且不得删除任何消息。 |
 | `ck.self.keys.upload` | `device_id: id`; `device_signature: signature` | `one_time_keys: object`; `fallback_keys: object` | `one_time_key_counts: object`; `fallback_keys: object?` | request_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_upload_request_body; response_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_upload_outcome。key 必须链接 self-signing / principal key。 |
 | `ck.self.keys.query` | `device_keys: object` | `timeout_ms: int` | `device_keys: object`; `failures: object[]?` | request_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_query_request_body; response_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_query_outcome。查询范围可按关系 / Realm 限制。 |
 | `ck.self.keys.claim` | `one_time_keys: object` | 无 | `one_time_keys: object`; `failures: object[]?` | request_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_claim_request_body; response_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_claim_outcome。one-time key MUST 原子消费。 |
@@ -494,6 +496,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `ck.self.applet.install.preview` | `applet_package: object`; `effective_scope: object`; `approval_request: object` | 无 | `InstallPlan` | request_schema_ref=schemas/applet-install-operations.schema.json#/$defs/applet_install_preview_request_body; response_schema_ref=schemas/applet-install-plan.schema.json。self/admin aggregate operation；只读预览，不写 Realm history；返回 canonical `plan_digest`。 |
 | `ck.self.applet.install` | `header.Idempotency-Key: string`; `plan_digest: hash`; `applet_package: object`; `effective_scope: object`; `approved_scopes: object[]` | `actor_policy: object`; `e2ee_policy: object`; `widget_policy: object` | `ok: boolean`; `install_id: string`; `registration_event_ref: ref?`; `registration_epoch: hash`; `bot_actor_id: did`; `capability_grant_refs: ref[]`; `membership_event_refs: ref[]`; `e2ee_authorization_refs: ref[]`; `widget_policy_ref: ref?`; `effective_status: enum(installed,partially_installed,rejected)`; `rejected: object[]` | request_schema_ref=schemas/applet-install-operations.schema.json#/$defs/applet_install_request_body; response_schema_ref=schemas/applet-install-operations.schema.json#/$defs/applet_install_outcome。self/admin aggregate operation；MUST 重新计算 plan，`plan_digest` 不匹配返回 `applet_install_plan_mismatch`；不创建 durable `ck.self.applet.install` event。 |
 | `ck.self.applet.revoke` | `header.Idempotency-Key: string`; `path.applet_id: id`; `effective_scope: object`; `reason_code: string`; `revoke_mode: enum(revoke_all,revoke_runtime_only,revoke_widget_only,revoke_delegated_sessions)` | 无 | `ok: boolean`; `revoked_refs: ref[]?`; `rejected: object[]?` | request_schema_ref=schemas/applet-install-operations.schema.json#/$defs/applet_revoke_request_body; response_schema_ref=schemas/applet-install-operations.schema.json#/$defs/applet_revoke_outcome。self/admin aggregate operation；撤销 bound grants / widget tokens / delegated sessions；revoke 后未来写入返回 `applet_revoked` 或更细 reason。 |
+| `ck.self.applet.ghost.provision` | `header.Idempotency-Key: string`; `path.applet_id: id`; `schema: const(ck.applet.ghost_actor.provision_request.v1)`; `applet_id: id`; `service_did: did`; `ghost_actor_id: did`; `protocol: string`; `tenant: string`; `external_user_id: string`; `realm_id: id`; `external_ref: object` | `display_name: string` | `ghost_actor_id: did`; `profile_event_ref: ref`; `accountability_grant_ref: ref`; `authorization_ref: ref`; `display_name: string?` | request_schema_ref=schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body; response_schema_ref=schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_outcome。调用方是已安装 bridge Applet 的 service DID；服务端 MUST 校验 active registration 覆盖 caller service DID、`ghost_actor_id` 命中 registration actor namespace、`realm_id` 在 effective scope 内；同一 `(applet_id, protocol, tenant, external_user_id)` 重复 provision MUST 幂等返回既有 refs。见 `applet-integration.md` §9.1。 |
 | `ck.edge.applet.transaction` | `header.Idempotency-Key: string`; `source_service_did: did`; `events: EventEnvelope[]` | `ephemeral: EphemeralEnvelope[]` | `ok: boolean`; `rejected: object[]?`; `retry_after_ms: int?` | request_schema_ref=schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body; response_schema_ref=schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_outcome。Applet 必须验证 event signature、namespace、capability；按 `(source_service_did, Idempotency-Key)` 幂等。 |
 | `ck.edge.applet.resolve_actor` | `path.actor_id: did` | 无 | `exists: boolean`; `actor_id: did?`; `display_name: string?`; `external_ref: object?` | response_schema_ref=schemas/applet-edge-operations.schema.json#/$defs/applet_actor_view。actor_id 必须命中 namespace。 |
 | `ck.edge.applet.resolve_realm` | `path.realm_id_or_alias: string` | 无 | `exists: boolean`; `realm_id: id?`; `title: string?`; `external_ref: object?` | response_schema_ref=schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view。必须命中 portal namespace 或授权查询。 |
@@ -696,6 +699,7 @@ GET /_cokret/self/events?realms=<id>&actors=<did>&after=<Y>&before=<X>   # 区�
 | `after` | `cursor` | optional | 返回此 cursor *之后*（**不含**）的最近一批 Event。"之后" = 比此 cursor 更新的事件方向。 |
 | `order` | `enum(default, ascending, descending)` | optional | 默认 `default` 按下方"近邻先返回"规则；`ascending` / `descending` 显式强制顺序。 |
 | `limit` | `int` | optional | 服务端 enforce 上限（见 [`scalability-constraints.md`](../conformance/scalability-constraints.md)）。 |
+| `include_completeness` | `boolean` | optional | 默认 `false`。`true` 时请求服务端在响应中附带覆盖本批次范围的 `ck.attestation.range_completeness` 引用（§3.3.6）。仅在服务端 `supported_features[]` 声明 `events_query_range_completeness` 时有效；未声明的服务 MUST 忽略该参数（不报错、不返回字段）。 |
 
 规则：
 
@@ -759,7 +763,7 @@ Content-Type: application/json
 }
 ```
 
-POST 形态与 GET 形态**完全等价**：参数集（`realms` / `actors` / `before` / `after` / `order` / `limit` / `filters`）、默认顺序规则（§3.3.3）、响应 cursor 绝对方向（§3.3.4）一律相同；只是 wire 形态从 query string 变为 JSON body。
+POST 形态与 GET 形态**完全等价**：参数集（`realms` / `actors` / `before` / `after` / `order` / `limit` / `filters` / `include_completeness`）、默认顺序规则（§3.3.3）、响应 cursor 绝对方向（§3.3.4）一律相同；只是 wire 形态从 query string 变为 JSON body。
 
 **何时使用 POST**：
 - URL 长度风险：`realms[]` 或 `actors[]` 列表较大、`filters` 是嵌套 object 时，URL 容易超过代理 / CDN / 负载均衡器的实际上限（常见 4–8 KiB）
@@ -786,6 +790,25 @@ POST 形态与 GET 形态**完全等价**：参数集（`realms` / `actors` / `b
 
 **`binding_variant_of` conformance 矩阵规则**：当 operation B 声明 `binding_variant_of=A` 时，B 与 A 共享 selector / cursor / cursor-direction / projection 测试集合，只独立测试 wire encoding（query string vs JSON body）。conformance suite 不需要为 variant 重复跑业务逻辑测试。
 
+#### 3.3.6 Range completeness（optional feature：`events_query_range_completeness`）
+
+cursor + `has_more` 只告诉客户端"拿到了一页"，不告诉客户端"该范围内没有事件被静默扣下"。`prev_refs` DAG 能把**被引用**的缺失依赖暴露为 backfill 目标，但不在已见事件因果过去中的整条 sibling 分支（如被扣下的 ban / 撤销 / moderation 事件）无法被 DAG 发现——这正是 [`operations-sync.md` §4.2](./operations-sync.md) `ck.attestation.range_completeness` 针对的 silent fork 形态。本节把该原语接到客户端读取面。
+
+在 `ServiceDescribe.supported_features[]` 声明 `events_query_range_completeness` 的服务 MUST 支持：
+
+1. **请求**：`include_completeness=true`（GET query 参数或 POST body 字段）。
+2. **响应**：附带可选字段 `range_completeness`（见 [`EventsQueryOutcome`](../../artifacts/schemas/service-operation-dtos.schema.json)）：`attestation_refs[]` 是覆盖本批次事件范围的 `ck.attestation.range_completeness` event id 集合；服务端 MAY 经 `attestations[]` 内联完整 attestation 对象。服务端 SHOULD 按固定 frontier bucket 预计算 attestation（与 [`federation.md` §4.5.3](./federation.md) 的 probe bucket 对齐），返回覆盖集而不是按页边界现算；over-coverage 合法，客户端按 scope 取交集验证。
+3. **无覆盖时**：省略 `range_completeness` 字段。客户端 MUST 把缺失视为"该范围未被 attest"，不得视为错误，也不得视为完整性确认。
+
+客户端验证 MUST 遵循 [`operations-sync.md` §4.2.4](./operations-sync.md) verifier 协议：backfill 完成后客户端持有 scope 全集，适用其第 4 步（重算 Merkle root 并比较，不一致 `range_completeness_root_mismatch`）与第 6 步（`actor_seq_ranges[]` 与本地视图比对，本地有缺口而 attestation 声称完整时 `range_completeness_actor_seq_gap`）；`witness_disagreement` 按其第 7 步 fail closed。`single_source` attestation 只是 issuer 自报（§4.2.3），不构成 sovereign-grade 证明；声明 `security_class=high_assurance` 或 `ck.profile.federation.high_assurance.v1` 的 Realm，客户端 MUST 只接受 `federation_witness_attested` quorum 解除 completeness 关注。
+
+适用范围与边界：
+
+- 只覆盖 reducer-input event；ephemeral、account_data、to-device 不在 scope（to-device 投递安全由 [`client-sync.md` §10.1](./client-sync.md) 显式 ack 承担）。
+- E2EE 无障碍：attestation leaf 只含 `(actor_id, actor_seq, event_id, event_digest)`，服务端无需明文。
+- 只接 query / backfill / 恢复路径（[`client-sync.md` §12.3](./client-sync.md)），不接 subscribe 实时尾部；attestation 事件本身会作为普通事件随流到达。
+- 已声明 `ck.profile.federation.high_assurance.v1` 的部署因联邦面已在生产这些 attestation，SHOULD 同时声明 `events_query_range_completeness` 把它们暴露给客户端。
+
 ### 3.4 流式订阅 Event（`ck.self.events.subscribe`）
 
 ```text
@@ -810,7 +833,22 @@ HTTP 200 response `Content-Type` MUST be `application/x-ndjson`。Frame 每行�
 { "kind": "resync_required", "realm_id": "ck:realm:01...", "reconnect_after_ms": 10000 }
 ```
 
+Frame 字段约束（normative，与 OpenAPI `EventsSubscribeFrame` 的机器约束一致；严格度对齐 [`account-subscribe-frame.schema.json`](../../artifacts/schemas/account-subscribe-frame.schema.json)）：
+
+| `kind` | `realm_id` | `cursor` | `payload` | 语义 |
+| --- | --- | --- | --- | --- |
+| `event` | REQUIRED | REQUIRED | REQUIRED | selector 范围内的一条 Event；cursor 是该事件之后的续传位置。 |
+| `epoch_rotation` | REQUIRED | 禁止 | REQUIRED | Realm-scoped MLS epoch 边界提示帧，不推进 cursor。 |
+| `frontier` | optional | REQUIRED | 禁止 | 仅推进 cursor。`realm_id` 存在 = 该 Realm 的 frontier；缺省 = 整个订阅。 |
+| `catchup_complete` | optional | REQUIRED | 禁止 | 追赶回放完成。`realm_id` 存在 = 该 Realm 完成；缺省 = 整个订阅完成。 |
+| `dropped` | REQUIRED | REQUIRED | 禁止 | Realm-scoped 缺口信号；客户端按 cursor 用 `ck.self.events.query` 补齐该 Realm。MAY 携带 `reconnect_after_ms`。 |
+| `resync_required` | optional | 禁止 | 禁止 | `realm_id` 存在 = 仅该 Realm 需要重建本地状态；缺省 = 整个订阅重建。MAY 携带 `reconnect_after_ms`。 |
+| `unauthorized` | optional | 禁止 | 禁止 | `realm_id` 存在 = 对该 Realm 失权，该 Realm 从流中移除，其余 Realm 继续；缺省 = 整个 session 失权，客户端 MUST 重新认证。 |
+| `heartbeat` | 禁止 | 禁止 | 禁止 | keepalive，不携带任何数据。 |
+
 客户端必须把 `dropped` 与 `resync_required` 当作硬信号——前者要求按 cursor 重新 `ck.self.events.query` 补齐，后者要求重建本地状态。`kind="dropped"` frame 的 `cursor` 为 REQUIRED；服务端没有可用补齐 cursor 时 MUST 发送 `resync_required`，不得发送无 cursor 的 `dropped`。
+
+本端点（与 `ck.self.events.query`）cursor 绑定中的 `filter_digest` 是 **query-scope digest**：覆盖完整 selector（`realms` / `actors`）、`filters` 与 `order`，canonical 计算见 [`client-sync.md` §11.1](./client-sync.md)。在不同 scope 下回传 cursor MUST 返回 `cursor_integrity_invalid`，不得按新 scope 续读。
 
 Dropped / resync-required control frame MAY 携带顶层 `reconnect_after_ms`，表示客户端在打开下一条 `ck.self.events.subscribe` 连接前必须等待的最小毫秒数。cooldown scope MUST 至少按 `(principal_id, device_id, operation_id, filter_digest)` 四元组维度强制执行（与 [`client-sync.md` §2.2](./client-sync.md) 对 `ck.self.account.subscribe` 的 cooldown 维度定义一致；`operation_id` 进入该四元组确保 `ck.self.account.subscribe` 与 `ck.self.events.subscribe` 的 cooldown 互不串扰）。该字段不是错误响应的 `retry_after_ms`，不约束无关 API 调用；服务端一旦发送该字段，MUST 在对应 cooldown scope 内强制执行，过早重连 MUST 返回 `429 rate_limited` 并设置 `Retry-After`，且不得推进 cursor、ack 或其它不可逆订阅状态。客户端 SHOULD 在该延迟上加入 jitter。
 
@@ -875,9 +913,9 @@ GET /_cokret/self/account/subscribe?after=<cursor>&catchup=true           # reco
 
 它与 `ck.self.events.subscribe` 是对称的两类 streaming 订阅(account-aggregate vs per-Realm event log),共享 cursor / `dropped` / `resync_required` 控制模型，但恢复面不同:`self.account.subscribe` 的 `dropped` 用 `GET /_cokret/self/account/subscribe?after=<cursor>&catchup=true` 重放账号聚合 delta;裸 Event 缺口才使用 `ck.self.events.query`。`catchup=true` 不表示全量历史；完整历史读取必须走 `ck.self.events.query`。它不是裸事件读取——裸事件读取请使用 `ck.self.events.query` / `ck.self.events.subscribe`。
 
-Dropped / resync-required control frame MAY 携带 `reconnect_after_ms`。客户端在同一 principal/device/filter scope 重新建立 `/_cokret/self/account/subscribe` 之前 MUST 至少等待该时长；服务端 MUST 对过早重连返回 `429 rate_limited` + `Retry-After`，并且不得推进 to-device ack、account subscribe position 或 dropped recovery state。
+Dropped / resync-required control frame MAY 携带 `reconnect_after_ms`。客户端在同一 principal/device/filter scope 重新建立 `/_cokret/self/account/subscribe` 之前 MUST 至少等待该时长；服务端 MUST 对过早重连返回 `429 rate_limited` + `Retry-After`，并且不得推进 account subscribe position 或 dropped recovery state。
 
-服务端在使用客户端回传的 `after=<cursor>` 推进 to-device ack 投递状态前，MUST 先通过 [`client-sync.md` §12.2](./client-sync.md) 的 cursor 完整性校验（handle 查表 / 绑定匹配）；校验失败 MUST 返回 `cursor_integrity_invalid` 且 MUST NOT 推进任何 server-side state。
+客户端回传的 `after=<cursor>` 只决定续传读取位置，MUST 先通过 [`client-sync.md` §12.2](./client-sync.md) 的 cursor 完整性校验（handle 查表 / 绑定匹配）；校验失败 MUST 返回 `cursor_integrity_invalid` 且 MUST NOT 推进任何 server-side state。to-device 队列删除与 cursor 解耦，只由 `ck.self.device_messages.ack` 显式确认驱动（[`client-sync.md` §10.1](./client-sync.md)）。
 
 ## 6. Snapshot API
 
@@ -889,7 +927,7 @@ Dropped / resync-required control frame MAY 携带 `reconnect_after_ms`。客户
 GET /_cokret/self/snapshot/head?realm_id=<id>
 ```
 
-该端点对应 `ck.self.snapshot.head`，返回当前推荐的完整 Snapshot manifest（`ck.schema.snapshot.v1`，不含 chunk bytes）；manifest 自带签名 transcript 的全部被签字段与 `chunks[]` 下载描述符。客户端先验证 manifest 签名与签名者授权，再通过 `chunks[].chunk_ref` 走 blob surface 取实际数据。无法产出真实签名 manifest 的部署 MUST NOT 在 `describe.supported_operations` 宣告本操作，对该端点 MUST 返回 `not_implemented`；MUST NOT 用结构合法、语义为假的 `signature` / `authority_binding` / `event_set_commitment` 填充响应。snapshot 不是真相源，校验失败时客户端 MUST 回退到 Event history replay。
+该端点对应 `ck.self.snapshot.head`，返回当前推荐的完整 Snapshot manifest（`ck.schema.snapshot.v1`，不含 chunk bytes）；manifest 自带签名 transcript 的全部被签字段与 `chunks[]` 下载描述符。客户端先验证 manifest 签名与签名者授权，再通过 `chunks[].chunk_ref` 走 blob surface 取实际数据。无法产出真实签名 manifest 的部署 MUST NOT 在 `describe.supported_operations` 宣告本操作，对该端点 MUST 返回 `not_implemented`；MUST NOT 用结构合法、语义为假的 `signature` / `authority_binding` / `event_set_commitment` 填充响应。若部署支持并宣告本操作、Realm 对调用方可见、但当前尚无可用 snapshot manifest，则 MUST 返回 `snapshot_unavailable`(503)；Realm 不存在或对调用方不可见时仍返回不可区分的 `not_found`。snapshot 不是真相源，校验失败时客户端 MUST 回退到 Event history replay。
 
 ## 7. Directory API
 

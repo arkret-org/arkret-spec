@@ -3259,6 +3259,7 @@
       "required_endpoints": [
         "ck.self.device_messages.put",
         "ck.self.device_messages.get",
+        "ck.self.device_messages.ack",
         "ck.self.keys.upload",
         "ck.self.keys.query",
         "ck.self.keys.claim",
@@ -3558,7 +3559,8 @@
         "ck.self.blob.head",
         "ck.self.blob.get",
         "ck.self.device_messages.put",
-        "ck.self.device_messages.get"
+        "ck.self.device_messages.get",
+        "ck.self.device_messages.ack"
       ],
       "required_event_kinds": [
         "ck.account_data.set"

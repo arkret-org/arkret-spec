@@ -783,6 +783,8 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 - `auth_frontier`：参与该 hash 的 state event head set 或 snapshot frontier。
 - 命中的 grant event id、revoke tombstone / superseding event id（如有）、claim status evidence 和过期时间。
 
+除非具体 deployment profile 另行声明可复算的 auth-state canonical encoding，`auth_state_digest` 在跨实现 wire 上是 issuer-local opaque commitment：它绑定 cache entry、snapshot authority binding 或审计记录与某个 `auth_frontier`，但第三方 verifier 的安全判定 MUST 来自按 `auth_frontier` 可取得的 accepted auth state 回放 / 查询结果。换言之，verifier MUST 检查 digest 与 frontier 的自洽性和新鲜度，MUST NOT 把无法逐字重算该 opaque digest 解释为授权通过。
+
 规则：
 
 - 任何影响该 scope 的 accepted grant、revoke、membership、policy、claim status、device/session revoke 或 Realm lifecycle 变化，MUST 立即把对应 cache entry 标记 stale。"立即"指节点本地 reducer 在 `apply_anchor` 完成的同一事务边界内；分布式 fanout 的传播延迟由 §18.2 freshness 检查兜底，**MUST NOT** 作为延迟标记 stale 的理由。**Reducer-derived membership cascade** 也 MUST 触发 cache stale：典型场景是 Realm leave/ban 触发各 Circle membership 自动收敛（见 [`circle.md` §9.1](../models/circle.md)），以及 Circle tombstone 触发对象 scope 失效。这些 cascade 不一定发出独立 `ck.member.state` event，但产生的 cell 变化同样属于"membership 变化"，MUST 触发 cache invalidation。

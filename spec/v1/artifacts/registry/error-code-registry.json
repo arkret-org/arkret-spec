@@ -381,7 +381,7 @@
       "code": "cursor_revoked",
       "http_status": 410,
       "scope": "endpoint",
-      "description": "Cursor integrity is valid but the issuing service has explicitly revoked this cursor authority before TTL expiry. Endpoint MUST NOT advance to-device ack, subscription position, barrier wait, or dropped recovery state; caller MUST restart from a fresh cursor."
+      "description": "Cursor integrity is valid but the issuing service has explicitly revoked this cursor authority before TTL expiry. Endpoint MUST NOT advance subscription position, barrier wait, or dropped recovery state; caller MUST restart from a fresh cursor. To-device queue deletion is decoupled from cursors and unaffected (client-sync.md §10.1)."
     },
     {
       "code": "cursor_unrecognized",
@@ -1191,7 +1191,7 @@
         "client_sync",
         "encoding"
       ],
-      "description": "Cursor failed the §8.3.1 integrity check: stateless `_mac` / `_sig` did not verify against the issuing service's current cursor key, or transcript binding (principal / device / service / filter_digest / purpose / positions / target / x / issuer_kid) did not match the authenticated request; or stateful `h` handle is unknown / revoked / cross-bound. Distinct from cursor_expired (TTL) and cursor_unrecognized (cross-service portability miss). Triggered before any server-side state advancement (to-device ack, /account/subscribe after= resume, X-Cokret-Wait-For release, dropped/resync_required recovery). Client MUST clear local cursor cache and restart from initial /account/subscribe."
+      "description": "Cursor failed the §8.3.1 integrity check: stateless `_mac` / `_sig` did not verify against the issuing service's current cursor key, or transcript binding (principal / device / service / filter_digest / purpose / positions / target / x / issuer_kid) did not match the authenticated request; or stateful `h` handle is unknown / revoked / cross-bound. Distinct from cursor_expired (TTL) and cursor_unrecognized (cross-service portability miss). Triggered before any server-side state advancement (/account/subscribe after= resume, X-Cokret-Wait-For release, dropped/resync_required recovery; to-device queue deletion is decoupled from cursors per client-sync.md §10.1). Client MUST clear local cursor cache and restart from initial /account/subscribe."
     },
     {
       "code": "cursor_revoked",

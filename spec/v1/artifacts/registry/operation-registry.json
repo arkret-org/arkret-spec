@@ -171,6 +171,7 @@
       "operations": [
         "ck.self.device_messages.put",
         "ck.self.device_messages.get",
+        "ck.self.device_messages.ack",
         "ck.self.keys.upload",
         "ck.self.keys.query",
         "ck.self.keys.claim",
@@ -225,6 +226,13 @@
         "ck.self.applet.install.preview",
         "ck.self.applet.install",
         "ck.self.applet.revoke"
+      ]
+    },
+    {
+      "surface": "applet_ghost",
+      "tier": "interop_bridge",
+      "operations": [
+        "ck.self.applet.ghost.provision"
       ]
     },
     {
@@ -508,6 +516,15 @@
       "response_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_outcome"
     },
     {
+      "operation_id": "ck.self.applet.ghost.provision",
+      "http": "POST /_cokret/self/applets/{applet_id}/ghosts/provision",
+      "grpc": "SelfApplet/GhostProvision",
+      "mq": "self.applet.ghost.provision",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body",
+      "response_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_outcome"
+    },
+    {
       "operation_id": "ck.edge.applet.third_party_locations",
       "http": "GET /_cokret/edge/applet/third_party/locations",
       "grpc": "EdgeApplet/ThirdPartyLocations",
@@ -606,6 +623,16 @@
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesPutRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesPutOutcome"
+    },
+    {
+      "operation_id": "ck.self.device_messages.ack",
+      "http": "POST /_cokret/self/device_messages/ack",
+      "grpc": "SelfDeviceMessages/Ack",
+      "mq": "self.device_messages.ack",
+      "notes": "Explicit, cumulative, monotonic to-device delivery acknowledgement (client-sync.md §10.1). Queue deletion happens only here; stream cursor advancement (account subscribe after=, device_messages from=) is read-only and MUST NOT prune the queue. Re-acking the same or an older token is a legal no-op. Unknown / expired / cross-bound tokens are rejected with invalid_param (reason invalid_ack_token) without deleting anything.",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckOutcome"
     },
     {
       "operation_id": "ck.self.contact.request",
@@ -1417,7 +1444,7 @@
       "http": "POST /_cokret/self/account/cursor/revoke",
       "grpc": "SelfAccount/CursorRevoke",
       "mq": "self.account.cursor_revoke",
-      "notes": "High-assurance optional endpoint to revoke a previously issued cursor authority. Revocation hits return cursor_revoked and MUST NOT advance to-device ack, account subscribe position, barrier wait, or dropped recovery state.",
+      "notes": "High-assurance optional endpoint to revoke a previously issued cursor authority. Revocation hits return cursor_revoked and MUST NOT advance account subscribe position, barrier wait, or dropped recovery state. To-device queue deletion is decoupled from cursors entirely and happens only via ck.self.device_messages.ack.",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeOutcome"

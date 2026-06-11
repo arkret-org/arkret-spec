@@ -328,6 +328,12 @@
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
+      "operation_id": "ck.self.device_messages.ack",
+      "http_alias": "POST /_cokret/self/device_messages/ack",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface. Unknown / expired / cross-bound ack tokens map to invalid_param (reason invalid_ack_token) and MUST NOT delete any queued message."
+    },
+    {
       "operation_id": "ck.self.contact.request",
       "http_alias": "POST /_cokret/self/contacts/request",
       "operation_specific": [

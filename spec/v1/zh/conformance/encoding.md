@@ -119,6 +119,17 @@ v1 active 集合刻意保持最小（`sha256` + `blake3`）。需要 algorithm d
 
 切换 suite（hash 分量升级，或归一化编码分量切换）需要通过 `ck.profile.hash_transition.v1` snapshot commitment + signed compaction Anchor 在 frontier 上做一次 suite transition Anchor，新旧 suite 都能在 transition Anchor 上验证 inclusion。详细规则见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.5（digest suite transition）。
 
+### 3.3.1 Snapshot / Event-set Merkle Root 编码
+
+Snapshot reducer output root 与 snapshot event-set commitment 使用同一 Merkle 组合规则；领域章节只定义 leaf 的构造方式。本节定义 leaf 进入树之后的 byte-level 规则，供 [`snapshot-schema.md`](./snapshot-schema.md) §4 / §6 引用。
+
+- Leaf 输入 MUST 是已按领域规则产生的 `<suite>:<hex>` digest。v1 base 支持 `sha256:<64 lowercase hex>`；进入树组合前 MUST 去掉 `sha256:` 前缀并解码为 raw 32 bytes。非 `sha256` suite 只有在对应 profile 明确声明同一 Merkle 组合规则和 digest 长度时才可用于该 root。
+- Internal node bytes MUST 是 `sha256(left_raw || right_raw)`，其中 `left_raw` 与 `right_raw` 是左右子节点的 raw digest bytes；wire 输出仍为 `sha256:<lowercase_hex>`。
+- Odd level MUST promote the trailing node unchanged to the next level. 实现 MUST NOT 复制尾节点。
+- Single-leaf tree root MUST equal that leaf digest。
+- Empty leaf set root MUST be `sha256` over the empty byte string：`sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`。
+- Tree construction itself does not sort leaves. 每个领域规范必须先声明 leaf 顺序；snapshot state leaves 使用 `(kind, id)` canonical byte order，snapshot event-set leaves 使用 `(actor_id, actor_seq, event_id)`。
+
 ### 3.4 Multihash 兼容（profile-gated）
 
 声明 `ck.profile.encoding.multihash.v1` 的实现 MAY 在 wire 上接受 multihash 风格的二进制 hash header（multicodec varint + length + digest）作为额外 reading format，但 canonical JSON 上的 wire value 仍 MUST 使用 §3.1 的 `<algo>:<hex>` 字符串形态。引入 multihash profile 的目的是与 IPFS / libp2p / Iroh 生态做内容寻址互通；它不替换 v1 wire 默认。

@@ -335,7 +335,7 @@ Base URL 来自 registration 的 `base_url`。
 **`ck.applet.*` 标识符的两类用途（normative 区分）**：`ck.applet.*` 前缀的标识符根据上下文分属两个互不混淆的命名空间，实现不得把二者当作同一对象：
 
 - **Event kind（进 Realm history）**：`ck.applet.registration`、`ck.applet.interop_session.start`、`ck.applet.interop_session.status`、`ck.applet.bridge_error`。这些是 durable Cokret Event，进入 Realm history，由 reducer 按 schema 校验；payload 字段以 `artifacts/schemas/event-payload.schema.json`（`applet_interop_session_start_payload` / `applet_interop_session_status_payload`，`ck.applet.bridge_error` 见 `applet-schema.md` §7）为权威。
-- **operation_id（HTTP，不进 history）**：本节表中的 `ck.edge.applet.ping`、`ck.edge.applet.describe`、`ck.edge.applet.transaction`、`ck.edge.applet.resolve_actor`、`ck.edge.applet.resolve_realm`、`ck.edge.applet.protocol_metadata`、`ck.edge.applet.third_party_users`、`ck.edge.applet.third_party_locations` 以及 §4b 的 `ck.self.applet.install.preview` / `ck.self.applet.install` / `ck.self.applet.revoke` 是 HTTP API operation 标识符，只描述 Cokret 节点 ↔ Applet 或 self/admin aggregate operation 的请求/响应绑定，本身不是 wire Event，不进入 Realm history。
+- **operation_id（HTTP，不进 history）**：本节表中的 `ck.edge.applet.ping`、`ck.edge.applet.describe`、`ck.edge.applet.transaction`、`ck.edge.applet.resolve_actor`、`ck.edge.applet.resolve_realm`、`ck.edge.applet.protocol_metadata`、`ck.edge.applet.third_party_users`、`ck.edge.applet.third_party_locations`、§4b 的 `ck.self.applet.install.preview` / `ck.self.applet.install` / `ck.self.applet.revoke` 以及 §9.1 的 `ck.self.applet.ghost.provision` 是 HTTP API operation 标识符，只描述 Cokret 节点 ↔ Applet 或 self/admin aggregate operation 的请求/响应绑定，本身不是 wire Event，不进入 Realm history。
 
 `ck.edge.applet.transaction` 在 v1 artifacts 中只作为 operation_id 存在，指 §7.3 的 transaction push HTTP 调用；它 MUST NOT 作为 durable Event kind 或 transaction-origin Event 写入 Realm history。transaction push 的幂等记录属于 Applet service / transport audit log；Applet 写入 Cokret 的事实由具体 Event Envelope 的 signed `applet_id`、`external_ref`、`authorization_ref`、event signature 与 capability grant 表达。
 
@@ -356,6 +356,7 @@ Base URL 来自 registration 的 `base_url`。
 | `ck.self.applet.install.preview` | self（管理员→Principal Server） | `applet_package`; `effective_scope`; `approval_request`（字段见 [`applet-schema.md` §1b](./applet-schema.md)） | 无 | `InstallPlan` + `plan_digest`（契约 `applet-install-plan.schema.json`） | 只读预览；字段定义见 §4b 与 `applet-schema.md` §1b。 |
 | `ck.self.applet.install` | self（管理员→Principal Server） | `Idempotency-Key`; `plan_digest`; `applet_package`; `effective_scope`; `approval_request`（见 [`applet-schema.md` §1b](./applet-schema.md)） | 无 | install / commit response 的完整 required 字段集合以 [`applet-schema.md` §1b](./applet-schema.md) 与契约 `applet-install-operations.schema.json` 为权威源（本表不再部分罗列） | 提交安装；字段定义见 §4b 与 `applet-schema.md` §1b。 |
 | `ck.self.applet.revoke` | self（管理员→Principal Server） | `path.applet_id`; `effective_scope` | 无 | revoke 结果（撤销的 grant / membership / token refs） | 撤销 effective install;见 §4b。 |
+| `ck.self.applet.ghost.provision` | self（已安装 Applet service→Principal Server） | `header.Idempotency-Key`; `path.applet_id`; `schema`; `applet_id`; `service_did`; `ghost_actor_id`; `protocol`; `tenant`; `external_user_id`; `realm_id`; `external_ref` | `display_name` | `ghost_actor_id: did`; `profile_event_ref: ref`; `accountability_grant_ref: ref`; `authorization_ref: ref`; `display_name: string?` | bridge Applet 为单个外部用户 provision Ghost Actor;字段与幂等规则见 §9.1,契约 `applet-ghost-operations.schema.json`。 |
 
 ### 7.1 Ping
 
@@ -612,6 +613,24 @@ Ghost Actor profile SHOULD 包含（以下为 schema 合法形态；字段与约
 
 Ghost Actor MUST NOT 被静默合并到 native DID，除非 native holder 显式声明并完成绑定。
 
+### 9.1 Ghost Actor Provisioning（`ck.self.applet.ghost.provision`，normative）
+
+bridge Applet 第一次遇到某个外部用户（典型触发：该用户在外部网络发出第一条需要桥接的消息）时，通过
+
+```text
+POST /_cokret/self/applets/{applet_id}/ghosts/provision
+Idempotency-Key: <opaque-string>
+```
+
+请求 Principal Server 为该外部用户铸造 Ghost Actor。请求/响应契约以 [`applet-ghost-operations.schema.json`](../../artifacts/schemas/applet-ghost-operations.schema.json) 为权威（封闭 schema）；请求 `schema` 固定为 `ck.applet.ghost_actor.provision_request.v1`。
+
+规则：
+
+- 调用方 MUST 以 applet registration 的 service DID 认证；服务端 MUST 校验 `applet_id` 存在 active install、caller service DID 与 registration 一致、`ghost_actor_id` 命中 registration 的 actor namespace、`realm_id` 在 effective scope 内。任一不满足 MUST fail closed（`applet_namespace_mismatch` / `applet_registration_unauthorized`）。
+- 成功时服务端铸造并返回 durable refs：Ghost Actor 的 `ck.profile.create`（按 §9 的 actor-profile 封闭形态，`accountable_principal_ids` 指向 Applet controller 与外部 service DID）与 `ck.identity.accountability_grant`；`authorization_ref` 是后续该 ghost 署名 Event Envelope 顶层 MUST 携带的授权引用（见 §8、§11）。
+- **幂等（normative）**：同一 `(applet_id, protocol, tenant, external_user_id)` 的重复 provision MUST 返回既有 refs，不得重复铸造 profile / grant；`Idempotency-Key` 语义与 §7.3 相同。
+- provision 不隐含任何 Realm membership 或 MLS 入组：ghost 加入 portal Realm 走常规 membership 流程，加入 E2EE group 还需 §12 的独立 E2EE 加入授权。
+
 ## 10. Portal Realm
 
 Portal Realm 把外部 location 映射到 Cokret。
@@ -625,8 +644,22 @@ Portal Realm SHOULD 记录：
 - 创建者 / 控制者
 - 可见性
 - 成员映射策略
+- portal flow id（§10.1）
 
 Portal Realm MUST 仍然执行常规的 Realm policy 与 capability 规则。
+
+### 10.1 Portal Flow（normative）
+
+`ck.message.create` 的 payload 是封闭 schema，required `flow_id` + `track_name`（[`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) `message_create_payload`）。因此 bridge 把外部消息写入 portal Realm 前，MUST 先解析出一个**目标 flow**——外部 location 的映射单位是 `(realm_id, flow_id)`，不是裸 `realm_id`。
+
+- 每个 portal Realm MUST 至少有一个用于消息桥接的 **portal flow**；线性聊天型外部 location（IM channel / group chat）默认一个 location 对应一个 portal flow。
+- **获取/创建路径**：bridge 首次为某外部 location 建立映射时，MUST 按以下顺序确定 portal flow：
+  1. 查自身持久化的 location ↔ `(realm_id, flow_id)` 映射；
+  2. 映射缺失时，在该 portal Realm 内通过常规 projection / view 读取查找既有 portal flow（以 `external_ref` 中的 protocol / network_id / location_id 匹配）；
+  3. 仍不存在时，由 bridge 以自身可署名身份提交 `ck.flow.create`（Event Envelope 顶层携带 signed `external_ref` 记录外部 location 出处），并把结果 flow_id 写入映射。
+- **创建幂等**：并发或重试导致同一外部 location 产生多个 `ck.flow.create` 时，bridge MUST 以 effective 顺序最早的 flow 为 portal flow，多余 flow SHOULD archive；判定依据是 signed `external_ref` 的 location 等值，不得靠标题字符串猜测。
+- **track**：桥接消息默认写入 `track_name="discussion"`；profile / Realm schema 声明其它 track 布局时按声明走。
+- ghost 署名的桥接 `ck.message.create` MUST 把正文放进 payload `content`（或 E2EE 下 `encrypted_content`）的 `content_block` 形态，媒体引用走 `blob_refs[]`；不得把 content 级字段（`mimetype` / `filename` / `blob` 等）直接平铺为 payload 顶层字段——按 schema 强校验的节点会以 `schema_violation` 拒绝。
 
 ## 11. Masquerading 与 Delegated Agent
 
