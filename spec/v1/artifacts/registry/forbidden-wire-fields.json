@@ -432,6 +432,19 @@
       "notes": "Reserved-name guard: 'progress_state' is a sister name for the stage concept and MUST NOT appear under metadata.fields.*. Implementations expressing business progression MUST use the canonical top-level 'stage' field."
     },
     {
+      "id": "metadata.fields.status",
+      "context": "flow_payload",
+      "since_revision": "2026-06-12",
+      "rejection_level": "hard_reject",
+      "replacement": "stage (top-level Flow field)",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Reserved-name guard: 'status' is the most direct sister spelling of the stage concept and MUST NOT appear as a metadata.fields.* key on Flow. Business progression goes through the canonical top-level 'stage' field; physical lifecycle through 'state'. Domain data mirrored from external systems MUST use a domain-named key (e.g. fields.jira_status), not bare 'status'."
+    },
+    {
       "id": "metadata.fields.assignee",
       "context": "flow_payload",
       "since_revision": "2026-06-07",

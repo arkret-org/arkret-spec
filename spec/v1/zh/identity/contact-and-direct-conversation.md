@@ -54,7 +54,7 @@ Issuer 约束是硬边界：
 - target 才能声明"我接受或拒绝 requester"。requester MUST NOT 替 target 写 accepted / rejected，也 MUST NOT 替 target 写 consent。
 - 任一 holder 都可以 tombstone 自己与 peer 的关系视图。tombstone 不会修改 peer 的 contact fact log；peer 只能在收到 tombstone fact 后把关系投影降级。若 requester 在 `pending_outgoing` 阶段发布 tombstone，target 收到后 MUST 将对应 `pending_incoming` 降级为 non-active（`tombstoned` 或等价 withdrawn projection），且后续对该 `request_id` 的 accept MUST `failed_precondition`。
 
-`request_id` SHOULD 使用 `ck.contact.requested` 的 `event_id`。实现 MAY 用 `(holder, peer, outstanding_request)` 做幂等去重，但不得把重复 request 折叠成 consent grant。
+`request_id` SHOULD 使用 `ck.contact.requested` 的 `event_id`。实现 MAY 用 `(holder, peer, outstanding_request)` 做幂等去重，但不得把重复 request 折叠成 consent grant。去重折叠多条等价 request 时，投影行与后续 respond MUST 以**最早未终结**的 `ck.contact.requested` 的 `event_id` 为 canonical `request_id`；对任一重复 request 的 accept / reject MUST 视为作用于该 canonical `request_id`，两端不得各自选边。
 
 ## 3. Contact 与 Consent
 

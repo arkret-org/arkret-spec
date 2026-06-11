@@ -111,7 +111,7 @@ Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。
 | 顺序 | 来源 | 作用 | 谁可写 |
 | --- | --- | --- | --- |
 | 1 | Morph object 的 `schema_refs[]` | **结构 / 验证真源**：决定 `fields` 的 schema、必填性、类型与 transition 规则。 | Morph create / `ck.morph.update` |
-| 2 | Realm schema `morph_type_profiles[<morph_type>]` | **Realm-scoped 收紧**：声明该 `morph_type` 在本 Realm 中可暴露的 facets、可写字段子集、必需 schema_refs、必需 capability action。本层 **只能收紧** §1 声明的范围，不得放宽。 | Realm schema / Realm profile |
+| 2 | Realm schema `morph_type_profiles[<morph_type>]` | **Realm-scoped 收紧**：声明该 `morph_type` 在本 Realm 中可暴露的 facets、可写字段子集、必需 schema_refs、必需 capability action。本层 **只能收紧** §1 声明的范围，不得放宽。 | `ck.realm.schema` state event（写入 `ck.component.realm.schema.v1` cell，与 `schema_refs` 同载；声明形态见 [governance-objects.md §2.3](./governance-objects.md)） |
 | 3 | Morph object 的 `morph_type` (string) | **业务标签 / discoverability key**：用于 query / view / capability `allowed_morph_types` 匹配；不引入 reducer 行为。 | Morph create（**create-locked**，禁止后续修改） |
 | 4 | Morph object 的 `facets` (map) | **UI / projection hint**：选择默认 renderer、查询过滤、降级展示；MUST NOT 影响授权、状态机、reducer、wire 互操作。 | Morph create / `ck.morph.update` |
 

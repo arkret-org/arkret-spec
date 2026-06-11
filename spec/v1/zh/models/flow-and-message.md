@@ -57,7 +57,7 @@ Schema id: `ck.schema.flow.v1`
 | `tracks` | yes | `map<TrackName, FlowTrack>` | 至少 1 个 key；key 唯一性由 map 结构保证；至多 1 个 entry `is_primary=true`。 | 轨道定义、默认入口与轨道访问继承。 |
 | `state` | no | `enum(active, archived, redacted)` | 终态必须有事件来源。Reducer 按 [common-fields.md §5.1](./common-fields.md) 校验源状态：`ck.flow.archive` MUST 来自 `active`（否则 `flow_not_active`）；`ck.flow.restore` MUST 来自 `archived`（否则 `flow_not_archived`）；`ck.redaction` 指向 Flow 时 MUST 来自 `{active, archived}`（否则 `flow_already_terminal`）。same-state self-transition MUST fail。**Flow 不引入独立 `tombstoned` 终态**；deletion 语义通过指向该 Flow 的 `ck.redaction` 表达，见 [common-fields.md §5.1](./common-fields.md)。 | 物化状态（物理生命周期）。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
-| `stage` | no | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | `ck.flow.create` 时 MAY 省略；若携带，必须是 [common-fields.md §5.3](./common-fields.md) 的 8 值之一。普通业务 Flow SHOULD 填写；DM 主 Flow MAY 省略或选填合法值。变更只能通过 `ck.flow.stage.set`（详见 §3.2）；`ck.flow.update` 的 patch path `stage` / `stage_changed_at` MUST `schema_violation`。`metadata.fields.stage` / `metadata.fields.lifecycle` / `metadata.fields.progress_state` / `metadata.fields.stage_reason` MUST `schema_violation`（forbidden-wire）。**不携带 reason 字段**：需要解释时在 discussion track 发 Message 并 `references` 本次 `ck.flow.stage.set` event。 | 可选业务进度阶段（与 `state` 正交）。 |
+| `stage` | no | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | `ck.flow.create` 时 MAY 省略；若携带，必须是 [common-fields.md §5.3](./common-fields.md) 的 8 值之一。普通业务 Flow SHOULD 填写；DM 主 Flow MAY 省略或选填合法值。变更只能通过 `ck.flow.stage.set`（详见 §3.2）；`ck.flow.update` 的 patch path `stage` / `stage_changed_at` MUST `schema_violation`。`metadata.fields.stage` / `metadata.fields.status` / `metadata.fields.lifecycle` / `metadata.fields.progress_state` / `metadata.fields.stage_reason` MUST `schema_violation`（forbidden-wire）。**不携带 reason 字段**：需要解释时在 discussion track 发 Message 并 `references` 本次 `ck.flow.stage.set` event。 | 可选业务进度阶段（与 `state` 正交）。 |
 | `stage_changed_at` | conditional | `timestamp` | **Reducer-derived**：仅当 `stage` 存在且实际变更时由 reducer 用触发 event 的 `created_at` 覆盖写入；MUST NOT 在缺少 `stage` 时单独出现；same-value self-transition 不更新本字段。 | 最近一次 stage 转换时间。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -75,7 +75,7 @@ Schema id: `ck.schema.flow.v1`
     "title": "支付重构",
     "summary": "统一支付链路、风控回调和退款状态机；同步 owner、决策与 blocker。",
     "fields": {
-      "status": "review",
+      "component": "payments",
       "priority": "high",
       "due_at": "2026-05-01T00:00:00Z"
     }

@@ -55,6 +55,8 @@ Schema 引用的写入路径：
 - Realm update：通过 `ck.realm.schema` state event 更新引用集合。
 - Morph：通过 `morph.schema_refs[]` 引用具体类型 schema（详见 [morph.md §4](./morph.md) 顺序 1）。
 
+Realm-scoped Morph type 收紧声明 `morph_type_profiles` 与 `schema_refs` 同载：由 `ck.realm.schema` state event 写入 `ck.component.realm.schema.v1` cell（writable_by 见 [`../../artifacts/registry/morph-type-decision-table.json`](../../artifacts/registry/morph-type-decision-table.json) order=2）。声明形态为 `map<morph_type, profile>`，每个 profile 至多包含四个收紧维度（与 decision table notes 一致，全部可选、只能收紧不得放宽 [morph.md §4](./morph.md) 顺序 1 的声明）：`allowed_facets[]`（可暴露 facet 子集）、`writable_fields[]`（可写字段子集）、`required_schema_refs[]`（必需 schema refs）、`required_capability_actions[]`（必需 capability action）。未声明某 `morph_type` 时按空收紧处理（纯顺序 1，不得自动放宽）；放宽尝试在 Realm accept 时 MUST `schema_violation` reason=`morph_profile_widens_schema_ref`。
+
 ## 3. Policy
 
 ### 3.1 概念

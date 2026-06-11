@@ -16,7 +16,7 @@
       "order": 2,
       "source": "realm.schema.morph_type_profiles[<morph_type>]",
       "role": "realm_scoped_tightening",
-      "writable_by": ["ck.realm.schema.update", "ck.realm.profile.update"],
+      "writable_by": ["ck.realm.schema"],
       "consumed_by": ["reducer.field_validation", "capability.required_action_check"],
       "tightening_only": true,
       "notes": "Tightens the order-1 declaration inside a single Realm (allowed facets subset, writable fields subset, required schema_refs, required capability actions). MUST NOT widen order-1; widening attempts produce `schema_violation` at Realm accept time."

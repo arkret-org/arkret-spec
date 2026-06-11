@@ -84,7 +84,7 @@ pre-auth 的根级能力广告位于根 meta 位 `GET /_cokret/describe`（`ck.s
 
 ## 9. 可操作演进规则清单
 
-落地时按以下规则判断一处改动：
+本清单是 §2-§8 规则的可操作摘要（informative 索引），不在本节新增独立规范义务；措辞与各章节或所引真相源冲突时，以原章节为准。落地时按以下规则判断一处改动：
 
 1. **加性优先**：新增 optional 字段 / 新 event kind / 新 schema / 新 profile；MUST NOT 原地改变已签名字段语义。
 2. **破坏性改动新旧并存**：引入新 event kind 或新 schema profile，旧的保留为只读历史，而非原地替换。
