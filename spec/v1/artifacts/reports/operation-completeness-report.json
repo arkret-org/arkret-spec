@@ -17,13 +17,13 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 128,
+    "total_operations": 130,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 2,
       "service_describe": 7,
       "streaming_frame_schema": 2,
-      "typed_schema": 115
+      "typed_schema": 117
     },
     "by_tier_and_class": {
       "core": {
@@ -38,7 +38,7 @@
       "extension": {
         "binary_or_redirect": 2,
         "service_describe": 2,
-        "typed_schema": 72
+        "typed_schema": 74
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -1718,6 +1718,19 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
+      "operation_id": "ck.self.projection.document",
+      "tier": "extension",
+      "http": "GET /_cokret/self/projection/documents/{morph_id}",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/view.schema.json#/$defs/document_morph_projection_outcome",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/DocumentMorphProjectionOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
       "operation_id": "ck.self.projection.flows",
       "tier": "extension",
       "http": "GET /_cokret/self/projection/flows",
@@ -1768,6 +1781,20 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.views.collection_projection",
+      "tier": "extension",
+      "http": "POST /_cokret/self/views/{view_id}/projection",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/view.schema.json#/$defs/view_projection_request_body",
+      "response_schema_ref": "schemas/view.schema.json#/$defs/collection_projection_view",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/ViewProjectionRequestBody",
+        "response": "#/components/schemas/CollectionProjectionView"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ck.server.describe",

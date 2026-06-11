@@ -341,6 +341,613 @@
         "custom"
       ]
     },
+    "cursor": {
+      "type": "string",
+      "pattern": "^ck:cursor:[A-Za-z0-9_-]+$"
+    },
+    "state_frontier": {
+      "type": "object",
+      "required": [
+        "state_digest"
+      ],
+      "properties": {
+        "state_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "event_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          }
+        },
+        "actor_frontiers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "actor_id",
+              "actor_seq",
+              "event_id"
+            ],
+            "properties": {
+              "actor_id": {
+                "$ref": "#/$defs/did"
+              },
+              "actor_seq": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "event_id": {
+                "type": "string",
+                "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              },
+              "hlc": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "projection_object": {
+      "type": "object",
+      "required": [
+        "id",
+        "type"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^ck:(realm|space|circle|flow|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "realm",
+            "space",
+            "circle",
+            "flow",
+            "message",
+            "morph"
+          ]
+        },
+        "morph_type": {
+          "type": "string"
+        },
+        "facets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "title": {
+          "type": "string"
+        },
+        "fields": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    "collection_group_source": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "model",
+            "field",
+            "value"
+          ],
+          "properties": {
+            "model": {
+              "const": "field_value"
+            },
+            "field": {
+              "$ref": "#/$defs/field_path"
+            },
+            "value": {
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "model",
+            "scope_container_id",
+            "container_id",
+            "relation_kind"
+          ],
+          "properties": {
+            "model": {
+              "const": "relation_container"
+            },
+            "scope_container_id": {
+              "$ref": "#/$defs/ref"
+            },
+            "container_id": {
+              "$ref": "#/$defs/ref"
+            },
+            "relation_kind": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "model",
+            "start",
+            "end",
+            "timezone"
+          ],
+          "properties": {
+            "model": {
+              "const": "time_bucket"
+            },
+            "start": {
+              "$ref": "#/$defs/timestamp"
+            },
+            "end": {
+              "$ref": "#/$defs/timestamp"
+            },
+            "timezone": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "model",
+            "row_key",
+            "column_key"
+          ],
+          "properties": {
+            "model": {
+              "const": "crosstab_cell"
+            },
+            "row_key": {
+              "type": "string",
+              "minLength": 1
+            },
+            "column_key": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "collection_position": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "model",
+            "container_id",
+            "rank"
+          ],
+          "properties": {
+            "model": {
+              "const": "field_value"
+            },
+            "container_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "rank": {
+              "type": "string",
+              "pattern": "^[0-9A-Za-z]{1,128}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "model",
+            "scope_container_id",
+            "container_id",
+            "relation_kind",
+            "relation_id",
+            "rank"
+          ],
+          "properties": {
+            "model": {
+              "const": "relation"
+            },
+            "scope_container_id": {
+              "$ref": "#/$defs/ref"
+            },
+            "container_id": {
+              "$ref": "#/$defs/ref"
+            },
+            "relation_kind": {
+              "type": "string",
+              "minLength": 1
+            },
+            "relation_id": {
+              "type": "string",
+              "pattern": "^ck:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "rank": {
+              "type": "string",
+              "pattern": "^[0-9A-Za-z]{1,128}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "model",
+            "start",
+            "sort_key"
+          ],
+          "properties": {
+            "model": {
+              "const": "time_window"
+            },
+            "start": {
+              "$ref": "#/$defs/timestamp"
+            },
+            "end": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/timestamp"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "timezone": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sort_key": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "model",
+            "row_key",
+            "column_key",
+            "sort_key"
+          ],
+          "properties": {
+            "model": {
+              "const": "crosstab_cell"
+            },
+            "row_key": {
+              "type": "string",
+              "minLength": 1
+            },
+            "column_key": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sort_key": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "sort_key"
+          ],
+          "properties": {
+            "sort_key": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "projection_item": {
+      "type": "object",
+      "required": [
+        "object"
+      ],
+      "properties": {
+        "object": {
+          "$ref": "#/$defs/projection_object"
+        },
+        "render": {
+          "type": "string",
+          "enum": [
+            "card",
+            "row",
+            "tile",
+            "compact",
+            "badge",
+            "message"
+          ]
+        },
+        "display": {
+          "type": "object"
+        },
+        "position": {
+          "$ref": "#/$defs/collection_position"
+        },
+        "state": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    "collection_projection_group": {
+      "type": "object",
+      "required": [
+        "key",
+        "title",
+        "items",
+        "limited"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rank": {
+          "type": "string",
+          "pattern": "^[0-9A-Za-z]{1,128}$"
+        },
+        "source": {
+          "$ref": "#/$defs/collection_group_source"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/projection_item"
+          }
+        },
+        "next_cursor": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/cursor"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "limited": {
+          "type": "boolean"
+        },
+        "wip_state": {
+          "type": "string",
+          "enum": [
+            "ok",
+            "over_limit",
+            "unknown"
+          ]
+        },
+        "total_estimate": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "view_projection_request_body": {
+      "type": "object",
+      "properties": {
+        "cursor": {
+          "$ref": "#/$defs/cursor"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        }
+      },
+      "additionalProperties": false
+    },
+    "collection_projection_view": {
+      "type": "object",
+      "required": [
+        "projection",
+        "view_id",
+        "frontier"
+      ],
+      "properties": {
+        "projection": {
+          "type": "string",
+          "const": "collection"
+        },
+        "renderer": {
+          "$ref": "#/$defs/view_renderer"
+        },
+        "view_id": {
+          "type": "string",
+          "pattern": "^ck:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "frontier": {
+          "$ref": "#/$defs/state_frontier"
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/collection_projection_group"
+          }
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/projection_item"
+          }
+        },
+        "next_cursor": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/cursor"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "total_estimate": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "stale": {
+          "type": "boolean"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "groups"
+          ]
+        },
+        {
+          "required": [
+            "items"
+          ]
+        }
+      ],
+      "additionalProperties": false
+    },
+    "document_morph_projection_outcome": {
+      "type": "object",
+      "required": [
+        "document",
+        "versions",
+        "relations",
+        "comments",
+        "cursor_presence"
+      ],
+      "properties": {
+        "document": {
+          "type": "object",
+          "required": [
+            "morph_id",
+            "realm_id",
+            "morph_type",
+            "state",
+            "body"
+          ],
+          "properties": {
+            "morph_id": {
+              "type": "string",
+              "pattern": "^ck:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "realm_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
+            },
+            "morph_type": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            },
+            "state": {
+              "type": "string"
+            },
+            "state_changed_at": {
+              "$ref": "#/$defs/timestamp"
+            },
+            "fields": {
+              "type": "object"
+            },
+            "body": true,
+            "schema_refs": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "facets": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "created_by": {
+              "$ref": "#/$defs/did"
+            },
+            "created_at": {
+              "$ref": "#/$defs/timestamp"
+            },
+            "updated_by": {
+              "$ref": "#/$defs/did"
+            },
+            "updated_at": {
+              "$ref": "#/$defs/timestamp"
+            }
+          },
+          "additionalProperties": true
+        },
+        "versions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "relations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "comments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "cursor_presence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "frontier": {
+          "$ref": "#/$defs/state_frontier"
+        }
+      },
+      "additionalProperties": false
+    },
     "query": {
       "type": "object",
       "properties": {

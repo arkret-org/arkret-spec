@@ -3484,6 +3484,66 @@
       }
     },
     {
+      "operation_id": "ck.self.views.collection_projection",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/view.schema.json#/$defs/view_projection_request_body",
+        "schema_kind": "object",
+        "required": [],
+        "properties": [
+          "cursor",
+          "limit"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/view.schema.json#/$defs/collection_projection_view",
+        "schema_kind": "object",
+        "required": [
+          "projection",
+          "view_id",
+          "frontier"
+        ],
+        "properties": [
+          "projection",
+          "renderer",
+          "view_id",
+          "realm_id",
+          "frontier",
+          "groups",
+          "items",
+          "next_cursor",
+          "total_estimate",
+          "stale"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.projection.document",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/view.schema.json#/$defs/document_morph_projection_outcome",
+        "schema_kind": "object",
+        "required": [
+          "document",
+          "versions",
+          "relations",
+          "comments",
+          "cursor_presence"
+        ],
+        "properties": [
+          "document",
+          "versions",
+          "relations",
+          "comments",
+          "cursor_presence",
+          "frontier"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ck.edge.push.notify",
       "success_shape_kind": "typed_response",
       "request": {

@@ -182,9 +182,12 @@ grpc:
     SelfPolicy:
       Check: ck.self.policy.check
     SelfProjection:
+      Document: ck.self.projection.document
       Flows: ck.self.projection.flows
       Morphs: ck.self.projection.morphs
       Spaces: ck.self.projection.spaces
+    SelfViews:
+      CollectionProjection: ck.self.views.collection_projection
     EdgePush:
       Notify: ck.edge.push.notify
       RegisterDevice: ck.edge.push.register_device
@@ -278,6 +281,8 @@ mq:
     self.projection.spaces: ck.self.projection.spaces
     self.projection.flows: ck.self.projection.flows
     self.projection.morphs: ck.self.projection.morphs
+    self.projection.document: ck.self.projection.document
+    self.views.collection_projection: ck.self.views.collection_projection
     open.mimi.provider_directory: ck.open.mimi.provider_directory
     open.mimi.key_material: ck.open.mimi.key_material
     open.mimi.room_update: ck.open.mimi.room_update

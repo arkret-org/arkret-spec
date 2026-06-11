@@ -1983,49 +1983,11 @@ components:
                       $ref: '#/components/schemas/CollectionCrosstabPosition'
       additionalProperties: false
     CollectionProjectionView:
-      type: object
-      required:
-      - projection
-      - view_id
-      - frontier
-      properties:
-        projection:
-          type: string
-          const: collection
-        renderer:
-          $ref: '#/components/schemas/ViewRenderer'
-        view_id:
-          type: string
-          pattern: ^ck:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        realm_id:
-          type: string
-          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        frontier:
-          $ref: '#/components/schemas/StateFrontier'
-        groups:
-          type: array
-          items:
-            $ref: '#/components/schemas/CollectionProjectionGroup'
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/ProjectionItem'
-        next_cursor:
-          oneOf:
-          - type: string
-            pattern: ^ck:cursor:[A-Za-z0-9_-]+$
-          - type: 'null'
-        total_estimate:
-          type: integer
-          minimum: 0
-        stale:
-          type: boolean
-      anyOf:
-      - required:
-        - groups
-      - required:
-        - items
-      additionalProperties: false
+      $ref: ../schemas/view.schema.json#/$defs/collection_projection_view
+    ViewProjectionRequestBody:
+      $ref: ../schemas/view.schema.json#/$defs/view_projection_request_body
+    DocumentMorphProjectionOutcome:
+      $ref: ../schemas/view.schema.json#/$defs/document_morph_projection_outcome
     ProjectionObject:
       type: object
       required:
@@ -4162,6 +4124,70 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProjectionMorphsResponse'
+  /_cokret/self/views/{view_id}/projection:
+    post:
+      operationId: ck.self.views.collection_projection
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        requestCanonicalDigest: []
+      summary: Materialize a collection View projection.
+      description: |
+        Optional extension read surface for View{kind=collection}. The response
+        is a derived projection computed from signed Events, reducer profile,
+        View definition, and the returned frontier; it is not a canonical truth
+        source.
+      parameters:
+      - name: view_id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^ck:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ViewProjectionRequestBody'
+      responses:
+        '200':
+          description: Collection projection visible to the caller.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionProjectionView'
+  /_cokret/self/projection/documents/{morph_id}:
+    get:
+      operationId: ck.self.projection.document
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        requestCanonicalDigest: []
+      summary: Read a single document Morph projection.
+      description: |
+        Optional extension read surface for a single Morph with
+        morph_type=document. Returns authorized body, versions, relations,
+        comments, and cursor-presence read-model data. Canonical truth remains
+        the accepted Morph, Relation, Message, and cursor Event history.
+      parameters:
+      - name: morph_id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^ck:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      responses:
+        '200':
+          description: Document Morph projection visible to the caller.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentMorphProjectionOutcome'
   /_cokret/find/directory/resolve-handle:
     post:
       operationId: ck.find.directory.resolve_handle

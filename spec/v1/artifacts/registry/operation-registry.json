@@ -199,7 +199,9 @@
       "operations": [
         "ck.self.projection.spaces",
         "ck.self.projection.flows",
-        "ck.self.projection.morphs"
+        "ck.self.projection.morphs",
+        "ck.self.views.collection_projection",
+        "ck.self.projection.document"
       ]
     },
     {
@@ -1322,6 +1324,25 @@
       "notes": "Extension read surface for reducer-maintained Space lifecycle projection rows scoped by realm_id. This is a derived read model, not a canonical truth source.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpaceList"
+    },
+    {
+      "operation_id": "ck.self.views.collection_projection",
+      "http": "POST /_cokret/self/views/{view_id}/projection",
+      "grpc": "SelfViews/CollectionProjection",
+      "mq": "self.views.collection_projection",
+      "notes": "Optional extension read surface that materializes a View{kind=collection} projection such as board/list/table/calendar. The response is a derived read model computed from signed Events, reducer profile, View definition, and the returned frontier; it is not a canonical truth source.",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/view.schema.json#/$defs/view_projection_request_body",
+      "response_schema_ref": "schemas/view.schema.json#/$defs/collection_projection_view"
+    },
+    {
+      "operation_id": "ck.self.projection.document",
+      "http": "GET /_cokret/self/projection/documents/{morph_id}",
+      "grpc": "SelfProjection/Document",
+      "mq": "self.projection.document",
+      "notes": "Optional extension read surface for a single document Morph projection. It returns authorized document body, version, relation, comment, and cursor-presence read-model data for the addressed Morph; canonical truth remains the Morph/Relation/Message event history.",
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/view.schema.json#/$defs/document_morph_projection_outcome"
     },
     {
       "operation_id": "ck.edge.push.notify",
