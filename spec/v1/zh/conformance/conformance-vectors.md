@@ -1008,6 +1008,157 @@ ck.vector.lattice.ordered_log_gap.v1
 - Case A 因缺口返回 ⊥ 或阻塞整个 cell（ordered_log 是 `bottom=expose`，并发 append 不阻塞协议判断）。
 - Case B 重算结果依赖本地接收顺序，两个 reducer 产出不同的 contiguous prefix。
 
+### 2.14 Vector: auth_context epoch pinning 拒绝过期 key
+
+向量名称：
+
+```text
+ck.vector.cba_lattice.auth_context_epoch_pinning_reject.v1
+```
+
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.1：verifier MUST NOT 只查"当前 DID 文档"，key / credential epoch 的有效性以 `seal_ref` 时点为准。
+
+输入：
+
+- **Case A — 被撤销 key + 旧 seal_ref**：actor 的 key K 在 Seal `S_r` 被撤销；DataEvent 携带 `auth_context.key_epoch` 指向撤销前 epoch、`seal_ref` 为撤销前 Seal，且 `distance(seal_ref, S_r)` 超过 `revocation_freshness_window`。
+- **Case B — 撤销宽限窗口内**：同 Case A 但 `distance(seal_ref, S_r)` 在窗口内。
+- **Case C — epoch 与 seal_ref 不符**：`auth_context.key_epoch` 在 `seal_ref` 对应控制面状态下不存在或已被替换。
+
+期望：
+
+- Case A：receiver MUST 拒绝或隐藏（`stale_seal_ref` / `failed_precondition`）。
+- Case B：receiver MAY 暂时接受，query grade MUST 标记 `stale`。
+- Case C：receiver MUST `failed_precondition`，不得回退到"当前 DID 文档"判定。
+
+失败条件：用当前 DID 文档替代 `seal_ref` 时点判定；Case A 被静默接受；Case B 接受后不降级 grade。
+
+### 2.15 Vector: compaction Seal 节律义务
+
+向量名称：
+
+```text
+ck.vector.cba_lattice.seal_compaction_interval_enforced.v1
+```
+
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §6.2 的结构性义务与 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) `seal_compaction_max_interval_ms`。
+
+输入：
+
+- Realm 声明 `seal_compaction_max_interval_ms = X`。
+- **Case A**：notary 在 X 内签发携带 `covered_event_digests[]` 的 compaction Seal,其内容等于递归闭包。
+- **Case B**：compaction Seal 的 `covered_event_digests[]` 与 `delta[] ∪ predecessor 覆盖集` 不一致。
+- **Case C**：live chain 超过 X 仍无 compaction Seal。
+
+期望：
+
+- Case A：receiver 接受；新 verifier 可从该 Seal 接链 bootstrap,不必走链到 genesis。
+- Case B：receiver MUST 拒绝该 Seal（`rejected_seal`）。
+- Case C：receiver SHOULD 触发治理健康告警；既有 Seal 仍有效（义务是告警与 bootstrap 退化，不是回滚）。
+
+失败条件：Case B 被接受；Case A 的 bootstrap 仍要求 genesis 全链。
+
+### 2.16 Vector: inclusion list 收录义务
+
+向量名称：
+
+```text
+ck.vector.cba_lattice.inclusion_list_obligation.v1
+```
+
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §7.3 与 [`inclusion-list.schema.json`](../../artifacts/schemas/inclusion-list.schema.json)。
+
+输入（multi-signer notary profile）：
+
+- 非 proposer signer 签发 inclusion list，列出持有效 receipt、通过本地 verify 的 Control Move digest D。
+- **Case A**：下一 Seal include D。
+- **Case B**：下一 Seal 对 D 附 signed-reject。
+- **Case C**：下一 Seal 附 D 在 batch pre-state 下 verify_control_move 失败的证明。
+- **Case D**：下一 Seal 对 D 三者皆无。
+- **Case E**：同一 `(realm_id, signer_id, list_seq)` 出现两份内容不同的 inclusion list。
+
+期望：
+
+- Case A/B/C：Seal 可接受。
+- Case D：receiver MUST 拒绝该 Seal（`rejected_seal`，reason=`inclusion_list_violation`）。
+- Case E：构成 §7.1 equivocation evidence（list_seq 复用 slot 语义）。
+- `single_did` profile 下该机制不可用，实现 MUST NOT 伪造 inclusion list 语义。
+
+失败条件：Case D 的 Seal 被接受；Case E 不产生 fault 证据。
+
+### 2.17 Vector: notary equivocation fault 与 fork quarantine
+
+向量名称：
+
+```text
+ck.vector.cba_lattice.notary_fault_equivocation_quarantine.v1
+```
+
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §7.1 与 `ck.notary.fault.equivocation` event kind。
+
+输入：
+
+- signer N 对同一 `(realm_id, notary_seq)` 签出 canonical bytes 不同的 Seal `S_a` / `S_b`。
+- 普通成员 M（无任何特殊 capability）提交 `ck.notary.fault.equivocation`，payload 携带 `{signer_id=N, seal_a=S_a, seal_b=S_b}`。
+
+期望：
+
+- 验签 + slot 规则通过即接受该 Control Move（验签即授权,reducer MUST NOT 要求 grant）；fault 记录进入 `ck.component.notary_fault.v1` cell（or_set）。
+- fault 记录生效后：N 的后续 Seal MUST 被拒绝；`S_a`、`S_b` 及其后继进入 `fork_quarantine`，普通 joined governance view MUST NOT 纳入；查询依赖该分支时 grade=`forked`。
+- 仍有其余合法 signer 时 Realm MUST NOT 整体 pause；无剩余合法 signer 时进入 `notary_paused`，仅 recovery 路径可恢复。
+- 两个 Seal 不满足 slot 规则（不同 signer 或不同 seq）时，该 Move MUST `failed_precondition`——合法并发 leaf 不构成 fault。
+
+失败条件：要求提交者持有 capability；fault 后整 Realm 无差别 pause；合法并发 leaf 被误判为 fault。
+
+### 2.18 Vector: threshold forensic attribution 声明
+
+向量名称：
+
+```text
+ck.vector.cba_lattice.threshold_forensic_attribution.v1
+```
+
+本向量固化 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) `notary.forensic_attribution` 与 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §7.1 的算术规则。
+
+输入：
+
+- **Case A**：threshold notary,n=5,k=3（2k>n）,`forensic_attribution="quorum_intersection"`。
+- **Case B**：n=5,k=3,`forensic_attribution="waived"`。
+- **Case C**：n=4,k=2（2k≤n）,`forensic_attribution="quorum_intersection"`。
+- **Case D**：threshold notary 缺 `forensic_attribution` 字段。
+
+期望：
+
+- Case A：accept。
+- Case B / Case C：reducer MUST 在 `ck.realm.create` 拒绝（取值与 2k>n 算术关系不符）。
+- Case D：schema 校验失败（threshold 变体必填该字段）。
+
+失败条件：Case B/C 被接受；Case D 通过 schema 校验。
+
+### 2.19 Vector: CBA 旧词族 hard reject
+
+向量名称：
+
+```text
+ck.vector.cba_lattice.rename_family_reject.v1
+```
+
+本向量固化 [`migration/renames.json`](../../artifacts/migration/renames.json) `cba_notary_seal_rename` 组的 parser 行为：current v1 parser 对旧词族 MUST 直接拒绝，不得做 payload-shape 消歧。
+
+输入（逐项独立 case）：
+
+- Event 携带 `anchor_ref` / `anchor_basis` / `governance_ref` 字段。
+- Seal wire 携带 `anchorer_signature` / `signer_seq` / `anchored_at` 字段，或 typed id 使用已废除的 anchor 前缀（见 renames `typed_id_prefix` 条目）。
+- Realm create payload 使用 `anchor_profile` / `anchorer` 字段。
+- snapshot `event_set_commitment` 使用 `covered_seals` 字段。
+- `event_state` 出现 `pending_anchor` / `rejected_anchor` 取值。
+
+期望：
+
+- 每个 case：current parser MUST 以 `schema_violation` / `unknown_field` / `unknown_kind` 类错误拒绝,MUST NOT 静默改写或按新名解释。
+- 仅 `migration_tool` 层（离线批迁移）MAY 消费旧拼写。
+
+失败条件：任一旧拼写被 current parser 接受或静默转换。
+
 ## 3. Redaction 与 Snapshot Vectors
 
 ### 3.1 目标

@@ -91,7 +91,7 @@
       "algorithm": "ordered_event_id_sha256_v1",
       "root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       "covered_event_count": 1,
-      "covered_seals": [
+      "covered_event_ids": [
         "ck:event:019640ed-8000-7000-8000-000000000000"
       ]
     },

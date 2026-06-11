@@ -135,6 +135,11 @@
       "$ref": "#/$defs/seal_ref",
       "description": "DataEvent only. Accepted control-plane Seal id used as the authorization basis. Receivers verify identity/key/capability validity at this seal and apply revocation freshness rules."
     },
+    "conflict_keys_digest": {
+      "type": "string",
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
+      "description": "Optional diagnostic digest: hash over the canonical sorted list of cell ids derived from effects[]. Producer and verifier each derive the cell set from effects[] under their schema version; a mismatch surfaces schema-derivation divergence early. This field is NOT a security boundary: verifiers MUST derive conflict domains from effects[] regardless of its presence."
+    },
     "auth_context": {
       "type": "object",
       "description": "DataEvent only. Pins the signing DID/key/capability epoch used to verify authorization at seal_ref.",
@@ -520,6 +525,8 @@
               "ck.morph.schema_migrate",
               "ck.morph.stage.set",
               "ck.morph.update",
+              "ck.notary.fault.censorship",
+              "ck.notary.fault.equivocation",
               "ck.organization.discovery",
               "ck.organization.moderation_policy",
               "ck.pin.add",
@@ -1195,6 +1202,44 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/object_patch_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.notary.fault.equivocation"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/notary_fault_equivocation_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.notary.fault.censorship"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/notary_fault_censorship_payload"
           }
         }
       }

@@ -406,8 +406,11 @@ Flow 在 board/list 类 Space 中的位置仍由 cas_register cell 维护：
 cell_id     := ck:cell:ck.component.flow.position.v1:<board_space_id>:<flow_id>
 lattice     := cas_register
 bottom      := reject
+plane       := control（默认 sealed=true）
 value shape := { "list_space_id": id:space, "rank": string } | null
 ```
+
+**Plane 裁决（normative，CBA）**：`ck.component.flow.position.v1` 是非治理强一致对象，按 [`event-auth-state-resolution.md` §9.4](../authz/event-auth-state-resolution.md) 三选一。**默认裁决是选项 2（`sealed=true` 升控制面）**——这保留上表 cas_register / bottom=reject / `expected_position` CAS basis 的全部既有语义不变，`ck.flow.move` / `ck.flow.reorder` 因此是 Control Move（携带 `seal_basis`，由 Seal 裁决）。Realm schema MAY 改声明为选项 1（data plane `mv_register` + user-pick：并发拖动暴露多 heads，任何有写权限者一笔写收敛、无协议 `⊥`）或选项 3（per-object sequencer）；改声明后 `expected_position` 退化为诊断字段。看板拖动延迟敏感、且 Realm 接受多值短暂并存的部署 SHOULD 评估选项 1。
 
 `ck.flow.move` payload 字段：
 

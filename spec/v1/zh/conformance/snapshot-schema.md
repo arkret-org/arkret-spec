@@ -35,7 +35,7 @@ Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `c
     "algorithm": "merkle_event_set_v1",
     "root": "sha256:...",
     "covered_event_count": 42000,
-    "covered_seals": ["ck:event:019640ed-8000-7000-8000-000000000000"]
+    "covered_event_ids": ["ck:event:019640ed-8000-7000-8000-000000000000"]
   },
   "state_digest": "sha256:...",
   "chunks": [
@@ -146,7 +146,7 @@ Manifest MUST 仅包含一个 normative `signature` 字段。`signature` MUST �
 - witness quorum
 - policy-approved snapshot issuer
 
-Client 在使用 snapshot 之前 MUST 校验 signature、`authority_binding`、`state_digest`、frontier、`event_set_commitment` 与每个 chunk 的 digest。其中 manifest 内部一致性 MUST 包含：当 `event_set_commitment.covered_seals` 存在时，consumer MUST 校验它与 `frontier.event_ids` 是**同一个 event id 集合**（集合相等；两个字段绑定的都是同一 snapshot frontier——`frontier` 声明 reducer state 的截止边界，`event_set_commitment` 承诺到达该同一边界的 event 集合，见 §2 示例与 §6），任何不一致 MUST 拒绝该 snapshot，不得以其中一侧为准继续 bootstrap。签名者权限 MUST 以 manifest `created_at` 为时点进行评估；manifest 必须携带 `authority_binding`，其中 `issuer` 必须等于 `created_by`，`auth_frontier` / `auth_state_digest` 必须覆盖 snapshot frontier 以及在 `created_at` 之前可知的全部相关 admin / snapshot-issuer grant 或 revoke 事件的 accepted Realm auth state。`auth_state_digest` 是 issuer-local opaque commitment：verifier MUST 检查它与 `auth_frontier` 绑定一致，并 MUST 按自己可取得的 accepted auth state 回放或查询来判定签名者在 `created_at` 的授权与撤销新鲜度；除非部署 profile 另行声明可复算的 auth-state canonical encoding，verifier MUST NOT 只因无法逐字重算该 digest 就接受或拒绝。若签名者在 `created_at` 之前已被撤销，或 verifier 无法确认其权限的撤销新鲜度，snapshot MUST 被隔离或以 `snapshot_issuer_revoked` 拒绝。
+Client 在使用 snapshot 之前 MUST 校验 signature、`authority_binding`、`state_digest`、frontier、`event_set_commitment` 与每个 chunk 的 digest。其中 manifest 内部一致性 MUST 包含：当 `event_set_commitment.covered_event_ids` 存在时，consumer MUST 校验它与 `frontier.event_ids` 是**同一个 event id 集合**（集合相等；两个字段绑定的都是同一 snapshot frontier——`frontier` 声明 reducer state 的截止边界，`event_set_commitment` 承诺到达该同一边界的 event 集合，见 §2 示例与 §6），任何不一致 MUST 拒绝该 snapshot，不得以其中一侧为准继续 bootstrap。签名者权限 MUST 以 manifest `created_at` 为时点进行评估；manifest 必须携带 `authority_binding`，其中 `issuer` 必须等于 `created_by`，`auth_frontier` / `auth_state_digest` 必须覆盖 snapshot frontier 以及在 `created_at` 之前可知的全部相关 admin / snapshot-issuer grant 或 revoke 事件的 accepted Realm auth state。`auth_state_digest` 是 issuer-local opaque commitment：verifier MUST 检查它与 `auth_frontier` 绑定一致，并 MUST 按自己可取得的 accepted auth state 回放或查询来判定签名者在 `created_at` 的授权与撤销新鲜度；除非部署 profile 另行声明可复算的 auth-state canonical encoding，verifier MUST NOT 只因无法逐字重算该 digest 就接受或拒绝。若签名者在 `created_at` 之前已被撤销，或 verifier 无法确认其权限的撤销新鲜度，snapshot MUST 被隔离或以 `snapshot_issuer_revoked` 拒绝。
 
 **最大接受窗口（normative）**：仅当采纳时同时满足以下**全部**条件，manifest 才可用于 snapshot bootstrap：
 

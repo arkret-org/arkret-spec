@@ -2451,7 +2451,7 @@
     },
     "ck.profile.mls_governance_binding.full.v1": {
       "inherits": [],
-      "description": "MLS Governance Binding (full): the v1 hardening profile that binds MLS epochs to governance state. Required for E2EE Realms. MLS commits are Control Moves carrying a governance_binding payload (membership_frontier / policy_root / capability_root / discussion_metadata_hash, transcript-hashed via the mls_governance_binding GroupContext extension) and update three control cells (mls_epoch, key_schedule, covered_seals). E2EE message DataEvents must carry a seal_ref covered by the MLS governance binding; governance / recovery Control Moves do not depend on it.",
+      "description": "MLS Governance Binding (full): the v1 hardening profile that binds MLS epochs to governance state. Required for E2EE Realms. MLS commits are Control Moves carrying a governance_binding payload (membership_frontier / policy_root / capability_root / discussion_metadata_hash, transcript-hashed via the mls_governance_binding GroupContext extension) and update three control cells (mls_epoch, key_schedule, covered_seals_cell). E2EE message DataEvents must carry a seal_ref covered by the MLS governance binding; governance / recovery Control Moves do not depend on it.",
       "required_endpoints": [
         "ck.self.keys.keypackages.claim",
         "ck.self.keys.keypackages.consume",

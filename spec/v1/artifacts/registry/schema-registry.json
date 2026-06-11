@@ -443,6 +443,24 @@
       "description": "Seal control-plane finality commitment schema"
     },
     {
+      "schema_id": "ck.schema.inclusion_list.v1",
+      "file": "schemas/inclusion-list.schema.json",
+      "status": "active",
+      "description": "FOCIL-style control-plane inclusion list signed by a non-proposer notary signer; the next Seal MUST include, signed-reject, or prove verification failure for every listed digest"
+    },
+    {
+      "schema_id": "ck.schema.seal_transparency.v1",
+      "file": "schemas/seal-transparency.schema.json",
+      "status": "active",
+      "description": "Seal transparency append-only log entry and independent auditor attestation wire schema"
+    },
+    {
+      "schema_id": "ck.schema.key_view_proof.v1",
+      "file": "schemas/key-view-proof.schema.json",
+      "status": "active",
+      "description": "KeyView inclusion proof against a Seal data_view_root for light-client data-plane queries"
+    },
+    {
       "schema_id": "ck.schema.agent_operations.v1",
       "file": "schemas/agent-operations.schema.json",
       "status": "active",

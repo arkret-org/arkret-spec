@@ -604,6 +604,50 @@
       "payload": "Policy-gated action proposal or execution"
     },
     {
+      "event_kind": "ck.notary.fault.equivocation",
+      "category": "realm",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Notary equivocation evidence (Control Move). Payload carries signer_id plus the two conflicting Seal wire objects: same (realm_id, notary_seq) slot with different canonical bytes, or a notary_seq=k+1 Seal that does not descend from the same signer's notary_seq=k Seal (authz/event-auth-state-resolution.md section 7.1). Admission is verification-only: any Realm member MAY submit and the two conflicting notary signatures are the complete authorization; no capability grant is consulted and reducer MUST NOT require one. Reducer MUST re-verify both signatures and the slot rule, then add a per-signer fault record to the notary_fault cell. Once a fault record is accepted: receivers MUST reject later Seals signed by the fault signer, the two conflicting Seals and their descendants enter fork_quarantine, and Realm-wide pause applies only when no eligible signer remains.",
+      "cell_family": "ck.component.notary_fault.v1",
+      "cell_subject": {
+        "type": "tuple",
+        "components": [
+          {
+            "name": "signer_id",
+            "type": "did",
+            "field": "payload.signer_id"
+          }
+        ]
+      },
+      "lattice": "or_set",
+      "bottom": "expose",
+      "admission": "crypto_verifiable"
+    },
+    {
+      "event_kind": "ck.notary.fault.censorship",
+      "category": "realm",
+      "status": "active",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "payload": "Notary censorship evidence (Control Move). Payload carries signer_id, the signed control-plane receipt, the seal_ref of the Seal that was obliged to include / signed-reject / defer the pending Control Move, a control_event_set_root non-membership proof for the censored event digest, and the missing rejection-or-defer proof (authz/event-auth-state-resolution.md section 7.2). Admission is verification-only: the receipt holder MAY submit; the receipt signature plus the non-membership proof are the complete authorization. This evidence does NOT automatically disqualify the notary: reducer adds an audit fault record that MUST raise governance alarms, feeds inclusion-list / recovery obligations, and is evaluated by governance or the genesis recovery path.",
+      "cell_family": "ck.component.notary_fault.v1",
+      "cell_subject": {
+        "type": "tuple",
+        "components": [
+          {
+            "name": "signer_id",
+            "type": "did",
+            "field": "payload.signer_id"
+          }
+        ]
+      },
+      "lattice": "or_set",
+      "bottom": "expose",
+      "admission": "crypto_verifiable"
+    },
+    {
       "event_kind": "ck.member.state",
       "category": "membership",
       "status": "active",
@@ -793,7 +837,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Flow move between Spaces (target_space_id in payload). Writes a cas_register cell keyed by (board_space_id, flow_id); the contains Relation list_space_id->flow_id is derived from cell value, not a separate truth source.",
+      "payload": "Flow move between Spaces (target_space_id in payload). Writes a cas_register cell keyed by (board_space_id, flow_id); the contains Relation list_space_id->flow_id is derived from cell value, not a separate truth source. Plane ruling (CBA): ck.component.flow.position.v1 defaults to sealed=true (control plane), so ck.flow.move is a Control Move carrying seal_basis; Realm schema MAY redeclare the cell family as data-plane mv_register + user-pick or per-object sequencer per authz/event-auth-state-resolution.md section 9.4 and models/realm-and-space.md section 3.6.",
       "cell_family": "ck.component.flow.position.v1",
       "cell_subject": {
         "type": "tuple",
@@ -819,7 +863,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Flow reorder within Space. Writes the same cell as ck.flow.move; effect.list_space_id MUST equal head_eq.list_space_id (rank-only update).",
+      "payload": "Flow reorder within Space. Writes the same cell as ck.flow.move; effect.list_space_id MUST equal head_eq.list_space_id (rank-only update). Plane ruling follows ck.flow.move: same cell family, same default sealed=true control-plane declaration (models/realm-and-space.md section 3.6).",
       "cell_family": "ck.component.flow.position.v1",
       "cell_subject": {
         "type": "tuple",

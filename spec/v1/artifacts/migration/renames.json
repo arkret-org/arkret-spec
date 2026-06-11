@@ -43,7 +43,8 @@
     "brand_namespace_cx_to_ck": "Wire/brand namespace renamed from the legacy `contrix` brand to `cokret`. Every wire token prefix `cx.` becomes `ck.` and every typed-id prefix `cx:` becomes `ck:` across operation_id, event_kind, schema_id, capability action, id_kind, error code, vector id, and profile id. The bare brand strings `contrix` / `Contrix` and the token prefixes `cx.` / `cx:` are hard_reject on the current wire and in current identifiers (allowed only in CHANGELOG / migration docs / negative drift fixtures). HTTP paths additionally moved to the versionless trust-circle namespace `/_cokret/<segment>/...` (see sync/service-http-binding.md §2.1); the legacy flat paths and `/api/v1` / `/cokret/v1` prefixes are recorded in removed-operation-ids.json. Mechanical, single design decision; the entries below are representative seals, the rule applies to the whole token space.",
     "operation_id_trust_surface_segment": "Scheme B: operation_id now encodes its trust-surface classifier as the mandatory leading segment (ck.<surface>.<resource>.<action>, surface in {self,peer,edge,root,find,gate,open}), matching the HTTP path's first segment 1:1. 108 operations gain the surface prefix; peer.* were already compliant and ck.server.describe (pre-auth root meta, no surface segment) is the sole exception. grpc service names gain the PascalCase surface prefix and mq topics the lowercase surface segment in lockstep. Single design decision; entries are mechanical applications.",
     "agent_applet_interop_session_rename": "Agent and applet session surfaces renamed from the ambiguous `protocol_session` (which reads as the ambient Cokret protocol) to `interop_session`, naming the external agent-to-agent interop relationship. Event kinds ck.{agent,applet}.protocol_session.* -> ck.{agent,applet}.interop_session.*; the agent capability action namespace ck.agent.session.* (start/cancel/stream_status/attach_artifact/read_transcript) -> ck.agent.interop_session.*; the typed id and schema payload defs use the agent_interop_session_* / applet_interop_session_* short form. Single design decision.",
-    "conformance_verifier_neutralization": "ServiceDescribe.verified_profiles neutralized away from the downstream tool name cotest: claim_kind enum value cotest_verified → conformance_verified, wire fields cotest_run_id → verification_run_id and cotest_issuer_did → verifier_did. The wire contract binds to the neutral Conformance Verifier role (conformance-suite.md §6.2); cotest survives only as an informative reference-implementation name in prose (3 entries)."
+    "conformance_verifier_neutralization": "ServiceDescribe.verified_profiles neutralized away from the downstream tool name cotest: claim_kind enum value cotest_verified → conformance_verified, wire fields cotest_run_id → verification_run_id and cotest_issuer_did → verifier_did. The wire contract binds to the neutral Conformance Verifier role (conformance-suite.md §6.2); cotest survives only as an informative reference-implementation name in prose (3 entries).",
+    "cba_notary_seal_rename": "CBA terminology family rename (2026-06-11): the Anchor/Anchorer word family is replaced by Seal/Notary across wire fields, typed-id prefixes, cell families, enum values and model names; the Seal cumulative-coverage frontier[] enumeration is retired in favor of predecessor_refs + delta recursion (no direct field successor; the snapshot manifest's boundary `frontier` object and the streaming `frontier` frame kind are true-frontier semantics and keep their names); proposal-era interim spellings (governance_ref, Checkpoint) are forbidden. See authz/event-auth-state-resolution.md and overview/glossary.md."
   },
   "entries": [
     {
@@ -5318,6 +5319,314 @@
       ],
       "notes": "Capability action converged to its target event kind (cross-namespace: call config -> ck.realm.media_service).",
       "migration_group": "verb_noun_bridge_collapse"
+    },
+    {
+      "id": "anchor_ref",
+      "kind_class": "wire_field_name",
+      "migration_group": "cba_notary_seal_rename",
+      "since_revision": "2026-06-11",
+      "rejection_level": "hard_reject",
+      "replacement": "seal_ref",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Event authorization-basis reference renamed with the Anchor->Seal family."
+    },
+    {
+      "id": "anchor_basis",
+      "kind_class": "wire_field_name",
+      "migration_group": "cba_notary_seal_rename",
+      "since_revision": "2026-06-11",
+      "rejection_level": "hard_reject",
+      "replacement": "seal_basis",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Control Move signed governance basis renamed with the Anchor->Seal family."
+    },
+    {
+      "id": "anchored_at",
+      "kind_class": "wire_field_name",
+      "migration_group": "cba_notary_seal_rename",
+      "since_revision": "2026-06-11",
+      "rejection_level": "hard_reject",
+      "replacement": "sealed_at",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Seal diagnostic timestamp renamed with the Anchor->Seal family."
+    },
+    {
+      "id": "anchorer_signature",
+      "kind_class": "wire_field_name",
+      "migration_group": "cba_notary_seal_rename",
+      "since_revision": "2026-06-11",
+      "rejection_level": "hard_reject",
+      "replacement": "notary_signature",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Seal signature field renamed with the Anchorer->Notary family."
+    },
+    {
+      "id": "anchor_profile",
+      "kind_class": "wire_field_name",
+      "migration_group": "cba_notary_seal_rename",
+      "since_revision": "2026-06-11",
+      "rejection_level": "hard_reject",
+      "replacement": "notary_profile",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Realm create finality-profile field renamed with the Anchorer->Notary family."
+    },
+    {
+      "id": "anchorer",
+      "kind_class": "wire_field_name",
+      "migration_group": "cba_notary_seal_rename",
+      "since_revision": "2026-06-11",
+      "rejection_level": "hard_reject",
+      "replacement": "notary",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Realm genesis payload field and cell value object renamed with the Anchorer->Notary family."
+    },
+    {
+      "id": "signer_seq",
+      "kind_class": "wire_field_name",
+      "migration_group": "cba_notary_seal_rename",
+      "since_revision": "2026-06-11",
+      "rejection_level": "hard_reject",
+      "replacement": "notary_seq",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Per-signer Seal slot sequence uses the notary noun."
+    },
+    {
+      "id": "governance_ref",
+      "kind_class": "wire_field_name",
+      "migration_group": "cba_notary_seal_rename",
+      "since_revision": "2026-06-11",
+      "rejection_level": "hard_reject",
+      "replacement": "seal_ref",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Proposal-era interim spelling for the DataEvent authorization basis; the landed wire field is seal_ref."
+    },
+    {
+      "id": "max_anchor_staleness_ms",
+      "kind_class": "wire_field_name",
+      "migration_group": "cba_notary_seal_rename",
+      "since_revision": "2026-06-11",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Retired with the dual-plane split: DataEvents carry no staleness rebase window (revocation_freshness_window_ms governs revocation lag) and Control Move basis rules live in event-auth-state-resolution.md section 5. No direct successor field."
+    },
+    {
+      "id": "anchor_compaction_max_interval_ms",
+      "kind_class": "wire_field_name",
+      "migration_group": "cba_notary_seal_rename",
+      "since_revision": "2026-06-11",
+      "rejection_level": "hard_reject",
+      "replacement": "seal_compaction_max_interval_ms",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Compaction cadence field renamed with the Anchor->Seal family and promoted to a structural obligation (realm.schema.json)."
+    },
+    {
+      "id": "covered_seals",
+      "kind_class": "wire_field_name",
+      "migration_group": "cba_notary_seal_rename",
+      "since_revision": "2026-06-11",
+      "rejection_level": "hard_reject",
+      "replacement": "covered_event_ids",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Snapshot event_set_commitment member list: the members are boundary event ids, not Seal ids, so the interim covered_seals spelling was semantically wrong. Unrelated to the MLS covered_seals_cell / ck.component.covered_seals.v1 cell family, which keeps its name."
+    },
+    {
+      "id": "ck:anchor:",
+      "kind_class": "typed_id_prefix",
+      "migration_group": "cba_notary_seal_rename",
+      "since_revision": "2026-06-11",
+      "rejection_level": "hard_reject",
+      "replacement": "ck:seal:",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Seal typed ID prefix renamed with the Anchor->Seal family."
+    },
+    {
+      "id": "ck.component.anchorer.v1",
+      "kind_class": "model_identifier",
+      "migration_group": "cba_notary_seal_rename",
+      "since_revision": "2026-06-11",
+      "rejection_level": "hard_reject",
+      "replacement": "ck.component.notary.v1",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Notary cell family renamed with the Anchorer->Notary family."
+    },
+    {
+      "id": "ck.component.covered_frontier.v1",
+      "kind_class": "model_identifier",
+      "migration_group": "cba_notary_seal_rename",
+      "since_revision": "2026-06-11",
+      "rejection_level": "hard_reject",
+      "replacement": "ck.component.covered_seals.v1",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "MLS governance-binding accumulator cell family renamed: it accumulates covered governance Seals."
+    },
+    {
+      "id": "Anchor",
+      "kind_class": "model_identifier",
+      "migration_group": "cba_notary_seal_rename",
+      "since_revision": "2026-06-11",
+      "rejection_level": "hard_reject",
+      "replacement": "Seal",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Protocol finality object renamed: the old name implied 'events do not count until anchored', which contradicts the data-plane zero-gate rule (P5)."
+    },
+    {
+      "id": "Anchorer",
+      "kind_class": "model_identifier",
+      "migration_group": "cba_notary_seal_rename",
+      "since_revision": "2026-06-11",
+      "rejection_level": "hard_reject",
+      "replacement": "Notary",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Ordering-authority role renamed with the object family; mechanism unchanged."
+    },
+    {
+      "id": "Checkpoint",
+      "kind_class": "model_identifier",
+      "migration_group": "cba_notary_seal_rename",
+      "since_revision": "2026-06-11",
+      "rejection_level": "hard_reject",
+      "replacement": "Seal",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Proposal-era dual name for the control-plane Seal; retired to avoid two names for one object."
+    },
+    {
+      "id": "pending_anchor",
+      "kind_class": "wire_enum_value",
+      "migration_group": "cba_notary_seal_rename",
+      "since_revision": "2026-06-11",
+      "rejection_level": "hard_reject",
+      "replacement": "control_pending",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "event_state value renamed with the dual-plane state machine (event-auth-state-resolution.md section 13)."
+    },
+    {
+      "id": "rejected_anchor",
+      "kind_class": "wire_enum_value",
+      "migration_group": "cba_notary_seal_rename",
+      "since_revision": "2026-06-11",
+      "rejection_level": "hard_reject",
+      "replacement": "rejected_seal",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Failure state renamed with the Anchor->Seal family."
+    },
+    {
+      "id": "anchorer_paused",
+      "kind_class": "wire_enum_value",
+      "migration_group": "cba_notary_seal_rename",
+      "since_revision": "2026-06-11",
+      "rejection_level": "hard_reject",
+      "replacement": "notary_paused",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Realm pause state renamed with the Anchorer->Notary family."
+    },
+    {
+      "id": "anchorer_split",
+      "kind_class": "wire_enum_value",
+      "migration_group": "cba_notary_seal_rename",
+      "since_revision": "2026-06-11",
+      "rejection_level": "hard_reject",
+      "replacement": "notary_split",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Bottom kind renamed with the Anchorer->Notary family."
+    },
+    {
+      "id": "anchor_fault",
+      "kind_class": "wire_enum_value",
+      "migration_group": "cba_notary_seal_rename",
+      "since_revision": "2026-06-11",
+      "rejection_level": "hard_reject",
+      "replacement": "seal_fault",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Seal verification fault diagnostic renamed with the Anchor->Seal family."
     }
   ]
 }

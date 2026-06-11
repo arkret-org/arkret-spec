@@ -1020,6 +1020,54 @@
       ]
     },
     {
+      "vector_id": "ck.vector.cba_lattice.auth_context_epoch_pinning_reject.v1",
+      "status": "active",
+      "domain": "cba_lattice",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.cba_lattice.seal_compaction_interval_enforced.v1",
+      "status": "active",
+      "domain": "cba_lattice",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.cba_lattice.inclusion_list_obligation.v1",
+      "status": "active",
+      "domain": "cba_lattice",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.cba_lattice.notary_fault_equivocation_quarantine.v1",
+      "status": "active",
+      "domain": "cba_lattice",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.cba_lattice.threshold_forensic_attribution.v1",
+      "status": "active",
+      "domain": "cba_lattice",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.cba_lattice.rename_family_reject.v1",
+      "status": "active",
+      "domain": "cba_lattice",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ck.vector.policy_server.decision_replay_rejected.v1",
       "status": "active",
       "domain": "policy_server",

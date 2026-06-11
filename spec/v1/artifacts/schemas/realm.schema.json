@@ -307,6 +307,15 @@
           "type": "integer",
           "minimum": 1
         },
+        "forensic_attribution": {
+          "type": "string",
+          "enum": [
+            "quorum_intersection",
+            "waived"
+          ],
+          "$comment": "Required for type=threshold (enforced by allOf below). MUST be quorum_intersection when 2*threshold > members.length (two conflicting quorums then intersect in at least one attributable double-signer; see authz/event-auth-state-resolution.md section 7.1 and BFT Protocol Forensics). MUST be waived when 2*threshold <= members.length, declaring that automatic culprit attribution is unavailable. JSON Schema cannot compare threshold against members.length, so the arithmetic side is reducer/conformance validation (ck.vector.cba_lattice.threshold_forensic_attribution.v1).",
+          "description": "Equivocation culprit-attribution mode for threshold notary committees: quorum_intersection (2k>n, automatic attribution available) or waived (k<=n/2, deployment explicitly waives automatic attribution and relies on committee-level handling)."
+        },
         "recovery_members": {
           "type": "array",
           "items": {
@@ -336,6 +345,13 @@
       "minimum": 0,
       "default": 86400000,
       "description": "Realm-level maximum control-plane seal distance/time window for accepting DataEvents whose seal_ref predates an observed revocation seal. Receivers evaluate this window by seal topology and policy, not by unverified event signing time. High-risk Realms SHOULD use a short value or move the affected cell family to control plane."
+    },
+    "seal_compaction_max_interval_ms": {
+      "type": "integer",
+      "minimum": 300000,
+      "maximum": 604800000,
+      "default": 86400000,
+      "description": "Structural obligation, not advisory: maximum interval between compaction Seals (Seals carrying covered_event_digests[] or an equivalent verifiable full-coverage manifest). Because the cumulative control-plane covered set is defined recursively from predecessor_refs + delta, compaction Seals are the only bounded bootstrap points for new verifiers; a notary that exceeds this interval degrades bootstrap to walking the chain to genesis. open_set deployments MUST use <= 86400000 (24h); threshold deployments MUST use <= 604800000 (7d); single_did SHOULD use <= 86400000. Receivers SHOULD raise governance health alarms when the live chain exceeds the declared interval. See authz/event-auth-state-resolution.md section 6.2 and conformance vector ck.vector.cba_lattice.seal_compaction_interval_enforced.v1."
     },
     "max_delegation_lifetime_ms": {
       "type": "integer",
@@ -447,6 +463,38 @@
                 "minItems": 1
               }
             }
+          }
+        }
+      }
+    },
+    {
+      "$comment": "Threshold notary committees must declare their equivocation culprit-attribution mode at Realm create time. The arithmetic rule (quorum_intersection iff 2*threshold > members.length) is reducer/conformance validation; see notary.forensic_attribution $comment.",
+      "if": {
+        "properties": {
+          "notary": {
+            "properties": {
+              "type": {
+                "const": "threshold"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          }
+        },
+        "required": [
+          "notary"
+        ]
+      },
+      "then": {
+        "properties": {
+          "notary": {
+            "required": [
+              "type",
+              "members",
+              "threshold",
+              "forensic_attribution"
+            ]
           }
         }
       }

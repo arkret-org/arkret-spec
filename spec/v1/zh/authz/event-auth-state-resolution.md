@@ -73,6 +73,7 @@ DataEvent {
   }
   effects[]                      // 仅 data plane cells
   payload
+  conflict_keys_digest?          // 可选诊断：effects[] 派生 cell id 集合的摘要
   hlc                            // 纯诊断
 }
 ```
@@ -84,6 +85,7 @@ DataEvent 规则：
 3. `effects[]` MUST 只引用 data plane cell。若任一 effect 指向 control plane cell，receiver MUST `schema_violation(reason=plane_cross_write)`。
 4. `causal_refs[]` / `refs[]` 只表达业务因果，不承担全局完整性证明。
 5. `event_digest` 是去除 `proofs` 与 `unsigned` 后 canonical Event bytes 的 hash；`proofs[]` 验证 actor / device / service 对该 digest 的签名。
+6. `conflict_keys_digest`（可选）是对 `effects[]` 派生出的 canonical 升序 cell id 列表的摘要。producer 与 verifier 各自按自己的 schema 版本派生该集合；不一致只产生 `schema_derivation_mismatch` 诊断，用于及早暴露两侧 schema 派生分歧。该字段**不是**安全边界：无论它是否存在，verifier MUST 一律从 `effects[]` 派生冲突域。
 
 ### 4.1 `auth_context` 与 epoch pinning
 
@@ -261,6 +263,8 @@ Seal MUST 签 `control_event_set_root`。默认 root 是对 canonical 升序 `co
 
 `control_event_set_root` 是 `seal_basis`、控制面 receipt obligation、inclusion list、censorship evidence 与 seal transparency 的共同锚点。`delta[]` 只是本批新增集合；root 承诺的是递归覆盖集。Compaction Seal MAY 显式携带 `covered_event_digests[]`，但 receiver MUST 验证它等于 `delta[]` 与所有 predecessor 覆盖集的并集。
 
+**Compaction 节律是结构性义务（normative）**：因为累计覆盖集由 `predecessor_refs + delta` 递归定义，compaction Seal（携带 `covered_event_digests[]` 或等价可验证全覆盖 manifest 的 Seal）是新 verifier 唯一的有界 bootstrap 物化点。Realm MUST 在 create payload 中声明 `seal_compaction_max_interval_ms`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json)，默认 86,400,000 ms；`open_set` 部署 MUST ≤ 24h，`threshold` 部署 MUST ≤ 7d，`single_did` SHOULD ≤ 24h）。notary 超出声明间隔仍未签发 compaction Seal 时，receiver SHOULD 触发治理健康告警；新 verifier 此时只能退回从 genesis 走链或从最近已验证 compaction Seal 接链。该义务由 conformance vector `ck.vector.cba_lattice.seal_compaction_interval_enforced.v1` 固定。
+
 ### 6.3 Seal 接受规则
 
 ```text
@@ -293,7 +297,14 @@ KeyView {
 }
 ```
 
-`data_view_root` 是 KeyView 记录的 Merkle root，按 `cell_id` keyed。`data_event_set_root` 承诺该 seal 窗口内 notary 观察到的数据面 Event digest 集合。`coverage_scope` 声明观测覆盖范围。
+**观测 root 的计算规则（normative，三个 root 同构）**：
+
+- `data_view_root` = 按 `cell_id` Unicode code point 升序排列的 KeyView 记录的 RFC 6962 Merkle root；leaf 输入为 `H(0x00 || canonical_json(KeyView))`，内部节点为 `H(0x01 || left || right)`，空集合用该 algo 的空树 root。
+- `data_event_set_root` = 该 seal 窗口内 notary 观察到的数据面 `event_digest` 集合（canonical 升序）的 RFC 6962 Merkle root。
+- `availability_root` = 该 seal 窗口内 notary 接受的 AvailabilityReceipt 的 canonical bytes 摘要集合（canonical 升序）的 RFC 6962 Merkle root。
+- 三者的 inclusion proof 一律使用 Merkle audit path，non-membership 一律使用 sorted-neighbor proof——与 §6.2 `control_event_set_root` 的证明形态一致，实现可共用同一套 Merkle 代码与 conformance vector 形状。
+
+轻客户端对单个 data cell 的标准查询凭证是 **KeyViewProof**（wire schema：[`key-view-proof.schema.json`](../../artifacts/schemas/key-view-proof.schema.json)）：`{realm_id, seal_id, data_view_root, key_view, audit_path[]}`，verifier 重算 leaf 并沿 audit path 收敛到该 Seal 签名覆盖的 `data_view_root`。
 
 这些字段是 observational：
 
@@ -307,7 +318,7 @@ KeyView {
 
 每个 notary signer 维护自己的 `notary_seq`。同一 signer 对同一 `(realm_id, notary_seq)` 签出两个 canonical bytes 不同的 Seal，或 `notary_seq=k+1` 不以自身 `notary_seq=k` 为 DAG 祖先，构成 equivocation。
 
-Equivocation evidence 是普通 Control Move，写入专用 `notary_fault` control cell。授权条件是两个满足 slot 规则的冲突签名本身；验签即授权，无需额外 capability。
+Equivocation evidence 是普通 Control Move，event kind 为 **`ck.notary.fault.equivocation`**（已注册于 event-kind registry；payload schema 见 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) `notary_fault_equivocation_payload`：`{signer_id, seal_a, seal_b}`），写入专用 `ck.component.notary_fault.v1` control cell（`or_set`，bottom=expose）。授权条件是两个满足 slot 规则的冲突签名本身；验签即授权，无需额外 capability，reducer MUST NOT 要求 grant。
 
 接受 fault 记录后：
 
@@ -316,7 +327,7 @@ Equivocation evidence 是普通 Control Move，写入专用 `notary_fault` contr
 - fork resolution 前，普通 joined governance view MUST NOT 纳入 quarantined Seal；
 - 仅 fork-resolution compaction Seal 或 genesis recovery path 可恢复推进。
 
-Threshold signer 使用委员会级 slot。若 2k > n，两个 threshold 签名的 quorum 交集可指认至少一个双签成员；否则部署 policy MUST 声明放弃自动指认。
+Threshold signer 使用委员会级 slot。若 2k > n，两个 threshold 签名的 quorum 交集可指认至少一个双签成员；否则部署 policy MUST 声明放弃自动指认。该声明是机器可校验项：threshold notary 的 Realm create payload MUST 携带 `notary.forensic_attribution ∈ {quorum_intersection, waived}`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json)），且取值与 `2k>n` 的算术关系由 reducer 校验、由 conformance vector `ck.vector.cba_lattice.threshold_forensic_attribution.v1` 固定。
 
 ### 7.2 控制面 receipt 与 inclusion obligation
 
@@ -339,15 +350,38 @@ CensorshipEvidence {
 }
 ```
 
-证据写入控制面审计 cell。`single_did` 下被告 notary 可能审查对自己的证据；此时 liveness 依赖 genesis recovery path，这是 single_did 的诚实限制。
+Censorship evidence 是普通 Control Move，event kind 为 **`ck.notary.fault.censorship`**（payload schema：`notary_fault_censorship_payload`），写入 `ck.component.notary_fault.v1` cell。它**不**自动罢免 notary：reducer 记录审计 fault 并 MUST 触发治理告警。
+
+**问责闭环与 recovery 路径的绑定（normative）**：被告 notary 可能审查针对自己的 fault / censorship evidence。为此：
+
+1. fault evidence Move 持有的 receipt（或经 federation probe 传播的副本）对 **recovery notary**（genesis `recovery_members` / `mixed` profile 的 fallback notary）构成与 inclusion list 等同的收录义务：recovery notary 签发任何 recovery / fork-resolution Seal 时，MUST include、signed-reject 或证明验证失败所有其已知的、处于义务窗口内的 fault evidence Move；
+2. `single_did` 下，evidence 经 federation probe / SeenReceipt 渠道流转至 recovery notary；若 Realm 未声明可用 recovery 路径，问责退化为"证据可流转但不可生效"的审计态——这是 `single_did` 的诚实限制，也是 genesis 强制 `recovery_members` 组织分离的理由之一；
+3. multi-signer profile 下，任何非 fault 方 signer 都可把 evidence 列入 inclusion list（§7.3），不必等待 recovery 路径。
 
 ### 7.3 Inclusion list
 
 Multi-signer profile MAY 支持 FOCIL 式 inclusion list。非 proposer signer 对通过初检的控制面 Move 签发 inclusion list；下一 Seal MUST include、signed-reject 或证明验证失败，否则 receiver MUST 拒绝该 Seal。`single_did` profile 无法提供该机制。
 
+Wire schema：[`inclusion-list.schema.json`](../../artifacts/schemas/inclusion-list.schema.json)（`ck.schema.inclusion_list.v1`）：`{realm_id, signer_id, list_seq, event_digests[], expiry_seal_count, created_at, signature}`。Receiver 校验规则（normative）：
+
+1. `signer_id` 在签发时点是 Realm multi-signer notary profile 的合法非 proposer 成员；
+2. `event_digests[]` canonical 升序、去重、每项持有效 receipt 且通过本地 verify；
+3. `list_seq` 复用 §7.1 的 per-signer slot 语义——同一 `(realm_id, signer_id, list_seq)` 双签构成 equivocation evidence；
+4. 自 list 被观察起的 `expiry_seal_count` 个后续 Seal 内（默认 1），每个列出 digest MUST 被 include、signed-reject 或附 batch pre-state 验证失败证明；任一 digest 三者皆无 → receiver MUST 拒绝该 Seal（`rejected_seal`，reason=`inclusion_list_violation`）；
+5. inclusion list 自身不是 Seal，不推进治理状态；它只是问责对象。
+
+该义务由 conformance vector `ck.vector.cba_lattice.inclusion_list_obligation.v1` 固定。
+
 ### 7.4 Seal transparency
 
 Seal tuple SHOULD 发布到 append-only transparency log。独立 auditor 验证 append-only、`control_event_set_root` 单调、`completeness_root` 单调和签名有效性，并签发 attestation。客户端接受 `grade=witnessed` 前 MUST 验证 policy 要求的 witness / auditor attestation。
+
+Wire schema：[`seal-transparency.schema.json`](../../artifacts/schemas/seal-transparency.schema.json)（`ck.schema.seal_transparency.v1`）定义两个对象：
+
+- **log entry**：`{log_id, log_index, realm_id, seal_id, control_event_set_root, completeness_root, state_root, prev_entry_digest, logged_at, log_signature}`——`log_index` append-only，`prev_entry_digest` 形成 hash 链。同一 `(log_id, log_index)` 出现两个签名不同的 entry 即构成**可证明的 log fork**：split-view 攻击者要么一致发布、要么留下可出示的分叉证据。
+- **auditor attestation**（`#/$defs/auditor_attestation`）：`{log_id, realm_id, from_index, to_index, head_entry_digest, auditor_id, checks{append_only, seal_signatures, set_root_monotonic, completeness_monotonic}, attested_at, signature}`——四项 checks 全部为 true 才可签发;auditor 无法断言任一项时 MUST NOT 出具。
+
+`grade=witnessed` 的判定标准即"该 Seal 被 ≥ policy 要求份数的独立 auditor attestation 的已验证范围覆盖"。
 
 ## 8. AvailabilityReceipt
 
@@ -433,7 +467,7 @@ basis {
 
 1. 从自己上一个 accepted Seal 到响应 Seal 的 extension path；
 2. policy 要求的 witness / auditor signature；
-3. 自己关心的 control cell state proof 或 data KeyViewProof；
+3. 自己关心的 control cell state proof 或 data KeyViewProof（[`key-view-proof.schema.json`](../../artifacts/schemas/key-view-proof.schema.json)，验证规则见 §6.4）；
 4. 自己持有 receipt 的 inclusion / rejection / defer 证明。
 
 轻客户端不验证全局 state transition。
@@ -442,7 +476,7 @@ basis {
 
 MLS governance binding 是 `seal_ref` 模式的特例：
 
-- MLS epoch、key schedule、covered_seals cell 属于 control plane。
+- MLS epoch、key schedule、covered_seals_cell 属于 control plane。
 - E2EE message 属于 data plane，必须携带 `seal_ref`，并证明其消息 epoch / key schedule 在该 seal 下有效。
 - MLS commit 是 Control Move，写 MLS control cells，并由 Seal 裁决。
 

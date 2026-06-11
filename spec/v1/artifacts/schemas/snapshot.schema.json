@@ -62,6 +62,7 @@
     },
     "frontier": {
       "type": "object",
+      "$comment": "This is a true frontier (boundary head event ids of the snapshot), not a cumulative covered-set enumeration; it is unrelated to the retired Seal-coverage enumeration (Seal coverage is recursive via predecessor_refs + delta).",
       "required": [
         "event_ids",
         "timeline_hlc"
@@ -83,7 +84,7 @@
     },
     "event_set_commitment": {
       "type": "object",
-      "description": "Commitment to the *set of events* whose replay produces state_digest. Algorithm + root + covered_event_count name the canonical reduction of those events; covered_seals / actor_seq_ranges narrow which event ids and per-actor sequences are bound. Paired with state_digest (see state_digest description): both fields are independently required because state_digest binds reducer output and event_set_commitment binds reducer input.",
+      "description": "Commitment to the *set of events* whose replay produces state_digest. Algorithm + root + covered_event_count name the canonical reduction of those events; covered_event_ids / actor_seq_ranges narrow which event ids and per-actor sequences are bound. Paired with state_digest (see state_digest description): both fields are independently required because state_digest binds reducer output and event_set_commitment binds reducer input.",
       "required": [
         "algorithm",
         "root",
@@ -105,13 +106,13 @@
           "type": "integer",
           "minimum": 0
         },
-        "covered_seals": {
+        "covered_event_ids": {
           "type": "array",
           "items": {
             "type": "string",
             "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           },
-          "description": "When present, MUST denote the same event id set as the top-level frontier.event_ids (set equality): both bind the same snapshot frontier. Consumers MUST reject the snapshot on any mismatch (cross-field consistency enforced by snapshot-schema.md section 5, not by JSON Schema)."
+          "description": "When present, MUST denote the same event id set as the top-level frontier.event_ids (set equality): both bind the same snapshot frontier. Consumers MUST reject the snapshot on any mismatch (cross-field consistency enforced by snapshot-schema.md section 5, not by JSON Schema). Renamed from covered_seals: the members are boundary event ids, not Seal ids; the old spelling is hard-rejected (migration/renames.json) and is unrelated to the MLS covered_seals_cell (ck.component.covered_seals.v1), which keeps its name."
         },
         "actor_seq_ranges": {
           "type": "array",

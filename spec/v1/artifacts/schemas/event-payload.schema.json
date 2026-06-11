@@ -824,6 +824,68 @@
         ]
       }
     },
+    "notary_fault_equivocation_payload": {
+      "type": "object",
+      "description": "Notary equivocation evidence: two Seals signed by signer_id that violate the slot rule (same (realm_id, notary_seq) with different canonical bytes, or notary_seq=k+1 not descending from the same signer's notary_seq=k). Admission is verification-only: the two conflicting notary signatures are the complete authorization; no capability grant is consulted. See authz/event-auth-state-resolution.md section 7.1.",
+      "required": [
+        "signer_id",
+        "seal_a",
+        "seal_b"
+      ],
+      "properties": {
+        "signer_id": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+        },
+        "seal_a": {
+          "$ref": "./seal.schema.json"
+        },
+        "seal_b": {
+          "$ref": "./seal.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "notary_fault_censorship_payload": {
+      "type": "object",
+      "description": "Notary censorship evidence: a signed control-plane receipt whose event digest is provably absent from the obliged Seal's control_event_set_root and that received neither signed-reject nor defer. Does NOT automatically disqualify the notary; adds an audit fault record. See authz/event-auth-state-resolution.md section 7.2.",
+      "required": [
+        "signer_id",
+        "receipt",
+        "seal_ref",
+        "non_membership_proof"
+      ],
+      "properties": {
+        "signer_id": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+        },
+        "receipt": {
+          "type": "object",
+          "description": "The signed control-plane receipt issued under receipt_sla_ms (event_digest, received_at, receipt_seq, issuer, signature).",
+          "required": [
+            "event_digest",
+            "received_at",
+            "signature"
+          ],
+          "additionalProperties": true
+        },
+        "seal_ref": {
+          "type": "string",
+          "pattern": "^ck:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$",
+          "description": "The Seal that was obliged to include / signed-reject / defer the receipted Control Move."
+        },
+        "non_membership_proof": {
+          "type": "object",
+          "description": "Sorted-neighbor non-membership proof for the receipted event digest against seal_ref's control_event_set_root."
+        },
+        "missing_rejection_or_defer_proof": {
+          "type": "object",
+          "description": "Optional structured evidence that no signed-reject / defer covering the receipt exists in the obliged window."
+        }
+      },
+      "additionalProperties": false
+    },
     "object_create_payload": {
       "type": "object",
       "required": [

@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/seal-transparency.schema.json",
+  "title": "Cokret SealTransparency",
+  "description": "Seal transparency wire objects (authz/event-auth-state-resolution.md section 7.4): an append-only log entry binding one accepted Seal tuple, and an independent auditor attestation over a log range. The log makes split-view attacks (showing different Seal chains to different receivers) detectable: an operator must either publish consistently or fork the log, and a log fork is provable from two signed entries with the same log_index. Top-level object is a log entry; auditor attestations use #/$defs/auditor_attestation.",
+  "type": "object",
+  "required": [
+    "log_id",
+    "log_index",
+    "realm_id",
+    "seal_id",
+    "control_event_set_root",
+    "completeness_root",
+    "state_root",
+    "prev_entry_digest",
+    "logged_at",
+    "log_signature"
+  ],
+  "properties": {
+    "log_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "description": "Stable identifier of the transparency log (operator URL, DID, or registry name)."
+    },
+    "log_index": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Zero-based append-only position. Two differently-signed entries with the same (log_id, log_index) are a provable log fork."
+    },
+    "realm_id": {
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
+    },
+    "seal_id": {
+      "type": "string",
+      "pattern": "^ck:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
+    },
+    "control_event_set_root": {
+      "$ref": "#/$defs/hash"
+    },
+    "completeness_root": {
+      "$ref": "#/$defs/hash"
+    },
+    "state_root": {
+      "$ref": "#/$defs/hash"
+    },
+    "prev_entry_digest": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
+      "description": "Digest of the previous entry's canonical bytes (hash chain). null only for log_index 0."
+    },
+    "logged_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "log_signature": {
+      "$ref": "#/$defs/proof"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "auditor_attestation": {
+      "type": "object",
+      "description": "Signed statement by an independent auditor (peer Realm or third party) that it verified the log range [from_index, to_index]: append-only consistency, Seal signature validity, control_event_set_root extension monotonicity, and completeness_root per-actor monotonicity. Clients accept grade=witnessed only when deployment policy's required attestation count is met.",
+      "required": [
+        "log_id",
+        "realm_id",
+        "from_index",
+        "to_index",
+        "head_entry_digest",
+        "auditor_id",
+        "checks",
+        "attested_at",
+        "signature"
+      ],
+      "properties": {
+        "log_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "from_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "to_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "head_entry_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Digest of the entry at to_index, binding the attested range head."
+        },
+        "auditor_id": {
+          "$ref": "#/$defs/did"
+        },
+        "checks": {
+          "type": "object",
+          "required": [
+            "append_only",
+            "seal_signatures",
+            "set_root_monotonic",
+            "completeness_monotonic"
+          ],
+          "properties": {
+            "append_only": {
+              "const": true
+            },
+            "seal_signatures": {
+              "const": true
+            },
+            "set_root_monotonic": {
+              "const": true
+            },
+            "completeness_monotonic": {
+              "const": true
+            }
+          },
+          "additionalProperties": false,
+          "description": "All checks MUST be true; an auditor that cannot assert a check MUST NOT issue the attestation."
+        },
+        "attested_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "signature": {
+          "$ref": "#/$defs/proof"
+        }
+      },
+      "additionalProperties": false
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+    },
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "proof": {
+      "type": "object",
+      "required": [
+        "kind",
+        "verification_method",
+        "alg",
+        "payload_digest",
+        "created_at",
+        "jws"
+      ],
+      "properties": {
+        "kind": {
+          "const": "detached_jws"
+        },
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+        },
+        "alg": {
+          "type": "string",
+          "enum": [
+            "EdDSA",
+            "ES256",
+            "ML-DSA-65"
+          ]
+        },
+        "payload_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Hash of canonical entry / attestation bytes with the signature field omitted."
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
