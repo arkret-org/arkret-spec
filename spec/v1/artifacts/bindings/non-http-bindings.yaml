@@ -144,6 +144,7 @@ grpc:
       GetReceipts: ck.root.identity.get_receipts
       Resolve: ck.root.identity.resolve
       SubmitDidOperation: ck.root.identity.submit_did_operation
+      RecoveryPolicyGet: ck.root.identity.recovery_policy.get
       RecoverySessionCreate: ck.root.identity.recovery_session.create
       RecoverySessionGet: ck.root.identity.recovery_session.get
       RecoverySessionSubmitProof: ck.root.identity.recovery_session.submit_proof

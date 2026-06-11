@@ -16,6 +16,8 @@ updated: 2026-05-25
   - 事件 kind、schema、typed-ID 与 operation 的源定义。
 - `artifacts/registry/error-code-registry.json`
   - 错误码体系。
+- `artifacts/registry/reducer-profile-registry.json`
+  - 联邦 `reducer_profile_digest` 的 canonical reducer profile 定义与 digest 输入规则。
 - `artifacts/registry/registry-manifest.json`
   - `artifacts/registry/` 下所有机器注册表索引。
 - `artifacts/profiles/conformance-profiles.json`

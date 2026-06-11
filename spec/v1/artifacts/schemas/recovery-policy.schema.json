@@ -617,6 +617,162 @@
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
+    "event_id": {
+      "type": "string",
+      "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "policy_id_ref": {
+      "type": "string",
+      "pattern": "^ck:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "recovery_policy_ref": {
+      "type": "object",
+      "required": [
+        "policy_id",
+        "policy_version"
+      ],
+      "properties": {
+        "policy_id": {
+          "$ref": "#/$defs/policy_id_ref"
+        },
+        "policy_version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "recovery_policy_summary": {
+      "type": "object",
+      "description": "Read-model summary of the currently accepted recovery policy. `policy` carries the original ck.schema.recovery_policy.v1 object when the service can disclose it to the caller.",
+      "required": [
+        "policy_id",
+        "principal_id",
+        "version",
+        "trust_domain",
+        "allowed_proof_kinds",
+        "issued_at"
+      ],
+      "properties": {
+        "policy_id": {
+          "$ref": "#/$defs/policy_id_ref"
+        },
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "recovery_policy_ref": {
+          "$ref": "#/$defs/recovery_policy_ref",
+          "description": "Convenience tuple equivalent to `{policy_id, policy_version: version}`. When present, it MUST match policy_id/version."
+        },
+        "trust_domain": {
+          "type": "string",
+          "pattern": "^ck:trust_domain:[A-Za-z0-9_.:-]{1,128}$"
+        },
+        "allowed_proof_kinds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "principal_signing",
+              "recovery_unlock",
+              "device_quorum",
+              "trusted_recovery_service",
+              "threshold_recovery"
+            ]
+          }
+        },
+        "supersedes": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/policy_id_ref"
+            }
+          ]
+        },
+        "issued_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/timestamp"
+            }
+          ]
+        },
+        "accepted_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "policy": {
+          "$ref": "#",
+          "description": "Full accepted ck.schema.recovery_policy.v1 object. Omitted only when the caller is authorized to learn that a policy exists but not to receive holder/share details."
+        }
+      },
+      "additionalProperties": false
+    },
+    "control_frontier": {
+      "type": "object",
+      "description": "Optional principal control-stream frontier under which the active policy was observed.",
+      "properties": {
+        "event_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/event_id"
+          },
+          "uniqueItems": true
+        },
+        "frontier_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "observed_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "recovery_policy_active_outcome": {
+      "type": "object",
+      "description": "Response for ck.root.identity.recovery_policy.get. `active_policy=null` is a successful read meaning no accepted recovery policy currently exists for the resolved principal.",
+      "required": [
+        "active_policy"
+      ],
+      "properties": {
+        "principal_id": {
+          "$ref": "#/$defs/did",
+          "description": "Resolved principal. Required when the request used an explicit principal_id selector; SHOULD be present on all authenticated reads."
+        },
+        "active_policy": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/recovery_policy_summary"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "recovery_policy_ref": {
+          "$ref": "#/$defs/recovery_policy_ref",
+          "description": "Convenience tuple for the active policy. MUST be absent or null-equivalent when active_policy is null, and MUST match active_policy.policy_id/version when active_policy is present."
+        },
+        "as_of": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "control_frontier": {
+          "$ref": "#/$defs/control_frontier"
+        }
+      },
+      "additionalProperties": false
+    },
     "share": {
       "type": "object",
       "required": [

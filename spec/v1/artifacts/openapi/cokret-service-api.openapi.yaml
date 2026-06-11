@@ -580,6 +580,7 @@ components:
           type: object
         supported_reducer_profiles:
           type: array
+          description: Reducer profile ids whose digest_input rows are published in artifacts/registry/reducer-profile-registry.json.
           items:
             type: string
         supported_schema_profiles:
@@ -1032,6 +1033,7 @@ components:
           minLength: 1
         reducer_profile_digest:
           type: string
+          description: SHA-256 over the Cokret canonical JSON bytes of the matching digest_input object in artifacts/registry/reducer-profile-registry.json. Receivers recompute from their effective Realm reducer profile and reject the whole federation batch with reducer_profile_mismatch on mismatch.
           pattern: ^sha256:[0-9a-f]{64}$
       additionalProperties: false
 
@@ -2825,6 +2827,29 @@ paths:
                     type: array
                     items:
                       $ref: ../schemas/identity-receipt.schema.json
+  /_cokret/root/identity/recovery-policy:
+    get:
+      operationId: ck.root.identity.recovery_policy.get
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+      parameters:
+      - name: principal_id
+        in: query
+        required: false
+        schema:
+          type: string
+          pattern: ^did:[a-z0-9]+:[^\s#?]+$
+        description: Optional target principal. If omitted, the server resolves the principal from the authenticated session or service proof.
+      responses:
+        '200':
+          description: Active recovery policy projection
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/recovery-policy.schema.json#/$defs/recovery_policy_active_outcome
   /_cokret/root/identity/recovery-sessions:
     post:
       operationId: ck.root.identity.recovery_session.create

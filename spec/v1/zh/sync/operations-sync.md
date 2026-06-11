@@ -919,7 +919,7 @@ ACL 不等于密文保护，Sync Service 也不应被迫看懂所有正文。
 
 字段可见性分级：
 
-- Event Envelope 顶层可路由 / 因果元数据：`event_id`、`realm_id`、`kind`、`prev_refs`、`refs[]`、`actor_id`、`actor_seq`、`hlc`、`anchor_ref`。顶层只允许 schema 声明的字段，`type` / `target_ref` 不是合法顶层字段，`event-envelope.schema.json` MUST reject；操作目标等路由 hint MUST 放在 payload 的领域字段（例如 `payload.target_ref`）或 `unsigned` 中，不得替代 `event_id`、`prev_refs`、`refs`、`actor_seq` 和签名绑定。
+- Event Envelope 顶层可路由 / 因果 / 签名归属元数据：`event_id`、`realm_id`、`kind`、`prev_refs`、`refs[]`、`actor_id`、`actor_seq`、`hlc`、`anchor_ref`，以及 schema 声明的 `executed_by`、`authorization_ref`、`applet_id`、`external_ref`、`actor_kind`、`effective_scope`。顶层只允许 schema 声明的字段，`type` / `target_ref` 不是合法顶层字段，`event-envelope.schema.json` MUST reject；操作目标等路由 hint MUST 放在 payload 的领域字段（例如 `payload.target_ref`）或 `unsigned` 中，不得替代 `event_id`、`prev_refs`、`refs`、`actor_seq` 和签名绑定。
 - 明文业务元数据：轻量状态、rank、due date 等；若足以暴露敏感内容，接收它们的受托 search / projection 服务必须列入 `plaintext_visible_services`。
 - 不透明加密负载：message body、附件内容等。
 

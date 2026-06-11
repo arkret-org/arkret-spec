@@ -704,6 +704,12 @@
       ]
     },
     {
+      "operation_id": "ck.root.identity.recovery_policy.get",
+      "http_alias": "GET /_cokret/root/identity/recovery-policy",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface. A missing accepted policy is a successful response with active_policy=null."
+    },
+    {
       "operation_id": "ck.root.identity.recovery_session.create",
       "http_alias": "POST /_cokret/root/identity/recovery-sessions",
       "operation_specific": [

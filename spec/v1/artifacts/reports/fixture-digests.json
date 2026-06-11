@@ -22,7 +22,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
-      "sha256": "3252059d9ddf2054248eae346132d528ad674ed37de5b296523f03fecbff8a44"
+      "sha256": "7ca11c9205c9e3b1fe4dba640667060f810e595bcdb553687d1aab434b997cb8"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
@@ -30,7 +30,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",
-      "sha256": "145e83fe7dcd6aca8301ca305c2d2a7b977de6156b7abeab2a733b09d702e1cb"
+      "sha256": "35db9d880a802141279a11da0348f1389c03dfc596d568240bbf1d4d358deff3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
@@ -50,7 +50,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",
-      "sha256": "a4932ee84abbe2ebc06b4bc4b9f664ea8f129cef7d40656623f0630b4c48c580"
+      "sha256": "a62ce10d3bd4b69651962cc5a763e0540d12ab300eb1abf1c417821dcbc01d66"
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",

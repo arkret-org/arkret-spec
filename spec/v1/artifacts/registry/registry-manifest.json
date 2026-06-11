@@ -75,6 +75,14 @@
       "description": "Canonical digest suite (canonicalization x hash tuple) vocabulary for typed digest wire prefixes and the Realm digest_algorithm value space."
     },
     {
+      "name": "reducer_profiles",
+      "file": "registry/reducer-profile-registry.json",
+      "kind": "reducer_profile_registry",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Canonical reducer profile definitions and digest input rules for federation reducer_profile_digest comparison."
+    },
+    {
       "name": "proposal_merges",
       "file": "registry/proposal-merge-manifest.json",
       "kind": "proposal_merge_manifest",

@@ -337,7 +337,7 @@ Base URL 来自 registration 的 `base_url`。
 - **Event kind（进 Realm history）**：`ck.applet.registration`、`ck.applet.interop_session.start`、`ck.applet.interop_session.status`、`ck.applet.bridge_error`。这些是 durable Cokret Event，进入 Realm history，由 reducer 按 schema 校验；payload 字段以 `artifacts/schemas/event-payload.schema.json`（`applet_interop_session_start_payload` / `applet_interop_session_status_payload`，`ck.applet.bridge_error` 见 `applet-schema.md` §7）为权威。
 - **operation_id（HTTP，不进 history）**：本节表中的 `ck.edge.applet.ping`、`ck.edge.applet.describe`、`ck.edge.applet.transaction`、`ck.edge.applet.resolve_actor`、`ck.edge.applet.resolve_realm`、`ck.edge.applet.protocol_metadata`、`ck.edge.applet.third_party_users`、`ck.edge.applet.third_party_locations` 以及 §4b 的 `ck.self.applet.install.preview` / `ck.self.applet.install` / `ck.self.applet.revoke` 是 HTTP API operation 标识符，只描述 Cokret 节点 ↔ Applet 或 self/admin aggregate operation 的请求/响应绑定，本身不是 wire Event，不进入 Realm history。
 
-`ck.edge.applet.transaction` 在 v1 artifacts 中只作为 operation_id 存在，指 §7.3 的 transaction push HTTP 调用；它 MUST NOT 作为 durable Event kind 或 transaction-origin Event 写入 Realm history。transaction push 的幂等记录属于 Applet service / transport audit log；Applet 写入 Cokret 的事实由具体 Event 的 `applet_id`、`external_ref`、`authorization_ref`、event signature 与 capability grant 表达。
+`ck.edge.applet.transaction` 在 v1 artifacts 中只作为 operation_id 存在，指 §7.3 的 transaction push HTTP 调用；它 MUST NOT 作为 durable Event kind 或 transaction-origin Event 写入 Realm history。transaction push 的幂等记录属于 Applet service / transport audit log；Applet 写入 Cokret 的事实由具体 Event Envelope 的 signed `applet_id`、`external_ref`、`authorization_ref`、event signature 与 capability grant 表达。
 
 字段级接口索引：
 
@@ -529,13 +529,13 @@ GET /_cokret/edge/applet/third_party/locations?protocol=slack&team=T123&channel=
 
 Applet 写入 Cokret MUST 使用常规 `/_cokret/self/events` submit 接口。
 
-每个写入 Event MUST 包含：
+每个 Applet-originated 写入 Event MUST 包含下列 signed Event Envelope 字段（这些字段均进入 `proof.event_digest`；不得只放在 `unsigned` 中）：
 
 - `actor_id`
 - `applet_id`
 - `external_ref`，若来自外部网络
 - `authorization_ref`
-- `proof`
+- `proofs[]`
 
 示例：
 
@@ -544,29 +544,40 @@ Applet 写入 Cokret MUST 使用常规 `/_cokret/self/events` submit 接口。
   "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
   "realm_id": "ck:realm:c0c69410-0000-7000-8000-000000000000",
   "actor_id": "did:web:slack-bridge.example:ghost:u123",
+  "actor_seq": 17,
   "kind": "ck.message.create",
   "applet_id": "ck:applet:21532600-0000-7000-8000-000000000000",
+  "authorization_ref": "ck:grant:0196410c-0000-7000-8000-000000000000",
   "external_ref": {
     "protocol": "slack",
     "network_id": "T123",
     "event_id": "1714040000.000100"
   },
+  "created_at": "2026-04-26T00:00:01Z",
+  "prev_refs": [],
+  "refs": [],
   "payload": {
     "flow_id": "ck:flow:c0c69410-0000-7000-8000-000000000001",
+    "track_name": "discussion",
     "content": {
+      "kind": "ck.content.text",
       "body": "hello from Slack"
     }
   },
-  "proof": {
-    "kind": "detached_jws",
-    "alg": "EdDSA",
-    "verification_method": "did:web:slack-bridge.example:ghost:u123#key-1",
-    "payload_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-    "created_at": "2026-04-26T00:00:01Z",
-    "jws": "..."
-  }
+  "proofs": [
+    {
+      "kind": "detached_jws",
+      "alg": "EdDSA",
+      "verification_method": "did:web:slack-bridge.example:ghost:u123#key-1",
+      "event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "created_at": "2026-04-26T00:00:01Z",
+      "jws": "a..b"
+    }
+  ]
 }
 ```
+
+`external_ref` 是 bridge / 外部网络 provenance 与幂等审计材料。若用于回环防护、外部消息去重、moderation audit 或用户可见出处，Producer MUST 使用 Event Envelope 顶层 signed `external_ref`；`unsigned.external_ref` 只能承载可丢弃的本地 hint，MUST NOT 作为安全决策输入。
 
 ## 9. Ghost Actor
 
@@ -642,6 +653,8 @@ Alice via Calendar Applet
   "applet_id": "ck:applet:8a0baad5-6000-7000-8000-000000000000"
 }
 ```
+
+这些字段位于 Event Envelope 顶层并进入 canonical event bytes；实现 MUST NOT 把 `applet_id` 或 `authorization_ref` 降级为 `payload` 内业务字段或 `unsigned` hint。
 
 **Reducer normative**:
 

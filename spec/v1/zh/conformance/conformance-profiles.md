@@ -920,7 +920,7 @@ MIMI Interop profile MUST 额外提供：
     "plaintext_visibility_classes"
   ],
   "reducer_profiles": [
-    "ck.reducer.v1"
+    "ck.profile.federation_minimal.v1"
   ],
   "schema_profiles": [
     "ck.schema.event.v1"

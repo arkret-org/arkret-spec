@@ -193,7 +193,19 @@ Signature: sig1=:base64...:
 | `service_binding_ref.delivery_binding_frontier` | body | `id[]` | required | 发送方解析投递目标时所依据的 member delivery binding 因果前沿。接收方 MUST 校验该前沿在自己的 Realm 视图中可达，且对应到当前 effective `delivery_binding.recipient_service_did = Destination-Service-DID`。前沿落后于当前接收方 binding（接收方已收到 rebind handover frontier `F` 而 sender 仍按旧 binding 投递）时，接收方 MUST 返回 `delivery_binding_stale` 并在响应中带回 `new_recipient_service_did` 与 `handover_frontier`，sender 切到新目标后重试。 |
 | `service_binding_ref.delivery_binding_diagnostics` | body | `object` | optional | 纯诊断字段。可携带 `basis: ["member_delivery_binding"\|"realm_sync_endpoint"]` 等本次投递的来源标签，便于排查；不得替代接收方独立校验。 |
 | `service_binding_ref.destination_service_type` | body | `string` | required | 目标服务类型，例如 `principal_server`。 |
-| `service_binding_ref.reducer_profile_digest` | body | `sha256:<hash>` | required | 发送方在此 Realm 使用的 reducer profile canonical hash（覆盖 `ck.reducer.<id>.v<n>` 的完整规则定义）。接收方 MUST 与自己的 reducer profile 比对；不一致 MUST 拒绝整批请求并返回 `reducer_profile_mismatch`。这避免了同一 Event 在两端 reducer 下产生不同 cell 状态、state_root 或 covered_frontier，进而被 idempotent 接受却不可重放的隐性失败。 |
+| `service_binding_ref.reducer_profile_digest` | body | `sha256:<hash>` | required | 发送方在此 Realm 使用的 reducer profile canonical digest。计算规则见 §4.1.1，输入对象来自 [`reducer-profile-registry.json`](../../artifacts/registry/reducer-profile-registry.json) 对应 `profile_id` 的 `digest_input`。接收方 MUST 与自己的 reducer profile digest 比对；不一致 MUST 拒绝整批请求并返回 `reducer_profile_mismatch`。这避免了同一 Event 在两端 reducer 下产生不同 cell 状态、state_root 或 covered_frontier，进而被 idempotent 接受却不可重放的隐性失败。 |
+
+#### 4.1.1 `reducer_profile_digest` 计算规则（normative）
+
+`reducer_profile_digest` 的唯一机器可读源是 [`artifacts/registry/reducer-profile-registry.json`](../../artifacts/registry/reducer-profile-registry.json)。发送方 MUST 选取目标 Realm 声明的 reducer profile `profile_id` 对应 registry row，并只对该 row 的 `digest_input` 对象计算 digest：
+
+```text
+reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(digest_input)))
+```
+
+其中 `canonical_json` 是 [`encoding.md` §2](../conformance/encoding.md) 的 Cokret canonical JSON。`digest_input` 对象本身包含 profile 继承、required / rejected event-kind 集、schema / fixture / lattice 约束以及对应规范源引用；实现不得改用本地配置对象、ServiceDescribe 摘要或手写 `{domain, profile}` 对象来计算此字段。
+
+接收方 MUST 用同一 registry 规则重算自己在该 Realm 上实际执行的 reducer profile digest，并与请求字段逐字节比对。缺少 registry row、profile_id 未声明、canonicalization 不支持、digest suite 不是 active `sha256`，或重算结果不一致，均 MUST fail closed；对于 `POST /_cokret/peer/events`，失败结果是整批拒绝并返回 `reducer_profile_mismatch`，不得 partial accept。
 
 
 请求示例（`Source-Service-DID` / `Destination-Service-DID` 由 header 承载，不重复在 body 中）：
@@ -213,7 +225,7 @@ Signature: sig1=:base64...:
       "basis": ["member_delivery_binding"]
     },
     "destination_service_type": "principal_server",
-    "reducer_profile_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    "reducer_profile_digest": "sha256:d7a0d88d075240c9faf28c87b54708788cde1c6a1c4e68c45ee6c8b7e4d3c651"
   },
   "events": [
     {

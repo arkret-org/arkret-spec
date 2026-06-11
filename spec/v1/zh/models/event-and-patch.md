@@ -46,8 +46,10 @@ Schema id: `ck.schema.event.v1`
 | `realm_id` | yes | `id:realm` | Realm create 可在 payload 中建立。 | 所属 Realm。 |
 | `effective_scope` | reducer-stamped | `object` | Reducer 接受 Event 时从 Realm/Circle scope 物化并 immutable 写入；进入 canonical Event bytes、Anchor/sub-anchor leaves、E2EE AAD 与 MLS governance binding input。Actor-supplied submit payload MUST NOT 携带该字段，reducer MUST `schema_violation` (`reason=effective_scope_reducer_managed`)。 | 事件有效作用域。 |
 | `actor_id` | yes | `did` | 必须匹配 proof 控制链(`executed_by` 缺失时);`executed_by` 存在时 proof 控制链对齐 `executed_by`。 | 事件归属的 principal of record。 |
-| `executed_by` | conditional | `did` | 仅 agent 代用户执行时出现。必须是 accountable to `actor_id` 的 native personal agent principal。出现时 MUST 与 `authorization_ref` 同时出现。进入 canonical bytes、event digest、E2EE AAD。Receiver MUST 校验 proof `verification_method` 解析到 `executed_by`。 | act-on-behalf 时实际签发该 wire write 的 agent。 |
-| `authorization_ref` | conditional | `id:grant` 或 `id:event` | 仅 `executed_by` 存在时必填。优先引用已物化的 `ck:grant:*`；若授权仍以 Event 表达，则引用产生该 grant / delegation 的 accepted Event。Reducer MUST 校验该 grant / delegation 覆盖目标 event kind / resource / fresh approval,并在 effective validity window 内。 | act-on-behalf grant / delegation 引用。 |
+| `executed_by` | conditional | `did` | agent / applet / delegated service 代 `actor_id` 写入时出现。出现时 MUST 与 `authorization_ref` 同时出现；Applet delegated 写入还 MUST 同时出现 `applet_id`。进入 canonical bytes、event digest、E2EE AAD。Receiver MUST 校验 proof `verification_method` 解析到 `executed_by`。 | act-on-behalf 时实际签发该 wire write 的主体。 |
+| `authorization_ref` | conditional | `id:grant` 或 `id:event` | `executed_by` 存在时必填；Applet-originated 写入携带 `applet_id` 时也必填。优先引用已物化的 `ck:grant:*`；若授权仍以 Event 表达，则引用产生该 grant / delegation 的 accepted Event。Reducer MUST 校验该 grant / delegation 覆盖目标 event kind / resource / fresh approval,并在 effective validity window 内。 | act-on-behalf / Applet grant / delegation 引用。 |
+| `applet_id` | conditional | `id:applet` | Applet、Ghost Actor、bridge 或 delegated applet 路径引入 Event 时必填。进入 canonical bytes 与 event digest；出现时 MUST 同时出现 `authorization_ref`。 | signed Applet provenance。 |
+| `external_ref` | no | `object` | 外部网络 provenance。若用于回环防护、外部消息幂等、审计或用户可见出处，MUST 放在 Event Envelope 顶层并由签名覆盖；出现时 MUST 同时出现 `applet_id`。不得包含未授权外部正文明文。 | signed external provenance。 |
 | `actor_kind` | reducer-stamped | `enum(user, org, team, agent, service, integration)` | 不含 `device`（设备非 actor 主体，见 [`actor.md` §2](./actor.md)）。Reducer 在接受时从 `actor_id` 的 Actor Profile 解析并 immutable 写入。**Actor-supplied submit payload MUST NOT 携带**,reducer MUST `schema_violation` (`reason=actor_kind_reducer_managed`)。 | 审计 / 离线读取的 actor 类型 projection。 |
 | `actor_seq` | yes | `integer` | 同一 actor 因果路径上严格递增；并发 sibling fork 可出现相同高度。 | Actor 链高度 / 防回退索引。 |
 | `created_at` | yes | `timestamp` | 不能单独决定因果。 | 创建时间。 |
@@ -63,7 +65,7 @@ Schema id: `ck.schema.event.v1`
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。 | 本地/传输附加信息。 |
 | `proofs` | yes | `array<Proof>` | 至少一个有效 proof（`minItems: 1`）。 | 签名证明。 |
 
-Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。扩展字段不得直接加在顶层；非关键扩展只能放入 `payload.x_*`，且仅当该 payload kind 的 schema 显式声明 `x_*` patternProperties 扩展槽时才可使用——未声明扩展槽的 payload kind 不接受任何未知字段（payload schema 的 `additionalProperties: false` 即权威判定；当前已声明扩展槽的 payload kind 以 schema 为准，现仅 `invite_payload`）。实现 MUST 在 canonical bytes、存储、转发和 backfill 中保留 schema 允许的 `x_*` 字段；需要扩展槽的 payload kind SHOULD 先在对应 schema 登记 `x_*` 槽再使用。关键扩展必须通过 `requirements.critical_extensions[]` 声明并 fail closed。
+Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。除 schema 已声明的标准字段（含 `executed_by`、`authorization_ref`、`applet_id`、`external_ref`、`actor_kind`、`effective_scope`）外，扩展字段不得直接加在顶层；非关键扩展只能放入 `payload.x_*`，且仅当该 payload kind 的 schema 显式声明 `x_*` patternProperties 扩展槽时才可使用——未声明扩展槽的 payload kind 不接受任何未知字段（payload schema 的 `additionalProperties: false` 即权威判定；当前已声明扩展槽的 payload kind 以 schema 为准，现仅 `invite_payload`）。实现 MUST 在 canonical bytes、存储、转发和 backfill 中保留 schema 允许的 `x_*` 字段；需要扩展槽的 payload kind SHOULD 先在对应 schema 登记 `x_*` 槽再使用。关键扩展必须通过 `requirements.critical_extensions[]` 声明并 fail closed。
 
 ### 2.3 最小 reducer-input event 示例
 
@@ -122,7 +124,7 @@ Event Envelope 的顶层 `kind` 是唯一 payload discriminator。State converge
 
 - `payload.type` 不得重复写入 `ck.*` Event kind。
 - Payload 引用被创建对象时通过 `payload.object.id` 或 `payload.target_ref` 等 typed-id 字段表达，前缀（`ck:flow:` 等）即对象种类，不写单独的 `payload.object.type`。
-- `actor_id` 是该 Event 归属的 principal of record。**当 `executed_by` 存在时**(act-on-behalf),实际签发该 Event 的是 `executed_by` 表示的 agent principal,proof.verification_method 解析到 `executed_by`;`actor_id` 仍是 controller principal,用于审计 / 渲染 / accountable_principal_ids 链。Receiver MUST 同时校验 `executed_by`、`authorization_ref` 指向的 active grant / delegation、以及 active `ck.agent.key.authorize` 之间的一致性，否则 fail closed。物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`,但不得替代 Event proof、capability 或 Move refs 校验。
+- `actor_id` 是该 Event 归属的 principal of record。**当 `executed_by` 存在时**(act-on-behalf),实际签发该 Event 的是 `executed_by` 表示的 agent / applet / delegated service principal,proof.verification_method 解析到 `executed_by`;`actor_id` 仍是 accountable principal,用于审计 / 渲染 / accountable_principal_ids 链。Receiver MUST 同时校验 `executed_by`、`authorization_ref` 指向的 active grant / delegation，以及对应 native agent key authorization 或 Applet registration / registration_epoch 绑定之间的一致性，否则 fail closed。物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`,但不得替代 Event proof、capability 或 Move refs 校验。
 - `actor_kind` 是 reducer-stamped 投影，由 reducer 在接受 Event 时从 `actor_id` 的 Actor Profile 解析得到 immutable 值；它让审计 / 取证 / offline reader 不必反向解析 Actor Profile 即可判断该 Event 是 agent 行为(`actor_kind="agent"`) 还是 controller 行为。Actor 提交侧 MUST NOT 携带该字段。
 - 启用 `ck.profile.mls.minimal_metadata_realm.v1` 时，`actor_id` MAY 是 Realm / Flow track scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `ck.schema.identity_link.v1` payload（`ck.identity_link` application message / MLS private extension）、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
 
@@ -159,7 +161,7 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 | `kind` | yes | `enum(detached_jws)` | 初版必须支持。 | 证明类型。 |
 | `alg` | yes | `string` | 初版默认 `EdDSA`。 | 签名算法。 |
 | `verification_method` | yes | `string` | DID URL。 | 公钥/设备方法。 |
-| `event_digest` | yes | `hash` | MUST 等价于 `canonical_digest(envelope_without_proofs_unsigned)`：hash 输入是去除 `proofs` 与 `unsigned` 之后的整个 canonical Event envelope（含 `event_id`、`kind`、`actor_id`、`payload`、`refs`、`preconditions`、`effects`、`anchor_ref`、`requirements`、`hlc` 等）。 | canonical Event digest。 |
+| `event_digest` | yes | `hash` | MUST 等价于 `canonical_digest(envelope_without_proofs_unsigned)`：hash 输入是去除 `proofs` 与 `unsigned` 之后的整个 canonical Event envelope（含 `event_id`、`kind`、`actor_id`、`executed_by`、`authorization_ref`、`applet_id`、`external_ref`、`payload`、`refs`、`preconditions`、`effects`、`anchor_ref`、`requirements`、`hlc` 等）。 | canonical Event digest。 |
 | `created_at` | yes | `timestamp` |  | 签名时间。 |
 | `domain` | no | `string` | 同一 trust domain 内 SHOULD 设置；跨服务、跨 trust domain 或 federation profile 下 MUST 设置。 | 域绑定。 |
 | `audience` | no | `string` 或 `array<string>` | 同一 service audience 内 SHOULD 设置；跨域/服务调用、多受众调用或 federation profile 下 MUST 设置。 | 受众绑定。 |

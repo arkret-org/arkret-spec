@@ -17,20 +17,20 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 127,
+    "total_operations": 128,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 2,
       "service_describe": 7,
       "streaming_frame_schema": 2,
-      "typed_schema": 114
+      "typed_schema": 115
     },
     "by_tier_and_class": {
       "core": {
         "no_request_body": 2,
         "service_describe": 4,
         "streaming_frame_schema": 2,
-        "typed_schema": 19
+        "typed_schema": 20
       },
       "deployment_local": {
         "typed_schema": 5
@@ -808,6 +808,19 @@
       "openapi_component_refs": {},
       "completeness_class": "no_request_body",
       "reason": "read-only operation with no request body and no typed JSON response component in OpenAPI."
+    },
+    {
+      "operation_id": "ck.root.identity.recovery_policy.get",
+      "tier": "core",
+      "http": "GET /_cokret/root/identity/recovery-policy",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_active_outcome",
+      "openapi_component_refs": {
+        "response": "../schemas/recovery-policy.schema.json#/$defs/recovery_policy_active_outcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ck.root.identity.recovery_session.complete",

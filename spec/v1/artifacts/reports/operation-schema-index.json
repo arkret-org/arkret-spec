@@ -2289,6 +2289,25 @@
       }
     },
     {
+      "operation_id": "ck.root.identity.recovery_policy.get",
+      "success_shape_kind": "schema_resource",
+      "response": {
+        "schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_active_outcome",
+        "schema_kind": "object",
+        "required": [
+          "active_policy"
+        ],
+        "properties": [
+          "principal_id",
+          "active_policy",
+          "recovery_policy_ref",
+          "as_of",
+          "control_frontier"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ck.root.identity.recovery_session.create",
       "success_shape_kind": "schema_resource",
       "request": {

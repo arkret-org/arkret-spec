@@ -1,0 +1,278 @@
+{
+  "version": "2026-06-11",
+  "source_of_truth": true,
+  "description": "Canonical reducer profile definitions used to compute federation service_binding_ref.reducer_profile_digest. Each digest is SHA-256 over the Cokret canonical JSON bytes of the row's digest_input object.",
+  "canonicalization": "json_jcs",
+  "digest_suite": "sha256",
+  "digest_input_rule": "Resolve the row whose profile_id equals the Realm reducer profile, take digest_input exactly as published in this registry, canonicalize it with zh/conformance/encoding.md section 2 canonical JSON, hash the resulting UTF-8 bytes with SHA-256, and encode as sha256:<lowercase_hex>.",
+  "profiles": [
+    {
+      "profile_id": "ck.profile.core_event_store.v1",
+      "status": "active",
+      "digest_input": {
+        "profile_id": "ck.profile.core_event_store.v1",
+        "inherits": [],
+        "required_event_kinds": [
+          "ck.realm.create",
+          "ck.member.state"
+        ],
+        "rejected_event_kind_scopes": [
+          "wire_scope:actor_private_event",
+          "wire_scope:ephemeral_event"
+        ],
+        "required_schemas": [
+          "ck.schema.event.v1",
+          "ck.schema.event_payload.v1",
+          "ck.schema.event_batch_receipt.v1",
+          "ck.schema.cursor.v1",
+          "ck.schema.anchor.v1"
+        ],
+        "required_constraint_types": [
+          "temporal",
+          "field_access",
+          "type_restriction",
+          "scope_limitation",
+          "delegation_control",
+          "quota"
+        ],
+        "required_constraint_subtypes": [
+          "rate"
+        ],
+        "required_fixtures": [
+          "encoding-fixture.json",
+          "crypto-signature-fixture.json",
+          "event-envelope-negative-fixture.json",
+          "sync-fixture.json"
+        ],
+        "reducer_contract_refs": [
+          "artifacts/profiles/conformance-profiles.json#/profile_requirements/ck.profile.core_event_store.v1",
+          "artifacts/registry/event-kind-registry.json",
+          "artifacts/registry/capability-action-registry.json",
+          "zh/authz/event-auth-state-resolution.md",
+          "zh/conformance/encoding.md"
+        ],
+        "lattice_types": [
+          "or_set",
+          "mv_register",
+          "cas_register",
+          "fsm",
+          "counter",
+          "ordered_log"
+        ]
+      }
+    },
+    {
+      "profile_id": "ck.profile.chat_mvp.v1",
+      "status": "active",
+      "digest_input": {
+        "profile_id": "ck.profile.chat_mvp.v1",
+        "inherits": [
+          "ck.profile.core_event_store.v1"
+        ],
+        "required_event_kinds": [
+          "ck.realm.create",
+          "ck.member.state",
+          "ck.flow.create",
+          "ck.message.create",
+          "ck.message.revise",
+          "ck.message.redact",
+          "ck.reaction.add",
+          "ck.reaction.remove",
+          "ck.redaction"
+        ],
+        "rejected_event_kind_scopes": [],
+        "required_schemas": [
+          "ck.schema.realm.v1",
+          "ck.schema.flow.v1",
+          "ck.schema.message.v1",
+          "ck.schema.account_subscribe_frame.v1"
+        ],
+        "required_constraint_types": [
+          "temporal"
+        ],
+        "required_constraint_subtypes": [
+          "edit_window"
+        ],
+        "required_fixtures": [
+          "sync-fixture.json",
+          "redaction-fixture.json",
+          "reaction-fixture.json",
+          "move-anchor-lattice-fixture.json",
+          "privacy-security-fixture.json"
+        ],
+        "reducer_contract_refs": [
+          "artifacts/profiles/conformance-profiles.json#/profile_requirements/ck.profile.chat_mvp.v1",
+          "artifacts/registry/event-kind-registry.json",
+          "artifacts/registry/capability-action-registry.json",
+          "artifacts/registry/relation-kind-registry.json",
+          "zh/models/flow-and-message.md",
+          "zh/conformance/conformance-vectors.md"
+        ],
+        "lattice_types": [
+          "or_set",
+          "mv_register",
+          "cas_register",
+          "fsm",
+          "ordered_log"
+        ]
+      }
+    },
+    {
+      "profile_id": "ck.profile.kanban_mvp.v1",
+      "status": "active",
+      "digest_input": {
+        "profile_id": "ck.profile.kanban_mvp.v1",
+        "inherits": [
+          "ck.profile.core_event_store.v1"
+        ],
+        "required_event_kinds": [
+          "ck.realm.create",
+          "ck.member.state",
+          "ck.flow.create",
+          "ck.flow.update",
+          "ck.flow.move",
+          "ck.flow.reorder",
+          "ck.relation.create",
+          "ck.container.rebalance"
+        ],
+        "rejected_event_kind_scopes": [],
+        "required_schemas": [
+          "ck.schema.realm.v1",
+          "ck.schema.flow.v1",
+          "ck.schema.relation.v1",
+          "ck.schema.view.v1"
+        ],
+        "required_constraint_types": [
+          "scope_limitation"
+        ],
+        "required_constraint_subtypes": [],
+        "required_fixtures": [
+          "sync-fixture.json",
+          "move-anchor-lattice-fixture.json"
+        ],
+        "reducer_contract_refs": [
+          "artifacts/profiles/conformance-profiles.json#/profile_requirements/ck.profile.kanban_mvp.v1",
+          "artifacts/registry/event-kind-registry.json",
+          "artifacts/registry/relation-kind-registry.json",
+          "zh/models/realm-and-space.md",
+          "zh/models/flow-and-message.md",
+          "zh/models/relation.md"
+        ],
+        "lattice_types": [
+          "or_set",
+          "cas_register",
+          "ordered_log"
+        ]
+      }
+    },
+    {
+      "profile_id": "ck.profile.principal_server.v1",
+      "status": "active",
+      "digest_input": {
+        "profile_id": "ck.profile.principal_server.v1",
+        "inherits": [
+          "ck.profile.principal_server_events_api.v1",
+          "ck.profile.chat_mvp.v1",
+          "ck.profile.kanban_mvp.v1"
+        ],
+        "required_event_kinds": [
+          "ck.realm.create",
+          "ck.member.state",
+          "ck.flow.create",
+          "ck.message.create",
+          "ck.capability.grant",
+          "ck.capability.revoke"
+        ],
+        "rejected_event_kind_scopes": [],
+        "required_schemas": [
+          "ck.schema.account_subscribe_frame.v1",
+          "ck.schema.snapshot.v1",
+          "ck.schema.capability.v1",
+          "ck.schema.grant_constraint.v1"
+        ],
+        "required_constraint_types": [
+          "temporal",
+          "scope_limitation",
+          "delegation_control",
+          "quota"
+        ],
+        "required_constraint_subtypes": [
+          "rate"
+        ],
+        "required_fixtures": [
+          "event-envelope-negative-fixture.json",
+          "sync-fixture.json",
+          "move-anchor-lattice-fixture.json",
+          "capability-fixture.json",
+          "privacy-security-fixture.json"
+        ],
+        "reducer_contract_refs": [
+          "artifacts/profiles/conformance-profiles.json#/profile_requirements/ck.profile.principal_server.v1",
+          "artifacts/registry/event-kind-registry.json",
+          "artifacts/registry/capability-action-registry.json",
+          "artifacts/registry/operations-error-mapping.json",
+          "zh/sync/service-surface.md",
+          "zh/sync/client-sync.md",
+          "zh/authz/capabilities.md"
+        ],
+        "lattice_types": [
+          "or_set",
+          "mv_register",
+          "cas_register",
+          "fsm",
+          "counter",
+          "ordered_log"
+        ]
+      }
+    },
+    {
+      "profile_id": "ck.profile.federation_minimal.v1",
+      "status": "active",
+      "digest_input": {
+        "profile_id": "ck.profile.federation_minimal.v1",
+        "inherits": [
+          "ck.profile.core_event_store.v1"
+        ],
+        "required_event_kinds": [
+          "ck.realm.create",
+          "ck.member.state"
+        ],
+        "rejected_event_kind_scopes": [
+          "wire_scope:actor_private_event",
+          "wire_scope:ephemeral_event"
+        ],
+        "required_schemas": [
+          "ck.schema.event.v1",
+          "ck.schema.event_payload.v1",
+          "ck.schema.cursor.v1",
+          "ck.schema.anchor.v1"
+        ],
+        "required_constraint_types": [
+          "temporal",
+          "scope_limitation"
+        ],
+        "required_constraint_subtypes": [],
+        "required_fixtures": [
+          "federation-fixture.json",
+          "crypto-signature-fixture.json",
+          "sync-fixture.json"
+        ],
+        "reducer_contract_refs": [
+          "artifacts/profiles/conformance-profiles.json#/profile_requirements/ck.profile.federation_minimal.v1",
+          "artifacts/registry/event-kind-registry.json",
+          "artifacts/registry/operation-registry.json",
+          "zh/sync/federation.md",
+          "zh/sync/service-http-binding.md"
+        ],
+        "lattice_types": [
+          "or_set",
+          "mv_register",
+          "cas_register",
+          "fsm",
+          "counter",
+          "ordered_log"
+        ]
+      }
+    }
+  ]
+}

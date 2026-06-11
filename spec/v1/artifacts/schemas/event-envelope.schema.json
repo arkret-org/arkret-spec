@@ -38,7 +38,7 @@
     },
     "executed_by": {
       "$ref": "#/$defs/did",
-      "description": "Optional. Present only when an agent acts on behalf of the controller actor. actor_id is the principal of record (controller), executed_by is the agent principal that actually issued the wire write. MUST be a registered native personal agent principal accountable to actor_id (see zh/models/event-and-patch.md and zh/identity/key-management.md agent accountability rules). When present, MUST appear together with authorization_ref. Enters canonical event bytes, event digest, and E2EE AAD. Receivers MUST verify the proof's verification_method maps to executed_by (not actor_id) when this field is present."
+      "description": "Optional. Present when a native personal agent, delegated applet, or delegated service acts on behalf of the controller actor. actor_id is the principal of record (controller), executed_by is the agent / applet / service principal that actually issued the wire write. When present, MUST appear together with authorization_ref. Applet delegated writes also MUST carry applet_id. Enters canonical event bytes, event digest, and E2EE AAD. Receivers MUST verify the proof's verification_method maps to executed_by (not actor_id) when this field is present."
     },
     "authorization_ref": {
       "oneOf": [
@@ -50,6 +50,14 @@
         }
       ],
       "description": "Optional. Required when executed_by is present. Prefer a materialized ck:grant:* id; an event id is allowed only when it points to the accepted grant/delegation event that produced the effective authorization. Reducer MUST validate the referenced grant/delegation covers the event kind and target resource and is within its effective validity window."
+    },
+    "applet_id": {
+      "$ref": "#/$defs/applet_id",
+      "description": "Optional signed Applet provenance. Required by ck.profile.applet_* when the Event is introduced by an Applet, Ghost Actor, bridge, or delegated applet path. Enters canonical event bytes and therefore is covered by proof.event_digest. When present, authorization_ref MUST also be present and MUST bind this applet_id and registration_epoch per zh/extensions/applet-integration.md section 11."
+    },
+    "external_ref": {
+      "$ref": "#/$defs/external_ref",
+      "description": "Optional signed external provenance reference for Applet / bridge-originated Events. It is covered by event_digest and MUST NOT be carried only in unsigned when used for loop prevention, audit, or external-message idempotency. Must not contain unauthorized external plaintext."
     },
     "actor_kind": {
       "type": "string",
@@ -172,6 +180,31 @@
     }
   },
   "allOf": [
+    {
+      "$comment": "Signed Applet provenance invariants. external_ref is only meaningful when bound to a signed applet_id, and Applet-originated writes must cite the accepted authorization/delegation grant.",
+      "if": {
+        "required": [
+          "external_ref"
+        ]
+      },
+      "then": {
+        "required": [
+          "applet_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "applet_id"
+        ]
+      },
+      "then": {
+        "required": [
+          "authorization_ref"
+        ]
+      }
+    },
     {
       "$comment": "Known active non-reducer event kinds (wire_scope=actor_private_event OR wire_scope=durable_event with reducer_input=false) MUST NOT carry preconditions/effects/anchor_ref. ephemeral_event kinds are forbidden here entirely — see the next allOf branch.",
       "if": {
@@ -2956,9 +2989,57 @@
     }
   ],
   "$defs": {
+    "applet_id": {
+      "type": "string",
+      "pattern": "^ck:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
     "did": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "external_ref": {
+      "type": "object",
+      "description": "Signed external provenance. Extension profiles define exact field vocabulary; common fields include protocol, network_id, instance_id, user_id, location_id, event_id, external_id, and url. Implementations MUST preserve all fields in canonical bytes and MUST NOT use unsigned.external_ref for security decisions.",
+      "minProperties": 1,
+      "properties": {
+        "schema": {
+          "type": "string",
+          "pattern": "^(ck\\.schema\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+|[a-z0-9][a-z0-9_.-]*\\.[a-z0-9][a-z0-9_.-]*(?:\\.[a-z0-9_.-]+)*\\.v[0-9]+)$"
+        },
+        "protocol": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.-]{0,63}$"
+        },
+        "network_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "instance_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "user_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "location_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "event_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "external_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "additionalProperties": true
     },
     "timestamp": {
       "type": "string",

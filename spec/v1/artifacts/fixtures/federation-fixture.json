@@ -29,11 +29,70 @@
       "membership_frontier": [
         "ck:event:01964145-8000-7000-8000-000000000000"
       ],
+      "delivery_binding_frontier": [
+        "ck:event:01964145-8000-7000-8000-000000000001"
+      ],
       "destination_service_type": "principal_server",
-      "reducer_profile_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      "reducer_profile_digest": "sha256:d7a0d88d075240c9faf28c87b54708788cde1c6a1c4e68c45ee6c8b7e4d3c651"
     }
   },
   "cases": [
+    {
+      "name": "reducer_profile_digest_federation_minimal",
+      "canonical_input": {
+        "profile_id": "ck.profile.federation_minimal.v1",
+        "inherits": [
+          "ck.profile.core_event_store.v1"
+        ],
+        "required_event_kinds": [
+          "ck.realm.create",
+          "ck.member.state"
+        ],
+        "rejected_event_kind_scopes": [
+          "wire_scope:actor_private_event",
+          "wire_scope:ephemeral_event"
+        ],
+        "required_schemas": [
+          "ck.schema.event.v1",
+          "ck.schema.event_payload.v1",
+          "ck.schema.cursor.v1",
+          "ck.schema.anchor.v1"
+        ],
+        "required_constraint_types": [
+          "temporal",
+          "scope_limitation"
+        ],
+        "required_constraint_subtypes": [],
+        "required_fixtures": [
+          "federation-fixture.json",
+          "crypto-signature-fixture.json",
+          "sync-fixture.json"
+        ],
+        "reducer_contract_refs": [
+          "artifacts/profiles/conformance-profiles.json#/profile_requirements/ck.profile.federation_minimal.v1",
+          "artifacts/registry/event-kind-registry.json",
+          "artifacts/registry/operation-registry.json",
+          "zh/sync/federation.md",
+          "zh/sync/service-http-binding.md"
+        ],
+        "lattice_types": [
+          "or_set",
+          "mv_register",
+          "cas_register",
+          "fsm",
+          "counter",
+          "ordered_log"
+        ]
+      },
+      "expected_digest": "sha256:d7a0d88d075240c9faf28c87b54708788cde1c6a1c4e68c45ee6c8b7e4d3c651",
+      "expected": "canonical_digest_matches_reducer_profile_registry_row"
+    },
+    {
+      "name": "reducer_profile_mismatch",
+      "sender_reducer_profile_digest": "sha256:d7a0d88d075240c9faf28c87b54708788cde1c6a1c4e68c45ee6c8b7e4d3c651",
+      "receiver_reducer_profile_digest": "sha256:9acf68105ee4698368137d3ea070548556bfd6f6ad7771df0fdc77f8c97a5e09",
+      "expected": "whole_batch_rejected_with_reducer_profile_mismatch"
+    },
     {
       "name": "http_message_signature_digest",
       "input": {

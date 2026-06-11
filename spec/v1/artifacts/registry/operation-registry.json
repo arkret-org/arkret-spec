@@ -54,6 +54,7 @@
         "ck.root.identity.get_log",
         "ck.root.identity.get_receipts",
         "ck.root.identity.submit_did_operation",
+        "ck.root.identity.recovery_policy.get",
         "ck.root.identity.recovery_session.create",
         "ck.root.identity.recovery_session.get",
         "ck.root.identity.recovery_session.submit_proof",
@@ -1015,6 +1016,15 @@
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitOutcome"
+    },
+    {
+      "operation_id": "ck.root.identity.recovery_policy.get",
+      "http": "GET /_cokret/root/identity/recovery-policy",
+      "grpc": "RootIdentity/RecoveryPolicyGet",
+      "mq": "root.identity.recovery_policy.get",
+      "notes": "Read the currently accepted ck.schema.recovery_policy.v1 projection for the authenticated or explicitly selected principal. Returns active_policy=null when no accepted policy exists; does not publish, rotate, or revoke policy state.",
+      "success_shape_kind": "schema_resource",
+      "response_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_active_outcome"
     },
     {
       "operation_id": "ck.root.identity.recovery_session.create",
