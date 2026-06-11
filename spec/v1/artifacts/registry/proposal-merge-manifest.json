@@ -1,5 +1,5 @@
 {
-  "version": "2026-06-04",
+  "version": "2026-06-11",
   "source_of_truth": true,
   "scope": "accepted_merged_ckp_v1",
   "policy": {
@@ -12,7 +12,8 @@
       "CKP-0011",
       "CKP-0012",
       "CKP-0013",
-      "CKP-0016"
+      "CKP-0016",
+      "CKP-0017"
     ],
     "normative_source_rule": "Once a CKP is accepted and merged, implementation requirements live only in zh/, artifacts/schemas, artifacts/registry, artifacts/openapi, artifacts/profiles, and artifacts/fixtures. Proposal files remain rationale and history."
   },
@@ -236,6 +237,47 @@
             "artifacts/schemas/flow.schema.json",
             "artifacts/registry/contract-catalog.json",
             "artifacts/registry/operations-error-mapping.json",
+            "artifacts/profiles/conformance-profiles.json"
+          ]
+        }
+      ]
+    },
+    {
+      "ckp": "CKP-0017",
+      "title": "Controller-scoped Agent Mention Selector",
+      "status": "accepted_merged",
+      "merged_on": "2026-06-11",
+      "proposal_file": "proposals/0017-controller-scoped-agent-mention-selector.md",
+      "merged_sections": [
+        {
+          "topic": "agent selector claim, profile projection, disclosure, and mention semantics",
+          "targets": [
+            "zh/models/actor.md",
+            "zh/models/common-fields.md",
+            "zh/models/flow-and-message.md",
+            "zh/identity/identity-handles.md",
+            "zh/discovery/discovery-directory.md",
+            "zh/discovery/profiles-presence.md",
+            "zh/sync/service-surface.md",
+            "zh/sync/service-http-binding.md",
+            "zh/sync/transport-bindings.md",
+            "zh/conformance/schema-registry.md",
+            "zh/conformance/conformance-profiles.md",
+            "zh/conformance/conformance-vectors.md"
+          ]
+        },
+        {
+          "topic": "agent selector machine contracts",
+          "targets": [
+            "artifacts/schemas/actor-profile.schema.json",
+            "artifacts/schemas/agent-selector-claim.schema.json",
+            "artifacts/schemas/agent-operations.schema.json",
+            "artifacts/schemas/directory-operations.schema.json",
+            "artifacts/schemas/event-payload.schema.json",
+            "artifacts/schemas/message.schema.json",
+            "artifacts/registry/contract-catalog.json",
+            "artifacts/registry/operation-registry.json",
+            "artifacts/registry/schema-registry.json",
             "artifacts/profiles/conformance-profiles.json"
           ]
         }

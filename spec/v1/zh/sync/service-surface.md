@@ -745,10 +745,11 @@ Organization directory MUST respect organization discovery policy。公开组织
 POST /_cokret/find/directory/search-actors
 POST /_cokret/find/directory/search-users
 POST /_cokret/find/directory/resolve-handle
+POST /_cokret/find/directory/resolve-agent-selector
 POST /_cokret/find/directory/list-handles-for-subject
 ```
 
-Actor / handle directory MUST NOT return pairwise DID、private DID、private handle、未披露的组织账号或仅因共同 Realm 推断出的关系。`search-users` 可用于 mention autocomplete / 成员添加候选；`resolve-handle` MAY 解析 handle 为 `subject` DID 与 `member_delivery_binding`，但只在 claim、audience、requester policy 和 Realm intent 验证通过时披露。`list-handles-for-subject` 用于已知 subject DID 时列出当前 context 可见 signed handle claims；它必须执行同样的 disclosure、issuer trust、audience 和 requester policy 过滤。Directory 返回的 `member_delivery_binding.recipient_service_did` 只是 join builder 输入，不能替代 Realm `delivery_binding` 或 grant 校验。
+Actor / handle directory MUST NOT return pairwise DID、private DID、private handle、未披露的组织账号或仅因共同 Realm 推断出的关系。`search-users` 可用于 mention autocomplete / 成员添加候选；`resolve-handle` MAY 解析 handle 为 `subject` DID 与 `member_delivery_binding`，但只在 claim、audience、requester policy 和 Realm intent 验证通过时披露。`resolve-agent-selector` 只做精确 `@<controller-handle>/<agent_slug>` compose-time 解析；成功时返回 agent DID 与当前可见 `ck.schema.agent_selector_claim.v1`，未授权、不可见、不存在、revoked / expired / ambiguous 时 MUST 使用与不存在不可区分的失败。`list-handles-for-subject` 用于已知 subject DID 时列出当前 context 可见 signed handle claims；它必须执行同样的 disclosure、issuer trust、audience 和 requester policy 过滤。Directory 返回的 `member_delivery_binding.recipient_service_did` 只是 join builder 输入，不能替代 Realm `delivery_binding` 或 grant 校验。
 
 ### 8.6 私密联系人发现
 
@@ -807,6 +808,7 @@ Native personal agent 的 management 与 sidecar operations 落在 `/_cokret/sel
 - 本 surface 不引入 custom URI scheme(`cokret://` 等);所有 deep-link 由客户端用 deployment 已知的 `cokret_base_url` 拼接标准 HTTPS URL,移动端依赖 OS Universal Links / App Links。
 - `pairing_request_id` 与 `approval_request_id` 都是 account/auth profile-local opaque UUIDv7 短期 artifact,不是 `ck:<kind>:<uuid>` 协议对象 id;agent runtime 收到 `approval_request_id` MUST NOT 解释成 URL 或尝试打开 UI,只能由 controller 的人类 session 带外查询。
 - `{agent_principal_id}` 是 DID,在 URL path 中 MUST 按 RFC 3986 percent-encoding。
+- `ck.self.agent.provision` MAY 接收 `agent_slug`。服务端若接受该字段，MUST 生成或更新当前有效的 `ck.schema.agent_selector_claim.v1`（controller-scoped selector claim），并 MAY 把 `agent_slug` 写入 agent Actor Profile 作为投影 hint。`agent_slug` 只用于 `@<controller-handle>/<agent_slug>` 输入别名到 agent principal DID 的 compose-time 解析;list/get projection SHOULD 返回当前有效 selector claim 的 slug 供 controller UI 与 mention picker 使用。服务端 MUST 拒绝或 fail closed 处理同一 verified controller 下 active native agent 的 selector claim 冲突。
 - participation operation 使用 `agent-operations.schema.json#/$defs/agent_participation_entry` 形态返回 `selection`、`ceiling` 与 `effective`。`set` 只能由 controller 调用，服务端 MUST 校验 `selection ⊆ effective_ceiling(scope)`；`get` 可由 controller 或该 agent runtime 调用。
 - `ck.gate.account.issue_session_grant` 为 agent runtime 签发 session 时，若 scope request 覆盖 participation-aware scope，`scope_details.participation[]` MUST 使用与 `agent_participation_entry` 同构的 `{scope, selection, ceiling, effective}` 条目。runtime MUST 把该数组视为行为契约；服务端仍以 capability grant、dispatcher gate 和 reducer 校验作为强制边界。
 

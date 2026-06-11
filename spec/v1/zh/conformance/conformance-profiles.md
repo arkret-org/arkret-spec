@@ -597,6 +597,7 @@ MUST 支持:
 - Provisioning `status` 枚举:`pending_runtime_key` / `active` / `paused` / `pairing_expired` / `deactivated`
 - Pairing expiry 自动 `ck.capability.revoke` pending grants
 - Agent management operations(list/get/pause/resume/deactivate/rotate-key/grant attach/detach)写入 durable lifecycle events
+- Native personal agent selector claim `ck.schema.agent_selector_claim.v1`，Actor Profile `agent_slug` 投影 hint，以及 `@<controller-handle>/<agent_slug>` 输入别名到 agent `subject_id` 的唯一解析；slug 不是 handle、公开 Directory search/list key 或授权主体
 - Draft-only family:`ck.agent.draft.propose` / `ck.agent.action_request` / `ck.agent.action_approve` / `ck.agent.action_reject`,materialize 为 controller-owned `ck.agent.draft.v1` encrypted account-data
 - Draft approval 状态机:`proposed → approved → published`,approval nonce atomic consume
 - Event Envelope `executed_by` / `authorization_ref` / reducer-stamped `actor_kind` projection
@@ -608,6 +609,7 @@ MUST NOT:
 - 注册独立 `ck.self.agent.provision` aggregate durable event(provisioning operation fan-out 到既有子事件)
 - 返回长期 private key、refresh token 或可直接长期调用 Events API 的 bearer token
 - 引入 custom URI scheme(`cokret://` 等)
+- 把 `agent_slug` 当作 grant subject、actor attribution、membership key、delivery key、Directory search key 或 audit attribution source
 
 ### 18.2 Agent Auth
 

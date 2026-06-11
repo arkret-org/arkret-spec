@@ -47,6 +47,11 @@
       "pattern": "^[a-z0-9._+~-]{1,128}:[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$",
       "description": "Cokret canonical handle string: <localpart>:<domain>. The @ mention sigil is not part of the handle."
     },
+    "agent_slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9](?:[a-z0-9_-]{0,62}[a-z0-9])?$",
+      "description": "Projection hint for a controller-scoped selector slug backed by ck.schema.agent_selector_claim.v1. Only valid when actor_kind=agent under ck.profile.personal_agent_provisioning.v1; it is not a global handle and MUST NOT be used for authorization, attribution, or Directory discovery. The mention input token @<controller-handle>/<agent_slug> resolves to this actor's principal_id before persistence only after selector claim validation."
+    },
     "avatar_blob_ref": {
       "type": "string",
       "pattern": "^ck:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
@@ -93,5 +98,21 @@
       "pattern": "Z$"
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "agent_slug"
+        ]
+      },
+      "then": {
+        "properties": {
+          "actor_kind": {
+            "const": "agent"
+          }
+        }
+      }
+    }
+  ],
   "additionalProperties": false
 }

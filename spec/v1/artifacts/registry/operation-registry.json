@@ -111,6 +111,7 @@
         "ck.find.directory.search_actors",
         "ck.find.directory.search_users",
         "ck.find.directory.resolve_handle",
+        "ck.find.directory.resolve_agent_selector",
         "ck.find.directory.list_handles_for_subject",
         "ck.find.directory.private_contact_discovery",
         "ck.find.directory.announce",
@@ -735,6 +736,15 @@
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_handle_request_body",
       "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_handle_resolution_outcome"
+    },
+    {
+      "operation_id": "ck.find.directory.resolve_agent_selector",
+      "http": "POST /_cokret/find/directory/resolve-agent-selector",
+      "grpc": "FindDirectory/ResolveAgentSelector",
+      "mq": "find.directory.resolve_agent_selector",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_agent_selector_request_body",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_agent_selector_resolution_outcome"
     },
     {
       "operation_id": "ck.find.directory.list_handles_for_subject",

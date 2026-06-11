@@ -319,6 +319,50 @@
       "type": "string",
       "pattern": "^(ck\\.content\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*|[a-z0-9][a-z0-9_.-]*\\.[a-z0-9][a-z0-9_.-]*)$"
     },
+    "agent_slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9](?:[a-z0-9_-]{0,62}[a-z0-9])?$",
+      "description": "Controller-scoped native personal agent selector slug used by @<controller-handle>/<agent_slug>. Not a global handle or authorization subject."
+    },
+    "mention_node": {
+      "type": "object",
+      "required": [
+        "kind",
+        "subject_id"
+      ],
+      "properties": {
+        "kind": {
+          "const": "mention"
+        },
+        "subject_id": {
+          "$ref": "#/$defs/did",
+          "description": "Authoritative mention target principal DID. For native personal agent selectors this is the agent principal DID, not the controller DID."
+        },
+        "display_name_at_time": {
+          "type": "string"
+        },
+        "handle_at_time": {
+          "type": "string"
+        },
+        "controller_subject_id": {
+          "$ref": "#/$defs/did",
+          "description": "Audit metadata for @<controller-handle>/<agent_slug> inputs. MUST NOT replace subject_id for routing, authorization, or attribution."
+        },
+        "controller_handle_at_time": {
+          "type": "string"
+        },
+        "agent_slug_at_time": {
+          "$ref": "#/$defs/agent_slug"
+        },
+        "mention_text_original": {
+          "type": "string"
+        },
+        "resolved_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
     "content_block": {
       "type": "object",
       "required": [

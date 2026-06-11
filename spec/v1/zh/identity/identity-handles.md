@@ -56,6 +56,7 @@ Handle MAY 变更、冻结、迁移或重新绑定。
 | --- | --- | --- | --- |
 | Connection Identifier | 关系私有；仅在发现 / 邀请 / consent 阶段使用 | provider 可达性证明 + invite / consent 流程 | 否 |
 | Handle | 公开或受限；用于 @mention / 邀请 / 成员添加 / 跨上下文可读寻址 | Directory / Principal Server / Organization DID 签发的 handle claim（canonical `user:domain` + `acct:` alias），解析为 `subject DID` 与可选 `member_delivery_binding` | 否 |
+| Agent Selector | 默认受限；仅用于 controller-scoped native personal agent @mention 输入别名 | controller handle claim + `ck.schema.agent_selector_claim.v1`，解析为 agent `subject DID` | 否 |
 | Administrative Identifier | 组织本地；不出协议线 | 组织 governance / 内部 Directory | 否 |
 | Display Name | UI 展示 | 无 | 否 |
 | Principal DID | 公开或 pairwise；按 disclosure policy 控制 | DID resolver + 签名 | 是 |
@@ -64,6 +65,7 @@ Handle MAY 变更、冻结、迁移或重新绑定。
 
 - `alice@example.com`、`+86 138...`、通讯录用户名、外部账号 ID → Connection Identifier；若 holder 主动公布可升格为 Handle。
 - `@alice:acme.example`、`alice@acme.example`、`alice@alice.dev` → Handle（统一形态，详见 §3）。
+- `@alice:acme.example/summary` → Agent Selector；发送前必须归约为 agent DID，`summary` 不是 handle localpart。
 - 组织账号、计费账号、客服账号、受管员工编号 → Administrative Identifier。
 - `Alice Zhang`、昵称 → Display Name。
 - `did:webvh:...`、`did:web:...`、`did:key:...` → Principal DID。
@@ -76,6 +78,7 @@ Handle MAY 变更、冻结、迁移或重新绑定。
 - Connection identifier 与 DID 的绑定默认是关系私有状态。除非 holder 明确发布为 handle 或 VC claim，其他 Realm 成员和 federation peer 不得获得该映射。
 - 同一字符串从 Connection Identifier 升格为 Handle MUST 经过 holder 显式 disclosure（写入 `alsoKnownAs`、签发 VC claim、或发布到 Directory）；实现不得在用户未授权时自动升格，也不得仅凭 provider 可达性证明把 connection identifier 公开为 handle。
 - Handle 只提供寻址和可选默认投递上下文；它不得作为 `actor_id`、grant subject、membership key 或 audit attribution。解析结果必须先归约为 DID 与可验证 claim，加入 Realm 时再物化为 `ck.member.state{join}.delivery_binding`。
+- Agent Selector 只提供 native personal agent 的 controller-scoped compose-time 寻址；它不得作为 `actor_id`、grant subject、membership key、delivery key、公开 Directory 搜索 / 列表索引键或 audit attribution。解析结果必须先归约为 agent DID，并受 selector claim 的 visibility / audience / requester policy 约束。
 - Administrative Identifier 是组织本地概念。协议层只规定它不得作为协议主体、不得作为 grant subject、不得作为 Event actor、不得在跨组织 federation 输出中泄露；其内部分配、回收和绑定规则由组织 governance 决定，超出本规范范围。
 - Display name 是可变 metadata，不得被用于 ACL、grant、audit attribution 或 sender verification。
 
@@ -434,7 +437,7 @@ verifier 收到 candidate 时 MUST 按下列顺序失败 closed：
 
 ### 3.8 Mention Reference 与 Display Snapshot（normative）
 
-事件内对某 subject 的引用——@mention、reply target、quoted profile、forwarded message 的原作者引用、reaction 的目标等——**权威引用字段** MUST 使用 DID-sealed 标识符（`subject_id`），不得用 handle 字符串作为 actor 归因、授权判断、解析路径的唯一来源。同一事件 MAY 同时携带 handle / display name 的历史快照作为 audit / search / 兜底展示的 metadata（见 §3.8.1），但这些 metadata 字段不参与协议层信任决策（见 §3.8.3）。
+事件内对某 subject 的引用——@mention、reply target、quoted profile、forwarded message 的原作者引用、reaction 的目标等——**权威引用字段** MUST 使用 DID-sealed 标识符（`subject_id`），不得用 handle 字符串作为 actor 归因、授权判断、解析路径的唯一来源。同一事件 MAY 同时携带 handle / display name / controller-scoped agent selector 的历史快照作为 audit / search / 兜底展示的 metadata（见 §3.8.1），但这些 metadata 字段不参与协议层信任决策（见 §3.8.3）。
 
 该规则的根本动因：handle 的 `<domain>` 部分是 issuer 的 authority domain（组织 / holder 自己持有的域名），不是 subject 用户控制的标识。如果把 domain 作为**权威**引用字段持久化进每一个引用点，issuer 的 DNS 治理成本（domain 迁移、authority 重命名）就会转嫁给所有历史事件，并被迫做事件改写。DID 才是稳定标识；handle 是该标识的可读 label，由解析层实时计算；事件内的 handle metadata 只是"当时是什么"的 audit 快照，不是"现在是什么"的真相源。
 
@@ -449,9 +452,13 @@ mention reference / profile snapshot 的 normative shape：
 | `subject_id` | DID | MUST | 被引用主体；唯一参与 actor 归因、授权判断、解析路径与渲染查找的字段。 |
 | `display_name_at_time` | string | MAY | event 时刻 subject 的 display name 快照；持久化、不再更新；renderer MAY 直接显示。 |
 | `handle_at_time` | canonical handle string（§3.1 主形态） | MAY | event 时刻 subject 的 handle 快照；**仅** audit / debug / 全文搜索 / 历史回溯用途；**MUST NOT** 作为当前显示标识。 |
+| `controller_subject_id` | DID | MAY | 当 mention 由 controller-scoped agent selector `@<controller-handle>/<agent_slug>` 解析而来时，记录 controller principal DID；仅 audit / fallback metadata，权威 target 仍是 `subject_id`。 |
+| `controller_handle_at_time` | canonical handle string（§3.1 主形态） | MAY | agent selector 左侧 controller handle 的历史快照；仅 audit / debug / 搜索用途，MUST NOT 作为当前 controller 解析来源。 |
+| `agent_slug_at_time` | string | MAY | agent selector 右侧 `agent_slug` 的历史快照；仅 audit / debug / 搜索用途，MUST NOT 作为当前 agent 解析来源。 |
 | `mention_text_original` | string | MAY | 用户键入的原始输入（例如 `@alice:acme.com` 或 `alice@acme.example`）；audit 与搜索索引用途，不参与渲染逻辑。 |
+| `resolved_at` | timestamp | MAY | 客户端解析 handle / subject / agent selector 时刻；audit metadata。 |
 
-`display_name_at_time` 是 snapshot 语义——一旦写入事件即固定，防止 subject 后续修改 display name 时回写历史（这条边界对反冒充很重要）。`handle_at_time` 是 audit metadata，不是显示字段。
+`display_name_at_time` 是 snapshot 语义——一旦写入事件即固定，防止 subject 后续修改 display name 时回写历史（这条边界对反冒充很重要）。`handle_at_time`、`controller_handle_at_time` 与 `agent_slug_at_time` 是 audit metadata，不是显示字段或解析字段。
 
 #### 3.8.2 渲染规则（normative）
 
@@ -510,7 +517,7 @@ renderer 检测到 `handle_at_time` 与当前 primary handle 不一致时，MAY 
 
 #### 3.8.3 与 actor 归因的关系
 
-`display_name_at_time`、`handle_at_time`、`mention_text_original` 三个字段都是 **UI 元数据**，对协议层信任决策完全透明。verifier / reducer / policy engine MUST 忽略这三个字段，只读 `subject_id` 做以下判断：
+`display_name_at_time`、`handle_at_time`、`controller_subject_id`、`controller_handle_at_time`、`agent_slug_at_time`、`mention_text_original` 都是 **UI 元数据**，对协议层信任决策完全透明。verifier / reducer / policy engine MUST 忽略这些字段，只读 `subject_id` 做以下判断：
 
 - grant subject 校验
 - audit attribution
@@ -1186,9 +1193,11 @@ Verifier MUST：
   以下位置是**允许的派生投影 / audit 例外**，handle 字符串在其中不构成权威源：
 
   - **Roster 内联 handle claim evidence**：`/_cokret/self/account/subscribe` 的 `members[].handle_claims[]` MAY 携带完整签名 `ck.schema.handle_claim.v1`，用于 roster / member picker / mention autocomplete 的本地 claim cache。这里的 handle 字符串属于 claim 本身，不是 roster 自造字段；issuer 重新签发或撤销后，roster digest / claim set 必须随之变化。该 evidence 只能在同一 roster entry 已披露 `subject_id` 时返回；未披露 `subject_id` 时，`handle_claims[]`、`handle_claim_digests[]` 与 `handle_claims_limited` 都必须省略。
-  - **Mention reference 的 audit metadata**：§3.8.1 定义的 `handle_at_time`、`display_name_at_time`、`mention_text_original` MAY 出现在 mention / profile reference 等位置，但仅作为 audit / search / fallback 元数据，不参与权威决策（见 §3.8.3）。
+  - **Mention reference 的 audit metadata**：§3.8.1 定义的 `handle_at_time`、`display_name_at_time`、`controller_subject_id`、`controller_handle_at_time`、`agent_slug_at_time`、`mention_text_original` MAY 出现在 mention / profile reference 等位置，但仅作为 audit / search / fallback 元数据，不参与权威决策（见 §3.8.3）。
 
-  `ck.member.identity.update` / `MemberIdentity` v1 payload MUST NOT 携带 `primary_handle`、`handles[]` 或其它 handle 字符串字段。其它任何 wire 位置——reply / quote 的 actor 引用、`ck.member.state{join}.payload` 的 actor 字段、grant subject、audit log entry 的 actor 字段、reaction target、federation peer 事件——MUST 持有 `subject_id` 而不是 handle 字符串。verifier / renderer / policy engine MUST NOT 把 mention metadata 当成当前权威 handle 或归因依据使用：信任决策永远从 `subject_id` 出发，handle 字符串只是显示 / 搜索 / audit 辅助。
+  `@<controller-handle>/<agent_slug>` 是客户端入口解析瞬间允许的 native personal agent 输入别名；它不是 canonical handle、公开 Directory 搜索 / 列表索引键或 handle claim 形态。客户端 MUST 用 controller handle claim 加 `ck.schema.agent_selector_claim.v1` 把它解析为 agent `subject_id`，未能唯一解析时 fail closed。Agent selector claim 复用 handle 层的 issuer proof、visibility、audience、expiry 与 revocation 姿态，但不改变 canonical handle ABNF，也不得把 `agent_slug` 拼进 `ck.schema.handle_claim.v1.handle`。
+
+  `ck.member.identity.update` / `MemberIdentity` v1 payload MUST NOT 携带 `primary_handle`、`handles[]` 或其它 handle 字符串字段。其它任何 wire 位置——reply / quote 的 actor 引用、`ck.member.state{join}.payload` 的 actor 字段、grant subject、audit log entry 的 actor 字段、reaction target、federation peer 事件——MUST 持有 `subject_id` 而不是 handle 字符串。verifier / renderer / policy engine MUST NOT 把 mention metadata 当成当前权威 handle、agent slug 或归因依据使用：信任决策永远从 `subject_id` 出发，handle 字符串与 agent slug 只是显示 / 搜索 / audit 辅助。
 
   违反该作用域规则的事件 schema 在 conformance 测试中 MUST 失败：把 handle 字符串当作**权威 actor 引用字段**（而非显式声明的派生投影或 audit metadata）的 schema 视为 v1 不合规。
 - DNS TXT record 格式 MUST 绑定 `handle`、`subject`、issuer、`service_did`、`created_at`、`expires_at` 和 signature / hash commitment；过期或不匹配时不得显示 verified。

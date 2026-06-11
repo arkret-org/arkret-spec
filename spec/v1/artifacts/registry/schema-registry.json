@@ -17,6 +17,12 @@
       "file": "schemas/actor-profile.schema.json"
     },
     {
+      "schema_id": "ck.schema.agent_selector_claim.v1",
+      "file": "schemas/agent-selector-claim.schema.json",
+      "status": "active",
+      "description": "Signed controller-scoped native personal agent selector claim for @<controller-handle>/<agent_slug> resolution."
+    },
+    {
       "schema_id": "ck.schema.circle.v1",
       "file": "schemas/circle.schema.json",
       "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or policy server. Introduced by CKP-0007; see zh/models/circle.md."
@@ -292,7 +298,7 @@
       "schema_id": "ck.schema.directory_operations.v1",
       "file": "schemas/directory-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for Directory discovery search, resolve, private contact discovery, handle lookup, and push webhook registration operations."
+      "description": "Closed request/response DTO bundle for Directory discovery search, resolve, private contact discovery, handle lookup, agent selector lookup, and push webhook registration operations."
     },
     {
       "schema_id": "ck.schema.did_continuity_proof.v1",

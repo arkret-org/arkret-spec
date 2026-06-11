@@ -928,6 +928,10 @@ components:
       $ref: ../schemas/directory-operations.schema.json#/$defs/directory_resolve_handle_request_body
     DirectoryHandleResolutionOutcome:
       $ref: ../schemas/directory-operations.schema.json#/$defs/directory_handle_resolution_outcome
+    DirectoryResolveAgentSelectorRequestBody:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_resolve_agent_selector_request_body
+    DirectoryAgentSelectorResolutionOutcome:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_agent_selector_resolution_outcome
     DirectoryListHandlesForSubjectRequestBody:
       $ref: ../schemas/directory-operations.schema.json#/$defs/directory_list_handles_for_subject_request_body
     DirectorySubjectHandleList:
@@ -4323,6 +4327,28 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DirectoryResolveHandleRequestBody'
+  /_cokret/find/directory/resolve-agent-selector:
+    post:
+      operationId: ck.find.directory.resolve_agent_selector
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
+      responses:
+        '200':
+          description: Agent selector resolution result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DirectoryAgentSelectorResolutionOutcome'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DirectoryResolveAgentSelectorRequestBody'
   /_cokret/find/directory/list-handles-for-subject:
     post:
       operationId: ck.find.directory.list_handles_for_subject

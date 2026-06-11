@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/directory-operations.schema.json",
   "title": "Cokret Directory Operation DTOs",
-  "description": "Closed request/response DTOs for Directory discovery search, resolve, private contact discovery, handle lookup, and push webhook registration operations.",
+  "description": "Closed request/response DTOs for Directory discovery search, resolve, private contact discovery, handle lookup, agent selector lookup, and push webhook registration operations.",
   "anyOf": [
     {
       "$ref": "#/$defs/directory_search_realms_request_body"
@@ -53,6 +53,12 @@
       "$ref": "#/$defs/directory_handle_resolution_outcome"
     },
     {
+      "$ref": "#/$defs/directory_resolve_agent_selector_request_body"
+    },
+    {
+      "$ref": "#/$defs/directory_agent_selector_resolution_outcome"
+    },
+    {
       "$ref": "#/$defs/directory_list_handles_for_subject_request_body"
     },
     {
@@ -101,6 +107,10 @@
     "handle": {
       "type": "string",
       "pattern": "^[a-z0-9._+~-]{1,128}:[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$"
+    },
+    "agent_slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9](?:[a-z0-9_-]{0,62}[a-z0-9])?$"
     },
     "non_empty_string": {
       "type": "string",
@@ -866,6 +876,80 @@
         },
         "member_delivery_binding": {
           "$ref": "./handle-claim.schema.json#/properties/member_delivery_binding"
+        },
+        "source_refs": {
+          "$ref": "#/$defs/source_refs"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "directory_resolve_agent_selector_request_body": {
+      "type": "object",
+      "required": [
+        "controller_handle",
+        "agent_slug",
+        "intent",
+        "requester"
+      ],
+      "properties": {
+        "controller_handle": {
+          "$ref": "#/$defs/handle",
+          "description": "Canonical controller handle string without the @ sigil."
+        },
+        "agent_slug": {
+          "$ref": "#/$defs/agent_slug"
+        },
+        "expected_agent_did": {
+          "$ref": "#/$defs/did"
+        },
+        "proof_challenge": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "intent": {
+          "$ref": "#/$defs/intent"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "requester": {
+          "$ref": "#/$defs/did"
+        },
+        "proofs": {
+          "$ref": "#/$defs/proofs"
+        }
+      },
+      "additionalProperties": false
+    },
+    "directory_agent_selector_resolution_outcome": {
+      "type": "object",
+      "required": [
+        "controller_subject",
+        "subject",
+        "agent_slug",
+        "verified",
+        "selector_claim"
+      ],
+      "properties": {
+        "controller_subject": {
+          "$ref": "#/$defs/did",
+          "description": "Controller principal DID resolved from controller_handle and verified against the selector claim."
+        },
+        "subject": {
+          "$ref": "#/$defs/did",
+          "description": "Native personal agent principal DID selected by (controller_subject, agent_slug)."
+        },
+        "agent_slug": {
+          "$ref": "#/$defs/agent_slug"
+        },
+        "verified": {
+          "type": "boolean",
+          "const": true
+        },
+        "selector_claim": {
+          "$ref": "./agent-selector-claim.schema.json"
         },
         "source_refs": {
           "$ref": "#/$defs/source_refs"

@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/agent-selector-claim.schema.json",
+  "title": "Cokret Agent Selector Claim",
+  "description": "Signed claim binding a controller-scoped native personal agent selector slug to an agent principal DID. It powers @<controller-handle>/<agent_slug> compose-time resolution without making the agent carry a public handle.",
+  "type": "object",
+  "required": [
+    "schema",
+    "controller_subject",
+    "agent_slug",
+    "subject",
+    "issuer",
+    "binding_state",
+    "visibility",
+    "created_at",
+    "proofs"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ck.schema.agent_selector_claim.v1"
+    },
+    "controller_subject": {
+      "$ref": "#/$defs/did",
+      "description": "Controller principal DID that owns the selector namespace."
+    },
+    "agent_slug": {
+      "$ref": "#/$defs/agent_slug",
+      "description": "Controller-scoped slug used as the right-hand side of @<controller-handle>/<agent_slug>."
+    },
+    "subject": {
+      "$ref": "#/$defs/did",
+      "description": "Native personal agent principal DID selected by (controller_subject, agent_slug)."
+    },
+    "issuer": {
+      "$ref": "#/$defs/did",
+      "description": "DID that signs this selector claim. It is normally controller_subject; a delegated issuer MUST be authorized by controller_subject and bound in source_refs or proof evidence."
+    },
+    "issuer_service_did": {
+      "$ref": "#/$defs/did",
+      "description": "Service DID that served or vouched for this selector claim when distinct from issuer."
+    },
+    "binding_state": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "verified",
+        "revoked",
+        "expired"
+      ]
+    },
+    "visibility": {
+      "type": "string",
+      "enum": [
+        "public",
+        "restricted",
+        "private"
+      ],
+      "description": "Disclosure boundary for selector resolution. Restricted/private claims require audience and requester policy checks before returning subject."
+    },
+    "audience": {
+      "type": "string",
+      "description": "Audience binding for restricted selector disclosure, such as a Realm ID, verifier domain, or service DID."
+    },
+    "claim_scope": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Optional scope such as realm_id, organization_id, purpose, allowed_operations, or disclosure policy tags."
+    },
+    "expires_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "created_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "verified_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "source_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      },
+      "uniqueItems": true,
+      "description": "Optional refs to accountability_grant, actor profile, provisioning, delegation, or revocation evidence."
+    },
+    "proofs": {
+      "type": "array",
+      "items": {
+        "$ref": "./event-envelope.schema.json#/$defs/proof"
+      },
+      "minItems": 1
+    }
+  },
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "agent_slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9](?:[a-z0-9_-]{0,62}[a-z0-9])?$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    }
+  },
+  "additionalProperties": false
+}

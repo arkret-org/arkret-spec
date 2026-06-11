@@ -82,6 +82,7 @@ sidebar:
 | `ck.schema.realm.v1` | Realm |
 | `ck.schema.space.v1` | Space |
 | `ck.schema.actor_profile.v1` | Actor Profile |
+| `ck.schema.agent_selector_claim.v1` | Controller-scoped native personal agent selector claim |
 | `ck.schema.circle.v1` | Circle (intra-Realm scoped event/message boundary; see [`../models/circle.md`](../models/circle.md)) |
 | `ck.schema.flow.v1` | Flow |
 | `ck.schema.message.v1` | Message |

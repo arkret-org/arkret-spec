@@ -87,7 +87,7 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 | `ck.gate.account.register` | 注册 / account binding；request 使用 `principal_id`，不接受旧 `did` 或裸 `handle` 字段。 |
 | `ck.gate.account.session_revoke` | 撤销 session grant / access token；不撤销 device authorization。 |
 | `ck.find.directory.search_realms` / `ck.find.directory.search_organizations` / `ck.find.directory.search_actors` / `ck.find.directory.search_users` | 授权搜索 Realm / Organization / Actor，以及用户目录条目（actor profile / handle 视图）。 |
-| `ck.find.directory.resolve_realm` / `ck.find.directory.resolve_organization` / `ck.find.directory.resolve_handle` / `ck.find.directory.list_handles_for_subject` | 精确解析 Realm / Organization / handle，以及列出已知 subject 的当前可见 handle claims。 |
+| `ck.find.directory.resolve_realm` / `ck.find.directory.resolve_organization` / `ck.find.directory.resolve_handle` / `ck.find.directory.resolve_agent_selector` / `ck.find.directory.list_handles_for_subject` | 精确解析 Realm / Organization / handle / controller-scoped agent selector，以及列出已知 subject 的当前可见 handle claims。 |
 | `ck.find.directory.announce` / `ck.find.directory.withdraw` / `ck.find.directory.push.register` | Discovery ingest：资源向 Directory 推送签名 discovery state、撤销 opt-in、或注册 pull-mode webhook 通知。详见 [`discovery/discovery-directory.md`](../discovery/discovery-directory.md) §8。 |
 | `ck.self.blob.upload` | 上传 blob。 |
 | `ck.self.blob.get` | 获取 blob 或下载授权。 |

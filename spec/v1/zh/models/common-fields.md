@@ -255,9 +255,10 @@ DID 是 Cokret 的主体标识，不是普通协作对象 ID。标准协作对�
 | `watcher_actor_id` / `target_actor_id` / `writer_actor_id` | Event payload、Audit payload | 带角色限定的 actor DID-as-id；字段名必须说明角色，避免回退到模糊的 `actor_did`。 |
 | `principal_id` | Actor Profile | Profile 对应的 principal DID；权限根。 |
 | `created_by` / `updated_by` | 所有 Materialized Object | 创建 / 最近更新该对象的 Event 的 `actor_id`，由 reducer 派生。Realm 的 `created_by` 还承担 genesis member bootstrap 的 authorizing principal 语义。 |
-| `issuer` | Capability Grant、Identity Receipt | 签发授权或 receipt 的 DID；必须持有签发权限。 |
-| `subject` | Capability Grant | 被授权 DID 或 selector condition。 |
-| `subject_id` | Handle / invite / delivery binding candidate | 当 subject 必须是具体 principal DID 且进入可验证 transcript 时使用；generic / raw handle claim subject 仍使用 `subject`。`MemberDeliveryBindingCandidate.subject_id` MUST equal 上游 handle claim 的 `subject`。 |
+| `issuer` | Capability Grant、Identity Receipt、Handle Claim、Agent Selector Claim | 签发授权、receipt 或 claim 的 DID；必须持有签发权限。 |
+| `subject` | Capability Grant、Handle Claim、Agent Selector Claim | 被授权 DID、selector condition，或 claim 绑定的目标 DID。claim 层 raw subject 使用 `subject`；进入具体协议 transcript / mention / delivery candidate 后才使用 `subject_id`。 |
+| `controller_subject` | Agent Selector Claim | 拥有 controller-scoped agent selector namespace 的 controller principal DID；因处于 claim 层使用 `subject` 词汇，不使用 `controller_subject_id`。事件 mention metadata 快照才使用 `controller_subject_id`。 |
+| `subject_id` | Mention reference、Handle / invite / delivery binding candidate | 当 subject 必须是具体 principal DID 且进入可验证 transcript 时使用；generic / raw handle claim 和 agent selector claim subject 仍使用 `subject`。`MemberDeliveryBindingCandidate.subject_id` MUST equal 上游 handle claim 的 `subject`。 |
 | `inviter` / `invitee` | Invite | 邀请方 DID / 被邀请 DID。 |
 | `accountable_principal_ids` | Actor Profile | 该 Actor Profile 声明可问责到的一组 principal DID（每个条目须有对应 active `ck.identity.accountability_grant` 背书）。array 形态使用 `_ids` 复数，与 agent key payload 的 scalar `accountable_principal_id` 共用同一 accountability 主体词汇；责任主体一律走 `_id` / `_ids`，不使用 `_to` 介词后缀或裸关系短语。 |
 | `agent_principal_id` / `audit_service_actor_id` | Agent key payload、Audit release evidence | agent / audit release service 作为协议责任主体时使用 DID-as-id；承载运行或托管服务身份时另用 `service_did`。 |

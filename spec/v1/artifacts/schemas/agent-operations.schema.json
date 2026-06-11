@@ -103,6 +103,11 @@
       "type": "string",
       "minLength": 1
     },
+    "agent_slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9](?:[a-z0-9_-]{0,62}[a-z0-9])?$",
+      "description": "Controller-scoped native personal agent selector slug. Used only as the right-hand component of @<controller-handle>/<agent_slug>; not a global handle or authorization subject. Provisioning services that accept this field MUST issue or update a ck.schema.agent_selector_claim.v1."
+    },
     "base64url": {
       "type": "string",
       "pattern": "^[A-Za-z0-9_-]+$",
@@ -185,6 +190,9 @@
         },
         "display_name": {
           "$ref": "#/$defs/non_empty_string"
+        },
+        "agent_slug": {
+          "$ref": "#/$defs/agent_slug"
         },
         "status": {
           "$ref": "#/$defs/agent_status"
@@ -365,6 +373,9 @@
       "properties": {
         "display_name": {
           "$ref": "#/$defs/non_empty_string"
+        },
+        "agent_slug": {
+          "$ref": "#/$defs/agent_slug"
         },
         "requested_scope": {
           "$ref": "#/$defs/agent_key_scope"

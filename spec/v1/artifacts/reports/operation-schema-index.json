@@ -192,6 +192,7 @@
         "required": [],
         "properties": [
           "display_name",
+          "agent_slug",
           "requested_scope",
           "accountability",
           "pairing_ttl_ms"
@@ -1435,6 +1436,52 @@
           "verified",
           "claims",
           "member_delivery_binding",
+          "source_refs",
+          "expires_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.find.directory.resolve_agent_selector",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_agent_selector_request_body",
+        "schema_kind": "object",
+        "required": [
+          "controller_handle",
+          "agent_slug",
+          "intent",
+          "requester"
+        ],
+        "properties": [
+          "controller_handle",
+          "agent_slug",
+          "expected_agent_did",
+          "proof_challenge",
+          "intent",
+          "realm_id",
+          "requester",
+          "proofs"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_agent_selector_resolution_outcome",
+        "schema_kind": "object",
+        "required": [
+          "controller_subject",
+          "subject",
+          "agent_slug",
+          "verified",
+          "selector_claim"
+        ],
+        "properties": [
+          "controller_subject",
+          "subject",
+          "agent_slug",
+          "verified",
+          "selector_claim",
           "source_refs",
           "expires_at"
         ],

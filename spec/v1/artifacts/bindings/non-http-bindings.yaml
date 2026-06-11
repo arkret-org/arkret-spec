@@ -105,6 +105,7 @@ grpc:
       Describe: ck.find.directory.describe
       PrivateContactDiscovery: ck.find.directory.private_contact_discovery
       ResolveHandle: ck.find.directory.resolve_handle
+      ResolveAgentSelector: ck.find.directory.resolve_agent_selector
       ListHandlesForSubject: ck.find.directory.list_handles_for_subject
       ResolveOrganization: ck.find.directory.resolve_organization
       ResolveRealm: ck.find.directory.resolve_realm
@@ -267,6 +268,7 @@ mq:
     self.invite_receive_policy.set: ck.self.invite_receive_policy.set
     self.direct_conversation.resolve: ck.self.direct_conversation.resolve
     find.directory.private_contact_discovery: ck.find.directory.private_contact_discovery
+    find.directory.resolve_agent_selector: ck.find.directory.resolve_agent_selector
     find.directory.list_handles_for_subject: ck.find.directory.list_handles_for_subject
     find.directory.announce: ck.find.directory.announce
     find.directory.withdraw: ck.find.directory.withdraw

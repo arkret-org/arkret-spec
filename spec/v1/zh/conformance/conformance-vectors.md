@@ -2922,6 +2922,32 @@ Expected:
 - 在第 4 步之前，任何 `agent_key_proof` session grant 请求 MUST fail closed;以该 grant 为基础的 capability check 也 MUST fail closed。
 - 第 4 步后 grant 进入正常 effective window 评估;agent runtime 可签发 session grant 并执行 capability action。
 
+### 11.1.1 Vector: Controller-scoped Agent Mention Selector
+
+`vector_id`: `ck.vector.agent.mention_selector.v1`
+
+Preconditions:
+
+- Alice 拥有 verified handle claim `alice:acme.example`，`subject=AliceDID`。
+- Alice 拥有 active native personal agent `AgentS`，其 Actor Profile `actor_kind="agent"`、`agent_slug="summary"`、`principal_id=AgentSDID`，且有 active `ck.identity.accountability_grant{issuer=AliceDID, subject=AgentSDID}`。
+- Alice 或授权 issuer 签发 current `ck.schema.agent_selector_claim.v1{controller_subject=AliceDID, agent_slug="summary", subject=AgentSDID, binding_state="verified", visibility="restricted", audience=<RealmR>}`。
+- 同一 Realm 中 Bob 可见 Alice 的 handle claim、AgentS 的 Actor Profile、selector claim 与 accountability evidence。
+
+Steps:
+
+1. Bob 在 message composer 输入 `@alice:acme.example/summary`。
+2. 客户端从本地 Realm roster / actor profile / handle claim cache 解析 controller handle → `AliceDID`，再验证 selector claim `(AliceDID, "summary")` → 唯一 active `AgentSDID`。
+3. 客户端提交 Message content AST，其中 mention node `subject_id=AgentSDID`，并可携带 `controller_subject_id=AliceDID`、`controller_handle_at_time="alice:acme.example"`、`agent_slug_at_time="summary"`、`mention_text_original="@alice:acme.example/summary"`。
+4. Alice 之后把 `AgentS.agent_slug` 改为 `sum`，或把 `summary` 分配给另一个新 agent `AgentT`。
+5. 另一次测试中，Alice 同时存在两个 current valid selector claims 绑定 `(AliceDID, "summary")` 到不同 active agents，或 Bob 不可见 selector claim / accountability evidence。
+
+Expected:
+
+- 第 2 步 MUST 在持久化前完成；selector claim 是 slug 绑定的权威来源。持久化事件里的权威 mention target MUST 是 agent `subject_id=AgentSDID`，不得把 `alice:acme.example/summary` 当作 handle 或权威字段写入。
+- 第 3 步的 `controller_*` 与 `agent_slug_at_time` 只作 audit / search / fallback metadata；reducer、dispatcher、policy engine MUST 忽略这些字段做授权和投递决策。
+- 第 4 步 MUST NOT 改写历史 mention target；旧消息仍指向 `AgentSDID`。
+- 第 5 步 MUST fail closed：客户端不得构造 mention node；实现可提示 picker 选择或把输入保留为普通文本。服务端若收到仅靠 metadata 声称 selector 的事件，也必须只按 `subject_id` 和已验证 agent state 判定。
+
 ### 11.2 Vector: Pairing Expiry Auto-Revoke
 
 `vector_id`: `ck.vector.agent.pairing_expiry.v1`

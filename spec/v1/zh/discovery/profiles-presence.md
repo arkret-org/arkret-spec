@@ -48,7 +48,7 @@ updated: 2026-06-10
 }
 ```
 
-字段顺序与 §2.2 表 / canonical schema property ordering 一致（…`status`、`profile_fields`、`created_at`、`updated_by`、`updated_at`）；`updated_by` / `updated_at` 为可选字段，初始 `ck.profile.create` 后尚未发生更新时 MAY 省略。
+字段顺序与 §2.2 表 / canonical schema property ordering 一致（…`handle`、`agent_slug`、`avatar_blob_ref`、`status`、`accountable_principal_ids`、`profile_fields`、`created_at`、`updated_by`、`updated_at`）；`updated_by` / `updated_at` 为可选字段，初始 `ck.profile.create` 后尚未发生更新时 MAY 省略。
 
 ### 2.2 标准 Profile 字段
 
@@ -60,6 +60,7 @@ updated: 2026-06-10
 | `actor_kind` | enum | MUST | `user`、`org`、`team`、`agent`、`service` 或 `integration`（不含 `device`：设备非 actor 主体，见 [`../models/actor.md` §2](../models/actor.md)）。 |
 | `display_name` | string | MUST | 人类可读的显示名（最大 128 字符）。 |
 | `handle` | string | 可选 | 本地或目录展示 handle。经 Directory / projection 披露时同受 §5 handle 披露 gate 约束（不得旁路 handle 搜索披露限制）。 |
+| `agent_slug` | string | 可选 | native personal agent 的 controller-scoped selector projection。必须由当前有效 `ck.schema.agent_selector_claim.v1` 支撑；只与 controller handle 组合为 `@<controller-handle>/<agent_slug>` 输入别名；不是全局 handle 或公开目录发现键。 |
 | `avatar_blob_ref` | id:blob | 可选 | 头像图片的 Blob 引用。 |
 | `status` | enum | 可选 | `active`、`suspended`、`deactivated` 或 `deleted`。 |
 | `accountable_principal_ids` | did[] | 可选 | agent / service / 托管账号的责任主体。 |

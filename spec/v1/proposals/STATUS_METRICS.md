@@ -3,7 +3,7 @@ title: CKP Status Metrics
 status: candidate
 normative: false
 stability: v1
-updated: 2026-06-10
+updated: 2026-06-11
 ---
 
 ## 1. 目标
@@ -32,6 +32,7 @@ CKP 状态生命周期定义见 [`README.md` §2](./README.md);本文不重新�
 | [CKP-0014](./0014-implementation-local-http-surfaces.md) | Implementation-local HTTP surfaces found in coauth / yougen audit | `draft` | 2026-06-06 | 2026-06-06 → draft | — |
 | [CKP-0015](./0015-contact-introduction-and-graded-disclosure.md) | Contact introduction evidence & graded invite-outcome disclosure | `draft` | 2026-06-08 | 2026-06-08 → draft | — |
 | [CKP-0016](./0016-agent-participation-policy.md) | Agent 参与策略与分层授权上限 | `accepted` | 2026-06-09 | 2026-06-09 → accepted (merged → `zh/models/realm-and-space.md` + `zh/authz/capabilities.md` + `artifacts/`) | internal（无公开 URL） |
+| [CKP-0017](./0017-controller-scoped-agent-mention-selector.md) | Controller-scoped Agent Mention Selector | `accepted` | 2026-06-11 | 2026-06-11 → accepted (merged → `zh/models/flow-and-message.md` + `zh/models/actor.md` + `artifacts/schemas/agent-selector-claim.schema.json`) | internal（无公开 URL） |
 
 ## 3. 状态转移汇总
 
@@ -57,14 +58,15 @@ draft  ──►  review  ──►  accepted  ──►  (迁入 normative spec
 - `0014`: `draft` (2026-06-06 implementation-local HTTP surface audit; not merged)
 - `0015`: `draft` (2026-06-08 contact introduction and graded disclosure; not merged)
 - `0016`: `draft` → `accepted` (2026-06-09 merged into agent participation policy zh/spec artifacts)
+- `0017`: `draft` → `accepted` (2026-06-11 merged into controller-scoped agent selector claim, exact Directory resolver, mention selector zh/spec artifacts, and anti-enumeration disclosure gate)
 
 ## 4. 状态健康度指标
 
 | 指标 | 当前值 | 阈值 / 备注 |
 | --- | --- | --- |
-| `total_proposals` | 16 | — |
+| `total_proposals` | 17 | — |
 | `active_count` (`draft` + `review`) | 2 | CKP-0014, CKP-0015 |
-| `accepted_count` | 8 | CKP-0007 (Circle), CKP-0008 (Personal Agent), CKP-0009 (Agent Sidecar Thread), CKP-0010 (Media Service Binding Framework), CKP-0011 (Shareable Object Addressing), CKP-0012 (Account Self-Service), CKP-0013 (Contact & Direct Conversation), CKP-0016 (Agent Participation Policy) |
+| `accepted_count` | 9 | CKP-0007 (Circle), CKP-0008 (Personal Agent), CKP-0009 (Agent Sidecar Thread), CKP-0010 (Media Service Binding Framework), CKP-0011 (Shareable Object Addressing), CKP-0012 (Account Self-Service), CKP-0013 (Contact & Direct Conversation), CKP-0016 (Agent Participation Policy), CKP-0017 (Agent Mention Selector) |
 | `deferred_to_v11_count` | 6 | 0001–0006 |
 | `rejected_count` | 0 | — |
 | `withdrawn_count` | 0 | — |

@@ -901,6 +901,7 @@
         "ck.find.directory.search_actors",
         "ck.find.directory.search_users",
         "ck.find.directory.resolve_handle",
+        "ck.find.directory.resolve_agent_selector",
         "ck.find.directory.announce",
         "ck.find.directory.withdraw"
       ],
@@ -916,6 +917,7 @@
       ],
       "required_schemas": [
         "ck.schema.actor_profile.v1",
+        "ck.schema.agent_selector_claim.v1",
         "ck.schema.handle_claim.v1"
       ],
       "required_fixtures": [
@@ -1678,6 +1680,7 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ck.schema.actor_profile.v1",
+        "ck.schema.agent_selector_claim.v1",
         "ck.schema.capability.v1"
       ],
       "required_fixtures": [
@@ -1689,6 +1692,7 @@
         "required": [
           "pending_runtime_key_status",
           "pairing_request",
+          "agent_slug_selector",
           "executed_by_attribution",
           "actor_kind_projection",
           "sidecar_exposure_disclosure"

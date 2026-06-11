@@ -20,6 +20,14 @@
       ]
     },
     {
+      "vector_id": "ck.vector.agent.mention_selector.v1",
+      "status": "active",
+      "domain": "agent",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ck.vector.agent.pairing_expiry.v1",
       "status": "active",
       "domain": "agent",

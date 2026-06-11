@@ -2320,6 +2320,12 @@
         "file": "schemas/actor-profile.schema.json"
       },
       {
+        "schema_id": "ck.schema.agent_selector_claim.v1",
+        "file": "schemas/agent-selector-claim.schema.json",
+        "status": "active",
+        "description": "Signed controller-scoped native personal agent selector claim for @<controller-handle>/<agent_slug> resolution."
+      },
+      {
         "schema_id": "ck.schema.circle.v1",
         "file": "schemas/circle.schema.json",
         "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or policy server. Introduced by CKP-0007; see zh/models/circle.md."
@@ -2595,7 +2601,7 @@
         "schema_id": "ck.schema.directory_operations.v1",
         "file": "schemas/directory-operations.schema.json",
         "status": "active",
-        "description": "Closed request/response DTO bundle for Directory discovery search, resolve, private contact discovery, handle lookup, and push webhook registration operations."
+        "description": "Closed request/response DTO bundle for Directory discovery search, resolve, private contact discovery, handle lookup, agent selector lookup, and push webhook registration operations."
       },
       {
         "schema_id": "ck.schema.did_continuity_proof.v1",
@@ -3328,6 +3334,7 @@
           "ck.find.directory.search_actors",
           "ck.find.directory.search_users",
           "ck.find.directory.resolve_handle",
+          "ck.find.directory.resolve_agent_selector",
           "ck.find.directory.list_handles_for_subject",
           "ck.find.directory.private_contact_discovery",
           "ck.find.directory.announce",
@@ -3952,6 +3959,15 @@
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_handle_request_body",
         "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_handle_resolution_outcome"
+      },
+      {
+        "operation_id": "ck.find.directory.resolve_agent_selector",
+        "http": "POST /_cokret/find/directory/resolve-agent-selector",
+        "grpc": "FindDirectory/ResolveAgentSelector",
+        "mq": "find.directory.resolve_agent_selector",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_agent_selector_request_body",
+        "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_agent_selector_resolution_outcome"
       },
       {
         "operation_id": "ck.find.directory.list_handles_for_subject",
