@@ -116,6 +116,14 @@
         "lost": {
           "type": "boolean",
           "description": "SHOULD be set true when the server has dropped unacknowledged messages for this device (expiry or capacity) since the device's last acknowledged position. Clients SHOULD trigger key recovery paths (key backup / key re-request) and MUST NOT silently assume the queue was complete."
+        },
+        "limited": {
+          "type": "boolean",
+          "description": "True when this account subscribe to_device batch is truncated because the device queue exceeds the stream frame budget. When true, `next_cursor` is REQUIRED and the client MUST continue with ck.self.device_messages.get?from=<next_cursor>; the top-level account stream cursor MUST NOT be used as the to-device queue pagination cursor."
+        },
+        "next_cursor": {
+          "$ref": "#/$defs/cursor_value",
+          "description": "Read-only to-device queue continuation cursor for ck.self.device_messages.get?from=... . It is not an acknowledgement and MUST NOT delete queued messages; queue deletion happens only through `ack_token` passed to ck.self.device_messages.ack."
         }
       },
       "allOf": [
@@ -130,6 +138,23 @@
           "then": {
             "required": [
               "ack_token"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "limited": {
+                "const": true
+              }
+            },
+            "required": [
+              "limited"
+            ]
+          },
+          "then": {
+            "required": [
+              "next_cursor"
             ]
           }
         }

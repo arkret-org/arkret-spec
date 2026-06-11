@@ -124,13 +124,15 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
 {"kind": "unauthorized"}
 ```
 
-`realms` MUST 是以 `ck:realm:*` 为 key 的对象；value 是该 Realm 的聚合同步结果。membership state 的完整枚举是 `join` / `invite` / `knock` / `leave` / `ban`，它们是事件 payload / `ck.member.state` projection 取值，不再作为 `realms` 外层 bucket；其中只有 `join` / `invite` / `knock` 进入 roster（`members[]`），`leave` / `ban` 不进入 roster（见 §中 roster `members[]` 定义）。`state`、`state_after`、`ephemeral`、Realm-scoped `account_data` 以及顶层 `to_device` / `presence` / `account_data` / `notifications` 都使用事件容器形状:
+`realms` MUST 是以 `ck:realm:*` 为 key 的对象；value 是该 Realm 的聚合同步结果。membership state 的完整枚举是 `join` / `invite` / `knock` / `leave` / `ban`，它们是事件 payload / `ck.member.state` projection 取值，不再作为 `realms` 外层 bucket；其中只有 `join` / `invite` / `knock` 进入 roster（`members[]`），`leave` / `ban` 不进入 roster（见 §中 roster `members[]` 定义）。`state`、`state_after`、`ephemeral`、Realm-scoped `account_data` 以及顶层 `presence` / `account_data` / `notifications` 都使用事件容器形状:
 
 ```json
 {
   "events": []
 }
 ```
+
+顶层 `to_device` 不是事件容器；它使用 `DeviceMessageEnvelope[]` 承载形态 `{messages, ack_token?, limited?, next_cursor?, lost?}`，schema 为 `account-subscribe-frame.schema.json#/$defs/device_message_container`。`messages[]` 中的对象不得作为 durable Event Envelope 处理。
 
 ### 2.2 连接管理与重连
 
@@ -557,13 +559,13 @@ To-device 队列删除由**显式 ack** 驱动，与 stream cursor 解耦；任�
 
 ### 10.2 队列分页
 
-To-device 队列过长时，服务器 MAY 返回 `limited=true` 并要求客户端调用：
+To-device 队列过长时，服务器 MAY 在 account subscribe `delta.to_device` 容器中返回 `limited=true`。当 `delta.to_device.limited=true` 时，服务端 MUST 同时返回 `delta.to_device.next_cursor`，客户端 MUST 用该 cursor 调用：
 
 ```http
 GET /_cokret/self/device_messages?from=<cursor>&limit=...
 ```
 
-该 endpoint 的 `from` cursor 同样 MUST 通过 §12 完整性校验后才能用作读取位置；该读取位置是只读的，MUST NOT 触发队列删除（删除只经 §10.1 显式 ack）。`from=` 是 `ck.self.device_messages.get` 的历史例外命名（见 [`api-conventions.md` §7.1](./api-conventions.md)）；新增接口 MUST 用 `before` / `after`，不得把 `from=` 当作推荐形态。
+该 endpoint 的 `from` cursor 同样 MUST 通过 §12 完整性校验后才能用作读取位置；该读取位置是只读的，MUST NOT 触发队列删除（删除只经 §10.1 显式 ack）。`from=` 是 `ck.self.device_messages.get` 的历史例外命名（见 [`api-conventions.md` §7.1](./api-conventions.md)）；新增接口 MUST 用 `before` / `after`，不得把 `from=` 当作推荐形态。客户端 MUST NOT 把 account subscribe 顶层 `cursor` 当成 to-device 队列分页 cursor；顶层 `cursor` 只用于 account stream resume，to-device 队列分页只使用 `delta.to_device.next_cursor`。
 
 ## 11. Filters
 

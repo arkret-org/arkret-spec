@@ -1158,9 +1158,24 @@
             },
             "attestations": {
               "type": "array",
-              "description": "Optional inline ck.schema.range_completeness_attestation.v1 payloads for the referenced attestations; servers MAY omit and let clients backfill the attestation events by id.",
+              "description": "Optional inline complete ck.attestation.range_completeness EventEnvelope objects for the referenced attestations. Every inline event's event_id MUST appear in attestation_refs and clients MUST verify the EventEnvelope signature / event_digest before using its payload. Servers MAY omit this field and let clients backfill the attestation events by id.",
               "items": {
-                "$ref": "./range-completeness-attestation.schema.json"
+                "allOf": [
+                  {
+                    "$ref": "./event-envelope.schema.json"
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "kind"
+                    ],
+                    "properties": {
+                      "kind": {
+                        "const": "ck.attestation.range_completeness"
+                      }
+                    }
+                  }
+                ]
               }
             }
           },

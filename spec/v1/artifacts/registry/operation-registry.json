@@ -862,7 +862,7 @@
       "binding_variant_of": "ck.self.events.query",
       "http_only_variant": true,
       "http": "POST /_cokret/self/events/query",
-      "notes": "HTTP-specific POST/body form of ck.events.query. Semantically identical (same selector / cursor / order / filter parameter set, same response shape). Choose when URL length would exceed practical limits (large realms[]/actors[] arrays, complex filters object) or when query parameters would be logged inadvertently by proxies. Non-HTTP transports MUST use the canonical ck.self.events.query binding (SelfEvents/Query / self.events.query), not expose this variant as a separate gRPC or MQ operation.",
+      "notes": "HTTP-specific POST/body form of ck.events.query. Semantically identical (same selector / cursor / order / filter / include_completeness parameter set, same response shape including optional range_completeness). Choose when URL length would exceed practical limits (large realms[]/actors[] arrays, complex filters object) or when query parameters would be logged inadvertently by proxies. Non-HTTP transports MUST use the canonical ck.self.events.query binding (SelfEvents/Query / self.events.query), not expose this variant as a separate gRPC or MQ operation.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome"
