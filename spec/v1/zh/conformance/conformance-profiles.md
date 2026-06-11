@@ -679,7 +679,7 @@ MUST 支持:
 - `ck.self.agent.participation.get`
 - deployment ⊇ Realm ⊇ Circle ⊇ Flow 的 tighten-only ceiling 校验
 - effective participation = effective ceiling ∩ controller selection
-- 第三方 mention gate：`accept_third_party_mention=false` 时不得向该 agent 派生 mention notification、inbox row、push wakeup 或 agent subscribe 投影
+- 第三方 mention gate：`accept_third_party_mention=false` 时不得向该 agent 派生 mention notification、inbox row、push wakeup 或 agent subscribe 投影；gate 在 message event fanout 时一次性求值，participation 之后翻转不追溯补发或撤销既有派生（[flow-and-message.md §9.4.5](../models/flow-and-message.md)）
 - `scope_details.participation[]` session overlay，形态与 `agent-operations.schema.json#/$defs/agent_participation_entry` 对齐
 
 MUST NOT:

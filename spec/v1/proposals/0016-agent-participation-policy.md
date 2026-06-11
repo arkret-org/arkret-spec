@@ -273,7 +273,7 @@ mention 接受是 **inbound 路由** 决策（"要不要把别人的 @ 推给我
 
 - [ ] `zh/sync/service-surface.md` §10.1：补 `ck.self.agent.participation.{set,get}` 两个 operation 的散文条目与 session `scope_details.participation` overlay 说明。
 - [ ] `zh/conformance/conformance-profiles.md`：补 `ck.profile.agent_participation_policy.v1` 的散文注册（artifact `conformance-profiles.json` 已注册）。
-- [ ] `zh/conformance/conformance-vectors.md`：补 ceiling tighten-only、effective=ceiling∩selection、第三方 mention gate、selection-within-ceiling、session overlay 五个 feature 的 conformance vector。
+- [ ] `zh/conformance/conformance-vectors.md`：补 ceiling tighten-only、effective=ceiling∩selection、第三方 mention gate、selection-within-ceiling、session overlay 五个 feature 的 conformance vector。其中第三方 mention gate vector MUST 覆盖非追溯时序 case：mention 发生于 effective `accept_third_party_mention=false` 期间 → controller 翻转为 `true` → agent 上线同步 → 断言该 agent 的 mention notification / inbox row / `ck.self.events.subscribe` 投影对该历史 mention 零记录（normative 语义见 `zh/models/flow-and-message.md` §9.4.5"求值时点与非追溯语义"）。
 - [ ] session `scope_details.participation[]` overlay（§7.1）的 schema 落点：其形态 SHOULD 与 `agent-operations.schema.json#/$defs/agent_participation_entry`（`{scope, selection, ceiling, effective}`）对齐，而非 §7.1 当前示例的扁平形态——两处需统一后再落 schema。
 
 ## 12. 引用

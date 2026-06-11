@@ -749,6 +749,12 @@ Audience mention 的失败不得污染普通消息写入语义：实现 MAY 接�
 
 该 gate 是 reducer / dispatcher 强制规则，不依赖 agent runtime 自觉；runtime 另从 session `scope_details.participation` 与 `ck.self.agent.participation.get` 获得同一 effective 契约用于主动遵守。effective ceiling 未知或 stale 时 MUST fail closed 为不投递。
 
+求值时点与非追溯语义（normative）：
+
+- 本 gate 对每条 message event 在其进入 notification fanout / 投影派生时**一次性**求值，输入是该时刻该 agent 的 effective participation；求值结果（投递或抑制）随该 event 的派生产物固化。
+- participation 的任一来源（controller selection 或任一层级 ceiling）之后发生变化，MUST NOT 触发对既有 event 的重新 fanout：由 `false` 翻转为 `true` 不补发、不回溯派生此前被抑制的 mention notification / inbox row / push wakeup / `ck.self.events.subscribe` 投影条目；由 `true` 翻转为 `false` 也不追溯撤销已派生的 notification（redaction / erasure / retention 等既有机制不受影响）。该时间语义与 `level=muted` 一致：策略只约束变更之后新派生的投递。
+- 抑制只作用于**定向投递平面**。被抑制 mention 所在的 message 仍是普通 shared history；该 agent 此后能否把这条 message 作为普通历史读到，由其对该 scope 的读取授权、[history-visibility](../governance/history-visibility.md) gate 与 E2EE key 可达性决定，与本 gate 无关。实现 MUST NOT 把本 gate 解释或复用为读取权控制；需要对 agent 隐藏消息本体的部署，应使用读取授权 / history visibility 表达。
+
 ### 9.5 冲突与收敛规则
 
 Message timeline 的同步与 reducer 行为：
