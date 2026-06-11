@@ -24,7 +24,7 @@ see_also:
 
 1. **Discoverability / reference disclosure**：caller 是否可以知道目标存在。
 2. **Read capability / current service authority**：caller 或服务是否能调用对应读取 surface。
-3. **Event-time history visibility**：目标 Event 在其 deterministic pre-state `T0` 下是否对该 reader class 可见。
+3. **Event-time history visibility**：目标 Event 在其 CBA basis `T0` 下是否对该 reader class 可见。
 4. **Current safety policy**：当前 redaction、erasure、retention、ban/remove、legal hold、plaintext-visible service 和 anti-enumeration policy 是否允许继续披露。
 5. **Cryptographic availability**：E2EE scope 下是否存在被 policy 授权的 Welcome、epoch state 或 history key share。
 
@@ -32,17 +32,15 @@ see_also:
 
 ## 2. 时点模型
 
-历史可见性按 Event 的 deterministic effective pre-state `T0` 判定。`T0` 定义与
-[encryption-and-audit.md](../crypto-media/encryption-and-audit.md) §2.3.5 一致：对 single-leaf Anchor 使用该 Event 所属 Anchor 的 pre-state；对 `open_set` / multi-leaf view 使用
-[event-auth-state-resolution.md](../authz/event-auth-state-resolution.md) 的 deterministic effective anchor view。实现 MUST NOT 使用本地到达顺序、wall clock 或 pending Move 判定历史可见性。
+历史可见性按 Event 的 CBA basis `T0` 判定。DataEvent 的 `T0` 是其 `seal_ref` 指向的控制面 Seal view；Control Move 的 `T0` 是其 `seal_basis` 指向的控制面 view。实现 MUST NOT 使用本地到达顺序、wall clock 或 pending Control Move 判定历史可见性。
 
 Reader 的成员时点：
 
 | 名称 | 定义 |
 | --- | --- |
-| `invite_frontier(reader)` | 与 reader 当前生效成员资格**因果相连**的那次有效 `ck.member.state{membership=invite}`（或等价 invite accept / claim）所确立的 Anchor frontier；被 revoke / expire / reject 后失效。reader 历史上若有多次 invite / revoke，`invite_frontier(reader)` 取**导致其当前 invited / joined 状态的那一次** invite 的 frontier，而非任意一次历史 invite——已失效或与当前成员资格无因果链的旧 invite frontier MUST NOT 被采用。 |
-| `join_frontier(reader)` | 与 reader 当前生效成员资格**因果相连**的那次有效 `ck.member.state{membership=join}`（使 reader 成为 active member）所确立的 Anchor frontier。leave→rejoin 场景下 reader 可能有多次 join，`join_frontier(reader)` MUST 取**确立其当前 active 成员资格的那一次** join 的 frontier，而非任意一次历史 join——与当前成员资格无因果链的旧 join frontier MUST NOT 被采用（与 `invite_frontier` 同口径，避免并行分叉下放宽 join 前历史）。 |
-| `remove_frontier(reader)` | 与 reader 当前非成员状态**因果相连**的那次有效 leave / ban / remove / account deactivation cascade（使 reader 不再是 active member）所确立的 Anchor frontier；取导致其当前状态的那一次，已被后续 rejoin 取代而与当前状态无因果链的旧 remove frontier MUST NOT 被采用。 |
+| `invite_frontier(reader)` | 与 reader 当前生效成员资格**因果相连**的那次有效 `ck.member.state{membership=invite}`（或等价 invite accept / claim）所确立的 accepted Seal view；被 revoke / expire / reject 后失效。reader 历史上若有多次 invite / revoke，`invite_frontier(reader)` 取**导致其当前 invited / joined 状态的那一次** invite 的 frontier，而非任意一次历史 invite——已失效或与当前成员资格无因果链的旧 invite frontier MUST NOT 被采用。 |
+| `join_frontier(reader)` | 与 reader 当前生效成员资格**因果相连**的那次有效 `ck.member.state{membership=join}`（使 reader 成为 active member）所确立的 accepted Seal view。leave→rejoin 场景下 reader 可能有多次 join，`join_frontier(reader)` MUST 取**确立其当前 active 成员资格的那一次** join 的 frontier，而非任意一次历史 join——与当前成员资格无因果链的旧 join frontier MUST NOT 被采用（与 `invite_frontier` 同口径，避免并行分叉下放宽 join 前历史）。 |
+| `remove_frontier(reader)` | 与 reader 当前非成员状态**因果相连**的那次有效 leave / ban / remove / account deactivation cascade（使 reader 不再是 active member）所确立的 accepted Seal view；取导致其当前状态的那一次，已被后续 rejoin 取代而与当前状态无因果链的旧 remove frontier MUST NOT 被采用。 |
 
 一个 Event `E` 的 `T0` 如果包含 `join_frontier(reader)` 且不包含之后的 `remove_frontier(reader)`，则 reader 在 `E` 的 `T0` 为 joined。类似地，`T0` 包含有效 invite frontier 且未包含撤销 frontier，则为 invited。
 
@@ -60,7 +58,7 @@ Current read-time member state 只决定服务是否可以继续提供 server-me
 | `joined` | reader 在 Event 的 `T0` 已处于 joined 状态时 MAY 读取。 | 不允许读 join 前历史。 | invitee 未 joined 时不能读正文历史，只能看 preview policy 允许的 stripped metadata。 | 默认 DENY；policy MAY 允许 T0 joined 且 current policy 仍允许的恢复。 | Welcome 只授予 join 后 future epoch；join 前 key share MUST 被拒。 |
 | `restricted` | 不由 enum 自身定义；MUST 由 effective `ck.realm.history_sharing_policy` 中的 `restricted_rules[]` 显式判定。 | 仅按匹配 rule。 | 仅按匹配 rule。 | 仅按匹配 rule。 | 仅按匹配 rule；命中 read rule **不自动授予 key**——key share 还要求本次请求所用的 key 来源在该 rule 的 `key_sources` 内（见 §3.1 / §6）。任一判定失败的 fail-closed 行为见 §3.1 末尾集中声明。 |
 
-Reducer MUST 拒绝把 effective Realm 或 Circle history visibility 设置为 `restricted`，除非同一 Anchor pre-state 或同一 ordered submit batch 的前序 Event 已接受一个有效 `ck.realm.history_sharing_policy`。拒绝原因 SHOULD 使用 `history_sharing_policy_missing`。policy 存在但未覆盖目标 scope / audience / range 时的 fail-closed 行为见 §3.1 末尾「`restricted` fail-closed 集中声明」。
+Reducer MUST 拒绝把 effective Realm 或 Circle history visibility 设置为 `restricted`，除非同一 CBA basis 或同一 ordered submit batch 的前序 Event 已接受一个有效 `ck.realm.history_sharing_policy`。拒绝原因 SHOULD 使用 `history_sharing_policy_missing`。policy 存在但未覆盖目标 scope / audience / range 时的 fail-closed 行为见 §3.1 末尾「`restricted` fail-closed 集中声明」。
 
 ### 3.1 `restricted_rules[]` 结构
 

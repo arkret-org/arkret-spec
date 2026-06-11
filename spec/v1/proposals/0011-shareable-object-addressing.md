@@ -199,6 +199,6 @@ HTTPS 落地链接中,`flow` / `m` / `via` / 尤其授权 token **MUST** 放在 
 
 - [CKP-0007](./0007-circle-primitive.md) — Circle scope / 存在性隐私(本提案 `depends_on`)。
 - [`discovery-directory.md` §9](../zh/discovery/discovery-directory.md) — `resolve_realm` / `via_services` / anti-enumeration。
-- [`identity-handles.md` §3.8](../zh/identity/identity-handles.md) — handle/alias 可迁移、DID-anchored 寻址原则。
+- [`identity-handles.md` §3.8](../zh/identity/identity-handles.md) — handle/alias 可迁移、DID-sealed 寻址原则。
 - Matrix `matrix:` URI scheme(MSC2312)与 matrix.to 三件套设计。
 - WHATWG HTML `registerProtocolHandler` `web+` scheme 安全名单。

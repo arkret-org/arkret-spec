@@ -171,7 +171,7 @@ Facets 是 schema-declared **UI / projection hints**，不是对象身份，也�
 
 - 授权（capability check、capability `allowed_morph_types`、resource selector）
 - 状态机 transition
-- 排序 / Lattice join / Move precondition
+- 排序 / Lattice join / Control Move precondition
 - reducer 行为（接受 / 拒绝 / soft fail）
 - event kind 接受规则
 - wire 互操作（canonical bytes / event digest / signature）
@@ -198,7 +198,7 @@ Facets 是 schema-declared **UI / projection hints**，不是对象身份，也�
 当一个 facet hint 在 cardinality / required-ness / state machine 等维度上与同名概念在 [`relation.md` §5](./relation.md) 的 **RelationProfile** 或 [`common-fields.md` §5`](./common-fields.md) 的标准状态机发生**冲突**时（典型例：`assignable` facet 提示单值分配，但 Realm 注册的 `assigned_to` RelationProfile 声明 `cardinality=many_to_one`），适用以下仲裁规则：
 
 1. **RelationProfile / Schema / Event kind registry / Capability action 在所有 reducer 与 wire 层面胜出**（与 §4.0 决策矩阵一致）：reducer MUST 按这些权威声明评估 cardinality、required-ness、transition、precondition 与 wire 拒绝。
-2. **Facet 在冲突时降级为 UI 提示**：UI / View / Inbox / 客户端搜索 SHOULD 继续根据 facet 调整渲染或筛选，但 facet 中暗示的约束 MUST NOT 被反向用于授权、Move precondition、reducer 接受/拒绝或 wire 校验。
+2. **Facet 在冲突时降级为 UI 提示**：UI / View / Inbox / 客户端搜索 SHOULD 继续根据 facet 调整渲染或筛选，但 facet 中暗示的约束 MUST NOT 被反向用于授权、Control Move precondition、reducer 接受/拒绝或 wire 校验。
 3. **schema_refs[] 与 morph_type_profiles 的 facet 声明视为 schema-bound hint**：reducer 不在 facet 层强制相同 facet 在跨 schema / profile 间一致，但 conformance lint SHOULD 标记"facet 与 RelationProfile / Schema 冲突"，提示规范文档维护者澄清意图。
 4. 实现 MUST NOT 把 facet 当作"沉默约束"——即 facet 不出现于 wire 上不代表约束被满足/不满足，约束只由 RelationProfile / Schema 决定。
 

@@ -24,7 +24,7 @@ updated: 2026-06-10
   "object_types": ["flow", "message", "morph"],
   "morph_types": ["customer_case"],
   "facets": ["assignable"],
-  "anchor_ref": "ck:flow:019640c5-61a0-7000-8000-000000000000",
+  "context_ref": "ck:flow:019640c5-61a0-7000-8000-000000000000",
   "filters": [],
   "relation": null,
   "context": {
@@ -49,7 +49,7 @@ updated: 2026-06-10
 - `object_types`: OPTIONAL，限制标准对象类型，例如 `realm`、`space`、`flow`、`message`、`morph`、`relation`、`view`。对象类型只在这里表达；不得用 `filters.field=type` 作为别名。`card` 是 View `item_render`，不是 canonical object type；Board/List 容器必须表达为 `object_types=["space"]` + `filters` 限制 Space `kind`。Board/List 内部 item 查询仍按被投影对象表达，例如 `object_types=["flow"]` 并通过 `contains` relation 约束到目标 Space。
 - `morph_types`: OPTIONAL，当 `object_types` 包含 `morph` 时进一步限制开放对象类型。
 - `facets`: OPTIONAL，schema-declared capability hint 过滤。Facet 不替代对象类型，也不绕过授权、schema、policy、`allowed_tracks` action scope 或 E2EE 可见性；查询命中某 facet 不表示调用方获得该 facet 暗示的写入、排序、状态转换或 renderer 能力。
-- `anchor_ref`: OPTIONAL，`timeline` / `renderer="timeline"` 或 Flow context 的上下文锚点对象引用。
+- `context_ref`: OPTIONAL，`timeline` / `renderer="timeline"` 或 Flow context 的上下文对象引用；它指向业务上下文对象，不指向 Seal。
 - `filters`: OPTIONAL，过滤条件。
 - `relation`: OPTIONAL，关系扩展条件。
 - `context`: OPTIONAL，上下文时间线聚合参数，若存在用于 `timeline` / `renderer="timeline"` 聚合：
@@ -180,6 +180,11 @@ Projection 只减少返回字段，不提升权限。
   "items": [],
   "next_cursor": "ck:cursor:...",
   "has_more": true,
+  "basis": {
+    "seal_ref": "ck:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "key_view_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "grade": "observed"
+  },
   "frontier": {
     "barrier_cursor": "ck:cursor:...",
     "max_hlc": "01970e589d21-0004-a13f9c2e"
@@ -188,6 +193,18 @@ Projection 只减少返回字段，不提升权限。
 ```
 
 `barrier_cursor` 是 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 中 `purpose=barrier` 的 cursor，可作为后续读接口的 `X-Cokret-Wait-For` 来等待 frontier 覆盖目标 event。
+
+`basis` 是 REQUIRED。`grade` 的合法值与语义如下：
+
+| grade | 语义 |
+| --- | --- |
+| `local` | 本地已知 data DAG 或 control cache 的结果，无外部承诺。 |
+| `seen` | 相关 DataEvent 持有 SeenReceipt，但未被 seal 观测承诺。 |
+| `observed` | 数据面结果进入某个 seal 的 `data_view_root` / `data_event_set_root`；这是观测承诺，不是 finality。 |
+| `sealed` | Control Move 被已接受 Seal 覆盖并进入治理 `state_root`；仅控制面使用。 |
+| `witnessed` | 对应 seal 另有 policy 要求的 witness / auditor attestation。 |
+| `forked` | 查询依赖的控制面分支处于 `fork_quarantine`。 |
+| `stale` | `seal_ref` 超 freshness window、seal 超期或撤销缺口超限。 |
 
 ## 9. 安全规则
 

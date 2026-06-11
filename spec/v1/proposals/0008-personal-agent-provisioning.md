@@ -504,7 +504,7 @@ Accepted 后 draft-only MUST 注册 controller-owned account-data type `ck.agent
 
 隐私边界:
 
-- Draft storage MUST 使用 `wire_scope=actor_private_event` 的通道,例如 encrypted account data 或 actor-private stream;不得进入 shared Realm Move / Anchor history。
+- Draft storage MUST 使用 `wire_scope=actor_private_event` 的通道,例如 encrypted account data 或 actor-private stream;不得进入 shared Realm data-plane history 或 control-plane Seal history。
 - Target Realm 的 `ck.self.events.subscribe`、`ck.self.events.query`、shared reducer、Realm search index、notification fanout 和 push preview MUST NOT 返回 draft content。
 - `ck.self.account.subscribe` 只能把 controller-owned approval draft 返回给 controller principal 的授权 session,以及 scope 明确包含该 draft / account-data 访问权的 agent runtime。
 - 若服务端存储 draft 明文,该部署 MUST 把明文可见服务写入 profile / policy 并向 controller 披露;默认语义 SHOULD 是服务端只保存 encrypted account data。
@@ -639,7 +639,7 @@ Act-on-behalf grant 是 high risk。规则:
 - **Fresh approval 粒度**:默认 SHOULD 是 `(action, target_flow)` + 短期 temporal window;批量 window 必须由 Realm policy 显式开启。
 - **Wire 表达**:全部通过现有 `approval_required` / `approval_mode` / `approval_actor_refs` / `controller_approval_required` 组合,不新增 `act_on_behalf_allowed` constraint。
 
-Schema impact:该形态要求 Event Envelope 增加 signed `executed_by` 与 `authorization_ref` 字段,并把二者纳入 event canonical bytes、event digest、E2EE AAD 与 Anchor/sub-anchor leaf 输入。它们不能只作为 UI-only unsigned extension。Accepted migration 必须同时更新 `event-envelope.schema.json`、canonicalization 规则、`event-and-patch.md` 与 schema-registry / service-surface 相关说明,并定义它们与 `proof.verification_method` / active `ck.agent.key.authorize` 的校验关系。
+Schema impact:该形态要求 Event Envelope 增加 signed `executed_by` 与 `authorization_ref` 字段,并把二者纳入 event canonical bytes、event digest、E2EE AAD 与 Seal/sub-seal leaf 输入。它们不能只作为 UI-only unsigned extension。Accepted migration 必须同时更新 `event-envelope.schema.json`、canonicalization 规则、`event-and-patch.md` 与 schema-registry / service-surface 相关说明,并定义它们与 `proof.verification_method` / active `ck.agent.key.authorize` 的校验关系。
 
 ### 4.11 管理与撤销
 
@@ -695,7 +695,7 @@ Agent key rotation SHOULD 复用 `ck.agent.key.rotate`,并要求 replacement key
 - `zh/identity/account-lifecycle.md`: 定义 agent principal 的 pause / deactivate 行为。
 - `zh/authz/capabilities.md`: 增加 agent provisioning / management actions,并明确 personal agent 复用现有 `allowed_tracks`、`allowed_flow_refs`、`allowed_data_classes`、`allowed_endpoints`、`rate_limit` 与 approval/accountability constraints。
 - `zh/models/private-objects.md`、`zh/sync/client-sync.md` 与 `zh/sync/operations-sync.md`: 澄清 draft-only 使用 encrypted account data / actor-private stream,不得进入 shared Realm history。
-- `zh/models/event-and-patch.md` 或 Event Envelope 相关章节:为 act-on-behalf 增加 signed `executed_by` 与 `authorization_ref` 字段、canonicalization、Anchor 输入与校验规则。同时 SHOULD 在 Event Envelope 上 cache 一个 `actor_kind` projection(由 reducer 在写入时从 Actor Profile 解析),让审计 / 取证 / offline reader 不必反向解析 Actor Profile 即可判断 event 是 agent 行为或 controller 行为。该 projection 是 reducer-stamped immutable 字段,不进入 actor-supplied submit payload。
+- `zh/models/event-and-patch.md` 或 Event Envelope 相关章节:为 act-on-behalf 增加 signed `executed_by` 与 `authorization_ref` 字段、canonicalization、Seal 输入与校验规则。同时 SHOULD 在 Event Envelope 上 cache 一个 `actor_kind` projection(由 reducer 在写入时从 Actor Profile 解析),让审计 / 取证 / offline reader 不必反向解析 Actor Profile 即可判断 event 是 agent 行为或 controller 行为。该 projection 是 reducer-stamped immutable 字段,不进入 actor-supplied submit payload。
 - `zh/extensions/applet-integration.md`: 澄清管理员管理的 Ghost AI agents 是 Applet-managed external/integration actors,而本 CKP 覆盖 native personal agents。
 - `zh/extensions/agent-protocol-interop.md`: 确保 agent runtime session 不暗示支持外部 A2A / ACP session。
 - `zh/sync/service-surface.md` 与 `service-http-binding.md`: 增加 profile operations。本 CKP 不引入 custom URI scheme;客户端 deep-link 由 OS Universal Links / App Links 拦截标准 HTTPS URL(host 来自 deployment 已知的 `cokret_base_url`)。
@@ -708,7 +708,7 @@ Agent key rotation SHOULD 复用 `ck.agent.key.rotate`,并要求 replacement key
 - `account-data-type-registry.json`: 增加 `ck.agent.draft.v1`,key pattern 建议为 `ck.agent.draft.v1:<agent_principal_id>:<draft_id>`,并声明 `encrypted_at_rest=true`、tombstone 与 retention 规则。
 - `capability-action-registry.json`: 增加 `ck.self.agent.provision` 作为 aggregate admin action,其 `target_event_kinds` MUST 显式列出 fan-out 子事件,例如 `ck.profile.create`、`ck.identity.accountability_grant`、`ck.agent.key.authorize`、`ck.capability.grant`,并标注 migration group。Agent management actions 同样必须声明 target event kinds,不得从 action 字符串推断。
 - `event-payload.schema.json`: 若现有 `agent_key_authorize_payload` 尚未包含 runtime attestation,增加 `runtime_attestation` 或 attestation digest/ref 字段;v1 enum 至少包含 `self_asserted`,未知 kind fail closed。
-- `event-envelope.schema.json` / `event-payload.schema.json`: 为 accepted 新 event 增加 payload defs;为 act-on-behalf 增加 signed `executed_by` 与 `authorization_ref` 字段,并同步 canonicalization / Anchor vectors。同时增加 reducer-stamped `actor_kind` projection 字段(由 reducer 从 Actor Profile 解析,immutable,不接受 actor-supplied 输入),供审计与离线读取使用。
+- `event-envelope.schema.json` / `event-payload.schema.json`: 为 accepted 新 event 增加 payload defs;为 act-on-behalf 增加 signed `executed_by` 与 `authorization_ref` 字段,并同步 canonicalization / Seal vectors。同时增加 reducer-stamped `actor_kind` projection 字段(由 reducer 从 Actor Profile 解析,immutable,不接受 actor-supplied 输入),供审计与离线读取使用。
 - `conformance-profiles.json`: 注册 `ck.profile.personal_agent_provisioning.v1`、`ck.profile.agent_auth.v1`、`ck.profile.agent_delegation_policy.v1`。
 - OpenAPI: 增加 agent provisioning、pairing typed schemas,并扩展现有 `SessionGrantRequestBody` / `SessionGrantOutcome` 以支持 `proof.proof_kind="agent_key_proof"`、独立 proof schema branch、独立 validator 与 `scope_details` profile overlay。
 

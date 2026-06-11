@@ -338,8 +338,8 @@ components:
               - cursor_revoked
               - cursor_unrecognized
               - actor_seq_invalid
-              - anchor_ref_stale
-              - anchor_ref_unknown
+              - stale_seal_ref
+              - seal_ref_unknown
               - audience_unknown
               - blob_digest_mismatch
               - blob_expired
@@ -382,7 +382,7 @@ components:
               - policy_combination_invalid
               - history_sharing_policy_missing
               - history_not_visible
-              - anchorer_recovery_missing
+              - notary_recovery_missing
               - unsupported_lattice_type
               - profile_unsupported
               - unsupported_join_rule
@@ -392,7 +392,7 @@ components:
               - contact_request_not_pending
               - contact_request_expired
               - unsupported_digest_algorithm
-              - anchor_incomplete
+              - seal_incomplete
               - franking_proof_unavailable
               - turn_credential_expired
               - delivery_binding_stale
@@ -1259,7 +1259,7 @@ components:
           type: object
           description: |
             Either an actor frontier (`{actor_id, actor_seq, event_id}`) or a
-            Realm frontier (`{realm_id, anchor_id, state_root, hlc?}`) shape
+            Realm frontier (`{realm_id, seal_id, state_root, hlc?}`) shape
             depending on which selector was passed; servers MUST NOT leak
             frontiers across visibility boundaries.
         receipts:
@@ -1344,10 +1344,10 @@ components:
           items: true
         bottom:
           $ref: '#/components/schemas/BottomDiagnostic'
-        anchor_view:
+        seal_view:
           type: object
-          description: Anchor leaves / state_root the value or bottom was
-            observed under. Mirrors `bottom.anchor_view` when status≠value.
+          description: Seal leaves / state_root the value or bottom was
+            observed under. Mirrors `bottom.seal_view` when status≠value.
           required:
           - leaves
           properties:
@@ -1357,7 +1357,7 @@ components:
               uniqueItems: true
               items:
                 type: string
-                pattern: ^ck:anchor:sha256:[0-9a-f]{64}$
+                pattern: ^ck:seal:sha256:[0-9a-f]{64}$
             state_root:
               type: string
               pattern: ^sha256:[0-9a-f]{64}$
@@ -1381,21 +1381,25 @@ components:
         event_digest:
           type: string
           description: Canonical hash of the event's canonical bytes (excluding
-            proofs and unsigned); equals proof.event_digest. Used as the Anchor
+            proofs and unsigned); equals proof.event_digest. Used as the Seal
             frontier item for this event. Algorithm family aligned with
-            schemas/anchor.schema.json#/$defs/event_digest — active digest
+            schemas/seal.schema.json#/$defs/event_digest — active digest
             suites per registry/digest-suite-registry.json (v1 sha256 / blake3,
             64 hex).
           pattern: ^(?:sha256|blake3):[0-9a-f]{64}$
         event_state:
           type: string
           enum:
-          - pending_anchor
-          - effective
+          - data_local
+          - data_observed
+          - control_pending
+          - control_sealed
           - failed_precondition
+          - failed_plane
           - failed_bottom
-          - rejected_anchor
-          - anchorer_paused
+          - rejected_seal
+          - fork_quarantine
+          - stale_seal_ref
         bottom:
           $ref: '#/components/schemas/BottomDiagnostic'
       additionalProperties: false
@@ -3055,7 +3059,7 @@ paths:
         requestCanonicalDigest: []
       summary: Query / backfill events with cursor pagination.
       description: |
-        Returns a page of events according to `before` / `after` cursor anchors.
+        Returns a page of events according to `before` / `after` cursor seals.
 
         Either or both of `before` / `after` may be given:
           - `before=<cursor>` alone: events most recently *before* this cursor
@@ -3107,7 +3111,7 @@ paths:
       - name: order
         in: query
         description: |
-          Batch ordering. `default` follows the proximity-to-anchor rule
+          Batch ordering. `default` follows the proximity-to-seal rule
           (before-only → descending; after-only → ascending; both → descending);
           `ascending` / `descending` force the order.
         schema:
@@ -3173,7 +3177,7 @@ paths:
 
         The response shape (`events[]`, `prev_cursor`, `next_cursor`,
         `has_more`) matches the GET form exactly. Cursor pagination semantics
-        (proximity-to-anchor default order, absolute prev / next directions)
+        (proximity-to-seal default order, absolute prev / next directions)
         come from the same source — see zh/sync/service-http-binding.md §3.3.
 
         gRPC / MQ bindings reuse the canonical `SelfEvents/Query` channel; this
@@ -3436,7 +3440,7 @@ paths:
           $ref: '#/components/schemas/Cursor'
       - name: order
         in: query
-        description: Batch ordering. `default` follows the proximity-to-anchor rule.
+        description: Batch ordering. `default` follows the proximity-to-seal rule.
         schema:
           type: string
           enum:
@@ -3621,7 +3625,7 @@ paths:
         Sends a `ck.schema.ephemeral_envelope.v1` broadcast signal (`ck.presence`,
         `ck.typing`, `ck.receipt.read`, or `ck.call.signal`) into the Sync
         Service fanout path. This endpoint never persists the signal as a
-        durable Event and never advances actor_seq, Anchor state, or Realm
+        durable Event and never advances actor_seq, Seal state, or Realm
         frontier. Point-to-point device verification signals use
         `ck.self.device_messages.put` instead.
       requestBody:

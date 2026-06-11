@@ -63,7 +63,7 @@ sidebar:
 - `ck.profile.mls.minimal_metadata_realm.v1`
 - `ck.profile.traffic_metadata_hardened.v1`
 - `ck.profile.key_backup.memory_hard.v1`
-- `ck.profile.circle_anchor_cadence.fixed_5m.v1`
+- `ck.profile.circle_seal_cadence.fixed_5m.v1`
 - `ck.profile.accountable_principals.strict_reject.v1`
 
 ## 3. OpenAPI 与 Transport 一致性
@@ -88,7 +88,7 @@ sidebar:
 
 - `conformance-vectors.md` 与 `sync-fixture.json`：timeline 顺序、分页缺口、snapshot frontier、`event_set_commitment`、MLS 回填、decryption_pending。
 - `conformance-vectors.md` 与 `crypto-signature-fixture.json`：canonical JSON、digest、签名绑定、真实 Ed25519 detached JWS、HLC、cursor、encrypted envelope。
-- `conformance-vectors.md` 与 `move-anchor-lattice-fixture.json`：Move 原子性、Anchor batch、Lattice bottom、离线 rebase 与 covered frontier 的收敛向量。
+- `conformance-vectors.md` 与 `cba-lattice-fixture.json`：CBA 双平面、DataEvent acceptance、Control Move Seal finality、Lattice bottom、同批授权不可提前推进与 Seal covered_set 的收敛向量。
 - `conformance-vectors.md`：redaction 保留与审计可见性向量。
 - `conformance-vectors.md` 与 `capability-fixture.json`：委派、撤销回滚、Flow discussion track 不继承 Flow synthesis 权限与审批约束向量。
 - `privacy-security-fixture.json`：hidden resource、private contact discovery、plaintext-visible service、private blob 与 blind push 的隐私回归向量。
@@ -98,15 +98,15 @@ sidebar:
 
 本节为优先级示例，完整必测集合以 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 为准。以下为优先必测项：
 
-- `ck.vector.move_anchor_lattice.cas_bottom.v1`
-  - 输入同一成员 state key 的并发冲突事件（join/invite/leave/ban）。
-  - 期望 reducer 输出：授权链可解释、冲突记录完整、最终 state 可重建且可再现。
-- `ck.vector.move_anchor_lattice.multi_cell_ban_revoke.v1`
-  - 输入 grant/revoke/regrant 并发链 + 依赖 auth state。
-  - 期望输出：只允许 auth 通过者进入 winner；无授权候选回退到 base state。
-- `ck.vector.move_anchor_lattice.anchor_batch_pre_state.v1`
-  - `ck.realm.schema` 与 `ck.realm.policy_server` 的并发写入。
-  - 期望输出：按优先级类 + tie-break 顺序稳定收敛。
+- `ck.vector.cba_lattice.data_event_accepts_without_seal_finality.v1`
+  - 输入带有效 `seal_ref` 与 `auth_context` 的 DataEvent。
+  - 期望 reducer 输出：本地接受、可投影、无需被 Seal 覆盖。
+- `ck.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1`
+  - 输入带有效 `seal_basis` 的 Control Move 及缺失/错误 basis 的负向样例。
+  - 期望输出：Control Move 先 pending，只有被有效 Seal 覆盖并重算 `state_root` 后进入 `sealed`。
+- `ck.vector.cba_lattice.same_batch_does_not_advance_authorization_basis.v1`
+  - 输入同一 ordered submit batch 内相互依赖的 Control Move。
+  - 期望输出：同批前序 effect 不提前成为后续授权 basis，依赖方必须等待后续 Seal。
 
 ### 4.3 Redaction 向量
 
@@ -163,7 +163,7 @@ sidebar:
 | --- | --- | --- |
 | `v1.0.0` | 对外发布稳定规范基线。 | `zh/` + `artifacts/` registry lint 通过；`core_event_store`、`chat_mvp`、`kanban_mvp` 的 schema / fixture / profile 已冻结；OpenAPI、cryptographic fixture 和 Markdown JSON 示例不得包含未发布占位、非 active wire 字段、未注册 Event kind 或 schema-invalid `constraint_type`。只做结构验证的 fixture MUST 声明 `fixture_kind="schema_only"`，其占位 nonce / ciphertext / signature 不计为 cryptographic vector。 |
 | `v1-interop-preview` | 多实现试验互通。 | 至少两个独立实现通过同一 reference validator 的 `core_event_store` 向量，并能重放官方 sync / state / capability fixture。 |
-| `v1-conformance-certified` | 某实现宣称完全通过指定 profile。 | reference validator、reference reducer、reference authz evaluator 和 conformance runner 已发布；canonical JSON、Event Envelope negative vectors、Move/Anchor/Lattice、capability、privacy/security、sync 和 snapshot vectors 均由 CI 或公开认证报告执行；英文或其他翻译不得作为 stale source of truth 发布。 |
+| `v1-conformance-certified` | 某实现宣称完全通过指定 profile。 | reference validator、reference reducer、reference authz evaluator 和 conformance runner 已发布；canonical JSON、Event Envelope negative vectors、CBA/Lattice、capability、privacy/security、sync 和 snapshot vectors 均由 CI 或公开认证报告执行；英文或其他翻译不得作为 stale source of truth 发布。 |
 
 当前仓库发布的是 `v1.0.0` 规范稳定基线。实现若未同时通过 reference validator / reducer / authz evaluator / runner 及核心 vectors，只能声明为“支持某些 v1 profile”，不得声明为 `v1-conformance-certified`。
 

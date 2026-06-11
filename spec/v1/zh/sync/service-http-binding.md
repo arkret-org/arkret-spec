@@ -181,7 +181,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `POST /_cokret/root/identity/recovery-sessions/{recovery_session_id}/complete` | path `{recovery_session_id}` body `ck.schema.recovery_session.v1#/$defs/recovery_session_complete_request_body` | Requires `state=verified`; MUST emit accepted `ck.device.authorize` and `ck.device.list_update` before returning completed. | `ck.schema.recovery_session.v1#/$defs/recovery_session_complete_outcome` |
 | `GET /_cokret/self/authz/effective-grants` | query `{realm_id: id, subject: did, at?: string}` | subject 本人、Realm admin、authorized service；不得枚举无关 subject。 | `{grants[], state_digest?, evaluated_at}` |
 | `GET /_cokret/self/authz/invites` | query `{realm_id?: id, subject: did 或 string, cursor?: cursor}` | subject 本人或 inviter/admin；secret invites 不可枚举。 | `schemas/authz-operations.schema.json#/$defs/authz_invite_list` |
-| `POST /_cokret/self/authz/check` | body `{actor_id: did, action: string, resource?: object, context?: object}` | caller 必须是相关 actor、Events/Sync 预检查服务或 policy-authorized service。 | `{decision, matched_grants?, applied_constraints?, policy_results?, missing_proofs?, frontier?, freshness_state?, last_known_frontier_age_ms?, anchorer_status?, cache_expires_at?, reason_code?, retry_after_ms?, obligations?}` |
+| `POST /_cokret/self/authz/check` | body `{actor_id: did, action: string, resource?: object, context?: object}` | caller 必须是相关 actor、Events/Sync 预检查服务或 policy-authorized service。 | `{decision, matched_grants?, applied_constraints?, policy_results?, missing_proofs?, frontier?, freshness_state?, last_known_frontier_age_ms?, notary_status?, cache_expires_at?, reason_code?, retry_after_ms?, obligations?}` |
 | `POST /_cokret/self/policy/check` | body `PolicyCheckRequestBody {request_id, realm_id, request_canonical_digest, action, actor_id, source, event_preview?, auth_context?}` | `policy_token` / `service_signature`; 只接收最小披露字段。 | `PolicyCheckOutcome {request_id, bound_to, decision, reason_code, expires_at, auth_state_digest, policy_frontier_digest, membership_frontier_digest, obligations?, signature}`。 |
 | `POST /_cokret/self/moderation/report` | body `{realm_id: id, target_ref: id, report_reason_code: enum, description?: string, reporter: did, evidence_refs?: id[]}` | `user_session`; reporter 必须可见 target；report 仅对 moderators 可见。 | `{report_id, status, routed_to?}` |
 | `POST /_cokret/self/applets/install/preview` | body `schemas/applet-install-operations.schema.json#/$defs/applet_install_preview_request_body` `{applet_package, effective_scope, approval_request}` | `user_session`; self/admin aggregate operation；只读预览，不写 Realm history。 | `InstallPlan`（`schemas/applet-install-plan.schema.json`）；返回 canonical `plan_digest`。 |
@@ -240,7 +240,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 
 #### 2.3.1 Wire-level JSON 示例
 
-以下三段示例展示 §2.3 表中三类典型 binding。所有 fence 标 `schema=schemas/event-envelope.schema.json expect=valid`(canonical `ck.schema.event.v1` artifact),与 [`event-and-patch.md` §2.3](../models/event-and-patch.md) 的 canonical Event Envelope shape 一致。每条 envelope 均为 reducer-input event,因此携带顶层 `preconditions[]` / `effects[]` / `anchor_ref` 三件套(详见 [`event-and-patch.md` §2.2](../models/event-and-patch.md))。
+以下三段示例展示 §2.3 表中三类典型 binding。所有 fence 标 `schema=schemas/event-envelope.schema.json expect=valid`(canonical `ck.schema.event.v1` artifact),与 [`event-and-patch.md` §2.3](../models/event-and-patch.md) 的 canonical Event Envelope shape 一致。示例均为 DataEvent，因此携带顶层 `effects[]`、`seal_ref` 与 `auth_context`；Control Move 示例见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
 
 **示例 A — `POST /_cokret/self/events`(单事件提交,`ck.message.create`)**:
 
@@ -257,19 +257,20 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
   "refs": [
     { "id": "ck:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
-  "preconditions": [
-    {
-      "cell": "ck:cell:ck.component.flow.discussion.timeline.v1:ck:flow:019640c6-8000-7000-8000-000000000000",
-      "predicate": { "op": "head_eq", "value": { "head_event_id": "ck:event:019640ed-0000-7000-8000-000000000000" } }
-    }
-  ],
+  "causal_refs": [],
   "effects": [
     {
       "cell": "ck:cell:ck.component.flow.discussion.timeline.v1:ck:flow:019640c6-8000-7000-8000-000000000000",
       "op": { "kind": "append", "value": { "message_id": "ck:message:019640ed-8000-7000-8000-000000000000" } }
     }
   ],
-  "anchor_ref": "ck:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "seal_ref": "ck:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "auth_context": {
+    "did": "did:web:alice.example",
+    "key_id": "device-1",
+    "key_epoch": 1,
+    "capability_refs": ["ck:grant:0196410c-0000-7000-8000-000000000000"]
+  },
   "payload": {
     "flow_id": "ck:flow:019640c6-8000-7000-8000-000000000000",
     "track_name": "discussion",
@@ -303,19 +304,20 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
   "refs": [
     { "id": "ck:grant:0196410c-1000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
-  "preconditions": [
-    {
-      "cell": "ck:cell:ck.component.flow.discussion.timeline.v1:ck:flow:019640c6-8000-7000-8000-000000000000",
-      "predicate": { "op": "head_eq", "value": { "head_event_id": "ck:event:019640ed-8500-7000-8000-000000000000" } }
-    }
-  ],
+  "causal_refs": ["sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"],
   "effects": [
     {
       "cell": "ck:cell:ck.component.flow.discussion.timeline.v1:ck:flow:019640c6-8000-7000-8000-000000000000",
       "op": { "kind": "append", "value": { "message_id": "ck:message:019640ed-9000-7000-8000-000000000000" } }
     }
   ],
-  "anchor_ref": "ck:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "seal_ref": "ck:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "auth_context": {
+    "did": "did:web:bob.example",
+    "key_id": "device-1",
+    "key_epoch": 1,
+    "capability_refs": ["ck:grant:0196410c-1000-7000-8000-000000000000"]
+  },
   "payload": {
     "flow_id": "ck:flow:019640c6-8000-7000-8000-000000000000",
     "track_name": "discussion",
@@ -354,19 +356,20 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
     { "id": "ck:grant:0196410c-2000-7000-8000-000000000000", "role": "authorized_by", "critical": true },
     { "id": "ck:event:019640ed-8000-7000-8000-000000000000", "role": "parent_event", "critical": false }
   ],
-  "preconditions": [
-    {
-      "cell": "ck:cell:ck.component.message.reactions.v1:ck:message:019640ed-8000-7000-8000-000000000000",
-      "predicate": { "op": "satisfies", "value": { "actor_id": "did:web:carol.example", "key": "+1", "absent": true } }
-    }
-  ],
+  "causal_refs": ["sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
   "effects": [
     {
       "cell": "ck:cell:ck.component.message.reactions.v1:ck:message:019640ed-8000-7000-8000-000000000000",
       "op": { "kind": "add", "value": { "actor_id": "did:web:carol.example", "key": "+1" } }
     }
   ],
-  "anchor_ref": "ck:anchor:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "seal_ref": "ck:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "auth_context": {
+    "did": "did:web:carol.example",
+    "key_id": "device-2",
+    "key_epoch": 1,
+    "capability_refs": ["ck:grant:0196410c-2000-7000-8000-000000000000"]
+  },
   "payload": {
     "target_ref": "ck:message:019640ed-8000-7000-8000-000000000000",
     "key": "+1"
@@ -488,7 +491,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `ck.self.keys.backups.delete` | `path.backup_id: id`; `proof: proof` | `reason: string` | `deleted: boolean`; `backup_id: id?` | request_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_backups_delete_request_body; response_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_backups_delete_outcome。高风险删除；不等于 device revoke、DID recovery 或 MLS epoch rotation。 |
 | `ck.self.authz.get_effective_grants` | `query.realm_id: id`; `query.subject: did` | `query.at: string` | `grants: object[]`; `state_digest: string?`; `evaluated_at: datetime` | response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/GrantList。subject 本人、Realm admin 或授权服务。 |
 | `ck.self.authz.get_invites` | `query.subject: did 或 string` | `query.realm_id: id`; `query.cursor: cursor` | `invites: object[]`; `next_cursor: cursor?`; `has_more: boolean` | response_schema_ref=schemas/authz-operations.schema.json#/$defs/authz_invite_list。secret invite 不可枚举。 |
-| `ck.self.authz.check` | `actor_id: did`; `action: string` | `resource: object`; `context: object` | `decision: enum(allow,soft_deny,hard_deny,quarantine,require_review)`; `matched_grants: object[]?`; `applied_constraints: object[]?`; `policy_results: object[]?`; `missing_proofs: object[]?`; `frontier: object?`; `freshness_state: enum(fresh,stale,unknown)?`; `last_known_frontier_age_ms: int?`; `anchorer_status: enum(fresh,lagging,unreachable,unknown)?`; `cache_expires_at: datetime?`; `reason_code: string?`; `retry_after_ms: int?`; `obligations: object[]?` | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckOutcome。Policy allow 不创建 capability；客户端不得把非标准 `allowed` 字段作为规范字段；`freshness_state=stale/unknown` 且高风险动作时 MUST fail closed，reason_code 使用 `revocation_freshness_unknown`。 |
+| `ck.self.authz.check` | `actor_id: did`; `action: string` | `resource: object`; `context: object` | `decision: enum(allow,soft_deny,hard_deny,quarantine,require_review)`; `matched_grants: object[]?`; `applied_constraints: object[]?`; `policy_results: object[]?`; `missing_proofs: object[]?`; `frontier: object?`; `freshness_state: enum(fresh,stale,unknown)?`; `last_known_frontier_age_ms: int?`; `notary_status: enum(fresh,lagging,unreachable,unknown)?`; `cache_expires_at: datetime?`; `reason_code: string?`; `retry_after_ms: int?`; `obligations: object[]?` | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckOutcome。Policy allow 不创建 capability；客户端不得把非标准 `allowed` 字段作为规范字段；`freshness_state=stale/unknown` 且高风险动作时 MUST fail closed，reason_code 使用 `revocation_freshness_unknown`。 |
 | `ck.self.policy.check` | `request_id: string`; `realm_id: id`; `request_canonical_digest: string`; `action: string`; `actor_id: did`; `source: object` | `device_id: id`; `event_preview: object`; `auth_context: object` | `request_id: string`; `bound_to: object`; `decision: enum(allow,soft_deny,hard_deny,quarantine,require_review)`; `reason_code: string`; `expires_at: datetime`; `auth_state_digest: string`; `policy_frontier_digest: string`; `membership_frontier_digest: string`; `obligations: object[]?`; `signature: signature` | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome。只接收最小披露字段；decision 按 hash/cache frontier 绑定。Canonical HTTP 路径 `POST /_cokret/self/policy/check`。 |
 | `ck.self.moderation.report` | `realm_id: id`; `target_ref: id`; `report_reason_code: enum`; `reporter: did` | `description: string`; `evidence_refs: id[]` | `report_id: id`; `status: string`; `routed_to: did[]?` | request_schema_ref=schemas/moderation-report.schema.json; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/ModerationReportOutcome。reporter 必须可见 target；只对 moderators 可见。 |
 | `ck.edge.applet.ping` | 无 | 无 | `ok: boolean`; `applet_id: id`; `service_did: did`; `protocol_version: string` | response_schema_ref=schemas/applet-edge-operations.schema.json#/$defs/applet_ping_outcome。不得泄露 private namespace。 |
@@ -585,7 +588,7 @@ POST /_cokret/self/events
   "refs": [
     { "id": "ck:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
-  "preconditions": [],
+  "causal_refs": [],
   "effects": [
     {
       "cell": "ck:cell:ck.component.flow.metadata.v1:ck:flow:019640c6-8000-7000-8000-000000000000",
@@ -597,7 +600,13 @@ POST /_cokret/self/events
       }
     }
   ],
-  "anchor_ref": "ck:anchor:sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "seal_ref": "ck:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "auth_context": {
+    "did": "did:web:alice.example.com",
+    "key_id": "device-1",
+    "key_epoch": 3,
+    "capability_refs": ["ck:grant:0196410c-0000-7000-8000-000000000000"]
+  },
   "payload": {
     "flow_id": "ck:flow:019640c6-8000-7000-8000-000000000000",
     "patch": { "metadata.fields.review_status": "approved" }
@@ -641,9 +650,9 @@ POST /_cokret/self/events
 }
 ```
 
-若非 reducer 写入的乐观 `expected_frontier` 校验失败，返回 `409 cas_conflict`。Reducer-input Move 的 cell precondition / `head_eq` 失败按对应 reducer 语义返回 `failed_precondition`（例如 `ck.flow.move` / `ck.flow.reorder` 的 `expected_position` 不匹配），不得把这类失败旁路成 `cas_conflict`。协议级写入单元是 signed Event Envelope；实现 MAY 在 SDK 或本地接口中接受 operation builder，但在进入网络传播、同步或审计前 MUST 转换为 Event Envelope。接收方不得要求 Event 先归属某个 batch receipt、checkpoint 或 predecessor commit 才承认其 canonical history 地位。
+若非 reducer 写入的乐观 `expected_frontier` 校验失败，返回 `409 cas_conflict`。DataEvent 的 data-plane guard / Lattice join 失败或 Control Move 的 precondition 失败，按对应 reducer 语义返回 `failed_precondition`、`failed_plane` 或 `failed_bottom`，不得把这类失败旁路成 `cas_conflict`。协议级写入单元是 signed Event Envelope；实现 MAY 在 SDK 或本地接口中接受 operation builder，但在进入网络传播、同步或审计前 MUST 转换为 Event Envelope。接收方不得要求 Event 先归属某个 batch receipt、seal 或 predecessor commit 才承认其 canonical history 地位。
 
-`events[]` 批量提交按数组顺序处理。已接受的前序项可以被同批后续项用于解析 bytes、Event ID、actor chain、`prev_refs` 或显式 payload-level causal reference；但**授权可见性不因此提前生效**。`refs[role=authorized_by]` 只有在被引用的 grant / authority 已存在于该后续 Event 的 `anchor_ref` pre-state 中时，才能参与授权判定。同批前序 Event 若创建、delegate、恢复或扩权某个 grant，依赖该 grant 的后续 Event MUST 等到后续 Anchor 覆盖该 grant 后再提交，或被当前批次拒绝/隔离；`refs(role="after")` 只表达后续 Anchor 的排序约束，不让同一 Anchor 内的新 effect 被读取为授权状态。后续项不得引用同批中尚未处理、已拒绝或隔离的 Event 作为已接受事实。单项失败不回滚整批，响应必须把成功项列入 `accepted[]`，幂等重复列入 `duplicate[]`，失败项列入 `rejected[]` 或等价隔离结果。
+`events[]` 批量提交按数组顺序处理。已接受的前序项可以被同批后续项用于解析 bytes、Event ID、actor chain、`prev_refs`、`causal_refs` 或显式 payload-level causal reference；但**授权可见性不因此提前生效**。DataEvent 的授权基准始终是该 Event 自己的 `seal_ref`；Control Move 的授权与 precondition 基准始终是该 Event 自己的 `seal_basis`。同批前序 Event 若创建、delegate、恢复、扩权或 revoke 某个 grant / policy，依赖该变更的后续 Event MUST 等到后续 Seal 更新后再提交，或被当前批次拒绝/隔离。后续项不得引用同批中尚未处理、已拒绝或隔离的 Event 作为已接受事实。单项失败不回滚整批，响应必须把成功项列入 `accepted[]`，幂等重复列入 `duplicate[]`，失败项列入 `rejected[]` 或等价隔离结果。
 
 **`status` 判别规则（normative）**：响应顶层 `status` 字段 MUST 按下述规则唯一确定，便于客户端不需要逐项扫描即可判断处理结果：
 
@@ -710,7 +719,7 @@ GET /_cokret/self/events?realms=<id>&actors=<did>&after=<Y>&before=<X>   # 区�
 
 #### 3.3.3 默认顺序规则："近邻先返回"
 
-`order=default` 时，批次内事件按**距离 anchor cursor 的远近**排序，离 anchor 最近的事件排第一位：
+`order=default` 时，批次内事件按**距离 seal cursor 的远近**排序，离 seal 最近的事件排第一位：
 
 | 给定参数 | 默认 `order` | 物理意义 |
 | --- | --- | --- |

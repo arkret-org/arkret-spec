@@ -83,7 +83,7 @@
     },
     "event_set_commitment": {
       "type": "object",
-      "description": "Commitment to the *set of events* whose replay produces state_digest. Algorithm + root + covered_event_count name the canonical reduction of those events; covered_frontier / actor_seq_ranges narrow which event ids and per-actor sequences are bound. Paired with state_digest (see state_digest description): both fields are independently required because state_digest binds reducer output and event_set_commitment binds reducer input.",
+      "description": "Commitment to the *set of events* whose replay produces state_digest. Algorithm + root + covered_event_count name the canonical reduction of those events; covered_seals / actor_seq_ranges narrow which event ids and per-actor sequences are bound. Paired with state_digest (see state_digest description): both fields are independently required because state_digest binds reducer output and event_set_commitment binds reducer input.",
       "required": [
         "algorithm",
         "root",
@@ -105,7 +105,7 @@
           "type": "integer",
           "minimum": 0
         },
-        "covered_frontier": {
+        "covered_seals": {
           "type": "array",
           "items": {
             "type": "string",
@@ -215,7 +215,7 @@
     "created_by": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
-      "description": "DID of the snapshot issuer (server / Realm anchorer / federation witness). Required because the snapshot signature transcript binds this field via x-canonical-bytes-include."
+      "description": "DID of the snapshot issuer (server / Realm notary / federation witness). Required because the snapshot signature transcript binds this field via x-canonical-bytes-include."
     },
     "created_at": {
       "type": "string",

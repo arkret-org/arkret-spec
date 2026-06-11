@@ -61,7 +61,7 @@ sidebar:
     污染 DID resolver、registry、witness 可信链或 `did:web` 域绑定，错误承认身份控制权。
 
 14. **历史冲突与 fork 影响（Fork / Duplicate Conflict）**
-    利用重复 `event_id` / 不同 `event_digest`、同 id 不同内容、Anchor frontier 分叉制造 Lattice bottom 或错误 Anchor view。
+    利用重复 `event_id` / 不同 `event_digest`、同 id 不同内容、Seal DAG / coverage 分叉制造 Lattice bottom 或错误 CBA query basis。
 
 15. **快照与快照块投毒（Snapshot / Snapshot Chunk Poisoning）**
     通过伪造 snapshot manifest、chunk/索引入口、签名链错误，劫持 bootstrap 或跳过一致性回放。

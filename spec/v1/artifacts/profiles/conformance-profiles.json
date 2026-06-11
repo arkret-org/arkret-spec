@@ -257,12 +257,12 @@
     "ck.profile.mls.minimal_metadata_realm.v1": "admin",
     "ck.profile.traffic_metadata_hardened.v1": "admin",
     "ck.profile.key_backup.memory_hard.v1": "admin",
-    "ck.profile.circle_anchor_cadence.fixed_5m.v1": "admin",
+    "ck.profile.circle_seal_cadence.fixed_5m.v1": "admin",
     "ck.profile.accountable_principals.strict_reject.v1": "admin",
-    "ck.profile.anchor.single_did.v1": "admin",
-    "ck.profile.anchor.threshold.v1": "admin",
-    "ck.profile.anchor.open_set.v1": "admin",
-    "ck.profile.anchor.mixed_recovery.v1": "admin",
+    "ck.profile.notary.single_did.v1": "admin",
+    "ck.profile.notary.threshold.v1": "admin",
+    "ck.profile.notary.open_set.v1": "admin",
+    "ck.profile.notary.mixed_recovery.v1": "admin",
     "ck.profile.capability_vectors.v1": "interop",
     "ck.profile.crypto_signature_vectors.v1": "interop",
     "ck.profile.encoding_vectors.v1": "interop",
@@ -278,7 +278,7 @@
     "ck.profile.redaction_vectors.v1": "interop",
     "ck.profile.sync_vectors.v1": "interop",
     "ck.profile.mimi_interop_vectors.v1": "interop",
-    "ck.profile.move_anchor_lattice_vectors.v1": "interop",
+    "ck.profile.cba_lattice_vectors.v1": "interop",
     "ck.profile.personal_productivity.v1": "client",
     "ck.profile.draft_sync.v1": "client",
     "ck.profile.file_transfer.v1": "client",
@@ -331,7 +331,7 @@
     "ck.profile.mls.minimal_metadata_realm.v1",
     "ck.profile.traffic_metadata_hardened.v1",
     "ck.profile.key_backup.memory_hard.v1",
-    "ck.profile.circle_anchor_cadence.fixed_5m.v1",
+    "ck.profile.circle_seal_cadence.fixed_5m.v1",
     "ck.profile.accountable_principals.strict_reject.v1"
   ],
   "vector_profiles": [
@@ -348,7 +348,7 @@
     "ck.profile.privacy_security_vectors.v1",
     "ck.profile.reaction_vectors.v1",
     "ck.profile.redaction_vectors.v1",
-    "ck.profile.move_anchor_lattice_vectors.v1",
+    "ck.profile.cba_lattice_vectors.v1",
     "ck.profile.sync_vectors.v1",
     "ck.profile.mimi_interop_vectors.v1"
   ],
@@ -482,7 +482,7 @@
         "ck.schema.event_payload.v1",
         "ck.schema.event_batch_receipt.v1",
         "ck.schema.cursor.v1",
-        "ck.schema.anchor.v1"
+        "ck.schema.seal.v1"
       ],
       "required_constraint_types": [
         "temporal",
@@ -551,7 +551,7 @@
         "sync-fixture.json",
         "redaction-fixture.json",
         "reaction-fixture.json",
-        "move-anchor-lattice-fixture.json",
+        "cba-lattice-fixture.json",
         "privacy-security-fixture.json"
       ],
       "prose_requirement_coverage": [
@@ -565,7 +565,7 @@
         },
         {
           "requirement": "reaction OR-Set",
-          "coverage": ["reaction-fixture.json", "move-anchor-lattice-fixture.json"]
+          "coverage": ["reaction-fixture.json", "cba-lattice-fixture.json"]
         },
         {
           "requirement": "discussion history visibility and membership trimming",
@@ -615,7 +615,7 @@
       ],
       "required_fixtures": [
         "sync-fixture.json",
-        "move-anchor-lattice-fixture.json",
+        "cba-lattice-fixture.json",
         "capability-fixture.json"
       ],
       "optional_extensions": [
@@ -718,7 +718,7 @@
       "required_fixtures": [
         "encoding-fixture.json",
         "sync-fixture.json",
-        "move-anchor-lattice-fixture.json",
+        "cba-lattice-fixture.json",
         "capability-fixture.json",
         "privacy-security-fixture.json"
       ],
@@ -967,7 +967,7 @@
         "ck.schema.event.v1",
         "ck.schema.event_payload.v1",
         "ck.schema.cursor.v1",
-        "ck.schema.anchor.v1"
+        "ck.schema.seal.v1"
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json",
@@ -1020,7 +1020,7 @@
       "required_fixtures": [
         "event-envelope-negative-fixture.json",
         "sync-fixture.json",
-        "move-anchor-lattice-fixture.json",
+        "cba-lattice-fixture.json",
         "capability-fixture.json",
         "privacy-security-fixture.json"
       ],
@@ -1060,7 +1060,7 @@
         "ck.schema.event.v1",
         "ck.schema.event_payload.v1",
         "ck.schema.event_batch_receipt.v1",
-        "ck.schema.anchor.v1"
+        "ck.schema.seal.v1"
       ],
       "required_fixtures": [
         "federation-fixture.json",
@@ -1485,7 +1485,7 @@
       "required_schemas": [
         "ck.schema.event.v1",
         "ck.schema.event_payload.v1",
-        "ck.schema.anchor.v1",
+        "ck.schema.seal.v1",
         "ck.schema.applet_package.v1"
       ],
       "required_fixtures": [
@@ -1522,7 +1522,7 @@
       "required_schemas": [
         "ck.schema.event.v1",
         "ck.schema.event_payload.v1",
-        "ck.schema.anchor.v1"
+        "ck.schema.seal.v1"
       ],
       "required_fixtures": [
         "capability-fixture.json",
@@ -2072,7 +2072,7 @@
       },
       "additional_requirements": {
         "token_ttl_must": "Token issuer MUST cap backend_token / participant_binding expires_at at 600s after issuance; SHOULD use ≤ 300s.",
-        "issuer_did_anchoring_must": "service_signature.kid and participant_binding.issuer_kid MUST resolve to a service DID declared in ck.realm.media_service.service_id of the current MLS epoch; otherwise reject with token_issuer_unauthorised.",
+        "issuer_did_sealing_must": "service_signature.kid and participant_binding.issuer_kid MUST resolve to a service DID declared in ck.realm.media_service.service_id of the current MLS epoch; otherwise reject with token_issuer_unauthorised.",
         "session_focus_must": "ck.call.state.session_focus is write-once per call; in-session focus migration is not supported in v1. Token issuer MUST reject focus_id != committed session_focus (focus_mismatch).",
         "participant_binding_must": "ck.call.state.participants[].participant_binding MUST be verified by both reducer (on event acceptance) and client (on backend ParticipantConnected event). Failure surfaces as participant_binding_invalid (reducer) or participant_identity_unrecognised (client).",
         "e2ee_key_source_must": "Client binding adapter MUST derive frame keys from Cokret MLS-Exporter with label ck-rtc-frame-key/v1 (length=19 bytes, Context=canonical_json({realm_id, call_id, focus_id, epoch_id, participant_identity, device_id}), KDF.Nh=32 bytes), where participant_identity/device_id come from the verified ck.call.state.participants[] and participant_binding. Empty Context, missing sender fields, or epoch-only binding MUST be rejected with e2ee_key_source_unauthorised. MUST NOT accept keys from backend cloud key escrow; reject with e2ee_key_source_unauthorised.",
@@ -2234,7 +2234,7 @@
       "required_schemas": [
         "ck.schema.event.v1",
         "ck.schema.account_subscribe_frame.v1",
-        "ck.schema.anchor.v1"
+        "ck.schema.seal.v1"
       ],
       "required_fixtures": [
         "event-envelope-negative-fixture.json",
@@ -2288,7 +2288,7 @@
       ],
       "required_fixtures": [
         "sync-fixture.json",
-        "move-anchor-lattice-fixture.json",
+        "cba-lattice-fixture.json",
         "capability-fixture.json"
       ],
       "optional_extensions": [
@@ -2451,7 +2451,7 @@
     },
     "ck.profile.mls_governance_binding.full.v1": {
       "inherits": [],
-      "description": "MLS Governance Binding (full): the v1 hardening profile that binds MLS epochs to governance state. Required for E2EE Realms. MLS commits are Moves carrying a governance_binding payload (membership_frontier / policy_root / capability_root / discussion_metadata_hash, transcript-hashed via the mls_governance_binding GroupContext extension) and update three cells (mls_epoch, key_schedule, covered_frontier). E2EE message Moves must prove the covered_frontier cell contains the required governance Anchor frontier; governance / recovery Moves do not depend on it.",
+      "description": "MLS Governance Binding (full): the v1 hardening profile that binds MLS epochs to governance state. Required for E2EE Realms. MLS commits are Control Moves carrying a governance_binding payload (membership_frontier / policy_root / capability_root / discussion_metadata_hash, transcript-hashed via the mls_governance_binding GroupContext extension) and update three control cells (mls_epoch, key_schedule, covered_seals). E2EE message DataEvents must carry a seal_ref covered by the MLS governance binding; governance / recovery Control Moves do not depend on it.",
       "required_endpoints": [
         "ck.self.keys.keypackages.claim",
         "ck.self.keys.keypackages.consume",
@@ -2478,13 +2478,13 @@
       "feature_discovery": {
         "required": [
           "move_based_mls_commit",
-          "covered_frontier_cell",
+          "covered_seals_cell",
           "mls_epoch_cell"
         ],
         "unsupported_optional": "fail closed on root mismatch"
       },
       "required_cells": [
-        "ck:cell:ck.component.covered_frontier.v1:<realm_id>",
+        "ck:cell:ck.component.covered_seals.v1:<realm_id>",
         "ck:cell:ck.component.mls_epoch.v1:<mls_group_id>",
         "ck:cell:ck.component.key_schedule.v1:<mls_group_id>"
       ]
@@ -2674,7 +2674,7 @@
         "ck.schema.event.v1",
         "ck.schema.encrypted_envelope.v1",
         "ck.schema.audit_ryw_receipt.v1",
-        "ck.schema.anchor.v1"
+        "ck.schema.seal.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json",
@@ -2715,7 +2715,7 @@
         "ck.schema.event.v1",
         "ck.schema.encrypted_envelope.v1",
         "ck.schema.audit_ryw_receipt.v1",
-        "ck.schema.anchor.v1"
+        "ck.schema.seal.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -2766,7 +2766,7 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ck.schema.event.v1",
-        "ck.schema.anchor.v1"
+        "ck.schema.seal.v1"
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json"
@@ -2789,7 +2789,7 @@
         "ck.schema.event.v1",
         "ck.schema.cursor.v1",
         "ck.schema.event_batch_receipt.v1",
-        "ck.schema.anchor.v1"
+        "ck.schema.seal.v1"
       ],
       "required_fixtures": [
         "encoding-fixture.json"
@@ -2820,7 +2820,7 @@
       "required_schemas": [
         "ck.schema.event.v1",
         "ck.schema.event_payload.v1",
-        "ck.schema.anchor.v1"
+        "ck.schema.seal.v1"
       ],
       "required_fixtures": [
         "event-envelope-negative-fixture.json"
@@ -2957,7 +2957,7 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ck.schema.event.v1",
-        "ck.schema.anchor.v1"
+        "ck.schema.seal.v1"
       ],
       "required_fixtures": [
         "federation-fixture.json"
@@ -3042,7 +3042,7 @@
       "required_schemas": [
         "ck.schema.event.v1",
         "ck.schema.event_payload.v1",
-        "ck.schema.anchor.v1"
+        "ck.schema.seal.v1"
       ],
       "required_fixtures": [
         "redaction-fixture.json"
@@ -3107,7 +3107,7 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "ck.profile.move_anchor_lattice_vectors.v1": {
+    "ck.profile.cba_lattice_vectors.v1": {
       "required_endpoints": [
         "ck.self.events.submit"
       ],
@@ -3119,24 +3119,24 @@
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.anchor.v1",
+        "ck.schema.seal.v1",
         "ck.schema.event.v1",
         "ck.schema.event_payload.v1"
       ],
       "required_fixtures": [
-        "move-anchor-lattice-fixture.json"
+        "cba-lattice-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
-          "move_anchor_lattice_vector_runner"
+          "cba_lattice_vector_runner"
         ],
         "unsupported_optional": "not applicable"
       }
     },
-    "ck.profile.anchor.single_did.v1": {
+    "ck.profile.notary.single_did.v1": {
       "inherits": [],
-      "description": "Anchor profile using one DID/service key as anchorer.",
+      "description": "Notary profile using one DID/service key to issue Seals.",
       "required_endpoints": [
         "ck.self.events.submit",
         "ck.self.snapshot.head"
@@ -3144,24 +3144,24 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.anchor.v1",
+        "ck.schema.seal.v1",
         "ck.schema.snapshot.v1"
       ],
       "required_fixtures": [
-        "move-anchor-lattice-fixture.json"
+        "cba-lattice-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
-          "single_did_anchorer",
-          "anchor_compaction"
+          "single_did_notary",
+          "seal_compaction"
         ],
         "unsupported_optional": "fail closed or omit profile claim"
       }
     },
-    "ck.profile.anchor.threshold.v1": {
+    "ck.profile.notary.threshold.v1": {
       "inherits": [],
-      "description": "Anchor profile using k-of-n threshold signatures.",
+      "description": "Notary profile using k-of-n threshold signatures to issue Seals.",
       "required_endpoints": [
         "ck.self.events.submit",
         "ck.self.snapshot.head"
@@ -3169,24 +3169,24 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.anchor.v1",
+        "ck.schema.seal.v1",
         "ck.schema.snapshot.v1"
       ],
       "required_fixtures": [
-        "move-anchor-lattice-fixture.json"
+        "cba-lattice-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
-          "threshold_anchorer",
-          "anchor_compaction"
+          "threshold_notary",
+          "seal_compaction"
         ],
         "unsupported_optional": "fail closed or omit profile claim"
       }
     },
-    "ck.profile.anchor.open_set.v1": {
+    "ck.profile.notary.open_set.v1": {
       "inherits": [],
-      "description": "Anchor profile allowing multiple leaf anchors and deterministic anchor view joins.",
+      "description": "Notary profile allowing multiple leaf Seals and deterministic Seal view joins.",
       "required_endpoints": [
         "ck.self.events.submit",
         "ck.self.snapshot.head"
@@ -3194,24 +3194,24 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.anchor.v1",
+        "ck.schema.seal.v1",
         "ck.schema.snapshot.v1"
       ],
       "required_fixtures": [
-        "move-anchor-lattice-fixture.json"
+        "cba-lattice-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
-          "anchor_dag_join",
+          "seal_dag_join",
           "bottom_diagnostics"
         ],
         "unsupported_optional": "fail closed or omit profile claim"
       }
     },
-    "ck.profile.anchor.mixed_recovery.v1": {
+    "ck.profile.notary.mixed_recovery.v1": {
       "inherits": [],
-      "description": "Anchor profile with primary anchorer and fallback recovery anchorer.",
+      "description": "Notary profile with primary notary and fallback recovery notary.",
       "required_endpoints": [
         "ck.self.events.submit",
         "ck.self.snapshot.head"
@@ -3219,24 +3219,24 @@
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.anchor.v1",
+        "ck.schema.seal.v1",
         "ck.schema.snapshot.v1"
       ],
       "required_fixtures": [
-        "move-anchor-lattice-fixture.json"
+        "cba-lattice-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
-          "recovery_anchorer",
-          "anchorer_bottom_pause"
+          "recovery_notary",
+          "notary_bottom_pause"
         ],
         "unsupported_optional": "fail closed or omit profile claim"
       }
     },
     "ck.profile.collaborative_text.v1": {
       "inherits": [],
-      "description": "Lattice extension profile that registers lww_register and rga as legal cell lattice types for content / ui_affordance / draft / cosmetic cells. Implementations not claiming this profile MUST fail closed (unsupported_lattice_type) when they encounter cell schemas declaring these types. lww_register and rga MUST NOT be used for authorization_root / policy_root / anchorer_root / membership / lifecycle cells (statically rejected by realm.schema.json).",
+      "description": "Lattice extension profile that registers lww_register and rga as legal cell lattice types for content / ui_affordance / draft / cosmetic cells. Implementations not claiming this profile MUST fail closed (unsupported_lattice_type) when they encounter cell schemas declaring these types. lww_register and rga MUST NOT be used for authorization_root / policy_root / notary_root / membership / lifecycle cells (statically rejected by realm.schema.json).",
       "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -3334,7 +3334,7 @@
           "passphrase_kdf_nonce_recompute",
           "mixed_secret_storage_policy",
           "key_backup_series_chain_verification",
-          "key_backup_freshness_anchor",
+          "key_backup_freshness_seal",
           "key_backup_recipient_method_profiles",
           "key_backup_server_rate_limit",
           "recovery_policy_binding",
@@ -3344,15 +3344,15 @@
         "unsupported_optional": "omit profile claim or reject weak passphrase_kdf backups"
       }
     },
-    "ck.profile.circle_anchor_cadence.fixed_5m.v1": {
+    "ck.profile.circle_seal_cadence.fixed_5m.v1": {
       "inherits": [],
-      "description": "Named cadence profile for confidential Circle sub-anchor commitments. Implementations claiming this profile MUST emit ck.circle.anchor_commit on a fixed time cadence (5 minutes, max jitter 30 seconds), MUST include empty-batch commitments, and MUST NOT use event-count or activity-triggered public commitments. Mobile energy saving may batch private sub-anchor upload, but MUST NOT relax the public Realm anchor cadence.",
+      "description": "Named cadence profile for confidential Circle sub-seal commitments. Implementations claiming this profile MUST emit ck.circle.seal_commit on a fixed time cadence (5 minutes, max jitter 30 seconds), MUST include empty-batch commitments, and MUST NOT use event-count or activity-triggered public commitments. Mobile energy saving may batch private sub-seal upload, but MUST NOT relax the public Realm seal cadence.",
       "required_endpoints": [
         "ck.self.events.submit",
         "ck.self.events.subscribe"
       ],
       "required_event_kinds": [
-        "ck.circle.anchor_commit"
+        "ck.circle.seal_commit"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -3368,7 +3368,7 @@
           "default": 300000,
           "min": 300000,
           "max": 300000,
-          "rationale": "Public Realm anchor commitment cadence is fixed at 5 minutes for this profile."
+          "rationale": "Public Realm seal commitment cadence is fixed at 5 minutes for this profile."
         },
         "max_jitter_ms": {
           "default": 30000,
@@ -3383,9 +3383,9 @@
       },
       "feature_discovery": {
         "required": [
-          "circle_anchor_cadence_fixed_5m",
-          "circle_anchor_empty_batch_commitments",
-          "circle_anchor_activity_independent_schedule"
+          "circle_seal_cadence_fixed_5m",
+          "circle_seal_empty_batch_commitments",
+          "circle_seal_activity_independent_schedule"
         ],
         "unsupported_optional": "omit profile claim; confidential Circle deployments MUST NOT claim an event-count cadence as equivalent"
       }
@@ -3450,7 +3450,7 @@
         "ck.circle.restore",
         "ck.circle.tombstone",
         "ck.circle.member.state",
-        "ck.circle.anchor_commit"
+        "ck.circle.seal_commit"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -3662,7 +3662,7 @@
         "ck.schema.event_payload.v1"
       ],
       "required_fixtures": [
-        "move-anchor-lattice-fixture.json"
+        "cba-lattice-fixture.json"
       ],
       "optional_extensions": [
         "ck.profile.disappearing.v1"
@@ -3731,10 +3731,10 @@
       }
     }
   },
-  "anchor_profiles": [
-    "ck.profile.anchor.single_did.v1",
-    "ck.profile.anchor.threshold.v1",
-    "ck.profile.anchor.open_set.v1",
-    "ck.profile.anchor.mixed_recovery.v1"
+  "notary_profiles": [
+    "ck.profile.notary.single_did.v1",
+    "ck.profile.notary.threshold.v1",
+    "ck.profile.notary.open_set.v1",
+    "ck.profile.notary.mixed_recovery.v1"
   ]
 }

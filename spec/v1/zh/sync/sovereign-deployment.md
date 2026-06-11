@@ -115,7 +115,7 @@ flowchart TB
 
 Sovereign client MUST:
 
-- pin organization trust anchors：Organization DID、governance DID、registry DID、witness DID、service DID allowlist。
+- pin organization trust seals：Organization DID、governance DID、registry DID、witness DID、service DID allowlist。
 - 使用组织配置的 DID resolver policy，MUST NOT 默认查询公共 registry / public directory。
 - 验证服务 DID 委派、证书、HTTP message signature 和 feature profile。
 - MUST NOT 允许用户手动添加未批准 Sync Service / Directory / Blob / Applet endpoint。
@@ -213,19 +213,19 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
       "history_visibility": "joined",
       "encryption_profile": "mls_rfc9420",
       "federation_policy": "closed",
-      "anchor_profile": "single_did",
-      "anchorer": {
+      "notary_profile": "single_did",
+      "notary": {
         "type": "single_did",
         "did": "did:web:server.defense.example"
       },
-      "max_anchor_staleness_ms": 86400000,
+      "revocation_freshness_window_ms": 86400000,
       "created_at": "2026-04-26T00:00:00Z"
     }
   }
 }
 ```
 
-Sovereign 部署默认采用 **single_did Anchor profile**：每个 Realm 由组织自己的 Principal Server（service DID）作为 genesis anchorer，所有 Move 只有进入该 anchorer 签发的 Anchor frontier 后才 effective（参见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)）。这与 sovereign 部署"组织拥有自己的服务器，且服务器是 Realm 的真相源"的事实结构一致。组织间共享 Realm（多个 `owning_organizations`）可以使用 `threshold` 或 `mixed` anchor profile；anchorer 变更是普通 Move，由旧 anchorer finalization，fallback recovery 由 Realm create 固定。需要开放联邦协作时，create event 显式声明 `federation_policy="open"` 与 `anchor_profile="open_set"`。
+Sovereign 部署默认采用 **single_did Notary profile**：每个 Realm 由组织自己的 Principal Server（service DID）作为 genesis notary，负责控制面 Seal 的签发与问责（参见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)）。DataEvent 仍按签名、`seal_ref`、capability 与 Lattice/CRDT 本地接受；membership、policy、capability、notary、lifecycle、MLS epoch 等 Control Move 必须被该 notary 的 Seal 覆盖后才 `sealed`。这与 sovereign 部署"组织拥有自己的服务器，且服务器是 Realm 的治理真相源"的事实结构一致。组织间共享 Realm（多个 `owning_organizations`）可以使用 `threshold` 或 `mixed` Notary profile；notary 变更是 Control Move，由旧控制面 basis 授权并由后续 Seal finality，fallback recovery 由 Realm create 固定。需要开放联邦协作时，create event 显式声明 `federation_policy="open"` 与 `notary_profile="open_set"`。
 
 推荐 policy：
 
@@ -379,4 +379,4 @@ sovereign / regulated / multi-writer federation 部署 **MUST** 同时声明 `ck
 - 连续 3 次 probe 失败 MUST 触发 `stale_peer` 标记；该状态下 MUST 拒绝以该 peer 的 push payload 推进本地 frontier，MUST 通过 alarm 通道暴露，MAY 拒绝向该 peer fanout 新 Event；
 - fork resolution 成功后 MUST 解除 `stale_peer` 标记。
 
-理由：sovereign 部署的威胁模型默认包含"独立 Principal Server 在同一 Realm 共同写入"，单纯依赖 anchor 签名、duplicate_conflict、witness receipt 只能证明"看到的有效"，无法证明"对方没藏分支"——high-assurance frontier 主动交换 + fail-state 是 silent fork 抗性的最后一道防线。
+理由：sovereign 部署的威胁模型默认包含"独立 Principal Server 在同一 Realm 共同写入"，单纯依赖 seal 签名、duplicate_conflict、witness receipt 只能证明"看到的有效"，无法证明"对方没藏分支"——high-assurance frontier 主动交换 + fail-state 是 silent fork 抗性的最后一道防线。

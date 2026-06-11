@@ -187,7 +187,7 @@ MUST 支持 Full Client 的相关能力，并额外支持：
 - KeyPackage publish / fetch / verify
 - KeyPackage claim / consume / revoke lifecycle
 - Welcome / Commit / Proposal event
-- MLS Governance Binding：`governance_binding` 的 GroupContext extension 验证 + `covered_frontier_cell` 的 reducer 累积
+- MLS Governance Binding：`governance_binding` 的 GroupContext extension 验证 + `covered_seals_cell` 的 reducer 累积
 - minimal-metadata pseudonymous credential handling when profile is advertised
 - AAD visibility policy handling
 - epoch mismatch recovery
@@ -198,7 +198,7 @@ MUST 支持 Full Client 的相关能力，并额外支持：
 - lost-device response
 - local plaintext search for encrypted content
 
-声明 `ck.profile.mls_governance_binding.full.v1`（即 MLS Governance Binding 的 full 形态，见 `crypto-media/encryption-and-audit.md §2.5`）时，客户端和服务端 MUST 额外验证 commit 携带的 `governance_binding` 覆盖 membership、history visibility、plaintext-visible service、asset privacy、logging、bot / applet / agent policy、moderation policy 与 capability grant / revoke frontier，并 MUST 通过 `covered_frontier_cell` precondition gate E2EE message Move。无法验证 `governance_binding` 指向的 Anchor view 时，客户端 MUST fail closed，至少不得接受依赖未知应用状态的新 epoch。
+声明 `ck.profile.mls_governance_binding.full.v1`（即 MLS Governance Binding 的 full 形态，见 `crypto-media/encryption-and-audit.md §2.5`）时，客户端和服务端 MUST 额外验证 commit 携带的 `governance_binding` 覆盖 membership、history visibility、plaintext-visible service、asset privacy、logging、bot / applet / agent policy、moderation policy 与 capability grant / revoke frontier，并 MUST 通过 `covered_seals_cell` coverage gate E2EE DataEvent 的 `seal_ref`。无法验证 `governance_binding` 指向的 Seal view 时，客户端 MUST fail closed，至少不得接受依赖未知应用状态的新 epoch。
 
 声明 `ck.profile.attested_audit.e2ee.v1` 时，审计 applet release service MUST 提供可验证 remote attestation，并执行 active binding、session request/authorize/notice、sealed `ck.audit.release`、RYW receipt 等待和成员可见 disclosure；RYW receipt 的 `audit_assurance_class` MUST 等于 `attested_hardware`。声明 `ck.profile.disclosed_audit.e2ee.v1` 时，不要求 TEE attestation，但 Realm / Circle policy 和加入 UI MUST 明确展示这是流程性披露；同样不得绕过 Audit Applet Binding + release session 留痕流程；RYW receipt 的 `audit_assurance_class` MUST 等于 `disclosed_policy`。审计 applet 不是 MLS 成员，也不获得实时消息 fanout。两个 profile 不再共享 family 前缀，对外材料 MUST 遵守 `encryption-and-audit.md §3` / `audited-e2ee.md` 的禁用措辞条款，不得将 disclosed 类宣传为密码学/硬件强制审计。
 
@@ -648,7 +648,7 @@ MUST NOT:
 
 MUST 支持:
 - `POST /_cokret/self/agent-sidecar-threads:ensure` (`ck.self.agent.sidecar_thread.ensure`) idempotent operation,返回 `{ok, private_circle_id, private_flow_id, private_relation_id, pending_member_reconciliations?}`
-- `context_ref` polymorphic descriptor(`relation_id` 单独 / `flow_id` 加可选 `track_name` + 可选 anchor)
+- `context_ref` polymorphic descriptor(`relation_id` 单独 / `flow_id` 加可选 `track_name` + 可选 seal)
 - Closed request schema(reject unknown top-level fields)
 - Fixed reuse:Flow `(controller_principal_id, normalized_context_ref)`、Circle `(realm_id, controller_principal_id)`
 - 派生 `controller_agent_circle_key`(canonical realm_id + canonical DID + UTF-8 + SHA-256 + base32 + 24 字符小写)
@@ -758,7 +758,7 @@ MUST NOT：
 SHOULD 支持：
 
 - franking proof batch endpoint（一次 fetch 多条 franking proof）以减少 audit traffic。
-- franking proof inclusion proof：franking proof 可被签入定期 franking-proof log Merkle tree，向举报者证明"该 franking proof 不是后补的"。该 inclusion proof 与 Anchor state_root 独立，因为 franking proof 不进入 Realm anchor frontier（franking proof 是 service-side audit material，不改变协作状态）。
+- franking proof inclusion proof：franking proof 可被签入定期 franking-proof log Merkle tree，向举报者证明"该 franking proof 不是后补的"。该 inclusion proof 与 Seal state_root 独立，因为 franking proof 不进入 Realm seal frontier（franking proof 是 service-side audit material，不改变协作状态）。
 - 显式 `franking_proof_unavailable` 错误码，让 reporter 客户端知道 service 当前不签发 franking proof（如 service downgrade / outage），而不是误以为消息根本未投递。
 
 ## 19b. Realtime Media Server
@@ -820,8 +820,8 @@ Fixture：`schema-validation-fixture.json` 的 `cursor_valid_stateless_*` 条目
 - schema validation tests
 - signature verification tests
 - idempotency tests
-- reducer convergence tests（含 Move/Anchor/Lattice 向量）
-- Move/Anchor/Lattice vectors（见 `conformance-vectors.md`）
+- reducer convergence tests（含 CBA/Lattice 向量）
+- CBA/Lattice vectors（见 `conformance-vectors.md`）
 - Event Envelope negative vectors（见 `artifacts/fixtures/event-envelope-negative-fixture.json`）
 - redaction vectors（见 `conformance-vectors.md`）
 - capability vectors（见 `conformance-vectors.md`）
@@ -840,7 +840,7 @@ E2EE profile MUST 额外提供：
 
 - KeyPackage verification vector
 - KeyPackage claim single-use vector
-- MLS Governance Binding root mismatch vector（`governance_binding` 任一 root 不匹配 Anchor view）
+- MLS Governance Binding root mismatch vector（`governance_binding` 任一 root 不匹配 Seal view）
 - minimal-metadata identity link vector
 - AAD visibility vector
 - MLS epoch transition vector
@@ -856,7 +856,7 @@ Client Sync 相关 profile MUST/SHOULD 按 `conformance-vectors.md` 执行对应
 - Full Client MUST 额外覆盖 snapshot frontier、state_after 与 decryption_pending 的 UI / cache 恢复行为。
 - E2EE Client MUST 覆盖 MLS epoch backfill、decryption_pending recovery 和 removed member fail closed。
 - Principal Server SHOULD 覆盖 duplicate suppression、backfill order、encrypted payload forwarding 和不能转发解密材料。
-- Snapshot bootstrap MUST 覆盖 `event_set_commitment` root、covered frontier、conflict/soft-fail/quarantine 摘要和 inclusion / omission challenge hint。
+- Snapshot bootstrap MUST 覆盖 `event_set_commitment` root、covered event set、conflict/soft-fail/quarantine 摘要和 inclusion / omission challenge hint。
 
 上述 Minimal Client 与 Chat MVP 的 prose MUST 覆盖项在 `conformance-profiles.json#profile_requirements` 中通过 `required_fixtures` 和 `prose_requirement_coverage` 建立映射；实现声明 profile 时必须同时提供这些 fixture / runner 的通过结果。
 

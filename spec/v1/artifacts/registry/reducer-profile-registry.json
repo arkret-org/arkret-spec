@@ -24,8 +24,9 @@
           "ck.schema.event.v1",
           "ck.schema.event_payload.v1",
           "ck.schema.event_batch_receipt.v1",
+          "ck.schema.availability_receipt.v1",
           "ck.schema.cursor.v1",
-          "ck.schema.anchor.v1"
+          "ck.schema.seal.v1"
         ],
         "required_constraint_types": [
           "temporal",
@@ -97,7 +98,7 @@
           "sync-fixture.json",
           "redaction-fixture.json",
           "reaction-fixture.json",
-          "move-anchor-lattice-fixture.json",
+          "cba-lattice-fixture.json",
           "privacy-security-fixture.json"
         ],
         "reducer_contract_refs": [
@@ -148,7 +149,7 @@
         "required_constraint_subtypes": [],
         "required_fixtures": [
           "sync-fixture.json",
-          "move-anchor-lattice-fixture.json"
+          "cba-lattice-fixture.json"
         ],
         "reducer_contract_refs": [
           "artifacts/profiles/conformance-profiles.json#/profile_requirements/ck.profile.kanban_mvp.v1",
@@ -202,7 +203,7 @@
         "required_fixtures": [
           "event-envelope-negative-fixture.json",
           "sync-fixture.json",
-          "move-anchor-lattice-fixture.json",
+          "cba-lattice-fixture.json",
           "capability-fixture.json",
           "privacy-security-fixture.json"
         ],
@@ -245,7 +246,7 @@
           "ck.schema.event.v1",
           "ck.schema.event_payload.v1",
           "ck.schema.cursor.v1",
-          "ck.schema.anchor.v1"
+          "ck.schema.seal.v1"
         ],
         "required_constraint_types": [
           "temporal",

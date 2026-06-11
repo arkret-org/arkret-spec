@@ -56,7 +56,7 @@
         },
         "recipient_service_type": {
           "const": "principal_server",
-          "description": "v1 only allows principal_server. Anchorer / shared Sync Service are addressed by Realm-level sync_endpoints, not by member-level delivery_binding."
+          "description": "v1 only allows principal_server. Notary / shared Sync Service are addressed by Realm-level sync_endpoints, not by member-level delivery_binding."
         },
         "binding_scope": {
           "const": "realm",
@@ -109,7 +109,7 @@
         },
         "holder_proof_ref": {
           "$ref": "#/$defs/event_ref",
-          "description": "Reference to the member's DID proof (challenge-response) that bound the DID to recipient_service_did at the auth/account layer. Required when the member did not submit the join Move directly from a session at recipient_service_did."
+          "description": "Reference to the member's DID proof (challenge-response) that bound the DID to recipient_service_did at the auth/account layer. Required when the member did not submit the join Control Move directly from a session at recipient_service_did."
         },
         "policy_event_ref": {
           "$ref": "#/$defs/event_ref",
@@ -221,9 +221,9 @@
       "type": "string",
       "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "anchor_frontier": {
+    "seal_frontier": {
       "type": "array",
-      "description": "Accepted Anchor frontier expressed as event_digest hash values, not ck:event typed ids. The hash algorithm is the enclosing Realm or control stream hash profile.",
+      "description": "Accepted Seal coverage expressed as event_digest hash values, not ck:event typed ids. The hash algorithm is the enclosing Realm or control stream hash profile.",
       "items": {
         "$ref": "#/$defs/hash"
       },
@@ -1217,7 +1217,7 @@
         },
         "migration_evidence": {
           "type": "object",
-          "description": "Optional anchor / witness evidence justifying the migration (e.g., governance proposal id, audit trail anchor). The event's authorization_ref carries the formal capability gate; migration_evidence is for human reviewers.",
+          "description": "Optional seal / witness evidence justifying the migration (e.g., governance proposal id, audit trail seal). The event's authorization_ref carries the formal capability gate; migration_evidence is for human reviewers.",
           "additionalProperties": true
         }
       },
@@ -1225,7 +1225,7 @@
     },
     "actor_profile_create_payload": {
       "type": "object",
-      "description": "Initial actor profile payload. In Move/Anchor/Lattice state, the profile cell subject is payload.object.id.",
+      "description": "Initial actor profile payload. In CBA/Lattice state, the profile cell subject is payload.object.id.",
       "required": [
         "object"
       ],
@@ -1576,26 +1576,26 @@
       },
       "additionalProperties": false
     },
-    "circle_anchor_commit_payload": {
+    "circle_seal_commit_payload": {
       "type": "object",
-      "description": "Reducer-derived payload for ck.circle.anchor_commit. Commits an opaque Circle sub-anchor head digest into the parent Realm Anchor stream at the profile-defined cadence.",
+      "description": "Reducer-derived payload for ck.circle.seal_commit. Commits an opaque Circle sub-seal head digest into the parent Realm Seal stream at the profile-defined cadence.",
       "required": [
         "circle_id",
-        "sub_anchor_head_digest",
+        "sub_seal_head_digest",
         "epoch"
       ],
       "properties": {
         "circle_id": {
           "$ref": "./common-ids.schema.json#/$defs/circle_id"
         },
-        "sub_anchor_head_digest": {
+        "sub_seal_head_digest": {
           "$ref": "#/$defs/hash"
         },
         "epoch": {
           "type": "integer",
           "minimum": 0
         },
-        "covered_frontier_digest": {
+        "covered_seals_digest": {
           "$ref": "#/$defs/hash"
         },
         "committed_at": {
@@ -3076,7 +3076,7 @@
             "on_last_read"
           ]
         },
-        "anchor_hlc": {
+        "seal_hlc": {
           "type": "string",
           "minLength": 1
         },
@@ -3967,7 +3967,7 @@
         },
         "public_key_digest": {
           "$ref": "#/$defs/hash",
-          "description": "Digest of the public key material behind verification_method. Required by high-assurance profiles when DID resolution is not pinned in the same anchor batch."
+          "description": "Digest of the public key material behind verification_method. Required by high-assurance profiles when DID resolution is not pinned in the same seal batch."
         },
         "accountable_principal_id": {
           "$ref": "#/$defs/did"
@@ -4609,7 +4609,7 @@
     },
     "consent_revoke_payload": {
       "type": "object",
-      "description": "Revoke a previously granted consent. Wire-equivalent to a Move whose effect is remove(tag) on the consent cell ck:cell:ck.component.consent.grant.v1:<consent_id> (the same cell written by ck.consent.grant). Payload observed_dots MUST match the Move effect's observed_dots so schema validation and audit can see exactly what was removed.",
+      "description": "Revoke a previously granted consent. Wire-equivalent to a Control Move whose effect is remove(tag) on the consent cell ck:cell:ck.component.consent.grant.v1:<consent_id> (the same cell written by ck.consent.grant). Payload observed_dots MUST match the Control Move effect's observed_dots so schema validation and audit can see exactly what was removed.",
       "required": [
         "consent_id",
         "observed_dots"
@@ -5162,7 +5162,7 @@
           "pattern": "^[a-z][a-z0-9_]{0,63}$"
         },
         "revocation_frontier": {
-          "$ref": "#/$defs/anchor_frontier",
+          "$ref": "#/$defs/seal_frontier",
           "description": "Principal control stream frontier under which this device revocation was accepted. Shared Realm MLS Remove commits that rely on the revocation must cover this frontier directly or through an imported governance Move."
         },
         "proof": {
@@ -6351,7 +6351,7 @@
     },
     "mimi_room_binding_payload": {
       "type": "object",
-      "description": "Payload for ck.mimi.room_binding. Writes the ck.component.mimi.room_binding.v1 cell whose subject is payload.mimi_room_uri (see event-kind-registry.json cell_subject). Authoritative field set: zh/extensions/mimi-interop.md §3. The binding is a projection of a Cokret Realm/Flow discussion track into a MIMI room; it is not canonical truth. Creation / update / revocation MUST hold ck.policy.manage, ck.realm.admin, or an equivalent interop capability. E2EE MIMI rooms MUST bind mls_group_id and pass the MLS Governance Binding covered_frontier_cell precondition.",
+      "description": "Payload for ck.mimi.room_binding. Writes the ck.component.mimi.room_binding.v1 cell whose subject is payload.mimi_room_uri (see event-kind-registry.json cell_subject). Authoritative field set: zh/extensions/mimi-interop.md §3. The binding is a projection of a Cokret Realm/Flow discussion track into a MIMI room; it is not canonical truth. Creation / update / revocation MUST hold ck.policy.manage, ck.realm.admin, or an equivalent interop capability. E2EE MIMI rooms MUST bind mls_group_id and pass the MLS Governance Binding covered_seals_cell precondition.",
       "required": [
         "mimi_room_uri",
         "binding_scope"
@@ -6482,7 +6482,7 @@
     },
     "moderation_decision_payload": {
       "type": "object",
-      "description": "Payload for ck.moderation.decision. An anchored moderation decision that writes an or_set add effect onto the ck.component.moderation_state.v1 cell whose subject is target_ref (the moderated target_event_id / target_object_id canonical string). See zh/authz/policy-server.md §7.1 and zh/governance/content-moderation.md §2.6 / §8.1. The decision verb is the runtime result set hard_deny / soft_deny / quarantine / require_review (all lower snake_case; allow is never anchored and soft_deny does not itself write the cell). The optional action carries the finer-grained §5.3 moderation_policy action family. The actor MUST independently hold ck.realm.moderation_policy or ck.policy.manage; refs[role=authorized_by] SHOULD reference the Policy Server signed decision for audit (not a capability source).",
+      "description": "Payload for ck.moderation.decision. An sealed moderation decision that writes an or_set add effect onto the ck.component.moderation_state.v1 cell whose subject is target_ref (the moderated target_event_id / target_object_id canonical string). See zh/authz/policy-server.md §7.1 and zh/governance/content-moderation.md §2.6 / §8.1. The decision verb is the runtime result set hard_deny / soft_deny / quarantine / require_review (all lower snake_case; allow is never sealed and soft_deny does not itself write the cell). The optional action carries the finer-grained §5.3 moderation_policy action family. The actor MUST independently hold ck.realm.moderation_policy or ck.policy.manage; refs[role=authorized_by] SHOULD reference the Policy Server signed decision for audit (not a capability source).",
       "required": [
         "target_ref",
         "decision"
@@ -6544,7 +6544,7 @@
     },
     "moderation_decision_lift_payload": {
       "type": "object",
-      "description": "Payload for ck.moderation.decision.lift. Writes an or_set remove effect on the same ck.component.moderation_state.v1 cell, removing the tag previously added by the decision identified by decision_ref. See zh/authz/policy-server.md §7.1 and zh/governance/content-moderation.md §5.5.2 (appeal verdict=overturn MUST pair a lift whose target equals decision_ref in the same Anchor batch).",
+      "description": "Payload for ck.moderation.decision.lift. Writes an or_set remove effect on the same ck.component.moderation_state.v1 cell, removing the tag previously added by the decision identified by decision_ref. See zh/authz/policy-server.md §7.1 and zh/governance/content-moderation.md §5.5.2 (appeal verdict=overturn MUST pair a lift whose target equals decision_ref in the same ordered submit batch or equivalent control transaction).",
       "required": [
         "target_ref",
         "decision_ref"
@@ -6556,7 +6556,7 @@
         },
         "decision_ref": {
           "$ref": "#/$defs/event_ref",
-          "description": "Reference to the prior ck.moderation.decision Event whose anchored tag is being removed."
+          "description": "Reference to the prior ck.moderation.decision Event whose sealed tag is being removed."
         },
         "reason_code": {
           "type": "string",
@@ -6678,7 +6678,7 @@
         },
         "activation_frontier_digest": {
           "$ref": "#/$defs/hash",
-          "description": "Accepted Anchor frontier digest at which this binding/policy became member-visible. Release requests MUST NOT cover messages or epochs before this frontier."
+          "description": "Accepted Seal coverage digest at which this binding/policy became member-visible. Release requests MUST NOT cover messages or epochs before this coverage point."
         },
         "first_auditable_epoch": {
           "type": "integer",
@@ -6998,7 +6998,7 @@
         "applet_id",
         "service_did",
         "release_mode",
-        "checkpoint_digest",
+        "seal_digest",
         "recipient_audit_actor_id",
         "recipient_public_key_ref",
         "approver_actor_id",
@@ -7058,10 +7058,10 @@
           "minItems": 1,
           "uniqueItems": true
         },
-        "checkpoint_ref": {
+        "seal_ref": {
           "$ref": "#/$defs/event_ref"
         },
-        "checkpoint_digest": {
+        "seal_digest": {
           "$ref": "#/$defs/hash"
         },
         "recipient_audit_actor_id": {
@@ -7173,7 +7173,7 @@
     },
     "audit_accessed_payload": {
       "type": "object",
-      "description": "Strict payload for ck.audit.accessed. It records a specific access or paired privacy-sensitive write. Reducers MUST reject business events that require an audit pair unless this payload identifies the same writer, target, and object/cell in the same Anchor batch or in an accepted pre-read event with RYW receipt.",
+      "description": "Strict payload for ck.audit.accessed. It records a specific access or paired privacy-sensitive write. Reducers MUST reject business events that require an audit pair unless this payload identifies the same writer, target, and object/cell in the same ordered submit batch, equivalent control transaction, or an accepted pre-read event with RYW receipt.",
       "required": [
         "access_kind",
         "writer_actor_id",

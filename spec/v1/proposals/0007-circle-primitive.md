@@ -108,7 +108,7 @@ Circle v1 不提供 `plaintext_inherit` 或 "authorization-only Circle"。这条
 | `ck.circle.restore` | yes | object_lifecycle_payload | archived → active。 |
 | `ck.circle.tombstone` | yes | object_lifecycle_payload | terminal;触发 §3.7 cascade。 |
 | `ck.circle.member.state` | yes | `{circle_id, actor_id, membership: invite\|join\|knock\|leave\|ban, ...}` | 复用 `ck.member.state` 的 `membership_state` 枚举(scope 限 Circle),reducer 先校验 actor 已是父 Realm `join` 成员;`knock` 仅在 `join_rule=request` 下允许。 |
-| `ck.circle.anchor_commit` | reducer-derived | `{circle_id, sub_anchor_head_digest, epoch}` | Circle sub-anchor 周期性向 Realm Anchor 提交不透明 commitment(§3.9)。 |
+| `ck.circle.seal_commit` | reducer-derived | `{circle_id, sub_seal_head_digest, epoch}` | Circle sub-seal 周期性向 Realm Seal 提交不透明 commitment(§3.9)。 |
 
 ### 3.4 对象 scope 表达
 
@@ -117,7 +117,7 @@ Circle v1 不提供 `plaintext_inherit` 或 "authorization-only Circle"。这条
 ```
 Flow.scope_circle_id             : id:circle | null       # null = Realm-default encryption scope
 Message.effective_scope    : reducer-stamped,immutable tagged scope
-Event.effective_scope      : reducer-stamped,immutable tagged scope,进入 envelope/AAD/sub-anchor
+Event.effective_scope      : reducer-stamped,immutable tagged scope,进入 envelope/AAD/sub-seal
 Space.scope_circle_id            : id:circle | null       # Space 自身 metadata / scoped structural relation 的可见性 scope
 Space.default_scope_circle_id    : id:circle | null       # 在该 Space 新建 Flow 的默认 scope(hint,非强制)
 Space.child_scope_policy   : object                  # 子资源 placement/encryption floor,见 §3.4.2
@@ -132,7 +132,7 @@ reducer 规则:
 - `scope_circle_id` 引用的 Circle MUST `state=active`;否则 `failed_precondition`(`reason="circle_not_active"`)。
 - `scope_circle_id=null` 不表示"没有 scope";它表示 Realm-default encryption scope。Reducer MUST 把它物化为 tagged `effective_scope = {kind:"realm", realm_id}`。
 - `scope_circle_id=ck:circle:...` MUST 物化为 tagged `effective_scope = {kind:"circle", realm_id, circle_id}`。
-- Reducer 在接受每个 event 时 MUST 固化 `effective_scope`。该值进入 Event envelope、E2EE AAD、MLS governance binding 输入、Anchor/sub-anchor leaf,后续 `scope_circle_id` 改绑不得重解释旧 event。
+- Reducer 在接受每个 event 时 MUST 固化 `effective_scope`。该值进入 Event envelope、E2EE AAD、MLS governance binding 输入、Seal/sub-seal leaf,后续 `scope_circle_id` 改绑不得重解释旧 event。
 - Effective history visibility = 父 Realm policy floor 与 Circle `history_visibility` 的更严格者。Circle MAY 收紧父 Realm,不得放宽父 Realm 的隐私/合规下限。
 - 改绑 `scope_circle_id` 默认 reducer 拒绝(`failed_precondition` `reason="scope_rebind_forbidden"`);profile MAY 允许,但 MUST audit-paired high-risk update。所有已存在 Message / 子内容保留其写入时的 `effective_scope` 与旧 scope MLS;新内容才进新 scope。客户端 MUST 把切分前后历史分段展示。
 - Structural Relation / position cell 的 `effective_scope` **MUST 不宽于参与端点中最窄的 scope**(即:取参与端点 scope 集合中最严格者作为关系事实自身的 scope)。具体例:`public Board (Realm-default)` 包含 `private Flow (Circle=HR-Conf)` 时,`contains` 关系事实与其 position cell 的 `effective_scope = Circle:HR-Conf`,**不是** Realm-default;非 Circle 成员看不到该 containment 关系、看不到 private Flow 的 rank/position,也看不到 board 上"此处有隐藏项"的可枚举元数据(否则等于把 Circle 内容数量泄露给 Realm 全员)。
@@ -210,7 +210,7 @@ Reducer MUST 在 `ck.flow.create`、`ck.flow.move`、`ck.space.parent`、structu
 旧 `discussion_realm_ref` 服务的核心场景是"Flow 公开可见,但讨论只对小圈可见"。本提案下统一用 **两个 Flow + Relation** 表达,不再有 per-track 安全边界:
 
 ```
-Flow F_public  (scope_circle_id = null)              ← 公开 anchor Flow,承载 metadata.title / metadata.summary / stage / metadata.fields
+Flow F_public  (scope_circle_id = null)              ← 公开 seal Flow,承载 metadata.title / metadata.summary / stage / metadata.fields
 Flow F_private (scope_circle_id = ck:circle:HR-Conf) ← Circle 内 Flow,承载敏感讨论与决策细节
 F_private --confidential_discussion_of--> F_public
 ```
@@ -221,7 +221,7 @@ F_private --confidential_discussion_of--> F_public
 - watch cell、stage、生命周期
 - 投影裁剪规则(无 Circle 成员的 Realm 成员只看到 F_public,看不到 F_private 的存在或活动元数据,符合 §3.8 投递不变量)
 
-`confidential_discussion_of` 是标准 weak-semantic Relation kind,关系事实 SHOULD 存放在 `F_private` 的 Circle scope 内。这样 private 成员能从 private Flow 回到 public anchor;非 Circle 成员不会在 public Flow 上看到"存在一个私密讨论"的可枚举边。
+`confidential_discussion_of` 是标准 weak-semantic Relation kind,关系事实 SHOULD 存放在 `F_private` 的 Circle scope 内。这样 private 成员能从 private Flow 回到 public seal;非 Circle 成员不会在 public Flow 上看到"存在一个私密讨论"的可枚举边。
 
 此模式的代价是用户需要显式创建两个 Flow,而不是一个 Flow 配置两层 scope。收益是协议层**没有任何对象跨越两个安全边界**,所有 cross-boundary 推理坍缩到"两对象 + scoped relation"的通用规则,与 [`relation.md` §4](../zh/models/relation.md) 跨 Realm relation 同构。
 
@@ -296,9 +296,9 @@ Membership transition table:
 特例:
 - `ck.circle.create` 的 authorization shell 是 Realm-level event,但 projection MUST 按 `directory_visibility` 裁剪。`directory_visibility=members` 时,非成员不得看到 Circle title、display、member_count、created_by 或可区分存在性的错误;最多只能看到不可枚举的 opaque commitment。
 - `ck.circle.member.state` 仅投递给该 Circle 的成员 + 完成 `ck.circle.audit` / `ck.audit.accessed` 配对的 audit reader。
-- `ck.circle.anchor_commit` 是 Realm-level event,但只携带 opaque digest(见 §3.9),且触发节奏不得泄露 Circle 活动频率。
+- `ck.circle.seal_commit` 是 Realm-level event,但只携带 opaque digest(见 §3.9),且触发节奏不得泄露 Circle 活动频率。
 
-### 3.9 MLS / Anchor 集成
+### 3.9 MLS / Seal 集成
 
 **MLS**:
 
@@ -307,11 +307,11 @@ Membership transition table:
 - Circle MLS handshake (commit/welcome/proposal) 投递严格限于 Circle 成员,不进入 Realm-default sync 流。
 - MLS governance binding 的 scope 从单 `realm_id` 扩展为 `(realm_id, circle_id?)`。Circle commit / welcome / genesis MUST 绑定 `circle_id`、Circle membership frontier、Circle policy root 与父 Realm policy floor frontier;接收端验证时任一不匹配 MUST fail closed。
 
-**Anchor stream**:
+**Seal stream**:
 
-- Circle 内事件维护 Circle sub-anchor(只对 Circle 成员可读,记录完整 envelope + payload digest)。
-- Circle 按 profile 固定节拍触发 `ck.circle.anchor_commit`,向 Realm Anchor stream 提交 `sub_anchor_head_digest`(不透明 SHA-256)。默认命名 profile 为 `ck.profile.circle_anchor_cadence.fixed_5m.v1`：`period_ms=300000`、`max_jitter_ms=30000`、必须提交空批次 commitment、不得因为没有真实事件而跳过 public anchor tick。低隐私部署若声明 event-count profile,必须显式标为不满足 confidential Circle profile。
-- 验证链:Circle member 验证时 `Circle sub-anchor head ↔ Realm anchor commitment ↔ Realm anchor head`,三段闭合。非 Circle 成员只能验证 Realm anchor 完整性。
+- Circle 内事件维护 Circle sub-seal(只对 Circle 成员可读,记录完整 envelope + payload digest)。
+- Circle 按 profile 固定节拍触发 `ck.circle.seal_commit`,向 Realm Seal stream 提交 `sub_seal_head_digest`(不透明 SHA-256)。默认命名 profile 为 `ck.profile.circle_seal_cadence.fixed_5m.v1`：`period_ms=300000`、`max_jitter_ms=30000`、必须提交空批次 commitment、不得因为没有真实事件而跳过 public seal tick。低隐私部署若声明 event-count profile,必须显式标为不满足 confidential Circle profile。
+- 验证链:Circle member 验证时 `Circle sub-seal head ↔ Realm seal commitment ↔ Realm seal head`,三段闭合。非 Circle 成员只能验证 Realm seal 完整性。
 
 ### 3.10 删除 `Flow.discussion_realm_ref`
 
@@ -378,7 +378,7 @@ Membership transition table:
   - **`Realm.encryption_profile` 是新增字段**(受控 enum,v1 仅 `mls_rfc9420`),表达 Realm-default encryption scope 的密钥承载机制;与 Circle `encryption_profile` 同 enum 集合,不同 scope 各自独立声明。
 - `message.schema.json`:追加 reducer-stamped immutable tagged `effective_scope`。
 - `morph.schema.json`、`space.schema.json`:追加 `scope_circle_id` / `default_scope_circle_id` / `child_scope_policy` 可选字段;明确 `Space.scope_circle_id` 只引用 Circle,不让 Space 自身成为边界;`default_scope_circle_id` 只是新建对象默认值(三字段语义见 §3.4 末尾表)。
-- Event envelope / AAD schema:追加 immutable tagged `effective_scope`,并纳入 signing / E2EE AAD / Anchor leaf canonical bytes。
+- Event envelope / AAD schema:追加 immutable tagged `effective_scope`,并纳入 signing / E2EE AAD / Seal leaf canonical bytes。
 - `event-payload.schema.json`:`flow_create_payload` / `flow_update_payload` 字段集同步删除 `discussion_realm_ref`。
 - `forbidden-wire-fields.json`:**新增** `flow.discussion_realm_ref` 进入 reserved-name guard,出现即 `schema_violation`。
 - `removed-event-kinds.json`:不适用(没有 event kind 被移除;仅字段被移除)。
@@ -393,10 +393,10 @@ Membership transition table:
   - `discussion_realm_ref_removed`(§3.10)
 - `vector-registry.json`:**新增** Circle conformance vector cluster:
   - Circle create + member.state lifecycle 正确性
-  - `effective_scope` immutable stamping 验证(envelope / AAD / sub-anchor leaf 三处一致性)
+  - `effective_scope` immutable stamping 验证(envelope / AAD / sub-seal leaf 三处一致性)
   - Scope-aware reducer 两层 AND 评估
   - Cross-scope Relation 投影裁剪
-  - Sub-anchor commitment ↔ Realm Anchor 验证链
+  - Sub-seal commitment ↔ Realm Seal 验证链
   - Metadata encryption floor 二档强制(`allow_plaintext` / `e2ee_required`)
 - MLS / governance binding artifacts:新增 `circle_id` optional binding field、Circle scoped covered-frontier cell key、KeyPackage claim intended scope 扩展。
 
@@ -499,7 +499,7 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 4. 跨 Circle 导航有可感知转场(banner 颜色变化、breadcrumb 更新);避免"同一空间内滚动"错觉。
 5. mention 候选列表中非 Circle 成员置灰并提示"不在此 Circle"。
 6. 跨 Circle 引用以虚线框 + "另一信任圈"标识展示,**不**预览内容。
-7. "宽 anchor Flow + 窄 discussion Flow" 的组合形态(§3.4.3)在 UI 上 MAY 渲染为单卡片 + tab 切换,**但** tab 之间切换 MUST 表现为跨 scope 转场(banner 颜色变化 + compose scope 指示更新),不是同 Flow 内不同视图。
+7. "宽 seal Flow + 窄 discussion Flow" 的组合形态(§3.4.3)在 UI 上 MAY 渲染为单卡片 + tab 切换,**但** tab 之间切换 MUST 表现为跨 scope 转场(banner 颜色变化 + compose scope 指示更新),不是同 Flow 内不同视图。
 
 详细 UX rationale 见 design discussion(2026-05-25 conversation log)。
 
@@ -509,9 +509,9 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 - [ ] **Display palette 大小**:v1 草案给 17 色,是否够?Linear 8 色 / Tailwind 22 色对比下,17 是个折中。固定 token 集是否锁在 schema 还是 profile?
 - [x] **`Space.default_scope_circle_id` 强制性**:`default_scope_circle_id` 保持 hint;强制约束用 `child_scope_policy` 表达,避免"Space 隐式成为安全边界"的语义滑坡。
 - [x] **跨 Circle Relation**:统一为"跨 scope Relation",直接复用 [`relation.md` §4](../zh/models/relation.md) 跨 Realm ref 的 two-sided authorization / locked projection / anti-enumeration 模型。§4.2 已列出 `relation.md` 修改项,§8.1 第 10 步落地。无遗留决策点。
-- [x] **新 relation_kind `confidential_discussion_of`**:§3.4.3 "两 Flow + Relation" 模式需要协议级 relation_kind 来标识"这个 Circle Flow 是那个 anchor Flow 的机密讨论延伸"。关系事实 SHOULD 存在 private Flow 的 Circle scope 内,避免 public anchor 反向泄露私密讨论存在性。
+- [x] **新 relation_kind `confidential_discussion_of`**:§3.4.3 "两 Flow + Relation" 模式需要协议级 relation_kind 来标识"这个 Circle Flow 是那个 seal Flow 的机密讨论延伸"。关系事实 SHOULD 存在 private Flow 的 Circle scope 内,避免 public seal 反向泄露私密讨论存在性。
 - [ ] **Circle merge / split**:运维场景"两个 Circle 合并"或"Circle 拆分"是否需要协议级 event(如 `ck.circle.merge`),还是纯客户端流程?MLS 层 merge 不平凡,倾向 v1 不做,留 v1.1。
-- [x] **`ck.circle.anchor_commit` 固定节拍参数**:§3.9 固定默认命名 profile `ck.profile.circle_anchor_cadence.fixed_5m.v1`，周期 5 分钟、最大抖动 30 秒；移动端省电不得改变公开 Realm anchor cadence，只能影响客户端上传私有 sub-anchor entries 的批处理。
+- [x] **`ck.circle.seal_commit` 固定节拍参数**:§3.9 固定默认命名 profile `ck.profile.circle_seal_cadence.fixed_5m.v1`，周期 5 分钟、最大抖动 30 秒；移动端省电不得改变公开 Realm seal cadence，只能影响客户端上传私有 sub-seal entries 的批处理。
 - [ ] **Watch cell 的 Circle 归属**:scope_circle_id 指向 Circle 的 Flow,其 watch cell 应落在父 Realm namespace 还是 Circle namespace?倾向 **Circle namespace**(单源,且 watch 见解直接受 Circle membership 约束,不需要单独投影裁剪规则)。这与原 §8.3 watch cell 在 source Realm 的设计相反,需要在 [`flow-and-message.md` §8](../zh/models/flow-and-message.md) 重写。
 - [ ] **历史成员 / "前成员能否看历史消息"**:与 MLS welcome 包是否携带历史 key 的 profile 选项有关,是否在 Circle 创建时就锁定?
 - [x] **`encryption_profile=plaintext_inherit` 是否保留**:不保留。Circle v1 只表示独立 MLS 密码学边界;授权窄化继续使用 Group / capability constraint / selector。
@@ -530,7 +530,7 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 | 跨 Circle Relation | **resolved** | 复用跨 scope Relation 模型（[`relation.md`](../zh/models/relation.md) §4）。 |
 | `confidential_discussion_of` | **resolved** | 已注册为标准 weak-semantic relation kind（[`relation.md`](../zh/models/relation.md) §3.1/§3.2）。 |
 | Circle merge / split | **deferred-to-v1.1** | v1 不引入 `ck.circle.merge` 等 event;MLS 层 merge 非平凡。 |
-| `ck.circle.anchor_commit` 固定节拍参数 | **resolved → named cadence profile** | `ck.profile.circle_anchor_cadence.fixed_5m.v1` 固定 `period_ms=300000`、`max_jitter_ms=30000`、空批次 commitment 与移动端省电边界（[`circle.md`](../zh/models/circle.md) §10.2）。confidential Circle profile MUST NOT 使用会泄露活动频率的 event-count cadence。 |
+| `ck.circle.seal_commit` 固定节拍参数 | **resolved → named cadence profile** | `ck.profile.circle_seal_cadence.fixed_5m.v1` 固定 `period_ms=300000`、`max_jitter_ms=30000`、空批次 commitment 与移动端省电边界（[`circle.md`](../zh/models/circle.md) §10.2）。confidential Circle profile MUST NOT 使用会泄露活动频率的 event-count cadence。 |
 | Watch cell 的 Circle 归属 | **resolved** | scope 指向 Circle 的 Flow,其 watch cell 落在 Circle namespace（[`flow-and-message.md`](../zh/models/flow-and-message.md) §8）。 |
 | 历史成员能否看历史消息 | **deferred-to-profile** | 由 MLS welcome 是否携带历史 key 的 profile 选项决定;Circle 创建时锁定。 |
 | `encryption_profile=plaintext_inherit` 保留 | **resolved** | 不保留。 |
@@ -547,9 +547,9 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 2. **引入 `ck:circle:` 对象 schema 与基础 event**(`ck.circle.create` / `ck.circle.member.state` / `ck.circle.tombstone`);更新 `id-kind-registry.json` / `event-kind-registry.json` / `schema-registry.json`。
 3. **独立 MLS group 必须同步落地**:Circle create 必须创建 `(realm_id, circle_id)` scope 的 MLS group、epoch 0 governance binding、Circle scoped covered-frontier cell;不得以 Realm-default MLS + 应用层过滤替代。
 4. **声明加密覆盖 policy**:新增 Realm `content_encryption_floor`;把既有 `metadata_encryption_floor` 固化为 Realm-wide floor,二元、与 `content_encryption_floor` 对称(`allow_plaintext` / `e2ee_required`)。
-5. **引入 `scope_circle_id` / tagged `effective_scope` 字段** 到 `flow.schema.json` / `message.schema.json` / `morph.schema.json` / `space.schema.json`(`default_scope_circle_id` / `child_scope_policy`)以及 Event envelope / E2EE AAD / Anchor leaf canonical bytes。
+5. **引入 `scope_circle_id` / tagged `effective_scope` 字段** 到 `flow.schema.json` / `message.schema.json` / `morph.schema.json` / `space.schema.json`(`default_scope_circle_id` / `child_scope_policy`)以及 Event envelope / E2EE AAD / Seal leaf canonical bytes。
 6. **重写 MLS governance binding**:把 scope 从单 `realm_id` 扩展为 tagged `effective_scope`;KeyPackage claim、Welcome、identity-link cache、policy tightening invalidation 同步支持 Circle。
-7. **引入 Circle sub-anchor + fixed-cadence `ck.circle.anchor_commit`**:默认 profile 必须避免通过 public commitment 节奏泄露活动频率。
+7. **引入 Circle sub-seal + fixed-cadence `ck.circle.seal_commit`**:默认 profile 必须避免通过 public commitment 节奏泄露活动频率。
 8. **reducer 两层 AND 评估**(§3.5):capability_grant ∧ Circle membership(若 scope 非 null),并 enforce 父 Realm visibility floor / encryption floor。
 9. **Sync 投递不变量**(§3.8)实现:服务端按 Circle membership 过滤,并按 `directory_visibility` 裁剪 Circle 元数据。
 10. **跨 scope Relation**:新增 `confidential_discussion_of` 与跨 scope projection / anti-enumeration 规则。
@@ -559,7 +559,7 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 ### 8.2 Post-freeze 增量项(v1.x minor release)
 
 11. **Circle merge / split**:MLS 层 merge 不平凡,留 v1.1+。
-12. **Anchor cadence tuning**:根据实现经验调整默认周期、移动端省电 profile 与高隐私 cover-traffic profile。
+12. **Seal cadence tuning**:根据实现经验调整默认周期、移动端省电 profile 与高隐私 cover-traffic profile。
 
 ### 8.3 UI 标准化(可与 §8.1 并行)
 

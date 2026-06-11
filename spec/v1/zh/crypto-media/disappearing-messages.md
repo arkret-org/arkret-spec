@@ -23,13 +23,13 @@ Expiry 是 projection / retention 语义，**不是 redaction**。到期不得�
 
 ## 2. Message Expiry Payload
 
-`ck.message.create.payload.expiry` 的字段顺序为 `ttl_ms`、`trigger`、`anchor_hlc`、`grace_ms`。`trigger` 取值为 `on_send`、`on_first_read` 或 `on_last_read`。
+`ck.message.create.payload.expiry` 的字段顺序为 `ttl_ms`、`trigger`、`seal_hlc`、`grace_ms`。`trigger` 取值为 `on_send`、`on_first_read` 或 `on_last_read`。
 
-- `on_send`: 从 accepted Event 的 canonical send anchor 起算。
+- `on_send`: 从 accepted Event 的 canonical send seal 起算。
 - `on_first_read`: 从任一授权 reader 首次满足 read trigger 起算；实现必须避免把 reader identity 泄露给无权观察者。
 - `on_last_read`: 从所有当前可投递目标满足 read trigger 或策略定义的 delivery window 结束后起算。
 
-`anchor_hlc` 是 reducer / projection 固定后的锚点；发送方不得用它绕过最大 TTL。`grace_ms` 只延迟本地隐藏和 key drop，不延长 Realm policy 允许的最大生命周期。
+`seal_hlc` 是 reducer / projection 固定后的锚点；发送方不得用它绕过最大 TTL。`grace_ms` 只延迟本地隐藏和 key drop，不延长 Realm policy 允许的最大生命周期。
 
 ## 3. Projection Stub
 

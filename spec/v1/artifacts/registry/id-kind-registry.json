@@ -41,11 +41,11 @@
       "description": "Realm-scoped pseudonymous credential reference; validated by the E2EE profile. v1 core uses Realm as the boundary; Matrix-style Room terminology is only allowed in MIMI/Matrix interop modules."
     },
     {
-      "kind": "anchor",
-      "wire_form": "ck:anchor:sha256:<digest>",
+      "kind": "seal",
+      "wire_form": "ck:seal:sha256:<digest>",
       "status": "active",
-      "storage_recommendation": "Store as a content-addressed canonical Anchor hash.",
-      "description": "Content-addressed Anchor identifier."
+      "storage_recommendation": "Store as a content-addressed canonical Seal hash.",
+      "description": "Content-addressed Seal identifier."
     },
     {
       "kind": "cell",

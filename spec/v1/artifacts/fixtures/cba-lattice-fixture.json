@@ -1,0 +1,220 @@
+{
+  "profile": "ck.profile.cba_lattice_vectors.v1",
+  "version": "2026-06-11",
+  "notes": [
+    "These vectors pin CBA dual-plane semantics. DataEvent vectors use effects + seal_ref + auth_context and never use preconditions. Control Move vectors use effects + seal_basis and may use preconditions.",
+    "Seal delta entries reference only newly sealed control-plane event digests. Cumulative coverage is derived from predecessor_refs[] plus delta[]. DataEvent digests may appear in data_event_set_root / data_view_root observations, but those roots do not confer control-plane finality.",
+    "Cell ids follow ck:cell:<component>:<subject>; subject placeholders use dot-safe strings to keep examples unambiguous."
+  ],
+  "vectors": [
+    {
+      "name": "data_event_accepts_without_seal_finality",
+      "description": "A message DataEvent is locally accepted when signature, actor chain, seal_ref, auth_context, capability and data-plane Lattice validation pass. It does not wait for Seal coverage.",
+      "event": {
+        "id": "ck:event:6b5ad6b5-ad6b-7ad6-b5ad-6b5ad6b5ad6b",
+        "plane": "data",
+        "seal_ref": "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "auth_context": {
+          "did": "did:web:alice.example",
+          "key_id": "device-1",
+          "key_epoch": 1,
+          "capability_refs": [
+            "ck:grant:0196410c-0000-7000-8000-000000000000"
+          ]
+        },
+        "effects": [
+          {
+            "cell": "ck:cell:ck.component.flow.discussion.timeline.v1:ck.flow.019640c6-8000-7000-8000-000000000000",
+            "op": {
+              "kind": "append",
+              "value": {
+                "message_id": "ck:message:019640ed-8000-7000-8000-000000000000"
+              }
+            }
+          }
+        ]
+      },
+      "expected": {
+        "event_state": "data_local",
+        "fanout_allowed": true,
+        "seal_required_for_accept": false,
+        "query_grade_before_observation": "local"
+      },
+      "vector_id": "ck.vector.cba_lattice.data_event_accepts_without_seal_finality.v1"
+    },
+    {
+      "name": "data_event_observation_does_not_seal",
+      "description": "A Seal may observe DataEvents through data_event_set_root, but the query grade is observed, not sealed.",
+      "data_event_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "seal": {
+        "id": "ck:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "predecessor_refs": [],
+        "delta": [
+          "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+        ],
+        "control_event_set_root": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "state_root": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "data_event_set_root": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+      },
+      "expected": {
+        "data_event_state": "data_observed",
+        "query_grade": "observed",
+        "must_not_report_sealed": true
+      },
+      "vector_id": "ck.vector.cba_lattice.data_event_observation_does_not_seal.v1"
+    },
+    {
+      "name": "control_move_requires_seal_basis_and_seal",
+      "description": "A membership ban Control Move uses seal_basis for authorization and preconditions. It remains control_pending until covered by a valid Seal.",
+      "basis": {
+        "leaves": [
+          "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        ],
+        "control_event_set_root": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "state_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      },
+      "control_move": {
+        "id": "ck:event:84210842-1084-7108-8210-842108421084",
+        "plane": "control",
+        "preconditions": [
+          {
+            "cell": "ck:cell:ck.component.member.state.v1:did.web.alice.example",
+            "predicate": {
+              "op": "head_eq",
+              "value": "active"
+            }
+          }
+        ],
+        "effects": [
+          {
+            "cell": "ck:cell:ck.component.member.state.v1:did.web.alice.example",
+            "op": {
+              "kind": "transition",
+              "from": "active",
+              "to": "banned",
+              "reason": "abuse"
+            }
+          }
+        ]
+      },
+      "expected_before_seal": {
+        "event_state": "control_pending",
+        "query_grade": "seen"
+      },
+      "expected_after_valid_seal": {
+        "event_state": "control_sealed",
+        "query_grade": "sealed"
+      },
+      "vector_id": "ck.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1"
+    },
+    {
+      "name": "same_batch_does_not_advance_authorization_basis",
+      "description": "An Event earlier in the same submit batch may resolve bytes and causal refs for later Events, but it cannot create a grant used by a later Event in the same batch.",
+      "batch": [
+        {
+          "id": "ck:event:a5294a52-94a5-794a-9294-a5294a5294a5",
+          "kind": "ck.capability.grant",
+          "plane": "control",
+          "state": "control_pending"
+        },
+        {
+          "id": "ck:event:c6318c63-18c6-718c-a318-c6318c6318c6",
+          "kind": "ck.message.create",
+          "plane": "data",
+          "seal_ref": "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "auth_context": {
+            "did": "did:web:bob.example",
+            "key_id": "device-1",
+            "key_epoch": 1,
+            "capability_refs": [
+              "ck:grant:0196410c-9999-7000-8000-000000000000"
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "second_event_result": "reject_or_quarantine",
+        "reason": "capability_denied",
+        "same_batch_resolution_only": true
+      },
+      "vector_id": "ck.vector.cba_lattice.same_batch_does_not_advance_authorization_basis.v1"
+    },
+    {
+      "name": "data_plane_conflict_returns_bottom_without_winner",
+      "description": "Concurrent incompatible writes to a data-plane cas_register cell return structured bottom. The reducer must not choose a winner by HLC, actor id, arrival order, or Seal observation order.",
+      "cell": "ck:cell:ck.component.flow.position.v1:ck.flow.0196419b-0000-7000-8000-000000000000",
+      "cell_lattice": {
+        "plane": "data",
+        "lattice": "cas_register",
+        "bottom": "reject"
+      },
+      "data_events": [
+        "ck:event:20080200-8020-7802-8080-200802008020",
+        "ck:event:40100401-0040-7004-8100-401004010040"
+      ],
+      "expected": {
+        "query": {
+          "status": "bottom",
+          "bottom": {
+            "kind": "conflict",
+            "cells": [
+              "ck:cell:ck.component.flow.position.v1:ck.flow.0196419b-0000-7000-8000-000000000000"
+            ],
+            "event_ids": [
+              "ck:event:20080200-8020-7802-8080-200802008020",
+              "ck:event:40100401-0040-7004-8100-401004010040"
+            ]
+          }
+        },
+        "dependent_write_result": "failed_bottom"
+      },
+      "vector_id": "ck.vector.cba_lattice.data_plane_conflict_returns_bottom_without_winner.v1"
+    },
+    {
+      "name": "seal_delta_excludes_data_event_digest",
+      "description": "A Seal delta contains newly sealed control-plane event digests only. Including a DataEvent digest in delta is a seal validation failure.",
+      "seal": {
+        "id": "ck:seal:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "predecessor_refs": [],
+        "delta": [
+          "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        ],
+        "delta_member_plane": {
+          "sha256:1111111111111111111111111111111111111111111111111111111111111111": "data"
+        }
+      },
+      "expected": {
+        "seal_result": "reject",
+        "event_state": "rejected_seal",
+        "reason": "delta_contains_data_event"
+      },
+      "vector_id": "ck.vector.cba_lattice.seal_delta_excludes_data_event_digest.v1"
+    },
+    {
+      "name": "open_set_compaction_preserves_control_roots",
+      "description": "A signed compaction Seal must be equivalent to the deterministic control view of its predecessors and preserve control_event_set_root, state_root and fault diagnostics.",
+      "predecessor_refs": [
+        "ck:seal:sha256:3030303030303030303030303030303030303030303030303030303030303030",
+        "ck:seal:sha256:4040404040404040404040404040404040404040404040404040404040404040"
+      ],
+      "compaction_seal": {
+        "id": "ck:seal:sha256:5050505050505050505050505050505050505050505050505050505050505050",
+        "predecessor_refs": [
+          "ck:seal:sha256:3030303030303030303030303030303030303030303030303030303030303030",
+          "ck:seal:sha256:4040404040404040404040404040404040404040404040404040404040404040"
+        ],
+        "delta": [],
+        "covered_event_digests_must_equal": "union(predecessor covered_set)",
+        "control_event_set_root_must_equal": "root(union(predecessor covered_set))",
+        "state_root_must_equal": "recompute(control joined_state(predecessor_refs))"
+      },
+      "expected": {
+        "seal_result": "accept_when_equivalent_else_reject",
+        "preserves_bottom_diagnostics": true,
+        "preserves_signature_chain": true,
+        "compaction_without_signature": "reject"
+      },
+      "vector_id": "ck.vector.cba_lattice.open_set_compaction_preserves_control_roots.v1"
+    }
+  ]
+}

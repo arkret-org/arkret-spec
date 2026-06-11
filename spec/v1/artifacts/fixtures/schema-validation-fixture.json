@@ -117,12 +117,12 @@
         "default_join_rule": "invite",
         "history_visibility": "joined",
         "encryption_profile": "mls_rfc9420",
-        "anchor_profile": "single_did",
-        "anchorer": {
+        "notary_profile": "single_did",
+        "notary": {
           "type": "single_did",
-          "did": "did:web:anchorer.acme.example",
+          "did": "did:web:notary.acme.example",
           "recovery_members": [
-            "did:web:recovery-anchorer.example"
+            "did:web:recovery-notary.example"
           ],
           "controller_organization": "did:web:acme.example",
           "recovery_controller_organizations": [
@@ -316,7 +316,13 @@
             }
           }
         ],
-        "anchor_ref": "ck:anchor:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "seal_basis": {
+          "leaves": [
+            "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          ],
+          "control_event_set_root": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "state_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
         "payload": {
           "session_id": "ck:audit_session:019a6aa0-5000-7000-8000-000000000000",
           "binding_id": "ck:audit_binding:019a6aa0-6000-7000-8000-000000000000",
@@ -390,25 +396,28 @@
       }
     },
     {
-      "name": "anchor_valid",
-      "schema_ref": "schemas/anchor.schema.json",
+      "name": "seal_valid",
+      "schema_ref": "schemas/seal.schema.json",
       "expect_valid": true,
       "instance": {
-        "id": "ck:anchor:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "id": "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
         "predecessor_refs": [],
-        "frontier": [
+        "delta": [
           "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         ],
+        "control_event_set_root": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
         "state_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-        "anchorer_signature": {
+        "completeness_root": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "notary_seq": 1,
+        "notary_signature": {
           "alg": "EdDSA",
-          "verification_method": "did:web:anchorer.example#key-1",
+          "verification_method": "did:web:notary.example#key-1",
           "payload_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
           "created_at": "2026-05-20T00:00:00Z",
           "jws": "a..b"
         },
-        "anchored_at": "2026-05-20T00:00:00Z",
+        "sealed_at": "2026-05-20T00:00:00Z",
         "hlc": "01970e589d21-0001-a13f9c2e"
       }
     },

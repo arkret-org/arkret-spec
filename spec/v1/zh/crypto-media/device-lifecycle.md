@@ -71,9 +71,9 @@ Cokret v1 把三件事分开处理：
 ### 2.2 设备吊销
 当设备丢失时，用户可从任何其他已授权设备、DID 控制密钥或 recovery policy 允许的恢复服务发起吊销操作：发布 `ck.device.revoke`，停止接受该设备的新签名写入，并对受影响的 MLS 群组触发 `Remove` 与 Epoch 更新。若该设备曾被写入 DID Document，撤销流程还必须按 DID method 规则移除或失效对应 verification method。
 
-`ck.device.revoke.payload` MUST 携带 `revocation_frontier`：该撤销在 principal control stream 中被接受时的 Anchor frontier（以 event_digest hash 数组表达）。撤销证明签名和任何后续 device trust proof MUST 覆盖该 frontier；Principal Server / Sync Service 在拒绝该设备后续 session grant、KeyPackage、to-device write 或 Event write 时，MUST 以该 frontier 或其后继 view 作为判定依据。
+`ck.device.revoke.payload` MUST 携带 `revocation_frontier`：该撤销在 principal control stream 中被 accepted Seal 覆盖时的控制面位置（以 event_digest hash 数组表达）。撤销证明签名和任何后续 device trust proof MUST 覆盖该 frontier；Principal Server / Sync Service 在拒绝该设备后续 session grant、KeyPackage、to-device write 或 Event write 时，MUST 以该 frontier 或其后继 Seal view 作为判定依据。
 
-共享 E2EE Realm 不能只看到“某设备已撤销”的服务端布尔值就推进新 epoch。对应 `ck.mls.commit` Remove 的 `governance_binding.membership_frontier` MUST 覆盖该 `revocation_frontier`，或覆盖一个已经把该 principal control frontier 导入 Realm governance state 的显式 Move；否则该 Remove 不满足 MLS Governance Binding，新的 `covered_frontier_cell` 不得声称已覆盖该设备撤销。
+共享 E2EE Realm 不能只看到“某设备已撤销”的服务端布尔值就推进新 epoch。对应 `ck.mls.commit` Remove 的 `governance_binding.membership_frontier` MUST 覆盖该 `revocation_frontier`，或覆盖一个已经把该 principal control frontier 导入 Realm governance state 的显式 Control Move；否则该 Remove 不满足 MLS Governance Binding，新的 `covered_seals_cell` 不得声称已覆盖该设备撤销。
 
 
 ## 3. 企业单点登录 (SSO / OIDC Gateway)
@@ -247,7 +247,7 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
   })
 ```
 
-服务端 MUST 拒绝 `subordinate_alg` 不在协议算法 registry 中、或 `subordinate_public_key` 与 binding 输入声明不一致的 publish。Reducer 接受 publish 前还 MUST 校验 `payload.expected_previous_generation == current accepted generation` 且 `payload.generation == payload.expected_previous_generation + 1`；同一 Anchor batch 内若 reset 与 stale publish 并发，stale publish 因 head precondition 不成立而 fail closed，不得依赖本地到达顺序。
+服务端 MUST 拒绝 `subordinate_alg` 不在协议算法 registry 中、或 `subordinate_public_key` 与 binding 输入声明不一致的 publish。Reducer 接受 publish 前还 MUST 校验 `payload.expected_previous_generation == current accepted generation` 且 `payload.generation == payload.expected_previous_generation + 1`；同一控制提交批次内若 reset 与 stale publish 并发，stale publish 因 head precondition 不成立而 fail closed，不得依赖本地到达顺序。
 
 `trust_domain` 绑定（normative）：`ck.cross_signing.publish` 与 §14 的 reset 使用同一 deployment-scope replay boundary。Receiver MUST 在解析 publish 时先检查 `payload.trust_domain == current_receive_context.trust_domain`；不匹配时直接拒绝，不得把该 publish 纳入 accepted generation。由于 `trust_domain` 也进入 PSK 对 SSK / USK 的 binding transcript，同一 publish bytes 从 deployment A 搬到 deployment B 时签名 transcript 不同，验证必然失败。
 
@@ -337,7 +337,7 @@ Cokret 推送通道设计的目标是在不向 push gateway / vendor、上游 Sy
 
 ### 5a.2 注册与撤销
 
-- 设备 MUST 通过 `ck.device.push_route` actor-private state Event 把 `(recipient_service_did, principal_id, device_id, push_route, push_target_id, push_gateway_did, encryption_key, capabilities)` 写入当前投递 Principal Server 可见的 principal control stream 或等价 actor-private state；该 Event 不携带 `preconditions` / `effects` / `anchor_ref`，不进入 shared Realm Anchor frontier。目标 actor-private cell 的 `cell_subject` 由 schema registry 声明的 composite `(payload.recipient_service_did, payload.principal_id, payload.device_id, payload.push_route)` 派生（cas_register, bottom=reject）。`recipient_service_did` MUST 与 [`governance/member-delivery-binding.md` §2](../governance/member-delivery-binding.md) 接受准则中该 device 所属 member 的 `delivery_binding.recipient_service_did` 一致；推送注册按 `(recipient_service_did, principal, device, push_route)` 维度隔离，同一 DID 在不同 Principal Server 上下文中的 push route 不共享、不可关联。
+- 设备 MUST 通过 `ck.device.push_route` actor-private state Event 把 `(recipient_service_did, principal_id, device_id, push_route, push_target_id, push_gateway_did, encryption_key, capabilities)` 写入当前投递 Principal Server 可见的 principal control stream 或等价 actor-private state；该 Event 不携带 CBA reducer 字段，不进入 shared Realm Seal coverage。目标 actor-private cell 的 `cell_subject` 由 schema registry 声明的 composite `(payload.recipient_service_did, payload.principal_id, payload.device_id, payload.push_route)` 派生（cas_register, bottom=reject）。`recipient_service_did` MUST 与 [`governance/member-delivery-binding.md` §2](../governance/member-delivery-binding.md) 接受准则中该 device 所属 member 的 `delivery_binding.recipient_service_did` 一致；推送注册按 `(recipient_service_did, principal, device, push_route)` 维度隔离，同一 DID 在不同 Principal Server 上下文中的 push route 不共享、不可关联。
 - 撤销：设备 MUST 在同一 actor-private cell 上写后继 `ck.device.push_route` event 设置 `revoked: true` 或重新写入新 `push_target_id`；service / gateway MUST 在 actor-private state 收敛后停止接受旧伪名。
 - 轮换：客户端 SHOULD 在 push token 变化、设备恢复、Out-of-band 重新登录、或自定义 rotation 周期（默认 ≤ 90 天）时轮换 `push_target_id`。
 - 长期不可恢复性：服务方在丢弃旧 `push_target_id` 后 MUST NOT 保留可把旧 / 新伪名链接回同一 `(recipient_service_did, principal, device)` 的索引；只允许在 rotation 时短暂保留以便迁移未投递消息。短暂保留期 MUST ≤ 24h，或与单条未投递消息 TTL 取较短者；超过该窗口 MUST 物理删除旧 `push_target_id` 与对应索引材料，不得保留任何能把新旧映射回同一 device 的信息。
@@ -361,7 +361,7 @@ Cokret 推送通道设计的目标是在不向 push gateway / vendor、上游 Sy
 
 ## 6. Device List Sync
 
-任何设备新增、撤销、签名更新或算法更新，MUST 产生 `ck.device.list_update` event。该 event 是 principal control stream 中的 actor-private durable identity state；若使用 Event Envelope，顶层 `realm_id` MUST 是目标 principal 的 `principal_control_realm_id`。它不进入任一共享 Realm Anchor frontier / state_root；共享 Realm 只能通过 MLS Welcome / Remove、device trust proof 或 explicit membership / KeyPackage event 感知其结果：
+任何设备新增、撤销、签名更新或算法更新，MUST 产生 `ck.device.list_update` event。该 event 是 principal control stream 中的 actor-private durable identity state；若使用 Event Envelope，顶层 `realm_id` MUST 是目标 principal 的 `principal_control_realm_id`。它不进入任一共享 Realm 控制面 Seal coverage / state_root；共享 Realm 只能通过 MLS Welcome / Remove、device trust proof 或 explicit membership / KeyPackage event 感知其结果：
 
 ```json
 {
@@ -970,7 +970,7 @@ Cokret 使用 `ck.realm_key.share` 共享历史解密材料。共享前发送设
 
 ### 14.1 Reset Envelope
 
-Reset 操作 MUST 写入一条 `ck.cross_signing.reset` 事件到 principal control stream，并在其后**立即**发布新的 `ck.cross_signing.publish`（§5.1）以使协议状态可恢复。实现还 MUST 生成可审计记录：在同一 Anchor batch 或在 reset accepted 后的 bounded audit window 内写入 `ck.audit.accessed`，`access_kind="cross_signing_reset"`，`target_ref` 指向 reset event 或 principal control Realm，`purpose` 说明 reset reason；声明 active Audit Applet Binding 或 `ck.profile.attested_audit.e2ee.v1` 的部署 MUST 通过 `refs[role="audit_pair"]` 把 reset 与 audit event 配对，其它高安全部署 SHOULD 配对。
+Reset 操作 MUST 写入一条 `ck.cross_signing.reset` 事件到 principal control stream，并在其后**立即**发布新的 `ck.cross_signing.publish`（§5.1）以使协议状态可恢复。实现还 MUST 生成可审计记录：在同一 ordered submit batch 或在 reset accepted 后的 bounded audit window 内写入 `ck.audit.accessed`，`access_kind="cross_signing_reset"`，`target_ref` 指向 reset event 或 principal control Realm，`purpose` 说明 reset reason；声明 active Audit Applet Binding 或 `ck.profile.attested_audit.e2ee.v1` 的部署 MUST 通过 `refs[role="audit_pair"]` 把 reset 与 audit event 配对，其它高安全部署 SHOULD 配对。
 
 Schema id：`ck.schema.cross_signing_reset.v1`
 

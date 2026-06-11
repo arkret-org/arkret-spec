@@ -74,7 +74,7 @@
     },
     "frontier_ref": {
       "type": "object",
-      "description": "Optional reference to the principal control stream frontier at envelope creation time. Improves rollback detection by anchoring the envelope to a verifiable control-stream position.",
+      "description": "Optional reference to the principal control stream frontier at envelope creation time. Improves rollback detection by sealing the envelope to a verifiable control-stream position.",
       "required": [
         "frontier_digest"
       ],
@@ -82,9 +82,9 @@
         "frontier_digest": {
           "$ref": "#/$defs/hash"
         },
-        "anchor_ref": {
+        "seal_ref": {
           "type": "string",
-          "pattern": "^ck:anchor:sha256:[0-9a-f]{64}$"
+          "pattern": "^ck:seal:sha256:[0-9a-f]{64}$"
         },
         "ssk_generation": {
           "type": "integer",

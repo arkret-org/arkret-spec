@@ -277,7 +277,7 @@
     },
     "webhook_auth": {
       "type": "object",
-      "description": "HTTP message signature verification anchor for transaction push. key_ref is the DID URL whose key verifies the signature; accepted_algs pins the acceptable signature algorithms.",
+      "description": "HTTP message signature verification seal for transaction push. key_ref is the DID URL whose key verifies the signature; accepted_algs pins the acceptable signature algorithms.",
       "required": [
         "type",
         "key_ref",

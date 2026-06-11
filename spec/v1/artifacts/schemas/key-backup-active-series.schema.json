@@ -161,9 +161,9 @@
         "frontier_digest": {
           "$ref": "#/$defs/hash"
         },
-        "anchor_ref": {
+        "seal_ref": {
           "type": "string",
-          "pattern": "^ck:anchor:sha256:[0-9a-f]{64}$"
+          "pattern": "^ck:seal:sha256:[0-9a-f]{64}$"
         },
         "ssk_generation": {
           "type": "integer",

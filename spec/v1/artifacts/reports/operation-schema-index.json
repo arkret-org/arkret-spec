@@ -898,7 +898,7 @@
           "frontier",
           "freshness_state",
           "last_known_frontier_age_ms",
-          "anchorer_status",
+          "notary_status",
           "cache_expires_at",
           "reason_code",
           "retry_after_ms",

@@ -56,7 +56,7 @@
           "ck.schema.event.v1",
           "ck.schema.event_payload.v1",
           "ck.schema.cursor.v1",
-          "ck.schema.anchor.v1"
+          "ck.schema.seal.v1"
         ],
         "required_constraint_types": [
           "temporal",
@@ -84,7 +84,7 @@
           "ordered_log"
         ]
       },
-      "expected_digest": "sha256:d7a0d88d075240c9faf28c87b54708788cde1c6a1c4e68c45ee6c8b7e4d3c651",
+      "expected_digest": "sha256:1fa83b8ca1719c604c298d83e89b0456f3af5ed1382cf8dcb025b074a34e0109",
       "expected": "canonical_digest_matches_reducer_profile_registry_row"
     },
     {

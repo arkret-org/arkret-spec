@@ -126,7 +126,7 @@ profile: ck.profile.agent_sidecar_thread.v1
 `context_ref.realm_id` REQUIRED。`context_ref` MUST 解析到唯一 target endpoint,且仅满足以下两种形态之一:
 
 - `relation_id`(单独);或
-- `flow_id`,可选附加 `track_name`,可选附加至多一个 terminal anchor(`message_id` 或 future `cursor`)。
+- `flow_id`,可选附加 `track_name`,可选附加至多一个 terminal seal(`message_id` 或 future `cursor`)。
 
 若携带 `message_id`,该 Message MUST 属于 `flow_id`;`track_name` 只是上下文定位 / audit hint,不是独立 access scope。`normalized_context_ref` 是校验通过后的 `context_ref` canonical JSON form,用于幂等复用 key,不得包含未注册字段。
 
@@ -636,7 +636,7 @@ To-device 是 delivery machinery,不是 collaboration history。它不应该成�
 
 ### 6.4 为什么是 Circle + private Flow
 
-它复用了现有 security boundaries:Circle 处理 E2EE 与 membership;Flow 处理 durable discussion;Relation 处理 context anchoring。新 profile 主要标准化一个安全组合方式和产品入口。
+它复用了现有 security boundaries:Circle 处理 E2EE 与 membership;Flow 处理 durable discussion;Relation 处理 context sealing。新 profile 主要标准化一个安全组合方式和产品入口。
 
 ### 6.5 为什么 personal track 是 projection,不是 Flow track
 
@@ -685,7 +685,7 @@ Accepted profile SHOULD 增加以下 conformance fixtures:
 2. 反向 relation 不泄露:对 `to_ref=<target_message_id>` 的 relation query,non-sidecar-member 看不到 `agent_sidecar_of` 边。
 3. Directory 不可枚举:non-member 对 Realm directory 调用返回 zero hits for sidecar Circle title、display、short_name 或 member_count。
 4. Notification fanout 隔离:sidecar 内 `ck.message.create` 不触发目标 Flow members 的 notification。
-5. Anchor leaf 隔离:sidecar `effective_scope=circle` event 不出现在目标 Realm default anchor leaf 明文 metadata 中;只能作为 opaque commitment。
+5. Seal leaf 隔离:sidecar `effective_scope=circle` event 不出现在目标 Realm default seal leaf 明文 metadata 中;只能作为 opaque commitment。
 6. Revocation 闭环:`ck.self.agent.deactivate` 后,agent 被移出 sidecar Circle MLS group,后续 `agent_key_proof` session grant fail closed,sidecar 写入全部拒绝。
 
 ## 8. 迁移计划

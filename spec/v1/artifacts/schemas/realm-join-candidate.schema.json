@@ -29,16 +29,16 @@
       "enum": [
         "principal_server",
         "sync_node",
-        "anchorer"
+        "notary"
       ],
-      "description": "Service class. principal_server is the normal candidate; sync_node and anchorer are allowed only when Realm policy authorizes them to receive join-side submissions."
+      "description": "Service class. principal_server is the normal candidate; sync_node and notary are allowed only when Realm policy authorizes them to receive join-side submissions."
     },
     "role": {
       "type": "string",
       "enum": [
         "primary",
         "mirror",
-        "anchorer",
+        "notary",
         "sync",
         "federation_peer",
         "invite_origin",

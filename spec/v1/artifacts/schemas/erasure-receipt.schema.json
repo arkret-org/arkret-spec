@@ -120,7 +120,7 @@
     },
     "retained_stub_digest": {
       "$ref": "#/$defs/hash",
-      "description": "Hash of the retained verification stub after erasure: hash(canonical_json(retained_stub)). The stub must be sufficient to verify event id/digest, proof event_digest, redaction authorization, anchor inclusion, target id, legal-hold state, and receipt linkage without retaining erased plaintext."
+      "description": "Hash of the retained verification stub after erasure: hash(canonical_json(retained_stub)). The stub must be sufficient to verify event id/digest, proof event_digest, redaction authorization, seal inclusion, target id, legal-hold state, and receipt linkage without retaining erased plaintext."
     },
     "retained_stub": {
       "$ref": "#/$defs/verification_stub",
@@ -257,7 +257,7 @@
     },
     "subject_ref": {
       "type": "string",
-      "pattern": "^(did:[^\\s]+|ck:(realm|event|anchor|blob|device|policy|message|flow|morph|relation|view|snapshot|receipt):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ck:blob:sha256:[0-9a-f]{64}|sha256:[0-9a-f]{64})$"
+      "pattern": "^(did:[^\\s]+|ck:(realm|event|seal|blob|device|policy|message|flow|morph|relation|view|snapshot|receipt):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ck:blob:sha256:[0-9a-f]{64}|sha256:[0-9a-f]{64})$"
     },
     "verification_stub": {
       "type": "object",
@@ -348,10 +348,10 @@
           "uniqueItems": true,
           "description": "Event digest / object payload digests retained for signature verification. MUST NOT be a bare digest of erased low-entropy plaintext."
         },
-        "anchor_inclusion": {
+        "seal_inclusion": {
           "type": "object",
           "properties": {
-            "anchor_ref": {
+            "seal_ref": {
               "$ref": "#/$defs/subject_ref"
             },
             "frontier_digest": {

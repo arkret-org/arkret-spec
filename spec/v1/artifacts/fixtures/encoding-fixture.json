@@ -98,7 +98,6 @@
         "hlc": "01970e589d21-0004-a13f9c2e",
         "prev_refs": [],
         "refs": [],
-        "preconditions": [],
         "effects": [
           {
             "cell": "ck:cell:message:019640ed-8000-7000-8000-000000000000",
@@ -112,7 +111,15 @@
             }
           }
         ],
-        "anchor_ref": "ck:anchor:sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "seal_ref": "ck:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "auth_context": {
+          "did": "did:web:alice.example",
+          "key_id": "device-1",
+          "key_epoch": 1,
+          "capability_refs": [
+            "ck:grant:0196410c-0000-7000-8000-000000000000"
+          ]
+        },
         "payload": {
           "flow_id": "ck:flow:01964137-0000-7000-8000-000000000000",
           "track_name": "discussion",
@@ -123,8 +130,8 @@
           }
         }
       },
-      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:web:alice.example\",\"actor_seq\":1,\"anchor_ref\":\"ck:anchor:sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"created_at\":\"2026-04-26T00:00:00Z\",\"effects\":[{\"cell\":\"ck:cell:message:019640ed-8000-7000-8000-000000000000\",\"op\":{\"kind\":\"append\",\"value\":{\"flow_id\":\"ck:flow:01964137-0000-7000-8000-000000000000\",\"message_id\":\"ck:message:019640ed-8000-7000-8000-000000000000\",\"track_name\":\"discussion\"}}}],\"event_id\":\"ck:event:019640ed-8000-7000-8000-000000000000\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"ck.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ck.content.text\"},\"flow_id\":\"ck:flow:01964137-0000-7000-8000-000000000000\",\"message_id\":\"ck:message:019640ed-8000-7000-8000-000000000000\",\"track_name\":\"discussion\"},\"preconditions\":[],\"prev_refs\":[],\"realm_id\":\"ck:realm:01964137-0000-7000-8000-000000000000\",\"refs\":[]}",
-      "expected_digest": "sha256:fd7c884d9baf1fa7cd8fa0819b149fff2a26b069ce99515d05bcaf185fd2ea94",
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:web:alice.example\",\"actor_seq\":1,\"auth_context\":{\"capability_refs\":[\"ck:grant:0196410c-0000-7000-8000-000000000000\"],\"did\":\"did:web:alice.example\",\"key_epoch\":1,\"key_id\":\"device-1\"},\"created_at\":\"2026-04-26T00:00:00Z\",\"effects\":[{\"cell\":\"ck:cell:message:019640ed-8000-7000-8000-000000000000\",\"op\":{\"kind\":\"append\",\"value\":{\"flow_id\":\"ck:flow:01964137-0000-7000-8000-000000000000\",\"message_id\":\"ck:message:019640ed-8000-7000-8000-000000000000\",\"track_name\":\"discussion\"}}}],\"event_id\":\"ck:event:019640ed-8000-7000-8000-000000000000\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"ck.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ck.content.text\"},\"flow_id\":\"ck:flow:01964137-0000-7000-8000-000000000000\",\"message_id\":\"ck:message:019640ed-8000-7000-8000-000000000000\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"realm_id\":\"ck:realm:01964137-0000-7000-8000-000000000000\",\"refs\":[],\"seal_ref\":\"ck:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222\"}",
+      "expected_digest": "sha256:2a98c4056c6c7a251b2c410530d796ad5df3858097b0926b4748a98cb0e8eea3",
       "rules": [
         "event digest MUST be derived from canonical bytes after stripping proofs and unsigned, before redaction",
         "event_id MUST appear inside the digest input but does not replace the digest",

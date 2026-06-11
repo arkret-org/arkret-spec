@@ -62,7 +62,7 @@ sidebar:
 | hash / transcript 域分隔标签 | `ck.agent_sidecar_circle.v1`、`ck.invite.claim.subject_proof.v1` | 使用处定义文档（MLS exporter label 除外——它有专属 exporter-label-registry） |
 | feature id（`supported_features` / `experimental_features` 值） | `ck.feature.identity.webvh_native_log.v1`、`ck.feature.mls_governance_binding.full.v1` | service-surface.md 与对应能力文档；feature id 是 describe 协商值，未识别值按各 describe 消费方规则忽略或 fail closed |
 | DID Document / 外部生态 profile 值 | `ck.org.governance.v1` | identity-did.md 示例上下文 |
-| E2EE application message kind | `ck.identity_link` | 定义文档（encryption-and-audit.md）；其 payload schema（`ck.schema.identity_link.v1`）仍 MUST 注册，kind 本身不进 durable event registry（不经 reducer / Anchor 路径） |
+| E2EE application message kind | `ck.identity_link` | 定义文档（encryption-and-audit.md）；其 payload schema（`ck.schema.identity_link.v1`）仍 MUST 注册，kind 本身不进 durable event registry（不经 reducer / Seal 路径） |
 | 标准 account-data tag 词表 | `ck.favorite` | client-preferences.md §3.1（标准 tag 词表；tag 是加密 account data 内的私有分组标签，不进 wire registry） |
 
 ### 1.3 Interop 命名空间例外

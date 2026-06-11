@@ -1,0 +1,260 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/seal.schema.json",
+  "title": "Cokret Seal",
+  "description": "Wire shape of a Cokret CBA Seal. It finalizes only control-plane Events. `delta[]` is the canonical set of new control-plane event_digest values introduced by this Seal; cumulative coverage is derived recursively as covered_set(S)=set(S.delta) union covered_set(predecessor_refs[]). `control_event_set_root` authenticates that recursive covered_set and is used for basis, inclusion and non-membership proofs. Optional data_* roots are observational only and MUST NOT gate DataEvents. Identity & signature model (see zh/authz/event-auth-state-resolution.md §6): the typed `id` (`ck:seal:<algo>:<hex>`) is content-derived — its hex equals H(seal_canonical_bytes) under the Realm digest_algorithm. Seal canonical bytes are the canonical JSON of every signed top-level field EXCEPT id and notary_signature. The `notary_signature` is NOT part of canonical bytes. Receivers MUST recompute H(seal_canonical_bytes) and verify the notary signature over the same bytes.",
+  "type": "object",
+  "required": [
+    "id",
+    "realm_id",
+    "predecessor_refs",
+    "delta",
+    "control_event_set_root",
+    "state_root",
+    "completeness_root",
+    "notary_seq",
+    "notary_signature",
+    "sealed_at",
+    "hlc"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "#/$defs/seal_ref",
+      "description": "Content-derived typed reference. hex part MUST equal H(seal_canonical_bytes) under the Realm digest_algorithm, where seal_canonical_bytes is the canonical JSON of every signed body field EXCEPT `id` and `notary_signature`. Receivers MUST recompute and verify; mismatch → digest_mismatch. NEVER include `id` in the hash input — that would create a self-reference."
+    },
+    "realm_id": {
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
+    },
+    "predecessor_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/seal_ref"
+      },
+      "uniqueItems": true
+    },
+    "delta": {
+      "type": "array",
+      "description": "Canonical bytewise-sorted set of new control-plane event_digest values introduced by this Seal. DataEvent digests MUST NOT appear here. Receivers MUST reject the Seal if any delta entry is already covered by a predecessor, if any entry is not a known valid Control Move digest, or if the list is not canonical sorted and duplicate-free.",
+      "items": {
+        "$ref": "#/$defs/event_digest"
+      },
+      "uniqueItems": true
+    },
+    "control_event_set_root": {
+      "$ref": "#/$defs/hash",
+      "description": "Authenticated root over the recursive covered_set of this Seal. Default construction is RFC6962 Merkle root over canonical bytewise-sorted covered_set(S); inclusion uses Merkle audit path and non-membership uses sorted-neighbor proof. The root is not computed over delta[] alone."
+    },
+    "state_root": {
+      "$ref": "#/$defs/hash",
+      "description": "Merkle root of control-plane cell state only."
+    },
+    "completeness_root": {
+      "$ref": "#/$defs/hash",
+      "description": "Control-plane per-actor interval / chain-head completeness commitment. It does not prove absence of unknown actors."
+    },
+    "notary_seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Per-signer or committee slot sequence used for equivocation detection. Same signer and same realm_id MUST NOT sign two different canonical Seal bodies with the same notary_seq."
+    },
+    "data_view_root": {
+      "$ref": "#/$defs/hash",
+      "description": "Optional observational root of KeyView records keyed by data cell id. It is not a DataEvent admission gate."
+    },
+    "data_event_set_root": {
+      "$ref": "#/$defs/hash",
+      "description": "Optional observational root over DataEvent digests seen in this seal window. Missing DataEvents are not invalid."
+    },
+    "availability_root": {
+      "$ref": "#/$defs/hash",
+      "description": "Optional root over AvailabilityReceipt records."
+    },
+    "coverage_scope": {
+      "type": "object",
+      "description": "Optional observational coverage declaration for data_view_root / data_event_set_root. The object is intentionally closed only by deployment profiles; core verifiers treat it as signed diagnostic material.",
+      "additionalProperties": true
+    },
+    "covered_event_digests": {
+      "type": "array",
+      "description": "Optional compaction materialization of the full recursive covered_set(S), canonical bytewise-sorted and duplicate-free. When present, receivers MUST verify it equals set(delta) union all predecessor covered sets and that control_event_set_root is computed over this exact set. Non-compaction Seals normally omit it.",
+      "items": {
+        "$ref": "#/$defs/event_digest"
+      },
+      "uniqueItems": true
+    },
+    "previous_state_root": {
+      "$ref": "#/$defs/hash",
+      "description": "Hash-algorithm transition only: present iff this Seal is a Transition Seal under ck.profile.hash_transition.v1. When present, MUST be computed with the previous digest_algorithm algorithm over the same recursive covered_set as state_root, and MUST equal the receiver-recomputed root under that algorithm before the new state_root is accepted. See event-auth-state-resolution.md §4.2.5."
+    },
+    "previous_digest_algorithm": {
+      "type": "string",
+      "pattern": "^ck\\.profile\\.hash\\.[a-z0-9_]+\\.v[0-9]+$",
+      "description": "Profile id of the previous hash algorithm. Required iff previous_state_root is present; absent on non-transition Seals."
+    },
+    "notary_signature": {
+      "description": "Signature over seal_canonical_bytes (every signed body field EXCEPT `id` and `notary_signature`). MUST NOT enter the canonical bytes itself — signatures never sign themselves. Seal is not an Event Envelope, so its signature uses the generic non-Event proof field `payload_digest`; that value MUST equal H(seal_canonical_bytes) under the Realm digest_algorithm. Event Envelope proofs use `event_digest` instead.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/signature"
+        },
+        {
+          "$ref": "#/$defs/multi_signature"
+        },
+        {
+          "$ref": "#/$defs/threshold_signature"
+        }
+      ]
+    },
+    "sealed_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$",
+      "description": "Wall-clock timestamp at which the notary signed this Seal. Used only for reducer-derived projection timestamps and freshness diagnostics; not a lattice winner input."
+    },
+    "hlc": {
+      "$ref": "#/$defs/hlc"
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "previous_state_root"
+        ]
+      },
+      "then": {
+        "required": [
+          "previous_digest_algorithm"
+        ]
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "previous_digest_algorithm"
+        ]
+      },
+      "then": {
+        "required": [
+          "previous_state_root"
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "seal_ref": {
+      "type": "string",
+      "pattern": "^ck:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
+    },
+    "event_digest": {
+      "type": "string",
+      "pattern": "^(?:sha256|blake3):[0-9a-f]{64}$"
+    },
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "hlc": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+    },
+    "signature": {
+      "type": "object",
+      "required": [
+        "verification_method",
+        "alg",
+        "payload_digest",
+        "created_at",
+        "jws"
+      ],
+      "properties": {
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
+          "description": "DID URL of the signing key. Bare DID is not valid for signatures because verifiers need a stable verification method, not only a controller DID."
+        },
+        "alg": {
+          "type": "string",
+          "enum": [
+            "EdDSA",
+            "ES256",
+            "ML-DSA-65"
+          ]
+        },
+        "payload_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Hash of seal_canonical_bytes for this non-Event Seal signature. Do not rename to event_digest: event_digest is reserved for Event Envelope proofs."
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": true
+    },
+    "multi_signature": {
+      "type": "object",
+      "required": [
+        "kind",
+        "signatures"
+      ],
+      "properties": {
+        "kind": {
+          "const": "multi_sig"
+        },
+        "signatures": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/signature"
+          },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "threshold_signature": {
+      "type": "object",
+      "required": [
+        "kind",
+        "threshold",
+        "signers",
+        "proof"
+      ],
+      "properties": {
+        "kind": {
+          "const": "threshold_sig"
+        },
+        "threshold": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "signers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "proof": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

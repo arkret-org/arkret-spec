@@ -161,7 +161,7 @@ ck.gate.account.oidc_callback   ck.gate.account.agent_key_pair
 
 下列保持 **admin 产品面**(CHANGELOG 2026-06-04),不进协议:
 
-- `/_soland/admin/realms/{id}/anchorer`、`/_soland/admin/devices/{id}/revoke`、`PATCH /_soland/self/policies/{id}`。
+- `/_soland/admin/realms/{id}/notary`、`/_soland/admin/devices/{id}/revoke`、`PATCH /_soland/self/policies/{id}`。
 
 ## 5. Migration / 影响 artifact
 

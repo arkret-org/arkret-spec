@@ -119,7 +119,7 @@ Matrix 的 Olm / Megolm 生态成熟、部署广泛、客户端实现经验丰�
 | Matrix | Cokret | 说明 |
 | --- | --- | --- |
 | Megolm outbound session（per-sender ratchet） | MLS exporter / application key per epoch | Cokret 没有 per-sender Megolm session；群组密钥状态由 MLS group state、epoch、KeyPackage 演进。 |
-| Megolm inbound session 缓存 | MLS group state + epoch material 写入 `mls_epoch_cell`、`key_schedule_cell`、`covered_frontier_cell` | epoch 被 lattice cell 显式承载，governance 状态通过 §6.5 的 MLS Governance Binding 与 MLS transcript 哈希绑定。 |
+| Megolm inbound session 缓存 | MLS group state + epoch material 写入 `mls_epoch_cell`、`key_schedule_cell`、`covered_seals_cell` | epoch 被 lattice cell 显式承载，governance 状态通过 §6.5 的 MLS Governance Binding 与 MLS transcript 哈希绑定。 |
 | Megolm Ed25519 签名（per-message） | MLS application message 内嵌签名 + MLS transcript | 完整性来自 MLS 标准；不再额外维护 per-message Megolm 签名链。 |
 
 #### 4.5.4 Cross-Signing 与信任视图
@@ -239,7 +239,7 @@ Cokret 的目标是协作图：任务依赖、对象引用、结构化 mention�
 
 ## 6. State Model 与 Writer Model 的明确偏离
 
-Matrix v1/v11 room state model 与 Cokret 的 **Move · Anchor · Lattice** 模型有若干关键偏离。本节列出这些偏离，使实现者在概念映射时不被相似命名误导。
+Matrix v1/v11 room state model 与 Cokret 的 **CBA · Lattice** 模型有若干关键偏离。本节列出这些偏离，使实现者在概念映射时不被相似命名误导。
 
 ### 6.1 没有 `state_key` 字段
 
@@ -247,12 +247,12 @@ Matrix event envelope 顶层有 `state_key` 字段，state event 用 `(type, sta
 
 替代设计：
 
-- 协议状态写入由 Move 的 `effects[(cell_id, lattice_op)]` 表达。
+- 协议状态写入由 DataEvent 或 Control Move 的 `effects[(cell_id, lattice_op)]` 表达。
 - `cell_id` 是显式 canonical cell，例如 `ck:cell:ck.component.member.state.v1:<actor-did>`。
 - 每个 cell family 在 registry / Realm schema 中声明 `lattice` 与 `bottom`。
-- Subject 信息仍存在于 payload 或 Move effect value 中，并由 explicit cell id 承载。
+- Subject 信息仍存在于 payload 或 effect value 中，并由 explicit cell id 承载。
 
-**理由**：Matrix `state_key` 在实际使用中过载了多种语义。Cokret 把这些语义移动到 cell id 与 lattice schema，使多 cell 原子写、冲突 bottom、Anchor finality 和轻客户端 state_root 验证可以共用同一模型。详见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §3–§5。
+**理由**：Matrix `state_key` 在实际使用中过载了多种语义。Cokret 把这些语义移动到 cell id 与 lattice schema，使多 cell 原子写、冲突 bottom、Seal finality 和轻客户端 state_root 验证可以共用同一模型。详见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §3–§5。
 
 ### 6.2 没有 `ck.realm.policy.set` 这种聚合 kind
 
@@ -265,7 +265,7 @@ Matrix 把所有 room 配置塞进 `m.room.*` 一组同 type、不同 state_key 
 Matrix room state v2/v11 会在每个 `(type, state_key)` 上重建 auth chain difference 并自动选出 winner。Cokret v1 不再有全局 winner 算法：
 
 - Move 是多 cell 原子 CAS，precondition 不成立则整个 Move 失败。
-- Anchor 是 ordering authority 对 Move frontier 的承诺，Hub、threshold、peer mesh 都只是 anchorer cell 的不同 value。
+- Seal 是 ordering authority 对 Move frontier 的承诺，Hub、threshold、peer mesh 都只是 notary cell 的不同 value。
 - Lattice `join()` 对每个 cell 返回 value 或 `⊥`；安全关键 cell 使用 `bottom=reject` fail closed，不自动猜 winner。
 - 冲突修复是普通 Move（例如 `head_in [A,B]` + recovery capability），不是特殊裁决路径。
 
@@ -285,9 +285,9 @@ Receiver 不识别核心 lattice type MUST fail closed；扩展 cell family 必�
 Matrix 的 E2EE（Olm/Megolm）和 room state 是两条并行轨。Cokret v1 引入 **MLS Governance Binding**（profile `ck.profile.mls_governance_binding.full.v1`，定义见 `crypto-media/encryption-and-audit.md §2.5`），把 MLS epoch 强绑定到 governance state，由两层 wire-level artifact 协同工作：
 
 - **Commit 侧** —— 每个 `ck.mls.commit` 携带 `governance_binding`（GroupContext extension `mls_governance_binding`），把 membership / policy / capability / discussion-metadata roots 哈希进 MLS transcript。
-- **Lattice 侧** —— MLS commit 是 Move，写入 `mls_epoch_cell`、`key_schedule_cell` 与 `covered_frontier_cell`（or_set）。E2EE message Move 用 `contains` precondition 证明 `covered_frontier_cell` 覆盖自身 `anchor_ref` 所需 governance frontier。
+- **Lattice 侧** —— MLS commit 是 Control Move，写入 `mls_epoch_cell`、`key_schedule_cell` 与 `covered_seals_cell`（or_set）。E2EE message DataEvent 用 `seal_ref` 指向已被 MLS governance binding 覆盖的治理 Seal。
 
-**理由**：撤销、ban、device revoke 和 policy 收紧不能只在应用层 accepted；它们必须被 MLS epoch / key schedule 覆盖后才能影响新消息解密能力。`covered_frontier_cell` 让这条 "governance state 已被 commit attest 覆盖" 的事实变成可被 reducer 确定性查询的 lattice cell，而不是隐含在 transcript hash 里的 ad-hoc 检查。governance / recovery Move 不引用 `covered_frontier_cell`，因此 MLS 卡住不会阻止冲突修复。
+**理由**：撤销、ban、device revoke 和 policy 收紧不能只在应用层 accepted；它们必须被 MLS epoch / key schedule 覆盖后才能影响新消息解密能力。`covered_seals_cell` 让这条 "governance state 已被 commit attest 覆盖" 的事实变成可被 reducer 确定性查询的 lattice cell，而不是隐含在 transcript hash 里的 ad-hoc 检查。governance / recovery Move 不引用 `covered_seals_cell`，因此 MLS 卡住不会阻止冲突修复。
 
 ### 6.6 Holder-Private Consent
 
@@ -307,8 +307,8 @@ Cokret 不应忽略 Matrix 的成熟度：
 
 ## 8. 相关文档
 
-- [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) — Move、Anchor、Lattice、bottom diagnostics、E2EE MLS Move
-- [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) — MLS Governance Binding：`governance_binding` 与 `covered_frontier_cell`
+- [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) — Move、Seal、Lattice、bottom diagnostics、E2EE MLS Move
+- [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) — MLS Governance Binding：`governance_binding` 与 `covered_seals_cell`
 - [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) — device 密钥记录、prekey / fallback / KeyPackage claim、to-device 验证状态机、`push_target_id`、key backup envelope
 - [`identity/key-management.md`](../identity/key-management.md) — inception / principal / recovery / device / session / agent / KeyPackage 密钥层级，`backup_class` 域隔离，社交恢复
 - [`identity/consent-model.md`](../identity/consent-model.md) — holder-private consent on consent cell（or_set lattice）

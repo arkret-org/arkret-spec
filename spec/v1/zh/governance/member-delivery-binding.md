@@ -22,7 +22,7 @@ see_also:
 
 ## 2. 接受准则（normative）
 
-任一 `ck.member.state{membership="join"}` Move 被 reducer 接受前 MUST 满足：
+任一 `ck.member.state{membership="join"}` Control Move 被 reducer 接受前 MUST 满足：
 
 1. `payload.delivery_status ∈ {routable, unroutable}` 显式声明。
 2. `delivery_status="routable"` 时 `payload.delivery_binding` 必填，且其 `binding_source` 在 Realm `ck.component.realm.delivery_binding_policy.v1`（§4）的 `allow_binding_sources` 集合内。
@@ -31,7 +31,7 @@ see_also:
 5. `delivery_binding` 的 `binding_source`-conditional required 字段满足 [`event-payload.schema.json#/$defs/member_delivery_binding`](../../artifacts/schemas/event-payload.schema.json)（例如 `did_document_default` MUST 含 `did_document_digest`；`explicit` / `invite` / `organization_policy` MUST 含 `service_acceptance_ref`；policy-driven source MUST 含 `policy_event_ref`）。
 6. `delivery_binding.delivery_modes` 是该 binding 的**显式**模式集合；空集合或缺失等价于 schema violation。普通"全功能"成员 SHOULD 列出 `["events", "sync", "to_device", "push", "key_packages"]`。
 
-reducer 校验上述任一条失败 MUST 拒绝该 Move 并返回 `delivery_binding_invalid`，**不得**降级为部分接受。
+reducer 校验上述任一条失败 MUST 拒绝该 Control Move 并返回 `delivery_binding_invalid`，**不得**降级为部分接受。
 
 注意：`payload.delivery_binding` / `member_delivery_binding.recipient_service_did` 描述的是成员加入后接收 events、sync、to-device、push、key package 的目标 Principal Server；`join_candidates[]` 描述的是本次 join / invite-accept / knock material 可提交到哪些 Realm ingress service。两者方向不同、生命周期不同、授权来源不同。Join builder 和 reducer MUST NOT 从 `join_candidates[].service_did` 推导成员 `delivery_binding`，也 MUST NOT 从成员 `delivery_binding.recipient_service_did` 推导 Realm ingress candidate。
 
@@ -75,7 +75,7 @@ reducer 校验上述任一条失败 MUST 拒绝该 Move 并返回 `delivery_bind
 
 Reducer MUST 在 gate proof 通过前先校验 applicant 是否具备提交 `ck.member.state{join}` 的 capability 或等价 invite / join-authorized grant；gate 只能增加限制，不能创造权限。最终 `binding_source` 不在 `allow_binding_sources` 中、或优先级决策得到的 binding 与 policy allowlist 冲突时，reducer MUST 返回 `delivery_binding_policy_mismatch`，不得降级到下一个来源。
 
-Realm history SHOULD NOT 写入受限组织 handle 明文。需要审计时，Move 可引用 handle claim / service acceptance Event 的 `event_id`，或在私有 review / invite 流程中保存最小披露记录；公开成员状态只需要 DID 与 `delivery_binding`。
+Realm history SHOULD NOT 写入受限组织 handle 明文。需要审计时，Control Move 可引用 handle claim / service acceptance Event 的 `event_id`，或在私有 review / invite 流程中保存最小披露记录；公开成员状态只需要 DID 与 `delivery_binding`。
 
 ## 4. Policy 事件：`ck.realm.delivery_binding_policy`
 
@@ -114,7 +114,7 @@ Realm 通过独立的 `ck.realm.delivery_binding_policy` event 声明对成员�
 | `allowed_recipient_services` | `did[]` | `[]`（不限） | 允许出现在 `recipient_service_did` 的封闭集合。空数组等价于"不限"——此 fail-open 默认**仅适用个人 / 公开 Realm**。**组织 / 合规 Realm MUST 显式声明非空 allowlist**；漏配空集会放开任意 recipient service，与本文整体 fail-closed 取向（§2 / §5 / §6）相悖。需要"不限"语义时 SHOULD 显式表达，不应依赖漏配的空集。 |
 | `required_endorsers` | `did[]` | `[]` | 当 `allowed_recipient_services` 非空时，`recipient_service_did` 的 `service_acceptance_ref` MUST 由其中一个治理 DID 背书；否则空数组表示无强制背书要求。 |
 | `allow_unroutable_membership` | `boolean` | `false` | 是否允许 `delivery_status="unroutable"` 成员。 |
-| `rebind_authorization` | `enum(member, member_and_admin, admin_only, service_only, any)` | `member_and_admin` | rebind Move 的合法签名 / 背书集合（见 §6）。 |
+| `rebind_authorization` | `enum(member, member_and_admin, admin_only, service_only, any)` | `member_and_admin` | rebind Control Move 的合法签名 / 背书集合（见 §6）。 |
 | `expires_after_seconds` | `int?` | unset = 不过期 | 该 Realm 中所有 binding 的最大有效期；reducer MUST 在物化时把 `delivery_binding.expires_at = resolved_at + expires_after_seconds`，除非 binding 显式声明更短的 `expires_at`。 |
 
 `ck.component.realm.delivery_binding_policy.v1` 是 cas_register cell（`cell_subject=null`，每 Realm 一个）。变更走 [`models/realm-and-space.md`](../models/realm-and-space.md) 的 `ck.realm.policy_components` 通用路径。
@@ -135,14 +135,14 @@ Realm 通过独立的 `ck.realm.delivery_binding_policy` event 声明对成员�
 
 成员保持 `membership="join"` 但迁移 `recipient_service_did`（个人 PS → 组织 PS、组织换集群、灾备切换等）通过同一 `ck.member.state{membership="join"}` 的同状态 self-transition 完成：
 
-1. **签名 / 背书**：rebind Move 的可签名主体由 `rebind_authorization` 决定：
+1. **签名 / 背书**：rebind Control Move 的可签名主体由 `rebind_authorization` 决定：
    - `member`：仅成员 DID 自签即可。
    - `member_and_admin`：成员 DID 自签 + Realm `ck.realm.admin` capability 持有者背书（双签）。
    - `admin_only`：仅 Realm admin 可发起（用于离职 / 强制迁移）。
    - `service_only`：仅当前 / 目标 recipient service DID 可发起（用于服务运维迁移）。
    - `any`：上述任一即可。
-2. **Precondition**：Move 的 `prev_refs` MUST 引用前一 accepted member cell 的 head；reducer 用 cas_register 校验前态。
-3. **Handover frontier `F`**：该 Move 被接受时的 accepted causal frontier 是 rebind 切换点。事件因果图是偏序，切分 MUST 按下表**全分类**（任何 Realm event 恰好落入一类，不存在实现自由）：
+2. **Precondition**：Control Move 的 `prev_refs` MUST 引用前一 sealed member cell 的 head；reducer 用 cas_register 校验前态。
+3. **Handover frontier `F`**：该 Control Move 被 accepted Seal 覆盖时的 control point 是 rebind 切换点。事件因果图是偏序，切分 MUST 按下表**全分类**（任何 Realm event 恰好落入一类，不存在实现自由）：
    - causal 上 `prec(F)`（严格先于 F，不含 F）的 Realm events MUST 仍投递到旧 `recipient_service_did`（grace 内；grace 外见第 4 条）。
    - causal 上 `succ(F)`（含 F 及其后继）的 Realm events MUST 投递到新 `recipient_service_did`。
    - **与 F 并发**（既非 `prec(F)` 也非 `succ(F)`）的 Realm events：grace 内 sender MUST 双投（旧 + 新两个 `recipient_service_did`），接收方按 `event_id` + canonical hash 去重（与 [`operations-sync.md` §2.1](../sync/operations-sync.md) 的 `duplicate_conflict` 配对规则一致）；grace 外 MUST 只投新服务。
@@ -151,7 +151,7 @@ Realm 通过独立的 `ck.realm.delivery_binding_policy` event 声明对成员�
 5. **In-flight 事件**：sender 收到旧目标的 reject（无论 grace 内的临时失败还是 grace 外的 `delivery_binding_handed_over`）MUST 按新 binding 重新投递；不得回退到 DID Document，不得因 grace 已过而丢弃事件。
 6. 旧服务在 grace 结束后 MUST NOT 保留可逆映射到该 Realm membership 的 sync state / to-device queue / push registration。新服务从 handover frontier 起重建 sync state，但 MUST 接受 `prec(F)` ∪ ∥F 的迟到 / 重投事件写入 Realm 历史（重建基线只约束 sync state 起点，不构成对迟到事件的拒收理由）。
 
-未满足 rebind 授权或 precondition 的 Move **MUST fail closed**；服务不得仅因 DID Document 更新、本地 service account 切换、SSO subject 变更或员工目录调整自动迁移既有 Realm membership 的投递路径。
+未满足 rebind 授权或 precondition 的 Control Move **MUST fail closed**；服务不得仅因 DID Document 更新、本地 service account 切换、SSO subject 变更或员工目录调整自动迁移既有 Realm membership 的投递路径。
 
 ## 7. 单 binding 约束 + 多设备策略
 

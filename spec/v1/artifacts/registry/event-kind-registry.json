@@ -16,14 +16,14 @@
     "capability_gated": "Gated by one or more named capability actions listed in admission_capabilities. Reducer MUST verify the actor holds a matching action grant per capability-action-registry. Fail-closed."
   },
   "registry_rules": [
-    "Standard ck.* effect kinds MUST appear in this registry when used by a Move effect or Event Envelope payload router.",
+    "Standard ck.* effect kinds MUST appear in this registry when used by a DataEvent effect, Control Move effect, or Event Envelope payload router.",
     "Events API, Sync durable history, Federation, and canonical reducers MUST accept only active entries with wire_scope=durable_event unless an implementation profile explicitly defines a private channel for actor_private_event.",
-    "Entries with wire_scope=ephemeral_event MUST be carried only on ephemeral channels and MUST NOT advance Anchor frontier, Move state_root, or reducer state.",
-    "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into a shared Realm Move/Anchor history.",
-    "Reducer-input durable kinds MAY declare cell_family, cell_subject, lattice, bottom, and (cas_register only) initial_value. cell_family is a stable ck.component.*.v<n> URI; cell_subject is null, a payload field path, or a composite descriptor; bottom is reject or expose. initial_value declares the value the cas_register reports before any Move has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` Move predicates implements singleton-once-set cells.",
-    "Registered exemption: protocol-singleton cells that are not written through a single event_kind are NOT indexed here. Currently the only such cell family is ck.component.anchorer.v1 (per-Realm anchorer cell, lattice=cas_register, bottom=reject): its genesis value comes from the ck.realm.create payload anchorer object and subsequent changes are ordinary anchorer-finalized Moves; its canonical definition lives in zh/authz/event-auth-state-resolution.md section 4.4. Any future cell family without a single writer kind MUST be added to this exemption list explicitly.",
-    "Lattice MUST be one of: core types or_set, mv_register, cas_register, fsm, counter, ordered_log; or extension types lww_register, rga (only declarable on cells with cell_role in {ui_affordance, content, draft, cosmetic} and only valid for receivers that implement ck.profile.collaborative_text.v1; receivers without that profile MUST fail closed with unsupported_lattice_type when an event_kind references a cell using lww_register or rga). Authorization, policy, anchorer, membership, and lifecycle cells MUST NOT use lww_register or rga.",
-    "State convergence is defined by Move preconditions/effects, Anchor DAG finality, and per-cell Lattice join. Compatibility Event Envelope fields are payload routing only and MUST NOT be used as ordering authority.",
+    "Entries with wire_scope=ephemeral_event MUST be carried only on ephemeral channels and MUST NOT advance Seal coverage, governance state_root, or reducer state.",
+    "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into shared Realm data-plane history or control-plane Seal history.",
+    "Reducer-input durable kinds MAY declare cell_family, cell_subject, lattice, bottom, and (cas_register only) initial_value. cell_family is a stable ck.component.*.v<n> URI; cell_subject is null, a payload field path, or a composite descriptor; bottom is reject or expose. initial_value declares the value the cas_register reports before any DataEvent or Control Move effect has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` Control Move predicates implements singleton-once-set cells.",
+    "Registered exemption: protocol-singleton cells that are not written through a single event_kind are NOT indexed here. Currently the only such cell family is ck.component.notary.v1 (per-Realm notary cell, lattice=cas_register, bottom=reject): its genesis value comes from the ck.realm.create payload notary object and subsequent changes are ordinary notary-finalized Control Moves; its canonical definition lives in zh/authz/event-auth-state-resolution.md section 4.4. Any future cell family without a single writer kind MUST be added to this exemption list explicitly.",
+    "Lattice MUST be one of: core types or_set, mv_register, cas_register, fsm, counter, ordered_log; or extension types lww_register, rga (only declarable on cells with cell_role in {ui_affordance, content, draft, cosmetic} and only valid for receivers that implement ck.profile.collaborative_text.v1; receivers without that profile MUST fail closed with unsupported_lattice_type when an event_kind references a cell using lww_register or rga). Authorization, policy, notary, membership, and lifecycle cells MUST NOT use lww_register or rga.",
+    "State convergence is defined by CBA: DataEvent effects are locally accepted against seal_ref, Control Move effects are finalized by Seals, and per-cell Lattice join remains deterministic. Event Envelope routing fields MUST NOT be used as ordering authority.",
     "Every active durable reducer-input event_kind MUST have a machine-readable admission source: either at least one capability action targets it (capability_action_registry.target_event_kinds), or it declares an admission class from admission_class_definitions. capability_gated events MUST list the authorizing action(s) in admission_capabilities. Enforced by lint_artifacts.py; no active durable reducer-input event may lack an admission source (fail-closed)."
   ],
   "payload_schema_contract": {
@@ -448,12 +448,12 @@
       "bottom": "reject"
     },
     {
-      "event_kind": "ck.circle.anchor_commit",
+      "event_kind": "ck.circle.seal_commit",
       "category": "circle",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": false,
-      "payload": "Reducer-derived: Circle sub-anchor commits opaque sub_anchor_head_digest to the Realm Anchor stream at the Circle's profile-defined cadence. MUST use time-based ticks + empty-batch commitment to avoid leaking activity frequency. See zh/models/circle.md §10.2."
+      "payload": "Reducer-derived: Circle sub-seal commits opaque sub_seal_head_digest to the Realm Seal stream at the Circle's profile-defined cadence. MUST use time-based ticks + empty-batch commitment to avoid leaking activity frequency. See zh/models/circle.md §10.2."
     },
     {
       "event_kind": "ck.organization.discovery",
@@ -2006,7 +2006,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": false,
-      "payload": "Range-bound completeness attestation. Distinct from ck.audit.ryw_receipt (per-event read-your-writes hint) and ck.event_batch_receipt (set-bound integrity hint): this attestation asserts completeness over an explicit (from_frontier, to_frontier) + per-actor seq interval range. Issuer commits to having observed every reducer-input event in scope; witness quorum or independent anchor backing is required for non-self-attested deployments. See zh/sync/operations-sync.md §4.2."
+      "payload": "Range-bound completeness attestation. Distinct from ck.audit.ryw_receipt (per-event read-your-writes hint) and ck.event_batch_receipt (set-bound integrity hint): this attestation asserts completeness over an explicit (from_frontier, to_frontier) + per-actor seq interval range. Issuer commits to having observed every reducer-input event in scope; witness quorum or independent seal backing is required for non-self-attested deployments. See zh/sync/operations-sync.md §4.2."
     },
     {
       "event_kind": "ck.self.moderation.report",
@@ -2032,7 +2032,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Anchored moderation decision (writes ck.component.moderation_state.v1 cell)"
+      "payload": "Sealed moderation decision (writes ck.component.moderation_state.v1 cell)"
     },
     {
       "event_kind": "ck.moderation.decision.lift",
@@ -2040,7 +2040,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Lift a previously anchored moderation decision"
+      "payload": "Lift a previously sealed moderation decision"
     },
     {
       "event_kind": "ck.moderation.appeal.submit",

@@ -285,7 +285,7 @@ View 应通过结构化 query 表达对象范围。
 
 ```json
 {
-  "anchor_ref": "ck:flow:019640f9-8000-7000-8000-000000000000",
+  "context_ref": "ck:flow:019640f9-8000-7000-8000-000000000000",
   "include": [
     "relations",
     "synthesis",

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/moderation-appeal.schema.json",
   "title": "Cokret Moderation Appeal",
-  "description": "Payload shapes for the four ck.moderation.appeal.* event kinds (submit / review / decision / close) that close the moderation appeal loop. Each kind writes the ck.component.moderation_appeal.v1 cell on a deterministic state machine: (none) → submitted → under_review → decided → closed, with close also allowed from submitted/under_review for appellant withdrawal or timer auto-close. The decided state additionally records the verdict (uphold / overturn / modify); overturn MUST be paired in the same Anchor batch with a ck.moderation.decision.lift event referencing the original decision. All payloads carry realm_id and reducers MUST require it to equal the enclosing Event.realm_id and the appealed decision's Realm. See zh/governance/content-moderation.md §5.5 (appeal flow). Capability: ck.moderation.appeal.submit (any member, low risk) for submit; ck.moderation.appeal.review (moderator) for review/decision/manual reviewer close; appellant withdrawal is authorized by closer == appellant.",
+  "description": "Payload shapes for the four ck.moderation.appeal.* event kinds (submit / review / decision / close) that close the moderation appeal loop. Each kind writes the ck.component.moderation_appeal.v1 cell on a deterministic state machine: (none) → submitted → under_review → decided → closed, with close also allowed from submitted/under_review for appellant withdrawal or timer auto-close. The decided state additionally records the verdict (uphold / overturn / modify); overturn MUST be paired in the same ordered submit batch or equivalent control transaction with a ck.moderation.decision.lift event referencing the original decision. All payloads carry realm_id and reducers MUST require it to equal the enclosing Event.realm_id and the appealed decision's Realm. See zh/governance/content-moderation.md §5.5 (appeal flow). Capability: ck.moderation.appeal.submit (any member, low risk) for submit; ck.moderation.appeal.review (moderator) for review/decision/manual reviewer close; appellant withdrawal is authorized by closer == appellant.",
   "type": "object",
   "oneOf": [
     {
@@ -133,7 +133,7 @@
     },
     "decision_payload": {
       "type": "object",
-      "description": "ck.moderation.appeal.decision — reviewer's verdict. Transitions cell state under_review → decided. Verdict semantics: uphold = original decision stands, no further action; overturn = original decision reversed, this event MUST be paired in the same Anchor batch with a ck.moderation.decision.lift event whose target equals decision_ref (reducer rejects with appeal_overturn_missing_lift otherwise); modify = original decision adjusted (parameters revised), modify_decision_ref MUST point to a new ck.moderation.decision event in the same batch that supersedes the original.",
+      "description": "ck.moderation.appeal.decision — reviewer's verdict. Transitions cell state under_review → decided. Verdict semantics: uphold = original decision stands, no further action; overturn = original decision reversed, this event MUST be paired in the same ordered submit batch or equivalent control transaction with a ck.moderation.decision.lift event whose target equals decision_ref (reducer rejects with appeal_overturn_missing_lift otherwise); modify = original decision adjusted (parameters revised), modify_decision_ref MUST point to a new ck.moderation.decision event in the same batch that supersedes the original.",
       "required": [
         "appeal_id",
         "realm_id",
@@ -167,7 +167,7 @@
         "modify_decision_ref": {
           "type": "string",
           "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-          "description": "Required iff verdict=modify. Points to the replacement ck.moderation.decision event in the same Anchor batch."
+          "description": "Required iff verdict=modify. Points to the replacement ck.moderation.decision event in the same ordered submit batch or equivalent control transaction."
         },
         "decided_at": {
           "$ref": "#/$defs/timestamp"

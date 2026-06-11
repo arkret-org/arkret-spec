@@ -178,7 +178,7 @@
         },
         "additionalProperties": false
       },
-      "description": "Recovery services explicitly declared in the principal's DID Document (or sovereign trust anchor). Required when allowed_proof_kinds contains 'trusted_recovery_service'."
+      "description": "Recovery services explicitly declared in the principal's DID Document (or sovereign trust seal). Required when allowed_proof_kinds contains 'trusted_recovery_service'."
     },
     "approval_requirement": {
       "type": "object",

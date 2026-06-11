@@ -57,7 +57,7 @@ Cokret 的合规审计目标是：在不削弱默认 E2EE 的前提下，为明�
 | `allowed_release_modes` | yes | 允许的 release mode；默认 SHOULD 仅含 `targeted_evidence_release`。 |
 | `audit_assurance_class` | yes | `attested_hardware` 或 `disclosed_policy`。 |
 | `notice_policy` | yes | session notice 的 audience、delay、是否要求成员通知或公告。 |
-| `activation_frontier_digest` | yes | Binding 公告 / policy revision 被 accepted 时的 Anchor frontier digest。该 frontier 是审计资格的下界。 |
+| `activation_frontier_digest` | yes | Binding 公告 / policy revision 被 accepted Seal 覆盖时的控制面 coverage digest。该 coverage point 是审计资格的下界。 |
 | `first_auditable_epoch` | yes | 第一个可以被该 binding 审计的 MLS epoch；MUST 是覆盖 `activation_frontier_digest` 的 `ck.mls.commit` 之后的 epoch。 |
 | `release_window_policy` | yes | 最大审计窗口和 release 限制。`retroactive_release` MUST 固定为 `forbidden`；可选 `max_lookback_ms` / `max_epoch_span` 只能收窄未来 release。 |
 | `policy_version_digest` | yes | Realm-bound policy hash，覆盖 binding、scope、purpose、notice、approver 与 release-mode policy。 |
@@ -149,7 +149,7 @@ Authorize payload MUST 引用 `session_id`、`binding_id`、`approver_actor_id`�
 | `release_mode` | yes | `targeted_evidence_release` 或 `sealed_epoch_key_release`。 |
 | `sealed_epoch_range` | conditional | release 覆盖 epoch 时必填；不得包含当前 active epoch。 |
 | `target_refs` | conditional | target-based release 时必填。 |
-| `checkpoint_ref` / `checkpoint_digest` | yes | release 所依赖的 accepted history checkpoint。 |
+| `seal_ref` / `seal_digest` | yes | release 所依赖的 accepted history seal。 |
 | `recipient_audit_actor_id` | yes | 接收材料的审计主体。 |
 | `recipient_public_key_ref` | yes | release material 加密目标 key。 |
 | `approver_actor_id` | yes | 授权者。 |

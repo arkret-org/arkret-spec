@@ -83,7 +83,7 @@ Profile MAY 注册额外 `link_kind`，但必须声明：
 
 Projection MAY 派生：
 
-- `confirmed`：要求双方声明的 kind 同时 active。
+- `sealed`：要求双方声明的 kind 同时 active。
 - `unconfirmed_link`：只有一侧声明。
 - `rejected`：任一侧拒绝。
 - `tombstoned`：任一侧 tombstone 或 Realm lifecycle 使 link 失效。

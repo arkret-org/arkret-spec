@@ -40,7 +40,7 @@
     "grant_constraint_single_kind_ids": "Grant constraint fields that carry one concrete protocol identifier kind use `_ids`; `_refs` remains reserved for causal/proof/schema/content-addressed or polymorphic reference material.",
     "metadata_encryption_floor_rename": "Wire field metadata_encryption_profile renamed to metadata_encryption_floor.",
     "key_backup_kdf_hash_to_digest_algorithm": "Key backup KDF parameter algorithm selectors use digest_algorithm; hash is reserved for actual digest material and internal JSON Schema defs.",
-    "brand_namespace_cx_to_ck": "Wire/brand namespace renamed from the legacy `contrix` brand to `cokret`. Every wire token prefix `cx.` becomes `ck.` and every typed-id prefix `cx:` becomes `ck:` across operation_id, event_kind, schema_id, capability action, id_kind, error code, vector id, and profile id. The bare brand strings `contrix` / `Contrix` and the token prefixes `cx.` / `cx:` are hard_reject on the current wire and in current identifiers (allowed only in CHANGELOG / migration docs / negative drift fixtures). HTTP paths additionally moved to the versionless trust-circle namespace `/_cokret/<segment>/...` (see sync/service-http-binding.md §2.1); the legacy flat paths and `/api/v1` / `/cokret/v1` prefixes are recorded in removed-operation-ids.json. Mechanical, single design decision; the entries below are representative anchors, the rule applies to the whole token space.",
+    "brand_namespace_cx_to_ck": "Wire/brand namespace renamed from the legacy `contrix` brand to `cokret`. Every wire token prefix `cx.` becomes `ck.` and every typed-id prefix `cx:` becomes `ck:` across operation_id, event_kind, schema_id, capability action, id_kind, error code, vector id, and profile id. The bare brand strings `contrix` / `Contrix` and the token prefixes `cx.` / `cx:` are hard_reject on the current wire and in current identifiers (allowed only in CHANGELOG / migration docs / negative drift fixtures). HTTP paths additionally moved to the versionless trust-circle namespace `/_cokret/<segment>/...` (see sync/service-http-binding.md §2.1); the legacy flat paths and `/api/v1` / `/cokret/v1` prefixes are recorded in removed-operation-ids.json. Mechanical, single design decision; the entries below are representative seals, the rule applies to the whole token space.",
     "operation_id_trust_surface_segment": "Scheme B: operation_id now encodes its trust-surface classifier as the mandatory leading segment (ck.<surface>.<resource>.<action>, surface in {self,peer,edge,root,find,gate,open}), matching the HTTP path's first segment 1:1. 108 operations gain the surface prefix; peer.* were already compliant and ck.server.describe (pre-auth root meta, no surface segment) is the sole exception. grpc service names gain the PascalCase surface prefix and mq topics the lowercase surface segment in lockstep. Single design decision; entries are mechanical applications.",
     "agent_applet_interop_session_rename": "Agent and applet session surfaces renamed from the ambiguous `protocol_session` (which reads as the ambient Cokret protocol) to `interop_session`, naming the external agent-to-agent interop relationship. Event kinds ck.{agent,applet}.protocol_session.* -> ck.{agent,applet}.interop_session.*; the agent capability action namespace ck.agent.session.* (start/cancel/stream_status/attach_artifact/read_transcript) -> ck.agent.interop_session.*; the typed id and schema payload defs use the agent_interop_session_* / applet_interop_session_* short form. Single design decision.",
     "conformance_verifier_neutralization": "ServiceDescribe.verified_profiles neutralized away from the downstream tool name cotest: claim_kind enum value cotest_verified → conformance_verified, wire fields cotest_run_id → verification_run_id and cotest_issuer_did → verifier_did. The wire contract binds to the neutral Conformance Verifier role (conformance-suite.md §6.2); cotest survives only as an informative reference-implementation name in prose (3 entries)."
@@ -100,7 +100,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Representative operation_id anchor for the cx.->ck. brand rename (the rule applies to all 101 operation ids)."
+      "notes": "Representative operation_id seal for the cx.->ck. brand rename (the rule applies to all 101 operation ids)."
     },
     {
       "id": "cx.member.state",
@@ -114,7 +114,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Representative event_kind anchor for the cx.->ck. brand rename (the rule applies to all event kinds)."
+      "notes": "Representative event_kind seal for the cx.->ck. brand rename (the rule applies to all event kinds)."
     },
     {
       "id": "cx.schema.event.v1",
@@ -128,7 +128,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Representative schema_id anchor for the cx.->ck. brand rename (the rule applies to all schema ids)."
+      "notes": "Representative schema_id seal for the cx.->ck. brand rename (the rule applies to all schema ids)."
     },
     {
       "id": "cx.flow.track.member",
@@ -1795,7 +1795,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "state_at_window_start anchor field carrying Realm-level Lattice cell value at window start (Realm name / topic / join_rule). The cell value is Realm-scoped; the legacy name 'space_metadata' would suggest in-Realm Space container metadata, which is incorrect. See spec/v1/zh/sync/client-sync.md §5.2."
+      "notes": "state_at_window_start seal field carrying Realm-level Lattice cell value at window start (Realm name / topic / join_rule). The cell value is Realm-scoped; the legacy name 'space_metadata' would suggest in-Realm Space container metadata, which is incorrect. See spec/v1/zh/sync/client-sync.md §5.2."
     },
     {
       "id": "cx.schema.encrypted_payload.v1",
@@ -2217,7 +2217,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Hash vocabulary unification (common-fields.md §2): algorithm/function-family selectors use <noun>_algorithm. Realm-level hash algorithm declaration is now digest_algorithm. The previous_hash_profile field on Transition Anchors is renamed previous_digest_algorithm in lockstep.",
+      "notes": "Hash vocabulary unification (common-fields.md §2): algorithm/function-family selectors use <noun>_algorithm. Realm-level hash algorithm declaration is now digest_algorithm. The previous_hash_profile field on Transition Seals is renamed previous_digest_algorithm in lockstep.",
       "migration_group": "hash_to_digest_vocabulary"
     },
     {
@@ -2273,7 +2273,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Transition Anchor field renamed in lockstep with realm.digest_algorithm. See hash_profile entry.",
+      "notes": "Transition Seal field renamed in lockstep with realm.digest_algorithm. See hash_profile entry.",
       "migration_group": "hash_to_digest_vocabulary"
     },
     {
@@ -2525,7 +2525,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Erasure verification stub / erasure receipt anchor-inclusion frontier digest renamed.",
+      "notes": "Erasure verification stub / erasure receipt seal-inclusion frontier digest renamed.",
       "migration_group": "hash_to_digest_vocabulary"
     },
     {
@@ -3399,17 +3399,17 @@
       "migration_group": "claim_kind_discriminator"
     },
     {
-      "id": "anchorer_sig",
+      "id": "notary_sig",
       "kind_class": "wire_field_name",
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
-      "replacement": "anchorer_signature",
+      "replacement": "notary_signature",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Anchor signatures use the full signature noun.",
+      "notes": "Seal signatures use the full signature noun.",
       "migration_group": "full_word_field_names"
     },
     {

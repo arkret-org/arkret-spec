@@ -80,7 +80,7 @@ DID 的使用边界见 [common-fields.md §4.1](./common-fields.md#41-did-适用
 | Typed ID | 对象 | 说明 |
 | --- | --- | --- |
 | `ck:receipt:` | Event Batch Receipt | 可选审计 / 同步加速对象，不是 reducer 输入 |
-| `ck:cell:`、`ck:cursor:`、`ck:anchor:` | 状态 / 同步原语 | 不是协作图对象；语义见 `authz/event-auth-state-resolution.md`、`sync/operations-sync.md` 与 `conformance/encoding.md` |
+| `ck:cell:`、`ck:cursor:`、`ck:seal:` | 状态 / 同步原语 | 不是协作图对象；语义见 `authz/event-auth-state-resolution.md`、`sync/operations-sync.md` 与 `conformance/encoding.md` |
 
 字段级、必填性、枚举值与 wire 约束统一以 [`common-fields.md`](./common-fields.md) 与各对象文件中的字段表为准。Schema 引用见 `artifacts/schemas/`，event/operation registry 见 `artifacts/registry/`。
 
@@ -215,4 +215,4 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
 - 标准 event type 注册表见 `../conformance/schema-registry.md`。
 - Reducer conformance vector 见 `../conformance/conformance-vectors.md`。
 - Schema evolution 测试见 `../conformance/conformance-profiles.md`。
-- Move / Anchor / Lattice / capability 校验规则见 `../authz/event-auth-state-resolution.md`。
+- CBA / Lattice / capability 校验规则见 `../authz/event-auth-state-resolution.md`。

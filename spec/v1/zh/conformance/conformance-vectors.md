@@ -9,7 +9,7 @@ updated: 2026-06-11
 本文整合所有 v1 conformance 测试向量，按域分组；以下为各域索引，逐域 vector 清单以本文件章节目录与 `artifacts/registry/vector-registry.json` 为准：
 
 1. Encoding & Crypto（canonical JSON、digest、signature binding、HLC、cursor、encrypted envelope）
-2. Move · Anchor · Lattice（并发 membership / capability / governance state 收敛、cas_register、Anchor DAG）
+2. CBA · Lattice（DataEvent acceptance、Control Move Seal finality、cas_register、Seal DAG）
 3. Redaction（约束与可见性）
 4. Capability（delegation、revoke、approval）
 5. Sync（client sync、pagination、snapshot、MLS epoch backfill）
@@ -292,7 +292,6 @@ ck.vector.encoding.event_digest.v1
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": [],
   "refs": [],
-  "preconditions": [],
   "effects": [
     {
       "cell": "ck:cell:message:019640ed-8000-7000-8000-000000000000",
@@ -306,7 +305,15 @@ ck.vector.encoding.event_digest.v1
       }
     }
   ],
-  "anchor_ref": "ck:anchor:sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "seal_ref": "ck:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "auth_context": {
+    "did": "did:web:alice.example",
+    "key_id": "device-1",
+    "key_epoch": 1,
+    "capability_refs": [
+      "ck:grant:0196410c-0000-7000-8000-000000000000"
+    ]
+  },
   "payload": {
     "flow_id": "ck:flow:01964137-0000-7000-8000-000000000000",
     "track_name": "discussion",
@@ -322,13 +329,13 @@ ck.vector.encoding.event_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"did:web:alice.example","actor_seq":1,"anchor_ref":"ck:anchor:sha256:2222222222222222222222222222222222222222222222222222222222222222","created_at":"2026-04-26T00:00:00Z","effects":[{"cell":"ck:cell:message:019640ed-8000-7000-8000-000000000000","op":{"kind":"append","value":{"flow_id":"ck:flow:01964137-0000-7000-8000-000000000000","message_id":"ck:message:019640ed-8000-7000-8000-000000000000","track_name":"discussion"}}}],"event_id":"ck:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"ck.message.create","payload":{"content":{"body":"hello","kind":"ck.content.text"},"flow_id":"ck:flow:01964137-0000-7000-8000-000000000000","message_id":"ck:message:019640ed-8000-7000-8000-000000000000","track_name":"discussion"},"preconditions":[],"prev_refs":[],"realm_id":"ck:realm:01964137-0000-7000-8000-000000000000","refs":[]}
+{"actor_id":"did:web:alice.example","actor_seq":1,"auth_context":{"capability_refs":["ck:grant:0196410c-0000-7000-8000-000000000000"],"did":"did:web:alice.example","key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00Z","effects":[{"cell":"ck:cell:message:019640ed-8000-7000-8000-000000000000","op":{"kind":"append","value":{"flow_id":"ck:flow:01964137-0000-7000-8000-000000000000","message_id":"ck:message:019640ed-8000-7000-8000-000000000000","track_name":"discussion"}}}],"event_id":"ck:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"ck.message.create","payload":{"content":{"body":"hello","kind":"ck.content.text"},"flow_id":"ck:flow:01964137-0000-7000-8000-000000000000","message_id":"ck:message:019640ed-8000-7000-8000-000000000000","track_name":"discussion"},"prev_refs":[],"realm_id":"ck:realm:01964137-0000-7000-8000-000000000000","refs":[],"seal_ref":"ck:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"}
 ```
 
 期望 digest：
 
 ```text
-sha256:297487d820da12ad42ffffbbb82b53dd01ddf48911b650c38f5b19a127c587a4
+sha256:2a98c4056c6c7a251b2c410530d796ad5df3858097b0926b4748a98cb0e8eea3
 ```
 
 判定规则：
@@ -639,7 +646,7 @@ sha256:fa4d70fb617f745133f88062dace64f909c370027191f6f8c04b143c3258a4a8
 
 测试私钥只能用于公开测试向量，不得被任何生产实现信任。生产 profile MUST 拒绝测试 DID、测试 key id 或测试 trust domain。
 
-### 1.15 Cross-Domain Vector Anchors
+### 1.15 Cross-Domain Vector Seals
 
 以下 vector id 的具体断言由对应领域正文定义；本节提供 conformance registry 的统一锚点：
 
@@ -652,93 +659,95 @@ sha256:fa4d70fb617f745133f88062dace64f909c370027191f6f8c04b143c3258a4a8
 - `ck.vector.circle.directory_visibility_realm_members_indistinguishable.v1`
 - `ck.vector.calendar.rsvp_occurrence_key.v1`
 
-## 2. Move · Anchor · Lattice Vectors
+## 2. CBA · Lattice Vectors
 
-> 来源：`move-anchor-lattice-fixture.json`。
+> 来源：`cba-lattice-fixture.json`。
 
 ### 2.1 目标
 
-本节把 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 的 Move、Anchor、Lattice 规则转成可复现向量。实现必须对每个向量输出：
+本节把 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 的 CBA、Seal 与 Lattice 规则转成可复现向量。实现必须对每个向量输出：
 
 - `vector_id`
-- Move 验证结果
-- Anchor 应用结果
+- DataEvent / Control Move 验证结果
+- Seal 应用结果
 - `query(cell)` 的 value 或 structured bottom
 - `state_root` / inclusion proof（当 fixture 要求时）
 
-### 2.2 Vector: 多 Cell Ban + Revoke 原子 Move
+### 2.2 Vector: DataEvent 无 Seal Finality 即可本地接受
 
 向量名称：
 
 ```text
-ck.vector.move_anchor_lattice.multi_cell_ban_revoke.v1
+ck.vector.cba_lattice.data_event_accepts_without_seal_finality.v1
 ```
 
 输入：
 
-- `member.alice` cell 当前为 `join`。
-- 两个 grant cell 当前为 `active`。
-- 一个 Move 同时声明三个 `head_eq` precondition，并写入 ban + 两个 revoke/remove effects。
+- DataEvent 携带 `effects[]`、`seal_ref` 与 `auth_context`，不携带 `seal_basis` 或 `preconditions`。
+- `seal_ref` 指向的 Seal view 可验证，actor chain / signature / capability 均通过。
 
 期望：
 
-- 三个 precondition 全部成立时 Move PASS。
-- 任一 precondition 不成立时整个 Move FAIL，不能部分撤销 grant 或部分 ban。
+- DataEvent 进入 `data_local` / `data_seen` 状态并可本地投影。
+- 不需要等待该 DataEvent 出现在任何 Seal 覆盖集。
+- Seal 只能通过 `data_event_set_root` / `data_view_root` 提供观察性证明，不赋予数据面 sealed finality。
 
-### 2.3 Vector: `cas_register` 并发冲突返回 Bottom
+### 2.3 Vector: 观察性 Data Root 不产生 Sealed 状态
 
 向量名称：
 
 ```text
-ck.vector.move_anchor_lattice.cas_bottom.v1
+ck.vector.cba_lattice.data_event_observation_does_not_seal.v1
 ```
 
 输入：
 
-- 两个 anchored Move 并发写同一 `cas_register + bottom=reject` policy cell。
+- Seal 携带 `data_event_set_root`，该 root 包含某 DataEvent digest。
+- 同一 Seal 的 `delta[]` 与递归覆盖集不包含该 DataEvent digest。
 
 期望：
 
-- `query(cell)` 返回 structured `Bottom{kind="conflict"}`。
-- 依赖该 cell 的后续 Move MUST `fail_bottom`。
-- 实现不得用 HLC、actor id、event id 或本地接收顺序选择 winner。
+- DataEvent 的查询等级最多为 `data_observed`，不得升级为 `control_sealed`。
+- 客户端不得用观察性 data root 满足 Control Move `seal_basis` 或治理 freshness。
+- `data_observed` 可用于可用性、range completeness 或轻客户端提示，但不是控制面 finality。
 
-### 2.4 Vector: Anchor Batch Pre-State
+### 2.4 Vector: Control Move 必须有 Basis 且由 Seal 覆盖
 
 向量名称：
 
 ```text
-ck.vector.move_anchor_lattice.anchor_batch_pre_state.v1
+ck.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1
 ```
 
 输入：
 
-- 同一 Anchor frontier 新增 M1 与 M2。
-- M2 的 precondition 只有在读取 M1 effect 后才成立。
+- Control Move 携带 `effects[]`、`seal_basis` 与必要 `preconditions[]`。
+- 同形 Control Move 的负向 case 缺少 `seal_basis`，或 `seal_basis.state_root` 与 leaves 重算不一致。
 
 期望：
 
-- Anchor MUST reject。
-- 同一 Anchor batch 内的新 Move 以 predecessor joined state 验证；不能自我满足。
+- 缺 `seal_basis` 或 basis 不一致 MUST `failed_precondition` / `rejected_seal`。
+- 通过验证的 Control Move 仍只是 `control_pending`，直到某 Seal 的递归覆盖集覆盖其 digest 并重算控制面 `state_root`。
 
-### 2.5 Vector: MLS Commit Move Covered Frontier
+### 2.5 Vector: 同批提交不推进授权 Basis
 
 向量名称：
 
 ```text
-ck.vector.move_anchor_lattice.mls_covered_frontier.v1
+ck.vector.cba_lattice.same_batch_does_not_advance_authorization_basis.v1
 ```
 
 输入：
 
-- MLS Commit Move 写入 `mls_epoch_cell`。
-- precondition 要求 `covered_frontier_cell` 包含指定 governance Anchor。
-- 当前 `covered_frontier_cell` 未覆盖该 Anchor。
+- 同一 ordered submit batch 中包含 Control Move `M1` 与 `M2`。
+- `M2` 的 precondition 只有在读取 `M1` effect 后才成立。
+- `M2.seal_basis` 指向 batch 前的 Seal view。
 
 期望：
 
-- MLS Commit Move `fail_precondition`。
-- 普通 governance / recovery Move 不依赖 `covered_frontier_cell`，仍可被 Anchor 推进。
+- `M2` MUST `failed_precondition`。
+- 同批只提供传输/原子提交便利，不推进 authorization basis；接收端不得用同批内新 effect 自我满足 precondition。
+- 需要依赖 `M1` 的写入必须等待 `M1` 被 accepted Seal 覆盖后重新提交。
 
 ### 2.5.1 Vector: MLS Governance Epoch Binding
 
@@ -752,7 +761,7 @@ Steps：
 
 Expected：
 
-- Receiver / reducer MUST reject 该 commit，且不得推进 `mls_epoch_cell` 或 `covered_frontier_cell`。
+- Receiver / reducer MUST reject 该 commit，且不得推进 `mls_epoch_cell` 或 `covered_seals_cell`。
 - `governance_binding.previous_epoch` / `next_epoch` MUST 与 payload 顶层 epoch 字段一致；不得只相信其中一侧。
 
 ### 2.5.2 Vector: MLS Welcome KeyPackage Hash Binding
@@ -770,76 +779,76 @@ Expected：
 - Receiver MUST reject before decrypting or accepting the Welcome。
 - `payload.keypackage_digest`、`payload.claim_ref.keypackage_digest`、claim record `keypackage_digest` 和已发布 `ck.mls.keypackage.payload.keypackage_digest` MUST 全部一致。
 
-### 2.6 Vector: Anchorer Cell ⊥ → Recovery Anchorer 上位
+### 2.6 Vector: 数据面冲突返回 Bottom 且不选 Winner
 
 向量名称：
 
 ```text
-ck.vector.move_anchor_lattice.anchorer_cell_bottom_recovery.v1
+ck.vector.cba_lattice.data_plane_conflict_returns_bottom_without_winner.v1
 ```
 
 输入：
 
-- Realm 以 `anchor_profile=mixed` 起始；`primary=did:web:host-a.example`，`recovery_members=[did:web:recovery-1.example, did:web:recovery-2.example]`。
-- 两条并发 Move 在 anchorer cell（cas_register, bottom=reject）上提交不同 value。
+- 两个 DataEvent 并发写同一 `cas_register + bottom=reject` 数据面 cell。
+- 两者 `seal_ref` 均有效，但 causal refs 互不可达。
 
 期望：
 
-- anchorer cell join → ⊥；Realm 状态 `anchorer_paused`。
-- 普通 Anchor 推进 MUST 阻塞。
-- 仅 `recovery_members` 中 DID 签发的 recovery Anchor 才能重置 anchorer cell。
-- 恢复后 Realm 状态回到 `effective`。
+- `query(cell)` 返回 structured `Bottom{kind="conflict"}`。
+- 依赖该 cell 的后续 DataEvent / Control Move MUST `failed_bottom`，直到显式 conflict-recovery event 修复。
+- 实现不得用 HLC、actor id、event id 或本地接收顺序选择 winner。
 
-### 2.7 Vector: Signed Compaction Anchor 等价 Effective View
+### 2.7 Vector: Seal Delta 排除 DataEvent Digest
 
 向量名称：
 
 ```text
-ck.vector.move_anchor_lattice.signed_compaction_equivalent.v1
+ck.vector.cba_lattice.seal_delta_excludes_data_event_digest.v1
 ```
 
 输入：
 
-- 两个并存 Anchor leaves L1、L2（同 Realm）。
-- 一条由 anchorer 签发的 compaction Anchor C 试图替代 (L1, L2)。
+- Seal 的 `delta[]` 中混入一个 DataEvent digest。
+- 该 DataEvent 可能已在 `data_event_set_root` 中出现。
 
 期望：
 
-- C 的 `predecessor_refs == sorted([L1.id, L2.id])`、`frontier == union(L1.frontier, L2.frontier)`、`state_root == recompute(joined_state(L1, L2))`。
-- 任一不满足 MUST reject（包括缺签名）。
-- 接受后保留 bottom diagnostics 与签名验证链；不得丢失原 leaves 上可观察到的诊断结构。
+- Seal MUST reject。
+- `delta[]` 只能包含新纳入覆盖集的控制面 Control Move event digest。
+- DataEvent digest 只能进入观察性 roots，不得出现在控制面 Seal 覆盖集。
 
-### 2.8 Vector: Anchor DAG Genesis 与多 Leaf 计算
-
-向量名称：
-
-```text
-ck.vector.move_anchor_lattice.anchor_dag_genesis_multi_leaf.v1
-```
-
-输入与期望（多 case 矩阵）：
-
-1. **Genesis case**：`predecessor_refs=[]` 仅在 genesis Anchor 上合法。
-2. **Non-genesis empty predecessors**：`predecessor_refs=[]` 但 frontier 非空 MUST reject。
-3. **Multi-leaf effective view**：`effective_anchor_view(leaves)` 是纯本地函数（不需签名、不是新 Anchor object、deterministic）。
-4. **Signed compaction**：要把多 leaf 持久压缩成单 Anchor 必须由 anchorer 签发；否则只能作为 view 使用。
-
-### 2.8.1 Vector: Anchor canonical bytes 去自引用（normative）
+### 2.8 Vector: Open Set Compaction 保留控制 Roots
 
 向量名称：
 
 ```text
-ck.vector.move_anchor_lattice.anchor_canonical_no_self_reference.v1
+ck.vector.cba_lattice.open_set_compaction_preserves_control_roots.v1
 ```
 
 输入与期望（多 case 矩阵）：
 
-1. **Base case**：构造 Anchor body fields `{realm_id, predecessor_refs, frontier, state_root, anchored_at, hlc}`；按 [`encoding.md`](../conformance/encoding.md) §2 编码为 `anchor_canonical_bytes`；`id = "ck:anchor:sha256:" || hex(H(anchor_canonical_bytes))`；`anchorer_signature.payload_digest == H(anchor_canonical_bytes)`。Verifier MUST accept。
-2. **id-in-canonical-bytes attack**：若 producer 把 `id` 字段也塞进 `anchor_canonical_bytes` 重新计算 H，得到的 hash 与原始 `id` 内容不同；verifier 重算后 `digest_mismatch`，MUST reject。该向量证明实现没有把 `id` 当成 transcript field。
-3. **sig-in-canonical-bytes attack**：若 producer 把 `anchorer_signature` 也进入 canonical bytes，`payload_digest` 重算与 `id` 重算都会失败；verifier MUST reject。证明 signature 不签自己。
-4. **key reorder attack**：取 valid Anchor，把 canonical JSON key 顺序打乱（例如 `frontier` 放在 `realm_id` 之前）；canonical JSON 规则（key 字典序）下重新编码 → 与原 bytes 相同 → hash 一致 → accept。若 verifier 未按 canonical 规则重新编码就直接 hash wire bytes，attack 会让 `digest_mismatch` 假阴性。本 case 检查 verifier 走 canonical re-encode，不是按收到的 bytes 直接 hash。
-5. **proof injection attack**：取 valid Anchor，注入未定义字段 `extra_proof`。`additionalProperties=false` 的 schema 在 (b) 校验阶段就 reject；若实现错误地 allow 之，hash 会变 → `digest_mismatch`。
-6. **non-digest frontier value attack**：构造 `frontier=["not-a-digest"]`；schema `frontier[]` items 必须匹配 `event_digest` (`<algo>:<hex>`)，非 digest 形态 MUST `schema_violation` 立即被拒（早于 hash 校验）。
+1. **Genesis case**：`predecessor_refs=[]` 仅在 genesis Seal 上合法。
+2. **Non-genesis empty predecessors**：`predecessor_refs=[]` 但 `delta[]` 非空 MUST reject。
+3. **Multi-leaf Seal view**：`seal_view(leaves)` 是纯本地函数（不需签名、不是新 Seal object、deterministic）。
+4. **Signed compaction**：要把多 leaf 持久压缩成单 Seal 必须由合法 notary 签发；否则只能作为 view 使用。
+5. **Root preservation**：compaction 后的 `control_event_set_root` 与 `state_root` MUST 等于按 leaves 重算的控制面 roots；`data_event_set_root` / `data_view_root` 若出现，仍只具观察性语义。
+
+### 2.8.1 Vector: Seal canonical bytes 去自引用（normative）
+
+向量名称：
+
+```text
+ck.vector.cba_lattice.seal_canonical_no_self_reference.v1
+```
+
+输入与期望（多 case 矩阵）：
+
+1. **Base case**：构造 Seal body fields `{realm_id, predecessor_refs, delta, control_event_set_root, state_root, sealed_at, hlc}`；按 [`encoding.md`](../conformance/encoding.md) §2 编码为 `seal_canonical_bytes`；`id = "ck:seal:sha256:" || hex(H(seal_canonical_bytes))`；`notary_signature.payload_digest == H(seal_canonical_bytes)`。Verifier MUST accept。
+2. **id-in-canonical-bytes attack**：若 producer 把 `id` 字段也塞进 `seal_canonical_bytes` 重新计算 H，得到的 hash 与原始 `id` 内容不同；verifier 重算后 `digest_mismatch`，MUST reject。该向量证明实现没有把 `id` 当成 transcript field。
+3. **sig-in-canonical-bytes attack**：若 producer 把 `notary_signature` 也进入 canonical bytes，`payload_digest` 重算与 `id` 重算都会失败；verifier MUST reject。证明 signature 不签自己。
+4. **key reorder attack**：取 valid Seal，把 canonical JSON key 顺序打乱（例如 `delta` 放在 `realm_id` 之前）；canonical JSON 规则（key 字典序）下重新编码 → 与原 bytes 相同 → hash 一致 → accept。若 verifier 未按 canonical 规则重新编码就直接 hash wire bytes，attack 会让 `digest_mismatch` 假阴性。本 case 检查 verifier 走 canonical re-encode，不是按收到的 bytes 直接 hash。
+5. **proof injection attack**：取 valid Seal，注入未定义字段 `extra_proof`。`additionalProperties=false` 的 schema 在 (b) 校验阶段就 reject；若实现错误地 allow 之，hash 会变 → `digest_mismatch`。
+6. **non-digest delta value attack**：构造 `delta=["not-a-digest"]`；schema `delta[]` items 必须匹配 control-plane `event_digest` (`<algo>:<hex>`)，非 digest 形态 MUST `schema_violation` 立即被拒（早于 hash 校验）。
 
 期望：
 
@@ -856,23 +865,23 @@ ck.vector.state_root.incremental.v1
 
 输入：
 
-- 一个已被接受的 Anchor `A0`，其 frontier 写入 N 个 cell（`cell_1 … cell_N`，N ≥ 8）；实现已按 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.1 缓存 `cell → leaf_digest` 表。
-- 一个新的 Anchor `A1`（`predecessor_refs=[A0]`），frontier 仅修改其中 K 个 cell（K ≤ N，包含 K=1 / K=N/2 / K=N 三种 case）。
-- 一个 corner-case Anchor `A2`：frontier 是空 set（无新 effect）。
-- 一个 schema-evolution case `A3`：frontier 包含一个新 cell（之前从未有过 effect），并删除一个旧 cell 的 effect（通过 lattice 的 ⊥/tombstone 机制）。
+- 一个已被接受的 Seal `A0`，其控制面覆盖集写入 N 个 cell（`cell_1 … cell_N`，N ≥ 8）；实现已按 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.1 缓存 `cell → leaf_digest` 表。
+- 一个新的 Seal `A1`（`predecessor_refs=[A0]`），控制面 `delta[]` 仅修改其中 K 个 cell（K ≤ N，包含 K=1 / K=N/2 / K=N 三种 case）。
+- 一个 corner-case Seal `A2`：`delta[]` 是空 set（无新 control effect）。
+- 一个 schema-evolution case `A3`：`delta[]` 包含一个新 cell（之前从未有过 effect），并删除一个旧 cell 的 effect（通过 lattice 的 ⊥/tombstone 机制）。
 
 期望：
 
 每个 case MUST 同时计算：
 
 - `state_root_incremental`：仅对受影响 cell 重算 leaf_digest 与 Merkle 分支，复用 `A0` 缓存。
-- `state_root_full`：丢弃缓存，按 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.2 从 frontier 全量重算所有 cell 的 leaf_digest 与 Merkle root。
+- `state_root_full`：丢弃缓存，按 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.2 从 Seal 覆盖集全量重算所有 cell 的 leaf_digest 与 Merkle root。
 
 判定要求：
 
 - `state_root_incremental == state_root_full` 在所有四个 case 上 MUST 成立，bit-exact。
-- 缓存的 `leaf_digest` 表 MUST 在 `apply_anchor` 接受 Anchor 后更新；保留旧 leaf_digest 导致 next-anchor 增量重算偏离全量结果即视为实现 bug。
-- A2（空 frontier）情况下 `state_root_incremental` MUST 直接复用 `A0.state_root`；不得因为"没有 cell 可重算"而错误地返回空 Merkle root（`H("")`）或 null。
+- 缓存的 `leaf_digest` 表 MUST 在 `apply_seal` 接受 Seal 后更新；保留旧 leaf_digest 导致 next-seal 增量重算偏离全量结果即视为实现 bug。
+- A2（空 `delta[]`）情况下 `state_root_incremental` MUST 直接复用 `A0.state_root`；不得因为"没有 cell 可重算"而错误地返回空 Merkle root（`H("")`）或 null。
 - A3（新增 cell + 删除旧 cell effect）case 验证两点：(a) 新 cell 的 leaf_digest 进入 sorted leaf 列表（按 `cell_wire` Unicode 升序）；(b) 删除 effect 的 cell 仍以其 `Bottom` 或 tombstone 后的 lattice value 编码 leaf_digest，不被简单从 leaf 列表移除。
 
 失败条件：
@@ -895,7 +904,7 @@ ck.vector.flow_tracks_update.atomic.v1
 输入：
 
 - 一个已存在 Flow `F0`，`tracks = { "synthesis": { is_primary: true, enabled: true }, "discussion": { is_primary: false, enabled: true } }`。
-- Case A — 单字段 patch：一个 `ck.flow.tracks.update` Event，`payload.patch = { "tracks.synthesis.is_primary": { "$op": "set", "value": false }, "tracks.discussion.is_primary": { "$op": "set", "value": true } }`。期望 Flow `tracks` 在单个 Anchor batch 内原子地把 primary 从 `synthesis` 切到 `discussion`，中间态 MUST NOT 出现"两个 is_primary=true"或"零个 is_primary=true"。
+- Case A — 单字段 patch：一个 `ck.flow.tracks.update` Event，`payload.patch = { "tracks.synthesis.is_primary": { "$op": "set", "value": false }, "tracks.discussion.is_primary": { "$op": "set", "value": true } }`。期望 Flow `tracks` 在单个 Event effect 内原子地把 primary 从 `synthesis` 切到 `discussion`，中间态 MUST NOT 出现"两个 is_primary=true"或"零个 is_primary=true"。
 - Case B — 新增 + 启停 + 移除：在 Flow 已含 `tracks.synthesis` / `tracks.discussion` 的基础上，单条 `ck.flow.tracks.update` 同时 (1) 新增 `tracks.review.enabled=true` 子 map (profile 注册的扩展 track)，(2) 把 `tracks.discussion.enabled` 置为 false，(3) 把 `tracks.synthesis.is_primary` 置为 false，(4) 把 `tracks.review.is_primary` 置为 true。
 - Case C — invariant 违反：单条 `ck.flow.tracks.update` 把 `tracks.synthesis.is_primary` 与 `tracks.discussion.is_primary` 同时 set 为 `true`。
 
@@ -926,17 +935,17 @@ ck.vector.flow_tracks_update.atomic.v1
 ck.vector.lattice.fsm_join.v1
 ```
 
-本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §5.3.4 `fsm` lattice 的 join 规则：“同一 Anchor batch 内相同 `(from,to)` 的重复 transition 是幂等的；同一 `from` 指向不同 `to` 的 sibling transition 返回 ⊥。跨 batch 顺序仅由 Anchor DAG index 决定；同 batch 内不得用 HLC、接收顺序或 actor id 选择状态机 winner。”
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §5.3.4 `fsm` lattice 的 join 规则：“同一 CBA basis 内相同 `(from,to)` 的重复 transition 是幂等的；同一 `from` 指向不同 `to` 的 sibling transition 返回 ⊥。跨 basis 顺序仅由 causal refs 与 Seal DAG 决定；同一 basis 内不得用 HLC、接收顺序或 actor id 选择状态机 winner。”
 
 输入（cell schema：`fsm`，`bottom=reject`，`parameters.initial_state="invited"`，`allowed_transitions` 含 `(invited,join)`、`(invited,decline)`）：
 
-- **Case A — 幂等收敛**：同一 Anchor batch 内两条并发 Move 各自对同一 fsm cell 提交 transition `(from="invited", to="join")`（相同 `(from,to)`，不同 actor / event id / HLC）。
-- **Case B — 并发冲突 ⊥**：同一 Anchor batch 内两条并发 Move 分别提交 `(from="invited", to="join")` 与 `(from="invited", to="decline")`（同 `from` 不同 `to`）。
+- **Case A — 幂等收敛**：同一 CBA basis 内两条并发 Event 各自对同一 fsm cell 提交 transition `(from="invited", to="join")`（相同 `(from,to)`，不同 actor / event id / HLC）。
+- **Case B — 并发冲突 ⊥**：同一 CBA basis 内两条并发 Event 分别提交 `(from="invited", to="join")` 与 `(from="invited", to="decline")`（同 `from` 不同 `to`）。
 
 期望：
 
 - **Case A**：join 收敛到 `state == "join"`，MUST NOT 返回 ⊥；两个 conformant reducer 以不同输入顺序重放 MUST 得到同一结果。
-- **Case B**：join MUST 返回 ⊥；`query(cell)` 返回 structured `Bottom{kind="conflict"}` 诊断。该 cell 配置 `bottom=reject`，后续依赖该 cell 的 Move MUST `fail_bottom`（spec 状态码 `failed_bottom`），直到 §8 conflict-recovery 路径修复。
+- **Case B**：join MUST 返回 ⊥；`query(cell)` 返回 structured `Bottom{kind="conflict"}` 诊断。该 cell 配置 `bottom=reject`，后续依赖该 cell 的 Event MUST `failed_bottom`，直到 §8 conflict-recovery 路径修复。
 - 两个 case 中实现均 MUST NOT 用 HLC、actor id、event id 或本地接收顺序选择状态机 winner。
 
 失败条件：
@@ -950,21 +959,21 @@ ck.vector.lattice.fsm_join.v1
 向量名称：
 
 ```text
-ck.vector.move_anchor_lattice.cas_mixed_basis.v1
+ck.vector.cba_lattice.cas_mixed_basis.v1
 ```
 
-本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §5.3.3 的 **Basis 强制（normative）**：“cas_register 的 set effect 在目标 cell 的 settled 值为非初始态时，MUST 在同一 Move 上携带针对本 cell 的 `head_eq` precondition；缺失时，receiver MUST 在 verify_move（§6）阶段以 `failed_precondition` 拒绝该 Move 对该 cell 的 effect（按 §3 规则 2 多 cell 原子性，即整个 Move FAIL），不接受‘无 CAS 强制写’。”
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §5.3.3 的 **Basis 强制（normative）**：“cas_register 的 set effect 在目标 cell 的 settled 值为非初始态时，Control Move MUST 携带针对本 cell 的 `head_eq` precondition；DataEvent MUST 通过 causal refs 与 lattice 规则表达同等 CAS 约束。缺失时，receiver MUST 以 `failed_precondition` 拒绝该 effect，并按多 cell 原子性拒绝整个 reducer input，不接受‘无 CAS 强制写’。”
 
-输入（cas_register cell，未声明 `initial_value`，初值 `null`；前置 Anchor 已把 settled 值推进到 `v1`，即非初始态）：
+输入（cas_register cell，未声明 `initial_value`，初值 `null`；前置 Seal 已把 settled 值推进到 `v1`，即非初始态）：
 
-- **Case A — 非初始态盲写**：一条 set Move 写入 `v2`，**不带**针对本 cell 的 `head_eq` precondition（null basis）。
-- **Case B — 正确 basis 收敛**：一条 set Move 写入 `v2`，携带 `head_eq: "v1"`（与 settled pre-state 一致）。
+- **Case A — 非初始态盲写**：一条 set Event 写入 `v2`，**不带**针对本 cell 的 basis 证明（null basis）。
+- **Case B — 正确 basis 收敛**：一条 set Control Move 写入 `v2`，携带 `head_eq: "v1"`（与 settled pre-state 一致）。
 
 期望：
 
-- **Case A**：receiver MUST 在 verify_move 阶段以 `failed_precondition` 拒绝整个 Move（多 cell 原子性，不得部分应用其余 effect）；cell 保持 `v1`。若此类 Move 越过 verify_move 进入 join（防御性路径），join MUST 返回 ⊥，MUST NOT 把 null-basis 盲写当作合法覆盖。
-- **Case B**：Move 接受，cell 收敛到 `v2`；两个 conformant reducer 以不同输入顺序重放 MUST 得到同一结果。
-- “无条件覆盖”语义 MUST 通过 profile 显式注册的专门高权限 event kind 或 §8 conflict-recovery 路径表达，不得通过省略普通 set Move 的 `head_eq` 实现。
+- **Case A**：receiver MUST 以 `failed_precondition` 拒绝整个 Event（多 cell 原子性，不得部分应用其余 effect）；cell 保持 `v1`。若此类 Event 越过验证进入 join（防御性路径），join MUST 返回 ⊥，MUST NOT 把 null-basis 盲写当作合法覆盖。
+- **Case B**：Control Move 接受并在被 accepted Seal 覆盖后使 cell 收敛到 `v2`；两个 conformant reducer 以不同输入顺序重放 MUST 得到同一结果。
+- “无条件覆盖”语义 MUST 通过 profile 显式注册的专门高权限 event kind 或 §8 conflict-recovery 路径表达，不得通过省略普通 set Control Move 的 `head_eq` 实现。
 
 失败条件：
 
@@ -1626,21 +1635,21 @@ ck.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 
 输入：
 
-- 目标密文事件 `E1` 在 anchored history 的 deterministic pre-state `T0` 中对 `receiver` 可见，且 `receiver` 在 `T0` 是 Realm member。
+- 目标密文事件 `E1` 在 sealed history 的 deterministic pre-state `T0` 中对 `receiver` 可见，且 `receiver` 在 `T0` 是 Realm member。
 - `receiver` 在 `E1` accepted 之后、late key request 发出之前被 `ck.member.state{membership=ban}` 或等价 remove 事件移出 Realm。
-- 两个客户端以不同本地到达顺序观察同一组 anchored events：客户端 A 先看到 `E1` 后看到 ban；客户端 B 先同步到 ban，再通过 backfill 看到 `E1`。
+- 两个客户端以不同本地到达顺序观察同一组 sealed events：客户端 A 先看到 `E1` 后看到 ban；客户端 B 先同步到 ban，再通过 backfill 看到 `E1`。
 - key backup / archive node / peer share 在发 key 前重新计算 `E1` 的 `T0` membership、history visibility 和当前 share policy。
 
 期望：
 
-- 两个客户端对 `E1` 的 late recovery 结果一致，且只取决于 anchored `T0` effective view，不取决于本地到达顺序或 wall clock。
+- 两个客户端对 `E1` 的 late recovery 结果一致，且只取决于 sealed `T0` effective view，不取决于本地到达顺序或 wall clock。
 - 若 `receiver` 在 `T0` 可见且当前 share policy 仍允许历史恢复，late key 可以发放；后续 ban/remove 不 retroactively 改写 `E1` 的 verified timeline。
 - 若 `receiver` 在 `T0` 不可见，或 key source 未在发 key 前重新执行 `T0` 校验，必须拒绝并返回 `key_unavailable` / `policy_denied` 类错误。
 - 测试不得把“`T0` 后被 ban”单独作为拒绝理由；拒绝理由必须落在 `T0` 不可见或 key source unauthorized。
 
 本节固化两个**独立**向量，各对应 `vector-registry.json` 的不同 id，MUST NOT 合并：
 
-- `ck.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1`（本节主向量）——断言两客户端对 `E1` late recovery 结果只取决于 anchored `T0` effective view，与本地到达顺序 / wall clock 无关；正路径（`T0` 可见且 share policy 允许）发放、`T0` 不可见拒绝。
+- `ck.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1`（本节主向量）——断言两客户端对 `E1` late recovery 结果只取决于 sealed `T0` effective view，与本地到达顺序 / wall clock 无关；正路径（`T0` 可见且 share policy 允许）发放、`T0` 不可见拒绝。
 - `ck.vector.late_key_recovery.removed_actor.v1`（无 `e2ee.` 段，独立 registry id）——removed_actor negative path 专项：`receiver` 在 `T0` 不可见 / key source unauthorized 时 MUST 拒绝，且拒绝理由 MUST NOT 仅为“`T0` 后被 ban”。
 
 ### 5.3 Vector: Board Collection Projection
@@ -2090,7 +2099,7 @@ ck.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 
 ### 7.2 Vector: `explicit` Binding 接受
 
-Input — `ck.member.state{membership="join"}` Move payload：
+Input — `ck.member.state{membership="join"}` Control Move payload：
 
 ```json
 {
@@ -2114,14 +2123,14 @@ Input — `ck.member.state{membership="join"}` Move payload：
 预设：Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_binding_sources` 包含 `explicit`、`allowed_recipient_services` 包含 `did:web:principal.acme.example`、`required_endorsers` 含 `did:web:acme.example`，`service_acceptance_ref` 引用的 Event 由 `did:web:principal.acme.example` 签发且 scope 覆盖该 Realm。
 
 期望：
-- reducer 接受 join Move；写入成员 cell。
+- reducer 接受 join Control Move；写入成员 cell。
 - 此后任何向 Alice 投递的 Realm S event/sync/to_device/push/key_packages MUST 走 `did:web:principal.acme.example`，**禁止**触发 DID Document service entry resolution。
 
 ### 7.3 Vector: `did_document_default` Fallback 物化
 
 Input — Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_did_document_default=true`，其余字段未限制；Alice DID Document service `CokretPrincipalServer` 指向 `did:web:personal.alice.example`，canonical hash `sha256:abc...`。
 
-客户端构造 join Move 时 MUST 先解析 DID Document 并物化进 binding：
+客户端构造 join Control Move 时 MUST 先解析 DID Document 并物化进 binding：
 
 ```json
 {
@@ -2142,14 +2151,14 @@ Input — Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_did_docu
 ```
 
 期望：
-- reducer 接受 join Move（`did_document_digest` 与 `resolved_at` 满足 conditional required）。
+- reducer 接受 join Control Move（`did_document_digest` 与 `resolved_at` 满足 conditional required）。
 - 同形 Move 缺少 `did_document_digest` MUST 被 schema 拒绝（`schema_violation`），reducer 不进入验证流程。
-- 同形 Move 在 Realm policy `allow_did_document_default=false` 时 reducer MUST 返回 `delivery_binding_policy_mismatch`。
+- 同形 Control Move 在 Realm policy `allow_did_document_default=false` 时 reducer MUST 返回 `delivery_binding_policy_mismatch`。
 - 一旦该 join 被接受，sender **不得**在后续投递时 re-resolve DID Document——即使 DID Document 已更新指向新服务，仍按 cell 内 `delivery_binding` 投递，直到一次合法 rebind。
 
 ### 7.4 Vector: `unroutable` 成员
 
-Input — Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_unroutable_membership=true`。Alice join Move 携带：
+Input — Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_unroutable_membership=true`。Alice join Control Move 携带：
 
 ```json
 {
@@ -2166,7 +2175,7 @@ Input — Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_unroutab
 - reducer 接受。
 - 任何 sender 计算"该 Realm S 应投递给 Alice"的目标集合时 MUST 跳过该成员；不得用 DID Document 推导 fallback。
 - 客户端对该成员的本地视图：只展示在 reducer state 与本地索引中，但不向其推送通知 / sync / push / to_device。
-- 同形 Move 在 Realm policy `allow_unroutable_membership=false` 时 reducer MUST 返回 `delivery_binding_policy_mismatch`。
+- 同形 Control Move 在 Realm policy `allow_unroutable_membership=false` 时 reducer MUST 返回 `delivery_binding_policy_mismatch`。
 
 ### 7.5 Vector: Rebind Handover + 撤销后停止投递
 
@@ -2174,7 +2183,7 @@ Input — Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_unroutab
 
 1. **Initial join**（`F0`）：Alice join with `recipient_service_did=did:web:personal.alice.example`，accepted。
 2. **Events 流量**：Realm 内事件 `E1, E2` 进入因果图，sender 将它们投递到 `did:web:personal.alice.example`。
-3. **Rebind**（`F1`）：Alice 提交同状态 `ck.member.state{membership="join"}` self-transition，新 binding 指向 `did:web:principal.acme.example`，签名按 `rebind_authorization` 规则。Move accepted。
+3. **Rebind**（`F1`）：Alice 提交同状态 `ck.member.state{membership="join"}` self-transition，新 binding 指向 `did:web:principal.acme.example`，签名按 `rebind_authorization` 规则。Control Move accepted。
 4. **Post-rebind events**：sender 投递 `E3, E4` 时观察 `service_binding_ref.delivery_binding_frontier`：
    - sender frontier ≥ `F1` → 投递到 `did:web:principal.acme.example`；
    - sender frontier 仍 `< F1` 且投到旧 `did:web:personal.alice.example` → 旧服务在 `handover_grace_seconds` 内接受并返回 `delivery_binding_stale + new_recipient_service_did=did:web:principal.acme.example + handover_frontier=F1`；sender MUST 切换后重试，**不得**回退到 DID Document。
@@ -2269,13 +2278,13 @@ Directory 返回 verified handle claim：
 }
 ```
 
-Expected join Move:
+Expected join Control Move:
 
 - `payload.actor_id = did:webvh:z2dmjA1ice:users.acme.example`。
 - `payload.delivery_binding.recipient_service_did = did:web:principal.acme.example`。
 - `payload.delivery_binding.binding_source = organization_policy`。
 - `payload.delivery_binding.service_acceptance_ref` 与 `policy_event_ref` 来自 verified claim / policy。
-- Move payload MUST NOT 把 `@alice:acme.example` 当作 actor、cell subject 或 grant subject；受限 handle 明文 SHOULD NOT 进入公开 Realm history。
+- Control Move payload MUST NOT 把 `@alice:acme.example` 当作 actor、cell subject 或 grant subject；受限 handle 明文 SHOULD NOT 进入公开 Realm history。
 
 Negative cases：
 
@@ -2417,12 +2426,12 @@ Steps：
 
 1. Consent active 时 private contact discovery PSI result、invite capability gate 和 PSI index 均缓存了 peer 可达状态。
 2. Subject revoke consent。
-3. 调用 directory lookup、提交下一次 invite Move，并等待 PSI 下一轮轮转。
+3. 调用 directory lookup、提交下一次 invite Control Move，并等待 PSI 下一轮轮转。
 
 Expected：
 
 - Private contact discovery / invite handoff MUST 立即不返回该 peer。
-- 下一次 invite Move MUST precondition 失败并重判 capability gate。
+- 下一次 invite Control Move MUST precondition 失败并重判 capability gate。
 - `any` revoke MUST 失效所有 scope cache；PSI 索引在下一次轮转时排除该 peer。
 
 ### 9.10 Vector: Sync Soft-Fail Reconcile
@@ -2437,7 +2446,7 @@ Steps：
 
 Expected：
 
-- 补齐后 reducer MUST deterministically 从 soft-fail 转为 accepted，并更新 covered frontier。
+- 补齐后 reducer MUST deterministically 从 soft-fail 转为 accepted，并更新 covered event set。
 - 永久缺失或冲突时 MUST 转为 rejected / failed_precondition，不得无限留在 soft-fail。
 
 ### 9.11 Vector: Lattice LWW Open Set
@@ -2446,14 +2455,14 @@ Expected：
 
 Steps：
 
-1. 构造同一 anchor view 中多个 sibling write，它们对同一 open-set cell 产生竞争状态。
+1. 构造同一 seal view 中多个 sibling write，它们对同一 open-set cell 产生竞争状态。
 2. 所有 sibling 带相同 logical time，但 actor / event id / canonical digest tiebreaker 不同。
 3. 两个 conformant reducer 以不同输入顺序重放。
 
 Expected：
 
 - sibling 集合与 tiebreaker MUST 产出同一 winner。
-- 任一实现出现不同 winner、不同 bottom 或不同 covered frontier，均视为 reducer bug。
+- 任一实现出现不同 winner、不同 bottom 或不同 covered event set，均视为 reducer bug。
 
 ### 9.12 Vector: E2EE Relaxed Window Exceeds Ceiling
 
@@ -2661,12 +2670,12 @@ Steps：
 
 1. `ck.device.revoke` 被 principal control stream 接受，payload 携带 `revocation_frontier=[R]`。
 2. 攻击者重放该设备在 R 之后签发的 session grant、KeyPackage publish 或 to-device write。
-3. 某 E2EE Realm 提交 MLS Remove，但 `governance_binding.membership_frontier` 未覆盖 R，也未覆盖导入 R 的 Realm governance Move。
+3. 某 E2EE Realm 提交 MLS Remove，但 `governance_binding.membership_frontier` 未覆盖 R，也未覆盖导入 R 的 Realm governance Control Move。
 
 Expected：
 
 - 第 2 步 MUST fail closed；实现不得用本地布尔缓存替代 `revocation_frontier` 或其后继 view。
-- 第 3 步 Remove 不得使 `covered_frontier_cell` 声称已覆盖该设备撤销；后续 E2EE message Move 仍必须被 `covered_frontier_cell` gate 阻塞。
+- 第 3 步 Remove 不得使 `covered_seals_cell` 声称已覆盖该设备撤销；后续 E2EE DataEvent 仍必须被 `covered_seals_cell` gate 阻塞。
 
 ### 10.10 Vector: Push Wakeup Policy
 
@@ -2856,7 +2865,7 @@ Steps:
 
 1. Realm R 中存在 Circle C,`directory_visibility="members"`；viewer V 是 Realm member 但不是 Circle member。
 2. V 分别用 Circle id、`short_name`、title prefix 与不存在的 Circle id 调用 Circle get / list / search / Realm directory projection。
-3. V 读取 Realm anchor public view commitment。
+3. V 读取 Realm seal public view commitment。
 4. Circle member M 执行同一组调用。
 
 Expected:
@@ -2864,7 +2873,7 @@ Expected:
 - 对 V,可见 Circle 与不存在 Circle 的响应 MUST 使用同一 envelope、字段集合和 timing bucket。
 - V MUST NOT 看到 Circle title、display、short_name、member_count、created_by、member id、join history 或可枚举错误。
 - V 的 stub 最多为 `{ "visibility": "locked", "opaque_commitment": "<fixed-length>" }` 或等价字段集合；`opaque_commitment` MUST 固定长度、不可逆、不可由 title / short_name / member set 枚举。
-- Realm public anchor 只暴露固定 cadence 的 opaque commitment,不得反映真实 Circle 活动频率。
+- Realm public seal 只暴露固定 cadence 的 opaque commitment,不得反映真实 Circle 活动频率。
 - M MAY 看到 policy 允许的 Circle metadata,但不得改变 V 的不可区分性要求。
 
 ### 11.8 Vector: Sidecar Circle Idempotent Ensure
@@ -2893,7 +2902,7 @@ Steps(均以 non-sidecar-member 视角):
 2. 对 `to_ref=<target_message_id>` 的 relation query。
 3. Realm directory 调用。
 4. 触发目标 Flow 的 notification fanout。
-5. 读取目标 Realm default anchor leaf 明文 metadata。
+5. 读取目标 Realm default seal leaf 明文 metadata。
 
 Expected:
 
@@ -2901,7 +2910,7 @@ Expected:
 - 第 2 步看不到 `agent_sidecar_of` 边。
 - 第 3 步 zero hits for sidecar Circle title / display / short_name / member_count。
 - 第 4 步 sidecar 内 `ck.message.create` 不触发任何 target Flow member 的 notification。
-- 第 5 步 sidecar `effective_scope=circle` event 不出现在 default anchor leaf 明文中；只能作为 opaque commitment。
+- 第 5 步 sidecar `effective_scope=circle` event 不出现在 default seal leaf 明文中；只能作为 opaque commitment。
 
 ### 11.10 Vector: Eligibility 三态 + Revocation 闭环
 
@@ -3107,7 +3116,7 @@ Setup:
 
 1. Realm R 在 `T0` 的 effective `ck.realm.history_visibility.value = "joined"`。
 2. Alice 是 active member 并提交 message `E_before`。
-3. Bob 在后续 Anchor `J` 才通过 `ck.member.state{membership=join}` 加入。
+3. Bob 在后续 Seal `J` 才通过 `ck.member.state{membership=join}` 加入。
 4. Bob 调用 backfill，范围覆盖 `E_before`。
 
 Expected:
@@ -3238,11 +3247,11 @@ Expected：
 
 `vector_id`: `ck.vector.moderation.appeal_atomicity.v1`
 
-本向量固化 [`content-moderation.md`](../governance/content-moderation.md) §5.5.2 的 reducer 强制约束：“`ck.moderation.appeal.decision` `verdict=overturn` MUST 与一条 `ck.moderation.decision.lift`（target 等于 `decision_ref`）在同一 Anchor batch 中出现；否则 reducer 用 `appeal_overturn_missing_lift` 拒绝”；“`verdict=modify` MUST 与一条新的 `ck.moderation.decision`（其 `target_ref` 等于原 target）在同一 batch 中出现……reducer 校验 `modify_decision_ref` 与同 batch 新 decision 的 event id 一致”。
+本向量固化 [`content-moderation.md`](../governance/content-moderation.md) §5.5.2 的 reducer 强制约束：“`ck.moderation.appeal.decision` `verdict=overturn` MUST 与一条 `ck.moderation.decision.lift`（target 等于 `decision_ref`）在同一 ordered submit batch 或同一 control transaction 中出现；否则 reducer 用 `appeal_overturn_missing_lift` 拒绝”；“`verdict=modify` MUST 与一条新的 `ck.moderation.decision`（其 `target_ref` 等于原 target）在同一 batch 中出现……reducer 校验 `modify_decision_ref` 与同 batch 新 decision 的 event id 一致”。
 
 Steps（前置：appeal cell 已沿 §5.5.1 状态机 `submitted → under_review` 推进，reviewer ≠ 原 decision issuer）：
 
-- **Case A — overturn 缺 lift**：reviewer 提交 `verdict=overturn` 的 `ck.moderation.appeal.decision`，但同一 Anchor batch 中**不**含 target 等于 `decision_ref` 的 `ck.moderation.decision.lift`；随后在另一次提交中补齐同 batch 的 decision + lift 对。
+- **Case A — overturn 缺 lift**：reviewer 提交 `verdict=overturn` 的 `ck.moderation.appeal.decision`，但同一 ordered submit batch / control transaction 中**不**含 target 等于 `decision_ref` 的 `ck.moderation.decision.lift`；随后在另一次提交中补齐同 batch 的 decision + lift 对。
 - **Case B — modify 引用不符**：reviewer 提交 `verdict=modify` 的 decision，`modify_decision_ref` 指向的事件不在同一 batch，或同 batch 新 `ck.moderation.decision` 的 `target_ref` 不等于原 target。
 
 Expected：

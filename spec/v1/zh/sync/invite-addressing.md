@@ -40,7 +40,7 @@ base v1 invite **MUST NOT** 依赖 `ck.find.directory.resolve_handle(intent="inv
 | `recipient_service_did` | DID | MUST | 接收 invite delivery 的 Principal Server service DID。 |
 | `recipient_service_type` | const | MAY | 若出现，MUST 等于 `principal_server`；默认省略。 |
 
-`recipient_service_did` 在 v1 中只表示 Principal Server。它 **MUST NOT** 指向 anchorer、shared Sync Service、push gateway、Directory 或任意第三方服务。将来如果需要组织、群组或其它接收服务形态，必须定义独立 locator / delivery schema，不得把 `recipient_service_type` 扩成宽枚举后复用本 schema。
+`recipient_service_did` 在 v1 中只表示 Principal Server。它 **MUST NOT** 指向 notary、shared Sync Service、push gateway、Directory 或任意第三方服务。将来如果需要组织、群组或其它接收服务形态，必须定义独立 locator / delivery schema，不得把 `recipient_service_type` 扩成宽枚举后复用本 schema。
 
 ## 2. Introduction Evidence
 
@@ -270,6 +270,6 @@ base clients MUST NOT require `resolve_handle(intent="invite" | "member_add")` t
 
 `ck.find.directory.resolve_handle(intent="invite" | "member_add")` 是可选 Directory 能力，不是 base invite/member-add 的安全关键路径。Directory 即使返回 `member_delivery_binding` 或旧式 `MemberDeliveryBindingCandidate`，也只能作为可验证 builder evidence；reducer 仍 MUST 按 Join Policy 与 [`member-delivery-binding.md`](../governance/member-delivery-binding.md) 重新物化。
 
-Realm 内 mention 不依赖公网 handle resolve。客户端在用户输入 `@alice:acme.example` 时 MUST 先从当前 Realm roster、MemberIdentity subject disclosure、内联 signed `handle_claims[]` 或本地已授权 claim cache 中解析到 `subject_id`。发送 Message 前必须持久化 DID-anchored mention reference；handle 字符串只能作为 audit / search metadata。
+Realm 内 mention 不依赖公网 handle resolve。客户端在用户输入 `@alice:acme.example` 时 MUST 先从当前 Realm roster、MemberIdentity subject disclosure、内联 signed `handle_claims[]` 或本地已授权 claim cache 中解析到 `subject_id`。发送 Message 前必须持久化 DID-sealed mention reference；handle 字符串只能作为 audit / search metadata。
 
 已知 `subject_id` 需要显示当前 handle 时，客户端 MAY 使用 roster 内联 `handle_claims[]` 或 `ck.find.directory.list_handles_for_subject`。这条 subject -> current handles 路径不得反向用来发现未知主体、发起 invite delivery 或构造 membership grant。

@@ -14,8 +14,8 @@
     "default_join_rule",
     "history_visibility",
     "encryption_profile",
-    "anchor_profile",
-    "anchorer",
+    "notary_profile",
+    "notary",
     "created_at"
   ],
   "not": {
@@ -251,13 +251,13 @@
     },
     "sync_endpoints": {
       "type": "array",
-      "description": "Realm-level service binding list for shared anchorer / sync / mirror / federation peer surfaces. Directory resolve responses expose a requester-filtered join_candidates projection for join-side ingress; raw sync_endpoints are not a public candidate list. Member-level delivery_binding remains on ck.member.state and MUST NOT be inferred from this list.",
+      "description": "Realm-level service binding list for shared notary / sync / mirror / federation peer surfaces. Directory resolve responses expose a requester-filtered join_candidates projection for join-side ingress; raw sync_endpoints are not a public candidate list. Member-level delivery_binding remains on ck.member.state and MUST NOT be inferred from this list.",
       "items": {
         "$ref": "#/$defs/sync_endpoint"
       },
       "uniqueItems": true
     },
-    "anchor_profile": {
+    "notary_profile": {
       "type": "string",
       "enum": [
         "single_did",
@@ -265,7 +265,7 @@
         "open_set",
         "mixed"
       ],
-      "description": "Create-locked Anchor finality profile. single_did and threshold deployments may require signed Anchor single-chain uniqueness; open_set deployments allow multiple Anchor leaves and deterministic joined views; mixed deployments use a primary anchorer plus fallback recovery anchorer."
+      "description": "Create-locked Seal finality profile. single_did and threshold deployments require signed Seal single-chain uniqueness; open_set deployments allow multiple Seal leaves and deterministic joined control views; mixed deployments use a primary notary plus fallback recovery notary."
     },
     "digest_algorithm": {
       "type": "string",
@@ -274,11 +274,11 @@
         "blake3"
       ],
       "default": "sha256",
-      "description": "Create-locked digest suite (canonicalization x hash tuple) used for Move/Anchor ids, state_root, and Merkle leaves within this Realm. Defaults to sha256. Value space is the active rows of artifacts/registry/digest-suite-registry.json (this enum MUST be regenerated when a row flips active, e.g. cbor.sha256); bare ids denote canonical-JSON canonicalization, dotted ids denote alternate canonical encodings. Exactly one live suite per Realm; migration via suite-transition Anchor, see event-auth-state-resolution.md §4.2.5."
+      "description": "Create-locked digest suite (canonicalization x hash tuple) used for DataEvent ids, Control Move ids, Seal ids, state_root, and Merkle leaves within this Realm. Defaults to sha256. Value space is the active rows of artifacts/registry/digest-suite-registry.json (this enum MUST be regenerated when a row flips active, e.g. cbor.sha256); bare ids denote canonical-JSON canonicalization, dotted ids denote alternate canonical encodings. Exactly one live suite per Realm; migration uses a control-plane suite-transition Control Move finalized by Seal, see event-auth-state-resolution.md §4.2.5."
     },
-    "anchorer": {
+    "notary": {
       "type": "object",
-      "description": "Genesis value for the Realm anchorer cell. Subsequent changes are ordinary Moves finalized by the previous anchorer. For single_did profiles, recovery_members and controller organization evidence are required so reducer/authz can reject single-organization recovery setups.",
+      "description": "Genesis value for the Realm notary cell. Subsequent changes are Control Moves finalized by the previous notary. For single_did profiles, recovery_members and controller organization evidence are required so reducer/authz can reject single-organization recovery setups.",
       "required": [
         "type"
       ],
@@ -317,7 +317,7 @@
         },
         "controller_organization": {
           "$ref": "#/$defs/did",
-          "description": "DID of the organization controlling the primary anchorer, when the resolver or deployment policy can derive it. Required for single_did profile so recovery diversity can be verified."
+          "description": "DID of the organization controlling the primary notary, when the resolver or deployment policy can derive it. Required for single_did profile so recovery diversity can be verified."
         },
         "recovery_controller_organizations": {
           "type": "array",
@@ -331,17 +331,17 @@
       },
       "additionalProperties": false
     },
-    "max_anchor_staleness_ms": {
+    "revocation_freshness_window_ms": {
       "type": "integer",
       "minimum": 0,
       "default": 86400000,
-      "description": "Realm-level hard maximum age of a reducer-input Event/Move anchor_ref relative to the receiver's current Anchor view. Default 86400000 ms (24h) is a compatibility ceiling for low-risk offline/recovery paths, not the recommended freshness window for all writes. Receivers MUST enforce the effective window as the minimum of this value and any action/capability, cell-role, deployment, or profile-specific freshness override; stale submissions fail closed with anchor_ref_stale / failed_precondition. High-risk security-root cells and high-conflict UI moves SHOULD declare much shorter windows and require rebase before signing."
+      "description": "Realm-level maximum control-plane seal distance/time window for accepting DataEvents whose seal_ref predates an observed revocation seal. Receivers evaluate this window by seal topology and policy, not by unverified event signing time. High-risk Realms SHOULD use a short value or move the affected cell family to control plane."
     },
     "max_delegation_lifetime_ms": {
       "type": "integer",
       "minimum": 1,
       "default": 86400000,
-      "description": "Realm-level maximum lifetime window used when an otherwise unbounded parent grant first delegates. Reducers freeze delegation_expiry_anchor = first_delegation_anchored_at + effective max_delegation_lifetime_ms and MUST NOT refresh it on re-delegation. Effective value is the minimum of this field and any stricter grant, policy, deployment, or profile override. Defaults to 86400000 ms (24h). See zh/authz/capabilities.md §10.1."
+      "description": "Realm-level maximum lifetime window used when an otherwise unbounded parent grant first delegates. Reducers freeze delegation_expiry_seal = first_delegation_sealed_at + effective max_delegation_lifetime_ms and MUST NOT refresh it on re-delegation. Effective value is the minimum of this field and any stricter grant, policy, deployment, or profile override. Defaults to 86400000 ms (24h). See zh/authz/capabilities.md §10.1."
     },
     "bottom_escalation_after_ms": {
       "type": "integer",
@@ -415,20 +415,20 @@
       }
     },
     {
-      "$comment": "single_did anchor profiles must declare an explicit recovery anchorer path at Realm create time. Distinct controlling organization is semantic/reducer validation because JSON Schema cannot compare DID-controller derivations across resolver evidence.",
+      "$comment": "single_did notary profiles must declare an explicit recovery notary path at Realm create time. Distinct controlling organization is semantic/reducer validation because JSON Schema cannot compare DID-controller derivations across resolver evidence.",
       "if": {
         "properties": {
-          "anchor_profile": {
+          "notary_profile": {
             "const": "single_did"
           }
         },
         "required": [
-          "anchor_profile"
+          "notary_profile"
         ]
       },
       "then": {
         "properties": {
-          "anchorer": {
+          "notary": {
             "required": [
               "type",
               "did",
@@ -549,7 +549,7 @@
           "enum": [
             "primary",
             "mirror",
-            "anchorer",
+            "notary",
             "sync",
             "search_projection",
             "federation_peer"
@@ -560,7 +560,7 @@
           "enum": [
             "principal_server",
             "sync_node",
-            "anchorer",
+            "notary",
             "search_service",
             "archive_node",
             "key_recovery_service",
@@ -594,7 +594,8 @@
         "cell_family",
         "lattice",
         "bottom",
-        "cell_role"
+        "cell_role",
+        "plane"
       ],
       "properties": {
         "cell_family": {
@@ -626,7 +627,7 @@
           "enum": [
             "authorization_root",
             "policy_root",
-            "anchorer_root",
+            "notary_root",
             "membership",
             "lifecycle",
             "ui_affordance",
@@ -636,7 +637,19 @@
             "audit",
             "telemetry"
           ],
-          "description": "Semantic role declared by Realm schema. authorization_root / policy_root / anchorer_root / membership / lifecycle MUST NOT use lattice types lww_register or rga (enforced by allOf below). ui_affordance / content / draft / cosmetic MAY use lww_register or rga."
+          "description": "Semantic role declared by Realm schema. authorization_root / policy_root / notary_root / membership / lifecycle MUST NOT use lattice types lww_register or rga (enforced by allOf below). ui_affordance / content / draft / cosmetic MAY use lww_register or rga."
+        },
+        "plane": {
+          "type": "string",
+          "enum": [
+            "data",
+            "control"
+          ],
+          "description": "CBA plane for this cell family. authorization_root / policy_root / notary_root / membership / lifecycle MUST be control. Ordinary content / draft / cosmetic cells SHOULD be data unless sealed=true."
+        },
+        "sealed": {
+          "type": "boolean",
+          "description": "Opt-in control-plane finality for an otherwise data-like cell family. When true, plane MUST be control."
         },
         "parameters": {
           "type": "object"
@@ -656,6 +669,58 @@
       },
       "additionalProperties": false,
       "allOf": [
+        {
+          "$comment": "Security-root roles are always control-plane.",
+          "if": {
+            "properties": {
+              "cell_role": {
+                "enum": [
+                  "authorization_root",
+                  "policy_root",
+                  "notary_root",
+                  "membership",
+                  "lifecycle"
+                ]
+              }
+            },
+            "required": [
+              "cell_role"
+            ]
+          },
+          "then": {
+            "properties": {
+              "plane": {
+                "const": "control"
+              }
+            },
+            "required": [
+              "plane"
+            ]
+          }
+        },
+        {
+          "$comment": "sealed=true is the explicit data-to-control opt-in.",
+          "if": {
+            "properties": {
+              "sealed": {
+                "const": true
+              }
+            },
+            "required": [
+              "sealed"
+            ]
+          },
+          "then": {
+            "properties": {
+              "plane": {
+                "const": "control"
+              }
+            },
+            "required": [
+              "plane"
+            ]
+          }
+        },
         {
           "if": {
             "properties": {

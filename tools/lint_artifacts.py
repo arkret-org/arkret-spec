@@ -4802,7 +4802,7 @@ def check_signature_algorithm_registry(lint: Lint) -> None:
     proof_enum_locations = [
         ("schemas/event-envelope.schema.json", "/$defs/event_proof/properties/alg/enum"),
         ("schemas/event-envelope.schema.json", "/$defs/proof/properties/alg/enum"),
-        ("schemas/anchor.schema.json", "/$defs/signature/properties/alg/enum"),
+        ("schemas/seal.schema.json", "/$defs/signature/properties/alg/enum"),
         ("schemas/ice-config-response.schema.json", "/$defs/signature/properties/alg/enum"),
         ("schemas/attestation-evidence.schema.json", "/properties/attestation_key/properties/alg/enum"),
     ]

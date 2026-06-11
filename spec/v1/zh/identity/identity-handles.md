@@ -21,7 +21,7 @@ Cokret 使用 DID 作为稳定主体，用可验证 claim / attestation 表达 h
 - handle 到 DID 的解析
 - 双向绑定验证
 - 多 handle 场景的 primary handle 选择规则（§3.2.1）
-- 事件内 mention reference 与 profile snapshot 的 DID-anchored 形态（§3.8）
+- 事件内 mention reference 与 profile snapshot 的 DID-sealed 形态（§3.8）
 - pairwise DID 隐私模型
 - 选择性披露 / 不可链接 presentation
 
@@ -404,7 +404,7 @@ payload.delivery_binding.delivery_modes = candidate.member_delivery_binding.deli
 payload.delivery_binding.binding_source = join-policy §5.1.2.1 决策树输出
 ```
 
-`claim_digest`、`source_refs[]` 与 candidate proof digest SHOULD 进入 member Move 的 `refs[]`（`role="attestation"` 或 profile 声明的 role），用于审计和 replay 诊断；它们不得替代 `delivery_binding` 中的规范字段。映射过程中任何缺失字段、过期 candidate、audience 不匹配、issuer 未授权或 Realm `delivery_binding_policy` 不接受该 source，均 MUST fail closed。
+`claim_digest`、`source_refs[]` 与 candidate proof digest SHOULD 进入 member Control Move 的 `refs[]`（`role="attestation"` 或 profile 声明的 role），用于审计和 replay 诊断；它们不得替代 `delivery_binding` 中的规范字段。映射过程中任何缺失字段、过期 candidate、audience 不匹配、issuer 未授权或 Realm `delivery_binding_policy` 不接受该 source，均 MUST fail closed。
 
 ### 3.7.4 Validator MUST 规则
 
@@ -434,7 +434,7 @@ verifier 收到 candidate 时 MUST 按下列顺序失败 closed：
 
 ### 3.8 Mention Reference 与 Display Snapshot（normative）
 
-事件内对某 subject 的引用——@mention、reply target、quoted profile、forwarded message 的原作者引用、reaction 的目标等——**权威引用字段** MUST 使用 DID-anchored 标识符（`subject_id`），不得用 handle 字符串作为 actor 归因、授权判断、解析路径的唯一来源。同一事件 MAY 同时携带 handle / display name 的历史快照作为 audit / search / 兜底展示的 metadata（见 §3.8.1），但这些 metadata 字段不参与协议层信任决策（见 §3.8.3）。
+事件内对某 subject 的引用——@mention、reply target、quoted profile、forwarded message 的原作者引用、reaction 的目标等——**权威引用字段** MUST 使用 DID-sealed 标识符（`subject_id`），不得用 handle 字符串作为 actor 归因、授权判断、解析路径的唯一来源。同一事件 MAY 同时携带 handle / display name 的历史快照作为 audit / search / 兜底展示的 metadata（见 §3.8.1），但这些 metadata 字段不参与协议层信任决策（见 §3.8.3）。
 
 该规则的根本动因：handle 的 `<domain>` 部分是 issuer 的 authority domain（组织 / holder 自己持有的域名），不是 subject 用户控制的标识。如果把 domain 作为**权威**引用字段持久化进每一个引用点，issuer 的 DNS 治理成本（domain 迁移、authority 重命名）就会转嫁给所有历史事件，并被迫做事件改写。DID 才是稳定标识；handle 是该标识的可读 label，由解析层实时计算；事件内的 handle metadata 只是"当时是什么"的 audit 快照，不是"现在是什么"的真相源。
 
@@ -523,7 +523,7 @@ renderer 检测到 `handle_at_time` 与当前 primary handle 不一致时，MAY 
 
 #### 3.8.4 与 Organization Authority Migration 的关系
 
-因 §3.8 规定权威引用字段一律 DID-anchored，组织 authority domain 迁移（`acme.example → acme.com`）在历史事件层不需要 rewrite：
+因 §3.8 规定权威引用字段一律 DID-sealed，组织 authority domain 迁移（`acme.example → acme.com`）在历史事件层不需要 rewrite：
 
 - 旧事件内的 mention / profile reference 权威字段是 `subject_id`，subject 不变；
 - 渲染时按 §3.2.1 解析当前 primary handle，得到新 domain 的 handle 字符串；

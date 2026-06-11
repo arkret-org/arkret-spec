@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/availability-receipt.schema.json",
+  "title": "Cokret AvailabilityReceipt",
+  "description": "Signed holder commitment that Event bytes are available until retention_expires_at. Digest membership roots do not prove byte availability; CBA models availability independently.",
+  "type": "object",
+  "required": [
+    "realm_id",
+    "event_id",
+    "bytes_digest",
+    "holder_id",
+    "retention_expires_at",
+    "signature"
+  ],
+  "properties": {
+    "realm_id": {
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
+    },
+    "event_id": {
+      "type": "string",
+      "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "bytes_digest": {
+      "$ref": "#/$defs/hash"
+    },
+    "holder_id": {
+      "$ref": "#/$defs/did"
+    },
+    "retention_expires_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "signature": {
+      "$ref": "#/$defs/proof"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+    },
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "proof": {
+      "type": "object",
+      "required": [
+        "kind",
+        "verification_method",
+        "alg",
+        "payload_digest",
+        "created_at",
+        "jws"
+      ],
+      "properties": {
+        "kind": {
+          "const": "detached_jws"
+        },
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+        },
+        "alg": {
+          "type": "string",
+          "enum": [
+            "EdDSA",
+            "ES256",
+            "ML-DSA-65"
+          ]
+        },
+        "payload_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Hash of canonical AvailabilityReceipt bytes with signature omitted."
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

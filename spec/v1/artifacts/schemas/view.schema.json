@@ -975,7 +975,7 @@
             "type": "string"
           }
         },
-        "anchor_ref": {
+        "context_ref": {
           "$ref": "#/$defs/ref"
         },
         "filters": {

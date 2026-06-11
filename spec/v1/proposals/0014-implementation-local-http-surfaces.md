@@ -108,7 +108,7 @@ that neither soland mounts nor any planning registry lists (actors write ops,
 moderation report resolve, federation peers / allow-rules CRUD, authz
 capabilities CRUD, handles admin, directory approval, media statistics,
 policies CRUD, realm policy / links / member-routability / covered-frontier /
-handovers, anchorer signing-key GET, spaces hierarchy), plus an ops panel set
+handovers, notary signing-key GET, spaces hierarchy), plus an ops panel set
 (`server/info`, `server/stats`, `server/trust-domain`, `server/relaxed-window`,
 `audit/attestation-evidence`).
 
@@ -145,11 +145,11 @@ handovers, anchorer signing-key GET, spaces hierarchy), plus an ops panel set
   stay implementation-local (`/_soland/root/identity/*`, registered as
   `org.cokret.soland.*` extension operations) for v1. Promoting them into
   `/_cokret` requires a dedicated CKP with closed schemas per §7.
-- *Anchorer value wire shape (SPEC-SOD-004)*: adjudicated in normative prose —
+- *Notary value wire shape (SPEC-SOD-004)*: adjudicated in normative prose —
   `zh/authz/event-auth-state-resolution.md` §4.4 now pins the `type`-tagged
   object from `realm.schema.json` as the only legal wire shape and forbids the
   `kind` / `kind_raw` / `shape` / `k` / `n` / flattened-alias spellings.
-  SDK (`cokret_core::anchorer::AnchorerValue`, `kind`-tagged) and
+  SDK (`cokret_core::notary::NotaryValue`, `kind`-tagged) and
   soland/sodmin (flattened + alias tolerance) must both migrate.
 
 ## 7. Required acceptance work

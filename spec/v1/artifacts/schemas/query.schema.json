@@ -38,6 +38,43 @@
         "custom"
       ]
     },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+    },
+    "seal_ref": {
+      "type": "string",
+      "pattern": "^ck:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
+    },
+    "query_basis": {
+      "type": "object",
+      "required": [
+        "seal_ref",
+        "grade"
+      ],
+      "properties": {
+        "seal_ref": {
+          "$ref": "#/$defs/seal_ref"
+        },
+        "key_view_ref": {
+          "$ref": "#/$defs/hash",
+          "description": "Optional root/proof reference for the data-plane KeyView used by this projection."
+        },
+        "grade": {
+          "type": "string",
+          "enum": [
+            "local",
+            "seen",
+            "observed",
+            "sealed",
+            "witnessed",
+            "forked",
+            "stale"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
     "field_filter": {
       "type": "object",
       "required": [
@@ -238,6 +275,11 @@
           "type": "string",
           "pattern": "^ck:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
+        "context_ref": {
+          "type": "string",
+          "pattern": "^(ck:(realm|space|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$",
+          "description": "Optional timeline / renderer context object reference. This is not a Seal."
+        },
         "projection": {
           "type": "string",
           "enum": [
@@ -403,6 +445,51 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 1000
+        }
+      },
+      "additionalProperties": false
+    },
+    "query_response_body": {
+      "type": "object",
+      "required": [
+        "items",
+        "basis"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": true
+        },
+        "next_cursor": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^ck:cursor:[A-Za-z0-9_-]+$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "has_more": {
+          "type": "boolean"
+        },
+        "basis": {
+          "$ref": "#/$defs/query_basis"
+        },
+        "frontier": {
+          "type": "object",
+          "properties": {
+            "barrier_cursor": {
+              "type": "string",
+              "pattern": "^ck:cursor:[A-Za-z0-9_-]+$"
+            },
+            "max_hlc": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$"
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

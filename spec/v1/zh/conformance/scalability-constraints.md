@@ -30,7 +30,7 @@ Cokret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | 单次 `/_cokret/self/events` 批量提交的 Event 数 | 1,000 | 超过时 MUST 拆分请求；接收方 MAY 返回 `rate_limited` 或 `payload_too_large`。 |
 | 单个 federation transaction 的 Event 数 | 500 | 超过时 MUST 拆分 transaction；接收方 MAY 返回 `rate_limited` 或 `payload_too_large`。 |
 | 单次 sync / backfill / projection page 返回项 | 1,000 | 执行方 MUST enforce；客户端不得假设更大 page 可用。 |
-| 单个 Event 的 `prev_refs` 数量 | 128 | 超过时 MUST reject（`schema_violation`，`reason_code=prev_refs_too_large`）或要求提交 snapshot / checkpoint 引用；数组项 MUST 去重。 |
+| 单个 Event 的 `prev_refs` 数量 | 128 | 超过时 MUST reject（`schema_violation`，`reason_code=prev_refs_too_large`）或要求提交 snapshot / seal 引用；数组项 MUST 去重。 |
 | 单个 Event `refs[]` 中 `role="authorized_by"` 的条目数量 | 64 | 超过时 MUST reject；authorized_by refs 必须是最小授权状态集合（见 [event-and-patch.md](../models/event-and-patch.md) §2.2）。 |
 | 单个 Event 的 `refs[]` 总条目数量 | 128 | 涵盖 `authorized_by` / `attestation` / `parent_event` / `after` / `recovery_capability` / `state_witness` / `inclusion_proof` 等所有 role；超过时 MUST reject（`schema_violation`，`reason_code=refs_too_large`）或拆分。 |
 | 同一 `(actor_id, actor_seq, prev_frontier_digest)` sibling fork 数 | 16 | 超过时 receiver MUST quarantine 或要求 actor chain repair；见 [event-and-patch.md](../models/event-and-patch.md) §2.6。 |
@@ -38,7 +38,7 @@ Cokret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | 关系展开深度 | 32 | Projection executor / graph query MUST enforce，跨 Realm 引用必须按 Lazy Link 截断（Lazy Link 定义见 [glossary.md](../overview/glossary.md) "Lazy Link"）。 |
 | 单 actor 每毫秒 HLC 生成事件数 | 65,536（HLC logical 4 hex 段上限） | HLC wire 形态为 `<unix_ms_hex_12>-<logical_hex_4>-<node_id_hash_8>`，logical 段为 16-bit；同一 actor 在同一 ms 内最多分配 65,536 个 logical 值（`0x0000`–`0xFFFF`，即 0..65535），第 65,537 个 event 触发 HLC logical 段饱和，producer MUST 等待至下一 ms 再生成或返回本地错误 `hlc_logical_overflow`，MUST NOT wrap 或复用相同 HLC。HLC 仅作为时间线 advisory tie-breaker，不参与授权或状态收敛——饱和不影响协议正确性，只影响展示排序。[^hlc-throughput] [^hlc-logical-width] |
 | 单 actor 持续吞吐建议 | ≤ 100,000 events/min | Producer SHOULD 在生产侧自我限速，避免在突发情况下饱和 HLC logical 段或下游 reducer。超过该建议持续吞吐时，actor SHOULD 拆分为多 device / 多 actor 并行，或考虑使用 batch event。 |
-| HLC `hard_future_skew_ms`（硬 future drift 上限） | 300,000 ms（5 分钟） | 见 [encoding.md](./encoding.md) §7.2。HLC `unix_ms` 超本地时钟该阈值时 receiver MUST reject / quarantine。该校验是 envelope freshness / DoS guard，非授权、Lattice winner、Move precondition 或 Anchor finality 输入。 |
+| HLC `hard_future_skew_ms`（硬 future drift 上限） | 300,000 ms（5 分钟） | 见 [encoding.md](./encoding.md) §7.2。HLC `unix_ms` 超本地时钟该阈值时 receiver MUST reject / quarantine。该校验是 envelope freshness / DoS guard，非授权、Lattice winner、Control Move precondition 或 Seal finality 输入。 |
 | HLC `expected_future_skew_ms`（软 future drift 阈值） | 30,000 ms（30 秒） | 见 [encoding.md](./encoding.md) §7.2。超该阈值但未超 `hard_future_skew_ms` 时 receiver SHOULD soft-fail / quarantine。 |
 | HLC `state_event_expected_future_skew_ms`（state event 软阈值） | 默认按 `expected_future_skew_ms` | 见 [encoding.md](./encoding.md) §7.2。profile MAY 对 state event（capability / membership / policy / service binding / Realm upgrade / MLS commit 等）声明更严窗口；未声明时按 `expected_future_skew_ms` 处理。 |
 
@@ -58,40 +58,41 @@ Cokret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 
 当 grant / revoke / claim status / policy component / membership frontier 变化时，受影响的 capability snapshot MUST 立即标记 stale。stale snapshot 不得继续用于新的写入 allow 决策。
 
-## 4. Move / Anchor / Lattice 上限
+## 4. CBA / Lattice 上限
 
 | 项 | v1 默认上限 | 规则 |
 | --- | ---: | --- |
-| 单个 Move canonical size | 1 MiB | 超过时 MUST reject 为 `payload_too_large` 或 `schema_violation`。 |
-| 单个 Move 的 `preconditions + effects` 数 | 256 | 超过时 MUST reject；需要拆成多个 Move 或使用 higher-level batch operation。 |
-| 单个 Anchor 新增 Move 数 | 1,000 | 超过时 MUST 拆分 Anchor；接收方 MAY 返回 `rate_limited` 或 `temporarily_unavailable`。 |
-| Anchor DAG leaf 数 | 实现声明 | 超过时 SHOULD 请求或生成 signed compaction Anchor；查询可使用 deterministic effective anchor view。 |
+| 单个 DataEvent canonical size | 1 MiB | 超过时 MUST reject 为 `payload_too_large` 或 `schema_violation`。 |
+| 单个 Control Move canonical size | 1 MiB | 超过时 MUST reject 为 `payload_too_large` 或 `schema_violation`。 |
+| 单个 Control Move 的 `preconditions + effects` 数 | 256 | 超过时 MUST reject；需要拆成多个 Control Move 或使用 higher-level control transaction。 |
+| 单个 Seal 新增 Control Move 数 | 1,000 | 超过时 MUST 拆分 Seal；接收方 MAY 返回 `rate_limited` 或 `temporarily_unavailable`。 |
+| Seal DAG leaf 数 | 实现声明 | 超过时 SHOULD 请求或生成 signed compaction Seal；查询可使用 deterministic Seal view。 |
 | 单次 Lattice join CPU / wall-clock 预算 | 实现声明 | 服务 MUST 在 `server/describe.limits` 暴露；超出时返回可恢复错误或使用已验证 state_root + inclusion proof。 |
 | 单次 Lattice join 内存预算 | 实现声明 | 服务 MUST 暴露，超出时返回可恢复错误而不是 OOM。 |
 
-Move / Anchor fallback 不得选择本地接收顺序或数据库 ID。Snapshot 必须有 Anchor inclusion proof、state_root、frontier 和 chunk digest。对缺失、不可达或高成本 `refs` 的 backfill，接收方 MAY 在预算耗尽后把 Move 保持 pending 或返回 `dependency_missing`、`temporarily_unavailable`；不得在同步写入路径无界递归展开。
+CBA fallback 不得选择本地接收顺序或数据库 ID。Snapshot 必须有 Seal inclusion proof、state_root、frontier 和 chunk digest。对缺失、不可达或高成本 `refs` 的 backfill，接收方 MAY 在预算耗尽后把 DataEvent 保持 observed-only、把 Control Move 保持 pending，或返回 `dependency_missing`、`temporarily_unavailable`；不得在同步写入路径无界递归展开。
 
-### 4.1 Progressive Move / Anchor Backfill Profile
+### 4.1 Progressive CBA Backfill Profile
 
-实现声称支持 `full_client`、`e2ee_client` 或 `principal_server` profile 时，MUST 支持渐进式 Move / Anchor 恢复，而不是要求一次性拉完整历史：
+实现声称支持 `full_client`、`e2ee_client` 或 `principal_server` profile 时，MUST 支持渐进式 CBA 恢复，而不是要求一次性拉完整历史：
 
 | 项 | v1 默认上限 / 建议 | 规则 |
 | --- | ---: | --- |
-| 单轮 targeted backfill page | 256 objects | 客户端 SHOULD 优先拉缺失 Move、Anchor predecessor、critical `refs` 的最小闭包，再扩大范围。 |
+| 单轮 targeted backfill page | 256 objects | 客户端 SHOULD 优先拉缺失 DataEvent、Control Move、Seal predecessor、critical `refs` 的最小闭包，再扩大范围。 |
 | 单 Realm 后台 dependency 队列 | 4,096 refs | 超过时 MUST 合并去重、分批处理，或切换到 state_root-assisted recovery。 |
-| snapshot-assisted recovery 触发 | DAG leaf 过多、join 预算耗尽或本地预算耗尽 | 必须验证 Anchor signer authority、frontier、state_root 和 chunk digest。 |
-| 交互式恢复首屏预算 | 2 seconds SHOULD | 预算耗尽后 MAY 返回 read-only partial view + `anchor_incomplete`，并继续后台恢复。 |
+| snapshot-assisted recovery 触发 | Seal leaf 过多、join 预算耗尽或本地预算耗尽 | 必须验证 Seal signer authority、frontier、state_root 和 chunk digest。 |
+| 交互式恢复首屏预算 | 2 seconds SHOULD | 预算耗尽后 MAY 返回 read-only partial view + `seal_incomplete`，并继续后台恢复。 |
 | retry backoff | 指数退避，有上限 | 响应 SHOULD 带 `retry_after_ms`、`next_retry_at`、缺失 ref 和可用 source。 |
 
 渐进恢复阶段：
 
-1. **Anchor probe**：先查询 Realm Anchor leaves、可用 snapshot manifest 和缺失 ref 的 source。
-2. **Targeted dependency fetch**：按缺失 Move、Anchor predecessor 与 critical refs 拉最小闭包。
-3. **State-root-assisted recovery**：闭包超过预算时，改用最近可验证 state_root / snapshot 作为 base，再回放其 frontier 之后的 Move。
-4. **Read-only partial state**：仍有缺口时，客户端 MAY 展示已验证 Anchor view 的只读 projection，并显式标记 `anchor_incomplete`。
-5. **Write revalidation**：任何新 Move 必须在提交前以最新 Anchor view 重新验证 preconditions；不得继承 partial view 的乐观允许结果。
+1. **Seal probe**：先查询 Realm Seal leaves、可用 snapshot manifest 和缺失 ref 的 source。
+2. **Targeted dependency fetch**：按缺失 DataEvent、Control Move、Seal predecessor 与 critical refs 拉最小闭包。
+3. **State-root-assisted recovery**：闭包超过预算时，改用最近可验证 state_root / snapshot 作为 base，再回放其 frontier 之后的 DataEvent 与 Control Move。
+4. **Read-only partial state**：仍有缺口时，客户端 MAY 展示已验证 CBA query basis 的只读 projection，并显式标记 query basis incomplete。
+5. **Write revalidation**：任何新 Control Move 必须在提交前以最新 Seal view 重新验证 preconditions；DataEvent 必须以最新可用 `seal_ref` 重新验证授权 freshness；不得继承 partial view 的乐观允许结果。
 
-长期离线设备重新上线时，服务端 SHOULD 支持分页返回 Anchor DAG 诊断和 snapshot candidate，避免客户端在写入路径递归拉取数千个 Move / Anchor。
+长期离线设备重新上线时，服务端 SHOULD 支持分页返回 Seal DAG 诊断和 snapshot candidate，避免客户端在写入路径递归拉取数千个 Event / Seal。
 
 ## 5. Space / Relation / View 上限
 

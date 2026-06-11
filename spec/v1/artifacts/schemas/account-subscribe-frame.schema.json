@@ -240,12 +240,16 @@
               "event_state": {
                 "type": "string",
                 "enum": [
-                  "pending_anchor",
-                  "effective",
+                  "data_local",
+                  "data_observed",
+                  "control_pending",
+                  "control_sealed",
                   "failed_precondition",
+                  "failed_plane",
                   "failed_bottom",
-                  "rejected_anchor",
-                  "anchorer_paused"
+                  "rejected_seal",
+                  "fork_quarantine",
+                  "stale_seal_ref"
                 ]
               },
               "event_state_reason_code": {
@@ -258,7 +262,7 @@
         },
         "bottoms": {
           "type": "array",
-          "description": "Structured Bottom diagnostics for cells whose effective Lattice join resolved to ⊥ under the current Anchor view. Each entry pins (cell, status, bottom). See zh/sync/service-surface.md §5.3.",
+          "description": "Structured Bottom diagnostics for cells whose effective Lattice join resolved to ⊥ under the current CBA query basis. Each entry pins (cell, status, bottom). See zh/sync/service-surface.md §5.3.",
           "items": {
             "type": "object",
             "required": [

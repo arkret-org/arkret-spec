@@ -91,7 +91,7 @@ confidential_discussion_of
 | `watches`：`actor (did) -> flow` | **派生投影**（derived from cell, not directly writable） | 每个 `(from_ref, to_ref)` 至多一条 active edge；`from_ref` MUST 是 DID，`to_ref` MUST 指向 Flow（或 profile 声明的 watchable 对象）。**Truth source 是 cas_register cell `ck.component.flow.watch.v1`，写入路径是 `ck.flow.watch.set` durable event，不是 `ck.relation.create`**——直接 `ck.relation.create / update / delete relation_kind=watches` MUST `schema_violation`（与派生 `contains` Relation 的双源约束同模式，见 [`./realm-and-space.md` §3.6](./realm-and-space.md#36-flow-位置)）。写入 invariant：`payload.watcher_actor_id == envelope.actor_id`，除非 actor 持有 `ck.flow.watch.set.others` capability。级别枚举、投影脱敏、通知路由见 [flow-and-message.md §8](./flow-and-message.md)。 |
 | `has_default_view` | `many_to_one` | 同一 `from_ref` 在同一 Realm 内至多有一个 active default View；设置新默认 View MUST 关闭旧 active edge。 |
 | `agent_sidecar_of` | `many_to_one` | weak-semantic、non-structural、non-cascading。`from_ref` MUST 是 sidecar private Flow,`to_ref` 可为目标 Flow / Message / Relation。该 relation fact MUST 提交 `scope_circle_id` 指向 sidecar Circle,使 `effective_scope = circle`;non-sidecar-member 不能从目标侧枚举该边。**实现 MUST NOT 在目标公开 Flow 写 target-side reverse relation**,因为这会泄露 sidecar 存在性。详见 [`circle.md` §6.1](./circle.md) 的 Relation effective_scope invariant 与 [`circle.md` §11.1](./circle.md) 的 sidecar profile 规则。 |
-| `confidential_discussion_of` | `many_to_one` | weak-semantic、non-structural、non-cascading。`from_ref` MUST 是 private Flow，`to_ref` MUST 是其 public anchor Flow。该 relation fact MUST 提交在 `from_ref` 所在 Circle scope（即 payload `scope_circle_id` 指向 private Flow 的 Circle，使 `effective_scope = circle`），使 Circle 成员能从 private Flow 回到 public anchor，而 non-member 不能从 public anchor 侧枚举该边。**实现 MUST NOT 在目标公开 Flow 写 target-side reverse relation**。 |
+| `confidential_discussion_of` | `many_to_one` | weak-semantic、non-structural、non-cascading。`from_ref` MUST 是 private Flow，`to_ref` MUST 是其 public seal Flow。该 relation fact MUST 提交在 `from_ref` 所在 Circle scope（即 payload `scope_circle_id` 指向 private Flow 的 Circle，使 `effective_scope = circle`），使 Circle 成员能从 private Flow 回到 public seal，而 non-member 不能从 public seal 侧枚举该边。**实现 MUST NOT 在目标公开 Flow 写 target-side reverse relation**。 |
 
 未声明为 multi-edge 的 Relation MUST 由 reducer 按 `(realm_id, relation_kind, from_ref, to_ref)` 去重。Events API MAY 拒绝同一 frontier 下显然重复的写入，但不能作为唯一去重机制；两个离线设备并发创建同一关系时，若 relation profile 未声明其它 `on_conflict` 值，reducer MUST 按 §6 的 `deterministic_winner` 规则选择一个 active winner，并把 loser 记录为 conflict 或 tombstone。
 
@@ -195,7 +195,7 @@ Realm schema、Realm profile 或 `relation_profiles` MAY 对标准默认值收�
 Relation conflict 的默认处理为：候选先通过格式、签名、授权、时钟窗口和 causal dependency 检查；严格因果后继 supersede 前驱；互不可达候选不得靠 HLC、actor id、本地接收顺序、数据库 ID 或服务端插入顺序自动选边。若 relation profile 能用业务 lattice 合并则合并；否则按 `on_conflict` 处理。
 
 - `on_conflict="close_previous"` 只适用于因果上明确晚于旧 edge 的事件；并发互斥 edge 不得靠接收顺序关闭。
-- `on_conflict="reject"` 表示 reducer 输出无 active 新 edge，并要求客户端重新基于最新 Anchor frontier 提交修复 Move。
+- `on_conflict="reject"` 表示 reducer 输出无 active 新 edge，并要求客户端重新基于最新 CBA query basis 提交修复 Event 或 Control Move。
 - `on_conflict="deterministic_winner"` 表示 reducer 对互不可达候选按 canonical `event_digest` bytewise 升序选择最小值作为唯一 active winner；其它候选必须记录为 conflict loser 或 tombstone，并保留其 `event_id` / `event_digest` 以便审计和显式修复。`event_digest` 是签名覆盖的 canonical Event digest，不得由 HLC、actor id 或接收顺序替代。
 - `require_review` MUST 输出可投影的 conflict 诊断，不得让两个互斥 active edge 同时进入 canonical projection。
 
@@ -210,5 +210,5 @@ Relation conflict 的默认处理为：候选先通过格式、签名、授权�
 
 - 公共字段：[common-fields.md](./common-fields.md)。
 - Space 位置语义：[realm-and-space.md §3.6](./realm-and-space.md#36-flow-位置)。
-- Move / Anchor / Lattice：[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
+- CBA / Lattice：[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
 - Relation schema：`artifacts/schemas/relation.schema.json`。

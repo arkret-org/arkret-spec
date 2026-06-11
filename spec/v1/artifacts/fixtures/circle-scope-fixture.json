@@ -2,7 +2,7 @@
   "suite": "circle_scope",
   "profile": "ck.profile.circle_conformance.v1",
   "version": "2026-05-29",
-  "description": "Machine-contract fixture for Circle effective_scope semantics. Splits actor submit-payload (scope_circle_id only) from canonical reducer-output (tagged effective_scope on Event envelope and materialized object). Covers None->None, same-scope->same-scope, None->Some, Some->None, Some(A)->Some(B) rebind transitions plus negative cases. negative_cases also pin the accepted-Event / materialized-object closure: accepted Circle-scoped events MUST carry effective_scope, effective_scope MUST agree with scope_circle_id, the Anchor frontier leaf transitively binds effective_scope via event_digest, and content_encryption_floor=e2ee_required rejects plaintext content. See spec/v1/zh/models/circle.md §6.1 / §6.2 / §7 / §10.2.",
+  "description": "Machine-contract fixture for Circle effective_scope semantics. Splits actor submit-payload (scope_circle_id only) from canonical reducer-output (tagged effective_scope on Event envelope and materialized object). Covers None->None, same-scope->same-scope, None->Some, Some->None, Some(A)->Some(B) rebind transitions plus negative cases. negative_cases also pin the accepted-Event / materialized-object closure: accepted Circle-scoped DataEvents MUST carry effective_scope, effective_scope MUST agree with scope_circle_id, the signed event_digest binds effective_scope, and content_encryption_floor=e2ee_required rejects plaintext content. See spec/v1/zh/models/circle.md §6.1 / §6.2 / §7 / §10.2.",
   "submit_payload_shape": {
     "description": "Actor-supplied input on ck.flow.create / ck.message.create / ck.morph.create / ck.relation.create / ck.space.* writes. MUST carry only scope_circle_id (id:circle | null). MUST NOT carry effective_scope.",
     "schema": {
@@ -245,8 +245,8 @@
       "reason": "effective_scope_reducer_managed"
     },
     {
-      "name": "anchor_leaf_effective_scope_tamper",
-      "description": "effective_scope is part of an Event's canonical bytes, so the Anchor frontier leaf (event_digest = H(canonical bytes)) transitively binds it: an auditor proving a leaf is anchored also proves which effective_scope that event belonged to. Mutating effective_scope after signing changes event_digest, so the recomputed digest no longer matches the Anchor frontier entry. Receivers MUST reject with digest_mismatch; this forbids silently re-scoping an already-anchored event and is why no separate scope field is added to anchor.schema.json (the binding is the digest).",
+      "name": "seal_leaf_effective_scope_tamper",
+      "description": "effective_scope is part of an Event's canonical bytes, so event_digest = H(canonical bytes) binds it directly. If a Seal later reports the DataEvent inside data_event_set_root, that root is an observational availability/projection proof, not control-plane finality. Mutating effective_scope after signing changes event_digest, so the recomputed digest no longer matches the signed event. Receivers MUST reject with digest_mismatch; this forbids silently re-scoping an accepted event and is why no separate scope field is added to seal.schema.json (the binding is the digest).",
       "event_kind": "ck.message.create",
       "original_effective_scope": {
         "kind": "circle",

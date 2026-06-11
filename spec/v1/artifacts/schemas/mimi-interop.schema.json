@@ -157,7 +157,7 @@
     },
     "room_binding": {
       "type": "object",
-      "description": "MIMI room binding effect payload. In Move/Anchor/Lattice state, the cell subject is payload.mimi_room_uri for ck.component.mimi.room_binding.v1.",
+      "description": "MIMI room binding effect payload. In CBA/Lattice state, the cell subject is payload.mimi_room_uri for ck.component.mimi.room_binding.v1.",
       "required": [
         "kind",
         "payload"

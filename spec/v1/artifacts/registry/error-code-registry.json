@@ -396,16 +396,16 @@
       "description": "Event submission rejected an actor chain sequence number that is duplicate, skipped without allowed repair evidence, or inconsistent with the actor frontier."
     },
     {
-      "code": "anchor_ref_stale",
+      "code": "stale_seal_ref",
       "http_status": 409,
       "scope": "both",
-      "description": "The supplied anchor_ref or frontier token is older than the freshness window required for this operation or policy tier."
+      "description": "The supplied seal_ref, seal_basis, or frontier token is older than the freshness window required for this operation or policy tier."
     },
     {
-      "code": "anchor_ref_unknown",
+      "code": "seal_ref_unknown",
       "http_status": 404,
       "scope": "both",
-      "description": "The supplied anchor_ref does not identify an anchor known to the receiving service for the target Realm."
+      "description": "The supplied seal_ref or seal_basis leaf does not identify a Seal known to the receiving service for the target Realm."
     },
     {
       "code": "audience_unknown",
@@ -471,7 +471,7 @@
       "code": "frontier_unavailable",
       "http_status": 503,
       "scope": "endpoint",
-      "description": "The service cannot currently produce the requested frontier because required anchor, reducer, or witness state is unavailable."
+      "description": "The service cannot currently produce the requested frontier because required seal, reducer, or witness state is unavailable."
     },
     {
       "code": "handle_unverified",
@@ -666,10 +666,10 @@
       "description": "A directory/resolve/search/projection request attempted to obtain a stripped preview, history stub, history snippet, or token-scoped preview that is not allowed by the effective ck.realm.preview_policy. External responses that must be non-enumerating MAY map this to not_found. See zh/governance/history-visibility.md §4."
     },
     {
-      "code": "anchorer_recovery_missing",
+      "code": "notary_recovery_missing",
       "http_status": 422,
       "scope": "both",
-      "description": "Realm create rejected: anchor_profile=single_did was declared without a recovery_anchorer in a different controlling organization, in violation of zh/authz/event-auth-state-resolution.md §9.3."
+      "description": "Realm create rejected: notary_profile=single_did was declared without a recovery_notary in a different controlling organization, in violation of zh/authz/event-auth-state-resolution.md §9.3."
     },
     {
       "code": "unsupported_lattice_type",
@@ -726,10 +726,10 @@
       "description": "The digest suite prefix in a typed digest value (e.g. sha256:<hex>, cbor.sha256:<hex>) is not an active row of artifacts/registry/digest-suite-registry.json supported by the receiver (unknown id, unregistered tuple, or reserved suite) on a critical field. See zh/conformance/encoding.md §3.1-§3.2."
     },
     {
-      "code": "anchor_incomplete",
+      "code": "seal_incomplete",
       "http_status": 409,
       "scope": "both",
-      "description": "Anchor frontier has gaps within the receiver's auth_chain backfill bound; soft-fail per zh/conformance/scalability-constraints.md."
+      "description": "Seal coverage has gaps within the receiver's control auth-chain backfill bound; soft-fail per zh/conformance/scalability-constraints.md."
     },
     {
       "code": "franking_proof_unavailable",
@@ -1004,12 +1004,12 @@
       "description": "A ck.realm.policy_components update skipped one or more monotonic policy_revision values. Reducer MUST reject instead of accepting a discontinuous policy frontier."
     },
     {
-      "code": "moderation_anchor_lifted",
+      "code": "moderation_control_lifted",
       "applies_to": [
         "client_sync",
         "policy_decision"
       ],
-      "description": "An anchored moderation quarantine or fast-path quarantine was lifted, and clients viewing the Realm should surface that affected content became visible again."
+      "description": "An sealed moderation quarantine or fast-path quarantine was lifted, and clients viewing the Realm should surface that affected content became visible again."
     },
     {
       "code": "e2ee_relaxed_federation_policy_unsupported",
@@ -1309,7 +1309,7 @@
         "client_sync",
         "snapshot_verification"
       ],
-      "description": "Snapshot signer's authority (Realm owner / admin / trusted snapshot issuer / witness quorum membership) was revoked at or before the manifest's `created_at`, or revoke freshness cannot be confirmed within the verifier's max_anchor_staleness_ms. Client MUST quarantine or reject the snapshot. A revoke that takes effect strictly after `created_at` does not retroactively invalidate a previously valid snapshot."
+      "description": "Snapshot signer's authority (Realm owner / admin / trusted snapshot issuer / witness quorum membership) was revoked at or before the manifest's `created_at`, or revoke freshness cannot be sealed within the verifier's revocation_freshness_window_ms. Client MUST quarantine or reject the snapshot. A revoke that takes effect strictly after `created_at` does not retroactively invalidate a previously valid snapshot."
     },
     {
       "code": "reducer_profile_mismatch",
@@ -1317,7 +1317,7 @@
         "federation_transaction",
         "service_call"
       ],
-      "description": "Federation push / pull body's service_binding_ref.reducer_profile_digest differs from the receiver's reducer profile for the target Realm. Receiver MUST reject the entire batch (not partial-accept) because the same Event under different reducer profiles would produce divergent cell state, state_root and covered_frontier — silently accepting would corrupt audit. Sender SHOULD reconcile reducer profile via Realm policy update or terminate federation for this Realm."
+      "description": "Federation push / pull body's service_binding_ref.reducer_profile_digest differs from the receiver's reducer profile for the target Realm. Receiver MUST reject the entire batch (not partial-accept) because the same Event under different reducer profiles would produce divergent cell state, state_root and covered_seals — silently accepting would corrupt audit. Sender SHOULD reconcile reducer profile via Realm policy update or terminate federation for this Realm."
     },
     {
       "code": "federation_authority_mismatch",
@@ -1816,7 +1816,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A media token's `service_signature.kid` or `participant_binding.issuer_kid` resolves to a service DID that does NOT appear in the current epoch `ck.realm.media_service.service_id` (or the foci[]-aligned token endpoint anchor). Clients MUST reject — this closes the attack where any service can forge a focus join token. See zh/crypto-media/media-service-binding.md §3."
+      "description": "A media token's `service_signature.kid` or `participant_binding.issuer_kid` resolves to a service DID that does NOT appear in the current epoch `ck.realm.media_service.service_id` (or the foci[]-aligned token endpoint seal). Clients MUST reject — this closes the attack where any service can forge a focus join token. See zh/crypto-media/media-service-binding.md §3."
     },
     {
       "code": "participant_binding_invalid",
@@ -1882,7 +1882,7 @@
         "service_call",
         "state_resolution"
       ],
-      "description": "A media token / focus join was presented but the current MLS epoch governance binding does not cover the `ck.realm.media_service` binding the token relies on (token issuer trust-root anchoring is unverifiable). The verifier MUST fail closed instead of trusting an uncovered media binding. See zh/crypto-media/media-service-binding.md §2.1."
+      "description": "A media token / focus join was presented but the current MLS epoch governance binding does not cover the `ck.realm.media_service` binding the token relies on (token issuer trust-root sealing is unverifiable). The verifier MUST fail closed instead of trusting an uncovered media binding. See zh/crypto-media/media-service-binding.md §2.1."
     },
     {
       "code": "focus_unavailable_for_client",
@@ -1982,7 +1982,7 @@
       "description": "Conflict-recovery witness frontier has a causal path from one of the sibling Moves that triggered the bottom — i.e., the witness is not strictly pre-conflict. See zh/authz/event-auth-state-resolution.md §8.1."
     },
     {
-      "code": "recovery_capability_not_anchored",
+      "code": "recovery_capability_not_sealed",
       "applies_to": [
         "event_envelope",
         "state_resolution"
@@ -2421,7 +2421,7 @@
         "schema_violation",
         "state_resolution"
       ],
-      "description": "A ck.moderation.appeal.decision event with verdict=overturn was anchored without a paired ck.moderation.decision.lift event in the same Anchor batch (targeting the original decision_ref). Reducer MUST reject; appeal overturn is only complete when the lift is observed atomically. See zh/governance/content-moderation.md §5.5.2."
+      "description": "A ck.moderation.appeal.decision event with verdict=overturn was accepted without a paired ck.moderation.decision.lift event in the same ordered submit batch or equivalent control transaction (targeting the original decision_ref). Reducer MUST reject; appeal overturn is only complete when the lift is observed atomically. See zh/governance/content-moderation.md §5.5.2."
     },
     {
       "code": "appeal_self_review_forbidden",
@@ -2995,7 +2995,7 @@
       "applies_to": [
         "identity_resolution"
       ],
-      "description": "did:webvh resolution is in cache-only degraded mode and either the requested operation is outside the closed low-risk read-only set, or no anchored, controller-proof-verified cache evidence is available. Resolver MUST fail closed rather than treat unresolvable as valid."
+      "description": "did:webvh resolution is in cache-only degraded mode and either the requested operation is outside the closed low-risk read-only set, or no sealed, controller-proof-verified cache evidence is available. Resolver MUST fail closed rather than treat unresolvable as valid."
     },
     {
       "code": "unsupported_attachment_scheme",

@@ -807,7 +807,7 @@
           "expected": {
             "outcome": "accepted",
             "invariants": [
-              "covered frontier advances deterministically"
+              "covered event set advances deterministically"
             ]
           },
           "runner": {
@@ -830,7 +830,7 @@
             "expected_state_transition": {
               "outcome": "accepted",
               "invariants": [
-                "covered frontier advances deterministically"
+                "covered event set advances deterministically"
               ]
             },
             "expected_external_response": {
@@ -900,7 +900,7 @@
           "expected": {
             "outcome": "accepted",
             "invariants": [
-              "all conformant reducers compute the same sibling set, tiebreaker, winner, bottom state, and covered frontier"
+              "all conformant reducers compute the same sibling set, tiebreaker, winner, bottom state, and covered event set"
             ]
           },
           "runner": {
@@ -929,7 +929,7 @@
             "expected_state_transition": {
               "outcome": "accepted",
               "invariants": [
-                "all conformant reducers compute the same sibling set, tiebreaker, winner, bottom state, and covered frontier"
+                "all conformant reducers compute the same sibling set, tiebreaker, winner, bottom state, and covered event set"
               ]
             },
             "expected_external_response": {

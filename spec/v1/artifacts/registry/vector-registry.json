@@ -946,74 +946,75 @@
       ]
     },
     {
-      "vector_id": "ck.vector.move_anchor_lattice.anchor_batch_pre_state.v1",
+      "vector_id": "ck.vector.cba_lattice.data_event_accepts_without_seal_finality.v1",
       "status": "active",
-      "domain": "move_anchor_lattice",
+      "domain": "cba_lattice",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.cba_lattice.data_event_observation_does_not_seal.v1",
+      "status": "active",
+      "domain": "cba_lattice",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1",
+      "status": "active",
+      "domain": "cba_lattice",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.cba_lattice.same_batch_does_not_advance_authorization_basis.v1",
+      "status": "active",
+      "domain": "cba_lattice",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.cba_lattice.data_plane_conflict_returns_bottom_without_winner.v1",
+      "status": "active",
+      "domain": "cba_lattice",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.cba_lattice.seal_delta_excludes_data_event_digest.v1",
+      "status": "active",
+      "domain": "cba_lattice",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.cba_lattice.open_set_compaction_preserves_control_roots.v1",
+      "status": "active",
+      "domain": "cba_lattice",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.cba_lattice.seal_canonical_no_self_reference.v1",
+      "status": "active",
+      "domain": "cba_lattice",
+      "description": "Seal canonical bytes exclude id and notary_signature; verifier recomputes the typed id and signature payload digest from signed top-level fields only.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
-      "vector_id": "ck.vector.move_anchor_lattice.anchor_canonical_no_self_reference.v1",
+      "vector_id": "ck.vector.cba_lattice.cas_mixed_basis.v1",
       "status": "active",
-      "domain": "move_anchor_lattice",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
-      "vector_id": "ck.vector.move_anchor_lattice.anchor_dag_genesis_multi_leaf.v1",
-      "status": "active",
-      "domain": "move_anchor_lattice",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
-      "vector_id": "ck.vector.move_anchor_lattice.anchorer_cell_bottom_recovery.v1",
-      "status": "active",
-      "domain": "move_anchor_lattice",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
-      "vector_id": "ck.vector.move_anchor_lattice.cas_bottom.v1",
-      "status": "active",
-      "domain": "move_anchor_lattice",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
-      "vector_id": "ck.vector.move_anchor_lattice.cas_mixed_basis.v1",
-      "status": "active",
-      "domain": "move_anchor_lattice",
-      "description": "cas_register basis enforcement: blind set without head_eq on a non-initial settled cell fails verify_move with failed_precondition; set with the correct head_eq converges.",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
-      "vector_id": "ck.vector.move_anchor_lattice.mls_covered_frontier.v1",
-      "status": "active",
-      "domain": "move_anchor_lattice",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
-      "vector_id": "ck.vector.move_anchor_lattice.multi_cell_ban_revoke.v1",
-      "status": "active",
-      "domain": "move_anchor_lattice",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
-      "vector_id": "ck.vector.move_anchor_lattice.signed_compaction_equivalent.v1",
-      "status": "active",
-      "domain": "move_anchor_lattice",
+      "domain": "cba_lattice",
+      "description": "cas_register writes on non-initial state require an explicit CBA basis: Control Move preconditions or equivalent DataEvent causal/lattice proof; null-basis blind overwrites fail closed.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
@@ -1345,9 +1346,9 @@
     {
       "vector_id": "ck.vector.lattice.mv_register_join.v1",
       "status": "active",
-      "profile": "ck.profile.move_anchor_lattice_vectors.v1",
+      "profile": "ck.profile.cba_lattice_vectors.v1",
       "domain": "lattice",
-      "description": "mv_register join/validate_op convergence for same Move set.",
+      "description": "mv_register join/validate_op convergence for the same CBA Event set.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
@@ -1355,9 +1356,9 @@
     {
       "vector_id": "ck.vector.lattice.counter_join.v1",
       "status": "active",
-      "profile": "ck.profile.move_anchor_lattice_vectors.v1",
+      "profile": "ck.profile.cba_lattice_vectors.v1",
       "domain": "lattice",
-      "description": "counter join/validate_op convergence for same Move set.",
+      "description": "counter join/validate_op convergence for the same CBA Event set.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
@@ -1365,9 +1366,9 @@
     {
       "vector_id": "ck.vector.lattice.ordered_log_join.v1",
       "status": "active",
-      "profile": "ck.profile.move_anchor_lattice_vectors.v1",
+      "profile": "ck.profile.cba_lattice_vectors.v1",
       "domain": "lattice",
-      "description": "ordered_log join/validate_op convergence for same Move set.",
+      "description": "ordered_log join/validate_op convergence for the same CBA Event set.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
@@ -1375,9 +1376,9 @@
     {
       "vector_id": "ck.vector.lattice.fsm_join.v1",
       "status": "active",
-      "profile": "ck.profile.move_anchor_lattice_vectors.v1",
+      "profile": "ck.profile.cba_lattice_vectors.v1",
       "domain": "lattice",
-      "description": "fsm join: identical (from,to) sibling transitions in one Anchor batch converge idempotently; same-from different-to siblings return bottom (reject path).",
+      "description": "fsm join: identical (from,to) sibling transitions converge idempotently; same-from different-to siblings return bottom (reject path).",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
@@ -1385,7 +1386,7 @@
     {
       "vector_id": "ck.vector.lattice.ordered_log_gap.v1",
       "status": "active",
-      "profile": "ck.profile.move_anchor_lattice_vectors.v1",
+      "profile": "ck.profile.cba_lattice_vectors.v1",
       "domain": "lattice",
       "description": "ordered_log issuer sub-chain seq gap yields contiguous_prefix plus pending_gap diagnostics; deterministic recompute after backfill.",
       "source_refs": [

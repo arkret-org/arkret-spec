@@ -102,7 +102,7 @@ DID Document SHOULD 只负责：
 | Authz / Policy Server | 个人可内置；共享 Realm 和组织治理建议独立 | `/_cokret/self/authz/*`, `/_cokret/self/policy/check`, `/_cokret/describe` | effective grants、invite 查询、capability precheck、签名 policy decision、risk / quarantine。 |
 | Push Gateway | 普通用户默认使用公共或托管推送；内网或高安全组织可自建 | `/_cokret/edge/push/*`, `/_cokret/describe` | push device register/unregister、脱敏通知投递、APNs/FCM/厂商推送适配。 |
 | Applet Server | 集成/桥接/自动化可选 | `/_cokret/edge/applet/*`, `/_cokret/describe` | applet describe、transaction、Ghost Actor、portal Realm、third-party lookup。 |
-| MIMI Provider Facade | 与外部 MIMI provider 互通时可选；可由 Principal Server、anchorer service 或 Applet Bridge 承载 | `/_cokret/open/mimi/*`, `/.well-known/mimi-protocol-directory`, `/_cokret/describe` | MIMI provider discovery、room binding、key material、submit message、groupInfo、consent、identifier query、abuse report、proxy download。 |
+| MIMI Provider Facade | 与外部 MIMI provider 互通时可选；可由 Principal Server、notary service 或 Applet Bridge 承载 | `/_cokret/open/mimi/*`, `/.well-known/mimi-protocol-directory`, `/_cokret/describe` | MIMI provider discovery、room binding、key material、submit message、groupInfo、consent、identifier query、abuse report、proxy download。 |
 | Agent Runtime Server | agent 场景可选但推荐 | `extensions/agent-*` 定义的 service surface，通常通过 `/_cokret/self/events` 写回结果 | agent 执行、tool 调用、A2A/ACP/MCP handoff。 |
 | Realtime Media Server | 通话/会议可选 | `/_cokret/self/rtc/ice-config`，以及 WebRTC signaling / TURN / SFU profile | ICE config、TURN/STUN、SFU/MCU、录制策略、短期媒体凭证。 |
 | Moderation / Compliance Server | 公共或组织部署建议独立 | `/_cokret/self/moderation/*`, `/_cokret/describe` | report、审核队列或扩展审核入口、server ACL、policy list、appeal、legal hold / erasure workflow。 |
@@ -439,7 +439,7 @@ POST /_cokret/self/events
 - 服务 MUST 验证 Event 签名、actor DID、device/session、capability、Realm policy、`actor_seq` 和因果依赖。
 - 服务 SHOULD 返回 accepted event、当前 actor frontier、Realm frontier 以及 read-your-writes barrier `cursor`（schema 见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)，purpose=`barrier`）。
 
-当请求体包含 `events[]` 时，服务 MUST 按数组顺序逐项处理。前一项已接受的 Event 可以满足后一项的 bytes / Event ID / actor chain / `prev_refs` / payload-level causal reference 解析；同批中尚未处理、已拒绝或进入 quarantine 的 Event 不能作为已解析依赖。`refs[role=authorized_by]` 是授权状态引用，不是普通解析引用：被引用 grant / authority MUST 已存在于后一项 Event 的 `anchor_ref` pre-state 中，才可用于授权判定。同批前一项创建、delegate、恢复或扩权的 grant 不得在同一 Anchor batch 内立即授权后一项写入；依赖方必须等后续 Anchor 覆盖该 grant，或在当前批次被拒绝/隔离。`refs(role="after")` 只表达后续 Anchor 的排序约束，不允许读取同批 effect 来满足 precondition 或授权。批处理中单项失败不得回滚已接受项：成功项进入 `accepted[]`，重复幂等项进入 `duplicate[]`，失败项进入 `rejected[]` 或 `quarantine[]`。若后续 Event 依赖同批失败或缺失 Event，服务 MUST 以 `dependency_missing`、`causal_conflict`、`soft_fail` 或等价原因拒绝/隔离该后续 Event，而不是隐式接受。
+当请求体包含 `events[]` 时，服务 MUST 按数组顺序逐项处理。前一项已接受的 Event 可以满足后一项的 bytes / Event ID / actor chain / `prev_refs` / `causal_refs` / payload-level causal reference 解析；同批中尚未处理、已拒绝或进入 quarantine 的 Event 不能作为已解析依赖。授权基准不得被同批提前推进：DataEvent 必须按自身 `seal_ref` 验证，Control Move 必须按自身 `seal_basis` 验证。同批前一项创建、delegate、恢复、扩权或 revoke 的 grant / policy 不得授权后一项写入；依赖方必须等控制面 Seal 更新后重新提交，或在当前批次被拒绝/隔离。批处理中单项失败不得回滚已接受项：成功项进入 `accepted[]`，重复幂等项进入 `duplicate[]`，失败项进入 `rejected[]` 或 `quarantine[]`。若后续 Event 依赖同批失败或缺失 Event，服务 MUST 以 `dependency_missing`、`causal_conflict`、`soft_fail` 或等价原因拒绝/隔离该后续 Event，而不是隐式接受。
 
 ### 4.3 获取单个 Event
 
@@ -484,7 +484,7 @@ GET /_cokret/self/events/frontier?realm_id=<id>
 
 ## 5. Account Aggregate / Snapshot Surface
 
-Account Aggregate / Snapshot Surface 是 Principal Server 提供的 **账号视角聚合** 能力 + snapshot 入口。逐 Realm 的事件查询和实时订阅走 Events Surface（`ck.self.events.query` / `ck.self.events.subscribe`，见 `service-http-binding.md` §3.3 / §3.4）。该 surface 不是独立第三方服务器角色，本质是 Principal Server 上聚合多 Realm frontier、to_device、account_data、device_lists 与 presence 的视图。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Realm policy 明确列出的 shared anchorer / Sync Service。
+Account Aggregate / Snapshot Surface 是 Principal Server 提供的 **账号视角聚合** 能力 + snapshot 入口。逐 Realm 的事件查询和实时订阅走 Events Surface（`ck.self.events.query` / `ck.self.events.subscribe`，见 `service-http-binding.md` §3.3 / §3.4）。该 surface 不是独立第三方服务器角色，本质是 Principal Server 上聚合多 Realm frontier、to_device、account_data、device_lists 与 presence 的视图。客户端只应使用本 principal 控制/委托的 Principal Server、对方 principal 控制/委托的 Principal Server，或 Realm policy 明确列出的 shared notary / Sync Service。
 
 本节定义 account 与 snapshot 两类操作（事件流读取请到 Events Surface）：
 
@@ -521,9 +521,9 @@ GET /_cokret/self/snapshot/head?realm_id=<id>
 
 用于拿到当前推荐 snapshot manifest：响应即完整 `ck.schema.snapshot.v1` manifest（不含 chunk bytes），chunk bytes 经 manifest `chunks[].chunk_ref` 走 blob surface 获取。v1 的 `snapshot` namespace 仅 `ck.self.snapshot.head` 一个 canonical operation；snapshot manifest 与 chunk 的防投毒校验流程见 §11。无法产出真实签名 manifest 的部署 MUST NOT 宣告本操作并 MUST 返回 `not_implemented`，不得伪造证明字段。
 
-### 5.3 Move / Anchor 状态与 Bottom 暴露
+### 5.3 Event / Seal 状态与 Bottom 暴露
 
-Sync 响应 MUST 在每条 Move 上携带其当前协议状态字段（`event_state`），取值与 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §13 失败状态表一致：`pending_anchor` / `effective` / `failed_precondition` / `failed_bottom` / `rejected_anchor` / `anchorer_paused`。
+Sync 响应 SHOULD 在每条 reducer-input Event 上携带其当前协议状态字段（`event_state`），取值与 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §13 失败状态表一致：`data_local` / `data_observed` / `control_pending` / `control_sealed` / `failed_precondition` / `failed_plane` / `failed_bottom` / `rejected_seal` / `fork_quarantine` / `stale_seal_ref`。
 
 State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回结构化 Bottom 诊断，schema 参见 [`schemas/bottom.schema.json`](../../artifacts/schemas/bottom.schema.json) 与 `ck.schema.bottom.v1`：
 
@@ -538,8 +538,8 @@ State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回�
       "ck:event:84210000-0000-7000-8000-000000000000…",
       "ck:event:a5294000-0000-7000-8000-000000000000…"
     ],
-    "anchor_view": {
-      "leaves": ["ck:anchor:sha256:dddd…"],
+    "basis": {
+      "leaves": ["ck:seal:sha256:dddd…"],
       "state_root": "sha256:eeee…"
     },
     "heads": [{"…": "candidate-A"}, {"…": "candidate-B"}],
@@ -552,7 +552,7 @@ State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回�
 
 - `bottom=reject` cell 的 query MUST 返回 `status:"bottom"` 与诊断；客户端 / 授权路径 MUST NOT 把 `heads` 当作 allow。
 - `bottom=expose` cell 的 query MAY 返回 `status:"conflict"` 暴露多 head 给 projection / UI；同样不得用作授权 allow。
-- `event_state="anchorer_paused"` 表达 anchorer cell 当前为 ⊥（spec §4.4）：除 recovery anchorer 签发的 Move 外，UI 应明显提示 Realm-wide pause。
+- `event_state="fork_quarantine"` 表达控制面 Seal 分叉已被证明；UI 与自动化 MUST 停止基于该 fork 的普通治理 allow，直到 recovery path 给出新的 sealed basis。
 - `bottom_escalation_after_ms` 超时后服务端 MUST 在 `bottom.escalated_at` 标记，并向 admin / recovery governance 渠道带外通知；超时本身不自动选 winner。
 
 `/_cokret/self/account/subscribe` / `/_cokret/self/events` 响应 MUST 在文档化字段位置嵌入上述 `bottom` 对象（精确 wire 形态见 [`bottom.schema.json`](../../artifacts/schemas/bottom.schema.json)；HTTP 字段位置以 [`service-http-binding.md`](service-http-binding.md) 与 OpenAPI 为准）。
@@ -564,7 +564,7 @@ State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回�
 - 客户端 MUST NOT 将 message body、comment body、附件明文或可逆派生摘要提交给未授权第三方服务。
 - `events`、`sync`、`sync/subscribe`、`sync/backfill` 的服务端必须是 principal DID、Organization DID 或 Realm policy 明确委托的 Principal Server。
 - Directory、Push Gateway、Blob preview、Policy preview，以及任何协议外 search / projection 服务，若会接收正文、正文摘要、附件预览、全文索引或可逆派生内容，MUST 在 Realm policy 中声明为 `plaintext_visible_services`。
-- shared anchorer / Sync Service 若可见明文，必须在 Realm policy 中作为明文可见方列出。
+- shared notary / Sync Service 若可见明文，必须在 Realm policy 中作为明文可见方列出。
 - `encryption_profile="none"` 只说明 content 未使用 E2EE；它不自动授权任意服务保存、索引、导出或生成可逆派生内容。只有 Realm 同时把内容声明为 public content（例如 `history_visibility=world_readable` 且 preview / export policy 允许 public processing）时，服务才 MAY 按公开内容处理；否则仍按私有明文执行 `plaintext_visible_services` 检查。
 - 接收方 Principal Server 可以看到投递给该接收方的非加密内容；客户端和 Realm policy MUST 把这视为内容可见边界，而不是透明中继。
 - 非受信服务只能接收公开内容、密文 envelope 或不可解析 payload。

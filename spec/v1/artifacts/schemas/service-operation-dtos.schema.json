@@ -314,7 +314,7 @@
           "minimum": 0,
           "description": "Age of the newest revocation/auth frontier evidence used for this decision. Present when freshness_state is stale or unknown."
         },
-        "anchorer_status": {
+        "notary_status": {
           "type": "string",
           "enum": [
             "fresh",
@@ -322,7 +322,7 @@
             "unreachable",
             "unknown"
           ],
-          "description": "Coarse status of the anchorer/frontier source used to diagnose stale or unknown revocation freshness."
+          "description": "Coarse status of the notary/frontier source used to diagnose stale or unknown revocation freshness."
         },
         "cache_expires_at": {
           "type": "string",
@@ -984,7 +984,7 @@
     },
     "EphemeralSubmitOutcome": {
       "type": "object",
-      "description": "Result of ck.ephemeral.send. `accepted=true` means the Sync Service\nadmitted the short-lived signal into its ephemeral fanout path. No\nEvent ID, actor_seq, Anchor frontier, or durable receipt is minted.\n",
+      "description": "Result of ck.ephemeral.send. `accepted=true` means the Sync Service\nadmitted the short-lived signal into its ephemeral fanout path. No\nEvent ID, actor_seq, Seal coverage, or durable receipt is minted.\n",
       "required": [
         "accepted",
         "kind",
@@ -1273,7 +1273,7 @@
           "items": {
             "type": "string"
           },
-          "description": "Event IDs that entered the accepted set for the first time. Idempotent re-submissions of identical bodies are confirmed via duplicate[], not re-listed here."
+          "description": "Event IDs that entered the accepted set for the first time. Idempotent re-submissions of identical bodies are sealed via duplicate[], not re-listed here."
         },
         "duplicate": {
           "type": "array",
@@ -2021,7 +2021,7 @@
       "properties": {
         "frontier": {
           "type": "object",
-          "description": "Either an actor frontier (`{actor_id, actor_seq, event_id}`) or a\nRealm frontier (`{realm_id, anchor_id, state_root, hlc?}`) shape\ndepending on which selector was passed; servers MUST NOT leak\nfrontiers across visibility boundaries.\n"
+          "description": "Either an actor frontier (`{actor_id, actor_seq, event_id}`) or a\nRealm Seal view (`{realm_id, seal_id, state_root, hlc?}`) shape\ndepending on which selector was passed; servers MUST NOT leak\nfrontiers across visibility boundaries.\n"
         },
         "receipts": {
           "type": "array",

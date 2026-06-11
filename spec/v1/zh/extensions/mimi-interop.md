@@ -33,13 +33,13 @@ updated: 2026-06-10
 
 | MIMI 角色 | Cokret 映射 |
 | --- | --- |
-| Provider | `mimi_provider_facade` service DID，通常由 Principal Server、anchorer service 或受托 bridge 暴露。 |
-| Hub provider | 对外拥有 MIMI room URI 的 provider service；在 Cokret 侧通常映射为 Principal Server 或 anchorer service，负责 MIMI room fanout 和 groupInfo。 |
+| Provider | `mimi_provider_facade` service DID，通常由 Principal Server、notary service 或受托 bridge 暴露。 |
+| Hub provider | 对外拥有 MIMI room URI 的 provider service；在 Cokret 侧通常映射为 Principal Server 或 notary service，负责 MIMI room fanout 和 groupInfo。 |
 | Follower provider | 参与 MIMI room 的远端 provider；在 Cokret 中表现为 federation peer 或 Applet bridge peer。 |
 | User / client | Cokret principal DID + device id，可按 Realm policy 使用 pairwise DID 或 room-scoped pseudonym。 |
 | Room | Cokret Flow discussion track 的 MIMI room 投影，可附带所在 Realm 的最小上下文。 |
 
-MIMI facade 不是新的真相源。Cokret native 侧的 canonical truth 是 signed Move、Anchor frontier、Lattice cell state、capability refs 与 MLS Governance Binding（`governance_binding` + `covered_frontier_cell`）。MIMI room state 是对这些状态的互操作投影。
+MIMI facade 不是新的真相源。Cokret native 侧的 canonical truth 是 signed DataEvent、Control Move、Seal coverage、Lattice cell state、capability refs 与 MLS Governance Binding（`governance_binding` + `covered_seals_cell`）。MIMI room state 是对这些状态的互操作投影。
 
 ## 3. Provider Discovery
 
@@ -82,7 +82,7 @@ GET /_cokret/open/mimi/provider-directory
 
 ## 4. Room Binding
 
-允许被导出为 MIMI room 的 Cokret 对象 MUST 有写入 `ck.component.mimi.room_binding.v1` cell 的 Move effect。对应 Event kind 为 `ck.mimi.room_binding`；cell subject 是 `payload.mimi_room_uri`。
+允许被导出为 MIMI room 的 Cokret 对象 MUST 有写入 `ck.component.mimi.room_binding.v1` cell 的 Control Move effect。对应 Event kind 为 `ck.mimi.room_binding`；cell subject 是 `payload.mimi_room_uri`。
 
 `ck.mimi.room_binding` 的完整 payload 形态（含 `hub_provider`、`follower_providers`、`content_profile`、`policy_root`、`local_provider_role` 等全部字段）以 [`../../artifacts/schemas/mimi-interop.schema.json`](../../artifacts/schemas/mimi-interop.schema.json) 为权威机读真源；下文逐字段说明不替代该 schema。
 
@@ -118,7 +118,7 @@ GET /_cokret/open/mimi/provider-directory
   - `follower`:本地 facade 作为 follower provider 参与远端 hub 拥有的 room,接收 fanout 并向 hub 提交本地 writes;
   - `observer`:本地 facade 只读投影该 room（监听 fanout / groupInfo 用于本地呈现或审计），MUST NOT 代表本地参与方向 MIMI room 提交 writes 或承担 hub fanout 职责。
 - `ck.mimi.room_binding` 的创建、更新和撤销 MUST require `ck.policy.manage`、`ck.realm.admin` 或等价 interop capability。
-- E2EE MIMI room MUST 绑定 `mls_group_id`，并按 [`../crypto-media/encryption-and-audit.md` §2.5](../crypto-media/encryption-and-audit.md)（MLS Governance Binding）的 `covered_frontier_cell` precondition 校验 membership、policy 和 capability。
+- E2EE MIMI room MUST 绑定 `mls_group_id`，并按 [`../crypto-media/encryption-and-audit.md` §2.5](../crypto-media/encryption-and-audit.md)（MLS Governance Binding）的 `covered_seals_cell` precondition 校验 membership、policy 和 capability。
 - MIMI facade 在无法解析或验证 Cokret MLS Governance Binding 时 MUST fail closed：入站 MIMI room state、groupInfo、key material 或 message 不得直接投影到 Cokret Realm，而是进入 quarantine，reason=`mimi_governance_binding_missing` 或更具体的 binding mismatch 错误。
 - 撤销 binding 后，facade MUST 停止接受新的 MIMI writes，只允许 backfill、tombstone、report、legal hold 或 migration proof 等维护操作。
 
@@ -163,7 +163,7 @@ MIMI facade 至少定义以下 canonical operation：
 - created / expires
 - body digest
 
-Facade 接收请求后 MUST 先验证 MIMI envelope，再映射为 Cokret Move / compatible Event 或 to-device message。MIMI 传输签名只证明 provider 来源，不替代 Actor DID / device 签名、MLS transcript、capability 或 Realm policy。
+Facade 接收请求后 MUST 先验证 MIMI envelope，再映射为 Cokret DataEvent、Control Move 或 to-device message。MIMI 传输签名只证明 provider 来源，不替代 Actor DID / device 签名、MLS transcript、capability 或 Realm policy。
 
 ## 6. Key Material
 
@@ -183,7 +183,7 @@ Facade 接收请求后 MUST 先验证 MIMI envelope，再映射为 Cokret Move /
 
 1. 验证 provider signature、room binding、destination、body digest 和重放窗口。
 2. 验证 MLS epoch 与 `ck.mimi.room_binding.mls_group_id` 匹配。
-3. 按 MLS Governance Binding 验证：commit 携带的 `governance_binding` 解析到的 Cokret Anchor view 与 state_root，且 `covered_frontier_cell` 覆盖该消息所需 governance frontier。
+3. 按 MLS Governance Binding 验证：commit 携带的 `governance_binding` 解析到的 Cokret Seal view 与 state_root，且 `covered_seals_cell` 覆盖该消息所需 governance frontier。
 4. 将 MIMI content container 映射为 `ck.message.create`、`ck.message.revise`、`ck.message.redact`、`ck.reaction.add`、`ck.reaction.remove` 或 `ck.relation.*`。
 5. 保留原始 MIMI envelope hash、provider id、message id 和 accepted timestamp 作为 interop metadata。
 6. 对无法确认授权、epoch、content 或 policy 的消息返回 `temporarily_unavailable`、`dependency_missing`、`capability_denied` 或 `quarantine`。
@@ -224,7 +224,7 @@ MIMI facade MUST 支持接收：
 
 facade 在 Cokret ↔ MIMI 之间转换一条内容时，SHOULD 生成 **Content Mapping Receipt**（`content_mapping_receipt`，`kind="ck.mimi.mapping_receipt"`，schema `ck.schema.mimi_interop.v1`，见 [`mimi-interop.schema.json`](../../artifacts/schemas/mimi-interop.schema.json)），作为该次格式映射的可审计证据。它记录 `mimi_room_uri`、`source_format` → `target_format`、被映射源信封摘要 `original_envelope_digest` 与目标 `mapped_operation_id`（可选携带 `mimi_message_id` / `cokret_event_id` / `accepted_at`），使双向投递的内容转换可被追溯与对账。该回执是 EXTENSION 范围对象，不进入 v1 core 互操作必需集。
 
-Cokret v1 把 Realm-level policy 映射为 Move effects on cell families。Facade 在 MIMI room policy 与 Cokret state 之间转换时，读取 registry 中的 `cell_family`、`lattice` 与 `bottom`。
+Cokret v1 把 Realm-level policy 映射为 Control Move effects on cell families。Facade 在 MIMI room policy 与 Cokret state 之间转换时，读取 registry 中的 `cell_family`、`lattice` 与 `bottom`。
 
 ### 9.1 Cell Family 互译
 
@@ -257,7 +257,7 @@ Cokret v1 把 Realm-level policy 映射为 Move effects on cell families。Facad
 | --- | --- | --- | --- |
 | `realm.join_policy`（candidate workflow concept/action 名称，不是 v1 wire `Event.kind`；见 [`../conformance/schema-registry.md` §4.1](../conformance/schema-registry.md)） | `ck.profile.candidate.join_policy.v1` | `participation.join_policy` 子字段（结构化 gates / reviewer / TTL）；MIMI 侧未覆盖部分以 `application/vnd.cokret.component+json` 私有扩展承载 | MIMI facade **MUST reject / omit**，不得写入 shared Realm history |
 
-> 历史的 MIMI components（`roles`、`preauth`、`bot`、`message_expiration`、`operational`）在 Cokret 中是 `ck.realm.policy_components` cell 的子字段，而不是独立 kind。Facade 接收 MIMI policy update 时 MUST 把这些 components 归约为 `ck.realm.policy_components` Move effect。
+> 历史的 MIMI components（`roles`、`preauth`、`bot`、`message_expiration`、`operational`）在 Cokret 中是 `ck.realm.policy_components` cell 的子字段，而不是独立 kind。Facade 接收 MIMI policy update 时 MUST 把这些 components 归约为 `ck.realm.policy_components` Control Move effect。
 >
 > MIMI room policy 投影 MUST 落在有效 Realm 的 `ck.realm.policy_components` cell；不存在 track-scoped policy projection——track 不携带独立 access。当 MIMI room 映射的 Flow 通过 `scope_circle_id` 落在 Realm 内的 [Circle](../models/circle.md) 时，Circle-local policy 通过 Circle 自身 `policy_root` 表达，与父 Realm policy 取更严格者。
 
@@ -273,10 +273,10 @@ Cokret 的 unknown handling 来自 Lattice bottom：
 
 **Facade 责任**：
 
-- 接收 MIMI policy update 时 MUST 验证目标 `cell_family` 已注册（或被部署的 profile 显式 opt-in），并归约为对应 Move effect；未注册 MIMI component MUST 按其 MIMI unknown-handling 处理。
+- 接收 MIMI policy update 时 MUST 验证目标 `cell_family` 已注册（或被部署的 profile 显式 opt-in），并归约为对应 Control Move effect；未注册 MIMI component MUST 按其 MIMI unknown-handling 处理。
 - 发送 Cokret state 到 MIMI 时 MUST 按 §9.1 表生成 MIMI component。Cokret 专属 component（无 MIMI 对应）在 facade 输出中标记为 `application/vnd.cokret.component+json` 私有扩展。
 
-MIMI role 只能作为 interop projection。Cokret 授权仍以 capability Move / grant cell 为准。Facade 在接收 MIMI role/policy update 时 MUST 归约为具体 capability event（如 `ck.capability.grant` / `ck.capability.delegate` / `ck.capability.revoke`）或具体 `ck.realm.<facet>` Move effect，并经过 Cokret Move refs 授权验证后才能生效。
+MIMI role 只能作为 interop projection。Cokret 授权仍以 capability Control Move / grant cell 为准。Facade 在接收 MIMI role/policy update 时 MUST 归约为具体 capability event（如 `ck.capability.grant` / `ck.capability.delegate` / `ck.capability.revoke`）或具体 `ck.realm.<facet>` Control Move effect，并经过 Cokret Control Move refs 授权验证后才能生效。
 
 **未知字段安全惰性（normative）**：interop schema 为前向兼容演进中的 IETF MIMI Internet-Draft，有意在 top-level 与 `mimi` / `binding_scope` / `payload` 子树保留开放 `additionalProperties`。接收方 MUST 把该 surface 上任何未识别字段视为**安全惰性**：MUST 忽略其参与任何安全判定，且 MUST NOT 让它影响 authorization、identity binding、`policy_root`、MLS epoch / group state、routing / hub-follower 关系或任何 signature / digest transcript。已知字段仍以 schema pin 的定义为准；未识别字段只能作为不可信的 draft passthrough 保留（如需保留 raw bytes / canonical hash 见 §9.2 表）。实现 MUST NOT 依据未识别字段提升 provider role、改写 `policy_root` 或放宽 governance binding 校验。
 
@@ -321,6 +321,6 @@ Cokret v1 的 MIMI 支持固定为 facade profile：
 - 不把 MIMI hub 变成 Cokret 的唯一 truth source。
 - 不用 MIMI room id 替代 `realm_id`。
 - 不用 MIMI user identifier 替代 DID。
-- 不绕过 Cokret capability Move refs / Policy Server。
+- 不绕过 Cokret capability Control Move refs / Policy Server。
 - 不把 MIMI provider accepted timestamp 替代 Cokret HLC / event hash。
 - 支持 MIMI 草案版本 pinning，并允许未来 profile 处理草案变化。

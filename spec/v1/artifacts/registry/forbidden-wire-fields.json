@@ -771,7 +771,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Generic detached-JWS proofs over non-Event canonical payloads (Anchor signature, identity-link, did-continuity, erasure receipts, etc.) MUST use payload_digest. This aligns with the v1 hash-vocabulary rule (common-fields.md §2): output bytes use <noun>_digest; algorithm selector uses <noun>_algorithm; tree roots use <noun>_root. _hash is forbidden as a wire field-name suffix."
+      "notes": "Generic detached-JWS proofs over non-Event canonical payloads (Seal signature, identity-link, did-continuity, erasure receipts, etc.) MUST use payload_digest. This aligns with the v1 hash-vocabulary rule (common-fields.md §2): output bytes use <noun>_digest; algorithm selector uses <noun>_algorithm; tree roots use <noun>_root. _hash is forbidden as a wire field-name suffix."
     },
     {
       "id": "ck:notif:",
@@ -1645,17 +1645,17 @@
       "notes": "Handle Claim's closed protocol discriminator uses claim_kind. claim_type remains valid in external credential selector contexts."
     },
     {
-      "id": "anchorer_sig",
-      "context": "anchor",
+      "id": "notary_sig",
+      "context": "seal",
       "since_revision": "2026-05-29",
       "rejection_level": "hard_reject",
-      "replacement": "anchorer_signature",
+      "replacement": "notary_signature",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Anchor signatures use the full signature noun."
+      "notes": "Seal signatures use the full signature noun."
     },
     {
       "id": "inception_pubkey_fingerprint",
