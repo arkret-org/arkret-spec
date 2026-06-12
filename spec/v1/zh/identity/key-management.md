@@ -378,11 +378,13 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 推荐流程：
 
 1. 新设备本地生成 device key。
-2. 新设备展示 pairing code / QR，其中包含 device public key、challenge、过期时间。
-3. 已授权设备扫描并验证 challenge。
-4. 已授权设备签发 `ck.device.authorize` event。
-5. Events API / identity registry 接受并传播该 event。
-6. 新设备开始同步 Event history、Realm membership 和必要的 MLS Welcome。
+2. 新设备向 Auth Server 创建短期 `device-pairing-request`，并展示 pairing code / QR，其中包含 `pairing_request_id`、device public key、challenge、过期时间与 Auth Server origin。若 Auth Server 不支持服务器中转，客户端 MAY 退回到手动复制同一 payload。
+3. 已授权设备通过 to-device / push / account subscribe 收到提示，或轮询 `GET /_cokret/self/devices/pairing-requests`；UI MUST 显示 requesting device metadata 与 pairing code，要求用户和新设备屏幕上的 code 比对。
+4. 用户在已授权设备上批准后，该设备调用 `POST /_cokret/self/devices/pairing-requests/{pairing_request_id}/approve`，并由当前 device proof / account gate 校验完成 `ck.device.authorize` 签发。
+5. Events API / identity registry 接受并传播该 event；pending request MUST 单次消费，之后状态为 `approved`，不得被重放。
+6. 新设备轮询 `GET /_cokret/gate/account/device-pairing-requests/{pairing_request_id}` 或接收 account/device 消息，看到 `approved` 与 `authorized_event_ref` 后开始同步 Event history、Realm membership 和必要的 MLS Welcome / key share。
+
+如果用户没有任何可用的已授权设备，UI SHOULD 明确优先提示"在已有设备确认"；确认不可用后，才进入恢复密钥 / social recovery 路径。新设备仅凭登录 session grant MUST NOT 获得 E2EE history key。
 
 `ck.device.authorize.payload` 示例：
 
