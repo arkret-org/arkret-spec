@@ -435,6 +435,11 @@
           },
           "additionalProperties": true
         },
+        "challenge_signature": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Fresh requesting-device proof bound to pairing_code, new_device_pubkey, gate_audience, and request_canonical_digest; later submitted to ck.gate.account.device_pair."
+        },
         "gate_audience": {
           "type": "string",
           "minLength": 1,
