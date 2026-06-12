@@ -500,7 +500,7 @@
       }
     },
     {
-      "$comment": "Principal control Realms are ordinary ck.schema.realm.v1 objects, but the profile discriminator must be closed at schema level: fields.purpose and schema_refs must appear together.",
+      "$comment": "Principal control Realms are ordinary ck.schema.realm.v1 objects, but the profile discriminator must be closed at schema level: fields.purpose and schema_refs must appear together, and the Realm MUST be MLS-backed.",
       "if": {
         "properties": {
           "fields": {
@@ -520,6 +520,9 @@
       },
       "then": {
         "properties": {
+          "encryption_profile": {
+            "const": "mls_rfc9420"
+          },
           "schema_refs": {
             "contains": {
               "const": "ck.profile.principal_control_realm.v1"
@@ -544,9 +547,13 @@
       },
       "then": {
         "required": [
+          "encryption_profile",
           "fields"
         ],
         "properties": {
+          "encryption_profile": {
+            "const": "mls_rfc9420"
+          },
           "fields": {
             "properties": {
               "purpose": {

@@ -456,6 +456,7 @@
       "binding_invariants": [
         "realm_id MUST equal the principal_control_realm_id resolved for the principal DID.",
         "fields.purpose MUST be principal_control and schema_refs MUST contain ck.profile.principal_control_realm.v1.",
+        "encryption_profile MUST be mls_rfc9420; PCRs MUST NOT use none or external.",
         "Control events MUST bind principal_id / device_id / session grant audience to the same principal DID or an explicitly trusted recovery/session issuer."
       ]
     },

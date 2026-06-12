@@ -251,6 +251,7 @@ Realm（ck.schema.realm.v1，schema 层统一）
 - Marker 字段 MUST：
   - `fields.purpose = "principal_control"`
   - `schema_refs` 包含 `ck.profile.principal_control_realm.v1`
+  - `encryption_profile = "mls_rfc9420"`；PCR 在 v1 中不允许 `none` 或 `external`，schema / reducer MUST fail closed。
   - `created_by = <principal DID>`，`notary = <principal DID>`，`notary_profile = "single_did"`
   - `security_class = "high_assurance"`，`federation_policy ∈ {closed, restricted, quarantine}`
 - 事件类型由 `ck.profile.principal_control_realm.v1` 的 allowlist 约束：只接受 device / session / KeyPackage / recovery / profile / consent / contact fact / direct conversation binding 等身份基础设施 event；普通 Message / Flow / Space / Morph / Relation / View / Call 协作 event MUST `principal_control_event_kind_forbidden`。
