@@ -10,7 +10,7 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 SCHEMA_RS = ROOT / "soland" / "src" / "schema.rs"
 
 UUID_COLUMNS_COKRET = {

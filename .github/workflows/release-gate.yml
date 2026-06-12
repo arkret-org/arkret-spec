@@ -1,8 +1,9 @@
 name: Release gate
 
-# Unified release gate (spec-review STR-005): a single job that blocks the
-# release if ANY of artifact pipeline / artifact lint / spec lint / crossref /
-# fixture-digest checks fail. Mirrors `python tools/release_gate.py`.
+# Unified release gate (spec-review STR-005): a single job that blocks release
+# if the artifact pipeline or spec-site cross-reference check fails. The
+# artifact pipeline already runs generated-registry drift, artifact lint, spec
+# lint, operation completeness, and fixture-digest checks.
 
 on:
   pull_request:

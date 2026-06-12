@@ -18,7 +18,7 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 REPOS = [
     # Only repos whose ULID examples represent Cokret wire IDs (`ck:<kind>:<id>`).
     # starid/coauth are excluded: they have their own ULID-shaped IDs (did:webvh

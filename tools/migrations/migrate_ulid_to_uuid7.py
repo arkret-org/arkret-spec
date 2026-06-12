@@ -9,7 +9,7 @@ Scope:
   - id-kind-registry storage_rules text: drop Crockford / ULID wording.
   - lint_artifacts.py: update ULID_RE constant.
 
-Run once with `python tools/migrate_ulid_to_uuid7.py` from repo root.
+Run once with `python tools/migrations/migrate_ulid_to_uuid7.py` from repo root.
 After it finishes, run `python tools/artifact_pipeline.py generate` then
 `python tools/artifact_pipeline.py check` to verify.
 """
@@ -21,7 +21,7 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 SPEC = ROOT / "spec" / "v1"
 
 # ---- patterns -----------------------------------------------------------

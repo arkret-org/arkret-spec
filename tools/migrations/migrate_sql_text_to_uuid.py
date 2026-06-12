@@ -6,8 +6,8 @@ and reports.
 Backward compat is intentionally NOT preserved: the user has accepted the
 spec-level switch from ULID-as-Crockford to UUIDv7-as-uuid, so storage
 columns flip from `TEXT` to `UUID` directly. ALTER COLUMN with USING cast is
-not emitted because the user said "不管兼容性，直接改 sql"; we just rewrite the
-original CREATE TABLE statements.
+not emitted because the migration intentionally rewrites the original CREATE
+TABLE statements directly instead of preserving backward compatibility.
 
 Column classification rule:
   - ULID-typed Cokret wire IDs (per id-kind-registry.json) → UUID
@@ -21,7 +21,7 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 TARGETS = [
     # soland is the only Cokret wire participant. starid uses multihash scid
     # (z<base58(sha256)>) for receipt_id and is NOT migrated. coauth's
