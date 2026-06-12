@@ -3,7 +3,7 @@ title: Device Lifecycle
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-11
+updated: 2026-06-12
 ---
 
 ## 0. 规范语言
@@ -460,6 +460,43 @@ Content-Type: application/json
 }
 ```
 
+同一 principal 的新设备请求旧设备验证/授权时，MUST 使用同一 `POST /_cokret/self/device_messages` wire shape 投递 `ck.key.verification.request`。发送方必须是 gate 签发的 holder-bound session，或受限 fresh-device session grant；后者只能发送 `ck.key.verification.*` bootstrap 消息给同 principal 的已授权设备。请求 content SHOULD 携带 `purpose="same_principal_device_authorization"` 和供 UI 比对/后续 gate finalize 使用的 pairing 材料：
+
+```json
+{
+  "messages": {
+    "did:web:alice.example.com": {
+      "ck:device:01964136-8000-7000-8000-000000000000": {
+        "kind": "ck.key.verification.request",
+        "expires_at": "2026-04-26T00:10:00Z",
+        "content": {
+          "transaction_id": "ver_456",
+          "from_device": "ck:device:01964137-0000-7000-8000-000000000000",
+          "timestamp": "2026-04-26T00:00:00Z",
+          "expires_at": "2026-04-26T00:10:00Z",
+          "methods": ["ck.sas.v1", "ck.qr.v1"],
+          "purpose": "same_principal_device_authorization",
+          "pairing_code": "384921",
+          "new_device_pubkey": {
+            "kid": "ck:device:01964137-0000-7000-8000-000000000000",
+            "alg": "Ed25519",
+            "public_key": "base64url..."
+          },
+          "gate_audience": "https://auth.example.com",
+          "request_canonical_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "device_metadata": {
+            "display_name": "Alice's laptop",
+            "platform": "desktop"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+接收旧设备 MUST 把 `purpose`、`pairing_code`、`new_device_pubkey.kid`、`gate_audience` 和 `request_canonical_digest` 纳入用户确认与 SAS/QR transcript 绑定；不得只因收到该请求就把新设备标记为 trusted。用户确认后，旧设备通过 `ck.gate.account.device_pair` 完成授权落地；本规范不定义 `/_cokret/self/devices/pairing-requests*` 作为授权批准接口。
+
 服务端 MUST 以 `(sender, Idempotency-Key)` 幂等。已投递消息的队列删除只由接收设备的显式确认（`ck.self.device_messages.ack`，见下文与 [`client-sync.md` §10.1](../sync/client-sync.md)）驱动；sync cursor 推进 MUST NOT 触发删除。To-device 消息 SHOULD 端到端加密；未加密消息只能用于能力发现和验证引导。
 
 若 `content` 已端到端加密，加密 AAD MUST 至少覆盖 `kind`、`sender_principal_id`、`sender_device_id`、`recipient_principal_id`、`recipient_device_id`、`sent_at` 和 `expires_at`。队列服务不得重写这些字段。`Idempotency-Key` 是 HTTP 层语义，不进入 envelope，也不参与 AAD。
@@ -652,7 +689,7 @@ Cokret 标准验证消息通过 to-device 通道发送：
 
 | `kind` | 额外必填字段 | 说明 |
 | --- | --- | --- |
-| `ck.key.verification.request` | `methods`, `timestamp`, `expires_at` | 发起验证。`methods` 使用标准方法名，例如 `ck.sas.v1`、`ck.qr.v1`。 |
+| `ck.key.verification.request` | `methods`, `timestamp`, `expires_at` | 发起验证。`methods` 使用标准方法名，例如 `ck.sas.v1`、`ck.qr.v1`。同 principal 新设备授权请求 SHOULD 另带 `purpose="same_principal_device_authorization"`、`pairing_code`、`new_device_pubkey`、`gate_audience`、`request_canonical_digest` 与 `device_metadata?`；这些字段必须进入 SAS/QR transcript 或等价 proof 绑定。 |
 | `ck.key.verification.ready` | `methods` | 接受请求并回报本设备可用方法。 |
 | `ck.key.verification.start` | `method` | 选择方法并开始。SAS 还 MUST 带 `key_agreement_protocols`、`hashes`、`message_authentication_codes`、`short_authentication_string`。 |
 | `ck.key.verification.accept` | `commitment` | 接受 `start` 并提交本端 ephemeral key 承诺；还 MUST 固定选定算法。 |
@@ -724,6 +761,8 @@ QR payload MUST NOT 包含长期私钥、secret storage key、recovery secret �
 1. 签发 `ck.device.authorize` 或符合 DID method 的 key-log operation。
 2. 发布 `ck.device.list_update`。
 3. 在用户或 policy 允许时，通过加密 to-device 消息共享 `self_signing_key`、secret storage bootstrap 或 MLS Welcome。
+
+当验证目的为 `same_principal_device_authorization` 时，用户确认后的授权落地 MUST 发生在 `/_cokret/gate/account/*` 认证面，默认使用 `ck.gate.account.device_pair`。旧设备把验证 transcript 中绑定的 `pairing_code`、`new_device_pubkey`、`challenge_signature` 以及自身 fresh device proof 提交给 gate；gate 返回的 `authorized_event_ref` 只是 durable `ck.device.authorize` / `ck.device.list_update` 已被接受的引用或等价结果。新设备可通过同一 to-device transcript 的 `ck.key.verification.done` 中的 `authorized_event_ref` hint、后续 full `ck.self.account.subscribe` device list baseline，或重新通过 `ck.gate.account.issue_session_grant` 升级会话来观察授权结果；它 MUST 验证 durable device list，而不得把 `done` 消息本身当成授权真相源。
 
 跨 principal 验证完成后，客户端 MAY 使用 `user_signing_key` 对对方 principal identity key 或 device key 生成信任签名。该签名只影响本 principal 的信任视图，不授予对方 Realm capability。
 

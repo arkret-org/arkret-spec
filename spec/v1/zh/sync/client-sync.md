@@ -3,7 +3,7 @@ title: Client Sync
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-11
+updated: 2026-06-12
 ---
 
 ## 0. 规范语言
@@ -544,6 +544,20 @@ Account data MUST 按 principal/device 授权隔离。联邦节点不得向其�
 ## 10. To-Device Delivery
 
 `to_device.messages` MUST 只包含当前 access token 对应 device 的消息。
+
+### 10.0 主接收路径与补拉路径 (normative)
+
+`/_cokret/self/account/subscribe` 与 `GET /_cokret/self/device_messages` 暴露的是同一个 per-device to-device 队列的两种读取形态；二者不代表两套消息源，也不允许客户端把同一 kind 分流到两套互不一致的处理器。
+
+`ck.self.account.subscribe` 是 full client / E2EE client 的主接收路径。客户端维护长连接后，服务端 SHOULD 在 `delta.to_device.messages[]` 中推送当前设备的验证请求、SAS/QR 交换、secret sharing、device-list 相关私有消息；客户端 MUST 把这里收到的 `DeviceMessageEnvelope` 交给与 `ck.self.device_messages.get` 相同的 to-device dispatcher，并在持久化处理完成后按 §10.1 使用 `ack_token` 显式确认。
+
+`GET /_cokret/self/device_messages?from=<cursor>&limit=n` 是补拉 / 轮询路径，只用于下列情况：
+
+1. `delta.to_device.limited=true` 时，用 `delta.to_device.next_cursor` 继续分页读取队列。
+2. 客户端本地 dispatcher 崩溃、account subscribe 暂未建立、或前台验证小流程尚未启动完整账号同步时，用于补拉未确认消息。
+3. 非 full-client 的窄实现（例如只做设备验证的登录前/登录中 UI）在持有受限 fresh-device session grant 时，可短轮询本设备队列以完成同一笔验证 transcript。
+
+一旦 full client 的 account subscribe 已经运行，客户端 SHOULD 停止为同一 `(principal_id, device_id)` 维持独立的 SAS 轮询循环；继续轮询只应作为检测到 `limited`、`dropped`、本地处理失败或显式用户前台流程的短期恢复手段。无论消息来自主路径还是补拉路径，ack、去重、过期、`lost` 处理和 transaction 幂等规则完全相同。
 
 ### 10.1 显式投递确认 (normative)
 

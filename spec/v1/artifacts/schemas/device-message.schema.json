@@ -404,6 +404,52 @@
         "expires_at": {
           "$ref": "#/$defs/timestamp"
         },
+        "purpose": {
+          "enum": [
+            "device_key_verification",
+            "same_principal_device_authorization"
+          ],
+          "description": "Optional verification purpose. Omitted means generic device key verification. same_principal_device_authorization is used when a fresh device asks already authorized devices of the same principal to approve device authorization."
+        },
+        "pairing_code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "Short user-visible code bound into a same-principal device authorization transcript."
+        },
+        "new_device_pubkey": {
+          "type": "object",
+          "description": "Public key material for the requesting device when purpose=same_principal_device_authorization. The kid SHOULD equal the requesting device id and the object is later consumed by ck.gate.account.device_pair.",
+          "properties": {
+            "kid": {
+              "$ref": "#/$defs/device_id"
+            },
+            "alg": {
+              "type": "string",
+              "minLength": 1
+            },
+            "public_key": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": true
+        },
+        "gate_audience": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Auth Server audience/origin expected to consume the paired proof."
+        },
+        "request_canonical_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Digest of the canonical request material bound into the pairing proof."
+        },
+        "device_metadata": {
+          "type": "object",
+          "description": "User-facing requesting-device hints. Receivers MUST treat this as display metadata and bind the parts shown to the user into the verification transcript.",
+          "additionalProperties": true
+        },
         "key_agreement_protocols": {
           "$ref": "#/$defs/string_list"
         },

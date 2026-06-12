@@ -3,7 +3,7 @@ title: Key Management
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-10
+updated: 2026-06-12
 ---
 
 ## 0. 规范语言
@@ -378,11 +378,11 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 推荐流程：
 
 1. 新设备本地生成 device key。
-2. 新设备向 Auth Server 创建短期 `device-pairing-request`，并展示 pairing code / QR，其中包含 `pairing_request_id`、device public key、challenge、过期时间与 Auth Server origin。若 Auth Server 不支持服务器中转，客户端 MAY 退回到手动复制同一 payload。
-3. 已授权设备通过 to-device / push / account subscribe 收到提示，或轮询 `GET /_cokret/self/devices/pairing-requests`；UI MUST 显示 requesting device metadata 与 pairing code，要求用户和新设备屏幕上的 code 比对。
-4. 用户在已授权设备上批准后，该设备调用 `POST /_cokret/self/devices/pairing-requests/{pairing_request_id}/approve`，并由当前 device proof / account gate 校验完成 `ck.device.authorize` 签发。
-5. Events API / identity registry 接受并传播该 event；pending request MUST 单次消费，之后状态为 `approved`，不得被重放。
-6. 新设备轮询 `GET /_cokret/gate/account/device-pairing-requests/{pairing_request_id}` 或接收 account/device 消息，看到 `approved` 与 `authorized_event_ref` 后开始同步 Event history、Realm membership 和必要的 MLS Welcome / key share。
+2. 新设备先通过 `ck.gate.account.issue_session_grant` 获得 fresh-device restricted session grant，或通过二维码/手动码把同等 pairing payload 交给旧设备。该 grant 只能用于同 principal 的 `ck.key.verification.*` bootstrap，不得读取 E2EE history、解锁 key backup 或请求 `ck.secret.*`。
+3. 新设备通过 `POST /_cokret/self/device_messages` 向同 principal 的已授权设备发送 `ck.key.verification.request`。content MUST 至少包含 `transaction_id`、`from_device`、`methods`、`timestamp`、`expires_at`；用于设备授权时 SHOULD 带 `purpose="same_principal_device_authorization"`、`pairing_code`、`new_device_pubkey`、`gate_audience`、`request_canonical_digest` 与 `device_metadata?`（wire 示例见 [`device-lifecycle.md` §7](../crypto-media/device-lifecycle.md)）。
+4. 已授权设备的主接收路径是 `GET /_cokret/self/account/subscribe` 的 `delta.to_device.messages[]`；push 只能作为唤醒提示。若 `delta.to_device.limited=true`、本地 dispatcher 需要补洞，或旧设备当前没有完整 account subscribe，才使用 `GET /_cokret/self/device_messages?from=<cursor>&limit=n` 补拉。UI MUST 显示 requesting device metadata 与 pairing code，要求用户和新设备屏幕上的 code 比对。
+5. 用户在已授权设备上批准并完成 SAS/QR transcript 后，该设备调用 `POST /_cokret/gate/account/device-pair`，提交 transcript 绑定的 `pairing_code`、`new_device_pubkey`、`challenge_signature` 与当前设备 fresh proof。`/_cokret/self/devices/pairing-requests*` 不是 v1 core approval surface。
+6. Events API / identity registry 接受并传播 `ck.device.authorize` 与 `ck.device.list_update`；gate 返回 `authorized_event_ref` 或等价引用。新设备可通过 `ck.key.verification.done` 中的 hint、重新签发/升级后的 session grant、或后续 account subscribe/device list baseline 观察结果，但 MUST 以 durable device list 为准，之后才开始同步 Event history、Realm membership 和必要的 MLS Welcome / key share。
 
 如果用户没有任何可用的已授权设备，UI SHOULD 明确优先提示"在已有设备确认"；确认不可用后，才进入恢复密钥 / social recovery 路径。新设备仅凭登录 session grant MUST NOT 获得 E2EE history key。
 
