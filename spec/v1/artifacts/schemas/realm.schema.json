@@ -500,7 +500,7 @@
       }
     },
     {
-      "$comment": "Principal control Realms are ordinary ck.schema.realm.v1 objects, but the profile discriminator must be closed at schema level: fields.purpose and schema_refs must appear together, and the Realm MUST be MLS-backed.",
+      "$comment": "Principal control Realms are ordinary ck.schema.realm.v1 objects, but the profile discriminator must be closed at schema level: fields.purpose and schema_refs must appear together, the Realm MUST be MLS-backed, and both encryption floors MUST be pinned to e2ee_required (key-management §4.1 / §5.0.1, realm-and-space §2.8.1). There is no plaintext-floor PCR in v1.",
       "if": {
         "properties": {
           "fields": {
@@ -519,9 +519,19 @@
         ]
       },
       "then": {
+        "required": [
+          "content_encryption_floor",
+          "metadata_encryption_floor"
+        ],
         "properties": {
           "encryption_profile": {
             "const": "mls_rfc9420"
+          },
+          "content_encryption_floor": {
+            "const": "e2ee_required"
+          },
+          "metadata_encryption_floor": {
+            "const": "e2ee_required"
           },
           "schema_refs": {
             "contains": {
@@ -532,7 +542,7 @@
       }
     },
     {
-      "$comment": "The inverse guard prevents a profile-tagged Realm from omitting the machine-readable purpose discriminator.",
+      "$comment": "The inverse guard prevents a profile-tagged Realm from omitting the machine-readable purpose discriminator, and pins the encryption floors symmetrically with the forward guard.",
       "if": {
         "properties": {
           "schema_refs": {
@@ -548,11 +558,19 @@
       "then": {
         "required": [
           "encryption_profile",
-          "fields"
+          "fields",
+          "content_encryption_floor",
+          "metadata_encryption_floor"
         ],
         "properties": {
           "encryption_profile": {
             "const": "mls_rfc9420"
+          },
+          "content_encryption_floor": {
+            "const": "e2ee_required"
+          },
+          "metadata_encryption_floor": {
+            "const": "e2ee_required"
           },
           "fields": {
             "properties": {

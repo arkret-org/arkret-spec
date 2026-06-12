@@ -451,12 +451,16 @@
         "default_discoverability": "secret",
         "default_join_rule": "closed",
         "history_visibility": "restricted",
-        "encryption_profile": "mls_rfc9420"
+        "encryption_profile": "mls_rfc9420",
+        "content_encryption_floor": "e2ee_required",
+        "metadata_encryption_floor": "e2ee_required"
       },
       "binding_invariants": [
         "realm_id MUST equal the principal_control_realm_id resolved for the principal DID.",
         "fields.purpose MUST be principal_control and schema_refs MUST contain ck.profile.principal_control_realm.v1.",
         "encryption_profile MUST be mls_rfc9420; PCRs MUST NOT use none or external.",
+        "content_encryption_floor and metadata_encryption_floor MUST both be e2ee_required; a PCR genesis declaring either floor below e2ee_required MUST be rejected (no plaintext-floor PCR exists in v1).",
+        "history_visibility MUST be restricted; new same-principal devices obtain prior control history via durable device-list / normalized principal view baseline and policy-gated MLS history key share, not by joining at the current epoch.",
         "Control events MUST bind principal_id / device_id / session grant audience to the same principal DID or an explicitly trusted recovery/session issuer."
       ]
     },

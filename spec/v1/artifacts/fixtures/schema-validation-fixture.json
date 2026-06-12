@@ -148,7 +148,7 @@
         ],
         "default_discoverability": "secret",
         "default_join_rule": "closed",
-        "history_visibility": "joined",
+        "history_visibility": "restricted",
         "encryption_profile": "mls_rfc9420",
         "notary_profile": "single_did",
         "notary": {
@@ -165,7 +165,9 @@
         "fields": {
           "purpose": "principal_control"
         },
-        "created_at": "2026-04-26T00:00:00Z"
+        "created_at": "2026-04-26T00:00:00Z",
+        "content_encryption_floor": "e2ee_required",
+        "metadata_encryption_floor": "e2ee_required"
       }
     },
     {
@@ -184,7 +186,7 @@
         ],
         "default_discoverability": "secret",
         "default_join_rule": "closed",
-        "history_visibility": "joined",
+        "history_visibility": "restricted",
         "encryption_profile": "none",
         "notary_profile": "single_did",
         "notary": {
@@ -201,8 +203,11 @@
         "fields": {
           "purpose": "principal_control"
         },
-        "created_at": "2026-04-26T00:00:00Z"
-      }
+        "created_at": "2026-04-26T00:00:00Z",
+        "content_encryption_floor": "e2ee_required",
+        "metadata_encryption_floor": "e2ee_required"
+      },
+      "first_expected_error": "$.encryption_profile: 'mls_rfc9420' was expected"
     },
     {
       "name": "realm_missing_trust_domain_rejected",

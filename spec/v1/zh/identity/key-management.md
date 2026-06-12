@@ -228,10 +228,10 @@ Inception bootstrap MUST 使用 DID method 自身的初始控制密钥作为信�
    - `fields.purpose = "principal_control"`（产品语义；reducer/authz 通过此字段识别 control stream）。
    - `schema_refs` 包含 `ck.profile.principal_control_realm.v1`（profile id；该 profile 收紧 control realm 的允许 event kinds、capability action、E2EE/federation 默认值）。
    - `ck.profile.principal_control_realm.v1` 的机器化要求见 `artifacts/profiles/conformance-profiles.json#profile_requirements`：control Realm MUST 使用 allowlist-only event kind policy；普通 Flow / Message / Space / Relation / View / Morph / Call 协作事件在该 Realm 内 MUST `principal_control_event_kind_forbidden`。
-   - `encryption_profile = "mls_rfc9420"`，`history_visibility = "joined"`，`notary_profile = "single_did"`，`notary = <principal DID>`。Principal Control Realm 的 `encryption_profile` 在 v1 中被 `ck.profile.principal_control_realm.v1` 固定为 `mls_rfc9420`；producer MUST NOT 使用 `none` 或 `external`，receiver / reducer 看到 `fields.purpose="principal_control"` 或 `schema_refs` 包含 `ck.profile.principal_control_realm.v1` 但 `encryption_profile!="mls_rfc9420"` 时 MUST reject，而不是把它降级为普通明文 control stream。
+   - `encryption_profile = "mls_rfc9420"`，`content_encryption_floor = "e2ee_required"`，`metadata_encryption_floor = "e2ee_required"`，`history_visibility = "restricted"`，`notary_profile = "single_did"`，`notary = <principal DID>`。Principal Control Realm 的 `encryption_profile` 在 v1 中被 `ck.profile.principal_control_realm.v1` 固定为 `mls_rfc9420`，两条加密 floor 被固定为 `e2ee_required`（v1 不存在明文地板的 PCR）；producer MUST NOT 使用 `none` 或 `external`，也 MUST NOT 把任一 floor 声明为低于 `e2ee_required`。`history_visibility = "restricted"`：新授权的同 principal 设备读取 join 前控制历史走 durable device-list / normalized principal view baseline 与 policy 受控的 MLS history key share，PCR MUST NOT 使用 `joined`。
    - `created_by = <principal DID>`，`security_class = "high_assurance"`（强制 federation_policy ∈ {closed, restricted, quarantine}）。
 
-   Event 的 `actor_id` 是 principal DID，`proofs[]` 由 inception key 签发，`refs[]` 引用 `did:webvh` entry 0 的 `versionId` 和 SCID 作为身份证据 ref（`role="did_inception"`，`critical=true`）。Receiver 验证 control realm genesis 时 MUST 同时校验 `fields.purpose=principal_control`、`schema_refs` 包含 `ck.profile.principal_control_realm.v1` 与 `encryption_profile="mls_rfc9420"`；缺一即按普通非 PCR Realm 处理（不再具备 control stream 的特殊语义），若已声明 PCR profile 但加密 profile 不匹配则 MUST reject。
+   Event 的 `actor_id` 是 principal DID，`proofs[]` 由 inception key 签发，`refs[]` 引用 `did:webvh` entry 0 的 `versionId` 和 SCID 作为身份证据 ref（`role="did_inception"`，`critical=true`）。Receiver 验证 control realm genesis 时 MUST 同时校验 `fields.purpose=principal_control`、`schema_refs` 包含 `ck.profile.principal_control_realm.v1`、`encryption_profile="mls_rfc9420"` 与 `content_encryption_floor=metadata_encryption_floor="e2ee_required"`；前三项缺一即按普通非 PCR Realm 处理（不再具备 control stream 的特殊语义），若已声明 PCR profile 但 `encryption_profile` 或任一加密 floor 不匹配则 MUST reject。
 4. **首台设备自授权**：客户端构造 `ck.device.authorize` Event，`device_id` 是新生成的 device public key 派生的 `ck:device:<uuid>` typed ID（非 DID——设备不是独立主体；inception key 属于 principal，恰好复用为首台设备 key，该 device key 作为 principal DID 的 verification method 由本 Event 登记），`authorized_by` 直接引用 inception key 的 `verification_method`（即 entry 0 的 controller key）。该 Event 的 `proofs[]` 由 inception key 签发；`refs[]` 引用 control realm 的 genesis Event（`role="authorized_by"`）与 `did:webvh` entry 0 的 `versionId`（`role="did_inception"`，`critical=true`）。
 5. **Inception key 的归宿**：完成步骤 4 后，inception key 的在线签名角色 MUST 在 `inception_key_max_online_window` 内退出。推荐窗口为 ≤1h；24h 只是协议硬上限，deployment policy MUST NOT 配置更长窗口。`personal_node` / `small_team` profile 在首台 `ck.device.authorize` accepted 后 SHOULD 立即触发 `did:webvh` entry 1 写入或封存流程，不应等待硬上限。退出方式只能是：（a）写入 `did:webvh` entry 1 或等价 DID method operation，把日常 update / device authorization 权限轮换到新的 controller / device key，并从首台设备销毁 inception private key；或（b）把 inception key 封存为 recovery-only key，放入 secret storage / threshold recovery，记录 `sealed_at`、`expires_at?`、allowed recovery method，并禁止在线日常签名。窗口过期后，receiver / Auth Server MUST 拒绝 inception key 继续签发 `ck.device.authorize`、`ck.session.grant`、长期 capability 或 ordinary DID update，并写入安全审计；它只能按已声明 recovery policy 进入恢复流程。它 MUST NOT 长期作为日常 device signing key——暴露面应被限制到 inception bootstrap 与 recovery。
 
@@ -473,7 +473,7 @@ Cokret v1 使用 `ck.session.grant` 作为 principal control stream 中的标准
 Cokret v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata 中声明备份域，且不得把一个域的解锁材料当作另一个域的授权证明：
 
 - `did_recovery`：恢复 DID 控制链所需的 recovery key share、门限恢复 share metadata 或受信恢复服务证明。它只能用于 `recovery_policy` 允许的 `recover` / `rotate` / `ck.device.authorize` 等操作。
-- `secret_storage`：保存 `self_signing_key`、`user_signing_key`、recovery secret、MLS group secrets backup key、applet delegated device secret 和 encrypted private account data cache。
+- `secret_storage`：保存 `self_signing_key`、`user_signing_key`、recovery secret、MLS group secrets backup key、applet delegated device secret 和 encrypted private account data cache。其中**承载 SSK 的恢复定向副本**（`recipient_method="recovery_public_key"`）属于 fresh-device 恢复的 recovery-bootstrap unlock set：它的域仍是 `secret_storage`，但因为只用 recovery 公钥加密，可在设备授权之前仅凭 recovery 私钥解锁（见 [`../crypto-media/device-lifecycle.md` §15 step 4](../crypto-media/device-lifecycle.md)）。这不破坏域隔离——SSK 不解密 MLS 历史，攻破该副本不等于攻破 `mls_history` 或 `did_recovery`。
 - `mls_history`：保存用户已有权读取的 Realm / MLS-backed Circle 的 MLS group state、历史 epoch key material、pending Welcome 和必要的 epoch 缺口恢复 metadata。
 
 域隔离规则：
@@ -757,6 +757,7 @@ v1 core 不把 `hardware_wrapped_key` 作为 `ck.schema.key_backup.v1.encryption
 - 对 `did_recovery` envelope，展示当前 envelope 的 `recovery_policy_ref.policy_id` / `policy_version` 与当前 accepted recovery policy 的一致性；其它 envelope 携带 `recovery_policy_ref` 时也 MUST 展示并验证。不一致时 MUST `recovery_policy_mismatch`，并指向"更新 recovery policy"流程而不是默默继续。
 - 不得从本地缓存读取用户先前确认的 fingerprint / passphrase / OOB token 跳过当次显式确认。本地缓存 MAY 用于自动补全，但用户 MUST 显式提交本次输入。
 - 在 §7.4 列出的禁用证明类型（历史明文、邮箱验证码、撤销设备等）被用户尝试时 MUST 给出可读的拒绝原因。
+- **无恢复路径（SPOF）账号的 fresh-device 登录警示**：当新设备登录的目标 principal 的 `active_policy=null`（无 accepted recovery policy）时，fresh-device DID recovery 与 `did_recovery` backup unlock MUST fail closed（§8）。此时 UI MUST 在进入任何恢复尝试之前明示"该账号没有已配置的恢复路径，唯一的换机方式是在一台已授权的旧设备上确认"，并把入口优先导向同 principal 旧设备确认流程（[`../crypto-media/device-lifecycle.md` §10](../crypto-media/device-lifecycle.md)）；不得让用户在无恢复材料的前提下反复尝试 recovery proof。
 
 ### 7.7.1 Backup Unlock Proof 与 Plaintext Keybag（normative）
 
@@ -797,8 +798,15 @@ Recovery Key 配置完成（genesis recovery policy accepted 且 §5.0.1 first-b
 - 自动备份 SHOULD NOT 要求用户手动触发或重复输入凭证；envelope 加密给 recovery public key（§7.5.2）只使用公钥，不需要用户在场。客户端 MAY 额外提供手动"立即备份"入口。
 - 自动备份失败（网络、§7.8 限速、series 冲突）时，客户端 SHOULD 退避重试，并在持续失败超过实现定义的窗口时向用户显式提示备份落后；SHOULD NOT 静默丢弃待备份材料。
 - 本节不放宽 §7.1 的禁止项：device private key、session key、已发布的 KeyPackage private key 等仍 MUST NOT 进入自动备份。
+- **首份 `secret_storage` 备份的及时性**：first-backup gate（§5.0.1 step 7）只强制 `did_recovery` 域 `series_seq=0`；SSK / USK 在 `ck.cross_signing.publish` 之后才产生。客户端 SHOULD 在首次 `ck.cross_signing.publish` accepted 后**立即**发布承载 SSK（及 USK）的首份 `secret_storage` envelope（`recipient_method="recovery_public_key"`，进入 §7.6 series 链），并把它纳入 onboarding 完成判据。否则在 gate 通过、首份 `secret_storage` 落地之前的窗口内丢失唯一设备，用户即便持有 24 词也只能恢复 DID 控制链，cross-signing 树丢失而被迫走 [`../crypto-media/device-lifecycle.md` §14](../crypto-media/device-lifecycle.md) reset（全网 `needs_reverification` 扩散）。
 
-## 8. 社交恢复与门限恢复
+### 7.11 加密 Realm 创建 / 加入前的 Recovery 前置门（normative）
+
+E2EE Realm（effective `content_encryption_floor` 或 `metadata_encryption_floor` 为 `e2ee_required`，含 PCR 与任何加密协作 Realm）的创建或加入会产生该用户独有的 MLS group secret；若此时账号尚无可用恢复路径，丢失唯一设备即永久丢失这些内容。因此：
+
+- 客户端在 `recovery_state` **未配置**（`GET /_cokret/root/identity/recovery-policy` 返回 `active_policy=null`，且无 §5.0.1 step 7 的 offline-sealed receipt）的账号上，发起创建或加入 effective floor 为 `e2ee_required` 的 Realm 之前，MUST 先提示用户完成 Recovery Key 设置与首份备份（§7.10 首份 `secret_storage` envelope）。
+- `ck.profile.personal_node.v1` MAY 允许用户在明确告知"丢失本设备将永久丢失该 Realm 内容"后**显式跳过**，并维持 / 标记 `single_point_of_failure=true`、持续提醒；`small_team` 及以上 deployment profile SHOULD 阻断创建 / 加入，直至 recovery policy 配置完成。
+- 该前置门是客户端编排义务，不替代服务端的 floor ratchet 与 PCR 校验；它针对的是"加密材料先于恢复路径产生"的时间窗，而非加密本身是否启用。
 
 高价值账号 SHOULD 支持门限恢复。Recovery policy 的规范形态由 `ck.schema.recovery_policy.v1`（`artifacts/schemas/recovery-policy.schema.json`）固定；本节内联 JSON 仅作示意，wire 实现 MUST 以 schema 为准。
 

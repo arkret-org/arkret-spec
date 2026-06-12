@@ -252,8 +252,10 @@ Realm（ck.schema.realm.v1，schema 层统一）
   - `fields.purpose = "principal_control"`
   - `schema_refs` 包含 `ck.profile.principal_control_realm.v1`
   - `encryption_profile = "mls_rfc9420"`；PCR 在 v1 中不允许 `none` 或 `external`，schema / reducer MUST fail closed。
+  - `content_encryption_floor = "e2ee_required"` 且 `metadata_encryption_floor = "e2ee_required"`。v1 不存在"明文地板的 PCR"：PCR genesis 若把任一 floor 声明为低于 `e2ee_required`，schema / reducer MUST 拒绝（`realm.schema.json` 的 PCR 守卫已把两条 floor 钉死为 `e2ee_required`，profile `realm_defaults` 同步固定）。content floor 对 PCR 在功能上是 moot（event-kind allowlist 已排除全部 content 类 event），固定它是为防 allowlist 未来扩张时出现静默明文 content，并让客户端可从 projection 直接判定 PCR 已达推荐加密地板。
   - `created_by = <principal DID>`，`notary = <principal DID>`，`notary_profile = "single_did"`
   - `security_class = "high_assurance"`，`federation_policy ∈ {closed, restricted, quarantine}`
+  - `history_visibility = "restricted"`。新授权的同 principal 设备获取 join 前控制历史的 canonical 路径是 durable device-list / normalized principal view baseline 加 policy 受控的 MLS history key share，而非"在当前 epoch 加入"；PCR 不使用 `joined`（`joined` 会让新设备读不到其授权之前的 device / recovery 控制历史）。
 - 事件类型由 `ck.profile.principal_control_realm.v1` 的 allowlist 约束：只接受 device / session / KeyPackage / recovery / profile / consent / contact fact / direct conversation binding 等身份基础设施 event；普通 Message / Flow / Space / Morph / Relation / View / Call 协作 event MUST `principal_control_event_kind_forbidden`。
 - 跨 principal 写入（另一个 principal 的 device / session 状态）MUST `unauthorized` reject。
 - "私有"语义由 **用途 + event-kind allowlist** 锁定，不是 access control。PCR 在结构上允许 multi-member（该 principal 的所有设备 / agent）。
