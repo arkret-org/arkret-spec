@@ -5627,6 +5627,20 @@
         "negative_test"
       ],
       "notes": "Seal verification fault diagnostic renamed with the Anchor->Seal family."
+    },
+    {
+      "id": "revocation_frontier",
+      "kind_class": "wire_field_name",
+      "migration_group": "cba_dual_plane_basis",
+      "since_revision": "2026-06-12",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Deleted payload-level field on device_revoke / agent_key_revoke / agent_deactivate / capability_revoke payloads (pre-CBA leftover; SPEC-SOL-003 ruling). A revocation's control-plane authorization basis is the Control Move envelope seal_basis (signed, canonical bytes); its effective cutoff is the accepted Seal covering the Move. Clients mint a single-leaf seal_basis from the ck.self.events.frontier realm-shape response {realm_id, seal_id, control_event_set_root, state_root, hlc?}. The orphaned event-payload $defs/seal_frontier (event_digest array) was removed with it, and the device revocation conformance vector was restated as ck.vector.device.revocation_seal_binding.v1 (formerly the device revocation_frontier vector)."
     }
   ]
 }

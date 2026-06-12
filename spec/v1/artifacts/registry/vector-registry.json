@@ -173,7 +173,7 @@
       ]
     },
     {
-      "vector_id": "ck.vector.device.revocation_frontier.v1",
+      "vector_id": "ck.vector.device.revocation_seal_binding.v1",
       "status": "active",
       "domain": "device",
       "source_refs": [

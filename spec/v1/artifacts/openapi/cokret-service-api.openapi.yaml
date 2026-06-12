@@ -1263,9 +1263,14 @@ components:
           type: object
           description: |
             Either an actor frontier (`{actor_id, actor_seq, event_id}`) or a
-            Realm frontier (`{realm_id, seal_id, state_root, hlc?}`) shape
-            depending on which selector was passed; servers MUST NOT leak
-            frontiers across visibility boundaries.
+            Realm frontier (`{realm_id, seal_id, control_event_set_root,
+            state_root, hlc?}`) shape depending on which selector was passed;
+            servers MUST NOT leak frontiers across visibility boundaries.
+            The Realm shape is the registered account-client source for
+            minting a single-leaf Control Move `seal_basis`
+            (`leaves=[seal_id]`) and a DataEvent `seal_ref`; for the caller's
+            own principal control realm the Principal Server MUST serve it.
+            Clients MUST fail closed when this source is unavailable.
         receipts:
           type: array
           items:

@@ -71,9 +71,9 @@ Cokret v1 把三件事分开处理：
 ### 2.2 设备吊销
 当设备丢失时，用户可从任何其他已授权设备、DID 控制密钥或 recovery policy 允许的恢复服务发起吊销操作：发布 `ck.device.revoke`，停止接受该设备的新签名写入，并对受影响的 MLS 群组触发 `Remove` 与 Epoch 更新。若该设备曾被写入 DID Document，撤销流程还必须按 DID method 规则移除或失效对应 verification method。
 
-`ck.device.revoke.payload` MUST 携带 `revocation_frontier`：该撤销在 principal control stream 中被 accepted Seal 覆盖时的控制面位置（以 event_digest hash 数组表达）。撤销证明签名和任何后续 device trust proof MUST 覆盖该 frontier；Principal Server / Sync Service 在拒绝该设备后续 session grant、KeyPackage、to-device write 或 Event write 时，MUST 以该 frontier 或其后继 Seal view 作为判定依据。
+`ck.device.revoke` 是 principal control stream 上的 Control Move：其 Event Envelope MUST 携带 `seal_basis`（撤销方签名时观察到的 accepted Seal view `{leaves[], control_event_set_root, state_root}`，进入 canonical event bytes 并被撤销证明签名覆盖，见 `../authz/event-auth-state-resolution.md` §5）；payload 不携带任何 frontier 字段。客户端铸造单 leaf basis 的注册来源是 `ck.self.events.frontier?realm_id=<principal_control_realm_id>`（Realm Seal view `{realm_id, seal_id, control_event_set_root, state_root, hlc?}`，取 `leaves=[seal_id]`）；该来源不可用时 MUST fail closed，不得伪造 basis。撤销自被 accepted Seal 覆盖（`control_sealed`）起生效；Principal Server / Sync Service 在拒绝该设备后续 session grant、KeyPackage、to-device write 或 Event write 时，MUST 以该 covering Seal 或其后继 Seal view 作为判定依据，不得用本地布尔缓存替代；撤销已提交但尚未 sealed 期间，受理服务 SHOULD 预先 fail closed。
 
-共享 E2EE Realm 不能只看到“某设备已撤销”的服务端布尔值就推进新 epoch。对应 `ck.mls.commit` Remove 的 `governance_binding.membership_frontier` MUST 覆盖该 `revocation_frontier`，或覆盖一个已经把该 principal control frontier 导入 Realm governance state 的显式 Control Move；否则该 Remove 不满足 MLS Governance Binding，新的 `covered_seals_cell` 不得声称已覆盖该设备撤销。
+共享 E2EE Realm 不能只看到“某设备已撤销”的服务端布尔值就推进新 epoch。对应 `ck.mls.commit` Remove 的 `governance_binding.membership_frontier` MUST 覆盖该 `ck.device.revoke` 事件本身，或覆盖一个已经把该撤销导入 Realm governance state 的显式 Control Move，且该撤销 MUST 已被 principal control stream 的 accepted Seal 覆盖；否则该 Remove 不满足 MLS Governance Binding，新的 `covered_seals_cell` 不得声称已覆盖该设备撤销。
 
 
 ## 3. 企业单点登录 (SSO / OIDC Gateway)

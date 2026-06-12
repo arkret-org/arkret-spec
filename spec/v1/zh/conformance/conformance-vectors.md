@@ -2796,20 +2796,22 @@ Expected：
 - 第 2 步设备只能处于 `recovery_pending`，不得显示 fully verified。
 - 第 3 步 response SHOULD 返回 `available_count` / `low_watermark` / `suggested_publish_count`，claimed package 不得自动放回。
 
-### 10.9.1 Vector: Device Revocation Frontier Binding
+### 10.9.1 Vector: Device Revocation Seal Binding
 
-`vector_id`: `ck.vector.device.revocation_frontier.v1`
+`vector_id`: `ck.vector.device.revocation_seal_binding.v1`
 
 Steps：
 
-1. `ck.device.revoke` 被 principal control stream 接受，payload 携带 `revocation_frontier=[R]`。
-2. 攻击者重放该设备在 R 之后签发的 session grant、KeyPackage publish 或 to-device write。
-3. 某 E2EE Realm 提交 MLS Remove，但 `governance_binding.membership_frontier` 未覆盖 R，也未覆盖导入 R 的 Realm governance Control Move。
+1. `ck.device.revoke` 作为 Control Move 提交，信封携带有效 `seal_basis`（单 leaf，取自 `ck.self.events.frontier` 的 Realm Seal view），随后被 principal control stream 的 accepted Seal S 覆盖（`control_sealed`）。
+2. 攻击者重放该设备在 S 之后（以 S 或其后继 Seal view 判定）签发的 session grant、KeyPackage publish 或 to-device write。
+3. 某 E2EE Realm 提交 MLS Remove，但 `governance_binding.membership_frontier` 未覆盖该 `ck.device.revoke` 事件，也未覆盖导入该撤销的 Realm governance Control Move。
+4. 客户端在 `ck.self.events.frontier` 来源不可用（错误或缺 `seal_id` / `control_event_set_root`）时尝试提交 `ck.device.revoke`。
 
 Expected：
 
-- 第 2 步 MUST fail closed；实现不得用本地布尔缓存替代 `revocation_frontier` 或其后继 view。
+- 第 2 步 MUST fail closed；实现不得用本地布尔缓存替代以 S 或其后继 Seal view 的判定。
 - 第 3 步 Remove 不得使 `covered_seals_cell` 声称已覆盖该设备撤销；后续 E2EE DataEvent 仍必须被 `covered_seals_cell` gate 阻塞。
+- 第 4 步客户端 MUST fail closed，不得伪造 `seal_basis`；缺失或不一致 basis 的 Control Move 按 `ck.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1` 拒收。
 
 ### 10.10 Vector: Push Wakeup Policy
 

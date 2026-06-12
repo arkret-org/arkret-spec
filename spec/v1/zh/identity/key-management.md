@@ -143,7 +143,7 @@ agent key 的授权、轮换和撤销 MUST 进入可审计状态，而不能只�
 | --- | --- | --- |
 | `ck.agent.key.authorize` | Payload MUST validate as `event-payload.schema.json#/$defs/agent_key_authorize_payload`，绑定 `agent_principal_id` / `key_id` / `verification_method` / `accountable_principal_id` / `agent_key_scope` / `audience` / `issued_at` / `expires_at` / `approval_evidence`。 | `ck.agent.key.authorize` |
 | `ck.agent.key.rotate` | Payload MUST validate as `agent_key_rotate_payload`；`key_id` 是被替换 key，`replacement_key_id` 是新 key，二者必须在同一 accountable actor 下，agent_key_scope 不得扩大，TTL 不得长于被替换 key。 | `ck.agent.key.rotate` |
-| `ck.agent.key.revoke` | Payload MUST validate as `agent_key_revoke_payload`，绑定 `agent_principal_id` / `key_id` / `revoked_at` / `revoked_by` / `revocation_frontier`，并使后续 session / protocol action proof fail closed。 | `ck.agent.key.revoke` |
+| `ck.agent.key.revoke` | Payload MUST validate as `agent_key_revoke_payload`，绑定 `agent_principal_id` / `key_id` / `revoked_at` / `revoked_by`；撤销的控制面基准由 Control Move 信封 `seal_basis` 表达，自被 accepted Seal 覆盖起使后续 session / protocol action proof fail closed。 | `ck.agent.key.revoke` |
 
 高风险 agent key（能写入、调用外部工具、管理 capability、读取审计材料或代表用户发起 service-call）的 grant MUST 同时有 `expires_at`、resource selector、accountable actor、approval/proposal evidence 和 revocation freshness check。只声明 API token 或本地环境变量而没有上述事件链的 agent key 不得用于 v1 standard operation。
 
@@ -424,7 +424,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 
 - Events API MUST 拒绝该设备的新签名写入
 - authz MUST 视相关 session grant 失效
-- 加密 Realm SHOULD 通过 MLS Remove 推进 epoch；Remove 的 `governance_binding.membership_frontier` MUST 覆盖 `ck.device.revoke.payload.revocation_frontier` 或覆盖已导入该 control-stream frontier 的 Realm governance Move
+- 加密 Realm SHOULD 通过 MLS Remove 推进 epoch；Remove 的 `governance_binding.membership_frontier` MUST 覆盖该 `ck.device.revoke` 事件本身或覆盖已导入该撤销的 Realm governance Move，且该撤销 MUST 已被 principal control stream 的 accepted Seal 覆盖
 - 客户端和受托 projection executor SHOULD 标记已撤销设备产生的未确认 Operation 为高风险
 
 ## 6. Session Grant
@@ -941,7 +941,7 @@ share holder（无论是个人 DID、托管服务 DID，还是 hardware module�
 Cokret v1 对设备、会话和恢复要求如下：
 
 - Device record JSON Schema 由 `../models/common-fields.md`（`id:device` 类型与 typed-id 规则）与 `../crypto-media/device-lifecycle.md` 共同固定。设备记录 MUST 绑定 principal DID、device id、verification method、算法、创建时间、撤销状态和签名链。
-- `ck.device.authorize` 与 `ck.device.revoke` MUST 进入 schema registry，并按 event auth 规则验证。`ck.device.revoke.payload.revocation_frontier` MUST 绑定撤销被接受时的 principal control stream frontier；撤销后设备不得产生新的有效 session grant、KeyPackage 或 to-device write。
+- `ck.device.authorize` 与 `ck.device.revoke` MUST 进入 schema registry，并按 event auth 规则验证。`ck.device.revoke` 的控制面位置由其 Control Move 信封 `seal_basis`（授权基准，签名覆盖）与覆盖它的 accepted Seal（生效切点）表达，payload 不携带 frontier 字段；撤销后设备不得产生新的有效 session grant、KeyPackage 或 to-device write。
 - Session grant MUST 绑定 principal DID、device id、service DID / audience、scope、过期时间、proof 和 revocation reference；服务账户登录不得替代 DID 控制权。
 - Backup envelope test vector MUST 覆盖：加密备份、错误 recovery key 拒绝、weak passphrase policy、domain / audience 绑定、服务端不可解密要求、`series_seq` 严格单调、`supersedes` / `supersedes_digest` 链完整、`mixed_secret_storage=true` 在 non-personal_node profile 下被拒绝、`did_recovery` 域使用 `passphrase_kdf` 的 envelope 被拒绝(该域只允许 `recovery_public_key`)、§7.8 服务端限速与跨 actor 拒绝。
 - MLS KeyPackage binding MUST 覆盖 principal DID、device id、KeyPackage hash、签名 verification method、有效期和撤销检查；客户端 MUST 拒绝未绑定 DID / device trust chain 的 KeyPackage。

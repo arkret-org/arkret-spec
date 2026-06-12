@@ -221,15 +221,6 @@
       "type": "string",
       "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "seal_frontier": {
-      "type": "array",
-      "description": "Accepted Seal coverage expressed as event_digest hash values, not ck:event typed ids. The hash algorithm is the enclosing Realm or control stream hash profile.",
-      "items": {
-        "$ref": "#/$defs/hash"
-      },
-      "minItems": 1,
-      "uniqueItems": true
-    },
     "flow_id": {
       "type": "string",
       "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -4135,13 +4126,12 @@
     },
     "agent_key_revoke_payload": {
       "type": "object",
-      "description": "Payload for ck.agent.key.revoke. The or_set cell subject is (agent_principal_id, key_id); future protocol proofs from this key fail closed once this event is accepted.",
+      "description": "Payload for ck.agent.key.revoke. The or_set cell subject is (agent_principal_id, key_id); future protocol proofs from this key fail closed once this event is covered by an accepted Seal. The authoring basis is the Control Move envelope seal_basis; the payload carries no frontier field.",
       "required": [
         "agent_principal_id",
         "key_id",
         "revoked_by",
-        "revoked_at",
-        "revocation_frontier"
+        "revoked_at"
       ],
       "properties": {
         "agent_principal_id": {
@@ -4159,11 +4149,6 @@
         "reason": {
           "type": "string",
           "maxLength": 1024
-        },
-        "revocation_frontier": {
-          "type": "object",
-          "minProperties": 1,
-          "description": "Principal / Realm auth-state frontier under which this revocation was accepted."
         }
       },
       "additionalProperties": false
@@ -4334,14 +4319,13 @@
     },
     "agent_deactivate_payload": {
       "type": "object",
-      "description": "Payload for ck.agent.deactivate. The terminal transition binds revocation fan-out to the same freshness frontier used to reject future agent sessions.",
+      "description": "Payload for ck.agent.deactivate. Revocation fan-out and future agent-session rejection are judged at the accepted Seal covering this Move (or its successors); the authoring basis is the Control Move envelope seal_basis. The payload carries no frontier field.",
       "required": [
         "agent_principal_id",
         "controller_principal_id",
         "transition",
         "previous_status",
-        "status_changed_at",
-        "revocation_frontier"
+        "status_changed_at"
       ],
       "properties": {
         "agent_principal_id": {
@@ -4364,9 +4348,6 @@
         },
         "status_changed_at": {
           "$ref": "#/$defs/timestamp"
-        },
-        "revocation_frontier": {
-          "$ref": "#/$defs/agent_lifecycle_frontier"
         },
         "reason": {
           "type": "string",
@@ -5029,9 +5010,6 @@
         },
         "reason": {
           "type": "string"
-        },
-        "revocation_frontier": {
-          "type": "object"
         }
       },
       "additionalProperties": false
@@ -5242,13 +5220,13 @@
     },
     "device_revoke_payload": {
       "type": "object",
+      "description": "Payload for ck.device.revoke. The revocation's control-plane authorization basis is the Control Move envelope seal_basis (covered by the canonical event bytes and proofs); its effective cutoff is the accepted Seal covering this Move. The payload carries no frontier field.",
       "required": [
         "principal_id",
         "device_id",
         "revoked_by",
         "revoked_at",
-        "reason",
-        "revocation_frontier"
+        "reason"
       ],
       "properties": {
         "principal_id": {
@@ -5266,10 +5244,6 @@
         "reason": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,63}$"
-        },
-        "revocation_frontier": {
-          "$ref": "#/$defs/seal_frontier",
-          "description": "Principal control stream frontier under which this device revocation was accepted. Shared Realm MLS Remove commits that rely on the revocation must cover this frontier directly or through an imported governance Move."
         },
         "proof": {
           "$ref": "#/$defs/signature_material"

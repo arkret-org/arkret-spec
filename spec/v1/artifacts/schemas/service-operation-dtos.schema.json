@@ -2022,7 +2022,7 @@
       "properties": {
         "frontier": {
           "type": "object",
-          "description": "Either an actor frontier (`{actor_id, actor_seq, event_id}`) or a\nRealm Seal view (`{realm_id, seal_id, state_root, hlc?}`) shape\ndepending on which selector was passed; servers MUST NOT leak\nfrontiers across visibility boundaries.\n"
+          "description": "Either an actor frontier (`{actor_id, actor_seq, event_id}`) or a\nRealm Seal view (`{realm_id, seal_id, control_event_set_root,\nstate_root, hlc?}`) shape depending on which selector was passed;\nservers MUST NOT leak frontiers across visibility boundaries.\nThe Realm shape is the registered account-client source for minting\na single-leaf Control Move `seal_basis` (`leaves=[seal_id]`) and a\nDataEvent `seal_ref`; for the caller's own principal control realm\nthe Principal Server MUST serve it (an initialized Realm always has\nat least its genesis Seal). Clients MUST fail closed when this\nsource is unavailable instead of fabricating a basis.\n"
         },
         "receipts": {
           "type": "array",
