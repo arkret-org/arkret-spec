@@ -3240,7 +3240,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Cursor handle bindings and stateless cursor transcripts use digest vocabulary.",
+      "notes": "Cursor handle bindings use digest vocabulary.",
       "migration_group": "hash_to_digest_vocabulary"
     },
     {

@@ -386,84 +386,57 @@ ck:cursor:<base64url>
 
 ### 8.2 服务端 canonical 内部结构
 
-服务端在 base64url 编码前将 cursor 内部结构编码为 canonical JSON（按 §2 规则）。**v1 core cursor 内部结构 MUST 遵循 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)**：core schema 是 **stateful-only** 形态，body 固定为 `{v, purpose, t, x, h}`,其中 `h` 是不可猜测的 server-side opaque handle（见 §8.3.1）。core schema `additionalProperties:false` 且 `required` 含 `h`,**不接受** `s` / `d` / `target` / `issuer_kid` / `_mac` / `_sig` 等 stateless 字段；按 stateless 形态构造的 body 在 core 下 MUST 被 schema 拒绝。
-
-下方 §8.2 表与 Stream / Barrier 示例同时列出 stateful core 字段与 stateless overlay 字段，仅为完整描述两种形态;**stateless 自描述形态(含 `s` / `d` / `target` / `issuer_kid` / `_mac` / `_sig` 的内联 body)不属于 v1 core,仅在实现声明 [`ck.profile.stateless_cursor.v1`](./conformance-profiles.md) overlay 时合法**(见 §1.11 失败条件与 conformance-profiles §19c)。core consumer（sync、federation、snapshot）无需实现 stateless 路径。客户端无论哪种形态都 MUST NOT 解析或修改 cursor;**服务器侧 core cursor 内部结构 MUST 遵循 core schema,MUST NOT 在 core 下使用 stateless 私有形态**。
+服务端在 base64url 编码前将 cursor 内部结构编码为 canonical JSON（按 §2 规则）。**v1 core cursor 内部结构 MUST 遵循 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)**：body 固定为 `{v, purpose, t, x, h}`，其中 `h` 是不可猜测的 server-side opaque handle（见 §8.3.1）。core schema `additionalProperties:false` 且 `required` 含 `h`；服务端 MUST NOT 在 cursor body 中内联 stream positions、barrier target、principal binding 或完整性证明字段。
 
 cursor 是 v1 中**唯一**的不透明 token 类型，统一承担增量同步、列表分页和写后读屏障用途。`purpose` 字段区分两个语义：`stream`（增量同步与列表分页位置承诺）与 `barrier`（读己之所写屏障）。每个 transport / API binding MUST 在自己的绑定文档中声明哪些 wire 位置接受哪一种 `purpose`。
 
-Stream 形态（**profile-only**,`ck.profile.stateless_cursor.v1`;core 下 stream cursor 的 body 是 `{v,purpose,t,x,h}`,positions 由 `h` handle 在服务端解析，不内联 `s` / `d`）：
+Stream cursor body 示例：
 
 ```json
 {
   "v": "1",
   "purpose": "stream",
   "t": "2026-04-26T00:00:00.000Z",
-  "s": {
-    "ck:realm:0196419b-0000-7000-8000-000000000000": {
-      "p": ["ck:event:019640ed-8000-7000-8000-000000000000"],
-      "o": "01970e589d21-0004-a13f9c2e",
-      "h": "sha256:abc123..."
-    }
-  },
-  "d": {
-    "ck:device:019640da-0000-7000-8000-000000000000": "ck:device_message:019640da-0000-7000-8000-000000000000"
-  },
-  "x": 1714080000000
+  "x": 1714080000000,
+  "h": "abcdefghijklmnopqrstuv"
 }
 ```
 
-Barrier 形态（**profile-only**,`ck.profile.stateless_cursor.v1`;core 下 barrier cursor 的 body 是 `{v,purpose,t,x,h}`,目标由 `h` handle 在服务端解析，不内联 `target`）：
+Barrier cursor body 示例：
 
 ```json
 {
   "v": "1",
   "purpose": "barrier",
   "t": "2026-04-26T00:00:00.000Z",
-  "target": {
-    "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
-    "event_digest": "sha256:abc123...",
-    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
-  },
-  "x": 1714080000000
+  "x": 1714080000000,
+  "h": "0123456789abcdefghijkl"
 }
 ```
 
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
-> **形态归属**：下表「必需」列标注的形态归属为——**core**（v1 core schema,stateful-only）字段:`v` / `purpose` / `t` / `x` / `h`;**profile-only**（仅 `ck.profile.stateless_cursor.v1` overlay,core schema 不接受）字段:`s` / `d` / `target` / `issuer_kid` / `_mac` / `_sig`。
+| `v` | string | 是 | cursor 版本，v1 固定 `"1"` |
+| `purpose` | enum(`stream`,`barrier`) | 是 | 用途鉴别 |
+| `t` | timestamp | 是 | 生成时间戳（RFC 3339 UTC,MUST 以 `Z` 结尾；毫秒部分可选——`...59Z` 与 `...59.000Z` 均合法，本文示例混用两种精度仅为展示） |
+| `x` | integer | 是 | 过期时间戳（Unix ms） |
+| `h` | string | 是 | 服务端 opaque handle（≥ 128 bit 熵），见 §8.3.1。stream positions 或 barrier target 均由 `h` 在服务端绑定表中解析，MUST NOT 内联进 cursor body。 |
 
-| 字段 | 类型 | 必需 | 说明 |
-|------|------|------|------|
-| `v` | string | 是（core） | cursor 版本，v1 固定 `"1"` |
-| `purpose` | enum(`stream`,`barrier`) | 是（core） | 用途鉴别 |
-| `t` | timestamp | 是（core） | 生成时间戳（RFC 3339 UTC,MUST 以 `Z` 结尾；毫秒部分可选——`...59Z` 与 `...59.000Z` 均合法，本文示例混用两种精度仅为展示） |
-| `x` | integer | 是（core） | 过期时间戳（Unix ms） |
-| `h` | string | 是（core） | 服务端 opaque handle（≥ 128 bit 熵），见 §8.3.1。**stateful core 形态必填**;`ck.profile.stateless_cursor.v1` 下 MUST NOT 出现。 |
-| `s` | object | profile-only（`ck.profile.stateless_cursor.v1`;core schema 不接受） | Realm 位置映射（stream） |
-| `s.<realm_id>.p` | array | 是（profile;每条 entry） | 因果前沿（事件 ID 集合） |
-| `s.<realm_id>.o` | string | 是（profile;每条 entry） | timeline 排序 HLC |
-| `s.<realm_id>.h` | hash | 是（profile;每条 entry） | 该位置的 state hash |
-| `d` | object | profile-only（`ck.profile.stateless_cursor.v1`;core schema 不接受） | 设备位置映射（stream） |
-| `target` | object | profile-only（`ck.profile.stateless_cursor.v1` 且 `purpose=barrier` 时必填） | 等待目标 event |
-| `target.event_id` | id:event | 是（profile;barrier） | 目标事件 ID |
-| `target.event_digest` | hash | 是（profile;barrier） | 目标事件 canonical digest |
-| `target.realm_id` | id:realm | 否（profile） | 目标事件所在 Realm（可选 hint） |
-| `issuer_kid` | string | profile-only（`ck.profile.stateless_cursor.v1` 必填;core schema 不接受） | `_mac` / `_sig` 的 issuing service cursor key id；用于 key rotation / revocation 选择。stateful core 形态 MUST NOT 出现。 |
-| `_mac` / `_sig` | string | profile-only（`ck.profile.stateless_cursor.v1` 必填;core schema 不接受） | 完整性保护字段，见 §8.3.1 |
+服务端 MAY 添加其它 `_` 开头的私有字段（如 `_compression`）用于本地优化；这些字段必须先于 base64url 编码进入 canonical bytes。`_mac` 与 `_sig` 是保留字段，MUST NOT 出现在 v1 cursor body 中。
 
-服务端 MAY 添加其它 `_` 开头的私有字段（如 `_compression`）用于本地优化；这些字段不参与 §8.4 cursor 翻译，必须先于 base64url 编码进入 canonical bytes，并 MUST 进入 `_mac` / `_sig` transcript。
-
-**transcript-bound 但不在 wire body 的完整性绑定字段（normative）**：下列字段是 cursor 完整性校验（§8.3.1）的核心绑定项，但 **不作为 cursor body wire 字段出现**——它们在 stateful core 形态下由 `h` handle 在服务端绑定表中承载，在 `ck.profile.stateless_cursor.v1` stateless 形态下进入 `_mac` / `_sig` transcript。这些字段 MUST NOT 出现在上方 §8.2 定义的 cursor body wire 字段集合中:
+**handle-bound 但不在 wire body 的完整性绑定字段（normative）**：下列字段是 cursor 完整性校验（§8.3.1）的核心绑定项，但 **不作为 cursor body wire 字段出现**——它们由 `h` handle 在服务端绑定表中承载。这些字段 MUST NOT 出现在上方 §8.2 定义的 cursor body wire 字段集合中:
 
 | 绑定字段 | 承载位置 | 说明 |
 |----------|----------|------|
-| `principal_id` | stateful:`h` handle 绑定表;stateless:`_mac`/`_sig` transcript | cursor 所属 principal,跨 principal 命中 MUST `cursor_integrity_invalid` |
-| `device_id` | 同上 | cursor 绑定的 device |
-| `service_id` | 同上 | issuing service 标识 |
-| `filter_digest` | 同上 | 订阅 / 查询 filter 的 digest,防跨 filter 复用 |
+| `principal_id` | `h` handle 绑定表 | cursor 所属 principal,跨 principal 命中 MUST `cursor_integrity_invalid` |
+| `device_id` | `h` handle 绑定表 | cursor 绑定的 device |
+| `service_id` | `h` handle 绑定表 | issuing service 标识 |
+| `filter_digest` | `h` handle 绑定表 | 订阅 / 查询 filter 的 digest,防跨 filter 复用 |
+| `positions` | `h` handle 绑定表（`purpose=stream`） | stream cursor 的同步 / 分页位置 |
+| `target` | `h` handle 绑定表（`purpose=barrier`） | barrier cursor 等待的目标 event |
+| `expiry` | `h` handle 绑定表 | 与 body `x` 一致的服务端过期时间 |
 
-这些字段是服务端 handle 表 / transcript 的内容,**不是** cursor body 字段；详见 §8.3.1。
+这些字段是服务端 handle 表的内容，**不是** cursor body 字段；详见 §8.3.1。
 
 ### 8.3 验证规则
 
@@ -471,21 +444,13 @@ Barrier 形态（**profile-only**,`ck.profile.stateless_cursor.v1`;core 下 barr
 
 1. 前缀以 `ck:cursor:` 开头。
 2. 其余部分是合法 base64url。
-3. 解码后 `v` 是支持的版本。
-4. 解码后 `purpose` 是 `stream` 或 `barrier`。
-5. 解码后 `x` 在未来（允许 5 分钟时钟偏差）。
-6. 解码后是合法 JSON。
-7. 所有 `realm_id` 是合法 `ck:realm:*` 格式（如 `s` 出现）。
-8. 因果前沿中的所有 event id 合法（如 `s` 出现）。
-9. timeline 排序是合法 HLC 格式（如 `s` 出现）。
-10. `purpose=barrier` + stateless 形态时 `target.event_id` 与 `target.event_digest` 必填。
-11. cursor 被消费的 binding context MUST 与 `purpose` 一致；binding context 的具体 wire 位置由对应 transport / API binding 定义。若 `purpose=barrier` 的 cursor 出现在 stream context，或 `purpose=stream` 的 cursor 出现在 barrier context，接收方 MUST 返回 `invalid_param`。
-12. **TTL 硬上限**：先校验 `t` 的 well-formedness——`t` MUST 是合法 RFC 3339 UTC 时间戳（§8.2 要求 `Z` 结尾），且 `t` 解析得到的 Unix ms MUST ≤ `x` 解析得到的 Unix ms；`t` 非法（不可解析、非 UTC / 非 `Z` 结尾）或 `t_ms > x` 的 cursor MUST reject `invalid_param`（否则 `x - t_ms` 为负或解析异常，可令损坏 / 恶意 cursor 绕过下方 TTL 硬上限）。此外 `t` MUST NOT 位于未来：`t_ms` MUST ≤ 接收时刻的 Unix ms + 时钟偏差容忍（5 分钟，口径同规则 5）；超出 MUST reject `invalid_param`（否则 issuing 方可把 `t` 写成接近 `x` 的未来时间，令名义 TTL `x - t_ms` 通过下方硬上限校验，而实际剩余有效期 `x - now` 远超上限，绕过 TTL 硬上限）。随后以 `t` 解析为 Unix ms 后，`x - t_ms` MUST 满足以下硬上限：barrier cursor ≤ 3,600,000 ms（1 小时），stream cursor ≤ 604,800,000 ms（7 天）。超出上限的 cursor 视为 issuing 服务的协议错误，接收方 MUST reject `invalid_param`。理由：barrier cursor 仅是 RYW 等待屏障，过期意义随 frontier 追上而失去；stream cursor 在数周活动后已无因果对齐价值。
-13. **形态归属**：
-    - **core（默认）** — body MUST 为 stateful 形态:含 `h`（opaque handle），且 MUST NOT 含 `_mac` / `_sig` / `s` / `d` / `target` / `issuer_kid`。这是 v1 core schema（[`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)）唯一接受的形态:`required` 含 `h`、`additionalProperties:false`。core 下收到缺 `h` 或含上述 stateless 字段的 body MUST reject `invalid_param`。
-    - **stateless（仅 `ck.profile.stateless_cursor.v1` overlay）** — 该 profile 扩展 core schema 接受内联 body:含 `issuer_kid` 且含 `_mac` 或 `_sig`（至少一个），不含 `h`；可携带 `s` / `d` / `target`。**未声明该 profile 的实现 MUST NOT 接受 stateless body**;声明该 profile 时,stateless 与 stateful 两种形态同时出现或都不出现 MUST reject `invalid_param`。
-
-    > 注:core schema 不使用 `oneOf` 强制 stateless/stateful 二选一；它仅定义 stateful 形态。stateless 形态的存在与互斥约束完全由 `ck.profile.stateless_cursor.v1` overlay 承载，不属 core。
+3. 解码后是合法 JSON。
+4. 解码后 body MUST 通过 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)：`v` / `purpose` / `t` / `x` / `h` 必填，未知非私有字段、`_mac`、`_sig` 以及任何内联位置 / target 字段均 MUST reject `invalid_param`。
+5. 解码后 `v` 是支持的版本。
+6. 解码后 `purpose` 是 `stream` 或 `barrier`。
+7. 解码后 `x` 在未来（允许 5 分钟时钟偏差）。
+8. cursor 被消费的 binding context MUST 与 `purpose` 一致；binding context 的具体 wire 位置由对应 transport / API binding 定义。若 `purpose=barrier` 的 cursor 出现在 stream context，或 `purpose=stream` 的 cursor 出现在 barrier context，接收方 MUST 返回 `invalid_param`。
+9. **TTL 硬上限**：先校验 `t` 的 well-formedness——`t` MUST 是合法 RFC 3339 UTC 时间戳（§8.2 要求 `Z` 结尾），且 `t` 解析得到的 Unix ms MUST ≤ `x` 解析得到的 Unix ms；`t` 非法（不可解析、非 UTC / 非 `Z` 结尾）或 `t_ms > x` 的 cursor MUST reject `invalid_param`（否则 `x - t_ms` 为负或解析异常，可令损坏 / 恶意 cursor 绕过下方 TTL 硬上限）。此外 `t` MUST NOT 位于未来：`t_ms` MUST ≤ 接收时刻的 Unix ms + 时钟偏差容忍（5 分钟，口径同规则 7）；超出 MUST reject `invalid_param`（否则 issuing 方可把 `t` 写成接近 `x` 的未来时间，令名义 TTL `x - t_ms` 通过下方硬上限校验，而实际剩余有效期 `x - now` 远超上限，绕过 TTL 硬上限）。随后以 `t` 解析为 Unix ms 后，`x - t_ms` MUST 满足以下硬上限：barrier cursor ≤ 3,600,000 ms（1 小时），stream cursor ≤ 604,800,000 ms（7 天）。超出上限的 cursor 视为 issuing 服务的协议错误，接收方 MUST reject `invalid_param`。理由：barrier cursor 仅是 RYW 等待屏障，过期意义随 frontier 追上而失去；stream cursor 在数周活动后已无因果对齐价值。
 
 非法 cursor MUST reject，错误 `invalid_param`；已过期 cursor MUST reject，错误 `cursor_expired`；完整性校验失败（见 §8.3.1）MUST reject，错误 `cursor_integrity_invalid`。
 
@@ -493,46 +458,21 @@ Barrier 形态（**profile-only**,`ck.profile.stateless_cursor.v1`;core 下 barr
 
 服务端 MUST 在使用客户端回传的 cursor 推进任何不可逆 server-side state、恢复 stream 位置或解除读己之所写屏障之前，执行下列完整性校验；具体业务场景见对应 sync / API binding（例如 [`client-sync.md`](../sync/client-sync.md) §10 / §12）。仅通过 §8.3 语法 / TTL / purpose 校验不足以信任 cursor 内部状态。
 
-**Stateless 形态（含 `_mac` 或 `_sig`）**：
-
-- **transcript 构造（唯一 normative 定义）**：
-
-  ```text
-  body_part    = canonical_json(cursor body 去除 `_mac` 与 `_sig` 后的全部字段)   # §2 RFC 8785 JCS
-  binding_part = canonical_json({
-      "principal_id":  <principal_id>,
-      "device_id":     <device_id>,
-      "service_id":    <service_id>,
-      "filter_digest": <filter_digest>,
-      "purpose":       <cursor body 的 purpose 字段值>
-  })                                                                              # §2 RFC 8785 JCS
-  transcript   = body_part || 0x00 || binding_part
-  ```
-
-  `body_part` 覆盖 cursor canonical bytes 中除 `_mac` / `_sig` 之外的全部字段——含 `v`、`purpose`、`t`、`x`、`issuer_kid`、`s` / `d`（如出现）、`target`（barrier 时），以及服务端按 §8.2 添加的所有其它 `_` 前缀私有字段（如 `_compression`）。`binding_part` 是 §8.2 所列 out-of-body 绑定段：签发时取签发上下文的值，验证时取当前 authenticated request 上下文的值；`filter_digest` 不适用（无订阅 / 查询 filter）时 MUST 取空字符串 `""`。`0x00` 是单字节分隔符；JCS 输出的 UTF-8 字节串不含 0x00 字节（U+0000 在 JSON string 中必然转义为 `\u0000`），故拼接无歧义。
-- `_mac` MUST 是 HMAC over 上述 transcript；算法 MUST 是 HMAC-SHA-256 或更强；密钥由 issuing service 持有并按 `issuer_kid` 标识。
-- `_sig` MUST 是 detached signature over **同一 transcript**；签名密钥使用 issuing service 的 cursor-signing key（同样按 `issuer_kid` 选择）。`_mac` 与 `_sig` 的输入互不包含对方；两者同时出现时各自对同一 transcript 独立计算，验证方 MUST 对出现的每一个各自独立校验，任一校验失败即整体失败。
-- 服务端 MUST 以当前 authenticated request 上下文重建 `binding_part`、重算 transcript 并校验 `_mac` / `_sig`；任一字段不匹配（含 principal / device / service / `filter_digest` / purpose 任何一项与签发上下文不一致）→ `cursor_integrity_invalid`。
-
-**Stateful 形态（含 `h`）**：
-
 - `h` MUST 是 issuing service 生成的不可猜测 handle（解码后熵 ≥ 128 bit）。
-- 服务端 MUST 以 `h` 查 issuing service 本地表，记录绑定的 `(principal, device, service, filter_digest, purpose, positions, target?, expiry)` 元组。
+- 服务端 MUST 以 `h` 查 issuing service 本地表，记录绑定的 `(principal_id, device_id, service_id, filter_digest, purpose, positions, target?, expiry)` 元组。
 - handle 不存在、已撤销、已过期，或绑定字段与当前 authenticated request 不匹配 → `cursor_integrity_invalid`。
-- handle 校验本身就是完整性校验 — cursor body 不可加 `_mac` / `_sig`。
+- 校验通过后，服务端才可读取 handle 解析出的 `positions`（stream cursor）或 `target`（barrier cursor）并推进同步状态。
+- handle 校验本身就是完整性校验，cursor body 不可加 `_mac` / `_sig`，也不可内联 `positions` 或 `target` 作为完整性来源。
 
-无论哪种形态，完整性校验失败 MUST 映射 `cursor_integrity_invalid`（区别于 `cursor_expired`：前者是 tamper / cross-binding / 未知 handle，后者是 TTL 超时）。客户端收到 `cursor_integrity_invalid` 后应清理本地 cursor 缓存并按 [`client-sync.md` §12.3](../sync/client-sync.md) 恢复流程重做 initial sync。
+完整性校验失败 MUST 映射 `cursor_integrity_invalid`（区别于 `cursor_expired`：前者是 tamper / cross-binding / 未知 handle，后者是 TTL 超时）。客户端收到 `cursor_integrity_invalid` 后应清理本地 cursor 缓存并按 [`client-sync.md` §12.3](../sync/client-sync.md) 恢复流程重做 initial sync。
 
 ### 8.4 Cursor 可迁移性
 
-Cursor 对客户端不透明，但 **stateless 形态服务器之间可解析**。当用户从 Principal Server A 切换到 Principal Server B 时（service replacement、portability 平面操作），B SHOULD 支持以下迁移路径之一：
+Cursor 对客户端不透明，且 v1 core cursor 是 stateful handle。`h` 是 issuing service 本地表的引用，其他服务无法从 cursor body 恢复 stream positions 或 barrier target。
 
-1. **直接 reparse（仅 stateless 形态）**：B 在 stream context 收到 `ck:cursor:<base64url_from_A>` 时，按 §8.2 canonical schema 解码，提取 `s.<realm_id>.{p,o,h}` 与 `d` 信息，翻译为 B 本地 cursor 内部表示。前提是 A 与 B 看见相同 Realm 历史、且 `purpose=stream`、且 cursor 是 stateless 形态（含 `s` / `d`，不含 `h`）。B 在生成本地等价 cursor 时 MUST 用自己的 cursor key 重签 `_mac` / `_sig`（A 的 transcript 与 B 不兼容），MUST NOT 直接复用 A 的 `_mac`。barrier cursor 不可跨服务迁移（`target.event_digest` 已绑定到原服务的 frontier）。此外：(a) B 在 reparse 之前 MUST 先用 A 已发布的 cursor-signing key（按 cursor 内 `issuer_kid` 选择）验证 `_sig`；验证失败 MUST 按路径 3 返回 `cursor_unrecognized`。仅含 `_mac`（无 `_sig`）的 cursor，其 HMAC 密钥为 A 私有、B 无法验证完整性，MUST NOT 走路径 1，MUST 改走路径 3。(b) 翻译得到的 stream 位置（`s.<realm_id>` 条目）仅对当前 principal 在 B 端授权判定通过的 Realm 生效；未通过授权判定的 Realm 条目 B MUST 静默丢弃，MUST NOT 为其返回可区分的错误或差异化响应（防止借 cursor 迁移枚举 Realm 存在性 / 成员关系）。
-2. **stateful 形态不可跨服务迁移**：含 `h` 的 cursor 中 handle 是 A 本地表的引用，B 无法解析。B 收到 stateful 形态 cursor 时 MUST 返回 `cursor_unrecognized`，客户端按全新初始同步处理。这是 stateful 形态在 portability 上的固有取舍。
-3. **重置兜底**：B 不支持直接 reparse 时 MUST 返回 `cursor_unrecognized`（不是 `cursor_expired`），客户端按全新初始同步处理；MUST NOT 静默丢失因果对齐。
-4. **可选 translate operation**：未来 profile 可能在 `ck.profile.principal_server.v1` 之上引入 cursor translation operation；该 operation 与 transport binding 不属于 v1 强制范围。
+当用户从 Principal Server A 切换到 Principal Server B 时（service replacement、portability 平面操作），B 收到 A 签发的 cursor 后 MUST 返回 `cursor_unrecognized`（不是 `cursor_expired`），客户端按全新初始同步处理；MUST NOT 猜测、解析或重放 A 的 handle。普通同服务请求中的未知、撤销或 cross-binding handle 仍按 §8.3.1 返回 `cursor_integrity_invalid`。
 
-`_` 前缀的服务器私有字段（`_compression`）在迁移时可被丢弃。该 frontier 恢复仅适用于 **stateless 形态**（路径 1）：其 canonical 字段（`v` `purpose` `t` `s` `d` `x`）足以恢复 frontier。core 默认 stateful 形态的 body 是 `{v,purpose,t,x,h}`（无 `s` / `d`），frontier 由 `h` handle 在原服务端绑定表承载、无法跨服务解析，故 core stateful 迁移不走 frontier 恢复，而以路径 2 返回 `cursor_unrecognized` 为准。`_mac` / `_sig` MUST 由目标服务器用自己的 key 重新生成（不可跨服务复用）。
+未来 profile MAY 在 `ck.profile.principal_server.v1` 之上引入显式 cursor translation operation；该 operation 与 transport binding 不属于 v1 强制范围。
 
 ### 8.5 测试向量入口
 
@@ -540,7 +480,7 @@ Cursor 对客户端不透明，但 **stateless 形态服务器之间可解析**�
 
 - [`spec/v1/artifacts/fixtures/encoding-fixture.json`](../../artifacts/fixtures/encoding-fixture.json)
 
-向量覆盖点：cursor 版本字段与过期、per-realm frontier 编码、device message 位置、过期 token 回退、非法额外字段拒绝。
+向量覆盖点：cursor 版本字段与过期、opaque round-trip、`h` handle 必填、过期 token 回退、非法额外字段拒绝。
 
 ### 8.6 一致性
 
@@ -550,11 +490,11 @@ Cursor 对客户端不透明，但 **stateless 形态服务器之间可解析**�
 - 服务端 MUST 接收时验证所有 cursor 字段。
 - 服务端 MUST 按 §8.2 canonical schema 编码 cursor 内部结构（私有字段限于 `_` 前缀）。
 - 客户端 MUST NOT 解析 cursor 内容。
-- 支持每个 cursor 至少 50 个 realm。
-- **每 Realm 的 frontier (`s.<realm>.p`) 长度 MUST ≤ 1000 个 event_id**：超出时 issuing 服务 MUST 用 `event_set_commitment.root` 或 snapshot pointer 折叠 frontier，再嵌入 cursor。该上限避免大并发 actor Realm (≥ 1000 active actor 各自有 head event) 让单个 cursor 膨胀到 MB 级。Receiver 收到超长 frontier 的 cursor MUST `invalid_param`。
+- stream cursor 的 server-side handle binding MUST 支持至少 50 个 Realm 的位置。
+- **每 Realm 的 handle-bound frontier 长度 SHOULD ≤ 1000 个 event_id**：超出时 issuing 服务 SHOULD 用 `event_set_commitment.root` 或 snapshot pointer 折叠 frontier，再写入 handle binding。该上限避免大并发 actor Realm (≥ 1000 active actor 各自有 head event) 让 cursor authority metadata 无界增长。
 - **整个 cursor base64url 解码后 canonical bytes MUST ≤ 64 KiB**：超出时 issuing 服务 MUST 用 snapshot pointer / commitment hash 折叠，MUST NOT 直接产出超大 cursor；receiver 收到超大 cursor MUST `invalid_param`。
 - 大型 Realm 在 frontier 折叠为 `event_set_commitment.root` 或 snapshot pointer 后，仍 MAY 通过显式 sync extension profile 提供 range-based set reconciliation 能力，用于按差异大小协调缺口；该能力不得改变 Seal finality、Event 因果语义或 cursor 不透明性，且未声明该 profile 的 v1 consumer MUST 继续按 snapshot / backfill 路径恢复。
-- 支持 stream cursor 与 barrier cursor 的过期时间；两者的 TTL 硬上限数值由 §8.3 规则 12 唯一定义，本节只引用不重复字面数值。
+- 支持 stream cursor 与 barrier cursor 的过期时间；两者的 TTL 硬上限数值由 §8.3 规则 9 唯一定义，本节只引用不重复字面数值。
 - 以适当错误拒绝非法 cursor。
 
 ## 9. Rank

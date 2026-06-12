@@ -548,7 +548,7 @@ cursor base64url 解码后对应 canonical JSON：
 
 期望客户端行为：
 
-- 客户端 MUST 把 cursor 当作不透明字符串保存和回传。即使 cursor 的内部结构是 `encoding.md` §8.2 规定的合法 stateful 或 stateless 形态，客户端 SDK / 应用层 MUST NOT 解析它的内部字段来构造请求。
+- 客户端 MUST 把 cursor 当作不透明字符串保存和回传。即使 cursor 的内部结构是 `encoding.md` §8.2 规定的合法 stateful handle 形态，客户端 SDK / 应用层 MUST NOT 解析它的内部字段来构造请求。
 - 客户端 MUST NOT 依赖 base64url 解码后的 `h` handle、`x` 过期字段或其它内部字段构造下一页请求；这些字段只属于 issuing service。
 - 服务端 MAY 改变 cursor 内部编码或字段集合，只要同一 query/session 下 cursor 仍按 API contract 可用。
 - 服务端 MUST 在收到该 cursor 时，按 [`encoding.md`](./encoding.md) §8.3 校验 `v ∈ supported_versions`、`purpose`、`x`、core schema 形态和 `h` handle binding；语法失败返回顶层 `invalid_param`（reason `invalid_cursor`），过期返回 `cursor_expired`，handle lookup / binding 失败返回 `cursor_integrity_invalid`（见 `error-code-registry.json`）。
@@ -557,23 +557,7 @@ cursor base64url 解码后对应 canonical JSON：
 
 - 客户端解析 `h` / `x` 后自行构造下一页请求或修改 cursor 内容。
 - 客户端在 cursor 解码失败时拒绝整个协议，而不是按 opaque token 处理。
-- 服务端在 core profile 下接受缺少 `h` 的 stateless cursor body。
-
-Profile-only stateless cursor 向量名称：
-
-```text
-ck.vector.encoding.cursor_opaque.stateless_profile.v1
-```
-
-该向量 **仅** 在实现声明 `ck.profile.stateless_cursor.v1` 时运行；core conformance suite MUST 跳过它，并应通过 `schema-validation-fixture.json` 中的 negative case 验证缺 `h` 的 body 被 core schema 拒绝。
-
-输入 cursor（stateless profile overlay 形态）：
-
-```text
-ck:cursor:eyJfbWFjIjoiaG1hYy1zaGEyNTY6MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsImlzc3Vlcl9raWQiOiJkaWQ6d2ViOnN5bmMuZXhhbXBsZSNjdXJzb3ItMjAyNi0wNSIsInB1cnBvc2UiOiJzdHJlYW0iLCJzIjp7ImNrOnJlYWxtOjAxOTY0MTliLTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCI6eyJoIjoic2hhMjU2OmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEiLCJvIjoiMDE5NzBlNTg5ZDIxLTAwMDAtYTEzZjljMmUiLCJwIjpbImNrOmV2ZW50OjAxOTY0MGVkLTgwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCJdfX0sInQiOiIyMDk5LTEyLTMwVDIzOjU5OjU5WiIsInYiOiIxIiwieCI6NDEwMjQ0NDc5OTAwMH0
-```
-
-stateless profile 服务端 MUST 验证 `issuer_kid`、`s` frontier、`x` 和 `_mac` / `_sig` transcript；客户端仍 MUST 把整个 cursor 当作 opaque string，不得解析 `s.<realm_id>.p/o/h` 构造请求。
+- 服务端接受缺少 `h` 的 cursor body。
 
 ### 1.12 Vector: Encrypted Envelope Digest
 
@@ -627,7 +611,6 @@ sha256:fa4d70fb617f745133f88062dace64f909c370027191f6f8c04b143c3258a4a8
 | `ck.vector.encoding.hlc_order.v1` | MUST | MUST | MUST | MUST | SHOULD |
 | `ck.vector.encoding.reject_malformed_hlc.v1` | MUST | MUST | MUST | MUST | SHOULD |
 | `ck.vector.encoding.cursor_opaque.core.v1` | MUST | MUST | MUST | MAY | SHOULD |
-| `ck.vector.encoding.cursor_opaque.stateless_profile.v1` | profile-only (`ck.profile.stateless_cursor.v1`) | profile-only | profile-only | MAY | SHOULD |
 | `ck.vector.encoding.encrypted_envelope_digest.v1` | MAY | SHOULD | MUST | MAY | MUST |
 
 ### 1.14 Crypto Fixture 要求

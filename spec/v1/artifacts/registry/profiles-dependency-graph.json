@@ -71,7 +71,6 @@
     "ck.profile.media_service_binding.v1",
     "ck.profile.media_service_binding.livekit.v1",
     "ck.profile.media_service_binding.cokret_native.v1",
-    "ck.profile.stateless_cursor.v1",
     "ck.profile.collaborative_text.v1",
     "ck.profile.matrix_compat.v1",
     "ck.profile.candidate.join_policy.v1",

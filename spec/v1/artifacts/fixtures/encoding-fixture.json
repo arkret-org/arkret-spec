@@ -243,28 +243,6 @@
       ]
     },
     {
-      "vector_id": "ck.vector.encoding.cursor_opaque.stateless_profile.v1",
-      "kind": "cursor_opaqueness",
-      "applies_to_profiles": [
-        "ck.profile.stateless_cursor.v1"
-      ],
-      "input_cursor": "ck:cursor:eyJfbWFjIjoiaG1hYy1zaGEyNTY6MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsImlzc3Vlcl9raWQiOiJkaWQ6d2ViOnN5bmMuZXhhbXBsZSNjdXJzb3ItMjAyNi0wNSIsInB1cnBvc2UiOiJzdHJlYW0iLCJzIjp7ImNrOnJlYWxtOjAxOTY0MTliLTAwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCI6eyJoIjoic2hhMjU2OmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEiLCJvIjoiMDE5NzBlNTg5ZDIxLTAwMDAtYTEzZjljMmUiLCJwIjpbImNrOmV2ZW50OjAxOTY0MGVkLTgwMDAtNzAwMC04MDAwLTAwMDAwMDAwMDAwMCJdfX0sInQiOiIyMDk5LTEyLTMwVDIzOjU5OjU5WiIsInYiOiIxIiwieCI6NDEwMjQ0NDc5OTAwMH0",
-      "decoded_payload_canonical_bytes_utf8": "{\"_mac\":\"hmac-sha256:0000000000000000000000000000000000000000000000000000000000000000\",\"issuer_kid\":\"did:web:sync.example#cursor-2026-05\",\"purpose\":\"stream\",\"s\":{\"ck:realm:0196419b-0000-7000-8000-000000000000\":{\"h\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"o\":\"01970e589d21-0000-a13f9c2e\",\"p\":[\"ck:event:019640ed-8000-7000-8000-000000000000\"]}},\"t\":\"2099-12-30T23:59:59Z\",\"v\":\"1\",\"x\":4102444799000}",
-      "fixture_freshness_note": "Profile-only stateless cursor vector. Core suites MUST skip this vector unless ck.profile.stateless_cursor.v1 is claimed.",
-      "client_rules": [
-        "MUST treat cursor as an opaque string and round-trip it verbatim",
-        "MUST NOT parse s / x / _mac to construct the next page request"
-      ],
-      "server_rules": [
-        "MUST validate the stateless profile overlay, issuer_kid, purpose, x, stream frontier fields, and _mac/_sig transcript",
-        "MUST reject the same body under v1 core schema when ck.profile.stateless_cursor.v1 is not claimed"
-      ],
-      "fail_conditions": [
-        "client parses s/x and rebuilds a request",
-        "stateless server accepts missing issuer_kid or missing _mac/_sig"
-      ]
-    },
-    {
       "vector_id": "ck.vector.encoding.encrypted_envelope_digest.v1",
       "kind": "canonical_json_with_ciphertext_digest",
       "payload_metadata": {

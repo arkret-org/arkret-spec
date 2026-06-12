@@ -467,18 +467,6 @@
       ]
     },
     {
-      "vector_id": "ck.vector.encoding.cursor_opaque.stateless_profile.v1",
-      "status": "active",
-      "domain": "encoding",
-      "applies_to_profiles": [
-        "ck.profile.stateless_cursor.v1"
-      ],
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/encoding-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
-      ]
-    },
-    {
       "vector_id": "ck.vector.encoding.encrypted_envelope_digest.v1",
       "status": "active",
       "domain": "encoding",

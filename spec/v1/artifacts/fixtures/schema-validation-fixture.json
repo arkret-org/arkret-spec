@@ -511,27 +511,16 @@
       }
     },
     {
-      "name": "cursor_stateless_body_rejected_by_core_schema",
+      "name": "cursor_missing_handle_rejected_by_core_schema",
       "schema_ref": "schemas/cursor.schema.json",
       "expect_valid": false,
       "first_expected_error": "$: 'h' is a required property",
-      "notes": "Stateless self-describing cursor (issuer_kid + s + _mac in body, no h) is REJECTED by the v1 core cursor schema. Implementations that need this form MUST declare ck.profile.stateless_cursor.v1 and apply that profile's schema overlay; core consumers fail-closed with cursor_integrity_invalid. See conformance/conformance-profiles.md §19c.",
+      "notes": "v1 cursor bodies MUST carry the opaque server-side handle `h`; bodies without `h` are rejected by the core cursor schema.",
       "instance": {
         "v": "1",
         "purpose": "stream",
         "t": "2026-05-20T00:00:00Z",
-        "x": 1798761599000,
-        "issuer_kid": "did:web:sync.example#cursor-2026-05",
-        "s": {
-          "ck:realm:019a7360-0000-7000-8000-000000000000": {
-            "p": [
-              "ck:event:019a6aa0-0000-7000-8000-000000000000"
-            ],
-            "o": "01970e589d21-0000-a13f9c2e",
-            "h": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-          }
-        },
-        "_mac": "hmac-sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        "x": 1798761599000
       }
     },
     {
