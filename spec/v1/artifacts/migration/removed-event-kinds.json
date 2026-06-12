@@ -6,13 +6,17 @@
   "description": "Machine-readable list of Event.kind values that have been removed from the Cokret v1 protocol. Downstream implementations (SDKs, yougen, soland, cotest) MUST treat these as schema_violation on the wire and MUST NOT introduce them as new contributions. cotest scanner consumes this list to detect drift.",
   "rejection_levels": {
     "hard_reject": "MUST be rejected at parse/reducer time. No legitimate occurrence on current wire or in current code.",
-    "migration_only": "MUST NOT be emitted by new writers; MAY be tolerated by readers for a bounded migration window declared per entry.",
+    "migration_only": "Tolerated only inside offline migration / replay tools, NEVER in current v1 wire parsers. Current parsers (sync, federation, snapshot consumers, reducer, conformance runner) MUST reject the old identifier without inspecting payload shape; migration_tool_only entries carry the `migration_tool_only: true` flag to make this enforceable. There is no in-band reader tolerance window; the prior 'bounded migration window readers MAY tolerate' language has been retired.",
     "compat_only": "MUST appear only on explicitly opt-in interop / compatibility surfaces (e.g., MIMI interop module).",
     "docs_only": "Removed from wire / code; references survive only in CHANGELOG, glossary deprecation notices, or migration guides."
   },
+  "parser_tier_definitions": {
+    "current_parser": "Sync service, federation peer, snapshot consumer, reducer, conformance test runner — anything that processes live or persisted v1 wire bytes. MUST treat every entry in this file as forbidden in input; MUST NOT do payload-shape disambiguation; reject with the schema's standard unknown_kind / unknown_field / schema_violation error.",
+    "migration_tool": "Offline batch tool that reads pre-v1 / pre-inversion bytes and rewrites them to canonical v1 form. May consult migration_tool_only entries (those carrying the explicit flag) and apply their disambiguation_payload_shape rule. MUST NOT be embedded in a real-time parser surface (no inline transform; no 'auto-accept legacy and quietly rewrite'). This tier-only allowance is expressed by the `legacy_migration` allowed_context plus, where applicable, the `migration_tool_only` flag — never by a reader-facing tolerance window."
+  },
   "allowed_context_definitions": {
     "changelog": "May be referenced in spec or downstream CHANGELOG entries documenting the removal.",
-    "legacy_migration": "May be referenced in time-bounded migration helpers that translate stored legacy data forward.",
+    "legacy_migration": "May be referenced only by offline migration / replay tools that translate stored legacy data forward; MUST NOT be consumed by any current_parser surface (sync service, federation peer, snapshot consumer, reducer, conformance runner).",
     "interop_module": "May appear in an explicitly opt-in interop binding (e.g., MIMI interop) where the cross-protocol mapping requires the legacy name.",
     "negative_test": "May appear in negative fixtures / cotest drift tests that assert hard_reject."
   },
@@ -86,28 +90,30 @@
       "wire_id": "cx.space.create",
       "kind_class": "event_kind_payload_shape",
       "since_revision": "59ac1d4",
-      "rejection_level": "hard_reject",
+      "rejection_level": "migration_only",
+      "migration_tool_only": true,
       "replacement": "cx.realm.create",
       "disambiguation_payload_shape": {
-        "forbidden_top_level_or_payload_fields": ["security_class", "join_rule", "history_visibility", "policy_server", "delivery_binding_policy"],
+        "realm_level_fields": ["security_class", "join_rule", "history_visibility", "policy_server", "delivery_binding_policy"],
         "current_wire_event_kind": "cx.space.create"
       },
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Registry-only disambiguated id. The literal wire Event.kind cx.space.create remains active for the current container-shape event. This removed entry targets only the pre-inversion security-boundary payload shape where space.create acted like current cx.realm.create. Scanners MUST inspect wire_id plus payload shape; they MUST NOT reject the current cx.space.create solely by kind string."
+      "notes": "Disambiguation entry, migration_tool_only. The literal wire Event.kind cx.space.create remains an ACTIVE container-shape event. Current parsers (sync, federation, snapshot, reducer, conformance) MUST NOT inspect payload shape and MUST treat any cx.space.create carrying Realm-level fields (security_class / join_rule / history_visibility / policy_server / delivery_binding_policy) as a schema_violation; they MUST NOT reject the current cx.space.create solely by kind string. This entry is ONLY consulted by offline migration / replay tools rewriting pre-inversion bytes to canonical cx.realm.create. See parser_tier_definitions.migration_tool above."
     },
     {
       "id": "cx.space.update#pre_inversion_security_boundary",
       "wire_id": "cx.space.update",
       "kind_class": "event_kind_payload_shape",
       "since_revision": "59ac1d4",
-      "rejection_level": "hard_reject",
+      "rejection_level": "migration_only",
+      "migration_tool_only": true,
       "replacement": "cx.realm.update",
       "disambiguation_payload_shape": {
-        "forbidden_top_level_or_payload_fields": ["security_class", "join_rule", "history_visibility", "policy_server", "delivery_binding_policy"],
+        "realm_level_fields": ["security_class", "join_rule", "history_visibility", "policy_server", "delivery_binding_policy"],
         "current_wire_event_kind": "cx.space.update"
       },
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Registry-only disambiguated id. The literal wire Event.kind cx.space.update remains active for the current container-shape event. This removed entry targets only the pre-inversion security-boundary payload shape where space.update acted like current cx.realm.update. Scanners MUST inspect wire_id plus payload shape; they MUST NOT reject the current cx.space.update solely by kind string."
+      "notes": "Disambiguation entry, migration_tool_only. See cx.space.create#pre_inversion_security_boundary for the parser-tier rule: current parsers MUST NOT inspect payload shape and MUST treat any cx.space.update carrying Realm-level fields as a schema_violation; only offline migration / replay tools consult this entry to rewrite pre-inversion bytes to canonical cx.realm.update."
     },
     {
       "id": "cx.space.organization",
@@ -291,8 +297,7 @@
       "rejection_level": "hard_reject",
       "replacement": "cx.agent.key.authorize",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "migration_window_until": "2026-12-31",
-      "notes": "Renamed to imperative event-kind spelling. legacy_migration helpers MAY translate stored historical events through 2026-12-31; after that date the rename is purely changelog/negative_test."
+      "notes": "Renamed to imperative event-kind spelling. Current parsers MUST hard_reject this kind; only offline migration / replay tools (legacy_migration context) may translate stored historical events forward."
     },
     {
       "id": "cx.agent.key.revoked",
@@ -300,8 +305,7 @@
       "rejection_level": "hard_reject",
       "replacement": "cx.agent.key.revoke",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "migration_window_until": "2026-12-31",
-      "notes": "Renamed to imperative event-kind spelling. legacy_migration helpers MAY translate stored historical events through 2026-12-31."
+      "notes": "Renamed to imperative event-kind spelling. Current parsers MUST hard_reject this kind; only offline migration / replay tools (legacy_migration context) may translate stored historical events forward."
     },
     {
       "id": "cx.agent.key.rotated",
@@ -309,8 +313,7 @@
       "rejection_level": "hard_reject",
       "replacement": "cx.agent.key.rotate",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "migration_window_until": "2026-12-31",
-      "notes": "Renamed to imperative event-kind spelling. legacy_migration helpers MAY translate stored historical events through 2026-12-31."
+      "notes": "Renamed to imperative event-kind spelling. Current parsers MUST hard_reject this kind; only offline migration / replay tools (legacy_migration context) may translate stored historical events forward."
     },
     {
       "id": "cx.device.authorized",
@@ -318,8 +321,7 @@
       "rejection_level": "hard_reject",
       "replacement": "cx.device.authorize",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "migration_window_until": "2026-12-31",
-      "notes": "Renamed to imperative event-kind spelling. legacy_migration helpers MAY translate stored historical events through 2026-12-31."
+      "notes": "Renamed to imperative event-kind spelling. Current parsers MUST hard_reject this kind; only offline migration / replay tools (legacy_migration context) may translate stored historical events forward."
     },
     {
       "id": "cx.device.revoked",
@@ -327,8 +329,7 @@
       "rejection_level": "hard_reject",
       "replacement": "cx.device.revoke",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "migration_window_until": "2026-12-31",
-      "notes": "Renamed to imperative event-kind spelling. legacy_migration helpers MAY translate stored historical events through 2026-12-31."
+      "notes": "Renamed to imperative event-kind spelling. Current parsers MUST hard_reject this kind; only offline migration / replay tools (legacy_migration context) may translate stored historical events forward."
     },
     {
       "id": "cx.relation.delete",
@@ -336,8 +337,7 @@
       "rejection_level": "hard_reject",
       "replacement": "cx.relation.tombstone",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "migration_window_until": "2026-12-31",
-      "notes": "Relation termination uses the canonical tombstone verb. legacy_migration helpers MAY translate stored historical events through 2026-12-31."
+      "notes": "Relation termination uses the canonical tombstone verb. Current parsers MUST hard_reject this kind; only offline migration / replay tools (legacy_migration context) may translate stored historical events forward."
     },
     {
       "id": "cx.read.marker",
@@ -345,8 +345,7 @@
       "rejection_level": "hard_reject",
       "replacement": "cx.read_cursor.advance",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "migration_window_until": "2026-12-31",
-      "notes": "Actor-private persistent read position is named read cursor; canonical event kind is cx.read_cursor.advance. legacy_migration helpers MAY translate stored historical events through 2026-12-31."
+      "notes": "Actor-private persistent read position is named read cursor; canonical event kind is cx.read_cursor.advance. Current parsers MUST hard_reject this kind; only offline migration / replay tools (legacy_migration context) may translate stored historical events forward."
     },
     {
       "id": "cx.read.cursor",
@@ -354,8 +353,7 @@
       "rejection_level": "hard_reject",
       "replacement": "cx.read_cursor.advance",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "migration_window_until": "2026-12-31",
-      "notes": "Event kind renamed to cx.read_cursor.advance so the typed-id (ck:read_cursor:), schema id (cx.schema.read_cursor.v1), event kind and capability action share a single noun root read_cursor. legacy_migration helpers MAY translate stored historical events through 2026-12-31."
+      "notes": "Event kind renamed to cx.read_cursor.advance so the typed-id (ck:read_cursor:), schema id (cx.schema.read_cursor.v1), event kind and capability action share a single noun root read_cursor. Current parsers MUST hard_reject this kind; only offline migration / replay tools (legacy_migration context) may translate stored historical events forward."
     },
     {
       "id": "cx.flow.discussion_realm_ref",
@@ -371,8 +369,7 @@
       "rejection_level": "hard_reject",
       "replacement": "candidate cx.profile.candidate.join_policy.v1 surface (still unregistered as wire Event.kind)",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "migration_window_until": "2026-12-31",
-      "notes": "Pre-v1.0 join-policy spike kinds (member.application / member.application.review / member.application.cancel) never reached canonical registry. Migration-only entry tracks downstream translation for stored fixture data; new writers MUST use the candidate profile surface and MUST NOT re-introduce the bare names. Migration window aligns with the 2026-12-31 horizon used by the 2026-05-24 imperative-rename batch."
+      "notes": "Pre-v1.0 join-policy spike kinds (member.application / member.application.review / member.application.cancel) never reached canonical registry. Current parsers MUST hard_reject the bare names; only offline migration / replay tools (legacy_migration context) translate stored fixture data forward. New writers MUST use the candidate profile surface and MUST NOT re-introduce the bare names."
     },
     {
       "id": "ck.audit.epoch_key_destruction",

@@ -102,6 +102,7 @@
       "operation_specific": [
         "agent_deactivated",
         "failed_precondition",
+        "sidecar_exposure_ack_required",
         "accountability_grant_missing"
       ],
       "description": "Resume revalidates controller, agent key, capability, Realm policy, and accountability grant freshness; any stale precondition fails closed. Sidecar exposure re-disclosure failure surfaces as failed_precondition with reason=`sidecar_exposure_ack_required`."
@@ -233,6 +234,15 @@
         "failed_precondition"
       ],
       "description": "Applet revoke stops future writes by revoking active grants and scoped tokens for the effective install; repeated revoke attempts may surface applet_revoked."
+    },
+    {
+      "operation_id": "ck.self.applet.ghost.provision",
+      "http_alias": "POST /_cokret/self/applets/{applet_id}/ghosts/provision",
+      "operation_specific": [
+        "applet_namespace_mismatch",
+        "applet_registration_unauthorized"
+      ],
+      "description": "Ghost Actor provisioning mints (or idempotently re-confirms) the external user's Ghost Actor ck.profile.create and ck.identity.accountability_grant. The server fails closed when the caller service DID does not match the applet_id registration, the install is not active, the realm_id is outside effective scope (applet_registration_unauthorized), or ghost_actor_id falls outside the registration's actor namespace (applet_namespace_mismatch). See zh/extensions/applet-integration.md §9.1."
     },
     {
       "operation_id": "ck.edge.applet.third_party_locations",
@@ -427,6 +437,14 @@
         "not_found",
         "handle_unverified"
       ]
+    },
+    {
+      "operation_id": "ck.find.directory.resolve_agent_selector",
+      "http_alias": "POST /_cokret/find/directory/resolve-agent-selector",
+      "operation_specific": [
+        "not_found"
+      ],
+      "description": "Exact native personal agent selector resolution: Directory resolves controller_handle to a controller DID and verifies the visible ck.schema.agent_selector_claim.v1 (controller_subject, agent_slug) -> subject binding, proof, and accountability grant. Failure, unauthorized, not-visible, revoked / expired / ambiguous, missing controller, or hidden agent all collapse into a single not_found surface indistinguishable from nonexistence (zh/discovery/discovery-directory.md §9); the op never returns selector candidates."
     },
     {
       "operation_id": "ck.find.directory.list_handles_for_subject",
@@ -950,6 +968,18 @@
       "http_alias": "GET /_cokret/self/projection/spaces",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.views.collection_projection",
+      "http_alias": "POST /_cokret/self/views/{view_id}/projection",
+      "operation_specific": [],
+      "description": "Optional extension read surface that materializes a View{kind=collection} projection bound to the returned frontier; it is a derived read model, not a canonical truth source, and carries no domain-specific reply shape beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.projection.document",
+      "http_alias": "GET /_cokret/self/projection/documents/{morph_id}",
+      "operation_specific": [],
+      "description": "Optional extension read surface for a single document Morph projection; it is a derived read model, not a canonical truth source, and carries no domain-specific reply shape beyond the universal failure surface."
     },
     {
       "operation_id": "ck.edge.push.notify",

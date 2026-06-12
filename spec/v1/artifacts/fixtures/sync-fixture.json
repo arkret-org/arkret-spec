@@ -78,6 +78,45 @@
       }
     }
   },
+  "expired_cursor_not_reused": {
+    "description": "client-sync.md §12.3.1 — after cursor_expired / cursor_integrity_invalid, the failed cursor MUST be discarded. The client may only rebuild account.subscribe without after (initial sync) or snapshot-bootstrap via snapshot/head; it MUST NOT reuse the failed cursor as any after= / before= start, and a snapshot frontier event_id MUST NOT be placed into after= (frontier is a stop predicate, not a cursor).",
+    "stale_cursor": "ck:cursor:eyJoIjoiWlhod2FYSmxaQzF6ZEhKbFlXMHRhR0Z1Wkd4bCIsInB1cnBvc2UiOiJzdHJlYW0iLCJ0IjoiMjAyNi0wMS0wMVQwMDowMDowMFoiLCJ2IjoiMSIsIngiOjE3NjcyMjU2MDAwMDB9",
+    "trigger_errors": [
+      "cursor_expired",
+      "cursor_integrity_invalid"
+    ],
+    "expected": {
+      "discard_local_cursor": true,
+      "stale_cursor_reused": false,
+      "allowed_recovery": [
+        {
+          "branch": "initial_sync",
+          "call": "ck.self.account.subscribe",
+          "after_present": false,
+          "catchup": true
+        },
+        {
+          "branch": "snapshot_bootstrap",
+          "call": "ck.self.snapshot.head",
+          "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
+        }
+      ],
+      "forbidden_recovery": [
+        {
+          "branch": "reuse_failed_cursor",
+          "call": "ck.self.events.query",
+          "after": "ck:cursor:eyJoIjoiWlhod2FYSmxaQzF6ZEhKbFlXMHRhR0Z1Wkd4bCIsInB1cnBvc2UiOiJzdHJlYW0iLCJ0IjoiMjAyNi0wMS0wMVQwMDowMDowMFoiLCJ2IjoiMSIsIngiOjE3NjcyMjU2MDAwMDB9",
+          "reject_reason": "failed cursor reused as after="
+        },
+        {
+          "branch": "frontier_as_cursor",
+          "call": "ck.self.events.query",
+          "after": "ck:event:019640ed-8000-7000-8000-000000000000",
+          "reject_reason": "invalid_param: snapshot frontier event_id is not a cursor"
+        }
+      ]
+    }
+  },
   "snapshot_frontier_recovery": {
     "snapshot_ref": "ck:snapshot:0196419a-8000-7000-8000-000000000000",
     "state_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
@@ -98,7 +137,10 @@
     "expected": {
       "verify_signature": true,
       "verify_event_set_commitment": true,
-      "backfill_after": [
+      "backfill_call": "ck.self.events.query",
+      "backfill_direction": "from_head_toward_older",
+      "backfill_after_present": false,
+      "backfill_stop_frontier": [
         "ck:event:019640ed-8000-7000-8000-000000000000"
       ]
     }

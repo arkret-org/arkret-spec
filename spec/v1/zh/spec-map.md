@@ -13,7 +13,7 @@ see_also:
 
 本文是 Cokret 规范的阅读入口。它按协议平面组织文档，避免读者在大量单文件中迷失。
 
-若本文与具体规范冲突，以具体规范中的 MUST / SHOULD 规则为准。
+若本文与具体规范冲突，以具体规范中的 `MUST` / `SHOULD` 规则为准。
 
 > **`v1/` 不是 URL 版本号**：本规范树的 `v1/` 目录与 `ck.*.v1` 标识符表示协议代际（`protocol_version="1.0"`），HTTP path 不含任何版本段。消歧说明见 [`index.md` §1](./index.md)，path 规则见 [`sync/api-conventions.md` §11](./sync/api-conventions.md)。
 
@@ -27,7 +27,7 @@ see_also:
 - `artifacts/profiles/conformance-profiles.json` 是实现 profile 的机器矩阵；`conformance/conformance-profiles.md` 是其说明视图。
 - 语言权威：本规范权威文本为 `zh/` 下中文；`en/` 仅提供说明性入口，非规范源。`artifacts/` 下机读契约语言中立、跨语言共享。
 
-**ck.\* 命名空间的机读登记边界（导航摘要）**：本段是**导航摘要，非规范源**（与本文 frontmatter `normative: false` 一致）。并非所有 `ck.*` 标识符都要求进入机读 registry；算法 / 编码 profile id、设备验证方法名、client-local scheme id、信封 scheme 常量、hash / transcript 域分隔标签、feature id、DID Document / 外部生态 profile 值、E2EE application message kind 与标准 account-data tag 词表等类别豁免机读登记，其权威定义由各自的定义文档承载。豁免类别全表与配套 MUST 约束的 normative 定义见 [`conformance/schema-registry.md` §1.2](./conformance/schema-registry.md)；如本摘要与该权威源有出入，以 schema-registry.md §1.2 为准。
+**ck.\* 命名空间的机读登记边界（导航摘要）**：本段是**导航摘要，非规范源**（与本文 frontmatter `normative: false` 一致）。并非所有 `ck.*` 标识符都要求进入机读 registry；算法 / 编码 profile id、设备验证方法名、client-local scheme id、信封 scheme 常量、hash / transcript 域分隔标签、feature id、DID Document / 外部生态 profile 值、E2EE application message kind 与标准 account-data tag 词表等类别豁免机读登记，其权威定义由各自的定义文档承载。豁免类别全表与配套约束的权威定义见 [`conformance/schema-registry.md` §1.2](./conformance/schema-registry.md)；如本摘要与该权威源有出入，以 schema-registry.md §1.2 为权威。
 
 ### 1.2 漂移检测 artifacts
 
@@ -53,14 +53,16 @@ see_also:
 
 #### 1.2.1 Parser 分层（导航摘要）
 
-> 本小节是**导航摘要，非规范源**（与本文 frontmatter `normative: false` 一致）。Parser 分层的 normative 定义（含各层 MUST / MUST NOT 约束）由权威源 [`artifacts/migration/renames.json`](../artifacts/migration/renames.json) 的 `parser_tier_definitions` 承载；如本摘要与该权威源有出入，以 `renames.json.parser_tier_definitions` 为准。
+> 本小节是**导航摘要，非规范源**（与本文 frontmatter `normative: false` 一致），仅给出阅读路标，不在本文新增任何义务。Parser 分层的权威规则（含各层逐条约束）由 [`artifacts/migration/renames.json`](../artifacts/migration/renames.json) 的 `parser_tier_definitions` 字段承载；实现者一律以该机读源为准，如本摘要与之有出入，以 `renames.json.parser_tier_definitions` 为权威。
 
-`renames.json` 的条目按消费方分两层（规范定义见 `renames.json.parser_tier_definitions`）：
+`renames.json` 的条目按消费方分两层，两层的权威约束分别位于 `renames.json.parser_tier_definitions.current_parser` 与 `renames.json.parser_tier_definitions.migration_tool`：
 
-- **Current parser**：Sync Service、federation peer、snapshot consumer、reducer、conformance test runner —— 任何处理 live 或已持久化 v1 wire bytes 的组件。把 `renames.json` 中所有 `hard_reject` / `migration_only` 条目视作输入禁止，不做 payload-shape disambiguation，遇到旧 id 直接返回 `unknown_kind` / `unknown_field` / `schema_violation` 等标准错误而不在线静默重写（规范约束见 `renames.json.parser_tier_definitions.current_parser`）。
-- **Migration tool**：离线批处理工具，读取非当前 v1 bytes 并改写成 canonical v1 形态。可消费带 `migration_tool_only: true` 的 entry；不得嵌入实时 parser 表面（规范约束见 `renames.json.parser_tier_definitions.migration_tool`）。
+- **Current parser**：Sync Service、federation peer、snapshot consumer、reducer、conformance test runner —— 任何处理 live 或已持久化 v1 wire bytes 的组件。导航层面，它把 `renames.json` 中所有 `hard_reject` / `migration_only` 条目当作输入禁列，不做 payload-shape disambiguation，遇到旧 id 直接以 `unknown_kind` / `unknown_field` / `schema_violation` 等标准错误拒绝而非在线静默重写。逐条权威约束见 `renames.json.parser_tier_definitions.current_parser`。
+- **Migration tool**：离线批处理工具，读取非当前 v1 bytes 并改写成 canonical v1 形态。导航层面，它消费带 `migration_tool_only: true` 的 entry，且与实时 parser 表面隔离。逐条权威约束见 `renames.json.parser_tier_definitions.migration_tool`。
 
-这条分层把 payload-shape 鉴别复杂度限制在离线工具内：当前 v1 sync / federation / snapshot 路径不实现 fallback。`migration_tool_only` 标志使该约束机器可检测，CI / lint 可据此拒绝在 reducer/service 代码里引用对应 entry。规范效力来自上述权威源，本文不重复承载独立 MUST。
+这条分层把 payload-shape 鉴别复杂度限制在离线工具内：当前 v1 sync / federation / snapshot 路径不实现 fallback。`migration_tool_only` 标志使该隔离机器可检测，CI / lint 可据此拒绝在 reducer/service 代码里引用对应 entry。本小节不承载独立规范效力，权威效力来自上述 `parser_tier_definitions` 机读源。
+
+`removed-event-kinds.json` 携带一份与 `renames.json` 同构的 `parser_tier_definitions`（同样的 `current_parser` / `migration_tool` 两层），并对其 disambiguation entry 使用相同的 `migration_only` + `migration_tool_only: true` 表达；其 `migration_only` 拒绝层级表示该旧 kind 只在离线 migration / replay 工具内被消费，current parser 一律拒绝且不做 payload-shape 消歧。该文件**不携带** reader 面的"有界容忍窗口"语义——离线工具上下文由 `legacy_migration` allowed_context 与 `migration_tool_only` 标志表达，而非任何日期窗口字段。
 
 ## 2. 推荐阅读顺序
 
@@ -259,7 +261,7 @@ see_also:
 | 文档 | 内容 |
 | --- | --- |
 | `conformance/README.md` | conformance 目录入口、阅读顺序和 artifact/向量使用说明。 |
-| `conformance/normative-language.md` | RFC 2119 / 8174 规范关键字（MUST / SHOULD / MAY 等）的 canonical 定义与中英对照；几乎所有文档 §0 与 frontmatter `see_also` 引用。 |
+| `conformance/normative-language.md` | RFC 2119 / 8174 规范关键字（`MUST` / `SHOULD` / `MAY` 等）的 canonical 定义与中英对照；几乎所有文档 §0 与 frontmatter `see_also` 引用。 |
 | `conformance/encoding.md` | Canonical JSON、ID、hash、signature、cursor、HLC、rank。 |
 | `conformance/conformance-vectors.md` | 合并的一致性测试向量；逐域 vector 清单以文件章节目录与 `artifacts/registry/vector-registry.json` 为准。 |
 | `conformance/schema-registry.md` | 标准 schema / event type registry。 |

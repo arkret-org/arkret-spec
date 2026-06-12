@@ -188,7 +188,11 @@ components:
       description: |
         sha256 digest of the canonical request object used for federation
         idempotency / replay detection. MUST be covered by the HTTP Message
-        Signature transcript when present.
+        Signature transcript when present. Carried only on requests that have a
+        body (federation event push, POST query/resolve). Omitted on body-less
+        requests (federation GET pull / backfill / frontier / snapshot head);
+        those MUST NOT carry Request-Canonical-Digest and MUST NOT bind
+        request-canonical-digest into the signature transcript.
     contentDigest:
       type: apiKey
       in: header
@@ -3410,7 +3414,6 @@ paths:
         destinationServiceDid: []
         sourceTrustDomain: []
         destinationTrustDomain: []
-        requestCanonicalDigest: []
       summary: Federation peer event pull / backfill query.
       description: |
         Returns a page of events visible to the authenticated federation peer.
@@ -3539,7 +3542,6 @@ paths:
         destinationServiceDid: []
         sourceTrustDomain: []
         destinationTrustDomain: []
-        requestCanonicalDigest: []
       parameters:
       - name: realm_id
         in: query
@@ -4083,7 +4085,6 @@ paths:
         destinationServiceDid: []
         sourceTrustDomain: []
         destinationTrustDomain: []
-        requestCanonicalDigest: []
       parameters:
       - name: realm_id
         in: query

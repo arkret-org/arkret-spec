@@ -2255,6 +2255,15 @@
       "description": "Agent sidecar Circle creation was denied without revealing whether the derived short_name or target sidecar already exists. Returned as a generic failed_precondition sub-reason to avoid existence side channels. See zh/models/circle.md §11."
     },
     {
+      "code": "sidecar_exposure_ack_required",
+      "applies_to": [
+        "auth_decision",
+        "state_resolution",
+        "service_call"
+      ],
+      "description": "ck.self.agent.resume was rejected because the agent gained eligibility for one or more ck.profile.agent_sidecar_thread.v1 sidecar Circles created or joined during pause, and the controller has not yet supplied the matching sidecar_exposure_ack re-disclosure. Returned as a failed_precondition sub-reason; the controller MUST re-read the sidecar exposure disclosure and resubmit resume with the acknowledgement before the agent silently inherits access. See zh/identity/key-management.md §3.6.1."
+    },
+    {
       "code": "artifact_rejected",
       "applies_to": [
         "service_call"

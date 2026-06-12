@@ -4897,10 +4897,6 @@ def check_action_reference_closure(lint: Lint) -> None:
 # view) are waived here. Each entry records why the exemption exists so the
 # waiver list can shrink as the underlying _spec_review findings are resolved.
 NON_NORMATIVE_KEYWORD_WAIVERS: dict[str, str] = {
-    # C-CON-01: spec-map.md declares normative:false but carries a
-    # `(normative)` Parser-layering subsection and MUST/SHOULD prose. Tracked
-    # separately; waived here so C-BET-04 does not double-report it.
-    "spec/v1/zh/spec-map.md": "待 C-CON-01 处理（normative:false 却含 (normative) 小节与 MUST/SHOULD）",
     # Informative migration/consumption/reference guides that quote the wire
     # contract's MUST/SHOULD requirements as reading aids, not as the
     # authoritative source (authority stays in the referenced normative docs).

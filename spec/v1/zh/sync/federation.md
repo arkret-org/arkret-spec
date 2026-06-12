@@ -78,19 +78,19 @@ Cokret 是去中心化协议，不同用户或组织各自运行受控 Principal
 
 节点间的 HTTP 请求 MUST 使用 [HTTP Message Signatures (RFC 9421)](https://datatracker.ietf.org/doc/html/rfc9421) 进行签名。接收方通过发送方 DID Document 中的公钥验证请求的真实性。
 
-> **PQ-hybrid TLS 基线（informative，路线图注记）**：service-to-service 联邦链路承载的 transaction 元数据多数只靠 TLS 保护，是 Harvest-Now-Decrypt-Later 的暴露面。联邦传输 SHOULD 使用 TLS 1.3 并启用混合后量子 group `X25519MLKEM768`（draft-ietf-tls-ecdhe-mlkem）；这与请求级 RFC 9421 签名正交，不改任何 wire 字段，老旧栈自动回退经典 group。完整论据见 [`../security/server-threat-model.md` §2.4](../security/server-threat-model.md)。本注记为 informative / SHOULD 级，不引入新 normative 规则。
+> **PQ-hybrid TLS 传输层基线（v1 normative MUST）**：service-to-service 联邦链路承载的 transaction 元数据多数只靠 TLS 保护，是 Harvest-Now-Decrypt-Later 的暴露面。作为 v1 传输层基线，该联邦 TLS 1.3 连接 **MUST** 支持并优先协商混合后量子 group `X25519MLKEM768`（draft-ietf-tls-ecdhe-mlkem），对端不提供时 **MUST** fail closed，**MUST NOT** 静默降级到纯经典 key exchange。该基线对所有 v1 部署与所有 profile 生效（不再是 profile-gated），与本节请求级 RFC 9421 签名正交，零 wire 字段成本，不改任何 wire 字段。规范义务的 canonical 表述见 [`transport-bindings.md` §5](./transport-bindings.md)；完整威胁论据见 [`../security/server-threat-model.md` §2.4](../security/server-threat-model.md)。
 
 签名 transcript MUST 覆盖以下 RFC 9421 derived components 与 header 字段：
 - `@method`
 - `@target-uri`
 - `@authority`
-- `content-digest`（针对有 body 的请求；编码遵循 RFC 9530）
+- `content-digest`（仅针对有 body 的请求；编码遵循 RFC 9530。无 body 的 `GET` pull MUST NOT 携带 `Content-Digest`，`Signature-Input` 也 MUST NOT 绑定 `content-digest`）
 - `source-service-did`（自定义 header `Source-Service-DID`）
 - `destination-service-did`（自定义 header `Destination-Service-DID`）
 - `destination-service-endpoint-digest`（自定义 header `Destination-Service-Endpoint-Digest`；shared ingress / 多租户 / allowlist endpoint 场景必填）
 - `source-trust-domain`（自定义 header `Source-Trust-Domain`）
 - `destination-trust-domain`（自定义 header `Destination-Trust-Domain`）
-- `request-canonical-digest`（自定义 header `Request-Canonical-Digest`；带 body 或需要批次幂等 / replay key 的请求必填，`POST /_cokret/peer/events` MUST 携带）
+- `request-canonical-digest`（自定义 header `Request-Canonical-Digest`；带 body 或需要批次幂等 / replay key 的请求必填，`POST /_cokret/peer/events` MUST 携带。无 body 的 `GET` pull MUST NOT 携带 `Request-Canonical-Digest`，`Signature-Input` 也 MUST NOT 绑定 `request-canonical-digest`；其查询语义由 `@method` / `@target-uri` 及 source / destination service DID、trust domain、endpoint digest 绑定）
 - `idempotency-key`（自定义 header `Idempotency-Key`；当该 header 参与幂等或 replay key 时必填并进入签名 transcript）
 - 签名 parameters MUST 包含 `created` 与 `expires`（不得用 `Date` header 替代）
 
@@ -104,8 +104,8 @@ Cokret 是去中心化协议，不同用户或组织各自运行受控 Principal
 - `Destination-Trust-Domain` MUST 等于接收方当前 deployment 的 `ServiceDescribe.trust_domain`，并与被接收 Realm 的 `trust_domain` 一致；不一致 MUST 归入本节统一最小披露失败族，对外使用同一鉴权失败 envelope，内部 audit-only reason 记为 `federation_trust_domain_mismatch`。
 - 接收方 MUST 解析 `Destination-Service-DID` 的 service endpoint registry，并验证 HTTP Message Signature 中的 `@authority` / `@target-uri` host 与该 endpoint 或 Realm policy 明确授权的 shared ingress 一致；不一致 MUST 归入本节统一最小披露失败族，对外使用同一鉴权失败 envelope，内部 audit-only reason 可记为 `federation_authority_mismatch`。若只绑定 `Destination-Service-DID` 而不校验 `@authority`，同一签名可能被错误投递到另一个虚拟 host。
 - shared ingress / 多租户反向代理场景下，TLS Server Name (SNI) 与 `Destination-Service-DID` DID Document 中声明的 service endpoint origin MUST 直接匹配，或该 exact origin MUST 出现在 Realm policy / service delegation 明确登记的 shared ingress allowlist 中。Wildcard host 不能隐式覆盖 service DID 列表；若 deployment 用同一 host 承载多个 service DID，发送方 MUST 携带 `Destination-Service-Endpoint-Digest` header（endpoint canonical URL 的 `sha256:` digest），该 header MUST 进入 HTTP Message Signature transcript，接收方 MUST 与 DID Document / allowlist 中的 endpoint digest 比对。
-- 请求带 body 时 MUST 携带 `Content-Digest`，且 digest 必须覆盖 canonical request body。
-- 请求携带 `Request-Canonical-Digest` 时，该值 MUST 等于 canonical request body 的 SHA-256 digest，并进入签名 transcript；接收方在幂等缓存命中前仍须校验其与 body 一致。无 body 的 `GET` pull MAY 省略该 header，因为 `@method` / `@target-uri` 已绑定查询语义。
+- 请求带 body 时 MUST 携带 `Content-Digest`，且 digest 必须覆盖 canonical request body。无 body 的 `GET` pull MUST NOT 携带 `Content-Digest`，`Signature-Input` 也 MUST NOT 绑定 `content-digest`。
+- 请求携带 `Request-Canonical-Digest` 时，该值 MUST 等于 canonical request body 的 SHA-256 digest，并进入签名 transcript；接收方在幂等缓存命中前仍须校验其与 body 一致。无 body 的 `GET` pull MUST NOT 携带 `Request-Canonical-Digest`，`Signature-Input` 也 MUST NOT 绑定 `request-canonical-digest`；其查询语义由 `@method` / `@target-uri` 与 source / destination service DID、trust domain、endpoint digest 绑定，验签方对 GET pull 的 transcript MUST NOT 包含 `content-digest` / `request-canonical-digest` 这两个组件。
 - 受保护联邦 endpoint MUST NOT 接受 query string 认证。
 - 签名失败、`destination` 不匹配、digest 不匹配或时间窗口失效，接收方 MUST 返回**统一最小披露**错误响应，对外形态在这几类原因之间 MUST NOT 可区分（详见 §8.3）。具体而言：
   - 这几类失败 MUST 复用 `api-conventions.md` 的标准 JSON error envelope，并对所有这几类原因返回**同一个** HTTP status 与**同一个** `reason_code`（使用 `error-code-registry` 中已登记的统一鉴权失败码，如 `capability_denied`；不得为不同失败原因返回不同 status / `reason_code`）。错误 envelope 的可见字段 MUST NOT 携带 Realm、Actor、Event、binding 或 frontier 是否存在的任何可区分信息。
@@ -180,11 +180,11 @@ Signature: sig1=:base64...:
 | `Destination-Service-Endpoint-Digest` | header | `sha256:<hash>` | conditional | shared ingress / 多租户 / allowlist endpoint 场景 required；endpoint canonical URL 的 digest，MUST 进入签名 transcript 并与 DID Document service endpoint 或 Realm policy allowlist 匹配。 |
 | `Source-Trust-Domain` | header | `id:trust_domain` | required | 来源 deployment trust domain；与签名 transcript 绑定，用于 receiver trust policy、审计与跨域 replay 隔离。 |
 | `Destination-Trust-Domain` | header | `id:trust_domain` | required | 目标 deployment trust domain；MUST 等于接收方 `ServiceDescribe.trust_domain` 与目标 Realm `trust_domain`。 |
-| `Request-Canonical-Digest` | header | `sha256:<hash>` | required | canonical request body 的 SHA-256 digest；MUST 与 `Content-Digest` 指向同一 body，并进入签名 transcript 与幂等 replay key。 |
+| `Request-Canonical-Digest` | header | `sha256:<hash>` | conditional | 仅有 body 请求携带（`POST /_cokret/peer/events` required）；canonical request body 的 SHA-256 digest，MUST 与 `Content-Digest` 指向同一 body，并进入签名 transcript 与幂等 replay key。无 body 的 `GET` pull MUST NOT 携带该 header，`Signature-Input` 也 MUST NOT 绑定 `request-canonical-digest`。 |
 | `Idempotency-Key` | header | `string` | conditional | 当发送方希望请求级幂等、批次 replay key 或 partial retry 去重时 required；该 header MUST 进入 HTTP Message Signature transcript。 |
-| `Signature-Input` | header | `string` | required | HTTP Message Signature 输入；MUST 至少绑定 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-did`、`destination-service-did`、`source-trust-domain`、`destination-trust-domain`、`request-canonical-digest`，以及 `created` / `expires` 参数；出现 `Destination-Service-Endpoint-Digest` 时也 MUST 绑定 `destination-service-endpoint-digest`；出现 `Idempotency-Key` 时也 MUST 绑定 `idempotency-key`。 |
+| `Signature-Input` | header | `string` | required | HTTP Message Signature 输入；MUST 至少绑定 `@method`、`@target-uri`、`@authority`、`source-service-did`、`destination-service-did`、`source-trust-domain`、`destination-trust-domain`，以及 `created` / `expires` 参数。有 body 请求（`POST /_cokret/peer/events`）MUST 额外绑定 `content-digest` 与 `request-canonical-digest`；无 body 的 `GET` pull MUST NOT 绑定 `content-digest` / `request-canonical-digest`。出现 `Destination-Service-Endpoint-Digest` 时也 MUST 绑定 `destination-service-endpoint-digest`；出现 `Idempotency-Key` 时也 MUST 绑定 `idempotency-key`。 |
 | `Signature` | header | `string` | required | 来源 service DID 的 HTTP Message Signature。 |
-| `Content-Digest` | header | `string` | required | 请求体摘要，MUST 覆盖 canonical request body；接收方 MUST 在验签前先校验 body 实际 hash 与 header 一致，再走签名 transcript 校验。 |
+| `Content-Digest` | header | `string` | conditional | 仅有 body 请求携带（`POST /_cokret/peer/events` required）；请求体摘要，MUST 覆盖 canonical request body，接收方 MUST 在验签前先校验 body 实际 hash 与 header 一致，再走签名 transcript 校验。无 body 的 `GET` pull MUST NOT 携带该 header，`Signature-Input` 也 MUST NOT 绑定 `content-digest`。 |
 | `events` | body | `object[]` | required | Event Envelope 数组；每项 MUST 是完整签名 `ck.schema.event.v1`。复用 §3 client write 同一 schema，不引入第二套形态。 |
 | `service_binding_ref` | body | `object` | required | 接收方服务绑定快照（v1 联邦特有的请求级元数据；client write 时省略）。 |
 | `service_binding_ref.realm_id` | body | `id` | required | 受影响的 Realm。在多 Realm 批量推送中，发送方 SHOULD 把不同 Realm 的 events 拆成独立请求；单请求 MUST 至少携带一个 `realm_id`。 |
@@ -402,7 +402,7 @@ Signature-Input: ...
 Signature: ...
 ```
 
-GET pull 无 body，但签名 transcript MUST 覆盖 §3.2 中适用于无 body 请求的最小 component 集：`@method`、`@target-uri`、`@authority`、`source-service-did`、`destination-service-did`、`source-trust-domain`、`destination-trust-domain`，以及签名 parameter `created` / `expires`（`content-digest` 仅在有 body 时必填，故 GET pull 省略）。示例中的 `Signature-Input: ...` 为省略写法，实际 covered components 以 §3.2 为准。
+GET pull 无 body，但签名 transcript MUST 覆盖 §3.2 中适用于无 body 请求的最小 component 集：`@method`、`@target-uri`、`@authority`、`source-service-did`、`destination-service-did`、`source-trust-domain`、`destination-trust-domain`，以及签名 parameter `created` / `expires`（`content-digest` / `request-canonical-digest` 仅在有 body 时携带，GET pull MUST NOT 携带这两个 header，`Signature-Input` 也 MUST NOT 绑定 `content-digest` / `request-canonical-digest`）。示例中的 `Signature-Input: ...` 为省略写法，实际 covered components 以 §3.2 为准。
 
 请求字段（query；完整参数集与默认顺序规则见 [`service-http-binding.md` §3.3](./service-http-binding.md)）：
 
@@ -660,7 +660,7 @@ v1 联邦与单域 client 请求不共享 HTTP attack surface：federation serve
 | 联邦行为 | peer endpoint | 认证模式 |
 | --- | --- | --- |
 | 跨域推送 Event（含批处理） | `POST /_cokret/peer/events`（`ck.peer.events.submit`） | service_signature（HTTP Message Signature）+ `Source-Service-DID` / `Destination-Service-DID` / `Source-Trust-Domain` / `Destination-Trust-Domain` / `Request-Canonical-Digest` header；Realm policy 必须列出 source service DID 为合法 federation peer。 |
-| 跨域 backfill / 拉取缺失历史 | `GET /_cokret/peer/events?before=<cursor>`（`ck.peer.events.query`） | 同一 service signature 规则；无 body 的 pull 请求不携带 `Content-Digest`，但仍 MUST 绑定 source/destination service DID 与 trust domain。 |
+| 跨域 backfill / 拉取缺失历史 | `GET /_cokret/peer/events?before=<cursor>`（`ck.peer.events.query`） | 同一 service signature 规则；无 body 的 pull 请求不携带 `Content-Digest` / `Request-Canonical-Digest`（`Signature-Input` 也不绑定 `content-digest` / `request-canonical-digest`），但仍 MUST 绑定 source/destination service DID 与 trust domain。 |
 | 跨域按 id / digest 补洞 | `POST /_cokret/peer/events/resolve`（`ck.peer.events.resolve`） | 同上；服务端按 Realm policy、history visibility 与 reference disclosure 裁剪响应。 |
 | 跨域 Realm 成员视图 | `GET /_cokret/peer/events`（`ck.peer.events.query`） + `ck.member.state` 过滤 | 同上；服务端按 Realm policy 决定哪些成员对该 service DID 可见。 |
 | 跨域 snapshot-assisted bootstrap | `GET /_cokret/peer/snapshot/head`（`ck.peer.snapshot.head`） | 同上；manifest 必须签名并绑定 authority_binding。 |
@@ -687,7 +687,7 @@ Signature: sig1=:<base64>:
 
 ```
 GET /_cokret/peer/events?realms=<id>&before=<cursor>&limit=<n>
-Signature-Input: sig1=("@method" "@target-uri" "@authority" "source-service-did" "destination-service-did" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain" "request-canonical-digest");created=...;expires=...
+Signature-Input: sig1=("@method" "@target-uri" "@authority" "source-service-did" "destination-service-did" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain");created=...;expires=...
 Signature: sig1=:<base64>:
 ```
 
@@ -699,7 +699,7 @@ Signature: sig1=:<base64>:
 
 ```
 GET /_cokret/peer/events?realms=<id>&kinds=ck.member.state&after=<cursor>&limit=<n>
-Signature-Input: sig1=("@method" "@target-uri" "@authority" "source-service-did" "destination-service-did" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain" "request-canonical-digest");created=...;expires=...
+Signature-Input: sig1=("@method" "@target-uri" "@authority" "source-service-did" "destination-service-did" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain");created=...;expires=...
 Signature: sig1=:<base64>:
 ```
 

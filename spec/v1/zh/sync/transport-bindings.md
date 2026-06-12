@@ -116,7 +116,7 @@ HTTP/JSON 是默认 profile：
 - 生产环境使用 HTTPS。
 - 写操作使用 `Idempotency-Key` header 或 body 内 `idempotency_key`。
 
-> **PQ-hybrid TLS 基线（informative，路线图注记）**：HTTP/TLS 传输绑定 SHOULD 使用 TLS 1.3 并启用混合后量子 group `X25519MLKEM768`（draft-ietf-tls-ecdhe-mlkem），把抗 Harvest-Now-Decrypt-Later 缓解扩到仅靠 TLS 保护的传输面（联邦元数据、public plaintext 内容、directory / sync 流量）；零 wire 成本，老旧栈自动回退经典 group。完整论据与适用面见 [`../security/server-threat-model.md` §2.4](../security/server-threat-model.md)。本注记为 informative / SHOULD 级，不引入新 normative 规则。
+> **PQ-hybrid TLS 传输层基线（v1 normative MUST，canonical 表述）**：本节是该基线义务的真相源。**对所有 v1 部署、所有 profile（含 v1 default profile），service-to-service（federation peer）与 client-service 的 TLS 1.3 连接 MUST 支持并优先协商混合后量子 group `X25519MLKEM768`（TLS 1.3 hybrid named group，经典 X25519 + ML-KEM-768 / NIST FIPS 203；draft-ietf-tls-ecdhe-mlkem）；对端不提供该 group 时 MUST fail closed，MUST NOT 静默降级到纯经典 key exchange**。该基线把抗 Harvest-Now-Decrypt-Later 缓解扩到仅靠 TLS 保护、不进 MLS / E2EE 的传输面（联邦 transaction 元数据、public plaintext Realm 内容、directory / sync 流量）。它零 wire 字段成本，纯在 TLS 握手层，不改任何 canonical `operation_id`、binding、Cokret wire envelope / schema / object model，也不触碰 envelope `scheme` / `version`，与请求级 RFC 9421 签名正交。其 conformance 验证为 deployment-profile 握手探针——握手完成后检查协商出的 TLS named group 是否等于 `X25519MLKEM768`，并验证对端不提供时 fail closed，而非 object-model conformance vector。完整威胁论据见 [`../security/server-threat-model.md` §2.4](../security/server-threat-model.md)；联邦链路呼应见 [`federation.md` §3.2](./federation.md)；sovereign / 高安全部署的探针落地见 [`sovereign-deployment.md` §3 / §11](./sovereign-deployment.md)。
 - 流式结果 MAY 使用 SSE、WebSocket 或 newline-delimited JSON。
 - 错误使用统一 JSON error object，并映射到 HTTP status。
 

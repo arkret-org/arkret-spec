@@ -670,12 +670,30 @@ Cursor revoke 不能替代 cursor integrity：服务端仍必须先做 §12.2 �
 
 ### 12.3 过期或缺口恢复流程
 
+恢复流程按触发原因分成两类互斥分支，客户端 MUST 先按 §4 的分类判定原因再进入对应分支；两类分支对"旧 cursor 是否可继续复用"的处理**根本不同**，不得混用同一套 `after=` 取值。
+
+> **frontier 不是 cursor（前置约定）**：`account/describe`（`ServiceDescribe` 私有 frontier 扩展字段）与 `snapshot/head`（`ck.schema.snapshot.v1` manifest 的 `frontier.event_ids`）返回的 frontier 是 **boundary head event id 集合**，不是 stream cursor（`ck:cursor:<base64url>`）。`ck.self.events.query` / `ck.self.account.subscribe` 的 `before=` / `after=` 参数类型严格是 `cursor`（见 [`service-http-binding.md` §3.3.2](./service-http-binding.md)），任何其它边界参数 MUST 触发 `invalid_param`。因此客户端 **MUST NOT** 把 frontier event id 直接填入 `after=` / `before=`；frontier 在恢复中只作为 backfill 的**停止判据**（拉到的事件命中 `frontier.event_ids` / `event_set_commitment.covered_event_ids` 即接上当前态），续传位置由 `events.query` 响应返回的 `prev_cursor` / `next_cursor` 决定。
+
+#### 12.3.1 `cursor_expired` / `cursor_integrity_invalid`（旧 cursor MUST 废弃）
+
+cursor 本端状态失效（TTL 超时，或 tamper / 未知 handle / cross-binding）。旧 cursor 不再是可信同步位置：
+
+1. 客户端 MUST 清空本地 cursor 缓存（含该流的 `after=` 高水位）；**MUST NOT** 把已失效的旧 cursor 复用为任何 `after=` / `before=` 起点或 backfill 续传位置。`filter_digest`、未确认写入和最后可验证 frontier 可保留用于 backfill 停止判定，但 frontier 不得当作 cursor 使用。
+2. 客户端从下列两条合法新起点二选一，二者都不复用旧 cursor：
+   - **(A) 重做 initial sync**：无 `after` 重新建立 `ck.self.account.subscribe?catchup=true`（`after=` 缺省 + `catchup=true`），由服务端发 baseline `delta` 重新签发新 cursor。
+   - **(B) snapshot 加速 bootstrap**：调用 `ck.self.snapshot.head` 取 `ck.schema.snapshot.v1` manifest，MUST 先验证签名、签名者授权、`state_digest`、`frontier`、`event_set_commitment` 和每个 chunk digest（[`service-http-binding.md` §6.1](./service-http-binding.md)、§13）。验证通过后把 `frontier.event_ids` 作为该 Realm 已知态边界，再以 `ck.self.events.query` **从 server head 向更旧方向 backfill**（省略 `after`，即隐式 `before=<server_head>`，并用响应 `prev_cursor` 作为下一页 `before=`），直到拉到的事件命中 `frontier.event_ids` / `event_set_commitment.covered_event_ids` 即停止；账号聚合面仍按 (A) 重新建立 subscribe 取得新 cursor。
+3. 若 snapshot 校验失败、manifest 不可用或服务端未宣告 `ck.self.snapshot.head`，客户端 MUST 回退到 (A) 的 initial sync 或纯 Event history replay，**不得**把未验证 snapshot 作为 accepted state，也不得退回复用旧 cursor。
+
+#### 12.3.2 `stale_frontier`（旧 cursor 仍有效，可继续 backfill）
+
+cursor 本身仍有效，只是服务 frontier 落后于请求所需 causal frontier。此分支 **MUST NOT** 清 cursor 重做 initial sync：
+
 1. 客户端保留本地 `cursor`、`filter_digest`、未确认写入和最后可验证 frontier。
-2. 收到 `cursor_expired` / `cursor_integrity_invalid` / `stale_frontier` 后，先调用 `account/describe` 或 `snapshot/head` 获取当前 frontier 与推荐 snapshot。
-3. 若 snapshot 可用，客户端 MUST 验证签名、签名者授权、state hash、frontier 和 chunk digest 后再采用。
-4. 从 snapshot frontier 或服务返回的 backfill 起点执行 `ck.self.events.query`（`GET /_cokret/self/events?after=<cursor>`），补齐 Realm Event 缺口；账号聚合缺口则重新建立 `ck.self.account.subscribe?after=<cursor>&catchup=true` 重放。
-5. 若 snapshot 校验失败，客户端 MUST 回退到 Event history replay 或 Event-only backfill，并可将来源标记为 degraded。
-6. 服务端声明 `events_query_range_completeness` feature 时，客户端 SHOULD 在恢复 backfill 的 `ck.self.events.query` 调用上设置 `include_completeness=true`，并在补齐后按 [`service-http-binding.md` §3.3.6](./service-http-binding.md) 验证覆盖该缺口区间的 `ck.attestation.range_completeness`——cursor + `has_more` 只证明"拿到了页"，attestation 才证明"该区间没有事件被静默扣下"。验证失败（`range_completeness_root_mismatch` / `range_completeness_actor_seq_gap` / `witness_disagreement`）时 MUST 把该区间标记 degraded 并 fail closed，不得向用户展示"历史完整"。high-assurance Realm（`security_class=high_assurance` 或 `ck.profile.federation.high_assurance.v1`）下该 SHOULD 升级为 MUST。
+2. 按 `retry_after_ms` / `Retry-After` 退避后，用**现有 cursor** 重试 / 等待 frontier 推进；需要补洞时，可先调用 `account/describe` 或 `snapshot/head` 读当前 frontier 作为停止判据，再用**现有 cursor** 的 `prev_cursor` / `next_cursor` 续传 `ck.self.events.query` 补齐缺口。snapshot 采用前同样 MUST 完成上述全部校验。
+
+#### 12.3.3 Range completeness（两分支共用）
+
+服务端声明 `events_query_range_completeness` feature 时，客户端 SHOULD 在恢复 backfill 的 `ck.self.events.query` 调用上设置 `include_completeness=true`，并在补齐后按 [`service-http-binding.md` §3.3.6](./service-http-binding.md) 验证覆盖该缺口区间的 `ck.attestation.range_completeness`——cursor + `has_more` 只证明"拿到了页"，attestation 才证明"该区间没有事件被静默扣下"。验证失败（`range_completeness_root_mismatch` / `range_completeness_actor_seq_gap` / `witness_disagreement`）时 MUST 把该区间标记 degraded 并 fail closed，不得向用户展示"历史完整"。high-assurance Realm（`security_class=high_assurance` 或 `ck.profile.federation.high_assurance.v1`）下该 SHOULD 升级为 MUST。
 
 ## 13. Initial Sync
 
