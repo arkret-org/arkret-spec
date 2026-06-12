@@ -4650,7 +4650,7 @@
         "http": "GET /_cokret/self/account/viewer",
         "grpc": "SelfAccount/Viewer",
         "mq": "self.account.viewer",
-        "notes": "Holder-bound one-shot read of the current principal account projection. Returns principal_id, account lifecycle state, device summaries, optional ActorProfile, and signed handle-claim evidence or refs. It MUST NOT return an unsigned bare handle as authoritative identity.",
+        "notes": "Holder-bound one-shot read of the current principal account projection. Returns principal_id, account lifecycle state, device summaries, optional ActorProfile, and signed handle-claim evidence or refs. It MUST NOT return an unsigned bare handle as authoritative identity. Naming: the trailing segment 'viewer' is intentionally outside the api-conventions.md §2.4 read-verb taxonomy; it follows the GraphQL 'viewer' convention (the authenticated subject's own projection). The target is located by the holder-bound session rather than an external id, so 'get' does not apply, and 'viewer' (subject identity projection) stays distinct from 'describe' (service capability metadata).",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_view"
       },

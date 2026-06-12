@@ -81,6 +81,8 @@ Blob 上传、媒体下载和二进制 stream MAY 使用其他 content type，�
 
 HTTP method 不是 operation 动词来源：同一 `query` 语义可以有 GET query string 与 POST/body 两种 binding；这种情况必须标记为 binding variant，而不是发明新的抽象语义。
 
+**`viewer` 名词段（术语定义）**：`ck.self.account.viewer` 的末段 `viewer` 不取上表读取动词，理由记录于 `contract-catalog.json` 的 operation notes。其含义钉死为：**当前已认证 holder 的主体自读投影**——目标不由 path / query 中的外部 id 定位，而由 holder-bound `user_session` 的会话绑定决定，故不适用 `get`；命名沿用 GraphQL 生态的 `viewer` 惯例（"viewer = 发起请求的已认证主体"）。它与 `describe`（服务能力元数据，可 pre-auth）的区分见 [`service-http-binding.md` §5.1](./service-http-binding.md)。注意区分本规范 prose 中 `viewer` 的另一用法：可见性 / 投影语境（pins、history visibility、conformance vector 的 `viewer_*` 字段）里的 "viewer" 指**正在读取内容、作为可见性评估视角的主体**，不是本 operation；`reviewer`（审核者）与两者均无关，全文检索 `viewer` 时勿混入。
+
 ## 3. 认证
 
 受保护 endpoint 的请求 MUST 携带可验证的认证材料。会话出示方式按下列**推荐序**选择（越靠前越优先），实现 SHOULD 默认走 sender-constrained（proof-of-possession，PoP）路径，纯 bearer 仅作为兼容路径与低敏读：
