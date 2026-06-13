@@ -1613,7 +1613,7 @@ components:
       additionalProperties: false
     SearchRequestBody:
       $ref: ../schemas/query.schema.json#/$defs/search_request_body
-    SearchOutcome:
+    SearchMatch:
       type: object
       required:
       - object
@@ -1631,7 +1631,7 @@ components:
           items:
             type: object
       additionalProperties: false
-    SearchResultList:
+    SearchMatchList:
       type: object
       required:
       - matches
@@ -1639,7 +1639,7 @@ components:
         matches:
           type: array
           items:
-            $ref: '#/components/schemas/SearchOutcome'
+            $ref: '#/components/schemas/SearchMatch'
         next_cursor:
           type: string
         total_estimate:
