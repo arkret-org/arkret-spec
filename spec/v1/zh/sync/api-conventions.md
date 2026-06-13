@@ -75,7 +75,7 @@ Blob 上传、媒体下载和二进制 stream MAY 使用其他 content type，�
 ck.<surface>.<domain-or-subject...>.<kind>.<action>
 ```
 
-`<kind>` MUST 取下表固定集合。`<action>` 是该 kind 内的业务动作，MUST 描述协议效果，不得使用 `post`、`put`、`delete` 等 HTTP method 名称来表达 transport binding。
+`<kind>` MUST 取下表固定集合。`<action>` 是该 kind 内的业务动作，MUST 描述协议效果，不得为表达 transport binding 而采用只描述传输、不描述协议效果的纯 HTTP method 名称 `post` / `put` / `patch`。`get` / `delete` 作为 `resource` kind 下的 canonical action，描述的是读取 / 删除这一**协议效果**（其 HTTP method 由 `kind` 钉死，见下表），不在此限。
 
 | kind | 语义边界 | HTTP/JSON binding 关系 |
 | --- | --- | --- |
