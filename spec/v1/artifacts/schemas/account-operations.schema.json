@@ -148,7 +148,7 @@
       "propertyNames": {
         "type": "string",
         "pattern": "^(display_name|avatar_blob_ref|profile_fields\\.[a-z][a-z0-9_]{0,63})$",
-        "description": "ck.self.account.update_profile only accepts display_name, avatar_blob_ref, and profile_fields.<key>. The bio is carried as profile_fields.bio."
+        "description": "ck.self.account.command.update_profile only accepts display_name, avatar_blob_ref, and profile_fields.<key>. The bio is carried as profile_fields.bio."
       }
     },
     "account_view": {

@@ -36,7 +36,7 @@
     {
       "vector_id": "ck.vector.directory.invite_not_found_blinding.v1",
       "name": "hidden_realm_resolve_indistinguishable",
-      "operation_id": "ck.find.directory.resolve_realm",
+      "operation_id": "ck.find.directory.query.resolve_realm",
       "inputs": [
         {
           "label": "missing",
@@ -82,7 +82,7 @@
     {
       "vector_id": "ck.vector.psi.padding_and_cardinality.v1",
       "name": "private_contact_discovery_padding_and_cardinality",
-      "operation_id": "ck.find.directory.private_contact_discovery",
+      "operation_id": "ck.find.directory.query.private_contact_discovery",
       "input": {
         "requester": "did:web:alice.example",
         "contacts": [
@@ -108,12 +108,12 @@
     {
       "name": "directory_query_and_ingest_vector_closure",
       "operation_ids": [
-        "ck.find.directory.search_realms",
-        "ck.find.directory.resolve_realm",
-        "ck.find.directory.resolve_target",
-        "ck.find.directory.announce",
-        "ck.find.directory.withdraw",
-        "ck.find.directory.private_contact_discovery"
+        "ck.find.directory.query.search_realms",
+        "ck.find.directory.query.resolve_realm",
+        "ck.find.directory.query.resolve_target",
+        "ck.find.directory.command.announce",
+        "ck.find.directory.command.withdraw",
+        "ck.find.directory.query.private_contact_discovery"
       ],
       "covers_vectors": [
         "ck.vector.directory.public_realm_search.v1",
@@ -157,7 +157,7 @@
     },
     {
       "name": "plaintext_visible_service_required_for_private_body_processing",
-      "operation_id": "ck.self.events.submit",
+      "operation_id": "ck.self.events.command.submit",
       "input": {
         "service_did": "did:web:search.example",
         "event_kind": "ck.message.create",
@@ -188,7 +188,7 @@
     },
     {
       "name": "private_blob_head_range_anti_enumeration",
-      "operation_id": "ck.self.blob.head",
+      "operation_id": "ck.self.blob.resource.head",
       "inputs": [
         {
           "label": "missing",
@@ -214,7 +214,7 @@
     },
     {
       "name": "push_blind_wakeup_payload",
-      "operation_id": "ck.edge.push.notify",
+      "operation_id": "ck.edge.push.command.notify",
       "input": {
         "notification": {
           "push_target_id": "ck_push_pseudo_01js0pt0000000000000000000",

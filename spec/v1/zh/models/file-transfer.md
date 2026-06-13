@@ -23,11 +23,11 @@ see_also:
 
 实现声明 `ck.profile.file_transfer.v1` 时，MUST 支持：
 
-- 用 `ck.self.blob.upload` / `ck.self.blob.get` / `ck.self.blob.head` 承载文件密文字节。
+- 用 `ck.self.blob.upload.create` / `ck.self.blob.resource.get` / `ck.self.blob.resource.head` 承载文件密文字节。
 - 用 `ck.account_data.set` 写入 `ck.file_transfer.v1:<transfer_key>` 加密 account-data 记录。
-- 用 `ck.self.events.submit` 承载 `ck.account_data.set` 的实际写入路径。
-- 用 `ck.self.account.subscribe` 把 account-data 更新同步到 holder 的其它授权设备。
-- 用 `ck.self.device_messages.put` / `ck.self.device_messages.get` 承载 device-bound key delivery（见 §4.2）。
+- 用 `ck.self.events.command.submit` 承载 `ck.account_data.set` 的实际写入路径。
+- 用 `ck.self.account.stream.subscribe` 把 account-data 更新同步到 holder 的其它授权设备。
+- 用 `ck.self.device_messages.command.send` / `ck.self.device_messages.query.list` 承载 device-bound key delivery（见 §4.2）。
 
 文件传输记录 MUST NOT 写入共享 Realm history。用户之后若选择把该文件发送到某个聊天、Flow 或共享对象，客户端 MUST 重新执行目标 Event.kind 的授权检查，并生成新的共享 Event；不得把 file-transfer account-data key、file-transfer 密文 value、私有 `content_key` 或本地传输历史复制到 shared payload。
 
@@ -106,11 +106,11 @@ AAD MUST NOT 绑定 content-addressed `blob_ref`，因为这会让 `blob_ref = d
 
 状态更新（例如 `downloaded`、`dismissed`、`deleted`）写回同一个 `ck.file_transfer.v1:<transfer_key>`。`deleted` 是该 `transfer_key` 的不可逆 terminal tombstone：任一副本一旦观察到 `state="deleted"`，同一 `transfer_key` 后续或并发的非 deleted 状态 MUST NOT 复活该 transfer；需要重新发送时必须生成新的 `transfer_id` 与新的 `transfer_key`。非 terminal 状态之间的冲突按 `(actor, transfer_key)` 做 last-writer-wins，比较源为 `updated_hlc`；多个 deleted tombstone 之间 MAY 用较新的 `updated_hlc` 更新保留元数据。如果设备本地时钟或 HLC 来源不可信，客户端 SHOULD 保留本地冲突副本供用户恢复，但 shared reducer 不参与 file-transfer 合并。
 
-客户端断线恢复 MUST 使用 `ck.self.account.subscribe?after=<cursor>&catchup=true` 重放账号聚合 delta；不得用 `ck.self.events.query` 代替，因为 file-transfer account-data 和 to-device key messages 不属于裸 Realm Event 查询面。
+客户端断线恢复 MUST 使用 `ck.self.account.stream.subscribe?after=<cursor>&catchup=true` 重放账号聚合 delta；不得用 `ck.self.events.query.scan` 代替，因为 file-transfer account-data 和 to-device key messages 不属于裸 Realm Event 查询面。
 
 ## 6. 下载与访问控制
 
-File-transfer Blob 下载 MUST 使用 authenticated download (`ck.self.blob.get`)。请求 `purpose` SHOULD 使用 `file_transfer`。私有或加密 file-transfer Blob MUST NOT 使用 `ck.self.blob.presign`；presign 是可转发 bearer URL，不满足 private/E2EE 文件传输的审计与泄露边界。
+File-transfer Blob 下载 MUST 使用 authenticated download (`ck.self.blob.resource.get`)。请求 `purpose` SHOULD 使用 `file_transfer`。私有或加密 file-transfer Blob MUST NOT 使用 `ck.self.blob.command.presign`；presign 是可转发 bearer URL，不满足 private/E2EE 文件传输的审计与泄露边界。
 
 Blob 服务对不可见或已删除 Blob SHOULD 返回与不存在一致的 `not_found`，不得通过 HEAD / Range probe 泄露文件名、MIME、精确大小或存在性。客户端下载后 MUST 重新计算 digest，并在解密成功前不得把原始文件名或预览暴露给非 holder 授权的服务。
 

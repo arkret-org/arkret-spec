@@ -208,7 +208,7 @@
         },
         "recipient_service_did": {
           "$ref": "#/$defs/did",
-          "description": "Optional cross-Principal-Server addressing (see contact-and-direct-conversation.md §4.1). When target is hosted on a different Principal Server, the requester MUST supply the target home service DID so the issuer-side server federates the signed ck.contact.requested fact via ck.peer.contacts.submit. Omit for same-server requests."
+          "description": "Optional cross-Principal-Server addressing (see contact-and-direct-conversation.md §4.1). When target is hosted on a different Principal Server, the requester MUST supply the target home service DID so the issuer-side server federates the signed ck.contact.requested fact via ck.peer.contacts.command.submit. Omit for same-server requests."
         }
       },
       "additionalProperties": false
@@ -259,7 +259,7 @@
         },
         "requester_service_did": {
           "$ref": "#/$defs/did",
-          "description": "Optional cross-Principal-Server addressing (see contact-and-direct-conversation.md §4.1). When the original requester is hosted on a different Principal Server, the responder supplies the requester home service DID so the accept / reject fact is federated back via ck.peer.contacts.submit. Omit for same-server responses."
+          "description": "Optional cross-Principal-Server addressing (see contact-and-direct-conversation.md §4.1). When the original requester is hosted on a different Principal Server, the responder supplies the requester home service DID so the accept / reject fact is federated back via ck.peer.contacts.command.submit. Omit for same-server responses."
         }
       },
       "allOf": [
@@ -352,7 +352,7 @@
         },
         "peer_service_did": {
           "$ref": "#/$defs/did",
-          "description": "Optional cross-Principal-Server addressing (see contact-and-direct-conversation.md §4.1). When contact (the peer) is hosted on a different Principal Server, the holder supplies the peer home service DID so the issuer-side server federates the signed ck.contact.tombstoned fact via ck.peer.contacts.submit. Omit for same-server tombstones; when absent the issuer falls back to the peer recorded peer_service_did on the stored contact row."
+          "description": "Optional cross-Principal-Server addressing (see contact-and-direct-conversation.md §4.1). When contact (the peer) is hosted on a different Principal Server, the holder supplies the peer home service DID so the issuer-side server federates the signed ck.contact.tombstoned fact via ck.peer.contacts.command.submit. Omit for same-server tombstones; when absent the issuer falls back to the peer recorded peer_service_did on the stored contact row."
         }
       },
       "additionalProperties": false

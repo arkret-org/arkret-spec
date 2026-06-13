@@ -419,7 +419,7 @@
         },
         "new_device_pubkey": {
           "type": "object",
-          "description": "Public key material for the requesting device when purpose=same_principal_device_authorization. The kid SHOULD equal the requesting device id and the object is later consumed by ck.gate.account.device_pair.",
+          "description": "Public key material for the requesting device when purpose=same_principal_device_authorization. The kid SHOULD equal the requesting device id and the object is later consumed by ck.gate.account.command.pair_device.",
           "properties": {
             "kid": {
               "$ref": "#/$defs/device_id"
@@ -438,7 +438,7 @@
         "challenge_signature": {
           "type": "string",
           "minLength": 1,
-          "description": "Fresh requesting-device proof bound to pairing_code, new_device_pubkey, gate_audience, and request_canonical_digest; later submitted to ck.gate.account.device_pair."
+          "description": "Fresh requesting-device proof bound to pairing_code, new_device_pubkey, gate_audience, and request_canonical_digest; later submitted to ck.gate.account.command.pair_device."
         },
         "gate_audience": {
           "type": "string",

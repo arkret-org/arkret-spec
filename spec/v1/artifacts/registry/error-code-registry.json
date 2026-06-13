@@ -161,19 +161,19 @@
       "code": "ephemeral_kind_not_permitted",
       "http_status": 403,
       "scope": "service_call",
-      "description": "ck.self.ephemeral.send rejected the envelope because the actor lacks the kind-specific broadcast capability or Realm policy disables that ephemeral kind."
+      "description": "ck.self.ephemeral.command.send rejected the envelope because the actor lacks the kind-specific broadcast capability or Realm policy disables that ephemeral kind."
     },
     {
       "code": "ephemeral_ttl_out_of_range",
       "http_status": 400,
       "scope": "service_call",
-      "description": "ck.self.ephemeral.send rejected ttl_ms because it is absent when required or outside the service's advertised kind-specific range."
+      "description": "ck.self.ephemeral.command.send rejected ttl_ms because it is absent when required or outside the service's advertised kind-specific range."
     },
     {
       "code": "ephemeral_channel_unavailable",
       "http_status": 503,
       "scope": "service_call",
-      "description": "ck.self.ephemeral.send could not enqueue or fan out the transient signal because the ephemeral channel is temporarily unavailable; durable Event history is not affected."
+      "description": "ck.self.ephemeral.command.send could not enqueue or fan out the transient signal because the ephemeral channel is temporarily unavailable; durable Event history is not affected."
     },
     {
       "code": "not_found",
@@ -681,13 +681,13 @@
       "code": "profile_unsupported",
       "http_status": 422,
       "scope": "both",
-      "description": "Caller requested an operation that relies on a Realm-declared profile or feature this service has not declared in ck.server.describe.supported_features / supported_profiles. The server MUST fail-closed and MUST NOT silently downgrade to a permissive interpretation."
+      "description": "Caller requested an operation that relies on a Realm-declared profile or feature this service has not declared in ck.server.query.describe.supported_features / supported_profiles. The server MUST fail-closed and MUST NOT silently downgrade to a permissive interpretation."
     },
     {
       "code": "unsupported_join_rule",
       "http_status": 422,
       "scope": "both",
-      "description": "A third-party (3PID) invite claim targeted a join-rule Realm whose continuation profile is outside v1 base conformance (e.g. knock_restricted) and the deployment has not declared the required candidate profile in ck.find.directory.describe / ck.account.describe. The verification service MUST reject the token claim instead of silently downgrading. See zh/sync/third-party-invites.md §4.3."
+      "description": "A third-party (3PID) invite claim targeted a join-rule Realm whose continuation profile is outside v1 base conformance (e.g. knock_restricted) and the deployment has not declared the required candidate profile in ck.find.directory.query.describe / ck.account.describe. The verification service MUST reject the token claim instead of silently downgrading. See zh/sync/third-party-invites.md §4.3."
     },
     {
       "code": "failed_precondition",
@@ -699,25 +699,25 @@
       "code": "contact_not_accepted",
       "http_status": 409,
       "scope": "both",
-      "description": "Sub-reason for failed_precondition when ck.self.direct_conversation.resolve is called for a peer without an accepted contact projection, or after the requester has tombstoned that contact. Consent alone is not sufficient for the contact direct-conversation resolver. See zh/identity/contact-and-direct-conversation.md."
+      "description": "Sub-reason for failed_precondition when ck.self.direct_conversation.command.resolve is called for a peer without an accepted contact projection, or after the requester has tombstoned that contact. Consent alone is not sufficient for the contact direct-conversation resolver. See zh/identity/contact-and-direct-conversation.md."
     },
     {
       "code": "contact_consent_missing",
       "http_status": 409,
       "scope": "both",
-      "description": "Sub-reason for failed_precondition when ck.self.direct_conversation.resolve has an accepted contact but cannot verify target-holder active consent_scope=direct_message or any for the requester. See zh/identity/contact-and-direct-conversation.md and zh/identity/consent-model.md §6.2."
+      "description": "Sub-reason for failed_precondition when ck.self.direct_conversation.command.resolve has an accepted contact but cannot verify target-holder active consent_scope=direct_message or any for the requester. See zh/identity/contact-and-direct-conversation.md and zh/identity/consent-model.md §6.2."
     },
     {
       "code": "contact_request_not_pending",
       "http_status": 409,
       "scope": "both",
-      "description": "Sub-reason for failed_precondition when ck.self.contact.respond attempts to accept or reject a request that has already been accepted, rejected, tombstoned, withdrawn, or otherwise left the pending state."
+      "description": "Sub-reason for failed_precondition when ck.self.contact.command.respond attempts to accept or reject a request that has already been accepted, rejected, tombstoned, withdrawn, or otherwise left the pending state."
     },
     {
       "code": "contact_request_expired",
       "http_status": 409,
       "scope": "both",
-      "description": "Sub-reason for failed_precondition when ck.self.contact.respond targets a contact request older than contact_request_pending_ttl. The request projection is expired and requester-side contact-managed consent must be revoked."
+      "description": "Sub-reason for failed_precondition when ck.self.contact.command.respond targets a contact request older than contact_request_pending_ttl. The request projection is expired and requester-side contact-managed consent must be revoked."
     },
     {
       "code": "unsupported_digest_algorithm",
@@ -784,7 +784,7 @@
       "applies_to": [
         "service_call"
       ],
-      "description": "ck.self.applet.install recomputed the canonical InstallPlan from the submitted Applet Package, approved_scopes, effective_scope, and current Realm/Circle policy, and the recomputed plan_digest did not exactly match the submitted plan_digest. Server MUST fail closed and require a fresh preview/approval before fan-out. See zh/extensions/applet-integration.md §4b."
+      "description": "ck.self.applet.command.install recomputed the canonical InstallPlan from the submitted Applet Package, approved_scopes, effective_scope, and current Realm/Circle policy, and the recomputed plan_digest did not exactly match the submitted plan_digest. Server MUST fail closed and require a fresh preview/approval before fan-out. See zh/extensions/applet-integration.md §4b."
     },
     {
       "code": "applet_e2ee_join_unauthorized",
@@ -805,7 +805,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A revoked effective Applet install attempted a future write, transaction push side effect, delegated action, widget token use, or E2EE join. Reducers and service-call handlers MUST fail closed after ck.self.applet.revoke / ck.capability.revoke has taken effect. See zh/extensions/applet-integration.md §4b."
+      "description": "A revoked effective Applet install attempted a future write, transaction push side effect, delegated action, widget token use, or E2EE join. Reducers and service-call handlers MUST fail closed after ck.self.applet.command.revoke / ck.capability.revoke has taken effect. See zh/extensions/applet-integration.md §4b."
     },
     {
       "code": "applet_namespace_mismatch",
@@ -823,7 +823,7 @@
         "schema_validation",
         "service_call"
       ],
-      "description": "`ck.self.account.update_profile` received an `avatar_blob_ref` that is not a valid Cokret Blob reference, does not resolve under the caller's profile/avatar policy, or points to a blob the server cannot authorize for profile display. Protocol profile updates MUST use `avatar_blob_ref`; `avatar_url` is only a compatibility-layer input outside the Cokret protocol path."
+      "description": "`ck.self.account.command.update_profile` received an `avatar_blob_ref` that is not a valid Cokret Blob reference, does not resolve under the caller's profile/avatar policy, or points to a blob the server cannot authorize for profile display. Protocol profile updates MUST use `avatar_blob_ref`; `avatar_url` is only a compatibility-layer input outside the Cokret protocol path."
     },
     {
       "code": "unsupported_profile_patch_path",
@@ -833,7 +833,7 @@
         "schema_validation",
         "service_call"
       ],
-      "description": "`ck.self.account.update_profile` received a patch path outside the account self-service allowlist (`display_name`, `avatar_blob_ref`, `profile_fields.<key>`). Handle, lifecycle, principal, actor_kind, accountability, authorization, and handle-claim paths MUST be rejected instead of silently ignored."
+      "description": "`ck.self.account.command.update_profile` received a patch path outside the account self-service allowlist (`display_name`, `avatar_blob_ref`, `profile_fields.<key>`). Handle, lifecycle, principal, actor_kind, accountability, authorization, and handle-claim paths MUST be rejected instead of silently ignored."
     },
     {
       "code": "session_grant_not_found",
@@ -843,7 +843,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "`ck.gate.account.session_revoke` targeted a session grant that is unknown, already inactive, or not owned by the current principal. Implementations SHOULD use a uniform response shape that does not disclose another principal's session grant existence."
+      "description": "`ck.gate.account.command.revoke_session` targeted a session grant that is unknown, already inactive, or not owned by the current principal. Implementations SHOULD use a uniform response shape that does not disclose another principal's session grant existence."
     },
     {
       "code": "session_revoke_selector_conflict",
@@ -853,7 +853,7 @@
         "schema_validation",
         "service_call"
       ],
-      "description": "`ck.gate.account.session_revoke` supplied more than one mutually exclusive selector (`target_grant_id`, `target_device_id`, `all_sessions=true`) or otherwise failed selector closure. Receivers MUST reject instead of choosing one selector implicitly."
+      "description": "`ck.gate.account.command.revoke_session` supplied more than one mutually exclusive selector (`target_grant_id`, `target_device_id`, `all_sessions=true`) or otherwise failed selector closure. Receivers MUST reject instead of choosing one selector implicitly."
     },
     {
       "code": "reviewer_capability_revoked",
@@ -1792,7 +1792,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "Returned in three surfaces. (1) `event_envelope` / `auth_decision`: an Actor Profile update declares an `accountable_principal_ids[]` entry without a corresponding active `ck.identity.accountability_grant` (issuer=that DID, subject=profile.principal_id, grant_status=active, within validity window). Deployment policy chooses between reducer reject with this reason or silently strip the unverified entry + emit audit log; the `ck.profile.accountable_principals.strict_reject.v1` profile forces the reject path. See zh/models/actor.md §3.3.1. (2) `service_call`: returned by orchestrator HTTP operations that fan-out an accountability grant — `ck.self.agent.provision` rejects when the controller cannot present an issuable accountability grant for the new agent principal (CKP-0008 §4.5), and `ck.self.agent.resume` rejects when the controller's accountability grant over the agent has been revoked or has lapsed its freshness window since `ck.self.agent.pause` (CKP-0008 §4.11). HTTP callers MUST treat this as a precondition-class failure, not transient."
+      "description": "Returned in three surfaces. (1) `event_envelope` / `auth_decision`: an Actor Profile update declares an `accountable_principal_ids[]` entry without a corresponding active `ck.identity.accountability_grant` (issuer=that DID, subject=profile.principal_id, grant_status=active, within validity window). Deployment policy chooses between reducer reject with this reason or silently strip the unverified entry + emit audit log; the `ck.profile.accountable_principals.strict_reject.v1` profile forces the reject path. See zh/models/actor.md §3.3.1. (2) `service_call`: returned by orchestrator HTTP operations that fan-out an accountability grant — `ck.self.agent.command.provision` rejects when the controller cannot present an issuable accountability grant for the new agent principal (CKP-0008 §4.5), and `ck.self.agent.command.resume` rejects when the controller's accountability grant over the agent has been revoked or has lapsed its freshness window since `ck.self.agent.command.pause` (CKP-0008 §4.11). HTTP callers MUST treat this as a precondition-class failure, not transient."
     },
     {
       "code": "focus_mismatch",
@@ -1800,7 +1800,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "Media token exchange (ck.self.call.media.token_exchange) requested a `focus_id` different from the already-committed `ck.call.state.session_focus`. Token issuer MUST reject; clients MUST re-target the established focus rather than retrying with the original preference. See zh/crypto-media/media-service-binding.md §3 and §5."
+      "description": "Media token exchange (ck.self.call.media.exchange.token) requested a `focus_id` different from the already-committed `ck.call.state.session_focus`. Token issuer MUST reject; clients MUST re-target the established focus rather than retrying with the original preference. See zh/crypto-media/media-service-binding.md §3 and §5."
     },
     {
       "code": "unknown_focus_type",
@@ -1897,7 +1897,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "A request supplied a `verification_method` whose DID component does not bit-identically match the target principal id after stripping fragment/query. Surfaces in two places. (1) `ck.gate.account.agent_key_pair` (CKP-0008 §4.5 pairing): `verification_method` vs `agent_principal_id`. (2) `ck.gate.account.issue_session_grant` agent branch (CKP-0008 §4.6, `proof.proof_kind=\"agent_key_proof\"`): `proof.verification_method` vs request `principal_id`. Endpoints MUST fail closed before invoking the proof validator so that mismatch is reported as this code rather than as a generic signature failure. See zh/identity/key-management.md §3.6.1."
+      "description": "A request supplied a `verification_method` whose DID component does not bit-identically match the target principal id after stripping fragment/query. Surfaces in two places. (1) `ck.gate.account.command.pair_agent_key` (CKP-0008 §4.5 pairing): `verification_method` vs `agent_principal_id`. (2) `ck.gate.account.command.issue_session_grant` agent branch (CKP-0008 §4.6, `proof.proof_kind=\"agent_key_proof\"`): `proof.verification_method` vs request `principal_id`. Endpoints MUST fail closed before invoking the proof validator so that mismatch is reported as this code rather than as a generic signature failure. See zh/identity/key-management.md §3.6.1."
     },
     {
       "code": "pairing_request_expired",
@@ -1905,7 +1905,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "A `ck.gate.account.agent_key_pair` pairing request was presented after its `pairing_expires_at` (or the runtime key-pairing session id has been retired). The endpoint MUST fail closed; the controller MUST initiate a fresh pairing flow. See zh/identity/key-management.md §3.6 and proposals/0008-personal-agent-provisioning.md §4.5."
+      "description": "A `ck.gate.account.command.pair_agent_key` pairing request was presented after its `pairing_expires_at` (or the runtime key-pairing session id has been retired). The endpoint MUST fail closed; the controller MUST initiate a fresh pairing flow. See zh/identity/key-management.md §3.6 and proposals/0008-personal-agent-provisioning.md §4.5."
     },
     {
       "code": "proof_invalid",
@@ -1922,7 +1922,7 @@
         "service_call",
         "event_envelope"
       ],
-      "description": "A request targeted an agent principal whose current `ck.component.agent.status.v1` cell is `paused`. Auth Server MUST reject new agent session grants, and any submit / sidecar / grant-management call by or for the paused agent MUST fail closed until `ck.self.agent.resume` lands. Distinct from `capability_denied` so callers can surface the recoverable lifecycle state. See zh/identity/key-management.md §3.6 and proposals/0008-personal-agent-provisioning.md §4.11."
+      "description": "A request targeted an agent principal whose current `ck.component.agent.status.v1` cell is `paused`. Auth Server MUST reject new agent session grants, and any submit / sidecar / grant-management call by or for the paused agent MUST fail closed until `ck.self.agent.command.resume` lands. Distinct from `capability_denied` so callers can surface the recoverable lifecycle state. See zh/identity/key-management.md §3.6 and proposals/0008-personal-agent-provisioning.md §4.11."
     },
     {
       "code": "agent_deactivated",
@@ -2037,7 +2037,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "An event was signed with a device key that the deactivation/lock fanout has marked revoked. Subsequent ck.self.events.submit signed by that device MUST be rejected. See zh/identity/account-lifecycle.md §7.1."
+      "description": "An event was signed with a device key that the deactivation/lock fanout has marked revoked. Subsequent ck.self.events.command.submit signed by that device MUST be rejected. See zh/identity/account-lifecycle.md §7.1."
     },
     {
       "code": "delegation_revoked",
@@ -2186,7 +2186,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A ck.self.blob.presign bearer envelope is syntactically invalid, has an unrecognised scheme, fails signature verification, mixes with Authorization header auth, or otherwise cannot be validated. Wire response remains non-enumerating not_found where required; audit logs may record this reason. See zh/crypto-media/media-and-blob.md §5.4."
+      "description": "A ck.self.blob.command.presign bearer envelope is syntactically invalid, has an unrecognised scheme, fails signature verification, mixes with Authorization header auth, or otherwise cannot be validated. Wire response remains non-enumerating not_found where required; audit logs may record this reason. See zh/crypto-media/media-and-blob.md §5.4."
     },
     {
       "code": "presign_expired",
@@ -2194,7 +2194,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A ck.self.blob.presign bearer URL was presented outside its nbf / exp window or after its nonce was revoked. Wire response remains non-enumerating not_found where required; audit logs may record this reason. See zh/crypto-media/media-and-blob.md §5.4."
+      "description": "A ck.self.blob.command.presign bearer URL was presented outside its nbf / exp window or after its nonce was revoked. Wire response remains non-enumerating not_found where required; audit logs may record this reason. See zh/crypto-media/media-and-blob.md §5.4."
     },
     {
       "code": "presign_scope_mismatch",
@@ -2202,7 +2202,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A ck.self.blob.presign envelope scope does not match the requested blob_ref, method, byte range, purpose, Realm, issuer trust state, or current blob visibility. Wire response remains non-enumerating not_found where required; audit logs may record this reason. See zh/crypto-media/media-and-blob.md §5.4."
+      "description": "A ck.self.blob.command.presign envelope scope does not match the requested blob_ref, method, byte range, purpose, Realm, issuer trust state, or current blob visibility. Wire response remains non-enumerating not_found where required; audit logs may record this reason. See zh/crypto-media/media-and-blob.md §5.4."
     },
     {
       "code": "private_attachment",
@@ -2261,7 +2261,7 @@
         "state_resolution",
         "service_call"
       ],
-      "description": "ck.self.agent.resume was rejected because the agent gained eligibility for one or more ck.profile.agent_sidecar_thread.v1 sidecar Circles created or joined during pause, and the controller has not yet supplied the matching sidecar_exposure_ack re-disclosure. Returned as a failed_precondition sub-reason; the controller MUST re-read the sidecar exposure disclosure and resubmit resume with the acknowledgement before the agent silently inherits access. See zh/identity/key-management.md §3.6.1."
+      "description": "ck.self.agent.command.resume was rejected because the agent gained eligibility for one or more ck.profile.agent_sidecar_thread.v1 sidecar Circles created or joined during pause, and the controller has not yet supplied the matching sidecar_exposure_ack re-disclosure. Returned as a failed_precondition sub-reason; the controller MUST re-read the sidecar exposure disclosure and resubmit resume with the acknowledgement before the agent silently inherits access. See zh/identity/key-management.md §3.6.1."
     },
     {
       "code": "artifact_rejected",
@@ -2445,7 +2445,7 @@
         "state_resolution",
         "auth_decision"
       ],
-      "description": "Realm has accepted ck.realm.destroy (or equivalent terminal decommission marker) and cannot accept new ordinary writes. Only audit-class events (ck.audit.*, ck.audit.erasure_receipt) are still acceptable. Receivers MUST reject ck.self.events.submit for any other kind targeting this Realm. See zh/models/realm-and-space.md §2.6."
+      "description": "Realm has accepted ck.realm.destroy (or equivalent terminal decommission marker) and cannot accept new ordinary writes. Only audit-class events (ck.audit.*, ck.audit.erasure_receipt) are still acceptable. Receivers MUST reject ck.self.events.command.submit for any other kind targeting this Realm. See zh/models/realm-and-space.md §2.6."
     },
     {
       "code": "audit_release_attestation_mismatch",
@@ -2468,7 +2468,7 @@
       "applies_to": [
         "auth_decision"
       ],
-      "description": "Requested operation targets a blob / object currently under legal hold. ck.self.blob.presign / ck.blob.delete / redaction-equivalent operations MUST be rejected with this code; legal hold takes precedence over capability and TTL. See zh/crypto-media/media-and-blob.md §5.4.4.1."
+      "description": "Requested operation targets a blob / object currently under legal hold. ck.self.blob.command.presign / ck.blob.delete / redaction-equivalent operations MUST be rejected with this code; legal hold takes precedence over capability and TTL. See zh/crypto-media/media-and-blob.md §5.4.4.1."
     },
     {
       "code": "blob_redacted",
@@ -2759,7 +2759,7 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when a controller's ck.self.agent.participation.set selection enables a bit the effective ceiling disables. Effective participation = effective_ceiling ∩ selection. See zh/authz/capabilities.md §5.4."
+      "description": "Sub-reason for failed_precondition when a controller's ck.self.agent.participation.resource.replace selection enables a bit the effective ceiling disables. Effective participation = effective_ceiling ∩ selection. See zh/authz/capabilities.md §5.4."
     },
     {
       "code": "agent_reply_not_permitted",

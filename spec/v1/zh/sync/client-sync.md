@@ -12,11 +12,11 @@ updated: 2026-06-12
 
 ## 1. 目标
 
-Client Sync 是客户端 **账号视角聚合** 推流协议。它在 Events API 之上提供跨 Realm 的稳定 delta 视图（包含 to_device、account_data、device_lists、presence、unread / notification counts），以**长连接 NDJSON 流**的形式由服务端按需推送。它不是裸事件读取——逐 Realm 的事件查询和实时订阅请使用 `ck.self.events.query` / `ck.self.events.subscribe`。
+Client Sync 是客户端 **账号视角聚合** 推流协议。它在 Events API 之上提供跨 Realm 的稳定 delta 视图（包含 to_device、account_data、device_lists、presence、unread / notification counts），以**长连接 NDJSON 流**的形式由服务端按需推送。它不是裸事件读取——逐 Realm 的事件查询和实时订阅请使用 `ck.self.events.query.scan` / `ck.self.events.stream.subscribe`。
 
-`ck.self.account.subscribe` 与 `ck.self.events.subscribe` 是对称的两类 streaming 订阅:
-- `ck.self.events.subscribe` 是**逐 Realm / actor 的事件流**(selector 范围内的每条 Event)
-- `ck.self.account.subscribe` 是**账号视角的聚合流**(跨所有 Realm 的 delta 总览 + account-scoped 数据)
+`ck.self.account.stream.subscribe` 与 `ck.self.events.stream.subscribe` 是对称的两类 streaming 订阅:
+- `ck.self.events.stream.subscribe` 是**逐 Realm / actor 的事件流**(selector 范围内的每条 Event)
+- `ck.self.account.stream.subscribe` 是**账号视角的聚合流**(跨所有 Realm 的 delta 总览 + account-scoped 数据)
 
 两者共享相同的 stream cursor 形态、resume / `dropped` / `resync_required` 恢复语义，差异仅在 selector 与 frame 内容。
 
@@ -34,7 +34,7 @@ Accept: application/x-ndjson
 
 上面是 **initial account sync** 的 canonical 调用：不带 `after`，显式设置 `catchup=true`。这里的 `catchup` 不是"返回全部历史记录"，而是要求服务端先发送当前账号 baseline（有限 timeline + 必要 state + account-scoped 当前位置），再以 `catchup_complete` 标记 baseline 完成并进入实时推送。常规网络重连使用 `GET /_cokret/self/account/subscribe?after=<cursor>&catchup=true` 补齐断线期间的账号 delta；收到 `dropped` frame 后的补洞重连同样使用 `GET /_cokret/self/account/subscribe?after=<cursor>&catchup=true`。
 
-该端点对应 `ck.self.account.subscribe`,wire 形态是长连接 NDJSON 流。它聚合跨 Realm delta、to_device、account_data、device_lists、presence;不同于 `GET /_cokret/self/events/subscribe`(按 selector 的事件流订阅)和 `GET /_cokret/self/events?before=...` / `?after=...`(按 selector 的双向历史查询)。三者可以共享 cursor 与授权规则，但 `operation_id`、响应语义与所属 namespace 不同:account 同步在 `ck.account.*`,snapshot 入口在 `ck.snapshot.*`,事件读取在 `ck.events.*`。
+该端点对应 `ck.self.account.stream.subscribe`,wire 形态是长连接 NDJSON 流。它聚合跨 Realm delta、to_device、account_data、device_lists、presence;不同于 `GET /_cokret/self/events/subscribe`(按 selector 的事件流订阅)和 `GET /_cokret/self/events?before=...` / `?after=...`(按 selector 的双向历史查询)。三者可以共享 cursor 与授权规则，但 `operation_id`、响应语义与所属 namespace 不同:account 同步在 `ck.account.*`,snapshot 入口在 `ck.snapshot.*`,事件读取在 `ck.events.*`。
 
 Account subscribe 的服务边界是当前 authenticated session 绑定的 Principal Server service DID。若同一 principal DID 同时在个人 Principal Server 与组织 Principal Server 上有账号/设备上下文，客户端必须分别维护 session、cursor、to-device queue 和 push registration,并对每个上下文建立独立的 `/_cokret/self/account/subscribe` 长连接。某个 Realm 的 timeline / notification delta 只应出现在该成员 effective `delivery_binding.recipient_service_did` 指向的服务上;DID Document 中的默认 Principal Server 不得把其它 Realm-scoped delivery binding 的 delta 聚合进自己的 `/_cokret/self/account/subscribe` 流。
 
@@ -49,7 +49,7 @@ Account subscribe 的服务边界是当前 authenticated session 绑定的 Princ
 2. **成员列表展示绑定上下文**。当某 Realm 内成员的 `delivery_binding.recipient_service_did` 不属于该 actor DID Document 默认 `CokretPrincipalServer` 时，UI SHOULD 在该成员条目附近显示其 binding 上下文（例如 `Bob @ Acme`、`Carol @ Beta`）；当属于默认时 SHOULD 仅显示 actor，不显示 binding。展示形态可使用组织 endorsement 的 `display_name` / `logo` 而不是 raw service DID。
 3. **邀请 flow 智能默认**。客户端 SHOULD 按当前邀请方上下文自动提议 binding：
    - 默认使用 [`invite-addressing.md`](./invite-addressing.md) 的 online principal locator 或显式 `subject_id + recipient_service_did` 输入；locator/ref 成功后 UI 显示 `Alice @ Acme` 这类上下文标签，不展示 raw service DID；
-   - 用户输入 `@alice:acme.example` / `alice@acme.example` 时，只有在 Directory / Organization 明确支持可选 handle invite/member_add profile 且调用方具备披露授权时，才 MAY 调用 `ck.find.directory.resolve_handle(intent="member_add" | "invite")` 获取可验证 candidate；失败时 MUST 回到 locator/address 模式，不得本地合成 remote service DID；
+   - 用户输入 `@alice:acme.example` / `alice@acme.example` 时，只有在 Directory / Organization 明确支持可选 handle invite/member_add profile 且调用方具备披露授权时，才 MAY 调用 `ck.find.directory.query.resolve_handle(intent="member_add" | "invite")` 获取可验证 candidate；失败时 MUST 回到 locator/address 模式，不得本地合成 remote service DID；
    - 邀请方在 Org-A 内部 Realm 中邀请 → 默认 invitee 也走 Org-A binding（如果 Org-A organization registry 把 invitee 列为成员）；
    - 邀请方在个人 Realm 中邀请 → 默认 invitee DID Document `did_document_default`（若 Realm policy 允许）；
    - 多上下文 invitee + 无明确默认 → 提示用户在已知上下文中选择，**不要静默选择**。
@@ -63,9 +63,9 @@ Account subscribe 的服务边界是当前 authenticated session 绑定的 Princ
 | --- | --- | --- | --- | --- |
 | `Authorization` | header | `bearer token` 或 `device proof` | required | 必须绑定当前 principal / device。 |
 | `after` | query | `cursor` | optional | 订阅起点 cursor(purpose=`stream`,排除语义),从此 cursor *之后* 开始接收 frame。缺省表示没有可恢复账号 cursor。 |
-| `catchup` | query | `boolean` | optional | 默认 `false`。`after` 存在时,`true` 表示服务端先回放 `after=` 之后到当前 frontier 的账号聚合 delta,再发 `catchup_complete` frame,然后切到实时尾部；这不是全量历史。`after` 缺省且 `catchup=true` 是 **initial account sync**:服务端 MUST 先发送覆盖当前账号 baseline 的 `delta` frame(Realm 摘要、必要首屏 state、device list baseline、to_device/account_data/notification 当前位置),再发送 `catchup_complete`。完整历史必须通过 `ck.self.events.query` 分页/区间读取。 |
-| `set_presence` | query | `enum(online,offline,unavailable)` | optional | 连接建立时设置当前设备 presence。若服务端支持 presence 且当前 session 持有 `ck.presence.broadcast` action，服务端在 frame 推送过程中向其他 Realm 广播；否则 MUST 忽略该参数且不得广播，但不得仅因 `set_presence` 无权限或不支持而拒绝 `ck.self.account.subscribe` 连接。 |
-| `filter` | query (deepObject) | `object` | optional | 过滤条件。语义同 self.events.subscribe。 |
+| `catchup` | query | `boolean` | optional | 默认 `false`。`after` 存在时,`true` 表示服务端先回放 `after=` 之后到当前 frontier 的账号聚合 delta,再发 `catchup_complete` frame,然后切到实时尾部；这不是全量历史。`after` 缺省且 `catchup=true` 是 **initial account sync**:服务端 MUST 先发送覆盖当前账号 baseline 的 `delta` frame(Realm 摘要、必要首屏 state、device list baseline、to_device/account_data/notification 当前位置),再发送 `catchup_complete`。完整历史必须通过 `ck.self.events.query.scan` 分页/区间读取。 |
+| `set_presence` | query | `enum(online,offline,unavailable)` | optional | 连接建立时设置当前设备 presence。若服务端支持 presence 且当前 session 持有 `ck.presence.broadcast` action，服务端在 frame 推送过程中向其他 Realm 广播；否则 MUST 忽略该参数且不得广播，但不得仅因 `set_presence` 无权限或不支持而拒绝 `ck.self.account.stream.subscribe` 连接。 |
+| `filter` | query (deepObject) | `object` | optional | 过滤条件。语义同 self.events.stream.subscribe。 |
 | `filter.realms` | query | `id[]` | optional | 限制返回 Realm。 |
 | `filter.timeline_limit` | query | `int` | optional | 每个 Realm timeline 数量上限(per-frame)。 |
 | `filter.lazy_load_members` | query | `boolean` | optional | 是否延迟加载成员。 |
@@ -81,13 +81,13 @@ Account subscribe 的服务边界是当前 authenticated session 绑定的 Princ
 | `catchup_complete` | required | catch-up replay 或 initial baseline 完成，后续 frame 是实时推送。`catchup=true` 才会出现;`catchup=false` 时不会出现。 |
 | `frontier` | required | 仅推进 cursor,不带数据；用于服务端在 quiescent 期周期性确认订阅仍连通。 |
 | `heartbeat` | absent | 防中间层断流的 keepalive。 |
-| `dropped` | required | 服务端无法从当前 cursor 继续推送(buffer 溢出 / 服务重启等),`cursor` 是建议的 account catch-up 起点。`dropped` frame 的 `cursor` 为 REQUIRED;服务端没有可用补齐 cursor 时 MUST 改发 `resync_required`,不得发送无 cursor 的 `dropped`。客户端 MUST 重新建立 `ck.self.account.subscribe?after=<cursor>&catchup=true` 重放账号聚合 delta;若重放后的某个 Realm timeline 仍标记 `limited=true`,再用 `ck.self.events.query` 按该 Realm 的 `prev_cursor` / `next_cursor` 补齐裸 Event 缺口。MAY 携带 `reconnect_after_ms`。 |
+| `dropped` | required | 服务端无法从当前 cursor 继续推送(buffer 溢出 / 服务重启等),`cursor` 是建议的 account catch-up 起点。`dropped` frame 的 `cursor` 为 REQUIRED;服务端没有可用补齐 cursor 时 MUST 改发 `resync_required`,不得发送无 cursor 的 `dropped`。客户端 MUST 重新建立 `ck.self.account.stream.subscribe?after=<cursor>&catchup=true` 重放账号聚合 delta;若重放后的某个 Realm timeline 仍标记 `limited=true`,再用 `ck.self.events.query.scan` 按该 Realm 的 `prev_cursor` / `next_cursor` 补齐裸 Event 缺口。MAY 携带 `reconnect_after_ms`。 |
 | `resync_required` | absent | 服务端无法定位任何可用 catch-up 起点(本地状态彻底失效)。客户端 MUST 清空本地 cursor 缓存，从零重新建立订阅。MAY 携带 `reconnect_after_ms`。 |
 | `unauthorized` | absent | 当前 session 不再有权限消费该流；客户端 MUST 重新认证或退出。 |
 
 frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas/account-subscribe-frame.schema.json)(`ck.schema.account_subscribe_frame.v1`)。
 
-> **与 `ck.self.events.subscribe` 帧集合的差异**：account-aggregate 流**有意不**包含 `ck.self.events.subscribe` 的 `event` 与 `epoch_rotation` 控制帧。self.account.subscribe 是跨 Realm 聚合视角，MLS epoch 变化不作为独立控制帧出现，而是在各 Realm `delta` 内通过 `state_after` / `state_at_window_start.e2ee_epoch`（见 §5）表达；需要逐 Realm 的 `epoch_rotation` 边界提示时使用 `ck.self.events.subscribe`。其余控制帧（`catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`）与 `ck.self.events.subscribe` 对齐。
+> **与 `ck.self.events.stream.subscribe` 帧集合的差异**：account-aggregate 流**有意不**包含 `ck.self.events.stream.subscribe` 的 `event` 与 `epoch_rotation` 控制帧。self.account.stream.subscribe 是跨 Realm 聚合视角，MLS epoch 变化不作为独立控制帧出现，而是在各 Realm `delta` 内通过 `state_after` / `state_at_window_start.e2ee_epoch`（见 §5）表达；需要逐 Realm 的 `epoch_rotation` 边界提示时使用 `ck.self.events.stream.subscribe`。其余控制帧（`catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`）与 `ck.self.events.stream.subscribe` 对齐。
 
 `delta` frame 示例:
 
@@ -140,7 +140,7 @@ frame schema 见 [`account-subscribe-frame.schema.json`](../../artifacts/schemas
 
 1. **原子持久化 frame 与 cursor**: 客户端 MUST 在同一本地事务中持久化 frame payload(timeline 事件、state、account_data、device_lists 等)与该 frame 的 `cursor`,之后才把它用作重连 `after=` 起点;MUST NOT 在 payload 落盘前单独推进本地 cursor 高水位。"先存 cursor、后落数据"的实现会在崩溃时产生本地静默缺口——其中 `device_lists` 缺口只能靠重做 initial sync 恢复。to-device 消息的投递安全由 §10.1 显式 ack 在协议层保证，不依赖本条；但 SHOULD 同样与 cursor 同事务落盘以减少重连后的重复处理。仅带 cursor 不带数据的 frame(`frontier` / `catchup_complete`)直接更新本地高水位即可。
 2. **网络断开**: 若没有服务端 `reconnect_after_ms` 或 HTTP `Retry-After` 指令，立即用最近 `cursor` 作为 `after=` 重连，并设置 `catchup=true`,确保断线期间的账号聚合 delta 不被跳过。若服务端返回 `cursor_expired` / `cursor_integrity_invalid` / `cursor_unrecognized`,按 §12.3 恢复。
-3. **`dropped` frame**: 用 frame 自带的 `cursor` 重新建立 `GET /_cokret/self/account/subscribe?after=<cursor>&catchup=true`,让服务端重放账号聚合 delta；若 frame 携带 `reconnect_after_ms`,MUST 先等待该时长。不得只用 `ck.self.events.query` 恢复，因为 `to_device`、`account_data`、`device_lists`、presence 与 notifications 不属于裸 Realm Event 查询面。
+3. **`dropped` frame**: 用 frame 自带的 `cursor` 重新建立 `GET /_cokret/self/account/subscribe?after=<cursor>&catchup=true`,让服务端重放账号聚合 delta；若 frame 携带 `reconnect_after_ms`,MUST 先等待该时长。不得只用 `ck.self.events.query.scan` 恢复，因为 `to_device`、`account_data`、`device_lists`、presence 与 notifications 不属于裸 Realm Event 查询面。
 4. **`resync_required` frame**: 清空本地 cursor 缓存，重新建立连接(`after=` 缺省 + `catchup=true`)执行 initial account sync;若 frame 携带 `reconnect_after_ms`,MUST 先等待该时长。大型 Realm 的当前态可走 snapshot bootstrap,见 §12.3 与 §13。
 5. **`unauthorized` frame**: 关闭连接，触发 session 刷新或退出登录。
 6. **建议 reconnect 退避**: 指数退避，起始 1s,最大 60s;`dropped` / `resync_required` 未携带 `reconnect_after_ms` 时可立即重连以缩短数据不一致窗口。客户端收到 `reconnect_after_ms`、HTTP `Retry-After` 或错误 body `retry_after_ms` 时，MUST 优先遵守服务端指令，并 SHOULD 加 jitter 避免同批客户端同步重连。
@@ -225,7 +225,7 @@ Account subscribe `delta` frame 包含以下 stream：
 
 如果 `timeline.limited=true`，客户端 MUST 使用 backfill / pagination 拉取缺口，不得假设 timeline 连续。服务端 SHOULD 在响应中提供 `prev_cursor`、顶层 `cursor`、`snapshot_frontier` 或等价恢复提示；若缺口无法用当前 cursor 恢复，必须返回 `cursor_expired`、`cursor_integrity_invalid`、`stale_frontier` 或 `temporarily_unavailable`，不得静默退化为不完整状态。这些返回触发的恢复分支不同，客户端 MUST 区分处理：
 
-- `cursor_expired` / `cursor_integrity_invalid`：cursor 本端状态失效（TTL 超时或 tamper / 未知 handle / cross-binding）。客户端 MUST 清空本地 cursor 缓存并从 initial sync 重做（重新建立 `ck.self.account.subscribe`，`after=` 缺省 + `catchup=true`），与 §12.3 一致；不能用旧 cursor 继续 backfill。
+- `cursor_expired` / `cursor_integrity_invalid`：cursor 本端状态失效（TTL 超时或 tamper / 未知 handle / cross-binding）。客户端 MUST 清空本地 cursor 缓存并从 initial sync 重做（重新建立 `ck.self.account.stream.subscribe`，`after=` 缺省 + `catchup=true`），与 §12.3 一致；不能用旧 cursor 继续 backfill。
 - `stale_frontier`：cursor 本身仍有效，只是服务 frontier 落后于请求所需 causal frontier。客户端 MUST NOT 清 cursor 重做 initial sync，而是按 §12.3 等待 / backfill——先以 `account/describe` 或 `snapshot/head` 取当前 frontier，再从该 frontier 起点用现有 cursor backfill 补齐缺口。
 - `temporarily_unavailable`：可重试瞬态；按 `retry_after_ms` / `Retry-After` 退避后用同一 cursor 重试。
 
@@ -348,7 +348,7 @@ event_id ASC
 当 `lazy_load_members=true`：
 
 - 服务器 SHOULD 只返回 timeline 中 sender、被 mention actor、membership changed actor 和 required_state 指定 actor 的 `ck.member.state`。
-- 客户端遇到未知 actor 时 MAY 通过 `ck.self.events.query` 补拉当前 effective `ck.member.state` / `ck.member.identity.update` events；需要当前 handle 展示时，MUST 使用本节定义的 handle-claim source（roster 内联或 `ck.find.directory.list_handles_for_subject`），不得把 profile / identity event 中的 handle 字符串当作授权事实。
+- 客户端遇到未知 actor 时 MAY 通过 `ck.self.events.query.scan` 补拉当前 effective `ck.member.state` / `ck.member.identity.update` events；需要当前 handle 展示时，MUST 使用本节定义的 handle-claim source（roster 内联或 `ck.find.directory.query.list_handles_for_subject`），不得把 profile / identity event 中的 handle 字符串当作授权事实。
 - 如果 `include_redundant_members=false`，服务器 SHOULD 避免重复发送客户端已知且未变化的 member state。
 
 ### 8.1 Member Roster, Identity Projection, and Handle Claims
@@ -410,10 +410,10 @@ event_id ASC
 | --- | --- | --- | --- |
 | `actor_id` | DID | MUST | 等于当前 effective `ck.member.state` cell subject / `payload.actor_id`。高隐私 Realm 中 MAY 是 Realm-scoped pairwise DID；真实 principal 的披露由当前 effective `ck.member.identity.update` events 决定。 |
 | `membership` | enum | MUST | 当前 effective membership，取 `join` / `invite` / `knock`。leave / ban 不进入 roster。 |
-| `subject_id` | DID | MAY | handle claim 的 `subject` 对应的 holder / principal DID，不是 Realm `actor_id`。当当前响应已经按 Realm disclosure policy 向调用方披露该 member 的 principal / holder DID 时可返回。若 subject 仅在 encrypted MemberIdentity 中披露，服务端 MAY 省略，由客户端解密后再走 `ck.find.directory.list_handles_for_subject`。返回 `identity_events`、`handle_claim_digests`、`handle_claims` 或 `handle_claims_limited` 时该字段 MUST 存在。 |
+| `subject_id` | DID | MAY | handle claim 的 `subject` 对应的 holder / principal DID，不是 Realm `actor_id`。当当前响应已经按 Realm disclosure policy 向调用方披露该 member 的 principal / holder DID 时可返回。若 subject 仅在 encrypted MemberIdentity 中披露，服务端 MAY 省略，由客户端解密后再走 `ck.find.directory.query.list_handles_for_subject`。返回 `identity_events`、`handle_claim_digests`、`handle_claims` 或 `handle_claims_limited` 时该字段 MUST 存在。 |
 | `identity_event_ids` | event id array | MAY | 当前 effective `ck.member.identity.update` event ids。客户端 MAY 按这些 id backfill 原始事件；服务端 MAY 把这些原始 Event envelope 内联到 `identity_events[]` 或 `state.events`。 |
 | `handle_claim_digests` | hash array | MAY | 当前对调用方可见且可用于该 Realm context 的 effective handle claims 的 canonical digest 集合。每个 digest 按 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) 的 `claim_digest(c)` 定义计算。该字段是跨上下文稳定标识，MUST NOT 在 `subject_id` 未披露时返回。 |
-| `handle_claims` | handle claim array | MAY | 可选内联的完整 `ck.schema.handle_claim.v1` objects。它们是当前 handle 授权 evidence，不是 roster 自己生成的 display 字段。该字段 MUST NOT 在 `subject_id` 未披露时返回；若返回，每个 claim 的 `subject` MUST 等于 `subject_id`。服务端 MAY 因隐私、体积或 freshness 省略，客户端可用 `subject_id` 调 `ck.find.directory.list_handles_for_subject` 补拉。 |
+| `handle_claims` | handle claim array | MAY | 可选内联的完整 `ck.schema.handle_claim.v1` objects。它们是当前 handle 授权 evidence，不是 roster 自己生成的 display 字段。该字段 MUST NOT 在 `subject_id` 未披露时返回；若返回，每个 claim 的 `subject` MUST 等于 `subject_id`。服务端 MAY 因隐私、体积或 freshness 省略，客户端可用 `subject_id` 调 `ck.find.directory.query.list_handles_for_subject` 补拉。 |
 | `handle_claims_limited` | boolean | MAY | `true` 表示 `handle_claims[]` 被截断或仅含 digest hints；客户端 MUST NOT 把缺失 claim 解释为该 subject 没有 handle。该字段只在 `subject_id` 已披露且 handle claim set 对调用方可见时返回。 |
 | `member_display_state_digest` | hash | MAY | `sha256` over RFC 8785 JCS canonical JSON：`{realm_id, actor_id, effective_events:[{event_id, segment, payload_digest}], handle_claims:[{claim_digest,binding_state,expires_at}]}`，其中 `effective_events` 按 `(segment,event_id)` 排序，`handle_claims` 按 `(claim_digest)` 排序。用于 roster display cache 失效和重复响应去重；不同于 `ck.member.identity.update` 事件内的 `identity_payload_digest`。 |
 | `identity_events` | Event array | MAY | 可选内联的原始 `ck.member.identity.update` Event envelope。服务端不得把它改写成查询时合成 payload。该字段可能明文或可解密地披露同一 member `subject_id`，因此 `subject_id` 未披露时 MUST 省略。 |
@@ -514,7 +514,7 @@ Handle claim 获取与刷新规则：
 
 - 注册、邀请链接、管理员预分配、管理员后期修改、重签和撤销 handle 都落到 issuer / coauth / 部署本地 `ck.schema.handle_claim.v1` lifecycle。Cokret v1 core 不定义用户如何申请、管理员如何收到通知、谁有权审批、审批状态如何流转或客户端如何在 bootstrap 中领取自己的 claim。
 - 客户端不得通过 `ck.profile.update`、`ck.profile.realm_override` 或 `ck.member.identity.update` 自行设置 handle。无论 claim 来自 coauth bootstrap、issuer 本地 API、设备迁移恢复、Directory resolve 还是 roster 内联，客户端只有在 schema、issuer trust、proof、audience、expiry 和 revocation 状态验证通过后，才能把它作为 handle 授权事实。
-- 已知 `subject_id`、需要渲染 Realm member 当前 handle 时，客户端调用 `ck.find.directory.list_handles_for_subject`，或使用 roster entry 内联的 `handle_claims[]` / `handle_claim_digests[]`。已知 handle 字符串、需要解析到 subject 或投递绑定时，继续使用 `ck.find.directory.resolve_handle`。
+- 已知 `subject_id`、需要渲染 Realm member 当前 handle 时，客户端调用 `ck.find.directory.query.list_handles_for_subject`，或使用 roster entry 内联的 `handle_claims[]` / `handle_claim_digests[]`。已知 handle 字符串、需要解析到 subject 或投递绑定时，继续使用 `ck.find.directory.query.resolve_handle`。
 - roster / member picker / mention autocomplete 的当前 handle projection MUST 由当前可见 handle-claim set + Realm policy 运行 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) 得出。`ck.member.identity.update` 事件的 churn 不应成为 handle 更新传播的必要条件。
 - 若 `member_display_state_digest` 因 handle-claim set 变化而改变，服务端 SHOULD 在下一次 `/_cokret/self/account/subscribe` delta 中发送新的 roster entry 或使客户端相关 cache 失效；无法内联完整 claims 时，MUST 至少让 `handle_claim_digests` 或 digest 缺失状态发生可观察变化。
 
@@ -549,7 +549,7 @@ Account data MUST 按 principal/device 授权隔离。联邦节点不得向其�
 
 `/_cokret/self/account/subscribe` 与 `GET /_cokret/self/device_messages` 暴露的是同一个 per-device to-device 队列的两种读取形态；二者不代表两套消息源，也不允许客户端把同一 kind 分流到两套互不一致的处理器。
 
-`ck.self.account.subscribe` 是 full client / E2EE client 的主接收路径。客户端维护长连接后，服务端 SHOULD 在 `delta.to_device.messages[]` 中推送当前设备的验证请求、SAS/QR 交换、secret sharing、device-list 相关私有消息；客户端 MUST 把这里收到的 `DeviceMessageEnvelope` 交给与 `ck.self.device_messages.get` 相同的 to-device dispatcher，并在持久化处理完成后按 §10.1 使用 `ack_token` 显式确认。
+`ck.self.account.stream.subscribe` 是 full client / E2EE client 的主接收路径。客户端维护长连接后，服务端 SHOULD 在 `delta.to_device.messages[]` 中推送当前设备的验证请求、SAS/QR 交换、secret sharing、device-list 相关私有消息；客户端 MUST 把这里收到的 `DeviceMessageEnvelope` 交给与 `ck.self.device_messages.query.list` 相同的 to-device dispatcher，并在持久化处理完成后按 §10.1 使用 `ack_token` 显式确认。
 
 `GET /_cokret/self/device_messages?from=<cursor>&limit=n` 是补拉 / 轮询路径，只用于下列情况：
 
@@ -564,7 +564,7 @@ Account data MUST 按 principal/device 授权隔离。联邦节点不得向其�
 To-device 队列删除由**显式 ack** 驱动，与 stream cursor 解耦；任何 cursor（`after=` / `from=`）都 **MUST NOT** 触发队列删除：
 
 1. **`ack_token` 签发**：服务端在每个携带非空 `to_device.messages` 的 `delta` frame 中 MUST 附带 `to_device.ack_token`；`GET /_cokret/self/device_messages` 的每个非空响应页同样 MUST 携带顶层 `ack_token`。`ack_token` 是 server-issued 不透明确认令牌，绑定 `(principal_id, device_id, 该批次的队列高水位)`，覆盖该批次及其之前所有已投递消息。它**不是 cursor**：不使用 `ck:cursor:` wire 形态，不进入 cursor schema / TTL / purpose 体系；客户端 MUST 把它当作不透明字符串原样回传。令牌 MUST 不可伪造：不可猜测（解码后熵 ≥ 128 bit）或等价的服务端查表绑定。
-2. **显式 ack**：客户端把该批次所有消息**持久化处理完成**（密钥材料、verification transcript、secret 已落盘）后，MUST 调用 `ck.self.device_messages.ack`（`POST /_cokret/self/device_messages/ack`，body `{ack_token}`）。确认是**累计且单调**的：服务端删除该令牌覆盖位置（含）之前的全部已投递消息；ack 一个早于当前确认位置的令牌是合法 no-op，返回 `{ok: true}` 且 MUST NOT 回退确认位置。该操作天然幂等，不需要 `Idempotency-Key`。
+2. **显式 ack**：客户端把该批次所有消息**持久化处理完成**（密钥材料、verification transcript、secret 已落盘）后，MUST 调用 `ck.self.device_messages.command.ack`（`POST /_cokret/self/device_messages/ack`，body `{ack_token}`）。确认是**累计且单调**的：服务端删除该令牌覆盖位置（含）之前的全部已投递消息；ack 一个早于当前确认位置的令牌是合法 no-op，返回 `{ok: true}` 且 MUST NOT 回退确认位置。该操作天然幂等，不需要 `Idempotency-Key`。
 3. **ack 校验**：服务端 MUST 校验 `ack_token` 绑定与当前 authenticated `(principal_id, device_id)` 匹配；unknown / 过期 / cross-binding 令牌 MUST 返回 `invalid_param`（reason `invalid_ack_token`）且 MUST NOT 删除任何排队消息。
 4. **cursor 只读**：`/_cokret/self/account/subscribe` 的 `after=` 与 `GET /_cokret/self/device_messages` 的 `from=` 只决定读取 / 续传位置。客户端建立新的 subscribe 连接时（无论 `after=` 位置），服务端 MUST 重新投递所有未确认、未过期的 to-device 消息；客户端 MUST 容忍重复投递，并按消息内容的事务标识（`transaction_id` / `request_id` 等）幂等处理。
 5. **过期与丢失信号**：未确认消息仍受 `DeviceMessageEnvelope.expires_at` 与 [`device-lifecycle.md` §7](../crypto-media/device-lifecycle.md) 队列 TTL 约束，过期 MUST 清除。服务端自该设备上次确认位置以来因过期或容量约束丢弃过未确认消息时，SHOULD 在下一个含 `to_device` 的响应中设置 `to_device.lost=true`；客户端收到后 SHOULD 触发密钥恢复路径（key backup / key re-request），MUST NOT 静默假设队列完整。
@@ -579,7 +579,7 @@ To-device 队列过长时，服务器 MAY 在 account subscribe `delta.to_device
 GET /_cokret/self/device_messages?from=<cursor>&limit=...
 ```
 
-该 endpoint 的 `from` cursor 同样 MUST 通过 §12 完整性校验后才能用作读取位置；该读取位置是只读的，MUST NOT 触发队列删除（删除只经 §10.1 显式 ack）。`from=` 是 `ck.self.device_messages.get` 的历史例外命名（见 [`api-conventions.md` §7.1](./api-conventions.md)）；新增接口 MUST 用 `before` / `after`，不得把 `from=` 当作推荐形态。客户端 MUST NOT 把 account subscribe 顶层 `cursor` 当成 to-device 队列分页 cursor；顶层 `cursor` 只用于 account stream resume，to-device 队列分页只使用 `delta.to_device.next_cursor`。
+该 endpoint 的 `from` cursor 同样 MUST 通过 §12 完整性校验后才能用作读取位置；该读取位置是只读的，MUST NOT 触发队列删除（删除只经 §10.1 显式 ack）。`from=` 是 `ck.self.device_messages.query.list` 的历史例外命名（见 [`api-conventions.md` §7.1](./api-conventions.md)）；新增接口 MUST 用 `before` / `after`，不得把 `from=` 当作推荐形态。客户端 MUST NOT 把 account subscribe 顶层 `cursor` 当成 to-device 队列分页 cursor；顶层 `cursor` 只用于 account stream resume，to-device 队列分页只使用 `delta.to_device.next_cursor`。
 
 ## 11. Filters
 
@@ -604,7 +604,7 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 
 ### 11.1 Events 面的 query-scope digest（normative）
 
-`ck.self.events.query`、`ck.self.events.subscribe`、`ck.peer.events.query`（含各 binding variant，如 `ck.self.events.query_post`）签发的 stream cursor，其绑定中的 `filter_digest` MUST 覆盖**完整查询作用域**，不只是 `filters`：
+`ck.self.events.query.scan`、`ck.self.events.stream.subscribe`、`ck.peer.events.query.scan`（含各 binding variant，如 `ck.self.events.query.scan_body`）签发的 stream cursor，其绑定中的 `filter_digest` MUST 覆盖**完整查询作用域**，不只是 `filters`：
 
 1. normalized scope object 包含全部**非位置性**、决定结果集合或结果形状的请求参数：selector（`realms`、`actors`）、`filters` object、`order`，以及 profile 引入的等价参数。
 2. 位置性参数（`before` / `after` / `limit` / cursor 本身）与认证材料 MUST NOT 进入 digest——它们随每次调用变化，不属于作用域身份。
@@ -672,7 +672,7 @@ Cursor revoke 不能替代 cursor integrity：服务端仍必须先做 §12.2 �
 
 恢复流程按触发原因分成两类互斥分支，客户端 MUST 先按 §4 的分类判定原因再进入对应分支；两类分支对"旧 cursor 是否可继续复用"的处理**根本不同**，不得混用同一套 `after=` 取值。
 
-> **frontier 不是 cursor（前置约定）**：`account/describe`（`ServiceDescribe` 私有 frontier 扩展字段）与 `snapshot/head`（`ck.schema.snapshot.v1` manifest 的 `frontier.event_ids`）返回的 frontier 是 **boundary head event id 集合**，不是 stream cursor（`ck:cursor:<base64url>`）。`ck.self.events.query` / `ck.self.account.subscribe` 的 `before=` / `after=` 参数类型严格是 `cursor`（见 [`service-http-binding.md` §3.3.2](./service-http-binding.md)），任何其它边界参数 MUST 触发 `invalid_param`。因此客户端 **MUST NOT** 把 frontier event id 直接填入 `after=` / `before=`；frontier 在恢复中只作为 backfill 的**停止判据**（拉到的事件命中 `frontier.event_ids` / `event_set_commitment.covered_event_ids` 即接上当前态），续传位置由 `events.query` 响应返回的 `prev_cursor` / `next_cursor` 决定。
+> **frontier 不是 cursor（前置约定）**：`account/describe`（`ServiceDescribe` 私有 frontier 扩展字段）与 `snapshot/head`（`ck.schema.snapshot.v1` manifest 的 `frontier.event_ids`）返回的 frontier 是 **boundary head event id 集合**，不是 stream cursor（`ck:cursor:<base64url>`）。`ck.self.events.query.scan` / `ck.self.account.stream.subscribe` 的 `before=` / `after=` 参数类型严格是 `cursor`（见 [`service-http-binding.md` §3.3.2](./service-http-binding.md)），任何其它边界参数 MUST 触发 `invalid_param`。因此客户端 **MUST NOT** 把 frontier event id 直接填入 `after=` / `before=`；frontier 在恢复中只作为 backfill 的**停止判据**（拉到的事件命中 `frontier.event_ids` / `event_set_commitment.covered_event_ids` 即接上当前态），续传位置由 `events.query` 响应返回的 `prev_cursor` / `next_cursor` 决定。
 
 #### 12.3.1 `cursor_expired` / `cursor_integrity_invalid`（旧 cursor MUST 废弃）
 
@@ -680,20 +680,20 @@ cursor 本端状态失效（TTL 超时，或 tamper / 未知 handle / cross-bind
 
 1. 客户端 MUST 清空本地 cursor 缓存（含该流的 `after=` 高水位）；**MUST NOT** 把已失效的旧 cursor 复用为任何 `after=` / `before=` 起点或 backfill 续传位置。`filter_digest`、未确认写入和最后可验证 frontier 可保留用于 backfill 停止判定，但 frontier 不得当作 cursor 使用。
 2. 客户端从下列两条合法新起点二选一，二者都不复用旧 cursor：
-   - **(A) 重做 initial sync**：无 `after` 重新建立 `ck.self.account.subscribe?catchup=true`（`after=` 缺省 + `catchup=true`），由服务端发 baseline `delta` 重新签发新 cursor。
-   - **(B) snapshot 加速 bootstrap**：调用 `ck.self.snapshot.head` 取 `ck.schema.snapshot.v1` manifest，MUST 先验证签名、签名者授权、`state_digest`、`frontier`、`event_set_commitment` 和每个 chunk digest（[`service-http-binding.md` §6.1](./service-http-binding.md)、§13）。验证通过后把 `frontier.event_ids` 作为该 Realm 已知态边界，再以 `ck.self.events.query` **从 server head 向更旧方向 backfill**（省略 `after`，即隐式 `before=<server_head>`，并用响应 `prev_cursor` 作为下一页 `before=`），直到拉到的事件命中 `frontier.event_ids` / `event_set_commitment.covered_event_ids` 即停止；账号聚合面仍按 (A) 重新建立 subscribe 取得新 cursor。
-3. 若 snapshot 校验失败、manifest 不可用或服务端未宣告 `ck.self.snapshot.head`，客户端 MUST 回退到 (A) 的 initial sync 或纯 Event history replay，**不得**把未验证 snapshot 作为 accepted state，也不得退回复用旧 cursor。
+   - **(A) 重做 initial sync**：无 `after` 重新建立 `ck.self.account.stream.subscribe?catchup=true`（`after=` 缺省 + `catchup=true`），由服务端发 baseline `delta` 重新签发新 cursor。
+   - **(B) snapshot 加速 bootstrap**：调用 `ck.self.snapshot.query.manifest_head` 取 `ck.schema.snapshot.v1` manifest，MUST 先验证签名、签名者授权、`state_digest`、`frontier`、`event_set_commitment` 和每个 chunk digest（[`service-http-binding.md` §6.1](./service-http-binding.md)、§13）。验证通过后把 `frontier.event_ids` 作为该 Realm 已知态边界，再以 `ck.self.events.query.scan` **从 server head 向更旧方向 backfill**（省略 `after`，即隐式 `before=<server_head>`，并用响应 `prev_cursor` 作为下一页 `before=`），直到拉到的事件命中 `frontier.event_ids` / `event_set_commitment.covered_event_ids` 即停止；账号聚合面仍按 (A) 重新建立 subscribe 取得新 cursor。
+3. 若 snapshot 校验失败、manifest 不可用或服务端未宣告 `ck.self.snapshot.query.manifest_head`，客户端 MUST 回退到 (A) 的 initial sync 或纯 Event history replay，**不得**把未验证 snapshot 作为 accepted state，也不得退回复用旧 cursor。
 
 #### 12.3.2 `stale_frontier`（旧 cursor 仍有效，可继续 backfill）
 
 cursor 本身仍有效，只是服务 frontier 落后于请求所需 causal frontier。此分支 **MUST NOT** 清 cursor 重做 initial sync：
 
 1. 客户端保留本地 `cursor`、`filter_digest`、未确认写入和最后可验证 frontier。
-2. 按 `retry_after_ms` / `Retry-After` 退避后，用**现有 cursor** 重试 / 等待 frontier 推进；需要补洞时，可先调用 `account/describe` 或 `snapshot/head` 读当前 frontier 作为停止判据，再用**现有 cursor** 的 `prev_cursor` / `next_cursor` 续传 `ck.self.events.query` 补齐缺口。snapshot 采用前同样 MUST 完成上述全部校验。
+2. 按 `retry_after_ms` / `Retry-After` 退避后，用**现有 cursor** 重试 / 等待 frontier 推进；需要补洞时，可先调用 `account/describe` 或 `snapshot/head` 读当前 frontier 作为停止判据，再用**现有 cursor** 的 `prev_cursor` / `next_cursor` 续传 `ck.self.events.query.scan` 补齐缺口。snapshot 采用前同样 MUST 完成上述全部校验。
 
 #### 12.3.3 Range completeness（两分支共用）
 
-服务端声明 `events_query_range_completeness` feature 时，客户端 SHOULD 在恢复 backfill 的 `ck.self.events.query` 调用上设置 `include_completeness=true`，并在补齐后按 [`service-http-binding.md` §3.3.6](./service-http-binding.md) 验证覆盖该缺口区间的 `ck.attestation.range_completeness`——cursor + `has_more` 只证明"拿到了页"，attestation 才证明"该区间没有事件被静默扣下"。验证失败（`range_completeness_root_mismatch` / `range_completeness_actor_seq_gap` / `witness_disagreement`）时 MUST 把该区间标记 degraded 并 fail closed，不得向用户展示"历史完整"。high-assurance Realm（`security_class=high_assurance` 或 `ck.profile.federation.high_assurance.v1`）下该 SHOULD 升级为 MUST。
+服务端声明 `events_query_range_completeness` feature 时，客户端 SHOULD 在恢复 backfill 的 `ck.self.events.query.scan` 调用上设置 `include_completeness=true`，并在补齐后按 [`service-http-binding.md` §3.3.6](./service-http-binding.md) 验证覆盖该缺口区间的 `ck.attestation.range_completeness`——cursor + `has_more` 只证明"拿到了页"，attestation 才证明"该区间没有事件被静默扣下"。验证失败（`range_completeness_root_mismatch` / `range_completeness_actor_seq_gap` / `witness_disagreement`）时 MUST 把该区间标记 degraded 并 fail closed，不得向用户展示"历史完整"。high-assurance Realm（`security_class=high_assurance` 或 `ck.profile.federation.high_assurance.v1`）下该 SHOULD 升级为 MUST。
 
 ## 13. Initial Sync
 
@@ -713,7 +713,7 @@ Accept: application/x-ndjson
 
 大型账户 MAY 使用 sliding window subscriptions，避免一次性返回所有 Realm。
 
-大型 Realm 的当前态 MAY 在 initial sync 中通过 snapshot bootstrap 加速：客户端先调用 `ck.self.snapshot.head` 获取 `ck.schema.snapshot.v1` manifest，完成签名、authority binding、`event_set_commitment`、`state_digest` 与 chunk digest 校验后，把 snapshot frontier 作为该 Realm 的恢复起点；随后仍 MUST 从该 frontier 之后继续执行 `ck.self.events.query` / backfill，直至账号 baseline 与 Realm event stream 收敛。snapshot 校验失败、manifest 不可用或服务端未宣告 `ck.self.snapshot.head` 时，客户端 MUST 回退到原始 Event history replay，不得把未验证 snapshot 作为 accepted state。
+大型 Realm 的当前态 MAY 在 initial sync 中通过 snapshot bootstrap 加速：客户端先调用 `ck.self.snapshot.query.manifest_head` 获取 `ck.schema.snapshot.v1` manifest，完成签名、authority binding、`event_set_commitment`、`state_digest` 与 chunk digest 校验后，把 snapshot frontier 作为该 Realm 的恢复起点；随后仍 MUST 从该 frontier 之后继续执行 `ck.self.events.query.scan` / backfill，直至账号 baseline 与 Realm event stream 收敛。snapshot 校验失败、manifest 不可用或服务端未宣告 `ck.self.snapshot.query.manifest_head` 时，客户端 MUST 回退到原始 Event history replay，不得把未验证 snapshot 作为 accepted state。
 
 ## 14. E2EE Requirements
 

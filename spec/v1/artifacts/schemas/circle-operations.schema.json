@@ -318,7 +318,7 @@
     },
     "circle_lifecycle_request_body": {
       "type": "object",
-      "description": "Optional body for ck.self.circle.archive / ck.self.circle.tombstone. The target circle is taken from the path.",
+      "description": "Optional body for ck.self.circle.command.archive / ck.self.circle.command.tombstone. The target circle is taken from the path.",
       "properties": {
         "reason_code": {
           "type": "string",

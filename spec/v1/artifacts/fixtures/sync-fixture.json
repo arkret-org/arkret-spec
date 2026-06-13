@@ -73,7 +73,7 @@
       "code": "cursor_expired",
       "http_status": 410,
       "recovery": {
-        "call": "ck.self.snapshot.head",
+        "call": "ck.self.snapshot.query.manifest_head",
         "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
       }
     }
@@ -91,26 +91,26 @@
       "allowed_recovery": [
         {
           "branch": "initial_sync",
-          "call": "ck.self.account.subscribe",
+          "call": "ck.self.account.stream.subscribe",
           "after_present": false,
           "catchup": true
         },
         {
           "branch": "snapshot_bootstrap",
-          "call": "ck.self.snapshot.head",
+          "call": "ck.self.snapshot.query.manifest_head",
           "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
         }
       ],
       "forbidden_recovery": [
         {
           "branch": "reuse_failed_cursor",
-          "call": "ck.self.events.query",
+          "call": "ck.self.events.query.scan",
           "after": "ck:cursor:eyJoIjoiWlhod2FYSmxaQzF6ZEhKbFlXMHRhR0Z1Wkd4bCIsInB1cnBvc2UiOiJzdHJlYW0iLCJ0IjoiMjAyNi0wMS0wMVQwMDowMDowMFoiLCJ2IjoiMSIsIngiOjE3NjcyMjU2MDAwMDB9",
           "reject_reason": "failed cursor reused as after="
         },
         {
           "branch": "frontier_as_cursor",
-          "call": "ck.self.events.query",
+          "call": "ck.self.events.query.scan",
           "after": "ck:event:019640ed-8000-7000-8000-000000000000",
           "reject_reason": "invalid_param: snapshot frontier event_id is not a cursor"
         }
@@ -137,7 +137,7 @@
     "expected": {
       "verify_signature": true,
       "verify_event_set_commitment": true,
-      "backfill_call": "ck.self.events.query",
+      "backfill_call": "ck.self.events.query.scan",
       "backfill_direction": "from_head_toward_older",
       "backfill_after_present": false,
       "backfill_stop_frontier": [

@@ -2437,7 +2437,7 @@ Negative cases：
 
 Steps：
 
-1. Origin service `did:web:alpha.example` 使用 active service key 向 destination 提交 `POST /_cokret/peer/events`（`ck.peer.events.submit`），header 绑定 `Source-Service-DID`、`Destination-Service-DID`、`Source-Trust-Domain`、`Destination-Trust-Domain`、`Request-Canonical-Digest`、`Idempotency-Key`，批次 accepted。
+1. Origin service `did:web:alpha.example` 使用 active service key 向 destination 提交 `POST /_cokret/peer/events`（`ck.peer.events.command.submit`），header 绑定 `Source-Service-DID`、`Destination-Service-DID`、`Source-Trust-Domain`、`Destination-Trust-Domain`、`Request-Canonical-Digest`、`Idempotency-Key`，批次 accepted。
 2. Realm policy 或 DID Document 随后撤销该 origin service key；destination 的 accepted authorization frontier 前进。
 3. 攻击者重放完全相同的 HTTP body、signature 与 `Idempotency-Key`。
 
@@ -2639,7 +2639,7 @@ Expected：
 
 Steps：
 
-1. Actor 对 `ck.typing` 提交 `ck.self.ephemeral.send`，但只持有 `ck.presence.broadcast`。
+1. Actor 对 `ck.typing` 提交 `ck.self.ephemeral.command.send`，但只持有 `ck.presence.broadcast`。
 2. Actor 持有正确 action 后，提交超出 advertised kind-specific TTL 的 envelope。
 3. Ephemeral channel 暂时不可用。
 
@@ -2655,7 +2655,7 @@ Expected：
 
 Steps：
 
-1. 调用 `ck.self.projection.spaces` / `flows` / `morphs`，请求 `limit=1`。
+1. 调用 `ck.self.projection.spaces.query.list` / `flows` / `morphs`，请求 `limit=1`。
 2. 使用返回的 `next_cursor` 继续读取。
 3. 下游 service-call 返回缺失 `has_more` 或 cursor 形态不合法的响应。
 
@@ -2721,7 +2721,7 @@ Expected：
 
 Steps：
 
-1. Auth Server 收到 `ck.gate.account.issue_session_grant`，proof 中 `audience` 与目标 resource server 不匹配。
+1. Auth Server 收到 `ck.gate.account.command.issue_session_grant`，proof 中 `audience` 与目标 resource server 不匹配。
 2. 请求缺少 `request_canonical_digest` 或 hash 不覆盖 `principal_id`、`device_id?`、`requested_scope` 与 `audience`。
 3. 请求的 `expires_at` 超过 Auth Server 声明的 session grant TTL 上限。
 4. Auth Server 在 `development_mode=true` 时尝试把 `ck.profile.auth_server.v1` 放入 `verified_profiles[]`。
@@ -2777,7 +2777,7 @@ Steps：
 
 Expected：
 
-- 第 2 步 MUST 返回 `cursor_revoked`，且不推进 subscription position（to-device 队列删除只由 `ck.self.device_messages.ack` 驱动，与 cursor 无关）。
+- 第 2 步 MUST 返回 `cursor_revoked`，且不推进 subscription position（to-device 队列删除只由 `ck.self.device_messages.command.ack` 驱动，与 cursor 无关）。
 - 第 3 步 MUST 返回 `cursor_integrity_invalid`，不得泄露 revocation set 是否命中。
 
 ### 10.9 Vector: Device Recovery Lifecycle
@@ -2802,10 +2802,10 @@ Expected：
 
 Steps：
 
-1. `ck.device.revoke` 作为 Control Move 提交，信封携带有效 `seal_basis`（单 leaf，取自 `ck.self.events.frontier` 的 Realm Seal view），随后被 principal control stream 的 accepted Seal S 覆盖（`control_sealed`）。
+1. `ck.device.revoke` 作为 Control Move 提交，信封携带有效 `seal_basis`（单 leaf，取自 `ck.self.events.query.frontier` 的 Realm Seal view），随后被 principal control stream 的 accepted Seal S 覆盖（`control_sealed`）。
 2. 攻击者重放该设备在 S 之后（以 S 或其后继 Seal view 判定）签发的 session grant、KeyPackage publish 或 to-device write。
 3. 某 E2EE Realm 提交 MLS Remove，但 `governance_binding.membership_frontier` 未覆盖该 `ck.device.revoke` 事件，也未覆盖导入该撤销的 Realm governance Control Move。
-4. 客户端在 `ck.self.events.frontier` 来源不可用（错误或缺 `seal_id` / `control_event_set_root`）时尝试提交 `ck.device.revoke`。
+4. 客户端在 `ck.self.events.query.frontier` 来源不可用（错误或缺 `seal_id` / `control_event_set_root`）时尝试提交 `ck.device.revoke`。
 
 Expected：
 
@@ -2875,7 +2875,7 @@ Expected：
 
 Steps：
 
-1. 客户端因 `dropped` / cursor 失效按 [`client-sync.md` §12.3](../sync/client-sync.md) 恢复，调用 `ck.self.events.query`（`include_completeness=true`）backfill 区间 `(F1, F2]`。
+1. 客户端因 `dropped` / cursor 失效按 [`client-sync.md` §12.3](../sync/client-sync.md) 恢复，调用 `ck.self.events.query.scan`（`include_completeness=true`）backfill 区间 `(F1, F2]`。
 2. 服务端返回完整事件页 + `range_completeness.attestation_refs[]`；客户端按 [`operations-sync.md` §4.2.4](../sync/operations-sync.md) 重算 Merkle root 并核对 `actor_seq_ranges[]`。
 3. 变体 A：服务端从响应中扣下 Bob `seq 14..16` 的事件，但返回同一 attestation。
 4. 变体 B：服务端未声明该 feature，收到 `include_completeness=true`。
@@ -2896,8 +2896,8 @@ Expected：
 
 Steps:
 
-1. Controller 调用 `ck.self.agent.provision`,得到 `agent_principal_id`、初始 grant ids(每条 grant payload 含 `effective_after_first_authorized_key=true`)与 `pairing_request_id`。
-2. Agent runtime 生成 key pair,调用 `ck.gate.account.agent_key_pair`。
+1. Controller 调用 `ck.self.agent.command.provision`,得到 `agent_principal_id`、初始 grant ids(每条 grant payload 含 `effective_after_first_authorized_key=true`)与 `pairing_request_id`。
+2. Agent runtime 生成 key pair,调用 `ck.gate.account.command.pair_agent_key`。
 3. Pairing endpoint 校验 `verification_method` 的 DID 部分(strip fragment/query 后)与 `agent_principal_id` bit-identical。
 4. 批准后写入 `ck.agent.key.authorize`,reducer 清除 effective_after_first_authorized_key flag。
 
@@ -2939,14 +2939,14 @@ Expected:
 
 Steps:
 
-1. Controller 调用 `ck.self.agent.provision`,pairing 窗口 12 小时,grant TTL 30 天。
-2. Pairing 12 小时窗口过期，未提交 `ck.gate.account.agent_key_pair`。
+1. Controller 调用 `ck.self.agent.command.provision`,pairing 窗口 12 小时,grant TTL 30 天。
+2. Pairing 12 小时窗口过期，未提交 `ck.gate.account.command.pair_agent_key`。
 
 Expected:
 
 - 服务 MUST 自动写入 `ck.capability.revoke` 撤销 pending grant,agent status → `pairing_expired`。
-- 重放 `ck.gate.account.agent_key_pair`(使用过期 pairing_request_id)MUST fail closed。
-- Controller 可重新发起 `ck.self.agent.provision`,得到新 pairing_request_id;旧 agent_principal_id 与新 provisioning 不复用。
+- 重放 `ck.gate.account.command.pair_agent_key`(使用过期 pairing_request_id)MUST fail closed。
+- Controller 可重新发起 `ck.self.agent.command.provision`,得到新 pairing_request_id;旧 agent_principal_id 与新 provisioning 不复用。
 
 ### 11.3 Vector: Agent Session Grant Replay Protection
 
@@ -2954,7 +2954,7 @@ Expected:
 
 Steps:
 
-1. Agent runtime 提交 `ck.gate.account.issue_session_grant`,`proof.proof_kind="agent_key_proof"`,proof 含 challenge / audience / request_canonical_digest / expires_at / signature。
+1. Agent runtime 提交 `ck.gate.account.command.issue_session_grant`,`proof.proof_kind="agent_key_proof"`,proof 含 challenge / audience / request_canonical_digest / expires_at / signature。
 2. 第二次提交同样的 proof(同样 challenge / digest / signature)。
 3. 提交一份 audience 改成另一 service 的 proof。
 4. 把 proof.signature 改写但 challenge 不变。
@@ -2978,7 +2978,7 @@ Steps:
 Expected:
 
 - A 的 active session `S` MUST 在 revocation freshness window(≤ session TTL)内 fail closed。
-- A 后续任何 `ck.gate.account.issue_session_grant` MUST fail closed。
+- A 后续任何 `ck.gate.account.command.issue_session_grant` MUST fail closed。
 - A 在已加入的 sidecar Circle 中由 reducer 主动 fan-out `ck.circle.member.state -> leave`；若该 Circle 为 MLS-backed，MLS group 进入新 epoch。
 
 ### 11.5 Vector: Act-on-behalf Attribution
@@ -3007,7 +3007,7 @@ Steps:
 
 1. Realm A 中存在 weak semantic Relation `R1`,目标指向 Realm B 内对象；调用者 C 可读 Realm A,但不能 discover / reference Realm B。
 2. Realm A 中存在形态相同的 Relation `R2`,目标指向不存在或不可发现的 Realm / object id。
-3. C 分别调用 Relation projection query、`ck.self.events.query` raw event API、backfill pull 与 federation peer fanout 视图。
+3. C 分别调用 Relation projection query、`ck.self.events.query.scan` raw event API、backfill pull 与 federation peer fanout 视图。
 4. 在同一服务端测量点、同一请求类别与同一部署 profile 下，对 `R1` / `R2` 每类至少采样 30 次。
 5. Auditor D 同时持有 source + target disclosure,读取 `R1` 的完整 canonical event。
 
@@ -3044,7 +3044,7 @@ Expected:
 
 Steps:
 
-1. Alice 的两台设备并发调用 `ck.self.agent.sidecar_thread.ensure` 同一 `context_ref`。
+1. Alice 的两台设备并发调用 `ck.self.agent.sidecar_thread.command.ensure` 同一 `context_ref`。
 2. 同一 Alice 第三次调用 `ensure`(同样 context_ref),`addressed_agent_principal_ids` 列表不同。
 3. Alice 在另一 context_ref 调用 ensure(同 Realm)。
 
@@ -3060,7 +3060,7 @@ Expected:
 
 Steps(均以 non-sidecar-member 视角):
 
-1. `ck.self.events.subscribe` / `ck.self.events.query` 目标 Realm。
+1. `ck.self.events.stream.subscribe` / `ck.self.events.query.scan` 目标 Realm。
 2. 对 `to_ref=<target_message_id>` 的 relation query。
 3. Realm directory 调用。
 4. 触发目标 Flow 的 notification fanout。
@@ -3083,7 +3083,7 @@ Steps:
 1. Alice 有 agents `{S, R}`。S 已 paired (`active`),R 未发布 KeyPackage(eligible but pending join)。
 2. Alice 调用 ensure。
 3. R 发布 KeyPackage,服务端 async reconcile。
-4. Alice 调用 `ck.self.agent.deactivate` 对 R。
+4. Alice 调用 `ck.self.agent.command.deactivate` 对 R。
 
 Expected:
 
@@ -3295,7 +3295,7 @@ Setup:
 
 1. Realm R 的 discoverability 为 `invite_only`，但 Alice 给 Bob 发出 `lt=preview` token。token payload 绑定 `target_digest`、`link_type="preview"`、`preview_policy_digest`、`aud=Bob`、短 TTL。
 2. Effective `ck.realm.preview_policy.value.mode = "stripped_state"`，fields 只包含 `title`、`summary`、`join_rule`、`member_count_bucket`。
-3. Bob 调用 `ck.find.directory.resolve_target`，携带 address 与 token。
+3. Bob 调用 `ck.find.directory.query.resolve_target`，携带 address 与 token。
 4. 攻击者 Mallory 把同一 token 放到另一个 Flow address，或把 URL `lt` 改为 `invite`。
 
 Expected:
@@ -3395,13 +3395,13 @@ Steps：
 
 - **Case A — roundtrip 正路径**：
   1. E2EE Realm 中 sender 发送密文消息；receiving service 按 §3.4 生成 `ck.moderation.franking_proof`（含 `routing_metadata_digest`、`ciphertext_digest`、`aad_digest`、`sender_claim`（仅 `mls_group_id_digest`，无 raw `mls_group_id` / 明文 `epoch`）、`received_by`、`received_at`、`replay_nonce`、`signature`，并通过 [`moderation-report.schema.json`](../../artifacts/schemas/moderation-report.schema.json) `franking_proof` 分支）。
-  2. reporter 提交 `ck.self.moderation.report`，附加密 evidence package（加密给 `effective_scope` 对应 moderator audience）与该 `franking_proof`。
+  2. reporter 提交 `ck.self.moderation.command.report`，附加密 evidence package（加密给 `effective_scope` 对应 moderator audience）与该 `franking_proof`。
   3. moderator 按 §3.4.1 “Franking 信任链” 步骤 1–6 验证（receiving service DID 解析、verification method 在 `received_at` 有效且未撤销、service 在目标 Realm 被授权、payload hash 覆盖完整、`received_at` 时序新鲜度）。
 - **Case B — 篡改 / 最小披露违反**：(a) `franking_proof.ciphertext_digest` 与目标 encrypted envelope digest 不一致；(b) `sender_claim` 携带 raw `mls_group_id` 或明文整数 `epoch`，或 proof 包含 plaintext body。
 
 Expected：
 
-- **Case A**：全部校验通过后，moderator MAY 把 `franking_proof` 视为可验证投递证明；evidence package MUST NOT 包含 Realm / Circle 历史 key、MLS epoch secret、exporter secret 或允许 moderator 解密未举报消息的材料；举报 MUST NOT 触发任何治理密钥释放（§3.4.1：MUST NOT 把 `ck.self.moderation.report` 自动升级为 `ck.audit.session.request`）。
+- **Case A**：全部校验通过后，moderator MAY 把 `franking_proof` 视为可验证投递证明；evidence package MUST NOT 包含 Realm / Circle 历史 key、MLS epoch secret、exporter secret 或允许 moderator 解密未举报消息的材料；举报 MUST NOT 触发任何治理密钥释放（§3.4.1：MUST NOT 把 `ck.self.moderation.command.report` 自动升级为 `ck.audit.session.request`）。
 - **Case B(a)**：任一 digest 环节不符时，moderator MAY 把材料作为人工线索，但 MUST NOT 将该 `franking_proof` 视为可验证投递证明。
 - **Case B(b)**：schema / receiver MUST 拒绝携带 raw `mls_group_id`、明文 `epoch` 或 plaintext body 的 `franking_proof`（§3.4 最小披露 MUST NOT 条款）。
 
@@ -3460,7 +3460,7 @@ Expected：
 
 `vector_id`: `ck.vector.key_backup.unlock_proof.v1`
 
-本向量固化 [`key-management.md`](../identity/key-management.md) §7.7.1 / §7.8 的取回校验 MUST：取回完整 ciphertext 的协议操作是 `ck.self.keys.backups.unlock`（`POST /_cokret/self/keys/backups/{backup_id}/unlock`），unlock proof MUST 作为 request body 的 `proof` 字段提交；“服务端在返回完整 ciphertext 之前，MUST 校验该 unlock proof 与请求 session、caller、新设备 key、active-series record 和目标 envelope 一致；任一不符 MUST fail closed”；“`POST /_cokret/self/keys/backups/{backup_id}/unlock` 即便对自己的备份也 MUST 要求 fresh device proof……bearer token 单独到达 MUST 被拒绝”。
+本向量固化 [`key-management.md`](../identity/key-management.md) §7.7.1 / §7.8 的取回校验 MUST：取回完整 ciphertext 的协议操作是 `ck.self.keys.backups.command.unlock`（`POST /_cokret/self/keys/backups/{backup_id}/unlock`），unlock proof MUST 作为 request body 的 `proof` 字段提交；“服务端在返回完整 ciphertext 之前，MUST 校验该 unlock proof 与请求 session、caller、新设备 key、active-series record 和目标 envelope 一致；任一不符 MUST fail closed”；“`POST /_cokret/self/keys/backups/{backup_id}/unlock` 即便对自己的备份也 MUST 要求 fresh device proof……bearer token 单独到达 MUST 被拒绝”。
 
 Steps：
 
@@ -3616,7 +3616,7 @@ Expected：
 
 本向量固化 §2.6.2 的优先序、复用与幂等 consume MUST：池中存在普通包时 claim MUST 优先返回普通包，仅普通包池空时 MAY 返回 `last_resort=true` 包；last-resort 包 MUST NOT 进入单次 `consumed` 终态，在 `published` 与多次 `claimed` 之间循环；`ck.keys.keypackages.consume` 对 last-resort `keypackage_ref` MUST 被识别为幂等（返回成功但不改 `published`，不得返回 `keypackage_already_consumed`）；每次消费 MUST emit append-only 审计记录。
 
-Steps（前置：服务端在 `ck.server.describe.supported_features` 声明 `ck.feature.mls_last_resort_keypackage.v1`，目标 Realm policy 允许 last-resort join）：
+Steps（前置：服务端在 `ck.server.query.describe.supported_features` 声明 `ck.feature.mls_last_resort_keypackage.v1`，目标 Realm policy 允许 last-resort join）：
 
 1. 该 Realm 的普通（单次）KeyPackage 池耗尽；requester 发起 claim。
 2. 同一 `intended_realm_id` 内对该 last-resort 包发起多次 Welcome（多次 claim / consume）。
@@ -3655,7 +3655,7 @@ Expected：
 Steps：
 
 - **Case A — 跨 Realm 复用拒绝**：声明该 feature 的服务端，尝试把绑定 `intended_realm_id = R1` 的 last-resort 包用于另一 Realm `R2` 的 Welcome / claim（`intended_realm_id` 不一致）。
-- **Case B — 未声明 feature 池空 fail-closed**：未在 `ck.server.describe.supported_features` 声明 `ck.feature.mls_last_resort_keypackage.v1` 的服务端，其某 Realm 普通包池耗尽；requester claim，并显式请求 last-resort 回退。
+- **Case B — 未声明 feature 池空 fail-closed**：未在 `ck.server.query.describe.supported_features` 声明 `ck.feature.mls_last_resort_keypackage.v1` 的服务端，其某 Realm 普通包池耗尽；requester claim，并显式请求 last-resort 回退。
 - **Case C — holder 无该 Realm 条目（对照）**：声明该 feature 但 holder 离线期间某 Realm 尚无 last-resort 条目，该 Realm 普通包池空。
 
 Expected：

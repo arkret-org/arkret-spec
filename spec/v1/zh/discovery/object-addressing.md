@@ -18,7 +18,7 @@ updated: 2026-06-10
 
 地址层**只负责寻址**。授权不是地址的一部分，而是挂在地址上的、有 expiry、audience-bound、可吊销的签名 token。**寻址 ≠ 授权**：裸地址解析仍受 [`discovery-directory.md` §2/§3](./discovery-directory.md) 的 discoverability / join / history 三 gate 约束，请求方看不见的资源 MUST 解析为与不存在不可区分的 `not_found`。
 
-本文定义一套地址 grammar、三种 envelope，以及解析 operation `ck.find.directory.resolve_target`。v1 的 preview link type 依赖 Realm 侧 `ck.realm.preview_policy`，但地址层本身仍不授予 membership 或写权限。
+本文定义一套地址 grammar、三种 envelope，以及解析 operation `ck.find.directory.query.resolve_target`。v1 的 preview link type 依赖 Realm 侧 `ck.realm.preview_policy`，但地址层本身仍不授予 membership 或写权限。
 
 ## 2. 三个 envelope，一套 grammar
 
@@ -87,7 +87,7 @@ v1 定义三种 link 类型：
 授权组件**统一**用两个 query 参数，**禁止** `invite_token=` / `signed_link=` 等分叉参数名（否则不同客户端生成互不互通的链接）：
 
 - `lt=<reference|invite|preview>`，省略等价 `reference`。解析方遇到其它值时 MUST 按最严格的 `reference` 语义处理（不授予任何权限）。
-- `tok=<opaque-token>`，**当且仅当** `lt ∈ {invite, preview}` 出现；直接映射到 `ck.find.directory.resolve_target` 的 `token` 输入。
+- `tok=<opaque-token>`，**当且仅当** `lt ∈ {invite, preview}` 出现；直接映射到 `ck.find.directory.query.resolve_target` 的 `token` 输入。
 - token 的内部类别（`invite_token` 风格 vs `signed_link` 风格）由签名 payload 自身表达，**不**靠 URL 参数名区分。
 - token 存在时，**权威 link_type 取自 token 签名 payload**；URL `lt` 仅是解析前的展示 hint，**MUST NOT** 用于放大权限，与 token 内声明矛盾时以 token 为准。
 
@@ -149,13 +149,13 @@ HTTPS 落地链接中，`flow` / `m` / 尤其 `tok` **MUST** 放在 URL **fragme
 - 客户端 **MUST NOT** 因 landing 域名、handler 模板域名、或链接外壳与某个已信任部署"看起来相同 / 不同"而授予任何额外权限、放大 token scope、跳过 §6 的 `resolve_target` 校验，或自动向该域名提交 `tok` / 任何授权 material。token 的兑换目标仍由其签名 payload 内的 target descriptor 决定，与承载它的 landing 域无关。
 - 对**未知 / 不在本地信任集合内**的 landing 域名，客户端 **SHOULD** 在解析或兑换前提示用户确认，避免任意域名借 Cokret 链接外壳诱导用户提交 token。
 
-## 6. 解析 operation：`ck.find.directory.resolve_target`
+## 6. 解析 operation：`ck.find.directory.query.resolve_target`
 
-`ck.find.directory.resolve_target` 是 [`discovery-directory.md` §9](./discovery-directory.md) `resolve_realm` 的对象级泛化。两者**共存**：`resolve_realm` 保留为 realm-only 入口；`resolve_target` 解析 realm 目标时 MUST 委托给同一 Realm 解析路径（不另发明 realm 解析语义，避免漂移）。
+`ck.find.directory.query.resolve_target` 是 [`discovery-directory.md` §9](./discovery-directory.md) `resolve_realm` 的对象级泛化。两者**共存**：`resolve_realm` 保留为 realm-only 入口；`resolve_target` 解析 realm 目标时 MUST 委托给同一 Realm 解析路径（不另发明 realm 解析语义，避免漂移）。
 
 | operation_id | 必填 | 可选 | 响应 | 约束 |
 | --- | --- | --- | --- | --- |
-| `ck.find.directory.resolve_target` | `address: string`（§3 canonical grammar） | `requester: did`; `proofs: proof[]`; `token: string`（`lt ∈ {invite, preview}` 时） | `target_kind: enum(realm,flow,message)`; `realm_preview: object?`; `object_preview: object?`; `join_rule: string?`; 以及 [§9.1](./discovery-directory.md) 全部通用字段 | 见下。 |
+| `ck.find.directory.query.resolve_target` | `address: string`（§3 canonical grammar） | `requester: did`; `proofs: proof[]`; `token: string`（`lt ∈ {invite, preview}` 时） | `target_kind: enum(realm,flow,message)`; `realm_preview: object?`; `object_preview: object?`; `join_rule: string?`; 以及 [§9.1](./discovery-directory.md) 全部通用字段 | 见下。 |
 
 响应约束（normative）：
 

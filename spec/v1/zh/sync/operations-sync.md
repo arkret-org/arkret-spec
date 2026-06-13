@@ -78,8 +78,8 @@ Control Move 的签名、actor chain、basis、precondition 和授权验证通�
 
 | `wire_scope` | 允许 schema | 允许提交路径 |
 | --- | --- | --- |
-| `durable_event` | `ck.schema.event.v1` | `ck.self.events.submit`、`ck.peer.events.submit` |
-| `actor_private_event` | `ck.schema.event.v1`，但不得携带 CBA reducer 字段 | `ck.self.events.submit` 的 actor 私有路径 |
+| `durable_event` | `ck.schema.event.v1` | `ck.self.events.command.submit`、`ck.peer.events.command.submit` |
+| `actor_private_event` | `ck.schema.event.v1`，但不得携带 CBA reducer 字段 | `ck.self.events.command.submit` 的 actor 私有路径 |
 | `ephemeral_event` | `ck.schema.ephemeral_envelope.v1` 或 `ck.schema.device_message.v1` | ephemeral / to-device 专用路径 |
 
 ## 3. 接收与验证
@@ -179,7 +179,7 @@ flowchart TB
 
 ## 5. 批量提交与 partial accept
 
-`ck.self.events.submit` 与 `ck.peer.events.submit` MAY 接收 `events[]` 批量。批处理的最小原子单元是单个 Event；一个 Event 的失败不得回滚同批已接受 Event。
+`ck.self.events.command.submit` 与 `ck.peer.events.command.submit` MAY 接收 `events[]` 批量。批处理的最小原子单元是单个 Event；一个 Event 的失败不得回滚同批已接受 Event。
 
 `events[]` MUST 按数组顺序处理。同批中已接受的前序 Event 仅可作为后续 Event 的解析材料：
 

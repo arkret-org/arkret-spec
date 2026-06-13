@@ -682,7 +682,7 @@
       },
       "additionalProperties": false
     },
-    "agent_participation_set_request_body": {
+    "agent_participation_replace_request_body": {
       "type": "object",
       "required": [
         "participation_scope",

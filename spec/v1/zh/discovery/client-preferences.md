@@ -175,7 +175,7 @@ updated: 2026-06-10
 
 用户可以为已知联系人（其他 Actor / Organization / 设备）保存只对自己可见的本地备注名、笔记和私有标签。该数据是 actor-private 的渲染覆盖层，**不**修改对方公开 profile，**不**写入 Realm history、mention、sender attribution 或任何协议主体字段。
 
-`ck.contacts.*` account-data key 只表达 holder-private 备注、标签、置顶、别名和本地排序。它不通知对方，不证明对方接受，也不打开 `direct_message` / `invite` / `call` / `presence` gate。联系人关系状态 MUST 从 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) 定义的 `ck.contact.*` fact log 投影；contact action gate MUST 从 [`../identity/consent-model.md`](../identity/consent-model.md) 定义的 consent cell 投影。客户端 MAY 把本地备注与 `ck.self.contact.list` 结果合并展示，但不得把 account-data note 当作 accepted contact。
+`ck.contacts.*` account-data key 只表达 holder-private 备注、标签、置顶、别名和本地排序。它不通知对方，不证明对方接受，也不打开 `direct_message` / `invite` / `call` / `presence` gate。联系人关系状态 MUST 从 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) 定义的 `ck.contact.*` fact log 投影；contact action gate MUST 从 [`../identity/consent-model.md`](../identity/consent-model.md) 定义的 consent cell 投影。客户端 MAY 把本地备注与 `ck.self.contact.query.list` 结果合并展示，但不得把 account-data note 当作 accepted contact。
 
 **Key:** `ck.contacts.actor.<did>`
 

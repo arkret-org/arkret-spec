@@ -102,7 +102,7 @@
         "destination_service_did": "did:web:server-beta.example",
         "method": "POST",
         "target_uri": "https://server-beta.example/_cokret/peer/events",
-        "operation_id": "ck.peer.events.submit",
+        "operation_id": "ck.peer.events.command.submit",
         "content_digest_matches_canonical_body": true
       },
       "expected": "canonical_request_hash_matches_signature_input"

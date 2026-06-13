@@ -5,7 +5,7 @@
   "description": "Closed request/response DTOs for the self-surface Realm policy-server config operations (ck.self.realm_policy_server.*). The PUT builds a ck.realm.policy_server Move (admission capability ck.policy.manage). This admin DTO is a simplified projection of the canonical ck.realm.policy_server payload (server_id/endpoint/public_keys/applies_to/fail_mode); see spec/v1/zh/authz/policy-server.md §2.",
   "anyOf": [
     {
-      "$ref": "#/$defs/realm_policy_server_put_request_body"
+      "$ref": "#/$defs/realm_policy_server_replace_request_body"
     },
     {
       "$ref": "#/$defs/realm_policy_server_view"
@@ -73,7 +73,7 @@
       },
       "additionalProperties": false
     },
-    "realm_policy_server_put_request_body": {
+    "realm_policy_server_replace_request_body": {
       "type": "object",
       "required": [
         "policy_server_did",

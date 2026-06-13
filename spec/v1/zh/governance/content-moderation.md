@@ -150,7 +150,7 @@ POST /_cokret/self/moderation/report
 
 ### 3.3 举报的处理
 
-- 举报会生成一个 `ck.self.moderation.report` 事件，写入 Realm Event history；Circle 举报的 plaintext metadata 和 evidence audience MUST 按 `effective_scope.kind="circle"` 加密 / 限制。
+- 举报 service operation（`ck.self.moderation.command.report`）会物化 `ck.self.moderation.report` 事件，写入 Realm Event history；Circle 举报的 plaintext metadata 和 evidence audience MUST 按 `effective_scope.kind="circle"` 加密 / 限制。
 - 该事件仅对目标 scope 的管理员 / moderator 可见；Realm-default 内容是 Realm moderator，Circle 内容是 Circle moderator 或显式覆盖该 Circle 的 Realm grant 持有者。
 - 被举报人不会收到通知。
 - 管理员可以基于举报决定后续行动（警告、删除内容、封禁用户等）。
@@ -215,7 +215,7 @@ Evidence package MUST 加密给 `effective_scope` 对应 moderator audience。�
 
 #### 3.4.1 不存在治理密钥释放
 
-Realm / Circle 治理举报没有独立审查方，也没有“为了举报给 moderator 获取 MLS key / exporter secret”的流程。实现 MUST NOT 把 `ck.self.moderation.report` 自动升级为 `ck.audit.session.request`，MUST NOT 因举报向 moderator、Policy Server、Sync Service 或外部 verifier release 历史 key / epoch key。
+Realm / Circle 治理举报没有独立审查方，也没有“为了举报给 moderator 获取 MLS key / exporter secret”的流程。实现 MUST NOT 把 `ck.self.moderation.command.report` 自动升级为 `ck.audit.session.request`，MUST NOT 因举报向 moderator、Policy Server、Sync Service 或外部 verifier release 历史 key / epoch key。
 
 需要政府 / 企业合规审计时，必须走 [`../crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md) 定义的 Audit Applet Binding + sealed release session；这与用户举报是不同协议流程。
 
@@ -540,7 +540,7 @@ Principal Server 可以配置本地服务器级 ACL，控制哪些 peer 的联�
 
 ### 6.3 与联邦协议的关系
 
-Server ACL 在联邦层（参见 [`../sync/federation.md`](../sync/federation.md) §3.4）起作用。当 Principal Server 收到来自被 deny 的 peer 的 `ck.peer.events.submit`（`/_cokret/peer/events`，`Source-Service-DID`、source trust domain 或已验证 endpoint domain 命中 deny list）请求时，MUST fail closed，SHOULD 返回 `403 policy_denied` 或 `403 capability_denied`，并保持错误最小披露。
+Server ACL 在联邦层（参见 [`../sync/federation.md`](../sync/federation.md) §3.4）起作用。当 Principal Server 收到来自被 deny 的 peer 的 `ck.peer.events.command.submit`（`/_cokret/peer/events`，`Source-Service-DID`、source trust domain 或已验证 endpoint domain 命中 deny list）请求时，MUST fail closed，SHOULD 返回 `403 policy_denied` 或 `403 capability_denied`，并保持错误最小披露。
 
 整机级 defederation 需要入站与出站同时配置：拒收该 peer 的 push / pull / frontier probe，并停止向其 fanout 新 Event、push、to-device、key-package、backfill 和媒体 / snapshot fetch。
 

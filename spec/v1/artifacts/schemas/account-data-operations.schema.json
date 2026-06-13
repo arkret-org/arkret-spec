@@ -5,7 +5,7 @@
   "description": "Closed request/response DTOs for the self-surface actor-private account_data operations (ck.self.account_data.*). PUT builds a ck.account_data.set actor-private write; the server stores content verbatim (clients own canonical encoding and, for sensitive keys, client-side encryption). data_type keys are dot-delimited namespaces validated against account-data-type-registry.json. See spec/v1/zh/discovery/client-preferences.md.",
   "anyOf": [
     {
-      "$ref": "#/$defs/account_data_set_request_body"
+      "$ref": "#/$defs/account_data_replace_request_body"
     },
     {
       "$ref": "#/$defs/account_data_entry"
@@ -50,7 +50,7 @@
       },
       "additionalProperties": false
     },
-    "account_data_set_request_body": {
+    "account_data_replace_request_body": {
       "type": "object",
       "required": [
         "content"

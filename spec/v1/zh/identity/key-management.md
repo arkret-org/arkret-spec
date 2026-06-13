@@ -151,16 +151,16 @@ agent key 的授权、轮换和撤销 MUST 进入可审计状态，而不能只�
 
 `ck.profile.personal_agent_provisioning.v1` 定义了一条面向普通用户的 personal native agent 流程，以现有 agent key 原语为基础:
 
-- **Provisioning** (`POST /_cokret/self/agents`, operation `ck.self.agent.provision`):service operation 编排 Actor Profile 创建、`ck.identity.accountability_grant`、初始 `ck.capability.grant`(标 `effective_after_first_authorized_key=true`),并返回一次性 `pairing_request_id` + `pairing_code`。不写入独立 `ck.self.agent.provision` event。
-- **Runtime key pairing** (`POST /_cokret/gate/account/agent-key-pair`, operation `ck.gate.account.agent_key_pair`):agent runtime 本地生成 key pair、提交 public key + proof-of-possession + 可选 `runtime_attestation`(v1 baseline `kind="self_asserted"`)。Pairing endpoint MUST 校验 `verification_method` 的 DID 部分(strip fragment/query 后)与请求体中 `agent_principal_id` bit-identical;不匹配 fail closed(`reason="verification_method_principal_mismatch"`)。批准后写入 `ck.agent.key.authorize`,reducer 清除该 agent principal 名下所有 `effective_after_first_authorized_key=true` flag。
+- **Provisioning** (`POST /_cokret/self/agents`, operation `ck.self.agent.command.provision`):service operation 编排 Actor Profile 创建、`ck.identity.accountability_grant`、初始 `ck.capability.grant`(标 `effective_after_first_authorized_key=true`),并返回一次性 `pairing_request_id` + `pairing_code`。不写入独立 `ck.self.agent.command.provision` event。
+- **Runtime key pairing** (`POST /_cokret/gate/account/agent-key-pair`, operation `ck.gate.account.command.pair_agent_key`):agent runtime 本地生成 key pair、提交 public key + proof-of-possession + 可选 `runtime_attestation`(v1 baseline `kind="self_asserted"`)。Pairing endpoint MUST 校验 `verification_method` 的 DID 部分(strip fragment/query 后)与请求体中 `agent_principal_id` bit-identical;不匹配 fail closed(`reason="verification_method_principal_mismatch"`)。批准后写入 `ck.agent.key.authorize`,reducer 清除该 agent principal 名下所有 `effective_after_first_authorized_key=true` flag。
 - **Pairing 失败清理**:`pairing.expires_at` 到达且未完成 pairing 时，服务 MUST 自动 `ck.capability.revoke` 撤销 pending grant,agent status → `pairing_expired`。
-- **Agent runtime authentication**:复用 `POST /_cokret/gate/account/session-grants`(operation `ck.gate.account.issue_session_grant`),通过 `proof.proof_kind="agent_key_proof"` 分支区分。Auth Server MUST 维护独立 schema branch、独立 proof validator;不得让 `agent_key_proof` 走 password / OIDC / passkey 的 validator fallback。请求侧 `agent_scope_request` 是 `ck.profile.agent_auth.v1` overlay,签发后的 scope MUST 物化为 capabilities.md 已注册的 `allowed_tracks` / `allowed_flow_ids` / `allowed_data_classes` / `allowed_endpoints` 等 typed constraints。
+- **Agent runtime authentication**:复用 `POST /_cokret/gate/account/session-grants`(operation `ck.gate.account.command.issue_session_grant`),通过 `proof.proof_kind="agent_key_proof"` 分支区分。Auth Server MUST 维护独立 schema branch、独立 proof validator;不得让 `agent_key_proof` 走 password / OIDC / passkey 的 validator fallback。请求侧 `agent_scope_request` 是 `ck.profile.agent_auth.v1` overlay,签发后的 scope MUST 物化为 capabilities.md 已注册的 `allowed_tracks` / `allowed_flow_ids` / `allowed_data_classes` / `allowed_endpoints` 等 typed constraints。
 - **Session TTL**:Agent session grant 默认最大 TTL SHOULD 为 15 分钟；若 deployment profile 显式声明更长，不应超过 60 分钟。Controller 进入 `deactivated` / `suspended` 后，其 accountable agent 的 active sessions MUST 通过 account lifecycle / revocation 链失效。
 - **High-risk approval**:Auth Server MUST NOT 给 agent runtime 展示 CAPTCHA / OTP 页面；需要人类批准时返回 structured error `code=claim_required`、`reason_code=human_approval_required`、`approval_request_id=<opaque>`。Controller 在带外 UI 完成批准，产生 capability / delegation / approval event,agent retry 时引用该 event。
 - **E2EE access**:Agent MUST 作为独立 MLS member 参与，不得伪装成 controller 的 delegated device;agent MLS KeyPackage SHOULD 由 active `ck.agent.key.authorize.verification_method` 签发或绑定，使 key authorization、session proof 与 MLS membership 落在同一审计链。
 - **Sidecar exposure 披露**:pairing approval UI 上，若该 controller 在新 agent 将要 active 的任一 Realm 中已存在 `ck.profile.agent_sidecar_thread.v1` sidecar Circle,实现 MUST 显式披露 "该 agent 激活后将自动获得这些 Realm 中现有 AI sidecar 私聊的访问权"(见 [`../models/circle.md` §11.1](../models/circle.md))。
-- **Lifecycle**:`ck.self.agent.pause` / `ck.self.agent.resume` / `ck.self.agent.deactivate` 是 agent lifecycle 写入。Pause 保留 durable state 但拒绝新 session;Auth Server SHOULD 在 revocation freshness window(≤ session 最大 TTL)内对已签发 session token fail closed。Revoke 是 terminal,fan-out `ck.agent.key.revoke` / `ck.capability.revoke` / runtime endpoint revocation。
-- **Resume 时 sidecar exposure 重新披露(normative)**:`ck.self.agent.resume` 提交前，实现 MUST 重新执行上一条 "Sidecar exposure 披露" 流程，把 agent 在 pause 期间 controller 在 eligible Realm 中**新建或新加入**的 `ck.profile.agent_sidecar_thread.v1` sidecar Circle 列出；若该集合非空,resume MUST 在 controller 显式再次同意之前拒绝执行(不得 silent resume),并把该确认作为 audit 事件留底。仅当 pause 期间无新 sidecar 进入 agent 的 eligibility 集合时,resume 可不重复披露。该规则关闭"pairing 期完成一次披露后,pause 期新建 sidecar 在 resume 时被 agent 静默继承访问权"的暴露面。
+- **Lifecycle**:`ck.self.agent.command.pause` / `ck.self.agent.command.resume` / `ck.self.agent.command.deactivate` 是 agent lifecycle 写入。Pause 保留 durable state 但拒绝新 session;Auth Server SHOULD 在 revocation freshness window(≤ session 最大 TTL)内对已签发 session token fail closed。Revoke 是 terminal,fan-out `ck.agent.key.revoke` / `ck.capability.revoke` / runtime endpoint revocation。
+- **Resume 时 sidecar exposure 重新披露(normative)**:`ck.self.agent.command.resume` 提交前，实现 MUST 重新执行上一条 "Sidecar exposure 披露" 流程，把 agent 在 pause 期间 controller 在 eligible Realm 中**新建或新加入**的 `ck.profile.agent_sidecar_thread.v1` sidecar Circle 列出；若该集合非空,resume MUST 在 controller 显式再次同意之前拒绝执行(不得 silent resume),并把该确认作为 audit 事件留底。仅当 pause 期间无新 sidecar 进入 agent 的 eligibility 集合时,resume 可不重复披露。该规则关闭"pairing 期完成一次披露后,pause 期新建 sidecar 在 resume 时被 agent 静默继承访问权"的暴露面。
 
 ### 3.7 MLS KeyPackage Key
 
@@ -378,7 +378,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 推荐流程：
 
 1. 新设备本地生成 device key。
-2. 新设备先通过 `ck.gate.account.issue_session_grant` 获得 fresh-device restricted session grant，或通过二维码/手动码把同等 pairing payload 交给旧设备。该 grant 只能用于同 principal 的 `ck.key.verification.*` bootstrap，不得读取 E2EE history、解锁 key backup 或请求 `ck.secret.*`。
+2. 新设备先通过 `ck.gate.account.command.issue_session_grant` 获得 fresh-device restricted session grant，或通过二维码/手动码把同等 pairing payload 交给旧设备。该 grant 只能用于同 principal 的 `ck.key.verification.*` bootstrap，不得读取 E2EE history、解锁 key backup 或请求 `ck.secret.*`。
 3. 新设备通过 `POST /_cokret/self/device_messages` 向同 principal 的已授权设备发送 `ck.key.verification.request`。content MUST 至少包含 `transaction_id`、`from_device`、`methods`、`timestamp`、`expires_at`；用于设备授权时 SHOULD 带 `purpose="same_principal_device_authorization"`、`pairing_code`、`new_device_pubkey`、`challenge_signature`、`gate_audience`、`request_canonical_digest` 与 `device_metadata?`（wire 示例见 [`device-lifecycle.md` §7](../crypto-media/device-lifecycle.md)）。
 4. 已授权设备的主接收路径是 `GET /_cokret/self/account/subscribe` 的 `delta.to_device.messages[]`；push 只能作为唤醒提示。若 `delta.to_device.limited=true`、本地 dispatcher 需要补洞，或旧设备当前没有完整 account subscribe，才使用 `GET /_cokret/self/device_messages?from=<cursor>&limit=n` 补拉。UI MUST 显示 requesting device metadata 与 pairing code，要求用户和新设备屏幕上的 code 比对。
 5. 用户在已授权设备上批准并完成 SAS/QR transcript 后，该设备调用 `POST /_cokret/gate/account/device-pair`，提交 transcript 绑定的 `pairing_code`、`new_device_pubkey`、`challenge_signature` 与当前设备 fresh proof。`/_cokret/self/devices/pairing-requests*` 不是 v1 core approval surface。
@@ -394,10 +394,10 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
   "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
   "device_public_key": "z6Mks...",
   "scopes": [
-    "ck.self.events.describe",
-    "ck.self.events.submit",
-    "ck.self.account.subscribe",
-    "ck.self.keys.keypackages.upload"
+    "ck.self.events.query.describe",
+    "ck.self.events.command.submit",
+    "ck.self.account.stream.subscribe",
+    "ck.self.keys.keypackages.upload.create"
   ],
   "not_before": "2026-04-26T00:00:00Z",
   "expires_at": null,
@@ -443,7 +443,7 @@ Cokret v1 使用 `ck.session.grant` 作为 principal control stream 中的标准
   "session_public_key": "z6Mss...",
   "audience": "https://app.example.com",
   "scopes": [
-    "ck.self.events.submit",
+    "ck.self.events.command.submit",
     "ck.realm.discover",
     "ck.object.read",
     "ck.flow.update",
@@ -764,7 +764,7 @@ v1 core 不把 `hardware_wrapped_key` 作为 `ck.schema.key_backup.v1.encryption
 每次读取并尝试解密 key backup 都 MUST 产出一条 unlock proof，明文 keybag 也 MUST 有固定 schema，避免“能下载密文”被误当作“有权使用解密结果”：
 
 - backup decrypt proof payload MUST validate as `ck.schema.key_backup_unlock_proof.v1`，并绑定 `recovery_session_id`、`principal_id`、`requesting_device_id`、`backup_id`、`backup_class`、`series_id`、`ciphertext_digest`、`proof_kind`、`proof_digest` 与 `issued_at`。`proof_digest` 是已接受 recovery proof transcript 的 digest；receiver MUST 用当前 session state 重建 transcript 后比对，不得采信客户端自报的 policy/session metadata。
-- 取回完整 ciphertext 的协议操作是 `ck.self.keys.backups.unlock`（`POST /_cokret/self/keys/backups/{backup_id}/unlock`）：unlock proof MUST 作为 request body 的 `proof` 字段提交（`keys-operations.schema.json#/$defs/keys_backups_unlock_request_body`），path `backup_id` 与 `proof.backup_id` MUST 一致；实现 MUST NOT 用 header、query string 或私有载体承载该 proof。服务端在返回完整 ciphertext 之前，MUST 校验该 unlock proof 与请求 session、caller、新设备 key、active-series record 和目标 envelope 一致；任一不符 MUST fail closed（`recovery_evidence_unbound` / `backup_frontier_stale` / `series_chain_broken` / `invalid_signature`）。
+- 取回完整 ciphertext 的协议操作是 `ck.self.keys.backups.command.unlock`（`POST /_cokret/self/keys/backups/{backup_id}/unlock`）：unlock proof MUST 作为 request body 的 `proof` 字段提交（`keys-operations.schema.json#/$defs/keys_backups_unlock_request_body`），path `backup_id` 与 `proof.backup_id` MUST 一致；实现 MUST NOT 用 header、query string 或私有载体承载该 proof。服务端在返回完整 ciphertext 之前，MUST 校验该 unlock proof 与请求 session、caller、新设备 key、active-series record 和目标 envelope 一致；任一不符 MUST fail closed（`recovery_evidence_unbound` / `backup_frontier_stale` / `series_chain_broken` / `invalid_signature`）。
 - AEAD/HPKE open 后得到的明文 MUST validate as `ck.schema.key_backup_plaintext.v1`，且其中 `backup_id`、`backup_class`、`series_id`、`series_seq` MUST byte-for-byte 等于外层 envelope。`items[].secret_id` / `item_type` 是 keybag 内部路由字段，不得替代外层 envelope 的授权判断。
 - 实现 MUST 把 plaintext keybag 限定为本地瞬时处理材料；除非它被重新加密进本地 secret storage，否则不得持久化明文。日志、crash dump、telemetry MUST NOT 记录 `secret_b64u`。
 
@@ -810,7 +810,7 @@ E2EE Realm（effective `content_encryption_floor` 或 `metadata_encryption_floor
 
 高价值账号 SHOULD 支持门限恢复。Recovery policy 的规范形态由 `ck.schema.recovery_policy.v1`（`artifacts/schemas/recovery-policy.schema.json`）固定；本节内联 JSON 仅作示意，wire 实现 MUST 以 schema 为准。
 
-Recovery policy 的标准发布面是 `POST /_cokret/root/identity/recovery-policy`（operation `ck.root.identity.recovery_policy.put`，请求体为 `ck.schema.recovery_policy.v1`，响应 `recovery-policy.schema.json#/$defs/recovery_policy_put_outcome`）；标准读取面是 `GET /_cokret/root/identity/recovery-policy`（operation `ck.root.identity.recovery_policy.get`，响应 `recovery-policy.schema.json#/$defs/recovery_policy_active_outcome`）。服务端在接受 publish / rotate 前 MUST 校验 `auth_data.signed_fields`、签名权限、`version` 单调递增和 `supersedes` 链接。客户端在校验 `recovery_policy_ref`、创建 `ck.schema.recovery_session.v1`、或向用户展示恢复策略之前，MUST 通过 GET 端点读取当前服务观察到的 active policy，或从本地已验证的 principal control stream 重放到同一 frontier 得到等价结果。新设备尚未持有 control stream 时 MUST 使用该端点；`active_policy=null` 表示当前没有 accepted recovery policy，fresh-device DID recovery 与 `did_recovery` backup unlock MUST fail closed。客户端向 `recovery_session.create` 发送 `expected_recovery_policy_ref` 时 SHOULD 使用该读取结果中的 `active_policy.policy_id` 与 `active_policy.version`，服务端发现不同步 MUST 返回 `recovery_policy_mismatch`。
+Recovery policy 的标准发布面是 `POST /_cokret/root/identity/recovery-policy`（operation `ck.root.identity.recovery_policy.command.publish`，请求体为 `ck.schema.recovery_policy.v1`，响应 `recovery-policy.schema.json#/$defs/recovery_policy_publish_outcome`）；标准读取面是 `GET /_cokret/root/identity/recovery-policy`（operation `ck.root.identity.recovery_policy.resource.get`，响应 `recovery-policy.schema.json#/$defs/recovery_policy_active_outcome`）。服务端在接受 publish / rotate 前 MUST 校验 `auth_data.signed_fields`、签名权限、`version` 单调递增和 `supersedes` 链接。客户端在校验 `recovery_policy_ref`、创建 `ck.schema.recovery_session.v1`、或向用户展示恢复策略之前，MUST 通过 GET 端点读取当前服务观察到的 active policy，或从本地已验证的 principal control stream 重放到同一 frontier 得到等价结果。新设备尚未持有 control stream 时 MUST 使用该端点；`active_policy=null` 表示当前没有 accepted recovery policy，fresh-device DID recovery 与 `did_recovery` backup unlock MUST fail closed。客户端向 `recovery_session.create` 发送 `expected_recovery_policy_ref` 时 SHOULD 使用该读取结果中的 `active_policy.policy_id` 与 `active_policy.version`，服务端发现不同步 MUST 返回 `recovery_policy_mismatch`。
 
 ```json
 {

@@ -182,7 +182,7 @@ Cokret v1 core conformance 要求如下：
   - Allowed: 已缓存对象的本地搜索 / 本地索引查询
   - Allowed: 已收到 snapshot / Seal 的 state_root 重算(用于本地一致性自检)
   - Forbidden: 接收新到达的 Event Envelope / DataEvent / Control Move / Seal 并写入本地 store(即使是只读 store)
-  - Forbidden: 联邦 transaction 接收(`POST /_cokret/peer/events` / `ck.peer.events.submit`:含 `Source-Service-DID` / `Destination-Service-DID` header)
+  - Forbidden: 联邦 transaction 接收(`POST /_cokret/peer/events` / `ck.peer.events.command.submit`:含 `Source-Service-DID` / `Destination-Service-DID` header)
   - Forbidden: Push notification wakeup 后的 client sync 拉取
   - Forbidden: 任何 capability cache 重建或 freshness check
   - Forbidden: 任何 `ck.session.grant` 验证或登录态续期

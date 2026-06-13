@@ -10,7 +10,7 @@
         {
           "name": "accepted_original_push",
           "input": {
-            "operation_id": "ck.peer.events.submit",
+            "operation_id": "ck.peer.events.command.submit",
             "headers": {
               "Source-Service-DID": "did:web:alpha.example",
               "Destination-Service-DID": "did:web:beta.example",
@@ -31,7 +31,7 @@
             "given_state": {
               "vector_id": "ck.vector.federation.idempotency_after_key_revoke.v1",
               "preconditions": {
-                "operation_id": "ck.peer.events.submit",
+                "operation_id": "ck.peer.events.command.submit",
                 "headers": {
                   "Source-Service-DID": "did:web:alpha.example",
                   "Destination-Service-DID": "did:web:beta.example",
@@ -43,12 +43,12 @@
                 "origin_key_state_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             },
-            "operation": "ck.peer.events.submit",
+            "operation": "ck.peer.events.command.submit",
             "transcript": {
               "step": "accepted_original_push",
               "canonicalization": "fixture_json_v1",
               "input": {
-                "operation_id": "ck.peer.events.submit",
+                "operation_id": "ck.peer.events.command.submit",
                 "headers": {
                   "Source-Service-DID": "did:web:alpha.example",
                   "Destination-Service-DID": "did:web:beta.example",

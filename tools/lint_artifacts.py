@@ -1802,7 +1802,7 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
     # Mis-routed dispatch detector: each (kind, payload_class) pair must either
     # appear in KIND_PAYLOAD_RENAME_EXEMPTIONS verbatim, or embed the kind's
     # last dot-segment as a case-insensitive substring of the class name.
-    # Catches typo / copy-paste errors like `ck.self.agent.pause → agent_resume_payload`.
+    # Catches typo / copy-paste errors like `ck.self.agent.command.pause → agent_resume_payload`.
     seen_pairs: set[tuple[str, str]] = set()
     for kind, class_name in collect_payload_dispatch_pairs(data):
         if (kind, class_name) in seen_pairs:
@@ -2162,11 +2162,11 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
         )
 
     expected = {
-        "ck.root.identity.submit_did_operation": ("DidOperationSubmitRequestBody", "DidOperationSubmitOutcome"),
-        "ck.gate.account.issue_session_grant": ("SessionGrantRequestBody", "SessionGrantOutcome"),
-        "ck.gate.account.oidc_callback": ("AccountOidcCallbackRequestBody", "AccountOidcCallbackOutcome"),
-        "ck.find.directory.announce": ("DirectoryAnnounceRequestBody", "DirectoryAnnounceOutcome"),
-        "ck.find.directory.withdraw": ("DirectoryWithdrawRequestBody", "DirectoryWithdrawOutcome"),
+        "ck.root.identity.command.submit_did_operation": ("DidOperationSubmitRequestBody", "DidOperationSubmitOutcome"),
+        "ck.gate.account.command.issue_session_grant": ("SessionGrantRequestBody", "SessionGrantOutcome"),
+        "ck.gate.account.exchange.oidc_callback": ("AccountOidcCallbackRequestBody", "AccountOidcCallbackOutcome"),
+        "ck.find.directory.command.announce": ("DirectoryAnnounceRequestBody", "DirectoryAnnounceOutcome"),
+        "ck.find.directory.command.withdraw": ("DirectoryWithdrawRequestBody", "DirectoryWithdrawOutcome"),
     }
     expected_response_only = {}
     dedicated_schema_refs = {
@@ -2221,9 +2221,9 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
         lint.fail(openapi_path, "SessionGrantRequestBody.proof.required must include audience")
 
     projection_components = {
-        "ck.self.projection.spaces": "ProjectionSpaceList",
-        "ck.self.projection.flows": "ProjectionFlowList",
-        "ck.self.projection.morphs": "ProjectionMorphList",
+        "ck.self.projection.spaces.query.list": "ProjectionSpaceList",
+        "ck.self.projection.flows.query.list": "ProjectionFlowList",
+        "ck.self.projection.morphs.query.list": "ProjectionMorphList",
     }
     for operation_id, component_name in projection_components.items():
         operation = find_operation(operation_id)
@@ -2294,32 +2294,32 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
         if not isinstance(schema, dict) or schema.get("$ref") != ref:
             lint.fail(openapi_path, f"{operation_id}.{name} parameter must reference {ref}")
 
-    expect_any_of("ck.self.events.query", [["realms"], ["actors"]])
-    expect_any_of("ck.self.events.subscribe", [["realms"], ["actors"]])
-    expect_any_of("ck.self.events.frontier", [["actor_id"], ["realm_id"]])
-    for operation_id in ("ck.self.events.query", "ck.self.events.subscribe"):
+    expect_any_of("ck.self.events.query.scan", [["realms"], ["actors"]])
+    expect_any_of("ck.self.events.stream.subscribe", [["realms"], ["actors"]])
+    expect_any_of("ck.self.events.query.frontier", [["actor_id"], ["realm_id"]])
+    for operation_id in ("ck.self.events.query.scan", "ck.self.events.stream.subscribe"):
         expect_array_param(operation_id, "realms", "#/components/schemas/RealmId")
         expect_array_param(operation_id, "actors", "#/components/schemas/ActorDid")
     for name in ("before", "after"):
-        expect_param_ref("ck.self.events.query", name, "#/components/schemas/Cursor")
-    expect_param_ref("ck.self.events.subscribe", "after", "#/components/schemas/Cursor")
-    expect_param_ref("ck.self.events.get", "event_id", "#/components/schemas/EventId")
-    expect_param_ref("ck.self.events.frontier", "actor_id", "#/components/schemas/ActorDid")
-    expect_param_ref("ck.self.events.frontier", "realm_id", "#/components/schemas/RealmId")
-    expect_param_ref("ck.self.snapshot.head", "realm_id", "#/components/schemas/RealmId")
+        expect_param_ref("ck.self.events.query.scan", name, "#/components/schemas/Cursor")
+    expect_param_ref("ck.self.events.stream.subscribe", "after", "#/components/schemas/Cursor")
+    expect_param_ref("ck.self.events.resource.get", "event_id", "#/components/schemas/EventId")
+    expect_param_ref("ck.self.events.query.frontier", "actor_id", "#/components/schemas/ActorDid")
+    expect_param_ref("ck.self.events.query.frontier", "realm_id", "#/components/schemas/RealmId")
+    expect_param_ref("ck.self.snapshot.query.manifest_head", "realm_id", "#/components/schemas/RealmId")
 
-    query_post = op("ck.self.events.query_post")
-    if query_post is not None:
-        schema = resolve_openapi_schema_node(lint, openapi_path, openapi.get("components", {}).get("schemas", {}), openapi_request_schema(query_post))
+    query_body = op("ck.self.events.query.scan_body")
+    if query_body is not None:
+        schema = resolve_openapi_schema_node(lint, openapi_path, openapi.get("components", {}).get("schemas", {}), openapi_request_schema(query_body))
         if not isinstance(schema, dict):
-            lint.fail(openapi_path, "ck.self.events.query_post requestBody schema missing")
+            lint.fail(openapi_path, "ck.self.events.query.scan_body requestBody schema missing")
         else:
             expected_any_of = [{"required": ["realms"]}, {"required": ["actors"]}]
             if schema.get("anyOf") != expected_any_of:
-                lint.fail(openapi_path, "ck.self.events.query_post requestBody must require realms or actors")
+                lint.fail(openapi_path, "ck.self.events.query.scan_body requestBody must require realms or actors")
             properties = schema.get("properties")
             if not isinstance(properties, dict):
-                lint.fail(openapi_path, "ck.self.events.query_post requestBody properties missing")
+                lint.fail(openapi_path, "ck.self.events.query.scan_body requestBody properties missing")
             else:
                 for name, ref in (
                     ("realms", "#/components/schemas/RealmId"),
@@ -2327,19 +2327,19 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
                 ):
                     property_schema = properties.get(name)
                     if not isinstance(property_schema, dict):
-                        lint.fail(openapi_path, f"ck.events.query_post.{name} property missing")
+                        lint.fail(openapi_path, f"ck.events.query.scan_body.{name} property missing")
                         continue
                     if property_schema.get("type") != "array" or property_schema.get("minItems") != 1:
-                        lint.fail(openapi_path, f"ck.events.query_post.{name} must be a non-empty array")
+                        lint.fail(openapi_path, f"ck.events.query.scan_body.{name} must be a non-empty array")
                     items = property_schema.get("items")
                     if not isinstance(items, dict) or not (
                         items.get("$ref") == ref or schema_ref_targets(items, ref.rsplit("/", 1)[-1])
                     ):
-                        lint.fail(openapi_path, f"ck.events.query_post.{name}.items must reference {ref}")
+                        lint.fail(openapi_path, f"ck.events.query.scan_body.{name}.items must reference {ref}")
                 for name in ("before", "after"):
                     property_schema = properties.get(name)
                     if not schema_ref_targets(property_schema, "Cursor"):
-                        lint.fail(openapi_path, f"ck.events.query_post.{name} must reference Cursor")
+                        lint.fail(openapi_path, f"ck.events.query.scan_body.{name} must reference Cursor")
 
 
 def check_openapi_auth_semantics(lint: Lint) -> None:
@@ -2350,21 +2350,21 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
         return
     operations = openapi_operations_by_id(openapi)
     public_metadata_operations = {
-        "ck.server.describe",
-        "ck.self.events.describe",
-        "ck.peer.events.describe",
-        "ck.open.mimi.provider_directory",
-        "ck.root.identity.describe_registry",
-        "ck.self.account.describe",
-        "ck.find.directory.describe",
-        "ck.edge.applet.describe",
-        "ck.edge.applet.protocol_metadata",
+        "ck.server.query.describe",
+        "ck.self.events.query.describe",
+        "ck.peer.events.query.describe",
+        "ck.open.mimi.query.provider_directory",
+        "ck.root.identity.registry.query.describe",
+        "ck.self.account.query.describe",
+        "ck.find.directory.query.describe",
+        "ck.edge.applet.query.describe",
+        "ck.edge.applet.query.protocol_metadata",
     }
     proof_in_body_operations = {
-        "ck.gate.account.register",
-        "ck.gate.account.issue_session_grant",
-        "ck.gate.account.oidc_callback",
-        "ck.open.invite_locator.resolve",
+        "ck.gate.account.command.register",
+        "ck.gate.account.command.issue_session_grant",
+        "ck.gate.account.exchange.oidc_callback",
+        "ck.open.invite_locator.query.resolve",
     }
 
     for operation_id, operation in operations.items():
@@ -2537,6 +2537,28 @@ def check_binding_variant_non_http(lint: Lint) -> None:
             lint.fail(binding_path, f"{operation_id} http-only binding variant must not appear in non-HTTP bindings")
 
 
+def check_rename_operation_replacements(lint: Lint, known: dict[str, set[str]]) -> None:
+    """Operation rename replacements must point at current canonical operation ids."""
+    path = ARTIFACTS / "migration" / "renames.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return
+    entries = data.get("entries")
+    if not isinstance(entries, list):
+        lint.fail(path, "entries must be a list")
+        return
+    operation_ids = known["operation_ids"]
+    for index, row in enumerate(entries):
+        if not isinstance(row, dict) or row.get("kind_class") != "operation_id":
+            continue
+        replacement = row.get("replacement")
+        if isinstance(replacement, str) and replacement.startswith("ck.") and replacement not in operation_ids:
+            lint.fail(
+                path,
+                f"entries[{index}] operation_id replacement {replacement!r} is not a current operation_id",
+            )
+
+
 DEVICE_ID_PATTERN = r"^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
 DID_LEGACY_PREFIX_PATTERN = r"^did:"
 DID_LEGACY_GREEDY_PATTERN = r"^did:[a-z0-9]+:[^\s]+$"
@@ -2676,9 +2698,9 @@ def infer_openapi_success_shape(operation_id: str, method: str, schema: Any) -> 
     if schema is None:
         if method == "head":
             return "metadata_headers"
-        if operation_id in {"ck.self.events.subscribe", "ck.self.account.subscribe"}:
+        if operation_id in {"ck.self.events.stream.subscribe", "ck.self.account.stream.subscribe"}:
             return "event_stream"
-        if operation_id == "ck.self.blob.get":
+        if operation_id == "ck.self.blob.resource.get":
             return "binary_stream"
         return "empty_response"
     if isinstance(schema, dict):
@@ -5047,6 +5069,7 @@ def main() -> int:
     check_operation_field_table_schema_refs(lint)
     check_design_phase_legacy_compat_removed(lint)
     check_binding_variant_non_http(lint)
+    check_rename_operation_replacements(lint, known)
     check_capability_action_event_mapping(lint)
     check_event_admission_coverage(lint)
     check_operation_dto_closure(lint)

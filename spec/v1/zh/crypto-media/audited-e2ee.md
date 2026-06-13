@@ -210,7 +210,7 @@ Receiver / reducer MUST 拒绝任何缺失 `eligibility_proof`、`eligibility_pr
 
 ## 8. 与 Realm/Circle 治理的关系
 
-Realm / Circle 内部治理依赖管理员和 moderator。用户发现垃圾信息、恶意内容或违规行为时，使用 `ck.self.moderation.report` 将举报送达对应 scope 的管理员 / moderator。E2EE 中的举报证据由 reporter 提交加密 evidence package 和可选 `franking_proof`；moderator 不因举报获得 epoch key、历史 key 或审计 applet release 权限。
+Realm / Circle 内部治理依赖管理员和 moderator。用户发现垃圾信息、恶意内容或违规行为时，使用 `ck.self.moderation.command.report` 将举报送达对应 scope 的管理员 / moderator。E2EE 中的举报证据由 reporter 提交加密 evidence package 和可选 `franking_proof`；moderator 不因举报获得 epoch key、历史 key 或审计 applet release 权限。
 
 合规审计和群治理是两套流程：
 

@@ -106,7 +106,7 @@ Read marker 与个人通知偏好、saved view personalization、列宽 / 折叠
 
 - **`ck.agent.draft.v1`**:agent 通过 `ck.agent.draft.propose` / `ck.agent.action_request`(actor_private_event)提议候选内容,Principal Server 通过 capability / policy / accountability / risk check 后,materialize 为 controller-owned `ck.agent.draft.v1` account-data。Key pattern 建议 `ck.agent.draft.v1:<agent_principal_id>:<draft_id>`,声明 `encrypted_at_rest=true`、tombstone 与 retention 规则。Draft MUST NOT 作为 `ck.message.create` / `ck.flow.create` 或任何 `wire_scope=durable_event` 进入目标 Realm 共享历史。Draft 引用目标 `realm_id` / `flow_id` / `message_id` 不授予目标 Realm 成员读取 draft 内容的权利。
 - **`ck.agent.sidecar_projection.v1`**:controller-private UI projection,跨设备同步 "My AI" tab 顺序、pin / 折叠状态、addressed agents list 等。Key pattern `ck.agent.sidecar_projection.v1:<controller_principal_id>:<target_realm_id>:<target_flow_id>`。它**不**修改目标 Flow `tracks` map,不写入 target metadata / target-side Relation / watch cell / unread cell / search index / notification state。
-- **`ck.agent.participation.v1`**:controller-owned 的逐 scope agent 参与选择 `{reply, accept_third_party_mention, act_on_behalf}`。Key pattern `ck.agent.participation.v1:<agent_principal_id>:<scope_key>`,`scope_key` 为 `realm:<realm_uuid>` / `circle:<realm_uuid>:<circle_uuid>` / `flow:<realm_uuid>:<flow_uuid>`,声明 `encrypted_at_rest=true`。它经 `ck.self.agent.participation.set` 物化(校验 `selection ⊆ effective_ceiling` 后写入);`reply` / `act_on_behalf` effective 为真时进一步物化为 `ck.capability.grant`,`accept_third_party_mention` 驱动 [`flow-and-message.md` §9.4.5](./flow-and-message.md) 的第三方 mention 投递 gate。它是 controller-private state,不进入目标 Realm 共享历史。
+- **`ck.agent.participation.v1`**:controller-owned 的逐 scope agent 参与选择 `{reply, accept_third_party_mention, act_on_behalf}`。Key pattern `ck.agent.participation.v1:<agent_principal_id>:<scope_key>`,`scope_key` 为 `realm:<realm_uuid>` / `circle:<realm_uuid>:<circle_uuid>` / `flow:<realm_uuid>:<flow_uuid>`,声明 `encrypted_at_rest=true`。它经 `ck.self.agent.participation.resource.replace` 物化(校验 `selection ⊆ effective_ceiling` 后写入);`reply` / `act_on_behalf` effective 为真时进一步物化为 `ck.capability.grant`,`accept_third_party_mention` 驱动 [`flow-and-message.md` §9.4.5](./flow-and-message.md) 的第三方 mention 投递 gate。它是 controller-private state,不进入目标 Realm 共享历史。
 
 三者 key 前缀不同、key 第二段语义不同(`draft` / `participation` 为 agent_principal_id,`sidecar_projection` 为 controller_principal_id),不会在 `ck.agent.*` 命名空间下冲突。注册时 MUST 在 `account-data-type-registry.json` 显式声明 key pattern 与 owner principal,reducer 据此做归属校验。
 
@@ -115,8 +115,8 @@ Read marker 与个人通知偏好、saved view personalization、列宽 / 折叠
 针对上述 agent-attributed private state:
 
 - 存储 MUST 使用 `wire_scope=actor_private_event` 通道(encrypted account data 或 actor-private stream);不得进入 shared Realm data-plane history 或 control-plane Seal history。
-- 目标 Realm 的 `ck.self.events.subscribe` / `ck.self.events.query` / shared reducer / Realm search index / notification fanout / push preview MUST NOT 返回 draft 或 sidecar projection 内容。
-- `ck.self.account.subscribe` 只能把 controller-owned approval draft / sidecar projection 返回给 controller principal 的授权 session,以及 scope 明确包含该 account-data 访问权的 agent runtime。
+- 目标 Realm 的 `ck.self.events.stream.subscribe` / `ck.self.events.query.scan` / shared reducer / Realm search index / notification fanout / push preview MUST NOT 返回 draft 或 sidecar projection 内容。
+- `ck.self.account.stream.subscribe` 只能把 controller-owned approval draft / sidecar projection 返回给 controller principal 的授权 session,以及 scope 明确包含该 account-data 访问权的 agent runtime。
 - 若服务端存储明文，该 deployment MUST 把"明文可见服务"写入 profile / policy 并向 controller 披露；默认语义 SHOULD 是服务端只保存 encrypted account data。
 - Draft 发布到目标 Flow 时,shared event MAY 通过 `refs[].role="draft_source"` 携带 opaque digest,但明文 draft id、private metadata、scratchpad、private prompt 或历史版本 MUST NOT 泄露到共享历史。
 - Sidecar 发布到目标 Flow 时,MUST NOT 泄露 sidecar `private_flow_id`、`private_circle_id`、private messages、scratchpad 或 draft history。

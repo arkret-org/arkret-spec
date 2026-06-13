@@ -28,7 +28,8 @@
     "Each operation MUST declare success_shape_kind so SDKs can determine success handling without endpoint-name hard-coding.",
     "Operations with typed OpenAPI bodies SHOULD declare request_schema_ref and/or response_schema_ref. The referenced schema fragment is the source for generated DTO docs and MUST match the OpenAPI component referenced by the HTTP binding.",
     "Operations that still bind OpenAPI request/response bodies to OperationRequest or OperationResult MUST declare generic_binding with request/response booleans, reason, profile_gate, and migration_plan; core-tier operations MUST NOT use generic bindings.",
-    "v1 preserves existing operation_id spellings even when an HTTP path segment uses plural nouns for collection resources. In particular, the contact lifecycle surface uses ck.self.contact.* operation_id values with /contacts/* HTTP paths; v2 may normalize naming, but v1 implementations and SDKs MUST NOT rename these operation_id values."
+    "operation_id values MUST end with <kind>.<action>. The kind segment MUST be one of query, stream, resource, command, upload, or exchange; the action segment MUST describe protocol semantics and MUST NOT be an HTTP method name.",
+    "resource.replace operations MUST bind to HTTP PUT; resource.delete operations MUST bind to HTTP DELETE; command, upload, exchange, and complex query body operations SHOULD bind to HTTP POST unless their operation notes define a stricter resource URI replacement contract."
   ],
   "capability_tiers": {
     "core": "Base interoperable surfaces implied by claiming Cokret v1 protocol support (service discovery, identity registry, events/account aggregate).",
@@ -41,1898 +42,1898 @@
       "surface": "service_discovery",
       "tier": "core",
       "operations": [
-        "ck.server.describe"
+        "ck.server.query.describe"
       ]
     },
     {
       "surface": "identity_registry",
       "tier": "core",
       "operations": [
-        "ck.root.identity.describe_registry",
-        "ck.root.identity.resolve",
-        "ck.root.identity.get_document",
-        "ck.root.identity.get_log",
-        "ck.root.identity.get_receipts",
-        "ck.root.identity.submit_did_operation",
-        "ck.root.identity.recovery_policy.get",
-        "ck.root.identity.recovery_policy.put",
-        "ck.root.identity.recovery_session.create",
-        "ck.root.identity.recovery_session.get",
-        "ck.root.identity.recovery_session.submit_proof",
-        "ck.root.identity.recovery_session.complete"
+        "ck.root.identity.registry.query.describe",
+        "ck.root.identity.query.resolve",
+        "ck.root.identity.document.resource.get",
+        "ck.root.identity.log.query.list",
+        "ck.root.identity.receipts.query.list",
+        "ck.root.identity.command.submit_did_operation",
+        "ck.root.identity.recovery_policy.resource.get",
+        "ck.root.identity.recovery_policy.command.publish",
+        "ck.root.identity.recovery_session.command.create",
+        "ck.root.identity.recovery_session.resource.get",
+        "ck.root.identity.recovery_session.command.submit_proof",
+        "ck.root.identity.recovery_session.command.complete"
       ]
     },
     {
       "surface": "events_sync",
       "tier": "core",
       "operations": [
-        "ck.self.events.describe",
-        "ck.self.events.submit",
-        "ck.self.events.get",
-        "ck.self.events.resolve",
-        "ck.self.events.query",
-        "ck.self.events.query_post",
-        "ck.self.events.subscribe",
-        "ck.self.events.frontier",
-        "ck.self.account.describe",
-        "ck.self.account.viewer",
-        "ck.self.account.update_profile",
-        "ck.self.account.subscribe",
-        "ck.self.account.cursor_revoke",
-        "ck.self.ephemeral.send",
-        "ck.self.snapshot.head",
-        "ck.self.call.media.token_exchange"
+        "ck.self.events.query.describe",
+        "ck.self.events.command.submit",
+        "ck.self.events.resource.get",
+        "ck.self.events.query.resolve",
+        "ck.self.events.query.scan",
+        "ck.self.events.query.scan_body",
+        "ck.self.events.stream.subscribe",
+        "ck.self.events.query.frontier",
+        "ck.self.account.query.describe",
+        "ck.self.account.query.viewer",
+        "ck.self.account.command.update_profile",
+        "ck.self.account.stream.subscribe",
+        "ck.self.account.command.revoke_cursor",
+        "ck.self.ephemeral.command.send",
+        "ck.self.snapshot.query.manifest_head",
+        "ck.self.call.media.exchange.token"
       ]
     },
     {
       "surface": "peer_federation",
       "tier": "extension",
       "operations": [
-        "ck.peer.events.describe",
-        "ck.peer.events.submit",
-        "ck.peer.events.resolve",
-        "ck.peer.events.query",
-        "ck.peer.events.query_post",
-        "ck.peer.events.frontier",
-        "ck.peer.invites.submit",
-        "ck.peer.contacts.submit",
-        "ck.peer.snapshot.head"
+        "ck.peer.events.query.describe",
+        "ck.peer.events.command.submit",
+        "ck.peer.events.query.resolve",
+        "ck.peer.events.query.scan",
+        "ck.peer.events.query.scan_body",
+        "ck.peer.events.query.frontier",
+        "ck.peer.invites.command.submit",
+        "ck.peer.contacts.command.submit",
+        "ck.peer.snapshot.query.manifest_head"
       ]
     },
     {
       "surface": "directory_discovery",
       "tier": "extension",
       "operations": [
-        "ck.find.directory.describe",
-        "ck.find.directory.search_realms",
-        "ck.find.directory.resolve_realm",
-        "ck.find.directory.resolve_target",
-        "ck.find.directory.search_organizations",
-        "ck.find.directory.resolve_organization",
-        "ck.find.directory.search_actors",
-        "ck.find.directory.search_users",
-        "ck.find.directory.resolve_handle",
-        "ck.find.directory.resolve_agent_selector",
-        "ck.find.directory.list_handles_for_subject",
-        "ck.find.directory.private_contact_discovery",
-        "ck.find.directory.announce",
-        "ck.find.directory.withdraw",
-        "ck.find.directory.push.register"
+        "ck.find.directory.query.describe",
+        "ck.find.directory.query.search_realms",
+        "ck.find.directory.query.resolve_realm",
+        "ck.find.directory.query.resolve_target",
+        "ck.find.directory.query.search_organizations",
+        "ck.find.directory.query.resolve_organization",
+        "ck.find.directory.query.search_actors",
+        "ck.find.directory.query.search_users",
+        "ck.find.directory.query.resolve_handle",
+        "ck.find.directory.query.resolve_agent_selector",
+        "ck.find.directory.query.list_handles_for_subject",
+        "ck.find.directory.query.private_contact_discovery",
+        "ck.find.directory.command.announce",
+        "ck.find.directory.command.withdraw",
+        "ck.find.directory.push.command.register"
       ]
     },
     {
       "surface": "contact_lifecycle",
       "tier": "extension",
       "operations": [
-        "ck.self.contact.request",
-        "ck.self.contact.respond",
-        "ck.self.contact.list",
-        "ck.self.contact.tombstone",
-        "ck.self.invite_receive_policy.get",
-        "ck.self.invite_receive_policy.set",
-        "ck.self.direct_conversation.resolve"
+        "ck.self.contact.command.request",
+        "ck.self.contact.command.respond",
+        "ck.self.contact.query.list",
+        "ck.self.contact.command.tombstone",
+        "ck.self.invite_receive_policy.resource.get",
+        "ck.self.invite_receive_policy.resource.replace",
+        "ck.self.direct_conversation.command.resolve"
       ]
     },
     {
       "surface": "circle_management",
       "tier": "extension",
       "operations": [
-        "ck.self.circle.create",
-        "ck.self.circle.list",
-        "ck.self.circle.get",
-        "ck.self.circle.member.add",
-        "ck.self.circle.member.remove",
-        "ck.self.circle.scope_rotate",
-        "ck.self.circle.archive",
-        "ck.self.circle.tombstone"
+        "ck.self.circle.command.create",
+        "ck.self.circle.query.list",
+        "ck.self.circle.resource.get",
+        "ck.self.circle.member.command.add",
+        "ck.self.circle.member.resource.delete",
+        "ck.self.circle.command.rotate_scope",
+        "ck.self.circle.command.archive",
+        "ck.self.circle.command.tombstone"
       ]
     },
     {
       "surface": "organization_registry",
       "tier": "extension",
       "operations": [
-        "ck.self.organization.list",
-        "ck.self.organization.upsert",
-        "ck.self.organization.get",
-        "ck.self.organization.policy.get",
-        "ck.self.organization.policy.set",
-        "ck.self.organization.realm.link"
+        "ck.self.organization.query.list",
+        "ck.self.organization.command.upsert",
+        "ck.self.organization.resource.get",
+        "ck.self.organization.policy.resource.get",
+        "ck.self.organization.policy.resource.replace",
+        "ck.self.organization.realm.command.link"
       ]
     },
     {
       "surface": "realm_governance_links",
       "tier": "extension",
       "operations": [
-        "ck.self.realm_link.list",
-        "ck.self.realm_link.create",
-        "ck.self.realm_link.delete",
-        "ck.self.realm_link.effective_policy",
-        "ck.self.realm_policy_server.get",
-        "ck.self.realm_policy_server.put",
-        "ck.self.realm_policy_server.delete"
+        "ck.self.realm_link.query.list",
+        "ck.self.realm_link.command.create",
+        "ck.self.realm_link.resource.delete",
+        "ck.self.realm_link.query.effective_policy",
+        "ck.self.realm_policy_server.resource.get",
+        "ck.self.realm_policy_server.resource.replace",
+        "ck.self.realm_policy_server.resource.delete"
       ]
     },
     {
       "surface": "realm_read",
       "tier": "extension",
       "operations": [
-        "ck.self.realm.get",
-        "ck.self.realm.export",
-        "ck.self.realm.moderation_policy.effective",
-        "ck.self.realm.moderation_policy.set"
+        "ck.self.realm.resource.get",
+        "ck.self.realm.query.export",
+        "ck.self.realm.moderation_policy.query.effective",
+        "ck.self.realm.moderation_policy.resource.replace"
       ]
     },
     {
       "surface": "consent_management",
       "tier": "extension",
       "operations": [
-        "ck.self.consent.list",
-        "ck.self.consent.get",
-        "ck.self.consent.grant",
-        "ck.self.consent.revoke",
-        "ck.self.consent.request"
+        "ck.self.consent.query.list",
+        "ck.self.consent.resource.get",
+        "ck.self.consent.command.grant",
+        "ck.self.consent.command.revoke",
+        "ck.self.consent.command.request"
       ]
     },
     {
       "surface": "account_data",
       "tier": "extension",
       "operations": [
-        "ck.self.account_data.list",
-        "ck.self.account_data.get",
-        "ck.self.account_data.set",
-        "ck.self.account_data.delete"
+        "ck.self.account_data.query.list",
+        "ck.self.account_data.resource.get",
+        "ck.self.account_data.resource.replace",
+        "ck.self.account_data.resource.delete"
       ]
     },
     {
       "surface": "read_cursor",
       "tier": "extension",
       "operations": [
-        "ck.self.read_cursor.set",
-        "ck.self.read_cursor.list"
+        "ck.self.read_cursor.command.advance",
+        "ck.self.read_cursor.query.list"
       ]
     },
     {
       "surface": "blob_storage",
       "tier": "extension",
       "operations": [
-        "ck.self.blob.upload",
-        "ck.self.blob.head",
-        "ck.self.blob.get",
-        "ck.self.blob.presign"
+        "ck.self.blob.upload.create",
+        "ck.self.blob.resource.head",
+        "ck.self.blob.resource.get",
+        "ck.self.blob.command.presign"
       ]
     },
     {
       "surface": "realtime_media",
       "tier": "extension",
       "operations": [
-        "ck.self.media.ice_config"
+        "ck.self.media.query.ice_config"
       ]
     },
     {
       "surface": "authz_policy",
       "tier": "extension",
       "operations": [
-        "ck.self.authz.check",
-        "ck.self.authz.get_effective_grants",
-        "ck.self.authz.get_invites",
-        "ck.self.policy.check",
-        "ck.self.policy_document.list",
-        "ck.self.policy_document.upsert",
-        "ck.self.policy_document.get",
-        "ck.self.policy_document.delete"
+        "ck.self.authz.query.check",
+        "ck.self.authz.grants.query.effective",
+        "ck.self.authz.invites.query.list",
+        "ck.self.policy.query.check",
+        "ck.self.policy_document.query.list",
+        "ck.self.policy_document.command.upsert",
+        "ck.self.policy_document.resource.get",
+        "ck.self.policy_document.resource.delete"
       ]
     },
     {
       "surface": "moderation_reports",
       "tier": "extension",
       "operations": [
-        "ck.self.moderation.report"
+        "ck.self.moderation.command.report"
       ]
     },
     {
       "surface": "device_and_keys",
       "tier": "extension",
       "operations": [
-        "ck.self.device_messages.put",
-        "ck.self.device_messages.get",
-        "ck.self.device_messages.ack",
-        "ck.self.keys.upload",
-        "ck.self.keys.query",
-        "ck.self.keys.claim",
-        "ck.self.keys.keypackages.upload",
-        "ck.self.keys.keypackages.claim",
-        "ck.self.keys.keypackages.consume",
-        "ck.self.keys.keypackages.revoke",
-        "ck.self.keys.backups.put",
-        "ck.self.keys.backups.list",
-        "ck.self.keys.backups.unlock",
-        "ck.self.keys.backups.delete"
+        "ck.self.device_messages.command.send",
+        "ck.self.device_messages.query.list",
+        "ck.self.device_messages.command.ack",
+        "ck.self.keys.upload.create",
+        "ck.self.keys.query.lookup",
+        "ck.self.keys.command.claim",
+        "ck.self.keys.keypackages.upload.create",
+        "ck.self.keys.keypackages.command.claim",
+        "ck.self.keys.keypackages.command.consume",
+        "ck.self.keys.keypackages.command.revoke",
+        "ck.self.keys.backups.resource.replace",
+        "ck.self.keys.backups.query.list",
+        "ck.self.keys.backups.command.unlock",
+        "ck.self.keys.backups.resource.delete"
       ]
     },
     {
       "surface": "push",
       "tier": "extension",
       "operations": [
-        "ck.edge.push.register_device",
-        "ck.edge.push.unregister_device",
-        "ck.edge.push.notify"
+        "ck.edge.push.command.register_device",
+        "ck.edge.push.command.unregister_device",
+        "ck.edge.push.command.notify"
       ]
     },
     {
       "surface": "projection_lifecycle",
       "tier": "extension",
       "operations": [
-        "ck.self.projection.spaces",
-        "ck.self.projection.flows",
-        "ck.self.projection.morphs",
-        "ck.self.views.collection_projection",
-        "ck.self.projection.document"
+        "ck.self.projection.spaces.query.list",
+        "ck.self.projection.flows.query.list",
+        "ck.self.projection.morphs.query.list",
+        "ck.self.views.collection_projection.command.materialize",
+        "ck.self.projection.document.resource.get"
       ]
     },
     {
       "surface": "applet",
       "tier": "interop_bridge",
       "operations": [
-        "ck.edge.applet.ping",
-        "ck.edge.applet.describe",
-        "ck.edge.applet.transaction",
-        "ck.edge.applet.resolve_actor",
-        "ck.edge.applet.resolve_realm",
-        "ck.edge.applet.protocol_metadata",
-        "ck.edge.applet.third_party_users",
-        "ck.edge.applet.third_party_locations"
+        "ck.edge.applet.query.ping",
+        "ck.edge.applet.query.describe",
+        "ck.edge.applet.command.transaction",
+        "ck.edge.applet.actor.query.resolve",
+        "ck.edge.applet.realm.query.resolve",
+        "ck.edge.applet.query.protocol_metadata",
+        "ck.edge.applet.third_party_users.query.list",
+        "ck.edge.applet.third_party_locations.query.list"
       ]
     },
     {
       "surface": "applet_install",
       "tier": "extension",
       "operations": [
-        "ck.self.applet.install.preview",
-        "ck.self.applet.install",
-        "ck.self.applet.revoke"
+        "ck.self.applet.install.command.preview",
+        "ck.self.applet.command.install",
+        "ck.self.applet.command.revoke"
       ]
     },
     {
       "surface": "applet_ghost",
       "tier": "interop_bridge",
       "operations": [
-        "ck.self.applet.ghost.provision"
+        "ck.self.applet.ghost.command.provision"
       ]
     },
     {
       "surface": "mimi_interop",
       "tier": "interop_bridge",
       "operations": [
-        "ck.open.mimi.provider_directory",
-        "ck.open.mimi.group_info",
-        "ck.open.mimi.key_material",
-        "ck.open.mimi.submit_message",
-        "ck.open.mimi.room_update",
-        "ck.open.mimi.request_consent",
-        "ck.open.mimi.update_consent",
-        "ck.open.mimi.identifier_query",
-        "ck.open.mimi.notify",
-        "ck.open.mimi.report_abuse",
-        "ck.open.mimi.proxy_download"
+        "ck.open.mimi.query.provider_directory",
+        "ck.open.mimi.query.group_info",
+        "ck.open.mimi.exchange.key_material",
+        "ck.open.mimi.command.submit_message",
+        "ck.open.mimi.command.update_room",
+        "ck.open.mimi.command.request_consent",
+        "ck.open.mimi.command.update_consent",
+        "ck.open.mimi.query.identifiers",
+        "ck.open.mimi.command.notify",
+        "ck.open.mimi.command.report_abuse",
+        "ck.open.mimi.command.proxy_download"
       ]
     },
     {
       "surface": "invite_locator_handoff",
       "tier": "extension",
       "operations": [
-        "ck.open.invite_locator.resolve"
+        "ck.open.invite_locator.query.resolve"
       ]
     },
     {
       "surface": "account_auth",
       "tier": "deployment_local",
       "operations": [
-        "ck.gate.account.register",
-        "ck.gate.account.device_pair",
-        "ck.gate.account.issue_session_grant",
-        "ck.gate.account.session_revoke",
-        "ck.gate.account.oidc_callback"
+        "ck.gate.account.command.register",
+        "ck.gate.account.command.pair_device",
+        "ck.gate.account.command.issue_session_grant",
+        "ck.gate.account.command.revoke_session",
+        "ck.gate.account.exchange.oidc_callback"
       ]
     },
     {
       "surface": "agent_runtime",
       "tier": "extension",
       "operations": [
-        "ck.gate.account.agent_key_pair",
-        "ck.self.agent.provision",
-        "ck.self.agent.list",
-        "ck.self.agent.get",
-        "ck.self.agent.pause",
-        "ck.self.agent.resume",
-        "ck.self.agent.deactivate",
-        "ck.self.agent.rotate_key",
-        "ck.self.agent.grant.attach",
-        "ck.self.agent.grant.detach",
-        "ck.self.agent.sidecar_thread.ensure",
-        "ck.self.agent.participation.set",
-        "ck.self.agent.participation.get"
+        "ck.gate.account.command.pair_agent_key",
+        "ck.self.agent.command.provision",
+        "ck.self.agent.query.list",
+        "ck.self.agent.resource.get",
+        "ck.self.agent.command.pause",
+        "ck.self.agent.command.resume",
+        "ck.self.agent.command.deactivate",
+        "ck.self.agent.command.rotate_key",
+        "ck.self.agent.grant.command.attach",
+        "ck.self.agent.grant.resource.delete",
+        "ck.self.agent.sidecar_thread.command.ensure",
+        "ck.self.agent.participation.resource.replace",
+        "ck.self.agent.participation.resource.get"
       ]
     }
   ],
   "operations": [
     {
-      "operation_id": "ck.gate.account.register",
+      "operation_id": "ck.gate.account.command.register",
       "http": "POST /_cokret/gate/account/register",
       "grpc": "GateAccount/Register",
-      "mq": "gate.account.register",
+      "mq": "gate.account.command.register",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_request_body",
       "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_outcome"
     },
     {
-      "operation_id": "ck.gate.account.device_pair",
+      "operation_id": "ck.gate.account.command.pair_device",
       "http": "POST /_cokret/gate/account/device-pair",
       "grpc": "GateAccount/DevicePair",
-      "mq": "gate.account.device_pair",
+      "mq": "gate.account.command.pair_device",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_outcome"
     },
     {
-      "operation_id": "ck.gate.account.issue_session_grant",
+      "operation_id": "ck.gate.account.command.issue_session_grant",
       "http": "POST /_cokret/gate/account/session-grants",
       "grpc": "GateAccount/IssueSessionGrant",
-      "mq": "gate.account.issue_session_grant",
+      "mq": "gate.account.command.issue_session_grant",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome"
     },
     {
-      "operation_id": "ck.gate.account.session_revoke",
+      "operation_id": "ck.gate.account.command.revoke_session",
       "http": "POST /_cokret/gate/account/session-grants/revoke",
       "grpc": "GateAccount/SessionRevoke",
-      "mq": "gate.account.session_revoke",
+      "mq": "gate.account.command.revoke_session",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/session_revoke_request_body",
       "response_schema_ref": "schemas/account-operations.schema.json#/$defs/session_revoke_outcome"
     },
     {
-      "operation_id": "ck.gate.account.agent_key_pair",
+      "operation_id": "ck.gate.account.command.pair_agent_key",
       "http": "POST /_cokret/gate/account/agent-key-pair",
       "grpc": "GateAccount/AgentKeyPair",
-      "mq": "gate.account.agent_key_pair",
+      "mq": "gate.account.command.pair_agent_key",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_outcome"
     },
     {
-      "operation_id": "ck.self.agent.provision",
+      "operation_id": "ck.self.agent.command.provision",
       "http": "POST /_cokret/self/agents",
       "grpc": "SelfAgent/Provision",
-      "mq": "self.agent.provision",
+      "mq": "self.agent.command.provision",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome"
     },
     {
-      "operation_id": "ck.self.agent.list",
+      "operation_id": "ck.self.agent.query.list",
       "http": "GET /_cokret/self/agents",
       "grpc": "SelfAgent/List",
-      "mq": "self.agent.list",
+      "mq": "self.agent.query.list",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_list"
     },
     {
-      "operation_id": "ck.self.agent.get",
+      "operation_id": "ck.self.agent.resource.get",
       "http": "GET /_cokret/self/agents/{agent_principal_id}",
       "grpc": "SelfAgent/Get",
-      "mq": "self.agent.get",
+      "mq": "self.agent.resource.get",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_view"
     },
     {
-      "operation_id": "ck.self.agent.pause",
+      "operation_id": "ck.self.agent.command.pause",
       "http": "POST /_cokret/self/agents/{agent_principal_id}/pause",
       "grpc": "SelfAgent/Pause",
-      "mq": "self.agent.pause",
+      "mq": "self.agent.command.pause",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pause_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state"
     },
     {
-      "operation_id": "ck.self.agent.resume",
+      "operation_id": "ck.self.agent.command.resume",
       "http": "POST /_cokret/self/agents/{agent_principal_id}/resume",
       "grpc": "SelfAgent/Resume",
-      "mq": "self.agent.resume",
+      "mq": "self.agent.command.resume",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_resume_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state"
     },
     {
-      "operation_id": "ck.self.agent.deactivate",
+      "operation_id": "ck.self.agent.command.deactivate",
       "http": "POST /_cokret/self/agents/{agent_principal_id}/deactivate",
       "grpc": "SelfAgent/Deactivate",
-      "mq": "self.agent.deactivate",
+      "mq": "self.agent.command.deactivate",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_deactivate_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state"
     },
     {
-      "operation_id": "ck.self.agent.rotate_key",
+      "operation_id": "ck.self.agent.command.rotate_key",
       "http": "POST /_cokret/self/agents/{agent_principal_id}/rotate-key",
       "grpc": "SelfAgent/RotateKey",
-      "mq": "self.agent.rotate_key",
+      "mq": "self.agent.command.rotate_key",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_rotate_key_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_rotate_key_outcome"
     },
     {
-      "operation_id": "ck.self.agent.grant.attach",
+      "operation_id": "ck.self.agent.grant.command.attach",
       "http": "POST /_cokret/self/agents/{agent_principal_id}/grants",
       "grpc": "SelfAgent/GrantAttach",
-      "mq": "self.agent.grant.attach",
+      "mq": "self.agent.grant.command.attach",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_outcome"
     },
     {
-      "operation_id": "ck.self.agent.grant.detach",
+      "operation_id": "ck.self.agent.grant.resource.delete",
       "http": "DELETE /_cokret/self/agents/{agent_principal_id}/grants/{grant_id}",
       "grpc": "SelfAgent/GrantDetach",
-      "mq": "self.agent.grant.detach",
+      "mq": "self.agent.grant.resource.delete",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_detach_outcome"
     },
     {
-      "operation_id": "ck.self.agent.sidecar_thread.ensure",
+      "operation_id": "ck.self.agent.sidecar_thread.command.ensure",
       "http": "POST /_cokret/self/agent-sidecar-threads:ensure",
       "grpc": "SelfAgent/SidecarThreadEnsure",
-      "mq": "self.agent.sidecar_thread.ensure",
+      "mq": "self.agent.sidecar_thread.command.ensure",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_outcome"
     },
     {
-      "operation_id": "ck.self.agent.participation.set",
+      "operation_id": "ck.self.agent.participation.resource.replace",
       "http": "PUT /_cokret/self/agents/{agent_principal_id}/participation",
-      "grpc": "SelfAgent/ParticipationSet",
-      "mq": "self.agent.participation.set",
+      "grpc": "SelfAgent/ParticipationReplace",
+      "mq": "self.agent.participation.resource.replace",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_set_request_body",
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_replace_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome"
     },
     {
-      "operation_id": "ck.self.agent.participation.get",
+      "operation_id": "ck.self.agent.participation.resource.get",
       "http": "GET /_cokret/self/agents/{agent_principal_id}/participation",
       "grpc": "SelfAgent/ParticipationGet",
-      "mq": "self.agent.participation.get",
+      "mq": "self.agent.participation.resource.get",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome"
     },
     {
-      "operation_id": "ck.gate.account.oidc_callback",
+      "operation_id": "ck.gate.account.exchange.oidc_callback",
       "http": "POST /_cokret/gate/account/oidc/callback",
       "grpc": "GateAccount/OidcCallback",
-      "mq": "gate.account.oidc_callback",
+      "mq": "gate.account.exchange.oidc_callback",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome"
     },
     {
-      "operation_id": "ck.edge.applet.describe",
+      "operation_id": "ck.edge.applet.query.describe",
       "http": "GET /_cokret/edge/applet/describe",
       "grpc": "EdgeApplet/Describe",
-      "mq": "edge.applet.describe",
+      "mq": "edge.applet.query.describe",
       "success_shape_kind": "service_describe"
     },
     {
-      "operation_id": "ck.self.applet.install.preview",
+      "operation_id": "ck.self.applet.install.command.preview",
       "http": "POST /_cokret/self/applets/install/preview",
       "grpc": "SelfApplet/InstallPreview",
-      "mq": "self.applet.install.preview",
+      "mq": "self.applet.install.command.preview",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_preview_request_body",
       "response_schema_ref": "schemas/applet-install-plan.schema.json"
     },
     {
-      "operation_id": "ck.self.applet.install",
+      "operation_id": "ck.self.applet.command.install",
       "http": "POST /_cokret/self/applets/install",
       "grpc": "SelfApplet/Install",
-      "mq": "self.applet.install",
+      "mq": "self.applet.command.install",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_request_body",
       "response_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_outcome"
     },
     {
-      "operation_id": "ck.edge.applet.ping",
+      "operation_id": "ck.edge.applet.query.ping",
       "http": "GET /_cokret/edge/applet/ping",
       "grpc": "EdgeApplet/Ping",
-      "mq": "edge.applet.ping",
+      "mq": "edge.applet.query.ping",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_ping_outcome"
     },
     {
-      "operation_id": "ck.edge.applet.protocol_metadata",
+      "operation_id": "ck.edge.applet.query.protocol_metadata",
       "http": "GET /_cokret/edge/applet/protocols/{protocol}",
       "grpc": "EdgeApplet/ProtocolMetadata",
-      "mq": "edge.applet.protocol_metadata",
+      "mq": "edge.applet.query.protocol_metadata",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_protocol_metadata"
     },
     {
-      "operation_id": "ck.edge.applet.resolve_actor",
+      "operation_id": "ck.edge.applet.actor.query.resolve",
       "http": "GET /_cokret/edge/applet/actors/{actor_id}",
       "grpc": "EdgeApplet/ResolveActor",
-      "mq": "edge.applet.resolve_actor",
+      "mq": "edge.applet.actor.query.resolve",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_actor_view"
     },
     {
-      "operation_id": "ck.edge.applet.resolve_realm",
+      "operation_id": "ck.edge.applet.realm.query.resolve",
       "http": "GET /_cokret/edge/applet/realms/{realm_id_or_alias}",
       "grpc": "EdgeApplet/ResolveRealm",
-      "mq": "edge.applet.resolve_realm",
+      "mq": "edge.applet.realm.query.resolve",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view"
     },
     {
-      "operation_id": "ck.self.applet.revoke",
+      "operation_id": "ck.self.applet.command.revoke",
       "http": "POST /_cokret/self/applets/{applet_id}/revoke",
       "grpc": "SelfApplet/Revoke",
-      "mq": "self.applet.revoke",
+      "mq": "self.applet.command.revoke",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_request_body",
       "response_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_outcome"
     },
     {
-      "operation_id": "ck.self.applet.ghost.provision",
+      "operation_id": "ck.self.applet.ghost.command.provision",
       "http": "POST /_cokret/self/applets/{applet_id}/ghosts/provision",
       "grpc": "SelfApplet/GhostProvision",
-      "mq": "self.applet.ghost.provision",
+      "mq": "self.applet.ghost.command.provision",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body",
       "response_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_outcome"
     },
     {
-      "operation_id": "ck.edge.applet.third_party_locations",
+      "operation_id": "ck.edge.applet.third_party_locations.query.list",
       "http": "GET /_cokret/edge/applet/third_party/locations",
       "grpc": "EdgeApplet/ThirdPartyLocations",
-      "mq": "edge.applet.third_party_locations",
+      "mq": "edge.applet.third_party_locations.query.list",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_location_list"
     },
     {
-      "operation_id": "ck.edge.applet.third_party_users",
+      "operation_id": "ck.edge.applet.third_party_users.query.list",
       "http": "GET /_cokret/edge/applet/third_party/users",
       "grpc": "EdgeApplet/ThirdPartyUsers",
-      "mq": "edge.applet.third_party_users",
+      "mq": "edge.applet.third_party_users.query.list",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_user_list"
     },
     {
-      "operation_id": "ck.edge.applet.transaction",
+      "operation_id": "ck.edge.applet.command.transaction",
       "http": "POST /_cokret/edge/applet/transactions",
       "grpc": "EdgeApplet/Transaction",
-      "mq": "edge.applet.transaction",
+      "mq": "edge.applet.command.transaction",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body",
       "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_outcome"
     },
     {
-      "operation_id": "ck.self.authz.check",
+      "operation_id": "ck.self.authz.query.check",
       "http": "POST /_cokret/self/authz/check",
       "grpc": "SelfAuthz/Check",
-      "mq": "self.authz.check",
+      "mq": "self.authz.query.check",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckOutcome"
     },
     {
-      "operation_id": "ck.self.authz.get_effective_grants",
+      "operation_id": "ck.self.authz.grants.query.effective",
       "http": "GET /_cokret/self/authz/effective-grants",
       "grpc": "SelfAuthz/GetEffectiveGrants",
-      "mq": "self.authz.get_effective_grants",
+      "mq": "self.authz.grants.query.effective",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GrantList"
     },
     {
-      "operation_id": "ck.self.authz.get_invites",
+      "operation_id": "ck.self.authz.invites.query.list",
       "http": "GET /_cokret/self/authz/invites",
       "grpc": "SelfAuthz/GetInvites",
-      "mq": "self.authz.get_invites",
+      "mq": "self.authz.invites.query.list",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/authz-operations.schema.json#/$defs/authz_invite_list"
     },
     {
-      "operation_id": "ck.self.blob.get",
+      "operation_id": "ck.self.blob.resource.get",
       "http": "GET /_cokret/self/blob/get",
       "grpc": "SelfBlob/Get",
-      "mq": "self.blob.get",
+      "mq": "self.blob.resource.get",
       "success_shape_kind": "binary_stream"
     },
     {
-      "operation_id": "ck.self.blob.head",
+      "operation_id": "ck.self.blob.resource.head",
       "http": "HEAD /_cokret/self/blob/get",
       "grpc": "SelfBlob/Head",
-      "mq": "self.blob.head",
+      "mq": "self.blob.resource.head",
       "success_shape_kind": "metadata_headers"
     },
     {
-      "operation_id": "ck.self.blob.upload",
+      "operation_id": "ck.self.blob.upload.create",
       "http": "POST /_cokret/self/blob/upload",
       "grpc": "SelfBlob/Upload",
-      "mq": "self.blob.upload",
+      "mq": "self.blob.upload.create",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/blob-operations.schema.json#/$defs/blob_upload_request_body",
       "response_schema_ref": "schemas/blob-operations.schema.json#/$defs/blob_upload_outcome"
     },
     {
-      "operation_id": "ck.self.blob.presign",
+      "operation_id": "ck.self.blob.command.presign",
       "http": "POST /_cokret/self/blob/presign",
       "grpc": "SelfBlob/Presign",
-      "mq": "self.blob.presign",
+      "mq": "self.blob.command.presign",
       "notes": "Issues a short-TTL, single-blob, read-only pre-signed URL whose authorization material rides in the URL itself (query string). Used as a deliberate carve-out of the no-credentials-in-URL rule (server-threat-model.md S21) so that browser primitives like <img src> / <video src> / <link href> can render protected media without setting Authorization headers. NOT for E2EE blob inline preview (E2EE attachment fetch MUST keep the blob_ref + key out of any URL the server can log). See media-and-blob.md §5.4.",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignOutcome"
     },
     {
-      "operation_id": "ck.self.device_messages.get",
+      "operation_id": "ck.self.device_messages.query.list",
       "http": "GET /_cokret/self/device_messages",
       "grpc": "SelfDeviceMessages/Get",
-      "mq": "self.device_messages.get",
+      "mq": "self.device_messages.query.list",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetOutcome"
     },
     {
-      "operation_id": "ck.self.device_messages.put",
+      "operation_id": "ck.self.device_messages.command.send",
       "http": "POST /_cokret/self/device_messages",
-      "grpc": "SelfDeviceMessages/Put",
-      "mq": "self.device_messages.put",
-      "notes": "Enqueues caller-supplied DeviceMessageEnvelope targets into recipient device queues. HTTP binding is POST because the request is a batch command against a queue collection, deduplicated by (sender, Idempotency-Key), and does not replace a single URI-addressed message resource. Queue pruning is only via ck.self.device_messages.ack.",
+      "grpc": "SelfDeviceMessages/Send",
+      "mq": "self.device_messages.command.send",
+      "notes": "Enqueues caller-supplied DeviceMessageEnvelope targets into recipient device queues. HTTP binding is POST because the request is a batch command against a queue collection, deduplicated by (sender, Idempotency-Key), and does not replace a single URI-addressed message resource. Queue pruning is only via ck.self.device_messages.command.ack.",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesPutRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesPutOutcome"
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendOutcome"
     },
     {
-      "operation_id": "ck.self.device_messages.ack",
+      "operation_id": "ck.self.device_messages.command.ack",
       "http": "POST /_cokret/self/device_messages/ack",
       "grpc": "SelfDeviceMessages/Ack",
-      "mq": "self.device_messages.ack",
+      "mq": "self.device_messages.command.ack",
       "notes": "Explicit, cumulative, monotonic to-device delivery acknowledgement (client-sync.md §10.1). Queue deletion happens only here; stream cursor advancement (account subscribe after=, device_messages from=) is read-only and MUST NOT prune the queue. Re-acking the same or an older token is a legal no-op. Unknown / expired / cross-bound tokens are rejected with invalid_param (reason invalid_ack_token) without deleting anything.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckOutcome"
     },
     {
-      "operation_id": "ck.self.contact.request",
+      "operation_id": "ck.self.contact.command.request",
       "http": "POST /_cokret/self/contacts/request",
       "grpc": "SelfContact/Request",
-      "mq": "self.contact.request",
+      "mq": "self.contact.command.request",
       "notes": "Writes requester-side ck.contact.requested fact and requester-side consent grants for requested scopes; MUST NOT write target consent or accepted fact.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_request_body",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_outcome"
     },
     {
-      "operation_id": "ck.self.contact.respond",
+      "operation_id": "ck.self.contact.command.respond",
       "http": "POST /_cokret/self/contacts/respond",
       "grpc": "SelfContact/Respond",
-      "mq": "self.contact.respond",
+      "mq": "self.contact.command.respond",
       "notes": "Target-side accept/reject of a contact request. Accept writes target-controlled consent grants; reject writes no consent.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_request_body",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_outcome"
     },
     {
-      "operation_id": "ck.self.contact.list",
+      "operation_id": "ck.self.contact.query.list",
       "http": "GET /_cokret/self/contacts",
       "grpc": "SelfContact/List",
-      "mq": "self.contact.list",
+      "mq": "self.contact.query.list",
       "notes": "Holder contact projection from contact facts plus consent-derived directional scopes; account-data contact notes are local decoration only.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list"
     },
     {
-      "operation_id": "ck.self.contact.tombstone",
+      "operation_id": "ck.self.contact.command.tombstone",
       "http": "POST /_cokret/self/contacts/tombstone",
       "grpc": "SelfContact/Tombstone",
-      "mq": "self.contact.tombstone",
+      "mq": "self.contact.command.tombstone",
       "notes": "Holder-side contact tombstone. Default revocation is limited to contact-managed active consent dots.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request_body",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone"
     },
     {
-      "operation_id": "ck.self.invite_receive_policy.get",
+      "operation_id": "ck.self.invite_receive_policy.resource.get",
       "http": "GET /_cokret/self/invite-receive-policy",
       "grpc": "SelfInviteReceivePolicy/Get",
-      "mq": "self.invite_receive_policy.get",
+      "mq": "self.invite_receive_policy.resource.get",
       "notes": "Read the authenticated subject's private invite-receive policy. Returns the recommended default when no explicit override is stored; the response is never written into the target Realm durable event log.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/invite-receive-policy.schema.json"
     },
     {
-      "operation_id": "ck.self.invite_receive_policy.set",
-      "http": "POST /_cokret/self/invite-receive-policy",
-      "grpc": "SelfInviteReceivePolicy/Set",
-      "mq": "self.invite_receive_policy.set",
-      "notes": "Replace the authenticated subject's private invite-receive policy. The body MUST set subject_id equal to the session actor; the override shares the same store as ck.self.contact.tombstone(block_peer) blocked_subjects writes.",
+      "operation_id": "ck.self.invite_receive_policy.resource.replace",
+      "http": "PUT /_cokret/self/invite-receive-policy",
+      "grpc": "SelfInviteReceivePolicy/Replace",
+      "mq": "self.invite_receive_policy.resource.replace",
+      "notes": "Replace the authenticated subject's private invite-receive policy. The body MUST set subject_id equal to the session actor; the override shares the same store as ck.self.contact.command.tombstone(block_peer) blocked_subjects writes.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/invite-receive-policy.schema.json",
       "response_schema_ref": "schemas/invite-receive-policy.schema.json"
     },
     {
-      "operation_id": "ck.self.direct_conversation.resolve",
+      "operation_id": "ck.self.direct_conversation.command.resolve",
       "http": "POST /_cokret/self/direct-conversations/resolve",
       "grpc": "SelfDirectConversation/Resolve",
-      "mq": "self.direct_conversation.resolve",
+      "mq": "self.direct_conversation.command.resolve",
       "notes": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent; create=true creates canonical DM Realm, main Flow, and binding.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_request_body",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_outcome"
     },
     {
-      "operation_id": "ck.self.circle.create",
+      "operation_id": "ck.self.circle.command.create",
       "http": "POST /_cokret/self/circles",
       "grpc": "SelfCircle/Create",
-      "mq": "self.circle.create",
+      "mq": "self.circle.command.create",
       "notes": "Builds a ck.circle.create Operation in the named parent Realm and routes it through the local accept pipeline. Reducer-locked fields (mls_group_ref, state) MUST NOT be actor-supplied; encryption_profile='none' is allowed only when the parent Realm policy floor permits plaintext.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_create_request_body",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view"
     },
     {
-      "operation_id": "ck.self.circle.list",
+      "operation_id": "ck.self.circle.query.list",
       "http": "GET /_cokret/self/circles",
       "grpc": "SelfCircle/List",
-      "mq": "self.circle.list",
+      "mq": "self.circle.query.list",
       "notes": "Lists Circles the caller may see within one parent Realm (required realm_id query). Directory visibility is enforced per Circle; non-members of a 'members'-visibility Circle MUST NOT see it.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_list"
     },
     {
-      "operation_id": "ck.self.circle.get",
+      "operation_id": "ck.self.circle.resource.get",
       "http": "GET /_cokret/self/circles/{circle_id}",
       "grpc": "SelfCircle/Get",
-      "mq": "self.circle.get",
+      "mq": "self.circle.resource.get",
       "notes": "Reads one Circle projection. Returns not_found when the Circle is invisible to the caller rather than disclosing existence.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view"
     },
     {
-      "operation_id": "ck.self.circle.member.add",
+      "operation_id": "ck.self.circle.member.command.add",
       "http": "POST /_cokret/self/circles/{circle_id}/members",
       "grpc": "SelfCircle/MemberAdd",
-      "mq": "self.circle.member.add",
+      "mq": "self.circle.member.command.add",
       "notes": "Builds ck.circle.member.state. Activating another actor requires ck.circle.member.manage narrowed to this Circle, and the target MUST already be a joined parent-Realm member (strict-subset invariant); a self-join is gated by join_rule.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_member_request_body",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome"
     },
     {
-      "operation_id": "ck.self.circle.member.remove",
+      "operation_id": "ck.self.circle.member.resource.delete",
       "http": "DELETE /_cokret/self/circles/{circle_id}/members/{actor_id}",
       "grpc": "SelfCircle/MemberRemove",
-      "mq": "self.circle.member.remove",
+      "mq": "self.circle.member.resource.delete",
       "notes": "Builds ck.circle.member.state with target state removed for the path actor_id.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome"
     },
     {
-      "operation_id": "ck.self.circle.scope_rotate",
+      "operation_id": "ck.self.circle.command.rotate_scope",
       "http": "POST /_cokret/self/circles/{circle_id}/scope-rotate",
       "grpc": "SelfCircle/ScopeRotate",
-      "mq": "self.circle.scope_rotate",
+      "mq": "self.circle.command.rotate_scope",
       "notes": "Rotates the Circle's bound MLS group. MUST NOT acknowledge a rotation without actually changing the cryptographic scope; returns unsupported_feature until the MLS genesis/commit/welcome cascade is wired end-to-end.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_outcome"
     },
     {
-      "operation_id": "ck.self.circle.archive",
+      "operation_id": "ck.self.circle.command.archive",
       "http": "POST /_cokret/self/circles/{circle_id}/archive",
       "grpc": "SelfCircle/Archive",
-      "mq": "self.circle.archive",
+      "mq": "self.circle.command.archive",
       "notes": "Builds ck.circle.archive; transition follows the Circle lifecycle matrix (reducer rejects illegal transitions with circle_not_active).",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view"
     },
     {
-      "operation_id": "ck.self.circle.tombstone",
+      "operation_id": "ck.self.circle.command.tombstone",
       "http": "POST /_cokret/self/circles/{circle_id}/tombstone",
       "grpc": "SelfCircle/Tombstone",
-      "mq": "self.circle.tombstone",
+      "mq": "self.circle.command.tombstone",
       "notes": "Builds ck.circle.tombstone (terminal). Response surfaces the terminal state with empty members.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view"
     },
     {
-      "operation_id": "ck.self.organization.list",
+      "operation_id": "ck.self.organization.query.list",
       "http": "GET /_cokret/self/organizations",
       "grpc": "SelfOrganization/List",
-      "mq": "self.organization.list",
+      "mq": "self.organization.query.list",
       "notes": "Lists locally known organization registry rows. An Organization is a DID Principal; the row is a local index plus realm-link projection, not a separate principal object.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_list"
     },
     {
-      "operation_id": "ck.self.organization.upsert",
+      "operation_id": "ck.self.organization.command.upsert",
       "http": "POST /_cokret/self/organizations",
       "grpc": "SelfOrganization/Upsert",
-      "mq": "self.organization.upsert",
+      "mq": "self.organization.command.upsert",
       "notes": "Creates or updates a local organization registry row keyed by organization_did. The identifier MUST be a DID; a non-DID local organization prefix is a deployment-local affordance and is not protocol-canonical.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_upsert_request_body",
       "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_view"
     },
     {
-      "operation_id": "ck.self.organization.get",
+      "operation_id": "ck.self.organization.resource.get",
       "http": "GET /_cokret/self/organizations/{organization_did}",
       "grpc": "SelfOrganization/Get",
-      "mq": "self.organization.get",
+      "mq": "self.organization.resource.get",
       "notes": "Reads one local organization registry row.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_view"
     },
     {
-      "operation_id": "ck.self.organization.policy.get",
+      "operation_id": "ck.self.organization.policy.resource.get",
       "http": "GET /_cokret/self/organizations/{organization_did}/policy",
       "grpc": "SelfOrganization/PolicyGet",
-      "mq": "self.organization.policy.get",
+      "mq": "self.organization.policy.resource.get",
       "notes": "Reads the current stored ck.organization.moderation_policy document for the organization. The policy only takes effect for Realms / services that explicitly reference it (content-moderation.md §7).",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_policy_document"
     },
     {
-      "operation_id": "ck.self.organization.policy.set",
-      "http": "POST /_cokret/self/organizations/{organization_did}/policy",
-      "grpc": "SelfOrganization/PolicySet",
-      "mq": "self.organization.policy.set",
+      "operation_id": "ck.self.organization.policy.resource.replace",
+      "http": "PUT /_cokret/self/organizations/{organization_did}/policy",
+      "grpc": "SelfOrganization/PolicyReplace",
+      "mq": "self.organization.policy.resource.replace",
       "notes": "Publishes / replaces the organization moderation policy (builds ck.organization.moderation_policy, admission capability ck.policy.manage). MUST be signed by the Organization DID or an authorized governance service DID.",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_policy_set_request_body",
+      "request_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_policy_replace_request_body",
       "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_policy_document"
     },
     {
-      "operation_id": "ck.self.organization.realm.link",
+      "operation_id": "ck.self.organization.realm.command.link",
       "http": "POST /_cokret/self/organizations/{organization_did}/realms",
       "grpc": "SelfOrganization/RealmLink",
-      "mq": "self.organization.realm.link",
+      "mq": "self.organization.realm.command.link",
       "notes": "Links a Realm to this organization as a policy source. The link is the explicit reference that activates organization policy inheritance for the Realm.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_realm_link_request_body",
       "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_realm_link_outcome"
     },
     {
-      "operation_id": "ck.find.directory.announce",
+      "operation_id": "ck.find.directory.command.announce",
       "http": "POST /_cokret/find/directory/announce",
       "grpc": "FindDirectory/Announce",
-      "mq": "find.directory.announce",
+      "mq": "find.directory.command.announce",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome"
     },
     {
-      "operation_id": "ck.find.directory.describe",
+      "operation_id": "ck.find.directory.query.describe",
       "http": "GET /_cokret/find/directory/describe",
       "grpc": "FindDirectory/Describe",
-      "mq": "find.directory.describe",
+      "mq": "find.directory.query.describe",
       "success_shape_kind": "service_describe"
     },
     {
-      "operation_id": "ck.find.directory.private_contact_discovery",
+      "operation_id": "ck.find.directory.query.private_contact_discovery",
       "http": "POST /_cokret/find/directory/private-contact-discovery",
       "grpc": "FindDirectory/PrivateContactDiscovery",
-      "mq": "find.directory.private_contact_discovery",
+      "mq": "find.directory.query.private_contact_discovery",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_request_body",
       "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_outcome"
     },
     {
-      "operation_id": "ck.find.directory.resolve_handle",
+      "operation_id": "ck.find.directory.query.resolve_handle",
       "http": "POST /_cokret/find/directory/resolve-handle",
       "grpc": "FindDirectory/ResolveHandle",
-      "mq": "find.directory.resolve_handle",
+      "mq": "find.directory.query.resolve_handle",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_handle_request_body",
       "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_handle_resolution_outcome"
     },
     {
-      "operation_id": "ck.find.directory.resolve_agent_selector",
+      "operation_id": "ck.find.directory.query.resolve_agent_selector",
       "http": "POST /_cokret/find/directory/resolve-agent-selector",
       "grpc": "FindDirectory/ResolveAgentSelector",
-      "mq": "find.directory.resolve_agent_selector",
+      "mq": "find.directory.query.resolve_agent_selector",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_agent_selector_request_body",
       "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_agent_selector_resolution_outcome"
     },
     {
-      "operation_id": "ck.find.directory.list_handles_for_subject",
+      "operation_id": "ck.find.directory.query.list_handles_for_subject",
       "http": "POST /_cokret/find/directory/list-handles-for-subject",
       "grpc": "FindDirectory/ListHandlesForSubject",
-      "mq": "find.directory.list_handles_for_subject",
+      "mq": "find.directory.query.list_handles_for_subject",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_list_handles_for_subject_request_body",
       "response_schema_ref": "schemas/list-handles-for-subject-response.schema.json"
     },
     {
-      "operation_id": "ck.find.directory.resolve_organization",
+      "operation_id": "ck.find.directory.query.resolve_organization",
       "http": "POST /_cokret/find/directory/resolve-organization",
       "grpc": "FindDirectory/ResolveOrganization",
-      "mq": "find.directory.resolve_organization",
+      "mq": "find.directory.query.resolve_organization",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_organization_request_body",
       "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_organization_resolution_outcome"
     },
     {
-      "operation_id": "ck.find.directory.resolve_realm",
+      "operation_id": "ck.find.directory.query.resolve_realm",
       "http": "POST /_cokret/find/directory/resolve-realm",
       "grpc": "FindDirectory/ResolveRealm",
-      "mq": "find.directory.resolve_realm",
+      "mq": "find.directory.query.resolve_realm",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_realm_request_body",
       "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_resolution_outcome"
     },
     {
-      "operation_id": "ck.find.directory.resolve_target",
+      "operation_id": "ck.find.directory.query.resolve_target",
       "http": "POST /_cokret/find/directory/resolve-target",
       "grpc": "FindDirectory/ResolveTarget",
-      "mq": "find.directory.resolve_target",
+      "mq": "find.directory.query.resolve_target",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_target_request_body",
       "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_target_resolution_outcome"
     },
     {
-      "operation_id": "ck.find.directory.search_actors",
+      "operation_id": "ck.find.directory.query.search_actors",
       "http": "POST /_cokret/find/directory/search-actors",
       "grpc": "FindDirectory/SearchActors",
-      "mq": "find.directory.search_actors",
+      "mq": "find.directory.query.search_actors",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_actors_request_body",
       "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_actor_search_outcome"
     },
     {
-      "operation_id": "ck.find.directory.search_organizations",
+      "operation_id": "ck.find.directory.query.search_organizations",
       "http": "POST /_cokret/find/directory/search-organizations",
       "grpc": "FindDirectory/SearchOrganizations",
-      "mq": "find.directory.search_organizations",
+      "mq": "find.directory.query.search_organizations",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_organizations_request_body",
       "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_organization_search_outcome"
     },
     {
-      "operation_id": "ck.find.directory.search_realms",
+      "operation_id": "ck.find.directory.query.search_realms",
       "http": "POST /_cokret/find/directory/search-realms",
       "grpc": "FindDirectory/SearchRealms",
-      "mq": "find.directory.search_realms",
+      "mq": "find.directory.query.search_realms",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_realms_request_body",
       "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_search_outcome"
     },
     {
-      "operation_id": "ck.find.directory.search_users",
+      "operation_id": "ck.find.directory.query.search_users",
       "http": "POST /_cokret/find/directory/search-users",
       "grpc": "FindDirectory/SearchUsers",
-      "mq": "find.directory.search_users",
+      "mq": "find.directory.query.search_users",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_users_request_body",
       "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_user_search_outcome"
     },
     {
-      "operation_id": "ck.find.directory.push.register",
+      "operation_id": "ck.find.directory.push.command.register",
       "http": "POST /_cokret/find/directory/push/register",
       "grpc": "FindDirectory/PushRegister",
-      "mq": "find.directory.push.register",
+      "mq": "find.directory.push.command.register",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_push_register_request_body",
       "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_push_register_outcome"
     },
     {
-      "operation_id": "ck.find.directory.withdraw",
+      "operation_id": "ck.find.directory.command.withdraw",
       "http": "POST /_cokret/find/directory/withdraw",
       "grpc": "FindDirectory/Withdraw",
-      "mq": "find.directory.withdraw",
+      "mq": "find.directory.command.withdraw",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawOutcome"
     },
     {
-      "operation_id": "ck.self.events.describe",
+      "operation_id": "ck.self.events.query.describe",
       "http": "GET /_cokret/self/events/describe",
       "grpc": "SelfEvents/Describe",
-      "mq": "self.events.describe",
+      "mq": "self.events.query.scan.describe",
       "success_shape_kind": "service_describe"
     },
     {
-      "operation_id": "ck.self.events.frontier",
+      "operation_id": "ck.self.events.query.frontier",
       "http": "GET /_cokret/self/events/frontier",
       "grpc": "SelfEvents/Frontier",
-      "mq": "self.events.frontier",
+      "mq": "self.events.query.scan.frontier",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierState"
     },
     {
-      "operation_id": "ck.self.events.get",
+      "operation_id": "ck.self.events.resource.get",
       "http": "GET /_cokret/self/events/{event_id}",
       "grpc": "SelfEvents/Get",
-      "mq": "self.events.get",
+      "mq": "self.events.resource.get",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventView"
     },
     {
-      "operation_id": "ck.self.events.query",
+      "operation_id": "ck.self.events.query.scan",
       "http": "GET /_cokret/self/events",
       "grpc": "SelfEvents/Query",
-      "mq": "self.events.query",
+      "mq": "self.events.query.scan",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome"
     },
     {
-      "operation_id": "ck.self.events.query_post",
-      "binding_variant_of": "ck.self.events.query",
+      "operation_id": "ck.self.events.query.scan_body",
+      "binding_variant_of": "ck.self.events.query.scan",
       "http_only_variant": true,
       "http": "POST /_cokret/self/events/query",
-      "notes": "HTTP-specific POST/body form of ck.events.query. Semantically identical (same selector / cursor / order / filter / include_completeness parameter set, same response shape including optional range_completeness). Choose when URL length would exceed practical limits (large realms[]/actors[] arrays, complex filters object) or when query parameters would be logged inadvertently by proxies. Non-HTTP transports MUST use the canonical ck.self.events.query binding (SelfEvents/Query / self.events.query), not expose this variant as a separate gRPC or MQ operation.",
+      "notes": "HTTP-specific POST/body form of ck.events.query. Semantically identical (same selector / cursor / order / filter / include_completeness parameter set, same response shape including optional range_completeness). Choose when URL length would exceed practical limits (large realms[]/actors[] arrays, complex filters object) or when query parameters would be logged inadvertently by proxies. Non-HTTP transports MUST use the canonical ck.self.events.query.scan binding (SelfEvents/Query / self.events.query.scan), not expose this variant as a separate gRPC or MQ operation.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome"
     },
     {
-      "operation_id": "ck.self.events.resolve",
+      "operation_id": "ck.self.events.query.resolve",
       "http": "POST /_cokret/self/events/resolve",
       "grpc": "SelfEvents/Resolve",
-      "mq": "self.events.resolve",
-      "notes": "Dereference a known set of event_id / event_digest references to full EventEnvelope objects. Point lookup by identifier, not a range scan — use ck.self.events.query for selector-based reads.",
+      "mq": "self.events.query.scan.resolve",
+      "notes": "Dereference a known set of event_id / event_digest references to full EventEnvelope objects. Point lookup by identifier, not a range scan — use ck.self.events.query.scan for selector-based reads.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveOutcome"
     },
     {
-      "operation_id": "ck.self.events.subscribe",
+      "operation_id": "ck.self.events.stream.subscribe",
       "http": "GET /_cokret/self/events/subscribe",
       "grpc": "SelfEvents/Subscribe",
-      "mq": "self.events.subscribe",
+      "mq": "self.events.stream.subscribe",
       "notes": "Long-lived per-Realm / actor event stream with optional bounded catch-up replay. `dropped` and `resync_required` control frames MAY carry `reconnect_after_ms`, a server-directed minimum delay before opening another subscription for the same caller/selector scope; early reconnects are rejected with rate_limited / Retry-After.",
       "success_shape_kind": "event_stream"
     },
     {
-      "operation_id": "ck.self.events.submit",
+      "operation_id": "ck.self.events.command.submit",
       "http": "POST /_cokret/self/events",
       "grpc": "SelfEvents/Submit",
-      "mq": "self.events.submit",
+      "mq": "self.events.command.submit",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome"
     },
     {
-      "operation_id": "ck.peer.events.describe",
+      "operation_id": "ck.peer.events.query.describe",
       "http": "GET /_cokret/peer/events/describe",
       "grpc": "PeerEvents/Describe",
-      "mq": "peer.events.describe",
+      "mq": "peer.events.query.scan.describe",
       "notes": "Federation peer Events surface describe. This endpoint describes the server-to-server peer event bindings; it is not a client self/events binding.",
       "success_shape_kind": "service_describe"
     },
     {
-      "operation_id": "ck.peer.events.frontier",
+      "operation_id": "ck.peer.events.query.frontier",
       "http": "GET /_cokret/peer/events/frontier",
       "grpc": "PeerEvents/Frontier",
-      "mq": "peer.events.frontier",
+      "mq": "peer.events.query.scan.frontier",
       "notes": "Federation peer frontier probe. Requires service-to-service authentication, Source/Destination service DID headers, trust-domain headers, and Realm federation_peer authorization. It returns the federation peer frontier response shape on the dedicated peer trust surface.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerState"
     },
     {
-      "operation_id": "ck.peer.events.query",
+      "operation_id": "ck.peer.events.query.scan",
       "http": "GET /_cokret/peer/events",
       "grpc": "PeerEvents/Query",
-      "mq": "peer.events.query",
-      "notes": "Federation peer pull/backfill query. Uses the same selector, cursor, order, and response semantics as ck.self.events.query, but the HTTP trust surface is peer and the caller MUST be an authorized federation peer service.",
+      "mq": "peer.events.query.scan",
+      "notes": "Federation peer pull/backfill query. Uses the same selector, cursor, order, and response semantics as ck.self.events.query.scan, but the HTTP trust surface is peer and the caller MUST be an authorized federation peer service.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome"
     },
     {
-      "operation_id": "ck.peer.events.query_post",
-      "binding_variant_of": "ck.peer.events.query",
+      "operation_id": "ck.peer.events.query.scan_body",
+      "binding_variant_of": "ck.peer.events.query.scan",
       "http_only_variant": true,
       "http": "POST /_cokret/peer/events/query",
-      "notes": "HTTP-specific POST/body form of ck.peer.events.query. Semantically identical to GET /_cokret/peer/events; use it when federation selectors or filters are too large or sensitive for query strings.",
+      "notes": "HTTP-specific POST/body form of ck.peer.events.query.scan. Semantically identical to GET /_cokret/peer/events; use it when federation selectors or filters are too large or sensitive for query strings.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome"
     },
     {
-      "operation_id": "ck.peer.events.resolve",
+      "operation_id": "ck.peer.events.query.resolve",
       "http": "POST /_cokret/peer/events/resolve",
       "grpc": "PeerEvents/Resolve",
-      "mq": "peer.events.resolve",
+      "mq": "peer.events.query.scan.resolve",
       "notes": "Federation peer event reference resolution for missing prev_refs / causal references. Requires authorized federation peer service authentication and applies the same reference-disclosure and history-visibility rules as peer event query.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveOutcome"
     },
     {
-      "operation_id": "ck.peer.events.submit",
+      "operation_id": "ck.peer.events.command.submit",
       "http": "POST /_cokret/peer/events",
       "grpc": "PeerEvents/Submit",
-      "mq": "peer.events.submit",
+      "mq": "peer.events.command.submit",
       "notes": "Federation peer event push. Body is EventsSubmitFederationRequestBody and the caller MUST use service-to-service authentication with Source/Destination service DID and trust-domain headers.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome"
     },
     {
-      "operation_id": "ck.peer.invites.submit",
+      "operation_id": "ck.peer.invites.command.submit",
       "http": "POST /_cokret/peer/invites",
       "grpc": "PeerInvites/Submit",
-      "mq": "peer.invites.submit",
+      "mq": "peer.invites.command.submit",
       "notes": "Private Principal Server to Principal Server invite delivery. Requires service-to-service authentication, Destination-Service-DID equal to invite_address.recipient_service_did, a ck.invite.create event whose invitee equals invite_address.subject_id, and introduction_evidence accepted by the recipient invite_receive_policy.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/invite-delivery-request.schema.json",
       "response_schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome"
     },
     {
-      "operation_id": "ck.peer.contacts.submit",
+      "operation_id": "ck.peer.contacts.command.submit",
       "http": "POST /_cokret/peer/contacts",
       "grpc": "PeerContacts/Submit",
-      "mq": "peer.contacts.submit",
+      "mq": "peer.contacts.command.submit",
       "notes": "Private Principal Server to Principal Server contact fact delivery. Requires service-to-service authentication, Destination-Service-DID equal to contact_address.recipient_service_did, and a signed ck.contact.* envelope the recipient projects into the target holder's contact projection without re-signing.",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/peer-contact-delivery-request.schema.json",
       "response_schema_ref": "schemas/peer-contact-delivery-request.schema.json#/$defs/peer_contact_delivery_outcome"
     },
     {
-      "operation_id": "ck.peer.snapshot.head",
+      "operation_id": "ck.peer.snapshot.query.manifest_head",
       "http": "GET /_cokret/peer/snapshot/head",
       "grpc": "PeerSnapshot/Head",
-      "mq": "peer.snapshot.head",
+      "mq": "peer.snapshot.query.manifest_head",
       "notes": "Federation peer snapshot manifest head for snapshot-assisted bootstrap. Requires service-to-service authentication and Realm federation_peer authorization.",
       "success_shape_kind": "schema_resource",
       "response_schema_ref": "schemas/snapshot.schema.json"
     },
     {
-      "operation_id": "ck.self.ephemeral.send",
+      "operation_id": "ck.self.ephemeral.command.send",
       "http": "POST /_cokret/self/ephemeral",
       "grpc": "SelfEphemeral/Send",
-      "mq": "self.ephemeral.send",
+      "mq": "self.ephemeral.command.send",
       "notes": "Canonical broadcast ephemeral send operation for ck.schema.ephemeral_envelope.v1. Carries ck.presence, ck.typing, ck.receipt.read, and ck.call.signal; MUST NOT persist the signal as a durable Event or advance actor_seq / Realm frontier.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/ephemeral-envelope.schema.json",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EphemeralSubmitOutcome"
     },
     {
-      "operation_id": "ck.self.call.media.token_exchange",
+      "operation_id": "ck.self.call.media.exchange.token",
       "http": "POST /_cokret/self/rtc/token",
       "grpc": "SelfCallMedia/TokenExchange",
-      "mq": "self.call.media.token_exchange",
+      "mq": "self.call.media.exchange.token",
       "notes": "Media service token exchange operation (CKP-0010). Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in ck.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / cokret-native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/media-service-binding.md §3.",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeOutcome"
     },
     {
-      "operation_id": "ck.root.identity.describe_registry",
+      "operation_id": "ck.root.identity.registry.query.describe",
       "http": "GET /_cokret/root/identity/describe",
       "grpc": "RootIdentity/DescribeRegistry",
-      "mq": "root.identity.describe_registry",
+      "mq": "root.identity.registry.query.describe",
       "success_shape_kind": "service_describe"
     },
     {
-      "operation_id": "ck.root.identity.get_document",
+      "operation_id": "ck.root.identity.document.resource.get",
       "http": "GET /_cokret/root/identity/document",
       "grpc": "RootIdentity/GetDocument",
-      "mq": "root.identity.get_document",
+      "mq": "root.identity.document.resource.get",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityDocumentView"
     },
     {
-      "operation_id": "ck.root.identity.get_log",
+      "operation_id": "ck.root.identity.log.query.list",
       "http": "GET /_cokret/root/identity/log",
       "grpc": "RootIdentity/GetLog",
-      "mq": "root.identity.get_log",
+      "mq": "root.identity.log.query.list",
       "success_shape_kind": "inline_response"
     },
     {
-      "operation_id": "ck.root.identity.get_receipts",
+      "operation_id": "ck.root.identity.receipts.query.list",
       "http": "GET /_cokret/root/identity/receipts",
       "grpc": "RootIdentity/GetReceipts",
-      "mq": "root.identity.get_receipts",
+      "mq": "root.identity.receipts.query.list",
       "success_shape_kind": "inline_response"
     },
     {
-      "operation_id": "ck.root.identity.resolve",
+      "operation_id": "ck.root.identity.query.resolve",
       "http": "POST /_cokret/root/identity/resolve",
       "grpc": "RootIdentity/Resolve",
-      "mq": "root.identity.resolve",
+      "mq": "root.identity.query.resolve",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveOutcome"
     },
     {
-      "operation_id": "ck.root.identity.submit_did_operation",
+      "operation_id": "ck.root.identity.command.submit_did_operation",
       "http": "POST /_cokret/root/identity/submit-did-operation",
       "grpc": "RootIdentity/SubmitDidOperation",
-      "mq": "root.identity.submit_did_operation",
+      "mq": "root.identity.command.submit_did_operation",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitOutcome"
     },
     {
-      "operation_id": "ck.root.identity.recovery_policy.get",
+      "operation_id": "ck.root.identity.recovery_policy.resource.get",
       "http": "GET /_cokret/root/identity/recovery-policy",
       "grpc": "RootIdentity/RecoveryPolicyGet",
-      "mq": "root.identity.recovery_policy.get",
+      "mq": "root.identity.recovery_policy.resource.get",
       "notes": "Read the currently accepted ck.schema.recovery_policy.v1 projection for the authenticated or explicitly selected principal. Returns active_policy=null when no accepted policy exists; does not publish, rotate, or revoke policy state.",
       "success_shape_kind": "schema_resource",
       "response_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_active_outcome"
     },
     {
-      "operation_id": "ck.root.identity.recovery_policy.put",
+      "operation_id": "ck.root.identity.recovery_policy.command.publish",
       "http": "POST /_cokret/root/identity/recovery-policy",
-      "grpc": "RootIdentity/RecoveryPolicyPut",
-      "mq": "root.identity.recovery_policy.put",
+      "grpc": "RootIdentity/RecoveryPolicyPublish",
+      "mq": "root.identity.recovery_policy.command.publish",
       "notes": "Publish a signed ck.schema.recovery_policy.v1 genesis policy or rotation for the authenticated principal. HTTP binding is POST because the principal/authority is derived from authenticated proof and signed policy state rather than a URI-addressed resource slot. Servers MUST verify auth_data.signed_fields, signature authority, version monotonicity, and supersedes linkage before accepting.",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/recovery-policy.schema.json",
-      "response_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_put_outcome"
+      "response_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_outcome"
     },
     {
-      "operation_id": "ck.root.identity.recovery_session.create",
+      "operation_id": "ck.root.identity.recovery_session.command.create",
       "http": "POST /_cokret/root/identity/recovery-sessions",
       "grpc": "RootIdentity/RecoverySessionCreate",
-      "mq": "root.identity.recovery_session.create",
+      "mq": "root.identity.recovery_session.command.create",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body",
       "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_state"
     },
     {
-      "operation_id": "ck.root.identity.recovery_session.get",
+      "operation_id": "ck.root.identity.recovery_session.resource.get",
       "http": "GET /_cokret/root/identity/recovery-sessions/{recovery_session_id}",
       "grpc": "RootIdentity/RecoverySessionGet",
-      "mq": "root.identity.recovery_session.get",
+      "mq": "root.identity.recovery_session.resource.get",
       "success_shape_kind": "schema_resource",
       "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_state"
     },
     {
-      "operation_id": "ck.root.identity.recovery_session.submit_proof",
+      "operation_id": "ck.root.identity.recovery_session.command.submit_proof",
       "http": "POST /_cokret/root/identity/recovery-sessions/{recovery_session_id}/proofs",
       "grpc": "RootIdentity/RecoverySessionSubmitProof",
-      "mq": "root.identity.recovery_session.submit_proof",
+      "mq": "root.identity.recovery_session.command.submit_proof",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_request_body",
       "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_outcome"
     },
     {
-      "operation_id": "ck.root.identity.recovery_session.complete",
+      "operation_id": "ck.root.identity.recovery_session.command.complete",
       "http": "POST /_cokret/root/identity/recovery-sessions/{recovery_session_id}/complete",
       "grpc": "RootIdentity/RecoverySessionComplete",
-      "mq": "root.identity.recovery_session.complete",
+      "mq": "root.identity.recovery_session.command.complete",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body",
       "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_outcome"
     },
     {
-      "operation_id": "ck.self.keys.claim",
+      "operation_id": "ck.self.keys.command.claim",
       "http": "POST /_cokret/self/keys/claim",
       "grpc": "SelfKeys/Claim",
-      "mq": "self.keys.claim",
+      "mq": "self.keys.command.claim",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_claim_request_body",
       "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_claim_outcome"
     },
     {
-      "operation_id": "ck.self.keys.backups.delete",
+      "operation_id": "ck.self.keys.backups.resource.delete",
       "http": "DELETE /_cokret/self/keys/backups/{backup_id}",
       "grpc": "SelfKeys/BackupsDelete",
-      "mq": "self.keys.backups.delete",
+      "mq": "self.keys.backups.resource.delete",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_request_body",
       "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_outcome"
     },
     {
-      "operation_id": "ck.self.keys.backups.list",
+      "operation_id": "ck.self.keys.backups.query.list",
       "http": "GET /_cokret/self/keys/backups",
       "grpc": "SelfKeys/BackupsList",
-      "mq": "self.keys.backups.list",
+      "mq": "self.keys.backups.query.list",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_list"
     },
     {
-      "operation_id": "ck.self.keys.backups.put",
+      "operation_id": "ck.self.keys.backups.resource.replace",
       "http": "PUT /_cokret/self/keys/backups/{backup_id}",
-      "grpc": "SelfKeys/BackupsPut",
-      "mq": "self.keys.backups.put",
+      "grpc": "SelfKeys/BackupsReplace",
+      "mq": "self.keys.backups.resource.replace",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/key-backup.schema.json",
-      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_put_outcome"
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_replace_outcome"
     },
     {
-      "operation_id": "ck.self.keys.backups.unlock",
+      "operation_id": "ck.self.keys.backups.command.unlock",
       "http": "POST /_cokret/self/keys/backups/{backup_id}/unlock",
       "grpc": "SelfKeys/BackupsUnlock",
-      "mq": "self.keys.backups.unlock",
+      "mq": "self.keys.backups.command.unlock",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_request_body",
       "response_schema_ref": "schemas/key-backup.schema.json"
     },
     {
-      "operation_id": "ck.self.keys.keypackages.claim",
+      "operation_id": "ck.self.keys.keypackages.command.claim",
       "http": "POST /_cokret/self/keys/keypackages/claim",
       "grpc": "SelfKeys/KeyPackagesClaim",
-      "mq": "self.keys.keypackages.claim",
+      "mq": "self.keys.keypackages.command.claim",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_request_body",
       "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_outcome"
     },
     {
-      "operation_id": "ck.self.keys.keypackages.consume",
+      "operation_id": "ck.self.keys.keypackages.command.consume",
       "http": "POST /_cokret/self/keys/keypackages/consume",
       "grpc": "SelfKeys/KeyPackagesConsume",
-      "mq": "self.keys.keypackages.consume",
+      "mq": "self.keys.keypackages.command.consume",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_request_body",
       "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_outcome"
     },
     {
-      "operation_id": "ck.self.keys.keypackages.revoke",
+      "operation_id": "ck.self.keys.keypackages.command.revoke",
       "http": "POST /_cokret/self/keys/keypackages/revoke",
       "grpc": "SelfKeys/KeyPackagesRevoke",
-      "mq": "self.keys.keypackages.revoke",
+      "mq": "self.keys.keypackages.command.revoke",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_request_body",
       "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_outcome"
     },
     {
-      "operation_id": "ck.self.keys.keypackages.upload",
+      "operation_id": "ck.self.keys.keypackages.upload.create",
       "http": "POST /_cokret/self/keys/keypackages/upload",
       "grpc": "SelfKeys/KeyPackagesUpload",
-      "mq": "self.keys.keypackages.upload",
+      "mq": "self.keys.keypackages.upload.create",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_request_body",
       "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_outcome"
     },
     {
-      "operation_id": "ck.self.keys.query",
+      "operation_id": "ck.self.keys.query.lookup",
       "http": "POST /_cokret/self/keys/query",
       "grpc": "SelfKeys/Query",
-      "mq": "self.keys.query",
+      "mq": "self.keys.query.lookup",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_request_body",
       "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_outcome"
     },
     {
-      "operation_id": "ck.self.keys.upload",
+      "operation_id": "ck.self.keys.upload.create",
       "http": "POST /_cokret/self/keys/upload",
       "grpc": "SelfKeys/Upload",
-      "mq": "self.keys.upload",
+      "mq": "self.keys.upload.create",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_upload_request_body",
       "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_upload_outcome"
     },
     {
-      "operation_id": "ck.self.media.ice_config",
+      "operation_id": "ck.self.media.query.ice_config",
       "http": "POST /_cokret/self/rtc/ice-config",
       "grpc": "SelfMedia/IceConfig",
-      "mq": "self.media.ice_config",
+      "mq": "self.media.query.ice_config",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/media-operations.schema.json#/$defs/media_ice_config_request_body",
       "response_schema_ref": "schemas/ice-config-response.schema.json"
     },
     {
-      "operation_id": "ck.open.invite_locator.resolve",
+      "operation_id": "ck.open.invite_locator.query.resolve",
       "http": "POST /_cokret/open/invite-locators/resolve",
       "grpc": "OpenInviteLocator/Resolve",
-      "mq": "open.invite_locator.resolve",
+      "mq": "open.invite_locator.query.resolve",
       "notes": "Resolves an online invite locator token carried out-of-band, usually as a URL fragment in a QR/link. The locator token MUST be sent in the JSON body, never in URL path or query string; the response is a signed principal_locator.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/principal_locator_resolve_request_body",
       "response_schema_ref": "schemas/principal-locator.schema.json"
     },
     {
-      "operation_id": "ck.open.mimi.group_info",
+      "operation_id": "ck.open.mimi.query.group_info",
       "http": "GET /_cokret/open/mimi/flows/{flow_id}/group-info",
       "grpc": "OpenMimi/GroupInfo",
-      "mq": "open.mimi.group_info",
+      "mq": "open.mimi.query.group_info",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_group_info_outcome"
     },
     {
-      "operation_id": "ck.open.mimi.identifier_query",
+      "operation_id": "ck.open.mimi.query.identifiers",
       "http": "POST /_cokret/open/mimi/identifiers/query",
       "grpc": "OpenMimi/IdentifierQuery",
-      "mq": "open.mimi.identifier_query",
+      "mq": "open.mimi.query.identifiers",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_outcome"
     },
     {
-      "operation_id": "ck.open.mimi.key_material",
+      "operation_id": "ck.open.mimi.exchange.key_material",
       "http": "POST /_cokret/open/mimi/key-material",
       "grpc": "OpenMimi/KeyMaterial",
-      "mq": "open.mimi.key_material",
+      "mq": "open.mimi.exchange.key_material",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_outcome"
     },
     {
-      "operation_id": "ck.open.mimi.notify",
+      "operation_id": "ck.open.mimi.command.notify",
       "http": "POST /_cokret/open/mimi/flows/{flow_id}/notify",
       "grpc": "OpenMimi/Notify",
-      "mq": "open.mimi.notify",
+      "mq": "open.mimi.command.notify",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_notify_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_notify_outcome"
     },
     {
-      "operation_id": "ck.open.mimi.provider_directory",
+      "operation_id": "ck.open.mimi.query.provider_directory",
       "http": "GET /_cokret/open/mimi/provider-directory",
       "grpc": "OpenMimi/ProviderDirectory",
-      "mq": "open.mimi.provider_directory",
+      "mq": "open.mimi.query.provider_directory",
       "success_shape_kind": "schema_resource",
       "response_schema_ref": "schemas/mimi-interop.schema.json"
     },
     {
-      "operation_id": "ck.open.mimi.proxy_download",
+      "operation_id": "ck.open.mimi.command.proxy_download",
       "http": "POST /_cokret/open/mimi/proxy-download",
       "grpc": "OpenMimi/ProxyDownload",
-      "mq": "open.mimi.proxy_download",
-      "bridges_to": "ck.self.blob.get",
+      "mq": "open.mimi.command.proxy_download",
+      "bridges_to": "ck.self.blob.resource.get",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_outcome"
     },
     {
-      "operation_id": "ck.open.mimi.report_abuse",
+      "operation_id": "ck.open.mimi.command.report_abuse",
       "http": "POST /_cokret/open/mimi/report-abuse",
       "grpc": "OpenMimi/ReportAbuse",
-      "mq": "open.mimi.report_abuse",
-      "bridges_to": "ck.self.moderation.report",
+      "mq": "open.mimi.command.report_abuse",
+      "bridges_to": "ck.self.moderation.command.report",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_outcome"
     },
     {
-      "operation_id": "ck.open.mimi.request_consent",
+      "operation_id": "ck.open.mimi.command.request_consent",
       "http": "POST /_cokret/open/mimi/consent/request",
       "grpc": "OpenMimi/RequestConsent",
-      "mq": "open.mimi.request_consent",
+      "mq": "open.mimi.command.request_consent",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_outcome"
     },
     {
-      "operation_id": "ck.open.mimi.room_update",
-      "http": "PUT /_cokret/open/mimi/flows/{flow_id}/update",
+      "operation_id": "ck.open.mimi.command.update_room",
+      "http": "POST /_cokret/open/mimi/flows/{flow_id}/update",
       "grpc": "OpenMimi/RoomUpdate",
-      "mq": "open.mimi.room_update",
+      "mq": "open.mimi.command.update_room",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_outcome"
     },
     {
-      "operation_id": "ck.open.mimi.submit_message",
+      "operation_id": "ck.open.mimi.command.submit_message",
       "http": "POST /_cokret/open/mimi/flows/{flow_id}/messages",
       "grpc": "OpenMimi/SubmitMessage",
-      "mq": "open.mimi.submit_message",
+      "mq": "open.mimi.command.submit_message",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_outcome"
     },
     {
-      "operation_id": "ck.open.mimi.update_consent",
+      "operation_id": "ck.open.mimi.command.update_consent",
       "http": "POST /_cokret/open/mimi/consent/update",
       "grpc": "OpenMimi/UpdateConsent",
-      "mq": "open.mimi.update_consent",
+      "mq": "open.mimi.command.update_consent",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_outcome"
     },
     {
-      "operation_id": "ck.self.moderation.report",
+      "operation_id": "ck.self.moderation.command.report",
       "http": "POST /_cokret/self/moderation/report",
       "grpc": "SelfModeration/Report",
-      "mq": "self.moderation.report",
+      "mq": "self.moderation.command.report",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/moderation-report.schema.json",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ModerationReportOutcome"
     },
     {
-      "operation_id": "ck.self.policy.check",
+      "operation_id": "ck.self.policy.query.check",
       "http": "POST /_cokret/self/policy/check",
       "grpc": "SelfPolicy/Check",
-      "mq": "self.policy.check",
+      "mq": "self.policy.query.check",
       "notes": "Canonical HTTP binding is POST /_cokret/self/policy/check. Paths carry no version segment; protocol version is negotiated via *.describe / supported_operations (see sync/api-conventions.md).",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome"
     },
     {
-      "operation_id": "ck.self.policy_document.list",
+      "operation_id": "ck.self.policy_document.query.list",
       "http": "GET /_cokret/self/policies",
       "grpc": "SelfPolicyDocument/List",
-      "mq": "self.policy_document.list",
-      "notes": "Lists owner-scoped authorization policy documents (the backing store for ck.self.policy.check). Distinct from the Realm-bound governance Policy object ck.schema.policy.v1. Filterable by scope / subject_ref / include_inactive.",
+      "mq": "self.policy_document.query.list",
+      "notes": "Lists owner-scoped authorization policy documents (the backing store for ck.self.policy.query.check). Distinct from the Realm-bound governance Policy object ck.schema.policy.v1. Filterable by scope / subject_ref / include_inactive.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_list"
     },
     {
-      "operation_id": "ck.self.policy_document.upsert",
+      "operation_id": "ck.self.policy_document.command.upsert",
       "http": "POST /_cokret/self/policies",
       "grpc": "SelfPolicyDocument/Upsert",
-      "mq": "self.policy_document.upsert",
+      "mq": "self.policy_document.command.upsert",
       "notes": "Idempotently creates or replaces an owner-scoped policy document. policy_id defaults to a server-allocated ck:policy:<uuid>; replacing an existing id requires owner match. policy_scope is '*' or a ck:realm:<uuid>; subject_ref is '*' or a DID; effect is allow/deny/require_review/quarantine.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_upsert_request_body",
       "response_schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_view"
     },
     {
-      "operation_id": "ck.self.policy_document.get",
+      "operation_id": "ck.self.policy_document.resource.get",
       "http": "GET /_cokret/self/policies/{policy_id}",
       "grpc": "SelfPolicyDocument/Get",
-      "mq": "self.policy_document.get",
+      "mq": "self.policy_document.resource.get",
       "notes": "Reads one owner-scoped policy document. Returns not_found when absent or not owned by the caller.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_view"
     },
     {
-      "operation_id": "ck.self.policy_document.delete",
+      "operation_id": "ck.self.policy_document.resource.delete",
       "http": "DELETE /_cokret/self/policies/{policy_id}",
       "grpc": "SelfPolicyDocument/Delete",
-      "mq": "self.policy_document.delete",
-      "notes": "Deletes one owner-scoped policy document. Only the owner may delete; deletion shifts the policy_frontier_digest observed by ck.self.policy.check.",
+      "mq": "self.policy_document.resource.delete",
+      "notes": "Deletes one owner-scoped policy document. Only the owner may delete; deletion shifts the policy_frontier_digest observed by ck.self.policy.query.check.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_delete_outcome"
     },
     {
-      "operation_id": "ck.self.realm_link.list",
+      "operation_id": "ck.self.realm_link.query.list",
       "http": "GET /_cokret/self/realms/{realm_id}/links",
       "grpc": "SelfRealmLink/List",
-      "mq": "self.realm_link.list",
+      "mq": "self.realm_link.query.list",
       "notes": "Lists typed cross-Realm links projected from ck.realm.link. direction is outbound/inbound/both; link_kind_allow is a comma-separated allowlist of canonical link kinds.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_list"
     },
     {
-      "operation_id": "ck.self.realm_link.create",
+      "operation_id": "ck.self.realm_link.command.create",
       "http": "POST /_cokret/self/realms/{realm_id}/links",
       "grpc": "SelfRealmLink/Create",
-      "mq": "self.realm_link.create",
+      "mq": "self.realm_link.command.create",
       "notes": "Builds a ck.realm.link Move from realm_id -> target_realm_id. The reducer runs realm_link_* validators (cycle detection, self-reference, kind validation); a rejected payload returns 422 with the canonical reason code (e.g. realm_link_cycle, realm_link_self_reference).",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_create_request_body",
       "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome"
     },
     {
-      "operation_id": "ck.self.realm_link.delete",
+      "operation_id": "ck.self.realm_link.resource.delete",
       "http": "DELETE /_cokret/self/realms/{realm_id}/links/{target_realm_id}",
       "grpc": "SelfRealmLink/Delete",
-      "mq": "self.realm_link.delete",
+      "mq": "self.realm_link.resource.delete",
       "notes": "Writes a tombstoning ck.realm.link Move (status=tombstoned) for the (realm_id, target_realm_id, link_kind) triple. link_kind defaults to governed_by; callers may override via the link_kind query param.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome"
     },
     {
-      "operation_id": "ck.self.realm_link.effective_policy",
+      "operation_id": "ck.self.realm_link.query.effective_policy",
       "http": "GET /_cokret/self/realms/{realm_id}/effective-policy",
       "grpc": "SelfRealmLink/EffectivePolicy",
-      "mq": "self.realm_link.effective_policy",
+      "mq": "self.realm_link.query.effective_policy",
       "notes": "Returns the merged effective policy after walking governed_by / inherits_policy_from ancestors per the Realm's ck.realm.inheritance_policy. inheritance_mode=none when no inheritance policy is projected (implicit inheritance is forbidden).",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_effective_policy_outcome"
     },
     {
-      "operation_id": "ck.self.realm_policy_server.get",
+      "operation_id": "ck.self.realm_policy_server.resource.get",
       "http": "GET /_cokret/self/realms/{realm_id}/policy-server",
       "grpc": "SelfRealmPolicyServer/Get",
-      "mq": "self.realm_policy_server.get",
+      "mq": "self.realm_policy_server.resource.get",
       "notes": "Reads the projected ck.realm.policy_server config. Returns not_found when neither the Realm nor its governed_by ancestor chain declared one. from_org_fallback=true marks an inherited config.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view"
     },
     {
-      "operation_id": "ck.self.realm_policy_server.put",
+      "operation_id": "ck.self.realm_policy_server.resource.replace",
       "http": "PUT /_cokret/self/realms/{realm_id}/policy-server",
-      "grpc": "SelfRealmPolicyServer/Put",
-      "mq": "self.realm_policy_server.put",
+      "grpc": "SelfRealmPolicyServer/Replace",
+      "mq": "self.realm_policy_server.resource.replace",
       "notes": "Builds a ck.realm.policy_server Move (admission capability ck.policy.manage). Reducer validates URL scheme and on_timeout enum. This admin DTO is a simplified projection of the canonical payload (server_id/endpoint/public_keys/applies_to/fail_mode).",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_put_request_body",
+      "request_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_replace_request_body",
       "response_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view"
     },
     {
-      "operation_id": "ck.self.realm_policy_server.delete",
+      "operation_id": "ck.self.realm_policy_server.resource.delete",
       "http": "DELETE /_cokret/self/realms/{realm_id}/policy-server",
       "grpc": "SelfRealmPolicyServer/Delete",
-      "mq": "self.realm_policy_server.delete",
+      "mq": "self.realm_policy_server.resource.delete",
       "notes": "Tombstones the per-Realm ck.realm.policy_server cell so callers fall back to the governed_by chain or local-only capability check. Empty success response.",
       "success_shape_kind": "empty_response"
     },
     {
-      "operation_id": "ck.self.realm.get",
+      "operation_id": "ck.self.realm.resource.get",
       "http": "GET /_cokret/self/realms/{realm_id}",
       "grpc": "SelfRealm/Get",
-      "mq": "self.realm.get",
+      "mq": "self.realm.resource.get",
       "notes": "Reads the Realm lifecycle projection (owner + members + deleted). Returns not_found when the Realm is invisible to the caller.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view"
     },
     {
-      "operation_id": "ck.self.realm.export",
+      "operation_id": "ck.self.realm.query.export",
       "http": "GET /_cokret/self/realms/{realm_id}/export",
       "grpc": "SelfRealm/Export",
-      "mq": "self.realm.export",
+      "mq": "self.realm.query.export",
       "notes": "Full event-log + operation dump for a Realm (schema ck.export.realm.v1). Caller must be authorized to read the Realm; payload visibility still follows Realm policy.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_export"
     },
     {
-      "operation_id": "ck.self.realm.moderation_policy.effective",
+      "operation_id": "ck.self.realm.moderation_policy.query.effective",
       "http": "GET /_cokret/self/realms/{realm_id}/moderation-policy/effective",
       "grpc": "SelfRealm/ModerationPolicyEffective",
-      "mq": "self.realm.moderation_policy.effective",
+      "mq": "self.realm.moderation_policy.query.effective",
       "notes": "Returns the organization-inherited effective moderation policy view: inheritance chain, organization policy layers, the Realm's own override, and merged effective rules.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_effective_moderation_policy"
     },
     {
-      "operation_id": "ck.self.realm.moderation_policy.set",
-      "http": "POST /_cokret/self/realms/{realm_id}/moderation-policy",
-      "grpc": "SelfRealm/ModerationPolicySet",
-      "mq": "self.realm.moderation_policy.set",
+      "operation_id": "ck.self.realm.moderation_policy.resource.replace",
+      "http": "PUT /_cokret/self/realms/{realm_id}/moderation-policy",
+      "grpc": "SelfRealm/ModerationPolicyReplace",
+      "mq": "self.realm.moderation_policy.resource.replace",
       "notes": "Writes a Realm moderation-policy override (ck.realm.moderation_policy). Only the Realm owner may write; an override that loosens an action an organization policy denies requires explicit organization approval embedded in the document, otherwise the server returns requires_organization_approval.",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_set_request_body",
+      "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_replace_request_body",
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_document"
     },
     {
-      "operation_id": "ck.self.consent.list",
+      "operation_id": "ck.self.consent.query.list",
       "http": "GET /_cokret/self/consent/cells",
       "grpc": "SelfConsent/List",
-      "mq": "self.consent.list",
+      "mq": "self.consent.query.list",
       "notes": "Lists holder-private consent cells where the caller is holder or peer. Each cell projects the current effective consent for a (holder, peer, consent_scope).",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_list"
     },
     {
-      "operation_id": "ck.self.consent.get",
+      "operation_id": "ck.self.consent.resource.get",
       "http": "GET /_cokret/self/consent/cells/{holder_did}",
       "grpc": "SelfConsent/Get",
-      "mq": "self.consent.get",
+      "mq": "self.consent.resource.get",
       "notes": "Reads one consent cell. Requires peer and consent_scope query params; caller MUST be holder or that peer. Returns not_found when no cell exists.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view"
     },
     {
-      "operation_id": "ck.self.consent.grant",
+      "operation_id": "ck.self.consent.command.grant",
       "http": "POST /_cokret/self/consent/cells/{holder_did}/grant",
       "grpc": "SelfConsent/Grant",
-      "mq": "self.consent.grant",
+      "mq": "self.consent.command.grant",
       "notes": "Builds a ck.consent.grant Control Move on the holder's consent cell. The authenticated actor MUST be authorized to write the holder's consent (holder or an explicitly authorized controller/agent).",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view"
     },
     {
-      "operation_id": "ck.self.consent.revoke",
+      "operation_id": "ck.self.consent.command.revoke",
       "http": "POST /_cokret/self/consent/cells/{holder_did}/revoke",
       "grpc": "SelfConsent/Revoke",
-      "mq": "self.consent.revoke",
+      "mq": "self.consent.command.revoke",
       "notes": "Builds a ck.consent.revoke Control Move enumerating the active grant dots for the (consent_id, peer, consent_scope). Revoking consent_scope=any cascades all concrete scopes; revoking a concrete scope leaves others intact.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view"
     },
     {
-      "operation_id": "ck.self.consent.request",
+      "operation_id": "ck.self.consent.command.request",
       "http": "POST /_cokret/self/consent/request",
       "grpc": "SelfConsent/Request",
-      "mq": "self.consent.request",
+      "mq": "self.consent.command.request",
       "notes": "Opens a pending consent request from the authenticated peer to a holder. peer_did defaults to and MUST equal the authenticated actor; the holder account MUST exist.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_request_body",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view"
     },
     {
-      "operation_id": "ck.self.account_data.list",
+      "operation_id": "ck.self.account_data.query.list",
       "http": "GET /_cokret/self/account_data",
       "grpc": "SelfAccountData/List",
-      "mq": "self.account_data.list",
+      "mq": "self.account_data.query.list",
       "notes": "Lists the authenticated actor's account_data entries. content is stored verbatim and is opaque to the server.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_list"
     },
     {
-      "operation_id": "ck.self.account_data.get",
+      "operation_id": "ck.self.account_data.resource.get",
       "http": "GET /_cokret/self/account_data/{data_type}",
       "grpc": "SelfAccountData/Get",
-      "mq": "self.account_data.get",
+      "mq": "self.account_data.resource.get",
       "notes": "Reads one account_data entry by data_type key. Returns not_found when the key is unset.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_entry"
     },
     {
-      "operation_id": "ck.self.account_data.set",
+      "operation_id": "ck.self.account_data.resource.replace",
       "http": "PUT /_cokret/self/account_data/{data_type}",
-      "grpc": "SelfAccountData/Set",
-      "mq": "self.account_data.set",
+      "grpc": "SelfAccountData/Replace",
+      "mq": "self.account_data.resource.replace",
       "notes": "Builds a ck.account_data.set actor-private write. Controller-private registered types reject agent / applet / service principals. content is stored verbatim; clients own canonical encoding and (for sensitive keys) client-side encryption.",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_set_request_body",
+      "request_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_replace_request_body",
       "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_entry"
     },
     {
-      "operation_id": "ck.self.account_data.delete",
+      "operation_id": "ck.self.account_data.resource.delete",
       "http": "DELETE /_cokret/self/account_data/{data_type}",
       "grpc": "SelfAccountData/Delete",
-      "mq": "self.account_data.delete",
+      "mq": "self.account_data.resource.delete",
       "notes": "Deletes one account_data entry and fans out an actor-private update to the holder's other devices.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_delete_outcome"
     },
     {
-      "operation_id": "ck.self.read_cursor.set",
+      "operation_id": "ck.self.read_cursor.command.advance",
       "http": "POST /_cokret/self/read-cursors",
-      "grpc": "SelfReadCursor/Set",
-      "mq": "self.read_cursor.set",
+      "grpc": "SelfReadCursor/Advance",
+      "mq": "self.read_cursor.command.advance",
       "notes": "Builds a ck.read_cursor.advance actor-private write for (actor_id, realm_id, read_scope, position). Multi-device convergence is by HLC max with device_id tiebreak; the cursor is never published into shared Realm history.",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_cursor_set_request_body",
+      "request_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_cursor_advance_request_body",
       "response_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_marker_outcome"
     },
     {
-      "operation_id": "ck.self.read_cursor.list",
+      "operation_id": "ck.self.read_cursor.query.list",
       "http": "GET /_cokret/self/read-cursors",
       "grpc": "SelfReadCursor/List",
-      "mq": "self.read_cursor.list",
+      "mq": "self.read_cursor.query.list",
       "notes": "Lists the authenticated actor's read markers, optionally filtered by the realm_id query param.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_cursor_list"
     },
     {
-      "operation_id": "ck.self.projection.flows",
+      "operation_id": "ck.self.projection.flows.query.list",
       "http": "GET /_cokret/self/projection/flows",
       "grpc": "SelfProjection/Flows",
-      "mq": "self.projection.flows",
+      "mq": "self.projection.flows.query.list",
       "notes": "Extension read surface for reducer-maintained Flow lifecycle projection rows scoped by realm_id. This is a derived read model, not a canonical truth source.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionFlowList"
     },
     {
-      "operation_id": "ck.self.projection.morphs",
+      "operation_id": "ck.self.projection.morphs.query.list",
       "http": "GET /_cokret/self/projection/morphs",
       "grpc": "SelfProjection/Morphs",
-      "mq": "self.projection.morphs",
+      "mq": "self.projection.morphs.query.list",
       "notes": "Extension read surface for reducer-maintained Morph lifecycle projection rows scoped by realm_id. This is a derived read model, not a canonical truth source.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionMorphList"
     },
     {
-      "operation_id": "ck.self.projection.spaces",
+      "operation_id": "ck.self.projection.spaces.query.list",
       "http": "GET /_cokret/self/projection/spaces",
       "grpc": "SelfProjection/Spaces",
-      "mq": "self.projection.spaces",
+      "mq": "self.projection.spaces.query.list",
       "notes": "Extension read surface for reducer-maintained Space lifecycle projection rows scoped by realm_id. This is a derived read model, not a canonical truth source.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpaceList"
     },
     {
-      "operation_id": "ck.self.views.collection_projection",
+      "operation_id": "ck.self.views.collection_projection.command.materialize",
       "http": "POST /_cokret/self/views/{view_id}/projection",
       "grpc": "SelfViews/CollectionProjection",
-      "mq": "self.views.collection_projection",
+      "mq": "self.views.collection_projection.command.materialize",
       "notes": "Optional extension read surface that materializes a View{kind=collection} projection such as board/list/table/calendar. The response is a derived read model computed from signed Events, reducer profile, View definition, and the returned frontier; it is not a canonical truth source.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/view.schema.json#/$defs/view_projection_request_body",
       "response_schema_ref": "schemas/view.schema.json#/$defs/collection_projection_view"
     },
     {
-      "operation_id": "ck.self.projection.document",
+      "operation_id": "ck.self.projection.document.resource.get",
       "http": "GET /_cokret/self/projection/documents/{morph_id}",
       "grpc": "SelfProjection/Document",
-      "mq": "self.projection.document",
+      "mq": "self.projection.document.resource.get",
       "notes": "Optional extension read surface for a single document Morph projection. It returns authorized document body, version, relation, comment, and cursor-presence read-model data for the addressed Morph; canonical truth remains the Morph/Relation/Message event history.",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/view.schema.json#/$defs/document_morph_projection_outcome"
     },
     {
-      "operation_id": "ck.edge.push.notify",
+      "operation_id": "ck.edge.push.command.notify",
       "http": "POST /_cokret/edge/push/notify",
       "grpc": "EdgePush/Notify",
-      "mq": "edge.push.notify",
+      "mq": "edge.push.command.notify",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_request_body",
       "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_outcome"
     },
     {
-      "operation_id": "ck.edge.push.register_device",
+      "operation_id": "ck.edge.push.command.register_device",
       "http": "POST /_cokret/edge/push/register-device",
       "grpc": "EdgePush/RegisterDevice",
-      "mq": "edge.push.register_device",
+      "mq": "edge.push.command.register_device",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/push-operations.schema.json#/$defs/push_register_device_request_body",
       "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_register_device_outcome"
     },
     {
-      "operation_id": "ck.edge.push.unregister_device",
+      "operation_id": "ck.edge.push.command.unregister_device",
       "http": "POST /_cokret/edge/push/unregister-device",
       "grpc": "EdgePush/UnregisterDevice",
-      "mq": "edge.push.unregister_device",
+      "mq": "edge.push.command.unregister_device",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/push-operations.schema.json#/$defs/push_unregister_device_request_body",
       "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_unregister_device_outcome"
     },
     {
-      "operation_id": "ck.server.describe",
+      "operation_id": "ck.server.query.describe",
       "http": "GET /_cokret/describe",
       "grpc": "Server/Describe",
-      "mq": "server.describe",
+      "mq": "server.query.describe",
       "success_shape_kind": "service_describe"
     },
     {
-      "operation_id": "ck.self.account.describe",
+      "operation_id": "ck.self.account.query.describe",
       "http": "GET /_cokret/self/account/describe",
       "grpc": "SelfAccount/Describe",
-      "mq": "self.account.describe",
+      "mq": "self.account.query.describe",
       "success_shape_kind": "service_describe"
     },
     {
-      "operation_id": "ck.self.account.viewer",
+      "operation_id": "ck.self.account.query.viewer",
       "http": "GET /_cokret/self/account/viewer",
       "grpc": "SelfAccount/Viewer",
-      "mq": "self.account.viewer",
+      "mq": "self.account.query.viewer",
       "notes": "Holder-bound one-shot read of the current principal account projection. Returns principal_id, account lifecycle state, device summaries, optional ActorProfile, and signed handle-claim evidence or refs. It MUST NOT return an unsigned bare handle as authoritative identity. Naming: the trailing segment 'viewer' is intentionally outside the api-conventions.md §2.4 read-verb taxonomy; it follows the GraphQL 'viewer' convention (the authenticated subject's own projection). The target is located by the holder-bound session rather than an external id, so 'get' does not apply, and 'viewer' (subject identity projection) stays distinct from 'describe' (service capability metadata).",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_view"
     },
     {
-      "operation_id": "ck.self.account.update_profile",
+      "operation_id": "ck.self.account.command.update_profile",
       "http": "POST /_cokret/self/account/profile",
       "grpc": "SelfAccount/UpdateProfile",
-      "mq": "self.account.update_profile",
+      "mq": "self.account.command.update_profile",
       "notes": "Holder-bound service wrapper around ck.profile.update / Actor Profile projection. Request body is a closed patch over display_name, avatar_blob_ref, and profile_fields.<key>; bio migrates to profile_fields.bio and avatar_url is not accepted on the Cokret protocol path.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_request_body",
       "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_outcome"
     },
     {
-      "operation_id": "ck.self.account.subscribe",
+      "operation_id": "ck.self.account.stream.subscribe",
       "http": "GET /_cokret/self/account/subscribe",
       "grpc": "SelfAccount/Subscribe",
-      "mq": "self.account.subscribe",
-      "notes": "Streaming push of cross-Realm account-aggregate deltas (cross-Realm frontier, to_device queue, account_data, device_lists, presence, unread / notification counts). Connection is long-lived; server pushes NDJSON frames as new data becomes available. Symmetric with ck.self.events.subscribe — both are streaming subscriptions, differing only in scope (self.events.subscribe = per-Realm event log; self.account.subscribe = account-aggregate). `dropped` and `resync_required` control frames MAY carry `reconnect_after_ms`, a server-directed minimum delay before opening another subscription for the same principal/device/filter scope; early reconnects are rejected with rate_limited / Retry-After. Replaces the prior Matrix-derived long-poll ck.account.sync; not wire-compatible with Matrix /sync.",
+      "mq": "self.account.stream.subscribe",
+      "notes": "Streaming push of cross-Realm account-aggregate deltas (cross-Realm frontier, to_device queue, account_data, device_lists, presence, unread / notification counts). Connection is long-lived; server pushes NDJSON frames as new data becomes available. Symmetric with ck.self.events.stream.subscribe — both are streaming subscriptions, differing only in scope (self.events.stream.subscribe = per-Realm event log; self.account.stream.subscribe = account-aggregate). `dropped` and `resync_required` control frames MAY carry `reconnect_after_ms`, a server-directed minimum delay before opening another subscription for the same principal/device/filter scope; early reconnects are rejected with rate_limited / Retry-After. Replaces the prior Matrix-derived long-poll ck.account.sync; not wire-compatible with Matrix /sync.",
       "success_shape_kind": "event_stream"
     },
     {
-      "operation_id": "ck.self.account.cursor_revoke",
+      "operation_id": "ck.self.account.command.revoke_cursor",
       "http": "POST /_cokret/self/account/cursor/revoke",
       "grpc": "SelfAccount/CursorRevoke",
-      "mq": "self.account.cursor_revoke",
-      "notes": "High-assurance optional endpoint to revoke a previously issued cursor authority. Revocation hits return cursor_revoked and MUST NOT advance account subscribe position, barrier wait, or dropped recovery state. To-device queue deletion is decoupled from cursors entirely and happens only via ck.self.device_messages.ack.",
+      "mq": "self.account.command.revoke_cursor",
+      "notes": "High-assurance optional endpoint to revoke a previously issued cursor authority. Revocation hits return cursor_revoked and MUST NOT advance account subscribe position, barrier wait, or dropped recovery state. To-device queue deletion is decoupled from cursors entirely and happens only via ck.self.device_messages.command.ack.",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeOutcome"
     },
     {
-      "operation_id": "ck.self.snapshot.head",
+      "operation_id": "ck.self.snapshot.query.manifest_head",
       "http": "GET /_cokret/self/snapshot/head",
       "grpc": "SelfSnapshot/Head",
-      "mq": "self.snapshot.head",
+      "mq": "self.snapshot.query.manifest_head",
       "success_shape_kind": "schema_resource",
       "response_schema_ref": "schemas/snapshot.schema.json"
     }

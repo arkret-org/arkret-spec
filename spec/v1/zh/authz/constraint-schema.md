@@ -18,7 +18,7 @@ updated: 2026-06-10
 
 - **Constraint** 是 grant / policy 内的静态声明，描述“这个能力最多可在什么范围内、以什么附加条件行使”。它可以声明需要某类 claim、approval、device/session 或 challenge，但不直接携带一次运行时 allow 结果。
 - **Control Move precondition** 只表达 cell 原子性、state freshness 和 reducer 可验证的因果条件；它不替代授权，也不负责发起外部 claim 查询。DataEvent 不携带 `preconditions[]`，其数据面约束由 causal refs、`seal_ref` 与 Lattice 规则表达。
-- **Policy Server obligation** 是运行时 claim / approval / challenge 的唯一动态评估出口。任何需要检查 issuer revocation、presentation audience、request hash、approval nonce、challenge proof 或外部状态的 constraint，MUST 被归约为 `ck.self.policy.check`（默认 path `/_cokret/self/policy/check`）obligation，并由 Policy Server 返回可签名、可重放防护的 proof；reducer 只验证 obligation proof 与原始 request / DataEvent 或 Control Move canonical hash 绑定一致。
+- **Policy Server obligation** 是运行时 claim / approval / challenge 的唯一动态评估出口。任何需要检查 issuer revocation、presentation audience、request hash、approval nonce、challenge proof 或外部状态的 constraint，MUST 被归约为 `ck.self.policy.query.check`（默认 path `/_cokret/self/policy/check`）obligation，并由 Policy Server 返回可签名、可重放防护的 proof；reducer 只验证 obligation proof 与原始 request / DataEvent 或 Control Move canonical hash 绑定一致。
 
 因此，`claim_based` constraint 中的 `requires_claims[]`、approval 字段和 challenge 字段是声明性要求，不得被实现解释成“只要 grant 中列出就自动通过”。没有对应 Policy Server proof / accepted approval Event / reducer 可验证 claim evidence 时，相关动作 MUST fail closed 或进入 pending。
 
@@ -284,7 +284,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 
-`blob_presign_scope` 是 `ck.self.blob.presign` 的必需约束之一，限制可签发的 purpose、Realm 和可选 blob ref pattern。`allowed_endpoints` / `allowed_data_classes` 用于 agent、applet、export、connector 等会把数据发往外部 endpoint 的 action；实现 MUST 对请求中的目标 endpoint 与数据分类做 fail-closed 匹配，未知 data class 或 endpoint 不得按 allow 处理。
+`blob_presign_scope` 是 `ck.self.blob.command.presign` 的必需约束之一，限制可签发的 purpose、Realm 和可选 blob ref pattern。`allowed_endpoints` / `allowed_data_classes` 用于 agent、applet、export、connector 等会把数据发往外部 endpoint 的 action；实现 MUST 对请求中的目标 endpoint 与数据分类做 fail-closed 匹配，未知 data class 或 endpoint 不得按 allow 处理。
 
 ## 7. 委托控制
 
@@ -344,7 +344,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 
-`blob_presign_max_ttl_seconds` 是 `ck.self.blob.presign` 的必需约束之一，服务端 MUST 将请求的 `max_age_seconds` 收窄到该值、deployment policy 上限和协议硬上限 3600 秒三者的最小值。`max_artifact_bytes` 限制 applet / agent / export 等操作可产生或外发的单个 artifact 大小。
+`blob_presign_max_ttl_seconds` 是 `ck.self.blob.command.presign` 的必需约束之一，服务端 MUST 将请求的 `max_age_seconds` 收窄到该值、deployment policy 上限和协议硬上限 3600 秒三者的最小值。`max_artifact_bytes` 限制 applet / agent / export 等操作可产生或外发的单个 artifact 大小。
 
 ## 9. 审批工作流（claim_based, subtype=approval）
 

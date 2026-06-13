@@ -354,13 +354,13 @@
       "role": "admin",
       "description": "Realm profile for a principal-scoped durable control stream (the Principal Control Realm role; see zh/models/realm-and-space.md §2.7). It is an ordinary Collaboration Realm at the envelope level, but reducers MUST treat fields.purpose=principal_control + this schema_ref as an allowlist-bound control stream, not as a user collaboration space.",
       "required_endpoints": [
-        "ck.self.events.submit",
-        "ck.self.events.query",
-        "ck.self.events.get",
-        "ck.self.keys.keypackages.upload",
-        "ck.self.keys.keypackages.claim",
-        "ck.self.keys.keypackages.consume",
-        "ck.self.keys.keypackages.revoke"
+        "ck.self.events.command.submit",
+        "ck.self.events.query.scan",
+        "ck.self.events.resource.get",
+        "ck.self.keys.keypackages.upload.create",
+        "ck.self.keys.keypackages.command.claim",
+        "ck.self.keys.keypackages.command.consume",
+        "ck.self.keys.keypackages.command.revoke"
       ],
       "required_event_kinds": [
         "ck.realm.create",
@@ -463,13 +463,13 @@
     },
     "ck.profile.core_event_store.v1": {
       "required_endpoints": [
-        "ck.server.describe",
-        "ck.self.events.describe",
-        "ck.self.events.submit",
-        "ck.self.events.get",
-        "ck.self.events.resolve",
-        "ck.self.events.query",
-        "ck.self.events.frontier"
+        "ck.server.query.describe",
+        "ck.self.events.query.describe",
+        "ck.self.events.command.submit",
+        "ck.self.events.resource.get",
+        "ck.self.events.query.resolve",
+        "ck.self.events.query.scan",
+        "ck.self.events.query.frontier"
       ],
       "required_event_kinds": [
         "ck.realm.create",
@@ -522,8 +522,8 @@
         "ck.profile.core_event_store.v1"
       ],
       "required_endpoints": [
-        "ck.self.account.subscribe",
-        "ck.self.events.query"
+        "ck.self.account.stream.subscribe",
+        "ck.self.events.query.scan"
       ],
       "required_event_kinds": [
         "ck.realm.create",
@@ -593,7 +593,7 @@
         "ck.profile.core_event_store.v1"
       ],
       "required_endpoints": [
-        "ck.self.events.query"
+        "ck.self.events.query.scan"
       ],
       "required_event_kinds": [
         "ck.realm.create",
@@ -638,9 +638,9 @@
         "ck.profile.core_event_store.v1"
       ],
       "required_endpoints": [
-        "ck.server.describe",
-        "ck.self.events.get",
-        "ck.self.events.query"
+        "ck.server.query.describe",
+        "ck.self.events.resource.get",
+        "ck.self.events.query.scan"
       ],
       "required_event_kinds": [
         "ck.realm.create",
@@ -692,13 +692,13 @@
         "ck.profile.kanban_mvp.v1"
       ],
       "required_endpoints": [
-        "ck.server.describe",
-        "ck.self.events.submit",
-        "ck.self.account.subscribe",
-        "ck.self.events.subscribe",
-        "ck.self.blob.upload",
-        "ck.self.blob.get",
-        "ck.self.authz.check"
+        "ck.server.query.describe",
+        "ck.self.events.command.submit",
+        "ck.self.account.stream.subscribe",
+        "ck.self.events.stream.subscribe",
+        "ck.self.blob.upload.create",
+        "ck.self.blob.resource.get",
+        "ck.self.authz.query.check"
       ],
       "required_event_kinds": [
         "ck.realm.create",
@@ -744,17 +744,17 @@
         "ck.profile.mls_governance_binding.full.v1"
       ],
       "required_endpoints": [
-        "ck.self.keys.upload",
-        "ck.self.keys.query",
-        "ck.self.keys.claim",
-        "ck.self.keys.keypackages.upload",
-        "ck.self.keys.keypackages.claim",
-        "ck.self.keys.keypackages.consume",
-        "ck.self.keys.keypackages.revoke",
-        "ck.self.keys.backups.put",
-        "ck.self.keys.backups.list",
-        "ck.self.keys.backups.unlock",
-        "ck.self.keys.backups.delete"
+        "ck.self.keys.upload.create",
+        "ck.self.keys.query.lookup",
+        "ck.self.keys.command.claim",
+        "ck.self.keys.keypackages.upload.create",
+        "ck.self.keys.keypackages.command.claim",
+        "ck.self.keys.keypackages.command.consume",
+        "ck.self.keys.keypackages.command.revoke",
+        "ck.self.keys.backups.resource.replace",
+        "ck.self.keys.backups.query.list",
+        "ck.self.keys.backups.command.unlock",
+        "ck.self.keys.backups.resource.delete"
       ],
       "required_event_kinds": [
         "ck.device.authorize",
@@ -859,9 +859,9 @@
         "ck.profile.full_client.v1"
       ],
       "required_endpoints": [
-        "ck.find.directory.resolve_organization",
-        "ck.find.directory.search_organizations",
-        "ck.self.authz.get_effective_grants"
+        "ck.find.directory.query.resolve_organization",
+        "ck.find.directory.query.search_organizations",
+        "ck.self.authz.grants.query.effective"
       ],
       "required_event_kinds": [
         "ck.organization.discovery",
@@ -895,17 +895,17 @@
       "inherits": [],
       "description": "Cokret v1 Directory Service profile. Directory Services index resource-signed discovery state, expose blinded search/resolve endpoints, and support at least one §8 ingest mode without becoming a source of truth.",
       "required_endpoints": [
-        "ck.find.directory.describe",
-        "ck.find.directory.search_realms",
-        "ck.find.directory.resolve_realm",
-        "ck.find.directory.search_organizations",
-        "ck.find.directory.resolve_organization",
-        "ck.find.directory.search_actors",
-        "ck.find.directory.search_users",
-        "ck.find.directory.resolve_handle",
-        "ck.find.directory.resolve_agent_selector",
-        "ck.find.directory.announce",
-        "ck.find.directory.withdraw"
+        "ck.find.directory.query.describe",
+        "ck.find.directory.query.search_realms",
+        "ck.find.directory.query.resolve_realm",
+        "ck.find.directory.query.search_organizations",
+        "ck.find.directory.query.resolve_organization",
+        "ck.find.directory.query.search_actors",
+        "ck.find.directory.query.search_users",
+        "ck.find.directory.query.resolve_handle",
+        "ck.find.directory.query.resolve_agent_selector",
+        "ck.find.directory.command.announce",
+        "ck.find.directory.command.withdraw"
       ],
       "required_event_kinds": [
         "ck.realm.discovery",
@@ -952,12 +952,12 @@
         "ck.profile.core_event_store.v1"
       ],
       "required_endpoints": [
-        "ck.self.events.describe",
-        "ck.self.events.submit",
-        "ck.self.events.get",
-        "ck.self.events.resolve",
-        "ck.self.events.query",
-        "ck.self.events.frontier"
+        "ck.self.events.query.describe",
+        "ck.self.events.command.submit",
+        "ck.self.events.resource.get",
+        "ck.self.events.query.resolve",
+        "ck.self.events.query.scan",
+        "ck.self.events.query.frontier"
       ],
       "required_event_kinds": [
         "ck.realm.create",
@@ -998,13 +998,13 @@
         "ck.profile.kanban_mvp.v1"
       ],
       "required_endpoints": [
-        "ck.server.describe",
-        "ck.self.account.describe",
-        "ck.self.account.subscribe",
-        "ck.self.events.subscribe",
-        "ck.self.events.query",
-        "ck.self.snapshot.head",
-        "ck.self.authz.check"
+        "ck.server.query.describe",
+        "ck.self.account.query.describe",
+        "ck.self.account.stream.subscribe",
+        "ck.self.events.stream.subscribe",
+        "ck.self.events.query.scan",
+        "ck.self.snapshot.query.manifest_head",
+        "ck.self.authz.query.check"
       ],
       "required_event_kinds": [
         "ck.realm.create",
@@ -1047,10 +1047,10 @@
         "ck.profile.core_event_store.v1"
       ],
       "required_endpoints": [
-        "ck.peer.events.submit",
-        "ck.peer.events.query",
-        "ck.peer.events.resolve",
-        "ck.peer.events.frontier"
+        "ck.peer.events.command.submit",
+        "ck.peer.events.query.scan",
+        "ck.peer.events.query.resolve",
+        "ck.peer.events.query.frontier"
       ],
       "required_event_kinds": [
         "ck.realm.create",
@@ -1086,7 +1086,7 @@
         },
         {
           "requirement": "dependency missing pull/backfill recovery",
-          "coverage": ["ck.peer.events.query", "ck.peer.events.resolve", "sync-fixture.json"]
+          "coverage": ["ck.peer.events.query.scan", "ck.peer.events.query.resolve", "sync-fixture.json"]
         },
         {
           "requirement": "duplicate conflict quarantine",
@@ -1117,7 +1117,7 @@
       ],
       "description": "High-assurance / sovereign / regulated / multi-writer federation profile. Adds mandatory proactive frontier exchange with fail-state semantics on top of the ck.profile.federation_minimal.v1 baseline. See zh/sync/federation.md §4.5.3 and zh/sync/sovereign-deployment.md §11.1.",
       "required_endpoints": [
-        "ck.peer.events.frontier"
+        "ck.peer.events.query.frontier"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -1146,12 +1146,12 @@
     },
     "ck.profile.identity_registry.v1": {
       "required_endpoints": [
-        "ck.root.identity.describe_registry",
-        "ck.root.identity.resolve",
-        "ck.root.identity.get_document",
-        "ck.root.identity.get_log",
-        "ck.root.identity.get_receipts",
-        "ck.root.identity.submit_did_operation"
+        "ck.root.identity.registry.query.describe",
+        "ck.root.identity.query.resolve",
+        "ck.root.identity.document.resource.get",
+        "ck.root.identity.log.query.list",
+        "ck.root.identity.receipts.query.list",
+        "ck.root.identity.command.submit_did_operation"
       ],
       "required_event_kinds": [
         "ck.did.proof",
@@ -1186,10 +1186,10 @@
     },
     "ck.profile.auth_server.v1": {
       "inherits": [],
-      "description": "Cokret v1 Auth Server profile. Auth Servers verify login factors (password / passkey / OIDC / SSO / recovery), issue short-lived audience-bound `ck.session.grant` artefacts, expose session-grant introspection / revocation, and MAY surface a `ck.self.policy.check` decision endpoint. Auth Servers are NOT canonical identity registries (DID documents / key logs live in `ck.profile.identity_registry.v1`) and are NOT principal servers (no Realm-authoritative event acceptance). Coauth is the reference implementation. See zh/identity/account-lifecycle.md, zh/crypto-media/device-lifecycle.md §5, zh/conformance/conformance-profiles.md §9a.",
+      "description": "Cokret v1 Auth Server profile. Auth Servers verify login factors (password / passkey / OIDC / SSO / recovery), issue short-lived audience-bound `ck.session.grant` artefacts, expose session-grant introspection / revocation, and MAY surface a `ck.self.policy.query.check` decision endpoint. Auth Servers are NOT canonical identity registries (DID documents / key logs live in `ck.profile.identity_registry.v1`) and are NOT principal servers (no Realm-authoritative event acceptance). Coauth is the reference implementation. See zh/identity/account-lifecycle.md, zh/crypto-media/device-lifecycle.md §5, zh/conformance/conformance-profiles.md §9a.",
       "required_endpoints": [
-        "ck.server.describe",
-        "ck.gate.account.issue_session_grant"
+        "ck.server.query.describe",
+        "ck.gate.account.command.issue_session_grant"
       ],
       "required_event_kinds": [
         "ck.session.grant"
@@ -1206,8 +1206,8 @@
         "privacy-security-fixture.json"
       ],
       "optional_extensions": [
-        "ck.gate.account.issue_session_grant",
-        "ck.self.policy.check",
+        "ck.gate.account.command.issue_session_grant",
+        "ck.self.policy.query.check",
         "session_grant_introspection",
         "session_grant_revocation",
         "oidc",
@@ -1240,8 +1240,8 @@
     },
     "ck.profile.public_network_identity.v1": {
       "required_endpoints": [
-        "ck.root.identity.resolve",
-        "ck.root.identity.get_document"
+        "ck.root.identity.query.resolve",
+        "ck.root.identity.document.resource.get"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -1267,9 +1267,9 @@
     },
     "ck.profile.org_high_assurance_identity.v1": {
       "required_endpoints": [
-        "ck.root.identity.resolve",
-        "ck.root.identity.get_document",
-        "ck.root.identity.get_log"
+        "ck.root.identity.query.resolve",
+        "ck.root.identity.document.resource.get",
+        "ck.root.identity.log.query.list"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -1297,9 +1297,9 @@
     },
     "ck.profile.blob_node.v1": {
       "required_endpoints": [
-        "ck.self.blob.upload",
-        "ck.self.blob.get",
-        "ck.self.blob.head"
+        "ck.self.blob.upload.create",
+        "ck.self.blob.resource.get",
+        "ck.self.blob.resource.head"
       ],
       "required_event_kinds": [
         "ck.realm.asset_privacy_policy",
@@ -1336,9 +1336,9 @@
         "ck.profile.push_gateway.blind_wakeup.v1"
       ],
       "required_endpoints": [
-        "ck.edge.push.register_device",
-        "ck.edge.push.unregister_device",
-        "ck.edge.push.notify"
+        "ck.edge.push.command.register_device",
+        "ck.edge.push.command.unregister_device",
+        "ck.edge.push.command.notify"
       ],
       "required_event_kinds": [
         "ck.device.authorize",
@@ -1367,7 +1367,7 @@
       "role": "gateway",
       "description": "Default push gateway privacy baseline. Every implementation claiming ck.profile.push_gateway.v1 MUST also claim this profile. Provider-facing payloads MUST NOT carry stable identifying fields (principal DID, sender DID, Realm id / name / avatar, Flow id / name, Message id, event id, device DID URL, reaction value, or any cross-Realm stable correlation key). Payloads MUST be restricted to per-(recipient_service_did, principal, device, push_route) pairwise pseudonym push_target_id + closed-enum wakeup hint fields (wakeup_kind, badge_count, unread_increment, l10n_key). See zh/discovery/push-notifications.md §2.2 / §4.5 / §5.1 and zh/crypto-media/device-lifecycle.md §5a.",
       "required_endpoints": [
-        "ck.edge.push.notify"
+        "ck.edge.push.command.notify"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -1406,7 +1406,7 @@
         "ck.profile.push_gateway.v1"
       ],
       "required_endpoints": [
-        "ck.edge.push.notify"
+        "ck.edge.push.command.notify"
       ],
       "required_event_kinds": [
         "ck.device.authorize"
@@ -1447,7 +1447,7 @@
       ],
       "inherits": [],
       "required_endpoints": [
-        "ck.edge.push.notify"
+        "ck.edge.push.command.notify"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -1478,9 +1478,9 @@
     },
     "ck.profile.applet_service.v1": {
       "required_endpoints": [
-        "ck.edge.applet.describe",
-        "ck.edge.applet.ping",
-        "ck.edge.applet.transaction"
+        "ck.edge.applet.query.describe",
+        "ck.edge.applet.query.ping",
+        "ck.edge.applet.command.transaction"
       ],
       "required_event_kinds": [
         "ck.applet.registration"
@@ -1513,9 +1513,9 @@
         "ck.profile.applet_service.v1"
       ],
       "required_endpoints": [
-        "ck.edge.applet.resolve_actor",
-        "ck.edge.applet.resolve_realm",
-        "ck.edge.applet.protocol_metadata"
+        "ck.edge.applet.actor.query.resolve",
+        "ck.edge.applet.realm.query.resolve",
+        "ck.edge.applet.query.protocol_metadata"
       ],
       "required_event_kinds": [
         "ck.applet.interop_session.start",
@@ -1621,10 +1621,10 @@
     },
     "ck.profile.agent_runtime.v1": {
       "required_endpoints": [
-        "ck.server.describe",
-        "ck.self.events.submit",
-        "ck.self.events.query",
-        "ck.self.authz.check"
+        "ck.server.query.describe",
+        "ck.self.events.command.submit",
+        "ck.self.events.query.scan",
+        "ck.self.authz.query.check"
       ],
       "required_event_kinds": [
         "ck.agent.endpoint",
@@ -1658,10 +1658,10 @@
         "ck.profile.agent_runtime.v1"
       ],
       "required_endpoints": [
-        "ck.self.agent.provision",
-        "ck.gate.account.agent_key_pair",
-        "ck.self.events.submit",
-        "ck.self.events.query"
+        "ck.self.agent.command.provision",
+        "ck.gate.account.command.pair_agent_key",
+        "ck.self.events.command.submit",
+        "ck.self.events.query.scan"
       ],
       "required_event_kinds": [
         "ck.profile.create",
@@ -1708,7 +1708,7 @@
         "ck.profile.auth_server.v1"
       ],
       "required_endpoints": [
-        "ck.gate.account.issue_session_grant"
+        "ck.gate.account.command.issue_session_grant"
       ],
       "required_event_kinds": [
         "ck.agent.key.authorize",
@@ -1737,7 +1737,7 @@
         "ck.profile.agent_runtime.v1"
       ],
       "required_endpoints": [
-        "ck.self.authz.check"
+        "ck.self.authz.query.check"
       ],
       "required_event_kinds": [
         "ck.capability.grant",
@@ -1771,9 +1771,9 @@
         "ck.profile.circle_conformance.v1"
       ],
       "required_endpoints": [
-        "ck.self.agent.sidecar_thread.ensure",
-        "ck.self.events.submit",
-        "ck.self.events.query"
+        "ck.self.agent.sidecar_thread.command.ensure",
+        "ck.self.events.command.submit",
+        "ck.self.events.query.scan"
       ],
       "required_event_kinds": [
         "ck.circle.create",
@@ -1813,8 +1813,8 @@
         "ck.profile.personal_agent_provisioning.v1"
       ],
       "required_endpoints": [
-        "ck.self.agent.participation.set",
-        "ck.self.agent.participation.get"
+        "ck.self.agent.participation.resource.replace",
+        "ck.self.agent.participation.resource.get"
       ],
       "required_event_kinds": [
         "ck.capability.grant",
@@ -1839,12 +1839,12 @@
     },
     "ck.profile.mimi_interop.v1": {
       "required_endpoints": [
-        "ck.open.mimi.provider_directory",
-        "ck.open.mimi.request_consent",
-        "ck.open.mimi.update_consent",
-        "ck.open.mimi.room_update",
-        "ck.open.mimi.submit_message",
-        "ck.open.mimi.group_info"
+        "ck.open.mimi.query.provider_directory",
+        "ck.open.mimi.command.request_consent",
+        "ck.open.mimi.command.update_consent",
+        "ck.open.mimi.command.update_room",
+        "ck.open.mimi.command.submit_message",
+        "ck.open.mimi.query.group_info"
       ],
       "required_event_kinds": [
         "ck.mimi.room_binding",
@@ -1879,9 +1879,9 @@
         "ck.profile.identity_registry.v1"
       ],
       "required_endpoints": [
-        "ck.server.describe",
-        "ck.root.identity.resolve",
-        "ck.self.authz.check"
+        "ck.server.query.describe",
+        "ck.root.identity.query.resolve",
+        "ck.self.authz.query.check"
       ],
       "required_event_kinds": [
         "ck.sovereign.did_policy",
@@ -1920,9 +1920,9 @@
       ],
       "description": "Controlled-collaboration enclave variant of the sovereign deployment profile. The enclave runs alongside (or downstream of) a sovereign main node and hosts external collaborators inside `ck.realm.deployment_profile=enclave` Realms. When this profile is claimed the implementation MUST: (a) disable outbound federation; (b) disable public discovery and public DID resolution; (c) restrict its resolver to DID methods in the configured `allowed_did_methods` allow-list; (d) log every outbound HTTP call under the `sovereign_boundary_audit` target. See `zh/sync/sovereign-deployment.md` §2–§6.",
       "required_endpoints": [
-        "ck.server.describe",
-        "ck.root.identity.resolve",
-        "ck.self.authz.check"
+        "ck.server.query.describe",
+        "ck.root.identity.query.resolve",
+        "ck.self.authz.query.check"
       ],
       "required_event_kinds": [
         "ck.sovereign.did_policy",
@@ -1951,8 +1951,8 @@
     },
     "ck.profile.franking.v1": {
       "required_endpoints": [
-        "ck.self.events.submit",
-        "ck.self.account.subscribe"
+        "ck.self.events.command.submit",
+        "ck.self.account.stream.subscribe"
       ],
       "required_event_kinds": [
         "ck.moderation.franking_proof",
@@ -2009,7 +2009,7 @@
     },
     "ck.profile.webrtc_media.v1": {
       "required_endpoints": [
-        "ck.server.describe"
+        "ck.server.query.describe"
       ],
       "required_event_kinds": [
         "ck.call.signal",
@@ -2047,7 +2047,7 @@
         "ck.profile.webrtc_media.v1"
       ],
       "required_endpoints": [
-        "ck.self.call.media.token_exchange"
+        "ck.self.call.media.exchange.token"
       ],
       "required_event_kinds": [
         "ck.realm.media_service",
@@ -2096,7 +2096,7 @@
         "ck.profile.media_service_binding.v1"
       ],
       "required_endpoints": [
-        "ck.self.call.media.token_exchange"
+        "ck.self.call.media.exchange.token"
       ],
       "required_event_kinds": [
         "ck.realm.media_service",
@@ -2135,7 +2135,7 @@
         "ck.profile.media_service_binding.v1"
       ],
       "required_endpoints": [
-        "ck.self.call.media.token_exchange"
+        "ck.self.call.media.exchange.token"
       ],
       "required_event_kinds": [
         "ck.realm.media_service",
@@ -2161,8 +2161,8 @@
         "ck.profile.full_client.v1"
       ],
       "required_endpoints": [
-        "ck.server.describe",
-        "ck.root.identity.resolve"
+        "ck.server.query.describe",
+        "ck.root.identity.query.resolve"
       ],
       "required_event_kinds": [
         "ck.sovereign.did_policy",
@@ -2194,9 +2194,9 @@
         "ck.profile.principal_server_events_api.v1"
       ],
       "required_endpoints": [
-        "ck.server.describe",
-        "ck.self.events.submit",
-        "ck.self.account.subscribe"
+        "ck.server.query.describe",
+        "ck.self.events.command.submit",
+        "ck.self.account.stream.subscribe"
       ],
       "required_event_kinds": [
         "ck.realm.create",
@@ -2242,9 +2242,9 @@
         "ck.profile.kanban_mvp.v1"
       ],
       "required_endpoints": [
-        "ck.server.describe",
-        "ck.self.events.submit",
-        "ck.self.account.subscribe"
+        "ck.server.query.describe",
+        "ck.self.events.command.submit",
+        "ck.self.account.stream.subscribe"
       ],
       "required_event_kinds": [
         "ck.realm.create",
@@ -2290,8 +2290,8 @@
         "ck.profile.identity_registry.v1"
       ],
       "required_endpoints": [
-        "ck.find.directory.resolve_organization",
-        "ck.self.authz.get_effective_grants"
+        "ck.find.directory.query.resolve_organization",
+        "ck.self.authz.grants.query.effective"
       ],
       "required_event_kinds": [
         "ck.organization.discovery",
@@ -2337,8 +2337,8 @@
         "ck.profile.mls_governance_binding.full.v1"
       ],
       "required_endpoints": [
-        "ck.self.snapshot.head",
-        "ck.self.keys.keypackages.revoke"
+        "ck.self.snapshot.query.manifest_head",
+        "ck.self.keys.keypackages.command.revoke"
       ],
       "required_event_kinds": [
         "ck.device.revoke",
@@ -2389,8 +2389,8 @@
         "ck.profile.high_security_organization.v1"
       ],
       "required_endpoints": [
-        "ck.server.describe",
-        "ck.root.identity.resolve"
+        "ck.server.query.describe",
+        "ck.root.identity.query.resolve"
       ],
       "required_event_kinds": [
         "ck.sovereign.did_policy",
@@ -2426,9 +2426,9 @@
       "inherits": [],
       "description": "MLS Governance Binding (full): the v1 hardening profile that binds MLS epochs to governance state. Required for E2EE Realms. MLS commits are Control Moves carrying a governance_binding payload (membership_frontier / policy_root / capability_root / discussion_metadata_hash, transcript-hashed via the mls_governance_binding GroupContext extension) and update three control cells (mls_epoch, key_schedule, covered_seals_cell). E2EE message DataEvents must carry a seal_ref covered by the MLS governance binding; governance / recovery Control Moves do not depend on it.",
       "required_endpoints": [
-        "ck.self.keys.keypackages.claim",
-        "ck.self.keys.keypackages.consume",
-        "ck.self.events.query"
+        "ck.self.keys.keypackages.command.claim",
+        "ck.self.keys.keypackages.command.consume",
+        "ck.self.events.query.scan"
       ],
       "required_event_kinds": [
         "ck.mls.commit",
@@ -2468,8 +2468,8 @@
       ],
       "description": "Hardening profile for E2EE Realms that route by Realm-scoped pairwise DID and keep principal DID, device identity, display profile, and relationship graph inside encrypted identity_link payloads.",
       "required_endpoints": [
-        "ck.self.events.submit",
-        "ck.self.events.query"
+        "ck.self.events.command.submit",
+        "ck.self.events.query.scan"
       ],
       "required_event_kinds": [
         "ck.mls.commit",
@@ -2501,9 +2501,9 @@
       "role": "admin",
       "description": "Deployment hardening profile for high-privacy traffic metadata. When declared for a Realm, deployment, or service route, federation fanout timing, batch size, Welcome size, push wakeups, and retry cadence MUST be padded or randomized enough to satisfy the declared observable bounds.",
       "required_endpoints": [
-        "ck.self.events.submit",
-        "ck.self.events.subscribe",
-        "ck.edge.push.notify"
+        "ck.self.events.command.submit",
+        "ck.self.events.stream.subscribe",
+        "ck.edge.push.command.notify"
       ],
       "required_event_kinds": [
         "ck.message.create",
@@ -2601,7 +2601,7 @@
       "role": "admin",
       "description": "Deployment hardening profile for Actor Profile accountability. When declared, any Actor Profile create/update that contains an accountable_principal_ids[] entry without an active ck.identity.accountability_grant MUST reject the whole Event with failed_precondition/accountability_grant_missing instead of stripping the unverifiable entry.",
       "required_endpoints": [
-        "ck.self.events.submit"
+        "ck.self.events.command.submit"
       ],
       "required_event_kinds": [
         "ck.profile.create",
@@ -2629,8 +2629,8 @@
         "ck.profile.e2ee_client.v1"
       ],
       "required_endpoints": [
-        "ck.self.events.submit",
-        "ck.self.account.subscribe"
+        "ck.self.events.command.submit",
+        "ck.self.account.stream.subscribe"
       ],
       "required_event_kinds": [
         "ck.audit.applet_binding",
@@ -2670,8 +2670,8 @@
         "ck.profile.e2ee_client.v1"
       ],
       "required_endpoints": [
-        "ck.self.events.submit",
-        "ck.self.account.subscribe"
+        "ck.self.events.command.submit",
+        "ck.self.account.stream.subscribe"
       ],
       "required_event_kinds": [
         "ck.audit.applet_binding",
@@ -2707,7 +2707,7 @@
     },
     "ck.profile.capability_vectors.v1": {
       "required_endpoints": [
-        "ck.self.authz.check"
+        "ck.self.authz.query.check"
       ],
       "required_event_kinds": [
         "ck.capability.grant",
@@ -2779,7 +2779,7 @@
     },
     "ck.profile.event_envelope_negative_vectors.v1": {
       "required_endpoints": [
-        "ck.self.events.submit"
+        "ck.self.events.command.submit"
       ],
       "required_event_kinds": [
         "ck.message.create",
@@ -2814,7 +2814,7 @@
     },
     "ck.profile.discovery_vectors.v1": {
       "required_endpoints": [
-        "ck.server.describe"
+        "ck.server.query.describe"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -2858,7 +2858,7 @@
     },
     "ck.profile.event_kind_payload_coverage_vectors.v1": {
       "required_endpoints": [
-        "ck.self.events.submit"
+        "ck.self.events.command.submit"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -2945,11 +2945,11 @@
     },
     "ck.profile.privacy_security_vectors.v1": {
       "required_endpoints": [
-        "ck.find.directory.resolve_realm",
-        "ck.find.directory.private_contact_discovery",
-        "ck.self.events.submit",
-        "ck.self.blob.head",
-        "ck.edge.push.notify"
+        "ck.find.directory.query.resolve_realm",
+        "ck.find.directory.query.private_contact_discovery",
+        "ck.self.events.command.submit",
+        "ck.self.blob.resource.head",
+        "ck.edge.push.command.notify"
       ],
       "required_event_kinds": [
         "ck.message.create"
@@ -2973,8 +2973,8 @@
     },
     "ck.profile.reaction_vectors.v1": {
       "required_endpoints": [
-        "ck.self.events.submit",
-        "ck.self.events.query"
+        "ck.self.events.command.submit",
+        "ck.self.events.query.scan"
       ],
       "required_event_kinds": [
         "ck.message.create",
@@ -3003,8 +3003,8 @@
     },
     "ck.profile.redaction_vectors.v1": {
       "required_endpoints": [
-        "ck.self.events.submit",
-        "ck.self.events.query"
+        "ck.self.events.command.submit",
+        "ck.self.events.query.scan"
       ],
       "required_event_kinds": [
         "ck.message.create",
@@ -3030,9 +3030,9 @@
     },
     "ck.profile.sync_vectors.v1": {
       "required_endpoints": [
-        "ck.self.account.subscribe",
-        "ck.self.events.query",
-        "ck.self.snapshot.head"
+        "ck.self.account.stream.subscribe",
+        "ck.self.events.query.scan",
+        "ck.self.snapshot.query.manifest_head"
       ],
       "required_event_kinds": [
         "ck.message.create",
@@ -3057,9 +3057,9 @@
     },
     "ck.profile.mimi_interop_vectors.v1": {
       "required_endpoints": [
-        "ck.open.mimi.provider_directory",
-        "ck.open.mimi.room_update",
-        "ck.open.mimi.submit_message"
+        "ck.open.mimi.query.provider_directory",
+        "ck.open.mimi.command.update_room",
+        "ck.open.mimi.command.submit_message"
       ],
       "required_event_kinds": [
         "ck.mimi.room_binding",
@@ -3082,7 +3082,7 @@
     },
     "ck.profile.cba_lattice_vectors.v1": {
       "required_endpoints": [
-        "ck.self.events.submit"
+        "ck.self.events.command.submit"
       ],
       "required_event_kinds": [
         "ck.member.state",
@@ -3111,8 +3111,8 @@
       "inherits": [],
       "description": "Notary profile using one DID/service key to issue Seals.",
       "required_endpoints": [
-        "ck.self.events.submit",
-        "ck.self.snapshot.head"
+        "ck.self.events.command.submit",
+        "ck.self.snapshot.query.manifest_head"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -3136,8 +3136,8 @@
       "inherits": [],
       "description": "Notary profile using k-of-n threshold signatures to issue Seals.",
       "required_endpoints": [
-        "ck.self.events.submit",
-        "ck.self.snapshot.head"
+        "ck.self.events.command.submit",
+        "ck.self.snapshot.query.manifest_head"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -3161,8 +3161,8 @@
       "inherits": [],
       "description": "Notary profile allowing multiple leaf Seals and deterministic Seal view joins.",
       "required_endpoints": [
-        "ck.self.events.submit",
-        "ck.self.snapshot.head"
+        "ck.self.events.command.submit",
+        "ck.self.snapshot.query.manifest_head"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -3186,8 +3186,8 @@
       "inherits": [],
       "description": "Notary profile with primary notary and fallback recovery notary.",
       "required_endpoints": [
-        "ck.self.events.submit",
-        "ck.self.snapshot.head"
+        "ck.self.events.command.submit",
+        "ck.self.snapshot.query.manifest_head"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -3228,15 +3228,15 @@
     },
     "ck.profile.matrix_compat.v1": {
       "inherits": [],
-      "description": "Optional Matrix interop compatibility profile. Declares wire-shape parity for the Matrix-derived surfaces: to-device queue, /keys/upload|query|claim, push gateway facade, cross-signing key hierarchy, SAS verification message flow. Account-aggregate sync is NOT covered: Cokret v1 chose a streaming push form (ck.self.account.subscribe / GET /account/subscribe with NDJSON frames) over Matrix's long-poll /sync, so wire-shape parity is not claimed for this surface — Matrix clients MUST adapt the account-aggregate consumption loop. Implementations claiming this profile MUST treat the ck.* names of the listed surfaces as semantically equivalent to their Matrix counterparts so that Matrix client SDK code can be reused for those surfaces with only adapter changes. This profile does NOT add new wire fields; it is a conformance assertion about behavioural equivalence on the listed surfaces.",
+      "description": "Optional Matrix interop compatibility profile. Declares wire-shape parity for the Matrix-derived surfaces: to-device queue, /keys/upload|query|claim, push gateway facade, cross-signing key hierarchy, SAS verification message flow. Account-aggregate sync is NOT covered: Cokret v1 chose a streaming push form (ck.self.account.stream.subscribe / GET /account/subscribe with NDJSON frames) over Matrix's long-poll /sync, so wire-shape parity is not claimed for this surface — Matrix clients MUST adapt the account-aggregate consumption loop. Implementations claiming this profile MUST treat the ck.* names of the listed surfaces as semantically equivalent to their Matrix counterparts so that Matrix client SDK code can be reused for those surfaces with only adapter changes. This profile does NOT add new wire fields; it is a conformance assertion about behavioural equivalence on the listed surfaces.",
       "required_endpoints": [
-        "ck.self.device_messages.put",
-        "ck.self.device_messages.get",
-        "ck.self.device_messages.ack",
-        "ck.self.keys.upload",
-        "ck.self.keys.query",
-        "ck.self.keys.claim",
-        "ck.edge.push.notify"
+        "ck.self.device_messages.command.send",
+        "ck.self.device_messages.query.list",
+        "ck.self.device_messages.command.ack",
+        "ck.self.keys.upload.create",
+        "ck.self.keys.query.lookup",
+        "ck.self.keys.command.claim",
+        "ck.edge.push.command.notify"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -3282,10 +3282,10 @@
       "inherits": [],
       "description": "Hardening profile for passphrase-protected key backups. Requires memory-hard Argon2id defaults, explicit PBKDF2 downgrade, domain-separated backup classes, deterministic AEAD nonce recomputation, series-chain freshness (series_id / series_seq / supersedes / supersedes_digest), and server-side rate limiting / fresh device proof on backup access.",
       "required_endpoints": [
-        "ck.self.keys.backups.put",
-        "ck.self.keys.backups.list",
-        "ck.self.keys.backups.unlock",
-        "ck.self.keys.backups.delete"
+        "ck.self.keys.backups.resource.replace",
+        "ck.self.keys.backups.query.list",
+        "ck.self.keys.backups.command.unlock",
+        "ck.self.keys.backups.resource.delete"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -3321,8 +3321,8 @@
       "inherits": [],
       "description": "Named cadence profile for confidential Circle sub-seal commitments. Implementations claiming this profile MUST emit ck.circle.seal_commit on a fixed time cadence (5 minutes, max jitter 30 seconds), MUST include empty-batch commitments, and MUST NOT use event-count or activity-triggered public commitments. Mobile energy saving may batch private sub-seal upload, but MUST NOT relax the public Realm seal cadence.",
       "required_endpoints": [
-        "ck.self.events.submit",
-        "ck.self.events.subscribe"
+        "ck.self.events.command.submit",
+        "ck.self.events.stream.subscribe"
       ],
       "required_event_kinds": [
         "ck.circle.seal_commit"
@@ -3413,8 +3413,8 @@
       "inherits": [],
       "description": "Conformance profile pinning the machine-contract surface for Circle (intra-Realm scoped event/message boundary; see zh/models/circle.md). Splits actor submit-payload (scope_circle_id only) from canonical reducer-output (tagged effective_scope on Event envelope + materialized object), and pins the Circle event-kind family, member-state transition table, encryption-profile compatibility, and scope-rebind reducer-reject semantics. Required by implementations that emit or consume Circle events or that materialize Circle-scoped Flow / Message / Morph / Relation / Space objects.",
       "required_endpoints": [
-        "ck.self.events.submit",
-        "ck.self.events.query"
+        "ck.self.events.command.submit",
+        "ck.self.events.query.scan"
       ],
       "required_event_kinds": [
         "ck.circle.create",
@@ -3471,9 +3471,9 @@
     "ck.profile.personal_productivity.v1": {
       "description": "Client profile for principal-private reminders, scheduled send, snooze, and saved items backed by encrypted account data.",
       "required_endpoints": [
-        "ck.self.account.subscribe",
-        "ck.self.events.query",
-        "ck.self.events.submit"
+        "ck.self.account.stream.subscribe",
+        "ck.self.events.query.scan",
+        "ck.self.events.command.submit"
       ],
       "required_event_kinds": [
         "ck.account_data.set",
@@ -3502,7 +3502,7 @@
     "ck.profile.draft_sync.v1": {
       "description": "Client profile for encrypted cross-device draft account data with LWW resolution per draft slot.",
       "required_endpoints": [
-        "ck.self.account.subscribe"
+        "ck.self.account.stream.subscribe"
       ],
       "required_event_kinds": [
         "ck.account_data.set"
@@ -3526,14 +3526,14 @@
     "ck.profile.file_transfer.v1": {
       "description": "Client profile for principal-private cross-device file transfer backed by encrypted account data, authenticated Blob storage, and to-device key delivery for device-bound transfers.",
       "required_endpoints": [
-        "ck.self.account.subscribe",
-        "ck.self.events.submit",
-        "ck.self.blob.upload",
-        "ck.self.blob.head",
-        "ck.self.blob.get",
-        "ck.self.device_messages.put",
-        "ck.self.device_messages.get",
-        "ck.self.device_messages.ack"
+        "ck.self.account.stream.subscribe",
+        "ck.self.events.command.submit",
+        "ck.self.blob.upload.create",
+        "ck.self.blob.resource.head",
+        "ck.self.blob.resource.get",
+        "ck.self.device_messages.command.send",
+        "ck.self.device_messages.query.list",
+        "ck.self.device_messages.command.ack"
       ],
       "required_event_kinds": [
         "ck.account_data.set"
@@ -3560,8 +3560,8 @@
     "ck.profile.disappearing.v1": {
       "description": "Message expiry profile with Realm policy, projection stubs, and fail-closed handling for derived plaintext.",
       "required_endpoints": [
-        "ck.self.events.submit",
-        "ck.self.events.query"
+        "ck.self.events.command.submit",
+        "ck.self.events.query.scan"
       ],
       "required_event_kinds": [
         "ck.message.create",
@@ -3591,8 +3591,8 @@
     "ck.profile.calendar_event.v1": {
       "description": "Flow profile for calendar events and RSVP convergence.",
       "required_endpoints": [
-        "ck.self.events.submit",
-        "ck.self.events.query"
+        "ck.self.events.command.submit",
+        "ck.self.events.query.scan"
       ],
       "required_event_kinds": [
         "ck.flow.create",
@@ -3621,8 +3621,8 @@
     "ck.profile.pinned_items.v1": {
       "description": "Shared pin profile for Flow/Realm/Circle/Space projection homes using ck.pin.* events.",
       "required_endpoints": [
-        "ck.self.events.submit",
-        "ck.self.events.query"
+        "ck.self.events.command.submit",
+        "ck.self.events.query.scan"
       ],
       "required_event_kinds": [
         "ck.pin.add",
@@ -3652,9 +3652,9 @@
     "ck.profile.search.client_index.v1": {
       "description": "Client-side encrypted search index hosting profile; service stores encrypted manifest and shards but returns no hits.",
       "required_endpoints": [
-        "ck.self.account.subscribe",
-        "ck.self.blob.upload",
-        "ck.self.blob.get"
+        "ck.self.account.stream.subscribe",
+        "ck.self.blob.upload.create",
+        "ck.self.blob.resource.get"
       ],
       "required_event_kinds": [
         "ck.account_data.set"
@@ -3678,8 +3678,8 @@
     "ck.profile.search.blind_index.v1": {
       "description": "Server-assisted blind-index search profile with HMAC tokens, scope/epoch binding, and fail-closed stale posting behavior.",
       "required_endpoints": [
-        "ck.server.describe",
-        "ck.self.events.query"
+        "ck.server.query.describe",
+        "ck.self.events.query.scan"
       ],
       "required_event_kinds": [
         "ck.realm.search_policy"

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/push-operations.schema.json",
   "title": "Cokret Push Gateway Operation DTOs",
-  "description": "Closed request and response DTOs for ck.edge.push.register_device, ck.edge.push.unregister_device, and ck.push.notify.",
+  "description": "Closed request and response DTOs for ck.edge.push.command.register_device, ck.edge.push.command.unregister_device, and ck.push.notify.",
   "anyOf": [
     {
       "$ref": "#/$defs/push_register_device_request_body"

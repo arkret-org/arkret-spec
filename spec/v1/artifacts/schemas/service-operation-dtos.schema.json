@@ -44,10 +44,10 @@
       "$ref": "#/$defs/DeviceMessagesAckOutcome"
     },
     {
-      "$ref": "#/$defs/DeviceMessagesPutRequestBody"
+      "$ref": "#/$defs/DeviceMessagesSendRequestBody"
     },
     {
-      "$ref": "#/$defs/DeviceMessagesPutOutcome"
+      "$ref": "#/$defs/DeviceMessagesSendOutcome"
     },
     {
       "$ref": "#/$defs/DidOperationSubmitRequestBody"
@@ -230,7 +230,7 @@
     },
     "AuthzCheckRequestBody": {
       "type": "object",
-      "description": "ck.self.authz.check input — single capability decision query. `resource` is\noptional because some actions (e.g. `ck.realm.create`, identity-scoped\nactions) have no Realm-bound target.\n",
+      "description": "ck.self.authz.query.check input — single capability decision query. `resource` is\noptional because some actions (e.g. `ck.realm.create`, identity-scoped\nactions) have no Realm-bound target.\n",
       "required": [
         "actor_id",
         "action"
@@ -257,7 +257,7 @@
     },
     "AuthzCheckOutcome": {
       "type": "object",
-      "description": "ck.self.authz.check decision. See zh/authz/capabilities.md §18.",
+      "description": "ck.self.authz.query.check decision. See zh/authz/capabilities.md §18.",
       "required": [
         "decision"
       ],
@@ -604,7 +604,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 256,
-          "description": "Server-issued opaque acknowledgement token, REQUIRED whenever messages[] is non-empty. Covers this page plus all previously delivered messages for the authenticated device. Queue deletion happens only through ck.self.device_messages.ack with this token, never through the from= read cursor (client-sync.md §10.1)."
+          "description": "Server-issued opaque acknowledgement token, REQUIRED whenever messages[] is non-empty. Covers this page plus all previously delivered messages for the authenticated device. Queue deletion happens only through ck.self.device_messages.command.ack with this token, never through the from= read cursor (client-sync.md §10.1)."
         },
         "next_cursor": {
           "type": "string",
@@ -672,7 +672,7 @@
       },
       "additionalProperties": false
     },
-    "DeviceMessagesPutRequestBody": {
+    "DeviceMessagesSendRequestBody": {
       "type": "object",
       "required": [
         "messages"
@@ -690,7 +690,7 @@
       },
       "additionalProperties": false
     },
-    "DeviceMessagesPutOutcome": {
+    "DeviceMessagesSendOutcome": {
       "type": "object",
       "required": [
         "ok"
@@ -1020,7 +1020,7 @@
     },
     "EventView": {
       "type": "object",
-      "description": "Result of ck.self.events.get — a single Event Envelope with optional visibility / receipt hints.",
+      "description": "Result of ck.self.events.resource.get — a single Event Envelope with optional visibility / receipt hints.",
       "required": [
         "event"
       ],
@@ -1112,7 +1112,7 @@
     },
     "EventsQueryOutcome": {
       "type": "object",
-      "description": "Result of ck.self.events.query (GET form) and ck.self.events.query_post (POST/body\nform). Ordering follows the \"近邻先返回\" rule unless `order` was\nexplicitly set on the request; see service-http-binding.md §3.3.3.\n",
+      "description": "Result of ck.self.events.query.scan (GET form) and ck.self.events.query.scan_body (POST/body\nform). Ordering follows the \"近邻先返回\" rule unless `order` was\nexplicitly set on the request; see service-http-binding.md §3.3.3.\n",
       "required": [
         "events",
         "has_more"
@@ -1186,7 +1186,7 @@
     },
     "EventsResolveRequestBody": {
       "type": "object",
-      "description": "ck.self.events.resolve request body. At least one of event_ids or event_digests MUST be non-empty.",
+      "description": "ck.self.events.query.resolve request body. At least one of event_ids or event_digests MUST be non-empty.",
       "properties": {
         "event_ids": {
           "type": "array",
@@ -1209,7 +1209,7 @@
     },
     "EventsResolveOutcome": {
       "type": "object",
-      "description": "ck.self.events.resolve result. `events[]` and `missing[]` plus optional `unauthorized[]` form a partition of the requested set.",
+      "description": "ck.self.events.query.resolve result. `events[]` and `missing[]` plus optional `unauthorized[]` form a partition of the requested set.",
       "required": [
         "events",
         "missing"
@@ -1349,7 +1349,7 @@
     },
     "IdentityDocumentView": {
       "type": "object",
-      "description": "Result of ck.root.identity.get_document — current DID Document plus normalized view hints.",
+      "description": "Result of ck.root.identity.document.resource.get — current DID Document plus normalized view hints.",
       "required": [
         "did_document"
       ],
@@ -1442,7 +1442,7 @@
     },
     "PolicyCheckRequestBody": {
       "type": "object",
-      "description": "ck.self.policy.check input bound to a Realm authorization context.",
+      "description": "ck.self.policy.query.check input bound to a Realm authorization context.",
       "required": [
         "request_id",
         "realm_id",
@@ -1512,7 +1512,7 @@
     },
     "PolicyCheckOutcome": {
       "type": "object",
-      "description": "Result of ck.self.policy.check — signed decision bound to authorization, policy, and membership frontier hashes.",
+      "description": "Result of ck.self.policy.query.check — signed decision bound to authorization, policy, and membership frontier hashes.",
       "required": [
         "request_id",
         "bound_to",
@@ -2009,13 +2009,13 @@
               }
             ]
           },
-          "description": "Actor-supplied ck.self.events.submit input envelope. It reuses the base Event\nshape for actor intent fields but forbids reducer-managed accepted-output\nprojections such as actor_kind and effective_scope. Services stamp those\nfields only after accept and expose them on read/query/sync envelopes.\n"
+          "description": "Actor-supplied ck.self.events.command.submit input envelope. It reuses the base Event\nshape for actor intent fields but forbids reducer-managed accepted-output\nprojections such as actor_kind and effective_scope. Services stamp those\nfields only after accept and expose them on read/query/sync envelopes.\n"
         }
       ]
     },
     "EventsFrontierAccountClientState": {
       "type": "object",
-      "description": "Account-client ck.self.events.frontier response.",
+      "description": "Account-client ck.self.events.query.frontier response.",
       "required": [
         "frontier"
       ],
@@ -2035,7 +2035,7 @@
     },
     "EventsFrontierFederationPeerState": {
       "type": "object",
-      "description": "Federation peer ck.peer.events.frontier response. Requires S2S signed trust-domain headers.",
+      "description": "Federation peer ck.peer.events.query.frontier response. Requires S2S signed trust-domain headers.",
       "required": [
         "realm_id",
         "heads",
@@ -2096,7 +2096,7 @@
     },
     "EventsSubmitBatchRequestBody": {
       "type": "object",
-      "description": "Batch ck.self.events.submit request used by account clients.",
+      "description": "Batch ck.self.events.command.submit request used by account clients.",
       "required": [
         "events"
       ],
@@ -2113,7 +2113,7 @@
     },
     "EventsSubmitFederationRequestBody": {
       "type": "object",
-      "description": "Federation service-to-service ck.peer.events.submit request body.",
+      "description": "Federation service-to-service ck.peer.events.command.submit request body.",
       "required": [
         "service_binding_ref",
         "events"
@@ -2134,7 +2134,7 @@
     },
     "FederationServiceBindingRef": {
       "type": "object",
-      "description": "Request-level service binding snapshot carried by federation\nservice-to-service ck.peer.events.submit calls. This is metadata for the\nreceiver to verify the sender's delivery decision; client writes omit it.\n",
+      "description": "Request-level service binding snapshot carried by federation\nservice-to-service ck.peer.events.command.submit calls. This is metadata for the\nreceiver to verify the sender's delivery decision; client writes omit it.\n",
       "required": [
         "realm_id",
         "realm_policy_digest",
@@ -2452,7 +2452,7 @@
     },
     "SnapshotBootstrap": {
       "type": "object",
-      "description": "Optional ck.self.events.query acceleration hint for federation pull / backfill. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).",
+      "description": "Optional ck.self.events.query.scan acceleration hint for federation pull / backfill. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).",
       "required": [
         "snapshot_ref",
         "state_digest",

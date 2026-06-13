@@ -60,11 +60,11 @@ Issuer 约束是硬边界：
 
 Contact 负责关系状态：`pending_outgoing` / `pending_incoming` / `accepted` / `rejected` / `tombstoned`。Consent 负责 action gate：`direct_message` / `invite` / `voice_call` / `video_call` / `presence` 是否允许。
 
-`ck.self.contact.request` 默认请求 `requested_scopes=["direct_message"]`。若 request 请求某个 scope，requester MUST 在自己的 PCR 同步写一条给 target 的 `ck.consent.grant`，并在 `requester_consent_refs[]` 中引用它。若该 grant 写入失败，request MUST fail closed，或移除该 scope 后重新签名。该 requester-side grant 在 contact accepted 前只表示 requester 允许 target 发起对应动作；`ck.self.direct_conversation.resolve` 仍 MUST 检查 accepted contact，不得只凭 consent grant 创建联系人 DM。
+`ck.self.contact.command.request` 默认请求 `requested_scopes=["direct_message"]`。若 request 请求某个 scope，requester MUST 在自己的 PCR 同步写一条给 target 的 `ck.consent.grant`，并在 `requester_consent_refs[]` 中引用它。若该 grant 写入失败，request MUST fail closed，或移除该 scope 后重新签名。该 requester-side grant 在 contact accepted 前只表示 requester 允许 target 发起对应动作；`ck.self.direct_conversation.command.resolve` 仍 MUST 检查 accepted contact，不得只凭 consent grant 创建联系人 DM。
 
-该 requester-side grant 的生命周期 MUST 与 request 绑定，不得在 request 终结后长期残留为开放的反向 consent gate：当 requester 看到该 request 对应的 `ck.contact.rejected`、`ck.contact.tombstoned`，或 request 在 `contact_request_pending_ttl`（部署可配，默认 SHOULD ≤ 14 天）内仍处 `pending_outgoing` 而超时（无论先到者），requester 的 PCR MUST 自动对 `requester_consent_refs[]` 引用的 active grant dots 发 `ck.consent.revoke`。这些 dots 同时是 contact-managed consent，故也纳入 §3 / `ck.self.contact.tombstone` 的级联枚举范围；若 requester 无法枚举完整 dots，MUST 按 partial / fail-closed 处理并标记，不得报告完整撤销。该自动 revoke 不依赖 target 配合，目的是关闭"已死 request 留下长期开放的 requester→target 反向 consent gate"的暴露面。
+该 requester-side grant 的生命周期 MUST 与 request 绑定，不得在 request 终结后长期残留为开放的反向 consent gate：当 requester 看到该 request 对应的 `ck.contact.rejected`、`ck.contact.tombstoned`，或 request 在 `contact_request_pending_ttl`（部署可配，默认 SHOULD ≤ 14 天）内仍处 `pending_outgoing` 而超时（无论先到者），requester 的 PCR MUST 自动对 `requester_consent_refs[]` 引用的 active grant dots 发 `ck.consent.revoke`。这些 dots 同时是 contact-managed consent，故也纳入 §3 / `ck.self.contact.command.tombstone` 的级联枚举范围；若 requester 无法枚举完整 dots，MUST 按 partial / fail-closed 处理并标记，不得报告完整撤销。该自动 revoke 不依赖 target 配合，目的是关闭"已死 request 留下长期开放的 requester→target 反向 consent gate"的暴露面。
 
-`ck.self.contact.respond(action="accept")` MUST：
+`ck.self.contact.command.respond(action="accept")` MUST：
 
 1. 验证 request 存在、target 是当前 holder、request 未被 target 已拒绝 / 接受 / 终止。
 2. 写 `ck.contact.accepted` fact。
@@ -72,15 +72,15 @@ Contact 负责关系状态：`pending_outgoing` / `pending_incoming` / `accepted
 
 `granted_scopes[]` MUST 是 `requested_scopes[]` 的子集，除非 response UI 明确执行"扩展授权"并把扩展 scope 写入 accepted fact 的审计字段。默认 accept 不得静默扩大 requester 请求范围。
 
-`ck.self.contact.respond(action="reject")` MUST 只写 `ck.contact.rejected`，不得隐式写 consent。
+`ck.self.contact.command.respond(action="reject")` MUST 只写 `ck.contact.rejected`，不得隐式写 consent。
 
 Contact-managed consent dots 指通过该 contact request / accepted fact 的 `requester_consent_refs[]` 或 `consent_grant_refs[]` 引入、或后续明确绑定到该 contact relation 的 active grant dots，即 [`consent-model.md`](./consent-model.md) §5 的 `active_dots(cell)` 中对应 intent 的 add dots。
 
-`ck.self.contact.tombstone` MUST 写 `ck.contact.tombstoned`。`revoke_scopes[]` 缺省为 holder 给 peer 的全部 contact-managed active scopes；operation MUST 枚举并 revoke 这些 active grant dots，并把 revoke refs 写入 tombstone fact。若实现无法枚举完整 dots，必须返回 partial / fail-closed 结果，不得报告完整 tombstone。实现不得默认撤销 holder 给同一 peer 的非 contact-managed consent（例如独立组织 invite 授权），除非 UI / admin 明确选择 full peer revoke 并在 tombstone fact 中审计。
+`ck.self.contact.command.tombstone` MUST 写 `ck.contact.tombstoned`。`revoke_scopes[]` 缺省为 holder 给 peer 的全部 contact-managed active scopes；operation MUST 枚举并 revoke 这些 active grant dots，并把 revoke refs 写入 tombstone fact。若实现无法枚举完整 dots，必须返回 partial / fail-closed 结果，不得报告完整 tombstone。实现不得默认撤销 holder 给同一 peer 的非 contact-managed consent（例如独立组织 invite 授权），除非 UI / admin 明确选择 full peer revoke 并在 tombstone fact 中审计。
 
 Consent revoke 与 contact tombstone 仍是两条显式事实：单独 revoke consent 只会减少 `effective_scopes`，不得自动删除 accepted contact；tombstone 也不得伪造不存在的 revoke event。
 
-`ck.self.contact.tombstone` MAY 作用于 pending request：requester 对 `pending_outgoing` tombstone 表示撤回；target 对 `pending_incoming` tombstone 表示本地丢弃/拒收该 request 且不写 `ck.contact.rejected`。任一 pending tombstone 后，同一 `request_id` 的后续 accept/respond MUST 返回 `failed_precondition`（reason=`contact_request_not_pending` 或更具体的 `contact_request_expired`）。
+`ck.self.contact.command.tombstone` MAY 作用于 pending request：requester 对 `pending_outgoing` tombstone 表示撤回；target 对 `pending_incoming` tombstone 表示本地丢弃/拒收该 request 且不写 `ck.contact.rejected`。任一 pending tombstone 后，同一 `request_id` 的后续 accept/respond MUST 返回 `failed_precondition`（reason=`contact_request_not_pending` 或更具体的 `contact_request_expired`）。
 
 ## 4. Contact Operation Surface
 
@@ -88,10 +88,10 @@ Consent revoke 与 contact tombstone 仍是两条显式事实：单独 revoke co
 
 | operation | HTTP | Body / Response | 说明 |
 | --- | --- | --- | --- |
-| `ck.self.contact.request` | `POST /_cokret/self/contacts/request` | `ContactRequestRequestBody` / `ContactRequestOutcome` | 写 requester 侧 request fact，并投递签名请求给 target；request body MAY 含可选 `message`(1..2000,NFC),透传到 `ck.contact.requested` 的 `message` 字段作为加好友附言；target 在对端 PS 时 MUST 携带可选 `recipient_service_did`(见 §4.1)以驱动跨端投递 |
-| `ck.self.contact.respond` | `POST /_cokret/self/contacts/respond` | `ContactRespondRequestBody` / `ContactRespondOutcome` | 由 target 接受 / 拒绝 request；accept 同步写 target consent grants |
-| `ck.self.contact.list` | `GET /_cokret/self/contacts` | `ContactList` | 从 contact facts 投影，并附带 consent-derived scopes |
-| `ck.self.contact.tombstone` | `POST /_cokret/self/contacts/tombstone` | `ContactTombstoneRequestBody` / `ContactTombstone` | 写 holder 侧 tombstone；默认 revoke holder 给 peer 的 contact-managed consent；request body 含可选 `block_peer`(默认 false),为 true 时额外把 peer DID 写入 holder `invite_receive_policy.blocked_subjects`(硬拉黑) |
+| `ck.self.contact.command.request` | `POST /_cokret/self/contacts/request` | `ContactRequestRequestBody` / `ContactRequestOutcome` | 写 requester 侧 request fact，并投递签名请求给 target；request body MAY 含可选 `message`(1..2000,NFC),透传到 `ck.contact.requested` 的 `message` 字段作为加好友附言；target 在对端 PS 时 MUST 携带可选 `recipient_service_did`(见 §4.1)以驱动跨端投递 |
+| `ck.self.contact.command.respond` | `POST /_cokret/self/contacts/respond` | `ContactRespondRequestBody` / `ContactRespondOutcome` | 由 target 接受 / 拒绝 request；accept 同步写 target consent grants |
+| `ck.self.contact.query.list` | `GET /_cokret/self/contacts` | `ContactList` | 从 contact facts 投影，并附带 consent-derived scopes |
+| `ck.self.contact.command.tombstone` | `POST /_cokret/self/contacts/tombstone` | `ContactTombstoneRequestBody` / `ContactTombstone` | 写 holder 侧 tombstone；默认 revoke holder 给 peer 的 contact-managed consent；request body 含可选 `block_peer`(默认 false),为 true 时额外把 peer DID 写入 holder `invite_receive_policy.blocked_subjects`(硬拉黑) |
 
 `ContactListRow` MUST 至少区分：
 
@@ -116,9 +116,9 @@ request 到达 `rejected`、`expired` 或 `tombstoned` 后，后续重新发起 
 
 | operation | HTTP | Body / Response | 说明 |
 | --- | --- | --- | --- |
-| `ck.peer.contacts.submit` | `POST /_cokret/peer/contacts` | `PeerContactDeliveryRequest` / `PeerContactDeliveryOutcome` | issuer 侧 PS 把签名的 `ck.contact.requested` / `accepted` / `rejected` / `tombstoned` envelope 投递到 target holder 的 PS |
+| `ck.peer.contacts.command.submit` | `POST /_cokret/peer/contacts` | `PeerContactDeliveryRequest` / `PeerContactDeliveryOutcome` | issuer 侧 PS 把签名的 `ck.contact.requested` / `accepted` / `rejected` / `tombstoned` envelope 投递到 target holder 的 PS |
 
-该 peer 端点与 [`../sync/invite-addressing.md`](../sync/invite-addressing.md) §5 的 `ck.peer.invites.submit` 同级、风格一致：要求 service-to-service 认证、`Destination-Service-DID` 等于 `contact_address.recipient_service_did`、RFC 9530 `Content-Digest` 与 RFC 9421 message signature。约束如下：
+该 peer 端点与 [`../sync/invite-addressing.md`](../sync/invite-addressing.md) §5 的 `ck.peer.invites.command.submit` 同级、风格一致：要求 service-to-service 认证、`Destination-Service-DID` 等于 `contact_address.recipient_service_did`、RFC 9530 `Content-Digest` 与 RFC 9421 message signature。约束如下：
 
 - `contact_event` MUST 是 issuer 原签名的 `ck.contact.*` EventEnvelope；recipient MUST 以原签名 envelope 参与 projection，MUST NOT 重新签发成自己的本地 fact（§2 硬边界）。
 - `fact_kind` MUST 等于 `contact_event.kind`。
@@ -126,25 +126,25 @@ request 到达 `rejected`、`expired` 或 `tombstoned` 后，后续重新发起 
 - recipient 把 fact 投影进 `subject_id` 的 contact projection（target 侧形成 `pending_incoming`；requester 侧 accept 形成 `accepted` 并带 `consent_grant_refs[]` / `invite_consent_grant_ref`；reject 形成 `rejected`；tombstone 把对应 row 降级）。
 - recipient 的 `invite_receive_policy.blocked_subjects` 命中 issuer 时，MUST fail-closed（drop + opaque），与 invite 投递的隐私侧信道防护一致。
 
-因 v1 principal DID（如 `did:web` / `did:webvh`）不强制内嵌 home Principal Server，requester 发起跨端 `ck.self.contact.request` 时 MUST 携带 target 的 `recipient_service_did`（与 invite 寻址同构），issuer 侧 PS 据此投递；同 PS 的 request 不需要该字段，本地直接投影。
+因 v1 principal DID（如 `did:web` / `did:webvh`）不强制内嵌 home Principal Server，requester 发起跨端 `ck.self.contact.command.request` 时 MUST 携带 target 的 `recipient_service_did`（与 invite 寻址同构），issuer 侧 PS 据此投递；同 PS 的 request 不需要该字段，本地直接投影。
 
 ## 5. Private Contact Discovery 边界
 
-`ck.find.directory.private_contact_discovery` 只回答"哪些本地 connection identifier 在 provider 的可联系集合里"，以及 v1 core 已允许的最小 invite / consent handoff stub。
+`ck.find.directory.query.private_contact_discovery` 只回答"哪些本地 connection identifier 在 provider 的可联系集合里"，以及 v1 core 已允许的最小 invite / consent handoff stub。
 
 v1 规范采用窄读：private contact discovery 响应 MAY 在 PSI set-membership 命中结果旁附带最小 invite / consent handoff stub，但该 stub 只能声明 consent state hash、grant / revoke 状态或下一步引导。它 MUST NOT 携带 reachability proof、完整 profile、成员资格、Realm membership、读取权限、关系图谱，或可直接创建 contact relation 的 token。
 
 该 handoff stub 携带 consent state hash 时,**MUST** 满足 [`consent-model.md` §6.2.1](./consent-model.md)（PSI 命中位时序侧信道）与 [`§6.2.2`](./consent-model.md)（Consent state hash 侧信道）的侧信道防护 normative 约束:consent state hash MUST 加 per-requester / per-session salt（或改为 holder-authorized opaque token）,MUST NOT 输出裸的、跨 requester 稳定的 hash（§6.2.2）;PSI 命中位 MUST 经粗粒度时间 bucket 化并按 `(requester, holder)` 维度限速，防止时序侧信道（§6.2.1）。实现 MUST NOT 在本 stub 中输出未加盐的 consent state hash。
 
-本规范不新增、也不依赖 contact request handoff token。若未来需要 discovery 直接返回可发起 `ck.self.contact.request` 的 token / credential，必须另行注册 profile 与 response schema。在那之前，用户选择联系某个 PSI 命中后，客户端才向目标 principal 披露自己的 DID / pairwise DID 并调用 `ck.self.contact.request`。
+本规范不新增、也不依赖 contact request handoff token。若未来需要 discovery 直接返回可发起 `ck.self.contact.command.request` 的 token / credential，必须另行注册 profile 与 response schema。在那之前，用户选择联系某个 PSI 命中后，客户端才向目标 principal 披露自己的 DID / pairwise DID 并调用 `ck.self.contact.command.request`。
 
 ## 6. Direct Conversation Resolver
 
-联系人 accepted 后，客户端不应手工拼 Realm / Flow。`ck.self.direct_conversation.resolve` 是 pair 到 canonical 1:1 DM 入口的幂等 resolver。
+联系人 accepted 后，客户端不应手工拼 Realm / Flow。`ck.self.direct_conversation.command.resolve` 是 pair 到 canonical 1:1 DM 入口的幂等 resolver。
 
 | operation | HTTP | Body / Response | 说明 |
 | --- | --- | --- | --- |
-| `ck.self.direct_conversation.resolve` | `POST /_cokret/self/direct-conversations/resolve` | `DirectConversationResolveRequestBody` / `DirectConversationResolveOutcome` | 解析或创建这对 actor 的 canonical 1:1 DM 入口 |
+| `ck.self.direct_conversation.command.resolve` | `POST /_cokret/self/direct-conversations/resolve` | `DirectConversationResolveRequestBody` / `DirectConversationResolveOutcome` | 解析或创建这对 actor 的 canonical 1:1 DM 入口 |
 
 Resolver MUST：
 
@@ -160,7 +160,7 @@ Direct conversation binding 是 pair 到 `(realm_id, main_flow_id)` 的 principa
 
 Binding facts 与 contact facts 一样需要在双方之间交换 / 镜像并以原签名 envelope 参与 projection；否则 Alice 与 Bob 可能各自只看到自己的 binding fact，无法用同一 tie-break 算出相同 canonical Realm。Binding 只有在引用的 DM Realm、双方 active membership、DM main Flow 与 accepted contact refs 都可验证时才可成为 canonical。
 
-并发创建同一 pair 时，实现 MUST 以 deterministic tie-break 选择 canonical binding（例如 first accepted binding by causal order / event id），并把 loser 标为 duplicate / non-canonical；`ck.self.direct_conversation.resolve` 不得随机返回两个不同 Realm。
+并发创建同一 pair 时，实现 MUST 以 deterministic tie-break 选择 canonical binding（例如 first accepted binding by causal order / event id），并把 loser 标为 duplicate / non-canonical；`ck.self.direct_conversation.command.resolve` 不得随机返回两个不同 Realm。
 
 ## 7. DM Realm Well-Known 形态
 
@@ -182,7 +182,7 @@ DM Realm MAY 为 push / server-side rule 暴露最小 `is_direct_message` projec
 
 ### 7.1 成员退出
 
-任一参与方主动离开 / 被移出 DM Realm 后，该 Realm 立即失去 active canonical DM 资格。direct conversation binding MUST 标为 retired / non-canonical，后续 `ck.self.direct_conversation.resolve(create=true)` MUST 创建新的 DM Realm、main Flow 与 binding。
+任一参与方主动离开 / 被移出 DM Realm 后，该 Realm 立即失去 active canonical DM 资格。direct conversation binding MUST 标为 retired / non-canonical，后续 `ck.self.direct_conversation.command.resolve(create=true)` MUST 创建新的 DM Realm、main Flow 与 binding。
 
 Resolver MUST NOT 为了"继续同一个私聊"把退出方重新加入旧 DM Realm。退出是明确的会话边界与密钥 / 历史边界；复用旧 Realm 会混淆退出后的 MLS epoch、history eligibility 与用户意图。
 

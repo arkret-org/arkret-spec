@@ -67,7 +67,7 @@ Profile 命名采用 `ck.profile.<name>.v<major>`，`<major>` 是 profile 自身
 
 默认 HTTP/JSON binding 的所有 path 都在 negative-space 根 `/_cokret/` 之下且**不含版本段**；版本不进 path，由 `*.describe` / `supported_operations` 协商（可选 `Cokret-Protocol-Version` header）。见 [sync/service-http-binding.md](../sync/service-http-binding.md) §2.1。
 
-pre-auth 的根级能力广告位于根 meta 位 `GET /_cokret/describe`（`ck.server.describe`）。因此版本/能力发现是协议内的一等公民，新旧实现据此协商，而不依赖 URL 版本号或部署假设。
+pre-auth 的根级能力广告位于根 meta 位 `GET /_cokret/describe`（`ck.server.query.describe`）。因此版本/能力发现是协议内的一等公民，新旧实现据此协商，而不依赖 URL 版本号或部署假设。
 
 ## 7. 破坏性改名走 `renames.json` + 离线 migration tool
 

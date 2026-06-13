@@ -289,8 +289,8 @@ SHOULD 支持：
 
 MUST 支持：
 
-- service describe（`ck.server.describe`）
-- `ck.gate.account.issue_session_grant` / `/_cokret/gate/account/session-grants` 的规范化签发路径
+- service describe（`ck.server.query.describe`）
+- `ck.gate.account.command.issue_session_grant` / `/_cokret/gate/account/session-grants` 的规范化签发路径
 - 至少一种登录因子（password / passkey / OIDC / SSO / device pairing / recovery challenge）
 - 短期、audience-bound `ck.session.grant` 签发
 - session_grant TTL 上限远低于 Realm policy review horizon（minutes-to-hours，不得跨越多日）
@@ -300,8 +300,8 @@ MUST 支持：
 SHOULD 支持：
 
 - session-grant introspection 与 revocation
-- `ck.gate.account.issue_session_grant` 规范化 HTTP binding
-- `ck.self.policy.check`（`PolicyCheckOutcome`）
+- `ck.gate.account.command.issue_session_grant` 规范化 HTTP binding
+- `ck.self.policy.query.check`（`PolicyCheckOutcome`）
 - 多 principal-server delegation target 配置
 - DID binding / claim attestation
 
@@ -592,8 +592,8 @@ SHOULD 支持：
 `ck.profile.personal_agent_provisioning.v1` 注册 controller-面的 personal native agent management surface,扩展 `ck.profile.agent_runtime.v1`。
 
 MUST 支持:
-- `POST /_cokret/self/agents` (`ck.self.agent.provision`) 编排 Actor Profile + `ck.identity.accountability_grant` + 初始 `ck.capability.grant`(带 `effective_after_first_authorized_key=true` flag)+ pairing request
-- `POST /_cokret/gate/account/agent-key-pair` (`ck.gate.account.agent_key_pair`) 校验 `verification_method` 与 `agent_principal_id` 一致性后写入 `ck.agent.key.authorize`,清除 effective_after_first_authorized_key
+- `POST /_cokret/self/agents` (`ck.self.agent.command.provision`) 编排 Actor Profile + `ck.identity.accountability_grant` + 初始 `ck.capability.grant`(带 `effective_after_first_authorized_key=true` flag)+ pairing request
+- `POST /_cokret/gate/account/agent-key-pair` (`ck.gate.account.command.pair_agent_key`) 校验 `verification_method` 与 `agent_principal_id` 一致性后写入 `ck.agent.key.authorize`,清除 effective_after_first_authorized_key
 - Provisioning `status` 枚举:`pending_runtime_key` / `active` / `paused` / `pairing_expired` / `deactivated`
 - Pairing expiry 自动 `ck.capability.revoke` pending grants
 - Agent management operations(list/get/pause/resume/deactivate/rotate-key/grant attach/detach)写入 durable lifecycle events
@@ -606,7 +606,7 @@ MUST 支持:
 - Sidecar exposure 披露:激活新 agent 前 UI MUST 显式披露其将获得现有 sidecar 访问权(联动 `ck.profile.agent_sidecar_thread.v1`)
 
 MUST NOT:
-- 注册独立 `ck.self.agent.provision` aggregate durable event(provisioning operation fan-out 到既有子事件)
+- 注册独立 `ck.self.agent.command.provision` aggregate provisioning operation(provisioning fan-out 到既有子事件)
 - 返回长期 private key、refresh token 或可直接长期调用 Events API 的 bearer token
 - 引入 custom URI scheme(`cokret://` 等)
 - 把 `agent_slug` 当作 grant subject、actor attribution、membership key、delivery key、Directory search key 或 audit attribution source
@@ -649,7 +649,7 @@ MUST NOT:
 `ck.profile.agent_sidecar_thread.v1` 注册 controller 与 controller 的 native AI agents 之间的私聊上下文线程。依赖 Circle profile 与 personal agent provisioning / auth profiles。
 
 MUST 支持:
-- `POST /_cokret/self/agent-sidecar-threads:ensure` (`ck.self.agent.sidecar_thread.ensure`) idempotent operation,返回 `{ok, private_circle_id, private_flow_id, private_relation_id, pending_member_reconciliations?}`
+- `POST /_cokret/self/agent-sidecar-threads:ensure` (`ck.self.agent.sidecar_thread.command.ensure`) idempotent operation,返回 `{ok, private_circle_id, private_flow_id, private_relation_id, pending_member_reconciliations?}`
 - `context_ref` polymorphic descriptor(`relation_id` 单独 / `flow_id` 加可选 `track_name` + 可选 seal)
 - Closed request schema(reject unknown top-level fields)
 - Fixed reuse:Flow `(controller_principal_id, normalized_context_ref)`、Circle `(realm_id, controller_principal_id)`
@@ -677,8 +677,8 @@ MUST NOT:
 `ck.profile.agent_participation_policy.v1` 注册 native personal agent 的分层 participation ceiling 与 controller selection 面。它继承 `ck.profile.personal_agent_provisioning.v1`。
 
 MUST 支持:
-- `ck.self.agent.participation.set`
-- `ck.self.agent.participation.get`
+- `ck.self.agent.participation.resource.replace`
+- `ck.self.agent.participation.resource.get`
 - deployment ⊇ Realm ⊇ Circle ⊇ Flow 的 tighten-only ceiling 校验
 - effective participation = effective ceiling ∩ controller selection
 - 第三方 mention gate：`accept_third_party_mention=false` 时不得向该 agent 派生 mention notification、inbox row、push wakeup 或 agent subscribe 投影；gate 在 message event fanout 时一次性求值，participation 之后翻转不追溯补发或撤销既有派生（[flow-and-message.md §9.4.5](../models/flow-and-message.md)）
@@ -704,7 +704,7 @@ Applet v1 家族适用于运行 Applet 集成服务。`ck.profile.applet_service
 - HTTP message signature verification
 - event signature verification
 - bot actor attribution
-- `ck.edge.applet.transaction` as operation_id only, never as durable Event kind
+- `ck.edge.applet.command.transaction` as operation_id only, never as durable Event kind
 
 MUST NOT：
 
@@ -747,7 +747,7 @@ MUST 支持：
 - 在接收 E2EE Event Envelope 时签发 `ck.moderation.franking_proof` 事件，绑定 `event_id`、`ciphertext_digest`、`aad_digest`、`sender_claim` (含 mls_group_id + epoch)、`received_by` (service DID)、`received_at`、`replay_nonce`。
 - franking proof `signature` 由 service DID 当前有效 verification method 签发，覆盖 franking proof canonical bytes。
 - 每条 franking proof 必须可被独立 verify：service DID Document 解析 + verification method 有效期 + Realm service binding 校验 + payload hash 重算。
-- 接收 reporter 提交的 `ck.self.moderation.report` 时，把 franking proof ID 与 report ID 绑定为审计链一部分；不得仅信 reporter 单方声称。
+- 接收 reporter 提交的 `ck.self.moderation.command.report` 时，把 franking proof ID 与 report ID 绑定为审计链一部分；不得仅信 reporter 单方声称。
 - franking proof cache TTL 与 service key rotation 同步：service DID 的 verification method 撤销后，旧 franking proof 仍可历史验证（用历史 key state），但不签发新 franking proof。
 
 MUST NOT：
@@ -851,7 +851,7 @@ Moderation profile MUST 额外覆盖：
 
 - `ck.schema.moderation_report.v1`
 - `ck.schema.moderation_queue_item.v1`
-- `ck.self.moderation.report` payload schema validation
+- `ck.self.moderation.command.report` payload schema validation
 - E2EE evidence package / franking proof 只向授权 moderation recipient 披露
 
 Identity profile MUST 额外提供：

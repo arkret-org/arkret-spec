@@ -372,9 +372,9 @@ Board projection MUST NOT 默认显示 Realm 中的全部 Flow。实现 MUST 按
 }
 ```
 
-可选受托 projection 服务若声明 `ck.self.views.collection_projection`，MUST 以 `POST /_cokret/self/views/{view_id}/projection` 暴露上面的 `CollectionProjectionView` 形态，request body 只承载分页参数（`schemas/view.schema.json#/$defs/view_projection_request_body`）。该 operation 只物化 `View{kind="collection"}`，其它 View projection 仍可由客户端本地或未来 profile 定义的受托面计算。
+可选受托 projection 服务若声明 `ck.self.views.collection_projection.command.materialize`，MUST 以 `POST /_cokret/self/views/{view_id}/projection` 暴露上面的 `CollectionProjectionView` 形态，request body 只承载分页参数（`schemas/view.schema.json#/$defs/view_projection_request_body`）。该 operation 只物化 `View{kind="collection"}`，其它 View projection 仍可由客户端本地或未来 profile 定义的受托面计算。
 
-单个 document Morph 的受托读取面是 `GET /_cokret/self/projection/documents/{morph_id}`（operation `ck.self.projection.document`）。响应 schema 为 `schemas/view.schema.json#/$defs/document_morph_projection_outcome`，用于返回授权可见的 `document`、`versions`、`relations`、`comments` 与 `cursor_presence` 派生数据；它不是 document 的 canonical state，客户端仍以 Morph/Relation/Message/Event 历史和返回的 projection frontier 做校验。
+单个 document Morph 的受托读取面是 `GET /_cokret/self/projection/documents/{morph_id}`（operation `ck.self.projection.document.resource.get`）。响应 schema 为 `schemas/view.schema.json#/$defs/document_morph_projection_outcome`，用于返回授权可见的 `document`、`versions`、`relations`、`comments` 与 `cursor_presence` 派生数据；它不是 document 的 canonical state，客户端仍以 Morph/Relation/Message/Event 历史和返回的 projection frontier 做校验。
 
 ## 7. Timeline / Chat Projection
 

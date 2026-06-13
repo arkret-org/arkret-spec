@@ -1006,7 +1006,7 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.self.agent.provision",
+      "action": "ck.self.agent.command.provision",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [
@@ -1024,7 +1024,7 @@
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "ck.self.agent.pause",
+      "action": "ck.self.agent.command.pause",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
@@ -1032,10 +1032,10 @@
         "ck.self.agent.pause"
       ],
       "profile": "ck.profile.personal_agent_provisioning.v1",
-      "event_mapping_kind": "same_name"
+      "event_mapping_kind": "operation_verb"
     },
     {
-      "action": "ck.self.agent.resume",
+      "action": "ck.self.agent.command.resume",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
@@ -1043,10 +1043,10 @@
         "ck.self.agent.resume"
       ],
       "profile": "ck.profile.personal_agent_provisioning.v1",
-      "event_mapping_kind": "same_name"
+      "event_mapping_kind": "operation_verb"
     },
     {
-      "action": "ck.self.agent.deactivate",
+      "action": "ck.self.agent.command.deactivate",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
@@ -1054,7 +1054,7 @@
         "ck.self.agent.deactivate"
       ],
       "profile": "ck.profile.personal_agent_provisioning.v1",
-      "event_mapping_kind": "same_name"
+      "event_mapping_kind": "operation_verb"
     },
     {
       "action": "ck.agent.draft.propose",
@@ -1105,7 +1105,7 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.self.agent.sidecar_thread.ensure",
+      "action": "ck.self.agent.sidecar_thread.command.ensure",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
@@ -1147,7 +1147,7 @@
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "ck.self.agent.participation.set",
+      "action": "ck.self.agent.participation.resource.replace",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
@@ -1408,7 +1408,7 @@
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "ck.self.events.query",
+      "action": "ck.self.events.query.scan",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1417,7 +1417,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.self.events.subscribe",
+      "action": "ck.self.events.stream.subscribe",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1426,7 +1426,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.self.account.subscribe",
+      "action": "ck.self.account.stream.subscribe",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1435,7 +1435,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.self.account.describe",
+      "action": "ck.self.account.query.describe",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1444,7 +1444,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.self.snapshot.head",
+      "action": "ck.self.snapshot.query.manifest_head",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1453,7 +1453,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.self.blob.upload",
+      "action": "ck.self.blob.upload.create",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [
@@ -1464,7 +1464,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.self.blob.get",
+      "action": "ck.self.blob.resource.get",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1473,7 +1473,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.self.blob.head",
+      "action": "ck.self.blob.resource.head",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1482,7 +1482,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.self.blob.presign",
+      "action": "ck.self.blob.command.presign",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [

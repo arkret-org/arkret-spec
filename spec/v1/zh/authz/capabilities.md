@@ -263,18 +263,18 @@ Morph 权限粒度与 Flow 平行(`ck.morph.read` / `ck.morph.create` / `ck.morp
 - `ck.agent.key.authorize`（high risk；授权 agent key，target=`ck.agent.key.authorize`）
 - `ck.agent.key.rotate`（high risk；轮换 agent key，target=`ck.agent.key.rotate`）
 - `ck.agent.key.revoke`（high risk；撤销 agent key，target=`ck.agent.key.revoke`）
-- `ck.self.agent.provision`(aggregate admin action,`target_event_kinds=[ck.profile.create, ck.identity.accountability_grant, ck.agent.key.authorize, ck.capability.grant]`,profile=`ck.profile.personal_agent_provisioning.v1`)
-- `ck.self.agent.pause`(controller-only;target=`ck.self.agent.pause`)
-- `ck.self.agent.resume`(controller-only;target=`ck.self.agent.resume`)
-- `ck.self.agent.deactivate`(controller-only,terminal;target=`ck.self.agent.deactivate`,fan-out 见 [`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md))
+- `ck.self.agent.command.provision`(aggregate admin action,`target_event_kinds=[ck.profile.create, ck.identity.accountability_grant, ck.agent.key.authorize, ck.capability.grant]`,profile=`ck.profile.personal_agent_provisioning.v1`)
+- `ck.self.agent.command.pause`(controller-only;target=`ck.self.agent.command.pause`)
+- `ck.self.agent.command.resume`(controller-only;target=`ck.self.agent.command.resume`)
+- `ck.self.agent.command.deactivate`(controller-only,terminal;target=`ck.self.agent.command.deactivate`,fan-out 见 [`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md))
 - `ck.agent.draft.propose`(agent-initiated draft;target=`ck.agent.draft.propose`,wire_scope=`actor_private_event`)
 - `ck.agent.action_request`(agent-initiated action request;target=`ck.agent.action_request`)
 - `ck.agent.action_approve`(controller-only;target=`ck.agent.action_approve`)
 - `ck.agent.action_reject`(controller-only;target=`ck.agent.action_reject`)
-- `ck.self.agent.sidecar_thread.ensure`(aggregate admin action,`target_event_kinds=[ck.circle.create, ck.circle.member.state, ck.flow.create, ck.relation.create]`,profile=`ck.profile.agent_sidecar_thread.v1`。Controller-private projection 写入(`ck.agent.sidecar_projection.v1`)不属于此 grant 集合)
+- `ck.self.agent.sidecar_thread.command.ensure`(aggregate admin action,`target_event_kinds=[ck.circle.create, ck.circle.member.state, ck.flow.create, ck.relation.create]`,profile=`ck.profile.agent_sidecar_thread.v1`。Controller-private projection 写入(`ck.agent.sidecar_projection.v1`)不属于此 grant 集合)
 - `ck.agent.sidecar_thread.write`(profile action;`target_event_kinds=[ck.message.create]`,resource 必须限定 sidecar private Flow)
 - `ck.agent.sidecar_thread.publish`(profile action;target event kinds 由最终发布目标决定，至少包括 `ck.message.create`，受 reply-as-agent / act-on-behalf attribution 规则约束)
-- `ck.self.agent.participation.set`(controller-only aggregate admin;profile=`ck.profile.agent_participation_policy.v1`，`target_event_kinds=[ck.capability.grant, ck.capability.revoke]`。controller 设置某 agent 在某 scope 的参与选择 `{reply, accept_third_party_mention, act_on_behalf}`；服务端校验 `selection ⊆ effective_ceiling`（deployment ⊇ Realm ⊇ Circle ⊇ Flow 的单调收紧 fold），超出对应位返回 `failed_precondition`（`reason="agent_participation_exceeds_ceiling"`）。`reply` / `act_on_behalf` effective 为真时物化为既有 `ck.capability.grant`（`ck.message.create` 等），为假时 `ck.capability.revoke`；`accept_third_party_mention` 不物化为 grant，而是 driver of [`../models/flow-and-message.md` §9.4](../models/flow-and-message.md) 的第三方 mention 投递 gate。controller-owned `ck.agent.participation.v1` account-data 写入不纳入此 grant 集合（由 controller 对自身 account-data 的固有写权批准）。Realm-level ceiling 由持有 `ck.realm.admin` 的 principal 通过 `ck.realm.policy_components` 的 `agent_participation` 组件写入；Circle / Flow ceiling 分别由 `ck.circle.manage` / `ck.flow.admin` 写入对应 object 的 `agent_participation` 字段，reducer 强制 tighten-only。Realm / Circle / Flow ceiling 分别见 [`../models/realm-and-space.md`](../models/realm-and-space.md)、[`../models/circle.md`](../models/circle.md)、[`../models/flow-and-message.md` §9.4.5](../models/flow-and-message.md))
+- `ck.self.agent.participation.resource.replace`(controller-only aggregate admin;profile=`ck.profile.agent_participation_policy.v1`，`target_event_kinds=[ck.capability.grant, ck.capability.revoke]`。controller 设置某 agent 在某 scope 的参与选择 `{reply, accept_third_party_mention, act_on_behalf}`；服务端校验 `selection ⊆ effective_ceiling`（deployment ⊇ Realm ⊇ Circle ⊇ Flow 的单调收紧 fold），超出对应位返回 `failed_precondition`（`reason="agent_participation_exceeds_ceiling"`）。`reply` / `act_on_behalf` effective 为真时物化为既有 `ck.capability.grant`（`ck.message.create` 等），为假时 `ck.capability.revoke`；`accept_third_party_mention` 不物化为 grant，而是 driver of [`../models/flow-and-message.md` §9.4](../models/flow-and-message.md) 的第三方 mention 投递 gate。controller-owned `ck.agent.participation.v1` account-data 写入不纳入此 grant 集合（由 controller 对自身 account-data 的固有写权批准）。Realm-level ceiling 由持有 `ck.realm.admin` 的 principal 通过 `ck.realm.policy_components` 的 `agent_participation` 组件写入；Circle / Flow ceiling 分别由 `ck.circle.manage` / `ck.flow.admin` 写入对应 object 的 `agent_participation` 字段，reducer 强制 tighten-only。Realm / Circle / Flow ceiling 分别见 [`../models/realm-and-space.md`](../models/realm-and-space.md)、[`../models/circle.md`](../models/circle.md)、[`../models/flow-and-message.md` §9.4.5](../models/flow-and-message.md))
 - `ck.agent.protocol.discover`（profile=`ck.profile.agent_runtime.v1`，risk_tier=low，`non_event_surface`，无 target event：发现 agent runtime 协议端点 / capability，仅服务面发现，不写入 event）
 - `ck.agent.interop_session.start`（profile=`ck.profile.agent_runtime.v1`，high risk；启动 agent interop session，`event_mapping_kind=same_name`，target=`ck.agent.interop_session.start`；required constraint `allowed_endpoints` + `allowed_data_classes`）
 - `ck.agent.interop_session.cancel`（profile=`ck.profile.agent_runtime.v1`，medium；取消 / 终止 session，`event_mapping_kind=operation_verb`，target=`{ck.agent.interop_session.status, ck.agent.interop_session.result}`）
@@ -302,15 +302,15 @@ Morph 权限粒度与 Flow 平行(`ck.morph.read` / `ck.morph.create` / `ck.morp
 
 ### 5.5 服务动作
 
-- `ck.self.events.query`
-- `ck.self.events.subscribe`
-- `ck.self.account.subscribe`
-- `ck.self.account.describe`
-- `ck.self.snapshot.head`
-- `ck.self.blob.upload`
-- `ck.self.blob.get`
-- `ck.self.blob.head`
-- `ck.self.blob.presign`（签发预签名 blob URL；必需 constraint `blob_presign_scope` + `blob_presign_max_ttl_seconds`）
+- `ck.self.events.query.scan`
+- `ck.self.events.stream.subscribe`
+- `ck.self.account.stream.subscribe`
+- `ck.self.account.query.describe`
+- `ck.self.snapshot.query.manifest_head`
+- `ck.self.blob.upload.create`
+- `ck.self.blob.resource.get`
+- `ck.self.blob.resource.head`
+- `ck.self.blob.command.presign`（签发预签名 blob URL；必需 constraint `blob_presign_scope` + `blob_presign_max_ttl_seconds`）
 - `ck.realm.media_service`（target=`ck.realm.media_service`，`event_mapping_kind=same_name`）
 - `ck.mls.genesis`
 - `ck.mls.proposal`
@@ -643,7 +643,7 @@ Delegation Move SHOULD 同时记录签发时点的 parent `auth_state_digest` / 
 
 上游 revoke 的本地可见性优先于 child grant 的 causal 视图：授权解析 `refs[role="parent_grant"]` / `parent_grant_id` 时，reducer MUST 主动查询本地已 accepted 的 grant/revoke index。若任一 ancestor parent grant 在本地已知为 revoked、superseded、expired 或 tombstoned，则 child grant 及依赖它的 Event MUST 立即 `failed_precondition`，`reason="grant_revoked_upstream"`，不得等待 child 的 `prev_refs` 或某个数据面观测 root 自然包含该 revoke。若本地无法确认 parent freshness，则按 §18.2 风险表处理：高风险与跨域 grant 相关 action MUST fail closed，低风险只可进入 pending / limited 模式。
 
-`grant_id` 是授权图的唯一追踪键。所有 reducer-input Event 的 `refs[role="authorized_by"]` MUST 指向 `ck:grant:<uuid>` 或 profile 注册的不可变 grant record id；MUST NOT 指向一次 `ck.self.policy.check`（默认 path `/_cokret/self/policy/check`）decision、human role、Event id alias 或当前 membership cell。节点 MUST 为每个 accepted / pending Event 记录 `authorized_by.grant_id[]` 与 grant canonical digest，用于 revoke 后的影响面枚举。revoke 生效后：
+`grant_id` 是授权图的唯一追踪键。所有 reducer-input Event 的 `refs[role="authorized_by"]` MUST 指向 `ck:grant:<uuid>` 或 profile 注册的不可变 grant record id；MUST NOT 指向一次 `ck.self.policy.query.check`（默认 path `/_cokret/self/policy/check`）decision、human role、Event id alias 或当前 membership cell。节点 MUST 为每个 accepted / pending Event 记录 `authorized_by.grant_id[]` 与 grant canonical digest，用于 revoke 后的影响面枚举。revoke 生效后：
 
 1. 该 grant 直接授权的 pending Event MUST fail closed；
 2. 该 grant 派生出的 child grant MUST 标记 `revoked_upstream`。child grant 的有效性 **MUST** 取其**所有** parent path freshness 的最严格值（min over paths）：只要有**任一**关键 ancestor 在该 child 的某条 parent path 上为 `revoked` / `superseded` / `expired` / `tombstoned` / freshness `unknown`，整个 child grant 即 **MUST** 降级 fail-closed，**MUST NOT** 因为存在另一条"仍有效的 alternate parent path"而保持有效。实现 **MUST NOT** 把 multi-path delegation 当作可漂白单条 path 撤销的冗余授权；多 path 只增加约束、不放宽约束。child grant 仅当其**每一条** parent path 上的全部关键 ancestor 都仍有效时才保持有效；

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/policy-document-operations.schema.json",
   "title": "Cokret Policy Document Self-Management Operation DTOs",
-  "description": "Closed request/response DTOs for owner-scoped authorization policy documents (ck.self.policy_document.*). These are the backing store evaluated by ck.self.policy.check (zh/authz/policy-server.md); they are owner-scoped authz rule documents, distinct from the Realm-bound governance Policy object ck.schema.policy.v1 (policy.schema.json). See spec/v1/zh/sync/service-http-binding.md.",
+  "description": "Closed request/response DTOs for owner-scoped authorization policy documents (ck.self.policy_document.*). These are the backing store evaluated by ck.self.policy.query.check (zh/authz/policy-server.md); they are owner-scoped authz rule documents, distinct from the Realm-bound governance Policy object ck.schema.policy.v1 (policy.schema.json). See spec/v1/zh/sync/service-http-binding.md.",
   "anyOf": [
     {
       "$ref": "#/$defs/policy_document_upsert_request_body"

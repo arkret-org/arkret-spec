@@ -14,7 +14,7 @@
       "$ref": "#/$defs/realm_effective_moderation_policy"
     },
     {
-      "$ref": "#/$defs/realm_moderation_policy_set_request_body"
+      "$ref": "#/$defs/realm_moderation_policy_replace_request_body"
     },
     {
       "$ref": "#/$defs/realm_moderation_policy_document"
@@ -150,7 +150,7 @@
       },
       "additionalProperties": true
     },
-    "realm_moderation_policy_set_request_body": {
+    "realm_moderation_policy_replace_request_body": {
       "type": "object",
       "$comment": "Open extension surface: the ck.realm.moderation_policy document body is a free-form governance object (rules[], targets[], allow_override[], organization_approval[]); additionalProperties intentionally true so the override schema can evolve without a wire-breaking change. The document is canonical-JSON validated server-side.",
       "description": "Realm moderation-policy override body. Free-form ck.realm.moderation_policy document. When the override targets actions an organization policy denies, it requires explicit organization approval embedded in the document.",

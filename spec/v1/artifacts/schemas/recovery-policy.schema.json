@@ -741,7 +741,7 @@
     },
     "recovery_policy_active_outcome": {
       "type": "object",
-      "description": "Response for ck.root.identity.recovery_policy.get. `active_policy=null` is a successful read meaning no accepted recovery policy currently exists for the resolved principal.",
+      "description": "Response for ck.root.identity.recovery_policy.resource.get. `active_policy=null` is a successful read meaning no accepted recovery policy currently exists for the resolved principal.",
       "required": [
         "active_policy"
       ],
@@ -773,9 +773,9 @@
       },
       "additionalProperties": false
     },
-    "recovery_policy_put_outcome": {
+    "recovery_policy_publish_outcome": {
       "type": "object",
-      "description": "Response for ck.root.identity.recovery_policy.put after accepting a ck.schema.recovery_policy.v1 publish or rotation.",
+      "description": "Response for ck.root.identity.recovery_policy.command.publish after accepting a ck.schema.recovery_policy.v1 publish or rotation.",
       "required": [
         "ok",
         "policy_id",

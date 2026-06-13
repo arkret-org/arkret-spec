@@ -5,7 +5,7 @@
   "description": "Closed request/response DTOs for the self-surface read cursor operations (ck.self.read_cursor.*). set builds a ck.read_cursor.advance actor-private write; the durable cursor object model and read_scope / position field shapes are read-cursor.schema.json. See spec/v1/zh/discovery/read-receipts.md.",
   "anyOf": [
     {
-      "$ref": "#/$defs/read_cursor_set_request_body"
+      "$ref": "#/$defs/read_cursor_advance_request_body"
     },
     {
       "$ref": "#/$defs/read_marker_outcome"
@@ -23,7 +23,7 @@
       "type": "string",
       "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "read_cursor_set_request_body": {
+    "read_cursor_advance_request_body": {
       "type": "object",
       "required": [
         "realm_id",

@@ -17,7 +17,7 @@
           "ck.profile.principal_server.v1"
         ],
         "supported_operations": [
-          "ck.server.describe"
+          "ck.server.query.describe"
         ],
         "supported_bindings": [
           {
@@ -50,7 +50,7 @@
         "protocol_version": "1.0",
         "supported_profiles": [],
         "supported_operations": [
-          "ck.server.describe"
+          "ck.server.query.describe"
         ],
         "supported_bindings": [
           {
@@ -80,7 +80,7 @@
         "protocol_version": "1.0",
         "supported_profiles": [],
         "supported_operations": [
-          "ck.server.describe"
+          "ck.server.query.describe"
         ],
         "supported_bindings": [
           {

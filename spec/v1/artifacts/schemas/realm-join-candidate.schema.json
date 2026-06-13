@@ -58,7 +58,7 @@
         "pattern": "^ck\\.[a-z0-9][a-z0-9_.-]*$"
       },
       "contains": {
-        "const": "ck.self.events.submit"
+        "const": "ck.self.events.command.submit"
       },
       "uniqueItems": true,
       "minItems": 1,

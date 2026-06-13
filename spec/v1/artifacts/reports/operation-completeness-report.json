@@ -49,46 +49,7 @@
   },
   "operations": [
     {
-      "operation_id": "ck.edge.applet.describe",
-      "tier": "interop_bridge",
-      "http": "GET /_cokret/edge/applet/describe",
-      "success_shape_kind": "service_describe",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
-      "openapi_component_refs": {
-        "response": "#/components/schemas/ServiceDescribe"
-      },
-      "completeness_class": "service_describe",
-      "reason": "response is the shared ServiceDescribe contract (bound globally as schemas/service-describe.schema.json)."
-    },
-    {
-      "operation_id": "ck.edge.applet.ping",
-      "tier": "interop_bridge",
-      "http": "GET /_cokret/edge/applet/ping",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_ping_outcome",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/AppletPingOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.edge.applet.protocol_metadata",
-      "tier": "interop_bridge",
-      "http": "GET /_cokret/edge/applet/protocols/{protocol}",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_protocol_metadata",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/AppletProtocolMetadata"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.edge.applet.resolve_actor",
+      "operation_id": "ck.edge.applet.actor.query.resolve",
       "tier": "interop_bridge",
       "http": "GET /_cokret/edge/applet/actors/{actor_id}",
       "success_shape_kind": "typed_response",
@@ -101,46 +62,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.edge.applet.resolve_realm",
-      "tier": "interop_bridge",
-      "http": "GET /_cokret/edge/applet/realms/{realm_id_or_alias}",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/AppletRealmView"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.edge.applet.third_party_locations",
-      "tier": "interop_bridge",
-      "http": "GET /_cokret/edge/applet/third_party/locations",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_location_list",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/AppletThirdPartyLocationList"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.edge.applet.third_party_users",
-      "tier": "interop_bridge",
-      "http": "GET /_cokret/edge/applet/third_party/users",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_user_list",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/AppletThirdPartyUserList"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.edge.applet.transaction",
+      "operation_id": "ck.edge.applet.command.transaction",
       "tier": "interop_bridge",
       "http": "POST /_cokret/edge/applet/transactions",
       "success_shape_kind": "typed_response",
@@ -154,7 +76,85 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.edge.push.notify",
+      "operation_id": "ck.edge.applet.query.describe",
+      "tier": "interop_bridge",
+      "http": "GET /_cokret/edge/applet/describe",
+      "success_shape_kind": "service_describe",
+      "request_schema_ref": null,
+      "response_schema_ref": null,
+      "openapi_component_refs": {
+        "response": "#/components/schemas/ServiceDescribe"
+      },
+      "completeness_class": "service_describe",
+      "reason": "response is the shared ServiceDescribe contract (bound globally as schemas/service-describe.schema.json)."
+    },
+    {
+      "operation_id": "ck.edge.applet.query.ping",
+      "tier": "interop_bridge",
+      "http": "GET /_cokret/edge/applet/ping",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_ping_outcome",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/AppletPingOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.edge.applet.query.protocol_metadata",
+      "tier": "interop_bridge",
+      "http": "GET /_cokret/edge/applet/protocols/{protocol}",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_protocol_metadata",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/AppletProtocolMetadata"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.edge.applet.realm.query.resolve",
+      "tier": "interop_bridge",
+      "http": "GET /_cokret/edge/applet/realms/{realm_id_or_alias}",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/AppletRealmView"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.edge.applet.third_party_locations.query.list",
+      "tier": "interop_bridge",
+      "http": "GET /_cokret/edge/applet/third_party/locations",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_location_list",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/AppletThirdPartyLocationList"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.edge.applet.third_party_users.query.list",
+      "tier": "interop_bridge",
+      "http": "GET /_cokret/edge/applet/third_party/users",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_user_list",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/AppletThirdPartyUserList"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.edge.push.command.notify",
       "tier": "extension",
       "http": "POST /_cokret/edge/push/notify",
       "success_shape_kind": "typed_response",
@@ -168,7 +168,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.edge.push.register_device",
+      "operation_id": "ck.edge.push.command.register_device",
       "tier": "extension",
       "http": "POST /_cokret/edge/push/register-device",
       "success_shape_kind": "typed_response",
@@ -182,7 +182,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.edge.push.unregister_device",
+      "operation_id": "ck.edge.push.command.unregister_device",
       "tier": "extension",
       "http": "POST /_cokret/edge/push/unregister-device",
       "success_shape_kind": "typed_response",
@@ -196,7 +196,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.find.directory.announce",
+      "operation_id": "ck.find.directory.command.announce",
       "tier": "extension",
       "http": "POST /_cokret/find/directory/announce",
       "success_shape_kind": "typed_response",
@@ -210,188 +210,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.find.directory.describe",
-      "tier": "extension",
-      "http": "GET /_cokret/find/directory/describe",
-      "success_shape_kind": "service_describe",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
-      "openapi_component_refs": {
-        "response": "#/components/schemas/ServiceDescribe"
-      },
-      "completeness_class": "service_describe",
-      "reason": "response is the shared ServiceDescribe contract (bound globally as schemas/service-describe.schema.json)."
-    },
-    {
-      "operation_id": "ck.find.directory.list_handles_for_subject",
-      "tier": "extension",
-      "http": "POST /_cokret/find/directory/list-handles-for-subject",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_list_handles_for_subject_request_body",
-      "response_schema_ref": "schemas/list-handles-for-subject-response.schema.json",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/DirectoryListHandlesForSubjectRequestBody",
-        "response": "#/components/schemas/DirectorySubjectHandleList"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.find.directory.private_contact_discovery",
-      "tier": "extension",
-      "http": "POST /_cokret/find/directory/private-contact-discovery",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_request_body",
-      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/DirectoryPrivateContactDiscoveryRequestBody",
-        "response": "#/components/schemas/DirectoryPrivateContactDiscoveryOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.find.directory.push.register",
-      "tier": "extension",
-      "http": "POST /_cokret/find/directory/push/register",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_push_register_request_body",
-      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_push_register_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/DirectoryPushRegisterRequestBody",
-        "response": "#/components/schemas/DirectoryPushRegisterOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.find.directory.resolve_agent_selector",
-      "tier": "extension",
-      "http": "POST /_cokret/find/directory/resolve-agent-selector",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_agent_selector_request_body",
-      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_agent_selector_resolution_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/DirectoryResolveAgentSelectorRequestBody",
-        "response": "#/components/schemas/DirectoryAgentSelectorResolutionOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.find.directory.resolve_handle",
-      "tier": "extension",
-      "http": "POST /_cokret/find/directory/resolve-handle",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_handle_request_body",
-      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_handle_resolution_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/DirectoryResolveHandleRequestBody",
-        "response": "#/components/schemas/DirectoryHandleResolutionOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.find.directory.resolve_organization",
-      "tier": "extension",
-      "http": "POST /_cokret/find/directory/resolve-organization",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_organization_request_body",
-      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_organization_resolution_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/DirectoryResolveOrganizationRequestBody",
-        "response": "#/components/schemas/DirectoryOrganizationResolutionOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.find.directory.resolve_realm",
-      "tier": "extension",
-      "http": "POST /_cokret/find/directory/resolve-realm",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_realm_request_body",
-      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_resolution_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/DirectoryResolveRealmRequestBody",
-        "response": "#/components/schemas/DirectoryRealmResolutionOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.find.directory.resolve_target",
-      "tier": "extension",
-      "http": "POST /_cokret/find/directory/resolve-target",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_target_request_body",
-      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_target_resolution_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/DirectoryResolveTargetRequestBody",
-        "response": "#/components/schemas/DirectoryTargetResolutionOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.find.directory.search_actors",
-      "tier": "extension",
-      "http": "POST /_cokret/find/directory/search-actors",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_actors_request_body",
-      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_actor_search_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/DirectorySearchActorsRequestBody",
-        "response": "#/components/schemas/DirectoryActorSearchOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.find.directory.search_organizations",
-      "tier": "extension",
-      "http": "POST /_cokret/find/directory/search-organizations",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_organizations_request_body",
-      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_organization_search_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/DirectorySearchOrganizationsRequestBody",
-        "response": "#/components/schemas/DirectoryOrganizationSearchOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.find.directory.search_realms",
-      "tier": "extension",
-      "http": "POST /_cokret/find/directory/search-realms",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_realms_request_body",
-      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_search_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/DirectorySearchRealmsRequestBody",
-        "response": "#/components/schemas/DirectoryRealmSearchOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.find.directory.search_users",
-      "tier": "extension",
-      "http": "POST /_cokret/find/directory/search-users",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_users_request_body",
-      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_user_search_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/DirectorySearchUsersRequestBody",
-        "response": "#/components/schemas/DirectoryUserSearchOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.find.directory.withdraw",
+      "operation_id": "ck.find.directory.command.withdraw",
       "tier": "extension",
       "http": "POST /_cokret/find/directory/withdraw",
       "success_shape_kind": "typed_response",
@@ -405,35 +224,188 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.gate.account.agent_key_pair",
+      "operation_id": "ck.find.directory.push.command.register",
       "tier": "extension",
-      "http": "POST /_cokret/gate/account/agent-key-pair",
+      "http": "POST /_cokret/find/directory/push/register",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_outcome",
+      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_push_register_request_body",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_push_register_outcome",
       "openapi_component_refs": {
-        "request": "#/components/schemas/AgentKeyPairRequestBody",
-        "response": "#/components/schemas/AgentKeyPairOutcome"
+        "request": "#/components/schemas/DirectoryPushRegisterRequestBody",
+        "response": "#/components/schemas/DirectoryPushRegisterOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.gate.account.device_pair",
-      "tier": "deployment_local",
-      "http": "POST /_cokret/gate/account/device-pair",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_outcome",
+      "operation_id": "ck.find.directory.query.describe",
+      "tier": "extension",
+      "http": "GET /_cokret/find/directory/describe",
+      "success_shape_kind": "service_describe",
+      "request_schema_ref": null,
+      "response_schema_ref": null,
       "openapi_component_refs": {
-        "request": "#/components/schemas/AccountDevicePairRequestBody",
-        "response": "#/components/schemas/AccountDevicePairOutcome"
+        "response": "#/components/schemas/ServiceDescribe"
+      },
+      "completeness_class": "service_describe",
+      "reason": "response is the shared ServiceDescribe contract (bound globally as schemas/service-describe.schema.json)."
+    },
+    {
+      "operation_id": "ck.find.directory.query.list_handles_for_subject",
+      "tier": "extension",
+      "http": "POST /_cokret/find/directory/list-handles-for-subject",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_list_handles_for_subject_request_body",
+      "response_schema_ref": "schemas/list-handles-for-subject-response.schema.json",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/DirectoryListHandlesForSubjectRequestBody",
+        "response": "#/components/schemas/DirectorySubjectHandleList"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.gate.account.issue_session_grant",
+      "operation_id": "ck.find.directory.query.private_contact_discovery",
+      "tier": "extension",
+      "http": "POST /_cokret/find/directory/private-contact-discovery",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_request_body",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/DirectoryPrivateContactDiscoveryRequestBody",
+        "response": "#/components/schemas/DirectoryPrivateContactDiscoveryOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.find.directory.query.resolve_agent_selector",
+      "tier": "extension",
+      "http": "POST /_cokret/find/directory/resolve-agent-selector",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_agent_selector_request_body",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_agent_selector_resolution_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/DirectoryResolveAgentSelectorRequestBody",
+        "response": "#/components/schemas/DirectoryAgentSelectorResolutionOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.find.directory.query.resolve_handle",
+      "tier": "extension",
+      "http": "POST /_cokret/find/directory/resolve-handle",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_handle_request_body",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_handle_resolution_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/DirectoryResolveHandleRequestBody",
+        "response": "#/components/schemas/DirectoryHandleResolutionOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.find.directory.query.resolve_organization",
+      "tier": "extension",
+      "http": "POST /_cokret/find/directory/resolve-organization",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_organization_request_body",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_organization_resolution_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/DirectoryResolveOrganizationRequestBody",
+        "response": "#/components/schemas/DirectoryOrganizationResolutionOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.find.directory.query.resolve_realm",
+      "tier": "extension",
+      "http": "POST /_cokret/find/directory/resolve-realm",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_realm_request_body",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_resolution_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/DirectoryResolveRealmRequestBody",
+        "response": "#/components/schemas/DirectoryRealmResolutionOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.find.directory.query.resolve_target",
+      "tier": "extension",
+      "http": "POST /_cokret/find/directory/resolve-target",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_target_request_body",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_target_resolution_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/DirectoryResolveTargetRequestBody",
+        "response": "#/components/schemas/DirectoryTargetResolutionOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.find.directory.query.search_actors",
+      "tier": "extension",
+      "http": "POST /_cokret/find/directory/search-actors",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_actors_request_body",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_actor_search_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/DirectorySearchActorsRequestBody",
+        "response": "#/components/schemas/DirectoryActorSearchOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.find.directory.query.search_organizations",
+      "tier": "extension",
+      "http": "POST /_cokret/find/directory/search-organizations",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_organizations_request_body",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_organization_search_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/DirectorySearchOrganizationsRequestBody",
+        "response": "#/components/schemas/DirectoryOrganizationSearchOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.find.directory.query.search_realms",
+      "tier": "extension",
+      "http": "POST /_cokret/find/directory/search-realms",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_realms_request_body",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_search_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/DirectorySearchRealmsRequestBody",
+        "response": "#/components/schemas/DirectoryRealmSearchOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.find.directory.query.search_users",
+      "tier": "extension",
+      "http": "POST /_cokret/find/directory/search-users",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_users_request_body",
+      "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_user_search_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/DirectorySearchUsersRequestBody",
+        "response": "#/components/schemas/DirectoryUserSearchOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.gate.account.command.issue_session_grant",
       "tier": "deployment_local",
       "http": "POST /_cokret/gate/account/session-grants",
       "success_shape_kind": "typed_response",
@@ -447,21 +419,35 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.gate.account.oidc_callback",
-      "tier": "deployment_local",
-      "http": "POST /_cokret/gate/account/oidc/callback",
+      "operation_id": "ck.gate.account.command.pair_agent_key",
+      "tier": "extension",
+      "http": "POST /_cokret/gate/account/agent-key-pair",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome",
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_request_body",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_outcome",
       "openapi_component_refs": {
-        "request": "#/components/schemas/AccountOidcCallbackRequestBody",
-        "response": "#/components/schemas/AccountOidcCallbackOutcome"
+        "request": "#/components/schemas/AgentKeyPairRequestBody",
+        "response": "#/components/schemas/AgentKeyPairOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.gate.account.register",
+      "operation_id": "ck.gate.account.command.pair_device",
+      "tier": "deployment_local",
+      "http": "POST /_cokret/gate/account/device-pair",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/AccountDevicePairRequestBody",
+        "response": "#/components/schemas/AccountDevicePairOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.gate.account.command.register",
       "tier": "deployment_local",
       "http": "POST /_cokret/gate/account/register",
       "success_shape_kind": "typed_response",
@@ -475,7 +461,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.gate.account.session_revoke",
+      "operation_id": "ck.gate.account.command.revoke_session",
       "tier": "deployment_local",
       "http": "POST /_cokret/gate/account/session-grants/revoke",
       "success_shape_kind": "typed_response",
@@ -489,7 +475,21 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.open.invite_locator.resolve",
+      "operation_id": "ck.gate.account.exchange.oidc_callback",
+      "tier": "deployment_local",
+      "http": "POST /_cokret/gate/account/oidc/callback",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/AccountOidcCallbackRequestBody",
+        "response": "#/components/schemas/AccountOidcCallbackOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.open.invite_locator.query.resolve",
       "tier": "extension",
       "http": "POST /_cokret/open/invite-locators/resolve",
       "success_shape_kind": "typed_response",
@@ -503,48 +503,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.open.mimi.group_info",
-      "tier": "interop_bridge",
-      "http": "GET /_cokret/open/mimi/flows/{flow_id}/group-info",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_group_info_outcome",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/MimiGroupInfoOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.open.mimi.identifier_query",
-      "tier": "interop_bridge",
-      "http": "POST /_cokret/open/mimi/identifiers/query",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_request_body",
-      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/MimiIdentifierQueryRequestBody",
-        "response": "#/components/schemas/MimiIdentifierQueryOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.open.mimi.key_material",
-      "tier": "interop_bridge",
-      "http": "POST /_cokret/open/mimi/key-material",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body",
-      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/MimiKeyMaterialRequestBody",
-        "response": "#/components/schemas/MimiKeyMaterialOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.open.mimi.notify",
+      "operation_id": "ck.open.mimi.command.notify",
       "tier": "interop_bridge",
       "http": "POST /_cokret/open/mimi/flows/{flow_id}/notify",
       "success_shape_kind": "typed_response",
@@ -558,20 +517,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.open.mimi.provider_directory",
-      "tier": "interop_bridge",
-      "http": "GET /_cokret/open/mimi/provider-directory",
-      "success_shape_kind": "schema_resource",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/mimi-interop.schema.json",
-      "openapi_component_refs": {
-        "response": "../schemas/mimi-interop.schema.json"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.open.mimi.proxy_download",
+      "operation_id": "ck.open.mimi.command.proxy_download",
       "tier": "interop_bridge",
       "http": "POST /_cokret/open/mimi/proxy-download",
       "success_shape_kind": "typed_response",
@@ -585,7 +531,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.open.mimi.report_abuse",
+      "operation_id": "ck.open.mimi.command.report_abuse",
       "tier": "interop_bridge",
       "http": "POST /_cokret/open/mimi/report-abuse",
       "success_shape_kind": "typed_response",
@@ -599,7 +545,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.open.mimi.request_consent",
+      "operation_id": "ck.open.mimi.command.request_consent",
       "tier": "interop_bridge",
       "http": "POST /_cokret/open/mimi/consent/request",
       "success_shape_kind": "typed_response",
@@ -613,21 +559,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.open.mimi.room_update",
-      "tier": "interop_bridge",
-      "http": "PUT /_cokret/open/mimi/flows/{flow_id}/update",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_request_body",
-      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/MimiRoomUpdateRequestBody",
-        "response": "#/components/schemas/MimiRoomUpdateOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.open.mimi.submit_message",
+      "operation_id": "ck.open.mimi.command.submit_message",
       "tier": "interop_bridge",
       "http": "POST /_cokret/open/mimi/flows/{flow_id}/messages",
       "success_shape_kind": "typed_response",
@@ -641,7 +573,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.open.mimi.update_consent",
+      "operation_id": "ck.open.mimi.command.update_consent",
       "tier": "interop_bridge",
       "http": "POST /_cokret/open/mimi/consent/update",
       "success_shape_kind": "typed_response",
@@ -655,7 +587,75 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.peer.contacts.submit",
+      "operation_id": "ck.open.mimi.command.update_room",
+      "tier": "interop_bridge",
+      "http": "POST /_cokret/open/mimi/flows/{flow_id}/update",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_request_body",
+      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/MimiRoomUpdateRequestBody",
+        "response": "#/components/schemas/MimiRoomUpdateOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.open.mimi.exchange.key_material",
+      "tier": "interop_bridge",
+      "http": "POST /_cokret/open/mimi/key-material",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body",
+      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/MimiKeyMaterialRequestBody",
+        "response": "#/components/schemas/MimiKeyMaterialOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.open.mimi.query.group_info",
+      "tier": "interop_bridge",
+      "http": "GET /_cokret/open/mimi/flows/{flow_id}/group-info",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_group_info_outcome",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/MimiGroupInfoOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.open.mimi.query.identifiers",
+      "tier": "interop_bridge",
+      "http": "POST /_cokret/open/mimi/identifiers/query",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_request_body",
+      "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/MimiIdentifierQueryRequestBody",
+        "response": "#/components/schemas/MimiIdentifierQueryOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.open.mimi.query.provider_directory",
+      "tier": "interop_bridge",
+      "http": "GET /_cokret/open/mimi/provider-directory",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/mimi-interop.schema.json",
+      "openapi_component_refs": {
+        "response": "../schemas/mimi-interop.schema.json"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.peer.contacts.command.submit",
       "tier": "extension",
       "http": "POST /_cokret/peer/contacts",
       "success_shape_kind": "schema_resource",
@@ -669,74 +669,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.peer.events.describe",
-      "tier": "extension",
-      "http": "GET /_cokret/peer/events/describe",
-      "success_shape_kind": "service_describe",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
-      "openapi_component_refs": {
-        "response": "#/components/schemas/ServiceDescribe"
-      },
-      "completeness_class": "service_describe",
-      "reason": "response is the shared ServiceDescribe contract (bound globally as schemas/service-describe.schema.json)."
-    },
-    {
-      "operation_id": "ck.peer.events.frontier",
-      "tier": "extension",
-      "http": "GET /_cokret/peer/events/frontier",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerState",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/EventsFrontierFederationPeerState"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.peer.events.query",
-      "tier": "extension",
-      "http": "GET /_cokret/peer/events",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/EventsQueryOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.peer.events.query_post",
-      "tier": "extension",
-      "http": "POST /_cokret/peer/events/query",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
-      "openapi_component_refs": {
-        "request": "../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
-        "response": "#/components/schemas/EventsQueryOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.peer.events.resolve",
-      "tier": "extension",
-      "http": "POST /_cokret/peer/events/resolve",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveOutcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/EventsResolveRequestBody",
-        "response": "#/components/schemas/EventsResolveOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.peer.events.submit",
+      "operation_id": "ck.peer.events.command.submit",
       "tier": "extension",
       "http": "POST /_cokret/peer/events",
       "success_shape_kind": "typed_response",
@@ -750,7 +683,74 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.peer.invites.submit",
+      "operation_id": "ck.peer.events.query.describe",
+      "tier": "extension",
+      "http": "GET /_cokret/peer/events/describe",
+      "success_shape_kind": "service_describe",
+      "request_schema_ref": null,
+      "response_schema_ref": null,
+      "openapi_component_refs": {
+        "response": "#/components/schemas/ServiceDescribe"
+      },
+      "completeness_class": "service_describe",
+      "reason": "response is the shared ServiceDescribe contract (bound globally as schemas/service-describe.schema.json)."
+    },
+    {
+      "operation_id": "ck.peer.events.query.frontier",
+      "tier": "extension",
+      "http": "GET /_cokret/peer/events/frontier",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerState",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/EventsFrontierFederationPeerState"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.peer.events.query.resolve",
+      "tier": "extension",
+      "http": "POST /_cokret/peer/events/resolve",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveOutcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/EventsResolveRequestBody",
+        "response": "#/components/schemas/EventsResolveOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.peer.events.query.scan",
+      "tier": "extension",
+      "http": "GET /_cokret/peer/events",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/EventsQueryOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.peer.events.query.scan_body",
+      "tier": "extension",
+      "http": "POST /_cokret/peer/events/query",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
+      "openapi_component_refs": {
+        "request": "../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
+        "response": "#/components/schemas/EventsQueryOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.peer.invites.command.submit",
       "tier": "extension",
       "http": "POST /_cokret/peer/invites",
       "success_shape_kind": "typed_response",
@@ -764,7 +764,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.peer.snapshot.head",
+      "operation_id": "ck.peer.snapshot.query.manifest_head",
       "tier": "extension",
       "http": "GET /_cokret/peer/snapshot/head",
       "success_shape_kind": "schema_resource",
@@ -777,151 +777,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.root.identity.describe_registry",
-      "tier": "core",
-      "http": "GET /_cokret/root/identity/describe",
-      "success_shape_kind": "service_describe",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
-      "openapi_component_refs": {
-        "response": "#/components/schemas/ServiceDescribe"
-      },
-      "completeness_class": "service_describe",
-      "reason": "response is the shared ServiceDescribe contract (bound globally as schemas/service-describe.schema.json)."
-    },
-    {
-      "operation_id": "ck.root.identity.get_document",
-      "tier": "core",
-      "http": "GET /_cokret/root/identity/document",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityDocumentView",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/IdentityDocumentView"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.root.identity.get_log",
-      "tier": "core",
-      "http": "GET /_cokret/root/identity/log",
-      "success_shape_kind": "inline_response",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
-      "openapi_component_refs": {},
-      "completeness_class": "no_request_body",
-      "reason": "read-only operation with no request body and no typed JSON response component in OpenAPI."
-    },
-    {
-      "operation_id": "ck.root.identity.get_receipts",
-      "tier": "core",
-      "http": "GET /_cokret/root/identity/receipts",
-      "success_shape_kind": "inline_response",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
-      "openapi_component_refs": {},
-      "completeness_class": "no_request_body",
-      "reason": "read-only operation with no request body and no typed JSON response component in OpenAPI."
-    },
-    {
-      "operation_id": "ck.root.identity.recovery_policy.get",
-      "tier": "core",
-      "http": "GET /_cokret/root/identity/recovery-policy",
-      "success_shape_kind": "schema_resource",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_active_outcome",
-      "openapi_component_refs": {
-        "response": "../schemas/recovery-policy.schema.json#/$defs/recovery_policy_active_outcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.root.identity.recovery_policy.put",
-      "tier": "core",
-      "http": "POST /_cokret/root/identity/recovery-policy",
-      "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/recovery-policy.schema.json",
-      "response_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_put_outcome",
-      "openapi_component_refs": {
-        "request": "../schemas/recovery-policy.schema.json",
-        "response": "../schemas/recovery-policy.schema.json#/$defs/recovery_policy_put_outcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.root.identity.recovery_session.complete",
-      "tier": "core",
-      "http": "POST /_cokret/root/identity/recovery-sessions/{recovery_session_id}/complete",
-      "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body",
-      "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_outcome",
-      "openapi_component_refs": {
-        "request": "../schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body",
-        "response": "../schemas/recovery-session.schema.json#/$defs/recovery_session_complete_outcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.root.identity.recovery_session.create",
-      "tier": "core",
-      "http": "POST /_cokret/root/identity/recovery-sessions",
-      "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body",
-      "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_state",
-      "openapi_component_refs": {
-        "request": "../schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body",
-        "response": "../schemas/recovery-session.schema.json#/$defs/recovery_session_state"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.root.identity.recovery_session.get",
-      "tier": "core",
-      "http": "GET /_cokret/root/identity/recovery-sessions/{recovery_session_id}",
-      "success_shape_kind": "schema_resource",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_state",
-      "openapi_component_refs": {
-        "response": "../schemas/recovery-session.schema.json#/$defs/recovery_session_state"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.root.identity.recovery_session.submit_proof",
-      "tier": "core",
-      "http": "POST /_cokret/root/identity/recovery-sessions/{recovery_session_id}/proofs",
-      "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_request_body",
-      "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_outcome",
-      "openapi_component_refs": {
-        "request": "../schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_request_body",
-        "response": "../schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_outcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.root.identity.resolve",
-      "tier": "core",
-      "http": "POST /_cokret/root/identity/resolve",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveOutcome",
-      "openapi_component_refs": {
-        "request": "../schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveRequestBody",
-        "response": "#/components/schemas/IdentityResolveOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.root.identity.submit_did_operation",
+      "operation_id": "ck.root.identity.command.submit_did_operation",
       "tier": "core",
       "http": "POST /_cokret/root/identity/submit-did-operation",
       "success_shape_kind": "typed_response",
@@ -935,7 +791,151 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.account.cursor_revoke",
+      "operation_id": "ck.root.identity.document.resource.get",
+      "tier": "core",
+      "http": "GET /_cokret/root/identity/document",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityDocumentView",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/IdentityDocumentView"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.root.identity.log.query.list",
+      "tier": "core",
+      "http": "GET /_cokret/root/identity/log",
+      "success_shape_kind": "inline_response",
+      "request_schema_ref": null,
+      "response_schema_ref": null,
+      "openapi_component_refs": {},
+      "completeness_class": "no_request_body",
+      "reason": "read-only operation with no request body and no typed JSON response component in OpenAPI."
+    },
+    {
+      "operation_id": "ck.root.identity.query.resolve",
+      "tier": "core",
+      "http": "POST /_cokret/root/identity/resolve",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveOutcome",
+      "openapi_component_refs": {
+        "request": "../schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveRequestBody",
+        "response": "#/components/schemas/IdentityResolveOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.root.identity.receipts.query.list",
+      "tier": "core",
+      "http": "GET /_cokret/root/identity/receipts",
+      "success_shape_kind": "inline_response",
+      "request_schema_ref": null,
+      "response_schema_ref": null,
+      "openapi_component_refs": {},
+      "completeness_class": "no_request_body",
+      "reason": "read-only operation with no request body and no typed JSON response component in OpenAPI."
+    },
+    {
+      "operation_id": "ck.root.identity.recovery_policy.command.publish",
+      "tier": "core",
+      "http": "POST /_cokret/root/identity/recovery-policy",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/recovery-policy.schema.json",
+      "response_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_outcome",
+      "openapi_component_refs": {
+        "request": "../schemas/recovery-policy.schema.json",
+        "response": "../schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_outcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.root.identity.recovery_policy.resource.get",
+      "tier": "core",
+      "http": "GET /_cokret/root/identity/recovery-policy",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_active_outcome",
+      "openapi_component_refs": {
+        "response": "../schemas/recovery-policy.schema.json#/$defs/recovery_policy_active_outcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.root.identity.recovery_session.command.complete",
+      "tier": "core",
+      "http": "POST /_cokret/root/identity/recovery-sessions/{recovery_session_id}/complete",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body",
+      "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_outcome",
+      "openapi_component_refs": {
+        "request": "../schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body",
+        "response": "../schemas/recovery-session.schema.json#/$defs/recovery_session_complete_outcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.root.identity.recovery_session.command.create",
+      "tier": "core",
+      "http": "POST /_cokret/root/identity/recovery-sessions",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body",
+      "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_state",
+      "openapi_component_refs": {
+        "request": "../schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body",
+        "response": "../schemas/recovery-session.schema.json#/$defs/recovery_session_state"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.root.identity.recovery_session.command.submit_proof",
+      "tier": "core",
+      "http": "POST /_cokret/root/identity/recovery-sessions/{recovery_session_id}/proofs",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_request_body",
+      "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_outcome",
+      "openapi_component_refs": {
+        "request": "../schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_request_body",
+        "response": "../schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_outcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.root.identity.recovery_session.resource.get",
+      "tier": "core",
+      "http": "GET /_cokret/root/identity/recovery-sessions/{recovery_session_id}",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_state",
+      "openapi_component_refs": {
+        "response": "../schemas/recovery-session.schema.json#/$defs/recovery_session_state"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.root.identity.registry.query.describe",
+      "tier": "core",
+      "http": "GET /_cokret/root/identity/describe",
+      "success_shape_kind": "service_describe",
+      "request_schema_ref": null,
+      "response_schema_ref": null,
+      "openapi_component_refs": {
+        "response": "#/components/schemas/ServiceDescribe"
+      },
+      "completeness_class": "service_describe",
+      "reason": "response is the shared ServiceDescribe contract (bound globally as schemas/service-describe.schema.json)."
+    },
+    {
+      "operation_id": "ck.self.account.command.revoke_cursor",
       "tier": "core",
       "http": "POST /_cokret/self/account/cursor/revoke",
       "success_shape_kind": "schema_resource",
@@ -949,31 +949,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.account.describe",
-      "tier": "core",
-      "http": "GET /_cokret/self/account/describe",
-      "success_shape_kind": "service_describe",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
-      "openapi_component_refs": {
-        "response": "#/components/schemas/ServiceDescribe"
-      },
-      "completeness_class": "service_describe",
-      "reason": "response is the shared ServiceDescribe contract (bound globally as schemas/service-describe.schema.json)."
-    },
-    {
-      "operation_id": "ck.self.account.subscribe",
-      "tier": "core",
-      "http": "GET /_cokret/self/account/subscribe",
-      "success_shape_kind": "event_stream",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
-      "openapi_component_refs": {},
-      "completeness_class": "streaming_frame_schema",
-      "reason": "NDJSON event/account frame stream; frame contract lives in a dedicated frame schema, not a single DTO."
-    },
-    {
-      "operation_id": "ck.self.account.update_profile",
+      "operation_id": "ck.self.account.command.update_profile",
       "tier": "core",
       "http": "POST /_cokret/self/account/profile",
       "success_shape_kind": "typed_response",
@@ -987,7 +963,20 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.account.viewer",
+      "operation_id": "ck.self.account.query.describe",
+      "tier": "core",
+      "http": "GET /_cokret/self/account/describe",
+      "success_shape_kind": "service_describe",
+      "request_schema_ref": null,
+      "response_schema_ref": null,
+      "openapi_component_refs": {
+        "response": "#/components/schemas/ServiceDescribe"
+      },
+      "completeness_class": "service_describe",
+      "reason": "response is the shared ServiceDescribe contract (bound globally as schemas/service-describe.schema.json)."
+    },
+    {
+      "operation_id": "ck.self.account.query.viewer",
       "tier": "core",
       "http": "GET /_cokret/self/account/viewer",
       "success_shape_kind": "typed_response",
@@ -1000,33 +989,18 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.account_data.delete",
-      "tier": "extension",
-      "http": "DELETE /_cokret/self/account_data/{data_type}",
-      "success_shape_kind": "typed_response",
+      "operation_id": "ck.self.account.stream.subscribe",
+      "tier": "core",
+      "http": "GET /_cokret/self/account/subscribe",
+      "success_shape_kind": "event_stream",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_delete_outcome",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/AccountDataDeleteOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
+      "response_schema_ref": null,
+      "openapi_component_refs": {},
+      "completeness_class": "streaming_frame_schema",
+      "reason": "NDJSON event/account frame stream; frame contract lives in a dedicated frame schema, not a single DTO."
     },
     {
-      "operation_id": "ck.self.account_data.get",
-      "tier": "extension",
-      "http": "GET /_cokret/self/account_data/{data_type}",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_entry",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/AccountDataEntry"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.self.account_data.list",
+      "operation_id": "ck.self.account_data.query.list",
       "tier": "extension",
       "http": "GET /_cokret/self/account_data",
       "success_shape_kind": "typed_response",
@@ -1039,21 +1013,47 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.account_data.set",
+      "operation_id": "ck.self.account_data.resource.delete",
+      "tier": "extension",
+      "http": "DELETE /_cokret/self/account_data/{data_type}",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_delete_outcome",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/AccountDataDeleteOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.account_data.resource.get",
+      "tier": "extension",
+      "http": "GET /_cokret/self/account_data/{data_type}",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_entry",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/AccountDataEntry"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.account_data.resource.replace",
       "tier": "extension",
       "http": "PUT /_cokret/self/account_data/{data_type}",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_set_request_body",
+      "request_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_replace_request_body",
       "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_entry",
       "openapi_component_refs": {
-        "request": "#/components/schemas/AccountDataSetRequestBody",
+        "request": "#/components/schemas/AccountDataReplaceRequestBody",
         "response": "#/components/schemas/AccountDataEntry"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.agent.deactivate",
+      "operation_id": "ck.self.agent.command.deactivate",
       "tier": "extension",
       "http": "POST /_cokret/self/agents/{agent_principal_id}/deactivate",
       "success_shape_kind": "typed_response",
@@ -1067,87 +1067,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.agent.get",
-      "tier": "extension",
-      "http": "GET /_cokret/self/agents/{agent_principal_id}",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_view",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/AgentView"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.self.agent.grant.attach",
-      "tier": "extension",
-      "http": "POST /_cokret/self/agents/{agent_principal_id}/grants",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/AgentGrantAttachRequestBody",
-        "response": "#/components/schemas/AgentGrantAttachOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.self.agent.grant.detach",
-      "tier": "extension",
-      "http": "DELETE /_cokret/self/agents/{agent_principal_id}/grants/{grant_id}",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_detach_outcome",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/AgentGrantDetachOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.self.agent.list",
-      "tier": "extension",
-      "http": "GET /_cokret/self/agents",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_list",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/AgentList"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.self.agent.participation.get",
-      "tier": "extension",
-      "http": "GET /_cokret/self/agents/{agent_principal_id}/participation",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/AgentParticipationOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.self.agent.participation.set",
-      "tier": "extension",
-      "http": "PUT /_cokret/self/agents/{agent_principal_id}/participation",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_set_request_body",
-      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/AgentParticipationSetRequestBody",
-        "response": "#/components/schemas/AgentParticipationOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.self.agent.pause",
+      "operation_id": "ck.self.agent.command.pause",
       "tier": "extension",
       "http": "POST /_cokret/self/agents/{agent_principal_id}/pause",
       "success_shape_kind": "typed_response",
@@ -1161,7 +1081,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.agent.provision",
+      "operation_id": "ck.self.agent.command.provision",
       "tier": "extension",
       "http": "POST /_cokret/self/agents",
       "success_shape_kind": "typed_response",
@@ -1175,7 +1095,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.agent.resume",
+      "operation_id": "ck.self.agent.command.resume",
       "tier": "extension",
       "http": "POST /_cokret/self/agents/{agent_principal_id}/resume",
       "success_shape_kind": "typed_response",
@@ -1189,7 +1109,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.agent.rotate_key",
+      "operation_id": "ck.self.agent.command.rotate_key",
       "tier": "extension",
       "http": "POST /_cokret/self/agents/{agent_principal_id}/rotate-key",
       "success_shape_kind": "typed_response",
@@ -1203,7 +1123,87 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.agent.sidecar_thread.ensure",
+      "operation_id": "ck.self.agent.grant.command.attach",
+      "tier": "extension",
+      "http": "POST /_cokret/self/agents/{agent_principal_id}/grants",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_request_body",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/AgentGrantAttachRequestBody",
+        "response": "#/components/schemas/AgentGrantAttachOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.self.agent.grant.resource.delete",
+      "tier": "extension",
+      "http": "DELETE /_cokret/self/agents/{agent_principal_id}/grants/{grant_id}",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_detach_outcome",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/AgentGrantDetachOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.agent.participation.resource.get",
+      "tier": "extension",
+      "http": "GET /_cokret/self/agents/{agent_principal_id}/participation",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/AgentParticipationOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.agent.participation.resource.replace",
+      "tier": "extension",
+      "http": "PUT /_cokret/self/agents/{agent_principal_id}/participation",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_replace_request_body",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/AgentParticipationReplaceRequestBody",
+        "response": "#/components/schemas/AgentParticipationOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.self.agent.query.list",
+      "tier": "extension",
+      "http": "GET /_cokret/self/agents",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_list",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/AgentList"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.agent.resource.get",
+      "tier": "extension",
+      "http": "GET /_cokret/self/agents/{agent_principal_id}",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_view",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/AgentView"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.agent.sidecar_thread.command.ensure",
       "tier": "extension",
       "http": "POST /_cokret/self/agent-sidecar-threads:ensure",
       "success_shape_kind": "typed_response",
@@ -1217,21 +1217,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.applet.ghost.provision",
-      "tier": "interop_bridge",
-      "http": "POST /_cokret/self/applets/{applet_id}/ghosts/provision",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body",
-      "response_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/GhostActorProvisionRequestBody",
-        "response": "#/components/schemas/GhostActorProvisionOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.self.applet.install",
+      "operation_id": "ck.self.applet.command.install",
       "tier": "extension",
       "http": "POST /_cokret/self/applets/install",
       "success_shape_kind": "typed_response",
@@ -1245,21 +1231,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.applet.install.preview",
-      "tier": "extension",
-      "http": "POST /_cokret/self/applets/install/preview",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_preview_request_body",
-      "response_schema_ref": "schemas/applet-install-plan.schema.json",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/AppletInstallPreviewRequestBody",
-        "response": "#/components/schemas/AppletInstallPlan"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.self.applet.revoke",
+      "operation_id": "ck.self.applet.command.revoke",
       "tier": "extension",
       "http": "POST /_cokret/self/applets/{applet_id}/revoke",
       "success_shape_kind": "typed_response",
@@ -1273,7 +1245,61 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.authz.check",
+      "operation_id": "ck.self.applet.ghost.command.provision",
+      "tier": "interop_bridge",
+      "http": "POST /_cokret/self/applets/{applet_id}/ghosts/provision",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body",
+      "response_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/GhostActorProvisionRequestBody",
+        "response": "#/components/schemas/GhostActorProvisionOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.self.applet.install.command.preview",
+      "tier": "extension",
+      "http": "POST /_cokret/self/applets/install/preview",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_preview_request_body",
+      "response_schema_ref": "schemas/applet-install-plan.schema.json",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/AppletInstallPreviewRequestBody",
+        "response": "#/components/schemas/AppletInstallPlan"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.self.authz.grants.query.effective",
+      "tier": "extension",
+      "http": "GET /_cokret/self/authz/effective-grants",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GrantList",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/GrantList"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.authz.invites.query.list",
+      "tier": "extension",
+      "http": "GET /_cokret/self/authz/invites",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/authz-operations.schema.json#/$defs/authz_invite_list",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/AuthzInviteList"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.authz.query.check",
       "tier": "extension",
       "http": "POST /_cokret/self/authz/check",
       "success_shape_kind": "typed_response",
@@ -1287,55 +1313,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.authz.get_effective_grants",
-      "tier": "extension",
-      "http": "GET /_cokret/self/authz/effective-grants",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GrantList",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/GrantList"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.self.authz.get_invites",
-      "tier": "extension",
-      "http": "GET /_cokret/self/authz/invites",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/authz-operations.schema.json#/$defs/authz_invite_list",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/AuthzInviteList"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.self.blob.get",
-      "tier": "extension",
-      "http": "GET /_cokret/self/blob/get",
-      "success_shape_kind": "binary_stream",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
-      "openapi_component_refs": {},
-      "completeness_class": "binary_or_redirect",
-      "reason": "success_shape_kind='binary_stream'; no JSON DTO body by design."
-    },
-    {
-      "operation_id": "ck.self.blob.head",
-      "tier": "extension",
-      "http": "HEAD /_cokret/self/blob/get",
-      "success_shape_kind": "metadata_headers",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
-      "openapi_component_refs": {},
-      "completeness_class": "binary_or_redirect",
-      "reason": "success_shape_kind='metadata_headers'; no JSON DTO body by design."
-    },
-    {
-      "operation_id": "ck.self.blob.presign",
+      "operation_id": "ck.self.blob.command.presign",
       "tier": "extension",
       "http": "POST /_cokret/self/blob/presign",
       "success_shape_kind": "schema_resource",
@@ -1349,7 +1327,29 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.blob.upload",
+      "operation_id": "ck.self.blob.resource.get",
+      "tier": "extension",
+      "http": "GET /_cokret/self/blob/get",
+      "success_shape_kind": "binary_stream",
+      "request_schema_ref": null,
+      "response_schema_ref": null,
+      "openapi_component_refs": {},
+      "completeness_class": "binary_or_redirect",
+      "reason": "success_shape_kind='binary_stream'; no JSON DTO body by design."
+    },
+    {
+      "operation_id": "ck.self.blob.resource.head",
+      "tier": "extension",
+      "http": "HEAD /_cokret/self/blob/get",
+      "success_shape_kind": "metadata_headers",
+      "request_schema_ref": null,
+      "response_schema_ref": null,
+      "openapi_component_refs": {},
+      "completeness_class": "binary_or_redirect",
+      "reason": "success_shape_kind='metadata_headers'; no JSON DTO body by design."
+    },
+    {
+      "operation_id": "ck.self.blob.upload.create",
       "tier": "extension",
       "http": "POST /_cokret/self/blob/upload",
       "success_shape_kind": "typed_response",
@@ -1363,7 +1363,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.call.media.token_exchange",
+      "operation_id": "ck.self.call.media.exchange.token",
       "tier": "core",
       "http": "POST /_cokret/self/rtc/token",
       "success_shape_kind": "schema_resource",
@@ -1377,7 +1377,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.circle.archive",
+      "operation_id": "ck.self.circle.command.archive",
       "tier": "extension",
       "http": "POST /_cokret/self/circles/{circle_id}/archive",
       "success_shape_kind": "typed_response",
@@ -1391,7 +1391,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.circle.create",
+      "operation_id": "ck.self.circle.command.create",
       "tier": "extension",
       "http": "POST /_cokret/self/circles",
       "success_shape_kind": "typed_response",
@@ -1405,60 +1405,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.circle.get",
-      "tier": "extension",
-      "http": "GET /_cokret/self/circles/{circle_id}",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/CircleView"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.self.circle.list",
-      "tier": "extension",
-      "http": "GET /_cokret/self/circles",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_list",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/CircleList"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.self.circle.member.add",
-      "tier": "extension",
-      "http": "POST /_cokret/self/circles/{circle_id}/members",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_member_request_body",
-      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/CircleMemberRequestBody",
-        "response": "#/components/schemas/CircleMembershipOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.self.circle.member.remove",
-      "tier": "extension",
-      "http": "DELETE /_cokret/self/circles/{circle_id}/members/{actor_id}",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/CircleMembershipOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.self.circle.scope_rotate",
+      "operation_id": "ck.self.circle.command.rotate_scope",
       "tier": "extension",
       "http": "POST /_cokret/self/circles/{circle_id}/scope-rotate",
       "success_shape_kind": "typed_response",
@@ -1471,7 +1418,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.circle.tombstone",
+      "operation_id": "ck.self.circle.command.tombstone",
       "tier": "extension",
       "http": "POST /_cokret/self/circles/{circle_id}/tombstone",
       "success_shape_kind": "typed_response",
@@ -1485,20 +1432,60 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.consent.get",
+      "operation_id": "ck.self.circle.member.command.add",
       "tier": "extension",
-      "http": "GET /_cokret/self/consent/cells/{holder_did}",
+      "http": "POST /_cokret/self/circles/{circle_id}/members",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_member_request_body",
+      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/CircleMemberRequestBody",
+        "response": "#/components/schemas/CircleMembershipOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.self.circle.member.resource.delete",
+      "tier": "extension",
+      "http": "DELETE /_cokret/self/circles/{circle_id}/members/{actor_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
+      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome",
       "openapi_component_refs": {
-        "response": "#/components/schemas/ConsentCellView"
+        "response": "#/components/schemas/CircleMembershipOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.consent.grant",
+      "operation_id": "ck.self.circle.query.list",
+      "tier": "extension",
+      "http": "GET /_cokret/self/circles",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_list",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/CircleList"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.circle.resource.get",
+      "tier": "extension",
+      "http": "GET /_cokret/self/circles/{circle_id}",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/CircleView"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.consent.command.grant",
       "tier": "extension",
       "http": "POST /_cokret/self/consent/cells/{holder_did}/grant",
       "success_shape_kind": "typed_response",
@@ -1512,20 +1499,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.consent.list",
-      "tier": "extension",
-      "http": "GET /_cokret/self/consent/cells",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_list",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/ConsentCellList"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.self.consent.request",
+      "operation_id": "ck.self.consent.command.request",
       "tier": "extension",
       "http": "POST /_cokret/self/consent/request",
       "success_shape_kind": "typed_response",
@@ -1539,7 +1513,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.consent.revoke",
+      "operation_id": "ck.self.consent.command.revoke",
       "tier": "extension",
       "http": "POST /_cokret/self/consent/cells/{holder_did}/revoke",
       "success_shape_kind": "typed_response",
@@ -1553,20 +1527,33 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.contact.list",
+      "operation_id": "ck.self.consent.query.list",
       "tier": "extension",
-      "http": "GET /_cokret/self/contacts",
+      "http": "GET /_cokret/self/consent/cells",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list",
+      "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_list",
       "openapi_component_refs": {
-        "response": "#/components/schemas/ContactList"
+        "response": "#/components/schemas/ConsentCellList"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.contact.request",
+      "operation_id": "ck.self.consent.resource.get",
+      "tier": "extension",
+      "http": "GET /_cokret/self/consent/cells/{holder_did}",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/ConsentCellView"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.contact.command.request",
       "tier": "extension",
       "http": "POST /_cokret/self/contacts/request",
       "success_shape_kind": "typed_response",
@@ -1580,7 +1567,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.contact.respond",
+      "operation_id": "ck.self.contact.command.respond",
       "tier": "extension",
       "http": "POST /_cokret/self/contacts/respond",
       "success_shape_kind": "typed_response",
@@ -1594,7 +1581,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.contact.tombstone",
+      "operation_id": "ck.self.contact.command.tombstone",
       "tier": "extension",
       "http": "POST /_cokret/self/contacts/tombstone",
       "success_shape_kind": "typed_response",
@@ -1608,7 +1595,20 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.device_messages.ack",
+      "operation_id": "ck.self.contact.query.list",
+      "tier": "extension",
+      "http": "GET /_cokret/self/contacts",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/ContactList"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.device_messages.command.ack",
       "tier": "extension",
       "http": "POST /_cokret/self/device_messages/ack",
       "success_shape_kind": "typed_response",
@@ -1622,7 +1622,21 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.device_messages.get",
+      "operation_id": "ck.self.device_messages.command.send",
+      "tier": "extension",
+      "http": "POST /_cokret/self/device_messages",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendOutcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/DeviceMessagesSendRequestBody",
+        "response": "#/components/schemas/DeviceMessagesSendOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.self.device_messages.query.list",
       "tier": "extension",
       "http": "GET /_cokret/self/device_messages",
       "success_shape_kind": "typed_response",
@@ -1635,21 +1649,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.device_messages.put",
-      "tier": "extension",
-      "http": "POST /_cokret/self/device_messages",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesPutRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesPutOutcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/DeviceMessagesPutRequestBody",
-        "response": "#/components/schemas/DeviceMessagesPutOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.self.direct_conversation.resolve",
+      "operation_id": "ck.self.direct_conversation.command.resolve",
       "tier": "extension",
       "http": "POST /_cokret/self/direct-conversations/resolve",
       "success_shape_kind": "typed_response",
@@ -1663,7 +1663,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.ephemeral.send",
+      "operation_id": "ck.self.ephemeral.command.send",
       "tier": "core",
       "http": "POST /_cokret/self/ephemeral",
       "success_shape_kind": "typed_response",
@@ -1677,87 +1677,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.events.describe",
-      "tier": "core",
-      "http": "GET /_cokret/self/events/describe",
-      "success_shape_kind": "service_describe",
-      "request_schema_ref": null,
-      "response_schema_ref": null,
-      "openapi_component_refs": {
-        "response": "#/components/schemas/ServiceDescribe"
-      },
-      "completeness_class": "service_describe",
-      "reason": "response is the shared ServiceDescribe contract (bound globally as schemas/service-describe.schema.json)."
-    },
-    {
-      "operation_id": "ck.self.events.frontier",
-      "tier": "core",
-      "http": "GET /_cokret/self/events/frontier",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierState",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/EventsFrontierState"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.self.events.get",
-      "tier": "core",
-      "http": "GET /_cokret/self/events/{event_id}",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventView",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/EventView"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.self.events.query",
-      "tier": "core",
-      "http": "GET /_cokret/self/events",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/EventsQueryOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.self.events.query_post",
-      "tier": "core",
-      "http": "POST /_cokret/self/events/query",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
-      "openapi_component_refs": {
-        "request": "../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
-        "response": "#/components/schemas/EventsQueryOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.self.events.resolve",
-      "tier": "core",
-      "http": "POST /_cokret/self/events/resolve",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveOutcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/EventsResolveRequestBody",
-        "response": "#/components/schemas/EventsResolveOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.self.events.submit",
+      "operation_id": "ck.self.events.command.submit",
       "tier": "core",
       "http": "POST /_cokret/self/events",
       "success_shape_kind": "typed_response",
@@ -1771,7 +1691,87 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.events.subscribe",
+      "operation_id": "ck.self.events.query.describe",
+      "tier": "core",
+      "http": "GET /_cokret/self/events/describe",
+      "success_shape_kind": "service_describe",
+      "request_schema_ref": null,
+      "response_schema_ref": null,
+      "openapi_component_refs": {
+        "response": "#/components/schemas/ServiceDescribe"
+      },
+      "completeness_class": "service_describe",
+      "reason": "response is the shared ServiceDescribe contract (bound globally as schemas/service-describe.schema.json)."
+    },
+    {
+      "operation_id": "ck.self.events.query.frontier",
+      "tier": "core",
+      "http": "GET /_cokret/self/events/frontier",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierState",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/EventsFrontierState"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.events.query.resolve",
+      "tier": "core",
+      "http": "POST /_cokret/self/events/resolve",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveOutcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/EventsResolveRequestBody",
+        "response": "#/components/schemas/EventsResolveOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.self.events.query.scan",
+      "tier": "core",
+      "http": "GET /_cokret/self/events",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/EventsQueryOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.events.query.scan_body",
+      "tier": "core",
+      "http": "POST /_cokret/self/events/query",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
+      "openapi_component_refs": {
+        "request": "../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
+        "response": "#/components/schemas/EventsQueryOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.self.events.resource.get",
+      "tier": "core",
+      "http": "GET /_cokret/self/events/{event_id}",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventView",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/EventView"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.events.stream.subscribe",
       "tier": "core",
       "http": "GET /_cokret/self/events/subscribe",
       "success_shape_kind": "event_stream",
@@ -1782,7 +1782,7 @@
       "reason": "NDJSON event/account frame stream; frame contract lives in a dedicated frame schema, not a single DTO."
     },
     {
-      "operation_id": "ck.self.invite_receive_policy.get",
+      "operation_id": "ck.self.invite_receive_policy.resource.get",
       "tier": "extension",
       "http": "GET /_cokret/self/invite-receive-policy",
       "success_shape_kind": "typed_response",
@@ -1795,9 +1795,9 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.invite_receive_policy.set",
+      "operation_id": "ck.self.invite_receive_policy.resource.replace",
       "tier": "extension",
-      "http": "POST /_cokret/self/invite-receive-policy",
+      "http": "PUT /_cokret/self/invite-receive-policy",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/invite-receive-policy.schema.json",
       "response_schema_ref": "schemas/invite-receive-policy.schema.json",
@@ -1809,48 +1809,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.keys.backups.delete",
-      "tier": "extension",
-      "http": "DELETE /_cokret/self/keys/backups/{backup_id}",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_request_body",
-      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/KeysBackupsDeleteRequestBody",
-        "response": "#/components/schemas/KeysBackupsDeleteOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.self.keys.backups.list",
-      "tier": "extension",
-      "http": "GET /_cokret/self/keys/backups",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_list",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/KeysBackupsList"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.self.keys.backups.put",
-      "tier": "extension",
-      "http": "PUT /_cokret/self/keys/backups/{backup_id}",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/key-backup.schema.json",
-      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_put_outcome",
-      "openapi_component_refs": {
-        "request": "../schemas/key-backup.schema.json",
-        "response": "#/components/schemas/KeysBackupsPutOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.self.keys.backups.unlock",
+      "operation_id": "ck.self.keys.backups.command.unlock",
       "tier": "extension",
       "http": "POST /_cokret/self/keys/backups/{backup_id}/unlock",
       "success_shape_kind": "schema_resource",
@@ -1864,7 +1823,48 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.keys.claim",
+      "operation_id": "ck.self.keys.backups.query.list",
+      "tier": "extension",
+      "http": "GET /_cokret/self/keys/backups",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_list",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/KeysBackupsList"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.keys.backups.resource.delete",
+      "tier": "extension",
+      "http": "DELETE /_cokret/self/keys/backups/{backup_id}",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_request_body",
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/KeysBackupsDeleteRequestBody",
+        "response": "#/components/schemas/KeysBackupsDeleteOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.self.keys.backups.resource.replace",
+      "tier": "extension",
+      "http": "PUT /_cokret/self/keys/backups/{backup_id}",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/key-backup.schema.json",
+      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_replace_outcome",
+      "openapi_component_refs": {
+        "request": "../schemas/key-backup.schema.json",
+        "response": "#/components/schemas/KeysBackupsReplaceOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.self.keys.command.claim",
       "tier": "extension",
       "http": "POST /_cokret/self/keys/claim",
       "success_shape_kind": "typed_response",
@@ -1878,7 +1878,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.keys.keypackages.claim",
+      "operation_id": "ck.self.keys.keypackages.command.claim",
       "tier": "extension",
       "http": "POST /_cokret/self/keys/keypackages/claim",
       "success_shape_kind": "typed_response",
@@ -1892,7 +1892,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.keys.keypackages.consume",
+      "operation_id": "ck.self.keys.keypackages.command.consume",
       "tier": "extension",
       "http": "POST /_cokret/self/keys/keypackages/consume",
       "success_shape_kind": "typed_response",
@@ -1906,7 +1906,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.keys.keypackages.revoke",
+      "operation_id": "ck.self.keys.keypackages.command.revoke",
       "tier": "extension",
       "http": "POST /_cokret/self/keys/keypackages/revoke",
       "success_shape_kind": "typed_response",
@@ -1920,7 +1920,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.keys.keypackages.upload",
+      "operation_id": "ck.self.keys.keypackages.upload.create",
       "tier": "extension",
       "http": "POST /_cokret/self/keys/keypackages/upload",
       "success_shape_kind": "typed_response",
@@ -1934,7 +1934,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.keys.query",
+      "operation_id": "ck.self.keys.query.lookup",
       "tier": "extension",
       "http": "POST /_cokret/self/keys/query",
       "success_shape_kind": "typed_response",
@@ -1948,7 +1948,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.keys.upload",
+      "operation_id": "ck.self.keys.upload.create",
       "tier": "extension",
       "http": "POST /_cokret/self/keys/upload",
       "success_shape_kind": "typed_response",
@@ -1962,7 +1962,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.media.ice_config",
+      "operation_id": "ck.self.media.query.ice_config",
       "tier": "extension",
       "http": "POST /_cokret/self/rtc/ice-config",
       "success_shape_kind": "typed_response",
@@ -1976,7 +1976,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.moderation.report",
+      "operation_id": "ck.self.moderation.command.report",
       "tier": "extension",
       "http": "POST /_cokret/self/moderation/report",
       "success_shape_kind": "typed_response",
@@ -1990,74 +1990,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.organization.get",
-      "tier": "extension",
-      "http": "GET /_cokret/self/organizations/{organization_did}",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_view",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/OrganizationView"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.self.organization.list",
-      "tier": "extension",
-      "http": "GET /_cokret/self/organizations",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_list",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/OrganizationList"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.self.organization.policy.get",
-      "tier": "extension",
-      "http": "GET /_cokret/self/organizations/{organization_did}/policy",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_policy_document",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/OrganizationPolicyDocument"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.self.organization.policy.set",
-      "tier": "extension",
-      "http": "POST /_cokret/self/organizations/{organization_did}/policy",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_policy_set_request_body",
-      "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_policy_document",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/OrganizationPolicySetRequestBody",
-        "response": "#/components/schemas/OrganizationPolicyDocument"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.self.organization.realm.link",
-      "tier": "extension",
-      "http": "POST /_cokret/self/organizations/{organization_did}/realms",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_realm_link_request_body",
-      "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_realm_link_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/OrganizationRealmLinkRequestBody",
-        "response": "#/components/schemas/OrganizationRealmLinkOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.self.organization.upsert",
+      "operation_id": "ck.self.organization.command.upsert",
       "tier": "extension",
       "http": "POST /_cokret/self/organizations",
       "success_shape_kind": "typed_response",
@@ -2071,7 +2004,74 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.policy.check",
+      "operation_id": "ck.self.organization.policy.resource.get",
+      "tier": "extension",
+      "http": "GET /_cokret/self/organizations/{organization_did}/policy",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_policy_document",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/OrganizationPolicyDocument"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.organization.policy.resource.replace",
+      "tier": "extension",
+      "http": "PUT /_cokret/self/organizations/{organization_did}/policy",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_policy_replace_request_body",
+      "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_policy_document",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/OrganizationPolicyReplaceRequestBody",
+        "response": "#/components/schemas/OrganizationPolicyDocument"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.self.organization.query.list",
+      "tier": "extension",
+      "http": "GET /_cokret/self/organizations",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_list",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/OrganizationList"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.organization.realm.command.link",
+      "tier": "extension",
+      "http": "POST /_cokret/self/organizations/{organization_did}/realms",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_realm_link_request_body",
+      "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_realm_link_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/OrganizationRealmLinkRequestBody",
+        "response": "#/components/schemas/OrganizationRealmLinkOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.self.organization.resource.get",
+      "tier": "extension",
+      "http": "GET /_cokret/self/organizations/{organization_did}",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_view",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/OrganizationView"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.policy.query.check",
       "tier": "extension",
       "http": "POST /_cokret/self/policy/check",
       "success_shape_kind": "typed_response",
@@ -2085,46 +2085,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.policy_document.delete",
-      "tier": "extension",
-      "http": "DELETE /_cokret/self/policies/{policy_id}",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_delete_outcome",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/PolicyDocumentDeleteOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.self.policy_document.get",
-      "tier": "extension",
-      "http": "GET /_cokret/self/policies/{policy_id}",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_view",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/PolicyDocumentView"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.self.policy_document.list",
-      "tier": "extension",
-      "http": "GET /_cokret/self/policies",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_list",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/PolicyDocumentList"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.self.policy_document.upsert",
+      "operation_id": "ck.self.policy_document.command.upsert",
       "tier": "extension",
       "http": "POST /_cokret/self/policies",
       "success_shape_kind": "typed_response",
@@ -2138,7 +2099,46 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.projection.document",
+      "operation_id": "ck.self.policy_document.query.list",
+      "tier": "extension",
+      "http": "GET /_cokret/self/policies",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_list",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/PolicyDocumentList"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.policy_document.resource.delete",
+      "tier": "extension",
+      "http": "DELETE /_cokret/self/policies/{policy_id}",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_delete_outcome",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/PolicyDocumentDeleteOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.policy_document.resource.get",
+      "tier": "extension",
+      "http": "GET /_cokret/self/policies/{policy_id}",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_view",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/PolicyDocumentView"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.projection.document.resource.get",
       "tier": "extension",
       "http": "GET /_cokret/self/projection/documents/{morph_id}",
       "success_shape_kind": "typed_response",
@@ -2151,7 +2151,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.projection.flows",
+      "operation_id": "ck.self.projection.flows.query.list",
       "tier": "extension",
       "http": "GET /_cokret/self/projection/flows",
       "success_shape_kind": "typed_response",
@@ -2164,7 +2164,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.projection.morphs",
+      "operation_id": "ck.self.projection.morphs.query.list",
       "tier": "extension",
       "http": "GET /_cokret/self/projection/morphs",
       "success_shape_kind": "typed_response",
@@ -2177,7 +2177,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.projection.spaces",
+      "operation_id": "ck.self.projection.spaces.query.list",
       "tier": "extension",
       "http": "GET /_cokret/self/projection/spaces",
       "success_shape_kind": "typed_response",
@@ -2190,7 +2190,21 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.read_cursor.list",
+      "operation_id": "ck.self.read_cursor.command.advance",
+      "tier": "extension",
+      "http": "POST /_cokret/self/read-cursors",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_cursor_advance_request_body",
+      "response_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_marker_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/ReadCursorAdvanceRequestBody",
+        "response": "#/components/schemas/ReadMarkerOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.self.read_cursor.query.list",
       "tier": "extension",
       "http": "GET /_cokret/self/read-cursors",
       "success_shape_kind": "typed_response",
@@ -2203,47 +2217,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.read_cursor.set",
-      "tier": "extension",
-      "http": "POST /_cokret/self/read-cursors",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_cursor_set_request_body",
-      "response_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_marker_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/ReadCursorSetRequestBody",
-        "response": "#/components/schemas/ReadMarkerOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ck.self.realm.export",
-      "tier": "extension",
-      "http": "GET /_cokret/self/realms/{realm_id}/export",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_export",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/RealmExport"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.self.realm.get",
-      "tier": "extension",
-      "http": "GET /_cokret/self/realms/{realm_id}",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/RealmLifecycleView"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.self.realm.moderation_policy.effective",
+      "operation_id": "ck.self.realm.moderation_policy.query.effective",
       "tier": "extension",
       "http": "GET /_cokret/self/realms/{realm_id}/moderation-policy/effective",
       "success_shape_kind": "typed_response",
@@ -2256,21 +2230,47 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.realm.moderation_policy.set",
+      "operation_id": "ck.self.realm.moderation_policy.resource.replace",
       "tier": "extension",
-      "http": "POST /_cokret/self/realms/{realm_id}/moderation-policy",
+      "http": "PUT /_cokret/self/realms/{realm_id}/moderation-policy",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_set_request_body",
+      "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_replace_request_body",
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_document",
       "openapi_component_refs": {
-        "request": "#/components/schemas/RealmModerationPolicySetRequestBody",
+        "request": "#/components/schemas/RealmModerationPolicyReplaceRequestBody",
         "response": "#/components/schemas/RealmModerationPolicyDocument"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.realm_link.create",
+      "operation_id": "ck.self.realm.query.export",
+      "tier": "extension",
+      "http": "GET /_cokret/self/realms/{realm_id}/export",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_export",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/RealmExport"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.realm.resource.get",
+      "tier": "extension",
+      "http": "GET /_cokret/self/realms/{realm_id}",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/RealmLifecycleView"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.realm_link.command.create",
       "tier": "extension",
       "http": "POST /_cokret/self/realms/{realm_id}/links",
       "success_shape_kind": "typed_response",
@@ -2284,20 +2284,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.realm_link.delete",
-      "tier": "extension",
-      "http": "DELETE /_cokret/self/realms/{realm_id}/links/{target_realm_id}",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/RealmLinkMutationOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ck.self.realm_link.effective_policy",
+      "operation_id": "ck.self.realm_link.query.effective_policy",
       "tier": "extension",
       "http": "GET /_cokret/self/realms/{realm_id}/effective-policy",
       "success_shape_kind": "typed_response",
@@ -2310,7 +2297,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.realm_link.list",
+      "operation_id": "ck.self.realm_link.query.list",
       "tier": "extension",
       "http": "GET /_cokret/self/realms/{realm_id}/links",
       "success_shape_kind": "typed_response",
@@ -2323,7 +2310,20 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.realm_policy_server.delete",
+      "operation_id": "ck.self.realm_link.resource.delete",
+      "tier": "extension",
+      "http": "DELETE /_cokret/self/realms/{realm_id}/links/{target_realm_id}",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/RealmLinkMutationOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.realm_policy_server.resource.delete",
       "tier": "extension",
       "http": "DELETE /_cokret/self/realms/{realm_id}/policy-server",
       "success_shape_kind": "empty_response",
@@ -2334,7 +2334,7 @@
       "reason": "read-only operation with no request body and no typed JSON response component in OpenAPI."
     },
     {
-      "operation_id": "ck.self.realm_policy_server.get",
+      "operation_id": "ck.self.realm_policy_server.resource.get",
       "tier": "extension",
       "http": "GET /_cokret/self/realms/{realm_id}/policy-server",
       "success_shape_kind": "typed_response",
@@ -2347,21 +2347,21 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.realm_policy_server.put",
+      "operation_id": "ck.self.realm_policy_server.resource.replace",
       "tier": "extension",
       "http": "PUT /_cokret/self/realms/{realm_id}/policy-server",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_put_request_body",
+      "request_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_replace_request_body",
       "response_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view",
       "openapi_component_refs": {
-        "request": "#/components/schemas/RealmPolicyServerPutRequestBody",
+        "request": "#/components/schemas/RealmPolicyServerReplaceRequestBody",
         "response": "#/components/schemas/RealmPolicyServerView"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.snapshot.head",
+      "operation_id": "ck.self.snapshot.query.manifest_head",
       "tier": "core",
       "http": "GET /_cokret/self/snapshot/head",
       "success_shape_kind": "schema_resource",
@@ -2374,7 +2374,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.views.collection_projection",
+      "operation_id": "ck.self.views.collection_projection.command.materialize",
       "tier": "extension",
       "http": "POST /_cokret/self/views/{view_id}/projection",
       "success_shape_kind": "typed_response",
@@ -2388,7 +2388,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.server.describe",
+      "operation_id": "ck.server.query.describe",
       "tier": "core",
       "http": "GET /_cokret/describe",
       "success_shape_kind": "service_describe",

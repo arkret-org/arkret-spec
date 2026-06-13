@@ -388,25 +388,25 @@
       "schema_id": "ck.schema.applet_package.v1",
       "file": "schemas/applet-package.schema.json",
       "status": "active",
-      "description": "Controller-signed package used by ck.self.applet.install preview/commit to derive ck.applet.registration and capability grants. Distribution object only; not Realm history truth and not authorization."
+      "description": "Controller-signed package used by ck.self.applet.command.install preview/commit to derive ck.applet.registration and capability grants. Distribution object only; not Realm history truth and not authorization."
     },
     {
       "schema_id": "ck.schema.applet_install_plan.v1",
       "file": "schemas/applet-install-plan.schema.json",
       "status": "active",
-      "description": "Canonical Applet InstallPlan returned by ck.self.applet.install.preview and recomputed by ck.self.applet.install before commit. plan_digest is calculated over this object with plan_digest omitted."
+      "description": "Canonical Applet InstallPlan returned by ck.self.applet.install.command.preview and recomputed by ck.self.applet.command.install before commit. plan_digest is calculated over this object with plan_digest omitted."
     },
     {
       "schema_id": "ck.schema.applet_install_operations.v1",
       "file": "schemas/applet-install-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for ck.self.applet.install.preview and ck.applet.install."
+      "description": "Closed request/response DTO bundle for ck.self.applet.install.command.preview and ck.applet.install."
     },
     {
       "schema_id": "ck.schema.applet_ghost_operations.v1",
       "file": "schemas/applet-ghost-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for ck.self.applet.ghost.provision (Applet-managed Ghost Actor provisioning by an installed bridge Applet)."
+      "description": "Closed request/response DTO bundle for ck.self.applet.ghost.command.provision (Applet-managed Ghost Actor provisioning by an installed bridge Applet)."
     },
     {
       "schema_id": "ck.schema.agent.v1",
@@ -488,19 +488,19 @@
       "schema_id": "ck.schema.keypackage_operations.v1",
       "file": "schemas/keypackage-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for ck.self.keys.keypackages.upload, claim, consume, and revoke."
+      "description": "Closed request/response DTO bundle for ck.self.keys.keypackages.upload.create, claim, consume, and revoke."
     },
     {
       "schema_id": "ck.schema.keys_operations.v1",
       "file": "schemas/keys-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for ck.self.keys.upload, query, claim, and key backup put/list/delete responses."
+      "description": "Closed request/response DTO bundle for ck.self.keys.upload.create, query, claim, and key backup put/list/delete responses."
     },
     {
       "schema_id": "ck.schema.service_describe.v1",
       "file": "schemas/service-describe.schema.json",
       "status": "active",
-      "description": "Canonical ServiceDescribe response for ck.server.describe and per-surface describe operations: base service metadata plus claim-level partitions (supported_operations / implemented_features / claimed_profiles / verified_profiles / experimental_features / compat_surfaces). Enforces development_mode=true => verified_profiles=[]. compat_surfaces is limited to external interop surfaces. See service-surface.md §3.0."
+      "description": "Canonical ServiceDescribe response for ck.server.query.describe and per-surface describe operations: base service metadata plus claim-level partitions (supported_operations / implemented_features / claimed_profiles / verified_profiles / experimental_features / compat_surfaces). Enforces development_mode=true => verified_profiles=[]. compat_surfaces is limited to external interop surfaces. See service-surface.md §3.0."
     },
     {
       "schema_id": "ck.schema.common_ids.v1",

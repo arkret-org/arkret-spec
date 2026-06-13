@@ -190,7 +190,7 @@ ControlMove {
 Control Move 规则：
 
 1. `seal_basis` 的三个字段全部进入 canonical Event bytes，并由 `event_digest` / `proofs[]` 覆盖。
-2. `leaves[]` MUST 只引用 accepted Seal。单 leaf basis 是轻 producer 的默认形态。account client 铸造单 leaf basis 的注册来源是 `ck.self.events.frontier` 的 `realm_id` 形响应（Realm Seal view `{realm_id, seal_id, control_event_set_root, state_root, hlc?}`，见 `../sync/service-http-binding.md`）；该来源不可用时 MUST fail closed，不得伪造 basis。
+2. `leaves[]` MUST 只引用 accepted Seal。单 leaf basis 是轻 producer 的默认形态。account client 铸造单 leaf basis 的注册来源是 `ck.self.events.query.frontier` 的 `realm_id` 形响应（Realm Seal view `{realm_id, seal_id, control_event_set_root, state_root, hlc?}`，见 `../sync/service-http-binding.md`）；该来源不可用时 MUST fail closed，不得伪造 basis。
 3. 多 leaf basis 只有完整 verifier 或持有 signed view certificate / state transition proof 的 producer MAY 签；轻客户端 MUST NOT 签自己无法验证的 multi-leaf union basis。
 4. `effects[]` MUST 只引用 control plane cell。若需同时写 data cell，必须拆成后续 DataEvent。
 5. `preconditions[]` 与 `effects[]` 是原子集合；任一 precondition 不成立，整个 Control Move 失败。

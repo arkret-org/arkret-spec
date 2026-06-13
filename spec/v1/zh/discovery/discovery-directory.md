@@ -388,7 +388,7 @@ Directory MUST NOT 索引任何**未通过 §8 ingest protocol opt-in 的**资�
 
 Directory Service MUST：
 
-- expose its service DID and feature profile（`ck.find.directory.describe`，含 §8.9 ingest 字段）
+- expose its service DID and feature profile（`ck.find.directory.query.describe`，含 §8.9 ingest 字段）
 - accept ingest only via §8 with verified governance signature and bidirectional opt-in
 - apply authorization filtering before returning each result
 - return stable pagination cursors
@@ -416,7 +416,7 @@ ingest 是**双向 opt-in**，缺一不可：
 | 方向 | 资源端表达 | Directory 端表达 |
 | --- | --- | --- |
 | 资源 → Directory | 在 `ck.{realm,organization,actor,applet,handle}.discovery.directory_services` 列出本 Directory 的 service DID + governance key 签名整份 payload | — |
-| Directory → 资源 | — | 在 `ck.find.directory.describe.accept_policy_kind` 中声明可接受的资源类别、trust root、配额（§8.9） |
+| Directory → 资源 | — | 在 `ck.find.directory.query.describe.accept_policy_kind` 中声明可接受的资源类别、trust root、配额（§8.9） |
 
 Directory 接受 ingest 的前置条件：
 
@@ -426,7 +426,7 @@ Directory 接受 ingest 的前置条件：
 
 ### 8.2 两种 ingest 模式
 
-Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest 模式之一，且 MUST 在 `ck.find.directory.describe.ingest_modes` 中显式声明本实例支持的模式。
+Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest 模式之一，且 MUST 在 `ck.find.directory.query.describe.ingest_modes` 中显式声明本实例支持的模式。
 
 | 模式 | 触发方 | 适用场景 |
 | --- | --- | --- |
@@ -435,7 +435,7 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
 
 资源端 MAY 任选支持的一种使用；Directory MAY 同时支持两种以提高可用性。两模式产生的索引条目 normative 等价。
 
-### 8.3 Push 模式：`ck.find.directory.announce`
+### 8.3 Push 模式：`ck.find.directory.command.announce`
 
 **Endpoint**：`POST /_cokret/find/directory/announce`
 
@@ -501,7 +501,7 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
 }
 ```
 
-### 8.4 Pull 模式与 push webhook 注册：`ck.find.directory.push.register`
+### 8.4 Pull 模式与 push webhook 注册：`ck.find.directory.push.command.register`
 
 Pull 模式不得调用资源 Principal Server 的 `/_cokret/self/events/*`。资源若允许 Directory 主动 refresh discovery state，必须通过 `/_cokret/find/directory/*` ingest / pull profile 暴露 Directory 专用读取面，并在 `supported_operations` 中声明对应 Directory operation；Directory 只能读取该资源签名的 effective discovery state，不得把 Events API 当作通用 discovery dump。
 
@@ -511,7 +511,7 @@ Directory 拉取流程：
 2. Principal Server 返回最新 effective discovery state（含 `proof`）。
 3. Directory 按 §8.5 验签后写入或更新本地索引。
 
-可选的 webhook 辅助：Directory MAY 调用 `ck.find.directory.push.register`（§9）让资源 Principal Server 在 discovery state 变更时主动 webhook 通知（fan-out 优化），但**协议级 freshness 仍以 §8.6 为准**——通知缺失或迟到不得使 stale 条目复活。
+可选的 webhook 辅助：Directory MAY 调用 `ck.find.directory.push.command.register`（§9）让资源 Principal Server 在 discovery state 变更时主动 webhook 通知（fan-out 优化），但**协议级 freshness 仍以 §8.6 为准**——通知缺失或迟到不得使 stale 条目复活。
 
 ### 8.5 验签与接受规则
 
@@ -549,7 +549,7 @@ Directory 接受 ingest（无论 push 或 pull）前 MUST 顺序完成：
 2. **资源端主动 withdraw**：`POST /_cokret/find/directory/withdraw`，body 含 `resource_id`、`reason`、governance key 签名（与 announce 同等强度）。Directory MUST 在 ≤ 1h 内停止披露。
 3. **Directory operator takedown**：单方面下架（policy 违规、abuse、法律）。Directory MUST：
    - 在内部 audit log 记录 `takedown_id`、operator、reason、生效时间；
-   - 通过 `ck.find.directory.describe.takedown_contact` 暴露的入口或 DID document `service` entry 中声明的 governance contact 通知资源端；
+   - 通过 `ck.find.directory.query.describe.takedown_contact` 暴露的入口或 DID document `service` entry 中声明的 governance contact 通知资源端；
    - 不得伪装为"资源主动撤销"——audit log 与资源端通知 MUST 标记为 `operator_takedown`。
 
 Operator takedown 的申诉 / 恢复 MUST 形成可验证闭环：
@@ -567,9 +567,9 @@ v1 core **不**定义 Directory 之间的 replication / federation 协议。每�
 
 跨 directory mirror、ranking 共享、reputation 交换属于未来 extension profile（工作名 `directory_mesh.v1`），不在 v1 互操作 floor。Directory MUST NOT 接受其他 directory 转发的索引内容作为权威；MAY 把其他 directory 的存在性作为 hint，但仍 MUST 通过 §8.2 模式独立 ingest。
 
-### 8.9 `ck.find.directory.describe` 扩展
+### 8.9 `ck.find.directory.query.describe` 扩展
 
-**Schema overlay 关系（normative）**：`ck.find.directory.describe` 响应是通用 `ck.schema.service_describe.v1` 的 **superset overlay**。Directory describe MUST 在通用 `service_describe` 基础上 extend 以下字段集，作为 directory-specific 字段权威列表：(a) `resource_types[]` 与 `discovery_profiles[]`（资源类别与索引 profile）；(b) `restricted_query_proof`（是否需要 holder-approved proof）；(c) 本节下表列出的 9 个 ingest 字段。`../sync/service-http-binding.md` 中所有 `ck.find.directory.describe` operation row 引用本节作为字段 superset 的权威定义，不另列重复表；任何 directory-specific 字段调整 MUST 先在本节落地。
+**Schema overlay 关系（normative）**：`ck.find.directory.query.describe` 响应是通用 `ck.schema.service_describe.v1` 的 **superset overlay**。Directory describe MUST 在通用 `service_describe` 基础上 extend 以下字段集，作为 directory-specific 字段权威列表：(a) `resource_types[]` 与 `discovery_profiles[]`（资源类别与索引 profile）；(b) `restricted_query_proof`（是否需要 holder-approved proof）；(c) 本节下表列出的 9 个 ingest 字段。`../sync/service-http-binding.md` 中所有 `ck.find.directory.query.describe` operation row 引用本节作为字段 superset 的权威定义，不另列重复表；任何 directory-specific 字段调整 MUST 先在本节落地。
 
 Directory MUST 在 `describe` 响应中暴露 ingest 能力：
 
@@ -626,21 +626,21 @@ POST /_cokret/find/directory/push/register
 
 | operation_id | 必填字段 | 可选字段 | 响应字段 | 约束 |
 | --- | --- | --- | --- | --- |
-| `ck.find.directory.describe` | 无 | 无 | `service_did: did`; `resource_types: string[]`; `discovery_profiles: string[]`; `restricted_query_proof: boolean?`；以及 §8.9 全部 ingest 字段 | `public_metadata`；可限流。 |
-| `ck.find.directory.search_realms` | 无 | `query: string`; `organization_did: did`; `source_realm_id: id`; `requester: did`; `proofs: proof[]`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 每条 result MUST 含 §9.1 normative 字段；其余按 §3 / §11 过滤；隐藏资源不得泄露存在性。 |
-| `ck.find.directory.resolve_realm` | 至少一个：`realm_id: id`、`alias: string`、`invite_token: string`、`signed_link: string` | `requester: did`; `proofs: proof[]` | `realm_preview: object`; `stripped_state: object[]?`; `join_rule: string?`; `join_candidates?: ck.schema.realm_join_candidate.v1[]` | `join_candidates[]` 是 v1 join 路由的规范字段；当 resolver 支持结构化 candidate 且调用方有权得到 join 路由时 MUST 给出调用方可用且经过 policy 过滤的候选 ingress service。若隐私策略不能披露 candidate，响应 MUST 省略 `join_candidates[]`；客户端在取得候选列表前不得提交 join material。invite / restricted / secret Realm 对未授权请求使用统一 `not_found`。 |
-| `ck.find.directory.resolve_target` | `address: string`（object-addressing grammar） | `requester: did`; `proofs: proof[]`; `token: string` | `target_kind: enum(realm,flow,message)`; `realm_preview: object?`; `object_preview: object?`; `join_rule: string?`; §9.1 全部通用字段 | `resolve_realm` 的对象级泛化（分享 Flow / Message / Realm 的深链解析）；realm 解析 MUST 委托同一 `resolve_realm` 路径，并继承 `join_candidates[]` 语义；`token` 仅在 `lt ∈ {invite, preview}` 的 link 类型下允许携带，reference 类型 MUST NOT 带 token（见 [`object-addressing.md` §4.1](./object-addressing.md)）；携带 `token` 时 MUST 按 target descriptor 逐级校验再走 join-policy；未授权统一 `not_found`。完整 grammar / token 绑定 / 隐私规则见 [`object-addressing.md`](./object-addressing.md)。 |
-| `ck.find.directory.search_organizations` | 无 | `query: string`; `claims: object`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 仅返回公开或授权可发现组织。 |
-| `ck.find.directory.resolve_organization` | 至少一个：`organization_did: did` 或 `handle: string` | `proofs: proof[]` | `organization_preview: object`; `did_document_ref: string?`; `endorsements: object[]?` | 解析组织不等于公开成员、Realm 列表或服务拓扑。 |
-| `ck.find.directory.search_actors` | 无 | `query: string`; `realm_id: id`; `organization_did: did`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 不得泄露 pairwise/private DID 或未披露组织账号。 |
-| `ck.find.directory.search_users` | `body.query: string` | `body.realm_id: id`; `body.limit: int`; `body.intent: enum(mention,invite,member_add)`; `body.cursor: cursor` | `results: object[]`（每条 result：`handle: string?`、`did: did?`(conditional)、`display_name: string?`、`avatar_blob_ref: id:blob?`、`membership: string?`、`member_delivery_binding: object?`(conditional)）; `next_cursor: cursor?`; `has_more: boolean?` | Directory-side user search / candidate discovery；受共同 Realm / directory policy 限制。Realm message mention MUST 先走 roster-local 解析，不得自动外呼本接口。分页字段（`has_more` / `next_cursor`）与本表其它 `search_*` op 一致，是 `search-users` 响应的唯一规范分页约定（[`profiles-presence.md` §4.1](./profiles-presence.md) 引用本行，不另定义 `limited`）。result 主体 DID 字段名统一为 `did`。`results[].did` 是 **conditional**：仅当请求方已通过 `resolve_handle` 所需的 claim / presentation / audience / Realm intent 验证，或结果来自调用方本地持有的联系人索引时才可返回；共同 Realm membership 不得单独授权披露 `did`。未授权时结果 MAY 只含 handle / display preview，不返回 `did` 或 `member_delivery_binding`。`query` 不得进入 URL、Referer 或未脱敏 access log。 |
-| `ck.find.directory.resolve_handle` | `handle: string` | `expected_did: did`; `proof_challenge: string`; `intent: enum(lookup,mention,invite,member_add)`; `realm_id: id`; `requester: did`; `proofs: proof[]` | `did: did`; `subject: did`; `handle: string`; `verified: boolean`; `claims: object[]?`; `member_delivery_binding: object?`; `source_refs: id[]?`; `expires_at: timestamp?` | 可选 Directory/profile 能力；base invite/member-add 不依赖该接口。受限 / 组织 handle 需要 presentation；响应 `handle` 是 canonical `user:domain`；投递服务 DID 只通过 `member_delivery_binding.recipient_service_did` 返回，且只能作为 builder evidence，不能替代 invite address + introduction evidence。 |
-| `ck.find.directory.resolve_agent_selector` | `controller_handle: string`; `agent_slug: string`; `intent: enum(lookup,mention,invite,member_add)`; `requester: did` | `expected_agent_did: did`; `proof_challenge: string`; `realm_id: id`; `proofs: proof[]` | `controller_subject: did`; `subject: did`; `agent_slug: string`; `verified: true`; `selector_claim: object`; `source_refs: id[]?`; `expires_at: timestamp?` | 精确解析 native personal agent selector。Directory MUST 先按 handle claim 解析 `controller_handle` 为 controller DID，再验证当前可见 `ck.schema.agent_selector_claim.v1` 的 `(controller_subject, agent_slug) -> subject`、`binding_state="verified"`、visibility / audience / claim_scope、proof、agent Actor Profile 与 accountability grant。成功响应中的 `subject` 是 agent DID；失败、未授权、不可见、revoked / expired / ambiguous、controller 不存在或 agent 不可见 MUST 使用与不存在不可区分的失败。该接口不是搜索 / 列表接口，不得支持 slug prefix、模糊匹配或返回候选。 |
-| `ck.find.directory.list_handles_for_subject` | `subject: did` | `realm_id: id`; `intent: enum(lookup,mention,invite,member_add)`; `requester: did`; `proof_challenge: string`; `proofs: proof[]`; `as_of: datetime`; `cursor: cursor`; `limit: int` | `subject: did`; `claims: object[]`; `primary_handle: string?`; `as_of: datetime`; `next_cursor: cursor?`; `has_more: boolean` | 已知 holder / principal DID 时列出当前 context 可见 signed handle claims；响应符合 `ck.schema.list_handles_for_subject_response.v1`，且 `claims[].subject` MUST 等于响应 `subject`。`subject` 不是 Realm `actor_id`。必须按 disclosure policy、issuer trust、audience 和 Realm intent 过滤。 |
-| `ck.find.directory.private_contact_discovery` | 见 §6.3 | 见 §6.3 | 见 §6.3 | 见 §6；MUST 使用 blinded / padded identifier batch；不得返回原始 connection identifier、完整 profile、成员列表或关系图谱。 |
-| `ck.find.directory.announce` | 见 §8.3 | 见 §8.3 | 见 §8.3 | 见 §8。 |
-| `ck.find.directory.withdraw` | `resource_id: id\|did\|handle`; `governance_proof: object`; `reason: string` | `effective_at: timestamp` | `withdrawal_ref: string`; `acked_at: timestamp` | `withdrawal_ref` 是 Directory-local audit reference，不是注册 typed ID；见 §8.7。 |
-| `ck.find.directory.push.register` | `subscriber_did: did`; `resource_filter: object`; `webhook_endpoint: url` | `secret: string`; `expires_at: timestamp` | `subscription_id: id`; `effective_at: timestamp` | 仅作为 pull 模式优化；不替代 §8.6 freshness 协议。 |
+| `ck.find.directory.query.describe` | 无 | 无 | `service_did: did`; `resource_types: string[]`; `discovery_profiles: string[]`; `restricted_query_proof: boolean?`；以及 §8.9 全部 ingest 字段 | `public_metadata`；可限流。 |
+| `ck.find.directory.query.search_realms` | 无 | `query: string`; `organization_did: did`; `source_realm_id: id`; `requester: did`; `proofs: proof[]`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 每条 result MUST 含 §9.1 normative 字段；其余按 §3 / §11 过滤；隐藏资源不得泄露存在性。 |
+| `ck.find.directory.query.resolve_realm` | 至少一个：`realm_id: id`、`alias: string`、`invite_token: string`、`signed_link: string` | `requester: did`; `proofs: proof[]` | `realm_preview: object`; `stripped_state: object[]?`; `join_rule: string?`; `join_candidates?: ck.schema.realm_join_candidate.v1[]` | `join_candidates[]` 是 v1 join 路由的规范字段；当 resolver 支持结构化 candidate 且调用方有权得到 join 路由时 MUST 给出调用方可用且经过 policy 过滤的候选 ingress service。若隐私策略不能披露 candidate，响应 MUST 省略 `join_candidates[]`；客户端在取得候选列表前不得提交 join material。invite / restricted / secret Realm 对未授权请求使用统一 `not_found`。 |
+| `ck.find.directory.query.resolve_target` | `address: string`（object-addressing grammar） | `requester: did`; `proofs: proof[]`; `token: string` | `target_kind: enum(realm,flow,message)`; `realm_preview: object?`; `object_preview: object?`; `join_rule: string?`; §9.1 全部通用字段 | `resolve_realm` 的对象级泛化（分享 Flow / Message / Realm 的深链解析）；realm 解析 MUST 委托同一 `resolve_realm` 路径，并继承 `join_candidates[]` 语义；`token` 仅在 `lt ∈ {invite, preview}` 的 link 类型下允许携带，reference 类型 MUST NOT 带 token（见 [`object-addressing.md` §4.1](./object-addressing.md)）；携带 `token` 时 MUST 按 target descriptor 逐级校验再走 join-policy；未授权统一 `not_found`。完整 grammar / token 绑定 / 隐私规则见 [`object-addressing.md`](./object-addressing.md)。 |
+| `ck.find.directory.query.search_organizations` | 无 | `query: string`; `claims: object`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 仅返回公开或授权可发现组织。 |
+| `ck.find.directory.query.resolve_organization` | 至少一个：`organization_did: did` 或 `handle: string` | `proofs: proof[]` | `organization_preview: object`; `did_document_ref: string?`; `endorsements: object[]?` | 解析组织不等于公开成员、Realm 列表或服务拓扑。 |
+| `ck.find.directory.query.search_actors` | 无 | `query: string`; `realm_id: id`; `organization_did: did`; `cursor: cursor`; `limit: int` | `results: object[]`; `next_cursor: cursor?`; `has_more: boolean` | 不得泄露 pairwise/private DID 或未披露组织账号。 |
+| `ck.find.directory.query.search_users` | `body.query: string` | `body.realm_id: id`; `body.limit: int`; `body.intent: enum(mention,invite,member_add)`; `body.cursor: cursor` | `results: object[]`（每条 result：`handle: string?`、`did: did?`(conditional)、`display_name: string?`、`avatar_blob_ref: id:blob?`、`membership: string?`、`member_delivery_binding: object?`(conditional)）; `next_cursor: cursor?`; `has_more: boolean?` | Directory-side user search / candidate discovery；受共同 Realm / directory policy 限制。Realm message mention MUST 先走 roster-local 解析，不得自动外呼本接口。分页字段（`has_more` / `next_cursor`）与本表其它 `search_*` op 一致，是 `search-users` 响应的唯一规范分页约定（[`profiles-presence.md` §4.1](./profiles-presence.md) 引用本行，不另定义 `limited`）。result 主体 DID 字段名统一为 `did`。`results[].did` 是 **conditional**：仅当请求方已通过 `resolve_handle` 所需的 claim / presentation / audience / Realm intent 验证，或结果来自调用方本地持有的联系人索引时才可返回；共同 Realm membership 不得单独授权披露 `did`。未授权时结果 MAY 只含 handle / display preview，不返回 `did` 或 `member_delivery_binding`。`query` 不得进入 URL、Referer 或未脱敏 access log。 |
+| `ck.find.directory.query.resolve_handle` | `handle: string` | `expected_did: did`; `proof_challenge: string`; `intent: enum(lookup,mention,invite,member_add)`; `realm_id: id`; `requester: did`; `proofs: proof[]` | `did: did`; `subject: did`; `handle: string`; `verified: boolean`; `claims: object[]?`; `member_delivery_binding: object?`; `source_refs: id[]?`; `expires_at: timestamp?` | 可选 Directory/profile 能力；base invite/member-add 不依赖该接口。受限 / 组织 handle 需要 presentation；响应 `handle` 是 canonical `user:domain`；投递服务 DID 只通过 `member_delivery_binding.recipient_service_did` 返回，且只能作为 builder evidence，不能替代 invite address + introduction evidence。 |
+| `ck.find.directory.query.resolve_agent_selector` | `controller_handle: string`; `agent_slug: string`; `intent: enum(lookup,mention,invite,member_add)`; `requester: did` | `expected_agent_did: did`; `proof_challenge: string`; `realm_id: id`; `proofs: proof[]` | `controller_subject: did`; `subject: did`; `agent_slug: string`; `verified: true`; `selector_claim: object`; `source_refs: id[]?`; `expires_at: timestamp?` | 精确解析 native personal agent selector。Directory MUST 先按 handle claim 解析 `controller_handle` 为 controller DID，再验证当前可见 `ck.schema.agent_selector_claim.v1` 的 `(controller_subject, agent_slug) -> subject`、`binding_state="verified"`、visibility / audience / claim_scope、proof、agent Actor Profile 与 accountability grant。成功响应中的 `subject` 是 agent DID；失败、未授权、不可见、revoked / expired / ambiguous、controller 不存在或 agent 不可见 MUST 使用与不存在不可区分的失败。该接口不是搜索 / 列表接口，不得支持 slug prefix、模糊匹配或返回候选。 |
+| `ck.find.directory.query.list_handles_for_subject` | `subject: did` | `realm_id: id`; `intent: enum(lookup,mention,invite,member_add)`; `requester: did`; `proof_challenge: string`; `proofs: proof[]`; `as_of: datetime`; `cursor: cursor`; `limit: int` | `subject: did`; `claims: object[]`; `primary_handle: string?`; `as_of: datetime`; `next_cursor: cursor?`; `has_more: boolean` | 已知 holder / principal DID 时列出当前 context 可见 signed handle claims；响应符合 `ck.schema.list_handles_for_subject_response.v1`，且 `claims[].subject` MUST 等于响应 `subject`。`subject` 不是 Realm `actor_id`。必须按 disclosure policy、issuer trust、audience 和 Realm intent 过滤。 |
+| `ck.find.directory.query.private_contact_discovery` | 见 §6.3 | 见 §6.3 | 见 §6.3 | 见 §6；MUST 使用 blinded / padded identifier batch；不得返回原始 connection identifier、完整 profile、成员列表或关系图谱。 |
+| `ck.find.directory.command.announce` | 见 §8.3 | 见 §8.3 | 见 §8.3 | 见 §8。 |
+| `ck.find.directory.command.withdraw` | `resource_id: id\|did\|handle`; `governance_proof: object`; `reason: string` | `effective_at: timestamp` | `withdrawal_ref: string`; `acked_at: timestamp` | `withdrawal_ref` 是 Directory-local audit reference，不是注册 typed ID；见 §8.7。 |
+| `ck.find.directory.push.command.register` | `subscriber_did: did`; `resource_filter: object`; `webhook_endpoint: url` | `secret: string`; `expires_at: timestamp` | `subscription_id: id`; `effective_at: timestamp` | 仅作为 pull 模式优化；不替代 §8.6 freshness 协议。 |
 
 ### 9.0 Handle 解析（normative）
 
@@ -671,7 +671,7 @@ Directory MUST NOT：
 | --- | --- | --- |
 | `as_of` | `timestamp` | Directory 上次刷新该条目的时间。 |
 | `source_refs` | `id[]` | 真相源 event id；客户端可据此回 Principal Server 验签。 |
-| `policy_revision` | `string` | discovery state 的 effective revision；便于跨 Directory 对账。每条 search / resolve 结果 MUST 携带（与 §7.3 不变量 3 一致），不得省略；`ck.find.directory.resolve_target` 等泛化解析继承同一 MUST。 |
+| `policy_revision` | `string` | discovery state 的 effective revision；便于跨 Directory 对账。每条 search / resolve 结果 MUST 携带（与 §7.3 不变量 3 一致），不得省略；`ck.find.directory.query.resolve_target` 等泛化解析继承同一 MUST。 |
 | `stale` | `boolean?` | TTL 过期且未续约时为 `true`，客户端 SHOULD 仅作参考。 |
 | `divergent` | `boolean?` | 与同一资源的另一 Directory 视图不一致时为 `true`（实现可选检测）。 |
 | `join_candidates` | `ck.schema.realm_join_candidate.v1[]?` | Realm join / invite-accept / knock 的候选 ingress service 列表。`resolve_realm` 与 realm-target `resolve_target` 在 resolver 支持结构化 candidate 且调用方有权得到 join 路由时 MUST 给出；search 结果 MAY 省略，客户端 join 前再 resolve。没有 `join_candidates[]` 的响应不能直接用于提交 join material。 |
@@ -684,7 +684,7 @@ Directory MUST NOT：
 
 1. `realm_id` MUST 等于解析结果的 canonical Realm ID。
 2. `service_did` MUST 是 service DID，不是用户 / 成员 principal DID；调用方在传输前 MUST 重新解析 DID Document，并确认 endpoint 支持 candidate 声明的 `operations`。
-3. `operations` MUST 包含 `ck.self.events.submit`；缺失时不得用于 join-side submit。
+3. `operations` MUST 包含 `ck.self.events.command.submit`；缺失时不得用于 join-side submit。
 4. `expires_at` 过期、`stale=true`、或 `policy_revision` / `source_refs` 与真相源不一致时，客户端 MUST 重新 `resolve_realm`，不得继续使用缓存 candidate。
 5. Candidate 只决定"把 join material 交给哪一个服务"；最终是否接受仍由 Realm auth state、Join Policy、capability、invite / review 链、event signature 和 reducer 校验决定。
 6. `member_delivery_binding.recipient_service_did` 与 `join_candidates[].service_did` 是两个不同方向：前者是成员加入后自己的投递服务，后者是本次加入 Realm 的 ingress service。实现 MUST NOT 从一个字段推导另一个字段。
@@ -742,8 +742,8 @@ Result：
           "role": "primary",
           "endpoint": "https://principal.acme.example",
           "operations": [
-            "ck.self.events.submit",
-            "ck.self.events.query"
+            "ck.self.events.command.submit",
+            "ck.self.events.query.scan"
           ],
           "join_methods": [
             "knock",
@@ -830,7 +830,7 @@ Directory-capable implementations MUST test：
 - `ck.vector.directory.restricted_claim_presentation.v1`：restricted search with valid and invalid claim presentation。
 - `ck.vector.directory.unlisted_exact_resolve.v1`：unlisted exact resolve。
 - `ck.vector.directory.invite_not_found_blinding.v1`：invite-only indistinguishable not_found。
-- `ck.vector.directory.resolve_target_blinding.v1`：`ck.find.directory.resolve_target` unauthorized / nonexistent / undiscoverable targets return byte-identical `not_found` and do not reveal target kind, Realm id, object id, timing class or preview metadata。
+- `ck.vector.directory.resolve_target_blinding.v1`：`ck.find.directory.query.resolve_target` unauthorized / nonexistent / undiscoverable targets return byte-identical `not_found` and do not reveal target kind, Realm id, object id, timing class or preview metadata。
 - `ck.vector.directory.organization_badge_verification.v1`：official Realm verification through `ck.realm.organization`。
 - `ck.vector.directory.pairwise_did_exclusion.v1`：hidden pairwise DID exclusion。
 - `ck.vector.directory.stale_result_rejection.v1`：stale result rejection after discovery policy update。

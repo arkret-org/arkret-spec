@@ -424,7 +424,7 @@ reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applica
 
 ## 11. Policy Server 运行时挑战
 
-Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声明 `applies_to` 包含 `join` 时，对每条 `ck.member.state{join}` Control Move 以及 `member.application` signed receipt / private record 调用 `ck.self.policy.check` operation（默认 HTTP binding 为 `POST /_cokret/self/policy/check`）。除既有 `decision` 外，Join 场景新增 obligation 子规范：
+Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声明 `applies_to` 包含 `join` 时，对每条 `ck.member.state{join}` Control Move 以及 `member.application` signed receipt / private record 调用 `ck.self.policy.query.check` operation（默认 HTTP binding 为 `POST /_cokret/self/policy/check`）。除既有 `decision` 外，Join 场景新增 obligation 子规范：
 
 ```json
 {
@@ -450,7 +450,7 @@ Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声�
 
 applicant 完成挑战后，重新提交 join / application Control Move，在 `gate_proofs[]` 中追加 `{gate_id: "runtime:<challenge_id>", challenge_proof: {...}}`。`challenge_proof.challenge_id` 是 runtime challenge 的唯一匹配键；verifier MUST 仅按该键选择 challenge proof。Policy Server 重新校验后返回 `decision=allow`。`must_satisfy_before_resubmit=true` 时 reducer MUST 拒绝缺失对应 `challenge_id` proof 的重提。
 
-`bound_to.request_canonical_digest` 按 [`policy-server.md` §4.1](../authz/policy-server.md) 的 proof-stripped transcript 计算：它绑定首次被 challenge 的原始 join / application 请求，而不是包含 `challenge_proof` 自身的最终重提 Control Move。重提 Control Move 除追加 runtime challenge proof 外不得改变原始请求语义；任何字段变更都必须重新走 `ck.self.policy.check` 并获取新的 challenge。
+`bound_to.request_canonical_digest` 按 [`policy-server.md` §4.1](../authz/policy-server.md) 的 proof-stripped transcript 计算：它绑定首次被 challenge 的原始 join / application 请求，而不是包含 `challenge_proof` 自身的最终重提 Control Move。重提 Control Move 除追加 runtime challenge proof 外不得改变原始请求语义；任何字段变更都必须重新走 `ck.self.policy.query.check` 并获取新的 challenge。
 
 `obligations[].type` 注册值（`rate_limit` / `challenge` / `review_hold` / `drop_attachment`）维护在 [`../authz/policy-server.md` §4](../authz/policy-server.md) 表中；本规范是 `challenge` 类型在 join 路径上的 normative wire schema，其它路径（如 `ck.message.create`）若使用 `challenge` 必须遵循同一 envelope。
 

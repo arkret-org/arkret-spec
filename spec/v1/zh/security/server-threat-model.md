@@ -28,7 +28,7 @@ sidebar:
    对认证入口进行高频尝试，或利用泄露/重放的 session token、service token、gateway token 发起越权写入与批量操作。
 
 3. **写入泛滥（Write Flood）**
-   大量 `self.events.submit`（含联邦 service-to-service 形态）、`media.upload`、`call` 事务造成 CPU/IO/队列压垮。
+   大量 `self.events.command.submit`（含联邦 service-to-service 形态）、`media.upload`、`call` 事务造成 CPU/IO/队列压垮。
 
 4. **放大与重试风暴（Amplification / Retry Storm）**
    利用短周期失败、重试、回执链路放大或抖动，触发队列/重试池快速增长。
@@ -85,7 +85,7 @@ sidebar:
 21. **URL 凭证泄露（URL Credential Leakage）**
     将 session token、API key 或签名材料放入 query string，导致浏览器历史、代理日志、崩溃日志、复制链接或 referrer 泄露。
 
-    *受控例外：`ck.self.blob.presign`* — 为兼容浏览器原生标签（`<img src>` / `<video src>` 等无法附 Authorization header）允许由 blob service DID 签发的 pre-signed URL 通过 `?presign=<envelope>` 携带认证。该例外受 §5.4 [`crypto-media/media-and-blob.md`](../crypto-media/media-and-blob.md) 严格收紧：TTL ≤ 1h、单 blob、只读、可撤销、不得用于 E2EE 附件；envelope 内不得包含可重用 credential；服务端用 audit log 追踪签发。**除此一个明确登记的例外外，本威胁项规则不变**：session token / refresh token / capability grant / device key 等任何长期或可重用凭证仍 MUST NOT 进入 URL。
+    *受控例外：`ck.self.blob.command.presign`* — 为兼容浏览器原生标签（`<img src>` / `<video src>` 等无法附 Authorization header）允许由 blob service DID 签发的 pre-signed URL 通过 `?presign=<envelope>` 携带认证。该例外受 §5.4 [`crypto-media/media-and-blob.md`](../crypto-media/media-and-blob.md) 严格收紧：TTL ≤ 1h、单 blob、只读、可撤销、不得用于 E2EE 附件；envelope 内不得包含可重用 credential；服务端用 audit log 追踪签发。**除此一个明确登记的例外外，本威胁项规则不变**：session token / refresh token / capability grant / device key 等任何长期或可重用凭证仍 MUST NOT 进入 URL。
 
 22. **媒体侧信道探测（Media Header / Range Probe）**
     通过 `HEAD`、`Range`、`Content-Length`、`Content-Type`、`Content-Disposition` 或 redirect 差异推断私有 blob 是否存在、大小、类型或文件名。
@@ -157,7 +157,7 @@ sidebar:
 | MLS epoch 滥用 | 是 | epoch monotonic、移除成员 fail-closed、提交顺序与 commit/proposal 校验。 |
 | 推送网关滥用 | 是 | push gateway 注册与签发源鉴权，推送消息按最小必要字段。**推送侧信道**:collapse/dedup key 跨 window 不可链接、presence push timing bucket 化(默认 ≥60s)、`push_target_id` pairwise 不可跨上下文关联、blind_wakeup counts 不携带明文绝对未读数(见 §2.1 #20 与 [`discovery/push-notifications.md` §2.2 / §2.4 / §5.1](../discovery/push-notifications.md))。 |
 | Directory ingest 滥用 | 是 | announce 来源 DID 验签、`as_of` 单调 / 时间锚、policy_revision 单调防回退、announce 一次性 + 过期窗口、source-ref 授权核验、takedown 授权链(见 §2.1 #25 与 [`discovery/discovery-directory.md` §8.10 / §11](../discovery/discovery-directory.md))。 |
-| URL 凭证泄露 | 是 | 禁止 query string 认证。**单一登记例外**：`ck.self.blob.presign` 签发的 pre-signed URL 通过 `?presign=` 携带 server-issued、短时效（≤1h）、单 blob、只读、可撤销的签名 envelope（见 §2.1 #21 与 [`crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)）；E2EE 附件 ciphertext fetch MUST NOT 使用此机制。 |
+| URL 凭证泄露 | 是 | 禁止 query string 认证。**单一登记例外**：`ck.self.blob.command.presign` 签发的 pre-signed URL 通过 `?presign=` 携带 server-issued、短时效（≤1h）、单 blob、只读、可撤销的签名 envelope（见 §2.1 #21 与 [`crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)）；E2EE 附件 ciphertext fetch MUST NOT 使用此机制。 |
 | 媒体侧信道探测 | 是 | 私有 blob 的 HEAD/Range/redirect 统一授权；不可见资源不返回大小、MIME、文件名或 Range header。 |
 | 出站 URL / SSRF | 是 | [`sync/api-conventions.md`](../sync/api-conventions.md) §11.2 的出站网络目标策略；DID、联邦、媒体、snapshot、Policy Server、Webhook、Applet/Agent endpoint 统一做私网/metadata 地址拒绝、DNS rebind 防护和 redirect 复核。 |
 

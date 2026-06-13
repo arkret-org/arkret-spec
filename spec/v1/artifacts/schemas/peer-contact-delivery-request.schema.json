@@ -84,7 +84,7 @@
             "duplicate",
             "deferred"
           ],
-          "description": "Generic receive status. It MUST NOT reveal whether subject_id exists or whether the holder's receive policy suppressed the fact, beyond the optional disclosed_outcome graded disclosure that mirrors ck.peer.invites.submit."
+          "description": "Generic receive status. It MUST NOT reveal whether subject_id exists or whether the holder's receive policy suppressed the fact, beyond the optional disclosed_outcome graded disclosure that mirrors ck.peer.invites.command.submit."
         },
         "disclosed_outcome": {
           "type": "string",

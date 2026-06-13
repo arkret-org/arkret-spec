@@ -71,7 +71,7 @@ Cokret v1 把三件事分开处理：
 ### 2.2 设备吊销
 当设备丢失时，用户可从任何其他已授权设备、DID 控制密钥或 recovery policy 允许的恢复服务发起吊销操作：发布 `ck.device.revoke`，停止接受该设备的新签名写入，并对受影响的 MLS 群组触发 `Remove` 与 Epoch 更新。若该设备曾被写入 DID Document，撤销流程还必须按 DID method 规则移除或失效对应 verification method。
 
-`ck.device.revoke` 是 principal control stream 上的 Control Move：其 Event Envelope MUST 携带 `seal_basis`（撤销方签名时观察到的 accepted Seal view `{leaves[], control_event_set_root, state_root}`，进入 canonical event bytes 并被撤销证明签名覆盖，见 `../authz/event-auth-state-resolution.md` §5）；payload 不携带任何 frontier 字段。客户端铸造单 leaf basis 的注册来源是 `ck.self.events.frontier?realm_id=<principal_control_realm_id>`（Realm Seal view `{realm_id, seal_id, control_event_set_root, state_root, hlc?}`，取 `leaves=[seal_id]`）；该来源不可用时 MUST fail closed，不得伪造 basis。撤销自被 accepted Seal 覆盖（`control_sealed`）起生效；Principal Server / Sync Service 在拒绝该设备后续 session grant、KeyPackage、to-device write 或 Event write 时，MUST 以该 covering Seal 或其后继 Seal view 作为判定依据，不得用本地布尔缓存替代；撤销已提交但尚未 sealed 期间，受理服务 SHOULD 预先 fail closed。
+`ck.device.revoke` 是 principal control stream 上的 Control Move：其 Event Envelope MUST 携带 `seal_basis`（撤销方签名时观察到的 accepted Seal view `{leaves[], control_event_set_root, state_root}`，进入 canonical event bytes 并被撤销证明签名覆盖，见 `../authz/event-auth-state-resolution.md` §5）；payload 不携带任何 frontier 字段。客户端铸造单 leaf basis 的注册来源是 `ck.self.events.query.frontier?realm_id=<principal_control_realm_id>`（Realm Seal view `{realm_id, seal_id, control_event_set_root, state_root, hlc?}`，取 `leaves=[seal_id]`）；该来源不可用时 MUST fail closed，不得伪造 basis。撤销自被 accepted Seal 覆盖（`control_sealed`）起生效；Principal Server / Sync Service 在拒绝该设备后续 session grant、KeyPackage、to-device write 或 Event write 时，MUST 以该 covering Seal 或其后继 Seal view 作为判定依据，不得用本地布尔缓存替代；撤销已提交但尚未 sealed 期间，受理服务 SHOULD 预先 fail closed。
 
 共享 E2EE Realm 不能只看到“某设备已撤销”的服务端布尔值就推进新 epoch。对应 `ck.mls.commit` Remove 的 `governance_binding.membership_frontier` MUST 覆盖该 `ck.device.revoke` 事件本身，或覆盖一个已经把该撤销导入 Realm governance state 的显式 Control Move，且该撤销 MUST 已被 principal control stream 的 accepted Seal 覆盖；否则该 Remove 不满足 MLS Governance Binding，新的 `covered_seals_cell` 不得声称已覆盖该设备撤销。
 
@@ -496,9 +496,9 @@ Content-Type: application/json
 }
 ```
 
-接收旧设备 MUST 把 `purpose`、`pairing_code`、`new_device_pubkey.kid`、`challenge_signature`、`gate_audience` 和 `request_canonical_digest` 纳入用户确认与 SAS/QR transcript 绑定；不得只因收到该请求就把新设备标记为 trusted。用户确认后，旧设备通过 `ck.gate.account.device_pair` 完成授权落地；本规范不定义 `/_cokret/self/devices/pairing-requests*` 作为授权批准接口。
+接收旧设备 MUST 把 `purpose`、`pairing_code`、`new_device_pubkey.kid`、`challenge_signature`、`gate_audience` 和 `request_canonical_digest` 纳入用户确认与 SAS/QR transcript 绑定；不得只因收到该请求就把新设备标记为 trusted。用户确认后，旧设备通过 `ck.gate.account.command.pair_device` 完成授权落地；本规范不定义 `/_cokret/self/devices/pairing-requests*` 作为授权批准接口。
 
-服务端 MUST 以 `(sender, Idempotency-Key)` 幂等。已投递消息的队列删除只由接收设备的显式确认（`ck.self.device_messages.ack`，见下文与 [`client-sync.md` §10.1](../sync/client-sync.md)）驱动；sync cursor 推进 MUST NOT 触发删除。To-device 消息 SHOULD 端到端加密；未加密消息只能用于能力发现和验证引导。
+服务端 MUST 以 `(sender, Idempotency-Key)` 幂等。已投递消息的队列删除只由接收设备的显式确认（`ck.self.device_messages.command.ack`，见下文与 [`client-sync.md` §10.1](../sync/client-sync.md)）驱动；sync cursor 推进 MUST NOT 触发删除。To-device 消息 SHOULD 端到端加密；未加密消息只能用于能力发现和验证引导。
 
 若 `content` 已端到端加密，加密 AAD MUST 至少覆盖 `kind`、`sender_principal_id`、`sender_device_id`、`recipient_principal_id`、`recipient_device_id`、`sent_at` 和 `expires_at`。队列服务不得重写这些字段。`Idempotency-Key` 是 HTTP 层语义，不进入 envelope，也不参与 AAD。
 
@@ -522,7 +522,7 @@ Authorization: Bearer <token>
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `messages` | `object[]` | required | 当前设备可见的 to-device 消息（`DeviceMessageEnvelope[]`，不是 Event Envelope）。 |
-| `ack_token` | `string` | optional | `messages` 非空时 MUST 返回。覆盖本页及之前所有已投递消息的不透明确认令牌；客户端持久化处理完成后回传给 `ck.self.device_messages.ack`。语义见 [`client-sync.md` §10.1](../sync/client-sync.md)。 |
+| `ack_token` | `string` | optional | `messages` 非空时 MUST 返回。覆盖本页及之前所有已投递消息的不透明确认令牌；客户端持久化处理完成后回传给 `ck.self.device_messages.command.ack`。语义见 [`client-sync.md` §10.1](../sync/client-sync.md)。 |
 | `next_cursor` | `cursor` | optional | 下一次读取 stream cursor（只读位置，不触发删除）。 |
 | `has_more` | `boolean` | required | 是否还有后续消息页。 |
 | `limited` | `boolean` | optional | 是否因 limit 被截断。 |
@@ -763,7 +763,7 @@ QR payload MUST NOT 包含长期私钥、secret storage key、recovery secret �
 2. 发布 `ck.device.list_update`。
 3. 在用户或 policy 允许时，通过加密 to-device 消息共享 `self_signing_key`、secret storage bootstrap 或 MLS Welcome。
 
-当验证目的为 `same_principal_device_authorization` 时，用户确认后的授权落地 MUST 发生在 `/_cokret/gate/account/*` 认证面，默认使用 `ck.gate.account.device_pair`。旧设备把验证 transcript 中绑定的 `pairing_code`、`new_device_pubkey`、`challenge_signature` 以及自身 fresh device proof 提交给 gate；gate 返回的 `authorized_event_ref` 只是 durable `ck.device.authorize` / `ck.device.list_update` 已被接受的引用或等价结果。新设备可通过同一 to-device transcript 的 `ck.key.verification.done` 中的 `authorized_event_ref` hint、后续 full `ck.self.account.subscribe` device list baseline，或重新通过 `ck.gate.account.issue_session_grant` 升级会话来观察授权结果；它 MUST 验证 durable device list，而不得把 `done` 消息本身当成授权真相源。
+当验证目的为 `same_principal_device_authorization` 时，用户确认后的授权落地 MUST 发生在 `/_cokret/gate/account/*` 认证面，默认使用 `ck.gate.account.command.pair_device`。旧设备把验证 transcript 中绑定的 `pairing_code`、`new_device_pubkey`、`challenge_signature` 以及自身 fresh device proof 提交给 gate；gate 返回的 `authorized_event_ref` 只是 durable `ck.device.authorize` / `ck.device.list_update` 已被接受的引用或等价结果。新设备可通过同一 to-device transcript 的 `ck.key.verification.done` 中的 `authorized_event_ref` hint、后续 full `ck.self.account.stream.subscribe` device list baseline，或重新通过 `ck.gate.account.command.issue_session_grant` 升级会话来观察授权结果；它 MUST 验证 durable device list，而不得把 `done` 消息本身当成授权真相源。
 
 跨 principal 验证完成后，客户端 MAY 使用 `user_signing_key` 对对方 principal identity key 或 device key 生成信任签名。该签名只影响本 principal 的信任视图，不授予对方 Realm capability。
 

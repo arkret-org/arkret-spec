@@ -67,36 +67,36 @@ Blob 上传、媒体下载和二进制 stream MAY 使用其他 content type，�
 
 注意：OpenAPI `content:` map 与 HTTP `Content-Type` 只表示 media type / body 编码，不是 Cokret Content Block 字段。协议正文内容仍按对象或 Event payload schema 使用 `content` / `encrypted_content`。
 
-### 2.4 Operation ID 动词 taxonomy
+### 2.4 Operation ID kind/action taxonomy
 
-标准 `operation_id` 是跨 transport 的语义操作名，不是 HTTP method 的派生名。最后一个动词段或复合动词段 MUST 与以下 taxonomy 对齐；新增 operation 若不匹配，必须在 `contract-catalog.json` 的 operation notes 中说明理由。
+标准 `operation_id` 是跨 transport 的语义操作名，不是 HTTP method 的派生名。Operation ID MUST 使用可变长度前缀加固定末两段：
 
-| 动词 | 语义边界 |
-| --- | --- |
-| `describe` | 服务、profile、feature、限制和 binding 元数据读取；通常可 pre-auth 暴露最小公开能力。 |
-| `get` | 单个已知资源的直接读取，通常由 path / query 中的单一 id 定位。 |
-| `list` | 某个已知 owner/scope 下的枚举读取；可以分页，但不表达复杂 selector 搜索。 |
-| `resolve` | 将 event id / hash、handle、invite token、alias、DID 或外部标识解析为 canonical object、proof 或可验证 projection。 |
-| `query` | selector、filter、cursor 或 range scan；结果通常按时间、因果或索引顺序分页。 |
-| `search` | 目录型关键词 / discovery 查询；结果受 discoverability、隐私和排名策略控制。 |
-| `subscribe` | streaming delta、live tail 或长连接增量流。 |
-| `submit` | 提交带签名、顺序、幂等或 admission 规则的 envelope / proof / batch；服务端验证后接受、拒绝、隔离或去重。 |
-| `create` | 创建新资源或会话，资源 id 通常由服务端分配，或由请求体中声明并经服务端验证。 |
-| `update` | 对既有资源执行部分更新、状态推进或外部协议定义的 update 交互；不要求完整替换当前表示。 |
-| `set` | 设置某个已知 slot / preference / policy 的当前值；通常允许后写覆盖前写，适合有稳定 path slot 的 HTTP `PUT` binding。 |
-| `put` | 对 HTTP path 标识的单个资源/slot 执行完整创建、替换或存放；HTTP/JSON binding 中 MUST 使用 HTTP `PUT`。幂等但不是完整替换的 command 不得使用 `put` 后缀。 |
-| `publish` | 发布调用方签名的当前权威文档、policy 或 identity state；服务端按签名、版本和 supersedes 关系验证后接受。 |
-| `delete` | 删除或移除单个已知资源/slot；应对不存在/重复删除定义幂等结果。 |
-| `ack` | 对已投递数据做显式确认；天然幂等，不能被 cursor 推进隐式替代。 |
-| `upload` | 上传字节流、密钥包或 blob-like artifact；可能使用 JSON、multipart、octet-stream 或 companion upload binding。 |
-| `claim` / `consume` / `unlock` | 领取、消费或解锁一次性/受控材料；调用通常会改变服务器保存的可领取状态，因此不能建模为普通读取。 |
-| `register` / `unregister` | 注册或注销外部可投递目标、会话、设备或 webhook 绑定。 |
-| `check` | 评估授权、policy 或前置条件并返回决策；不创建 capability，也不应被客户端缓存为长期授权。 |
-| `send` / `notify` / `transaction` | 投递瞬态信号、通知或跨服务批次；若存在持久化或去重要求，必须由 endpoint 契约显式声明。 |
+```text
+ck.<surface>.<domain-or-subject...>.<kind>.<action>
+```
 
-HTTP method 不是 operation 动词来源：同一 `query` 语义可以有 GET query string 与 POST/body 两种 binding；这种情况必须标记为 binding variant，而不是发明新的抽象语义。只有形如 `*_post` 的 registered operationId 后缀可以表示 HTTP-only companion binding；例如 `ck.self.events.query_post` 必须声明 `binding_variant_of="ck.self.events.query"`，非 HTTP transport 仍使用 canonical `query` 操作。
+`<kind>` MUST 取下表固定集合。`<action>` 是该 kind 内的业务动作，MUST 描述协议效果，不得使用 `post`、`put`、`delete` 等 HTTP method 名称来表达 transport binding。
 
-**`viewer` 名词段（术语定义）**：`ck.self.account.viewer` 的末段 `viewer` 不取上表读取动词，理由记录于 `contract-catalog.json` 的 operation notes。其含义钉死为：**当前已认证 holder 的主体自读投影**——目标不由 path / query 中的外部 id 定位，而由 holder-bound `user_session` 的会话绑定决定，故不适用 `get`；命名沿用 GraphQL 生态的 `viewer` 惯例（"viewer = 发起请求的已认证主体"）。它与 `describe`（服务能力元数据，可 pre-auth）的区分见 [`service-http-binding.md` §5.1](./service-http-binding.md)。注意区分本规范 prose 中 `viewer` 的另一用法：可见性 / 投影语境（pins、history visibility、conformance vector 的 `viewer_*` 字段）里的 "viewer" 指**正在读取内容、作为可见性评估视角的主体**，不是本 operation；`reviewer`（审核者）与两者均无关，全文检索 `viewer` 时勿混入。
+| kind | 语义边界 | HTTP/JSON binding 关系 |
+| --- | --- | --- |
+| `query` | 只读查询、解析、枚举、frontier/head/effective/viewer 投影、policy check。不得产生 server-side mutation。 | 通常 `GET`；复杂 selector、隐私敏感参数、批量解析或 proof body 可用 `POST`。 |
+| `stream` | 长连接、live tail、增量同步或 bounded catch-up stream。 | 通常 `GET`；响应可以是 NDJSON、SSE、WebSocket frame 或等价 stream。 |
+| `resource` | URI 明确标识一个资源、binding 或 slot；请求语义围绕该 URI 的当前表示。 | `resource.get` 使用 `GET`/`HEAD`；`resource.replace` 使用 `PUT`；`resource.delete` 使用 `DELETE`。 |
+| `command` | 触发协议动作、状态推进、发布、入队、fanout、ack、领取、消费、授权、撤销、注册或流程推进。 | 通常 `POST`。命令可通过 idempotency key、对象 id、序列号或签名 transcript 实现幂等，但不因此变成 `PUT`。 |
+| `upload` | 上传 blob、KeyPackage、密钥材料或可续传 artifact。 | 通常 `POST`；若某 binding 定义客户端指定对象 URI 的完整内容替换，才可单独使用 `PUT`。 |
+| `exchange` | token、OIDC callback、媒体凭证、MIMI key material 等握手或跨系统交换。 | 通常 `POST`，并由请求体或 HTTP Message Signature 绑定 proof / audience / digest。 |
+
+下列 action 语义是规范性约束：
+
+- `resource.replace` 表示请求体是目标 URI 当前表示或 slot 值的完整替换；HTTP/JSON binding MUST 使用 `PUT`。
+- `command.publish` 表示发布调用方签名的 policy / identity state / 权威文档，由服务端按签名、版本和 `supersedes` 链验证后接受；除非目标 URI 本身就是可完整替换的 slot，否则 MUST 使用 `POST`。
+- `command.send` / `command.notify` 表示投递、入队或 fanout；即使有幂等键，也不是 `resource.replace`。
+- `command.ack` 表示对已投递数据做显式确认；天然幂等，但不得被 cursor 推进隐式替代。
+- `query.scan_body` 只允许作为 HTTP-only companion binding，MUST 声明 `binding_variant_of` 指向同语义的 canonical `query.scan` operation；非 HTTP transport MUST 使用 canonical operation，不得把 body variant 暴露为独立能力。
+
+HTTP method 不是 operation action 的来源：同一 `query.scan` 语义可以有 GET query string 与 POST/body 两种 HTTP binding；这种情况必须标记为 binding variant，而不是发明新的协议操作。`ck.self.events.query.scan_body` 必须声明 `binding_variant_of="ck.self.events.query.scan"`，非 HTTP transport 仍使用 canonical `ck.self.events.query.scan`。
+
+**`viewer` action（术语定义）**：`ck.self.account.query.viewer` 的含义钉死为：**当前已认证 holder 的主体自读投影**。目标不由 path / query 中的外部 id 定位，而由 holder-bound `user_session` 的会话绑定决定，故不建模为 `resource.get`；命名沿用 GraphQL 生态的 `viewer` 惯例（"viewer = 发起请求的已认证主体"）。它与 `query.describe`（服务能力元数据，可 pre-auth）的区分见 [`service-http-binding.md` §5.1](./service-http-binding.md)。注意区分本规范 prose 中 `viewer` 的另一用法：可见性 / 投影语境（pins、history visibility、conformance vector 的 `viewer_*` 字段）里的 "viewer" 指**正在读取内容、作为可见性评估视角的主体**，不是本 operation；`reviewer`（审核者）与两者均无关，全文检索 `viewer` 时勿混入。
 
 ### 2.5 HTTP method 语义
 
@@ -108,7 +108,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 - `DELETE`：删除一个已知 URI 表示的资源、binding 或 slot；重复删除必须有定义良好的幂等结果。
 - `PATCH`：仅在规范显式定义 patch document 语义、冲突检测和幂等边界时使用；否则 partial update 使用 `POST` command 或 `PUT` slot replacement。
 
-因此，`ck.self.device_messages.put` 的 canonical operation 表示“把 to-device message 批次放入目标设备短期队列”，而不是 HTTP `PUT`。其 HTTP binding 必须是 `POST /_cokret/self/device_messages`，并以 `(sender, Idempotency-Key)` 去重：该操作没有单个由 URI 标识、可完整替换的消息资源；队列删除只由 `ck.self.device_messages.ack` 触发。相反，`ck.self.keys.backups.put`、`ck.self.realm_policy_server.put`、`ck.self.account_data.set` 和 `ck.self.agent.participation.set` 都有 path 标识的单一 backup/config/slot，适合 HTTP `PUT`。
+因此，`ck.self.device_messages.command.send` 表示“把 to-device message 批次放入目标设备短期队列”，HTTP binding 必须是 `POST /_cokret/self/device_messages`，并以 `(sender, Idempotency-Key)` 去重：该操作没有单个由 URI 标识、可完整替换的消息资源；队列删除只由 `ck.self.device_messages.command.ack` 触发。相反，`ck.self.keys.backups.resource.replace`、`ck.self.realm_policy_server.resource.replace`、`ck.self.account_data.resource.replace` 和 `ck.self.agent.participation.resource.replace` 都有 path 标识的单一 backup/config/slot，HTTP binding MUST 使用 `PUT`。
 
 ## 3. 认证
 
@@ -135,7 +135,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 
 - 带有 `access_token`、`session_token`、`api_key`、`auth`、`signature` 等 query 参数的受保护 endpoint 请求 MUST 被拒绝，除非对应 endpoint 明确把该字段定义为非认证业务参数。
 - 拒绝时 SHOULD 返回 `unauthenticated` 或 `invalid_param`，并且不得把 query 中的敏感值写入普通访问日志。
-- `ck.self.blob.presign` 是唯一标准 URL bearer 例外：它只能是单 blob、单用途、短时效、只读、可撤销的派生 token，不得等同于用户 session、API key 或长期 capability；完整约束见 [`../crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)。
+- `ck.self.blob.command.presign` 是唯一标准 URL bearer 例外：它只能是单 blob、单用途、短时效、只读、可撤销的派生 token，不得等同于用户 session、API key 或长期 capability；完整约束见 [`../crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)。
 - 第三方邀请的 `#token=` fragment 是客户端 handoff，不是服务端认证入口。服务端不会收到 fragment；客户端读取后 MUST 通过 body / signed proof 提交 claim，并按 [`third-party-invites.md` §3.2](./third-party-invites.md) 清理 URL 与本地状态。
 - online principal locator 的 `#token=` fragment 同样只是客户端 handoff。`locator_token` MUST 通过 `POST /_cokret/open/invite-locators/resolve` JSON body 提交；不得出现在 URL path 或 query string。详见 [`invite-addressing.md`](./invite-addressing.md)。
 
@@ -195,9 +195,9 @@ Replay window：PoP 出示**复用既有 replay window 机制**——签名时�
 
 各 endpoint 当前实际使用的成功标记形态可分为三类，调用方应直接按 endpoint 文档判定：
 
-- **`{ok: true, ...payload}`** — 简单 mutation (push / self.device_messages.put / applet.transactions / 等)；
-- **`{status: enum, ...payload}`** — 批量提交语义复杂时 (self.events.submit `status ∈ {accepted, duplicate, partial}`、self.keys.backups.put `status ∈ {accepted, duplicate}`)；
-- **裸字段直接返回** — 创建 / 解析类 (self.blob.upload `{blob_ref, size_bytes, ...}`、find.directory.announce `{announce_id, indexed_at, ...}`、account session grant 等)。
+- **`{ok: true, ...payload}`** — 简单 mutation (push / self.device_messages.command.send / applet.transactions / 等)；
+- **`{status: enum, ...payload}`** — 批量提交语义复杂时 (self.events.command.submit `status ∈ {accepted, duplicate, partial}`、self.keys.backups.resource.replace `status ∈ {accepted, duplicate}`)；
+- **裸字段直接返回** — 创建 / 解析类 (self.blob.upload.create `{blob_ref, size_bytes, ...}`、find.directory.command.announce `{announce_id, indexed_at, ...}`、account session grant 等)。
 
 新增 endpoint SHOULD 按下列分类选择成功形态:
 - 简单 idempotent mutation 默认走 `{ok: true, ...payload}`；
@@ -287,21 +287,21 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 
 | `purpose` | 用途 | 出现位置 |
 | --- | --- | --- |
-| `stream` | 增量同步 / 列表分页的位置承诺。回传方向取决于出现位置（见右列），并非任意位置都支持全部四向。 | **account 聚合流**：`/_cokret/self/account/subscribe` frame 的 `cursor` **仅**作为重连 `after=` 参数回传，是单向 catch-up 起点，**不支持** `before` / `prev_cursor`（account stream 不可反向，见 §7.0 与 [`client-sync.md`](./client-sync.md) §2 / §7.0）。**Realm timeline / 列表分页 / 查询**：`timeline.prev_cursor` / `next_cursor`、列表分页 `prev_cursor` / `next_cursor`、`ck.self.events.query` 与 federation peer `ck.peer.events.query`（`GET /_cokret/peer/events?before=<cursor>`）的 `before` / `after` 请求参数与 `prev_cursor` / `next_cursor` 响应字段——这些位置才支持 `before` / `prev_cursor` 反向延续。 |
+| `stream` | 增量同步 / 列表分页的位置承诺。回传方向取决于出现位置（见右列），并非任意位置都支持全部四向。 | **account 聚合流**：`/_cokret/self/account/subscribe` frame 的 `cursor` **仅**作为重连 `after=` 参数回传，是单向 catch-up 起点，**不支持** `before` / `prev_cursor`（account stream 不可反向，见 §7.0 与 [`client-sync.md`](./client-sync.md) §2 / §7.0）。**Realm timeline / 列表分页 / 查询**：`timeline.prev_cursor` / `next_cursor`、列表分页 `prev_cursor` / `next_cursor`、`ck.self.events.query.scan` 与 federation peer `ck.peer.events.query.scan`（`GET /_cokret/peer/events?before=<cursor>`）的 `before` / `after` 请求参数与 `prev_cursor` / `next_cursor` 响应字段——这些位置才支持 `before` / `prev_cursor` 反向延续。 |
 | `barrier` | 读己之所写（RYW）：要求 reader 在 frontier 覆盖某个具体 event 之前不返回结果。 | 写接口响应中的 `cursor` 字段、`X-Cokret-Wait-For` header。 |
 
 ### 7.0 `prev_cursor` / `next_cursor` 含义（绝对方向）
 
-任何返回 cursor 对的响应（`ck.self.events.query`、列表分页等）使用统一的**绝对方向**约定；`/_cokret/self/account/subscribe` frame 只返回单个 account stream cursor,用于下一次 `after=` 重连：
+任何返回 cursor 对的响应（`ck.self.events.query.scan`、列表分页等）使用统一的**绝对方向**约定；`/_cokret/self/account/subscribe` frame 只返回单个 account stream cursor,用于下一次 `after=` 重连：
 
 | 响应字段 | 含义 | 回传给下一次请求 |
 | --- | --- | --- |
-| `prev_cursor` | 朝**更旧事件 / 更早历史**方向的延续位置 | `ck.self.events.query` 的 `before=` 参数；分页 `before=<prev_cursor>` 取更旧一批 |
-| `next_cursor` | 朝**更新事件 / 更晚未来**方向的延续位置 | `ck.self.events.query` 的 `after=` 参数；分页 `after=<next_cursor>` 取更新一批 |
+| `prev_cursor` | 朝**更旧事件 / 更早历史**方向的延续位置 | `ck.self.events.query.scan` 的 `before=` 参数；分页 `before=<prev_cursor>` 取更旧一批 |
+| `next_cursor` | 朝**更新事件 / 更晚未来**方向的延续位置 | `ck.self.events.query.scan` 的 `after=` 参数；分页 `after=<next_cursor>` 取更新一批 |
 
 绝对方向与请求时所用的参数（`before` / `after` / `order`）和 selector 无关；服务端 MUST 始终按上述含义填充。客户端因此**不**需要记录"上一次请求的 direction"才能正确解释响应 cursor。
 
-HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` 的 cursor 只可出现在 stream / pagination context（例如 `/_cokret/self/account/subscribe` 的 `after=`、`ck.self.events.query` 的 `before` / `after`、响应 `prev_cursor` / `next_cursor`）；`purpose=barrier` 的 cursor 只可出现在 RYW barrier context（写接口响应中的 barrier `cursor` 字段、`X-Cokret-Wait-For` header，或 §7.2 列出的等价投影）。任一 context 收到不匹配的 `purpose` 时，服务端 MUST 返回 `invalid_param`。
+HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` 的 cursor 只可出现在 stream / pagination context（例如 `/_cokret/self/account/subscribe` 的 `after=`、`ck.self.events.query.scan` 的 `before` / `after`、响应 `prev_cursor` / `next_cursor`）；`purpose=barrier` 的 cursor 只可出现在 RYW barrier context（写接口响应中的 barrier `cursor` 字段、`X-Cokret-Wait-For` header，或 §7.2 列出的等价投影）。任一 context 收到不匹配的 `purpose` 时，服务端 MUST 返回 `invalid_param`。
 
 规则：
 
@@ -310,7 +310,7 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 - 同一字符串 cursor 在不同 issuing 服务间不可移植；跨服务复用 MUST `invalid_param`。
 - TTL 硬上限：barrier cursor 与 stream cursor 的 `expires_at - issued_at` 硬上限的**唯一 canonical 数值定义点**见 [`encoding.md` §8.3 规则 9](../conformance/encoding.md)；本节不重复字面毫秒数值。
 - 声明 `cursor_revoke_high_assurance` feature 的服务必须实现 [`client-sync.md` §12.2.1](./client-sync.md) 的 revocation set。已撤销但仍在 TTL 内的 cursor MUST 返回 `cursor_revoked`；完整性失败仍返回 `cursor_integrity_invalid`，不得泄露 revocation set。
-- 声明 `events_query_range_completeness` feature 的服务必须实现 [`service-http-binding.md` §3.3.6](./service-http-binding.md)：`ck.self.events.query` 接受 `include_completeness=true` 并返回覆盖该页范围的 `ck.attestation.range_completeness` 引用。未声明该 feature 的服务 MUST 忽略 `include_completeness` 参数。
+- 声明 `events_query_range_completeness` feature 的服务必须实现 [`service-http-binding.md` §3.3.6](./service-http-binding.md)：`ck.self.events.query.scan` 接受 `include_completeness=true` 并返回覆盖该页范围的 `ck.attestation.range_completeness` 引用。未声明该 feature 的服务 MUST 忽略 `include_completeness` 参数。
 
 ### 7.1 列表分页（normative）
 
@@ -328,7 +328,7 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 - 优先使用资源复数名（`realms[]` / `flows[]` / `morphs[]` / `spaces[]` / `backups[]` / `notifications[]` / `messages[]` 等）；
 - 没有自然资源复数名时使用语义名：全文/混合实体搜索命中使用 `matches[]`，原始查询行使用 `rows[]`，private contact discovery 仍使用 `matches[]`；
 - **MUST NOT** 使用 `results[]` 作为返回字段名，避免与 Rust `Result` 语义和 SDK 类型命名冲突；
-- **MUST NOT** 使用通用占位 `items[]`，也不得使用 `events[]` 作为非 Event 数组的字段名（device_messages 与 account subscribe `to_device` 的 `messages[]` 例外见 `ck.self.device_messages.get` 与 `ck.self.account.subscribe`）。
+- **MUST NOT** 使用通用占位 `items[]`，也不得使用 `events[]` 作为非 Event 数组的字段名（device_messages 与 account subscribe `to_device` 的 `messages[]` 例外见 `ck.self.device_messages.query.list` 与 `ck.self.account.stream.subscribe`）。
 
 **`next_cursor` / `has_more`** (normative)：
 - `next_cursor` 是 optional：缺省表示当前批次已经是末尾。
@@ -336,7 +336,7 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 
 **`prev_cursor`**（可选, 双向分页）：仅当接口支持向"更旧"方向翻页时返回。详见 §7.0；不支持双向翻页的接口 MUST NOT 返回 `prev_cursor`。
 
-**Cursor 方向参数** (`before` / `after`)：见 [`service-http-binding.md` §3.3](./service-http-binding.md) 与本文 §7.0。`before` / `after` 是绝对时间方向（朝更旧 / 朝更新），与响应 `prev_cursor` / `next_cursor` 形成一一对应；不应再引入 `from=` / `start_at=` 等同义别名。已有的 `ck.self.device_messages.get` `from?: cursor` 是历史例外，新增接口 MUST 用 `before` / `after`。
+**Cursor 方向参数** (`before` / `after`)：见 [`service-http-binding.md` §3.3](./service-http-binding.md) 与本文 §7.0。`before` / `after` 是绝对时间方向（朝更旧 / 朝更新），与响应 `prev_cursor` / `next_cursor` 形成一一对应；不应再引入 `from=` / `start_at=` 等同义别名。已有的 `ck.self.device_messages.query.list` `from?: cursor` 是历史例外，新增接口 MUST 用 `before` / `after`。
 
 服务端 MAY 对 `limit` 设置上限。超过上限时 SHOULD 使用最大允许值或返回 `invalid_param`。
 

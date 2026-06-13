@@ -95,7 +95,7 @@
       "migration_group": "brand_namespace_cx_to_ck",
       "since_revision": "2026-06-03",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.events.submit",
+      "replacement": "ck.self.events.command.submit",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3534,7 +3534,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.gate.account.agent_key_pair",
+      "replacement": "ck.gate.account.command.pair_agent_key",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3548,7 +3548,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.account.cursor_revoke",
+      "replacement": "ck.self.account.command.revoke_cursor",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3562,7 +3562,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.account.describe",
+      "replacement": "ck.self.account.query.describe",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3576,7 +3576,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.gate.account.device_pair",
+      "replacement": "ck.gate.account.command.pair_device",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3590,7 +3590,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.gate.account.issue_session_grant",
+      "replacement": "ck.gate.account.command.issue_session_grant",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3604,7 +3604,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.gate.account.oidc_callback",
+      "replacement": "ck.gate.account.exchange.oidc_callback",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3618,7 +3618,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.gate.account.register",
+      "replacement": "ck.gate.account.command.register",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3632,7 +3632,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.gate.account.session_revoke",
+      "replacement": "ck.gate.account.command.revoke_session",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3646,7 +3646,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.account.subscribe",
+      "replacement": "ck.self.account.stream.subscribe",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3660,7 +3660,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.account.update_profile",
+      "replacement": "ck.self.account.command.update_profile",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3674,7 +3674,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.account.viewer",
+      "replacement": "ck.self.account.query.viewer",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3688,7 +3688,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.agent.deactivate",
+      "replacement": "ck.self.agent.command.deactivate",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3702,7 +3702,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.agent.get",
+      "replacement": "ck.self.agent.resource.get",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3716,7 +3716,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.agent.grant.attach",
+      "replacement": "ck.self.agent.grant.command.attach",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3730,7 +3730,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.agent.grant.detach",
+      "replacement": "ck.self.agent.grant.resource.delete",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3744,7 +3744,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.agent.list",
+      "replacement": "ck.self.agent.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3758,7 +3758,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.agent.pause",
+      "replacement": "ck.self.agent.command.pause",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3772,7 +3772,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.agent.provision",
+      "replacement": "ck.self.agent.command.provision",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3786,7 +3786,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.agent.resume",
+      "replacement": "ck.self.agent.command.resume",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3800,7 +3800,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.agent.rotate_key",
+      "replacement": "ck.self.agent.command.rotate_key",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3814,7 +3814,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.agent.sidecar_thread.ensure",
+      "replacement": "ck.self.agent.sidecar_thread.command.ensure",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3828,7 +3828,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.edge.applet.describe",
+      "replacement": "ck.edge.applet.query.describe",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3842,7 +3842,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.applet.install",
+      "replacement": "ck.self.applet.command.install",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3856,7 +3856,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.applet.install.preview",
+      "replacement": "ck.self.applet.install.command.preview",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3870,7 +3870,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.edge.applet.ping",
+      "replacement": "ck.edge.applet.query.ping",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3884,7 +3884,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.edge.applet.protocol_metadata",
+      "replacement": "ck.edge.applet.query.protocol_metadata",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3898,7 +3898,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.edge.applet.resolve_actor",
+      "replacement": "ck.edge.applet.actor.query.resolve",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3912,7 +3912,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.edge.applet.resolve_realm",
+      "replacement": "ck.edge.applet.realm.query.resolve",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3926,7 +3926,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.applet.revoke",
+      "replacement": "ck.self.applet.command.revoke",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3940,7 +3940,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.edge.applet.third_party_locations",
+      "replacement": "ck.edge.applet.third_party_locations.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3954,7 +3954,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.edge.applet.third_party_users",
+      "replacement": "ck.edge.applet.third_party_users.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3968,7 +3968,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.edge.applet.transaction",
+      "replacement": "ck.edge.applet.command.transaction",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3982,7 +3982,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.authz.check",
+      "replacement": "ck.self.authz.query.check",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3996,7 +3996,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.authz.get_effective_grants",
+      "replacement": "ck.self.authz.grants.query.effective",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4010,7 +4010,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.authz.get_invites",
+      "replacement": "ck.self.authz.invites.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4024,7 +4024,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.blob.get",
+      "replacement": "ck.self.blob.resource.get",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4038,7 +4038,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.blob.head",
+      "replacement": "ck.self.blob.resource.head",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4052,7 +4052,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.blob.presign",
+      "replacement": "ck.self.blob.command.presign",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4066,7 +4066,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.blob.upload",
+      "replacement": "ck.self.blob.upload.create",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4080,7 +4080,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.call.media.token_exchange",
+      "replacement": "ck.self.call.media.exchange.token",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4094,7 +4094,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.contact.list",
+      "replacement": "ck.self.contact.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4108,7 +4108,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.contact.request",
+      "replacement": "ck.self.contact.command.request",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4122,7 +4122,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.contact.respond",
+      "replacement": "ck.self.contact.command.respond",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4136,7 +4136,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.contact.tombstone",
+      "replacement": "ck.self.contact.command.tombstone",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4150,7 +4150,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.device_messages.get",
+      "replacement": "ck.self.device_messages.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4164,7 +4164,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.device_messages.put",
+      "replacement": "ck.self.device_messages.command.send",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4178,7 +4178,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.direct_conversation.resolve",
+      "replacement": "ck.self.direct_conversation.command.resolve",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4192,7 +4192,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.announce",
+      "replacement": "ck.find.directory.command.announce",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4206,7 +4206,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.describe",
+      "replacement": "ck.find.directory.query.describe",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4220,7 +4220,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.list_handles_for_subject",
+      "replacement": "ck.find.directory.query.list_handles_for_subject",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4234,7 +4234,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.private_contact_discovery",
+      "replacement": "ck.find.directory.query.private_contact_discovery",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4248,7 +4248,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.push.register",
+      "replacement": "ck.find.directory.push.command.register",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4262,7 +4262,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.resolve_handle",
+      "replacement": "ck.find.directory.query.resolve_handle",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4276,7 +4276,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.resolve_organization",
+      "replacement": "ck.find.directory.query.resolve_organization",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4290,7 +4290,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.resolve_realm",
+      "replacement": "ck.find.directory.query.resolve_realm",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4304,7 +4304,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.resolve_target",
+      "replacement": "ck.find.directory.query.resolve_target",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4318,7 +4318,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.search_actors",
+      "replacement": "ck.find.directory.query.search_actors",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4332,7 +4332,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.search_organizations",
+      "replacement": "ck.find.directory.query.search_organizations",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4346,7 +4346,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.search_realms",
+      "replacement": "ck.find.directory.query.search_realms",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4360,7 +4360,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.search_users",
+      "replacement": "ck.find.directory.query.search_users",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4374,7 +4374,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.withdraw",
+      "replacement": "ck.find.directory.command.withdraw",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4388,7 +4388,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.ephemeral.send",
+      "replacement": "ck.self.ephemeral.command.send",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4402,7 +4402,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.events.describe",
+      "replacement": "ck.self.events.query.describe",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4416,7 +4416,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.events.frontier",
+      "replacement": "ck.self.events.query.frontier",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4430,7 +4430,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.events.get",
+      "replacement": "ck.self.events.resource.get",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4444,7 +4444,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.events.query",
+      "replacement": "ck.self.events.query.scan",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4458,7 +4458,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.events.query_post",
+      "replacement": "ck.self.events.query.scan_body",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4472,7 +4472,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.events.resolve",
+      "replacement": "ck.self.events.query.resolve",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4486,7 +4486,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.events.submit",
+      "replacement": "ck.self.events.command.submit",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4500,7 +4500,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.events.subscribe",
+      "replacement": "ck.self.events.stream.subscribe",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4514,7 +4514,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.root.identity.describe_registry",
+      "replacement": "ck.root.identity.registry.query.describe",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4528,7 +4528,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.root.identity.get_document",
+      "replacement": "ck.root.identity.document.resource.get",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4542,7 +4542,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.root.identity.get_log",
+      "replacement": "ck.root.identity.log.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4556,7 +4556,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.root.identity.get_receipts",
+      "replacement": "ck.root.identity.receipts.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4570,7 +4570,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.root.identity.resolve",
+      "replacement": "ck.root.identity.query.resolve",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4584,7 +4584,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.root.identity.submit_did_operation",
+      "replacement": "ck.root.identity.command.submit_did_operation",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4598,7 +4598,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.keys.backups.delete",
+      "replacement": "ck.self.keys.backups.resource.delete",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4612,7 +4612,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.keys.backups.unlock",
+      "replacement": "ck.self.keys.backups.command.unlock",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4640,7 +4640,7 @@
       "migration_group": "key_backup_unlock_proof_transport",
       "since_revision": "2026-06-11",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.keys.backups.unlock",
+      "replacement": "ck.self.keys.backups.command.unlock",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4654,7 +4654,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.keys.backups.list",
+      "replacement": "ck.self.keys.backups.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4668,7 +4668,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.keys.backups.put",
+      "replacement": "ck.self.keys.backups.resource.replace",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4682,7 +4682,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.keys.claim",
+      "replacement": "ck.self.keys.command.claim",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4696,7 +4696,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.keys.keypackages.claim",
+      "replacement": "ck.self.keys.keypackages.command.claim",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4710,7 +4710,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.keys.keypackages.consume",
+      "replacement": "ck.self.keys.keypackages.command.consume",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4724,7 +4724,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.keys.keypackages.revoke",
+      "replacement": "ck.self.keys.keypackages.command.revoke",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4738,7 +4738,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.keys.keypackages.upload",
+      "replacement": "ck.self.keys.keypackages.upload.create",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4752,7 +4752,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.keys.query",
+      "replacement": "ck.self.keys.query.lookup",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4766,7 +4766,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.keys.upload",
+      "replacement": "ck.self.keys.upload.create",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4780,7 +4780,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.media.ice_config",
+      "replacement": "ck.self.media.query.ice_config",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4794,7 +4794,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.open.mimi.group_info",
+      "replacement": "ck.open.mimi.query.group_info",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4808,7 +4808,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.open.mimi.identifier_query",
+      "replacement": "ck.open.mimi.query.identifiers",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4822,7 +4822,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.open.mimi.key_material",
+      "replacement": "ck.open.mimi.exchange.key_material",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4836,7 +4836,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.open.mimi.notify",
+      "replacement": "ck.open.mimi.command.notify",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4850,7 +4850,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.open.mimi.provider_directory",
+      "replacement": "ck.open.mimi.query.provider_directory",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4864,7 +4864,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.open.mimi.proxy_download",
+      "replacement": "ck.open.mimi.command.proxy_download",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4878,7 +4878,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.open.mimi.report_abuse",
+      "replacement": "ck.open.mimi.command.report_abuse",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4892,7 +4892,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.open.mimi.request_consent",
+      "replacement": "ck.open.mimi.command.request_consent",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4906,7 +4906,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.open.mimi.room_update",
+      "replacement": "ck.open.mimi.command.update_room",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4920,7 +4920,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.open.mimi.submit_message",
+      "replacement": "ck.open.mimi.command.submit_message",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4934,7 +4934,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.open.mimi.update_consent",
+      "replacement": "ck.open.mimi.command.update_consent",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4948,7 +4948,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.moderation.report",
+      "replacement": "ck.self.moderation.command.report",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4962,7 +4962,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.policy.check",
+      "replacement": "ck.self.policy.query.check",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4976,7 +4976,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.projection.flows",
+      "replacement": "ck.self.projection.flows.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4990,7 +4990,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.projection.morphs",
+      "replacement": "ck.self.projection.morphs.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5004,7 +5004,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.projection.spaces",
+      "replacement": "ck.self.projection.spaces.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5018,7 +5018,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.edge.push.notify",
+      "replacement": "ck.edge.push.command.notify",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5032,7 +5032,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.edge.push.register_device",
+      "replacement": "ck.edge.push.command.register_device",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5046,7 +5046,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.edge.push.unregister_device",
+      "replacement": "ck.edge.push.command.unregister_device",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5060,7 +5060,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.snapshot.head",
+      "replacement": "ck.self.snapshot.query.manifest_head",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
