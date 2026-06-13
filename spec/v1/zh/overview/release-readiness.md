@@ -33,7 +33,7 @@ updated: 2026-06-10
 | Event kind（active） | 188 | `artifacts/registry/event-kind-registry.json` |
 | Schema | 100 | `artifacts/registry/schema-registry.json` |
 | Typed ID kind | 47 | `artifacts/registry/id-kind-registry.json` |
-| Service operation | 173 | `artifacts/registry/operation-registry.json` |
+| Service operation | 174 | `artifacts/registry/operation-registry.json` |
 | Claimable conformance profile | 80 | `artifacts/profiles/conformance-profiles.json` |
 | Profile id references | 102 | `artifacts/profiles/conformance-profiles.json` |
 

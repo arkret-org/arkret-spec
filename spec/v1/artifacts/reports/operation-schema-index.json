@@ -2916,6 +2916,63 @@
       }
     },
     {
+      "operation_id": "ck.root.identity.recovery_policy.put",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/recovery-policy.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "schema",
+          "policy_id",
+          "principal_id",
+          "version",
+          "supersedes",
+          "trust_domain",
+          "allowed_proof_kinds",
+          "issued_at",
+          "auth_data"
+        ],
+        "properties": [
+          "schema",
+          "policy_id",
+          "principal_id",
+          "version",
+          "supersedes",
+          "trust_domain",
+          "allowed_proof_kinds",
+          "threshold",
+          "device_quorum",
+          "trusted_recovery_services",
+          "approval_requirement",
+          "audit",
+          "issued_at",
+          "not_before",
+          "expires_at",
+          "auth_data"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_put_outcome",
+        "schema_kind": "object",
+        "required": [
+          "ok",
+          "policy_id",
+          "principal_id",
+          "version",
+          "accepted_at"
+        ],
+        "properties": [
+          "ok",
+          "policy_id",
+          "principal_id",
+          "version",
+          "accepted_at"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ck.root.identity.recovery_session.create",
       "success_shape_kind": "schema_resource",
       "request": {

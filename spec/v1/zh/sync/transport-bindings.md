@@ -98,7 +98,7 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 | `ck.self.moderation.report` | 提交内容或行为举报。 |
 | `ck.edge.applet.transaction` | 向 Applet 推送事件批次。 |
 | `ck.edge.applet.describe` | 查询 Applet profile、namespace 与限制。 |
-| `ck.self.device_messages.put` | 发送 to-device message。 |
+| `ck.self.device_messages.put` | 将 to-device message 批次放入目标设备短期队列；HTTP binding 是 `POST /_cokret/self/device_messages`，operationId 的 `put` 不表示 HTTP `PUT`。 |
 | `ck.self.keys.upload` / `ck.self.keys.query` / `ck.self.keys.claim` | E2EE 设备密钥发布、查询与领取。 |
 | `ck.self.keys.backups.put` / `ck.self.keys.backups.list` / `ck.self.keys.backups.unlock` / `ck.self.keys.backups.delete` | 加密密钥备份对象存储、枚举、解锁取回与删除。 |
 

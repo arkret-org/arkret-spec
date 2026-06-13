@@ -69,19 +69,46 @@ Blob 上传、媒体下载和二进制 stream MAY 使用其他 content type，�
 
 ### 2.4 Operation ID 动词 taxonomy
 
-标准 `operation_id` 的最后一个动词段 MUST 与以下 taxonomy 对齐；新增 operation 若不匹配，必须在 `contract-catalog.json` 的 operation notes 中说明理由。
+标准 `operation_id` 是跨 transport 的语义操作名，不是 HTTP method 的派生名。最后一个动词段或复合动词段 MUST 与以下 taxonomy 对齐；新增 operation 若不匹配，必须在 `contract-catalog.json` 的 operation notes 中说明理由。
 
 | 动词 | 语义边界 |
 | --- | --- |
+| `describe` | 服务、profile、feature、限制和 binding 元数据读取；通常可 pre-auth 暴露最小公开能力。 |
 | `get` | 单个已知资源的直接读取，通常由 path / query 中的单一 id 定位。 |
+| `list` | 某个已知 owner/scope 下的枚举读取；可以分页，但不表达复杂 selector 搜索。 |
 | `resolve` | 将 event id / hash、handle、invite token、alias、DID 或外部标识解析为 canonical object、proof 或可验证 projection。 |
 | `query` | selector、filter、cursor 或 range scan；结果通常按时间、因果或索引顺序分页。 |
 | `search` | 目录型关键词 / discovery 查询；结果受 discoverability、隐私和排名策略控制。 |
 | `subscribe` | streaming delta、live tail 或长连接增量流。 |
+| `submit` | 提交带签名、顺序、幂等或 admission 规则的 envelope / proof / batch；服务端验证后接受、拒绝、隔离或去重。 |
+| `create` | 创建新资源或会话，资源 id 通常由服务端分配，或由请求体中声明并经服务端验证。 |
+| `update` | 对既有资源执行部分更新、状态推进或外部协议定义的 update 交互；不要求完整替换当前表示。 |
+| `set` | 设置某个已知 slot / preference / policy 的当前值；通常允许后写覆盖前写，适合有稳定 path slot 的 HTTP `PUT` binding。 |
+| `put` | 对 HTTP path 标识的单个资源/slot 执行完整创建、替换或存放；HTTP/JSON binding 中 MUST 使用 HTTP `PUT`。幂等但不是完整替换的 command 不得使用 `put` 后缀。 |
+| `publish` | 发布调用方签名的当前权威文档、policy 或 identity state；服务端按签名、版本和 supersedes 关系验证后接受。 |
+| `delete` | 删除或移除单个已知资源/slot；应对不存在/重复删除定义幂等结果。 |
+| `ack` | 对已投递数据做显式确认；天然幂等，不能被 cursor 推进隐式替代。 |
+| `upload` | 上传字节流、密钥包或 blob-like artifact；可能使用 JSON、multipart、octet-stream 或 companion upload binding。 |
+| `claim` / `consume` / `unlock` | 领取、消费或解锁一次性/受控材料；调用通常会改变服务器保存的可领取状态，因此不能建模为普通读取。 |
+| `register` / `unregister` | 注册或注销外部可投递目标、会话、设备或 webhook 绑定。 |
+| `check` | 评估授权、policy 或前置条件并返回决策；不创建 capability，也不应被客户端缓存为长期授权。 |
+| `send` / `notify` / `transaction` | 投递瞬态信号、通知或跨服务批次；若存在持久化或去重要求，必须由 endpoint 契约显式声明。 |
 
-HTTP method 不是 operation 动词来源：同一 `query` 语义可以有 GET query string 与 POST/body 两种 binding；这种情况必须标记为 binding variant，而不是发明新的抽象语义。
+HTTP method 不是 operation 动词来源：同一 `query` 语义可以有 GET query string 与 POST/body 两种 binding；这种情况必须标记为 binding variant，而不是发明新的抽象语义。只有形如 `*_post` 的 registered operationId 后缀可以表示 HTTP-only companion binding；例如 `ck.self.events.query_post` 必须声明 `binding_variant_of="ck.self.events.query"`，非 HTTP transport 仍使用 canonical `query` 操作。
 
 **`viewer` 名词段（术语定义）**：`ck.self.account.viewer` 的末段 `viewer` 不取上表读取动词，理由记录于 `contract-catalog.json` 的 operation notes。其含义钉死为：**当前已认证 holder 的主体自读投影**——目标不由 path / query 中的外部 id 定位，而由 holder-bound `user_session` 的会话绑定决定，故不适用 `get`；命名沿用 GraphQL 生态的 `viewer` 惯例（"viewer = 发起请求的已认证主体"）。它与 `describe`（服务能力元数据，可 pre-auth）的区分见 [`service-http-binding.md` §5.1](./service-http-binding.md)。注意区分本规范 prose 中 `viewer` 的另一用法：可见性 / 投影语境（pins、history visibility、conformance vector 的 `viewer_*` 字段）里的 "viewer" 指**正在读取内容、作为可见性评估视角的主体**，不是本 operation；`reviewer`（审核者）与两者均无关，全文检索 `viewer` 时勿混入。
+
+### 2.5 HTTP method 语义
+
+HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id` 的最后一个词：
+
+- `GET` / `HEAD`：只读、无 server-side mutation；可用 path/query 定位资源、projection 或分页读取位置。读取 cursor 不得触发队列删除或 ack。
+- `POST`：提交 command、batch、proof、搜索/复杂查询 body、入队、fanout、创建服务端分配 id 的资源，或执行由签名/admission 决定效果的操作。写请求使用 `POST` 时仍 MUST 通过 `Idempotency-Key`、对象 id、request id、canonical hash 或 protocol sequence 提供幂等/重放语义。
+- `PUT`：仅用于“客户端对一个已知 URI 表达完整目标表示或当前 slot 值”的创建/替换/设置。重复发送同一 URI 和同一表示 MUST 不产生额外副作用；同一 URI 上不同表示按该 slot 的覆盖、版本或 precondition 规则处理。
+- `DELETE`：删除一个已知 URI 表示的资源、binding 或 slot；重复删除必须有定义良好的幂等结果。
+- `PATCH`：仅在规范显式定义 patch document 语义、冲突检测和幂等边界时使用；否则 partial update 使用 `POST` command 或 `PUT` slot replacement。
+
+因此，`ck.self.device_messages.put` 的 canonical operation 表示“把 to-device message 批次放入目标设备短期队列”，而不是 HTTP `PUT`。其 HTTP binding 必须是 `POST /_cokret/self/device_messages`，并以 `(sender, Idempotency-Key)` 去重：该操作没有单个由 URI 标识、可完整替换的消息资源；队列删除只由 `ck.self.device_messages.ack` 触发。相反，`ck.self.keys.backups.put`、`ck.self.realm_policy_server.put`、`ck.self.account_data.set` 和 `ck.self.agent.participation.set` 都有 path 标识的单一 backup/config/slot，适合 HTTP `PUT`。
 
 ## 3. 认证
 

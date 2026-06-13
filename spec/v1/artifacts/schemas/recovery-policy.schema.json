@@ -773,6 +773,36 @@
       },
       "additionalProperties": false
     },
+    "recovery_policy_put_outcome": {
+      "type": "object",
+      "description": "Response for ck.root.identity.recovery_policy.put after accepting a ck.schema.recovery_policy.v1 publish or rotation.",
+      "required": [
+        "ok",
+        "policy_id",
+        "principal_id",
+        "version",
+        "accepted_at"
+      ],
+      "properties": {
+        "ok": {
+          "const": true
+        },
+        "policy_id": {
+          "$ref": "#/$defs/policy_id_ref"
+        },
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "accepted_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
     "share": {
       "type": "object",
       "required": [

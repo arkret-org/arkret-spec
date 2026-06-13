@@ -2825,6 +2825,46 @@
       "description": "A key-backup envelope or recovery proof references a `recovery_policy.policy_id` / `policy_version` that is not the currently accepted policy for the principal. Recovery flows MUST surface this to the user as 'update recovery policy' rather than silently continuing. See zh/identity/key-management.md §7.5.4 / §7.7 and zh/crypto-media/device-lifecycle.md §15."
     },
     {
+      "code": "recovery_policy_version_not_monotonic",
+      "applies_to": [
+        "schema_validation",
+        "state_resolution"
+      ],
+      "description": "A recovery policy publish or rotation uses a `version` that is not strictly greater than the currently accepted policy version for the principal. Servers MUST reject with 409 Conflict."
+    },
+    {
+      "code": "recovery_policy_supersedes_invalid",
+      "applies_to": [
+        "schema_validation",
+        "state_resolution"
+      ],
+      "description": "A non-genesis recovery policy rotation omits `supersedes` or names a predecessor other than the currently accepted policy_id for the principal. Servers MUST reject with 409 Conflict."
+    },
+    {
+      "code": "recovery_policy_genesis_not_v1",
+      "applies_to": [
+        "schema_validation",
+        "state_resolution"
+      ],
+      "description": "A recovery policy publish is the first accepted policy for the principal but does not use `version=1`. Genesis recovery policies MUST start at version 1."
+    },
+    {
+      "code": "recovery_principal_isolation",
+      "applies_to": [
+        "authz",
+        "device_recovery"
+      ],
+      "description": "A recovery policy or recovery session request targets a principal_id different from the authenticated principal or authorized recovery coordinator scope. Servers MUST reject without revealing the target principal's recovery state."
+    },
+    {
+      "code": "recovery_proof_kind_unknown",
+      "applies_to": [
+        "schema_validation",
+        "device_recovery"
+      ],
+      "description": "A recovery policy, receipt, or proof names a proof kind outside the ck.schema.recovery_policy.v1 allowed_proof_kinds enum. Producers MUST use one of principal_signing, recovery_unlock, device_quorum, trusted_recovery_service, or threshold_recovery."
+    },
+    {
       "code": "recovery_session_challenge_mismatch",
       "applies_to": [
         "device_recovery",

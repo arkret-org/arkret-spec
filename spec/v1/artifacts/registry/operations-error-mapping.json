@@ -734,6 +734,20 @@
       "description": "No operation-specific error codes beyond the universal failure surface. A missing accepted policy is a successful response with active_policy=null."
     },
     {
+      "operation_id": "ck.root.identity.recovery_policy.put",
+      "http_alias": "POST /_cokret/root/identity/recovery-policy",
+      "operation_specific": [
+        "failed_precondition",
+        "proof_invalid",
+        "recovery_principal_isolation",
+        "recovery_policy_genesis_not_v1",
+        "recovery_policy_supersedes_invalid",
+        "recovery_policy_version_not_monotonic",
+        "recovery_proof_kind_unknown"
+      ],
+      "description": "Publishing or rotating a recovery policy requires authenticated principal isolation, valid signed_fields/signature authority, a known proof-kind enum, and strictly monotonic version/supersedes linkage."
+    },
+    {
       "operation_id": "ck.root.identity.recovery_session.create",
       "http_alias": "POST /_cokret/root/identity/recovery-sessions",
       "operation_specific": [

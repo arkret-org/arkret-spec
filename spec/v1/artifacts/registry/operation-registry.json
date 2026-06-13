@@ -55,6 +55,7 @@
         "ck.root.identity.get_receipts",
         "ck.root.identity.submit_did_operation",
         "ck.root.identity.recovery_policy.get",
+        "ck.root.identity.recovery_policy.put",
         "ck.root.identity.recovery_session.create",
         "ck.root.identity.recovery_session.get",
         "ck.root.identity.recovery_session.submit_proof",
@@ -703,6 +704,7 @@
       "http": "POST /_cokret/self/device_messages",
       "grpc": "SelfDeviceMessages/Put",
       "mq": "self.device_messages.put",
+      "notes": "Enqueues caller-supplied DeviceMessageEnvelope targets into recipient device queues. HTTP binding is POST because the request is a batch command against a queue collection, deduplicated by (sender, Idempotency-Key), and does not replace a single URI-addressed message resource. Queue pruning is only via ck.self.device_messages.ack.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesPutRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesPutOutcome"
@@ -1279,6 +1281,16 @@
       "notes": "Read the currently accepted ck.schema.recovery_policy.v1 projection for the authenticated or explicitly selected principal. Returns active_policy=null when no accepted policy exists; does not publish, rotate, or revoke policy state.",
       "success_shape_kind": "schema_resource",
       "response_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_active_outcome"
+    },
+    {
+      "operation_id": "ck.root.identity.recovery_policy.put",
+      "http": "POST /_cokret/root/identity/recovery-policy",
+      "grpc": "RootIdentity/RecoveryPolicyPut",
+      "mq": "root.identity.recovery_policy.put",
+      "notes": "Publish a signed ck.schema.recovery_policy.v1 genesis policy or rotation for the authenticated principal. HTTP binding is POST because the principal/authority is derived from authenticated proof and signed policy state rather than a URI-addressed resource slot. Servers MUST verify auth_data.signed_fields, signature authority, version monotonicity, and supersedes linkage before accepting.",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/recovery-policy.schema.json",
+      "response_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_put_outcome"
     },
     {
       "operation_id": "ck.root.identity.recovery_session.create",

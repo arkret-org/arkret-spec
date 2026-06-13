@@ -2959,6 +2959,26 @@ paths:
                     items:
                       $ref: ../schemas/identity-receipt.schema.json
   /_cokret/root/identity/recovery-policy:
+    post:
+      operationId: ck.root.identity.recovery_policy.put
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/recovery-policy.schema.json
+      responses:
+        '200':
+          description: Recovery policy accepted
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/recovery-policy.schema.json#/$defs/recovery_policy_put_outcome
     get:
       operationId: ck.root.identity.recovery_policy.get
       security:
