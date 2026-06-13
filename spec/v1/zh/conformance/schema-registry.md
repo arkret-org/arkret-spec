@@ -215,7 +215,7 @@ sidebar:
 | `ck.profile.update` | Actor profile patch |
 | `ck.profile.realm_override` | Realm-scoped profile override |
 | `ck.audit.accessed` | Auditable access |
-| `ck.self.moderation.command.report` | Moderation report |
+| `ck.self.moderation.report` | Moderation report |
 | `ck.key.verification.request` | Device key verification request |
 | `ck.key.verification.ready` | Device key verification ready |
 | `ck.key.verification.start` | Device key verification start |

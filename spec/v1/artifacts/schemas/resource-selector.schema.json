@@ -150,6 +150,24 @@
           "realm_id"
         ]
       }
+    },
+    {
+      "$comment": "resource-selector-grammar.md §4.8/§8.1: actor:* is forbidden and an actor selector MUST carry a concrete principal DID. Force actor_id present so a bare {\"kind\":\"actor\"} is rejected at the schema layer rather than only at the reducer (selector_actor_wildcard_forbidden).",
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "actor"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "required": [
+          "actor_id"
+        ]
+      }
     }
   ],
   "additionalProperties": false

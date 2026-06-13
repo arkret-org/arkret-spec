@@ -439,7 +439,7 @@ POST /_cokret/self/events
 - 服务 MUST 验证 Event 签名、actor DID、device/session、capability、Realm policy、`actor_seq` 和因果依赖。
 - 服务 SHOULD 返回 accepted event、当前 actor frontier、Realm frontier 以及 read-your-writes barrier `cursor`（schema 见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)，purpose=`barrier`）。
 
-当请求体包含 `events[]` 时，服务 MUST 按数组顺序逐项处理。前一项已接受的 Event 可以满足后一项的 bytes / Event ID / actor chain / `prev_refs` / `causal_refs` / payload-level causal reference 解析；同批中尚未处理、已拒绝或进入 quarantine 的 Event 不能作为已解析依赖。授权基准不得被同批提前推进：DataEvent 必须按自身 `seal_ref` 验证，Control Move 必须按自身 `seal_basis` 验证。同批前一项创建、delegate、恢复、扩权或 revoke 的 grant / policy 不得授权后一项写入；依赖方必须等控制面 Seal 更新后重新提交，或在当前批次被拒绝/隔离。批处理中单项失败不得回滚已接受项：成功项进入 `accepted[]`，重复幂等项进入 `duplicate[]`，失败项进入 `rejected[]` 或 `quarantine[]`。若后续 Event 依赖同批失败或缺失 Event，服务 MUST 以 `dependency_missing`、`causal_conflict`、`soft_fail` 或等价原因拒绝/隔离该后续 Event，而不是隐式接受。
+当请求体包含 `events[]` 时，服务 MUST 按数组顺序逐项处理。前一项已接受的 Event 可以满足后一项的 bytes / Event ID / actor chain / `prev_refs` / `causal_refs` / payload-level causal reference 解析；同批中尚未处理、已拒绝或进入 quarantine 的 Event 不能作为已解析依赖。授权基准不得被同批提前推进：DataEvent 必须按自身 `seal_ref` 验证，Control Move 必须按自身 `seal_basis` 验证。同批前一项创建、delegate、恢复、扩权或 revoke 的 grant / policy 不得授权后一项写入；依赖方必须等控制面 Seal 更新后重新提交，或在当前批次被拒绝/隔离。批处理中单项失败不得回滚已接受项：成功项进入 `accepted[]`，重复幂等项进入 `duplicate[]`，失败项进入 `rejected[]` 或 `quarantine[]`。若后续 Event 依赖同批失败或缺失 Event，服务 MUST 以 `dependency_missing`、`causal_conflict`、`soft_failed` 或等价原因拒绝/隔离该后续 Event，而不是隐式接受。
 
 ### 4.3 获取单个 Event
 

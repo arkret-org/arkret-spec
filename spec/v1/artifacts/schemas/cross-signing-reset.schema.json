@@ -131,14 +131,14 @@
     },
     "device_quorum_proof": {
       "type": "object",
-      "description": "Device-quorum proof. The schema enforces only the minimum wire shape (threshold>=1, signatures.minItems=1). Cryptographic and quorum verification are normative in zh/crypto-media/device-lifecycle.md §14.4: (a) every signature MUST verify against the public key of an authorized, non-revoked device in the principal's current device set at issued_at, over the §14.1 canonical input; (b) signatures MUST be deduplicated by device_id; (c) the count of valid, deduplicated signatures MUST be >= threshold; (d) threshold MUST equal the current `recovery_policy.device_quorum.threshold` (or equivalent published quorum policy) at issued_at — a smaller threshold supplied by the issuer MUST be rejected as `failed_precondition` reason=`cross_signing_reset_quorum_below_policy`. Receivers MUST reject the reset if any of (a)-(d) fails.",
+      "description": "Device-quorum proof. The schema enforces only the minimum wire shape (threshold>=2, signatures.minItems=1). Cryptographic and quorum verification are normative in zh/crypto-media/device-lifecycle.md §14.4: (a) every signature MUST verify against the public key of an authorized, non-revoked device in the principal's current device set at issued_at, over the §14.1 canonical input; (b) signatures MUST be deduplicated by device_id; (c) the count of valid, deduplicated signatures MUST be >= threshold; (d) threshold MUST equal the current `recovery_policy.device_quorum.k` (or equivalent published quorum policy) at issued_at — a smaller threshold supplied by the issuer MUST be rejected as `failed_precondition` reason=`cross_signing_reset_quorum_below_policy`. Receivers MUST reject the reset if any of (a)-(d) fails.",
       "required": ["kind", "threshold", "signatures"],
       "properties": {
         "kind": { "const": "device_quorum" },
         "threshold": {
           "type": "integer",
-          "minimum": 1,
-          "description": "The quorum threshold the issuer claims to satisfy. MUST equal the principal's currently published recovery_policy device-quorum threshold; receivers MUST cross-check (see description rule (d))."
+          "minimum": 2,
+          "description": "The quorum threshold the issuer claims to satisfy. MUST equal the principal's currently published recovery_policy device-quorum k (recovery_policy.device_quorum.k); receivers MUST cross-check (see description rule (d))."
         },
         "signatures": {
           "type": "array",

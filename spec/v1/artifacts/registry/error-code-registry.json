@@ -1328,6 +1328,14 @@
       "description": "HTTP Message Signature @authority / target URI host does not match the resolved service endpoint for Destination-Service-DID, or the Destination-Service-DID is not authorized by Realm policy for the requested federation operation. Receiver MUST reject before processing events."
     },
     {
+      "code": "federation_trust_domain_mismatch",
+      "applies_to": [
+        "federation_transaction",
+        "service_call"
+      ],
+      "description": "Destination-Trust-Domain does not equal the receiver deployment's ServiceDescribe.trust_domain, or does not match the receiving Realm's trust_domain (zh/sync/federation.md §3.2). Internal audit-only reason; the wire response MUST be the unified minimal-disclosure authentication failure envelope."
+    },
+    {
       "code": "selector_too_complex",
       "applies_to": [
         "auth_decision",
@@ -2552,6 +2560,13 @@
         "state_resolution"
       ],
       "description": "Invite token's expires_at has passed when claim is attempted. Internal-only reason code; the wire response MUST be the unified non-enumerable `not_found` per zh/sync/third-party-invites.md §6.1."
+    },
+    {
+      "code": "invalid_ack_token",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "A to-device message ack carried an ack token that does not correspond to a delivered to-device cursor (unknown, malformed, or already-superseded). Carried under invalid_param. See zh/sync/client-sync.md §10.1 and zh/sync/service-http-binding.md device_messages/ack."
     },
     {
       "code": "late_recovery_rejected_membership",

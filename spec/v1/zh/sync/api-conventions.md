@@ -247,7 +247,7 @@ Replay window：PoP 出示**复用既有 replay window 机制**——签名时�
 - `conflict` / 409 是抽象 base code；实现 SHOULD 返回 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 中 `http_status=409` 的更精确 code。本文不维护并行穷尽清单；示例包括 `cas_conflict`、`causal_conflict`、`dependency_missing`、`duplicate_conflict`、`stale_frontier`、`state_mismatch`。
 - 加密 envelope 相关 422 子 code（`aad_digest_mismatch` / `payload_digest_mismatch`）见 `crypto-media/encryption-and-audit.md` §2.3.4。
 
-CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字面 error code 字符串都登记在 registry 中，并 MUST 校验 `operations-error-mapping.json` 的 `universal_codes` 与 `operation_specific[]` 不引用 registry 外的 code。
+CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字面 error code 字符串都登记在 registry 中，并 MUST 校验 `operations-error-mapping.json` 的 `rules.universal_codes` 与每个 `operations[].operation_specific[]` 不引用 registry 外的 code。
 
 ### 5.2 未知路径与错误方法
 

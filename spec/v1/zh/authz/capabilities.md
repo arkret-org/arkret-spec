@@ -406,6 +406,7 @@ Cokret v1 支持以下约束字段（按 constraint family 分组，与 `grant-c
 **quota**
 
 - `rate_limit`（`max_operations` + `period`，可选 `burst`）
+- `resource_limit`（`max_resources` + `resource_type`，可选 `period`；见 [`constraint-schema.md` §8.2](./constraint-schema.md)）
 - `blob_max_bytes`
 - `blob_presign_max_ttl_seconds`
 - `max_total_blob_bytes`

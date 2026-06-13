@@ -1074,6 +1074,246 @@
         "snapshot_unavailable",
         "snapshot_authority_unverified"
       ]
+    },
+    {
+      "operation_id": "ck.self.circle.command.create",
+      "http_alias": "POST /_cokret/self/circles",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.circle.query.list",
+      "http_alias": "GET /_cokret/self/circles",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.circle.resource.get",
+      "http_alias": "GET /_cokret/self/circles/{circle_id}",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.circle.member.command.add",
+      "http_alias": "POST /_cokret/self/circles/{circle_id}/members",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.circle.member.resource.delete",
+      "http_alias": "DELETE /_cokret/self/circles/{circle_id}/members/{actor_id}",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.circle.command.rotate_scope",
+      "http_alias": "POST /_cokret/self/circles/{circle_id}/scope-rotate",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.circle.command.archive",
+      "http_alias": "POST /_cokret/self/circles/{circle_id}/archive",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.circle.command.tombstone",
+      "http_alias": "POST /_cokret/self/circles/{circle_id}/tombstone",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.organization.query.list",
+      "http_alias": "GET /_cokret/self/organizations",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.organization.command.upsert",
+      "http_alias": "POST /_cokret/self/organizations",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.organization.resource.get",
+      "http_alias": "GET /_cokret/self/organizations/{organization_did}",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.organization.policy.resource.get",
+      "http_alias": "GET /_cokret/self/organizations/{organization_did}/policy",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.organization.policy.resource.replace",
+      "http_alias": "PUT /_cokret/self/organizations/{organization_did}/policy",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.organization.realm.command.link",
+      "http_alias": "POST /_cokret/self/organizations/{organization_did}/realms",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.policy_document.query.list",
+      "http_alias": "GET /_cokret/self/policies",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.policy_document.command.upsert",
+      "http_alias": "POST /_cokret/self/policies",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.policy_document.resource.get",
+      "http_alias": "GET /_cokret/self/policies/{policy_id}",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.policy_document.resource.delete",
+      "http_alias": "DELETE /_cokret/self/policies/{policy_id}",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.realm_link.query.list",
+      "http_alias": "GET /_cokret/self/realms/{realm_id}/links",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.realm_link.command.create",
+      "http_alias": "POST /_cokret/self/realms/{realm_id}/links",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.realm_link.resource.delete",
+      "http_alias": "DELETE /_cokret/self/realms/{realm_id}/links/{target_realm_id}",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.realm_link.query.effective_policy",
+      "http_alias": "GET /_cokret/self/realms/{realm_id}/effective-policy",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.realm_policy_server.resource.get",
+      "http_alias": "GET /_cokret/self/realms/{realm_id}/policy-server",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.realm_policy_server.resource.replace",
+      "http_alias": "PUT /_cokret/self/realms/{realm_id}/policy-server",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.realm_policy_server.resource.delete",
+      "http_alias": "DELETE /_cokret/self/realms/{realm_id}/policy-server",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.realm.resource.get",
+      "http_alias": "GET /_cokret/self/realms/{realm_id}",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.realm.query.export",
+      "http_alias": "GET /_cokret/self/realms/{realm_id}/export",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.realm.moderation_policy.query.effective",
+      "http_alias": "GET /_cokret/self/realms/{realm_id}/moderation-policy/effective",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.realm.moderation_policy.resource.replace",
+      "http_alias": "PUT /_cokret/self/realms/{realm_id}/moderation-policy",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.consent.query.list",
+      "http_alias": "GET /_cokret/self/consent/cells",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.consent.resource.get",
+      "http_alias": "GET /_cokret/self/consent/cells/{holder_did}",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.consent.command.grant",
+      "http_alias": "POST /_cokret/self/consent/cells/{holder_did}/grant",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.consent.command.revoke",
+      "http_alias": "POST /_cokret/self/consent/cells/{holder_did}/revoke",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.consent.command.request",
+      "http_alias": "POST /_cokret/self/consent/request",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.account_data.query.list",
+      "http_alias": "GET /_cokret/self/account_data",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.account_data.resource.get",
+      "http_alias": "GET /_cokret/self/account_data/{data_type}",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.account_data.resource.replace",
+      "http_alias": "PUT /_cokret/self/account_data/{data_type}",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.account_data.resource.delete",
+      "http_alias": "DELETE /_cokret/self/account_data/{data_type}",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.read_cursor.command.advance",
+      "http_alias": "POST /_cokret/self/read-cursors",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.read_cursor.query.list",
+      "http_alias": "GET /_cokret/self/read-cursors",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface."
     }
   ],
   "cross_links": {

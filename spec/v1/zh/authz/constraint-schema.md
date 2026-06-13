@@ -14,6 +14,8 @@ updated: 2026-06-10
 
 本规范定义了 Cokret v1 能力授权中约束的形式 schema。约束细化了能力授权可以行使的条件和方式。
 
+> _Example (informative)._ 本文各小节的 JSON 代码块均为说明性示例，用于展示典型 typed constraint 的语义组合。约束对象的**权威 wire 字段集合**以 [`../../artifacts/schemas/grant-constraint.schema.json`](../../artifacts/schemas/grant-constraint.schema.json)（`additionalProperties:false`）为准；示例中若出现该 schema 未声明的概念性字段名（用于阐述意图）或形如 `"a|b"` 的取值占位，均不构成合法 wire 取值，实现 MUST 以 schema 为准。
+
 职责切分是 normative：
 
 - **Constraint** 是 grant / policy 内的静态声明，描述“这个能力最多可在什么范围内、以什么附加条件行使”。它可以声明需要某类 claim、approval、device/session 或 challenge，但不直接携带一次运行时 allow 结果。
@@ -415,6 +417,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 ```json
 {
   "constraint_type": "claim_based",
+  "subtype": "claim",
   "effect": "allow",
   "requires_claims": [
     {
@@ -438,6 +441,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 ```json
 {
   "constraint_type": "claim_based",
+  "subtype": "claim",
   "effect": "allow",
   "validation_mode": "strict|lenient",
   "allow_expired_claims": false,

@@ -30,7 +30,7 @@ updated: 2026-06-10
 | `did` | DID URI string。 |
 | `id:<kind>` | `ck:<kind>:<uuid>` typed ID，或该 kind 在 `id-kind-registry.json` 声明的特殊 wire form。 |
 | `ref:<kind>` | 指向 `<kind>` 的 typed reference material；wire form 同样由 `id-kind-registry.json` 或对应 profile 声明，但字段语义是因果 / proof / content-addressed / profile-scoped reference，而不是普通对象主键。 |
-| `hash` | `sha256:<lowercase_hex_digest>`。 |
+| `hash` | 自描述 `<digest-suite>:<lowercase_hex_digest>`（suite 取 `digest-suite-registry.json` 的 active 套件，如 `sha256:` / `blake3:`；实际套件由 Realm `digest_algorithm` 决定）。 |
 | `cursor` | `ck:cursor:<base64url>` opaque string。 |
 | `patch` | `ck.patch.v1` 形态的 JSON patch 片段，具体路径与 op 规则见 [`event-and-patch.md`](./event-and-patch.md)。 |
 

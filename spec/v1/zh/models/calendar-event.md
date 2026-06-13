@@ -36,6 +36,8 @@ Calendar event 是一个带 `ck.profile.calendar_event.v1` 的 Flow profile，�
 
 字段顺序在 schema 和 prose 中 MUST 保持上述顺序，避免实现把 `timezone` 或 `all_day` 作为后补语义。
 
+`end` 与 `start` 的时序约束有明确 enforcement 归属（与 §4 attendees 唯一性同一模式）：非 all-day 事件 `end` MUST 晚于 `start`；`all_day=true` 时 `end` MUST ≥ `start`（同日单日事件）。producer 写入前 MUST 校验；reducer / profile 在 `end` 不满足该约束时 MUST 以 `schema_violation` 拒绝。JSON Schema 无法表达跨字段时序比较，故该约束由 reducer / profile 承载，而非 `calendar-event.schema.json`。
+
 ## 3. Recurrence
 
 v1 recurrence 使用 RRULE 子集：`FREQ`、`INTERVAL`、`BYDAY`、`COUNT`、`UNTIL`。wire schema 使用协议命名字段 `frequency`、`interval`、`by_day`、`count`、`expires_at`；实现 MUST 按 `timezone` 做 wall-clock 展开；跨 DST 时，同一 local time 的会议不得因为 UTC offset 改变而漂移。

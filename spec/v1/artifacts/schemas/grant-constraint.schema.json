@@ -55,12 +55,11 @@
     },
     "subtype": {
       "type": "string",
-      "description": "Optional discriminator within a constraint_type. Standard values: claim_based.{claim,approval,accountability,device_session}; quota.{rate,resource}; confidentiality.{encryption,visibility}; temporal.{window,edit_window,redact_window,session}. Implementations MAY require subtype for these families and fail closed on unknown values.",
+      "description": "Optional discriminator within a constraint_type. Standard values: claim_based.{claim,approval,accountability}; quota.{rate,resource}; confidentiality.{encryption,visibility}; temporal.{window,edit_window,redact_window,session}. Per constraint-schema.md §2.2, device/session binding is NOT an independent subtype: it is the claim_based subtype=claim sub-case expressed via claim issuer = device cross-signing key. Implementations MAY require subtype for these families and fail closed on unknown values.",
       "enum": [
         "claim",
         "approval",
         "accountability",
-        "device_session",
         "rate",
         "resource",
         "encryption",
@@ -696,6 +695,23 @@
     },
     "encryption_required": {
       "type": "boolean"
+    },
+    "min_encryption_level": {
+      "type": "string",
+      "enum": [
+        "none",
+        "mls_rfc9420",
+        "external"
+      ],
+      "description": "confidentiality(subtype=encryption) static floor: the minimum content-encryption mechanism the grant requires. Values mirror Realm/Circle encryption_profile. Pure static declaration evaluated as stateless unless cross-checked against the Realm's current encryption_profile (see constraint-schema.md §12)."
+    },
+    "allow_plaintext_fallback": {
+      "type": "boolean",
+      "description": "confidentiality(subtype=encryption) static flag: whether the grant permits plaintext when the encryption floor cannot be met. See constraint-schema.md §12."
+    },
+    "require_audit_trail": {
+      "type": "boolean",
+      "description": "confidentiality(subtype=encryption) static flag: whether the grant requires an audit trail (e.g. active Audit Applet Binding). See constraint-schema.md §12."
     },
     "key_rotation_period": {
       "type": "string",

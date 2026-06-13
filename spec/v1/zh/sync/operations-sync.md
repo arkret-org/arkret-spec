@@ -189,7 +189,7 @@ flowchart TB
 - Control Move 的授权与 precondition 基准始终是该 Event 自己的 `seal_basis`。
 - 同批前序 Event 创建、delegate、恢复、扩权或 revoke 的 grant/policy，不会在同批后续 Event 的授权判定中提前生效。
 
-后续 Event 若依赖同批失败、缺失或隔离的 Event，MUST 以 `dependency_missing`、`causal_conflict`、`capability_denied`、`soft_fail` 或等价原因拒绝或隔离。
+后续 Event 若依赖同批失败、缺失或隔离的 Event，MUST 以 `dependency_missing`、`causal_conflict`、`capability_denied`、`soft_failed` 或等价原因拒绝或隔离。
 
 批量响应 MUST 区分：
 
