@@ -971,6 +971,7 @@
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
+            "schema",
             "policy_id",
             "principal_id",
             "version",
@@ -1010,6 +1011,7 @@
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
+            "schema",
             "policy_id",
             "principal_id",
             "version",
@@ -1041,6 +1043,7 @@
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
+            "schema",
             "policy_id",
             "principal_id",
             "version",
@@ -1131,6 +1134,7 @@
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
+            "schema",
             "receipt_id",
             "principal_id",
             "recovery_session_id",
@@ -1187,6 +1191,7 @@
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
+            "schema",
             "receipt_id",
             "principal_id",
             "recovery_session_id",
@@ -1226,6 +1231,7 @@
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
+            "schema",
             "actor_id",
             "backup_class",
             "active_series_id",
@@ -1258,6 +1264,7 @@
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
           "signed_fields": [
+            "schema",
             "recovery_session_id",
             "principal_id",
             "requesting_device_id",

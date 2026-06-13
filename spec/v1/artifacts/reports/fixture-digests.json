@@ -30,7 +30,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
-      "sha256": "83ca1349bdbb16e8b80c912dbb8848b9782ca12994ad5a813008fb8a5ca61892"
+      "sha256": "2a14d91197c115ca5541b8d8f68ac64568df3c5df35b15b4d8e41919a115e589"
     },
     {
       "path": "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",
@@ -54,7 +54,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "ab91190155eb7959fdcbc24e7a8bd21230e3f8c65b7df59f75ffe2334b46dc6d"
+      "sha256": "dc2c2854935d49104aebdb489660971c08aaf5a8013ce67b69de7ddcd8fe8d75"
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-closure-vectors.json",

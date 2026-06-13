@@ -78,6 +78,11 @@
           "allOf": [
             {
               "contains": {
+                "const": "schema"
+              }
+            },
+            {
+              "contains": {
                 "const": "actor_id"
               }
             },

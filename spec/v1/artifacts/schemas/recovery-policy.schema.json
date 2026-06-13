@@ -267,6 +267,11 @@
           "allOf": [
             {
               "contains": {
+                "const": "schema"
+              }
+            },
+            {
+              "contains": {
                 "const": "policy_id"
               }
             },

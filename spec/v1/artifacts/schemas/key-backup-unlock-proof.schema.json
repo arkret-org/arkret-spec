@@ -92,6 +92,7 @@
             "type": "string"
           },
           "allOf": [
+            { "contains": { "const": "schema" } },
             { "contains": { "const": "recovery_session_id" } },
             { "contains": { "const": "principal_id" } },
             { "contains": { "const": "requesting_device_id" } },

@@ -863,6 +863,7 @@ Recovery policy 的标准发布面是 `POST /_cokret/root/identity/recovery-poli
     "signature_algorithm": "EdDSA",
     "signature": "base64url...",
     "signed_fields": [
+      "schema",
       "policy_id", "principal_id", "version", "trust_domain",
       "supersedes", "allowed_proof_kinds", "threshold", "device_quorum",
       "approval_requirement", "not_before", "expires_at", "issued_at"

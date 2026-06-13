@@ -223,6 +223,11 @@
           "allOf": [
             {
               "contains": {
+                "const": "schema"
+              }
+            },
+            {
+              "contains": {
                 "const": "receipt_id"
               }
             },

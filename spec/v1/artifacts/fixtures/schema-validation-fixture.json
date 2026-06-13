@@ -1069,6 +1069,7 @@
           "signature_algorithm": "Ed25519",
           "signature": "c2ln",
           "signed_fields": [
+            "schema",
             "receipt_id",
             "principal_id",
             "recovery_session_id",
@@ -1112,6 +1113,7 @@
           "signature_algorithm": "Ed25519",
           "signature": "c2ln",
           "signed_fields": [
+            "schema",
             "receipt_id",
             "principal_id",
             "recovery_session_id",
