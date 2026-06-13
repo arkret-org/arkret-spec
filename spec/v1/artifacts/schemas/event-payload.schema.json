@@ -3236,7 +3236,8 @@
             "type": "string",
             "enum": [
               "ck.profile.search.client_index.v1",
-              "ck.profile.search.blind_index.v1"
+              "ck.profile.search.blind_index.v1",
+              "ck.profile.search.forward_private.v1"
             ]
           },
           "uniqueItems": true
@@ -3271,6 +3272,21 @@
             "fail_closed",
             "drop_stale"
           ]
+        },
+        "leakage_class": {
+          "type": "string",
+          "enum": [
+            "deterministic_token",
+            "forward_private",
+            "access_hiding"
+          ],
+          "default": "deterministic_token",
+          "description": "Machine-readable search leakage class. ck.profile.search.blind_index.v1 uses deterministic_token; ck.profile.search.forward_private.v1 requires forward_private; access_hiding is reserved for explicit PIR/ORAM-backed profiles."
+        },
+        "token_rotation_cadence_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum intended interval between search token generations for profiles that rotate index keys or OPRF blinds."
         }
       },
       "additionalProperties": false

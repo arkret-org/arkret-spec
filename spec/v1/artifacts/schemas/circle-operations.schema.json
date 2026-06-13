@@ -50,12 +50,13 @@
     },
     "circle_member_state": {
       "type": "string",
+      "description": "Deprecated internal alias name retained only for schema ref stability; values are the canonical membership_state enum shared by ck.member.state and ck.circle.member.state.",
       "enum": [
-        "invited",
-        "active",
-        "removed",
-        "banned",
-        "left"
+        "join",
+        "invite",
+        "knock",
+        "leave",
+        "ban"
       ]
     },
     "circle_view": {
@@ -268,10 +269,10 @@
         "actor_id": {
           "$ref": "#/$defs/did"
         },
-        "state": {
+        "membership": {
           "$ref": "#/$defs/circle_member_state",
-          "default": "active",
-          "description": "Target member state. Defaults to active. Activating another actor requires ck.circle.member.manage; the target MUST already be a joined Realm member."
+          "default": "join",
+          "description": "Target canonical ck.circle.member.state membership value. Defaults to join. Joining another actor requires ck.circle.member.manage and the target MUST already be a joined parent-Realm member; knock requires join_rule=request."
         }
       },
       "additionalProperties": false
@@ -281,7 +282,7 @@
       "required": [
         "circle_id",
         "actor_id",
-        "state"
+        "membership"
       ],
       "properties": {
         "circle_id": {
@@ -290,7 +291,7 @@
         "actor_id": {
           "$ref": "#/$defs/did"
         },
-        "state": {
+        "membership": {
           "$ref": "#/$defs/circle_member_state"
         }
       },

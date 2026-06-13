@@ -2284,7 +2284,101 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Call state"
+        "payload": "Call state",
+        "cell_family": "ck.component.call.state.v1",
+        "cell_subject": {
+          "type": "typed_id",
+          "field": "payload.call_id"
+        },
+        "lattice": "fsm",
+        "bottom": "reject",
+        "parameters": {
+          "initial_states": [
+            "scheduled",
+            "ringing",
+            "connecting"
+          ],
+          "states": [
+            "scheduled",
+            "ringing",
+            "connecting",
+            "active",
+            "ended",
+            "missed",
+            "failed",
+            "cancelled"
+          ],
+          "terminal_states": [
+            "ended",
+            "missed",
+            "failed",
+            "cancelled"
+          ],
+          "idempotent_replay": "same_to_state_same_basis_noop",
+          "concurrent_sibling_conflict": "bottom",
+          "allowed_transitions": [
+            [
+              "scheduled",
+              "ringing"
+            ],
+            [
+              "scheduled",
+              "connecting"
+            ],
+            [
+              "scheduled",
+              "cancelled"
+            ],
+            [
+              "scheduled",
+              "missed"
+            ],
+            [
+              "scheduled",
+              "failed"
+            ],
+            [
+              "ringing",
+              "connecting"
+            ],
+            [
+              "ringing",
+              "active"
+            ],
+            [
+              "ringing",
+              "missed"
+            ],
+            [
+              "ringing",
+              "cancelled"
+            ],
+            [
+              "ringing",
+              "failed"
+            ],
+            [
+              "connecting",
+              "active"
+            ],
+            [
+              "connecting",
+              "failed"
+            ],
+            [
+              "connecting",
+              "ended"
+            ],
+            [
+              "active",
+              "ended"
+            ],
+            [
+              "active",
+              "failed"
+            ]
+          ]
+        }
       },
       {
         "event_kind": "ck.call.recording.start",
@@ -3275,14 +3369,14 @@
           "ck.root.identity.registry.query.describe",
           "ck.root.identity.query.resolve",
           "ck.root.identity.document.resource.get",
-        "ck.root.identity.log.query.list",
-        "ck.root.identity.receipts.query.list",
-        "ck.root.identity.command.submit_did_operation",
-        "ck.root.identity.recovery_policy.resource.get",
-        "ck.root.identity.recovery_policy.command.publish",
-        "ck.root.identity.recovery_session.command.create",
-        "ck.root.identity.recovery_session.resource.get",
-        "ck.root.identity.recovery_session.command.submit_proof",
+          "ck.root.identity.log.query.list",
+          "ck.root.identity.receipts.query.list",
+          "ck.root.identity.command.submit_did_operation",
+          "ck.root.identity.recovery_policy.resource.get",
+          "ck.root.identity.recovery_policy.command.publish",
+          "ck.root.identity.recovery_session.command.create",
+          "ck.root.identity.recovery_session.resource.get",
+          "ck.root.identity.recovery_session.command.submit_proof",
           "ck.root.identity.recovery_session.command.complete"
         ]
       },
@@ -3372,18 +3466,6 @@
         ]
       },
       {
-        "surface": "organization_registry",
-        "tier": "extension",
-        "operations": [
-          "ck.self.organization.query.list",
-          "ck.self.organization.command.upsert",
-          "ck.self.organization.resource.get",
-          "ck.self.organization.policy.resource.get",
-          "ck.self.organization.policy.resource.replace",
-          "ck.self.organization.realm.command.link"
-        ]
-      },
-      {
         "surface": "realm_governance_links",
         "tier": "extension",
         "operations": [
@@ -3459,11 +3541,7 @@
           "ck.self.authz.query.check",
           "ck.self.authz.grants.query.effective",
           "ck.self.authz.invites.query.list",
-          "ck.self.policy.query.check",
-          "ck.self.policy_document.query.list",
-          "ck.self.policy_document.command.upsert",
-          "ck.self.policy_document.resource.get",
-          "ck.self.policy_document.resource.delete"
+          "ck.self.policy.query.check"
         ]
       },
       {
@@ -4054,7 +4132,7 @@
         "http": "DELETE /_cokret/self/circles/{circle_id}/members/{actor_id}",
         "grpc": "SelfCircle/MemberRemove",
         "mq": "self.circle.member.resource.delete",
-        "notes": "Builds ck.circle.member.state with target state removed for the path actor_id.",
+        "notes": "Builds ck.circle.member.state with membership=leave for the path actor_id.",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome"
       },
@@ -4086,63 +4164,6 @@
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
         "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view"
-      },
-      {
-        "operation_id": "ck.self.organization.query.list",
-        "http": "GET /_cokret/self/organizations",
-        "grpc": "SelfOrganization/List",
-        "mq": "self.organization.query.list",
-        "notes": "Lists locally known organization registry rows. An Organization is a DID Principal; the row is a local index plus realm-link projection, not a separate principal object.",
-        "success_shape_kind": "typed_response",
-        "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_list"
-      },
-      {
-        "operation_id": "ck.self.organization.command.upsert",
-        "http": "POST /_cokret/self/organizations",
-        "grpc": "SelfOrganization/Upsert",
-        "mq": "self.organization.command.upsert",
-        "notes": "Creates or updates a local organization registry row keyed by organization_did. The identifier MUST be a DID; a non-DID local organization prefix is a deployment-local affordance and is not protocol-canonical.",
-        "success_shape_kind": "typed_response",
-        "request_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_upsert_request_body",
-        "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_view"
-      },
-      {
-        "operation_id": "ck.self.organization.resource.get",
-        "http": "GET /_cokret/self/organizations/{organization_did}",
-        "grpc": "SelfOrganization/Get",
-        "mq": "self.organization.resource.get",
-        "notes": "Reads one local organization registry row.",
-        "success_shape_kind": "typed_response",
-        "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_view"
-      },
-      {
-        "operation_id": "ck.self.organization.policy.resource.get",
-        "http": "GET /_cokret/self/organizations/{organization_did}/policy",
-        "grpc": "SelfOrganization/PolicyGet",
-        "mq": "self.organization.policy.resource.get",
-        "notes": "Reads the current stored ck.organization.moderation_policy document for the organization. The policy only takes effect for Realms / services that explicitly reference it (content-moderation.md §7).",
-        "success_shape_kind": "typed_response",
-        "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_policy_document"
-      },
-      {
-        "operation_id": "ck.self.organization.policy.resource.replace",
-        "http": "PUT /_cokret/self/organizations/{organization_did}/policy",
-        "grpc": "SelfOrganization/PolicyReplace",
-        "mq": "self.organization.policy.resource.replace",
-        "notes": "Publishes / replaces the organization moderation policy (builds ck.organization.moderation_policy, admission capability ck.policy.manage). MUST be signed by the Organization DID or an authorized governance service DID.",
-        "success_shape_kind": "typed_response",
-        "request_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_policy_replace_request_body",
-        "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_policy_document"
-      },
-      {
-        "operation_id": "ck.self.organization.realm.command.link",
-        "http": "POST /_cokret/self/organizations/{organization_did}/realms",
-        "grpc": "SelfOrganization/RealmLink",
-        "mq": "self.organization.realm.command.link",
-        "notes": "Links a Realm to this organization as a policy source. The link is the explicit reference that activates organization policy inheritance for the Realm.",
-        "success_shape_kind": "typed_response",
-        "request_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_realm_link_request_body",
-        "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_realm_link_outcome"
       },
       {
         "operation_id": "ck.find.directory.command.announce",
@@ -4787,43 +4808,6 @@
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome"
       },
       {
-        "operation_id": "ck.self.policy_document.query.list",
-        "http": "GET /_cokret/self/policies",
-        "grpc": "SelfPolicyDocument/List",
-        "mq": "self.policy_document.query.list",
-        "notes": "Lists owner-scoped authorization policy documents (the backing store for ck.self.policy.query.check). Distinct from the Realm-bound governance Policy object ck.schema.policy.v1. Filterable by scope / subject_ref / include_inactive.",
-        "success_shape_kind": "typed_response",
-        "response_schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_list"
-      },
-      {
-        "operation_id": "ck.self.policy_document.command.upsert",
-        "http": "POST /_cokret/self/policies",
-        "grpc": "SelfPolicyDocument/Upsert",
-        "mq": "self.policy_document.command.upsert",
-        "notes": "Idempotently creates or replaces an owner-scoped policy document. policy_id defaults to a server-allocated ck:policy:<uuid>; replacing an existing id requires owner match. policy_scope is '*' or a ck:realm:<uuid>; subject_ref is '*' or a DID; effect is allow/deny/require_review/quarantine.",
-        "success_shape_kind": "typed_response",
-        "request_schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_upsert_request_body",
-        "response_schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_view"
-      },
-      {
-        "operation_id": "ck.self.policy_document.resource.get",
-        "http": "GET /_cokret/self/policies/{policy_id}",
-        "grpc": "SelfPolicyDocument/Get",
-        "mq": "self.policy_document.resource.get",
-        "notes": "Reads one owner-scoped policy document. Returns not_found when absent or not owned by the caller.",
-        "success_shape_kind": "typed_response",
-        "response_schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_view"
-      },
-      {
-        "operation_id": "ck.self.policy_document.resource.delete",
-        "http": "DELETE /_cokret/self/policies/{policy_id}",
-        "grpc": "SelfPolicyDocument/Delete",
-        "mq": "self.policy_document.resource.delete",
-        "notes": "Deletes one owner-scoped policy document. Only the owner may delete; deletion shifts the policy_frontier_digest observed by ck.self.policy.query.check.",
-        "success_shape_kind": "typed_response",
-        "response_schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_delete_outcome"
-      },
-      {
         "operation_id": "ck.self.realm_link.query.list",
         "http": "GET /_cokret/self/realms/{realm_id}/links",
         "grpc": "SelfRealmLink/List",
@@ -5129,7 +5113,7 @@
         "http": "POST /_cokret/self/account/profile",
         "grpc": "SelfAccount/UpdateProfile",
         "mq": "self.account.command.update_profile",
-        "notes": "Holder-bound service wrapper around ck.profile.update / Actor Profile projection. Request body is a closed patch over display_name, avatar_blob_ref, and profile_fields.<key>; bio migrates to profile_fields.bio and avatar_url is not accepted on the Cokret protocol path.",
+        "notes": "Holder-bound service wrapper around ck.profile.update / Actor Profile projection. Request body is a closed patch over display_name, avatar_blob_ref, and profile_fields.<key>; profile_fields.bio is the canonical personal bio field and avatar_url is not accepted on the Cokret protocol path.",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_request_body",
         "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_outcome"
@@ -5139,7 +5123,7 @@
         "http": "GET /_cokret/self/account/subscribe",
         "grpc": "SelfAccount/Subscribe",
         "mq": "self.account.stream.subscribe",
-        "notes": "Streaming push of cross-Realm account-aggregate deltas (cross-Realm frontier, to_device queue, account_data, device_lists, presence, unread / notification counts). Connection is long-lived; server pushes NDJSON frames as new data becomes available. Symmetric with ck.self.events.stream.subscribe — both are streaming subscriptions, differing only in scope (self.events.stream.subscribe = per-Realm event log; self.account.stream.subscribe = account-aggregate). `dropped` and `resync_required` control frames MAY carry `reconnect_after_ms`, a server-directed minimum delay before opening another subscription for the same principal/device/filter scope; early reconnects are rejected with rate_limited / Retry-After. Replaces the prior Matrix-derived long-poll ck.account.sync; not wire-compatible with Matrix /sync.",
+        "notes": "Streaming push of cross-Realm account-aggregate deltas (cross-Realm frontier, to_device queue, account_data, device_lists, presence, unread / notification counts). Connection is long-lived; server pushes NDJSON frames as new data becomes available. Symmetric with ck.self.events.stream.subscribe — both are streaming subscriptions, differing only in scope (self.events.stream.subscribe = per-Realm event log; self.account.stream.subscribe = account-aggregate). `dropped` and `resync_required` control frames MAY carry `reconnect_after_ms`, a server-directed minimum delay before opening another subscription for the same principal/device/filter scope; early reconnects are rejected with rate_limited / Retry-After. Presence changes are sent through ck.self.ephemeral.command.send, not this read-only stream subscription.",
         "success_shape_kind": "event_stream"
       },
       {
@@ -5171,7 +5155,8 @@
       "binary_stream": "Binary or octet-stream response body.",
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
-    }
+    },
+    "surfaces": []
   },
   "capability_action_registry": {
     "action_pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",

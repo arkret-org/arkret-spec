@@ -125,7 +125,7 @@ sidebar:
 
 ### 4.2 `state` 状态机（normative）
 
-`call_state_payload.state` 是通话生命周期的受控枚举。合法转换、终态与并发仲裁如下：
+`call_state_payload.state` 是通话生命周期的受控枚举。它写入 `ck.component.call.state.v1` cell，`cell_subject = payload.call_id`，lattice 为 `fsm`、`bottom=reject`。合法转换、终态与并发语义如下：
 
 | `state` | 语义 | 合法后继 | 终态? |
 | --- | --- | --- | --- |
@@ -141,7 +141,9 @@ sidebar:
 - **初始 state 集合**：某 `call_id` 的**首条** `ck.call.state` 事件，其 `state` MUST ∈ `{ scheduled, ringing, connecting }`——`scheduled` 对应预先排期，`ringing` 对应即时呼叫发起，`connecting` 对应无振铃阶段的直接加入（如会议直连）。首条事件携带其它取值（`active` 或任一终态）MUST `failed_precondition`，`reason_code="call_state_transition_invalid"`。
 - **终态集合**：`{ ended, missed, failed, cancelled }`。reducer MUST 拒绝从任一终态转出（单调推进），违反用 `failed_precondition` `reason="call_state_terminal"`。
 - **非法转换通用规则**：源 state 为非终态时，任何不在上表"合法后继"列内的 `state` 转换 MUST `failed_precondition`，`reason_code="call_state_transition_invalid"`（见 [`artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）；源为终态时用 `call_state_terminal`，二者不混用。
-- **并发仲裁**：多个并发 `ck.call.state` head 时，按 canonical order 取最终态；一旦达终态即吸收，不得回退。
+- **同状态重放**：同一 basis 上重复提交相同 `from -> to` 转换是幂等 no-op；reducer MUST 不产生新的分叉 head，也不得把同值重放当成非法转换。
+- **并发冲突**：同一 `call_id`、同一 CBA basis 下出现两个 sibling `ck.call.state` 转换，且二者的 `to` state 不同，`fsm` join MUST 返回 `Bottom{kind="conflict"}` 并按 `bottom=reject` 暴露 `failed_bottom` / diagnostic。实现 MUST NOT 用 HLC、`created_at`、`event_id`、actor id、event digest、数据库插入顺序或本地接收顺序选择 winner。冲突恢复必须由后续显式 recovery / operator action 在新的 accepted basis 上提交，不能静默回退。
+- **终态吸收**：一旦某 accepted head 进入终态，任何后续转出都按 `call_state_terminal` 拒绝；终态不能被并发 winner 规则覆盖，因为本状态机没有 winner 规则。
 
 **`recording_state`（录制维度，与 `state` 正交，normative）**：`{ recording, stopped, ready, failed }`，缺省=未录制。录制随 `ck.call.recording.start` 进入 `recording`；人工停止时通过 `ck.call.state` 写 `recording_state="stopped"`；artifact 入 Cokret blob pipeline 后转 `ready`，失败转 `failed`。录制态**独立于** `state`——通话可在 `active` 期间为 `recording_state="recording"`，通话 `ended` 之后再写 `recording_state="ready"`。`recording_state ∈ { ready, failed, stopped }` 时 SHOULD 携带 `recording_result.recording_start_event_id` 绑定本段录制的 start event；`ready` / `failed` 还 SHOULD 携带 content digest / duration / media type / retention policy。v1 不为录制注册独立 result/stop event，录制态变化通过 `ck.call.state` 写入（见 §5）。
 

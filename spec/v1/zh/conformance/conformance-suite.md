@@ -26,7 +26,9 @@ sidebar:
 
 ## 2. 测试角色（Profile）
 
-下列 profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-profiles.md) §6 与 `conformance-profiles.json` 的 `role` 为准）:**实现 profile**（声明实现承担的角色与能力集合）与 **hardening profile**（在某实现 profile 之上叠加的安全加固 overlay,`role=admin`,不单独作为可声明的实现角色）。
+完整 profile 集合、角色分类和 requirement blocks 的机器真相源是 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json)。本节只列首轮 release gate / 文档阅读优先子集；测试 runner MUST 枚举 JSON 中的 `implementation_profiles`、`deployment_profiles`、`vector_profiles` 与 `hardening_profiles`，不得把下列清单解释为穷尽集合。
+
+Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-profiles.md) §6 与 `conformance-profiles.json` 的 `role` 为准）:**实现 profile**（声明实现承担的角色与能力集合）与 **hardening profile**（在某实现 profile 之上叠加的安全加固 overlay,`role=admin`,不单独作为可声明的实现角色）。
 
 **实现 profile**:
 

@@ -147,6 +147,66 @@
       ]
     },
     {
+      "vector_id": "ck.vector.call_state.initial_state_accepts_allowed.v1",
+      "status": "active",
+      "domain": "call_state",
+      "applies_to_profiles": [
+        "ck.profile.media_service_binding.v1"
+      ],
+      "description": "Accepts the three legal first call states and rejects active or terminal first states.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.call_state.transition_matrix.v1",
+      "status": "active",
+      "domain": "call_state",
+      "applies_to_profiles": [
+        "ck.profile.media_service_binding.v1"
+      ],
+      "description": "Covers every legal call lifecycle transition and representative non-terminal illegal transitions.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.call_state.terminal_absorbing.v1",
+      "status": "active",
+      "domain": "call_state",
+      "applies_to_profiles": [
+        "ck.profile.media_service_binding.v1"
+      ],
+      "description": "Terminal call states reject every attempted outgoing transition with call_state_terminal.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.call_state.replay_same_state_noop.v1",
+      "status": "active",
+      "domain": "call_state",
+      "applies_to_profiles": [
+        "ck.profile.media_service_binding.v1"
+      ],
+      "description": "Same-basis replay of the same from/to transition is idempotent and does not create a divergent head.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.call_state.concurrent_sibling_bottom.v1",
+      "status": "active",
+      "domain": "call_state",
+      "applies_to_profiles": [
+        "ck.profile.media_service_binding.v1"
+      ],
+      "description": "Same-basis sibling transitions to different states return fsm bottom instead of selecting a winner.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ck.vector.consent.cache_invalidation.v1",
       "status": "active",
       "domain": "consent",
@@ -882,7 +942,8 @@
       "status": "active",
       "domain": "membership",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json"
+        "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
@@ -890,7 +951,8 @@
       "status": "active",
       "domain": "membership",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json"
+        "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
@@ -898,7 +960,8 @@
       "status": "active",
       "domain": "membership",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json"
+        "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
@@ -906,7 +969,8 @@
       "status": "active",
       "domain": "membership",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json"
+        "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
@@ -914,7 +978,8 @@
       "status": "active",
       "domain": "membership",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json"
+        "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {

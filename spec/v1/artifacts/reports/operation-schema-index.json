@@ -1452,7 +1452,7 @@
         ],
         "properties": [
           "actor_id",
-          "state"
+          "membership"
         ],
         "closed": true
       },
@@ -1462,12 +1462,12 @@
         "required": [
           "circle_id",
           "actor_id",
-          "state"
+          "membership"
         ],
         "properties": [
           "circle_id",
           "actor_id",
-          "state"
+          "membership"
         ],
         "closed": true
       }
@@ -1481,12 +1481,12 @@
         "required": [
           "circle_id",
           "actor_id",
-          "state"
+          "membership"
         ],
         "properties": [
           "circle_id",
           "actor_id",
-          "state"
+          "membership"
         ],
         "closed": true
       }
@@ -1604,196 +1604,6 @@
           "created_at",
           "updated_by",
           "updated_at"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ck.self.organization.query.list",
-      "success_shape_kind": "typed_response",
-      "response": {
-        "schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_list",
-        "schema_kind": "object",
-        "required": [
-          "organizations",
-          "total"
-        ],
-        "properties": [
-          "organizations",
-          "total"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ck.self.organization.command.upsert",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_upsert_request_body",
-        "schema_kind": "object",
-        "required": [
-          "organization_did"
-        ],
-        "properties": [
-          "organization_did",
-          "handle",
-          "display_name",
-          "verified",
-          "members",
-          "member_count"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_view",
-        "schema_kind": "object",
-        "required": [
-          "organization_did",
-          "display_name",
-          "verified",
-          "member_count",
-          "realms",
-          "created_by",
-          "created_at",
-          "updated_at"
-        ],
-        "properties": [
-          "organization_did",
-          "handle",
-          "display_name",
-          "verified",
-          "members",
-          "member_count",
-          "realms",
-          "created_by",
-          "created_at",
-          "updated_at"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ck.self.organization.resource.get",
-      "success_shape_kind": "typed_response",
-      "response": {
-        "schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_view",
-        "schema_kind": "object",
-        "required": [
-          "organization_did",
-          "display_name",
-          "verified",
-          "member_count",
-          "realms",
-          "created_by",
-          "created_at",
-          "updated_at"
-        ],
-        "properties": [
-          "organization_did",
-          "handle",
-          "display_name",
-          "verified",
-          "members",
-          "member_count",
-          "realms",
-          "created_by",
-          "created_at",
-          "updated_at"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ck.self.organization.policy.resource.get",
-      "success_shape_kind": "typed_response",
-      "response": {
-        "schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_policy_document",
-        "schema_kind": "object",
-        "required": [
-          "organization_did",
-          "policy_id",
-          "version",
-          "policy",
-          "applies_to_realms",
-          "updated_by",
-          "updated_at"
-        ],
-        "properties": [
-          "organization_did",
-          "policy_id",
-          "version",
-          "policy",
-          "applies_to_realms",
-          "updated_by",
-          "updated_at"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ck.self.organization.policy.resource.replace",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_policy_replace_request_body",
-        "schema_kind": "object",
-        "required": [
-          "policy"
-        ],
-        "properties": [
-          "policy"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_policy_document",
-        "schema_kind": "object",
-        "required": [
-          "organization_did",
-          "policy_id",
-          "version",
-          "policy",
-          "applies_to_realms",
-          "updated_by",
-          "updated_at"
-        ],
-        "properties": [
-          "organization_did",
-          "policy_id",
-          "version",
-          "policy",
-          "applies_to_realms",
-          "updated_by",
-          "updated_at"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ck.self.organization.realm.command.link",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_realm_link_request_body",
-        "schema_kind": "object",
-        "required": [
-          "realm_id"
-        ],
-        "properties": [
-          "realm_id"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_realm_link_outcome",
-        "schema_kind": "object",
-        "required": [
-          "organization_did",
-          "realm_id",
-          "linked"
-        ],
-        "properties": [
-          "organization_did",
-          "realm_id",
-          "linked"
         ],
         "closed": true
       }
@@ -4078,117 +3888,6 @@
           "next_retry_at",
           "obligations",
           "signature"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ck.self.policy_document.query.list",
-      "success_shape_kind": "typed_response",
-      "response": {
-        "schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_list",
-        "schema_kind": "object",
-        "required": [
-          "policies"
-        ],
-        "properties": [
-          "policies",
-          "next_cursor"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ck.self.policy_document.command.upsert",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_upsert_request_body",
-        "schema_kind": "object",
-        "required": [
-          "policy_scope",
-          "subject_ref",
-          "policy_type",
-          "effect"
-        ],
-        "properties": [
-          "policy_id",
-          "policy_scope",
-          "subject_ref",
-          "policy_type",
-          "effect",
-          "actions",
-          "resource",
-          "obligations",
-          "active"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_view",
-        "schema_kind": "object",
-        "required": [
-          "policy_id",
-          "owner",
-          "policy_scope",
-          "subject_ref",
-          "policy_type",
-          "payload",
-          "active",
-          "updated_at"
-        ],
-        "properties": [
-          "policy_id",
-          "owner",
-          "policy_scope",
-          "subject_ref",
-          "policy_type",
-          "payload",
-          "active",
-          "updated_at"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ck.self.policy_document.resource.get",
-      "success_shape_kind": "typed_response",
-      "response": {
-        "schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_view",
-        "schema_kind": "object",
-        "required": [
-          "policy_id",
-          "owner",
-          "policy_scope",
-          "subject_ref",
-          "policy_type",
-          "payload",
-          "active",
-          "updated_at"
-        ],
-        "properties": [
-          "policy_id",
-          "owner",
-          "policy_scope",
-          "subject_ref",
-          "policy_type",
-          "payload",
-          "active",
-          "updated_at"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ck.self.policy_document.resource.delete",
-      "success_shape_kind": "typed_response",
-      "response": {
-        "schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_delete_outcome",
-        "schema_kind": "object",
-        "required": [
-          "ok"
-        ],
-        "properties": [
-          "ok"
         ],
         "closed": true
       }

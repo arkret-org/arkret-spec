@@ -64,7 +64,6 @@ Account subscribe 的服务边界是当前 authenticated session 绑定的 Princ
 | `Authorization` | header | `bearer token` 或 `device proof` | required | 必须绑定当前 principal / device。 |
 | `after` | query | `cursor` | optional | 订阅起点 cursor(purpose=`stream`,排除语义),从此 cursor *之后* 开始接收 frame。缺省表示没有可恢复账号 cursor。 |
 | `catchup` | query | `boolean` | optional | 默认 `false`。`after` 存在时,`true` 表示服务端先回放 `after=` 之后到当前 frontier 的账号聚合 delta,再发 `catchup_complete` frame,然后切到实时尾部；这不是全量历史。`after` 缺省且 `catchup=true` 是 **initial account sync**:服务端 MUST 先发送覆盖当前账号 baseline 的 `delta` frame(Realm 摘要、必要首屏 state、device list baseline、to_device/account_data/notification 当前位置),再发送 `catchup_complete`。完整历史必须通过 `ck.self.events.query.scan` 分页/区间读取。 |
-| `set_presence` | query | `enum(online,offline,unavailable)` | optional | 连接建立时设置当前设备 presence。若服务端支持 presence 且当前 session 持有 `ck.presence.broadcast` action，服务端在 frame 推送过程中向其他 Realm 广播；否则 MUST 忽略该参数且不得广播，但不得仅因 `set_presence` 无权限或不支持而拒绝 `ck.self.account.stream.subscribe` 连接。 |
 | `filter` | query (deepObject) | `object` | optional | 过滤条件。语义同 self.events.stream.subscribe。 |
 | `filter.realms` | query | `id[]` | optional | 限制返回 Realm。 |
 | `filter.timeline_limit` | query | `int` | optional | 每个 Realm timeline 数量上限(per-frame)。 |
@@ -72,6 +71,8 @@ Account subscribe 的服务边界是当前 authenticated session 绑定的 Princ
 | `filter.include_redundant_members` | query | `boolean` | optional | 是否包含冗余成员状态。 |
 | `filter.event_types` | query | `string[]` | optional | 事件类型 allow list。 |
 | `filter.not_event_types` | query | `string[]` | optional | 事件类型 deny list。 |
+
+Presence 变更不是 account subscribe 的 query 参数。客户端要广播 `online` / `offline` / `unavailable` 等 presence 意图时，MUST 通过 `POST /_cokret/self/ephemeral` 提交 `ck.presence` ephemeral envelope，并按该 operation 执行 `ck.presence.broadcast` 授权、TTL、幂等和日志最小披露规则。`GET /_cokret/self/account/subscribe` MUST 保持只读：建立、恢复或重放订阅不得触发 presence 广播或其它 server-side mutation。
 
 响应 frame 形态(`application/x-ndjson`,每行一个 JSON 对象):
 

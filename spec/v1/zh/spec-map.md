@@ -263,7 +263,7 @@ see_also:
 | `conformance/README.md` | conformance 目录入口、阅读顺序和 artifact/向量使用说明。 |
 | `conformance/normative-language.md` | RFC 2119 / 8174 规范关键字（`MUST` / `SHOULD` / `MAY` 等）的 canonical 定义与中英对照；几乎所有文档 §0 与 frontmatter `see_also` 引用。 |
 | `conformance/encoding.md` | Canonical JSON、ID、hash、signature、cursor、HLC、rank。 |
-| `conformance/conformance-vectors.md` | 合并的一致性测试向量；逐域 vector 清单以文件章节目录与 `artifacts/registry/vector-registry.json` 为准。 |
+| `conformance/conformance-vectors.md` | 一致性测试向量的人类阅读入口；完整 active vector 集合以 `artifacts/registry/vector-registry.json` 及其 `source_refs` 为准。 |
 | `conformance/schema-registry.md` | 标准 schema / event type registry。 |
 | `conformance/query-schema.md` | View / Search / Inbox 可复用查询形状。 |
 | `conformance/snapshot-schema.md` | Snapshot manifest、chunk、signature、encrypted envelope。 |

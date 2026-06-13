@@ -6,7 +6,7 @@ stability: v1
 updated: 2026-06-11
 ---
 
-本文整合所有 v1 conformance 测试向量，按域分组；以下为各域索引，逐域 vector 清单以本文件章节目录与 `artifacts/registry/vector-registry.json` 为准：
+本文是 v1 conformance 测试向量的人类阅读入口，按域分组呈现核心 normative steps。完整 active vector 集合的机器真相源是 `artifacts/registry/vector-registry.json`；测试 runner MUST 从 registry 的 `source_refs` 加载本文件、领域文档与 fixture，不得假定本文件正文穷尽列出所有 vector id。
 
 1. Encoding & Crypto（canonical JSON、digest、signature binding、HLC、cursor、encrypted envelope）
 2. CBA · Lattice（DataEvent acceptance、Control Move Seal finality、cas_register、Seal DAG）
@@ -26,7 +26,7 @@ updated: 2026-06-11
 
 可执行向量数据集位于 [`spec/v1/artifacts/fixtures/`](../../artifacts/fixtures/)；
 本文档把对应规范条款与文件入口集中呈现，便于一致性测试 runner 引用。
-所有 `ck.vector.*` 标识符的机器索引位于 [`vector-registry.json`](../../artifacts/registry/vector-registry.json)；新增、删除或重命名向量时 MUST 同步更新该 registry，并通过 `tools/artifact_pipeline.py check` 的闭包校验。
+所有 `ck.vector.*` 标识符的机器索引位于 [`vector-registry.json`](../../artifacts/registry/vector-registry.json)；新增、删除或重命名向量时 MUST 同步更新该 registry，并通过 `tools/artifact_pipeline.py check` 的闭包校验。领域文档中定义的向量（例如 Directory / PSI / Search）只要在 registry `source_refs` 中登记，即属于同一 conformance suite。
 
 ## 0. 规范语言
 
@@ -2233,6 +2233,8 @@ ck.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 
 ### 7.2 Vector: `explicit` Binding 接受
 
+`vector_id`: `ck.vector.membership.delivery_binding.explicit.v1`
+
 Input — `ck.member.state{membership="join"}` Control Move payload：
 
 ```json
@@ -2261,6 +2263,8 @@ Input — `ck.member.state{membership="join"}` Control Move payload：
 - 此后任何向 Alice 投递的 Realm S event/sync/to_device/push/key_packages MUST 走 `did:web:principal.acme.example`，**禁止**触发 DID Document service entry resolution。
 
 ### 7.3 Vector: `did_document_default` Fallback 物化
+
+`vector_id`: `ck.vector.membership.delivery_binding.did_document_default.v1`
 
 Input — Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_did_document_default=true`，其余字段未限制；Alice DID Document service `CokretPrincipalServer` 指向 `did:web:personal.alice.example`，canonical hash `sha256:abc...`。
 
@@ -2292,6 +2296,8 @@ Input — Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_did_docu
 
 ### 7.4 Vector: `unroutable` 成员
 
+`vector_id`: `ck.vector.membership.delivery_binding.unroutable.v1`
+
 Input — Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_unroutable_membership=true`。Alice join Control Move 携带：
 
 ```json
@@ -2313,6 +2319,8 @@ Input — Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_unroutab
 
 ### 7.5 Vector: Rebind Handover + 撤销后停止投递
 
+`vector_id`: `ck.vector.membership.delivery_binding.handover.v1`
+
 序列：
 
 1. **Initial join**（`F0`）：Alice join with `recipient_service_did=did:web:personal.alice.example`，accepted。
@@ -2329,6 +2337,21 @@ Input — Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_unroutab
 - 整个序列中 sender 解析投递目标 MUST 完全依赖 effective member cell 的 `delivery_binding`，DID Document service entry 永远不被 query。
 - `delivery_binding_frontier` 字段在所有 service-to-service push 中均存在；sender 端落后 frontier 收到 stale signal 后 MUST 切换、不重投。
 - 撤销后 sender 试图继续投递 MUST 收到 `member_not_in_space` 或 `capability_revoked`；MUST NOT 构造任何 "fallback to DID Document" 路径。
+
+### 7.5.1 Vector: Policy Mismatch 拒绝
+
+`vector_id`: `ck.vector.membership.delivery_binding.policy_mismatch.v1`
+
+Steps:
+
+1. Realm policy 不允许 `binding_source=explicit`，但 join Control Move 携带 explicit `delivery_binding`。
+2. Realm policy 声明 `allowed_recipient_services`，但 `delivery_binding.recipient_service_did` 不在集合内且没有满足 `required_endorsers` 的 proof。
+3. Realm policy 不允许 `allow_unroutable_membership`，但 join Control Move 携带 `delivery_status="unroutable"`。
+
+Expected:
+
+- 每个 case MUST `failed_precondition`，`reason=delivery_binding_policy_mismatch`。
+- reducer MUST NOT fallback 到 DID Document，也不得接受成员后再把 delivery 状态标为 best-effort。
 
 ### 7.6 覆盖矩阵
 
@@ -3267,6 +3290,77 @@ Expected:
 
 - 每个变体 MUST `failed_precondition` `reason=participant_binding_invalid`；wire-level typed schema 通过不豁免 reducer 的语义校验。
 - 反例（control）：四项全部满足时，同一事件 MUST accepted。
+
+### 12.11 Call State — Initial State Gate
+
+`vector_id`: `ck.vector.call_state.initial_state_accepts_allowed.v1`
+
+Steps:
+
+1. 对同一新 `call_id` 分别提交首条 `ck.call.state`，`state` 为 `scheduled`、`ringing`、`connecting`。
+2. 对另两个新 `call_id` 分别提交首条 `ck.call.state`，`state` 为 `active` 与 `ended`。
+
+Expected:
+
+- 前三条 MUST accepted，并各自建立 `ck.component.call.state.v1` 的初始 fsm cell。
+- `active` 与任一终态作为首状态 MUST `failed_precondition`，`reason_code=call_state_transition_invalid`。
+
+### 12.12 Call State — Transition Matrix
+
+`vector_id`: `ck.vector.call_state.transition_matrix.v1`
+
+Steps:
+
+1. 以 `scheduled`、`ringing`、`connecting`、`active` 四个非终态为 `from`，逐条提交 [`call-state.md` §4.2](../crypto-media/call-state.md) 表中列出的合法后继。
+2. 对每个非终态提交至少一个不在合法后继集合内的 `to`，例如 `scheduled -> active`、`ringing -> scheduled`、`connecting -> cancelled`、`active -> ringing`。
+
+Expected:
+
+- 表中每条合法边 MUST accepted，并推进同一 `call_id` 的 fsm cell。
+- 非终态非法边 MUST `failed_precondition`，`reason_code=call_state_transition_invalid`；不得误报为 `call_state_terminal`。
+
+### 12.13 Call State — Terminal Absorbing
+
+`vector_id`: `ck.vector.call_state.terminal_absorbing.v1`
+
+Steps:
+
+1. 构造四个 call，使其 accepted head 分别为 `ended`、`missed`、`failed`、`cancelled`。
+2. 分别尝试从这些终态提交任何其它 `state`，包括另一个终态和非终态。
+
+Expected:
+
+- 每个终态转出 MUST `failed_precondition`，`reason=call_state_terminal`。
+- reducer MUST 保留原终态 head，不得产生回退、替换或 winner。
+
+### 12.14 Call State — Same Transition Replay
+
+`vector_id`: `ck.vector.call_state.replay_same_state_noop.v1`
+
+Steps:
+
+1. 在同一 accepted basis 上提交 `ringing -> connecting`。
+2. 以相同 `from`、相同 `to`、相同 `call_id` 重放等价转换（不同传输重试或 duplicate submit）。
+
+Expected:
+
+- 重放 MUST 是幂等 no-op：结果仍为 `connecting`，不产生 sibling conflict。
+- 实现 MAY 返回 duplicate / accepted-noop 等本地结果，但 MUST NOT 返回 `call_state_transition_invalid`。
+
+### 12.15 Call State — Concurrent Sibling Bottom
+
+`vector_id`: `ck.vector.call_state.concurrent_sibling_bottom.v1`
+
+Steps:
+
+1. 同一 `call_id` 当前 accepted state 为 `ringing`。
+2. 在同一 CBA basis 上并发提交 sibling transition A: `ringing -> active` 与 B: `ringing -> missed`。
+
+Expected:
+
+- `ck.component.call.state.v1` 的 `fsm` join MUST 返回 `Bottom{kind="conflict"}`，并按 `bottom=reject` 暴露 `failed_bottom` / diagnostic。
+- 实现 MUST NOT 用 HLC、`created_at`、actor id、event id、event digest、数据库顺序或接收顺序选择 `active` 或 `missed` 作为 winner。
+- 后续依赖该 call state 的写入 MUST fail closed，直到显式 recovery 在新的 accepted basis 上修复冲突。
 
 ## 13. History Visibility / Preview / History Sharing
 

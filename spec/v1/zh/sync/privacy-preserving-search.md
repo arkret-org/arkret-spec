@@ -23,6 +23,7 @@ see_also:
 
 - `ck.profile.search.client_index.v1`: 客户端加密索引托管。
 - `ck.profile.search.blind_index.v1`: keyed blind token 服务端候选检索。
+- `ck.profile.search.forward_private.v1`: 在 blind-index 基础上叠加 server-assisted OPRF 与 generation-bound token derivation，降低长期增量泄漏；该 profile 为 opt-in extension，不改变 base blind-index 语义。
 
 任何接收 plaintext、可逆摘要、embedding 或用户可读 snippet 的服务仍必须通过 `plaintext_visible_services` 授权；本文 profile 不得被用来绕过该要求。
 
@@ -42,13 +43,24 @@ Token 不得跨 Realm、Circle、MLS epoch 或 index generation 复用。实现 
 
 Blind-index token 是 deterministic keyed token：它不向服务端暴露明文 term，但会暴露同一 `index_generation` 内的查询频次、候选集合大小、access pattern 以及 term 共现结构。实现 MUST 把这些泄漏写入 Realm search policy 的风险评估；高隐私 Realm SHOULD 缩短 `index_generation` / epoch 轮换窗口，并限制服务端跨 generation 关联。Forward-private SSE、PIR-backed candidate retrieval 或 ORAM-style access hiding 只能作为显式 search extension profile 引入；base v1 blind index 不声称隐藏 access pattern。
 
-> **路线图注记（informative，2026-06 评审采纳）**：上述 extension 方向引入时，约定的 **leakage class 分类法**为封闭枚举 `deterministic_token`（base v1 blind index：暴露频次 / 候选集合大小 / access pattern / term 共现）< `forward_private`（新写入不可被旧 token 检索；阻断 IKK / count 类 leakage-abuse 的增量面）< `access_hiding`（PIR / ORAM 级）。未来 schema profile 升级把该枚举落到 `ck.realm.search_policy` 的 `leakage_class` 字段，使部署可机器声明自身泄漏等级、客户端可协商"优先 forward-private provider"；index token 派生升级方向为 server-assisted OPRF（与联系人发现已强制的 RFC 9497 VOPRF 基建复用，使 index key 泄露不再允许离线全量字典回放）。本注记不预注册 profile id、不在 v1 schema 加字段；分类法在此钉定以保证未来加法引入时语义稳定。
+### 3.1 Forward-Private Search Extension
+
+`ck.profile.search.forward_private.v1` 继承 `ck.profile.search.blind_index.v1`，但 Realm `ck.realm.search_policy.enabled_profile_refs` 中必须同时启用该 profile，并声明 `leakage_class="forward_private"`。服务端 MUST 在 `*.describe` 或等价 feature discovery 中声明 OPRF suite、generation 轮换上限、revocation behavior 和 stale posting fail-closed 行为；客户端在缺少这些声明时 MUST 返回 `unsupported_feature`，不得把 deterministic blind-index provider 当作 forward-private provider 使用。
+
+Forward-private profile 的最小 wire 语义：
+
+1. Search token derivation 使用 server-assisted OPRF / VOPRF 交互，token 绑定 `(realm_id, effective_scope, epoch_id, index_generation, term_digest)`；服务端不得获得 plaintext term，客户端不得把 raw term 或可逆摘要作为 query 参数发送。
+2. `index_generation` 与 Realm policy frontier / MLS epoch frontier 绑定。撤权、history visibility 收紧、redaction、message expiry 或 epoch rotate 之后的 stale posting MUST fail closed；可漏召回，不得越权召回。
+3. 新 generation 的 posting MUST NOT 被旧 generation token 检索。服务端不得跨 generation 返回合并候选，除非客户端显式提交多个 generation token 且每个 generation 都通过当前授权过滤。
+4. `leakage_class="forward_private"` 只承诺阻断旧 token 对新写入的检索和降低长期增量关联；它不承诺隐藏 access pattern、候选集合大小或查询频次。隐藏这些信息必须使用未来显式 `access_hiding` profile。
 
 ## 4. Realm Search Policy
 
 `ck.realm.search_policy` 写入 Realm policy cell。默认行为是 fail closed：未声明允许的受托 search 服务不得接收 plaintext 或可逆派生数据，也不得接收 blind-index token。
 
 Policy 至少声明允许的 `enabled_profile_refs`、service DID、可接收数据类别、index retention 和 revocation behavior。是否允许 plaintext-visible search MUST 由 `data_classes` 中是否包含 `plaintext` / `reversible_summary` 表达，不得另设未注册的 boolean 字段。
+
+`leakage_class` 是闭合枚举：`deterministic_token`、`forward_private`、`access_hiding`。省略时等价于 `deterministic_token`。`ck.profile.search.blind_index.v1` 的 policy MUST 使用 `deterministic_token` 或更强值；声明 `ck.profile.search.forward_private.v1` 时 MUST 使用 `forward_private`，且 MUST 同时声明 `token_rotation_cadence_ms`。`access_hiding` 为 PIR / ORAM 类 profile 预留；没有显式 profile 支持时，实现 MUST fail closed，不得仅凭该字段声称 access-hiding。
 
 ## 5. Result Semantics
 

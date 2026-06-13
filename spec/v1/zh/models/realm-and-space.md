@@ -282,7 +282,7 @@ Realm（ck.schema.realm.v1，schema 层统一）
 
 启用 `ck.profile.sovereign_deployment.v1` 的部署对 External Collaboration Realm 施加额外的强制约束（allowlist federation、独立 enclave、E2EE、deny-default applet/agent 等），规则见 [`sync/sovereign-deployment.md` §4](../sync/sovereign-deployment.md)。非 sovereign 部署下 External Collaboration Realm 仍须遵守 federation_policy / E2EE / capability 等普通 Realm 规则，但不强制 sovereign profile 的全部约束。
 
-#### 2.7.3 关系与正交轴
+#### 2.8.3 关系与正交轴
 
 - "Internal / External" 的判定轴是 **是否含跨信任域成员**，不是 hosting 在哪台 server 上：一个 Realm 由组织自己的 Principal Server 托管，但邀请了外部 Organization DID 的成员——它就是 External Collaboration Realm。
 - Sovereign deployment 对 External Collaboration Realm 加的那一组 policy 来自 `ck.profile.sovereign_deployment.v1`，是 **部署 profile** 决定的 policy 配置，不是另一种 Realm 类型。
@@ -290,7 +290,7 @@ Realm（ck.schema.realm.v1，schema 层统一）
 - `security_class=high_assurance` 是横切标签，可叠加在 Internal / External Collaboration Realm 与 PCR 上，不属于本分类的一层节点。
 - 这套分类是 **prose / glossary 层** 的角色术语，便于跨章节统一指代；底层 schema、reducer、Seal pipeline、Move 处理对三类一视同仁。
 
-#### 2.7.4 Direct Conversation Realm（1:1 DM）
+#### 2.8.4 Direct Conversation Realm（1:1 DM）
 
 Direct Conversation Realm 是 Collaboration Realm 的受约束形态，不是新的 Realm 类型。完整生命周期见 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md)。
 

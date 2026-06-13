@@ -89,7 +89,8 @@
     "ck.profile.calendar_event.v1",
     "ck.profile.pinned_items.v1",
     "ck.profile.search.client_index.v1",
-    "ck.profile.search.blind_index.v1"
+    "ck.profile.search.blind_index.v1",
+    "ck.profile.search.forward_private.v1"
   ],
   "profile_tiers": {
     "v1_profile_catalog": [
@@ -136,7 +137,8 @@
       "ck.profile.calendar_event.v1",
       "ck.profile.pinned_items.v1",
       "ck.profile.search.client_index.v1",
-      "ck.profile.search.blind_index.v1"
+      "ck.profile.search.blind_index.v1",
+      "ck.profile.search.forward_private.v1"
     ],
     "tier_rules": {
       "v1_profile_catalog": "Profiles that belong to the v1 stable catalog. This is not a bundle requirement; implementations MUST claim only the profiles, event kinds, schemas, and operations they actually support.",
@@ -283,7 +285,8 @@
     "ck.profile.calendar_event.v1": "client",
     "ck.profile.pinned_items.v1": "client",
     "ck.profile.search.client_index.v1": "client",
-    "ck.profile.search.blind_index.v1": "server"
+    "ck.profile.search.blind_index.v1": "server",
+    "ck.profile.search.forward_private.v1": "server"
   },
   "federation_hardening": [
     "service_did_authentication",
@@ -559,19 +562,30 @@
       "prose_requirement_coverage": [
         {
           "requirement": "Flow discussion timeline",
-          "coverage": ["sync-fixture.json"]
+          "coverage": [
+            "sync-fixture.json"
+          ]
         },
         {
           "requirement": "message edit/redaction",
-          "coverage": ["sync-fixture.json", "redaction-fixture.json"]
+          "coverage": [
+            "sync-fixture.json",
+            "redaction-fixture.json"
+          ]
         },
         {
           "requirement": "reaction OR-Set",
-          "coverage": ["reaction-fixture.json", "cba-lattice-fixture.json"]
+          "coverage": [
+            "reaction-fixture.json",
+            "cba-lattice-fixture.json"
+          ]
         },
         {
           "requirement": "discussion history visibility and membership trimming",
-          "coverage": ["privacy-security-fixture.json", "sync-fixture.json"]
+          "coverage": [
+            "privacy-security-fixture.json",
+            "sync-fixture.json"
+          ]
         }
       ],
       "optional_extensions": [
@@ -662,15 +676,22 @@
       "prose_requirement_coverage": [
         {
           "requirement": "basic ordering and tie break",
-          "coverage": ["sync-fixture.json"]
+          "coverage": [
+            "sync-fixture.json"
+          ]
         },
         {
           "requirement": "pagination gap and backfill order",
-          "coverage": ["sync-fixture.json"]
+          "coverage": [
+            "sync-fixture.json"
+          ]
         },
         {
           "requirement": "token expiry recovery",
-          "coverage": ["encoding-fixture.json", "sync-fixture.json"]
+          "coverage": [
+            "encoding-fixture.json",
+            "sync-fixture.json"
+          ]
         }
       ],
       "optional_extensions": [
@@ -1074,27 +1095,46 @@
       "prose_requirement_coverage": [
         {
           "requirement": "service DID authentication and destination binding validation",
-          "coverage": ["required_endpoints", "federation-fixture.json"]
+          "coverage": [
+            "required_endpoints",
+            "federation-fixture.json"
+          ]
         },
         {
           "requirement": "federation transaction idempotency and per-item accepted/rejected/quarantine results",
-          "coverage": ["ck.schema.event_batch_receipt.v1", "federation-fixture.json"]
+          "coverage": [
+            "ck.schema.event_batch_receipt.v1",
+            "federation-fixture.json"
+          ]
         },
         {
           "requirement": "signed Event Envelope verification and authorization",
-          "coverage": ["ck.schema.event.v1", "ck.schema.event_payload.v1", "event-envelope-negative-fixture.json"]
+          "coverage": [
+            "ck.schema.event.v1",
+            "ck.schema.event_payload.v1",
+            "event-envelope-negative-fixture.json"
+          ]
         },
         {
           "requirement": "dependency missing pull/backfill recovery",
-          "coverage": ["ck.peer.events.query.scan", "ck.peer.events.query.resolve", "sync-fixture.json"]
+          "coverage": [
+            "ck.peer.events.query.scan",
+            "ck.peer.events.query.resolve",
+            "sync-fixture.json"
+          ]
         },
         {
           "requirement": "duplicate conflict quarantine",
-          "coverage": ["event-envelope-negative-fixture.json"]
+          "coverage": [
+            "event-envelope-negative-fixture.json"
+          ]
         },
         {
           "requirement": "batch, event size and retry rules",
-          "coverage": ["scalability-constraints.md", "federation-fixture.json"]
+          "coverage": [
+            "scalability-constraints.md",
+            "federation-fixture.json"
+          ]
         }
       ],
       "optional_extensions": [
@@ -3701,6 +3741,38 @@
           "stale_posting_fail_closed"
         ],
         "unsupported_optional": "return unsupported_feature rather than accepting blind-index tokens outside an explicit Realm search policy"
+      }
+    },
+    "ck.profile.search.forward_private.v1": {
+      "description": "Opt-in forward-private search profile layered on ck.profile.search.blind_index.v1. Service describe and Realm search policy expose leakage_class=forward_private, token rotation cadence, and revocation behavior; stale postings fail closed.",
+      "inherits": [
+        "ck.profile.search.blind_index.v1"
+      ],
+      "required_endpoints": [
+        "ck.server.query.describe",
+        "ck.self.events.query.scan"
+      ],
+      "required_event_kinds": [
+        "ck.realm.search_policy"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ck.schema.search_service.v1"
+      ],
+      "required_fixtures": [
+        "privacy-security-fixture.json"
+      ],
+      "optional_extensions": [
+        "ck.profile.search.client_index.v1"
+      ],
+      "feature_discovery": {
+        "required": [
+          "search_policy.leakage_class.forward_private",
+          "server_assisted_oprf_token_derivation",
+          "generation_bound_revocation",
+          "stale_posting_fail_closed"
+        ],
+        "unsupported_optional": "return unsupported_feature unless Realm search_policy explicitly enables ck.profile.search.forward_private.v1 and leakage_class=forward_private"
       }
     }
   },

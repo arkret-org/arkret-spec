@@ -2252,7 +2252,101 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Call state"
+      "payload": "Call state",
+      "cell_family": "ck.component.call.state.v1",
+      "cell_subject": {
+        "type": "typed_id",
+        "field": "payload.call_id"
+      },
+      "lattice": "fsm",
+      "bottom": "reject",
+      "parameters": {
+        "initial_states": [
+          "scheduled",
+          "ringing",
+          "connecting"
+        ],
+        "states": [
+          "scheduled",
+          "ringing",
+          "connecting",
+          "active",
+          "ended",
+          "missed",
+          "failed",
+          "cancelled"
+        ],
+        "terminal_states": [
+          "ended",
+          "missed",
+          "failed",
+          "cancelled"
+        ],
+        "idempotent_replay": "same_to_state_same_basis_noop",
+        "concurrent_sibling_conflict": "bottom",
+        "allowed_transitions": [
+          [
+            "scheduled",
+            "ringing"
+          ],
+          [
+            "scheduled",
+            "connecting"
+          ],
+          [
+            "scheduled",
+            "cancelled"
+          ],
+          [
+            "scheduled",
+            "missed"
+          ],
+          [
+            "scheduled",
+            "failed"
+          ],
+          [
+            "ringing",
+            "connecting"
+          ],
+          [
+            "ringing",
+            "active"
+          ],
+          [
+            "ringing",
+            "missed"
+          ],
+          [
+            "ringing",
+            "cancelled"
+          ],
+          [
+            "ringing",
+            "failed"
+          ],
+          [
+            "connecting",
+            "active"
+          ],
+          [
+            "connecting",
+            "failed"
+          ],
+          [
+            "connecting",
+            "ended"
+          ],
+          [
+            "active",
+            "ended"
+          ],
+          [
+            "active",
+            "failed"
+          ]
+        ]
+      }
     },
     {
       "event_kind": "ck.call.recording.start",

@@ -812,28 +812,6 @@ components:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_outcome
     CircleLifecycleRequestBody:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body
-    OrganizationUpsertRequestBody:
-      $ref: ../schemas/organization-operations.schema.json#/$defs/organization_upsert_request_body
-    OrganizationView:
-      $ref: ../schemas/organization-operations.schema.json#/$defs/organization_view
-    OrganizationList:
-      $ref: ../schemas/organization-operations.schema.json#/$defs/organization_list
-    OrganizationPolicyDocument:
-      $ref: ../schemas/organization-operations.schema.json#/$defs/organization_policy_document
-    OrganizationPolicyReplaceRequestBody:
-      $ref: ../schemas/organization-operations.schema.json#/$defs/organization_policy_replace_request_body
-    OrganizationRealmLinkRequestBody:
-      $ref: ../schemas/organization-operations.schema.json#/$defs/organization_realm_link_request_body
-    OrganizationRealmLinkOutcome:
-      $ref: ../schemas/organization-operations.schema.json#/$defs/organization_realm_link_outcome
-    PolicyDocumentUpsertRequestBody:
-      $ref: ../schemas/policy-document-operations.schema.json#/$defs/policy_document_upsert_request_body
-    PolicyDocumentView:
-      $ref: ../schemas/policy-document-operations.schema.json#/$defs/policy_document_view
-    PolicyDocumentList:
-      $ref: ../schemas/policy-document-operations.schema.json#/$defs/policy_document_list
-    PolicyDocumentDeleteOutcome:
-      $ref: ../schemas/policy-document-operations.schema.json#/$defs/policy_document_delete_outcome
     RealmLinkCreateRequestBody:
       $ref: ../schemas/realm-link-operations.schema.json#/$defs/realm_link_create_request_body
     RealmLinkList:
@@ -3836,7 +3814,8 @@ paths:
         rebuild / initial account sync. `dropped` / `resync_required` may
         carry `reconnect_after_ms`, a minimum server-directed delay before
         opening another subscription for the same principal/device/filter
-        scope. Replaces the prior Matrix-derived long-poll ck.account.sync.
+        scope. Presence changes are submitted with ck.self.ephemeral.command.send,
+        not this read-only streaming subscription.
       parameters:
       - in: header
         name: X-Cokret-Wait-For
@@ -3875,15 +3854,6 @@ paths:
           type: object
         style: deepObject
         explode: true
-      - name: set_presence
-        in: query
-        description: Presence intent for this connection — propagated to other Realms on accept. Equivalent to the field of the same name in the legacy long-poll request body.
-        schema:
-          type: string
-          enum:
-          - online
-          - offline
-          - unavailable
       responses:
         '200':
           description: |
@@ -3905,13 +3875,12 @@ paths:
         Holder-bound service wrapper around ck.profile.update / Actor Profile
         projection. The request body is AccountUpdateProfileRequestBody {patch}; patch
         paths are limited to display_name, avatar_blob_ref, and
-        profile_fields.<key>. Existing bio fields migrate to profile_fields.bio.
+        profile_fields.<key>. Personal bio text is represented by
+        profile_fields.bio.
 
         The Cokret protocol path rejects avatar_url and any handle, lifecycle,
         principal, actor_kind, accountability, authorization, or handle-claim
-        path. Implementations that need avatar_url compatibility must resolve or
-        upload it to a Blob in a compatibility layer before writing
-        avatar_blob_ref.
+        path. Avatar images use avatar_blob_ref.
       responses:
         '200':
           description: Profile update accepted and projected.
@@ -4256,131 +4225,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CircleView'
-  /_cokret/self/organizations:
-    get:
-      operationId: ck.self.organization.query.list
-      security:
-      - bearerAuth: []
-      summary: List locally known organization registry rows.
-      responses:
-        '200':
-          description: Organization registry rows.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrganizationList'
-    post:
-      operationId: ck.self.organization.command.upsert
-      security:
-      - bearerAuth: []
-      summary: Create or update a local organization registry row.
-      description: |
-        Keyed by organization_did. The identifier MUST be a DID; the non-DID
-        ck:org: form is a deployment-local affordance, not protocol-canonical.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OrganizationUpsertRequestBody'
-      responses:
-        '200':
-          description: Organization registry row upserted.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrganizationView'
-  /_cokret/self/organizations/{organization_did}:
-    get:
-      operationId: ck.self.organization.resource.get
-      security:
-      - bearerAuth: []
-      summary: Read one local organization registry row.
-      parameters:
-      - in: path
-        name: organization_did
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: Organization registry row.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrganizationView'
-  /_cokret/self/organizations/{organization_did}/policy:
-    get:
-      operationId: ck.self.organization.policy.resource.get
-      security:
-      - bearerAuth: []
-      summary: Read the current organization moderation policy document.
-      parameters:
-      - in: path
-        name: organization_did
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: Organization moderation policy document.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrganizationPolicyDocument'
-    put:
-      operationId: ck.self.organization.policy.resource.replace
-      security:
-      - bearerAuth: []
-      summary: Publish or replace the organization moderation policy.
-      description: |
-        Builds ck.organization.moderation_policy (admission capability
-        ck.policy.manage). The policy only takes effect for Realms / services
-        that explicitly reference it (content-moderation.md §7).
-      parameters:
-      - in: path
-        name: organization_did
-        required: true
-        schema:
-          type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OrganizationPolicyReplaceRequestBody'
-      responses:
-        '200':
-          description: Organization moderation policy stored.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrganizationPolicyDocument'
-  /_cokret/self/organizations/{organization_did}/realms:
-    post:
-      operationId: ck.self.organization.realm.command.link
-      security:
-      - bearerAuth: []
-      summary: Link a Realm to an organization policy source.
-      parameters:
-      - in: path
-        name: organization_did
-        required: true
-        schema:
-          type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OrganizationRealmLinkRequestBody'
-      responses:
-        '200':
-          description: Realm linked to organization.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrganizationRealmLinkOutcome'
   /_cokret/self/invite-receive-policy:
     get:
       operationId: ck.self.invite_receive_policy.resource.get
@@ -6230,93 +6074,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PolicyCheckRequestBody'
-  /_cokret/self/policies:
-    get:
-      operationId: ck.self.policy_document.query.list
-      security:
-      - bearerAuth: []
-      summary: List owner-scoped authorization policy documents.
-      description: |
-        The backing store evaluated by ck.self.policy.query.check. Distinct from the
-        Realm-bound governance Policy object ck.schema.policy.v1.
-      parameters:
-      - name: scope
-        in: query
-        required: false
-        schema:
-          type: string
-      - name: subject_ref
-        in: query
-        required: false
-        schema:
-          type: string
-      - name: include_inactive
-        in: query
-        required: false
-        schema:
-          type: boolean
-      responses:
-        '200':
-          description: Owner-scoped policy documents.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PolicyDocumentList'
-    post:
-      operationId: ck.self.policy_document.command.upsert
-      security:
-      - bearerAuth: []
-      summary: Create or replace an owner-scoped policy document.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PolicyDocumentUpsertRequestBody'
-      responses:
-        '200':
-          description: Policy document upserted.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PolicyDocumentView'
-  /_cokret/self/policies/{policy_id}:
-    get:
-      operationId: ck.self.policy_document.resource.get
-      security:
-      - bearerAuth: []
-      summary: Read one owner-scoped policy document.
-      parameters:
-      - in: path
-        name: policy_id
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: Policy document.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PolicyDocumentView'
-    delete:
-      operationId: ck.self.policy_document.resource.delete
-      security:
-      - bearerAuth: []
-      summary: Delete one owner-scoped policy document.
-      parameters:
-      - in: path
-        name: policy_id
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: Policy document deleted.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PolicyDocumentDeleteOutcome'
   /_cokret/self/realms/{realm_id}/links:
     get:
       operationId: ck.self.realm_link.query.list

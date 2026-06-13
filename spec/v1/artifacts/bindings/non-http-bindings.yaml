@@ -104,13 +104,6 @@ grpc:
       ScopeRotate: ck.self.circle.command.rotate_scope
       Archive: ck.self.circle.command.archive
       Tombstone: ck.self.circle.command.tombstone
-    SelfOrganization:
-      List: ck.self.organization.query.list
-      Upsert: ck.self.organization.command.upsert
-      Get: ck.self.organization.resource.get
-      PolicyGet: ck.self.organization.policy.resource.get
-      PolicySet: ck.self.organization.policy.resource.replace
-      RealmLink: ck.self.organization.realm.command.link
     SelfRealmLink:
       List: ck.self.realm_link.query.list
       Create: ck.self.realm_link.command.create
@@ -229,11 +222,6 @@ grpc:
       Report: ck.self.moderation.command.report
     SelfPolicy:
       Check: ck.self.policy.query.check
-    SelfPolicyDocument:
-      List: ck.self.policy_document.query.list
-      Upsert: ck.self.policy_document.command.upsert
-      Get: ck.self.policy_document.resource.get
-      Delete: ck.self.policy_document.resource.delete
     SelfProjection:
       Document: ck.self.projection.document.resource.get
       Flows: ck.self.projection.flows.query.list
@@ -325,12 +313,6 @@ mq:
     self.circle.command.rotate_scope: ck.self.circle.command.rotate_scope
     self.circle.command.archive: ck.self.circle.command.archive
     self.circle.command.tombstone: ck.self.circle.command.tombstone
-    self.organization.query.list: ck.self.organization.query.list
-    self.organization.command.upsert: ck.self.organization.command.upsert
-    self.organization.resource.get: ck.self.organization.resource.get
-    self.organization.policy.resource.get: ck.self.organization.policy.resource.get
-    self.organization.policy.resource.replace: ck.self.organization.policy.resource.replace
-    self.organization.realm.command.link: ck.self.organization.realm.command.link
     self.realm_link.query.list: ck.self.realm_link.query.list
     self.realm_link.command.create: ck.self.realm_link.command.create
     self.realm_link.resource.delete: ck.self.realm_link.resource.delete
