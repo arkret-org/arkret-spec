@@ -87,8 +87,6 @@ separate protocol decisions before they can be Cokret HTTP bindings:
 - `POST /_cokret/self/webrtc/sessions`
 - `POST /_cokret/self/webrtc/sessions/{session_id}/signals`
 - `POST /_cokret/self/calls/{session_id}/recording/start`
-- `POST /_cokret/self/circles`
-- `GET /_cokret/self/circles`
 - `GET /_cokret/self/views/{view_id}/projection`
 - `GET /_cokret/self/projection/documents/{morph_id}`
 - `POST /_cokret/self/mls/rotate`
@@ -100,6 +98,37 @@ Open question: which items should be replaced by existing canonical operations
 such as `/_cokret/self/events`, `/_cokret/self/account/subscribe`,
 `/_cokret/gate/account/device-pair`, `/_cokret/self/rtc/ice-config`, or
 `/_cokret/self/moderation/report`, and which deserve new optional profiles.
+
+### 5.1 Resolved: Circle administration (now normative)
+
+Circle administration was originally listed above as a candidate
+(`POST /_cokret/self/circles`, `GET /_cokret/self/circles`). It has since been
+accepted and is **normative** as of the Circle work (see CKP-0007). The full
+self-service Circle surface is registered in the canonical operation registry
+(`ck.self.circle.*`), the contract catalog, the OpenAPI artifact, and the HTTP
+binding (`zh/sync/service-http-binding.md`). Implementations expose it under
+`/_cokret/self/circles*`:
+
+- `POST /_cokret/self/circles` → `ck.self.circle.create`
+- `GET /_cokret/self/circles` → `ck.self.circle.list`
+- `GET /_cokret/self/circles/{circle_id}` → `ck.self.circle.get`
+- `POST /_cokret/self/circles/{circle_id}/members` → `ck.self.circle.member.add`
+- `DELETE /_cokret/self/circles/{circle_id}/members/{actor_id}` →
+  `ck.self.circle.member.remove`
+- `POST /_cokret/self/circles/{circle_id}/scope-rotate` →
+  `ck.self.circle.scope_rotate`
+- `POST /_cokret/self/circles/{circle_id}/archive` → `ck.self.circle.archive`
+- `POST /_cokret/self/circles/{circle_id}/tombstone` →
+  `ck.self.circle.tombstone`
+
+The remaining bullets in §5 (devices, recovery read/receipts, WebRTC / call
+recording, view / document projection, MLS rotate, push preferences,
+account-data blocklist, telemetry) stay draft and are deferred to later waves;
+none of them is registered as a `ck.self.*` operation yet. In particular the
+canonical account-data surface is the verbatim, opaque
+`ck.self.account_data.*` family at `/_cokret/self/account_data/{data_type}`,
+which is **not** the same as the yougen `POST /_cokret/self/account-data/blocklist`
+helper listed above.
 
 ## 6. Admin / operations surface adjudication (2026-06 sodmin audit)
 

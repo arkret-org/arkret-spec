@@ -798,6 +798,86 @@ components:
       $ref: ../schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_request_body
     DirectConversationResolveOutcome:
       $ref: ../schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_outcome
+    CircleCreateRequestBody:
+      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_create_request_body
+    CircleView:
+      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_view
+    CircleList:
+      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_list
+    CircleMemberRequestBody:
+      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_member_request_body
+    CircleMembershipOutcome:
+      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_membership_outcome
+    CircleScopeRotateOutcome:
+      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_outcome
+    CircleLifecycleRequestBody:
+      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body
+    OrganizationUpsertRequestBody:
+      $ref: ../schemas/organization-operations.schema.json#/$defs/organization_upsert_request_body
+    OrganizationView:
+      $ref: ../schemas/organization-operations.schema.json#/$defs/organization_view
+    OrganizationList:
+      $ref: ../schemas/organization-operations.schema.json#/$defs/organization_list
+    OrganizationPolicyDocument:
+      $ref: ../schemas/organization-operations.schema.json#/$defs/organization_policy_document
+    OrganizationPolicySetRequestBody:
+      $ref: ../schemas/organization-operations.schema.json#/$defs/organization_policy_set_request_body
+    OrganizationRealmLinkRequestBody:
+      $ref: ../schemas/organization-operations.schema.json#/$defs/organization_realm_link_request_body
+    OrganizationRealmLinkOutcome:
+      $ref: ../schemas/organization-operations.schema.json#/$defs/organization_realm_link_outcome
+    PolicyDocumentUpsertRequestBody:
+      $ref: ../schemas/policy-document-operations.schema.json#/$defs/policy_document_upsert_request_body
+    PolicyDocumentView:
+      $ref: ../schemas/policy-document-operations.schema.json#/$defs/policy_document_view
+    PolicyDocumentList:
+      $ref: ../schemas/policy-document-operations.schema.json#/$defs/policy_document_list
+    PolicyDocumentDeleteOutcome:
+      $ref: ../schemas/policy-document-operations.schema.json#/$defs/policy_document_delete_outcome
+    RealmLinkCreateRequestBody:
+      $ref: ../schemas/realm-link-operations.schema.json#/$defs/realm_link_create_request_body
+    RealmLinkList:
+      $ref: ../schemas/realm-link-operations.schema.json#/$defs/realm_link_list
+    RealmLinkMutationOutcome:
+      $ref: ../schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome
+    RealmEffectivePolicyOutcome:
+      $ref: ../schemas/realm-link-operations.schema.json#/$defs/realm_effective_policy_outcome
+    RealmPolicyServerPutRequestBody:
+      $ref: ../schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_put_request_body
+    RealmPolicyServerView:
+      $ref: ../schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view
+    RealmLifecycleView:
+      $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view
+    RealmExport:
+      $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_export
+    RealmEffectiveModerationPolicy:
+      $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_effective_moderation_policy
+    RealmModerationPolicySetRequestBody:
+      $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_set_request_body
+    RealmModerationPolicyDocument:
+      $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_document
+    ConsentCellView:
+      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_cell_view
+    ConsentCellList:
+      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_cell_list
+    ConsentUpdateRequestBody:
+      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_update_request_body
+    ConsentRequestRequestBody:
+      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_request_request_body
+    AccountDataSetRequestBody:
+      $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_set_request_body
+    AccountDataEntry:
+      $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_entry
+    AccountDataList:
+      $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_list
+    AccountDataDeleteOutcome:
+      $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_delete_outcome
+    ReadCursorSetRequestBody:
+      $ref: ../schemas/read-cursor-operations.schema.json#/$defs/read_cursor_set_request_body
+    ReadMarkerOutcome:
+      $ref: ../schemas/read-cursor-operations.schema.json#/$defs/read_marker_outcome
+    ReadCursorList:
+      $ref: ../schemas/read-cursor-operations.schema.json#/$defs/read_cursor_list
     InviteReceivePolicy:
       $ref: ../schemas/invite-receive-policy.schema.json
     AccountUpdateProfileRequestBody:
@@ -3956,6 +4036,331 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ContactTombstone'
+  /_cokret/self/circles:
+    get:
+      operationId: ck.self.circle.list
+      security:
+      - bearerAuth: []
+      summary: List Circles visible to the caller within one parent Realm.
+      description: |
+        Directory visibility is enforced per Circle; non-members of a
+        members-visibility Circle MUST NOT see it.
+      parameters:
+      - name: realm_id
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      responses:
+        '200':
+          description: Circles visible to the caller in the named Realm.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CircleList'
+    post:
+      operationId: ck.self.circle.create
+      security:
+      - bearerAuth: []
+      summary: Create a Circle (ck.circle.create).
+      description: |
+        Builds a ck.circle.create Operation in the named parent Realm and routes
+        it through the local accept pipeline. Reducer-locked fields
+        (mls_group_ref, state) MUST NOT be actor-supplied.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CircleCreateRequestBody'
+      responses:
+        '200':
+          description: Circle created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CircleView'
+  /_cokret/self/circles/{circle_id}:
+    get:
+      operationId: ck.self.circle.get
+      security:
+      - bearerAuth: []
+      summary: Read one Circle by id.
+      description: |
+        Returns not_found when the Circle is invisible to the caller rather than
+        disclosing existence.
+      parameters:
+      - in: path
+        name: circle_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Circle projection.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CircleView'
+  /_cokret/self/circles/{circle_id}/members:
+    post:
+      operationId: ck.self.circle.member.add
+      security:
+      - bearerAuth: []
+      summary: Add or change a Circle member (ck.circle.member.state).
+      description: |
+        Activating another actor requires ck.circle.member.manage narrowed to
+        this Circle, and the target MUST already be a joined parent-Realm member
+        (strict-subset invariant). A self-join is gated by join_rule.
+      parameters:
+      - in: path
+        name: circle_id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CircleMemberRequestBody'
+      responses:
+        '200':
+          description: Circle membership state accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CircleMembershipOutcome'
+  /_cokret/self/circles/{circle_id}/members/{actor_id}:
+    delete:
+      operationId: ck.self.circle.member.remove
+      security:
+      - bearerAuth: []
+      summary: Remove a Circle member (ck.circle.member.state -> removed).
+      parameters:
+      - in: path
+        name: circle_id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: actor_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Circle member removed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CircleMembershipOutcome'
+  /_cokret/self/circles/{circle_id}/scope-rotate:
+    post:
+      operationId: ck.self.circle.scope_rotate
+      security:
+      - bearerAuth: []
+      summary: Rotate the Circle's bound MLS group (CKP-0007).
+      description: |
+        MUST NOT acknowledge a rotation without actually changing the
+        cryptographic scope. Returns unsupported_feature until the MLS
+        genesis/commit/welcome cascade is wired end-to-end.
+      parameters:
+      - in: path
+        name: circle_id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+      responses:
+        '200':
+          description: Circle MLS scope rotated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CircleScopeRotateOutcome'
+  /_cokret/self/circles/{circle_id}/archive:
+    post:
+      operationId: ck.self.circle.archive
+      security:
+      - bearerAuth: []
+      summary: Archive a Circle (ck.circle.archive).
+      parameters:
+      - in: path
+        name: circle_id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CircleLifecycleRequestBody'
+      responses:
+        '200':
+          description: Circle archived.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CircleView'
+  /_cokret/self/circles/{circle_id}/tombstone:
+    post:
+      operationId: ck.self.circle.tombstone
+      security:
+      - bearerAuth: []
+      summary: Tombstone a Circle (ck.circle.tombstone).
+      parameters:
+      - in: path
+        name: circle_id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CircleLifecycleRequestBody'
+      responses:
+        '200':
+          description: Circle tombstoned (terminal state, empty members).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CircleView'
+  /_cokret/self/organizations:
+    get:
+      operationId: ck.self.organization.list
+      security:
+      - bearerAuth: []
+      summary: List locally known organization registry rows.
+      responses:
+        '200':
+          description: Organization registry rows.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationList'
+    post:
+      operationId: ck.self.organization.upsert
+      security:
+      - bearerAuth: []
+      summary: Create or update a local organization registry row.
+      description: |
+        Keyed by organization_did. The identifier MUST be a DID; the non-DID
+        ck:org: form is a deployment-local affordance, not protocol-canonical.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationUpsertRequestBody'
+      responses:
+        '200':
+          description: Organization registry row upserted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationView'
+  /_cokret/self/organizations/{organization_did}:
+    get:
+      operationId: ck.self.organization.get
+      security:
+      - bearerAuth: []
+      summary: Read one local organization registry row.
+      parameters:
+      - in: path
+        name: organization_did
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Organization registry row.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationView'
+  /_cokret/self/organizations/{organization_did}/policy:
+    get:
+      operationId: ck.self.organization.policy.get
+      security:
+      - bearerAuth: []
+      summary: Read the current organization moderation policy document.
+      parameters:
+      - in: path
+        name: organization_did
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Organization moderation policy document.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationPolicyDocument'
+    post:
+      operationId: ck.self.organization.policy.set
+      security:
+      - bearerAuth: []
+      summary: Publish or replace the organization moderation policy.
+      description: |
+        Builds ck.organization.moderation_policy (admission capability
+        ck.policy.manage). The policy only takes effect for Realms / services
+        that explicitly reference it (content-moderation.md §7).
+      parameters:
+      - in: path
+        name: organization_did
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationPolicySetRequestBody'
+      responses:
+        '200':
+          description: Organization moderation policy stored.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationPolicyDocument'
+  /_cokret/self/organizations/{organization_did}/realms:
+    post:
+      operationId: ck.self.organization.realm.link
+      security:
+      - bearerAuth: []
+      summary: Link a Realm to an organization policy source.
+      parameters:
+      - in: path
+        name: organization_did
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationRealmLinkRequestBody'
+      responses:
+        '200':
+          description: Realm linked to organization.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationRealmLinkOutcome'
   /_cokret/self/invite-receive-policy:
     get:
       operationId: ck.self.invite_receive_policy.get
@@ -5805,6 +6210,579 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PolicyCheckRequestBody'
+  /_cokret/self/policies:
+    get:
+      operationId: ck.self.policy_document.list
+      security:
+      - bearerAuth: []
+      summary: List owner-scoped authorization policy documents.
+      description: |
+        The backing store evaluated by ck.self.policy.check. Distinct from the
+        Realm-bound governance Policy object ck.schema.policy.v1.
+      parameters:
+      - name: scope
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: subject_ref
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: include_inactive
+        in: query
+        required: false
+        schema:
+          type: boolean
+      responses:
+        '200':
+          description: Owner-scoped policy documents.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyDocumentList'
+    post:
+      operationId: ck.self.policy_document.upsert
+      security:
+      - bearerAuth: []
+      summary: Create or replace an owner-scoped policy document.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyDocumentUpsertRequestBody'
+      responses:
+        '200':
+          description: Policy document upserted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyDocumentView'
+  /_cokret/self/policies/{policy_id}:
+    get:
+      operationId: ck.self.policy_document.get
+      security:
+      - bearerAuth: []
+      summary: Read one owner-scoped policy document.
+      parameters:
+      - in: path
+        name: policy_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Policy document.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyDocumentView'
+    delete:
+      operationId: ck.self.policy_document.delete
+      security:
+      - bearerAuth: []
+      summary: Delete one owner-scoped policy document.
+      parameters:
+      - in: path
+        name: policy_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Policy document deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyDocumentDeleteOutcome'
+  /_cokret/self/realms/{realm_id}/links:
+    get:
+      operationId: ck.self.realm_link.list
+      security:
+      - bearerAuth: []
+      summary: List typed cross-Realm links projected from ck.realm.link.
+      parameters:
+      - in: path
+        name: realm_id
+        required: true
+        schema:
+          type: string
+      - name: direction
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - outbound
+          - inbound
+          - both
+      - name: link_kind_allow
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Cross-Realm links.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealmLinkList'
+    post:
+      operationId: ck.self.realm_link.create
+      security:
+      - bearerAuth: []
+      summary: Submit a ck.realm.link Move.
+      description: |
+        Builds a ck.realm.link from realm_id to target_realm_id. The reducer
+        runs realm_link_* validators (cycle detection, self-reference, kind
+        validation); a rejected payload returns 422 with the canonical reason
+        code.
+      parameters:
+      - in: path
+        name: realm_id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RealmLinkCreateRequestBody'
+      responses:
+        '200':
+          description: Realm link written.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealmLinkMutationOutcome'
+  /_cokret/self/realms/{realm_id}/links/{target_realm_id}:
+    delete:
+      operationId: ck.self.realm_link.delete
+      security:
+      - bearerAuth: []
+      summary: Tombstone a ck.realm.link.
+      description: |
+        Writes a tombstoning Move (status=tombstoned). link_kind defaults to
+        governed_by; override via the link_kind query param.
+      parameters:
+      - in: path
+        name: realm_id
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: target_realm_id
+        required: true
+        schema:
+          type: string
+      - name: link_kind
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Realm link tombstoned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealmLinkMutationOutcome'
+  /_cokret/self/realms/{realm_id}/effective-policy:
+    get:
+      operationId: ck.self.realm_link.effective_policy
+      security:
+      - bearerAuth: []
+      summary: Read the merged effective policy after walking inheritance.
+      parameters:
+      - in: path
+        name: realm_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Effective policy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealmEffectivePolicyOutcome'
+  /_cokret/self/realms/{realm_id}/policy-server:
+    get:
+      operationId: ck.self.realm_policy_server.get
+      security:
+      - bearerAuth: []
+      summary: Read the projected ck.realm.policy_server config.
+      parameters:
+      - in: path
+        name: realm_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Realm policy-server config.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealmPolicyServerView'
+    put:
+      operationId: ck.self.realm_policy_server.put
+      security:
+      - bearerAuth: []
+      summary: Submit a ck.realm.policy_server Move.
+      parameters:
+      - in: path
+        name: realm_id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RealmPolicyServerPutRequestBody'
+      responses:
+        '200':
+          description: Realm policy-server config set.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealmPolicyServerView'
+    delete:
+      operationId: ck.self.realm_policy_server.delete
+      security:
+      - bearerAuth: []
+      summary: Tombstone the ck.realm.policy_server cell.
+      parameters:
+      - in: path
+        name: realm_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Realm policy-server config tombstoned (empty body).
+  /_cokret/self/realms/{realm_id}:
+    get:
+      operationId: ck.self.realm.get
+      security:
+      - bearerAuth: []
+      summary: Read the Realm lifecycle projection.
+      parameters:
+      - in: path
+        name: realm_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Realm lifecycle projection.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealmLifecycleView'
+  /_cokret/self/realms/{realm_id}/export:
+    get:
+      operationId: ck.self.realm.export
+      security:
+      - bearerAuth: []
+      summary: Full event-log + operation dump for a Realm.
+      parameters:
+      - in: path
+        name: realm_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Realm export dump.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealmExport'
+  /_cokret/self/realms/{realm_id}/moderation-policy/effective:
+    get:
+      operationId: ck.self.realm.moderation_policy.effective
+      security:
+      - bearerAuth: []
+      summary: Read the organization-inherited effective moderation policy.
+      parameters:
+      - in: path
+        name: realm_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Effective moderation policy view.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealmEffectiveModerationPolicy'
+  /_cokret/self/realms/{realm_id}/moderation-policy:
+    post:
+      operationId: ck.self.realm.moderation_policy.set
+      security:
+      - bearerAuth: []
+      summary: Set a Realm moderation-policy override.
+      description: |
+        Writes ck.realm.moderation_policy. Only the Realm owner may write; an
+        override that loosens an action an organization policy denies requires
+        explicit organization approval, otherwise requires_organization_approval
+        is returned.
+      parameters:
+      - in: path
+        name: realm_id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RealmModerationPolicySetRequestBody'
+      responses:
+        '200':
+          description: Realm moderation policy stored.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealmModerationPolicyDocument'
+  /_cokret/self/consent/cells:
+    get:
+      operationId: ck.self.consent.list
+      security:
+      - bearerAuth: []
+      summary: List consent cells where the caller is holder or peer.
+      responses:
+        '200':
+          description: Consent cells.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsentCellList'
+  /_cokret/self/consent/cells/{holder_did}:
+    get:
+      operationId: ck.self.consent.get
+      security:
+      - bearerAuth: []
+      summary: Read one holder-private consent cell.
+      parameters:
+      - in: path
+        name: holder_did
+        required: true
+        schema:
+          type: string
+      - name: peer
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: consent_scope
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - invite
+          - direct_message
+          - voice_call
+          - video_call
+          - presence
+          - any
+      responses:
+        '200':
+          description: Consent cell.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsentCellView'
+  /_cokret/self/consent/cells/{holder_did}/grant:
+    post:
+      operationId: ck.self.consent.grant
+      security:
+      - bearerAuth: []
+      summary: Grant scoped consent to a peer DID.
+      parameters:
+      - in: path
+        name: holder_did
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsentUpdateRequestBody'
+      responses:
+        '200':
+          description: Consent granted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsentCellView'
+  /_cokret/self/consent/cells/{holder_did}/revoke:
+    post:
+      operationId: ck.self.consent.revoke
+      security:
+      - bearerAuth: []
+      summary: Revoke scoped consent from a peer DID.
+      parameters:
+      - in: path
+        name: holder_did
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsentUpdateRequestBody'
+      responses:
+        '200':
+          description: Consent revoked.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsentCellView'
+  /_cokret/self/consent/request:
+    post:
+      operationId: ck.self.consent.request
+      security:
+      - bearerAuth: []
+      summary: Open a scoped consent request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsentRequestRequestBody'
+      responses:
+        '200':
+          description: Pending consent request opened.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsentCellView'
+  /_cokret/self/account_data:
+    get:
+      operationId: ck.self.account_data.list
+      security:
+      - bearerAuth: []
+      summary: List the authenticated actor's account_data entries.
+      responses:
+        '200':
+          description: Account data entries.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountDataList'
+  /_cokret/self/account_data/{data_type}:
+    get:
+      operationId: ck.self.account_data.get
+      security:
+      - bearerAuth: []
+      summary: Read one account_data entry.
+      parameters:
+      - in: path
+        name: data_type
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Account data entry.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountDataEntry'
+    put:
+      operationId: ck.self.account_data.set
+      security:
+      - bearerAuth: []
+      summary: Set an account_data entry.
+      parameters:
+      - in: path
+        name: data_type
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountDataSetRequestBody'
+      responses:
+        '200':
+          description: Account data entry set.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountDataEntry'
+    delete:
+      operationId: ck.self.account_data.delete
+      security:
+      - bearerAuth: []
+      summary: Delete an account_data entry.
+      parameters:
+      - in: path
+        name: data_type
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Account data entry deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountDataDeleteOutcome'
+  /_cokret/self/read-cursors:
+    get:
+      operationId: ck.self.read_cursor.list
+      security:
+      - bearerAuth: []
+      summary: List the authenticated actor's read markers.
+      parameters:
+      - name: realm_id
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Read markers.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadCursorList'
+    post:
+      operationId: ck.self.read_cursor.set
+      security:
+      - bearerAuth: []
+      summary: Set the authenticated actor's read marker for a Realm.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReadCursorSetRequestBody'
+      responses:
+        '200':
+          description: Read marker set.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadMarkerOutcome'
   /_cokret/self/rtc/ice-config:
     servers:
     - url: https://{host}

@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/consent-operations.schema.json",
+  "title": "Cokret Consent Cell Self-Management Operation DTOs",
+  "description": "Closed request/response DTOs for the self-surface holder-private consent cell operations (ck.self.consent.*). grant / revoke build ck.consent.grant / ck.consent.revoke Control Moves on the holder's consent cell (ck.component.consent.grant.v1); request opens a pending consent request. The consent model is spec/v1/zh/identity/consent-model.md.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/consent_cell_view"
+    },
+    {
+      "$ref": "#/$defs/consent_cell_list"
+    },
+    {
+      "$ref": "#/$defs/consent_update_request_body"
+    },
+    {
+      "$ref": "#/$defs/consent_request_request_body"
+    }
+  ],
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "consent_scope": {
+      "type": "string",
+      "enum": [
+        "invite",
+        "direct_message",
+        "voice_call",
+        "video_call",
+        "presence",
+        "any"
+      ]
+    },
+    "consent_state": {
+      "type": "string",
+      "enum": [
+        "active",
+        "pending",
+        "revoked"
+      ]
+    },
+    "consent_cell_view": {
+      "type": "object",
+      "required": [
+        "ok",
+        "cell_id",
+        "holder_did",
+        "peer_did",
+        "consent_scope",
+        "state",
+        "active_grant_dots",
+        "grant_dots",
+        "revoked_dots",
+        "updated_at"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        },
+        "cell_id": {
+          "type": "string",
+          "description": "Consent cell id (ck:cell:ck.component.consent.grant.v1:<consent_id>)."
+        },
+        "holder_did": {
+          "$ref": "#/$defs/did"
+        },
+        "peer_did": {
+          "$ref": "#/$defs/did"
+        },
+        "consent_scope": {
+          "$ref": "#/$defs/consent_scope"
+        },
+        "state": {
+          "$ref": "#/$defs/consent_state"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "requested_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "active_grant_dots": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Currently-active grant dots (not yet observed/revoked, within validity window)."
+        },
+        "grant_dots": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "revoked_dots": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "consent_cell_list": {
+      "type": "object",
+      "required": [
+        "ok",
+        "cells"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        },
+        "cells": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/consent_cell_view"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "consent_update_request_body": {
+      "type": "object",
+      "description": "Body for grant / revoke. The holder is taken from the path; the authenticated actor MUST be authorized to write the holder's consent (holder or an explicitly authorized controller/agent).",
+      "required": [
+        "peer_did"
+      ],
+      "properties": {
+        "peer_did": {
+          "$ref": "#/$defs/did"
+        },
+        "consent_scope": {
+          "$ref": "#/$defs/consent_scope",
+          "default": "direct_message"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "consent_request_request_body": {
+      "type": "object",
+      "description": "Body for opening a pending consent request. peer_did defaults to the authenticated actor and MUST equal it; the holder account MUST exist.",
+      "required": [
+        "holder_did"
+      ],
+      "properties": {
+        "holder_did": {
+          "$ref": "#/$defs/did"
+        },
+        "peer_did": {
+          "$ref": "#/$defs/did"
+        },
+        "consent_scope": {
+          "$ref": "#/$defs/consent_scope",
+          "default": "direct_message"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

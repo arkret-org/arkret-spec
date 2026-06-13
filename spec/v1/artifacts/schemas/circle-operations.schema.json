@@ -1,0 +1,332 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/circle-operations.schema.json",
+  "title": "Cokret Circle Self-Management Operation DTOs",
+  "description": "Closed request/response DTOs for the self-surface Circle administration operations (ck.self.circle.*). Each operation builds a canonical ck.circle.* Operation and routes it through the standard local accept pipeline; the durable Circle object model is circle.schema.json. See spec/v1/zh/models/circle.md and spec/v1/zh/sync/service-http-binding.md.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/circle_create_request_body"
+    },
+    {
+      "$ref": "#/$defs/circle_view"
+    },
+    {
+      "$ref": "#/$defs/circle_list"
+    },
+    {
+      "$ref": "#/$defs/circle_member_request_body"
+    },
+    {
+      "$ref": "#/$defs/circle_membership_outcome"
+    },
+    {
+      "$ref": "#/$defs/circle_scope_rotate_outcome"
+    },
+    {
+      "$ref": "#/$defs/circle_lifecycle_request_body"
+    }
+  ],
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "event_id": {
+      "type": "string",
+      "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "circle_state": {
+      "type": "string",
+      "enum": [
+        "active",
+        "archived",
+        "tombstoned"
+      ]
+    },
+    "circle_member_state": {
+      "type": "string",
+      "enum": [
+        "invited",
+        "active",
+        "removed",
+        "banned",
+        "left"
+      ]
+    },
+    "circle_view": {
+      "type": "object",
+      "description": "Circle projection row returned by create/get/lifecycle operations. Field set mirrors circle.schema.json; reducer-managed fields (mls_group_ref, state, members, created_at) are read-only outputs.",
+      "required": [
+        "circle_id",
+        "realm_id",
+        "title",
+        "directory_visibility",
+        "join_rule",
+        "history_visibility",
+        "encryption_profile",
+        "state",
+        "members",
+        "created_by",
+        "created_at"
+      ],
+      "properties": {
+        "circle_id": {
+          "$ref": "./common-ids.schema.json#/$defs/circle_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "summary": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "directory_visibility": {
+          "type": "string",
+          "enum": [
+            "members",
+            "realm_members"
+          ]
+        },
+        "join_rule": {
+          "type": "string",
+          "enum": [
+            "invite",
+            "request",
+            "open"
+          ]
+        },
+        "history_visibility": {
+          "type": "string",
+          "enum": [
+            "world_readable",
+            "shared",
+            "invited",
+            "joined",
+            "restricted"
+          ]
+        },
+        "content_encryption_floor": {
+          "type": "string",
+          "enum": [
+            "allow_plaintext",
+            "e2ee_required"
+          ]
+        },
+        "metadata_encryption_floor": {
+          "type": "string",
+          "enum": [
+            "allow_plaintext",
+            "e2ee_required"
+          ]
+        },
+        "encryption_profile": {
+          "type": "string",
+          "enum": [
+            "none",
+            "mls_rfc9420"
+          ]
+        },
+        "mls_group_ref": {
+          "type": "string",
+          "pattern": "^ck:mls:[a-z0-9_]+:.+$",
+          "description": "Reducer-derived MLS group reference; present only when encryption_profile='mls_rfc9420'."
+        },
+        "state": {
+          "$ref": "#/$defs/circle_state"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "uniqueItems": true,
+          "description": "Active Circle member DIDs (strict subset of parent Realm.members). Empty after tombstone."
+        },
+        "created_by": {
+          "$ref": "#/$defs/did"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "updated_by": {
+          "$ref": "#/$defs/did"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "circle_create_request_body": {
+      "type": "object",
+      "description": "Actor-supplied fields for ck.circle.create. Reducer-locked fields (mls_group_ref, state) MUST NOT appear.",
+      "required": [
+        "realm_id",
+        "title"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "summary": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "directory_visibility": {
+          "type": "string",
+          "enum": [
+            "members",
+            "realm_members"
+          ],
+          "default": "members"
+        },
+        "join_rule": {
+          "type": "string",
+          "enum": [
+            "invite",
+            "request",
+            "open"
+          ],
+          "default": "invite"
+        },
+        "history_visibility": {
+          "type": "string",
+          "enum": [
+            "world_readable",
+            "shared",
+            "invited",
+            "joined",
+            "restricted"
+          ],
+          "default": "joined"
+        },
+        "content_encryption_floor": {
+          "type": "string",
+          "enum": [
+            "allow_plaintext",
+            "e2ee_required"
+          ]
+        },
+        "metadata_encryption_floor": {
+          "type": "string",
+          "enum": [
+            "allow_plaintext",
+            "e2ee_required"
+          ]
+        },
+        "encryption_profile": {
+          "type": "string",
+          "enum": [
+            "none",
+            "mls_rfc9420"
+          ],
+          "default": "mls_rfc9420"
+        }
+      },
+      "additionalProperties": false
+    },
+    "circle_list": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "circles"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "circles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/circle_view"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "circle_member_request_body": {
+      "type": "object",
+      "required": [
+        "actor_id"
+      ],
+      "properties": {
+        "actor_id": {
+          "$ref": "#/$defs/did"
+        },
+        "state": {
+          "$ref": "#/$defs/circle_member_state",
+          "default": "active",
+          "description": "Target member state. Defaults to active. Activating another actor requires ck.circle.member.manage; the target MUST already be a joined Realm member."
+        }
+      },
+      "additionalProperties": false
+    },
+    "circle_membership_outcome": {
+      "type": "object",
+      "required": [
+        "circle_id",
+        "actor_id",
+        "state"
+      ],
+      "properties": {
+        "circle_id": {
+          "$ref": "./common-ids.schema.json#/$defs/circle_id"
+        },
+        "actor_id": {
+          "$ref": "#/$defs/did"
+        },
+        "state": {
+          "$ref": "#/$defs/circle_member_state"
+        }
+      },
+      "additionalProperties": false
+    },
+    "circle_scope_rotate_outcome": {
+      "type": "object",
+      "required": [
+        "circle_id"
+      ],
+      "properties": {
+        "circle_id": {
+          "$ref": "./common-ids.schema.json#/$defs/circle_id"
+        },
+        "mls_group_ref": {
+          "type": "string",
+          "pattern": "^ck:mls:[a-z0-9_]+:.+$"
+        },
+        "note": {
+          "type": "string",
+          "description": "Reducer-emitted reason code on Ignored / Rejected, or unsupported-feature note while MLS scope rotation is not wired end-to-end."
+        }
+      },
+      "additionalProperties": false
+    },
+    "circle_lifecycle_request_body": {
+      "type": "object",
+      "description": "Optional body for ck.self.circle.archive / ck.self.circle.tombstone. The target circle is taken from the path.",
+      "properties": {
+        "reason_code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

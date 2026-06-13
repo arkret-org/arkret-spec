@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/realm-policy-server-operations.schema.json",
+  "title": "Cokret Realm Policy-Server Self-Management Operation DTOs",
+  "description": "Closed request/response DTOs for the self-surface Realm policy-server config operations (ck.self.realm_policy_server.*). The PUT builds a ck.realm.policy_server Move (admission capability ck.policy.manage). This admin DTO is a simplified projection of the canonical ck.realm.policy_server payload (server_id/endpoint/public_keys/applies_to/fail_mode); see spec/v1/zh/authz/policy-server.md §2.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/realm_policy_server_put_request_body"
+    },
+    {
+      "$ref": "#/$defs/realm_policy_server_view"
+    }
+  ],
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "on_timeout": {
+      "type": "string",
+      "enum": [
+        "fail_closed",
+        "deny"
+      ]
+    },
+    "realm_policy_server_view": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "policy_server_did",
+        "policy_server_url",
+        "cache_ttl_seconds",
+        "timeout_ms",
+        "on_timeout",
+        "updated_at",
+        "from_org_fallback"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "policy_server_did": {
+          "$ref": "#/$defs/did"
+        },
+        "policy_server_url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
+        },
+        "cache_ttl_seconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "on_timeout": {
+          "$ref": "#/$defs/on_timeout"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "from_org_fallback": {
+          "type": "boolean",
+          "description": "True when the config was resolved via the governed_by / org-fallback chain rather than a row on the Realm itself."
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_policy_server_put_request_body": {
+      "type": "object",
+      "required": [
+        "policy_server_did",
+        "policy_server_url"
+      ],
+      "properties": {
+        "policy_server_did": {
+          "$ref": "#/$defs/did"
+        },
+        "policy_server_url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
+        },
+        "cache_ttl_seconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "on_timeout": {
+          "$ref": "#/$defs/on_timeout",
+          "default": "fail_closed"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

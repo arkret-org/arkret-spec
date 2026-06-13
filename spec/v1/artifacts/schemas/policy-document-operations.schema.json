@@ -1,0 +1,221 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/policy-document-operations.schema.json",
+  "title": "Cokret Policy Document Self-Management Operation DTOs",
+  "description": "Closed request/response DTOs for owner-scoped authorization policy documents (ck.self.policy_document.*). These are the backing store evaluated by ck.self.policy.check (zh/authz/policy-server.md); they are owner-scoped authz rule documents, distinct from the Realm-bound governance Policy object ck.schema.policy.v1 (policy.schema.json). See spec/v1/zh/sync/service-http-binding.md.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/policy_document_upsert_request_body"
+    },
+    {
+      "$ref": "#/$defs/policy_document_view"
+    },
+    {
+      "$ref": "#/$defs/policy_document_list"
+    },
+    {
+      "$ref": "#/$defs/policy_document_delete_outcome"
+    }
+  ],
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "policy_id": {
+      "type": "string",
+      "pattern": "^ck:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "policy_scope": {
+      "description": "Either '*' (global) or a canonical ck:realm:<uuid>.",
+      "anyOf": [
+        {
+          "const": "*"
+        },
+        {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        }
+      ]
+    },
+    "subject_ref": {
+      "description": "Either '*' (any subject) or a single DID.",
+      "anyOf": [
+        {
+          "const": "*"
+        },
+        {
+          "$ref": "#/$defs/did"
+        }
+      ]
+    },
+    "effect": {
+      "type": "string",
+      "enum": [
+        "allow",
+        "deny",
+        "require_review",
+        "quarantine"
+      ]
+    },
+    "policy_type": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9._*-]+$",
+      "description": "Free policy type token (e.g. access, moderation, federation). Distinct from the closed ck.schema.policy.v1 policy_type enum."
+    },
+    "action": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "policy_document_view": {
+      "type": "object",
+      "required": [
+        "policy_id",
+        "owner",
+        "policy_scope",
+        "subject_ref",
+        "policy_type",
+        "payload",
+        "active",
+        "updated_at"
+      ],
+      "properties": {
+        "policy_id": {
+          "$ref": "#/$defs/policy_id"
+        },
+        "owner": {
+          "$ref": "#/$defs/did"
+        },
+        "policy_scope": {
+          "$ref": "#/$defs/policy_scope"
+        },
+        "subject_ref": {
+          "$ref": "#/$defs/subject_ref"
+        },
+        "policy_type": {
+          "$ref": "#/$defs/policy_type"
+        },
+        "payload": {
+          "type": "object",
+          "description": "Stored decision payload: effect, actions[], resource, obligations[].",
+          "required": [
+            "effect",
+            "actions"
+          ],
+          "properties": {
+            "effect": {
+              "$ref": "#/$defs/effect"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/action"
+              },
+              "minItems": 1
+            },
+            "resource": {},
+            "obligations": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        "active": {
+          "type": "boolean"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "policy_document_upsert_request_body": {
+      "type": "object",
+      "required": [
+        "policy_scope",
+        "subject_ref",
+        "policy_type",
+        "effect"
+      ],
+      "properties": {
+        "policy_id": {
+          "$ref": "#/$defs/policy_id",
+          "description": "Optional. When omitted the server allocates a ck:policy:<uuid>. When supplied for an existing id, the caller MUST be the owner (idempotent replace)."
+        },
+        "policy_scope": {
+          "$ref": "#/$defs/policy_scope"
+        },
+        "subject_ref": {
+          "$ref": "#/$defs/subject_ref"
+        },
+        "policy_type": {
+          "$ref": "#/$defs/policy_type"
+        },
+        "effect": {
+          "$ref": "#/$defs/effect"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/action"
+          },
+          "uniqueItems": true,
+          "description": "Defaults to ['*'] when empty."
+        },
+        "resource": {},
+        "obligations": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "active": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "policy_document_list": {
+      "type": "object",
+      "required": [
+        "policies"
+      ],
+      "properties": {
+        "policies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/policy_document_view"
+          }
+        },
+        "next_cursor": {
+          "type": "string",
+          "pattern": "^ck:cursor:[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "policy_document_delete_outcome": {
+      "type": "object",
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

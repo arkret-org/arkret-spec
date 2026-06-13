@@ -1323,6 +1323,482 @@
       }
     },
     {
+      "operation_id": "ck.self.circle.create",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_create_request_body",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "title"
+        ],
+        "properties": [
+          "realm_id",
+          "title",
+          "summary",
+          "directory_visibility",
+          "join_rule",
+          "history_visibility",
+          "content_encryption_floor",
+          "metadata_encryption_floor",
+          "encryption_profile"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
+        "schema_kind": "object",
+        "required": [
+          "circle_id",
+          "realm_id",
+          "title",
+          "directory_visibility",
+          "join_rule",
+          "history_visibility",
+          "encryption_profile",
+          "state",
+          "members",
+          "created_by",
+          "created_at"
+        ],
+        "properties": [
+          "circle_id",
+          "realm_id",
+          "title",
+          "summary",
+          "directory_visibility",
+          "join_rule",
+          "history_visibility",
+          "content_encryption_floor",
+          "metadata_encryption_floor",
+          "encryption_profile",
+          "mls_group_ref",
+          "state",
+          "members",
+          "created_by",
+          "created_at",
+          "updated_by",
+          "updated_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.circle.list",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_list",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "circles"
+        ],
+        "properties": [
+          "realm_id",
+          "circles"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.circle.get",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
+        "schema_kind": "object",
+        "required": [
+          "circle_id",
+          "realm_id",
+          "title",
+          "directory_visibility",
+          "join_rule",
+          "history_visibility",
+          "encryption_profile",
+          "state",
+          "members",
+          "created_by",
+          "created_at"
+        ],
+        "properties": [
+          "circle_id",
+          "realm_id",
+          "title",
+          "summary",
+          "directory_visibility",
+          "join_rule",
+          "history_visibility",
+          "content_encryption_floor",
+          "metadata_encryption_floor",
+          "encryption_profile",
+          "mls_group_ref",
+          "state",
+          "members",
+          "created_by",
+          "created_at",
+          "updated_by",
+          "updated_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.circle.member.add",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_member_request_body",
+        "schema_kind": "object",
+        "required": [
+          "actor_id"
+        ],
+        "properties": [
+          "actor_id",
+          "state"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome",
+        "schema_kind": "object",
+        "required": [
+          "circle_id",
+          "actor_id",
+          "state"
+        ],
+        "properties": [
+          "circle_id",
+          "actor_id",
+          "state"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.circle.member.remove",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome",
+        "schema_kind": "object",
+        "required": [
+          "circle_id",
+          "actor_id",
+          "state"
+        ],
+        "properties": [
+          "circle_id",
+          "actor_id",
+          "state"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.circle.scope_rotate",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_outcome",
+        "schema_kind": "object",
+        "required": [
+          "circle_id"
+        ],
+        "properties": [
+          "circle_id",
+          "mls_group_ref",
+          "note"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.circle.archive",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
+        "schema_kind": "object",
+        "required": [],
+        "properties": [
+          "reason_code"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
+        "schema_kind": "object",
+        "required": [
+          "circle_id",
+          "realm_id",
+          "title",
+          "directory_visibility",
+          "join_rule",
+          "history_visibility",
+          "encryption_profile",
+          "state",
+          "members",
+          "created_by",
+          "created_at"
+        ],
+        "properties": [
+          "circle_id",
+          "realm_id",
+          "title",
+          "summary",
+          "directory_visibility",
+          "join_rule",
+          "history_visibility",
+          "content_encryption_floor",
+          "metadata_encryption_floor",
+          "encryption_profile",
+          "mls_group_ref",
+          "state",
+          "members",
+          "created_by",
+          "created_at",
+          "updated_by",
+          "updated_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.circle.tombstone",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
+        "schema_kind": "object",
+        "required": [],
+        "properties": [
+          "reason_code"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
+        "schema_kind": "object",
+        "required": [
+          "circle_id",
+          "realm_id",
+          "title",
+          "directory_visibility",
+          "join_rule",
+          "history_visibility",
+          "encryption_profile",
+          "state",
+          "members",
+          "created_by",
+          "created_at"
+        ],
+        "properties": [
+          "circle_id",
+          "realm_id",
+          "title",
+          "summary",
+          "directory_visibility",
+          "join_rule",
+          "history_visibility",
+          "content_encryption_floor",
+          "metadata_encryption_floor",
+          "encryption_profile",
+          "mls_group_ref",
+          "state",
+          "members",
+          "created_by",
+          "created_at",
+          "updated_by",
+          "updated_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.organization.list",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_list",
+        "schema_kind": "object",
+        "required": [
+          "organizations",
+          "total"
+        ],
+        "properties": [
+          "organizations",
+          "total"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.organization.upsert",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_upsert_request_body",
+        "schema_kind": "object",
+        "required": [
+          "organization_did"
+        ],
+        "properties": [
+          "organization_did",
+          "handle",
+          "display_name",
+          "verified",
+          "members",
+          "member_count"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_view",
+        "schema_kind": "object",
+        "required": [
+          "organization_did",
+          "display_name",
+          "verified",
+          "member_count",
+          "realms",
+          "created_by",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": [
+          "organization_did",
+          "handle",
+          "display_name",
+          "verified",
+          "members",
+          "member_count",
+          "realms",
+          "created_by",
+          "created_at",
+          "updated_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.organization.get",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_view",
+        "schema_kind": "object",
+        "required": [
+          "organization_did",
+          "display_name",
+          "verified",
+          "member_count",
+          "realms",
+          "created_by",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": [
+          "organization_did",
+          "handle",
+          "display_name",
+          "verified",
+          "members",
+          "member_count",
+          "realms",
+          "created_by",
+          "created_at",
+          "updated_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.organization.policy.get",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_policy_document",
+        "schema_kind": "object",
+        "required": [
+          "organization_did",
+          "policy_id",
+          "version",
+          "policy",
+          "applies_to_realms",
+          "updated_by",
+          "updated_at"
+        ],
+        "properties": [
+          "organization_did",
+          "policy_id",
+          "version",
+          "policy",
+          "applies_to_realms",
+          "updated_by",
+          "updated_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.organization.policy.set",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_policy_set_request_body",
+        "schema_kind": "object",
+        "required": [
+          "policy"
+        ],
+        "properties": [
+          "policy"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_policy_document",
+        "schema_kind": "object",
+        "required": [
+          "organization_did",
+          "policy_id",
+          "version",
+          "policy",
+          "applies_to_realms",
+          "updated_by",
+          "updated_at"
+        ],
+        "properties": [
+          "organization_did",
+          "policy_id",
+          "version",
+          "policy",
+          "applies_to_realms",
+          "updated_by",
+          "updated_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.organization.realm.link",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_realm_link_request_body",
+        "schema_kind": "object",
+        "required": [
+          "realm_id"
+        ],
+        "properties": [
+          "realm_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_realm_link_outcome",
+        "schema_kind": "object",
+        "required": [
+          "organization_did",
+          "realm_id",
+          "linked"
+        ],
+        "properties": [
+          "organization_did",
+          "realm_id",
+          "linked"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ck.find.directory.announce",
       "success_shape_kind": "typed_response",
       "request": {
@@ -3545,6 +4021,722 @@
           "next_retry_at",
           "obligations",
           "signature"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.policy_document.list",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_list",
+        "schema_kind": "object",
+        "required": [
+          "policies"
+        ],
+        "properties": [
+          "policies",
+          "next_cursor"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.policy_document.upsert",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_upsert_request_body",
+        "schema_kind": "object",
+        "required": [
+          "policy_scope",
+          "subject_ref",
+          "policy_type",
+          "effect"
+        ],
+        "properties": [
+          "policy_id",
+          "policy_scope",
+          "subject_ref",
+          "policy_type",
+          "effect",
+          "actions",
+          "resource",
+          "obligations",
+          "active"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_view",
+        "schema_kind": "object",
+        "required": [
+          "policy_id",
+          "owner",
+          "policy_scope",
+          "subject_ref",
+          "policy_type",
+          "payload",
+          "active",
+          "updated_at"
+        ],
+        "properties": [
+          "policy_id",
+          "owner",
+          "policy_scope",
+          "subject_ref",
+          "policy_type",
+          "payload",
+          "active",
+          "updated_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.policy_document.get",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_view",
+        "schema_kind": "object",
+        "required": [
+          "policy_id",
+          "owner",
+          "policy_scope",
+          "subject_ref",
+          "policy_type",
+          "payload",
+          "active",
+          "updated_at"
+        ],
+        "properties": [
+          "policy_id",
+          "owner",
+          "policy_scope",
+          "subject_ref",
+          "policy_type",
+          "payload",
+          "active",
+          "updated_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.policy_document.delete",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_delete_outcome",
+        "schema_kind": "object",
+        "required": [
+          "ok"
+        ],
+        "properties": [
+          "ok"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.realm_link.list",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_list",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "direction",
+          "links"
+        ],
+        "properties": [
+          "realm_id",
+          "direction",
+          "links"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.realm_link.create",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_create_request_body",
+        "schema_kind": "object",
+        "required": [
+          "target_realm_id",
+          "link_kind"
+        ],
+        "properties": [
+          "target_realm_id",
+          "link_kind",
+          "status",
+          "label",
+          "commitment"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "target_realm_id",
+          "link_kind",
+          "status"
+        ],
+        "properties": [
+          "realm_id",
+          "target_realm_id",
+          "link_kind",
+          "status"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.realm_link.delete",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "target_realm_id",
+          "link_kind",
+          "status"
+        ],
+        "properties": [
+          "realm_id",
+          "target_realm_id",
+          "link_kind",
+          "status"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.realm_link.effective_policy",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_effective_policy_outcome",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "effective_policy",
+          "inheritance_chain",
+          "inheritance_mode"
+        ],
+        "properties": [
+          "realm_id",
+          "effective_policy",
+          "inheritance_chain",
+          "inheritance_mode"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.realm_policy_server.get",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "policy_server_did",
+          "policy_server_url",
+          "cache_ttl_seconds",
+          "timeout_ms",
+          "on_timeout",
+          "updated_at",
+          "from_org_fallback"
+        ],
+        "properties": [
+          "realm_id",
+          "policy_server_did",
+          "policy_server_url",
+          "cache_ttl_seconds",
+          "timeout_ms",
+          "on_timeout",
+          "updated_at",
+          "from_org_fallback"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.realm_policy_server.put",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_put_request_body",
+        "schema_kind": "object",
+        "required": [
+          "policy_server_did",
+          "policy_server_url"
+        ],
+        "properties": [
+          "policy_server_did",
+          "policy_server_url",
+          "cache_ttl_seconds",
+          "timeout_ms",
+          "on_timeout"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "policy_server_did",
+          "policy_server_url",
+          "cache_ttl_seconds",
+          "timeout_ms",
+          "on_timeout",
+          "updated_at",
+          "from_org_fallback"
+        ],
+        "properties": [
+          "realm_id",
+          "policy_server_did",
+          "policy_server_url",
+          "cache_ttl_seconds",
+          "timeout_ms",
+          "on_timeout",
+          "updated_at",
+          "from_org_fallback"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.realm.get",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
+        "schema_kind": "object",
+        "required": [
+          "ok",
+          "realm_id",
+          "owner",
+          "members",
+          "deleted"
+        ],
+        "properties": [
+          "ok",
+          "realm_id",
+          "owner",
+          "members",
+          "deleted"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.realm.export",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_export",
+        "schema_kind": "object",
+        "required": [
+          "schema",
+          "realm_id",
+          "generated_at",
+          "operations",
+          "events"
+        ],
+        "properties": [
+          "schema",
+          "realm_id",
+          "generated_at",
+          "operations",
+          "events"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.realm.moderation_policy.effective",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_effective_moderation_policy",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "inheritance_mode",
+          "inheritance_chain",
+          "organization_policy_layers",
+          "effective_rules"
+        ],
+        "properties": [
+          "realm_id",
+          "inheritance_mode",
+          "inheritance_chain",
+          "organization_policy_layers",
+          "realm_policy",
+          "effective_rules",
+          "override_requires_organization_approval"
+        ],
+        "closed": false
+      }
+    },
+    {
+      "operation_id": "ck.self.realm.moderation_policy.set",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_set_request_body",
+        "schema_kind": "object",
+        "required": [],
+        "properties": [],
+        "closed": false
+      },
+      "response": {
+        "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_document",
+        "schema_kind": "object",
+        "required": [
+          "kind",
+          "realm_id",
+          "policy",
+          "updated_by",
+          "updated_at"
+        ],
+        "properties": [
+          "kind",
+          "realm_id",
+          "policy",
+          "updated_by",
+          "updated_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.consent.list",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_list",
+        "schema_kind": "object",
+        "required": [
+          "ok",
+          "cells"
+        ],
+        "properties": [
+          "ok",
+          "cells"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.consent.get",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
+        "schema_kind": "object",
+        "required": [
+          "ok",
+          "cell_id",
+          "holder_did",
+          "peer_did",
+          "consent_scope",
+          "state",
+          "active_grant_dots",
+          "grant_dots",
+          "revoked_dots",
+          "updated_at"
+        ],
+        "properties": [
+          "ok",
+          "cell_id",
+          "holder_did",
+          "peer_did",
+          "consent_scope",
+          "state",
+          "expires_at",
+          "requested_at",
+          "updated_at",
+          "active_grant_dots",
+          "grant_dots",
+          "revoked_dots"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.consent.grant",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
+        "schema_kind": "object",
+        "required": [
+          "peer_did"
+        ],
+        "properties": [
+          "peer_did",
+          "consent_scope",
+          "expires_at"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
+        "schema_kind": "object",
+        "required": [
+          "ok",
+          "cell_id",
+          "holder_did",
+          "peer_did",
+          "consent_scope",
+          "state",
+          "active_grant_dots",
+          "grant_dots",
+          "revoked_dots",
+          "updated_at"
+        ],
+        "properties": [
+          "ok",
+          "cell_id",
+          "holder_did",
+          "peer_did",
+          "consent_scope",
+          "state",
+          "expires_at",
+          "requested_at",
+          "updated_at",
+          "active_grant_dots",
+          "grant_dots",
+          "revoked_dots"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.consent.revoke",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
+        "schema_kind": "object",
+        "required": [
+          "peer_did"
+        ],
+        "properties": [
+          "peer_did",
+          "consent_scope",
+          "expires_at"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
+        "schema_kind": "object",
+        "required": [
+          "ok",
+          "cell_id",
+          "holder_did",
+          "peer_did",
+          "consent_scope",
+          "state",
+          "active_grant_dots",
+          "grant_dots",
+          "revoked_dots",
+          "updated_at"
+        ],
+        "properties": [
+          "ok",
+          "cell_id",
+          "holder_did",
+          "peer_did",
+          "consent_scope",
+          "state",
+          "expires_at",
+          "requested_at",
+          "updated_at",
+          "active_grant_dots",
+          "grant_dots",
+          "revoked_dots"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.consent.request",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_request_body",
+        "schema_kind": "object",
+        "required": [
+          "holder_did"
+        ],
+        "properties": [
+          "holder_did",
+          "peer_did",
+          "consent_scope"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
+        "schema_kind": "object",
+        "required": [
+          "ok",
+          "cell_id",
+          "holder_did",
+          "peer_did",
+          "consent_scope",
+          "state",
+          "active_grant_dots",
+          "grant_dots",
+          "revoked_dots",
+          "updated_at"
+        ],
+        "properties": [
+          "ok",
+          "cell_id",
+          "holder_did",
+          "peer_did",
+          "consent_scope",
+          "state",
+          "expires_at",
+          "requested_at",
+          "updated_at",
+          "active_grant_dots",
+          "grant_dots",
+          "revoked_dots"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.account_data.list",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_list",
+        "schema_kind": "object",
+        "required": [
+          "entries"
+        ],
+        "properties": [
+          "entries"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.account_data.get",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_entry",
+        "schema_kind": "object",
+        "required": [
+          "data_type",
+          "content",
+          "updated_at"
+        ],
+        "properties": [
+          "data_type",
+          "content",
+          "updated_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.account_data.set",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_set_request_body",
+        "schema_kind": "object",
+        "required": [
+          "content"
+        ],
+        "properties": [
+          "content"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_entry",
+        "schema_kind": "object",
+        "required": [
+          "data_type",
+          "content",
+          "updated_at"
+        ],
+        "properties": [
+          "data_type",
+          "content",
+          "updated_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.account_data.delete",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_delete_outcome",
+        "schema_kind": "object",
+        "required": [
+          "ok",
+          "data_type"
+        ],
+        "properties": [
+          "ok",
+          "data_type"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.read_cursor.set",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_cursor_set_request_body",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "read_scope",
+          "position"
+        ],
+        "properties": [
+          "realm_id",
+          "read_scope",
+          "position"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_marker_outcome",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "actor_id",
+          "device_id",
+          "read_scope",
+          "position",
+          "updated_at"
+        ],
+        "properties": [
+          "realm_id",
+          "actor_id",
+          "device_id",
+          "read_scope",
+          "position",
+          "updated_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.read_cursor.list",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_cursor_list",
+        "schema_kind": "object",
+        "required": [
+          "markers"
+        ],
+        "properties": [
+          "markers"
         ],
         "closed": true
       }

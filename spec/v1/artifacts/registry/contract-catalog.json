@@ -3356,6 +3356,84 @@
         ]
       },
       {
+        "surface": "circle_management",
+        "tier": "extension",
+        "operations": [
+          "ck.self.circle.create",
+          "ck.self.circle.list",
+          "ck.self.circle.get",
+          "ck.self.circle.member.add",
+          "ck.self.circle.member.remove",
+          "ck.self.circle.scope_rotate",
+          "ck.self.circle.archive",
+          "ck.self.circle.tombstone"
+        ]
+      },
+      {
+        "surface": "organization_registry",
+        "tier": "extension",
+        "operations": [
+          "ck.self.organization.list",
+          "ck.self.organization.upsert",
+          "ck.self.organization.get",
+          "ck.self.organization.policy.get",
+          "ck.self.organization.policy.set",
+          "ck.self.organization.realm.link"
+        ]
+      },
+      {
+        "surface": "realm_governance_links",
+        "tier": "extension",
+        "operations": [
+          "ck.self.realm_link.list",
+          "ck.self.realm_link.create",
+          "ck.self.realm_link.delete",
+          "ck.self.realm_link.effective_policy",
+          "ck.self.realm_policy_server.get",
+          "ck.self.realm_policy_server.put",
+          "ck.self.realm_policy_server.delete"
+        ]
+      },
+      {
+        "surface": "realm_read",
+        "tier": "extension",
+        "operations": [
+          "ck.self.realm.get",
+          "ck.self.realm.export",
+          "ck.self.realm.moderation_policy.effective",
+          "ck.self.realm.moderation_policy.set"
+        ]
+      },
+      {
+        "surface": "consent_management",
+        "tier": "extension",
+        "operations": [
+          "ck.self.consent.list",
+          "ck.self.consent.get",
+          "ck.self.consent.grant",
+          "ck.self.consent.revoke",
+          "ck.self.consent.request"
+        ]
+      },
+      {
+        "surface": "account_data",
+        "tier": "extension",
+        "operations": [
+          "ck.self.account_data.list",
+          "ck.self.account_data.get",
+          "ck.self.account_data.set",
+          "ck.self.account_data.delete"
+        ]
+      },
+      {
+        "surface": "read_cursor",
+        "tier": "extension",
+        "operations": [
+          "ck.self.read_cursor.set",
+          "ck.self.read_cursor.list"
+        ]
+      },
+      {
         "surface": "blob_storage",
         "tier": "extension",
         "operations": [
@@ -3379,7 +3457,11 @@
           "ck.self.authz.check",
           "ck.self.authz.get_effective_grants",
           "ck.self.authz.get_invites",
-          "ck.self.policy.check"
+          "ck.self.policy.check",
+          "ck.self.policy_document.list",
+          "ck.self.policy_document.upsert",
+          "ck.self.policy_document.get",
+          "ck.self.policy_document.delete"
         ]
       },
       {
@@ -3925,6 +4007,139 @@
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_request_body",
         "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_outcome"
+      },
+      {
+        "operation_id": "ck.self.circle.create",
+        "http": "POST /_cokret/self/circles",
+        "grpc": "SelfCircle/Create",
+        "mq": "self.circle.create",
+        "notes": "Builds a ck.circle.create Operation in the named parent Realm and routes it through the local accept pipeline. Reducer-locked fields (mls_group_ref, state) MUST NOT be actor-supplied; encryption_profile='none' is allowed only when the parent Realm policy floor permits plaintext.",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_create_request_body",
+        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view"
+      },
+      {
+        "operation_id": "ck.self.circle.list",
+        "http": "GET /_cokret/self/circles",
+        "grpc": "SelfCircle/List",
+        "mq": "self.circle.list",
+        "notes": "Lists Circles the caller may see within one parent Realm (required realm_id query). Directory visibility is enforced per Circle; non-members of a 'members'-visibility Circle MUST NOT see it.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_list"
+      },
+      {
+        "operation_id": "ck.self.circle.get",
+        "http": "GET /_cokret/self/circles/{circle_id}",
+        "grpc": "SelfCircle/Get",
+        "mq": "self.circle.get",
+        "notes": "Reads one Circle projection. Returns not_found when the Circle is invisible to the caller rather than disclosing existence.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view"
+      },
+      {
+        "operation_id": "ck.self.circle.member.add",
+        "http": "POST /_cokret/self/circles/{circle_id}/members",
+        "grpc": "SelfCircle/MemberAdd",
+        "mq": "self.circle.member.add",
+        "notes": "Builds ck.circle.member.state. Activating another actor requires ck.circle.member.manage narrowed to this Circle, and the target MUST already be a joined parent-Realm member (strict-subset invariant); a self-join is gated by join_rule.",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_member_request_body",
+        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome"
+      },
+      {
+        "operation_id": "ck.self.circle.member.remove",
+        "http": "DELETE /_cokret/self/circles/{circle_id}/members/{actor_id}",
+        "grpc": "SelfCircle/MemberRemove",
+        "mq": "self.circle.member.remove",
+        "notes": "Builds ck.circle.member.state with target state removed for the path actor_id.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome"
+      },
+      {
+        "operation_id": "ck.self.circle.scope_rotate",
+        "http": "POST /_cokret/self/circles/{circle_id}/scope-rotate",
+        "grpc": "SelfCircle/ScopeRotate",
+        "mq": "self.circle.scope_rotate",
+        "notes": "Rotates the Circle's bound MLS group. MUST NOT acknowledge a rotation without actually changing the cryptographic scope; returns unsupported_feature until the MLS genesis/commit/welcome cascade is wired end-to-end.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_outcome"
+      },
+      {
+        "operation_id": "ck.self.circle.archive",
+        "http": "POST /_cokret/self/circles/{circle_id}/archive",
+        "grpc": "SelfCircle/Archive",
+        "mq": "self.circle.archive",
+        "notes": "Builds ck.circle.archive; transition follows the Circle lifecycle matrix (reducer rejects illegal transitions with circle_not_active).",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
+        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view"
+      },
+      {
+        "operation_id": "ck.self.circle.tombstone",
+        "http": "POST /_cokret/self/circles/{circle_id}/tombstone",
+        "grpc": "SelfCircle/Tombstone",
+        "mq": "self.circle.tombstone",
+        "notes": "Builds ck.circle.tombstone (terminal). Response surfaces the terminal state with empty members.",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
+        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view"
+      },
+      {
+        "operation_id": "ck.self.organization.list",
+        "http": "GET /_cokret/self/organizations",
+        "grpc": "SelfOrganization/List",
+        "mq": "self.organization.list",
+        "notes": "Lists locally known organization registry rows. An Organization is a DID Principal; the row is a local index plus realm-link projection, not a separate principal object.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_list"
+      },
+      {
+        "operation_id": "ck.self.organization.upsert",
+        "http": "POST /_cokret/self/organizations",
+        "grpc": "SelfOrganization/Upsert",
+        "mq": "self.organization.upsert",
+        "notes": "Creates or updates a local organization registry row keyed by organization_did. The identifier MUST be a DID; a non-DID local organization prefix is a deployment-local affordance and is not protocol-canonical.",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_upsert_request_body",
+        "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_view"
+      },
+      {
+        "operation_id": "ck.self.organization.get",
+        "http": "GET /_cokret/self/organizations/{organization_did}",
+        "grpc": "SelfOrganization/Get",
+        "mq": "self.organization.get",
+        "notes": "Reads one local organization registry row.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_view"
+      },
+      {
+        "operation_id": "ck.self.organization.policy.get",
+        "http": "GET /_cokret/self/organizations/{organization_did}/policy",
+        "grpc": "SelfOrganization/PolicyGet",
+        "mq": "self.organization.policy.get",
+        "notes": "Reads the current stored ck.organization.moderation_policy document for the organization. The policy only takes effect for Realms / services that explicitly reference it (content-moderation.md §7).",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_policy_document"
+      },
+      {
+        "operation_id": "ck.self.organization.policy.set",
+        "http": "POST /_cokret/self/organizations/{organization_did}/policy",
+        "grpc": "SelfOrganization/PolicySet",
+        "mq": "self.organization.policy.set",
+        "notes": "Publishes / replaces the organization moderation policy (builds ck.organization.moderation_policy, admission capability ck.policy.manage). MUST be signed by the Organization DID or an authorized governance service DID.",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_policy_set_request_body",
+        "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_policy_document"
+      },
+      {
+        "operation_id": "ck.self.organization.realm.link",
+        "http": "POST /_cokret/self/organizations/{organization_did}/realms",
+        "grpc": "SelfOrganization/RealmLink",
+        "mq": "self.organization.realm.link",
+        "notes": "Links a Realm to this organization as a policy source. The link is the explicit reference that activates organization policy inheritance for the Realm.",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_realm_link_request_body",
+        "response_schema_ref": "schemas/organization-operations.schema.json#/$defs/organization_realm_link_outcome"
       },
       {
         "operation_id": "ck.find.directory.announce",
@@ -4557,6 +4772,248 @@
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome"
+      },
+      {
+        "operation_id": "ck.self.policy_document.list",
+        "http": "GET /_cokret/self/policies",
+        "grpc": "SelfPolicyDocument/List",
+        "mq": "self.policy_document.list",
+        "notes": "Lists owner-scoped authorization policy documents (the backing store for ck.self.policy.check). Distinct from the Realm-bound governance Policy object ck.schema.policy.v1. Filterable by scope / subject_ref / include_inactive.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_list"
+      },
+      {
+        "operation_id": "ck.self.policy_document.upsert",
+        "http": "POST /_cokret/self/policies",
+        "grpc": "SelfPolicyDocument/Upsert",
+        "mq": "self.policy_document.upsert",
+        "notes": "Idempotently creates or replaces an owner-scoped policy document. policy_id defaults to a server-allocated ck:policy:<uuid>; replacing an existing id requires owner match. policy_scope is '*' or a ck:realm:<uuid>; subject_ref is '*' or a DID; effect is allow/deny/require_review/quarantine.",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_upsert_request_body",
+        "response_schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_view"
+      },
+      {
+        "operation_id": "ck.self.policy_document.get",
+        "http": "GET /_cokret/self/policies/{policy_id}",
+        "grpc": "SelfPolicyDocument/Get",
+        "mq": "self.policy_document.get",
+        "notes": "Reads one owner-scoped policy document. Returns not_found when absent or not owned by the caller.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_view"
+      },
+      {
+        "operation_id": "ck.self.policy_document.delete",
+        "http": "DELETE /_cokret/self/policies/{policy_id}",
+        "grpc": "SelfPolicyDocument/Delete",
+        "mq": "self.policy_document.delete",
+        "notes": "Deletes one owner-scoped policy document. Only the owner may delete; deletion shifts the policy_frontier_digest observed by ck.self.policy.check.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/policy-document-operations.schema.json#/$defs/policy_document_delete_outcome"
+      },
+      {
+        "operation_id": "ck.self.realm_link.list",
+        "http": "GET /_cokret/self/realms/{realm_id}/links",
+        "grpc": "SelfRealmLink/List",
+        "mq": "self.realm_link.list",
+        "notes": "Lists typed cross-Realm links projected from ck.realm.link. direction is outbound/inbound/both; link_kind_allow is a comma-separated allowlist of canonical link kinds.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_list"
+      },
+      {
+        "operation_id": "ck.self.realm_link.create",
+        "http": "POST /_cokret/self/realms/{realm_id}/links",
+        "grpc": "SelfRealmLink/Create",
+        "mq": "self.realm_link.create",
+        "notes": "Builds a ck.realm.link Move from realm_id -> target_realm_id. The reducer runs realm_link_* validators (cycle detection, self-reference, kind validation); a rejected payload returns 422 with the canonical reason code (e.g. realm_link_cycle, realm_link_self_reference).",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_create_request_body",
+        "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome"
+      },
+      {
+        "operation_id": "ck.self.realm_link.delete",
+        "http": "DELETE /_cokret/self/realms/{realm_id}/links/{target_realm_id}",
+        "grpc": "SelfRealmLink/Delete",
+        "mq": "self.realm_link.delete",
+        "notes": "Writes a tombstoning ck.realm.link Move (status=tombstoned) for the (realm_id, target_realm_id, link_kind) triple. link_kind defaults to governed_by; callers may override via the link_kind query param.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome"
+      },
+      {
+        "operation_id": "ck.self.realm_link.effective_policy",
+        "http": "GET /_cokret/self/realms/{realm_id}/effective-policy",
+        "grpc": "SelfRealmLink/EffectivePolicy",
+        "mq": "self.realm_link.effective_policy",
+        "notes": "Returns the merged effective policy after walking governed_by / inherits_policy_from ancestors per the Realm's ck.realm.inheritance_policy. inheritance_mode=none when no inheritance policy is projected (implicit inheritance is forbidden).",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_effective_policy_outcome"
+      },
+      {
+        "operation_id": "ck.self.realm_policy_server.get",
+        "http": "GET /_cokret/self/realms/{realm_id}/policy-server",
+        "grpc": "SelfRealmPolicyServer/Get",
+        "mq": "self.realm_policy_server.get",
+        "notes": "Reads the projected ck.realm.policy_server config. Returns not_found when neither the Realm nor its governed_by ancestor chain declared one. from_org_fallback=true marks an inherited config.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view"
+      },
+      {
+        "operation_id": "ck.self.realm_policy_server.put",
+        "http": "PUT /_cokret/self/realms/{realm_id}/policy-server",
+        "grpc": "SelfRealmPolicyServer/Put",
+        "mq": "self.realm_policy_server.put",
+        "notes": "Builds a ck.realm.policy_server Move (admission capability ck.policy.manage). Reducer validates URL scheme and on_timeout enum. This admin DTO is a simplified projection of the canonical payload (server_id/endpoint/public_keys/applies_to/fail_mode).",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_put_request_body",
+        "response_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view"
+      },
+      {
+        "operation_id": "ck.self.realm_policy_server.delete",
+        "http": "DELETE /_cokret/self/realms/{realm_id}/policy-server",
+        "grpc": "SelfRealmPolicyServer/Delete",
+        "mq": "self.realm_policy_server.delete",
+        "notes": "Tombstones the per-Realm ck.realm.policy_server cell so callers fall back to the governed_by chain or local-only capability check. Empty success response.",
+        "success_shape_kind": "empty_response"
+      },
+      {
+        "operation_id": "ck.self.realm.get",
+        "http": "GET /_cokret/self/realms/{realm_id}",
+        "grpc": "SelfRealm/Get",
+        "mq": "self.realm.get",
+        "notes": "Reads the Realm lifecycle projection (owner + members + deleted). Returns not_found when the Realm is invisible to the caller.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view"
+      },
+      {
+        "operation_id": "ck.self.realm.export",
+        "http": "GET /_cokret/self/realms/{realm_id}/export",
+        "grpc": "SelfRealm/Export",
+        "mq": "self.realm.export",
+        "notes": "Full event-log + operation dump for a Realm (schema ck.export.realm.v1). Caller must be authorized to read the Realm; payload visibility still follows Realm policy.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_export"
+      },
+      {
+        "operation_id": "ck.self.realm.moderation_policy.effective",
+        "http": "GET /_cokret/self/realms/{realm_id}/moderation-policy/effective",
+        "grpc": "SelfRealm/ModerationPolicyEffective",
+        "mq": "self.realm.moderation_policy.effective",
+        "notes": "Returns the organization-inherited effective moderation policy view: inheritance chain, organization policy layers, the Realm's own override, and merged effective rules.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_effective_moderation_policy"
+      },
+      {
+        "operation_id": "ck.self.realm.moderation_policy.set",
+        "http": "POST /_cokret/self/realms/{realm_id}/moderation-policy",
+        "grpc": "SelfRealm/ModerationPolicySet",
+        "mq": "self.realm.moderation_policy.set",
+        "notes": "Writes a Realm moderation-policy override (ck.realm.moderation_policy). Only the Realm owner may write; an override that loosens an action an organization policy denies requires explicit organization approval embedded in the document, otherwise the server returns requires_organization_approval.",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_set_request_body",
+        "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_document"
+      },
+      {
+        "operation_id": "ck.self.consent.list",
+        "http": "GET /_cokret/self/consent/cells",
+        "grpc": "SelfConsent/List",
+        "mq": "self.consent.list",
+        "notes": "Lists holder-private consent cells where the caller is holder or peer. Each cell projects the current effective consent for a (holder, peer, consent_scope).",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_list"
+      },
+      {
+        "operation_id": "ck.self.consent.get",
+        "http": "GET /_cokret/self/consent/cells/{holder_did}",
+        "grpc": "SelfConsent/Get",
+        "mq": "self.consent.get",
+        "notes": "Reads one consent cell. Requires peer and consent_scope query params; caller MUST be holder or that peer. Returns not_found when no cell exists.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view"
+      },
+      {
+        "operation_id": "ck.self.consent.grant",
+        "http": "POST /_cokret/self/consent/cells/{holder_did}/grant",
+        "grpc": "SelfConsent/Grant",
+        "mq": "self.consent.grant",
+        "notes": "Builds a ck.consent.grant Control Move on the holder's consent cell. The authenticated actor MUST be authorized to write the holder's consent (holder or an explicitly authorized controller/agent).",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
+        "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view"
+      },
+      {
+        "operation_id": "ck.self.consent.revoke",
+        "http": "POST /_cokret/self/consent/cells/{holder_did}/revoke",
+        "grpc": "SelfConsent/Revoke",
+        "mq": "self.consent.revoke",
+        "notes": "Builds a ck.consent.revoke Control Move enumerating the active grant dots for the (consent_id, peer, consent_scope). Revoking consent_scope=any cascades all concrete scopes; revoking a concrete scope leaves others intact.",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
+        "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view"
+      },
+      {
+        "operation_id": "ck.self.consent.request",
+        "http": "POST /_cokret/self/consent/request",
+        "grpc": "SelfConsent/Request",
+        "mq": "self.consent.request",
+        "notes": "Opens a pending consent request from the authenticated peer to a holder. peer_did defaults to and MUST equal the authenticated actor; the holder account MUST exist.",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_request_body",
+        "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view"
+      },
+      {
+        "operation_id": "ck.self.account_data.list",
+        "http": "GET /_cokret/self/account_data",
+        "grpc": "SelfAccountData/List",
+        "mq": "self.account_data.list",
+        "notes": "Lists the authenticated actor's account_data entries. content is stored verbatim and is opaque to the server.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_list"
+      },
+      {
+        "operation_id": "ck.self.account_data.get",
+        "http": "GET /_cokret/self/account_data/{data_type}",
+        "grpc": "SelfAccountData/Get",
+        "mq": "self.account_data.get",
+        "notes": "Reads one account_data entry by data_type key. Returns not_found when the key is unset.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_entry"
+      },
+      {
+        "operation_id": "ck.self.account_data.set",
+        "http": "PUT /_cokret/self/account_data/{data_type}",
+        "grpc": "SelfAccountData/Set",
+        "mq": "self.account_data.set",
+        "notes": "Builds a ck.account_data.set actor-private write. Controller-private registered types reject agent / applet / service principals. content is stored verbatim; clients own canonical encoding and (for sensitive keys) client-side encryption.",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_set_request_body",
+        "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_entry"
+      },
+      {
+        "operation_id": "ck.self.account_data.delete",
+        "http": "DELETE /_cokret/self/account_data/{data_type}",
+        "grpc": "SelfAccountData/Delete",
+        "mq": "self.account_data.delete",
+        "notes": "Deletes one account_data entry and fans out an actor-private update to the holder's other devices.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_delete_outcome"
+      },
+      {
+        "operation_id": "ck.self.read_cursor.set",
+        "http": "POST /_cokret/self/read-cursors",
+        "grpc": "SelfReadCursor/Set",
+        "mq": "self.read_cursor.set",
+        "notes": "Builds a ck.read_cursor.advance actor-private write for (actor_id, realm_id, read_scope, position). Multi-device convergence is by HLC max with device_id tiebreak; the cursor is never published into shared Realm history.",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_cursor_set_request_body",
+        "response_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_marker_outcome"
+      },
+      {
+        "operation_id": "ck.self.read_cursor.list",
+        "http": "GET /_cokret/self/read-cursors",
+        "grpc": "SelfReadCursor/List",
+        "mq": "self.read_cursor.list",
+        "notes": "Lists the authenticated actor's read markers, optionally filtered by the realm_id query param.",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_cursor_list"
       },
       {
         "operation_id": "ck.self.projection.flows",

@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/account-data-operations.schema.json",
+  "title": "Cokret Account Data Self-Management Operation DTOs",
+  "description": "Closed request/response DTOs for the self-surface actor-private account_data operations (ck.self.account_data.*). PUT builds a ck.account_data.set actor-private write; the server stores content verbatim (clients own canonical encoding and, for sensitive keys, client-side encryption). data_type keys are dot-delimited namespaces validated against account-data-type-registry.json. See spec/v1/zh/discovery/client-preferences.md.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/account_data_set_request_body"
+    },
+    {
+      "$ref": "#/$defs/account_data_entry"
+    },
+    {
+      "$ref": "#/$defs/account_data_list"
+    },
+    {
+      "$ref": "#/$defs/account_data_delete_outcome"
+    }
+  ],
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "data_type": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[^\\s/\\\\?#\\u0000-\\u001f]+$",
+      "description": "Dot-delimited account_data namespace key (e.g. ck.contacts.realm.<realm_id>, ck.account.blocklist). Control chars / whitespace / path separators are forbidden so the key is URL- and log-safe."
+    },
+    "account_data_entry": {
+      "type": "object",
+      "required": [
+        "data_type",
+        "content",
+        "updated_at"
+      ],
+      "properties": {
+        "data_type": {
+          "$ref": "#/$defs/data_type"
+        },
+        "content": {
+          "description": "Caller-supplied opaque payload, stored verbatim. Any JSON value."
+        },
+        "updated_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "account_data_set_request_body": {
+      "type": "object",
+      "required": [
+        "content"
+      ],
+      "properties": {
+        "content": {
+          "description": "Caller-supplied opaque payload. Server stores it verbatim; canonical encoding and (for sensitive keys) client-side encryption are the client's responsibility. Any JSON value."
+        }
+      },
+      "additionalProperties": false
+    },
+    "account_data_list": {
+      "type": "object",
+      "required": [
+        "entries"
+      ],
+      "properties": {
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/account_data_entry"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "account_data_delete_outcome": {
+      "type": "object",
+      "required": [
+        "ok",
+        "data_type"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        },
+        "data_type": {
+          "$ref": "#/$defs/data_type"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

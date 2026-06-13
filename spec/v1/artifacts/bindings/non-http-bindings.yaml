@@ -95,6 +95,50 @@ grpc:
       Respond: ck.self.contact.respond
       List: ck.self.contact.list
       Tombstone: ck.self.contact.tombstone
+    SelfCircle:
+      Create: ck.self.circle.create
+      List: ck.self.circle.list
+      Get: ck.self.circle.get
+      MemberAdd: ck.self.circle.member.add
+      MemberRemove: ck.self.circle.member.remove
+      ScopeRotate: ck.self.circle.scope_rotate
+      Archive: ck.self.circle.archive
+      Tombstone: ck.self.circle.tombstone
+    SelfOrganization:
+      List: ck.self.organization.list
+      Upsert: ck.self.organization.upsert
+      Get: ck.self.organization.get
+      PolicyGet: ck.self.organization.policy.get
+      PolicySet: ck.self.organization.policy.set
+      RealmLink: ck.self.organization.realm.link
+    SelfRealmLink:
+      List: ck.self.realm_link.list
+      Create: ck.self.realm_link.create
+      Delete: ck.self.realm_link.delete
+      EffectivePolicy: ck.self.realm_link.effective_policy
+    SelfRealmPolicyServer:
+      Get: ck.self.realm_policy_server.get
+      Put: ck.self.realm_policy_server.put
+      Delete: ck.self.realm_policy_server.delete
+    SelfRealm:
+      Get: ck.self.realm.get
+      Export: ck.self.realm.export
+      ModerationPolicyEffective: ck.self.realm.moderation_policy.effective
+      ModerationPolicySet: ck.self.realm.moderation_policy.set
+    SelfConsent:
+      List: ck.self.consent.list
+      Get: ck.self.consent.get
+      Grant: ck.self.consent.grant
+      Revoke: ck.self.consent.revoke
+      Request: ck.self.consent.request
+    SelfAccountData:
+      List: ck.self.account_data.list
+      Get: ck.self.account_data.get
+      Set: ck.self.account_data.set
+      Delete: ck.self.account_data.delete
+    SelfReadCursor:
+      Set: ck.self.read_cursor.set
+      List: ck.self.read_cursor.list
     SelfInviteReceivePolicy:
       Get: ck.self.invite_receive_policy.get
       Set: ck.self.invite_receive_policy.set
@@ -184,6 +228,11 @@ grpc:
       Report: ck.self.moderation.report
     SelfPolicy:
       Check: ck.self.policy.check
+    SelfPolicyDocument:
+      List: ck.self.policy_document.list
+      Upsert: ck.self.policy_document.upsert
+      Get: ck.self.policy_document.get
+      Delete: ck.self.policy_document.delete
     SelfProjection:
       Document: ck.self.projection.document
       Flows: ck.self.projection.flows
@@ -267,6 +316,42 @@ mq:
     self.invite_receive_policy.get: ck.self.invite_receive_policy.get
     self.invite_receive_policy.set: ck.self.invite_receive_policy.set
     self.direct_conversation.resolve: ck.self.direct_conversation.resolve
+    self.circle.create: ck.self.circle.create
+    self.circle.list: ck.self.circle.list
+    self.circle.get: ck.self.circle.get
+    self.circle.member.add: ck.self.circle.member.add
+    self.circle.member.remove: ck.self.circle.member.remove
+    self.circle.scope_rotate: ck.self.circle.scope_rotate
+    self.circle.archive: ck.self.circle.archive
+    self.circle.tombstone: ck.self.circle.tombstone
+    self.organization.list: ck.self.organization.list
+    self.organization.upsert: ck.self.organization.upsert
+    self.organization.get: ck.self.organization.get
+    self.organization.policy.get: ck.self.organization.policy.get
+    self.organization.policy.set: ck.self.organization.policy.set
+    self.organization.realm.link: ck.self.organization.realm.link
+    self.realm_link.list: ck.self.realm_link.list
+    self.realm_link.create: ck.self.realm_link.create
+    self.realm_link.delete: ck.self.realm_link.delete
+    self.realm_link.effective_policy: ck.self.realm_link.effective_policy
+    self.realm_policy_server.get: ck.self.realm_policy_server.get
+    self.realm_policy_server.put: ck.self.realm_policy_server.put
+    self.realm_policy_server.delete: ck.self.realm_policy_server.delete
+    self.realm.get: ck.self.realm.get
+    self.realm.export: ck.self.realm.export
+    self.realm.moderation_policy.effective: ck.self.realm.moderation_policy.effective
+    self.realm.moderation_policy.set: ck.self.realm.moderation_policy.set
+    self.consent.list: ck.self.consent.list
+    self.consent.get: ck.self.consent.get
+    self.consent.grant: ck.self.consent.grant
+    self.consent.revoke: ck.self.consent.revoke
+    self.consent.request: ck.self.consent.request
+    self.account_data.list: ck.self.account_data.list
+    self.account_data.get: ck.self.account_data.get
+    self.account_data.set: ck.self.account_data.set
+    self.account_data.delete: ck.self.account_data.delete
+    self.read_cursor.set: ck.self.read_cursor.set
+    self.read_cursor.list: ck.self.read_cursor.list
     find.directory.private_contact_discovery: ck.find.directory.private_contact_discovery
     find.directory.resolve_agent_selector: ck.find.directory.resolve_agent_selector
     find.directory.list_handles_for_subject: ck.find.directory.list_handles_for_subject

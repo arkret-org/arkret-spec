@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/organization-operations.schema.json",
+  "title": "Cokret Organization Self-Management Operation DTOs",
+  "description": "Closed request/response DTOs for the self-surface Organization registry operations (ck.self.organization.*). An Organization is a DID Principal (see spec/v1/zh/models/realm-and-space.md owning_organizations); this surface manages the local organization registry row, its published ck.organization.moderation_policy document, and Realm->Organization policy links. The authoritative organization moderation policy object shape is documented in spec/v1/zh/governance/content-moderation.md §7.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/organization_upsert_request_body"
+    },
+    {
+      "$ref": "#/$defs/organization_view"
+    },
+    {
+      "$ref": "#/$defs/organization_list"
+    },
+    {
+      "$ref": "#/$defs/organization_policy_document"
+    },
+    {
+      "$ref": "#/$defs/organization_policy_set_request_body"
+    },
+    {
+      "$ref": "#/$defs/organization_realm_link_request_body"
+    },
+    {
+      "$ref": "#/$defs/organization_realm_link_outcome"
+    }
+  ],
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "organization_view": {
+      "type": "object",
+      "description": "Local organization registry projection row.",
+      "required": [
+        "organization_did",
+        "display_name",
+        "verified",
+        "member_count",
+        "realms",
+        "created_by",
+        "created_at",
+        "updated_at"
+      ],
+      "properties": {
+        "organization_did": {
+          "$ref": "#/$defs/did"
+        },
+        "handle": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "verified": {
+          "type": "boolean"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "uniqueItems": true
+        },
+        "member_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "realms": {
+          "type": "array",
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/realm_id"
+          },
+          "uniqueItems": true,
+          "description": "Realms linked to this organization as a policy source."
+        },
+        "created_by": {
+          "$ref": "#/$defs/did"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "organization_upsert_request_body": {
+      "type": "object",
+      "required": [
+        "organization_did"
+      ],
+      "properties": {
+        "organization_did": {
+          "$ref": "#/$defs/did"
+        },
+        "handle": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "verified": {
+          "type": "boolean",
+          "default": true
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "uniqueItems": true
+        },
+        "member_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "organization_list": {
+      "type": "object",
+      "required": [
+        "organizations",
+        "total"
+      ],
+      "properties": {
+        "organizations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/organization_view"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "organization_policy_document": {
+      "type": "object",
+      "description": "Stored organization moderation policy. policy mirrors the ck.organization.moderation_policy recommended object (content-moderation.md §7); it only takes effect for Realms / services that explicitly reference it.",
+      "required": [
+        "organization_did",
+        "policy_id",
+        "version",
+        "policy",
+        "applies_to_realms",
+        "updated_by",
+        "updated_at"
+      ],
+      "properties": {
+        "organization_did": {
+          "$ref": "#/$defs/did"
+        },
+        "policy_id": {
+          "type": "string",
+          "pattern": "^ck:org-policy:[A-Za-z0-9_.:-]+$"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "policy": {
+          "type": "object",
+          "description": "The ck.organization.moderation_policy document body (kind, policy_scope, rules[], not_before, expires_at, proof). MUST be signed by the Organization DID or an authorized governance service DID."
+        },
+        "applies_to_realms": {
+          "type": "array",
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/realm_id"
+          },
+          "uniqueItems": true
+        },
+        "updated_by": {
+          "$ref": "#/$defs/did"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "organization_policy_set_request_body": {
+      "type": "object",
+      "required": [
+        "policy"
+      ],
+      "properties": {
+        "policy": {
+          "type": "object",
+          "description": "ck.organization.moderation_policy document body. organization_did defaults to the path organization when omitted; kind defaults to ck.organization.moderation_policy. Requires ck.policy.manage."
+        }
+      },
+      "additionalProperties": false
+    },
+    "organization_realm_link_request_body": {
+      "type": "object",
+      "required": [
+        "realm_id"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "organization_realm_link_outcome": {
+      "type": "object",
+      "required": [
+        "organization_did",
+        "realm_id",
+        "linked"
+      ],
+      "properties": {
+        "organization_did": {
+          "$ref": "#/$defs/did"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "linked": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

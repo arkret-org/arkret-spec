@@ -1,0 +1,188 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/realm-read-operations.schema.json",
+  "title": "Cokret Realm Read + Moderation-Policy Operation DTOs",
+  "description": "Closed request/response DTOs for the self-surface Realm read operations and moderation-policy management (ck.self.realm.*). Realm read returns the lifecycle projection; export returns a full event-log + operation dump; effective moderation-policy returns the organization-inherited merged view; the moderation-policy override write builds a ck.realm.moderation_policy fact (subject to organization approval). See spec/v1/zh/models/realm-and-space.md and spec/v1/zh/governance/content-moderation.md.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/realm_lifecycle_view"
+    },
+    {
+      "$ref": "#/$defs/realm_export"
+    },
+    {
+      "$ref": "#/$defs/realm_effective_moderation_policy"
+    },
+    {
+      "$ref": "#/$defs/realm_moderation_policy_set_request_body"
+    },
+    {
+      "$ref": "#/$defs/realm_moderation_policy_document"
+    }
+  ],
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "realm_lifecycle_view": {
+      "type": "object",
+      "required": [
+        "ok",
+        "realm_id",
+        "owner",
+        "members",
+        "deleted"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "owner": {
+          "$ref": "#/$defs/did"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "uniqueItems": true
+        },
+        "deleted": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_export": {
+      "type": "object",
+      "required": [
+        "schema",
+        "realm_id",
+        "generated_at",
+        "operations",
+        "events"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ck.export.realm.v1"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "generated_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "description": "Operation dump rows {operation_id, realm_id, object_type, operation_type, payload, created_at}."
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "description": "Event-log dump rows {event_id, realm_id, event_kind, operation_type, operation_id, sender, payload, created_at}."
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_effective_moderation_policy": {
+      "type": "object",
+      "$comment": "Open extension surface: the merged moderation-policy view carries deployment-defined organization/realm policy layers and fanout metadata; additionalProperties intentionally true so servers may surface implementation-specific layer detail without a wire-breaking change.",
+      "required": [
+        "realm_id",
+        "inheritance_mode",
+        "inheritance_chain",
+        "organization_policy_layers",
+        "effective_rules"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "inheritance_mode": {
+          "type": "string",
+          "enum": [
+            "none",
+            "organization"
+          ]
+        },
+        "inheritance_chain": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "description": "Organization DIDs (or deployment-local organization identifiers) contributing policy layers, parent-first."
+        },
+        "organization_policy_layers": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "realm_policy": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "effective_rules": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "override_requires_organization_approval": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    },
+    "realm_moderation_policy_set_request_body": {
+      "type": "object",
+      "$comment": "Open extension surface: the ck.realm.moderation_policy document body is a free-form governance object (rules[], targets[], allow_override[], organization_approval[]); additionalProperties intentionally true so the override schema can evolve without a wire-breaking change. The document is canonical-JSON validated server-side.",
+      "description": "Realm moderation-policy override body. Free-form ck.realm.moderation_policy document. When the override targets actions an organization policy denies, it requires explicit organization approval embedded in the document.",
+      "additionalProperties": true
+    },
+    "realm_moderation_policy_document": {
+      "type": "object",
+      "required": [
+        "kind",
+        "realm_id",
+        "policy",
+        "updated_by",
+        "updated_at"
+      ],
+      "properties": {
+        "kind": {
+          "const": "ck.realm.moderation_policy"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "policy": {
+          "type": "object"
+        },
+        "updated_by": {
+          "$ref": "#/$defs/did"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

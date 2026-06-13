@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/read-cursor-operations.schema.json",
+  "title": "Cokret Read Cursor Self-Management Operation DTOs",
+  "description": "Closed request/response DTOs for the self-surface read cursor operations (ck.self.read_cursor.*). set builds a ck.read_cursor.advance actor-private write; the durable cursor object model and read_scope / position field shapes are read-cursor.schema.json. See spec/v1/zh/discovery/read-receipts.md.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/read_cursor_set_request_body"
+    },
+    {
+      "$ref": "#/$defs/read_marker_outcome"
+    },
+    {
+      "$ref": "#/$defs/read_cursor_list"
+    }
+  ],
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "device_id": {
+      "type": "string",
+      "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "read_cursor_set_request_body": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "read_scope",
+        "position"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "read_scope": {
+          "$ref": "./read-cursor.schema.json#/$defs/read_scope"
+        },
+        "position": {
+          "$ref": "./read-cursor.schema.json#/$defs/position"
+        }
+      },
+      "additionalProperties": false
+    },
+    "read_marker_outcome": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "actor_id",
+        "device_id",
+        "read_scope",
+        "position",
+        "updated_at"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "actor_id": {
+          "$ref": "#/$defs/did"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "read_scope": {
+          "$ref": "./read-cursor.schema.json#/$defs/read_scope"
+        },
+        "position": {
+          "$ref": "./read-cursor.schema.json#/$defs/position"
+        },
+        "updated_at": {
+          "$ref": "./read-cursor.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "read_cursor_list": {
+      "type": "object",
+      "required": [
+        "markers"
+      ],
+      "properties": {
+        "markers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/read_marker_outcome"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
