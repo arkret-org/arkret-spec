@@ -202,8 +202,8 @@
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome",
       "openapi_component_refs": {
-        "request": "#/components/schemas/DirectoryAnnounceRequest",
-        "response": "#/components/schemas/DirectoryAnnounceResponse"
+        "request": "#/components/schemas/DirectoryAnnounceRequestBody",
+        "response": "#/components/schemas/DirectoryAnnounceOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -397,8 +397,8 @@
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawOutcome",
       "openapi_component_refs": {
-        "request": "#/components/schemas/DirectoryWithdrawRequest",
-        "response": "#/components/schemas/DirectoryWithdrawResponse"
+        "request": "#/components/schemas/DirectoryWithdrawRequestBody",
+        "response": "#/components/schemas/DirectoryWithdrawOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -439,8 +439,8 @@
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome",
       "openapi_component_refs": {
-        "request": "#/components/schemas/SessionGrantRequest",
-        "response": "#/components/schemas/SessionGrantResponse"
+        "request": "#/components/schemas/SessionGrantRequestBody",
+        "response": "#/components/schemas/SessionGrantOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -453,8 +453,8 @@
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome",
       "openapi_component_refs": {
-        "request": "#/components/schemas/AccountOidcCallbackRequest",
-        "response": "#/components/schemas/AccountOidcCallbackResponse"
+        "request": "#/components/schemas/AccountOidcCallbackRequestBody",
+        "response": "#/components/schemas/AccountOidcCallbackOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -913,8 +913,8 @@
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitOutcome",
       "openapi_component_refs": {
-        "request": "#/components/schemas/DidOperationSubmitRequest",
-        "response": "#/components/schemas/DidOperationSubmitResponse"
+        "request": "#/components/schemas/DidOperationSubmitRequestBody",
+        "response": "#/components/schemas/DidOperationSubmitOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1753,8 +1753,8 @@
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome",
       "openapi_component_refs": {
-        "request": "#/components/schemas/PolicyCheckRequest",
-        "response": "#/components/schemas/PolicyCheckResponse"
+        "request": "#/components/schemas/PolicyCheckRequestBody",
+        "response": "#/components/schemas/PolicyCheckOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1780,7 +1780,7 @@
       "request_schema_ref": null,
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionFlowList",
       "openapi_component_refs": {
-        "response": "#/components/schemas/ProjectionFlowsResponse"
+        "response": "#/components/schemas/ProjectionFlowList"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -1793,7 +1793,7 @@
       "request_schema_ref": null,
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionMorphList",
       "openapi_component_refs": {
-        "response": "#/components/schemas/ProjectionMorphsResponse"
+        "response": "#/components/schemas/ProjectionMorphList"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
@@ -1806,7 +1806,7 @@
       "request_schema_ref": null,
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpaceList",
       "openapi_component_refs": {
-        "response": "#/components/schemas/ProjectionSpacesResponse"
+        "response": "#/components/schemas/ProjectionSpaceList"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."

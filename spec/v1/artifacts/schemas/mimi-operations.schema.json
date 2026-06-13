@@ -698,11 +698,11 @@
     "mimi_identifier_query_outcome": {
       "type": "object",
       "required": [
-        "results",
+        "matches",
         "has_more"
       ],
       "properties": {
-        "results": {
+        "matches": {
           "type": "array",
           "items": {
             "type": "object",

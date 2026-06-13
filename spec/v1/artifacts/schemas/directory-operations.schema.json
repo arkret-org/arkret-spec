@@ -189,8 +189,7 @@
         "realm_id",
         "as_of",
         "source_refs",
-        "policy_revision",
-        "member_count_bucket"
+        "policy_revision"
       ],
       "properties": {
         "realm_id": {
@@ -216,11 +215,12 @@
             {
               "type": "string",
               "enum": [
-                "0",
                 "1-10",
-                "11-100",
-                "101-1000",
-                "1000+"
+                "11-50",
+                "51-100",
+                "101-500",
+                "501-2000",
+                "2000+"
               ]
             },
             {
@@ -440,11 +440,11 @@
     "directory_realm_search_outcome": {
       "type": "object",
       "required": [
-        "results",
+        "realms",
         "has_more"
       ],
       "properties": {
-        "results": {
+        "realms": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/realm_preview"
@@ -620,11 +620,11 @@
     "directory_organization_search_outcome": {
       "type": "object",
       "required": [
-        "results",
+        "organizations",
         "has_more"
       ],
       "properties": {
-        "results": {
+        "organizations": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/organization_preview"
@@ -713,11 +713,11 @@
     "directory_actor_search_outcome": {
       "type": "object",
       "required": [
-        "results",
+        "actors",
         "has_more"
       ],
       "properties": {
-        "results": {
+        "actors": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/actor_preview"
@@ -798,11 +798,11 @@
     "directory_user_search_outcome": {
       "type": "object",
       "required": [
-        "results",
+        "users",
         "has_more"
       ],
       "properties": {
-        "results": {
+        "users": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/user_search_outcome"

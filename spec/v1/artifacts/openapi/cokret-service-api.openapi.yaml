@@ -1634,9 +1634,9 @@ components:
     SearchResultList:
       type: object
       required:
-      - results
+      - matches
       properties:
-        results:
+        matches:
           type: array
           items:
             $ref: '#/components/schemas/SearchOutcome'
@@ -1763,13 +1763,13 @@ components:
       type: object
       required:
       - projection
-      - results
+      - rows
       - frontier
       properties:
         projection:
           type: string
           const: raw
-        results:
+        rows:
           type: array
           items:
             type: object
@@ -2444,17 +2444,9 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequestBody
     PolicyCheckOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome
-    PolicyCheckRequest:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequestBody
-    PolicyCheckResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome
     SessionGrantRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequestBody
     SessionGrantOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome
-    SessionGrantRequest:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequestBody
-    SessionGrantResponse:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome
     AccountDevicePairRequestBody:
       $ref: ../schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body
@@ -2502,17 +2494,9 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody
     AccountOidcCallbackOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome
-    AccountOidcCallbackRequest:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody
-    AccountOidcCallbackResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome
     DidOperationSubmitRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody
     DidOperationSubmitOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitOutcome
-    DidOperationSubmitRequest:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody
-    DidOperationSubmitResponse:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitOutcome
     ProjectionSpaceRow:
       type: object
@@ -2569,8 +2553,6 @@ components:
           - 'null'
           format: date-time
     ProjectionSpaceList:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpaceList
-    ProjectionSpacesResponse:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpaceList
     ProjectionAssignedToRelation:
       type: object
@@ -2665,8 +2647,6 @@ components:
           format: date-time
     ProjectionFlowList:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionFlowList
-    ProjectionFlowsResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionFlowList
     ProjectionMorphRow:
       type: object
       additionalProperties: false
@@ -2715,25 +2695,15 @@ components:
           format: date-time
     ProjectionMorphList:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionMorphList
-    ProjectionMorphsResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionMorphList
     EphemeralSubmitOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EphemeralSubmitOutcome
     DirectoryAnnounceRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody
     DirectoryAnnounceOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome
-    DirectoryAnnounceRequest:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody
-    DirectoryAnnounceResponse:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome
     DirectoryWithdrawRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody
     DirectoryWithdrawOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawOutcome
-    DirectoryWithdrawRequest:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody
-    DirectoryWithdrawResponse:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawOutcome
   responses:
     NotFound:
@@ -2881,13 +2851,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DidOperationSubmitResponse'
+                $ref: '#/components/schemas/DidOperationSubmitOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DidOperationSubmitRequest'
+              $ref: '#/components/schemas/DidOperationSubmitRequestBody'
   /_cokret/root/identity/receipts:
     get:
       operationId: ck.root.identity.get_receipts
@@ -4150,7 +4120,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProjectionSpacesResponse'
+                $ref: '#/components/schemas/ProjectionSpaceList'
   /_cokret/self/projection/flows:
     get:
       operationId: ck.self.projection.flows
@@ -4198,7 +4168,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProjectionFlowsResponse'
+                $ref: '#/components/schemas/ProjectionFlowList'
   /_cokret/self/projection/morphs:
     get:
       operationId: ck.self.projection.morphs
@@ -4246,7 +4216,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProjectionMorphsResponse'
+                $ref: '#/components/schemas/ProjectionMorphList'
   /_cokret/self/views/{view_id}/projection:
     post:
       operationId: ck.self.views.collection_projection
@@ -5274,13 +5244,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DirectoryAnnounceResponse'
+                $ref: '#/components/schemas/DirectoryAnnounceOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DirectoryAnnounceRequest'
+              $ref: '#/components/schemas/DirectoryAnnounceRequestBody'
   /_cokret/find/directory/withdraw:
     post:
       operationId: ck.find.directory.withdraw
@@ -5296,13 +5266,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DirectoryWithdrawResponse'
+                $ref: '#/components/schemas/DirectoryWithdrawOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DirectoryWithdrawRequest'
+              $ref: '#/components/schemas/DirectoryWithdrawRequestBody'
   /_cokret/find/directory/search-realms:
     post:
       operationId: ck.find.directory.search_realms
@@ -5828,13 +5798,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PolicyCheckResponse'
+                $ref: '#/components/schemas/PolicyCheckOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PolicyCheckRequest'
+              $ref: '#/components/schemas/PolicyCheckRequestBody'
   /_cokret/self/rtc/ice-config:
     servers:
     - url: https://{host}
@@ -5915,13 +5885,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SessionGrantResponse'
+                $ref: '#/components/schemas/SessionGrantOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SessionGrantRequest'
+              $ref: '#/components/schemas/SessionGrantRequestBody'
   /_cokret/gate/account/session-grants/revoke:
     servers:
     - url: https://{host}
@@ -6295,10 +6265,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountOidcCallbackResponse'
+                $ref: '#/components/schemas/AccountOidcCallbackOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AccountOidcCallbackRequest'
+              $ref: '#/components/schemas/AccountOidcCallbackRequestBody'

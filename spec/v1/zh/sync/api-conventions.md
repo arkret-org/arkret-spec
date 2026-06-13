@@ -299,7 +299,8 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 
 **`<items_field>` 命名约定** (normative)：
 - 优先使用资源复数名（`realms[]` / `flows[]` / `morphs[]` / `spaces[]` / `backups[]` / `notifications[]` / `messages[]` 等）；
-- 没有自然资源复数名时（mixed entity 搜索、private contact discovery 等），使用 `results[]`；
+- 没有自然资源复数名时使用语义名：全文/混合实体搜索命中使用 `matches[]`，原始查询行使用 `rows[]`，private contact discovery 仍使用 `matches[]`；
+- **MUST NOT** 使用 `results[]` 作为返回字段名，避免与 Rust `Result` 语义和 SDK 类型命名冲突；
 - **MUST NOT** 使用通用占位 `items[]`，也不得使用 `events[]` 作为非 Event 数组的字段名（device_messages 与 account subscribe `to_device` 的 `messages[]` 例外见 `ck.self.device_messages.get` 与 `ck.self.account.subscribe`）。
 
 **`next_cursor` / `has_more`** (normative)：

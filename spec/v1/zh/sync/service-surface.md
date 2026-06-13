@@ -625,7 +625,7 @@ Inbox 和 notification 可以由客户端从本地 Event、read cursor、mention
 
 ```json
 {
-  "results": [
+  "matches": [
     {
       "rank": 0.95,
       "object": {"_comment": "<Object 当前态 — 与 ck.objects.* 返回形态相同>"},

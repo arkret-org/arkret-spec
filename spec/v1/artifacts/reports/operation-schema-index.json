@@ -1649,11 +1649,11 @@
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_actor_search_outcome",
         "schema_kind": "object",
         "required": [
-          "results",
+          "actors",
           "has_more"
         ],
         "properties": [
-          "results",
+          "actors",
           "next_cursor",
           "has_more"
         ],
@@ -1679,11 +1679,11 @@
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_organization_search_outcome",
         "schema_kind": "object",
         "required": [
-          "results",
+          "organizations",
           "has_more"
         ],
         "properties": [
-          "results",
+          "organizations",
           "next_cursor",
           "has_more"
         ],
@@ -1712,11 +1712,11 @@
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_search_outcome",
         "schema_kind": "object",
         "required": [
-          "results",
+          "realms",
           "has_more"
         ],
         "properties": [
-          "results",
+          "realms",
           "next_cursor",
           "has_more"
         ],
@@ -1745,11 +1745,11 @@
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_user_search_outcome",
         "schema_kind": "object",
         "required": [
-          "results",
+          "users",
           "has_more"
         ],
         "properties": [
-          "results",
+          "users",
           "next_cursor",
           "has_more"
         ],
@@ -3149,11 +3149,11 @@
         "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_outcome",
         "schema_kind": "object",
         "required": [
-          "results",
+          "matches",
           "has_more"
         ],
         "properties": [
-          "results",
+          "matches",
           "proofs",
           "has_more"
         ],

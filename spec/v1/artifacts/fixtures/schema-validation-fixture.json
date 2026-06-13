@@ -231,7 +231,7 @@
     },
     {
       "name": "policy_check_request_valid_bound_context",
-      "schema_ref": "openapi/cokret-service-api.openapi.yaml#/components/schemas/PolicyCheckRequest",
+      "schema_ref": "openapi/cokret-service-api.openapi.yaml#/components/schemas/PolicyCheckRequestBody",
       "expect_valid": true,
       "instance": {
         "request_id": "polreq_01",
@@ -258,7 +258,7 @@
     },
     {
       "name": "policy_check_request_missing_realm_id_rejected",
-      "schema_ref": "openapi/cokret-service-api.openapi.yaml#/components/schemas/PolicyCheckRequest",
+      "schema_ref": "openapi/cokret-service-api.openapi.yaml#/components/schemas/PolicyCheckRequestBody",
       "expect_valid": false,
       "first_expected_error": "$: 'realm_id' is a required property",
       "instance": {
@@ -275,7 +275,7 @@
     },
     {
       "name": "policy_check_response_valid_bound_decision",
-      "schema_ref": "openapi/cokret-service-api.openapi.yaml#/components/schemas/PolicyCheckResponse",
+      "schema_ref": "openapi/cokret-service-api.openapi.yaml#/components/schemas/PolicyCheckOutcome",
       "expect_valid": true,
       "instance": {
         "request_id": "polreq_01",
@@ -300,7 +300,7 @@
     },
     {
       "name": "policy_check_response_missing_bound_to_rejected",
-      "schema_ref": "openapi/cokret-service-api.openapi.yaml#/components/schemas/PolicyCheckResponse",
+      "schema_ref": "openapi/cokret-service-api.openapi.yaml#/components/schemas/PolicyCheckOutcome",
       "expect_valid": false,
       "first_expected_error": "$: 'bound_to' is a required property",
       "instance": {

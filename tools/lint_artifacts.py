@@ -2061,21 +2061,21 @@ def check_policy_check_alignment(lint: Lint) -> None:
         .get("application/json", {})
         .get("schema")
     )
-    if request_schema != {"$ref": "#/components/schemas/PolicyCheckRequest"}:
-        lint.fail(openapi_path, "/_cokret/self/policy/check requestBody must reference PolicyCheckRequest")
-    if response_schema != {"$ref": "#/components/schemas/PolicyCheckResponse"}:
-        lint.fail(openapi_path, "/_cokret/self/policy/check 200 response must reference PolicyCheckResponse")
+    if request_schema != {"$ref": "#/components/schemas/PolicyCheckRequestBody"}:
+        lint.fail(openapi_path, "/_cokret/self/policy/check requestBody must reference PolicyCheckRequestBody")
+    if response_schema != {"$ref": "#/components/schemas/PolicyCheckOutcome"}:
+        lint.fail(openapi_path, "/_cokret/self/policy/check 200 response must reference PolicyCheckOutcome")
 
-    request_component = resolve_openapi_component_schema(lint, openapi_path, components, "PolicyCheckRequest")
-    response_component = resolve_openapi_component_schema(lint, openapi_path, components, "PolicyCheckResponse")
+    request_component = resolve_openapi_component_schema(lint, openapi_path, components, "PolicyCheckRequestBody")
+    response_component = resolve_openapi_component_schema(lint, openapi_path, components, "PolicyCheckOutcome")
     if not isinstance(request_component, dict):
-        lint.fail(openapi_path, "components.schemas.PolicyCheckRequest missing")
+        lint.fail(openapi_path, "components.schemas.PolicyCheckRequestBody missing")
     elif "realm_id" not in set(request_component.get("required") or []):
-        lint.fail(openapi_path, "PolicyCheckRequest.required must include realm_id")
+        lint.fail(openapi_path, "PolicyCheckRequestBody.required must include realm_id")
     if not isinstance(response_component, dict):
-        lint.fail(openapi_path, "components.schemas.PolicyCheckResponse missing")
+        lint.fail(openapi_path, "components.schemas.PolicyCheckOutcome missing")
     elif "bound_to" not in set(response_component.get("required") or []):
-        lint.fail(openapi_path, "PolicyCheckResponse.required must include bound_to")
+        lint.fail(openapi_path, "PolicyCheckOutcome.required must include bound_to")
 
 
 def openapi_operations_by_id(openapi: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -2162,11 +2162,11 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
         )
 
     expected = {
-        "ck.root.identity.submit_did_operation": ("DidOperationSubmitRequest", "DidOperationSubmitResponse"),
-        "ck.gate.account.issue_session_grant": ("SessionGrantRequest", "SessionGrantResponse"),
-        "ck.gate.account.oidc_callback": ("AccountOidcCallbackRequest", "AccountOidcCallbackResponse"),
-        "ck.find.directory.announce": ("DirectoryAnnounceRequest", "DirectoryAnnounceResponse"),
-        "ck.find.directory.withdraw": ("DirectoryWithdrawRequest", "DirectoryWithdrawResponse"),
+        "ck.root.identity.submit_did_operation": ("DidOperationSubmitRequestBody", "DidOperationSubmitOutcome"),
+        "ck.gate.account.issue_session_grant": ("SessionGrantRequestBody", "SessionGrantOutcome"),
+        "ck.gate.account.oidc_callback": ("AccountOidcCallbackRequestBody", "AccountOidcCallbackOutcome"),
+        "ck.find.directory.announce": ("DirectoryAnnounceRequestBody", "DirectoryAnnounceOutcome"),
+        "ck.find.directory.withdraw": ("DirectoryWithdrawRequestBody", "DirectoryWithdrawOutcome"),
     }
     expected_response_only = {}
     dedicated_schema_refs = {
@@ -2212,18 +2212,18 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
                     )
 
     session_grant_proof_required = (
-        (resolve_openapi_component_schema(lint, openapi_path, components, "SessionGrantRequest") or {})
+        (resolve_openapi_component_schema(lint, openapi_path, components, "SessionGrantRequestBody") or {})
         .get("properties", {})
         .get("proof", {})
         .get("required", [])
     )
     if "audience" not in session_grant_proof_required:
-        lint.fail(openapi_path, "SessionGrantRequest.proof.required must include audience")
+        lint.fail(openapi_path, "SessionGrantRequestBody.proof.required must include audience")
 
     projection_components = {
-        "ck.self.projection.spaces": "ProjectionSpacesResponse",
-        "ck.self.projection.flows": "ProjectionFlowsResponse",
-        "ck.self.projection.morphs": "ProjectionMorphsResponse",
+        "ck.self.projection.spaces": "ProjectionSpaceList",
+        "ck.self.projection.flows": "ProjectionFlowList",
+        "ck.self.projection.morphs": "ProjectionMorphList",
     }
     for operation_id, component_name in projection_components.items():
         operation = find_operation(operation_id)
