@@ -164,7 +164,7 @@ MIMI facade 至少定义以下 canonical operation：
 | operation_id | HTTP binding | 语义 |
 | --- | --- | --- |
 | `ck.open.mimi.query.provider_directory` | `GET /_cokret/open/mimi/provider-directory` | 返回 MIMI provider feature profile。 |
-| `ck.open.mimi.exchange.key_material` | `POST /_cokret/open/mimi/key-material` | 领取 MLS KeyPackage，映射到 Cokret KeyPackage claim lifecycle。 |
+| `ck.open.mimi.exchange.request_key_material` | `POST /_cokret/open/mimi/key-material` | 领取 MLS KeyPackage，映射到 Cokret KeyPackage claim lifecycle。 |
 | `ck.open.mimi.command.update_room` | `POST /_cokret/open/mimi/flows/{flow_id}/update` | 提交或转发 room state / MLS update。 |
 | `ck.open.mimi.command.notify` | `POST /_cokret/open/mimi/flows/{flow_id}/notify` | provider 间投递通知、fanout 或 delivery event。 |
 | `ck.open.mimi.command.submit_message` | `POST /_cokret/open/mimi/flows/{flow_id}/messages` | 提交 MIMI encrypted application message。 |
@@ -189,7 +189,7 @@ Facade 接收请求后 MUST 先验证 MIMI envelope，再映射为 Cokret DataEv
 
 ## 6. Key Material
 
-`ck.open.mimi.exchange.key_material` MUST 使用 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) 的 KeyPackage claim API。请求必须包含：
+`ck.open.mimi.exchange.request_key_material` MUST 使用 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) 的 KeyPackage claim API。请求必须包含：
 
 - target MIMI identifier 或 DID / pairwise DID。
 - intended MIMI room URI 和 Cokret `realm_id`。

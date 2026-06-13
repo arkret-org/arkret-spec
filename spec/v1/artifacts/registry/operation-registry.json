@@ -82,7 +82,7 @@
         "ck.self.account.command.revoke_cursor",
         "ck.self.ephemeral.command.send",
         "ck.self.snapshot.query.manifest_head",
-        "ck.self.call.media.exchange.token"
+        "ck.self.call.media.exchange.issue_token"
       ]
     },
     {
@@ -326,7 +326,7 @@
       "operations": [
         "ck.open.mimi.query.provider_directory",
         "ck.open.mimi.query.group_info",
-        "ck.open.mimi.exchange.key_material",
+        "ck.open.mimi.exchange.request_key_material",
         "ck.open.mimi.command.submit_message",
         "ck.open.mimi.command.update_room",
         "ck.open.mimi.command.request_consent",
@@ -352,7 +352,7 @@
         "ck.gate.account.command.pair_device",
         "ck.gate.account.command.issue_session_grant",
         "ck.gate.account.command.revoke_session",
-        "ck.gate.account.exchange.oidc_callback"
+        "ck.gate.account.exchange.complete_oidc"
       ]
     },
     {
@@ -526,10 +526,10 @@
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome"
     },
     {
-      "operation_id": "ck.gate.account.exchange.oidc_callback",
+      "operation_id": "ck.gate.account.exchange.complete_oidc",
       "http": "POST /_cokret/gate/account/oidc/callback",
       "grpc": "GateAccount/OidcCallback",
-      "mq": "gate.account.exchange.oidc_callback",
+      "mq": "gate.account.exchange.complete_oidc",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome"
@@ -1218,10 +1218,10 @@
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EphemeralSubmitOutcome"
     },
     {
-      "operation_id": "ck.self.call.media.exchange.token",
+      "operation_id": "ck.self.call.media.exchange.issue_token",
       "http": "POST /_cokret/self/rtc/token",
       "grpc": "SelfCallMedia/TokenExchange",
-      "mq": "self.call.media.exchange.token",
+      "mq": "self.call.media.exchange.issue_token",
       "notes": "Media service token exchange operation (CKP-0010). Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in ck.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / cokret-native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/media-service-binding.md §3.",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeRequestBody",
@@ -1463,10 +1463,10 @@
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_outcome"
     },
     {
-      "operation_id": "ck.open.mimi.exchange.key_material",
+      "operation_id": "ck.open.mimi.exchange.request_key_material",
       "http": "POST /_cokret/open/mimi/key-material",
       "grpc": "OpenMimi/KeyMaterial",
-      "mq": "open.mimi.exchange.key_material",
+      "mq": "open.mimi.exchange.request_key_material",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_outcome"

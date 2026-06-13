@@ -81,7 +81,7 @@ HTTP 路径的第一段是 trust-surface classifier（信任面分类器），�
 | 推送 | `ck.push.*` | `/_cokret/edge/push/*` |
 | 设备加密 | `ck.device_messages.*`、`ck.keys.*` | `/_cokret/self/device_messages/*`、`/_cokret/self/keys/*` |
 | 授权与策略 | `ck.authz.*`、`ck.policy.*` | `/_cokret/self/authz/*`、`/_cokret/self/policy/check` |
-| 媒体服务 | `ck.media.*`、`ck.self.call.media.exchange.token` | `/_cokret/self/rtc/ice-config`、`/_cokret/self/rtc/token` |
+| 媒体服务 | `ck.media.*`、`ck.self.call.media.exchange.issue_token` | `/_cokret/self/rtc/ice-config`、`/_cokret/self/rtc/token` |
 | 审核 | `ck.moderation.*` | `/_cokret/self/moderation/*` |
 | Applet | `ck.applet.*` | `/_cokret/edge/applet/*` |
 | MIMI 外部协议互操作 | `ck.mimi.*` | `/_cokret/open/mimi/*` |
@@ -306,7 +306,7 @@ paths:
       operationId: ck.gate.account.command.pair_device
   /_cokret/gate/account/oidc/callback:
     post:
-      operationId: ck.gate.account.exchange.oidc_callback
+      operationId: ck.gate.account.exchange.complete_oidc
 
   /_cokret/self/authz/check:
     post:
@@ -327,7 +327,7 @@ paths:
       operationId: ck.self.media.query.ice_config
   /_cokret/self/rtc/token:
     post:
-      operationId: ck.self.call.media.exchange.token
+      operationId: ck.self.call.media.exchange.issue_token
   /_cokret/self/moderation/report:
     post:
       operationId: ck.self.moderation.command.report
@@ -392,7 +392,7 @@ paths:
 | `ck.self.authz.query.check` / `ck.self.authz.grants.query.effective` / `ck.self.authz.invites.query.list` | `POST /_cokret/self/authz/check`, `GET /_cokret/self/authz/effective-grants`, `GET /_cokret/self/authz/invites` | gRPC / policy 插件回调 |
 | `ck.self.policy.query.check` | `POST /_cokret/self/policy/check` | policy 本地调用 |
 | `ck.self.media.query.ice_config` | `POST /_cokret/self/rtc/ice-config` | Realtime Media Server / TURN credential adapter |
-| `ck.self.call.media.exchange.token` | `POST /_cokret/self/rtc/token` | Realtime Media Server token 兑换 / gRPC `Call/MediaTokenExchange` |
+| `ck.self.call.media.exchange.issue_token` | `POST /_cokret/self/rtc/token` | Realtime Media Server token 兑换 / gRPC `Call/MediaTokenExchange` |
 | `ck.self.moderation.command.report` | `POST /_cokret/self/moderation/report` | Moderation queue / local compliance workflow |
 | `ck.self.applet.install.command.preview` / `ck.self.applet.command.install` / `ck.self.applet.command.revoke` | `POST /_cokret/self/applets/install/preview`, `POST /_cokret/self/applets/install`, `POST /_cokret/self/applets/{applet_id}/revoke` | Applet self/admin aggregate operation；fan-out registration/grant/profile/membership facts，不写 durable install event |
 | `ck.edge.applet.command.transaction` / `ck.edge.applet.actor.query.resolve` / `ck.edge.applet.realm.query.resolve` | `POST /_cokret/edge/applet/transactions`, `GET /_cokret/edge/applet/actors/{actor_id}`, `GET /_cokret/edge/applet/realms/{realm_id_or_alias}` | Applet webhook / bridge adapter |

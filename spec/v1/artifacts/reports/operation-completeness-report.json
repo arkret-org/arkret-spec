@@ -475,7 +475,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.gate.account.exchange.oidc_callback",
+      "operation_id": "ck.gate.account.exchange.complete_oidc",
       "tier": "deployment_local",
       "http": "POST /_cokret/gate/account/oidc/callback",
       "success_shape_kind": "typed_response",
@@ -601,7 +601,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.open.mimi.exchange.key_material",
+      "operation_id": "ck.open.mimi.exchange.request_key_material",
       "tier": "interop_bridge",
       "http": "POST /_cokret/open/mimi/key-material",
       "success_shape_kind": "typed_response",
@@ -1363,7 +1363,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.call.media.exchange.token",
+      "operation_id": "ck.self.call.media.exchange.issue_token",
       "tier": "core",
       "http": "POST /_cokret/self/rtc/token",
       "success_shape_kind": "schema_resource",

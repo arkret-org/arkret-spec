@@ -49,7 +49,7 @@ grpc:
       IssueSessionGrant: ck.gate.account.command.issue_session_grant
       SessionRevoke: ck.gate.account.command.revoke_session
       AgentKeyPair: ck.gate.account.command.pair_agent_key
-      OidcCallback: ck.gate.account.exchange.oidc_callback
+      OidcCallback: ck.gate.account.exchange.complete_oidc
     SelfAgent:
       Provision: ck.self.agent.command.provision
       List: ck.self.agent.query.list
@@ -183,7 +183,7 @@ grpc:
     SelfEphemeral:
       Send: ck.self.ephemeral.command.send
     SelfCallMedia:
-      TokenExchange: ck.self.call.media.exchange.token
+      TokenExchange: ck.self.call.media.exchange.issue_token
     RootIdentity:
       DescribeRegistry: ck.root.identity.registry.query.describe
       GetDocument: ck.root.identity.document.resource.get
@@ -214,7 +214,7 @@ grpc:
     OpenMimi:
       GroupInfo: ck.open.mimi.query.group_info
       IdentifierQuery: ck.open.mimi.query.identifiers
-      KeyMaterial: ck.open.mimi.exchange.key_material
+      KeyMaterial: ck.open.mimi.exchange.request_key_material
       Notify: ck.open.mimi.command.notify
       ProviderDirectory: ck.open.mimi.query.provider_directory
       ProxyDownload: ck.open.mimi.command.proxy_download
@@ -290,7 +290,7 @@ mq:
     peer.contacts.command.submit: ck.peer.contacts.command.submit
     peer.snapshot.query.manifest_head: ck.peer.snapshot.query.manifest_head
     self.ephemeral.command.send: ck.self.ephemeral.command.send
-    self.call.media.exchange.token: ck.self.call.media.exchange.token
+    self.call.media.exchange.issue_token: ck.self.call.media.exchange.issue_token
     self.account.stream.subscribe: ck.self.account.stream.subscribe
     self.account.query.viewer: ck.self.account.query.viewer
     self.account.command.update_profile: ck.self.account.command.update_profile
@@ -374,7 +374,7 @@ mq:
     self.projection.document.resource.get: ck.self.projection.document.resource.get
     self.views.collection_projection.command.materialize: ck.self.views.collection_projection.command.materialize
     open.mimi.query.provider_directory: ck.open.mimi.query.provider_directory
-    open.mimi.exchange.key_material: ck.open.mimi.exchange.key_material
+    open.mimi.exchange.request_key_material: ck.open.mimi.exchange.request_key_material
     open.mimi.command.update_room: ck.open.mimi.command.update_room
     open.mimi.command.notify: ck.open.mimi.command.notify
     open.mimi.command.submit_message: ck.open.mimi.command.submit_message

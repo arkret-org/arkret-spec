@@ -171,7 +171,7 @@
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.gate.account.exchange.oidc_callback",
+      "operation_id": "ck.gate.account.exchange.complete_oidc",
       "http_alias": "POST /_cokret/gate/account/oidc/callback",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
@@ -668,7 +668,7 @@
       ]
     },
     {
-      "operation_id": "ck.self.call.media.exchange.token",
+      "operation_id": "ck.self.call.media.exchange.issue_token",
       "http_alias": "POST /_cokret/self/rtc/token",
       "operation_specific": [
         "focus_mismatch",
@@ -898,7 +898,7 @@
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.open.mimi.exchange.key_material",
+      "operation_id": "ck.open.mimi.exchange.request_key_material",
       "http_alias": "POST /_cokret/open/mimi/key-material",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."

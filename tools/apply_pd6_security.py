@@ -129,7 +129,7 @@ OPERATIONS: dict[str, str] = {
     # mimi_interop (interop_bridge)
     "ck.open.mimi.query.provider_directory": "public_no_auth",
     "ck.open.mimi.query.group_info": "service_only",
-    "ck.open.mimi.exchange.key_material": "service_only",
+    "ck.open.mimi.exchange.request_key_material": "service_only",
     "ck.open.mimi.command.submit_message": "service_only",
     "ck.open.mimi.command.update_room": "service_only",
     "ck.open.mimi.command.request_consent": "service_only",
@@ -142,7 +142,7 @@ OPERATIONS: dict[str, str] = {
     # account_auth (deployment_local)
     "ck.gate.account.command.pair_device": "user_bearer",
     "ck.gate.account.command.issue_session_grant": "public_no_auth",   # callback-style; body carries proof
-    "ck.gate.account.exchange.oidc_callback": "public_no_auth",         # OIDC redirect with `code`
+    "ck.gate.account.exchange.complete_oidc": "public_no_auth",         # OIDC redirect with `code`
 }
 
 

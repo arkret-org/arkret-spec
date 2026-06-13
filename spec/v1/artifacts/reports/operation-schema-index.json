@@ -495,7 +495,7 @@
       }
     },
     {
-      "operation_id": "ck.gate.account.exchange.oidc_callback",
+      "operation_id": "ck.gate.account.exchange.complete_oidc",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody",
@@ -2760,7 +2760,7 @@
       }
     },
     {
-      "operation_id": "ck.self.call.media.exchange.token",
+      "operation_id": "ck.self.call.media.exchange.issue_token",
       "success_shape_kind": "schema_resource",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeRequestBody",
@@ -3694,7 +3694,7 @@
       }
     },
     {
-      "operation_id": "ck.open.mimi.exchange.key_material",
+      "operation_id": "ck.open.mimi.exchange.request_key_material",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body",

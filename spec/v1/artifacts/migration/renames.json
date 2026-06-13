@@ -3604,7 +3604,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.gate.account.exchange.oidc_callback",
+      "replacement": "ck.gate.account.exchange.complete_oidc",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4080,7 +4080,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.call.media.exchange.token",
+      "replacement": "ck.self.call.media.exchange.issue_token",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4822,7 +4822,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.open.mimi.exchange.key_material",
+      "replacement": "ck.open.mimi.exchange.request_key_material",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",

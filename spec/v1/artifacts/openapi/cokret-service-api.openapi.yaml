@@ -3733,7 +3733,7 @@ paths:
             disables `ck.receipt.read`.
   /_cokret/self/rtc/token:
     post:
-      operationId: ck.self.call.media.exchange.token
+      operationId: ck.self.call.media.exchange.issue_token
       security:
       - bearerAuth: []
       summary: Exchange Cokret capability proof for a backend media token.
@@ -5385,7 +5385,7 @@ paths:
                 $ref: ../schemas/mimi-interop.schema.json
   /_cokret/open/mimi/key-material:
     post:
-      operationId: ck.open.mimi.exchange.key_material
+      operationId: ck.open.mimi.exchange.request_key_material
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -7250,7 +7250,7 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ck.gate.account.exchange.oidc_callback
+      operationId: ck.gate.account.exchange.complete_oidc
       security: []
       x-cokret-auth:
         public_metadata: false

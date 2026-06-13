@@ -2164,7 +2164,7 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
     expected = {
         "ck.root.identity.command.submit_did_operation": ("DidOperationSubmitRequestBody", "DidOperationSubmitOutcome"),
         "ck.gate.account.command.issue_session_grant": ("SessionGrantRequestBody", "SessionGrantOutcome"),
-        "ck.gate.account.exchange.oidc_callback": ("AccountOidcCallbackRequestBody", "AccountOidcCallbackOutcome"),
+        "ck.gate.account.exchange.complete_oidc": ("AccountOidcCallbackRequestBody", "AccountOidcCallbackOutcome"),
         "ck.find.directory.command.announce": ("DirectoryAnnounceRequestBody", "DirectoryAnnounceOutcome"),
         "ck.find.directory.command.withdraw": ("DirectoryWithdrawRequestBody", "DirectoryWithdrawOutcome"),
     }
@@ -2363,7 +2363,7 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
     proof_in_body_operations = {
         "ck.gate.account.command.register",
         "ck.gate.account.command.issue_session_grant",
-        "ck.gate.account.exchange.oidc_callback",
+        "ck.gate.account.exchange.complete_oidc",
         "ck.open.invite_locator.query.resolve",
     }
 

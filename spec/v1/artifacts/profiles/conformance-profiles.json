@@ -2047,7 +2047,7 @@
         "ck.profile.webrtc_media.v1"
       ],
       "required_endpoints": [
-        "ck.self.call.media.exchange.token"
+        "ck.self.call.media.exchange.issue_token"
       ],
       "required_event_kinds": [
         "ck.realm.media_service",
@@ -2096,7 +2096,7 @@
         "ck.profile.media_service_binding.v1"
       ],
       "required_endpoints": [
-        "ck.self.call.media.exchange.token"
+        "ck.self.call.media.exchange.issue_token"
       ],
       "required_event_kinds": [
         "ck.realm.media_service",
@@ -2135,7 +2135,7 @@
         "ck.profile.media_service_binding.v1"
       ],
       "required_endpoints": [
-        "ck.self.call.media.exchange.token"
+        "ck.self.call.media.exchange.issue_token"
       ],
       "required_event_kinds": [
         "ck.realm.media_service",

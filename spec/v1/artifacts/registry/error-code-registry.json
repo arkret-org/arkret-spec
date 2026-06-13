@@ -1800,7 +1800,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "Media token exchange (ck.self.call.media.exchange.token) requested a `focus_id` different from the already-committed `ck.call.state.session_focus`. Token issuer MUST reject; clients MUST re-target the established focus rather than retrying with the original preference. See zh/crypto-media/media-service-binding.md §3 and §5."
+      "description": "Media token exchange (ck.self.call.media.exchange.issue_token) requested a `focus_id` different from the already-committed `ck.call.state.session_focus`. Token issuer MUST reject; clients MUST re-target the established focus rather than retrying with the original preference. See zh/crypto-media/media-service-binding.md §3 and §5."
     },
     {
       "code": "unknown_focus_type",
