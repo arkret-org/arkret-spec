@@ -591,6 +591,10 @@ Handle 解析分为两个方向：
 
 1. **`<domain>` 的 well-known**：`GET https://<domain>/.well-known/cokret/handle?localpart=<localpart>`。响应是 `ck.schema.handle_claim.v1` 形态的签名 claim。
    - 用于 holder 自托管（domain 拥有者 == subject DID）与单实例 Principal Server 部署。
+   - **`.well-known/cokret/handle` 是签名 issuer 通道，不是泛 resolver 端点（normative）。** 该路径的语义被钉死为"返回该 `<domain>` 作为 issuer 为 `<localpart>` 签发的 signed `ck.schema.handle_claim.v1`"。任何在该路径作出响应的部署都被 verifier 当作该 handle 的候选 issuer。因此：
+     - 能签发 claim 的 issuer（holder 自托管 well-known、单实例 / 组织 Principal Server）MUST 在此返回 200 + 签名 claim，或返回明确的 not-found / revoked issuer-side 状态。
+     - **纯 resolver（只索引 / 转发、自身签不了 handle claim 的服务）MUST NOT 占用该路径返回未签名的 issuer-probe 结果。** 纯 resolver 在 `.well-known/cokret/handle` 的合规行为只有两种：(a) **不提供该端点 / 返回 `404`**；或 (b) **显式委托**到上游可签发 issuer（例如 HTTP 重定向到该 issuer 的 well-known，或在响应中给出可独立验签的上游 `source_refs` 指向 signed claim）。它 MUST NOT 在该路径返回任何未签名的 handle / subject / probe payload——否则 verifier 会把一个签不了 claim 的服务误当 issuer，污染 §5 的 issuer 选择与 §6 的双向验证。
+     - resolver 想暴露"这个 handle 我索引到哪个 subject / issuer"这类 **issuer-probe / 索引查询**，MUST 走产品私有面（私有 API、内部 directory query 等），不得借用 `.well-known/cokret/handle`。需要被 Cokret verifier 采信时，走第 3 步 signed Directory response（`ck.schema.handle_claim.v1` + `source_refs`），而不是未签名 probe。
 2. **DNS TXT**：`_cokret.<domain>` 或 `_cokret.<localpart>.<domain>`。仅当 DNSSEC validation 成功**且** TXT 内含可验证签名时才能作为 issuer 通道；裸 DNS TXT 只是发现 hint。
 3. **Directory / Organization 服务**：`POST /_cokret/find/directory/resolve-handle`（[`discovery/discovery-directory.md` §9.0](../discovery/discovery-directory.md)）或 `POST /_cokret/find/directory/list-handles-for-subject`（已知 subject 时）。response 仍是签名 `ck.schema.handle_claim.v1`。
 4. **Bridge / 外部 issuer**：当 handle 来自 bridge 或外部体系（例如组织自有 IDP），claim 由该体系签发并通过 §7 VC presentation 出示。

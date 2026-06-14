@@ -792,6 +792,7 @@
         "ck.realm.inheritance_policy",
         "ck.realm.disappearing_policy",
         "ck.realm.search_policy",
+        "ck.realm.set_default_flow",
         "ck.applet.registration"
       ],
       "profile": null,
@@ -872,6 +873,18 @@
         "ck.realm.search_policy"
       ],
       "profile": "ck.profile.search.blind_index.v1",
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ck.realm.set_default_flow",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ck.realm.set_default_flow"
+      ],
+      "profile": null,
+      "notes": "Sets / changes the Realm's authoritative default discussion Flow pointer (ck.realm.set_default_flow event; projects Realm default_flow_id). Same-name discipline. The Realm authz gate is realm-admin: holding ck.realm.admin (aggregate admin coverage) satisfies admission, or grant this specific action directly. Reducer MUST verify the referenced Flow already exists (failed_precondition otherwise). See zh/models/flow-and-message.md default-Flow discovery section.",
       "event_mapping_kind": "same_name"
     },
     {

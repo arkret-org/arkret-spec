@@ -3040,6 +3040,7 @@
           "series_seq",
           "created_at",
           "encryption",
+          "domain_separation",
           "contents",
           "ciphertext",
           "ciphertext_digest",
@@ -3062,6 +3063,7 @@
           "created_at",
           "updated_at",
           "encryption",
+          "domain_separation",
           "contents",
           "ciphertext",
           "ciphertext_digest",
@@ -3113,6 +3115,7 @@
           "series_seq",
           "created_at",
           "encryption",
+          "domain_separation",
           "contents",
           "ciphertext",
           "ciphertext_digest",
@@ -3135,6 +3138,7 @@
           "created_at",
           "updated_at",
           "encryption",
+          "domain_separation",
           "contents",
           "ciphertext",
           "ciphertext_digest",
@@ -4633,7 +4637,10 @@
           "notification"
         ],
         "properties": [
-          "notification"
+          "notification",
+          "event_kind",
+          "reason_code",
+          "audit_envelope"
         ],
         "closed": true
       },

@@ -564,6 +564,7 @@
               "ck.realm.read_receipt_policy",
               "ck.realm.schema",
               "ck.realm.search_policy",
+              "ck.realm.set_default_flow",
               "ck.realm.tombstone",
               "ck.realm.update",
               "ck.realm.upgrade",
@@ -1525,6 +1526,25 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/state_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.realm.set_default_flow"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_set_default_flow_payload"
           }
         }
       }

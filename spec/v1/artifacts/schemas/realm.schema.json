@@ -162,6 +162,14 @@
       "pattern": "^ck:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Optional materialized pointer to the effective preview / peek policy. Canonical writes use ck.realm.preview_policy; absence means directory card / stripped state only, no history stub/snippet preview."
     },
+    "default_flow_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Optional / nullable. AUTHORITATIVE single pointer to the Realm's default discussion Flow (last value projected from ck.realm.set_default_flow; cell ck.component.realm.set_default_flow.v1, cas_register, bottom=reject). A single pointer avoids multi-default dirty state. null / absent means the Realm has no designated default Flow. The reducer rejects a set_default_flow whose flow_id does not resolve to a projected non-tombstoned Flow in this Realm (failed_precondition), so this pointer never dangles. The Flow projection's derived is_default flag is computed as flow_id == this value; clients discover the default Flow deterministically from this field (or the Flow is_default marker) and MUST NOT rely on any Flow-reuses-Realm-UUID implementation detail. See zh/models/flow-and-message.md (default-Flow discovery)."
+    },
     "default_discoverability": {
       "type": "string",
       "enum": [

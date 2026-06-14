@@ -2074,6 +2074,37 @@
       },
       "additionalProperties": false
     },
+    "realm_set_default_flow_payload": {
+      "type": "object",
+      "description": "Payload for ck.realm.set_default_flow. Sets / changes the Realm's authoritative default discussion Flow pointer. Reducer projects flow_id into the Realm projection default_flow_id (single authoritative pointer; avoids multi-default dirty state). Reducer MUST verify flow_id references a projected, non-tombstoned Flow in this Realm; a dangling reference MUST be rejected with failed_precondition. The Flow projection is_default is a derived marker (flow_id == realm.default_flow_id), never independent storage. expected_default_flow_id, when present, compiles to a cell head_eq precondition for optimistic concurrency (CAS); omission is no CAS.",
+      "required": [
+        "realm_id",
+        "flow_id"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "expected_default_flow_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/flow_id"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Optional optimistic-concurrency guard. When present, the reducer accepts the write only if the Realm's current default_flow_id equals this value (null asserts no default is currently set). Mismatch MUST be rejected (failed_precondition)."
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
     "space_parent_payload": {
       "type": "object",
       "required": [
