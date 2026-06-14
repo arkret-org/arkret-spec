@@ -12,6 +12,7 @@
     "series_seq",
     "created_at",
     "encryption",
+    "domain_separation",
     "contents",
     "ciphertext",
     "ciphertext_digest",
@@ -413,6 +414,78 @@
       },
       "additionalProperties": false
     },
+    "domain_separation": {
+      "type": "object",
+      "description": "Signed key-backup domain separation transcript. Binds HKDF info and AEAD/HPKE AAD to the envelope fields used by key-management.md §7.1 / §7.5 so implementations do not infer subdomain semantics from ciphertext or local state.",
+      "required": [
+        "hkdf_info",
+        "subdomain",
+        "aead_aad"
+      ],
+      "properties": {
+        "hkdf_info": {
+          "type": "string",
+          "pattern": "^cokret-key-backup/(did_recovery|secret_storage|mls_history)/[a-z][a-z0-9_]{0,63}/v1$"
+        },
+        "subdomain": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "aead_aad": {
+          "type": "object",
+          "required": [
+            "schema",
+            "actor_id",
+            "device_id",
+            "backup_class",
+            "backup_version",
+            "created_at",
+            "item_types"
+          ],
+          "properties": {
+            "schema": {
+              "const": "ck.schema.key_backup.v1"
+            },
+            "actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/did"
+            },
+            "device_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "backup_class": {
+              "type": "string",
+              "enum": [
+                "did_recovery",
+                "secret_storage",
+                "mls_history"
+              ]
+            },
+            "backup_version": {
+              "type": "string",
+              "pattern": "^kb_[A-Za-z0-9_-]+$"
+            },
+            "created_at": {
+              "$ref": "#/$defs/timestamp"
+            },
+            "item_types": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "patternProperties": {
+            "^x_[a-z][a-z0-9_]{0,63}$": true
+          },
+          "additionalProperties": false
+        }
+      },
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
+      "additionalProperties": false
+    },
     "contents": {
       "type": "array",
       "minItems": 1,
@@ -429,6 +502,8 @@
               "self_signing_key",
               "user_signing_key",
               "recovery_secret",
+              "mls_account_secret",
+              "mls_private_plaintext",
               "mls_group_secrets_backup_key",
               "mls_group_state",
               "mls_epoch_secret",
@@ -560,6 +635,11 @@
             },
             {
               "contains": {
+                "const": "domain_separation"
+              }
+            },
+            {
+              "contains": {
                 "const": "contents"
               }
             },
@@ -569,7 +649,7 @@
               }
             }
           ],
-          "description": "Names of envelope fields covered by the signature; MUST include backup_id, actor_id, backup_class, backup_version, series_id, series_seq, supersedes, encryption, contents, ciphertext_digest, and when present supersedes_digest, frontier_ref, recovery_policy_ref, and (hardening profile) ssk_generation."
+          "description": "Names of envelope fields covered by the signature; MUST include backup_id, actor_id, backup_class, backup_version, series_id, series_seq, supersedes, encryption, domain_separation, contents, ciphertext_digest, and when present supersedes_digest, frontier_ref, recovery_policy_ref, and (hardening profile) ssk_generation."
         },
         "ssk_generation": {
           "type": "integer",

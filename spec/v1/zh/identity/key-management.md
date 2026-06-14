@@ -537,6 +537,19 @@ Cokret v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata 
     },
     "key_commitment": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
   },
+  "domain_separation": {
+    "hkdf_info": "cokret-key-backup/secret_storage/account_keys/v1",
+    "subdomain": "account_keys",
+    "aead_aad": {
+      "schema": "ck.schema.key_backup.v1",
+      "actor_id": "did:web:alice.example",
+      "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+      "backup_class": "secret_storage",
+      "backup_version": "kb_1",
+      "created_at": "2026-05-30T00:00:00Z",
+      "item_types": ["self_signing_key", "user_signing_key"]
+    }
+  },
   "contents": [
     {"item_type": "self_signing_key", "secret_id": "self_signing_key"},
     {"item_type": "user_signing_key", "secret_id": "user_signing_key"}
@@ -554,6 +567,8 @@ Cokret v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata 
 如果平台限制只能使用 PBKDF2，新创建的 PBKDF2 envelope MUST 满足 `iterations >= 600000` 且 `digest_algorithm ∈ {sha256, sha384, sha512}`，并 MUST 在 backup metadata 中声明 `degraded_profile_reason`、迭代次数、salt、KDF 参数和 profile id。`params.digest_algorithm` 是 digest 算法选择器；`params.hash` 不是合法字段，current parser MUST reject（登记于 `artifacts/migration/renames.json`）。新创建的 `passphrase_kdf` envelope（§7.5.1）不得默认使用 PBKDF2：Argon2id 可用时 MUST 优先。声明 `ck.profile.key_backup.memory_hard.v1` 是在上述 base 下限之上的更强承诺：该 profile 下 `passphrase_kdf` envelope 的 KDF MUST 是 Argon2id；PBKDF2 只允许出现在显式 degraded profile（见下）中，不满足 memory-hard 要求。
 
 FIPS-only 部署若不能批准 Argon2id，MUST 使用显式降级 profile（例如 `fips_pbkdf2` key backup profile），并声明其安全级别低于默认 memory-hard backup profile。该 profile 至少要求 FIPS 批准的 KDF、强口令策略、在线恢复限速、失败审计和备份 metadata 中的 `degraded_profile_reason`；它不得作为公共网络默认 key backup profile。
+
+每个 `ck.schema.key_backup.v1` envelope MUST 携带顶层 `domain_separation`，并在 `auth_data.signed_fields` 中覆盖该字段。`domain_separation.hkdf_info` MUST 等于 `cokret-key-backup/<backup_class>/<subdomain>/v1`，`domain_separation.aead_aad` MUST 绑定 `schema`、`actor_id`、`device_id`、`backup_class`、`backup_version`、`created_at` 与 `contents[].item_type`。接收方 MUST 用该对象的 canonical JSON 作为 AEAD/HPKE AAD，并验证它与外层 envelope 字段逐字节一致；服务端不得生成、修改或补全该对象。
 
 `key_commitment` 的推荐构造（`commitment` 是 §7.1 `cokret-key-backup/<backup_class>/<subdomain>/v1` 体系下的一个 subdomain，因此 commitment 天然按 `backup_class` 域隔离，不会跨域复用）：
 
@@ -860,7 +875,7 @@ Recovery policy 的标准发布面是 `POST /_cokret/root/identity/recovery-poli
   "issued_at": "2026-04-26T00:00:00Z",
   "auth_data": {
     "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_principal_signing_v1",
-    "signature_algorithm": "EdDSA",
+    "signature_algorithm": "Ed25519",
     "signature": "base64url...",
     "signed_fields": [
       "schema",
