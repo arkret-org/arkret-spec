@@ -36,6 +36,14 @@
       "type": "string",
       "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
+    "flow_id": {
+      "type": "string",
+      "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "message_id": {
+      "type": "string",
+      "pattern": "^ck:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
     "timestamp": {
       "type": "string",
       "format": "date-time"
@@ -112,6 +120,103 @@
         },
         "platform": {
           "$ref": "#/$defs/non_empty_string"
+        },
+        "target_actor_id": {
+          "$ref": "#/$defs/did",
+          "description": "Gateway-internal mention-redirect routing key: the actor DID this device's user is registered as on the recipient principal server. Paired with notification.routing_metadata.mention_redirect_target_actor_ids to drive the fail-closed per-device routing gate. MUST be stripped before any provider call; MUST NOT be forwarded to a provider. See push-notifications.md §4.5 / §5.1."
+        }
+      },
+      "additionalProperties": false
+    },
+    "effective_scope": {
+      "type": "object",
+      "description": "Reducer-stamped immutable scope binding mirrored from the originating Event envelope (event-envelope.schema.json $defs.effective_scope). Internally tagged on `kind`. Gateway-internal routing metadata; MUST be stripped before a provider sees it. Derived from the SDK `cokret::EffectiveScope` (kind=realm{realm_id} | circle{realm_id,circle_id}).",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm"
+            },
+            "realm_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_id",
+            "circle_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "circle"
+            },
+            "realm_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
+            },
+            "circle_id": {
+              "$ref": "./common-ids.schema.json#/$defs/circle_id"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "routing_metadata": {
+      "type": "object",
+      "description": "Gateway-internal routing fragment shared by blind and visible notifications. Every field here drives gateway-side routing / dedup / per-(provider,realm,circle) circuit-breaker state and MUST be stripped before the gateway calls any push provider; it MUST NOT be forwarded to a provider. NOTE: routing_metadata.realm_id is a distinct, gateway-internal routing path and is NOT the client-visible top-level realm_id that blind_notification forbids; the two realm_id surfaces coexist and are deliberately separated here.",
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id",
+          "description": "Gateway-internal Realm security-boundary id used for routing / dedup / circuit-breaker keying. Stripped before any provider call. Distinct from the client-visible realm_id that blind_notification forbids at the top level."
+        },
+        "circle_id": {
+          "$ref": "./common-ids.schema.json#/$defs/circle_id",
+          "description": "CKP-0007 Circle (intra-Realm encryption sub-boundary) id. Drives per-Circle routing / dedup so two flows with the same name in different Circles do not collide. Plaintext circle_id MUST be stripped before any provider call."
+        },
+        "scope_circle_id": {
+          "$ref": "./common-ids.schema.json#/$defs/circle_id",
+          "description": "Flow-declared scope_circle_id when the originating Flow is bound to a Circle scope. Gateway-internal; stripped before any provider call."
+        },
+        "effective_scope": {
+          "$ref": "#/$defs/effective_scope"
+        },
+        "mention_redirect_target_actor_ids": {
+          "type": "array",
+          "description": "Round-4 mention-redirect routing allow-list: actor DIDs permitted to receive this wakeup. When non-empty, each device's device_route.target_actor_id MUST appear here or that device is failed closed (no provider call, no body decryption). Plaintext routing list; receivers verify inclusion WITHOUT decrypting the body. Gateway-internal; MUST be stripped before any provider call. See push-notifications.md §4.5.",
+          "items": {
+            "$ref": "#/$defs/did"
+          }
+        },
+        "delivery_binding_frontier": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Receiver's accepted Realm delivery-binding frontier when the notify originated from a federation hop; the receiver returns delivery_binding_stale if its accepted frontier is ahead. Realm-level gateway-internal concept; MUST be stripped before any provider call."
+        }
+      },
+      "additionalProperties": false
+    },
+    "audit_envelope": {
+      "type": "object",
+      "description": "Round-4 `ck.audit.policy_access` envelope routing fragment carried alongside a notify request. When present, the request is an audit-pipeline event (e.g. an `e2ee_late_recovery` access notice), not a push notify: the gateway writes the audit event, acks 200, and skips the push pipeline. Derived from floria `AuditEnvelopeMetadata` (mirror of cokret::AuditPolicyAccessPayload wire fields the gateway needs).",
+      "required": [
+        "access_kind"
+      ],
+      "properties": {
+        "access_kind": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "ck.audit.policy_access.access_kind. The gateway branches on `e2ee_late_recovery` to skip the push pipeline."
+        },
+        "late_recovery_original_event_id": {
+          "$ref": "#/$defs/event_id",
+          "description": "REQUIRED (at the application layer) when access_kind == e2ee_late_recovery. References the original event the late recovery targets."
         }
       },
       "additionalProperties": false
@@ -159,6 +264,9 @@
         },
         "counts": {
           "$ref": "#/$defs/counts"
+        },
+        "routing_metadata": {
+          "$ref": "#/$defs/routing_metadata"
         },
         "devices": {
           "type": "array",
@@ -251,6 +359,9 @@
         "counts": {
           "$ref": "#/$defs/counts"
         },
+        "routing_metadata": {
+          "$ref": "#/$defs/routing_metadata"
+        },
         "devices": {
           "type": "array",
           "minItems": 1,
@@ -266,6 +377,35 @@
         },
         "sender_actor_id": {
           "$ref": "#/$defs/did"
+        },
+        "content": {
+          "type": "object",
+          "description": "Profile-gated client-visible rendering content (e.g. {\"body\": \"...\"}). Permitted ONLY under ck.profile.push_gateway.visible_notification.v1; MUST NOT appear in a blind notification. Still subject to the §5.1 minimization constraints (no DID URL, no cross-Realm stable correlation key, no IP/geolocation).",
+          "additionalProperties": true
+        },
+        "flow_id": {
+          "$ref": "#/$defs/flow_id"
+        },
+        "message_id": {
+          "$ref": "#/$defs/message_id"
+        },
+        "sender_actor_display_name": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "flow_title": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "realm_title": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "user_is_target": {
+          "type": "boolean"
+        },
+        "priority": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "membership": {
+          "$ref": "#/$defs/non_empty_string"
         }
       },
       "additionalProperties": false
@@ -390,6 +530,17 @@
               "$ref": "#/$defs/visible_notification"
             }
           ]
+        },
+        "event_kind": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Originating Event kind (e.g. `ck.message`) used by the gateway to route Phase-P2 `ck.agent.*` lifecycle / actor-private kinds to a no-fanout ack. Coarse routing selector; carries no Realm / sender / event identifier."
+        },
+        "reason_code": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Round-4 caller-supplied wire-safe reason code. The well-known value `historical_only` marks a soland diagnostic replay that MUST NOT trigger a fresh push fanout (the gateway answers a 200 idempotency-style ack). Other values are honored only where the operation defines them."
+        },
+        "audit_envelope": {
+          "$ref": "#/$defs/audit_envelope"
         }
       },
       "additionalProperties": false

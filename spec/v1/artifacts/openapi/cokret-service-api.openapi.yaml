@@ -4806,6 +4806,19 @@ paths:
         sourceServiceDid: []
         destinationServiceDid: []
         contentDigest: []
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        required: false
+        description: |
+          Optional idempotency key for the notify fanout. Carried as a
+          transport header (not a body field); MUST be covered by the HTTP
+          Message Signature transcript when present. The originating service
+          DID and intended recipient service DID travel as the
+          Source-Service-DID / Destination-Service-DID headers
+          (httpMessageSignature companions), not in the request body.
+        schema:
+          type: string
       responses:
         '200':
           description: Blind push delivery result
