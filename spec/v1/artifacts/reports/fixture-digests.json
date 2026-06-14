@@ -2,27 +2,27 @@
   "files": [
     {
       "path": "spec/v1/artifacts/fixtures/capability-fixture.json",
-      "sha256": "d3c1f15908acb6286b5251fed833f37a10253a91da5b4a921c2db02f7378752a"
+      "sha256": "4838736d10b1d8c175df79d7e089adf667970fb6ba3209712881fe957d8846fe"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
-      "sha256": "9c0dda737849e07c2f254b56836df9d93ec1aadb2b8978bedc9c2c55491f7af0"
+      "sha256": "ccc4b2f8e53a1d5f9d4f7e7c35e0be8d81f613bfad14c6954289730c1fac05fe"
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
-      "sha256": "c246ce0d88c0982c22a0ed11c5d1c27030171550836ae3d104acc1325e496fd0"
+      "sha256": "7301b97c7039333b22d6c3464e1f38789bafc76a0ea6b7c13892ac2d60494a18"
     },
     {
       "path": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
-      "sha256": "1b3bcb51c249a4292628e08e675eaeb5f475bb77478d295f7b4f7e4a81583bca"
+      "sha256": "ebbfc403ce894b7667ddf12507ea6adeda92106c002cbce4bed35ade105927bf"
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "8f4a77dd7dc066b63ca03d4d726068760e118285e9ea429880345ab58f3a656a"
+      "sha256": "508f18521e0429eeca5a8e87c72a2778f60b2177e471c41090556149f4c7ec44"
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-envelope-negative-fixture.json",
-      "sha256": "c4219db560173555773dd2b791c895a10e44688ddade7c3ec1e019239ffa3bd0"
+      "sha256": "3bcd0420d3e9ce9d3d3b159b1a504b8ba23b6c63a863aa0f07f7a5577b0e873c"
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
@@ -30,7 +30,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
-      "sha256": "2a14d91197c115ca5541b8d8f68ac64568df3c5df35b15b4d8e41919a115e589"
+      "sha256": "47ff50fea53d0ef5757123ad0ee5794e94d417a1b4fc3017045ffcc090320a7a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",
@@ -38,15 +38,15 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
-      "sha256": "c352dd5af4326d08de0a95b3d5cbad9ade2cb98c5732b33474a55c4711d31db3"
+      "sha256": "21d6a35bd060bd5f9a695ebc16ab9d2e5b2559e0d3cb865861d609e00394bc76"
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-      "sha256": "6e6dc008fe2000017f577f86175e0fc17574f6c33f19718e85d8b09e606003b6"
+      "sha256": "cd3572a64df2e3517d263b2644a9f471134a91c451dda07f54ac7e5d2304e462"
     },
     {
       "path": "spec/v1/artifacts/fixtures/reaction-fixture.json",
-      "sha256": "5fd307118a193affa3f7439984bf6e99a6833f17f0b356b1bf12f915ce3064e4"
+      "sha256": "0e648041fdc0230964f480485a8d65cd51b8a98a42b1a99cf812928c4cd86ca9"
     },
     {
       "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",
@@ -54,7 +54,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "dc2c2854935d49104aebdb489660971c08aaf5a8013ce67b69de7ddcd8fe8d75"
+      "sha256": "7c16d6d11c8b67859a0a86576383e0458629239ac84e2767b6e431ffc7368815"
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-closure-vectors.json",
@@ -62,7 +62,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sync-fixture.json",
-      "sha256": "85445140576ef22290978b8e592703515fec341fb9b503cceb0f8e6b8cfbe334"
+      "sha256": "64faeb34626c17d6cbfb8b9771731453190c1b33ae2aa367e19727daba075970"
     }
   ],
   "fixtures_root": "spec/v1/artifacts/fixtures",

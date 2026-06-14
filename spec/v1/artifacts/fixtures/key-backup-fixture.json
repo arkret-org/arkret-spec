@@ -38,6 +38,22 @@
           },
           "key_commitment": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
         },
+        "domain_separation": {
+          "hkdf_info": "cokret-key-backup/secret_storage/passphrase_kdf/v1",
+          "subdomain": "passphrase_kdf",
+          "aead_aad": {
+            "schema": "ck.schema.key_backup.v1",
+            "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "backup_class": "secret_storage",
+            "backup_version": "kb_1",
+            "created_at": "2026-04-26T00:00:00Z",
+            "item_types": [
+              "self_signing_key",
+              "user_signing_key"
+            ]
+          }
+        },
         "contents": [
           {
             "item_type": "self_signing_key",
@@ -65,6 +81,7 @@
             "series_seq",
             "supersedes",
             "encryption",
+            "domain_separation",
             "contents",
             "ciphertext_digest",
             "ssk_generation"
@@ -99,6 +116,21 @@
             "nonce": "nonce-base64url-placeholder"
           }
         },
+        "domain_separation": {
+          "hkdf_info": "cokret-key-backup/mls_history/secret_storage_key/v1",
+          "subdomain": "secret_storage_key",
+          "aead_aad": {
+            "schema": "ck.schema.key_backup.v1",
+            "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "backup_class": "mls_history",
+            "backup_version": "kb_1",
+            "created_at": "2026-04-26T00:00:00Z",
+            "item_types": [
+              "mls_group_state"
+            ]
+          }
+        },
         "contents": [
           {
             "item_type": "mls_group_state",
@@ -123,6 +155,7 @@
             "supersedes",
             "recovery_policy_ref",
             "encryption",
+            "domain_separation",
             "contents",
             "ciphertext_digest",
             "ssk_generation"
@@ -167,6 +200,21 @@
           },
           "key_commitment": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
         },
+        "domain_separation": {
+          "hkdf_info": "cokret-key-backup/mls_history/passphrase_kdf/v1",
+          "subdomain": "passphrase_kdf",
+          "aead_aad": {
+            "schema": "ck.schema.key_backup.v1",
+            "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "backup_class": "mls_history",
+            "backup_version": "kb_1",
+            "created_at": "2026-04-26T00:00:00Z",
+            "item_types": [
+              "mls_group_state"
+            ]
+          }
+        },
         "contents": [
           {
             "item_type": "mls_group_state",
@@ -190,6 +238,7 @@
             "supersedes",
             "recovery_policy_ref",
             "encryption",
+            "domain_separation",
             "contents",
             "ciphertext_digest"
           ]
@@ -223,6 +272,21 @@
             "nonce": "nonce-base64url-placeholder"
           }
         },
+        "domain_separation": {
+          "hkdf_info": "cokret-key-backup/mls_history/device_snapshot_secret/v1",
+          "subdomain": "device_snapshot_secret",
+          "aead_aad": {
+            "schema": "ck.schema.key_backup.v1",
+            "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "backup_class": "mls_history",
+            "backup_version": "kb_1",
+            "created_at": "2026-04-26T00:00:00Z",
+            "item_types": [
+              "mls_group_state"
+            ]
+          }
+        },
         "contents": [
           {
             "item_type": "mls_group_state",
@@ -246,6 +310,7 @@
             "supersedes",
             "recovery_policy_ref",
             "encryption",
+            "domain_separation",
             "contents",
             "ciphertext_digest"
           ]
@@ -279,6 +344,21 @@
             "enc": "hpke-enc-base64url-placeholder"
           }
         },
+        "domain_separation": {
+          "hkdf_info": "cokret-key-backup/mls_history/recovery_public_key/v1",
+          "subdomain": "recovery_public_key",
+          "aead_aad": {
+            "schema": "ck.schema.key_backup.v1",
+            "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "backup_class": "mls_history",
+            "backup_version": "kb_1",
+            "created_at": "2026-04-26T00:00:00Z",
+            "item_types": [
+              "mls_group_state"
+            ]
+          }
+        },
         "contents": [
           {
             "item_type": "mls_group_state",
@@ -303,6 +383,7 @@
             "supersedes",
             "recovery_policy_ref",
             "encryption",
+            "domain_separation",
             "contents",
             "ciphertext_digest",
             "ssk_generation"
@@ -337,6 +418,21 @@
             "aead_profile": "ck.aead.chacha20_poly1305.v1"
           }
         },
+        "domain_separation": {
+          "hkdf_info": "cokret-key-backup/mls_history/recovery_public_key/v1",
+          "subdomain": "recovery_public_key",
+          "aead_aad": {
+            "schema": "ck.schema.key_backup.v1",
+            "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "backup_class": "mls_history",
+            "backup_version": "kb_1",
+            "created_at": "2026-04-26T00:00:00Z",
+            "item_types": [
+              "mls_group_state"
+            ]
+          }
+        },
         "contents": [
           {
             "item_type": "mls_group_state",
@@ -360,6 +456,7 @@
             "supersedes",
             "recovery_policy_ref",
             "encryption",
+            "domain_separation",
             "contents",
             "ciphertext_digest"
           ]
@@ -403,6 +500,21 @@
           },
           "key_commitment": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
         },
+        "domain_separation": {
+          "hkdf_info": "cokret-key-backup/did_recovery/passphrase_kdf/v1",
+          "subdomain": "passphrase_kdf",
+          "aead_aad": {
+            "schema": "ck.schema.key_backup.v1",
+            "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "backup_class": "did_recovery",
+            "backup_version": "kb_1",
+            "created_at": "2026-04-26T00:00:00Z",
+            "item_types": [
+              "recovery_key_share"
+            ]
+          }
+        },
         "contents": [
           {
             "item_type": "recovery_key_share",
@@ -426,6 +538,7 @@
             "supersedes",
             "recovery_policy_ref",
             "encryption",
+            "domain_separation",
             "contents",
             "ciphertext_digest"
           ]
@@ -470,6 +583,22 @@
           },
           "key_commitment": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
         },
+        "domain_separation": {
+          "hkdf_info": "cokret-key-backup/secret_storage/passphrase_kdf/v1",
+          "subdomain": "passphrase_kdf",
+          "aead_aad": {
+            "schema": "ck.schema.key_backup.v1",
+            "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "backup_class": "secret_storage",
+            "backup_version": "kb_2",
+            "created_at": "2026-04-27T00:00:00Z",
+            "item_types": [
+              "self_signing_key",
+              "user_signing_key"
+            ]
+          }
+        },
         "contents": [
           {
             "item_type": "self_signing_key",
@@ -499,6 +628,7 @@
             "supersedes_digest",
             "frontier_ref",
             "encryption",
+            "domain_separation",
             "contents",
             "ciphertext_digest",
             "ssk_generation"
@@ -537,6 +667,21 @@
             "nonce_salt": "noncesaltnoncesaltnoncesalt0000"
           }
         },
+        "domain_separation": {
+          "hkdf_info": "cokret-key-backup/secret_storage/passphrase_kdf/v1",
+          "subdomain": "passphrase_kdf",
+          "aead_aad": {
+            "schema": "ck.schema.key_backup.v1",
+            "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "backup_class": "secret_storage",
+            "backup_version": "kb_1",
+            "created_at": "2026-04-26T00:00:00Z",
+            "item_types": [
+              "self_signing_key"
+            ]
+          }
+        },
         "contents": [
           {
             "item_type": "self_signing_key",
@@ -559,6 +704,7 @@
             "series_seq",
             "supersedes",
             "encryption",
+            "domain_separation",
             "contents",
             "ciphertext_digest"
           ]
@@ -596,6 +742,21 @@
             "nonce_salt": "noncesaltnoncesaltnoncesalt0000"
           }
         },
+        "domain_separation": {
+          "hkdf_info": "cokret-key-backup/secret_storage/passphrase_kdf/v1",
+          "subdomain": "passphrase_kdf",
+          "aead_aad": {
+            "schema": "ck.schema.key_backup.v1",
+            "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "backup_class": "secret_storage",
+            "backup_version": "kb_1",
+            "created_at": "2026-04-26T00:00:00Z",
+            "item_types": [
+              "self_signing_key"
+            ]
+          }
+        },
         "contents": [
           {
             "item_type": "self_signing_key",
@@ -618,6 +779,7 @@
             "series_seq",
             "supersedes",
             "encryption",
+            "domain_separation",
             "contents",
             "ciphertext_digest"
           ]
@@ -655,6 +817,21 @@
             "nonce": "nonce-base64url-placeholder"
           }
         },
+        "domain_separation": {
+          "hkdf_info": "cokret-key-backup/secret_storage/passphrase_kdf/v1",
+          "subdomain": "passphrase_kdf",
+          "aead_aad": {
+            "schema": "ck.schema.key_backup.v1",
+            "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "backup_class": "secret_storage",
+            "backup_version": "kb_1",
+            "created_at": "2026-04-26T00:00:00Z",
+            "item_types": [
+              "self_signing_key"
+            ]
+          }
+        },
         "contents": [
           {
             "item_type": "self_signing_key",
@@ -677,6 +854,7 @@
             "series_seq",
             "supersedes",
             "encryption",
+            "domain_separation",
             "contents",
             "ciphertext_digest"
           ]
@@ -715,6 +893,21 @@
             "nonce_salt": "noncesaltnoncesaltnoncesalt0000"
           }
         },
+        "domain_separation": {
+          "hkdf_info": "cokret-key-backup/secret_storage/passphrase_kdf/v1",
+          "subdomain": "passphrase_kdf",
+          "aead_aad": {
+            "schema": "ck.schema.key_backup.v1",
+            "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "backup_class": "secret_storage",
+            "backup_version": "kb_1",
+            "created_at": "2026-04-26T00:00:00Z",
+            "item_types": [
+              "self_signing_key"
+            ]
+          }
+        },
         "contents": [
           {
             "item_type": "self_signing_key",
@@ -737,6 +930,7 @@
             "series_seq",
             "supersedes",
             "encryption",
+            "domain_separation",
             "contents",
             "ciphertext_digest"
           ]
@@ -774,6 +968,21 @@
             "nonce_salt": "noncesaltnoncesaltnoncesalt0000"
           }
         },
+        "domain_separation": {
+          "hkdf_info": "cokret-key-backup/secret_storage/passphrase_kdf/v1",
+          "subdomain": "passphrase_kdf",
+          "aead_aad": {
+            "schema": "ck.schema.key_backup.v1",
+            "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "backup_class": "secret_storage",
+            "backup_version": "kb_1",
+            "created_at": "2026-04-26T00:00:00Z",
+            "item_types": [
+              "self_signing_key"
+            ]
+          }
+        },
         "contents": [
           {
             "item_type": "self_signing_key",
@@ -796,6 +1005,7 @@
             "series_seq",
             "supersedes",
             "encryption",
+            "domain_separation",
             "contents",
             "ciphertext_digest"
           ]
@@ -834,6 +1044,21 @@
             "nonce_salt": "noncesaltnoncesaltnoncesalt1111"
           }
         },
+        "domain_separation": {
+          "hkdf_info": "cokret-key-backup/secret_storage/passphrase_kdf/v1",
+          "subdomain": "passphrase_kdf",
+          "aead_aad": {
+            "schema": "ck.schema.key_backup.v1",
+            "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "backup_class": "secret_storage",
+            "backup_version": "kb_2",
+            "created_at": "2026-04-27T00:00:00Z",
+            "item_types": [
+              "self_signing_key"
+            ]
+          }
+        },
         "contents": [
           {
             "item_type": "self_signing_key",
@@ -856,6 +1081,7 @@
             "series_seq",
             "supersedes",
             "encryption",
+            "domain_separation",
             "contents",
             "ciphertext_digest"
           ]
@@ -895,6 +1121,22 @@
             "nonce_salt": "noncesaltnoncesaltnoncesalt0000"
           }
         },
+        "domain_separation": {
+          "hkdf_info": "cokret-key-backup/secret_storage/passphrase_kdf/v1",
+          "subdomain": "passphrase_kdf",
+          "aead_aad": {
+            "schema": "ck.schema.key_backup.v1",
+            "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "backup_class": "secret_storage",
+            "backup_version": "kb_mixed",
+            "created_at": "2026-04-26T00:00:00Z",
+            "item_types": [
+              "self_signing_key",
+              "mls_group_secrets_backup_key"
+            ]
+          }
+        },
         "contents": [
           {
             "item_type": "self_signing_key",
@@ -921,6 +1163,7 @@
             "series_seq",
             "supersedes",
             "encryption",
+            "domain_separation",
             "contents",
             "ciphertext_digest"
           ]
