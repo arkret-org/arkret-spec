@@ -760,9 +760,7 @@
     },
     "user_search_outcome": {
       "type": "object",
-      "required": [
-        "did"
-      ],
+      "required": [],
       "properties": {
         "handle": {
           "$ref": "#/$defs/handle"
