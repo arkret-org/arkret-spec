@@ -39,6 +39,16 @@ Flow 适合：
 
 Flow 顶层字段不承载额外模式或业务分类；默认入口由 track primary 解析规则决定，业务语义由 Realm schema、profile、`metadata.fields`、Relation 或 Morph 扩展表达。业务语义分类不属于 Flow 顶层字段。实现 SHOULD 通过 Realm schema/profile、`metadata.fields`、Relation、labels 或 Morph profile 表达业务类型，并通过 View 定义选择 renderer。
 
+### 2.1 默认讨论 Flow 与发现机制
+
+一个 Realm MAY 指定**一个**默认讨论 Flow（"general" 式的常驻讨论入口）。该指针的设计裁决如下，实现 MUST 遵循：
+
+- **权威状态放在 Realm,单指针。** 权威当前值是 Realm 投影的 `default_flow_id`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的可选 / nullable 字段）。它由 `ck.realm.set_default_flow` 事件投影得到（cell `ck.component.realm.set_default_flow.v1`、`cas_register`、`bottom=reject`）。**单一指针**避免多个 Flow 各自声明"我是默认"导致的多默认脏态;`null` / 缺省表示该 Realm 没有指定默认 Flow。
+- **Flow 侧只暴露派生标记。** Flow 投影（[`ProjectionFlowRow`](../../artifacts/schemas/service-operation-dtos.schema.json)）的 `is_default` 是**派生**字段（`is_default == (flow_id == realm.default_flow_id)`），**不是**独立存储，投影器从 Realm 的 `default_flow_id` 计算得到。Flow 对象本身不持有任何"默认"布尔位。
+- **设置 / 变更走事件驱动，不强制原子。** 改变默认 Flow 仅通过 `ck.realm.set_default_flow` 事件（payload 至少 `{realm_id, flow_id}`,见 [`event-payload.schema.json` `realm_set_default_flow_payload`](../../artifacts/schemas/event-payload.schema.json)）。授权是标准 Realm-admin 闸门:写入方 MUST 持有 `ck.realm.admin`（aggregate admin 覆盖）或被直接授予同名动作 `ck.realm.set_default_flow`（risk medium,见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)）。Realm 指针更新与 Flow 创建之间不要求单一原子事务，最终一致即可。
+- **reducer 防悬空（MUST）。** reducer 在投影 `ck.realm.set_default_flow` 时，被指向的 `flow_id` MUST 已经是本 Realm 内**已投影且非 tombstoned** 的 Flow;否则 MUST 拒绝（`failed_precondition`），不得写入悬空指针。因此 `default_flow_id` 永远指向一个存在的 Flow，`is_default` 永远不会因悬空指针被错误派生为 `true`。payload 的可选字段 `expected_default_flow_id` 提供乐观并发（CAS):存在时 reducer 仅在 Realm 当前 `default_flow_id` 等于该值时接受，否则 `failed_precondition`。
+- **客户端确定性发现（MUST NOT 靠实现细节）。** 客户端 MUST 通过下面两种确定性途径之一识别默认讨论 Flow:(a) 读取 Realm 投影的 `default_flow_id`;或 (b) 读取 Flow 投影的 `is_default`。客户端 MUST NOT 依赖"Flow 复用 Realm UUID""默认 Flow 是创建时间最早的 Flow"等任何实现细节或启发式来推断默认 Flow。
+
 ## 3. Flow Schema 与字段
 
 Schema id: `ck.schema.flow.v1`

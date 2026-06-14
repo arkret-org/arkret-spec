@@ -2302,6 +2302,10 @@
             "null"
           ],
           "format": "date-time"
+        },
+        "is_default": {
+          "type": "boolean",
+          "description": "DERIVED, not independent storage: true iff flow_id == the parent Realm projection's default_flow_id (the authoritative pointer written by ck.realm.set_default_flow). The projector computes this from Realm.default_flow_id; a stale/dangling pointer never resolves to is_default=true because the reducer rejects set_default_flow against a non-existent Flow. Clients identify the Realm's default discussion Flow deterministically from this flag (or equivalently from Realm.default_flow_id) and MUST NOT infer the default from any Flow-reuses-Realm-UUID or other implementation detail. See zh/models/flow-and-message.md (default-Flow discovery)."
         }
       }
     },

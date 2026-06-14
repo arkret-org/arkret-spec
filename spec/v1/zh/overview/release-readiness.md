@@ -30,7 +30,7 @@ updated: 2026-06-10
 
 | Registry | 计数（CI 校验，与 registry 精确一致） | Canonical 文件 |
 | --- | --- | --- |
-| Event kind（active） | 188 | `artifacts/registry/event-kind-registry.json` |
+| Event kind（active） | 189 | `artifacts/registry/event-kind-registry.json` |
 | Schema | 100 | `artifacts/registry/schema-registry.json` |
 | Typed ID kind | 47 | `artifacts/registry/id-kind-registry.json` |
 | Service operation | 164 | `artifacts/registry/operation-registry.json` |

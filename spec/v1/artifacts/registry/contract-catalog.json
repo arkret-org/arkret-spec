@@ -226,6 +226,18 @@
         "bottom": "reject"
       },
       {
+        "event_kind": "ck.realm.set_default_flow",
+        "category": "realm",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Sets / changes the Realm's authoritative default discussion Flow pointer. payload = {realm_id, flow_id}; reducer projects payload.flow_id into the Realm projection default_flow_id (single authoritative pointer; avoids multi-default dirty state). Reducer MUST verify the referenced flow_id already exists in this Realm (a projected, non-tombstoned Flow); a dangling reference MUST be rejected with failed_precondition. Flow-side is_default is a derived marker (flow_id == realm.default_flow_id), never independent storage; clients discover the default Flow deterministically from the Realm projection default_flow_id or the Flow projection is_default, NOT from any UUID-reuse implementation detail. Authorization is the standard Realm-admin gate (hold ck.realm.admin, or the same-name action ck.realm.set_default_flow).",
+        "cell_family": "ck.component.realm.set_default_flow.v1",
+        "cell_subject": null,
+        "lattice": "cas_register",
+        "bottom": "reject"
+      },
+      {
         "event_kind": "ck.realm.policy_server",
         "category": "realm",
         "status": "active",
@@ -5990,6 +6002,7 @@
           "ck.realm.inheritance_policy",
           "ck.realm.disappearing_policy",
           "ck.realm.search_policy",
+          "ck.realm.set_default_flow",
           "ck.applet.registration"
         ],
         "profile": null,
@@ -6070,6 +6083,18 @@
           "ck.realm.search_policy"
         ],
         "profile": "ck.profile.search.blind_index.v1",
+        "event_mapping_kind": "same_name"
+      },
+      {
+        "action": "ck.realm.set_default_flow",
+        "category": "management",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ck.realm.set_default_flow"
+        ],
+        "profile": null,
+        "notes": "Sets / changes the Realm's authoritative default discussion Flow pointer (ck.realm.set_default_flow event; projects Realm default_flow_id). Same-name discipline. The Realm authz gate is realm-admin: holding ck.realm.admin (aggregate admin coverage) satisfies admission, or grant this specific action directly. Reducer MUST verify the referenced Flow already exists (failed_precondition otherwise). See zh/models/flow-and-message.md default-Flow discovery section.",
         "event_mapping_kind": "same_name"
       },
       {
