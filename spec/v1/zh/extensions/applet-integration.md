@@ -123,6 +123,8 @@ Applet MUST 有签名 registration。它可以由 Realm owner、组织管理员�
 
 Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin 或 Realm policy 明确授权的 registry/authz service 签发。仅凭 Applet 自签 registration、namespace claim 或外部 registry 收录不得写入 Realm；缺少该 grant 时，任何 Applet 通过 transaction push、Event submit 或 delegated signing 引入的 Realm 写入 MUST 拒绝，reason=`applet_registration_unauthorized`。
 
+**机读授权门(normative)**：上述"由 Realm owner/admin/authz 授权 install / grant"绑定到机读 capability gate——`ck.applet.registration` 是 `ck.realm.admin` capability action 的目标 event kind(见 [`capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 中 `ck.realm.admin.target_event_kinds`)。提交 `ck.applet.registration`(及随附 grant fan-out)的 actor MUST 持有覆盖目标 Realm 的 active `ck.realm.admin` grant(或 Realm policy 明确授权的 authz service 等价授权);reducer 校验失败时 MUST 拒绝,reason=`applet_registration_unauthorized`。`ck.applet.registration` 在数据面仍是 `service_attested`(注册载体真实性),`ck.realm.admin` 门控的是"谁有权安装",二者并存:注册被服务背书不等于被授权安装。
+
 示例：
 
 ```json
@@ -222,6 +224,7 @@ Applet 安装使用 self/admin aggregate operation。它不创建 install 专用
 - `kind="circle"` MUST 同时包含 `kind`、`realm_id` 与 `circle_id`，并约束为该 Circle grant；不得由 Circle install 推导 Realm-wide grant。
 - 单次 install operation 只处理一个 `effective_scope`。多 Realm、多 Circle 批量安装和跨 sovereign server 的 install 事务聚合不是 v1 目标。
 - install preview/commit MUST 由目标 Realm 的 controlling Principal Server 或 Realm policy 明确授权的 authz service 承载；联邦投递只传播 fan-out 后的正式 events，不把 install operation 本身变成跨 server 分布式事务。
+- install commit 的授权门是机读 `ck.realm.admin` capability(§4)：commit 提交的 admin actor MUST 持有覆盖目标 Realm 的 active `ck.realm.admin` grant(或 Realm policy 授权的等价 authz service);fan-out 出的 `ck.applet.registration` 是该 capability action 的目标 event kind。reduce-time 缺少该授权时 MUST fail closed,reason=`applet_registration_unauthorized`,且整个 install 标记 rejected(无 effective install)。
 
 Preview MUST fail closed when controller proof 无效、DID Document 不可解析或 key ref 不匹配、namespace pattern 非法、exclusive namespace 与 active install 冲突、requested action 不在 capability registry、effective_scope 所属 Realm policy 禁止 Applet/Ghost Actor/widget/E2EE、或 package 已过期。
 

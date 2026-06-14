@@ -791,7 +791,8 @@
         "ck.realm.schema",
         "ck.realm.inheritance_policy",
         "ck.realm.disappearing_policy",
-        "ck.realm.search_policy"
+        "ck.realm.search_policy",
+        "ck.applet.registration"
       ],
       "profile": null,
       "event_mapping_kind": "aggregate_admin"

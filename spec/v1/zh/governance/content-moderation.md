@@ -79,6 +79,8 @@ flowchart TB
 
 任何会改变其他 peer 对事件可见性、可写性或可分发性判断的 moderation decision——即 `hard_deny`、`quarantine`、`require_review`——MUST 通过 sealed Move 写入 `ck.component.moderation_state.v1` cell，详细规则见 [`authz/policy-server.md` §7.1](../authz/policy-server.md)。Policy Server signed decision 与个人 blocklist 仍是 out-of-band，不进入该 cell。这避免不同 Principal Server 对同一事件做出不一致 quarantine / allow 决策导致跨 peer 视图分叉。
 
+**确定性收敛与提交路径（normative）**：`ck.component.moderation_state.v1` 与 `ck.component.moderation.appeal.v1` 两类 cell 的确定性收敛由 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 注册的 lattice 定义，与 capability cell（[`authz/capabilities.md` §12.1](../authz/capabilities.md)）同型：`ck.moderation.decision` = 对 moderation_state cell 的 `or_set` **add**;`ck.moderation.decision.lift` = 对同一 cell 的 observed-remove / supersede（撤销被 lift 的 decision）;`ck.moderation.appeal.*` = appeal cell 上的 `fsm` 状态机（submitted → under_review → decided → closed）。裁决（`ck.moderation.decision[.lift]`）与申诉（`ck.moderation.appeal.*`）一律经 `POST /_cokret/self/events` 作为 self-authored Move 提交，**不经任何 `/_soland/admin` 写路径**;治理状态完全由数据/控制面 reducer 收敛,运维管理面不持有 moderation 真相。
+
 ## 3. 内容举报 (Report)
 
 ### 3.1 举报操作
@@ -436,7 +438,7 @@ Realm SHOULD 支持审核队列 (Moderation Queue) 视图，汇集所有举报�
 | `ck.moderation.appeal.submit` | appellant（被影响 target 的控制者或 policy 列出的 advocate） | (none) → `submitted` | `ck.moderation.appeal.submit`（risk_tier=low） |
 | `ck.moderation.appeal.review` | reviewer（不得是原 decision 的 issuer） | `submitted` → `under_review` | `ck.moderation.appeal.review`（risk_tier=medium） |
 | `ck.moderation.appeal.decision` | reviewer（同上） | `under_review` → `decided` | （复用 `ck.moderation.appeal.review`，见表注） |
-| `ck.moderation.appeal.close` | reviewer（手动）、appellant（撤回）或 timer（`auto_closed=true`，授权校验见 §5.5.2 auto close） | `submitted` / `under_review` / `decided` → `closed` | （复用 `ck.moderation.appeal.review`，appellant withdraw 例外见 §5.5.2） |
+| `ck.moderation.appeal.close` | reviewer（手动）、appellant（撤回）或部署的授权关闭服务（见 §5.5.2 close 是手动 / 授权动作） | `submitted` / `under_review` / `decided` → `closed` | （复用 `ck.moderation.appeal.review`，appellant withdraw 例外见 §5.5.2） |
 
 > 表注（capability 复用）：`.decision` 与 `.close` 是 `ck.moderation.appeal.review` capability action 的目标 event kind，**有意复用同一 review capability**——见 [`capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 中 `ck.moderation.appeal.review`（`event_mapping_kind=aggregate_admin`，`target_event_kinds` 含 `review` / `decision` / `close` 三者）。因此 `.decision` / `.close` 行不另列独立 capability，其 `risk_tier` **继承自 `ck.moderation.appeal.review` 的 `medium`**；它们不是独立 capability action，registry 也不为其登记单独 action。`separation of duties`（reviewer ≠ 原 decision issuer）由 §5.5.2 reducer 约束兜底，弥补共用 capability 带来的影响差。
 
@@ -458,9 +460,9 @@ Payload schema 在 [`moderation-appeal.schema.json`](../../artifacts/schemas/mod
 - **separation of duties**：`ck.moderation.appeal.review` / `ck.moderation.appeal.decision` 的 `reviewer` MUST NOT 等于被上诉 `decision_ref` 对应 `ck.moderation.decision` event 的 issuer。违反时 reducer 用 `appeal_self_review_forbidden` 拒绝。
 - **overturn 与 lift 原子**：`ck.moderation.appeal.decision` `verdict=overturn` MUST 与一条 `ck.moderation.decision.lift`（target 等于 `decision_ref`）在同一 ordered submit batch 或等价控制事务中出现；否则 reducer 用 `appeal_overturn_missing_lift` 拒绝。这关闭"上诉胜诉但原 decision 仍生效"的窗口。
 - **modify 与新 decision 原子**：`verdict=modify` MUST 与一条新的 `ck.moderation.decision`（其 `target_ref` 等于原 target）在同一 batch 中出现。`modify_decision_ref` 是 `ck.moderation.appeal.decision` payload 上的字段（不是新 decision 上的字段），其值 MUST 指向同 batch 内该新 decision event 的 id；reducer 校验 `modify_decision_ref` 与同 batch 新 decision 的 event id 一致。
-- **重复上诉 cool-off**：同一 `(decision_ref, appellant)` 在 cell `closed` 状态后的 Realm 声明 `appeal_cool_off_ms`（默认 90 天）内不得再次 submit；违反时 `failed_precondition`。新 cool-off 之后允许新 `appeal_id`。
+- **重复 submit 幂等约束**：同一 `(decision_ref, appellant)` 在其 appeal cell 处于**非 `closed`** 状态时不得再次 submit；违反时 `failed_precondition`。这是与时长无关的幂等约束（同一 appellant 对同一 decision 不得并存多个未结上诉）。cell 进入 `closed` 后允许新 `appeal_id`。重复 submit 的**时长级限流**（冷静期）不在协议层规定，由部署 / Realm policy 自行决定，协议不规定任何具体时长。
 - **appellant withdraw**：cell 处于 `submitted` 或 `under_review` 时，`appellant` 本人 MAY emit `ck.moderation.appeal.close`，并把 payload 字段 `close_reason` 设为 enum 值 `appellant_withdrawn`，从而把 appeal 直接转为 `closed`。Reducer MUST 校验 `closer == appellant`，且不得要求 reviewer capability；该路径不得隐式改变原 moderation decision。
-- **auto close**：cell 进入 `submitted` / `under_review` 后超过 Realm `appeal_inactivity_timeout_ms`（默认与 `appeal_window_ms` 相同，建议 30 天）仍未进入下一阶段，或进入 `decided` 状态后超过 Realm `appeal_window_ms`（默认 30 天）仍未 close，授权 timer 服务（Realm policy 声明）MAY emit `ck.moderation.appeal.close` `auto_closed=true`。该 close payload MUST 携带 `closer`；`auto_closed=true` 时 reducer MUST 校验 `closer` 是 Realm policy 声明的 timer service DID，并校验对应状态的最早关闭时间：`submitted_at + appeal_inactivity_timeout_ms`、`reviewed_at + appeal_inactivity_timeout_ms` 或 `decided_at + appeal_window_ms`。普通 reviewer 不得伪造 timer close 来提前触发 cool-off。
+- **close 是手动 / 授权动作**：`ck.moderation.appeal.close` 由 reviewer 主动关闭，或由 appellant withdraw 触发(见上一条),协议层不规定任何自动关闭定时器、超时时长或 timer-service DID。部署若需要"非活跃自动关闭",自行实现产品服务,在其选定的超时后经正常授权通道(reviewer / 部署的授权关闭服务的 capability)提交 `ck.moderation.appeal.close`;此 close 与任何其他 close 在 reducer 层无差别处理,不需要 `auto_closed` / timer-service 校验。该 close payload MUST 携带 `closer`,reducer 按常规 capability gate 校验 `closer` 是否有权关闭。
 
 #### 5.5.3 审计与可见性
 
