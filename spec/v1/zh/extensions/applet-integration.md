@@ -437,6 +437,33 @@ Cokret Sync Service / Events API 向 Applet 推送事件批次。
 - Applet MUST 验证 source service DID 和 HTTP message signature。
 - Applet MUST 独立验证 event signature，不得只信任推送方。
 
+#### 7.3.1 逐次投递来源签名（双向对称，normative）
+
+transaction push 是 service↔service 调用，**两个方向**都 MUST 携带**逐次投递**的 RFC 9421 HTTP Message Signature（per-delivery source signature），接收方 MUST 在处理任何 event / 副作用前先验签；纯 `Authorization: Bearer`（无 `Signature`）的 transaction push MUST 被拒绝。两方向不可只靠 bearer，也不可只在首次握手时验签一次：
+
+- **node → Applet**（§7.3 上文，Cokret 节点向 Applet 推送）：Applet 端 MUST 按 registration 的 `webhook_auth`（`type=http_message_signature`，`key_ref` 指向推送方节点 service DID 的 verification method）逐次验签。
+- **app/bridge → cokret edge inbound**（`POST /_cokret/edge/applet/transactions` 的入站方向，已安装 Applet service / bridge 向 cokret edge 推送外部网络 transaction）：cokret edge 接收方 MUST 按 `Source-Service-DID` 解析 Applet registration 的 service DID verification method 逐次验签，且该 service DID MUST 命中一个 active effective install（§4b.1）；缺签名、签名无效、`Source-Service-DID` 与 registration 不一致或无 active install 时 MUST fail closed。
+
+**覆盖 header 集（MUST，与 [`../sync/federation.md` §3.2](../sync/federation.md) service-to-service 签名对称）**：签名 transcript MUST 覆盖以下 RFC 9421 derived components 与 header：
+
+- `@method`、`@target-uri`、`@authority`
+- `content-digest`（覆盖 canonical request body；transaction push 总是带 body，故 MUST 携带 `Content-Digest`）
+- `source-service-did`（header `Source-Service-DID`，等于 body `source_service_did`）
+- `destination-service-did`（header `Destination-Service-DID`，等于接收方 service DID）
+- `idempotency-key`（header `Idempotency-Key`；参与幂等 / replay key，MUST 进入 transcript）
+- 签名 parameters MUST 含 `created` 与 `expires`；时效窗口判据沿用 [`../sync/federation.md` §3.2](../sync/federation.md)（`expires - created` ≤ 300s、`created` ±30s skew、`expires` 未过期），落在窗口外的逐字节重放即便 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒。
+
+接收方 MUST 在验签前先校验 body 实际 hash 与 `Content-Digest` 一致，再验证签名 transcript；body 内 `source_service_did` MUST 与 header `Source-Service-DID` 及签名 transcript 一致。
+
+**失败码（normative）**：
+
+- 缺 `Signature` / 纯 bearer：`unauthorized`（401，reason=`http_signature_required`）。
+- 签名验证失败、`content-digest` 不覆盖 body、`source_service_did` 与 header / transcript 不一致：`unauthorized`（401，reason=`http_signature_invalid`）。
+- `created` / `expires` 超出时效窗口（含 replay cache evict 后的窗口外重放）：`unauthorized`（401，reason=`signature_window_invalid`）。
+- inbound 方向 `Source-Service-DID` 无 active effective install 或与 registration service DID 不一致：fail closed，reason=`applet_registration_unauthorized`（与 §4 / §4b 同门槛）。
+
+**锚点**：node→Applet 方向的签名密钥锚点是 registration `webhook_auth.key_ref`；inbound app→cokret 方向的锚点是 Applet registration 的 `service_did` 当前有效 verification method（接收方 MUST 解析 service DID Document 取当前 active key，registration / key rotate 后旧 key 不再放行）。transaction push 的逐次签名是传输层来源认证，**不替代** §8 每条 Applet-originated 写入 Event 的 envelope event signature（`proofs[]`）与 capability grant 校验：cokret 把外部 transaction 落为 durable Cokret Event 时，仍 MUST 按 §8 / §11 校验每条 Event 的 `actor_id` / `applet_id` / `authorization_ref` / `proofs[]`。
+
 ### 7.4 Query Actor
 
 ```text
@@ -793,7 +820,7 @@ Applet v1 conformance 按 profile 继承拆分。实现声明某 profile 时 MUS
 
 - `applet_registration` JSON Schema 由 `applet-schema.md` 和 `schema-registry.md` 固定，必须包含 service DID、endpoint、namespace、protocol、capability refs、signing method 和 expiry。
 - Namespace pattern grammar MUST 明确 actor、realm、handle、external protocol id 的匹配边界；namespace 命中不授予写权限。
-- Transaction push operation MUST 包含 `source_service_did`、`events[]`、`Idempotency-Key`、HTTP message signature 与 received_at audit metadata；外部 source network、external event id、mapped actor、target Realm / Circle 与 operation refs 必须落在具体 Cokret Event 的 `external_ref` / provenance / capability refs 中，不得通过 transaction 专用 durable Event 表达。
+- Transaction push operation MUST 包含 `source_service_did`、`events[]`、`Idempotency-Key`、HTTP message signature 与 received_at audit metadata；**两个投递方向（node→Applet 与 app/bridge→cokret edge inbound）都 MUST 携带逐次投递 RFC 9421 来源签名并由接收方逐次验签，覆盖 header 集、失败码与签名锚点见 §7.3.1**；纯 bearer 的 transaction push MUST 被拒绝。外部 source network、external event id、mapped actor、target Realm / Circle 与 operation refs 必须落在具体 Cokret Event 的 `external_ref` / provenance / capability refs 中，不得通过 transaction 专用 durable Event 表达。
 - Protocol metadata schema MUST 声明外部系统、identity mapping、permission mapping、E2EE boundary、rate limit 和 supported media types。
 - Bridge error event 使用 `ck.applet.bridge_error`，必须绑定 failed transaction、外部错误类别、是否可重试和可见范围；不得泄露未授权外部正文。
 - External event deduplication key MUST 至少包含 protocol、tenant/workspace、external channel/location、external event id 和 normalized sender；不得只依赖时间戳或正文 hash。

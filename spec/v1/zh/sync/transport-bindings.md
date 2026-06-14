@@ -102,7 +102,7 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 | `ck.self.keys.upload.create` / `ck.self.keys.query.lookup` / `ck.self.keys.command.claim` | E2EE 设备密钥发布、查询与领取。 |
 | `ck.self.keys.backups.resource.replace` / `ck.self.keys.backups.query.list` / `ck.self.keys.backups.command.unlock` / `ck.self.keys.backups.resource.delete` | 加密密钥备份对象存储、枚举、解锁取回与删除。 |
 
-> **Federation peer surface（规范性）**：跨服务器互通必须使用 `/_cokret/peer/*` HTTP trust surface 和 `ck.peer.*` operation_id。`/_cokret/self/*` 只承接当前 principal / 已授权自服务会话的攻击面，不承接 federation server-to-server wire。详见 [`federation.md`](./federation.md) §4。
+> **Federation peer surface（规范性）**：跨服务器互通必须使用 `/_cokret/peer/*` HTTP trust surface 和 `ck.peer.*` operation_id。`/_cokret/self/*` 只承接当前 principal / 已授权自服务会话的攻击面，不承接 federation server-to-server wire。**联邦接收收敛为单轨**：`POST /_cokret/peer/events`（`ck.peer.events.command.submit`）是唯一的 federation Event 接收轨，DataEvent / Control Move（含 Move / Anchor）统一走该 sealed Event Envelope 通道；实现私有 peer 入站轨 MUST NOT 作为跨 deployment 互通入口（详见 [`federation.md`](./federation.md) §4.0）。详见 [`federation.md`](./federation.md) §4。
 
 HTTP binding MAY 把 `operation_id` 映射成路径；gRPC binding MAY 把它映射成 service method；message queue binding MAY 把它映射成 topic + message type。
 

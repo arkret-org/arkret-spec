@@ -144,7 +144,11 @@
       "v1_profile_catalog": "Profiles that belong to the v1 stable catalog. This is not a bundle requirement; implementations MUST claim only the profiles, event kinds, schemas, and operations they actually support.",
       "v1_minimal_interop_floor": "Minimum profile for claiming v1 Event Store interop. Higher-level client, service, federation, blob, push, identity, and sovereign profiles remain independently claimable.",
       "extension_profile_implementation": "Optional. Tracks implementation profiles outside the v1 minimal interop floor, including evolving external standards (MIMI Internet-Drafts; A2A/ACP/MCP unstandardized agent protocols; Applet registry/audit SLA) and opt-in product/privacy features such as productivity, disappearing messages, calendar events, pins, and search. Implementations claiming v1 core MAY omit these entirely; implementations MUST claim only entries they actually support. When an underlying external standard matures, a replacement profile with stable version pinning can supersede that entry."
-    }
+    },
+    "test_build_profile": [
+      "ck.profile.conformance_harness.v1"
+    ],
+    "test_build_profile_rule": "Test/conformance build-only profile. Gates the test-only /_cokret/_conformance/* debug namespace (see zh/sync/service-http-binding.md §2.1.2). NOT a v1 core interop or claimable production profile: deployments declaring it MUST run under development_mode=true with verified_profiles empty, and MUST NOT expose this namespace or advertise it from any production trust surface. Production components MUST NOT consume another implementation _conformance endpoint."
   },
   "identity_extension_profiles": [
     "ck.profile.public_network_identity.v1",

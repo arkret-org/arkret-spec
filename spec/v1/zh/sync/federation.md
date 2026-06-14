@@ -144,6 +144,16 @@ Realm 级 server ACL 的权威表达是 `ck.realm.moderation_policy` 中的 serv
 
 ## 4. Event 交换协议
 
+### 4.0 单轨联邦接收（唯一互通入口，normative）
+
+跨域联邦接收**收敛为单轨**：`POST /_cokret/peer/events`（`ck.peer.events.command.submit`）是**唯一**的 federation Event 接收轨。所有跨 deployment 的 Event 接收——包括 DataEvent、Control Move（含 Move / Anchor / Seal-bearing 控制面事件）——MUST 统一走该单一 sealed Event Envelope 通道：
+
+- 每条联邦接收的载体都是签名 `ck.schema.event.v1` Event Envelope（DataEvent 携带 `seal_ref`，Control Move 携带 `seal_basis`），由 §3 节点间认证 + §4.1 service binding 快照保护，由接收方按 §4.1.0 独立验证签名 / 因果链 / CBA basis / Seal。不存在第二套按对象类型分轨（如把 Move、Anchor、Operation 拆成不同接收 endpoint）的联邦接收形态。
+- **实现私有 peer 入站轨 MUST NOT 作为联邦互通入口**：实现可以在自己的 negative-space root（如 `/_<impl>/peer/...`）下保留部署本地的内部接收 / 调试路径，但这类私有轨 MUST NOT 被任何跨厂商 / 跨 deployment 对端当作联邦投递目标，MUST NOT 接受外部 federation peer 的 Move / Anchor / Operation 推送，也 MUST NOT 在 `GET /_cokret/describe` 的 `supported_operations` 中作为 federation surface 宣告。它们只能降级为**只读调试 / 部署本地内部** affordance，或整体移除；保留时 MUST 在 `profile_limitations()` 等价声明中标注为 deployment-local-only、非互通入口，且 MUST 与 `/_cokret/peer/events` 施加同等或更严的 §3 service-to-service 认证与授权（不得出现"私有轨有 9421 验签、协议轨反而没有"的姿态倒挂——协议轨 `/_cokret/peer/events` 的 §3.2 RFC 9421 service signature 是 MUST，私有轨不得以更弱姿态接收外部流量）。
+- 任一对端把实现私有 peer 轨当作联邦投递目标，或任一接收方在私有轨上接受外部 federation 写入，均视为 federation profile violation；跨 deployment 互通声明（`ck.profile.federation_minimal.v1` 等）只覆盖 `/_cokret/peer/*` 协议轨。
+
+> 单轨收敛同时消除了双轨各自演化、验签 / policy 闸门姿态倒挂的风险：唯一受 conformance gate 的联邦接收轨是 `/_cokret/peer/events`，其 9421 验签、trust-domain、destination binding、reducer-profile digest 与最小披露失败语义均由 §3 / §4.1 强制。
+
 ### 4.1 推送模式 (Push)
 
 > **v1 联邦使用专用 peer HTTP API surface**。跨域 Event 推送、拉取、补洞、frontier probe 与 snapshot bootstrap 必须使用 `/_cokret/peer/*` 路径和 `ck.peer.*` operation_id。`/_cokret/self/*` 是当前 principal / 自服务会话攻击面，不承接 federation server-to-server wire。本节描述的所有规则适用于 `ck.peer.events.*` / `ck.peer.snapshot.query.manifest_head` 调用。

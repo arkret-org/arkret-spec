@@ -88,6 +88,22 @@ Cokret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织�
 
 新增顶层 REST 命名空间前，规范必须同步更新 `contract-catalog.json#operation_registry`、OpenAPI path、必要的 request/response schema refs、feature discovery 返回值和对应 conformance profile；`artifacts/reports/operation-schema-index.json` 由 pipeline 生成并用于复核 DTO 字段集合。实现不得用未声明路径绕过 canonical operation、capability、幂等、分页或错误语义。
 
+#### 2.1.2 Conformance / Debug 命名空间（test-only，profile-gated，normative）
+
+测试 harness、conformance runner、活体调试需要一些**非生产**观测 / 注入能力（例如直接读取内部 reducer cell 状态、强制推进 HLC、清空幂等缓存、dump seal DAG、回放固定 fixture）。这些能力 **MUST NOT** 伪装成协议生产面 operation，也 **MUST NOT** 复用 §2.1 表中任何生产 trust-surface 段（`self` / `gate` / `root` / `find` / `peer` / `open` / `edge`）。规范为它们保留**单一专用命名空间**：
+
+```text
+/_cokret/_conformance/*
+```
+
+- `_conformance` 段首字符 `_` 表明它**不是** §2.1 的生产 trust-surface classifier，而是 test-only 保留段。所有测试 / 调试 / fixture-replay / 内部状态注入 / 内部状态 dump 端点 MUST 落在该段下；实现 MUST NOT 在生产 trust-surface 段下新增此类端点。
+- **暴露门（profile-gated，MUST）**：`/_cokret/_conformance/*` **仅在** 实现显式声明 `ck.profile.conformance_harness.v1`（test / conformance build profile）时暴露。**生产 profile（任何 `claimed_profiles` / `verified_profiles` 不含 `ck.profile.conformance_harness.v1` 的部署）MUST NOT 路由该命名空间**：路由层 MUST 对 `/_cokret/_conformance/*` 返回与未知路径相同的 `404 unrecognized_endpoint`，不得进入业务逻辑，也不得在 `GET /_cokret/describe` 的 `supported_operations` / `supported_features` 中宣告。该命名空间下的 operation MUST NOT 进入 `contract-catalog.json#operation_registry` 的生产 operation 集，也 MUST NOT 出现在 OpenAPI 生产 binding 中。
+- **生命周期（MUST）**：`_conformance` 端点是 ephemeral test affordance，不是稳定互操作契约。它们 MUST NOT 被任何对端实现作为协议依赖消费——通用客户端、Principal Server、Sync Service、federation peer、Applet、Push Gateway、yougen / sodmin 等生产组件 MUST NOT 调用、探测或依赖另一实现的 `_conformance` 端点。test build 之外的代码路径 MUST NOT 引用该命名空间。任一组件把 `_conformance` 端点当作生产能力消费即视为 profile violation。
+- **test-only 能力集（normative 边界）**：以下类别属于 `_conformance` test-only 集——(a) 内部状态读出（reducer cell / seal DAG / bottom diagnostics / 幂等缓存内容的非授权裸读）；(b) 状态注入 / 强制推进（直接写 cell、强制 HLC、伪造 frontier、跳过 seal 覆盖）；(c) fixture replay / 确定性种子；(d) 时间 / 时钟 / 限流旁路；(e) 任何绕过 capability / Realm policy / history visibility / 签名校验的 inspection。生产面**永不**提供以上能力；需要协议级可观测性的生产场景（如 §5.3 的 `event_state` / `bottom` 暴露）走已注册的生产 operation，不走 `_conformance`。
+- **conformance 验证自身**：`ck.profile.conformance_harness.v1` 是 test build profile，**不构成** v1 core 互操作 profile，也不进入对端 fast-path 能力命中判断；声明它的部署 MUST 在 `development_mode=true` 或等价 test build 标记下运行，且 MUST NOT 同时对外宣告生产 `verified_profiles`（与 [`service-surface.md` §3.0](./service-surface.md) 的 `development_mode=true ⇒ verified_profiles=[]` 约束一致）。
+
+§2.1.1 的"部署私有审批面必须放在实现自己的 negative-space root 下"是同一原则的另一面：私有**产品**面放实现自己的 root；test-only **调试 / conformance** 面放 `/_cokret/_conformance/*` 并受 `ck.profile.conformance_harness.v1` gate。二者都不得污染生产 trust-surface 段，也都不得列入 v1 core conformance 的生产 operation 集。
+
 ### 2.2 端点契约规则
 
 每个 REST endpoint 的规范定义必须至少包含：

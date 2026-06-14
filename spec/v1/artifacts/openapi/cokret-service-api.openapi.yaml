@@ -304,6 +304,9 @@ components:
               - soft_logged_out
               - did_proof_required
               - invalid_signature
+              - http_signature_required
+              - http_signature_invalid
+              - signature_window_invalid
               - capability_denied
               - realm_frozen
               - claim_required

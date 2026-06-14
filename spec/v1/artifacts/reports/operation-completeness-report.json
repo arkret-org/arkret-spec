@@ -2017,19 +2017,6 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.projection.strands.query.list",
-      "tier": "extension",
-      "http": "GET /_cokret/self/projection/strands",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": null,
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionStrandList",
-      "openapi_component_refs": {
-        "response": "#/components/schemas/ProjectionStrandList"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
       "operation_id": "ck.self.projection.morphs.query.list",
       "tier": "extension",
       "http": "GET /_cokret/self/projection/morphs",
@@ -2051,6 +2038,19 @@
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpaceList",
       "openapi_component_refs": {
         "response": "#/components/schemas/ProjectionSpaceList"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.projection.strands.query.list",
+      "tier": "extension",
+      "http": "GET /_cokret/self/projection/strands",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionStrandList",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/ProjectionStrandList"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."

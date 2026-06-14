@@ -68,6 +68,36 @@
       "description": "A required signature or proof does not verify."
     },
     {
+      "code": "http_signature_required",
+      "http_status": 401,
+      "scope": "endpoint",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "A service-to-service request that MUST carry a per-delivery RFC 9421 HTTP Message Signature presented only Authorization: Bearer with no Signature. Applies to Applet transaction push in both directions (node->Applet and app/bridge->cokret edge inbound). See zh/extensions/applet-integration.md §7.3.1."
+    },
+    {
+      "code": "http_signature_invalid",
+      "http_status": 401,
+      "scope": "endpoint",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "A per-delivery RFC 9421 HTTP Message Signature failed verification, Content-Digest did not cover the canonical body, or source_service_did disagreed with the Source-Service-DID header / signature transcript. See zh/extensions/applet-integration.md §7.3.1."
+    },
+    {
+      "code": "signature_window_invalid",
+      "http_status": 401,
+      "scope": "endpoint",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "A per-delivery HTTP Message Signature created/expires parameters fell outside the protocol freshness window (expires-created over 300s, created skew over +/-30s, or expires already past), including byte-identical replays after the bounded replay cache evicted the entry. Window judged per zh/sync/federation.md §3.2. See zh/extensions/applet-integration.md §7.3.1."
+    },
+    {
       "code": "directory_not_authorized",
       "http_status": 403,
       "scope": "service_call",
