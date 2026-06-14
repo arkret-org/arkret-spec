@@ -99,7 +99,7 @@
           "kind": "ck.capability.revoke",
           "hlc": "01970e589d22-0001-a13f9c2e",
           "payload": {
-            "grant_ref": "ck:grant:0196410c-0800-7000-8000-000000000000"
+            "grant_id": "ck:grant:0196410c-0800-7000-8000-000000000000"
           }
         },
         {
@@ -126,6 +126,146 @@
       ],
       "expected": {
         "event_id": "ck:event:019640ee-0000-7000-8000-000000000000",
+        "decision": "deny",
+        "reason_code": "grant_revoked_before_event_frontier"
+      }
+    },
+    {
+      "name": "repeated_revoke_same_grant_is_idempotent_and_denies",
+      "events": [
+        {
+          "event_id": "ck:event:019640f0-0000-7000-8000-000000000000",
+          "kind": "ck.capability.grant",
+          "hlc": "01970e589d30-0001-a13f9c2e",
+          "payload": {
+            "grant_id": "ck:grant:0196410c-1000-7000-8000-000000000000",
+            "subject": "did:web:alice.example",
+            "actions": [
+              "ck.flow.update"
+            ],
+            "resources": [
+              {
+                "kind": "flow",
+                "flow_id": "ck:flow:019640c5-0000-7000-8000-000000000000"
+              }
+            ]
+          }
+        },
+        {
+          "event_id": "ck:event:019640f2-0000-7000-8000-000000000000",
+          "kind": "ck.capability.revoke",
+          "hlc": "01970e589d31-0001-a13f9c2e",
+          "payload": {
+            "grant_id": "ck:grant:0196410c-1000-7000-8000-000000000000"
+          }
+        },
+        {
+          "event_id": "ck:event:019640f4-0000-7000-8000-000000000000",
+          "kind": "ck.capability.revoke",
+          "hlc": "01970e589d32-0001-a13f9c2e",
+          "payload": {
+            "grant_id": "ck:grant:0196410c-1000-7000-8000-000000000000"
+          }
+        },
+        {
+          "event_id": "ck:event:019640f6-0000-7000-8000-000000000000",
+          "kind": "ck.flow.update",
+          "hlc": "01970e589d33-0001-a13f9c2e",
+          "refs": [
+            {
+              "id": "ck:event:019640f0-0000-7000-8000-000000000000",
+              "role": "authorized_by",
+              "critical": true
+            }
+          ],
+          "payload": {
+            "target_ref": "ck:flow:019640c5-0000-7000-8000-000000000000",
+            "patch": {
+              "metadata.title": {
+                "$op": "set",
+                "value": "After double revoke"
+              }
+            }
+          }
+        }
+      ],
+      "expected": {
+        "event_id": "ck:event:019640f6-0000-7000-8000-000000000000",
+        "decision": "deny",
+        "reason_code": "grant_revoked_before_event_frontier"
+      }
+    },
+    {
+      "name": "regrant_same_grant_id_after_revoke_stays_revoked",
+      "events": [
+        {
+          "event_id": "ck:event:019640f8-0000-7000-8000-000000000000",
+          "kind": "ck.capability.grant",
+          "hlc": "01970e589d34-0001-a13f9c2e",
+          "payload": {
+            "grant_id": "ck:grant:0196410c-1400-7000-8000-000000000000",
+            "subject": "did:web:alice.example",
+            "actions": [
+              "ck.flow.update"
+            ],
+            "resources": [
+              {
+                "kind": "flow",
+                "flow_id": "ck:flow:019640c5-0000-7000-8000-000000000000"
+              }
+            ]
+          }
+        },
+        {
+          "event_id": "ck:event:019640fa-0000-7000-8000-000000000000",
+          "kind": "ck.capability.revoke",
+          "hlc": "01970e589d35-0001-a13f9c2e",
+          "payload": {
+            "grant_id": "ck:grant:0196410c-1400-7000-8000-000000000000"
+          }
+        },
+        {
+          "event_id": "ck:event:019640fc-0000-7000-8000-000000000000",
+          "kind": "ck.capability.grant",
+          "hlc": "01970e589d36-0001-a13f9c2e",
+          "payload": {
+            "grant_id": "ck:grant:0196410c-1400-7000-8000-000000000000",
+            "subject": "did:web:alice.example",
+            "actions": [
+              "ck.flow.update"
+            ],
+            "resources": [
+              {
+                "kind": "flow",
+                "flow_id": "ck:flow:019640c5-0000-7000-8000-000000000000"
+              }
+            ]
+          }
+        },
+        {
+          "event_id": "ck:event:019640fe-0000-7000-8000-000000000000",
+          "kind": "ck.flow.update",
+          "hlc": "01970e589d37-0001-a13f9c2e",
+          "refs": [
+            {
+              "id": "ck:event:019640fc-0000-7000-8000-000000000000",
+              "role": "authorized_by",
+              "critical": true
+            }
+          ],
+          "payload": {
+            "target_ref": "ck:flow:019640c5-0000-7000-8000-000000000000",
+            "patch": {
+              "metadata.title": {
+                "$op": "set",
+                "value": "After re-grant"
+              }
+            }
+          }
+        }
+      ],
+      "expected": {
+        "event_id": "ck:event:019640fe-0000-7000-8000-000000000000",
         "decision": "deny",
         "reason_code": "grant_revoked_before_event_frontier"
       }

@@ -679,6 +679,19 @@ Cokret v1 采用 allow-grant + explicit revoke 模型。
 
 v1 canonical `ck.capability.revoke` payload MUST 携带顶层 `grant_id`；registry cell_subject 从 `payload.grant_id` 派生。
 
+**撤销的控制面定位与生效切点（normative）**：`ck.capability.revoke` 是控制面 Control Move。其**授权基准**由信封 `seal_basis` 表达（撤销发起者在其控制面链上当时的 Seal basis），payload **MUST NOT** 携带任何 frontier / event-digest 数组（v1 不存在 `revocation_frontier`；与 [`event-auth-state-resolution.md` §5–§6](./event-auth-state-resolution.md) 的 Control Move 信封纪律一致）。撤销的**生效切点**是覆盖该 revoke 的 **accepted Seal**：按 [`event-auth-state-resolution.md` §6.3](./event-auth-state-resolution.md) 的 Seal 接受规则，revoke 的 effect 在其所属 Control Move 被某个 accepted Seal 的 `delta[]` 覆盖并原子应用后才生效；在该 Seal 被接受之前，revoke 不改变有效权限集合。§18.2 的 freshness 是与生效切点**正交**的窗口置信判定（回答"当前 basis 是否够新、足以排除尚未观察到的 revoke"），而非生效切点本身；freshness 为 `stale` / `unknown` 时按 §18.2 风险表 fail-closed，**MUST NOT** 把"未观察到 revoke"当作"未撤销"。该模型与 [`../identity/consent-model.md`](../identity/consent-model.md) 的 consent revoke 完全平行（consent 同为 or_set 控制 cell、revoke 在 `seal_basis` view 下解析、被 accepted Seal 覆盖后生效）。
+
+### 12.1 Grant cell 的确定性收敛（normative）
+
+capability 授权状态投影到 cell family `ck.component.capability.grant.v1`（见 [`registry/event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 的 `ck.capability.grant` / `ck.capability.revoke`），`cell_subject` 从 `payload.grant_id` 派生（每个 `grant_id` 一个 cell），`lattice = or_set`；`ck.capability.delegate` 投影到 `ck.component.capability.delegate.v1`（同收敛规则，另以 `refs[role="parent_grant"]` 维护 delegation 链，见 §10）。收敛规则：
+
+- **grant** = 对该 grant cell 的 or_set **add**：add dot = 该 `ck.capability.grant` 事件的 `ck:event:<event_id>:<effect_index>`，value = grant 的 canonical 快照。
+- **revoke** = 对**同一** grant cell 的 or_set **remove**，observe 该 grant 的 add dot（与 [`../identity/consent-model.md`](../identity/consent-model.md) 的 consent revoke `observed_dots` 语义一致）。`ck.capability.revoke` 以顶层 `grant_id` 定位目标 cell；reducer **MUST** 在该 revoke Control Move 的 `seal_basis` view 下把目标 grant 的 add dot 解析为合法 add op 后再 supersede。已被 observe-remove 的 add **MUST NOT** 因同 `grant_id` 的后续 re-add / 重放而复活（remove-after-observed-add 为终态）；多 issuer 并发 revoke 同一 grant 收敛于 or_set 的去重语义。
+- **有效性** = 该 grant cell or_set join 后仍存活（未被 observed-remove）的 add 所对应的 grant 快照。`bottom` 对 or_set **inert**：or_set join 永不产生 ⊥，[`registry/event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 中该 cell 的 `bottom = reject` 为 registry 声明的占位值，reducer **MUST NOT** 据其产生任何 reject 语义（与 [`../identity/consent-model.md`](../identity/consent-model.md) 对 or_set `bottom` 的 inert 处理一致）；有效权限集合始终由 or_set join 决定。
+- **GC / tombstone**：已被 sealed 的 grant / revoke 历史保留审计事实（§10.3 第 4 点）；GC 后 cell **MUST** 保留足以判定"该 `grant_id` 当前是否仍授权"的 tombstone，snapshot / range completeness / export **MUST NOT** 把已 revoke 的 grant 再计为"当前仍授权"。
+
+conformance：[`capability-fixture.json`](../../artifacts/fixtures/capability-fixture.json) **MUST** 覆盖 (a) grant → use → revoke → deny 序列、(b) 同一 grant 重复 / 并发 revoke 的幂等去重收敛、(c) revoke 后以同 `grant_id` re-add 仍保持已撤销（终态不复活）。freshness `unknown` 下高风险 action fail-closed 由 §18.2 风险表规范并据其验证。
+
 ## 13. Invite、通知与已读状态
 
 invite / notification / read-cursor 等用户可见操作 MUST 由对应 capability action 授权（见下列）；实现 MUST NOT 通过权限模型之外的私有通道授予这些操作。
