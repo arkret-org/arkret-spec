@@ -42,7 +42,7 @@
         "actor search and mention search",
         "handle resolve",
         "push announce with signed discovery proof and mock Principal Server source-ref",
-        "private contact discovery blind/match flow",
+        "private contact discovery blind/match strand",
         "admin allowlist CRUD, audit feed, resource browser, and operator takedown"
       ]
     },

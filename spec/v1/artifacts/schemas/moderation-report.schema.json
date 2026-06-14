@@ -23,7 +23,7 @@
     },
     "target_ref": {
       "type": "string",
-      "pattern": "^(ck:(event|flow|realm|message|morph|relation|view|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ck:blob:sha256:[0-9a-f]{64})$"
+      "pattern": "^(ck:(event|strand|realm|message|morph|relation|view|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ck:blob:sha256:[0-9a-f]{64})$"
     },
     "report_reason_code": {
       "type": "string",

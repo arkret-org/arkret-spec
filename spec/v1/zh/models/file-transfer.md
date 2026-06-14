@@ -29,7 +29,7 @@ see_also:
 - 用 `ck.self.account.stream.subscribe` 把 account-data 更新同步到 holder 的其它授权设备。
 - 用 `ck.self.device_messages.command.send` / `ck.self.device_messages.query.list` 承载 device-bound key delivery（见 §4.2）。
 
-文件传输记录 MUST NOT 写入共享 Realm history。用户之后若选择把该文件发送到某个聊天、Flow 或共享对象，客户端 MUST 重新执行目标 Event.kind 的授权检查，并生成新的共享 Event；不得把 file-transfer account-data key、file-transfer 密文 value、私有 `content_key` 或本地传输历史复制到 shared payload。
+文件传输记录 MUST NOT 写入共享 Realm history。用户之后若选择把该文件发送到某个聊天、Strand 或共享对象，客户端 MUST 重新执行目标 Event.kind 的授权检查，并生成新的共享 Event；不得把 file-transfer account-data key、file-transfer 密文 value、私有 `content_key` 或本地传输历史复制到 shared payload。
 
 ## 2. 存储与 key 派生
 
@@ -122,7 +122,7 @@ Blob GC 仍按 [media-and-blob.md](../crypto-media/media-and-blob.md) §8 执行
 
 ## 8. 与共享附件的关系
 
-File transfer 是 holder-private inbox，不是可共享附件对象。把文件转发到 Realm / Flow / Message 时，客户端 MUST 选择下列路径之一：
+File transfer 是 holder-private inbox，不是可共享附件对象。把文件转发到 Realm / Strand / Message 时，客户端 MUST 选择下列路径之一：
 
 - 为目标 Realm / Circle 重新加密并上传新的 Realm-bound Blob，然后在新的 `ck.message.create` 或其它共享 Event 中引用该 Blob。
 - 若 policy 明确允许复用同一 ciphertext Blob，生成新的共享 Event 只引用目标授权所需的 Blob descriptor，并重新包装目标 recipient 能解开的内容 key；不得复用 file-transfer account-data 的 `content_key` 字段。

@@ -226,13 +226,13 @@
         "bottom": "reject"
       },
       {
-        "event_kind": "ck.realm.set_default_flow",
+        "event_kind": "ck.realm.set_default_strand",
         "category": "realm",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Sets / changes the Realm's authoritative default discussion Flow pointer. payload = {realm_id, flow_id}; reducer projects payload.flow_id into the Realm projection default_flow_id (single authoritative pointer; avoids multi-default dirty state). Reducer MUST verify the referenced flow_id already exists in this Realm (a projected, non-tombstoned Flow); a dangling reference MUST be rejected with failed_precondition. Flow-side is_default is a derived marker (flow_id == realm.default_flow_id), never independent storage; clients discover the default Flow deterministically from the Realm projection default_flow_id or the Flow projection is_default, NOT from any UUID-reuse implementation detail. Authorization is the standard Realm-admin gate (hold ck.realm.admin, or the same-name action ck.realm.set_default_flow).",
-        "cell_family": "ck.component.realm.set_default_flow.v1",
+        "payload": "Sets / changes the Realm's authoritative default discussion Strand pointer. payload = {realm_id, strand_id}; reducer projects payload.strand_id into the Realm projection default_strand_id (single authoritative pointer; avoids multi-default dirty state). Reducer MUST verify the referenced strand_id already exists in this Realm (a projected, non-tombstoned Strand); a dangling reference MUST be rejected with failed_precondition. Strand-side is_default is a derived marker (strand_id == realm.default_strand_id), never independent storage; clients discover the default Strand deterministically from the Realm projection default_strand_id or the Strand projection is_default, NOT from any UUID-reuse implementation detail. Authorization is the standard Realm-admin gate (hold ck.realm.admin, or the same-name action ck.realm.set_default_strand).",
+        "cell_family": "ck.component.realm.set_default_strand.v1",
         "cell_subject": null,
         "lattice": "cas_register",
         "bottom": "reject"
@@ -807,108 +807,82 @@
         "bottom": "expose"
       },
       {
-        "event_kind": "ck.flow.create",
-        "category": "flow",
+        "event_kind": "ck.strand.create",
+        "category": "strand",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Flow create"
+        "payload": "Strand create"
       },
       {
-        "event_kind": "ck.flow.update",
-        "category": "flow",
+        "event_kind": "ck.strand.update",
+        "category": "strand",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Flow patch",
-        "cell_family": "ck.component.flow.metadata.v1",
+        "payload": "Strand patch",
+        "cell_family": "ck.component.strand.metadata.v1",
         "cell_subject": {
-          "type": "id:flow",
-          "field": "payload.flow_id"
+          "type": "id:strand",
+          "field": "payload.strand_id"
         },
         "lattice": "cas_register",
         "bottom": "reject"
       },
       {
-        "event_kind": "ck.flow.archive",
-        "category": "flow",
+        "event_kind": "ck.strand.archive",
+        "category": "strand",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Flow archive"
+        "payload": "Strand archive"
       },
       {
-        "event_kind": "ck.flow.restore",
-        "category": "flow",
+        "event_kind": "ck.strand.restore",
+        "category": "strand",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Flow restore"
+        "payload": "Strand restore"
       },
       {
-        "event_kind": "ck.flow.stage.set",
-        "category": "flow",
+        "event_kind": "ck.strand.stage.set",
+        "category": "strand",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Flow business-progression stage transition. Single source of truth for mutating Flow.stage / Flow.stage_changed_at; ck.flow.update patch on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on the Flow's discussion track that 'references' this event, and the event log's own actor_id / created_at is the audit source. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=flow_already_terminal; state=archived yields flow_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at. A per-Realm workflow profile MAY narrow which transitions are legal beyond these hard invariants.",
-        "cell_family": "ck.component.flow.stage.v1",
+        "payload": "Strand business-progression stage transition. Single source of truth for mutating Strand.stage / Strand.stage_changed_at; ck.strand.update patch on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on the Strand's discussion track that 'references' this event, and the event log's own actor_id / created_at is the audit source. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=strand_already_terminal; state=archived yields strand_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at. A per-Realm workflow profile MAY narrow which transitions are legal beyond these hard invariants.",
+        "cell_family": "ck.component.strand.stage.v1",
         "cell_subject": {
-          "type": "id:flow",
-          "field": "payload.flow_id"
+          "type": "id:strand",
+          "field": "payload.strand_id"
         },
         "lattice": "cas_register",
         "bottom": "reject"
       },
       {
-        "event_kind": "ck.flow.tracks.update",
-        "category": "flow",
+        "event_kind": "ck.strand.tracks.update",
+        "category": "strand",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Unified Flow tracks patch. payload.patch uses ck.patch.v1 against the Flow.tracks map: keys are track names (e.g. `synthesis`, `discussion`), values are patch ops that may toggle enabled, set is_primary, or modify profile / metadata on a track entry. Atomic across multiple tracks.",
-        "cell_family": "ck.component.flow.tracks.v1",
+        "payload": "Unified Strand tracks patch. payload.patch uses ck.patch.v1 against the Strand.tracks map: keys are track names (e.g. `synthesis`, `discussion`), values are patch ops that may toggle enabled, set is_primary, or modify profile / metadata on a track entry. Atomic across multiple tracks.",
+        "cell_family": "ck.component.strand.tracks.v1",
         "cell_subject": {
-          "type": "id:flow",
-          "field": "payload.flow_id"
+          "type": "id:strand",
+          "field": "payload.strand_id"
         },
         "lattice": "cas_register",
         "bottom": "reject"
       },
       {
-        "event_kind": "ck.flow.move",
-        "category": "flow",
+        "event_kind": "ck.strand.move",
+        "category": "strand",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Flow move between Spaces (target_space_id in payload). Writes a cas_register cell keyed by (board_space_id, flow_id); the contains Relation list_space_id->flow_id is derived from cell value, not a separate truth source. Plane ruling (CBA): ck.component.flow.position.v1 defaults to sealed=true (control plane), so ck.flow.move is a Control Move carrying seal_basis; Realm schema MAY redeclare the cell family as data-plane mv_register + user-pick or per-object sequencer per authz/event-auth-state-resolution.md section 9.4 and models/realm-and-space.md section 3.6.",
-        "cell_family": "ck.component.flow.position.v1",
-        "cell_subject": {
-          "type": "tuple",
-          "components": [
-            {
-              "name": "board_space_id",
-              "type": "id:space",
-              "field": "payload.board_space_id"
-            },
-            {
-              "name": "flow_id",
-              "type": "id:flow",
-              "field": "payload.flow_id"
-            }
-          ]
-        },
-        "lattice": "cas_register",
-        "bottom": "reject"
-      },
-      {
-        "event_kind": "ck.flow.reorder",
-        "category": "flow",
-        "status": "active",
-        "wire_scope": "durable_event",
-        "reducer_input": true,
-        "payload": "Flow reorder within Space. Writes the same cell as ck.flow.move; effect.list_space_id MUST equal head_eq.list_space_id (rank-only update). Plane ruling follows ck.flow.move: same cell family, same default sealed=true control-plane declaration (models/realm-and-space.md section 3.6).",
-        "cell_family": "ck.component.flow.position.v1",
+        "payload": "Strand move between Spaces (target_space_id in payload). Writes a cas_register cell keyed by (board_space_id, strand_id); the contains Relation list_space_id->strand_id is derived from cell value, not a separate truth source. Plane ruling (CBA): ck.component.strand.position.v1 defaults to sealed=true (control plane), so ck.strand.move is a Control Move carrying seal_basis; Realm schema MAY redeclare the cell family as data-plane mv_register + user-pick or per-object sequencer per authz/event-auth-state-resolution.md section 9.4 and models/realm-and-space.md section 3.6.",
+        "cell_family": "ck.component.strand.position.v1",
         "cell_subject": {
           "type": "tuple",
           "components": [
@@ -918,9 +892,9 @@
               "field": "payload.board_space_id"
             },
             {
-              "name": "flow_id",
-              "type": "id:flow",
-              "field": "payload.flow_id"
+              "name": "strand_id",
+              "type": "id:strand",
+              "field": "payload.strand_id"
             }
           ]
         },
@@ -928,20 +902,46 @@
         "bottom": "reject"
       },
       {
-        "event_kind": "ck.flow.watch.set",
+        "event_kind": "ck.strand.reorder",
+        "category": "strand",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Strand reorder within Space. Writes the same cell as ck.strand.move; effect.list_space_id MUST equal head_eq.list_space_id (rank-only update). Plane ruling follows ck.strand.move: same cell family, same default sealed=true control-plane declaration (models/realm-and-space.md section 3.6).",
+        "cell_family": "ck.component.strand.position.v1",
+        "cell_subject": {
+          "type": "tuple",
+          "components": [
+            {
+              "name": "board_space_id",
+              "type": "id:space",
+              "field": "payload.board_space_id"
+            },
+            {
+              "name": "strand_id",
+              "type": "id:strand",
+              "field": "payload.strand_id"
+            }
+          ]
+        },
+        "lattice": "cas_register",
+        "bottom": "reject"
+      },
+      {
+        "event_kind": "ck.strand.watch.set",
         "category": "discussion",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Set or clear a per-(flow, actor) watch subscription. Writes a cas_register cell keyed by (flow_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds ck.flow.watch.set.others. Cross-actor writes MUST carry refs[role=audit_pair] to a same-batch ck.audit.accessed event with access_kind=watch_set_others. The watches Relation (actor --watches--> flow) is a derived projection of this cell, not a separate truth source — direct ck.relation.create relation_kind=watches MUST schema_violation. See models/flow-and-message.md §8.",
-        "cell_family": "ck.component.flow.watch.v1",
+        "payload": "Set or clear a per-(strand, actor) watch subscription. Writes a cas_register cell keyed by (strand_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds ck.strand.watch.set.others. Cross-actor writes MUST carry refs[role=audit_pair] to a same-batch ck.audit.accessed event with access_kind=watch_set_others. The watches Relation (actor --watches--> strand) is a derived projection of this cell, not a separate truth source — direct ck.relation.create relation_kind=watches MUST schema_violation. See models/strand-and-message.md §8.",
+        "cell_family": "ck.component.strand.watch.v1",
         "cell_subject": {
           "type": "tuple",
           "components": [
             {
-              "name": "flow_id",
-              "type": "id:flow",
-              "field": "payload.flow_id"
+              "name": "strand_id",
+              "type": "id:strand",
+              "field": "payload.strand_id"
             },
             {
               "name": "watcher_actor_id",
@@ -990,7 +990,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Space archive (UI-level grouping archive; contained Flows MUST be relocated or follow archive)"
+        "payload": "Space archive (UI-level grouping archive; contained Strands MUST be relocated or follow archive)"
       },
       {
         "event_kind": "ck.space.restore",
@@ -1006,7 +1006,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Space tombstone (irreversible; contained Flows MUST be relocated before)"
+        "payload": "Space tombstone (irreversible; contained Strands MUST be relocated before)"
       },
       {
         "event_kind": "ck.message.create",
@@ -1015,10 +1015,10 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "payload": "Message create",
-        "cell_family": "ck.component.flow.discussion.timeline.v1",
+        "cell_family": "ck.component.strand.discussion.timeline.v1",
         "cell_subject": {
-          "type": "id:flow",
-          "field": "payload.flow_id"
+          "type": "id:strand",
+          "field": "payload.strand_id"
         },
         "lattice": "ordered_log",
         "bottom": "expose"
@@ -1071,7 +1071,7 @@
       },
       {
         "event_kind": "ck.rsvp.set",
-        "category": "flow",
+        "category": "strand",
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
@@ -1617,7 +1617,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "Principal-scoped binding from unordered participant pair to canonical DM Realm and main Flow.",
+        "payload": "Principal-scoped binding from unordered participant pair to canonical DM Realm and main Strand.",
         "cell_family": "ck.component.direct_conversation.binding.v1",
         "cell_subject": {
           "type": "string",
@@ -2150,7 +2150,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Submit an appeal against an existing ck.moderation.decision. Writes the appeal cell to state=submitted. Schema: ck.schema.moderation_appeal.v1. See zh/governance/content-moderation.md §5.5 (appeal flow).",
+        "payload": "Submit an appeal against an existing ck.moderation.decision. Writes the appeal cell to state=submitted. Schema: ck.schema.moderation_appeal.v1. See zh/governance/content-moderation.md §5.5 (appeal strand).",
         "cell_family": "ck.component.moderation.appeal.v1",
         "cell_subject": {
           "type": "string",
@@ -2479,8 +2479,8 @@
         "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or policy server. Introduced by CKP-0007; see zh/models/circle.md."
       },
       {
-        "schema_id": "ck.schema.flow.v1",
-        "file": "schemas/flow.schema.json"
+        "schema_id": "ck.schema.strand.v1",
+        "file": "schemas/strand.schema.json"
       },
       {
         "schema_id": "ck.schema.message.v1",
@@ -2508,7 +2508,7 @@
         "schema_id": "ck.schema.calendar_event.v1",
         "file": "schemas/calendar-event.schema.json",
         "status": "active",
-        "description": "Profile fields for calendar-event Flows."
+        "description": "Profile fields for calendar-event Strands."
       },
       {
         "schema_id": "ck.schema.rsvp.v1",
@@ -2721,7 +2721,7 @@
         "schema_id": "ck.schema.recovery_receipt.v1",
         "file": "schemas/recovery-receipt.schema.json",
         "status": "active",
-        "description": "Signed completion receipt for a principal recovery flow. Bound to recovery_session_id used by every proof, backup unlock, and MLS Welcome replay during the recovery. See crypto-media/device-lifecycle.md §15 step 7."
+        "description": "Signed completion receipt for a principal recovery strand. Bound to recovery_session_id used by every proof, backup unlock, and MLS Welcome replay during the recovery. See crypto-media/device-lifecycle.md §15 step 7."
       },
       {
         "schema_id": "ck.schema.notification.v1",
@@ -3108,7 +3108,7 @@
         "category": "identity",
         "status": "active",
         "wire_form": "ck:backup_series:<uuid>",
-        "description": "Stable identifier for one chain of encrypted backup envelopes belonging to a single (actor_id, backup_class). A pair MAY have multiple series during rotation or migration; the active series is selected by the signed active-series record, not by server return order. Used by ck.schema.key_backup.v1.series_id and recovery flows to detect rollback. See identity/key-management.md §7.6."
+        "description": "Stable identifier for one chain of encrypted backup envelopes belonging to a single (actor_id, backup_class). A pair MAY have multiple series during rotation or migration; the active series is selected by the signed active-series record, not by server return order. Used by ck.schema.key_backup.v1.series_id and recovery strands to detect rollback. See identity/key-management.md §7.6."
       },
       {
         "kind": "batch",
@@ -3160,11 +3160,11 @@
         "description": "Circle object ID — intra-Realm scoped event/message boundary. Hosts its own membership (strict subset of parent Realm.members), history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity, policy server, or capability registry — those remain on the parent Realm. See zh/models/circle.md."
       },
       {
-        "kind": "flow",
+        "kind": "strand",
         "category": "core_object",
         "status": "active",
-        "wire_form": "ck:flow:<uuid>",
-        "description": "Flow object ID"
+        "wire_form": "ck:strand:<uuid>",
+        "description": "Strand object ID"
       },
       {
         "kind": "chunk",
@@ -3297,7 +3297,7 @@
         "category": "identity",
         "status": "active",
         "wire_form": "ck:recovery_session:<uuid>",
-        "description": "Stable session identifier bound by every proof transcript, backup decrypt proof and MLS Welcome replay during one recovery flow. Referenced by ck.schema.recovery_receipt.v1 and by §15 recovery proofs. See crypto-media/device-lifecycle.md §15."
+        "description": "Stable session identifier bound by every proof transcript, backup decrypt proof and MLS Welcome replay during one recovery strand. Referenced by ck.schema.recovery_receipt.v1 and by §15 recovery proofs. See crypto-media/device-lifecycle.md §15."
       },
       {
         "kind": "attestation",
@@ -3639,7 +3639,7 @@
         "tier": "extension",
         "operations": [
           "ck.self.projection.spaces.query.list",
-          "ck.self.projection.flows.query.list",
+          "ck.self.projection.strands.query.list",
           "ck.self.projection.morphs.query.list",
           "ck.self.views.collection_projection.command.materialize",
           "ck.self.projection.document.resource.get"
@@ -4138,7 +4138,7 @@
         "http": "POST /_cokret/self/direct-conversations/resolve",
         "grpc": "SelfDirectConversation/Resolve",
         "mq": "self.direct_conversation.command.resolve",
-        "notes": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent; create=true creates canonical DM Realm, main Flow, and binding.",
+        "notes": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent; create=true creates canonical DM Realm, main Strand, and binding.",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_request_body",
         "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_outcome"
@@ -4745,7 +4745,7 @@
       },
       {
         "operation_id": "ck.open.mimi.query.group_info",
-        "http": "GET /_cokret/open/mimi/flows/{flow_id}/group-info",
+        "http": "GET /_cokret/open/mimi/strands/{strand_id}/group-info",
         "grpc": "OpenMimi/GroupInfo",
         "mq": "open.mimi.query.group_info",
         "success_shape_kind": "typed_response",
@@ -4771,7 +4771,7 @@
       },
       {
         "operation_id": "ck.open.mimi.command.notify",
-        "http": "POST /_cokret/open/mimi/flows/{flow_id}/notify",
+        "http": "POST /_cokret/open/mimi/strands/{strand_id}/notify",
         "grpc": "OpenMimi/Notify",
         "mq": "open.mimi.command.notify",
         "success_shape_kind": "typed_response",
@@ -4817,7 +4817,7 @@
       },
       {
         "operation_id": "ck.open.mimi.command.update_room",
-        "http": "POST /_cokret/open/mimi/flows/{flow_id}/update",
+        "http": "POST /_cokret/open/mimi/strands/{strand_id}/update",
         "grpc": "OpenMimi/RoomUpdate",
         "mq": "open.mimi.command.update_room",
         "success_shape_kind": "typed_response",
@@ -4826,7 +4826,7 @@
       },
       {
         "operation_id": "ck.open.mimi.command.submit_message",
-        "http": "POST /_cokret/open/mimi/flows/{flow_id}/messages",
+        "http": "POST /_cokret/open/mimi/strands/{strand_id}/messages",
         "grpc": "OpenMimi/SubmitMessage",
         "mq": "open.mimi.command.submit_message",
         "success_shape_kind": "typed_response",
@@ -5067,13 +5067,13 @@
         "response_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_cursor_list"
       },
       {
-        "operation_id": "ck.self.projection.flows.query.list",
-        "http": "GET /_cokret/self/projection/flows",
-        "grpc": "SelfProjection/Flows",
-        "mq": "self.projection.flows.query.list",
-        "notes": "Extension read surface for reducer-maintained Flow lifecycle projection rows scoped by realm_id. This is a derived read model, not a canonical truth source.",
+        "operation_id": "ck.self.projection.strands.query.list",
+        "http": "GET /_cokret/self/projection/strands",
+        "grpc": "SelfProjection/Strands",
+        "mq": "self.projection.strands.query.list",
+        "notes": "Extension read surface for reducer-maintained Strand lifecycle projection rows scoped by realm_id. This is a derived read model, not a canonical truth source.",
         "success_shape_kind": "typed_response",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionFlowList"
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionStrandList"
       },
       {
         "operation_id": "ck.self.projection.morphs.query.list",
@@ -5375,7 +5375,7 @@
           "ck.circle.member.state"
         ],
         "profile": null,
-        "notes": "Cross-actor write (rare). MUST carry ck.audit.accessed pair (same model as ck.flow.watch.set.others).",
+        "notes": "Cross-actor write (rare). MUST carry ck.audit.accessed pair (same model as ck.strand.watch.set.others).",
         "event_mapping_kind": "scope_suffix_variant"
       },
       {
@@ -5434,7 +5434,7 @@
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [
-          "ck.flow.archive",
+          "ck.strand.archive",
           "ck.morph.archive"
         ],
         "profile": null,
@@ -5446,7 +5446,7 @@
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [
-          "ck.flow.restore",
+          "ck.strand.restore",
           "ck.morph.restore",
           "ck.space.restore"
         ],
@@ -5454,19 +5454,19 @@
         "event_mapping_kind": "polymorphic_object"
       },
       {
-        "action": "ck.flow.create",
-        "category": "flow",
+        "action": "ck.strand.create",
+        "category": "strand",
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [
-          "ck.flow.create"
+          "ck.strand.create"
         ],
         "profile": null,
         "event_mapping_kind": "same_name"
       },
       {
-        "action": "ck.flow.read",
-        "category": "flow",
+        "action": "ck.strand.read",
+        "category": "strand",
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [],
@@ -5474,14 +5474,14 @@
         "event_mapping_kind": "non_event_surface"
       },
       {
-        "action": "ck.flow.update",
-        "category": "flow",
+        "action": "ck.strand.update",
+        "category": "strand",
         "risk_tier": "medium",
         "required_constraints": [
           "allowed_write_fields"
         ],
         "target_event_kinds": [
-          "ck.flow.update"
+          "ck.strand.update"
         ],
         "profile": null,
         "event_mapping_kind": "same_name"
@@ -5533,67 +5533,67 @@
         "event_mapping_kind": "same_name"
       },
       {
-        "action": "ck.flow.archive",
-        "category": "flow",
+        "action": "ck.strand.archive",
+        "category": "strand",
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [
-          "ck.flow.archive"
+          "ck.strand.archive"
         ],
         "profile": null,
         "event_mapping_kind": "same_name"
       },
       {
-        "action": "ck.flow.restore",
-        "category": "flow",
+        "action": "ck.strand.restore",
+        "category": "strand",
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [
-          "ck.flow.restore"
+          "ck.strand.restore"
         ],
         "profile": null,
         "event_mapping_kind": "same_name"
       },
       {
-        "action": "ck.flow.move",
-        "category": "flow",
+        "action": "ck.strand.move",
+        "category": "strand",
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [
-          "ck.flow.move"
+          "ck.strand.move"
         ],
         "profile": null,
         "event_mapping_kind": "same_name"
       },
       {
-        "action": "ck.flow.reorder",
-        "category": "flow",
+        "action": "ck.strand.reorder",
+        "category": "strand",
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [
-          "ck.flow.reorder"
+          "ck.strand.reorder"
         ],
         "profile": null,
         "event_mapping_kind": "same_name"
       },
       {
-        "action": "ck.flow.tracks.update",
-        "category": "flow",
+        "action": "ck.strand.tracks.update",
+        "category": "strand",
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [
-          "ck.flow.tracks.update"
+          "ck.strand.tracks.update"
         ],
         "profile": null,
         "event_mapping_kind": "same_name"
       },
       {
-        "action": "ck.flow.stage.set",
-        "category": "flow",
+        "action": "ck.strand.stage.set",
+        "category": "strand",
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [
-          "ck.flow.stage.set"
+          "ck.strand.stage.set"
         ],
         "profile": null,
         "event_mapping_kind": "same_name"
@@ -5615,7 +5615,7 @@
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [
-          "ck.flow.stage.set",
+          "ck.strand.stage.set",
           "ck.morph.stage.set"
         ],
         "profile": null,
@@ -5623,7 +5623,7 @@
       },
       {
         "action": "ck.relation.create",
-        "category": "flow",
+        "category": "strand",
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [
@@ -5634,7 +5634,7 @@
       },
       {
         "action": "ck.relation.update",
-        "category": "flow",
+        "category": "strand",
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [
@@ -5645,7 +5645,7 @@
       },
       {
         "action": "ck.relation.tombstone",
-        "category": "flow",
+        "category": "strand",
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [
@@ -5655,18 +5655,18 @@
         "event_mapping_kind": "same_name"
       },
       {
-        "action": "ck.flow.watch.set",
+        "action": "ck.strand.watch.set",
         "category": "discussion",
         "risk_tier": "low",
         "required_constraints": [],
         "target_event_kinds": [
-          "ck.flow.watch.set"
+          "ck.strand.watch.set"
         ],
         "profile": null,
         "event_mapping_kind": "same_name"
       },
       {
-        "action": "ck.flow.watch.set.others",
+        "action": "ck.strand.watch.set.others",
         "category": "discussion",
         "risk_tier": "high",
         "required_constraints": [],
@@ -5675,7 +5675,7 @@
           "audit_pair_required"
         ],
         "target_event_kinds": [
-          "ck.flow.watch.set"
+          "ck.strand.watch.set"
         ],
         "profile": null,
         "event_mapping_kind": "scope_suffix_variant"
@@ -5691,7 +5691,7 @@
       },
       {
         "action": "ck.space.create",
-        "category": "flow",
+        "category": "strand",
         "risk_tier": "medium",
         "required_constraints": [
           "allowed_space_kinds"
@@ -5704,7 +5704,7 @@
       },
       {
         "action": "ck.space.update",
-        "category": "flow",
+        "category": "strand",
         "risk_tier": "medium",
         "required_constraints": [
           "allowed_space_kinds"
@@ -5717,7 +5717,7 @@
       },
       {
         "action": "ck.space.parent",
-        "category": "flow",
+        "category": "strand",
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [
@@ -5728,7 +5728,7 @@
       },
       {
         "action": "ck.space.archive",
-        "category": "flow",
+        "category": "strand",
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [
@@ -5739,7 +5739,7 @@
       },
       {
         "action": "ck.space.restore",
-        "category": "flow",
+        "category": "strand",
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [
@@ -5750,7 +5750,7 @@
       },
       {
         "action": "ck.space.tombstone",
-        "category": "flow",
+        "category": "strand",
         "risk_tier": "high",
         "required_constraints": [],
         "target_event_kinds": [
@@ -5761,7 +5761,7 @@
       },
       {
         "action": "ck.container.move_item",
-        "category": "flow",
+        "category": "strand",
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [
@@ -5772,7 +5772,7 @@
       },
       {
         "action": "ck.container.rebalance",
-        "category": "flow",
+        "category": "strand",
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [
@@ -5783,7 +5783,7 @@
       },
       {
         "action": "ck.view.create",
-        "category": "flow",
+        "category": "strand",
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [
@@ -5794,7 +5794,7 @@
       },
       {
         "action": "ck.view.update",
-        "category": "flow",
+        "category": "strand",
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [
@@ -5805,7 +5805,7 @@
       },
       {
         "action": "ck.view.reconcile",
-        "category": "flow",
+        "category": "strand",
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [
@@ -5853,7 +5853,7 @@
         ],
         "profile": null,
         "event_mapping_kind": "scope_suffix_variant",
-        "notes": "Authorizes adding an audience_mention node such as @all or @here to a Message create/revise. @here maps to audience=\"flow_engaged\" and is not presence-filtered. This is an additional gate: the actor MUST also be authorized for the underlying message create/revise action. Effective Realm/Circle policy MUST allow the audience and declare finite max_recipients/quota before notification fanout."
+        "notes": "Authorizes adding an audience_mention node such as @all or @here to a Message create/revise. @here maps to audience=\"strand_engaged\" and is not presence-filtered. This is an additional gate: the actor MUST also be authorized for the underlying message create/revise action. Effective Realm/Circle policy MUST allow the audience and declare finite max_recipients/quota before notification fanout."
       },
       {
         "action": "ck.message.revise",
@@ -6002,7 +6002,7 @@
           "ck.realm.inheritance_policy",
           "ck.realm.disappearing_policy",
           "ck.realm.search_policy",
-          "ck.realm.set_default_flow",
+          "ck.realm.set_default_strand",
           "ck.applet.registration"
         ],
         "profile": null,
@@ -6086,15 +6086,15 @@
         "event_mapping_kind": "same_name"
       },
       {
-        "action": "ck.realm.set_default_flow",
+        "action": "ck.realm.set_default_strand",
         "category": "management",
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [
-          "ck.realm.set_default_flow"
+          "ck.realm.set_default_strand"
         ],
         "profile": null,
-        "notes": "Sets / changes the Realm's authoritative default discussion Flow pointer (ck.realm.set_default_flow event; projects Realm default_flow_id). Same-name discipline. The Realm authz gate is realm-admin: holding ck.realm.admin (aggregate admin coverage) satisfies admission, or grant this specific action directly. Reducer MUST verify the referenced Flow already exists (failed_precondition otherwise). See zh/models/flow-and-message.md default-Flow discovery section.",
+        "notes": "Sets / changes the Realm's authoritative default discussion Strand pointer (ck.realm.set_default_strand event; projects Realm default_strand_id). Same-name discipline. The Realm authz gate is realm-admin: holding ck.realm.admin (aggregate admin coverage) satisfies admission, or grant this specific action directly. Reducer MUST verify the referenced Strand already exists (failed_precondition otherwise). See zh/models/strand-and-message.md default-Strand discovery section.",
         "event_mapping_kind": "same_name"
       },
       {
@@ -6120,7 +6120,7 @@
         "event_mapping_kind": "same_name"
       },
       {
-        "action": "ck.flow.admin",
+        "action": "ck.strand.admin",
         "category": "management",
         "risk_tier": "high",
         "required_constraints": [],
@@ -6336,7 +6336,7 @@
         "target_event_kinds": [
           "ck.circle.create",
           "ck.circle.member.state",
-          "ck.flow.create",
+          "ck.strand.create",
           "ck.relation.create"
         ],
         "profile": "ck.profile.agent_sidecar_thread.v1",
@@ -6348,7 +6348,7 @@
         "category": "general",
         "risk_tier": "low",
         "required_constraints": [
-          "allowed_flow_ids"
+          "allowed_strand_ids"
         ],
         "target_event_kinds": [
           "ck.message.create"

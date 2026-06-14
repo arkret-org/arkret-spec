@@ -20,7 +20,7 @@ updated: 2026-06-10
 - 低频、弱互操作的扩展数据
 - 不要求强互操作的弱结构数据
 
-Morph 是扩展缓冲层，不是标准对象的替代品。Flow、Message 和 Realm workflow 的主语义已经由标准对象类型定义；实现不得为了复用字段、renderer 或插件机制而把这些对象改写为 Morph。
+Morph 是扩展缓冲层，不是标准对象的替代品。Strand、Message 和 Realm workflow 的主语义已经由标准对象类型定义；实现不得为了复用字段、renderer 或插件机制而把这些对象改写为 Morph。
 
 公共字段、lifecycle、reducer 总则见 [`common-fields.md`](./common-fields.md)。
 
@@ -44,7 +44,7 @@ Schema id: `ck.schema.morph.v1`
 | `scope_circle_id` | no | `id:circle` | MUST 指向同一 Realm 的 Circle；reducer 校验 `scope_circle_id.realm_id == realm_id`，并把 immutable `effective_scope` 写入接受的 Event。 | 将 Morph 落入窄于 Realm 的 [Circle](./circle.md) scope。 |
 | `state` | no | `enum(active, archived, redacted)` | 状态转换必须有事件来源。`archived` 是**可逆中间态**（可经 `ck.morph.restore` 回到 `active`），不是终态；唯一不可逆终态是 `redacted`。Reducer 按 [common-fields.md §5.1](./common-fields.md) 校验源状态：`ck.morph.archive` MUST 来自 `active`（否则 `morph_not_active`）；`ck.morph.restore` MUST 来自 `archived`（否则 `morph_not_archived`）；`ck.redaction` 指向 Morph 时 MUST 来自 `{active, archived}`（否则 `morph_already_terminal`）；进入 `redacted` 后 MUST NOT 被任何 lifecycle event 修改。same-state self-transition MUST fail。 | 物化状态（物理生命周期）。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
-| `stage` | yes | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | `ck.morph.create` 时 actor 必填（无默认值）。语义与转换规则见 [common-fields.md §5.3](./common-fields.md)；枚举值按 8 值统一。变更只能通过 `ck.morph.stage.set`；`ck.morph.update` 的 patch path `stage` / `stage_changed_at` MUST `schema_violation`。`fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` MUST `schema_violation`（forbidden-wire）。**不携带 reason 字段**：需要解释时由附加在 Morph 上的讨论性对象（profile-declared discussion Morph、关联 Flow 的 discussion track、或 `references` 指向本次 stage event 的 Message）承担。 | 业务进度阶段（与 `state` 正交）。 |
+| `stage` | yes | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | `ck.morph.create` 时 actor 必填（无默认值）。语义与转换规则见 [common-fields.md §5.3](./common-fields.md)；枚举值按 8 值统一。变更只能通过 `ck.morph.stage.set`；`ck.morph.update` 的 patch path `stage` / `stage_changed_at` MUST `schema_violation`。`fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` MUST `schema_violation`（forbidden-wire）。**不携带 reason 字段**：需要解释时由附加在 Morph 上的讨论性对象（profile-declared discussion Morph、关联 Strand 的 discussion track、或 `references` 指向本次 stage event 的 Message）承担。 | 业务进度阶段（与 `state` 正交）。 |
 | `stage_changed_at` | conditional | `timestamp` | **Reducer-derived**：每次 `stage` 实际变更时由 reducer 用触发 event 的 `created_at` 覆盖写入；same-value self-transition 不更新本字段。 | 最近一次 stage 转换时间。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -85,7 +85,7 @@ Schema id: `ck.schema.morph.v1`
 
 > **示例规则**：顶层 `schema` 必须是容器 self-schema `ck.schema.morph.v1`，它仅定义 Morph 容器形态；`schema_refs[]` 是 §4 顺序 1 的"结构 / 验证真源"，必须列出**业务字段** schema id——上例使用配套的参考业务 schema [`ck.schema.morph.customer_risk.v1`](../../artifacts/schemas/morph-customer-risk.schema.json)，它声明 `fields.status` / `fields.severity` 两个业务字段的允许取值集合（structural validation 部分）。本参考 schema 不附带 transition 规则；真实部署若需要 transition validation，SHOULD 在 Realm schema 的 `morph_type_profiles[<morph_type>].transition_rules` 中声明（顺序 2 收紧来源），或注册一个独立 `ck.profile.morph.<type>.v1` profile 承载 state-machine 表，并由 reducer 按 §4.0 第 5 行"状态机 transition 合法性"读取。同名容器 schema `ck.schema.morph.v1` MUST NOT 被列入 `schema_refs[]` 当作业务 schema：容器 schema 不验证 `fields.*` 业务字段，二者职责不可混用。
 
-Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。Morph 可以通过 schema/profile 声明的 facets 参与 Board、Timeline、Graph、Flow track projection 或 Document View，但这些 facets 只作为查询、投影和降级展示提示；标准对象的主语义必须保留在对应标准类型上。
+Morph 字段用于对象自身属性。跨对象语义 SHOULD 使用 Relation。Morph 可以通过 schema/profile 声明的 facets 参与 Board、Timeline、Graph、Strand track projection 或 Document View，但这些 facets 只作为查询、投影和降级展示提示；标准对象的主语义必须保留在对应标准类型上。
 
 ## 4. Morph 类型系统合并优先级
 

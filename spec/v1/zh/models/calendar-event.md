@@ -5,7 +5,7 @@ normative: true
 stability: v1
 updated: 2026-06-10
 see_also:
-  - flow-and-message.md
+  - strand-and-message.md
   - relation.md
   - views.md
   - ../../artifacts/schemas/calendar-event.schema.json
@@ -18,7 +18,7 @@ see_also:
 
 ## 1. 模型
 
-Calendar event 是一个带 `ck.profile.calendar_event.v1` 的 Flow profile，而不是新的顶层对象 kind。事件标题、描述、议程和附件继续由 Flow / Message / Morph / Relation 表达；日程语义由 Flow metadata 中 profile 声明的 schedule fields 表达。
+Calendar event 是一个带 `ck.profile.calendar_event.v1` 的 Strand profile，而不是新的顶层对象 kind。事件标题、描述、议程和附件继续由 Strand / Message / Morph / Relation 表达；日程语义由 Strand metadata 中 profile 声明的 schedule fields 表达。
 
 实现 MUST NOT 新增 calendar 专用 typed id。可视化日历、gantt 或 agenda 是 View renderer / projection，而不是新的真相源。
 
@@ -60,4 +60,4 @@ RSVP 通过 `ck.rsvp.set` 写入。payload 必须包含 `event_ref`、`status` �
 
 RSVP projection 按 actor 对 `(event_ref, occurrence)` 做 LWW 收敛。`occurrence=null` 表示整个 series；实例级 RSVP 使用 recurrence instance key。该 key MUST 是 occurrence 的 local wall-clock start 按事件 `timezone` 展开后写成 `YYYY-MM-DD`（all-day）或 `YYYY-MM-DDTHH:mm:ss[Zone]`（非 all-day，Zone 为 IANA timezone 名）的 canonical 字符串；同一 series instance 在所有实现中必须生成相同 key。重复写同一 status 是 no-op，较新 HLC 的不同 status 替换旧值。
 
-`ck.rsvp.set` 只表达回应，不修改 Flow schedule，不创建 attendees，也不赋予访问权。
+`ck.rsvp.set` 只表达回应，不修改 Strand schedule，不创建 attendees，也不赋予访问权。

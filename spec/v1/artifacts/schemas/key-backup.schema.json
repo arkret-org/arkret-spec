@@ -96,7 +96,7 @@
     },
     "recovery_policy_ref": {
       "type": "object",
-      "description": "Required for backup_class=did_recovery and optional as a signed recovery-flow hint for other backup classes. Binds the backup envelope to the active recovery policy version under which it was produced. Receivers MUST compare this tuple to the currently accepted recovery policy before using a did_recovery envelope; when present on other classes, mismatch fails as recovery_policy_mismatch but the field does not replace active-series, frontier, Realm/MLS authorization, or device-state checks. This is intentionally separate from frontier_ref and ssk_generation: it binds the recovery authorization surface, not only the device trust generation or control-stream position.",
+      "description": "Required for backup_class=did_recovery and optional as a signed recovery-strand hint for other backup classes. Binds the backup envelope to the active recovery policy version under which it was produced. Receivers MUST compare this tuple to the currently accepted recovery policy before using a did_recovery envelope; when present on other classes, mismatch fails as recovery_policy_mismatch but the field does not replace active-series, frontier, Realm/MLS authorization, or device-state checks. This is intentionally separate from frontier_ref and ssk_generation: it binds the recovery authorization surface, not only the device trust generation or control-stream position.",
       "required": [
         "policy_id",
         "policy_version"

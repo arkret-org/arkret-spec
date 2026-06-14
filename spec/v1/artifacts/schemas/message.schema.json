@@ -7,7 +7,7 @@
     "id",
     "schema",
     "realm_id",
-    "flow_id",
+    "strand_id",
     "track_name",
     "state",
     "created_by",
@@ -114,18 +114,18 @@
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
-    "flow_id": {
+    "strand_id": {
       "type": "string",
-      "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "track_name": {
       "type": "string",
       "const": "discussion",
-      "description": "Flow track key for this Message. v1 Message objects are restricted to the Flow discussion track. Profiles that need another timeline kind MUST register a separate object/event profile instead of overloading Message.track_name."
+      "description": "Strand track key for this Message. v1 Message objects are restricted to the Strand discussion track. Profiles that need another timeline kind MUST register a separate object/event profile instead of overloading Message.track_name."
     },
     "effective_scope": {
       "$ref": "#/$defs/effective_scope",
-      "description": "Reducer-stamped immutable effective scope of this Message, materialized from the scope_circle_id effective at create time (models/circle.md §6.1-§6.2). kind='realm' for Realm-default scope; kind='circle' when the message's Flow was Circle-scoped at write time. Immutable: a later Flow scope rebind MUST NOT reinterpret already-written messages — each message retains its write-time effective_scope and old-scope history/key eligibility. MUST NOT appear in actor-supplied submit payload (reducer-managed, reason=effective_scope_reducer_managed); the reducer stamps it on accept."
+      "description": "Reducer-stamped immutable effective scope of this Message, materialized from the scope_circle_id effective at create time (models/circle.md §6.1-§6.2). kind='realm' for Realm-default scope; kind='circle' when the message's Strand was Circle-scoped at write time. Immutable: a later Strand scope rebind MUST NOT reinterpret already-written messages — each message retains its write-time effective_scope and old-scope history/key eligibility. MUST NOT appear in actor-supplied submit payload (reducer-managed, reason=effective_scope_reducer_managed); the reducer stamps it on accept."
     },
     "content": {
       "$ref": "#/$defs/content_block"
@@ -398,7 +398,7 @@
           },
           {
             "required": [
-              "flow_id"
+              "strand_id"
             ]
           },
           {

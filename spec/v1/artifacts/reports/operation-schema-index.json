@@ -430,13 +430,13 @@
         "required": [
           "ok",
           "private_circle_id",
-          "private_flow_id",
+          "private_strand_id",
           "private_relation_id"
         ],
         "properties": [
           "ok",
           "private_circle_id",
-          "private_flow_id",
+          "private_strand_id",
           "private_relation_id",
           "pending_member_reconciliations"
         ],
@@ -1315,7 +1315,7 @@
         "properties": [
           "state",
           "realm_id",
-          "main_flow_id",
+          "main_strand_id",
           "binding_event_ref",
           "created"
         ],
@@ -3173,7 +3173,7 @@
           "target_device_ids",
           "minimal_metadata_allowed",
           "timeout_ms",
-          "flow_id",
+          "strand_id",
           "mls_group_id",
           "proofs"
         ],
@@ -3211,7 +3211,7 @@
           "claim_ids",
           "welcome_ref",
           "realm_id",
-          "flow_id",
+          "strand_id",
           "mls_group_id",
           "epoch"
         ],
@@ -3280,7 +3280,7 @@
           "key_packages",
           "device_signature",
           "expires_at",
-          "flow_id",
+          "strand_id",
           "mls_group_id"
         ],
         "closed": true
@@ -3515,12 +3515,12 @@
         "schema_kind": "object",
         "required": [
           "requester",
-          "flow_id",
+          "strand_id",
           "device_id"
         ],
         "properties": [
           "requester",
-          "flow_id",
+          "strand_id",
           "device_id",
           "mimi_room_uri",
           "realm_id",
@@ -3596,7 +3596,7 @@
         "properties": [
           "asset_ref",
           "requester",
-          "flow_id",
+          "strand_id",
           "ohttp_context",
           "range"
         ],
@@ -3623,13 +3623,13 @@
         "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_request_body",
         "schema_kind": "object",
         "required": [
-          "flow_id",
+          "strand_id",
           "target_ref",
           "reporter",
           "abuse_reason_code"
         ],
         "properties": [
-          "flow_id",
+          "strand_id",
           "target_ref",
           "reporter",
           "abuse_reason_code",
@@ -3669,7 +3669,7 @@
           "requester_id",
           "target",
           "purpose",
-          "flow_id",
+          "strand_id",
           "expires_at",
           "proofs"
         ],
@@ -4502,20 +4502,20 @@
       }
     },
     {
-      "operation_id": "ck.self.projection.flows.query.list",
+      "operation_id": "ck.self.projection.strands.query.list",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionFlowList",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionStrandList",
         "schema_kind": "object",
         "required": [
           "realm_id",
-          "flows",
+          "strands",
           "total",
           "has_more"
         ],
         "properties": [
           "realm_id",
-          "flows",
+          "strands",
           "total",
           "next_cursor",
           "has_more"

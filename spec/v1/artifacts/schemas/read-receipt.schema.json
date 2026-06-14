@@ -9,7 +9,7 @@
     }
   },
   "title": "Cokret Read Receipt",
-  "description": "Public/shared read receipt for Flow timeline UI hint. NOT canonical truth, NOT a multi-device cursor (see read-cursor.schema.json for that). MUST NOT generate push notifications. Privacy is governed by Realm policy: Realms MAY allow public, members-only, or actor-private receipt sharing.",
+  "description": "Public/shared read receipt for Strand timeline UI hint. NOT canonical truth, NOT a multi-device cursor (see read-cursor.schema.json for that). MUST NOT generate push notifications. Privacy is governed by Realm policy: Realms MAY allow public, members-only, or actor-private receipt sharing.",
   "type": "object",
   "required": [
     "receipt_type",
@@ -54,7 +54,7 @@
           "type": "string",
           "enum": [
             "realm",
-            "flow",
+            "strand",
             "thread",
             "view",
             "message",
@@ -64,20 +64,20 @@
         },
         "ref": {
           "type": "string",
-          "pattern": "^ck:(realm|flow|message|morph|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "pattern": "^ck:(realm|strand|message|morph|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "Required when kind is anything other than 'realm'. Thread read scopes reference the root message."
         },
         "track_name": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,63}$",
-          "description": "Required when kind='flow' and the receipt scopes a single track."
+          "description": "Required when kind='strand' and the receipt scopes a single track."
         },
         "track_scope": {
           "type": "string",
           "enum": [
             "all"
           ],
-          "description": "Only valid when kind='flow'. Use track_scope='all' for an entire Flow regardless of track."
+          "description": "Only valid when kind='strand'. Use track_scope='all' for an entire Strand regardless of track."
         }
       },
       "allOf": [
@@ -123,7 +123,7 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "flow"
+                "const": "strand"
               }
             },
             "required": [
@@ -133,7 +133,7 @@
           "then": {
             "properties": {
               "ref": {
-                "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
               }
             },
             "oneOf": [

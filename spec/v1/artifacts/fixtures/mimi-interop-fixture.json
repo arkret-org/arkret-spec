@@ -46,7 +46,7 @@
           "mimi_room_uri": "mimi://mimi.example.com/rooms/01JSMIMI",
           "binding_scope": {
             "realm_id": "ck:realm:0110c853-1d09-7044-b214-c74240110c85",
-            "flow_id": "ck:flow:0110c853-1d09-7044-b214-c74240110c85"
+            "strand_id": "ck:strand:0110c853-1d09-7044-b214-c74240110c85"
           },
           "hub_provider": "did:web:mimi.example.com",
           "local_provider_role": "hub",

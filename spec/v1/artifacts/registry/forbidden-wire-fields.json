@@ -28,11 +28,11 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Legacy Matrix-style 'branch' top-level field on timeline / Flow events is replaced by the v1 'track' concept (a display-only timeline segment identifier). See current-model 'Track 是纯展示 / 时间线分段标识'. The string 'branch' MUST NOT appear as a top-level Event Envelope or payload field name."
+      "notes": "Legacy Matrix-style 'branch' top-level field on timeline / Strand events is replaced by the v1 'track' concept (a display-only timeline segment identifier). See current-model 'Track 是纯展示 / 时间线分段标识'. The string 'branch' MUST NOT appear as a top-level Event Envelope or payload field name."
     },
     {
       "id": "track",
-      "context": "flow_track_key_field",
+      "context": "strand_track_key_field",
       "since_revision": "2026-06-01",
       "rejection_level": "hard_reject",
       "replacement": "track_name",
@@ -41,7 +41,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Wire fields that carry one concrete Flow.tracks map key use `track_name`. The plural `tracks` map and `allowed_tracks` capability constraint remain valid collection names."
+      "notes": "Wire fields that carry one concrete Strand.tracks map key use `track_name`. The plural `tracks` map and `allowed_tracks` capability constraint remain valid collection names."
     },
     {
       "id": "encrypted_payload",
@@ -54,11 +54,11 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "When the plaintext counterpart is `content`, the encrypted counterpart is `encrypted_content` (Flow, Message, Morph). Generic `encrypted_payload` remains valid for non-content carriers such as identity and reaction payloads."
+      "notes": "When the plaintext counterpart is `content`, the encrypted counterpart is `encrypted_content` (Strand, Message, Morph). Generic `encrypted_payload` remains valid for non-content carriers such as identity and reaction payloads."
     },
     {
       "id": "title",
-      "context": "flow_or_morph_payload_top_level",
+      "context": "strand_or_morph_payload_top_level",
       "since_revision": "2026-06-01",
       "rejection_level": "hard_reject",
       "replacement": "metadata.title or encrypted_metadata",
@@ -67,11 +67,11 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Flow and Morph user-readable title is metadata. It MUST NOT be a top-level object wire field; in MLS / E2EE scopes it travels inside encrypted_metadata unless the Realm explicitly opts into plaintext metadata."
+      "notes": "Strand and Morph user-readable title is metadata. It MUST NOT be a top-level object wire field; in MLS / E2EE scopes it travels inside encrypted_metadata unless the Realm explicitly opts into plaintext metadata."
     },
     {
       "id": "summary",
-      "context": "flow_or_morph_payload_top_level",
+      "context": "strand_or_morph_payload_top_level",
       "since_revision": "2026-06-01",
       "rejection_level": "hard_reject",
       "replacement": "metadata.summary or encrypted_metadata",
@@ -80,11 +80,11 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Flow and Morph user-readable summary is metadata. It MUST NOT be a top-level object wire field; in MLS / E2EE scopes it travels inside encrypted_metadata unless the Realm explicitly opts into plaintext metadata."
+      "notes": "Strand and Morph user-readable summary is metadata. It MUST NOT be a top-level object wire field; in MLS / E2EE scopes it travels inside encrypted_metadata unless the Realm explicitly opts into plaintext metadata."
     },
     {
       "id": "fields",
-      "context": "flow_or_message_payload_top_level",
+      "context": "strand_or_message_payload_top_level",
       "since_revision": "2026-06-01",
       "rejection_level": "hard_reject",
       "replacement": "metadata.fields or encrypted_metadata",
@@ -110,7 +110,7 @@
     },
     {
       "id": "kind=room",
-      "context": "flow_payload.kind",
+      "context": "strand_payload.kind",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": "realm",
@@ -119,11 +119,11 @@
         "interop_module",
         "negative_test"
       ],
-      "notes": "Flow payload field 'kind' (or any analogous discriminator) MUST NOT carry the literal value 'room'. Use 'realm' / 'flow' / canonical Realm.kind values. Interop translation lives in an opt-in interop module only."
+      "notes": "Strand payload field 'kind' (or any analogous discriminator) MUST NOT carry the literal value 'room'. Use 'realm' / 'strand' / canonical Realm.kind values. Interop translation lives in an opt-in interop module only."
     },
     {
       "id": "discussion_space_ref",
-      "context": "flow_payload",
+      "context": "strand_payload",
       "since_revision": "59ac1d4",
       "rejection_level": "hard_reject",
       "replacement": "scope_circle_id",
@@ -131,7 +131,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Flow payload MUST NOT carry 'discussion_space_ref'. Discussion privacy is represented by Circle-scoped Flow objects and confidential_discussion_of Relation facts; the field-level Circle identifier is 'scope_circle_id' (see schemas/flow.schema.json, zh/models/circle.md)."
+      "notes": "Strand payload MUST NOT carry 'discussion_space_ref'. Discussion privacy is represented by Circle-scoped Strand objects and confidential_discussion_of Relation facts; the field-level Circle identifier is 'scope_circle_id' (see schemas/strand.schema.json, zh/models/circle.md)."
     },
     {
       "id": "identifier_suffix_ref_to_id_batch",
@@ -151,13 +151,13 @@
       "context": "grant_constraint",
       "since_revision": "2026-05-31",
       "rejection_level": "hard_reject",
-      "replacement": "allowed_view_ids / allowed_flow_ids / allowed_circle_ids / denied_flow_ids / allowed_space_ids / denied_space_ids / realm_ids / approval_actor_ids",
+      "replacement": "allowed_view_ids / allowed_strand_ids / allowed_circle_ids / denied_strand_ids / allowed_space_ids / denied_space_ids / realm_ids / approval_actor_ids",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Capability grant constraints that contain one concrete identifier kind use `_ids`, not `_refs`. The old fields allowed_view_refs, allowed_flow_refs, allowed_circle_refs, denied_flow_refs, allowed_space_refs, denied_space_refs, realm_refs, and approval_actor_refs MUST NOT appear on current v1 wire. Polymorphic container constraints allowed_from_container_refs / allowed_to_container_refs remain `_refs` because they may identify Space, Flow, or Morph containers."
+      "notes": "Capability grant constraints that contain one concrete identifier kind use `_ids`, not `_refs`. The old fields allowed_view_refs, allowed_strand_refs, allowed_circle_refs, denied_strand_refs, allowed_space_refs, denied_space_refs, realm_refs, and approval_actor_refs MUST NOT appear on current v1 wire. Polymorphic container constraints allowed_from_container_refs / allowed_to_container_refs remain `_refs` because they may identify Space, Strand, or Morph containers."
     },
     {
       "id": "ck:rtcpart:",
@@ -325,7 +325,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "ck.message.create payload MUST NOT carry revision_root. The reducer initializes revision_root to the new message_id; only ck.message.revise (and subsequent revise events) may set revision_root, and only to the create's revision_root. See zh/models/flow-and-message.md §9."
+      "notes": "ck.message.create payload MUST NOT carry revision_root. The reducer initializes revision_root to the new message_id; only ck.message.revise (and subsequent revise events) may set revision_root, and only to the create's revision_root. See zh/models/strand-and-message.md §9."
     },
     {
       "id": "blocks",
@@ -338,7 +338,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Composite Content Block MUST use the field name `parts` (matching schemas/message.schema.json, schemas/event-payload.schema.json, schemas/flow.schema.json, and schemas/morph.schema.json). The temporary `blocks` spelling was rejected because it over-constrained the concept to document layout blocks; the canonical wire name is `parts`, and `blocks` MUST NOT appear in current content_block_composite wire. See zh/models/content-types.md §4.10."
+      "notes": "Composite Content Block MUST use the field name `parts` (matching schemas/message.schema.json, schemas/event-payload.schema.json, schemas/strand.schema.json, and schemas/morph.schema.json). The temporary `blocks` spelling was rejected because it over-constrained the concept to document layout blocks; the canonical wire name is `parts`, and `blocks` MUST NOT appear in current content_block_composite wire. See zh/models/content-types.md §4.10."
     },
     {
       "id": "cleartext_commitment",
@@ -355,75 +355,75 @@
     },
     {
       "id": "metadata.fields.stage",
-      "context": "flow_payload",
+      "context": "strand_payload",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
-      "replacement": "stage (top-level Flow field)",
+      "replacement": "stage (top-level Strand field)",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Flow MUST carry stage at the top level (required field). The dual-source (top-level stage vs metadata.fields.stage) ambiguity is closed: writers MUST emit top-level stage only, and readers MUST reject metadata.fields.stage with schema_violation. Same constraint as fields.rank in relation_payload / space_payload. See zh/models/flow-and-message.md §3.2 and zh/models/common-fields.md §5.3."
+      "notes": "Strand MUST carry stage at the top level (required field). The dual-source (top-level stage vs metadata.fields.stage) ambiguity is closed: writers MUST emit top-level stage only, and readers MUST reject metadata.fields.stage with schema_violation. Same constraint as fields.rank in relation_payload / space_payload. See zh/models/strand-and-message.md §3.2 and zh/models/common-fields.md §5.3."
     },
     {
       "id": "metadata.fields.stage_changed_at",
-      "context": "flow_payload",
+      "context": "strand_payload",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
-      "replacement": "stage_changed_at (top-level Flow field, reducer-derived)",
+      "replacement": "stage_changed_at (top-level Strand field, reducer-derived)",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Flow stage_changed_at is reducer-derived and lives at the top level. It MUST NOT be smuggled under metadata.fields.* and MUST NOT be supplied by actor on wire (reducer overwrites with the triggering ck.flow.stage.set event's created_at). See zh/models/common-fields.md §5.3.3 rule 3."
+      "notes": "Strand stage_changed_at is reducer-derived and lives at the top level. It MUST NOT be smuggled under metadata.fields.* and MUST NOT be supplied by actor on wire (reducer overwrites with the triggering ck.strand.stage.set event's created_at). See zh/models/common-fields.md §5.3.3 rule 3."
     },
     {
       "id": "metadata.fields.stage_reason",
-      "context": "flow_payload",
+      "context": "strand_payload",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
-      "replacement": "Message on the Flow's discussion track that references the ck.flow.stage.set event",
+      "replacement": "Message on the Strand's discussion track that references the ck.strand.stage.set event",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Reserved-name guard. Flow stage transitions intentionally do NOT carry a reason / note / explanation field anywhere — neither on the object, nor in the ck.flow.stage.set payload, nor under metadata.fields.*. Human-readable rationale belongs in a Message on the Flow's discussion track that 'references' the stage event; audit attribution is provided by the event log's own actor_id / created_at. The metadata.fields.stage_reason path MUST be rejected to prevent implementations from re-introducing the field through a back door."
+      "notes": "Reserved-name guard. Strand stage transitions intentionally do NOT carry a reason / note / explanation field anywhere — neither on the object, nor in the ck.strand.stage.set payload, nor under metadata.fields.*. Human-readable rationale belongs in a Message on the Strand's discussion track that 'references' the stage event; audit attribution is provided by the event log's own actor_id / created_at. The metadata.fields.stage_reason path MUST be rejected to prevent implementations from re-introducing the field through a back door."
     },
     {
       "id": "metadata.fields.stage_note",
-      "context": "flow_payload",
+      "context": "strand_payload",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
-      "replacement": "Message on the Flow's discussion track that references the ck.flow.stage.set event",
+      "replacement": "Message on the Strand's discussion track that references the ck.strand.stage.set event",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Reserved-name sister-guard for metadata.fields.stage_reason. Closes 'stage_note' / 'stage_comment' / 'stage_explanation' style re-spellings via metadata.fields.*. Same canonical channel: a Message on the discussion track that references the ck.flow.stage.set event."
+      "notes": "Reserved-name sister-guard for metadata.fields.stage_reason. Closes 'stage_note' / 'stage_comment' / 'stage_explanation' style re-spellings via metadata.fields.*. Same canonical channel: a Message on the discussion track that references the ck.strand.stage.set event."
     },
     {
       "id": "metadata.fields.lifecycle",
-      "context": "flow_payload",
+      "context": "strand_payload",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
-      "replacement": "stage (top-level Flow field) or state (physical lifecycle)",
+      "replacement": "stage (top-level Strand field) or state (physical lifecycle)",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Reserved-name guard: 'lifecycle' is reserved terminology for the state axis (archive / restore / tombstone lifecycle events). It MUST NOT appear on the wire as a metadata.fields.* key on Flow. Business-progression goes through the top-level 'stage' field; physical lifecycle through 'state'. See zh/models/common-fields.md §5."
+      "notes": "Reserved-name guard: 'lifecycle' is reserved terminology for the state axis (archive / restore / tombstone lifecycle events). It MUST NOT appear on the wire as a metadata.fields.* key on Strand. Business-progression goes through the top-level 'stage' field; physical lifecycle through 'state'. See zh/models/common-fields.md §5."
     },
     {
       "id": "metadata.fields.progress_state",
-      "context": "flow_payload",
+      "context": "strand_payload",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
-      "replacement": "stage (top-level Flow field)",
+      "replacement": "stage (top-level Strand field)",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -433,52 +433,52 @@
     },
     {
       "id": "metadata.fields.status",
-      "context": "flow_payload",
+      "context": "strand_payload",
       "since_revision": "2026-06-12",
       "rejection_level": "hard_reject",
-      "replacement": "stage (top-level Flow field)",
+      "replacement": "stage (top-level Strand field)",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Reserved-name guard: 'status' is the most direct sister spelling of the stage concept and MUST NOT appear as a metadata.fields.* key on Flow. Business progression goes through the canonical top-level 'stage' field; physical lifecycle through 'state'. Domain data mirrored from external systems MUST use a domain-named key (e.g. fields.jira_status), not bare 'status'."
+      "notes": "Reserved-name guard: 'status' is the most direct sister spelling of the stage concept and MUST NOT appear as a metadata.fields.* key on Strand. Business progression goes through the canonical top-level 'stage' field; physical lifecycle through 'state'. Domain data mirrored from external systems MUST use a domain-named key (e.g. fields.jira_status), not bare 'status'."
     },
     {
       "id": "metadata.fields.assignee",
-      "context": "flow_payload",
+      "context": "strand_payload",
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
-      "replacement": "Relation(relation_kind=assigned_to, from_ref=<flow_id>, to_ref=<actor DID>)",
+      "replacement": "Relation(relation_kind=assigned_to, from_ref=<strand_id>, to_ref=<actor DID>)",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Flow assignment is single-sourced by the standard assigned_to Relation. metadata.fields.assignee would create a second truth source and MUST be rejected; UI labels may say Assignee but wire writes create/tombstone assigned_to Relation edges."
+      "notes": "Strand assignment is single-sourced by the standard assigned_to Relation. metadata.fields.assignee would create a second truth source and MUST be rejected; UI labels may say Assignee but wire writes create/tombstone assigned_to Relation edges."
     },
     {
       "id": "metadata.fields.assignees",
-      "context": "flow_payload",
+      "context": "strand_payload",
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
-      "replacement": "Relation(relation_kind=assigned_to, from_ref=<flow_id>, to_ref=<actor DID>)",
+      "replacement": "Relation(relation_kind=assigned_to, from_ref=<strand_id>, to_ref=<actor DID>)",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Plural spelling of the Flow assignment field alias is forbidden for the same reason as metadata.fields.assignee. Multiple assignees are represented by multiple active assigned_to Relation edges."
+      "notes": "Plural spelling of the Strand assignment field alias is forbidden for the same reason as metadata.fields.assignee. Multiple assignees are represented by multiple active assigned_to Relation edges."
     },
     {
       "id": "metadata.fields.assigned_to",
-      "context": "flow_payload",
+      "context": "strand_payload",
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
-      "replacement": "Relation(relation_kind=assigned_to, from_ref=<flow_id>, to_ref=<actor DID>)",
+      "replacement": "Relation(relation_kind=assigned_to, from_ref=<strand_id>, to_ref=<actor DID>)",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "assigned_to is already the standard Relation kind and MUST NOT be reused as a Flow metadata field."
+      "notes": "assigned_to is already the standard Relation kind and MUST NOT be reused as a Strand metadata field."
     },
     {
       "id": "metadata.fields.assigned_actor_ids",
-      "context": "flow_payload",
+      "context": "strand_payload",
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
       "replacement": "read-only projection assigned_actor_ids derived from assigned_to Relations",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "assigned_actor_ids is a derived projection field, not Flow object state. Writers MUST NOT persist it under metadata.fields."
+      "notes": "assigned_actor_ids is a derived projection field, not Strand object state. Writers MUST NOT persist it under metadata.fields."
     },
     {
       "id": "fields.stage",
@@ -491,7 +491,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Morph MUST carry stage at the top level (required field). Mirror of the flow_payload fields.stage constraint."
+      "notes": "Morph MUST carry stage at the top level (required field). Mirror of the strand_payload fields.stage constraint."
     },
     {
       "id": "fields.stage_changed_at",
@@ -530,7 +530,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Reserved-name sister-guard for Morph fields.stage_reason. Same forbidden surface as Flow."
+      "notes": "Reserved-name sister-guard for Morph fields.stage_reason. Same forbidden surface as Strand."
     },
     {
       "id": "fields.lifecycle",
@@ -560,29 +560,29 @@
     },
     {
       "id": "patch:stage",
-      "context": "flow_patch_payload",
+      "context": "strand_patch_payload",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
-      "replacement": "ck.flow.stage.set event",
+      "replacement": "ck.strand.stage.set event",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "ck.flow.update payload's patch MUST NOT include path 'stage' or 'stage_changed_at'. Stage transitions are single-source: only ck.flow.stage.set may mutate these fields. The wire-level guard is the same pattern as forbidding ck.message.create from carrying revision_root — a forbidden patch path on an otherwise-shared payload class. cotest scanners MUST flag any patch op whose path matches /^stage(_changed_at)?$/. See zh/models/flow-and-message.md §3.2 reducer hard constraint 5."
+      "notes": "ck.strand.update payload's patch MUST NOT include path 'stage' or 'stage_changed_at'. Stage transitions are single-source: only ck.strand.stage.set may mutate these fields. The wire-level guard is the same pattern as forbidding ck.message.create from carrying revision_root — a forbidden patch path on an otherwise-shared payload class. cotest scanners MUST flag any patch op whose path matches /^stage(_changed_at)?$/. See zh/models/strand-and-message.md §3.2 reducer hard constraint 5."
     },
     {
       "id": "patch:metadata.fields.assignee",
-      "context": "flow_patch_payload",
+      "context": "strand_patch_payload",
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
       "replacement": "ck.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "ck.flow.update MUST NOT patch assignment through Flow metadata. Assignment writes create or tombstone assigned_to Relation edges."
+      "notes": "ck.strand.update MUST NOT patch assignment through Strand metadata. Assignment writes create or tombstone assigned_to Relation edges."
     },
     {
       "id": "patch:metadata.fields.assignees",
-      "context": "flow_patch_payload",
+      "context": "strand_patch_payload",
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
       "replacement": "ck.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
@@ -591,34 +591,34 @@
     },
     {
       "id": "patch:metadata.fields.assigned_to",
-      "context": "flow_patch_payload",
+      "context": "strand_patch_payload",
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
       "replacement": "ck.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "assigned_to is a Relation kind, not a Flow metadata patch path."
+      "notes": "assigned_to is a Relation kind, not a Strand metadata patch path."
     },
     {
       "id": "patch:metadata.fields.assigned_actor_ids",
-      "context": "flow_patch_payload",
+      "context": "strand_patch_payload",
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
       "replacement": "read-only projection assigned_actor_ids derived from assigned_to Relations",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "assigned_actor_ids is projection-only and MUST NOT be written through ck.flow.update."
+      "notes": "assigned_actor_ids is projection-only and MUST NOT be written through ck.strand.update."
     },
     {
       "id": "patch:fields.assignee",
-      "context": "flow_patch_payload",
+      "context": "strand_patch_payload",
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
       "replacement": "ck.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Legacy Flow fields.* patch paths are not the canonical metadata path; assignment is Relation-sourced regardless of spelling."
+      "notes": "Legacy Strand fields.* patch paths are not the canonical metadata path; assignment is Relation-sourced regardless of spelling."
     },
     {
       "id": "patch:fields.assignees",
-      "context": "flow_patch_payload",
+      "context": "strand_patch_payload",
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
       "replacement": "ck.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
@@ -627,16 +627,16 @@
     },
     {
       "id": "patch:fields.assigned_to",
-      "context": "flow_patch_payload",
+      "context": "strand_patch_payload",
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
       "replacement": "ck.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "assigned_to is a Relation kind, not a Flow metadata patch path."
+      "notes": "assigned_to is a Relation kind, not a Strand metadata patch path."
     },
     {
       "id": "patch:fields.assigned_actor_ids",
-      "context": "flow_patch_payload",
+      "context": "strand_patch_payload",
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
       "replacement": "read-only projection assigned_actor_ids derived from assigned_to Relations",
@@ -1311,13 +1311,13 @@
       "context": "notification_payload",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "notification.realm_title / notification.flow_title",
+      "replacement": "notification.realm_title / notification.strand_title",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Push-notification payload MUST NOT carry the pre-inversion 'space_name' field. After the Realm/Space inversion the human-readable label that a push gateway might surface comes from either the Realm (realm_title) or plaintext-visible Flow metadata.title (flow_title); both remain forbidden in the ck.profile.push_gateway.blind_wakeup.v1 baseline (privacy default) and are only permitted under the explicit ck.profile.push_gateway.visible_notification.v1 opt-in profile. See zh/discovery/push-notifications.md §3 and fixtures/privacy-security-fixture.json forbidden_fields_absent."
+      "notes": "Push-notification payload MUST NOT carry the pre-inversion 'space_name' field. After the Realm/Space inversion the human-readable label that a push gateway might surface comes from either the Realm (realm_title) or plaintext-visible Strand metadata.title (strand_title); both remain forbidden in the ck.profile.push_gateway.blind_wakeup.v1 baseline (privacy default) and are only permitted under the explicit ck.profile.push_gateway.visible_notification.v1 opt-in profile. See zh/discovery/push-notifications.md §3 and fixtures/privacy-security-fixture.json forbidden_fields_absent."
     },
     {
       "id": "frank_only",

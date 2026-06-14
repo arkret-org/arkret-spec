@@ -162,13 +162,13 @@
       "pattern": "^ck:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Optional materialized pointer to the effective preview / peek policy. Canonical writes use ck.realm.preview_policy; absence means directory card / stripped state only, no history stub/snippet preview."
     },
-    "default_flow_id": {
+    "default_strand_id": {
       "type": [
         "string",
         "null"
       ],
-      "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Optional / nullable. AUTHORITATIVE single pointer to the Realm's default discussion Flow (last value projected from ck.realm.set_default_flow; cell ck.component.realm.set_default_flow.v1, cas_register, bottom=reject). A single pointer avoids multi-default dirty state. null / absent means the Realm has no designated default Flow. The reducer rejects a set_default_flow whose flow_id does not resolve to a projected non-tombstoned Flow in this Realm (failed_precondition), so this pointer never dangles. The Flow projection's derived is_default flag is computed as flow_id == this value; clients discover the default Flow deterministically from this field (or the Flow is_default marker) and MUST NOT rely on any Flow-reuses-Realm-UUID implementation detail. See zh/models/flow-and-message.md (default-Flow discovery)."
+      "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Optional / nullable. AUTHORITATIVE single pointer to the Realm's default discussion Strand (last value projected from ck.realm.set_default_strand; cell ck.component.realm.set_default_strand.v1, cas_register, bottom=reject). A single pointer avoids multi-default dirty state. null / absent means the Realm has no designated default Strand. The reducer rejects a set_default_strand whose strand_id does not resolve to a projected non-tombstoned Strand in this Realm (failed_precondition), so this pointer never dangles. The Strand projection's derived is_default flag is computed as strand_id == this value; clients discover the default Strand deterministically from this field (or the Strand is_default marker) and MUST NOT rely on any Strand-reuses-Realm-UUID implementation detail. See zh/models/strand-and-message.md (default-Strand discovery)."
     },
     "default_discoverability": {
       "type": "string",
@@ -216,7 +216,7 @@
         "allow_plaintext",
         "e2ee_required"
       ],
-      "description": "Realm-wide content encryption floor (models/circle.md §7, models/realm-and-space.md §4). This is the Realm's actual content-encryption on/off switch. When e2ee_required, the effective_scope of Flow / Message / Morph / Blob content MUST be MLS-backed (Realm-default MLS or Circle MLS); reducer MUST failed_precondition (reason=content_encryption_floor_violation) on plaintext content. Independent of encryption_profile, which only declares the encryption MECHANISM (whether an MLS group exists), not which Cokret fields enter ciphertext. One-way ratchet: once the effective value has reached e2ee_required, a later policy write lowering it back to allow_plaintext MUST be rejected with content_encryption_floor_downgrade. Defaults to allow_plaintext when absent."
+      "description": "Realm-wide content encryption floor (models/circle.md §7, models/realm-and-space.md §4). This is the Realm's actual content-encryption on/off switch. When e2ee_required, the effective_scope of Strand / Message / Morph / Blob content MUST be MLS-backed (Realm-default MLS or Circle MLS); reducer MUST failed_precondition (reason=content_encryption_floor_violation) on plaintext content. Independent of encryption_profile, which only declares the encryption MECHANISM (whether an MLS group exists), not which Cokret fields enter ciphertext. One-way ratchet: once the effective value has reached e2ee_required, a later policy write lowering it back to allow_plaintext MUST be rejected with content_encryption_floor_downgrade. Defaults to allow_plaintext when absent."
     },
     "metadata_encryption_floor": {
       "type": "string",
@@ -228,7 +228,7 @@
     },
     "agent_participation": {
       "type": "object",
-      "description": "Realm agent participation ceiling: { native_agent: { reply, accept_third_party_mention, act_on_behalf } } — the maximum native personal agent behavior permitted Realm-wide, written by a holder of ck.realm.admin via ck.realm.policy_components. It is the top of the deployment ⊇ Realm ⊇ Circle ⊇ Flow tighten-only chain (inner ceilings MUST NOT widen it; reducer rejects with agent_participation_ceiling_widen). When absent, inherits the deployment-default ceiling (deny-default under sovereign profiles). native_agent and applet_agent ceilings MUST be declared separately. See zh/models/realm-and-space.md.",
+      "description": "Realm agent participation ceiling: { native_agent: { reply, accept_third_party_mention, act_on_behalf } } — the maximum native personal agent behavior permitted Realm-wide, written by a holder of ck.realm.admin via ck.realm.policy_components. It is the top of the deployment ⊇ Realm ⊇ Circle ⊇ Strand tighten-only chain (inner ceilings MUST NOT widen it; reducer rejects with agent_participation_ceiling_widen). When absent, inherits the deployment-default ceiling (deny-default under sovereign profiles). native_agent and applet_agent ceilings MUST be declared separately. See zh/models/realm-and-space.md.",
       "properties": {
         "native_agent": {
           "type": "object",

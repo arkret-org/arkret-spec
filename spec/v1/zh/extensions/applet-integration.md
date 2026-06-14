@@ -164,7 +164,7 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
   "requested_scopes": [
     "ck.realm.discover",
     "ck.object.read",
-    "ck.flow.create",
+    "ck.strand.create",
     "ck.morph.create",
     "ck.message.create",
     "ck.relation.create"
@@ -307,7 +307,7 @@ Handle namespace 适用于外部用户或 location 的人类入口。
       "ck:realm:0196419b-0000-7000-8000-000000000000"
     ],
     "actions": [
-      "ck.flow.create",
+      "ck.strand.create",
       "ck.morph.create",
       "ck.message.create",
       "ck.relation.create"
@@ -561,7 +561,7 @@ Applet 写入 Cokret MUST 使用常规 `/_cokret/self/events` submit 接口。
   "prev_refs": [],
   "refs": [],
   "payload": {
-    "flow_id": "ck:flow:c0c69410-0000-7000-8000-000000000001",
+    "strand_id": "ck:strand:c0c69410-0000-7000-8000-000000000001",
     "track_name": "discussion",
     "content": {
       "kind": "ck.content.text",
@@ -647,20 +647,20 @@ Portal Realm SHOULD 记录：
 - 创建者 / 控制者
 - 可见性
 - 成员映射策略
-- portal flow id（§10.1）
+- portal strand id（§10.1）
 
 Portal Realm MUST 仍然执行常规的 Realm policy 与 capability 规则。
 
-### 10.1 Portal Flow（normative）
+### 10.1 Portal Strand（normative）
 
-`ck.message.create` 的 payload 是封闭 schema，required `flow_id` + `track_name`（[`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) `message_create_payload`）。因此 bridge 把外部消息写入 portal Realm 前，MUST 先解析出一个**目标 flow**——外部 location 的映射单位是 `(realm_id, flow_id)`，不是裸 `realm_id`。
+`ck.message.create` 的 payload 是封闭 schema，required `strand_id` + `track_name`（[`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) `message_create_payload`）。因此 bridge 把外部消息写入 portal Realm 前，MUST 先解析出一个**目标 strand**——外部 location 的映射单位是 `(realm_id, strand_id)`，不是裸 `realm_id`。
 
-- 每个 portal Realm MUST 至少有一个用于消息桥接的 **portal flow**；线性聊天型外部 location（IM channel / group chat）默认一个 location 对应一个 portal flow。
-- **获取/创建路径**：bridge 首次为某外部 location 建立映射时，MUST 按以下顺序确定 portal flow：
-  1. 查自身持久化的 location ↔ `(realm_id, flow_id)` 映射；
-  2. 映射缺失时，在该 portal Realm 内通过常规 projection / view 读取查找既有 portal flow（以 `external_ref` 中的 protocol / network_id / location_id 匹配）；
-  3. 仍不存在时，由 bridge 以自身可署名身份提交 `ck.flow.create`（Event Envelope 顶层携带 signed `external_ref` 记录外部 location 出处），并把结果 flow_id 写入映射。
-- **创建幂等**：并发或重试导致同一外部 location 产生多个 `ck.flow.create` 时，bridge MUST 以 effective 顺序最早的 flow 为 portal flow，多余 flow SHOULD archive；判定依据是 signed `external_ref` 的 location 等值，不得靠标题字符串猜测。
+- 每个 portal Realm MUST 至少有一个用于消息桥接的 **portal strand**；线性聊天型外部 location（IM channel / group chat）默认一个 location 对应一个 portal strand。
+- **获取/创建路径**：bridge 首次为某外部 location 建立映射时，MUST 按以下顺序确定 portal strand：
+  1. 查自身持久化的 location ↔ `(realm_id, strand_id)` 映射；
+  2. 映射缺失时，在该 portal Realm 内通过常规 projection / view 读取查找既有 portal strand（以 `external_ref` 中的 protocol / network_id / location_id 匹配）；
+  3. 仍不存在时，由 bridge 以自身可署名身份提交 `ck.strand.create`（Event Envelope 顶层携带 signed `external_ref` 记录外部 location 出处），并把结果 strand_id 写入映射。
+- **创建幂等**：并发或重试导致同一外部 location 产生多个 `ck.strand.create` 时，bridge MUST 以 effective 顺序最早的 strand 为 portal strand，多余 strand SHOULD archive；判定依据是 signed `external_ref` 的 location 等值，不得靠标题字符串猜测。
 - **track**：桥接消息默认写入 `track_name="discussion"`；profile / Realm schema 声明其它 track 布局时按声明走。
 - ghost 署名的桥接 `ck.message.create` MUST 把正文放进 payload `content`（或 E2EE 下 `encrypted_content`）的 `content_block` 形态，媒体引用走 `blob_refs[]`；不得把 content 级字段（`mimetype` / `filename` / `blob` 等）直接平铺为 payload 顶层字段——按 schema 强校验的节点会以 `schema_violation` 拒绝。
 
@@ -720,7 +720,7 @@ Applet 参与 E2EE Realm 时有三种模式：
 - Bridge 到不支持 E2EE 的外部网络时，客户端 MUST 明确提示加密边界在 bridge 处终止。
 - Applet 托管 Ghost Actor MLS state 时，必须将其视为高敏感密钥材料。
 
-**E2EE 加入授权（normative）**：Bot Actor 或 Applet-managed Ghost Actor 加入 E2EE Realm 的 MLS group（上文模式 1、2）MUST 经过独立的 **E2EE 加入授权**，该授权与普通的 capability grant（如 `ck.flow.create` / `ck.message.create` 等写入权限）**分立**：持有写入 capability 不自动授予把 applet / ghost 成员加入 MLS group 的权利。
+**E2EE 加入授权（normative）**：Bot Actor 或 Applet-managed Ghost Actor 加入 E2EE Realm 的 MLS group（上文模式 1、2）MUST 经过独立的 **E2EE 加入授权**，该授权与普通的 capability grant（如 `ck.strand.create` / `ck.message.create` 等写入权限）**分立**：持有写入 capability 不自动授予把 applet / ghost 成员加入 MLS group 的权利。
 
 - 该 E2EE 加入授权 MUST 由 Realm owner、Realm admin 或 Realm policy 明确授权的 authz service 签发（参照 §4 的 `applet_registration_unauthorized` 门槛），并落为可审计的 Cokret Event（如 `ck.member.state` 加入 effect 携带 applet provenance），不得仅凭 Applet 自身 Welcome 入组。
 - 缺少该独立 E2EE 加入授权时，Cokret 客户端 MUST NOT 把 applet / ghost 成员加入 MLS group，并 MUST 以 `applet_e2ee_join_unauthorized` 拒绝该加入。

@@ -8,7 +8,7 @@ see_also:
   - consent-model.md
   - ../discovery/discovery-directory.md
   - ../models/realm-and-space.md
-  - ../models/flow-and-message.md
+  - ../models/strand-and-message.md
   - ../models/relation.md
   - ../sync/service-http-binding.md
 ---
@@ -17,7 +17,7 @@ see_also:
 
 本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [`../conformance/normative-language.md`](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
-本文定义 Cokret v1 中"加联系人 -> 找他聊天"的协议级生命周期。它不是 UI 联系人列表说明，也不是对 consent、Realm 或 Flow 的别名重述，而是把联系人关系、action consent gate、direct conversation binding 与消息载体明确分层。
+本文定义 Cokret v1 中"加联系人 -> 找他聊天"的协议级生命周期。它不是 UI 联系人列表说明，也不是对 consent、Realm 或 Strand 的别名重述，而是把联系人关系、action consent gate、direct conversation binding 与消息载体明确分层。
 
 ## 1. 真相源分层
 
@@ -26,10 +26,10 @@ see_also:
 | 层 | 标识 | 作用域 | 真源问题 | 不得替代 |
 | --- | --- | --- | --- | --- |
 | L1 holder-private 备注 | `ck.contacts.actor.<did>` account-data | holder 本地私有 | "我本地怎么备注、置顶、过滤这个 DID" | 不表示对方接受 |
-| L2 协作图关系 | `ck.relation.*` | Realm 内 | "这个 Realm 里的 Flow / Message / Actor / Object 如何相连" | 不表示跨 Realm 社交关系 |
+| L2 协作图关系 | `ck.relation.*` | Realm 内 | "这个 Realm 里的 Strand / Message / Actor / Object 如何相连" | 不表示跨 Realm 社交关系 |
 | L3 联系人关系 | `ck.contact.*` fact / operation | principal 级、跨 Realm | "双方请求、接受、拒绝、终止联系人关系到了哪一步" | 不表示 action 授权本身 |
 | L4 action gate | `ck.consent.*` | holder Principal Control Realm | "peer 是否可发起 direct_message / invite / call / presence" | 不表示 pending / rejected / tombstoned |
-| L5 会话载体 | direct conversation binding + DM Realm + 主 Flow | Realm / Flow | "这对 actor 的 1:1 消息写到哪里" | 不表示双方仍是联系人 |
+| L5 会话载体 | direct conversation binding + DM Realm + 主 Strand | Realm / Strand | "这对 actor 的 1:1 消息写到哪里" | 不表示双方仍是联系人 |
 
 `ck.contact.*` 作为 operation id 与 event kind 使用单数 `contact`。既有 account-data key 保持复数 `ck.contacts.*`，只表达 holder-private 备注、标签、置顶和本地过滤。实现文档和 catalog description MUST 明确区分二者，不得把 account-data contact note 称为 contact relation truth source。
 
@@ -140,7 +140,7 @@ v1 规范采用窄读：private contact discovery 响应 MAY 在 PSI set-members
 
 ## 6. Direct Conversation Resolver
 
-联系人 accepted 后，客户端不应手工拼 Realm / Flow。`ck.self.direct_conversation.command.resolve` 是 pair 到 canonical 1:1 DM 入口的幂等 resolver。
+联系人 accepted 后，客户端不应手工拼 Realm / Strand。`ck.self.direct_conversation.command.resolve` 是 pair 到 canonical 1:1 DM 入口的幂等 resolver。
 
 | operation | HTTP | Body / Response | 说明 |
 | --- | --- | --- | --- |
@@ -150,15 +150,15 @@ Resolver MUST：
 
 1. 验证 requester 与 peer 的 contact projection 为 `accepted`，且 requester 未 tombstone 该 contact。若没有 accepted contact，返回 `failed_precondition` / `contact_not_accepted`。本 resolver 是"联系人私聊入口"；只想基于 consent 发起非联系人 DM 的 profile 必须另行注册 operation。
 2. 验证目标 holder 对 requester 有 active `consent_scope=direct_message` 或 `any`。若没有，返回 `failed_precondition` / `contact_consent_missing`。
-3. 查询 direct conversation binding。若已有 active canonical binding，返回其 `realm_id` 与 `main_flow_id`。
+3. 查询 direct conversation binding。若已有 active canonical binding，返回其 `realm_id` 与 `main_strand_id`。
 4. 若 `create=false` 且不存在 binding，返回 `not_found`。
-5. 若 `create=true`，走既有 KeyPackage claim、Realm create / member add、MLS group create、Flow create，然后写 direct conversation binding fact。
+5. 若 `create=true`，走既有 KeyPackage claim、Realm create / member add、MLS group create、Strand create，然后写 direct conversation binding fact。
 
-Resolver create 是多步编排，不是单个 reducer 原子操作。若 Realm / membership / Flow 已创建但 binding fact 未写成，该 Realm 只能作为 orphan / non-canonical 候选存在；重试 MAY 在验证其 participants、membership、main Flow、contact refs 与请求 pair 完全匹配后补写 binding，否则必须创建新的候选并让 deterministic canonical selection 收敛。没有 binding 的 orphan Realm 不得作为默认聊天入口返回。
+Resolver create 是多步编排，不是单个 reducer 原子操作。若 Realm / membership / Strand 已创建但 binding fact 未写成，该 Realm 只能作为 orphan / non-canonical 候选存在；重试 MAY 在验证其 participants、membership、main Strand、contact refs 与请求 pair 完全匹配后补写 binding，否则必须创建新的候选并让 deterministic canonical selection 收敛。没有 binding 的 orphan Realm 不得作为默认聊天入口返回。
 
-Direct conversation binding 是 pair 到 `(realm_id, main_flow_id)` 的 principal-scoped signed fact / projection，不是 server 私有表。`ck.direct_conversation.bound` 的 issuer MUST 是参与 pair 的一方，字段至少包含 `participants_unordered[]`, `realm_id`, `main_flow_id`, `contact_refs[]`, `member_event_refs[]`, `main_flow_create_ref` 与 `created_at`。
+Direct conversation binding 是 pair 到 `(realm_id, main_strand_id)` 的 principal-scoped signed fact / projection，不是 server 私有表。`ck.direct_conversation.bound` 的 issuer MUST 是参与 pair 的一方，字段至少包含 `participants_unordered[]`, `realm_id`, `main_strand_id`, `contact_refs[]`, `member_event_refs[]`, `main_strand_create_ref` 与 `created_at`。
 
-Binding facts 与 contact facts 一样需要在双方之间交换 / 镜像并以原签名 envelope 参与 projection；否则 Alice 与 Bob 可能各自只看到自己的 binding fact，无法用同一 tie-break 算出相同 canonical Realm。Binding 只有在引用的 DM Realm、双方 active membership、DM main Flow 与 accepted contact refs 都可验证时才可成为 canonical。
+Binding facts 与 contact facts 一样需要在双方之间交换 / 镜像并以原签名 envelope 参与 projection；否则 Alice 与 Bob 可能各自只看到自己的 binding fact，无法用同一 tie-break 算出相同 canonical Realm。Binding 只有在引用的 DM Realm、双方 active membership、DM main Strand 与 accepted contact refs 都可验证时才可成为 canonical。
 
 并发创建同一 pair 时，实现 MUST 以 deterministic tie-break 选择 canonical binding（例如 first accepted binding by causal order / event id），并把 loser 标为 duplicate / non-canonical；`ck.self.direct_conversation.command.resolve` 不得随机返回两个不同 Realm。
 
@@ -170,7 +170,7 @@ DM Realm MUST：
 
 - 使用 `encryption_profile="mls_rfc9420"`。不得把 `mls_dm` 注册为 Realm `encryption_profile` 新枚举。
 - 声明已注册的 direct conversation profile，并在 Realm `fields` 中使用已注册的 direct-conversation discriminator。不得使用 `fields.purpose="direct_message"`，因为 `fields.purpose` 已被 Principal Control Realm 语义占用。
-- active member count 等于 2。不得向 active DM Realm 加第三人；升级多人聊天必须创建新的普通 Realm / Flow，再用 Relation 或 Message 引用旧 DM 内容。
+- active member count 等于 2。不得向 active DM Realm 加第三人；升级多人聊天必须创建新的普通 Realm / Strand，再用 Relation 或 Message 引用旧 DM 内容。
 - `default_join_rule` 为 `closed` 或等价 fail-closed policy；第三方 invite / member_add MUST 被拒绝。
 - 对同一 unordered participant pair 至多保留一个 active canonical DM Realm。
 
@@ -182,22 +182,22 @@ DM Realm MAY 为 push / server-side rule 暴露最小 `is_direct_message` projec
 
 ### 7.1 成员退出
 
-任一参与方主动离开 / 被移出 DM Realm 后，该 Realm 立即失去 active canonical DM 资格。direct conversation binding MUST 标为 retired / non-canonical，后续 `ck.self.direct_conversation.command.resolve(create=true)` MUST 创建新的 DM Realm、main Flow 与 binding。
+任一参与方主动离开 / 被移出 DM Realm 后，该 Realm 立即失去 active canonical DM 资格。direct conversation binding MUST 标为 retired / non-canonical，后续 `ck.self.direct_conversation.command.resolve(create=true)` MUST 创建新的 DM Realm、main Strand 与 binding。
 
 Resolver MUST NOT 为了"继续同一个私聊"把退出方重新加入旧 DM Realm。退出是明确的会话边界与密钥 / 历史边界；复用旧 Realm 会混淆退出后的 MLS epoch、history eligibility 与用户意图。
 
 旧 DM Realm MAY 继续作为历史归档存在，其可读性按离开时的 Realm history visibility、retention、redaction 与本地备份策略决定。它不得接收新的默认聊天消息。
 
-## 8. DM 主 Flow Well-Known 形态
+## 8. DM 主 Strand Well-Known 形态
 
-消息必须挂在 Flow 的 `discussion` track 上，所以 direct conversation binding 必须同时绑定 `main_flow_id`。
+消息必须挂在 Strand 的 `discussion` track 上，所以 direct conversation binding 必须同时绑定 `main_strand_id`。
 
-DM 主 Flow MUST：
+DM 主 Strand MUST：
 
 - 位于 DM Realm 内。
-- `scope_circle_id=null`，继承 DM Realm 的 Realm-default MLS group。DM 主 Flow MUST NOT 再套 Circle；双人 Realm 的 Circle 子集切不出更窄隐私边界。
+- `scope_circle_id=null`，继承 DM Realm 的 Realm-default MLS group。DM 主 Strand MUST NOT 再套 Circle；双人 Realm 的 Circle 子集切不出更窄隐私边界。
 - 声明 `tracks.discussion.is_primary=true`，且 discussion track active。
-- `stage` MAY 省略；若携带，MUST 是当前 v1 Flow schema 的合法枚举值。推荐使用 `stage="in_progress"` 作为 wire 兼容值；direct conversation UI MUST NOT 把 DM 主 Flow 的 `stage` 当成待办进度展示，也 SHOULD 禁用普通 `ck.flow.stage.set` 控件。
-- 通过 direct conversation binding 标识为该 Realm 的 main Flow。`discussion.is_primary=true` 只是 Flow 内默认入口，不能单独证明"这是 DM 主 Flow"。
+- `stage` MAY 省略；若携带，MUST 是当前 v1 Strand schema 的合法枚举值。推荐使用 `stage="in_progress"` 作为 wire 兼容值；direct conversation UI MUST NOT 把 DM 主 Strand 的 `stage` 当成待办进度展示，也 SHOULD 禁用普通 `ck.strand.stage.set` 控件。
+- 通过 direct conversation binding 标识为该 Realm 的 main Strand。`discussion.is_primary=true` 只是 Strand 内默认入口，不能单独证明"这是 DM 主 Strand"。
 
-同一 DM Realm 至多一个 active canonical main Flow。DM Realm 内 MAY 有其它普通 Flow，用于把某个话题升级成独立议题；默认聊天消息必须写入 binding 指向的 main Flow。
+同一 DM Realm 至多一个 active canonical main Strand。DM Realm 内 MAY 有其它普通 Strand，用于把某个话题升级成独立议题；默认聊天消息必须写入 binding 指向的 main Strand。

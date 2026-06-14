@@ -15,9 +15,9 @@ authors:
 引入两个轻量结构性分类对象:
 
 - `ck:component:` — Realm 内的子分类("Frontend / Backend / Mobile"或"Auth / Billing / Search"),比 Space 更轻量,纯标签 + owner,不形成自己的 boundary 或 navigation tree。
-- `ck:version:` — 时间限定的发布窗口("v1.2 release","2026 Q3 GA"),Flow 通过 Relation `targets_version` / `fixed_in_version` 关联。
+- `ck:version:` — 时间限定的发布窗口("v1.2 release","2026 Q3 GA"),Strand 通过 Relation `targets_version` / `fixed_in_version` 关联。
 
-Flow / Morph 通过 Relation 与它们关联,projection 提供按 component / version 分组的视图。
+Strand / Morph 通过 Relation 与它们关联,projection 提供按 component / version 分组的视图。
 
 ## 2. Motivation
 
@@ -27,7 +27,7 @@ Jira 截图左栏 "Components" 和 "Versions" 是 first-class 实体而不是 fr
 
 - "Component" 有 owner / lead / description / archived 等元数据,labels 装不下
 - "Version" 有 `released_at` / `release_state`(unreleased → released → archived),是有时间窗口的实体
-- 跨 Realm dashboard 想问"所有 Realm 内 component=Auth 的 Flow 有多少"需要 first-class 引用
+- 跨 Realm dashboard 想问"所有 Realm 内 component=Auth 的 Strand 有多少"需要 first-class 引用
 
 不是所有 Realm 都需要这两个;本提案显式 profile-gated。
 
@@ -50,7 +50,7 @@ Schema id: `ck.schema.component.v1`
 | `state` | yes | `enum(active, archived, tombstoned)` | 同 common-fields §5。 | 生命周期。 |
 | 公共字段 | — | — | created_by / created_at / updated_by / updated_at / state_changed_at | — |
 
-应用关系:`flow --in_component--> component`(many-to-many)。
+应用关系:`strand --in_component--> component`(many-to-many)。
 
 ### 3.2 `ck:version:` 对象
 
@@ -71,8 +71,8 @@ Schema id: `ck.schema.version.v1`
 | 公共字段 | — | — | created_by / created_at / updated_by / updated_at / state_changed_at | — |
 
 应用关系:
-- `flow --targets_version--> version`("这个 Flow 计划在该 version 落地")
-- `flow --fixed_in_version--> version`("这个 bug 实际在该 version 修复")
+- `strand --targets_version--> version`("这个 Strand 计划在该 version 落地")
+- `strand --fixed_in_version--> version`("这个 bug 实际在该 version 修复")
 
 ### 3.3 Event 家族
 
@@ -105,7 +105,7 @@ Schema id: `ck.schema.version.v1`
 | `ck.component.manage` | medium | component.* |
 | `ck.version.manage` | medium | version.create / update / archive / tombstone |
 | `ck.version.release` | medium | `ck.version.release`(独立切分,因为发布是一次性高影响动作) |
-| `ck.flow.classify` | low | `ck.relation.create / delete` 限 `relation_kind ∈ {in_component, targets_version, fixed_in_version}` |
+| `ck.strand.classify` | low | `ck.relation.create / delete` 限 `relation_kind ∈ {in_component, targets_version, fixed_in_version}` |
 
 ## 4. Interactions with normative spec
 
@@ -128,7 +128,7 @@ Schema id: `ck.schema.version.v1`
 
 - Space 形成 navigation tree / boundary 派生 / `default_realm_id` 等结构语义
 - Component 是纯分类标签,贴上去就完事,不应承担容器语义
-- 一个 Flow 可以在多个 component(many-to-many),Space 是 1:N 的位置语义
+- 一个 Strand 可以在多个 component(many-to-many),Space 是 1:N 的位置语义
 
 ### 5.3 为什么 Version 不是 Realm 的子对象?
 
@@ -146,7 +146,7 @@ Schema id: `ck.schema.version.v1`
 - [ ] Version 是否需要 dependencies(`blocks_release_of`)?engineering team 常用。建议作为 Relation 而非内嵌字段。
 - [ ] release_state archived 是否需要 unarchive?(发布的 version 已是事实,反向只能用 tombstone)
 - [ ] 跨 Realm dashboard 引用 component / version:同 Realm 限制,还是允许 organization-level shared?postpone。
-- [ ] Bug 模板 + component / version 的联动:`ck:flow_type:` 是否声明默认 component / version?这把 CKP-0002 / CKP-0003 / CKP-0006 都耦合起来,留给 form_layout 表达 picker default,不在 schema 层面强联动。
+- [ ] Bug 模板 + component / version 的联动:`ck:strand_type:` 是否声明默认 component / version?这把 CKP-0002 / CKP-0003 / CKP-0006 都耦合起来,留给 form_layout 表达 picker default,不在 schema 层面强联动。
 
 ## 7. Migration plan
 

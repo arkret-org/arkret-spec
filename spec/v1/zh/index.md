@@ -22,7 +22,7 @@ see_also:
 `cokret-spec` 是 **Cokret v1 去中心化协作协议规范**。其核心不是界面，而是"可验证协作事实 + 可投影的对象语义"：
 
 - 身份主键：DID principal
-- 数据主语（canonical 对象清单）：Realm / Circle / Space（含 Board/List）/ Flow / Message / Relation / Morph / Event / View / Capability
+- 数据主语（canonical 对象清单）：Realm / Circle / Space（含 Board/List）/ Strand / Message / Relation / Morph / Event / View / Capability
 - 审计主语：signed Event + per-actor event chain
 - 权限主语：capability
 - 呈现主语：views / projection
@@ -42,8 +42,8 @@ see_also:
 | 这批协作事实归谁管？ | Realm | 权限、成员、历史可见性、E2EE、同步和联邦都以 Realm 为根。 |
 | Realm 内要给一部分人单独的成员、历史和加密边界？ | Circle | Circle 是 Realm 内的子事件边界；复用父 Realm 的 federation / policy / capability，只裁剪成员、history、投递与查询，必要时启独立 MLS group。 |
 | 用户界面怎么组织项目、看板和列表？ | Space | Space 是导航 / 容器，不拥有成员、policy 或加密组。 |
-| 一件事、一个任务、一个话题或一个决策放哪里？ | Flow | Flow 是统一协作主对象；正式内容在 synthesis，讨论在 discussion。 |
-| 聊天消息是什么？ | Message | Message 只属于某个 Flow 的 discussion track。 |
+| 一件事、一个任务、一个话题或一个决策放哪里？ | Strand | Strand 是统一协作主对象；正式内容在 synthesis，讨论在 discussion。 |
+| 聊天消息是什么？ | Message | Message 只属于某个 Strand 的 discussion track。 |
 | 对象之间如何表达包含、依赖、回复、指派？ | Relation | 跨对象语义用 Relation；不能把关系藏在自由字段里。 |
 | 怎么看成看板、表格、聊天、时间线、图？ | View | View 只定义投影和交互入口，不持有被投影对象的真相。 |
 | 非标准业务对象放哪里？ | Morph | Morph 是扩展缓冲层；schema/profile 决定字段与能力，facet 只做 UI / 查询提示。 |
@@ -82,7 +82,7 @@ Cokret v1 明确不把以下内容作为基础互操作必需项：
 
 - `overview/architecture.md`：架构、服务角色、部署与信任边界。
 - `overview/glossary.md`：Principal / Actor / Organization / Realm / Event / Principal Server 等术语。
-- `overview/current-model.md`：v1 统一对象模型的关键设计决定（Flow 统一、Board/List 容器化、track 模型、E2EE 边界、agent 落点）。
+- `overview/current-model.md`：v1 统一对象模型的关键设计决定（Strand 统一、Board/List 容器化、track 模型、E2EE 边界、agent 落点）。
 - `models/overview.md`：对象总览、typed-id 一览、设计原则。
 
 其余身份、授权、同步、加密、扩展等专项文件的推荐顺序见 spec-map §2。
@@ -116,16 +116,16 @@ Cokret v1 明确不把以下内容作为基础互操作必需项：
 - 所有持久协作修改必须是 signed Event。
 - 所有共享状态由授权 Event 集合 reducer 收敛后生成。
 - Realm 是权限、成员、schema、policy 的边界。
-- Flow 为统一协作对象，默认入口由 track primary 解析规则表达，同一 `flow_id` 下可切换默认 track。
+- Strand 为统一协作对象，默认入口由 track primary 解析规则表达，同一 `strand_id` 下可切换默认 track。
 - Morph 是扩展载体，不单独定义核心能力和排序语义。
 - `notification` 是投影用途，不是 canonical truth。
 
 ### 4.3 看板与会话
 
-- 看板定义：`Board Space -> List Space -> Flow`。
-- 会话定义：`Flow(discussion track) -> Message`。
-- `ck.flow.tracks.update` 是 track 配置（启用 / 关闭 / 切换 primary / 修改 profile）的唯一写入路径，不复制对象、不迁移历史。
-- Track 不携带独立 access；整个 Flow 共享单一 effective scope（由 `Flow.scope_circle_id` 决定）。需要独立成员、历史或 E2EE 边界时，把整个 Flow 通过 `scope_circle_id` 落在一个 [Circle](./models/circle.md)，或拆为两个 Flow + `confidential_discussion_of` Relation（见 [`models/circle.md` §7.2](./models/circle.md)）。
+- 看板定义：`Board Space -> List Space -> Strand`。
+- 会话定义：`Strand(discussion track) -> Message`。
+- `ck.strand.tracks.update` 是 track 配置（启用 / 关闭 / 切换 primary / 修改 profile）的唯一写入路径，不复制对象、不迁移历史。
+- Track 不携带独立 access；整个 Strand 共享单一 effective scope（由 `Strand.scope_circle_id` 决定）。需要独立成员、历史或 E2EE 边界时，把整个 Strand 通过 `scope_circle_id` 落在一个 [Circle](./models/circle.md)，或拆为两个 Strand + `confidential_discussion_of` Relation（见 [`models/circle.md` §7.2](./models/circle.md)）。
 
 ### 4.4 同步与真相模型
 
@@ -141,7 +141,7 @@ Cokret v1 明确不把以下内容作为基础互操作必需项：
 - accountable actor 需追溯 `responsible / guardian / controller`。
 - 高风险动作支持 approval constraint 与治理式审批约束。
 - `handle` 不承担权限主键作用，授权主体以 DID 或 selector 条件表述。
-- 消息、撤回、Flow 管理、排序等动作均有独立动作语义。
+- 消息、撤回、Strand 管理、排序等动作均有独立动作语义。
 
 ## 5. 规范语言与实现声明
 
@@ -167,7 +167,7 @@ Cokret v1 明确不把以下内容作为基础互操作必需项：
 ## 6. 当前覆盖范围
 
 - 身份、handle、组织主体、服务 DID 与进阶披露
-- 对象覆盖以 §1 的 canonical 对象清单为准：Realm / Circle / Space（含 Board/List）/ Flow / Message / Relation / Morph / Event / View / Capability
+- 对象覆盖以 §1 的 canonical 对象清单为准：Realm / Circle / Space（含 Board/List）/ Strand / Message / Relation / Morph / Event / View / Capability
 - 字段级结构、必填性、枚举与约束
 - capability、delegation、claim 条件、policy 与 moderation policy
 - Event-first 发布、Principal Server 同步、客户端查询与投影

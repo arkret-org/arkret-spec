@@ -187,7 +187,7 @@
             "zh/discovery/client-preferences.md",
             "zh/models/relation.md",
             "zh/models/realm-and-space.md",
-            "zh/models/flow-and-message.md",
+            "zh/models/strand-and-message.md",
             "zh/sync/service-surface.md",
             "zh/sync/service-http-binding.md"
           ]
@@ -220,7 +220,7 @@
           "targets": [
             "zh/models/realm-and-space.md",
             "zh/models/circle.md",
-            "zh/models/flow-and-message.md",
+            "zh/models/strand-and-message.md",
             "zh/authz/capabilities.md",
             "zh/models/private-objects.md",
             "zh/sync/service-surface.md",
@@ -234,7 +234,7 @@
             "artifacts/schemas/agent-operations.schema.json",
             "artifacts/schemas/realm.schema.json",
             "artifacts/schemas/circle.schema.json",
-            "artifacts/schemas/flow.schema.json",
+            "artifacts/schemas/strand.schema.json",
             "artifacts/registry/contract-catalog.json",
             "artifacts/registry/operations-error-mapping.json",
             "artifacts/profiles/conformance-profiles.json"
@@ -254,7 +254,7 @@
           "targets": [
             "zh/models/actor.md",
             "zh/models/common-fields.md",
-            "zh/models/flow-and-message.md",
+            "zh/models/strand-and-message.md",
             "zh/identity/identity-handles.md",
             "zh/discovery/discovery-directory.md",
             "zh/discovery/profiles-presence.md",

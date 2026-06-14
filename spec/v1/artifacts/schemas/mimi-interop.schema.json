@@ -189,15 +189,15 @@
               "type": "object",
               "required": [
                 "realm_id",
-                "flow_id"
+                "strand_id"
               ],
               "properties": {
                 "realm_id": {
                   "$ref": "./common-ids.schema.json#/$defs/realm_id"
                 },
-                "flow_id": {
+                "strand_id": {
                   "type": "string",
-                  "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                  "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
                 }
               },
               "additionalProperties": true

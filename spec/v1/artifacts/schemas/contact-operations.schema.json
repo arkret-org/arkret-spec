@@ -41,9 +41,9 @@
       "type": "string",
       "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "flow_id": {
+    "strand_id": {
       "type": "string",
-      "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "cursor": {
       "type": "string",
@@ -107,15 +107,15 @@
       "type": "object",
       "required": [
         "realm_id",
-        "main_flow_id",
+        "main_strand_id",
         "state"
       ],
       "properties": {
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "main_flow_id": {
-          "$ref": "#/$defs/flow_id"
+        "main_strand_id": {
+          "$ref": "#/$defs/strand_id"
         },
         "binding_event_ref": {
           "$ref": "#/$defs/event_id"
@@ -172,7 +172,7 @@
         },
         "invite_consent_grant_ref": {
           "$ref": "#/$defs/event_id",
-          "description": "Optional. Event ref of the peer-issued ck.consent.grant (scope invite or any) granting the holder the right to send Realm/Flow invites to this peer. Present only when granted_to_me includes invite or any. Used by the holder as consent_grant introduction evidence to invite this contact into a Realm without a locator URL."
+          "description": "Optional. Event ref of the peer-issued ck.consent.grant (scope invite or any) granting the holder the right to send Realm/Strand invites to this peer. Present only when granted_to_me includes invite or any. Used by the holder as consent_grant introduction evidence to invite this contact into a Realm without a locator URL."
         },
         "peer_service_did": {
           "$ref": "#/$defs/did",
@@ -417,8 +417,8 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "main_flow_id": {
-          "$ref": "#/$defs/flow_id"
+        "main_strand_id": {
+          "$ref": "#/$defs/strand_id"
         },
         "binding_event_ref": {
           "$ref": "#/$defs/event_id"

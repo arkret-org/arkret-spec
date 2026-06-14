@@ -37,7 +37,7 @@ Schema 约束：
 - default views
 - validation rules
 
-Schema 在 wire 上以 schema id（如 `ck.schema.flow.v1`、`ck.schema.message.v1`）引用。Schema 文件本身在 [`artifacts/schemas/`](../../artifacts/schemas/) 维护，schema registry 在 [`../conformance/schema-registry.md`](../conformance/schema-registry.md) 与 `artifacts/registry/schema-registry.json`。
+Schema 在 wire 上以 schema id（如 `ck.schema.strand.v1`、`ck.schema.message.v1`）引用。Schema 文件本身在 [`artifacts/schemas/`](../../artifacts/schemas/) 维护，schema registry 在 [`../conformance/schema-registry.md`](../conformance/schema-registry.md) 与 `artifacts/registry/schema-registry.json`。
 
 ### 2.2 Schema Evolution
 
@@ -123,7 +123,7 @@ Schema id: `ck.schema.capability.v1`
 | `realm_id` | no | `id:realm` | 全局 grant 可省略但 SHOULD 避免。 | 作用域。 |
 | `issuer` | yes | `did` | 必须持有授予权限。 | 授权方。 |
 | `subject` | yes | `did` 或 `object` | 可为 DID 或 condition selector。 | 被授权主体。 |
-| `actions` | yes | `array<string>` | 例如 `ck.flow.update`、`ck.message.create`。 | 允许动作。 |
+| `actions` | yes | `array<string>` | 例如 `ck.strand.update`、`ck.message.create`。 | 允许动作。 |
 | `resources` | yes | `array<object>` | 资源 selector。 | 资源范围。 |
 | `constraints` | no | `array<object>` | 见 [`../authz/constraint-schema.md`](../authz/constraint-schema.md) §20.3 grant 示例。委托控制 MUST 通过 `constraint_type=delegation_control` 的 `max_delegation_depth` 表达；缺省（无 delegation_control 约束）等价于 `max_delegation_depth=0`，即不可转授。 | 约束条件。 |
 | `parent_grant_id` | no | `id:grant` | derived grant 必填；MUST 以 `ck:grant:` 开头，不得指向 `ck:capability:`。 | 父授权。 |

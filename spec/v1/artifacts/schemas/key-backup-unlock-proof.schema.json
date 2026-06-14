@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/key-backup-unlock-proof.schema.json",
   "title": "Cokret Key Backup Unlock Proof",
-  "description": "Proof presented before a recovery flow downloads or unlocks a key-backup envelope. It binds a backup read/decrypt action to one recovery_session_id, requesting device, backup object, selected series, ciphertext digest, and the proof transcript accepted by the recovery session.",
+  "description": "Proof presented before a recovery strand downloads or unlocks a key-backup envelope. It binds a backup read/decrypt action to one recovery_session_id, requesting device, backup object, selected series, ciphertext digest, and the proof transcript accepted by the recovery session.",
   "type": "object",
   "required": [
     "schema",

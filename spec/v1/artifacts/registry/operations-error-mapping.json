@@ -156,7 +156,7 @@
         "agent_deactivated",
         "failed_precondition"
       ],
-      "description": "Idempotent ensure (CKP-0009 §4.2.1): server-derived dedupe keys are `(realm_id, controller_principal_id)` for the sidecar Circle and `(controller_principal_id, normalized_context_ref)` for the private Flow / reuse identity — `agent_principal_id` is NOT part of either key, so all eligible agents of the same controller share one sidecar per Realm. Clients MUST NOT supply Idempotency-Key. sidecar_create_denied is a deliberately generic precondition that hides whether a sidecar with the same derived short_name already exists (existence privacy)."
+      "description": "Idempotent ensure (CKP-0009 §4.2.1): server-derived dedupe keys are `(realm_id, controller_principal_id)` for the sidecar Circle and `(controller_principal_id, normalized_context_ref)` for the private Strand / reuse identity — `agent_principal_id` is NOT part of either key, so all eligible agents of the same controller share one sidecar per Realm. Clients MUST NOT supply Idempotency-Key. sidecar_create_denied is a deliberately generic precondition that hides whether a sidecar with the same derived short_name already exists (existence privacy)."
     },
     {
       "operation_id": "ck.self.agent.participation.resource.replace",
@@ -402,7 +402,7 @@
         "contact_not_accepted",
         "contact_consent_missing"
       ],
-      "description": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent; create=true creates or repairs the canonical DM Realm/main Flow/binding."
+      "description": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent; create=true creates or repairs the canonical DM Realm/main Strand/binding."
     },
     {
       "operation_id": "ck.find.directory.command.announce",
@@ -887,7 +887,7 @@
     },
     {
       "operation_id": "ck.open.mimi.query.group_info",
-      "http_alias": "GET /_cokret/open/mimi/flows/{flow_id}/group-info",
+      "http_alias": "GET /_cokret/open/mimi/strands/{strand_id}/group-info",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
@@ -905,7 +905,7 @@
     },
     {
       "operation_id": "ck.open.mimi.command.notify",
-      "http_alias": "POST /_cokret/open/mimi/flows/{flow_id}/notify",
+      "http_alias": "POST /_cokret/open/mimi/strands/{strand_id}/notify",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
@@ -935,13 +935,13 @@
     },
     {
       "operation_id": "ck.open.mimi.command.update_room",
-      "http_alias": "POST /_cokret/open/mimi/flows/{flow_id}/update",
+      "http_alias": "POST /_cokret/open/mimi/strands/{strand_id}/update",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
       "operation_id": "ck.open.mimi.command.submit_message",
-      "http_alias": "POST /_cokret/open/mimi/flows/{flow_id}/messages",
+      "http_alias": "POST /_cokret/open/mimi/strands/{strand_id}/messages",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
@@ -966,8 +966,8 @@
       ]
     },
     {
-      "operation_id": "ck.self.projection.flows.query.list",
-      "http_alias": "GET /_cokret/self/projection/flows",
+      "operation_id": "ck.self.projection.strands.query.list",
+      "http_alias": "GET /_cokret/self/projection/strands",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },

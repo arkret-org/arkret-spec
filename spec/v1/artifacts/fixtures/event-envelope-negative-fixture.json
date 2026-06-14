@@ -17,7 +17,7 @@
           "prev_refs": [],
           "refs": [],
           "payload": {
-            "flow_id": "ck:flow:019a7140-0000-7000-8000-000000000000",
+            "strand_id": "ck:strand:019a7140-0000-7000-8000-000000000000",
             "content": {
               "kind": "ck.content.text",
               "body": "hello"
@@ -54,7 +54,7 @@
             }
           ],
           "payload": {
-            "flow_id": "ck:flow:019a7140-0000-7000-8000-000000000000",
+            "strand_id": "ck:strand:019a7140-0000-7000-8000-000000000000",
             "content": {
               "kind": "ck.content.text",
               "body": "hello"
@@ -103,7 +103,7 @@
             }
           ],
           "payload": {
-            "flow_id": "ck:flow:019a7140-0000-7000-8000-000000000000",
+            "strand_id": "ck:strand:019a7140-0000-7000-8000-000000000000",
             "content": {
               "kind": "ck.content.text",
               "body": "tampered"
@@ -155,7 +155,7 @@
             }
           ],
           "payload": {
-            "flow_id": "ck:flow:019a7140-0000-7000-8000-000000000000",
+            "strand_id": "ck:strand:019a7140-0000-7000-8000-000000000000",
             "content": {
               "kind": "ck.content.text",
               "body": "rollback"
@@ -320,7 +320,7 @@
             }
           ],
           "payload": {
-            "flow_id": "ck:flow:019a7140-0000-7000-8000-000000000000",
+            "strand_id": "ck:strand:019a7140-0000-7000-8000-000000000000",
             "content": {
               "kind": "ck.content.text",
               "body": "too many prev refs"
@@ -350,7 +350,7 @@
             "ck:event:019a6ae0-0000-7000-8000-000000000000"
           ],
           "payload": {
-            "flow_id": "ck:flow:019a7140-0000-7000-8000-000000000000",
+            "strand_id": "ck:strand:019a7140-0000-7000-8000-000000000000",
             "content": {
               "kind": "ck.content.text",
               "body": "missing auth refs"
@@ -387,7 +387,7 @@
             }
           ],
           "payload": {
-            "flow_id": "ck:flow:019a7140-0000-7000-8000-000000000000",
+            "strand_id": "ck:strand:019a7140-0000-7000-8000-000000000000",
             "content": {
               "kind": "ck.content.text",
               "body": "self ref"
@@ -477,7 +477,7 @@
             }
           ],
           "payload": {
-            "flow_id": "ck:flow:019a7140-0000-7000-8000-000000000000",
+            "strand_id": "ck:strand:019a7140-0000-7000-8000-000000000000",
             "typing": true
           },
           "proofs": []

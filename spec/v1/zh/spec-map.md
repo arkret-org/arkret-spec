@@ -70,8 +70,8 @@ see_also:
 
 1. `overview/architecture.md`：先理解分层、实际服务器角色和信任边界。
 2. `overview/glossary.md`：确认术语含义，尤其是 Principal / Actor / Organization / Realm / Event / Principal Server。
-3. `overview/current-model.md`：理解 v1 统一对象模型的关键设计决定（Flow 统一、Board/List 容器化、track 模型、E2EE 边界、agent 落点）。
-4. `models/overview.md` 起步，按需进入 `models/realm-and-space.md`、`models/flow-and-message.md` 等专项文件，理解协作图和标准对象。
+3. `overview/current-model.md`：理解 v1 统一对象模型的关键设计决定（Strand 统一、Board/List 容器化、track 模型、E2EE 边界、agent 落点）。
+4. `models/overview.md` 起步，按需进入 `models/realm-and-space.md`、`models/strand-and-message.md` 等专项文件，理解协作图和标准对象。
 5. `identity/identity-did.md`、`identity/identity-handles.md`、`identity/key-management.md`、`identity/consent-model.md`、`identity/contact-and-direct-conversation.md`：理解身份、handle、设备/备份密钥、consent gate、联系人关系和 1:1 私聊入口。
 6. `authz/capabilities.md`、`authz/event-auth-state-resolution.md`：理解权限和 Realm 状态机。
 7. `sync/operations-sync.md`、`sync/client-sync.md`、`sync/service-surface.md`、`sync/service-http-binding.md`：理解写入、同步和服务面。
@@ -81,7 +81,7 @@ see_also:
 ### 2.1 快速收敛链路（先读）
 
 1. `overview/glossary.md`
-2. `models/overview.md` + `models/realm-and-space.md` + `models/flow-and-message.md`
+2. `models/overview.md` + `models/realm-and-space.md` + `models/strand-and-message.md`
 3. `authz/event-auth-state-resolution.md` + `crypto-media/encryption-and-audit.md`
 4. `sync/client-sync.md` + `sync/operations-sync.md`（含 snapshot、fork、decryption_pending）
 
@@ -89,11 +89,11 @@ see_also:
 
 | 产品概念 | Cokret 读法 | 先读 |
 | --- | --- | --- |
-| 群聊 / 频道类场景 | Realm 负责成员和历史边界；Flow + Message 负责话题和消息；View 负责 timeline / thread 展示。 | `overview/current-model.md`、`models/flow-and-message.md`、`governance/history-visibility.md` |
-| Trello 看板 / 列 / 卡片 | Board/List 是 Space.kind；卡片是 Flow；拖拽位置是 `ck.flow.move` / Relation 派生投影。 | `models/realm-and-space.md`、`models/views.md` |
-| Jira issue / workflow / issue links | Issue 对应 Flow；粗粒度进度是 `stage`；细粒度 workflow 由 Realm profile 声明；依赖、阻塞、指派是 Relation。 | `models/flow-and-message.md`、`models/relation.md`、`models/common-fields.md` |
-| Watchers / 通知规则 / 勿扰 | Watch cell 决定是否关注；push rule 决定如何投递；DND 和 blocklist 属于 actor-private account data。 | `models/flow-and-message.md` §8、`discovery/push-notifications.md`、`discovery/client-preferences.md` |
-| 小程序 / Bot / Agent / 外部集成 | Applet/Agent 是扩展主体或服务；共享结果仍要落为 Event、Flow、Message、Morph 或 Relation。 | `extensions/applet-integration.md`、`extensions/agent-protocol-interop.md`、`models/extension-objects.md` |
+| 群聊 / 频道类场景 | Realm 负责成员和历史边界；Strand + Message 负责话题和消息；View 负责 timeline / thread 展示。 | `overview/current-model.md`、`models/strand-and-message.md`、`governance/history-visibility.md` |
+| Trello 看板 / 列 / 卡片 | Board/List 是 Space.kind；卡片是 Strand；拖拽位置是 `ck.strand.move` / Relation 派生投影。 | `models/realm-and-space.md`、`models/views.md` |
+| Jira issue / workflow / issue links | Issue 对应 Strand；粗粒度进度是 `stage`；细粒度 workflow 由 Realm profile 声明；依赖、阻塞、指派是 Relation。 | `models/strand-and-message.md`、`models/relation.md`、`models/common-fields.md` |
+| Watchers / 通知规则 / 勿扰 | Watch cell 决定是否关注；push rule 决定如何投递；DND 和 blocklist 属于 actor-private account data。 | `models/strand-and-message.md` §8、`discovery/push-notifications.md`、`discovery/client-preferences.md` |
+| 小程序 / Bot / Agent / 外部集成 | Applet/Agent 是扩展主体或服务；共享结果仍要落为 Event、Strand、Message、Morph 或 Relation。 | `extensions/applet-integration.md`、`extensions/agent-protocol-interop.md`、`models/extension-objects.md` |
 
 ## 3. 核心概念边界
 
@@ -107,9 +107,9 @@ see_also:
 ### 3.2 Realm / Standard Objects / Morph / View
 
 - Realm 是复制、授权、schema、policy、membership、history visibility 和 E2EE 的边界。
-- Flow、Message 和 Realm workflow 容器是协议标准对象，拥有明确主语义和 reducer。
+- Strand、Message 和 Realm workflow 容器是协议标准对象，拥有明确主语义和 reducer。
 - Morph 是开放对象，用于 schema / profile 扩展类型；facets 是 schema/profile 声明后的能力提示和查询标签，不是对象身份，也不是授权、状态机、排序或 reducer 语义的唯一来源。
-- Flow 通过 track primary 解析规则选择默认入口；`synthesis` / `discussion` track 分别承载正式表达与讨论能力。Track 是纯展示 / 时间线分段标识，**不携带独立 access**——整个 Flow 共享单一 effective scope（由 `Flow.scope_circle_id` 决定，null = Realm-default，否则指向同 Realm 的 [Circle](./models/circle.md)）。需要独立 membership、历史可见性或 E2EE 边界时，把整 Flow 落在 Circle，或按 [`models/circle.md` §7.2](./models/circle.md) 拆为两个 Flow + Relation。
+- Strand 通过 track primary 解析规则选择默认入口；`synthesis` / `discussion` track 分别承载正式表达与讨论能力。Track 是纯展示 / 时间线分段标识，**不携带独立 access**——整个 Strand 共享单一 effective scope（由 `Strand.scope_circle_id` 决定，null = Realm-default，否则指向同 Realm 的 [Circle](./models/circle.md)）。需要独立 membership、历史可见性或 E2EE 边界时，把整 Strand 落在 Circle，或按 [`models/circle.md` §7.2](./models/circle.md) 拆为两个 Strand + Relation。
 - View 是投影定义，不拥有真相数据。
 
 ### 3.3 Principal Server / Events / Sync / Projection
@@ -141,7 +141,7 @@ see_also:
 | `index.md` | 项目定位、设计目标、规范入口。 |
 | `spec-map.md` | 本文，按协议平面组织阅读路径。 |
 | `overview/architecture.md` | 顶层架构、Principal Server 部署形态、部署拓扑、信任边界。 |
-| `overview/current-model.md` | Flow / track / Board / List / View 的统一模型说明。 |
+| `overview/current-model.md` | Strand / track / Board / List / View 的统一模型说明。 |
 | `overview/release-readiness.md` | `v1` 发布基线、工件矩阵与稳定发布门槛。 |
 | `overview/glossary.md` | 全局术语表。 |
 | `overview/evolution-and-compatibility.md` | 协议演进与向后兼容总纲：版本承载、破坏性变更收敛、profile / capability 协商在演进中的整体角色（被 `conformance/conformance-profiles.md`、`conformance/encoding.md`、`sync/service-http-binding.md` 引用为演进导航入口）。 |
@@ -154,11 +154,11 @@ see_also:
 | `identity/identity-did.md` | DID、v1 core 默认 principal method `did:webvh`、`did:web` 仅作为 service DID 默认 / `personal_node` profile 可选、`did:webvh` outage 的 cache-only degraded mode、DID Document、Organization ownership。 |
 | `identity/identity-handles.md` | Handle 解析、connection identifier、双向绑定、claim / attestation、`MemberDeliveryBindingCandidate`（§3.7）。 |
 | `identity/consent-model.md` | 用户同意、披露边界、撤回语义和跨服务 consent proof。 |
-| `identity/contact-and-direct-conversation.md` | 联系人请求 / 接受 / 拒绝 / tombstone、contact-managed consent、private contact discovery 边界、direct conversation resolver、DM Realm 与 DM 主 Flow 形态。 |
+| `identity/contact-and-direct-conversation.md` | 联系人请求 / 接受 / 拒绝 / tombstone、contact-managed consent、private contact discovery 边界、direct conversation resolver、DM Realm 与 DM 主 Strand 形态。 |
 | `identity/tsp-integration.md` | TSP 作为可选 transport / trust binding。 |
 | `identity/key-management.md` | 密钥、恢复、Accountable Actor。 |
 | `identity/account-lifecycle.md` | 账号停用、锁定、擦除、session revocation。 |
-| `sync/third-party-invites.md` | 3PID 邀请、认领与第三方标识符 claim 流程；物理位于 `sync/`，因为其 wire flow 与服务提交路径由 Sync / Federation 章节承载。 |
+| `sync/third-party-invites.md` | 3PID 邀请、认领与第三方标识符 claim 流程；物理位于 `sync/`，因为其 wire strand 与服务提交路径由 Sync / Federation 章节承载。 |
 
 ### 4.3 对象模型与交互
 
@@ -169,8 +169,8 @@ see_also:
 | `models/overview.md` | 对象总览、typed-id 一览、设计原则、阅读路径。 |
 | `models/common-fields.md` | 公共字段、lifecycle / state 对齐、主体引用对照、reducer 总则、类型记法。 |
 | `models/realm-and-space.md` | Realm（security boundary）、Space（看板 / 列 / 容器；`kind=board` / `kind=list` / 其他 profile 注册形态）、位置语义、Space lifecycle / cas_register / cascade。 |
-| `models/flow-and-message.md` | Flow（统一协作主对象）、tracks（synthesis / discussion）、`scope_circle_id`（Flow effective scope）、Watch / 通知订阅模型（`watches` Relation + cas_register cell + 投影脱敏）、Message、chat 模式、冲突收敛、ephemeral 信号。 |
-| `models/calendar-event.md` | Calendar event Flow profile、schedule fields、RRULE v1 子集、attendees 与 `ck.rsvp.set` 收敛。 |
+| `models/strand-and-message.md` | Strand（统一协作主对象）、tracks（synthesis / discussion）、`scope_circle_id`（Strand effective scope）、Watch / 通知订阅模型（`watches` Relation + cas_register cell + 投影脱敏）、Message、chat 模式、冲突收敛、ephemeral 信号。 |
+| `models/calendar-event.md` | Calendar event Strand profile、schedule fields、RRULE v1 子集、attendees 与 `ck.rsvp.set` 收敛。 |
 | `models/circle.md` | Circle（intra-Realm 子事件 / 子消息边界）、`scope_circle_id` / `effective_scope`、Circle encryption profile 与父 Realm floor、`Circle.members ⊆ Realm.members`、Realm-default vs Circle scope、Space `child_scope_policy`、跨 scope Relation、`confidential_discussion_of` 模式、MLS-backed Circle rotate amplification 缓解、Circle UX 视觉一致性要求。 |
 | `models/morph.md` | Morph 开放对象、`morph_type` 合并优先级、标准 facets、schema evolution。 |
 | `models/relation.md` | Relation 一等关系、标准 `relation_kind` 与基数、跨 Realm 规则、RelationProfile、冲突处理。 |
@@ -217,7 +217,7 @@ see_also:
 | `sync/transport-bindings.md` | HTTP/REST、gRPC、WebSocket、SSE、MQ、libp2p 等 binding。 |
 | `sync/federation.md` | 跨域联邦模型、节点认证、Event 交换协议、跨域加入、frontier exchange、wire transaction 形态。 |
 | `sync/sovereign-deployment.md` | 高安全自建网络、sovereign client、DID resolver policy、sovereign deployment 下 External Collaboration Realm 的强制 policy、enclave、导入导出和撤销规则。 |
-| `sync/third-party-invites.md` | 3PID 邀请与认领的 wire flow、token handoff、claim submit 与不可枚举响应；身份语义同时在 §4.2 交叉登记。 |
+| `sync/third-party-invites.md` | 3PID 邀请与认领的 wire strand、token handoff、claim submit 与不可枚举响应；身份语义同时在 §4.2 交叉登记。 |
 
 ### 4.6 发现、目录与用户状态
 

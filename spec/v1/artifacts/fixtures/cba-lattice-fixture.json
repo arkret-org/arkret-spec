@@ -24,7 +24,7 @@
         },
         "effects": [
           {
-            "cell": "ck:cell:ck.component.flow.discussion.timeline.v1:ck.flow.019640c6-8000-7000-8000-000000000000",
+            "cell": "ck:cell:ck.component.strand.discussion.timeline.v1:ck.strand.019640c6-8000-7000-8000-000000000000",
             "op": {
               "kind": "append",
               "value": {
@@ -142,7 +142,7 @@
     {
       "name": "data_plane_conflict_returns_bottom_without_winner",
       "description": "Concurrent incompatible writes to a data-plane cas_register cell return structured bottom. The reducer must not choose a winner by HLC, actor id, arrival order, or Seal observation order.",
-      "cell": "ck:cell:ck.component.flow.position.v1:ck.flow.0196419b-0000-7000-8000-000000000000",
+      "cell": "ck:cell:ck.component.strand.position.v1:ck.strand.0196419b-0000-7000-8000-000000000000",
       "cell_lattice": {
         "plane": "data",
         "lattice": "cas_register",
@@ -158,7 +158,7 @@
           "bottom": {
             "kind": "conflict",
             "cells": [
-              "ck:cell:ck.component.flow.position.v1:ck.flow.0196419b-0000-7000-8000-000000000000"
+              "ck:cell:ck.component.strand.position.v1:ck.strand.0196419b-0000-7000-8000-000000000000"
             ],
             "event_ids": [
               "ck:event:20080200-8020-7802-8080-200802008020",

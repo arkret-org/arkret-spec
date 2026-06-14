@@ -16,7 +16,7 @@ updated: 2026-06-10
 
 Matrix 的核心抽象是 **room + event graph + homeserver federation**，重点服务实时通信、群聊、桥接和开放联邦。
 
-Cokret 的核心抽象是 **signed Event + per-actor event chain + Realm + Circle + Space + Flow + Message + Morph + Relation + View + capability**（canonical 对象清单以 [`index.md` §1](../index.md) 为准），其中 Realm 是 security boundary、Circle 是 Realm 内的子事件边界、Space 是结构容器（Board / List / 等），重点服务可审计的协作对象、任务、看板、agent 协作和多视图投影。
+Cokret 的核心抽象是 **signed Event + per-actor event chain + Realm + Circle + Space + Strand + Message + Morph + Relation + View + capability**（canonical 对象清单以 [`index.md` §1](../index.md) 为准），其中 Realm 是 security boundary、Circle 是 Realm 内的子事件边界、Space 是结构容器（Board / List / 等），重点服务可审计的协作对象、任务、看板、agent 协作和多视图投影。
 
 因此二者可以互联或桥接，但协议根不同。
 
@@ -24,7 +24,7 @@ Cokret 的核心抽象是 **signed Event + per-actor event chain + Realm + Circl
 
 | 维度 | Matrix | Cokret |
 | --- | --- | --- |
-| 数据根 | Room 内事件流与 room state。 | Realm 内授权 Event 集合，归约为 Realm、Flow、Message、Morph、Relation、View；看板与列容器是独立的 Space 对象（`ck:space:`），永远住在某 Realm 内。 |
+| 数据根 | Room 内事件流与 room state。 | Realm 内授权 Event 集合，归约为 Realm、Strand、Message、Morph、Relation、View；看板与列容器是独立的 Space 对象（`ck:space:`），永远住在某 Realm 内。 |
 | 主要用途 | 即时通信、群聊、VoIP 信令、桥接通信网络。 | 协作对象、任务/看板、聊天/话题、agent 协作、审计工作流。 |
 | 服务器模型 | Homeserver 是用户账号、room 参与和联邦传播的核心服务。 | Principal Server 是 principal 控制或显式委托的服务边界；Events、Sync、Blob、Policy 分层。 |
 | 真相源 | Room event graph 与状态解析。 | Actor/device/service 签名 Event Envelope，加上 Realm reducer；搜索和 View projection 都是派生层。 |
@@ -59,7 +59,7 @@ Cokret Applet 的差异不是简单“更强”，而是粒度不同：
 Matrix 可以通过 bot、appservice 或 bridge 接入 AI，但 AI 不是 Matrix 的协议根对象。Cokret 从对象模型开始就把 agent 纳入：
 
 - agent 可以是 principal、Actor、capability subject。
-- agent 输出可以写入 Message、Flow、Morph 或 Relation。
+- agent 输出可以写入 Message、Strand、Morph 或 Relation。
 - agent 权限必须窄范围、短时效、可撤销、可审计。
 - agent-to-agent 场景可以显式升级到 A2A / ACP / MCP bridge / 企业私有 agent API，并将 session、status、artifact、result 回写 Cokret。
 - Cokret 只要求协作事实、授权边界、审计摘要和最终结果进入协议账本，不要求把每个 token 或 tool call 都强制写成 durable Event。
@@ -205,7 +205,7 @@ Cokret 比 Matrix 多覆盖的：DID-rooted inception、principal control event 
 
 Matrix 可以承载很多非聊天数据，但它的协议根仍是 room event。
 
-Cokret 从一开始把 Flow、Realm、Space、Message、Morph 和 Relation 都作为协作对象处理；看板与列容器是 Space（`ck:space:`），住在 Realm 内但本身不是安全边界。聊天只是讨论 projection 的一种常见场景，不是所有业务状态的唯一载体。
+Cokret 从一开始把 Strand、Realm、Space、Message、Morph 和 Relation 都作为协作对象处理；看板与列容器是 Space（`ck:space:`），住在 Realm 内但本身不是安全边界。聊天只是讨论 projection 的一种常见场景，不是所有业务状态的唯一载体。
 
 ### 5.2 Power level 与 capability
 
@@ -213,7 +213,7 @@ Matrix power level 适合 room 内角色治理。
 
 Cokret capability 更适合细粒度协作系统：
 
-- 可以限定 Realm、Space、Flow、Message、Morph、Relation，以及 `space.kind`、字段、时间、设备、速率、审批条件。
+- 可以限定 Realm、Space、Strand、Message、Morph、Relation，以及 `space.kind`、字段、时间、设备、速率、审批条件。
 - 可以委托给 agent、Applet、设备、组织角色或外部服务。
 - 可撤销、可审计，并与 policy server 风险决策分离。
 

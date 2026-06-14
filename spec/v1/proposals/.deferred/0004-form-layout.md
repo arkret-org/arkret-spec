@@ -13,13 +13,13 @@ depends_on: [CKP-0002, CKP-0003]
 
 ## 1. Summary
 
-引入 `ck:form_layout:` 一等对象,声明 Flow / Morph 单对象详情面板中字段的排列、分组、"hide when empty" 分隔、tab 切分。Realm admin 通过它统一治理 UI 布局,避免每个客户端硬编码。
+引入 `ck:form_layout:` 一等对象,声明 Strand / Morph 单对象详情面板中字段的排列、分组、"hide when empty" 分隔、tab 切分。Realm admin 通过它统一治理 UI 布局,避免每个客户端硬编码。
 
 ## 2. Motivation
 
 Jira 截图最直观的功能是"Work item layout":per-work-type 拖拽字段顺序、"Hide when empty"分隔线、字段 tabs。Linear 的 "Issue templates"、Notion 的 "Database template"、Asana 的 "Task template" 局部承担类似职责。
 
-当前协议:`View` 只服务 collection(Board / List)的查询与渲染([current-model.md §5](../../zh/overview/current-model.md))。**没有"单 Flow 详情面板"的字段布局定义**;客户端只能各自硬编码"标题在上、状态在右、字段在左"。
+当前协议:`View` 只服务 collection(Board / List)的查询与渲染([current-model.md §5](../../zh/overview/current-model.md))。**没有"单 Strand 详情面板"的字段布局定义**;客户端只能各自硬编码"标题在上、状态在右、字段在左"。
 
 ## 3. Specification
 
@@ -32,8 +32,8 @@ Schema id: `ck.schema.form_layout.v1`
 | `id` | yes | `id:form_layout` | `ck:form_layout:<uuid>` | Layout ID。 |
 | `realm_id` | yes | `id:realm` | — | 归属 Realm。 |
 | `name` | yes | `string` | 1..128 chars。 | Layout 显示名(管理界面用)。 |
-| `target_object_kind` | yes | `enum(flow, morph)` | v1 范围;后续可扩。 | 这份 layout 用于哪类对象。 |
-| `target_type_ref` | conditional | `id:flow_type \| id:morph_type_key` | `target_object_kind=flow` 时引用 `ck:flow_type:`;`target_object_kind=morph` 时引用 `morph_type` 字符串 key。 | 该 layout 绑定的 type。**未设置**则为该 object_kind 的 fallback default layout。 |
+| `target_object_kind` | yes | `enum(strand, morph)` | v1 范围;后续可扩。 | 这份 layout 用于哪类对象。 |
+| `target_type_ref` | conditional | `id:strand_type \| id:morph_type_key` | `target_object_kind=strand` 时引用 `ck:strand_type:`;`target_object_kind=morph` 时引用 `morph_type` 字符串 key。 | 该 layout 绑定的 type。**未设置**则为该 object_kind 的 fallback default layout。 |
 | `sections` | yes | `array<Section>` | 至少 1 个 section。 | 详情面板分区,见 §3.2。 |
 | `tabs` | no | `array<Tab>` | 可选 tab 切分。 | 见 §3.3。 |
 | `state` | yes | `enum(active, archived, tombstoned)` | 同 common-fields §5。 | 生命周期。 |
@@ -80,9 +80,9 @@ Schema id: `ck.schema.form_layout.v1`
 
 ### 3.4 Layout 选择算法(reducer 不参与,纯客户端 / projection)
 
-客户端在打开 Flow 详情面板时按以下顺序找 layout:
+客户端在打开 Strand 详情面板时按以下顺序找 layout:
 
-1. Flow 有 `flow_type_ref` → 查找 active `form_layout` 中 `target_object_kind=flow` 且 `target_type_ref=<this flow_type>`
+1. Strand 有 `strand_type_ref` → 查找 active `form_layout` 中 `target_object_kind=strand` 且 `target_type_ref=<this strand_type>`
 2. 找不到 → 查找该 object_kind 的 fallback layout(`target_type_ref` 缺省)
 3. 仍找不到 → 客户端硬编码 default
 
@@ -112,7 +112,7 @@ Schema id: `ck.schema.form_layout.v1`
 - 新增 id-kind:`form_layout`。
 - 新增 event_kinds(6 条)+ capability actions(1 条)。
 - 新增 profile:`ck.profile.form_layout.v1`。
-- **reducer 不校验 layout 内容**:layout 是纯展示元数据,wire 上 layout 引用的 field_def / flow_type 不存在时,reducer 在 layout 写入时校验引用合法性,但**不**联动校验 Flow 数据。
+- **reducer 不校验 layout 内容**:layout 是纯展示元数据,wire 上 layout 引用的 field_def / strand_type 不存在时,reducer 在 layout 写入时校验引用合法性,但**不**联动校验 Strand 数据。
 - View(`ck:view:`)与 form_layout 关系:View 服务 collection(多对象列表),form_layout 服务 detail(单对象)。两者职责正交。
 
 ## 5. Rationale & alternatives
@@ -133,7 +133,7 @@ Schema id: `ck.schema.form_layout.v1`
 
 ### 5.3 为什么 reducer 不校验 layout 联动?
 
-layout 是纯 hint,引用的 field_def / flow_type 在 layout 写入时存在即可。运行时 layout 引用了 archived field_def,projection 跳过该 section 即可,不需要 wire-level reject。这与 Realm policy / Realm schema 是同样的"声明式 + 客户端容忍" 设计。
+layout 是纯 hint,引用的 field_def / strand_type 在 layout 写入时存在即可。运行时 layout 引用了 archived field_def,projection 跳过该 section 即可,不需要 wire-level reject。这与 Realm policy / Realm schema 是同样的"声明式 + 客户端容忍" 设计。
 
 ## 6. Open questions
 
@@ -152,5 +152,5 @@ layout 是纯 hint,引用的 field_def / flow_type 在 layout 写入时存在即
 - Jira "Work item layout"(用户提供截图,2026-05-23):drag-fields 排列、"Hide when empty" 分隔、Sub-task / Task tab、"Copy work item layout" 按钮、右侧 Fields 边栏 + custom fields 跳转
 - Notion database template
 - Asana task templates
-- CKP-0002 Flow Type(layout 的 type 锚点)
+- CKP-0002 Strand Type(layout 的 type 锚点)
 - CKP-0003 Field Catalog(layout 的字段引用对象)

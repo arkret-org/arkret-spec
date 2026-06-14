@@ -243,7 +243,7 @@ document.addEventListener("astro:after-swap", boot);
                 "overview",
                 "common-fields",
                 "realm-and-space",
-                "flow-and-message",
+                "strand-and-message",
                 "circle",
                 "morph",
                 "relation",

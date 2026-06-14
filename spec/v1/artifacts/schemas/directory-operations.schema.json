@@ -79,9 +79,9 @@
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
-    "flow_id": {
+    "strand_id": {
       "type": "string",
-      "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "message_id": {
       "type": "string",
@@ -366,7 +366,7 @@
         "object_id": {
           "oneOf": [
             {
-              "$ref": "#/$defs/flow_id"
+              "$ref": "#/$defs/strand_id"
             },
             {
               "$ref": "#/$defs/message_id"
@@ -379,7 +379,7 @@
         "object_kind": {
           "type": "string",
           "enum": [
-            "flow",
+            "strand",
             "message",
             "event"
           ]
@@ -566,7 +566,7 @@
           "type": "string",
           "enum": [
             "realm",
-            "flow",
+            "strand",
             "message"
           ]
         },
@@ -1099,7 +1099,7 @@
           "type": "string",
           "enum": [
             "request_consent",
-            "open_invite_flow",
+            "open_invite_strand",
             "no_action",
             "try_later"
           ]

@@ -29,7 +29,7 @@ see_also:
 
 ## 2. Client Encrypted Index
 
-客户端加密索引的 manifest 写入 `ck.search.index_manifest.v1:<realm_key>`。`realm_key` 等于对 canonical `realm_id` 计算 `base64url(HMAC-SHA256(account-data namespace key, ...))`。manifest plaintext shape 使用 `realm_id`，并在 account-data value 中加密；`shard_key` 不得由 plaintext term、object ref、message id 或 flow id 直接派生。
+客户端加密索引的 manifest 写入 `ck.search.index_manifest.v1:<realm_key>`。`realm_key` 等于对 canonical `realm_id` 计算 `base64url(HMAC-SHA256(account-data namespace key, ...))`。manifest plaintext shape 使用 `realm_id`，并在 account-data value 中加密；`shard_key` 不得由 plaintext term、object ref、message id 或 strand id 直接派生。
 
 托管服务只能返回 encrypted shard / manifest bytes，MUST NOT 返回 hit、ref、snippet、score 或 term-level metadata。客户端解密后仍必须按当前 Realm policy、history visibility、redaction、expiry 和 local capability state 过滤。
 

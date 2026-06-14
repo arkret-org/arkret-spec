@@ -6,7 +6,7 @@ stability: v1
 updated: 2026-06-10
 see_also:
   - private-objects.md
-  - flow-and-message.md
+  - strand-and-message.md
   - ../sync/client-sync.md
   - ../../artifacts/registry/account-data-type-registry.json
 ---
@@ -51,7 +51,7 @@ see_also:
 
 ## 5. Snooze
 
-稍后处理写入 `ck.snooze.v1:<target_key>`，value 使用 `snooze_expires_at` 表达失效时间。它只影响 holder 的 inbox、提醒和本地排序投影，不得改变目标 Flow / Message / Relation / View 的共享状态。
+稍后处理写入 `ck.snooze.v1:<target_key>`，value 使用 `snooze_expires_at` 表达失效时间。它只影响 holder 的 inbox、提醒和本地排序投影，不得改变目标 Strand / Message / Relation / View 的共享状态。
 
 服务端或受托投影如果持有 holder 授权，可以消费该状态为 holder 生成私有投影；对其他 actor 的 shared projection MUST NOT 暴露 snooze 命中。
 
@@ -66,7 +66,7 @@ Saved item 与 shared pin 不同：saved item 是 holder-private collection；sh
 草稿写入 `ck.draft.v1:<kind>:<target_key>:<slot_key>`。支持的 v1 key 形态：
 
 - `kind=message` 时，`slot_key=compose`。
-- `kind=flow_field` 时，`slot_key=field_<sha256(canonical_field_path)>`。
+- `kind=strand_field` 时，`slot_key=field_<sha256(canonical_field_path)>`。
 
 草稿 value MUST 加密，并至少包含 `target_ref`、`kind`、`draft_slot`、`content`、`updated_hlc`、`origin_device_id` 和 `retention_expires_at`。`origin_device_id` MUST 是完整 `ck:device:<uuid>` typed ID；原始 `target_ref` MUST NOT 出现在 account-data key 中。
 

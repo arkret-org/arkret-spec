@@ -104,7 +104,7 @@
             "op": {
               "kind": "append",
               "value": {
-                "flow_id": "ck:flow:01964137-0000-7000-8000-000000000000",
+                "strand_id": "ck:strand:01964137-0000-7000-8000-000000000000",
                 "message_id": "ck:message:019640ed-8000-7000-8000-000000000000",
                 "track_name": "discussion"
               }
@@ -121,7 +121,7 @@
           ]
         },
         "payload": {
-          "flow_id": "ck:flow:01964137-0000-7000-8000-000000000000",
+          "strand_id": "ck:strand:01964137-0000-7000-8000-000000000000",
           "track_name": "discussion",
           "message_id": "ck:message:019640ed-8000-7000-8000-000000000000",
           "content": {
@@ -130,7 +130,7 @@
           }
         }
       },
-      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:web:alice.example\",\"actor_seq\":1,\"auth_context\":{\"capability_refs\":[\"ck:grant:0196410c-0000-7000-8000-000000000000\"],\"did\":\"did:web:alice.example\",\"key_epoch\":1,\"key_id\":\"device-1\"},\"created_at\":\"2026-04-26T00:00:00Z\",\"effects\":[{\"cell\":\"ck:cell:message:019640ed-8000-7000-8000-000000000000\",\"op\":{\"kind\":\"append\",\"value\":{\"flow_id\":\"ck:flow:01964137-0000-7000-8000-000000000000\",\"message_id\":\"ck:message:019640ed-8000-7000-8000-000000000000\",\"track_name\":\"discussion\"}}}],\"event_id\":\"ck:event:019640ed-8000-7000-8000-000000000000\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"ck.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ck.content.text\"},\"flow_id\":\"ck:flow:01964137-0000-7000-8000-000000000000\",\"message_id\":\"ck:message:019640ed-8000-7000-8000-000000000000\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"realm_id\":\"ck:realm:01964137-0000-7000-8000-000000000000\",\"refs\":[],\"seal_ref\":\"ck:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222\"}",
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:web:alice.example\",\"actor_seq\":1,\"auth_context\":{\"capability_refs\":[\"ck:grant:0196410c-0000-7000-8000-000000000000\"],\"did\":\"did:web:alice.example\",\"key_epoch\":1,\"key_id\":\"device-1\"},\"created_at\":\"2026-04-26T00:00:00Z\",\"effects\":[{\"cell\":\"ck:cell:message:019640ed-8000-7000-8000-000000000000\",\"op\":{\"kind\":\"append\",\"value\":{\"strand_id\":\"ck:strand:01964137-0000-7000-8000-000000000000\",\"message_id\":\"ck:message:019640ed-8000-7000-8000-000000000000\",\"track_name\":\"discussion\"}}}],\"event_id\":\"ck:event:019640ed-8000-7000-8000-000000000000\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"ck.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ck.content.text\"},\"strand_id\":\"ck:strand:01964137-0000-7000-8000-000000000000\",\"message_id\":\"ck:message:019640ed-8000-7000-8000-000000000000\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"realm_id\":\"ck:realm:01964137-0000-7000-8000-000000000000\",\"refs\":[],\"seal_ref\":\"ck:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222\"}",
       "expected_digest": "sha256:2a98c4056c6c7a251b2c410530d796ad5df3858097b0926b4748a98cb0e8eea3",
       "rules": [
         "event digest MUST be derived from canonical bytes after stripping proofs and unsigned, before redaction",
@@ -344,24 +344,24 @@
   ],
   "rank_order": [
     {
-      "flow_id": "ck:flow:019640c5-0400-7000-8000-000000000000",
+      "strand_id": "ck:strand:019640c5-0400-7000-8000-000000000000",
       "list_id": "ck:space:01964010-8000-7000-8000-000000000000",
       "rank": "U"
     },
     {
-      "flow_id": "ck:flow:019640c5-0800-7000-8000-000000000000",
+      "strand_id": "ck:strand:019640c5-0800-7000-8000-000000000000",
       "list_id": "ck:space:01964010-8000-7000-8000-000000000000",
       "rank": "j"
     },
     {
-      "flow_id": "ck:flow:019640c5-0c00-7000-8000-000000000000",
+      "strand_id": "ck:strand:019640c5-0c00-7000-8000-000000000000",
       "list_id": "ck:space:01964010-8000-7000-8000-000000000000",
       "rank": "t"
     }
   ],
   "expected_order": [
-    "ck:flow:019640c5-0400-7000-8000-000000000000",
-    "ck:flow:019640c5-0800-7000-8000-000000000000",
-    "ck:flow:019640c5-0c00-7000-8000-000000000000"
+    "ck:strand:019640c5-0400-7000-8000-000000000000",
+    "ck:strand:019640c5-0800-7000-8000-000000000000",
+    "ck:strand:019640c5-0c00-7000-8000-000000000000"
   ]
 }

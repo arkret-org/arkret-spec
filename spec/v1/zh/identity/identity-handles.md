@@ -311,7 +311,7 @@ invite / member-add 不再把 `resolve_handle(intent="invite" | "member_add")` �
 
 管理员或 issuer 后期修改 handle 的可见效果由 claim set 变化驱动：issuer 签发新 claim、撤销旧 claim、或改变 binding_state / expiry 后，`ck.find.directory.query.list_handles_for_subject` 和 roster hint MUST 反映新的 effective claim set。客户端 MAY 发布新的 `ck.member.identity.update` 来刷新 display-profile cache，但这不是 handle 变更生效的条件。
 
-### 3.2.3 Registration and Invitation Flows（informative）
+### 3.2.3 Registration and Invitation Strands（informative）
 
 常见注册路径都在 Cokret core 之外完成，但进入 Cokret 后遵循同一 claim-led 模型：
 
@@ -863,7 +863,7 @@ Verifier MUST 使用最小披露请求，不得请求“所有 alias”或“所
   "forbidden_claims": [
     "other_handles",
     "external_accounts",
-    "global_flow_identifier"
+    "global_strand_identifier"
   ]
 }
 ```
@@ -980,7 +980,7 @@ grant subject = alice@google.com
   "forbidden_claims": [
     "other_handles",
     "external_accounts",
-    "global_flow_identifier",
+    "global_strand_identifier",
     "credential_id"
   ],
   "transport_hints": ["tsp", "http_jwe", "didcomm_like"],
@@ -1017,7 +1017,7 @@ Verifier MUST 对该请求签名，或通过已认证的关系通道发送。Wal
   "forbidden_fields": [
     "other_handles",
     "external_accounts",
-    "global_flow_identifier",
+    "global_strand_identifier",
     "credential_id"
   ],
   "requires_user_consent": true,

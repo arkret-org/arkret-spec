@@ -73,7 +73,7 @@
         "required_event_kinds": [
           "ck.realm.create",
           "ck.member.state",
-          "ck.flow.create",
+          "ck.strand.create",
           "ck.message.create",
           "ck.message.revise",
           "ck.message.redact",
@@ -84,7 +84,7 @@
         "rejected_event_kind_scopes": [],
         "required_schemas": [
           "ck.schema.realm.v1",
-          "ck.schema.flow.v1",
+          "ck.schema.strand.v1",
           "ck.schema.message.v1",
           "ck.schema.account_subscribe_frame.v1"
         ],
@@ -106,7 +106,7 @@
           "artifacts/registry/event-kind-registry.json",
           "artifacts/registry/capability-action-registry.json",
           "artifacts/registry/relation-kind-registry.json",
-          "zh/models/flow-and-message.md",
+          "zh/models/strand-and-message.md",
           "zh/conformance/conformance-vectors.md"
         ],
         "lattice_types": [
@@ -129,17 +129,17 @@
         "required_event_kinds": [
           "ck.realm.create",
           "ck.member.state",
-          "ck.flow.create",
-          "ck.flow.update",
-          "ck.flow.move",
-          "ck.flow.reorder",
+          "ck.strand.create",
+          "ck.strand.update",
+          "ck.strand.move",
+          "ck.strand.reorder",
           "ck.relation.create",
           "ck.container.rebalance"
         ],
         "rejected_event_kind_scopes": [],
         "required_schemas": [
           "ck.schema.realm.v1",
-          "ck.schema.flow.v1",
+          "ck.schema.strand.v1",
           "ck.schema.relation.v1",
           "ck.schema.view.v1"
         ],
@@ -156,7 +156,7 @@
           "artifacts/registry/event-kind-registry.json",
           "artifacts/registry/relation-kind-registry.json",
           "zh/models/realm-and-space.md",
-          "zh/models/flow-and-message.md",
+          "zh/models/strand-and-message.md",
           "zh/models/relation.md"
         ],
         "lattice_types": [
@@ -179,7 +179,7 @@
         "required_event_kinds": [
           "ck.realm.create",
           "ck.member.state",
-          "ck.flow.create",
+          "ck.strand.create",
           "ck.message.create",
           "ck.capability.grant",
           "ck.capability.revoke"

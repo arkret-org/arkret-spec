@@ -178,7 +178,7 @@ Cokret v1 core conformance 要求如下：
 - **Cache-only,不解析 live `did:web` document**:fallback 期间 resolver MAY 返回 `did:webvh` 主体此前已验证的本地 cache(含 cache age 元数据);MUST NOT 退化为对 `did:web:<同 hosting domain>` 的 live resolve,即使该 hosting domain 此刻返回 200。`did:web` fallback 仅当 §3.1 表格中明确允许 `did:web` 作 principal method 的 deployment profile(目前仅 `personal_node`)显式声明 `principal_method=did:web` 时才生效——那是 deployment profile 选择，不是 outage fallback 路径。
 - 该 fallback **仅**适用于**低风险只读**操作。本规范定义的"低风险只读"集合是**封闭的**:
   - Allowed: 已缓存 DID Document 的本地展示(handle 解析、display name 渲染)
-  - Allowed: 已缓存对象的本地展示(已存在的 Flow / Message / Space / Morph 渲染)
+  - Allowed: 已缓存对象的本地展示(已存在的 Strand / Message / Space / Morph 渲染)
   - Allowed: 已缓存对象的本地搜索 / 本地索引查询
   - Allowed: 已收到 snapshot / Seal 的 state_root 重算(用于本地一致性自检)
   - Forbidden: 接收新到达的 Event Envelope / DataEvent / Control Move / Seal 并写入本地 store(即使是只读 store)

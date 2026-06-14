@@ -12,7 +12,7 @@ authors:
 
 ## 1. Summary
 
-引入 `ck:field_def:` 一等对象,把 Realm 内的扩展字段从 `fields: object` 黑盒升级为**有类型 / 有校验 / 有显示元数据 / 可在多个 Flow type 之间复用**的目录。CKP-0002 Flow Type、CKP-0004 Form Layout、CKP-0005 Workflow 都建立在此基础上。
+引入 `ck:field_def:` 一等对象,把 Realm 内的扩展字段从 `fields: object` 黑盒升级为**有类型 / 有校验 / 有显示元数据 / 可在多个 Strand type 之间复用**的目录。CKP-0002 Strand Type、CKP-0004 Form Layout、CKP-0005 Workflow 都建立在此基础上。
 
 ## 2. Motivation
 
@@ -23,7 +23,7 @@ Jira 右侧 "Fields" 边栏列出几十个可重复使用的字段(Approvals / G
 - 改一个字段的显示名 / widget 要在每个使用它的 schema 中改一遍
 - 没有"这个 Realm 当前可用哪些字段"的可枚举真源
 - 客户端无法 type-aware 渲染(date picker / select / multi-select / person picker / number / 等)
-- 同一字段在不同 Flow type 之间的复用没有引用关系
+- 同一字段在不同 Strand type 之间的复用没有引用关系
 
 ## 3. Specification
 
@@ -43,7 +43,7 @@ Schema id: `ck.schema.field_def.v1`
 | `options` | conditional | `array<FieldOption>` | `data_type ∈ {select, multi_select}` 时必填 | 见 §3.2。 |
 | `constraints` | no | `object` | 见 §3.3。 | 类型相关的额外约束(min / max / regex / required_if / ...)。 |
 | `widget_hint` | no | `string` | profile-declared widget id。 | UI 渲染提示(覆盖 data_type 的默认 widget)。 |
-| `reusable` | no | `boolean` | 默认 `true`。 | 是否允许多个 flow_type 引用本字段。`false` 表示"只属于某个 type 的私有字段",reducer 拒绝跨 type 引用。 |
+| `reusable` | no | `boolean` | 默认 `true`。 | 是否允许多个 strand_type 引用本字段。`false` 表示"只属于某个 type 的私有字段",reducer 拒绝跨 type 引用。 |
 | `state` | yes | `enum(active, archived, tombstoned)` | 同 common-fields §5。 | 生命周期。 |
 | 公共字段 | — | — | created_by / created_at / updated_by / updated_at / state_changed_at | — |
 
@@ -60,9 +60,9 @@ Schema id: `ck.schema.field_def.v1`
 }
 ```
 
-- `key` create-locked 一旦使用就不能改(同 label / flow_type)
+- `key` create-locked 一旦使用就不能改(同 label / strand_type)
 - `label` 可改
-- `archived=true` 的 option 不出现在 picker 但已选中的 Flow 保留(同 label.archived 模式)
+- `archived=true` 的 option 不出现在 picker 但已选中的 Strand 保留(同 label.archived 模式)
 - `rank` 用于 picker 排序,LWW lattice
 
 ### 3.3 `constraints` 对象按 data_type
@@ -74,7 +74,7 @@ Schema id: `ck.schema.field_def.v1`
 | `date` / `datetime` | `min`, `max` |
 | `duration` | `unit`(seconds / minutes / hours),`min`, `max` |
 | `actor_ref` | `actor_kind_allow: array<enum>`(user / agent / service / ...) |
-| `object_ref` | `object_kind_allow: array<string>`(`ck:flow:` / `ck:morph:` / ...) |
+| `object_ref` | `object_kind_allow: array<string>`(`ck:strand:` / `ck:morph:` / ...) |
 | `blob_ref` | `mime_allow: array<string>`, `max_size_bytes` |
 | `select` | `default_option_key` |
 | `multi_select` | `min_selections`, `max_selections` |
@@ -112,7 +112,7 @@ Schema id: `ck.schema.field_def.v1`
 | `ck.field_def.manage` | medium | create / update / archive / restore / tombstone / option.* |
 | `ck.field_def.type_migrate` | high | `ck.field_def.type_migrate` |
 
-字段值的写入仍走原 `ck.flow.update` / `ck.morph.update` capability,不引入新 action。
+字段值的写入仍走原 `ck.strand.update` / `ck.morph.update` capability,不引入新 action。
 
 ## 4. Interactions with normative spec
 
@@ -121,7 +121,7 @@ Schema id: `ck.schema.field_def.v1`
 - 新增 id-kind:`field_def`。
 - 新增 event_kinds(8 条)+ capability actions(2 条)。
 - 新增 profile:`ck.profile.field_catalog.v1`。
-- **不**改现有 Flow / Morph / Realm 顶层 schema(本提案是 fields 内部收紧,不引入顶层字段)。
+- **不**改现有 Strand / Morph / Realm 顶层 schema(本提案是 fields 内部收紧,不引入顶层字段)。
 - `common-fields.md` §3 的 `fields` 行追加 note:"启用 `ck.profile.field_catalog.v1` 时本字段每个 key MUST 引用一个 `ck:field_def:`"。
 
 ## 5. Rationale & alternatives

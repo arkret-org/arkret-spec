@@ -338,8 +338,8 @@
           "device_id": "ck:device:019a6aa0-2000-7000-8000-000000000000",
           "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
           "read_scope": {
-            "kind": "flow",
-            "ref": "ck:flow:019a6aa0-3000-7000-8000-000000000000",
+            "kind": "strand",
+            "ref": "ck:strand:019a6aa0-3000-7000-8000-000000000000",
             "track_name": "discussion"
           },
           "position": {
@@ -445,14 +445,14 @@
       "name": "capability_grant_wildcard_action_rejected",
       "schema_ref": "schemas/capability-grant.schema.json",
       "expect_valid": false,
-      "first_expected_error": "$.actions[0]: 'ck.flow.*' does not match '^ck\\\\.[a-z0-9_]+(\\\\.[a-z0-9_]+)*$'",
+      "first_expected_error": "$.actions[0]: 'ck.strand.*' does not match '^ck\\\\.[a-z0-9_]+(\\\\.[a-z0-9_]+)*$'",
       "instance": {
         "id": "ck:grant:0196410c-1000-7000-8000-000000000000",
         "schema": "ck.schema.capability.v1",
         "issuer": "did:web:owner.example",
         "subject": "did:web:alice.example",
         "actions": [
-          "ck.flow.*"
+          "ck.strand.*"
         ],
         "resources": [
           {
@@ -600,7 +600,7 @@
         "accountable_principal_id": "did:web:alice.example",
         "agent_key_scope": {
           "actions": [
-            "ck.flow.update"
+            "ck.strand.update"
           ],
           "resources": [
             {
@@ -1156,7 +1156,7 @@
           "handles": []
         },
         "requested_scopes": [
-          "ck.flow.create"
+          "ck.strand.create"
         ],
         "endpoint_policy": {
           "endpoints": [
@@ -1229,7 +1229,7 @@
           "handles": []
         },
         "requested_scopes": [
-          "ck.flow.create"
+          "ck.strand.create"
         ],
         "endpoint_policy": {
           "endpoints": [
@@ -1295,7 +1295,7 @@
           "handles": []
         },
         "requested_scopes": [
-          "ck.flow.create"
+          "ck.strand.create"
         ],
         "endpoint_policy": {
           "endpoints": [
@@ -1366,7 +1366,7 @@
           "handles": []
         },
         "requested_scopes": [
-          "ck.flow.create"
+          "ck.strand.create"
         ],
         "endpoint_policy": {
           "endpoints": [

@@ -18,7 +18,7 @@ sidebar:
 > 下方 §2 schema id 表与 §4 event kind 表是**人工维护的阅读节选**，并非穷尽清单；两者与机器 registry 不一致时一律 **以 JSON registry 为准**。"本文定义"的措辞仅指文档级别的展示视图。穷尽且 canonical 的清单是 `artifacts/registry/*.json`（站点经 MDX 组件 `<EventKindTable/>` / `<SchemaViewer/>` 等直接渲染这些 JSON）。
 > 修改流程:`contract-catalog.json` → `tools/artifact_pipeline.py generate` → 刷新各 `*-registry.json`（pipeline **不再**改写本文 md 表）。新增 / 改名概念时如需在本节节选表体现，MUST 手工同步对应行；但本节表的滞后**不**改变「JSON registry 为唯一真源」这一结论。
 
-字段级结构定义见 `../models/common-fields.md` 及各对象专属文件（`realm-and-space.md` / `flow-and-message.md` / `morph.md` / `relation.md` / `actor.md` / `governance-objects.md` / `private-objects.md` / `event-and-patch.md`）。
+字段级结构定义见 `../models/common-fields.md` 及各对象专属文件（`realm-and-space.md` / `strand-and-message.md` / `morph.md` / `relation.md` / `actor.md` / `governance-objects.md` / `private-objects.md` / `event-and-patch.md`）。
 
 机器可读真源(authoritative,本文表格只是其投影):
 
@@ -84,7 +84,7 @@ sidebar:
 | `ck.schema.actor_profile.v1` | Actor Profile |
 | `ck.schema.agent_selector_claim.v1` | Controller-scoped native personal agent selector claim |
 | `ck.schema.circle.v1` | Circle (intra-Realm scoped event/message boundary; see [`../models/circle.md`](../models/circle.md)) |
-| `ck.schema.flow.v1` | Flow |
+| `ck.schema.strand.v1` | Strand |
 | `ck.schema.message.v1` | Message |
 | `ck.schema.morph.v1` | Morph |
 | `ck.schema.relation.v1` | Relation |
@@ -142,7 +142,7 @@ sidebar:
 
 ## 4. Event kind 注册表（文档视图）
 
-### 4.1 Realm 与 Flow
+### 4.1 Realm 与 Strand
 
 | event type | payload |
 | --- | --- |
@@ -166,20 +166,20 @@ sidebar:
 | `ck.member.state` | Membership state |
 
 > `realm.join_policy` / `member.application` / `member.application.review` / `member.application.cancel` 是 candidate workflow concept/action 名称，不是 v1 wire `Event.kind`，见 [`../governance/join-policy.md`](../governance/join-policy.md)。未列入本 active registry，正式登记前不得使用 `ck.*` 前缀，也不得作为 Event envelope 的 `kind`。
-| `ck.flow.create` | Flow create |
-| `ck.flow.update` | Flow patch |
-| `ck.flow.archive` | Flow archive |
-| `ck.flow.restore` | Flow restore |
-| `ck.flow.move` | Flow move between Lists |
-| `ck.flow.reorder` | Flow reorder within List |
-| `ck.flow.tracks.update` | Flow tracks map patch（`ck.patch.v1` payload；详见 [`../models/flow-and-message.md` §4.8](../models/flow-and-message.md)） |
-| `ck.flow.watch.set` | Set / clear per-(flow, actor) watch subscription (writes cas_register cell `ck.component.flow.watch.v1`; derives `watches` Relation) |
+| `ck.strand.create` | Strand create |
+| `ck.strand.update` | Strand patch |
+| `ck.strand.archive` | Strand archive |
+| `ck.strand.restore` | Strand restore |
+| `ck.strand.move` | Strand move between Lists |
+| `ck.strand.reorder` | Strand reorder within List |
+| `ck.strand.tracks.update` | Strand tracks map patch（`ck.patch.v1` payload；详见 [`../models/strand-and-message.md` §4.8](../models/strand-and-message.md)） |
+| `ck.strand.watch.set` | Set / clear per-(strand, actor) watch subscription (writes cas_register cell `ck.component.strand.watch.v1`; derives `watches` Relation) |
 | `ck.space.create` | Space create (board / list / swimlane / calendar bucket / ...) |
 | `ck.space.update` | Space metadata patch |
 | `ck.space.parent` | Space parent declaration (cas_register cell) |
 | `ck.space.archive` | Space archive (reversible UI hide) |
 | `ck.space.restore` | Space restore (archived -> active; only valid when current state == archived) |
-| `ck.space.tombstone` | Space tombstone (irreversible; contained Flows MUST be relocated first) |
+| `ck.space.tombstone` | Space tombstone (irreversible; contained Strands MUST be relocated first) |
 
 ### 4.2 消息与关系
 

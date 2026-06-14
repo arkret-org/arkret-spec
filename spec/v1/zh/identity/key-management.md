@@ -154,7 +154,7 @@ agent key 的授权、轮换和撤销 MUST 进入可审计状态，而不能只�
 - **Provisioning** (`POST /_cokret/self/agents`, operation `ck.self.agent.command.provision`):service operation 编排 Actor Profile 创建、`ck.identity.accountability_grant`、初始 `ck.capability.grant`(标 `effective_after_first_authorized_key=true`),并返回一次性 `pairing_request_id` + `pairing_code`。不写入独立 `ck.self.agent.command.provision` event。
 - **Runtime key pairing** (`POST /_cokret/gate/account/agent-key-pair`, operation `ck.gate.account.command.pair_agent_key`):agent runtime 本地生成 key pair、提交 public key + proof-of-possession + 可选 `runtime_attestation`(v1 baseline `kind="self_asserted"`)。Pairing endpoint MUST 校验 `verification_method` 的 DID 部分(strip fragment/query 后)与请求体中 `agent_principal_id` bit-identical;不匹配 fail closed(`reason="verification_method_principal_mismatch"`)。批准后写入 `ck.agent.key.authorize`,reducer 清除该 agent principal 名下所有 `effective_after_first_authorized_key=true` flag。
 - **Pairing 失败清理**:`pairing.expires_at` 到达且未完成 pairing 时，服务 MUST 自动 `ck.capability.revoke` 撤销 pending grant,agent status → `pairing_expired`。
-- **Agent runtime authentication**:复用 `POST /_cokret/gate/account/session-grants`(operation `ck.gate.account.command.issue_session_grant`),通过 `proof.proof_kind="agent_key_proof"` 分支区分。Auth Server MUST 维护独立 schema branch、独立 proof validator;不得让 `agent_key_proof` 走 password / OIDC / passkey 的 validator fallback。请求侧 `agent_scope_request` 是 `ck.profile.agent_auth.v1` overlay,签发后的 scope MUST 物化为 capabilities.md 已注册的 `allowed_tracks` / `allowed_flow_ids` / `allowed_data_classes` / `allowed_endpoints` 等 typed constraints。
+- **Agent runtime authentication**:复用 `POST /_cokret/gate/account/session-grants`(operation `ck.gate.account.command.issue_session_grant`),通过 `proof.proof_kind="agent_key_proof"` 分支区分。Auth Server MUST 维护独立 schema branch、独立 proof validator;不得让 `agent_key_proof` 走 password / OIDC / passkey 的 validator fallback。请求侧 `agent_scope_request` 是 `ck.profile.agent_auth.v1` overlay,签发后的 scope MUST 物化为 capabilities.md 已注册的 `allowed_tracks` / `allowed_strand_ids` / `allowed_data_classes` / `allowed_endpoints` 等 typed constraints。
 - **Session TTL**:Agent session grant 默认最大 TTL SHOULD 为 15 分钟；若 deployment profile 显式声明更长，不应超过 60 分钟。Controller 进入 `deactivated` / `suspended` 后，其 accountable agent 的 active sessions MUST 通过 account lifecycle / revocation 链失效。
 - **High-risk approval**:Auth Server MUST NOT 给 agent runtime 展示 CAPTCHA / OTP 页面；需要人类批准时返回 structured error `code=claim_required`、`reason_code=human_approval_required`、`approval_request_id=<opaque>`。Controller 在带外 UI 完成批准，产生 capability / delegation / approval event,agent retry 时引用该 event。
 - **E2EE access**:Agent MUST 作为独立 MLS member 参与，不得伪装成 controller 的 delegated device;agent MLS KeyPackage SHOULD 由 active `ck.agent.key.authorize.verification_method` 签发或绑定，使 key authorization、session proof 与 MLS membership 落在同一审计链。
@@ -227,7 +227,7 @@ Inception bootstrap MUST 使用 DID method 自身的初始控制密钥作为信�
 3. **Principal control realm genesis**：客户端构造 `ck.realm.create` Event 创建 principal control realm（`realm_id` 即 `principal_control_realm_id`，绑定到 principal DID）。该对象是标准 `ck.schema.realm.v1` Realm（不引入新的 Realm kind），并通过以下 Realm 字段把它标记为 control stream：
    - `fields.purpose = "principal_control"`（产品语义；reducer/authz 通过此字段识别 control stream）。
    - `schema_refs` 包含 `ck.profile.principal_control_realm.v1`（profile id；该 profile 收紧 control realm 的允许 event kinds、capability action、E2EE/federation 默认值）。
-   - `ck.profile.principal_control_realm.v1` 的机器化要求见 `artifacts/profiles/conformance-profiles.json#profile_requirements`：control Realm MUST 使用 allowlist-only event kind policy；普通 Flow / Message / Space / Relation / View / Morph / Call 协作事件在该 Realm 内 MUST `principal_control_event_kind_forbidden`。
+   - `ck.profile.principal_control_realm.v1` 的机器化要求见 `artifacts/profiles/conformance-profiles.json#profile_requirements`：control Realm MUST 使用 allowlist-only event kind policy；普通 Strand / Message / Space / Relation / View / Morph / Call 协作事件在该 Realm 内 MUST `principal_control_event_kind_forbidden`。
    - `encryption_profile = "mls_rfc9420"`，`content_encryption_floor = "e2ee_required"`，`metadata_encryption_floor = "e2ee_required"`，`history_visibility = "restricted"`，`notary_profile = "single_did"`，`notary = <principal DID>`。Principal Control Realm 的 `encryption_profile` 在 v1 中被 `ck.profile.principal_control_realm.v1` 固定为 `mls_rfc9420`，两条加密 floor 被固定为 `e2ee_required`（v1 不存在明文地板的 PCR）；producer MUST NOT 使用 `none` 或 `external`，也 MUST NOT 把任一 floor 声明为低于 `e2ee_required`。`history_visibility = "restricted"`：新授权的同 principal 设备读取 join 前控制历史走 durable device-list / normalized principal view baseline 与 policy 受控的 MLS history key share，PCR MUST NOT 使用 `joined`。
    - `created_by = <principal DID>`，`security_class = "high_assurance"`（强制 federation_policy ∈ {closed, restricted, quarantine}）。
 
@@ -446,7 +446,7 @@ Cokret v1 使用 `ck.session.grant` 作为 principal control stream 中的标准
     "ck.self.events.command.submit",
     "ck.realm.discover",
     "ck.object.read",
-    "ck.flow.update",
+    "ck.strand.update",
     "ck.message.create"
   ],
   "not_before": "2026-04-26T00:00:00Z",

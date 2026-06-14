@@ -14,7 +14,7 @@ updated: 2026-06-10
 
 `relation`（`ck:relation:`）是 Cokret 协作图的**一等关系对象**。跨对象语义 MUST 使用 Relation 表达，而不是藏在对象字段里。
 
-Relation 连接的是对象引用：标准字段使用 `from_ref` / `to_ref`，其值可以指向 `realm`、`space`、`actor_profile`、`flow`、`message`、`morph`、`relation`、`event`、`view`、`blob` 的 `ck:<kind>:` typed ID，或一个 DID。Actor 端点没有 actor typed-ID 对象——当端点是 Actor 时直接使用该 actor 的 DID（principal），而不是某个 actor typed-ID（见 [`overview.md` §3.4](./overview.md) 与 [`common-fields.md` §4.1](./common-fields.md#41-did-适用边界)）。
+Relation 连接的是对象引用：标准字段使用 `from_ref` / `to_ref`，其值可以指向 `realm`、`space`、`actor_profile`、`strand`、`message`、`morph`、`relation`、`event`、`view`、`blob` 的 `ck:<kind>:` typed ID，或一个 DID。Actor 端点没有 actor typed-ID 对象——当端点是 Actor 时直接使用该 actor 的 DID（principal），而不是某个 actor typed-ID（见 [`overview.md` §3.4](./overview.md) 与 [`common-fields.md` §4.1](./common-fields.md#41-did-适用边界)）。
 
 公共字段、lifecycle、reducer 总则见 [`common-fields.md`](./common-fields.md)。
 
@@ -29,12 +29,12 @@ Schema id: `ck.schema.relation.v1`
 | `id` | yes | `id:relation` | 以 `ck:relation:` 开头。 | Relation ID。 |
 | `schema` | yes | `ck.schema.relation.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` | Relation 所在 Realm。 | 所属 Realm。 |
-| `scope_circle_id` | no | `id:circle` | submit payload 提供的 Realm 内 Circle scope；弱语义隐私边（`agent_sidecar_of` / `confidential_discussion_of`）按 §3.1 MUST 提交，指向 private Flow 的 Circle，使 `effective_scope = circle`，non-member 无法从公开端点枚举该边（见 [`circle.md` §6.1](./circle.md)）。 | 该 Relation 事实的 Circle 作用域。 |
+| `scope_circle_id` | no | `id:circle` | submit payload 提供的 Realm 内 Circle scope；弱语义隐私边（`agent_sidecar_of` / `confidential_discussion_of`）按 §3.1 MUST 提交，指向 private Strand 的 Circle，使 `effective_scope = circle`，non-member 无法从公开端点枚举该边（见 [`circle.md` §6.1](./circle.md)）。 | 该 Relation 事实的 Circle 作用域。 |
 | `effective_scope` | no | `object` | **Reducer-stamped immutable，actor MUST NOT 提交**（reducer-managed，`reason=effective_scope_reducer_managed`）。create 时由 `scope_circle_id` 物化；结构关系 MUST NOT 宽于参与端点中最窄的作用域，且后续 rebind 不变（见 [`circle.md` §6.1-§6.2](./circle.md)）。 | 派生的有效作用域。 |
 | `relation_kind` | yes | `string` | 标准值见 §3。 | 关系语义。 |
 | `from_ref` | yes | `string` | MUST 是 `ck:<kind>:...` 或 DID。 | 起点对象/Actor/Realm 引用。 |
 | `to_ref` | yes | `string` | MUST 是 `ck:<kind>:...` 或 DID。 | 终点对象/Actor/Realm 引用。 |
-| `rank` | no | `string` | 见 `encoding.md` §9。**与 Space.rank 顶层字段对齐**——v1 把 rank 提升到顶层，`fields.rank` 在 wire 上 MUST 被拒绝（`schema_violation`），不接受双源并存。 | 有序关系（如 `contains list -> flow`）的稳定 rank。 |
+| `rank` | no | `string` | 见 `encoding.md` §9。**与 Space.rank 顶层字段对齐**——v1 把 rank 提升到顶层，`fields.rank` 在 wire 上 MUST 被拒绝（`schema_violation`），不接受双源并存。 | 有序关系（如 `contains list -> strand`）的稳定 rank。 |
 | `fields` | no | `object` | 可放 role、edge metadata；MUST NOT 包含 `rank`（已提升到顶层）。 | 关系属性。 |
 | `state` | no | `enum(active, tombstoned)` | `tombstoned` 同时覆盖删除与 redaction；原因保存在对应 `ck.relation.tombstone` / `ck.redaction` event 上，物化对象只保留当前状态。 | 关系状态。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
@@ -54,7 +54,7 @@ Canonical 方向由 `from_ref -> to_ref` 定义。反向语义 SHOULD 由查询�
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "relation_kind": "contains",
   "from_ref": "ck:space:019640b6-8000-7000-8000-000000000000",
-  "to_ref": "ck:flow:019640c6-8000-7000-8000-000000000000",
+  "to_ref": "ck:strand:019640c6-8000-7000-8000-000000000000",
   "rank": "mV",
   "created_by": "did:web:bob.example",
   "created_at": "2026-04-26T00:00:00Z"
@@ -81,17 +81,17 @@ confidential_discussion_of
 | `relation_kind` | 默认基数 | 作用域与去重规则 |
 | --- | --- | --- |
 | `contains`：`Space(kind=board) -> Space(kind=list)` | **派生投影**(derived projection only) | 一个 Board 可包含多个 List;同一 List 在同一 Realm 内 MUST 至多有一个 active Board parent。**Truth source 是 cas_register cell `ck:cell:ck.component.space.parent.v1:<list_space_id>`,写入路径是 `ck.space.parent` Move,不是 `ck.relation.create`**。直接 `ck.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`(详见 [realm-and-space.md §3.5](./realm-and-space.md#35-ckspaceparent-cas_register-basis))。`contains` Relation 仍出现在标准 kinds 列表中是因为 projection / query / UI 仍按 Relation 视角读它，但**写入路径单一化**到 `ck.space.parent`。 |
-| `contains`：`Space(kind=list) -> Flow` | **派生投影**(derived projection only) with board-exclusive target | 一个 List 可包含多个 Flow;同一 Flow 在同一个 Board 内 MUST 至多处于一个 active List。去重/互斥 key 为 `(board_space_id, flow_id)`,与 [realm-and-space.md §3.6](./realm-and-space.md#36-flow-位置) 的位置唯一性一致。**Truth source 是 cas_register cell `ck:cell:ck.component.flow.position.v1:<board_space_id>:<flow_id>`,写入路径是 `ck.flow.move` / `ck.flow.reorder` Move**,不是 `ck.relation.create`。直接 `ck.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`(与 `watches` derived Relation 同模式)。 |
-| `contains`：其他对象组合(非 Space 容器场景，例如 `Flow -> Flow` subtask / checklist item) | `many_to_many` unless profiled | 默认只按完整 tuple 去重；若对象被当作容器使用,Realm schema/profile MUST 声明更严格基数、排序字段和 cascade 规则。这种非派生形态的 `contains` 由 `ck.relation.create` 直接写入，不得与 Board/List 的派生 `contains` 混用。 |
+| `contains`：`Space(kind=list) -> Strand` | **派生投影**(derived projection only) with board-exclusive target | 一个 List 可包含多个 Strand;同一 Strand 在同一个 Board 内 MUST 至多处于一个 active List。去重/互斥 key 为 `(board_space_id, strand_id)`,与 [realm-and-space.md §3.6](./realm-and-space.md#36-strand-位置) 的位置唯一性一致。**Truth source 是 cas_register cell `ck:cell:ck.component.strand.position.v1:<board_space_id>:<strand_id>`,写入路径是 `ck.strand.move` / `ck.strand.reorder` Move**,不是 `ck.relation.create`。直接 `ck.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`(与 `watches` derived Relation 同模式)。 |
+| `contains`：其他对象组合(非 Space 容器场景，例如 `Strand -> Strand` subtask / checklist item) | `many_to_many` unless profiled | 默认只按完整 tuple 去重；若对象被当作容器使用,Realm schema/profile MUST 声明更严格基数、排序字段和 cascade 规则。这种非派生形态的 `contains` 由 `ck.relation.create` 直接写入，不得与 Board/List 的派生 `contains` 混用。 |
 | `belongs_to` | `many_to_one` | 作为 `contains` 的显式 parent 关系时，同一 `from_ref` 在同一作用域内至多有一个 active `to_ref`。优先使用 canonical `contains` 表达容器包含。 |
 | `replies_to` | `many_to_one` | 一个 Message 或 reply object SHOULD 只有一个 direct parent；额外链接用 `references` 或 `mentions`。 |
 | `depends_on`, `blocks` | `many_to_many` | 按 `(realm_id, relation_kind, from_ref, to_ref)` 去重；循环检测由 workflow/profile 规则决定。 |
 | `mentions`, `references`, `derived_from`, `attached_to`, `summarized_from`, `promoted_from_discussion` | `many_to_many` | 按完整 tuple 去重；多条语义不同的边必须用 `fields.role`、不同 `relation_kind` 或 profile 声明的 multi-edge key 区分。其中语义性较强的 `summarized_from`(摘要 → 来源)与 `promoted_from_discussion`(正式对象 → 来源 discussion)在 v1 不在本表硬编码 from_type→to_type 约束，其 from/to 类型 MUST 由 Realm schema / RelationProfile 显式声明(见 [§5](#5-relationprofile));未声明 profile 时按通用弱语义引用边处理。 |
-| `assigned_to` | `many_to_many` | Canonical 方向为 `Flow -> DID`（`from_ref=<flow_id>`, `to_ref=<actor DID>`）。默认 `many_to_many`,按完整 tuple `(realm_id, relation_kind, from_ref, to_ref)` 去重(同一 (Flow, Actor) 对至多一条 active edge,即同一 Actor 不重复分配);一个 Flow MAY 同时分配给多个 Actor。**这是按完整 tuple 去重，不是 per-actor 单值约束。** 需要单负责人语义时,Realm schema/profile MUST 声明 `max_to_per_from=1` 或单独 owner relation——[§5](#5-relationprofile) 的 `many_to_one` 示例即此单负责人 profile 收紧示例，非默认基数。Flow object / `metadata.fields` 不得携带 `assignee` / `assignees` / `assigned_to` 字段作为替代真源；见 [flow-and-message.md §7.1](./flow-and-message.md#71-assignment--assignee-投影)。 |
-| `watches`：`actor (did) -> flow` | **派生投影**（derived from cell, not directly writable） | 每个 `(from_ref, to_ref)` 至多一条 active edge；`from_ref` MUST 是 DID，`to_ref` MUST 指向 Flow（或 profile 声明的 watchable 对象）。**Truth source 是 cas_register cell `ck.component.flow.watch.v1`，写入路径是 `ck.flow.watch.set` durable event，不是 `ck.relation.create`**——直接 `ck.relation.create / update / delete relation_kind=watches` MUST `schema_violation`（与派生 `contains` Relation 的双源约束同模式，见 [`./realm-and-space.md` §3.6](./realm-and-space.md#36-flow-位置)）。写入 invariant：`payload.watcher_actor_id == envelope.actor_id`，除非 actor 持有 `ck.flow.watch.set.others` capability。级别枚举、投影脱敏、通知路由见 [flow-and-message.md §8](./flow-and-message.md)。 |
+| `assigned_to` | `many_to_many` | Canonical 方向为 `Strand -> DID`（`from_ref=<strand_id>`, `to_ref=<actor DID>`）。默认 `many_to_many`,按完整 tuple `(realm_id, relation_kind, from_ref, to_ref)` 去重(同一 (Strand, Actor) 对至多一条 active edge,即同一 Actor 不重复分配);一个 Strand MAY 同时分配给多个 Actor。**这是按完整 tuple 去重，不是 per-actor 单值约束。** 需要单负责人语义时,Realm schema/profile MUST 声明 `max_to_per_from=1` 或单独 owner relation——[§5](#5-relationprofile) 的 `many_to_one` 示例即此单负责人 profile 收紧示例，非默认基数。Strand object / `metadata.fields` 不得携带 `assignee` / `assignees` / `assigned_to` 字段作为替代真源；见 [strand-and-message.md §7.1](./strand-and-message.md#71-assignment--assignee-投影)。 |
+| `watches`：`actor (did) -> strand` | **派生投影**（derived from cell, not directly writable） | 每个 `(from_ref, to_ref)` 至多一条 active edge；`from_ref` MUST 是 DID，`to_ref` MUST 指向 Strand（或 profile 声明的 watchable 对象）。**Truth source 是 cas_register cell `ck.component.strand.watch.v1`，写入路径是 `ck.strand.watch.set` durable event，不是 `ck.relation.create`**——直接 `ck.relation.create / update / delete relation_kind=watches` MUST `schema_violation`（与派生 `contains` Relation 的双源约束同模式，见 [`./realm-and-space.md` §3.6](./realm-and-space.md#36-strand-位置)）。写入 invariant：`payload.watcher_actor_id == envelope.actor_id`，除非 actor 持有 `ck.strand.watch.set.others` capability。级别枚举、投影脱敏、通知路由见 [strand-and-message.md §8](./strand-and-message.md)。 |
 | `has_default_view` | `many_to_one` | 同一 `from_ref` 在同一 Realm 内至多有一个 active default View；设置新默认 View MUST 关闭旧 active edge。 |
-| `agent_sidecar_of` | `many_to_one` | weak-semantic、non-structural、non-cascading。`from_ref` MUST 是 sidecar private Flow,`to_ref` 可为目标 Flow / Message / Relation。该 relation fact MUST 提交 `scope_circle_id` 指向 sidecar Circle,使 `effective_scope = circle`;non-sidecar-member 不能从目标侧枚举该边。**实现 MUST NOT 在目标公开 Flow 写 target-side reverse relation**,因为这会泄露 sidecar 存在性。详见 [`circle.md` §6.1](./circle.md) 的 Relation effective_scope invariant 与 [`circle.md` §11.1](./circle.md) 的 sidecar profile 规则。 |
-| `confidential_discussion_of` | `many_to_one` | weak-semantic、non-structural、non-cascading。`from_ref` MUST 是 private Flow，`to_ref` MUST 是其 public seal Flow。该 relation fact MUST 提交在 `from_ref` 所在 Circle scope（即 payload `scope_circle_id` 指向 private Flow 的 Circle，使 `effective_scope = circle`），使 Circle 成员能从 private Flow 回到 public seal，而 non-member 不能从 public seal 侧枚举该边。**实现 MUST NOT 在目标公开 Flow 写 target-side reverse relation**。 |
+| `agent_sidecar_of` | `many_to_one` | weak-semantic、non-structural、non-cascading。`from_ref` MUST 是 sidecar private Strand,`to_ref` 可为目标 Strand / Message / Relation。该 relation fact MUST 提交 `scope_circle_id` 指向 sidecar Circle,使 `effective_scope = circle`;non-sidecar-member 不能从目标侧枚举该边。**实现 MUST NOT 在目标公开 Strand 写 target-side reverse relation**,因为这会泄露 sidecar 存在性。详见 [`circle.md` §6.1](./circle.md) 的 Relation effective_scope invariant 与 [`circle.md` §11.1](./circle.md) 的 sidecar profile 规则。 |
+| `confidential_discussion_of` | `many_to_one` | weak-semantic、non-structural、non-cascading。`from_ref` MUST 是 private Strand，`to_ref` MUST 是其 public seal Strand。该 relation fact MUST 提交在 `from_ref` 所在 Circle scope（即 payload `scope_circle_id` 指向 private Strand 的 Circle，使 `effective_scope = circle`），使 Circle 成员能从 private Strand 回到 public seal，而 non-member 不能从 public seal 侧枚举该边。**实现 MUST NOT 在目标公开 Strand 写 target-side reverse relation**。 |
 
 未声明为 multi-edge 的 Relation MUST 由 reducer 按 `(realm_id, relation_kind, from_ref, to_ref)` 去重。Events API MAY 拒绝同一 frontier 下显然重复的写入，但不能作为唯一去重机制；两个离线设备并发创建同一关系时，若 relation profile 未声明其它 `on_conflict` 值，reducer MUST 按 §6 的 `deterministic_winner` 规则选择一个 active winner，并把 loser 记录为 conflict 或 tombstone。
 
@@ -134,7 +134,7 @@ Relation 的 `realm_id` 表示关系事实所在的源 Realm；`from_ref` / `to_
 | Relation **创建**（`ck.relation.create`、`ck.relation.update`、`ck.relation.tombstone`） | **源 Realm**（Relation `realm_id`） | Relation 是源 Realm 的 reducer-input；reducer 在源 Realm 验证 actor 在源 Realm 的 capability 是否覆盖 `ck.relation.*`。 |
 | 引用目标的 **discover / reference 能力** | **目标 Realm**（`from_ref` 或 `to_ref` 指向的 Realm） | 目标 Realm policy 决定是否允许该 Relation 引用自身；典型 capability `ck.object.read_metadata` 或 `ck.realm.discover`。源 Realm reducer 在 accept Relation 前 SHOULD 验证目标 Realm 的 reference 许可（通过 cached attestation / capability grant ref 等）；缺失证据时 Relation 仍可写入源 Realm，但 projection 层在展开时 MUST 重新校验目标授权，校验失败的 Relation 显示为 `locked`。 |
 | 目标对象**内容展开**（标题、字段、preview） | **目标 Realm**（read 时） | 每次展开都用 reader 在目标 Realm 的 capability 重新校验；源 Realm 的可见性不传染到目标。 |
-| **位置 / structural 关系**（如 `contains` 跨 Realm） | **源 Realm + 强制源 == 目标** | `contains` 这类强结构关系在 v1 **MUST NOT 跨 Realm**——结构容器（Space）必须与所属 Flow 同 Realm。跨 Realm 的引用只能用 `references`、`mentions`、`derived_from`、`summarized_from` 等弱语义关系。 |
+| **位置 / structural 关系**（如 `contains` 跨 Realm） | **源 Realm + 强制源 == 目标** | `contains` 这类强结构关系在 v1 **MUST NOT 跨 Realm**——结构容器（Space）必须与所属 Strand 同 Realm。跨 Realm 的引用只能用 `references`、`mentions`、`derived_from`、`summarized_from` 等弱语义关系。 |
 
 ### 4.4 Reducer 强制约束
 
@@ -146,7 +146,7 @@ Relation 的 `realm_id` 表示关系事实所在的源 Realm；`from_ref` / `to_
 
 **跨 Realm 强约束（reducer 必检）**：
 
-- `contains` 与 `belongs_to` MUST NOT 跨 Realm——reducer MUST 解析 `from_ref` / `to_ref` 指向的对象（Space / Flow / Message / Morph 等），确认其 `realm_id` 与 Relation 自身 `realm_id` 一致；任一不一致 MUST `failed_precondition`（`reason="cross_realm_structural_relation"`）。实现、日志和审计解释时 MUST 按“结构 Relation 跨 Realm”理解，不得解释为“同 Realm 内跨 Space”。本节给出的两端 enforce 责任表是这条规则的语义来源。
+- `contains` 与 `belongs_to` MUST NOT 跨 Realm——reducer MUST 解析 `from_ref` / `to_ref` 指向的对象（Space / Strand / Message / Morph 等），确认其 `realm_id` 与 Relation 自身 `realm_id` 一致；任一不一致 MUST `failed_precondition`（`reason="cross_realm_structural_relation"`）。实现、日志和审计解释时 MUST 按“结构 Relation 跨 Realm”理解，不得解释为“同 Realm 内跨 Space”。本节给出的两端 enforce 责任表是这条规则的语义来源。
 - 弱语义 `references` / `mentions` / `derived_from` / `summarized_from` / `depends_on` / `blocks` / `assigned_to` / `has_default_view` / `replies_to` 等 MAY 跨 Realm，需走 §4.3 的"两次独立 capability check"路径，并按目标 Realm policy 在 projection 层降级为 `ReferenceProjectionStatus`。
 - JSON Schema 层面无法在不引入冗余字段的前提下完整表达该约束（需要解析 typed reference 后再比 Realm），因此 [`relation.schema.json`](../../artifacts/schemas/relation.schema.json) 的 `relation_kind` description 把该约束标记为 reducer-enforced；schema validation 通过仅代表线路形态合法，不代表 cross-Realm 约束已通过。
 
@@ -158,14 +158,14 @@ Relation 的 `realm_id` 表示关系事实所在的源 Realm；`from_ref` / `to_
 
 ## 5. RelationProfile
 
-Realm schema、Realm profile 或 `relation_profiles` MAY 对标准默认值收紧，但不得放宽会破坏互操作 projection 的标准互斥规则（例如同一 Board 内 Flow 只能处于一个 List）。
+Realm schema、Realm profile 或 `relation_profiles` MAY 对标准默认值收紧，但不得放宽会破坏互操作 projection 的标准互斥规则（例如同一 Board 内 Strand 只能处于一个 List）。
 
 `RelationProfile` 最小结构：
 
 | 字段 | 必填 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `relation_kind` | yes | `string` | 被声明的 relation kind。 |
-| `from_type` | no | `string` | 起点类型约束，例如 `realm`、`space:board`、`space:list`、`flow`、`message`、`morph:*` 或 `did`。 |
+| `from_type` | no | `string` | 起点类型约束，例如 `realm`、`space:board`、`space:list`、`strand`、`message`、`morph:*` 或 `did`。 |
 | `to_type` | no | `string` | 终点类型约束。 |
 | `relation_scope` | no | `enum(realm, space, board, global)` | 基数和去重作用域；默认 `realm`。`space` 表示在某 Space 内、`board` 是 `kind=board` Space 的简写。 |
 | `cardinality` | yes | `enum(one_to_one, one_to_many, many_to_one, many_to_many)` | `one_to_many` 表示同一 `from_ref` 可有多个 `to_ref`，但同一 `to_ref` 在 scope 内最多一个 active `from_ref`。 |
@@ -179,7 +179,7 @@ Realm schema、Realm profile 或 `relation_profiles` MAY 对标准默认值收�
 ```json
 {
   "relation_kind": "assigned_to",
-  "from_type": "flow",
+  "from_type": "strand",
   "to_type": "did",
   "relation_scope": "realm",
   "cardinality": "many_to_one",
@@ -201,14 +201,14 @@ Relation conflict 的默认处理为：候选先通过格式、签名、授权�
 
 ## 7. 常见关系（按对象）
 
-- **Flow**：见 [flow-and-message.md §7](./flow-and-message.md)。
-- **Space**（Board / List）：见 [realm-and-space.md §3.5](./realm-and-space.md#35-ckspaceparent-cas_register-basis) 与 [§3.6](./realm-and-space.md#36-flow-位置)。
-- **Message**：见 [flow-and-message.md §9.7](./flow-and-message.md)。
+- **Strand**：见 [strand-and-message.md §7](./strand-and-message.md)。
+- **Space**（Board / List）：见 [realm-and-space.md §3.5](./realm-and-space.md#35-ckspaceparent-cas_register-basis) 与 [§3.6](./realm-and-space.md#36-strand-位置)。
+- **Message**：见 [strand-and-message.md §9.7](./strand-and-message.md)。
 - **Morph**：业务自定义关系，由 Realm schema / Morph profile 声明。
 
 ## 8. 规范性引用
 
 - 公共字段：[common-fields.md](./common-fields.md)。
-- Space 位置语义：[realm-and-space.md §3.6](./realm-and-space.md#36-flow-位置)。
+- Space 位置语义：[realm-and-space.md §3.6](./realm-and-space.md#36-strand-位置)。
 - CBA / Lattice：[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
 - Relation schema：`artifacts/schemas/relation.schema.json`。

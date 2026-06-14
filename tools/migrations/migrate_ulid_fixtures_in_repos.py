@@ -39,7 +39,7 @@ SKIP_DIRS = {"target", "node_modules", ".next", ".yarn", ".git", ".claude",
 
 TYPED_KINDS = (
     "actor_profile|agent_session|applet|backup|batch|blob|block|call|"
-    "capability|chunk|claim|device|devmsg|event|filter|flow|frame|frank|grant|"
+    "capability|chunk|claim|device|devmsg|event|filter|strand|frame|frank|grant|"
     "invite|keyevt|message|modq|morph|notif|place|policy|presentation|receipt|"
     "relation|report|req|snapshot|space|txn|view|operation|commit|entity|"
     "version|cell|webrtc|fr|webhook|push|portal|session|registration|fallback"

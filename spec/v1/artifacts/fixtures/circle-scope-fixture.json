@@ -4,7 +4,7 @@
   "version": "2026-05-29",
   "description": "Machine-contract fixture for Circle effective_scope semantics. Splits actor submit-payload (scope_circle_id only) from canonical reducer-output (tagged effective_scope on Event envelope and materialized object). Covers None->None, same-scope->same-scope, None->Some, Some->None, Some(A)->Some(B) rebind transitions plus negative cases. negative_cases also pin the accepted-Event / materialized-object closure: accepted Circle-scoped DataEvents MUST carry effective_scope, effective_scope MUST agree with scope_circle_id, the signed event_digest binds effective_scope, and content_encryption_floor=e2ee_required rejects plaintext content. See spec/v1/zh/models/circle.md §6.1 / §6.2 / §7 / §10.2.",
   "submit_payload_shape": {
-    "description": "Actor-supplied input on ck.flow.create / ck.message.create / ck.morph.create / ck.relation.create / ck.space.* writes. MUST carry only scope_circle_id (id:circle | null). MUST NOT carry effective_scope.",
+    "description": "Actor-supplied input on ck.strand.create / ck.message.create / ck.morph.create / ck.relation.create / ck.space.* writes. MUST carry only scope_circle_id (id:circle | null). MUST NOT carry effective_scope.",
     "schema": {
       "type": "object",
       "properties": {
@@ -224,7 +224,7 @@
     },
     {
       "name": "accepted_event_missing_effective_scope",
-      "description": "An accepted durable Circle-scoped Event (e.g. ck.message.create whose Flow scope_circle_id is set) MUST carry the reducer-stamped effective_scope on its envelope. An offline validator / cotest MUST reject an accepted event whose object is Circle-scoped but whose effective_scope is absent, otherwise the §9.3 'Circle scoped event not delivered to non-members' invariant cannot be deterministically replayed. event-envelope.schema.json carries effective_scope as a reducer-stamped field; this vector pins that accepted (post-reducer) Circle events MUST populate it.",
+      "description": "An accepted durable Circle-scoped Event (e.g. ck.message.create whose Strand scope_circle_id is set) MUST carry the reducer-stamped effective_scope on its envelope. An offline validator / cotest MUST reject an accepted event whose object is Circle-scoped but whose effective_scope is absent, otherwise the §9.3 'Circle scoped event not delivered to non-members' invariant cannot be deterministically replayed. event-envelope.schema.json carries effective_scope as a reducer-stamped field; this vector pins that accepted (post-reducer) Circle events MUST populate it.",
       "event_kind": "ck.message.create",
       "object_scope_circle_id": "ck:circle:0196419c-0000-7000-8000-000000000000",
       "accepted_event_effective_scope": null,
@@ -262,7 +262,7 @@
     },
     {
       "name": "content_plaintext_under_e2ee_required",
-      "description": "Realm.content_encryption_floor=e2ee_required requires every Flow/Message/Morph/Blob content effective_scope to be MLS-backed (Realm-default MLS or Circle MLS). A ck.message.create carrying plaintext content (or whose effective_scope resolves to a plaintext Circle with encryption_profile=none) MUST be rejected with failed_precondition reason=content_encryption_floor_violation.",
+      "description": "Realm.content_encryption_floor=e2ee_required requires every Strand/Message/Morph/Blob content effective_scope to be MLS-backed (Realm-default MLS or Circle MLS). A ck.message.create carrying plaintext content (or whose effective_scope resolves to a plaintext Circle with encryption_profile=none) MUST be rejected with failed_precondition reason=content_encryption_floor_violation.",
       "realm_content_encryption_floor": "e2ee_required",
       "event_kind": "ck.message.create",
       "content_form": "plaintext",

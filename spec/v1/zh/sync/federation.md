@@ -244,8 +244,8 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(digest
         "device_id": "ck:device:0196419b-3000-7000-8000-000000000002",
         "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
         "read_scope": {
-          "kind": "flow",
-          "ref": "ck:flow:0196419b-3000-7000-8000-000000000003",
+          "kind": "strand",
+          "ref": "ck:strand:0196419b-3000-7000-8000-000000000003",
           "track_name": "discussion"
         },
         "position": {

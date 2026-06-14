@@ -59,8 +59,8 @@ Core identity conformance 要求 DID Core 解析 / 验证抽象、`did:webvh`（
 v1 的首轮互操作验收 SHOULD 拆成三个可运行闭环：
 
 - `ck.profile.core_event_store.v1`：DID / service discovery、Event Envelope validation、event submit/fetch/backfill、per-actor event chain validation、idempotent duplicate handling、standard error。
-- `ck.profile.chat_mvp.v1`：在 `core_event_store` 之上支持 Realm、`ck.member.state`、启用 discussion track 且可设为 primary 的 Flow、Message、Reaction、Redaction、Client Sync timeline 和 history visibility。
-- `ck.profile.kanban_mvp.v1`：在 `core_event_store` 之上支持 Space（`kind=board/list`）、Flow、`contains` position Relation、`ck.flow.move`、`ck.flow.reorder`、`ck.space.create`、`ck.space.update`、`ck.space.parent`、客户端 Collection projection 和 wait-for query。
+- `ck.profile.chat_mvp.v1`：在 `core_event_store` 之上支持 Realm、`ck.member.state`、启用 discussion track 且可设为 primary 的 Strand、Message、Reaction、Redaction、Client Sync timeline 和 history visibility。
+- `ck.profile.kanban_mvp.v1`：在 `core_event_store` 之上支持 Space（`kind=board/list`）、Strand、`contains` position Relation、`ck.strand.move`、`ck.strand.reorder`、`ck.space.create`、`ck.space.update`、`ck.space.parent`、客户端 Collection projection 和 wait-for query。
 
 `minimal_client`、`full_client`、`principal_server` 等实现 profile 通过声明所支持的闭环（`chat_mvp` / `kanban_mvp`）表达能力；未声明的闭环不得被对端视为默认可用。希望仅做聊天产品而不实现 board/list 的客户端，应声明 `chat_mvp` 而不实现 `kanban_mvp`，并在 `rejected_event_kinds` 中明确拒绝 board/list 相关 kind。
 
@@ -137,7 +137,7 @@ MUST 支持：
 - service discovery
 - event 拉取 / backfill
 - 本地查询和 projection
-- 基础 Flow / Realm / Message / Morph / Relation / Event 解码
+- 基础 Strand / Realm / Message / Morph / Relation / Event 解码
 - 未知 Morph / facet 字段保留和 generic fallback，不要求专用 renderer
 - capability 检查结果处理
 - cursor 分页
@@ -346,7 +346,7 @@ SHOULD 支持：
 | Profile id | role | 必选 / 可选 | 强制能力 | Fixture |
 | --- | --- | --- | --- | --- |
 | `ck.profile.push_gateway.v1` | `gateway` | 实现网关时必选；MUST `depends_on` `blind_wakeup` | `register_device` / `unregister_device` / `notify` 三个操作，`ck.schema.notification.v1`，service DID 校验，`rejected[]` 回传，失效 token 回收 | `privacy-security-fixture.json` |
-| `ck.profile.push_gateway.blind_wakeup.v1` | `gateway` | **默认互操作安全基线**：声明 `push_gateway.v1` 即 MUST 声明 | provider 出向 payload 仅含 `push_target_id`（pairwise pseudonym，按 [`crypto-media/device-lifecycle.md` §5a](../crypto-media/device-lifecycle.md)）+ 封闭枚举的 `wakeup_kind` / `badge_count` / `unread_increment` / `l10n_key`；MUST NOT 携带 principal DID、sender DID / handle、Realm / Flow / Message id、event id、device DID URL、reaction 实际值、附件文件名、跨 Realm stable correlation key、IP / geolocation | `privacy-security-fixture.json` |
+| `ck.profile.push_gateway.blind_wakeup.v1` | `gateway` | **默认互操作安全基线**：声明 `push_gateway.v1` 即 MUST 声明 | provider 出向 payload 仅含 `push_target_id`（pairwise pseudonym，按 [`crypto-media/device-lifecycle.md` §5a](../crypto-media/device-lifecycle.md)）+ 封闭枚举的 `wakeup_kind` / `badge_count` / `unread_increment` / `l10n_key`；MUST NOT 携带 principal DID、sender DID / handle、Realm / Strand / Message id、event id、device DID URL、reaction 实际值、附件文件名、跨 Realm stable correlation key、IP / geolocation | `privacy-security-fixture.json` |
 | `ck.profile.push_gateway.visible_notification.v1` | `gateway` | Opt-in；仅在 Realm policy 列入 `plaintext_visible_services` 且声明 `visible_notification` allowance、接收设备 opt-in、UI 显式标示时声明 | 维持 blind wakeup 之上扩展的最小可见字段集合；MUST NOT 携带正文、DID URL、跨 Realm stable correlation key、IP / geolocation 或未列入 profile 的自由文本；E2EE 默认实现不得依赖该 profile | `privacy-security-fixture.json` |
 | `ck.profile.push_gateway.matrix_passthrough.v1` | `interop` | Opt-in；Matrix 互通桥接 | 在与 `ck.profile.matrix_compat.v1` 并行的前提下，按 Matrix push gateway 形态承载 passthrough payload；MUST 与 `blind_wakeup.v1` 流量分区，**MUST NOT** 在同一 `(recipient_service_did, device)` 元组上同时声明两者。**选择此 profile 即接受 Matrix-equivalent metadata 可见性**（典型字段如 `room_id` / `sender` / `event_id` 透传到 Matrix push gateway）。该 profile MUST NOT 与 minimal-metadata Realm 共享同一 `(recipient_service_did, device)` 元组。 | `privacy-security-fixture.json` |
 
@@ -635,9 +635,9 @@ MUST NOT:
 
 MUST 支持:
 - Effective permission rule:`controller-approved grant AND controller's own delegable authority AND Realm policy AND resource selector / constraints AND agent key scope AND requested session scope AND current revocation / freshness state`,默认拒绝 wildcard
-- Canonical constraint vocabulary:`allowed_tracks` / `allowed_flow_ids` / `allowed_data_classes` / `allowed_endpoints` / `rate_limit` / `approval_required` / `controller_approval_required` / `accountability_required`
+- Canonical constraint vocabulary:`allowed_tracks` / `allowed_strand_ids` / `allowed_data_classes` / `allowed_endpoints` / `rate_limit` / `approval_required` / `controller_approval_required` / `accountability_required`
 - Reply-as-agent 与 act-on-behalf wire(`actor_id` / `executed_by` / `authorization_ref`)与双重署名渲染
-- act-on-behalf 默认 fresh approval 粒度 `(action, target_flow)` + 短期 temporal window
+- act-on-behalf 默认 fresh approval 粒度 `(action, target_strand)` + 短期 temporal window
 - Realm policy 必须能分别控制 native personal agent 与 Applet / Ghost Actor
 
 MUST NOT:
@@ -649,10 +649,10 @@ MUST NOT:
 `ck.profile.agent_sidecar_thread.v1` 注册 controller 与 controller 的 native AI agents 之间的私聊上下文线程。依赖 Circle profile 与 personal agent provisioning / auth profiles。
 
 MUST 支持:
-- `POST /_cokret/self/agent-sidecar-threads:ensure` (`ck.self.agent.sidecar_thread.command.ensure`) idempotent operation,返回 `{ok, private_circle_id, private_flow_id, private_relation_id, pending_member_reconciliations?}`
-- `context_ref` polymorphic descriptor(`relation_id` 单独 / `flow_id` 加可选 `track_name` + 可选 seal)
+- `POST /_cokret/self/agent-sidecar-threads:ensure` (`ck.self.agent.sidecar_thread.command.ensure`) idempotent operation,返回 `{ok, private_circle_id, private_strand_id, private_relation_id, pending_member_reconciliations?}`
+- `context_ref` polymorphic descriptor(`relation_id` 单独 / `strand_id` 加可选 `track_name` + 可选 seal)
 - Closed request schema(reject unknown top-level fields)
-- Fixed reuse:Flow `(controller_principal_id, normalized_context_ref)`、Circle `(realm_id, controller_principal_id)`
+- Fixed reuse:Strand `(controller_principal_id, normalized_context_ref)`、Circle `(realm_id, controller_principal_id)`
 - 派生 `controller_agent_circle_key`(canonical realm_id + canonical DID + UTF-8 + SHA-256 + base32 + 24 字符小写)
 - Sidecar Circle `display.short_name = "AI-" + controller_agent_circle_key[:12].upper()`,short_name 碰撞且 caller 非 member 时 generic `failed_precondition` `reason=sidecar_create_denied`
 - `eligible_sidecar_agent(realm, controller, agent)` predicate;Circle membership 主动 fan-out `ck.circle.member.state`(不被动 reconcile)
@@ -661,14 +661,14 @@ MUST 支持:
 - 历史 backfill 经由 application-level resend(显式 plaintext 披露)；MLS-backed Circle 中不得使用 MLS exporter secret / past commit secret
 - Cross-Realm fan-out:agent deactivate 只影响该 agent 实际所在的 sidecar Circles
 - `agent_sidecar_of` relation kind(weak-semantic、non-structural、non-cascading);`fields` 不含 `target_realm_id`
-- Sidecar private Flow 不出现在 Realm-wide navigation / board / list / public search(profile-specific reducer rule:`scope_circle_id` 指向 sidecar Circle 的 Flow 过滤)
+- Sidecar private Strand 不出现在 Realm-wide navigation / board / list / public search(profile-specific reducer rule:`scope_circle_id` 指向 sidecar Circle 的 Strand 过滤)
 - 多 agent publish 时 `actor_id` / `executed_by` MUST 是单一签发 agent principal
 - Retention 继承目标 Realm,profile 可收紧不可放宽
 - `ck.agent.sidecar_projection.v1` controller-private encrypted account-data SHOULD 注册(跨设备 UI 一致性)
 
 MUST NOT:
-- 在目标公开 Flow 写 target-side reverse `agent_sidecar_of` relation
-- 修改目标 Flow `tracks` map 或写入 target-side metadata / Relation / watch / unread / search / notification state
+- 在目标公开 Strand 写 target-side reverse `agent_sidecar_of` relation
+- 修改目标 Strand `tracks` map 或写入 target-side metadata / Relation / watch / unread / search / notification state
 - 接受 `participant_model` 等替代 reuse 字段;invariant 9 是 v1 取舍
 - 为单个 sidecar 静默创建第二个 Circle 以绕开 invariant 9
 
@@ -679,13 +679,13 @@ MUST NOT:
 MUST 支持:
 - `ck.self.agent.participation.resource.replace`
 - `ck.self.agent.participation.resource.get`
-- deployment ⊇ Realm ⊇ Circle ⊇ Flow 的 tighten-only ceiling 校验
+- deployment ⊇ Realm ⊇ Circle ⊇ Strand 的 tighten-only ceiling 校验
 - effective participation = effective ceiling ∩ controller selection
-- 第三方 mention gate：`accept_third_party_mention=false` 时不得向该 agent 派生 mention notification、inbox row、push wakeup 或 agent subscribe 投影；gate 在 message event fanout 时一次性求值，participation 之后翻转不追溯补发或撤销既有派生（[flow-and-message.md §9.4.5](../models/flow-and-message.md)）
+- 第三方 mention gate：`accept_third_party_mention=false` 时不得向该 agent 派生 mention notification、inbox row、push wakeup 或 agent subscribe 投影；gate 在 message event fanout 时一次性求值，participation 之后翻转不追溯补发或撤销既有派生（[strand-and-message.md §9.4.5](../models/strand-and-message.md)）
 - `scope_details.participation[]` session overlay，形态与 `agent-operations.schema.json#/$defs/agent_participation_entry` 对齐
 
 MUST NOT:
-- 允许 Flow / Circle ceiling 放宽父级 ceiling
+- 允许 Strand / Circle ceiling 放宽父级 ceiling
 - 把 controller selection 当作安全边界；服务端仍必须通过 capability、dispatcher 和 reducer 强制执行
 - 在 effective ceiling unknown 或 stale 时默认允许 agent participation
 
@@ -811,7 +811,7 @@ SHOULD 支持：
 - downgrade / unsupported feature tests
 - unknown-field rejection / extension-slot preservation tests
 
-所有 profile MUST 能按 `../models/common-fields.md` 与各对象专属文件（`realm-and-space.md` / `flow-and-message.md` / `morph.md` / `relation.md` / `event-and-patch.md` 等）解码和验证其声明支持的核心对象字段。实现 MUST 拒绝 canonical object schema 未声明的未知字段，对 schema 显式声明扩展位（已登记的 `payload.x_*` 槽、`requirements.critical_extensions[].parameters`）中的未识别内容 MUST 保留，并覆盖“schema 未声明字段被拒绝”与“扩展位内容在 hash/signature 校验、存储、联邦转发、backfill 后仍存在”的测试；未知 critical feature MUST fail closed。实现 MUST reject 类型错误、必填字段缺失、非法 enum、非法 ID/hash/timestamp/cursor pattern，以及违反条件必填规则的对象。标准 Event 必须加载 `event-kind-registry.json` 与 `event-payload.schema.json`，确认每个 active durable kind 都有可执行 payload 校验路径。
+所有 profile MUST 能按 `../models/common-fields.md` 与各对象专属文件（`realm-and-space.md` / `strand-and-message.md` / `morph.md` / `relation.md` / `event-and-patch.md` 等）解码和验证其声明支持的核心对象字段。实现 MUST 拒绝 canonical object schema 未声明的未知字段，对 schema 显式声明扩展位（已登记的 `payload.x_*` 槽、`requirements.critical_extensions[].parameters`）中的未识别内容 MUST 保留，并覆盖“schema 未声明字段被拒绝”与“扩展位内容在 hash/signature 校验、存储、联邦转发、backfill 后仍存在”的测试；未知 critical feature MUST fail closed。实现 MUST reject 类型错误、必填字段缺失、非法 enum、非法 ID/hash/timestamp/cursor pattern，以及违反条件必填规则的对象。标准 Event 必须加载 `event-kind-registry.json` 与 `event-payload.schema.json`，确认每个 active durable kind 都有可执行 payload 校验路径。
 
 所有 profile MUST 按 `conformance-vectors.md` 覆盖 canonical JSON、hash、signature binding、Ed25519 detached JWS fixture、HLC 和 cursor 的基础向量。Events API、Full Client 与 E2EE Client MUST 额外覆盖 event digest；Events API 节点 SHOULD 覆盖 event-batch receipt digest；E2EE Client 和 Principal Server MUST 覆盖 encrypted envelope digest。
 
@@ -830,8 +830,8 @@ E2EE profile MUST 额外提供：
 Client Sync 相关 profile MUST/SHOULD 按 `conformance-vectors.md` 执行对应向量：
 
 - Minimal Client MUST 覆盖基础排序、tie break、pagination gap、backfill order 和 token expiry recovery。
-- Chat MVP Client（`ck.profile.chat_mvp.v1`）MUST 覆盖 Flow discussion timeline、message edit/redaction、reaction OR-Set、discussion history visibility 和 membership 裁剪。
-- Kanban MVP Client（`ck.profile.kanban_mvp.v1`）MUST 覆盖 Board projection、Flow move/reorder、position edge conflict、CAS stale reorder 和 wait-for query。
+- Chat MVP Client（`ck.profile.chat_mvp.v1`）MUST 覆盖 Strand discussion timeline、message edit/redaction、reaction OR-Set、discussion history visibility 和 membership 裁剪。
+- Kanban MVP Client（`ck.profile.kanban_mvp.v1`）MUST 覆盖 Board projection、Strand move/reorder、position edge conflict、CAS stale reorder 和 wait-for query。
 - Full Client MUST 额外覆盖 snapshot frontier、state_after 与 decryption_pending 的 UI / cache 恢复行为。
 - E2EE Client MUST 覆盖 MLS epoch backfill、decryption_pending recovery 和 removed member fail closed。
 - Principal Server SHOULD 覆盖 duplicate suppression、backfill order、encrypted payload forwarding 和不能转发解密材料。

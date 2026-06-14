@@ -85,7 +85,7 @@ flowchart TB
 
 ### 3.1 举报操作
 
-用户可以举报自己可见的 Realm / Circle 对象（Message、Flow、Morph、Relation 等）：
+用户可以举报自己可见的 Realm / Circle 对象（Message、Strand、Morph、Relation 等）：
 
 ```
 POST /_cokret/self/moderation/report
@@ -347,7 +347,7 @@ Realm MAY 使用 `ck.realm.moderation_policy` state event 声明黑名单、允�
     ],
     "appeal": {
       "enabled": true,
-      "endpoint": "ck:flow:56b39410-0000-7000-8000-000000000000"
+      "endpoint": "ck:strand:56b39410-0000-7000-8000-000000000000"
     }
   }
 }
@@ -425,9 +425,9 @@ Realm SHOULD 支持审核队列 (Moderation Queue) 视图，汇集所有举报�
 }
 ```
 
-### 5.5 上诉流程 (Appeal Flow, normative)
+### 5.5 上诉流程 (Appeal Strand, normative)
 
-上诉是审核闭环的反向通道。被 `ck.moderation.decision` 影响的 target（成员被 ban、消息被 remove、Flow 被锁等）可以走标准 `ck.moderation.appeal.*` 事件链请求复核，无需脱离 Cokret wire。本节定义事件链、状态机与 reducer 强制约束。
+上诉是审核闭环的反向通道。被 `ck.moderation.decision` 影响的 target（成员被 ban、消息被 remove、Strand 被锁等）可以走标准 `ck.moderation.appeal.*` 事件链请求复核，无需脱离 Cokret wire。本节定义事件链、状态机与 reducer 强制约束。
 
 #### 5.5.1 事件链
 
@@ -472,7 +472,7 @@ Payload schema 在 [`moderation-appeal.schema.json`](../../artifacts/schemas/mod
 
 #### 5.5.4 与 `moderation_policy.appeal.endpoint` 的关系
 
-§5.3 `moderation_policy` 中 `appeal.endpoint` 字段保留用于 UI 引导（用户在哪个 Flow 提交上诉），不替代 wire 事件。endpoint Flow 内的消息只是 narrative，约束性 verdict / lift 仍走本节 normative 事件链。
+§5.3 `moderation_policy` 中 `appeal.endpoint` 字段保留用于 UI 引导（用户在哪个 Strand 提交上诉），不替代 wire 事件。endpoint Strand 内的消息只是 narrative，约束性 verdict / lift 仍走本节 normative 事件链。
 
 ## 6. 服务器级访问控制
 

@@ -221,7 +221,7 @@
       "code": "discussion_track_disabled",
       "http_status": 409,
       "scope": "both",
-      "description": "The target Flow discussion track is disabled."
+      "description": "The target Strand discussion track is disabled."
     },
     {
       "code": "reaction_target_unsupported",
@@ -229,14 +229,14 @@
         "schema_validation",
         "state_resolution"
       ],
-      "description": "Sub-reason for schema_violation when a ck.reaction.add / ck.reaction.remove target_ref points at an object kind that the deployment does not allow reactions on. v1 core only allows ck:message: targets; profiles MAY register additional target kinds. See zh/models/flow-and-message.md §9.8.2."
+      "description": "Sub-reason for schema_violation when a ck.reaction.add / ck.reaction.remove target_ref points at an object kind that the deployment does not allow reactions on. v1 core only allows ck:message: targets; profiles MAY register additional target kinds. See zh/models/strand-and-message.md §9.8.2."
     },
     {
       "code": "reaction_scope_mismatch",
       "applies_to": [
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when a ck.reaction.* target_ref resolves to an object outside the reaction event's stamped effective scope. Reactions MUST target an object within their own effective scope. See zh/models/flow-and-message.md §9.8.2."
+      "description": "Sub-reason for failed_precondition when a ck.reaction.* target_ref resolves to an object outside the reaction event's stamped effective scope. Reactions MUST target an object within their own effective scope. See zh/models/strand-and-message.md §9.8.2."
     },
     {
       "code": "epoch_mismatch",
@@ -693,7 +693,7 @@
       "code": "failed_precondition",
       "http_status": 409,
       "scope": "both",
-      "description": "Reducer state-machine precondition failed. Carried with a reason_code in the {flow,space,morph}_not_active / _not_archived family or the {flow,space,morph,message,relation}_already_terminal family, or with object-specific reasons like space_parent_cycle. See zh/models/common-fields.md §5.1."
+      "description": "Reducer state-machine precondition failed. Carried with a reason_code in the {strand,space,morph}_not_active / _not_archived family or the {strand,space,morph,message,relation}_already_terminal family, or with object-specific reasons like space_parent_cycle. See zh/models/common-fields.md §5.1."
     },
     {
       "code": "contact_not_accepted",
@@ -950,11 +950,11 @@
       "description": "Event was rejected because the active capability constraint requires approval evidence (per zh/authz/capabilities.md §6 / §8) and none was supplied."
     },
     {
-      "code": "no_flow_track_message_grant",
+      "code": "no_strand_track_message_grant",
       "applies_to": [
         "auth_decision"
       ],
-      "description": "No active capability grant authorises ck.message.create on the targeted Flow track for the actor."
+      "description": "No active capability grant authorises ck.message.create on the targeted Strand track for the actor."
     },
     {
       "code": "grant_revoked_before_event_frontier",
@@ -1472,28 +1472,28 @@
       "description": "Realm attempts to set mls_send_pause='advisory' without declaring ck.profile.e2ee_relaxed.v1; default profile MUST treat mls_send_pause as a MUST gate."
     },
     {
-      "code": "flow_not_active",
+      "code": "strand_not_active",
       "applies_to": [
         "event_envelope",
         "auth_decision"
       ],
-      "description": "`ck.flow.archive` / `ck.flow.update` rejected because the target Flow is not in `active` state (per zh/models/common-fields.md §5.1)."
+      "description": "`ck.strand.archive` / `ck.strand.update` rejected because the target Strand is not in `active` state (per zh/models/common-fields.md §5.1)."
     },
     {
-      "code": "flow_not_archived",
+      "code": "strand_not_archived",
       "applies_to": [
         "event_envelope",
         "auth_decision"
       ],
-      "description": "`ck.flow.restore` rejected because the target Flow is not in `archived` state."
+      "description": "`ck.strand.restore` rejected because the target Strand is not in `archived` state."
     },
     {
-      "code": "flow_already_terminal",
+      "code": "strand_already_terminal",
       "applies_to": [
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A `ck.redaction` event targeting a Flow is rejected because the target Flow is already in terminal state `redacted`. Flow terminal state is reached via ck.redaction."
+      "description": "A `ck.redaction` event targeting a Strand is rejected because the target Strand is already in terminal state `redacted`. Strand terminal state is reached via ck.redaction."
     },
     {
       "code": "space_not_active",
@@ -1753,7 +1753,7 @@
       "applies_to": [
         "event_envelope"
       ],
-      "description": "A `ck.patch.v1` `$op=\"unset\"` was used on a redactable content field (e.g. message.content, flow.metadata.summary, encrypted_content / encrypted_metadata). Redaction MUST go through `ck.<kind>.redact` or `ck.redaction` events to enforce redaction-specific capability checks and audit. See zh/models/event-and-patch.md §4.2.4."
+      "description": "A `ck.patch.v1` `$op=\"unset\"` was used on a redactable content field (e.g. message.content, strand.metadata.summary, encrypted_content / encrypted_metadata). Redaction MUST go through `ck.<kind>.redact` or `ck.redaction` events to enforce redaction-specific capability checks and audit. See zh/models/event-and-patch.md §4.2.4."
     },
     {
       "code": "patch_selector_no_match",
@@ -1913,7 +1913,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "A `ck.gate.account.command.pair_agent_key` pairing request was presented after its `pairing_expires_at` (or the runtime key-pairing session id has been retired). The endpoint MUST fail closed; the controller MUST initiate a fresh pairing flow. See zh/identity/key-management.md §3.6 and proposals/0008-personal-agent-provisioning.md §4.5."
+      "description": "A `ck.gate.account.command.pair_agent_key` pairing request was presented after its `pairing_expires_at` (or the runtime key-pairing session id has been retired). The endpoint MUST fail closed; the controller MUST initiate a fresh pairing strand. See zh/identity/key-management.md §3.6 and proposals/0008-personal-agent-provisioning.md §4.5."
     },
     {
       "code": "proof_invalid",
@@ -2083,35 +2083,35 @@
       "applies_to": [
         "auth_decision"
       ],
-      "description": "Reading the full per-Flow watch state (including `muted` entries) requires both `ck.realm.notification.audit` and `ck.audit.accessed` capabilities; one was missing. See zh/models/flow-and-message.md §8.5."
+      "description": "Reading the full per-Strand watch state (including `muted` entries) requires both `ck.realm.notification.audit` and `ck.audit.accessed` capabilities; one was missing. See zh/models/strand-and-message.md §8.5."
     },
     {
       "code": "watch_must_be_self",
       "applies_to": [
         "auth_decision"
       ],
-      "description": "`ck.flow.watch.set` may only set the watch state of the submitting actor; cross-actor writes require `ck.flow.watch.set.others` (audit / accessibility scope). See zh/models/flow-and-message.md §8.4."
+      "description": "`ck.strand.watch.set` may only set the watch state of the submitting actor; cross-actor writes require `ck.strand.watch.set.others` (audit / accessibility scope). See zh/models/strand-and-message.md §8.4."
     },
     {
       "code": "watch_muted_must_be_self",
       "applies_to": [
         "auth_decision"
       ],
-      "description": "`ck.flow.watch.set` writing `level=\"muted\"` for another actor is rejected — `muted` suppresses mention / moderation / workflow notifications and MUST be opt-in by the target actor themself. `ck.flow.watch.set.others` only authorizes writing `level ∈ {mentions_only, participating, all}` for other actors. See zh/models/flow-and-message.md §8.4."
+      "description": "`ck.strand.watch.set` writing `level=\"muted\"` for another actor is rejected — `muted` suppresses mention / moderation / workflow notifications and MUST be opt-in by the target actor themself. `ck.strand.watch.set.others` only authorizes writing `level ∈ {mentions_only, participating, all}` for other actors. See zh/models/strand-and-message.md §8.4."
     },
     {
       "code": "watch_level_public_must_be_self",
       "applies_to": [
         "auth_decision"
       ],
-      "description": "`ck.flow.watch.set` writing `level_public=true` for another actor is rejected — publishing one's own subscription level is an opt-in personal disclosure and MUST be written by the target actor themself. `ck.flow.watch.set.others` writes MUST omit `level_public` or set it to `false`. See zh/models/flow-and-message.md §8.4."
+      "description": "`ck.strand.watch.set` writing `level_public=true` for another actor is rejected — publishing one's own subscription level is an opt-in personal disclosure and MUST be written by the target actor themself. `ck.strand.watch.set.others` writes MUST omit `level_public` or set it to `false`. See zh/models/strand-and-message.md §8.4."
     },
     {
       "code": "watch_set_others_audit_missing",
       "applies_to": [
         "auth_decision"
       ],
-      "description": "A `ck.flow.watch.set` write that uses `ck.flow.watch.set.others` to set another actor's watch state was rejected because it lacked refs[role=audit_pair] to a same-batch `ck.audit.accessed` event, or the paired audit payload did not identify the same writer DID, target actor DID, cell id, paired event id/digest, and before/after heads. See zh/models/flow-and-message.md §8.4."
+      "description": "A `ck.strand.watch.set` write that uses `ck.strand.watch.set.others` to set another actor's watch state was rejected because it lacked refs[role=audit_pair] to a same-batch `ck.audit.accessed` event, or the paired audit payload did not identify the same writer DID, target actor DID, cell id, paired event id/digest, and before/after heads. See zh/models/strand-and-message.md §8.4."
     },
     {
       "code": "cross_realm_structural_relation",
@@ -2119,7 +2119,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "A structural `contains` Relation was submitted that would cross Realm boundaries. Structural containment (Board → List → Flow / Space hierarchy) MUST stay within a single Realm; cross-Realm links use the dedicated `ck.relation.*` non-structural kinds. See zh/models/relation.md §4."
+      "description": "A structural `contains` Relation was submitted that would cross Realm boundaries. Structural containment (Board → List → Strand / Space hierarchy) MUST stay within a single Realm; cross-Realm links use the dedicated `ck.relation.*` non-structural kinds. See zh/models/relation.md §4."
     },
     {
       "code": "join_authorisation_invalid",
@@ -2514,7 +2514,7 @@
         "service_call",
         "state_resolution"
       ],
-      "description": "A MIMI facade found a governance binding, but its realm_id, flow_id, mls_group_id, provider DID, or endpoint digest does not match the incoming MIMI room state. Receiver MUST quarantine or reject fail-closed. See zh/extensions/mimi-interop.md §4.1."
+      "description": "A MIMI facade found a governance binding, but its realm_id, strand_id, mls_group_id, provider DID, or endpoint digest does not match the incoming MIMI room state. Receiver MUST quarantine or reject fail-closed. See zh/extensions/mimi-interop.md §4.1."
     },
     {
       "code": "mimi_policy_root_mismatch",
@@ -2739,7 +2739,7 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when a Realm declares content_encryption_floor=e2ee_required but a Flow / Message / Morph / Blob content write would land in a non-MLS-backed effective_scope (plaintext). The content effective_scope MUST be Realm-default MLS or Circle MLS. See zh/models/circle.md §7 (Realm.content_encryption_floor)."
+      "description": "Sub-reason for failed_precondition when a Realm declares content_encryption_floor=e2ee_required but a Strand / Message / Morph / Blob content write would land in a non-MLS-backed effective_scope (plaintext). The content effective_scope MUST be Realm-default MLS or Circle MLS. See zh/models/circle.md §7 (Realm.content_encryption_floor)."
     },
     {
       "code": "content_encryption_floor_downgrade",
@@ -2767,7 +2767,7 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when a Realm/Circle/Flow agent_participation ceiling write would widen (enable a bit disabled by) its parent ceiling. The deployment ⊇ Realm ⊇ Circle ⊇ Flow ceiling chain is tighten-only (monotone). See zh/models/realm-and-space.md, zh/models/circle.md, zh/authz/capabilities.md §5.4."
+      "description": "Sub-reason for failed_precondition when a Realm/Circle/Strand agent_participation ceiling write would widen (enable a bit disabled by) its parent ceiling. The deployment ⊇ Realm ⊇ Circle ⊇ Strand ceiling chain is tighten-only (monotone). See zh/models/realm-and-space.md, zh/models/circle.md, zh/authz/capabilities.md §5.4."
     },
     {
       "code": "agent_participation_exceeds_ceiling",
@@ -2837,7 +2837,7 @@
         "device_recovery",
         "state_resolution"
       ],
-      "description": "A key-backup envelope or recovery proof references a `recovery_policy.policy_id` / `policy_version` that is not the currently accepted policy for the principal. Recovery flows MUST surface this to the user as 'update recovery policy' rather than silently continuing. See zh/identity/key-management.md §7.5.4 / §7.7 and zh/crypto-media/device-lifecycle.md §15."
+      "description": "A key-backup envelope or recovery proof references a `recovery_policy.policy_id` / `policy_version` that is not the currently accepted policy for the principal. Recovery strands MUST surface this to the user as 'update recovery policy' rather than silently continuing. See zh/identity/key-management.md §7.5.4 / §7.7 and zh/crypto-media/device-lifecycle.md §15."
     },
     {
       "code": "recovery_policy_version_not_monotonic",

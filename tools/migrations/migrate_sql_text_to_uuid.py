@@ -33,7 +33,7 @@ TARGETS = [
 # Columns that store Cokret typed UUIDv7 values (per id-kind-registry):
 UUID_COLUMNS_COKRET = {
     # core wire IDs
-    "event_id", "realm_id", "space_id", "flow_id", "morph_id", "view_id",
+    "event_id", "realm_id", "space_id", "strand_id", "morph_id", "view_id",
     "relation_id", "from_entity_id", "to_entity_id",
     "message_id", "actor_profile_id",
     # receipts / snapshots

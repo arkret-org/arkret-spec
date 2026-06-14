@@ -169,7 +169,7 @@ handovers, notary signing-key GET, spaces hierarchy), plus an ops panel set
   no spec change is needed.
 - *Recovery policy/receipt write operations (SPEC-SOD-005)*: the protocol
   plane defines read paths (`GET /_cokret/root/identity/recovery-policy`,
-  `GET /_cokret/root/identity/receipts`) and the recovery-session flow.
+  `GET /_cokret/root/identity/receipts`) and the recovery-session strand.
   Write/configure operations (`POST recovery-policy`, `POST recovery-receipt`)
   stay implementation-local (`/_soland/root/identity/*`, registered as
   `org.cokret.soland.*` extension operations) for v1. Promoting them into

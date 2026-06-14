@@ -16,8 +16,8 @@ Cokret 的权限模型采用 capability 思路，而不是只依赖成员关系�
 
 这样做的原因是：
 
-- `flow`、`message`、`realm`、`morph`、`view` 的动作集不同。
-- Flow 的所有 track（含 `synthesis` 与 `discussion`）共享同一 effective scope（由 `Flow.scope_circle_id` 决定，`null` = Realm-default scope，否则指向同 Realm 的 [Circle](../models/circle.md)）。Flow 永远单一 scope，不存在 per-track 安全边界。
+- `strand`、`message`、`realm`、`morph`、`view` 的动作集不同。
+- Strand 的所有 track（含 `synthesis` 与 `discussion`）共享同一 effective scope（由 `Strand.scope_circle_id` 决定，`null` = Realm-default scope，否则指向同 Realm 的 [Circle](../models/circle.md)）。Strand 永远单一 scope，不存在 per-track 安全边界。
 - agent 必须被精细授权。
 - 授权变化必须可审计。
 
@@ -34,8 +34,8 @@ Handle、邮箱、域名用户名等人类可读标识 MUST NOT 作为权限主�
 不要依赖以下隐式假设：
 
 - 进入 Realm 就拥有全部能力。
-- 能编辑 Flow synthesis 就一定能在 discussion 里发消息，除非有效 access policy 明确继承并授予该动作。
-- discussion moderator 天然拥有全量 Flow 管理权。
+- 能编辑 Strand synthesis 就一定能在 discussion 里发消息，除非有效 access policy 明确继承并授予该动作。
+- discussion moderator 天然拥有全量 Strand 管理权。
 
 ### 2.3 权限判定基于当时有效的 capability 集
 
@@ -68,8 +68,8 @@ ID 语义：
   "issuer": "did:web:acme.example.com",
   "subject": "did:web:agent.copy.example.com",
   "actions": [
-    "ck.flow.read",
-    "ck.flow.update",
+    "ck.strand.read",
+    "ck.strand.update",
     "ck.message.create",
     "ck.morph.read",
     "ck.morph.update"
@@ -78,7 +78,7 @@ ID 语义：
     {
       "kind": "object",
       "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-      "object_type": "flow",
+      "object_type": "strand",
       "match_scope": "realm_wide"
     },
     {
@@ -126,7 +126,7 @@ Cokret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 - `realm`
 - `space`
 - `circle`
-- `flow`
+- `strand`
 - `message`
 - `morph`
 - `object`
@@ -142,7 +142,7 @@ Cokret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 - `blob`
 - `*`（wildcard，见 [`resource-selector-grammar.md` §3.1](./resource-selector-grammar.md)）
 
-资源选择器应把 Space（`kind=board/list/...`）、Flow track、Morph type 和 Relation kind 表达为 canonical resource selector + typed constraint，而不是把它们当成新的 selector kind。Flow 的业务语义通过 schema/profile、`metadata.fields`、Relation、labels、Morph type 或 facet 约束表达，不放在顶层字段上。
+资源选择器应把 Space（`kind=board/list/...`）、Strand track、Morph type 和 Relation kind 表达为 canonical resource selector + typed constraint，而不是把它们当成新的 selector kind。Strand 的业务语义通过 schema/profile、`metadata.fields`、Relation、labels、Morph type 或 facet 约束表达，不放在顶层字段上。
 
 ## 5. 动作集合
 
@@ -154,13 +154,13 @@ Cokret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 
 ### 5.0 Action ↔ Event kind 偏离类别（normative reference）
 
-绝大多数 action 与其 `target_event_kinds` 单一同名映射（`ck.flow.create` action ↔ `ck.flow.create` event）。当存在偏离时，授权决策、IAM 工具与 audit 解析 MUST 以 `capability-action-registry.json` 的 `target_event_kinds` 为准，而不是用 action 字符串拆解推断 event kind。**偏离限定为以下四类**，任何其它类型的偏离 **MUST NOT 被引入**：
+绝大多数 action 与其 `target_event_kinds` 单一同名映射（`ck.strand.create` action ↔ `ck.strand.create` event）。当存在偏离时，授权决策、IAM 工具与 audit 解析 MUST 以 `capability-action-registry.json` 的 `target_event_kinds` 为准，而不是用 action 字符串拆解推断 event kind。**偏离限定为以下四类**，任何其它类型的偏离 **MUST NOT 被引入**：
 
 | 类别 | 形态 | 标准示例 |
 | --- | --- | --- |
 | **聚合 admin 动作** | 一个 action 覆盖多条 Realm policy facet event kinds | `ck.realm.admin` → registry 中声明的 Realm policy facet events；`ck.policy.manage` → `ck.policy.*` 与 `ck.realm.policy_*` 系列 |
-| **polymorphic 对象动作** | 一个 action 同时覆盖 Flow / Morph / Space 等同语义 event | `ck.object.archive` → `{ck.flow.archive, ck.morph.archive}`；`ck.object.restore` → `{ck.flow.restore, ck.morph.restore, ck.space.restore}`；`ck.object.stage.set` → `{ck.flow.stage.set, ck.morph.stage.set}` |
-| **scope 后缀变体** | 同一 event，授权按 self vs others / target subset 分粒度 | `ck.message.revise.own` → `ck.message.revise`；`ck.message.redact.own` → `ck.message.redact`；`ck.flow.watch.set.others` → `ck.flow.watch.set` |
+| **polymorphic 对象动作** | 一个 action 同时覆盖 Strand / Morph / Space 等同语义 event | `ck.object.archive` → `{ck.strand.archive, ck.morph.archive}`；`ck.object.restore` → `{ck.strand.restore, ck.morph.restore, ck.space.restore}`；`ck.object.stage.set` → `{ck.strand.stage.set, ck.morph.stage.set}` |
+| **scope 后缀变体** | 同一 event，授权按 self vs others / target subset 分粒度 | `ck.message.revise.own` → `ck.message.revise`；`ck.message.redact.own` → `ck.message.redact`；`ck.strand.watch.set.others` → `ck.strand.watch.set` |
 | **操作动词动作（`event_mapping_kind="operation_verb"`）** | action token 命名为操作 / 命令动词，与 target event kind 名形态不同；reducer admission 经 `target_event_kinds` 解析，逐字命中 `actions[]` 规则照常适用，且不带聚合 admin 语义 | `ck.agent.interop_session.cancel` → `{ck.agent.interop_session.status, ck.agent.interop_session.result}`（命令动词写入 lifecycle 事件）；`ck.agent.interop_session.stream_status` → `ck.agent.interop_session.status`；`ck.message.redact` → `{ck.message.redact, ck.redaction}` |
 
 `ck.mls.commit` action → `{ck.mls.commit, ck.mls.commit_failed}`、`ck.moderation.appeal.review` → `{ck.moderation.appeal.review, ck.moderation.appeal.decision, ck.moderation.appeal.close}` 等"同一 action 同时覆盖正常 event 与诊断 / 派生 event"的情况落在**聚合 admin 动作**类别，并以 registry `target_event_kinds` 为准。
@@ -187,16 +187,16 @@ Cokret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 - `ck.object.archive`
 - `ck.object.restore`
 
-### 5.2 Flow 与工作流动作
+### 5.2 Strand 与工作流动作
 
-- `ck.flow.create`
-- `ck.flow.read`
-- `ck.flow.update`
-- `ck.flow.archive`
-- `ck.flow.restore`
-- `ck.flow.move`
-- `ck.flow.reorder`
-- `ck.flow.tracks.update`（Flow tracks map 写入入口：启用 / 关闭 track、切换 primary、修改 track profile，target=`ck.flow.tracks.update`，`event_mapping_kind=same_name`。这是该 action 的权威定义；§5.3 仅交叉引用）
+- `ck.strand.create`
+- `ck.strand.read`
+- `ck.strand.update`
+- `ck.strand.archive`
+- `ck.strand.restore`
+- `ck.strand.move`
+- `ck.strand.reorder`
+- `ck.strand.tracks.update`（Strand tracks map 写入入口：启用 / 关闭 track、切换 primary、修改 track profile，target=`ck.strand.tracks.update`，`event_mapping_kind=same_name`。这是该 action 的权威定义；§5.3 仅交叉引用）
 - `ck.relation.create`
 - `ck.relation.update`
 - `ck.relation.tombstone`
@@ -215,26 +215,26 @@ Cokret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 - `ck.morph.create`(默认 required constraint:`allowed_morph_types`)
 - `ck.morph.update`(默认 required constraint:`allowed_write_fields`)
 
-Flow 权限只覆盖 Flow 自身字段、track 配置和 position / relation 管理。Message 正文权限按 Flow 的 effective scope 判断：`Flow.scope_circle_id=null` 时使用 Realm-default capability；`scope_circle_id` 指向 Circle 时使用该 [Circle](../models/circle.md) scope 的 capability + Circle membership 两层 AND（详见 [`circle.md` §8](../models/circle.md)）。
+Strand 权限只覆盖 Strand 自身字段、track 配置和 position / relation 管理。Message 正文权限按 Strand 的 effective scope 判断：`Strand.scope_circle_id=null` 时使用 Realm-default capability；`scope_circle_id` 指向 Circle 时使用该 [Circle](../models/circle.md) scope 的 capability + Circle membership 两层 AND（详见 [`circle.md` §8](../models/circle.md)）。
 
 若 Circle membership control cell 在当前 CBA basis 下为 `⊥`（`fsm, bottom=reject`），上述两层 AND 的 membership 分支 MUST fail closed：授权结果为 deny，后续依赖该 cell 的 DataEvent / Control Move MUST 返回 `failed_bottom`（`reason=cell_in_bottom_state`），而 `failed_precondition` 仅用于 predicate 本身不成立（cell 持有明确 value 但 predicate 求值为 false）的情形；实现 MUST NOT 把 `⊥` 当作非成员、空成员集或任一候选 membership 状态来继续授权。
 
-Morph 权限粒度与 Flow 平行(`ck.morph.read` / `ck.morph.create` / `ck.morph.update` 对应 `ck.flow.read` / `ck.flow.create` / `ck.flow.update`),通过 `allowed_morph_types` constraint 进一步限定可创建或操作的 `morph_type`。
+Morph 权限粒度与 Strand 平行(`ck.morph.read` / `ck.morph.create` / `ck.morph.update` 对应 `ck.strand.read` / `ck.strand.create` / `ck.strand.update`),通过 `allowed_morph_types` constraint 进一步限定可创建或操作的 `morph_type`。
 
 ### 5.3 Discussion 与消息动作
 
 - `ck.event.read`
 - `ck.message.create`
-- `ck.message.mention.broadcast`（high risk；允许在 `ck.message.create` / `ck.message.revise` 中新增 audience mention，例如 `@all` / `@here`。必须同时持有普通消息写入授权，且 grant MUST 携带 rate-limit quota（`max_operations` + `period`），Realm / Circle policy MUST 声明允许的 audience 与 `max_recipients`；`@here` 映射为 `audience="flow_engaged"` 且不使用 presence / online 状态；详见 [`../models/flow-and-message.md` §9.4.4](../models/flow-and-message.md)）
+- `ck.message.mention.broadcast`（high risk；允许在 `ck.message.create` / `ck.message.revise` 中新增 audience mention，例如 `@all` / `@here`。必须同时持有普通消息写入授权，且 grant MUST 携带 rate-limit quota（`max_operations` + `period`），Realm / Circle policy MUST 声明允许的 audience 与 `max_recipients`；`@here` 映射为 `audience="strand_engaged"` 且不使用 presence / online 状态；详见 [`../models/strand-and-message.md` §9.4.4](../models/strand-and-message.md)）
 - `ck.message.revise`
 - `ck.message.revise.own`
 - `ck.message.redact`
 - `ck.message.redact.own`
 - `ck.reaction.add`
 - `ck.reaction.remove`
-- `ck.flow.tracks.update`（管理 track 启用 / primary / profile；权威定义见 §5.2，此处仅交叉引用，target=`ck.flow.tracks.update`，`event_mapping_kind=same_name`）
-- `ck.flow.watch.set`（写入自己的 watch 订阅，target=`ck.flow.watch.set`；详见 [`../models/flow-and-message.md` §8](../models/flow-and-message.md)）
-- `ck.flow.watch.set.others`（high risk；为他人写入 `level ∈ {mentions_only, participating, all}` 的 watch 订阅；MUST NOT 写入 `muted` 或 `level_public=true`，target=`ck.flow.watch.set`；详见 [`../models/flow-and-message.md` §8.4](../models/flow-and-message.md)）
+- `ck.strand.tracks.update`（管理 track 启用 / primary / profile；权威定义见 §5.2，此处仅交叉引用，target=`ck.strand.tracks.update`，`event_mapping_kind=same_name`）
+- `ck.strand.watch.set`（写入自己的 watch 订阅，target=`ck.strand.watch.set`；详见 [`../models/strand-and-message.md` §8](../models/strand-and-message.md)）
+- `ck.strand.watch.set.others`（high risk；为他人写入 `level ∈ {mentions_only, participating, all}` 的 watch 订阅；MUST NOT 写入 `muted` 或 `level_public=true`，target=`ck.strand.watch.set`；详见 [`../models/strand-and-message.md` §8.4](../models/strand-and-message.md)）
 
 ### 5.4 管理动作
 
@@ -252,8 +252,8 @@ Morph 权限粒度与 Flow 平行(`ck.morph.read` / `ck.morph.create` / `ck.morp
 - `ck.realm.moderation_policy`（管理 Realm 审核策略，target=`ck.realm.moderation_policy`）
 - `ck.realm.plaintext_visible_services`（high risk；修改 E2EE 边界外可见明文的服务声明，target=`ck.realm.plaintext_visible_services`）
 - `ck.realm.preview_policy`（high risk；修改加入前 / token-scoped preview 可披露字段、历史 stub 或明文 snippet 的策略，target=`ck.realm.preview_policy`）
-- `ck.flow.admin`
-- `ck.realm.notification.audit`（读取完整 watch 状态含 `muted`；MUST 与 `ck.audit.accessed` 同时持有，详见 [`../models/flow-and-message.md` §8.5](../models/flow-and-message.md)）
+- `ck.strand.admin`
+- `ck.realm.notification.audit`（读取完整 watch 状态含 `muted`；MUST 与 `ck.audit.accessed` 同时持有，详见 [`../models/strand-and-message.md` §8.5](../models/strand-and-message.md)）
 - `ck.schema.define`
 - `ck.schema.update`
 - `ck.capability.grant`
@@ -271,10 +271,10 @@ Morph 权限粒度与 Flow 平行(`ck.morph.read` / `ck.morph.create` / `ck.morp
 - `ck.agent.action_request`(agent-initiated action request;target=`ck.agent.action_request`)
 - `ck.agent.action_approve`(controller-only;target=`ck.agent.action_approve`)
 - `ck.agent.action_reject`(controller-only;target=`ck.agent.action_reject`)
-- `ck.self.agent.sidecar_thread.command.ensure`(aggregate admin action,`target_event_kinds=[ck.circle.create, ck.circle.member.state, ck.flow.create, ck.relation.create]`,profile=`ck.profile.agent_sidecar_thread.v1`。Controller-private projection 写入(`ck.agent.sidecar_projection.v1`)不属于此 grant 集合)
-- `ck.agent.sidecar_thread.write`(profile action;`target_event_kinds=[ck.message.create]`,resource 必须限定 sidecar private Flow)
+- `ck.self.agent.sidecar_thread.command.ensure`(aggregate admin action,`target_event_kinds=[ck.circle.create, ck.circle.member.state, ck.strand.create, ck.relation.create]`,profile=`ck.profile.agent_sidecar_thread.v1`。Controller-private projection 写入(`ck.agent.sidecar_projection.v1`)不属于此 grant 集合)
+- `ck.agent.sidecar_thread.write`(profile action;`target_event_kinds=[ck.message.create]`,resource 必须限定 sidecar private Strand)
 - `ck.agent.sidecar_thread.publish`(profile action;target event kinds 由最终发布目标决定，至少包括 `ck.message.create`，受 reply-as-agent / act-on-behalf attribution 规则约束)
-- `ck.self.agent.participation.resource.replace`(controller-only aggregate admin;profile=`ck.profile.agent_participation_policy.v1`，`target_event_kinds=[ck.capability.grant, ck.capability.revoke]`。controller 设置某 agent 在某 scope 的参与选择 `{reply, accept_third_party_mention, act_on_behalf}`；服务端校验 `selection ⊆ effective_ceiling`（deployment ⊇ Realm ⊇ Circle ⊇ Flow 的单调收紧 fold），超出对应位返回 `failed_precondition`（`reason="agent_participation_exceeds_ceiling"`）。`reply` / `act_on_behalf` effective 为真时物化为既有 `ck.capability.grant`（`ck.message.create` 等），为假时 `ck.capability.revoke`；`accept_third_party_mention` 不物化为 grant，而是 driver of [`../models/flow-and-message.md` §9.4](../models/flow-and-message.md) 的第三方 mention 投递 gate。controller-owned `ck.agent.participation.v1` account-data 写入不纳入此 grant 集合（由 controller 对自身 account-data 的固有写权批准）。Realm-level ceiling 由持有 `ck.realm.admin` 的 principal 通过 `ck.realm.policy_components` 的 `agent_participation` 组件写入；Circle / Flow ceiling 分别由 `ck.circle.manage` / `ck.flow.admin` 写入对应 object 的 `agent_participation` 字段，reducer 强制 tighten-only。Realm / Circle / Flow ceiling 分别见 [`../models/realm-and-space.md`](../models/realm-and-space.md)、[`../models/circle.md`](../models/circle.md)、[`../models/flow-and-message.md` §9.4.5](../models/flow-and-message.md))
+- `ck.self.agent.participation.resource.replace`(controller-only aggregate admin;profile=`ck.profile.agent_participation_policy.v1`，`target_event_kinds=[ck.capability.grant, ck.capability.revoke]`。controller 设置某 agent 在某 scope 的参与选择 `{reply, accept_third_party_mention, act_on_behalf}`；服务端校验 `selection ⊆ effective_ceiling`（deployment ⊇ Realm ⊇ Circle ⊇ Strand 的单调收紧 fold），超出对应位返回 `failed_precondition`（`reason="agent_participation_exceeds_ceiling"`）。`reply` / `act_on_behalf` effective 为真时物化为既有 `ck.capability.grant`（`ck.message.create` 等），为假时 `ck.capability.revoke`；`accept_third_party_mention` 不物化为 grant，而是 driver of [`../models/strand-and-message.md` §9.4](../models/strand-and-message.md) 的第三方 mention 投递 gate。controller-owned `ck.agent.participation.v1` account-data 写入不纳入此 grant 集合（由 controller 对自身 account-data 的固有写权批准）。Realm-level ceiling 由持有 `ck.realm.admin` 的 principal 通过 `ck.realm.policy_components` 的 `agent_participation` 组件写入；Circle / Strand ceiling 分别由 `ck.circle.manage` / `ck.strand.admin` 写入对应 object 的 `agent_participation` 字段，reducer 强制 tighten-only。Realm / Circle / Strand ceiling 分别见 [`../models/realm-and-space.md`](../models/realm-and-space.md)、[`../models/circle.md`](../models/circle.md)、[`../models/strand-and-message.md` §9.4.5](../models/strand-and-message.md))
 - `ck.agent.protocol.discover`（profile=`ck.profile.agent_runtime.v1`，risk_tier=low，`non_event_surface`，无 target event：发现 agent runtime 协议端点 / capability，仅服务面发现，不写入 event）
 - `ck.agent.interop_session.start`（profile=`ck.profile.agent_runtime.v1`，high risk；启动 agent interop session，`event_mapping_kind=same_name`，target=`ck.agent.interop_session.start`；required constraint `allowed_endpoints` + `allowed_data_classes`）
 - `ck.agent.interop_session.cancel`（profile=`ck.profile.agent_runtime.v1`，medium；取消 / 终止 session，`event_mapping_kind=operation_verb`，target=`{ck.agent.interop_session.status, ck.agent.interop_session.result}`）
@@ -379,7 +379,7 @@ Cokret v1 支持以下约束字段（按 constraint family 分组，与 `grant-c
 
 **scope_limitation**
 
-- `allowed_flow_ids` / `denied_flow_ids`
+- `allowed_strand_ids` / `denied_strand_ids`
 - `allowed_space_ids` / `denied_space_ids`
 - `allowed_view_ids`
 - `allowed_view_kinds` / `denied_view_kinds`
@@ -467,8 +467,8 @@ effective_expires_at = min(grant.expires_at?, temporal.expires_at[]?)
 | `denied_morph_types` | `type_restriction` | — | `denied_morph_types` |
 | `allowed_facets` | `type_restriction` | — | `allowed_facets` |
 | `denied_facets` | `type_restriction` | — | `denied_facets` |
-| `allowed_flow_ids` | `scope_limitation` | — | `allowed_flow_ids` |
-| `denied_flow_ids` | `scope_limitation` | — | `denied_flow_ids` |
+| `allowed_strand_ids` | `scope_limitation` | — | `allowed_strand_ids` |
+| `denied_strand_ids` | `scope_limitation` | — | `denied_strand_ids` |
 | `allowed_space_ids` | `scope_limitation` | — | `allowed_space_ids` |
 | `denied_space_ids` | `scope_limitation` | — | `denied_space_ids` |
 | `allowed_view_ids` | `scope_limitation` | — | `allowed_view_ids` |
@@ -518,7 +518,7 @@ effective_expires_at = min(grant.expires_at?, temporal.expires_at[]?)
 
 ### 6.2 资源类型 / facet / claim 约束求值规则
 
-`discussion` 不是独立资源类型。需要限制 discussion track 时，使用 `allowed_object_types=["flow"]` 和 `allowed_tracks=["discussion"]`；MUST NOT 引入按 track profile 名称授权的 v1 grant 字段。`tracks.<name>.profile` 只是 Flow track 的语义/profile hint，MUST NOT 单独授予读取、发送或成员权限。
+`discussion` 不是独立资源类型。需要限制 discussion track 时，使用 `allowed_object_types=["strand"]` 和 `allowed_tracks=["discussion"]`；MUST NOT 引入按 track profile 名称授权的 v1 grant 字段。`tracks.<name>.profile` 只是 Strand track 的语义/profile hint，MUST NOT 单独授予读取、发送或成员权限。
 
 Facet 只在 grant 显式包含 `allowed_facets` / `denied_facets` 这类 typed constraint 时作为范围收窄条件参与第 7 步 constraints 判断；未声明 facet constraint 的 grant 不会因为目标对象具有 `stateful`、`assignable` 或其他 facet 而自动允许或自动拒绝。`facet=stateful` 不引入独立授权动作：修改 Morph `state` 仍 MUST 命中 `ck.morph.update` 或 profile 注册的更具体 action、目标 resource selector、`allowed_morph_types`、字段写约束、schema state transition policy 和其他有效 constraints。若 grant 允许 `ck.morph.update` 且没有字段/类型/策略拒绝，缺少 `allowed_facets=["stateful"]` 本身 MUST NOT 成为拒绝理由；若 grant 显式声明 `allowed_facets` 且目标 facets 不匹配，则 constraint 不满足。
 
@@ -567,14 +567,14 @@ Capability 必须支持“有直接身份但需要责任主体/监护主体/控�
 ```txt
 actor -> proposal.created
 guardian/controller -> proposal.approved
-system/human -> `ck.flow.update` 或 `ck.morph.update`
+system/human -> `ck.strand.update` 或 `ck.morph.update`
 ```
 
 ## 9. Agent 安全授权
 
 给 agent 授权时 MUST 默认：
 
-- 只授予明确 Realm / Flow / Message / Morph / View 范围。
+- 只授予明确 Realm / Strand / Message / Morph / View 范围。
 - 只授予所需动作。
 - 只授予有限时效。
 - 只授予该 agent 任务所需的最小可写字段、可写 track 和可写 Morph 类型集合。
@@ -731,11 +731,11 @@ invite / notification / read-cursor 等用户可见操作 MUST 由对应 capabil
 - `read_content` → `ck.object.read_content`（能否读取附件内容）
 - `read_history` → `ck.object.read_history`（能否读取对象 discussion / 历史事件）
 
-## 16. Flow / Discussion 场景下的权限建议
+## 16. Strand / Discussion 场景下的权限建议
 
 Cokret v1 至少区分：
 
-- 修改 Flow synthesis。
+- 修改 Strand synthesis。
 - 开启或关闭 discussion track。
 - 管理 Realm 成员（`ck.realm.admin` 管理 `ck.member.state` 写入）或 Circle 成员（`ck.circle.member.manage` / `ck.circle.member.add.others` 管理 `ck.circle.member.state` 写入，见 [`../models/circle.md`](../models/circle.md)）。
 - 普通发送消息。
@@ -745,7 +745,7 @@ Cokret v1 至少区分：
 - 撤回任意消息。
 - 切换 primary track。
 
-这能避免把"能改 Flow"和"能进入 discussion"混成一种权限——Realm-default discussion 按源 Realm capability 判断；若整个 Flow 落在 Circle，则还必须满足该 Circle 的 membership / effective scope 校验。
+这能避免把"能改 Strand"和"能进入 discussion"混成一种权限——Realm-default discussion 按源 Realm capability 判断；若整个 Strand 落在 Circle，则还必须满足该 Circle 的 membership / effective scope 校验。
 
 ## 17. 决策执行位置
 
@@ -778,15 +778,15 @@ Facets 不属于独立授权输入。算法 MUST NOT 在上述步骤之外读取
 
 ### 18.1 高频交互的 O(1) 快速路径
 
-在“discussion 消息收发”或“Flow 状态拖拽”等高频交互场景下，声称支持主客户端或 Principal Server profile 的实现 SHOULD 提供 capability 快照缓存或语义等价 fast path。
+在“discussion 消息收发”或“Strand 状态拖拽”等高频交互场景下，声称支持主客户端或 Principal Server profile 的实现 SHOULD 提供 capability 快照缓存或语义等价 fast path。
 
 高频 fast path 典型事件：
 
 - `ck.message.create`
 - `ck.reaction.add`
-- `ck.flow.update`
-- `ck.flow.move`
-- `ck.flow.reorder`
+- `ck.strand.update`
+- `ck.strand.move`
+- `ck.strand.reorder`
 
 Fast path 只能缓存基础 capability 是否允许。Moderation / Policy Server 的 `deny`、`quarantine`、`require_review`、rate limit、legal hold 和 abuse policy 仍 MUST 在写入接收、分发和查询返回前执行。
 
@@ -808,7 +808,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
     2. `actions[]` 包含 `ck.moderation.decision` / `ck.moderation.decision.lift` / `ck.realm.moderation_policy` 中的任一项（moderator role grant 几乎总是依赖 moderation cell 决定谁是 moderator）；
     3. `constraints[]` 中存在任何 typed constraint 引用 moderation state cell、moderation queue、moderation report 或 moderation tag。
   - 该 lint 在 `capability-grant.schema.json` 与 grant accept reducer 中静态执行；实现 MUST NOT 接受"默认值省略"的兼容写法。Grant 显式声明 `depends_on_moderation_state=false` 而满足上述条件之一时同样 reject——只允许显式 `true`，从而确保意图可审计。
-  - 不在上述条件内的普通 grant（典型如 `ck.flow.update`、`ck.message.create`、组织成员 grant）默认 `depends_on_moderation_state=false`，fast path 不受 moderation cell 失效抖动影响，符合本节"moderation 是后置层"的设计。
+  - 不在上述条件内的普通 grant（典型如 `ck.strand.update`、`ck.message.create`、组织成员 grant）默认 `depends_on_moderation_state=false`，fast path 不受 moderation cell 失效抖动影响，符合本节"moderation 是后置层"的设计。
   - **条件 2 的保守取舍（normative rationale）**：条件 2 按 `actions[]` 是否含 moderation 写入动作触发，即使 subject 是固定 DID 的 admin / moderator grant（其"谁是 moderator"并不真正依赖 moderation cell）也强制 `depends_on_moderation_state=true`，因而该 grant 的 fast-path cache 会被无关 moderation cell 变化抖动失效。这是**有意的 fail-safe 设计**：lint 是 schema / reducer 层的静态规则，无法廉价区分"固定 DID admin"与"依赖 moderation state 的 condition-selector moderator"，而漏失效（已被 moderation 降权的 moderator 仍走 fast-path allow）的安全代价远高于多失效一次 cache 的性能代价。真正精确依赖 moderation state 的 grant 由条件 1、条件 3 覆盖；条件 2 是对"moderation 动作持有者"的额外保守网，**不收窄**。
 - Cache entry 的 `auth_state_digest` 与当前 accepted auth state hash 不一致时，MUST 回退到完整授权判定；MUST NOT 继续用旧 grant 允许新写入。
 - 对 subject 为 condition selector 或约束引用外部 claim / attestation 状态的 grant，cache key / cache value MUST 额外绑定 `claim_status_root` 与 `claim_freshness_deadline`。Issuer revoke、claim status root rotation、attestation expiry 或 freshness deadline 过期 MUST 使 cache entry stale；实现 MUST NOT 只因 grant/revoke/membership 未变化就继续使用 fast-path allow。
@@ -832,10 +832,10 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 | 动作风险等级 | `fresh` | `stale` | `unknown` |
 | --- | --- | --- | --- |
 | 高风险（**[`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 中 `risk_tier=high` 的全部已登记动作**，例如 `ck.realm.destroy`、`ck.realm.freeze`、`ck.realm.tombstone`、`ck.capability.revoke`、`ck.realm.admin`、`ck.policy.manage`、`ck.schema.define`、`ck.agent.key.authorize` / `ck.agent.key.rotate` / `ck.agent.key.revoke`、`ck.call.record`、`ck.call.transcribe`、`ck.audit.export` 等；**加** 以下非 registry 概念项：E2EE key export、legal hold bypass、跨域 grant、sovereign export；以及按"默认 fail closed"规则被视为高风险的未登记动作） | allow | **MUST fail closed**（`revocation_freshness_unknown`） | **MUST fail closed**（`revocation_freshness_unknown`） |
-| 中风险（`ck.flow.update`、`ck.circle.member.manage`、`ck.invite.create`、跨 Realm relation 创建、policy_components 修改） | allow | allow + audit log + 异步 re-check | **MUST fail closed**，可携带 `retry_after_ms` |
-| 高频写入 / 本地 pending tier（按本表显式枚举：`ck.message.create`、`ck.reaction.add`、`ck.read_cursor.advance`、`ck.flow.move`、`ck.flow.reorder`） | allow | allow + 加快后台 Seal 同步 | **本地 pending（不对外生效）**：客户端 MAY 在本地 UI 中乐观显示作者自己看到的状态，但 MUST NOT 把该 Event 同步给其他成员、不得 fanout、不得 push notify，直到 freshness 恢复。basis 恢复 fresh 后再做完整 re-validate；validate 失败的本地 pending Event MUST 静默丢弃，不写入 redaction（因为它从未进入共享 accepted set）。 |
+| 中风险（`ck.strand.update`、`ck.circle.member.manage`、`ck.invite.create`、跨 Realm relation 创建、policy_components 修改） | allow | allow + audit log + 异步 re-check | **MUST fail closed**，可携带 `retry_after_ms` |
+| 高频写入 / 本地 pending tier（按本表显式枚举：`ck.message.create`、`ck.reaction.add`、`ck.read_cursor.advance`、`ck.strand.move`、`ck.strand.reorder`） | allow | allow + 加快后台 Seal 同步 | **本地 pending（不对外生效）**：客户端 MAY 在本地 UI 中乐观显示作者自己看到的状态，但 MUST NOT 把该 Event 同步给其他成员、不得 fanout、不得 push notify，直到 freshness 恢复。basis 恢复 fresh 后再做完整 re-validate；validate 失败的本地 pending Event MUST 静默丢弃，不写入 redaction（因为它从未进入共享 accepted set）。 |
 
-> **本表行归属（normative）**：上表三行是 **freshness 分区降级策略**，其成员按本表**显式枚举**确定，与 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 的 `risk_tier` 是两个正交轴。`risk_tier` 在本节只治理两件事：(i) **未登记动作**的 freshness fail-closed 默认（registry 缺失该动作 ⇒ 视为 high ⇒ `unknown` 时 fail closed，见 registry_rules）；(ii) 禁止 grant author 通过 grant-side 标签把高风险动作降级（下方 MUST 列表）。因此 `ck.message.create` / `ck.flow.move` / `ck.flow.reorder` 虽在 registry 中为 `risk_tier=medium`，在分区 `unknown` 下仍按本行「本地 pending」处理——这是有意的离线可用性取舍，**不**构成与 `risk_tier` 的冲突；它们不会被静默放行给其他成员，因此不违反 medium 行的「不污染他人」目标。
+> **本表行归属（normative）**：上表三行是 **freshness 分区降级策略**，其成员按本表**显式枚举**确定，与 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 的 `risk_tier` 是两个正交轴。`risk_tier` 在本节只治理两件事：(i) **未登记动作**的 freshness fail-closed 默认（registry 缺失该动作 ⇒ 视为 high ⇒ `unknown` 时 fail closed，见 registry_rules）；(ii) 禁止 grant author 通过 grant-side 标签把高风险动作降级（下方 MUST 列表）。因此 `ck.message.create` / `ck.strand.move` / `ck.strand.reorder` 虽在 registry 中为 `risk_tier=medium`，在分区 `unknown` 下仍按本行「本地 pending」处理——这是有意的离线可用性取舍，**不**构成与 `risk_tier` 的冲突；它们不会被静默放行给其他成员，因此不违反 medium 行的「不污染他人」目标。
 
 设计取舍：低风险 `unknown` allow + 后续重放校验在分区下会让恶意 actor 故意制造分区然后高频写入；即使后续 redaction 也已经污染过其他成员的 inbox / notification / 通话邀请。**v1 采用本地 pending 模式**：分区期间作者自己看得见自己的写入（保留 UX），但分区另一侧的成员看不到任何被分区动作影响的内容，分区恢复时被 invalidate 的 Event 直接丢弃，无副作用。
 
@@ -855,7 +855,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 Cokret v1 固定：
 
 - 权限采用 capability 模型。
-- Flow、discussion、agent 执行都使用统一 grant 体系；Flow track 不携带独立 access，整个 Flow 通过 Realm-default scope 或 Circle scope 形成单一安全边界。
+- Strand、discussion、agent 执行都使用统一 grant 体系；Strand track 不携带独立 access，整个 Strand 通过 Realm-default scope 或 Circle scope 形成单一安全边界。
 - `ck.message.revise.own` 与 `ck.message.redact` 分开。
 - invite / notification / read cursor 进入统一 capability 体系。
 - 协议级语义采用 allow-grant + explicit revoke。

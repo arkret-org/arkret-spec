@@ -10,25 +10,25 @@
           "issuer": "did:web:owner.example",
           "subject": "did:web:alice.example",
           "actions": [
-            "ck.flow.read",
-            "ck.flow.update"
+            "ck.strand.read",
+            "ck.strand.update"
           ],
           "resources": [
             {
-              "kind": "flow",
+              "kind": "strand",
               "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-              "flow_id": "ck:flow:019640c5-0000-7000-8000-000000000000"
+              "strand_id": "ck:strand:019640c5-0000-7000-8000-000000000000"
             }
           ]
         }
       ],
       "request": {
         "actor_id": "did:web:alice.example",
-        "action": "ck.flow.update",
+        "action": "ck.strand.update",
         "resource": {
-          "kind": "flow",
+          "kind": "strand",
           "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-          "flow_id": "ck:flow:019640c5-0000-7000-8000-000000000000"
+          "strand_id": "ck:strand:019640c5-0000-7000-8000-000000000000"
         }
       },
       "expected": {
@@ -39,21 +39,21 @@
       }
     },
     {
-      "name": "linked_discussion_realm_permission_is_not_inherited_from_flow",
+      "name": "linked_discussion_realm_permission_is_not_inherited_from_strand",
       "grants": [
         {
           "id": "ck:grant:0196410c-0400-7000-8000-000000000000",
           "issuer": "did:web:owner.example",
           "subject": "did:web:alice.example",
           "actions": [
-            "ck.flow.read",
-            "ck.flow.update"
+            "ck.strand.read",
+            "ck.strand.update"
           ],
           "resources": [
             {
-              "kind": "flow",
+              "kind": "strand",
               "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-              "flow_id": "ck:flow:019640c5-0000-7000-8000-000000000000"
+              "strand_id": "ck:strand:019640c5-0000-7000-8000-000000000000"
             }
           ]
         }
@@ -62,15 +62,15 @@
         "actor_id": "did:web:alice.example",
         "action": "ck.message.create",
         "resource": {
-          "kind": "flow",
+          "kind": "strand",
           "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-          "flow_id": "ck:flow:01964180-0000-7000-8000-000000000000",
-          "linked_from_flow_id": "ck:flow:019640c5-0000-7000-8000-000000000000"
+          "strand_id": "ck:strand:01964180-0000-7000-8000-000000000000",
+          "linked_from_strand_id": "ck:strand:019640c5-0000-7000-8000-000000000000"
         }
       },
       "expected": {
         "decision": "deny",
-        "reason_code": "no_flow_track_message_grant"
+        "reason_code": "no_strand_track_message_grant"
       }
     },
     {
@@ -84,12 +84,12 @@
             "grant_id": "ck:grant:0196410c-0800-7000-8000-000000000000",
             "subject": "did:web:alice.example",
             "actions": [
-              "ck.flow.update"
+              "ck.strand.update"
             ],
             "resources": [
               {
-                "kind": "flow",
-                "flow_id": "ck:flow:019640c5-0000-7000-8000-000000000000"
+                "kind": "strand",
+                "strand_id": "ck:strand:019640c5-0000-7000-8000-000000000000"
               }
             ]
           }
@@ -104,7 +104,7 @@
         },
         {
           "event_id": "ck:event:019640ee-0000-7000-8000-000000000000",
-          "kind": "ck.flow.update",
+          "kind": "ck.strand.update",
           "hlc": "01970e589d23-0001-a13f9c2e",
           "refs": [
             {
@@ -114,7 +114,7 @@
             }
           ],
           "payload": {
-            "target_ref": "ck:flow:019640c5-0000-7000-8000-000000000000",
+            "target_ref": "ck:strand:019640c5-0000-7000-8000-000000000000",
             "patch": {
               "metadata.title": {
                 "$op": "set",
@@ -141,12 +141,12 @@
             "grant_id": "ck:grant:0196410c-1000-7000-8000-000000000000",
             "subject": "did:web:alice.example",
             "actions": [
-              "ck.flow.update"
+              "ck.strand.update"
             ],
             "resources": [
               {
-                "kind": "flow",
-                "flow_id": "ck:flow:019640c5-0000-7000-8000-000000000000"
+                "kind": "strand",
+                "strand_id": "ck:strand:019640c5-0000-7000-8000-000000000000"
               }
             ]
           }
@@ -169,7 +169,7 @@
         },
         {
           "event_id": "ck:event:019640f6-0000-7000-8000-000000000000",
-          "kind": "ck.flow.update",
+          "kind": "ck.strand.update",
           "hlc": "01970e589d33-0001-a13f9c2e",
           "refs": [
             {
@@ -179,7 +179,7 @@
             }
           ],
           "payload": {
-            "target_ref": "ck:flow:019640c5-0000-7000-8000-000000000000",
+            "target_ref": "ck:strand:019640c5-0000-7000-8000-000000000000",
             "patch": {
               "metadata.title": {
                 "$op": "set",
@@ -206,12 +206,12 @@
             "grant_id": "ck:grant:0196410c-1400-7000-8000-000000000000",
             "subject": "did:web:alice.example",
             "actions": [
-              "ck.flow.update"
+              "ck.strand.update"
             ],
             "resources": [
               {
-                "kind": "flow",
-                "flow_id": "ck:flow:019640c5-0000-7000-8000-000000000000"
+                "kind": "strand",
+                "strand_id": "ck:strand:019640c5-0000-7000-8000-000000000000"
               }
             ]
           }
@@ -232,19 +232,19 @@
             "grant_id": "ck:grant:0196410c-1400-7000-8000-000000000000",
             "subject": "did:web:alice.example",
             "actions": [
-              "ck.flow.update"
+              "ck.strand.update"
             ],
             "resources": [
               {
-                "kind": "flow",
-                "flow_id": "ck:flow:019640c5-0000-7000-8000-000000000000"
+                "kind": "strand",
+                "strand_id": "ck:strand:019640c5-0000-7000-8000-000000000000"
               }
             ]
           }
         },
         {
           "event_id": "ck:event:019640fe-0000-7000-8000-000000000000",
-          "kind": "ck.flow.update",
+          "kind": "ck.strand.update",
           "hlc": "01970e589d37-0001-a13f9c2e",
           "refs": [
             {
@@ -254,7 +254,7 @@
             }
           ],
           "payload": {
-            "target_ref": "ck:flow:019640c5-0000-7000-8000-000000000000",
+            "target_ref": "ck:strand:019640c5-0000-7000-8000-000000000000",
             "patch": {
               "metadata.title": {
                 "$op": "set",

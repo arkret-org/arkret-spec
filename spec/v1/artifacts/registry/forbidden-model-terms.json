@@ -41,7 +41,7 @@
         "interop_module",
         "negative_test"
       ],
-      "notes": "Room is not the v1 core model. Use Realm (federation / identity / replication boundary), Circle (intra-Realm scoped event/message boundary; see zh/models/circle.md), Flow, or Space as applicable. 'Room' is permitted only when contrasting v1 with Matrix in interop documentation."
+      "notes": "Room is not the v1 core model. Use Realm (federation / identity / replication boundary), Circle (intra-Realm scoped event/message boundary; see zh/models/circle.md), Strand, or Space as applicable. 'Room' is permitted only when contrasting v1 with Matrix in interop documentation."
     },
     {
       "id": "Realm(kind=list)",
@@ -57,30 +57,30 @@
       "notes": "List-shaped containers are Spaces, not Realms. Realm remains the boundary concept; container shape (board / list / etc.) lives on Space."
     },
     {
-      "id": "flow_branch",
+      "id": "strand_branch",
       "context": "identifier_or_field_name",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
-      "replacement": "flow_track",
+      "replacement": "strand_track",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Branch terminology was removed across Flow. Use track (display-only segment identifier). Variable / field names containing 'flow_branch' MUST be renamed."
+      "notes": "Branch terminology was removed across Strand. Use track (display-only segment identifier). Variable / field names containing 'strand_branch' MUST be renamed."
     },
     {
       "id": "track members",
       "context": "prose_or_ui_copy",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
-      "replacement": "Realm members (or Circle members, when Flow.scope_circle_id points at a Circle)",
+      "replacement": "Realm members (or Circle members, when Strand.scope_circle_id points at a Circle)",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Track does not carry independent membership; the entire Flow shares one effective scope (Flow.scope_circle_id). UI copy and docs MUST refer to Realm members or Circle members (per zh/models/circle.md). A Flow needing its own membership boundary MUST set scope_circle_id to point at an intra-Realm Circle; per-track membership boundaries do not exist."
+      "notes": "Track does not carry independent membership; the entire Strand shares one effective scope (Strand.scope_circle_id). UI copy and docs MUST refer to Realm members or Circle members (per zh/models/circle.md). A Strand needing its own membership boundary MUST set scope_circle_id to point at an intra-Realm Circle; per-track membership boundaries do not exist."
     },
     {
       "id": "Room visibility",

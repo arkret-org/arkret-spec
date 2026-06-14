@@ -132,7 +132,7 @@
       "notes": "Representative schema_id seal for the cx.->ck. brand rename (the rule applies to all schema ids)."
     },
     {
-      "id": "cx.flow.track.member",
+      "id": "cx.strand.track.member",
       "kind_class": "event_kind",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
@@ -142,10 +142,10 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Deleted: track does not carry independent membership. Use Realm-level cx.member.state for Realm-default access; when narrower cryptographic visibility is required, put the entire Flow in a Circle via Flow.scope_circle_id or split wide/narrow discussion into two Flows linked by confidential_discussion_of."
+      "notes": "Deleted: track does not carry independent membership. Use Realm-level cx.member.state for Realm-default access; when narrower cryptographic visibility is required, put the entire Strand in a Circle via Strand.scope_circle_id or split wide/narrow discussion into two Strands linked by confidential_discussion_of."
     },
     {
-      "id": "cx.flow.track.history_visibility",
+      "id": "cx.strand.track.history_visibility",
       "kind_class": "event_kind",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
@@ -158,7 +158,7 @@
       "notes": "Deleted: history visibility lives at the Realm boundary."
     },
     {
-      "id": "cx.flow.track.read_receipt_policy",
+      "id": "cx.strand.track.read_receipt_policy",
       "kind_class": "event_kind",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
@@ -171,7 +171,7 @@
       "notes": "Deleted: track-scoped read receipt override is explicitly out of v1 scope."
     },
     {
-      "id": "cx.flow.track.policy_components",
+      "id": "cx.strand.track.policy_components",
       "kind_class": "event_kind",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
@@ -181,7 +181,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Deleted: policy attaches to the Realm boundary or, for intra-Realm cryptographic narrowing, to a Circle referenced by Flow.scope_circle_id. Track-level policy is not a v1 boundary."
+      "notes": "Deleted: policy attaches to the Realm boundary or, for intra-Realm cryptographic narrowing, to a Circle referenced by Strand.scope_circle_id. Track-level policy is not a v1 boundary."
     },
     {
       "id": "Realm(kind=list)",
@@ -207,7 +207,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Mechanical rename on timeline event payloads: 'branch' -> 'track_name'. Track names are Flow-local map keys and inherit access from the Flow's effective scope."
+      "notes": "Mechanical rename on timeline event payloads: 'branch' -> 'track_name'. Track names are Strand-local map keys and inherit access from the Strand's effective scope."
     },
     {
       "id": "track",
@@ -220,7 +220,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Concrete Flow track-key fields use track_name. The plural tracks map and allowed_tracks grant constraint remain canonical because they name collections."
+      "notes": "Concrete Strand track-key fields use track_name. The plural tracks map and allowed_tracks grant constraint remain canonical because they name collections."
     },
     {
       "id": "Place",
@@ -245,7 +245,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Forbidden Flow payload field. Current v1 has no per-track discussion boundary. Use Flow.scope_circle_id for a whole-Flow Circle scope, or two Flows linked by confidential_discussion_of for wide synthesis plus narrow discussion."
+      "notes": "Forbidden Strand payload field. Current v1 has no per-track discussion boundary. Use Strand.scope_circle_id for a whole-Strand Circle scope, or two Strands linked by confidential_discussion_of for wide synthesis plus narrow discussion."
     },
     {
       "id": "parent_ref",
@@ -284,7 +284,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Flow / Space / Morph effective scope fields point at one concrete Circle object, so the field carries the explicit Circle kind."
+      "notes": "Strand / Space / Morph effective scope fields point at one concrete Circle object, so the field carries the explicit Circle kind."
     },
     {
       "id": "default_scope_ref",
@@ -314,18 +314,18 @@
       "notes": "Grant constraint field contains concrete ck:view ids, not reference material."
     },
     {
-      "id": "allowed_flow_refs",
+      "id": "allowed_strand_refs",
       "kind_class": "wire_field_name",
       "migration_group": "grant_constraint_single_kind_ids",
       "since_revision": "2026-05-31",
       "rejection_level": "hard_reject",
-      "replacement": "allowed_flow_ids",
+      "replacement": "allowed_strand_ids",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Grant constraint field contains concrete ck:flow ids, not reference material."
+      "notes": "Grant constraint field contains concrete ck:strand ids, not reference material."
     },
     {
       "id": "allowed_circle_refs",
@@ -342,18 +342,18 @@
       "notes": "Grant constraint field contains concrete ck:circle ids, not reference material."
     },
     {
-      "id": "denied_flow_refs",
+      "id": "denied_strand_refs",
       "kind_class": "wire_field_name",
       "migration_group": "grant_constraint_single_kind_ids",
       "since_revision": "2026-05-31",
       "rejection_level": "hard_reject",
-      "replacement": "denied_flow_ids",
+      "replacement": "denied_strand_ids",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Grant constraint field contains concrete ck:flow ids, not reference material."
+      "notes": "Grant constraint field contains concrete ck:strand ids, not reference material."
     },
     {
       "id": "allowed_space_refs",
@@ -736,7 +736,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Mechanical rename of capability-action vocabulary: 'cx.space.notification.audit' -> 'cx.realm.notification.audit'. Required by audit reads of per-Flow watch state under the Realm-scoped notification namespace (see error-code-registry note)."
+      "notes": "Mechanical rename of capability-action vocabulary: 'cx.space.notification.audit' -> 'cx.realm.notification.audit'. Required by audit reads of per-Strand watch state under the Realm-scoped notification namespace (see error-code-registry note)."
     },
     {
       "id": "space_frontier",
@@ -933,17 +933,17 @@
       "notes": "Directory webhook registration is control-plane push registration, not a streaming subscribe surface."
     },
     {
-      "id": "cx.flow.watch.manage_others",
+      "id": "cx.strand.watch.manage_others",
       "kind_class": "capability_action",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "cx.flow.watch.set.others",
+      "replacement": "cx.strand.watch.set.others",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Capability action now uses the canonical .others suffix on the base cx.flow.watch.set action."
+      "notes": "Capability action now uses the canonical .others suffix on the base cx.strand.watch.set action."
     },
     {
       "id": "watch_manage_others",
@@ -956,7 +956,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Audit access_kind aligned with the renamed cx.flow.watch.set.others capability action."
+      "notes": "Audit access_kind aligned with the renamed cx.strand.watch.set.others capability action."
     },
     {
       "id": "manage_others_audit_missing",
@@ -1809,7 +1809,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Schema id aligned with the canonical file basename schemas/encrypted-envelope.schema.json and the schema title 'Cokret Encrypted Payload Envelope'. Flow, Message, and Morph content carriers now use encrypted_content; encrypted_payload remains only on payload surfaces that do not have a content counterpart."
+      "notes": "Schema id aligned with the canonical file basename schemas/encrypted-envelope.schema.json and the schema title 'Cokret Encrypted Payload Envelope'. Strand, Message, and Morph content carriers now use encrypted_content; encrypted_payload remains only on payload surfaces that do not have a content counterpart."
     },
     {
       "id": "encrypted_payload",
@@ -1822,7 +1822,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Flow.content, Message.content, and Morph.content use encrypted_content as their encrypted counterpart. Generic encrypted_payload remains valid for non-content carriers such as identity payloads and reaction payloads."
+      "notes": "Strand.content, Message.content, and Morph.content use encrypted_content as their encrypted counterpart. Generic encrypted_payload remains valid for non-content carriers such as identity payloads and reaction payloads."
     },
     {
       "id": "authority_binding.signer_did",
@@ -1861,7 +1861,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Realm lifecycle capability actions flattened from 4 segments (cx.realm.lifecycle.archive) to 3 segments (cx.realm.archive) to match the corresponding event kind. All other entities (flow / space / morph) already used the 3-segment form; the 4-segment Realm form was an outlier that forced IAM tooling to special-case Realm. target_event_kinds for the action is still cx.realm.archive.",
+      "notes": "Realm lifecycle capability actions flattened from 4 segments (cx.realm.lifecycle.archive) to 3 segments (cx.realm.archive) to match the corresponding event kind. All other entities (strand / space / morph) already used the 3-segment form; the 4-segment Realm form was an outlier that forced IAM tooling to special-case Realm. target_event_kinds for the action is still cx.realm.archive.",
       "migration_group": "realm_lifecycle_segment_realignment"
     },
     {
@@ -2003,30 +2003,30 @@
       "migration_group": "agent_applet_interop_session_rename"
     },
     {
-      "id": "/mimi/rooms/{flow_id}/...",
+      "id": "/mimi/rooms/{strand_id}/...",
       "kind_class": "http_path",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "/mimi/flows/{flow_id}/...",
+      "replacement": "/mimi/strands/{strand_id}/...",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "MIMI interop HTTP paths /mimi/rooms/{flow_id}/{update,notify,messages,group-info} renamed to /mimi/flows/{flow_id}/.... The path parameter was always {flow_id} (a Cokret Flow), so the literal segment 'rooms' was misleading. MIMI semantics are preserved via the cx.mimi.* operation IDs (room_update, notify, submit_message, group_info) and via the mimi_room_uri / mimi_room_binding fields inside payloads, not via URL path segment."
+      "notes": "MIMI interop HTTP paths /mimi/rooms/{strand_id}/{update,notify,messages,group-info} renamed to /mimi/strands/{strand_id}/.... The path parameter was always {strand_id} (a Cokret Strand), so the literal segment 'rooms' was misleading. MIMI semantics are preserved via the cx.mimi.* operation IDs (room_update, notify, submit_message, group_info) and via the mimi_room_uri / mimi_room_binding fields inside payloads, not via URL path segment."
     },
     {
       "id": "notification.space_name",
       "kind_class": "wire_field_name",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "notification.realm_title or notification.flow_title",
+      "replacement": "notification.realm_title or notification.strand_title",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Push-notification payload field 'space_name' was a pre-inversion alias whose value source could be either a Realm or a Flow title. After the inversion the two are distinct objects: notification.realm_title comes from Realm.title and notification.flow_title is derived from Flow metadata.title when that metadata is plaintext-visible to the notification profile. Both remain forbidden under the cx.profile.push_gateway.blind_wakeup.v1 baseline (privacy default) and are only permitted under the cx.profile.push_gateway.visible_notification.v1 opt-in profile. See zh/discovery/push-notifications.md §3."
+      "notes": "Push-notification payload field 'space_name' was a pre-inversion alias whose value source could be either a Realm or a Strand title. After the inversion the two are distinct objects: notification.realm_title comes from Realm.title and notification.strand_title is derived from Strand metadata.title when that metadata is plaintext-visible to the notification profile. Both remain forbidden under the cx.profile.push_gateway.blind_wakeup.v1 baseline (privacy default) and are only permitted under the cx.profile.push_gateway.visible_notification.v1 opt-in profile. See zh/discovery/push-notifications.md §3."
     },
     {
       "id": "space_scoped_tightening",
@@ -4971,18 +4971,18 @@
       "notes": "Trust-surface segment prepended (ck.policy.check -> ck.self.policy.check); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.projection.flows",
+      "id": "ck.projection.strands",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.projection.flows.query.list",
+      "replacement": "ck.self.projection.strands.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.projection.flows -> ck.self.projection.flows); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ck.projection.strands -> ck.self.projection.strands); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ck.projection.morphs",
@@ -5293,11 +5293,11 @@
       "migration_group": "verb_noun_bridge_collapse"
     },
     {
-      "id": "ck.flow.tracks.manage",
+      "id": "ck.strand.tracks.manage",
       "kind_class": "capability_action",
       "since_revision": "2026-06-06",
       "rejection_level": "hard_reject",
-      "replacement": "ck.flow.tracks.update",
+      "replacement": "ck.strand.tracks.update",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",

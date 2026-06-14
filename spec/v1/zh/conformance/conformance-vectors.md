@@ -298,7 +298,7 @@ ck.vector.encoding.event_digest.v1
       "op": {
         "kind": "append",
         "value": {
-          "flow_id": "ck:flow:01964137-0000-7000-8000-000000000000",
+          "strand_id": "ck:strand:01964137-0000-7000-8000-000000000000",
           "message_id": "ck:message:019640ed-8000-7000-8000-000000000000",
           "track_name": "discussion"
         }
@@ -315,7 +315,7 @@ ck.vector.encoding.event_digest.v1
     ]
   },
   "payload": {
-    "flow_id": "ck:flow:01964137-0000-7000-8000-000000000000",
+    "strand_id": "ck:strand:01964137-0000-7000-8000-000000000000",
     "track_name": "discussion",
     "message_id": "ck:message:019640ed-8000-7000-8000-000000000000",
     "content": {
@@ -329,7 +329,7 @@ ck.vector.encoding.event_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"did:web:alice.example","actor_seq":1,"auth_context":{"capability_refs":["ck:grant:0196410c-0000-7000-8000-000000000000"],"did":"did:web:alice.example","key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00Z","effects":[{"cell":"ck:cell:message:019640ed-8000-7000-8000-000000000000","op":{"kind":"append","value":{"flow_id":"ck:flow:01964137-0000-7000-8000-000000000000","message_id":"ck:message:019640ed-8000-7000-8000-000000000000","track_name":"discussion"}}}],"event_id":"ck:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"ck.message.create","payload":{"content":{"body":"hello","kind":"ck.content.text"},"flow_id":"ck:flow:01964137-0000-7000-8000-000000000000","message_id":"ck:message:019640ed-8000-7000-8000-000000000000","track_name":"discussion"},"prev_refs":[],"realm_id":"ck:realm:01964137-0000-7000-8000-000000000000","refs":[],"seal_ref":"ck:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"}
+{"actor_id":"did:web:alice.example","actor_seq":1,"auth_context":{"capability_refs":["ck:grant:0196410c-0000-7000-8000-000000000000"],"did":"did:web:alice.example","key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00Z","effects":[{"cell":"ck:cell:message:019640ed-8000-7000-8000-000000000000","op":{"kind":"append","value":{"strand_id":"ck:strand:01964137-0000-7000-8000-000000000000","message_id":"ck:message:019640ed-8000-7000-8000-000000000000","track_name":"discussion"}}}],"event_id":"ck:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"ck.message.create","payload":{"content":{"body":"hello","kind":"ck.content.text"},"strand_id":"ck:strand:01964137-0000-7000-8000-000000000000","message_id":"ck:message:019640ed-8000-7000-8000-000000000000","track_name":"discussion"},"prev_refs":[],"realm_id":"ck:realm:01964137-0000-7000-8000-000000000000","refs":[],"seal_ref":"ck:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"}
 ```
 
 期望 digest：
@@ -876,31 +876,31 @@ ck.vector.state_root.incremental.v1
 
 实现 MUST 在 conformance 报告中分别报告四个 case 的 `state_root_incremental` 与 `state_root_full`，并标记 pass / fail。该 vector 验证 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.3 中"增量与全量必须等价"的要求。
 
-### 2.10 Vector: `ck.flow.tracks.update` 原子 patch
+### 2.10 Vector: `ck.strand.tracks.update` 原子 patch
 
 向量名称：
 
 ```text
-ck.vector.flow_tracks_update.atomic.v1
+ck.vector.strand_tracks_update.atomic.v1
 ```
 
 输入：
 
-- 一个已存在 Flow `F0`，`tracks = { "synthesis": { is_primary: true, enabled: true }, "discussion": { is_primary: false, enabled: true } }`。
-- Case A — 单字段 patch：一个 `ck.flow.tracks.update` Event，`payload.patch = { "tracks.synthesis.is_primary": { "$op": "set", "value": false }, "tracks.discussion.is_primary": { "$op": "set", "value": true } }`。期望 Flow `tracks` 在单个 Event effect 内原子地把 primary 从 `synthesis` 切到 `discussion`，中间态 MUST NOT 出现"两个 is_primary=true"或"零个 is_primary=true"。
-- Case B — 新增 + 启停 + 移除：在 Flow 已含 `tracks.synthesis` / `tracks.discussion` 的基础上，单条 `ck.flow.tracks.update` 同时 (1) 新增 `tracks.review.enabled=true` 子 map (profile 注册的扩展 track)，(2) 把 `tracks.discussion.enabled` 置为 false，(3) 把 `tracks.synthesis.is_primary` 置为 false，(4) 把 `tracks.review.is_primary` 置为 true。
-- Case C — invariant 违反：单条 `ck.flow.tracks.update` 把 `tracks.synthesis.is_primary` 与 `tracks.discussion.is_primary` 同时 set 为 `true`。
+- 一个已存在 Strand `F0`，`tracks = { "synthesis": { is_primary: true, enabled: true }, "discussion": { is_primary: false, enabled: true } }`。
+- Case A — 单字段 patch：一个 `ck.strand.tracks.update` Event，`payload.patch = { "tracks.synthesis.is_primary": { "$op": "set", "value": false }, "tracks.discussion.is_primary": { "$op": "set", "value": true } }`。期望 Strand `tracks` 在单个 Event effect 内原子地把 primary 从 `synthesis` 切到 `discussion`，中间态 MUST NOT 出现"两个 is_primary=true"或"零个 is_primary=true"。
+- Case B — 新增 + 启停 + 移除：在 Strand 已含 `tracks.synthesis` / `tracks.discussion` 的基础上，单条 `ck.strand.tracks.update` 同时 (1) 新增 `tracks.review.enabled=true` 子 map (profile 注册的扩展 track)，(2) 把 `tracks.discussion.enabled` 置为 false，(3) 把 `tracks.synthesis.is_primary` 置为 false，(4) 把 `tracks.review.is_primary` 置为 true。
+- Case C — invariant 违反：单条 `ck.strand.tracks.update` 把 `tracks.synthesis.is_primary` 与 `tracks.discussion.is_primary` 同时 set 为 `true`。
 
 期望：
 
-- **Case A**: reducer 应用 patch 后，`Flow.tracks.synthesis.is_primary == false` 且 `Flow.tracks.discussion.is_primary == true`；reducer 视角下不存在两次中间 state cell write，cas_register cell 一次 atomic update。
+- **Case A**: reducer 应用 patch 后，`Strand.tracks.synthesis.is_primary == false` 且 `Strand.tracks.discussion.is_primary == true`；reducer 视角下不存在两次中间 state cell write，cas_register cell 一次 atomic update。
 - **Case B**: reducer 接受合并后状态 `{ synthesis: {is_primary: false, enabled: true}, discussion: {is_primary: false, enabled: false}, review: {is_primary: true, enabled: true} }`；中间过程 MUST 在同一 cell update 内完成，不得分裂为 4 个独立 cell write。
-- **Case C**: reducer MUST 在 effect 应用前 (cell update 之前) 校验合并后 `tracks` map 至多 1 个 entry `is_primary=true`；不满足 MUST `schema_violation`，整条 Event 拒绝，Flow `tracks` 不发生任何变化。
+- **Case C**: reducer MUST 在 effect 应用前 (cell update 之前) 校验合并后 `tracks` map 至多 1 个 entry `is_primary=true`；不满足 MUST `schema_violation`，整条 Event 拒绝，Strand `tracks` 不发生任何变化。
 
 判定要求：
 
 - patch path 解析 MUST 遵循 [`event-and-patch.md` §4.2`](../models/event-and-patch.md) ABNF grammar；任何 path 形如 `tracks.<name>[key=...]` 的 selector segment MUST `schema_violation`（`tracks` 是 map，不是 unique-key 数组）。
-- `ck.flow.tracks.update` 写入的 cell 是 `ck:cell:ck.component.flow.tracks.v1:<flow_id>`（cas_register），reducer 校验合并后 invariant 在 cell update 之前 完成。
+- `ck.strand.tracks.update` 写入的 cell 是 `ck:cell:ck.component.strand.tracks.v1:<strand_id>`（cas_register），reducer 校验合并后 invariant 在 cell update 之前 完成。
 
 失败条件：
 
@@ -908,7 +908,7 @@ ck.vector.flow_tracks_update.atomic.v1
 - Case B 把 patch 拆分为多个独立 cell write，破坏 atomic 语义（外部读取在中间能看到不一致的 tracks map）。
 - Case C 把违反 invariant 的 Event 部分接受（例如设了 enabled 但拒绝 is_primary），破坏 Event-level all-or-nothing 语义。
 
-实现 MUST 在 conformance 报告中分别报告三个 case 的 reducer 输出 cell value 与 invariant violation reason；该 vector 防御 [`flow-and-message.md`](../models/flow-and-message.md) §4.5 step 5 primary 解析规则的边界 case。
+实现 MUST 在 conformance 报告中分别报告三个 case 的 reducer 输出 cell value 与 invariant violation reason；该 vector 防御 [`strand-and-message.md`](../models/strand-and-message.md) §4.5 step 5 primary 解析规则的边界 case。
 
 ### 2.11 Vector: `fsm` 家族 join 幂等与并发冲突
 
@@ -1178,7 +1178,7 @@ ck.vector.redaction.preserve_fields.v1
     "prev_refs": [],
     "refs": [],
     "payload": {
-      "flow_id": "ck:flow:0196414c-3400-7000-8000-000000000000",
+      "strand_id": "ck:strand:0196414c-3400-7000-8000-000000000000",
       "content": {
         "kind": "ck.content.text",
         "body": "private notes"
@@ -1314,7 +1314,7 @@ ck.vector.redaction.policy_scope.v1
       "created_at": "2026-04-26T00:00:00Z",
       "hlc": "01970e589d25-0001-11111111",
       "payload": {
-        "flow_id": "ck:flow:0196417d-8400-7000-8000-000000000000",
+        "strand_id": "ck:strand:0196417d-8400-7000-8000-000000000000",
         "content": {
           "kind": "ck.content.text",
           "body": "bad link: spam.example/phish"
@@ -1623,7 +1623,7 @@ ck.vector.capability.revoke_rollback.v1
       "actor_id": "did:web:alice.example.com",
       "created_at": "2026-04-26T00:00:03Z",
       "payload": {
-        "flow_id": "ck:flow:0196418d-cc00-7000-8000-000000000000",
+        "strand_id": "ck:strand:0196418d-cc00-7000-8000-000000000000",
         "content": {
           "kind": "ck.content.text",
           "body": "should_fail_if_revoke_applies"
@@ -1744,9 +1744,9 @@ ck.vector.capability.approval_constraint.v1
   "hlc": "019b76daa800-0000-a13f9c2e",
   "prev_refs": [],
   "refs": [],
-  "kind": "ck.flow.update",
+  "kind": "ck.strand.update",
   "unsigned": {
-    "target_ref_hint": "ck:flow:019640c5-0000-7000-8000-000000000000"
+    "target_ref_hint": "ck:strand:019640c5-0000-7000-8000-000000000000"
   },
   "content_digest": "sha256:..."
 }
@@ -1831,14 +1831,14 @@ ck.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
       }
     },
     {
-      "kind": "ck.flow.create",
+      "kind": "ck.strand.create",
       "unsigned": {
-        "target_ref_hint": "ck:flow:019640c5-0400-7000-8000-000000000000"
+        "target_ref_hint": "ck:strand:019640c5-0400-7000-8000-000000000000"
       },
       "payload": {
         "object": {
-          "id": "ck:flow:019640c5-0400-7000-8000-000000000000",
-          "schema": "ck.schema.flow.v1",
+          "id": "ck:strand:019640c5-0400-7000-8000-000000000000",
+          "schema": "ck.schema.strand.v1",
           "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
           "metadata": {
             "title": "Release checklist"
@@ -1856,7 +1856,7 @@ ck.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
           {
             "relation_kind": "contains",
             "from_ref": "ck:space:01964010-8400-7000-8000-000000000000",
-            "to_ref": "ck:flow:019640c5-0400-7000-8000-000000000000",
+            "to_ref": "ck:strand:019640c5-0400-7000-8000-000000000000",
             "fields": {
               "board_space_id": "ck:space:019640b6-8000-7000-8000-000000000000",
               "rank": "U"
@@ -1871,24 +1871,24 @@ ck.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 
 期望：
 
-- Collection projection MUST 返回 `object.id = ck:flow:019640c5-0400-7000-8000-000000000000`。
+- Collection projection MUST 返回 `object.id = ck:strand:019640c5-0400-7000-8000-000000000000`。
 - 返回项 MUST 位于 `ck:space:01964010-8400-7000-8000-000000000000`。
 - View cursor MUST 绑定 projection、view、frontier 与权限上下文。
 
-### 5.4 Vector: Flow Card Move Read-Your-Writes
+### 5.4 Vector: Strand Card Move Read-Your-Writes
 
 输入：
 
 ```json
 {
   "write": {
-    "kind": "ck.flow.move",
+    "kind": "ck.strand.move",
     "unsigned": {
-      "target_ref_hint": "ck:flow:019640c5-0400-7000-8000-000000000000"
+      "target_ref_hint": "ck:strand:019640c5-0400-7000-8000-000000000000"
     },
     "payload": {
       "board_space_id": "ck:space:019640b6-8000-7000-8000-000000000000",
-      "flow_id": "ck:flow:019640c5-0400-7000-8000-000000000000",
+      "strand_id": "ck:strand:019640c5-0400-7000-8000-000000000000",
       "from_space_id": "ck:space:01964010-8400-7000-8000-000000000000",
       "target_space_id": "ck:space:01964010-8800-7000-8000-000000000000",
       "rank": "U"
@@ -1896,7 +1896,7 @@ ck.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
   },
   "query": {
     "object_types": [
-      "flow"
+      "strand"
     ],
     "consistency": {
       "wait_for": "barrier_cursor_from_write"
@@ -1908,53 +1908,53 @@ ck.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 期望：
 
 - Projection executor 在返回前 MUST 等待本地 frontier 覆盖写入 token，或返回可恢复超时。
-- 查询结果中该 Flow item 的 `list_id` MUST 为 `ck:space:01964010-8800-7000-8000-000000000000`。
+- 查询结果中该 Strand item 的 `list_id` MUST 为 `ck:space:01964010-8800-7000-8000-000000000000`。
 
-### 5.5 Vector: Flow Discussion Track Visibility
+### 5.5 Vector: Strand Discussion Track Visibility
 
 输入：
 
 ```json
 {
-  "flow_id": "ck:flow:019640c5-0400-7000-8000-000000000000",
+  "strand_id": "ck:strand:019640c5-0400-7000-8000-000000000000",
   "viewer": "did:web:viewer.example.com",
-  "viewer_can_read_flow": true,
+  "viewer_can_read_strand": true,
   "viewer_is_track_member": false
 }
 ```
 
 期望：
 
-- Flow projection MAY 显示 lazy 的 discussion-track 引用。
-- Flow discussion timeline MUST NOT 展开。
+- Strand projection MAY 显示 lazy 的 discussion-track 引用。
+- Strand discussion timeline MUST NOT 展开。
 - 通知 / 搜索结果 MUST NOT 泄露隐藏的 discussion 消息。
 
-#### 5.5.1 Vector: Flow Discussion Surface Visibility
+#### 5.5.1 Vector: Strand Discussion Surface Visibility
 
 输入：
 
 ```json
 {
-  "flow_id": "ck:flow:01964195-8400-7000-8000-000000000000",
+  "strand_id": "ck:strand:01964195-8400-7000-8000-000000000000",
   "track_name": "discussion",
-  "viewer_grants": ["ck.flow.read"],
+  "viewer_grants": ["ck.strand.read"],
   "viewer_track_membership": "none"
 }
 ```
 
 期望：
 
-- 当 discussion 可发现性允许时，Flow projection MAY 显示 lazy / locked 的 discussion surface 引用。
-- Flow activity MUST NOT 包含隐藏的 discussion 消息。
-- Flow context MUST NOT 通过预览、摘要、通知、搜索片段、embedding 或 decision summary 泄露隐藏的 discussion 消息正文。
+- 当 discussion 可发现性允许时，Strand projection MAY 显示 lazy / locked 的 discussion surface 引用。
+- Strand activity MUST NOT 包含隐藏的 discussion 消息。
+- Strand context MUST NOT 通过预览、摘要、通知、搜索片段、embedding 或 decision summary 泄露隐藏的 discussion 消息正文。
 
-### 5.6 Vector: Flow Discussion Timeline
+### 5.6 Vector: Strand Discussion Timeline
 
 输入：
 
 ```json
 {
-  "flow_id": "ck:flow:01964180-0400-7000-8000-000000000000",
+  "strand_id": "ck:strand:01964180-0400-7000-8000-000000000000",
   "events": [
     {
       "kind": "ck.message.create",
@@ -1962,7 +1962,7 @@ ck.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
         "target_ref_hint": "ck:message:01964147-0400-7000-8000-000000000000"
       },
       "payload": {
-        "flow_id": "ck:flow:01964180-0400-7000-8000-000000000000",
+        "strand_id": "ck:strand:01964180-0400-7000-8000-000000000000",
         "content": {
           "kind": "ck.content.text",
           "body": "discussion message"
@@ -1975,8 +1975,8 @@ ck.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 
 期望：
 
-- 当 viewer 可读取 Flow discussion track 时，`flow-discussion-timeline` MUST 返回该消息。
-- 仅当 viewer 可读取 Flow（按 Flow 的 effective scope）时，`flow-discussions` MUST 才包含该消息；当 Flow 通过 `scope_circle_id` 落在 Realm 内的 [Circle](../models/circle.md) 时，仅有 Realm-default 成员身份不足以读取该 Flow——必须同时是该 Circle 成员。
+- 当 viewer 可读取 Strand discussion track 时，`strand-discussion-timeline` MUST 返回该消息。
+- 仅当 viewer 可读取 Strand（按 Strand 的 effective scope）时，`strand-discussions` MUST 才包含该消息；当 Strand 通过 `scope_circle_id` 落在 Realm 内的 [Circle](../models/circle.md) 时，仅有 Realm-default 成员身份不足以读取该 Strand——必须同时是该 Circle 成员。
 
 ## 6. Space Lifecycle Vectors
 
@@ -2045,8 +2045,8 @@ ck.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 
 - 应用 `ck.space.archive` 后，Space 物化对象 MUST 有 `state == "archived"` 且 `state_changed_at == "2026-05-15T10:05:00Z"`。默认 collection projection（不显式包含 archived items）MUST NOT 返回该 Space；显式带 `include_states=["archived"]` 的查询 MUST 仍可返回它。
 - 应用 `ck.space.restore` 后，Space 物化对象 MUST 有 `state == "active"` 且 `state_changed_at == "2026-05-15T10:10:00Z"`。默认 projection MUST 重新展示该 Space。
-- Restore **不**级联——若该 Space 包含 child Space（如 List 在 Board 内）或内部 Flow 且它们各自处于 `archived`，restore parent MUST NOT 改变 children 的 state。
-- archive 期间未被擦除的 `contains` Relation、Flow position cell 与 `parent_space_id` cell MUST 在 restore 后保持原值；用户看到的内容与 archive 之前一致。
+- Restore **不**级联——若该 Space 包含 child Space（如 List 在 Board 内）或内部 Strand 且它们各自处于 `archived`，restore parent MUST NOT 改变 children 的 state。
+- archive 期间未被擦除的 `contains` Relation、Strand position cell 与 `parent_space_id` cell MUST 在 restore 后保持原值；用户看到的内容与 archive 之前一致。
 
 ### 6.3 Vector: Space Restore 在 `active` 状态被拒绝
 
@@ -2145,7 +2145,7 @@ ck.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 - Reducer MUST 返回 `failed_precondition`，`reason == "space_not_active"`（[common-fields.md §5.1](../models/common-fields.md) state-transition 表）。
 - Space 物化对象 MUST 保持 `state == "archived"` 与原 `state_changed_at`；same-state self-transition 不被当作 idempotent no-op。
 - 客户端如果意图是"重新 archive"，正确路径是先 `ck.space.restore` 再 `ck.space.archive`。
-- 该向量对 Flow / Morph 等价同形：`ck.flow.archive` 在 `state != "active"` 时 `flow_not_active`；`ck.morph.archive` 同理 `morph_not_active`。
+- 该向量对 Strand / Morph 等价同形：`ck.strand.archive` 在 `state != "active"` 时 `strand_not_active`；`ck.morph.archive` 同理 `morph_not_active`。
 
 ### 6.6 Vector: Tombstone 在已 tombstoned 状态被拒绝
 
@@ -2178,7 +2178,7 @@ ck.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 
 - Reducer MUST 返回 `failed_precondition`，`reason == "space_already_terminal"`（[common-fields.md §5.1](../models/common-fields.md) 终态等价规则）。
 - Space 物化对象 MUST 保持 `state == "tombstoned"` 与原 `state_changed_at`。
-- 该向量对 Flow / Morph 等价同形：`ck.redaction` 指向已 `redacted` 的 Flow / Morph 时同样返回 `<kind>_already_terminal`。终态进入是单向、单次操作。
+- 该向量对 Strand / Morph 等价同形：`ck.redaction` 指向已 `redacted` 的 Strand / Morph 时同样返回 `<kind>_already_terminal`。终态进入是单向、单次操作。
 
 ### 6.7 Vector: Update 在非 `active` 状态被拒绝
 
@@ -2216,7 +2216,7 @@ ck.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1
 - Reducer MUST 返回 `failed_precondition`，`reason == "space_not_active"`（"update on non-active object" invariant，[common-fields.md §5.1](../models/common-fields.md)）。
 - Space 物化对象 MUST 保持原 `title="Release Board"` 与 `state == "archived"`；update **不**作为隐式 restore。
 - 客户端正确路径：先 `ck.space.restore`，update 通过后再决定是否 `ck.space.archive`。
-- 该向量对 Flow / Morph `*.update` 等价同形。
+- 该向量对 Strand / Morph `*.update` 等价同形。
 
 ## 7. Member Delivery Binding Vectors
 
@@ -2678,7 +2678,7 @@ Expected：
 
 Steps：
 
-1. 调用 `ck.self.projection.spaces.query.list` / `flows` / `morphs`，请求 `limit=1`。
+1. 调用 `ck.self.projection.spaces.query.list` / `strands` / `morphs`，请求 `limit=1`。
 2. 使用返回的 `next_cursor` 继续读取。
 3. 下游 service-call 返回缺失 `has_more` 或 cursor 形态不合法的响应。
 
@@ -2870,24 +2870,24 @@ Expected：
 - 第 2 步 MUST fail closed：缺少 effective audience mention policy 时，持有 `ck.message.mention.broadcast` 本身不足以 fanout。
 - 第 3-4 步 recipient count 超过 `max_recipients` 时 MUST 在 fanout 前拒绝或进入 policy-declared review/quarantine；不得先发 push 再撤回。
 - `level=muted` 与 target policy 抑制的 receiver MUST NOT 收到 notification stub 或 push wakeup，且发送者不能通过 delivery response 区分原因。
-- 第 5 步 MUST 返回 `rate_limited` / `quota_exceeded` 或等价 policy denial；push payload 不得包含 audience 名称、recipient count、成员列表、Realm / Flow / Event 标识。
+- 第 5 步 MUST 返回 `rate_limited` / `quota_exceeded` 或等价 policy denial；push payload 不得包含 audience 名称、recipient count、成员列表、Realm / Strand / Event 标识。
 
-### 10.12 Vector: Flow Engaged Audience Mention
+### 10.12 Vector: Strand Engaged Audience Mention
 
-`vector_id`: `ck.vector.push.flow_engaged_mention.v1`
+`vector_id`: `ck.vector.push.strand_engaged_mention.v1`
 
 Steps：
 
-1. Flow `F` 中 Alice 准备发送 Message，Message effective scope 包含 Bob、Carol、Dave、Erin、Frank，但不包含 Grace。
+1. Strand `F` 中 Alice 准备发送 Message，Message effective scope 包含 Bob、Carol、Dave、Erin、Frank，但不包含 Grace。
 2. Bob 在 `F` 的 discussion track 中有一条 active Message；Carol 的 effective watch level 为 `all`；Dave 为 `mentions_only`；Erin 为 `muted`；Frank 只有 active assignment；Grace 无读取权。
-3. Realm / Circle policy 允许 `audience="flow_engaged"`，声明有限 `max_recipients` 与 quota；Alice 同时持有 `ck.message.create` 与带 `max_operations` + `period` 的 `ck.message.mention.broadcast`。
-4. Alice 发送 `audience_mention{audience="flow_engaged", mention_text_original="@here"}`。另一次测试中，Bob / Carol 的 presence 状态分别在 online / offline 间切换，但其他输入不变。
+3. Realm / Circle policy 允许 `audience="strand_engaged"`，声明有限 `max_recipients` 与 quota；Alice 同时持有 `ck.message.create` 与带 `max_operations` + `period` 的 `ck.message.mention.broadcast`。
+4. Alice 发送 `audience_mention{audience="strand_engaged", mention_text_original="@here"}`。另一次测试中，Bob / Carol 的 presence 状态分别在 online / offline 间切换，但其他输入不变。
 
 Expected：
 
-- `@here` MUST 按 `flow_engaged = flow_participants ∪ flow_watchers` 展开：Bob 因 active discussion participation 命中，Carol 因 effective watch level `all` 命中。
+- `@here` MUST 按 `strand_engaged = strand_participants ∪ strand_watchers` 展开：Bob 因 active discussion participation 命中，Carol 因 effective watch level `all` 命中。
 - Dave（`mentions_only`）、Erin（`muted`）、Frank（仅 assignment）、Grace（无读取权）MUST NOT 因该 audience mention 收到 notification stub 或 push wakeup。
-- Presence / online 状态 MUST NOT 影响 `flow_engaged` 的 receiver set；实现不得把 `@here` 解释成 presence-filtered audience。
+- Presence / online 状态 MUST NOT 影响 `strand_engaged` 的 receiver set；实现不得把 `@here` 解释成 presence-filtered audience。
 - Sender、普通 Realm 成员、push gateway、公开日志与 delivery response MUST NOT 暴露 recipient count、watcher 列表、watch level、命中原因，且不得区分 Bob 是参与者命中还是 Carol 是 watcher 命中。
 
 ### 10.13 Vector: Events Query Range Completeness Detection
@@ -3010,14 +3010,14 @@ Expected:
 
 Steps:
 
-1. Agent A 持 act-on-behalf grant `G`(scope: `ck.message.create` on Flow F,approval_required=true, expiry < 15 min)。
+1. Agent A 持 act-on-behalf grant `G`(scope: `ck.message.create` on Strand F,approval_required=true, expiry < 15 min)。
 2. Agent A 提交 message,envelope `actor_id=controller`,`executed_by=A`,`authorization_ref=G`,`proof.verification_method` 解析到 A 的 agent key。
 3. Receiver 校验。
 4. 第二次重用同一 approval nonce。
 
 Expected:
 
-- 第 3 步 MUST 校验 `executed_by` ↔ proof key 一致、`authorization_ref` 覆盖 `ck.message.create` + Flow F + 未过期；通过则接受。
+- 第 3 步 MUST 校验 `executed_by` ↔ proof key 一致、`authorization_ref` 覆盖 `ck.message.create` + Strand F + 未过期；通过则接受。
 - Reducer 写入 `actor_kind="agent"` projection(注意是 reducer-stamped,actor 提交侧不携带)。
 - 第 4 步 MUST fail closed(`reason=approval_already_consumed`)。
 - 客户端渲染 "Controller via Agent" 双重署名；不显示为纯 controller 行为。
@@ -3073,9 +3073,9 @@ Steps:
 
 Expected:
 
-- 第 1 步并发 MUST 收敛到单一 sidecar Circle 与单一 sidecar private Flow;两个请求返回 bit-identical typed IDs;不出现 `failed_precondition`。
-- 第 2 步 MUST 复用既有 Circle 与 Flow,addressed list 不持久化到 Circle/Flow/Relation;只影响本次 notification fanout。
-- 第 3 步 MUST 复用既有 Circle(per_realm_controller_agent_pool),创建新 sidecar private Flow。
+- 第 1 步并发 MUST 收敛到单一 sidecar Circle 与单一 sidecar private Strand;两个请求返回 bit-identical typed IDs;不出现 `failed_precondition`。
+- 第 2 步 MUST 复用既有 Circle 与 Strand,addressed list 不持久化到 Circle/Strand/Relation;只影响本次 notification fanout。
+- 第 3 步 MUST 复用既有 Circle(per_realm_controller_agent_pool),创建新 sidecar private Strand。
 
 ### 11.9 Vector: Existence Privacy
 
@@ -3086,15 +3086,15 @@ Steps(均以 non-sidecar-member 视角):
 1. `ck.self.events.stream.subscribe` / `ck.self.events.query.scan` 目标 Realm。
 2. 对 `to_ref=<target_message_id>` 的 relation query。
 3. Realm directory 调用。
-4. 触发目标 Flow 的 notification fanout。
+4. 触发目标 Strand 的 notification fanout。
 5. 读取目标 Realm default seal leaf 明文 metadata。
 
 Expected:
 
-- 第 1 步返回 zero events referencing sidecar Circle / Flow / Relation。
+- 第 1 步返回 zero events referencing sidecar Circle / Strand / Relation。
 - 第 2 步看不到 `agent_sidecar_of` 边。
 - 第 3 步 zero hits for sidecar Circle title / display / short_name / member_count。
-- 第 4 步 sidecar 内 `ck.message.create` 不触发任何 target Flow member 的 notification。
+- 第 4 步 sidecar 内 `ck.message.create` 不触发任何 target Strand member 的 notification。
 - 第 5 步 sidecar `effective_scope=circle` event 不出现在 default seal leaf 明文中；只能作为 opaque commitment。
 
 ### 11.10 Vector: Eligibility 三态 + Revocation 闭环
@@ -3120,8 +3120,8 @@ Expected:
 
 Steps:
 
-1. Sidecar Circle 含 Alice + `{S, R}`。S 与 R 都在 sidecar private Flow 中产生协作内容。
-2. S 调用 publish capability action,生成目标 Flow `ck.message.create`,attribution 设 `executed_by=S` + `authorization_ref=G_S`。
+1. Sidecar Circle 含 Alice + `{S, R}`。S 与 R 都在 sidecar private Strand 中产生协作内容。
+2. S 调用 publish capability action,生成目标 Strand `ck.message.create`,attribution 设 `executed_by=S` + `authorization_ref=G_S`。
 3. R 同时尝试 publish 含 S 部分内容的另一条消息。
 
 Expected:
@@ -3390,7 +3390,7 @@ Setup:
 1. Realm R 的 discoverability 为 `invite_only`，但 Alice 给 Bob 发出 `lt=preview` token。token payload 绑定 `target_digest`、`link_type="preview"`、`preview_policy_digest`、`aud=Bob`、短 TTL。
 2. Effective `ck.realm.preview_policy.value.mode = "stripped_state"`，fields 只包含 `title`、`summary`、`join_rule`、`member_count_bucket`。
 3. Bob 调用 `ck.find.directory.query.resolve_target`，携带 address 与 token。
-4. 攻击者 Mallory 把同一 token 放到另一个 Flow address，或把 URL `lt` 改为 `invite`。
+4. 攻击者 Mallory 把同一 token 放到另一个 Strand address，或把 URL `lt` 改为 `invite`。
 
 Expected:
 

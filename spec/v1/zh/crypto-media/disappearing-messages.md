@@ -6,7 +6,7 @@ stability: v1
 updated: 2026-06-10
 see_also:
   - encryption-and-audit.md
-  - ../models/flow-and-message.md
+  - ../models/strand-and-message.md
   - ../governance/history-visibility.md
   - ../../artifacts/schemas/disappearing-messages.schema.json
 ---
@@ -33,7 +33,7 @@ Expiry 是 projection / retention 语义，**不是 redaction**。到期不得�
 
 ## 3. Projection Stub
 
-到期后，projection MUST 输出固定形态的 expiry stub。Stub MAY 包含 message id、flow id、track name、expiry reason、expired_at 和最小审计引用；MUST NOT 包含 plaintext content、附件预览、可逆 search token、push snippet 或 reaction/comment 摘要。
+到期后，projection MUST 输出固定形态的 expiry stub。Stub MAY 包含 message id、strand id、track name、expiry reason、expired_at 和最小审计引用；MUST NOT 包含 plaintext content、附件预览、可逆 search token、push snippet 或 reaction/comment 摘要。
 
 到期 stub 与 redaction stub 必须可区分，以便审计者知道内容是按 TTL 隐藏，而不是被撤回或 moderation 移除。
 

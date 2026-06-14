@@ -203,7 +203,7 @@
     },
     "audit": {
       "type": "object",
-      "description": "Where the recovery flow MUST emit auditable records (recovery announcement, holder participation, completion receipt).",
+      "description": "Where the recovery strand MUST emit auditable records (recovery announcement, holder participation, completion receipt).",
       "properties": {
         "audit_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"

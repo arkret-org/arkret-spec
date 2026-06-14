@@ -116,7 +116,7 @@
       "$ref": "#/$defs/PolicyCheckOutcome"
     },
     {
-      "$ref": "#/$defs/ProjectionFlowList"
+      "$ref": "#/$defs/ProjectionStrandList"
     },
     {
       "$ref": "#/$defs/ProjectionMorphList"
@@ -242,11 +242,11 @@
         },
         "action": {
           "type": "string",
-          "description": "Capability action id (e.g. `ck.flow.update`)."
+          "description": "Capability action id (e.g. `ck.strand.update`)."
         },
         "resource": {
           "type": "object",
-          "description": "Optional resource selector (Realm / Flow / Space / Morph / etc.)."
+          "description": "Optional resource selector (Realm / Strand / Space / Morph / etc.)."
         },
         "context": {
           "type": "object",
@@ -1625,12 +1625,12 @@
       },
       "additionalProperties": false
     },
-    "ProjectionFlowList": {
+    "ProjectionStrandList": {
       "type": "object",
       "additionalProperties": false,
       "required": [
         "realm_id",
-        "flows",
+        "strands",
         "total",
         "has_more"
       ],
@@ -1638,10 +1638,10 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "flows": {
+        "strands": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/ProjectionFlowRow"
+            "$ref": "#/$defs/ProjectionStrandRow"
           }
         },
         "total": {
@@ -1759,11 +1759,11 @@
                 "$ref": "./common-ids.schema.json#/$defs/realm_id"
               }
             },
-            "flow_ids": {
+            "strand_ids": {
               "type": "array",
               "items": {
                 "type": "string",
-                "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
               }
             },
             "track_names": {
@@ -1931,11 +1931,11 @@
                 "$ref": "./common-ids.schema.json#/$defs/realm_id"
               }
             },
-            "flow_ids": {
+            "strand_ids": {
               "type": "array",
               "items": {
                 "type": "string",
-                "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
               }
             },
             "track_names": {
@@ -2198,20 +2198,20 @@
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
         }
       },
-      "description": "Read-model edge backing a Flow assigned_to Relation. relation_id is needed by clients to tombstone the assignment; actor_id mirrors the Relation to_ref."
+      "description": "Read-model edge backing a Strand assigned_to Relation. relation_id is needed by clients to tombstone the assignment; actor_id mirrors the Relation to_ref."
     },
-    "ProjectionFlowRow": {
+    "ProjectionStrandRow": {
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "flow_id",
+        "strand_id",
         "realm_id",
         "state"
       ],
       "properties": {
-        "flow_id": {
+        "strand_id": {
           "type": "string",
-          "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -2236,14 +2236,14 @@
             "string",
             "null"
           ],
-          "description": "Derived display title from plaintext-visible Flow metadata.title; null when metadata is encrypted or hidden from the service profile."
+          "description": "Derived display title from plaintext-visible Strand metadata.title; null when metadata is encrypted or hidden from the service profile."
         },
         "summary": {
           "type": [
             "string",
             "null"
           ],
-          "description": "Derived display summary from plaintext-visible Flow metadata.summary; null when metadata is encrypted or hidden from the service profile."
+          "description": "Derived display summary from plaintext-visible Strand metadata.summary; null when metadata is encrypted or hidden from the service profile."
         },
         "board_space_id": {
           "type": [
@@ -2251,7 +2251,7 @@
             "null"
           ],
           "pattern": "^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-          "description": "Derived board Space id from ck.component.flow.position.v1; not canonical Flow object state."
+          "description": "Derived board Space id from ck.component.strand.position.v1; not canonical Strand object state."
         },
         "list_space_id": {
           "type": [
@@ -2259,14 +2259,14 @@
             "null"
           ],
           "pattern": "^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-          "description": "Derived list Space id from ck.component.flow.position.v1; not canonical Flow object state."
+          "description": "Derived list Space id from ck.component.strand.position.v1; not canonical Strand object state."
         },
         "rank": {
           "type": [
             "string",
             "null"
           ],
-          "description": "Derived rank within list_space_id from ck.component.flow.position.v1."
+          "description": "Derived rank within list_space_id from ck.component.strand.position.v1."
         },
         "assigned_actor_ids": {
           "type": "array",
@@ -2274,7 +2274,7 @@
             "type": "string",
             "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
           },
-          "description": "Derived current assignee Actor DIDs from visible active Relation(relation_kind=assigned_to, from_ref=flow_id). Empty or absent means the Flow is unassigned for this projection caller. This is read-model state, not canonical Flow object metadata."
+          "description": "Derived current assignee Actor DIDs from visible active Relation(relation_kind=assigned_to, from_ref=strand_id). Empty or absent means the Strand is unassigned for this projection caller. This is read-model state, not canonical Strand object metadata."
         },
         "assigned_to_relations": {
           "type": "array",
@@ -2305,7 +2305,7 @@
         },
         "is_default": {
           "type": "boolean",
-          "description": "DERIVED, not independent storage: true iff flow_id == the parent Realm projection's default_flow_id (the authoritative pointer written by ck.realm.set_default_flow). The projector computes this from Realm.default_flow_id; a stale/dangling pointer never resolves to is_default=true because the reducer rejects set_default_flow against a non-existent Flow. Clients identify the Realm's default discussion Flow deterministically from this flag (or equivalently from Realm.default_flow_id) and MUST NOT infer the default from any Flow-reuses-Realm-UUID or other implementation detail. See zh/models/flow-and-message.md (default-Flow discovery)."
+          "description": "DERIVED, not independent storage: true iff strand_id == the parent Realm projection's default_strand_id (the authoritative pointer written by ck.realm.set_default_strand). The projector computes this from Realm.default_strand_id; a stale/dangling pointer never resolves to is_default=true because the reducer rejects set_default_strand against a non-existent Strand. Clients identify the Realm's default discussion Strand deterministically from this flag (or equivalently from Realm.default_strand_id) and MUST NOT infer the default from any Strand-reuses-Realm-UUID or other implementation detail. See zh/models/strand-and-message.md (default-Strand discovery)."
         }
       }
     },

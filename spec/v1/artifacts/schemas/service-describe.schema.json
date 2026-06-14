@@ -643,7 +643,7 @@
       "type": "string",
       "enum": [
         "message_content",
-        "flow_content",
+        "strand_content",
         "attachment_plaintext",
         "attachment_preview",
         "thumbnail",

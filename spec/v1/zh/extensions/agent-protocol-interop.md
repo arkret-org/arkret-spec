@@ -47,7 +47,7 @@ Cokret 原生支持 AI agent 作为 Actor 参与协作，但不应假设所有 a
 
 - 需要强审计和长期可验证协作历史。
 - 需要 Realm membership / capability / policy 逐事件判定。
-- 需要 Flow / Morph / Relation / View 与人类 UI 紧密联动。
+- 需要 Strand / Morph / Relation / View 与人类 UI 紧密联动。
 - 任务结果需要被人类审阅、批准、撤回或归档。
 - 对端 agent 不可信、不可发现或没有受支持协议。
 - E2EE / 合规 / Policy Server 要求所有步骤进入 Realm 账本。
@@ -110,7 +110,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
   "actor_id": "did:web:requesting-agent.example.com",
   "payload": {
     "session_id": "ck:agent_interop_session:019643c0-0000-7000-8000-000000000000",
-    "task_flow_id": "ck:flow:4accc010-0000-7000-8000-000000000000",
+    "task_strand_id": "ck:strand:4accc010-0000-7000-8000-000000000000",
     "counterparty_agent": "did:web:remote-agent.example.com",
     "protocol": "a2a",
     "external_protocol_version": "1.x",
@@ -224,8 +224,8 @@ Cancellation 是协议状态，不是只关本地 socket。持有 `ck.agent.inte
     "status": "completed",
     "result_objects": [
       {
-        "object_type": "flow",
-        "object_ref": "ck:flow:4accc010-0000-7000-8000-000000000000",
+        "object_type": "strand",
+        "object_ref": "ck:strand:4accc010-0000-7000-8000-000000000000",
         "track": "synthesis",
         "role": "primary_result"
       }
@@ -250,11 +250,11 @@ Cancellation 是协议状态，不是只关本地 socket。持有 `ck.agent.inte
 }
 ```
 
-`ck.agent.interop_session.result` 的 payload MUST 至少包含 `result_objects`、`artifacts` 或失败信息之一。`result_objects` 用于声明协议层可引用的持久化成果；v1 标准对象类型为 `flow`、`message`、`morph` 和 `blob` 引用。
+`ck.agent.interop_session.result` 的 payload MUST 至少包含 `result_objects`、`artifacts` 或失败信息之一。`result_objects` 用于声明协议层可引用的持久化成果；v1 标准对象类型为 `strand`、`message`、`morph` 和 `blob` 引用。
 
 外部 artifact 清理职责：若 start / status / result 暴露了外部 transcript、临时文件、tool output 或 remote task handle，result 终态 MUST 明确 `artifact_retention`（`retain_by_policy` / `delete_requested` / `deleted` / `unknown`）以及 `artifact_digest` / deletion receipt。`cancelled`、`failed`、`expired` 终态若未能删除外部 artifact，必须保留最小 `external_artifact_stub`（`artifact_digest`、`remote_id_digest`、retention reason、cleanup retry policy），不得把未验证的外部删除当成已完成。
 
-Agent 产出的长期工作载体 SHOULD 优先落到 Flow：例如通过 Realm schema/profile、`metadata.fields.workflow_type`、Relation 或 labels 标记执行、决策、方案或研究类 Flow。需要聊天沉淀时，结果 MAY 同时附带 discussion Message 引用；二进制、代码包、长报告或外部 transcript 则 SHOULD 存为 Morph / Blob / Artifact，并在 result event 中引用 hash。
+Agent 产出的长期工作载体 SHOULD 优先落到 Strand：例如通过 Realm schema/profile、`metadata.fields.workflow_type`、Relation 或 labels 标记执行、决策、方案或研究类 Strand。需要聊天沉淀时，结果 MAY 同时附带 discussion Message 引用；二进制、代码包、长报告或外部 transcript 则 SHOULD 存为 Morph / Blob / Artifact，并在 result event 中引用 hash。
 
 ### 5.5 DID Epoch Pinning (normative)
 
@@ -288,7 +288,7 @@ sequenceDiagram
     participant Pol as Policy Server
     participant Remote as Remote Agent<br>(A2A / ACP endpoint)
 
-    LocalAg->>Cx: 创建或选择任务 Flow
+    LocalAg->>Cx: 创建或选择任务 Strand
     LocalAg->>Cx: 检查 ck.agent.interop_session.start capability
     Cx->>Pol: endpoint validation<br>(目标 DID Document service binding<br> + TLS / HTTP Sig pinning)
     Pol-->>Cx: 通过 / 拒绝 (拒绝则中止)
@@ -301,7 +301,7 @@ sequenceDiagram
 
     Remote-->>LocalAg: 终态 (completed / failed / cancelled)
     LocalAg->>Cx: ck.agent.interop_session.result<br>(result_objects / artifacts /<br> external_transcript_digest)
-    note over Cx: reducer 更新 Flow / Morph / Relation<br>外部状态在 result 被 accepted 前不改变 canonical task
+    note over Cx: reducer 更新 Strand / Morph / Relation<br>外部状态在 result 被 accepted 前不改变 canonical task
 ```
 
 读图要点：
@@ -312,7 +312,7 @@ sequenceDiagram
 
 
 1. Requesting agent 查询目标 agent profile、DID service endpoint、A2A AgentCard 或 ACP metadata。
-2. Requesting agent 在 Cokret 中创建或选择任务 Flow，或选择可承载任务语义的 Morph。
+2. Requesting agent 在 Cokret 中创建或选择任务 Strand，或选择可承载任务语义的 Morph。
 3. Requesting agent 检查自己是否拥有 `ck.agent.interop_session.start` capability。
 4. **Endpoint validation（normative MUST）**：Policy Server MUST 验证目标 endpoint 与目标 agent DID 的 service binding 一致性，至少完成以下检查（任一失败 MUST 拒绝 session start）：
    - 解析目标 agent DID Document，确认其 `service` entry 的 `serviceEndpoint` URL 与 session start 中声明的 endpoint **完全匹配**（包括 scheme / host / port / 路径前缀）。
@@ -325,7 +325,7 @@ sequenceDiagram
 6. 双方通过选定外部协议建立 session。
 7. 执行过程按节流策略回写 `status`。
 8. 结果、artifact、transcript hash、错误或取消原因回写 Cokret。
-9. Reducer 将 Flow、Morph、Relation 或 notification 更新为最终状态。
+9. Reducer 将 Strand、Morph、Relation 或 notification 更新为最终状态。
 
 ## 7. Capability
 
@@ -333,9 +333,9 @@ sequenceDiagram
 
 - `ck.agent.protocol.discover`
 - `ck.agent.interop_session.start`（authorize submitting `ck.agent.interop_session.start`）
-- `ck.agent.interop_session.cancel`（authorize cancellation flow that writes `ck.agent.interop_session.status{status="cancelled"}` / `result`）
+- `ck.agent.interop_session.cancel`（authorize cancellation strand that writes `ck.agent.interop_session.status{status="cancelled"}` / `result`）
 - `ck.agent.interop_session.stream_status`（authorize streaming `ck.agent.interop_session.status`）
-- `ck.agent.interop_session.attach_artifact`（authorize artifact attachment that flows through `ck.agent.interop_session.status` / `result`）
+- `ck.agent.interop_session.attach_artifact`（authorize artifact attachment that strands through `ck.agent.interop_session.status` / `result`）
 - `ck.agent.interop_session.read_transcript`（authorize transcript read; no event kind side-effect）
 
 Capability constraint SHOULD 支持：

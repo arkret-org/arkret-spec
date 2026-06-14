@@ -478,15 +478,15 @@
               "ck.device.revoke",
               "ck.did.proof",
               "ck.direct_conversation.bound",
-              "ck.flow.archive",
-              "ck.flow.create",
-              "ck.flow.move",
-              "ck.flow.reorder",
-              "ck.flow.restore",
-              "ck.flow.stage.set",
-              "ck.flow.tracks.update",
-              "ck.flow.update",
-              "ck.flow.watch.set",
+              "ck.strand.archive",
+              "ck.strand.create",
+              "ck.strand.move",
+              "ck.strand.reorder",
+              "ck.strand.restore",
+              "ck.strand.stage.set",
+              "ck.strand.tracks.update",
+              "ck.strand.update",
+              "ck.strand.watch.set",
               "ck.handle.discovery",
               "ck.identity.accountability_grant",
               "ck.identity.disclosure_policy",
@@ -564,7 +564,7 @@
               "ck.realm.read_receipt_policy",
               "ck.realm.schema",
               "ck.realm.search_policy",
-              "ck.realm.set_default_flow",
+              "ck.realm.set_default_strand",
               "ck.realm.tombstone",
               "ck.realm.update",
               "ck.realm.upgrade",
@@ -723,7 +723,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ck.flow.move"
+            "const": "ck.strand.move"
           }
         },
         "required": [
@@ -733,7 +733,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/flow_move_payload"
+            "$ref": "./event-payload.schema.json#/$defs/strand_move_payload"
           }
         }
       }
@@ -846,7 +846,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ck.flow.reorder"
+            "const": "ck.strand.reorder"
           }
         },
         "required": [
@@ -856,7 +856,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/flow_reorder_payload"
+            "$ref": "./event-payload.schema.json#/$defs/strand_reorder_payload"
           }
         }
       }
@@ -865,7 +865,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ck.flow.watch.set"
+            "const": "ck.strand.watch.set"
           }
         },
         "required": [
@@ -875,7 +875,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/flow_watch_set_payload"
+            "$ref": "./event-payload.schema.json#/$defs/strand_watch_set_payload"
           }
         }
       }
@@ -1074,7 +1074,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ck.flow.create"
+            "const": "ck.strand.create"
           }
         },
         "required": [
@@ -1084,7 +1084,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/flow_create_payload"
+            "$ref": "./event-payload.schema.json#/$defs/strand_create_payload"
           }
         }
       }
@@ -1150,7 +1150,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ck.flow.stage.set"
+            "const": "ck.strand.stage.set"
           }
         },
         "required": [
@@ -1160,7 +1160,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/flow_stage_set_payload"
+            "$ref": "./event-payload.schema.json#/$defs/strand_stage_set_payload"
           }
         }
       }
@@ -1288,8 +1288,8 @@
         "properties": {
           "kind": {
             "enum": [
-              "ck.flow.update",
-              "ck.flow.tracks.update"
+              "ck.strand.update",
+              "ck.strand.tracks.update"
             ]
           }
         },
@@ -1300,7 +1300,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/flow_patch_payload"
+            "$ref": "./event-payload.schema.json#/$defs/strand_patch_payload"
           }
         }
       }
@@ -1534,7 +1534,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ck.realm.set_default_flow"
+            "const": "ck.realm.set_default_strand"
           }
         },
         "required": [
@@ -1544,7 +1544,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/realm_set_default_flow_payload"
+            "$ref": "./event-payload.schema.json#/$defs/realm_set_default_strand_payload"
           }
         }
       }
@@ -1554,8 +1554,8 @@
         "properties": {
           "kind": {
             "enum": [
-              "ck.flow.archive",
-              "ck.flow.restore",
+              "ck.strand.archive",
+              "ck.strand.restore",
               "ck.circle.archive",
               "ck.circle.restore",
               "ck.circle.tombstone",
@@ -3349,9 +3349,9 @@
       "type": "string",
       "pattern": "^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "flow_id": {
+    "strand_id": {
       "type": "string",
-      "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "track_name": {
       "type": "string",

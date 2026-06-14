@@ -403,7 +403,7 @@
       "properties": {
         "id": {
           "type": "string",
-          "pattern": "^ck:(realm|space|circle|flow|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ck:(realm|space|circle|strand|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "type": {
           "type": "string",
@@ -411,7 +411,7 @@
             "realm",
             "space",
             "circle",
-            "flow",
+            "strand",
             "message",
             "morph"
           ]
@@ -1344,7 +1344,7 @@
     },
     "ref": {
       "type": "string",
-      "pattern": "^(ck:(realm|flow|message|morph|relation|event|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$"
+      "pattern": "^(ck:(realm|strand|message|morph|relation|event|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$"
     }
   },
   "patternProperties": {

@@ -38,9 +38,9 @@
       "type": "string",
       "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "flow_id": {
+    "strand_id": {
       "type": "string",
-      "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "hash": {
       "type": "string",
@@ -269,8 +269,8 @@
         "expires_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
+        "strand_id": {
+          "$ref": "#/$defs/strand_id"
         },
         "mls_group_id": {
           "$ref": "#/$defs/non_empty_string"
@@ -348,8 +348,8 @@
           "type": "integer",
           "minimum": 1
         },
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
+        "strand_id": {
+          "$ref": "#/$defs/strand_id"
         },
         "mls_group_id": {
           "$ref": "#/$defs/non_empty_string"
@@ -420,8 +420,8 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
+        "strand_id": {
+          "$ref": "#/$defs/strand_id"
         },
         "mls_group_id": {
           "$ref": "#/$defs/non_empty_string"

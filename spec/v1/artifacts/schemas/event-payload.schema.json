@@ -221,9 +221,9 @@
       "type": "string",
       "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "flow_id": {
+    "strand_id": {
       "type": "string",
-      "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "mls_epoch_range": {
       "type": "object",
@@ -304,7 +304,7 @@
     "track_name": {
       "type": "string",
       "const": "discussion",
-      "description": "Flow track key for Message payloads. Mirrors message.schema.json#/properties/track_name: v1 Message payloads are restricted to 'discussion'."
+      "description": "Strand track key for Message payloads. Mirrors message.schema.json#/properties/track_name: v1 Message payloads are restricted to 'discussion'."
     },
     "content_kind": {
       "type": "string",
@@ -491,7 +491,7 @@
           },
           {
             "required": [
-              "flow_id"
+              "strand_id"
             ]
           },
           {
@@ -653,7 +653,7 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^(ck:(realm|circle|space|actor_profile|flow|message|morph|relation|view|policy|grant|invite|call|agent_interop_session|audit_binding|audit_session|audit_release|blob|snapshot|event|franking_proof|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ck:blob:sha256:[0-9a-f]{64}|did:[^\\s]+|sha256:[0-9a-f]{64})$"
+      "pattern": "^(ck:(realm|circle|space|actor_profile|strand|message|morph|relation|view|policy|grant|invite|call|agent_interop_session|audit_binding|audit_session|audit_release|blob|snapshot|event|franking_proof|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ck:blob:sha256:[0-9a-f]{64}|did:[^\\s]+|sha256:[0-9a-f]{64})$"
     },
     "audit_binding_id": {
       "type": "string",
@@ -739,7 +739,7 @@
     },
     "patch_path": {
       "type": "string",
-      "description": "Cokret field patch path. Segments are snake_case identifiers, optional stable-key selectors (such as profile-declared named-collection arrays of the form `<field>[<key>=<value>]`), or backtick-quoted literals; numeric array indexes are not part of ck.patch.v1. v1 standard schemas no longer use stable-key selectors — Flow tracks is now a map keyed by track name, so paths like `tracks.discussion.profile` are plain object segments.",
+      "description": "Cokret field patch path. Segments are snake_case identifiers, optional stable-key selectors (such as profile-declared named-collection arrays of the form `<field>[<key>=<value>]`), or backtick-quoted literals; numeric array indexes are not part of ck.patch.v1. v1 standard schemas no longer use stable-key selectors — Strand tracks is now a map keyed by track name, so paths like `tracks.discussion.profile` are plain object segments.",
       "pattern": "^(?:[a-z_][a-z0-9_]*(?:\\[[a-z_][a-z0-9_]*=[A-Za-z0-9_:.@-]+\\])?|`(?:[^`\\\\]|\\\\[`\\\\.\\\\])*`)(?:\\.(?:[a-z_][a-z0-9_]*(?:\\[[a-z_][a-z0-9_]*=[A-Za-z0-9_:.@-]+\\])?|`(?:[^`\\\\]|\\\\[`\\\\.\\\\])*`))*$"
     },
     "patch_operation": {
@@ -977,15 +977,15 @@
       },
       "additionalProperties": false
     },
-    "flow_create_payload": {
+    "strand_create_payload": {
       "type": "object",
-      "description": "Create payload uses the full Flow object schema for wire validation. Semantic validation MUST require payload.object.created_by to match the top-level actor_id and payload.object.created_at to match the top-level created_at before acceptance.",
+      "description": "Create payload uses the full Strand object schema for wire validation. Semantic validation MUST require payload.object.created_by to match the top-level actor_id and payload.object.created_at to match the top-level created_at before acceptance.",
       "required": [
         "object"
       ],
       "properties": {
         "object": {
-          "$ref": "./flow.schema.json"
+          "$ref": "./strand.schema.json"
         },
         "initial_relations": {
           "type": "array",
@@ -1042,7 +1042,7 @@
     },
     "object_stage_set_payload": {
       "type": "object",
-      "description": "Shared base shape for ck.<kind>.stage.set events. Each concrete stage_set payload class (flow_stage_set_payload / morph_stage_set_payload) extends this base by pinning the object-id field (flow_id / morph_id) and is referenced from event-envelope.schema.json conditional routing. The stage enum is the protocol-level 8-value set defined in zh/models/common-fields.md §5.3.2; profile MUST NOT extend or override the enum. Reducer hard invariants are listed in zh/models/common-fields.md §5.3.3 (terminal state freeze, non-active reject, reducer-derived stage_changed_at, same-value no-op, single-source via this event). The payload intentionally does NOT carry a reason / note / explanation field: this event log is the audit source (actor_id + created_at), and human-readable explanation belongs in a Message on an associated discussion track that 'references' this event. expected_stage compiles to a cell head_eq precondition and provides optimistic concurrency; omission is equivalent to no CAS.",
+      "description": "Shared base shape for ck.<kind>.stage.set events. Each concrete stage_set payload class (strand_stage_set_payload / morph_stage_set_payload) extends this base by pinning the object-id field (strand_id / morph_id) and is referenced from event-envelope.schema.json conditional routing. The stage enum is the protocol-level 8-value set defined in zh/models/common-fields.md §5.3.2; profile MUST NOT extend or override the enum. Reducer hard invariants are listed in zh/models/common-fields.md §5.3.3 (terminal state freeze, non-active reject, reducer-derived stage_changed_at, same-value no-op, single-source via this event). The payload intentionally does NOT carry a reason / note / explanation field: this event log is the audit source (actor_id + created_at), and human-readable explanation belongs in a Message on an associated discussion track that 'references' this event. expected_stage compiles to a cell head_eq precondition and provides optimistic concurrency; omission is equivalent to no CAS.",
       "required": [
         "stage"
       ],
@@ -1072,7 +1072,7 @@
             "cancelled",
             "superseded"
           ],
-          "description": "Optional CAS precondition: when present, reducer compiles it to a cell head_eq comparison against the cell's current value. Mismatch yields failed_precondition reason=stage_cas_mismatch. Same semantics as ck.flow.watch.set's expected_value."
+          "description": "Optional CAS precondition: when present, reducer compiles it to a cell head_eq comparison against the cell's current value. Mismatch yields failed_precondition reason=stage_cas_mismatch. Same semantics as ck.strand.watch.set's expected_value."
         }
       },
       "not": {
@@ -1112,16 +1112,16 @@
       },
       "additionalProperties": true
     },
-    "flow_stage_set_payload": {
+    "strand_stage_set_payload": {
       "type": "object",
-      "description": "Payload class for ck.flow.stage.set. Mutates Flow.stage / Flow.stage_changed_at. Intentionally carries no reason field — see object_stage_set_payload description and zh/models/flow-and-message.md §3.2.",
+      "description": "Payload class for ck.strand.stage.set. Mutates Strand.stage / Strand.stage_changed_at. Intentionally carries no reason field — see object_stage_set_payload description and zh/models/strand-and-message.md §3.2.",
       "required": [
-        "flow_id",
+        "strand_id",
         "stage"
       ],
       "properties": {
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
+        "strand_id": {
+          "$ref": "#/$defs/strand_id"
         },
         "stage": {
           "type": "string",
@@ -1554,15 +1554,15 @@
       },
       "additionalProperties": false
     },
-    "flow_patch_payload": {
+    "strand_patch_payload": {
       "type": "object",
       "required": [
-        "flow_id",
+        "strand_id",
         "patch"
       ],
       "properties": {
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
+        "strand_id": {
+          "$ref": "#/$defs/strand_id"
         },
         "patch": {
           "$ref": "#/$defs/patch"
@@ -1595,7 +1595,7 @@
     },
     "space_patch_payload": {
       "type": "object",
-      "description": "Payload class for ck.space.update. Patches Space metadata (title, rank, kind-specific fields) on the Space identified by space_id. Per operations-sync.md §7.3 / §9.3 and realm-and-space.md §3.3, ck.space.update only mutates the Space's own metadata; it MUST NOT PATCH top-level state (archive/restore go through ck.space.archive / ck.space.restore) and MUST NOT move Flows (ck.flow.move / ck.flow.reorder). Reducer rejects update on a non-active Space (reason=space_not_active) — see conformance-vectors.md §6.7.",
+      "description": "Payload class for ck.space.update. Patches Space metadata (title, rank, kind-specific fields) on the Space identified by space_id. Per operations-sync.md §7.3 / §9.3 and realm-and-space.md §3.3, ck.space.update only mutates the Space's own metadata; it MUST NOT PATCH top-level state (archive/restore go through ck.space.archive / ck.space.restore) and MUST NOT move Strands (ck.strand.move / ck.strand.reorder). Reducer rejects update on a non-active Space (reason=space_not_active) — see conformance-vectors.md §6.7.",
       "required": [
         "space_id",
         "patch"
@@ -1615,7 +1615,7 @@
     },
     "object_lifecycle_payload": {
       "type": "object",
-      "description": "Generic lifecycle payload for Flow / Circle / Morph archive-restore-tombstone style events. The target object is single-sourced by target_ref; target_state may describe the intended lifecycle result but cannot replace the target object reference.",
+      "description": "Generic lifecycle payload for Strand / Circle / Morph archive-restore-tombstone style events. The target object is single-sourced by target_ref; target_state may describe the intended lifecycle result but cannot replace the target object reference.",
       "required": [
         "target_ref"
       ],
@@ -2074,30 +2074,30 @@
       },
       "additionalProperties": false
     },
-    "realm_set_default_flow_payload": {
+    "realm_set_default_strand_payload": {
       "type": "object",
-      "description": "Payload for ck.realm.set_default_flow. Sets / changes the Realm's authoritative default discussion Flow pointer. Reducer projects flow_id into the Realm projection default_flow_id (single authoritative pointer; avoids multi-default dirty state). Reducer MUST verify flow_id references a projected, non-tombstoned Flow in this Realm; a dangling reference MUST be rejected with failed_precondition. The Flow projection is_default is a derived marker (flow_id == realm.default_flow_id), never independent storage. expected_default_flow_id, when present, compiles to a cell head_eq precondition for optimistic concurrency (CAS); omission is no CAS.",
+      "description": "Payload for ck.realm.set_default_strand. Sets / changes the Realm's authoritative default discussion Strand pointer. Reducer projects strand_id into the Realm projection default_strand_id (single authoritative pointer; avoids multi-default dirty state). Reducer MUST verify strand_id references a projected, non-tombstoned Strand in this Realm; a dangling reference MUST be rejected with failed_precondition. The Strand projection is_default is a derived marker (strand_id == realm.default_strand_id), never independent storage. expected_default_strand_id, when present, compiles to a cell head_eq precondition for optimistic concurrency (CAS); omission is no CAS.",
       "required": [
         "realm_id",
-        "flow_id"
+        "strand_id"
       ],
       "properties": {
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
+        "strand_id": {
+          "$ref": "#/$defs/strand_id"
         },
-        "expected_default_flow_id": {
+        "expected_default_strand_id": {
           "oneOf": [
             {
-              "$ref": "#/$defs/flow_id"
+              "$ref": "#/$defs/strand_id"
             },
             {
               "type": "null"
             }
           ],
-          "description": "Optional optimistic-concurrency guard. When present, the reducer accepts the write only if the Realm's current default_flow_id equals this value (null asserts no default is currently set). Mismatch MUST be rejected (failed_precondition)."
+          "description": "Optional optimistic-concurrency guard. When present, the reducer accepts the write only if the Realm's current default_strand_id equals this value (null asserts no default is currently set). Mismatch MUST be rejected (failed_precondition)."
         },
         "reason": {
           "type": "string"
@@ -2339,8 +2339,8 @@
         "membership"
       ],
       "properties": {
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
+        "strand_id": {
+          "$ref": "#/$defs/strand_id"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -2580,7 +2580,7 @@
       "type": "string",
       "enum": [
         "message_content",
-        "flow_content",
+        "strand_content",
         "attachment_plaintext",
         "attachment_preview",
         "thumbnail",
@@ -2969,9 +2969,9 @@
           "encrypted_metadata"
         ]
       },
-      "description": "Payload for ck.message.create. If content/encrypted_content contains an audience_mention AST node (for example @all or @here), reducer admission and notification dispatch MUST additionally enforce ck.message.mention.broadcast plus the audience policy / max_recipient / rate-limit rules in zh/models/flow-and-message.md §9.4.3. @here maps to audience=\"flow_engaged\" and is not presence-filtered.",
+      "description": "Payload for ck.message.create. If content/encrypted_content contains an audience_mention AST node (for example @all or @here), reducer admission and notification dispatch MUST additionally enforce ck.message.mention.broadcast plus the audience policy / max_recipient / rate-limit rules in zh/models/strand-and-message.md §9.4.3. @here maps to audience=\"strand_engaged\" and is not presence-filtered.",
       "required": [
-        "flow_id",
+        "strand_id",
         "track_name"
       ],
       "allOf": [
@@ -3000,7 +3000,7 @@
           ]
         },
         {
-          "$comment": "ck.message.create payload MUST NOT carry revision_root. Reducer initializes revision_root := id on create; only ck.message.revise events may set it. See zh/models/flow-and-message.md §9 and forbidden-wire-fields.json `revision_root/message_create_payload`.",
+          "$comment": "ck.message.create payload MUST NOT carry revision_root. Reducer initializes revision_root := id on create; only ck.message.revise events may set it. See zh/models/strand-and-message.md §9 and forbidden-wire-fields.json `revision_root/message_create_payload`.",
           "not": {
             "required": [
               "revision_root"
@@ -3009,8 +3009,8 @@
         }
       ],
       "properties": {
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
+        "strand_id": {
+          "$ref": "#/$defs/strand_id"
         },
         "message_id": {
           "$ref": "#/$defs/message_id"
@@ -3112,7 +3112,7 @@
         },
         "track_name": {
           "$ref": "#/$defs/track_name",
-          "description": "Active track_name of the target Flow. Optional on revise/redact: when omitted, reducers MUST resolve from the existing message identified by message_id / target_ref / revision_of. When present, MUST equal that resolved track_name."
+          "description": "Active track_name of the target Strand. Optional on revise/redact: when omitted, reducers MUST resolve from the existing message identified by message_id / target_ref / revision_of. When present, MUST equal that resolved track_name."
         },
         "content": {
           "$ref": "#/$defs/content_block"
@@ -3171,7 +3171,7 @@
         },
         "track_name": {
           "$ref": "#/$defs/track_name",
-          "description": "Active track_name of the redacted message's parent Flow. Optional: when omitted, reducers MUST resolve from the existing message. When present, MUST equal that resolved track_name."
+          "description": "Active track_name of the redacted message's parent Strand. Optional: when omitted, reducers MUST resolve from the existing message. When present, MUST equal that resolved track_name."
         },
         "reason": {
           "type": "string"
@@ -3331,8 +3331,8 @@
       ],
       "properties": {
         "event_ref": {
-          "$ref": "#/$defs/flow_id",
-          "description": "Calendar event Flow id; encoded as a ck:flow: typed id."
+          "$ref": "#/$defs/strand_id",
+          "description": "Calendar event Strand id; encoded as a ck:strand: typed id."
         },
         "status": {
           "type": "string",
@@ -3369,10 +3369,10 @@
           ],
           "properties": {
             "kind": {
-              "const": "flow"
+              "const": "strand"
             },
             "id": {
-              "$ref": "#/$defs/flow_id"
+              "$ref": "#/$defs/strand_id"
             }
           },
           "additionalProperties": false
@@ -3494,7 +3494,7 @@
     },
     "reaction_payload": {
       "type": "object",
-      "description": "Reducer input for ck.reaction.add and ck.reaction.remove. OR-Set membership is keyed on (actor_id, target_ref, key); a remove tombstones every prior add from the same actor with the same key in the causal past. See zh/models/flow-and-message.md §9.8 for the authoritative Reaction model (target scope, OR-Set, authz, anti-abuse) and zh/crypto-media/encryption-and-audit.md §2.9 for the plaintext-vs-encrypted policy.",
+      "description": "Reducer input for ck.reaction.add and ck.reaction.remove. OR-Set membership is keyed on (actor_id, target_ref, key); a remove tombstones every prior add from the same actor with the same key in the causal past. See zh/models/strand-and-message.md §9.8 for the authoritative Reaction model (target scope, OR-Set, authz, anti-abuse) and zh/crypto-media/encryption-and-audit.md §2.9 for the plaintext-vs-encrypted policy.",
       "required": [
         "target_ref",
         "key"
@@ -3768,8 +3768,8 @@
         "session_id": {
           "$ref": "#/$defs/agent_interop_session_id"
         },
-        "task_flow_id": {
-          "$ref": "#/$defs/flow_id"
+        "task_strand_id": {
+          "$ref": "#/$defs/strand_id"
         },
         "counterparty_agent": {
           "$ref": "#/$defs/did"
@@ -4022,7 +4022,7 @@
                 "type": "string",
                 "enum": [
                   "realm",
-                  "flow",
+                  "strand",
                   "space",
                   "object",
                   "operation",
@@ -4437,7 +4437,7 @@
           "enum": [
             "realm",
             "space",
-            "flow",
+            "strand",
             "message",
             "object",
             "service_operation",
@@ -4715,7 +4715,7 @@
             "presence",
             "any"
           ],
-          "description": "What kind of contact is consented to. 'invite' = peer may send Realm / Flow invites; 'direct_message' = peer may initiate 1:1 message; 'voice_call' / 'video_call' = peer may initiate WebRTC call; 'presence' = peer may observe presence; 'any' = full consent across all consent scopes."
+          "description": "What kind of contact is consented to. 'invite' = peer may send Realm / Strand invites; 'direct_message' = peer may initiate 1:1 message; 'voice_call' / 'video_call' = peer may initiate WebRTC call; 'presence' = peer may observe presence; 'any' = full consent across all consent scopes."
         },
         "not_before": {
           "$ref": "#/$defs/timestamp"
@@ -4909,15 +4909,15 @@
     },
     "direct_conversation_bound_payload": {
       "type": "object",
-      "description": "Principal-scoped signed binding from an unordered participant pair to the canonical DM Realm and main Flow. Issuer MUST be one of the participants; the original signed envelope may be mirrored by the other participant.",
+      "description": "Principal-scoped signed binding from an unordered participant pair to the canonical DM Realm and main Strand. Issuer MUST be one of the participants; the original signed envelope may be mirrored by the other participant.",
       "required": [
         "pair_key",
         "participants_unordered",
         "realm_id",
-        "main_flow_id",
+        "main_strand_id",
         "contact_refs",
         "member_event_refs",
-        "main_flow_create_ref",
+        "main_strand_create_ref",
         "created_at"
       ],
       "properties": {
@@ -4937,8 +4937,8 @@
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "main_flow_id": {
-          "$ref": "#/$defs/flow_id"
+        "main_strand_id": {
+          "$ref": "#/$defs/strand_id"
         },
         "contact_refs": {
           "$ref": "#/$defs/contact_event_refs"
@@ -4947,7 +4947,7 @@
           "$ref": "#/$defs/contact_event_refs",
           "description": "Membership event refs proving both participants are active members of the DM Realm."
         },
-        "main_flow_create_ref": {
+        "main_strand_create_ref": {
           "$ref": "#/$defs/event_ref"
         },
         "created_at": {
@@ -5260,7 +5260,7 @@
         "recovery_session_id": {
           "type": "string",
           "pattern": "^ck:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-          "description": "Present when this authorization was produced by a device recovery flow (crypto-media/device-lifecycle.md §15). Binds the event to the recovery_session_id used by the proof transcript, backup-decrypt proofs, and the recovery_receipt, so an auditor reading only the control stream can correlate authorization to receipt. Omitted for ordinary pairing-based authorizations. Not part of the cross_signing_binding signing input (§5.2)."
+          "description": "Present when this authorization was produced by a device recovery strand (crypto-media/device-lifecycle.md §15). Binds the event to the recovery_session_id used by the proof transcript, backup-decrypt proofs, and the recovery_receipt, so an auditor reading only the control stream can correlate authorization to receipt. Omitted for ordinary pairing-based authorizations. Not part of the cross_signing_binding signing input (§5.2)."
         }
       },
       "additionalProperties": false
@@ -5882,7 +5882,7 @@
       "properties": {
         "effective_scope": {
           "$ref": "#/$defs/effective_scope",
-          "description": "Tagged scope of the key material. Realm-default history uses {kind:'realm', realm_id}; Circle history uses {kind:'circle', realm_id, circle_id}. Implementations MUST NOT infer key scope from flow_id or track."
+          "description": "Tagged scope of the key material. Realm-default history uses {kind:'realm', realm_id}; Circle history uses {kind:'circle', realm_id, circle_id}. Implementations MUST NOT infer key scope from strand_id or track."
         },
         "policy_digest": {
           "$ref": "#/$defs/hash",
@@ -5936,7 +5936,7 @@
         },
         "effective_scope": {
           "$ref": "#/$defs/effective_scope",
-          "description": "Tagged MLS governance scope. Realm-default groups use {kind:'realm', realm_id}; Circle groups use {kind:'circle', realm_id, circle_id}. This field, not Flow id or track, determines key and membership scope."
+          "description": "Tagged MLS governance scope. Realm-default groups use {kind:'realm', realm_id}; Circle groups use {kind:'circle', realm_id, circle_id}. This field, not Strand id or track, determines key and membership scope."
         },
         "mls_group_id": {
           "type": "string",
@@ -6478,7 +6478,7 @@
     },
     "mimi_room_binding_payload": {
       "type": "object",
-      "description": "Payload for ck.mimi.room_binding. Writes the ck.component.mimi.room_binding.v1 cell whose subject is payload.mimi_room_uri (see event-kind-registry.json cell_subject). Authoritative field set: zh/extensions/mimi-interop.md §3. The binding is a projection of a Cokret Realm/Flow discussion track into a MIMI room; it is not canonical truth. Creation / update / revocation MUST hold ck.policy.manage, ck.realm.admin, or an equivalent interop capability. E2EE MIMI rooms MUST bind mls_group_id and pass the MLS Governance Binding covered_seals_cell precondition.",
+      "description": "Payload for ck.mimi.room_binding. Writes the ck.component.mimi.room_binding.v1 cell whose subject is payload.mimi_room_uri (see event-kind-registry.json cell_subject). Authoritative field set: zh/extensions/mimi-interop.md §3. The binding is a projection of a Cokret Realm/Strand discussion track into a MIMI room; it is not canonical truth. Creation / update / revocation MUST hold ck.policy.manage, ck.realm.admin, or an equivalent interop capability. E2EE MIMI rooms MUST bind mls_group_id and pass the MLS Governance Binding covered_seals_cell precondition.",
       "required": [
         "mimi_room_uri",
         "binding_scope"
@@ -6495,17 +6495,17 @@
         },
         "binding_scope": {
           "type": "object",
-          "description": "Cokret Realm + Flow scope this MIMI room projects. flow_id MUST point at an accepted Flow with discussion track enabled inside realm_id; the MIMI room timeline only projects that Flow's discussion track.",
+          "description": "Cokret Realm + Strand scope this MIMI room projects. strand_id MUST point at an accepted Strand with discussion track enabled inside realm_id; the MIMI room timeline only projects that Strand's discussion track.",
           "required": [
             "realm_id",
-            "flow_id"
+            "strand_id"
           ],
           "properties": {
             "realm_id": {
               "$ref": "./common-ids.schema.json#/$defs/realm_id"
             },
-            "flow_id": {
-              "$ref": "#/$defs/flow_id"
+            "strand_id": {
+              "$ref": "#/$defs/strand_id"
             }
           },
           "additionalProperties": false
@@ -7446,8 +7446,8 @@
           "type": "string",
           "pattern": "^ck:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
+        "strand_id": {
+          "$ref": "#/$defs/strand_id"
         },
         "state": {
           "type": "string"
@@ -7646,21 +7646,21 @@
       },
       "additionalProperties": false
     },
-    "flow_move_payload": {
+    "strand_move_payload": {
       "type": "object",
       "required": [
         "board_space_id",
-        "flow_id",
+        "strand_id",
         "target_space_id",
         "rank"
       ],
       "properties": {
         "board_space_id": {
           "$ref": "#/$defs/board_space_id",
-          "description": "Board Space that owns the position edge; deduplication key (board_space_id, flow_id) MUST be unique among active edges."
+          "description": "Board Space that owns the position edge; deduplication key (board_space_id, strand_id) MUST be unique among active edges."
         },
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
+        "strand_id": {
+          "$ref": "#/$defs/strand_id"
         },
         "from_space_id": {
           "$ref": "#/$defs/list_space_id",
@@ -7668,7 +7668,7 @@
         },
         "target_space_id": {
           "$ref": "#/$defs/list_space_id",
-          "description": "Target List Space after move. This is the ONLY payload-level field for the destination; the reducer compiles it into the cas_register cell value as 'list_space_id' on the cell at ck:cell:ck.component.flow.position.v1:<board_space_id>:<flow_id>. Writers MUST NOT put 'list_space_id' directly on the ck.flow.move payload (additionalProperties=false enforces this) — there is exactly one destination input field on the wire."
+          "description": "Target List Space after move. This is the ONLY payload-level field for the destination; the reducer compiles it into the cas_register cell value as 'list_space_id' on the cell at ck:cell:ck.component.strand.position.v1:<board_space_id>:<strand_id>. Writers MUST NOT put 'list_space_id' directly on the ck.strand.move payload (additionalProperties=false enforces this) — there is exactly one destination input field on the wire."
         },
         "rank": {
           "$ref": "#/$defs/rank"
@@ -7691,11 +7691,11 @@
       },
       "additionalProperties": false
     },
-    "flow_reorder_payload": {
+    "strand_reorder_payload": {
       "type": "object",
       "required": [
         "board_space_id",
-        "flow_id",
+        "strand_id",
         "space_id",
         "rank"
       ],
@@ -7703,8 +7703,8 @@
         "board_space_id": {
           "$ref": "#/$defs/board_space_id"
         },
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
+        "strand_id": {
+          "$ref": "#/$defs/strand_id"
         },
         "space_id": {
           "$ref": "#/$defs/list_space_id",
@@ -7728,17 +7728,17 @@
       },
       "additionalProperties": false
     },
-    "flow_watch_set_payload": {
+    "strand_watch_set_payload": {
       "type": "object",
-      "description": "Payload for ck.flow.watch.set. Writes the (flow_id, watcher_actor_id) watch cell. The new cell value is computed from payload.level + payload.level_public: when level is null the effect is set null (clear, equivalent to mentions_only); when level is a string the effect is set { level, level_public? }. Reducer invariants: (1) watcher_actor_id MUST equal envelope.actor_id unless writer holds ck.flow.watch.set.others; (2) when watcher_actor_id != envelope.actor_id (.others write), level MUST be one of {mentions_only, participating, all} and level_public MUST be omitted or false — writing muted or level_public=true on behalf of another actor MUST failed_precondition; (3) .others writes MUST carry refs[role=audit_pair] to a same-batch ck.audit.accessed event whose payload access_kind=watch_set_others identifies writer / target / cell / before-after heads. See models/flow-and-message.md §8.4.",
+      "description": "Payload for ck.strand.watch.set. Writes the (strand_id, watcher_actor_id) watch cell. The new cell value is computed from payload.level + payload.level_public: when level is null the effect is set null (clear, equivalent to mentions_only); when level is a string the effect is set { level, level_public? }. Reducer invariants: (1) watcher_actor_id MUST equal envelope.actor_id unless writer holds ck.strand.watch.set.others; (2) when watcher_actor_id != envelope.actor_id (.others write), level MUST be one of {mentions_only, participating, all} and level_public MUST be omitted or false — writing muted or level_public=true on behalf of another actor MUST failed_precondition; (3) .others writes MUST carry refs[role=audit_pair] to a same-batch ck.audit.accessed event whose payload access_kind=watch_set_others identifies writer / target / cell / before-after heads. See models/strand-and-message.md §8.4.",
       "required": [
-        "flow_id",
+        "strand_id",
         "watcher_actor_id",
         "level"
       ],
       "properties": {
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
+        "strand_id": {
+          "$ref": "#/$defs/strand_id"
         },
         "watcher_actor_id": {
           "$ref": "#/$defs/did"

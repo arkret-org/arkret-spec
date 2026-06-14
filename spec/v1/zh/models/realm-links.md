@@ -61,7 +61,7 @@ Payload 字段：
 | `discoverable_from` | 本 Realm 可从目标 Realm 或其公开目录发现。 | no |
 | `join_gate_from` | 本 Realm 的 join policy 可引用目标 Realm 的 membership / claim snapshot 作为 gate。 | no |
 | `inherits_policy_from` | 本 Realm 选择性继承目标 Realm 的收窄型 policy。 | MAY，必须 narrow-only。 |
-| `confidential_extension_of` | 本 Realm 是另一个 Realm 中某个 Flow / Space / discussion 的机密扩展。 | no |
+| `confidential_extension_of` | 本 Realm 是另一个 Realm 中某个 Strand / Space / discussion 的机密扩展。 | no |
 | `split_from` | 本 Realm 从目标 Realm 拆分或迁移而来。 | no |
 | `replaces` | 本 Realm 替代目标 Realm。 | no，除非 replacement profile 明确声明。 |
 

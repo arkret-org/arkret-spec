@@ -24,7 +24,7 @@
     "required": [
       "track"
     ],
-    "$comment": "Flow track keys use track_name on current wire."
+    "$comment": "Strand track keys use track_name on current wire."
   },
   "properties": {
     "id": {
@@ -46,18 +46,18 @@
     },
     "source_ref": {
       "type": "string",
-      "pattern": "^(ck:(message|flow|morph|relation|view|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ck:blob:(sha256|blake3):[0-9a-f]{64})$",
+      "pattern": "^(ck:(message|strand|morph|relation|view|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ck:blob:(sha256|blake3):[0-9a-f]{64})$",
       "description": "Optional canonical-object reference for clients that want to render the notification target without resolving source_event_id. Reducers MUST treat source_event_id as authoritative; source_ref is a render-only hint."
     },
-    "flow_id": {
+    "strand_id": {
       "type": "string",
-      "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Optional Flow context for routing the notification."
+      "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Optional Strand context for routing the notification."
     },
     "track_name": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]{0,63}$",
-      "description": "Optional Flow track key on the source Flow."
+      "description": "Optional Strand track key on the source Strand."
     },
     "notification_type": {
       "type": "string",

@@ -501,12 +501,12 @@ body.ck-marketing .ck-mono {
   border-bottom: 1px solid var(--ck-border);
 }
 
-.ck-flow {
+.ck-strand {
   display: grid;
   gap: 0.8rem;
 }
 
-.ck-flow-step {
+.ck-strand-step {
   display: flex;
   gap: 0.8rem;
   padding: 1rem 1.1rem;
@@ -515,7 +515,7 @@ body.ck-marketing .ck-mono {
   border-radius: 10px;
 }
 
-.ck-flow-step-no {
+.ck-strand-step-no {
   width: 2.05rem;
   height: 2.05rem;
   border-radius: 999px;
@@ -530,13 +530,13 @@ body.ck-marketing .ck-mono {
   color: var(--ck-accent);
 }
 
-.ck-flow-body h3 {
+.ck-strand-body h3 {
   margin: 0 0 0.32rem;
   font-size: 1rem;
   font-weight: 600;
 }
 
-.ck-flow-body p {
+.ck-strand-body p {
   margin: 0;
   color: var(--ck-fg-muted);
   font-size: 0.89rem;
@@ -1103,9 +1103,9 @@ section.ck-section {
   line-height: 1.62;
 }
 
-/* ---------- Flow rail (refined) ---------------------------------------- */
+/* ---------- Strand rail (refined) ---------------------------------------- */
 
-.ck-flow-rail {
+.ck-strand-rail {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -1114,7 +1114,7 @@ section.ck-section {
   gap: 1rem;
 }
 
-.ck-flow-node {
+.ck-strand-node {
   position: relative;
   padding: 1.35rem 1.3rem;
   background: var(--ck-bg-elevated);
@@ -1127,20 +1127,20 @@ section.ck-section {
     box-shadow 0.2s ease;
 }
 
-.ck-flow-node:hover {
+.ck-strand-node:hover {
   border-color: color-mix(in srgb, var(--ck-accent) 35%, transparent);
   transform: translateY(-2px);
   box-shadow: var(--ck-shadow-card-hover);
 }
 
-.ck-flow-node-head {
+.ck-strand-node-head {
   display: flex;
   align-items: center;
   gap: 0.6rem;
   margin-bottom: 0.85rem;
 }
 
-.ck-flow-connector {
+.ck-strand-connector {
   flex: 1;
   height: 1px;
   background: linear-gradient(
@@ -1150,13 +1150,13 @@ section.ck-section {
   );
 }
 
-.ck-flow-node h3 {
+.ck-strand-node h3 {
   margin: 0 0 0.4rem;
   font-size: 1rem;
   font-weight: 600;
 }
 
-.ck-flow-node p {
+.ck-strand-node p {
   margin: 0;
   color: var(--ck-fg-muted);
   font-size: 0.88rem;
@@ -1411,7 +1411,7 @@ body.ck-marketing a.ck-os-banner:hover .ck-os-banner-cta {
 /* ---------- Responsive -------------------------------------------------- */
 
 @media (max-width: 960px) {
-  .ck-flow-rail {
+  .ck-strand-rail {
     grid-template-columns: repeat(2, 1fr);
   }
   .ck-stack-tier {
@@ -1456,7 +1456,7 @@ body.ck-marketing a.ck-os-banner:hover .ck-os-banner-cta {
   .ck-feature-grid {
     grid-template-columns: 1fr;
   }
-  .ck-flow-step {
+  .ck-strand-step {
     gap: 0.6rem;
   }
   .ck-home-grid-2 {
@@ -1478,7 +1478,7 @@ body.ck-marketing a.ck-os-banner:hover .ck-os-banner-cta {
   .ck-hero-stat:last-child {
     border-bottom: none;
   }
-  .ck-flow-rail {
+  .ck-strand-rail {
     grid-template-columns: 1fr;
   }
   .ck-stack-banner {

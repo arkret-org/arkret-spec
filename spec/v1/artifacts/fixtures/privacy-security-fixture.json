@@ -234,7 +234,7 @@
       "expected": {
         "no_plaintext_message_content": true,
         "no_member_list": true,
-        "no_realm_or_flow_title_for_e2ee": true,
+        "no_realm_or_strand_title_for_e2ee": true,
         "forbidden_fields_absent": [
           "notification.event_id",
           "notification.realm_id",
@@ -242,7 +242,7 @@
           "notification.sender_actor_id",
           "notification.sender_actor_display_name",
           "notification.realm_title",
-          "notification.flow_title"
+          "notification.strand_title"
         ],
         "device_payload_max_bytes": 512
       }
@@ -301,7 +301,7 @@
         },
         "must_not_include": [
           "message_id",
-          "flow_id",
+          "strand_id",
           "realm_id",
           "snippet",
           "sender_actor_id",

@@ -16,8 +16,8 @@ updated: 2026-06-10
 
 Cokret v1 capability 使用以下 canonical resource selector 模型：
 
-- `flow` 是统一协作主对象，默认入口由 track primary 解析规则得到，不是 selector domain。
-- `message` 总是属于某个 Flow 的 `discussion` track。
+- `strand` 是统一协作主对象，默认入口由 track primary 解析规则得到，不是 selector domain。
+- `message` 总是属于某个 Strand 的 `discussion` track。
 - `Board Space` 与 `List Space` 是 Realm 的工作流容器形态，不是独立 selector domain。
 - `morph` 用于开放扩展对象。
 - 跨对象类型授权才使用 `object` selector。
@@ -36,9 +36,9 @@ schema、wire grant 与 conformance 测试 MUST 以本节定义的 JSON 形态�
       "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
     },
     {
-      "kind": "flow",
+      "kind": "strand",
       "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-      "flow_id": "ck:flow:019640c5-0400-7000-8000-000000000000"
+      "strand_id": "ck:strand:019640c5-0400-7000-8000-000000000000"
     },
     {
       "kind": "morph",
@@ -50,7 +50,7 @@ schema、wire grant 与 conformance 测试 MUST 以本节定义的 JSON 形态�
     {
       "constraint_type": "type_restriction",
       "effect": "allow",
-      "allowed_object_types": ["flow"],
+      "allowed_object_types": ["strand"],
       "allowed_tracks": ["synthesis"]
     }
   ]
@@ -79,7 +79,7 @@ Board 与 List 使用 `kind="space"` 选择器，配合 `allowed_space_kinds` �
 }
 ```
 
-List 内 item 移动 SHOULD 同时约束 `allowed_from_container_refs`、`allowed_to_container_refs`、`allowed_relation_kinds` 或对应 flow move payload 字段。
+List 内 item 移动 SHOULD 同时约束 `allowed_from_container_refs`、`allowed_to_container_refs`、`allowed_relation_kinds` 或对应 strand move payload 字段。
 
 ### 2.2 Circle 选择
 
@@ -104,17 +104,17 @@ Circle 使用 `kind="circle"` 选择器，配合 `allowed_circle_ids` constraint
 }
 ```
 
-### 2.3 Flow track 选择
+### 2.3 Strand track 选择
 
-Flow 的 synthesis / discussion 能力面使用 `kind="flow"` 选择器，再用 `allowed_tracks` 限制 track 范围。实现 MUST NOT 接受 card 或 room 作为 canonical resource selector domain。
+Strand 的 synthesis / discussion 能力面使用 `kind="strand"` 选择器，再用 `allowed_tracks` 限制 track 范围。实现 MUST NOT 接受 card 或 room 作为 canonical resource selector domain。
 
 ```json
 {
   "resources": [
     {
-      "kind": "flow",
+      "kind": "strand",
       "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-      "flow_id": "ck:flow:019640c5-0400-7000-8000-000000000000"
+      "strand_id": "ck:strand:019640c5-0400-7000-8000-000000000000"
     }
   ],
   "constraints": [
@@ -149,7 +149,7 @@ selector_term        ::= wildcard_selector
                       | realm_selector
                       | space_selector
                       | circle_selector
-                      | flow_selector
+                      | strand_selector
                       | message_selector
                       | morph_selector
                       | relation_selector
@@ -172,9 +172,9 @@ space_selector       ::= "space" ":" realm_part ":" (space_id | "*")
 
 circle_selector      ::= "circle" ":" realm_part ":" (circle_id | "*")
 
-flow_selector        ::= "flow" ":" realm_part ":" (flow_id | "*")
+strand_selector        ::= "strand" ":" realm_part ":" (strand_id | "*")
 
-message_selector     ::= "message" ":" realm_part ":" flow_part ":" (message_id | "*")
+message_selector     ::= "message" ":" realm_part ":" strand_part ":" (message_id | "*")
 
 morph_selector       ::= "morph" ":" realm_part ":" (morph_id | morph_type | "*")
 
@@ -202,7 +202,7 @@ notification_selector ::= "notification" ":" realm_part ":" "*"
 read_cursor_selector ::= "read_cursor" ":" realm_part ":" "*"
 
 realm_part           ::= realm_id | "*"
-flow_part            ::= flow_id | "*"
+strand_part            ::= strand_id | "*"
 ```
 
 **运算符优先级**：`+`（合取/AND）优先级高于 `,`（析取/OR）。即 `a+b,c` 解析为 `(a AND b) OR c`。需要表达 `a AND (b OR c)` 时，MUST 使用 §2 JSON canonical selector，不得仅用 shorthand 表达。
@@ -212,7 +212,7 @@ flow_part            ::= flow_id | "*"
 - `realm_id`：`ck:realm:` 后接 UUIDv7。
 - `space_id`：`ck:space:` 后接 UUIDv7。
 - `circle_id`：`ck:circle:` 后接 UUIDv7。
-- `flow_id`：`ck:flow:` 后接 UUIDv7。
+- `strand_id`：`ck:strand:` 后接 UUIDv7。
 - `message_id`：`ck:message:` 后接 UUIDv7。
 - `morph_id`：`ck:morph:` 后接 UUIDv7。
 - `relation_id`：`ck:relation:` 后接 UUIDv7。
@@ -220,7 +220,7 @@ flow_part            ::= flow_id | "*"
 - `event_id`：`ck:event:` 后接 UUIDv7。
 - `policy_id`：`ck:policy:` 后接 UUIDv7。
 - `invite_id`：`ck:invite:` 后接 UUIDv7。
-- `schema_ref`：schema registry id，例如 `ck.schema.flow.v1` 或反向域名 schema id。历史 shorthand token 名 `schema_id` MAY 被 parser 接受，但 canonical JSON 字段名 MUST 是 `schema_ref`。
+- `schema_ref`：schema registry id，例如 `ck.schema.strand.v1` 或反向域名 schema id。历史 shorthand token 名 `schema_id` MAY 被 parser 接受，但 canonical JSON 字段名 MUST 是 `schema_ref`。
 - `did`：DID URI。
 - `blob_ref`：Blob typed ID，wire form 为 `ck:blob:` 前缀后接 UUIDv7（blob metadata ID），或 `ck:blob:<suite>:<hex>` content-addressed ref（suite ∈ digest-suite registry active rows，v1 即 `sha256` / `blake3`）。
 - `morph_type`：Realm schema 中注册的开放对象类型。
@@ -279,32 +279,32 @@ flow_part            ::= flow_id | "*"
 - 匹配：指定 Realm 内所有可评估 Space。
 - 要求：MUST 携带 `realm_id`；SHOULD 配合 `allowed_space_kinds`、短有效期和审计理由。
 
-### 4.3 Flow 选择器
+### 4.3 Strand 选择器
 
-`flow:ck:realm:...:*`
+`strand:ck:realm:...:*`
 
-- 匹配：该 Realm 中所有 Flow。
+- 匹配：该 Realm 中所有 Strand。
 - 若只允许某个 track 范围，必须使用 `allowed_tracks`。
 
-`flow:ck:realm:...:ck:flow:019640c5-0400-7000-8000-000000000000`
+`strand:ck:realm:...:ck:strand:019640c5-0400-7000-8000-000000000000`
 
-- 匹配：特定 Flow。
+- 匹配：特定 Strand。
 - 不匹配：Message、Morph、Relation、View 或 Board/List 容器。
 
 ### 4.4 Message 选择器
 
-`message:ck:realm:...:ck:flow:...:*`
+`message:ck:realm:...:ck:strand:...:*`
 
-- 匹配：某个 Flow `discussion` track 内的所有 Message。
-- 不授予 Flow synthesis 字段写入权限。
-- 不绕过 Flow 的 effective scope（`Flow.scope_circle_id=null` 时为父 Realm scope，否则为该 [Circle](../models/circle.md) scope）的 membership、history visibility、redaction 或 E2EE key eligibility。
+- 匹配：某个 Strand `discussion` track 内的所有 Message。
+- 不授予 Strand synthesis 字段写入权限。
+- 不绕过 Strand 的 effective scope（`Strand.scope_circle_id=null` 时为父 Realm scope，否则为该 [Circle](../models/circle.md) scope）的 membership、history visibility、redaction 或 E2EE key eligibility。
 
 ### 4.5 Morph 选择器
 
 `morph:ck:realm:...:customer_case`
 
 - 匹配：该 Realm 中所有 `morph_type=customer_case` 的 Morph。
-- 不匹配：标准 Flow、Message 或 Relation。
+- 不匹配：标准 Strand、Message 或 Relation。
 
 `morph:ck:realm:...:ck:morph:01964140-0000-7000-8000-000000000000`
 
@@ -312,14 +312,14 @@ flow_part            ::= flow_id | "*"
 
 ### 4.6 Object 选择器
 
-`object` 是跨对象类型的通用选择器，只应在授权面确实需要同时覆盖多类对象时使用。实现 SHOULD 优先使用更具体的 `realm`、`flow`、`message`、`morph`、`relation` 或 `view` selector。
+`object` 是跨对象类型的通用选择器，只应在授权面确实需要同时覆盖多类对象时使用。实现 SHOULD 优先使用更具体的 `realm`、`strand`、`message`、`morph`、`relation` 或 `view` selector。
 
-`object:ck:realm:...:flow`
+`object:ck:realm:...:strand`
 
-- 匹配：该 Realm 中所有 `type=flow` 的对象。
+- 匹配：该 Realm 中所有 `type=strand` 的对象。
 - 若只允许某个 track 范围，必须额外使用 `allowed_tracks`。
 
-`object:ck:realm:...:ck:flow:019640c5-0400-7000-8000-000000000000`
+`object:ck:realm:...:ck:strand:019640c5-0400-7000-8000-000000000000`
 
 - 匹配：给定对象引用。
 
@@ -348,7 +348,7 @@ flow_part            ::= flow_id | "*"
 
 ### 5.1 合取 (+)
 
-`realm:ck:realm:...+flow:ck:realm:...:*`
+`realm:ck:realm:...+strand:ck:realm:...:*`
 
 - 表示两个 selector 同时命中时才授权。
 - 常用于把宽泛 selector 与额外资源范围或环境约束组合。
@@ -384,17 +384,17 @@ function matches(target, selector):
             selector.realm_id == "*" or target.id == selector.realm_id or target.realm_id == selector.realm_id
         )
 
-    if selector.kind == "flow":
-        if target.type != "flow":
+    if selector.kind == "strand":
+        if target.type != "strand":
             return false
-        if selector.flow_id and selector.flow_id != target.id:
+        if selector.strand_id and selector.strand_id != target.id:
             return false
         return true
 
     if selector.kind == "message":
         if target.type != "message":
             return false
-        if selector.flow_id and selector.flow_id != "*" and target.flow_id != selector.flow_id:
+        if selector.strand_id and selector.strand_id != "*" and target.strand_id != selector.strand_id:
             return false
         if selector.message_id and selector.message_id != target.id:
             return false
@@ -512,7 +512,7 @@ Selector match 之后，节点还必须执行 action、constraint、claim、appr
 2. **动作匹配**：操作动作必须逐字出现在授权 `actions[]` 中；`actions[]` 不存在 wildcard / segment 通配。通配只适用于资源 selector，不适用于 action token。
 3. **约束匹配**：`allowed_space_kinds`、`allowed_morph_types`、`allowed_relation_kinds`、`allowed_tracks` 等约束必须满足。
 4. **Track scope 检查**：Message 和 discussion track 访问必须在已有 Realm / capability 授权内满足 `allowed_tracks` action scope、history visibility 和 E2EE key eligibility；track 本身不授予 membership、history 或 E2EE key。
-5. **跨对象不传播权限**：Relation、View、Flow 和 Message 的互相引用不自动传播读写权。
+5. **跨对象不传播权限**：Relation、View、Strand 和 Message 的互相引用不自动传播读写权。
 6. **策略检查**：moderation、retention、legal hold、plaintext-visible service 和 federation policy 不得被 selector 绕过。
 
 ## 8. 安全考虑
@@ -535,7 +535,7 @@ Selector match 之后，节点还必须执行 action、constraint、claim、appr
 
 ### 8.2 非 canonical selector domain
 
-实现 MUST reject canonical JSON 中的非标准 selector domain，例如 subject、room、card 等。Flow track 范围必须使用 `kind="flow"` 加 `allowed_tracks`；board / list / 其他结构容器必须使用 `kind="space"` 加 `allowed_space_kinds`（或在需要 Realm-级范围时用 `kind="realm"`）。
+实现 MUST reject canonical JSON 中的非标准 selector domain，例如 subject、room、card 等。Strand track 范围必须使用 `kind="strand"` 加 `allowed_tracks`；board / list / 其他结构容器必须使用 `kind="space"` 加 `allowed_space_kinds`（或在需要 Realm-级范围时用 `kind="realm"`）。
 
 字符串 shorthand 也必须映射到上述 canonical domain；未声明的 selector domain MUST fail closed。
 
@@ -548,7 +548,7 @@ Facet 是 Realm schema / Morph profile 声明后的 hint 或查询标签，不�
 过宽 selector 可能暴露私有信息：
 
 - `realm:*` 可能暴露非预期 Realm。
-- `flow:*:*` 可能暴露对象存在性。
+- `strand:*:*` 可能暴露对象存在性。
 - `message:*:*:*` 可能误授讨论历史读取能力。
 - 在多租户环境中避免使用全局 selector。
 - 对 Board/List 容器的授权不得自动升级为源 Realm 或 linked Realm 授权。
@@ -559,7 +559,7 @@ Facet 是 Realm schema / Morph profile 声明后的 hint 或查询标签，不�
 
 1. `realm_id`
 2. `kind`
-3. 精确对象 ID，例如 `flow_id`、`message_id`、`morph_id`
+3. 精确对象 ID，例如 `strand_id`、`message_id`、`morph_id`
 4. `morph_type`、`relation_kind`
 5. 通配符授权缓存
 
@@ -570,7 +570,7 @@ Facet 是 Realm schema / Morph profile 声明后的 hint 或查询标签，不�
 实现 MUST：
 
 - 接受本规范定义的 JSON resource selector。
-- 支持精确 ID、Realm、Space、Circle、Flow、Message、Morph、Relation、View、Event、Actor、Policy、Invite、Schema、Blob、Notification、Read Cursor 和 Object 匹配。
+- 支持精确 ID、Realm、Space、Circle、Strand、Message、Morph、Relation、View、Event、Actor、Policy、Invite、Schema、Blob、Notification、Read Cursor 和 Object 匹配。
 - 拒绝非 canonical selector kind：`subject`、`room`、`card`、`board`、`list`。
 - 对非法 selector 返回清晰错误。
 - 在 selector 命中后继续执行 action、constraint、claim、policy、`allowed_tracks` action scope 和 E2EE 检查。

@@ -192,7 +192,7 @@ Payload `observed_dots[]` MUST 与 Control Move effect 中的 `observed_dots` �
 
 | Scope | 语义 |
 | --- | --- |
-| `invite` | peer 可发送 Realm / Flow invite |
+| `invite` | peer 可发送 Realm / Strand invite |
 | `direct_message` | peer 可发起 1:1 消息（DM Realm）|
 | `voice_call` | peer 可发起 WebRTC 语音通话 |
 | `video_call` | peer 可发起 WebRTC 视频通话 |

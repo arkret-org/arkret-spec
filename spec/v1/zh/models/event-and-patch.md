@@ -27,7 +27,7 @@ CBA 双平面、DataEvent、Control Move、Seal、Lattice、cell 模型、author
 
 ### 2.1 概念
 
-> **Reducer**（归约器）：按确定性规则把签名后的 Event 序列计算成当前对象状态——Event 是事实日志，reducer 是把日志"播放"成 Flow / Message / Relation 等当前态对象的引擎。本文 §6 给出 reducer MUST 满足的总则；完整协议模型（DataEvent / Control Move / Seal / Lattice / cell / state resolution 等术语）见 [`../authz/event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md)，一行术语条目见 [`../overview/glossary.md`](../overview/glossary.md)。
+> **Reducer**（归约器）：按确定性规则把签名后的 Event 序列计算成当前对象状态——Event 是事实日志，reducer 是把日志"播放"成 Strand / Message / Relation 等当前态对象的引擎。本文 §6 给出 reducer MUST 满足的总则；完整协议模型（DataEvent / Control Move / Seal / Lattice / cell / state resolution 等术语）见 [`../authz/event-auth-state-resolution.md` §3](../authz/event-auth-state-resolution.md)，一行术语条目见 [`../overview/glossary.md`](../overview/glossary.md)。
 
 Event 是 reducer 输入和审计事实。所有协作变化最终都落为签名 `event`。Event 是审计根和 reducer 输入；当前态只是 Event 集合在某个 reducer profile 下的物化结果。
 
@@ -83,7 +83,7 @@ Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。�
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example",
   "actor_seq": 4,
-  "kind": "ck.flow.update",
+  "kind": "ck.strand.update",
   "created_at": "2026-04-26T00:00:00Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": [
@@ -104,12 +104,12 @@ Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。�
   },
   "effects": [
     {
-      "cell": "ck:cell:ck.component.flow.metadata.v1:ck:flow:019640c6-8000-7000-8000-000000000000",
+      "cell": "ck:cell:ck.component.strand.metadata.v1:ck:strand:019640c6-8000-7000-8000-000000000000",
       "op": { "kind": "set", "value": { "metadata.fields.review_status": "approved" } }
     }
   ],
   "payload": {
-    "flow_id": "ck:flow:019640c6-8000-7000-8000-000000000000",
+    "strand_id": "ck:strand:019640c6-8000-7000-8000-000000000000",
     "patch": {
       "metadata.fields.review_status": "approved"
     }
@@ -134,17 +134,17 @@ Event MUST 被签名。Reducer MUST 拒绝任何 signature、schema、capability
 Event Envelope 的顶层 `kind` 是唯一 payload discriminator。State convergence 只能从 CBA effect 显式给出的 cell id 与 lattice op 推导，不从 envelope kind 隐式推导 state slot。
 
 - `payload.type` 不得重复写入 `ck.*` Event kind。
-- Payload 引用被创建对象时通过 `payload.object.id` 或 `payload.target_ref` 等 typed-id 字段表达，前缀（`ck:flow:` 等）即对象种类，不写单独的 `payload.object.type`。
+- Payload 引用被创建对象时通过 `payload.object.id` 或 `payload.target_ref` 等 typed-id 字段表达，前缀（`ck:strand:` 等）即对象种类，不写单独的 `payload.object.type`。
 - `actor_id` 是该 Event 归属的 principal of record。**当 `executed_by` 存在时**(act-on-behalf),实际签发该 Event 的是 `executed_by` 表示的 agent / applet / delegated service principal,proof.verification_method 解析到 `executed_by`;`actor_id` 仍是 accountable principal,用于审计 / 渲染 / accountable_principal_ids 链。Receiver MUST 同时校验 `executed_by`、`authorization_ref` 指向的 active grant / delegation，以及对应 native agent key authorization 或 Applet registration / registration_epoch 绑定之间的一致性，否则 fail closed。物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`,但不得替代 Event proof、capability 或 CBA basis 校验。
 - `actor_kind` 是 reducer-stamped 投影，由 reducer 在接受 Event 时从 `actor_id` 的 Actor Profile 解析得到 immutable 值；它让审计 / 取证 / offline reader 不必反向解析 Actor Profile 即可判断该 Event 是 agent 行为(`actor_kind="agent"`) 还是 controller 行为。Actor 提交侧 MUST NOT 携带该字段。
-- 启用 `ck.profile.mls.minimal_metadata_realm.v1` 时，`actor_id` MAY 是 Realm / Flow track scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `ck.schema.identity_link.v1` payload（`ck.identity_link` application message / MLS private extension）、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
+- 启用 `ck.profile.mls.minimal_metadata_realm.v1` 时，`actor_id` MAY 是 Realm / Strand track scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `ck.schema.identity_link.v1` payload（`ck.identity_link` application message / MLS private extension）、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
 
 ### 2.5 Create 类 Event 的跨字段语义校验
 
 Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire validation，但接收方在进入 accepted set 前还必须执行跨字段语义校验：
 
 - `ck.realm.create.payload.object.created_by` MUST 等于顶层 `actor_id`。
-- `ck.flow.create` / `ck.morph.create` / `ck.profile.create` 中的 `payload.object.created_by` 或 `principal_id` MUST 等于顶层 `actor_id` 或被该 profile 明确授权的 controller。
+- `ck.strand.create` / `ck.morph.create` / `ck.profile.create` 中的 `payload.object.created_by` 或 `principal_id` MUST 等于顶层 `actor_id` 或被该 profile 明确授权的 controller。
 - `payload.object.created_at` MUST 等于顶层 `created_at`。
 
 校验失败 MUST `schema_violation` 或 `capability_denied`，不得把 payload 中的创建者字段当作 proof、capability 或审计归属的替代来源。
@@ -256,14 +256,14 @@ reducer / SDK 实现 MUST 使用确定性 parser:遇到任何 ambiguous match、
 - selector 值按 canonical JSON string 解析后用于精确比较;
 - 匹配 0 项时 `set` / `add` MUST reject (`failed_precondition`, reason=`patch_selector_no_match`);
 - 匹配多项表示对象已违反 schema 的 uniqueness 约束,reducer MUST fail closed (`failed_precondition`, reason=`patch_selector_ambiguous`);
-- Flow `tracks` 在 v1 是 map(key 即 track 名),patch path 直接使用普通对象段，例如 `tracks.discussion.profile`,不需要 selector。
+- Strand `tracks` 在 v1 是 map(key 即 track 名),patch path 直接使用普通对象段，例如 `tracks.discussion.profile`,不需要 selector。
 
 #### 4.2.4 Op 与 redactable 字段交互（normative）
 
 `ck.patch.v1` 的 `$op="unset"` 路径 MUST NOT 操作以下 redactable 内容字段:
 
 - Message: `content`、`encrypted_content`、`body`
-- Flow: `metadata.summary`、`encrypted_content`、`encrypted_metadata`、用户可写的长文本 `metadata.fields`
+- Strand: `metadata.summary`、`encrypted_content`、`encrypted_metadata`、用户可写的长文本 `metadata.fields`
 - Morph: `content`、`encrypted_content`、`metadata.summary`、`encrypted_metadata`、`fields.<text-content-shape>` (由 morph profile 声明)
 - 任何在 Realm schema 中标记为 `redactable: true` 的字段。
 
@@ -276,13 +276,13 @@ reducer MUST 在 patch path 命中 redactable field + `$op="unset"` 时返回 `s
 - `unset` 不允许带 `value`(空 value object MUST 视作 `{"$op":"unset"}`);
 - `set`、`add`、`remove` 必须带 `value`;
 - 客户端不能把数字数组下标写入 path; 如需更新无 stable key 的列表元素，必须将对象重建为具名集合项、用 profile 注册的 move/update event,或使用明确的 API 约束字段表示更新目标;
-- path MUST NOT 操作 reducer-managed 字段: `id` / `schema` / `realm_id` / `created_by` / `created_at` / `updated_by` / `updated_at` / `state` / `state_changed_at` (这些字段由对应 lifecycle event 而非 patch 修改;`updated_by` / `updated_at` 由 reducer 从触发 Event 的 actor / `created_at` 派生，允许 patch 写入会让 actor 伪造更新时间戳，与防伪造 `state_changed_at` 的安全意图矛盾；见 [`common-fields.md` §5](./common-fields.md))。reducer 在 path 命中该集合时 MUST `schema_violation` reason=`patch_path_reducer_managed`。本清单为**通用最小集**;对象专属的 progress 字段禁令(Flow / Morph 的 `stage` / `stage_changed_at` patch path MUST `schema_violation`)见 [`common-fields.md` §5.3](./common-fields.md) 与 [`morph.md` §2](./morph.md)。
+- path MUST NOT 操作 reducer-managed 字段: `id` / `schema` / `realm_id` / `created_by` / `created_at` / `updated_by` / `updated_at` / `state` / `state_changed_at` (这些字段由对应 lifecycle event 而非 patch 修改;`updated_by` / `updated_at` 由 reducer 从触发 Event 的 actor / `created_at` 派生，允许 patch 写入会让 actor 伪造更新时间戳，与防伪造 `state_changed_at` 的安全意图矛盾；见 [`common-fields.md` §5](./common-fields.md))。reducer 在 path 命中该集合时 MUST `schema_violation` reason=`patch_path_reducer_managed`。本清单为**通用最小集**;对象专属的 progress 字段禁令(Strand / Morph 的 `stage` / `stage_changed_at` patch path MUST `schema_violation`)见 [`common-fields.md` §5.3](./common-fields.md) 与 [`morph.md` §2](./morph.md)。
 
 ### 4.3 在 Event 中的位置
 
-Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `payload.flow_id`、`payload.morph_id`、`payload.relation_id`、`payload.view_id` 或该 kind schema 声明的等价字段表达。详见 [`../sync/operations-sync.md`](../sync/operations-sync.md) §7.2 / §8。
+Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `payload.strand_id`、`payload.morph_id`、`payload.relation_id`、`payload.view_id` 或该 kind schema 声明的等价字段表达。详见 [`../sync/operations-sync.md`](../sync/operations-sync.md) §7.2 / §8。
 
-下面是一个 `ck.flow.update` event 中携带 `payload.patch` 字段 delta 的典型示例，覆盖直接 `set` 值（`metadata.fields.review_status` 标量字段）、对象形态 `set`（`metadata.fields.due_date`）、`unset`（`metadata.fields.dropped_field`）与 `add`（`labels.security` 集合追加）四类 op：
+下面是一个 `ck.strand.update` event 中携带 `payload.patch` 字段 delta 的典型示例，覆盖直接 `set` 值（`metadata.fields.review_status` 标量字段）、对象形态 `set`（`metadata.fields.due_date`）、`unset`（`metadata.fields.dropped_field`）与 `add`（`labels.security` 集合追加）四类 op：
 
 ```json schema=schemas/patch.schema.json expect=valid
 {
@@ -301,7 +301,7 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example",
   "actor_seq": 5,
-  "kind": "ck.flow.update",
+  "kind": "ck.strand.update",
   "created_at": "2026-04-26T00:00:00Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": ["ck:event:019640ed-7000-7000-8000-000000000000"],
@@ -320,12 +320,12 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
   },
   "effects": [
     {
-      "cell": "ck:cell:ck.component.flow.metadata.v1:ck:flow:019640c6-8000-7000-8000-000000000000",
+      "cell": "ck:cell:ck.component.strand.metadata.v1:ck:strand:019640c6-8000-7000-8000-000000000000",
       "op": { "kind": "set", "value": { "metadata.fields.review_status": "approved", "metadata.fields.due_date": "2026-06-01", "labels.security": "confidential" } }
     }
   ],
   "payload": {
-    "flow_id": "ck:flow:019640c6-8000-7000-8000-000000000000",
+    "strand_id": "ck:strand:019640c6-8000-7000-8000-000000000000",
     "patch": {
       "metadata.fields.review_status": { "$op": "set", "value": "approved" },
       "metadata.fields.due_date": { "$op": "set", "value": "2026-06-01" },

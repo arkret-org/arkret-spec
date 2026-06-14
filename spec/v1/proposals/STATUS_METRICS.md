@@ -17,7 +17,7 @@ CKP 状态生命周期定义见 [`README.md` §2](./README.md);本文不重新�
 | CKP | 标题 | Status | created | last status change | discussion |
 | --- | --- | --- | --- | --- | --- |
 | [CKP-0001](./.deferred/0001-label-entity.md) | Label as first-class entity | `deferred-to-v1.1` | 2026-04 | 2026-05-10 → deferred-to-v1.1 | — |
-| [CKP-0002](./.deferred/0002-flow-type.md) | Flow Type (Work Item Type) | `deferred-to-v1.1` | 2026-04 | 2026-05-10 → deferred-to-v1.1 | — |
+| [CKP-0002](./.deferred/0002-strand-type.md) | Strand Type (Work Item Type) | `deferred-to-v1.1` | 2026-04 | 2026-05-10 → deferred-to-v1.1 | — |
 | [CKP-0003](./.deferred/0003-field-catalog.md) | Field Catalog | `deferred-to-v1.1` | 2026-04 | 2026-05-10 → deferred-to-v1.1 | — |
 | [CKP-0004](./.deferred/0004-form-layout.md) | Form Layout | `deferred-to-v1.1` | 2026-04 | 2026-05-10 → deferred-to-v1.1 | — |
 | [CKP-0005](./.deferred/0005-workflow-state-machine.md) | Workflow State Machine | `deferred-to-v1.1` | 2026-04 | 2026-05-10 → deferred-to-v1.1 | — |
@@ -32,7 +32,7 @@ CKP 状态生命周期定义见 [`README.md` §2](./README.md);本文不重新�
 | [CKP-0014](./0014-implementation-local-http-surfaces.md) | Implementation-local HTTP surfaces found in coauth / yougen audit | `draft` | 2026-06-06 | 2026-06-06 → draft | — |
 | [CKP-0015](./0015-contact-introduction-and-graded-disclosure.md) | Contact introduction evidence & graded invite-outcome disclosure | `draft` | 2026-06-08 | 2026-06-08 → draft | — |
 | [CKP-0016](./0016-agent-participation-policy.md) | Agent 参与策略与分层授权上限 | `accepted` | 2026-06-09 | 2026-06-09 → accepted (merged → `zh/models/realm-and-space.md` + `zh/authz/capabilities.md` + `artifacts/`) | internal（无公开 URL） |
-| [CKP-0017](./0017-controller-scoped-agent-mention-selector.md) | Controller-scoped Agent Mention Selector | `accepted` | 2026-06-11 | 2026-06-11 → accepted (merged → `zh/models/flow-and-message.md` + `zh/models/actor.md` + `artifacts/schemas/agent-selector-claim.schema.json`) | internal（无公开 URL） |
+| [CKP-0017](./0017-controller-scoped-agent-mention-selector.md) | Controller-scoped Agent Mention Selector | `accepted` | 2026-06-11 | 2026-06-11 → accepted (merged → `zh/models/strand-and-message.md` + `zh/models/actor.md` + `artifacts/schemas/agent-selector-claim.schema.json`) | internal（无公开 URL） |
 
 ## 3. 状态转移汇总
 

@@ -12,9 +12,9 @@ updated: 2026-06-10
 
 ## 1. 目标
 
-本文定义 Cokret 的**客户端无关可分享对象地址**：用户把一个 Flow（或 Flow 内某条 Message、或 Realm）通过一串链接分享出去，接收方的任意 Cokret 客户端都能解析并在自己 UI 里打开。
+本文定义 Cokret 的**客户端无关可分享对象地址**：用户把一个 Strand（或 Strand 内某条 Message、或 Realm）通过一串链接分享出去，接收方的任意 Cokret 客户端都能解析并在自己 UI 里打开。
 
-它解决的具体问题：`ck:flow:<uuid>` 是全局唯一 UUIDv7，但**不可路由**——光有 flow_id 不知道它属于哪个 Realm、由哪台 server 托管，因此各客户端只能各自拼私有 URL，换个客户端就打不开。
+它解决的具体问题：`ck:strand:<uuid>` 是全局唯一 UUIDv7，但**不可路由**——光有 strand_id 不知道它属于哪个 Realm、由哪台 server 托管，因此各客户端只能各自拼私有 URL，换个客户端就打不开。
 
 地址层**只负责寻址**。授权不是地址的一部分，而是挂在地址上的、有 expiry、audience-bound、可吊销的签名 token。**寻址 ≠ 授权**：裸地址解析仍受 [`discovery-directory.md` §2/§3](./discovery-directory.md) 的 discoverability / join / history 三 gate 约束，请求方看不见的资源 MUST 解析为与不存在不可区分的 `not_found`。
 
@@ -24,9 +24,9 @@ updated: 2026-06-10
 
 | Envelope | 形态 | 用途 |
 | --- | --- | --- |
-| **逻辑 ID** | `ck:flow:<uuid>`（不变） | 协议内部 / `resolve_*` 输入。它是不透明 ID，不是 URI，**MUST NOT** 携带 `action` / token。 |
-| **`web+cokret:` URI scheme** | `web+cokret:realm/…/flow/…?action=view` | "在 App 打开"。原生 app 经 OS 级 handler 直接接收；web 客户端经 `navigator.registerProtocolHandler('web+cokret', <https-template>)` 登记（约束见 §5）。 |
-| **HTTPS 落地链接** | `https://<landing>/#realm/…/flow/…?action=view` | 用户复制粘贴的默认形态；`#` 之后整体 = 同一 grammar。`<landing>` 域名由部署方选定，本协议**不**指定中心化落地域名。 |
+| **逻辑 ID** | `ck:strand:<uuid>`（不变） | 协议内部 / `resolve_*` 输入。它是不透明 ID，不是 URI，**MUST NOT** 携带 `action` / token。 |
+| **`web+cokret:` URI scheme** | `web+cokret:realm/…/strand/…?action=view` | "在 App 打开"。原生 app 经 OS 级 handler 直接接收；web 客户端经 `navigator.registerProtocolHandler('web+cokret', <https-template>)` 登记（约束见 §5）。 |
+| **HTTPS 落地链接** | `https://<landing>/#realm/…/strand/…?action=view` | 用户复制粘贴的默认形态；`#` 之后整体 = 同一 grammar。`<landing>` 域名由部署方选定，本协议**不**指定中心化落地域名。 |
 
 `web+cokret:` 与 HTTPS 落地形态共用同一 §3 grammar parser，只是外壳不同（裸接 scheme vs 接在 `#` 后）。逻辑 ID grammar（`ck:<kind>:<uuid>`）见 [`artifacts/registry/id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)，本文不重复定义。
 
@@ -35,12 +35,12 @@ updated: 2026-06-10
 canonical 形态（以 `web+cokret:` envelope 表示）：
 
 ```
-web+cokret:realm/<realm>/flow/<flow>/m/<msg>?action=view
+web+cokret:realm/<realm>/strand/<strand>/m/<msg>?action=view
 ```
 
 | 部分 | 承载 | 规则 |
 | --- | --- | --- |
-| **path** | containment 链 = 身份 + 解析顺序 | path keyword 携带对象类型，值是**裸 uuid**（剥掉 `ck:<kind>:` sigil）。层级固定 `realm/<r>` ⊃ `flow/<f>` ⊃ `m/<msg>`。 |
+| **path** | containment 链 = 身份 + 解析顺序 | path keyword 携带对象类型，值是**裸 uuid**（剥掉 `ck:<kind>:` sigil）。层级固定 `realm/<r>` ⊃ `strand/<f>` ⊃ `m/<msg>`。 |
 | **query** | 非身份提示 + 授权组件 | `action`、`lt`、`tok`（见 §3.2 / §4）。 |
 | **fragment** | 隐私敏感位（仅 HTTPS 形态） | 见 §5。 |
 
@@ -48,19 +48,19 @@ web+cokret:realm/<realm>/flow/<flow>/m/<msg>?action=view
 
 ```
 web+cokret:realm/<realm>                              # Realm（解析委托给 resolve_realm）
-web+cokret:realm/<realm>/flow/<flow>                  # Flow
-web+cokret:realm/<realm>/flow/<flow>/m/<msg>          # Flow discussion track 内某条 Message
-web+cokret:realm/<realm>/flow/<flow>?lt=invite&tok=<token>   # invite link
+web+cokret:realm/<realm>/strand/<strand>                  # Strand
+web+cokret:realm/<realm>/strand/<strand>/m/<msg>          # Strand discussion track 内某条 Message
+web+cokret:realm/<realm>/strand/<strand>?lt=invite&tok=<token>   # invite link
 ```
 
 ### 3.1 Path 规则（normative）
 
-- **realm 是身份，进 path；join routing 不进 URL query。** realm 脱离 path 则 flow 无法定位（授权 / 解析以 Realm 为根，见 [`models/circle.md`](../models/circle.md)）；加入时可用的 Realm ingress service 由 `resolve_realm` / `resolve_target` 返回的 `join_candidates[]` 给出，不写入地址本体。
-- **Flow / Message 地址 MUST 携带 `realm/<realm>`**；缺少 Realm 根时解析方 MUST fail-closed（返回 `not_found`），不得做全网 flow_id 猜测。
-- **`<realm>` 段消歧（normative）**：该段匹配 UUIDv7 文本形态时解释为 `realm_id`；否则解释为 **alias**（域名样式 / 含 `.` 的人类可读名）。`<flow>` / `<msg>` 段**只**接受裸 uuid。path 内裸 uuid 是 URI 压缩形态；进入 token target descriptor（§4）或下游比对前，解析方 MUST 按 path keyword 重建 typed canonical ID（`ck:realm:<uuid>` / `ck:flow:<uuid>` / `ck:message:<uuid>`）。alias 仅作为解析输入形态，MUST 先经常规 Realm 解析路径规范化为 canonical `realm_id`，后续身份比对一律绑定 `realm_id` 而非 alias 字符串。
-- **未知 path keyword fail-closed**：v1 合法 keyword 只有 `realm` / `flow` / `m`，且层级顺序 MUST 为 `realm` ⊃ `flow` ⊃ `m`。解析方遇到未注册 keyword、顺序错乱或缺中间层级时 MUST 返回 `not_found`，不得猜测。未来扩展对象类型（如 `morph` / `space` / `circle`）MUST 显式扩 keyword 表；旧客户端遇到未知 keyword 一律按 fail-closed 处理，保证 forward-compat 下不分叉。
-- Message 锚点 keyword 固定为 `m/`（对齐协议层 [Message 对象](../models/flow-and-message.md#9-message)，而非底层 event envelope）。在 v1 中，`m/<msg>` 只寻址 Flow discussion track 内的 `ck:message:` 对象；synthesis track 的结构化内容应通过 Flow / Morph / Relation 等对象地址或 profile 显式注册的未来 keyword 寻址，不得把 `m/` 解释为任意 track-local item。
-- **Circle-scoped Flow**（`Flow.scope_circle_id != null`）的地址形态**不**额外暴露 circle id：scope 由解析后的访问判定决定，地址层不泄露 Circle 存在性（见 §6）。
+- **realm 是身份，进 path；join routing 不进 URL query。** realm 脱离 path 则 strand 无法定位（授权 / 解析以 Realm 为根，见 [`models/circle.md`](../models/circle.md)）；加入时可用的 Realm ingress service 由 `resolve_realm` / `resolve_target` 返回的 `join_candidates[]` 给出，不写入地址本体。
+- **Strand / Message 地址 MUST 携带 `realm/<realm>`**；缺少 Realm 根时解析方 MUST fail-closed（返回 `not_found`），不得做全网 strand_id 猜测。
+- **`<realm>` 段消歧（normative）**：该段匹配 UUIDv7 文本形态时解释为 `realm_id`；否则解释为 **alias**（域名样式 / 含 `.` 的人类可读名）。`<strand>` / `<msg>` 段**只**接受裸 uuid。path 内裸 uuid 是 URI 压缩形态；进入 token target descriptor（§4）或下游比对前，解析方 MUST 按 path keyword 重建 typed canonical ID（`ck:realm:<uuid>` / `ck:strand:<uuid>` / `ck:message:<uuid>`）。alias 仅作为解析输入形态，MUST 先经常规 Realm 解析路径规范化为 canonical `realm_id`，后续身份比对一律绑定 `realm_id` 而非 alias 字符串。
+- **未知 path keyword fail-closed**：v1 合法 keyword 只有 `realm` / `strand` / `m`，且层级顺序 MUST 为 `realm` ⊃ `strand` ⊃ `m`。解析方遇到未注册 keyword、顺序错乱或缺中间层级时 MUST 返回 `not_found`，不得猜测。未来扩展对象类型（如 `morph` / `space` / `circle`）MUST 显式扩 keyword 表；旧客户端遇到未知 keyword 一律按 fail-closed 处理，保证 forward-compat 下不分叉。
+- Message 锚点 keyword 固定为 `m/`（对齐协议层 [Message 对象](../models/strand-and-message.md#9-message)，而非底层 event envelope）。在 v1 中，`m/<msg>` 只寻址 Strand discussion track 内的 `ck:message:` 对象；synthesis track 的结构化内容应通过 Strand / Morph / Relation 等对象地址或 profile 显式注册的未来 keyword 寻址，不得把 `m/` 解释为任意 track-local item。
+- **Circle-scoped Strand**（`Strand.scope_circle_id != null`）的地址形态**不**额外暴露 circle id：scope 由解析后的访问判定决定，地址层不泄露 Circle 存在性（见 §6）。
 
 ### 3.2 Query 规则（normative）
 
@@ -102,18 +102,18 @@ token 签名 payload **MUST** 包含 **target descriptor** + 生命周期字段�
 ```json
 {
   "realm_id": "ck:realm:<uuid>",
-  "flow_id": "ck:flow:<uuid>",
+  "strand_id": "ck:strand:<uuid>",
   "message_id": "ck:message:<uuid>",
   "link_type": "invite"
 }
 ```
 
-字段出现规则：`realm_id` 与 `link_type` 必含；`link_type` MUST 是 token 签名 payload 声明的 effective type（`invite` 或 `preview`）；`flow_id` 仅 flow / message 目标出现；`message_id` 仅 message 目标出现。
+字段出现规则：`realm_id` 与 `link_type` 必含；`link_type` MUST 是 token 签名 payload 声明的 effective type（`invite` 或 `preview`）；`strand_id` 仅 strand / message 目标出现；`message_id` 仅 message 目标出现。
 
 `target_digest = "sha256:" || hex(sha256(JCS(target_descriptor)))`，其中 `JCS` 是 [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785) JSON Canonicalization Scheme。
 
-- `realm_id` / `flow_id` / `message_id` 字段值 MUST 使用 typed canonical ID（`ck:realm:<uuid>` 等），不得使用 path 中的裸 uuid 或 alias 原文；`realm_id` 必须是 alias 规范化（§3.1）后的 canonical Realm ID。
-- **`target_digest` 只覆盖身份元组（`realm` / `flow` / `m`）与 `link_type`**，**MUST NOT** 纳入 `action` / `tok` / `lt` 或任何其它 query hint。后果是确定的：路由提示刷新或 UI action 改变**不**使 token 失效；而换一个 Flow / Message、或把 `preview` token 当 `invite` token 使用，必然换 digest、token 不可挪用。白名单外字段 MUST NOT 进 digest——与 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) `claim_digest` 同纪律。
+- `realm_id` / `strand_id` / `message_id` 字段值 MUST 使用 typed canonical ID（`ck:realm:<uuid>` 等），不得使用 path 中的裸 uuid 或 alias 原文；`realm_id` 必须是 alias 规范化（§3.1）后的 canonical Realm ID。
+- **`target_digest` 只覆盖身份元组（`realm` / `strand` / `m`）与 `link_type`**，**MUST NOT** 纳入 `action` / `tok` / `lt` 或任何其它 query hint。后果是确定的：路由提示刷新或 UI action 改变**不**使 token 失效；而换一个 Strand / Message、或把 `preview` token 当 `invite` token 使用，必然换 digest、token 不可挪用。白名单外字段 MUST NOT 进 digest——与 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) `claim_digest` 同纪律。
 - 生命周期字段 `aud` / `exp` / `nonce` 在 token payload 内，但**不属于** target descriptor（它们是 token 自身有效性边界，不是被寻址对象的身份）。
 - 签发端与 `resolve_target` 端 MUST 用同一 shape 与省略规则，否则 digest 不可比对。
 
@@ -132,7 +132,7 @@ token 签名 payload **MUST** 包含 **target descriptor** + 生命周期字段�
 
 ## 5. 隐私：target 与 token 放 fragment
 
-HTTPS 落地链接中，`flow` / `m` / 尤其 `tok` **MUST** 放在 URL **fragment（`#`）**，不进 path / query。理由：fragment 不发往落地页服务器，服务器日志学不到"谁在打开哪个 Flow / 持有哪个 token"，与 [`discovery-directory.md` §11](./discovery-directory.md) anti-enumeration 立场一致。
+HTTPS 落地链接中，`strand` / `m` / 尤其 `tok` **MUST** 放在 URL **fragment（`#`）**，不进 path / query。理由：fragment 不发往落地页服务器，服务器日志学不到"谁在打开哪个 Strand / 持有哪个 token"，与 [`discovery-directory.md` §11](./discovery-directory.md) anti-enumeration 立场一致。
 
 `web+cokret:` 的隐私边界按 handler 类型分两支（不可笼统说"不经 web server"）：
 
@@ -145,7 +145,7 @@ HTTPS 落地链接中，`flow` / `m` / 尤其 `tok` **MUST** 放在 URL **fragme
 
 `<landing>` 域名与 web `registerProtocolHandler` handler 模板域名由部署方任意选定，本协议**不**赋予它们任何权威。客户端解析链接时：
 
-- 客户端 **MUST** 把**解析后**的 canonical 身份（`realm_id` 及 §4.2 target descriptor 中的 `flow_id` / `message_id`，经 §3.1 alias 规范化）作为唯一信任锚，所有后续 access gate / 身份比对一律绑定该 canonical target。
+- 客户端 **MUST** 把**解析后**的 canonical 身份（`realm_id` 及 §4.2 target descriptor 中的 `strand_id` / `message_id`，经 §3.1 alias 规范化）作为唯一信任锚，所有后续 access gate / 身份比对一律绑定该 canonical target。
 - 客户端 **MUST NOT** 因 landing 域名、handler 模板域名、或链接外壳与某个已信任部署"看起来相同 / 不同"而授予任何额外权限、放大 token scope、跳过 §6 的 `resolve_target` 校验，或自动向该域名提交 `tok` / 任何授权 material。token 的兑换目标仍由其签名 payload 内的 target descriptor 决定，与承载它的 landing 域无关。
 - 对**未知 / 不在本地信任集合内**的 landing 域名，客户端 **SHOULD** 在解析或兑换前提示用户确认，避免任意域名借 Cokret 链接外壳诱导用户提交 token。
 
@@ -155,22 +155,22 @@ HTTPS 落地链接中，`flow` / `m` / 尤其 `tok` **MUST** 放在 URL **fragme
 
 | operation_id | 必填 | 可选 | 响应 | 约束 |
 | --- | --- | --- | --- | --- |
-| `ck.find.directory.query.resolve_target` | `address: string`（§3 canonical grammar） | `requester: did`; `proofs: proof[]`; `token: string`（`lt ∈ {invite, preview}` 时） | `target_kind: enum(realm,flow,message)`; `realm_preview: object?`; `object_preview: object?`; `join_rule: string?`; 以及 [§9.1](./discovery-directory.md) 全部通用字段 | 见下。 |
+| `ck.find.directory.query.resolve_target` | `address: string`（§3 canonical grammar） | `requester: did`; `proofs: proof[]`; `token: string`（`lt ∈ {invite, preview}` 时） | `target_kind: enum(realm,strand,message)`; `realm_preview: object?`; `object_preview: object?`; `join_rule: string?`; 以及 [§9.1](./discovery-directory.md) 全部通用字段 | 见下。 |
 
 响应约束（normative）：
 
 - 响应 **MUST** 含 [`discovery-directory.md` §9.1](./discovery-directory.md) 全部通用字段，按该节定义直接继承——本节不重述或弱化各字段的强度。其中 `as_of`、`source_refs`、`policy_revision` 在所有 search / resolve 结果上均为 **MUST**（与 [`discovery-directory.md` §7.3](./discovery-directory.md) 不变量 3 一致）；`stale` / `divergent` 为可选诊断标记。realm target 在调用方有权得到 join 路由时 MUST 同时返回 `join_candidates[]`。
 - invite / restricted / secret 资源对未授权请求使用与不存在不可区分的统一 `not_found`（复用 `resolve_realm` 的 blinding）。
-- 携带 `token` 时，`resolve_target` MUST 按 §4.2 校验 token 的 target descriptor 与 `address` 解析出的 canonical 身份 `{realm_id, flow_id?, message_id?}` + 生效 link_type **逐级一致**（等价：重算 `target_digest` 比对），再按 §4.3 走 invite 或 preview 的有效性 / 吊销检查；任一不一致返回统一 `not_found`，不得只校验 token 自身有效性。
+- 携带 `token` 时，`resolve_target` MUST 按 §4.2 校验 token 的 target descriptor 与 `address` 解析出的 canonical 身份 `{realm_id, strand_id?, message_id?}` + 生效 link_type **逐级一致**（等价：重算 `target_digest` 比对），再按 §4.3 走 invite 或 preview 的有效性 / 吊销检查；任一不一致返回统一 `not_found`，不得只校验 token 自身有效性。
 - `preview` token 校验通过时，响应 MUST 只包含 effective `ck.realm.preview_policy` 允许的 `realm_preview` / `object_preview` / stripped `history_preview` 字段。除非 caller 另行满足 join routing disclosure gate，响应 MUST 省略 `join_candidates[]`。
 - alias 解析失败、alias 与 token 绑定的 `realm_id` 不一致、或无法取得 canonical `realm_id` 时，均返回统一 `not_found`。
 
-客户端解析流程：解析 `address` → 取 path 末段确定 `target_kind` → 用 realm path 段解析 Realm 并取得 canonical `realm_id` 与可披露的 `join_candidates[]`（委托 `resolve_realm`）→ 若有 `token`，按 §4.2 校验 target descriptor → 在 Realm 内按 access gate 定位 flow / message → 渲染成本地 UI URL。若随后要 join / invite-accept / knock，客户端从 `join_candidates[]` 选择一个未过期候选，而不是假定邀请者服务就是唯一入口。
+客户端解析流程：解析 `address` → 取 path 末段确定 `target_kind` → 用 realm path 段解析 Realm 并取得 canonical `realm_id` 与可披露的 `join_candidates[]`（委托 `resolve_realm`）→ 若有 `token`，按 §4.2 校验 target descriptor → 在 Realm 内按 access gate 定位 strand / message → 渲染成本地 UI URL。若随后要 join / invite-accept / knock，客户端从 `join_candidates[]` 选择一个未过期候选，而不是假定邀请者服务就是唯一入口。
 
 ## 7. 规范性引用
 
 - 发现 / 目录 / 三 gate / anti-enumeration / `resolve_realm` / `join_candidates`：[`discovery/discovery-directory.md`](./discovery-directory.md)。
-- Realm 为根的授权 / Circle scope / 存在性隐私：[`models/circle.md`](../models/circle.md)、[`models/flow-and-message.md`](../models/flow-and-message.md)。
+- Realm 为根的授权 / Circle scope / 存在性隐私：[`models/circle.md`](../models/circle.md)、[`models/strand-and-message.md`](../models/strand-and-message.md)。
 - Invite token / signed_link 生命周期：[`governance/join-policy.md`](../governance/join-policy.md)。
 - Digest 纪律（JCS + 字段白名单）：[`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md)。
 - 逻辑 ID grammar：[`artifacts/registry/id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)。

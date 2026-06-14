@@ -70,7 +70,7 @@ Applet 是受注册、受授权、可审计的集成服务。它可以：
 Agent 是 Cokret 协作图中以 **A2A** / **ACP** 等外部 agent 协议进行任务编排的可委派运行时。它可以：
 
 - 在 Realm 内以独立 Actor 身份执行受托动作。
-- 接收外部 agent 协议事件并把结果落点到 Flow / Message / Morph。
+- 接收外部 agent 协议事件并把结果落点到 Strand / Message / Morph。
 - 通过 capability + accountability 链表达"哪个 principal 委派 / 谁负责"。
 
 Agent 的对象身份与 Applet 类似（独立 DID 或受托 device DID），但运行时面向 agent 协议互通，而非外部网络桥接。
@@ -85,7 +85,7 @@ Agent 的对象身份与 Applet 类似（独立 DID 或受托 device DID），�
 ### 3.3 详细规范
 
 - A2A / ACP / external agent protocol handoff：[`../extensions/agent-protocol-interop.md`](../extensions/agent-protocol-interop.md)。
-- Agent 落点（结果如何写回 Flow / Message / Morph）：[`../overview/current-model.md` §8](../overview/current-model.md)。
+- Agent 落点（结果如何写回 Strand / Message / Morph）：[`../overview/current-model.md` §8](../overview/current-model.md)。
 
 ## 4. Blob
 
@@ -96,7 +96,7 @@ Blob 是 Cokret 中由 **Blob Store** 管理的内容寻址数据：图片、视
 Blob 在协作图中通过 `ck:blob:<hash>` 引用：
 
 - Message `ck.content.image` / `ck.content.video` / `ck.content.audio` / `ck.content.file` 中的 `blob_ref`。
-- Flow `content` Content Block 中的引用。
+- Strand `content` Content Block 中的引用。
 - `Realm.avatar_blob_ref` / `Space.avatar_blob_ref` / `actor_profile.avatar_blob_ref`。
 - Relation `attached_to` 指向 blob 的边。
 

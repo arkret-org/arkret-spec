@@ -63,7 +63,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | `temporal` | `redact_window` | extension | `applies_to_actions=["ck.message.redact.own"]` + `message_redact_window` 限定自助撤回窗口。 | `ck.profile.chat_mvp.v1` |
 | `field_access` | （省略 = 列表比较） | core | 写入面 `allowed_write_fields` / `denied_write_fields`（§4.1 / §4.2）与读取面 `allowed_read_fields` / `denied_read_fields` / `sensitive_fields` / `sensitive_handling`（§4.3）。 | core |
 | `type_restriction` | — | core | 对象类型 / Realm kind / Morph type / facet 限制。 | core |
-| `scope_limitation` | （省略 = 普通 scope） | core | Realm / Flow / View / track 范围。 | core |
+| `scope_limitation` | （省略 = 普通 scope） | core | Realm / Strand / View / track 范围。 | core |
 | `scope_limitation` 带 `allowed_relation_kinds` / `allowed_*_container_refs` | — | extension | 看板 / 容器移动范围。 | `ck.profile.kanban_mvp.v1` |
 | `delegation_control` | — | core | 委托深度、路径、`delegation_scope` 等。 | core |
 | `quota` | `rate` | core | 操作频率（`max_operations` + `period` + `burst`）。 | core |
@@ -206,7 +206,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 {
   "constraint_type": "type_restriction",
   "effect": "allow",
-  "allowed_object_types": ["flow", "message", "morph", "space"],
+  "allowed_object_types": ["strand", "message", "morph", "space"],
   "allowed_space_kinds": ["board", "list"],
   "allowed_morph_types": ["document", "customer_case"],
   "allowed_facets": ["stateful", "replyable", "documentable"],
@@ -214,31 +214,31 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 
-`allowed_object_types` 只按对象类型收窄范围，不赋予能力。v1 中所有 Realm 同属一种安全边界、无 kind 区分，**不存在 Realm-kind 维度的约束**；若未来真的引入 Realm kind，必须注册新约束版本或明确 profile 语义。需按结构收窄请用 `allowed_space_kinds`。**结构容器（看板、列、泳道、calendar bucket 等）由 Space 对象承担**——使用 `allowed_space_kinds` 收窄到 Space.kind（例如 `["board", "list"]` 或 profile 注册的新 kind）；allowed_space_kinds 不会把 Space 升级为独立 membership 或 E2EE 边界（Space 永远透明回退到所属 Realm）。Flow 不再有顶层模式或业务分类约束；业务语义 SHOULD 通过 Realm schema/profile、`metadata.fields`、Relation、labels、Morph type 或 facet 约束表达。`allowed_facets` 只按 Realm schema / Morph profile 已声明的 facet hint 继续收窄范围，不授予写入、排序、状态转换或 renderer 能力，也不替代 `allowed_object_types` / `allowed_morph_types`。Morph 语义 SHOULD 通过 `allowed_morph_types` 和显式 profile 继续细分。
+`allowed_object_types` 只按对象类型收窄范围，不赋予能力。v1 中所有 Realm 同属一种安全边界、无 kind 区分，**不存在 Realm-kind 维度的约束**；若未来真的引入 Realm kind，必须注册新约束版本或明确 profile 语义。需按结构收窄请用 `allowed_space_kinds`。**结构容器（看板、列、泳道、calendar bucket 等）由 Space 对象承担**——使用 `allowed_space_kinds` 收窄到 Space.kind（例如 `["board", "list"]` 或 profile 注册的新 kind）；allowed_space_kinds 不会把 Space 升级为独立 membership 或 E2EE 边界（Space 永远透明回退到所属 Realm）。Strand 不再有顶层模式或业务分类约束；业务语义 SHOULD 通过 Realm schema/profile、`metadata.fields`、Relation、labels、Morph type 或 facet 约束表达。`allowed_facets` 只按 Realm schema / Morph profile 已声明的 facet hint 继续收窄范围，不授予写入、排序、状态转换或 renderer 能力，也不替代 `allowed_object_types` / `allowed_morph_types`。Morph 语义 SHOULD 通过 `allowed_morph_types` 和显式 profile 继续细分。
 
 ## 6. 范围限制
 
-### 6.1 流程范围限制（Flow/Realm）
+### 6.1 流程范围限制（Strand/Realm）
 
 ```json
 {
   "constraint_type": "scope_limitation",
   "effect": "allow",
-  "allowed_flow_ids": [
-    "ck:flow:01964180-0280-7000-8000-000000000000"
+  "allowed_strand_ids": [
+    "ck:strand:01964180-0280-7000-8000-000000000000"
   ],
   "allowed_tracks": ["discussion"],
-  "denied_flow_ids": [
-    "ck:flow:01964180-0289-7a52-94a5-294a5294a400"
+  "denied_strand_ids": [
+    "ck:strand:01964180-0289-7a52-94a5-294a5294a400"
   ]
 }
 ```
 
-`allowed_tracks` 只限制 Flow track 范围，不自动授予对应 track 的 message read/write 权限。Message 操作仍必须命中 `ck.message.*` action，并在已有 Realm 授权内满足 `allowed_tracks` action scope、history visibility 和 E2EE key eligibility。
+`allowed_tracks` 只限制 Strand track 范围，不自动授予对应 track 的 message read/write 权限。Message 操作仍必须命中 `ck.message.*` action，并在已有 Realm 授权内满足 `allowed_tracks` action scope、history visibility 和 E2EE key eligibility。
 
 `discussion` 不是独立实体或 selector kind。授权 discussion track 应使用 `allowed_tracks=["discussion"]`。`tracks.<name>.profile` 只是 track-local profile hint，v1 grant constraint 不定义按 profile 名称授权的字段；能否读取、发送或管理消息仍由 action、`allowed_tracks` action scope、history visibility 和 E2EE key eligibility 决定。
 
-`allowed_tracks` 和 `denied_tracks` 的元素 MUST 使用 Flow `tracks` map key 的同一命名规则：`^[a-z][a-z0-9_]{0,63}$`。`synthesis` 与 `discussion` 是 v1 标准 track 名；profile MAY 声明其他 track 名，但不得用 profile 名称替代 track name。
+`allowed_tracks` 和 `denied_tracks` 的元素 MUST 使用 Strand `tracks` map key 的同一命名规则：`^[a-z][a-z0-9_]{0,63}$`。`synthesis` 与 `discussion` 是 v1 标准 track 名；profile MAY 声明其他 track 名，但不得用 profile 名称替代 track name。
 
 ### 6.2 视图限制
 
@@ -267,9 +267,9 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 
-`scope_limitation` 约束中的 `allowed_from_container_refs` / `allowed_to_container_refs` MUST 在授权判定中早于 operation 生效。这里的 container 是结构容器概念，不是新的对象类型或 ID 前缀；v1 标准容器由 Space 承担（例如 Board / List / 泳道）。目标 List 禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`ck.flow.move` / `ck.container.move_item` 不得直接生效。
+`scope_limitation` 约束中的 `allowed_from_container_refs` / `allowed_to_container_refs` MUST 在授权判定中早于 operation 生效。这里的 container 是结构容器概念，不是新的对象类型或 ID 前缀；v1 标准容器由 Space 承担（例如 Board / List / 泳道）。目标 List 禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`ck.strand.move` / `ck.container.move_item` 不得直接生效。
 
-`allowed_space_ids` / `denied_space_ids` MUST 使用 `ck:space:` ID；`allowed_from_container_refs` / `allowed_to_container_refs` 表达可移出 / 可移入的结构容器，也 MUST 使用 `ck:space:`（或 profile 明确声明的 `ck:flow:` / `ck:morph:` 容器对象）。Realm-wide 范围收窄应写在 resource selector 的 `realm:` 维度，不得把 `ck:realm:` 塞进 Space 或 container 字段。
+`allowed_space_ids` / `denied_space_ids` MUST 使用 `ck:space:` ID；`allowed_from_container_refs` / `allowed_to_container_refs` 表达可移出 / 可移入的结构容器，也 MUST 使用 `ck:space:`（或 profile 明确声明的 `ck:strand:` / `ck:morph:` 容器对象）。Realm-wide 范围收窄应写在 resource selector 的 `realm:` 维度，不得把 `ck:realm:` 塞进 Space 或 container 字段。
 
 ### 6.4 服务出口与 presign 范围
 
@@ -732,7 +732,7 @@ function matches_field_access(operation, constraint):
 
 `depends_on_moderation_state` 是 constraint object 上的一个 **boolean 缓存失效 hint**，**不是** §2.2 的 8 个 constraint family 之一，也不参与 §15 的 allow/deny 求值。它的唯一作用是声明“本 grant 的授权决策是否依赖 `ck.component.moderation_state.v1` cell（见 [`policy-server.md` §7.1](./policy-server.md)）”，从而决定该 cell 变化时是否 MUST 让 grant 的 fast-path cache entry 失效。
 
-- 默认 `false`：普通 grant（`ck.flow.update` / `ck.message.create` / 组织成员 grant 等）不因每次 moderation 决策抖动失效。
+- 默认 `false`：普通 grant（`ck.strand.update` / `ck.message.create` / 组织成员 grant 等）不因每次 moderation 决策抖动失效。
 - 当满足 [`capabilities.md` §18.1](./capabilities.md) 列出的三类触发条件之一（moderator-role grant、condition-selector subject 引用 moderation state、constraint 引用 moderation queue / cell）时，`constraints[]` 中 MUST 显式包含 `depends_on_moderation_state=true`，缺失即 `schema_violation`。其中“条件 (2)（`actions[]` 含 moderation 写入动作）”由 [`capability-grant.schema.json`](../../artifacts/schemas/capability-grant.schema.json) 的 `if/then` 静态强制；条件 (1)、(3) 为 reducer-side lint。
 - 归属：在 [`capabilities.md` §6](./capabilities.md) 约束清单与映射表中登记于“moderation 缓存依赖标记”分组（不归入任一 constraint family）；机读权威源为 [`grant-constraint.schema.json`](../../artifacts/schemas/grant-constraint.schema.json) 的 `depends_on_moderation_state` 属性。
 - 一个 `{"depends_on_moderation_state": true}` 不需要 `constraint_type`/`effect` 之外的求值语义；它与同一 grant 内的其它 typed constraint 并列承载，仅供缓存失效引擎读取。
@@ -770,12 +770,12 @@ function matches_field_access(operation, constraint):
 {
   "grant_id": "ck:grant:...",
   "subject": "did:web:agent.example.com",
-  "actions": ["ck.object.read", "ck.flow.create", "ck.morph.create"],
+  "actions": ["ck.object.read", "ck.strand.create", "ck.morph.create"],
   "resources": [
     {
-      "kind": "flow",
+      "kind": "strand",
       "realm_id": "ck:realm:...",
-      "flow_id": "*"
+      "strand_id": "*"
     }
   ],
   "constraints": [
@@ -787,7 +787,7 @@ function matches_field_access(operation, constraint):
     {
       "constraint_type": "type_restriction",
       "effect": "allow",
-      "allowed_object_types": ["flow"]
+      "allowed_object_types": ["strand"]
     },
     {
       "constraint_type": "field_access",
@@ -868,7 +868,7 @@ Grant envelope 字段、签名规则与必填性以
   {
     "constraint_type": "type_restriction",
     "effect": "allow",
-    "allowed_object_types": ["flow", "morph", "space"],
+    "allowed_object_types": ["strand", "morph", "space"],
     "allowed_space_kinds": ["board", "list"],
     "allowed_morph_types": ["document", "customer_case"],
     "allowed_facets": ["stateful", "replyable"]
@@ -948,7 +948,7 @@ Delegated grant MUST 等于或窄于 parent grant。`max_delegation_depth`、
   `depends_on` 和 `contains` 被同一宽泛授权混用。
 - `allowed_from_container_refs` 与 `allowed_to_container_refs` 分别限制可移出
   和可移入的列 / collection。
-- `allowed_view_ids` 限定授权适用的 View；同一个 Flow item 出现在多个 View
+- `allowed_view_ids` 限定授权适用的 View；同一个 Strand item 出现在多个 View
   时不得自动继承移动权。
 - `wip_limit_override=false` 时，若目标列 `wip_limit_enforcement` 为 `reject`
   或 `require_review`，移动必须失败或进入审批路径。

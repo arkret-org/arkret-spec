@@ -14,17 +14,17 @@ updated: 2026-06-10
 
 ## 1. 目标
 
-Cokret 的 `message` 标准对象、Flow synthesis / discussion 和可讨论的 Morph 需要承载远比纯文本丰富的内容，包括图片、视频、文件、代码块、地理位置等。本规范定义了结构化的**内容类型系统 (Content Type System)**，使得：
+Cokret 的 `message` 标准对象、Strand synthesis / discussion 和可讨论的 Morph 需要承载远比纯文本丰富的内容，包括图片、视频、文件、代码块、地理位置等。本规范定义了结构化的**内容类型系统 (Content Type System)**，使得：
 
 - 所有客户端能够以一致的方式渲染各种消息类型
 - 不支持某种内容类型的客户端能通过 `fallback_text` 优雅降级
-- E2EE 场景下加密信封 (`encrypted_content`) 只包裹 Message 顶层的 `content`（即整个 Content Block 对象，包括其内部的 `body` 字段）和 `attachments` 等业务字段，`flow_id` / `created_by` 等路由与归因 metadata 保持明文
+- E2EE 场景下加密信封 (`encrypted_content`) 只包裹 Message 顶层的 `content`（即整个 Content Block 对象，包括其内部的 `body` 字段）和 `attachments` 等业务字段，`strand_id` / `created_by` 等路由与归因 metadata 保持明文
 
 ## 2. 设计原则
 
 ### 2.1 Content 是结构化的，不是裸字符串
 
-Message 的 `content` 字段、`ck.message.create` / `ck.message.revise` Event Envelope 的 `payload.content` 或 `payload.encrypted_content` 字段、Flow 的 `content` / `encrypted_content` 字段、Flow discussion 摘要以及 Morph 的 `content` / `encrypted_content` 字段 MUST 使用本规范定义的结构化 JSON 格式或其 canonical encrypted envelope，而非依赖客户端猜测渲染方式。
+Message 的 `content` 字段、`ck.message.create` / `ck.message.revise` Event Envelope 的 `payload.content` 或 `payload.encrypted_content` 字段、Strand 的 `content` / `encrypted_content` 字段、Strand discussion 摘要以及 Morph 的 `content` / `encrypted_content` 字段 MUST 使用本规范定义的结构化 JSON 格式或其 canonical encrypted envelope，而非依赖客户端猜测渲染方式。
 
 ### 2.2 单一 Content Block 架构
 
@@ -33,13 +33,13 @@ Message 的 `content` 字段、`ck.message.create` / `ck.message.revise` Event E
 - `body`：人类可读的纯文本摘要 / fallback
 - 类型相关的专有字段
 
-Message envelope 与 Content Block 的层级关系大致如下（Message 顶层完整 schema 见 [`flow-and-message.md` §9.2](./flow-and-message.md#92-schema-与字段)，本文件后续章节只讨论 `content` 内部结构）：
+Message envelope 与 Content Block 的层级关系大致如下（Message 顶层完整 schema 见 [`strand-and-message.md` §9.2](./strand-and-message.md#92-schema-与字段)，本文件后续章节只讨论 `content` 内部结构）：
 
 ```json
 {
   "id": "ck:message:...",
   "realm_id": "ck:realm:...",
-  "flow_id": "ck:flow:...",
+  "strand_id": "ck:strand:...",
   "track_name": "discussion",
   "state": "active",
   "created_by": "did:web:alice.example",
@@ -56,9 +56,9 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 因此本文档示例里的 `kind` / `body` / `format` 等字段都是 **Content Block 内部字段**，位于 Message `content` 之下；不要与 Message 顶层字段混在一层理解。
 
-`ck.message.create` / `ck.message.revise` 的未加密 Event payload MUST 将这个 Content Block 对象放在 `payload.content` 字段中；E2EE payload MUST 将同一对象加密后放在 `payload.encrypted_content`。`flow_id`、`blob_refs` 等字段是 envelope / reducer metadata（Message 主键是顶层 `id`，不是 `message_id`；回复由 `replies_to` Relation 表达，无 `reply_to` 标量字段），不能把消息正文直接写成 payload 顶层 `body`。
+`ck.message.create` / `ck.message.revise` 的未加密 Event payload MUST 将这个 Content Block 对象放在 `payload.content` 字段中；E2EE payload MUST 将同一对象加密后放在 `payload.encrypted_content`。`strand_id`、`blob_refs` 等字段是 envelope / reducer metadata（Message 主键是顶层 `id`，不是 `message_id`；回复由 `replies_to` Relation 表达，无 `reply_to` 标量字段），不能把消息正文直接写成 payload 顶层 `body`。
 
-这里的 `payload` 指 Event Envelope 的 kind-specific 业务载荷容器；`content` 指该 payload 内部写入 Message / Flow / Morph 正文字段的 Content Block，不是 `payload` 的同义词。
+这里的 `payload` 指 Event Envelope 的 kind-specific 业务载荷容器；`content` 指该 payload 内部写入 Message / Strand / Morph 正文字段的 Content Block，不是 `payload` 的同义词。
 
 ### 2.3 复合消息使用 `composite` 类型
 
@@ -383,7 +383,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 在端到端加密场景下：
 - `content` 字段的完整 JSON 对象被加密为 `encrypted_content`
-- `encrypted_content` MUST 符合 `artifacts/schemas/encrypted-envelope.schema.json`；`ck.message.create` / `ck.message.revise` 和 Flow synthesis `content` 使用同一 canonical envelope；没有 `content` 明文对偶的 payload surface MAY 继续使用通用 `encrypted_payload`
+- `encrypted_content` MUST 符合 `artifacts/schemas/encrypted-envelope.schema.json`；`ck.message.create` / `ck.message.revise` 和 Strand synthesis `content` 使用同一 canonical envelope；没有 `content` 明文对偶的 payload surface MAY 继续使用通用 `encrypted_payload`
 - `body` 字段在密文信封中**不保留明文副本**（防止元数据泄露）
 - 用于推送通知的脱敏摘要由发送者的客户端单独生成并附在明文元数据中（参见 `push-notifications.md`）
 

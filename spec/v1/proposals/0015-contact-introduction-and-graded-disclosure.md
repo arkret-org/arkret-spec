@@ -18,7 +18,7 @@ depends_on:
 
 ## 1. Summary
 
-CKP-0013 把"加联系人 → 找他聊天"定义在 contact fact / consent gate / direct conversation binding 之上,但把"联系人拉进 Realm/Flow 群聊"这一步留在了较弱的引入证据模型里:已经互授 `consent_scope=invite` 的两个人,邀请仍只能退化为 `same_principal_server` 或 `explicit_address` 这类低信任 evidence,接收方据此普遍按陌生人对待。
+CKP-0013 把"加联系人 → 找他聊天"定义在 contact fact / consent gate / direct conversation binding 之上,但把"联系人拉进 Realm/Strand 群聊"这一步留在了较弱的引入证据模型里:已经互授 `consent_scope=invite` 的两个人,邀请仍只能退化为 `same_principal_server` 或 `explicit_address` 这类低信任 evidence,接收方据此普遍按陌生人对待。
 
 本提案在既有 invite 引入证据与 receive policy 之上做四处收敛,均为既有 schema 上的加字段 / 加枚举值,不新增 event kind、operation、error code 或 schema id:
 
@@ -31,7 +31,7 @@ CKP-0013 把"加联系人 → 找他聊天"定义在 contact fact / consent gate
 
 ### 2.1 G1:联系人拉群退化成弱信任
 
-CKP-0013 让 Alice 与 Bob 在 contact accept 时互写 consent grant(`invite` 或更广 scope)。但当 Alice 要把 Bob 拉进一个 Realm/Flow 群聊时,invite delivery 携带的引入证据只能是 `locator_ref`(需要 Bob 主动给出的 locator URL)、`shared_realm`(需要已同在某 Realm)、`same_principal_server` 或 `explicit_address`。对"已经是联系人、已互授 invite consent"的这对人,既没有现成 locator,也未必同在 Realm,于是 invite 退化为低信任档,接收方按陌生人策略处理,容易被 quarantine 或 drop。这与"他们已经显式互相授权过 invite"的事实矛盾。
+CKP-0013 让 Alice 与 Bob 在 contact accept 时互写 consent grant(`invite` 或更广 scope)。但当 Alice 要把 Bob 拉进一个 Realm/Strand 群聊时,invite delivery 携带的引入证据只能是 `locator_ref`(需要 Bob 主动给出的 locator URL)、`shared_realm`(需要已同在某 Realm)、`same_principal_server` 或 `explicit_address`。对"已经是联系人、已互授 invite consent"的这对人,既没有现成 locator,也未必同在 Realm,于是 invite 退化为低信任档,接收方按陌生人策略处理,容易被 quarantine 或 drop。这与"他们已经显式互相授权过 invite"的事实矛盾。
 
 ### 2.2 G2:没有分级披露
 

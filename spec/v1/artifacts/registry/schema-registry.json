@@ -28,8 +28,8 @@
       "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or policy server. Introduced by CKP-0007; see zh/models/circle.md."
     },
     {
-      "schema_id": "ck.schema.flow.v1",
-      "file": "schemas/flow.schema.json"
+      "schema_id": "ck.schema.strand.v1",
+      "file": "schemas/strand.schema.json"
     },
     {
       "schema_id": "ck.schema.message.v1",
@@ -57,7 +57,7 @@
       "schema_id": "ck.schema.calendar_event.v1",
       "file": "schemas/calendar-event.schema.json",
       "status": "active",
-      "description": "Profile fields for calendar-event Flows."
+      "description": "Profile fields for calendar-event Strands."
     },
     {
       "schema_id": "ck.schema.rsvp.v1",
@@ -270,7 +270,7 @@
       "schema_id": "ck.schema.recovery_receipt.v1",
       "file": "schemas/recovery-receipt.schema.json",
       "status": "active",
-      "description": "Signed completion receipt for a principal recovery flow. Bound to recovery_session_id used by every proof, backup unlock, and MLS Welcome replay during the recovery. See crypto-media/device-lifecycle.md §15 step 7."
+      "description": "Signed completion receipt for a principal recovery strand. Bound to recovery_session_id used by every proof, backup unlock, and MLS Welcome replay during the recovery. See crypto-media/device-lifecycle.md §15 step 7."
     },
     {
       "schema_id": "ck.schema.notification.v1",

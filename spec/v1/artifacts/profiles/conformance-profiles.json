@@ -379,10 +379,10 @@
         "ck.consent.revoke"
       ],
       "rejected_event_kinds": [
-        "ck.flow.create",
-        "ck.flow.update",
-        "ck.flow.move",
-        "ck.flow.reorder",
+        "ck.strand.create",
+        "ck.strand.update",
+        "ck.strand.move",
+        "ck.strand.reorder",
         "ck.message.create",
         "ck.message.revise",
         "ck.reaction.add",
@@ -435,7 +435,7 @@
           "ck.consent.revoke"
         ],
         "reject_categories": [
-          "flow",
+          "strand",
           "message",
           "space",
           "relation",
@@ -531,7 +531,7 @@
       "required_event_kinds": [
         "ck.realm.create",
         "ck.member.state",
-        "ck.flow.create",
+        "ck.strand.create",
         "ck.message.create",
         "ck.message.revise",
         "ck.message.redact",
@@ -542,7 +542,7 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ck.schema.realm.v1",
-        "ck.schema.flow.v1",
+        "ck.schema.strand.v1",
         "ck.schema.message.v1",
         "ck.schema.account_subscribe_frame.v1"
       ],
@@ -561,7 +561,7 @@
       ],
       "prose_requirement_coverage": [
         {
-          "requirement": "Flow discussion timeline",
+          "requirement": "Strand discussion timeline",
           "coverage": [
             "sync-fixture.json"
           ]
@@ -612,17 +612,17 @@
       "required_event_kinds": [
         "ck.realm.create",
         "ck.member.state",
-        "ck.flow.create",
-        "ck.flow.update",
-        "ck.flow.move",
-        "ck.flow.reorder",
+        "ck.strand.create",
+        "ck.strand.update",
+        "ck.strand.move",
+        "ck.strand.reorder",
         "ck.relation.create",
         "ck.container.rebalance"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
         "ck.schema.realm.v1",
-        "ck.schema.flow.v1",
+        "ck.schema.strand.v1",
         "ck.schema.relation.v1",
         "ck.schema.view.v1"
       ],
@@ -663,7 +663,7 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ck.schema.realm.v1",
-        "ck.schema.flow.v1",
+        "ck.schema.strand.v1",
         "ck.schema.message.v1",
         "ck.schema.morph.v1",
         "ck.schema.relation.v1",
@@ -724,7 +724,7 @@
       "required_event_kinds": [
         "ck.realm.create",
         "ck.member.state",
-        "ck.flow.create",
+        "ck.strand.create",
         "ck.message.create",
         "ck.reaction.add",
         "ck.redaction",
@@ -1030,7 +1030,7 @@
       "required_event_kinds": [
         "ck.realm.create",
         "ck.member.state",
-        "ck.flow.create",
+        "ck.strand.create",
         "ck.message.create",
         "ck.capability.grant",
         "ck.capability.revoke"
@@ -1405,7 +1405,7 @@
     },
     "ck.profile.push_gateway.blind_wakeup.v1": {
       "role": "gateway",
-      "description": "Default push gateway privacy baseline. Every implementation claiming ck.profile.push_gateway.v1 MUST also claim this profile. Provider-facing payloads MUST NOT carry stable identifying fields (principal DID, sender DID, Realm id / name / avatar, Flow id / name, Message id, event id, device DID URL, reaction value, or any cross-Realm stable correlation key). Payloads MUST be restricted to per-(recipient_service_did, principal, device, push_route) pairwise pseudonym push_target_id + closed-enum wakeup hint fields (wakeup_kind, badge_count, unread_increment, l10n_key). See zh/discovery/push-notifications.md §2.2 / §4.5 / §5.1 and zh/crypto-media/device-lifecycle.md §5a.",
+      "description": "Default push gateway privacy baseline. Every implementation claiming ck.profile.push_gateway.v1 MUST also claim this profile. Provider-facing payloads MUST NOT carry stable identifying fields (principal DID, sender DID, Realm id / name / avatar, Strand id / name, Message id, event id, device DID URL, reaction value, or any cross-Realm stable correlation key). Payloads MUST be restricted to per-(recipient_service_did, principal, device, push_route) pairwise pseudonym push_target_id + closed-enum wakeup hint fields (wakeup_kind, badge_count, unread_increment, l10n_key). See zh/discovery/push-notifications.md §2.2 / §4.5 / §5.1 and zh/crypto-media/device-lifecycle.md §5a.",
       "required_endpoints": [
         "ck.edge.push.command.notify"
       ],
@@ -1427,7 +1427,7 @@
         "unsupported_optional": "MUST fail closed; gateways unable to enforce blind wakeup MUST NOT claim ck.profile.push_gateway.v1"
       },
       "additional_requirements": {
-        "stable_identifier_ban_must": "Provider payload MUST NOT contain principal DID, sender DID / handle, Realm id / name, Flow id / name, Message id, event id, device DID URL, reaction emoji, attachment filename, IP, geolocation, or any cross-Realm stable correlation key.",
+        "stable_identifier_ban_must": "Provider payload MUST NOT contain principal DID, sender DID / handle, Realm id / name, Strand id / name, Message id, event id, device DID URL, reaction emoji, attachment filename, IP, geolocation, or any cross-Realm stable correlation key.",
         "pseudonym_scope_must": "push_target_id MUST be a pairwise pseudonym scoped to (recipient_service_did, principal, device, push_route); MUST NOT be reusable across Principal Server contexts.",
         "default_claim_must": "Any implementation claiming ck.profile.push_gateway.v1 MUST also claim this profile and MUST NOT advertise downgrade switches that disable blind wakeup."
       }
@@ -1818,14 +1818,14 @@
       "required_event_kinds": [
         "ck.circle.create",
         "ck.circle.member.state",
-        "ck.flow.create",
+        "ck.strand.create",
         "ck.relation.create",
         "ck.message.create"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
         "ck.schema.circle.v1",
-        "ck.schema.flow.v1",
+        "ck.schema.strand.v1",
         "ck.schema.relation.v1"
       ],
       "required_fixtures": [
@@ -2122,7 +2122,7 @@
         "session_focus_must": "ck.call.state.session_focus is write-once per call; in-session focus migration is not supported in v1. Token issuer MUST reject focus_id != committed session_focus (focus_mismatch).",
         "participant_binding_must": "ck.call.state.participants[].participant_binding MUST be verified by both reducer (on event acceptance) and client (on backend ParticipantConnected event). Failure surfaces as participant_binding_invalid (reducer) or participant_identity_unrecognised (client).",
         "e2ee_key_source_must": "Client binding adapter MUST derive frame keys from Cokret MLS-Exporter with label ck-rtc-frame-key/v1 (length=19 bytes, Context=canonical_json({realm_id, call_id, focus_id, epoch_id, participant_identity, device_id}), KDF.Nh=32 bytes), where participant_identity/device_id come from the verified ck.call.state.participants[] and participant_binding. Empty Context, missing sender fields, or epoch-only binding MUST be rejected with e2ee_key_source_unauthorised. MUST NOT accept keys from backend cloud key escrow; reject with e2ee_key_source_unauthorised.",
-        "recording_pipeline_must": "Backend-generated recording artifacts MUST flow through Cokret authenticated blob upload (media-and-blob.md) with recording_initiator_capability_ref. Direct backend-to-storage paths are forbidden (recording_artifact_pipeline_bypassed).",
+        "recording_pipeline_must": "Backend-generated recording artifacts MUST strand through Cokret authenticated blob upload (media-and-blob.md) with recording_initiator_capability_ref. Direct backend-to-storage paths are forbidden (recording_artifact_pipeline_bypassed).",
         "recording_key_source_must": "Recording artifact encryption keys MUST derive from Cokret MLS-Exporter label ck-rtc-recording-key/v1 with Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id}) and 32 output bytes. The SFrame label ck-rtc-frame-key/v1 and empty Context MUST be rejected for recording artifacts."
       }
     },
@@ -2161,7 +2161,7 @@
         "unsupported_optional": "MUST fail closed; do not fall back to a non-production binding. Deployments needing an alternate backend MUST declare another production-grade media_service_binding sub-profile."
       },
       "additional_requirements": {
-        "livekit_metadata_ban_must": "Token issuer MUST NOT inject LiveKit metadata or canUpdateOwnMetadata claims; Cokret participant metadata flows through ck.call.state only.",
+        "livekit_metadata_ban_must": "Token issuer MUST NOT inject LiveKit metadata or canUpdateOwnMetadata claims; Cokret participant metadata strands through ck.call.state only.",
         "livekit_recorder_claim_must": "Token issuer MUST set video.recorder=false; recording goes through Cokret Egress proxy, not LiveKit recorder claim."
       }
     },
@@ -2289,14 +2289,14 @@
       "required_event_kinds": [
         "ck.realm.create",
         "ck.member.state",
-        "ck.flow.create",
+        "ck.strand.create",
         "ck.message.create"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
         "ck.schema.realm.v1",
         "ck.schema.space.v1",
-        "ck.schema.flow.v1",
+        "ck.schema.strand.v1",
         "ck.schema.message.v1"
       ],
       "required_fixtures": [
@@ -3126,8 +3126,8 @@
       ],
       "required_event_kinds": [
         "ck.member.state",
-        "ck.flow.move",
-        "ck.flow.reorder",
+        "ck.strand.move",
+        "ck.strand.reorder",
         "ck.policy.set"
       ],
       "rejected_event_kinds": [],
@@ -3268,7 +3268,7 @@
     },
     "ck.profile.matrix_compat.v1": {
       "inherits": [],
-      "description": "Optional Matrix interop compatibility profile. Declares wire-shape parity for the Matrix-derived surfaces: to-device queue, /keys/upload|query|claim, push gateway facade, cross-signing key hierarchy, SAS verification message flow. Account-aggregate sync is NOT covered: Cokret v1 chose a streaming push form (ck.self.account.stream.subscribe / GET /account/subscribe with NDJSON frames) over Matrix's long-poll /sync, so wire-shape parity is not claimed for this surface — Matrix clients MUST adapt the account-aggregate consumption loop. Implementations claiming this profile MUST treat the ck.* names of the listed surfaces as semantically equivalent to their Matrix counterparts so that Matrix client SDK code can be reused for those surfaces with only adapter changes. This profile does NOT add new wire fields; it is a conformance assertion about behavioural equivalence on the listed surfaces.",
+      "description": "Optional Matrix interop compatibility profile. Declares wire-shape parity for the Matrix-derived surfaces: to-device queue, /keys/upload|query|claim, push gateway facade, cross-signing key hierarchy, SAS verification message strand. Account-aggregate sync is NOT covered: Cokret v1 chose a streaming push form (ck.self.account.stream.subscribe / GET /account/subscribe with NDJSON frames) over Matrix's long-poll /sync, so wire-shape parity is not claimed for this surface — Matrix clients MUST adapt the account-aggregate consumption loop. Implementations claiming this profile MUST treat the ck.* names of the listed surfaces as semantically equivalent to their Matrix counterparts so that Matrix client SDK code can be reused for those surfaces with only adapter changes. This profile does NOT add new wire fields; it is a conformance assertion about behavioural equivalence on the listed surfaces.",
       "required_endpoints": [
         "ck.self.device_messages.command.send",
         "ck.self.device_messages.query.list",
@@ -3451,7 +3451,7 @@
     "ck.profile.circle_conformance.v1": {
       "role": "interop",
       "inherits": [],
-      "description": "Conformance profile pinning the machine-contract surface for Circle (intra-Realm scoped event/message boundary; see zh/models/circle.md). Splits actor submit-payload (scope_circle_id only) from canonical reducer-output (tagged effective_scope on Event envelope + materialized object), and pins the Circle event-kind family, member-state transition table, encryption-profile compatibility, and scope-rebind reducer-reject semantics. Required by implementations that emit or consume Circle events or that materialize Circle-scoped Flow / Message / Morph / Relation / Space objects.",
+      "description": "Conformance profile pinning the machine-contract surface for Circle (intra-Realm scoped event/message boundary; see zh/models/circle.md). Splits actor submit-payload (scope_circle_id only) from canonical reducer-output (tagged effective_scope on Event envelope + materialized object), and pins the Circle event-kind family, member-state transition table, encryption-profile compatibility, and scope-rebind reducer-reject semantics. Required by implementations that emit or consume Circle events or that materialize Circle-scoped Strand / Message / Morph / Relation / Space objects.",
       "required_endpoints": [
         "ck.self.events.command.submit",
         "ck.self.events.query.scan"
@@ -3498,7 +3498,7 @@
         "unsupported_optional": "implementations that cannot enforce canonical reducer-stamped effective_scope MUST NOT claim ck.profile.circle_conformance.v1; receivers MUST treat any unknown Circle event-kind as schema_violation"
       },
       "additional_requirements": {
-        "submit_payload_must": "Submit payload for ck.flow.create / ck.message.create / ck.morph.create / ck.relation.create / ck.space.create / ck.space.parent MUST carry only scope_circle_id (id:circle | null). Reducer MUST reject any submit payload that also carries effective_scope (reason=effective_scope_reducer_managed).",
+        "submit_payload_must": "Submit payload for ck.strand.create / ck.message.create / ck.morph.create / ck.relation.create / ck.space.create / ck.space.parent MUST carry only scope_circle_id (id:circle | null). Reducer MUST reject any submit payload that also carries effective_scope (reason=effective_scope_reducer_managed).",
         "canonical_reducer_output_must": "Reducer MUST stamp tagged effective_scope on accepted Event envelope and materialized object cell. effective_scope is immutable per-event; later scope_circle_id rebinds MUST NOT re-interpret historical events.",
         "scope_rebind_default_reject_must": "Default reducer MUST reject scope_circle_id rebind (None<->Some, Some(A)->Some(B)) with failed_precondition reason=scope_rebind_forbidden. Profile-declared audit-paired rebind MAY be permitted, but MUST emit ck.audit.accessed pairing.",
         "circle_encryption_profile_floor_must": "Circle.encryption_profile may be none or mls_rfc9420. Reducer MUST reject plaintext Circle creation or update when the parent Realm encryption_profile is mls_rfc9420 or the effective content_encryption_floor is e2ee_required (reason=circle_encryption_below_realm_floor).",
@@ -3629,19 +3629,19 @@
       }
     },
     "ck.profile.calendar_event.v1": {
-      "description": "Flow profile for calendar events and RSVP convergence.",
+      "description": "Strand profile for calendar events and RSVP convergence.",
       "required_endpoints": [
         "ck.self.events.command.submit",
         "ck.self.events.query.scan"
       ],
       "required_event_kinds": [
-        "ck.flow.create",
-        "ck.flow.update",
+        "ck.strand.create",
+        "ck.strand.update",
         "ck.rsvp.set"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.flow.v1",
+        "ck.schema.strand.v1",
         "ck.schema.calendar_event.v1",
         "ck.schema.rsvp.v1"
       ],
@@ -3651,7 +3651,7 @@
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
-          "calendar_event_flow_profile",
+          "calendar_event_strand_profile",
           "rsvp_set_event",
           "rrule_v1_subset"
         ],
@@ -3659,7 +3659,7 @@
       }
     },
     "ck.profile.pinned_items.v1": {
-      "description": "Shared pin profile for Flow/Realm/Circle/Space projection homes using ck.pin.* events.",
+      "description": "Shared pin profile for Strand/Realm/Circle/Space projection homes using ck.pin.* events.",
       "required_endpoints": [
         "ck.self.events.command.submit",
         "ck.self.events.query.scan"

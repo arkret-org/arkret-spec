@@ -18,7 +18,7 @@ updated: 2026-06-10
 
 ## 1. 目标
 
-本文定义 Cokret 对 MIMI 的互操作 profile。目标不是把 Cokret core 改成 room-first 协议，而是在 Cokret 的 Realm / Event / DID / capability 模型外提供一个可测试的 **MIMI Provider Facade**，让支持 MLS 的 Cokret Realm 或 Flow discussion track 可以与 MIMI provider 互通。
+本文定义 Cokret 对 MIMI 的互操作 profile。目标不是把 Cokret core 改成 room-first 协议，而是在 Cokret 的 Realm / Event / DID / capability 模型外提供一个可测试的 **MIMI Provider Facade**，让支持 MLS 的 Cokret Realm 或 Strand discussion track 可以与 MIMI provider 互通。
 
 `ck.profile.mimi_interop.v1` 固定参考以下草案版本：
 
@@ -37,7 +37,7 @@ updated: 2026-06-10
 | Hub provider | 对外拥有 MIMI room URI 的 provider service；在 Cokret 侧通常映射为 Principal Server 或 notary service，负责 MIMI room fanout 和 groupInfo。 |
 | Follower provider | 参与 MIMI room 的远端 provider；在 Cokret 中表现为 federation peer 或 Applet bridge peer。 |
 | User / client | Cokret principal DID + device id，可按 Realm policy 使用 pairwise DID 或 room-scoped pseudonym。 |
-| Room | Cokret Flow discussion track 的 MIMI room 投影，可附带所在 Realm 的最小上下文。 |
+| Room | Cokret Strand discussion track 的 MIMI room 投影，可附带所在 Realm 的最小上下文。 |
 
 MIMI facade 不是新的真相源。Cokret native 侧的 canonical truth 是 signed DataEvent、Control Move、Seal coverage、Lattice cell state、capability refs 与 MLS Governance Binding（`governance_binding` + `covered_seals_cell`）。MIMI room state 是对这些状态的互操作投影。
 
@@ -94,7 +94,7 @@ GET /_cokret/open/mimi/provider-directory
     "mimi_room_uri": "mimi://example.com/rooms/01JSMIMI...",
     "binding_scope": {
       "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-      "flow_id": "ck:flow:01964137-0000-7000-8000-000000000000"
+      "strand_id": "ck:strand:01964137-0000-7000-8000-000000000000"
     },
     "hub_provider": "did:web:mimi.example.com",
     "local_provider_role": "hub",
@@ -111,7 +111,7 @@ GET /_cokret/open/mimi/provider-directory
 
 规则：
 
-- `binding_scope.realm_id` MUST 指向一个 accepted Realm。`flow_id` MUST 指向该 Realm 内启用 discussion track 的 accepted Flow；MIMI room timeline 只投影该 Flow discussion track 的消息。
+- `binding_scope.realm_id` MUST 指向一个 accepted Realm。`strand_id` MUST 指向该 Realm 内启用 discussion track 的 accepted Strand；MIMI room timeline 只投影该 Strand discussion track 的消息。
 - `hub_provider` MUST 是 Realm policy、Organization DID 或 member DID 明确委托的 service DID。
 - `local_provider_role` 取值为 `hub`、`follower` 或 `observer`（封闭枚举，以 [`../../artifacts/schemas/mimi-interop.schema.json`](../../artifacts/schemas/mimi-interop.schema.json) 为权威源）。各值语义:
   - `hub`:本地 facade 即拥有该 MIMI room URI 的 hub provider,负责 room fanout 与 groupInfo,对外承担 room 真相投影责任;
@@ -129,7 +129,7 @@ MIMI facade 对 Cokret Realm 的入站投影失败时，MUST 使用稳定 reason
 | reason_code | 触发条件 | 外部行为 |
 | --- | --- | --- |
 | `mimi_governance_binding_missing` | 找不到可验证的 Cokret MLS Governance Binding。 | quarantine 或 reject，不投影到 Realm。 |
-| `mimi_governance_binding_mismatch` | binding 存在但 `realm_id` / `flow_id` / `mls_group_id` / provider DID 与当前 MIMI room state 不一致。 | quarantine；需要人工或 backfill 复核。 |
+| `mimi_governance_binding_mismatch` | binding 存在但 `realm_id` / `strand_id` / `mls_group_id` / provider DID 与当前 MIMI room state 不一致。 | quarantine；需要人工或 backfill 复核。 |
 | `mimi_policy_root_mismatch` | MIMI policy component 与 Cokret `policy_root` / `ck.realm.policy_components` 不一致。 | reject 当前 update，等待 fresh policy projection。 |
 | `mimi_room_state_incompatible` | MIMI room state 使用当前 profile 不支持的 lifecycle、membership 或 policy 形态。 | reject 或要求使用新 interop profile。 |
 | `mimi_provider_unreachable` | provider directory、key material 或 groupInfo 依赖暂时不可达。 | `temporarily_unavailable` + bounded retry；不得接受无 binding 的 fallback。 |
@@ -165,10 +165,10 @@ MIMI facade 至少定义以下 canonical operation：
 | --- | --- | --- |
 | `ck.open.mimi.query.provider_directory` | `GET /_cokret/open/mimi/provider-directory` | 返回 MIMI provider feature profile。 |
 | `ck.open.mimi.exchange.request_key_material` | `POST /_cokret/open/mimi/key-material` | 领取 MLS KeyPackage，映射到 Cokret KeyPackage claim lifecycle。 |
-| `ck.open.mimi.command.update_room` | `POST /_cokret/open/mimi/flows/{flow_id}/update` | 提交或转发 room state / MLS update。 |
-| `ck.open.mimi.command.notify` | `POST /_cokret/open/mimi/flows/{flow_id}/notify` | provider 间投递通知、fanout 或 delivery event。 |
-| `ck.open.mimi.command.submit_message` | `POST /_cokret/open/mimi/flows/{flow_id}/messages` | 提交 MIMI encrypted application message。 |
-| `ck.open.mimi.query.group_info` | `GET /_cokret/open/mimi/flows/{flow_id}/group-info` | 获取 MLS groupInfo / room projection。 |
+| `ck.open.mimi.command.update_room` | `POST /_cokret/open/mimi/strands/{strand_id}/update` | 提交或转发 room state / MLS update。 |
+| `ck.open.mimi.command.notify` | `POST /_cokret/open/mimi/strands/{strand_id}/notify` | provider 间投递通知、fanout 或 delivery event。 |
+| `ck.open.mimi.command.submit_message` | `POST /_cokret/open/mimi/strands/{strand_id}/messages` | 提交 MIMI encrypted application message。 |
+| `ck.open.mimi.query.group_info` | `GET /_cokret/open/mimi/strands/{strand_id}/group-info` | 获取 MLS groupInfo / room projection。 |
 | `ck.open.mimi.command.request_consent` | `POST /_cokret/open/mimi/consent/request` | 请求建立跨 provider 联系或 room invite consent。 |
 | `ck.open.mimi.command.update_consent` | `POST /_cokret/open/mimi/consent/update` | 更新 consent state。 |
 | `ck.open.mimi.query.identifiers` | `POST /_cokret/open/mimi/identifiers/query` | 查询 connection identifier / MIMI URI 的可达性。 |
@@ -281,7 +281,7 @@ Cokret v1 把 Realm-level policy 映射为 Control Move effects on cell families
 
 > 历史的 MIMI components（`roles`、`preauth`、`bot`、`message_expiration`、`operational`）在 Cokret 中是 `ck.realm.policy_components` cell 的子字段，而不是独立 kind。Facade 接收 MIMI policy update 时 MUST 把这些 components 归约为 `ck.realm.policy_components` Control Move effect。
 >
-> MIMI room policy 投影 MUST 落在有效 Realm 的 `ck.realm.policy_components` cell；不存在 track-scoped policy projection——track 不携带独立 access。当 MIMI room 映射的 Flow 通过 `scope_circle_id` 落在 Realm 内的 [Circle](../models/circle.md) 时，Circle-local policy 通过 Circle 自身 `policy_root` 表达，与父 Realm policy 取更严格者。
+> MIMI room policy 投影 MUST 落在有效 Realm 的 `ck.realm.policy_components` cell；不存在 track-scoped policy projection——track 不携带独立 access。当 MIMI room 映射的 Strand 通过 `scope_circle_id` 落在 Realm 内的 [Circle](../models/circle.md) 时，Circle-local policy 通过 Circle 自身 `policy_root` 表达，与父 Realm policy 取更严格者。
 
 ### 9.2 Unknown Handling
 

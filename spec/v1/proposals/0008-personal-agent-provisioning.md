@@ -55,7 +55,7 @@ merged_into:
 
 非目标:本提案不取代 Applet + Ghost Actor。管理员安装的桥接服务、外部系统托管的 actor 池和 Applet 管理的虚拟身份仍应使用 Applet + Ghost Actor。本提案只处理 native personal / workspace AI agent。
 
-非目标:本提案不定义"在某个 Flow / Message 上下文中,controller 与自己的 agent 开启私有持续对话"的 sidecar thread。该能力由 CKP-0009 单独处理。
+非目标:本提案不定义"在某个 Strand / Message 上下文中,controller 与自己的 agent 开启私有持续对话"的 sidecar thread。该能力由 CKP-0009 单独处理。
 
 ## 2. 动机
 
@@ -72,7 +72,7 @@ merged_into:
 1. 普通用户如何创建"我的 AI 助手",而不是手工组装 DID、Actor Profile、accountability、key authorization 和 grants?
 2. 创建后用户得到哪些管理信息?哪些 bootstrap material 应该交给 AI runtime?
 3. AI runtime 之后如何认证?是否必须打开人类 coauth / CAPTCHA / OTP UI?
-4. 用户如何授予窄权限,例如只读、以 agent 身份回复、代表用户执行、把概要写入某个 Flow track、创建新 Flow?
+4. 用户如何授予窄权限,例如只读、以 agent 身份回复、代表用户执行、把概要写入某个 Strand track、创建新 Strand?
 5. 如何保证 agent 不自动继承用户在 Realm 内的最大权限(最小权限原则)?
 
 目标产品体验接近 workspace UI 中的 "Create Agent"。但协议结果必须仍然是 DID-rooted、capability-scoped、auditable、short-lived、revocable。
@@ -136,7 +136,7 @@ profile: ck.profile.personal_agent_provisioning.v1
 {
   "controller_principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
   "display_name": "Summary Assistant",
-  "description": "Reads selected Flows and posts summaries.",
+  "description": "Reads selected Strands and posts summaries.",
   "agent_did_method": "did:webvh",
   "runtime": {
     "kind": "custom_endpoint",
@@ -149,15 +149,15 @@ profile: ck.profile.personal_agent_provisioning.v1
       "resources": [
         {
           "kind": "object",
-          "object_type": "flow",
+          "object_type": "strand",
           "match_scope": "object_refs",
-          "allowed_object_refs": ["ck:flow:01970000-0000-7000-8000-000000000001"]
+          "allowed_object_refs": ["ck:strand:01970000-0000-7000-8000-000000000001"]
         }
       ],
       "constraints": [
         {
           "constraint_type": "scope_limitation",
-          "allowed_data_classes": ["message_content", "flow_content"]
+          "allowed_data_classes": ["message_content", "strand_content"]
         }
       ],
       "expires_at": "2026-06-26T00:00:00Z"
@@ -167,9 +167,9 @@ profile: ck.profile.personal_agent_provisioning.v1
       "resources": [
         {
           "kind": "object",
-          "object_type": "flow",
+          "object_type": "strand",
           "match_scope": "object_refs",
-          "allowed_object_refs": ["ck:flow:01970000-0000-7000-8000-000000000001"]
+          "allowed_object_refs": ["ck:strand:01970000-0000-7000-8000-000000000001"]
         }
       ],
       "constraints": [
@@ -190,7 +190,7 @@ profile: ck.profile.personal_agent_provisioning.v1
   "approval_policy": {
     "default_for_unlisted_actions": "deny",
     "act_on_behalf": "disabled_by_default",
-    "require_controller_approval_for": ["ck.flow.create", "ck.capability.delegate"]
+    "require_controller_approval_for": ["ck.strand.create", "ck.capability.delegate"]
   }
 }
 ```
@@ -269,7 +269,7 @@ Provisioning 完成后,controller 侧应看到管理信息:
   "grants": [
     {
       "grant_id": "ck:grant:01970000-0000-7000-8000-000000000012",
-      "summary": "Read selected Flow and write summary track until 2026-06-26"
+      "summary": "Read selected Strand and write summary track until 2026-06-26"
     }
   ]
 }
@@ -370,7 +370,7 @@ profile: ck.profile.agent_auth.v1
   "agent_key_authorization_ref": "ck:event:01970000-0000-7000-8000-000000000021",
   "agent_scope_request": {
     "realm_ids": ["ck:realm:01970000-0000-7000-8000-000000000000"],
-    "flow_ids": ["ck:flow:01970000-0000-7000-8000-000000000001"],
+    "strand_ids": ["ck:strand:01970000-0000-7000-8000-000000000001"],
     "track_names": ["summary"]
   },
   "proof": {
@@ -401,7 +401,7 @@ Wire 影响:本提案不新增 sibling endpoint,也不引入顶层 `grant_type` 
   "granted_scope": ["ck.self.events.subscribe", "ck.message.create"],
   "scope_details": {
     "realm_ids": ["ck:realm:01970000-0000-7000-8000-000000000000"],
-    "flow_ids": ["ck:flow:01970000-0000-7000-8000-000000000001"],
+    "strand_ids": ["ck:strand:01970000-0000-7000-8000-000000000001"],
     "track_names": ["summary"]
   }
 }
@@ -437,7 +437,7 @@ Agent 的 E2EE access MUST 作为独立 MLS member 表达,不得把 agent 伪装
 }
 ```
 
-`approval_request_id` 是 account/auth profile-local opaque artifact ID,不是 target Flow / Event / Grant 的 reference。Agent runtime 不要解释成 URL,也不要尝试打开 UI。Controller 客户端在自己的 session 中查询该 id 对应的 approval request 详情(端点由 deployment 文档定义,典型路径 `GET https://<cokret_base_url>/auth/account/approvals/<approval_request_id>`),并在人类 UI 中带外批准。本 profile 不引入 custom URI scheme 来承载 approval 跳转——理由同 §4.3 末尾。
+`approval_request_id` 是 account/auth profile-local opaque artifact ID,不是 target Strand / Event / Grant 的 reference。Agent runtime 不要解释成 URL,也不要尝试打开 UI。Controller 客户端在自己的 session 中查询该 id 对应的 approval request 详情(端点由 deployment 文档定义,典型路径 `GET https://<cokret_base_url>/auth/account/approvals/<approval_request_id>`),并在人类 UI 中带外批准。本 profile 不引入 custom URI scheme 来承载 approval 跳转——理由同 §4.3 末尾。
 
 controller 通过人类 UI 在带外批准。批准会产生新的 capability / delegation / approval event,agent retry 时引用该 event。
 
@@ -451,11 +451,11 @@ controller 通过人类 UI 在带外批准。批准会产生新的 capability / 
 | `draft_only` | agent -> controller-private control surface | 候选 `ck.agent.draft.propose` / `ck.agent.action_request`;由 Principal Server materialize controller-owned `ck.agent.draft.v1` account data | 发布/共享写入风险低;机密性风险取决于 read scope,可高 |
 | `reply_as_agent` | agent | `ck.message.create`, `ck.reaction.add` | 中 |
 | `act_on_behalf` | controller 作为 `actor_id`,agent 作为 `executed_by` | `ck.message.create`,选定 workflow actions | 高 |
-| `organizer` | agent | `ck.flow.create`, `ck.flow.update`, `ck.relation.create`,受限 `ck.message.create` | 中到高 |
+| `organizer` | agent | `ck.strand.create`, `ck.strand.update`, `ck.relation.create`,受限 `ck.message.create` | 中到高 |
 
 上述模式只用于 UI / SDK 预设。Server 接收和持久化的是 §4.9 中的 capability actions、resource selectors、constraints 与 TTL;模式名本身不进入 canonical wire。
 
-Draft-only 只表示"agent 提出候选内容,等待 controller 批准"。它本身不是"在当前 Flow 内开一个隐形私聊"。若产品需要 controller 与 agent 围绕某个 Flow / Message 位置持续对话,见 CKP-0009 `Agent Sidecar Thread`。
+Draft-only 只表示"agent 提出候选内容,等待 controller 批准"。它本身不是"在当前 Strand 内开一个隐形私聊"。若产品需要 controller 与 agent 围绕某个 Strand / Message 位置持续对话,见 CKP-0009 `Agent Sidecar Thread`。
 
 本 profile 标准化 draft-only 的最小互操作面。它们必须是 private/account-data 语义,不应被命名或实现成共享 message event。候选方向:
 
@@ -466,13 +466,13 @@ Draft-only 只表示"agent 提出候选内容,等待 controller 批准"。它本
 
 ### 4.8 Draft-only 私有存储
 
-`draft_only` 的核心语义是:agent 可以提出候选内容,但不能把候选内容提交到目标 Realm / Flow 的共享历史。Draft MUST NOT 作为 `ck.message.create`、`ck.flow.create` 或任何目标 Realm 的 `wire_scope=durable_event` 写入。
+`draft_only` 的核心语义是:agent 可以提出候选内容,但不能把候选内容提交到目标 Realm / Strand 的共享历史。Draft MUST NOT 作为 `ck.message.create`、`ck.strand.create` 或任何目标 Realm 的 `wire_scope=durable_event` 写入。
 
 Draft-only 至少有两类私有状态:
 
 | 类型 | owner | 可见性 | 典型用途 |
 | --- | --- | --- | --- |
-| approval draft | controller principal | controller 的授权设备,以及被显式授予访问该 draft 的 agent runtime | agent 生成待用户确认的消息、摘要、Flow 创建请求。 |
+| approval draft | controller principal | controller 的授权设备,以及被显式授予访问该 draft 的 agent runtime | agent 生成待用户确认的消息、摘要、Strand 创建请求。 |
 | agent scratchpad | agent principal | agent runtime,以及 policy 显式允许的 controller / operator | agent 的内部计划、缓存、中间推理或工具结果。 |
 
 Approval draft SHOULD 存在 controller 的 encrypted account data 或 controller actor-private stream 中。Agent-facing action 不应是对 controller account data 的通用 `ck.account_data.set`;更合理的 wire 是受限的 `ck.agent.draft.propose` / `ck.agent.action_request`,由 controller 的 Principal Server 在通过 capability、policy、accountability 与 risk check 后 materialize 成 controller-owned account data。
@@ -487,7 +487,7 @@ Approval draft SHOULD 存在 controller 的 encrypted account data 或 controlle
   "agent_principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
   "target": {
     "realm_id": "ck:realm:01970000-0000-7000-8000-000000000000",
-    "flow_id": "ck:flow:01970000-0000-7000-8000-000000000001",
+    "strand_id": "ck:strand:01970000-0000-7000-8000-000000000001",
     "track_name": "summary"
   },
   "proposed_action": "ck.message.create",
@@ -500,7 +500,7 @@ Approval draft SHOULD 存在 controller 的 encrypted account data 或 controlle
 
 Accepted 后 draft-only MUST 注册 controller-owned account-data type `ck.agent.draft.v1`。建议 key pattern 为 `ck.agent.draft.v1:<agent_principal_id>:<draft_id>`,并标注 `encrypted_at_rest=true`、payload schema、tombstone 规则和 retention policy。Agent-facing `ck.agent.draft.propose` / `ck.agent.action_request` 通过 Principal Server 的 capability、policy、accountability 与 risk check 后,才 materialize 为该 controller-owned account-data。
 
-`draft_id` 是 `ck.agent.draft.v1` account-data artifact ID,不是 canonical Flow / Message / Event id。Accepted schema MUST 定义其 opaque UUIDv7 wire form;shared events 需要审计关联时使用 digest 或 accepted approval / publish event reference,不得把 private draft account-data key 当作 target Flow 内的 `_ref`。
+`draft_id` 是 `ck.agent.draft.v1` account-data artifact ID,不是 canonical Strand / Message / Event id。Accepted schema MUST 定义其 opaque UUIDv7 wire form;shared events 需要审计关联时使用 digest 或 accepted approval / publish event reference,不得把 private draft account-data key 当作 target Strand 内的 `_ref`。
 
 隐私边界:
 
@@ -508,13 +508,13 @@ Accepted 后 draft-only MUST 注册 controller-owned account-data type `ck.agent
 - Target Realm 的 `ck.self.events.subscribe`、`ck.self.events.query`、shared reducer、Realm search index、notification fanout 和 push preview MUST NOT 返回 draft content。
 - `ck.self.account.subscribe` 只能把 controller-owned approval draft 返回给 controller principal 的授权 session,以及 scope 明确包含该 draft / account-data 访问权的 agent runtime。
 - 若服务端存储 draft 明文,该部署 MUST 把明文可见服务写入 profile / policy 并向 controller 披露;默认语义 SHOULD 是服务端只保存 encrypted account data。
-- Draft 可以引用目标 `realm_id`、`flow_id`、`track_name`、`message_id` 或 cursor,但这些引用不授予目标 Realm 成员读取 draft 内容的权利。
+- Draft 可以引用目标 `realm_id`、`strand_id`、`track_name`、`message_id` 或 cursor,但这些引用不授予目标 Realm 成员读取 draft 内容的权利。
 
 发布时,controller approval 或 fresh authorization 会生成真正的 shared event,例如 `ck.message.create`。Shared event MAY 通过 `refs[].role="draft_source"` 携带 opaque digest 便于审计,但明文 draft id、private metadata、scratchpad 或历史版本 MUST NOT 泄露到共享历史。发布后的可见内容只以最终 approved payload 为准。
 
 #### 4.8.1 Draft approval / publish lifecycle
 
-Draft approval MUST 建模为 controller-private lifecycle,而不是对 target Flow 的 mutation。最小状态机:
+Draft approval MUST 建模为 controller-private lifecycle,而不是对 target Strand 的 mutation。最小状态机:
 
 ```text
 proposed -> approved -> published
@@ -529,10 +529,10 @@ approved -> expired
 - `ck.agent.action_approve` MUST 由 controller principal 或 fresh controller approval 产生,并绑定 `draft_id`、draft content digest、target descriptor、`proposed_action`、approved payload digest、approval expiry 和 single-use nonce。Controller 可以在批准前编辑内容;此时 approved payload digest 以编辑后的最终 payload 为准,原 draft content 只作为 private 审计输入。
 - `ck.agent.action_reject` 把 draft 标记为 `rejected`;agent runtime MUST NOT 继续尝试发布该 draft。
 - `approved` draft 仍不是 shared content。它只是一份 controller-private authorization artifact。
-- 真正进入目标 Realm / Flow 的步骤是生成新的 shared event。若由 controller 客户端发布,shared event 的 `actor_id` 是 controller。若由 agent runtime 发布,则必须按 §4.10 使用 reply-as-agent 或 act-on-behalf attribution,并通过 `authorization_ref` / approval reference 证明该 publish 覆盖目标 action 与 resource。
+- 真正进入目标 Realm / Strand 的步骤是生成新的 shared event。若由 controller 客户端发布,shared event 的 `actor_id` 是 controller。若由 agent runtime 发布,则必须按 §4.10 使用 reply-as-agent 或 act-on-behalf attribution,并通过 `authorization_ref` / approval reference 证明该 publish 覆盖目标 action 与 resource。
 - Publish executor MUST 对 approval nonce 做 atomic consume / compare-and-set。成功发布后,对应 draft 状态变为 `published`,并记录 shared event digest / opaque reference;重复提交同一 approval MUST fail closed(`reason="approval_already_consumed"` 或等价错误)。
 - Draft 过期、被拒绝或已发布后,MUST NOT 再生成新的 shared event;如需重新发布,agent 必须创建新的 draft / action request。
-- Shared event MAY 携带 `refs[].role="draft_source"` 的 opaque digest 或 approval reference,但不得携带明文 `draft_id`、account-data key、`private_flow_id`、scratchpad、private prompt 或历史版本。
+- Shared event MAY 携带 `refs[].role="draft_source"` 的 opaque digest 或 approval reference,但不得携带明文 `draft_id`、account-data key、`private_strand_id`、scratchpad、private prompt 或历史版本。
 
 因此,"草稿成为正式信息"不是对象搬迁,而是 controller 批准后产生一条新的 shared event;draft 本身始终留在 private/account-data 语义内。
 
@@ -557,7 +557,7 @@ Agent MUST NOT 自动继承 controller 在 Realm 内的最大权限。即便 con
 | 需求 | Canonical 表达 |
 | --- | --- |
 | 限定 Realm | resource selector `kind="realm"` 或对象 selector 的 `realm` / `match_scope`,不是 constraint。 |
-| 限定 Flow | resource selector `kind="object"`, `object_type="flow"`, `match_scope="object_refs"` + `allowed_object_refs[]`;或已注册 `allowed_flow_refs` constraint。 |
+| 限定 Strand | resource selector `kind="object"`, `object_type="strand"`, `match_scope="object_refs"` + `allowed_object_refs[]`;或已注册 `allowed_strand_refs` constraint。 |
 | 限定输出 track | `constraint_type="scope_limitation"` + `allowed_tracks[]`。它只限制输出位置,不创建 per-track security boundary。 |
 | 限定明文类别 | `allowed_data_classes[]`。 |
 | 限定动作 | grant 顶层 `actions[]`,不是 constraint。 |
@@ -575,9 +575,9 @@ Agent MUST NOT 自动继承 controller 在 Realm 内的最大权限。即便 con
   "resources": [
     {
       "kind": "object",
-      "object_type": "flow",
+      "object_type": "strand",
       "match_scope": "object_refs",
-      "allowed_object_refs": ["ck:flow:01970000-0000-7000-8000-000000000001"]
+      "allowed_object_refs": ["ck:strand:01970000-0000-7000-8000-000000000001"]
     }
   ],
   "constraints": [
@@ -636,7 +636,7 @@ Act-on-behalf grant 是 high risk。规则:
 - **默认禁止**:除非 controller 与 Realm policy 显式允许,grant MUST 不签发。
 - **窄范围**:grant MUST 有限期、限定 action / resource、可审计、可撤销。
 - **Receiver 校验**:Receiver MUST 校验 `executed_by` 与实际 signing key / agent proof 一致,并校验 `authorization_ref` 覆盖目标 action 与 resource。
-- **Fresh approval 粒度**:默认 SHOULD 是 `(action, target_flow)` + 短期 temporal window;批量 window 必须由 Realm policy 显式开启。
+- **Fresh approval 粒度**:默认 SHOULD 是 `(action, target_strand)` + 短期 temporal window;批量 window 必须由 Realm policy 显式开启。
 - **Wire 表达**:全部通过现有 `approval_required` / `approval_mode` / `approval_actor_refs` / `controller_approval_required` 组合,不新增 `act_on_behalf_allowed` constraint。
 
 Schema impact:该形态要求 Event Envelope 增加 signed `executed_by` 与 `authorization_ref` 字段,并把二者纳入 event canonical bytes、event digest、E2EE AAD 与 Seal/sub-seal leaf 输入。它们不能只作为 UI-only unsigned extension。Accepted migration 必须同时更新 `event-envelope.schema.json`、canonicalization 规则、`event-and-patch.md` 与 schema-registry / service-surface 相关说明,并定义它们与 `proof.verification_method` / active `ck.agent.key.authorize` 的校验关系。
@@ -693,7 +693,7 @@ Agent key rotation SHOULD 复用 `ck.agent.key.rotate`,并要求 replacement key
 - `zh/models/actor.md`: 澄清 personal native agent、accountability UI,以及与 Ghost Actor 的区别。
 - `zh/identity/key-management.md`: 增加 runtime key pairing 与 agent session grant 规则。
 - `zh/identity/account-lifecycle.md`: 定义 agent principal 的 pause / deactivate 行为。
-- `zh/authz/capabilities.md`: 增加 agent provisioning / management actions,并明确 personal agent 复用现有 `allowed_tracks`、`allowed_flow_refs`、`allowed_data_classes`、`allowed_endpoints`、`rate_limit` 与 approval/accountability constraints。
+- `zh/authz/capabilities.md`: 增加 agent provisioning / management actions,并明确 personal agent 复用现有 `allowed_tracks`、`allowed_strand_refs`、`allowed_data_classes`、`allowed_endpoints`、`rate_limit` 与 approval/accountability constraints。
 - `zh/models/private-objects.md`、`zh/sync/client-sync.md` 与 `zh/sync/operations-sync.md`: 澄清 draft-only 使用 encrypted account data / actor-private stream,不得进入 shared Realm history。
 - `zh/models/event-and-patch.md` 或 Event Envelope 相关章节:为 act-on-behalf 增加 signed `executed_by` 与 `authorization_ref` 字段、canonicalization、Seal 输入与校验规则。同时 SHOULD 在 Event Envelope 上 cache 一个 `actor_kind` projection(由 reducer 在写入时从 Actor Profile 解析),让审计 / 取证 / offline reader 不必反向解析 Actor Profile 即可判断 event 是 agent 行为或 controller 行为。该 projection 是 reducer-stamped immutable 字段,不进入 actor-supplied submit payload。
 - `zh/extensions/applet-integration.md`: 澄清管理员管理的 Ghost AI agents 是 Applet-managed external/integration actors,而本 CKP 覆盖 native personal agents。
@@ -756,13 +756,13 @@ Runtime key pairing 与 device pairing 类似:它不是普通协作对象写入,
 - [x] Runtime key pairing 放在 account/auth namespace,候选 path 为 `POST /auth/account/agent-key-pair`。
 - [x] Agent session grant 默认最大 TTL 收敛为 15 分钟;更长 TTL 必须 profile 声明额外风险控制,且不应超过 60 分钟。
 - [x] Realm policy 必须能分别控制 native personal agent 与 Applet / Ghost Actor。
-- [x] Flow-context private agent chat 不放入本提案;拆分到 CKP-0009 `Agent Sidecar Thread`。
+- [x] Strand-context private agent chat 不放入本提案;拆分到 CKP-0009 `Agent Sidecar Thread`。
 - [x] `ck.self.agent.provision` 只作 service operation;durable audit 由 `ck.profile.create`、`ck.identity.accountability_grant`、`ck.agent.key.authorize`、`ck.capability.grant` 等 fan-out 子事件承载。
 - [x] Draft-only 标准化为 `ck.agent.draft.propose` / `ck.agent.action_request` family + controller-owned `ck.agent.draft.v1` encrypted account data。
 - [x] Track-level grant 复用现有 `allowed_tracks`;不引入 `allowed_track_names` 或其它并行 vocabulary。
 - [x] `agent_scope_request` 保持 `ck.profile.agent_auth.v1` overlay,不进入通用 human `SessionGrantRequestBody` schema。
 - [x] Agent E2EE access 表达为独立 MLS member,默认无 E2EE access;不得作为 controller delegated device 继承 history keys。
-- [x] `act_on_behalf` 默认 fresh approval 粒度为 `(action, target_flow)` + 短期 window,通过现有 approval/accountability constraints 表达。
+- [x] `act_on_behalf` 默认 fresh approval 粒度为 `(action, target_strand)` + 短期 window,通过现有 approval/accountability constraints 表达。
 - [x] `did:webvh` deployment SHOULD 为 personal agent 分配独立 SCID,并 MAY 在 `did:webvh:<scid>:<host-and-path>` 的 `<host-and-path>` 中采用 `agents/<slug>` 可读路径约定;规范信任来源是独立 DID document 与显式 accountability grant,不是路径继承。
 - [x] Lifecycle event kinds 注册为 `ck.self.agent.pause` / `ck.self.agent.resume` / `ck.self.agent.deactivate`(已在 accepted artifact 中作为 active event kinds,FSM lattice / `bottom=reject`,payload schema 已 wire 在 `event-payload.schema.json`)。不复用未来可能的通用 `ck.principal.status.set`——principal type 之间的 status 字段语义差异(agent freshness frontier vs human soft_logged_out vs service endpoint revoke)足以让单一 lifecycle event 反而增加 reducer 复杂度。该决议关闭后任何统一 lifecycle event 提案需要独立 CKP。
 

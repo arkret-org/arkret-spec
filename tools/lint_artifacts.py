@@ -104,8 +104,8 @@ FULL_MARKDOWN_EXAMPLE_SCHEMAS = {
         1: "schemas/realm.schema.json",
         2: "schemas/space.schema.json",
     },
-    "spec/v1/zh/models/flow-and-message.md": {
-        1: "schemas/flow.schema.json",
+    "spec/v1/zh/models/strand-and-message.md": {
+        1: "schemas/strand.schema.json",
         5: "schemas/message.schema.json",
     },
     "spec/v1/zh/models/morph.md": {
@@ -464,9 +464,9 @@ FORBIDDEN_NAMING_ALIAS_KEYS = {
     "rate_limit_policy_ref": "rate_limit_policy_id",
     "policy_ref": "policy_id for Policy objects, or policy_event_ref for policy-revision Event references",
     "allowed_view_refs": "allowed_view_ids",
-    "allowed_flow_refs": "allowed_flow_ids",
+    "allowed_strand_refs": "allowed_strand_ids",
     "allowed_circle_refs": "allowed_circle_ids",
-    "denied_flow_refs": "denied_flow_ids",
+    "denied_strand_refs": "denied_strand_ids",
     "allowed_space_refs": "allowed_space_ids",
     "denied_space_refs": "denied_space_ids",
     "realm_refs": "realm_ids",
@@ -572,7 +572,7 @@ FORBIDDEN_NAMING_STRING_ALIASES = {
     "unsupported_hash": "unsupported_digest_algorithm",
     "series_sequence": "series_seq",
     "series_sequence_not_monotonic": "series_seq_not_monotonic",
-    "flow_body": "flow_content",
+    "strand_body": "strand_content",
     "message_body": "message_content",
     "body_only": "content_only",
     "body-only E2EE": "content-only E2EE",
@@ -1643,7 +1643,7 @@ KIND_PAYLOAD_RENAME_EXEMPTIONS: dict[str, str] = {
 # Legitimate kind → payload-class pairs where multiple kinds intentionally
 # share a "category" payload class (object_lifecycle, state, audit, view,
 # invite, capability_grant, generic_standard, reaction, container_position,
-# call, message_redact, relation_update, space_state_transition, flow_patch,
+# call, message_redact, relation_update, space_state_transition, strand_patch,
 # object_patch). Adding a new dispatch that doesn't match the last-segment
 # rule MUST add the pair here, forcing reviewer awareness of the rename.
 LEGACY_SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
@@ -1662,10 +1662,10 @@ LEGACY_SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
     ("ck.container.move_item", "container_position_payload"),
     ("ck.container.rebalance", "container_position_payload"),
     ("ck.did.proof", "state_payload"),
-    ("ck.flow.archive", "object_lifecycle_payload"),
-    ("ck.flow.restore", "object_lifecycle_payload"),
-    ("ck.flow.tracks.update", "flow_patch_payload"),
-    ("ck.flow.update", "flow_patch_payload"),
+    ("ck.strand.archive", "object_lifecycle_payload"),
+    ("ck.strand.restore", "object_lifecycle_payload"),
+    ("ck.strand.tracks.update", "strand_patch_payload"),
+    ("ck.strand.update", "strand_patch_payload"),
     ("ck.handle.discovery", "state_payload"),
     ("ck.identity.accountability_grant", "state_payload"),
     ("ck.identity.disclosure_policy", "state_payload"),
@@ -2222,7 +2222,7 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
 
     projection_components = {
         "ck.self.projection.spaces.query.list": "ProjectionSpaceList",
-        "ck.self.projection.flows.query.list": "ProjectionFlowList",
+        "ck.self.projection.strands.query.list": "ProjectionStrandList",
         "ck.self.projection.morphs.query.list": "ProjectionMorphList",
     }
     for operation_id, component_name in projection_components.items():
@@ -2419,7 +2419,7 @@ def check_read_scope_schema_closure(lint: Lint) -> None:
         else:
             properties = read_scope.get("properties") or {}
             if "track_name" not in properties:
-                lint.fail(cursor_path, "read_cursor.read_scope must define track_name for flow-track cursors")
+                lint.fail(cursor_path, "read_cursor.read_scope must define track_name for strand-track cursors")
             if not isinstance(read_scope.get("allOf"), list) or not read_scope.get("allOf"):
                 lint.fail(cursor_path, "read_cursor.read_scope must define conditional scope constraints")
 
@@ -2432,8 +2432,8 @@ def check_read_scope_schema_closure(lint: Lint) -> None:
         if not isinstance(read_scope, dict) or read_scope.get("type") != "object":
             lint.fail(receipt_path, "read_receipt.read_scope must be an object schema")
         properties = receipt.get("properties") or {}
-        if "flow_id" in properties or "track" in properties:
-            lint.fail(receipt_path, "read receipt must not reintroduce top-level flow_id/track aliases")
+        if "strand_id" in properties or "track" in properties:
+            lint.fail(receipt_path, "read receipt must not reintroduce top-level strand_id/track aliases")
 
 
 def check_signed_object_closure(lint: Lint) -> None:
@@ -4663,12 +4663,12 @@ def check_model_required_field_table_coverage(lint: Lint) -> None:
             "ck.schema.space.v1",
         ),
         (
-            "spec/v1/zh/models/flow-and-message.md",
-            "spec/v1/artifacts/schemas/flow.schema.json",
-            "ck.schema.flow.v1",
+            "spec/v1/zh/models/strand-and-message.md",
+            "spec/v1/artifacts/schemas/strand.schema.json",
+            "ck.schema.strand.v1",
         ),
         (
-            "spec/v1/zh/models/flow-and-message.md",
+            "spec/v1/zh/models/strand-and-message.md",
             "spec/v1/artifacts/schemas/message.schema.json",
             "ck.schema.message.v1",
         ),

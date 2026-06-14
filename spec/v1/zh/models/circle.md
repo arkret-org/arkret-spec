@@ -18,7 +18,7 @@ Realm 与 Circle 分工正交:Realm 承担 federation / identity boundary,Circle
 
 Circle 可以是 plaintext delivery-only scope，也可以是 MLS-backed cryptographic scope。是否必须启用 MLS 由父 Realm 的 `encryption_profile`、`content_encryption_floor` 与 Circle 自身 `encryption_profile` 共同决定（见 §7）。若父 Realm 或 policy 要求 E2EE，Circle MUST 使用独立 MLS group；若父 Realm 允许明文，Circle MAY 使用 `encryption_profile=none`，但它仍然必须执行 Circle membership / history / delivery 裁剪。
 
-**非目标**:Circle **不是** principal Group 的新名字，也不是 Realm 的"默认子圈"。若实现只需要把某个 capability 授给一组 principal，而不需要独立事件历史、投递裁剪或 Flow scope，应使用 [`realm-and-space.md` §4](./realm-and-space.md) 的 Group / capability constraint / resource selector；不得声明 Circle。Realm 自身仍拥有 **Realm-default scope**；Circle 表示 Realm 内更窄的 scoped event boundary。
+**非目标**:Circle **不是** principal Group 的新名字，也不是 Realm 的"默认子圈"。若实现只需要把某个 capability 授给一组 principal，而不需要独立事件历史、投递裁剪或 Strand scope，应使用 [`realm-and-space.md` §4](./realm-and-space.md) 的 Group / capability constraint / resource selector；不得声明 Circle。Realm 自身仍拥有 **Realm-default scope**；Circle 表示 Realm 内更窄的 scoped event boundary。
 
 ## 2. 设计原则
 
@@ -46,7 +46,7 @@ Schema id: `ck.schema.circle.v1`
 | `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | 默认 `invited`。语义沿用 [`../governance/history-visibility.md`](../governance/history-visibility.md)。 | Circle 自己的历史可见性，但 effective visibility **不得宽于父 Realm 当前 policy floor**。 |
 | `content_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | 省略时继承父 Realm `content_encryption_floor`。effective = max(父 Realm, Circle)；只能收紧、不得放宽父 Realm floor，且 effective floor 是单向 ratchet(见 §7)。`e2ee_required` 仅在 `encryption_profile=mls_rfc9420` 时有意义；`encryption_profile=none` 的 Circle MUST 保持 `allow_plaintext`。 | Circle 内对象的 content 加密下限。 |
 | `metadata_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | 省略时继承父 Realm `metadata_encryption_floor`。effective = max(父 Realm, Circle)；只能收紧、不得放宽父 Realm floor，且 effective floor 是单向 ratchet(见 §7)。 | Circle 内对象的 metadata 加密下限，与 `content_encryption_floor` 对称;`e2ee_required` 时用户可读 metadata 进 `encrypted_metadata`。`encryption_profile=none` 时不得声明高于实际可执行能力的 metadata 加密保证。 |
-| `agent_participation` | no | `object{reply, accept_third_party_mention, act_on_behalf: boolean}` | 省略时继承父 Realm `agent_participation` ceiling。Circle ceiling 每一位只能收紧、不得放宽父 Realm ceiling（与 floor 同框架的 tighten-only 校验，违反返回 `failed_precondition`，`reason="agent_participation_ceiling_widen"`，见 §7）。它再被内层 Flow `agent_participation` 进一步收紧。详见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)。 | native personal agent 在该 Circle scope 内的参与上限。 |
+| `agent_participation` | no | `object{reply, accept_third_party_mention, act_on_behalf: boolean}` | 省略时继承父 Realm `agent_participation` ceiling。Circle ceiling 每一位只能收紧、不得放宽父 Realm ceiling（与 floor 同框架的 tighten-only 校验，违反返回 `failed_precondition`，`reason="agent_participation_ceiling_widen"`，见 §7）。它再被内层 Strand `agent_participation` 进一步收紧。详见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)。 | native personal agent 在该 Circle scope 内的参与上限。 |
 | `encryption_profile` | yes | `enum(none, mls_rfc9420)` | create-locked。父 Realm `encryption_profile=mls_rfc9420` 或 effective `content_encryption_floor=e2ee_required` 时 MUST 为 `mls_rfc9420`；父 Realm 允许明文时 MAY 为 `none`。未来 MLS 版本 / PQ-MLS / external provider 必须显式扩展 schema。 | Circle 内容加密形态。 |
 | `mls_group_ref` | conditional | `ref:mls` | 条件 `encryption_profile=mls_rfc9420`：满足时由 `ck.circle.create` reducer 派生、scope 绑定 `(realm_id, circle_id)`，`encryption_profile=none` 时 MUST NOT exist。**reducer 派生，actor MUST NOT 携带**（actor-supplied create payload 出现该字段 reducer MUST `schema_violation`）。字段使用 `_ref` 是因为 `ck:mls:<profile>:<profile_id>` 是 profile-scoped typed reference；MLS 标准 payload 内的原始 group id 继续命名为 `mls_group_id`。 | 独立 MLS group 引用。 |
 | `state` | yes | `enum(active, archived, tombstoned)` | 同 [`common-fields.md` §5](./common-fields.md);tombstoned 不可逆。 | 生命周期。 |
@@ -89,16 +89,16 @@ Schema id: `ck.schema.circle.v1`
 引入字段(跨多个现有对象):
 
 ```
-Flow.scope_circle_id          : id:circle | null   # null = Realm-default scope
+Strand.scope_circle_id          : id:circle | null   # null = Realm-default scope
 Message.effective_scope       : reducer-stamped, immutable tagged scope
 Event.effective_scope         : reducer-stamped, immutable tagged scope，进入 envelope/sub-seal；MLS-backed scope 中也进入 AAD/governance binding
 Space.scope_circle_id         : id:circle | null   # Space 自身 metadata / scoped structural relation 的可见性 scope
-Space.default_scope_circle_id : id:circle | null   # 在该 Space 新建 Flow 的默认 scope(hint，非强制；属于 effective default_realm_id)
+Space.default_scope_circle_id : id:circle | null   # 在该 Space 新建 Strand 的默认 scope(hint，非强制；属于 effective default_realm_id)
 Space.child_scope_policy      : object             # 子资源 placement/encryption floor，见 §7
 Morph.scope_circle_id         : id:circle | null
 ```
 
-**关键约束:Flow 永远只有一个 effective scope**。不存在 per-track scope —— 整个 Flow(synthesis、discussion、其他 track)共享同一事件 / 投递 / history 边界，要么都在 Realm-default,要么都在某个 Circle。
+**关键约束:Strand 永远只有一个 effective scope**。不存在 per-track scope —— 整个 Strand(synthesis、discussion、其他 track)共享同一事件 / 投递 / history 边界，要么都在 Realm-default,要么都在某个 Circle。
 
 ### 6.1 Reducer 规则
 
@@ -109,13 +109,13 @@ Morph.scope_circle_id         : id:circle | null
 - Reducer 在接受每个 event 时 MUST 固化 `effective_scope`。该值进入 Event envelope 与 Seal/sub-seal leaf；在 MLS-backed scope 中还进入 E2EE AAD 与 MLS governance binding 输入。后续 `scope_circle_id` 改绑不得重解释旧 event。
 - Effective history visibility = 父 Realm policy floor 与 Circle `history_visibility` 的更严格者。Circle MAY 收紧父 Realm,不得放宽父 Realm 的隐私/合规下限。
 - 改绑 `scope_circle_id` 默认 reducer 拒绝(`failed_precondition` `reason=scope_rebind_forbidden`);profile MAY 允许，但 MUST audit-paired high-risk update。所有已存在 Message / 子内容保留其写入时的 `effective_scope` 与旧 scope 的 history / key eligibility；新内容才进新 scope。客户端 MUST 把切分前后历史分段展示。
-- Structural Relation / position cell 的 `effective_scope` **MUST be no broader than 参与端点中最窄的 scope**(取参与端点 scope 集合中最严格者作为关系事实自身的 scope)。具体例:`public Board (Realm-default)` 包含 `private Flow (Circle=HR-Conf)` 时,`contains` 关系事实与其 position cell 的 `effective_scope = Circle:HR-Conf`,**不是** Realm-default;非 Circle 成员看不到该 containment 关系、看不到 private Flow 的 rank/position,也看不到 board 上"此处有隐藏项"的可枚举元数据。
+- Structural Relation / position cell 的 `effective_scope` **MUST be no broader than 参与端点中最窄的 scope**(取参与端点 scope 集合中最严格者作为关系事实自身的 scope)。具体例:`public Board (Realm-default)` 包含 `private Strand (Circle=HR-Conf)` 时,`contains` 关系事实与其 position cell 的 `effective_scope = Circle:HR-Conf`,**不是** Realm-default;非 Circle 成员看不到该 containment 关系、看不到 private Strand 的 rank/position,也看不到 board 上"此处有隐藏项"的可枚举元数据。
 
 ### 6.2 `effective_scope` wire shape — submit-payload vs canonical reducer-output
 
 `effective_scope` 在 wire 上有**两个不同的形态**,机器契约 MUST 分别校验:
 
-1. **Submit-payload form (actor-supplied)**:actor 在 `ck.flow.create` / `ck.message.create` / `ck.morph.create` / `ck.relation.create` / `ck.space.create` / `ck.space.parent` 等写事件的 `payload` 中只 supply `scope_circle_id` 字段(可为 `null`)。**MUST NOT** 携带 `effective_scope` 顶层字段；若 supply，reducer MUST 返回 `schema_violation` (`reason=effective_scope_reducer_managed`)。
+1. **Submit-payload form (actor-supplied)**:actor 在 `ck.strand.create` / `ck.message.create` / `ck.morph.create` / `ck.relation.create` / `ck.space.create` / `ck.space.parent` 等写事件的 `payload` 中只 supply `scope_circle_id` 字段(可为 `null`)。**MUST NOT** 携带 `effective_scope` 顶层字段；若 supply，reducer MUST 返回 `schema_violation` (`reason=effective_scope_reducer_managed`)。
 2. **Canonical reducer-output form (reducer-stamped, immutable)**:reducer 在接受 event 时把 `scope_circle_id` 物化为 tagged 对象，写入 Event envelope 的 `effective_scope` 字段 + 物化对象的 `effective_scope` cell。该字段一经写入 immutable;旧 event 即使 `scope_circle_id` 后续改绑也保留写入时的值。
 
 两个形态的 schema:
@@ -167,7 +167,7 @@ Conformance fixture 见 `artifacts/fixtures/circle-scope-fixture.json`，覆盖 
 | 字段 | 影响对象 | 强制性 | 说明 |
 | --- | --- | --- | --- |
 | `Space.scope_circle_id` | Space 对象自身的 metadata 与 structural relation facts | reducer-enforced | Space 自身的 title / parent / rank / contains 事实落在该 Circle scope;**不**使 Space 成为独立 Realm 边界,Space 仍是 authorization-transparent 容器，只是它的 metadata 被该 Circle 的投递 / history / encryption profile 约束。 |
-| `Space.default_scope_circle_id` | 在该 Space 下**新建**的子 Flow / 子 Space | hint(可被显式覆盖) | 客户端默认填入该值,actor 仍可在 create payload 中显式提供另一 `scope_circle_id`。该 Circle 必须属于子资源 effective `default_realm_id`，而不是任意 Space metadata home Realm。不强制。 |
+| `Space.default_scope_circle_id` | 在该 Space 下**新建**的子 Strand / 子 Space | hint(可被显式覆盖) | 客户端默认填入该值,actor 仍可在 create payload 中显式提供另一 `scope_circle_id`。该 Circle 必须属于子资源 effective `default_realm_id`，而不是任意 Space metadata home Realm。不强制。 |
 | `Space.child_scope_policy` | 任何 placement / move 进入该 Space 的子对象 | reducer-enforced | `allow_any` / `require_e2ee` / `require_same_scope` / `require_scope_circle_id` 之一，见 §7。是真正的"该 Space 只接受这种 scope 的子对象"硬约束。 |
 
 实现常见错误:把 `default_scope_circle_id` 当成约束，或把 `scope_circle_id` 与 `default_scope_circle_id` 混用。三者各司其职,**不可**互相替代。
@@ -187,7 +187,7 @@ Realm **不会**自动创建默认 Circle。Realm-default scope 是 Realm 自身
 
 | policy field | enum | 说明 |
 | --- | --- | --- |
-| `content_encryption_floor` | `allow_plaintext` / `e2ee_required` | 取值为 `e2ee_required` 时，Flow / Message / Morph / Blob content 的 `effective_scope` MUST 是 MLS-backed：Realm-default MLS 或 Circle MLS；这些写入不得落在 plaintext Circle。 |
+| `content_encryption_floor` | `allow_plaintext` / `e2ee_required` | 取值为 `e2ee_required` 时，Strand / Message / Morph / Blob content 的 `effective_scope` MUST 是 MLS-backed：Realm-default MLS 或 Circle MLS；这些写入不得落在 plaintext Circle。 |
 | `metadata_encryption_floor` | `allow_plaintext` / `e2ee_required` | Realm-wide metadata 加密下限，与 `content_encryption_floor` 对称；不得被 Circle、Space 或对象 profile 放宽。缺省规则：MLS 或 `content_encryption_floor=e2ee_required` Realm 为 `e2ee_required`，其他 Realm 为 `allow_plaintext`。 |
 
 Circle encryption compatibility rules:
@@ -203,12 +203,12 @@ Circle encryption compatibility rules:
 
 | value | 明文允许范围 | 必须加密范围 |
 | --- | --- | --- |
-| `allow_plaintext` | Realm / scope 路由字段、object id/kind、必要 causal refs、Flow / Message 用户可读 metadata、Space parent / rank 等结构 metadata | 无（metadata 不强制加密；content 是否加密由 `content_encryption_floor` 决定） |
-| `e2ee_required` | 路由所需 `realm_id`、`effective_scope.kind`、不可逆 routing digest、policy-required subject、必要 causal refs、Flow `tracks`、`stage` / `state` | 用户可读 `metadata.title` / `metadata.summary` / `metadata.fields`、Message `metadata.fields`、mention / reply excerpt、search token、关系预览、附件文件名 |
+| `allow_plaintext` | Realm / scope 路由字段、object id/kind、必要 causal refs、Strand / Message 用户可读 metadata、Space parent / rank 等结构 metadata | 无（metadata 不强制加密；content 是否加密由 `content_encryption_floor` 决定） |
+| `e2ee_required` | 路由所需 `realm_id`、`effective_scope.kind`、不可逆 routing digest、policy-required subject、必要 causal refs、Strand `tracks`、`stage` / `state` | 用户可读 `metadata.title` / `metadata.summary` / `metadata.fields`、Message `metadata.fields`、mention / reply excerpt、search token、关系预览、附件文件名 |
 
 `e2ee_required` 档下，哪些 metadata 字段为换取服务端搜索 / projection 能力而对受托服务暴露明文，由独立的 `plaintext_visible_services` 声明控制（见 [`../crypto-media/encryption-and-audit.md` §2.3.0 / §2.8](../crypto-media/encryption-and-audit.md)）。`realm_id`、kind、epoch、routing digest 等同步收敛边界字段在两档下都保持 wire 明文，不可加密。
 
-Effective content floor = max（parent Realm `content_encryption_floor`，Circle `content_encryption_floor` if present）。比较顺序为 `allow_plaintext < e2ee_required`；`e2ee_required` 时该 scope 的 Flow / Message / Morph / Blob content `effective_scope` MUST 为 MLS-backed，plaintext content 写入 MUST `failed_precondition`（`reason=content_encryption_floor_violation`）。
+Effective content floor = max（parent Realm `content_encryption_floor`，Circle `content_encryption_floor` if present）。比较顺序为 `allow_plaintext < e2ee_required`；`e2ee_required` 时该 scope 的 Strand / Message / Morph / Blob content `effective_scope` MUST 为 MLS-backed，plaintext content 写入 MUST `failed_precondition`（`reason=content_encryption_floor_violation`）。
 
 Effective metadata floor = max（parent Realm `metadata_encryption_floor`，Circle `metadata_encryption_floor` if present，Space `child_scope_policy.metadata_encryption_floor` if in placement context，object profile requirement）。比较顺序为 `allow_plaintext < e2ee_required`；任何写入若低于 effective floor MUST `failed_precondition`（`reason=metadata_encryption_floor_violation`）。
 
@@ -216,7 +216,7 @@ Effective metadata floor = max（parent Realm `metadata_encryption_floor`，Circ
 
 ### 7.1 Space child scope policy
 
-Space 不拥有 membership / Policy Server / MLS group;`Space.scope_circle_id` 只是让 Space 自身 metadata 与 structural relation facts 落入某个 existing scope。为了表达"这个 Space 下不允许 plaintext Flow"或"这个 List 只能放 HR Circle 对象",Space MAY 声明 placement policy:
+Space 不拥有 membership / Policy Server / MLS group;`Space.scope_circle_id` 只是让 Space 自身 metadata 与 structural relation facts 落入某个 existing scope。为了表达"这个 Space 下不允许 plaintext Strand"或"这个 List 只能放 HR Circle 对象",Space MAY 声明 placement policy:
 
 | field | enum / type | 说明 |
 | --- | --- | --- |
@@ -224,7 +224,7 @@ Space 不拥有 membership / Policy Server / MLS group;`Space.scope_circle_id` �
 | `child_scope_policy.scope_circle_id` | `id:circle` | `kind=require_scope_circle_id` 时必填。 |
 | `child_scope_policy.metadata_encryption_floor` | `allow_plaintext` / `e2ee_required` | 可选，对该 Space 下新建 / 移入对象施加更严格 metadata floor。 |
 
-Reducer MUST 在 `ck.flow.create`、`ck.flow.move`、`ck.space.parent`、structural `contains` projection 写入时检查 effective child scope policy:
+Reducer MUST 在 `ck.strand.create`、`ck.strand.move`、`ck.space.parent`、structural `contains` projection 写入时检查 effective child scope policy:
 
 - `allow_any`:不额外限制。
 - `require_e2ee`:子资源 `effective_scope` 必须 MLS-backed。
@@ -235,21 +235,21 @@ Reducer MUST 在 `ck.flow.create`、`ck.flow.move`、`ck.space.parent`、structu
 
 ### 7.2 "宽 synthesis + 窄 discussion" 场景如何表达
 
-需要"公开锚 + 私密讨论"组合时,MUST 用 **两个 Flow + Relation** 表达;Flow 永远单一 scope,不存在 per-track 安全边界:
+需要"公开锚 + 私密讨论"组合时,MUST 用 **两个 Strand + Relation** 表达;Strand 永远单一 scope,不存在 per-track 安全边界:
 
 ```
-Flow F_public  (scope_circle_id = null)              ← 公开 seal Flow,承载 metadata.title / metadata.summary / stage / metadata.fields
-Flow F_private (scope_circle_id = ck:circle:0196419c-0000-7000-8000-000000000000; short_name=HR-Conf) ← Circle 内 Flow,承载敏感讨论与决策细节
+Strand F_public  (scope_circle_id = null)              ← 公开 seal Strand,承载 metadata.title / metadata.summary / stage / metadata.fields
+Strand F_private (scope_circle_id = ck:circle:0196419c-0000-7000-8000-000000000000; short_name=HR-Conf) ← Circle 内 Strand,承载敏感讨论与决策细节
 F_private --confidential_discussion_of--> F_public
 ```
 
-客户端 UI MAY 把这两个 Flow 在视觉上"组合显示"(同卡片标题区 + 切换 tab),但协议层它们是**两个独立对象**,各自有独立的:
+客户端 UI MAY 把这两个 Strand 在视觉上"组合显示"(同卡片标题区 + 切换 tab),但协议层它们是**两个独立对象**,各自有独立的:
 - 时间线、消息历史
 - 成员、history visibility、投递 / 查询裁剪；若对应 scope 为 MLS-backed，则各自使用对应 MLS group(F_public 用 Realm-default,F_private 用 Circle MLS)
 - watch cell、stage、生命周期
 - 投影裁剪规则(无 Circle 成员的 Realm 成员只看到 F_public,看不到 F_private 的存在或活动元数据，符合 §9.1 投递不变量)
 
-`confidential_discussion_of` 是标准 weak-semantic Relation kind(详见 [`relation.md`](./relation.md)),关系事实 MUST 存放在 `F_private` 的 Circle scope 内。这样 private 成员能从 private Flow 回到 public seal;非 Circle 成员不会在 public Flow 上看到"存在一个私密讨论"的可枚举边。
+`confidential_discussion_of` 是标准 weak-semantic Relation kind(详见 [`relation.md`](./relation.md)),关系事实 MUST 存放在 `F_private` 的 Circle scope 内。这样 private 成员能从 private Strand 回到 public seal;非 Circle 成员不会在 public Strand 上看到"存在一个私密讨论"的可枚举边。
 
 ## 8. Capability 与授权评估
 
@@ -261,7 +261,7 @@ Capability actions:
 | `ck.circle.manage` | medium | `ck.circle.update`, `ck.circle.archive`, `ck.circle.restore`, `ck.circle.tombstone` | 管理已存在 Circle。 |
 | `ck.circle.member.add` | low | `ck.circle.member.state`(payload.actor_id == envelope.actor_id,且 transition 合法) | 用户接受邀请、加入 `join_rule=open` 的 Circle 或自助退出；不得自助解除 ban。 |
 | `ck.circle.member.manage` | medium | `ck.circle.member.state`(actor_id != envelope.actor_id) | 邀请/移除他人;Circle admin 持有。 |
-| `ck.circle.member.add.others` | high | 同上 + 强制带 `ck.audit.accessed` 配对(与 `ck.flow.watch.set.others` 同模式) | 跨成员代写(罕用),审计配对。 |
+| `ck.circle.member.add.others` | high | 同上 + 强制带 `ck.audit.accessed` 配对(与 `ck.strand.watch.set.others` 同模式) | 跨成员代写(罕用),审计配对。 |
 | `ck.circle.audit` | high | 空(read-only),配对 `ck.audit.accessed` | 不属于 Circle 的 Realm admin 读取 Circle 元数据 / activity rollup 的审计权。 |
 
 **授权评估两层 AND**:
@@ -338,7 +338,7 @@ Membership transition table（`membership` 复用 `ck.member.state` 的 `members
 - `encryption_profile=mls_rfc9420`:Circle 拥有独立 MLS group,独立 epoch,独立 key tree。**MUST NOT** 从 Realm-default MLS group key 派生 Circle key(否则全 Realm 都能解密)。
 - Realm 移除某 actor MUST 触发该 actor 所在所有 Circle 的 membership cascade；对 MLS-backed Circle 还 MUST 触发对应 MLS `remove` proposal,并在 Realm-default 也是 MLS-backed 时触发 Realm-default rotate。这是必要的密码学卫生,reducer-enforced。已知运维代价见 §10.3。
 - Circle MLS handshake (commit/welcome/proposal) 投递严格限于 Circle 成员，不进入 Realm-default sync 流。
-- MLS governance binding 的 scope 使用 tagged `effective_scope`。Realm-default MLS group 使用 `{kind:"realm", realm_id}`；Circle commit / welcome / genesis MUST 使用 `{kind:"circle", realm_id, circle_id}`，并绑定 `circle_id`、Circle membership frontier、Circle policy root 与父 Realm policy floor frontier。接收端验证时，`governance_binding.realm_id` / `circle_id` 与 `effective_scope` 任一不匹配 MUST fail closed；Flow `track_name` 或 `flow_id` 不得参与 MLS key scope 判定。
+- MLS governance binding 的 scope 使用 tagged `effective_scope`。Realm-default MLS group 使用 `{kind:"realm", realm_id}`；Circle commit / welcome / genesis MUST 使用 `{kind:"circle", realm_id, circle_id}`，并绑定 `circle_id`、Circle membership frontier、Circle policy root 与父 Realm policy floor frontier。接收端验证时，`governance_binding.realm_id` / `circle_id` 与 `effective_scope` 任一不匹配 MUST fail closed；Strand `track_name` 或 `strand_id` 不得参与 MLS key scope 判定。
 
 ### 10.2 Seal stream
 
@@ -360,7 +360,7 @@ Membership transition table（`membership` 复用 `ck.member.state` 的 `members
 
 ## 11. Scope-identity UX safety invariants
 
-Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Circle A 的 Flow 工作，被通知 ping 到 Circle B 的 Flow,回复时误以为仍在 A 圈。这是真实泄露发生的瞬间。**因为 Flow 是单 scope 的(§6),所以"我在哪个 Circle"等价于"我在哪个 Flow",这反而让 UX 清晰**:每个 Flow 的视觉身份就是它 scope 的视觉身份，不存在"同一 Flow 内 synthesis 一个色、discussion 另一个色"的混乱。
+Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Circle A 的 Strand 工作，被通知 ping 到 Circle B 的 Strand,回复时误以为仍在 A 圈。这是真实泄露发生的瞬间。**因为 Strand 是单 scope 的(§6),所以"我在哪个 Circle"等价于"我在哪个 Strand",这反而让 UX 清晰**:每个 Strand 的视觉身份就是它 scope 的视觉身份，不存在"同一 Strand 内 synthesis 一个色、discussion 另一个色"的混乱。
 
 要让客户端能可靠区分 scope，以下信号 **MUST** 在 spec 层统一,**不**留给客户端各自发明:
 
@@ -372,10 +372,10 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 
 1. 在任何会导致写入、回复、转发、引用、mention 或发送通知的入口，当前 effective scope MUST 可被用户区分；Circle scope 至少呈现 `display.color_token`、`display.symbol` 与 `display.short_name` 中的两个互补信号。
 2. Plaintext Circle MUST 使用不会暗示 E2EE 的 glyph、标签或披露语义；MLS-backed Circle MAY 使用 lock/shield 类语义，但不得让 plaintext scope 与 E2EE scope 看起来等价。
-3. 跨 Circle 导航或同一 surface 内切换不同 scope 时，客户端 MUST 让用户感知这是跨 scope 转场；不得表现成同一 Flow 内的普通滚动或普通 tab 内容切换。
+3. 跨 Circle 导航或同一 surface 内切换不同 scope 时，客户端 MUST 让用户感知这是跨 scope 转场；不得表现成同一 Strand 内的普通滚动或普通 tab 内容切换。
 4. Mention / invite / add-recipient 等候选交互 MUST 区分 Circle member 与非 member；不得暗示非成员会收到 Circle-scoped 内容。
 5. 跨 Circle 引用必须标识为“另一 Circle / 另一协作圈 / 另一作用域”或等价语义，**不得**使用“信任圈”措辞，且不得预览调用者无权访问的内容。
-6. "宽 seal Flow + 窄 discussion Flow" 的组合形态(§7.2)在 UI 上 MAY 渲染为同一工作 surface,**但**两个 Flow 之间的切换 MUST 表现为跨 scope 转场，不得表现为同一 Flow 内不同视图。
+6. "宽 seal Strand + 窄 discussion Strand" 的组合形态(§7.2)在 UI 上 MAY 渲染为同一工作 surface,**但**两个 Strand 之间的切换 MUST 表现为跨 scope 转场，不得表现为同一 Strand 内不同视图。
 
 ## 11.1 Agent sidecar Circle profile
 
@@ -391,8 +391,8 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 - **`directory_visibility="members"`**，non-member 不可见任何 sidecar Circle metadata。MLS-backed sidecar Circle SHOULD 设置 `metadata_encryption_floor="e2ee_required"`；plaintext sidecar Circle 不得宣称 metadata E2EE，只能承诺 non-member delivery / query / projection 裁剪。
 - **Membership 闭集**:实现 MUST NOT 把其它 human actor、非 accountable agent、Applet Ghost Actor 或外部 service principal 加入 controller-Realm sidecar Circle。
 - **History backfill**:新 eligible agent 加入既有 sidecar Circle 时,MLS-backed Circle 不允许转移过去 epoch group secrets。controller 显式同意 sidecar history backfill 时，实现 MUST 通过 application-level message resend 完成(controller 设备解密 plaintext 在新 epoch 下重新加密)，不得通过共享 MLS exporter secret / past commit secret 或等价手段。Plaintext sidecar Circle 同样 MUST 把历史 backfill 视为显式 plaintext 披露，受同等 capability / approval / audit 约束。
-- **Epoch / scope granularity**:同一 sidecar Circle 可承载多个 sidecar private Flow;MLS-backed Circle 的 epoch rotation 适用于该 Circle scope 下**所有** sidecar private Flow,不可按 Flow 独立 rotate(任何仍在 Circle 中的 member 都能解密该 Circle scope 下任一 Flow 的未来 epoch)。Plaintext Circle 没有 epoch,但 membership 变更后的投递 / 查询 eligibility 仍适用于该 Circle scope 下所有 sidecar private Flow。
-- **Sidecar Flow projection**:以 sidecar Circle 为 `scope_circle_id` 的 Flow MUST NOT 出现在 Realm-wide navigation / board / list / public search / public relation expansion / 目标 Flow projections。该 invariant 由 sidecar profile-specific reducer rule enforce,而不是给 Flow schema 加 `navigation_visibility` 字段。
+- **Epoch / scope granularity**:同一 sidecar Circle 可承载多个 sidecar private Strand;MLS-backed Circle 的 epoch rotation 适用于该 Circle scope 下**所有** sidecar private Strand,不可按 Strand 独立 rotate(任何仍在 Circle 中的 member 都能解密该 Circle scope 下任一 Strand 的未来 epoch)。Plaintext Circle 没有 epoch,但 membership 变更后的投递 / 查询 eligibility 仍适用于该 Circle scope 下所有 sidecar private Strand。
+- **Sidecar Strand projection**:以 sidecar Circle 为 `scope_circle_id` 的 Strand MUST NOT 出现在 Realm-wide navigation / board / list / public search / public relation expansion / 目标 Strand projections。该 invariant 由 sidecar profile-specific reducer rule enforce,而不是给 Strand schema 加 `navigation_visibility` 字段。
 - **新 agent eligibility 是 high-trust 动作**:当 controller 在已存在 sidecar Circle 的 Realm 内激活新 native personal agent 时，客户端 UI MUST 在 [`../identity/key-management.md` §3.6.1](../identity/key-management.md) 的 pairing approval 流程中显式披露 "该 agent 将自动获得现有 sidecar 私聊访问权"。
 
 ## 12. 与既有概念的区分
@@ -411,7 +411,7 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 ## 13. 规范性引用
 
 - 父 Realm 与 capability 主源:[`realm-and-space.md`](./realm-and-space.md)。
-- Flow scope 字段定义:[`flow-and-message.md` §3 / §5](./flow-and-message.md)。
+- Strand scope 字段定义:[`strand-and-message.md` §3 / §5](./strand-and-message.md)。
 - 跨 scope Relation 规则:[`relation.md` §4](./relation.md)。
 - 历史可见性枚举:[`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)。
 - MLS 加密 / governance binding:[`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md)。

@@ -230,13 +230,13 @@ Event batch receipt 是 best-effort RYW / 加速 / 审计 hint，只对 issuer �
 | --- | --- |
 | Event Source Sync | actor 历史恢复、审计重放、事件查缺。 |
 | Realm Sync | Realm 级 durable Event、Seal 与 projection 增量。 |
-| Flow Sync | Flow 当前态、track 状态、可见性裁剪后的 activity。 |
-| Discussion Sync | Flow discussion 轨道消息时间线。 |
-| Board Sync | Board/List/Flow 位置与排序 projection。 |
+| Strand Sync | Strand 当前态、track 状态、可见性裁剪后的 activity。 |
+| Discussion Sync | Strand discussion 轨道消息时间线。 |
+| Board Sync | Board/List/Strand 位置与排序 projection。 |
 | Query Surface | view、搜索、context timeline 与 graph 查询。 |
 | Authz / Invite Surface | invite、grant 视图、控制面状态与可写性诊断。 |
 
-Flow Sync MUST NOT 因 actor 可读 Flow synthesis 就自动展开不可读 discussion timeline 或 Morph 内容。所有同步面都 MUST 先按 Realm、Circle、object scope、history visibility、E2EE availability 与 caller capability 裁剪。
+Strand Sync MUST NOT 因 actor 可读 Strand synthesis 就自动展开不可读 discussion timeline 或 Morph 内容。所有同步面都 MUST 先按 Realm、Circle、object scope、history visibility、E2EE availability 与 caller capability 裁剪。
 
 ## 8. 查询等级
 
@@ -354,4 +354,4 @@ Cokret v1 固定：
 - HTTP operation binding 见 [`service-http-binding.md`](./service-http-binding.md)。
 - Federation transport 见 [`federation.md`](./federation.md)。
 - Cursor 编码、digest suite 与 HLC 见 [`encoding.md`](../conformance/encoding.md)。
-- Flow / Message、Realm / Space / Morph 语义见 [`flow-and-message.md`](../models/flow-and-message.md)、[`realm-and-space.md`](../models/realm-and-space.md) 与 [`morph.md`](../models/morph.md)。
+- Strand / Message、Realm / Space / Morph 语义见 [`strand-and-message.md`](../models/strand-and-message.md)、[`realm-and-space.md`](../models/realm-and-space.md) 与 [`morph.md`](../models/morph.md)。

@@ -47,7 +47,7 @@ Account subscribe 的服务边界是当前 authenticated session 绑定的 Princ
    - Realm policy 强制 `binding_source ∈ {explicit}` 且邀请方未在该上下文登录（提示用户切换上下文或退出邀请）；
    - 用户主动进入"高级 / 投递设置"面板查看 / 修改。
 2. **成员列表展示绑定上下文**。当某 Realm 内成员的 `delivery_binding.recipient_service_did` 不属于该 actor DID Document 默认 `CokretPrincipalServer` 时，UI SHOULD 在该成员条目附近显示其 binding 上下文（例如 `Bob @ Acme`、`Carol @ Beta`）；当属于默认时 SHOULD 仅显示 actor，不显示 binding。展示形态可使用组织 endorsement 的 `display_name` / `logo` 而不是 raw service DID。
-3. **邀请 flow 智能默认**。客户端 SHOULD 按当前邀请方上下文自动提议 binding：
+3. **邀请 strand 智能默认**。客户端 SHOULD 按当前邀请方上下文自动提议 binding：
    - 默认使用 [`invite-addressing.md`](./invite-addressing.md) 的 online principal locator 或显式 `subject_id + recipient_service_did` 输入；locator/ref 成功后 UI 显示 `Alice @ Acme` 这类上下文标签，不展示 raw service DID；
    - 用户输入 `@alice:acme.example` / `alice@acme.example` 时，只有在 Directory / Organization 明确支持可选 handle invite/member_add profile 且调用方具备披露授权时，才 MAY 调用 `ck.find.directory.query.resolve_handle(intent="member_add" | "invite")` 获取可验证 candidate；失败时 MUST 回到 locator/address 模式，不得本地合成 remote service DID；
    - 邀请方在 Org-A 内部 Realm 中邀请 → 默认 invitee 也走 Org-A binding（如果 Org-A organization registry 把 invitee 列为成员）；
@@ -244,7 +244,7 @@ Account subscribe `delta` frame 包含以下 stream：
 
 **协议正确性层面**，Cokret 的事件携带 `prev_refs` 与 `refs[role=authorized_by]`，每个事件自带因果与授权 seal；reducer / projection 在 gap 期间不会误判 authz 或 state convergence。这部分不依赖额外 gap-boundary 信息。
 
-**渲染正确性层面**，当 `timeline.limited=true` 且 window 内可能包含 actor profile 更新、Realm / Flow / Space 元数据变更、或 E2EE epoch rotation 时，客户端按"当前 seal view"渲染 window 起点事件会显示错误的 display name / Realm/Flow/Space display metadata / 加密 epoch。为此，服务端 MUST 在响应该 Realm timeline 时二选一：
+**渲染正确性层面**，当 `timeline.limited=true` 且 window 内可能包含 actor profile 更新、Realm / Strand / Space 元数据变更、或 E2EE epoch rotation 时，客户端按"当前 seal view"渲染 window 起点事件会显示错误的 display name / Realm/Strand/Space display metadata / 加密 epoch。为此，服务端 MUST 在响应该 Realm timeline 时二选一：
 
 **(a) 返回 `state_at_window_start`** (推荐路径，projection-only)：
 
@@ -284,7 +284,7 @@ Account subscribe `delta` frame 包含以下 stream：
 - 客户端 MUST NOT 在 backfill 完成（即缺口被 `prev_cursor` 拉取并应用）前把该 timeline 渲染为已验证的完整 UI。
 - 客户端可以渲染为占位、loading 状态或带 "loading history..." 标签的预览，但不得让用户感知为"完整 timeline"。
 
-> Rationale: Matrix `/sync` limited timeline 同时返回 state delta；Cokret 的 per-event auth state 已覆盖协议层正确性，但渲染层（display name / Realm or Flow avatar / epoch boundary）仍可能错位。`state_at_window_start` 给服务端实现一条轻量恢复路径，`preview_only` 给无法计算历史 seal 的实现一条安全回退。
+> Rationale: Matrix `/sync` limited timeline 同时返回 state delta；Cokret 的 per-event auth state 已覆盖协议层正确性，但渲染层（display name / Realm or Strand avatar / epoch boundary）仍可能错位。`state_at_window_start` 给服务端实现一条轻量恢复路径，`preview_only` 给无法计算历史 seal 的实现一条安全回退。
 
 ## 6. Event Ordering
 
@@ -759,7 +759,7 @@ E2EE Realm 的同步必须把“事件顺序”和“密钥可用性”分开处
 
 ### 15.1 `decryption_pending` timeout and recovery
 
-客户端首次把某事件标记为 `decryption_pending` 时 MUST 记录 `first_pending_at`、缺失的 `(realm_id, flow_id?, track_name?, group_id, epoch)`、已尝试的恢复 source 和最近一次错误。默认 `decryption_pending_timeout` 为 7 天；Realm policy 或实现 profile MAY 声明更短值，高保障 profile SHOULD 更短，但不得无限期保持无诊断 pending。
+客户端首次把某事件标记为 `decryption_pending` 时 MUST 记录 `first_pending_at`、缺失的 `(realm_id, strand_id?, track_name?, group_id, epoch)`、已尝试的恢复 source 和最近一次错误。默认 `decryption_pending_timeout` 为 7 天；Realm policy 或实现 profile MAY 声明更短值，高保障 profile SHOULD 更短，但不得无限期保持无诊断 pending。
 
 在 timeout 前，客户端 SHOULD 按以下顺序恢复：
 

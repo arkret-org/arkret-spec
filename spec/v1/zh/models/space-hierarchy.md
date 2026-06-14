@@ -79,7 +79,7 @@ effective_default_realm(space):
   return space.realm_id
 ```
 
-客户端从某个 Space 创建 Flow / Morph / View 时，MUST 把解析结果显式写入新资源的 `realm_id`。服务端 / reducer 不得在签名后根据当前 tree 状态隐式改写资源 Realm。
+客户端从某个 Space 创建 Strand / Morph / View 时，MUST 把解析结果显式写入新资源的 `realm_id`。服务端 / reducer 不得在签名后根据当前 tree 状态隐式改写资源 Realm。
 
 Effective default Realm 解析 MUST NOT 跨 `ck.realm.link` 跳转。`default_realm_id` 指到哪个 Realm，新资源就只能默认落到该 Realm；即使该 Realm 与其它 Realm 存在 `governed_by`、`discoverable_from`、`confidential_extension_of` 或 migration link（`split_from` / `replaces`），也不得自动 fallback 到 link 邻居。若解析得到的 Realm 已 tombstoned、destroyed、不可达或当前 actor 对其没有创建目标对象的 capability，新写入 MUST `failed_precondition`，`reason_code=realm_unavailable` 或更具体的 terminal / capability reason；客户端只能要求用户显式选择新的 Realm 或执行被授权的 migration/reparent 流程。
 
@@ -96,15 +96,15 @@ Effective default Realm 解析 MUST NOT 跨 `ck.realm.link` 跳转。`default_re
 
 ## 6. Workflow Containers
 
-`kind=board` / `kind=list` 也是 Space。Flow 位置仍由 `ck.flow.move` / `ck.flow.reorder` 的 cas_register cell 维护；position cell 的 `cell_id` / value shape（`{ list_space_id, rank } | null`）与去重 / 唯一性规则的单一真源是 [`realm-and-space.md` §3.6](./realm-and-space.md#36-flow-位置)，本节不重复定义，只补充跨 Realm placement 约束。
+`kind=board` / `kind=list` 也是 Space。Strand 位置仍由 `ck.strand.move` / `ck.strand.reorder` 的 cas_register cell 维护；position cell 的 `cell_id` / value shape（`{ list_space_id, rank } | null`）与去重 / 唯一性规则的单一真源是 [`realm-and-space.md` §3.6](./realm-and-space.md#36-strand-位置)，本节不重复定义，只补充跨 Realm placement 约束。
 
-默认情况下，workflow placement MUST resolve to the same effective Realm as the Flow：
+默认情况下，workflow placement MUST resolve to the same effective Realm as the Strand：
 
-- Flow `realm_id = R`
+- Strand `realm_id = R`
 - Board Space effective default Realm MUST be `R`
 - List Space effective default Realm MUST be `R`
 
-需要跨 Realm 展示时，使用 View / Relation 聚合，不要把 Flow placement cell 写到另一个 Realm 的 Space 中，除非 profile 显式定义 cross-Realm placement 语义和授权规则。
+需要跨 Realm 展示时，使用 View / Relation 聚合，不要把 Strand placement cell 写到另一个 Realm 的 Space 中，除非 profile 显式定义 cross-Realm placement 语义和授权规则。
 
 ## 7. Query
 

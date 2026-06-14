@@ -268,7 +268,7 @@
       "tier": "extension",
       "operations": [
         "ck.self.projection.spaces.query.list",
-        "ck.self.projection.flows.query.list",
+        "ck.self.projection.strands.query.list",
         "ck.self.projection.morphs.query.list",
         "ck.self.views.collection_projection.command.materialize",
         "ck.self.projection.document.resource.get"
@@ -767,7 +767,7 @@
       "http": "POST /_cokret/self/direct-conversations/resolve",
       "grpc": "SelfDirectConversation/Resolve",
       "mq": "self.direct_conversation.command.resolve",
-      "notes": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent; create=true creates canonical DM Realm, main Flow, and binding.",
+      "notes": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent; create=true creates canonical DM Realm, main Strand, and binding.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_request_body",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_outcome"
@@ -1374,7 +1374,7 @@
     },
     {
       "operation_id": "ck.open.mimi.query.group_info",
-      "http": "GET /_cokret/open/mimi/flows/{flow_id}/group-info",
+      "http": "GET /_cokret/open/mimi/strands/{strand_id}/group-info",
       "grpc": "OpenMimi/GroupInfo",
       "mq": "open.mimi.query.group_info",
       "success_shape_kind": "typed_response",
@@ -1400,7 +1400,7 @@
     },
     {
       "operation_id": "ck.open.mimi.command.notify",
-      "http": "POST /_cokret/open/mimi/flows/{flow_id}/notify",
+      "http": "POST /_cokret/open/mimi/strands/{strand_id}/notify",
       "grpc": "OpenMimi/Notify",
       "mq": "open.mimi.command.notify",
       "success_shape_kind": "typed_response",
@@ -1446,7 +1446,7 @@
     },
     {
       "operation_id": "ck.open.mimi.command.update_room",
-      "http": "POST /_cokret/open/mimi/flows/{flow_id}/update",
+      "http": "POST /_cokret/open/mimi/strands/{strand_id}/update",
       "grpc": "OpenMimi/RoomUpdate",
       "mq": "open.mimi.command.update_room",
       "success_shape_kind": "typed_response",
@@ -1455,7 +1455,7 @@
     },
     {
       "operation_id": "ck.open.mimi.command.submit_message",
-      "http": "POST /_cokret/open/mimi/flows/{flow_id}/messages",
+      "http": "POST /_cokret/open/mimi/strands/{strand_id}/messages",
       "grpc": "OpenMimi/SubmitMessage",
       "mq": "open.mimi.command.submit_message",
       "success_shape_kind": "typed_response",
@@ -1696,13 +1696,13 @@
       "response_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_cursor_list"
     },
     {
-      "operation_id": "ck.self.projection.flows.query.list",
-      "http": "GET /_cokret/self/projection/flows",
-      "grpc": "SelfProjection/Flows",
-      "mq": "self.projection.flows.query.list",
-      "notes": "Extension read surface for reducer-maintained Flow lifecycle projection rows scoped by realm_id. This is a derived read model, not a canonical truth source.",
+      "operation_id": "ck.self.projection.strands.query.list",
+      "http": "GET /_cokret/self/projection/strands",
+      "grpc": "SelfProjection/Strands",
+      "mq": "self.projection.strands.query.list",
+      "notes": "Extension read surface for reducer-maintained Strand lifecycle projection rows scoped by realm_id. This is a derived read model, not a canonical truth source.",
       "success_shape_kind": "typed_response",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionFlowList"
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionStrandList"
     },
     {
       "operation_id": "ck.self.projection.morphs.query.list",

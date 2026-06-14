@@ -184,7 +184,7 @@ Content-Type: application/json
 - `quarantine`
 - `require_review`
 
-`hard_deny` MAY 使事件被 reject；`quarantine` MUST 使事件进入 quarantine；`soft_deny` SHOULD 阻止默认客户端提交，但 Sync Service MAY 接收并保留为策略软拒绝记录；`require_review` 生成 proposal/review flow。
+`hard_deny` MAY 使事件被 reject；`quarantine` MUST 使事件进入 quarantine；`soft_deny` SHOULD 阻止默认客户端提交，但 Sync Service MAY 接收并保留为策略软拒绝记录；`require_review` 生成 proposal/review strand。
 
 `reason_code` SHOULD 至少覆盖：
 
@@ -330,8 +330,8 @@ Policy Server MAY 执行 Realm 级与组织级的 blocklist、allowlist、rate l
 
 | 词表 | 权威源 | kind 集合 | 适用范围 |
 | --- | --- | --- | --- |
-| **Capability resource selector** | [`resource-selector.schema.json`](../../artifacts/schemas/resource-selector.schema.json) / [`resource-selector-grammar.md`](./resource-selector-grammar.md) §3.1 | 18 项：`realm` / `space` / `circle` / `flow` / `message` / `morph` / `object` / `relation` / `view` / `event` / `actor` / `schema` / `policy` / `invite` / `notification` / `read_cursor` / `blob` / `*` | capability grant 的 `resources[]`，表达细粒度授权 scope。 |
-| **Policy rule resource** | [`policy.schema.json`](../../artifacts/schemas/policy.schema.json) `rule.resource[].kind` | 5 项：`realm` / `flow` / `space` / `object` / `service` | Policy Server 规则的作用对象，是上面的有意收窄子集（policy 规则作用在较粗的治理粒度上）。 |
+| **Capability resource selector** | [`resource-selector.schema.json`](../../artifacts/schemas/resource-selector.schema.json) / [`resource-selector-grammar.md`](./resource-selector-grammar.md) §3.1 | 18 项：`realm` / `space` / `circle` / `strand` / `message` / `morph` / `object` / `relation` / `view` / `event` / `actor` / `schema` / `policy` / `invite` / `notification` / `read_cursor` / `blob` / `*` | capability grant 的 `resources[]`，表达细粒度授权 scope。 |
+| **Policy rule resource** | [`policy.schema.json`](../../artifacts/schemas/policy.schema.json) `rule.resource[].kind` | 5 项：`realm` / `strand` / `space` / `object` / `service` | Policy Server 规则的作用对象，是上面的有意收窄子集（policy 规则作用在较粗的治理粒度上）。 |
 
 适用规则：
 

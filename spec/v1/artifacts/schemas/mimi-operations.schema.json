@@ -67,9 +67,9 @@
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
-    "flow_id": {
+    "strand_id": {
       "type": "string",
-      "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "event_id": {
       "type": "string",
@@ -208,15 +208,15 @@
       "type": "object",
       "required": [
         "requester",
-        "flow_id",
+        "strand_id",
         "device_id"
       ],
       "properties": {
         "requester": {
           "$ref": "#/$defs/did"
         },
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
+        "strand_id": {
+          "$ref": "#/$defs/strand_id"
         },
         "device_id": {
           "$ref": "#/$defs/device_id"
@@ -560,8 +560,8 @@
             "any"
           ]
         },
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
+        "strand_id": {
+          "$ref": "#/$defs/strand_id"
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
@@ -739,14 +739,14 @@
     "mimi_report_abuse_request_body": {
       "type": "object",
       "required": [
-        "flow_id",
+        "strand_id",
         "target_ref",
         "reporter",
         "abuse_reason_code"
       ],
       "properties": {
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
+        "strand_id": {
+          "$ref": "#/$defs/strand_id"
         },
         "target_ref": {
           "$ref": "#/$defs/non_empty_string"
@@ -812,8 +812,8 @@
         "requester": {
           "$ref": "#/$defs/did"
         },
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
+        "strand_id": {
+          "$ref": "#/$defs/strand_id"
         },
         "ohttp_context": {
           "type": "object",

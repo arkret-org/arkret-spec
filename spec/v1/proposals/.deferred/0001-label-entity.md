@@ -12,13 +12,13 @@ authors:
 
 ## 1. Summary
 
-把当前 `labels: array<string>`(common-fields §3 的裸 string 数组,OR-Set 收敛)升级为一等对象 `ck:label:`(带 id / 颜色 / 标题 / 描述 / scope 的可独立编辑实体),通过 `flow --labeled_with--> label` Relation 应用到 Flow / Morph 等对象。
+把当前 `labels: array<string>`(common-fields §3 的裸 string 数组,OR-Set 收敛)升级为一等对象 `ck:label:`(带 id / 颜色 / 标题 / 描述 / scope 的可独立编辑实体),通过 `strand --labeled_with--> label` Relation 应用到 Strand / Morph 等对象。
 
 ## 2. Motivation
 
 Trello 的 label 是 board 级实体,改一次颜色或标题,所有挂着这个 label 的 card 同步更新。GitHub Issue 的 label 同样是 repo 级实体。当前协议里 `labels: array<string>` 是 inline 裸串:
 
-- 改一个 label 的显示名需要在每个 Flow 上重新 patch
+- 改一个 label 的显示名需要在每个 Strand 上重新 patch
 - 没有颜色 / 描述 / 图标的承载
 - 无法做权限切分("谁可以创建新 label" vs "谁可以贴 label")
 - 无法做 audit("这个 label 是谁创建的")
@@ -60,10 +60,10 @@ Schema id: `ck.schema.label.v1`
 | `ck.label.restore` | yes | object_lifecycle_payload | archived → active。 |
 | `ck.label.tombstone` | yes | object_lifecycle_payload | active/archived → tombstoned,不可逆。 |
 
-### 3.3 应用到 Flow / Morph:`labeled_with` Relation
+### 3.3 应用到 Strand / Morph:`labeled_with` Relation
 
 ```text
-flow  --labeled_with-->  label    cardinality: many-to-many
+strand  --labeled_with-->  label    cardinality: many-to-many
 morph --labeled_with-->  label    cardinality: many-to-many
 ```
 
@@ -113,16 +113,16 @@ morph --labeled_with-->  label    cardinality: many-to-many
 - 调色板和应用关系没有 referential integrity(贴的 label 可能指向已删除 key)
 - 没有 per-Space / personal scope 表达
 
-### 5.2 为什么不直接在 Flow 上挂内嵌 label object 数组?
+### 5.2 为什么不直接在 Strand 上挂内嵌 label object 数组?
 
-候选 B:`flow.labels: array<LabelObject>`(内嵌)。
+候选 B:`strand.labels: array<LabelObject>`(内嵌)。
 
 否决理由:
-- 改一个 label 颜色要 patch 所有 Flow,违反 normalization
+- 改一个 label 颜色要 patch 所有 Strand,违反 normalization
 - E2EE 场景下 label 元数据也被加密,无法在 picker 阶段渲染
 - 集合字段 OR-Set 收敛不直观(嵌套对象在并发更新下歧义)
 
-### 5.3 为什么用 Relation 而不是 Flow 上的 `label_refs: array<id:label>`?
+### 5.3 为什么用 Relation 而不是 Strand 上的 `label_refs: array<id:label>`?
 
 Relation 已经是协议级一等概念,有 lifecycle / cross-Realm 校验 / audit / capability gating;再造一个数组路径会重复机制。Trello 的应用关系也是隐式的多对多。
 
@@ -130,7 +130,7 @@ Relation 已经是协议级一等概念,有 lifecycle / cross-Realm 校验 / aud
 
 - [ ] `color.palette` 的固定 token 集合用哪一套?Trello 12 色 / Linear 8 色 / Tailwind 22 色?建议把 token 集放在 profile 里,protocol 只规定 `palette` 是个 token string。
 - [ ] `scope=personal` 是否真的需要协议级表达?或者完全留给客户端 actor-private state?
-- [ ] 跨 Realm 引用 label 的场景(用 Realm A 的 label 给 Realm B 的 Flow 贴)需要吗?默认拒绝,但 Linked Realm 场景可能合理。
+- [ ] 跨 Realm 引用 label 的场景(用 Realm A 的 label 给 Realm B 的 Strand 贴)需要吗?默认拒绝,但 Linked Realm 场景可能合理。
 - [ ] Label `key` create-locked 与 morph_type 同模式,还是允许低 tier rename(并接受 grant selector 失效)?
 - [ ] 是否需要 `ck.label.merge` event(把两个 label 合并,自动迁移所有 `labeled_with`)?这是 Trello / GitHub 都有的高频运维操作。
 

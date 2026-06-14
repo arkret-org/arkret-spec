@@ -12,7 +12,7 @@ updated: 2026-06-10
 
 ## 1. 目标
 
-本文定义 Cokret 协作图所有 canonical object 共享的字段、lifecycle 状态机、主体引用语义与 reducer 总则。每个对象自己的字段表（Realm / Flow / Message / ...）放在该对象的专属文件中；本文只承载"所有对象都遵循"的内容。
+本文定义 Cokret 协作图所有 canonical object 共享的字段、lifecycle 状态机、主体引用语义与 reducer 总则。每个对象自己的字段表（Realm / Strand / Message / ...）放在该对象的专属文件中；本文只承载"所有对象都遵循"的内容。
 
 ## 2. 类型记法
 
@@ -46,12 +46,12 @@ updated: 2026-06-10
 - 签名和 hash 输入 MUST 使用 canonical JSON。
 - `id:<kind>` 在 wire、canonical object、fixture、签名和跨服务引用中 MUST 使用完整 typed ID。数据库内部 MAY 只存 raw id，但在序列化、签名、hash、联邦、sync cursor 和审计回放前必须恢复 `ck:<kind>:` 前缀；不得把数据库主键或表名当作协议 ID 的替代品。
 - 当 `id:<kind>` 出现在 JSON object key 中时，它仍然属于 wire value；例如 `messages.{principal_id}.{device_id}` 中的 `{device_id}` MUST 使用完整 `ck:device:<uuid>`，MUST NOT 写成局部别名如 `dev_a` 或 `a`。
-- `summary` / `description` 命名约定：canonical object 或 projection row 的短摘要、列表预览、聚合摘要使用 `summary`；Flow 的用户可读短摘要放在 `metadata.summary` 或 `encrypted_metadata`，不得作为顶层 `summary`。原因说明、补充说明、长说明或 schema / registry 元数据说明使用 `description`。OpenAPI 自身标准关键字 `summary` / `description` 按 OpenAPI 语义使用。若字段承载人类可读名称，canonical object 默认使用 `title`；Flow 使用 `metadata.title` 或 `encrypted_metadata`，Actor / user-facing identity profile 使用 `display_name`；`name` 只用于外部协议、加密算法、service surface 或 registry 内部 label，不作为 Realm / Space / Flow 等 canonical object 的显示名。
+- `summary` / `description` 命名约定：canonical object 或 projection row 的短摘要、列表预览、聚合摘要使用 `summary`；Strand 的用户可读短摘要放在 `metadata.summary` 或 `encrypted_metadata`，不得作为顶层 `summary`。原因说明、补充说明、长说明或 schema / registry 元数据说明使用 `description`。OpenAPI 自身标准关键字 `summary` / `description` 按 OpenAPI 语义使用。若字段承载人类可读名称，canonical object 默认使用 `title`；Strand 使用 `metadata.title` 或 `encrypted_metadata`，Actor / user-facing identity profile 使用 `display_name`；`name` 只用于外部协议、加密算法、service surface 或 registry 内部 label，不作为 Realm / Space / Strand 等 canonical object 的显示名。
 - Projection row 若表达 canonical object 的同一概念，MUST 沿用 canonical 字段名（例如 `title`、`summary`、`avatar_blob_ref`、`owning_organizations`），MUST NOT 另起 `name`、`avatar`、`official_organizations` 等别名。若服务需要返回渲染友好的派生对象，字段名 MUST 明确带 projection 语义并有 schema；v1 默认不定义通用 `avatar` projection，头像引用使用 `avatar_blob_ref`。
 - `_id` / `_ref` / `_did` 后缀约定见 §2.1。简要规则：单一具体 protocol object kind 使用 `_id`；因果 / proof / schema-profile / content-addressed / polymorphic reference 使用 `_ref` / `_refs`；原始 DID ecosystem material 使用 `_did`。字段后缀表达 wire value category，不表达授权、同步、保留或加密是否级联；这些语义 MUST 由 role prefix、schema description 与对象专属章节定义。
 - `kind` / `type` 命名约定：`kind` 用于协议内 discriminator、routing、registry event/object family、lattice/reducer 分派和 Relation/View 等 canonical 分类；`type` 用于外部标准 taxonomy、媒体类型、服务分类或不参与 reducer routing 的领域分类。Event Envelope 顶层 `kind` 是唯一 event discriminator；payload 不得用 `type` 重复 event kind。Morph 的 `morph_type` 是 Realm schema-defined 的开放领域分类，不参与 reducer event routing，故使用 `_type` 后缀且字段名固定为 `morph_type`，不得使用裸 `type`；Relation/View 等协议 registry 分类使用 `kind`。MLS `proposal_type` 属于外部 MLS taxonomy，保留 `type`。Genesis `notary` 对象的 finality-profile discriminator 是已登记的 `type` 例外（schema `realm.schema.json` 锁定 `notary.type`，取值与 `notary_profile` 枚举同源），不改名为 `kind`。Handle Claim 自身的封闭协议分类使用 `claim_kind`；authorization/VC selector 中选择外部 credential taxonomy 的字段可继续使用 `claim_type`。
 - 时间边界命名约定：有效期下界统一使用 `not_before`，有效期上界统一使用 `expires_at`；缓存或派生结果的失效时间使用带领域前缀的 `cache_expires_at`。新增 wire 字段不得使用 `valid_from`、`valid_until` 或 `not_after` 作为同义别名。
-- `state` / `status` / `stage` 命名约定：`state` 表示 canonical object 的物理生命周期；`stage` 表示 Flow / Morph 等业务进度轴；`status` 只用于账号、session、delivery、外部过程或 registry 条目状态，不用于表达 object lifecycle 目标值。对象 lifecycle payload 若需要携带目标状态，字段名使用 `target_state`。
+- `state` / `status` / `stage` 命名约定：`state` 表示 canonical object 的物理生命周期；`stage` 表示 Strand / Morph 等业务进度轴；`status` 只用于账号、session、delivery、外部过程或 registry 条目状态，不用于表达 object lifecycle 目标值。对象 lifecycle payload 若需要携带目标状态，字段名使用 `target_state`。
 - `created_by` / `creator_*` 命名约定：materialized object metadata 使用 `created_by` / `updated_by`，由 reducer 从 Event `actor_id` 派生。`creator_*` 只用于外部协议或加密 transcript 自身的创建者 tuple（例如 MLS group creator），不得作为 object 创建主体字段的别名。
 - 哈希字段命名三词词汇表：算法/函数族选择器使用 `<noun>_algorithm`（枚举字符串，例如 `digest_algorithm: "sha256"`）；任意字节的不透明哈希输出使用 `<noun>_digest`（wire 形态必须是自描述 `<alg>:<hex>`）；树状 / Merkle / 累加器的根使用 `<noun>_root`（同样是 `<alg>:<hex>`，区别在于单独验证还需配套包含证明）。**新增 wire 字段名 MUST NOT 以"hash"结尾（不论是 `_hash` 后缀还是 `hash_profile`、`hash_algorithm` 等同义形态）**；含义重叠的算法选择器 MUST 收敛到 `<noun>_algorithm`，含义重叠的字节输出 MUST 收敛到 `<noun>_digest`。遗留 `_hash` 字段在 v1 内全部按上述规则映射，典型映射见 `renames.json`（例如 `payload_hash → payload_digest`、`hash_profile → digest_algorithm`、`state_hash → state_digest`）。复合 commitment 对象（例如 `event_set_commitment`）的外层名描述语义，内部以 `algorithm` + `root` 或 `digest` 表达字节材料；外层 MUST NOT 再追加 `_digest` 后缀。Event proof 绑定 canonical Event bytes 的字段名是 `event_digest`；非 Event 通用 detached proof 使用 `payload_digest`，其说明必须写明被 digest 覆盖的 canonical payload。
 - 签名 proof 中表示签名 key DID URL 的字段统一为 `verification_method`，不得使用 `signed_by`。协议级密钥标识使用 `key_id`；JOSE/JWK 结构可保留标准 `kid` / `alg`。若 schema 显式定义紧凑 detached signature tuple `{alg,kid,sig}`，短字段 `sig` 只允许出现在该 tuple 内；协议对象的普通签名字段使用 `signature` 或带角色的 `<role>_signature`。若需要表达消息或通知中的发送主体，使用带角色的 `sender_actor_id`；展示名称使用 `sender_actor_display_name`，不得用裸 `sender` 承载 DID。
@@ -63,8 +63,8 @@ updated: 2026-06-10
 - Event kind 动词使用动词原形表达 reducer 动作（如 `authorize`、`revoke`、`rotate`、`tombstone`）；只有纯状态通告或外部标准名有明确理由时才可使用过去分词。
 - Capability action 命名约定：
   - **`ck.<entity>.<verb>` 是默认形态**，对应 `target_event_kinds` 中的一个或多个 reducer-input event kind。新增 action 默认 MUST 与被授权 event kind 同名；只有 [`authz/capabilities.md` §5.0](../authz/capabilities.md#50-action--event-kind-偏离类别normative-reference) 登记的偏离类别允许不同名。授权、IAM 工具、SDK 生成和 audit 解析 MUST 读取 capability-action-registry 的 `target_event_kinds`，不得从 action 字符串拆解推断 event kind。
-  - **通用 `ck.object.<verb>`**（如 `ck.object.read` / `ck.object.archive` / `ck.object.restore` / `ck.object.stage.set`) 只允许在 Realm-wide admin 或跨实体审计 grant 中使用 (`match_scope` 不限定单一实体 ID); 对单一实体的常规授权 MUST 使用专属 `ck.<entity>.<verb>` (例如 `ck.flow.archive`)。这是为了让 grant author 在最小作用域内表达意图, 同时保留 admin 路径使用通用 action 的能力。
-  - **后缀 `.own` / `.others`**: 不带后缀的 action 默认作用域不限定 "creator = grantee"; 加 `.own` 表示 "仅 actor 自己创建的对象" (例如 `ck.message.revise.own`, `ck.message.redact.own`); 加 `.others` 表示 "允许操作他人创建的对象", 通常 risk_tier=high。三种形态 MUST 在 capability-action-registry 中分别登记, 不得当作通配等价。历史命名 `manage_others` 已收敛为 `.others` 后缀（例如 `ck.flow.watch.set.others`）。
+  - **通用 `ck.object.<verb>`**（如 `ck.object.read` / `ck.object.archive` / `ck.object.restore` / `ck.object.stage.set`) 只允许在 Realm-wide admin 或跨实体审计 grant 中使用 (`match_scope` 不限定单一实体 ID); 对单一实体的常规授权 MUST 使用专属 `ck.<entity>.<verb>` (例如 `ck.strand.archive`)。这是为了让 grant author 在最小作用域内表达意图, 同时保留 admin 路径使用通用 action 的能力。
+  - **后缀 `.own` / `.others`**: 不带后缀的 action 默认作用域不限定 "creator = grantee"; 加 `.own` 表示 "仅 actor 自己创建的对象" (例如 `ck.message.revise.own`, `ck.message.redact.own`); 加 `.others` 表示 "允许操作他人创建的对象", 通常 risk_tier=high。三种形态 MUST 在 capability-action-registry 中分别登记, 不得当作通配等价。历史命名 `manage_others` 已收敛为 `.others` 后缀（例如 `ck.strand.watch.set.others`）。
 
 ### 2.1 Identifier 字段命名约定（normative）
 
@@ -85,9 +85,9 @@ expected_<role>_<kind>_id
 
 规则：
 
-- canonical materialized object 自身 primary identity 字段 MUST 使用 `id`，不得写成 `flow_id` / `message_id` / `actor_profile_id` 等带对象名前缀的字段。Actor / user-facing identity 在 v1 中由 Actor Profile 表达：Profile 对象自身仍使用 `id`，其授权主体 DID 另用 `principal_id`。
+- canonical materialized object 自身 primary identity 字段 MUST 使用 `id`，不得写成 `strand_id` / `message_id` / `actor_profile_id` 等带对象名前缀的字段。Actor / user-facing identity 在 v1 中由 Actor Profile 表达：Profile 对象自身仍使用 `id`，其授权主体 DID 另用 `principal_id`。
 - Snapshot manifest 自身也使用 `id`；`snapshot_ref` 只在其他对象、chunk payload、challenge 或 API hint 指向该 manifest 时使用。
-- Event Envelope、Receipt、Attestation / Evidence、Key Backup、Applet / Agent 等协议 artifact 或非通用 materialized object MAY 使用 `<artifact>_id` 作为自身标识（例如 `event_id`、`receipt_id`、`attestation_id`、`evidence_id`、`backup_id`、`applet_id`、`agent_id`），因为这些对象经常与 `realm_id`、`actor_id`、`policy_id`、`device_id` 等并列并进入签名 transcript，需要在混合上下文中消歧。该例外不得反向用于 Realm / Space / Flow / Message / Morph / Relation / View / Policy / Actor Profile 等普通 canonical object。
+- Event Envelope、Receipt、Attestation / Evidence、Key Backup、Applet / Agent 等协议 artifact 或非通用 materialized object MAY 使用 `<artifact>_id` 作为自身标识（例如 `event_id`、`receipt_id`、`attestation_id`、`evidence_id`、`backup_id`、`applet_id`、`agent_id`），因为这些对象经常与 `realm_id`、`actor_id`、`policy_id`、`device_id` 等并列并进入签名 transcript，需要在混合上下文中消歧。该例外不得反向用于 Realm / Space / Strand / Message / Morph / Relation / View / Policy / Actor Profile 等普通 canonical object。
 - 单一具体 kind MUST 在字段名中出现 kind slug，例如 `space_id`、`parent_space_id`、`default_realm_id`、`scope_circle_id`、`policy_id`、`retention_policy_id`。
 - protocol responsibility subject 使用 `_id`，即使 wire value 是 DID，例如 `actor_id`、`principal_id`、`subject_id`、`watcher_actor_id`。
 - Event payload 若写入某个 materialized object / projection 字段的值，payload 字段名 MUST 与该物化字段同名。操作目标、CAS expected head、audit target、selector target 等事件操作角色 MAY 加 role prefix，例如 `space_id` 与 `expected_parent_space_id`。
@@ -119,21 +119,21 @@ expected_<role>_<kind>_id
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:*` | typed ID 前缀决定对象种类（`ck:flow:` 即 flow 对象，依此类推）。 | 对象稳定 ID；前缀就是 type，不再单独写 `type` 字段。 |
+| `id` | yes | `id:*` | typed ID 前缀决定对象种类（`ck:strand:` 即 strand 对象，依此类推）。 | 对象稳定 ID；前缀就是 type，不再单独写 `type` 字段。 |
 | `schema` | yes | `string` | SHOULD 是 `ck.schema.*.vN` 或反向域名 schema id。 | 验证 schema id。 |
 | `realm_id` | conditional | `id:realm` | Realm 外对象可省略。 | 所属 Realm。 |
 | `created_by` | conditional | `did` | 系统派生对象可由 `derived_from` 替代。 | 创建主体（创建该对象的 Event 的 `actor_id`）。 |
 | `created_at` | yes | `timestamp` | 不能作为因果真相。 | 创建时间。 |
 | `updated_by` | no | `did` | 更新时 SHOULD 设置。 | 最近更新主体。 |
 | `updated_at` | no | `timestamp` | MUST be no earlier than `created_at`。 | 最近更新时间。 |
-| `deleted_at` | no | `timestamp` | durable tombstone 可用。对没有独立 `deleted` / `tombstoned` 终态的对象（Flow / Morph，其不可逆终态是 `redacted`），`deleted_at` 仅表示该对象因 `ck.redaction` 进入 `redacted` 的逻辑删除时间，不暗示存在单独的 deleted 终态；对有 `tombstoned` / `deleted` 终态的对象（Space / Realm / Message 的相应终态），表示该终态发生时间。 | 逻辑删除时间。 |
-| `state_changed_at` | conditional | `timestamp` | **Reducer-derived,actor 不可信:** 所有具有 `state` 字段的对象（Flow / Space / Message / Morph / Relation）当 `state != active` 时 MUST 写入;reducer **MUST** 忽略任何 wire payload 中 actor-supplied 的 `state_changed_at` 值，以触发该 state transition 的 Event 的 `created_at`(或对应 seal 的 `sealed_at`,以两者中较晚者为准)覆盖写入。MUST be no earlier than `created_at`,MUST ≤ `updated_at`(当后者存在时)。 | 最近一次 state 转换时间。 |
-| `stage` | conditional | `enum` | 适用对象自己的 schema 声明本字段时可用（v1 适用对象 = Flow / Morph，详见 §5.3）；Flow MAY 省略，Morph 必填。取值为 §5.3 的协议级 8 值枚举。**禁止与 `state` 混用**：`stage` 表达业务进度，`state` 表达物理生命周期，两者正交。Flow 的 `metadata.fields.stage` / `metadata.fields.lifecycle` / `metadata.fields.progress_state` / `metadata.fields.stage_reason`，以及 Morph 的 `fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` 等同名/近名 wire 路径 MUST 被拒绝（见 [`artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。stage 变更的"为什么"解释通过 discussion track Message 表达，不在对象字段中携带。 | 业务进度阶段。 |
-| `stage_changed_at` | conditional | `timestamp` | **Reducer-derived，actor 不可信：** 适用对象 `stage` 字段每次实际变更时 MUST 写入；Flow 缺少 `stage` 时 MUST NOT 单独出现。reducer **MUST** 忽略 wire payload 的 actor-supplied 值，以触发该 transition 的 `ck.<kind>.stage.set` event 的 `created_at` 覆盖写入。MUST be no earlier than `created_at`。same-value self-transition（stage 值未变）reducer MUST NOT 更新本字段。 | 最近一次 stage 转换时间。 |
+| `deleted_at` | no | `timestamp` | durable tombstone 可用。对没有独立 `deleted` / `tombstoned` 终态的对象（Strand / Morph，其不可逆终态是 `redacted`），`deleted_at` 仅表示该对象因 `ck.redaction` 进入 `redacted` 的逻辑删除时间，不暗示存在单独的 deleted 终态；对有 `tombstoned` / `deleted` 终态的对象（Space / Realm / Message 的相应终态），表示该终态发生时间。 | 逻辑删除时间。 |
+| `state_changed_at` | conditional | `timestamp` | **Reducer-derived,actor 不可信:** 所有具有 `state` 字段的对象（Strand / Space / Message / Morph / Relation）当 `state != active` 时 MUST 写入;reducer **MUST** 忽略任何 wire payload 中 actor-supplied 的 `state_changed_at` 值，以触发该 state transition 的 Event 的 `created_at`(或对应 seal 的 `sealed_at`,以两者中较晚者为准)覆盖写入。MUST be no earlier than `created_at`,MUST ≤ `updated_at`(当后者存在时)。 | 最近一次 state 转换时间。 |
+| `stage` | conditional | `enum` | 适用对象自己的 schema 声明本字段时可用（v1 适用对象 = Strand / Morph，详见 §5.3）；Strand MAY 省略，Morph 必填。取值为 §5.3 的协议级 8 值枚举。**禁止与 `state` 混用**：`stage` 表达业务进度，`state` 表达物理生命周期，两者正交。Strand 的 `metadata.fields.stage` / `metadata.fields.lifecycle` / `metadata.fields.progress_state` / `metadata.fields.stage_reason`，以及 Morph 的 `fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` 等同名/近名 wire 路径 MUST 被拒绝（见 [`artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。stage 变更的"为什么"解释通过 discussion track Message 表达，不在对象字段中携带。 | 业务进度阶段。 |
+| `stage_changed_at` | conditional | `timestamp` | **Reducer-derived，actor 不可信：** 适用对象 `stage` 字段每次实际变更时 MUST 写入；Strand 缺少 `stage` 时 MUST NOT 单独出现。reducer **MUST** 忽略 wire payload 的 actor-supplied 值，以触发该 transition 的 `ck.<kind>.stage.set` event 的 `created_at` 覆盖写入。MUST be no earlier than `created_at`。same-value self-transition（stage 值未变）reducer MUST NOT 更新本字段。 | 最近一次 stage 转换时间。 |
 | `labels` | no | `array<string>` | SHOULD 小写短标签。 | 用户或系统标签。 |
 | `fields` | no | `object` | 字段 schema 由对象类型自身的 `schema_refs` 决定。 | 扩展字段；v1 唯一标准扩展容器。 |
 
-对象种类由 `id` 的 typed prefix（`ck:flow:` / `ck:realm:` / ...）唯一决定；扩展字段统一走 `fields`，由对象 `schema_refs` 约束。Event Envelope 不是 Materialized Object，事件类型由顶层 `kind` 表达。
+对象种类由 `id` 的 typed prefix（`ck:strand:` / `ck:realm:` / ...）唯一决定；扩展字段统一走 `fields`，由对象 `schema_refs` 约束。Event Envelope 不是 Materialized Object，事件类型由顶层 `kind` 表达。
 
 ### 3.0.1 Size 字段命名
 
@@ -156,9 +156,9 @@ expected_<role>_<kind>_id
 - **Universal**：所有 durable canonical object 都用。
 - **Authorship**：协作图对象记录创建 / 更新主体；与 reducer 派生关系紧密。
 - **Lifecycle**：物理生命周期（active / archived / tombstoned / ...），与 `ck.<kind>.archive` / `restore` / `tombstone` 系列 event 配对。
-- **Progress**：业务进度（v1 仅 Flow / Morph），与 `ck.<kind>.stage.set` event 配对。
+- **Progress**：业务进度（v1 仅 Strand / Morph），与 `ck.<kind>.stage.set` event 配对。
 
-| 字段 | 组 | Realm | Circle | Space | Flow | Message | Morph | Relation | View | Policy | Blob meta | Capability Grant | Invite | Read Cursor | Notification | Actor Profile |
+| 字段 | 组 | Realm | Circle | Space | Strand | Message | Morph | Relation | View | Policy | Blob meta | Capability Grant | Invite | Read Cursor | Notification | Actor Profile |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `id` | Universal | Y | Y | Y | Y | Y | Y | Y | Y | Y | —（见 `blob_ref`，§3.2 第 2 类） | Y | Y | Y | Y | Y |
 | `schema` | Universal | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y |
@@ -171,7 +171,7 @@ expected_<role>_<kind>_id
 | `state` | Lifecycle | —（Realm 终态由 lifecycle facet 表达，schema 拒绝） | Y | O | O | Y | O | O | — | — | — | — | Y（流程状态轴，见附注） | — | Y（特例语义，见附注） | — (see `status`，mirrors account status) |
 | `state_changed_at` | Lifecycle | —（Realm 终态由 lifecycle facet 表达，schema 拒绝） | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | R when state≠active | — | — | — | — | — | — | — | — |
 | `stage` | Progress | — | — | — | O | — | Y | — | — | — | — | — | — | — | — | — |
-| `stage_changed_at` | Progress | — | — | — | R per `ck.flow.stage.set` | — | R per `ck.morph.stage.set` | — | — | — | — | — | — | — | — | — |
+| `stage_changed_at` | Progress | — | — | — | R per `ck.strand.stage.set` | — | R per `ck.morph.stage.set` | — | — | — | — | — | — | — | — | — |
 | `labels` | Universal | O | — | O | O | O | O | — | — | — | — | — | — | — | — | — |
 | `fields` / `metadata.fields` | Universal | O | — | O | O (`metadata.fields`) | O (`metadata.fields`) | Y (主要载荷) | O | — | — | — | — | — | — | — | — (see `profile_fields`) |
 
@@ -180,11 +180,11 @@ expected_<role>_<kind>_id
 - Realm 使用通用 `created_by` 字段；其额外语义是 Realm create event 的 authorizing principal，并作为 genesis member bootstrap 主体（见 §4.1 / §4.2 与 [`realm-and-space.md` §2.5](./realm-and-space.md#25-ckrealmcreate-reducer-bootstrapnormative)）。
 - Capability Grant / Invite / Read Cursor / Notification / Actor Profile 用领域特有的 authorship 字段（`issuer` / `inviter` / `actor_id` / `principal_id`），各对象 schema 内部独立约束；本表对应格写"—"是因为它们不使用通用 `created_by`，并不表示没有创建主体记录。
 - Read Cursor / Notification 是 actor-private 状态：`realm_id` 在 Read Cursor 上必填（`read-cursor.schema.json` 列入 `required[]`），在 Notification 上可选（允许 actor-scoped 视图省略）；`updated_by` 均不适用——这些对象由系统派生或 actor 本人推进。
-- 任何承载物理 lifecycle `state` 轴的对象（Circle / Space / Flow / Message / Morph / Relation）在 `state != active` 时 MUST 写入 `state_changed_at`；该字段被 reducer 强制覆盖，actor wire 值 MUST 被忽略（详见 §5.1）。本条不适用于 Notification / Invite 的特例 `state` 轴（见下条）。
+- 任何承载物理 lifecycle `state` 轴的对象（Circle / Space / Strand / Message / Morph / Relation）在 `state != active` 时 MUST 写入 `state_changed_at`；该字段被 reducer 强制覆盖，actor wire 值 MUST 被忽略（详见 §5.1）。本条不适用于 Notification / Invite 的特例 `state` 轴（见下条）。
 - Notification 的 `state` 是 schema required 字段（enum `unread / read / dismissed / archived`）：它承载 actor-private 的通知处理轴，是 Notification 的特例语义，不是 §5 协作对象物理 lifecycle 枚举；字段名保留 `state`，且 Notification 无 `state_changed_at`。Invite 的 `state` 同为 schema required，承载邀请流程状态轴（命名例外，见 [`governance-objects.md` §5](./governance-objects.md)），同样不落入 §5 lifecycle 状态机。
-- `stage_changed_at` 仅 Flow / Morph 适用，且仅当 `stage` 存在并真正发生 stage 变更时写入；同值 self-transition reducer MUST NOT 更新（详见 §3 与 §5.3）。
+- `stage_changed_at` 仅 Strand / Morph 适用，且仅当 `stage` 存在并真正发生 stage 变更时写入；同值 self-transition reducer MUST NOT 更新（详见 §3 与 §5.3）。
 - `labels` 对 Relation / View / Policy / Blob meta / Capability Grant / Invite / Read Cursor / Notification / Actor Profile 不适用：这些对象的 "标签" 语义由各自的 schema-specific 字段（如 `tags`、`reason`、`category`）承担，避免与协作对象 labels 投影冲突。
-- `fields` 是协作对象的扩展容器；Flow / Message 的用户可读扩展放入 `metadata.fields` 或 `encrypted_metadata`，不得作为顶层 `fields`；View / Policy / Blob meta / Capability Grant / Invite / Read Cursor / Notification 不暴露开放扩展容器。
+- `fields` 是协作对象的扩展容器；Strand / Message 的用户可读扩展放入 `metadata.fields` 或 `encrypted_metadata`，不得作为顶层 `fields`；View / Policy / Blob meta / Capability Grant / Invite / Read Cursor / Notification 不暴露开放扩展容器。
 - **View 无 durable 终态**：v1 的 View 只有 `ck.view.create` / `ck.view.update` / `ck.view.reconcile`，`view.schema.json` 不含 `state` / `deleted_at`，registry 也无 `ck.view.tombstone`；故本表 View 的 `state` / `deleted_at` 为 "—"。共享 View 的"移除"是 owner-private / 带外操作（或由后续 reconcile 覆盖），不走对象生命周期终态。这是有意取舍，待未来若出现"可治理删除"的需求再单独引入 lifecycle event。
 - **Realm 无 materialized `state` 字段**：Realm 的 `archived` / `frozen` / `tombstoned` / `destroyed` 由 `ck.component.realm.*` lifecycle facet 表达，`realm.schema.json` 拒绝 `state` / `state_changed_at` / `deleted_at`。Projection MAY 把 `ck.realm.tombstone` 与 `ck.realm.destroy` 均显示为 `realm_terminal_state`，并用 `terminal_kind=tombstone|destroy` 或同等字段区分 successor 迁移与永久退役；不得把该 projection 状态写回 Realm 对象。
 
@@ -194,9 +194,9 @@ expected_<role>_<kind>_id
 
 按结构角色把对象分三类，各自的顺序如下：
 
-1. **canonical materialized object**（Realm / Circle / Space / Flow / Message / Morph / Relation / View / Policy / Actor Profile 等）字段簇顺序 SHOULD 为：
+1. **canonical materialized object**（Realm / Circle / Space / Strand / Message / Morph / Relation / View / Policy / Actor Profile 等）字段簇顺序 SHOULD 为：
    1. identity：`id`、`schema`
-   2. scope / container：`realm_id`、`space_id`、`flow_id`、其它 parent refs（如 `parent_space_id`、`scope_circle_id`）
+   2. scope / container：`realm_id`、`space_id`、`strand_id`、其它 parent refs（如 `parent_space_id`、`scope_circle_id`）
    3. object discriminator / 引用：`kind`、`rank`、`schema_refs`
    4. content / config：`title`、`metadata`、`fields`、policy / config 字段
    5. lifecycle：`state`、`state_changed_at`、`stage`、`stage_changed_at`
@@ -228,7 +228,7 @@ expected_<role>_<kind>_id
 
 ### 4.1 DID 适用边界
 
-DID 是 Cokret 的主体标识，不是普通协作对象 ID。标准协作对象（Realm / Circle / Space / Flow / Message / Morph / Relation / View / Policy / Grant / Invite / Blob 等）MUST 使用 `ck:<kind>:` typed ID 作为对象 ID；只有当字段表达 actor / principal / issuer / subject / service / controller / accountable party 时，才使用 DID 或 DID URL。设备不在此列：设备不是 actor 主体、没有自己的 DID，其标识是 `device_id`（`ck:device:<uuid>` typed ID），见 [`../crypto-media/device-lifecycle.md` §4](../crypto-media/device-lifecycle.md)。
+DID 是 Cokret 的主体标识，不是普通协作对象 ID。标准协作对象（Realm / Circle / Space / Strand / Message / Morph / Relation / View / Policy / Grant / Invite / Blob 等）MUST 使用 `ck:<kind>:` typed ID 作为对象 ID；只有当字段表达 actor / principal / issuer / subject / service / controller / accountable party 时，才使用 DID 或 DID URL。设备不在此列：设备不是 actor 主体、没有自己的 DID，其标识是 `device_id`（`ck:device:<uuid>` typed ID），见 [`../crypto-media/device-lifecycle.md` §4](../crypto-media/device-lifecycle.md)。
 
 因此，"需要有 DID"的对象与结构按下表理解：
 
@@ -238,7 +238,7 @@ DID 是 Cokret 的主体标识，不是普通协作对象 ID。标准协作对�
 | Actor Profile (`ck:actor_profile:`) | `principal_id` | Profile 只是展示镜像；`principal_id` 才是授权、签名和审计归属的主体 DID。 |
 | Event Envelope (`ck:event:`) | `actor_id`; Proof 中的 `verification_method` 为 DID URL | `actor_id` 是签署并提交事件的 actor DID，MUST 匹配 proof 控制链。 |
 | Realm (`ck:realm:`) | `created_by` | Realm create event 的授权 principal；`owning_organizations[]` 可选使用组织 DID。 |
-| Circle / Space / Flow / Message / Morph / Relation / View / Policy / Blob metadata | `created_by`; 更新时可有 `updated_by` | 这些对象自身不使用 DID 做 `id`；DID 只记录创建 / 更新主体。协作图对象的创建 / 更新主体由 reducer 从对应 Event 的 `actor_id` 派生；Blob metadata 的 `created_by` 来自 authenticated media 写入主体。 |
+| Circle / Space / Strand / Message / Morph / Relation / View / Policy / Blob metadata | `created_by`; 更新时可有 `updated_by` | 这些对象自身不使用 DID 做 `id`；DID 只记录创建 / 更新主体。协作图对象的创建 / 更新主体由 reducer 从对应 Event 的 `actor_id` 派生；Blob metadata 的 `created_by` 来自 authenticated media 写入主体。 |
 | Capability Grant (`ck:grant:`) | `issuer`; `subject` 为具体主体时必须是 DID | `subject` 也可以是条件 selector；handle、邮箱、域名用户名等不得作为权限主体主键。 |
 | Invite (`ck:invite:`) | `inviter`; `invitee` 在直接 DID 邀请时使用 DID | [3PID](../overview/glossary.md) 邀请可没有 `invitee`，但认领后必须绑定可验证主体。 |
 | Read Cursor / Notification | `actor_id` | actor-private 或派生对象，`actor_id` 表示该私有状态所属主体。 |
@@ -297,15 +297,15 @@ DID 是 Cokret 的主体标识，不是普通协作对象 ID。标准协作对�
 
 | 字段 | 使用场景 | 语义轴 |
 | --- | --- | --- |
-| `state` | Realm / Circle / Space / Flow / Message / Morph / Relation 等 canonical object | 物理生命周期：active、archived、redacted、tombstoned / deleted 等。 |
-| `stage` | Flow / Morph | 业务进度，与物理生命周期正交；完整枚举为 8 值（draft、proposed、planned、in_progress、blocked、done、cancelled、superseded），权威定义见 §5.3.2。 |
+| `state` | Realm / Circle / Space / Strand / Message / Morph / Relation 等 canonical object | 物理生命周期：active、archived、redacted、tombstoned / deleted 等。 |
+| `stage` | Strand / Morph | 业务进度，与物理生命周期正交；完整枚举为 8 值（draft、proposed、planned、in_progress、blocked、done、cancelled、superseded），权威定义见 §5.3.2。 |
 | `status` | Account、agent session、delivery、moderation workflow、registry entry 等过程型对象 | 外部过程或会话状态；不得替代 object lifecycle。 |
 | `runtime_status` | Applet bridge / runtime metadata | 跨协议 runtime 可用性或执行态，避免与 canonical object `status` / `state` 混淆。 |
 | `binding_state` | Handle claim / identity binding | claim 绑定验证状态：pending、verified、revoked、expired；不是 materialized object lifecycle。 |
 
 各对象的 `state` 字段值不完全相同（部分名字承载了已稳定的 `ck.*.tombstone` event 命名约定），但在 reducer / projection 语义层等价于以下规范状态机：
 
-| 规范状态 | 语义 | Flow | Circle | Space | Message | Morph | Relation | Realm |
+| 规范状态 | 语义 | Strand | Circle | Space | Message | Morph | Relation | Realm |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `active` | 当前可用 | `active` | `active` | `active` | `active` | `active` | `active` | `active` |
 | `archived` | 软隐藏，UI 默认不展示，可撤销 | `archived` | `archived` | `archived` | — | `archived` | — | `archived` |
@@ -314,7 +314,7 @@ DID 是 Cokret 的主体标识，不是普通协作对象 ID。标准协作对�
 
 约定：
 
-- 写入路径 MUST 来自对应 reducer-input event（`ck.<kind>.archive` / `ck.<kind>.restore` / `ck.<kind>.tombstone` / `ck.<kind>.redact` 或等价命名）；不得直接 PATCH 对象顶层 state。`archived -> active` 是显式的可逆转换，由 `ck.<kind>.restore`（Flow、Space、Morph 均已注册对应 restore event）承担；`tombstoned` / `deleted` / `redacted` 是不可逆终态，MUST NOT 被 restore。
+- 写入路径 MUST 来自对应 reducer-input event（`ck.<kind>.archive` / `ck.<kind>.restore` / `ck.<kind>.tombstone` / `ck.<kind>.redact` 或等价命名）；不得直接 PATCH 对象顶层 state。`archived -> active` 是显式的可逆转换，由 `ck.<kind>.restore`（Strand、Space、Morph 均已注册对应 restore event）承担；`tombstoned` / `deleted` / `redacted` 是不可逆终态，MUST NOT 被 restore。
 - `state != active` 时 MUST 写入 `state_changed_at`（见 §3 公共字段）。
 
 #### 5.1 Canonical state-transition table
@@ -328,9 +328,9 @@ DID 是 Cokret 的主体标识，不是普通协作对象 ID。标准协作对�
 | `ck.<kind>.tombstone` | `active`、`archived` | `tombstoned` / `deleted`(各对象 schema 自命名) | `<kind>_already_terminal` |
 | `ck.<kind>.redact` 或 cross-object `ck.redaction` 指向该对象 | `active`、`archived` | `redacted`(如对象支持),或合并到 `tombstoned` | `<kind>_already_terminal` |
 
-> **Flow / Morph 豁免**:上表 `ck.<kind>.tombstone` 行是通用模板;Flow 与 Morph **没有** `tombstone` 终态(也不用 `deleted`),其不可逆终态经指向该对象的 `ck.redaction` 进入 `redacted`(见 §5.2 模板槽与 [flow-and-message.md §9.1](./flow-and-message.md))。对 Flow / Morph 提交 `ck.<kind>.tombstone` 不适用。
+> **Strand / Morph 豁免**:上表 `ck.<kind>.tombstone` 行是通用模板;Strand 与 Morph **没有** `tombstone` 终态(也不用 `deleted`),其不可逆终态经指向该对象的 `ck.redaction` 进入 `redacted`(见 §5.2 模板槽与 [strand-and-message.md §9.1](./strand-and-message.md))。对 Strand / Morph 提交 `ck.<kind>.tombstone` 不适用。
 
-`<kind>` 是 schema 类型短名(`flow`、`circle`、`space`、`morph`、`message`、`relation`),所有 reducer 实现 MUST 用相同 reason_code,使跨实现错误诊断一致。具体值如:`flow_not_active` / `flow_not_archived` / `flow_already_terminal`,`circle_not_active` / `circle_not_archived` / `circle_already_terminal`,`space_not_active` / `space_not_archived` / `space_already_terminal`,`morph_not_active` / `morph_not_archived` / `morph_already_terminal`,以及无 archived 态对象的 `message_already_terminal` / `relation_already_terminal`(见本节末段)。
+`<kind>` 是 schema 类型短名(`strand`、`circle`、`space`、`morph`、`message`、`relation`),所有 reducer 实现 MUST 用相同 reason_code,使跨实现错误诊断一致。具体值如:`strand_not_active` / `strand_not_archived` / `strand_already_terminal`,`circle_not_active` / `circle_not_archived` / `circle_already_terminal`,`space_not_active` / `space_not_archived` / `space_already_terminal`,`morph_not_active` / `morph_not_archived` / `morph_already_terminal`,以及无 archived 态对象的 `message_already_terminal` / `relation_already_terminal`(见本节末段)。
 
 附加规则:
 
@@ -349,25 +349,25 @@ Message 与 Relation 没有 `archived` 态(见 §5.2 模板使用约束):它们�
 
 | 模板槽 | 含义 | 已有实例 |
 | --- | --- | --- |
-| `ck.<kind>.create` | 创建对象，落 state=`active`,写入 `created_by` / `created_at`。 | `ck.flow.create`、`ck.space.create`、`ck.morph.create`、`ck.message.create` |
-| `ck.<kind>.update` | 增量更新 active 对象字段;reducer 拒绝非 active 源。**新对象 SHOULD 沿用 `ck.patch.v1` 统一 patch 表达，不应再造单字段 update event。** | `ck.flow.update`、`ck.morph.update`、`ck.patch.v1`(unified) |
-| `ck.<kind>.archive` | active → archived;写入 `state_changed_at`。 | `ck.flow.archive`、`ck.space.archive`、`ck.morph.archive` |
-| `ck.<kind>.restore` | archived → active;写入 `state_changed_at`。 | `ck.flow.restore`、`ck.space.restore`、`ck.morph.restore` |
-| `ck.<kind>.tombstone` 或 cross-object `ck.redaction` | active/archived → terminal(`tombstoned`/`deleted`/`redacted`);不可逆。Flow 与 Morph 的终态仅通过指向该对象的 `ck.redaction` 表达。 | `ck.space.tombstone`、`ck.relation.tombstone`、`ck.redaction`(指向 flow / space / morph / message) |
-| `ck.<kind>.redact` 或 cross-object `ck.redaction` | active/archived → `redacted`(若对象支持);envelope 保留,content 清空。v1 wire 实际注册形态请以 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 为准:Message 走 `ck.message.redact`;Flow / Morph / Space / Relation 等未单独注册 `ck.<kind>.redact` 的对象走 cross-object `ck.redaction`。两种 wire 形态都是 canonical (`active` status),按对象选择;reducer 不得自行折叠或互换。 | `ck.message.redact`、`ck.redaction`(用于 flow / morph / space / relation 等未单独注册的对象) |
+| `ck.<kind>.create` | 创建对象，落 state=`active`,写入 `created_by` / `created_at`。 | `ck.strand.create`、`ck.space.create`、`ck.morph.create`、`ck.message.create` |
+| `ck.<kind>.update` | 增量更新 active 对象字段;reducer 拒绝非 active 源。**新对象 SHOULD 沿用 `ck.patch.v1` 统一 patch 表达，不应再造单字段 update event。** | `ck.strand.update`、`ck.morph.update`、`ck.patch.v1`(unified) |
+| `ck.<kind>.archive` | active → archived;写入 `state_changed_at`。 | `ck.strand.archive`、`ck.space.archive`、`ck.morph.archive` |
+| `ck.<kind>.restore` | archived → active;写入 `state_changed_at`。 | `ck.strand.restore`、`ck.space.restore`、`ck.morph.restore` |
+| `ck.<kind>.tombstone` 或 cross-object `ck.redaction` | active/archived → terminal(`tombstoned`/`deleted`/`redacted`);不可逆。Strand 与 Morph 的终态仅通过指向该对象的 `ck.redaction` 表达。 | `ck.space.tombstone`、`ck.relation.tombstone`、`ck.redaction`(指向 strand / space / morph / message) |
+| `ck.<kind>.redact` 或 cross-object `ck.redaction` | active/archived → `redacted`(若对象支持);envelope 保留,content 清空。v1 wire 实际注册形态请以 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 为准:Message 走 `ck.message.redact`;Strand / Morph / Space / Relation 等未单独注册 `ck.<kind>.redact` 的对象走 cross-object `ck.redaction`。两种 wire 形态都是 canonical (`active` status),按对象选择;reducer 不得自行折叠或互换。 | `ck.message.redact`、`ck.redaction`(用于 strand / morph / space / relation 等未单独注册的对象) |
 
 模板使用约束:
 
 - **不是命名 mandate**,但 **MUST 与 registry 对齐**:模板槽列出的"已有实例"必须存在于 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 中;`ck.message.create` 是 v1 标准 wire kind。新对象在注册时按模板选择需要的槽，但**不得**列出 registry 中不存在的 wire kind 当作示例。
 - **不创造新槽**:新增 lifecycle 行为(例如"软隔离 / 待审 / 撤回审核")MUST 先在本节扩展模板；否则不得作为标准 lifecycle event 入 registry。
-- **patch 优先**:新对象 lifecycle 中的"字段更新"槽 SHOULD 由 `ck.patch.v1` 承载(参见 [`flow-and-message.md` §4.8](./flow-and-message.md) 的 `ck.flow.tracks.update` 实例);避免出现 `ck.<kind>.set_<field>` / `ck.<kind>.toggle_<field>` 这类单点 event 膨胀。**stage 是该原则的明确例外**:`ck.<kind>.stage.set` 走专用 event 是为了 capability 切分与审计过滤(见 §5.3),而非字段膨胀。
+- **patch 优先**:新对象 lifecycle 中的"字段更新"槽 SHOULD 由 `ck.patch.v1` 承载(参见 [`strand-and-message.md` §4.8](./strand-and-message.md) 的 `ck.strand.tracks.update` 实例);避免出现 `ck.<kind>.set_<field>` / `ck.<kind>.toggle_<field>` 这类单点 event 膨胀。**stage 是该原则的明确例外**:`ck.<kind>.stage.set` 走专用 event 是为了 capability 切分与审计过滤(见 §5.3),而非字段膨胀。
 - **stage 模板槽**:适配 §5.3 的对象 MUST 注册一条 `ck.<kind>.stage.set` event,走 `object_stage_set_payload` 形态(详见 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json));`ck.<kind>.update` patch 路径 MUST NOT 修改 `stage` / `stage_changed_at`(违者 `schema_violation`,单源约束)。**stage 变更不携带 reason 字段**:事件本身已经 durable 且 `created_by` / `created_at` 即审计归属；需要解释"为什么 cancel / block / supersede"时,actor SHOULD 在该对象的 discussion track 发一条 Message(`ck.message.create`),通过 `references` Relation 指向本次 `ck.<kind>.stage.set` event,而不是把 reason 藏在对象字段里。
-- **可逆 lifecycle facet 的两种合规形态**:`ck.<kind>.archive` / `ck.<kind>.restore` 模板槽描述的是**独立 archive event + 独立 restore event** 成对形态（Flow / Space / Morph 即此形态）。但可逆 lifecycle 也允许第二种形态：**单一 reversible boolean facet event**（同一 `ck.<kind>.archive` 写 `true` / `false` 在 active ↔ archived 间切换，不发布独立 `ck.<kind>.restore`）。Realm 的 `ck.realm.archive` / `ck.realm.freeze` 即此形态（见 [`realm-and-space.md` §2.6.0](./realm-and-space.md#260-realm-可逆-lifecycle-facetckrealmarchive--ckrealmfreeze)）。具体某对象用哪种，以 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 的 `lifecycle_modality` 为准：`reversible` boolean facet 不要求也不应存在配套 `ck.<kind>.restore`。
+- **可逆 lifecycle facet 的两种合规形态**:`ck.<kind>.archive` / `ck.<kind>.restore` 模板槽描述的是**独立 archive event + 独立 restore event** 成对形态（Strand / Space / Morph 即此形态）。但可逆 lifecycle 也允许第二种形态：**单一 reversible boolean facet event**（同一 `ck.<kind>.archive` 写 `true` / `false` 在 active ↔ archived 间切换，不发布独立 `ck.<kind>.restore`）。Realm 的 `ck.realm.archive` / `ck.realm.freeze` 即此形态（见 [`realm-and-space.md` §2.6.0](./realm-and-space.md#260-realm-可逆-lifecycle-facetckrealmarchive--ckrealmfreeze)）。具体某对象用哪种，以 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 的 `lifecycle_modality` 为准：`reversible` boolean facet 不要求也不应存在配套 `ck.<kind>.restore`。
 - **state 校验来源唯一**:本节所有模板事件的状态机校验入口都是 §5.1 表，不在各对象文档重复说明转换矩阵。
 - "Space 没有 redacted"：Space 不承载用户 content（仅承载结构容器元数据），无需独立 redaction 状态；title / summary 的内容清理通过 `ck.space.tombstone` 或 `ck.redaction` 一并完成。
 - "Message / Relation 没有 archived"：Message timeline 是有时序流，Relation 是边——两者都不需要"软隐藏可撤销"语义；要隐藏 Message 用 redaction，要解除 Relation 用删除即可。
 - "Relation 用 `tombstoned` 单一终态"：删除与 redaction 在边语义上不可区分（边只有"存在"或"不存在"），故物化 state 合并为单一 `tombstoned`；具体 reason 在对应 `ck.relation.tombstone` / `ck.redaction` event 中保留。
-- Reducer 与 projection MUST 把 `tombstoned` 视为不可逆删除状态；Flow / Morph 不使用 `deleted`，其不可逆内容清除状态是 `redacted`。UI 展示策略（隐藏 vs 显示 tombstone 占位符）由 client 根据对象类型决定。
+- Reducer 与 projection MUST 把 `tombstoned` 视为不可逆删除状态；Strand / Morph 不使用 `deleted`，其不可逆内容清除状态是 `redacted`。UI 展示策略（隐藏 vs 显示 tombstone 占位符）由 client 根据对象类型决定。
 
 ### 5.3 Stage 轴（业务进度，与 state 正交）
 
@@ -377,11 +377,11 @@ Message 与 Relation 没有 `archived` 态(见 §5.2 模板使用约束):它们�
 
 | 对象 | 是否声明 `stage` | 必填语义 | 触发 event |
 | --- | --- | --- | --- |
-| `Flow` | yes | 可选；`ck.flow.create` MAY 省略，普通业务 Flow SHOULD 填写，DM 主 Flow MAY 省略或选填合法值 | `ck.flow.stage.set` |
+| `Strand` | yes | 可选；`ck.strand.create` MAY 省略，普通业务 Strand SHOULD 填写，DM 主 Strand MAY 省略或选填合法值 | `ck.strand.stage.set` |
 | `Morph` | yes | `ck.morph.create` 时 actor 必填 | `ck.morph.stage.set` |
 | Realm / Space / Message / Relation / View / Policy / ... | no | — | — |
 
-适用对象自己的 schema MUST 显式枚举允许值；`flow.schema.json` MUST 把 `stage` 声明为可选字段，且 `stage_changed_at` MUST NOT 在缺少 `stage` 时单独出现；`morph.schema.json` MUST 把 `stage` 列入 `required[]`。不适用对象 MUST NOT 暴露 `stage` 顶层字段。**未来如有新对象需要 stage 轴**,扩展时 MUST 同步在本节登记。
+适用对象自己的 schema MUST 显式枚举允许值；`strand.schema.json` MUST 把 `stage` 声明为可选字段，且 `stage_changed_at` MUST NOT 在缺少 `stage` 时单独出现；`morph.schema.json` MUST 把 `stage` 列入 `required[]`。不适用对象 MUST NOT 暴露 `stage` 顶层字段。**未来如有新对象需要 stage 轴**,扩展时 MUST 同步在本节登记。
 
 #### 5.3.2 协议级枚举（8 值，固定）
 
@@ -430,7 +430,7 @@ Protocol typed identifier / reference 的 wire value MUST 使用带类型前缀�
 ```text
 ck:realm:<uuid>
 ck:space:<uuid>
-ck:flow:<uuid>
+ck:strand:<uuid>
 ck:message:<uuid>
 ck:morph:<uuid>
 ck:relation:<uuid>
@@ -468,8 +468,8 @@ UUID 部分 MUST 使用 UUIDv7（time-ordered），便于审计与排序；conte
 
 ```json
 {
-  "id": "ck:flow:01964137-0000-7000-8000-000000000000",
-  "schema": "ck.schema.flow.v1",
+  "id": "ck:strand:01964137-0000-7000-8000-000000000000",
+  "schema": "ck.schema.strand.v1",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "created_by": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "created_at": "2026-04-26T00:00:00Z",

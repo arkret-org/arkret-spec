@@ -87,7 +87,7 @@
     },
     "agent_participation": {
       "type": "object",
-      "description": "Optional agent participation ceiling for this Circle: the maximum native personal agent behavior permitted in this scope. When omitted, inherits the parent Realm ceiling. Each bit MAY only tighten, never widen, the parent ceiling (reducer rejects a widening write with agent_participation_ceiling_widen); it is further tightened by any inner Flow ceiling. See zh/models/circle.md field table.",
+      "description": "Optional agent participation ceiling for this Circle: the maximum native personal agent behavior permitted in this scope. When omitted, inherits the parent Realm ceiling. Each bit MAY only tighten, never widen, the parent ceiling (reducer rejects a widening write with agent_participation_ceiling_widen); it is further tightened by any inner Strand ceiling. See zh/models/circle.md field table.",
       "properties": {
         "reply": {
           "type": "boolean"

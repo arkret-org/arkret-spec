@@ -65,7 +65,7 @@ const protocolPillars = [
     mark: "Object",
     title: "聊天、任务、文档来自同一事实图",
     body:
-      "Realm 是安全、同步、权限和加密边界；Space、Flow、Message、Morph、Relation 组成对象图。UI 通过 projection 呈现聊天、看板、时间线或工作流。",
+      "Realm 是安全、同步、权限和加密边界；Space、Strand、Message、Morph、Relation 组成对象图。UI 通过 projection 呈现聊天、看板、时间线或工作流。",
   },
   {
     mark: "Agent",
@@ -75,7 +75,7 @@ const protocolPillars = [
   },
 ];
 
-const engineFlow = [
+const engineStrand = [
   {
     step: "01",
     title: "提交事实",
@@ -260,14 +260,14 @@ const useCases = [
           协议规定的不是 UI, 而是「提交事实 → 验证授权 → 锚定状态 → 投影视图」的不可分叉路径。
         </p>
       </div>
-      <ol class="ck-flow-rail">
+      <ol class="ck-strand-rail">
         {
-          engineFlow.map((item, i) => (
-            <li class="ck-flow-node">
-              <div class="ck-flow-node-head">
-                <span class="ck-flow-step-no">{item.step}</span>
-                {i < engineFlow.length - 1 && (
-                  <span class="ck-flow-connector" aria-hidden="true" />
+          engineStrand.map((item, i) => (
+            <li class="ck-strand-node">
+              <div class="ck-strand-node-head">
+                <span class="ck-strand-step-no">{item.step}</span>
+                {i < engineStrand.length - 1 && (
+                  <span class="ck-strand-connector" aria-hidden="true" />
                 )}
               </div>
               <h3>{item.title}</h3>

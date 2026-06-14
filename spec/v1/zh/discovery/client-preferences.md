@@ -12,7 +12,7 @@ updated: 2026-06-10
 
 ## 1. 目标
 
-在 Cokret 网络中，绝大部分数据是跨节点共享的协作对象（Realm、Space、Flow、Message、Morph、Relation、View）。但每个用户（Actor）也有大量的**私有状态**需要在其各个设备之间同步，但不应该对网络中的其他人可见。
+在 Cokret 网络中，绝大部分数据是跨节点共享的协作对象（Realm、Space、Strand、Message、Morph、Relation、View）。但每个用户（Actor）也有大量的**私有状态**需要在其各个设备之间同步，但不应该对网络中的其他人可见。
 
 本规范定义了这些**客户端偏好与账户数据 (Account Data)** 的存储、同步与标准 Schema。
 
@@ -278,7 +278,7 @@ updated: 2026-06-10
 
 ### 3.8 已读回执偏好 (Read Receipt Preferences)
 
-控制是否向其他成员发送 `ck.receipt.read`（详见 [`discovery/read-receipts.md`](./read-receipts.md)）。MAY 设全局默认，并对特定 Realm 或 Flow / discussion track 单独重写。
+控制是否向其他成员发送 `ck.receipt.read`（详见 [`discovery/read-receipts.md`](./read-receipts.md)）。MAY 设全局默认，并对特定 Realm 或 Strand / discussion track 单独重写。
 
 **Key:** `ck.read_receipt.preferences`
 
@@ -293,8 +293,8 @@ updated: 2026-06-10
       "send": false
     }
   },
-  "flows": {
-    "ck:flow:01964200-0000-7000-8000-000000000001": {
+  "strands": {
+    "ck:strand:01964200-0000-7000-8000-000000000001": {
       "send": true
     }
   }
@@ -309,16 +309,16 @@ updated: 2026-06-10
 | `default.display` | `bool` | `true` | 全局是否在本地 UI 显示他人的 `ck.receipt.read`。只影响本地渲染，不改变订阅、fanout 或 unread 计算。 |
 | `realms.<realm_id>.send` | `bool` |  | 针对单个 Realm 的覆盖，优先于 `default`。 |
 | `realms.<realm_id>.display` | `bool` |  | 针对单个 Realm 的本地显示覆盖，优先于 `default`。 |
-| `flows.<flow_id>.send` | `bool` |  | 针对单个 Flow / discussion track 的覆盖，优先于 `realms.<realm_id>`。 |
-| `flows.<flow_id>.display` | `bool` |  | 针对单个 Flow / discussion track 的本地显示覆盖，优先于 `realms.<realm_id>`。 |
+| `strands.<strand_id>.send` | `bool` |  | 针对单个 Strand / discussion track 的覆盖，优先于 `realms.<realm_id>`。 |
+| `strands.<strand_id>.display` | `bool` |  | 针对单个 Strand / discussion track 的本地显示覆盖，优先于 `realms.<realm_id>`。 |
 
 规则：
 
 - 该 key 是 actor-private，加密存储于 account data；其他成员或 Sync Service 不得读取明文。
-- 客户端在生成 `ck.receipt.read` 前 MUST 按 (flow, realm, default) 顺序解析有效 `send`，最先命中的非空值生效。
+- 客户端在生成 `ck.receipt.read` 前 MUST 按 (strand, realm, default) 顺序解析有效 `send`，最先命中的非空值生效。
 - 客户端在渲染他人的 `ck.receipt.read` 前 SHOULD 按相同顺序解析有效 `display`；`display=false` 只隐藏本地 UI，不得要求 Sync Service 停止投递，也不得改变 read cursor、unread count 或 push suppression 的协议状态。
 - 该偏好 MUST NOT 影响 §3 中 actor-private 的 Read Cursor（`ck.read_cursor.advance`）发送或多端同步。
-- 当目标 Realm / Flow 声明 `ck.realm.read_receipt_policy.disclosure="required"`（详见 [`discovery/read-receipts.md`](./read-receipts.md) §2.5）时，合规客户端 MUST NOT 允许该 scope 设置为 `send=false`，并 SHOULD 在 UI 标注该开关被 Realm / Flow 策略锁定；声明为 `disabled` 时同样无视用户的 `send=true` 不发送。
+- 当目标 Realm / Strand 声明 `ck.realm.read_receipt_policy.disclosure="required"`（详见 [`discovery/read-receipts.md`](./read-receipts.md) §2.5）时，合规客户端 MUST NOT 允许该 scope 设置为 `send=false`，并 SHOULD 在 UI 标注该开关被 Realm / Strand 策略锁定；声明为 `disabled` 时同样无视用户的 `send=true` 不发送。
 - 客户端 MAY 在 UI 上将常用过滤维度（按 Realm 标签、按 Organization）做成批量编辑入口，但实际 canonical state 仍以本 key 中的逐 ID 覆盖为准。
 
 ## 4. 与本地投影的交互

@@ -148,7 +148,7 @@
                 "type": "string",
                 "enum": [
                   "realm",
-                  "flow",
+                  "strand",
                   "space",
                   "object",
                   "service"

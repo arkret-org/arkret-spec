@@ -305,19 +305,19 @@
         "pattern": "^ck:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       }
     },
-    "allowed_flow_ids": {
+    "allowed_strand_ids": {
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       },
       "uniqueItems": true
     },
-    "denied_flow_ids": {
+    "denied_strand_ids": {
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       },
       "uniqueItems": true
     },
@@ -383,14 +383,14 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^ck:(space|flow|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "pattern": "^ck:(space|strand|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       }
     },
     "allowed_to_container_refs": {
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^ck:(space|flow|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "pattern": "^ck:(space|strand|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       }
     },
     "wip_limit_override": {
@@ -733,7 +733,7 @@
     },
     "depends_on_moderation_state": {
       "type": "boolean",
-      "description": "Cache-invalidation hint: when true, this grant's authorization decisions depend on the ck.component.moderation_state.v1 cell (see policy-server.md §7.1 and capabilities.md §18.1) and the grant's cache entry MUST be invalidated when that cell changes. Default false: ordinary grants (ck.flow.update / ck.message.create / org membership grants) do NOT take a cache hit on every moderation decision. v1 capabilities.md §18.1 lists three conditions where MUST be explicitly true (moderator-role grants, condition-selector subjects referencing moderation state, constraints referencing moderation queue / cell). Schema-side enforcement of condition (2) is in capability-grant.schema.json via if/then on actions[]; conditions (1) and (3) are reducer-side lint. Cache invalidation hint outside the eight constraint families; it does not participate in allow/deny evaluation and is documented in capabilities.md §6 / constraint-schema.md."
+      "description": "Cache-invalidation hint: when true, this grant's authorization decisions depend on the ck.component.moderation_state.v1 cell (see policy-server.md §7.1 and capabilities.md §18.1) and the grant's cache entry MUST be invalidated when that cell changes. Default false: ordinary grants (ck.strand.update / ck.message.create / org membership grants) do NOT take a cache hit on every moderation decision. v1 capabilities.md §18.1 lists three conditions where MUST be explicitly true (moderator-role grants, condition-selector subjects referencing moderation state, constraints referencing moderation queue / cell). Schema-side enforcement of condition (2) is in capability-grant.schema.json via if/then on actions[]; conditions (1) and (3) are reducer-side lint. Cache invalidation hint outside the eight constraint families; it does not participate in allow/deny evaluation and is documented in capabilities.md §6 / constraint-schema.md."
     }
   },
   "allOf": [

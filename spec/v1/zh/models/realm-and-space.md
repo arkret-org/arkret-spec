@@ -59,9 +59,9 @@ Realm 与 MLS group 不是同义词：
 规范性规则：
 
 - `encryption_profile` 是 Realm 的 create-locked 基线。
-- 同一 Realm 内不允许把普通 Flow 任意混合成"有的 E2EE、有的非 E2EE"的保密等级拼盘；加密覆盖范围由 Realm `content_encryption_floor` 与 `metadata_encryption_floor` 声明（二者均为 Realm 对象顶层的 policy 字段，权威定义见 §2.3 字段表），Circle 不得放宽父 Realm floor（详见 [`circle.md` §7](./circle.md)）。
-- Realm policy component `agent_participation` 声明 native personal agent 在该 Realm 内被允许的参与上限（ceiling），结构为 `{ native_agent: { reply, accept_third_party_mention, act_on_behalf } }`，由持有 `ck.realm.admin` 的 principal 通过 `ck.realm.policy_components` 写入。它与 deployment、Circle、Flow 同名 ceiling 构成 `deployment ⊇ Realm ⊇ Circle ⊇ Flow` 的单调收紧链：内层每一位为真 MUST 蕴含外层对应位为真，reducer 拒绝放宽（`failed_precondition`，`reason="agent_participation_ceiling_widen"`），与 `content_encryption_floor` 的 tighten-only ratchet 同框架。未声明时继承父级 ceiling；deployment 顶层默认全 `false`（与 `ck.profile.sovereign_deployment.v1` 的 deny-default agent 一致）。controller 的逐 scope selection 受 effective ceiling 约束，effective = ceiling ∩ selection。详见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)。native agent 与 Applet / Ghost Actor 的参与策略 MUST 分别声明，不得合并为单一开关。
-- 若某个 Flow / artifact 需要 Realm 内的子事件 / 子消息边界（子集成员、独立 history、投递 / 查询裁剪，必要时独立 MLS group），创建一个 [Circle](./circle.md) 并把对象的 `scope_circle_id` 指向该 Circle。仅当跨 federation/policy/capability registry 边界时才升级到另一个独立 Realm，并通过 `ck.realm.link` 显式引用连接。
+- 同一 Realm 内不允许把普通 Strand 任意混合成"有的 E2EE、有的非 E2EE"的保密等级拼盘；加密覆盖范围由 Realm `content_encryption_floor` 与 `metadata_encryption_floor` 声明（二者均为 Realm 对象顶层的 policy 字段，权威定义见 §2.3 字段表），Circle 不得放宽父 Realm floor（详见 [`circle.md` §7](./circle.md)）。
+- Realm policy component `agent_participation` 声明 native personal agent 在该 Realm 内被允许的参与上限（ceiling），结构为 `{ native_agent: { reply, accept_third_party_mention, act_on_behalf } }`，由持有 `ck.realm.admin` 的 principal 通过 `ck.realm.policy_components` 写入。它与 deployment、Circle、Strand 同名 ceiling 构成 `deployment ⊇ Realm ⊇ Circle ⊇ Strand` 的单调收紧链：内层每一位为真 MUST 蕴含外层对应位为真，reducer 拒绝放宽（`failed_precondition`，`reason="agent_participation_ceiling_widen"`），与 `content_encryption_floor` 的 tighten-only ratchet 同框架。未声明时继承父级 ceiling；deployment 顶层默认全 `false`（与 `ck.profile.sovereign_deployment.v1` 的 deny-default agent 一致）。controller 的逐 scope selection 受 effective ceiling 约束，effective = ceiling ∩ selection。详见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)。native agent 与 Applet / Ghost Actor 的参与策略 MUST 分别声明，不得合并为单一开关。
+- 若某个 Strand / artifact 需要 Realm 内的子事件 / 子消息边界（子集成员、独立 history、投递 / 查询裁剪，必要时独立 MLS group），创建一个 [Circle](./circle.md) 并把对象的 `scope_circle_id` 指向该 Circle。仅当跨 federation/policy/capability registry 边界时才升级到另一个独立 Realm，并通过 `ck.realm.link` 显式引用连接。
 - `history_visibility` 的五个值只定义历史读取资格；是否能发现 Realm、能否加入、是否能解密旧 E2EE epoch、以及服务是否可接收明文，分别由 discoverability、join rule、history sharing policy / key share、`plaintext_visible_services` 决定。完整语义见 [`../governance/history-visibility.md`](../governance/history-visibility.md)。
 
 ### 2.3 Schema id 与字段
@@ -87,7 +87,7 @@ Schema id: `ck.schema.realm.v1`
 | `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | reducer 派生。 | 历史可见性。 |
 | `preview_policy_id` | no | `id:policy` | reducer 派生或投影字段；canonical 写入路径为 `ck.realm.preview_policy`。 | 加入前 / token-scoped preview 的 policy 引用或摘要。 |
 | `encryption_profile` | yes | `enum(none, mls_rfc9420, external)` | create-locked 的**能力轴**：只声明加密**机制**(有没有 MLS group)，不声明哪些 Cokret 字段进入密文，也不是"内容是否加密"的开关。`none` 是 bridge / 公开广播等"结构上永不 E2EE"scope 的诚实 opt-out；将来可能加密的协作 Realm SHOULD 以 `mls_rfc9420` + `content_encryption_floor=allow_plaintext` 创建，以便后期原地启用加密。完整语义见 [`circle.md` §7](./circle.md)。 | 加密机制声明。 |
-| `content_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | reducer 派生（Realm policy 字段，经 Realm policy facet event 写入，非直接 PATCH）。这是 Realm 真正的"内容加密开关"：`e2ee_required` 时 Flow / Message / Morph / Blob content 的 `effective_scope` MUST 为 MLS-backed，plaintext content reducer MUST `failed_precondition`（reason=`content_encryption_floor_violation`）。缺省 `allow_plaintext`。**单向 ratchet**：一旦 effective 值达到 `e2ee_required`，后续降回 `allow_plaintext` 的写入 MUST `failed_precondition`（reason=`content_encryption_floor_downgrade`）。完整语义见 [`circle.md` §7](./circle.md)。 | Realm 级 content 加密下限。 |
+| `content_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | reducer 派生（Realm policy 字段，经 Realm policy facet event 写入，非直接 PATCH）。这是 Realm 真正的"内容加密开关"：`e2ee_required` 时 Strand / Message / Morph / Blob content 的 `effective_scope` MUST 为 MLS-backed，plaintext content reducer MUST `failed_precondition`（reason=`content_encryption_floor_violation`）。缺省 `allow_plaintext`。**单向 ratchet**：一旦 effective 值达到 `e2ee_required`，后续降回 `allow_plaintext` 的写入 MUST `failed_precondition`（reason=`content_encryption_floor_downgrade`）。完整语义见 [`circle.md` §7](./circle.md)。 | Realm 级 content 加密下限。 |
 | `metadata_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | reducer 派生（Realm policy 字段，经 Realm policy facet event 写入，非直接 PATCH），与 `content_encryption_floor` 对称。比较序 `allow_plaintext < e2ee_required`；effective 值取父 Realm / Circle / Space `child_scope_policy` / 对象 profile 的最大值，低于 effective 的写入 MUST `failed_precondition`（reason=`metadata_encryption_floor_violation`），MUST NOT 被 Circle / Space / 对象 profile 放宽。**单向 ratchet**：一旦 effective 值达到 `e2ee_required`，后续降回 `allow_plaintext` 的写入 MUST `failed_precondition`（reason=`metadata_encryption_floor_downgrade`）。缺省：`mls_rfc9420` 或 `content_encryption_floor=e2ee_required` 的 Realm 为 `e2ee_required`，否则 `allow_plaintext`。完整语义见 [`circle.md` §7](./circle.md)。 | Realm 级 metadata 加密下限。 |
 | `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | reducer 派生。 | 联邦策略。 |
 | `sync_endpoints` | no | `array<ServiceBinding>` | Realm-level shared notary / Sync Service / mirror / federation 服务绑定；不是成员级 delivery binding。详见 [`../sync/federation.md`](../sync/federation.md)。 | Realm 委托同步与联邦入口。 |
@@ -191,7 +191,7 @@ Realm 有两个终态 event，语义不同：
 3. **Successor / Tombstone 区分**：`ck.realm.destroy` MUST NOT 携带 `successor_realm_id`；如果产品需要迁移到新 Realm，使用 `ck.realm.tombstone` 而不是 destroy。
 4. **Erasure Receipt 与 Legal Hold**：destroy 不自动触发 erasure。若部署进入 erasure 阶段，发布 `ck.audit.erasure_receipt`（schema `ck.schema.erasure_receipt.v1`），可能 `outcome=blocked_by_legal_hold`。Legal hold 优先于 destroy 的 GC 路径。
 5. **Federation Fanout**：destroy event MUST 沿 federation 推送到所有曾持有该 Realm 状态的 peer Principal Server；peer 收到后 MUST 在 30 天内本地标记 `realm_terminal_state` 并停止接受该 Realm 的新 `ck.peer.events.command.submit`（包括 backfill 写入）。
-6. **Child Space / Flow cascade**：destroy accepted 后，home Realm 内所有 non-terminal Space、Flow placement 与 structural `contains` projection MUST NOT 作为 live navigation surface 暴露。实现 MUST 在同一事务或后续 bounded cleanup job 中把这些对象标记为 `realm_destroyed_orphan`（只读 locked projection）或自动 tombstone/archive；不得继续允许 `ck.flow.move`、`ck.space.parent`、`ck.space.update` 等普通写入复活它们。跨 Realm `parent_space_id` 指向已 destroyed Realm 的 Space 时，引用方 MUST 在发现 destroy frontier 后将该 edge 降级为 locked/lazy link，并在 policy 窗口内 reparent、archive 或 tombstone；不得传播 destroyed Realm 的 membership、capability、history 或 E2EE key material。
+6. **Child Space / Strand cascade**：destroy accepted 后，home Realm 内所有 non-terminal Space、Strand placement 与 structural `contains` projection MUST NOT 作为 live navigation surface 暴露。实现 MUST 在同一事务或后续 bounded cleanup job 中把这些对象标记为 `realm_destroyed_orphan`（只读 locked projection）或自动 tombstone/archive；不得继续允许 `ck.strand.move`、`ck.space.parent`、`ck.space.update` 等普通写入复活它们。跨 Realm `parent_space_id` 指向已 destroyed Realm 的 Space 时，引用方 MUST 在发现 destroy frontier 后将该 edge 降级为 locked/lazy link，并在 policy 窗口内 reparent、archive 或 tombstone；不得传播 destroyed Realm 的 membership、capability、history 或 E2EE key material。
 7. **Circle scope cascade**：Realm 内的 [Circle](./circle.md) 在父 Realm destroy 时一并 tombstone（Circle 不持有独立 federation identity，无法独立存活）。对象 `scope_circle_id` 指向已 tombstone Circle 时，写入 MUST fail closed（`failed_precondition`, `reason_code=scope_unavailable`）；projection MAY 显示同名 `scope_unavailable` 状态标记；`scope_circle_id` 不会被自动 rewrite。详见 [`circle.md` §9.2](./circle.md) lifecycle cascade 表。
 
 #### 2.6.2 跨 Principal Server Erasure Receipt Fanout（normative）
@@ -239,7 +239,7 @@ schema 层只有一个 `ck.schema.realm.v1`；按 **用途** 把 Realm 分成两
 
 ```
 Realm（ck.schema.realm.v1，schema 层统一）
-├── Collaboration Realm        ← 多方业务协作（Flow / Message / Space / Morph / Relation）
+├── Collaboration Realm        ← 多方业务协作（Strand / Message / Space / Morph / Relation）
 │   ├── Internal Collaboration Realm   ← 仅本信任域成员
 │   └── External Collaboration Realm   ← 含跨信任域成员
 └── Principal Control Realm    ← 单 principal 身份基础设施流（device / session / KeyPackage / profile / consent / contact fact / DM binding）
@@ -256,7 +256,7 @@ Realm（ck.schema.realm.v1，schema 层统一）
   - `created_by = <principal DID>`，`notary = <principal DID>`，`notary_profile = "single_did"`
   - `security_class = "high_assurance"`，`federation_policy ∈ {closed, restricted, quarantine}`
   - `history_visibility = "restricted"`。新授权的同 principal 设备获取 join 前控制历史的 canonical 路径是 durable device-list / normalized principal view baseline 加 policy 受控的 MLS history key share，而非"在当前 epoch 加入"；PCR 不使用 `joined`（`joined` 会让新设备读不到其授权之前的 device / recovery 控制历史）。
-- 事件类型由 `ck.profile.principal_control_realm.v1` 的 allowlist 约束：只接受 device / session / KeyPackage / recovery / profile / consent / contact fact / direct conversation binding 等身份基础设施 event；普通 Message / Flow / Space / Morph / Relation / View / Call 协作 event MUST `principal_control_event_kind_forbidden`。
+- 事件类型由 `ck.profile.principal_control_realm.v1` 的 allowlist 约束：只接受 device / session / KeyPackage / recovery / profile / consent / contact fact / direct conversation binding 等身份基础设施 event；普通 Message / Strand / Space / Morph / Relation / View / Call 协作 event MUST `principal_control_event_kind_forbidden`。
 - 跨 principal 写入（另一个 principal 的 device / session 状态）MUST `unauthorized` reject。
 - "私有"语义由 **用途 + event-kind allowlist** 锁定，不是 access control。PCR 在结构上允许 multi-member（该 principal 的所有设备 / agent）。
 
@@ -298,11 +298,11 @@ Direct Conversation Realm MUST：
 
 - 使用 `encryption_profile="mls_rfc9420"`；`mls_dm` 不得作为 Realm `encryption_profile` 枚举值出现。
 - 声明已注册的 direct conversation profile，并使用已注册的 direct-conversation discriminator；不得复用 `fields.purpose="direct_message"`，因为 `fields.purpose` 已用于 Principal Control Realm。
-- active member count 等于 2；向 active DM Realm 加第三人 MUST 被拒绝。升级多人聊天必须创建新的普通 Realm / Flow，再用 Relation 或 Message 引用旧 DM 内容。
+- active member count 等于 2；向 active DM Realm 加第三人 MUST 被拒绝。升级多人聊天必须创建新的普通 Realm / Strand，再用 Relation 或 Message 引用旧 DM 内容。
 - `default_join_rule` 为 `closed` 或等价 fail-closed policy；第三方 invite / member_add MUST 被拒绝。
-- 通过 principal-scoped `ck.direct_conversation.bound` fact 绑定 unordered participant pair、`realm_id` 与 `main_flow_id`。同一 pair 至多一个 active canonical DM Realm；并发 duplicate 必须用 deterministic tie-break 收敛。
+- 通过 principal-scoped `ck.direct_conversation.bound` fact 绑定 unordered participant pair、`realm_id` 与 `main_strand_id`。同一 pair 至多一个 active canonical DM Realm；并发 duplicate 必须用 deterministic tie-break 收敛。
 
-任一参与方主动离开或被移出 DM Realm 后，该 Realm 立即失去 active canonical DM 资格。Resolver MUST NOT 为了继续同一个私聊把退出方重新加入旧 Realm；后续 `ck.self.direct_conversation.command.resolve(create=true)` MUST 创建新的 DM Realm、main Flow 与 binding。旧 Realm MAY 作为历史归档存在，但不得接收新的默认聊天消息。
+任一参与方主动离开或被移出 DM Realm 后，该 Realm 立即失去 active canonical DM 资格。Resolver MUST NOT 为了继续同一个私聊把退出方重新加入旧 Realm；后续 `ck.self.direct_conversation.command.resolve(create=true)` MUST 创建新的 DM Realm、main Strand 与 binding。旧 Realm MAY 作为历史归档存在，但不得接收新的默认聊天消息。
 
 ## 3. Space
 
@@ -351,7 +351,7 @@ Schema id: `ck.schema.space.v1`
 | `updated_by` | no | `did` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
 
-Space 是 v1 标准协作容器中唯一把顶层 `kind` 用作产品 / 容器子类型的对象：`board`、`list`、`folder` 等都在 Space.kind 表达。Realm 不按 kind 分裂安全边界；Flow 的业务分类也不放顶层 kind，必须通过 schema/profile、`metadata.fields`、Relation、labels、Morph type 或 facet 表达。View.kind 是投影响应族，不表示协作容器类型。
+Space 是 v1 标准协作容器中唯一把顶层 `kind` 用作产品 / 容器子类型的对象：`board`、`list`、`folder` 等都在 Space.kind 表达。Realm 不按 kind 分裂安全边界；Strand 的业务分类也不放顶层 kind，必须通过 schema/profile、`metadata.fields`、Relation、labels、Morph type 或 facet 表达。View.kind 是投影响应族，不表示协作容器类型。
 
 ### 3.3 行为规则
 
@@ -359,8 +359,8 @@ Space 是 v1 标准协作容器中唯一把顶层 `kind` 用作产品 / 容器�
 - **同步与联邦**：Space metadata 跟随 home Realm 同步。跨 Realm parent 只是可验证引用，不把 child metadata 合并到 source Realm 的 event frontier。
 - **加密 / scope**：Space 没有自己的 membership、Policy Server 或 MLS group。Space metadata 默认取决于 home Realm 的 scope、`encryption_profile` 与 metadata profile；若 `scope_circle_id` 指向 Circle，则 Space metadata 与对应 structural relation facts 落在该 Circle 的 existing scope，并继承该 Circle 的投递 / 查询裁剪与 encryption profile。
 - **导航**：Space hierarchy 是产品结构树 / DAG。遍历每个 Space 节点时 MUST 独立校验该节点 home Realm 的可见性。
-- **默认资源边界**：创建 Flow / Morph / View / Blob 引用等资源时，客户端 MUST 显式写入 `realm_id`，并 MAY 从目标 Space 的 effective `default_realm_id` / `default_scope_circle_id` 推导初值。`default_scope_circle_id` 的 Circle MUST 属于该 effective `default_realm_id`；如果 Space tree 的 home Realm 与默认子资源 Realm 不同，不能用 home Realm 的 Circle 作为子资源默认 scope。
-- **子边界升级**：若 Space subtree 或单个 Flow 只需要 Realm 内的子事件 / 子消息边界，创建 Circle 并把 `scope_circle_id` / `default_scope_circle_id` / `child_scope_policy` 指向该 Circle；若还需要密码学隔离，则该 Circle 必须 MLS-backed。只有需要独立 federation / Policy Server / capability registry 时才创建新的 Realm。
+- **默认资源边界**：创建 Strand / Morph / View / Blob 引用等资源时，客户端 MUST 显式写入 `realm_id`，并 MAY 从目标 Space 的 effective `default_realm_id` / `default_scope_circle_id` 推导初值。`default_scope_circle_id` 的 Circle MUST 属于该 effective `default_realm_id`；如果 Space tree 的 home Realm 与默认子资源 Realm 不同，不能用 home Realm 的 Circle 作为子资源默认 scope。
+- **子边界升级**：若 Space subtree 或单个 Strand 只需要 Realm 内的子事件 / 子消息边界，创建 Circle 并把 `scope_circle_id` / `default_scope_circle_id` / `child_scope_policy` 指向该 Circle；若还需要密码学隔离，则该 Circle 必须 MLS-backed。只有需要独立 federation / Policy Server / capability registry 时才创建新的 Realm。
 
 **三字段速查表（normative）**：Space 上三个 scope 相关字段语义不同，分别由不同主体强制：
 
@@ -376,7 +376,7 @@ Space 是 v1 标准协作容器中唯一把顶层 `kind` 用作产品 / 容器�
 
 Space lifecycle 只影响结构容器，不影响 Realm membership、E2EE group 或 history visibility。
 
-- `ck.space.archive`：把 Space 设为 `archived`，默认 UI 隐藏；不自动 archive child Space 或内部 Flow。
+- `ck.space.archive`：把 Space 设为 `archived`，默认 UI 隐藏；不自动 archive child Space 或内部 Strand。
 - `ck.space.restore`：仅允许 `archived -> active`；不级联 restore。
 - `ck.space.tombstone`：不可逆；在存在 live child Space 或 live `contains` placement 时 MUST `failed_precondition`。
 
@@ -401,29 +401,29 @@ value   := id:space | null
 - `parent_space_id == this_space_id` MUST `schema_violation`。
 - parent Space MAY 位于不同 Realm；这只影响导航，不传播 membership、capability、history、E2EE key 或 retention policy。
 
-### 3.6 Flow 位置
+### 3.6 Strand 位置
 
-Flow 在 board/list 类 Space 中的位置仍由 cas_register cell 维护：
+Strand 在 board/list 类 Space 中的位置仍由 cas_register cell 维护：
 
 ```text
-cell_id     := ck:cell:ck.component.flow.position.v1:<board_space_id>:<flow_id>
+cell_id     := ck:cell:ck.component.strand.position.v1:<board_space_id>:<strand_id>
 lattice     := cas_register
 bottom      := reject
 plane       := control（默认 sealed=true）
 value shape := { "list_space_id": id:space, "rank": string } | null
 ```
 
-**Plane 裁决（normative，CBA）**：`ck.component.flow.position.v1` 是非治理强一致对象，按 [`event-auth-state-resolution.md` §9.4](../authz/event-auth-state-resolution.md) 三选一。**默认裁决是选项 2（`sealed=true` 升控制面）**——这保留上表 cas_register / bottom=reject / `expected_position` CAS basis 的全部既有语义不变，`ck.flow.move` / `ck.flow.reorder` 因此是 Control Move（携带 `seal_basis`，由 Seal 裁决）。Realm schema MAY 改声明为选项 1（data plane `mv_register` + user-pick：并发拖动暴露多 heads，任何有写权限者一笔写收敛、无协议 `⊥`）或选项 3（per-object sequencer）；改声明后 `expected_position` 退化为诊断字段。看板拖动延迟敏感、且 Realm 接受多值短暂并存的部署 SHOULD 评估选项 1。
+**Plane 裁决（normative，CBA）**：`ck.component.strand.position.v1` 是非治理强一致对象，按 [`event-auth-state-resolution.md` §9.4](../authz/event-auth-state-resolution.md) 三选一。**默认裁决是选项 2（`sealed=true` 升控制面）**——这保留上表 cas_register / bottom=reject / `expected_position` CAS basis 的全部既有语义不变，`ck.strand.move` / `ck.strand.reorder` 因此是 Control Move（携带 `seal_basis`，由 Seal 裁决）。Realm schema MAY 改声明为选项 1（data plane `mv_register` + user-pick：并发拖动暴露多 heads，任何有写权限者一笔写收敛、无协议 `⊥`）或选项 3（per-object sequencer）；改声明后 `expected_position` 退化为诊断字段。看板拖动延迟敏感、且 Realm 接受多值短暂并存的部署 SHOULD 评估选项 1。
 
-`ck.flow.move` payload 字段：
+`ck.strand.move` payload 字段：
 
-- `flow_id`
+- `strand_id`
 - `board_space_id`
 - `target_space_id`
 - `rank`
 - `expected_position`
 
-默认规则：workflow placement MUST resolve to the same effective Realm as the Flow unless a profile explicitly declares a cross-Realm reference relation. 跨 Realm 展示可以通过 Relation / View 聚合完成，但不得把目标 Realm 的读权隐式带入源 Realm。
+默认规则：workflow placement MUST resolve to the same effective Realm as the Strand unless a profile explicitly declares a cross-Realm reference relation. 跨 Realm 展示可以通过 Relation / View 聚合完成，但不得把目标 Realm 的读权隐式带入源 Realm。
 
 ### 3.7 示例
 
@@ -465,7 +465,7 @@ Group 不是资源容器，也不是安全边界。Group 是 principal / actor �
 规范性区分：
 
 - Realm membership 决定能否接收 Realm event、参与 Realm MLS group、获得 Realm 历史资格。
-- Capability 决定在 Realm 内能否执行动作，例如发消息、改 Flow、移动 Flow、管理 Space、邀请成员。
+- Capability 决定在 Realm 内能否执行动作，例如发消息、改 Strand、移动 Strand、管理 Space、邀请成员。
 - Group 只是授权主体集合；把 Group 授予 capability 不等于把 Group 加入 Realm。若 Group 被授予 Realm membership，必须物化为每个成员的 Realm membership / MLS add 路径。
 
 同一 Realm 中已经具备 MLS key 的成员，不能仅靠撤销 capability 来实现强读隔离。强读隔离必须切 Realm。
@@ -482,8 +482,8 @@ Group 不是资源容器，也不是安全边界。Group 是 principal / actor �
 - 公共字段：[common-fields.md](./common-fields.md)。
 - Space hierarchy：[`space-hierarchy.md`](./space-hierarchy.md)。
 - Realm links：[`realm-links.md`](./realm-links.md)。
-- Flow / Message / track 语义：[flow-and-message.md](./flow-and-message.md)。
+- Strand / Message / track 语义：[strand-and-message.md](./strand-and-message.md)。
 - Relation 基数与跨 Realm 规则：[relation.md](./relation.md)。
 - CBA / Lattice：[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
-- `ck.flow.move` / cas_register sync 编译：[`../sync/operations-sync.md`](../sync/operations-sync.md)。
+- `ck.strand.move` / cas_register sync 编译：[`../sync/operations-sync.md`](../sync/operations-sync.md)。
 - Realm / Space schema：`artifacts/schemas/realm.schema.json`、`artifacts/schemas/space.schema.json`。

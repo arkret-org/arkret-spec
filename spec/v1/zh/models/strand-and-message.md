@@ -1,5 +1,5 @@
 ---
-title: Flow & Message
+title: Strand & Message
 status: candidate
 normative: true
 stability: v1
@@ -14,20 +14,20 @@ updated: 2026-06-10
 
 本文定义 Cokret 协作图中两个最常用的对象：
 
-- **Flow**（`ck:flow:`）：Realm 内统一的协作主对象，承载"这件事本身"。
-- **Message**（`ck:message:`）：Flow `discussion` track 时间线中的原子消息。
+- **Strand**（`ck:strand:`）：Realm 内统一的协作主对象，承载"这件事本身"。
+- **Message**（`ck:message:`）：Strand `discussion` track 时间线中的原子消息。
 
-Flow 通过 `tracks` map 表达多种能力面，并可选通过 `scope_circle_id` 把整个 Flow 落在 Realm 内的某个 [Circle](./circle.md)（子事件 / 子消息边界；可按父 Realm floor 启用独立 MLS）。Track 模型、access 规则、conflict 收敛、ephemeral 信号都在本文一处讲完。
+Strand 通过 `tracks` map 表达多种能力面，并可选通过 `scope_circle_id` 把整个 Strand 落在 Realm 内的某个 [Circle](./circle.md)（子事件 / 子消息边界；可按父 Realm floor 启用独立 MLS）。Track 模型、access 规则、conflict 收敛、ephemeral 信号都在本文一处讲完。
 
-Flow 永远只有**一个** effective scope —— 整个 Flow(所有 track)共享同一事件 / 投递 / history 边界。需要"宽 synthesis + 窄 discussion"的场景 MUST 用**两个 Flow + Relation**(`confidential_discussion_of`)表达，详见 [`circle.md` §7.2](./circle.md)。
+Strand 永远只有**一个** effective scope —— 整个 Strand(所有 track)共享同一事件 / 投递 / history 边界。需要"宽 synthesis + 窄 discussion"的场景 MUST 用**两个 Strand + Relation**(`confidential_discussion_of`)表达，详见 [`circle.md` §7.2](./circle.md)。
 
 公共字段、lifecycle、reducer 总则见 [`common-fields.md`](./common-fields.md)。
 
-## 2. Flow 概览
+## 2. Strand 概览
 
-Flow 是 Realm 内被讨论、推进、引用、审阅、执行或沉淀的统一协作对象。它直接承载"这件事本身"、一组参与者和围绕它的上下文信息。
+Strand 是 Realm 内被讨论、推进、引用、审阅、执行或沉淀的统一协作对象。它直接承载"这件事本身"、一组参与者和围绕它的上下文信息。
 
-Flow 适合：
+Strand 适合：
 
 - 产品/工程 initiative
 - 决策或提案
@@ -37,37 +37,37 @@ Flow 适合：
 - 外部资产或业务对象的协作锚点
 - 会话主导的协作线程
 
-Flow 顶层字段不承载额外模式或业务分类；默认入口由 track primary 解析规则决定，业务语义由 Realm schema、profile、`metadata.fields`、Relation 或 Morph 扩展表达。业务语义分类不属于 Flow 顶层字段。实现 SHOULD 通过 Realm schema/profile、`metadata.fields`、Relation、labels 或 Morph profile 表达业务类型，并通过 View 定义选择 renderer。
+Strand 顶层字段不承载额外模式或业务分类；默认入口由 track primary 解析规则决定，业务语义由 Realm schema、profile、`metadata.fields`、Relation 或 Morph 扩展表达。业务语义分类不属于 Strand 顶层字段。实现 SHOULD 通过 Realm schema/profile、`metadata.fields`、Relation、labels 或 Morph profile 表达业务类型，并通过 View 定义选择 renderer。
 
-### 2.1 默认讨论 Flow 与发现机制
+### 2.1 默认讨论 Strand 与发现机制
 
-一个 Realm MAY 指定**一个**默认讨论 Flow（"general" 式的常驻讨论入口）。该指针的设计裁决如下，实现 MUST 遵循：
+一个 Realm MAY 指定**一个**默认讨论 Strand（"general" 式的常驻讨论入口）。该指针的设计裁决如下，实现 MUST 遵循：
 
-- **权威状态放在 Realm,单指针。** 权威当前值是 Realm 投影的 `default_flow_id`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的可选 / nullable 字段）。它由 `ck.realm.set_default_flow` 事件投影得到（cell `ck.component.realm.set_default_flow.v1`、`cas_register`、`bottom=reject`）。**单一指针**避免多个 Flow 各自声明"我是默认"导致的多默认脏态;`null` / 缺省表示该 Realm 没有指定默认 Flow。
-- **Flow 侧只暴露派生标记。** Flow 投影（[`ProjectionFlowRow`](../../artifacts/schemas/service-operation-dtos.schema.json)）的 `is_default` 是**派生**字段（`is_default == (flow_id == realm.default_flow_id)`），**不是**独立存储，投影器从 Realm 的 `default_flow_id` 计算得到。Flow 对象本身不持有任何"默认"布尔位。
-- **设置 / 变更走事件驱动，不强制原子。** 改变默认 Flow 仅通过 `ck.realm.set_default_flow` 事件（payload 至少 `{realm_id, flow_id}`,见 [`event-payload.schema.json` `realm_set_default_flow_payload`](../../artifacts/schemas/event-payload.schema.json)）。授权是标准 Realm-admin 闸门:写入方 MUST 持有 `ck.realm.admin`（aggregate admin 覆盖）或被直接授予同名动作 `ck.realm.set_default_flow`（risk medium,见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)）。Realm 指针更新与 Flow 创建之间不要求单一原子事务，最终一致即可。
-- **reducer 防悬空（MUST）。** reducer 在投影 `ck.realm.set_default_flow` 时，被指向的 `flow_id` MUST 已经是本 Realm 内**已投影且非 tombstoned** 的 Flow;否则 MUST 拒绝（`failed_precondition`），不得写入悬空指针。因此 `default_flow_id` 永远指向一个存在的 Flow，`is_default` 永远不会因悬空指针被错误派生为 `true`。payload 的可选字段 `expected_default_flow_id` 提供乐观并发（CAS):存在时 reducer 仅在 Realm 当前 `default_flow_id` 等于该值时接受，否则 `failed_precondition`。
-- **客户端确定性发现（MUST NOT 靠实现细节）。** 客户端 MUST 通过下面两种确定性途径之一识别默认讨论 Flow:(a) 读取 Realm 投影的 `default_flow_id`;或 (b) 读取 Flow 投影的 `is_default`。客户端 MUST NOT 依赖"Flow 复用 Realm UUID""默认 Flow 是创建时间最早的 Flow"等任何实现细节或启发式来推断默认 Flow。
+- **权威状态放在 Realm,单指针。** 权威当前值是 Realm 投影的 `default_strand_id`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的可选 / nullable 字段）。它由 `ck.realm.set_default_strand` 事件投影得到（cell `ck.component.realm.set_default_strand.v1`、`cas_register`、`bottom=reject`）。**单一指针**避免多个 Strand 各自声明"我是默认"导致的多默认脏态;`null` / 缺省表示该 Realm 没有指定默认 Strand。
+- **Strand 侧只暴露派生标记。** Strand 投影（[`ProjectionStrandRow`](../../artifacts/schemas/service-operation-dtos.schema.json)）的 `is_default` 是**派生**字段（`is_default == (strand_id == realm.default_strand_id)`），**不是**独立存储，投影器从 Realm 的 `default_strand_id` 计算得到。Strand 对象本身不持有任何"默认"布尔位。
+- **设置 / 变更走事件驱动，不强制原子。** 改变默认 Strand 仅通过 `ck.realm.set_default_strand` 事件（payload 至少 `{realm_id, strand_id}`,见 [`event-payload.schema.json` `realm_set_default_strand_payload`](../../artifacts/schemas/event-payload.schema.json)）。授权是标准 Realm-admin 闸门:写入方 MUST 持有 `ck.realm.admin`（aggregate admin 覆盖）或被直接授予同名动作 `ck.realm.set_default_strand`（risk medium,见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)）。Realm 指针更新与 Strand 创建之间不要求单一原子事务，最终一致即可。
+- **reducer 防悬空（MUST）。** reducer 在投影 `ck.realm.set_default_strand` 时，被指向的 `strand_id` MUST 已经是本 Realm 内**已投影且非 tombstoned** 的 Strand;否则 MUST 拒绝（`failed_precondition`），不得写入悬空指针。因此 `default_strand_id` 永远指向一个存在的 Strand，`is_default` 永远不会因悬空指针被错误派生为 `true`。payload 的可选字段 `expected_default_strand_id` 提供乐观并发（CAS):存在时 reducer 仅在 Realm 当前 `default_strand_id` 等于该值时接受，否则 `failed_precondition`。
+- **客户端确定性发现（MUST NOT 靠实现细节）。** 客户端 MUST 通过下面两种确定性途径之一识别默认讨论 Strand:(a) 读取 Realm 投影的 `default_strand_id`;或 (b) 读取 Strand 投影的 `is_default`。客户端 MUST NOT 依赖"Strand 复用 Realm UUID""默认 Strand 是创建时间最早的 Strand"等任何实现细节或启发式来推断默认 Strand。
 
-## 3. Flow Schema 与字段
+## 3. Strand Schema 与字段
 
-Schema id: `ck.schema.flow.v1`
+Schema id: `ck.schema.strand.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:flow` | 以 `ck:flow:` 开头。 | Flow ID。 |
-| `schema` | yes | `ck.schema.flow.v1` | 固定。 | 对象 schema。 |
+| `id` | yes | `id:strand` | 以 `ck:strand:` 开头。 | Strand ID。 |
+| `schema` | yes | `ck.schema.strand.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
-| `scope_circle_id` | no | `id:circle` | 必须是同 Realm 内的 Circle（`Circle.realm_id == Flow.realm_id`）；否则 `schema_violation` `reason=circle_realm_mismatch`。Reducer 把 `null` 物化为 `effective_scope={kind:"realm",...}`，把 Circle 引用物化为 `effective_scope={kind:"circle",...}`。改绑默认拒（`scope_rebind_forbidden`）。 | 整个 Flow 的 effective scope（含所有 track）。未设置时 Flow 落在 Realm-default scope；设置时整个 Flow（含 synthesis、discussion）落在该 Circle 的 membership / history / delivery / query / encryption profile 边界内。详见 §5 与 [`circle.md`](./circle.md)。 |
-| `agent_participation` | no | `object{reply, accept_third_party_mention, act_on_behalf: boolean}` | 扁平三位（native-agent-only，无 `native_agent` 外层包裹）。省略时继承有效父级 ceiling：`scope_circle_id` 指向 Circle 时取该 Circle ceiling，否则取 Realm-default `native_agent` ceiling。每一位只能收紧、不得放宽父级 ceiling（tighten-only，违反 `failed_precondition`，`reason="agent_participation_ceiling_widen"`）；第三方 mention 投递 gate 见 §9.4.5。详见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)、[`realm-and-space.md` §2.2](./realm-and-space.md) 与 [`circle.md` §7](./circle.md)。 | native personal agent 在该 Flow scope 内的参与上限。 |
-| `metadata` | no | `object` | MAY contain `title`, `summary`, `fields` and profile-defined keys. `metadata.title` 1..512 chars；`metadata.summary` SHOULD <= 2048 chars。 | 用户可读 Flow metadata；MLS / E2EE 下按 `metadata_encryption_floor` 决定是否必须放入 `encrypted_metadata`。 |
-| `encrypted_metadata` | conditional | `EncryptedPayload` | 与 `metadata` 二选一；plaintext 是同一个 Flow metadata object。 | E2EE 场景下包裹 `title` / `summary` / 用户可读 `fields` 等 metadata。 |
+| `scope_circle_id` | no | `id:circle` | 必须是同 Realm 内的 Circle（`Circle.realm_id == Strand.realm_id`）；否则 `schema_violation` `reason=circle_realm_mismatch`。Reducer 把 `null` 物化为 `effective_scope={kind:"realm",...}`，把 Circle 引用物化为 `effective_scope={kind:"circle",...}`。改绑默认拒（`scope_rebind_forbidden`）。 | 整个 Strand 的 effective scope（含所有 track）。未设置时 Strand 落在 Realm-default scope；设置时整个 Strand（含 synthesis、discussion）落在该 Circle 的 membership / history / delivery / query / encryption profile 边界内。详见 §5 与 [`circle.md`](./circle.md)。 |
+| `agent_participation` | no | `object{reply, accept_third_party_mention, act_on_behalf: boolean}` | 扁平三位（native-agent-only，无 `native_agent` 外层包裹）。省略时继承有效父级 ceiling：`scope_circle_id` 指向 Circle 时取该 Circle ceiling，否则取 Realm-default `native_agent` ceiling。每一位只能收紧、不得放宽父级 ceiling（tighten-only，违反 `failed_precondition`，`reason="agent_participation_ceiling_widen"`）；第三方 mention 投递 gate 见 §9.4.5。详见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)、[`realm-and-space.md` §2.2](./realm-and-space.md) 与 [`circle.md` §7](./circle.md)。 | native personal agent 在该 Strand scope 内的参与上限。 |
+| `metadata` | no | `object` | MAY contain `title`, `summary`, `fields` and profile-defined keys. `metadata.title` 1..512 chars；`metadata.summary` SHOULD <= 2048 chars。 | 用户可读 Strand metadata；MLS / E2EE 下按 `metadata_encryption_floor` 决定是否必须放入 `encrypted_metadata`。 |
+| `encrypted_metadata` | conditional | `EncryptedPayload` | 与 `metadata` 二选一；plaintext 是同一个 Strand metadata object。 | E2EE 场景下包裹 `title` / `summary` / 用户可读 `fields` 等 metadata。 |
 | `content` | no | `ContentBlock` | 见 [`content-types.md`](./content-types.md)。 | 富文本正文。 |
-| `encrypted_content` | conditional | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Flow synthesis 正文或附件内容。 |
-| `tracks` | yes | `map<TrackName, FlowTrack>` | 至少 1 个 key；key 唯一性由 map 结构保证；至多 1 个 entry `is_primary=true`。 | 轨道定义、默认入口与轨道访问继承。 |
-| `state` | no | `enum(active, archived, redacted)` | 终态必须有事件来源。Reducer 按 [common-fields.md §5.1](./common-fields.md) 校验源状态：`ck.flow.archive` MUST 来自 `active`（否则 `flow_not_active`）；`ck.flow.restore` MUST 来自 `archived`（否则 `flow_not_archived`）；`ck.redaction` 指向 Flow 时 MUST 来自 `{active, archived}`（否则 `flow_already_terminal`）。same-state self-transition MUST fail。**Flow 不引入独立 `tombstoned` 终态**；deletion 语义通过指向该 Flow 的 `ck.redaction` 表达，见 [common-fields.md §5.1](./common-fields.md)。 | 物化状态（物理生命周期）。 |
+| `encrypted_content` | conditional | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Strand synthesis 正文或附件内容。 |
+| `tracks` | yes | `map<TrackName, StrandTrack>` | 至少 1 个 key；key 唯一性由 map 结构保证；至多 1 个 entry `is_primary=true`。 | 轨道定义、默认入口与轨道访问继承。 |
+| `state` | no | `enum(active, archived, redacted)` | 终态必须有事件来源。Reducer 按 [common-fields.md §5.1](./common-fields.md) 校验源状态：`ck.strand.archive` MUST 来自 `active`（否则 `strand_not_active`）；`ck.strand.restore` MUST 来自 `archived`（否则 `strand_not_archived`）；`ck.redaction` 指向 Strand 时 MUST 来自 `{active, archived}`（否则 `strand_already_terminal`）。same-state self-transition MUST fail。**Strand 不引入独立 `tombstoned` 终态**；deletion 语义通过指向该 Strand 的 `ck.redaction` 表达，见 [common-fields.md §5.1](./common-fields.md)。 | 物化状态（物理生命周期）。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
-| `stage` | no | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | `ck.flow.create` 时 MAY 省略；若携带，必须是 [common-fields.md §5.3](./common-fields.md) 的 8 值之一。普通业务 Flow SHOULD 填写；DM 主 Flow MAY 省略或选填合法值。变更只能通过 `ck.flow.stage.set`（详见 §3.2）；`ck.flow.update` 的 patch path `stage` / `stage_changed_at` MUST `schema_violation`。`metadata.fields.stage` / `metadata.fields.status` / `metadata.fields.lifecycle` / `metadata.fields.progress_state` / `metadata.fields.stage_reason` MUST `schema_violation`（forbidden-wire）。**不携带 reason 字段**：需要解释时在 discussion track 发 Message 并 `references` 本次 `ck.flow.stage.set` event。 | 可选业务进度阶段（与 `state` 正交）。 |
+| `stage` | no | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | `ck.strand.create` 时 MAY 省略；若携带，必须是 [common-fields.md §5.3](./common-fields.md) 的 8 值之一。普通业务 Strand SHOULD 填写；DM 主 Strand MAY 省略或选填合法值。变更只能通过 `ck.strand.stage.set`（详见 §3.2）；`ck.strand.update` 的 patch path `stage` / `stage_changed_at` MUST `schema_violation`。`metadata.fields.stage` / `metadata.fields.status` / `metadata.fields.lifecycle` / `metadata.fields.progress_state` / `metadata.fields.stage_reason` MUST `schema_violation`（forbidden-wire）。**不携带 reason 字段**：需要解释时在 discussion track 发 Message 并 `references` 本次 `ck.strand.stage.set` event。 | 可选业务进度阶段（与 `state` 正交）。 |
 | `stage_changed_at` | conditional | `timestamp` | **Reducer-derived**：仅当 `stage` 存在且实际变更时由 reducer 用触发 event 的 `created_at` 覆盖写入；MUST NOT 在缺少 `stage` 时单独出现；same-value self-transition 不更新本字段。 | 最近一次 stage 转换时间。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -76,10 +76,10 @@ Schema id: `ck.schema.flow.v1`
 
 ### 3.1 最小示例
 
-```json schema=schemas/flow.schema.json
+```json schema=schemas/strand.schema.json
 {
-  "id": "ck:flow:019640f9-8000-7000-8000-000000000000",
-  "schema": "ck.schema.flow.v1",
+  "id": "ck:strand:019640f9-8000-7000-8000-000000000000",
+  "schema": "ck.schema.strand.v1",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "metadata": {
     "title": "支付重构",
@@ -110,7 +110,7 @@ Schema id: `ck.schema.flow.v1`
 
 ### 3.2 Stage（业务进度）
 
-`stage` 是 Flow 的可选业务进度字段，表达"这件事走到哪了"。普通业务 Flow SHOULD 填写；DM 主 Flow MAY 省略或选填合法值。它与 `state`（物理生命周期）正交：archive 一个 `stage=in_progress` 的 Flow 不会自动改 stage；`stage=done` 也不会自动 archive。
+`stage` 是 Strand 的可选业务进度字段，表达"这件事走到哪了"。普通业务 Strand SHOULD 填写；DM 主 Strand MAY 省略或选填合法值。它与 `state`（物理生命周期）正交：archive 一个 `stage=in_progress` 的 Strand 不会自动改 stage；`stage=done` 也不会自动 archive。
 
 **枚举值**（与 [common-fields.md §5.3.2](./common-fields.md) 共用，固定 8 值）：
 
@@ -123,43 +123,43 @@ Schema id: `ck.schema.flow.v1`
 | `blocked` | `doing` | 依赖未解。 |
 | `done` | `closed` | 成功完成。 |
 | `cancelled` | `closed` | 主动放弃。 |
-| `superseded` | `closed` | 被另一个 Flow 取代，SHOULD 写 Relation `superseded_by --> flow:<successor>`。 |
+| `superseded` | `closed` | 被另一个 Strand 取代，SHOULD 写 Relation `superseded_by --> strand:<successor>`。 |
 
-**Wire 写入路径**：唯一 event 是 `ck.flow.stage.set`，payload 形态：
+**Wire 写入路径**：唯一 event 是 `ck.strand.stage.set`，payload 形态：
 
 ```json
 {
-  "kind": "ck.flow.stage.set",
+  "kind": "ck.strand.stage.set",
   "payload": {
-    "flow_id": "ck:flow:...",
+    "strand_id": "ck:strand:...",
     "stage": "blocked",
     "expected_stage": "in_progress"
   }
 }
 ```
 
-- `flow_id`：必填。
+- `strand_id`：必填。
 - `stage`：必填，必须是上面 8 值之一。
-- `expected_stage`：可选，编译为 cell `head_eq` precondition，避免并发覆盖（与 `ck.flow.watch.set` 的 `expected_value` 同模式）。省略时等价无 CAS。
+- `expected_stage`：可选，编译为 cell `head_eq` precondition，避免并发覆盖（与 `ck.strand.watch.set` 的 `expected_value` 同模式）。省略时等价无 CAS。
 
 **Payload 不携带 reason / note / explanation 字段**。stage 变更的"为什么"由人类讨论承担：
 
-- actor SHOULD 在该 Flow 的 `discussion` track 发一条 `ck.message.create`，并通过 Relation `references` 指向本次 `ck.flow.stage.set` event。
+- actor SHOULD 在该 Strand 的 `discussion` track 发一条 `ck.message.create`，并通过 Relation `references` 指向本次 `ck.strand.stage.set` event。
 - 该 Message 受 `discussion` track 的权限、E2EE、redaction、editing 规则约束（与所有其他讨论同级），可以被引用、回应、撤回。
-- 审计归属由 `ck.flow.stage.set` event 自身的 `actor_id` / `created_at` 提供——事件日志就是真源，不需要在对象上再开一个 256-char 黑盒字段。
+- 审计归属由 `ck.strand.stage.set` event 自身的 `actor_id` / `created_at` 提供——事件日志就是真源，不需要在对象上再开一个 256-char 黑盒字段。
 
-**Capability**：`ck.flow.stage.set`（low risk_tier）—— 允许把推进 Flow 进度的权限授予 reporter / assignee / member，而不必给完整 `ck.flow.update`（后者可改 metadata / content）。
+**Capability**：`ck.strand.stage.set`（low risk_tier）—— 允许把推进 Strand 进度的权限授予 reporter / assignee / member，而不必给完整 `ck.strand.update`（后者可改 metadata / content）。
 
 **Reducer 硬约束**（来自 [common-fields.md §5.3.3](./common-fields.md)）：
 
-1. `state ∈ {redacted}` → `failed_precondition` `reason=flow_already_terminal`（这是 [common-fields.md §5.3.3](./common-fields.md) 通用规则 `state ∈ {redacted, tombstoned, deleted}` 在 Flow 上的实例化：Flow 的 state 枚举只有 `active` / `archived` / `redacted`，故其物理终态仅 `redacted`，此处复述等价于上游规则，并非窄化）
-2. `state = archived` → `failed_precondition` `reason=flow_not_active`
+1. `state ∈ {redacted}` → `failed_precondition` `reason=strand_already_terminal`（这是 [common-fields.md §5.3.3](./common-fields.md) 通用规则 `state ∈ {redacted, tombstoned, deleted}` 在 Strand 上的实例化：Strand 的 state 枚举只有 `active` / `archived` / `redacted`，故其物理终态仅 `redacted`，此处复述等价于上游规则，并非窄化）
+2. `state = archived` → `failed_precondition` `reason=strand_not_active`
 3. `stage_changed_at` reducer-derived，忽略 wire 上 actor-supplied 值
 4. same-value self-transition → reducer 接受但不更新 `stage_changed_at`、不产生审计变更
-5. `ck.flow.update` patch path 出现 `stage` / `stage_changed_at` → `schema_violation`
-6. `flow.metadata.fields.stage` / `flow.metadata.fields.stage_reason` / `flow.metadata.fields.lifecycle` / `flow.metadata.fields.progress_state` → `schema_violation`（forbidden-wire reserved-name guard）
+5. `ck.strand.update` patch path 出现 `stage` / `stage_changed_at` → `schema_violation`
+6. `strand.metadata.fields.stage` / `strand.metadata.fields.stage_reason` / `strand.metadata.fields.lifecycle` / `strand.metadata.fields.progress_state` → `schema_violation`（forbidden-wire reserved-name guard）
 
-**与 workflow profile 的关系**：未启用自定义 workflow 时，actor 可直接调用 `ck.flow.stage.set`。启用 workflow profile 时，profile MAY 把 workflow 的 fine-grained state 通过 `stage_category` 映射到此处 8 值，由 reducer 在 workflow event 后派生写入 stage —— 携带 `stage` 的 Flow 使用该字段作为 workflow_state 的协议级粗投影，跨 Realm dashboard 可聚合。
+**与 workflow profile 的关系**：未启用自定义 workflow 时，actor 可直接调用 `ck.strand.stage.set`。启用 workflow profile 时，profile MAY 把 workflow 的 fine-grained state 通过 `stage_category` 映射到此处 8 值，由 reducer 在 workflow event 后派生写入 stage —— 携带 `stage` 的 Strand 使用该字段作为 workflow_state 的协议级粗投影，跨 Realm dashboard 可聚合。
 
 **与 `metadata.fields.status` 的关系**：`metadata.fields.status` 是自由扩展字段（profile 自管），可与 `stage` 共存表达 fine-grained 业务子状态；但 stage 本身**不允许**藏在 `metadata.fields` 下。
 
@@ -173,21 +173,21 @@ Schema id: `ck.schema.flow.v1`
 
 标准 track name 为 `synthesis` 与 `discussion`，profile MAY 声明更多 track name。
 
-### 4.1 `FlowTrack` 字段
+### 4.1 `StrandTrack` 字段
 
 track 名是 `tracks` map 的 key，不重复在 value 中。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `enabled` | no | `boolean` | 省略时默认 `true`；patch 写为 `false` 后 reducer MUST 用 `track_disabled` 拒绝该 track 上的新写入。 | track 是否接受新写入；置 `false` 仅冻结新写入，不删除历史；UI MAY 隐藏或只读化已禁用 track；重新置 `true` 恢复写入。 |
-| `is_primary` | no | `boolean` | 同一 Flow 至多一个 track 为 true；省略或 false 均表示无显式 primary。 | 是否为显式默认入口。 |
+| `is_primary` | no | `boolean` | 同一 Strand 至多一个 track 为 true；省略或 false 均表示无显式 primary。 | 是否为显式默认入口。 |
 | `profile` | no | `string` | 由 Realm schema/profile 定义；标准 discussion profile 可用 `discussion`、`announcement`、`support`、`activity`、`review`、`external`。 | track 交互 profile（pure UI hint）。 |
 | `template` | no | `string` | track profile 可声明结构模板。 | 模板引用。 |
 | `metadata` | no | `object` |  | track-local UI metadata（pure UI hint，不影响访问）。 |
 
 ### 4.2 `synthesis` track
 
-`synthesis` track 承载 Flow 随 `discussion` 推进而沉淀下来的**正式记录**：把讨论中逐步形成的共识、结论与决策整理、收敛成连贯的正式表达。它同时是 Flow 当前可被编辑、被引用、被推进的主数据面——既是这件事"谈成了什么"的权威表述，也是后续被引用、推进（`stage`）与审阅的对象本体。它不是被动、只读、自动生成的"摘要侧栏"，而是由人主动整理、可持续编辑的权威记录面。
+`synthesis` track 承载 Strand 随 `discussion` 推进而沉淀下来的**正式记录**：把讨论中逐步形成的共识、结论与决策整理、收敛成连贯的正式表达。它同时是 Strand 当前可被编辑、被引用、被推进的主数据面——既是这件事"谈成了什么"的权威表述，也是后续被引用、推进（`stage`）与审阅的对象本体。它不是被动、只读、自动生成的"摘要侧栏"，而是由人主动整理、可持续编辑的权威记录面。
 
 适合放入：
 
@@ -200,11 +200,11 @@ track 名是 `tracks` map 的 key，不重复在 value 中。
 
 `content` SHOULD 使用 `content-types.md` 定义的 Content Block；结构化状态和业务字段继续放在 `metadata.fields`，不要把可归约状态只藏在富文本正文中。
 
-`synthesis` 是可选 track：`tracks` map 不要求声明它。「只聊天不归纳」的 Flow（仅 `discussion`）是合法形态，见 §9.4 与 [`overview/current-model.md` §3](../overview/current-model.md)。若 Flow 同时声明了 `synthesis` 与 `discussion` 且未显式标 primary，`synthesis` 按 §4.5 第 2 条派生为 primary。关闭已存在的 `synthesis` track 与关闭任何 track 同形：在 `ck.flow.tracks.update` 同一 patch 中写 `tracks.synthesis.enabled: set false`；若当前 primary 是 `synthesis`，同一 patch 必须把 primary 转给另一个 active track（§4.6 / §4.7 / §4.8）。
+`synthesis` 是可选 track：`tracks` map 不要求声明它。「只聊天不归纳」的 Strand（仅 `discussion`）是合法形态，见 §9.4 与 [`overview/current-model.md` §3](../overview/current-model.md)。若 Strand 同时声明了 `synthesis` 与 `discussion` 且未显式标 primary，`synthesis` 按 §4.5 第 2 条派生为 primary。关闭已存在的 `synthesis` track 与关闭任何 track 同形：在 `ck.strand.tracks.update` 同一 patch 中写 `tracks.synthesis.enabled: set false`；若当前 primary 是 `synthesis`，同一 patch 必须把 primary 转给另一个 active track（§4.6 / §4.7 / §4.8）。
 
 ### 4.3 `discussion` track
 
-`discussion` track 也是可选 track：`tracks` map 不要求声明它，纯结构化 Flow（仅 `synthesis`，例如归档文档、只读规格条目）合法。与 `synthesis` 不对称的一点：reducer MUST NOT 隐式创建 `discussion` track——切换 primary 到 `discussion` 时，必须在同一 `ck.flow.tracks.update` patch 中显式 `tracks.discussion.enabled: set true`（详见 §4.6 / §4.8）。
+`discussion` track 也是可选 track：`tracks` map 不要求声明它，纯结构化 Strand（仅 `synthesis`，例如归档文档、只读规格条目）合法。与 `synthesis` 不对称的一点：reducer MUST NOT 隐式创建 `discussion` track——切换 primary 到 `discussion` 时，必须在同一 `ck.strand.tracks.update` patch 中显式 `tracks.discussion.enabled: set true`（详见 §4.6 / §4.8）。
 
 `discussion` track 承载会话能力，而不是独立对象。它包含：
 
@@ -226,14 +226,14 @@ track 名是 `tracks` map 的 key，不重复在 value 中。
 - `profile` 是 discussion track 的 UI / 语义 hint，不是自动授权后门。
 - `announcement`、`review` 等 posting 约束 MUST 通过 capability / policy 表达，不得只靠 `profile` 字符串隐式生效。
 - `activity` SHOULD 允许系统/agent 产生状态播报，但 reducer 仍按普通 Message timeline 处理。
-- discussion 可见成员关系不从 `assigned_to`、`watches` 或其他 Flow relation 隐式派生；track 自身不持有 membership，可见成员一律由 Flow 的 effective scope 决定（`scope_circle_id=null` 时为父 Realm 的 membership / capability / policy；`scope_circle_id` 指向 Circle 时为该 [Circle](./circle.md) 的 membership / capability / policy），若实现需要此类映射必须可审计地声明。`watches` 是个人通知订阅偏好（§8），不是访问 / membership 控制。
+- discussion 可见成员关系不从 `assigned_to`、`watches` 或其他 Strand relation 隐式派生；track 自身不持有 membership，可见成员一律由 Strand 的 effective scope 决定（`scope_circle_id=null` 时为父 Realm 的 membership / capability / policy；`scope_circle_id` 指向 Circle 时为该 [Circle](./circle.md) 的 membership / capability / policy），若实现需要此类映射必须可审计地声明。`watches` 是个人通知订阅偏好（§8），不是访问 / membership 控制。
 - 当 `discussion` track 不存在或不处于 active 状态时，`ck.message.create`、`ck.message.revise`、`ck.message.redact` MUST 被拒绝，错误语义 SHOULD 为 `discussion_track_disabled` 或等价 fail-closed 结果。
 
 ### 4.4 Track 是纯展示标识，不是 access 域
 
-**Track 是纯展示 / 时间线分段标识，不携带独立的 membership / 权限 / history visibility / E2EE**。Track 的访问语义完全继承自 Flow 的 effective scope —— `scope_circle_id=null` 时继承父 Realm，`scope_circle_id` 指向 Circle 时继承该 Circle（见 §5 与 [`circle.md`](./circle.md)）。
+**Track 是纯展示 / 时间线分段标识，不携带独立的 membership / 权限 / history visibility / E2EE**。Track 的访问语义完全继承自 Strand 的 effective scope —— `scope_circle_id=null` 时继承父 Realm，`scope_circle_id` 指向 Circle 时继承该 Circle（见 §5 与 [`circle.md`](./circle.md)）。
 
-Track 配置不携带 `access` 子对象（v1 不支持 `track_scoped` hybrid 模型）—— 任何需要独立访问域的场景必须通过 `Flow.scope_circle_id` 把整个 Flow 落在 [Circle](./circle.md)，或者按 [`circle.md` §7.2](./circle.md) 拆为两个 Flow + Relation。
+Track 配置不携带 `access` 子对象（v1 不支持 `track_scoped` hybrid 模型）—— 任何需要独立访问域的场景必须通过 `Strand.scope_circle_id` 把整个 Strand 落在 [Circle](./circle.md)，或者按 [`circle.md` §7.2](./circle.md) 拆为两个 Strand + Relation。
 
 `assigned_to`、`watches` 或其他业务关系不会自动成为 discussion 成员或获取访问权，除非 Realm policy 明确把它们映射为授权条件。`watches` Relation 表达**通知订阅偏好**，与访问控制完全正交——完整语义、状态枚举、投影脱敏规则见 §8。
 
@@ -245,42 +245,42 @@ Track 配置不携带 `access` 子对象（v1 不支持 `track_scoped` hybrid �
 2. 若没有显式 primary 且 `tracks` 中存在 key `synthesis`，`synthesis` 是 primary。
 3. 若没有显式 primary 且 map 只有一个 key，该唯一 key 是 primary。
 4. 若没有显式 primary，且 profile 声明了可验证默认 track 且该 key 存在于 `tracks`，使用该默认 track。
-5. 仍无法唯一确定时，Reducer MUST fail closed，要求通过 `ck.flow.tracks.update` 显式设置 `tracks.<name>.is_primary=true`。
+5. 仍无法唯一确定时，Reducer MUST fail closed，要求通过 `ck.strand.tracks.update` 显式设置 `tracks.<name>.is_primary=true`。
 
 `is_primary=false` 与省略 `is_primary` 等价；它不是阻止默认派生的 veto。
 
-resolved primary 只影响默认打开哪个协作面，不改变 `flow_id`，不授予读取、写入或管理权限。
+resolved primary 只影响默认打开哪个协作面，不改变 `strand_id`，不授予读取、写入或管理权限。
 
 ### 4.6 Track 转换
 
-切换 primary track、启用 / 关闭 track、修改 track profile 全部通过 `ck.flow.tracks.update` 的 patch 完成（详见 §4.8）。不存在独立的 `set_primary` / `enable` / `disable` event kind。
+切换 primary track、启用 / 关闭 track、修改 track profile 全部通过 `ck.strand.tracks.update` 的 patch 完成（详见 §4.8）。不存在独立的 `set_primary` / `enable` / `disable` event kind。
 
 规则：
 
-- 转换不改变 `flow_id`。
+- 转换不改变 `strand_id`。
 - 转换不复制或迁移消息历史。
 - 切换到 `discussion` track 时，若 `discussion` track 尚不存在，必须在同一 patch 中同时写 `tracks.discussion.enabled: set true` + `tracks.discussion.is_primary: set true`；写入仅含 `is_primary` 而 track 未 enabled 时 MUST `failed_precondition`，不得隐式创建 track。
-- 切换到其他 track 时，不得自动删除 `discussion` track 或既有消息；若需要关闭讨论，必须在同一或后续 `ck.flow.tracks.update` patch 中显式 `tracks.discussion.enabled: set false`（或按 profile 声明的 archive 语义）。
-- 转换不自动移除 Board Space / List Space 中的 `contains` Relation；是否保留位置由独立的 workflow policy 或后续 `ck.flow.move` 决定。
-- `ck.flow.tracks.update` 只改变 track 配置 / primary / enabled 状态，不得隐式创建或迁移 Circle 或修改 Flow 的 `scope_circle_id`；Circle 的生命周期由独立 `ck.circle.*` event 管理（见 [`circle.md`](./circle.md)），Flow 的 scope 改绑默认禁止。
+- 切换到其他 track 时，不得自动删除 `discussion` track 或既有消息；若需要关闭讨论，必须在同一或后续 `ck.strand.tracks.update` patch 中显式 `tracks.discussion.enabled: set false`（或按 profile 声明的 archive 语义）。
+- 转换不自动移除 Board Space / List Space 中的 `contains` Relation；是否保留位置由独立的 workflow policy 或后续 `ck.strand.move` 决定。
+- `ck.strand.tracks.update` 只改变 track 配置 / primary / enabled 状态，不得隐式创建或迁移 Circle 或修改 Strand 的 `scope_circle_id`；Circle 的生命周期由独立 `ck.circle.*` event 管理（见 [`circle.md`](./circle.md)），Strand 的 scope 改绑默认禁止。
 
 ### 4.7 Track 启用 / 禁用
 
 - track 在 map 中存在且 `enabled=true`（或 schema 默认为 true）即表示 active。
-- 关闭 track 通过 `ck.flow.tracks.update` patch `tracks.<name>.enabled: set false`（或从 map 中删除该 key、或写 profile 声明的 archived state），不得留下可写入的 disabled track。
-- View 的 renderer 选择 SHOULD 基于 View 定义、对象类型、Realm schema/profile、track config 和可见字段；不得要求 Flow 额外声明模式字段。
+- 关闭 track 通过 `ck.strand.tracks.update` patch `tracks.<name>.enabled: set false`（或从 map 中删除该 key、或写 profile 声明的 archived state），不得留下可写入的 disabled track。
+- View 的 renderer 选择 SHOULD 基于 View 定义、对象类型、Realm schema/profile、track config 和可见字段；不得要求 Strand 额外声明模式字段。
 
-### 4.8 Track 写入: `ck.flow.tracks.update`
+### 4.8 Track 写入: `ck.strand.tracks.update`
 
-Track 写入路径只有一个 event kind: **`ck.flow.tracks.update`**(注意名称用复数 `tracks`),通过 `ck.patch.v1` 表达对 `Flow.tracks` map 的任意原子修改——开/关 track、切换 primary、修改 track profile / metadata 都走同一条 event。
+Track 写入路径只有一个 event kind: **`ck.strand.tracks.update`**(注意名称用复数 `tracks`),通过 `ck.patch.v1` 表达对 `Strand.tracks` map 的任意原子修改——开/关 track、切换 primary、修改 track profile / metadata 都走同一条 event。
 
 **典型 patch 示例**:
 
 ```json
 {
-  "kind": "ck.flow.tracks.update",
+  "kind": "ck.strand.tracks.update",
   "payload": {
-    "flow_id": "ck:flow:...",
+    "strand_id": "ck:strand:...",
     "patch": {
       "tracks.discussion.enabled":   { "$op": "set", "value": true },
       "tracks.discussion.profile":   { "$op": "set", "value": "review" },
@@ -293,17 +293,17 @@ Track 写入路径只有一个 event kind: **`ck.flow.tracks.update`**(注意名
 
 整个变更作为**原子 Move** 在同一 cell precondition / effect 中完成，避免中间态被其它 actor 抢写。
 
-**Capability**: `ck.flow.tracks.update` 一个 action 覆盖该 event。
+**Capability**: `ck.strand.tracks.update` 一个 action 覆盖该 event。
 
 **Reducer 规则**: 同 §4.6 §4.7 — 切到 `discussion` 前 `discussion` track MUST 已 enabled(可在同一 patch 中通过 `tracks.discussion.enabled: set true` + `tracks.discussion.is_primary: set true` 原子完成); primary track 不能空缺(切走旧 primary 后必须有一个新 primary); track key 必须匹配 `^[a-z][a-z0-9_]{0,63}$`。
 
-## 5. Flow Scope（`scope_circle_id`）
+## 5. Strand Scope（`scope_circle_id`）
 
-Flow 永远只有**一个** effective scope。整个 Flow（含所有 track：synthesis、discussion 等）共享同一事件 / 投递 / history 边界，要么落在 Realm-default scope，要么落在 Realm 内的某个 [Circle](./circle.md)。Flow 不允许跨两个 effective scope。
+Strand 永远只有**一个** effective scope。整个 Strand（含所有 track：synthesis、discussion 等）共享同一事件 / 投递 / history 边界，要么落在 Realm-default scope，要么落在 Realm 内的某个 [Circle](./circle.md)。Strand 不允许跨两个 effective scope。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `scope_circle_id` | no | `id:circle` | 引用的 Circle MUST `realm_id` 与 Flow.realm_id 一致（否则 `schema_violation` `reason=circle_realm_mismatch`）；引用的 Circle MUST `state=active`（否则 `failed_precondition` `reason=circle_not_active`）。 | 整个 Flow 的 effective scope。`null`（缺省）表示 Realm-default scope；指向 Circle 表示落在该 Circle 的 membership / history visibility / delivery / query / encryption profile 内。 |
+| `scope_circle_id` | no | `id:circle` | 引用的 Circle MUST `realm_id` 与 Strand.realm_id 一致（否则 `schema_violation` `reason=circle_realm_mismatch`）；引用的 Circle MUST `state=active`（否则 `failed_precondition` `reason=circle_not_active`）。 | 整个 Strand 的 effective scope。`null`（缺省）表示 Realm-default scope；指向 Circle 表示落在该 Circle 的 membership / history visibility / delivery / query / encryption profile 内。 |
 
 ```json
 {
@@ -317,110 +317,110 @@ Flow 永远只有**一个** effective scope。整个 Flow（含所有 track：sy
 
 规则（详尽 normative 见 [`circle.md` §6](./circle.md)）：
 
-- `scope_circle_id=null` 时，Flow 与所有 track 的事件落在父 Realm 的 Realm-default scope；reducer 把 `effective_scope` 物化为 `{kind:"realm", realm_id}`。
-- `scope_circle_id` 指向 Circle 时，整个 Flow 与所有 track 的事件落在该 Circle 的 membership / history / delivery / query / encryption profile scope；reducer 把 `effective_scope` 物化为 `{kind:"circle", realm_id, circle_id}`。
+- `scope_circle_id=null` 时，Strand 与所有 track 的事件落在父 Realm 的 Realm-default scope；reducer 把 `effective_scope` 物化为 `{kind:"realm", realm_id}`。
+- `scope_circle_id` 指向 Circle 时，整个 Strand 与所有 track 的事件落在该 Circle 的 membership / history / delivery / query / encryption profile scope；reducer 把 `effective_scope` 物化为 `{kind:"circle", realm_id, circle_id}`。
 - `effective_scope` 是 reducer 在每个 event 接受时**immutable stamped**，进入 signed Event canonical bytes；在 MLS-backed scope 中还进入 E2EE AAD / MLS governance binding。若 Seal 通过 `data_event_set_root` 观察该 DataEvent，观察性 root 只证明同一 event digest，不改变数据面 finality。后续 `scope_circle_id` 改绑不得重解释旧 event。
 - 改绑 `scope_circle_id` 默认 reducer 拒绝（`failed_precondition` `reason=scope_rebind_forbidden`）；profile MAY 允许，但 MUST audit-paired high-risk update，且既有历史保留在原 scope，新内容才进新 scope。
-- 跨 Flow 的"宽 synthesis + 窄 discussion"模式见 [`circle.md` §7.2](./circle.md)：两个 Flow + `confidential_discussion_of` Relation。
+- 跨 Strand 的"宽 synthesis + 窄 discussion"模式见 [`circle.md` §7.2](./circle.md)：两个 Strand + `confidential_discussion_of` Relation。
 - Watch、通知、生命周期、metadata 加密 floor 等跨 scope 行为统一在 [`circle.md` §6 / §7 / §9 / §10](./circle.md) 描述；本文件不定义额外特例。
 
 ### 5.1 Track 与 scope 关系图
 
-Flow 只有一份 identity；`tracks` map 的 key 决定可用协作面；`scope_circle_id` 决定**整个** Flow 的 effective scope（不是 per-track）。
+Strand 只有一份 identity；`tracks` map 的 key 决定可用协作面；`scope_circle_id` 决定**整个** Strand 的 effective scope（不是 per-track）。
 
 ```mermaid
 flowchart LR
     subgraph Realm ["ck:realm: — 父 Realm（federation / policy / capability registry）"]
         direction TB
-        FlowA["ck:flow: F_A<br/>scope_circle_id = null"]
-        FlowB["ck:flow: F_B<br/>scope_circle_id = ck:circle:0196419c-0000-7000-8000-000000000000"]
+        StrandA["ck:strand: F_A<br/>scope_circle_id = null"]
+        StrandB["ck:strand: F_B<br/>scope_circle_id = ck:circle:0196419c-0000-7000-8000-000000000000"]
         RealmScope["Realm-default scope<br/>+ Realm membership"]
         subgraph Circle ["ck:circle: C — 子事件边界"]
             direction TB
             CircleScope["Circle membership（⊆ Realm.members）<br/>+ 独立 history visibility<br/>+ 投递 / 查询裁剪<br/>+ 可选独立 MLS group"]
         end
 
-        FlowA -. "effective_scope = realm" .-> RealmScope
-        FlowB -. "effective_scope = circle" .-> CircleScope
+        StrandA -. "effective_scope = realm" .-> RealmScope
+        StrandB -. "effective_scope = circle" .-> CircleScope
     end
 ```
 
 读图要点：
 
 - Track 是纯展示 / 时间线分段标识，本身不携带 access；synthesis 与 discussion 在 F_A 上都继承 Realm-default scope，在 F_B 上都继承 Circle scope。
-- `ck.flow.tracks.update` 不修改 `scope_circle_id`；scope 的生命周期事件由 [`circle.md` §5](./circle.md) 的 `ck.circle.*` 系列承担。
-- 想让 discussion 独立 membership / history / delivery 裁剪或 E2EE 时，**正确的做法**是给整个 Flow 设置 `scope_circle_id`，或按 [`circle.md` §7.2](./circle.md) 拆为两个 Flow（一个公开 seal Flow + 一个 Circle 内 private Flow）+ `confidential_discussion_of` Relation。
-- 能看 Flow 的 effective scope 不等于能改 Flow synthesis 字段或 Board 位置；后者仍按 capability + scope membership 的两层 AND 判断（见 [`circle.md` §8](./circle.md)）。
+- `ck.strand.tracks.update` 不修改 `scope_circle_id`；scope 的生命周期事件由 [`circle.md` §5](./circle.md) 的 `ck.circle.*` 系列承担。
+- 想让 discussion 独立 membership / history / delivery 裁剪或 E2EE 时，**正确的做法**是给整个 Strand 设置 `scope_circle_id`，或按 [`circle.md` §7.2](./circle.md) 拆为两个 Strand（一个公开 seal Strand + 一个 Circle 内 private Strand）+ `confidential_discussion_of` Relation。
+- 能看 Strand 的 effective scope 不等于能改 Strand synthesis 字段或 Board 位置；后者仍按 capability + scope membership 的两层 AND 判断（见 [`circle.md` §8](./circle.md)）。
 
-## 6. Flow 行为规则
+## 6. Strand 行为规则
 
-- Flow identity 只保存一份，resolved primary track 只决定默认视角，不创建新的对象副本。
+- Strand identity 只保存一份，resolved primary track 只决定默认视角，不创建新的对象副本。
 - `tracks` 是 map，key 唯一性由结构保证；至多一个 active track MAY 设置 `is_primary=true`。
 - 多个显式 primary MUST 被 reducer 拒绝。
 - `synthesis` track 与 `discussion` track 共享同一 `metadata`、`content` 和基础 reducer 字段；track 不存在独立 access 域。
 - `synthesis` track 字段级限制使用 capability constraints；不为 `synthesis` 单独创建成员表或 access 域。
 - `is_primary` 只是默认入口标记，不授予读取、写入或管理权限。
 
-## 7. Flow 常见关系
+## 7. Strand 常见关系
 
-- `List Space --contains--> flow`
-- `flow --contains--> flow`（profile-declared subtask / checklist item 语义）
-- `flow --assigned_to--> actor`
-- `actor --watches--> flow`
-- `flow --depends_on--> flow`
-- `flow --blocks--> flow`
-- `flow --references--> flow / morph / message / blob`
-- `flow --derived_from--> flow / morph`
-- `flow --summarized_from--> message`
-- `flow --promoted_from_discussion--> message`
+- `List Space --contains--> strand`
+- `strand --contains--> strand`（profile-declared subtask / checklist item 语义）
+- `strand --assigned_to--> actor`
+- `actor --watches--> strand`
+- `strand --depends_on--> strand`
+- `strand --blocks--> strand`
+- `strand --references--> strand / morph / message / blob`
+- `strand --derived_from--> strand / morph`
+- `strand --summarized_from--> message`
+- `strand --promoted_from_discussion--> message`
 
-Checklist / subtask 不在 v1 core 中新增独立顶层对象。需要独立负责人、截止时间、评论、stage 或审计的子项 SHOULD 表达为子 `Flow`，并由 Realm schema/profile 声明 `contains` / `depends_on` / `blocks` 等 RelationProfile；只服务于正文展示的清单项 MAY 留在 `content` 或 profile-defined Morph 内，但不得被当作跨实现可调度对象。
+Checklist / subtask 不在 v1 core 中新增独立顶层对象。需要独立负责人、截止时间、评论、stage 或审计的子项 SHOULD 表达为子 `Strand`，并由 Realm schema/profile 声明 `contains` / `depends_on` / `blocks` 等 RelationProfile；只服务于正文展示的清单项 MAY 留在 `content` 或 profile-defined Morph 内，但不得被当作跨实现可调度对象。
 
 `assigned_to` 与 `contains` 的基数和跨 Realm 规则见 [relation.md](./relation.md) §3-§4。
 
 ### 7.1 Assignment / Assignee 投影
 
-Flow 的 assignment 真相源是标准 Relation，而不是 Flow 对象字段：
+Strand 的 assignment 真相源是标准 Relation，而不是 Strand 对象字段：
 
 ```text
-flow --assigned_to--> actor
+strand --assigned_to--> actor
 ```
 
 Wire 上 MUST 表达为 active `ck.schema.relation.v1` 对象，且满足：
 
 - `relation_kind = "assigned_to"`
-- `from_ref = <flow_id>`
+- `from_ref = <strand_id>`
 - `to_ref = <actor DID>`
 
-UI MAY 把该关系显示为 "Assignee" / "Assignees"。`unassigned` 只表示当前 Flow 没有任何 visible active `assigned_to` edge；它是本地显示文案，MUST NOT 作为字符串写入 Flow、Relation 或 projection canonical state。
+UI MAY 把该关系显示为 "Assignee" / "Assignees"。`unassigned` 只表示当前 Strand 没有任何 visible active `assigned_to` edge；它是本地显示文案，MUST NOT 作为字符串写入 Strand、Relation 或 projection canonical state。
 
-默认基数按 [relation.md §3.2](./relation.md#32-默认基数表)：一个 Flow MAY 同时分配给多个 Actor。需要 Jira / Kanban 式单负责人时，Realm schema/profile MUST 声明 `relation_kind="assigned_to"` 的 RelationProfile 并收紧 `max_to_per_from=1`（或声明独立 owner relation）。客户端不得仅凭 UI 标签 "Assignee" 推断协议是单值。
+默认基数按 [relation.md §3.2](./relation.md#32-默认基数表)：一个 Strand MAY 同时分配给多个 Actor。需要 Jira / Kanban 式单负责人时，Realm schema/profile MUST 声明 `relation_kind="assigned_to"` 的 RelationProfile 并收紧 `max_to_per_from=1`（或声明独立 owner relation）。客户端不得仅凭 UI 标签 "Assignee" 推断协议是单值。
 
-写入 assignment MUST 使用 `ck.relation.create` 创建 `assigned_to` edge；解除 assignment MUST tombstone 对应 Relation。单负责人 profile 下的更换负责人 MUST 按该 profile 的 `on_conflict` 规则关闭旧 edge 或拒绝并发冲突。`ck.flow.update` 不得修改 assignment。
+写入 assignment MUST 使用 `ck.relation.create` 创建 `assigned_to` edge；解除 assignment MUST tombstone 对应 Relation。单负责人 profile 下的更换负责人 MUST 按该 profile 的 `on_conflict` 规则关闭旧 edge 或拒绝并发冲突。`ck.strand.update` 不得修改 assignment。
 
-Flow `metadata.fields` 中的 `assignee` / `assignees` / `assigned_to` / `assigned_actor_ids` 路径是 forbidden-wire reserved names，MUST `schema_violation`。`ck.flow.update` 直接 patch 这些路径、patch 其子路径，或 patch 父 map `metadata.fields` / `metadata` 且 `value` 中包含这些 key，均 MUST `schema_violation`。这些名字会与 `assigned_to` Relation 和 projection 字段形成双源；字段式 assignment 不是 profile extension 点。Profile 如需 assignment-specific metadata（例如分配原因、轮值班次、分派来源）应写在对应 Relation 的 `fields` 中，或声明独立 RelationProfile。
+Strand `metadata.fields` 中的 `assignee` / `assignees` / `assigned_to` / `assigned_actor_ids` 路径是 forbidden-wire reserved names，MUST `schema_violation`。`ck.strand.update` 直接 patch 这些路径、patch 其子路径，或 patch 父 map `metadata.fields` / `metadata` 且 `value` 中包含这些 key，均 MUST `schema_violation`。这些名字会与 `assigned_to` Relation 和 projection 字段形成双源；字段式 assignment 不是 profile extension 点。Profile 如需 assignment-specific metadata（例如分配原因、轮值班次、分派来源）应写在对应 Relation 的 `fields` 中，或声明独立 RelationProfile。
 
-Projection 层 MAY 为列表 / Board UI 提供只读派生字段 `assigned_actor_ids: did[]`，并在需要编辑 assignment 的客户端上提供 `assigned_to_relations: [{ relation_id, actor_id }]`。`assigned_actor_ids` 只来自当前可见 active `assigned_to` Relation 的 `to_ref` 集合；`assigned_to_relations[].relation_id` 是 tombstone 旧 assignment edge 的目标 id，`actor_id` MUST 等于该 Relation 的 `to_ref`。二者均不得从 Flow metadata 读出，也不得扩大访问权。对 Circle-scoped Flow，assignment Relation 的可见性不得宽于 Flow effective scope；非该 scope 成员不得通过 `assigned_actor_ids`、`assigned_to_relations`、计数、排序空洞或 timing 推断隐藏 assignment。
+Projection 层 MAY 为列表 / Board UI 提供只读派生字段 `assigned_actor_ids: did[]`，并在需要编辑 assignment 的客户端上提供 `assigned_to_relations: [{ relation_id, actor_id }]`。`assigned_actor_ids` 只来自当前可见 active `assigned_to` Relation 的 `to_ref` 集合；`assigned_to_relations[].relation_id` 是 tombstone 旧 assignment edge 的目标 id，`actor_id` MUST 等于该 Relation 的 `to_ref`。二者均不得从 Strand metadata 读出，也不得扩大访问权。对 Circle-scoped Strand，assignment Relation 的可见性不得宽于 Strand effective scope；非该 scope 成员不得通过 `assigned_actor_ids`、`assigned_to_relations`、计数、排序空洞或 timing 推断隐藏 assignment。
 
 ## 8. Watch 与通知订阅
 
 ### 8.1 概念与边界
 
-Watch 是个人通知订阅模型：actor 声明自己对某个 Flow（或 profile 声明的其他 watchable 对象，例如带 timeline 的 Morph）的**通知偏好**。它**只影响通知派发**，**不影响访问控制**——访问权仍由对象 effective scope（Realm-default 或 Circle）与 capability 共同决定，与本节完全正交（参见 §4.4 与 §5）。
+Watch 是个人通知订阅模型：actor 声明自己对某个 Strand（或 profile 声明的其他 watchable 对象，例如带 timeline 的 Morph）的**通知偏好**。它**只影响通知派发**，**不影响访问控制**——访问权仍由对象 effective scope（Realm-default 或 Circle）与 capability 共同决定，与本节完全正交（参见 §4.4 与 §5）。
 
-Wire 形态：`ck.flow.watch.set` durable event 写入下文 §8.3 描述的 cas_register cell（cell 是 truth source）。读侧暴露一个**派生** `watches` Relation（`actor --watches--> flow`，见 [relation.md §3](./relation.md)）供查询，但 **`ck.relation.create relation_kind=watches` 直接写入派生 Relation MUST schema_violation**——与 [`./realm-and-space.md` §3.6](./realm-and-space.md) Flow position 派生 `contains` Relation 的双源约束同模式。
+Wire 形态：`ck.strand.watch.set` durable event 写入下文 §8.3 描述的 cas_register cell（cell 是 truth source）。读侧暴露一个**派生** `watches` Relation（`actor --watches--> strand`，见 [relation.md §3](./relation.md)）供查询，但 **`ck.relation.create relation_kind=watches` 直接写入派生 Relation MUST schema_violation**——与 [`./realm-and-space.md` §3.6](./realm-and-space.md) Strand position 派生 `contains` Relation 的双源约束同模式。
 
-在 Flow 顶层或 `metadata.fields` 中携带 `participants` / `watchers` 列表等价物 MUST 被 reducer 拒绝（`schema_violation`），避免与 watch cell 双源并存。
+在 Strand 顶层或 `metadata.fields` 中携带 `participants` / `watchers` 列表等价物 MUST 被 reducer 拒绝（`schema_violation`），避免与 watch cell 双源并存。
 
 ### 8.2 Watch 级别枚举
 
-`ck.flow.watch.set` payload 的 `level` 字段（v1 reducer-enforced 枚举）。这里用 `level`（不复用 Relation 顶层 `state` 的 active / tombstone 命名，避免歧义）：
+`ck.strand.watch.set` payload 的 `level` 字段（v1 reducer-enforced 枚举）。这里用 `level`（不复用 Relation 顶层 `state` 的 active / tombstone 命名，避免歧义）：
 
 | `level` | 含义 | 通知行为 |
 | --- | --- | --- |
 | `mentions_only` | 默认（≡ 无 watch 记录） | 仅当 push rule 引擎 `mentions_actor` condition 为本人命中（mention 通过 content AST 解析 / `mentions` Relation / E2EE mention sidecar 派生，见 [push-notifications.md §4.3 / §4.5](../discovery/push-notifications.md)），或本人在 `assigned_to` Relation `to_ref` 上时通知 |
 | `participating` | 在我参与过的 thread 之上叠加订阅 | 上面那些 + 本人发过 Message 后该 thread 的新回复 + 与本人 `replies_to` 链相连的更新 |
-| `all` | 全量订阅 | 该 Flow 任何 `ck.message.create` / `ck.reaction.add` / `ck.reaction.remove` / Flow synthesis 字段变更 |
+| `all` | 全量订阅 | 该 Strand 任何 `ck.message.create` / `ck.reaction.add` / `ck.reaction.remove` / Strand synthesis 字段变更 |
 | `muted` | 显式静音 | 一律不通知，**覆盖** `mentions_only` 的定向通知；显式声明"即使被 @ 也不要打扰" |
 
 未声明 `level` 或 cell value 为 `null` 时等价于 `mentions_only`。
@@ -430,9 +430,9 @@ Wire 形态：`ck.flow.watch.set` durable event 写入下文 §8.3 描述的 cas
 `watches` 由 cas_register cell 维护：
 
 ```text
-event_kind  := ck.flow.watch.set
-cell_family := ck.component.flow.watch.v1
-cell_id     := ck:cell:ck.component.flow.watch.v1:<flow_id>:<watcher_actor_id>
+event_kind  := ck.strand.watch.set
+cell_family := ck.component.strand.watch.v1
+cell_id     := ck:cell:ck.component.strand.watch.v1:<strand_id>:<watcher_actor_id>
 lattice     := cas_register
 bottom      := reject
 value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
@@ -440,12 +440,12 @@ value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
               | null
 ```
 
-`ck.flow.watch.set` payload（详见 [`artifacts/schemas/event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json) 的 `flow_watch_set_payload`）：
+`ck.strand.watch.set` payload（详见 [`artifacts/schemas/event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json) 的 `strand_watch_set_payload`）：
 
 | 字段 | 必填 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `flow_id` | yes | `id:flow` | 被订阅的 Flow（cell key 之一）。 |
-| `watcher_actor_id` | yes | `did` | 订阅者 DID（cell key 之一）。默认 MUST 等于 envelope `actor_id`，admin 写他人需要 `ck.flow.watch.set.others`（见 §8.4）。 |
+| `strand_id` | yes | `id:strand` | 被订阅的 Strand（cell key 之一）。 |
+| `watcher_actor_id` | yes | `did` | 订阅者 DID（cell key 之一）。默认 MUST 等于 envelope `actor_id`，admin 写他人需要 `ck.strand.watch.set.others`（见 §8.4）。 |
 | `level` | **yes** | `enum / null` | 期望写入的级别；`null` 等价于"清空 cell"（= `mentions_only` 默认行为）。`level=null` 时 `level_public` MUST 省略。 |
 | `level_public` | conditional | `boolean` | Opt-in publication；默认 `false`。仅在 `level` 为非 null 字符串值时允许出现；详见 §8.5。 |
 | `expected_value` | no | `null \| { level, level_public? }` | 编译为 cell `head_eq` precondition（**whole-value compare**）；省略时等价 `head_eq null`，仅允许首次写入，不允许绕过 CAS。 |
@@ -453,24 +453,24 @@ value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
 约束：
 
 - `null` value 等价于 `mentions_only`。客户端必须显式 `level: null` 来清空，不允许通过省略 `level` 字段隐式清空——避免 wire 上的歧义。
-- 同一 `(flow_id, watcher_actor_id)` cell 内的并发写入按标准 cas_register 收敛。`expected_value` 编译为 [event-auth-state-resolution.md §4.2.4](../authz/event-auth-state-resolution.md) 描述的 `head_eq` precondition，**比较整个 cell value**（不是单字段）。例如 cell 当前是 `{level:"all", level_public:true}` 时，希望 CAS 升级到 `all` + 公开 → 必须写 `expected_value: {level:"all", level_public: true}`；只写 `expected_value: {level:"all"}` 不匹配。省略 `expected_value` 等价 `head_eq null`：只有 cell 尚未存在时通过；cell 已存在时 MUST `failed_precondition`，不得把省略字段解释为 last-write-wins 或无条件覆盖。
+- 同一 `(strand_id, watcher_actor_id)` cell 内的并发写入按标准 cas_register 收敛。`expected_value` 编译为 [event-auth-state-resolution.md §4.2.4](../authz/event-auth-state-resolution.md) 描述的 `head_eq` precondition，**比较整个 cell value**（不是单字段）。例如 cell 当前是 `{level:"all", level_public:true}` 时，希望 CAS 升级到 `all` + 公开 → 必须写 `expected_value: {level:"all", level_public: true}`；只写 `expected_value: {level:"all"}` 不匹配。省略 `expected_value` 等价 `head_eq null`：只有 cell 尚未存在时通过；cell 已存在时 MUST `failed_precondition`，不得把省略字段解释为 last-write-wins 或无条件覆盖。
 - **Cell 是 truth source，`watches` Relation 是派生投影**。客户端 MUST NOT 通过 `ck.relation.create / update / delete relation_kind=watches` 直接编辑该 Relation；reducer 收到对该派生 Relation 的直接写入 MUST `schema_violation`（与 [`./realm-and-space.md` §3.6](./realm-and-space.md) 派生 `contains` Relation 的双源约束同模式）。
-- Cell 的 scope 归属：`<flow_id>` 隐含决定 Flow.realm_id；cell 的 `effective_scope` 由 Flow.scope_circle_id 决定（`scope_circle_id=null` → cell 落在 Realm-default scope namespace；`scope_circle_id` 指向 Circle → cell 落在该 Circle scope namespace，单源不双投影）。详见 §8.9。
+- Cell 的 scope 归属：`<strand_id>` 隐含决定 Strand.realm_id；cell 的 `effective_scope` 由 Strand.scope_circle_id 决定（`scope_circle_id=null` → cell 落在 Realm-default scope namespace；`scope_circle_id` 指向 Circle → cell 落在该 Circle scope namespace，单源不双投影）。详见 §8.9。
 
 ### 8.4 写入授权
 
-- 默认：`ck.flow.watch.set` MUST 满足 `payload.watcher_actor_id == envelope.actor_id`。reducer 在写入前校验，不满足 `failed_precondition`（`reason="watch_must_be_self"`）。普通成员写入自己的 watch state 需要持有 `ck.flow.watch.set` capability（low risk_tier，admin 默认 bundle 给所有成员）。
-- 帮他人订阅：actor 持有 `ck.flow.watch.set.others` capability（high risk_tier）时 MAY 写入 `payload.watcher_actor_id != envelope.actor_id` 的 watch cell，典型用法是 Flow creator 在创建对话时把核心相关人加为 `participating`。`.others` 写入受以下硬约束：
+- 默认：`ck.strand.watch.set` MUST 满足 `payload.watcher_actor_id == envelope.actor_id`。reducer 在写入前校验，不满足 `failed_precondition`（`reason="watch_must_be_self"`）。普通成员写入自己的 watch state 需要持有 `ck.strand.watch.set` capability（low risk_tier，admin 默认 bundle 给所有成员）。
+- 帮他人订阅：actor 持有 `ck.strand.watch.set.others` capability（high risk_tier）时 MAY 写入 `payload.watcher_actor_id != envelope.actor_id` 的 watch cell，典型用法是 Strand creator 在创建对话时把核心相关人加为 `participating`。`.others` 写入受以下硬约束：
   - `payload.level` MUST ∈ `{mentions_only, participating, all}`；写入 `level="muted"` MUST `failed_precondition`（`reason="watch_muted_must_be_self"`）。理由：`muted` 会抑制 mention / 审核 / 工作流定向通知，必须由本人主动选择，不得被管理员或自动化代写。
   - `payload.level_public` MUST 省略或显式 `false`；写入 `level_public=true` MUST `failed_precondition`（`reason="watch_level_public_must_be_self"`）。理由：是否公开自己的订阅意图属于个人 opt-in publication，不得由他人代写。
   - 每条 `.others` 写入 MUST 与一条 `ck.audit.accessed` event 形成可验证配对：业务 event 的 `refs[]` MUST 包含 `{id: <audit_event_id>, role: "audit_pair", critical: true}`，audit event payload MUST 使用 `access_kind="watch_set_others"`，并绑定 `writer_actor_id`、`target_actor_id`、`target_cell_id`、`paired_event_id`、`paired_event_digest`、`cell_head_before` 与 `cell_head_after`。二者 MUST 位于同一 ordered submit batch；batch 验证器在接受任何一条前先检查该配对 invariant。缺失、目标不一致、digest 不匹配或不在同 batch 时 reducer MUST 拒绝业务 event（`failed_precondition`，`reason="watch_set_others_audit_missing"`）。
   - 被加为 watcher 的 actor MAY 随时通过自写 cell 覆盖（升级 / 降级 / 自行 `muted` / 自行 `level_public`），无需对方同意。
-- 创建者隐式订阅：reducer 在 `ck.flow.create` 写入时 MAY 同时为 `created_by` actor 建立 `level=participating` 的通知订阅。v1 默认只在 actor-private / notification dispatcher state 中启用该默认值；若 profile 选择把它物化为共享 `ck.flow.watch.set` cell，必须显式声明该行为，并仍保持 `level_public=false`。该写入不消耗 `ck.flow.watch.set.others`，但若物化为共享 cell，仍记入 cell 历史。
+- 创建者隐式订阅：reducer 在 `ck.strand.create` 写入时 MAY 同时为 `created_by` actor 建立 `level=participating` 的通知订阅。v1 默认只在 actor-private / notification dispatcher state 中启用该默认值；若 profile 选择把它物化为共享 `ck.strand.watch.set` cell，必须显式声明该行为，并仍保持 `level_public=false`。该写入不消耗 `ck.strand.watch.set.others`，但若物化为共享 cell，仍记入 cell 历史。
 - 如需管理员强制静音某 actor 的通知（e.g. 反骚扰、moderation 场景），MUST 使用独立 moderation event（`ck.moderation.decision` 或 profile-specific kind），不得复用个人 watch preference。
 
 ### 8.5 投影脱敏（normative）
 
-Watch 级别暴露程度按下表派发。projection executor MUST 在响应包含 watch 的 view（例如"Flow watchers 列表"、"我的订阅 Flow"）时严格执行：
+Watch 级别暴露程度按下表派发。projection executor MUST 在响应包含 watch 的 view（例如"Strand watchers 列表"、"我的订阅 Strand"）时严格执行：
 
 | Cell value | 自己（`requester == cell.watcher_actor_id`） | Realm 其他成员 | `ck.realm.notification.audit` 持有方 | Sync Service / 通知 dispatcher |
 | --- | --- | --- | --- | --- |
@@ -481,7 +481,7 @@ Watch 级别暴露程度按下表派发。projection executor MUST 在响应包�
 
 `ck.realm.notification.audit` 是纯 READ capability（target_event_kinds 为空），授予"读取完整 watch 状态（含 `muted`）"的权限。审计写入闭环要求读取方**同时**持有 `ck.audit.accessed` capability，并在每次 audit 读取前提交一条 accepted durable event（payload 使用 `access_kind="watch_audit_read"`，包含 `writer_actor_id`、`target_actor_id`、`target_cell_id`、`target_ref`、`purpose`、`accessed_at`），或在同一投影事务中提交并等待 RYW receipt 后再释放完整 watch 结果。该流程与 [`../crypto-media/audited-e2ee.md` §4](../crypto-media/audited-e2ee.md) "先写后解密"模型同构。
 
-当 Flow 设置了 `scope_circle_id` 指向 Circle 时，watch cell 落在该 Circle 的 scope namespace（单源），projection 直接受 Circle membership 约束：watcher 列表只对该 Circle 的成员、本人、通知 dispatcher 和完成 `ck.audit.accessed` 配对的 audit reader 可见。仅持有父 Realm membership 不得推断某 actor 正在观察 Circle scope 的机密 Flow。
+当 Strand 设置了 `scope_circle_id` 指向 Circle 时，watch cell 落在该 Circle 的 scope namespace（单源），projection 直接受 Circle membership 约束：watcher 列表只对该 Circle 的成员、本人、通知 dispatcher 和完成 `ck.audit.accessed` 配对的 audit reader 可见。仅持有父 Realm membership 不得推断某 actor 正在观察 Circle scope 的机密 Strand。
 
 - 仅持有 `ck.realm.notification.audit` 而无 `ck.audit.accessed` 的 actor MUST 被 reducer / projection executor 拒绝（`failed_precondition`，`reason="audit_capability_incomplete"`）。
 - 默认 admin 角色 bundle SHOULD 同时包含两者；profile SHOULD 把它们作为不可拆分的 bundle 授予。
@@ -489,20 +489,20 @@ Watch 级别暴露程度按下表派发。projection executor MUST 在响应包�
 
 **Opt-in 暴露**：actor 在自写 watch cell 时 MAY 设置 `level_public = true`。该 flag 为 true 时，projection 在向 Realm 其他成员投影该 actor 的 watch 时返回 `{actor, level}`（即区分 `participating` vs `all`）。`muted` **永远**不投影给非自己 / 非 audit 持有方，即使 `level_public=true`（防止社交核弹）。默认 `level_public = false`，此时 human actor 的 watch 不出现在其他成员可见的 watcher 列表中。
 
-> v1 不定义共享可见的"全局隐身（hide_watching）"wire 位。默认语义是 watch 不公开：`ck.flow.watch.set` 是通知路由 truth source，projection executor 只向本人、通知 dispatcher、完成审计配对的 audit reader 暴露完整值。`level_public=true` 是显式展示关注状态的 opt-in；不设置该 flag 不得被他人从 watcher 列表、`@here` 投递结果或 delivery response 中反推出来。
+> v1 不定义共享可见的"全局隐身（hide_watching）"wire 位。默认语义是 watch 不公开：`ck.strand.watch.set` 是通知路由 truth source，projection executor 只向本人、通知 dispatcher、完成审计配对的 audit reader 暴露完整值。`level_public=true` 是显式展示关注状态的 opt-in；不设置该 flag 不得被他人从 watcher 列表、`@here` 投递结果或 delivery response 中反推出来。
 
 ### 8.6 Agent / Bot watcher
 
 `actor_kind = agent` 的 actor（见 [actor.md §2](./actor.md)），其 watch 级别**完整公开**（包括 level），不应用 §8.5 的脱敏规则。理由：agent 的关注度是协作功能信号（"automation-bot 在监听状态变更"），不是个人隐私。projection 通过 actor 的 `actor_kind` 直接派生该例外，不需要单独 opt-in。
 
-`muted` 级别对 agent 同样适用（agent 持有方可能希望临时停用某个 Flow 上的 agent 行为），但投影上仍按 §8.5 规则——`muted` agent 在 watcher 列表中消失，等价于"该 agent 未订阅"。
+`muted` 级别对 agent 同样适用（agent 持有方可能希望临时停用某个 Strand 上的 agent 行为），但投影上仍按 §8.5 规则——`muted` agent 在 watcher 列表中消失，等价于"该 agent 未订阅"。
 
 ### 8.7 隐含订阅
 
 下列业务关系对**通知派发**等价于 `level=participating`，但**不**写入 watch cell，也**不**出现在显式 watcher 列表：
 
-- `flow --assigned_to--> self`（active edge）
-- 我在该 Flow `discussion` track 中发过至少一条 active Message
+- `strand --assigned_to--> self`（active edge）
+- 我在该 Strand `discussion` track 中发过至少一条 active Message
 
 Sync Service 在计算"是否应该通知 X"时 MUST 取以下集合的并集：
 1. X 的 active watch cell `level ∈ {participating, all}`
@@ -516,10 +516,10 @@ Sync Service 在计算"是否应该通知 X"时 MUST 取以下集合的并集：
 
 Audience mention 可以把 watch state 用作 receiver-side fanout 条件，但不得把 watch 列表公开给发送者。具体规则：
 
-- `flow_watchers` audience 只包含在 source event causal frontier 下对该 Flow 有读取权、且 effective watch level 为 `participating` 或 `all` 的 actor；`mentions_only` 与无记录不算 watcher，`muted` 必须排除。
-- `flow_engaged` audience 是 `flow_participants ∪ flow_watchers`。其中 `flow_participants` 由该 Flow discussion track 中至少一条 active Message 的 `created_by` 派生；被 redacted 后不再可见的消息不得单独使作者进入参与者集合。
+- `strand_watchers` audience 只包含在 source event causal frontier 下对该 Strand 有读取权、且 effective watch level 为 `participating` 或 `all` 的 actor；`mentions_only` 与无记录不算 watcher，`muted` 必须排除。
+- `strand_engaged` audience 是 `strand_participants ∪ strand_watchers`。其中 `strand_participants` 由该 Strand discussion track 中至少一条 active Message 的 `created_by` 派生；被 redacted 后不再可见的消息不得单独使作者进入参与者集合。
 - Dispatcher MAY 使用完整 watch cell、actor-private watch state 或受托通知服务状态计算 receiver 是否命中 audience mention；但它 MUST NOT 把命中原因、watch level、watcher 列表或 recipient count 暴露给 sender、普通 Realm 成员、push gateway 或公开日志。
-- `level_public=true` 只影响普通 projection 是否展示该 actor 正在 watch；不影响该 actor 是否被 `flow_watchers` / `flow_engaged` audience 命中。通知命中仍由完整 effective watch level 计算。
+- `level_public=true` 只影响普通 projection 是否展示该 actor 正在 watch；不影响该 actor 是否被 `strand_watchers` / `strand_engaged` audience 命中。通知命中仍由完整 effective watch level 计算。
 
 ### 8.8 与 push-notification rule 引擎的关系
 
@@ -539,11 +539,11 @@ Watch 级别参与 [`../discovery/push-notifications.md`](../discovery/push-noti
 
 ### 8.9 `scope_circle_id` 场景
 
-当 Flow 的 `scope_circle_id` 指向某个 [Circle](./circle.md) 时，watch 与通知行为按 Circle scope 收敛：
+当 Strand 的 `scope_circle_id` 指向某个 [Circle](./circle.md) 时，watch 与通知行为按 Circle scope 收敛：
 
-- Watch cell 落在 Circle scope namespace（单源），actor 写自己的 watch 需先是该 Circle 成员；非成员对该 Flow 的 watch 写入 MUST `failed_precondition`。
-- Flow synthesis 与 discussion 通知均按同一 effective scope 派发：Sync Service 用 [`circle.md` §9.3](./circle.md) 投递不变量过滤——actor 不属于 `Circle.members(at causal frontier)` 即不投递事件 envelope 或 payload，亦不产生通知，无论 watch level。
-- Realm-only 成员（不在 Circle 中）不会看到该 Flow 的存在、活动节奏或 watcher 列表（参见 §8.5 投影脱敏与 [`circle.md` §9.3](./circle.md) directory_visibility 裁剪）。
+- Watch cell 落在 Circle scope namespace（单源），actor 写自己的 watch 需先是该 Circle 成员；非成员对该 Strand 的 watch 写入 MUST `failed_precondition`。
+- Strand synthesis 与 discussion 通知均按同一 effective scope 派发：Sync Service 用 [`circle.md` §9.3](./circle.md) 投递不变量过滤——actor 不属于 `Circle.members(at causal frontier)` 即不投递事件 envelope 或 payload，亦不产生通知，无论 watch level。
+- Realm-only 成员（不在 Circle 中）不会看到该 Strand 的存在、活动节奏或 watcher 列表（参见 §8.5 投影脱敏与 [`circle.md` §9.3](./circle.md) directory_visibility 裁剪）。
 
 换言之：访问权先于订阅意愿。`scope_circle_id` 决定访问权;watch 只在访问权前提下叠加通知偏好。无访问权 = 没有通知，无论 watch 设了什么。
 
@@ -551,13 +551,13 @@ Watch 级别参与 [`../discovery/push-notifications.md`](../discovery/push-noti
 
 ### 9.1 概览
 
-Message 是 Flow `discussion` track 时间线中的原子消息对象。
+Message 是 Strand `discussion` track 时间线中的原子消息对象。
 
 Message 创建是 append-only。编辑通过 revision chain；撤回通过 redaction/tombstone。
 
-未加密消息的 `content` MUST 是 `content-types.md` 定义的 Content Block。Event wire 上，`ck.message.create` / `ck.message.revise` 的正文位于 Event Envelope 的 `payload.content`，E2EE 对偶位于 `payload.encrypted_content`；物化 Message 对象的字段名分别是顶层 `content` / `encrypted_content`。`flow_id` 等字段只表达归属或目标（Message 主键是顶层 `id`，不是 `message_id`）；回复关系不走标量字段，由 `replies_to` Relation 表达。Message 的用户可读扩展 metadata 使用 `metadata` / `encrypted_metadata`。
+未加密消息的 `content` MUST 是 `content-types.md` 定义的 Content Block。Event wire 上，`ck.message.create` / `ck.message.revise` 的正文位于 Event Envelope 的 `payload.content`，E2EE 对偶位于 `payload.encrypted_content`；物化 Message 对象的字段名分别是顶层 `content` / `encrypted_content`。`strand_id` 等字段只表达归属或目标（Message 主键是顶层 `id`，不是 `message_id`）；回复关系不走标量字段，由 `replies_to` Relation 表达。Message 的用户可读扩展 metadata 使用 `metadata` / `encrypted_metadata`。
 
-Message MAY reply to another Message, mention Actor or object, reference Flow / Morph / Realm, or be redacted.
+Message MAY reply to another Message, mention Actor or object, reference Strand / Morph / Realm, or be redacted.
 
 ### 9.2 Schema 与字段
 
@@ -568,8 +568,8 @@ Schema id: `ck.schema.message.v1`
 | `id` | yes | `id:message` | 以 `ck:message:` 开头。 | Message ID。 |
 | `schema` | yes | `ck.schema.message.v1` | const。 | Schema ID。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
-| `flow_id` | yes | `id:flow` |  | 所属 Flow。 |
-| `track_name` | yes | `const("discussion")` | v1 Message 只属于目标 Flow 的 `discussion` track，且该 track 必须当前 active。需要其它 timeline 语义的 profile MUST 注册独立对象 / event profile，不得复用 Message.track_name 扩展出第二类消息时间线。 | 所属 Flow track key。 |
+| `strand_id` | yes | `id:strand` |  | 所属 Strand。 |
+| `track_name` | yes | `const("discussion")` | v1 Message 只属于目标 Strand 的 `discussion` track，且该 track 必须当前 active。需要其它 timeline 语义的 profile MUST 注册独立对象 / event profile，不得复用 Message.track_name 扩展出第二类消息时间线。 | 所属 Strand track key。 |
 | `content` | conditional | `object` | 富文本/parts 见 `content-types.md`；`state=active` 且未加密时必填。effective `content_encryption_floor=e2ee_required` scope 下 MUST 改用 `encrypted_content`,plaintext `content` 由 reducer 拒绝(`content_encryption_floor_violation`)——单对象 schema 不感知 Realm floor,通过校验不代表合法。 | 消息正文。 |
 | `encrypted_content` | conditional | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹消息正文与附件内容。 |
 | `metadata` | no | `object` | MAY contain `fields` and profile-defined keys. | 用户可读 Message metadata；MLS / E2EE 下按 `metadata_encryption_floor` 决定是否必须放入 `encrypted_metadata`。 |
@@ -594,7 +594,7 @@ Schema id: `ck.schema.message.v1`
   "id": "ck:message:0196414c-8000-7000-8000-000000000000",
   "schema": "ck.schema.message.v1",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-  "flow_id": "ck:flow:019640f9-8000-7000-8000-000000000000",
+  "strand_id": "ck:strand:019640f9-8000-7000-8000-000000000000",
   "track_name": "discussion",
   "created_by": "did:web:alice.example",
   "content": {
@@ -611,18 +611,18 @@ Schema id: `ck.schema.message.v1`
 
 ### 9.4 Chat 模式示例
 
-讨论型 Realm 的最小实施序列：创建 Flow（`discussion` 默认 primary）→
-（如需要独立访问域）创建 [Circle](./circle.md) 并设置 `Flow.scope_circle_id` →
+讨论型 Realm 的最小实施序列：创建 Strand（`discussion` 默认 primary）→
+（如需要独立访问域）创建 [Circle](./circle.md) 并设置 `Strand.scope_circle_id` →
 加入成员 → 发消息 → 编辑 / 撤回 / reaction。
 
 ```json
 [
   {
-    "kind": "ck.flow.create",
+    "kind": "ck.strand.create",
     "payload": {
       "object": {
-        "id": "ck:flow:019640f9-8000-7000-8000-000000000000",
-        "schema": "ck.schema.flow.v1",
+        "id": "ck:strand:019640f9-8000-7000-8000-000000000000",
+        "schema": "ck.schema.strand.v1",
         "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
         "metadata": {
           "title": "项目同步"
@@ -639,11 +639,11 @@ Schema id: `ck.schema.message.v1`
   {
     "kind": "ck.message.create",
     "payload": {
-      "flow_id": "ck:flow:019640f9-8000-7000-8000-000000000000",
+      "strand_id": "ck:strand:019640f9-8000-7000-8000-000000000000",
       "track_name": "discussion",
       "content": {
         "kind": "ck.content.text",
-        "body": "@bob 请确认这个 flow 的 legal 风险。",
+        "body": "@bob 请确认这个 strand 的 legal 风险。",
         "format": "markdown"
       }
     }
@@ -651,22 +651,22 @@ Schema id: `ck.schema.message.v1`
 ]
 ```
 
-> `ck.flow.create` 的 payload 已在 `tracks.discussion` 中声明该 track 启用，无需额外事件。
-> Flow 创建后想新增 / 重新启用某个被 disable 过的 track 时通过 `ck.flow.tracks.update` 完成（见 §4.8）。
+> `ck.strand.create` 的 payload 已在 `tracks.discussion` 中声明该 track 启用，无需额外事件。
+> Strand 创建后想新增 / 重新启用某个被 disable 过的 track 时通过 `ck.strand.tracks.update` 完成（见 §4.8）。
 
-#### 9.4.1 Direct Conversation 主 Flow
+#### 9.4.1 Direct Conversation 主 Strand
 
-1:1 私聊仍然是 Flow discussion track 上的 Message，不存在独立"消息表"或不经过 Flow 的 DM timeline。Direct conversation 的完整关系模型见 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md)。
+1:1 私聊仍然是 Strand discussion track 上的 Message，不存在独立"消息表"或不经过 Strand 的 DM timeline。Direct conversation 的完整关系模型见 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md)。
 
-DM 主 Flow MUST：
+DM 主 Strand MUST：
 
 - 位于 direct conversation Realm 内。
 - `scope_circle_id=null`，继承 DM Realm 的 Realm-default MLS group。双人 DM Realm 内不得再用 Circle 包一层主聊天，因为 Circle 子集无法提供比两人 Realm 更窄的隐私边界。
 - 启用 `tracks.discussion` 且 `tracks.discussion.is_primary=true`。
-- `stage` MAY 省略；若携带，MUST 是当前 v1 Flow schema 的合法枚举值。推荐 wire 值为 `stage="in_progress"`；UI MUST NOT 把 DM 主 Flow 的 `stage` 当成待办进度展示，也 SHOULD 禁用普通 `ck.flow.stage.set` 控件。
-- 由 `ck.direct_conversation.bound` fact 的 `main_flow_id` 标识为该 pair 的 canonical main Flow。`discussion.is_primary=true` 只是 Flow 内默认入口，不能单独证明"这是 DM 主 Flow"。
+- `stage` MAY 省略；若携带，MUST 是当前 v1 Strand schema 的合法枚举值。推荐 wire 值为 `stage="in_progress"`；UI MUST NOT 把 DM 主 Strand 的 `stage` 当成待办进度展示，也 SHOULD 禁用普通 `ck.strand.stage.set` 控件。
+- 由 `ck.direct_conversation.bound` fact 的 `main_strand_id` 标识为该 pair 的 canonical main Strand。`discussion.is_primary=true` 只是 Strand 内默认入口，不能单独证明"这是 DM 主 Strand"。
 
-同一 DM Realm 至多一个 active canonical main Flow。DM Realm 内 MAY 有其它普通 Flow 用于把某个话题升级成独立议题；默认聊天消息必须写入 binding 指向的 main Flow。
+同一 DM Realm 至多一个 active canonical main Strand。DM Realm 内 MAY 有其它普通 Strand 用于把某个话题升级成独立议题；默认聊天消息必须写入 binding 指向的 main Strand。
 
 `@mention` 与 reference：消息正文 SHOULD 使用结构化 AST 或带 DID/object ref 的
 Markdown 链接。客户端 reducer 可从 Message content AST 派生 mention 关系和通知，
@@ -757,11 +757,11 @@ v1 定义 audience mention 作为一等结构化 AST 节点；它不是把所有
 
 字段语义：
 
-- `audience`（必填）：v1 core 允许 `effective_scope_members`、`flow_participants`、`flow_watchers`、`flow_engaged`、`assigned_actors`。`effective_scope_members` 表示该 Message 写入时 effective scope 内可读取该 Message 的 active actors；当 Flow 绑定 Circle 时只包含该 Circle scope 的可见成员。`flow_participants` 表示该 Flow discussion track 中至少发过一条 active Message 的 actors。`flow_watchers` 表示 §8.7.1 定义的当前有效 watcher 集合。`flow_engaged` 是 `flow_participants ∪ flow_watchers`，是 Cokret v1 对常见 UI token `@here` 的 canonical 映射。`assigned_actors` 只包含 active `assigned_to` Relation 的 `to_ref` actors。
+- `audience`（必填）：v1 core 允许 `effective_scope_members`、`strand_participants`、`strand_watchers`、`strand_engaged`、`assigned_actors`。`effective_scope_members` 表示该 Message 写入时 effective scope 内可读取该 Message 的 active actors；当 Strand 绑定 Circle 时只包含该 Circle scope 的可见成员。`strand_participants` 表示该 Strand discussion track 中至少发过一条 active Message 的 actors。`strand_watchers` 表示 §8.7.1 定义的当前有效 watcher 集合。`strand_engaged` 是 `strand_participants ∪ strand_watchers`，是 Cokret v1 对常见 UI token `@here` 的 canonical 映射。`assigned_actors` 只包含 active `assigned_to` Relation 的 `to_ref` actors。
 - `mention_text_original`（可选）：用户键入的原始 token，例如 `@all`、`@participants` 或本地化显示文本；仅用于 audit / debug / 搜索。
 - `resolved_at`（可选）：客户端形成该节点的时间。最终收件人集合仍由 dispatcher 在 source event causal frontier 下计算，不能信任客户端填入的计数或列表。
 
-`@here` 在 Cokret v1 中 **不是 presence-filtered**：它 MUST 映射为 `audience="flow_engaged"`，即“曾经参与当前 Flow discussion 或当前有效 watch 该 Flow 的接收者”。Presence 不能成为第三方 push timing oracle；实现若要提供真正在线态筛选的 `@online` / presence-based mention，MUST 声明独立 profile，并证明不泄露 presence 隐私。未声明该 profile 的接收端 MUST 按未知 critical semantics fail closed 或把该节点降级为普通文本。
+`@here` 在 Cokret v1 中 **不是 presence-filtered**：它 MUST 映射为 `audience="strand_engaged"`，即“曾经参与当前 Strand discussion 或当前有效 watch 该 Strand 的接收者”。Presence 不能成为第三方 push timing oracle；实现若要提供真正在线态筛选的 `@online` / presence-based mention，MUST 声明独立 profile，并证明不泄露 presence 隐私。未声明该 profile 的接收端 MUST 按未知 critical semantics fail closed 或把该节点降级为普通文本。
 
 Audience expansion 的结果只用于 receiver-side notification / inbox / local highlight。它不得扩大访问权：不满足 Message effective scope、history visibility、Circle membership 或 target policy 的 actor MUST NOT 收到 Event、notification 或 push wakeup，也不得通过 recipient count、delivery error 或 timing 观察到该 Message 的存在。
 
@@ -769,7 +769,7 @@ Audience expansion 的结果只用于 receiver-side notification / inbox / local
 
 包含 `audience_mention` 节点的 `ck.message.create` 或会新增 audience mention 的 `ck.message.revise`，MUST 同时满足：
 
-- 普通消息写入授权：actor 持有 `ck.message.create` / `ck.message.revise` 对目标 Flow discussion scope 的有效授权。
+- 普通消息写入授权：actor 持有 `ck.message.create` / `ck.message.revise` 对目标 Strand discussion scope 的有效授权。
 - 广播 mention 授权：actor 额外持有 `ck.message.mention.broadcast`。该 action 是 high risk，MUST 带有限期 grant、resource selector narrowing 与 rate-limit quota（`max_operations` + `period`）；持有该 action 本身不授权发送消息。
 - Realm / Circle policy 明确允许对应 `audience`，并声明有限 `max_recipients`、时间窗口 quota 和超过阈值时的处理（deny / require_review / quarantine）。若 effective policy 未声明 audience mention 策略，dispatcher 与 reducer admission MUST 按禁用处理。
 - Dispatcher MUST 在 fanout 前计算 `recipient_count`，并在超过 effective `max_recipients`、rate limit 或 review gate 时拒绝通知派发；不得先推送再异步撤回。
@@ -779,7 +779,7 @@ Audience mention 的失败不得污染普通消息写入语义：实现 MAY 接�
 
 #### 9.4.5 Native agent 第三方 mention 投递 gate
 
-当一条 `ck.message.create` / `ck.message.revise`（含 direct mention 与 audience mention）的某个 mention target 是一个 **native personal agent** principal 时，dispatcher / reducer 在为该 agent 派生 mention notification 前 MUST 解析该 message effective_scope（Flow → Circle / Realm）针对该 agent 的 effective participation（effective ceiling ∩ controller selection），并据 `accept_third_party_mention` 位决定投递：
+当一条 `ck.message.create` / `ck.message.revise`（含 direct mention 与 audience mention）的某个 mention target 是一个 **native personal agent** principal 时，dispatcher / reducer 在为该 agent 派生 mention notification 前 MUST 解析该 message effective_scope（Strand → Circle / Realm）针对该 agent 的 effective participation（effective ceiling ∩ controller selection），并据 `accept_third_party_mention` 位决定投递：
 
 - mention 作者 == 该 agent 的 controller principal：照常投递（仍受该 agent 是否被授权读取该 scope 约束）。
 - mention 作者 != controller 且 effective `accept_third_party_mention=false`：MUST NOT 为该 agent 派生任何 mention notification、inbox row、push wakeup，也 MUST NOT 把该 mention 纳入该 agent 的 `ck.self.events.stream.subscribe` 投影。该抑制只针对该 agent 自身；对 message 的其他人类 target、shared history、其它投影无影响。
@@ -821,10 +821,10 @@ receipt / read cursor 的具体规则见 [`../discovery/read-receipts.md`](../di
 
 ### 9.7 Message 常见关系
 
-- `flow(discussion) --contains--> message`
+- `strand(discussion) --contains--> message`
 - `message --replies_to--> message`
-- `message --mentions--> actor / flow / morph`
-- `message --references--> flow / morph / blob`
+- `message --mentions--> actor / strand / morph`
+- `message --references--> strand / morph / blob`
 
 ### 9.8 表情回复（Reaction）
 
@@ -853,7 +853,7 @@ Payload schema：[`event-payload.schema.json#/$defs/reaction_payload`](../../art
 
 #### 9.8.2 Target 范围（v1 决策）
 
-v1 core 的 Reaction `target_ref` MUST 指向与该 reaction 同一 effective scope 内的一条 `ck:message:`（即 discussion track 上的 Message）。`reaction_payload.target_ref` 的 wire 类型虽是通用 `ref:object`，但 reducer MUST 对 v1 core 拒绝非 `ck:message:` 的 target（`schema_violation`，`reason="reaction_target_unsupported"`）。Profile MAY 注册额外可表态对象（例如 Flow synthesis、Morph）；未声明该 profile 的实现遇到未知 target kind MUST fail closed，不得静默接受。
+v1 core 的 Reaction `target_ref` MUST 指向与该 reaction 同一 effective scope 内的一条 `ck:message:`（即 discussion track 上的 Message）。`reaction_payload.target_ref` 的 wire 类型虽是通用 `ref:object`，但 reducer MUST 对 v1 core 拒绝非 `ck:message:` 的 target（`schema_violation`，`reason="reaction_target_unsupported"`）。Profile MAY 注册额外可表态对象（例如 Strand synthesis、Morph）；未声明该 profile 的实现遇到未知 target kind MUST fail closed，不得静默接受。
 
 跨 effective scope 表态不允许：`target_ref` 必须落在 reaction event 自身 stamped 的 effective scope 内，否则 `failed_precondition`（`reason="reaction_scope_mismatch"`）。
 
@@ -890,13 +890,13 @@ Reaction 不是 mention。`ck.reaction.add` / `ck.reaction.remove` 仅对 effect
 ## 10. 规范性引用
 
 - 公共字段、stage 轴（§5.3）：[common-fields.md](./common-fields.md)。
-- Space / Flow 位置语义：[realm-and-space.md](./realm-and-space.md) §3.6。
+- Space / Strand 位置语义：[realm-and-space.md](./realm-and-space.md) §3.6。
 - Relation 基数与跨 Realm：[relation.md](./relation.md)。
 - Content Block：[content-types.md](./content-types.md)。
 - Read receipts / read cursors：[`../discovery/read-receipts.md`](../discovery/read-receipts.md)。
 - 历史可见性 / E2EE：[`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md)。
-- Flow / Message schema：`artifacts/schemas/flow.schema.json`、`artifacts/schemas/message.schema.json`。
-- Stage 事件 payload：`artifacts/schemas/event-payload.schema.json#/$defs/flow_stage_set_payload`。
+- Strand / Message schema：`artifacts/schemas/strand.schema.json`、`artifacts/schemas/message.schema.json`。
+- Stage 事件 payload：`artifacts/schemas/event-payload.schema.json#/$defs/strand_stage_set_payload`。
 - Stage 事件 / capability 注册：`artifacts/registry/event-kind-registry.json`、`artifacts/registry/capability-action-registry.json`。
 - Stage 字段 forbidden-wire 规则：`artifacts/registry/forbidden-wire-fields.json`。
 - Reaction payload / 收敛向量：`artifacts/schemas/event-payload.schema.json#/$defs/reaction_payload`、`artifacts/fixtures/reaction-fixture.json`；E2EE 可见性见 [`../crypto-media/encryption-and-audit.md` §2.9](../crypto-media/encryption-and-audit.md)。

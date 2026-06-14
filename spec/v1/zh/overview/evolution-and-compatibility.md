@@ -36,7 +36,7 @@ Cokret 是联邦化、端到端加密（MLS）、事件溯源协议。客户端�
 
 ## 3. 不可变签名字节 → 用重放/投影代替数据迁移
 
-历史事件是 append-only 的不可变日志。升级 MUST NOT 改写历史签名字节。允许变化的是**可重建的物化视图**：reducer / projection 在新代码下重新解释同一份历史事件，产出新的派生读模型（如 Space / Flow / Morph lifecycle projection、Collection、inbox、搜索索引）。
+历史事件是 append-only 的不可变日志。升级 MUST NOT 改写历史签名字节。允许变化的是**可重建的物化视图**：reducer / projection 在新代码下重新解释同一份历史事件，产出新的派生读模型（如 Space / Strand / Morph lifecycle projection、Collection、inbox、搜索索引）。
 
 因此在 Cokret 中，"数据迁移"被**重放（replay）/ 投影（projection）** 取代：
 

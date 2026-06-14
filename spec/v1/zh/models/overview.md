@@ -9,7 +9,7 @@ updated: 2026-06-10
 see_also:
   - models/common-fields.md
   - models/realm-and-space.md
-  - models/flow-and-message.md
+  - models/strand-and-message.md
   - conformance/normative-language.md
 ---
 
@@ -40,8 +40,8 @@ DID 的使用边界见 [common-fields.md §4.1](./common-fields.md#41-did-适用
 | `ck:realm:` | Realm | security / sync / auth / E2EE 边界 | [realm-and-space.md](./realm-and-space.md) |
 | `ck:circle:` | Circle | Realm 内子事件 / 子消息边界（子集成员 / 独立 history / 投递裁剪；可选独立 MLS group），对象通过 `scope_circle_id` 引用 | [circle.md](./circle.md) |
 | `ck:space:` | Space | 产品结构容器与导航节点（project / folder / board / list / section ...），通过 `realm_id` / `default_realm_id` 解析安全边界 | [realm-and-space.md](./realm-and-space.md) |
-| `ck:flow:` | Flow | 统一协作主对象（task / decision / incident / channel ...） | [flow-and-message.md](./flow-and-message.md) |
-| `ck:message:` | Message | Flow `discussion` track 时间线消息 | [flow-and-message.md](./flow-and-message.md) |
+| `ck:strand:` | Strand | 统一协作主对象（task / decision / incident / channel ...） | [strand-and-message.md](./strand-and-message.md) |
+| `ck:message:` | Message | Strand `discussion` track 时间线消息 | [strand-and-message.md](./strand-and-message.md) |
 | `ck:morph:` | Morph | 开放形态对象，承载扩展业务类型 | [morph.md](./morph.md) |
 | `ck:relation:` | Relation | 一等关系对象（contains / replies_to / depends_on ...） | [relation.md](./relation.md) |
 | `ck:actor_profile:` | Actor Profile | Actor 在协作图中的展示镜像 | [actor.md](./actor.md) |
@@ -95,24 +95,24 @@ flowchart TB
     subgraph SP ["ck:realm: — security / sync / auth / E2EE 边界"]
         direction TB
         Space["ck:space:<br/>kind=board / list / ..."]
-        Flow["ck:flow:"]
+        Strand["ck:strand:"]
         Morph["ck:morph:"]
         Msg["ck:message:<br/>(discussion 时间线)"]
         Rel["ck:relation:"]
 
-        Space -- "contains" --> Flow
+        Space -- "contains" --> Strand
         Space -- "parent_space_id（导航，可跨 Realm）" --> Space
-        Flow -- "tracks.discussion" --> Msg
-        Rel -. "from_ref / to_ref" .-> Flow
+        Strand -- "tracks.discussion" --> Msg
+        Rel -. "from_ref / to_ref" .-> Strand
         Rel -. "from_ref / to_ref" .-> Morph
         Rel -. "from_ref / to_ref" .-> Space
     end
 
     Circle["ck:circle:<br/>(Realm 内子事件边界)"]
-    Flow -. "scope_circle_id<br/>（窄化 effective scope）" .-> Circle
+    Strand -. "scope_circle_id<br/>（窄化 effective scope）" .-> Circle
 
     View["ck:view:<br/>投影定义（不持有真相）"]
-    View -. "投影" .-> Flow
+    View -. "投影" .-> Strand
     View -. "投影" .-> Space
     View -. "投影" .-> Msg
 
@@ -124,10 +124,10 @@ flowchart TB
 
 - 实线箭头是结构归属或容纳关系；虚线是引用 / 投影 / scope 窄化。
 - `ck:realm:` 是 federation/identity 硬边界——federation、policy、capability registry、Realm-default MLS 都以它为根。`ck:space:` 永远不是边界，Space metadata 由 `realm_id` 指向的 home Realm 授权。
-- `ck:circle:` 是 Realm 内的子事件 / 子消息边界——子集成员 / 独立 history / 投递裁剪；在 E2EE Realm 或 policy 要求下还拥有独立 MLS group。`Flow.scope_circle_id` 指向 Circle 表示整个 Flow（所有 track）落在该 Circle scope。
+- `ck:circle:` 是 Realm 内的子事件 / 子消息边界——子集成员 / 独立 history / 投递裁剪；在 E2EE Realm 或 policy 要求下还拥有独立 MLS group。`Strand.scope_circle_id` 指向 Circle 表示整个 Strand（所有 track）落在该 Circle scope。
 - `ck:relation:` 是一等对象，跨对象语义 MUST 通过 Relation 表达，不藏在字段里。
 - `ck:view:` 拥有投影定义的真相，但不持有被投影对象的协作事实。
-- Discussion 想要独立 membership / history visibility / 投递裁剪或 E2EE 时，整个 Flow 通过 `scope_circle_id` 落在一个 [Circle](./circle.md)；不再有 per-track 安全边界。
+- Discussion 想要独立 membership / history visibility / 投递裁剪或 E2EE 时，整个 Strand 通过 `scope_circle_id` 落在一个 [Circle](./circle.md)；不再有 per-track 安全边界。
 
 ## 3. 设计原则
 
@@ -141,14 +141,14 @@ Realm 之间 MAY 通过 `ck.realm.link` 形成显式 link graph（governance、d
 
 Space 层级通过 Space 自己的 `parent_space_id` + `ck.space.parent` 表达，可跨 Realm 做导航，但不得传播 Realm membership、capability、history visibility 或 E2EE key。详细规则见 [`space-hierarchy.md`](./space-hierarchy.md)。
 
-### 3.2 Flow 承载主语义
+### 3.2 Strand 承载主语义
 
-同一个协作主题由一个 Flow 表达；track primary 解析规则与 track 配置决定默认入口和能力面。
+同一个协作主题由一个 Strand 表达；track primary 解析规则与 track 配置决定默认入口和能力面。
 
 标准对象本身表达主语义：
 
-- `flow`：统一协作主对象。它承载 `metadata.title` / `metadata.summary` / `content` 等基础字段，并通过 track primary 解析规则决定默认进入哪个 track。
-- `message`：Flow `discussion` track 中的消息。
+- `strand`：统一协作主对象。它承载 `metadata.title` / `metadata.summary` / `content` 等基础字段，并通过 track primary 解析规则决定默认进入哪个 track。
+- `message`：Strand `discussion` track 中的消息。
 - `morph`：开放形态对象，用于业务扩展、未知类型和实验对象。
 - `space`：Realm 内部的结构容器（`kind=board` / `kind=list` / 其他 profile 注册的形态）。
 
@@ -164,7 +164,7 @@ Facet 字符串本身不是规范性 reducer 或授权来源。任何会改变�
 
 ### 3.4 Relation 是一等对象
 
-跨对象语义 MUST 使用 `relation` 表达，而不是藏在对象字段里。Relation 连接的是对象引用：标准字段 `from_ref` / `to_ref` 指向 canonical 对象的 `ck:<kind>:` typed ID，合法端点 kind 的权威集合（`realm` / `space` / `actor_profile` / `flow` / `message` / `morph` / `relation` / `event` / `view` / `blob`）见 [relation.md §1](./relation.md) 与 [relation.schema.json](../../artifacts/schemas/relation.schema.json)。Actor 端点可用其协作图展示镜像 `ck:actor_profile:`，也可直接使用该 actor 的 DID（principal）（见 [common-fields.md §4.1](./common-fields.md#41-did-适用边界)）。
+跨对象语义 MUST 使用 `relation` 表达，而不是藏在对象字段里。Relation 连接的是对象引用：标准字段 `from_ref` / `to_ref` 指向 canonical 对象的 `ck:<kind>:` typed ID，合法端点 kind 的权威集合（`realm` / `space` / `actor_profile` / `strand` / `message` / `morph` / `relation` / `event` / `view` / `blob`）见 [relation.md §1](./relation.md) 与 [relation.schema.json](../../artifacts/schemas/relation.schema.json)。Actor 端点可用其协作图展示镜像 `ck:actor_profile:`，也可直接使用该 actor 的 DID（principal）（见 [common-fields.md §4.1](./common-fields.md#41-did-适用边界)）。
 
 跨 Realm 引用规则、结构性 Relation 的本地约束（如 `contains` / `belongs_to` 不可跨 Realm）见 [relation.md](./relation.md)。
 
@@ -197,7 +197,7 @@ View 不得发明对象能力，也不得持有对象状态的唯一副本；对
 | 协作图整体结构 / 标准对象一览 | 本文 §2-§3 |
 | 公共字段、lifecycle、reducer 总则 | [common-fields.md](./common-fields.md) |
 | Realm 边界、看板 / 列 / 容器、位置语义 | [realm-and-space.md](./realm-and-space.md) |
-| Flow / track / discussion / Message | [flow-and-message.md](./flow-and-message.md) |
+| Strand / track / discussion / Message | [strand-and-message.md](./strand-and-message.md) |
 | Morph 类型、facets、扩展 | [morph.md](./morph.md) |
 | Relation 基数、跨 Realm、冲突 | [relation.md](./relation.md) |
 | Actor、Actor Profile | [actor.md](./actor.md) |

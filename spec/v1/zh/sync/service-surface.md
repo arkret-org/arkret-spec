@@ -118,7 +118,7 @@ DID Document SHOULD 只负责：
 - `isolated_enclave`：Principal + Identity Resolution Infrastructure + Auth + Directory + Policy/Authz + Events/Blob + Sync/Federation + Audit/Compliance 全部在信任域内部署。
 - `public_federation_ingress`：Principal/Federation + Policy + Moderation + Directory 的受限组合，不默认可见明文。
 - `applet_service`：Applet Server + Event writer + Authz precheck，只在授权 namespace 和 capability 内工作。
-- `mimi_provider_facade`：MIMI facade + Device/Key + Federation/Authz integration，只投影被 `ck.mimi.room_binding` 授权的 Realm / Flow discussion track。
+- `mimi_provider_facade`：MIMI facade + Device/Key + Federation/Authz integration，只投影被 `ck.mimi.room_binding` 授权的 Realm / Strand discussion track。
 - `agent_runtime`：Agent Runtime + Event writer，所有写入仍通过 principal / agent DID 签名。
 
 客户端选择服务时 MUST 先解析 DID Document 与 Realm policy，再校验 `server/describe`。不得因为多个服务位于同一域名，就默认它们拥有相同权限或相同明文可见范围。
@@ -579,7 +579,7 @@ Cokret v1 不定义必需的远端索引或应用视图服务面。当前态查�
 
 若客户端、SDK 或可选受托服务对外暴露可互操作查询语义，SHOULD 复用 `query-schema.md` 中的 Query 形状：
 
-- `object_types`：标准对象类型，例如 `realm`、`space`、`flow`、`message`、`morph`（Space 通过 `space.kind` 区分 board/list/...；Flow 默认入口通过 track primary 解析规则得到）
+- `object_types`：标准对象类型，例如 `realm`、`space`、`strand`、`message`、`morph`（Space 通过 `space.kind` 区分 board/list/...；Strand 默认入口通过 track primary 解析规则得到）
 - `morph_types`：当 `object_types` 包含 `morph` 时，可进一步限定开放对象类型
 - `facets`：schema-declared capability hint 选择器，只用于 Morph 或声明支持 facets 的标准对象；不得作为授权、状态机、排序或 reducer 语义的唯一来源
 - `relation`
@@ -592,9 +592,9 @@ Cokret v1 不定义必需的远端索引或应用视图服务面。当前态查�
 
 barrier cursor 在 Query / Projection 语义中是读己之所写 barrier，不是 Client Sync 的 stream cursor / `after=` resume token。实现 MAY 把它编码为 opaque token，但内部 MUST 绑定调用方、`realm_id`、目标 `event_id`、event hash、filter / query hash、服务 DID 和过期时间。Projection 服务收到该 cursor 时，应等待本地可验证 frontier 覆盖目标事件；若等待超时返回 `timeout`，若服务本地 frontier 明确落后返回 `stale_frontier`，若服务暂时无法追赶或不可用返回 `temporarily_unavailable`。Client Sync 仍必须只使用 [`client-sync.md`](./client-sync.md) 定义的 stream cursor 作为 `/_cokret/self/account/subscribe after=`。
 
-### 6.2 Flow Discussion / Context Projection
+### 6.2 Strand Discussion / Context Projection
 
-Flow context timeline、Flow discussion timeline 和 Flow context projection 是客户端展示形态，不要求远端 endpoint。无论在客户端本地还是受托服务中执行，Flow 的所有 track 都按 Flow 的 effective scope 执行 membership / history visibility 检查：`Flow.scope_circle_id=null` 时按父 Realm；`scope_circle_id` 指向 [Circle](../models/circle.md) 时按该 Circle 自身 policy 与 membership 独立裁剪。Synthesis 与 discussion 同 scope，可见性同源。不得因为 Flow 在某 scope 可见就授予其他 scope 或 Board/List 或其他 Realm 对象权限。
+Strand context timeline、Strand discussion timeline 和 Strand context projection 是客户端展示形态，不要求远端 endpoint。无论在客户端本地还是受托服务中执行，Strand 的所有 track 都按 Strand 的 effective scope 执行 membership / history visibility 检查：`Strand.scope_circle_id=null` 时按父 Realm；`scope_circle_id` 指向 [Circle](../models/circle.md) 时按该 Circle 自身 policy 与 membership 独立裁剪。Synthesis 与 discussion 同 scope，可见性同源。不得因为 Strand 在某 scope 可见就授予其他 scope 或 Board/List 或其他 Realm 对象权限。
 
 ### 6.3 Inbox / Notification Projection
 
@@ -608,7 +608,7 @@ Inbox 和 notification 可以由客户端从本地 Event、read cursor、mention
 {
   "query": "legal review",
   "realm_ids": ["ck:realm:0196419b-0000-7000-8000-000000000000"],
-  "object_types": ["message", "flow", "morph"],
+  "object_types": ["message", "strand", "morph"],
   "morph_types": ["comment"],
   "sender_actor_id": "did:web:alice.example.com",
   "time_range": {
@@ -814,7 +814,7 @@ Native personal agent 的 management 与 sidecar operations 落在 `/_cokret/sel
 
 详细 wire 规则见 [`service-http-binding.md` §2.4](./service-http-binding.md)、[`../identity/key-management.md` §3.6.1](../identity/key-management.md)、[`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md)、[`../models/circle.md` §11.1](../models/circle.md)、[`../models/private-objects.md` §4.1](../models/private-objects.md) 与 [`../authz/capabilities.md` §5](../authz/capabilities.md)。
 
-## 11. Realm Bootstrap Flow
+## 11. Realm Bootstrap Strand
 
 Cokret v1 的首次加入流程：
 

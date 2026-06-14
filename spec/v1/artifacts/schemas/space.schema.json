@@ -62,7 +62,7 @@
         "type": "string"
       },
       "uniqueItems": true,
-      "description": "Optional schema/profile references that further constrain this Space's contained Flow types, fields, or position invariants."
+      "description": "Optional schema/profile references that further constrain this Space's contained Strand types, fields, or position invariants."
     },
     "title": {
       "type": "string",

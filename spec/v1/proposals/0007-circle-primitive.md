@@ -15,15 +15,15 @@ normative_source: spec/v1/zh/models/circle.md
 
 > **Status: accepted, merged into v1 normative spec on 2026-05-25.**
 >
-> Normative entry point: [`spec/v1/zh/models/circle.md`](../zh/models/circle.md). Schema artifact: [`spec/v1/artifacts/schemas/circle.schema.json`](../artifacts/schemas/circle.schema.json). The `Flow.discussion_realm_ref` field is removed; see [`forbidden-wire-fields.json`](../artifacts/registry/forbidden-wire-fields.json) entry `discussion_realm_ref` and [`renames.json`](../artifacts/migration/renames.json) `ckp_0007_circle_introduction` migration group. CHANGELOG entry under 2026-05-25.
+> Normative entry point: [`spec/v1/zh/models/circle.md`](../zh/models/circle.md). Schema artifact: [`spec/v1/artifacts/schemas/circle.schema.json`](../artifacts/schemas/circle.schema.json). The `Strand.discussion_realm_ref` field is removed; see [`forbidden-wire-fields.json`](../artifacts/registry/forbidden-wire-fields.json) entry `discussion_realm_ref` and [`renames.json`](../artifacts/migration/renames.json) `ckp_0007_circle_introduction` migration group. CHANGELOG entry under 2026-05-25.
 >
 > This proposal file is retained as historical design rationale. Future updates to the Circle primitive MUST land directly on normative files, not here.
 
 ## 1. Summary
 
-引入一等对象 **`ck:circle:`**(信任圈),作为 Realm 内的**密码学子边界**:拥有独立 MLS group、独立 key epoch、独立 history key eligibility、Realm membership 的真子集成员,但不持有 federation identity 或 policy server。对象通过 `scope_circle_id` 引用 Circle 表达"窄于 Realm 的加密可见性圈"。**一个 Flow 永远只有一个 encryption scope**,不再支持 per-track 安全边界。
+引入一等对象 **`ck:circle:`**(信任圈),作为 Realm 内的**密码学子边界**:拥有独立 MLS group、独立 key epoch、独立 history key eligibility、Realm membership 的真子集成员,但不持有 federation identity 或 policy server。对象通过 `scope_circle_id` 引用 Circle 表达"窄于 Realm 的加密可见性圈"。**一个 Strand 永远只有一个 encryption scope**,不再支持 per-track 安全边界。
 
-同时**删除 `Flow.discussion_realm_ref`** —— Flow 不允许跨两个安全边界。需要"宽 synthesis + 窄 discussion"的场景统一用**两个 Flow + Relation 连接**的形态表达(一个 public Flow,一个 Circle-scoped Flow)。
+同时**删除 `Strand.discussion_realm_ref`** —— Strand 不允许跨两个安全边界。需要"宽 synthesis + 窄 discussion"的场景统一用**两个 Strand + Relation 连接**的形态表达(一个 public Strand,一个 Circle-scoped Strand)。
 
 非目标:Circle **不是** access-filter / ACL segment 的新名字,也不是 Realm 的"默认加密圈"。若实现只需要授权窄化但不需要独立密钥材料,应使用现有 Group / capability constraint / resource selector;不得声明 Circle。Realm 自身仍拥有 **Realm-default encryption scope**;Circle 只表示 Realm 内更窄的额外 MLS scope。
 
@@ -31,13 +31,13 @@ normative_source: spec/v1/zh/models/circle.md
 
 ### 2.1 当前 spec 的抽象漏失
 
-当前 [`architecture.md` §2.0](../zh/overview/architecture.md) 容器选型表只有三档:Realm(全套安全边界)、Space(零边界,纯导航)、Flow(协作单元)。中间档"**Realm 内的密码学子圈**"被刻意省略,导致:
+当前 [`architecture.md` §2.0](../zh/overview/architecture.md) 容器选型表只有三档:Realm(全套安全边界)、Space(零边界,纯导航)、Strand(协作单元)。中间档"**Realm 内的密码学子圈**"被刻意省略,导致:
 
-- [`flow-and-message.md` §5](../zh/models/flow-and-message.md) 为"Flow 的 discussion 需要独立访问域"专门开了 `discussion_realm_ref` 单点补丁,让一个 Flow 跨两个 Realm 存在,从而**打破了"一对象一安全边界"的清爽不变量**。spec 因此被迫发明 §5.0.1 跨 Realm lifecycle 级联表、§8.9 跨 Realm watch 重校验、改绑禁令等补丁规则。
+- [`strand-and-message.md` §5](../zh/models/strand-and-message.md) 为"Strand 的 discussion 需要独立访问域"专门开了 `discussion_realm_ref` 单点补丁,让一个 Strand 跨两个 Realm 存在,从而**打破了"一对象一安全边界"的清爽不变量**。spec 因此被迫发明 §5.0.1 跨 Realm lifecycle 级联表、§8.9 跨 Realm watch 重校验、改绑禁令等补丁规则。
 - [`realm-and-space.md` §2.2](../zh/models/realm-and-space.md):"实现 MAY 在同一 Realm 中声明辅助 MLS group" —— 默认承认子 MLS group 是合理存在的,但没有 normativize。
 - [`realm-and-space.md` §2.1](../zh/models/realm-and-space.md):"强保密差异通过切分 Realm 表达" —— 把所有"想要密码学子圈"的需求都推到"开新 Realm"路径上,带上 federation identity、policy server、capability registry 整套机器。
 
-这等于把 Realm 原语同时承担两个本质不同的概念:**federation/identity boundary** 与 **cryptographic access circle**。本提案的核心是把后者拆出来作为独立原语,同时**彻底清掉**导致"一 Flow 跨两 Realm" 的 `discussion_realm_ref` 补丁 —— 让"一对象一安全边界" 成为协议级硬不变量。
+这等于把 Realm 原语同时承担两个本质不同的概念:**federation/identity boundary** 与 **cryptographic access circle**。本提案的核心是把后者拆出来作为独立原语,同时**彻底清掉**导致"一 Strand 跨两 Realm" 的 `discussion_realm_ref` 补丁 —— 让"一对象一安全边界" 成为协议级硬不变量。
 
 ### 2.2 同构需求被迫升级为完整 Realm
 
@@ -45,9 +45,9 @@ normative_source: spec/v1/zh/models/circle.md
 
 - HR / 法务 / security ops 想在公司 Realm 内有独立 E2EE 圈
 - 一个 Board 上的某条 List 整体只对子团队可见
-- 一组相关 Flow(不只是讨论)整体限定可见成员
+- 一组相关 Strand(不只是讨论)整体限定可见成员
 - 临时 incident war room
-- 跨 Flow 的机密线索板(同一组人讨论 N 个 Flow)
+- 跨 Strand 的机密线索板(同一组人讨论 N 个 Strand)
 
 每条需求都背 federation identity / policy / MLS lifecycle 的全套开销,但它们语义上明明是**同组织内的子单元**。
 
@@ -115,16 +115,16 @@ Circle v1 不提供 `plaintext_inherit` 或 "authorization-only Circle"。这条
 新增字段(跨多个现有对象):
 
 ```
-Flow.scope_circle_id             : id:circle | null       # null = Realm-default encryption scope
+Strand.scope_circle_id             : id:circle | null       # null = Realm-default encryption scope
 Message.effective_scope    : reducer-stamped,immutable tagged scope
 Event.effective_scope      : reducer-stamped,immutable tagged scope,进入 envelope/AAD/sub-seal
 Space.scope_circle_id            : id:circle | null       # Space 自身 metadata / scoped structural relation 的可见性 scope
-Space.default_scope_circle_id    : id:circle | null       # 在该 Space 新建 Flow 的默认 scope(hint,非强制)
+Space.default_scope_circle_id    : id:circle | null       # 在该 Space 新建 Strand 的默认 scope(hint,非强制)
 Space.child_scope_policy   : object                  # 子资源 placement/encryption floor,见 §3.4.2
 Morph.scope_circle_id            : id:circle | null        # null = Realm-default encryption scope
 ```
 
-**关键约束:Flow 永远只有一个 effective encryption scope**。不存在 per-track scope —— 整个 Flow(synthesis、discussion、其他 track)共享同一安全边界,要么都在 Realm-default,要么都在某个 Circle。
+**关键约束:Strand 永远只有一个 effective encryption scope**。不存在 per-track scope —— 整个 Strand(synthesis、discussion、其他 track)共享同一安全边界,要么都在 Realm-default,要么都在某个 Circle。
 
 reducer 规则:
 
@@ -135,7 +135,7 @@ reducer 规则:
 - Reducer 在接受每个 event 时 MUST 固化 `effective_scope`。该值进入 Event envelope、E2EE AAD、MLS governance binding 输入、Seal/sub-seal leaf,后续 `scope_circle_id` 改绑不得重解释旧 event。
 - Effective history visibility = 父 Realm policy floor 与 Circle `history_visibility` 的更严格者。Circle MAY 收紧父 Realm,不得放宽父 Realm 的隐私/合规下限。
 - 改绑 `scope_circle_id` 默认 reducer 拒绝(`failed_precondition` `reason="scope_rebind_forbidden"`);profile MAY 允许,但 MUST audit-paired high-risk update。所有已存在 Message / 子内容保留其写入时的 `effective_scope` 与旧 scope MLS;新内容才进新 scope。客户端 MUST 把切分前后历史分段展示。
-- Structural Relation / position cell 的 `effective_scope` **MUST 不宽于参与端点中最窄的 scope**(即:取参与端点 scope 集合中最严格者作为关系事实自身的 scope)。具体例:`public Board (Realm-default)` 包含 `private Flow (Circle=HR-Conf)` 时,`contains` 关系事实与其 position cell 的 `effective_scope = Circle:HR-Conf`,**不是** Realm-default;非 Circle 成员看不到该 containment 关系、看不到 private Flow 的 rank/position,也看不到 board 上"此处有隐藏项"的可枚举元数据(否则等于把 Circle 内容数量泄露给 Realm 全员)。
+- Structural Relation / position cell 的 `effective_scope` **MUST 不宽于参与端点中最窄的 scope**(即:取参与端点 scope 集合中最严格者作为关系事实自身的 scope)。具体例:`public Board (Realm-default)` 包含 `private Strand (Circle=HR-Conf)` 时,`contains` 关系事实与其 position cell 的 `effective_scope = Circle:HR-Conf`,**不是** Realm-default;非 Circle 成员看不到该 containment 关系、看不到 private Strand 的 rank/position,也看不到 board 上"此处有隐藏项"的可枚举元数据(否则等于把 Circle 内容数量泄露给 Realm 全员)。
 
 `effective_scope` wire shape:
 
@@ -156,7 +156,7 @@ reducer 规则:
 | 字段 | 影响对象 | 强制性 | 说明 |
 | --- | --- | --- | --- |
 | `Space.scope_circle_id` | Space 对象自身的 metadata 与 structural relation facts | reducer-enforced | Space 自身的 title / parent / rank / contains 事实落在该 Circle scope;**不**使 Space 成为安全边界,Space 仍是 authorization-transparent 容器,只是它的 metadata 被某 Circle 加密。 |
-| `Space.default_scope_circle_id` | 在该 Space 下**新建**的子 Flow / 子 Space | hint(可被显式覆盖) | 客户端默认填入该值,actor 仍可在 create payload 中显式提供另一 `scope_circle_id`。不强制。 |
+| `Space.default_scope_circle_id` | 在该 Space 下**新建**的子 Strand / 子 Space | hint(可被显式覆盖) | 客户端默认填入该值,actor 仍可在 create payload 中显式提供另一 `scope_circle_id`。不强制。 |
 | `Space.child_scope_policy` | 任何 placement / move 进入该 Space 的子对象 | reducer-enforced | `allow_any` / `require_e2ee` / `require_same_scope` / `require_scope_circle_id` 之一,见 §3.4.2。是真正的"该 Space 只接受这种 scope 的子对象"硬约束。 |
 
 实现常见错误:把 `default_scope_circle_id` 当成约束,或把 `scope_circle_id` 与 `default_scope_circle_id` 混用。三者各司其职,**不可**互相替代。
@@ -174,21 +174,21 @@ Realm **不会**自动创建默认 Circle。Realm-default encryption scope 是 R
 
 | policy field | enum | 说明 |
 | --- | --- | --- |
-| `content_encryption_floor` | `allow_plaintext` / `e2ee_required` | `e2ee_required` 时,Flow / Message / Morph / Blob content 的 `effective_scope` MUST 是 MLS-backed:Realm-default MLS 或 Circle MLS。 |
+| `content_encryption_floor` | `allow_plaintext` / `e2ee_required` | `e2ee_required` 时,Strand / Message / Morph / Blob content 的 `effective_scope` MUST 是 MLS-backed:Realm-default MLS 或 Circle MLS。 |
 | `metadata_encryption_floor` | `allow_plaintext` / `e2ee_required` | Realm-wide metadata 加密下限,二元、与 `content_encryption_floor` 对称;不得被 Circle、Space 或对象 profile 放宽。 |
 
 `metadata_encryption_floor` 语义:
 
 | value | 明文允许范围 | 必须加密范围 |
 | --- | --- | --- |
-| `allow_plaintext` | Realm / scope 路由字段、object id/kind、必要 causal refs、Flow / Message 用户可读 metadata、Space parent / rank 等结构 metadata | 无(metadata 不强制加密;content 是否加密由 `content_encryption_floor` 决定) |
-| `e2ee_required` | 路由所需 `realm_id`、`effective_scope.kind`、不可逆 routing digest、policy-required subject、必要 causal refs、Flow `tracks`、`stage` / `state` | 用户可读 `metadata.title` / `metadata.summary` / `metadata.fields`、Message `metadata.fields`、mention / reply excerpt、search token、关系预览、附件文件名 |
+| `allow_plaintext` | Realm / scope 路由字段、object id/kind、必要 causal refs、Strand / Message 用户可读 metadata、Space parent / rank 等结构 metadata | 无(metadata 不强制加密;content 是否加密由 `content_encryption_floor` 决定) |
+| `e2ee_required` | 路由所需 `realm_id`、`effective_scope.kind`、不可逆 routing digest、policy-required subject、必要 causal refs、Strand `tracks`、`stage` / `state` | 用户可读 `metadata.title` / `metadata.summary` / `metadata.fields`、Message `metadata.fields`、mention / reply excerpt、search token、关系预览、附件文件名 |
 
 Effective metadata floor = max(parent Realm `metadata_encryption_floor`, Circle `metadata_encryption_floor` if present, Space `child_scope_policy.metadata_encryption_floor` if in placement context, object profile requirement)。比较顺序为 `allow_plaintext < e2ee_required`;任何写入若低于 effective floor MUST `failed_precondition`(`reason="metadata_encryption_floor_violation"`)。
 
 ### 3.4.2 Space child scope policy
 
-Space 不拥有 membership / policy server / MLS group;`Space.scope_circle_id` 只是让 Space 自身 metadata 与 structural relation facts 落入某个 existing encryption scope。为了表达"这个 Space 下不允许 plaintext Flow"或"这个 List 只能放 HR Circle 对象",Space MAY 声明 placement policy:
+Space 不拥有 membership / policy server / MLS group;`Space.scope_circle_id` 只是让 Space 自身 metadata 与 structural relation facts 落入某个 existing encryption scope。为了表达"这个 Space 下不允许 plaintext Strand"或"这个 List 只能放 HR Circle 对象",Space MAY 声明 placement policy:
 
 | field | enum / type | 说明 |
 | --- | --- | --- |
@@ -196,7 +196,7 @@ Space 不拥有 membership / policy server / MLS group;`Space.scope_circle_id` �
 | `child_scope_policy.scope_circle_id` | `id:circle` | `kind=require_scope_circle_id` 时必填。 |
 | `child_scope_policy.metadata_encryption_floor` | `allow_plaintext` / `e2ee_required` | 可选,对该 Space 下新建 / 移入对象施加更严格 metadata floor。 |
 
-Reducer MUST 在 `ck.flow.create`、`ck.flow.move`、`ck.space.parent`、structural `contains` projection 写入时检查 effective Space policy:
+Reducer MUST 在 `ck.strand.create`、`ck.strand.move`、`ck.space.parent`、structural `contains` projection 写入时检查 effective Space policy:
 
 - `allow_any`:不额外限制。
 - `require_e2ee`:子资源 `effective_scope` 必须 MLS-backed。
@@ -207,23 +207,23 @@ Reducer MUST 在 `ck.flow.create`、`ck.flow.move`、`ck.space.parent`、structu
 
 ### 3.4.3 "宽 synthesis + 窄 discussion" 场景如何表达
 
-旧 `discussion_realm_ref` 服务的核心场景是"Flow 公开可见,但讨论只对小圈可见"。本提案下统一用 **两个 Flow + Relation** 表达,不再有 per-track 安全边界:
+旧 `discussion_realm_ref` 服务的核心场景是"Strand 公开可见,但讨论只对小圈可见"。本提案下统一用 **两个 Strand + Relation** 表达,不再有 per-track 安全边界:
 
 ```
-Flow F_public  (scope_circle_id = null)              ← 公开 seal Flow,承载 metadata.title / metadata.summary / stage / metadata.fields
-Flow F_private (scope_circle_id = ck:circle:HR-Conf) ← Circle 内 Flow,承载敏感讨论与决策细节
+Strand F_public  (scope_circle_id = null)              ← 公开 seal Strand,承载 metadata.title / metadata.summary / stage / metadata.fields
+Strand F_private (scope_circle_id = ck:circle:HR-Conf) ← Circle 内 Strand,承载敏感讨论与决策细节
 F_private --confidential_discussion_of--> F_public
 ```
 
-客户端 UI MAY 把这两个 Flow 在视觉上"组合显示"(同卡片标题区 + 切换 tab),但协议层它们是**两个独立对象**,各自有独立的:
+客户端 UI MAY 把这两个 Strand 在视觉上"组合显示"(同卡片标题区 + 切换 tab),但协议层它们是**两个独立对象**,各自有独立的:
 - 时间线、消息历史
 - 成员、MLS group(F_public 用 Realm-default,F_private 用 Circle MLS)
 - watch cell、stage、生命周期
 - 投影裁剪规则(无 Circle 成员的 Realm 成员只看到 F_public,看不到 F_private 的存在或活动元数据,符合 §3.8 投递不变量)
 
-`confidential_discussion_of` 是标准 weak-semantic Relation kind,关系事实 SHOULD 存放在 `F_private` 的 Circle scope 内。这样 private 成员能从 private Flow 回到 public seal;非 Circle 成员不会在 public Flow 上看到"存在一个私密讨论"的可枚举边。
+`confidential_discussion_of` 是标准 weak-semantic Relation kind,关系事实 SHOULD 存放在 `F_private` 的 Circle scope 内。这样 private 成员能从 private Strand 回到 public seal;非 Circle 成员不会在 public Strand 上看到"存在一个私密讨论"的可枚举边。
 
-此模式的代价是用户需要显式创建两个 Flow,而不是一个 Flow 配置两层 scope。收益是协议层**没有任何对象跨越两个安全边界**,所有 cross-boundary 推理坍缩到"两对象 + scoped relation"的通用规则,与 [`relation.md` §4](../zh/models/relation.md) 跨 Realm relation 同构。
+此模式的代价是用户需要显式创建两个 Strand,而不是一个 Strand 配置两层 scope。收益是协议层**没有任何对象跨越两个安全边界**,所有 cross-boundary 推理坍缩到"两对象 + scoped relation"的通用规则,与 [`relation.md` §4](../zh/models/relation.md) 跨 Realm relation 同构。
 
 ### 3.5 Capability 与授权评估
 
@@ -235,7 +235,7 @@ F_private --confidential_discussion_of--> F_public
 | `ck.circle.manage` | medium | `ck.circle.update`, `ck.circle.archive`, `ck.circle.restore`, `ck.circle.tombstone` | 管理已存在 Circle。 |
 | `ck.circle.member.add` | low | `ck.circle.member.state`(payload.actor_id == envelope.actor_id,且 transition 合法) | 用户接受邀请、加入 `join_rule=open` 的 Circle 或自助退出;不得自助解除 ban。 |
 | `ck.circle.member.manage` | medium | `ck.circle.member.state`(actor_id != envelope.actor_id) | 邀请/移除他人;Circle admin 持有。 |
-| `ck.circle.member.add.others` | high | 同上 + 强制带 `ck.audit.accessed` 配对(与 `ck.flow.watch.set.others` 同模式) | 跨成员代写(罕用),审计配对。 |
+| `ck.circle.member.add.others` | high | 同上 + 强制带 `ck.audit.accessed` 配对(与 `ck.strand.watch.set.others` 同模式) | 跨成员代写(罕用),审计配对。 |
 | `ck.circle.audit` | high | 空(read-only),配对 `ck.audit.accessed` | 不属于 Circle 的 Realm admin 读取 Circle 元数据 / activity rollup 的审计权。 |
 
 **授权评估两层 AND**:
@@ -275,7 +275,7 @@ Membership transition table:
 
 ### 3.7 Lifecycle cascade
 
-因为对象只有单一 scope,lifecycle 表退化为简单形态(对比当前 [`flow-and-message.md` §5.0.1](../zh/models/flow-and-message.md) 跨 Realm 表的复杂度):
+因为对象只有单一 scope,lifecycle 表退化为简单形态(对比当前 [`strand-and-message.md` §5.0.1](../zh/models/strand-and-message.md) 跨 Realm 表的复杂度):
 
 | 场景 | Realm-level / 未 scope 对象 | scope_circle_id 指向该 Circle 的对象 |
 | --- | --- | --- |
@@ -289,7 +289,7 @@ Membership transition table:
 
 ### 3.8 Sync / 投递不变量
 
-正式化为通用规则(取代当前 [`flow-and-message.md` §8.9](../zh/models/flow-and-message.md) 跨 Realm 派发的特化形态):
+正式化为通用规则(取代当前 [`strand-and-message.md` §8.9](../zh/models/strand-and-message.md) 跨 Realm 派发的特化形态):
 
 > **Scope 投递不变量**:对任意事件 `E` 满足 `E.effective_scope.kind="circle"` 且 `E.effective_scope.circle_id=C`,Sync Service MUST NOT 向不属于 `C.members(at causal frontier of E)` 的 actor 投递 `E` 的 envelope 或 payload。订阅 Realm R 等价于订阅 (R 的 Realm-level events) ∪ (∀C ∈ R.circles, 若 actor ∈ C.members 则 C 的 scoped events,否则 ∅)。
 
@@ -313,18 +313,18 @@ Membership transition table:
 - Circle 按 profile 固定节拍触发 `ck.circle.seal_commit`,向 Realm Seal stream 提交 `sub_seal_head_digest`(不透明 SHA-256)。默认命名 profile 为 `ck.profile.circle_seal_cadence.fixed_5m.v1`：`period_ms=300000`、`max_jitter_ms=30000`、必须提交空批次 commitment、不得因为没有真实事件而跳过 public seal tick。低隐私部署若声明 event-count profile,必须显式标为不满足 confidential Circle profile。
 - 验证链:Circle member 验证时 `Circle sub-seal head ↔ Realm seal commitment ↔ Realm seal head`,三段闭合。非 Circle 成员只能验证 Realm seal 完整性。
 
-### 3.10 删除 `Flow.discussion_realm_ref`
+### 3.10 删除 `Strand.discussion_realm_ref`
 
-本提案 **彻底删除** `Flow.discussion_realm_ref` 字段及其相关补丁规则:
+本提案 **彻底删除** `Strand.discussion_realm_ref` 字段及其相关补丁规则:
 
-- 字段从 [`flow.schema.json`](../artifacts/schemas/flow.schema.json) 与 [`event-payload.schema.json`](../artifacts/schemas/event-payload.schema.json) 中移除。
-- 加入 [`forbidden-wire-fields.json`](../artifacts/registry/forbidden-wire-fields.json) reserved-name guard:`flow.discussion_realm_ref` 出现在 wire 上 MUST `schema_violation`(`reason="discussion_realm_ref_removed"`)。
-- [`flow-and-message.md` §5 / §5.0.1 / §8.9](../zh/models/flow-and-message.md) 全部删除或重写为本提案 §3.4.3 / §3.7 / §3.8 的形态。
+- 字段从 [`strand.schema.json`](../artifacts/schemas/strand.schema.json) 与 [`event-payload.schema.json`](../artifacts/schemas/event-payload.schema.json) 中移除。
+- 加入 [`forbidden-wire-fields.json`](../artifacts/registry/forbidden-wire-fields.json) reserved-name guard:`strand.discussion_realm_ref` 出现在 wire 上 MUST `schema_violation`(`reason="discussion_realm_ref_removed"`)。
+- [`strand-and-message.md` §5 / §5.0.1 / §8.9](../zh/models/strand-and-message.md) 全部删除或重写为本提案 §3.4.3 / §3.7 / §3.8 的形态。
 - Glossary 中 `Linked Discussion Realm` 条目移除;`Realm` / `Circle` 区分由 [`zh/overview/glossary.md`](../zh/overview/glossary.md) 新条目承担。
 
 **业务诉求迁移**:
-- "宽 synthesis + 窄 discussion" → 见 §3.4.3,改用两个 Flow + Relation。
-- "discussion 落在跨组织联邦 Realm" → 在该联邦 Realm 内独立 `ck.flow.create`,父侧通过 `ck.realm.link{link_kind=confidential_extension_of}` 或 Relation 引用;不是 Flow 字段。
+- "宽 synthesis + 窄 discussion" → 见 §3.4.3,改用两个 Strand + Relation。
+- "discussion 落在跨组织联邦 Realm" → 在该联邦 Realm 内独立 `ck.strand.create`,父侧通过 `ck.realm.link{link_kind=confidential_extension_of}` 或 Relation 引用;不是 Strand 字段。
 
 **这是 v1 freeze 前的破坏性变更**。一旦 freeze 后才发现需要,只能 v2 处理。本提案的判断:在 freeze 窗口内一次性切干净,远好于 v1 ship 后用 deprecation 窗口慢慢拆 —— `discussion_realm_ref` 的存在污染了 §5.0.1 / §8.9 等多处 normative,deprecation 路径会让这些章节长期保持"双语义"状态,迁移成本反而更高。
 
@@ -339,8 +339,8 @@ Membership transition table:
 
 - [`zh/overview/architecture.md` §2.0](../zh/overview/architecture.md):容器选型表:
   - 追加 Circle 行:`| 在已有 Realm 内做"密码学子圈"(独立 MLS group / 独立成员 / 独立 history),但共享 federation/policy/capability registry | **Circle**(`ck:circle:`),对象 `scope_circle_id` 引用 | Circle 是 Realm 内的密码学子边界;父 Realm 仍承担 federation identity / policy / capability registry。 |`
-  - **删除** `Flow + discussion_realm_ref` 行;改写"宽 synthesis + 窄 discussion"指引到"两 Flow + Relation"形态(见 §3.4.3)。
-  - 修订 §2.0 末尾"不得自行造第四类"为"第四类(Circle)由 CKP-0007 引入;新增容器型概念仍 MUST 先验证是否可分解为 Realm / Space / Flow / Circle"。
+  - **删除** `Strand + discussion_realm_ref` 行;改写"宽 synthesis + 窄 discussion"指引到"两 Strand + Relation"形态(见 §3.4.3)。
+  - 修订 §2.0 末尾"不得自行造第四类"为"第四类(Circle)由 CKP-0007 引入;新增容器型概念仍 MUST 先验证是否可分解为 Realm / Space / Strand / Circle"。
 
 - [`zh/models/realm-and-space.md` §2.1](../zh/models/realm-and-space.md):删除"强保密差异**必须**切分 Realm"的硬约束,改为"强保密差异 MAY 通过 Circle 表达;跨 federation/policy 边界的差异 MUST 切 Realm"。
 - [`zh/models/realm-and-space.md` §2.2](../zh/models/realm-and-space.md):正式化"辅助 MLS group" 为 Circle;`ck.circle.*` 是其唯一 wire 入口;新增 Realm-default encryption scope 说明,明确 Realm 不自动创建默认 Circle。
@@ -348,16 +348,16 @@ Membership transition table:
 - [`zh/models/realm-and-space.md` §4](../zh/models/realm-and-space.md):在 "Group 与 Capability 的位置" 一节顶部加 disambiguation note,明确 **Group**(principal 集合,capability subject) 与 **Circle**(资源 scope,密码学子圈) 是两个正交概念,不可混淆。
 - [`zh/crypto-media/encryption-and-audit.md`](../zh/crypto-media/encryption-and-audit.md):重写 MLS scope / governance binding / KeyPackage claim / identity-link cache invalidation 规则,把 scope 从 `realm_id` 扩展为 tagged `effective_scope`;明确 `mls_rfc9420` 是机制,`metadata_encryption_floor` 是加密覆盖范围,并删除 `discussion_realm_ref` 相关 special case。
 - [`zh/models/relation.md`](../zh/models/relation.md):新增跨 scope Relation 规则,复用跨 Realm 的 two-sided authorization / locked projection / anti-enumeration 模型;新增标准 weak-semantic `confidential_discussion_of`。
-- [`zh/models/flow-and-message.md`](../zh/models/flow-and-message.md):**重写性变更**。
+- [`zh/models/strand-and-message.md`](../zh/models/strand-and-message.md):**重写性变更**。
   - §3 schema 表中 `discussion_realm_ref` 行删除;追加 `scope_circle_id` 行。
-  - §5 整节(Discussion 独立 Realm)删除;替换为新 §5 "Flow scope" —— 描述 `scope_circle_id` 表达 Flow 整体落在某 Circle 的形态。
+  - §5 整节(Discussion 独立 Realm)删除;替换为新 §5 "Strand scope" —— 描述 `scope_circle_id` 表达 Strand 整体落在某 Circle 的形态。
   - §5.0.1 lifecycle 级联表删除;新 lifecycle 规则在 [`circle.md`](../zh/models/circle.md) 内描述(§3.7)。
-  - §5.1 Mermaid 关系图删除;若需要新图,描述"Flow ∈ Realm-default 或 Flow ∈ Circle" 的二选一形态。
+  - §5.1 Mermaid 关系图删除;若需要新图,描述"Strand ∈ Realm-default 或 Strand ∈ Circle" 的二选一形态。
   - §8.9 "discussion_realm_ref 场景" 删除;新 §8.9 描述 "scope_circle_id 场景" 的通用 watch 投影规则。
 - [`zh/overview/current-model.md` §6-§7](../zh/overview/current-model.md):删除 `discussion_realm_ref` 提及;MLS 边界描述改为 "Realm-default group 与各 Circle 独立 group"。
 - [`zh/overview/glossary.md`](../zh/overview/glossary.md):
   - **删除** `Linked Discussion Realm` 条目。
-  - 修订 `discussion track` 条目,移除"通过 `Flow.discussion_realm_ref` 升级"措辞。
+  - 修订 `discussion track` 条目,移除"通过 `Strand.discussion_realm_ref` 升级"措辞。
   - 新增 `Circle` 条目;新增 `Circle scope` / `scope_circle_id` 短条目;明确 `Circle` vs `Group` disambiguation。
 - 全 spec 当前出现 `discussion_realm_ref` 的所有文件(spec 内 grep 显示 ~28 处,跨 `zh/models/*`、`zh/authz/*`、`zh/sync/*`、`zh/discovery/*`、`zh/conformance/*`、`zh/extensions/mimi-interop.md`、`zh/overview/*` 与 `artifacts/`)挨个清理或重写引用段落。Migration PR 应附完整清单与逐文件 diff,不在本提案中展开。
 
@@ -366,10 +366,10 @@ Membership transition table:
 - `id-kind-registry.json`:新增 `circle` → `ck:circle:<uuid>`。
 - `event-kind-registry.json`:
   - 新增 7 条 `ck.circle.*` event kinds。
-  - **删除** `flow_create_payload` / `flow_update_payload` 中的 `discussion_realm_ref` 字段引用。
+  - **删除** `strand_create_payload` / `strand_update_payload` 中的 `discussion_realm_ref` 字段引用。
 - `capability-action-registry.json`:新增 6 条 capability actions。
 - `schema-registry.json`:新增 `ck.schema.circle.v1`。
-- `flow.schema.json`:
+- `strand.schema.json`:
   - **删除** `discussion_realm_ref` 字段。
   - 追加 `scope_circle_id` 可选字段。
 - `realm.schema.json` / policy component schemas:
@@ -379,11 +379,11 @@ Membership transition table:
 - `message.schema.json`:追加 reducer-stamped immutable tagged `effective_scope`。
 - `morph.schema.json`、`space.schema.json`:追加 `scope_circle_id` / `default_scope_circle_id` / `child_scope_policy` 可选字段;明确 `Space.scope_circle_id` 只引用 Circle,不让 Space 自身成为边界;`default_scope_circle_id` 只是新建对象默认值(三字段语义见 §3.4 末尾表)。
 - Event envelope / AAD schema:追加 immutable tagged `effective_scope`,并纳入 signing / E2EE AAD / Seal leaf canonical bytes。
-- `event-payload.schema.json`:`flow_create_payload` / `flow_update_payload` 字段集同步删除 `discussion_realm_ref`。
-- `forbidden-wire-fields.json`:**新增** `flow.discussion_realm_ref` 进入 reserved-name guard,出现即 `schema_violation`。
+- `event-payload.schema.json`:`strand_create_payload` / `strand_update_payload` 字段集同步删除 `discussion_realm_ref`。
+- `forbidden-wire-fields.json`:**新增** `strand.discussion_realm_ref` 进入 reserved-name guard,出现即 `schema_violation`。
 - `removed-event-kinds.json`:不适用(没有 event kind 被移除;仅字段被移除)。
-- `renames.json`:追加 `discussion_realm_ref` 的 migration 提示("无直接对应字段;按 §3.4.3 改用两 Flow + Relation 形态")。
-- `contract-catalog.json`:登记 Circle contract 版本;`Flow` contract 升 minor 版,标注 `discussion_realm_ref` removed。
+- `renames.json`:追加 `discussion_realm_ref` 的 migration 提示("无直接对应字段;按 §3.4.3 改用两 Strand + Relation 形态")。
+- `contract-catalog.json`:登记 Circle contract 版本;`Strand` contract 升 minor 版,标注 `discussion_realm_ref` removed。
 - `error-code-registry.json`:**新增**以下 reason codes:
   - `circle_realm_mismatch`(§3.4)
   - `circle_not_active`(§3.4)
@@ -419,7 +419,7 @@ Membership transition table:
 
 ### 5.2 为什么不直接为每个子圈开新 Realm
 
-当前 spec 的实际默认答案。否决理由(见 §2):每个子圈背 federation identity / policy server / capability registry / federation route 的全套开销;`ck.realm.link` graph 不断膨胀来缝合"这些其实是同组织内的事"。已经付出"一对象跨两 Realm" 的复杂度(§5.0.1 / §8.9 cascade 规则),但只覆盖了一种业务面(Flow.discussion)。
+当前 spec 的实际默认答案。否决理由(见 §2):每个子圈背 federation identity / policy server / capability registry / federation route 的全套开销;`ck.realm.link` graph 不断膨胀来缝合"这些其实是同组织内的事"。已经付出"一对象跨两 Realm" 的复杂度(§5.0.1 / §8.9 cascade 规则),但只覆盖了一种业务面(Strand.discussion)。
 
 ### 5.3 为什么不是 access-filter boundary
 
@@ -452,14 +452,14 @@ Membership transition table:
 否决理由:
 - `discussion_realm_ref` 不只是一个字段,它带着 §5.0.1 lifecycle 级联表、§8.9 watch 跨 Realm 投影、改绑禁令等一整套补丁规则。保留字段就保留全部补丁,normative 文档长期带双语义,迁移成本递增。
 - 它打破"一对象一安全边界"硬不变量。**删掉这个字段**是把这个不变量重新立起来的唯一方式;deprecation 期间不变量仍然破。
-- v1 还在 freeze 窗口内,这是唯一可以无痛切的机会。一旦 ship,删字段就是 breaking change,所有已存在的 Flow 数据要 migrate。
-- 业务场景没有真正丢失:§3.4.3 的"两 Flow + Relation" 形态覆盖了所有 `discussion_realm_ref` 服务的用例,且语义更清晰、客户端组合显示也能做到。
+- v1 还在 freeze 窗口内,这是唯一可以无痛切的机会。一旦 ship,删字段就是 breaking change,所有已存在的 Strand 数据要 migrate。
+- 业务场景没有真正丢失:§3.4.3 的"两 Strand + Relation" 形态覆盖了所有 `discussion_realm_ref` 服务的用例,且语义更清晰、客户端组合显示也能做到。
 
-### 5.7 为什么 Flow 不允许 per-track 安全边界
+### 5.7 为什么 Strand 不允许 per-track 安全边界
 
-候选 F:保留 `Flow.discussion_scope_circle_id` 让 discussion track 独立 scope(synthesis 与 discussion 拆 Circle)。
+候选 F:保留 `Strand.discussion_scope_circle_id` 让 discussion track 独立 scope(synthesis 与 discussion 拆 Circle)。
 
-否决理由:这是 `discussion_realm_ref` 的"轻量版翻版" —— 仍然让一个对象跨两个安全边界,只是把跨界的"另一侧"从 Realm 换成 Circle。所有 §5.0.1 / §8.9 类型的复杂度会以另一种形式回来。**对象单一 scope 这条不变量,要么坚持,要么不坚持;没有"只对 track 网开一面"的中间态**。需要拆分时,拆成两个 Flow 是干净的做法。
+否决理由:这是 `discussion_realm_ref` 的"轻量版翻版" —— 仍然让一个对象跨两个安全边界,只是把跨界的"另一侧"从 Realm 换成 Circle。所有 §5.0.1 / §8.9 类型的复杂度会以另一种形式回来。**对象单一 scope 这条不变量,要么坚持,要么不坚持;没有"只对 track 网开一面"的中间态**。需要拆分时,拆成两个 Strand 是干净的做法。
 
 ### 5.8 命名:为什么是 "Circle" 不是 "Group"
 
@@ -483,7 +483,7 @@ Membership transition table:
 
 ## 6. UX 论证(为什么 `display` 字段必须 normativize)
 
-Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Circle A 的 Flow 工作,被通知 ping 到 Circle B 的 Flow,回复时误以为仍在 A 圈。这是真实泄露发生的瞬间。**因为 Flow 是单 scope 的(本提案 §3.4),所以"我在哪个 Circle"等价于"我在哪个 Flow",这反而让 UX 清晰**:每个 Flow 的视觉身份就是它 scope 的视觉身份,不存在"同一 Flow 内 synthesis 一个色、discussion 另一个色"的混乱。
+Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Circle A 的 Strand 工作,被通知 ping 到 Circle B 的 Strand,回复时误以为仍在 A 圈。这是真实泄露发生的瞬间。**因为 Strand 是单 scope 的(本提案 §3.4),所以"我在哪个 Circle"等价于"我在哪个 Strand",这反而让 UX 清晰**:每个 Strand 的视觉身份就是它 scope 的视觉身份,不存在"同一 Strand 内 synthesis 一个色、discussion 另一个色"的混乱。
 
 要让 UI 能可靠区分,以下信号 MUST 在 spec 层统一,**不**留给客户端各自发明:
 
@@ -493,13 +493,13 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 
 客户端实现 SHOULD 至少做到:
 
-1. Flow 列表行左侧色条 + 行尾徽章 `🔒 <short_name> · <member_count>`(整 Flow 一个 scope,色条不会"半色")。
-2. Flow 打开页顶部 banner 用 Circle 颜色;标题旁显示 `<short_name> · <member_count>`。
-3. compose 输入框上方常驻 scope 指示 `→ Sending to: [color bar] <short_name> · <member_count>`;切换 Flow 后首次输入时短暂高亮该行。
+1. Strand 列表行左侧色条 + 行尾徽章 `🔒 <short_name> · <member_count>`(整 Strand 一个 scope,色条不会"半色")。
+2. Strand 打开页顶部 banner 用 Circle 颜色;标题旁显示 `<short_name> · <member_count>`。
+3. compose 输入框上方常驻 scope 指示 `→ Sending to: [color bar] <short_name> · <member_count>`;切换 Strand 后首次输入时短暂高亮该行。
 4. 跨 Circle 导航有可感知转场(banner 颜色变化、breadcrumb 更新);避免"同一空间内滚动"错觉。
 5. mention 候选列表中非 Circle 成员置灰并提示"不在此 Circle"。
 6. 跨 Circle 引用以虚线框 + "另一信任圈"标识展示,**不**预览内容。
-7. "宽 seal Flow + 窄 discussion Flow" 的组合形态(§3.4.3)在 UI 上 MAY 渲染为单卡片 + tab 切换,**但** tab 之间切换 MUST 表现为跨 scope 转场(banner 颜色变化 + compose scope 指示更新),不是同 Flow 内不同视图。
+7. "宽 seal Strand + 窄 discussion Strand" 的组合形态(§3.4.3)在 UI 上 MAY 渲染为单卡片 + tab 切换,**但** tab 之间切换 MUST 表现为跨 scope 转场(banner 颜色变化 + compose scope 指示更新),不是同 Strand 内不同视图。
 
 详细 UX rationale 见 design discussion(2026-05-25 conversation log)。
 
@@ -509,13 +509,13 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 - [ ] **Display palette 大小**:v1 草案给 17 色,是否够?Linear 8 色 / Tailwind 22 色对比下,17 是个折中。固定 token 集是否锁在 schema 还是 profile?
 - [x] **`Space.default_scope_circle_id` 强制性**:`default_scope_circle_id` 保持 hint;强制约束用 `child_scope_policy` 表达,避免"Space 隐式成为安全边界"的语义滑坡。
 - [x] **跨 Circle Relation**:统一为"跨 scope Relation",直接复用 [`relation.md` §4](../zh/models/relation.md) 跨 Realm ref 的 two-sided authorization / locked projection / anti-enumeration 模型。§4.2 已列出 `relation.md` 修改项,§8.1 第 10 步落地。无遗留决策点。
-- [x] **新 relation_kind `confidential_discussion_of`**:§3.4.3 "两 Flow + Relation" 模式需要协议级 relation_kind 来标识"这个 Circle Flow 是那个 seal Flow 的机密讨论延伸"。关系事实 SHOULD 存在 private Flow 的 Circle scope 内,避免 public seal 反向泄露私密讨论存在性。
+- [x] **新 relation_kind `confidential_discussion_of`**:§3.4.3 "两 Strand + Relation" 模式需要协议级 relation_kind 来标识"这个 Circle Strand 是那个 seal Strand 的机密讨论延伸"。关系事实 SHOULD 存在 private Strand 的 Circle scope 内,避免 public seal 反向泄露私密讨论存在性。
 - [ ] **Circle merge / split**:运维场景"两个 Circle 合并"或"Circle 拆分"是否需要协议级 event(如 `ck.circle.merge`),还是纯客户端流程?MLS 层 merge 不平凡,倾向 v1 不做,留 v1.1。
 - [x] **`ck.circle.seal_commit` 固定节拍参数**:§3.9 固定默认命名 profile `ck.profile.circle_seal_cadence.fixed_5m.v1`，周期 5 分钟、最大抖动 30 秒；移动端省电不得改变公开 Realm seal cadence，只能影响客户端上传私有 sub-seal entries 的批处理。
-- [ ] **Watch cell 的 Circle 归属**:scope_circle_id 指向 Circle 的 Flow,其 watch cell 应落在父 Realm namespace 还是 Circle namespace?倾向 **Circle namespace**(单源,且 watch 见解直接受 Circle membership 约束,不需要单独投影裁剪规则)。这与原 §8.3 watch cell 在 source Realm 的设计相反,需要在 [`flow-and-message.md` §8](../zh/models/flow-and-message.md) 重写。
+- [ ] **Watch cell 的 Circle 归属**:scope_circle_id 指向 Circle 的 Strand,其 watch cell 应落在父 Realm namespace 还是 Circle namespace?倾向 **Circle namespace**(单源,且 watch 见解直接受 Circle membership 约束,不需要单独投影裁剪规则)。这与原 §8.3 watch cell 在 source Realm 的设计相反,需要在 [`strand-and-message.md` §8](../zh/models/strand-and-message.md) 重写。
 - [ ] **历史成员 / "前成员能否看历史消息"**:与 MLS welcome 包是否携带历史 key 的 profile 选项有关,是否在 Circle 创建时就锁定?
 - [x] **`encryption_profile=plaintext_inherit` 是否保留**:不保留。Circle v1 只表示独立 MLS 密码学边界;授权窄化继续使用 Group / capability constraint / selector。
-- [ ] **`discussion_realm_ref` 历史数据 migration**:如果有已部署的 pre-CKP-0007 数据已经使用 `discussion_realm_ref`,如何迁移?方案:迁移工具把"Flow F 带 discussion_realm_ref=R'"拆为"Flow F 与 Flow F' (在 R')"+ Relation。需要工具支持还是 hand-migration?**前提**是 v1 freeze 前接受本提案;若 freeze 后,问题质性升级。
+- [ ] **`discussion_realm_ref` 历史数据 migration**:如果有已部署的 pre-CKP-0007 数据已经使用 `discussion_realm_ref`,如何迁移?方案:迁移工具把"Strand F 带 discussion_realm_ref=R'"拆为"Strand F 与 Strand F' (在 R')"+ Relation。需要工具支持还是 hand-migration?**前提**是 v1 freeze 前接受本提案;若 freeze 后,问题质性升级。
 - [ ] **MLS rotate amplification profile 参数**(配合 §5.9):default profile 的 forward secrecy 窗口具体值、批量 rotate window 大小、单 Realm Circle 数量软上限是否需要写进 protocol-level conformance,还是完全留给 profile 自行声明?倾向**留给 profile 但要求 floor profile 必须显式公开窗口承诺**,避免不透明 SLA。
 
 ### 7.1 Post-acceptance status（accepted 后状态归档）
@@ -531,10 +531,10 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 | `confidential_discussion_of` | **resolved** | 已注册为标准 weak-semantic relation kind（[`relation.md`](../zh/models/relation.md) §3.1/§3.2）。 |
 | Circle merge / split | **deferred-to-v1.1** | v1 不引入 `ck.circle.merge` 等 event;MLS 层 merge 非平凡。 |
 | `ck.circle.seal_commit` 固定节拍参数 | **resolved → named cadence profile** | `ck.profile.circle_seal_cadence.fixed_5m.v1` 固定 `period_ms=300000`、`max_jitter_ms=30000`、空批次 commitment 与移动端省电边界（[`circle.md`](../zh/models/circle.md) §10.2）。confidential Circle profile MUST NOT 使用会泄露活动频率的 event-count cadence。 |
-| Watch cell 的 Circle 归属 | **resolved** | scope 指向 Circle 的 Flow,其 watch cell 落在 Circle namespace（[`flow-and-message.md`](../zh/models/flow-and-message.md) §8）。 |
+| Watch cell 的 Circle 归属 | **resolved** | scope 指向 Circle 的 Strand,其 watch cell 落在 Circle namespace（[`strand-and-message.md`](../zh/models/strand-and-message.md) §8）。 |
 | 历史成员能否看历史消息 | **deferred-to-profile** | 由 MLS welcome 是否携带历史 key 的 profile 选项决定;Circle 创建时锁定。 |
 | `encryption_profile=plaintext_inherit` 保留 | **resolved** | 不保留。 |
-| `discussion_realm_ref` migration | **resolved (pre-freeze)** | §8.1 已删除该字段;迁移工具把带 `discussion_realm_ref` 的 Flow 拆为两 Flow + Relation。 |
+| `discussion_realm_ref` migration | **resolved (pre-freeze)** | §8.1 已删除该字段;迁移工具把带 `discussion_realm_ref` 的 Strand 拆为两 Strand + Relation。 |
 | MLS rotate amplification 参数 | **deferred-to-profile (release-gate)** | 留给 profile,但 floor profile MUST 显式公开 forward secrecy 窗口承诺。 |
 
 ## 8. Migration plan（historical; completed before v1 freeze）
@@ -543,11 +543,11 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 
 ### 8.1 Pre-freeze 强制项(必须在 v1 ship 前完成)
 
-1. **删除 `Flow.discussion_realm_ref`**:更新 `flow.schema.json` / `event-payload.schema.json` / `forbidden-wire-fields.json`;改写 [`flow-and-message.md`](../zh/models/flow-and-message.md) §3 / §5 / §5.0.1 / §5.1 / §8.9 等所有引用段;更新 [`overview/glossary.md`](../zh/overview/glossary.md) / [`overview/current-model.md`](../zh/overview/current-model.md) / [`overview/architecture.md`](../zh/overview/architecture.md) §2.0。
+1. **删除 `Strand.discussion_realm_ref`**:更新 `strand.schema.json` / `event-payload.schema.json` / `forbidden-wire-fields.json`;改写 [`strand-and-message.md`](../zh/models/strand-and-message.md) §3 / §5 / §5.0.1 / §5.1 / §8.9 等所有引用段;更新 [`overview/glossary.md`](../zh/overview/glossary.md) / [`overview/current-model.md`](../zh/overview/current-model.md) / [`overview/architecture.md`](../zh/overview/architecture.md) §2.0。
 2. **引入 `ck:circle:` 对象 schema 与基础 event**(`ck.circle.create` / `ck.circle.member.state` / `ck.circle.tombstone`);更新 `id-kind-registry.json` / `event-kind-registry.json` / `schema-registry.json`。
 3. **独立 MLS group 必须同步落地**:Circle create 必须创建 `(realm_id, circle_id)` scope 的 MLS group、epoch 0 governance binding、Circle scoped covered-frontier cell;不得以 Realm-default MLS + 应用层过滤替代。
 4. **声明加密覆盖 policy**:新增 Realm `content_encryption_floor`;把既有 `metadata_encryption_floor` 固化为 Realm-wide floor,二元、与 `content_encryption_floor` 对称(`allow_plaintext` / `e2ee_required`)。
-5. **引入 `scope_circle_id` / tagged `effective_scope` 字段** 到 `flow.schema.json` / `message.schema.json` / `morph.schema.json` / `space.schema.json`(`default_scope_circle_id` / `child_scope_policy`)以及 Event envelope / E2EE AAD / Seal leaf canonical bytes。
+5. **引入 `scope_circle_id` / tagged `effective_scope` 字段** 到 `strand.schema.json` / `message.schema.json` / `morph.schema.json` / `space.schema.json`(`default_scope_circle_id` / `child_scope_policy`)以及 Event envelope / E2EE AAD / Seal leaf canonical bytes。
 6. **重写 MLS governance binding**:把 scope 从单 `realm_id` 扩展为 tagged `effective_scope`;KeyPackage claim、Welcome、identity-link cache、policy tightening invalidation 同步支持 Circle。
 7. **引入 Circle sub-seal + fixed-cadence `ck.circle.seal_commit`**:默认 profile 必须避免通过 public commitment 节奏泄露活动频率。
 8. **reducer 两层 AND 评估**(§3.5):capability_grant ∧ Circle membership(若 scope 非 null),并 enforce 父 Realm visibility floor / encryption floor。
@@ -567,11 +567,11 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 
 ### 8.4 历史数据迁移(若适用)
 
-14. 若存在 pre-CKP-0007 部署使用 `discussion_realm_ref`,提供一次性迁移工具:把 "Flow F 带 discussion_realm_ref=R'" 拆为 "Flow F + Flow F' (在 R') + Relation(F → F')"。这条只在已经有 pre-spec 部署数据时需要;新部署不涉及。
+14. 若存在 pre-CKP-0007 部署使用 `discussion_realm_ref`,提供一次性迁移工具:把 "Strand F 带 discussion_realm_ref=R'" 拆为 "Strand F + Strand F' (在 R') + Relation(F → F')"。这条只在已经有 pre-spec 部署数据时需要;新部署不涉及。
 
 ## 9. References
 
-- **本提案要删除的机制**:[`flow-and-message.md` §5](../zh/models/flow-and-message.md) `discussion_realm_ref`、§5.0.1 lifecycle 级联、§8.9 watch 跨 Realm 投影。
+- **本提案要删除的机制**:[`strand-and-message.md` §5](../zh/models/strand-and-message.md) `discussion_realm_ref`、§5.0.1 lifecycle 级联、§8.9 watch 跨 Realm 投影。
 - 当前 spec 的容器分层:[`architecture.md` §2.0](../zh/overview/architecture.md)(需追加 Circle 行,删除 `discussion_realm_ref` 行)。
 - Realm 与 MLS 关系:[`realm-and-space.md` §2.2](../zh/models/realm-and-space.md)。
 - 现有 "Group" 概念(避免命名冲突):[`realm-and-space.md` §4](../zh/models/realm-and-space.md)。

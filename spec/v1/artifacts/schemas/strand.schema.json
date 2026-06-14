@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/flow.schema.json",
-  "title": "Cokret Flow",
+  "$id": "https://cokret.io/artifacts/schemas/strand.schema.json",
+  "title": "Cokret Strand",
   "type": "object",
   "required": [
     "id",
@@ -17,25 +17,25 @@
         "required": [
           "body"
         ],
-        "$comment": "forbidden Flow top-level field; canonical name is content"
+        "$comment": "forbidden Strand top-level field; canonical name is content"
       },
       {
         "required": [
           "title"
         ],
-        "$comment": "forbidden Flow top-level metadata; canonical path is metadata.title or encrypted_metadata"
+        "$comment": "forbidden Strand top-level metadata; canonical path is metadata.title or encrypted_metadata"
       },
       {
         "required": [
           "summary"
         ],
-        "$comment": "forbidden Flow top-level metadata; canonical path is metadata.summary or encrypted_metadata"
+        "$comment": "forbidden Strand top-level metadata; canonical path is metadata.summary or encrypted_metadata"
       },
       {
         "required": [
           "fields"
         ],
-        "$comment": "forbidden Flow top-level extension metadata; canonical path is metadata.fields or encrypted_metadata"
+        "$comment": "forbidden Strand top-level extension metadata; canonical path is metadata.fields or encrypted_metadata"
       },
       {
         "required": [
@@ -60,21 +60,21 @@
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
-      "const": "ck.schema.flow.v1"
+      "const": "ck.schema.strand.v1"
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "scope_circle_id": {
       "$ref": "./common-ids.schema.json#/$defs/circle_id",
-      "description": "Optional reference to an intra-Realm Circle (see models/circle.md) that defines this Flow's effective scope. When set, ALL Flow tracks (synthesis, discussion, etc.) share that Circle's membership, history visibility, delivery/query/projection boundary, and encryption_profile. When unset, the Flow lives in Realm-default scope. The referenced Circle MUST have realm_id == this Flow's realm_id (reducer enforces; otherwise schema_violation reason=circle_realm_mismatch). Reducer stamps the immutable effective_scope onto each emitted Event; rebinding scope_circle_id is forbidden by default (failed_precondition reason=scope_rebind_forbidden). For 'wide synthesis + narrow discussion' scenarios use two Flows linked by a confidential_discussion_of Relation (circle.md §7.2)."
+      "description": "Optional reference to an intra-Realm Circle (see models/circle.md) that defines this Strand's effective scope. When set, ALL Strand tracks (synthesis, discussion, etc.) share that Circle's membership, history visibility, delivery/query/projection boundary, and encryption_profile. When unset, the Strand lives in Realm-default scope. The referenced Circle MUST have realm_id == this Strand's realm_id (reducer enforces; otherwise schema_violation reason=circle_realm_mismatch). Reducer stamps the immutable effective_scope onto each emitted Event; rebinding scope_circle_id is forbidden by default (failed_precondition reason=scope_rebind_forbidden). For 'wide synthesis + narrow discussion' scenarios use two Strands linked by a confidential_discussion_of Relation (circle.md §7.2)."
     },
     "agent_participation": {
       "type": "object",
-      "description": "Optional agent participation ceiling for this Flow: the maximum native personal agent behavior permitted in this Flow. When omitted, inherits the enclosing Circle ceiling (or Realm-default ceiling when scope_circle_id is unset). Each bit MAY only tighten, never widen, the parent ceiling (reducer rejects a widening write with agent_participation_ceiling_widen). See zh/models/flow-and-message.md.",
+      "description": "Optional agent participation ceiling for this Strand: the maximum native personal agent behavior permitted in this Strand. When omitted, inherits the enclosing Circle ceiling (or Realm-default ceiling when scope_circle_id is unset). Each bit MAY only tighten, never widen, the parent ceiling (reducer rejects a widening write with agent_participation_ceiling_widen). See zh/models/strand-and-message.md.",
       "properties": {
         "reply": {
           "type": "boolean"
@@ -89,28 +89,28 @@
       "additionalProperties": false
     },
     "metadata": {
-      "$ref": "#/$defs/flow_metadata"
+      "$ref": "#/$defs/strand_metadata"
     },
     "encrypted_metadata": {
       "$ref": "./encrypted-envelope.schema.json",
-      "description": "Encrypted envelope whose plaintext is a flow_metadata object. Required instead of plaintext metadata when the effective metadata_encryption_floor is e2ee_required."
+      "description": "Encrypted envelope whose plaintext is a strand_metadata object. Required instead of plaintext metadata when the effective metadata_encryption_floor is e2ee_required."
     },
     "content": {
       "$ref": "#/$defs/content_block"
     },
     "encrypted_content": {
       "$ref": "./encrypted-envelope.schema.json",
-      "description": "Encrypted envelope whose plaintext is a ContentBlock for Flow synthesis content."
+      "description": "Encrypted envelope whose plaintext is a ContentBlock for Strand synthesis content."
     },
     "tracks": {
       "type": "object",
-      "description": "Active Flow tracks, keyed by track name. Tracks are pure section pointers (synthesis vs discussion timeline) — they do NOT carry independent membership / permissions / history visibility / E2EE. The entire Flow shares a single effective scope determined by Flow.scope_circle_id (see models/circle.md); there is no per-track security boundary. At most one track entry may explicitly set is_primary=true; when none does, the reducer derives the primary track by the deterministic rules in models/flow-and-message.md §4.5. The map MUST contain at least one entry; track names are validated by propertyNames.",
+      "description": "Active Strand tracks, keyed by track name. Tracks are pure section pointers (synthesis vs discussion timeline) — they do NOT carry independent membership / permissions / history visibility / E2EE. The entire Strand shares a single effective scope determined by Strand.scope_circle_id (see models/circle.md); there is no per-track security boundary. At most one track entry may explicitly set is_primary=true; when none does, the reducer derives the primary track by the deterministic rules in models/strand-and-message.md §4.5. The map MUST contain at least one entry; track names are validated by propertyNames.",
       "minProperties": 1,
       "propertyNames": {
         "$ref": "#/$defs/track_name"
       },
       "additionalProperties": {
-        "$ref": "#/$defs/flow_track"
+        "$ref": "#/$defs/strand_track"
       }
     },
     "state": {
@@ -120,11 +120,11 @@
         "archived",
         "redacted"
       ],
-      "description": "Flow lifecycle state. 'active' is the default. Reducer enforces transitions per common-fields.md §5.1: ck.flow.archive MUST come from 'active' (else failed_precondition reason=flow_not_active); ck.flow.restore MUST come from 'archived' (else flow_not_archived); terminal state is reached only via a ck.redaction event targeting the flow (MUST come from {'active','archived'} else flow_already_terminal). Same-state self-transitions MUST fail. 'redacted' is the irreversible terminal."
+      "description": "Strand lifecycle state. 'active' is the default. Reducer enforces transitions per common-fields.md §5.1: ck.strand.archive MUST come from 'active' (else failed_precondition reason=strand_not_active); ck.strand.restore MUST come from 'archived' (else strand_not_archived); terminal state is reached only via a ck.redaction event targeting the strand (MUST come from {'active','archived'} else strand_already_terminal). Same-state self-transitions MUST fail. 'redacted' is the irreversible terminal."
     },
     "state_changed_at": {
       "$ref": "#/$defs/timestamp",
-      "description": "Reducer-derived timestamp of the most recent state transition. MUST be set when state != 'active'; MUST be the created_at of the corresponding ck.flow.archive / ck.flow.restore / ck.redaction Event. Aligns with Space.state_changed_at and the common-fields rule in models/common-fields.md §3."
+      "description": "Reducer-derived timestamp of the most recent state transition. MUST be set when state != 'active'; MUST be the created_at of the corresponding ck.strand.archive / ck.strand.restore / ck.redaction Event. Aligns with Space.state_changed_at and the common-fields rule in models/common-fields.md §3."
     },
     "stage": {
       "type": "string",
@@ -138,11 +138,11 @@
         "cancelled",
         "superseded"
       ],
-      "description": "Optional Flow business-progression stage. Orthogonal to top-level 'state' (physical lifecycle): archive does NOT change stage; stage=done does NOT auto-archive. ck.flow.create MAY omit stage; when present it must be one of the protocol-level enum values and has no protocol-level default. The only wire path that mutates stage after creation is the dedicated ck.flow.stage.set event; ck.flow.update patches on stage / stage_changed_at MUST be rejected (schema_violation, single-source). Stage transitions intentionally do NOT carry a reason / note field — the ck.flow.stage.set event log is the audit source, and human-readable explanations belong in a Message on the discussion track that references the event. A per-Realm workflow profile MAY narrow which transitions are legal beyond the core reducer hard invariants (terminal state freeze, non-active reject) defined in models/common-fields.md §5.3.3. See models/flow-and-message.md §3.2 for full semantics and models/common-fields.md §5.3 for the protocol-level enum / bucket mapping."
+      "description": "Optional Strand business-progression stage. Orthogonal to top-level 'state' (physical lifecycle): archive does NOT change stage; stage=done does NOT auto-archive. ck.strand.create MAY omit stage; when present it must be one of the protocol-level enum values and has no protocol-level default. The only wire path that mutates stage after creation is the dedicated ck.strand.stage.set event; ck.strand.update patches on stage / stage_changed_at MUST be rejected (schema_violation, single-source). Stage transitions intentionally do NOT carry a reason / note field — the ck.strand.stage.set event log is the audit source, and human-readable explanations belong in a Message on the discussion track that references the event. A per-Realm workflow profile MAY narrow which transitions are legal beyond the core reducer hard invariants (terminal state freeze, non-active reject) defined in models/common-fields.md §5.3.3. See models/strand-and-message.md §3.2 for full semantics and models/common-fields.md §5.3 for the protocol-level enum / bucket mapping."
     },
     "stage_changed_at": {
       "$ref": "#/$defs/timestamp",
-      "description": "Reducer-derived timestamp of the most recent stage transition. MUST NOT appear without stage. MUST be ignored when present on wire; reducer overwrites with the triggering ck.flow.stage.set event's created_at. Same-value self-transitions (stage value unchanged) MUST NOT update this field."
+      "description": "Reducer-derived timestamp of the most recent stage transition. MUST NOT appear without stage. MUST be ignored when present on wire; reducer overwrites with the triggering ck.strand.stage.set event's created_at. Same-value self-transitions (stage value unchanged) MUST NOT update this field."
     },
     "created_by": {
       "$ref": "#/$defs/did"
@@ -276,9 +276,9 @@
         }
       ]
     },
-    "flow_metadata": {
+    "strand_metadata": {
       "type": "object",
-      "description": "Extensible user-readable Flow metadata. In MLS / E2EE realms this object is encrypted as encrypted_metadata unless the Realm explicitly opts into plaintext metadata.",
+      "description": "Extensible user-readable Strand metadata. In MLS / E2EE realms this object is encrypted as encrypted_metadata unless the Realm explicitly opts into plaintext metadata.",
       "properties": {
         "title": {
           "type": "string",
@@ -382,7 +382,7 @@
     },
     "metadata_fields": {
       "type": "object",
-      "description": "Profile-defined Flow metadata fields. Reducer-owned fields are forbidden here to avoid dual sources of truth.",
+      "description": "Profile-defined Strand metadata fields. Reducer-owned fields are forbidden here to avoid dual sources of truth.",
       "not": {
         "anyOf": [
           {
@@ -463,9 +463,9 @@
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]{0,63}$"
     },
-    "flow_track": {
+    "strand_track": {
       "type": "object",
-      "description": "Flow track entry — a pure section pointer (synthesis vs discussion timeline). The track's stable name is the map key in Flow.tracks; this object holds the track's per-entry config. Tracks do NOT carry independent membership / permissions / history visibility / E2EE. The whole Flow has a single effective scope determined by Flow.scope_circle_id (see models/circle.md); there is no per-track security boundary. To represent 'wide synthesis + narrow discussion', create two Flows linked by a confidential_discussion_of Relation per models/circle.md §7.2.",
+      "description": "Strand track entry — a pure section pointer (synthesis vs discussion timeline). The track's stable name is the map key in Strand.tracks; this object holds the track's per-entry config. Tracks do NOT carry independent membership / permissions / history visibility / E2EE. The whole Strand has a single effective scope determined by Strand.scope_circle_id (see models/circle.md); there is no per-track security boundary. To represent 'wide synthesis + narrow discussion', create two Strands linked by a confidential_discussion_of Relation per models/circle.md §7.2.",
       "properties": {
         "enabled": {
           "type": "boolean",
@@ -484,9 +484,9 @@
         },
         "metadata": {
           "type": "object",
-          "description": "Track-local UI metadata only. The reducer NEVER interprets its keys; it does not create membership, history visibility, access, or E2EE scope. Access-like keys are rejected at the wire layer to prevent a pseudo-access surface (tracks have no independent access — see models/flow-and-message.md §4.4).",
+          "description": "Track-local UI metadata only. The reducer NEVER interprets its keys; it does not create membership, history visibility, access, or E2EE scope. Access-like keys are rejected at the wire layer to prevent a pseudo-access surface (tracks have no independent access — see models/strand-and-message.md §4.4).",
           "not": {
-            "$comment": "Forbid access-like keys so flow_track.metadata cannot smuggle a pseudo-access surface; track access is always derived from the Flow effective scope, never from track metadata.",
+            "$comment": "Forbid access-like keys so strand_track.metadata cannot smuggle a pseudo-access surface; track access is always derived from the Strand effective scope, never from track metadata.",
             "anyOf": [
               {
                 "required": [

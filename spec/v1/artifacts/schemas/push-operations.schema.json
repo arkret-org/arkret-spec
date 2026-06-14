@@ -36,9 +36,9 @@
       "type": "string",
       "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "flow_id": {
+    "strand_id": {
       "type": "string",
-      "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "message_id": {
       "type": "string",
@@ -59,7 +59,7 @@
     "push_target_id": {
       "type": "string",
       "pattern": "^[A-Za-z0-9._:-]{16,256}$",
-      "description": "Pairwise pseudonym for one (recipient_service_did, principal, device, push_route) tuple. It MUST NOT be a DID, DID URL, Realm id, Flow id, Message id, Event id, or stable cross-Realm correlation key."
+      "description": "Pairwise pseudonym for one (recipient_service_did, principal, device, push_route) tuple. It MUST NOT be a DID, DID URL, Realm id, Strand id, Message id, Event id, or stable cross-Realm correlation key."
     },
     "registration_id": {
       "type": "string",
@@ -180,11 +180,11 @@
         },
         "circle_id": {
           "$ref": "./common-ids.schema.json#/$defs/circle_id",
-          "description": "CKP-0007 Circle (intra-Realm encryption sub-boundary) id. Drives per-Circle routing / dedup so two flows with the same name in different Circles do not collide. Plaintext circle_id MUST be stripped before any provider call."
+          "description": "CKP-0007 Circle (intra-Realm encryption sub-boundary) id. Drives per-Circle routing / dedup so two strands with the same name in different Circles do not collide. Plaintext circle_id MUST be stripped before any provider call."
         },
         "scope_circle_id": {
           "$ref": "./common-ids.schema.json#/$defs/circle_id",
-          "description": "Flow-declared scope_circle_id when the originating Flow is bound to a Circle scope. Gateway-internal; stripped before any provider call."
+          "description": "Strand-declared scope_circle_id when the originating Strand is bound to a Circle scope. Gateway-internal; stripped before any provider call."
         },
         "effective_scope": {
           "$ref": "#/$defs/effective_scope"
@@ -305,7 +305,7 @@
           },
           {
             "required": [
-              "flow_title"
+              "strand_title"
             ]
           }
         ]
@@ -383,8 +383,8 @@
           "description": "Profile-gated client-visible rendering content (e.g. {\"body\": \"...\"}). Permitted ONLY under ck.profile.push_gateway.visible_notification.v1; MUST NOT appear in a blind notification. Still subject to the §5.1 minimization constraints (no DID URL, no cross-Realm stable correlation key, no IP/geolocation).",
           "additionalProperties": true
         },
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
+        "strand_id": {
+          "$ref": "#/$defs/strand_id"
         },
         "message_id": {
           "$ref": "#/$defs/message_id"
@@ -392,7 +392,7 @@
         "sender_actor_display_name": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "flow_title": {
+        "strand_title": {
           "$ref": "#/$defs/non_empty_string"
         },
         "realm_title": {

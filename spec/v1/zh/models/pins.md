@@ -5,7 +5,7 @@ normative: true
 stability: v1
 updated: 2026-06-10
 see_also:
-  - flow-and-message.md
+  - strand-and-message.md
   - realm-and-space.md
   - views.md
   - personal-productivity.md
@@ -18,13 +18,13 @@ see_also:
 
 ## 1. 范围
 
-Shared pin 是进入 Realm reducer 的共享投影事实，用于把 Message、Flow、Morph、Relation 或其它可引用对象固定在某个共享范围中。个人保存 / 收藏不使用 shared pin；它们由 [personal-productivity.md](./personal-productivity.md) 的 account data 表达。
+Shared pin 是进入 Realm reducer 的共享投影事实，用于把 Message、Strand、Morph、Relation 或其它可引用对象固定在某个共享范围中。个人保存 / 收藏不使用 shared pin；它们由 [personal-productivity.md](./personal-productivity.md) 的 account data 表达。
 
 实现声明 `ck.profile.pinned_items.v1` 时，MUST 支持 `ck.pin.add`、`ck.pin.remove` 和 `ck.pin.reorder`。
 
 ## 2. Pin Scope
 
-Pin payload 使用 `pin_scope`，MUST NOT 使用裸 `scope` 或旧的 scope-reference 字段。`pin_scope` 的形态为 `{ kind, id }`，`kind` 取 `flow`、`realm`、`circle` 或 `space`。
+Pin payload 使用 `pin_scope`，MUST NOT 使用裸 `scope` 或旧的 scope-reference 字段。`pin_scope` 的形态为 `{ kind, id }`，`kind` 取 `strand`、`realm`、`circle` 或 `space`。
 
 `pin_scope` 是 projection home，不是安全边界。`kind=space` 时，reducer MUST 解析 Space metadata 的 effective scope；Space 不因此获得独立 membership、policy、history visibility 或 MLS boundary。
 

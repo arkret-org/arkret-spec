@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[3]
 SCHEMA_RS = ROOT / "soland" / "src" / "schema.rs"
 
 UUID_COLUMNS_COKRET = {
-    "event_id", "realm_id", "space_id", "flow_id", "morph_id", "view_id",
+    "event_id", "realm_id", "space_id", "strand_id", "morph_id", "view_id",
     "relation_id", "from_entity_id", "to_entity_id",
     "message_id", "actor_profile_id",
     "receipt_id", "snapshot_id",

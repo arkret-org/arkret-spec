@@ -165,7 +165,7 @@
         "ck.circle.member.state"
       ],
       "profile": null,
-      "notes": "Cross-actor write (rare). MUST carry ck.audit.accessed pair (same model as ck.flow.watch.set.others).",
+      "notes": "Cross-actor write (rare). MUST carry ck.audit.accessed pair (same model as ck.strand.watch.set.others).",
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
@@ -224,7 +224,7 @@
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.flow.archive",
+        "ck.strand.archive",
         "ck.morph.archive"
       ],
       "profile": null,
@@ -236,7 +236,7 @@
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.flow.restore",
+        "ck.strand.restore",
         "ck.morph.restore",
         "ck.space.restore"
       ],
@@ -244,19 +244,19 @@
       "event_mapping_kind": "polymorphic_object"
     },
     {
-      "action": "ck.flow.create",
-      "category": "flow",
+      "action": "ck.strand.create",
+      "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.flow.create"
+        "ck.strand.create"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.flow.read",
-      "category": "flow",
+      "action": "ck.strand.read",
+      "category": "strand",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
@@ -264,14 +264,14 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.flow.update",
-      "category": "flow",
+      "action": "ck.strand.update",
+      "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [
         "allowed_write_fields"
       ],
       "target_event_kinds": [
-        "ck.flow.update"
+        "ck.strand.update"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
@@ -323,67 +323,67 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.flow.archive",
-      "category": "flow",
+      "action": "ck.strand.archive",
+      "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.flow.archive"
+        "ck.strand.archive"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.flow.restore",
-      "category": "flow",
+      "action": "ck.strand.restore",
+      "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.flow.restore"
+        "ck.strand.restore"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.flow.move",
-      "category": "flow",
+      "action": "ck.strand.move",
+      "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.flow.move"
+        "ck.strand.move"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.flow.reorder",
-      "category": "flow",
+      "action": "ck.strand.reorder",
+      "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.flow.reorder"
+        "ck.strand.reorder"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.flow.tracks.update",
-      "category": "flow",
+      "action": "ck.strand.tracks.update",
+      "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.flow.tracks.update"
+        "ck.strand.tracks.update"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.flow.stage.set",
-      "category": "flow",
+      "action": "ck.strand.stage.set",
+      "category": "strand",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.flow.stage.set"
+        "ck.strand.stage.set"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
@@ -405,7 +405,7 @@
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.flow.stage.set",
+        "ck.strand.stage.set",
         "ck.morph.stage.set"
       ],
       "profile": null,
@@ -413,7 +413,7 @@
     },
     {
       "action": "ck.relation.create",
-      "category": "flow",
+      "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
@@ -424,7 +424,7 @@
     },
     {
       "action": "ck.relation.update",
-      "category": "flow",
+      "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
@@ -435,7 +435,7 @@
     },
     {
       "action": "ck.relation.tombstone",
-      "category": "flow",
+      "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
@@ -445,18 +445,18 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.flow.watch.set",
+      "action": "ck.strand.watch.set",
       "category": "discussion",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.flow.watch.set"
+        "ck.strand.watch.set"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.flow.watch.set.others",
+      "action": "ck.strand.watch.set.others",
       "category": "discussion",
       "risk_tier": "high",
       "required_constraints": [],
@@ -465,7 +465,7 @@
         "audit_pair_required"
       ],
       "target_event_kinds": [
-        "ck.flow.watch.set"
+        "ck.strand.watch.set"
       ],
       "profile": null,
       "event_mapping_kind": "scope_suffix_variant"
@@ -481,7 +481,7 @@
     },
     {
       "action": "ck.space.create",
-      "category": "flow",
+      "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [
         "allowed_space_kinds"
@@ -494,7 +494,7 @@
     },
     {
       "action": "ck.space.update",
-      "category": "flow",
+      "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [
         "allowed_space_kinds"
@@ -507,7 +507,7 @@
     },
     {
       "action": "ck.space.parent",
-      "category": "flow",
+      "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
@@ -518,7 +518,7 @@
     },
     {
       "action": "ck.space.archive",
-      "category": "flow",
+      "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
@@ -529,7 +529,7 @@
     },
     {
       "action": "ck.space.restore",
-      "category": "flow",
+      "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
@@ -540,7 +540,7 @@
     },
     {
       "action": "ck.space.tombstone",
-      "category": "flow",
+      "category": "strand",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
@@ -551,7 +551,7 @@
     },
     {
       "action": "ck.container.move_item",
-      "category": "flow",
+      "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
@@ -562,7 +562,7 @@
     },
     {
       "action": "ck.container.rebalance",
-      "category": "flow",
+      "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
@@ -573,7 +573,7 @@
     },
     {
       "action": "ck.view.create",
-      "category": "flow",
+      "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
@@ -584,7 +584,7 @@
     },
     {
       "action": "ck.view.update",
-      "category": "flow",
+      "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
@@ -595,7 +595,7 @@
     },
     {
       "action": "ck.view.reconcile",
-      "category": "flow",
+      "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
@@ -643,7 +643,7 @@
       ],
       "profile": null,
       "event_mapping_kind": "scope_suffix_variant",
-      "notes": "Authorizes adding an audience_mention node such as @all or @here to a Message create/revise. @here maps to audience=\"flow_engaged\" and is not presence-filtered. This is an additional gate: the actor MUST also be authorized for the underlying message create/revise action. Effective Realm/Circle policy MUST allow the audience and declare finite max_recipients/quota before notification fanout."
+      "notes": "Authorizes adding an audience_mention node such as @all or @here to a Message create/revise. @here maps to audience=\"strand_engaged\" and is not presence-filtered. This is an additional gate: the actor MUST also be authorized for the underlying message create/revise action. Effective Realm/Circle policy MUST allow the audience and declare finite max_recipients/quota before notification fanout."
     },
     {
       "action": "ck.message.revise",
@@ -792,7 +792,7 @@
         "ck.realm.inheritance_policy",
         "ck.realm.disappearing_policy",
         "ck.realm.search_policy",
-        "ck.realm.set_default_flow",
+        "ck.realm.set_default_strand",
         "ck.applet.registration"
       ],
       "profile": null,
@@ -876,15 +876,15 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.realm.set_default_flow",
+      "action": "ck.realm.set_default_strand",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.realm.set_default_flow"
+        "ck.realm.set_default_strand"
       ],
       "profile": null,
-      "notes": "Sets / changes the Realm's authoritative default discussion Flow pointer (ck.realm.set_default_flow event; projects Realm default_flow_id). Same-name discipline. The Realm authz gate is realm-admin: holding ck.realm.admin (aggregate admin coverage) satisfies admission, or grant this specific action directly. Reducer MUST verify the referenced Flow already exists (failed_precondition otherwise). See zh/models/flow-and-message.md default-Flow discovery section.",
+      "notes": "Sets / changes the Realm's authoritative default discussion Strand pointer (ck.realm.set_default_strand event; projects Realm default_strand_id). Same-name discipline. The Realm authz gate is realm-admin: holding ck.realm.admin (aggregate admin coverage) satisfies admission, or grant this specific action directly. Reducer MUST verify the referenced Strand already exists (failed_precondition otherwise). See zh/models/strand-and-message.md default-Strand discovery section.",
       "event_mapping_kind": "same_name"
     },
     {
@@ -910,7 +910,7 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.flow.admin",
+      "action": "ck.strand.admin",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
@@ -1126,7 +1126,7 @@
       "target_event_kinds": [
         "ck.circle.create",
         "ck.circle.member.state",
-        "ck.flow.create",
+        "ck.strand.create",
         "ck.relation.create"
       ],
       "profile": "ck.profile.agent_sidecar_thread.v1",
@@ -1138,7 +1138,7 @@
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [
-        "allowed_flow_ids"
+        "allowed_strand_ids"
       ],
       "target_event_kinds": [
         "ck.message.create"

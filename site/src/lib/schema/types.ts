@@ -47,7 +47,7 @@ export interface JsonSchema {
  * (a property, an enum value list, a oneOf branch, ...).
  */
 export interface SchemaRow {
-  path: string; // dotted path, e.g. "payload.flow_id"
+  path: string; // dotted path, e.g. "payload.strand_id"
   name: string; // last segment, displayed as field name
   required: boolean;
   type: string; // displayed type label (handles unions, arrays, etc.)

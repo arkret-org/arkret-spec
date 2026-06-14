@@ -18,7 +18,7 @@ merged_into:
   - spec/v1/artifacts/profiles/conformance-profiles.json
   - spec/v1/zh/models/common-fields.md
   - spec/v1/zh/models/actor.md
-  - spec/v1/zh/models/flow-and-message.md
+  - spec/v1/zh/models/strand-and-message.md
   - spec/v1/zh/identity/identity-handles.md
   - spec/v1/zh/discovery/discovery-directory.md
   - spec/v1/zh/discovery/profiles-presence.md

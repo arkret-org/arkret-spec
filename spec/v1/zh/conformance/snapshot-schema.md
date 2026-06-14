@@ -94,12 +94,12 @@ Chunk descriptor 中的 `chunk_ref` 指向一个 snapshot chunk payload。Payloa
   "reducer_profile": "ck.reducer.v1",
   "items": [
     {
-      "kind": "flow",
-      "id": "ck:flow:019640c5-0000-7000-8000-000000000000",
+      "kind": "strand",
+      "id": "ck:strand:019640c5-0000-7000-8000-000000000000",
       "object": {
-        "id": "ck:flow:019640c5-0000-7000-8000-000000000000",
-        "kind": "flow",
-        "schema": "ck.schema.flow.v1"
+        "id": "ck:strand:019640c5-0000-7000-8000-000000000000",
+        "kind": "strand",
+        "schema": "ck.schema.strand.v1"
       },
       "source_event_id": "ck:event:019640ed-8000-7000-8000-000000000000"
     }

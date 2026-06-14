@@ -191,7 +191,7 @@
         },
         "source_ref": {
           "type": "string",
-          "pattern": "^(ck:(realm|flow|message|morph|relation):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$"
+          "pattern": "^(ck:(realm|strand|message|morph|relation):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$"
         },
         "source_actor_id": {
           "type": "string"
@@ -201,7 +201,7 @@
         },
         "target_ref": {
           "type": "string",
-          "pattern": "^(ck:(realm|flow|message|morph|relation):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$"
+          "pattern": "^(ck:(realm|strand|message|morph|relation):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$"
         },
         "target_actor_id": {
           "type": "string"
@@ -277,7 +277,7 @@
         },
         "context_ref": {
           "type": "string",
-          "pattern": "^(ck:(realm|space|flow|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$",
+          "pattern": "^(ck:(realm|space|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$",
           "description": "Optional timeline / renderer context object reference. This is not a Seal."
         },
         "projection": {

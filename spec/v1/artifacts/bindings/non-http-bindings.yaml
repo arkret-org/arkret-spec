@@ -224,7 +224,7 @@ grpc:
       Check: ck.self.policy.query.check
     SelfProjection:
       Document: ck.self.projection.document.resource.get
-      Flows: ck.self.projection.flows.query.list
+      Strands: ck.self.projection.strands.query.list
       Morphs: ck.self.projection.morphs.query.list
       Spaces: ck.self.projection.spaces.query.list
     SelfViews:
@@ -351,7 +351,7 @@ mq:
     self.keys.backups.resource.delete: ck.self.keys.backups.resource.delete
     self.moderation.command.report: ck.self.moderation.command.report
     self.projection.spaces.query.list: ck.self.projection.spaces.query.list
-    self.projection.flows.query.list: ck.self.projection.flows.query.list
+    self.projection.strands.query.list: ck.self.projection.strands.query.list
     self.projection.morphs.query.list: ck.self.projection.morphs.query.list
     self.projection.document.resource.get: ck.self.projection.document.resource.get
     self.views.collection_projection.command.materialize: ck.self.views.collection_projection.command.materialize

@@ -83,9 +83,9 @@
       "type": "string",
       "pattern": "^ck:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
-    "flow_id": {
+    "strand_id": {
       "type": "string",
-      "pattern": "^ck:flow:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "relation_id": {
       "type": "string",
@@ -614,7 +614,7 @@
       "required": [
         "ok",
         "private_circle_id",
-        "private_flow_id",
+        "private_strand_id",
         "private_relation_id"
       ],
       "properties": {
@@ -625,8 +625,8 @@
         "private_circle_id": {
           "$ref": "./common-ids.schema.json#/$defs/circle_id"
         },
-        "private_flow_id": {
-          "$ref": "#/$defs/flow_id"
+        "private_strand_id": {
+          "$ref": "#/$defs/strand_id"
         },
         "private_relation_id": {
           "$ref": "#/$defs/relation_id"
@@ -667,7 +667,7 @@
           "enum": [
             "realm",
             "circle",
-            "flow"
+            "strand"
           ]
         },
         "realm_id": {
@@ -676,8 +676,8 @@
         "circle_id": {
           "$ref": "./common-ids.schema.json#/$defs/circle_id"
         },
-        "flow_id": {
-          "$ref": "#/$defs/flow_id"
+        "strand_id": {
+          "$ref": "#/$defs/strand_id"
         }
       },
       "additionalProperties": false

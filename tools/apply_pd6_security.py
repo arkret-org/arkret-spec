@@ -61,7 +61,7 @@ OPERATIONS: dict[str, str] = {
     "ck.self.account.command.revoke_cursor": "user_bearer",
     "ck.self.snapshot.query.manifest_head": "user_or_service",
     "ck.self.projection.spaces.query.list": "user_or_service",
-    "ck.self.projection.flows.query.list": "user_or_service",
+    "ck.self.projection.strands.query.list": "user_or_service",
     "ck.self.projection.morphs.query.list": "user_or_service",
 
     # directory_discovery

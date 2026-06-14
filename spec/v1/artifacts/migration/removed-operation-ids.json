@@ -18,44 +18,44 @@
   },
   "entries": [
     {
-      "id": "cx.flow.track.member.add",
+      "id": "cx.strand.track.member.add",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Companion to removed cx.flow.track.member event kind. Tracks do not have independent membership."
+      "notes": "Companion to removed cx.strand.track.member event kind. Tracks do not have independent membership."
     },
     {
-      "id": "cx.flow.track.member.remove",
+      "id": "cx.strand.track.member.remove",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Companion to removed cx.flow.track.member event kind."
+      "notes": "Companion to removed cx.strand.track.member event kind."
     },
     {
-      "id": "cx.flow.track.history_visibility.set",
+      "id": "cx.strand.track.history_visibility.set",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Companion to removed cx.flow.track.history_visibility event kind."
+      "notes": "Companion to removed cx.strand.track.history_visibility event kind."
     },
     {
-      "id": "cx.flow.track.read_receipt_policy.set",
+      "id": "cx.strand.track.read_receipt_policy.set",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Companion to removed cx.flow.track.read_receipt_policy event kind."
+      "notes": "Companion to removed cx.strand.track.read_receipt_policy event kind."
     },
     {
-      "id": "cx.flow.track.policy_components.set",
+      "id": "cx.strand.track.policy_components.set",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Companion to removed cx.flow.track.policy_components event kind."
+      "notes": "Companion to removed cx.strand.track.policy_components event kind."
     },
     {
       "id": "cx.field.position.move.apply",
@@ -186,12 +186,12 @@
       "notes": "Directory webhook registration now uses push.register to avoid collision with streaming subscribe operations."
     },
     {
-      "id": "cx.agent_workspace.resolve_mirror_flow",
+      "id": "cx.agent_workspace.resolve_mirror_strand",
       "since_revision": "2026-05-20",
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "negative_test"],
-      "notes": "Removed with cx.profile.agent_workspace.v1; private mirror-flow resolution is no longer a protocol-level operation."
+      "notes": "Removed with cx.profile.agent_workspace.v1; private mirror-strand resolution is no longer a protocol-level operation."
     },
     {
       "id": "cx.agent_workspace.list_pending_tasks",

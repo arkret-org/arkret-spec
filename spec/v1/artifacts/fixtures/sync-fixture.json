@@ -18,7 +18,7 @@
         "items": [
           {
             "object": {
-              "id": "ck:flow:019640c5-0400-7000-8000-000000000000",
+              "id": "ck:strand:019640c5-0400-7000-8000-000000000000",
               "title": "Legal review"
             },
             "item_render": "card",
@@ -29,8 +29,8 @@
               "rank": "U"
             },
             "permissions": [
-              "ck.flow.read",
-              "ck.flow.update"
+              "ck.strand.read",
+              "ck.strand.update"
             ],
             "pending_events": [],
             "conflict_records": []
@@ -40,8 +40,8 @@
       }
     ]
   },
-  "flow_discussion_timeline": {
-    "flow_id": "ck:flow:01964180-0000-7000-8000-000000000000",
+  "strand_discussion_timeline": {
+    "strand_id": "ck:strand:01964180-0000-7000-8000-000000000000",
     "ordering": [
       "causal_depth",
       "hlc",
@@ -53,7 +53,7 @@
       {
         "event_id": "ck:event:01964147-0000-7000-8000-000000000000",
         "message_id": "ck:message:01964147-0000-7000-8000-000000000000",
-        "flow_id": "ck:flow:01964180-0000-7000-8000-000000000000",
+        "strand_id": "ck:strand:01964180-0000-7000-8000-000000000000",
         "decryption_state": "plaintext"
       }
     ],
@@ -147,7 +147,7 @@
   },
   "e2ee_decryption_pending": {
     "event_id": "ck:event:01964140-8000-7000-8000-000000000000",
-    "flow_id": "ck:flow:01964180-0000-7000-8000-000000000000",
+    "strand_id": "ck:strand:01964180-0000-7000-8000-000000000000",
     "mls_epoch": 7,
     "client_missing": [
       "welcome",

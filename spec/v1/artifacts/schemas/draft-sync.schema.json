@@ -21,7 +21,7 @@
       "type": "string",
       "enum": [
         "message",
-        "flow_field"
+        "strand_field"
       ]
     },
     "draft_slot": {

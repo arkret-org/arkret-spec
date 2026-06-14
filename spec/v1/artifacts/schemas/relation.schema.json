@@ -26,7 +26,7 @@
     },
     "scope_circle_id": {
       "$ref": "./common-ids.schema.json#/$defs/circle_id",
-      "description": "Optional intra-Realm Circle (models/circle.md) defining this Relation fact's effective scope, supplied in the submit payload. For weak-semantic privacy edges (confidential_discussion_of, agent_sidecar_of) the relation fact MUST be submitted with scope_circle_id pointing to the private Flow's Circle, so effective_scope=circle and non-members cannot enumerate the edge from the public endpoint (relation.md §3.2). For structural relations the resulting effective_scope MUST NOT be wider than the narrowest participating endpoint scope (circle.md §6.1)."
+      "description": "Optional intra-Realm Circle (models/circle.md) defining this Relation fact's effective scope, supplied in the submit payload. For weak-semantic privacy edges (confidential_discussion_of, agent_sidecar_of) the relation fact MUST be submitted with scope_circle_id pointing to the private Strand's Circle, so effective_scope=circle and non-members cannot enumerate the edge from the public endpoint (relation.md §3.2). For structural relations the resulting effective_scope MUST NOT be wider than the narrowest participating endpoint scope (circle.md §6.1)."
     },
     "effective_scope": {
       "$ref": "#/$defs/effective_scope",
@@ -44,7 +44,7 @@
     },
     "rank": {
       "type": "string",
-      "description": "Top-level rank string for ordered relations (e.g. contains-list-flow position). Encoding follows conformance/encoding.md §9. Aligned with Space.rank so all rank-bearing canonical objects expose rank at the top level instead of fields.rank."
+      "description": "Top-level rank string for ordered relations (e.g. contains-list-strand position). Encoding follows conformance/encoding.md §9. Aligned with Space.rank so all rank-bearing canonical objects expose rank at the top level instead of fields.rank."
     },
     "fields": {
       "type": "object",
@@ -142,8 +142,8 @@
     },
     "ref": {
       "type": "string",
-      "pattern": "^(ck:(realm|space|actor_profile|flow|message|morph|relation|event|view|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ck:blob:(sha256|blake3):[0-9a-f]{64}|did:.+)$",
-      "description": "Typed canonical reference. Allowed kinds: realm, space, actor_profile, flow, message, morph, relation, event, view, blob metadata ID, content-addressed blob ref (active digest suites per artifacts/registry/digest-suite-registry.json; v1: sha256 / blake3), or DID. Space is a valid Relation endpoint (board/list containers, e.g. board --contains--> list). The blob ref suite set is aligned with blob.schema.json and notification.schema.json so any content-addressed blob ref accepted in those schemas is also accepted as a Relation endpoint."
+      "pattern": "^(ck:(realm|space|actor_profile|strand|message|morph|relation|event|view|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ck:blob:(sha256|blake3):[0-9a-f]{64}|did:.+)$",
+      "description": "Typed canonical reference. Allowed kinds: realm, space, actor_profile, strand, message, morph, relation, event, view, blob metadata ID, content-addressed blob ref (active digest suites per artifacts/registry/digest-suite-registry.json; v1: sha256 / blake3), or DID. Space is a valid Relation endpoint (board/list containers, e.g. board --contains--> list). The blob ref suite set is aligned with blob.schema.json and notification.schema.json so any content-addressed blob ref accepted in those schemas is also accepted as a Relation endpoint."
     },
     "did": {
       "type": "string",

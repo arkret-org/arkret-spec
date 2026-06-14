@@ -30,7 +30,7 @@ updated: 2026-06-10
 
 ## 2. Read Receipt (已读回执)
 
-已读回执是向同一个 Flow `discussion` track 的可见成员广播“我已经看到这条消息了”。
+已读回执是向同一个 Strand `discussion` track 的可见成员广播“我已经看到这条消息了”。
 
 ### 2.1 临时性与高频特征
 
@@ -54,8 +54,8 @@ updated: 2026-06-10
     "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
     "actor_id": "did:web:alice.example",
     "read_scope": {
-      "kind": "flow",
-      "ref": "ck:flow:01964200-0000-7000-8000-000000000001",
+      "kind": "strand",
+      "ref": "ck:strand:01964200-0000-7000-8000-000000000001",
       "track_name": "discussion"
     },
     "event_id": "ck:event:01964387-7000-7000-8000-000000000000",
@@ -75,13 +75,13 @@ updated: 2026-06-10
 
 Read Receipt 是高频信号，发送方和 Sync Service 都 MUST 支持合并。客户端 SHOULD debounce 可见区域滚动产生的更新，并且对同一 `(realm_id, read_scope, actor)` 在短窗口内只发送最新位置。默认建议窗口为 1 秒，交互结束、窗口失焦或显式“标为已读”时 SHOULD flush 最新位置。
 
-Sync Service MAY 丢弃同一 read_scope 下较旧的 receipt，只向订阅方广播单调前进的最新位置；不得把每一次滚动增量都 fanout 成独立推送。公开或共享 receipt 的服务端限流维度至少应包含 actor、device、Realm 和 Flow。超过频率时 SHOULD 返回或广播 `rate_limited` / `retry_after_ms` 语义，客户端 MUST 按退避合并后重试。
+Sync Service MAY 丢弃同一 read_scope 下较旧的 receipt，只向订阅方广播单调前进的最新位置；不得把每一次滚动增量都 fanout 成独立推送。公开或共享 receipt 的服务端限流维度至少应包含 actor、device、Realm 和 Strand。超过频率时 SHOULD 返回或广播 `rate_limited` / `retry_after_ms` 语义，客户端 MUST 按退避合并后重试。
 
 Push Gateway MUST NOT 因 read receipt 产生通知。它只能把 receipt / marker 作为 unread count、push suppression 和 badge recompute 的输入。
 
 ### 2.4 隐私控制
 
-用户可以随时关闭发送已读回执。此配置属于 Client Preference，按 (flow, realm, default) 顺序解析有效偏好；标准 Key 与字段定义见 [`discovery/client-preferences.md`](./client-preferences.md) §3.8。
+用户可以随时关闭发送已读回执。此配置属于 Client Preference，按 (strand, realm, default) 顺序解析有效偏好；标准 Key 与字段定义见 [`discovery/client-preferences.md`](./client-preferences.md) §3.8。
 
 - 该偏好同步在用户的加密 account data 中，不公开广播。
 - `send=false` 只影响"是否发送 `ck.receipt.read`"，不影响 §3 私有 Read Cursor。用户若只想隐藏他人的已读头像，客户端应使用 `ck.read_receipt.preferences.display=false` 做本地渲染偏好；该偏好不得改变 Sync Service 投递或协议状态。
@@ -90,7 +90,7 @@ Push Gateway MUST NOT 因 read receipt 产生通知。它只能把 receipt / mar
 
 ### 2.5 Realm 披露策略 (Disclosure Policy)
 
-Realm MAY 通过 `ck.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 `ck.receipt.read` 的披露要求。需要让 Flow 时间线与父 Realm 在 read receipt policy 上分离时，整个 Flow 通过 `Flow.scope_circle_id` 落在一个 [Circle](../models/circle.md)（参见 [`../models/flow-and-message.md` §5](../models/flow-and-message.md)）；effective policy 由父 Realm `ck.realm.read_receipt_policy` 与 Circle 自身策略取更严格者。Track 级别 override 不在 v1 范围内。该 policy SHOULD 由 `ck.realm.policy_components.components.read_receipt` 引用；在 MLS-backed scope 中还必须纳入 MLS-bound `policy_root`。
+Realm MAY 通过 `ck.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 `ck.receipt.read` 的披露要求。需要让 Strand 时间线与父 Realm 在 read receipt policy 上分离时，整个 Strand 通过 `Strand.scope_circle_id` 落在一个 [Circle](../models/circle.md)（参见 [`../models/strand-and-message.md` §5](../models/strand-and-message.md)）；effective policy 由父 Realm `ck.realm.read_receipt_policy` 与 Circle 自身策略取更严格者。Track 级别 override 不在 v1 范围内。该 policy SHOULD 由 `ck.realm.policy_components.components.read_receipt` 引用；在 MLS-backed scope 中还必须纳入 MLS-bound `policy_root`。
 
 > **Realm 作用域** 由 enclosing Event envelope 的 `realm_id` 决定；payload 本身不重复 `realm_id`。Payload schema 在 [`event-payload.schema.json#/$defs/read_receipt_policy_payload`](../../artifacts/schemas/event-payload.schema.json) 为闭合对象（`additionalProperties: false`），任何未识别字段或字段名拼写错误（包括 §2.5 中的合规旁路 `allow_child_privacy_tightening_against_required`）在 wire 解析阶段就会以 `schema_violation` 拒绝。Payload **MUST 至少包含一个字段**（schema `minProperties: 1`）：空 `{}` 在语义上与"从不写该 event"等价（cell 保持 null，effective defaults 由 §2.5 字段表给出），因此 wire 上 `payload: {}` MUST 被拒绝；想要"用默认值"的 Realm 直接省略该 event 即可。该约束与 `event-envelope.schema.json` 通用 `ck.realm.*` policy 分支的 `state_payload` `minProperties: 1` 保持一致，避免同一 Event 在两个 schema 分支上得出不同结果。
 
@@ -110,14 +110,14 @@ Realm MAY 通过 `ck.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 | 字段 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
 | `disclosure` | `enum(required, optional, disabled)` | `optional` | 披露要求级别。该字段同时影响隐私上限与合规义务：`required` = 合规客户端 MUST 在该 scope 发送 receipt；`optional` = 完全交给 Client Preference；`disabled` = 客户端与 Sync Service MUST NOT 在该 scope 转发 `ck.receipt.read`。 |
-| `visibility` | `enum(public, members, private)` | `members` | receipt 可见性。`public` = Flow 的 effective scope 可见性允许的全部观察者；`members` = Flow effective scope 的可见成员（`scope_circle_id=null` 时为父 Realm 成员，`scope_circle_id` 指向 Circle 时为该 Circle 成员）；`private` = 仅消息发送者本人（Sync Service 按发送者 fanout，不广播给其他成员）。**警告**：在 `history_visibility=world_readable` 的 Realm/Flow 下，`visibility=public` 允许外部观察者读取 actor 的已读位置；若用于 metadata-private 场景，receipt-policy MUST 收紧 `visibility` 为 `members` 或 `private`。该组合的 reducer 级强制判定见 §2.5.1。 |
+| `visibility` | `enum(public, members, private)` | `members` | receipt 可见性。`public` = Strand 的 effective scope 可见性允许的全部观察者；`members` = Strand effective scope 的可见成员（`scope_circle_id=null` 时为父 Realm 成员，`scope_circle_id` 指向 Circle 时为该 Circle 成员）；`private` = 仅消息发送者本人（Sync Service 按发送者 fanout，不广播给其他成员）。**警告**：在 `history_visibility=world_readable` 的 Realm/Strand 下，`visibility=public` 允许外部观察者读取 actor 的已读位置；若用于 metadata-private 场景，receipt-policy MUST 收紧 `visibility` 为 `members` 或 `private`。该组合的 reducer 级强制判定见 §2.5.1。 |
 | `scope_overrides_allowed` | `bool` | `true` | 是否允许 Realm 内的 [Circle](../models/circle.md) 声明独立、**收紧**（不放宽）的 read receipt policy。visibility 的收紧方向固定为 `private` > `members` > `public`。disclosure 必须同时满足两条规则：隐私上限允许 `optional -> disabled`，但合规下限禁止从父 `required` 降到 `optional` 或 `disabled`，除非父 policy 显式声明 `allow_child_privacy_tightening_against_required=true`。父 Realm `scope_overrides_allowed=true` 仅允许 Circle 在满足上述两条规则时进一步收紧；`scope_overrides_allowed=false` 要求 Circle 完全继承父 Realm 策略。任何放宽方向或违反合规下限的 child policy 声明 MUST reducer 拒绝。 |
 | `allow_child_privacy_tightening_against_required` | `bool` | `false` | 父 Realm 显式同意 child Realm 把 `disclosure=required` 进一步收紧为 `optional` 或 `disabled` 的合规例外开关。**仅当父 policy 把该字段显式声明为 `true` 时** child policy 才允许 `optional → disabled` 方向跨越合规下限；否则（字段缺省、为 `false` 或字段名拼写错误）reducer MUST 以 `read_receipt_compliance_floor_violated` 拒绝相应 child policy Move。该字段为 prose-defined 合规旁路，schema 必须 `additionalProperties=false` 防止"未识别字段被静默忽略"，writer 必须在该 cell 的 wire JSON 中按字面拼写出现该字段。 |
 
 规则：
 
 - 该策略是**软声明 / 合规承诺**，不是密码学强制。`ck.receipt.read` 由客户端自愿生成，恶意或不合规客户端始终可以"看了不报"，与 audited E2EE 的 RYW receipt（[`crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md) §4）不同。Realm policy MUST NOT 把 `ck.receipt.read` 当作密码学审计回执使用。
-- 客户端 MUST 在 join Realm / 进入 Flow 时明示当前生效 `disclosure` 与 `visibility`，并在用户偏好 UI 中标注该 scope 的开关是否被 policy 锁定。
+- 客户端 MUST 在 join Realm / 进入 Strand 时明示当前生效 `disclosure` 与 `visibility`，并在用户偏好 UI 中标注该 scope 的开关是否被 policy 锁定。
 - `disclosure="required"`：合规客户端 MUST NOT 允许用户在该 scope 把 `ck.read_receipt.preferences` 设为 `send=false`，并 SHOULD 在每次进入 track 时按 §2.2 发送至少一条覆盖当前可见 head 的 receipt。
 - `disclosure="disabled"`：合规客户端 MUST NOT 生成该 scope 的 `ck.receipt.read`；Sync Service 收到时 SHOULD 丢弃并返回或广播 `policy_violation` 语义。Read Cursor 不受影响。
 - `visibility="private"`：Sync Service MUST 仅向 receipt 引用的 `event_id` 的发送者 fanout，不得广播给其他成员。Push Gateway 同样不得据此产生通知。
@@ -126,7 +126,7 @@ Realm MAY 通过 `ck.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 
 #### 2.5.1 `visibility × history_visibility` 组合约束（normative）
 
-`visibility` 与 Flow effective scope 的 `history_visibility` 的组合按下表判定，采用与 [`discovery-directory.md` §3.1](./discovery-directory.md) 兼容矩阵相近的记号约定（`✓` / `!` / `✗*` / `✗`），但各记号在本表的强度与时点以下方定义为准（与 directory §3.1 的 `!` = "SHOULD 在 Realm create 时显示警告"不同）：`✓` = 允许；`!` = 允许但 reducer MUST 在 accept 时附带警告诊断，客户端 SHOULD 在进入 scope 时显式提示；`✗*` = **默认拒绝、仅在显式 opt-in 后才允许**（reducer MUST 拒绝该组合，除非 policy payload 显式声明对应 opt-in 标记；opt-in 后降级为 `!` 的"允许 + 警告诊断"语义，详见表下说明）；`✗` = reducer MUST 拒绝：
+`visibility` 与 Strand effective scope 的 `history_visibility` 的组合按下表判定，采用与 [`discovery-directory.md` §3.1](./discovery-directory.md) 兼容矩阵相近的记号约定（`✓` / `!` / `✗*` / `✗`），但各记号在本表的强度与时点以下方定义为准（与 directory §3.1 的 `!` = "SHOULD 在 Realm create 时显示警告"不同）：`✓` = 允许；`!` = 允许但 reducer MUST 在 accept 时附带警告诊断，客户端 SHOULD 在进入 scope 时显式提示；`✗*` = **默认拒绝、仅在显式 opt-in 后才允许**（reducer MUST 拒绝该组合，除非 policy payload 显式声明对应 opt-in 标记；opt-in 后降级为 `!` 的"允许 + 警告诊断"语义，详见表下说明）；`✗` = reducer MUST 拒绝：
 
 | visibility ↓ \ history_visibility → | `world_readable` | `shared` / `invited` / `joined` / `restricted` |
 | --- | --- | --- |
@@ -136,7 +136,7 @@ Realm MAY 通过 `ck.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 
 - `visibility="public"` + `history_visibility="world_readable"` 会让任意外部 world-readable 观察者读取 actor 的已读位置（活动侧信道）。该组合 MUST 是**显式 opt-in**：reducer MUST 拒绝（`read_receipt_visibility_combination_invalid`）该组合，**除非** receipt policy payload 显式声明 opt-in 标记 `allow_public_receipts_on_world_readable=true`；显式 opt-in 时 reducer MUST 仍附带警告诊断并要求客户端按 §2.4 / §2.5 在 UI 明示。该字段与 `allow_child_privacy_tightening_against_required` 同纪律，是 prose-defined 合规旁路：read_receipt_policy payload schema MUST `additionalProperties=false` 收录该字段，writer 必须在 wire JSON 中按字面拼写出现它，字段缺省 / 为 `false` / 拼写错误时 reducer MUST 按拒绝处理。
 - metadata-private 场景下 receipt policy MUST 收紧 `visibility` 为 `members` 或 `private`，不得依赖上述显式 opt-in 旁路。
-- **fanout 收口(normative)**:即便已显式 opt-in `allow_public_receipts_on_world_readable=true`,Sync Service **SHOULD** 仍把 `ck.receipt.read` 的 fanout 限制在该 Flow effective scope 的 active member 集合，而**不**把 receipt 主动广播给非成员的 world-readable 外部观察者——即把"历史 world-readable"(读取已落库历史)与"receipt world-readable"(主动 fanout 实时已读位置)解耦。opt-in 只解除 reducer 的 accept 拒绝，不构成"必须向全网外部观察者主动推送 receipt"的义务；高隐私部署 SHOULD 默认采用该收口。实现者 MUST 向用户明示:public receipt 在 world-readable scope 下,actor 的已读位置对该 scope 的任意外部观察者实际可读，是活动侧信道。
+- **fanout 收口(normative)**:即便已显式 opt-in `allow_public_receipts_on_world_readable=true`,Sync Service **SHOULD** 仍把 `ck.receipt.read` 的 fanout 限制在该 Strand effective scope 的 active member 集合，而**不**把 receipt 主动广播给非成员的 world-readable 外部观察者——即把"历史 world-readable"(读取已落库历史)与"receipt world-readable"(主动 fanout 实时已读位置)解耦。opt-in 只解除 reducer 的 accept 拒绝，不构成"必须向全网外部观察者主动推送 receipt"的义务；高隐私部署 SHOULD 默认采用该收口。实现者 MUST 向用户明示:public receipt 在 world-readable scope 下,actor 的已读位置对该 scope 的任意外部观察者实际可读，是活动侧信道。
 - 该表只约束 receipt `visibility` 与 history visibility 的组合，不替代 §2.5 字段表与 child-policy 收紧规则；冲突时更严格者优先。
 
 ## 3. Read Cursor (私有游标)
@@ -159,8 +159,8 @@ Read cursor schema：`ck.schema.read_cursor.v1`。Read Cursor 是 actor-private 
   "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "read_scope": {
-    "kind": "flow",
-    "ref": "ck:flow:01964200-0000-7000-8000-000000000001",
+    "kind": "strand",
+    "ref": "ck:strand:01964200-0000-7000-8000-000000000001",
     "track_name": "discussion"
   },
   "position": {
@@ -177,7 +177,7 @@ Read cursor schema：`ck.schema.read_cursor.v1`。Read Cursor 是 actor-private 
 
 ### 3.3 写入合并
 
-Read Cursor 是 actor-private 持久状态，但仍然是高频更新。客户端 MUST 按 read_scope 合并，只提交相对本地已知 read cursor 单调前进的位置；在同一 `(actor_id, device_id, realm_id, read_scope)` 上的连续滚动 SHOULD 以最新位置覆盖待发送更新。默认建议将活跃阅读期间的持久写入 debounce 到 1 秒以上，或在离开 Flow、应用进入后台、手动标记已读时立即 flush。
+Read Cursor 是 actor-private 持久状态，但仍然是高频更新。客户端 MUST 按 read_scope 合并，只提交相对本地已知 read cursor 单调前进的位置；在同一 `(actor_id, device_id, realm_id, read_scope)` 上的连续滚动 SHOULD 以最新位置覆盖待发送更新。默认建议将活跃阅读期间的持久写入 debounce 到 1 秒以上，或在离开 Strand、应用进入后台、手动标记已读时立即 flush。
 
 服务端接收 actor-private `ck.read_cursor.advance` 时 SHOULD 按第 5 节合并，而不是保留不可见的全量游标历史。若实现需要审计，可保留最小 device、old/new position 和时间摘要；不得把共享 Realm timeline 当作 read cursor 的压缩日志。
 
@@ -186,15 +186,15 @@ Read Cursor 是 actor-private 持久状态，但仍然是高频更新。客户�
 未读计数是客户端本地或受托 notification service 维护的派生数据。
 
 1. 客户端同步用户的 account data 拿到最新的 `ck.read_cursor.advance`。
-2. 客户端计算 `ck.read_cursor.advance` 指向的 `event_id` 之后，该 Flow discussion track 内产生了多少条新的、应该触发提醒的 Message 或对象事件。
+2. 客户端计算 `ck.read_cursor.advance` 指向的 `event_id` 之后，该 Strand discussion track 内产生了多少条新的、应该触发提醒的 Message 或对象事件。
 3. 若部署使用受托 notification service，该服务必须按调用者权限和 `plaintext_visible_services` 规则生成最小化结果。
 
 Notification / unread count 是派生状态。服务 MAY 在一个 sync response 中合并多次 read cursor、receipt 和 notification rule 变化，只返回最终 count 与必要 frontier；客户端不得把中间 badge 抖动当作协议事件缺失。
 
 ## 5. Thread (子线程) 的已读隔离
 
-在 Thread 模式下，Flow discussion timeline 和子 Thread 的阅读进度是分离的。
-如果 `ck.receipt.read` 或 `ck.read_cursor.advance` 的目标 `event_id` 是一个 Thread 内的回复，它只更新该 Thread 的已读游标，**不**更新父 Flow discussion timeline 的游标，反之亦然。
+在 Thread 模式下，Strand discussion timeline 和子 Thread 的阅读进度是分离的。
+如果 `ck.receipt.read` 或 `ck.read_cursor.advance` 的目标 `event_id` 是一个 Thread 内的回复，它只更新该 Thread 的已读游标，**不**更新父 Strand discussion timeline 的游标，反之亦然。
 
 Thread 在 read scope 中的 wire 表达（normative）：Thread **不是一等协议对象**，没有独立 id kind、membership 或生命周期；它是某条 root message 的回复子时间线（`replies_to` 链）的投影选择器。Read Receipt 与 Read Cursor 的 Thread 范围都使用 `read_scope.kind="thread"`、`ref` = Thread 根消息的 `id:message`（见 `ck.schema.read_receipt.v1` / `ck.schema.read_cursor.v1` 与 [`../models/private-objects.md` §2.2](../models/private-objects.md)）。两份 schema 的 `read_scope` 共享同一 discriminator 族，但各自声明支持子集，以各自 schema 为权威源。
 
@@ -210,8 +210,8 @@ Read Cursor 是 actor-private 状态。最小结构示例：
   "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "read_scope": {
-    "kind": "flow",
-    "ref": "ck:flow:01964180-0280-7000-8000-000000000000",
+    "kind": "strand",
+    "ref": "ck:strand:01964180-0280-7000-8000-000000000000",
     "track_name": "discussion"
   },
   "position": {
@@ -235,8 +235,8 @@ Receipt 可以公开或私有，取决于 Realm policy。schema：`ck.schema.rea
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:web:alice.example",
   "read_scope": {
-    "kind": "flow",
-    "ref": "ck:flow:01964200-0000-7000-8000-000000000001",
+    "kind": "strand",
+    "ref": "ck:strand:01964200-0000-7000-8000-000000000001",
     "track_name": "discussion"
   },
   "event_id": "ck:event:01964387-7000-7000-8000-000000000000",
@@ -256,7 +256,7 @@ Notification 是派生 projection，不是 canonical truth。schema：`ck.schema
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "source_event_id": "ck:event:0196434a-8000-7000-8000-000000000000",
   "source_ref": "ck:message:0196434c-c000-7000-8000-000000000000",
-  "flow_id": "ck:flow:01964200-0000-7000-8000-000000000001",
+  "strand_id": "ck:strand:01964200-0000-7000-8000-000000000001",
   "track_name": "discussion",
   "notification_type": "mention",
   "priority": "normal",

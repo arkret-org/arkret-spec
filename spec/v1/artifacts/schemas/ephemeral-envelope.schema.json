@@ -21,7 +21,7 @@
         "ck.typing",
         "ck.receipt.read"
       ],
-      "description": "Ephemeral signal kind. MUST be one of the four broadcast ephemeral kinds; ck.key.verification.* point-to-point flows MUST use device-message.schema.json instead."
+      "description": "Ephemeral signal kind. MUST be one of the four broadcast ephemeral kinds; ck.key.verification.* point-to-point strands MUST use device-message.schema.json instead."
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id",

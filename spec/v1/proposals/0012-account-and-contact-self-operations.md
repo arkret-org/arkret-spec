@@ -28,7 +28,7 @@ merged_to:
 
 > **Status: accepted, merged into v1 normative spec on 2026-06-04.** 本文件保留为历史设计依据；后续 wire contract 以 `contract-catalog.json#operation_registry`、OpenAPI、schema artifact 与 `zh/sync/` 正式规范为准。
 >
-> **范围拆分(2026-06-04):** 本提案原含联系人关系(`ck.contact.*`)。审议发现"联系人 + 找他聊天"横跨 consent / discovery / realm / flow 多个 normative spec,是一份端到端编排提案,已分拆为 **[CKP-0013 Contact & Direct Conversation Lifecycle](./0013-contact-and-direct-conversation-lifecycle.md)**。本提案现只覆盖 **account self-service 四项**,可独立速通,不被联系人设计阻塞。
+> **范围拆分(2026-06-04):** 本提案原含联系人关系(`ck.contact.*`)。审议发现"联系人 + 找他聊天"横跨 consent / discovery / realm / strand 多个 normative spec,是一份端到端编排提案,已分拆为 **[CKP-0013 Contact & Direct Conversation Lifecycle](./0013-contact-and-direct-conversation-lifecycle.md)**。本提案现只覆盖 **account self-service 四项**,可独立速通,不被联系人设计阻塞。
 
 ## 1. Summary
 

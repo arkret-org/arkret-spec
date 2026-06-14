@@ -78,7 +78,7 @@
       },
       "uniqueItems": true,
       "minItems": 1,
-      "description": "Join-side flows this candidate claims to support for this requester and Realm."
+      "description": "Join-side strands this candidate claims to support for this requester and Realm."
     },
     "priority": {
       "type": "integer",

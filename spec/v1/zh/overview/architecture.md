@@ -36,11 +36,11 @@ Cokret 采用 **Principal Server + signed Event + identity registry + client-sid
 
 Cokret 不设置独立的第三方分发服务器角色。跨主体、跨组织传播通过参与方 Principal Server 之间的同步与联邦完成。
 
-协作数据层使用 Realm 作为复制与授权边界，在 Realm 内直接建模 Circle、Flow、Space、Message 等标准对象；Circle（`ck:circle:`）是 Realm 内的子事件边界（见 §2.0 容器选型），看板与列容器是独立的 Space（`ck:space:`），住在 Realm 内但永远不形成自己的 boundary。Morph 只承担开放扩展对象角色；其可选能力由 Realm schema / Morph profile 显式声明，facets 只是这些声明能力的 hint / 查询标签。Morph 不得作为绕过已注册标准对象 kind、capability 与 reducer 规则的 catch-all 容器。
+协作数据层使用 Realm 作为复制与授权边界，在 Realm 内直接建模 Circle、Strand、Space、Message 等标准对象；Circle（`ck:circle:`）是 Realm 内的子事件边界（见 §2.0 容器选型），看板与列容器是独立的 Space（`ck:space:`），住在 Realm 内但永远不形成自己的 boundary。Morph 只承担开放扩展对象角色；其可选能力由 Realm schema / Morph profile 显式声明，facets 只是这些声明能力的 hint / 查询标签。Morph 不得作为绕过已注册标准对象 kind、capability 与 reducer 规则的 catch-all 容器。
 
 ### 2.0 容器选型参考（Container Selection Reference）
 
-Cokret 定义四种"包含 / 边界"语义对象：Realm、Circle、Space、Flow。
+Cokret 定义四种"包含 / 边界"语义对象：Realm、Circle、Space、Strand。
 
 *Table 2-1. 容器对象按使用场景索引（informative）。*
 
@@ -49,7 +49,7 @@ Cokret 定义四种"包含 / 边界"语义对象：Realm、Circle、Space、Flow
 | 共享 federation / identity、Policy Server、capability registry、Realm-default E2EE group | `ck:realm:`（独立或加入既有） | federation / identity boundary；持有 membership 主源、Policy Server、capability registry、Realm-default MLS group |
 | Realm 内子集成员 + 独立 history / 投递 / 查询裁剪，复用父 Realm federation / policy / capability registry；必要时独立 MLS group | `ck:circle:`，对象通过 `scope_circle_id` 引用 | intra-Realm scoped event boundary；不持有 federation identity 或 Policy Server；约束 `Circle.members ⊆ Realm.members` |
 | Realm 内导航 / 排序 / 结构分组（board / list / folder / project / swimlane / calendar bucket 等） | `ck:space:`，`kind` 表 board / list / folder / project / ... | authorization-transparent 容器；自身不持有 membership / key；`Space.scope_circle_id` 仅决定 Space metadata effective scope，不构成独立 Realm 边界 |
-| Realm 内带 stage / state / fields / track 时间线的协作单元（task / decision / incident / channel 等） | `ck:flow:` | Realm 内协作主体；整 Flow 单一 effective scope（由 `Flow.scope_circle_id` 决定，`null` = Realm-default，否则指向 Circle） |
+| Realm 内带 stage / state / fields / track 时间线的协作单元（task / decision / incident / channel 等） | `ck:strand:` | Realm 内协作主体；整 Strand 单一 effective scope（由 `Strand.scope_circle_id` 决定，`null` = Realm-default，否则指向 Circle） |
 | 客户端导航整洁化（"软隐藏一组 Realm"） | （不新建容器）使用 View / Space hierarchy / Realm linking | Realm 间无树形包含关系，仅有 link graph；产品层"我的工作区"为 client-side 概念 |
 
 判定顺序（normative）：
@@ -57,12 +57,12 @@ Cokret 定义四种"包含 / 边界"语义对象：Realm、Circle、Space、Flow
 1. 实现 MUST 先确认是否需要独立的 federation / policy / capability registry 边界；仅在此情形升级到独立 `ck:realm:`。
 2. Realm 内若需要独立 membership、history visibility、投递 / 查询裁剪或独立 MLS group，MUST 使用 `ck:circle:`，对象通过 `scope_circle_id` 引用。
 3. 仅用于导航 / 结构分组的容器 MUST 使用 `ck:space:`，MUST NOT 借此获得 membership 或安全边界。
-4. 带协作语义的最小单元 MUST 使用 `ck:flow:`。
+4. 带协作语义的最小单元 MUST 使用 `ck:strand:`。
 5. 协议演化引入新容器型概念前 MUST 先证明无法分解为以上四类；governance 层若批准新增，须在 [proposals/](../../proposals/) 留档。
 
 子资源 scope 继承（`child_scope_policy`）取值、冲突解析，以及 `Space.scope_circle_id` 与 `default_realm_id` 同时存在时的优先级，权威定义见 [`models/circle.md`](../models/circle.md)（`child_scope_policy` 与 scope 解析优先级）；overview 不重复承载该解析规则。
 
-详细字段定义见 [`models/realm-and-space.md`](../models/realm-and-space.md)、[`models/circle.md`](../models/circle.md)、[`models/space-hierarchy.md`](../models/space-hierarchy.md)、[`models/realm-links.md`](../models/realm-links.md) 与 [`models/flow-and-message.md`](../models/flow-and-message.md)。
+详细字段定义见 [`models/realm-and-space.md`](../models/realm-and-space.md)、[`models/circle.md`](../models/circle.md)、[`models/space-hierarchy.md`](../models/space-hierarchy.md)、[`models/realm-links.md`](../models/realm-links.md) 与 [`models/strand-and-message.md`](../models/strand-and-message.md)。
 
 ### 2.1 Organization / Realm 边界
 
@@ -450,7 +450,7 @@ Cokret 固定以下架构取向：
 - 房间不是唯一世界模型
 - 消息也不是唯一原子单元
 - UI 不需要从聊天历史里推业务状态
-- 协议直接允许 Flow、Realm、Message、Morph 和 Relation 成为一等对象
+- 协议直接允许 Strand、Realm、Message、Morph 和 Relation 成为一等对象
 
 ## 6. 信任边界
 
@@ -515,12 +515,12 @@ Cokret 不打算做“两套系统”：
 
 - AI 写入的对象能被人类审阅
 - 人类创建的对象能被 AI 理解和引用
-- 卡片型 Flow、Message、Relation 和其他 Morph 对象可以互相链接
+- 卡片型 Strand、Message、Relation 和其他 Morph 对象可以互相链接
 - 所有沉淀都能投影成可操作界面
 
 因此协议**不**定义统一的 agent memory subsystem。Agent 的运行时上下文（prompt、scratchpad、向量索引、缓存等）由各 agent runtime 自行管理，协议不约束其形式。协议只负责两件事：
 
-- **可审计长期沉淀**：agent 需要跨会话保留的结论、决策、研究、代码或报告 SHOULD 写成 agent 签名的 Event，落到 Flow / Message / Morph / Blob，进入 Realm 账本，与人类协作沉淀共用同一份事实层。
+- **可审计长期沉淀**：agent 需要跨会话保留的结论、决策、研究、代码或报告 SHOULD 写成 agent 签名的 Event，落到 Strand / Message / Morph / Blob，进入 Realm 账本，与人类协作沉淀共用同一份事实层。
 - **受控外部知识访问**：agent 可读取的 Realm、对象或派生摘要 MUST 通过显式的 capability grant 声明 `scope`、`visibility` 与 retention 约束，受 capability 与 Realm policy 约束。
 
 这里"可审计长期沉淀"用 SHOULD，只约束**是否选择把某条沉淀落账**;它与下文 `agent_context` 的 MUST 相互独立——"沉淀可选"**不蕴含**"`agent_context` 可选"。一旦选择以 Event 落账(尤其代表人类写入共享对象),`agent_context` 即无条件适用:
@@ -539,7 +539,7 @@ Cokret v1 固定以下方向：
 - search / View projection 默认是客户端本地派生体验；受托搜索服务只能作为可选扩展
 - blob 是独立内容层
 - capability 是独立决策层
-- agent 输出通过 Message、卡片型 Flow、Morph、Relation 或 agent protocol session event 成为可审计协议事实
+- agent 输出通过 Message、卡片型 Strand、Morph、Relation 或 agent protocol session event 成为可审计协议事实
 - 同一数据既服务人类 UI，也服务 agent 上下文
 - confidentiality 与 portability 也是明确协议平面，而不是部署细节
 
