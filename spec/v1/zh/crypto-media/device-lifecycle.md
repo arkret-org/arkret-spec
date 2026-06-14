@@ -885,6 +885,19 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
       "nonce": "base64url..."
     }
   },
+  "domain_separation": {
+    "hkdf_info": "cokret-key-backup/mls_history/mls_epoch/v1",
+    "subdomain": "mls_epoch",
+    "aead_aad": {
+      "schema": "ck.schema.key_backup.v1",
+      "actor_id": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+      "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+      "backup_class": "mls_history",
+      "backup_version": "kb_1",
+      "created_at": "2026-04-26T00:00:00Z",
+      "item_types": ["mls_epoch_secret"]
+    }
+  },
   "contents": [
     {
       "item_type": "mls_epoch_secret",
@@ -900,7 +913,7 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
   "auth_data": {
     "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
     "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
-    "signature_algorithm": "EdDSA",
+    "signature_algorithm": "Ed25519",
     "signature": "base64url...",
     "signed_fields": [
       "backup_id",
@@ -911,6 +924,7 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
       "series_seq",
       "supersedes",
       "encryption",
+      "domain_separation",
       "contents",
       "ciphertext_digest"
     ]
