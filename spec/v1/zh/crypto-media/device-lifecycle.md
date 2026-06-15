@@ -88,7 +88,17 @@ Cokret v1 把三件事分开处理：
 2. **OIDC 重定向**：浏览器跳转至企业 Okta 完成标准的 OAuth2 / OIDC 身份认证。
 3. **网关授权 (Gateway Delegation)**：Okta 认证成功后回调 Auth Gateway。Gateway 验证员工身份无误后，签发短期、受众绑定、scope 受限的 `ck.session.grant`，把 `session_key_pub` 绑定到目标 DID principal、设备、origin、audience、过期时间和允许的 operation 集合。其中绑定的设备 MUST 是客户端持有的稳定协议 `device_id`（`ck:device:<uuid>`，由客户端在认证时显式声明，例如 OAuth `urn:cokret:client:device:<id>` scope 透传到 introspection 的 `org.cokret.device_id` claim）。资源服务器 MUST NOT 从 token / session 标识（如 `jti` / `session_id`）派生或伪造一个 per-token 的 `device_id`——这违反 §4「服务端不得伪造 device identity」，且会让该值在每次 token 轮换时漂移，静默破坏所有按 `(principal, device)` 绑定的不变量（sync cursor 主体/设备匹配、key backup 写入设备授权）。携带认证材料但缺少稳定 device 绑定的会话 MUST 对 device-scoped 操作 fail-closed 拒绝，而非降级放行。
 4. **会话生效**：浏览器操作必须同时附带 session grant、device proof 或等价绑定证明。常规写与敏感读 SHOULD 进一步用 `session_key`（即 grant 委托的 `session_public_key`）对每个请求做 RFC 9421 HTTP Message Signature 出示（sender-constrained / PoP，见 [`../sync/api-conventions.md` §3.2](../sync/api-conventions.md)），使会话请求与该 key 绑定，截获 token 不足以重放；高安全 deployment profile 下该出示升为 MUST。资源服务器仍 MUST 重新验证 DID control state、capability、Realm policy、grant scope、audience、origin 和重放状态；不得因为 OIDC 成功就把请求视为 DID 控制证明。
-5. **平滑过期**：session grant SHOULD 使用分钟到小时级 TTL，并支持即时撤销。续期需要重新验证 OIDC session，并重新检查组织 policy、设备状态和风险信号。
+5. **平滑过期**：session grant SHOULD 使用分钟到小时级 TTL，并支持即时撤销。
+
+### 3.3 设备持有绑定与 grant 轮换（normative）
+
+为在「access token 短命」与「设备会话可跨多日免重登」之间取得一致,session grant 采用**设备密钥持有绑定 + 滚动轮换**模型:
+
+- **持有绑定(cnf.jkt)**:签发 `ck.session.grant` 时,Auth Server MUST 要求客户端出示一个由其稳定设备密钥(holder key,RFC 9449 DPoP 式持有证明)签名的 proof,并把该密钥的 RFC 7638 JWK 指纹写入 grant 的 `cnf.jkt`(RFC 7800 confirmation)。该设备密钥即设备的持有凭证;`cnf.jkt` 把 grant 绑定到「持有该私钥的设备」,而非仅记一个 `device_id` 字符串。
+- **access bearer 短命、grant 作续期凭证**:Principal Server 用 grant 交换出的 access bearer MUST 短命(分钟级),且其过期 MUST NOT 超过 grant 过期;客户端在 bearer 临期时用**仍有效的 grant** 重新交换出新 bearer,无需联系 Auth Server。
+- **轮换(rotation)**:grant 临近自身过期时,客户端用**同一设备 holder key** 签 DPoP 持有证明,向 Auth Server 的 session-grant 轮换端点(见 [`../sync/service-http-binding.md` §2.3](../sync/service-http-binding.md))换出一张新 grant。Auth Server MUST 校验 proof 的 JWK 指纹等于旧 grant 的 `cnf.jkt`(证明持有同一设备私钥),新 grant 保持 `cnf.jkt` 不变、刷新过期、继承 subject/scope/audience;旧 grant MUST 单次使用吊销。如此滚动使设备会话存活到天级,**直到设备被吊销、grant 链被吊销、或底层 `browser_session` 被终结(登出)**——三者任一即拒绝继续轮换(见 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md))。
+- **不引入 OAuth refresh_token**:本协议以「设备 holder key 轮换 grant」承担续期职责,grant 自身保持分钟到小时级 TTL;不依赖、也不要求签发 OAuth `offline_access` refresh token。
+- **登出即终结**:轮换链挂靠在 Auth Server 的 `browser_session` 上;`browser_session` 被登出终结后,即便持有正确的设备私钥(指纹匹配 `cnf.jkt`)也 MUST NOT 再轮换出新 grant——续期必须重新走完整认证。
 
 此模式只把 Web2 SSO 作为登录因子和会话授权输入。它不授予 E2EE 密钥访问权，不自动创建长期设备，不替代 `ck.device.authorize`、DID/key-log operation 或 recovery policy。
 
