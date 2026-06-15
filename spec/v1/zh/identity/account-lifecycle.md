@@ -118,6 +118,25 @@ Current account status projection 是 ordered_log 上的确定性派生值，而
 
 `soft_logged_out -> active` 的恢复 MUST 绑定 fresh DID proof：refresh token、OIDC callback 或 re-auth 只能作为会话恢复材料，不能单独把账号状态恢复为 `active`。服务端 MUST 要求当前 principal DID 的授权 device key、account auth key、passkey 或 recovery policy 允许的密钥对一次性 challenge 签名，并把签名覆盖 `principal_id`、`device_id`、`audience`、`request_canonical_digest`、`challenge`、`issued_at` 与 `expires_at`。**`device_id` 绑定要求**:multi-device principal（principal 控制 ≥1 个授权 device key）下 `device_id` **MUST** 必填并被签名覆盖，绑定到发起恢复请求的具体 device,使该 challenge-response proof 不能被同 principal 的其它设备复用完成会话恢复（满足"会话绑定到 DID 与 device"目标）;仅当 principal 在 control stream 中**无任何未撤销 device record**（即不持有任何当前有效的 device-bound key，例如纯 account-auth-key / passkey 恢复路径）时 `device_id` 方可省略。服务端 MUST 依据该 principal control stream 中 device record 的当前状态（存在 ≥1 条未撤销 device record 即豁免不成立）判定豁免，**MUST NOT** 仅凭本次 proof 的签名 key 类型判定——否则持有未撤销 device-bound key 的 multi-device principal 可用 passkey / account-auth-key 签 proof 伪造"无 device key"假象，从而绕过本节要关闭的同 principal 其它设备复用 proof 窗口。豁免不成立时 MUST NOT 接受缺 `device_id` 的 proof。其中 `issued_at` 与 `expires_at` 是 **必填**（不再是可选）：服务端 MUST 拒绝缺失任一字段、`expires_at` 已过当前时钟、`expires_at - issued_at > 300s`、`issued_at` 相对服务端时钟的偏移（双向）超出 skew 容忍（SHOULD ≤ 300s），或 `issued_at` 晚于服务端当前时钟加 skew 容忍（即 proof 自称在未来签发）的 proof。这把 soft-logout 重放窗口的上界固定为 ≤ 300s，与 [`identity-did.md` §5.1](./identity-did.md) `ck.did.proof` 的 replay window（`expires_at - issued_at ≤ 300s` + skew ≤ 300s）对齐——否则签发方可把 `expires_at` 任意拉远，使一份 soft-logout 恢复 proof 在无上界的时间内反复重放。缺失该证明时返回 `401 did_proof_required`；`expires_at` 缺失或新鲜度超限时返回 `401 did_proof_required`（reason `did_proof_replay_window_exceeded`）；refresh token 单独有效时也 MUST NOT 静默签发新的 active session grant。
 
+### 4.1 显式登出（hard logout）与跨服务吊销编排
+
+`soft_logged_out` 是 access token 失效但凭证可恢复的软状态;用户主动「登出」是 **hard logout**——它 MUST 在所有持有该会话凭证的权威处终结会话,而非仅清本地。一个设备会话横跨两个权威,各自持有不同凭证:
+
+- **Auth Server(认证服务)**:`browser_session`(登录认证上下文)+ 它签发的 `ck.session.grant` 轮换链(及其 `cnf.jkt` 设备持有绑定,见 [`crypto-media/device-lifecycle.md` §3.2](../crypto-media/device-lifecycle.md))。
+- **Principal Server(资源服务)**:由 grant 交换出的短期 access bearer + 本地 session 记录 + 设备记录 + 待投递 to-device 队列。
+
+**编排(normative)**:hard logout 由客户端编排,对两个权威各发一次吊销(不存在 Auth Server→Principal Server 的吊销 push;传播是拉式的,见下):
+
+1. **客户端** MUST:停止 sync、清除本地 access token / `session_grant` / OIDC 凭证;hard logout SHOULD 额外清除本设备的 holder(DPoP)私钥,使下次登录轮换 `cnf.jkt`(软恢复路径 MUST 保留该 key 以便 refresh)。
+2. **客户端 → Auth Server** MUST 调 session-grant 撤销(RFC 7009 式;见 [`../sync/service-http-binding.md` §2.3](../sync/service-http-binding.md) `session-grants/revoke`),Auth Server MUST:(a) 吊销该 grant **及其整条轮换链**(后续以该链任一 grant 发起的 DPoP 轮换 MUST 被拒);(b) 终结底层 `browser_session`(置为 finished),此后凭同一 `cnf.jkt` 设备 holder proof 的轮换请求 MUST 被拒(`session_logged_out`),即设备密钥不能在登出后重建会话。
+3. **客户端 → Principal Server** MUST 调 `ck.gate.account.command.revoke_session`,Principal Server MUST:吊销该会话 access bearer + 撤销/标记其绑定的设备记录(使后续以该设备签名的 device-scoped 操作 fail closed)+ drop 该设备的待投递 to-device 消息。此命令撤销 session grant / access token 与设备会话凭证,但 **不** 改写 `ck.account.status`、不擦除 device authorization 历史。
+
+**吊销传播与生效语义(normative)**:跨服务吊销是**拉式**的——Principal Server 对 access bearer 的有效性以「本地 session 记录 + 对 Auth Server 的 token / session-grant 内省」为准;Auth Server 一侧的 grant/会话被吊销后,Principal Server MUST 在下一次内省时得到 `active=false` 并 fail closed。实现 MAY 缓存内省结果,但缓存 TTL 与 access bearer TTL 共同构成吊销生效的上界,二者 SHOULD ≤ 数分钟;高安全 profile SHOULD 更短或对敏感操作旁路缓存。Auth Server / Principal Server MUST NOT 依赖对方主动 push 吊销。
+
+**轮换链单次使用与重用即妥协(normative)**:`ck.session.grant` 轮换 MUST 单次使用——轮换成功即吊销旧 grant;对**已消费**的 grant 再次发起轮换 MUST 拒(`grant_already_consumed`),且 SHOULD 视为凭证泄露信号并吊销整条轮换链(并入上面的会话终结)。
+
+**与 soft logout 的区别**:soft logout 可凭 fresh DID/device proof(§4)恢复;hard logout 终结 grant 链 + `browser_session`,恢复 MUST 重新走完整认证(新 `browser_session`),设备密钥本身不足以重建会话。
+
 ## 5. Locked
 
 `locked` 表示安全风险临时锁定。服务端 MUST：
