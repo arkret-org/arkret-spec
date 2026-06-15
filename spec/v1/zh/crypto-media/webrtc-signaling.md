@@ -319,6 +319,88 @@ Candidate payload:
 
 字段名在 Cokret envelope 中使用 snake_case；浏览器原生 `sdpMid` / `sdpMLineIndex` MUST 映射为 `sdp_mid` / `sdp_m_line_index`。
 
+### 6.1 通话内状态信令（renegotiate / mute_state / speaking）
+
+以下信令的 `payload` 外层形态同 §5；`payload.data` 形态如下。它们同时适用于一对一与多方场景；`mute_state` / `speaking` 在多方 SFU 会议中按 §5 的 `seq` 单调性逐 `(realm_id, call_id, actor_id, device_id)` 防回滚。
+
+`renegotiate` payload —— 媒体协商变更（增删轨道、编解码变更、ICE restart）。一帧 MUST 仅携带 `offer` 与 `answer` 之一：发起侧帧带 `offer`，应答侧帧带 `answer`。
+
+```json
+{
+  "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
+  "signal_type": "renegotiate",
+  "seq": 20,
+  "data": {
+    "reason": "add_track",
+    "ice_restart": false,
+    "offer": {
+      "type": "offer",
+      "sdp": "v=0\r\n..."
+    },
+    "media": {
+      "audio": true,
+      "video": true,
+      "screen": false
+    }
+  }
+}
+```
+
+- `reason` MUST 为 `add_track` / `remove_track` / `codec_change` / `ice_restart` 之一。
+- `ice_restart=true` 时 MUST 触发 ICE restart（见 §4.2 凭证刷新触发）；此时 `offer` / `answer` 中的 SDP MUST 携带新的 ICE ufrag/pwd。
+- `media` optional，反映本帧后发送侧期望的媒体轨道集合。
+
+`mute_state` payload —— 音频/视频静音状态变更。
+
+```json
+{
+  "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
+  "signal_type": "mute_state",
+  "seq": 21,
+  "data": {
+    "audio_muted": true,
+    "video_muted": false,
+    "by": "self"
+  }
+}
+```
+
+- `audio_muted` / `video_muted` 为 boolean，required。
+- `by` MUST 为 `self` 或 `moderator`。`by=moderator` MUST 由具备 `ck.call.moderate`（§3）的 actor 发出，并 MUST 携带 `target_actor_id` 与 `target_device_id` 指明被静音方；被静音客户端收到后 MUST 本地强制静音并向用户显示来源。`by=self` 时 MUST NOT 携带 `target_*` 字段。
+
+```json
+{
+  "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
+  "signal_type": "mute_state",
+  "seq": 22,
+  "data": {
+    "audio_muted": true,
+    "video_muted": true,
+    "by": "moderator",
+    "target_actor_id": "did:web:bob.example",
+    "target_device_id": "ck:device:01964137-0000-7000-8000-000000000000"
+  }
+}
+```
+
+`speaking` payload —— voice activity 指示，高频、best-effort。接收方 MAY 丢弃乱序/过期帧而不报错。
+
+```json
+{
+  "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
+  "signal_type": "speaking",
+  "seq": 23,
+  "data": {
+    "speaking": true,
+    "audio_level": 0.42
+  }
+}
+```
+
+- `speaking` 为 boolean，required。
+- `audio_level` optional，归一化 RMS（`0.0`–`1.0`）；不得携带原始音频样本或可重建语音内容的数据。
+- `speaking` 帧 SHOULD 限频（建议 ≤ 5 帧/秒），且 MUST NOT 触发 push 唤醒。
+
 ## 7. 多设备冲突处理
 
 同一 actor 的多个设备 MAY 同时收到 invite。
