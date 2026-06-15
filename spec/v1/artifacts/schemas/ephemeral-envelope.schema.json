@@ -111,6 +111,10 @@
                 "type": "integer",
                 "minimum": 0,
                 "description": "Monotonic per-(realm_id, call_id, actor_id, device_id) sequence. Receivers MUST reject replay or rollback."
+              },
+              "data": {
+                "type": "object",
+                "description": "Signal-type-specific payload body (invite/answer/candidate/mute_state/...). Declared as the closed payload field per webrtc-signaling.md §5/§6; optional because some signals (e.g. ack) carry no body. Inner shape is signal_type-specific and intentionally open."
               }
             },
             "additionalProperties": true

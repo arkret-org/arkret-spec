@@ -30,6 +30,10 @@
       "type": "string",
       "minLength": 1
     },
+    "rtc_participant_identity": {
+      "type": "string",
+      "pattern": "^ck:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
     "string_list": {
       "type": "array",
       "minItems": 1,
@@ -7497,7 +7501,7 @@
           "$ref": "#/$defs/device_id"
         },
         "participant_identity": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "#/$defs/rtc_participant_identity"
         },
         "issued_at": {
           "$ref": "#/$defs/timestamp"
@@ -7543,7 +7547,7 @@
           }
         },
         "participant_identity": {
-          "$ref": "#/$defs/non_empty_string"
+          "$ref": "#/$defs/rtc_participant_identity"
         },
         "participant_binding": {
           "$ref": "#/$defs/participant_binding"
