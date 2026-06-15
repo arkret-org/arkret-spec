@@ -149,6 +149,98 @@
       }
     },
     {
+      "operation_id": "ck.gate.account.command.refresh_session_grant",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody",
+        "schema_kind": "object",
+        "required": [
+          "grant_jwt"
+        ],
+        "properties": [
+          "grant_jwt",
+          "audience"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshOutcome",
+        "schema_kind": "object",
+        "required": [
+          "grant_id",
+          "grant_jwt",
+          "session_public_key",
+          "expires_at",
+          "audience",
+          "dpop_jkt",
+          "previous_grant_id"
+        ],
+        "properties": [
+          "grant_id",
+          "grant_jwt",
+          "session_public_key",
+          "expires_at",
+          "audience",
+          "scopes",
+          "dpop_jkt",
+          "previous_grant_id"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.gate.account.command.logout_session_grant",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantLogoutRequestBody",
+        "schema_kind": "object",
+        "required": [
+          "grant_jwt"
+        ],
+        "properties": [
+          "grant_jwt"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantLogoutOutcome",
+        "schema_kind": "object",
+        "required": [
+          "revoked",
+          "browser_session_finished"
+        ],
+        "properties": [
+          "revoked",
+          "browser_session_finished"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.gate.account.command.logout",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutRequestBody",
+        "schema_kind": "object",
+        "required": [],
+        "properties": [],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutOutcome",
+        "schema_kind": "object",
+        "required": [
+          "ok",
+          "revoked"
+        ],
+        "properties": [
+          "ok",
+          "revoked"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ck.gate.account.command.pair_agent_key",
       "success_shape_kind": "typed_response",
       "request": {

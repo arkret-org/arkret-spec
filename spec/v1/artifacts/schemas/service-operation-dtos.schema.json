@@ -132,6 +132,123 @@
     }
   ],
   "$defs": {
+    "SessionGrantRefreshRequestBody": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "grant_jwt"
+      ],
+      "properties": {
+        "grant_jwt": {
+          "type": "string",
+          "description": "The near-expiry DPoP-bound session grant to rotate. Presented with a DPoP holder proof for the key bound into the grant's cnf.jkt."
+        },
+        "audience": {
+          "type": "string",
+          "description": "Optional; MUST equal the grant's bound audience if present (audience MUST NOT change across rotation, else audience_mismatch)."
+        }
+      }
+    },
+    "SessionGrantRefreshOutcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "grant_id",
+        "grant_jwt",
+        "session_public_key",
+        "expires_at",
+        "audience",
+        "dpop_jkt",
+        "previous_grant_id"
+      ],
+      "properties": {
+        "grant_id": {
+          "type": "string"
+        },
+        "grant_jwt": {
+          "type": "string",
+          "description": "Rotated grant: same subject/scope/audience, cnf.jkt unchanged, fresh minutes-to-hours expiry."
+        },
+        "session_public_key": {
+          "type": "string",
+          "description": "JWK the rotated grant is bound to (the device holder key)."
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "audience": {
+          "type": "string"
+        },
+        "scopes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dpop_jkt": {
+          "type": "string",
+          "description": "RFC 7638 thumbprint of the holder key (equals the grant's cnf.jkt)."
+        },
+        "previous_grant_id": {
+          "type": "string",
+          "description": "The prior grant, single-use revoked on success."
+        }
+      }
+    },
+    "SessionGrantLogoutRequestBody": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "grant_jwt"
+      ],
+      "properties": {
+        "grant_jwt": {
+          "type": "string",
+          "description": "Session grant to revoke; presented with a DPoP holder proof for its cnf.jkt key."
+        }
+      }
+    },
+    "SessionGrantLogoutOutcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "revoked",
+        "browser_session_finished"
+      ],
+      "properties": {
+        "revoked": {
+          "type": "boolean",
+          "description": "Whether the presented grant was revoked by this call."
+        },
+        "browser_session_finished": {
+          "type": "boolean",
+          "description": "Whether the underlying Auth Server browser session was finished (terminating the rotation chain)."
+        }
+      }
+    },
+    "AccountLogoutRequestBody": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {}
+    },
+    "AccountLogoutOutcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ok",
+        "revoked"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        },
+        "revoked": {
+          "type": "boolean",
+          "description": "Whether a live device session was revoked."
+        }
+      }
+    },
     "AccountCursorRevokeRequestBody": {
       "type": "object",
       "required": [

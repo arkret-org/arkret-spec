@@ -872,6 +872,18 @@ components:
       $ref: ../schemas/account-operations.schema.json#/$defs/session_revoke_request_body
     SessionRevokeOutcome:
       $ref: ../schemas/account-operations.schema.json#/$defs/session_revoke_outcome
+    SessionGrantRefreshRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody
+    SessionGrantRefreshOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshOutcome
+    SessionGrantLogoutRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantLogoutRequestBody
+    SessionGrantLogoutOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantLogoutOutcome
+    AccountLogoutRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutRequestBody
+    AccountLogoutOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutOutcome
     BottomDiagnostic:
       $ref: ../schemas/bottom.schema.json
     KeysUploadRequestBody:
@@ -6699,6 +6711,103 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SessionRevokeRequestBody'
+  /_cokret/gate/account/session-grants/refresh:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
+    post:
+      operationId: ck.gate.account.command.refresh_session_grant
+      security:
+      - bearerAuth: []
+      summary: Rotate a DPoP-bound session grant.
+      description: |
+        Rotate a near-expiry, DPoP-bound session grant onto a fresh one without
+        re-running OIDC (account-lifecycle §4.1, device-lifecycle §3.3). The
+        caller MUST present a DPoP header proving possession of the key bound
+        into the grant's cnf.jkt (ath = the prior grant). The new grant keeps
+        cnf.jkt, subject, scope and audience and gets a fresh minutes-to-hours
+        expiry; the prior grant is single-use revoked. audience MUST NOT change
+        across rotation (else audience_mismatch); a consumed grant returns
+        grant_already_consumed; a logged-out browser session returns
+        session_logged_out.
+      responses:
+        '200':
+          description: Rotated session grant.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionGrantRefreshOutcome'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionGrantRefreshRequestBody'
+  /_cokret/gate/account/session-grants/logout:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
+    post:
+      operationId: ck.gate.account.command.logout_session_grant
+      security:
+      - bearerAuth: []
+      summary: Auth Server hard logout of a session grant.
+      description: |
+        Hard logout at the Auth Server (account-lifecycle §4.1). The caller
+        presents a DPoP holder proof for the key bound into the grant's cnf.jkt;
+        the server revokes the grant and finishes its underlying browser
+        session, so the rotation chain cannot be resumed by any holder proof
+        afterwards (subsequent refresh returns session_logged_out and
+        introspection of any grant under that browser session returns inactive).
+      responses:
+        '200':
+          description: Auth Server session terminated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionGrantLogoutOutcome'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionGrantLogoutRequestBody'
+  /_cokret/gate/account/logout:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
+    post:
+      operationId: ck.gate.account.command.logout
+      security:
+      - bearerAuth: []
+      summary: Principal Server device logout.
+      description: |
+        Hard logout at the Principal Server (account-lifecycle §4.1): revoke the
+        current session's access bearer, mark its bound local device session
+        record revoked (so the device's subsequent device-scoped operations fail
+        closed at this Principal Server), and drop the device's queued to-device
+        messages. Does not emit ck.device.revoke, does not erase durable device
+        authorization (re-login restores the device), and does not rewrite
+        ck.account.status. Distinct from revoke_session (session-token-only).
+      responses:
+        '200':
+          description: Device session terminated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountLogoutOutcome'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountLogoutRequestBody'
   /_cokret/gate/account/device-pair:
     servers:
     - url: https://{host}

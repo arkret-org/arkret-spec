@@ -335,6 +335,9 @@
         "ck.gate.account.command.register",
         "ck.gate.account.command.pair_device",
         "ck.gate.account.command.issue_session_grant",
+        "ck.gate.account.command.refresh_session_grant",
+        "ck.gate.account.command.logout_session_grant",
+        "ck.gate.account.command.logout",
         "ck.gate.account.command.revoke_session",
         "ck.gate.account.exchange.complete_oidc"
       ]
@@ -395,6 +398,33 @@
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/session_revoke_request_body",
       "response_schema_ref": "schemas/account-operations.schema.json#/$defs/session_revoke_outcome"
+    },
+    {
+      "operation_id": "ck.gate.account.command.refresh_session_grant",
+      "http_only_variant": true,
+      "http": "POST /_cokret/gate/account/session-grants/refresh",
+      "notes": "DPoP-bound session-grant rotation (account-lifecycle §4.1, device-lifecycle §3.3). An authorized device presents a DPoP holder proof for the grant's cnf.jkt and rotates onto a fresh grant; the old grant is single-use revoked. Auth-Server-local op; not exposed over gRPC/MQ.",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshOutcome"
+    },
+    {
+      "operation_id": "ck.gate.account.command.logout_session_grant",
+      "http_only_variant": true,
+      "http": "POST /_cokret/gate/account/session-grants/logout",
+      "notes": "Auth Server hard logout (account-lifecycle §4.1): DPoP holder proof revokes the grant and finishes the underlying browser session, terminating the rotation chain. Auth-Server-local op; not exposed over gRPC/MQ.",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantLogoutRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantLogoutOutcome"
+    },
+    {
+      "operation_id": "ck.gate.account.command.logout",
+      "http_only_variant": true,
+      "http": "POST /_cokret/gate/account/logout",
+      "notes": "Principal Server device logout (account-lifecycle §4.1): revoke the current session bearer + mark its local device session record revoked + drop the device's queued to-device. Distinct from revoke_session (session-token-only). Principal-Server-local op; not exposed over gRPC/MQ.",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutOutcome"
     },
     {
       "operation_id": "ck.gate.account.command.pair_agent_key",

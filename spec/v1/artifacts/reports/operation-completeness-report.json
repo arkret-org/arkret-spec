@@ -17,13 +17,13 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 164,
+    "total_operations": 167,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 3,
       "service_describe": 7,
       "streaming_frame_schema": 2,
-      "typed_schema": 150
+      "typed_schema": 153
     },
     "by_tier_and_class": {
       "core": {
@@ -33,7 +33,7 @@
         "typed_schema": 21
       },
       "deployment_local": {
-        "typed_schema": 5
+        "typed_schema": 8
       },
       "extension": {
         "binary_or_redirect": 2,
@@ -419,6 +419,34 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
+      "operation_id": "ck.gate.account.command.logout",
+      "tier": "deployment_local",
+      "http": "POST /_cokret/gate/account/logout",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutOutcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/AccountLogoutRequestBody",
+        "response": "#/components/schemas/AccountLogoutOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.gate.account.command.logout_session_grant",
+      "tier": "deployment_local",
+      "http": "POST /_cokret/gate/account/session-grants/logout",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantLogoutRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantLogoutOutcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/SessionGrantLogoutRequestBody",
+        "response": "#/components/schemas/SessionGrantLogoutOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
       "operation_id": "ck.gate.account.command.pair_agent_key",
       "tier": "extension",
       "http": "POST /_cokret/gate/account/agent-key-pair",
@@ -442,6 +470,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/AccountDevicePairRequestBody",
         "response": "#/components/schemas/AccountDevicePairOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.gate.account.command.refresh_session_grant",
+      "tier": "deployment_local",
+      "http": "POST /_cokret/gate/account/session-grants/refresh",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshOutcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/SessionGrantRefreshRequestBody",
+        "response": "#/components/schemas/SessionGrantRefreshOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
