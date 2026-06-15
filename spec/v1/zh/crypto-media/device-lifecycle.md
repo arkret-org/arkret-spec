@@ -579,9 +579,26 @@ POST /_cokret/self/keys/claim
 | `device_id` | body | `id:device` | required | 当前上传设备。 |
 | `one_time_keys` | body | `object` | optional | 算法名到 one-time key 的映射。 |
 | `fallback_keys` | body | `object` | optional | 算法名到 fallback key 的映射。 |
-| `device_signature` | body | `signature` | required | 当前设备签名，MUST 链接到 self-signing / principal key。 |
+| `device_signature` | body | `signature` | required | 当前设备签名，MUST 链接到 self-signing / principal key。canonical 签名输入见下方 §8.1。 |
 
 响应字段：`one_time_key_counts: object` required；`fallback_keys: object` optional。
+
+#### 8.1 `device_signature` canonical 签名输入（normative）
+
+`keys/upload` 的 `device_signature` 由该设备的**设备身份 key**(event-signer 的 Ed25519 `did:key`，即 §5.2 `device_public_key` 对应私钥)对本次上传批次签名，绑定 `device_id` 与所上传的 OTK / fallback 批次。canonical 签名输入：
+
+```text
+"ck-keys-upload-v1\n"
++ canonical_json({
+    "device_id": <id:device>,
+    "one_time_keys": <one_time_keys or {}>,
+    "fallback_keys": <fallback_keys or {}>
+  })
+```
+
+- `canonical_json` 为 RFC 8785 JCS（见 [`../conformance/encoding.md`](../conformance/encoding.md)）；缺省的 `one_time_keys` / `fallback_keys` MUST 规范化为空对象 `{}` 后参与签名，不得省略键，保证发送方与验签方对同一批次得到逐字节一致的输入。
+- 批次内每个 `key_record.signature` 仍按其各自语义独立链接到 self-signing / principal key；`device_signature` 额外对**整批**签名，防止服务端或中间人对批次做增删/重排。
+- `device_signature.kid` MUST 指向该设备身份 key；服务端 MUST 用该设备权威 `device_public_key`(§5.2)验签，失败 MUST 拒绝上传（`invalid_param`）。
 
 `POST /_cokret/self/keys/query` 请求字段：
 
@@ -590,7 +607,24 @@ POST /_cokret/self/keys/claim
 | `device_keys` | body | `object` | required | principal DID 到 device ID 列表的映射。 |
 | `timeout_ms` | body | `int` | optional | 查询等待上限。 |
 
-响应字段：`device_keys: object` required；`failures: object` optional。
+响应字段：`device_keys: object` required；`failures: object` optional。`device_keys` 的每个 `(principal_id, device_id)` 记录为 `query_device_record`：prekey bundle 收在 `algorithms`(算法名 → key_record)子字段下，并在**与 `algorithms` 同级**携带设备验签公钥目录字段 `device_signing_key` 与 `device_status`(见下方 §8.2)。schema 见 [`keys-operations.schema.json`](../../artifacts/schemas/keys-operations.schema.json) 的 `$defs/query_device_record`。
+
+#### 8.2 设备验签公钥目录（normative）
+
+`keys/query` 响应在每个 `(principal_id, device_id)` 记录上附带便捷的**设备验签公钥目录**面，供任意 realm 成员把 `(actor, device)` 解析为权威验签公钥，据此 fail-closed 验证通话信令（[`webrtc-signaling.md` §5.1](./webrtc-signaling.md)）与持久消息的 proof：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `device_signing_key` | `did:key`(Ed25519 multibase) | optional | 该设备的**权威验签公钥**，来源 = 该设备权威 `ck.device.authorize.payload.device_public_key`(§5.2)。MUST **仅对 verified 且未吊销**的设备返回。 |
+| `device_status` | `enum(active, revoked)` | optional | 目录态。`active` = 该设备 `device.authorize` 在效且未吊销；`revoked` = 已被 `ck.device.revoke` 吊销。 |
+
+规则：
+
+- 服务端 MUST 仅对 verified 且未吊销设备返回 `device_signing_key`；对**吊销 / 未验**设备 MUST 省略 `device_signing_key`，并以 `device_status` 标注(吊销返 `revoked`)。即"省略 key" 与 "`device_status != active`" 等价表达设备不可用于验签。
+- 该目录面是 **Tier-1 便捷面**：它承载服务端在 session-grant / `device.authorize` ingest 时已校验过的 `device_public_key` 断言。客户端验签**信任服务端断言**即可达成 fail-closed 验证。
+- Tier-2(硬化，后续阶段)将在每条记录上**附加** `cross_signing_binding`（§5.2 / §5.2.1），供客户端独立验证 device key → SSK → PSK 的交叉签名链，而非仅信服务端断言。**本阶段不新增该字段**，仅在此 forward-reference 其位置。
+
+接收方验 envelope / signal proof 时 MUST 按 `verification_method` = `` `{actor}#device` `` 经本目录解析 `device_signing_key` 得 verify_key；设备**吊销**(`device_status != active` 或目录省略 key)、目录**缺失**该 `(actor, device)`、或验签失败者 MUST **fail-closed**：丢弃信号，MUST NOT 触发 UI、MUST NOT 入库。该规则同时适用于通话信令(详见 [`webrtc-signaling.md` §5.1](./webrtc-signaling.md))与持久消息接收路径。
 
 `POST /_cokret/self/keys/claim` 请求字段：
 

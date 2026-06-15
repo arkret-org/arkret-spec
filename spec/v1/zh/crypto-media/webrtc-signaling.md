@@ -256,11 +256,41 @@ Content-Type: application/json
     "seq": 12,
     "data": {}
   },
-  "proof": {}
+  "proof": {
+    "kind": "detached_jws",
+    "alg": "EdDSA",
+    "verification_method": "did:web:alice.example.com#device",
+    "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+    "created_at": "2026-04-26T00:00:00Z",
+    "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJl"
+  }
 }
 ```
 
-Receiver MUST verify `proof` over the canonical envelope bytes (excluding `proof`) before surfacing ringing UI, and MUST reject replay / rollback using monotonically increasing `payload.seq` per `(realm_id, payload.call_id, actor_id, device_id)`.
+### 5.1 Envelope proof（normative）
+
+`ck.call.signal` 的 `proof` 是 detached-JWS，**形态与持久 Event proof 同构**（[`../models/event-and-patch.md` §3](../models/event-and-patch.md) 与 `event-envelope.schema.json` 的 `$defs/event_proof`）：字段为 `kind` = `detached_jws`、`alg`(默认 `EdDSA`)、`verification_method`、`event_digest`、`created_at`、`jws`，schema 见 [`ephemeral-envelope.schema.json`](../../artifacts/schemas/ephemeral-envelope.schema.json) 的 `$defs/ephemeral_proof`。
+
+- `verification_method` MUST 是 `` `{actor_id}#device` `` 形式的 DID URL；其 controller DID(去 fragment / query 后)MUST 与 envelope `actor_id` 逐字节相等。
+- `event_digest` MUST 等价于 `canonical_digest(envelope_without_proof)`：对**移除 `proof` 字段后**的整个 ephemeral envelope(`kind`、`realm_id`、`actor_id`、`device_id`、`sent_at`、`expires_at`、`payload`)按 RFC 8785 JCS（canonical JSON，见 [`../conformance/encoding.md`](../conformance/encoding.md)）序列化后取 hash，前缀算法名(如 `sha256:`)。
+- `jws` 的 detached-JWS payload / transcript MUST 是 canonical proof binding object，而非把整个 envelope bytes 放进 JWS payload：
+
+```json
+{
+  "event_digest": "sha256:<canonical envelope hash>",
+  "actor_id": "<envelope actor_id>",
+  "verification_method": "<proof.verification_method>",
+  "created_at": "<proof.created_at>",
+  "domain": "<proof.domain if present>",
+  "audience": "<proof.audience if present>"
+}
+```
+
+该 binding object 与 [`../models/event-and-patch.md` §3](../models/event-and-patch.md) 的持久 Event proof binding object **逐字段同构**（同样含 `actor_id` = envelope `actor_id`），从而**同一个** EdDSA detached-JWS verifier（参考实现 `cokret-rust-sdk` 的 `verify_eddsa_detached_jws_proof`）可不加改动地同时服务通话信令与持久消息。`actor_id` 既进 binding object 被签名覆盖，`verification_method` 的 controller DID 又 MUST 与之逐字节相等——双重绑定。
+
+接收方 MUST 在触发 ringing UI（或任何信令副作用）之前验证 `proof`：MUST 先移除 `proof` 计算 canonical envelope hash 并与 `proof.event_digest` 比对，再按上述字段构造 binding object 验证 detached-JWS。验证 verify_key 时 MUST 以 `verification_method` = `` `{actor_id}#device` `` 经设备目录（[`device-lifecycle.md` §8](./device-lifecycle.md) keys/query 响应的 `device_signing_key`）解析该 `(actor, device)` 的权威验签公钥。设备**吊销**(`device_status != active` 或目录省略 key)、目录**缺失**该 `(actor, device)`、`verification_method` controller 与 `actor_id` 不一致、或 detached-JWS 验签失败者，接收方 MUST **fail-closed**：丢弃该信号，MUST NOT 触发 UI、MUST NOT 入库、MUST NOT 推进 `payload.seq` 状态。
+
+接收方亦 MUST reject replay / rollback：`payload.seq` 在 `(realm_id, payload.call_id, actor_id, device_id)` 维度上 MUST 单调递增。
 
 `payload.signal_type`：
 

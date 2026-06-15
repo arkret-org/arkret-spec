@@ -53,8 +53,8 @@
       "description": "Kind-specific signal payload. Schema per kind is defined by the producing module (e.g. zh/crypto-media/webrtc-signaling.md for ck.call.signal, zh/discovery/read-receipts.md for ck.receipt.read). Payload MUST NOT carry mutable governance state — that belongs in a durable event."
     },
     "proof": {
-      "type": "object",
-      "description": "Optional detached signature over canonical envelope bytes (per RFC 8785 JCS, excluding `proof` itself). Required for ck.call.signal; RECOMMENDED for ck.receipt.read so receivers can verify origin without trusting relay. presence / typing MAY omit proof for cost reasons; receivers MUST NOT promote unsigned signals to durable state."
+      "$ref": "#/$defs/ephemeral_proof",
+      "description": "Detached-JWS proof over the canonical ephemeral envelope, structurally isomorphic to the durable Event proof ($defs/event_proof in event-envelope.schema.json / models/event-and-patch.md §3). Required for ck.call.signal; RECOMMENDED for ck.receipt.read so receivers can verify origin without trusting relay. presence / typing MAY omit proof for cost reasons; receivers MUST NOT promote unsigned signals to durable state. Signing input is the canonical proof binding object {event_digest, verification_method, created_at}; event_digest is canonical_digest of the envelope with `proof` removed (RFC 8785 JCS). verification_method MUST be the `{actor_id}#device` DID URL. See crypto-media/webrtc-signaling.md §5."
     }
   },
   "allOf": [
@@ -128,6 +128,78 @@
     "did": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "ephemeral_proof": {
+      "type": "object",
+      "description": "Detached-JWS proof for a broadcast ephemeral envelope. Structurally isomorphic to event-envelope.schema.json #/$defs/event_proof: same kind / alg / verification_method / event_digest / created_at / jws shape, so a single EdDSA detached-JWS verifier serves both durable Event proofs and ephemeral signal proofs. The only difference is which canonical bytes feed event_digest (here: the ephemeral envelope with `proof` removed).",
+      "required": [
+        "kind",
+        "verification_method",
+        "alg",
+        "event_digest",
+        "created_at",
+        "jws"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "detached_jws"
+          ],
+          "description": "detached_jws = device signature over the canonical proof binding object canonical_json({event_digest, verification_method, created_at, domain?, audience?}). event_digest is the canonical ephemeral-envelope hash with `proof` removed (RFC 8785 JCS)."
+        },
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
+          "description": "DID URL of the signing device key. For ck.call.signal MUST be `{actor_id}#device`; verifier MUST strip the fragment for controller comparison and MUST compare that controller DID bit-identically to the envelope actor_id, then resolve the verify key from the device directory (keys/query device_signing_key, keys-operations.schema.json). Same form as event_proof.verification_method."
+        },
+        "alg": {
+          "type": "string",
+          "enum": [
+            "EdDSA",
+            "ES256",
+            "ML-DSA-65"
+          ],
+          "description": "Default EdDSA. Same enum as event_proof.alg for a shared verifier."
+        },
+        "event_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "canonical_digest(envelope without `proof`) per RFC 8785 JCS, isomorphic to event_proof.event_digest (which excludes proofs + unsigned)."
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "audience": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

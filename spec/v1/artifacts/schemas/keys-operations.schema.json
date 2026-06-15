@@ -134,6 +134,56 @@
         "$ref": "#/$defs/device_key_records"
       }
     },
+    "did_key": {
+      "type": "string",
+      "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$",
+      "description": "Authoritative device signing key as an Ed25519 did:key (multibase base58btc, multicodec ed25519-pub). Mirrors ck.device.authorize.payload.device_public_key (device-lifecycle.md §5.2). This is the verify key receivers resolve via verification_method `{actor}#device` to check ck.call.signal / ephemeral envelope and durable Event proofs."
+    },
+    "device_status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "revoked"
+      ],
+      "description": "Directory status of the (principal_id, device_id) pair at query time. active = device.authorize present and not revoked; revoked = a ck.device.revoke is in effect. Servers MUST omit device_signing_key for any non-active (revoked / unverified) device."
+    },
+    "query_device_record": {
+      "type": "object",
+      "description": "Per-(principal_id, device_id) entry in keys_query_outcome. Carries the prekey bundle under `algorithms` plus the convenience signing-key directory fields `device_signing_key` / `device_status` at the same level as the algorithm dimension (not repeated per algorithm). The directory facet is populated only for verified, non-revoked devices; see device-lifecycle.md §8.",
+      "required": [
+        "algorithms"
+      ],
+      "properties": {
+        "algorithms": {
+          "$ref": "#/$defs/algorithm_key_records"
+        },
+        "device_signing_key": {
+          "$ref": "#/$defs/did_key"
+        },
+        "device_status": {
+          "$ref": "#/$defs/device_status"
+        }
+      },
+      "additionalProperties": false
+    },
+    "query_device_keys": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/device_id"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/query_device_record"
+      }
+    },
+    "query_principal_device_keys": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/did"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/query_device_keys"
+      }
+    },
     "device_algorithm_map": {
       "type": "object",
       "propertyNames": {
@@ -376,7 +426,7 @@
       ],
       "properties": {
         "device_keys": {
-          "$ref": "#/$defs/principal_device_key_records"
+          "$ref": "#/$defs/query_principal_device_keys"
         },
         "failures": {
           "type": "array",
