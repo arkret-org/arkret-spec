@@ -133,6 +133,8 @@ Current account status projection 是 ordered_log 上的确定性派生值，而
 
    两步都走 `/_cokret` 协议面，客户端 **MUST NOT** 依赖任何产品私有(如 `/_soland/*`)路由完成登出。
 
+**登出耐久性(normative)**:hard logout 的本地清除(步骤 1)与两处服务端吊销(步骤 2、3)不是原子的——客户端在清本地凭证后、服务端吊销返回前可能崩溃、关页或离线。为防止「本地已登出但服务端轮换链仍存活」的窗口，客户端 **SHOULD** 在执行本地清除**之前**把登出意图(至少:grant JWT、用于铸 holder proof 的设备 holder key、两处吊销目标)持久化(journal),并在调用失败时重试(含下次启动重放),直至 Auth Server 确认 grant 链终结后方清除该 journal。其中**步骤 2(Auth Server grant + `browser_session` 终结)是耐久性关键步**:它一旦完成，轮换链不可再续，后续无法铸出新 access bearer;**步骤 3(Principal Server)可视为加速吊销**——即便未送达，既有短期 access bearer 也会在其 TTL 内自然失效(且因下文拉式内省而 fail closed),无需独立的耐久保证。由于 `ck.session.grant` 有受限 TTL(见 [`crypto-media/device-lifecycle.md` §3.3](../crypto-media/device-lifecycle.md)),客户端 **MAY** 在该 TTL(加时钟 skew 容忍)过后停止重试:此时整条链已因自然过期失效,journal 中已无可吊销之物。重试 **MUST** 幂等——对已吊销/已过期 grant 再次调步骤 2 不应被视为错误。
+
 **吊销传播与生效语义(normative)**:跨服务吊销是**拉式**的——Principal Server 对 access bearer 的有效性以「本地 session 记录 + 对 Auth Server 的 token / session-grant 内省」为准;Auth Server 一侧的 grant/会话被吊销后,Principal Server MUST 在下一次内省时得到 `active=false` 并 fail closed。实现 MAY 缓存内省结果，但缓存 TTL 与 access bearer TTL 共同构成吊销生效的上界，二者 SHOULD ≤ 数分钟；高安全 profile SHOULD 更短或对敏感操作旁路缓存。Auth Server / Principal Server MUST NOT 依赖对方主动 push 吊销。
 
 **轮换链单次使用与重用即妥协(normative)**:`ck.session.grant` 轮换 MUST 单次使用——轮换成功即吊销旧 grant;对**已消费**的 grant 再次发起轮换 MUST 拒(`grant_already_consumed`),且 SHOULD 视为凭证泄露信号并吊销整条轮换链(并入上面的会话终结)。
