@@ -4621,20 +4621,6 @@
       "notes": "Trust-surface segment prepended (ck.keys.backups.get -> ck.self.keys.backups.get), then the retrieval operation was rebound to POST .../{backup_id}/unlock with a body-borne unlock proof (ck.self.keys.backups.get -> ck.self.keys.backups.unlock, 2026-06-11); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "SnapshotHeadState",
-      "kind_class": "schema_def_name",
-      "migration_group": "snapshot_head_returns_manifest",
-      "since_revision": "2026-06-11",
-      "rejection_level": "hard_reject",
-      "replacement": "ck.schema.snapshot.v1 manifest (schemas/snapshot.schema.json)",
-      "allowed_contexts": [
-        "changelog",
-        "legacy_migration",
-        "negative_test"
-      ],
-      "notes": "The snapshot head pointer DTO carried a detached signature without the chunks[]/realm_id/reducer_profile fields the manifest signature transcript covers, so the response could not be verified standalone, carried no chunk download plan, and duplicated the manifest id as snapshot_ref. ck.self.snapshot.head / ck.peer.snapshot.head now return the full Snapshot manifest; deployments that cannot produce a real signed manifest MUST NOT advertise the operation and MUST respond not_implemented instead of fabricating proof fields."
-    },
-    {
       "id": "ck.self.keys.backups.get",
       "kind_class": "operation_id",
       "migration_group": "key_backup_unlock_proof_transport",
