@@ -128,8 +128,10 @@ Current account status projection 是 ordered_log 上的确定性派生值，而
 **编排(normative)**:hard logout 由客户端编排,对两个权威各发一次吊销(不存在 Auth Server→Principal Server 的吊销 push;传播是拉式的,见下):
 
 1. **客户端** MUST:停止 sync、清除本地 access token / `session_grant` / OIDC 凭证;hard logout SHOULD 额外清除本设备的 holder(DPoP)私钥,使下次登录轮换 `cnf.jkt`(软恢复路径 MUST 保留该 key 以便 refresh)。
-2. **客户端 → Auth Server** MUST 调 session-grant 撤销(RFC 7009 式;见 [`../sync/service-http-binding.md` §2.3](../sync/service-http-binding.md) `session-grants/revoke`),Auth Server MUST:(a) 吊销该 grant **及其整条轮换链**(后续以该链任一 grant 发起的 DPoP 轮换 MUST 被拒);(b) 终结底层 `browser_session`(置为 finished),此后凭同一 `cnf.jkt` 设备 holder proof 的轮换请求 MUST 被拒(`session_logged_out`),即设备密钥不能在登出后重建会话。
-3. **客户端 → Principal Server** MUST 调该 Principal Server 的设备登出操作,Principal Server MUST:吊销该会话 access bearer + 撤销/标记其绑定的**本地设备会话记录**(使后续以该设备签名的 device-scoped 操作在本 Principal Server fail closed)+ drop 该设备的待投递 to-device 消息。此操作终结该设备在本 Principal Server 的会话凭证,但 **不** 改写 `ck.account.status`、不发 `ck.device.revoke` 协议事件、不擦除 durable device authorization 历史(用户重新登录即可在本设备恢复)。注意它与 `ck.gate.account.command.revoke_session`(仅撤 session grant / access token、不触设备会话记录,用于"撤某个会话但保留设备")是不同操作。
+2. **客户端 → Auth Server** MUST 调 `POST /_cokret/gate/account/session-grants/logout`(DPoP holder proof,见 [`../sync/service-http-binding.md` §2.3](../sync/service-http-binding.md)),Auth Server MUST:(a) 吊销该 grant;(b) 终结底层 `browser_session`(置为 finished)。此后 (i) 凭同一 `cnf.jkt` 设备 holder proof 调 `refresh` MUST 被拒(`session_logged_out`),整条轮换链不可再续;(ii) 该 `browser_session` 下任何 grant 的 introspection MUST 返回 inactive(即设备密钥不能在登出后重建或维持会话)。
+3. **客户端 → Principal Server** MUST 调 `POST /_cokret/gate/account/logout`(`ck.gate.account.command.logout`),Principal Server MUST:吊销该会话 access bearer + 撤销/标记其绑定的**本地设备会话记录**(使后续以该设备签名的 device-scoped 操作在本 Principal Server fail closed)+ drop 该设备的待投递 to-device 消息。此操作终结该设备在本 Principal Server 的会话凭证,但 **不** 改写 `ck.account.status`、不发 `ck.device.revoke` 协议事件、不擦除 durable device authorization 历史(用户重新登录即可在本设备恢复)。注意它与 `ck.gate.account.command.revoke_session`(仅撤 session grant / access token、不触设备会话记录,用于"撤某个会话但保留设备")是不同操作。
+
+   两步都走 `/_cokret` 协议面,客户端 **MUST NOT** 依赖任何产品私有(如 `/_soland/*`)路由完成登出。
 
 **吊销传播与生效语义(normative)**:跨服务吊销是**拉式**的——Principal Server 对 access bearer 的有效性以「本地 session 记录 + 对 Auth Server 的 token / session-grant 内省」为准;Auth Server 一侧的 grant/会话被吊销后,Principal Server MUST 在下一次内省时得到 `active=false` 并 fail closed。实现 MAY 缓存内省结果,但缓存 TTL 与 access bearer TTL 共同构成吊销生效的上界,二者 SHOULD ≤ 数分钟;高安全 profile SHOULD 更短或对敏感操作旁路缓存。Auth Server / Principal Server MUST NOT 依赖对方主动 push 吊销。
 
