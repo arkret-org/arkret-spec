@@ -175,6 +175,10 @@ SFU 在 v1 通过 [§2](#2-realtime-media-server) 的 `foci[]` 声明，每个 f
 4. Token issuer MUST 拒绝任何 `focus_id != session_focus` 的 token exchange，错误码 `focus_mismatch`；该规则优先于 health check、region preference 和 load balancing。
 5. 当 oldest member 离开，focus **不自动迁移**（避免媒体路径中断）；session 持续到所有人离开后才重置。v1 不提供 in-session focus migration。
 
+### 5.1 P2P→SFU 升级复用本节选举（normative）
+
+P2P 起步的通话在并发参与者 > 2 时 MUST 收敛到 SFU（normative 触发、信令与 `mode` 写入规则见 [`call-state.md` §6](./call-state.md)）。升级 MUST 直接复用本节的 deterministic, no-vote `session_focus` 选举：由 oldest_membership 的 `foci_preferred[0]` 选出 `session_focus`，各设备经 `ck.call.signal{signal_type=focus_join}`（见 [`webrtc-signaling.md` §5](./webrtc-signaling.md)）迁移媒体，原 P2P leg 在迁移完成后优雅拆除。升级不引入任何新的投票 / leader 选举路径，也不为升级新增 focus migration 例外——一旦 `session_focus` committed 即遵守第 1–5 条的 write-once 与 no-split-brain 规则。
+
 ## 6. SFU 权限
 
 SFU MUST verify:

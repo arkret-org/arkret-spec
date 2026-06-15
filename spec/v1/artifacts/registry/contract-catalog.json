@@ -2440,7 +2440,22 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Call recording start"
+        "payload": "Call recording / transcript capture start"
+      },
+      {
+        "event_kind": "ck.call.summary",
+        "category": "call",
+        "status": "active",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "payload": "Durable end-of-call summary",
+        "cell_family": "ck.component.call.summary.v1",
+        "cell_subject": {
+          "type": "typed_id",
+          "field": "payload.call_id"
+        },
+        "lattice": "cas_register",
+        "bottom": "reject"
       },
       {
         "event_kind": "ck.sovereign.did_policy",
@@ -6941,7 +6956,8 @@
         "risk_tier": "medium",
         "required_constraints": [],
         "target_event_kinds": [
-          "ck.call.state"
+          "ck.call.state",
+          "ck.call.summary"
         ],
         "profile": null,
         "event_mapping_kind": "scope_suffix_variant"

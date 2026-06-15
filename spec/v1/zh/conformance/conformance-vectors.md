@@ -3362,6 +3362,74 @@ Expected:
 - 实现 MUST NOT 用 HLC、`created_at`、actor id、event id、event digest、数据库顺序或接收顺序选择 `active` 或 `missed` 作为 winner。
 - 后续依赖该 call state 的写入 MUST fail closed，直到显式 recovery 在新的 accepted basis 上修复冲突。
 
+### 12.16 Call State — Recording Retention & Audit Lock
+
+`vector_id`: `ck.vector.call_state.recording_retention_lock.v1`
+
+Steps:
+
+1. Producer 提交 `ck.call.state`，`recording_state="ready"`，`recording_result.retention` 含 `retention_expires_at`（未来）、`deletion_trigger="retention_expiry"`、`audit_lock=true`。
+2. 在 `retention_expires_at` 之前尝试删除 artifact。
+3. 在 `retention_expires_at` 之后但 `audit_lock` 未解除时再次尝试删除。
+4. 提交一条 `recording_state="recording"` 的 `ck.call.state`，其 `recording_result.retention.consent_confirmed` 缺失或为 false。
+
+Expected:
+
+- 第 2、3 步删除 MUST 被拒绝 `legal_hold_active`（audit_lock 优先于 TTL 与 capability）。
+- 第 4 步 MUST `failed_precondition` `reason_code=recording_consent_required`。
+- 反例（control）：`audit_lock=false` 且已过 `retention_expires_at`、`deletion_trigger=retention_expiry` 时删除 MAY accepted；`recording_state="recording"` 且 `consent_confirmed=true` 时写入 MUST accepted。
+
+### 12.17 Call State — Transcribe Lifecycle & Key Source
+
+`vector_id`: `ck.vector.call_state.transcribe_lifecycle.v1`
+
+Steps:
+
+1. 不具 `ck.call.transcribe` 的 actor 发起 `ck.call.recording.start{capture_kind="transcript"}`。
+2. 具 `ck.call.transcribe` 的 actor 发起 transcript start，artifact 加密 key 声称来自 MLS exporter 但复用 SFrame label `"ck-rtc-frame-key/v1"` 或空 Context。
+3. 同一 artifact 改用 label `"ck-rtc-transcript-key/v1"`、`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, transcript_start_event_id})` 重新上传，并通过 `ck.call.state` 写 `transcript_state="ready"`。
+
+Expected:
+
+- 第 1 步 MUST 拒绝 `transcription_denied`。
+- 第 2 步 MUST 拒绝 `transcription_artifact_pipeline_bypassed`；transcript key 不得与 SFrame / recording label 复用或空 Context。
+- 第 3 步 MAY accepted，前提 Cokret blob pipeline、capability proof 与 `ck.call.state` lifecycle 绑定同时通过。
+
+### 12.18 Call State — Moderator Kick / Ban
+
+`vector_id`: `ck.vector.call_state.moderator_kick_ban.v1`
+
+Steps:
+
+1. 不具 `ck.call.moderate` 的 actor 发出 `ck.call.signal{signal_type=moderation, action=kick}`。
+2. 具 `ck.call.moderate` 的 moderator 对 `(target_actor_id, target_device_id)` 发 `kick`，并写 `ck.call.state.removed_participants[]`。
+3. moderator 对某 `target_actor_id` 发 `ban`（`removed_participants[]` 项省略 `device_id`）。
+4. 被 ban 的 actor 重新向 token issuer 兑换 join token。
+
+Expected:
+
+- 第 1 步 MUST 拒绝 `call_moderation_unauthorised`。
+- 第 2 步被 kick 设备 MUST 拆除媒体；token issuer / SFU 据 `removed_participants[]` 拒绝其重接 `call_participant_removed`，但同 actor 重新发起新 join 不受阻。
+- 第 4 步 token issuer MUST 拒绝 `call_participant_removed`，直到 ban 在本通话生命周期内被解除。
+
+### 12.19 Call State — P2P→SFU Upgrade & Summary Gate
+
+`vector_id`: `ck.vector.call_state.p2p_to_sfu_upgrade.v1`
+
+Steps:
+
+1. 以 `mode="p2p"` 起步的两人通话，第三个参与者将加入（active leg 达到 3）。
+2. 触发升级：按 media-service-binding §5 oldest_membership 选举 `session_focus`，各设备经 `ck.call.signal{signal_type=focus_join}` 迁移。
+3. 升级后提交 `ck.call.state.mode="sfu"`，随后人数回落到 2。
+4. 通话到达终态 `ended` 后提交 `ck.call.summary{final_state="ended"}`；另对一个尚处 `active` 的 call 提交 `ck.call.summary`。
+
+Expected:
+
+- 第 1 步 MUST 触发升级，不得以 P2P / mesh 承载 3 人以上。
+- 第 2 步 `session_focus` 由 oldest_membership 的 `foci_preferred[0]` 确定，无投票路径；committed 后 write-once。
+- 第 3 步 `mode` MUST NOT 在同一生命周期内自动降级回 `p2p`。
+- 第 4 步对终态 call 的 summary MUST accepted（write-once cell）；对 `active` call 的 summary MUST `failed_precondition` `reason_code=call_summary_invalid`。
+
 ## 13. History Visibility / Preview / History Sharing
 
 ### 13.1 Joined Visibility Denies Pre-Join History

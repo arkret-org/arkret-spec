@@ -169,7 +169,7 @@ sidebar:
 
 要求：
 
-- 需要 `ck.call.record` capability。
+- 需要 `ck.call.record` capability。`ck.call.recording.start` 通过 `capture_kind`(`recording` / `transcript`,缺省 `recording`)区分录制与转写两条平行生命周期(转写见 §5.1)。
 - 客户端 MUST 对所有参会者显示录制中。
 - `payload.recording_id` MUST 是该录制 artifact lifecycle 的稳定 opaque string，并进入 recording key exporter Context；缺失时 recording start event MUST `schema_violation` reject。它不是 `ck:*` typed ID；最终持久化产物仍通过 Cokret blob / Morph / artifact 引用暴露。由于 `recording_id` 是跨实现密钥派生输入（进入 §5 第 3 步的 `Context`），其 canonical 形态 MUST 由 `ck.call.state` recording start event 一次性固定并逐字节保留：取值 MUST 为 ASCII 子集 `[A-Za-z0-9._-]`、长度 1–128 字节；发送方写入后该字符串即为 canonical，**接收方 MUST NOT 做任何 normalize**（大小写折叠、Unicode NFC/NFKC、trim、re-encode 等），并 MUST 在所有引用该录制的 event / key 派生中逐字节复用 start event 的原值。任何对 `recording_id` 的本地规范化都会令派生出的 recording key 与发送方分裂、导致解密失败。
 - 手动停止录制不注册独立 `ck.call.recording.stop` event；holder of `ck.call.record` 通过 `ck.call.state` 写 `recording_state="stopped"`，并在 `recording_result.recording_start_event_id` 指向被停止的 `ck.call.recording.start`。`stopped` 是该录制段的终态，不要求产生 artifact；若 backend 已经产出可用 artifact，后续 MAY 以同一 `recording_start_event_id` 写 `ready`，否则保持 `stopped`。
@@ -183,3 +183,61 @@ sidebar:
   绕过该 pipeline（如 backend 直接对外暴露 recording URL）MUST 被客户端拒绝并报 `recording_artifact_pipeline_bypassed`。这保证 backend 是 "录制执行单元" 而非 "录制档案库"。
 - 录制结果 MUST 通过已注册的 `ck.call.state` 写入**独立的 `recording_state` 字段**（`recording_state="ready"` / `recording_state="failed"` / `recording_state="stopped"`，与通话 `state` 正交，见 §4.2），并在 `recording_result` 中引用 `recording_start_event_id`；ready/failed 结果还应引用 content digest、duration、media type 和 retention policy。v1 不注册独立的 `ck.call.recording.result` 或 `ck.call.recording.stop` event kind；实现不得把这些裸名写入 Event Envelope。
 - 转写需要 `ck.call.transcribe`，转写文本应作为 Morph 或 Artifact，并遵守同一 Realm policy。
+
+### 5.1 转写生命周期（normative）
+
+转写与录制平行：默认关闭，MUST 由 Realm policy 与 `ck.call.transcribe` capability 显式允许。转写态走 `ck.call.state` 的**独立字段** `transcript_state`（`{ transcribing, stopped, ready, failed }`，缺省=未转写），与 `state` 及 `recording_state` 三者正交。
+
+- 启动转写复用 `ck.call.recording.start` event kind，但 `capture_kind="transcript"`（缺省 `recording` 用于向后兼容）；其 `recording_id` 同样是稳定 opaque 句柄，约束与 §5 录制 `recording_id` 完全一致（ASCII 子集 `[A-Za-z0-9._-]`、1–128 字节、逐字节 canonical、接收方 MUST NOT normalize），并进入 transcript key exporter Context。缺少 `ck.call.transcribe` 时 MUST 拒绝，`reason_code="transcription_denied"`。
+- 客户端 MUST 对所有参会者显示转写进行中提示（与录制提示同等级别）。
+- 转写文本 MUST 作为 **encrypted Blob / 受控 media object** 存储，绝不明文落 backend。转写 artifact 的加密 key MUST 由 Cokret MLS exporter 派生，**label 固定为 ASCII 字符串 `"ck-rtc-transcript-key/v1"`**（与 SFrame `"ck-rtc-frame-key/v1"`、录制 `"ck-rtc-recording-key/v1"` 区分），`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, transcript_start_event_id})`，输出 32 bytes；canonical 登记见 [`../../artifacts/registry/exporter-label-registry.json`](../../artifacts/registry/exporter-label-registry.json)。复用其它 label、空 Context，或接受 backend / KMS 自生成的 transcript key MUST fail closed `transcription_artifact_pipeline_bypassed`。
+- 转写结果通过 `ck.call.state` 写入 `transcript_state`，并在 `transcript_result` 中引用 `transcript_start_event_id`；`ready` / `failed` 还 SHOULD 携带 content digest、media type、language 与 retention policy。手动停止时写 `transcript_state="stopped"`，不要求产生 artifact。
+- v1 不为转写注册独立的 result / stop event kind；转写态变化一律通过 `ck.call.state` 写入。
+
+### 5.2 录制 / 转写 retention policy（normative）
+
+录制与转写 artifact 的保留期、删除触发、审计锁定与二次确认走 `recording_result.retention` / `transcript_result.retention`（schema 见 `call_recording_retention`）。规则：
+
+- **保留期**：`retention.retention_expires_at` 是协议固定的**最早**可删除时间；缺省时由 `retention_policy_id` 指向的 Realm retention policy 决定。写入时 MUST NOT 为过去时刻。
+- **删除触发**：`retention.deletion_trigger ∈ { retention_expiry, manual, realm_policy, participant_erasure }`。`participant_erasure` 对应某参与者发起 erasure 时对其媒体片段的级联删除（见 account erasure 流程）。
+- **审计锁定**：`retention.audit_lock=true` 时该 artifact 处于 legal / audit hold，**任何**删除（含 retention 到期、manual）MUST 被拒绝 `legal_hold_active`，直到 audit 级 action 解除锁定；audit_lock 优先于 `retention_expires_at` 与 capability。
+- **客户端二次确认**:录制 / 转写从未捕获进入捕获态（`recording_state="recording"` / `transcript_state="transcribing"`）前 MUST 取得用户的第二次显式同意，并将事实记入 `retention.consent_confirmed=true`。reducer 见到捕获态而对应 `retention.consent_confirmed` 不为 true 时 MUST `failed_precondition` `reason_code="recording_consent_required"`。
+- retention 字段是 `recording_result` / `transcript_result` 的子对象，与 §4.2 录制态机正交；它只约束 artifact 生命周期，不改变通话 `state`。
+
+## 6. P2P→SFU 升级（normative）
+
+通话可以 P2P 起步（`mode="p2p"`），但当并发参与者人数 **> 2** 时 MUST 从 P2P 收敛到 SFU。触发与协商规则:
+
+1. **触发条件**:任一参与设备观察到当前 active 参与者(已 accepted answer 的 leg)将达到 3 人时,MUST 发起升级，不得继续以 P2P / full-mesh 承载 3 人以上(`mesh` 仅 SHOULD 用于 3–4 人且不作为默认，见 §2)。
+2. **focus 协商**:升级 MUST 复用 [`media-service-binding.md` §5](./media-service-binding.md) 的 deterministic, no-vote focus 选举——由 oldest_membership 的 `foci_preferred[0]` 选出 `session_focus` 并写入首个携带 `session_focus` 的 `ck.call.state`。升级**不**引入新的投票或 leader 选举路径。
+3. **加入信令**:各设备通过 `ck.call.signal{signal_type=focus_join}`(见 [`webrtc-signaling.md` §5](./webrtc-signaling.md))向选定 focus 迁移媒体；原 P2P leg 在所有参与者完成 `focus_join` 后 MUST 优雅拆除，迁移期间不得丢媒体(参照 §4.2 credential refresh 的"保留旧 allocation 直到迁移完成"原则)。
+4. **`mode` 写入**:升级落定后，下一条 `ck.call.state` 的 `mode` MUST 写 `sfu`,且一旦 `session_focus` committed 即不可在本生命周期内回退到 `p2p`(回退 P2P 需新 call)。
+5. **单调性**:`session_focus` 一经 committed 即 write-once(改写 MUST `session_focus_already_committed`,见 §4.1);升级到 SFU 后人数回落到 2 人 MUST NOT 自动降级回 P2P。
+
+## 7. 通话摘要（normative）
+
+通话到达终态(`state ∈ { ended, missed, failed, cancelled }`)后,SHOULD 写入一条 durable `ck.call.summary` event,作为无需重放 ephemeral 信令即可呈现的持久通话记录:
+
+```json
+{
+  "kind": "ck.call.summary",
+  "realm_id": "ck:realm:...",
+  "payload": {
+    "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
+    "final_state": "ended",
+    "mode": "sfu",
+    "started_at": "2026-04-26T00:00:00Z",
+    "ended_at": "2026-04-26T00:42:00Z",
+    "duration_ms": 2520000,
+    "peak_participant_count": 7,
+    "distinct_participant_count": 9,
+    "recording_state": "ready",
+    "transcript_state": "ready"
+  }
+}
+```
+
+- `ck.call.summary` 写入 `ck.component.call.summary.v1` cell,`cell_subject = payload.call_id`,lattice 为 `cas_register`、`bottom=reject`(write-once;divergent 重写 MUST `call_summary_invalid`)。
+- `final_state` MUST 是某终态，且该 `call_id` MUST 已存在终态 `ck.call.state` head;否则 reducer MUST `failed_precondition` `reason_code="call_summary_invalid"`。
+- `recording_state` / `transcript_state` 是终态时刻从 `ck.call.state` 镜像的捕获态；缺省表示未录制 / 未转写。
+- 写入 `ck.call.summary` 需要 `ck.call.join`(参见 [`../../artifacts/registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json));它不替代 `ck.call.state` 终态，而是其上的 durable 摘要投影。

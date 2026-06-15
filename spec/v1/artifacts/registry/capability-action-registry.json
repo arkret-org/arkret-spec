@@ -1689,7 +1689,8 @@
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.call.state"
+        "ck.call.state",
+        "ck.call.summary"
       ],
       "profile": null,
       "event_mapping_kind": "scope_suffix_variant"

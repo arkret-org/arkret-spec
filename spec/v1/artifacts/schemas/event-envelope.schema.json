@@ -453,6 +453,7 @@
               "ck.audit.session.request",
               "ck.call.recording.start",
               "ck.call.state",
+              "ck.call.summary",
               "ck.capability.delegate",
               "ck.capability.derived",
               "ck.capability.grant",
@@ -3049,7 +3050,26 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/call_payload"
+            "$ref": "./event-payload.schema.json#/$defs/call_recording_start_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.call.summary"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/call_summary_payload"
           }
         }
       }

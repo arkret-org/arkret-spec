@@ -6,6 +6,7 @@
     {
       "label": "ck-rtc-frame-key/v1",
       "purpose": "SFrame per-sender media frame key (E2EE media frames)",
+      "defined_in": "zh/crypto-media/media-service-binding.md §8.1",
       "context_fields": [
         "realm_id",
         "call_id",
@@ -22,12 +23,14 @@
       "empty_context_forbidden": true,
       "empty_context_error": "e2ee_key_source_unauthorised",
       "forbid_reuse_with": [
-        "ck-rtc-recording-key/v1"
+        "ck-rtc-recording-key/v1",
+        "ck-rtc-transcript-key/v1"
       ]
     },
     {
       "label": "ck-rtc-recording-key/v1",
       "purpose": "Backend-generated recording artifact encryption key",
+      "defined_in": "zh/crypto-media/call-state.md §5 and zh/crypto-media/media-service-binding.md §8.1",
       "context_fields": [
         "realm_id",
         "call_id",
@@ -44,7 +47,32 @@
       "empty_context_forbidden": true,
       "empty_context_error": "e2ee_key_source_unauthorised",
       "forbid_reuse_with": [
-        "ck-rtc-frame-key/v1"
+        "ck-rtc-frame-key/v1",
+        "ck-rtc-transcript-key/v1"
+      ]
+    },
+    {
+      "label": "ck-rtc-transcript-key/v1",
+      "purpose": "Encryption key for a call transcription artifact (transcribe pipeline, distinct from media frame and recording keys)",
+      "defined_in": "zh/crypto-media/call-state.md §5.1",
+      "context_fields": [
+        "realm_id",
+        "call_id",
+        "focus_id",
+        "recording_id",
+        "media_service_did",
+        "transcript_start_event_id"
+      ],
+      "output_length": 32,
+      "applies_to_profiles": [
+        "ck.profile.media_service_binding.v1"
+      ],
+      "grandfathered": false,
+      "empty_context_forbidden": true,
+      "empty_context_error": "e2ee_key_source_unauthorised",
+      "forbid_reuse_with": [
+        "ck-rtc-frame-key/v1",
+        "ck-rtc-recording-key/v1"
       ]
     },
     {

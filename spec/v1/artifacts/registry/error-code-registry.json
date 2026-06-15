@@ -1931,6 +1931,51 @@
       "description": "A backend (LiveKit Egress / Janus recording plugin / etc.) attempted to deliver a recording artifact outside the Cokret-side blob pipeline — e.g. an Egress destination pointing to LiveKit Cloud / S3 / GCS direct, instead of the Cokret media service authenticated upload endpoint. Clients MUST fail closed. See zh/crypto-media/call-state.md §5 and zh/crypto-media/media-service-binding.md §8.1."
     },
     {
+      "code": "transcription_denied",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "Call transcription was requested without `ck.call.transcribe` capability, or the Realm policy forbids transcription. Issuer / reducer MUST reject; parallels `recording_denied` for the transcribe dimension. See zh/crypto-media/call-state.md §5.1."
+    },
+    {
+      "code": "transcription_artifact_pipeline_bypassed",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "A backend attempted to deliver a transcription artifact outside the Cokret-side blob pipeline, or used a key not derived from the MLS-Exporter label `ck-rtc-transcript-key/v1` (e.g. reused the SFrame / recording label or an empty Context). Clients MUST fail closed. See zh/crypto-media/call-state.md §5.1 and zh/crypto-media/media-service-binding.md §8.1."
+    },
+    {
+      "code": "recording_consent_required",
+      "applies_to": [
+        "service_call",
+        "event_envelope"
+      ],
+      "description": "A `ck.call.state` event set `recording_state`/`transcript_state` to a capturing value (`recording` / `transcribing`) without `recording_result.retention.consent_confirmed` / `transcript_result.retention.consent_confirmed` recording the required second client-side capture confirmation. Reducer MUST `failed_precondition`. See zh/crypto-media/call-state.md §5.2."
+    },
+    {
+      "code": "call_moderation_unauthorised",
+      "applies_to": [
+        "service_call",
+        "event_envelope"
+      ],
+      "description": "A moderator action (kick / ban / force-mute / end-for-all, via `ck.call.signal{moderation}` or a `ck.call.state` moderation field) was attempted by an actor lacking `ck.call.moderate`. Reducer / receiver MUST reject. See zh/crypto-media/webrtc-signaling.md §3a (kick / ban / end-for-all) and §6.1 (force-mute via `mute_state{by=moderator}`)."
+    },
+    {
+      "code": "call_participant_removed",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "A participant whose `(actor_id, device_id)` is listed in `ck.call.state.removed_participants[]` (kicked) or whose actor is under a `ck.call.state` ban attempted to re-establish a media leg or re-issue a join token. Token issuer / SFU MUST refuse; a banned actor MUST NOT rejoin until the ban is lifted. See zh/crypto-media/webrtc-signaling.md §3a."
+    },
+    {
+      "code": "call_summary_invalid",
+      "applies_to": [
+        "event_envelope"
+      ],
+      "description": "A `ck.call.summary` event was rejected because its `final_state` is not a terminal call state, the referenced `call_id` has no terminal `ck.call.state` head, or a divergent summary already exists for the call (the summary cell is write-once). Reducer MUST `failed_precondition`. See zh/crypto-media/call-state.md §7."
+    },
+    {
       "code": "media_service_foci_required",
       "applies_to": [
         "service_call",

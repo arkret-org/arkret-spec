@@ -7611,6 +7611,37 @@
             "$ref": "#/$defs/call_participant"
           }
         },
+        "removed_participants": {
+          "type": "array",
+          "maxItems": 1000,
+          "description": "Moderator kick / ban audit trail. Each entry records a participant removed by a ck.call.moderate holder. action=ban omits device_id (actor-wide ban); a banned actor MUST NOT be re-issued a join token (call_participant_removed). See crypto-media/webrtc-signaling.md §3a.",
+          "items": {
+            "type": "object",
+            "required": [
+              "actor_id",
+              "action"
+            ],
+            "properties": {
+              "actor_id": {
+                "$ref": "./common-ids.schema.json#/$defs/did"
+              },
+              "device_id": {
+                "$ref": "#/$defs/device_id"
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "kick",
+                  "ban"
+                ]
+              },
+              "removed_at": {
+                "$ref": "#/$defs/timestamp"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
         "recording_state": {
           "type": "string",
           "enum": [
@@ -7638,11 +7669,195 @@
             "retention_policy_id": {
               "$ref": "#/$defs/object_ref"
             },
+            "retention": {
+              "$ref": "#/$defs/call_recording_retention"
+            },
             "recording_start_event_id": {
               "$ref": "#/$defs/event_ref"
             }
           },
           "additionalProperties": false
+        },
+        "transcript_state": {
+          "type": "string",
+          "enum": [
+            "transcribing",
+            "stopped",
+            "ready",
+            "failed"
+          ],
+          "description": "Transcription lifecycle, orthogonal to both `state` and `recording_state`. Absent = no transcription. 'transcribing' = capture in progress (after ck.call.transcribe.start); 'stopped' = manually stopped without requiring an artifact; 'ready' = encrypted transcript artifact available via the Cokret blob pipeline; 'failed' = transcription failed. transcript_result SHOULD accompany transcript_state ∈ {stopped, ready, failed}. See crypto-media/call-state.md §5.1."
+        },
+        "transcript_result": {
+          "type": "object",
+          "description": "Typed transcription outcome, present when transcript_state ∈ {stopped, ready, failed}. The transcript artifact is encrypted with the MLS-Exporter label ck-rtc-transcript-key/v1 (see exporter-label-registry.json) and strands through the same Cokret blob pipeline as recordings. transcript_start_event_id binds this segment to its ck.call.transcribe.start. All fields optional at schema level; prose defines state-specific requirements. See crypto-media/call-state.md §5.1.",
+          "properties": {
+            "content_digest": {
+              "$ref": "#/$defs/hash"
+            },
+            "media_type": {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            "language": {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            "retention_policy_id": {
+              "$ref": "#/$defs/object_ref"
+            },
+            "retention": {
+              "$ref": "#/$defs/call_recording_retention"
+            },
+            "transcript_start_event_id": {
+              "$ref": "#/$defs/event_ref"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "call_recording_retention": {
+      "type": "object",
+      "description": "Retention contract for a recording / transcript artifact. retention_expires_at is the protocol-fixed earliest deletion time; deletion_trigger declares what causes purge; audit_lock signals a legal hold that takes precedence over TTL (deletion MUST be rejected with legal_hold_active until released); consent_confirmed records the second client-side confirmation required before a capture begins. See crypto-media/call-state.md §5 / §5.2.",
+      "properties": {
+        "retention_expires_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Earliest time the artifact MAY be purged. Absent = governed solely by retention_policy_id. MUST NOT be in the past at write time."
+        },
+        "deletion_trigger": {
+          "type": "string",
+          "enum": [
+            "retention_expiry",
+            "manual",
+            "realm_policy",
+            "participant_erasure"
+          ]
+        },
+        "audit_lock": {
+          "type": "boolean",
+          "description": "When true the artifact is under audit / legal hold; purge MUST be rejected with legal_hold_active regardless of retention_expires_at until the lock is released by an audit-grade action."
+        },
+        "consent_confirmed": {
+          "type": "boolean",
+          "description": "Records that the second client-side consent confirmation required before capture (recording or transcription) was obtained. The capability holder MUST NOT set recording_state/transcript_state to a capturing value without it."
+        }
+      },
+      "additionalProperties": false
+    },
+    "call_summary_payload": {
+      "type": "object",
+      "description": "Typed payload for ck.call.summary (durable end-of-call summary). Written once after a call reaches a terminal `state`; carries duration, peak participant count, and capture status so clients can render a durable call record without replaying ephemeral signaling. See crypto-media/call-state.md §7.",
+      "required": [
+        "call_id",
+        "final_state",
+        "ended_at"
+      ],
+      "properties": {
+        "call_id": {
+          "type": "string",
+          "pattern": "^ck:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "final_state": {
+          "type": "string",
+          "enum": [
+            "ended",
+            "missed",
+            "failed",
+            "cancelled"
+          ],
+          "description": "The terminal call lifecycle state this summary closes over. MUST be one of the call_state_payload terminal states."
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "p2p",
+            "mesh",
+            "sfu",
+            "mcu"
+          ]
+        },
+        "started_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "ended_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "peak_participant_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Highest concurrent participant count observed during the call."
+        },
+        "distinct_participant_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of distinct (actor_id, device_id) participants that joined at any point."
+        },
+        "recording_state": {
+          "type": "string",
+          "enum": [
+            "recording",
+            "stopped",
+            "ready",
+            "failed"
+          ],
+          "description": "Final recording_state at call end, mirrored from ck.call.state for the durable record. Absent = the call was not recorded."
+        },
+        "transcript_state": {
+          "type": "string",
+          "enum": [
+            "transcribing",
+            "stopped",
+            "ready",
+            "failed"
+          ],
+          "description": "Final transcript_state at call end, mirrored from ck.call.state. Absent = the call was not transcribed."
+        }
+      },
+      "additionalProperties": false
+    },
+    "call_recording_start_payload": {
+      "type": "object",
+      "description": "Typed payload for ck.call.recording.start. recording_id is a stable opaque ASCII handle (1–128 bytes, [A-Za-z0-9._-]) that feeds the recording key exporter Context byte-for-byte and MUST NOT be normalized by receivers. capture_kind selects recording vs transcription so both lifecycles share one start event kind. See crypto-media/call-state.md §5 / §5.1.",
+      "required": [
+        "call_id",
+        "recording_id",
+        "recording_agent"
+      ],
+      "properties": {
+        "call_id": {
+          "type": "string",
+          "pattern": "^ck:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "recording_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._-]{1,128}$",
+          "description": "Stable opaque recording / transcript lifecycle handle. Canonical byte-for-byte; receivers MUST NOT normalize (case-fold, NFC/NFKC, trim, re-encode) because it is a cross-implementation key-derivation input."
+        },
+        "recording_agent": {
+          "$ref": "#/$defs/did"
+        },
+        "capture_kind": {
+          "type": "string",
+          "enum": [
+            "recording",
+            "transcript"
+          ],
+          "description": "Whether this start event opens a recording or a transcription segment. Absent defaults to recording for backward compatibility."
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "audio",
+            "audio_video"
+          ]
+        },
+        "visible_notice": {
+          "type": "boolean",
+          "description": "Asserts the initiating client will display the capture-in-progress notice to all participants."
         }
       },
       "additionalProperties": false
