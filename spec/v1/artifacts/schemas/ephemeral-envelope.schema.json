@@ -102,6 +102,7 @@
                   "speaking",
                   "focus_join",
                   "focus_leave",
+                  "moderation",
                   "error",
                   "ack"
                 ]
