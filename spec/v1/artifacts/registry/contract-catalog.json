@@ -3765,6 +3765,7 @@
           "ck.gate.account.command.issue_session_grant",
           "ck.gate.account.command.refresh_session_grant",
           "ck.gate.account.command.logout_session_grant",
+          "ck.gate.account.command.introspect_session_grant",
           "ck.gate.account.command.logout",
           "ck.gate.account.command.revoke_session",
           "ck.gate.account.exchange.complete_oidc"
@@ -3844,6 +3845,15 @@
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantLogoutRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantLogoutOutcome"
+      },
+      {
+        "operation_id": "ck.gate.account.command.introspect_session_grant",
+        "http_only_variant": true,
+        "http": "POST /_cokret/gate/account/session-grants/introspect",
+        "notes": "Server-to-server session-grant introspection (RFC 7662-style). The Principal Server validating a presented grant calls this with the grant id or grant_jwt (+ optional audience and a holder-proof challenge) and learns whether it is active, plus non-secret grant metadata including session_public_key for RFC 9421 PoP verification. READ-ONLY: introspection MUST NOT consume/revoke the grant. Authenticated by the configured session_grant_introspection_bearer (server-local); not exposed over gRPC/MQ.",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectRequestBody",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectOutcome"
       },
       {
         "operation_id": "ck.gate.account.command.logout",

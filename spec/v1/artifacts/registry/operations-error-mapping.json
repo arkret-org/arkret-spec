@@ -71,6 +71,12 @@
       "description": "Hard-logout revocation at the Auth Server (account-lifecycle §4.1): a holder proof bound into the grant's cnf.jkt revokes the grant and finishes the underlying browser session so the rotation chain cannot be resumed. Idempotent — re-presenting an already-revoked grant succeeds."
     },
     {
+      "operation_id": "ck.gate.account.command.introspect_session_grant",
+      "http_alias": "POST /_cokret/gate/account/session-grants/introspect",
+      "operation_specific": [],
+      "description": "Server-to-server session-grant introspection (RFC 7662-style). Read-only validation: returns active/status/grant-metadata in a 200 body (including not_found / audience_mismatch as statuses, not error replies), so it has no operation-specific error codes beyond the universal failure surface (e.g. bad_json for a malformed id, the universal auth codes when the introspection bearer is missing)."
+    },
+    {
       "operation_id": "ck.gate.account.command.logout",
       "http_alias": "POST /_cokret/gate/account/logout",
       "operation_specific": [],

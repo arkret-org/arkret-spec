@@ -893,6 +893,10 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantLogoutRequestBody
     SessionGrantLogoutOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantLogoutOutcome
+    SessionGrantIntrospectRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectRequestBody
+    SessionGrantIntrospectOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectOutcome
     AccountLogoutRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutRequestBody
     AccountLogoutOutcome:
@@ -6789,6 +6793,40 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SessionGrantLogoutRequestBody'
+  /_cokret/gate/account/session-grants/introspect:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
+    post:
+      operationId: ck.gate.account.command.introspect_session_grant
+      security:
+      - bearerAuth: []
+      summary: Server-to-server session-grant introspection.
+      description: |
+        RFC 7662-style introspection used by a Principal Server to validate a
+        presented session grant. The caller supplies the grant id or grant_jwt
+        (plus an optional audience and, for an active grant, a holder-proof
+        challenge) and gets back whether the grant is active, a standardized
+        status, and non-secret grant metadata — including session_public_key for
+        RFC 9421 PoP verification. READ-ONLY: introspection MUST NOT consume or
+        revoke the grant (consumption/rotation is the refresh endpoint's job).
+        Authenticated by the configured session_grant_introspection_bearer (a
+        server-local static bearer) or an admin scope.
+      responses:
+        '200':
+          description: Introspection result (active flag, status, grant metadata).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionGrantIntrospectOutcome'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionGrantIntrospectRequestBody'
   /_cokret/gate/account/logout:
     servers:
     - url: https://{host}

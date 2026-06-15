@@ -158,6 +158,7 @@
         "session_public_key",
         "expires_at",
         "audience",
+        "scopes",
         "dpop_jkt",
         "previous_grant_id"
       ],
@@ -224,6 +225,141 @@
         "browser_session_finished": {
           "type": "boolean",
           "description": "Whether the underlying Auth Server browser session was finished (terminating the rotation chain)."
+        }
+      }
+    },
+    "SessionGrantIntrospectRequestBody": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Server-to-server session-grant introspection request. Exactly one of id / grant_jwt identifies the grant.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Grant id (ULID). Mutually exclusive with grant_jwt."
+        },
+        "grant_jwt": {
+          "type": "string",
+          "description": "The signed grant JWT to introspect. Mutually exclusive with id."
+        },
+        "audience": {
+          "type": "string",
+          "description": "Audience the caller is validating the grant for; a mismatch yields status audience_mismatch."
+        },
+        "proof": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Holder-proof challenge presented for an active grant (proof_required). Signed by the session key bound into the grant.",
+          "required": [
+            "challenge",
+            "proof_jwt"
+          ],
+          "properties": {
+            "challenge": {
+              "type": "string"
+            },
+            "proof_jwt": {
+              "type": "string",
+              "description": "JWS over ck.session_grant.introspection_proof.v1 claims (grant_id, grant_jwt_hash, audience, challenge, issued_at, expires_at)."
+            }
+          }
+        }
+      }
+    },
+    "SessionGrantIntrospectOutcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "active",
+        "status",
+        "proof_required",
+        "one_time_use_consumed"
+      ],
+      "properties": {
+        "active": {
+          "type": "boolean",
+          "description": "Whether the grant is currently valid for the requested audience. READ-ONLY: introspection never consumes the grant."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "revoked",
+            "expired",
+            "locked",
+            "suspended",
+            "audience_mismatch",
+            "proof_required",
+            "invalid_proof",
+            "not_found"
+          ]
+        },
+        "proof_required": {
+          "type": "boolean",
+          "description": "Whether a holder proof is required to confirm the grant active."
+        },
+        "one_time_use_consumed": {
+          "type": "boolean",
+          "description": "Always false: introspection is read-only and never consumes single-use state (rotation is the refresh endpoint's job)."
+        },
+        "grant": {
+          "$ref": "#/$defs/SessionGrantIntrospectGrant"
+        }
+      }
+    },
+    "SessionGrantIntrospectGrant": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Non-secret grant metadata returned to the validating Principal Server. Never includes the grant JWT, refresh token, or session private key.",
+      "required": [
+        "id",
+        "issuer",
+        "subject",
+        "service_account_id",
+        "audience",
+        "scopes",
+        "expires_at",
+        "revocation_ref",
+        "session_public_key"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "issuer": {
+          "type": "string"
+        },
+        "subject": {
+          "type": "string"
+        },
+        "service_account_id": {
+          "type": "string"
+        },
+        "device_id": {
+          "type": "string"
+        },
+        "audience": {
+          "type": "string"
+        },
+        "scopes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "revoked_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "revocation_ref": {
+          "type": "string"
+        },
+        "session_public_key": {
+          "type": "string",
+          "description": "Session signing key (JWK) for RFC 9421 PoP verification on /_cokret/self/* (api-conventions §3.2). Server-to-server only."
         }
       }
     },

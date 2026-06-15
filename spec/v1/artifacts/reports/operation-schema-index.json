@@ -172,6 +172,7 @@
           "session_public_key",
           "expires_at",
           "audience",
+          "scopes",
           "dpop_jkt",
           "previous_grant_id"
         ],
@@ -212,6 +213,40 @@
         "properties": [
           "revoked",
           "browser_session_finished"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.gate.account.command.introspect_session_grant",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectRequestBody",
+        "schema_kind": "object",
+        "required": [],
+        "properties": [
+          "id",
+          "grant_jwt",
+          "audience",
+          "proof"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectOutcome",
+        "schema_kind": "object",
+        "required": [
+          "active",
+          "status",
+          "proof_required",
+          "one_time_use_consumed"
+        ],
+        "properties": [
+          "active",
+          "status",
+          "proof_required",
+          "one_time_use_consumed",
+          "grant"
         ],
         "closed": true
       }

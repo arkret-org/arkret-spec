@@ -35,8 +35,12 @@ registered Cokret operations:
 - `POST /_cokret/gate/account/auth/oidc/browser-bridge/session`
 - `GET /_cokret/gate/account/auth/oidc/exchange/describe`
 - `POST /_cokret/gate/account/auth/oidc/exchange`
-- `POST /_cokret/gate/account/session-grants/refresh`
-- `POST /_cokret/gate/account/session-grants/introspect`
+
+Resolved (now registered Cokret operations): `POST /_cokret/gate/account/session-grants/refresh`
+(`ck.gate.account.command.refresh_session_grant`) and
+`POST /_cokret/gate/account/session-grants/introspect`
+(`ck.gate.account.command.introspect_session_grant`) have been promoted out of
+the candidate list and into the operation registry / OpenAPI / service-http-binding.
 
 Open question: whether native sign-in should standardize these bridge endpoints,
 or whether clients must use `/_cokret/describe.auth_metadata` plus standard OIDC
