@@ -232,6 +232,18 @@
       "type": "object",
       "additionalProperties": false,
       "description": "Server-to-server session-grant introspection request. Exactly one of id / grant_jwt identifies the grant.",
+      "oneOf": [
+        {
+          "required": [
+            "id"
+          ]
+        },
+        {
+          "required": [
+            "grant_jwt"
+          ]
+        }
+      ],
       "properties": {
         "id": {
           "type": "string",
