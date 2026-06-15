@@ -115,7 +115,7 @@ Morph.scope_circle_id         : id:circle | null
 
 `effective_scope` 在 wire 上有**两个不同的形态**,机器契约 MUST 分别校验:
 
-1. **Submit-payload form (actor-supplied)**:actor 在 `ck.strand.create` / `ck.message.create` / `ck.morph.create` / `ck.relation.create` / `ck.space.create` / `ck.space.parent` 等写事件的 `payload` 中只 supply `scope_circle_id` 字段(可为 `null`)。**MUST NOT** 携带 `effective_scope` 顶层字段；若 supply，reducer MUST 返回 `schema_violation` (`reason=effective_scope_reducer_managed`)。
+1. **Submit-payload form (actor-supplied)**:actor 在 `ck.strand.create` / `ck.morph.create` / `ck.relation.create` / `ck.space.create` 等建对象写事件的 `payload.object`(Relation 为 `payload.relation`)内联对象中 supply `scope_circle_id` 字段(可为 `null`)。**MUST NOT** 携带 `effective_scope` 顶层字段；若 supply，reducer MUST 返回 `schema_violation` (`reason=effective_scope_reducer_managed`)。`ck.message.create` 与 `ck.space.parent` **不**携带 `scope_circle_id`:Message 无独立 scope,其 `effective_scope` 由所属 Strand 的 scope 派生;`ck.space.parent` 是只设 parent 链的 cas_register Move,Space 的 `scope_circle_id` 在 `ck.space.create` 随对象写入。
 2. **Canonical reducer-output form (reducer-stamped, immutable)**:reducer 在接受 event 时把 `scope_circle_id` 物化为 tagged 对象，写入 Event envelope 的 `effective_scope` 字段 + 物化对象的 `effective_scope` cell。该字段一经写入 immutable;旧 event 即使 `scope_circle_id` 后续改绑也保留写入时的值。
 
 两个形态的 schema:

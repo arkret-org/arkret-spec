@@ -14,7 +14,7 @@ merged_into: spec/v1/zh/discovery/object-addressing.md
 
 > **Status: accepted, merged into v1 normative spec on 2026-05-28.**
 >
-> Normative entry point: [`spec/v1/zh/discovery/object-addressing.md`](../zh/discovery/object-addressing.md)。Operation 注册见 [`contract-catalog.json`](../artifacts/registry/contract-catalog.json#operation_registry) 的 `ck.find.directory.resolve_target`(`POST /directory/resolve-target`),OpenAPI binding 与 `operations-error-mapping.json` 已同步。CHANGELOG 条目在 2026-05-28 下。
+> Normative entry point: [`spec/v1/zh/discovery/object-addressing.md`](../zh/discovery/object-addressing.md)。Operation 注册见 [`contract-catalog.json`](../artifacts/registry/contract-catalog.json#operation_registry) 的 `ck.find.directory.query.resolve_target`(`POST /directory/resolve-target`),OpenAPI binding 与 `operations-error-mapping.json` 已同步。CHANGELOG 条目在 2026-05-28 下。
 >
 > 合入时对 §6 open questions 的最终决议见 §6（已逐条标注 RESOLVED）。本文件保留为历史设计 rationale；Object Addressing 的后续变更 MUST 落到 normative 文件,不在此处。
 
@@ -144,18 +144,18 @@ HTTPS 落地链接中,`strand` / `m` / `via` / 尤其授权 token **MUST** 放�
 
 ### 3.5 解析 operation(草案)
 
-新增 `ck.find.directory.resolve_target`,是 `resolve_realm` 的对象级泛化:
+新增 `ck.find.directory.query.resolve_target`,是 `resolve_realm` 的对象级泛化:
 
 | operation_id | 必填 | 可选 | 响应 | 约束 |
 | --- | --- | --- | --- | --- |
-| `ck.find.directory.resolve_target` | `address: string`(canonical grammar) | `requester: did`; `proofs: proof[]`; `token: string`(preview/invite) | `target_kind: enum(realm,strand,message)`; `realm_preview: object?`; `object_preview: object?`; `join_rule: string?`; **以及 §9.1 全部通用字段** | 响应 **MUST** 含 [`discovery-directory.md` §9.1](../zh/discovery/discovery-directory.md) 通用字段(`as_of`、`source_refs`、`via_services`、可选 `policy_revision` / `stale` / `divergent`),让客户端能回真相源验签并判断 stale/divergent;`via_services` v1 normative;复用 `resolve_realm` 的统一 `not_found` blinding;invite/restricted/secret 对未授权请求与不存在不可区分;token 校验见 §3.4。 |
+| `ck.find.directory.query.resolve_target` | `address: string`(canonical grammar) | `requester: did`; `proofs: proof[]`; `token: string`(preview/invite) | `target_kind: enum(realm,strand,message)`; `realm_preview: object?`; `object_preview: object?`; `join_rule: string?`; **以及 §9.1 全部通用字段** | 响应 **MUST** 含 [`discovery-directory.md` §9.1](../zh/discovery/discovery-directory.md) 通用字段(`as_of`、`source_refs`、`via_services`、可选 `policy_revision` / `stale` / `divergent`),让客户端能回真相源验签并判断 stale/divergent;`via_services` v1 normative;复用 `resolve_realm` 的统一 `not_found` blinding;invite/restricted/secret 对未授权请求与不存在不可区分;token 校验见 §3.4。 |
 
 客户端流程:解析 `address` → 取 path 末段 target_kind → 用 `via` + realm path 段解析 Realm 并取得 canonical `realm_id`(沿用 resolve_realm)→ 若有 token,按 §3.4 校验 token target descriptor → 在 Realm 内按 access gate 定位 strand/message → 渲染成本地 UI URL。
 
 ## 4. Interactions with normative spec
 
 - **新增 normative 文件**(accepted 后):`spec/v1/zh/discovery/object-addressing.md`(grammar + 三 envelope + 解析契约)。
-- **改动** [`discovery-directory.md` §9](../zh/discovery/discovery-directory.md):operation-registry 增 `ck.find.directory.resolve_target`;§9.1 `via_services` 语义复用。
+- **改动** [`discovery-directory.md` §9](../zh/discovery/discovery-directory.md):operation-registry 增 `ck.find.directory.query.resolve_target`;§9.1 `via_services` 语义复用。
 - **artifact**:source of truth 是 `contract-catalog.json`(`source_of_truth: true`)——`resolve_target` operation_id 先在此新增;`operation-registry.json` 等 `generated_registries` 由 `tools/artifact_pipeline.py generate` 派生,**不得手工改**。`openapi/cokret-service-api.openapi.yaml`(`POST /_cokret/find/directory/resolve-target`)与 HTTP binding / prose 表是对齐 artifact,需要在同一 accepted patch 中同步更新,再由 `tools/artifact_pipeline.py check` 校验它们与 catalog/registry 一致。`id-kind-registry.json` 若需"address grammar"附注,也应通过 `contract-catalog.json` 的 id-kind source 更新后生成(非新 id kind)。
 - **Invite token 生命周期复用**:`invite` token 的签发 / 过期 / 吊销复用 [`join-policy.md`](../zh/governance/join-policy.md) 既有 `invite_token` / `signed_link` 生命周期,本提案**不另发明** revocation 机制;`resolve_target` 在 §3.4 target descriptor 校验通过后,仍 **MUST** 走 join-policy 的 token 有效性 / 吊销检查。`preview` token 的授权与吊销归属属于未决设计点,见 §6。
 - **不触碰** event-kind / capability / schema 的 wire 约束;**不需要** forbidden-wire 守卫(没有新 on-wire 字段进对象 / payload)。
@@ -184,7 +184,7 @@ HTTPS 落地链接中,`strand` / `m` / `via` / 尤其授权 token **MUST** 放�
 合入步骤(已执行,2026-05-28):
 
 1. 新增 normative `spec/v1/zh/discovery/object-addressing.md`。
-2. `contract-catalog.json` 增 `ck.find.directory.resolve_target`,`artifact_pipeline.py generate` 生成 `operation-registry.json` 等视图。
+2. `contract-catalog.json` 增 `ck.find.directory.query.resolve_target`,`artifact_pipeline.py generate` 生成 `operation-registry.json` 等视图。
 3. 同步 `openapi/cokret-service-api.openapi.yaml`、`non-http-bindings.yaml`、`operations-error-mapping.json`,`artifact_pipeline.py check` 验证对齐。
 4. `discovery-directory.md` §9 / `service-http-binding.md` §2.3 / `release-readiness.md` / `spec-map.md` 同步行与计数(100 → 101)。
 5. CHANGELOG + STATUS_METRICS + 本目录 README 索引更新。

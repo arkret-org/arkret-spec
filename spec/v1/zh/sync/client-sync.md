@@ -675,9 +675,9 @@ Cursor revoke 不能替代 cursor integrity：服务端仍必须先做 §12.2 �
 
 > **frontier 不是 cursor（前置约定）**：`account/describe`（`ServiceDescribe` 私有 frontier 扩展字段）与 `snapshot/head`（`ck.schema.snapshot.v1` manifest 的 `frontier.event_ids`）返回的 frontier 是 **boundary head event id 集合**，不是 stream cursor（`ck:cursor:<base64url>`）。`ck.self.events.query.scan` / `ck.self.account.stream.subscribe` 的 `before=` / `after=` 参数类型严格是 `cursor`（见 [`service-http-binding.md` §3.3.2](./service-http-binding.md)），任何其它边界参数 MUST 触发 `invalid_param`。因此客户端 **MUST NOT** 把 frontier event id 直接填入 `after=` / `before=`；frontier 在恢复中只作为 backfill 的**停止判据**（拉到的事件命中 `frontier.event_ids` / `event_set_commitment.covered_event_ids` 即接上当前态），续传位置由 `events.query` 响应返回的 `prev_cursor` / `next_cursor` 决定。
 
-#### 12.3.1 `cursor_expired` / `cursor_integrity_invalid`（旧 cursor MUST 废弃）
+#### 12.3.1 `cursor_expired` / `cursor_integrity_invalid` / `cursor_unrecognized`（旧 cursor MUST 废弃）
 
-cursor 本端状态失效（TTL 超时，或 tamper / 未知 handle / cross-binding）。旧 cursor 不再是可信同步位置：
+cursor 本端状态失效（TTL 超时，或 tamper / 未知 handle / cross-binding，或 cursor 由另一服务签发即 `cursor_unrecognized`）。旧 cursor 不再是可信同步位置：
 
 1. 客户端 MUST 清空本地 cursor 缓存（含该流的 `after=` 高水位）；**MUST NOT** 把已失效的旧 cursor 复用为任何 `after=` / `before=` 起点或 backfill 续传位置。`filter_digest`、未确认写入和最后可验证 frontier 可保留用于 backfill 停止判定，但 frontier 不得当作 cursor 使用。
 2. 客户端从下列两条合法新起点二选一，二者都不复用旧 cursor：

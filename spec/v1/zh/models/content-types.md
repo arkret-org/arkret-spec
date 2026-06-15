@@ -56,7 +56,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 因此本文档示例里的 `kind` / `body` / `format` 等字段都是 **Content Block 内部字段**，位于 Message `content` 之下；不要与 Message 顶层字段混在一层理解。
 
-`ck.message.create` / `ck.message.revise` 的未加密 Event payload MUST 将这个 Content Block 对象放在 `payload.content` 字段中；E2EE payload MUST 将同一对象加密后放在 `payload.encrypted_content`。`strand_id`、`blob_refs` 等字段是 envelope / reducer metadata（Message 主键是顶层 `id`，不是 `message_id`；回复由 `replies_to` Relation 表达，无 `reply_to` 标量字段），不能把消息正文直接写成 payload 顶层 `body`。
+`ck.message.create` / `ck.message.revise` 的未加密 Event payload MUST 将这个 Content Block 对象放在 `payload.content` 字段中；E2EE payload MUST 将同一对象加密后放在 `payload.encrypted_content`。`strand_id`、`blob_refs` 等字段是 envelope / reducer metadata（Message 主键是顶层 `id`，不是 `message_id`；回复关系由 `replies_to` Relation 表达，物化 Message 对象无 `reply_to` 标量字段——`ck.message.create` payload 可携带 `reply_to` 作为创建便利，reducer MUST 据此物化 `replies_to` Relation），不能把消息正文直接写成 payload 顶层 `body`。
 
 这里的 `payload` 指 Event Envelope 的 kind-specific 业务载荷容器；`content` 指该 payload 内部写入 Message / Strand / Morph 正文字段的 Content Block，不是 `payload` 的同义词。
 

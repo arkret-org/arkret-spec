@@ -180,6 +180,10 @@
         "prev_cursor": {
           "$ref": "#/$defs/cursor_value",
           "description": "Stream cursor pointing backward in the timeline for backfilling history before this batch."
+        },
+        "preview_only": {
+          "type": "boolean",
+          "description": "Fallback path of client-sync.md §5.2: when timeline.limited=true and the server does not return realm_sync_entry.state_at_window_start, it MUST set preview_only=true. Clients then render window-start events as preview only."
         }
       },
       "additionalProperties": true
@@ -189,6 +193,25 @@
       "properties": {
         "timeline": {
           "$ref": "#/$defs/timeline"
+        },
+        "state_at_window_start": {
+          "type": "object",
+          "description": "Derived projection-only state at the timeline window start, for rendering correctness when timeline.limited=true (client-sync.md §5.2 path (a)). NOT part of state hash / frontier / causal graph. When timeline.limited=true the server MUST return either this field or timeline.preview_only=true.",
+          "properties": {
+            "actor_profiles": {
+              "type": "object",
+              "description": "Display context for actors appearing in the window (display_name, avatar_blob_ref, ...), keyed by principal DID."
+            },
+            "realm_metadata": {
+              "type": "object",
+              "description": "Realm-level Lattice cell values at window start (title, summary, join_rule, ...)."
+            },
+            "e2ee_epoch": {
+              "type": "object",
+              "description": "MLS epoch hint at the window start (epoch number + key_ref)."
+            }
+          },
+          "additionalProperties": true
         },
         "state": {
           "$ref": "#/$defs/event_container"

@@ -5,7 +5,8 @@ status: accepted
 created: 2026-05-27
 accepted: 2026-05-27
 merged_to:
-  - spec/v1/zh/crypto-media/webrtc-signaling.md
+  - spec/v1/zh/crypto-media/media-service-binding.md
+  - spec/v1/zh/crypto-media/call-state.md
   - spec/v1/zh/crypto-media/bindings/livekit.md
   - spec/v1/zh/crypto-media/bindings/cokret-native.md
   - spec/v1/artifacts/registry/event-kind-registry.json
@@ -23,7 +24,7 @@ discussion: <pending>
 
 > **Status: accepted (merged 2026-05-27).** 本提案已合入 normative spec;`merged_to` 列出主要落地文件。
 >
-> This proposal file is retained as historical design rationale. Future updates to media service binding framework MUST land directly on `zh/crypto-media/webrtc-signaling.md` and the `bindings/` directory, not here.
+> This proposal file is retained as historical design rationale. Future updates to media service binding framework MUST land directly on `zh/crypto-media/media-service-binding.md`, `zh/crypto-media/call-state.md` and the `bindings/` directory, not here.
 >
 > 本提案不替代 [`spec/v1/zh/crypto-media/webrtc-signaling.md`](../zh/crypto-media/webrtc-signaling.md)，而是在其上方补一层 **transport-agnostic 的媒体服务发现、凭证交换与 focus 选择**抽象，让 LiveKit / mediasoup / Janus / 未来的 MoQ-relay 都可以作为可替换 backend，而不污染 Cokret 核心信令模型。
 

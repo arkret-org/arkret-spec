@@ -25,7 +25,7 @@ CKP 状态生命周期定义见 [`README.md` §2](./README.md);本文不重新�
 | [CKP-0007](./0007-circle-primitive.md) | Circle — intra-Realm cryptographic sub-boundary primitive | `accepted` | 2026-05-25 | 2026-05-25 → accepted (merged 2026-05-25 → `zh/models/circle.md`) | — |
 | [CKP-0008](./0008-personal-agent-provisioning.md) | 个人 AI Agent 创建与运行时认证 | `accepted` | 2026-05-26 | 2026-05-26 → accepted (merged → `zh/identity/key-management.md` 等) | internal（无公开 URL） |
 | [CKP-0009](./0009-agent-sidecar-thread.md) | Agent Sidecar Thread（Agent 旁路私聊线程） | `accepted` | 2026-05-26 | 2026-05-26 → accepted (merged → `zh/models/circle.md` 等) | internal（无公开 URL） |
-| [CKP-0010](./0010-media-service-binding-framework.md) | Media Service Binding Framework（媒体服务 Backend 绑定框架） | `accepted` | 2026-05-27 | 2026-05-27 → accepted (merged → `zh/crypto-media/webrtc-signaling.md` 与 `bindings/`) | `<pending>` |
+| [CKP-0010](./0010-media-service-binding-framework.md) | Media Service Binding Framework（媒体服务 Backend 绑定框架） | `accepted` | 2026-05-27 | 2026-05-27 → accepted (merged → `zh/crypto-media/media-service-binding.md`、`call-state.md` 与 `bindings/`) | `<pending>` |
 | [CKP-0011](./0011-shareable-object-addressing.md) | Shareable Object Addressing — web+cokret URI scheme & deep-link resolution | `accepted` | 2026-05-28 | 2026-05-28 → accepted (merged → `zh/discovery/object-addressing.md`) | — |
 | [CKP-0012](./0012-account-and-contact-self-operations.md) | Account Self-Service Operations | `accepted` | 2026-06-04 | 2026-06-04 → accepted (merged → `zh/sync/` + `artifacts/`) | — |
 | [CKP-0013](./0013-contact-and-direct-conversation-lifecycle.md) | Contact & Direct Conversation Lifecycle | `accepted` | 2026-06-04 | 2026-06-04 → accepted (merged → `zh/identity/contact-and-direct-conversation.md` + `artifacts/`) | — |
@@ -51,7 +51,7 @@ draft  ──►  review  ──►  accepted  ──►  (迁入 normative spec
 - `0007`: `draft` → `review` → `accepted` (2026-05-25 merged into `zh/models/circle.md`)
 - `0008`: `draft` → `accepted` (2026-05-26 merged into identity / agent runtime normative files)
 - `0009`: `draft` → `accepted` (2026-05-26 merged into sidecar thread normative files; accepted in lockstep with CKP-0008)
-- `0010`: `draft` → `accepted` (2026-05-27 merged into `zh/crypto-media/webrtc-signaling.md` 与 `zh/crypto-media/bindings/`)
+- `0010`: `draft` → `accepted` (2026-05-27 merged into `zh/crypto-media/media-service-binding.md`、`zh/crypto-media/call-state.md` 与 `zh/crypto-media/bindings/`)
 - `0011`: `draft` → `accepted` (2026-05-28 created and merged into `zh/discovery/object-addressing.md`; 客户端无关可分享对象地址 + `web+cokret:` scheme + `resolve_target`)
 - `0012`: `draft` → `accepted` (2026-06-04 merged into `zh/sync/` + `artifacts/`; account self-service 四项 — viewer/update_profile/register/session_revoke)
 - `0013`: `draft` → `accepted` (2026-06-04 merged into `zh/identity/contact-and-direct-conversation.md` + `artifacts/`; contact 关系生命周期 + DM 编排)

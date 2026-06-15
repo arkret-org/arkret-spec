@@ -752,6 +752,7 @@ POST /_cokret/self/events
 - `status=duplicate` **仅当** 本批所有项均为内容完全相同的幂等重复——全部列入 `duplicate[]` 且 `accepted[]` 为 empty——且 `rejected[]` / `quarantine[]` 均为 empty。
 - 调用方重试求差时 MUST 以 `accepted[] ∪ duplicate[]` 为已投递集合（联邦路径同 [`federation.md` §4.1](./federation.md)）。
 - 其他所有场景（包括部分成功 + 部分拒绝、部分成功 + 部分隔离、全部拒绝、空 batch 等）一律 `status=partial`，此时响应中 `rejected[]` 与 `quarantine[]` 至少之一 MUST 非 empty，且不得把 `partial` 上报为 `accepted`。
+- 上述规则覆盖 self submit 路径（`ck.self.events.command.submit`，enum `accepted` / `duplicate` / `partial`）。`status=historical_only` **不**在 self 路径出现，仅由 federation peer submit（`ck.peer.events.command.submit`）在 idempotency cache 撤销后重放路径产生，语义见本表 `ck.peer.events.command.submit` 行与 [`federation.md` §8.5.1](./federation.md)；故"其他一律 partial"不含该值。
 
 实现 MUST NOT 把 `status=partial` 简化为 `accepted` 以便利客户端处理；客户端 MUST 在 `partial` 时根据 `rejected[]` / `quarantine[]` 决定是否重试或上报。
 
@@ -820,7 +821,7 @@ GET /_cokret/self/events?realms=<id>&actors=<did>&after=<Y>&before=<X>   # 区�
 | 都给（区间） | **descending** | 区间内 UI-导向默认；想按 causal 顺序应用时显式 `order=ascending`。 |
 | 都不给 | **descending** | 等价于 `before=<server_head>`，最新事件首屏。 |
 
-`order=ascending` / `order=descending` 显式覆盖上述默认；批次内的事件顺序在所有情况下都按 `(causal_depth, hlc, actor_id, actor_seq, event_id)` 的字典序解决 ties，详见 [`operations-sync.md` §16](./operations-sync.md)。
+`order=ascending` / `order=descending` 显式覆盖上述默认；批次内的事件顺序在所有情况下都按 `(causal_depth, hlc, actor_id, actor_seq, event_id)` 的字典序解决 ties，详见 [`client-sync.md` §6](./client-sync.md)。
 
 #### 3.3.4 响应
 

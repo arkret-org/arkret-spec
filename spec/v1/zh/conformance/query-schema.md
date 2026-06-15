@@ -27,19 +27,11 @@ updated: 2026-06-10
   "context_ref": "ck:strand:019640c5-61a0-7000-8000-000000000000",
   "filters": [],
   "relation": null,
-  "context": {
-    "event_kinds": ["ck.strand.update", "ck.message.create", "ck.relation.create"],
-    "relation_kinds": ["contains", "assigned_to", "depends_on", "replies_to", "promoted_from_discussion"],
-    "event_tiebreak": "event_id"
-  },
   "order_by": [],
   "projection": [],
   "cursor": null,
   "limit": 50,
-  "consistency": {
-    "wait_for": "ck:cursor:...",
-    "timeout_ms": 5000
-  }
+  "wait_for": "ck:cursor:..."
 }
 ```
 
@@ -52,15 +44,11 @@ updated: 2026-06-10
 - `context_ref`: OPTIONAL，`timeline` / `renderer="timeline"` 或 Strand context 的上下文对象引用；它指向业务上下文对象，不指向 Seal。
 - `filters`: OPTIONAL，过滤条件。
 - `relation`: OPTIONAL，关系扩展条件。
-- `context`: OPTIONAL，上下文时间线聚合参数，若存在用于 `timeline` / `renderer="timeline"` 聚合：
-  - `event_kinds`: OPTIONAL，返回的事件 kind 列表。
-  - `relation_kinds`: OPTIONAL，关系收敛时允许的关系类型。
-  - `event_tiebreak`: OPTIONAL，事件同序比较的 tie-break 字段名，例如 `event_id`。
 - `order_by`: OPTIONAL，排序规则。
 - `projection`: OPTIONAL，返回字段选择。
 - `cursor`: OPTIONAL，不透明分页游标。
 - `limit`: OPTIONAL，默认 50，执行方 MAY 限制最大值。
-- `consistency`: OPTIONAL，读己之所写等待条件。
+- `wait_for`: OPTIONAL，顶层 string，读己之所写等待条件(cursor)；以 `query.schema.json` 的顶层 `wait_for` 为准，不使用 `consistency` 包装对象。
 
 ## 3. Filter
 

@@ -293,7 +293,7 @@ Franking 信任链：
 ### 5.1 内容删除
 
 管理员可以通过 `ck.message.redact` 操作撤回任意成员的消息：
-- 需要 `ck.realm.moderation_policy` 权限
+- 需要 `ck.message.redact` capability（撤回他人消息的非 `.own` 形态；`ck.realm.moderation_policy` 仅管理审核策略事件本身，**不**隐含该撤回权，若要并入审核员 bundle 须在 grant 的 `actions[]` 中显式并列 `ck.message.redact`）
 - 撤回会产生 tombstone，不可逆
 - 审计视图中仍可看到撤回记录
 

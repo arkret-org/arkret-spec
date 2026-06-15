@@ -201,6 +201,48 @@
       "description": "Closed request/response DTO bundle for account self-service operations: viewer, register, profile update, and session revocation."
     },
     {
+      "schema_id": "ck.schema.account_data_operations.v1",
+      "file": "schemas/account-data-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for self-surface actor-private account_data operations (ck.self.account_data.*); see zh/discovery/client-preferences.md."
+    },
+    {
+      "schema_id": "ck.schema.circle_operations.v1",
+      "file": "schemas/circle-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for self-surface Circle administration operations (ck.self.circle.*); see zh/models/circle.md."
+    },
+    {
+      "schema_id": "ck.schema.consent_operations.v1",
+      "file": "schemas/consent-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for self-surface holder-private consent cell operations (ck.self.consent.*); see zh/identity/consent-model.md."
+    },
+    {
+      "schema_id": "ck.schema.read_cursor_operations.v1",
+      "file": "schemas/read-cursor-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for self-surface read cursor operations (ck.self.read_cursor.*); see zh/discovery/read-receipts.md."
+    },
+    {
+      "schema_id": "ck.schema.realm_link_operations.v1",
+      "file": "schemas/realm-link-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for self-surface cross-Realm link operations (ck.self.realm_link.*); see zh/models/realm-links.md."
+    },
+    {
+      "schema_id": "ck.schema.realm_policy_server_operations.v1",
+      "file": "schemas/realm-policy-server-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for self-surface Realm policy-server config operations (ck.self.realm_policy_server.*); see zh/authz/policy-server.md."
+    },
+    {
+      "schema_id": "ck.schema.realm_read_operations.v1",
+      "file": "schemas/realm-read-operations.schema.json",
+      "status": "active",
+      "description": "Closed request/response DTO bundle for self-surface Realm read and moderation-policy operations (ck.self.realm.*); see zh/models/realm-and-space.md and zh/governance/content-moderation.md."
+    },
+    {
       "schema_id": "ck.schema.contact_operations.v1",
       "file": "schemas/contact-operations.schema.json",
       "status": "active",

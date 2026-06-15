@@ -3037,7 +3037,8 @@
           }
         },
         "reply_to": {
-          "$ref": "#/$defs/message_id"
+          "$ref": "#/$defs/message_id",
+          "description": "Optional creation convenience: the message this one replies to. The reducer MUST materialize it as a replies_to Relation (message --replies_to--> message); the materialized Message object itself carries no reply_to scalar (reply linkage lives in the replies_to Relation). See strand-and-message.md §9.1."
         },
         "expiry": {
           "$ref": "#/$defs/message_expiry",

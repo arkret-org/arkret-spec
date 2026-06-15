@@ -1042,6 +1042,30 @@
       "description": "An sealed moderation quarantine or fast-path quarantine was lifted, and clients viewing the Realm should surface that affected content became visible again."
     },
     {
+      "code": "moderation_control_pending",
+      "applies_to": [
+        "client_sync",
+        "policy_decision"
+      ],
+      "description": "A fast-path moderation quarantine signal was recorded but its sealed Control Move has not yet arrived; clients MAY temporarily hide the target and MUST switch display once the sealed decision lands (policy-server.md §7.2)."
+    },
+    {
+      "code": "moderation_control_split",
+      "applies_to": [
+        "policy_decision",
+        "state_resolution"
+      ],
+      "description": "A moderation control cell resolved to bottom under conflicting sealed Control Moves; downstream decisions depending on the cell fail closed until the split is resolved (policy-server.md §7.2)."
+    },
+    {
+      "code": "did_proof_replay_window_exceeded",
+      "applies_to": [
+        "account_status",
+        "auth_decision"
+      ],
+      "description": "A soft-logout recovery DID proof was rejected because expires_at is missing or its freshness window exceeded the bound (expires_at - issued_at > 300s, or issued_at skew beyond tolerance); see account-lifecycle.md §4 and identity-did.md §5.1."
+    },
+    {
       "code": "e2ee_relaxed_federation_policy_unsupported",
       "applies_to": [
         "schema_validation",
