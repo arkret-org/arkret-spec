@@ -52,6 +52,31 @@
       "description": "Session grant/access-token revocation. Empty body revokes the current request's session grant; cross grant/device/all_sessions selectors require fresh proof and never revoke device authorization or write durable ck.account.status."
     },
     {
+      "operation_id": "ck.gate.account.command.refresh_session_grant",
+      "http_alias": "POST /_cokret/gate/account/session-grants/refresh",
+      "operation_specific": [
+        "grant_already_consumed",
+        "session_logged_out",
+        "audience_mismatch",
+        "session_grant_not_found"
+      ],
+      "description": "DPoP-bound session-grant rotation (account-lifecycle §4.1). Single-use: a consumed grant cannot be rotated again (grant_already_consumed); the audience is locked to the prior grant (audience_mismatch); rotation is refused once the underlying browser session is logged out (session_logged_out). The caller MUST present a holder proof signed by the key bound into the grant's cnf.jkt."
+    },
+    {
+      "operation_id": "ck.gate.account.command.logout_session_grant",
+      "http_alias": "POST /_cokret/gate/account/session-grants/logout",
+      "operation_specific": [
+        "session_grant_not_found"
+      ],
+      "description": "Hard-logout revocation at the Auth Server (account-lifecycle §4.1): a holder proof bound into the grant's cnf.jkt revokes the grant and finishes the underlying browser session so the rotation chain cannot be resumed. Idempotent — re-presenting an already-revoked grant succeeds."
+    },
+    {
+      "operation_id": "ck.gate.account.command.logout",
+      "http_alias": "POST /_cokret/gate/account/logout",
+      "operation_specific": [],
+      "description": "Hard-logout at the Principal Server (account-lifecycle §4.1): revokes the session access bearer, revokes/marks the bound local device session record, and drops the device's pending to-device queue. Does not write ck.account.status, emit ck.device.revoke, or erase durable device authorization. Idempotent — no domain-specific failure beyond the universal surface."
+    },
+    {
       "operation_id": "ck.gate.account.command.pair_agent_key",
       "http_alias": "POST /_cokret/gate/account/agent-key-pair",
       "operation_specific": [

@@ -216,6 +216,19 @@ components:
         co-occur with bearerAuth — implementations enforce mutual exclusion.
         See media-and-blob.md §5.4 and server-threat-model.md §2.1 #21 for the
         carve-out's normative constraints.
+    dpopProof:
+      type: apiKey
+      in: header
+      name: DPoP
+      description: |
+        RFC 9449 DPoP proof JWS signed by the device holder key whose RFC 7638
+        thumbprint is bound into the session grant's cnf.jkt. Carries htm / htu
+        (this exact endpoint) and, for grant-bearing calls, ath = hash of the
+        presented grant_jwt. This is the SOLE authentication for DPoP-bound
+        session-grant operations (rotation / Auth Server hard logout): they do
+        NOT take an Authorization bearer — possession of the cnf.jkt key, not a
+        bearer token, authorizes the call. See account-lifecycle §4.1 and
+        device-lifecycle §3.3.
     mutualTls:
       type: mutualTLS
       description: |
@@ -6720,7 +6733,7 @@ paths:
     post:
       operationId: ck.gate.account.command.refresh_session_grant
       security:
-      - bearerAuth: []
+      - dpopProof: []
       summary: Rotate a DPoP-bound session grant.
       description: |
         Rotate a near-expiry, DPoP-bound session grant onto a fresh one without
@@ -6754,7 +6767,7 @@ paths:
     post:
       operationId: ck.gate.account.command.logout_session_grant
       security:
-      - bearerAuth: []
+      - dpopProof: []
       summary: Auth Server hard logout of a session grant.
       description: |
         Hard logout at the Auth Server (account-lifecycle §4.1). The caller
