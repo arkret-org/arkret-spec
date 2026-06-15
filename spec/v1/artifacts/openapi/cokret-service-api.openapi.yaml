@@ -301,6 +301,9 @@ components:
               - invalid_param
               - unauthenticated
               - auth_expired
+              - grant_already_consumed
+              - session_logged_out
+              - audience_mismatch
               - soft_logged_out
               - did_proof_required
               - invalid_signature

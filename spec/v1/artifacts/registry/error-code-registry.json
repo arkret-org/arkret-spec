@@ -50,6 +50,24 @@
       "description": "Session, token, or grant has expired."
     },
     {
+      "code": "grant_already_consumed",
+      "http_status": 400,
+      "scope": "endpoint",
+      "description": "Session-grant rotation targeted a grant that was already single-use consumed (rotated). Treated as a credential-compromise signal; the rotation chain SHOULD be terminated. See account-lifecycle §4.1."
+    },
+    {
+      "code": "session_logged_out",
+      "http_status": 400,
+      "scope": "endpoint",
+      "description": "Session-grant rotation refused because the underlying Auth Server browser session has been logged out (finished). The rotation chain cannot be resumed; full re-authentication is required. See account-lifecycle §4.1."
+    },
+    {
+      "code": "audience_mismatch",
+      "http_status": 400,
+      "scope": "endpoint",
+      "description": "Session-grant rotation requested an audience different from the grant's bound audience. Audience MUST NOT change across rotation."
+    },
+    {
       "code": "soft_logged_out",
       "http_status": 401,
       "scope": "both",
