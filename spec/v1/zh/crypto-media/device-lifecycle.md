@@ -617,14 +617,31 @@ POST /_cokret/self/keys/claim
 | --- | --- | --- | --- |
 | `device_signing_key` | `did:key`(Ed25519 multibase) | optional | 该设备的**权威验签公钥**，来源 = 该设备权威 `ck.device.authorize.payload.device_public_key`(§5.2)。MUST **仅对 verified 且未吊销**的设备返回。 |
 | `device_status` | `enum(active, revoked)` | optional | 目录态。`active` = 该设备 `device.authorize` 在效且未吊销；`revoked` = 已被 `ck.device.revoke` 吊销。 |
+| `cross_signing_binding` | `object` | optional | **Tier-2**：该设备权威 `ck.device.authorize.payload.cross_signing_binding`（§5.2）原样回显，形态 `{verification_method, alg, ssk_generation, signature}`。供客户端独立验证 device key ← SSK 链路。inception bootstrap 设备无此字段（§5.0.1 例外）。 |
+
+并在 `keys_query_outcome` 顶层附带**每 principal** 的交叉签名根材料：
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `cross_signing` | `object` | optional | **Tier-2**：`{principal_id}` → 该 principal 当前 `accepted_generation` 的 `ck.cross_signing.publish` payload（§5.1，含 `principal_signing_key` / `self_signing_key`(+binding) / `generation`）。供客户端把 SSK 锚定到 DID 控制集再验 device binding。 |
 
 规则：
 
 - 服务端 MUST 仅对 verified 且未吊销设备返回 `device_signing_key`；对**吊销 / 未验**设备 MUST 省略 `device_signing_key`，并以 `device_status` 标注(吊销返 `revoked`)。即"省略 key" 与 "`device_status != active`" 等价表达设备不可用于验签。
-- 该目录面是 **Tier-1 便捷面**：它承载服务端在 session-grant / `device.authorize` ingest 时已校验过的 `device_public_key` 断言。客户端验签**信任服务端断言**即可达成 fail-closed 验证。
-- Tier-2(硬化，后续阶段)将在每条记录上**附加** `cross_signing_binding`（§5.2 / §5.2.1），供客户端独立验证 device key → SSK → PSK 的交叉签名链，而非仅信服务端断言。**本阶段不新增该字段**，仅在此 forward-reference 其位置。
+- **Tier-1 便捷面**：`device_signing_key` 承载服务端在 session-grant / `device.authorize` ingest 时已校验过的 `device_public_key` 断言。仅信服务端断言的客户端可用它达成 fail-closed 验证。
+- **Tier-2 硬化面**：返回 `cross_signing_binding`（每设备）与 `cross_signing`（每 principal）的客户端 MUST 按 §8.3 独立验证完整交叉签名链，**不信服务端对 `device_signing_key` 的断言**，仅在链验证通过后才接受该 key。服务端对在效设备 SHOULD 同时返回 Tier-2 字段；缺失时客户端 MUST 视为 `unverified` 并 fail-closed。
 
-接收方验 envelope / signal proof 时 MUST 按 `verification_method` = `` `{actor}#device` `` 经本目录解析 `device_signing_key` 得 verify_key；设备**吊销**(`device_status != active` 或目录省略 key)、目录**缺失**该 `(actor, device)`、或验签失败者 MUST **fail-closed**：丢弃信号，MUST NOT 触发 UI、MUST NOT 入库。该规则同时适用于通话信令(详见 [`webrtc-signaling.md` §5.1](./webrtc-signaling.md))与持久消息接收路径。
+接收方验 envelope / signal proof 时 MUST 按 `verification_method` = `` `{actor}#device` `` 经本目录解析 `device_signing_key` 得 verify_key；设备**吊销**(`device_status != active` 或目录省略 key)、目录**缺失**该 `(actor, device)`、Tier-2 链验证未通过、或验签失败者 MUST **fail-closed**：丢弃信号，MUST NOT 触发 UI、MUST NOT 入库。该规则同时适用于通话信令(详见 [`webrtc-signaling.md` §5.1](./webrtc-signaling.md))与持久消息接收路径。
+
+#### 8.3 客户端交叉签名链验证（Tier-2，normative）
+
+返回 Tier-2 字段时，客户端在接受 `device_signing_key` 为某 `(actor, device)` 的权威验签公钥前 MUST 执行 §5.2.1 链验证，且 **MUST NOT** 仅因服务端返回了 `device_signing_key` 就信任它：
+
+1. **DID 锚定**：独立解析 `actor` 的 DID，校验 `cross_signing.{actor}.principal_signing_key`（`kid` + `public_key`）等于该 DID 当前控制集中对应 verification method 的密钥（逐字节）；不符 MUST 视为 `unverified`。
+2. **PSK→SSK**：用上一步 DID 锚定的 PSK 校验 `self_signing_key.binding.signature` 覆盖 §5.1 self-signing canonical 输入；不通过 MUST `unverified`。
+3. **SSK→device**：读该设备 `cross_signing_binding`；缺失 MUST `unverified`（除 §5.0.1 inception bootstrap 例外）。比较 `cross_signing_binding.ssk_generation` 与 `cross_signing.{actor}.generation`：相等则用 `self_signing_key.public_key` 校验 `cross_signing_binding.signature` 覆盖 §5.2 `"ck-device-trust-bind-v1\n" + canonical_json({principal_id, device_id, device_public_key, ssk_generation})`；小于 MUST `needs_reverification`（降级，不接受）；大于 MUST `unverified` 并触发 re-sync。
+4. **接受判据**：仅当 1–3 全部得 `cross_signed` 时，客户端方接受 `device_signing_key` 用于 proof 验签；任一步失败 MUST fail-closed（按 `unverified` 处理：丢弃该 `(actor,device)` 的 proof，不触发 UI、不入库）。
+5. `device_public_key` 取自 `device_signing_key`(did:key 内嵌的 Ed25519 公钥)，并 MUST 与第 3 步 binding 输入中的 `device_public_key` 为同一把 key——即客户端验证的正是它将用于 proof 验签的那把 key，闭合"目录给的 key ⇔ 被交叉签名背书的 key"。
 
 `POST /_cokret/self/keys/claim` 请求字段：
 

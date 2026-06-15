@@ -162,6 +162,9 @@
         },
         "device_status": {
           "$ref": "#/$defs/device_status"
+        },
+        "cross_signing_binding": {
+          "$ref": "#/$defs/cross_signing_binding"
         }
       },
       "additionalProperties": false
@@ -433,6 +436,16 @@
           "items": {
             "$ref": "#/$defs/failure"
           }
+        },
+        "cross_signing": {
+          "type": "object",
+          "description": "Tier-2: {principal_id} -> that principal's current accepted-generation ck.cross_signing.publish payload (device-lifecycle.md §5.1). Lets receivers anchor the SSK to the DID control set before trusting cross_signing_binding. See device-lifecycle.md §8.3.",
+          "propertyNames": {
+            "$ref": "#/$defs/did"
+          },
+          "additionalProperties": {
+            "$ref": "./cross-signing-publish.schema.json"
+          }
         }
       },
       "additionalProperties": false
@@ -553,6 +566,33 @@
         },
         "backup_id": {
           "$ref": "#/$defs/backup_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "cross_signing_binding": {
+      "type": "object",
+      "description": "Tier-2 device trust binding echoed from ck.device.authorize.payload.cross_signing_binding (device-lifecycle.md §5.2). The accepted-generation SSK signs `\"ck-device-trust-bind-v1\n\" + canonical_json({principal_id, device_id, device_public_key, ssk_generation})`. Absent for inception bootstrap devices (§5.0.1).",
+      "required": [
+        "verification_method",
+        "ssk_generation",
+        "signature"
+      ],
+      "properties": {
+        "verification_method": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "DID URL of the self-signing key (SSK) that produced the binding signature, e.g. did:webvh:...#ck_self_signing_v1."
+        },
+        "alg": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "ssk_generation": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "cross_signing.publish generation under which the SSK signed this device binding; compared to the principal's accepted generation per device-lifecycle.md §5.2.1."
+        },
+        "signature": {
+          "$ref": "#/$defs/base64url"
         }
       },
       "additionalProperties": false
