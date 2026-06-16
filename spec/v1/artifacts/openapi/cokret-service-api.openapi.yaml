@@ -369,7 +369,6 @@ components:
               - blob_quota_exceeded
               - cursor_invalid
               - device_enrollment_authority_not_designated
-              - device_id_not_self_certifying
               - device_unknown
               - did_already_exists
               - did_not_found

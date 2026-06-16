@@ -352,9 +352,10 @@ receiver 接受 `bootstrap_binding` 当且仅当该 principal 的 control stream
 
 receiver 接受 `service_attested` 的 `ck.device.authorize` 时 MUST 校验：
 
-1. `device_id` 自证：`device_id == derive(device_public_key)`（[`models/common-fields.md`](../models/common-fields.md) 的派生），不等则 `reject`，reason `device_id_not_self_certifying`。
-2. `authority_did`（= `executed_by`）确为 principal DID 文档**在本 Event accepted-at 时点解析**所指派的入册权威（按时点解析见下），且 `authorization_ref` 委派覆盖设备授权动作；不满足则 `reject`，reason `device_enrollment_authority_not_designated`。
-3. `proofs[]` 用入册权威 DID **按时点解析**得到的签名公钥验签通过。
+1. `authority_did`（= `executed_by`）确为 principal DID 文档**在本 Event accepted-at 时点解析**所指派的入册权威（按时点解析见下），且 `authorization_ref` 委派覆盖设备授权动作；不满足则 `reject`，reason `device_enrollment_authority_not_designated`。
+2. `proofs[]` 用入册权威 DID **按时点解析**得到的签名公钥验签通过。
+
+`device_id` 是 principal 作用域内的 typed id（`ck:device:<uuid>`），由客户端在该会话内一致使用；入册产生的 `device_public_key` 投影写入设备行时即以该 `device_id` 为键，与会话/恢复查找口径一致。
 
 被接受后，该 device 的 `device_public_key` 作为 principal DID 下的 verification method 进入**设备集投影**（device-set projection），它**不**写入 DID method 的 key log（如 `did:webvh` 的 `did.jsonl`）。在该 profile 下，设备的信任根即"入册权威背书"；E2EE 设备集成员资格由**入册背书的设备集**派生，§5.2 的 SSK cross-signing 为可选增强而非必需。
 

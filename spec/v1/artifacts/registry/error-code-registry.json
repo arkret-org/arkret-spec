@@ -498,12 +498,6 @@
       "description": "A service-attested ck.device.authorize names an executed_by / authority_did that is not designated as an enrollment authority by the principal DID document (resolved at the event's accepted-at), or its authorization_ref delegation does not cover device authorization."
     },
     {
-      "code": "device_id_not_self_certifying",
-      "http_status": 400,
-      "scope": "endpoint",
-      "description": "The device_id is not the self-certifying value derived from device_public_key (ck:device:<uuidv8 over the device public key>); the receiver rejects ck.device.authorize whose device_id does not equal derive(device_public_key)."
-    },
-    {
       "code": "device_unknown",
       "http_status": 404,
       "scope": "endpoint",
