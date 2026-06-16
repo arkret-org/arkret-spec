@@ -42,7 +42,8 @@
     },
     "device_id": {
       "type": "string",
-      "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "description": "Device identifier scoped to an owning principal. UUID body is version 7 (legacy) or version 8 (self-certifying, derived from device_public_key). New ck.device.authorize devices MUST use the version-8 form; self-certification is enforced at admission, not by this regex.",
+      "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "backup_id": {
       "type": "string",

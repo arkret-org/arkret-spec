@@ -11,7 +11,8 @@
     },
     "device_id": {
       "type": "string",
-      "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "description": "Device identifier scoped to an owning principal. UUID body is version 7 (legacy time-ordered) or version 8 (self-certifying: derived from the device_public_key per zh/models/common-fields.md). New ck.device.authorize devices MUST use the version-8 self-certifying form; receivers enforce device_id == derive(device_public_key) at admission (this regex only constrains the wire shape).",
+      "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-[78][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "timestamp": {
       "type": "string",
@@ -733,6 +734,29 @@
         },
         "did_method_evidence_ref": {
           "$ref": "#/$defs/non_empty_string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_enrollment_authority_binding": {
+      "type": "object",
+      "description": "Delegated-authority binding for a ck.device.authorize event admitted as service_attested: the device_public_key is attested for this principal by an enrollment authority designated in the principal's DID document (CokretDeviceEnrollmentAuthority service, or a capabilityDelegation verification method). Used by the managed-DID (account-authority) onboarding path where no client-held self-signing key (SSK) or DID inception key signs the device binding. The cryptographic signer is the envelope proof (verification_method MUST map to executed_by); this object records the trust root for device-trust-chain consumers. Receivers MUST verify authority_did is the enrollment authority designated by the principal DID document resolved at this event's accepted-at, and that authorization_ref delegation covers device authorization. See zh/crypto-media/device-lifecycle.md §5.4 and zh/identity/key-management.md §5.0.6.",
+      "required": [
+        "kind",
+        "authority_did",
+        "authorization_ref"
+      ],
+      "properties": {
+        "kind": {
+          "const": "service_attested"
+        },
+        "authority_did": {
+          "$ref": "#/$defs/did",
+          "description": "DID of the enrollment authority that attested this device, designated by the principal DID document. MUST equal the envelope executed_by."
+        },
+        "authorization_ref": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Reference to the delegation evidence designating authority_did as an enrollment authority for this principal (DID-document service delegation, materialized grant, or the accepted delegation event). MUST match the envelope authorization_ref."
         }
       },
       "additionalProperties": false
@@ -5223,6 +5247,11 @@
           "required": [
             "bootstrap_binding"
           ]
+        },
+        {
+          "required": [
+            "enrollment_authority_binding"
+          ]
         }
       ],
       "properties": {
@@ -5261,6 +5290,9 @@
         },
         "bootstrap_binding": {
           "$ref": "#/$defs/device_bootstrap_binding"
+        },
+        "enrollment_authority_binding": {
+          "$ref": "#/$defs/device_enrollment_authority_binding"
         },
         "recovery_session_id": {
           "type": "string",

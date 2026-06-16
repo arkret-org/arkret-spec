@@ -47,9 +47,12 @@
         },
         {
           "$ref": "#/$defs/event_ref"
+        },
+        {
+          "$ref": "#/$defs/did_delegation_ref"
         }
       ],
-      "description": "Optional. Required when executed_by is present. Prefer a materialized ck:grant:* id; an event id is allowed only when it points to the accepted grant/delegation event that produced the effective authorization. Reducer MUST validate the referenced grant/delegation covers the event kind and target resource and is within its effective validity window."
+      "description": "Optional. Required when executed_by is present. Prefer a materialized ck:grant:* id; an event id is allowed only when it points to the accepted grant/delegation event that produced the effective authorization; a DID-document delegation URL (did_delegation_ref) is allowed when the delegation is expressed in the principal DID document (e.g. a CokretDeviceEnrollmentAuthority service designating the enrollment authority). Reducer MUST validate the referenced grant/delegation covers the event kind and target resource and is within its effective validity window; for did_delegation_ref the designation is resolved against the principal DID document at the event's accepted-at."
     },
     "applet_id": {
       "$ref": "#/$defs/applet_id",
@@ -3388,6 +3391,11 @@
     "grant_ref": {
       "type": "string",
       "pattern": "^ck:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "did_delegation_ref": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
+      "description": "DID URL of a delegation entry in the principal DID document that designates the executed_by principal as authorized for the action (e.g. a CokretDeviceEnrollmentAuthority service entry id, or a capabilityDelegation verification method id). Used as authorization_ref when the delegation lives in the DID document rather than in an on-stream grant/event. Resolved against the principal DID document at the event's accepted-at (point-in-time), so enrollment-authority key rotation does not invalidate prior authorizations."
     },
     "seal_ref": {
       "type": "string",

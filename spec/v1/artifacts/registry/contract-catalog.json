@@ -3242,7 +3242,7 @@
         "category": "identity",
         "status": "active",
         "wire_form": "ck:device:<uuid>",
-        "description": "Device identifier (ck:device:<uuid>). A device is a typed ID scoped to an owning principal, NOT a DID and NOT an actor principal. Device keys are registered as verification methods under the owning principal DID via ck.device.authorize."
+        "description": "Device identifier (ck:device:<uuid>). A device is a typed ID scoped to an owning principal, NOT a DID and NOT an actor principal. Device keys are registered as verification methods under the owning principal DID via ck.device.authorize. New devices use the self-certifying UUIDv8 form derived from device_public_key (zh/models/common-fields.md); receivers enforce device_id == derive(device_public_key) at authorize admission. UUIDv7 form is retained only for legacy non-self-certifying devices."
       },
       {
         "kind": "device_message",

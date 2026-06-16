@@ -332,7 +332,40 @@ DID-method history → principal_signing_key (PSK)
 }
 ```
 
-receiver 接受 `bootstrap_binding` 当且仅当该 principal 的 control stream 中尚无任何 `ck.cross_signing.publish` 事件。首次 publish 写入后，所有后续 `ck.device.authorize` MUST 使用 §5.2 形式的 `cross_signing_binding`。
+receiver 接受 `bootstrap_binding` 当且仅当该 principal 的 control stream 中尚无任何 `ck.cross_signing.publish` 事件。首次 publish 写入后，所有后续 `ck.device.authorize` MUST 使用 §5.2 形式的 `cross_signing_binding`。本段（§5.2/§5.3 的 SSK / inception 信任根）适用于客户端自持控制密钥的 cross-signing 模型；使用托管 DID（account-authority）的 principal 改走 §5.4 的 `enrollment_authority_binding`，其 control stream 不产生 `ck.cross_signing.publish`，故本段"首次 publish 后必须用 §5.2"的前提对该模型恒不触发。
+
+### 5.4 委派账号权威入册（`service_attested`）
+
+当 principal 使用托管 DID（account authority 代铸，见 [`identity/account-lifecycle.md` §2.1.1](../identity/account-lifecycle.md) 与 [`identity/key-management.md` §5.0.6](../identity/key-management.md)）时，设备入册的信任根是 **DID 文档指派的入册权威**，而非客户端自持的 SSK（§5.2）或 DID inception key（§5.3）。该路径下 `ck.device.authorize` MUST 携带 `enrollment_authority_binding`，而非 `cross_signing_binding` 或 `bootstrap_binding`（三者互斥，schema `oneOf`）：
+
+```json
+{
+  "enrollment_authority_binding": {
+    "kind": "service_attested",
+    "authority_did": "did:webvh:.../auth-server",
+    "authorization_ref": "did:webvh:<principal>#device-enrollment"
+  }
+}
+```
+
+该 `ck.device.authorize` Event 的信封 MUST 采用 [`models/common-fields.md`](../models/common-fields.md) 的委派执行形态：`actor_id` = principal DID（记录主体），`executed_by` = 入册权威 DID（实际写入方，等于 `authority_did`），`authorization_ref` = principal DID 文档中指派该权威的委派条目（`did_delegation_ref`，即 [`identity/identity-did.md`](../identity/identity-did.md) 的 `CokretDeviceEnrollmentAuthority` service 条目，或一条 `capabilityDelegation` verification method）。Event `proofs[]` 由入册权威的签名密钥签发，其 `verification_method` MUST 映射到 `executed_by`（而非 `actor_id`）。入册权威的签名密钥是一把**持久服务密钥**，与 §5.0.1 step5 必须退场的 inception key 无关；coauth 等账号权威 **MUST NOT** 持有或伪造本 principal 的 SSK。
+
+receiver 接受 `service_attested` 的 `ck.device.authorize` 时 MUST 校验：
+
+1. `device_id` 自证：`device_id == derive(device_public_key)`（[`models/common-fields.md`](../models/common-fields.md) 的派生），不等则 `reject`，reason `device_id_not_self_certifying`。
+2. `authority_did`（= `executed_by`）确为 principal DID 文档**在本 Event accepted-at 时点解析**所指派的入册权威（按时点解析见下），且 `authorization_ref` 委派覆盖设备授权动作；不满足则 `reject`，reason `device_enrollment_authority_not_designated`。
+3. `proofs[]` 用入册权威 DID **按时点解析**得到的签名公钥验签通过。
+
+被接受后，该 device 的 `device_public_key` 作为 principal DID 下的 verification method 进入**设备集投影**（device-set projection），它**不**写入 DID method 的 key log（如 `did:webvh` 的 `did.jsonl`）。在该 profile 下，设备的信任根即"入册权威背书"；E2EE 设备集成员资格由**入册背书的设备集**派生，§5.2 的 SSK cross-signing 为可选增强而非必需。
+
+**两套验证 regime（normative）：**
+
+- **入册时（低频）：** 如上，通过解析入册权威 DID 校验 `ck.device.authorize`。
+- **普通事件热路径（高频）：** receiver **MUST NOT** 为校验普通业务事件而在线解析 principal DID。普通事件 `proofs[].verification_method` 形如 `{principal_did}#{device_id}`，fragment 即 `device_id`；receiver 从**当前 principal-control 流 frontier 的设备集投影**取该 device 的 `device_public_key` 验签，device 缺失或已吊销即 `reject`。吊销一致性由 control 流 frontier 保证，防止 stale 投影放行已撤销设备。
+
+**按时点解析（normative）：** 历史 `ck.device.authorize` 的复验（审计 / 联邦 replay）MUST 按该 Event 的 server-sealed accepted-at，对入册权威 DID 做按时点解析（`did:webvh` 历史 `versionTime`），用当时有效的入册密钥验签；因此入册权威轮换其签名密钥**不会**使既有授权失效。设备集投影的历史复算同样按时点进行。
+
+**inception 窗口不适用：** `service_attested` 的 `ck.device.authorize` 不携带 `did_inception` ref，[`identity/key-management.md` §5.0.1 step5](../identity/key-management.md) 的 inception key 24h 在线窗口门对其天然 inert。
 
 ## 5a. Privacy-Preserving Push
 
