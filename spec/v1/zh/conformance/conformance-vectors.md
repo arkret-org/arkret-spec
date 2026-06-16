@@ -3129,6 +3129,116 @@ Expected:
 - 第 2 步 `actor_id` / `executed_by` MUST 是 S 单一 DID,而非 "agent group"。
 - 第 3 步若 R 的 grant 不覆盖该内容或 R 未持 fresh approval,MUST fail closed。R 通过自己的 grant 可独立发布，但 attribution 仍是 R 单一 DID;不得复合 S+R。
 
+### 11.12 Vector: Participation Ceiling Tighten-Only
+
+`vector_id`: `ck.vector.agent.participation.ceiling_tighten.v1`
+
+参见 [`../models/realm-and-space.md` §2.2](../models/realm-and-space.md)、[`../models/circle.md` §7](../models/circle.md)、[`../models/strand-and-message.md` §9.4](../models/strand-and-message.md)。
+
+Preconditions:
+
+- 部署顶层 ceiling 全 `false`。Realm `R` 的 `ck.realm.policy_components.agent_participation.native_agent = {reply:true, accept_third_party_mention:true, act_on_behalf:false}`。
+
+Steps:
+
+1. Circle `C`(父级为 `R`)写入 `agent_participation = {reply:true, accept_third_party_mention:false, act_on_behalf:false}`。
+2. Strand `F`(`scope_circle_id=C`)写入 `agent_participation = {reply:true, accept_third_party_mention:false, act_on_behalf:false}`。
+3. 变体 A：Circle `C` 尝试写入 `act_on_behalf:true`(放宽父 Realm `native_agent.act_on_behalf=false`)。
+4. 变体 B：Strand `F` 尝试写入 `accept_third_party_mention:true`(放宽父 Circle `C` 的 `false`)。
+
+Expected:
+
+- 第 1、2 步 MUST 接受(每一位 ⊆ 父级 ceiling)。
+- 变体 A、B MUST fail closed(`failed_precondition`, `reason="agent_participation_ceiling_widen"`)，与 [`../models/circle.md` §7](../models/circle.md) 的 floor downgrade 同形。
+- 未显式声明 `agent_participation` 的内层 scope 继承父级 ceiling(不放宽)；effective ceiling 以从 Strand→Circle→Realm→deployment 逐级按位 AND 求值，对违反不变量的历史数据 fail closed。
+
+### 11.13 Vector: Participation Effective = Ceiling ∩ Selection
+
+`vector_id`: `ck.vector.agent.participation.effective_intersection.v1`
+
+参见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)、[`../identity/key-management.md` §3.6.1](../identity/key-management.md)。
+
+Preconditions:
+
+- Realm `R` 的 `native_agent` ceiling `{reply:true, accept_third_party_mention:true, act_on_behalf:false}`。Agent `A` 为 controller `Alice` 的 active native personal agent。
+
+Steps:
+
+1. Alice 调用 `ck.self.agent.participation.set`，scope=`R`，selection=`{reply:true, accept_third_party_mention:false, act_on_behalf:true}`。
+2. 服务端求 effective selection = controller selection ∩ effective ceiling ∩ agent capability intersection。
+3. 变体 A：之后 Realm ceiling 把 `reply` 收紧为 `false`。
+4. 变体 B：controller selection 来源缺失或 unknown。
+
+Expected:
+
+- 第 2 步 effective = `{reply:true, accept_third_party_mention:false, act_on_behalf:false}`(`act_on_behalf` 被 ceiling 封掉)。`reply` effective=true MUST 物化为一条 subject=`A`、`actions=[ck.message.create, ck.reaction.add]`、resource selector=scope `R` 的 `ck.capability.grant`；`act_on_behalf` effective=false MUST NOT 物化 act-on-behalf grant。
+- 物化是幂等的：重复 set 收敛到同一 grant 集合；selection 改变导致的 grant 增删 MUST atomic，不得留半物化状态。
+- 变体 A：`reply` effective 翻为 `false` 后 MUST `ck.capability.revoke` 对应 grant。
+- 变体 B：任一来源缺失或 unknown，对应位 MUST fail closed 为 `false`。
+
+### 11.14 Vector: Participation Selection Within Ceiling
+
+`vector_id`: `ck.vector.agent.participation.selection_within_ceiling.v1`
+
+参见 [`../sync/service-surface.md` §10.1](../sync/service-surface.md)。
+
+Preconditions:
+
+- Realm `R` 的 `native_agent` ceiling `{reply:true, accept_third_party_mention:false, act_on_behalf:false}`。
+
+Steps:
+
+1. Controller 调用 `ck.self.agent.participation.set`，scope=`R`，selection=`{reply:true, accept_third_party_mention:true, act_on_behalf:false}`。
+2. 变体 A：调用方不是该 agent 的 controller。
+3. 变体 B：该 agent 非 active(`paused` / `deactivated` / `pairing_expired`)。
+4. 变体 C：scope 不可解析，或 controller 非该 Realm active member。
+
+Expected:
+
+- 第 1 步 MUST fail closed(`failed_precondition`, `reason="agent_participation_exceeds_ceiling"`)，并在 error detail 中列出被封顶的位(`accept_third_party_mention`)，使 UI 能解释“为何不能开启”；MUST NOT 物化任何 grant。
+- 变体 A、B、C MUST fail closed。`set` 仅 controller 可调用；`get` 可由 controller 或该 agent runtime 调用。
+
+### 11.15 Vector: Participation Session Overlay
+
+`vector_id`: `ck.vector.agent.participation.session_overlay.v1`
+
+参见 [`../sync/service-surface.md` §10.1](../sync/service-surface.md)。
+
+Steps:
+
+1. Agent runtime 调用 `ck.gate.account.command.issue_session_grant`，`proof.proof_kind="agent_key_proof"`，`agent_scope_request` 覆盖某 participation-aware scope。
+2. 服务端签发 session，响应 `scope_details.participation[]`。
+3. runtime 收到 `reply=false` 的 scope 后仍尝试 `ck.message.create`(模拟 runtime bug)。
+
+Expected:
+
+- 第 2 步 `scope_details.participation[]` 每个条目 MUST 与 `agent-operations.schema.json#/$defs/agent_participation_entry`(`{participation_scope, selection, ceiling, effective}`)同构，而非扁平三位；承载的是已解析 effective 策略。
+- runtime MUST 把该数组视为本 session 行为契约。但它不是安全边界：第 3 步即使 runtime 越权，reducer 因无对应 `ck.message.create` grant MUST `failed_precondition`；第三方 mention 在 dispatcher gate 已被拦下；`act_on_behalf` 越权被 receiver 的 `executed_by`/`authorization_ref` 校验拒绝。
+
+### 11.16 Vector: Participation Third-Party Mention Gate (Non-Retroactive)
+
+`vector_id`: `ck.vector.agent.participation.third_party_mention_gate.v1`
+
+参见 [`../models/strand-and-message.md` §9.4.5](../models/strand-and-message.md)。
+
+Preconditions:
+
+- Agent `A` 为 controller `Alice` 的 active native personal agent，有权读取 Strand `F`。`F` 的 effective `accept_third_party_mention=false`。
+
+Steps:
+
+1. 非 controller 的 `Bob` 在 `F` 发 `ck.message.create`，mention target=`A`。
+2. controller `Alice` 自己在 `F` 发 mention target=`A`。
+3. Alice 把 `F` 的 effective `accept_third_party_mention` 翻为 `true`，`A` 上线同步。
+4. 翻转后 `Carol`(非 controller)再发 mention target=`A`。
+
+Expected:
+
+- 第 1 步 MUST NOT 为 `A` 派生任何 mention notification、inbox row、push wakeup，也 MUST NOT 把该 mention 纳入 `A` 的 `ck.self.events.subscribe` 投影；抑制只针对 `A`，对 message 的其他 human target、shared history、其它投影无影响。
+- 第 2 步照常投递(controller 自己的 mention 不受此 gate，仍受 `A` 是否被授权读取该 scope 约束)。
+- 第 3 步翻转 **非追溯**：第 1 步发生在 `false` 期间的历史 mention，翻转为 `true` 后对 `A` 仍 MUST 零记录(notification / inbox row / `ck.self.events.subscribe` 投影皆无)。
+- 第 4 步在 `true` 期间的第三方 mention 照常投递，并受 `level=muted`、blocklist、DND、rate-limit 等既有更高优先级规则约束。
+
 ## 12. Media Service Binding Vectors
 
 本节列出 `ck.profile.media_service_binding.v1` 的核心 conformance 向量。完整 fixture 与执行脚本在 candidate 阶段补完；以下为 normative steps + expected outcomes 的最小契约。详见 [`../crypto-media/media-service-binding.md`](../crypto-media/media-service-binding.md) §2 / §3 / §5–§8 与 [`../crypto-media/call-state.md`](../crypto-media/call-state.md) §4。

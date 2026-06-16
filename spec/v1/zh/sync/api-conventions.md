@@ -141,18 +141,30 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 
 ### 3.1 认证服务发现
 
-认证与授权服务器可以分离。服务 describe / discovery 响应 SHOULD 公布认证 metadata，但不得把 OAuth/OIDC subject 当作 Cokret principal：
+认证与授权服务器可以分离。Principal Server 的 `/_cokret/describe` MUST 公布 `auth_metadata.account_authority` 与 `auth_metadata.methods[]`。客户端先用 `account_authority.gate_account_base` 定位所有 Cokret `/_cokret/gate/account/*` 操作，再按 `methods[]` 中的标准 discovery 找认证 provider；不得把 OAuth/OIDC subject 当作 Cokret principal：
 
 ```json
 {
   "auth_metadata": {
-    "oauth_issuer": "https://auth.example.com",
-    "openid_configuration": "https://auth.example.com/.well-known/openid-configuration",
-    "supported_auth_methods": ["passkey", "oidc", "device_pairing", "recovery_challenge"],
-    "token_endpoint_auth_methods": ["private_key_jwt", "client_secret_basic"],
-    "supported_grant_types": ["authorization_code", "refresh_token"],
-    "did_binding_methods": ["session_grant", "did_http_signature"],
-    "required_audience": "https://server.example"
+    "account_authority": {
+      "origin": "https://account.example",
+      "gate_account_base": "https://account.example/_cokret/gate/account"
+    },
+    "methods": [
+      {
+        "method": "oidc",
+        "issuer": "https://auth.example.com",
+        "openid_configuration": "https://auth.example.com/.well-known/openid-configuration",
+        "client_id": "yougen",
+        "scopes": ["openid", "profile"],
+        "grant_exchange": {"proof_kind": "oidc_code_exchange"}
+      },
+      {
+        "method": "passkey",
+        "grant_exchange": {"proof_kind": "passkey_assertion"}
+      }
+    ],
+    "did_binding_methods": ["session_grant", "did_http_signature"]
   }
 }
 ```
@@ -160,9 +172,9 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 规则：
 
 - `sub`、email、username 或 OAuth client id MUST NOT 直接作为 `actor_id`、grant subject 或 event sender。
-- 登录成功后，客户端或 Auth Server MUST 产生可验证的 session grant、device binding 或 DID proof，把 OAuth/OIDC session 绑定到 DID principal / device。
-- Resource server MUST 校验 token audience、issuer、expiry、nonce / replay 防护和 session grant 状态。
-- `supported_auth_methods` 只描述 service account 登录或恢复入口；它不改变 DID 控制权规则。密码、邮箱验证码和 OIDC session 必须通过 `did_binding_methods` 绑定到 DID / device 后才能用于协议写入。
+- 登录成功后，Account Authority MUST 产生可验证的 `SessionGrantOutcome`，把 OAuth/OIDC / passkey / device proof 绑定到 DID principal / device。客户端可见登录凭据是 `ck.session.grant`，Principal 本地 session provisioning 是 Account Authority 内部步骤。
+- Resource server MUST 校验 token audience、issuer、expiry、nonce / replay 防护和 session grant 状态；Principal Server 校验 grant 时通过 Account Authority / Auth-side 内省或等价可信本地状态 fail closed。
+- `methods[]` 只描述 service account 登录或恢复入口；它不改变 DID 控制权规则。密码、邮箱验证码、passkey 和 OIDC session 必须通过 `did_binding_methods` 绑定到 DID / device 后才能用于协议写入。
 - 当认证 metadata 变化时，服务 SHOULD 通过 feature discovery 版本或 DID service metadata hash 暴露变更，客户端不得静默沿用过期 issuer。
 
 ### 3.2 Sender-constrained（proof-of-possession）会话出示

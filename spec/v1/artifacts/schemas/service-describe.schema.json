@@ -94,6 +94,50 @@
     "auth_metadata": {
       "type": "object",
       "description": "Authentication and session metadata needed by clients before calling protected operations.",
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
+      "properties": {
+        "account_authority": {
+          "$ref": "#/$defs/account_authority"
+        },
+        "methods": {
+          "type": "array",
+          "description": "Authentication methods offered for this principal/account surface. Methods describe proof providers, standard discovery, and the proof kind accepted by the Account Authority. Cokret gate/account routing is always derived from account_authority.",
+          "items": {
+            "$ref": "#/$defs/auth_method"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "did_binding_methods": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "oauth_issuer": {
+          "type": "string",
+          "format": "uri",
+          "description": "Compatibility alias for legacy clients. New clients MUST use methods[].issuer."
+        },
+        "openid_configuration": {
+          "type": "string",
+          "format": "uri",
+          "description": "Compatibility alias for legacy clients. New clients MUST use methods[].openid_configuration."
+        },
+        "supported_auth_methods": {
+          "type": "array",
+          "description": "Compatibility alias for legacy clients. New clients MUST use methods[].method.",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
       "additionalProperties": true
     },
     "limits": {
@@ -609,6 +653,28 @@
           }
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "service_type": {
+            "const": "principal_server"
+          }
+        },
+        "required": [
+          "service_type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "auth_metadata": {
+            "required": [
+              "account_authority",
+              "methods"
+            ]
+          }
+        }
+      }
     }
   ],
   "anyOf": [
@@ -638,6 +704,151 @@
       "minLength": 3,
       "maxLength": 64,
       "description": "IPv4 or IPv6 CIDR string. Parsability and address-family semantics are enforced by the egress policy evaluator."
+    },
+    "account_authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
+      "required": [
+        "origin",
+        "gate_account_base"
+      ],
+      "properties": {
+        "origin": {
+          "type": "string",
+          "format": "uri",
+          "description": "Absolute origin of the client-visible Account Authority."
+        },
+        "gate_account_base": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "/_cokret/gate/account/?$",
+          "description": "Absolute base URL from which all client-visible /_cokret/gate/account/* endpoints MUST be derived."
+        }
+      }
+    },
+    "auth_method": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "method",
+        "grant_exchange"
+      ],
+      "properties": {
+        "method": {
+          "type": "string",
+          "enum": [
+            "oidc",
+            "passkey",
+            "device_pairing",
+            "recovery_challenge",
+            "gnap"
+          ]
+        },
+        "issuer": {
+          "type": "string",
+          "format": "uri"
+        },
+        "provider": {
+          "type": "string",
+          "format": "uri"
+        },
+        "openid_configuration": {
+          "type": "string",
+          "format": "uri"
+        },
+        "client_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scopes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "grant_exchange": {
+          "$ref": "#/$defs/auth_grant_exchange"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "const": "oidc"
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "then": {
+            "required": [
+              "issuer",
+              "openid_configuration"
+            ],
+            "properties": {
+              "grant_exchange": {
+                "properties": {
+                  "proof_kind": {
+                    "const": "oidc_code_exchange"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "const": "passkey"
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "then": {
+            "properties": {
+              "grant_exchange": {
+                "properties": {
+                  "proof_kind": {
+                    "const": "passkey_assertion"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "auth_grant_exchange": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
+      "required": [
+        "proof_kind"
+      ],
+      "properties": {
+        "proof_kind": {
+          "type": "string",
+          "enum": [
+            "did_bound_signature",
+            "paired_device_proof",
+            "passkey_assertion",
+            "oidc_code_exchange",
+            "agent_key_proof"
+          ]
+        }
+      }
     },
     "plaintext_data_class": {
       "type": "string",

@@ -36,6 +36,46 @@
       ]
     },
     {
+      "vector_id": "ck.vector.agent.participation.ceiling_tighten.v1",
+      "status": "active",
+      "domain": "agent",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.agent.participation.effective_intersection.v1",
+      "status": "active",
+      "domain": "agent",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.agent.participation.selection_within_ceiling.v1",
+      "status": "active",
+      "domain": "agent",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.agent.participation.session_overlay.v1",
+      "status": "active",
+      "domain": "agent",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.agent.participation.third_party_mention_gate.v1",
+      "status": "active",
+      "domain": "agent",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ck.vector.agent.provision.v1",
       "status": "active",
       "domain": "agent",

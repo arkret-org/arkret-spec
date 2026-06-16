@@ -387,6 +387,7 @@
       "http": "POST /_cokret/gate/account/session-grants",
       "grpc": "GateAccount/IssueSessionGrant",
       "mq": "gate.account.command.issue_session_grant",
+      "notes": "Account Authority single-call grant exchange. The response is the client-visible SessionGrantOutcome; any Principal-side local session provisioning is internal to the Account Authority. For proof_kind=oidc_code_exchange, the Account Authority exchanges the authorization code at the issuer token_endpoint and validates issuer/state/nonce/redirect_uri/principal/device/audience binding before issuing the grant.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome"
@@ -404,7 +405,7 @@
       "operation_id": "ck.gate.account.command.refresh_session_grant",
       "http_only_variant": true,
       "http": "POST /_cokret/gate/account/session-grants/refresh",
-      "notes": "DPoP-bound session-grant rotation (account-lifecycle §4.1, device-lifecycle §3.3). An authorized device presents a DPoP holder proof for the grant's cnf.jkt and rotates onto a fresh grant; the old grant is single-use revoked. Auth-Server-local op; not exposed over gRPC/MQ.",
+      "notes": "DPoP-bound session-grant rotation (account-lifecycle §4.1, device-lifecycle §3.3). An authorized device presents a DPoP holder proof for the grant's cnf.jkt and rotates onto a fresh grant; the old grant is single-use revoked. Account Authority-local op; not exposed over gRPC/MQ.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshOutcome"
@@ -413,7 +414,7 @@
       "operation_id": "ck.gate.account.command.logout_session_grant",
       "http_only_variant": true,
       "http": "POST /_cokret/gate/account/session-grants/logout",
-      "notes": "Auth Server hard logout (account-lifecycle §4.1): DPoP holder proof revokes the grant and finishes the underlying browser session, terminating the rotation chain. Auth-Server-local op; not exposed over gRPC/MQ.",
+      "notes": "Account Authority lower-level grant-only logout (account-lifecycle §4.1): DPoP holder proof revokes the grant and finishes the underlying browser session, terminating the rotation chain. Ordinary client hard logout should use ck.gate.account.command.logout so Account Authority can also terminate Principal-side local account session state. HTTP-only lower-level op; not exposed over gRPC/MQ.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantLogoutRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantLogoutOutcome"
@@ -431,7 +432,7 @@
       "operation_id": "ck.gate.account.command.logout",
       "http_only_variant": true,
       "http": "POST /_cokret/gate/account/logout",
-      "notes": "Principal Server device logout (account-lifecycle §4.1): revoke the current session bearer + mark its local device session record revoked + drop the device's queued to-device. Distinct from revoke_session (session-token-only). Principal-Server-local op; not exposed over gRPC/MQ.",
+      "notes": "Account Authority ordinary hard logout (account-lifecycle §4.1): terminate the grant rotation chain/browser session and the Principal-side local account session + device session record, then drop the device's queued to-device. Distinct from revoke_session (session-token-only). HTTP-only Account Authority op; not exposed over gRPC/MQ.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutOutcome"
@@ -554,6 +555,7 @@
       "http": "POST /_cokret/gate/account/oidc/callback",
       "grpc": "GateAccount/OidcCallback",
       "mq": "gate.account.exchange.complete_oidc",
+      "notes": "Optional Account Authority browser redirect landing / handoff for deployments that use an OIDC redirect URI under /_cokret/gate/account. It MUST NOT issue or return SessionGrantOutcome, ck.session.grant, or Principal local session material; client-visible grant issuance remains ck.gate.account.command.issue_session_grant.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome"

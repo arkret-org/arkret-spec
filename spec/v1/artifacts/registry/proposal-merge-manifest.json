@@ -1,5 +1,5 @@
 {
-  "version": "2026-06-11",
+  "version": "2026-06-16",
   "source_of_truth": true,
   "scope": "accepted_merged_ckp_v1",
   "policy": {
@@ -12,6 +12,7 @@
       "CKP-0011",
       "CKP-0012",
       "CKP-0013",
+      "CKP-0014",
       "CKP-0016",
       "CKP-0017"
     ],
@@ -204,6 +205,34 @@
             "artifacts/registry/operations-error-mapping.json",
             "artifacts/openapi/cokret-service-api.openapi.yaml",
             "artifacts/bindings/non-http-bindings.yaml"
+          ]
+        }
+      ]
+    },
+    {
+      "ckp": "CKP-0014",
+      "title": "Implementation-local HTTP surfaces found in coauth / yougen audit",
+      "status": "accepted_merged",
+      "merged_on": "2026-06-16",
+      "proposal_file": "proposals/0014-implementation-local-http-surfaces.md",
+      "merged_sections": [
+        {
+          "topic": "Account Authority, auth metadata discovery, and hard logout routing",
+          "targets": [
+            "zh/sync/service-surface.md",
+            "zh/sync/service-http-binding.md",
+            "zh/sync/api-conventions.md",
+            "zh/identity/account-lifecycle.md"
+          ]
+        },
+        {
+          "topic": "ServiceDescribe auth metadata, OIDC code exchange proof, and operation notes",
+          "targets": [
+            "artifacts/schemas/service-describe.schema.json",
+            "artifacts/schemas/service-operation-dtos.schema.json",
+            "artifacts/registry/contract-catalog.json",
+            "artifacts/registry/operations-error-mapping.json",
+            "artifacts/openapi/cokret-service-api.openapi.yaml"
           ]
         }
       ]

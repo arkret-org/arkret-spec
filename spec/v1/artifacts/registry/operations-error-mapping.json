@@ -39,7 +39,7 @@
         "agent_deactivated",
         "accountability_grant_missing"
       ],
-      "description": "Session grant issuance. Shared by human user_session and agent runtime branches (CKP-0008 §4.6): when `proof.proof_kind=\"agent_key_proof\"`, agent-specific failure codes apply — `proof_invalid` for transcript / nonce / audience binding failures of the agent_key_proof, `verification_method_principal_mismatch` when the verification_method DID does not match `principal_id`, `agent_paused` / `agent_deactivated` for lifecycle-gated rejections of the target agent principal, and `accountability_grant_missing` when the controller's accountability grant over the agent has been revoked or lapsed its freshness window so the agent is no longer eligible to receive a session grant (zh/identity/account-lifecycle.md §9.1)."
+      "description": "Account Authority session grant issuance. Shared by human user_session and agent runtime branches (CKP-0008 §4.6): when `proof.proof_kind=\"oidc_code_exchange\"`, `proof_invalid` covers issuer/discovery/state/nonce/redirect_uri/code_verifier/principal/device/audience binding failures; when `proof.proof_kind=\"agent_key_proof\"`, agent-specific failure codes apply — `proof_invalid` for transcript / nonce / audience binding failures of the agent_key_proof, `verification_method_principal_mismatch` when the verification_method DID does not match `principal_id`, `agent_paused` / `agent_deactivated` for lifecycle-gated rejections of the target agent principal, and `accountability_grant_missing` when the controller's accountability grant over the agent has been revoked or lapsed its freshness window so the agent is no longer eligible to receive a session grant (zh/identity/account-lifecycle.md §9.1)."
     },
     {
       "operation_id": "ck.gate.account.command.revoke_session",
@@ -68,7 +68,7 @@
       "operation_specific": [
         "session_grant_not_found"
       ],
-      "description": "Hard-logout revocation at the Auth Server (account-lifecycle §4.1): a holder proof bound into the grant's cnf.jkt revokes the grant and finishes the underlying browser session so the rotation chain cannot be resumed. Idempotent — re-presenting an already-revoked grant succeeds."
+      "description": "Lower-level Account Authority grant-only logout (account-lifecycle §4.1): a holder proof bound into the grant's cnf.jkt revokes the grant and finishes the underlying browser session so the rotation chain cannot be resumed. Idempotent — re-presenting an already-revoked grant succeeds. Ordinary client hard logout should call ck.gate.account.command.logout."
     },
     {
       "operation_id": "ck.gate.account.command.introspect_session_grant",
@@ -80,7 +80,7 @@
       "operation_id": "ck.gate.account.command.logout",
       "http_alias": "POST /_cokret/gate/account/logout",
       "operation_specific": [],
-      "description": "Hard-logout at the Principal Server (account-lifecycle §4.1): revokes the session access bearer, revokes/marks the bound local device session record, and drops the device's pending to-device queue. Does not write ck.account.status, emit ck.device.revoke, or erase durable device authorization. Idempotent — no domain-specific failure beyond the universal surface."
+      "description": "Account Authority ordinary hard logout (account-lifecycle §4.1): terminates the grant rotation chain/browser session and the Principal-side local account session + device session record, then drops the device's pending to-device queue. Does not write ck.account.status, emit ck.device.revoke, or erase durable device authorization. Idempotent — no domain-specific failure beyond the universal surface."
     },
     {
       "operation_id": "ck.gate.account.command.pair_agent_key",
