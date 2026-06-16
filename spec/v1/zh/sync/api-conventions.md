@@ -201,6 +201,33 @@ Replay window：PoP 出示**复用既有 replay window 机制**——签名时�
 
 纯 bearer 何时仍可接受：低敏读、`public_metadata` describe，以及尚未协商出 PoP 支持的兼容旧客户端的非敏感请求。对这些请求，纯 bearer 是允许的降级；但服务在 `high_security_organization` / `sovereign_deployment` 等高安全 profile 下对常规写与敏感读 **MUST** 要求 PoP 出示（见 [`../conformance/conformance-profiles.md`](../conformance/conformance-profiles.md) 与 `conformance-profiles.json` 对应 profile 的 `additional_requirements`），此时纯 bearer 对这些操作 MUST 被拒绝。
 
+### 3.3 `/_cokret/self/*` 出示 grant + DPoP（normative，默认会话凭据路径）
+
+Account Authority 以 `ck.session.grant` 作为客户端唯一可见的会话凭据；Principal Server **不**为客户端铸发独立的本地 bearer，**不**存在 grant→principal-bearer 兑换 endpoint。客户端对 `/_cokret/self/*` 的每次请求 MUST 直接出示该 grant，并叠加一份 sender-constrained 的 **DPoP（[RFC 9449](https://www.rfc-editor.org/rfc/rfc9449)）** 持有证明：
+
+```http
+POST /_cokret/self/events
+Authorization: Bearer <ck.session.grant>
+DPoP: <DPoP proof JWT>
+```
+
+Principal Server 对每次 `/_cokret/self/*` 请求 MUST 校验（任一项失败即 `unauthenticated`，fail closed）：
+
+- **DPoP 签名**:DPoP proof JWT MUST 用 grant 绑定的持有密钥签名，其公钥 JWK thumbprint（[RFC 7638](https://www.rfc-editor.org/rfc/rfc7638)）MUST 等于 grant 的 `cnf.jkt`(Principal Server 通过 session-grant 内省取得 `cnf_jkt`,见 §3.1 与下文)。
+- **DPoP 绑定声明**:`htm` MUST 等于请求方法、`htu` MUST 等于请求 URL、`ath` MUST 等于所出示 grant 的 hash;这些把该 proof 钉死到「本方法 + 本 URL + 本 grant」,防跨 endpoint / 跨 grant 复用。
+- **grant active**:grant MUST 经 session-grant 内省判定 active(`ck.gate.account.command.introspect_session_grant`)。Principal Server **MAY** 缓存内省结果，但 TTL **SHOULD ≤ 120s**；对敏感操作 MUST 旁路缓存、强制重新内省(吊销生效上界即缓存 TTL，见 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md))。
+- **audience**:grant 的 audience MUST 等于本 Principal Server 的 service DID。
+- **scope**:grant scope MUST 含 Principal Server 的 session.bind scope 与 device scope。
+- **principal / device 绑定**:grant 绑定的 principal / device MUST 与请求一致。
+- **未过期**:grant 与 DPoP proof 均 MUST 未过期。
+- **DPoP 重放防护**:Principal Server MUST 按 DPoP `jti` + `iat` 新鲜度窗口拒绝重放(窗口量级与 §3.2 / `federation.md` §3.2 PoP 时效窗口同口径)。
+
+DPoP 不绑定请求 body——body 完整性依赖 TLS（与 Matrix 同口径）；带 body 请求若需进一步绑定，可叠加 §3.2 的 RFC 9421 PoP，但 self-path 的默认会话出示是本节的 grant + DPoP。
+
+该模型对齐 Matrix [MSC3861](https://github.com/matrix-org/matrix-spec-proposals/pull/3861)（Auth Server 签发凭据 + Resource Server 内省）的方向，并在其上叠加 DPoP sender-constraining(比 Matrix 的裸 bearer 更强)。
+
+**其它仍合法的入站凭据**:除 grant + DPoP 外，Principal Server 入站 MAY 并存：dev-mode 裸 bearer（本地开发回退）、以及对 coauth OAuth access token 的直接内省(RFC 7662 式)。这两条作为替代入站凭据保留；生产客户端默认走 grant + DPoP。
+
 ## 4. 标准响应 envelope
 
 **v1 现状（normative）**：成功响应 MUST 直接返回 endpoint-specific JSON 对象（字段集由对应 endpoint 在 `service-http-binding.md` §2.3 / §2.4 与 `contract-catalog.json` 定义）；每个 operation MUST 在 `contract-catalog.json#operation_registry.operations[].success_shape_kind` 声明机器可读成功形态，供 SDK / conformance 工具判定。**不存在跨 endpoint 强制的统一 success envelope**。错误响应 MUST 使用 §5 的统一错误 envelope (`{"ok": false, "error": {...}}`)，但成功响应没有等价的"包裹后再返回"模式。

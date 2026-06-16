@@ -3815,7 +3815,7 @@
         "http": "POST /_cokret/gate/account/session-grants",
         "grpc": "GateAccount/IssueSessionGrant",
         "mq": "gate.account.command.issue_session_grant",
-        "notes": "Account Authority single-call grant exchange. The response is the client-visible SessionGrantOutcome; any Principal-side local session provisioning is internal to the Account Authority. For proof_kind=oidc_code_exchange, the Account Authority exchanges the authorization code at the issuer token_endpoint and validates issuer/state/nonce/redirect_uri/principal/device/audience binding before issuing the grant.",
+        "notes": "Account Authority single-call grant exchange. The response is the client-visible SessionGrantOutcome; any Principal-side local session provisioning is internal to the Account Authority. There is no separate client-visible grant-to-bearer exchange step: the client presents the returned ck.session.grant directly to /_cokret/self/* with a DPoP proof (api-conventions §3.3). For proof_kind=oidc_code_exchange, the Account Authority exchanges the authorization code at the issuer token_endpoint and validates issuer/state/nonce/redirect_uri/principal/device/audience binding before issuing the grant; the client MAY omit principal_id at first sign-in, in which case the Account Authority derives/mints the principal DID and returns it in SessionGrantOutcome.principal_id.",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome"
@@ -3851,7 +3851,7 @@
         "operation_id": "ck.gate.account.command.introspect_session_grant",
         "http_only_variant": true,
         "http": "POST /_cokret/gate/account/session-grants/introspect",
-        "notes": "Server-to-server session-grant introspection (RFC 7662-style). The Principal Server validating a presented grant calls this with the grant id or grant_jwt (+ optional audience and a holder-proof challenge) and learns whether it is active, plus non-secret grant metadata including session_public_key for RFC 9421 PoP verification. READ-ONLY: introspection MUST NOT consume/revoke the grant. Authenticated by the configured session_grant_introspection_bearer (server-local); not exposed over gRPC/MQ.",
+        "notes": "Server-to-server session-grant introspection (RFC 7662-style). The Principal Server validating a presented grant calls this with the grant id or grant_jwt (+ optional audience and a holder-proof challenge) and learns whether it is active, plus non-secret grant metadata. The introspection response MUST include the grant's cnf_jkt (RFC 7638 thumbprint of the bound DPoP holder key) so the Principal Server can verify the per-request DPoP proof on /_cokret/self/* (api-conventions §3.3); session_public_key is also returned for RFC 9421 PoP verification. READ-ONLY: introspection MUST NOT consume/revoke the grant. Authenticated by the configured session_grant_introspection_bearer (server-local); not exposed over gRPC/MQ.",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectOutcome"

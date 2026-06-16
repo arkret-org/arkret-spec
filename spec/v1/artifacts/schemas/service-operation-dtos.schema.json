@@ -372,6 +372,10 @@
         "session_public_key": {
           "type": "string",
           "description": "Session signing key (JWK) for RFC 9421 PoP verification on /_cokret/self/* (api-conventions §3.2). Server-to-server only."
+        },
+        "cnf_jkt": {
+          "type": "string",
+          "description": "RFC 7638 JWK SHA-256 thumbprint of the holder (DPoP) key the grant is bound to (cnf.jkt); the Principal Server uses it to verify the per-request DPoP proof on /_cokret/self/* (api-conventions §3.3). Server-to-server only."
         }
       }
     },
@@ -1975,13 +1979,13 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "principal_id",
         "proof"
       ],
       "properties": {
         "principal_id": {
           "type": "string",
-          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
+          "description": "Principal DID the grant is requested for. REQUIRED for every proof_kind EXCEPT oidc_code_exchange: for first sign-in via oidc_code_exchange the client MAY omit principal_id and the Account Authority derives/mints the principal DID from the verified id_token and returns it in SessionGrantOutcome.principal_id. When present for oidc_code_exchange it MUST match the principal the Account Authority resolves for the verified subject."
         },
         "device_id": {
           "type": "string",
@@ -2208,6 +2212,9 @@
             }
           },
           "else": {
+            "required": [
+              "principal_id"
+            ],
             "properties": {
               "proof": {
                 "not": {

@@ -123,7 +123,7 @@ Current account status projection 是 ordered_log 上的确定性派生值，而
 `soft_logged_out` 是 access token 失效但凭证可恢复的软状态；用户主动「登出」是 **hard logout**——它 MUST 在所有持有该会话凭证的权威处终结会话，而非仅清本地。客户端可见的登出入口是 Principal describe 发布的 Account Authority；Account Authority 内部协调两个权威的状态:
 
 - **Auth Server(认证服务)**:`browser_session`(登录认证上下文)+ 它签发的 `ck.session.grant` 轮换链(及其 `cnf.jkt` 设备持有绑定，见 [`crypto-media/device-lifecycle.md` §3.2](../crypto-media/device-lifecycle.md))。
-- **Principal Server(资源服务)**:本地 account session 记录、设备会话记录、可选短期实现本地缓存 / bearer、待投递 to-device 队列。客户端可见登录凭据仍是 `ck.session.grant`，不得要求客户端再执行一个 grant→principal-bearer 兑换 endpoint。
+- **Principal Server(资源服务)**:本地 account session 记录、设备会话记录、对该 grant 的 session-grant 内省缓存(TTL ≤120s)、待投递 to-device 队列。客户端可见登录凭据仍是 `ck.session.grant`,客户端以 `Bearer <ck.session.grant>` + `DPoP` 直接访问 `/_cokret/self/*`(见 [`../sync/api-conventions.md` §3.3](../sync/api-conventions.md));Principal Server **不**为客户端铸独立本地 bearer，**不**存在 grant→principal-bearer 兑换 endpoint。
 
 **编排(normative)**:hard logout 由 Account Authority 编排。客户端 MUST 从 `ServiceDescribe.auth_metadata.account_authority.gate_account_base` 派生并调用:
 
@@ -135,7 +135,7 @@ POST /_cokret/gate/account/logout
 
 1. **客户端** MUST：停止 sync、清除本地 access token / `session_grant` / OIDC 凭证；hard logout SHOULD 额外清除本设备的 holder(DPoP)私钥，使下次登录轮换 `cnf.jkt`(软恢复路径 MUST 保留该 key 以便 refresh)。
 2. **Account Authority → Auth-side** MUST 吊销当前 `ck.session.grant` 轮换链并终结底层 `browser_session`(置为 finished)。此后 (i) 凭同一 `cnf.jkt` 设备 holder proof 调 `refresh` MUST 被拒(`session_logged_out`)，整条轮换链不可再续；(ii) 该 `browser_session` 下任何 grant 的 introspection MUST 返回 inactive(即设备密钥不能在登出后重建或维持会话)。
-3. **Account Authority → Principal-side** MUST 吊销 / 标记该 principal 本地 account session 与**本地设备会话记录**(使后续以该设备签名的 device-scoped 操作在本 Principal Server fail closed)+ drop 该设备的待投递 to-device 消息。此操作终结该设备在本 Principal Server 的本地会话状态，但 **不** 改写 `ck.account.status`、不发 `ck.device.revoke` 协议事件、不擦除 durable device authorization 历史(用户重新登录即可在本设备恢复)。注意它与 `ck.gate.account.command.revoke_session`(仅撤 session grant / access token、不触设备会话记录，用于"撤某个会话但保留设备")是不同操作。
+3. **Account Authority → Principal-side** MUST：作废该 grant 的本地 session-grant 内省缓存（下次内省即得 `active=false`）、吊销 / 标记该 principal 本地 account session 与**本地设备会话记录**(使后续以该设备签名的 device-scoped 操作在本 Principal Server fail closed)+ drop 该设备的待投递 to-device 消息。因 Principal Server 不为客户端铸独立本地 bearer（会话凭据即 grant 本身，见上），此处无单独的本地 bearer 可撤——作废内省缓存 + 撤设备会话记录即足以使该设备后续 `/_cokret/self/*` 请求 fail closed。此操作终结该设备在本 Principal Server 的本地会话状态，但 **不** 改写 `ck.account.status`、不发 `ck.device.revoke` 协议事件、不擦除 durable device authorization 历史(用户重新登录即可在本设备恢复)。注意它与 `ck.gate.account.command.revoke_session`(仅撤 session grant / access token、不触设备会话记录，用于"撤某个会话但保留设备")是不同操作。
 
 `POST /_cokret/gate/account/session-grants/logout` 仍是同一 Account Authority base 下的 grant-only lower-level 操作，可供内部编排、恢复重试或高级客户端使用；普通 hard logout 的客户端规范入口是 `ck.gate.account.command.logout`。无论使用哪个 endpoint，客户端 **MUST NOT** 依赖任何产品私有(如 `/_soland/*`、`/_coauth/*`)路由完成登出。
 
