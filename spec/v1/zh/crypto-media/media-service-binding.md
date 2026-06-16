@@ -167,6 +167,27 @@ Token issuer MUST 在签发前校验：
 - MLS governance binding `policy_root` 与 `ck.realm.media_service` 当前 epoch 一致（防 stale policy）；不一致返回 `mls_governance_binding_stale`。
 - 如果 backend 将解密媒体（`media_service_decrypts=true`），完整执行 §8.2 的三层校验。
 
+### 3.1 签名 domain label 分离（normative）
+
+媒体路径上的每一类 **ed25519 签名** MUST 以一个**独立的 ASCII domain 分隔 label** 前缀其 `signing_input`，再接单字节 `0x00` 分隔与该签名覆盖的 canonical bytes。该 label 是签名的安全域分离参数：它把"同一 issuer key 在不同用途上产生的签名"彼此隔离，使任一签名 MUST NOT 被验证方在另一用途下重新解释（cross-protocol / cross-purpose signature confusion）。任何 media service（cokret-native / LiveKit / 第三方）MUST 按本表构造签名，任何客户端 / reducer MUST 按对应 label 重建 `signing_input` 再验签；验证方 MUST 在重建时使用其**期望用途**对应的 label，签名方使用了不匹配 label 即视为验签失败。
+
+v1 ed25519 媒体签名点与其 label 常量（逐字节 ASCII）：
+
+| 签名点 | domain label 常量 | signing_input 覆盖 | 定义处 |
+| --- | --- | --- | --- |
+| `participant_binding.sig` | `ck.media.participant_binding.v1` | `label \|\| 0x00 \|\| canonical_json({actor_id, call_id, device_id, expires_at, focus_id, participant_identity, realm_id})`（7 元组，见 §3） | §3（已字节锁，本节仅引用，不改） |
+| `service_signature.sig` | `ck.media.participant_binding.v1`（**复用** participant_binding label 与同一 7 元组 signing_input） | 同上 | §3 |
+| ICE config response `signature` | `ck.media.ice_config.v1` | `label \|\| 0x00 \|\| canonical_json(ICE config response 去除 `signature` 字段后的权威字段：`realm_id, call_id, actor_id, device_id, issued_at, issued_at_bucket, bucket_seconds, ttl_seconds, ice_servers, 及策略字段`) | [`webrtc-signaling.md` §4.1](./webrtc-signaling.md) |
+
+约束细则：
+
+- **`participant_binding` / `service_signature` 共用同一 label 与 signing_input（normative，据现状写明）**：§3 已字节锁 `participant_binding.sig` 与 `service_signature.sig` 对**同一** `signing_input`（label = `ck.media.participant_binding.v1`、同一 7 元组）签名——前者承诺六元组身份绑定，后者复用同一输入以承诺该次 token-exchange 响应的 issuer 身份。本节 MUST NOT 改变这一已字节锁的输入；二者继续共用 `ck.media.participant_binding.v1`，不为 `service_signature` 引入独立 label。该选择把"是否给 `service_signature` 单列一个 distinct label"留作显式裁决：v1 据现状保持复用。
+- **ICE config response 签名 MUST 用 distinct label `ck.media.ice_config.v1`（normative）**：ICE config 响应签名覆盖的字段集合（`realm_id` / `call_id` / `actor_id` / `device_id` / `issued_at` / `issued_at_bucket` / `bucket_seconds` / `ttl_seconds` / `ice_servers[]` 与策略字段）与 participant_binding 的 7 元组**不同用途、部分字段重叠**；若两者复用同一 label，则一个 issuer key 对 ICE config 的签名可能被在 participant_binding 验证路径下重解释（反之亦然）。因此 ICE config 签名 MUST 以 `ck.media.ice_config.v1` 前缀其 signing_input。canonical 定义见 [`webrtc-signaling.md` §4.1](./webrtc-signaling.md)。
+- **不在本 label 体系内的媒体凭证**（据实说明各自的域，MUST NOT 强加 ed25519 label）：
+  - `backend_token`（LiveKit 部署）是 **LiveKit JWT**，自带 `alg` / `iss` 等 JOSE header 与 issuer 标识，其签名域由 JWT 标准与 LiveKit API Key/Secret 决定（见 [`bindings/livekit.md` §2](./bindings/livekit.md)），不进入本节 ed25519 label 体系。
+  - TURN REST 凭证不是 ed25519 签名而是 **HMAC**：`credential = HMAC-SHA256(turn_shared_secret, username)`，其中 `username = "<expiry-unix>:<per-call-pairwise-pseudonym>"`（见 [`webrtc-signaling.md` §4.1](./webrtc-signaling.md)）；pseudonym 本身亦由 HMAC 派生。HMAC 的域由其 `turn_shared_secret` 与 username 输入构造决定，不属于 ed25519 签名 domain label 范畴。
+- 本节**只规定 ed25519 签名类**（`participant_binding` / `service_signature` / ICE config）的 domain label 分离；MUST NOT 借此更改任何媒体密钥本身、MUST NOT 更改客户端对 issuer / service DID 公钥的锚定路径（§2.1 / §3 / §6 的公钥锚定保持不变）。新增 label 仅约束签名输入前缀，不引入新密钥派生。
+
 ## 4. SFU Service
 
 SFU 在 v1 通过 [§2](#2-realtime-media-server) 的 `foci[]` 声明，每个 focus 通过 `type` 选择具体 backend binding：

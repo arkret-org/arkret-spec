@@ -2017,6 +2017,21 @@
       "description": "Client cannot use the committed `session_focus` (e.g. focus not in local `foci_preferred[]`, region restricted, capability mismatch). Client MAY fail closed without joining the call rather than silently degrading; clients MUST NOT pick a different focus to bypass `session_focus_no_split_brain`. See zh/crypto-media/media-service-binding.md §5."
     },
     {
+      "code": "session_focus_no_split_brain",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "The committed `ck.call.state.session_focus` is authoritative and write-once: once it exists, a connect / token-exchange failure against that focus MUST be surfaced as focus-unavailable (`focus_unavailable_for_client`) and clients MUST NOT silently fall back to a different focus to keep the media path up. Naming the invariant explicitly closes the split-brain attack where two subsets of a conference converge on different SFUs. See zh/crypto-media/media-service-binding.md §5 and §2 (`foci[].health_endpoint`)."
+    },
+    {
+      "code": "token_expired",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "A media backend join token presented at connect time is past its `expires_at` (e.g. a LiveKit JWT whose `exp` has elapsed, distinct from `proof_invalid` which covers a structurally bad / wrong-issuer signature). The client MUST re-run the media-service-binding §3 token exchange instead of reusing the stale token; clients MUST NOT extend or replay an expired backend token. See zh/crypto-media/bindings/livekit.md §8 and zh/crypto-media/bindings/cokret-native.md."
+    },
+    {
       "code": "verification_method_principal_mismatch",
       "applies_to": [
         "auth_decision",

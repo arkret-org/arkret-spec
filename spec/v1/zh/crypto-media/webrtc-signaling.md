@@ -211,7 +211,16 @@ Content-Type: application/json
   ```
 
   `nonce` MUST 对每个 `(call_id, actor_id, device_id)` fresh，media service MUST 在签名 ICE config 的内部审计记录中保留 nonce freshness evidence，且不得把 nonce 或其稳定派生值写入 TURN username 之外的可跨 Realm 关联字段。Refresh 时同一 active call leg MAY 复用 pseudonym 以避免 TURN 误判为不同会话，但新 call、new device leg、超过 `ttl_seconds + refresh grace` 的恢复、或 policy 要求匿名重置时 MUST 生成新 pseudonym。Pseudonym 不得仅由稳定 ID 确定性派生。
-- ICE config response MUST 由 media service 签名，签名 canonical bytes MUST 覆盖 `realm_id`、`call_id`、`actor_id`、`device_id`、`issued_at`、`issued_at_bucket`、`bucket_seconds`、`ttl_seconds`、`ice_servers[]` 与策略字段；TLS + service DID 绑定只能认证通道，不能替代响应对象签名。
+- ICE config response MUST 由 media service 签名（EdDSA(ed25519)），签名 canonical bytes MUST 覆盖 `realm_id`、`call_id`、`actor_id`、`device_id`、`issued_at`、`issued_at_bucket`、`bucket_seconds`、`ttl_seconds`、`ice_servers[]` 与策略字段；TLS + service DID 绑定只能认证通道，不能替代响应对象签名。
+  - **签名 domain label（normative，跨实现互通契约）**：ICE config response `signature.sig` MUST 是 issuer 私钥（对应 `signature.kid`）对下列字节串的 ed25519 签名：
+
+    ```text
+    signing_input =
+      "ck.media.ice_config.v1" || 0x00 ||
+      canonical_json(<ICE config response 去除 `signature` 字段后的权威对象>)
+    ```
+
+    第一段是固定 ASCII 域分隔 label（逐字节等于 `ck.media.ice_config.v1`），随后单字节 `0x00` 分隔，再接去掉 `signature` 自身后的响应对象的 canonical JSON（RFC 8785 JCS：键按字母序、无多余空白，故字段书写顺序无关）。该 label MUST 与 [`media-service-binding.md` §3.1](./media-service-binding.md) 媒体签名 domain label 分离表登记的常量逐字节一致，且 MUST 区别于 `ck.media.participant_binding.v1`——这把 ICE config 签名与 participant binding 签名隔离，防止同一 issuer key 的签名被跨用途重解释。任何 media service MUST 按此构造，任何客户端 MUST 按此验签；实现 MUST NOT 引入私有 domain 前缀，也 MUST NOT 复用 participant_binding label。
 - 客户端 MUST 尊重 `ttl_seconds`，过期后重新获取。
 - 高隐私 Realm MAY 设置 `force_turn=true`，禁止 host/srflx candidate 泄露本地或公网 IP。
 
