@@ -26,7 +26,27 @@
           }
         ],
         "supported_features": [],
-        "auth_metadata": {},
+        "auth_metadata": {
+          "account_authority": {
+            "origin": "https://alice.example.net",
+            "gate_account_base": "https://alice.example.net/_cokret/gate/account"
+          },
+          "methods": [
+            {
+              "method": "oidc",
+              "issuer": "https://auth.example.net",
+              "openid_configuration": "https://auth.example.net/.well-known/openid-configuration",
+              "client_id": "yougen",
+              "grant_exchange": {
+                "proof_kind": "oidc_code_exchange"
+              }
+            }
+          ],
+          "did_binding_methods": [
+            "session_grant",
+            "did_http_signature"
+          ]
+        },
         "limits": {},
         "plaintext_visibility": {},
         "rate_limit_policy": {},
@@ -58,7 +78,27 @@
           }
         ],
         "supported_features": [],
-        "auth_metadata": {},
+        "auth_metadata": {
+          "account_authority": {
+            "origin": "https://alice.example.net",
+            "gate_account_base": "https://alice.example.net/_cokret/gate/account"
+          },
+          "methods": [
+            {
+              "method": "oidc",
+              "issuer": "https://auth.example.net",
+              "openid_configuration": "https://auth.example.net/.well-known/openid-configuration",
+              "client_id": "yougen",
+              "grant_exchange": {
+                "proof_kind": "oidc_code_exchange"
+              }
+            }
+          ],
+          "did_binding_methods": [
+            "session_grant",
+            "did_http_signature"
+          ]
+        },
         "limits": {},
         "plaintext_visibility": {},
         "rate_limit_policy": {},
@@ -88,7 +128,27 @@
           }
         ],
         "supported_features": [],
-        "auth_metadata": {},
+        "auth_metadata": {
+          "account_authority": {
+            "origin": "https://alice.example.net",
+            "gate_account_base": "https://alice.example.net/_cokret/gate/account"
+          },
+          "methods": [
+            {
+              "method": "oidc",
+              "issuer": "https://auth.example.net",
+              "openid_configuration": "https://auth.example.net/.well-known/openid-configuration",
+              "client_id": "yougen",
+              "grant_exchange": {
+                "proof_kind": "oidc_code_exchange"
+              }
+            }
+          ],
+          "did_binding_methods": [
+            "session_grant",
+            "did_http_signature"
+          ]
+        },
         "limits": {},
         "plaintext_visibility": {},
         "rate_limit_policy": {},

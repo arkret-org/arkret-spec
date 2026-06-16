@@ -295,7 +295,7 @@ MUST 支持：
 - 短期、audience-bound `ck.session.grant` 签发
 - session_grant TTL 上限远低于 Realm policy review horizon（minutes-to-hours，不得跨越多日）
 - session_grant audience 绑定与拒签陌生 audience
-- `auth_metadata`（issuer DID、`supported_auth_methods`、`token_endpoint_auth_methods`、`session_grant_scope`、`required_audience`）
+- `auth_metadata.account_authority`、`auth_metadata.methods[]`、`auth_metadata.did_binding_methods`
 
 SHOULD 支持：
 

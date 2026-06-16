@@ -3,21 +3,29 @@ ckp: CKP-0014
 title: Implementation-local HTTP surfaces found in coauth / yougen audit
 normative: false
 stability: v1
-updated: 2026-06-11
-status: draft
+updated: 2026-06-16
+status: accepted
 created: 2026-06-06
 authors:
   - chris@acroidea.com
 depends_on: []
+merged_to:
+  - zh/sync/service-surface.md
+  - zh/sync/service-http-binding.md
+  - zh/sync/api-conventions.md
+  - zh/identity/account-lifecycle.md
+  - artifacts/schemas/service-describe.schema.json
+  - artifacts/schemas/service-operation-dtos.schema.json
+  - artifacts/registry/contract-catalog.json
+  - artifacts/registry/operations-error-mapping.json
+  - artifacts/openapi/cokret-service-api.openapi.yaml
 ---
 
 # CKP-0014: Implementation-local HTTP surfaces found in coauth / yougen audit
 
-> **Status: draft.** This proposal is an audit record, not an accepted protocol
-> change. Until an item below is accepted into the normative operation catalog
-> and OpenAPI artifacts, implementations MUST NOT mount it under `/_cokret`.
-> Private deployment endpoints MUST use implementation namespaces such as
-> `/_coauth/*`, `/_soland/*`, or `/_starid/*`.
+> **Status: accepted and merged 2026-06-16.** This proposal is now historical
+> rationale. The normative source of truth is `zh/` plus `artifacts/`; do not
+> implement from this proposal text.
 
 ## 1. Scope
 
@@ -42,9 +50,12 @@ Resolved (now registered Cokret operations): `POST /_cokret/gate/account/session
 (`ck.gate.account.command.introspect_session_grant`) have been promoted out of
 the candidate list and into the operation registry / OpenAPI / service-http-binding.
 
-Open question: whether native sign-in should standardize these bridge endpoints,
-or whether clients must use `/_cokret/describe.auth_metadata` plus standard OIDC
-discovery and token endpoints without a Cokret bridge.
+Resolved 2026-06-16: native sign-in MUST NOT standardize the bridge endpoints.
+Clients use Principal `/_cokret/describe.auth_metadata.account_authority`,
+`auth_metadata.methods[]`, standard OIDC discovery, and the Account Authority
+`POST /_cokret/gate/account/session-grants` grant exchange. The client-visible
+`/_cokret/gate/account/*` surface is a single Account Authority base; any
+Auth/Principal split is internal deployment routing.
 
 ## 3. WebVH / StarID candidates
 

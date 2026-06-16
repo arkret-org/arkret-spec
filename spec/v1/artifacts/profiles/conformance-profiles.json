@@ -1266,8 +1266,9 @@
       "feature_discovery": {
         "required": [
           "service_did",
-          "supported_auth_methods",
-          "session_grant_scope",
+          "auth_metadata.account_authority",
+          "auth_metadata.methods",
+          "auth_metadata.did_binding_methods",
           "supported_bindings",
           "auth_metadata"
         ],

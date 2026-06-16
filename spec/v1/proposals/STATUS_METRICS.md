@@ -3,7 +3,7 @@ title: CKP Status Metrics
 status: candidate
 normative: false
 stability: v1
-updated: 2026-06-11
+updated: 2026-06-16
 ---
 
 ## 1. 目标
@@ -29,7 +29,7 @@ CKP 状态生命周期定义见 [`README.md` §2](./README.md);本文不重新�
 | [CKP-0011](./0011-shareable-object-addressing.md) | Shareable Object Addressing — web+cokret URI scheme & deep-link resolution | `accepted` | 2026-05-28 | 2026-05-28 → accepted (merged → `zh/discovery/object-addressing.md`) | — |
 | [CKP-0012](./0012-account-and-contact-self-operations.md) | Account Self-Service Operations | `accepted` | 2026-06-04 | 2026-06-04 → accepted (merged → `zh/sync/` + `artifacts/`) | — |
 | [CKP-0013](./0013-contact-and-direct-conversation-lifecycle.md) | Contact & Direct Conversation Lifecycle | `accepted` | 2026-06-04 | 2026-06-04 → accepted (merged → `zh/identity/contact-and-direct-conversation.md` + `artifacts/`) | — |
-| [CKP-0014](./0014-implementation-local-http-surfaces.md) | Implementation-local HTTP surfaces found in coauth / yougen audit | `draft` | 2026-06-06 | 2026-06-06 → draft | — |
+| [CKP-0014](./0014-implementation-local-http-surfaces.md) | Implementation-local HTTP surfaces found in coauth / yougen audit | `accepted` | 2026-06-06 | 2026-06-16 → accepted (merged → auth/account authority normative files) | internal（无公开 URL） |
 | [CKP-0015](./0015-contact-introduction-and-graded-disclosure.md) | Contact introduction evidence & graded invite-outcome disclosure | `draft` | 2026-06-08 | 2026-06-08 → draft | — |
 | [CKP-0016](./0016-agent-participation-policy.md) | Agent 参与策略与分层授权上限 | `accepted` | 2026-06-09 | 2026-06-09 → accepted (merged → `zh/models/realm-and-space.md` + `zh/authz/capabilities.md` + `artifacts/`) | internal（无公开 URL） |
 | [CKP-0017](./0017-controller-scoped-agent-mention-selector.md) | Controller-scoped Agent Mention Selector | `accepted` | 2026-06-11 | 2026-06-11 → accepted (merged → `zh/models/strand-and-message.md` + `zh/models/actor.md` + `artifacts/schemas/agent-selector-claim.schema.json`) | internal（无公开 URL） |
@@ -55,7 +55,7 @@ draft  ──►  review  ──►  accepted  ──►  (迁入 normative spec
 - `0011`: `draft` → `accepted` (2026-05-28 created and merged into `zh/discovery/object-addressing.md`; 客户端无关可分享对象地址 + `web+cokret:` scheme + `resolve_target`)
 - `0012`: `draft` → `accepted` (2026-06-04 merged into `zh/sync/` + `artifacts/`; account self-service 四项 — viewer/update_profile/register/session_revoke)
 - `0013`: `draft` → `accepted` (2026-06-04 merged into `zh/identity/contact-and-direct-conversation.md` + `artifacts/`; contact 关系生命周期 + DM 编排)
-- `0014`: `draft` (2026-06-06 implementation-local HTTP surface audit; not merged)
+- `0014`: `draft` → `accepted` (2026-06-16 merged into Account Authority / auth metadata / hard logout normative files)
 - `0015`: `draft` (2026-06-08 contact introduction and graded disclosure; not merged)
 - `0016`: `draft` → `accepted` (2026-06-09 merged into agent participation policy zh/spec artifacts)
 - `0017`: `draft` → `accepted` (2026-06-11 merged into controller-scoped agent selector claim, exact Directory resolver, mention selector zh/spec artifacts, and anti-enumeration disclosure gate)
@@ -65,8 +65,8 @@ draft  ──►  review  ──►  accepted  ──►  (迁入 normative spec
 | 指标 | 当前值 | 阈值 / 备注 |
 | --- | --- | --- |
 | `total_proposals` | 17 | — |
-| `active_count` (`draft` + `review`) | 2 | CKP-0014, CKP-0015 |
-| `accepted_count` | 9 | CKP-0007 (Circle), CKP-0008 (Personal Agent), CKP-0009 (Agent Sidecar Thread), CKP-0010 (Media Service Binding Framework), CKP-0011 (Shareable Object Addressing), CKP-0012 (Account Self-Service), CKP-0013 (Contact & Direct Conversation), CKP-0016 (Agent Participation Policy), CKP-0017 (Agent Mention Selector) |
+| `active_count` (`draft` + `review`) | 1 | CKP-0015 |
+| `accepted_count` | 10 | CKP-0007 (Circle), CKP-0008 (Personal Agent), CKP-0009 (Agent Sidecar Thread), CKP-0010 (Media Service Binding Framework), CKP-0011 (Shareable Object Addressing), CKP-0012 (Account Self-Service), CKP-0013 (Contact & Direct Conversation), CKP-0014 (Implementation-local HTTP Surfaces), CKP-0016 (Agent Participation Policy), CKP-0017 (Agent Mention Selector) |
 | `deferred_to_v11_count` | 6 | 0001–0006 |
 | `rejected_count` | 0 | — |
 | `withdrawn_count` | 0 | — |

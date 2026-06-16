@@ -120,22 +120,28 @@ Current account status projection 是 ordered_log 上的确定性派生值，而
 
 ### 4.1 显式登出（hard logout）与跨服务吊销编排
 
-`soft_logged_out` 是 access token 失效但凭证可恢复的软状态；用户主动「登出」是 **hard logout**——它 MUST 在所有持有该会话凭证的权威处终结会话，而非仅清本地。一个设备会话横跨两个权威，各自持有不同凭证:
+`soft_logged_out` 是 access token 失效但凭证可恢复的软状态；用户主动「登出」是 **hard logout**——它 MUST 在所有持有该会话凭证的权威处终结会话，而非仅清本地。客户端可见的登出入口是 Principal describe 发布的 Account Authority；Account Authority 内部协调两个权威的状态:
 
 - **Auth Server(认证服务)**:`browser_session`(登录认证上下文)+ 它签发的 `ck.session.grant` 轮换链(及其 `cnf.jkt` 设备持有绑定，见 [`crypto-media/device-lifecycle.md` §3.2](../crypto-media/device-lifecycle.md))。
-- **Principal Server(资源服务)**:由 grant 交换出的短期 access bearer + 本地 session 记录 + 设备记录 + 待投递 to-device 队列。
+- **Principal Server(资源服务)**:本地 account session 记录、设备会话记录、可选短期实现本地缓存 / bearer、待投递 to-device 队列。客户端可见登录凭据仍是 `ck.session.grant`，不得要求客户端再执行一个 grant→principal-bearer 兑换 endpoint。
 
-**编排(normative)**:hard logout 由客户端编排，对两个权威各发一次吊销(不存在 Auth Server→Principal Server 的吊销 push;传播是拉式的，见下):
+**编排(normative)**:hard logout 由 Account Authority 编排。客户端 MUST 从 `ServiceDescribe.auth_metadata.account_authority.gate_account_base` 派生并调用:
 
-1. **客户端** MUST:停止 sync、清除本地 access token / `session_grant` / OIDC 凭证;hard logout SHOULD 额外清除本设备的 holder(DPoP)私钥，使下次登录轮换 `cnf.jkt`(软恢复路径 MUST 保留该 key 以便 refresh)。
-2. **客户端 → Auth Server** MUST 调 `POST /_cokret/gate/account/session-grants/logout`(DPoP holder proof,见 [`../sync/service-http-binding.md` §2.3](../sync/service-http-binding.md)),Auth Server MUST:(a) 吊销该 grant;(b) 终结底层 `browser_session`(置为 finished)。此后 (i) 凭同一 `cnf.jkt` 设备 holder proof 调 `refresh` MUST 被拒(`session_logged_out`),整条轮换链不可再续;(ii) 该 `browser_session` 下任何 grant 的 introspection MUST 返回 inactive(即设备密钥不能在登出后重建或维持会话)。
-3. **客户端 → Principal Server** MUST 调 `POST /_cokret/gate/account/logout`(`ck.gate.account.command.logout`),Principal Server MUST:吊销该会话 access bearer + 撤销/标记其绑定的**本地设备会话记录**(使后续以该设备签名的 device-scoped 操作在本 Principal Server fail closed)+ drop 该设备的待投递 to-device 消息。此操作终结该设备在本 Principal Server 的会话凭证，但 **不** 改写 `ck.account.status`、不发 `ck.device.revoke` 协议事件、不擦除 durable device authorization 历史(用户重新登录即可在本设备恢复)。注意它与 `ck.gate.account.command.revoke_session`(仅撤 session grant / access token、不触设备会话记录，用于"撤某个会话但保留设备")是不同操作。
+```text
+POST /_cokret/gate/account/logout
+```
 
-   两步都走 `/_cokret` 协议面，客户端 **MUST NOT** 依赖任何产品私有(如 `/_soland/*`)路由完成登出。
+该请求 MUST 使用 `Authorization: Bearer <ck.session.grant>` 出示当前 grant，并带 `DPoP` holder proof；DPoP `ath` MUST 绑定该 grant，`htu` MUST 绑定由 `gate_account_base` 派生出的 `/logout` URL，使 Account Authority 能定位要终结的 grant chain 与 principal device session。客户端 MUST NOT 分别向 Auth Server 与 Principal Server 两个 origin 发起登出；部署内部的分权威调用是 Account Authority 的实现细节。
 
-**登出耐久性(normative)**:hard logout 的本地清除(步骤 1)与两处服务端吊销(步骤 2、3)不是原子的——客户端在清本地凭证后、服务端吊销返回前可能崩溃、关页或离线。为防止「本地已登出但服务端轮换链仍存活」的窗口，客户端 **SHOULD** 在执行本地清除**之前**把登出意图(至少:grant JWT、用于铸 holder proof 的设备 holder key、两处吊销目标)持久化(journal),并在调用失败时重试(含下次启动重放),直至 Auth Server 确认 grant 链终结后方清除该 journal。其中**步骤 2(Auth Server grant + `browser_session` 终结)是耐久性关键步**:它一旦完成，轮换链不可再续，后续无法铸出新 access bearer;**步骤 3(Principal Server)可视为加速吊销**——即便未送达，既有短期 access bearer 也会在其 TTL 内自然失效(且因下文拉式内省而 fail closed),无需独立的耐久保证。由于 `ck.session.grant` 有受限 TTL(见 [`crypto-media/device-lifecycle.md` §3.3](../crypto-media/device-lifecycle.md)),客户端 **MAY** 在该 TTL(加时钟 skew 容忍)过后停止重试:此时整条链已因自然过期失效,journal 中已无可吊销之物。重试 **MUST** 幂等——对已吊销/已过期 grant 再次调步骤 2 不应被视为错误。
+1. **客户端** MUST：停止 sync、清除本地 access token / `session_grant` / OIDC 凭证；hard logout SHOULD 额外清除本设备的 holder(DPoP)私钥，使下次登录轮换 `cnf.jkt`(软恢复路径 MUST 保留该 key 以便 refresh)。
+2. **Account Authority → Auth-side** MUST 吊销当前 `ck.session.grant` 轮换链并终结底层 `browser_session`(置为 finished)。此后 (i) 凭同一 `cnf.jkt` 设备 holder proof 调 `refresh` MUST 被拒(`session_logged_out`)，整条轮换链不可再续；(ii) 该 `browser_session` 下任何 grant 的 introspection MUST 返回 inactive(即设备密钥不能在登出后重建或维持会话)。
+3. **Account Authority → Principal-side** MUST 吊销 / 标记该 principal 本地 account session 与**本地设备会话记录**(使后续以该设备签名的 device-scoped 操作在本 Principal Server fail closed)+ drop 该设备的待投递 to-device 消息。此操作终结该设备在本 Principal Server 的本地会话状态，但 **不** 改写 `ck.account.status`、不发 `ck.device.revoke` 协议事件、不擦除 durable device authorization 历史(用户重新登录即可在本设备恢复)。注意它与 `ck.gate.account.command.revoke_session`(仅撤 session grant / access token、不触设备会话记录，用于"撤某个会话但保留设备")是不同操作。
 
-**吊销传播与生效语义(normative)**:跨服务吊销是**拉式**的——Principal Server 对 access bearer 的有效性以「本地 session 记录 + 对 Auth Server 的 token / session-grant 内省」为准;Auth Server 一侧的 grant/会话被吊销后,Principal Server MUST 在下一次内省时得到 `active=false` 并 fail closed。实现 MAY 缓存内省结果，但缓存 TTL 与 access bearer TTL 共同构成吊销生效的上界，二者 SHOULD ≤ 数分钟；高安全 profile SHOULD 更短或对敏感操作旁路缓存。Auth Server / Principal Server MUST NOT 依赖对方主动 push 吊销。
+`POST /_cokret/gate/account/session-grants/logout` 仍是同一 Account Authority base 下的 grant-only lower-level 操作，可供内部编排、恢复重试或高级客户端使用；普通 hard logout 的客户端规范入口是 `ck.gate.account.command.logout`。无论使用哪个 endpoint，客户端 **MUST NOT** 依赖任何产品私有(如 `/_soland/*`、`/_coauth/*`)路由完成登出。
+
+**登出耐久性(normative)**：hard logout 的本地清除(步骤 1)与 Account Authority 服务端编排(步骤 2、3)不是原子的——客户端在清本地凭证后、Account Authority 返回前可能崩溃、关页或离线。为防止「本地已登出但服务端轮换链仍存活」的窗口，客户端 **SHOULD** 在执行本地清除**之前**把登出意图(至少：Account Authority `/logout` endpoint、grant JWT、用于铸 holder proof 的设备 holder key)持久化(journal)，并在调用失败时重试(含下次启动重放)，直至 Account Authority 确认 grant 链终结后方清除该 journal。其中 Auth-side grant + `browser_session` 终结是耐久性关键步：它一旦完成，轮换链不可再续，后续无法恢复本地 account session。由于 `ck.session.grant` 有受限 TTL(见 [`crypto-media/device-lifecycle.md` §3.3](../crypto-media/device-lifecycle.md))，客户端 **MAY** 在该 TTL(加时钟 skew 容忍)过后停止重试：此时整条链已因自然过期失效，journal 中已无可吊销之物。重试 **MUST** 幂等——对已吊销/已过期 grant 再次调 hard logout 不应被视为错误。
+
+**吊销传播与生效语义(normative)**：Account Authority 内部可同步调用或异步重试 Principal-side 终结，但对客户端返回成功前 MUST 至少保证 Auth-side grant 轮换链已不可续。Principal Server 对本地 session 的有效性以「本地 session 记录 + 对 Account Authority / Auth-side 的 session-grant 内省」为准；Auth-side grant/会话被吊销后，Principal Server MUST 在下一次内省时得到 `active=false` 并 fail closed。实现 MAY 缓存内省结果，但缓存 TTL 与本地 session TTL 共同构成吊销生效的上界，二者 SHOULD ≤ 数分钟；高安全 profile SHOULD 更短或对敏感操作旁路缓存。Auth Server / Principal Server MUST NOT 依赖对方主动 push 吊销；Account Authority 是客户端可见的编排边界。
 
 **轮换链单次使用与重用即妥协(normative)**:`ck.session.grant` 轮换 MUST 单次使用——轮换成功即吊销旧 grant;对**已消费**的 grant 再次发起轮换 MUST 拒(`grant_already_consumed`),且 SHOULD 视为凭证泄露信号并吊销整条轮换链(并入上面的会话终结)。
 

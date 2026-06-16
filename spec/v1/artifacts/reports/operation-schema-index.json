@@ -642,10 +642,10 @@
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome",
         "schema_kind": "object",
-        "required": [],
+        "required": [
+          "redirect_url"
+        ],
         "properties": [
-          "principal_id",
-          "recovery_session_state",
           "redirect_url"
         ],
         "closed": true
@@ -3450,7 +3450,8 @@
         ],
         "properties": [
           "device_keys",
-          "failures"
+          "failures",
+          "cross_signing"
         ],
         "closed": true
       }
