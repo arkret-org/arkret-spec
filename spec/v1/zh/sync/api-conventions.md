@@ -214,7 +214,7 @@ DPoP: <DPoP proof JWT>
 Principal Server 对每次 `/_cokret/self/*` 请求 MUST 校验（任一项失败即 `unauthenticated`，fail closed）：
 
 - **DPoP 签名**:DPoP proof JWT MUST 用 grant 绑定的持有密钥签名，其公钥 JWK thumbprint（[RFC 7638](https://www.rfc-editor.org/rfc/rfc7638)）MUST 等于 grant 的 `cnf.jkt`(Principal Server 通过 session-grant 内省取得 `cnf_jkt`,见 §3.1 与下文)。
-- **DPoP 绑定声明**:`htm` MUST 等于请求方法、`htu` MUST 等于请求 URL、`ath` MUST 等于所出示 grant 的 hash;这些把该 proof 钉死到「本方法 + 本 URL + 本 grant」,防跨 endpoint / 跨 grant 复用。
+- **DPoP 绑定声明**:`htm` MUST 等于请求方法、`htu` MUST 等于请求 URL、`ath` MUST 等于所出示 grant 的 hash;这些把该 proof 钉死到「本方法 + 本 URL + 本 grant」,防跨 endpoint / 跨 grant 复用。`htu` 比对遵循 [RFC 9449](https://www.rfc-editor.org/rfc/rfc9449) §4.3,先剥离 query 与 fragment 再比 scheme + authority + path。**authority 规范化**:`htu` 的 authority 是客户端看到的 gate origin;当 Principal Server 部署在重写 `Host` 的网关之后(上游 `Host` 可能被改写为内部源),实现 MUST 以网关记录的客户端可见 host(`X-Forwarded-Host` 首跳)为准比对 authority,仅在无任何可信 authority 头时回退到 path-only 绑定(同源直连部署)。
 - **grant active**:grant MUST 经 session-grant 内省判定 active(`ck.gate.account.command.introspect_session_grant`)。Principal Server **MAY** 缓存内省结果，但 TTL **SHOULD ≤ 120s**；对敏感操作 MUST 旁路缓存、强制重新内省(吊销生效上界即缓存 TTL，见 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md))。
 - **audience**:grant 的 audience MUST 等于本 Principal Server 的 service DID。
 - **scope**:grant scope MUST 含 Principal Server 的 session.bind scope 与 device scope。
@@ -222,7 +222,10 @@ Principal Server 对每次 `/_cokret/self/*` 请求 MUST 校验（任一项失�
 - **未过期**:grant 与 DPoP proof 均 MUST 未过期。
 - **DPoP 重放防护**:Principal Server MUST 按 DPoP `jti` + `iat` 新鲜度窗口拒绝重放(窗口量级与 §3.2 / `federation.md` §3.2 PoP 时效窗口同口径)。
 
-DPoP 不绑定请求 body——body 完整性依赖 TLS（与 Matrix 同口径）；带 body 请求若需进一步绑定，可叠加 §3.2 的 RFC 9421 PoP，但 self-path 的默认会话出示是本节的 grant + DPoP。
+**DPoP 与 RFC 9421 PoP 是两层正交保障**。DPoP（RFC 9449）提供 per-request 认证 + sender-constraint,但**不绑定请求 body**——默认 profile 下 body 完整性依赖 TLS(与 Matrix 同口径)。§3.2 的 RFC 9421 PoP 则额外提供 body 完整性(覆盖 `content-digest`)。两层用**同一把** Ed25519 设备密钥:该密钥的 RFC 7638 thumbprint 即 grant 的 `cnf.jkt`(DPoP 绑定),其公钥即 grant 委托的 `session_public_key`(9421 绑定),客户端无需管理第二把密钥。
+
+- **默认 profile**:self-path 的会话出示就是本节的 grant + DPoP;RFC 9421 PoP 可选叠加。
+- **高安全 profile**(`sovereign_deployment` / `high_security_organization`,见 §3.2 末段):对常规写与敏感读,Principal Server **MUST** 在 grant + DPoP 之外**再要求** RFC 9421 PoP 出示(获取 body 完整性);仅出示 grant + DPoP、缺 `Signature-Input` 的写 / 敏感读 MUST 被拒。此时 9421 校验的 `session_public_key` **MUST** 取自该 grant 的 session-grant 内省结果(grant + DPoP 会话为请求级、不落库为本地 bearer),而非持久化 session 记录。
 
 该模型对齐 Matrix [MSC3861](https://github.com/matrix-org/matrix-spec-proposals/pull/3861)（Auth Server 签发凭据 + Resource Server 内省）的方向，并在其上叠加 DPoP sender-constraining(比 Matrix 的裸 bearer 更强)。
 
