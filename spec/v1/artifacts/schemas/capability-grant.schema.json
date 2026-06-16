@@ -103,6 +103,10 @@
       "pattern": "Z$",
       "description": "Top-level grant validity end. Authorization evaluates this together with temporal constraints: effective_expires_at = min(expires_at, every temporal.expires_at present). Delegated grants MUST not extend beyond the parent's effective_expires_at."
     },
+    "effective_after_first_authorized_key": {
+      "type": "boolean",
+      "description": "ck.profile.personal_agent_provisioning.v1 flag (CKP-0008 §4.3.2, identity/key-management.md §3.6.1). When true, the grant is durable but inactive: the capability evaluator MUST fail closed while the agent principal has no accepted, unexpired, unrevoked ck.agent.key.authorize. The reducer MUST clear this flag for every grant under the agent principal once pairing writes the first ck.agent.key.authorize, after which the grant enters normal effective-window evaluation. Set by the provisioning orchestration during the pending_runtime_key phase; MUST NOT be supplied to extend an already-effective grant."
+    },
     "updated_by": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",

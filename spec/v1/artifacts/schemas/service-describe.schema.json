@@ -790,8 +790,7 @@
           "then": {
             "required": [
               "issuer",
-              "openid_configuration",
-              "client_id"
+              "openid_configuration"
             ],
             "properties": {
               "grant_exchange": {
