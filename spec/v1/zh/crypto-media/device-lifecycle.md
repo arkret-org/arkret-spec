@@ -607,6 +607,8 @@ POST /_cokret/self/keys/claim
 | `device_keys` | body | `object` | required | principal DID 到 device ID 列表的映射。 |
 | `timeout_ms` | body | `int` | optional | 查询等待上限。 |
 
+服务端在处理 `keys/query` 时 MUST 先认证 requester，并且 MUST 仅在 requester 与被查询 `principal_id` 之间存在当前有效的授权关系时返回目录记录：至少同属一个 requester 可见且 requester 仍为 `join` 的 Realm，或存在当前 call/session/contact profile 明确定义的共享上下文。否则 MUST 使用与不存在不可区分的失败形态（省略该 `(principal_id, device_id)` 记录或写入 `failures` 的非枚举性失败），不得让任意已登录用户枚举其它 principal 的设备存在性 / 吊销状态。
+
 响应字段：`device_keys: object` required；`failures: object` optional。`device_keys` 的每个 `(principal_id, device_id)` 记录为 `query_device_record`：prekey bundle 收在 `algorithms`(算法名 → key_record)子字段下，并在**与 `algorithms` 同级**携带设备验签公钥目录字段 `device_signing_key` 与 `device_status`(见下方 §8.2)。schema 见 [`keys-operations.schema.json`](../../artifacts/schemas/keys-operations.schema.json) 的 `$defs/query_device_record`。
 
 #### 8.2 设备验签公钥目录（normative）

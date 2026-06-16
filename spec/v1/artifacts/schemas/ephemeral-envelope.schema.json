@@ -54,7 +54,7 @@
     },
     "proof": {
       "$ref": "#/$defs/ephemeral_proof",
-      "description": "Detached-JWS proof over the canonical ephemeral envelope, structurally isomorphic to the durable Event proof ($defs/event_proof in event-envelope.schema.json / models/event-and-patch.md §3). Required for ck.call.signal; RECOMMENDED for ck.receipt.read so receivers can verify origin without trusting relay. presence / typing MAY omit proof for cost reasons; receivers MUST NOT promote unsigned signals to durable state. Signing input is the canonical proof binding object {event_digest, verification_method, created_at}; event_digest is canonical_digest of the envelope with `proof` removed (RFC 8785 JCS). verification_method MUST be the `{actor_id}#device` DID URL. See crypto-media/webrtc-signaling.md §5."
+      "description": "Detached-JWS proof over the canonical ephemeral envelope, structurally isomorphic to the durable Event proof ($defs/event_proof in event-envelope.schema.json / models/event-and-patch.md §3). Required for ck.call.signal; RECOMMENDED for ck.receipt.read so receivers can verify origin without trusting relay. presence / typing MAY omit proof for cost reasons; receivers MUST NOT promote unsigned signals to durable state. Signing input is the canonical proof binding object {event_digest, actor_id, verification_method, created_at, domain?, audience?}; event_digest is canonical_digest of the envelope with `proof` removed (RFC 8785 JCS). verification_method MUST be the `{actor_id}#device` DID URL and its controller DID MUST equal envelope actor_id. See crypto-media/webrtc-signaling.md §5."
     }
   },
   "allOf": [
@@ -155,7 +155,7 @@
           "enum": [
             "detached_jws"
           ],
-          "description": "detached_jws = device signature over the canonical proof binding object canonical_json({event_digest, verification_method, created_at, domain?, audience?}). event_digest is the canonical ephemeral-envelope hash with `proof` removed (RFC 8785 JCS)."
+          "description": "detached_jws = device signature over the canonical proof binding object canonical_json({event_digest, actor_id, verification_method, created_at, domain?, audience?}). event_digest is the canonical ephemeral-envelope hash with `proof` removed (RFC 8785 JCS)."
         },
         "verification_method": {
           "type": "string",
@@ -196,7 +196,7 @@
         },
         "jws": {
           "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
+          "pattern": "^[A-Za-z0-9_-]+\\.\\.[A-Za-z0-9_-]+$"
         }
       },
       "additionalProperties": false

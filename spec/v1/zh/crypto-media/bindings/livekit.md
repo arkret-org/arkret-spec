@@ -30,7 +30,7 @@ sidebar:
 | `nbf` / `iat` | token 签发时刻 | — |
 | `exp` | `expires_at` Unix epoch | MUST ≤ 600s after `iat`（media-service-binding §3 TTL 上限） |
 | `name` | optional display label | MUST NOT 携带可关联 actor 身份信息（与 [`../media-service-binding.md` §3](../media-service-binding.md) pairwise pseudonym 对齐）；推荐留空或使用 `participant_identity` |
-| `video.room` | `call_id` | MUST 等于请求的 `call_id`；LiveKit room name 由 issuer 派生（建议 `ck_call_<call_id_short_hash>`，不暴露 raw Realm/call id 到 LiveKit logs） |
+| `video.room` | `backend_room_id` | MUST 是 issuer 从 `(realm_id, call_id, focus_id)` 派生的稳定后端 room handle；MUST 与请求的 `call_id` 唯一绑定，但 MUST NOT 等于 raw `call_id` 或暴露 raw Realm/call id（建议 `ck_call_<sha256(realm_id || 0x00 || call_id || 0x00 || focus_id)>` 的短截断形式） |
 | `video.roomJoin` | `true` | join 权限 |
 | `video.canPublish` | `desired_media.audio ∨ video ∨ screen` | issuer 按 capability 派生 |
 | `video.canPublishSources[]` | `["microphone","camera","screen_share"]` 子集 | 与 `ck.call.screen_share` 等子 capability 对齐 |
@@ -92,7 +92,7 @@ LiveKit Cloud SFU mesh 是 backend-internal 概念；Cokret 通过 `foci[].casca
 | LiveKit 失败 | Cokret 错误码 |
 | --- | --- |
 | LiveKit JWT signature invalid / expired | `proof_invalid`（token exchange 阶段）/ `token_expired` |
-| `video.room` mismatch | `focus_mismatch`（如果 issuer 在 mismatch 时返回；否则客户端在 connect 阶段 fail closed） |
+| `video.room` mismatch | `focus_mismatch`（issuer 派生出的 `backend_room_id` 与该 `(realm_id, call_id, focus_id)` 不一致时返回；否则客户端在 connect 阶段 fail closed） |
 | LiveKit `ConnectionState.Disconnected` (auth) | 客户端 MUST 重新走 media-service-binding §3 token exchange，不得复用旧 token |
 | LiveKit SFU not reachable | 按 [`../media-service-binding.md` §5](../media-service-binding.md) `session_focus` 持久化规则，**不静默切 focus**；暴露为 `focus_unavailable_for_client` |
 
