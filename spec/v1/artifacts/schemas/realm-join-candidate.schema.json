@@ -111,6 +111,11 @@
       "pattern": "^sha256:[0-9a-f]{64}$",
       "description": "Optional digest of the candidate service's advertised Realm frontier at as_of; used only to detect stale hints."
     },
+    "seal_head_ref": {
+      "type": "string",
+      "pattern": "^ck:seal:(?:sha256|blake3):[0-9a-f]{64}$",
+      "description": "Optional current accepted Realm Seal head id at as_of, disclosed only to resolvers the Directory has already authorized to resolve this Realm (membership, a valid invite_token, or a signed link). An invitee who is not yet a member cannot read the membership-gated ck.self.events.query.frontier Realm Seal view, so this is the seal head they MUST stamp as the seal_ref (DataEvent) or seal_basis leaf (Control Move) of their ck.member.state invite->join (or ck.invite.accept) event before signing. This is a routing/anchoring hint, not membership authorization: the receiving service still validates the submitted seal reference and the invite."
+    },
     "as_of": {
       "$ref": "#/$defs/timestamp",
       "description": "Time when the issuer observed or refreshed this candidate."
