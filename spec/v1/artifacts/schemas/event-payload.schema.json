@@ -5234,6 +5234,11 @@
           "required": [
             "device_signature"
           ]
+        },
+        {
+          "required": [
+            "enrollment_authority_binding"
+          ]
         }
       ],
       "oneOf": [
