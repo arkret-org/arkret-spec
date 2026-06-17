@@ -533,6 +533,11 @@
           "secret_id": {
             "type": "string",
             "pattern": "^[A-Za-z0-9_.-]+$"
+          },
+          "secret_version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Monotonic version of the backed-up secret (e.g. mls_account_secret). Used by clients for deterministic preferred-backup selection and anti-rollback ordering (key-management.md §9.1). Present on versioned secret items; absent on share-style items such as recovery_key_share."
           }
         },
         "patternProperties": {
