@@ -182,6 +182,11 @@
       ],
       "properties": {
         "principal_id": { "$ref": "#/$defs/did" },
+        "handle": {
+          "type": "string",
+          "pattern": "^[a-z0-9._+~-]{1,128}:[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$",
+          "description": "Optional canonical registration handle (<localpart>:<domain>) the requesting Account Authority asserts for this principal. When present and the localpart is available, the Principal Server issues the first handle claim (ck.schema.handle_claim.v1, issuer = Principal Server service DID, binding_state = verified) and returns it as account_register_outcome.primary_handle_claim. The Principal Server MUST reject a handle whose domain is not its own and MUST NOT promote it without this explicit authorization (cf. identity-handles.md §3.7.1). It remains a signed claim, never an unsigned bare handle."
+        },
         "display_name": { "$ref": "#/$defs/display_name" },
         "device_id": { "$ref": "#/$defs/device_id" },
         "proof": { "$ref": "#/$defs/account_lifecycle_proof" }

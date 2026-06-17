@@ -19,6 +19,7 @@
         ],
         "properties": [
           "principal_id",
+          "handle",
           "display_name",
           "device_id",
           "proof"
