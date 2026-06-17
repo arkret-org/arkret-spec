@@ -297,7 +297,8 @@
         "series_id",
         "series_seq",
         "created_at",
-        "ciphertext_digest"
+        "ciphertext_digest",
+        "encryption"
       ],
       "properties": {
         "backup_id": {
@@ -361,6 +362,27 @@
         },
         "ciphertext_digest": {
           "$ref": "#/$defs/hash"
+        },
+        "encryption": {
+          "type": "object",
+          "description": "Non-secret recipient metadata so the client can categorize a backup (recovery_public_key vs passphrase_kdf vs secret_storage_key) without downloading the ciphertext. The aead/kdf material is withheld from the list summary.",
+          "required": [
+            "recipient_method"
+          ],
+          "properties": {
+            "recipient_method": {
+              "type": "string",
+              "enum": [
+                "passphrase_kdf",
+                "recovery_public_key",
+                "secret_storage_key"
+              ]
+            },
+            "recipient_key_ref": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
         },
         "retention": {
           "type": "object",
