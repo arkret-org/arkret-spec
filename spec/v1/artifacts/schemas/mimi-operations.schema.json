@@ -748,6 +748,12 @@
         "strand_id": {
           "$ref": "#/$defs/strand_id"
         },
+        "mimi_room_uri": {
+          "$ref": "#/$defs/mimi_uri"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
         "target_ref": {
           "$ref": "#/$defs/non_empty_string"
         },
