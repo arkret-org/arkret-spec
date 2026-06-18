@@ -2859,6 +2859,13 @@
       "description": "Sub-reason for failed_precondition when an object write references an effective scope whose Circle or parent Realm has been tombstoned/destroyed and cannot accept new writes. Projections may surface the same string as a non-error status marker. See zh/models/realm-and-space.md §2.6.1 and zh/models/circle.md §9.2."
     },
     {
+      "code": "scope_incomparable",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "Sub-reason for failed_precondition when a structural relation, parent, position, cascade, or reverse-projected fact would need to span two sibling Circle scopes in the same Realm. v1 reducers MUST NOT choose either Circle, union them, or promote the fact to Realm-default. See zh/models/circle.md §6.1."
+    },
+    {
       "code": "circle_member_must_be_realm_member",
       "applies_to": [
         "state_resolution"
