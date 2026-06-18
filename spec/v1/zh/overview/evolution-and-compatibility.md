@@ -19,7 +19,7 @@ sidebar:
 
 ## 1. 目标
 
-本文是 Cokret 协议演进与向后兼容的**导航入口**：当一处改动需要判断"是否破坏兼容、历史数据是否仍可读、未升级对端是否仍可互通"时，从这里出发。
+本文是 Cokret v1 协议演进与 current-wire 边界的**导航入口**：当一处改动需要判断"是否破坏当前 v1 wire、已接受的 v1 签名字节是否仍可验证、未声明某 profile 的对端是否必须 fail closed"时，从这里出发。
 
 本文不发明新机制，只汇总并交叉引用既有规范（`encoding.md`、`conformance-profiles.md`、`renames.json`、`service-http-binding.md`）。规范关键字以被引用的源文档为准；本文与源文档冲突时，以源文档为准。
 
@@ -32,7 +32,7 @@ Cokret 是联邦化、端到端加密（MLS）、事件溯源协议。客户端�
 
 由此得出 Cokret 的演进基本定位：
 
-> 演进 MUST 是"新代码永远能读旧字节、能与旧对端协商"，而 MUST NOT 是"把旧数据迁到新版本"。
+> 演进 MUST 是“新代码永远能验证已接受的 current-v1 签名字节、并与对端按显式 profile 交集协商”；current parser MUST NOT 接受已移除的旧 draft wire、旧字段名或未登记 operation 作为兼容输入。旧 draft / pre-v1 字节只能由离线 migration tool 读取，不得进入实时 sync、federation、snapshot、reducer 或 conformance runner。
 
 ## 3. 不可变签名字节 → 用重放/投影代替数据迁移
 

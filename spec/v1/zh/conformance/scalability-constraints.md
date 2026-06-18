@@ -131,6 +131,20 @@ Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一
 | 分块流式 AEAD 附件 `segment_size` 取值范围 | 1 KiB（1,024）– 8 MiB（8,388,608），默认 256 KiB（262,144） | 见 [media-and-blob.md](../crypto-media/media-and-blob.md) §3.3。超出范围 MUST reject（`schema_violation`）；`segment_size` 越界或与 `segment_count`、`size_bytes` 不自洽时接收方 MUST fail closed。 |
 | 分块流式 AEAD 附件 `segment_count` 上限 | 1,048,576（2^20） | 见 [media-and-blob.md](../crypto-media/media-and-blob.md) §3.3。`segment_index` 为 `u32`（硬上界 2^32），但 v1 wire 互操作上限为 2^20；超过时 MUST reject（`schema_violation`）。`segment_count` MUST 等于 `ceil(size_bytes_plaintext / segment_size)` 并与实际段数一致，否则接收方 MUST 拒绝（`segment_bounds_invalid` / `segment_sequence_invalid`）。 |
 
+### 6.1 身份、邀请与推送隐私窗口
+
+下表登记会触发拒绝、fail-closed、隐私 zeroize 或跨实现 replay 判定的 identity / invite / push 窗口。领域文档仍定义完整状态机；本文登记 wire interoperability bound 和 conformance 入口。
+
+| 项 | v1 默认上限 / 下限 | 规则 |
+| --- | ---: | --- |
+| `ck.invite.third_party.expires_at` base-profile 硬上限 | 7 days | 见 [third-party-invites.md](../sync/third-party-invites.md) §6。超过 base-profile 上限的第三方 invite MUST reject 或要求声明扩展 profile + revalidation proof；高安全 / audited / enterprise Realm 的硬上限为 24 hours。 |
+| 第三方 invite `(invite_id, claim_nonce)` replay set TTL | `invite.expires_at + 24h`（下限） | 验证服务 / 接收 Sync Service MUST 至少保留到该窗口结束；窗口内重复 claim MUST 在 reducer 仲裁前拒绝。replay key SHOULD 以 HMAC / hash 存储，不得持久化明文 invite token。 |
+| expired invite token secret zeroize | 24h 内 | `expires_at <= now` 后，服务端 MUST 在 24h 内 zeroize `token_salt` / lookup pepper material，并 GC active commitment 记录；claim 路径返回 `expired_invite_token` 或等价不可枚举错误。 |
+| inception key 在线签名窗口 | 24h（硬上限；推荐 ≤1h） | 见 [key-management.md](../identity/key-management.md) §5.0.1。receiver / Auth Server MUST 独立计算 inception key age；超过 24h 后必须拒绝该 key 签发的 `ck.device.authorize` / `ck.session.grant` / 长期 capability / ordinary DID update，reason_code=`inception_key_window_exceeded`。deployment policy 不得放宽该硬上限。 |
+| key backup 每 principal 每 24h 下载上限 | 64（memory-hard profile 可声明 16–256） | 见 [key-management.md](../identity/key-management.md) §7.8。实现 MUST 在 `server/describe.limits` 或 profile 参数中公布实际上限；超限 MUST rate-limit / fail closed，并不得在日志或 telemetry 中泄露 plaintext keybag。 |
+| `push_target_id` rotation 周期 | 默认 ≤ 90 days | 见 [device-lifecycle.md](../crypto-media/device-lifecycle.md) §5a.1。客户端 SHOULD 在 push token 变化、设备恢复、out-of-band 重新登录或自定义 rotation 周期到达时轮换；高安全部署 SHOULD 声明更短周期。 |
+| 旧 / 新 `push_target_id` 可逆映射保留 | ≤ 24h，或单条未投递消息 TTL，取较短者 | 服务方只可在 rotation 时短暂保留映射以迁移未投递消息；超过窗口 MUST 物理删除旧 pseudonym 与索引材料，不得保留能把新旧映射回同一 device 的信息。 |
+
 ## 7. Retention、Snapshot Pruning 与 Tombstone 上限
 
 Cokret 的真相源仍是 signed Event Envelope；GC 只能释放某个存储边界内的成本，不能把已接受历史改写成不存在。实现对外声明 v1 profile 时 MUST 在 `server/describe.limits` 或等价 feature discovery 中暴露保留策略摘要，例如 raw event retention、snapshot cadence、tombstone stub retention、dangling redaction retention 和 device-message queue TTL。

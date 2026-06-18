@@ -1447,8 +1447,9 @@
     },
     {
       "vector_id": "ck.vector.snapshot.inclusion_challenge.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "snapshot",
+      "description": "Reserved vector id for high-assurance snapshot inclusion-challenge sampling. Non-gating until a machine fixture and runner assertion are published under artifacts/fixtures/.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]

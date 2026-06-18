@@ -484,7 +484,7 @@
     },
     "AuthzCheckRequestBody": {
       "type": "object",
-      "description": "ck.self.authz.query.check input — single capability decision query. `resource` is\noptional because some actions (e.g. `ck.realm.create`, identity-scoped\nactions) have no Realm-bound target.\n",
+      "description": "ck.self.authz.query.check input — local capability projection / preflight / diagnostic query. `resource` is optional because some actions (e.g. `ck.realm.create`, identity-scoped actions) have no Realm-bound target. The result is not a signed Policy Server decision and MUST NOT be used as Event auth_context, reducer accept proof, or cross-service authorization fact; dynamic policy obligations use ck.self.policy.query.check.\n",
       "required": [
         "actor_id",
         "action"
@@ -511,7 +511,7 @@
     },
     "AuthzCheckOutcome": {
       "type": "object",
-      "description": "ck.self.authz.query.check decision. See zh/authz/capabilities.md §18.",
+      "description": "ck.self.authz.query.check diagnostic/preflight decision. See zh/authz/capabilities.md §18. This shape may include freshness and obligation hints, but any obligation that affects reducer admission or external state MUST be re-issued and signed through PolicyCheckOutcome.",
       "required": [
         "decision"
       ],
@@ -1274,13 +1274,13 @@
     },
     "EventView": {
       "type": "object",
-      "description": "Result of ck.self.events.resource.get — a single Event Envelope with optional visibility / receipt hints.",
+      "description": "Result of ck.self.events.resource.get — a single complete Event Envelope, RedactedEventView, or ReferenceLockedEventStub with optional visibility / receipt hints. Redacted / locked variants are projection-only evidence and MUST NOT be used as reducer input.",
       "required": [
         "event"
       ],
       "properties": {
         "event": {
-          "$ref": "./event-envelope.schema.json"
+          "$ref": "#/$defs/EventReadItem"
         },
         "visibility": {
           "type": "object",
@@ -1375,7 +1375,7 @@
         "events": {
           "type": "array",
           "items": {
-            "$ref": "./event-envelope.schema.json"
+            "$ref": "#/$defs/EventReadItem"
           }
         },
         "prev_cursor": {
@@ -2473,6 +2473,145 @@
         }
       },
       "additionalProperties": false
+    },
+    "EventReadItem": {
+      "description": "A readable event item. Complete EventEnvelope is the only reducer input shape. RedactedEventView and ReferenceLockedEventStub are projection/completeness evidence for callers that may know the source event exists but may not receive its full canonical payload bytes.",
+      "oneOf": [
+        {
+          "$ref": "./event-envelope.schema.json"
+        },
+        {
+          "$ref": "#/$defs/RedactedEventView"
+        },
+        {
+          "$ref": "#/$defs/ReferenceLockedEventStub"
+        }
+      ]
+    },
+    "RedactedEventView": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "view_kind",
+        "event_id",
+        "kind",
+        "realm_id",
+        "event_digest",
+        "redaction_reason",
+        "hidden_fields",
+        "reducer_input"
+      ],
+      "properties": {
+        "view_kind": {
+          "const": "redacted_event_view"
+        },
+        "event_id": {
+          "$ref": "#/$defs/EventId"
+        },
+        "kind": {
+          "type": "string",
+          "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+        },
+        "realm_id": {
+          "$ref": "#/$defs/RealmId"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "event_digest": {
+          "type": "string",
+          "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
+          "description": "Digest of the complete canonical Event Envelope bytes with proofs and unsigned removed. The caller cannot recompute it from this redacted view; it is a commitment used with inclusion / availability proofs."
+        },
+        "payload_digest": {
+          "type": "string",
+          "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
+          "description": "Optional digest commitment to the canonical payload object before masking."
+        },
+        "redaction_reason": {
+          "type": "string",
+          "enum": [
+            "reference_locked",
+            "history_not_visible",
+            "policy_hidden",
+            "redacted",
+            "retention_pruned",
+            "unknown"
+          ]
+        },
+        "hidden_fields": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^(payload|payload\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*|proofs|unsigned)$"
+          },
+          "uniqueItems": true
+        },
+        "inclusion_proof": {
+          "type": "object",
+          "description": "Optional proof that the committed event_digest is included in an Event set / Seal / range-completeness root visible to the caller."
+        },
+        "reducer_input": {
+          "const": false,
+          "description": "Redacted views are projection-only evidence and MUST NOT be fed into a reducer as Event Envelope input."
+        }
+      }
+    },
+    "ReferenceLockedEventStub": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "view_kind",
+        "status",
+        "realm_id",
+        "reason_code",
+        "reducer_input"
+      ],
+      "properties": {
+        "view_kind": {
+          "const": "reference_locked_event_stub"
+        },
+        "status": {
+          "const": "locked"
+        },
+        "event_id": {
+          "$ref": "#/$defs/EventId",
+          "description": "Present only when the source event id is already visible to the caller; omitted when even the event id would distinguish target existence."
+        },
+        "kind": {
+          "type": "string",
+          "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+        },
+        "realm_id": {
+          "$ref": "#/$defs/RealmId",
+          "description": "The source Realm boundary visible to the caller. Target Realm identifiers hidden by reference-disclosure policy MUST NOT appear."
+        },
+        "event_digest": {
+          "type": "string",
+          "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
+          "description": "Optional source-event commitment when the source event is known but its payload is locked."
+        },
+        "reason_code": {
+          "type": "string",
+          "enum": [
+            "reference_locked",
+            "history_not_visible",
+            "policy_hidden",
+            "not_found_or_unauthorized"
+          ],
+          "description": "Reasons that would reveal target existence MUST be collapsed to not_found_or_unauthorized for unauthorized callers."
+        },
+        "inclusion_proof": {
+          "type": "object",
+          "description": "Optional non-disclosing proof commitment. MUST NOT contain hidden target refs or target Realm metadata."
+        },
+        "reducer_input": {
+          "const": false,
+          "description": "Locked stubs are projection-only evidence and MUST NOT be fed into a reducer as Event Envelope input."
+        }
+      }
     },
     "EventsSubmitBatchRequestBody": {
       "type": "object",
