@@ -115,7 +115,7 @@ DID Document SHOULD 只负责：
 
 Principal Server 的根级 `/_cokret/describe` 是客户端登录 / account flow 的启动入口。`auth_metadata.account_authority` MUST 给出一个绝对 `gate_account_base`，客户端所有 Cokret `/_cokret/gate/account/*` 请求都 MUST 从该 base 派生。客户端 MUST NOT 根据 operation 名称自行判断某个请求该打 Principal Server、某个请求该打 Auth Server；若 Auth Server 与 Principal Server 分进程或分 origin，部署 MUST 提供一个位于认证 TCB 内的 Account Authority 前置（网关、反代或同进程合并）完整承载该 base，并在内部按 operation 路由。
 
-`auth_metadata.methods[]` 只描述认证方法（例如 `oidc`、`passkey`、`device_pairing`、未来 `gnap`）及其 provider / issuer / discovery，不决定 `gate/account` 的路由。OIDC method MUST 使用标准 discovery 与标准 `authorization_endpoint` / `token_endpoint`；Cokret 不定义 `/_cokret/gate/auth/oauth/*` 这类私有 OAuth endpoint family。标准认证结果进入 Cokret 的桥是 Account Authority 的 `POST {gate_account_base}/session-grants`，响应为 `SessionGrantOutcome`；Principal 本地 session provisioning 属 Account Authority 内部编排，不得暴露为客户端可见的第二个 grant→bearer 兑换 endpoint。
+`auth_metadata.methods[]` 只描述认证方法（例如 `oidc`、`passkey`、`device_pairing`、未来 `gnap`）及其 provider / issuer / discovery，不决定 `gate/account` 的路由。OIDC method MUST 使用标准 discovery 与标准 `authorization_endpoint` / `token_endpoint`；Cokret 不定义 `/_cokret/gate/auth/oauth/*` 这类私有 OAuth endpoint family。标准认证结果进入 Cokret 的桥是 Account Authority 的 `POST {gate_account_base}/session-grants`，响应为 `SessionGrantOutcome`；Principal 本地 session provisioning 属 Account Authority 内部编排，不得暴露为客户端可见的第二个 grant→bearer 兑换 endpoint。 <!-- lint-ignore: CW001 - forbidden historical path named only as a negative example. -->
 
 本登录 / account flow 最多并存三类 origin：Principal Server（发现启动）、Account Authority（全部 `gate/account` Cokret 操作）和认证 method provider / issuer（标准认证协议）。完整 Cokret 客户端仍可按其它 spec 访问 Directory、Blob、Media、Push 等 service origin；这些不改变 account flow 的路由规则。
 
@@ -821,7 +821,7 @@ Native personal agent 的 management 与 sidecar operations 落在 `/_cokret/sel
 | `ck.gate.account.command.pair_agent_key` | `POST /_cokret/gate/account/agent-key-pair` | `ck.profile.personal_agent_provisioning.v1` |
 | `ck.gate.account.command.issue_session_grant`(扩展为 `proof.proof_kind="agent_key_proof"` 分支) | `POST /_cokret/gate/account/session-grants` | `ck.profile.agent_auth.v1` |
 | `ck.self.agent.query.list` / `ck.self.agent.resource.get` | `GET /_cokret/self/agents` / `GET /_cokret/self/agents/{agent_principal_id}` | `ck.profile.personal_agent_provisioning.v1` |
-| `ck.self.agent.command.pause` / `resume` / `deactivate` / `rotate_key` | `POST /_cokret/self/agents/{agent_principal_id}/{pause,resume,deactivate,rotate-key}` | `ck.profile.personal_agent_provisioning.v1` |
+| `ck.self.agent.command.pause` / `resume` / `deactivate` / `rotate_key` | `POST /_cokret/self/agents/{agent_principal_id}/pause`, `POST /_cokret/self/agents/{agent_principal_id}/resume`, `POST /_cokret/self/agents/{agent_principal_id}/deactivate`, `POST /_cokret/self/agents/{agent_principal_id}/rotate-key` | `ck.profile.personal_agent_provisioning.v1` |
 | `ck.self.agent.grant.command.attach` / `ck.self.agent.grant.resource.delete` | `POST /_cokret/self/agents/{agent_principal_id}/grants` / `DELETE /_cokret/self/agents/{agent_principal_id}/grants/{grant_id}` | `ck.profile.personal_agent_provisioning.v1` |
 | `ck.self.agent.sidecar_thread.command.ensure` | `POST /_cokret/self/agent-sidecar-threads:ensure` | `ck.profile.agent_sidecar_thread.v1` |
 | `ck.self.agent.participation.resource.replace` | `PUT /_cokret/self/agents/{agent_principal_id}/participation` | `ck.profile.agent_participation_policy.v1` |
