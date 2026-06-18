@@ -272,6 +272,7 @@
     },
     {
       "name": "approval_constraint_requires_controller_approval",
+      "vector_id": "ck.vector.capability.approval_constraint.v1",
       "grant": {
         "id": "ck:grant:0196410c-0c00-7000-8000-000000000000",
         "issuer": "did:web:owner.example",

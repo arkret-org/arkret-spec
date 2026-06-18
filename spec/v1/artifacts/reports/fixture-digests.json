@@ -2,7 +2,7 @@
   "files": [
     {
       "path": "spec/v1/artifacts/fixtures/capability-fixture.json",
-      "sha256": "4838736d10b1d8c175df79d7e089adf667970fb6ba3209712881fe957d8846fe"
+      "sha256": "c8dcf6fd1e0bc7fa219ac218e6fc9ec593b0a099853dcfed56ca53c078554704"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
