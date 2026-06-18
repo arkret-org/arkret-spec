@@ -3762,6 +3762,7 @@
         "operations": [
           "ck.gate.account.command.register",
           "ck.gate.account.command.pair_device",
+          "ck.gate.account.command.enroll_device",
           "ck.gate.account.command.issue_session_grant",
           "ck.gate.account.command.refresh_session_grant",
           "ck.gate.account.command.logout_session_grant",
@@ -3809,6 +3810,16 @@
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body",
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_outcome"
+      },
+      {
+        "operation_id": "ck.gate.account.command.enroll_device",
+        "http": "POST /_cokret/gate/account/device-enroll",
+        "grpc": "GateAccount/DeviceEnroll",
+        "mq": "gate.account.command.enroll_device",
+        "notes": "Managed-DID (account-authority) device enrollment, device-lifecycle.md §5.4 / key-management.md §5.0.6. The authenticated session asks its designated enrollment authority to mint a service_attested ck.device.authorize for this session's own device; the authority signs with its persistent enrollment key (never the principal SSK) and returns the full Event. The caller submits it verbatim to POST /_cokret/self/events. Distinct from pair_device (§2.1), which lands an existing-device SAS/QR approval and carries a pairing_code; enroll_device is the bootstrap / first-device path where no sibling device can approve.",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_enroll_request_body",
+        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_enroll_outcome"
       },
       {
         "operation_id": "ck.gate.account.command.issue_session_grant",

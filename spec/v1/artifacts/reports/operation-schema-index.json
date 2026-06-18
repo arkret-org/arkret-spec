@@ -83,6 +83,43 @@
       }
     },
     {
+      "operation_id": "ck.gate.account.command.enroll_device",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_enroll_request_body",
+        "schema_kind": "object",
+        "required": [
+          "device_id",
+          "device_public_key",
+          "actor_seq"
+        ],
+        "properties": [
+          "device_id",
+          "device_public_key",
+          "actor_seq",
+          "not_before"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_enroll_outcome",
+        "schema_kind": "object",
+        "required": [
+          "principal_id",
+          "device_id",
+          "authority_did",
+          "authorized_event"
+        ],
+        "properties": [
+          "principal_id",
+          "device_id",
+          "authority_did",
+          "authorized_event"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ck.gate.account.command.issue_session_grant",
       "success_shape_kind": "typed_response",
       "request": {

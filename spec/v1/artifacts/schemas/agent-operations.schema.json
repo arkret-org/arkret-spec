@@ -324,6 +324,66 @@
       },
       "additionalProperties": false
     },
+    "account_device_enroll_request_body": {
+      "type": "object",
+      "description": "Request to the account-authority enrollment service to mint a `service_attested` ck.device.authorize for the calling session's own device (device-lifecycle.md §5.4, key-management.md §5.0.6). Used for the bootstrap / first-device path under the managed-DID model, where no existing device can approve via device-pair.",
+      "required": [
+        "device_id",
+        "device_public_key",
+        "actor_seq"
+      ],
+      "properties": {
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "device_public_key": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/non_empty_string"
+            }
+          ],
+          "description": "This session's device public key as a did:key multibase string (z6Mk…) or base64."
+        },
+        "actor_seq": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Next actor_seq on the principal control stream (highest accepted + 1), observed by the client."
+        },
+        "not_before": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "account_device_enroll_outcome": {
+      "type": "object",
+      "description": "The signed `service_attested` ck.device.authorize Event for the requested device. The account authority does not contact the Principal Server; the caller submits `authorized_event` verbatim to POST /_cokret/self/events.",
+      "required": [
+        "principal_id",
+        "device_id",
+        "authority_did",
+        "authorized_event"
+      ],
+      "properties": {
+        "principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "authority_did": {
+          "$ref": "#/$defs/did",
+          "description": "Enrollment authority DID (= executed_by / enrollment_authority_binding.authority_did)."
+        },
+        "authorized_event": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": true,
+          "description": "Fully-signed ck.device.authorize Event envelope, carrying enrollment_authority_binding {kind: service_attested}."
+        }
+      },
+      "additionalProperties": false
+    },
     "agent_key_pair_request_body": {
       "type": "object",
       "required": [

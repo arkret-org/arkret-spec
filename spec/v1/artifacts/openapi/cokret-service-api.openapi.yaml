@@ -2632,6 +2632,10 @@ components:
       $ref: ../schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body
     AccountDevicePairOutcome:
       $ref: ../schemas/agent-operations.schema.json#/$defs/account_device_pair_outcome
+    AccountDeviceEnrollRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/account_device_enroll_request_body
+    AccountDeviceEnrollOutcome:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/account_device_enroll_outcome
     AgentKeyPairRequestBody:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_key_pair_request_body
     AgentKeyPairOutcome:
@@ -6979,6 +6983,29 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AccountDevicePairRequestBody'
+  /_cokret/gate/account/device-enroll:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
+    post:
+      operationId: ck.gate.account.command.enroll_device
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Service-attested device enrollment minted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountDeviceEnrollOutcome'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountDeviceEnrollRequestBody'
   /_cokret/gate/account/agent-key-pair:
     servers:
     - url: https://{host}

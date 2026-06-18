@@ -14,7 +14,7 @@ updated: 2026-06-12
 
 去中心化协议摒弃了传统的账号+密码中心化认证模式，身份的本质是持有私钥。Cokret 把以下三件事分开处理：
 
-- **登录因子验证**：Auth Server 验证 password、passkey、OIDC、SSO 或 recovery factor，只能产出短期 `ck.session.grant`、触发恢复流程，或请求已有设备授权。
+- **登录因子验证**：Auth Server 验证 password、passkey、OIDC、SSO 或 recovery factor，只能产出短期 `ck.session.grant`、触发恢复流程、请求已有设备授权，或（托管 DID 模型，§5.4）经 `ck.gate.account.command.enroll_device` 请求入册权威签发 `service_attested` 设备授权。
 - **设备授权**：新设备成为长期有效设备，MUST 落成 `ck.device.authorize`、DID/key-log operation 或等价 signed event。只有这一步改变设备集合。
 - **设备密钥验证**：SAS/QR 只确认 device key / identity key 的人工信任。验证成功不得自动创建登录态、长期 device grant 或 Realm capability。
 
@@ -46,7 +46,7 @@ Cokret 可以部署 Auth Server（企业 SSO 场景下的部署形态为 Auth Ga
 
 Cokret v1 把三件事分开处理：
 
-- **登录因子验证**：Auth Server 验证 password、passkey、OIDC、SSO 或 recovery factor，只能产出短期 `ck.session.grant`、触发恢复流程，或请求已有设备授权。
+- **登录因子验证**：Auth Server 验证 password、passkey、OIDC、SSO 或 recovery factor，只能产出短期 `ck.session.grant`、触发恢复流程、请求已有设备授权，或（托管 DID 模型，§5.4）经 `ck.gate.account.command.enroll_device` 请求入册权威签发 `service_attested` 设备授权。
 - **设备授权**：新设备成为长期有效设备，MUST 落成 `ck.device.authorize`、DID/key-log operation 或等价 signed event。只有这一步改变设备集合。
 - **设备密钥验证**：SAS/QR 只确认 device key / identity key 的人工信任。验证成功不得自动创建登录态、长期 device grant 或 Realm capability。
 
@@ -367,6 +367,8 @@ receiver 接受 `service_attested` 的 `ck.device.authorize` 时 MUST 校验：
 **按时点解析（normative）：** 历史 `ck.device.authorize` 的复验（审计 / 联邦 replay）MUST 按该 Event 的 server-sealed accepted-at，对入册权威 DID 做按时点解析（`did:webvh` 历史 `versionTime`），用当时有效的入册密钥验签；因此入册权威轮换其签名密钥**不会**使既有授权失效。设备集投影的历史复算同样按时点进行。
 
 **inception 窗口不适用：** `service_attested` 的 `ck.device.authorize` 不携带 `did_inception` ref，[`identity/key-management.md` §5.0.1 step5](../identity/key-management.md) 的 inception key 24h 在线窗口门对其天然 inert。
+
+**客户端请求入口（normative）：** 客户端经 canonical gate 操作 `ck.gate.account.command.enroll_device`（`POST /_cokret/gate/account/device-enroll`，request `account_device_enroll_request_body {device_id, device_public_key, actor_seq, not_before?}`、response `account_device_enroll_outcome {principal_id, device_id, authority_did, authorized_event}`）向其指派的入册权威请求该 `service_attested` 签名。请求 MUST 以当前 `ck.session.grant`（`Authorization: bearer`）+ holder DPoP proof（绑定 grant `cnf.jkt` 与本 endpoint）认证；入册权威校验该会话拥有目标 principal 后，用其持久 enrollment key 铸造 `ck.device.authorize` 并返回完整 Event，客户端原样提交到 `POST /_cokret/self/events`。该操作是 §2.1 `pair_device`（已授权设备 SAS/QR 审批，携 `pairing_code`）之外、用于无兄弟设备可审批的 bootstrap / 首台设备路径。入册权威 endpoint 与其它 `/_cokret/gate/account/*` 同处一个 Account Authority `gate_account_base`。
 
 ## 5a. Privacy-Preserving Push
 

@@ -17,13 +17,13 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 168,
+    "total_operations": 169,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 3,
       "service_describe": 7,
       "streaming_frame_schema": 2,
-      "typed_schema": 154
+      "typed_schema": 155
     },
     "by_tier_and_class": {
       "core": {
@@ -33,7 +33,7 @@
         "typed_schema": 21
       },
       "deployment_local": {
-        "typed_schema": 9
+        "typed_schema": 10
       },
       "extension": {
         "binary_or_redirect": 2,
@@ -400,6 +400,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/DirectorySearchUsersRequestBody",
         "response": "#/components/schemas/DirectoryUserSearchOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.gate.account.command.enroll_device",
+      "tier": "deployment_local",
+      "http": "POST /_cokret/gate/account/device-enroll",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_enroll_request_body",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_enroll_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/AccountDeviceEnrollRequestBody",
+        "response": "#/components/schemas/AccountDeviceEnrollOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

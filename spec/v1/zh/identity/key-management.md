@@ -379,7 +379,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 
 1. **入册权威指派(in-document,可自证)**:代铸 DID 时,account authority MUST 在 principal DID 文档中以**窄关系**指派入册权威 —— 一条 `CokretDeviceEnrollmentAuthority` service 条目(`serviceEndpoint` 指向权威 DID,见 [`identity-did.md`](./identity-did.md)),或一条 `capabilityDelegation` verification method。**MUST NOT** 复用 `controller`(那是改写身份根的强权，入册权威只应能入册)。文档锚定的指派是地面真值;deployment 信任策略 MAY 收紧(交集)或在文档无法表达时补空(回退，标记低 assurance),**MUST NOT** 并集扩权(本地单方面新增文档未指派的权威 = 越权 + 联邦 split-brain)。
 2. **持久入册密钥(≠ inception key)**:入册权威持有一把**持久**签名密钥用于签发 `ck.device.authorize`。它与 §5.0.1 step5 必须退场的 inception key 是不同密钥:inception key 仍按 step5 在 `inception_key_max_online_window` 内退场；入册密钥作为常设服务密钥长期持有合规，并可轮换(轮换不影响既有授权，见下)。
-3. **设备授权走 `service_attested`**:设备入册按 [`../crypto-media/device-lifecycle.md` §5.4](../crypto-media/device-lifecycle.md) 的 `enrollment_authority_binding` / `service_attested` 形态，而非 §5.0.1 inception 自授权或 §5.1 的 SSK cross-signing。account authority **MUST NOT** 持有或伪造本 principal 的 SSK。
+3. **设备授权走 `service_attested`**:设备入册按 [`../crypto-media/device-lifecycle.md` §5.4](../crypto-media/device-lifecycle.md) 的 `enrollment_authority_binding` / `service_attested` 形态，而非 §5.0.1 inception 自授权或 §5.1 的 SSK cross-signing。account authority **MUST NOT** 持有或伪造本 principal 的 SSK。客户端经 canonical gate 操作 `ck.gate.account.command.enroll_device`（`POST /_cokret/gate/account/device-enroll`，见 [`../sync/service-http-binding.md`](../sync/service-http-binding.md) 与 §5.4）向入册权威请求该签名；它与本节 step5 `pair_device`（已授权设备 SAS/QR 审批）互补，用于无兄弟设备可审批的 bootstrap / 首台设备。
 4. **按时点解析，轮换不失效**:receiver 复验历史 `ck.device.authorize` 时,MUST 按 Event accepted-at 对入册权威 DID 做按时点解析(`did:webvh` 历史 `versionTime`),用当时有效的入册密钥验签。
 5. **provenance**:每条设备授权记录 MUST 记录其入册权威与来源(文档锚定 / 仅策略);联邦只采信文档锚定者。
 

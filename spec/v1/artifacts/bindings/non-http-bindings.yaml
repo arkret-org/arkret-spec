@@ -46,6 +46,7 @@ grpc:
     GateAccount:
       Register: ck.gate.account.command.register
       DevicePair: ck.gate.account.command.pair_device
+      DeviceEnroll: ck.gate.account.command.enroll_device
       IssueSessionGrant: ck.gate.account.command.issue_session_grant
       SessionRevoke: ck.gate.account.command.revoke_session
       AgentKeyPair: ck.gate.account.command.pair_agent_key
