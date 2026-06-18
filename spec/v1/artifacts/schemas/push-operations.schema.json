@@ -378,11 +378,6 @@
         "sender_actor_id": {
           "$ref": "#/$defs/did"
         },
-        "content": {
-          "type": "object",
-          "description": "Profile-gated client-visible rendering content (e.g. {\"body\": \"...\"}). Permitted ONLY under ck.profile.push_gateway.visible_notification.v1; MUST NOT appear in a blind notification. Still subject to the §5.1 minimization constraints (no DID URL, no cross-Realm stable correlation key, no IP/geolocation).",
-          "additionalProperties": true
-        },
         "strand_id": {
           "$ref": "#/$defs/strand_id"
         },
@@ -517,6 +512,7 @@
     },
     "push_notify_request_body": {
       "type": "object",
+      "description": "Closed Cokret notify body. Product-private notification bodies, provider adapter payloads, APNs/FCM/WebPush data dictionaries, `content`, `content_*`, `provider_payload`, DND/snooze state, and push-rule plaintext are outside this wire surface and MUST be consumed before this body is built. Provider-facing payloads are reconstructed by the gateway from this closed shape and MUST strip routing_metadata / reason_code / event_kind / audit_envelope before provider dispatch.",
       "required": [
         "notification"
       ],

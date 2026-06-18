@@ -242,7 +242,8 @@
           "notification.sender_actor_id",
           "notification.sender_actor_display_name",
           "notification.realm_title",
-          "notification.strand_title"
+          "notification.strand_title",
+          "notification.content"
         ],
         "device_payload_max_bytes": 512
       }

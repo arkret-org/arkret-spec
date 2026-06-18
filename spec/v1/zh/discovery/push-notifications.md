@@ -3,7 +3,7 @@ title: Push Notifications
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-10
+updated: 2026-06-19
 ---
 
 ## 0. 规范语言
@@ -392,7 +392,6 @@ POST /_cokret/edge/push/notify
 | `notification.routing_metadata.effective_scope` | object | optional（routing-stripped） | reducer 在源 Event 信封上盖的不可变 scope 绑定，内部 tag 在 `kind`：`{kind:"realm",realm_id}` 或 `{kind:"circle",realm_id,circle_id}`（派生自 SDK `cokret::EffectiveScope`）。出 provider 前 strip。 |
 | `notification.routing_metadata.mention_redirect_target_actor_ids` | did[] | optional（routing-stripped） | Round-4 mention-redirect 路由 allow-list：被允许接收本 wakeup 的 actor DID。非空时每个 `devices[].target_actor_id` MUST 出现在此列表，否则该设备 fail-closed（不调 provider、不解密正文）。接收方据此 plaintext 列表校验自身是否在内而**无需解密正文**。gateway-internal，出 provider 前 strip（见 §4.5）。 |
 | `notification.routing_metadata.delivery_binding_frontier` | string | optional（routing-stripped） | federation hop 来源 notify 时接收方已接受的 Realm delivery-binding frontier；接收方 frontier 更新则返回 `delivery_binding_stale`。Realm 级 gateway-internal 概念，出 provider 前 strip。 |
-| `notification.content` | object | visible-only | profile-gated client-visible 渲染内容（如 `{"body": "..."}`）。**仅** `ck.profile.push_gateway.visible_notification.v1` 下允许，**绝不进 blind**；仍受 §5.1 最小化约束（无 DID URL、无跨 Realm stable correlation key、无 IP / geolocation）。 |
 | `notification.strand_id` | id:strand | visible-only | profile-gated Strand id。绝不进 blind。 |
 | `notification.message_id` | id:message | visible-only | profile-gated Message id。绝不进 blind。 |
 | `notification.sender_actor_display_name` | string | visible-only | profile-gated 发送者显示名。绝不进 blind（§2.2 已列入 MUST NOT 清单）。 |
@@ -406,6 +405,13 @@ POST /_cokret/edge/push/notify
 | `audit_envelope` | object | optional | 顶层：Round-4 `ck.audit.policy_access` 信封路由片段（`{access_kind, late_recovery_original_event_id?}`，派生自 floria `AuditEnvelopeMetadata`）。present 时该请求是审计管线事件（如 `e2ee_late_recovery` 访问通知）而非 push notify：gateway 写审计事件、回 200、跳过整条 push 管线。 |
 
 > **传输层 header（非 body 字段）**：notify 的 `idempotency_key`→`Idempotency-Key` header；来源服务 DID→`Source-Service-DID` header；目标服务 DID 与 `recipient_service_did` 复用→`Destination-Service-DID` header（均为 `httpMessageSignature` 伴随项，见 [`../sync/service-http-binding.md` §3](../sync/service-http-binding.md) 与 openapi securitySchemes）。`operation_id` 由 URL path（operationId `ck.edge.push.command.notify`）唯一确定，不在 body 重复承载。以上字段 **MUST NOT** 出现在请求体内。
+
+**Notify body / product-private body / provider payload 三层边界（normative）**：
+
+1. `/_cokret/edge/push/notify` 请求体只承载本节表中定义的协议字段，且由 `push-operations.schema.json#/$defs/push_notify_request_body` 的闭合 schema 约束。产品内部 UI 草稿、DND/snooze 状态、push rule 明文、provider adapter 原始字段、APNs/FCM/WebPush 私有 body、`provider_payload`、`content` 或 `content_*` preview 字段 **MUST NOT** 进入该协议 body；实现需要这些信息时，只能在调用方产品私有进程内完成求值，并把结果压缩成本节定义的 `wakeup_kind` / `push_hint` / `reason_code` / `routing_metadata` 等最小协议字段。
+2. Product-private body 是调用方服务内部状态，不是 Cokret v1 wire surface。它 MAY 包含本地化资源键、UI 文案模板、静默时段、snooze target 或 provider adapter 配置，但这些字段 MUST 在进入 `ck.edge.push.command.notify` 前被消费或丢弃。不得通过 `notification.extra`、`content`、`payload`、`data`、`provider_payload` 或任何自由对象把 product-private body 透传给 Push Gateway。
+3. Provider payload 是 Push Gateway 对 APNs / FCM / WebPush / OEM provider 的出向请求；它由 gateway 根据已验证的 notify body 重新构造。默认 `blind_wakeup` 下 provider payload 的允许集合是 `push_target_id`、`wakeup_kind`、合规的 `push_hint` / `push_hint_l10n_key`、最小化 counts 以及 provider 必需的不可链接 collapse key；`routing_metadata`、`devices[].target_actor_id`、`reason_code`、`event_kind`、`audit_envelope` 和任何 Realm / sender / event / content 字段 MUST 在出 provider 前 strip。
+4. `ck.profile.push_gateway.visible_notification.v1` 只放宽本表列出的 profile-gated 标题/标签/typed-id 字段，不引入自由正文容器。即使 Realm policy 和设备 opt-in 允许 visible notification，`notification.content`、`body`、`preview`、`summary`、provider-specific `data` 或任意 `content_*` 字段仍不属于 v1 notify body；需要完整标题与正文的客户端 SHOULD 由 blind wakeup 唤醒后本地拉取、解密并渲染。
 
 `notification.event_id`、`notification.realm_id`（client-visible 顶层）、`notification.kind`、`notification.sender_actor_id`、`notification.sender_actor_display_name`、`notification.realm_title`、`notification.strand_title` 等识别字段 **MUST NOT** 出现在 `ck.profile.push_gateway.blind_wakeup.v1`（默认互操作隐私基线）的 payload 中（`notification.routing_metadata.realm_id` 是不同的 gateway-internal 路由字段，不在此禁列内）。若某部署确实需要让受信 Push Gateway 承载可见通知，必须声明独立的 `ck.profile.push_gateway.visible_notification.v1` profile，并满足全部条件：
 
