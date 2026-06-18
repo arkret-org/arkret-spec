@@ -95,10 +95,10 @@ Cokret v1 把三件事分开处理：
 为在「access token 短命」与「设备会话可跨多日免重登」之间取得一致,session grant 采用**设备密钥持有绑定 + 滚动轮换**模型:
 
 - **持有绑定(cnf.jkt)**:签发 `ck.session.grant` 时,Auth Server MUST 要求客户端出示一个由其稳定设备密钥(holder key,RFC 9449 DPoP 式持有证明)签名的 proof,并把该密钥的 RFC 7638 JWK 指纹写入 grant 的 `cnf.jkt`(RFC 7800 confirmation)。该设备密钥即设备的持有凭证;`cnf.jkt` 把 grant 绑定到「持有该私钥的设备」,而非仅记一个 `device_id` 字符串。
-- **access bearer 短命、grant 作续期凭证**:Principal Server 用 grant 交换出的 access bearer MUST 短命(分钟级),且其过期 MUST NOT 超过 grant 过期;客户端在 bearer 临期时用**仍有效的 grant** 重新交换出新 bearer,无需联系 Auth Server。
-- **轮换(rotation)**:grant 临近自身过期时,客户端用**同一设备 holder key** 签 DPoP 持有证明,向 Auth Server 的 session-grant 轮换端点(见 [`../sync/service-http-binding.md` §2.3](../sync/service-http-binding.md))换出一张新 grant。Auth Server MUST 校验 proof 的 JWK 指纹等于旧 grant 的 `cnf.jkt`(证明持有同一设备私钥),新 grant 保持 `cnf.jkt` 不变、刷新过期、继承 subject/scope/audience;旧 grant MUST 单次使用吊销。如此滚动使设备会话存活到天级,**直到设备被吊销、grant 链被吊销、或底层 `browser_session` 被终结(登出)**——三者任一即拒绝继续轮换(见 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md))。
+- **access bearer 短命、grant 作续期凭证**:Principal Server 用 grant 交换出的 access bearer MUST 短命(分钟级)，且其过期 MUST NOT 超过 grant 过期；客户端在 bearer 临期时用**仍有效的 grant** 重新交换出新 bearer，无需联系 Auth Server。
+- **轮换(rotation)**:grant 临近自身过期时，客户端用**同一设备 holder key** 签 DPoP 持有证明，向 Auth Server 的 session-grant 轮换端点(见 [`../sync/service-http-binding.md` §2.3](../sync/service-http-binding.md))换出一张新 grant。Auth Server MUST 校验 proof 的 JWK 指纹等于旧 grant 的 `cnf.jkt`(证明持有同一设备私钥)，新 grant 保持 `cnf.jkt` 不变、刷新过期、继承 subject/scope/audience；旧 grant MUST 单次使用吊销。如此滚动使设备会话存活到天级，**直到设备被吊销、grant 链被吊销、或底层 `browser_session` 被终结(登出)**——三者任一即拒绝继续轮换(见 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md))。
 - **不引入 OAuth refresh_token**:本协议以「设备 holder key 轮换 grant」承担续期职责,grant 自身保持分钟到小时级 TTL;不依赖、也不要求签发 OAuth `offline_access` refresh token。
-- **登出即终结**:轮换链挂靠在 Auth Server 的 `browser_session` 上;`browser_session` 被登出终结后,即便持有正确的设备私钥(指纹匹配 `cnf.jkt`)也 MUST NOT 再轮换出新 grant——续期必须重新走完整认证。
+- **登出即终结**:轮换链挂靠在 Auth Server 的 `browser_session` 上；`browser_session` 被登出终结后，即便持有正确的设备私钥(指纹匹配 `cnf.jkt`)也 MUST NOT 再轮换出新 grant——续期必须重新走完整认证。
 
 此模式只把 Web2 SSO 作为登录因子和会话授权输入。它不授予 E2EE 密钥访问权，不自动创建长期设备，不替代 `ck.device.authorize`、DID/key-log operation 或 recovery policy。
 
