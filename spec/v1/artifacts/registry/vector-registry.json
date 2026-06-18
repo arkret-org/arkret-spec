@@ -664,7 +664,8 @@
       "status": "active",
       "domain": "encoding",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]
     },
     {
@@ -672,7 +673,8 @@
       "status": "active",
       "domain": "encoding",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]
     },
     {
@@ -680,7 +682,8 @@
       "status": "active",
       "domain": "encoding",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]
     },
     {
@@ -697,7 +700,8 @@
       "status": "active",
       "domain": "encoding",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]
     },
     {
