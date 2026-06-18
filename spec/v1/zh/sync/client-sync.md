@@ -537,6 +537,7 @@ Handle claim 获取与刷新规则：
 - `ck.account.blocklist`
 - `ck.contacts.actor.<did>`
 - `ck.contacts.realm.<realm_id>`
+- `ck.presence.visibility`
 - `ck.read_receipt.preferences`
 - `ck.account.invite_quarantine`
 

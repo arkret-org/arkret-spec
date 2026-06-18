@@ -111,6 +111,20 @@
       ]
     },
     {
+      "key_pattern": "ck.presence.visibility",
+      "status": "active",
+      "scope": "principal_private_policy",
+      "storage": "encrypted_account_data",
+      "write_event_kinds": [
+        "ck.account_data.set"
+      ],
+      "description": "Principal-private presence visibility policy. Principal/Sync services may project only the minimal presence_visibility enum needed to gate ck.presence and ck.typing fanout; it MUST NOT expose profile fields, status messages, contact notes, or precise last-active data.",
+      "source_refs": [
+        "spec/v1/zh/discovery/profiles-presence.md",
+        "spec/v1/zh/sync/client-sync.md"
+      ]
+    },
+    {
       "key_pattern": "ck.read_receipt.preferences",
       "status": "active",
       "scope": "principal_private_preference",

@@ -258,6 +258,8 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 
 用户可以控制 Presence 的可见范围：
 
+该策略的标准存储位置是 actor-private Account Data key `ck.presence.visibility`（见 [`account-data-type-registry.json`](../../artifacts/registry/account-data-type-registry.json)）。写入通过 `ck.account_data.set` 完成，payload MUST 是下列形态；缺省等价于 `{ "presence_visibility": "public" }`。
+
 ```json
 {
   "presence_visibility": "contacts_only"
@@ -269,6 +271,8 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 | `public` | 所有共同 Realm 的成员可见 |
 | `contacts_only` | 仅对明确的联系人可见 |
 | `nobody` | 完全隐藏在线状态（对所有人显示为 offline） |
+
+`ck.presence.visibility` 是 principal-private policy projection：Principal / Sync Service MAY 读取并投影其中的 `presence_visibility` enum，用于执行 `ck.presence` 与 `ck.typing` 的提交、读取和 fanout gate；服务端不得借此读取或披露 Profile 字段、`status_message`、联系人备注、精确 `last_active_at` 或其它 account data 明文。若服务端无法读取该最小 policy projection（例如部署选择端到端 opaque account data 且没有受托投影服务），它 MUST 对跨设备 / 跨接收方 fanout fail closed：不得把 presence 或 typing 转发给不能在本地证明属于允许集合的接收方。
 
 当 `presence_visibility="nobody"` 时，客户端 MUST NOT 发送 `ck.presence`，Sync Service MUST NOT 转发既有或缓存的 `ck.presence`；接收方看到的结果必须与从未收到 presence 一致。
 
