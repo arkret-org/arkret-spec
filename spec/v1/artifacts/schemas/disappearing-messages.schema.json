@@ -28,15 +28,18 @@
             "on_send",
             "on_first_read",
             "on_last_read"
-          ]
+          ],
+          "description": "Expiry anchor trigger. on_first_read / on_last_read are driven by private read cursor or policy-allowed receipt inputs through anonymous aggregate trigger contributions; expiry metadata MUST NOT expose reader identity."
         },
         "seal_hlc": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "description": "Reducer / projection fixed anchor HLC. Once a read-trigger anchor is accepted for a message, duplicate delivery or replay MUST NOT refresh it."
         },
         "grace_ms": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "description": "Additional local projection / key-drop grace. Does not extend the Realm policy maximum lifetime."
         }
       },
       "additionalProperties": false
@@ -68,6 +71,11 @@
           },
           "minItems": 1,
           "uniqueItems": true
+        },
+        "read_trigger_window_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum wait window for on_last_read aggregate contributions. If omitted, implementations MUST use max_ttl_ms. This window is metadata-only and MUST NOT expose reader identity or unread reader count."
         },
         "default_grace_ms": {
           "type": "integer",

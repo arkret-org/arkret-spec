@@ -536,6 +536,39 @@
       ]
     },
     {
+      "vector_id": "ck.vector.disappearing.on_last_read_offline_window.v1",
+      "status": "active",
+      "profile": "ck.profile.disappearing.v1",
+      "domain": "disappearing",
+      "description": "on_last_read converges by principal-level aggregate contributions and read_trigger_window_ms; offline devices receive expiry stubs and shred keys when they reconnect.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/crypto-media/disappearing-messages.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.disappearing.read_trigger_anonymous_aggregate.v1",
+      "status": "active",
+      "profile": "ck.profile.disappearing.v1",
+      "domain": "disappearing",
+      "description": "Read-trigger expiry anchors are derived from anonymous aggregate contributions and MUST NOT reveal reader identity or reader counts to other clients or services outside the aggregate boundary.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/crypto-media/disappearing-messages.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.disappearing.read_trigger_idempotent_replay.v1",
+      "status": "active",
+      "profile": "ck.profile.disappearing.v1",
+      "domain": "disappearing",
+      "description": "Duplicate, stale, out-of-order, or cross-bound read-trigger contributions MUST NOT refresh anchors, double-count readers, or expire the wrong message.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/crypto-media/disappearing-messages.md"
+      ]
+    },
+    {
       "vector_id": "ck.vector.e2ee.content_floor_downgrade_rejected.v1",
       "status": "active",
       "domain": "e2ee",

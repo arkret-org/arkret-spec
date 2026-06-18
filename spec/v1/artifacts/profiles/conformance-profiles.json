@@ -3628,7 +3628,10 @@
         "required": [
           "message_expiry_payload",
           "expiry_stub_projection",
-          "disappearing_policy"
+          "disappearing_policy",
+          "read_trigger_anonymous_aggregate",
+          "read_trigger_idempotency",
+          "read_trigger_offline_window"
         ],
         "unsupported_optional": "receivers that cannot enforce expiry MUST NOT treat expiring messages as permanent messages"
       }
