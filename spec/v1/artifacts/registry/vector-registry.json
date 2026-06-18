@@ -1353,7 +1353,8 @@
       "status": "active",
       "domain": "redaction",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/redaction-fixture.json"
       ]
     },
     {
@@ -1361,7 +1362,8 @@
       "status": "active",
       "domain": "redaction",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/redaction-fixture.json"
       ]
     },
     {

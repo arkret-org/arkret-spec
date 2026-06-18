@@ -50,7 +50,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",
-      "sha256": "a62ce10d3bd4b69651962cc5a763e0540d12ab300eb1abf1c417821dcbc01d66"
+      "sha256": "340c272e259c58257fe61ebb3e70a49caeaac746c0bfc6ca2b2bac6bb46ae175"
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",

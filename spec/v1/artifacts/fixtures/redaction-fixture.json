@@ -3,6 +3,7 @@
   "cases": [
     {
       "name": "preserved_fields",
+      "vector_id": "ck.vector.redaction.preserve_fields.v1",
       "preserve": [
         "event_id",
         "created_at",
@@ -27,6 +28,7 @@
     },
     {
       "name": "snapshot_pruning_stub",
+      "vector_id": "ck.vector.redaction.snapshot_pruning_stub.v1",
       "input": "redacted_payload_pruned_after_snapshot",
       "expected": "snapshot_and_backfill_retain_verification_stub"
     }
