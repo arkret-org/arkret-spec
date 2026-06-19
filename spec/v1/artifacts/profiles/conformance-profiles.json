@@ -1052,6 +1052,11 @@
         "ck.member.state",
         "ck.strand.create",
         "ck.message.create",
+        "ck.invite.create",
+        "ck.invite.accept",
+        "ck.invite.third_party",
+        "ck.invite.claim",
+        "ck.invite.revoke",
         "ck.capability.grant",
         "ck.capability.revoke"
       ],
@@ -1059,6 +1064,7 @@
       "required_schemas": [
         "ck.schema.account_subscribe_frame.v1",
         "ck.schema.snapshot.v1",
+        "ck.schema.invite.v1",
         "ck.schema.capability.v1",
         "ck.schema.grant_constraint.v1"
       ],
@@ -1067,7 +1073,8 @@
         "sync-fixture.json",
         "cba-lattice-fixture.json",
         "capability-fixture.json",
-        "privacy-security-fixture.json"
+        "privacy-security-fixture.json",
+        "security-closure-vectors.json"
       ],
       "optional_extensions": [
         "ck.profile.federation_minimal.v1",
@@ -1078,9 +1085,18 @@
         "required": [
           "supported_operations",
           "supported_profiles",
-          "plaintext_visibility_classes"
+          "plaintext_visibility_classes",
+          "invite_claim_reducer_state_machine"
         ],
         "unsupported_optional": "omit optional operation or return unsupported_feature"
+      },
+      "additional_requirements": {
+        "invite_claim_reducer_authority_must": "ck.invite.claim MUST be decided by the destination Realm reducer, not by Auth Server, verification service, Sync Service ingress, or client projection caches.",
+        "invite_claim_token_commitment_must": "Reducer MUST match payload.token_commitment to the pending ck.invite.third_party invite and reject mismatch or already-claimed commitments with no membership proposal.",
+        "invite_claim_allowlist_recheck_must": "Reducer MUST re-check binding_proof.verification_service_did against the current effective Realm allowlist and any invite-pinned service DID before accepting subject_proof.",
+        "invite_claim_nonce_dedup_must": "Reducer MUST treat (invite_id, claim_nonce) and token_commitment as one-time constraints and reject replay with duplicate_conflict.",
+        "invite_claim_membership_conversion_must": "Successful claim MUST atomically transition invite pending -> claimed and materialize only a subject-bound standard invite or membership proposal; final join still requires ck.invite.accept or an explicitly profiled equivalent path.",
+        "invite_claim_expiry_cleanup_must": "Reducer MUST expire third-party invites before claim acceptance when expires_at <= now and trigger token material cleanup obligations from third-party-invites.md §6.1."
       }
     },
     "ck.profile.federation_minimal.v1": {
@@ -2857,6 +2873,8 @@
     "ck.profile.crypto_signature_vectors.v1": {
       "required_endpoints": [],
       "required_event_kinds": [
+        "ck.invite.third_party",
+        "ck.invite.claim",
         "ck.message.create"
       ],
       "rejected_event_kinds": [],
@@ -3079,12 +3097,15 @@
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
+        "ck.schema.event_payload.v1",
+        "ck.schema.invite.v1",
         "ck.schema.notification.v1",
         "ck.schema.blob.v1"
       ],
       "required_fixtures": [
         "membership-delivery-binding-fixture.json",
-        "privacy-security-fixture.json"
+        "privacy-security-fixture.json",
+        "security-closure-vectors.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {

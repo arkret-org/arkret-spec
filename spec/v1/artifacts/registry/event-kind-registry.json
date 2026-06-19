@@ -2226,7 +2226,20 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Third-party invite claim"
+      "payload": "Third-party invite claim",
+      "reducer_authority": "realm",
+      "reducer_effects": [
+        "match pending ck.invite.third_party by invite_id and token_commitment",
+        "re-check verification_service_did against current effective Realm allowlist",
+        "deduplicate (invite_id, claim_nonce) and token_commitment before accepting",
+        "transition invite cell pending -> claimed and materialize subject-bound membership proposal",
+        "expire and clean pending invite material before claim acceptance when expires_at <= now"
+      ],
+      "conformance_vectors": [
+        "ck.vector.invite.claim_reducer_state_machine.v1",
+        "ck.vector.invite.consumed_token_resubject_rejected.v1",
+        "ck.vector.invite.failure_indistinguishable.v1"
+      ]
     },
     {
       "event_kind": "ck.invite.revoke",

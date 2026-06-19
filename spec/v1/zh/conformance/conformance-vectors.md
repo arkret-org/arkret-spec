@@ -2619,6 +2619,26 @@ Expected：
 - 对外响应 MUST byte-identical 或等价不可区分；仅服务端 audit log 可记录具体 reason_code。
 - timing 差异 SHOULD ≤ 50ms；高安全 profile MUST 对该窗口做 jitter / padding。
 
+### 9.7.1 Vector: Invite Claim Reducer State Machine
+
+`vector_id`: `ck.vector.invite.claim_reducer_state_machine.v1`
+
+本向量固化 [`third-party-invites.md`](../sync/third-party-invites.md) §4.3 的 Realm reducer 权威要求。机器可执行样本位于 [`../../artifacts/fixtures/security-closure-vectors.json`](../../artifacts/fixtures/security-closure-vectors.json)；runner MUST 同时消费 prose 与 fixture，不得只依赖验证服务或 Sync Service 入站预检。
+
+Steps：
+
+1. 正路径：Realm frontier 中存在 `state="pending"` 的 `ck.invite.third_party`，`token_commitment`、`claim_nonce`、`verification_service_did` allowlist、`binding_proof`、`subject_proof` 和 `expires_at` 均有效。
+2. Token commitment mismatch：`ck.invite.claim.payload.token_commitment` 不等于 pending invite 的 commitment。
+3. Allowlist 复校验失败：验证服务曾签发 binding proof，但当前 effective Realm policy 已移除该 `verification_service_did`。
+4. Claim nonce replay：同一 `(invite_id, claim_nonce)` 或同一 `token_commitment` 已被 reducer 观察为 claim effect。
+5. Expired cleanup：`invite.expires_at <= now` 时提交 claim。
+
+Expected：
+
+- Case 1：Reducer MUST 原子产生 `pending -> claimed`，记录 `claimed_by=subject_id`、claim nonce digest 和 verification service DID，并只物化 subject-bound `ck.invite.create` 或等价 membership proposal；最终 `ck.member.state{membership="join"}` 仍需 `ck.invite.accept` 或显式 profile 路径。
+- Cases 2-5：Reducer MUST reject，不得产生 membership proposal 或 join；case 4 使用 `duplicate_conflict`，case 5 使用内部 `expired_invite_token` 并触发 §6.1 token material cleanup。
+- 所有失败通过外部 claim surface 返回不可枚举 `not_found` 或同形态响应；具体 reason 只进入 audit / per-event rejected diagnostics。
+
 ### 9.8 Vector: Consent Scope Cascade
 
 `vector_id`: `ck.vector.consent.scope_cascade.v1`

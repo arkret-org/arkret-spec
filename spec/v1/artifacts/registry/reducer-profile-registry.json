@@ -181,6 +181,11 @@
           "ck.member.state",
           "ck.strand.create",
           "ck.message.create",
+          "ck.invite.create",
+          "ck.invite.accept",
+          "ck.invite.third_party",
+          "ck.invite.claim",
+          "ck.invite.revoke",
           "ck.capability.grant",
           "ck.capability.revoke"
         ],
@@ -188,6 +193,7 @@
         "required_schemas": [
           "ck.schema.account_subscribe_frame.v1",
           "ck.schema.snapshot.v1",
+          "ck.schema.invite.v1",
           "ck.schema.capability.v1",
           "ck.schema.grant_constraint.v1"
         ],
@@ -205,7 +211,8 @@
           "sync-fixture.json",
           "cba-lattice-fixture.json",
           "capability-fixture.json",
-          "privacy-security-fixture.json"
+          "privacy-security-fixture.json",
+          "security-closure-vectors.json"
         ],
         "reducer_contract_refs": [
           "artifacts/profiles/conformance-profiles.json#/profile_requirements/ck.profile.principal_server.v1",
@@ -214,7 +221,17 @@
           "artifacts/registry/operations-error-mapping.json",
           "zh/sync/service-surface.md",
           "zh/sync/client-sync.md",
-          "zh/authz/capabilities.md"
+          "zh/sync/third-party-invites.md",
+          "zh/authz/capabilities.md",
+          "zh/conformance/conformance-vectors.md"
+        ],
+        "reducer_invariants": [
+          "ck.invite.claim is accepted only by the destination Realm reducer",
+          "token_commitment must match a pending unexpired ck.invite.third_party invite",
+          "verification_service_did allowlist is re-evaluated against current effective Realm policy",
+          "(invite_id, claim_nonce) and token_commitment are one-time reducer state constraints",
+          "successful claim atomically transitions invite pending -> claimed and materializes a subject-bound membership proposal",
+          "expired third-party invites are cleaned before claim acceptance"
         ],
         "lattice_types": [
           "or_set",

@@ -3,7 +3,7 @@ title: Third-Party Invites
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-10
+updated: 2026-06-19
 ---
 
 ## 0. 规范语言
@@ -152,18 +152,23 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Re
 }
 ```
 
-### 4.3 状态机转换
+### 4.3 Realm reducer 状态机转换
 
-Realm 中的其他节点（Sync Service / 客户端本地 projection）在收到该 Event 时：
-1. 匹配 `token_commitment` 与未过期、未撤销、未认领的 `ck.invite.third_party`。
-2. 验证 `binding_proof` 必须由对应的 `verification_public_key` 签署，并绑定 `subject_id`、`realm_id`、audience、过期时间和 claim nonce。
-2a. 验证 `binding_proof.verification_service_did` 落入目标 Realm 的显式授权集（§2.1 Allowlist MUST：Realm policy 显式 allowlist，或该 invite 创建时已授权的服务 DID）。不在该授权集内的 `verification_service_did` MUST reject，且 reducer 与接收 Sync Service MUST NOT 因后续 `subject_proof` 有效而放行（对外按 §6 不可枚举响应处理）。
-3. 验证 `subject_proof` 来自 Bob DID 的当前有效 verification method，防止验证服务把 token 绑定到攻击者 DID。该签名 MUST 覆盖 canonical transcript `utf8("ck.invite.claim.subject_proof.v1\n") || canonical_json({subject_id, invite_id, realm_id, token_commitment, claim_nonce, audience:"cokret.invite.claim", verification_service_did, binding_proof_digest})`，其中 `verification_service_did` 等于 `binding_proof.verification_service_did`，`binding_proof_digest` 是 `binding_proof` 的 canonical-JSON digest（`sha256:<hex>`）。这确保 subject 证明的语义是"我同意被这个特定验证服务签发的这个特定 `binding_proof` 绑定"，而不是泛化的"我同意加入"；据此，攻击者或被替换的验证服务无法把另一份 binding_proof / 另一个验证服务身份套用到同一 subject signature 上。只验证裸 DID 控制权、或不绑定 `invite_id` / `realm_id` / `token_commitment` / `claim_nonce` / `verification_service_did` / `binding_proof_digest` 的 subject proof MUST reject；`verification_service_did` 与 `binding_proof.verification_service_did` 不一致、或 `binding_proof_digest` 与 `binding_proof` 实际 canonical digest 不一致时同样 MUST reject。
-4. 原子标记 pending invite 为 `claimed`；同一个 `token_commitment` 的第二次认领 MUST reject。
-5. 如果验证通过，该占位符邀请正式转变为针对 `did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com` 的标准 `ck.invite.create` 或等价 membership proposal。
-6. 随后 Bob 刷新 Realm 的 `join_candidates[]`，选择一个未过期候选并按照正常流程发送 `ck.invite.accept` 加入 Realm。
+`ck.invite.claim` 是 Realm 控制面 reducer input。Sync Service、验证服务和客户端 MAY 在入站路径做格式、签名、限速和不可枚举预拒绝，但它们不得成为 invite state 的真源；是否把某个 `ck.invite.third_party` 从 `pending` 推进到 `claimed`、是否产生后续 membership proposal / accept 权限，只能由目标 Realm 的 reducer 在同一状态机中决定。任何 projection、缓存或服务端本地表若与 reducer 结果冲突，MUST 以 reducer 结果为准并回滚派生状态。
 
-验证服务 / 接收 Sync Service MUST 维护 `(invite_id, claim_nonce)` 去重 set，TTL 至少覆盖 `invite.expires_at + 24h`。任一 nonce 一旦进入该 set，后续携带同一 `(invite_id, claim_nonce)` 的 claim Event MUST 在进入 reducer 仲裁前拒绝，即使前一次 claim 最终因其它原因未成为 winner。该 set 的 key SHOULD 存储为 HMAC / hash，不得持久化明文 invite token；对外失败形态仍按 §6 的不可枚举响应处理。
+Reducer 处理 `ck.invite.claim` 时 MUST 按下列顺序 fail closed；所有内部 reason code 对外仍按 §6 不可枚举响应处理：
+
+1. 从当前 accepted Realm frontier 读取目标 invite cell，按 `invite_id` 与 `token_commitment` 匹配一条 `state="pending"` 的 `ck.invite.third_party`；`token_commitment` 不一致、invite 不存在、不是 3PID invite、或已进入 `claimed` / `expired` / `revoked` / `send_failed` / `invalidated_by_rate_limit` 等非 pending 状态时 MUST reject，且不得创建 membership proposal。
+2. 在任何签名接受前重算过期与清理前置条件：若 `invite.expires_at <= now`，reducer MUST 把 invite cell 推进到 `expired`（或在同一 batch 中接受已由授权 actor 提交的等价 `expired` transition）并以 `expired_invite_token` 拒绝本次 claim；token material / lookup pepper 的 zeroize 规则见 §6.1。
+3. 验证 `binding_proof` 必须由该 invite 记录中的 `verification_public_key` 签署，并绑定 `subject_id`、`realm_id`、audience、过期时间和 claim nonce；`binding_proof.subject_id`、`binding_proof.realm_id`、`binding_proof.claim_nonce` 与 payload 顶层字段不一致时 MUST reject。
+4. 复校验 `binding_proof.verification_service_did` 落入**当前 effective Realm policy** 的显式授权集（§2.1 Allowlist MUST），并且若 invite 创建时绑定了授权服务 DID，该 DID 也必须与 binding proof 一致。该复校验必须在 reducer 内执行；不能因为验证服务、Auth Server、接收 Sync Service 或历史 invite metadata 已经校验过而跳过。不在授权集内的 `verification_service_did` MUST reject，且不得因后续 `subject_proof` 有效而放行。
+5. 验证 `subject_proof` 来自 `subject_id` 的当前有效 verification method，防止验证服务把 token 绑定到攻击者 DID。该签名 MUST 覆盖 canonical transcript `utf8("ck.invite.claim.subject_proof.v1\n") || canonical_json({subject_id, invite_id, realm_id, token_commitment, claim_nonce, audience:"cokret.invite.claim", verification_service_did, binding_proof_digest})`，其中 `verification_service_did` 等于 `binding_proof.verification_service_did`，`binding_proof_digest` 是 `binding_proof` 的 canonical-JSON digest（`sha256:<hex>`）。这确保 subject 证明的语义是"我同意被这个特定验证服务签发的这个特定 `binding_proof` 绑定"，而不是泛化的"我同意加入"；据此，攻击者或被替换的验证服务无法把另一份 binding_proof / 另一个验证服务身份套用到同一 subject signature 上。只验证裸 DID 控制权、或不绑定 `invite_id` / `realm_id` / `token_commitment` / `claim_nonce` / `verification_service_did` / `binding_proof_digest` 的 subject proof MUST reject；`verification_service_did` 与 `binding_proof.verification_service_did` 不一致、或 `binding_proof_digest` 与 `binding_proof` 实际 canonical digest 不一致时同样 MUST reject。
+6. 在 reducer state 中检查 `(invite_id, claim_nonce)` 与 `token_commitment` 两类一次性约束：同一 `(invite_id, claim_nonce)` 的重复 claim、或同一 `token_commitment` 已有 accepted claim effect，均 MUST 以 `duplicate_conflict` 拒绝。该检查必须与 invite cell 的 `pending -> claimed` transition 原子提交，不能依赖入站服务的幂等表作为唯一保护。
+7. 验证通过后，reducer MUST 原子写入 claim effect：invite cell `pending -> claimed`，记录 `claimed_by=subject_id`、`claim_event_ref`、`claim_nonce_digest`、`token_commitment`、`verification_service_did` 与 `claimed_at` 等派生投影字段；随后该占位符邀请正式转变为针对 `subject_id` 的标准 `ck.invite.create` 或等价 membership proposal。`ck.invite.claim` 本身不直接绕过 Realm join policy 写入 `ck.member.state{membership="join"}`；最终 join 仍由 `subject_id` 通过 `ck.invite.accept` 或 profile 声明的等价 membership proposal 路径完成，reducer MUST 校验 accept/proposal 引用的是这次 `claimed` effect。
+
+验证服务 / 接收 Sync Service SHOULD 维护 `(invite_id, claim_nonce)` 去重 set，TTL 至少覆盖 `invite.expires_at + 24h`，用于在进入 reducer 仲裁前降低重放成本；该服务侧 set 不是状态真源。任一 nonce 一旦被 reducer 作为 accepted 或 rejected claim effect 观察到，后续携带同一 `(invite_id, claim_nonce)` 的 claim Event MUST 被 reducer 拒绝，即使前一次 claim 未成为 invite cell winner。该 set 的 key SHOULD 存储为 HMAC / hash，不得持久化明文 invite token；对外失败形态仍按 §6 的不可枚举响应处理。
+
+> **Conformance vector（normative）**：上述 reducer 闭环由 `ck.vector.invite.claim_reducer_state_machine.v1` 覆盖（登记于 `artifacts/registry/vector-registry.json`，fixture 位于 `artifacts/fixtures/security-closure-vectors.json`）：正路径必须产生 `pending -> claimed` 与 membership proposal；token commitment mismatch、allowlist 复校验失败、claim nonce 重放、expired cleanup 四类负路径均不得产生 membership proposal。
 
 **v1 base wire 范围（normative）**：v1 base conformance 仅支持 `invite` / `restricted` join-rule Realm 的 third-party claim 接续到 `ck.invite.create`（或等价 membership proposal）路径，如上述步骤 5 所述。knock_restricted Realm 的 third-party 接续依赖 `ck.realm.join.review` candidate profile（见 [`../governance/join-policy.md` §7.5](../governance/join-policy.md)）以及 `member.application` candidate kind（见 [`operations-sync.md`](operations-sync.md)），**不属于 v1 base conformance**；部署 MUST 在 `ck.find.directory.query.describe` / `ck.self.account.query.describe` 中显式声明该 candidate profile 后才可在 `knock_restricted` Realm 上使用 third-party claim 流程，否则验证服务 MUST 以 `unsupported_join_rule` 拒绝该 token claim。
 

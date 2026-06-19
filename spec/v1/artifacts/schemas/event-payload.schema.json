@@ -5160,17 +5160,23 @@
           "$ref": "./invite.schema.json#/$defs/third_party_invite"
         },
         "subject_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did",
+          "description": "Subject DID being bound by a ck.invite.claim payload. For claim payloads this MUST match binding_proof.subject_id and the DID verification method used by subject_proof."
         },
         "token_commitment": {
           "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$"
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Reducer-matched salted commitment for the pending ck.invite.third_party record. Raw invite tokens, URL fragments, SMS codes, or plaintext 3PID values MUST NOT appear on wire."
         },
         "claim_nonce": {
-          "$ref": "#/$defs/non_empty_string"
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 128,
+          "description": "One-time nonce scoped to (invite_id, token_commitment). Reducers MUST reject nonce replay while preserving non-enumerable external responses."
         },
         "binding_proof": {
           "type": "object",
+          "description": "Verification-service proof for ck.invite.claim. Reducers verify this against the invite's verification_public_key and current Realm verification_service_did allowlist before accepting a claimed transition.",
           "required": [
             "verification_service_did",
             "verification_method",
@@ -5183,7 +5189,8 @@
           ],
           "properties": {
             "verification_service_did": {
-              "$ref": "#/$defs/did"
+              "$ref": "#/$defs/did",
+              "description": "Verification service DID. Realm reducers MUST re-check this DID against the current effective Realm allowlist and any service DID pinned by the original invite."
             },
             "verification_method": {
               "type": "string",
@@ -5191,19 +5198,25 @@
               "description": "DID URL with required key fragment. Method-name normalized to lowercase per W3C DID 1.0; matches the strict form used by $defs/verification_method elsewhere in this schema."
             },
             "subject_id": {
-              "$ref": "#/$defs/did"
+              "$ref": "#/$defs/did",
+              "description": "DID being bound by the verification service. MUST equal the payload top-level subject_id."
             },
             "realm_id": {
-              "$ref": "./common-ids.schema.json#/$defs/realm_id"
+              "$ref": "./common-ids.schema.json#/$defs/realm_id",
+              "description": "Realm bound into the verification-service proof. MUST equal the Event envelope realm_id."
             },
             "audience": {
-              "$ref": "#/$defs/non_empty_string"
+              "const": "cokret.invite.claim"
             },
             "claim_nonce": {
-              "$ref": "#/$defs/non_empty_string"
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128,
+              "description": "Nonce bound into the verification-service proof. MUST equal the payload top-level claim_nonce."
             },
             "expires_at": {
-              "$ref": "#/$defs/timestamp"
+              "$ref": "#/$defs/timestamp",
+              "description": "Proof expiration. Reducers MUST reject expired proofs and MUST also enforce the invite cell expires_at."
             },
             "signature": {
               "$ref": "#/$defs/signature_material"
@@ -5212,7 +5225,33 @@
           "additionalProperties": false
         },
         "subject_proof": {
-          "$ref": "#/$defs/signature_material"
+          "type": "object",
+          "description": "Subject DID proof over ck.invite.claim.subject_proof.v1 transcript. The transcript digest binds subject_id, invite_id, realm_id, token_commitment, claim_nonce, audience, verification_service_did, and binding_proof_digest.",
+          "required": [
+            "verification_method",
+            "alg",
+            "transcript_digest",
+            "signature"
+          ],
+          "properties": {
+            "verification_method": {
+              "type": "string",
+              "pattern": "^did:[a-z0-9]+:[^\\s#]+#[^\\s#]+$",
+              "description": "Current verification method of subject_id."
+            },
+            "alg": {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            "transcript_digest": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "description": "Digest of the canonical ck.invite.claim.subject_proof.v1 transcript."
+            },
+            "signature": {
+              "$ref": "#/$defs/non_empty_string"
+            }
+          },
+          "additionalProperties": false
         },
         "reason": {
           "type": "string"

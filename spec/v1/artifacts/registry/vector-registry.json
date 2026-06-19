@@ -862,6 +862,17 @@
       ]
     },
     {
+      "vector_id": "ck.vector.invite.claim_reducer_state_machine.v1",
+      "status": "active",
+      "domain": "invite",
+      "description": "Realm reducer authority for ck.invite.claim: token_commitment match, verification_service_did allowlist re-check, claim_nonce replay rejection, pending -> claimed membership-proposal conversion, and expiry cleanup are enforced before acceptance.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/security-closure-vectors.json",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/sync/third-party-invites.md"
+      ]
+    },
+    {
       "vector_id": "ck.vector.invite.oob_code_entropy.v1",
       "status": "active",
       "domain": "invite",

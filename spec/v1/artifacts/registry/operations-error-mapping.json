@@ -610,13 +610,15 @@
       "operation_specific": [
         "duplicate_conflict",
         "failed_precondition",
+        "expired_invite_token",
+        "unsupported_join_rule",
         "actor_seq_invalid",
         "stale_seal_ref",
         "seal_ref_unknown",
         "realm_frozen",
         "quarantine"
       ],
-      "description": "Event submission. Per-event rejections appear in response.rejected[] with one of these codes."
+      "description": "Event submission. Per-event rejections appear in response.rejected[] with one of these codes. ck.invite.claim-specific reducer reasons remain internal/audit-facing when exposed through non-enumerable invite claim flows."
     },
     {
       "operation_id": "ck.peer.events.query.describe",
@@ -660,6 +662,8 @@
       "operation_specific": [
         "duplicate_conflict",
         "failed_precondition",
+        "expired_invite_token",
+        "unsupported_join_rule",
         "actor_seq_invalid",
         "stale_seal_ref",
         "seal_ref_unknown",

@@ -620,6 +620,268 @@
       ]
     },
     {
+      "vector_id": "ck.vector.invite.claim_reducer_state_machine.v1",
+      "steps": [
+        {
+          "name": "valid_claim_materializes_subject_bound_membership_proposal",
+          "input": {
+            "invite_state": "pending",
+            "token_commitment_match": true,
+            "verification_service_allowed_current_policy": true,
+            "claim_nonce_seen": false,
+            "invite_expires_at_relative_to_now": "future",
+            "binding_proof_valid": true,
+            "subject_proof_valid": true
+          },
+          "expected": {
+            "outcome": "accepted",
+            "invariants": [
+              "invite cell transitions pending -> claimed",
+              "membership proposal is bound to claimed subject_id",
+              "ck.member.state join is not emitted without ck.invite.accept or an explicitly profiled equivalent path"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ck.vector.invite.claim_reducer_state_machine.v1",
+              "preconditions": {
+                "invite_state": "pending",
+                "token_commitment_match": true,
+                "verification_service_allowed_current_policy": true,
+                "claim_nonce_seen": false,
+                "invite_expires_at_relative_to_now": "future"
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "valid_claim_materializes_subject_bound_membership_proposal",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "binding_proof_valid": true,
+                "subject_proof_valid": true
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "accepted",
+              "invite_state": "claimed",
+              "membership_proposal": "subject_bound",
+              "invariants": [
+                "invite cell transitions pending -> claimed",
+                "membership proposal is bound to claimed subject_id",
+                "ck.member.state join is not emitted without ck.invite.accept or an explicitly profiled equivalent path"
+              ]
+            },
+            "expected_external_response": {
+              "outcome": "accepted"
+            },
+            "expected_audit_reason": "accepted"
+          }
+        },
+        {
+          "name": "token_commitment_mismatch_rejected",
+          "input": {
+            "invite_state": "pending",
+            "token_commitment_match": false,
+            "verification_service_allowed_current_policy": true,
+            "claim_nonce_seen": false,
+            "invite_expires_at_relative_to_now": "future"
+          },
+          "expected": {
+            "outcome": "rejected",
+            "reason_code": "not_found",
+            "invariants": [
+              "no membership proposal is materialized",
+              "pending invite remains unclaimed"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ck.vector.invite.claim_reducer_state_machine.v1",
+              "preconditions": {
+                "invite_state": "pending",
+                "token_commitment_match": false
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "token_commitment_mismatch_rejected",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "token_commitment_match": false
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "rejected",
+              "reason_code": "not_found",
+              "membership_proposal": "none",
+              "invite_state": "pending",
+              "invariants": [
+                "no membership proposal is materialized",
+                "pending invite remains unclaimed"
+              ]
+            },
+            "expected_external_response": {
+              "outcome": "rejected",
+              "reason_code": "not_found"
+            },
+            "expected_audit_reason": "not_found"
+          }
+        },
+        {
+          "name": "allowlist_recheck_rejected",
+          "input": {
+            "invite_state": "pending",
+            "token_commitment_match": true,
+            "verification_service_allowed_at_invite_create": true,
+            "verification_service_allowed_current_policy": false,
+            "claim_nonce_seen": false,
+            "invite_expires_at_relative_to_now": "future"
+          },
+          "expected": {
+            "outcome": "rejected",
+            "reason_code": "proof_invalid",
+            "invariants": [
+              "current effective Realm allowlist is authoritative",
+              "valid subject_proof does not override verification_service_did rejection",
+              "no membership proposal is materialized"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ck.vector.invite.claim_reducer_state_machine.v1",
+              "preconditions": {
+                "invite_state": "pending",
+                "verification_service_allowed_at_invite_create": true,
+                "verification_service_allowed_current_policy": false
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "allowlist_recheck_rejected",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "verification_service_allowed_current_policy": false
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "rejected",
+              "reason_code": "proof_invalid",
+              "membership_proposal": "none",
+              "invariants": [
+                "current effective Realm allowlist is authoritative",
+                "valid subject_proof does not override verification_service_did rejection",
+                "no membership proposal is materialized"
+              ]
+            },
+            "expected_external_response": {
+              "outcome": "not_found"
+            },
+            "expected_audit_reason": "proof_invalid"
+          }
+        },
+        {
+          "name": "claim_nonce_replay_rejected",
+          "input": {
+            "invite_state": "pending",
+            "token_commitment_match": true,
+            "verification_service_allowed_current_policy": true,
+            "claim_nonce_seen": true,
+            "invite_expires_at_relative_to_now": "future"
+          },
+          "expected": {
+            "outcome": "rejected",
+            "reason_code": "duplicate_conflict",
+            "invariants": [
+              "claim nonce replay is rejected by reducer state",
+              "no membership proposal is materialized"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ck.vector.invite.claim_reducer_state_machine.v1",
+              "preconditions": {
+                "invite_state": "pending",
+                "claim_nonce_seen": true
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "claim_nonce_replay_rejected",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "claim_nonce_seen": true
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "rejected",
+              "reason_code": "duplicate_conflict",
+              "membership_proposal": "none",
+              "invariants": [
+                "claim nonce replay is rejected by reducer state",
+                "no membership proposal is materialized"
+              ]
+            },
+            "expected_external_response": {
+              "outcome": "not_found"
+            },
+            "expected_audit_reason": "duplicate_conflict"
+          }
+        },
+        {
+          "name": "expired_claim_cleans_material_and_rejects",
+          "input": {
+            "invite_state": "pending",
+            "token_commitment_match": true,
+            "verification_service_allowed_current_policy": true,
+            "claim_nonce_seen": false,
+            "invite_expires_at_relative_to_now": "past"
+          },
+          "expected": {
+            "outcome": "rejected",
+            "reason_code": "expired_invite_token",
+            "invariants": [
+              "invite cell transitions pending -> expired before claim acceptance",
+              "token material cleanup obligation is scheduled",
+              "no membership proposal is materialized"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ck.vector.invite.claim_reducer_state_machine.v1",
+              "preconditions": {
+                "invite_state": "pending",
+                "invite_expires_at_relative_to_now": "past"
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "expired_claim_cleans_material_and_rejects",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "invite_expires_at_relative_to_now": "past"
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "rejected",
+              "reason_code": "expired_invite_token",
+              "invite_state": "expired",
+              "membership_proposal": "none",
+              "cleanup": "token_material_zeroize_due_within_24h",
+              "invariants": [
+                "invite cell transitions pending -> expired before claim acceptance",
+                "token material cleanup obligation is scheduled",
+                "no membership proposal is materialized"
+              ]
+            },
+            "expected_external_response": {
+              "outcome": "not_found"
+            },
+            "expected_audit_reason": "expired_invite_token"
+          }
+        }
+      ]
+    },
+    {
       "vector_id": "ck.vector.consent.scope_cascade.v1",
       "steps": [
         {

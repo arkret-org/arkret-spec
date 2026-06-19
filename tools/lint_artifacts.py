@@ -79,6 +79,7 @@ SECURITY_CLOSURE_VECTOR_IDS = {
     "ck.vector.late_key_recovery.removed_actor.v1",
     "ck.vector.invite.oob_code_entropy.v1",
     "ck.vector.invite.failure_indistinguishable.v1",
+    "ck.vector.invite.claim_reducer_state_machine.v1",
     "ck.vector.consent.scope_cascade.v1",
     "ck.vector.consent.cache_invalidation.v1",
     "ck.vector.sync.soft_fail_reconcile.v1",

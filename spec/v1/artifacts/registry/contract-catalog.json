@@ -2258,7 +2258,20 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Third-party invite claim"
+        "payload": "Third-party invite claim",
+        "reducer_authority": "realm",
+        "reducer_effects": [
+          "match pending ck.invite.third_party by invite_id and token_commitment",
+          "re-check verification_service_did against current effective Realm allowlist",
+          "deduplicate (invite_id, claim_nonce) and token_commitment before accepting",
+          "transition invite cell pending -> claimed and materialize subject-bound membership proposal",
+          "expire and clean pending invite material before claim acceptance when expires_at <= now"
+        ],
+        "conformance_vectors": [
+          "ck.vector.invite.claim_reducer_state_machine.v1",
+          "ck.vector.invite.consumed_token_resubject_rejected.v1",
+          "ck.vector.invite.failure_indistinguishable.v1"
+        ]
       },
       {
         "event_kind": "ck.invite.revoke",
@@ -4573,6 +4586,7 @@
         "http": "POST /_cokret/self/events",
         "grpc": "SelfEvents/Submit",
         "mq": "self.events.command.submit",
+        "notes": "Durable self event submission, including ck.invite.claim. For ck.invite.claim, the receiving Realm reducer is the authoritative state machine: it MUST match token_commitment, re-check verification_service_did allowlist against current Realm policy, reject claim_nonce replay, perform pending -> claimed / membership-proposal effects, and run expiry cleanup before accepting.",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome"
@@ -4628,7 +4642,7 @@
         "http": "POST /_cokret/peer/events",
         "grpc": "PeerEvents/Submit",
         "mq": "peer.events.command.submit",
-        "notes": "Federation peer event push. Body is EventsSubmitFederationRequestBody and the caller MUST use service-to-service authentication with Source/Destination service DID and trust-domain headers.",
+        "notes": "Federation peer event push. Body is EventsSubmitFederationRequestBody and the caller MUST use service-to-service authentication with Source/Destination service DID and trust-domain headers. Federated ck.invite.claim events are still decided by the destination Realm reducer, which MUST enforce token_commitment, current allowlist re-check, claim_nonce replay rejection, membership proposal conversion, and expiry cleanup; peer ingress prechecks are not state authority.",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome"
