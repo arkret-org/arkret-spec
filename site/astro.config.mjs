@@ -138,6 +138,31 @@ export default defineConfig({
       disable404Route: true,
       head: [
         {
+          tag: "link",
+          attrs: { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+        },
+        {
+          tag: "link",
+          attrs: {
+            rel: "icon",
+            href: "/favicon-32x32.png",
+            sizes: "32x32",
+            type: "image/png",
+          },
+        },
+        {
+          tag: "link",
+          attrs: {
+            rel: "apple-touch-icon",
+            href: "/apple-touch-icon.png",
+            sizes: "180x180",
+          },
+        },
+        {
+          tag: "link",
+          attrs: { rel: "manifest", href: "/site.webmanifest" },
+        },
+        {
           tag: "script",
           attrs: { type: "module" },
           content: `

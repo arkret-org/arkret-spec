@@ -13,34 +13,33 @@
   --ck-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, "Helvetica Neue",
     Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
   --ck-max: 1400px;
+  --ck-nav-height: var(--sl-nav-height, 4rem);
 }
 
 :root[data-theme="dark"],
 :root:not([data-theme]) {
   color-scheme: dark;
-  /* Deeper, slightly cooler page background — the elevated tiers carry a
-   * faint indigo cast so card surfaces lift off the page instead of
-   * blending into a single flat slab. */
-  --ck-bg: #08090f;
-  --ck-bg-elevated: #11141e;
-  --ck-bg-elevated-strong: #161a26;
+  /* Neutral near-black surfaces, with warmth carried by red/gold accents. */
+  --ck-bg: #090807;
+  --ck-bg-elevated: #14110f;
+  --ck-bg-elevated-strong: #1c1712;
   --ck-bg-overlay: rgba(255, 255, 255, 0.035);
-  --ck-bg-overlay-strong: rgba(255, 255, 255, 0.06);
-  --ck-bg-nav: rgba(10, 11, 17, 0.72);
-  --ck-border: rgba(255, 255, 255, 0.07);
-  --ck-border-strong: rgba(255, 255, 255, 0.16);
-  --ck-fg: #ecedf2;
-  --ck-fg-muted: #8d93a3;
-  --ck-fg-subtle: #6b7180;
-  --ck-accent: #a78bfa;
-  --ck-accent-strong: #c4b5fd;
-  --ck-accent-2: #60a5fa;
-  --ck-accent-soft: rgba(167, 139, 250, 0.14);
+  --ck-bg-overlay-strong: rgba(255, 239, 211, 0.07);
+  --ck-bg-nav: rgba(13, 10, 8, 0.78);
+  --ck-border: rgba(255, 218, 148, 0.1);
+  --ck-border-strong: rgba(255, 210, 128, 0.2);
+  --ck-fg: #f7efe5;
+  --ck-fg-muted: #b8aa98;
+  --ck-fg-subtle: #8d7b68;
+  --ck-accent: #e13a2c;
+  --ck-accent-strong: #ff6a42;
+  --ck-accent-2: #f0b44d;
+  --ck-accent-soft: rgba(225, 58, 44, 0.16);
   --ck-success: #4ade80;
-  --ck-warn: #f59e0b;
-  --ck-hero-glow: rgba(167, 139, 250, 0.22);
-  --ck-hero-glow-2: rgba(96, 165, 250, 0.16);
-  --ck-on-accent: #0a0b11;
+  --ck-warn: #d7952b;
+  --ck-hero-glow: rgba(225, 58, 44, 0.22);
+  --ck-hero-glow-2: rgba(240, 180, 77, 0.16);
+  --ck-on-accent: #1f0b05;
   /* Layered shadow tokens — soft halo + grounded edge instead of one stamp. */
   --ck-shadow-card:
     0 0 0 1px rgba(255, 255, 255, 0.02),
@@ -54,28 +53,27 @@
 
 :root[data-theme="light"] {
   color-scheme: light;
-  /* Slightly off-white page with a hint of warm grey, so accents and
-   * elevated surfaces feel layered rather than glaring. */
-  --ck-bg: #fbfbfd;
+  /* Keep the page neutral; let the logo palette drive accents and halos. */
+  --ck-bg: #fffefd;
   --ck-bg-elevated: #ffffff;
-  --ck-bg-elevated-strong: #f4f5f9;
-  --ck-bg-overlay: rgba(15, 23, 42, 0.03);
-  --ck-bg-overlay-strong: rgba(15, 23, 42, 0.05);
-  --ck-bg-nav: rgba(252, 252, 254, 0.85);
-  --ck-border: rgba(15, 23, 42, 0.08);
-  --ck-border-strong: rgba(15, 23, 42, 0.18);
-  --ck-fg: #0e1322;
-  --ck-fg-muted: #555c6c;
-  --ck-fg-subtle: #7a8190;
-  --ck-accent: #6d28d9;
-  --ck-accent-strong: #5b21b6;
-  --ck-accent-2: #2563eb;
-  --ck-accent-soft: rgba(109, 40, 217, 0.08);
+  --ck-bg-elevated-strong: #f8f1e8;
+  --ck-bg-overlay: rgba(80, 42, 20, 0.028);
+  --ck-bg-overlay-strong: rgba(80, 42, 20, 0.052);
+  --ck-bg-nav: rgba(255, 255, 253, 0.9);
+  --ck-border: rgba(92, 48, 17, 0.12);
+  --ck-border-strong: rgba(92, 48, 17, 0.24);
+  --ck-fg: #18100c;
+  --ck-fg-muted: #62564a;
+  --ck-fg-subtle: #867568;
+  --ck-accent: #b91f14;
+  --ck-accent-strong: #85150e;
+  --ck-accent-2: #d6942f;
+  --ck-accent-soft: rgba(185, 31, 20, 0.09);
   --ck-success: #16a34a;
-  --ck-warn: #d97706;
-  --ck-hero-glow: rgba(109, 40, 217, 0.14);
-  --ck-hero-glow-2: rgba(37, 99, 235, 0.1);
-  --ck-on-accent: #ffffff;
+  --ck-warn: #b86f11;
+  --ck-hero-glow: rgba(185, 31, 20, 0.095);
+  --ck-hero-glow-2: rgba(214, 148, 47, 0.105);
+  --ck-on-accent: #fffaf2;
   --ck-shadow-card:
     0 1px 0 rgba(15, 23, 42, 0.02),
     0 8px 24px -16px rgba(15, 23, 42, 0.15);
@@ -187,6 +185,9 @@ body.ck-marketing .ck-mono {
 
 .ck-nav {
   z-index: 50;
+  box-sizing: border-box;
+  height: var(--ck-nav-height);
+  line-height: 1;
   backdrop-filter: blur(12px);
   background: var(--ck-bg-nav);
   border-bottom: 1px solid var(--ck-border);
@@ -204,43 +205,42 @@ body.ck-marketing .ck-mono {
   background: transparent;
   backdrop-filter: none;
   border-bottom: none;
+  height: 100%;
 }
 
 .ck-nav-row {
   display: flex;
   align-items: center;
   gap: 2rem;
-  height: 60px;
+  height: calc(var(--ck-nav-height) - 1px);
 }
 
-.ck-brand {
+.ck-nav--docs .ck-nav-row {
+  height: 100%;
+}
+
+.ck-nav .ck-brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.65rem;
   font-weight: 600;
   font-size: 1.05rem;
   color: var(--ck-fg);
   letter-spacing: 0.01em;
 }
-.ck-brand:hover {
+.ck-nav .ck-brand:hover {
   color: var(--ck-fg);
 }
 
 .ck-brand-mark {
-  width: 24px;
-  height: 24px;
-  border-radius: 7px;
-  background:
-    radial-gradient(
-      circle at 30% 25%,
-      rgba(255, 255, 255, 0.45),
-      transparent 55%
-    ),
-    linear-gradient(135deg, var(--ck-accent) 0%, var(--ck-accent-2) 100%);
-  display: inline-block;
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
-    0 6px 18px -8px color-mix(in srgb, var(--ck-accent) 55%, transparent);
+  width: 32px;
+  height: 32px;
+  display: block;
+  flex: 0 0 auto;
+  object-fit: contain;
+  filter: drop-shadow(
+    0 5px 12px color-mix(in srgb, #000 32%, transparent)
+  );
 }
 
 .ck-nav-links {
@@ -251,19 +251,22 @@ body.ck-marketing .ck-mono {
   margin: 0;
   padding: 0;
   font-size: 0.95rem;
+  font-weight: 600;
 }
 
 .ck-nav a,
 .ck-nav a:hover {
   text-decoration: none;
 }
-.ck-nav-links a,
-.ck-nav-links span {
+.ck-nav .ck-nav-links a,
+.ck-nav .ck-nav-links span,
+.ck-nav .ck-nav-tools a {
   color: var(--ck-fg-muted);
-  transition: color 0.15s ease;
+  line-height: 1.5;
 }
-.ck-nav-links a:hover,
-.ck-nav-links a[aria-current="page"] {
+.ck-nav .ck-nav-links a:hover,
+.ck-nav .ck-nav-links a[aria-current="page"],
+.ck-nav .ck-nav-tools a:hover {
   color: var(--ck-fg);
 }
 .ck-nav-links span[aria-disabled="true"] {
@@ -278,6 +281,7 @@ body.ck-marketing .ck-mono {
   align-items: center;
   gap: 0.6rem;
   font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .ck-soon {
@@ -397,6 +401,16 @@ body.ck-marketing .ck-mono {
   padding: 1rem 0;
   display: flex;
   flex-direction: column;
+}
+
+.ck-hero-brand {
+  width: clamp(108px, 11vw, 148px);
+  height: auto;
+  margin: 0 0 1.35rem;
+  object-fit: contain;
+  filter: drop-shadow(
+    0 18px 34px color-mix(in srgb, #000 36%, transparent)
+  );
 }
 
 .ck-kicker {

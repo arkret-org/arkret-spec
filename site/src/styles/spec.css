@@ -38,6 +38,21 @@
   --sl-text-2xl: 1rem;
 }
 
+:root[data-theme="dark"],
+:root:not([data-theme]) {
+  --sl-color-accent-low: #3a120d;
+  --sl-color-accent: #e13a2c;
+  --sl-color-accent-high: #ffd18a;
+  --sl-color-text-accent: #f0b44d;
+}
+
+:root[data-theme="light"] {
+  --sl-color-accent-low: #f9e6d5;
+  --sl-color-accent: #b91f14;
+  --sl-color-accent-high: #58140d;
+  --sl-color-text-accent: #9d1b12;
+}
+
 /* Pagination link title — pin weight to semibold so the page name
  * still stands out from the "上一页/下一页" eyebrow now that the size
  * is matched to body copy. */

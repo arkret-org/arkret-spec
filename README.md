@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./site/public/brand/cokret-logo.svg" alt="Cokret logo" width="160" />
+</p>
+
 # Cokret Spec
 
 Cokret v1 去中心化协作协议规范。仓库同时承载 **规范本体** 和 **协议站源码**。
