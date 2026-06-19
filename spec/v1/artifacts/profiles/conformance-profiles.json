@@ -325,6 +325,7 @@
     "consent_isolation",
     "e2ee_franking_report",
     "proxy_download_policy",
+    "mls_governance_binding_floor",
     "unsupported_draft_fail_closed"
   ],
   "hardening_profiles": [
@@ -847,6 +848,12 @@
         ],
         "unsupported_optional": "Servers that do not advertise ck.feature.e2ee_relaxed.v1 MUST reject Realm create / ck.realm.policy_components writes that set mls_send_pause=\"advisory\" (reason: profile_unsupported / mls_send_pause_advisory_requires_e2ee_relaxed_profile). They MUST NOT silently accept the advisory string without honoring the relaxed semantics."
       },
+      "downgrade_declaration_obligation": {
+        "policy_declaration_required": "Realm create or ck.realm.policy_components MUST explicitly declare ck.profile.e2ee_relaxed.v1 before mls_send_pause=\"advisory\" is accepted. Out-of-band deployment config, UI-only labels, or a missing governance_binding GroupContext extension MUST NOT be treated as a valid downgrade declaration.",
+        "service_describe_required": "The serving implementation MUST advertise ck.feature.e2ee_relaxed.v1 and the claimed profile in ServiceDescribe before accepting advisory writes or projecting the Realm as relaxed to a peer/facade.",
+        "binding_profile_required": "Every MLS governance_binding emitted for a relaxed Realm MUST carry binding_profile=\"ck.profile.e2ee_relaxed.v1\" and the negotiated reducer_profile. Missing binding_profile, binding_profile=\"ck.profile.mls_governance_binding.full.v1\", or an unsupported profile id is a fail-closed mismatch.",
+        "export_marker_required": "Sync metadata, snapshots, backups, exports, and interop mapping receipts that summarize the Realm MUST preserve e2ee_relaxed=true and relaxed_window_max_ms. Consumers that observe advisory semantics without this marker MUST assume the downgrade is undeclared and reject new old-epoch decrypt admission."
+      },
       "reducer_reject_reasons": [
         "mls_send_pause_advisory_requires_e2ee_relaxed_profile",
         "conflicting_e2ee_profiles"
@@ -873,10 +880,19 @@
         "restricted_requires": [
           "relaxed_fanout_deadline_ms <= relaxed_window_max_ms",
           "max_federation_delivery_delay_ms <= relaxed_window_max_ms",
-          "each federation peer describes a fanout SLA not exceeding the relaxed window"
+          "each federation peer describes a fanout SLA not exceeding the relaxed window",
+          "each federation peer explicitly advertises ck.feature.e2ee_relaxed.v1 when it is expected to accept relaxed old-epoch decrypt admission"
         ],
+        "interop_floor": "Full MLS governance binding (ck.profile.mls_governance_binding.full.v1) remains the federation E2EE interoperability floor. The relaxed profile (ck.profile.e2ee_relaxed.v1) is a declared downgrade below that floor and is accepted across federation only for restricted/closed deployments that satisfy the bounded-SLA requirements above.",
         "reducer_reject_reason": "e2ee_relaxed_federation_policy_unsupported"
       },
+      "fail_closed_conditions": [
+        "mls_send_pause=\"advisory\" without ck.profile.e2ee_relaxed.v1 declaration",
+        "combination of ck.profile.e2ee_relaxed.v1 with ck.profile.mls_governance_binding.full.v1, compliance-tier E2EE, active Audit Applet Binding, federation_policy=open, or federation_policy=quarantine",
+        "restricted federation without peer fanout SLA bounds within relaxed_window_max_ms",
+        "governance_binding.binding_profile missing, unsupported, or inconsistent with the Realm downgrade declaration",
+        "receiver old-epoch decrypt gap exceeds relaxed_window_max_ms or the absolute hard ceiling of 300000 ms"
+      ],
       "compliance_unfit": "Compliance / regulatory contexts that require 'kick-out is immediately effective' MUST NOT use this profile. Use non-E2EE Realm (encryption_profile=\"none\") + enclave channels instead. Spec deliberately does not allow further relaxation than this profile; deployments needing more leniency are out of v1 E2EE scope."
     },
     "ck.profile.enterprise_client.v1": {
@@ -1153,6 +1169,19 @@
           "supported_profiles"
         ],
         "unsupported_optional": "reject unsupported profile before accepting events"
+      },
+      "e2ee_mls_interop_floor": {
+        "minimum_profile": "ck.profile.mls_governance_binding.full.v1",
+        "applies_when": "Any federation transaction carries or depends on encryption_profile=\"mls_rfc9420\", ck.mls.genesis, ck.mls.commit, ck.mls.welcome, MLS-backed E2EE DataEvents, or covered_seals_cell state.",
+        "required_artifacts": [
+          "governance_binding.binding_profile",
+          "governance_binding.reducer_profile",
+          "mls_governance_binding GroupContext extension 0xF1C0",
+          "ck.component.covered_seals.v1"
+        ],
+        "downgrade_profile": "ck.profile.e2ee_relaxed.v1",
+        "downgrade_admission": "Only closed or restricted federation may accept ck.profile.e2ee_relaxed.v1, and restricted federation MUST satisfy the bounded-SLA federation_guard in that profile. Open and quarantine federation MUST reject the relaxed downgrade.",
+        "fail_closed_behavior": "A receiver that cannot verify the minimum profile, sees a missing/inconsistent binding_profile or reducer_profile, or cannot prove the relaxed federation guard MUST reject or quarantine the affected MLS artifact/DataEvent before advancing Realm frontier."
       }
     },
     "ck.profile.federation.high_assurance.v1": {
@@ -1913,9 +1942,27 @@
         "required": [
           "mimi_draft_versions",
           "provider_directory",
-          "consent_model"
+          "consent_model",
+          "mls_governance_binding_floor"
         ],
         "unsupported_optional": "fail closed on unsupported draft"
+      },
+      "e2ee_mls_interop_floor": {
+        "minimum_profile": "ck.profile.mls_governance_binding.full.v1",
+        "applies_when": "A MIMI room binding is E2EE or carries mls_group_id, groupInfo, key material, or encrypted application messages that will be projected into a Cokret Realm/Strand.",
+        "required_checks": [
+          "ck.mimi.room_binding.mls_group_id matches the MLS governance_binding mls_group_id",
+          "governance_binding.binding_profile and reducer_profile are present and supported",
+          "covered_seals_cell covers the governance frontier needed by the projected message",
+          "MIMI draft/profile fields are ignored for security decisions unless mapped to registered Cokret policy/capability state"
+        ],
+        "downgrade_handling": "The ck.profile.e2ee_relaxed.v1 downgrade MUST NOT be represented to MIMI peers as equivalent to full MLS governance binding. If both sides explicitly support relaxed Cokret semantics, the relaxed federation guard still applies; otherwise the facade MUST reject or quarantine with mimi_room_state_incompatible or a governance binding reason.",
+        "fail_closed_reason_family": [
+          "mimi_governance_binding_missing",
+          "mimi_governance_binding_mismatch",
+          "mimi_policy_root_mismatch",
+          "mimi_room_state_incompatible"
+        ]
       }
     },
     "ck.profile.sovereign_deployment.v1": {
@@ -2495,9 +2542,11 @@
       ],
       "feature_discovery": {
         "required": [
+          "mls_governance_binding_extension",
           "move_based_mls_commit",
           "covered_seals_cell",
-          "mls_epoch_cell"
+          "mls_epoch_cell",
+          "governance_binding_profile_required"
         ],
         "unsupported_optional": "fail closed on root mismatch"
       },
@@ -2505,6 +2554,25 @@
         "ck:cell:ck.component.covered_seals.v1:<realm_id>",
         "ck:cell:ck.component.mls_epoch.v1:<mls_group_id>",
         "ck:cell:ck.component.key_schedule.v1:<mls_group_id>"
+      ],
+      "federation_interop_floor": {
+        "is_minimum_for_mls_backed_federation": true,
+        "requires_exact_extension_codepoint": "0xF1C0",
+        "requires_binding_profile": "ck.profile.mls_governance_binding.full.v1",
+        "requires_reducer_profile": true,
+        "forbids_silent_downgrade": [
+          "omitting the GroupContext extension",
+          "using a deployment-private alternate extension codepoint",
+          "accepting an MLS commit without covered_seals_cell effects",
+          "treating ck.profile.e2ee_relaxed.v1 as full binding"
+        ]
+      },
+      "fail_closed_conditions": [
+        "governance_binding GroupContext extension missing from ck.mls.commit",
+        "governance_binding.binding_profile missing or not ck.profile.mls_governance_binding.full.v1 for a full-profile Realm",
+        "governance_binding.reducer_profile missing or mismatched with the negotiated Realm reducer profile",
+        "binding_version, encoding_profile, effective_scope, mls_group_id, previous_epoch, next_epoch, membership_frontier, policy_root, or covered_seals_cell verification mismatch",
+        "DataEvent seal_ref not covered by covered_seals_cell for the message governance frontier"
       ]
     },
     "ck.profile.mls.minimal_metadata_realm.v1": {

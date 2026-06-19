@@ -5966,7 +5966,9 @@
         "previous_epoch",
         "next_epoch",
         "membership_frontier",
-        "policy_root"
+        "policy_root",
+        "binding_profile",
+        "reducer_profile"
       ],
       "properties": {
         "binding_version": {
@@ -6017,11 +6019,13 @@
         },
         "binding_profile": {
           "type": "string",
-          "pattern": "^ck\\.profile\\.[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$"
+          "pattern": "^ck\\.profile\\.[a-z0-9][a-z0-9_.-]*\\.v[0-9]+$",
+          "description": "Explicit profile that defines how this governance binding is interpreted. Full E2EE uses ck.profile.mls_governance_binding.full.v1; the only v1 downgrade profile is ck.profile.e2ee_relaxed.v1. Receivers MUST fail closed when this field is missing, unsupported, inconsistent with the Realm profile declaration, or used to imply a downgrade without the matching policy/profile declaration."
         },
         "reducer_profile": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "description": "Reducer profile identifier used to interpret membership_frontier, policy_root, capability_root, and covered_seals_cell semantics. Receivers MUST fail closed when this field is missing or does not match the reducer profile negotiated for the Realm/federation peer."
         }
       },
       "allOf": [

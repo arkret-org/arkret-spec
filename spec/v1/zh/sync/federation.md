@@ -154,6 +154,28 @@ Realm 级 server ACL 的权威表达是 `ck.realm.moderation_policy` 中的 serv
 
 > 单轨收敛同时消除了双轨各自演化、验签 / policy 闸门姿态倒挂的风险：唯一受 conformance gate 的联邦接收轨是 `/_cokret/peer/events`，其 9421 验签、trust-domain、destination binding、reducer-profile digest 与最小披露失败语义均由 §3 / §4.1 强制。
 
+### 4.0.1 MLS-backed Realm 联邦互操作下界（normative）
+
+任一 federation transaction 携带或依赖 `encryption_profile="mls_rfc9420"` 的 Realm 状态、`ck.mls.genesis`、`ck.mls.commit`、`ck.mls.welcome`、MLS-backed E2EE DataEvent 或 `covered_seals_cell` projection 时，接收方 MUST 把 [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.5 的 `ck.profile.mls_governance_binding.full.v1` 视为 MLS 联邦互操作下界。该下界至少包含：
+
+- `governance_binding.binding_profile` 与 `governance_binding.reducer_profile` 均存在，且与 Realm policy、ServiceDescribe / peer profile 声明和当前 reducer profile digest 一致；
+- `ck.mls.commit` 的 MLS GroupContext extensions 中存在固定 codepoint `mls_governance_binding` (`0xF1C0`)，并且 extension bytes、Event payload 与 `covered_seals_cell` effect 相互匹配；
+- `covered_seals_cell` 对 E2EE DataEvent 的 `seal_ref` 做全称 coverage gate；缺 coverage 时消息不得进入 verified timeline；
+- peer 的 `ServiceDescribe.supported_profiles` / `supported_features` 声明足以支持该下界；仅支持 payload fallback、替换私用 codepoint 或省略 GroupContext extension 的 peer 不满足下界。
+
+`ck.profile.e2ee_relaxed.v1` 是低于上述下界的显式降级声明，而不是另一个 full binding 等价形态。它只允许在 `federation_policy="closed"` 或满足 `encryption-and-audit.md` §2.4.1 federation guard 的 `restricted` Realm 中跨 peer 传播；`open` / `quarantine` federation MUST reject。restricted federation 中，所有参与 peer 还必须在 describe 中声明 `ck.feature.e2ee_relaxed.v1`，并公开不超过 `relaxed_window_max_ms` 的 fanout SLA；无法证明时接收方 MUST fail closed。
+
+Fail-closed 条件：
+
+- peer 不声明或不支持所需 full / relaxed profile；
+- `binding_profile` 缺失、未知、与 Realm policy 不一致，或 full Realm 上出现 relaxed binding；
+- `reducer_profile` 缺失或与本批次签名 transcript / service binding 中的 reducer profile digest 不一致；
+- `0xF1C0` extension 缺失、被其它私用 codepoint 替代、或 extension canonical bytes 与 Event payload 不一致；
+- `covered_seals_cell` 未覆盖消息依赖的 governance frontier；
+- relaxed federation guard 中任一 SLA、窗口或 federation_policy 条件无法证明。
+
+上述失败 MUST 在接收方推进本地 Realm frontier 前处理：写入型 push 返回 reject/quarantine 或 `temporarily_unavailable`，pull/backfill 结果保持未验证，不得清除 `state_mismatch`，snapshot/frontier witness 也不得把该 MLS epoch 标为可用。错误对外仍遵守 §3.2 / §8.3 的最小披露原则；内部 audit reason 可以记录为 `profile_unsupported`、`mls_send_pause_advisory_requires_e2ee_relaxed_profile`、`conflicting_e2ee_profiles`、`e2ee_relaxed_federation_policy_unsupported`、`mls_governance_binding_stale` 或对应 binding mismatch 族。
+
 ### 4.1 推送模式 (Push)
 
 > **v1 联邦使用专用 peer HTTP API surface**。跨域 Event 推送、拉取、补洞、frontier probe 与 snapshot bootstrap 必须使用 `/_cokret/peer/*` 路径和 `ck.peer.*` operation_id。`/_cokret/self/*` 是当前 principal / 自服务会话攻击面，不承接 federation server-to-server wire。本节描述的所有规则适用于 `ck.peer.events.*` / `ck.peer.snapshot.query.manifest_head` 调用。

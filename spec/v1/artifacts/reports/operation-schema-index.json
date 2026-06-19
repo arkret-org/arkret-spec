@@ -3795,6 +3795,8 @@
         ],
         "properties": [
           "strand_id",
+          "mimi_room_uri",
+          "realm_id",
           "target_ref",
           "reporter",
           "abuse_reason_code",

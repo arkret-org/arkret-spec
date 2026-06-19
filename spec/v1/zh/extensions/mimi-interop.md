@@ -122,6 +122,15 @@ GET /_cokret/open/mimi/provider-directory
 - MIMI facade 在无法解析或验证 Cokret MLS Governance Binding 时 MUST fail closed：入站 MIMI room state、groupInfo、key material 或 message 不得直接投影到 Cokret Realm，而是进入 quarantine，reason=`mimi_governance_binding_missing` 或更具体的 binding mismatch 错误。
 - 撤销 binding 后，facade MUST 停止接受新的 MIMI writes，只允许 backfill、tombstone、report、legal hold 或 migration proof 等维护操作。`status` 的完整生命周期状态机（初始状态、合法迁移、终态、非法迁移拒绝、`migrating` 窗口与并发收敛）见 §4.2。
 
+**E2EE MIMI 互操作下界（normative）**：凡 MIMI room binding 携带 `mls_group_id`、groupInfo、key material 或加密 application message，并要投影到 Cokret Realm / Strand，facade MUST 把 Cokret `ck.profile.mls_governance_binding.full.v1` 当作最低 E2EE 互操作能力，而不是把 MIMI provider 的 room state 当成等价治理真相。具体要求：
+
+- `ck.mimi.room_binding.mls_group_id`、MIMI groupInfo 中的 group id、Cokret `governance_binding.mls_group_id` 必须一致；
+- `governance_binding.binding_profile` 与 `governance_binding.reducer_profile` 必须存在且被本 facade 支持；未知或缺失时不得用 MIMI draft 字段、provider 目录或本地配置补齐；
+- `covered_seals_cell` 必须覆盖要投影消息依赖的 Cokret governance frontier；
+- MIMI 未知字段仍按 §9.2 安全惰性处理，不得提升 provider role、放宽 `policy_root` 或改变 MLS epoch / group state 判定。
+
+`ck.profile.e2ee_relaxed.v1` 不得被 facade 对外表述为等价 full MLS Governance Binding。若本地 Realm 是 relaxed 降级，facade 只有在双方都显式声明 Cokret relaxed 语义、且满足 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.4.1 的 federation guard 时，才可投影 relaxed 窗口内的消息；否则 MUST reject / quarantine，reason 使用 `mimi_room_state_incompatible`、`mimi_governance_binding_missing` 或 `mimi_governance_binding_mismatch`。
+
 ### 4.1 Fail-Closed Reason Taxonomy
 
 MIMI facade 对 Cokret Realm 的入站投影失败时，MUST 使用稳定 reason code，避免不同 provider 把 fail-closed 结果折叠成不可测试的通用错误：
@@ -131,7 +140,7 @@ MIMI facade 对 Cokret Realm 的入站投影失败时，MUST 使用稳定 reason
 | `mimi_governance_binding_missing` | 找不到可验证的 Cokret MLS Governance Binding。 | quarantine 或 reject，不投影到 Realm。 |
 | `mimi_governance_binding_mismatch` | binding 存在但 `realm_id` / `strand_id` / `mls_group_id` / provider DID 与当前 MIMI room state 不一致。 | quarantine；需要人工或 backfill 复核。 |
 | `mimi_policy_root_mismatch` | MIMI policy component 与 Cokret `policy_root` / `ck.realm.policy_components` 不一致。 | reject 当前 update，等待 fresh policy projection。 |
-| `mimi_room_state_incompatible` | MIMI room state 使用当前 profile 不支持的 lifecycle、membership 或 policy 形态。 | reject 或要求使用新 interop profile。 |
+| `mimi_room_state_incompatible` | MIMI room state 使用当前 profile 不支持的 lifecycle、membership、policy 形态，或试图把未被双方显式声明支持的 `ck.profile.e2ee_relaxed.v1` 降级当作 full MLS Governance Binding 投影。 | reject 或要求使用新 interop profile。 |
 | `mimi_provider_unreachable` | provider directory、key material 或 groupInfo 依赖暂时不可达。 | `temporarily_unavailable` + bounded retry；不得接受无 binding 的 fallback。 |
 | `mimi_draft_unsupported` | 对端声明的 MIMI draft version 不在本 profile 支持集合。 | reject；不得按相近草案猜测解析。 |
 
@@ -329,6 +338,7 @@ MIMI identifier MUST NOT 被直接作为 Cokret actor。映射规则：
 - Cokret message 到 MIMI content roundtrip。
 - MIMI text / markdown / reply / reaction / edit / delete / attachment 接收映射。
 - MIMI policy update 归约为 Cokret capability / policy state。
+- E2EE MIMI projection 必须满足 full MLS Governance Binding 下界；未声明 relaxed 降级不得按 full binding 接受。
 - identifier query 不泄露 raw connection identifier。
 - identifier query MUST NOT 返回任何形式的 "reachability proof"（§10 的强禁令负向可测项；facade MUST NOT 复活已被移除的 reachability proof 机制）。
 - consent 不自动授予 membership / write capability。
