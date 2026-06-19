@@ -1,0 +1,164 @@
+{
+  "profile": "ck.profile.auth_server.v1",
+  "version": "2026-06-19",
+  "suite": "auth_session_proof",
+  "runner": "cotest::conformance::auth_session_proof",
+  "covers_vectors": [
+    "ck.vector.auth.session_grant_audience_binding.v1",
+    "ck.vector.auth.soft_logout_did_proof.v1",
+    "ck.vector.identity.did_proof_replay_window.v1",
+    "ck.vector.session.pop_presentation.v1",
+    "ck.vector.session.bearer_replay_rejected_high_security.v1"
+  ],
+  "cases": [
+    {
+      "name": "session_grant_audience_binding",
+      "vector_id": "ck.vector.auth.session_grant_audience_binding.v1",
+      "kind": "session_grant_request_binding",
+      "principal_id": "did:web:alice.example",
+      "device_id": "ck:device:0196419b-0000-7000-8000-000000000001",
+      "target_audience": "did:web:soland.example",
+      "mismatched_audience": "did:web:other.example",
+      "requested_scope": [
+        "ck.self.events.write"
+      ],
+      "challenge": "session-grant-challenge-0001",
+      "server_max_ttl_seconds": 900,
+      "requested_ttl_seconds": 86400,
+      "attempted_verified_profiles": [
+        "ck.profile.auth_server.v1"
+      ],
+      "expected": {
+        "audience_mismatch_reason": "audience_mismatch",
+        "invalid_binding_reason": "proof_invalid",
+        "ttl_behavior": "clamp_to_server_max",
+        "development_verified_profiles": []
+      },
+      "assertions": [
+        "proof.audience must match the target resource service audience",
+        "request_canonical_digest must cover principal_id, device_id, requested_scope, and audience",
+        "requested session grant lifetime is clamped to the Auth Server hard maximum",
+        "development_mode=true must not advertise ck.profile.auth_server.v1 in verified_profiles"
+      ]
+    },
+    {
+      "name": "soft_logout_did_proof",
+      "vector_id": "ck.vector.auth.soft_logout_did_proof.v1",
+      "kind": "soft_logout_resume",
+      "principal_id": "did:web:alice.example",
+      "device_id": "ck:device:0196419b-0000-7000-8000-000000000001",
+      "audience": "did:web:auth.example",
+      "origin": "https://auth.example",
+      "challenge": "soft-logout-challenge-0001",
+      "request": {
+        "operation": "resume_soft_logged_out_session",
+        "refresh_token_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "proof_required_fields": [
+        "principal_id",
+        "device_id",
+        "audience",
+        "challenge",
+        "request_canonical_digest",
+        "issued_at",
+        "expires_at"
+      ],
+      "expected": {
+        "refresh_only_reason": "did_proof_required",
+        "proof_restores_state": "active",
+        "max_replay_window_seconds": 300
+      },
+      "assertions": [
+        "a valid refresh token alone cannot restore a soft_logged_out session",
+        "the DID proof transcript covers principal_id, device_id, audience, challenge, request digest, issued_at, and expires_at",
+        "verification burns the challenge and only then restores the session to active"
+      ]
+    },
+    {
+      "name": "did_proof_replay_window",
+      "vector_id": "ck.vector.identity.did_proof_replay_window.v1",
+      "kind": "did_proof_replay_window",
+      "principal_id": "did:web:alice.example",
+      "device_id": "ck:device:0196419b-0000-7000-8000-000000000001",
+      "purpose": "account_binding",
+      "audience": "did:web:auth.example",
+      "other_audience": "did:web:other-auth.example",
+      "origin": "https://auth.example",
+      "other_origin": "https://other-auth.example",
+      "challenge": "did-proof-challenge-0001",
+      "issued_at": "2026-06-19T00:00:00Z",
+      "expires_at": "2026-06-19T00:05:00Z",
+      "wide_expires_at": "2026-06-19T01:00:00Z",
+      "future_issued_at": "2026-06-19T00:10:01Z",
+      "max_replay_window_seconds": 300,
+      "skew_seconds": 300,
+      "expected": {
+        "first_use": "accepted",
+        "second_use_reason": "proof_invalid",
+        "audience_origin_reason": "audience_mismatch",
+        "window_reason": "did_proof_replay_window_exceeded",
+        "future_reason": "did_proof_replay_window_exceeded"
+      },
+      "assertions": [
+        "first valid proof burns the challenge",
+        "second use of the same challenge fails closed even with a valid signature",
+        "audience or origin mismatch fails closed",
+        "expires_at - issued_at greater than 300 seconds is rejected",
+        "issued_at outside receiver skew is rejected"
+      ]
+    },
+    {
+      "name": "pop_presentation",
+      "vector_id": "ck.vector.session.pop_presentation.v1",
+      "kind": "http_message_signature_pop",
+      "method": "POST",
+      "target_uri": "https://soland.example.com/_cokret/self/events",
+      "authority": "soland.example.com",
+      "path": "/_cokret/self/events",
+      "body": "{\"hello\":\"world\"}",
+      "idempotency_key": "idem-pop-0001",
+      "key_id": "did:web:alice.example#session-key-1",
+      "created": 1716000000,
+      "expires": 1716000120,
+      "max_window_seconds": 300,
+      "required_components": [
+        "@method",
+        "@target-uri",
+        "@authority",
+        "content-digest"
+      ],
+      "expected": {
+        "valid_write": "accepted",
+        "tampered_transcript_reason": "unauthenticated",
+        "tampered_digest_reason": "unauthenticated"
+      },
+      "assertions": [
+        "valid self write PoP covers method, target-uri, authority, and content-digest",
+        "Content-Digest is recomputed against the actual body before trusting the signature",
+        "method, path, or body transcript mismatch rejects the request"
+      ]
+    },
+    {
+      "name": "bearer_replay_rejected_high_security",
+      "vector_id": "ck.vector.session.bearer_replay_rejected_high_security.v1",
+      "kind": "profile_pop_requirement",
+      "high_security_profile": "ck.profile.high_security_organization.v1",
+      "default_profile": "ck.profile.minimal_client.v1",
+      "sensitive_action": "regular_write",
+      "compat_action": "low_sensitivity_compat_read",
+      "created": 1716000000,
+      "expires": 1716003600,
+      "max_window_seconds": 300,
+      "expected": {
+        "high_security_bearer_reason": "unauthenticated",
+        "default_bearer": "accepted",
+        "over_window_pop_reason": "unauthenticated"
+      },
+      "assertions": [
+        "high-security and sovereign deployments reject plain bearer for regular writes and sensitive reads",
+        "default profile may accept bearer on compatibility low-sensitivity paths",
+        "PoP created/expires outside the replay window is rejected even after replay-cache eviction"
+      ]
+    }
+  ]
+}

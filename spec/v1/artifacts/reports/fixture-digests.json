@@ -13,6 +13,10 @@
       "sha256": "6b82e901d11d231fd1120c0b45558cc8c4ea4fd1d9660927c49788ffdf3cf6ac"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json",
+      "sha256": "b3d28cd9c74a7c475d485e505cd7fee2b3429f8ea6579337a4e191e5bfbd1ca3"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/blob-stream-aead-fixture.json",
       "sha256": "b4af17b43e5120d56572415aa21e244fd8222ccaa6007e9ecb67aa22c0758329"
     },

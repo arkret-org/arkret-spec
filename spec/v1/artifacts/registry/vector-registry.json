@@ -116,7 +116,8 @@
       "status": "active",
       "domain": "auth",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json"
       ]
     },
     {
@@ -124,7 +125,8 @@
       "status": "active",
       "domain": "auth",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json"
       ]
     },
     {
@@ -876,7 +878,8 @@
       "domain": "identity",
       "source_refs": [
         "spec/v1/zh/identity/identity-did.md",
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json"
       ]
     },
     {
@@ -1566,7 +1569,8 @@
       "domain": "session",
       "description": "Sender-constrained session PoP: a write request with a valid RFC 9421 HTTP Message Signature (kid = current grant session_public_key, covering @method/@target-uri/@authority/content-digest) is accepted; a signature whose transcript mismatches the method/path/body digest fails verification and is rejected per api-conventions.md section 3.2 and service-http-binding.md section 2.5.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json"
       ]
     },
     {
@@ -1575,7 +1579,8 @@
       "domain": "session",
       "description": "Under ck.profile.high_security_organization.v1 / sovereign_deployment, plain Authorization: Bearer (no Signature) on regular writes / sensitive reads MUST be rejected with unauthenticated, while the default profile accepts it as a compatibility downgrade; a PoP signature whose created/expires falls outside the replay window MUST be rejected.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json"
       ]
     },
     {
