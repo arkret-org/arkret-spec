@@ -18,6 +18,7 @@
       "assertions": [
         "agent provision operation id remains ck.self.agent.command.provision",
         "agent provision capability action matches the operation id",
+        "agent grants marked effective_after_first_authorized_key remain inactive before key pairing",
         "missing accountability grants fail with accountability_grant_missing"
       ]
     },
@@ -49,6 +50,7 @@
       "assertions": [
         "controller approvals are single-use",
         "approval replay fails with approval_already_consumed",
+        "act-on-behalf without authorization_ref, participation, matching grant scope, or fresh approval fails closed",
         "unauthorised sidecar creation fails with sidecar_create_denied"
       ]
     },
@@ -58,6 +60,7 @@
       "runner": "cotest::conformance::agent_vectors::run_agent_session_grant_replay_vector",
       "assertions": [
         "session grant issue operation id remains ck.gate.account.command.issue_session_grant",
+        "agent_key_proof challenge replay, audience mismatch, and bad signature fail closed",
         "agent session branch rejects invalid proofs, DID mismatch, paused agents, and deactivated agents",
         "accountability grant absence is pinned as accountability_grant_missing"
       ]
