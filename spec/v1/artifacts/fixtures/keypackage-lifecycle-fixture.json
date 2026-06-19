@@ -1,0 +1,151 @@
+{
+  "profile": "ck.profile.mls_governance_binding.full.v1",
+  "version": "2026-06-19",
+  "suite": "keypackage_lifecycle",
+  "runner": "cotest::conformance::keypackage_lifecycle",
+  "covers_vectors": [
+    "ck.vector.keypackage.exhaustion_claim_limits.v1",
+    "ck.vector.keypackage.last_resort_claim_and_reuse.v1",
+    "ck.vector.keypackage.last_resort_forced_rotation.v1",
+    "ck.vector.keypackage.last_resort_affinity_and_optionality.v1",
+    "ck.vector.mls.welcome_keypackage_hash.v1"
+  ],
+  "cases": [
+    {
+      "name": "exhaustion_claim_limits",
+      "vector_id": "ck.vector.keypackage.exhaustion_claim_limits.v1",
+      "kind": "claim_pool_limits",
+      "target_principal_id": "did:web:alice.example",
+      "requester_service_did": "did:web:ps.example",
+      "device_id": "ck:device:0196419b-0000-7000-8000-000000000001",
+      "intended_realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+      "keypackage_min_available": 2,
+      "available_count": 1,
+      "claim_rate_limit": {
+        "window_seconds": 60,
+        "max_claims": 5,
+        "attempt": 6
+      },
+      "expired_claim": {
+        "claim_id": "mls-keypackage-claim-expired",
+        "keypackage_ref": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "expires_at": "2026-06-19T00:00:00Z",
+        "consume_at": "2026-06-19T00:01:00Z"
+      },
+      "expected": {
+        "available_count_visible": true,
+        "client_action": "maintenance_upload",
+        "rate_limit_external_failure": "anti_enumeration",
+        "rate_limit_audit_reason": "keypackage_claim_rate_limited",
+        "expired_consume_outcome": "rejected",
+        "expired_status": "revoked",
+        "expired_external_reason": "keypackage_unknown"
+      },
+      "assertions": [
+        "visible responses expose available_count when the pool is below keypackage_min_available",
+        "claim attempts above 5 per requester/target tuple in 60 seconds fail without target enumeration",
+        "the audit reason for rate limiting is keypackage_claim_rate_limited",
+        "expired claimed KeyPackages become revoked or unusable and late consume is rejected"
+      ]
+    },
+    {
+      "name": "last_resort_claim_and_reuse",
+      "vector_id": "ck.vector.keypackage.last_resort_claim_and_reuse.v1",
+      "kind": "last_resort_claim_reuse",
+      "feature": "ck.feature.mls_last_resort_keypackage.v1",
+      "target_principal_id": "did:web:alice.example",
+      "device_id": "ck:device:0196419b-0000-7000-8000-000000000001",
+      "intended_realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+      "normal_keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "last_resort_keypackage_ref": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "last_resort_claim_ids": [
+        "mls-keypackage-claim-lr-1",
+        "mls-keypackage-claim-lr-2"
+      ],
+      "expected": {
+        "normal_preferred_when_available": true,
+        "last_resort_claim_record_last_resort": true,
+        "last_resort_consume_idempotent": true,
+        "state_after_consume": "published",
+        "forbidden_reason": "keypackage_already_consumed",
+        "audit_records": 2
+      },
+      "assertions": [
+        "single-use KeyPackages are preferred while available",
+        "last-resort KeyPackages are returned only after the single-use pool is empty",
+        "last-resort claim records carry last_resort=true",
+        "last-resort consume is idempotent and does not transition the package to consumed",
+        "each consume emits an independent append-only audit record"
+      ]
+    },
+    {
+      "name": "last_resort_forced_rotation",
+      "vector_id": "ck.vector.keypackage.last_resort_forced_rotation.v1",
+      "kind": "last_resort_rotation",
+      "feature": "ck.feature.mls_last_resort_keypackage.v1",
+      "device_id": "ck:device:0196419b-0000-7000-8000-000000000001",
+      "old_last_resort_keypackage_ref": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "new_last_resort_keypackage_ref": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+      "joined_groups": [
+        "mls-group-a",
+        "mls-group-b"
+      ],
+      "expected": {
+        "old_state": "rotated",
+        "old_not_distributed_after_rotation": true,
+        "new_state": "published",
+        "self_update_commits": 2,
+        "rotation_reason": "last_resort_rotation_required"
+      },
+      "assertions": [
+        "when the holder comes online, the old last-resort package is rotated out",
+        "new claims receive the replacement last-resort KeyPackage",
+        "every group joined through the old last-resort package gets an MLS self-update Commit",
+        "the forward-secrecy weakening window is closed by the rotation and update sequence"
+      ]
+    },
+    {
+      "name": "last_resort_affinity_and_optionality",
+      "vector_id": "ck.vector.keypackage.last_resort_affinity_and_optionality.v1",
+      "kind": "last_resort_affinity_optionality",
+      "feature": "ck.feature.mls_last_resort_keypackage.v1",
+      "realm_r1": "ck:realm:0196419b-0000-7000-8000-000000000000",
+      "realm_r2": "ck:realm:0196419b-0000-7000-8000-000000000002",
+      "last_resort_keypackage_ref": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "expected": {
+        "cross_realm_reason": "last_resort_realm_affinity_violation",
+        "unsupported_reason": "last_resort_not_supported",
+        "no_cross_realm_fallback_reason": "keypackage_unknown",
+        "claim_realm_matches_intended_realm": true
+      },
+      "assertions": [
+        "last-resort KeyPackages are reusable only inside their intended_realm_id",
+        "cross-Realm reuse fails with last_resort_realm_affinity_violation",
+        "servers that do not advertise the feature must not return last_resort=true packages",
+        "a missing Realm-local last-resort entry fails closed instead of reusing another Realm's package"
+      ]
+    },
+    {
+      "name": "welcome_keypackage_hash",
+      "vector_id": "ck.vector.mls.welcome_keypackage_hash.v1",
+      "kind": "welcome_keypackage_digest_binding",
+      "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "keypackage_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "mismatched_keypackage_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "capabilities_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "claim_id": "mls-keypackage-claim-normal-1",
+      "ssk_generation": 7,
+      "expected": {
+        "reject_before_decrypt": true,
+        "reason": "keypackage_welcome_envelope_mismatch",
+        "all_digest_fields_equal": true
+      },
+      "assertions": [
+        "Welcome keypackage_digest must match the claim record digest",
+        "Welcome claim_ref.keypackage_digest must match the same claim record digest",
+        "published ck.mls.keypackage payload digest participates in the same equality check",
+        "a mismatch is rejected before decrypting or accepting the Welcome"
+      ]
+    }
+  ]
+}

@@ -958,7 +958,8 @@
       "status": "active",
       "domain": "keypackage",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
       ]
     },
     {
@@ -967,7 +968,8 @@
       "domain": "keypackage",
       "description": "Last-resort KeyPackage (ck.feature.mls_last_resort_keypackage.v1): when the normal pool is empty, claim MAY return last_resort=true; the package is reused across multiple Welcomes within the same intended_realm_id, consume is idempotent (stays published, never keypackage_already_consumed), and each consumption emits an append-only audit record per encryption-and-audit.md section 2.6.2.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
       ]
     },
     {
@@ -976,7 +978,8 @@
       "domain": "keypackage",
       "description": "Last-resort KeyPackage forced rotation: on next online the holder MUST rotate the last-resort package (new init key, old marked rotated) and trigger an MLS self-update Commit on every group joined via it to advance the epoch and close the forward-secrecy weakening window.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
       ]
     },
     {
@@ -985,7 +988,8 @@
       "domain": "keypackage",
       "description": "Last-resort KeyPackage Realm affinity and optionality: cross-intended_realm_id reuse MUST be rejected with last_resort_realm_affinity_violation; a server not declaring the feature MUST fail closed on an empty pool and MUST NOT return a last_resort package, with explicit last-resort fallback returning last_resort_not_supported.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
       ]
     },
     {
@@ -1196,7 +1200,8 @@
       "status": "active",
       "domain": "mls",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
       ]
     },
     {

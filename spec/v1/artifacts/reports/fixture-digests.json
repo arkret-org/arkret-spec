@@ -57,6 +57,10 @@
       "sha256": "47ff50fea53d0ef5757123ad0ee5794e94d417a1b4fc3017045ffcc090320a7a"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
+      "sha256": "7b5b5f9cf3daed0b0e9117734be360d32eb668b26cde2908fb038f57b139c337"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/media-aead-nonce-fixture.json",
       "sha256": "65d507c5a619712546f63ff6cf642b1f31f0f1298c97572b6603e995998b11c4"
     },
