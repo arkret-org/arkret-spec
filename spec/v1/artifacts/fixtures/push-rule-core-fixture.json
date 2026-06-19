@@ -1,0 +1,280 @@
+{
+  "suite": "push_rule_core_consistency",
+  "profile": "ck.profile.push_gateway.blind_wakeup.v1",
+  "description": "Shared v1 push rule vectors for the SDK core used by soland, chime, and yougen.",
+  "cases": [
+    {
+      "name": "muted_direct_mention_short_circuits",
+      "watch_level": "muted",
+      "event": {
+        "mentions_actor": true
+      },
+      "expected": {
+        "deliver": false,
+        "blind_wakeup": false,
+        "reason_code": "muted",
+        "yougen": {
+          "should_notify": false,
+          "watch_suppressed": true,
+          "muted_short_circuit": true,
+          "blind_wakeup_required": false,
+          "unresolved_client_evaluation": false
+        }
+      }
+    },
+    {
+      "name": "mentions_only_plain_non_directed_is_filtered",
+      "watch_level": "mentions_only",
+      "event": {},
+      "expected": {
+        "deliver": false,
+        "blind_wakeup": false,
+        "reason_code": "not_mentioned",
+        "yougen": {
+          "should_notify": false,
+          "watch_suppressed": true,
+          "muted_short_circuit": false,
+          "blind_wakeup_required": false,
+          "unresolved_client_evaluation": false
+        }
+      }
+    },
+    {
+      "name": "mentions_only_assigned_to_actor_delivers",
+      "watch_level": "mentions_only",
+      "event": {
+        "assigned_to_actor": true
+      },
+      "expected": {
+        "deliver": true,
+        "blind_wakeup": false,
+        "reason_code": "watch_allows",
+        "yougen": {
+          "should_notify": true,
+          "watch_suppressed": false,
+          "muted_short_circuit": false,
+          "blind_wakeup_required": false,
+          "unresolved_client_evaluation": false
+        }
+      }
+    },
+    {
+      "name": "broadcast_mention_controls_authorized_audience_delivers",
+      "vector_id": "ck.vector.push.broadcast_mention_controls.v1",
+      "watch_level": "mentions_only",
+      "event": {
+        "mentions_actor": true
+      },
+      "expected": {
+        "deliver": true,
+        "blind_wakeup": false,
+        "reason_code": "watch_allows",
+        "yougen": {
+          "should_notify": true,
+          "watch_suppressed": false,
+          "muted_short_circuit": false,
+          "blind_wakeup_required": false,
+          "unresolved_client_evaluation": false
+        }
+      },
+      "assertions": [
+        "authorized broadcast mentions deliver under mentions_only watch level",
+        "plain directed mentions do not require blind wakeup after local evaluation",
+        "shared core reason_code remains watch_allows"
+      ]
+    },
+    {
+      "name": "strand_engaged_here_maps_to_receiver_side_mention",
+      "vector_id": "ck.vector.push.strand_engaged_mention.v1",
+      "watch_level": "mentions_only",
+      "event": {
+        "mentions_actor": true
+      },
+      "expected": {
+        "deliver": true,
+        "blind_wakeup": false,
+        "reason_code": "watch_allows",
+        "yougen": {
+          "should_notify": true,
+          "watch_suppressed": false,
+          "muted_short_circuit": false,
+          "blind_wakeup_required": false,
+          "unresolved_client_evaluation": false
+        }
+      },
+      "assertions": [
+        "strand-engaged here-style updates map to receiver-side mention semantics",
+        "mentions_only watch level delivers the engaged notification",
+        "shared core reason_code remains watch_allows"
+      ]
+    },
+    {
+      "name": "participating_plain_non_participant_is_filtered",
+      "watch_level": "participating",
+      "event": {},
+      "expected": {
+        "deliver": false,
+        "blind_wakeup": false,
+        "reason_code": "not_participating",
+        "yougen": {
+          "should_notify": false,
+          "watch_suppressed": true,
+          "muted_short_circuit": false,
+          "blind_wakeup_required": false,
+          "unresolved_client_evaluation": false
+        }
+      }
+    },
+    {
+      "name": "participating_thread_update_delivers",
+      "watch_level": "participating",
+      "event": {
+        "participating_thread_update": true
+      },
+      "expected": {
+        "deliver": true,
+        "blind_wakeup": false,
+        "reason_code": "watch_allows",
+        "yougen": {
+          "should_notify": true,
+          "watch_suppressed": false,
+          "muted_short_circuit": false,
+          "blind_wakeup_required": false,
+          "unresolved_client_evaluation": false
+        }
+      }
+    },
+    {
+      "name": "all_plain_non_directed_delivers",
+      "watch_level": "all",
+      "event": {},
+      "expected": {
+        "deliver": true,
+        "blind_wakeup": false,
+        "reason_code": "watch_allows",
+        "yougen": {
+          "should_notify": true,
+          "watch_suppressed": false,
+          "muted_short_circuit": false,
+          "blind_wakeup_required": false,
+          "unresolved_client_evaluation": false
+        }
+      }
+    },
+    {
+      "name": "e2ee_all_requires_blind_wakeup_until_decrypted",
+      "watch_level": "all",
+      "event": {
+        "is_e2ee": true,
+        "local_decrypted": false
+      },
+      "yougen": {
+        "mentions_actor_known": false,
+        "client_side_mentions_rule": true
+      },
+      "expected": {
+        "deliver": true,
+        "blind_wakeup": true,
+        "reason_code": "blind_wakeup_required",
+        "yougen": {
+          "should_notify": false,
+          "watch_suppressed": false,
+          "muted_short_circuit": false,
+          "blind_wakeup_required": true,
+          "unresolved_client_evaluation": true
+        }
+      }
+    },
+    {
+      "name": "e2ee_mentions_only_unknown_requires_blind_wakeup",
+      "watch_level": "mentions_only",
+      "event": {
+        "is_e2ee": true,
+        "local_decrypted": false
+      },
+      "yougen": {
+        "mentions_actor_known": false
+      },
+      "expected": {
+        "deliver": true,
+        "blind_wakeup": true,
+        "reason_code": "blind_wakeup_required",
+        "yougen": {
+          "should_notify": false,
+          "watch_suppressed": false,
+          "muted_short_circuit": false,
+          "blind_wakeup_required": true,
+          "unresolved_client_evaluation": true
+        }
+      }
+    },
+    {
+      "name": "e2ee_participating_unknown_requires_blind_wakeup",
+      "watch_level": "participating",
+      "event": {
+        "is_e2ee": true,
+        "local_decrypted": false
+      },
+      "yougen": {
+        "mentions_actor_known": false
+      },
+      "expected": {
+        "deliver": true,
+        "blind_wakeup": true,
+        "reason_code": "blind_wakeup_required",
+        "yougen": {
+          "should_notify": false,
+          "watch_suppressed": false,
+          "muted_short_circuit": false,
+          "blind_wakeup_required": true,
+          "unresolved_client_evaluation": true
+        }
+      }
+    },
+    {
+      "name": "e2ee_muted_still_short_circuits",
+      "watch_level": "muted",
+      "event": {
+        "mentions_actor": true,
+        "is_e2ee": true,
+        "local_decrypted": false
+      },
+      "expected": {
+        "deliver": false,
+        "blind_wakeup": false,
+        "reason_code": "muted",
+        "yougen": {
+          "should_notify": false,
+          "watch_suppressed": true,
+          "muted_short_circuit": true,
+          "blind_wakeup_required": false,
+          "unresolved_client_evaluation": false
+        }
+      }
+    },
+    {
+      "name": "e2ee_decrypted_mentions_only_filters_non_mentions",
+      "watch_level": "mentions_only",
+      "event": {
+        "is_e2ee": true,
+        "local_decrypted": true
+      },
+      "expected": {
+        "deliver": false,
+        "blind_wakeup": false,
+        "reason_code": "not_mentioned",
+        "yougen": {
+          "should_notify": false,
+          "watch_suppressed": true,
+          "muted_short_circuit": false,
+          "blind_wakeup_required": false,
+          "unresolved_client_evaluation": false
+        }
+      }
+    }
+  ],
+  "covers_vectors": [
+    "ck.vector.push.broadcast_mention_controls.v1",
+    "ck.vector.push.strand_engaged_mention.v1"
+  ]
+}

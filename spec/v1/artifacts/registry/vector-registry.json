@@ -1395,7 +1395,8 @@
       "status": "active",
       "domain": "push",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/push-rule-core-fixture.json"
       ]
     },
     {
@@ -1403,7 +1404,8 @@
       "status": "active",
       "domain": "push",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/push-rule-core-fixture.json"
       ]
     },
     {
