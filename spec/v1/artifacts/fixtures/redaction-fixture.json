@@ -31,6 +31,24 @@
       "vector_id": "ck.vector.redaction.snapshot_pruning_stub.v1",
       "input": "redacted_payload_pruned_after_snapshot",
       "expected": "snapshot_and_backfill_retain_verification_stub"
+    },
+    {
+      "name": "space_target_ref_schema",
+      "vector_id": "ck.vector.redaction.space_target_ref_schema.v1",
+      "input": "object_lifecycle_payload_with_space_target_ref",
+      "expected": "schema_accepts_ck_space_target_ref_rejects_malformed"
+    },
+    {
+      "name": "policy_scope",
+      "vector_id": "ck.vector.redaction.policy_scope.v1",
+      "input": "message_quarantine_redaction_timeline",
+      "expected": "content_stripped_timeline_position_and_quarantine_fingerprint_retained"
+    },
+    {
+      "name": "hard_erasure_receipt",
+      "vector_id": "ck.vector.redaction.hard_erasure_receipt.v1",
+      "input": "hard_erasure_with_verification_stub",
+      "expected": "signed_receipt_and_stub_conform_no_plaintext_fingerprint_legal_hold_blocks"
     }
   ]
 }
