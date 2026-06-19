@@ -108,6 +108,7 @@
       "domain": "applet",
       "description": "Applet transaction push source signature anchor: per-delivery RFC 9421 HTTP Message Signature covering method/target/authority/content-digest/source-service-did/destination-service-did/idempotency-key, source_signature_anchor persisted into the idempotency/replay record, duplicate body/anchor conflicts fail closed, and source service authentication does not replace Event actor/applet/capability checks.",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -842,6 +843,7 @@
       "domain": "federation",
       "description": "Federation ingress authentication-failure family (unknown peer / not authorized / target absent) returns indistinguishable responses within one timing bucket per relation.md section 4.5 sampling rules.",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -1208,6 +1210,7 @@
       "status": "active",
       "domain": "mls",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -1226,6 +1229,7 @@
       "domain": "moderation",
       "description": "Appeal verdict transitions are atomic: overturn without a same-batch ck.moderation.decision.lift is rejected with appeal_overturn_missing_lift; modify requires a same-batch new decision matched by modify_decision_ref.",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -1235,6 +1239,7 @@
       "domain": "moderation",
       "description": "E2EE franking proof construction, report submission, and moderator-side verification roundtrip per content-moderation.md section 3.4; digest mismatch or minimal-disclosure violations downgrade or reject the proof.",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -1540,6 +1545,7 @@
       "status": "active",
       "domain": "relation",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/models/relation.md",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
@@ -1624,6 +1630,7 @@
       "domain": "sync",
       "description": "Client events.query backfill with include_completeness=true detects withheld actor branches via ck.attestation.range_completeness verification; feature-less servers ignore the parameter; single_source attestation does not satisfy high-assurance realms.",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -1779,6 +1786,7 @@
       "domain": "calendar",
       "description": "RSVP occurrence key canonicalizes recurrence instance local wall-clock start in the event timezone.",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     }

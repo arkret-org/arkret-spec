@@ -1,0 +1,528 @@
+{
+  "profile": "ck.profile.privacy_security_vectors.v1",
+  "version": "2026-06-19",
+  "suite": "final_conformance_closure",
+  "runner": "cotest::conformance::final_conformance_closure",
+  "covers_vectors": [
+    "ck.vector.applet.transaction_source_signature_anchor.v1",
+    "ck.vector.calendar.rsvp_occurrence_key.v1",
+    "ck.vector.federation.timing_bucket.v1",
+    "ck.vector.mls.governance_epoch_binding.v1",
+    "ck.vector.moderation.franking_roundtrip.v1",
+    "ck.vector.moderation.appeal_atomicity.v1",
+    "ck.vector.relation.reference_projection_indistinguishable.v1",
+    "ck.vector.sync.range_completeness_client_query.v1"
+  ],
+  "cases": [
+    {
+      "vector_id": "ck.vector.applet.transaction_source_signature_anchor.v1",
+      "assertions": [
+        "valid_transaction_requires_http_signature_anchor",
+        "bearer_only_rejected",
+        "source_destination_and_content_digest_bound",
+        "idempotent_replay_returns_cached_outcome",
+        "idempotency_identity_body_drift_rejected",
+        "active_install_and_actor_namespace_required"
+      ],
+      "required_components": [
+        "@method",
+        "@target-uri",
+        "@authority",
+        "content-digest",
+        "source-service-did",
+        "destination-service-did",
+        "idempotency-key"
+      ],
+      "active_install": {
+        "service_did": "did:web:bridge.example",
+        "destination_service_did": "did:web:principal.example",
+        "registration_epoch": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "key_ref": "did:web:bridge.example#tx-1",
+        "actor_namespace": "did:web:bridge.example#ghost"
+      },
+      "transactions": [
+        {
+          "name": "valid_inbound",
+          "signature_present": true,
+          "covered_components": [
+            "@method",
+            "@target-uri",
+            "@authority",
+            "content-digest",
+            "source-service-did",
+            "destination-service-did",
+            "idempotency-key"
+          ],
+          "keyid": "did:web:bridge.example#tx-1",
+          "source_service_did_header": "did:web:bridge.example",
+          "source_service_did_body": "did:web:bridge.example",
+          "destination_service_did_header": "did:web:principal.example",
+          "content_digest_matches_body": true,
+          "idempotency_key": "tx-001",
+          "body_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "registration_epoch": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "actor_namespace": "did:web:bridge.example#ghost",
+          "authorization_ref_owner": "did:web:bridge.example",
+          "expected": {
+            "decision": "accept",
+            "source_signature_anchor_persisted": true,
+            "side_effects_applied": true
+          }
+        },
+        {
+          "name": "missing_signature",
+          "signature_present": false,
+          "expected": {
+            "decision": "reject",
+            "reason": "http_signature_required"
+          }
+        },
+        {
+          "name": "source_mismatch",
+          "signature_present": true,
+          "covered_components": [
+            "@method",
+            "@target-uri",
+            "@authority",
+            "content-digest",
+            "source-service-did",
+            "destination-service-did",
+            "idempotency-key"
+          ],
+          "keyid": "did:web:bridge.example#tx-1",
+          "source_service_did_header": "did:web:bridge.example",
+          "source_service_did_body": "did:web:mallory.example",
+          "destination_service_did_header": "did:web:principal.example",
+          "content_digest_matches_body": true,
+          "expected": {
+            "decision": "reject",
+            "reason": "http_signature_invalid"
+          }
+        },
+        {
+          "name": "exact_replay",
+          "replay_of": "valid_inbound",
+          "idempotency_key": "tx-001",
+          "body_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "source_signature_anchor_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "expected": {
+            "decision": "accept_cached",
+            "side_effects_applied": false
+          }
+        },
+        {
+          "name": "idempotency_body_drift",
+          "replay_of": "valid_inbound",
+          "idempotency_key": "tx-001",
+          "body_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "source_signature_anchor_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "expected": {
+            "decision": "reject",
+            "reason": "duplicate_conflict"
+          }
+        },
+        {
+          "name": "no_active_install",
+          "signature_present": true,
+          "source_service_did_header": "did:web:unknown-bridge.example",
+          "source_service_did_body": "did:web:unknown-bridge.example",
+          "destination_service_did_header": "did:web:principal.example",
+          "content_digest_matches_body": true,
+          "expected": {
+            "decision": "reject",
+            "reason": "applet_registration_unauthorized"
+          }
+        },
+        {
+          "name": "actor_namespace_mismatch",
+          "signature_present": true,
+          "covered_components": [
+            "@method",
+            "@target-uri",
+            "@authority",
+            "content-digest",
+            "source-service-did",
+            "destination-service-did",
+            "idempotency-key"
+          ],
+          "keyid": "did:web:bridge.example#tx-1",
+          "source_service_did_header": "did:web:bridge.example",
+          "source_service_did_body": "did:web:bridge.example",
+          "destination_service_did_header": "did:web:principal.example",
+          "content_digest_matches_body": true,
+          "actor_namespace": "did:web:alice.example",
+          "authorization_ref_owner": "did:web:bridge.example",
+          "expected": {
+            "decision": "reject",
+            "reason": "applet_namespace_mismatch"
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "ck.vector.calendar.rsvp_occurrence_key.v1",
+      "assertions": [
+        "instance_key_uses_event_timezone_local_wall_clock",
+        "non_all_day_key_uses_iana_zone_suffix",
+        "all_day_key_uses_local_date",
+        "same_series_instance_converges_to_same_key"
+      ],
+      "timezone": "America/New_York",
+      "occurrences": [
+        {
+          "name": "dst_day_non_all_day",
+          "all_day": false,
+          "local_start": "2026-03-08T09:00:00",
+          "expected": {
+            "occurrence_key": "2026-03-08T09:00:00[America/New_York]"
+          }
+        },
+        {
+          "name": "next_day_same_wall_clock",
+          "all_day": false,
+          "local_start": "2026-03-09T09:00:00",
+          "expected": {
+            "occurrence_key": "2026-03-09T09:00:00[America/New_York]"
+          }
+        },
+        {
+          "name": "all_day_local_date",
+          "all_day": true,
+          "local_start": "2026-03-08T00:00:00",
+          "expected": {
+            "occurrence_key": "2026-03-08"
+          }
+        }
+      ],
+      "duplicate_rsvp_writes": [
+        {
+          "actor": "did:web:bob.example",
+          "occurrence_key": "2026-03-08T09:00:00[America/New_York]",
+          "status": "accepted"
+        },
+        {
+          "actor": "did:web:bob.example",
+          "occurrence_key": "2026-03-08T09:00:00[America/New_York]",
+          "status": "accepted"
+        }
+      ],
+      "expected": {
+        "duplicate_same_status_noop": true
+      }
+    },
+    {
+      "vector_id": "ck.vector.federation.timing_bucket.v1",
+      "assertions": [
+        "auth_failure_family_uses_same_public_status_reason_and_shape",
+        "true_failure_reason_is_audit_only",
+        "p95_latency_diff_within_50ms",
+        "high_security_p99_latency_diff_within_bucket"
+      ],
+      "failure_samples": [
+        {
+          "kind": "unknown_peer",
+          "status": 403,
+          "reason_code": "capability_denied",
+          "visible_fields": [
+            "error",
+            "reason_code"
+          ],
+          "p95_ms": 101,
+          "p99_ms": 132
+        },
+        {
+          "kind": "unauthorized_peer",
+          "status": 403,
+          "reason_code": "capability_denied",
+          "visible_fields": [
+            "error",
+            "reason_code"
+          ],
+          "p95_ms": 118,
+          "p99_ms": 144
+        },
+        {
+          "kind": "target_missing",
+          "status": 403,
+          "reason_code": "capability_denied",
+          "visible_fields": [
+            "error",
+            "reason_code"
+          ],
+          "p95_ms": 124,
+          "p99_ms": 148
+        }
+      ],
+      "expected": {
+        "public_shapes_identical": true,
+        "p95_diff_ms": 23,
+        "p95_within_bucket": true,
+        "p99_within_high_security_bucket": true
+      }
+    },
+    {
+      "vector_id": "ck.vector.mls.governance_epoch_binding.v1",
+      "assertions": [
+        "governance_previous_epoch_matches_payload_base_epoch",
+        "governance_next_epoch_matches_payload_next_epoch",
+        "rejected_commit_does_not_advance_mls_or_covered_seals_cells"
+      ],
+      "commit": {
+        "base_epoch": 41,
+        "next_epoch": 42,
+        "governance_binding": {
+          "previous_epoch": 40,
+          "next_epoch": 43
+        },
+        "other_checks_valid": true
+      },
+      "expected": {
+        "decision": "reject",
+        "reason": "epoch_update_required",
+        "mls_epoch_cell_advanced": false,
+        "covered_seals_cell_advanced": false
+      }
+    },
+    {
+      "vector_id": "ck.vector.moderation.franking_roundtrip.v1",
+      "assertions": [
+        "roundtrip_digest_chain_verifies",
+        "evidence_package_does_not_release_governance_or_mls_secrets",
+        "ciphertext_digest_mismatch_downgrades_proof",
+        "raw_group_or_plaintext_fields_rejected"
+      ],
+      "cases": [
+        {
+          "name": "roundtrip_valid",
+          "ciphertext_digest_matches": true,
+          "aad_digest_matches": true,
+          "sender_claim_fields": [
+            "mls_group_id_digest"
+          ],
+          "proof_contains_plaintext_body": false,
+          "evidence_forbidden_secret_fields": [],
+          "expected": {
+            "decision": "verifiable_delivery_proof",
+            "governance_key_released": false
+          }
+        },
+        {
+          "name": "ciphertext_digest_mismatch",
+          "ciphertext_digest_matches": false,
+          "aad_digest_matches": true,
+          "sender_claim_fields": [
+            "mls_group_id_digest"
+          ],
+          "proof_contains_plaintext_body": false,
+          "expected": {
+            "decision": "manual_clue_only",
+            "verifiable_delivery_proof": false
+          }
+        },
+        {
+          "name": "minimal_disclosure_violation",
+          "ciphertext_digest_matches": true,
+          "aad_digest_matches": true,
+          "sender_claim_fields": [
+            "mls_group_id_digest",
+            "raw_mls_group_id",
+            "epoch"
+          ],
+          "proof_contains_plaintext_body": true,
+          "expected": {
+            "decision": "reject",
+            "reason": "schema_violation"
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "ck.vector.moderation.appeal_atomicity.v1",
+      "assertions": [
+        "overturn_without_same_batch_lift_rejected",
+        "overturn_with_lift_accepts_atomically",
+        "modify_ref_must_point_to_same_batch_new_decision",
+        "rejected_submit_leaves_appeal_under_review"
+      ],
+      "cases": [
+        {
+          "name": "overturn_missing_lift",
+          "appeal_state": "under_review",
+          "verdict": "overturn",
+          "same_batch_lift_target_matches": false,
+          "expected": {
+            "decision": "reject",
+            "reason": "appeal_overturn_missing_lift",
+            "appeal_state": "under_review",
+            "original_decision_active": true
+          }
+        },
+        {
+          "name": "overturn_with_lift",
+          "appeal_state": "under_review",
+          "verdict": "overturn",
+          "same_batch_lift_target_matches": true,
+          "expected": {
+            "decision": "accept",
+            "appeal_state": "decided",
+            "original_decision_active": false
+          }
+        },
+        {
+          "name": "modify_ref_mismatch",
+          "appeal_state": "under_review",
+          "verdict": "modify",
+          "modify_decision_ref_in_same_batch": false,
+          "new_decision_target_matches_original": false,
+          "expected": {
+            "decision": "reject",
+            "reason": "failed_precondition",
+            "partial_state_written": false
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "ck.vector.relation.reference_projection_indistinguishable.v1",
+      "assertions": [
+        "locked_existing_target_and_nonexistent_target_have_identical_shape",
+        "raw_backfill_and_federation_views_are_redacted_equally",
+        "forbidden_target_metadata_not_leaked",
+        "p95_timing_diff_within_50ms",
+        "auditor_full_access_does_not_change_caller_locked_shape"
+      ],
+      "caller_views": [
+        {
+          "relation_id": "R1",
+          "target_exists": true,
+          "caller_can_discover_target": false,
+          "projection_status": "locked",
+          "visible_fields": [
+            "relation_id",
+            "status",
+            "timing_bucket"
+          ],
+          "raw_event_view": "locked_stub",
+          "p95_ms": 92
+        },
+        {
+          "relation_id": "R2",
+          "target_exists": false,
+          "caller_can_discover_target": false,
+          "projection_status": "locked",
+          "visible_fields": [
+            "relation_id",
+            "status",
+            "timing_bucket"
+          ],
+          "raw_event_view": "locked_stub",
+          "p95_ms": 111
+        }
+      ],
+      "forbidden_fields": [
+        "target_realm_id",
+        "title",
+        "member_count",
+        "created_at",
+        "issuer_set",
+        "preview"
+      ],
+      "auditor_view": {
+        "relation_id": "R1",
+        "has_full_canonical_bytes": true
+      },
+      "expected": {
+        "caller_shapes_identical": true,
+        "forbidden_fields_present": false,
+        "raw_views_identical": true,
+        "p95_diff_ms": 19,
+        "p95_within_bucket": true,
+        "auditor_changes_caller_shape": false
+      }
+    },
+    {
+      "vector_id": "ck.vector.sync.range_completeness_client_query.v1",
+      "assertions": [
+        "complete_page_with_matching_attestation_marks_range_attested",
+        "withheld_actor_seq_gap_degrades_range",
+        "featureless_server_omits_completeness_without_error",
+        "high_assurance_rejects_single_source_attestation"
+      ],
+      "steps": [
+        {
+          "name": "complete_attested_range",
+          "feature_supported": true,
+          "security_class": "normal",
+          "returned_actor_seq": [
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20
+          ],
+          "attestation_actor_seq_range": [
+            10,
+            20
+          ],
+          "attestation_mode": "federation_witness_attested",
+          "root_matches": true,
+          "expected": {
+            "decision": "attested_complete"
+          }
+        },
+        {
+          "name": "withheld_actor_seq_gap",
+          "feature_supported": true,
+          "security_class": "normal",
+          "returned_actor_seq": [
+            10,
+            11,
+            12,
+            13,
+            17,
+            18,
+            19,
+            20
+          ],
+          "attestation_actor_seq_range": [
+            10,
+            20
+          ],
+          "attestation_mode": "federation_witness_attested",
+          "root_matches": false,
+          "expected": {
+            "decision": "degraded",
+            "reason": "range_completeness_actor_seq_gap",
+            "history_complete_displayed": false
+          }
+        },
+        {
+          "name": "featureless_server",
+          "feature_supported": false,
+          "include_completeness": true,
+          "response_has_range_completeness": false,
+          "expected": {
+            "decision": "unattested",
+            "error": false
+          }
+        },
+        {
+          "name": "high_assurance_single_source",
+          "feature_supported": true,
+          "security_class": "high_assurance",
+          "attestation_mode": "single_source",
+          "expected": {
+            "decision": "unattested",
+            "high_assurance_frontier_advanced": false
+          }
+        }
+      ]
+    }
+  ]
+}
