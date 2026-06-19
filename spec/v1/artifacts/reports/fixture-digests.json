@@ -9,6 +9,10 @@
       "sha256": "6b82e901d11d231fd1120c0b45558cc8c4ea4fd1d9660927c49788ffdf3cf6ac"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/blob-stream-aead-fixture.json",
+      "sha256": "b4af17b43e5120d56572415aa21e244fd8222ccaa6007e9ecb67aa22c0758329"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/call-state-core-fixture.json",
       "sha256": "13b9b69d8c905e04d40cd74510c1ffbaf17cdc2e385232c0cdd3d978204880d8"
     },

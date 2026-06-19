@@ -1,0 +1,54 @@
+{
+  "profile": "ck.profile.blob_node.v1",
+  "version": "2026-06-19",
+  "suite": "blob_stream_aead",
+  "runner": "cotest::conformance::blob_stream_aead",
+  "covers_vectors": [
+    "ck.vector.blob.stream_aead_roundtrip.v1",
+    "ck.vector.blob.stream_aead_truncation_rejected.v1",
+    "ck.vector.blob.stream_aead_reorder_rejected.v1",
+    "ck.vector.blob.stream_aead_scheme_closure.v1"
+  ],
+  "cases": [
+    {
+      "name": "stream_aead_roundtrip",
+      "vector_id": "ck.vector.blob.stream_aead_roundtrip.v1",
+      "runner": "cotest::conformance::blob_stream_aead::run_stream_aead_roundtrip_vector",
+      "assertions": [
+        "multi-segment plaintext with a short final segment decrypts byte-for-byte",
+        "incremental segment verification accepts only ascending segment indices",
+        "ciphertext_digest is recomputed over the concatenated ciphertext and mismatches fail with digest_mismatch"
+      ]
+    },
+    {
+      "name": "stream_aead_truncation_rejected",
+      "vector_id": "ck.vector.blob.stream_aead_truncation_rejected.v1",
+      "runner": "cotest::conformance::blob_stream_aead::run_stream_aead_truncation_rejected_vector",
+      "assertions": [
+        "dropping the final legal segment fails finish with segment_stream_truncated",
+        "declared segment_count must equal ceil(size_bytes / segment_size)",
+        "count mismatches are rejected before a stream can be completed"
+      ]
+    },
+    {
+      "name": "stream_aead_reorder_rejected",
+      "vector_id": "ck.vector.blob.stream_aead_reorder_rejected.v1",
+      "runner": "cotest::conformance::blob_stream_aead::run_stream_aead_reorder_rejected_vector",
+      "assertions": [
+        "out-of-order segment_index fails with segment_sequence_invalid",
+        "repeated segment_index fails with segment_replay",
+        "no deterministic reordering or replay recovery is attempted"
+      ]
+    },
+    {
+      "name": "stream_aead_scheme_closure",
+      "vector_id": "ck.vector.blob.stream_aead_scheme_closure.v1",
+      "runner": "cotest::conformance::blob_stream_aead::run_stream_aead_scheme_closure_vector",
+      "assertions": [
+        "unknown stream attachment schemes fail closed with unsupported_attachment_scheme",
+        "valid stream envelopes satisfy blob.schema.json#/$defs/encrypted_attachment",
+        "envelopes carrying both nonce and nonce_prefix/segment_* fields fail encrypted_attachment oneOf validation"
+      ]
+    }
+  ]
+}

@@ -127,7 +127,8 @@
       "domain": "blob",
       "description": "Streaming chunked AEAD (ck.blob.stream_aead.v1) happy path: multi-segment plaintext with a short final segment is split, per-segment AEAD encrypted, segment-wise downloaded and incrementally verified, and the top-level ciphertext_digest is recomputed and matches per media-and-blob.md section 3.3.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/blob-stream-aead-fixture.json"
       ]
     },
     {
@@ -136,7 +137,8 @@
       "domain": "blob",
       "description": "Streaming AEAD truncation: a dropped final segment, a last segment whose flag stays 0x00, or segment_count exhausted without last_segment_flag=0x01 MUST be rejected with segment_stream_truncated and buffered plaintext discarded.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/blob-stream-aead-fixture.json"
       ]
     },
     {
@@ -145,7 +147,8 @@
       "domain": "blob",
       "description": "Streaming AEAD ordering: out-of-order / skipped / gapped segment_index MUST be rejected with segment_sequence_invalid; a repeated segment_index MUST be rejected with segment_replay.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/blob-stream-aead-fixture.json"
       ]
     },
     {
@@ -154,7 +157,8 @@
       "domain": "blob",
       "description": "Streaming AEAD scheme closure: an unknown attachment scheme MUST fail closed with unsupported_attachment_scheme (no fallback decrypt); an envelope carrying both whole-file nonce and chunked nonce_prefix/segment_* fields MUST fail blob.schema.json encrypted_attachment oneOf validation.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/blob-stream-aead-fixture.json"
       ]
     },
     {
