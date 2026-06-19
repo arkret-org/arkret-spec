@@ -1,6 +1,14 @@
 {
   "files": [
     {
+      "path": "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json",
+      "sha256": "9abf281fc67413f39ba035bea43f328be87901d7f37dbc2a541755d075505d80"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
+      "sha256": "6b82e901d11d231fd1120c0b45558cc8c4ea4fd1d9660927c49788ffdf3cf6ac"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/call-state-media-lifecycle-fixture.json",
       "sha256": "6687bb9c1237ed839abdf847177b76fe10a986b3c4a74d2dd74776f6b83de2f9"
     },

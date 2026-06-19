@@ -1,0 +1,66 @@
+{
+  "profile": "ck.profile.personal_agent_provisioning.v1",
+  "version": "2026-06-19",
+  "suite": "agent_vectors",
+  "runner": "cotest::conformance::agent_vectors",
+  "covers_vectors": [
+    "ck.vector.agent.provision.v1",
+    "ck.vector.agent.pairing_expiry.v1",
+    "ck.vector.agent.controller_lifecycle.v1",
+    "ck.vector.agent.act_on_behalf.v1",
+    "ck.vector.agent.session_grant.replay.v1"
+  ],
+  "cases": [
+    {
+      "name": "agent_provision",
+      "vector_id": "ck.vector.agent.provision.v1",
+      "runner": "cotest::conformance::agent_vectors::run_agent_provision_vector",
+      "assertions": [
+        "agent provision operation id remains ck.self.agent.command.provision",
+        "agent provision capability action matches the operation id",
+        "missing accountability grants fail with accountability_grant_missing"
+      ]
+    },
+    {
+      "name": "agent_pairing_expiry",
+      "vector_id": "ck.vector.agent.pairing_expiry.v1",
+      "runner": "cotest::conformance::agent_vectors::run_agent_pairing_expiry_vector",
+      "assertions": [
+        "agent key-pair operation id remains ck.gate.account.command.pair_agent_key",
+        "expired pairing requests fail with pairing_request_expired",
+        "DID mismatch, invalid proof, expired pairing, and deactivated agent errors are all pinned"
+      ]
+    },
+    {
+      "name": "agent_controller_lifecycle",
+      "vector_id": "ck.vector.agent.controller_lifecycle.v1",
+      "runner": "cotest::conformance::agent_vectors::run_agent_controller_lifecycle_vector",
+      "assertions": [
+        "agent lifecycle operation ids retain canonical namespaces",
+        "active to paused to active to deactivated is accepted",
+        "deactivated is terminal and resume fails with agent_deactivated",
+        "pause while paused fails with agent_paused"
+      ]
+    },
+    {
+      "name": "agent_act_on_behalf",
+      "vector_id": "ck.vector.agent.act_on_behalf.v1",
+      "runner": "cotest::conformance::agent_vectors::run_agent_act_on_behalf_vector",
+      "assertions": [
+        "controller approvals are single-use",
+        "approval replay fails with approval_already_consumed",
+        "unauthorised sidecar creation fails with sidecar_create_denied"
+      ]
+    },
+    {
+      "name": "agent_session_grant_replay",
+      "vector_id": "ck.vector.agent.session_grant.replay.v1",
+      "runner": "cotest::conformance::agent_vectors::run_agent_session_grant_replay_vector",
+      "assertions": [
+        "session grant issue operation id remains ck.gate.account.command.issue_session_grant",
+        "agent session branch rejects invalid proofs, DID mismatch, paused agents, and deactivated agents",
+        "accountability grant absence is pinned as accountability_grant_missing"
+      ]
+    }
+  ]
+}
