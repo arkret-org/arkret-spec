@@ -61,6 +61,10 @@
       "sha256": "47ff50fea53d0ef5757123ad0ee5794e94d417a1b4fc3017045ffcc090320a7a"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json",
+      "sha256": "04f2d02f54fd7dcbed31d7a831d5609029a1b8edb5baacaccf5af5771890ea06"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
       "sha256": "7b5b5f9cf3daed0b0e9117734be360d32eb668b26cde2908fb038f57b139c337"
     },

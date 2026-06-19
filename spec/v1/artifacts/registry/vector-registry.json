@@ -944,7 +944,8 @@
       "domain": "key_backup",
       "description": "New passphrase_kdf backup envelopes below the unconditional base KDF floor (Argon2id memory_kib>=65536 / iterations>=3 / parallelism>=1; PBKDF2 iterations>=600000 with allowed digest_algorithm) MUST be rejected.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json"
       ]
     },
     {
@@ -953,7 +954,8 @@
       "domain": "key_backup",
       "description": "Key backup retrieval requires a session-bound unlock proof (ck.schema.key_backup_unlock_proof.v1); any binding mismatch or bearer-token-only access fails closed before ciphertext is returned.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json"
       ]
     },
     {

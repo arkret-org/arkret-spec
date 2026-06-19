@@ -1,0 +1,219 @@
+{
+  "profile": "ck.profile.e2ee_client.v1",
+  "version": "2026-06-19",
+  "suite": "key_backup_hardening",
+  "runner": "cotest::conformance::key_backup_hardening",
+  "covers_vectors": [
+    "ck.vector.key_backup.kdf_floor_rejected.v1",
+    "ck.vector.key_backup.unlock_proof.v1"
+  ],
+  "cases": [
+    {
+      "name": "kdf_floor_rejected",
+      "vector_id": "ck.vector.key_backup.kdf_floor_rejected.v1",
+      "kind": "passphrase_kdf_floor",
+      "base_floor": {
+        "argon2id": {
+          "memory_kib": 65536,
+          "iterations": 3,
+          "parallelism": 1
+        },
+        "pbkdf2": {
+          "iterations": 600000,
+          "digest_algorithms": [
+            "sha256",
+            "sha384",
+            "sha512"
+          ]
+        }
+      },
+      "positive_encryption": [
+        {
+          "label": "argon2id_floor",
+          "recipient_method": "passphrase_kdf",
+          "kdf": {
+            "name": "argon2id",
+            "salt": "c2FsdC1hcmdvbjJpZC1mbG9vcg",
+            "params": {
+              "memory_kib": 65536,
+              "iterations": 3,
+              "parallelism": 1
+            }
+          },
+          "aead": {
+            "name": "xchacha20_poly1305",
+            "nonce": "bm9uY2UtYXJnb24yLWZsb29y",
+            "nonce_salt": "bm9uY2Utc2FsdC1hcmdvbjJpZA"
+          },
+          "key_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        {
+          "label": "pbkdf2_degraded_floor",
+          "recipient_method": "passphrase_kdf",
+          "kdf": {
+            "name": "pbkdf2",
+            "salt": "c2FsdC1wYmtkZjItZmxvb3I",
+            "params": {
+              "iterations": 600000,
+              "digest_algorithm": "sha512"
+            },
+            "degraded_profile_reason": "platform_memory_hard_kdf_unavailable"
+          },
+          "aead": {
+            "name": "xchacha20_poly1305",
+            "nonce": "bm9uY2UtcGJrZGYyLWZsb29y",
+            "nonce_salt": "bm9uY2Utc2FsdC1wYmtkZjI"
+          },
+          "key_commitment": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      ],
+      "negative_encryption": [
+        {
+          "label": "argon2id_low_memory",
+          "recipient_method": "passphrase_kdf",
+          "kdf": {
+            "name": "argon2id",
+            "salt": "c2FsdC1sb3ctbWVtb3J5",
+            "params": {
+              "memory_kib": 32768,
+              "iterations": 3,
+              "parallelism": 1
+            }
+          },
+          "aead": {
+            "name": "xchacha20_poly1305",
+            "nonce": "bm9uY2UtbG93LW1lbW9yeQ",
+            "nonce_salt": "bm9uY2Utc2FsdC1sb3dtZW0"
+          },
+          "key_commitment": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        {
+          "label": "pbkdf2_low_iterations",
+          "recipient_method": "passphrase_kdf",
+          "kdf": {
+            "name": "pbkdf2",
+            "salt": "c2FsdC1sb3ctaXRlcnM",
+            "params": {
+              "iterations": 310000,
+              "digest_algorithm": "sha256"
+            },
+            "degraded_profile_reason": "platform_memory_hard_kdf_unavailable"
+          },
+          "aead": {
+            "name": "xchacha20_poly1305",
+            "nonce": "bm9uY2UtbG93LWl0ZXJz",
+            "nonce_salt": "bm9uY2Utc2FsdC1sb3dpdA"
+          },
+          "key_commitment": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        {
+          "label": "pbkdf2_hash_field_forbidden",
+          "recipient_method": "passphrase_kdf",
+          "kdf": {
+            "name": "pbkdf2",
+            "salt": "c2FsdC1oYXNoLWZpZWxk",
+            "params": {
+              "iterations": 600000,
+              "hash": "sha512"
+            },
+            "degraded_profile_reason": "platform_memory_hard_kdf_unavailable"
+          },
+          "aead": {
+            "name": "xchacha20_poly1305",
+            "nonce": "bm9uY2UtaGFzaC1maWVsZA",
+            "nonce_salt": "bm9uY2Utc2FsdC1oYXNo"
+          },
+          "key_commitment": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        }
+      ],
+      "expected": {
+        "negative_reason": "schema_violation",
+        "unknown_kdf_reason": "schema_violation"
+      },
+      "assertions": [
+        "Argon2id passphrase_kdf envelopes below memory_kib, iterations, or parallelism floors fail schema validation",
+        "PBKDF2 passphrase_kdf envelopes below 600000 iterations fail schema validation",
+        "PBKDF2 params.hash is forbidden; producers must use params.digest_algorithm",
+        "valid Argon2id and explicitly degraded PBKDF2 controls are accepted"
+      ]
+    },
+    {
+      "name": "unlock_proof",
+      "vector_id": "ck.vector.key_backup.unlock_proof.v1",
+      "kind": "unlock_proof_binding",
+      "session": {
+        "recovery_session_id": "ck:recovery_session:0196419b-0000-7000-8000-000000000100",
+        "principal_id": "did:web:alice.example",
+        "requesting_device_id": "ck:device:0196419b-0000-7000-8000-000000000002",
+        "proof_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "fresh_device_proof": true
+      },
+      "envelope": {
+        "backup_id": "ck:backup:0196419b-0000-7000-8000-000000000200",
+        "actor_id": "did:web:alice.example",
+        "backup_class": "secret_storage",
+        "series_id": "ck:backup_series:0196419b-0000-7000-8000-000000000300",
+        "series_seq": 4,
+        "ciphertext_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "proof": {
+        "schema": "ck.schema.key_backup_unlock_proof.v1",
+        "recovery_session_id": "ck:recovery_session:0196419b-0000-7000-8000-000000000100",
+        "principal_id": "did:web:alice.example",
+        "requesting_device_id": "ck:device:0196419b-0000-7000-8000-000000000002",
+        "backup_id": "ck:backup:0196419b-0000-7000-8000-000000000200",
+        "backup_class": "secret_storage",
+        "series_id": "ck:backup_series:0196419b-0000-7000-8000-000000000300",
+        "ciphertext_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "proof_kind": "recovery_unlock",
+        "proof_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "issued_at": "2026-06-19T00:00:00Z",
+        "auth_data": {
+          "verification_method": "did:web:alice.example#device-2",
+          "signature_algorithm": "Ed25519",
+          "signature": "c2lnbmF0dXJl",
+          "signed_fields": [
+            "schema",
+            "recovery_session_id",
+            "principal_id",
+            "requesting_device_id",
+            "backup_id",
+            "backup_class",
+            "series_id",
+            "ciphertext_digest",
+            "proof_kind",
+            "proof_digest",
+            "issued_at"
+          ]
+        }
+      },
+      "plaintext": {
+        "schema": "ck.schema.key_backup_plaintext.v1",
+        "backup_id": "ck:backup:0196419b-0000-7000-8000-000000000200",
+        "backup_class": "secret_storage",
+        "series_id": "ck:backup_series:0196419b-0000-7000-8000-000000000300",
+        "series_seq": 4,
+        "items": [
+          {
+            "secret_id": "mls_group_secrets_backup_key",
+            "item_type": "mls_group_secrets_backup_key",
+            "secret_b64u": "c2VjcmV0"
+          }
+        ]
+      },
+      "expected": {
+        "valid_unlock": "accepted",
+        "binding_mismatch_reason": "recovery_evidence_unbound",
+        "bearer_only_reason": "unauthenticated",
+        "cross_actor_reason": "forbidden",
+        "plaintext_metadata_matches_envelope": true
+      },
+      "assertions": [
+        "unlock proof is submitted in the request body and validates against ck.schema.key_backup_unlock_proof.v1",
+        "proof.backup_id, backup_class, series_id, ciphertext_digest, requesting_device_id, and proof_digest are matched against server state before ciphertext is returned",
+        "bearer-only access without a fresh device proof is rejected",
+        "plaintext metadata must match the outer envelope after decrypt/open"
+      ]
+    }
+  ]
+}
