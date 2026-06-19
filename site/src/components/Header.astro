@@ -51,14 +51,16 @@ const shouldRenderSearch =
    * matching the marketing layout. */
   header.header {
     display: block !important;
+    height: var(--ck-nav-height);
+    padding: 0;
+    background: var(--ck-bg-nav);
+    border-bottom: 1px solid var(--ck-border);
+    backdrop-filter: blur(12px);
   }
 
   .ck-nav--docs {
-    margin: calc(-1 * var(--sl-nav-pad-y)) calc(-1 * var(--sl-nav-pad-x));
+    margin: 0;
     padding: 0;
-    height: var(--sl-nav-height);
-  }
-  .ck-nav--docs .ck-nav-row {
     height: 100%;
   }
 
