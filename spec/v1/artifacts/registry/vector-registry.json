@@ -1717,7 +1717,8 @@
       "domain": "lattice",
       "description": "ordered_log issuer sub-chain seq gap yields contiguous_prefix plus pending_gap diagnostics; deterministic recompute after backfill.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
     },
     {

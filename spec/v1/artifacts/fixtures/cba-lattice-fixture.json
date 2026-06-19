@@ -13,6 +13,7 @@
       "ck.vector.lattice.mv_register_join.v1",
       "ck.vector.lattice.counter_join.v1",
       "ck.vector.lattice.ordered_log_join.v1",
+      "ck.vector.lattice.ordered_log_gap.v1",
       "ck.vector.lattice.fsm_join.v1"
     ],
     "cases": [
@@ -38,6 +39,16 @@
         "assertions": [
           "per_issuer_sequence_order",
           "same_issuer_seq_dedupes_deterministically"
+        ]
+      },
+      {
+        "vector_id": "ck.vector.lattice.ordered_log_gap.v1",
+        "lattice": "ordered_log",
+        "assertions": [
+          "gap_after_contiguous_prefix_is_pending_diagnostic",
+          "pending_gap_entry_does_not_enter_cell_value",
+          "backfill_recompute_is_arrival_order_independent",
+          "duplicate_same_issuer_seq_uses_min_entry_id"
         ]
       },
       {
