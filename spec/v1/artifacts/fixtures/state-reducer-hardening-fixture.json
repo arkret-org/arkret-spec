@@ -1,0 +1,387 @@
+{
+  "profile": "ck.profile.cba_lattice_vectors.v1",
+  "version": "2026-06-19",
+  "suite": "state_reducer_hardening",
+  "runner": "cotest::conformance::state_reducer_hardening",
+  "covers_vectors": [
+    "ck.vector.state_root.incremental.v1",
+    "ck.vector.strand_tracks_update.atomic.v1"
+  ],
+  "cases": [
+    {
+      "vector_id": "ck.vector.state_root.incremental.v1",
+      "assertions": [
+        "incremental_root_equals_full_root",
+        "empty_delta_reuses_previous_state_root",
+        "stale_leaf_cache_drifts_from_full_root",
+        "new_cell_is_sorted_into_leaf_set",
+        "tombstone_cell_remains_in_leaf_set"
+      ],
+      "input": {
+        "initial_cells": [
+          {
+            "cell": "ck:cell:ck.component.state_root.fixture.v1:cell.001",
+            "value": {
+              "seq": 1,
+              "state": "alpha"
+            }
+          },
+          {
+            "cell": "ck:cell:ck.component.state_root.fixture.v1:cell.002",
+            "value": {
+              "seq": 2,
+              "state": "bravo"
+            }
+          },
+          {
+            "cell": "ck:cell:ck.component.state_root.fixture.v1:cell.003",
+            "value": {
+              "seq": 3,
+              "state": "charlie"
+            }
+          },
+          {
+            "cell": "ck:cell:ck.component.state_root.fixture.v1:cell.004",
+            "value": {
+              "seq": 4,
+              "state": "delta"
+            }
+          },
+          {
+            "cell": "ck:cell:ck.component.state_root.fixture.v1:cell.005",
+            "value": {
+              "seq": 5,
+              "state": "echo"
+            }
+          },
+          {
+            "cell": "ck:cell:ck.component.state_root.fixture.v1:cell.006",
+            "value": {
+              "seq": 6,
+              "state": "foxtrot"
+            }
+          },
+          {
+            "cell": "ck:cell:ck.component.state_root.fixture.v1:cell.007",
+            "value": {
+              "seq": 7,
+              "state": "golf"
+            }
+          },
+          {
+            "cell": "ck:cell:ck.component.state_root.fixture.v1:cell.008",
+            "value": {
+              "seq": 8,
+              "state": "hotel"
+            }
+          }
+        ],
+        "transitions": [
+          {
+            "name": "single_cell_update",
+            "delta": [
+              {
+                "cell": "ck:cell:ck.component.state_root.fixture.v1:cell.003",
+                "op": "set",
+                "value": {
+                  "seq": 9,
+                  "state": "charlie-updated"
+                }
+              }
+            ],
+            "expected": {
+              "incremental_equals_full": true,
+              "non_empty_delta_changes_root": true,
+              "stale_cache_would_drift": true
+            }
+          },
+          {
+            "name": "half_cell_update",
+            "delta": [
+              {
+                "cell": "ck:cell:ck.component.state_root.fixture.v1:cell.002",
+                "op": "set",
+                "value": {
+                  "seq": 10,
+                  "state": "bravo-updated"
+                }
+              },
+              {
+                "cell": "ck:cell:ck.component.state_root.fixture.v1:cell.004",
+                "op": "set",
+                "value": {
+                  "seq": 11,
+                  "state": "delta-updated"
+                }
+              },
+              {
+                "cell": "ck:cell:ck.component.state_root.fixture.v1:cell.006",
+                "op": "set",
+                "value": {
+                  "seq": 12,
+                  "state": "foxtrot-updated"
+                }
+              },
+              {
+                "cell": "ck:cell:ck.component.state_root.fixture.v1:cell.008",
+                "op": "set",
+                "value": {
+                  "seq": 13,
+                  "state": "hotel-updated"
+                }
+              }
+            ],
+            "expected": {
+              "incremental_equals_full": true,
+              "non_empty_delta_changes_root": true,
+              "delta_order_independent": true
+            }
+          },
+          {
+            "name": "all_cells_update",
+            "delta": [
+              {
+                "cell": "ck:cell:ck.component.state_root.fixture.v1:cell.001",
+                "op": "set",
+                "value": {
+                  "seq": 21,
+                  "state": "alpha-all"
+                }
+              },
+              {
+                "cell": "ck:cell:ck.component.state_root.fixture.v1:cell.002",
+                "op": "set",
+                "value": {
+                  "seq": 22,
+                  "state": "bravo-all"
+                }
+              },
+              {
+                "cell": "ck:cell:ck.component.state_root.fixture.v1:cell.003",
+                "op": "set",
+                "value": {
+                  "seq": 23,
+                  "state": "charlie-all"
+                }
+              },
+              {
+                "cell": "ck:cell:ck.component.state_root.fixture.v1:cell.004",
+                "op": "set",
+                "value": {
+                  "seq": 24,
+                  "state": "delta-all"
+                }
+              },
+              {
+                "cell": "ck:cell:ck.component.state_root.fixture.v1:cell.005",
+                "op": "set",
+                "value": {
+                  "seq": 25,
+                  "state": "echo-all"
+                }
+              },
+              {
+                "cell": "ck:cell:ck.component.state_root.fixture.v1:cell.006",
+                "op": "set",
+                "value": {
+                  "seq": 26,
+                  "state": "foxtrot-all"
+                }
+              },
+              {
+                "cell": "ck:cell:ck.component.state_root.fixture.v1:cell.007",
+                "op": "set",
+                "value": {
+                  "seq": 27,
+                  "state": "golf-all"
+                }
+              },
+              {
+                "cell": "ck:cell:ck.component.state_root.fixture.v1:cell.008",
+                "op": "set",
+                "value": {
+                  "seq": 28,
+                  "state": "hotel-all"
+                }
+              }
+            ],
+            "expected": {
+              "incremental_equals_full": true,
+              "non_empty_delta_changes_root": true
+            }
+          },
+          {
+            "name": "empty_delta_reuses_previous_root",
+            "delta": [],
+            "expected": {
+              "incremental_equals_full": true,
+              "reuses_previous_root": true,
+              "must_not_return_empty_merkle_root": true
+            }
+          },
+          {
+            "name": "new_cell_plus_tombstone",
+            "delta": [
+              {
+                "cell": "ck:cell:ck.component.state_root.fixture.v1:cell.009",
+                "op": "set",
+                "value": {
+                  "seq": 31,
+                  "state": "india-new"
+                }
+              },
+              {
+                "cell": "ck:cell:ck.component.state_root.fixture.v1:cell.002",
+                "op": "tombstone",
+                "value": {
+                  "deleted": true,
+                  "reason": "schema_evolution"
+                }
+              }
+            ],
+            "expected": {
+              "incremental_equals_full": true,
+              "new_cell_present": "ck:cell:ck.component.state_root.fixture.v1:cell.009",
+              "tombstone_cell_remains": "ck:cell:ck.component.state_root.fixture.v1:cell.002",
+              "final_cell_count": 9
+            }
+          }
+        ]
+      }
+    },
+    {
+      "vector_id": "ck.vector.strand_tracks_update.atomic.v1",
+      "assertions": [
+        "multi_path_patch_is_single_cell_write",
+        "primary_switch_validates_after_merge",
+        "intermediate_zero_primary_state_is_not_observed",
+        "conflicting_primary_patch_rejects_all_or_nothing",
+        "selector_segment_rejects_schema_violation"
+      ],
+      "input": {
+        "strand_id": "ck:strand:0196419b-0000-7000-8000-000000000901",
+        "cell_id": "ck:cell:ck.component.strand.tracks.v1:ck.strand.0196419b-0000-7000-8000-000000000901",
+        "initial_tracks": {
+          "synthesis": {
+            "enabled": true,
+            "is_primary": true
+          },
+          "discussion": {
+            "enabled": true,
+            "is_primary": false
+          }
+        },
+        "cases": [
+          {
+            "name": "primary_switch_atomic",
+            "patch": [
+              {
+                "path": "tracks.synthesis.is_primary",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "tracks.discussion.is_primary",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "expected": {
+              "decision": "accept",
+              "cell_writes": 1,
+              "sequential_first_path_would_violate": true,
+              "tracks": {
+                "discussion": {
+                  "enabled": true,
+                  "is_primary": true
+                },
+                "synthesis": {
+                  "enabled": true,
+                  "is_primary": false
+                }
+              }
+            }
+          },
+          {
+            "name": "add_disable_primary_transfer_atomic",
+            "patch": [
+              {
+                "path": "tracks.review.enabled",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "tracks.discussion.enabled",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "tracks.synthesis.is_primary",
+                "op": "set",
+                "value": false
+              },
+              {
+                "path": "tracks.review.is_primary",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "expected": {
+              "decision": "accept",
+              "cell_writes": 1,
+              "tracks": {
+                "discussion": {
+                  "enabled": false,
+                  "is_primary": false
+                },
+                "review": {
+                  "enabled": true,
+                  "is_primary": true
+                },
+                "synthesis": {
+                  "enabled": true,
+                  "is_primary": false
+                }
+              }
+            }
+          },
+          {
+            "name": "primary_conflict_rejected_all_or_nothing",
+            "patch": [
+              {
+                "path": "tracks.synthesis.is_primary",
+                "op": "set",
+                "value": true
+              },
+              {
+                "path": "tracks.discussion.is_primary",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "expected": {
+              "decision": "reject",
+              "reason": "schema_violation",
+              "tracks_unchanged": true
+            }
+          },
+          {
+            "name": "selector_segment_rejected",
+            "patch": [
+              {
+                "path": "tracks.review[key=id].enabled",
+                "op": "set",
+                "value": true
+              }
+            ],
+            "expected": {
+              "decision": "reject",
+              "reason": "schema_violation",
+              "tracks_unchanged": true
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -852,6 +852,7 @@
       "status": "active",
       "domain": "strand_tracks_update",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -1599,6 +1600,7 @@
       "status": "active",
       "domain": "state_root",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
