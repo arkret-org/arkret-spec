@@ -9,6 +9,10 @@
       "sha256": "6b82e901d11d231fd1120c0b45558cc8c4ea4fd1d9660927c49788ffdf3cf6ac"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/call-state-core-fixture.json",
+      "sha256": "13b9b69d8c905e04d40cd74510c1ffbaf17cdc2e385232c0cdd3d978204880d8"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/call-state-media-lifecycle-fixture.json",
       "sha256": "6687bb9c1237ed839abdf847177b76fe10a986b3c4a74d2dd74776f6b83de2f9"
     },

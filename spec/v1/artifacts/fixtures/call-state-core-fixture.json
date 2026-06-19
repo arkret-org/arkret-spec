@@ -1,0 +1,77 @@
+{
+  "profile": "ck.profile.media_service_binding.v1",
+  "version": "2026-06-19",
+  "suite": "call_state_core",
+  "runner": "cotest::conformance::call_state_core",
+  "covers_vectors": [
+    "ck.vector.call_state.participant_binding_invalid.v1",
+    "ck.vector.call_state.initial_state_accepts_allowed.v1",
+    "ck.vector.call_state.transition_matrix.v1",
+    "ck.vector.call_state.terminal_absorbing.v1",
+    "ck.vector.call_state.replay_same_state_noop.v1",
+    "ck.vector.call_state.concurrent_sibling_bottom.v1"
+  ],
+  "cases": [
+    {
+      "name": "participant_binding_invalid",
+      "vector_id": "ck.vector.call_state.participant_binding_invalid.v1",
+      "runner": "cotest::conformance::call_state_core::run_participant_binding_invalid_vector",
+      "assertions": [
+        "unanchored participant_binding issuer maps to participant_binding_invalid at reducer admission",
+        "tuple mismatch maps to participant_binding_invalid while preserving schema validity",
+        "expired participant_binding maps to participant_binding_invalid",
+        "signature verification failure maps to participant_binding_invalid",
+        "fully valid participant_binding control is accepted"
+      ]
+    },
+    {
+      "name": "initial_state_accepts_allowed",
+      "vector_id": "ck.vector.call_state.initial_state_accepts_allowed.v1",
+      "runner": "cotest::conformance::call_state_core::run_initial_state_accepts_allowed_vector",
+      "assertions": [
+        "scheduled, ringing, and connecting are the only accepted initial states",
+        "active and terminal initial states fail with call_state_transition_invalid"
+      ]
+    },
+    {
+      "name": "transition_matrix",
+      "vector_id": "ck.vector.call_state.transition_matrix.v1",
+      "runner": "cotest::conformance::call_state_core::run_transition_matrix_vector",
+      "assertions": [
+        "every call-state.md legal transition edge is accepted",
+        "representative non-terminal illegal edges fail with call_state_transition_invalid",
+        "non-terminal illegal edges are not reported as call_state_terminal"
+      ]
+    },
+    {
+      "name": "terminal_absorbing",
+      "vector_id": "ck.vector.call_state.terminal_absorbing.v1",
+      "runner": "cotest::conformance::call_state_core::run_terminal_absorbing_vector",
+      "assertions": [
+        "ended, missed, failed, and cancelled reject every outgoing transition",
+        "terminal outgoing attempts fail with call_state_terminal",
+        "the original terminal head remains unchanged"
+      ]
+    },
+    {
+      "name": "replay_same_state_noop",
+      "vector_id": "ck.vector.call_state.replay_same_state_noop.v1",
+      "runner": "cotest::conformance::call_state_core::run_replay_same_state_noop_vector",
+      "assertions": [
+        "same-basis replay of ringing to connecting is idempotent",
+        "duplicate equivalent transitions keep the final head at connecting",
+        "duplicate equivalent transitions do not surface call_state_transition_invalid"
+      ]
+    },
+    {
+      "name": "concurrent_sibling_bottom",
+      "vector_id": "ck.vector.call_state.concurrent_sibling_bottom.v1",
+      "runner": "cotest::conformance::call_state_core::run_concurrent_sibling_bottom_vector",
+      "assertions": [
+        "same-basis ringing to active and ringing to missed siblings produce Bottom",
+        "the Bottom kind is conflict",
+        "no deterministic winner is selected from the sibling heads"
+      ]
+    }
+  ]
+}

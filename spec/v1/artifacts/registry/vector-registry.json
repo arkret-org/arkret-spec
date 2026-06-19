@@ -201,7 +201,8 @@
         "ck.profile.media_service_binding.v1"
       ],
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/call-state-core-fixture.json"
       ]
     },
     {
@@ -213,7 +214,8 @@
       ],
       "description": "Accepts the three legal first call states and rejects active or terminal first states.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/call-state-core-fixture.json"
       ]
     },
     {
@@ -225,7 +227,8 @@
       ],
       "description": "Covers every legal call lifecycle transition and representative non-terminal illegal transitions.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/call-state-core-fixture.json"
       ]
     },
     {
@@ -237,7 +240,8 @@
       ],
       "description": "Terminal call states reject every attempted outgoing transition with call_state_terminal.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/call-state-core-fixture.json"
       ]
     },
     {
@@ -249,7 +253,8 @@
       ],
       "description": "Same-basis replay of the same from/to transition is idempotent and does not create a divergent head.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/call-state-core-fixture.json"
       ]
     },
     {
@@ -261,7 +266,8 @@
       ],
       "description": "Same-basis sibling transitions to different states return fsm bottom instead of selecting a winner.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/call-state-core-fixture.json"
       ]
     },
     {
