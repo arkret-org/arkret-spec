@@ -268,7 +268,8 @@
       ],
       "description": "Recording retention: audit_lock blocks deletion (legal_hold_active) regardless of retention_expires_at, and entering a capturing recording_state without consent_confirmed fails with recording_consent_required.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/call-state-media-lifecycle-fixture.json"
       ]
     },
     {
@@ -280,7 +281,8 @@
       ],
       "description": "Recording ready results MUST carry ck.schema.call_recording_artifact.v1 metadata bound to the recording start event, Cokret blob pipeline, recording exporter label/context, retention policy, deletion audit trigger, and erasure receipt.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/call-state-media-lifecycle-fixture.json"
       ]
     },
     {
@@ -292,7 +294,8 @@
       ],
       "description": "Transcription requires ck.call.transcribe (transcription_denied otherwise), and transcript artifacts MUST use the ck-rtc-transcript-key/v1 exporter label with a dedicated Context (transcription_artifact_pipeline_bypassed otherwise).",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/call-state-media-lifecycle-fixture.json"
       ]
     },
     {
@@ -304,7 +307,8 @@
       ],
       "description": "Moderator kick/ban requires ck.call.moderate (call_moderation_unauthorised otherwise); removed_participants[] gates token re-issue with call_participant_removed.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/call-state-media-lifecycle-fixture.json"
       ]
     },
     {
@@ -316,7 +320,8 @@
       ],
       "description": "P2P calls converge to SFU when participants exceed two, reusing the oldest_membership no-vote session_focus election; mode does not auto-downgrade, and ck.call.summary is gated on a terminal call state (call_summary_invalid otherwise).",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/call-state-media-lifecycle-fixture.json"
       ]
     },
     {
@@ -985,7 +990,8 @@
       ],
       "source_refs": [
         "spec/v1/zh/crypto-media/media-service-binding.md",
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/media-binding-fixture.json"
       ]
     },
     {
@@ -997,7 +1003,8 @@
       ],
       "source_refs": [
         "spec/v1/zh/crypto-media/media-service-binding.md",
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/media-binding-fixture.json"
       ]
     },
     {
@@ -1009,7 +1016,8 @@
       ],
       "source_refs": [
         "spec/v1/zh/crypto-media/media-service-binding.md",
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/media-binding-fixture.json"
       ]
     },
     {
@@ -1021,7 +1029,8 @@
       ],
       "source_refs": [
         "spec/v1/zh/crypto-media/media-service-binding.md",
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/media-binding-fixture.json"
       ]
     },
     {
@@ -1033,7 +1042,8 @@
       ],
       "source_refs": [
         "spec/v1/zh/crypto-media/media-service-binding.md",
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/media-binding-fixture.json"
       ]
     },
     {
@@ -1059,7 +1069,8 @@
       ],
       "source_refs": [
         "spec/v1/zh/crypto-media/media-service-binding.md",
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/media-binding-fixture.json"
       ]
     },
     {
@@ -1071,7 +1082,8 @@
       ],
       "source_refs": [
         "spec/v1/zh/crypto-media/media-service-binding.md",
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/media-binding-fixture.json"
       ]
     },
     {
@@ -1083,7 +1095,8 @@
       ],
       "source_refs": [
         "spec/v1/zh/crypto-media/media-service-binding.md",
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/media-binding-fixture.json"
       ]
     },
     {
@@ -1095,7 +1108,8 @@
       ],
       "source_refs": [
         "spec/v1/zh/crypto-media/media-service-binding.md",
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/media-binding-fixture.json"
       ]
     },
     {

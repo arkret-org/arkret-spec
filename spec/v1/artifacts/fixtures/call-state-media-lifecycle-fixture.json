@@ -1,0 +1,65 @@
+{
+  "profile": "ck.profile.media_service_binding.v1",
+  "version": "2026-06-19",
+  "suite": "call_state_media_lifecycle",
+  "runner": "cotest::conformance::call_state_media_lifecycle",
+  "covers_vectors": [
+    "ck.vector.call_state.recording_retention_lock.v1",
+    "ck.vector.call_state.recording_result_artifact_shape.v1",
+    "ck.vector.call_state.transcribe_lifecycle.v1",
+    "ck.vector.call_state.moderator_kick_ban.v1",
+    "ck.vector.call_state.p2p_to_sfu_upgrade.v1"
+  ],
+  "cases": [
+    {
+      "name": "recording_retention_lock",
+      "vector_id": "ck.vector.call_state.recording_retention_lock.v1",
+      "runner": "cotest::conformance::call_state_media_lifecycle::run_recording_retention_lock_vector",
+      "assertions": [
+        "audit_lock blocks recording deletion regardless of retention_expires_at",
+        "capture without consent_confirmed fails with recording_consent_required",
+        "unlocked expired retention permits deletion"
+      ]
+    },
+    {
+      "name": "recording_result_artifact_shape",
+      "vector_id": "ck.vector.call_state.recording_result_artifact_shape.v1",
+      "runner": "cotest::conformance::call_state_media_lifecycle::run_recording_result_artifact_shape_vector",
+      "assertions": [
+        "ready recording_result carries ck.schema.call_recording_artifact.v1 metadata",
+        "backend-direct recording URLs fail with recording_artifact_pipeline_bypassed",
+        "completed deletion carries deletion_audit and erasure_receipt_ref"
+      ]
+    },
+    {
+      "name": "transcribe_lifecycle",
+      "vector_id": "ck.vector.call_state.transcribe_lifecycle.v1",
+      "runner": "cotest::conformance::call_state_media_lifecycle::run_transcribe_lifecycle_vector",
+      "assertions": [
+        "transcription requires ck.call.transcribe capability",
+        "transcript artifacts use ck-rtc-transcript-key/v1",
+        "SFrame or recording exporter labels are rejected for transcripts"
+      ]
+    },
+    {
+      "name": "moderator_kick_ban",
+      "vector_id": "ck.vector.call_state.moderator_kick_ban.v1",
+      "runner": "cotest::conformance::call_state_media_lifecycle::run_moderator_kick_ban_vector",
+      "assertions": [
+        "moderation requires ck.call.moderate capability",
+        "device-scoped kicks block only that device",
+        "actor-wide bans block every device for that actor"
+      ]
+    },
+    {
+      "name": "p2p_to_sfu_upgrade",
+      "vector_id": "ck.vector.call_state.p2p_to_sfu_upgrade.v1",
+      "runner": "cotest::conformance::call_state_media_lifecycle::run_p2p_to_sfu_upgrade_vector",
+      "assertions": [
+        "three active participants force p2p calls to sfu mode",
+        "sfu mode does not auto-downgrade when participants drop to two",
+        "ck.call.summary is accepted only for terminal call states"
+      ]
+    }
+  ]
+}

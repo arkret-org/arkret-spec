@@ -1,6 +1,10 @@
 {
   "files": [
     {
+      "path": "spec/v1/artifacts/fixtures/call-state-media-lifecycle-fixture.json",
+      "sha256": "6687bb9c1237ed839abdf847177b76fe10a986b3c4a74d2dd74776f6b83de2f9"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/capability-fixture.json",
       "sha256": "a7b6727055a4cbe2bdbf852051a4875f6a7e8f16773f120a5d0ce094b59a0e35"
     },
@@ -31,6 +35,10 @@
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
       "sha256": "47ff50fea53d0ef5757123ad0ee5794e94d417a1b4fc3017045ffcc090320a7a"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/media-binding-fixture.json",
+      "sha256": "78580fcb02b1b39290aa2a31c7aa3c9b3b6fc97e4e8ccb390e8ef280a45c8401"
     },
     {
       "path": "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",
