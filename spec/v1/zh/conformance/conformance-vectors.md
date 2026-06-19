@@ -2628,15 +2628,18 @@ Expected：
 Steps：
 
 1. 正路径：Realm frontier 中存在 `state="pending"` 的 `ck.invite.third_party`，`token_commitment`、`claim_nonce`、`verification_service_did` allowlist、`binding_proof`、`subject_proof` 和 `expires_at` 均有效。
-2. Token commitment mismatch：`ck.invite.claim.payload.token_commitment` 不等于 pending invite 的 commitment。
-3. Allowlist 复校验失败：验证服务曾签发 binding proof，但当前 effective Realm policy 已移除该 `verification_service_did`。
-4. Claim nonce replay：同一 `(invite_id, claim_nonce)` 或同一 `token_commitment` 已被 reducer 观察为 claim effect。
-5. Expired cleanup：`invite.expires_at <= now` 时提交 claim。
+2. Binding proof signature replay：`binding_proof.signature` 来自另一组 `invite_id` / `token_commitment` / `claim_nonce` / `invite_digest` transcript。
+3. Subject proof old DID key：`subject_proof.verification_method` 曾属于 `subject_id`，但不在当前 DID document 的有效 verification method 集。
+4. Subject proof transcript replay：`subject_proof.transcript_digest` / signature 绑定的是另一份 `binding_proof_digest` 或 verification service。
+5. Token commitment mismatch：`ck.invite.claim.payload.token_commitment` 不等于 pending invite 的 commitment。
+6. Allowlist 复校验失败：验证服务曾签发 binding proof，但当前 effective Realm policy 已移除该 `verification_service_did`。
+7. Claim nonce replay：同一 `(invite_id, claim_nonce)` 或同一 `token_commitment` 已被 reducer 观察为 claim effect。
+8. Expired cleanup：`invite.expires_at <= now` 时提交 claim。
 
 Expected：
 
 - Case 1：Reducer MUST 原子产生 `pending -> claimed`，记录 `claimed_by=subject_id`、claim nonce digest 和 verification service DID，并只物化 subject-bound `ck.invite.create` 或等价 membership proposal；最终 `ck.member.state{membership="join"}` 仍需 `ck.invite.accept` 或显式 profile 路径。
-- Cases 2-5：Reducer MUST reject，不得产生 membership proposal 或 join；case 4 使用 `duplicate_conflict`，case 5 使用内部 `expired_invite_token` 并触发 §6.1 token material cleanup。
+- Cases 2-8：Reducer MUST reject，不得产生 membership proposal 或 join；proof/signature 类失败使用内部 `proof_invalid` 或更细 audit reason，case 7 使用 `duplicate_conflict`，case 8 使用内部 `expired_invite_token` 并触发 §6.1 token material cleanup。
 - 所有失败通过外部 claim surface 返回不可枚举 `not_found` 或同形态响应；具体 reason 只进入 audit / per-event rejected diagnostics。
 
 ### 9.8 Vector: Consent Scope Cascade

@@ -152,6 +152,12 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Re
 }
 ```
 
+`binding_proof.signature` 的签名输入 MUST 使用域分隔 transcript：
+
+`utf8("ck.invite.claim.binding_proof.v1\n") || canonical_json({audience:"cokret.invite.claim", binding_proof: unsigned_binding_proof, claim_nonce, invite_digest, invite_id, realm_id, subject_id, token_commitment, verification_service_did})`
+
+其中 `unsigned_binding_proof` 是去掉 `signature` 字段后的 `binding_proof` object；`verification_service_did` 等于 `binding_proof.verification_service_did`；`invite_digest` 是 reducer 当前 pending invite cell 的 canonical digest，计算对象为 `canonical_json({invite_id, realm_id, expires_at, third_party_id})` 后取 `sha256:<hex>`，其中 `third_party_id` MUST 使用该 invite cell 内的当前字段值。Reducer MUST 用 invite cell 记录的 `verification_public_key` / `verification_method` 校验该签名；只验证 `binding_proof` 裸 object、或不绑定 `invite_id` / `token_commitment` / `invite_digest` / `claim_nonce` 的证明 MUST reject。
+
 ### 4.3 Realm reducer 状态机转换
 
 `ck.invite.claim` 是 Realm 控制面 reducer input。Sync Service、验证服务和客户端 MAY 在入站路径做格式、签名、限速和不可枚举预拒绝，但它们不得成为 invite state 的真源；是否把某个 `ck.invite.third_party` 从 `pending` 推进到 `claimed`、是否产生后续 membership proposal / accept 权限，只能由目标 Realm 的 reducer 在同一状态机中决定。任何 projection、缓存或服务端本地表若与 reducer 结果冲突，MUST 以 reducer 结果为准并回滚派生状态。
@@ -160,7 +166,7 @@ Reducer 处理 `ck.invite.claim` 时 MUST 按下列顺序 fail closed；所有�
 
 1. 从当前 accepted Realm frontier 读取目标 invite cell，按 `invite_id` 与 `token_commitment` 匹配一条 `state="pending"` 的 `ck.invite.third_party`；`token_commitment` 不一致、invite 不存在、不是 3PID invite、或已进入 `claimed` / `expired` / `revoked` / `send_failed` / `invalidated_by_rate_limit` 等非 pending 状态时 MUST reject，且不得创建 membership proposal。
 2. 在任何签名接受前重算过期与清理前置条件：若 `invite.expires_at <= now`，reducer MUST 把 invite cell 推进到 `expired`（或在同一 batch 中接受已由授权 actor 提交的等价 `expired` transition）并以 `expired_invite_token` 拒绝本次 claim；token material / lookup pepper 的 zeroize 规则见 §6.1。
-3. 验证 `binding_proof` 必须由该 invite 记录中的 `verification_public_key` 签署，并绑定 `subject_id`、`realm_id`、audience、过期时间和 claim nonce；`binding_proof.subject_id`、`binding_proof.realm_id`、`binding_proof.claim_nonce` 与 payload 顶层字段不一致时 MUST reject。
+3. 验证 `binding_proof` 必须由该 invite 记录中的 `verification_public_key` 签署，签名输入 MUST 是 §4.2 定义的 `ck.invite.claim.binding_proof.v1` transcript，并绑定 `subject_id`、`realm_id`、audience、过期时间、claim nonce、`invite_id`、`token_commitment` 与 invite cell digest；`binding_proof.subject_id`、`binding_proof.realm_id`、`binding_proof.claim_nonce` 与 payload 顶层字段不一致时 MUST reject。
 4. 复校验 `binding_proof.verification_service_did` 落入**当前 effective Realm policy** 的显式授权集（§2.1 Allowlist MUST），并且若 invite 创建时绑定了授权服务 DID，该 DID 也必须与 binding proof 一致。该复校验必须在 reducer 内执行；不能因为验证服务、Auth Server、接收 Sync Service 或历史 invite metadata 已经校验过而跳过。不在授权集内的 `verification_service_did` MUST reject，且不得因后续 `subject_proof` 有效而放行。
 5. 验证 `subject_proof` 来自 `subject_id` 的当前有效 verification method，防止验证服务把 token 绑定到攻击者 DID。该签名 MUST 覆盖 canonical transcript `utf8("ck.invite.claim.subject_proof.v1\n") || canonical_json({subject_id, invite_id, realm_id, token_commitment, claim_nonce, audience:"cokret.invite.claim", verification_service_did, binding_proof_digest})`，其中 `verification_service_did` 等于 `binding_proof.verification_service_did`，`binding_proof_digest` 是 `binding_proof` 的 canonical-JSON digest（`sha256:<hex>`）。这确保 subject 证明的语义是"我同意被这个特定验证服务签发的这个特定 `binding_proof` 绑定"，而不是泛化的"我同意加入"；据此，攻击者或被替换的验证服务无法把另一份 binding_proof / 另一个验证服务身份套用到同一 subject signature 上。只验证裸 DID 控制权、或不绑定 `invite_id` / `realm_id` / `token_commitment` / `claim_nonce` / `verification_service_did` / `binding_proof_digest` 的 subject proof MUST reject；`verification_service_did` 与 `binding_proof.verification_service_did` 不一致、或 `binding_proof_digest` 与 `binding_proof` 实际 canonical digest 不一致时同样 MUST reject。
 6. 在 reducer state 中检查 `(invite_id, claim_nonce)` 与 `token_commitment` 两类一次性约束：同一 `(invite_id, claim_nonce)` 的重复 claim、或同一 `token_commitment` 已有 accepted claim effect，均 MUST 以 `duplicate_conflict` 拒绝。该检查必须与 invite cell 的 `pending -> claimed` transition 原子提交，不能依赖入站服务的幂等表作为唯一保护。

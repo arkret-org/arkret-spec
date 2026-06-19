@@ -5176,7 +5176,7 @@
         },
         "binding_proof": {
           "type": "object",
-          "description": "Verification-service proof for ck.invite.claim. Reducers verify this against the invite's verification_public_key and current Realm verification_service_did allowlist before accepting a claimed transition.",
+          "description": "Verification-service proof for ck.invite.claim. Reducers verify signature over the ck.invite.claim.binding_proof.v1 transcript against the invite's verification_public_key and current Realm verification_service_did allowlist before accepting a claimed transition.",
           "required": [
             "verification_service_did",
             "verification_method",
@@ -5219,14 +5219,15 @@
               "description": "Proof expiration. Reducers MUST reject expired proofs and MUST also enforce the invite cell expires_at."
             },
             "signature": {
-              "$ref": "#/$defs/signature_material"
+              "$ref": "#/$defs/signature_material",
+              "description": "Signature over utf8(\"ck.invite.claim.binding_proof.v1\\n\") || canonical_json({audience, binding_proof: unsigned_binding_proof, claim_nonce, invite_digest, invite_id, realm_id, subject_id, token_commitment, verification_service_did}); unsigned_binding_proof is this object without signature."
             }
           },
           "additionalProperties": false
         },
         "subject_proof": {
           "type": "object",
-          "description": "Subject DID proof over ck.invite.claim.subject_proof.v1 transcript. The transcript digest binds subject_id, invite_id, realm_id, token_commitment, claim_nonce, audience, verification_service_did, and binding_proof_digest.",
+          "description": "Subject DID proof over ck.invite.claim.subject_proof.v1 transcript. The transcript digest binds subject_id, invite_id, realm_id, token_commitment, claim_nonce, audience, verification_service_did, and binding_proof_digest of the complete signed binding_proof object.",
           "required": [
             "verification_method",
             "alg",

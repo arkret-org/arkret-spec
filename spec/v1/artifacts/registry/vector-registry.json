@@ -877,7 +877,7 @@
       "vector_id": "ck.vector.invite.claim_reducer_state_machine.v1",
       "status": "active",
       "domain": "invite",
-      "description": "Realm reducer authority for ck.invite.claim: token_commitment match, verification_service_did allowlist re-check, claim_nonce replay rejection, pending -> claimed membership-proposal conversion, and expiry cleanup are enforced before acceptance.",
+      "description": "Realm reducer authority for ck.invite.claim: binding_proof and subject_proof signature transcripts, token_commitment match, verification_service_did allowlist re-check, claim_nonce replay rejection, pending -> claimed membership-proposal conversion, and expiry cleanup are enforced before acceptance.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-vectors.json",
         "spec/v1/zh/conformance/conformance-vectors.md",

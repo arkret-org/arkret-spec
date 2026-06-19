@@ -678,6 +678,177 @@
           }
         },
         {
+          "name": "binding_proof_signature_replay_across_token_rejected",
+          "input": {
+            "invite_state": "pending",
+            "token_commitment_match": true,
+            "verification_service_allowed_current_policy": true,
+            "claim_nonce_seen": false,
+            "invite_expires_at_relative_to_now": "future",
+            "binding_proof_valid": false,
+            "binding_proof_failure": "transcript_replay_across_token_commitment",
+            "subject_proof_valid": true
+          },
+          "expected": {
+            "outcome": "rejected",
+            "reason_code": "proof_invalid",
+            "invariants": [
+              "binding_proof signature input binds invite_id, token_commitment, claim_nonce, and invite_digest",
+              "a binding_proof signature from a different token commitment cannot be replayed",
+              "no membership proposal is materialized"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ck.vector.invite.claim_reducer_state_machine.v1",
+              "preconditions": {
+                "invite_state": "pending",
+                "token_commitment_match": true,
+                "verification_service_allowed_current_policy": true,
+                "claim_nonce_seen": false,
+                "invite_expires_at_relative_to_now": "future"
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "binding_proof_signature_replay_across_token_rejected",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "binding_proof_failure": "transcript_replay_across_token_commitment"
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "rejected",
+              "reason_code": "proof_invalid",
+              "invite_state": "pending",
+              "membership_proposal": "none",
+              "invariants": [
+                "binding_proof signature input binds invite_id, token_commitment, claim_nonce, and invite_digest",
+                "a binding_proof signature from a different token commitment cannot be replayed",
+                "no membership proposal is materialized"
+              ]
+            },
+            "expected_external_response": {
+              "outcome": "not_found"
+            },
+            "expected_audit_reason": "proof_invalid"
+          }
+        },
+        {
+          "name": "subject_proof_old_did_key_rejected",
+          "input": {
+            "invite_state": "pending",
+            "token_commitment_match": true,
+            "verification_service_allowed_current_policy": true,
+            "claim_nonce_seen": false,
+            "invite_expires_at_relative_to_now": "future",
+            "binding_proof_valid": true,
+            "subject_proof_valid": false,
+            "subject_proof_failure": "old_did_verification_method"
+          },
+          "expected": {
+            "outcome": "rejected",
+            "reason_code": "proof_invalid",
+            "invariants": [
+              "subject_proof must resolve to a current verification method for subject_id",
+              "a historical DID key cannot authorize the claim",
+              "no membership proposal is materialized"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ck.vector.invite.claim_reducer_state_machine.v1",
+              "preconditions": {
+                "invite_state": "pending",
+                "token_commitment_match": true,
+                "verification_service_allowed_current_policy": true,
+                "claim_nonce_seen": false,
+                "invite_expires_at_relative_to_now": "future"
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "subject_proof_old_did_key_rejected",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "subject_proof_failure": "old_did_verification_method"
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "rejected",
+              "reason_code": "proof_invalid",
+              "invite_state": "pending",
+              "membership_proposal": "none",
+              "invariants": [
+                "subject_proof must resolve to a current verification method for subject_id",
+                "a historical DID key cannot authorize the claim",
+                "no membership proposal is materialized"
+              ]
+            },
+            "expected_external_response": {
+              "outcome": "not_found"
+            },
+            "expected_audit_reason": "proof_invalid"
+          }
+        },
+        {
+          "name": "subject_proof_transcript_replay_rejected",
+          "input": {
+            "invite_state": "pending",
+            "token_commitment_match": true,
+            "verification_service_allowed_current_policy": true,
+            "claim_nonce_seen": false,
+            "invite_expires_at_relative_to_now": "future",
+            "binding_proof_valid": true,
+            "subject_proof_valid": false,
+            "subject_proof_failure": "transcript_replay_across_binding_proof_digest"
+          },
+          "expected": {
+            "outcome": "rejected",
+            "reason_code": "proof_invalid",
+            "invariants": [
+              "subject_proof transcript_digest binds the complete signed binding_proof digest",
+              "a subject signature cannot be replayed across a different binding_proof or verification service",
+              "no membership proposal is materialized"
+            ]
+          },
+          "runner": {
+            "given_state": {
+              "vector_id": "ck.vector.invite.claim_reducer_state_machine.v1",
+              "preconditions": {
+                "invite_state": "pending",
+                "token_commitment_match": true,
+                "verification_service_allowed_current_policy": true,
+                "claim_nonce_seen": false,
+                "invite_expires_at_relative_to_now": "future"
+              }
+            },
+            "operation": "security_closure.evaluate",
+            "transcript": {
+              "step": "subject_proof_transcript_replay_rejected",
+              "canonicalization": "fixture_json_v1",
+              "input": {
+                "subject_proof_failure": "transcript_replay_across_binding_proof_digest"
+              }
+            },
+            "expected_state_transition": {
+              "outcome": "rejected",
+              "reason_code": "proof_invalid",
+              "invite_state": "pending",
+              "membership_proposal": "none",
+              "invariants": [
+                "subject_proof transcript_digest binds the complete signed binding_proof digest",
+                "a subject signature cannot be replayed across a different binding_proof or verification service",
+                "no membership proposal is materialized"
+              ]
+            },
+            "expected_external_response": {
+              "outcome": "not_found"
+            },
+            "expected_audit_reason": "proof_invalid"
+          }
+        },
+        {
           "name": "token_commitment_mismatch_rejected",
           "input": {
             "invite_state": "pending",
