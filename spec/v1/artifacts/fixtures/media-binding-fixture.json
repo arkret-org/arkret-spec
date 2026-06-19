@@ -12,7 +12,8 @@
     "ck.vector.media_binding.unknown_type_fail_closed.v1",
     "ck.vector.media_binding.e2ee_key_source.v1",
     "ck.vector.media_binding.participant_identity_unrecognised.v1",
-    "ck.vector.media_binding.recording_artifact_via_cokret_blob.v1"
+    "ck.vector.media_binding.recording_artifact_via_cokret_blob.v1",
+    "ck.vector.media_binding.recording_exporter_label.v1"
   ],
   "cases": [
     {
@@ -98,6 +99,16 @@
       "assertions": [
         "recording egress lands on a Cokret blob endpoint",
         "direct S3, GCS, or arbitrary HTTP recording endpoints fail closed"
+      ]
+    },
+    {
+      "name": "recording_exporter_label",
+      "vector_id": "ck.vector.media_binding.recording_exporter_label.v1",
+      "runner": "cotest::conformance::media_binding::run_recording_exporter_label_vector",
+      "assertions": [
+        "recording artifacts use the ck-rtc-recording-key/v1 exporter label",
+        "SFrame or transcript labels are rejected for recording artifact encryption",
+        "the recording exporter Context binds realm_id, call_id, focus_id, recording_id, media_service_did, and recording_start_event_id"
       ]
     }
   ]

@@ -1068,7 +1068,8 @@
       "source_refs": [
         "spec/v1/zh/crypto-media/bindings/livekit.md",
         "spec/v1/zh/crypto-media/media-service-binding.md",
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/media-binding-fixture.json"
       ]
     },
     {

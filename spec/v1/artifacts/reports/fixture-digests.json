@@ -50,7 +50,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/media-binding-fixture.json",
-      "sha256": "78580fcb02b1b39290aa2a31c7aa3c9b3b6fc97e4e8ccb390e8ef280a45c8401"
+      "sha256": "50996c4c40d5d4ee86930a5d5e69196642349134597c387b78a68cea65705218"
     },
     {
       "path": "spec/v1/artifacts/fixtures/membership-delivery-binding-fixture.json",
