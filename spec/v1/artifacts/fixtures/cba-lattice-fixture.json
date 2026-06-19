@@ -6,6 +6,50 @@
     "Seal delta entries reference only newly sealed control-plane event digests. Cumulative coverage is derived from predecessor_refs[] plus delta[]. DataEvent digests may appear in data_event_set_root / data_view_root observations, but those roots do not confer control-plane finality.",
     "Cell ids follow ck:cell:<component>:<subject>; subject placeholders use dot-safe strings to keep examples unambiguous."
   ],
+  "lattice_round_trip": {
+    "description": "SDK lattice round-trip runner coverage for CBA lattice family vectors whose semantics are exercised directly through cokret_core::lattice implementations.",
+    "runner": "cotest::conformance::run_lattice_round_trip_suite",
+    "covers_vectors": [
+      "ck.vector.lattice.mv_register_join.v1",
+      "ck.vector.lattice.counter_join.v1",
+      "ck.vector.lattice.ordered_log_join.v1",
+      "ck.vector.lattice.fsm_join.v1"
+    ],
+    "cases": [
+      {
+        "vector_id": "ck.vector.lattice.mv_register_join.v1",
+        "lattice": "mv_register",
+        "assertions": [
+          "concurrent_set_surfaces_all_heads",
+          "does_not_choose_winner"
+        ]
+      },
+      {
+        "vector_id": "ck.vector.lattice.counter_join.v1",
+        "lattice": "counter",
+        "assertions": [
+          "pn_sum_is_deterministic",
+          "inc_dec_replay_order_independent"
+        ]
+      },
+      {
+        "vector_id": "ck.vector.lattice.ordered_log_join.v1",
+        "lattice": "ordered_log",
+        "assertions": [
+          "per_issuer_sequence_order",
+          "same_issuer_seq_dedupes_deterministically"
+        ]
+      },
+      {
+        "vector_id": "ck.vector.lattice.fsm_join.v1",
+        "lattice": "fsm",
+        "assertions": [
+          "duplicate_same_transition_idempotent",
+          "same_from_different_to_returns_bottom"
+        ]
+      }
+    ]
+  },
   "vectors": [
     {
       "name": "data_event_accepts_without_seal_finality",
@@ -215,6 +259,505 @@
         "compaction_without_signature": "reject"
       },
       "vector_id": "ck.vector.cba_lattice.open_set_compaction_preserves_control_roots.v1"
+    },
+    {
+      "name": "seal_canonical_no_self_reference",
+      "description": "Seal canonical bytes are computed from signed top-level body fields only. The Seal id and notary_signature are excluded from the transcript.",
+      "seal_body": {
+        "realm_id": "ck:realm:019641c6-8000-7000-8000-000000000000",
+        "predecessor_refs": [
+          "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        ],
+        "delta": [
+          "sha256:abababababababababababababababababababababababababababababababab"
+        ],
+        "control_event_set_root": "sha256:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+        "state_root": "sha256:efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef",
+        "sealed_at": "2026-06-11T00:00:00Z",
+        "hlc": "2026-06-11T00:00:00Z/0000000000000001"
+      },
+      "expected": {
+        "id": "ck:seal:sha256:6bff426d2a0b0f48a3730eb35fbd0459e1df361ce4de865020093c7a9fc99cc8",
+        "notary_signature_payload_digest": "sha256:6bff426d2a0b0f48a3730eb35fbd0459e1df361ce4de865020093c7a9fc99cc8",
+        "valid_result": "accept"
+      },
+      "attacks": [
+        {
+          "name": "id_in_canonical_bytes",
+          "inject_field": "id",
+          "expected_result": "reject",
+          "reason": "digest_mismatch"
+        },
+        {
+          "name": "signature_in_canonical_bytes",
+          "inject_field": "notary_signature",
+          "expected_result": "reject",
+          "reason": "digest_mismatch"
+        },
+        {
+          "name": "wire_key_reorder",
+          "expected_result": "accept_after_canonical_reencode"
+        },
+        {
+          "name": "extra_proof_injection",
+          "inject_field": "extra_proof",
+          "expected_result": "reject",
+          "reason": "schema_violation"
+        },
+        {
+          "name": "non_digest_delta_value",
+          "delta": [
+            "not-a-digest"
+          ],
+          "expected_result": "reject",
+          "reason": "schema_violation"
+        }
+      ],
+      "vector_id": "ck.vector.cba_lattice.seal_canonical_no_self_reference.v1"
+    },
+    {
+      "name": "cas_mixed_basis",
+      "description": "cas_register writes on a non-initial settled value require an explicit CBA basis; null-basis blind overwrites fail closed.",
+      "cell": "ck:cell:ck.component.strand.title.v1:ck.strand.019641c6-8000-7000-8000-000000000001",
+      "cell_lattice": {
+        "plane": "control",
+        "lattice": "cas_register",
+        "initial_value": null,
+        "bottom": "reject"
+      },
+      "pre_state": {
+        "settled_value": "v1",
+        "settled_by_seal": "ck:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "cases": [
+        {
+          "name": "blind_write_without_basis",
+          "event": {
+            "id": "ck:event:019641c6-8000-7000-8000-000000000101",
+            "plane": "data",
+            "seal_ref": "ck:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "effects": [
+              {
+                "cell": "ck:cell:ck.component.strand.title.v1:ck.strand.019641c6-8000-7000-8000-000000000001",
+                "op": {
+                  "kind": "set",
+                  "value": "v2"
+                }
+              }
+            ],
+            "basis": null
+          },
+          "expected": {
+            "result": "failed_precondition",
+            "cell_value": "v1",
+            "atomic_rejects_all_effects": true,
+            "defensive_join_result": "bottom"
+          }
+        },
+        {
+          "name": "control_move_with_head_eq_basis",
+          "control_move": {
+            "id": "ck:event:019641c6-8000-7000-8000-000000000102",
+            "plane": "control",
+            "preconditions": [
+              {
+                "cell": "ck:cell:ck.component.strand.title.v1:ck.strand.019641c6-8000-7000-8000-000000000001",
+                "predicate": {
+                  "op": "head_eq",
+                  "value": "v1"
+                }
+              }
+            ],
+            "effects": [
+              {
+                "cell": "ck:cell:ck.component.strand.title.v1:ck.strand.019641c6-8000-7000-8000-000000000001",
+                "op": {
+                  "kind": "set",
+                  "value": "v2"
+                }
+              }
+            ]
+          },
+          "expected": {
+            "result": "accept_after_valid_seal",
+            "cell_value": "v2",
+            "replay_order_independent": true
+          }
+        }
+      ],
+      "vector_id": "ck.vector.cba_lattice.cas_mixed_basis.v1"
+    },
+    {
+      "name": "auth_context_epoch_pinning_reject",
+      "description": "Verifier evaluates key and credential epoch validity at the event seal_ref, not only against the current DID document.",
+      "revocation_freshness_window_ms": 86400000,
+      "cases": [
+        {
+          "name": "revoked_key_old_seal_ref_outside_window",
+          "key_id": "device-1",
+          "key_epoch": 4,
+          "revoked_at_seal": "ck:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "seal_ref": "ck:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "seal_ref_distance_ms": 172800000,
+          "expected": {
+            "result": "reject_or_hide",
+            "reason": "stale_seal_ref"
+          }
+        },
+        {
+          "name": "revoked_key_within_freshness_window",
+          "key_id": "device-1",
+          "key_epoch": 4,
+          "revoked_at_seal": "ck:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "seal_ref": "ck:seal:sha256:2121212121212121212121212121212121212121212121212121212121212121",
+          "seal_ref_distance_ms": 3600000,
+          "expected": {
+            "result": "accept_temporarily",
+            "query_grade": "stale"
+          }
+        },
+        {
+          "name": "epoch_not_valid_at_seal_ref",
+          "key_id": "device-1",
+          "key_epoch": 7,
+          "seal_ref": "ck:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "current_did_document_contains_key": true,
+          "expected": {
+            "result": "failed_precondition",
+            "must_not_use_current_did_document_fallback": true
+          }
+        }
+      ],
+      "vector_id": "ck.vector.cba_lattice.auth_context_epoch_pinning_reject.v1"
+    },
+    {
+      "name": "seal_compaction_interval_enforced",
+      "description": "Realm seal_compaction_max_interval_ms is a structural obligation: valid full-coverage compaction enables bootstrap, mismatched coverage rejects, and overdue compaction raises health alarms.",
+      "realm": {
+        "id": "ck:realm:019641c6-8000-7000-8000-000000000000",
+        "notary_type": "open_set",
+        "seal_compaction_max_interval_ms": 86400000
+      },
+      "cases": [
+        {
+          "name": "compaction_within_interval",
+          "predecessor_covered_event_digests": [
+            "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+          ],
+          "delta": [
+            "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+          ],
+          "covered_event_digests": [
+            "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+            "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+          ],
+          "elapsed_since_previous_compaction_ms": 3600000,
+          "expected": {
+            "seal_result": "accept",
+            "bootstrap_from_compaction": true
+          }
+        },
+        {
+          "name": "covered_set_mismatch",
+          "predecessor_covered_event_digests": [
+            "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+          ],
+          "delta": [
+            "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+          ],
+          "covered_event_digests": [
+            "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+          ],
+          "expected": {
+            "seal_result": "reject",
+            "reason": "covered_set_mismatch"
+          }
+        },
+        {
+          "name": "live_chain_exceeds_interval_without_compaction",
+          "elapsed_since_previous_compaction_ms": 172800000,
+          "expected": {
+            "governance_health_alarm": true,
+            "existing_seals_remain_valid": true,
+            "bootstrap_degraded_to_chain_walk": true
+          }
+        }
+      ],
+      "vector_id": "ck.vector.cba_lattice.seal_compaction_interval_enforced.v1"
+    },
+    {
+      "name": "inclusion_list_obligation",
+      "description": "A multi-signer notary Seal must discharge valid inclusion-list obligations by inclusion, signed reject, or pre-state verification failure proof.",
+      "notary_profile": {
+        "type": "threshold",
+        "proposer_id": "did:web:notary-proposer.example",
+        "signer_id": "did:web:notary-signer.example"
+      },
+      "inclusion_list": {
+        "realm_id": "ck:realm:019641c6-8000-7000-8000-000000000000",
+        "signer_id": "did:web:notary-signer.example",
+        "list_seq": 7,
+        "event_digests": [
+          "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+        ],
+        "expiry_seal_count": 1,
+        "created_at": "2026-06-11T00:00:00Z",
+        "signature": {
+          "kind": "detached_jws",
+          "verification_method": "did:web:notary-signer.example#key-1",
+          "alg": "EdDSA",
+          "payload_digest": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+          "created_at": "2026-06-11T00:00:00Z",
+          "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
+        }
+      },
+      "cases": [
+        {
+          "name": "next_seal_includes_digest",
+          "seal_action": "include",
+          "expected": {
+            "seal_result": "accept"
+          }
+        },
+        {
+          "name": "next_seal_signed_rejects_digest",
+          "seal_action": "signed_reject",
+          "expected": {
+            "seal_result": "accept"
+          }
+        },
+        {
+          "name": "next_seal_proves_pre_state_failure",
+          "seal_action": "pre_state_failure_proof",
+          "expected": {
+            "seal_result": "accept"
+          }
+        },
+        {
+          "name": "next_seal_omits_obligation",
+          "seal_action": "omit",
+          "expected": {
+            "seal_result": "reject",
+            "reason": "inclusion_list_violation"
+          }
+        },
+        {
+          "name": "same_signer_seq_different_contents",
+          "conflicting_event_digests": [
+            "sha256:9999999999999999999999999999999999999999999999999999999999999999"
+          ],
+          "expected": {
+            "fault_evidence": "equivocation"
+          }
+        }
+      ],
+      "single_did_profile_expected": "unavailable",
+      "vector_id": "ck.vector.cba_lattice.inclusion_list_obligation.v1"
+    },
+    {
+      "name": "notary_fault_equivocation_quarantine",
+      "description": "Two different Seals signed by the same notary in the same slot authorize public equivocation evidence, quarantine the fork, and reject later Seals from that signer.",
+      "fault_pair": {
+        "realm_id": "ck:realm:019641c6-8000-7000-8000-000000000000",
+        "signer_id": "did:web:notary.example",
+        "notary_seq": 42,
+        "seal_a": {
+          "id": "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "canonical_body_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "seal_b": {
+          "id": "ck:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "canonical_body_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      },
+      "fault_move": {
+        "event_kind": "ck.notary.fault.equivocation",
+        "submitter_capability_refs": [],
+        "payload": {
+          "signer_id": "did:web:notary.example",
+          "seal_a": "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "seal_b": "ck:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      },
+      "expected": {
+        "fault_move_result": "accept",
+        "authorized_by_signature_evidence": true,
+        "requires_submitter_capability": false,
+        "fault_cell": "ck.component.notary_fault.v1",
+        "later_seal_from_signer": "reject",
+        "affected_branch_query_grade": "forked",
+        "remaining_signer_policy": "continue_if_quorum_else_notary_paused"
+      },
+      "invalid_parallel_leaf_case": {
+        "signer_id": "did:web:other-notary.example",
+        "notary_seq": 43,
+        "expected": {
+          "result": "failed_precondition"
+        }
+      },
+      "vector_id": "ck.vector.cba_lattice.notary_fault_equivocation_quarantine.v1"
+    },
+    {
+      "name": "threshold_forensic_attribution",
+      "description": "Threshold notary forensic_attribution must match the quorum-intersection arithmetic rule.",
+      "cases": [
+        {
+          "name": "n5_k3_quorum_intersection",
+          "notary": {
+            "type": "threshold",
+            "members": [
+              "did:web:n1.example",
+              "did:web:n2.example",
+              "did:web:n3.example",
+              "did:web:n4.example",
+              "did:web:n5.example"
+            ],
+            "threshold": 3,
+            "forensic_attribution": "quorum_intersection"
+          },
+          "expected": {
+            "result": "accept"
+          }
+        },
+        {
+          "name": "n5_k3_waived_reject",
+          "notary": {
+            "type": "threshold",
+            "members": [
+              "did:web:n1.example",
+              "did:web:n2.example",
+              "did:web:n3.example",
+              "did:web:n4.example",
+              "did:web:n5.example"
+            ],
+            "threshold": 3,
+            "forensic_attribution": "waived"
+          },
+          "expected": {
+            "result": "reject",
+            "reason": "forensic_attribution_mismatch"
+          }
+        },
+        {
+          "name": "n4_k2_quorum_intersection_reject",
+          "notary": {
+            "type": "threshold",
+            "members": [
+              "did:web:n1.example",
+              "did:web:n2.example",
+              "did:web:n3.example",
+              "did:web:n4.example"
+            ],
+            "threshold": 2,
+            "forensic_attribution": "quorum_intersection"
+          },
+          "expected": {
+            "result": "reject",
+            "reason": "forensic_attribution_mismatch"
+          }
+        },
+        {
+          "name": "threshold_missing_forensic_attribution",
+          "notary": {
+            "type": "threshold",
+            "members": [
+              "did:web:n1.example",
+              "did:web:n2.example",
+              "did:web:n3.example"
+            ],
+            "threshold": 2
+          },
+          "expected": {
+            "result": "schema_violation"
+          }
+        }
+      ],
+      "vector_id": "ck.vector.cba_lattice.threshold_forensic_attribution.v1"
+    },
+    {
+      "name": "rename_family_reject",
+      "description": "Current v1 parsers hard-reject the retired Anchor/Anchorer/Governance spelling family; only offline migration tooling may consume it.",
+      "cases": [
+        {
+          "surface": "event",
+          "legacy_identifier": "anchor_ref",
+          "kind_class": "wire_field_name",
+          "expected_error": "unknown_field"
+        },
+        {
+          "surface": "event",
+          "legacy_identifier": "anchor_basis",
+          "kind_class": "wire_field_name",
+          "expected_error": "unknown_field"
+        },
+        {
+          "surface": "event",
+          "legacy_identifier": "governance_ref",
+          "kind_class": "wire_field_name",
+          "expected_error": "unknown_field"
+        },
+        {
+          "surface": "seal",
+          "legacy_identifier": "anchorer_signature",
+          "kind_class": "wire_field_name",
+          "expected_error": "unknown_field"
+        },
+        {
+          "surface": "seal",
+          "legacy_identifier": "signer_seq",
+          "kind_class": "wire_field_name",
+          "expected_error": "unknown_field"
+        },
+        {
+          "surface": "seal",
+          "legacy_identifier": "anchored_at",
+          "kind_class": "wire_field_name",
+          "expected_error": "unknown_field"
+        },
+        {
+          "surface": "seal",
+          "legacy_identifier": "ck:anchor:",
+          "kind_class": "typed_id_prefix",
+          "expected_error": "unknown_kind"
+        },
+        {
+          "surface": "realm_create",
+          "legacy_identifier": "anchor_profile",
+          "kind_class": "wire_field_name",
+          "expected_error": "unknown_field"
+        },
+        {
+          "surface": "realm_create",
+          "legacy_identifier": "anchorer",
+          "kind_class": "wire_field_name",
+          "expected_error": "unknown_field"
+        },
+        {
+          "surface": "snapshot",
+          "legacy_identifier": "covered_seals",
+          "kind_class": "wire_field_name",
+          "expected_error": "unknown_field"
+        },
+        {
+          "surface": "event_state",
+          "legacy_identifier": "pending_anchor",
+          "kind_class": "wire_enum_value",
+          "expected_error": "schema_violation"
+        },
+        {
+          "surface": "event_state",
+          "legacy_identifier": "rejected_anchor",
+          "kind_class": "wire_enum_value",
+          "expected_error": "schema_violation"
+        }
+      ],
+      "parser_tier": "current_parser",
+      "migration_tool_only": true,
+      "vector_id": "ck.vector.cba_lattice.rename_family_reject.v1"
     }
   ]
 }

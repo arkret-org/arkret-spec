@@ -1239,7 +1239,7 @@
       "domain": "cba_lattice",
       "description": "Seal canonical bytes exclude id and notary_signature; verifier recomputes the typed id and signature payload digest from signed top-level fields only.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
     },
     {
@@ -1248,7 +1248,7 @@
       "domain": "cba_lattice",
       "description": "cas_register writes on non-initial state require an explicit CBA basis: Control Move preconditions or equivalent DataEvent causal/lattice proof; null-basis blind overwrites fail closed.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
     },
     {
@@ -1256,7 +1256,7 @@
       "status": "active",
       "domain": "cba_lattice",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
     },
     {
@@ -1264,7 +1264,7 @@
       "status": "active",
       "domain": "cba_lattice",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
     },
     {
@@ -1272,7 +1272,7 @@
       "status": "active",
       "domain": "cba_lattice",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
     },
     {
@@ -1280,7 +1280,7 @@
       "status": "active",
       "domain": "cba_lattice",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
     },
     {
@@ -1288,7 +1288,7 @@
       "status": "active",
       "domain": "cba_lattice",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
     },
     {
@@ -1296,7 +1296,7 @@
       "status": "active",
       "domain": "cba_lattice",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
     },
     {
@@ -1638,7 +1638,7 @@
       "domain": "lattice",
       "description": "mv_register join/validate_op convergence for the same CBA Event set.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
     },
     {
@@ -1648,7 +1648,7 @@
       "domain": "lattice",
       "description": "counter join/validate_op convergence for the same CBA Event set.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
     },
     {
@@ -1658,7 +1658,7 @@
       "domain": "lattice",
       "description": "ordered_log join/validate_op convergence for the same CBA Event set.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
     },
     {
@@ -1668,7 +1668,7 @@
       "domain": "lattice",
       "description": "fsm join: identical (from,to) sibling transitions converge idempotently; same-from different-to siblings return bottom (reject path).",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]
     },
     {
