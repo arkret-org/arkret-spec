@@ -5922,10 +5922,52 @@ paths:
         sourceServiceDid: []
         destinationServiceDid: []
         contentDigest: []
+      x-cokret-auth:
+        service_signature:
+          signature_standard: RFC 9421
+          per_delivery: true
+          bearer_only_allowed: false
+          source_signature_anchor:
+            audit_field: source_signature_anchor
+            request_body_field: false
+            directions:
+              node_to_applet: Source-Service-DID current service DID verification method; Destination-Service-DID MUST equal the Applet registration service_did.
+              applet_to_cokret_inbound: Applet registration webhook_auth.key_ref; DID part MUST equal Source-Service-DID and the active effective install service_did.
+          covered_components:
+          - '@method'
+          - '@target-uri'
+          - '@authority'
+          - content-digest
+          - source-service-did
+          - destination-service-did
+          - idempotency-key
+          freshness:
+            created_skew_seconds: 30
+            max_signature_lifetime_seconds: 300
+          replay_binding:
+            idempotency_identity:
+            - operation_id
+            - direction
+            - Source-Service-DID
+            - Destination-Service-DID
+            - Idempotency-Key
+            cached_fields:
+            - Content-Digest
+            - canonical_body_digest
+            - source_signature_anchor
+            - accepted_outcome
+          fail_closed_reasons:
+          - http_signature_required
+          - http_signature_invalid
+          - signature_window_invalid
+          - duplicate_conflict
+          - applet_registration_unauthorized
+          - applet_namespace_mismatch
       parameters:
       - in: header
         name: Idempotency-Key
         required: true
+        description: Per-delivery transaction idempotency / nonce key. It MUST be covered by Signature-Input and is scoped by operation_id, direction, Source-Service-DID and Destination-Service-DID; the cached record also binds Content-Digest and source_signature_anchor.
         schema:
           type: string
       responses:

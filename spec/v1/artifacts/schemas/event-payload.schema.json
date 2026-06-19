@@ -6359,6 +6359,7 @@
         },
         "webhook_auth": {
           "type": "object",
+          "description": "Transaction push HTTP signature policy copied from the Applet package. webhook_auth.key_ref is the Applet service DID URL used as the app/bridge->cokret inbound source signature anchor and is bound to this registration_epoch; node->Applet pushes verify the Cokret source service DID from Source-Service-DID instead.",
           "additionalProperties": true
         },
         "manifest": {

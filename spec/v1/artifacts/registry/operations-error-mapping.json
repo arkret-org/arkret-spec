@@ -290,8 +290,15 @@
     {
       "operation_id": "ck.edge.applet.command.transaction",
       "http_alias": "POST /_cokret/edge/applet/transactions",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface."
+      "operation_specific": [
+        "http_signature_required",
+        "http_signature_invalid",
+        "signature_window_invalid",
+        "duplicate_conflict",
+        "applet_registration_unauthorized",
+        "applet_namespace_mismatch"
+      ],
+      "description": "Transaction push is a service-to-service operation in both directions. Receivers MUST fail closed when the per-delivery RFC 9421 source signature is missing/invalid/outside the replay window, when the idempotency identity is replayed with a different body or source_signature_anchor, when the source Applet service has no active effective install, or when an Event actor falls outside the registered Applet namespace. See zh/extensions/applet-integration.md §7.3.1."
     },
     {
       "operation_id": "ck.self.authz.query.check",

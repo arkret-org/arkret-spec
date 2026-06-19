@@ -92,6 +92,15 @@
       ]
     },
     {
+      "vector_id": "ck.vector.applet.transaction_source_signature_anchor.v1",
+      "status": "active",
+      "domain": "applet",
+      "description": "Applet transaction push source signature anchor: per-delivery RFC 9421 HTTP Message Signature covering method/target/authority/content-digest/source-service-did/destination-service-did/idempotency-key, source_signature_anchor persisted into the idempotency/replay record, duplicate body/anchor conflicts fail closed, and source service authentication does not replace Event actor/applet/capability checks.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ck.vector.auth.session_grant_audience_binding.v1",
       "status": "active",
       "domain": "auth",

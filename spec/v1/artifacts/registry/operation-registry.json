@@ -669,7 +669,54 @@
       "mq": "edge.applet.command.transaction",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body",
-      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_outcome"
+      "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_outcome",
+      "auth_requirements": {
+        "service_signature": {
+          "standard": "RFC 9421 HTTP Message Signature",
+          "per_delivery": true,
+          "bearer_only_allowed": false,
+          "covered_components": [
+            "@method",
+            "@target-uri",
+            "@authority",
+            "content-digest",
+            "source-service-did",
+            "destination-service-did",
+            "idempotency-key"
+          ],
+          "freshness": {
+            "created_skew_seconds": 30,
+            "max_signature_lifetime_seconds": 300
+          },
+          "source_signature_anchor": {
+            "audit_field": "source_signature_anchor",
+            "request_body_field": false,
+            "node_to_applet": "Source-Service-DID current service DID verification method; Destination-Service-DID MUST equal the Applet registration service_did.",
+            "applet_to_cokret_inbound": "Applet registration webhook_auth.key_ref; DID part MUST equal Source-Service-DID and the active effective install service_did."
+          },
+          "idempotency_identity_fields": [
+            "operation_id",
+            "direction",
+            "Source-Service-DID",
+            "Destination-Service-DID",
+            "Idempotency-Key"
+          ],
+          "replay_cached_fields": [
+            "Content-Digest",
+            "canonical_body_digest",
+            "source_signature_anchor",
+            "accepted_outcome"
+          ],
+          "fail_closed_reasons": [
+            "http_signature_required",
+            "http_signature_invalid",
+            "signature_window_invalid",
+            "duplicate_conflict",
+            "applet_registration_unauthorized",
+            "applet_namespace_mismatch"
+          ]
+        }
+      }
     },
     {
       "operation_id": "ck.self.authz.query.check",

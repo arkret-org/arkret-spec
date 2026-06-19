@@ -184,13 +184,15 @@
     },
     "applet_transaction_request_body": {
       "type": "object",
+      "description": "Body for ck.edge.applet.command.transaction. Transport-layer requirements are mandatory but not body fields: RFC 9421 Signature/Signature-Input, Source-Service-DID, Destination-Service-DID, Content-Digest, Idempotency-Key, received_at audit metadata, and a persisted source_signature_anchor. See zh/extensions/applet-integration.md section 7.3.1.",
       "required": [
         "source_service_did",
         "events"
       ],
       "properties": {
         "source_service_did": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did",
+          "description": "Must exactly match the Source-Service-DID header and the signed source-service-did component. It identifies the source service only; each Event still requires independent actor/applet/capability signature verification."
         },
         "events": {
           "type": "array",

@@ -429,9 +429,10 @@ Cokret Sync Service / Events API 向 Applet 推送事件批次。
 
 规则：
 
-- `Idempotency-Key` MUST 幂等。
-- 相同 `(source_service_did, Idempotency-Key)` 和相同 body canonical hash 重复投递 MUST 成功。
-- 相同 `(source_service_did, Idempotency-Key)` 但 body 不同 MUST 返回 `duplicate_conflict`。
+- `Idempotency-Key` MUST 作为逐次 transaction push 的 nonce / idempotency key 使用，并进入 HTTP Message Signature transcript（见 §7.3.1）。
+- 幂等 identity MUST 至少绑定 `(operation_id, direction, Source-Service-DID, Destination-Service-DID, Idempotency-Key)`；接收方的幂等记录 MUST 同时保存 canonical body digest / `Content-Digest` 与本次验签得到的 `source_signature_anchor`。
+- 相同幂等 identity、相同 canonical body digest 且相同 `source_signature_anchor` 的重复投递 MUST 返回原 outcome 或等价成功，不得再次执行外部副作用。
+- 相同幂等 identity 但 canonical body digest、source / destination service DID 或 `source_signature_anchor` 任一不一致时 MUST fail closed；若认证先通过则返回 `duplicate_conflict`，若签名 / source 绑定先失败则返回 §7.3.1 的认证失败 reason。
 - 单事件级别仍以 `event_id` 去重；重复 `event_id` 且内容一致 MUST `accepted`，内容不一致 MUST 拒绝。
 - Applet SHOULD 先持久化幂等记录，再执行外部副作用。
 - Applet MUST 验证 source service DID 和 HTTP message signature。
@@ -441,8 +442,8 @@ Cokret Sync Service / Events API 向 Applet 推送事件批次。
 
 transaction push 是 service↔service 调用，**两个方向**都 MUST 携带**逐次投递**的 RFC 9421 HTTP Message Signature（per-delivery source signature），接收方 MUST 在处理任何 event / 副作用前先验签；纯 `Authorization: Bearer`（无 `Signature`）的 transaction push MUST 被拒绝。两方向不可只靠 bearer，也不可只在首次握手时验签一次：
 
-- **node → Applet**（§7.3 上文，Cokret 节点向 Applet 推送）：Applet 端 MUST 按 registration 的 `webhook_auth`（`type=http_message_signature`，`key_ref` 指向推送方节点 service DID 的 verification method）逐次验签。
-- **app/bridge → cokret edge inbound**（`POST /_cokret/edge/applet/transactions` 的入站方向，已安装 Applet service / bridge 向 cokret edge 推送外部网络 transaction）：cokret edge 接收方 MUST 按 `Source-Service-DID` 解析 Applet registration 的 service DID verification method 逐次验签，且该 service DID MUST 命中一个 active effective install（§4b.1）；缺签名、签名无效、`Source-Service-DID` 与 registration 不一致或无 active install 时 MUST fail closed。
+- **node → Applet**（§7.3 上文，Cokret 节点向 Applet 推送）：Applet 端 MUST 按 `Source-Service-DID` 解析推送方 Cokret service DID 的当前有效 verification method，并逐次验证 HTTP Message Signature；`Destination-Service-DID` MUST 等于接收 Applet registration 的 `service_did`。Applet registration 的 `webhook_auth` 在该方向声明 transaction endpoint 要求 `http_message_signature` 与可接受算法；`webhook_auth.key_ref` MUST NOT 被解释成任意 Cokret 节点的来源 key。
+- **app/bridge → cokret edge inbound**（`POST /_cokret/edge/applet/transactions` 的入站方向，已安装 Applet service / bridge 向 cokret edge 推送外部网络 transaction）：cokret edge 接收方 MUST 先用 `Source-Service-DID` 找到 active effective install（§4b.1）与当前 effective Applet registration，再要求签名 `keyid` / verification method 等于该 registration 的 `webhook_auth.key_ref`（其 DID 部分 MUST 等于 registration `service_did` / header `Source-Service-DID`），并逐次验签。缺签名、签名无效、`Source-Service-DID` 与 registration 不一致、`webhook_auth.key_ref` 不属于该 Applet service DID 或无 active install 时 MUST fail closed。
 
 **覆盖 header 集（MUST，与 [`../sync/federation.md` §3.2](../sync/federation.md) service-to-service 签名对称）**：签名 transcript MUST 覆盖以下 RFC 9421 derived components 与 header：
 
@@ -451,9 +452,21 @@ transaction push 是 service↔service 调用，**两个方向**都 MUST 携带*
 - `source-service-did`（header `Source-Service-DID`，等于 body `source_service_did`）
 - `destination-service-did`（header `Destination-Service-DID`，等于接收方 service DID）
 - `idempotency-key`（header `Idempotency-Key`；参与幂等 / replay key，MUST 进入 transcript）
-- 签名 parameters MUST 含 `created` 与 `expires`；时效窗口判据沿用 [`../sync/federation.md` §3.2](../sync/federation.md)（`expires - created` ≤ 300s、`created` ±30s skew、`expires` 未过期），落在窗口外的逐字节重放即便 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒。
+- 签名 parameters MUST 含 `created` 与 `expires`；时效窗口判据沿用 [`../sync/federation.md` §3.2](../sync/federation.md)（`expires - created` ≤ 300s、`created` ±30s skew、`expires` 未过期），落在窗口外的逐字节重放即便 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒绝。
 
 接收方 MUST 在验签前先校验 body 实际 hash 与 `Content-Digest` 一致，再验证签名 transcript；body 内 `source_service_did` MUST 与 header `Source-Service-DID` 及签名 transcript 一致。
+
+**来源签名锚点（normative）**：接收方在验签通过后 MUST 形成不可伪造的 `source_signature_anchor` audit value，并把它写入 transaction 幂等 / replay 记录；该值不是 request body 字段。锚点 canonical tuple 至少包含：
+
+- `operation_id="ck.edge.applet.command.transaction"` 与方向（`node_to_applet` 或 `applet_to_cokret_inbound`）；
+- `source_service_did`、`destination_service_did`；
+- 签名使用的 `verification_method` / `keyid` 与签名算法；
+- Applet 相关方向的 effective `registration_epoch` 与 `webhook_auth.key_ref`，或 Cokret node 方向的 source service DID key-state evidence；
+- `Idempotency-Key`、`Content-Digest` / canonical body digest、`Signature-Input` covered component set、`created`、`expires`。
+
+幂等 / replay cache 的接受判定 MUST 绑定该锚点；实现不得只用裸 `Idempotency-Key` 或 body 内 `source_service_did` 决定重复投递，也不得在 service DID key rotate、registration epoch 改变或 active install 撤销后把旧锚点当成新授权。
+
+`source_service_did` 只认证来源服务，不认证每条 durable Event 的业务 actor。cokret edge 把 Applet transaction 落为 Cokret Event 时，仍 MUST 对每条 Event 独立验证 `actor_id`、`applet_id`、`authorization_ref`、`external_ref` / provenance、`proofs[]` 与 registration `namespaces.actors` / capability grant；ghost actor、bot actor 或 delegated native actor 与 source service 不一致时 MUST fail closed（`applet_namespace_mismatch` / `capability_denied` / `applet_registration_unauthorized`，按失败层级选择）。
 
 **失败码（normative）**：
 
@@ -461,8 +474,9 @@ transaction push 是 service↔service 调用，**两个方向**都 MUST 携带*
 - 签名验证失败、`content-digest` 不覆盖 body、`source_service_did` 与 header / transcript 不一致：`unauthorized`（401，reason=`http_signature_invalid`）。
 - `created` / `expires` 超出时效窗口（含 replay cache evict 后的窗口外重放）：`unauthorized`（401，reason=`signature_window_invalid`）。
 - inbound 方向 `Source-Service-DID` 无 active effective install 或与 registration service DID 不一致：fail closed，reason=`applet_registration_unauthorized`（与 §4 / §4b 同门槛）。
+- 幂等 identity 已存在但 canonical body digest 或 `source_signature_anchor` 不一致：认证成功后 MUST 返回 `duplicate_conflict`；认证未通过时 MUST 优先返回对应认证失败 reason，避免泄露历史 transaction 状态。
 
-**锚点**：node→Applet 方向的签名密钥锚点是 registration `webhook_auth.key_ref`；inbound app→cokret 方向的锚点是 Applet registration 的 `service_did` 当前有效 verification method（接收方 MUST 解析 service DID Document 取当前 active key，registration / key rotate 后旧 key 不再放行）。transaction push 的逐次签名是传输层来源认证，**不替代** §8 每条 Applet-originated 写入 Event 的 envelope event signature（`proofs[]`）与 capability grant 校验：cokret 把外部 transaction 落为 durable Cokret Event 时，仍 MUST 按 §8 / §11 校验每条 Event 的 `actor_id` / `applet_id` / `authorization_ref` / `proofs[]`。
+transaction push 的逐次签名是传输层来源认证，**不替代** §8 每条 Applet-originated 写入 Event 的 envelope event signature（`proofs[]`）与 capability grant 校验：cokret 把外部 transaction 落为 durable Cokret Event 时，仍 MUST 按 §8 / §11 校验每条 Event 的 `actor_id` / `applet_id` / `authorization_ref` / `proofs[]`。
 
 ### 7.4 Query Actor
 
@@ -795,6 +809,8 @@ Applet v1 conformance 按 profile 继承拆分。实现声明某 profile 时 MUS
 - registration signature
 - namespace matching
 - transaction idempotency
+- transaction push per-delivery source signature anchor（§7.3.1）
+- idempotency / replay binding across `Source-Service-DID`、`Destination-Service-DID`、`Idempotency-Key`、body digest and `source_signature_anchor`
 - capability enforcement
 - bot actor attribution
 - install preview / commit / revoke aggregate operation idempotency, when the implementation exposes self/admin Applet install

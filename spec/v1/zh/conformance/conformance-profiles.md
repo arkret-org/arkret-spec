@@ -700,17 +700,21 @@ Applet v1 家族适用于运行 Applet 集成服务。`ck.profile.applet_service
 - ping / describe endpoint
 - transaction push endpoint
 - transaction idempotency
+- transaction push per-delivery source signature anchor（`source_signature_anchor`）
+- idempotency / replay binding across `Source-Service-DID`、`Destination-Service-DID`、`Idempotency-Key`、canonical body digest and source verification method
 - capability enforcement
-- HTTP message signature verification
+- HTTP message signature verification（RFC 9421，覆盖 `@method` / `@target-uri` / `@authority` / `content-digest` / `source-service-did` / `destination-service-did` / `idempotency-key`）
 - event signature verification
 - bot actor attribution
 - `ck.edge.applet.command.transaction` as operation_id only, never as durable Event kind
+- fail-closed reasons for transaction push: `http_signature_required`、`http_signature_invalid`、`signature_window_invalid`、`duplicate_conflict`、`applet_registration_unauthorized`、`applet_namespace_mismatch`
 
 MUST NOT：
 
 - 把 namespace 命中当作写权限
 - 静默 impersonate native user
 - 在无授权时接收全网 sync stream
+- 只凭裸 `Idempotency-Key`、body 内 `source_service_did` 或首次握手状态接受 transaction push replay
 - 在未提示边界的情况下把 E2EE 内容桥接到非 E2EE 网络
 
 `ck.profile.applet_bridge.v1` inherits `ck.profile.applet_service.v1` and MUST 支持：

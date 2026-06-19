@@ -4036,3 +4036,29 @@ Expected：
 - **Case A**：MUST 以 `unauthenticated` 拒绝；高安全 profile 对常规写与敏感读要求 PoP 出示（见 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) 对应 profile 的 `additional_requirements`），纯 bearer 对这些操作 MUST 被拒绝。
 - **Case B**：默认 profile 下作为允许的降级被接受（对照正样本）；服务端仍 MUST 校验 bearer token 的 audience / issuer / expiry / session grant 状态与 capability。
 - **Case C**：过窗签名即使 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒绝；时效窗口外的逐字节重放同样 MUST 拒绝。
+
+## 19. Applet Transaction Push Vectors
+
+本节收拢 Applet inbound transaction push 的来源签名锚点与 replay 绑定向量，固化 [`applet-integration.md`](../extensions/applet-integration.md) §7.3.1、[`applet-schema.md`](../extensions/applet-schema.md) §3、[`service-http-binding.md`](../sync/service-http-binding.md) §2.2 的 service-to-service HTTP Message Signature 要求。每个 `vector_id` 均为规范性引用目标，登记于 [`vector-registry.json`](../../artifacts/registry/vector-registry.json)。
+
+### 19.1 Vector: Transaction Source Signature Anchor
+
+`vector_id`: `ck.vector.applet.transaction_source_signature_anchor.v1`
+
+本向量固化 applet transaction push 的逐次来源签名与幂等 replay MUST：`ck.edge.applet.command.transaction` 在 node→Applet 与 app/bridge→cokret inbound 两个方向都 MUST 携带 RFC 9421 HTTP Message Signature，covered components 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-did`、`destination-service-did`、`idempotency-key`，签名参数含 `created` / `expires` 并满足 300s replay window；接收方 MUST 形成并持久化 `source_signature_anchor`，幂等 identity 绑定 `operation_id`、方向、source/destination service DID 与 `Idempotency-Key`，缓存记录绑定 canonical body digest 与 source anchor。来源 service 签名不替代每条 Event 的 actor / applet / capability 校验。
+
+Steps：
+
+- **Case A — 合法 app/bridge→cokret inbound**：已安装 Applet registration `service_did=did:web:bridge.example`，`registration_epoch=sha256:<R>`，`webhook_auth.key_ref=did:web:bridge.example#tx-1`，install active。Applet 提交 `POST /_cokret/edge/applet/transactions`，header `Source-Service-DID=did:web:bridge.example`、`Destination-Service-DID=did:web:principal.example`、`Idempotency-Key=tx-001`、`Content-Digest` 与 body 一致；`Signature-Input` 覆盖 required components，`keyid=did:web:bridge.example#tx-1`，`created` / `expires` 在窗口内；body `source_service_did` 与 header 一致，`events[]` 中的 `applet_id`、`authorization_ref`、`proofs[]` 与 actor namespace / capability grant 均有效。
+- **Case B — 缺签名 / 纯 bearer**：同一 body 只携带 `Authorization: Bearer` 或完全缺少 `Signature` / `Signature-Input`。
+- **Case C — transcript / source 混淆**：签名覆盖的 `source-service-did`、header `Source-Service-DID` 或 body `source_service_did` 三者任一不同；或 `Destination-Service-DID` 不等于实际接收服务；或 `Content-Digest` 与 body 不一致。
+- **Case D — idempotency replay**：重复 Case A 的相同 headers/body/signature anchor；随后再次使用同一 `(operation_id, direction, Source-Service-DID, Destination-Service-DID, Idempotency-Key)`，但改变 body digest、`webhook_auth.key_ref` / `keyid`、`registration_epoch` 或 actor namespace。
+- **Case E — 无 active install / actor namespace 混淆**：`Source-Service-DID` 可验签但没有 active effective install，或 `events[]` 中 actor / `executed_by` 不属于该 Applet registration 的 service / bot / ghost actor namespace，或 `authorization_ref` 指向另一 Applet 的 grant。
+
+Expected：
+
+- **Case A**：MUST 接受或按事件级规则返回 partial outcome，并持久化 `source_signature_anchor`（绑定 operation、方向、source/destination、verification method、registration_epoch、`Idempotency-Key`、body digest、covered components、`created` / `expires`）与幂等 outcome。
+- **Case B**：MUST fail closed，HTTP 401，reason=`http_signature_required`；纯 bearer 不满足 transaction push 的 service-to-service 来源认证。
+- **Case C**：MUST 在处理任何 Event / 副作用前 fail closed，reason=`http_signature_invalid`；`Content-Digest` MUST 在验签前重算，source/destination DID mismatch 不得进入业务逻辑。
+- **Case D**：完全相同的 replay MUST 返回原 outcome 或等价成功且不得重复副作用；同一幂等 identity 但 body digest 或 `source_signature_anchor` 不一致时 MUST fail closed，认证已通过时 reason=`duplicate_conflict`，认证未通过时使用相应认证失败 reason。
+- **Case E**：无 active install MUST fail closed，reason=`applet_registration_unauthorized`；actor / namespace / grant 混淆 MUST fail closed（`applet_namespace_mismatch`、`capability_denied` 或 `applet_registration_unauthorized`），不得把来源 service 签名当成 native actor 授权。

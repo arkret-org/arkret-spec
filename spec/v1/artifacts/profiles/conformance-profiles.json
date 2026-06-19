@@ -1577,9 +1577,19 @@
           "supported_protocols",
           "namespace",
           "service_did",
-          "bot_actor_id"
+          "bot_actor_id",
+          "transaction_source_signature_anchor",
+          "transaction_replay_binding"
         ],
         "unsupported_optional": "return unsupported_feature"
+      },
+      "additional_requirements": {
+        "transaction_push_per_delivery_signature_must": "ck.edge.applet.command.transaction MUST require a per-delivery RFC 9421 HTTP Message Signature in both node->Applet and app/bridge->cokret inbound directions; pure bearer-only transaction push MUST be rejected with http_signature_required.",
+        "transaction_push_covered_components_must": "Signature-Input covered components MUST include @method, @target-uri, @authority, content-digest, source-service-did, destination-service-did and idempotency-key; created/expires MUST satisfy the federation.md section 3.2 replay window.",
+        "transaction_push_source_anchor_must": "Receivers MUST persist a source_signature_anchor audit value bound to operation_id, direction, source_service_did, destination_service_did, verification_method/keyid, registration_epoch or source key-state evidence, Idempotency-Key, Content-Digest, covered components, created and expires.",
+        "transaction_push_replay_binding_must": "The idempotency identity MUST include operation_id, direction, Source-Service-DID, Destination-Service-DID and Idempotency-Key; the cached record MUST bind canonical body digest and source_signature_anchor. A replay with a different body digest or anchor MUST fail closed.",
+        "transaction_push_inbound_registration_must": "For app/bridge->cokret inbound push, Source-Service-DID MUST match an active effective Applet install and Signature-Input keyid MUST equal the current registration webhook_auth.key_ref; missing install or key mismatch MUST fail closed with applet_registration_unauthorized or http_signature_invalid.",
+        "transaction_push_actor_binding_must": "The source service signature authenticates only the Applet service. Each durable Event in the transaction MUST still verify event proofs, applet_id, authorization_ref, actor_id namespace and capability grants; namespace or actor-source confusion MUST fail closed."
       }
     },
     "ck.profile.applet_bridge.v1": {

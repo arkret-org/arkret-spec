@@ -277,7 +277,7 @@
     },
     "webhook_auth": {
       "type": "object",
-      "description": "HTTP message signature verification seal for transaction push. key_ref is the DID URL whose key verifies the signature; accepted_algs pins the acceptable signature algorithms.",
+      "description": "HTTP message signature verification seal for transaction push. key_ref is the Applet service DID URL used as the app/bridge->cokret inbound source signature anchor; its DID part MUST equal service_did and it is bound to the effective registration_epoch. accepted_algs pins the acceptable RFC 9421 signature algorithms.",
       "required": [
         "type",
         "key_ref",
@@ -291,7 +291,8 @@
           ]
         },
         "key_ref": {
-          "$ref": "#/$defs/did_url"
+          "$ref": "#/$defs/did_url",
+          "description": "DID URL under the Applet service_did. For app/bridge->cokret inbound transaction push, Signature-Input keyid MUST equal this value. Node->Applet pushes verify the Cokret source service DID key from Source-Service-DID, not this field."
         },
         "accepted_algs": {
           "type": "array",

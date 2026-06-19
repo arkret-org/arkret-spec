@@ -102,7 +102,7 @@ updated: 2026-06-10
 | `namespaces` | yes | `actors` / `realms` / `handles` 对象形态 namespace。 |
 | `requested_scopes` | yes | capability action 请求列表；只用于审批 UI。 |
 | `endpoint_policy` | yes | 实际支持的 Applet API endpoint 与 auth requirement。 |
-| `webhook_auth` | yes | HTTP message signature key ref / accepted algorithms。 |
+| `webhook_auth` | yes | HTTP message signature key ref / accepted algorithms；`key_ref` MUST 是 Applet `service_did` 下的 DID URL，并作为 app/bridge→cokret inbound transaction push 的来源签名锚点。 |
 | `receive_events` | yes | 派生 registration 的接收事件声明。 |
 | `receive_ephemeral` | yes | 派生 registration 的 ephemeral 接收声明。 |
 | `rate_limited` | yes | 派生 registration 的服务端限流声明。 |
@@ -133,7 +133,7 @@ Package -> registration 派生映射:
 | `rate_limited` | `rate_limited` | 原样复制；不得省略。 |
 | `requested_scopes` | `requested_scopes` | 原样复制；仍只是请求声明。 |
 | `registration_epoch` | `registration_epoch` | 由 canonical derived registration + DID/key/endpoint/auth evidence 计算。 |
-| `webhook_auth` | `webhook_auth` | 原样复制；必须覆盖 transaction push signature 验证锚点。 |
+| `webhook_auth` | `webhook_auth` | 原样复制；必须覆盖 transaction push signature 验证锚点。`key_ref` MUST 归属于 `service_did`，绑定当前 `registration_epoch`；key rotate 后必须通过新的 effective registration / install 生效，旧 key 不得继续放行 inbound push。 |
 | `manifest` | `claimed_profiles` + `limits` + policies + optional widget | 作为 snapshot 放入 manifest，但不得替代顶层 required 字段。 |
 | `proof` | `proof` | detached proof 覆盖 canonical package 或 derived registration object。 |
 | `created_at` | `created_at` | 原样复制。 |
@@ -234,12 +234,17 @@ Idempotency-Key: <opaque-string>
 
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
-| `Idempotency-Key` | header | `string` | required | 发送方生成的幂等键，长度 1..128；Applet MUST 以 `(source_service_did, Idempotency-Key)` 去重，重复键但 body canonical hash 不同 MUST 返回 `duplicate_conflict`。 |
+| `Idempotency-Key` | header | `string` | required | 发送方生成的幂等 / nonce 键，长度 1..128；接收方 MUST 以 `(operation_id, direction, Source-Service-DID, Destination-Service-DID, Idempotency-Key)` 定位幂等记录，并绑定 canonical body digest 与 `source_signature_anchor`；重复键但 body digest 或签名锚点不同 MUST fail closed。 |
+| `Source-Service-DID` | header | `did` | required | 推送来源 service DID；MUST 等于 body `source_service_did`，并进入 HTTP Message Signature transcript。 |
+| `Destination-Service-DID` | header | `did` | required | 接收方 service DID；MUST 等于实际接收服务 identity，并进入 HTTP Message Signature transcript。 |
+| `Content-Digest` | header | `sha256=:...:` | required | 覆盖 canonical request body；接收方 MUST 在验签前重算 body hash。 |
+| `Signature-Input` | header | `string` | required | RFC 9421 covered components MUST 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-did`、`destination-service-did`、`idempotency-key`，并带 `created` / `expires`。 |
+| `Signature` | header | `string` | required | 来源 service DID 的逐次 HTTP Message Signature；纯 bearer 不满足 transaction push 认证。 |
 | `source_service_did` | body | `did` | required | 推送来源 service DID。 |
 | `events` | body | `EventEnvelope[]` | required | 推送给 Applet 的 signed Event 数组；每项必须满足 `event-envelope.schema.json`。 |
 | `ephemeral` | body | `object[]` | optional | 非持久临时事件数组。 |
 
-> **HTTP signature 与 `received_at`(normative)**:[`applet-integration.md` §16](./applet-integration.md) 把 HTTP message signature 与 `received_at` audit metadata 列为 transaction push 的 MUST。它们由 transport 层承载(HTTP `Signature` / `Signature-Input` header 与 receiving service 记录的 audit metadata),**不进入** 上表的 transaction body,因此不列为 body 字段;receiver MUST 校验 HTTP message signature 并记录 `received_at`,缺失任一者 MUST 拒绝。
+> **HTTP signature、source signature anchor 与 `received_at`(normative)**:[`applet-integration.md` §7.3.1](./applet-integration.md) / §16 把逐次 RFC 9421 HTTP message signature、`source_signature_anchor` audit value 与 `received_at` audit metadata 列为 transaction push 的 MUST。它们由 transport / audit 层承载（HTTP `Signature` / `Signature-Input` header 与 receiving service 记录的 audit metadata），**不进入** transaction body；receiver MUST 校验 HTTP message signature，形成并持久化 `source_signature_anchor`，记录 `received_at`，缺失任一者 MUST 拒绝。
 
 请求示例（非完整 schema）：
 
