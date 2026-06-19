@@ -1644,7 +1644,8 @@
       "domain": "media",
       "description": "Receiver rejects sender_nonce_prefix collision or nonce prefix mismatch.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/media-aead-nonce-fixture.json"
       ]
     },
     {
@@ -1654,7 +1655,8 @@
       "domain": "media",
       "description": "Receiver rejects repeated per-device AEAD nonce counter.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/media-aead-nonce-fixture.json"
       ]
     },
     {
@@ -1664,7 +1666,8 @@
       "domain": "media",
       "description": "Receiver rejects pure random 96-bit nonce profile for v1 encrypted attachments.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/media-aead-nonce-fixture.json"
       ]
     },
     {

@@ -53,6 +53,10 @@
       "sha256": "47ff50fea53d0ef5757123ad0ee5794e94d417a1b4fc3017045ffcc090320a7a"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/media-aead-nonce-fixture.json",
+      "sha256": "65d507c5a619712546f63ff6cf642b1f31f0f1298c97572b6603e995998b11c4"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/media-binding-fixture.json",
       "sha256": "50996c4c40d5d4ee86930a5d5e69196642349134597c387b78a68cea65705218"
     },
