@@ -1,6 +1,10 @@
 {
   "files": [
     {
+      "path": "spec/v1/artifacts/fixtures/agent-participation-fixture.json",
+      "sha256": "3a397c8c7fd89d1759dc073254df71ca08c3d314bb9e8d610908d3ef38e3583e"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/agent-sidecar-fixture.json",
       "sha256": "9abf281fc67413f39ba035bea43f328be87901d7f37dbc2a541755d075505d80"
     },

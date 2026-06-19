@@ -26,7 +26,8 @@
       "status": "active",
       "domain": "agent",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
       ]
     },
     {
@@ -43,7 +44,8 @@
       "status": "active",
       "domain": "agent",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
       ]
     },
     {
@@ -51,7 +53,8 @@
       "status": "active",
       "domain": "agent",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
       ]
     },
     {
@@ -59,7 +62,8 @@
       "status": "active",
       "domain": "agent",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
       ]
     },
     {
@@ -67,7 +71,8 @@
       "status": "active",
       "domain": "agent",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
       ]
     },
     {
@@ -75,7 +80,8 @@
       "status": "active",
       "domain": "agent",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
       ]
     },
     {

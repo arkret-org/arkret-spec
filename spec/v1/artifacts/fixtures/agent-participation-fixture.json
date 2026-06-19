@@ -1,0 +1,236 @@
+{
+  "profile": "ck.profile.agent_participation_policy.v1",
+  "version": "2026-06-19",
+  "suite": "agent_participation",
+  "runner": "cotest::conformance::agent_participation",
+  "covers_vectors": [
+    "ck.vector.agent.mention_selector.v1",
+    "ck.vector.agent.participation.ceiling_tighten.v1",
+    "ck.vector.agent.participation.effective_intersection.v1",
+    "ck.vector.agent.participation.selection_within_ceiling.v1",
+    "ck.vector.agent.participation.session_overlay.v1",
+    "ck.vector.agent.participation.third_party_mention_gate.v1"
+  ],
+  "cases": [
+    {
+      "name": "mention_selector",
+      "vector_id": "ck.vector.agent.mention_selector.v1",
+      "kind": "agent_selector_resolution",
+      "mention_text_original": "@alice:acme.example/summary",
+      "controller_handle": "alice:acme.example",
+      "controller_subject": "did:web:acme.example:users:alice",
+      "agent_slug_at_time": "summary",
+      "agent_subject": "did:web:agents.acme.example:alice-summary",
+      "changed_agent_slug": "digest",
+      "changed_agent_subject": "did:web:agents.acme.example:alice-digest",
+      "persisted_mention": {
+        "subject_id": "did:web:agents.acme.example:alice-summary",
+        "controller_subject": "did:web:acme.example:users:alice",
+        "agent_slug_at_time": "summary",
+        "mention_text_original": "@alice:acme.example/summary"
+      },
+      "expected": {
+        "ambiguous_selector": "fail_closed",
+        "unavailable_selector": "fail_closed",
+        "historical_target_after_slug_change": "did:web:agents.acme.example:alice-summary"
+      },
+      "assertions": [
+        "selector resolution binds the persisted mention subject_id to the agent DID",
+        "controller, slug and original text are audit metadata only",
+        "slug changes do not rewrite historical mention targets",
+        "ambiguous or unavailable selector claims fail closed"
+      ]
+    },
+    {
+      "name": "ceiling_tighten",
+      "vector_id": "ck.vector.agent.participation.ceiling_tighten.v1",
+      "kind": "ceiling_chain",
+      "parent_ceiling": {
+        "reply": true,
+        "accept_third_party_mention": true,
+        "act_on_behalf": false
+      },
+      "accepted_child_ceiling": {
+        "reply": true,
+        "accept_third_party_mention": false,
+        "act_on_behalf": false
+      },
+      "widening_child_ceiling": {
+        "reply": true,
+        "accept_third_party_mention": true,
+        "act_on_behalf": true
+      },
+      "strand_widening_ceiling": {
+        "reply": true,
+        "accept_third_party_mention": true,
+        "act_on_behalf": false
+      },
+      "expected": {
+        "accepted": true,
+        "widen_reason": "agent_participation_ceiling_widen"
+      },
+      "assertions": [
+        "Circle and Strand participation ceilings may only drop bits from their parent",
+        "a child that enables act_on_behalf below a disabled parent bit is rejected",
+        "a Strand that re-enables a Circle-disabled third-party mention bit is rejected"
+      ]
+    },
+    {
+      "name": "effective_intersection",
+      "vector_id": "ck.vector.agent.participation.effective_intersection.v1",
+      "kind": "effective_participation",
+      "ceiling": {
+        "reply": true,
+        "accept_third_party_mention": true,
+        "act_on_behalf": false
+      },
+      "selection": {
+        "reply": true,
+        "accept_third_party_mention": false,
+        "act_on_behalf": true
+      },
+      "expected": {
+        "effective": {
+          "reply": true,
+          "accept_third_party_mention": false,
+          "act_on_behalf": false
+        },
+        "materialized_grants": [
+          "ck.message.create",
+          "ck.reaction.add"
+        ],
+        "forbidden_grants": [
+          "ck.agent.act_on_behalf"
+        ],
+        "after_reply_tighten": {
+          "reply": false,
+          "accept_third_party_mention": false,
+          "act_on_behalf": false
+        },
+        "unknown_source_effective": {
+          "reply": false,
+          "accept_third_party_mention": false,
+          "act_on_behalf": false
+        }
+      },
+      "assertions": [
+        "effective participation is the bitwise meet of ceiling and controller selection",
+        "reply grants materialize only when the effective reply bit is true",
+        "act-on-behalf is not granted when the ceiling disables it",
+        "tightening the ceiling revokes previously materialized reply grants",
+        "unknown or stale ceiling source fails closed to no effective participation"
+      ]
+    },
+    {
+      "name": "selection_within_ceiling",
+      "vector_id": "ck.vector.agent.participation.selection_within_ceiling.v1",
+      "kind": "selection_gate",
+      "ceiling": {
+        "reply": true,
+        "accept_third_party_mention": false,
+        "act_on_behalf": false
+      },
+      "selection": {
+        "reply": true,
+        "accept_third_party_mention": true,
+        "act_on_behalf": false
+      },
+      "expected": {
+        "outcome": "failed_precondition",
+        "reason": "agent_participation_exceeds_ceiling",
+        "capped_bits": [
+          "accept_third_party_mention"
+        ],
+        "materialized_grants": []
+      },
+      "assertions": [
+        "controller selection must be a subset of the effective ceiling",
+        "selection that enables third-party mention above the ceiling is rejected",
+        "rejected selections create no capability grants"
+      ]
+    },
+    {
+      "name": "session_overlay",
+      "vector_id": "ck.vector.agent.participation.session_overlay.v1",
+      "kind": "session_scope_details",
+      "participation_scope": {
+        "kind": "realm",
+        "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
+      },
+      "selection": {
+        "reply": true,
+        "accept_third_party_mention": false,
+        "act_on_behalf": false
+      },
+      "ceiling": {
+        "reply": true,
+        "accept_third_party_mention": true,
+        "act_on_behalf": false
+      },
+      "expected": {
+        "effective": {
+          "reply": true,
+          "accept_third_party_mention": false,
+          "act_on_behalf": false
+        },
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_entry",
+        "runtime_without_grant": "failed_precondition"
+      },
+      "assertions": [
+        "session scope_details.participation entries are isomorphic to agent_participation_entry",
+        "the overlay is a behavior contract and not an authorization boundary",
+        "missing backing capability grant still fails the runtime operation"
+      ]
+    },
+    {
+      "name": "third_party_mention_gate",
+      "vector_id": "ck.vector.agent.participation.third_party_mention_gate.v1",
+      "kind": "mention_dispatch_gate",
+      "controller_subject": "did:web:acme.example:users:alice",
+      "third_party_subject": "did:web:acme.example:users:bob",
+      "agent_subject": "did:web:agents.acme.example:alice-summary",
+      "effective_before": {
+        "reply": true,
+        "accept_third_party_mention": false,
+        "act_on_behalf": false
+      },
+      "effective_after": {
+        "reply": true,
+        "accept_third_party_mention": true,
+        "act_on_behalf": false
+      },
+      "expected": {
+        "third_party_before": {
+          "mention_notification": false,
+          "inbox_entry": false,
+          "push": false,
+          "subscribe_projection": false
+        },
+        "controller_before": {
+          "mention_notification": true,
+          "inbox_entry": true,
+          "push": true,
+          "subscribe_projection": true
+        },
+        "third_party_before_after_flip": {
+          "mention_notification": false,
+          "inbox_entry": false,
+          "push": false,
+          "subscribe_projection": false
+        },
+        "third_party_after": {
+          "mention_notification": true,
+          "inbox_entry": true,
+          "push": true,
+          "subscribe_projection": true
+        }
+      },
+      "assertions": [
+        "when accept_third_party_mention is false, non-controller mentions fan out to no agent delivery artifacts",
+        "the controller's own mention still delivers",
+        "enabling third-party mention later is non-retroactive",
+        "subsequent third-party mentions deliver only after the effective bit is true"
+      ]
+    }
+  ]
+}
