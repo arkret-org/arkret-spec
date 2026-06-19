@@ -113,6 +113,10 @@
       "sha256": "512d9cd2e59c2fd4f723566a9aadd2e99e39aee19d49b843d0a0c46dcc9f7a63"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
+      "sha256": "69d887fabf76368a9eebdfa78f4e1886c8a4e956a32cf80c0665d575840a1be2"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/state-reducer-hardening-fixture.json",
       "sha256": "b56d3a359473beed1029e9ab5e93edbf1d83564b72293a862ef69b83a910554d"
     },

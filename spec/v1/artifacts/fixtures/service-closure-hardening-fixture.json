@@ -1,0 +1,426 @@
+{
+  "profile": "ck.profile.privacy_security_vectors.v1",
+  "version": "2026-06-19",
+  "suite": "service_closure_hardening",
+  "runner": "cotest::conformance::service_closure_hardening",
+  "covers_vectors": [
+    "ck.vector.invite.consumed_token_resubject_rejected.v1",
+    "ck.vector.ephemeral.capability_ttl.v1",
+    "ck.vector.projection.pagination_shape.v1",
+    "ck.vector.range_completeness.witness_disagreement.v1",
+    "ck.vector.cursor.revoke_high_assurance.v1",
+    "ck.vector.device_recovery.lifecycle.v1",
+    "ck.vector.device.revocation_seal_binding.v1",
+    "ck.vector.push.wakeup_policy.v1"
+  ],
+  "cases": [
+    {
+      "vector_id": "ck.vector.invite.consumed_token_resubject_rejected.v1",
+      "assertions": [
+        "same_subject_replay_returns_existing_binding_proof",
+        "different_subject_resubject_is_rejected",
+        "reducer_resubject_claim_rejected_duplicate_conflict",
+        "public_failure_shape_is_not_found_equivalent"
+      ],
+      "state": {
+        "invite_id": "ck:invite:0196419b-0000-7000-8000-000000001001",
+        "claim_nonce": "nonce-001",
+        "subject_id": "did:web:alice.example",
+        "binding_proof_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "binding_proof": "proof-for-alice"
+      },
+      "requests": [
+        {
+          "name": "idempotent_same_subject_replay",
+          "subject_id": "did:web:alice.example",
+          "binding_proof_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "expected": {
+            "decision": "accept",
+            "binding_proof": "proof-for-alice"
+          }
+        },
+        {
+          "name": "resubject_to_mallory",
+          "subject_id": "did:web:mallory.example",
+          "binding_proof_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "expected": {
+            "decision": "reject",
+            "audit_reason": "duplicate_conflict",
+            "public_error_shape": "not_found_equivalent",
+            "new_binding_proof_signed": false
+          }
+        }
+      ],
+      "reducer_event": {
+        "kind": "ck.invite.claim",
+        "subject_id": "did:web:mallory.example",
+        "invite_id": "ck:invite:0196419b-0000-7000-8000-000000001001",
+        "claim_nonce": "nonce-001",
+        "expected": {
+          "decision": "reject",
+          "reason": "duplicate_conflict"
+        }
+      }
+    },
+    {
+      "vector_id": "ck.vector.ephemeral.capability_ttl.v1",
+      "assertions": [
+        "kind_requires_matching_capability_action",
+        "ttl_above_advertised_ceiling_rejected",
+        "channel_unavailable_does_not_write_durable_event"
+      ],
+      "advertised_kinds": {
+        "ck.typing": {
+          "required_action": "ck.typing.send",
+          "max_ttl_ms": 30000
+        }
+      },
+      "steps": [
+        {
+          "name": "wrong_capability_action",
+          "actor_actions": [
+            "ck.presence.broadcast"
+          ],
+          "kind": "ck.typing",
+          "ttl_ms": 5000,
+          "channel_available": true,
+          "expected": {
+            "decision": "reject",
+            "reason": "ephemeral_kind_not_permitted",
+            "durable_event_written": false
+          }
+        },
+        {
+          "name": "ttl_above_kind_ceiling",
+          "actor_actions": [
+            "ck.typing.send"
+          ],
+          "kind": "ck.typing",
+          "ttl_ms": 90000,
+          "channel_available": true,
+          "expected": {
+            "decision": "reject",
+            "reason": "ephemeral_ttl_out_of_range",
+            "durable_event_written": false
+          }
+        },
+        {
+          "name": "channel_unavailable",
+          "actor_actions": [
+            "ck.typing.send"
+          ],
+          "kind": "ck.typing",
+          "ttl_ms": 5000,
+          "channel_available": false,
+          "expected": {
+            "decision": "reject",
+            "reason": "ephemeral_channel_unavailable",
+            "durable_event_written": false,
+            "actor_seq_advanced": false,
+            "realm_frontier_advanced": false
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "ck.vector.projection.pagination_shape.v1",
+      "assertions": [
+        "page_response_always_has_has_more",
+        "has_more_true_requires_ck_cursor",
+        "cursor_binds_caller_selector_and_purpose",
+        "malformed_downstream_page_is_invalid_response"
+      ],
+      "caller": "did:web:alice.example",
+      "selector_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "purpose": "ck.self.projection.spaces.query.list",
+      "responses": [
+        {
+          "name": "first_page",
+          "items": [
+            "ck:space:0196419b-0000-7000-8000-000000002001"
+          ],
+          "has_more": true,
+          "next_cursor": "ck:cursor:projection-page-1",
+          "cursor_binding": {
+            "caller": "did:web:alice.example",
+            "selector_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "purpose": "ck.self.projection.spaces.query.list"
+          },
+          "expected": {
+            "decision": "accept"
+          }
+        },
+        {
+          "name": "last_page",
+          "items": [
+            "ck:space:0196419b-0000-7000-8000-000000002002"
+          ],
+          "has_more": false,
+          "expected": {
+            "decision": "accept"
+          }
+        },
+        {
+          "name": "missing_has_more",
+          "items": [],
+          "next_cursor": "ck:cursor:projection-page-2",
+          "expected": {
+            "decision": "reject",
+            "reason": "invalid_response"
+          }
+        },
+        {
+          "name": "malformed_cursor",
+          "items": [],
+          "has_more": true,
+          "next_cursor": "not-a-cursor",
+          "expected": {
+            "decision": "reject",
+            "reason": "invalid_response"
+          }
+        },
+        {
+          "name": "cross_caller_cursor_reuse",
+          "items": [],
+          "has_more": true,
+          "next_cursor": "ck:cursor:projection-page-3",
+          "cursor_binding": {
+            "caller": "did:web:mallory.example",
+            "selector_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "purpose": "ck.self.projection.spaces.query.list"
+          },
+          "expected": {
+            "decision": "reject",
+            "reason": "cursor_integrity_invalid"
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "ck.vector.range_completeness.witness_disagreement.v1",
+      "assertions": [
+        "same_actor_seq_different_digest_quarantines_peer",
+        "same_range_different_root_quarantines_range",
+        "high_assurance_rejects_single_source_completion"
+      ],
+      "steps": [
+        {
+          "name": "actor_seq_digest_disagreement",
+          "witnesses": [
+            {
+              "witness_id": "did:web:witness-a.example",
+              "realm_id": "ck:realm:0196419b-0000-7000-8000-000000003001",
+              "actor_id": "did:web:alice.example",
+              "actor_seq": 7,
+              "event_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            },
+            {
+              "witness_id": "did:web:witness-b.example",
+              "realm_id": "ck:realm:0196419b-0000-7000-8000-000000003001",
+              "actor_id": "did:web:alice.example",
+              "actor_seq": 7,
+              "event_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            }
+          ],
+          "expected": {
+            "decision": "reject",
+            "reason": "witness_disagreement",
+            "quarantine": true
+          }
+        },
+        {
+          "name": "range_root_disagreement",
+          "attestations": [
+            {
+              "issuer": "did:web:witness-a.example",
+              "from_frontier": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "to_frontier": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+              "range_root": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            },
+            {
+              "issuer": "did:web:witness-b.example",
+              "from_frontier": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "to_frontier": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+              "range_root": "sha256:9999999999999999999999999999999999999999999999999999999999999999"
+            }
+          ],
+          "expected": {
+            "decision": "reject",
+            "reason": "witness_disagreement",
+            "quarantine": true
+          }
+        },
+        {
+          "name": "high_assurance_single_source_stays_pending",
+          "security_class": "high_assurance",
+          "attestation_mode": "single_source",
+          "expected": {
+            "decision": "pending_stale",
+            "high_assurance_frontier_advanced": false
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "ck.vector.cursor.revoke_high_assurance.v1",
+      "assertions": [
+        "revoked_cursor_returns_cursor_revoked",
+        "tampered_cursor_returns_integrity_invalid",
+        "revoked_cursor_does_not_advance_subscription_position"
+      ],
+      "steps": [
+        {
+          "name": "replay_revoked_cursor",
+          "cursor": "ck:cursor:stream-001",
+          "integrity_valid": true,
+          "revoked": true,
+          "expected": {
+            "decision": "reject",
+            "reason": "cursor_revoked",
+            "subscription_position_advanced": false
+          }
+        },
+        {
+          "name": "tampered_unrevoked_cursor",
+          "cursor": "ck:cursor:stream-001-tampered",
+          "integrity_valid": false,
+          "revoked": false,
+          "expected": {
+            "decision": "reject",
+            "reason": "cursor_integrity_invalid",
+            "revocation_set_exposed": false
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "ck.vector.device_recovery.lifecycle.v1",
+      "assertions": [
+        "stale_ssk_generation_rejected",
+        "proof_without_secret_unlock_remains_recovery_pending",
+        "failed_keypackage_claim_reports_low_watermark_without_republishing_claimed_package"
+      ],
+      "current_ssk_generation": 5,
+      "steps": [
+        {
+          "name": "stale_ssk_generation",
+          "proof_ssk_generation": 4,
+          "expected": {
+            "decision": "reject",
+            "reason": "device_recovery_ssk_generation_mismatch"
+          }
+        },
+        {
+          "name": "proof_passed_waiting_for_unlock",
+          "proof_verified": true,
+          "secret_storage_unlocked": false,
+          "mls_welcome_replayed": false,
+          "expected": {
+            "device_state": "recovery_pending",
+            "fully_verified": false
+          }
+        },
+        {
+          "name": "keypackage_claim_failure_low_watermark",
+          "available_count": 1,
+          "low_watermark": 5,
+          "claimed_package_status_after_failure": "claimed_failed",
+          "expected": {
+            "available_count": 1,
+            "low_watermark": 5,
+            "suggested_publish_count": 4,
+            "claimed_package_republished": false
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "ck.vector.device.revocation_seal_binding.v1",
+      "assertions": [
+        "post_seal_device_operations_fail_closed",
+        "mls_remove_without_revocation_frontier_does_not_unblock_e2ee_gate",
+        "client_without_frontier_fails_closed_before_minting_seal_basis"
+      ],
+      "revocation": {
+        "device_id": "ck:device:0196419b-0000-7000-8000-000000004001",
+        "sealed_by": "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "control_event_set_root": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "steps": [
+        {
+          "name": "post_seal_operations",
+          "operation_kinds": [
+            "session_grant",
+            "keypackage_publish",
+            "to_device_write"
+          ],
+          "operation_seal_view": "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "expected": {
+            "decision": "reject",
+            "reason": "actor_signature_revoked"
+          }
+        },
+        {
+          "name": "mls_remove_missing_governance_frontier",
+          "mls_remove_covers_revocation": false,
+          "expected": {
+            "covered_seals_cell_claims_revocation": false,
+            "e2ee_data_gate": "blocked",
+            "reason": "epoch_update_required"
+          }
+        },
+        {
+          "name": "missing_frontier_for_revoke",
+          "frontier_available": false,
+          "seal_id_present": false,
+          "expected": {
+            "decision": "reject",
+            "reason": "failed_precondition",
+            "seal_basis_minted": false
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "ck.vector.push.wakeup_policy.v1",
+      "assertions": [
+        "no_notification_default_blocks_single_event_blind_wakeup",
+        "client_rule_digest_mismatch_uses_conservative_policy",
+        "batch_wakeup_coalesces_unresolved_events"
+      ],
+      "steps": [
+        {
+          "name": "no_notification_unresolved_mention",
+          "realm_policy": {
+            "wakeup_default": "no_notification",
+            "server_can_evaluate_client_rule": false
+          },
+          "expected": {
+            "single_event_wakeup_sent": false
+          }
+        },
+        {
+          "name": "client_rule_digest_mismatch",
+          "registered_client_rule_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "server_client_rule_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "expected": {
+            "strategy": "conservative",
+            "rule_content_guessed": false
+          }
+        },
+        {
+          "name": "batch_unresolved_events",
+          "realm_policy": {
+            "wakeup_default": "batch_wakeup"
+          },
+          "unresolved_event_count": 120,
+          "window_ms": 60000,
+          "expected": {
+            "wakeups_sent": 1,
+            "evaluation_locus_unresolved": true
+          }
+        }
+      ]
+    }
+  ]
+}

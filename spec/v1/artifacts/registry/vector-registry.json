@@ -370,6 +370,7 @@
       "status": "active",
       "domain": "cursor",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -378,6 +379,7 @@
       "status": "active",
       "domain": "device",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -386,6 +388,7 @@
       "status": "active",
       "domain": "device_recovery",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -816,6 +819,7 @@
       "status": "active",
       "domain": "ephemeral",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -935,6 +939,7 @@
       "status": "active",
       "domain": "invite",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/sync/third-party-invites.md"
       ]
@@ -1383,6 +1388,7 @@
       "status": "active",
       "domain": "projection",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -1445,6 +1451,7 @@
       "status": "active",
       "domain": "push",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -1453,6 +1460,7 @@
       "status": "active",
       "domain": "range_completeness",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
