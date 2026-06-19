@@ -597,6 +597,7 @@
       "domain": "disappearing",
       "description": "on_last_read converges by principal-level aggregate contributions and read_trigger_window_ms; offline devices receive expiry stubs and shred keys when they reconnect.",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/crypto-media/disappearing-messages.md"
       ]
@@ -608,6 +609,7 @@
       "domain": "disappearing",
       "description": "Read-trigger expiry anchors are derived from anonymous aggregate contributions and MUST NOT reveal reader identity or reader counts to other clients or services outside the aggregate boundary.",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/crypto-media/disappearing-messages.md"
       ]
@@ -619,6 +621,7 @@
       "domain": "disappearing",
       "description": "Duplicate, stale, out-of-order, or cross-bound read-trigger contributions MUST NOT refresh anchors, double-count readers, or expire the wrong message.",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/crypto-media/disappearing-messages.md"
       ]
@@ -648,6 +651,7 @@
       "status": "active",
       "domain": "e2ee",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -865,6 +869,7 @@
       "status": "active",
       "domain": "history_sharing",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -1380,6 +1385,7 @@
       "status": "active",
       "domain": "preview",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },

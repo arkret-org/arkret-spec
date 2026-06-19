@@ -1,0 +1,341 @@
+{
+  "profile": "ck.profile.e2ee_client.v1",
+  "version": "2026-06-19",
+  "suite": "history_crypto_closure",
+  "runner": "cotest::conformance::history_crypto_closure",
+  "covers_vectors": [
+    "ck.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1",
+    "ck.vector.disappearing.read_trigger_anonymous_aggregate.v1",
+    "ck.vector.disappearing.read_trigger_idempotent_replay.v1",
+    "ck.vector.disappearing.on_last_read_offline_window.v1",
+    "ck.vector.preview.token_scoped_stripped_state.v1",
+    "ck.vector.history_sharing.e2ee_prejoin_key_share_policy.v1"
+  ],
+  "cases": [
+    {
+      "vector_id": "ck.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1",
+      "assertions": [
+        "late_recovery_decision_uses_t0_visibility",
+        "arrival_order_does_not_change_decision",
+        "post_t0_ban_is_not_standalone_reject_reason",
+        "key_source_must_recheck_t0_and_share_policy"
+      ],
+      "scenarios": [
+        {
+          "name": "visible_at_t0_post_ban_still_recoverable",
+          "event_id": "ck:event:0196419b-0000-7000-8000-000000005001",
+          "receiver": "did:web:bob.example",
+          "t0_visible": true,
+          "t0_member": true,
+          "post_t0_membership": "ban",
+          "share_policy_allows_history_recovery": true,
+          "key_source_rechecked_t0": true,
+          "client_arrival_orders": [
+            [
+              "event",
+              "ban"
+            ],
+            [
+              "ban",
+              "backfill_event"
+            ]
+          ],
+          "expected": {
+            "client_decisions_equal": true,
+            "decision": "share_key",
+            "depends_on_wall_clock": false,
+            "post_t0_ban_used_as_reject_reason": false
+          }
+        },
+        {
+          "name": "not_visible_at_t0_rejected",
+          "event_id": "ck:event:0196419b-0000-7000-8000-000000005002",
+          "receiver": "did:web:bob.example",
+          "t0_visible": false,
+          "t0_member": false,
+          "post_t0_membership": "join",
+          "share_policy_allows_history_recovery": true,
+          "key_source_rechecked_t0": true,
+          "expected": {
+            "decision": "reject",
+            "reason": "key_unavailable",
+            "post_t0_ban_used_as_reject_reason": false
+          }
+        },
+        {
+          "name": "source_without_recheck_rejected",
+          "event_id": "ck:event:0196419b-0000-7000-8000-000000005003",
+          "receiver": "did:web:bob.example",
+          "t0_visible": true,
+          "t0_member": true,
+          "post_t0_membership": "active",
+          "share_policy_allows_history_recovery": true,
+          "key_source_rechecked_t0": false,
+          "expected": {
+            "decision": "reject",
+            "reason": "policy_denied"
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "ck.vector.disappearing.read_trigger_anonymous_aggregate.v1",
+      "assertions": [
+        "first_read_anchor_set_once",
+        "projection_contains_only_aggregate_expiry_metadata",
+        "reader_identity_and_counts_not_leaked"
+      ],
+      "message": {
+        "message_id": "ck:message:0196419b-0000-7000-8000-000000006001",
+        "trigger": "on_first_read",
+        "ttl_ms": 60000,
+        "grace_ms": 5000,
+        "eligible_principals": [
+          "did:web:bob.example",
+          "did:web:carol.example"
+        ]
+      },
+      "contributions": [
+        {
+          "principal_id": "did:web:bob.example",
+          "device_id": "ck:device:0196419b-0000-7000-8000-000000006101",
+          "anchor_hlc": "01970e589d21-0001-a13f9c2e"
+        }
+      ],
+      "allowed_projection_fields": [
+        "source_event_id",
+        "trigger",
+        "anchor_hlc",
+        "expires_at",
+        "aggregate_status"
+      ],
+      "forbidden_projection_fields": [
+        "actor_id",
+        "device_id",
+        "handle",
+        "reader_count",
+        "unread_count",
+        "ip",
+        "online_status",
+        "reader_pseudonym",
+        "read_receipt_payload"
+      ],
+      "expected": {
+        "anchor_set_once": true,
+        "projection_after_expiry": "expiry_stub",
+        "forbidden_fields_present": false
+      }
+    },
+    {
+      "vector_id": "ck.vector.disappearing.read_trigger_idempotent_replay.v1",
+      "assertions": [
+        "principal_level_contribution_dedupes_devices",
+        "duplicate_replay_does_not_refresh_anchor",
+        "cross_message_replay_fails_closed"
+      ],
+      "message_id": "ck:message:0196419b-0000-7000-8000-000000006201",
+      "accepted_anchor_hlc": "01970e589d21-0001-a13f9c2e",
+      "contributions": [
+        {
+          "label": "bob_phone",
+          "message_id": "ck:message:0196419b-0000-7000-8000-000000006201",
+          "principal_id": "did:web:bob.example",
+          "device_id": "ck:device:0196419b-0000-7000-8000-000000006202",
+          "hlc": "01970e589d21-0001-a13f9c2e",
+          "opaque_token": "read-token-bob-m1"
+        },
+        {
+          "label": "bob_desktop_later",
+          "message_id": "ck:message:0196419b-0000-7000-8000-000000006201",
+          "principal_id": "did:web:bob.example",
+          "device_id": "ck:device:0196419b-0000-7000-8000-000000006203",
+          "hlc": "01970e589d22-0001-a13f9c2e",
+          "opaque_token": "read-token-bob-m1"
+        },
+        {
+          "label": "old_replay",
+          "message_id": "ck:message:0196419b-0000-7000-8000-000000006201",
+          "principal_id": "did:web:bob.example",
+          "device_id": "ck:device:0196419b-0000-7000-8000-000000006202",
+          "hlc": "01970e589d20-0001-a13f9c2e",
+          "opaque_token": "read-token-bob-m1"
+        },
+        {
+          "label": "cross_message_replay",
+          "message_id": "ck:message:0196419b-0000-7000-8000-000000006299",
+          "principal_id": "did:web:bob.example",
+          "device_id": "ck:device:0196419b-0000-7000-8000-000000006202",
+          "hlc": "01970e589d23-0001-a13f9c2e",
+          "opaque_token": "read-token-bob-m1"
+        }
+      ],
+      "expected": {
+        "principal_contribution_count": 1,
+        "anchor_hlc": "01970e589d21-0001-a13f9c2e",
+        "duplicate_result": "already_observed",
+        "cross_message_replay_decision": "reject",
+        "cross_message_replay_reason": "replay_scope_mismatch"
+      }
+    },
+    {
+      "vector_id": "ck.vector.disappearing.on_last_read_offline_window.v1",
+      "assertions": [
+        "multi_device_principal_counts_once",
+        "offline_unreachable_reader_does_not_block_after_window",
+        "offline_device_receives_stub_and_shreds_keys",
+        "late_recovery_does_not_restore_expired_plaintext"
+      ],
+      "message_id": "ck:message:0196419b-0000-7000-8000-000000006301",
+      "trigger": "on_last_read",
+      "eligible_principals": [
+        "did:web:bob.example",
+        "did:web:carol.example",
+        "did:web:david.example"
+      ],
+      "contributions": [
+        {
+          "principal_id": "did:web:bob.example",
+          "device_id": "bob-phone"
+        },
+        {
+          "principal_id": "did:web:carol.example",
+          "device_id": "carol-phone"
+        }
+      ],
+      "unreachable_principals": [
+        "did:web:david.example"
+      ],
+      "read_trigger_window_elapsed": true,
+      "offline_devices": [
+        "bob-desktop"
+      ],
+      "expected": {
+        "anchor_set": true,
+        "bob_contribution_count": 1,
+        "blocked_by_unreachable_david": false,
+        "offline_device_projection": "expiry_stub",
+        "offline_device_shreds_keys": true,
+        "late_recovery_decision": "reject",
+        "late_recovery_reason": "late_recovery_rejected_expired"
+      }
+    },
+    {
+      "vector_id": "ck.vector.preview.token_scoped_stripped_state.v1",
+      "assertions": [
+        "preview_token_returns_only_policy_allowed_fields",
+        "forbidden_history_and_grant_fields_omitted",
+        "target_digest_and_link_type_scope_confusion_returns_not_found"
+      ],
+      "policy": {
+        "mode": "stripped_state",
+        "allowed_fields": [
+          "title",
+          "summary",
+          "join_rule",
+          "member_count_bucket"
+        ]
+      },
+      "token": {
+        "aud": "did:web:bob.example",
+        "target_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "link_type": "preview",
+        "ttl_seconds": 300
+      },
+      "requests": [
+        {
+          "name": "bob_preview",
+          "caller": "did:web:bob.example",
+          "target_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "link_type": "preview",
+          "expected": {
+            "decision": "accept",
+            "response_fields": [
+              "join_rule",
+              "member_count_bucket",
+              "summary",
+              "title"
+            ],
+            "forbidden_fields_present": false
+          }
+        },
+        {
+          "name": "mallory_scope_confused_target",
+          "caller": "did:web:mallory.example",
+          "target_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "link_type": "preview",
+          "expected": {
+            "decision": "reject",
+            "public_error_shape": "not_found"
+          }
+        },
+        {
+          "name": "link_type_rewritten_to_invite",
+          "caller": "did:web:bob.example",
+          "target_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "link_type": "invite",
+          "expected": {
+            "decision": "reject",
+            "public_error_shape": "not_found"
+          }
+        }
+      ],
+      "forbidden_fields": [
+        "history",
+        "member_list",
+        "policy_document",
+        "join_candidates",
+        "write_grant",
+        "membership_grant"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.history_sharing.e2ee_prejoin_key_share_policy.v1",
+      "assertions": [
+        "history_visibility_shared_alone_does_not_authorize_key_share",
+        "explicit_history_sharing_policy_allows_bound_key_share",
+        "client_without_key_share_keeps_prejoin_event_decryption_pending"
+      ],
+      "scenarios": [
+        {
+          "name": "missing_history_sharing_policy",
+          "history_visibility": "shared",
+          "history_sharing_policy": null,
+          "key_source": "archive_node",
+          "expected": {
+            "decision": "withhold",
+            "reason": "policy_denied"
+          }
+        },
+        {
+          "name": "policy_allows_archive_node",
+          "history_visibility": "shared",
+          "history_sharing_policy": {
+            "policy_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "pre_join_history": "allow_if_visibility_allows",
+            "allowed_key_sources": [
+              "archive_node"
+            ],
+            "audit_satisfied": true
+          },
+          "key_source": "archive_node",
+          "receiver_state_valid": true,
+          "membership_frontier_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "expected": {
+            "decision": "share_key",
+            "key_scope_policy_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "membership_frontier_digest_present": true
+          }
+        },
+        {
+          "name": "client_without_legal_share",
+          "history_visibility": "shared",
+          "history_sharing_policy": null,
+          "key_share_present": false,
+          "expected": {
+            "client_prejoin_event_state": "decryption_pending"
+          }
+        }
+      ]
+    }
+  ]
+}

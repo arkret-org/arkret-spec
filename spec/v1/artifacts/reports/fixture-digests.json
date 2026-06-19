@@ -57,6 +57,10 @@
       "sha256": "0d1a9a9dcef67b004d323ecb8c0f7ae788886ac72c5f471e84f002c9735c17c5"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/history-crypto-closure-fixture.json",
+      "sha256": "1994e54971c800580237d4db28c910257ec7f8877862c53ed26fad5559b2acd8"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
       "sha256": "47ff50fea53d0ef5757123ad0ee5794e94d417a1b4fc3017045ffcc090320a7a"
     },
