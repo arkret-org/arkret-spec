@@ -134,6 +134,10 @@
       "mismatched_keypackage_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
       "capabilities_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       "claim_id": "mls-keypackage-claim-normal-1",
+      "intended_realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+      "requester_did": "did:web:alice.example",
+      "claim_nonce": "claim-nonce-01",
+      "welcome_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "ssk_generation": 7,
       "expected": {
         "reject_before_decrypt": true,

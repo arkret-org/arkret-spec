@@ -5674,6 +5674,7 @@
         "keypackage_digest",
         "claim_id",
         "claim_ref",
+        "claim_envelope",
         "expires_at"
       ],
       "anyOf": [
@@ -5746,6 +5747,72 @@
             "ssk_generation": {
               "type": "integer",
               "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "claim_envelope": {
+          "type": "object",
+          "description": "Detached self-signing-key signature binding the claimed KeyPackage to this Welcome, Realm, claim nonce, and Welcome digest before decrypting the Welcome.",
+          "required": [
+            "keypackage_ref",
+            "keypackage_digest",
+            "intended_realm_id",
+            "claim_id",
+            "requester_did",
+            "ssk_generation",
+            "nonce",
+            "welcome_digest",
+            "created_at",
+            "signature"
+          ],
+          "properties": {
+            "keypackage_ref": {
+              "$ref": "#/$defs/object_ref"
+            },
+            "keypackage_digest": {
+              "$ref": "#/$defs/hash"
+            },
+            "intended_realm_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
+            },
+            "claim_id": {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            "requester_did": {
+              "$ref": "#/$defs/did"
+            },
+            "ssk_generation": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "nonce": {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            "welcome_digest": {
+              "$ref": "#/$defs/hash"
+            },
+            "created_at": {
+              "$ref": "#/$defs/timestamp"
+            },
+            "signature": {
+              "type": "object",
+              "required": [
+                "kid",
+                "sig"
+              ],
+              "properties": {
+                "kid": {
+                  "$ref": "#/$defs/non_empty_string"
+                },
+                "alg": {
+                  "$ref": "#/$defs/non_empty_string"
+                },
+                "sig": {
+                  "$ref": "#/$defs/non_empty_string"
+                }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
