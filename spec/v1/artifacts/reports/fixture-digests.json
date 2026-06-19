@@ -2,7 +2,7 @@
   "files": [
     {
       "path": "spec/v1/artifacts/fixtures/capability-fixture.json",
-      "sha256": "c8dcf6fd1e0bc7fa219ac218e6fc9ec593b0a099853dcfed56ca53c078554704"
+      "sha256": "a7b6727055a4cbe2bdbf852051a4875f6a7e8f16773f120a5d0ce094b59a0e35"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cba-lattice-fixture.json",
@@ -39,6 +39,10 @@
     {
       "path": "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
       "sha256": "21d6a35bd060bd5f9a695ebc16ab9d2e5b2559e0d3cb865861d609e00394bc76"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/policy-server-fixture.json",
+      "sha256": "d13249af094b29dd662a00fe8f108d3e4f74440762bb826cda254eea34356022"
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",

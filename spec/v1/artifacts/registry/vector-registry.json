@@ -166,7 +166,8 @@
       "status": "active",
       "domain": "capability",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/capability-fixture.json"
       ]
     },
     {
@@ -174,7 +175,8 @@
       "status": "active",
       "domain": "capability",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/capability-fixture.json"
       ]
     },
     {
@@ -182,7 +184,8 @@
       "status": "active",
       "domain": "capability",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/capability-fixture.json"
       ]
     },
     {
@@ -1302,7 +1305,8 @@
       "domain": "policy_server",
       "description": "Expired policy decisions and decisions bound to an older auth/policy/membership frontier MUST be rejected on replay; receivers fail closed and re-request the policy check.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/policy-server-fixture.json"
       ]
     },
     {
@@ -1311,7 +1315,8 @@
       "domain": "policy_server",
       "description": "Receivers recompute the RFC 8785 JCS request_canonical_digest of the presented request body; mismatch with the signed bound_to transcript MUST reject the decision.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/policy-server-fixture.json"
       ]
     },
     {

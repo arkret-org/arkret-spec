@@ -1,0 +1,72 @@
+{
+  "suite": "policy_server",
+  "cases": [
+    {
+      "name": "request_digest_recompute",
+      "vector_id": "ck.vector.policy_server.request_digest_recompute.v1",
+      "request_b1": {
+        "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
+        "actor_id": "did:web:alice.example.com",
+        "action": "ck.message.create",
+        "context": {
+          "strand_id": "ck:strand:0196418d-cc00-7000-8000-000000000000",
+          "content_class": "text"
+        }
+      },
+      "request_b2": {
+        "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
+        "actor_id": "did:web:alice.example.com",
+        "action": "ck.message.create",
+        "context": {
+          "strand_id": "ck:strand:0196418d-cc00-7000-8000-000000000000",
+          "content_class": "attachment"
+        }
+      },
+      "bound_to": {
+        "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
+        "actor_id": "did:web:alice.example.com",
+        "action": "ck.message.create"
+      },
+      "cross_context_bound_to": {
+        "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
+        "actor_id": "did:web:mallory.example.com",
+        "action": "ck.message.create"
+      },
+      "expected": {
+        "tampered_body_accepted": false,
+        "matching_body_accepted": true,
+        "cross_context_accepted": false
+      }
+    },
+    {
+      "name": "decision_replay_rejected",
+      "vector_id": "ck.vector.policy_server.decision_replay_rejected.v1",
+      "case_a_expired": {
+        "decision_expires_at": "2026-04-26T00:00:00Z",
+        "now": "2026-04-26T00:05:00Z"
+      },
+      "case_a_control": {
+        "decision_expires_at": "2026-04-26T01:00:00Z",
+        "now": "2026-04-26T00:05:00Z"
+      },
+      "case_b_stale_authstate": {
+        "decision_auth_state_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "local_auth_state_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "decision_frontier": 100,
+        "local_frontier": 105
+      },
+      "case_b_control": {
+        "decision_auth_state_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "local_auth_state_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "decision_frontier": 100,
+        "local_frontier": 100
+      },
+      "expected": {
+        "expired_accepted": false,
+        "fresh_accepted": true,
+        "stale_authstate_reused": false,
+        "matching_authstate_reused": true
+      }
+    }
+  ]
+}
