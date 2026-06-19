@@ -269,6 +269,18 @@
       ]
     },
     {
+      "vector_id": "ck.vector.call_state.recording_result_artifact_shape.v1",
+      "status": "active",
+      "domain": "call_state",
+      "applies_to_profiles": [
+        "ck.profile.media_service_binding.v1"
+      ],
+      "description": "Recording ready results MUST carry ck.schema.call_recording_artifact.v1 metadata bound to the recording start event, Cokret blob pipeline, recording exporter label/context, retention policy, deletion audit trigger, and erasure receipt.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ck.vector.call_state.transcribe_lifecycle.v1",
       "status": "active",
       "domain": "call_state",

@@ -2750,6 +2750,12 @@
         "file": "schemas/media-metadata.schema.json"
       },
       {
+        "schema_id": "ck.schema.call_recording_artifact.v1",
+        "file": "schemas/call-recording-artifact.schema.json",
+        "status": "active",
+        "description": "Canonical metadata for call recording artifacts after Cokret blob pipeline ingestion, including recording exporter context, retention policy and deletion audit binding."
+      },
+      {
         "schema_id": "ck.schema.encrypted_envelope.v1",
         "file": "schemas/encrypted-envelope.schema.json"
       },

@@ -7746,7 +7746,7 @@
         },
         "recording_result": {
           "type": "object",
-          "description": "Typed recording outcome, present when recording_state ∈ {stopped, ready, failed}. See crypto-media/call-state.md §4.2 / §5: the durable ck.call.state carries recording_start_event_id for every terminal recording segment, and carries content digest, duration, media type and retention policy when an artifact exists. All fields optional at schema level; prose defines state-specific requirements.",
+          "description": "Typed recording outcome, present when recording_state ∈ {stopped, ready, failed}. See crypto-media/call-state.md §4.2 / §5: the durable ck.call.state carries recording_start_event_id for every terminal recording segment, and carries content digest, duration, media type, retention policy and a typed artifact when an artifact exists. All fields optional at schema level; prose defines state-specific requirements.",
           "properties": {
             "content_digest": {
               "$ref": "#/$defs/hash"
@@ -7766,6 +7766,18 @@
             },
             "recording_start_event_id": {
               "$ref": "#/$defs/event_ref"
+            },
+            "artifact": {
+              "$ref": "./call-recording-artifact.schema.json",
+              "description": "Canonical artifact metadata for recording_state=ready. It binds the Cokret blob, recording exporter context, retention policy and deletion audit surface."
+            },
+            "failure_reason_code": {
+              "$ref": "#/$defs/non_empty_string",
+              "description": "Machine reason for recording_state=failed."
+            },
+            "failure_message": {
+              "$ref": "#/$defs/non_empty_string",
+              "description": "Human-readable diagnostic for recording_state=failed. It MUST NOT contain recording plaintext or backend direct URLs."
             }
           },
           "additionalProperties": false
@@ -7809,32 +7821,7 @@
       "additionalProperties": false
     },
     "call_recording_retention": {
-      "type": "object",
-      "description": "Retention contract for a recording / transcript artifact. retention_expires_at is the protocol-fixed earliest deletion time; deletion_trigger declares what causes purge; audit_lock signals a legal hold that takes precedence over TTL (deletion MUST be rejected with legal_hold_active until released); consent_confirmed records the second client-side confirmation required before a capture begins. See crypto-media/call-state.md §5 / §5.2.",
-      "properties": {
-        "retention_expires_at": {
-          "$ref": "#/$defs/timestamp",
-          "description": "Earliest time the artifact MAY be purged. Absent = governed solely by retention_policy_id. MUST NOT be in the past at write time."
-        },
-        "deletion_trigger": {
-          "type": "string",
-          "enum": [
-            "retention_expiry",
-            "manual",
-            "realm_policy",
-            "participant_erasure"
-          ]
-        },
-        "audit_lock": {
-          "type": "boolean",
-          "description": "When true the artifact is under audit / legal hold; purge MUST be rejected with legal_hold_active regardless of retention_expires_at until the lock is released by an audit-grade action."
-        },
-        "consent_confirmed": {
-          "type": "boolean",
-          "description": "Records that the second client-side consent confirmation required before capture (recording or transcription) was obtained. The capability holder MUST NOT set recording_state/transcript_state to a capturing value without it."
-        }
-      },
-      "additionalProperties": false
+      "$ref": "./call-recording-artifact.schema.json#/$defs/call_recording_retention"
     },
     "call_summary_payload": {
       "type": "object",

@@ -1,0 +1,301 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/call-recording-artifact.schema.json",
+  "title": "Cokret Call Recording Artifact",
+  "description": "Canonical metadata for a call recording artifact after it has entered the Cokret blob pipeline. It binds the blob, recording start event, MLS exporter recording key context, retention policy and deletion audit surface without introducing a ck:recording or ck:artifact storage key.",
+  "type": "object",
+  "required": [
+    "schema",
+    "realm_id",
+    "call_id",
+    "recording_id",
+    "recording_start_event_id",
+    "artifact_kind",
+    "blob_ref",
+    "content_digest",
+    "ciphertext_digest",
+    "size_bytes",
+    "duration_ms",
+    "media_type",
+    "encryption",
+    "retention",
+    "produced_by",
+    "recording_initiator_capability_ref",
+    "created_at"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ck.schema.call_recording_artifact.v1"
+    },
+    "realm_id": {
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
+    },
+    "call_id": {
+      "$ref": "#/$defs/call_id"
+    },
+    "recording_id": {
+      "$ref": "#/$defs/recording_id"
+    },
+    "recording_start_event_id": {
+      "$ref": "#/$defs/event_ref"
+    },
+    "artifact_kind": {
+      "const": "recording"
+    },
+    "blob_ref": {
+      "$ref": "#/$defs/blob_ref"
+    },
+    "content_digest": {
+      "$ref": "#/$defs/hash",
+      "description": "Digest published by the Cokret blob pipeline for the stored recording object."
+    },
+    "ciphertext_digest": {
+      "$ref": "#/$defs/hash",
+      "description": "Digest of encrypted recording bytes. This MUST match encryption.ciphertext_digest and the referenced encrypted blob metadata."
+    },
+    "size_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "duration_ms": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "media_type": {
+      "$ref": "#/$defs/media_type"
+    },
+    "encryption": {
+      "$ref": "#/$defs/recording_encryption"
+    },
+    "retention_policy_id": {
+      "$ref": "#/$defs/policy_id"
+    },
+    "retention": {
+      "$ref": "#/$defs/call_recording_retention"
+    },
+    "produced_by": {
+      "$ref": "#/$defs/did",
+      "description": "Media service DID or recorder service DID that produced the encrypted recording bytes."
+    },
+    "recording_initiator_capability_ref": {
+      "$ref": "#/$defs/grant_ref",
+      "description": "Capability grant reference proving the recording was initiated by an actor holding ck.call.record."
+    },
+    "created_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "deletion_audit": {
+      "$ref": "#/$defs/call_recording_deletion_audit",
+      "description": "Present only after a delete attempt is scheduled, completed, or blocked. The referenced erasure receipt remains the durable audit proof."
+    }
+  },
+  "anyOf": [
+    {
+      "required": [
+        "retention_policy_id"
+      ]
+    },
+    {
+      "properties": {
+        "retention": {
+          "required": [
+            "retention_expires_at"
+          ]
+        }
+      },
+      "required": [
+        "retention"
+      ]
+    }
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+    },
+    "media_type": {
+      "type": "string",
+      "pattern": "^[a-z0-9.+-]+/[a-z0-9.+-]+$"
+    },
+    "call_id": {
+      "type": "string",
+      "pattern": "^ck:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "recording_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._-]{1,128}$"
+    },
+    "event_ref": {
+      "type": "string",
+      "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "blob_ref": {
+      "type": "string",
+      "pattern": "^ck:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
+    },
+    "grant_ref": {
+      "type": "string",
+      "pattern": "^ck:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "policy_id": {
+      "type": "string",
+      "pattern": "^ck:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "audit_ref": {
+      "type": "string",
+      "pattern": "^(ck:(event|receipt|policy):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
+    },
+    "recording_encryption": {
+      "type": "object",
+      "required": [
+        "alg",
+        "exporter_label",
+        "context",
+        "ciphertext_digest"
+      ],
+      "properties": {
+        "alg": {
+          "type": "string",
+          "enum": [
+            "mls_exporter_aead_xchacha20poly1305",
+            "mls_exporter_aead_aes_256_gcm",
+            "mls_exporter_aead_xchacha20poly1305_stream",
+            "mls_exporter_aead_aes_256_gcm_stream"
+          ]
+        },
+        "exporter_label": {
+          "const": "ck-rtc-recording-key/v1"
+        },
+        "context": {
+          "type": "object",
+          "required": [
+            "realm_id",
+            "call_id",
+            "focus_id",
+            "recording_id",
+            "media_service_did",
+            "recording_start_event_id"
+          ],
+          "properties": {
+            "realm_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
+            },
+            "call_id": {
+              "$ref": "#/$defs/call_id"
+            },
+            "focus_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "recording_id": {
+              "$ref": "#/$defs/recording_id"
+            },
+            "media_service_did": {
+              "$ref": "#/$defs/did"
+            },
+            "recording_start_event_id": {
+              "$ref": "#/$defs/event_ref"
+            }
+          },
+          "additionalProperties": false
+        },
+        "ciphertext_digest": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
+    "call_recording_retention": {
+      "type": "object",
+      "description": "Retention contract for a recording or transcript capture artifact. retention_expires_at is the earliest deletion time; deletion_trigger declares the only accepted purge cause; audit_lock blocks all purge paths until an audit-grade release is accepted; consent_confirmed records the required second client-side capture confirmation.",
+      "properties": {
+        "retention_expires_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Earliest time the artifact MAY be purged. Absent = governed by retention_policy_id. MUST NOT be in the past at write time."
+        },
+        "deletion_trigger": {
+          "type": "string",
+          "enum": [
+            "retention_expiry",
+            "manual",
+            "realm_policy",
+            "participant_erasure"
+          ]
+        },
+        "audit_lock": {
+          "type": "boolean",
+          "description": "When true the artifact is under audit / legal hold; purge MUST be rejected with legal_hold_active until the lock is released by an audit-grade action."
+        },
+        "consent_confirmed": {
+          "type": "boolean",
+          "description": "Records that the second client-side confirmation required before recording or transcript capture was obtained."
+        }
+      },
+      "additionalProperties": false
+    },
+    "call_recording_deletion_audit": {
+      "type": "object",
+      "required": [
+        "trigger",
+        "outcome",
+        "requested_at"
+      ],
+      "properties": {
+        "trigger": {
+          "type": "string",
+          "enum": [
+            "retention_expiry",
+            "manual",
+            "realm_policy",
+            "participant_erasure"
+          ]
+        },
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "completed",
+            "blocked_by_legal_hold",
+            "failed"
+          ]
+        },
+        "requested_by": {
+          "$ref": "#/$defs/did"
+        },
+        "trigger_event_id": {
+          "$ref": "#/$defs/event_ref",
+          "description": "Durable event that caused this delete attempt, when the trigger is event-backed."
+        },
+        "requested_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "completed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "erasure_receipt_ref": {
+          "$ref": "#/$defs/audit_ref",
+          "description": "ck.audit.erasure_receipt event, ck.schema.erasure_receipt.v1 object, or digest proving the deletion outcome."
+        },
+        "legal_hold_ref": {
+          "$ref": "#/$defs/audit_ref"
+        },
+        "failure_reason_code": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

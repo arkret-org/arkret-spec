@@ -3570,6 +3570,25 @@ Expected:
 - 第 4 步 MUST `failed_precondition` `reason_code=recording_consent_required`。
 - 反例（control）：`audit_lock=false` 且已过 `retention_expires_at`、`deletion_trigger=retention_expiry` 时删除 MAY accepted；`recording_state="recording"` 且 `consent_confirmed=true` 时写入 MUST accepted。
 
+### 12.16.1 Call State — Recording Result Artifact Shape
+
+`vector_id`: `ck.vector.call_state.recording_result_artifact_shape.v1`
+
+Steps:
+
+1. Producer 提交 `ck.call.state`，`recording_state="ready"`，但 `recording_result.artifact` 缺失。
+2. Producer 提交 `recording_result.artifact`，但其中 `schema` 不是 `ck.schema.call_recording_artifact.v1`，或 `recording_id` / `recording_start_event_id` 与 `recording_result` 绑定不一致。
+3. Producer 提交 artifact，`encryption.exporter_label` 不是 `"ck-rtc-recording-key/v1"`，或 `encryption.context` 缺少 `{realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id}` 中任一字段。
+4. Backend 尝试在 result / artifact 中携带直出 recording URL、S3/GCS/LiveKit Cloud destination，或缺失 `recording_initiator_capability_ref`。
+5. Retention 到期或 manual delete 触发删除，artifact `deletion_audit.trigger` 与 `retention.deletion_trigger` 不一致，或 `outcome="completed"` 但缺少 `erasure_receipt_ref`。
+6. Producer 提交合法 artifact：`schema="ck.schema.call_recording_artifact.v1"`，绑定同一 `realm_id` / `call_id` / `recording_id` / `recording_start_event_id`，通过 Cokret blob pipeline，使用 `"ck-rtc-recording-key/v1"` 与完整 Context，携带 retention、capability ref；删除完成时携带同 trigger 的 `deletion_audit` 与 `ck.schema.erasure_receipt.v1` 引用。
+
+Expected:
+
+- 第 1–5 步 MUST reject 或 fail closed；直出 URL / 外部 destination MUST 报 `recording_artifact_pipeline_bypassed`，artifact shape 或绑定不一致 MUST `schema_violation`。
+- 第 5 步若 `audit_lock=true`，MUST 优先拒绝 `legal_hold_active`，不得因为 retention 到期或 manual capability 放行。
+- 第 6 步 MAY accepted，前提是 Event Envelope、capability、blob metadata、artifact schema、exporter label/context 与 erasure receipt 绑定全部通过。
+
 ### 12.17 Call State — Transcribe Lifecycle & Key Source
 
 `vector_id`: `ck.vector.call_state.transcribe_lifecycle.v1`

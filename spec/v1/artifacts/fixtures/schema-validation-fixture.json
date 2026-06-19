@@ -952,6 +952,98 @@
       }
     },
     {
+      "name": "call_recording_artifact_valid",
+      "schema_ref": "schemas/call-recording-artifact.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ck.schema.call_recording_artifact.v1",
+        "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
+        "call_id": "ck:call:019a7360-0000-7000-8000-000000000001",
+        "recording_id": "rtc-recording-019a7360-0000-7000-8000-000000000002",
+        "recording_start_event_id": "ck:event:019a7360-0000-7000-8000-000000000003",
+        "artifact_kind": "recording",
+        "blob_ref": "ck:blob:019a7360-0000-7000-8000-000000000004",
+        "content_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "ciphertext_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "size_bytes": 1048576,
+        "duration_ms": 42000,
+        "media_type": "video/mp4",
+        "encryption": {
+          "alg": "mls_exporter_aead_xchacha20poly1305_stream",
+          "exporter_label": "ck-rtc-recording-key/v1",
+          "context": {
+            "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
+            "call_id": "ck:call:019a7360-0000-7000-8000-000000000001",
+            "focus_id": "fra-1",
+            "recording_id": "rtc-recording-019a7360-0000-7000-8000-000000000002",
+            "media_service_did": "did:web:recorder.example",
+            "recording_start_event_id": "ck:event:019a7360-0000-7000-8000-000000000003"
+          },
+          "ciphertext_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "retention_policy_id": "ck:policy:019a7360-0000-7000-8000-000000000005",
+        "retention": {
+          "retention_expires_at": "2026-06-20T00:00:00Z",
+          "deletion_trigger": "retention_expiry",
+          "audit_lock": false,
+          "consent_confirmed": true
+        },
+        "produced_by": "did:web:recorder.example",
+        "recording_initiator_capability_ref": "ck:grant:019a7360-0000-7000-8000-000000000006",
+        "created_at": "2026-06-19T00:00:00Z",
+        "deletion_audit": {
+          "trigger": "retention_expiry",
+          "outcome": "completed",
+          "requested_at": "2026-06-20T00:00:00Z",
+          "completed_at": "2026-06-20T00:00:01Z",
+          "erasure_receipt_ref": "ck:receipt:019a7360-0000-7000-8000-000000000007"
+        }
+      }
+    },
+    {
+      "name": "call_recording_artifact_wrong_exporter_label_rejected",
+      "schema_ref": "schemas/call-recording-artifact.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "schema": "ck.schema.call_recording_artifact.v1",
+        "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
+        "call_id": "ck:call:019a7360-0000-7000-8000-000000000001",
+        "recording_id": "rtc-recording-019a7360-0000-7000-8000-000000000002",
+        "recording_start_event_id": "ck:event:019a7360-0000-7000-8000-000000000003",
+        "artifact_kind": "recording",
+        "blob_ref": "ck:blob:019a7360-0000-7000-8000-000000000004",
+        "content_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "ciphertext_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "size_bytes": 1048576,
+        "duration_ms": 42000,
+        "media_type": "video/mp4",
+        "encryption": {
+          "alg": "mls_exporter_aead_xchacha20poly1305_stream",
+          "exporter_label": "ck-rtc-frame-key/v1",
+          "context": {
+            "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
+            "call_id": "ck:call:019a7360-0000-7000-8000-000000000001",
+            "focus_id": "fra-1",
+            "recording_id": "rtc-recording-019a7360-0000-7000-8000-000000000002",
+            "media_service_did": "did:web:recorder.example",
+            "recording_start_event_id": "ck:event:019a7360-0000-7000-8000-000000000003"
+          },
+          "ciphertext_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "retention_policy_id": "ck:policy:019a7360-0000-7000-8000-000000000005",
+        "retention": {
+          "retention_expires_at": "2026-06-20T00:00:00Z",
+          "deletion_trigger": "retention_expiry",
+          "audit_lock": false,
+          "consent_confirmed": true
+        },
+        "produced_by": "did:web:recorder.example",
+        "recording_initiator_capability_ref": "ck:grant:019a7360-0000-7000-8000-000000000006",
+        "created_at": "2026-06-19T00:00:00Z"
+      },
+      "first_expected_error": "$.encryption.exporter_label: 'ck-rtc-recording-key/v1' was expected"
+    },
+    {
       "name": "recovery_session_pending_valid",
       "schema_ref": "schemas/recovery-session.schema.json",
       "expect_valid": true,
