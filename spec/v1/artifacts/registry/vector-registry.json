@@ -618,7 +618,8 @@
       "domain": "e2ee",
       "source_refs": [
         "spec/v1/zh/models/circle.md",
-        "spec/v1/artifacts/profiles/conformance-profiles.json"
+        "spec/v1/artifacts/profiles/conformance-profiles.json",
+        "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
       ]
     },
     {
@@ -627,7 +628,8 @@
       "domain": "e2ee",
       "source_refs": [
         "spec/v1/zh/models/circle.md",
-        "spec/v1/artifacts/profiles/conformance-profiles.json"
+        "spec/v1/artifacts/profiles/conformance-profiles.json",
+        "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
       ]
     },
     {
@@ -644,7 +646,8 @@
       "domain": "e2ee",
       "source_refs": [
         "spec/v1/zh/models/circle.md",
-        "spec/v1/artifacts/profiles/conformance-profiles.json"
+        "spec/v1/artifacts/profiles/conformance-profiles.json",
+        "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
       ]
     },
     {
@@ -857,7 +860,8 @@
       "status": "active",
       "domain": "history_visibility",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
       ]
     },
     {
@@ -1486,7 +1490,8 @@
       "domain": "circle",
       "source_refs": [
         "spec/v1/zh/models/circle.md",
-        "spec/v1/artifacts/profiles/conformance-profiles.json"
+        "spec/v1/artifacts/profiles/conformance-profiles.json",
+        "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
       ]
     },
     {
@@ -1495,7 +1500,8 @@
       "domain": "circle",
       "source_refs": [
         "spec/v1/zh/models/circle.md",
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
       ]
     },
     {
@@ -1728,7 +1734,8 @@
       "domain": "circle",
       "description": "directory_visibility=realm_members exposes only the Realm-member preview field set and gives non-Realm callers the same locked stub/timing bucket as members-only circles.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
       ]
     },
     {

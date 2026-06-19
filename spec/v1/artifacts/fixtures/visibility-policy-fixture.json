@@ -1,0 +1,232 @@
+{
+  "profile": "ck.profile.circle_conformance.v1",
+  "version": "2026-06-19",
+  "suite": "visibility_policy",
+  "runner": "cotest::conformance::visibility_policy",
+  "covers_vectors": [
+    "ck.vector.e2ee.content_floor_downgrade_rejected.v1",
+    "ck.vector.e2ee.metadata_floor_downgrade_rejected.v1",
+    "ck.vector.e2ee.in_place_enable.v1",
+    "ck.vector.circle.content_floor_below_realm_rejected.v1",
+    "ck.vector.circle.directory_visibility_members_indistinguishable.v1",
+    "ck.vector.circle.directory_visibility_realm_members_indistinguishable.v1",
+    "ck.vector.history_visibility.joined_prejoin_denied.v1"
+  ],
+  "cases": [
+    {
+      "name": "content_floor_downgrade_rejected",
+      "vector_id": "ck.vector.e2ee.content_floor_downgrade_rejected.v1",
+      "kind": "floor_ratchet",
+      "floor": "content_encryption_floor",
+      "previous": "e2ee_required",
+      "next": "allow_plaintext",
+      "expected": {
+        "outcome": "failed_precondition",
+        "reason": "content_encryption_floor_downgrade"
+      },
+      "controls": [
+        {
+          "previous": "allow_plaintext",
+          "next": "e2ee_required",
+          "outcome": "accepted"
+        },
+        {
+          "previous": "e2ee_required",
+          "next": "e2ee_required",
+          "outcome": "accepted"
+        }
+      ],
+      "assertions": [
+        "content_encryption_floor is a one-way ratchet",
+        "e2ee_required to allow_plaintext fails with content_encryption_floor_downgrade",
+        "tightening and preserving the floor are accepted"
+      ]
+    },
+    {
+      "name": "metadata_floor_downgrade_rejected",
+      "vector_id": "ck.vector.e2ee.metadata_floor_downgrade_rejected.v1",
+      "kind": "floor_ratchet",
+      "floor": "metadata_encryption_floor",
+      "previous": "e2ee_required",
+      "next": "allow_plaintext",
+      "expected": {
+        "outcome": "failed_precondition",
+        "reason": "metadata_encryption_floor_downgrade"
+      },
+      "controls": [
+        {
+          "previous": "allow_plaintext",
+          "next": "e2ee_required",
+          "outcome": "accepted"
+        },
+        {
+          "previous": "e2ee_required",
+          "next": "e2ee_required",
+          "outcome": "accepted"
+        }
+      ],
+      "assertions": [
+        "metadata_encryption_floor is a one-way ratchet",
+        "e2ee_required to allow_plaintext fails with metadata_encryption_floor_downgrade",
+        "tightening and preserving the floor are accepted"
+      ]
+    },
+    {
+      "name": "in_place_e2ee_enable",
+      "vector_id": "ck.vector.e2ee.in_place_enable.v1",
+      "kind": "floor_ratchet",
+      "floor": "content_encryption_floor",
+      "previous": "allow_plaintext",
+      "next": "e2ee_required",
+      "realm_encryption_profile": "mls_rfc9420",
+      "expected": {
+        "outcome": "accepted",
+        "post_upgrade_plaintext_write": "failed_precondition",
+        "post_upgrade_plaintext_reason": "content_encryption_floor_violation"
+      },
+      "assertions": [
+        "allow_plaintext to e2ee_required is accepted in place",
+        "the Realm does not need to be recreated",
+        "plaintext content writes after the upgrade fail closed"
+      ]
+    },
+    {
+      "name": "circle_content_floor_below_realm_rejected",
+      "vector_id": "ck.vector.circle.content_floor_below_realm_rejected.v1",
+      "kind": "circle_floor",
+      "realm_encryption_profile": "mls_rfc9420",
+      "realm_content_encryption_floor": "e2ee_required",
+      "circle_encryption_profile": "none",
+      "expected": {
+        "outcome": "failed_precondition",
+        "reason": "circle_encryption_below_realm_floor"
+      },
+      "controls": [
+        {
+          "realm_encryption_profile": "mls_rfc9420",
+          "realm_content_encryption_floor": "e2ee_required",
+          "circle_encryption_profile": "mls_rfc9420",
+          "outcome": "accepted"
+        },
+        {
+          "realm_encryption_profile": "none",
+          "realm_content_encryption_floor": "allow_plaintext",
+          "circle_encryption_profile": "none",
+          "outcome": "accepted"
+        }
+      ],
+      "assertions": [
+        "Circle encryption_profile=none cannot sit below an MLS or e2ee_required parent floor",
+        "the reducer reports circle_encryption_below_realm_floor",
+        "MLS-backed Circle and plaintext parent controls remain accepted"
+      ]
+    },
+    {
+      "name": "circle_directory_visibility_members_indistinguishable",
+      "vector_id": "ck.vector.circle.directory_visibility_members_indistinguishable.v1",
+      "kind": "directory_visibility",
+      "directory_visibility": "members",
+      "viewer": "realm_member_not_circle_member",
+      "expected": {
+        "non_member_projection": "locked_stub",
+        "absent_projection": "locked_stub",
+        "timing_bucket": "circle_locked_v1",
+        "locked_stub_keys": [
+          "opaque_commitment",
+          "visibility"
+        ],
+        "forbidden_fields": [
+          "title",
+          "display",
+          "short_name",
+          "member_count",
+          "created_by",
+          "members",
+          "join_history"
+        ]
+      },
+      "control": {
+        "circle_member_projection": "full_metadata"
+      },
+      "assertions": [
+        "a Realm member outside the Circle receives the same locked stub as an absent Circle",
+        "locked stubs have a fixed field set and timing bucket",
+        "the Circle member control can see metadata without changing the non-member shape"
+      ]
+    },
+    {
+      "name": "circle_directory_visibility_realm_members_indistinguishable",
+      "vector_id": "ck.vector.circle.directory_visibility_realm_members_indistinguishable.v1",
+      "kind": "directory_visibility",
+      "directory_visibility": "realm_members",
+      "viewer": "realm_member_not_circle_member",
+      "expected": {
+        "realm_member_projection": "realm_member_preview",
+        "non_realm_projection": "locked_stub",
+        "absent_projection": "locked_stub",
+        "timing_bucket": "circle_locked_v1",
+        "preview_keys": [
+          "circle_id",
+          "display",
+          "join_rule",
+          "member_count_bucket",
+          "opaque_commitment",
+          "realm_id",
+          "visibility"
+        ],
+        "forbidden_fields": [
+          "title",
+          "summary",
+          "short_name",
+          "member_count",
+          "members",
+          "member_dids",
+          "created_by",
+          "join_history",
+          "private_event_refs"
+        ]
+      },
+      "assertions": [
+        "Realm members outside the Circle see only the fixed preview whitelist",
+        "non-Realm callers receive the same locked stub as members-only Circles",
+        "raw member counts, titles, creator ids, members and private event refs are not projected"
+      ]
+    },
+    {
+      "name": "history_visibility_joined_prejoin_denied",
+      "vector_id": "ck.vector.history_visibility.joined_prejoin_denied.v1",
+      "kind": "history_visibility_projection",
+      "history_visibility": "joined",
+      "viewer": {
+        "membership_state": "join",
+        "join_ts": 200
+      },
+      "events": [
+        {
+          "event_id": "E_before_join",
+          "origin_ts": 150,
+          "expected_visible": false
+        },
+        {
+          "event_id": "E_after_join",
+          "origin_ts": 250,
+          "expected_visible": true
+        }
+      ],
+      "non_member_control": {
+        "membership_state": null,
+        "event_id": "E_public_guess",
+        "origin_ts": 250,
+        "expected_visible": false
+      },
+      "expected": {
+        "prejoin_error": "history_not_visible"
+      },
+      "assertions": [
+        "history_visibility=joined hides events before the viewer join timestamp",
+        "post-join events remain visible to joined members",
+        "non-members cannot read joined history by guessing event ids"
+      ]
+    }
+  ]
+}
