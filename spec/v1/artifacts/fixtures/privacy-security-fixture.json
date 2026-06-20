@@ -30,7 +30,8 @@
     "ck.vector.psi.no_reachability_metadata.v1",
     "ck.vector.psi.quota_blinded_denial.v1",
     "ck.vector.search.blind_index_stale_posting_fail_closed.v1",
-    "ck.vector.search.result_not_authz_proof.v1"
+    "ck.vector.search.result_not_authz_proof.v1",
+    "ck.vector.search.surface_separation_no_plaintext_leakage.v1"
   ],
   "cases": [
     {
@@ -307,6 +308,77 @@
           "snippet",
           "sender_actor_id",
           "exact_timestamp"
+        ]
+      }
+    },
+    {
+      "vector_id": "ck.vector.search.surface_separation_no_plaintext_leakage.v1",
+      "name": "search_surface_separation_no_plaintext_leakage",
+      "input": {
+        "plaintext_canary": "needle secret launch plan",
+        "surfaces": [
+          {
+            "surface": "directory_search",
+            "profile": "ck.profile.directory_service.v1",
+            "operation_id": "ck.find.directory.query.search_realms",
+            "payload": {
+              "realm_id": "ck:realm:01970e58-9d26-7000-8000-000000000001",
+              "title": "Launch calendar",
+              "summary": "Public discovery metadata only",
+              "as_of": "2026-05-02T00:00:00Z",
+              "source_refs": [
+                "ck:event:01970e58-9d26-7000-8000-000000000101"
+              ],
+              "policy_revision": "dir-rev-1"
+            }
+          },
+          {
+            "surface": "privacy_preserving_search",
+            "profile": "ck.profile.search.blind_index.v1",
+            "payload": {
+              "effective_scope": {
+                "kind": "realm",
+                "realm_id": "ck:realm:01970e58-9d26-7000-8000-000000000001"
+              },
+              "index_generation": 7,
+              "epoch_id": 3,
+              "query_tokens": [
+                "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+                "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+              ],
+              "candidate_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+            }
+          },
+          {
+            "surface": "bridge_interop",
+            "profile": "ck.profile.mimi_interop.v1",
+            "operation_id": "ck.open.mimi.command.notify",
+            "payload": {
+              "room_id": "mimi-room-7d9e",
+              "notification_type": "blind_wakeup",
+              "target": "opaque-bridge-target",
+              "payload_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "required_surfaces": [
+          "directory_search",
+          "privacy_preserving_search",
+          "bridge_interop"
+        ],
+        "must_not_confuse_surfaces": true,
+        "forbidden_fields": [
+          "content",
+          "body",
+          "plaintext",
+          "snippet",
+          "message_text",
+          "search_query"
+        ],
+        "forbidden_literals": [
+          "needle secret launch plan"
         ]
       }
     }

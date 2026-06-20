@@ -98,7 +98,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-      "sha256": "413490379b4cf9f4ec32f08880c509e70eb7dae78a3a0115501d3a898e4d90c0"
+      "sha256": "eb80a40ea535f7fb42bf43562dbe2e3cf91d475c12cf2d94366bf845c89ff41e"
     },
     {
       "path": "spec/v1/artifacts/fixtures/push-rule-core-fixture.json",

@@ -1685,6 +1685,17 @@
       ]
     },
     {
+      "vector_id": "ck.vector.search.surface_separation_no_plaintext_leakage.v1",
+      "status": "active",
+      "profile": "ck.profile.search.blind_index.v1",
+      "domain": "search",
+      "description": "Directory search, privacy-preserving search, and bridge interop surfaces stay separated and do not leak private plaintext.",
+      "source_refs": [
+        "spec/v1/zh/sync/privacy-preserving-search.md",
+        "spec/v1/artifacts/fixtures/privacy-security-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ck.vector.media.aead_nonce_sender_domain_collision.v1",
       "status": "active",
       "profile": "ck.profile.e2ee_client.v1",
