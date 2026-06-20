@@ -7893,11 +7893,11 @@
     },
     "call_summary_payload": {
       "type": "object",
-      "description": "Typed payload for ck.call.summary (durable end-of-call summary). Written once after a call reaches a terminal `state`; carries duration, peak participant count, and capture status so clients can render a durable call record without replaying ephemeral signaling. See crypto-media/call-state.md §7.",
+      "description": "Typed payload for ck.call.summary (durable end-of-call summary). Written once after a call reaches a terminal `state`; carries duration, peak participant count, and capture status so clients can render a durable call record without replaying ephemeral signaling. See crypto-media/call-state.md §7. started_at/ended_at/duration_ms are nullable: non-active terminal states (missed/cancelled/failed) MUST set them null per call-state.md §7.",
       "required": [
         "call_id",
         "final_state",
-        "ended_at"
+        "mode"
       ],
       "properties": {
         "call_id": {
@@ -7924,13 +7924,16 @@
           ]
         },
         "started_at": {
-          "$ref": "#/$defs/timestamp"
+          "$ref": "#/$defs/nullable_timestamp"
         },
         "ended_at": {
-          "$ref": "#/$defs/timestamp"
+          "$ref": "#/$defs/nullable_timestamp"
         },
         "duration_ms": {
-          "type": "integer",
+          "type": [
+            "integer",
+            "null"
+          ],
           "minimum": 0
         },
         "peak_participant_count": {

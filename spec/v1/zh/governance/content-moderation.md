@@ -137,6 +137,7 @@ POST /_cokret/self/moderation/report
 - 对 `/_cokret/self/moderation/report` 按 [`../security/server-threat-model.md` §4.1](../security/server-threat-model.md) 的入口与服务面规则施加**分层限速**（至少按 `reporter` DID、source service、`realm_id`、source IP hash、endpoint 维度），超阈值 MUST 返回 `rate_limited`；单 reporter 在单位时间窗口内对同一 `target_ref` 的重复举报 MUST 去重或抑制。
 - 对 `evidence_package` 施加大小上界：其总字节数 MUST 受一个 `max_total_blob_bytes` 等价上界约束（命名遵循 [`../models/common-fields.md` §3.0.1](../models/common-fields.md)），超限 MUST 拒绝而非静默截断。
 - 对 `franking_proof.replay_nonce` 的去重存储 MUST 有界：去重窗口 MUST 有限（时间或计数），过期 nonce MAY 被驱逐；实现 MUST NOT 假定无限去重存储，超出窗口的 nonce 复用按不可验证投递证明处理（见 §3.4）。
+- **target scope 绑定（normative）**：服务端 MUST 从 `target_ref` 解析其真实治理边界 `(realm_id, effective_scope)`，并校验它等于请求声明的 `realm_id` / `effective_scope`；不一致时 MUST 拒绝。reporter 对 `target_ref` 在该 scope 内不可见时同样 MUST 拒绝(对齐 §3.3 "举报自己可见的对象")。为避免对象存在性 / Circle 隔离边界枚举，上述拒绝与"目标不存在"MUST 使用统一不透明失败形态(对齐 §2.5)。本校验与 §5.5.2 appeal 链的同 Realm 绑定校验同口径，防止以有权 Realm 的 `realm_id` 举报无权 Realm / Circle 内对象。
 
 ### 3.2 举报原因枚举
 

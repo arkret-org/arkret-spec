@@ -129,6 +129,8 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 
 `ck.agent.interop_session.start` 事件的提交 MUST 通过常规的 Realm 授权（capability action `ck.agent.interop_session.start`）与 policy 校验。
 
+**Native agent counterparty 参与门(normative)**：当 `counterparty_agent`(或本地登记执行 agent)解析为本部署 native personal agent，且 start 发起者 ≠ 该 agent 的 controller 时，reducer MUST 套用 [`../models/strand-and-message.md` §9.4.5](../models/strand-and-message.md) 的第三方参与判定:仅当该 agent 对发起方的 effective `accept_third_party_mention`(effective ceiling ∩ controller selection)为 true 时才接受 session start;否则 MUST 拒绝，reason=`agent_participation_denied`。这把第三方 mention 投递 gate 的 controller 意愿语义从 mention fanout 扩展到 interop_session counterparty 选择，避免 `accept_third_party_mention=false` 的 native agent 被第三方经 interop 路径拉入协作。对端为外部(非本部署)agent 时本门不适用，仍以 endpoint policy + DID epoch pin 为准。
+
 Session start MUST pin counterparty DID epoch，规则见 [§5.5 DID Epoch Pinning (normative)](#55-did-epoch-pinning-normative)。
 
 Endpoint 退役也是协议状态，不只是外部连接关闭。Agent owner、Realm admin 或持有等价 endpoint-management capability 的 actor 撤销 / 替换 endpoint 时，MUST 通过新的 `ck.agent.endpoint` 状态或等价 profile-declared endpoint record 把旧 `endpoint_digest`（定义见 [§5.5](#55-did-epoch-pinning-normative)）标记为 retired / revoked；reducer 随后 MUST 拒绝以该 digest 发起的新 `ck.agent.interop_session.start`，并把仍引用该 digest 的 active session 转为 `blocked` 或 `cancelled`，`reason_code=agent_endpoint_retired`。实现不得在旧 endpoint 仍能响应 HTTP 的情况下继续建立新 session，也不得自动把 session 迁移到新 endpoint；迁移必须重新 start 并重新 pin DID epoch（见 §5.5）。
@@ -183,6 +185,8 @@ Endpoint 退役也是协议状态，不只是外部连接关闭。Agent owner、
 `ck.agent.interop_session.start` 被 accepted 后，同一 `session_id` 的 canonical 初始状态固定为 `negotiating`。第一条 `ck.agent.interop_session.status` 或 `ck.agent.interop_session.result` 必须是上表中 `negotiating` 的合法后继；若第一条 result 写入终态，其 `status` 也必须是 `negotiating` 的合法终态后继。
 
 Reducer MUST 对同一 `session_id` 的 accepted `ck.agent.interop_session.status` / `.result` 事件按 Seal application order 回放；同一 Seal 内无法由因果关系区分的候选按 `(created_at, event_id)` 稳定排序。每个候选状态 MUST 符合上表；从终态转出、跳过合法后继或对同一终态写入冲突 result 的事件 MUST fail closed，reason=`agent_protocol_malformed_response`。`ck.agent.interop_session.result` 是终态写入；当同一排序位置同时存在 status 与 result 时，result 的 `status` 作为 canonical terminal status。
+
+**提交者-session 绑定(normative)**：`ck.agent.interop_session.status` / `.result` / `.cancel` 事件的提交 actor MUST 等于该 `session_id` 对应 `ck.agent.interop_session.start` 事件的提交 actor，或持有显式绑定该 `session_id` 的 session-scoped 委托(capability constraint 携带 `allowed_session_ids` 且命中本 `session_id`)。reducer MUST 拒绝不满足该绑定的回流事件，reason=`interop_session_writer_unauthorized`。由于 v1 resource selector 不提供 session 维度,Realm 级 `ck.agent.interop_session.stream_status` / `cancel` capability 本身不足以授权对任意 `session_id` 写回；该绑定校验是防止持 Realm 级能力的成员伪造他人会话终态/结果的唯一闸门。
 
 Cancellation 是协议状态，不是只关本地 socket。持有 `ck.agent.interop_session.cancel` capability 的 actor 或授权管理员取消会话时，MUST 通过 `ck.agent.interop_session.status{status="cancelled"}` 或终态 `ck.agent.interop_session.result{status="cancelled"}` 写入同一 `session_id`；payload MUST 携带 `cancelled_by`、`cancelled_at`、`reason_code`、`external_cancel_ref?` 和 `cleanup_required[]`。外部协议若无法确认 cancel，session MUST 先进入 `blocked`，直到 result 标记 `cancelled` / `failed` / `expired`。
 

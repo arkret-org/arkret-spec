@@ -48,6 +48,32 @@
   },
   "entries": [
     {
+      "id": "identity_state_digest",
+      "kind_class": "wire_field_name",
+      "since_revision": "2026-06-21",
+      "rejection_level": "hard_reject",
+      "replacement": "identity_payload_digest",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Draft-era ck.member.identity.update payload field renamed to identity_payload_digest (disambiguated from roster member_display_state_digest). Current v1 parsers MUST reject identity_state_digest."
+    },
+    {
+      "id": "service_handle",
+      "kind_class": "wire_enum_value",
+      "since_revision": "2026-06-21",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Draft-era ck.schema.handle_claim.v1.claim_kind value removed with no 1:1 replacement: service/resource readable names need their own service/resource schema; organization-assigned user/principal handles use organization_handle. Current v1 parsers MUST reject service_handle."
+    },
+    {
       "id": "metadata_encryption_profile",
       "kind_class": "wire_field_name",
       "migration_group": "metadata_encryption_floor_rename",

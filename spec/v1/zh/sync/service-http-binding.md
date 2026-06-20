@@ -138,10 +138,10 @@ B 类——产品 / 运维能力，被实现误放进协议段，按 (b) 归位�
 
 | 误址簇 | canonical 协议归属（若该能力本就是协议能力） | 误址形态归位 |
 | --- | --- | --- |
-| webrtc / calls 信令面 | call 信令 `ck.call.signal` 走 ephemeral envelope（`ck.self.ephemeral.command.send`）；媒体凭证 `ck.self.call.media.exchange.issue_token`（`/_cokret/self/rtc/token`）+ `/_cokret/self/rtc/ice-config`；持久 call 状态 `ck.call.{state,recording.start,summary}` 走 self/events | 其余 call-setup / 私有信令旁路 → 媒体服务私有面 `/_soland/*`，不进 v1 core |
+| webrtc / calls 信令面 | call 信令 `ck.call.signal` 走 ephemeral envelope（`ck.self.ephemeral.command.send`）；媒体凭证 `ck.self.call.media.exchange.issue_token`（`/_cokret/self/rtc/token`）+ `/_cokret/self/rtc/ice-config`；持久 call 状态 `ck.call.{state,recording.start,summary}` 走 self/events | 其余 call-setup / 私有信令旁路 → 媒体服务私有面 `/_<impl>/*`，不进 v1 core |
 | moderation 审查者工作台运行态 | `ck.moderation.{decision,decision.lift,appeal.submit,appeal.review,appeal.decision,appeal.close}` 事件经 self/events，realm authz capability 闸门；report 经 `ck.self.moderation.command.report` | 残留实现私有 admin 路径（如 `/_<impl>/admin`）+ OAuth admin scope 入口下线 |
 | relations / views / moves 直读 | `/_cokret/self/projection/*`、`/_cokret/self/views/*`（extension surface，非 canonical truth source，须服务显式声明） | 越出已声明 projection binding 的 relation/view/move 直读路径 → 实现私有面 |
-| authz / grants compat 路由 | capability 经 `ck.capability.{grant,revoke,delegate}` 事件 + `ck.self.policy.query.check` 预检 | 任何 `/_cokret/*` authz 直写 compat 路径 MUST NOT 存在；capability 一律走主 reducer 事件，相关运维只读视图归 `/_soland/*` |
+| authz / grants compat 路由 | capability 经 `ck.capability.{grant,revoke,delegate}` 事件 + `ck.self.policy.query.check` 预检 | 任何 `/_cokret/*` authz 直写 compat 路径 MUST NOT 存在；capability 一律走主 reducer 事件，相关运维只读视图归 `/_<impl>/*` |
 | blob 直写形态（`blob/put`） | `ck.self.blob.upload.create`（`POST /_cokret/self/blob/upload`）+ tus 续传 binding | `blob/put` 直写归并到 upload operation，或声明为 per-operation HTTP 伴生 binding（[transport-bindings.md §6.1](./transport-bindings.md)），不得作未注册 canonical 路径 |
 | 主权部署只读 realm/account 运维视图 | （无协议 operation——属运维级） | server info / stats 类只读运维视图 → 实现私有运维 / 产品面（例如 `/_<impl>/*`） |
 

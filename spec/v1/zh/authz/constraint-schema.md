@@ -685,10 +685,10 @@ function matches_field_access(operation, constraint):
 `field_access` 的 `sensitive_fields` / `sensitive_handling` 是**读路径义务**，不是 admit/deny gate：`matches_field_access` 返回 `true` 后，产生 read projection 的一方（projection 服务、受托查询节点或客户端读模型层；E2EE Realm 中为持有明文的成员侧）在向请求方返回结果之前 **MUST** 对命中 `sensitive_fields`（按 §4.3 的 dotted-path 规则匹配）的每个字段按 `sensitive_handling` 处理后才可输出：
 
 - `redact`：以不可逆占位（如 `null` 或 `"[redacted]"`）替换字段值，MUST NOT 返回原值或可逆派生。
-- `hash`：以 profile 固定的 keyed/salted digest 替换原值（MUST NOT 使用裸明文哈希，避免低熵字典攻击；摘要构造复用 [`../crypto-media/encryption-and-audit.md` §2.3.1](../crypto-media/encryption-and-audit.md) 的 keyed digest 纪律）。
+- `hash`：以 profile 固定的 keyed/salted digest 替换原值（MUST NOT 使用裸明文哈希，避免低熵字典攻击；摘要构造复用 [`../governance/content-moderation.md` §3.4](../governance/content-moderation.md) 的 keyed/salted digest 纪律）。
 - `omit`：从响应中整体删除该字段键。
 
-未声明 `sensitive_handling` 时默认 `omit`。enforce 方无法对某命中字段施加要求的处理（例如无 key 计算 keyed digest）时 **MUST** 降级为 `omit` 而非返回原值。该义务对应的一致性向量见 [`../conformance/conformance-vectors.md`](../conformance/conformance-vectors.md)。
+未声明 `sensitive_handling` 时默认 `omit`。enforce 方无法对某命中字段施加要求的处理（例如无 key 计算 keyed digest）时 **MUST** 降级为 `omit` 而非返回原值。该义务的一致性向量尚待补充(见 [`../conformance/conformance-vectors.md`](../conformance/conformance-vectors.md))。
 
 ## 17. 安全考虑
 

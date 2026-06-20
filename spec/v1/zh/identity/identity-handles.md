@@ -121,7 +121,7 @@ Handle 解析结果（无论来自 Directory、Principal Server、Organization c
 - `subject`：被寻址 handle holder 的 principal DID。
 - `issuer`：签发 handle claim 的 DID。详见 §3.4。
 - `proofs`：至少一条可验证签名，绑定 `handle`、`subject`、`issuer`、`created_at`。
-- `created_at` / `expires_at`：claim 时间边界；`expires_at` 在 `binding_state=verified` 或 claim 携带 `member_delivery_binding` 时 MUST 出现。缺失 `expires_at` 的 claim MUST 视作 `binding_state=unverified`，不得进入 verified 候选集。
+- `created_at` / `expires_at`：claim 时间边界；`expires_at` 在 `binding_state=verified` 或 claim 携带 `member_delivery_binding` 时 MUST 出现。缺失 `expires_at` 的 claim MUST NOT 计为 `binding_state=verified`，不得进入 verified 候选集。
 
 `subject` 使用 claim / credential 领域的命名，但在 v1 user handle 语义中它是**持有该 handle 的 holder / principal DID**，不是 Realm `actor_id`、Principal Server 内部 `account_id`、组织人事系统 identifier、service DID 或通用资源 id。Cokret v1 core 不把本节的 `handle` 泛化为任意资源 handle；如果后续要定义 organization / service / repository / room 等非用户 handle，必须使用独立 schema 或显式 `resource_kind` profile，不能复用 `ck.schema.handle_claim.v1` 的 `subject` 字段来隐式扩展语义。
 

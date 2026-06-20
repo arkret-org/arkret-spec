@@ -3490,6 +3490,30 @@
         "auth_decision"
       ],
       "description": "Reducer rejected a read-receipt policy whose effective combination is `disclosure='required'` AND `visibility='public'` on a `world_readable` scope — forced emission of publicly-pullable read positions with no member opt-out (forced de-anonymized activity tracking) — unless the policy payload also sets the second explicit opt-in `allow_forced_public_world_readable_receipts=true`. See zh/discovery/read-receipts.md §2.5.1."
+    },
+    {
+      "code": "interop_session_writer_unauthorized",
+      "applies_to": [
+        "auth_decision",
+        "agent_protocol"
+      ],
+      "description": "A ck.agent.interop_session.status/result/cancel event was submitted by an actor that is neither the interop_session.start submitter nor a holder of a session-scoped delegation for that session_id. The event MUST fail closed. See zh/extensions/agent-protocol-interop.md section 5.3."
+    },
+    {
+      "code": "agent_participation_denied",
+      "applies_to": [
+        "auth_decision",
+        "agent_protocol"
+      ],
+      "description": "An interop_session.start named a native personal agent as counterparty while the start submitter is not that agent's controller and the agent's effective accept_third_party_mention is false. Session start MUST be rejected. See zh/extensions/agent-protocol-interop.md section 5.2."
+    },
+    {
+      "code": "mimi_observer_write_forbidden",
+      "applies_to": [
+        "service_call",
+        "authz"
+      ],
+      "description": "A MIMI submit_message was attempted over a provider binding whose local_provider_role is observer, which MUST NOT submit writes on behalf of local participants. The submission MUST be rejected. See zh/extensions/mimi-interop.md section 7."
     }
   ]
 }

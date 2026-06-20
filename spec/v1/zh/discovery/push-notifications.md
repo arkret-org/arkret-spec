@@ -191,7 +191,7 @@ POST /_cokret/edge/push/unregister-device
 
 每条 rule MUST 在 wire 上声明其 `evaluation_locus` 为 `server` 或 `client`。Sync Service 只在 `server` rule 上做匹配；`client` rule 的语义由本节 §4.5 定义的降级流程承担。
 
-**`is_direct_message` / `member_count` 在 E2EE / 高隐私 Realm 的侧信道收口（normative）**：这两个 server-side 条件要求 Sync Service 读取精确成员数与"是否双人私聊"，在 E2EE Realm 中构成成员数与私聊存在性的侧信道（叠加 push timing 可近似重建"谁在和谁私聊"关系图）。因此：`member_count` 在 E2EE / `minimal-metadata` / 高隐私 Realm 中 SHOULD 仅对 server-side 规则暴露 bucket 化值（与 discovery §3 成员数 bucket+迟滞同口径），MUST NOT 暴露精确 `<= N` 比较所需的精确值；`is_direct_message` 的 server-side 投影 MUST 受 Realm policy gate，`minimal-metadata` Realm MUST 关闭该 server-side 条件并降级为 §4.5 的 client-side 评估。Realm policy 未授权时，实现 MUST NOT 在 E2EE Realm 用这两个条件做 server-side 匹配。
+**`is_direct_message` / `member_count` 在 E2EE / 高隐私 Realm 的侧信道收口（normative）**：这两个 server-side 条件要求 Sync Service 读取精确成员数与"是否双人私聊"，在 E2EE Realm 中构成成员数与私聊存在性的侧信道（叠加 push timing 可近似重建"谁在和谁私聊"关系图）。因此：`member_count` 在 E2EE / `minimal-metadata` / 高隐私 Realm 中 MUST 仅对 server-side 规则暴露 bucket 化值（与 discovery §3 成员数 bucket+迟滞同口径），MUST NOT 暴露精确 `<= N` 比较所需的精确值；`is_direct_message` 的 server-side 投影 MUST 受 Realm policy gate，`minimal-metadata` Realm MUST 关闭该 server-side 条件并降级为 §4.5 的 client-side 评估。Realm policy 未授权时，实现 MUST NOT 在 E2EE Realm 用这两个条件做 server-side 匹配。
 
 #### 4.3.1 `strand_track` 与 per-track 通知
 
@@ -344,6 +344,7 @@ E2EE Realm 中，Sync Service 不持有正文密钥，无法在 server 端评估
     - 服务端可见的剩余信息仅限于"某个已注册 opaque token 在该 epoch 命中 N 次"。这是接收方 opt-in 的通知路由泄露，不是发送方单方开启的能力；minimal-metadata Realm 与 audited E2EE Realm MUST 默认关闭。
     - tag 仍随 epoch 自然失效(exporter secret 跨 commit 必变);跨 epoch 重放无法命中。
     - 同一 epoch 内同一 mentioned_did 的 tag 仍恒定 — 是 opaque token 等值比较能工作的前提；若部署不能接受该频次泄露，MUST 关闭 token 注册并使用 blind wakeup。
+    - mention sidecar 命中触发的 push wakeup 是 §2.4 意义上的一种 "push activation",因此 MUST 与其它 push activation 同样受 §2.4 timing bucket / 批处理约束:服务端 MUST NOT 在 mention 命中瞬间 per-mention 即时发出可被 provider 观察到的 push burst,否则命中时刻即成为比 presence 更细的接收方活动 timing oracle。
     - 非 E2EE Realm 不使用 routing tag(直接看 plaintext mention 列表)。
 
     启用与否由 Realm policy 中 `mention_routing_hint` 与接收方 token 注册共同决定。minimal-metadata Realm 与 audited E2EE Realm 默认关闭；其他 E2EE Realm 未声明时默认关闭，除非接收方显式 opt-in 注册 token。关闭时 mention 走 §4.5 第 1-5 步降级,Sync Service 不做 `mentions_actor` server-side 匹配。

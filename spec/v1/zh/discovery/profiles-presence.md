@@ -200,6 +200,7 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 - Realm 覆写的优先级高于全局 Profile
 - `null` 值表示使用全局 Profile 的对应字段
 - `ck.profile.realm_override` MUST 同时绑定 actor DID 与目标 Realm。若作为共享 Realm history 传播，顶层 `realm_id` 是目标 Realm，事件必须通过目标 Realm 的 membership / visibility / policy 校验；若作为 actor-private 或 principal control profile state 传播，content MUST 显式包含目标 Realm id，projection 服务只可向有权读取该 Realm profile override 的请求方披露。
+  - _Informative._ `ck.profile.realm_override` 是显示层 per-Realm 覆写，绑定同一 `principal_id`,**不提供跨 Realm 不可关联性(unlinkability)**:能同时读取同一 principal 在多个 Realm override 的请求方可关联这些化名。需要跨 Realm 不可关联的化名时，应使用 Realm-scoped pairwise DID(见 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) minimal-metadata / pairwise 身份),而非依赖 realm_override。
 
 ## 3. 在线状态 (Presence)
 

@@ -69,7 +69,7 @@ Schema id: `ck.schema.event.v1`
 | `auth_context` | conditional | `object` | DataEvent 必填；pin DID/key/capability epoch，用于在 `seal_ref` 时点验证授权。 | 数据面授权上下文。 |
 | `seal_basis` | conditional | `object` | Control Move 必填；`{leaves[], control_event_set_root, state_root}` 全部进入 canonical bytes。 | 控制面提交基线。 |
 | `payload` | yes | `object` | 由 event kind schema 定义。 | 事件负载。 |
-| `redacts` | no | `id:event` 或 `hash` | 仅 redaction event 使用。 | 被撤回事件。 |
+| `redacts` | no | `id:event` | 仅 redaction event 使用。 | 被撤回事件。 |
 | `unsigned` | no | `object` | MUST NOT 进入 event digest。 | 本地/传输附加信息。 |
 | `proofs` | yes | `array<Proof>` | 至少一个有效 proof（`minItems: 1`）。 | 签名证明。 |
 

@@ -214,7 +214,7 @@ Facade 接收请求后 MUST 先验证 MIMI envelope，再映射为 Cokret DataEv
 
 `ck.open.mimi.command.submit_message` 接收 MIMI encrypted application message 后，facade MUST：
 
-1. 验证 provider signature、room binding、destination、body digest 和重放窗口。
+1. 验证 provider signature、room binding、destination、body digest 和重放窗口。同时 MUST 校验本 binding 的 `local_provider_role ∈ { hub, follower }`;`local_provider_role=observer` 的 binding 不得代表本地参与方提交 writes(见 §4),facade MUST 拒绝该 submit_message,reason=`mimi_observer_write_forbidden`。
 2. 验证 MLS epoch 与 `ck.mimi.room_binding.mls_group_id` 匹配。
 3. 按 MLS Governance Binding 验证：commit 携带的 `governance_binding` 解析到的 Cokret Seal view 与 state_root，且 `covered_seals_cell` 覆盖该消息所需 governance frontier。
 4. 将 MIMI content container 映射为 `ck.message.create`、`ck.message.revise`、`ck.message.redact`、`ck.reaction.add`、`ck.reaction.remove` 或 `ck.relation.*`。
@@ -327,6 +327,8 @@ MIMI identifier MUST NOT 被直接作为 Cokret actor。映射规则：
 ## 11. Abuse Report And Proxy Download
 
 `ck.open.mimi.command.report_abuse` MUST 映射到 `ck.self.moderation.command.report`。E2EE report SHOULD 携带 message franking proof、encrypted evidence package、reporter signature、MIMI room id、provider id 和 target event hash。Facade MUST NOT 要求 reporter 向普通 provider 上传未加密明文；只有被 Realm policy 授权的 moderation recipient 可以解密 evidence。
+
+入站 MIMI report 的 `reporter` MUST 按 [§10 Identifiers And Consent](#10-identifiers-and-consent) 的 consent / holder-claim 规则解析到 Cokret principal,facade MUST NOT 仅凭来源 provider 的断言把 report 归因到既有 principal(防止以他人名义举报)。映射前 facade 还 MUST 校验该 reporter 对 `target_ref` 在对应 Realm / scope 内可见(对齐 [`../governance/content-moderation.md` §3.1/§3.3](../governance/content-moderation.md)),并把 [`../governance/content-moderation.md` §3.1.1](../governance/content-moderation.md) 的 per-reporter 限速至少按 (映射后 reporter principal DID, 来源 provider service DID) 双维度施加；不满足按 pairwise / pending 处理或拒绝。
 
 `ck.open.mimi.command.proxy_download` MUST 遵守 `ck.realm.asset_privacy_policy`。当 policy 要求 `provider_proxy` 或 `ohttp_relay` 时，facade 不得返回 direct object-store URL。下载成功不证明内容可信，客户端仍 MUST 验证 content hash、ciphertext digest 和 attachment metadata。
 

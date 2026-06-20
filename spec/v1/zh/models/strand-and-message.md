@@ -802,7 +802,7 @@ Message timeline 的同步与 reducer 行为：
 | Message 创建 | append-only。Timeline 展示排序是 projection-only，默认键为 causal_depth → HLC → actor_id → actor_seq → event_id；不得输入 canonical state、授权或 winner 选择。 |
 | Message 编辑 | 并发 revision 共存于 revision chain；默认视图显示的「最新可见 revision」由下文 §9.5.1 的确定性全序 winner 规则选出，审计视图保留全部 revision 分支。 |
 | Message 撤回 | 若 revision 与 redaction 并发，默认视图 redaction 优先；审计视图保留完整历史。 |
-| 撤回先到、原消息后到 | 接收方 MUST 保留 dangling redaction，待原消息到达后再应用；保留键为 `redacts` 目标 id / digest。 |
+| 撤回先到、原消息后到 | 接收方 MUST 保留 dangling redaction，待原消息到达后再应用；保留键为 `redacts` 目标 event id。 |
 | Reaction | Reaction-specific remove-wins set 收敛；同一 actor 对同一 emoji 的 add/remove 由 §9.8.3 定义。 |
 
 历史可见性枚举与 canonical 语义见 [`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)。
