@@ -58,7 +58,7 @@ base v1 invite **MUST NOT** 依赖 `ck.find.directory.query.resolve_handle(inten
 
 引入信任分档(normative):**高信任档** = `{locator_ref, consent_grant, shared_realm}`;**低信任档** = `{same_principal_server, explicit_address, 无 / 非法 evidence}`。该分档同时决定 §5 的分级披露行为。
 
-`consent_grant` evidence 的接收方验证:`consent_grant_ref` 指向的 `ck.consent.grant` 在被邀请方(`invite_address.subject_id`)的 consent cell 中仍是 active grant dot,且 `peer == inviter`、`consent_scope ∈ {invite, any}`、未过期未撤销。验证通过即按高信任处理。`consent_grant_ref` 校验失败时，接收方 MUST 降级按 `explicit_address`(低信任)处理,MUST NOT 因为携带了 evidence 字段就放行。
+`consent_grant` evidence 的接收方验证:`consent_grant_ref` 指向的 `ck.consent.grant` 在被邀请方(`invite_address.subject_id`)的 consent cell 中仍是 active grant dot，且 `peer == inviter`、`consent_scope ∈ {invite, any}`、未过期未撤销。验证通过即按高信任处理。`consent_grant_ref` 校验失败时，接收方 MUST 降级按 `explicit_address`(低信任)处理，MUST NOT 因为携带了 evidence 字段就放行。
 
 ## 3. 在线 Principal Locator
 
@@ -165,10 +165,11 @@ token 要求：
 
 规则：
 
+- **缺省 policy（subject 未发布 `invite_receive_policy` 时）MUST fail-closed（normative）**：接收方 MUST 采用保守默认——`allowed_introduction_kinds` 仅含**高信任档** `{locator_ref, consent_grant, shared_realm}`;**低信任档** `{same_principal_server, explicit_address}` 与 `unknown_invites` 默认 `quarantine`（SHOULD）或 `drop`，MUST NOT 仅凭 evidence 格式正确就触发用户通知。上方示例把 `same_principal_server` 列入 allowlist，是某部署**显式信任同域**的配置选择，**不是协议默认**;`same_principal_server` 与 `explicit_address` 同属低信任档（§2），默认处置对称——不得让"同一 Principal Server 上的任意账户"仅凭同域承载即向同域任意 subject 发起会触发通知的邀请（同域无授权骚扰开口）。
 - `allowed_introduction_kinds` 是 allowlist；未列出的 evidence MUST NOT 触发用户通知。`consent_grant` 是受推荐的高信任 kind:把它加入 allowlist 即允许"已互授 invite consent 的联系人"直接邀请，而无需 locator URL。
-- `explicit_address_behavior` 取值为 `drop | quarantine | notify`；默认 SHOULD 是 `quarantine` 或 `drop`。
+- `explicit_address_behavior` 取值为 `drop | quarantine | notify`；默认 SHOULD 是 `quarantine` 或 `drop`。把低信任档 evidence（`same_principal_server` / `explicit_address`）配为 `notify` 是部署对该档的显式放宽，MUST 经部署有意配置，不得作为缺省。
 - `unknown_invites` 取值为 `drop | quarantine`；无 evidence 或不合规 evidence 不得默认 notify。
-- `blocked_subjects` 是按 peer subject DID 的黑名单(对等 `blocked_principal_services` 的服务粒度)。inviter 命中时,delivery MUST `drop`,且 §5.1 披露 MUST 强制为 `opaque`,以免黑名单经回包侧信道泄露。
+- `blocked_subjects` 是按 peer subject DID 的黑名单(对等 `blocked_principal_services` 的服务粒度)。inviter 命中时，delivery MUST `drop`，且 §5.1 披露 MUST 强制为 `opaque`，以免黑名单经回包侧信道泄露。
 - policy 是 subject/private state，不得写入目标 Realm event log。
 
 ### 5.1 分级披露(graded disclosure，normative)
@@ -180,10 +181,10 @@ token 要求：
 
 `disclosure_level` 语义:
 
-- `opaque`:`invite_delivery_outcome` 只返回 generic `status`(`accepted | duplicate | deferred`),MUST NOT 携带 `disclosed_outcome`,且对 exists / not-exists / quarantine / drop 各情形不可区分。这是反枚举 / 反侧信道的默认。
-- `outcome`:`invite_delivery_outcome` MAY 携带 `disclosed_outcome`(`delivered | blocked | quarantined`),把真实处理结果告知邀请者。
+- `opaque`:`invite_delivery_outcome` 只返回 generic `status`(`accepted | duplicate | deferred`),MUST NOT 携带 `disclosed_outcome`，且对 exists / not-exists / quarantine / drop 各情形不可区分。这是反枚举 / 反侧信道的默认。
+- `outcome`:`invite_delivery_outcome` MAY 携带 `disclosed_outcome`(`delivered | blocked | quarantined`)，把真实处理结果告知邀请者。
 
-设计意图:对**已建立信任的来源**(已互授 invite consent 的联系人、对方主动给的 locator、已同在 Realm),邀请失败能给邀请者明确反馈，避免"联系人加不进却不知为何"的 UX 黑洞；对**陌生人**(explicit_address)保持完全不可区分。`blocked_subjects` 命中者无论 disclosure 设置一律 `opaque`。`disclosure` 整体省略时按默认 `high_trust=outcome / low_trust=opaque`。
+设计意图:对**已建立信任的来源**(已互授 invite consent 的联系人、对方主动给的 locator、已同在 Realm)，邀请失败能给邀请者明确反馈，避免"联系人加不进却不知为何"的 UX 黑洞；对**陌生人**(explicit_address)保持完全不可区分。`blocked_subjects` 命中者无论 disclosure 设置一律 `opaque`。`disclosure` 整体省略时按默认 `high_trust=outcome / low_trust=opaque`。
 
 ## 6. Durable Event Boundary
 
@@ -224,8 +225,8 @@ request body 为 `ck.schema.invite_delivery_request.v1`。接收方 Principal Se
 3. 验证 `invite_event.kind == "ck.invite.create"`、Event signature、Realm capability、`invite_id` 与 `realm_id`。
 4. 验证 `invite_event.payload.invitee == invite_address.subject_id`。
 5. 验证 `invite_event.payload.invite_delivery_target.recipient_service_did == invite_address.recipient_service_did`。
-6. 验证 `introduction_evidence`，并核对 `introduction_evidence_digest`。对 `consent_grant` evidence,MUST 按 §2 校验 `consent_grant_ref` 是被邀请方给 inviter 的 active `invite` / `any` grant dot;校验失败 MUST 降级为低信任 `explicit_address` 处理。
-7. 应用 `invite_receive_policy`:先查 `blocked_subjects`(命中 inviter 即 `drop` 且强制 opaque)与 `blocked_principal_services`;再按 `allowed_introduction_kinds` allowlist 与 `explicit_address_behavior` / `unknown_invites` 决定 drop / quarantine / notify。
+6. 验证 `introduction_evidence`，并核对 `introduction_evidence_digest`。对 `consent_grant` evidence,MUST 按 §2 校验 `consent_grant_ref` 是被邀请方给 inviter 的 active `invite` / `any` grant dot；校验失败 MUST 降级为低信任 `explicit_address` 处理。
+7. 应用 `invite_receive_policy`:先查 `blocked_subjects`(命中 inviter 即 `drop` 且强制 opaque)与 `blocked_principal_services`；再按 `allowed_introduction_kinds` allowlist 与 `explicit_address_behavior` / `unknown_invites` 决定 drop / quarantine / notify。
 8. 返回 receive outcome:按 §5.1 分级披露。低信任档或 `blocked_subjects` 命中时返回 generic `status`(opaque),MUST NOT 通过响应泄露 subject 是否存在或策略如何处理；高信任档且 `disclosure.high_trust=outcome` 时 MAY 在 `disclosed_outcome` 回送真实结果。
 
 ## 8. Describe Capabilities

@@ -14,13 +14,13 @@ sidebar:
 
 ## 1. 目标与真源
 
-> **本文是 documentation view,不是 schema/event 真源。**
+> **本文是 documentation view，不是 schema/event 真源。**
 > 下方 §2 schema id 表与 §4 event kind 表是**人工维护的阅读节选**，并非穷尽清单；两者与机器 registry 不一致时一律 **以 JSON registry 为准**。"本文定义"的措辞仅指文档级别的展示视图。穷尽且 canonical 的清单是 `artifacts/registry/*.json`（站点经 MDX 组件 `<EventKindTable/>` / `<SchemaViewer/>` 等直接渲染这些 JSON）。
 > 修改流程:`contract-catalog.json` → `tools/artifact_pipeline.py generate` → 刷新各 `*-registry.json`（pipeline **不再**改写本文 md 表）。新增 / 改名概念时如需在本节节选表体现，MUST 手工同步对应行；但本节表的滞后**不**改变「JSON registry 为唯一真源」这一结论。
 
 字段级结构定义见 `../models/common-fields.md` 及各对象专属文件（`realm-and-space.md` / `strand-and-message.md` / `morph.md` / `relation.md` / `actor.md` / `governance-objects.md` / `private-objects.md` / `event-and-patch.md`）。
 
-机器可读真源(authoritative,本文表格只是其投影):
+机器可读真源(authoritative，本文表格只是其投影):
 
 - `artifacts/registry/contract-catalog.json`
 - `artifacts/registry/schema-registry.json`
@@ -48,6 +48,13 @@ sidebar:
 `error-code-registry.json` 中的 `code` / `reason_code` 值有意使用裸名（例如 `bad_json`、`policy_violation`、`failed_precondition`），不加 `ck.` 前缀。错误码只在 service response、batch item 诊断和 reducer reason 上下文中解释，不与 event kind、operation id、schema id 或 capability action 共用命名空间。跨规范聚合错误时，调用方 SHOULD 用 registry 文件或 protocol 名称作为外层 namespace，而不是把 `ck.` 前缀补进 wire code。
 
 新增标准错误码必须继续登记在 `error-code-registry.json`，不得因为本例外而在其它 registry 里注册裸名 action / event / operation。
+
+**`codes` vs `reason_codes` 与双注册模型（normative）**：`error-code-registry.json` 有两个并列数组，语义不同:
+
+- **`codes`**:可作为**顶层 service error** 返回的码，携带 `http_status` 与 `scope`（`both` / `service_call` / `delivery` / `endpoint`）。
+- **`reason_codes`**:per-item / per-decision 的**子原因**（batch item 诊断、reducer reason、auth/policy decision reason），不携带 `http_status`，由 `applies_to` 声明适用上下文。
+
+一个 token 同时扮演两种角色时（既能作顶层服务错误返回、又能作某条目的子原因），**MUST 在两个数组中各登记一次（双注册）**，两处描述 SHOULD 一致并互相点明"dual-registered"。双注册是有意设计、不是漂移；新增码若兼具两种角色，MUST 保持两侧同步。算法-agility fail-closed 三兄弟 `unsupported_digest_algorithm` / `unsupported_signature_alg` / `unsupported_hpke_suite` 即按此模型对称双注册（`codes` 均 `http_status=422` / `scope=both`，且各自在 `reason_codes` 有对应 per-item 条目），确保 digest / signature / HPKE 三类未识别 suite 的处置在 registry 中口径一致。
 
 ### 1.2 `ck.*` 命名空间的机读登记边界（normative）
 

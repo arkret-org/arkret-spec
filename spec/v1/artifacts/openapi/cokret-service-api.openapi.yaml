@@ -416,6 +416,8 @@ components:
               - contact_request_not_pending
               - contact_request_expired
               - unsupported_digest_algorithm
+              - unsupported_signature_alg
+              - unsupported_hpke_suite
               - seal_incomplete
               - franking_proof_unavailable
               - turn_credential_expired

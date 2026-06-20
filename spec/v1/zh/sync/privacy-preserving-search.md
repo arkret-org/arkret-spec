@@ -62,9 +62,16 @@ Forward-private profile 的最小 wire 语义：
 
 Policy 至少声明允许的 `enabled_profile_refs`、service DID、可接收数据类别、index retention 和 revocation behavior。是否允许 plaintext-visible search MUST 由 `data_classes` 中是否包含 `plaintext` / `reversible_summary` 表达，不得另设未注册的 boolean 字段。
 
-`leakage_class` 是闭合枚举：`deterministic_token`、`forward_private`、`access_hiding`。省略时等价于 `deterministic_token`。`ck.profile.search.blind_index.v1` 的 policy MUST 使用 `deterministic_token` 或更强值；声明 `ck.profile.search.forward_private.v1` 时 MUST 使用 `forward_private`，且 MUST 同时声明 `token_rotation_cadence_ms`。`access_hiding` 为 PIR / ORAM 类 profile 预留；没有显式 profile 支持时，实现 MUST fail closed，不得仅凭该字段声称 access-hiding。
+`leakage_class` 是闭合枚举：`deterministic_token`、`forward_private`、`access_hiding`。省略时等价于 `deterministic_token`。`ck.profile.search.blind_index.v1` 的 policy MUST 使用 `deterministic_token` 或更强值；声明 `ck.profile.search.forward_private.v1` 时 MUST 使用 `forward_private`，且 MUST 同时声明 `token_rotation_cadence_ms`。`access_hiding` 为 **reserved leakage class**（PIR / ORAM 类），其状态与 digest-suite / HPKE registry 的 reserved-row 同纪律：钉定枚举值与 fail-closed 语义，但在 activation requirements 全部满足并由一个显式 profile 在 registry release 中转 active 之前，**MUST NOT 出现在 wire 上**——没有满足 activation requirements 的 profile 支持时，实现 MUST fail closed，不得仅凭该字段声称 access-hiding。
 
-> **`access_hiding` reserved-suite 技术指向（informative）**：当前 `access_hiding` 是纯枚举占位，**无 activation requirements 或具体技术指向**——不像 PQ 签名指向 ML-DSA-65、备用编码指向 dCBOR/CDE 那样钉了上游方案，导致该档位无法被任何实现哪怕实验性地实现，且未来不同实现可能各自发明不兼容的 PIR 后端。建议比照 digest-suite / HPKE registry 的 reserved-row 纪律，为 `access_hiding` 登记候选技术族指向：单 / 多服务器 PIR（如 SimplePIR / DoublePIR）、enclave-backed PIR（Signal SealedSession 风格）、或 Path-ORAM；并声明其 activation requirements（后端协议规范 + leakage 分析 + conformance 向量），未满足前 MUST 继续 fail-closed。若 enclave 路线落地，其 attestation SHOULD 复用 [`../crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md) 的 attested_hardware 基础设施而非另起一套。此为 v2 路线图候选，v1 仅登记技术指向、不引入 wire。
+**`access_hiding` activation requirements（normative）**：任何把 `leakage_class` 设为 `access_hiding` 的 Realm search policy MUST 同时声明一个满足以下全部条件的 search extension profile，否则 reducer / 受托 search service MUST fail closed（视为未支持）：
+
+1. **后端协议规范**：pin 一个具体的 access-pattern-hiding 后端及其 wire 协议——候选技术族为单 / 多服务器 PIR（如 SimplePIR / DoublePIR）、enclave-backed PIR（Signal SealedSession 风格）、或 Path-ORAM；MUST 指向具体方案而非泛称"PIR/ORAM 类"，避免各实现发明不兼容后端。
+2. **leakage 分析**：明确声明该 profile 隐藏与不隐藏的内容（access pattern、候选集合大小、查询频次各自的保证级别）。
+3. **conformance 向量**：交付 per-profile 的 access-hiding 行为向量。
+4. 若采用 enclave 路线，其 attestation SHOULD 复用 [`../crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md) 的 attested_hardware 基础设施，不另起一套。
+
+在上述 activation requirements 满足前，`access_hiding` 是 reserved 占位:它锁定未来方向与 fail-closed 纪律，但 v1 不引入任何 access-hiding wire。具体后端选型（PIR vs ORAM、单 vs 多服务器）为 v2 路线图裁决点。
 
 ## 5. Result Semantics
 

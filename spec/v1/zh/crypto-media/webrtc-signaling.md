@@ -89,12 +89,12 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 }
 ```
 
-- `action` MUST 为 `kick` / `ban` / `end_for_all` 之一。强制静音走 §6.1 的 `mute_state{by=moderator}`,不复用本信令。
-- `kick`:移除某 `(target_actor_id, target_device_id)` 的当前 call leg。被点名设备收到后 MUST 立即拆除媒体并退出;SFU 部署中 backend 同时按 token issuer 通知断开该 `participant_identity`。kick 不阻止该 actor 重新发起 join。
-- `ban`:移除某 `target_actor_id`(其全部设备)并在本通话生命周期内禁止其重新加入。被 ban 的 actor 重新兑换 join token 时,token issuer MUST 拒绝 `call_participant_removed`。
-- `end_for_all`:对全体结束通话。它由 `ck.call.moderate` 授权(v1 不注册独立的 `call.end_for_all`),并 MUST 紧随一条把 `ck.call.state.state` 写入终态 `ended` 的 durable event;收到的客户端 MUST 全部挂断。
+- `action` MUST 为 `kick` / `ban` / `end_for_all` 之一。强制静音走 §6.1 的 `mute_state{by=moderator}`，不复用本信令。
+- `kick`:移除某 `(target_actor_id, target_device_id)` 的当前 call leg。被点名设备收到后 MUST 立即拆除媒体并退出；SFU 部署中 backend 同时按 token issuer 通知断开该 `participant_identity`。kick 不阻止该 actor 重新发起 join。
+- `ban`:移除某 `target_actor_id`(其全部设备)并在本通话生命周期内禁止其重新加入。被 ban 的 actor 重新兑换 join token 时，token issuer MUST 拒绝 `call_participant_removed`。
+- `end_for_all`:对全体结束通话。它由 `ck.call.moderate` 授权(v1 不注册独立的 `call.end_for_all`)，并 MUST 紧随一条把 `ck.call.state.state` 写入终态 `ended` 的 durable event；收到的客户端 MUST 全部挂断。
 - kick / ban MUST 在 `ck.call.state.removed_participants[]` 留痕(每项 `{ actor_id, device_id?, action, removed_at }`;`ban` 省略 `device_id` 表示按 actor 维度)。token issuer 与 SFU 在签发 / 接纳 participant 前 MUST 校验目标不在 `removed_participants[]` 的 ban 集合内，违反 `call_participant_removed`。
-- 所有主持信令受 §5 的 `seq` 单调性防回滚;`moderation` 帧 MUST 由具备 `ck.call.moderate` 的 actor 签名。
+- 所有主持信令受 §5 的 `seq` 单调性防回滚；`moderation` 帧 MUST 由具备 `ck.call.moderate` 的 actor 签名。
 
 ## 4. ICE Server Discovery
 
@@ -113,6 +113,8 @@ Content-Type: application/json
 请求 schema 见 [`media-operations.schema.json#/$defs/media_ice_config_request_body`](../../artifacts/schemas/media-operations.schema.json)。字段语义如下：
 
 客户端调用 `ice_config_endpoint` 前 MUST 读取当前 `ck.realm.media_service` state event，并校验该 event 被当前 epoch MLS governance binding 覆盖（见 [`media-service-binding.md` §2.1](./media-service-binding.md)）。覆盖校验失败 MUST fail closed(`media_service_binding_uncovered`)，不得向该 endpoint 请求 ICE/TURN credential。
+
+**凭证缓存与日志脱敏（normative）**：ICE config 响应体携带短期 TURN `credential` / `username`（bearer 性质）。`POST /_cokret/self/rtc/ice-config` 响应 MUST 携带 `Cache-Control: private, no-store`；服务端 MUST NOT 在 access log / metrics / tracing 中记录响应体中的 `credential` 与 `username` 原文，客户端 MUST NOT 把 TURN credential 持久化到普通日志 / 浏览器历史 / analytics。这与 blob presign bearer URL（[`media-and-blob.md` §5.4.3](./media-and-blob.md)）同级:虽然媒体帧另有 SFrame E2EE 且 credential 短时效 per-call，被缓存 / 落日志的 credential 在 TTL 窗口内仍可被取用以滥用 TURN 中继资源。
 
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
@@ -243,7 +245,7 @@ Content-Type: application/json
 
 服务端规则：
 
-- ICE config endpoint MUST 在响应中携带 `refresh_lead_seconds`（推荐 60、可调），且 MUST 保证 `refresh_lead_seconds < ttl_seconds`，让客户端按统一节奏 refresh。当 `ttl_seconds` 较小(如 60s 下限)以致无法同时满足推荐 floor 60s 与 `refresh_lead_seconds < ttl_seconds` 时,`refresh_lead_seconds < ttl_seconds` 优先，服务端 MUST 选取更小的 lead 值。
+- ICE config endpoint MUST 在响应中携带 `refresh_lead_seconds`（推荐 60、可调），且 MUST 保证 `refresh_lead_seconds < ttl_seconds`，让客户端按统一节奏 refresh。当 `ttl_seconds` 较小(如 60s 下限)以致无法同时满足推荐 floor 60s 与 `refresh_lead_seconds < ttl_seconds` 时，`refresh_lead_seconds < ttl_seconds` 优先，服务端 MUST 选取更小的 lead 值。
 - TURN shared secret MUST 周期轮换（默认 ≤ 24 小时）；轮换时 server MUST 同时接受新旧 secret 一段时间（grace ≥ `ttl_seconds`）以避免 in-call 集体失败。
 - `turn_credential_expired` 响应 MUST 包含 `next_retry_at`；不得让客户端进入 tight retry loop。
 
@@ -565,7 +567,7 @@ Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal D
 | `recording_consent_required` | 进入录制 / 转写捕获态但缺少客户端二次确认(见 [`call-state.md` §5.2](./call-state.md))。 |
 | `call_moderation_unauthorised` | 主持动作(kick / ban / end-for-all / force-mute)由不具 `ck.call.moderate` 的 actor 发起(见 §3a)。 |
 | `call_participant_removed` | 被 kick / ban 的参与者尝试重新建立 media leg 或重新兑换 join token(见 §3a)。 |
-| `call_summary_invalid` | `ck.call.summary` 的 `final_state` 非终态、无终态 `ck.call.state` head,或与已存在摘要分叉(见 [`call-state.md` §7](./call-state.md))。 |
+| `call_summary_invalid` | `ck.call.summary` 的 `final_state` 非终态、无终态 `ck.call.state` head，或与已存在摘要分叉(见 [`call-state.md` §7](./call-state.md))。 |
 | `session_focus_already_committed` | 已提交的 call `session_focus` 不可在同一生命周期内改写。 |
 | `call_state_terminal` | `ck.call.state` 不能从 `ended` / `missed` / `failed` / `cancelled` 终态转出。 |
 

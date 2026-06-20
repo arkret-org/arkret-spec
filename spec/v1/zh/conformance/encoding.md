@@ -108,7 +108,7 @@ v1 active 集合刻意保持最小（`sha256` + `blake3`）。需要 algorithm d
 实现 MUST：
 
 - 默认按 `sha256:` 解析；遇到未识别的 suite prefix（含 registry 中 reserved 状态、未注册点分组合、未知 id）→ 若位于 critical field（event_digest、state_root、prev_refs blob hash）→ fail closed (`unsupported_digest_algorithm`)；若位于非 critical metadata（如对象的 derived fingerprint）→ MAY 记录为 unknown 并 preserve raw bytes。
-- 在 `server/describe.crypto` 暴露支持的 digest suite 集合;client 可据此选择写入算法。（`describe.crypto` 还 MUST 暴露支持的**签名** algo 集合，该 MUST 的权威声明集中在 §6.1 Signature Suite registered set。）
+- 在 `server/describe.crypto` 暴露支持的 digest suite 集合；client 可据此选择写入算法。（`describe.crypto` 还 MUST 暴露支持的**签名** algo 集合，该 MUST 的权威声明集中在 §6.1 Signature Suite registered set。）
 - MUST NOT "算法升级"已签名的 canonical bytes：一旦 Event 用 `sha256:` 发布，verify 路径永远按 sha256 重算；实现 MUST NOT 因为本地默认换成 blake3 就重算并替换。
 
 ### 3.3 State Root 与 Seal Hash 编码
@@ -186,6 +186,17 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 | Blob / content-addressed / polymorphic reference | `<noun>_ref` / `<noun>_refs` | 例：`blob_ref`、`target_ref`、`from_ref`、`to_ref`。 |
 | 原始 DID ecosystem material | `<role>_did` | 例：`service_did`、`pairwise_did`、`old_did`、`new_did`。 |
 
+### 4.2 Canonical 确定性 tie-break（normative，单一真相源）
+
+协议中多处需要在一组**因果上互不可达（并发）**的候选 Event 间机械选出唯一 winner（如 relation `deterministic_winner`、message revision 的"最新可见 revision"、account status 同严格度并发收敛）。这些场景的 tie-break **MUST 全部使用本节定义的单一规则**，不得各自规定方向：
+
+- **最终 tie-break 键固定为 `event_digest`**：候选各自产生 Event 的 canonical `event_digest`（≡ `canonical_digest(envelope_without_proofs_unsigned)`，§6）。它是签名覆盖的内容指纹，对所有 verifier 唯一确定。
+- **方向固定为 bytewise 最大（lexicographically-greatest）**：winner = 候选集中 `event_digest` 按 bytewise 升序排序后的**最大值**（字典序最后者）。选最大是 LWW-register 的惯例方向，跨全协议统一。
+- **禁止的 tie-break 键**：winner 选择 MUST NOT 使用 `created_at` / HLC / `actor_id` / `actor_seq` / `event_id` / 本地接收顺序 / 数据库 ID / 服务端插入顺序中的任何一个。注意 **`event_id` 也被禁用**：它是 UUIDv7，其时间戳前缀是 producer 设定的墙钟量，用作 tie-break 会重新引入被本规则排除的墙钟依赖。
+- **复合排序的 domain 语义键**：某些 domain 在 tie-break 之前**先**按一个或多个有 domain 语义的有序键排序（如 account status 先按严格度、再按 `effective_at`）。这类 domain-semantic 主排序键是各 domain 的合法设计；但当主排序键全部相等仍并发时，**最终的并发消歧 MUST 落到本节的 bytewise-greatest `event_digest`**，不得用 `event_id` 或墙钟量收尾。
+
+引用本规则的 domain：[`models/relation.md` §6](../models/relation.md)、[`models/strand-and-message.md` §9.5.1](../models/strand-and-message.md)、[`identity/account-lifecycle.md` §3](../identity/account-lifecycle.md)。该规则只决定**确定性投影/展示选择**，不改变 canonical event log——全部并发候选都保留在日志/审计视图中。
+
 ## 5. Event Batch Receipt Hash
 
 ```json
@@ -209,7 +220,7 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 
 ## 6. Signature
 
-默认 proof（wire `proof` 对象;`actor_id` 与 `created_at` 不在 wire `proof` 对象内——`actor_id` 取自被签 Event envelope 的 `actor_id` 字段,`created_at` 取自 `proof.created_at`,二者均进入下方签名 transcript binding object）:
+默认 proof（wire `proof` 对象；`actor_id` 与 `created_at` 不在 wire `proof` 对象内——`actor_id` 取自被签 Event envelope 的 `actor_id` 字段，`created_at` 取自 `proof.created_at`，二者均进入下方签名 transcript binding object）:
 
 ```json
 {
@@ -249,7 +260,7 @@ Verifier 顺序固定为：先从 Event 中移除 `proofs` 与 `unsigned`，按 
 
 ### 6.1 Signature Suite registered set
 
-签名算法的 canonical 机器来源是 [`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json)(与 §3.2 Hash registered set 对称)，下表是其规范阅读视图。proof `alg` 字段 MUST 取自 registry active row 的 `proof_alg`；raw / non-JWS `signature_algorithm` 字段 MUST 取自 active row 的 `signature_algorithm`。散落于各 schema 的签名算法 enum MUST 由该 registry 校验，MUST NOT 在 schema 中私自引入未登记算法。`detached_jws` 形态的 `alg` 使用 JWS 标准标识(`EdDSA` 对应 Ed25519);非 JWS 形态(如 raw detached signature)按 registry 的 raw `signature_algorithm` 标识。
+签名算法的 canonical 机器来源是 [`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json)(与 §3.2 Hash registered set 对称)，下表是其规范阅读视图。proof `alg` 字段 MUST 取自 registry active row 的 `proof_alg`；raw / non-JWS `signature_algorithm` 字段 MUST 取自 active row 的 `signature_algorithm`。散落于各 schema 的签名算法 enum MUST 由该 registry 校验，MUST NOT 在 schema 中私自引入未登记算法。`detached_jws` 形态的 `alg` 使用 JWS 标准标识(`EdDSA` 对应 Ed25519)；非 JWS 形态(如 raw detached signature)按 registry 的 raw `signature_algorithm` 标识。
 
 对称地，**非-MLS 应用层公钥封装**（key-backup `recovery_public_key` / `did_recovery` envelope、to-device `ck.secret.send`、member-application 与 file-transfer key envelope）的 KEM/KDF/AEAD 算法 agility 由 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json)（HPKE，RFC 9180）承载，与签名、digest、MLS-ciphersuite 并列为第四个算法 agility 面；其 `hpke_suite` / envelope `scheme` 选择字段的 enum MUST 由 registry active rows 生成，未登记 suite MUST fail closed（`unsupported_hpke_suite`）。MLS 群组消息的 HPKE 内核仍由 [`mls-ciphersuite-registry.json`](../../artifacts/registry/mls-ciphersuite-registry.json) 承载，不在该 registry 范围内。
 
@@ -257,17 +268,17 @@ Verifier 顺序固定为：先从 Event 中移除 `proofs` 与 `unsigned`，按 
 
 | Algo（`canonical_id`） | `proof_alg`（JWS `alg`） | `signature_algorithm`（raw / non-JWS） | v1 角色 | 抗量子 / future-ready 评估 |
 | --- | --- | --- | --- | --- |
-| `Ed25519` | `EdDSA`（JWS, crv=Ed25519） | `Ed25519` | **v1 default-MUST**;所有 receiver MUST 支持。Event proof、receipt proof、device cross-signing binding 等核心签名默认使用。 | 不抗量子(Shor 可破);通过 `ck.profile.signature.pqc.v1` 迁移到后量子 suite。 |
-| `ECDSA-P256-SHA256` | `ES256`（JWS, P-256 + SHA-256） | `ES256` | v1 optional;声明 `ck.profile.signature.ecdsa_p256.v1` 的实现 MUST 支持。用于需要与 WebAuthn / FIDO2 / 既有 PKI 互通的部署。 | 不抗量子(Shor 可破);选择仅出于生态互通。 |
-| `ML-DSA-65` | `ML-DSA-65`（NIST FIPS 204, Dilithium category 3） | `ML-DSA-65` | v1 profile-gated;声明 `ck.profile.signature.pqc.v1` 的实现 MUST 支持。后量子格基签名，用于长生命周期审计签名与抗量子迁移。 | 抗量子(NIST PQC 标准);wire 形态 `<algo>:<...>` 已为加法准备好，无需重写 wire。 |
+| `Ed25519` | `EdDSA`（JWS, crv=Ed25519） | `Ed25519` | **v1 default-MUST**；所有 receiver MUST 支持。Event proof、receipt proof、device cross-signing binding 等核心签名默认使用。 | 不抗量子(Shor 可破)；通过 `ck.profile.signature.pqc.v1` 迁移到后量子 suite。 |
+| `ECDSA-P256-SHA256` | `ES256`（JWS, P-256 + SHA-256） | `ES256` | v1 optional；声明 `ck.profile.signature.ecdsa_p256.v1` 的实现 MUST 支持。用于需要与 WebAuthn / FIDO2 / 既有 PKI 互通的部署。 | 不抗量子(Shor 可破)；选择仅出于生态互通。 |
+| `ML-DSA-65` | `ML-DSA-65`（NIST FIPS 204, Dilithium category 3） | `ML-DSA-65` | v1 profile-gated；声明 `ck.profile.signature.pqc.v1` 的实现 MUST 支持。后量子格基签名，用于长生命周期审计签名与抗量子迁移。 | 抗量子(NIST PQC 标准);wire 形态 `<algo>:<...>` 已为加法准备好，无需重写 wire。 |
 
 实现 MUST:
 
-- 默认按 `EdDSA`(Ed25519) 验证 event / receipt proof;遇到未识别的 `alg` → 若位于 critical proof(event_digest binding、device authorization、recovery)→ fail closed (`unsupported_signature_alg`);若位于非 critical metadata signature → MAY 记录为 unknown 并 preserve raw bytes。
+- 默认按 `EdDSA`(Ed25519) 验证 event / receipt proof；遇到未识别的 `alg` → 若位于 critical proof(event_digest binding、device authorization、recovery)→ fail closed (`unsupported_signature_alg`)；若位于非 critical metadata signature → MAY 记录为 unknown 并 preserve raw bytes。
 - 在 `server/describe.crypto` 暴露支持的签名 algo 集合(与 hash algo 集合并列),client 据此选择写入算法。
-- MUST NOT "算法升级"已签名的 canonical bytes:一旦 proof 用某 `alg` 发布,verify 路径永远按该 algo 重验；新算法走新 proof,不重写历史签名字节。
+- MUST NOT "算法升级"已签名的 canonical bytes:一旦 proof 用某 `alg` 发布，verify 路径永远按该 algo 重验；新算法走新 proof，不重写历史签名字节。
 
-**后量子 / hybrid 前瞻(未来)**:hybrid composite 签名(例如 `Ed25519+ML-DSA-65`,经典 + 后量子双签以在迁移期同时满足两类验证者)登记为 `ck.profile.signature.pqc.v1` 的扩展槽位。它复用本节"不重写历史签名字节、新算法走新 proof"原则——hybrid proof 作为追加的新 proof entry 出现，经典验证者验经典分量、后量子验证者验 ML-DSA 分量，历史 Ed25519 proof bytes 不被改写。该槽位在 v1 不强制，记为未来。
+**后量子 / hybrid 前瞻(未来)**:hybrid composite 签名(例如 `Ed25519+ML-DSA-65`，经典 + 后量子双签以在迁移期同时满足两类验证者)登记为 `ck.profile.signature.pqc.v1` 的扩展槽位。它复用本节"不重写历史签名字节、新算法走新 proof"原则——hybrid proof 作为追加的新 proof entry 出现，经典验证者验经典分量、后量子验证者验 ML-DSA 分量，历史 Ed25519 proof bytes 不被改写。该槽位在 v1 不强制，记为未来。
 
 ## 7. HLC
 
@@ -430,10 +441,10 @@ Barrier cursor body 示例：
 
 | 绑定字段 | 承载位置 | 说明 |
 |----------|----------|------|
-| `principal_id` | `h` handle 绑定表 | cursor 所属 principal,跨 principal 命中 MUST `cursor_integrity_invalid` |
+| `principal_id` | `h` handle 绑定表 | cursor 所属 principal，跨 principal 命中 MUST `cursor_integrity_invalid` |
 | `device_id` | `h` handle 绑定表 | cursor 绑定的 device |
 | `service_id` | `h` handle 绑定表 | issuing service 标识 |
-| `filter_digest` | `h` handle 绑定表 | 订阅 / 查询 filter 的 digest,防跨 filter 复用 |
+| `filter_digest` | `h` handle 绑定表 | 订阅 / 查询 filter 的 digest，防跨 filter 复用 |
 | `positions` | `h` handle 绑定表（`purpose=stream`） | stream cursor 的同步 / 分页位置 |
 | `target` | `h` handle 绑定表（`purpose=barrier`） | barrier cursor 等待的目标 event |
 | `expiry` | `h` handle 绑定表 | 与 body `x` 一致的服务端过期时间 |

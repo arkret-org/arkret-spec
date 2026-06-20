@@ -108,6 +108,8 @@ CBA fallback 不得选择本地接收顺序或数据库 ID。Snapshot 必须有 
 | 单个 List Space active Strand item 数 | 10,000 | Projection MUST paginate；drag / reorder 仍按 rank + deterministic tie-break。 |
 | Space 嵌套深度 | 8 | 超过时 reducer MUST reject `ck.space.parent`；防止任意深度的容器树拖累查询性能。 |
 | 单个对象 active Relation 数 | 10,000 | Projection executor MUST paginate，不能要求客户端一次性拉全。 |
+| 单 Realm active Circle 数 | 1,000 | 超过时 reducer MUST reject `ck.circle.create`（`reason=circle_count_exceeded`）。这是 normative 安全上界，约束 cascade / delivery fanout 最坏情况；产品 SHOULD 远低于此（见 [`../models/circle.md` §10.3](../models/circle.md) / §11 的"Circle 少而稳定"软上限例如 ≤64）。 |
+| 单 actor 所属 active **MLS-backed** Circle 数 | 256 | 超过时 reducer MUST reject 把该 actor 加入新 MLS-backed Circle（`reason=circle_count_exceeded`）。该上限直接绑定 [`../models/circle.md` §10.3](../models/circle.md) 的踢人放大 `M+R`（M = 该 actor 所在 MLS-backed Circle 数）:封顶 M 即封顶单次 membership 变更触发的最坏 MLS group rotation 次数，使实现可对最坏密码学工作量与 DoS 抵抗做有界推理。Plaintext Circle 不计入本上限（不产生 MLS rotate）。 |
 | 单个 View projection page | 1,000 items | View cursor MUST 绑定 authorization context 和 frontier。 |
 | rank 长度 | 128 chars | 超过时 MUST reject，见 `encoding.md`。 |
 | 单个 Calendar Event attendees 数 | 1,000 | 超过时 MUST reject 或要求拆分会议 / 日程实例；attendees 必须按 actor / handle / resource key 去重。 |

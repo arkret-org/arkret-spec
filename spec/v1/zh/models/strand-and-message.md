@@ -43,11 +43,11 @@ Strand 顶层字段不承载额外模式或业务分类；默认入口由 track 
 
 一个 Realm MAY 指定**一个**默认讨论 Strand（"general" 式的常驻讨论入口）。该指针的设计裁决如下，实现 MUST 遵循：
 
-- **权威状态放在 Realm,单指针。** 权威当前值是 Realm 投影的 `default_strand_id`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的可选 / nullable 字段）。它由 `ck.realm.set_default_strand` 事件投影得到（cell `ck.component.realm.set_default_strand.v1`、`cas_register`、`bottom=reject`）。**单一指针**避免多个 Strand 各自声明"我是默认"导致的多默认脏态;`null` / 缺省表示该 Realm 没有指定默认 Strand。
+- **权威状态放在 Realm，单指针。** 权威当前值是 Realm 投影的 `default_strand_id`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的可选 / nullable 字段）。它由 `ck.realm.set_default_strand` 事件投影得到（cell `ck.component.realm.set_default_strand.v1`、`cas_register`、`bottom=reject`）。**单一指针**避免多个 Strand 各自声明"我是默认"导致的多默认脏态；`null` / 缺省表示该 Realm 没有指定默认 Strand。
 - **Strand 侧只暴露派生标记。** Strand 投影（[`ProjectionStrandRow`](../../artifacts/schemas/service-operation-dtos.schema.json)）的 `is_default` 是**派生**字段（`is_default == (strand_id == realm.default_strand_id)`），**不是**独立存储，投影器从 Realm 的 `default_strand_id` 计算得到。Strand 对象本身不持有任何"默认"布尔位。
-- **设置 / 变更走事件驱动，不强制原子。** 改变默认 Strand 仅通过 `ck.realm.set_default_strand` 事件（payload 至少 `{realm_id, strand_id}`,见 [`event-payload.schema.json` `realm_set_default_strand_payload`](../../artifacts/schemas/event-payload.schema.json)）。授权是标准 Realm-admin 闸门:写入方 MUST 持有 `ck.realm.admin`（aggregate admin 覆盖）或被直接授予同名动作 `ck.realm.set_default_strand`（risk medium,见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)）。Realm 指针更新与 Strand 创建之间不要求单一原子事务，最终一致即可。
-- **reducer 防悬空（MUST）。** reducer 在投影 `ck.realm.set_default_strand` 时，被指向的 `strand_id` MUST 已经是本 Realm 内**已投影且非 tombstoned** 的 Strand;否则 MUST 拒绝（`failed_precondition`），不得写入悬空指针。因此 `default_strand_id` 永远指向一个存在的 Strand，`is_default` 永远不会因悬空指针被错误派生为 `true`。payload 的可选字段 `expected_default_strand_id` 提供乐观并发（CAS):存在时 reducer 仅在 Realm 当前 `default_strand_id` 等于该值时接受，否则 `failed_precondition`。
-- **客户端确定性发现（MUST NOT 靠实现细节）。** 客户端 MUST 通过下面两种确定性途径之一识别默认讨论 Strand:(a) 读取 Realm 投影的 `default_strand_id`;或 (b) 读取 Strand 投影的 `is_default`。客户端 MUST NOT 依赖"Strand 复用 Realm UUID""默认 Strand 是创建时间最早的 Strand"等任何实现细节或启发式来推断默认 Strand。
+- **设置 / 变更走事件驱动，不强制原子。** 改变默认 Strand 仅通过 `ck.realm.set_default_strand` 事件（payload 至少 `{realm_id, strand_id}`，见 [`event-payload.schema.json` `realm_set_default_strand_payload`](../../artifacts/schemas/event-payload.schema.json)）。授权是标准 Realm-admin 闸门:写入方 MUST 持有 `ck.realm.admin`（aggregate admin 覆盖）或被直接授予同名动作 `ck.realm.set_default_strand`（risk medium，见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)）。Realm 指针更新与 Strand 创建之间不要求单一原子事务，最终一致即可。
+- **reducer 防悬空（MUST）。** reducer 在投影 `ck.realm.set_default_strand` 时，被指向的 `strand_id` MUST 已经是本 Realm 内**已投影且非 tombstoned** 的 Strand；否则 MUST 拒绝（`failed_precondition`），不得写入悬空指针。因此 `default_strand_id` 永远指向一个存在的 Strand，`is_default` 永远不会因悬空指针被错误派生为 `true`。payload 的可选字段 `expected_default_strand_id` 提供乐观并发（CAS):存在时 reducer 仅在 Realm 当前 `default_strand_id` 等于该值时接受，否则 `failed_precondition`。
+- **客户端确定性发现（MUST NOT 靠实现细节）。** 客户端 MUST 通过下面两种确定性途径之一识别默认讨论 Strand:(a) 读取 Realm 投影的 `default_strand_id`；或 (b) 读取 Strand 投影的 `is_default`。客户端 MUST NOT 依赖"Strand 复用 Realm UUID""默认 Strand 是创建时间最早的 Strand"等任何实现细节或启发式来推断默认 Strand。
 
 ## 3. Strand Schema 与字段
 
@@ -272,7 +272,7 @@ resolved primary 只影响默认打开哪个协作面，不改变 `strand_id`，
 
 ### 4.8 Track 写入: `ck.strand.tracks.update`
 
-Track 写入路径只有一个 event kind: **`ck.strand.tracks.update`**(注意名称用复数 `tracks`),通过 `ck.patch.v1` 表达对 `Strand.tracks` map 的任意原子修改——开/关 track、切换 primary、修改 track profile / metadata 都走同一条 event。
+Track 写入路径只有一个 event kind: **`ck.strand.tracks.update`**(注意名称用复数 `tracks`)，通过 `ck.patch.v1` 表达对 `Strand.tracks` map 的任意原子修改——开/关 track、切换 primary、修改 track profile / metadata 都走同一条 event。
 
 **典型 patch 示例**:
 
@@ -545,7 +545,7 @@ Watch 级别参与 [`../discovery/push-notifications.md`](../discovery/push-noti
 - Strand synthesis 与 discussion 通知均按同一 effective scope 派发：Sync Service 用 [`circle.md` §9.3](./circle.md) 投递不变量过滤——actor 不属于 `Circle.members(at causal frontier)` 即不投递事件 envelope 或 payload，亦不产生通知，无论 watch level。
 - Realm-only 成员（不在 Circle 中）不会看到该 Strand 的存在、活动节奏或 watcher 列表（参见 §8.5 投影脱敏与 [`circle.md` §9.3](./circle.md) directory_visibility 裁剪）。
 
-换言之：访问权先于订阅意愿。`scope_circle_id` 决定访问权;watch 只在访问权前提下叠加通知偏好。无访问权 = 没有通知，无论 watch 设了什么。
+换言之：访问权先于订阅意愿。`scope_circle_id` 决定访问权；watch 只在访问权前提下叠加通知偏好。无访问权 = 没有通知，无论 watch 设了什么。
 
 ## 9. Message
 
@@ -570,11 +570,11 @@ Schema id: `ck.schema.message.v1`
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
 | `strand_id` | yes | `id:strand` |  | 所属 Strand。 |
 | `track_name` | yes | `const("discussion")` | v1 Message 只属于目标 Strand 的 `discussion` track，且该 track 必须当前 active。需要其它 timeline 语义的 profile MUST 注册独立对象 / event profile，不得复用 Message.track_name 扩展出第二类消息时间线。 | 所属 Strand track key。 |
-| `content` | conditional | `object` | 富文本/parts 见 `content-types.md`；`state=active` 且未加密时必填。effective `content_encryption_floor=e2ee_required` scope 下 MUST 改用 `encrypted_content`,plaintext `content` 由 reducer 拒绝(`content_encryption_floor_violation`)——单对象 schema 不感知 Realm floor,通过校验不代表合法。 | 消息正文。 |
+| `content` | conditional | `object` | 富文本/parts 见 `content-types.md`；`state=active` 且未加密时必填。effective `content_encryption_floor=e2ee_required` scope 下 MUST 改用 `encrypted_content`,plaintext `content` 由 reducer 拒绝(`content_encryption_floor_violation`)——单对象 schema 不感知 Realm floor，通过校验不代表合法。 | 消息正文。 |
 | `encrypted_content` | conditional | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹消息正文与附件内容。 |
 | `metadata` | no | `object` | MAY contain `fields` and profile-defined keys. | 用户可读 Message metadata；MLS / E2EE 下按 `metadata_encryption_floor` 决定是否必须放入 `encrypted_metadata`。 |
 | `encrypted_metadata` | conditional | `EncryptedPayload` | 与 `metadata` 二选一；plaintext 是同一个 Message metadata object。 | E2EE 场景下包裹 Message metadata。 |
-| `state` | yes | `enum(active, redacted)` | 新建时 MUST 显式写 `active`(`state` 为 required,不靠默认补齐)。`redacted` 由 `ck.message.redact` reducer 设置（content / encrypted_content 被清空或替换为 redaction tombstone，但消息槽和审计元数据保留）。Message 不定义单独 `deleted` 终态；治理、retention 或 moderation 清除均落到 `redacted`。Message lifecycle 使用顶层 `state` 字段表达可见性。 | 消息生命周期状态。 |
+| `state` | yes | `enum(active, redacted)` | 新建时 MUST 显式写 `active`(`state` 为 required，不靠默认补齐)。`redacted` 由 `ck.message.redact` reducer 设置（content / encrypted_content 被清空或替换为 redaction tombstone，但消息槽和审计元数据保留）。Message 不定义单独 `deleted` 终态；治理、retention 或 moderation 清除均落到 `redacted`。Message lifecycle 使用顶层 `state` 字段表达可见性。 | 消息生命周期状态。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `revision_root` | no | `id:message` | 第一条 revision MUST 等于 `id`；后续 revision 引用 chain 起点。同一 `revision_root` 下的 revision 形成有序 chain，由 `ck.message.revise` reducer 维护。**`ck.message.create` 的 payload MUST NOT 携带 `revision_root` 字段**（即使值与 `id` 相同）——首次创建时 reducer 自行初始化 `revision_root = id`；只有 `ck.message.revise` 与后续 revise event 才允许携带 `revision_root`，且其值 MUST 等于 chain 起点 message 的 `id`。create payload 出现 `revision_root` MUST 触发 `schema_violation`（见 [`artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。 | revision chain 起点（顶层 schema-validated）。 |
 | `edited_at` | no | `timestamp` | 取 §9.5.1 选出的「最新可见 revision」对应 revise event 的 `created_at`；首次 create 后未编辑时缺省。MUST be no earlier than `created_at`。**仅为展示派生时间戳，MUST NOT 参与「最新可见 revision」的 winner 选择**（并发 revision 的 winner 由 §9.5.1 的 `event_digest` 全序确定，不由 `edited_at`/`created_at` 选边）。 | 最近一次编辑时间。 |
@@ -812,7 +812,7 @@ Message timeline 的同步与 reducer 行为：
 同一 `revision_root` chain 内，两条 `ck.message.revise`（或 `ck.message.create` 后接 revise）若**因果上互不可达**（彼此不在对方的 `prev_refs` 因果闭包中），不存在天然的「谁更晚」。默认视图展示的「最新可见 revision」MUST 由下列确定性全序 winner 规则机械选出，与 [`relation.md` §6](./relation.md#6-冲突处理)（互不可达候选按 `event_digest` bytewise 升序）、[`identity/account-lifecycle.md` §3](../identity/account-lifecycle.md)（`(effective_at, event_id)` canonical order）同属 canonical 全序 tie-break（各域的取端方向见各自定义）：
 
 1. **因果优先**：若一条 revise event 在另一条的 `prev_refs` 因果闭包中（严格因果后继），则后继 revision 胜出，前驱被该后继 supersede。此步用 prev_refs 因果序，不用任何墙钟字段。
-2. **并发 tie-break（canonical 全序）**：对一组**互不可达**的 revision，winner = 这些 revision 各自产生 event 的 canonical `event_digest` 按 bytewise 升序排序后的**最大值**（即字典序最后者）。`event_digest` 是签名覆盖的 canonical Event digest，是最终 tie-break 键，对所有 verifier 唯一确定。
+2. **并发 tie-break（canonical 全序）**：对一组**互不可达**的 revision，winner 按 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) 的统一 canonical tie-break 选出——即这些 revision 各自产生 event 的 canonical `event_digest` 按 bytewise 升序排序后的**最大值**（字典序最后者）。`event_digest` 是签名覆盖的 canonical Event digest，是全协议统一的最终 tie-break 键，对所有 verifier 唯一确定。
 3. **绝对禁止的选择键**：winner 选择 MUST NOT 使用 `created_at` / HLC / `actor_id` / `actor_seq` / 本地接收顺序 / 数据库 ID / 服务端插入顺序中的任何一个作为选边依据。`created_at`（及由其派生的 `edited_at`，见 §9.2）是墙钟/HLC 量，按 [`../conformance/encoding.md` §7](../conformance/encoding.md) 不能单独决定因果，故不得作为「最新可见 revision」的 winner 选择键。
 
 该规则只决定**默认视图展示哪一条** revision，不改变 canonical event log：全部并发 revision 都保留在 revision chain 中，审计视图 MUST 能列出所有分支。`edited_at` 是对选出的可见 revision 的展示派生时间戳，不参与上述 winner 选择。

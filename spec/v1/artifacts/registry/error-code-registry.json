@@ -761,7 +761,19 @@
       "code": "unsupported_digest_algorithm",
       "http_status": 422,
       "scope": "both",
-      "description": "The digest suite prefix in a typed digest value (e.g. sha256:<hex>, cbor.sha256:<hex>) is not an active row of artifacts/registry/digest-suite-registry.json supported by the receiver (unknown id, unregistered tuple, or reserved suite) on a critical field. See zh/conformance/encoding.md §3.1-§3.2."
+      "description": "The digest suite prefix in a typed digest value (e.g. sha256:<hex>, cbor.sha256:<hex>) is not an active row of artifacts/registry/digest-suite-registry.json supported by the receiver (unknown id, unregistered tuple, or reserved suite) on a critical field. See zh/conformance/encoding.md §3.1-§3.2. Dual-registered (also a reason_code): all three algorithm-agility fail-closed errors (unsupported_digest_algorithm / unsupported_signature_alg / unsupported_hpke_suite) appear in both `codes` (top-level service error) and `reason_codes` (per-item sub-reason); see zh/conformance/schema-registry.md §1.1.1."
+    },
+    {
+      "code": "unsupported_signature_alg",
+      "http_status": 422,
+      "scope": "both",
+      "description": "Proof / event signature `alg` is not in the conformance signature-algorithm allowlist (artifacts/registry/signature-alg-registry.json) on a critical field. One of the three algorithm-agility fail-closed errors; dual-registered as a service code and a reason_code (see unsupported_digest_algorithm). See zh/conformance/encoding.md §6.1."
+    },
+    {
+      "code": "unsupported_hpke_suite",
+      "http_status": 422,
+      "scope": "both",
+      "description": "HPKE suite id on an application-layer sealed surface is not an active row of artifacts/registry/hpke-suite-registry.json (unknown, inactive, or reserved-but-not-activated). One of the three algorithm-agility fail-closed errors; dual-registered as a service code and a reason_code (see unsupported_digest_algorithm). Receivers MUST fail closed rather than infer suite parameters from the AEAD name. See zh/identity/key-management.md §7.5.2."
     },
     {
       "code": "seal_incomplete",
@@ -2461,6 +2473,14 @@
       "description": "Handle resolution returned a subject DID that does not match the expected applicant / member / invite subject. Clients and reducers MUST reject the candidate before building delivery_binding or join material. See zh/identity/identity-handles.md §3.7 and zh/conformance/conformance-vectors.md §8."
     },
     {
+      "code": "handle_holder_acceptance_missing",
+      "applies_to": [
+        "auth_decision",
+        "service_call"
+      ],
+      "description": "A restricted handle whose subject DID is NOT controlled by the issuer was presented as binding_state=verified without a holder-acceptance proof (a proof in proofs[] signed by a verification method of the subject DID covering (handle, subject, audience, claim_scope)). Verifiers MUST treat it as at most issuer-attested (below verified): it MUST NOT enter the verified candidate set, be displayed as verified, or drive grant conditions / roster strong attribution / delivery binding. This closes issuer-unilateral impersonation within the issuer's audience. See zh/identity/identity-handles.md §6."
+    },
+    {
       "code": "handle_homograph_forbidden",
       "applies_to": [
         "schema_validation",
@@ -2965,6 +2985,14 @@
         "state_resolution"
       ],
       "description": "Sub-reason for failed_precondition on ck.circle.member.state -> join when target actor is not yet a `join` member of the parent Realm. Circle.members ⊆ Realm.members is a hard invariant. See zh/models/circle.md §9.1."
+    },
+    {
+      "code": "circle_count_exceeded",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "Reducer rejected a `ck.circle.create` exceeding the per-Realm active Circle cap, or a `ck.circle.member.state -> join` that would exceed the per-actor active MLS-backed Circle cap. Caps bound cascade/delivery fanout and the M+R MLS-rotation amplification of a single membership change (zh/conformance/scalability-constraints.md §5, zh/models/circle.md §10.3)."
     },
     {
       "code": "circle_encryption_below_realm_floor",

@@ -1028,13 +1028,13 @@ ck.vector.cba_lattice.seal_compaction_interval_enforced.v1
 输入：
 
 - Realm 声明 `seal_compaction_max_interval_ms = X`。
-- **Case A**：notary 在 X 内签发携带 `covered_event_digests[]` 的 compaction Seal,其内容等于递归闭包。
+- **Case A**：notary 在 X 内签发携带 `covered_event_digests[]` 的 compaction Seal，其内容等于递归闭包。
 - **Case B**：compaction Seal 的 `covered_event_digests[]` 与 `delta[] ∪ predecessor 覆盖集` 不一致。
 - **Case C**：live chain 超过 X 仍无 compaction Seal。
 
 期望：
 
-- Case A：receiver 接受；新 verifier 可从该 Seal 接链 bootstrap,不必走链到 genesis。
+- Case A：receiver 接受；新 verifier 可从该 Seal 接链 bootstrap，不必走链到 genesis。
 - Case B：receiver MUST 拒绝该 Seal（`rejected_seal`）。
 - Case C：receiver SHOULD 触发治理健康告警；既有 Seal 仍有效（义务是告警与 bootstrap 退化，不是回滚）。
 
@@ -1085,7 +1085,7 @@ ck.vector.cba_lattice.notary_fault_equivocation_quarantine.v1
 
 期望：
 
-- 验签 + slot 规则通过即接受该 Control Move（验签即授权,reducer MUST NOT 要求 grant）；fault 记录进入 `ck.component.notary_fault.v1` cell（or_set）。
+- 验签 + slot 规则通过即接受该 Control Move（验签即授权，reducer MUST NOT 要求 grant）；fault 记录进入 `ck.component.notary_fault.v1` cell（or_set）。
 - fault 记录生效后：N 的后续 Seal MUST 被拒绝；`S_a`、`S_b` 及其后继进入 `fork_quarantine`，普通 joined governance view MUST NOT 纳入；查询依赖该分支时 grade=`forked`。
 - 仍有其余合法 signer 时 Realm MUST NOT 整体 pause；无剩余合法 signer 时进入 `notary_paused`，仅 recovery 路径可恢复。
 - 两个 Seal 不满足 slot 规则（不同 signer 或不同 seq）时，该 Move MUST `failed_precondition`——合法并发 leaf 不构成 fault。
@@ -1104,9 +1104,9 @@ ck.vector.cba_lattice.threshold_forensic_attribution.v1
 
 输入：
 
-- **Case A**：threshold notary,n=5,k=3（2k>n）,`forensic_attribution="quorum_intersection"`。
+- **Case A**：threshold notary,n=5,k=3（2k>n），`forensic_attribution="quorum_intersection"`。
 - **Case B**：n=5,k=3,`forensic_attribution="waived"`。
-- **Case C**：n=4,k=2（2k≤n）,`forensic_attribution="quorum_intersection"`。
+- **Case C**：n=4,k=2（2k≤n），`forensic_attribution="quorum_intersection"`。
 - **Case D**：threshold notary 缺 `forensic_attribution` 字段。
 
 期望：
@@ -1137,7 +1137,7 @@ ck.vector.cba_lattice.rename_family_reject.v1
 
 期望：
 
-- 每个 case：current parser MUST 以 `schema_violation` / `unknown_field` / `unknown_kind` 类错误拒绝,MUST NOT 静默改写或按新名解释。
+- 每个 case：current parser MUST 以 `schema_violation` / `unknown_field` / `unknown_kind` 类错误拒绝，MUST NOT 静默改写或按新名解释。
 - 仅 `migration_tool` 层（离线批迁移）MAY 消费旧拼写。
 
 失败条件：任一旧拼写被 current parser 接受或静默转换。
@@ -1255,7 +1255,7 @@ ck.vector.redaction.preserve_fields.v1
 - 重放前后事件必须保留 event_id/hash 的验证可追踪性。
 - 目标事件的 `content`、`mentions`、`attachments`、`client_generated` 不得再对外展示。
 
-`kept_envelope_fields` 中的 `redacted_by` / `redaction_reason_code` / `hashes` **不是 redaction event payload 的输入字段**,而是 reducer 在目标事件上派生写入的 tombstone-style 字段，映射规则如下（来源见 event-envelope schema 的对应 `$defs`）:
+`kept_envelope_fields` 中的 `redacted_by` / `redaction_reason_code` / `hashes` **不是 redaction event payload 的输入字段**，而是 reducer 在目标事件上派生写入的 tombstone-style 字段，映射规则如下（来源见 event-envelope schema 的对应 `$defs`）:
 
 - `redacted_by` = 该 redaction event 的 `actor_id`（执行 redact 的主体）。
 - `redaction_reason_code` = redaction event `payload.reason_code`（本例 `policy_recall`）。
@@ -1715,6 +1715,30 @@ ck.vector.capability.approval_constraint.v1
 - 即便有高权限 grant，若 approval constraint 未满足，不得直接通过写入执行。
 - 必须有可复现的 proposal / review 生命周期。
 - 通过审核后应产生可验证的审批完成事件，再以独立 action event 执行。
+
+### 4.5 Vector: 成员资格不是 baseline 能力
+
+向量名称：
+
+```text
+ck.vector.capability.membership_is_not_baseline.v1
+```
+
+输入（fixture：[`capability-fixture.json`](../../artifacts/fixtures/capability-fixture.json) `membership_without_capability_denies_core_writes`）：一个 `membership="join"` 的 Realm 成员，但**没有任何 capability grant**（`grants: []`），尝试 `ck.message.create` 等核心写入 action。
+
+期望输出：
+
+```json
+{
+  "authorized": false,
+  "failure_code": "missing_capability"
+}
+```
+
+判定要求：
+
+- 成员资格（`ck.member.state{join}`）本身**不**隐含任何 action capability——授权核心是 allow-grant + explicit revoke（[`../authz/capabilities.md`](../authz/capabilities.md)、[`../governance/content-moderation.md` §2.4](../governance/content-moderation.md)），不存在"成员即可写"的 baseline 能力。
+- 无匹配 grant 时核心写入 MUST 被拒（`missing_capability`），且**没有任何 deny 层 / 成员身份能补足缺失的 capability**。
 
 ## 5. Sync Vectors
 
@@ -3003,16 +3027,16 @@ Expected：
 
 Steps:
 
-1. Controller 调用 `ck.self.agent.command.provision`,得到 `agent_principal_id`、初始 grant ids(每条 grant payload 含 `effective_after_first_authorized_key=true`)与 `pairing_request_id`。
-2. Agent runtime 生成 key pair,调用 `ck.gate.account.command.pair_agent_key`。
+1. Controller 调用 `ck.self.agent.command.provision`，得到 `agent_principal_id`、初始 grant ids(每条 grant payload 含 `effective_after_first_authorized_key=true`)与 `pairing_request_id`。
+2. Agent runtime 生成 key pair，调用 `ck.gate.account.command.pair_agent_key`。
 3. Pairing endpoint 校验 `verification_method` 的 DID 部分(strip fragment/query 后)与 `agent_principal_id` bit-identical。
 4. 批准后写入 `ck.agent.key.authorize`,reducer 清除 effective_after_first_authorized_key flag。
 
 Expected:
 
 - 第 3 步 verification_method 与 agent_principal_id 不一致时 MUST `failed_precondition` `reason=verification_method_principal_mismatch`。
-- 在第 4 步之前，任何 `agent_key_proof` session grant 请求 MUST fail closed;以该 grant 为基础的 capability check 也 MUST fail closed。
-- 第 4 步后 grant 进入正常 effective window 评估;agent runtime 可签发 session grant 并执行 capability action。
+- 在第 4 步之前，任何 `agent_key_proof` session grant 请求 MUST fail closed；以该 grant 为基础的 capability check 也 MUST fail closed。
+- 第 4 步后 grant 进入正常 effective window 评估；agent runtime 可签发 session grant 并执行 capability action。
 
 ### 11.1.1 Vector: Controller-scoped Agent Mention Selector
 
@@ -3046,14 +3070,14 @@ Expected:
 
 Steps:
 
-1. Controller 调用 `ck.self.agent.command.provision`,pairing 窗口 12 小时,grant TTL 30 天。
+1. Controller 调用 `ck.self.agent.command.provision`,pairing 窗口 12 小时，grant TTL 30 天。
 2. Pairing 12 小时窗口过期，未提交 `ck.gate.account.command.pair_agent_key`。
 
 Expected:
 
 - 服务 MUST 自动写入 `ck.capability.revoke` 撤销 pending grant,agent status → `pairing_expired`。
 - 重放 `ck.gate.account.command.pair_agent_key`(使用过期 pairing_request_id)MUST fail closed。
-- Controller 可重新发起 `ck.self.agent.command.provision`,得到新 pairing_request_id;旧 agent_principal_id 与新 provisioning 不复用。
+- Controller 可重新发起 `ck.self.agent.command.provision`，得到新 pairing_request_id；旧 agent_principal_id 与新 provisioning 不复用。
 
 ### 11.3 Vector: Agent Session Grant Replay Protection
 
@@ -3112,19 +3136,19 @@ Expected:
 
 Steps:
 
-1. Realm A 中存在 weak semantic Relation `R1`,目标指向 Realm B 内对象；调用者 C 可读 Realm A,但不能 discover / reference Realm B。
-2. Realm A 中存在形态相同的 Relation `R2`,目标指向不存在或不可发现的 Realm / object id。
+1. Realm A 中存在 weak semantic Relation `R1`，目标指向 Realm B 内对象；调用者 C 可读 Realm A，但不能 discover / reference Realm B。
+2. Realm A 中存在形态相同的 Relation `R2`，目标指向不存在或不可发现的 Realm / object id。
 3. C 分别调用 Relation projection query、`ck.self.events.query.scan` raw event API、backfill pull 与 federation peer fanout 视图。
 4. 在同一服务端测量点、同一请求类别与同一部署 profile 下，对 `R1` / `R2` 每类至少采样 30 次。
-5. Auditor D 同时持有 source + target disclosure,读取 `R1` 的完整 canonical event。
+5. Auditor D 同时持有 source + target disclosure，读取 `R1` 的完整 canonical event。
 
 Expected:
 
 - C 对 `R1` / `R2` 均只能看到 `ReferenceProjectionStatus.locked` 或等价 locked stub,wire 字段集合、error envelope、metadata 集合必须相同。
 - C 的视图 MUST NOT 泄露目标 `realm_id`、title、member_count、created_at、issuer set、preview 或任何能区分"目标存在 vs 不存在"的信息。
-- raw event / backfill / federation fanout 对 C MUST 返回同一类 redacted event view 或 locked stub,不得暴露完整 `from_ref` / `to_ref` canonical bytes。
+- raw event / backfill / federation fanout 对 C MUST 返回同一类 redacted event view 或 locked stub，不得暴露完整 `from_ref` / `to_ref` canonical bytes。
 - 两类样本 p95 服务端耗时差异 SHOULD <= 50ms；声明高安全 profile 时 p99 MUST 落入同一 timing bucket。
-- D MAY 取得完整 canonical bytes,但不得改变 C 对同一 Relation 的 locked projection shape。
+- D MAY 取得完整 canonical bytes，但不得改变 C 对同一 Relation 的 locked projection shape。
 
 ### 11.7 Vector: Circle Directory Visibility Members Indistinguishable
 
@@ -3139,11 +3163,11 @@ Steps:
 
 Expected:
 
-- 对 V,可见 Circle 与不存在 Circle 的响应 MUST 使用同一 envelope、字段集合和 timing bucket。
+- 对 V，可见 Circle 与不存在 Circle 的响应 MUST 使用同一 envelope、字段集合和 timing bucket。
 - V MUST NOT 看到 Circle title、display、short_name、member_count、created_by、member id、join history 或可枚举错误。
 - V 的 stub 最多为 `{ "visibility": "locked", "opaque_commitment": "<fixed-length>" }` 或等价字段集合；`opaque_commitment` MUST 固定长度、不可逆、不可由 title / short_name / member set 枚举。
-- Realm public seal 只暴露固定 cadence 的 opaque commitment,不得反映真实 Circle 活动频率。
-- M MAY 看到 policy 允许的 Circle metadata,但不得改变 V 的不可区分性要求。
+- Realm public seal 只暴露固定 cadence 的 opaque commitment，不得反映真实 Circle 活动频率。
+- M MAY 看到 policy 允许的 Circle metadata，但不得改变 V 的不可区分性要求。
 
 ### 11.8 Vector: Sidecar Circle Idempotent Ensure
 
@@ -3157,9 +3181,9 @@ Steps:
 
 Expected:
 
-- 第 1 步并发 MUST 收敛到单一 sidecar Circle 与单一 sidecar private Strand;两个请求返回 bit-identical typed IDs;不出现 `failed_precondition`。
-- 第 2 步 MUST 复用既有 Circle 与 Strand,addressed list 不持久化到 Circle/Strand/Relation;只影响本次 notification fanout。
-- 第 3 步 MUST 复用既有 Circle(per_realm_controller_agent_pool),创建新 sidecar private Strand。
+- 第 1 步并发 MUST 收敛到单一 sidecar Circle 与单一 sidecar private Strand；两个请求返回 bit-identical typed IDs；不出现 `failed_precondition`。
+- 第 2 步 MUST 复用既有 Circle 与 Strand,addressed list 不持久化到 Circle/Strand/Relation；只影响本次 notification fanout。
+- 第 3 步 MUST 复用既有 Circle(per_realm_controller_agent_pool)，创建新 sidecar private Strand。
 
 ### 11.9 Vector: Existence Privacy
 
@@ -3189,7 +3213,7 @@ Steps:
 
 1. Alice 有 agents `{S, R}`。S 已 paired (`active`),R 未发布 KeyPackage(eligible but pending join)。
 2. Alice 调用 ensure。
-3. R 发布 KeyPackage,服务端 async reconcile。
+3. R 发布 KeyPackage，服务端 async reconcile。
 4. Alice 调用 `ck.self.agent.command.deactivate` 对 R。
 
 Expected:
@@ -3205,13 +3229,13 @@ Expected:
 Steps:
 
 1. Sidecar Circle 含 Alice + `{S, R}`。S 与 R 都在 sidecar private Strand 中产生协作内容。
-2. S 调用 publish capability action,生成目标 Strand `ck.message.create`,attribution 设 `executed_by=S` + `authorization_ref=G_S`。
+2. S 调用 publish capability action，生成目标 Strand `ck.message.create`,attribution 设 `executed_by=S` + `authorization_ref=G_S`。
 3. R 同时尝试 publish 含 S 部分内容的另一条消息。
 
 Expected:
 
-- 第 2 步 `actor_id` / `executed_by` MUST 是 S 单一 DID,而非 "agent group"。
-- 第 3 步若 R 的 grant 不覆盖该内容或 R 未持 fresh approval,MUST fail closed。R 通过自己的 grant 可独立发布，但 attribution 仍是 R 单一 DID;不得复合 S+R。
+- 第 2 步 `actor_id` / `executed_by` MUST 是 S 单一 DID，而非 "agent group"。
+- 第 3 步若 R 的 grant 不覆盖该内容或 R 未持 fresh approval,MUST fail closed。R 通过自己的 grant 可独立发布，但 attribution 仍是 R 单一 DID；不得复合 S+R。
 
 ### 11.12 Vector: Participation Ceiling Tighten-Only
 

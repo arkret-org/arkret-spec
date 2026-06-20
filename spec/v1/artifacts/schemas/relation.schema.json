@@ -169,7 +169,7 @@
         },
         "winner": {
           "$ref": "#/$defs/RelationConflictCandidate",
-          "description": "The deterministic winner (event_digest bytewise-smallest), or omitted-equivalent for require_review where no canonical winner is projected."
+          "description": "The deterministic winner (event_digest bytewise-greatest per the single canonical tie-break rule, zh/conformance/encoding.md §4.2), or omitted-equivalent for require_review where no canonical winner is projected."
         },
         "losers": {
           "type": "array",

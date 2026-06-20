@@ -369,7 +369,7 @@ receiver 接受 `bootstrap_binding` 当且仅当该 principal 的 control stream
 }
 ```
 
-该 `ck.device.authorize` Event 的信封 MUST 采用 [`models/common-fields.md`](../models/common-fields.md) 的委派执行形态：`actor_id` = principal DID（记录主体），`executed_by` = 入册权威 DID（实际写入方，等于 `authority_did`），`authorization_ref` = principal DID 文档中指派该权威的委派条目（`did_delegation_ref`，即 [`identity/identity-did.md`](../identity/identity-did.md) 的 `CokretDeviceEnrollmentAuthority` service 条目，或一条 `capabilityDelegation` verification method）。Event `proofs[]` 由入册权威的签名密钥签发，其 `verification_method` MUST 映射到 `executed_by`（而非 `actor_id`）。入册权威的签名密钥是一把**持久服务密钥**，与 §5.0.1 step5 必须退场的 inception key 无关；coauth 等账号权威 **MUST NOT** 持有或伪造本 principal 的 SSK。
+该 `ck.device.authorize` Event 的信封 MUST 采用 [`models/common-fields.md`](../models/common-fields.md) 的委派执行形态：`actor_id` = principal DID（记录主体），`executed_by` = 入册权威 DID（实际写入方，等于 `authority_did`），`authorization_ref` = principal DID 文档中指派该权威的委派条目（`did_delegation_ref`，即 [`identity/identity-did.md`](../identity/identity-did.md) 的 `CokretDeviceEnrollmentAuthority` service 条目，或一条 `capabilityDelegation` verification method）。Event `proofs[]` 由入册权威的签名密钥签发，其 `verification_method` MUST 映射到 `executed_by`（而非 `actor_id`）。入册权威的签名密钥是一把**持久服务密钥**，与 §5.0.1 step5 必须退场的 inception key 无关；Auth Server 等账号权威 **MUST NOT** 持有或伪造本 principal 的 SSK。
 
 receiver 接受 `service_attested` 的 `ck.device.authorize` 时 MUST 校验：
 

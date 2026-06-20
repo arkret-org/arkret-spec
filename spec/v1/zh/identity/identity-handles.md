@@ -175,11 +175,11 @@ Handle claim 用于 Realm membership（`intent ∈ {invite, member_add}`）时�
   `resolution_as_of` ≈ now，`claim_set_snapshot` 即客户端当前可见的 claim 集合及其当前 binding_state。这是默认情形。
 - **历史 replay / audit**（例如重建 "该消息发布时 mention 显示什么"）：
   `resolution_as_of` 是过去某时刻；实现 MUST 构造 as-of snapshot，使 snapshot 中每个 claim 的 `binding_state` 反映 **`resolution_as_of` 时的状态**，**不**用当前的 binding_state。例如:
-  - 在 `resolution_as_of` 时是 `verified`、之后被 revoke 的 claim 在 snapshot 中 binding_state 仍是 `verified`（曾在 candidate 集合内）;
-  - 在 `resolution_as_of` 之后才签发的 claim **不**进 snapshot（Step 0 `created_at <= resolution_as_of` 已经独立把它过滤掉，as-of snapshot 是更强的双保险——connaissance 一致性 + 时间过滤）;
+  - 在 `resolution_as_of` 时是 `verified`、之后被 revoke 的 claim 在 snapshot 中 binding_state 仍是 `verified`（曾在 candidate 集合内）；
+  - 在 `resolution_as_of` 之后才签发的 claim **不**进 snapshot（Step 0 `created_at <= resolution_as_of` 已经独立把它过滤掉，as-of snapshot 是更强的双保险——connaissance 一致性 + 时间过滤）；
   - 在 `resolution_as_of` 时是 `pending`、之后转为 `verified` 的 claim 在 snapshot 中 binding_state 是 `pending`(于是 Step 0 排除)。
 
-实现 SHOULD 通过保留 handle_claim event 的历史链（issuer / Directory 把每次 claim 状态变化作为 append-only event 持久化）支撑 as-of snapshot 重建；缺少历史的实现 MUST NOT 用"当前 snapshot + historical as_of"组合复算历史显示，那等价于把当前撤销状态错误回投到历史，违反 §6.1.3 历史归因要求。无法构造 as-of snapshot 时,replay MUST fail closed，不得静默退化为"当前 snapshot"。
+实现 SHOULD 通过保留 handle_claim event 的历史链（issuer / Directory 把每次 claim 状态变化作为 append-only event 持久化）支撑 as-of snapshot 重建；缺少历史的实现 MUST NOT 用"当前 snapshot + historical as_of"组合复算历史显示，那等价于把当前撤销状态错误回投到历史，违反 §6.1.3 历史归因要求。无法构造 as-of snapshot 时，replay MUST fail closed，不得静默退化为"当前 snapshot"。
 
 **`policy_snapshot` 的 as-of 语义**（normative）：
 
@@ -188,7 +188,7 @@ Handle claim 用于 Realm membership（`intent ∈ {invite, member_add}`）时�
 - **实时渲染**：`as_of ≈ now`，`policy_snapshot` 即客户端当前可见的 Realm policy 状态(`accepted_issuers` 顺序与 trust 级别)。
 - **历史 replay / audit**：取 `resolution_as_of` 时刻 Realm policy event 链所定义的 `accepted_issuers` 顺序与 trust 级别。如果 Realm 后来调整 policy（重排 `accepted_issuers`、变更 trust 级别、加 / 删 issuer），replay MUST 使用**当时**的 policy 而不是现在的，否则同一历史显示在不同时刻复算会得到不同 primary handle，违反"as-of 复算可重复"原则。
 
-实现 SHOULD 通过 Realm policy event 的 append-only 链支撑 as-of policy 重建；缺少历史的实现 MUST NOT 用"当前 policy + 历史 as_of"组合复算，与 `claim_set_snapshot` 同款约束。无法构造 as-of policy snapshot 时,replay MUST fail closed。
+实现 SHOULD 通过 Realm policy event 的 append-only 链支撑 as-of policy 重建；缺少历史的实现 MUST NOT 用"当前 policy + 历史 as_of"组合复算，与 `claim_set_snapshot` 同款约束。无法构造 as-of policy snapshot 时，replay MUST fail closed。
 
 主动 replay 调用方 MAY 显式传入目标 policy version（例如 `policy_version_ref: "ck:event:..."`）覆盖默认行为，前提是该 version 在 as_of 时刻确实是当时 effective 的 policy；实现 MUST 验证传入 version 与 as_of 一致，不一致 MUST 拒绝。
 
@@ -228,24 +228,24 @@ claim_digest(c) = "sha256:" || hex( sha256( JCS( semantic_projection(c) ) ) )
   | 字段 | 来源 | 数组规范化 |
   | --- | --- | --- |
   | `schema` | 必填 discriminator | — |
-  | `handle` | 必填,canonical `<localpart>:<domain>` | — |
-  | `handle_aliases` | 可选,`acct:` 互通别名 | MUST 按数组元素 lexicographic 排序后参与 canonicalization |
-  | `subject` | 必填,holder principal DID | — |
+  | `handle` | 必填，canonical `<localpart>:<domain>` | — |
+  | `handle_aliases` | 可选，`acct:` 互通别名 | MUST 按数组元素 lexicographic 排序后参与 canonicalization |
+  | `subject` | 必填，holder principal DID | — |
   | `issuer` | 必填，签发方 DID | — |
   | `issuer_service_did` | 可选，实际签名 service DID | — |
   | `claim_kind` | 可选 | — |
   | `visibility` | 可选 | — |
-  | `audience` | 可选,binding 受众 | — |
-  | `claim_scope` | 可选,scope object | — |
+  | `audience` | 可选，binding 受众 | — |
+  | `claim_scope` | 可选，scope object | — |
   | `member_delivery_binding` | 可选，投递绑定 | `delivery_modes`(若存在) MUST 按 lexicographic 排序；详见下方 §3.2.1.1 |
-  | `claims` | 可选,VC inner claims | **顺序是语义的一部分**——issuer 控制，中间方 reorder 会破坏原 proof,因此 digest 直接按 issuer 提供顺序 canonicalize |
+  | `claims` | 可选，VC inner claims | **顺序是语义的一部分**——issuer 控制，中间方 reorder 会破坏原 proof，因此 digest 直接按 issuer 提供顺序 canonicalize |
   | `created_at` | 必填，签发时刻 | — |
   | `expires_at` | 可选/条件必填 | — |
   | `source_refs` | 可选，上游真相源 event 引用 | MUST 按 event_ref 字符串 lexicographic 排序后参与 canonicalization(UUIDv7 字典序对应签发时序，排序结果对 audit 也友好) |
 
-  其它字段一律 MUST NOT 进入 `semantic_projection(c)`,即使 wire claim 通过 `additionalProperties: true` 通道携带。
+  其它字段一律 MUST NOT 进入 `semantic_projection(c)`，即使 wire claim 通过 `additionalProperties: true` 通道携带。
 
-  > **与 [`handle-claim.schema.json`](../../artifacts/schemas/handle-claim.schema.json) property 顺序的关系(消歧)**：本表是 `semantic_projection` 的字段**白名单**,刻意**排除** `challenge`、`verified_at`、`proofs` 等非规范身份字段；这些被排除的字段在 schema 的 property 列表中**仍然存在并占位**(例如 schema 中 `challenge` 排在 `audience` 与 `claim_scope` 之间),因此本表相邻的 `audience` → `claim_scope` 在原始 schema 中被 `challenge` 隔开。读者**不应**把本表理解为 schema 字段缺失或排序冲突——这是"规范语义投影"与"完整 wire schema"的预期差异。此外 `JCS` 最终按 key 字典序重排，故 `semantic_projection` 内字段的展示顺序不影响 `claim_digest` 计算。
+  > **与 [`handle-claim.schema.json`](../../artifacts/schemas/handle-claim.schema.json) property 顺序的关系(消歧)**：本表是 `semantic_projection` 的字段**白名单**，刻意**排除** `challenge`、`verified_at`、`proofs` 等非规范身份字段；这些被排除的字段在 schema 的 property 列表中**仍然存在并占位**(例如 schema 中 `challenge` 排在 `audience` 与 `claim_scope` 之间)，因此本表相邻的 `audience` → `claim_scope` 在原始 schema 中被 `challenge` 隔开。读者**不应**把本表理解为 schema 字段缺失或排序冲突——这是"规范语义投影"与"完整 wire schema"的预期差异。此外 `JCS` 最终按 key 字典序重排，故 `semantic_projection` 内字段的展示顺序不影响 `claim_digest` 计算。
 
   **`binding_state` 与 `verified_at` 被显式排除**的原因：`binding_state` 是 `resolution_as_of` snapshot 上的有效状态（pending / verified / revoked / expired），会随验证、撤销、过期和历史 replay 时刻变化；`verified_at` 是 §6.0 允许 Directory / Principal Server / 其它中间方写入的 pre-verification hint。若二者进入 `semantic_projection`，同一 issuer 签发的规范 claim 会因中间方、缓存时间或 as-of 时刻不同得到不同 `claim_digest`，破坏 tie-breaker、roster `handle_claim_digests[]` 比对与缓存键稳定性。`claim_digest` 因此只锚定 issuer claim 的规范语义内容；候选集过滤仍 MUST 使用 snapshot 中的 `binding_state` 与时间边界，撤销 / 过期通过 effective claim set 变化体现，而不是改写该 claim 的 digest。
 
@@ -256,13 +256,13 @@ claim_digest(c) = "sha256:" || hex( sha256( JCS( semantic_projection(c) ) ) )
 - 输出形态遵循 [`models/common-fields.md` §2](../models/common-fields.md) 的 `<noun>_digest = <alg>:<hex>` 通用 hash 字段命名规则；
 - 与 [`artifacts/schemas/member-delivery-binding-candidate.schema.json`](../../artifacts/schemas/member-delivery-binding-candidate.schema.json) 的 `claim_digest` 字段一致：该字段是 `sha256(JCS(semantic_projection(upstream handle claim)))` 的 wire 表示；本节是其 normative 计算定义。
 
-  **wire `claim_digest` 缺失时的退化(normative)**:candidate schema 的 `claim_digest` 字段是 **OPTIONAL**(SHOULD,见 §3.7.1 表)。当 candidate 不携带 wire `claim_digest` 时,Step 2 tie-breaker 与 roster `handle_claim_digests[]` 比对 / 缓存键 **MUST** 改用 verifier 本地按本节公式自算的 `claim_digest(c) = "sha256:" || hex(sha256(JCS(semantic_projection(c))))`——即 tie-breaker 与 audit chain 永不因 wire 字段缺失而出现缺口或非确定收敛(自算值与 issuer 提供值在 candidate 合法时必然相等)。当 wire `claim_digest` **存在**时,verifier SHOULD 校验它等于自算值，不一致 MUST 视为 candidate 不可信并 fail closed(防 issuer 提供与规范语义不符的 digest 污染缓存键 / audit chain)。
+  **wire `claim_digest` 缺失时的退化(normative)**:candidate schema 的 `claim_digest` 字段是 **OPTIONAL**(SHOULD，见 §3.7.1 表)。当 candidate 不携带 wire `claim_digest` 时，Step 2 tie-breaker 与 roster `handle_claim_digests[]` 比对 / 缓存键 **MUST** 改用 verifier 本地按本节公式自算的 `claim_digest(c) = "sha256:" || hex(sha256(JCS(semantic_projection(c))))`——即 tie-breaker 与 audit chain 永不因 wire 字段缺失而出现缺口或非确定收敛(自算值与 issuer 提供值在 candidate 合法时必然相等)。当 wire `claim_digest` **存在**时，verifier SHOULD 校验它等于自算值，不一致 MUST 视为 candidate 不可信并 fail closed(防 issuer 提供与规范语义不符的 digest 污染缓存键 / audit chain)。
 
-**Hint 隔离**(normative): §6.0 server-attested hint、Directory 缓存补字段、verifier 本地标注等任何非规范语义字段 MUST 在 wire claim 上以**顶层附加字段**形式存在(而非污染规范字段),并**MUST NOT** 进入 `semantic_projection(c)`。该约束让同一语义 handle claim 被任意数量的 Directory / Principal Server 加 hint 后,`claim_digest` 始终稳定;tie-breaker、roster `handle_claim_digests[]` 比对、缓存键命中都不会因 hint 抖动。
+**Hint 隔离**(normative): §6.0 server-attested hint、Directory 缓存补字段、verifier 本地标注等任何非规范语义字段 MUST 在 wire claim 上以**顶层附加字段**形式存在(而非污染规范字段)，并**MUST NOT** 进入 `semantic_projection(c)`。该约束让同一语义 handle claim 被任意数量的 Directory / Principal Server 加 hint 后，`claim_digest` 始终稳定；tie-breaker、roster `handle_claim_digests[]` 比对、缓存键命中都不会因 hint 抖动。
 
 去除 `proofs` 与 server-attested hint 是为了让 `claim_digest` 只覆盖 claim 的**规范语义内容**而非签名包装与中间传输态，让同一 canonical claim 在任意 issuer 重签 / Directory 转发 / cache 层加注后始终产生相同 digest。
 
-**Forward-compat**: 未来 spec revision 在 handle_claim.v1 中加入新规范字段时，该字段名 MUST 同步加入上表；实现 MUST 拒绝白名单外字段进入 digest 计算，即便它出现在新 schema 里——直到 spec 显式扩表。同时新字段若是数组,MUST 在加入表的同时声明数组规范化策略(sorted / order-is-semantic 二选一);未声明的数组字段 MUST NOT 进入 digest。这保证不同 spec patch 版本之间 `claim_digest` 不会悄悄漂移。
+**Forward-compat**: 未来 spec revision 在 handle_claim.v1 中加入新规范字段时，该字段名 MUST 同步加入上表；实现 MUST 拒绝白名单外字段进入 digest 计算，即便它出现在新 schema 里——直到 spec 显式扩表。同时新字段若是数组，MUST 在加入表的同时声明数组规范化策略(sorted / order-is-semantic 二选一)；未声明的数组字段 MUST NOT 进入 digest。这保证不同 spec patch 版本之间 `claim_digest` 不会悄悄漂移。
 
 #### 3.2.1.1 数组规范化规则（normative）
 
@@ -297,12 +297,12 @@ primary handle 是显示语义；它**不**影响 actor_id 归因、grant subjec
 
 Handle 的权威生命周期属于 issuer，不属于用户 profile 或 Realm MemberIdentity event。`ck.profile.update`、`ck.profile.realm_override`、`ck.member.identity.update` 中不得通过任意字段声明、覆盖、撤销或重分配 handle；这些事件最多影响 display name、avatar、subject disclosure 等 UI projection。验证器遇到这些事件中出现的非标准 handle 字段时 MUST 忽略或 schema-reject，不得把它们提升为 verified handle。
 
-Cokret v1 core **不定义**用户注册、handle 申请、邀请审批、管理员通知、管理员审批队列、重签 / 续期、namespace 保留策略、抢注仲裁、多 handle 策略或组织内部身份治理 API。这些流程属于 issuer / coauth / 部署本地治理面；不同 Principal Server、Organization 或自托管 issuer 可以按自己的合规、人事、IDP、邀请和审计要求实现。
+Cokret v1 core **不定义**用户注册、handle 申请、邀请审批、管理员通知、管理员审批队列、重签 / 续期、namespace 保留策略、抢注仲裁、多 handle 策略或组织内部身份治理 API。这些流程属于 issuer / Auth Server / 部署本地治理面；不同 Principal Server、Organization 或自托管 issuer 可以按自己的合规、人事、IDP、邀请和审计要求实现。
 
 协议层只规定 consumption contract：
 
 1. 任何进入 Cokret roster、mention、directory resolve、delivery binding 或 UI verified display 的 handle MUST 来自可验证的 signed `ck.schema.handle_claim.v1`，或该 claim 的 digest / reference。
-2. issuer / coauth / 部署本地 API MAY 让用户选择 handle、提交申请、触发人工审批、由管理员直接分配、续签或撤销；这些 API 的 endpoint、权限模型、通知机制和状态机不属于 v1 core。
+2. issuer / Auth Server / 部署本地 API MAY 让用户选择 handle、提交申请、触发人工审批、由管理员直接分配、续签或撤销；这些 API 的 endpoint、权限模型、通知机制和状态机不属于 v1 core。
 3. 这些外部流程一旦要把结果暴露给 Cokret 客户端或其它服务，MUST 输出 `ck.schema.handle_claim.v1`、明确的 revocation evidence、或足以让 Directory / roster 不再返回该 claim 的 issuer-side 状态；不得输出未签名 profile 字段来替代 claim。
 
 已知 `subject` DID 但不知道当前 handle 时，客户端 / renderer MUST 使用 `ck.find.directory.query.list_handles_for_subject` 或 roster 内联 `handle_claims[]` 构造 `claim_set_snapshot`。已知 handle 字符串时，显示 / lookup 场景继续使用 `ck.find.directory.query.resolve_handle`。这两个方向不可互相替代：`resolve_handle` 是 handle → subject，`list_handles_for_subject` 是 subject/context → current visible claims。
@@ -315,8 +315,8 @@ invite / member-add 不再把 `resolve_handle(intent="invite" | "member_add")` �
 
 常见注册路径都在 Cokret core 之外完成，但进入 Cokret 后遵循同一 claim-led 模型：
 
-- **系统预分配 handle**：用户完成注册 / 首次登录后，coauth / issuer bootstrap MAY 直接把 signed `handle_claims[]` 交给客户端或服务端 roster cache。用户无需发 `set_handle` event。
-- **管理员邀请允许选择 handle**：邀请链接、pre-registration proof、审批通知和人工审核队列属于 coauth / issuer 策略。Cokret 只看到最终签发的 `ck.schema.handle_claim.v1`，或看不到任何 claim。
+- **系统预分配 handle**：用户完成注册 / 首次登录后，Auth Server / issuer bootstrap MAY 直接把 signed `handle_claims[]` 交给客户端或服务端 roster cache。用户无需发 `set_handle` event。
+- **管理员邀请允许选择 handle**：邀请链接、pre-registration proof、审批通知和人工审核队列属于 Auth Server / issuer 策略。Cokret 只看到最终签发的 `ck.schema.handle_claim.v1`，或看不到任何 claim。
 - **管理员后期修改现有用户 handle**：issuer 撤销 / 过期旧 claim 并签发新 claim。Realm history 中既有 messages、mentions 和 `ck.member.identity.update` 不被改写；当前渲染按新的 claim set 展示，历史 replay 按 as-of claim snapshot 展示。
 
 因此，"用户注册后是否必须主动发包含 handle 的 profile"的答案是 **否**。用户 MAY 发 profile / MemberIdentity 来设置 display name、avatar 或 subject disclosure；handle 只来自 issuer-signed claim。
@@ -400,7 +400,7 @@ candidate **不得**直接构造自客户端字符串拼接、UI text、未签�
 ```text
 payload.actor_id = candidate.subject_id
 payload.delivery_binding.recipient_service_did = candidate.member_delivery_binding.recipient_service_did
-payload.delivery_binding.resolved_at = candidate.issued_at   // 确定性取值:issuer 签发 candidate 的时刻;当需要以 proof 时刻为准时,取 candidate.proofs[] 中最早的 created_at(min over proofs),二者均为单一确定值,不得是区间或多值
+payload.delivery_binding.resolved_at = candidate.issued_at   // 确定性取值:issuer 签发 candidate 的时刻；当需要以 proof 时刻为准时，取 candidate.proofs[] 中最早的 created_at(min over proofs)，二者均为单一确定值，不得是区间或多值
 payload.delivery_binding.service_acceptance_ref = candidate.member_delivery_binding.service_acceptance_ref
 payload.delivery_binding.policy_event_ref = candidate.member_delivery_binding.policy_event_ref
 payload.delivery_binding.delivery_modes = candidate.member_delivery_binding.delivery_modes
@@ -535,7 +535,7 @@ renderer 检测到 `handle_at_time` 与当前 primary handle 不一致时，MAY 
 - 旧事件内的 mention / profile reference 权威字段是 `subject_id`，subject 不变；
 - 渲染时按 §3.2.1 解析当前 primary handle，得到新 domain 的 handle 字符串；
 - 历史事件本身**不需要**rewrite、migration script 或 schema upgrade；
-- 唯一需要的 issuer-side 操作是按 §6 批量重发 handle_claim（new domain），随后 Directory withdraw 旧 entry；当前显示投影随 issuer / coauth 刷新路径、`ck.find.directory.query.list_handles_for_subject` 或 roster claim hints 的下一次刷新自然更新，不要求任何 `ck.member.identity.update`。
+- 唯一需要的 issuer-side 操作是按 §6 批量重发 handle_claim（new domain），随后 Directory withdraw 旧 entry；当前显示投影随 issuer / Auth Server 刷新路径、`ck.find.directory.query.list_handles_for_subject` 或 roster claim hints 的下一次刷新自然更新，不要求任何 `ck.member.identity.update`。
 
 domain 迁移因此从"全网事件改写工程"降级为"issuer 侧 batch 签名 + claim cache TTL 冷却"。事件内的 `handle_at_time` metadata 与 issuer 的 as-of claim ledger 让 audit 仍可重建任意历史时刻的 handle 字符串。
 
@@ -601,7 +601,7 @@ Handle 解析分为两个方向：
 
 解析结果 MUST 包含 §3.2 列出的字段；audience / scope / expiry 决定使用范围。multiple issuer 同时签发同一 handle 时，verifier 按本地 trust policy 选最严格者；issuer 之间冲突（不同 `subject`）MUST fail closed 并交人工处理。
 
-账号侧 claim 管理不走 Directory 搜索，但 v1 core 也不定义账号侧管理 API：当前登录 principal 如何在注册、换设备、管理员修改或 claim 续期后拿到自己的 claims，是 issuer / coauth / 部署本地 bootstrap 的职责。Directory 只解析已经签发且对调用方可见的 claims；它不得被当作 handle 申请、审批或管理员治理接口。
+账号侧 claim 管理不走 Directory 搜索，但 v1 core 也不定义账号侧管理 API：当前登录 principal 如何在注册、换设备、管理员修改或 claim 续期后拿到自己的 claims，是 issuer / Auth Server / 部署本地 bootstrap 的职责。Directory 只解析已经签发且对调用方可见的 claims；它不得被当作 handle 申请、审批或管理员治理接口。
 
 Handle 解析示例：
 
@@ -681,13 +681,19 @@ did_document.alsoKnownAs contains the canonical handle
 **受限 handle（issuer 是 Organization / Principal Server / Directory，holder 未公开）**：handle claim 可能不出现在 holder 公开 DID Document 中；此时 verifier MUST 改为验证：
 
 - issuer claim 签名有效，且 issuer 在当前调用上下文的本地 trust policy 内；
+- **holder 侧接受证据存在且有效**（见下方"对称信任"要求）；
 - claim `audience` 与当前调用上下文一致；
 - claim `challenge` 未过期、未重复使用；
 - claim `scope`（Realm、organization、purpose）覆盖当前用途；
 - claim `status` / `binding_state` 仍为 `verified`；
 - holder consent / organization policy 允许向当前 requester 披露。
 
-DID Document 缺失 `alsoKnownAs` 单独**不**构成"受限 handle 无效"的判定；判定来自 issuer claim 验签链 + audience / scope 校验。
+**对称信任：受限 handle 的 `verified` 必须有 holder 侧背书（normative）**：公开 handle 的 `verified` 靠 `alsoKnownAs`（§4.1）提供 holder 侧反向背书，把 issuer-unilateral 攻击降级为 issuer × holder 双方均需表态。受限 handle 不进公开 `alsoKnownAs`（出于 unlinkability / 最小披露），但**不得因此免除 holder 侧背书**——否则 `accepted_issuers` 内任一被攻陷 / 恶意 issuer 即可签 `subject = 受害者真实 DID` 的 verified claim，在其 audience 内冒名受害者。因此:**当 claim 的 `subject` 是 issuer 不控制的 DID 时，受限 handle 要显示为 `verified` / 驱动任何信任决策（grant 条件、roster 强归因、delivery binding），其 `proofs[]` MUST 同时包含一条由 `subject` DID 控制的验证方法签发、覆盖 `(handle, subject, audience, claim_scope)` 的 holder-acceptance proof**（即 holder 在该 audience/scope 内显式接受被绑定）。verifier MUST 用 `subject` DID Document 当前 verification method 验证该 holder proof。
+
+- 缺少有效 holder-acceptance proof 时，该受限 handle MUST 至多被当作 `binding_state` 低于 `verified` 的 **issuer-attested**（issuer 单方声明、未经 holder 确认）：verifier MUST 拒绝把它纳入 verified candidate（`reason=handle_holder_acceptance_missing`），UI MUST NOT 显示为 verified，且 MUST NOT 用它驱动 grant 条件、roster 强归因或 delivery binding。
+- **issuer 自管 DID 例外(非豁免)**：当 `subject` DID 由 issuer 自己控制（受管 DID 配发，例：组织为新员工铸 `did:webvh` 并签发 `@alice:acme.example`）时，issuer 本就能用 `subject` DID 的密钥产出 holder-acceptance proof，故该要求对正常组织配发**自动满足**、不增加摩擦；它只在 `subject` 是外部 / 既有 DID 时真正生效，而那正是冒名风险所在。
+
+DID Document 缺失 `alsoKnownAs` 单独**不**构成"受限 handle 无效"的判定（受限 handle 本就不进公开 `alsoKnownAs`）；但缺少上述 holder-acceptance proof（且 `subject` 非 issuer 自管）则 MUST NOT 显示为 verified。判定 = issuer claim 验签链 + holder-acceptance proof + audience / scope 校验。
 
 ### 6.0 验证职责分工
 
@@ -1188,9 +1194,9 @@ Verifier MUST：
 
 - Handle 的 canonical wire form 是 `<localpart>:<domain>`，其中 `<localpart>` 在 wire 上必须是 lowercase canonical form；`acct:<localpart>@<domain>(:<port>)?` 为 `handle_aliases[]` 中的互通别名。handle ABNF 必须限制为可规范化、大小写明确、禁止控制字符和混淆分隔符的字符串；`<domain>` 使用 IDNA 处理后再验证。**Wire-level canonical 比较(normative)**：issuer / registry / resolver 在做 handle 注册、claim 校验、§13 跨 issuer 冲突检测时，MUST 先对 `<localpart>` 与 `<domain>` 应用 Unicode NFC normalization，再应用 [UTS#39](https://www.unicode.org/reports/tr39/) confusable skeleton 折叠；比较与冲突判定 MUST 在折叠后的形态上执行。issuer / registry MUST 拒绝 *script-mixed* handle（同一 label 内同时含 Latin 与 Cyrillic / Greek / Armenian 等不同 script 字符，例如 `аcme.example` U+0430 + Latin 混排），以及 `hyphen-disallowed-position` 形态；违反者注册请求 `failed_precondition` `reason="handle_homograph_forbidden"`。显示层防混淆仍 MUST 实现，但不能替代 wire-level 检测。
 
-  **NFC / UTS#39 检测的作用层与 schema ASCII pattern 的关系(normative,消歧)**：上述 NFC normalization 与 UTS#39 confusable / script-mixing 检测 MUST 作用于 IDNA 转换**之前**的 **U-label**(用户可见的 Unicode 形态，可能含非 ASCII 字符)——这是 homograph 攻击的实际载体。检测通过后,`<domain>` MUST 经 IDNA2008(ToASCII)转为 **A-label**(punycode,`xn--` 前缀的纯 ASCII),`<localpart>` 经本节 lowercase canonical 规则归一为受限 ASCII;只有该 ASCII canonical 形态才是进入 `ck.schema.handle_claim.v1` 等 wire claim `handle` 字段、并由 [`handle-claim.schema.json`](../../artifacts/schemas/handle-claim.schema.json) ASCII-only pattern 校验的值。因此 schema pattern 是 ASCII-only **不是**与 §17 检测矛盾，而是有意分层:UTS#39 confusable 折叠在 U-label 上做(schema 校验不到、也不应在 wire canonical handle 上重复执行),schema pattern 只兜底"进入 wire 的 handle 已是受限 ASCII canonical 形态"。实现 MUST NOT 把含非 ASCII 字符的 U-label 直接作为 wire `handle` 提交(会被 schema 拒绝),亦 MUST NOT 因 schema 通过就跳过 U-label 阶段的 NFC / UTS#39 检测。
+  **NFC / UTS#39 检测的作用层与 schema ASCII pattern 的关系(normative，消歧)**：上述 NFC normalization 与 UTS#39 confusable / script-mixing 检测 MUST 作用于 IDNA 转换**之前**的 **U-label**(用户可见的 Unicode 形态，可能含非 ASCII 字符)——这是 homograph 攻击的实际载体。检测通过后，`<domain>` MUST 经 IDNA2008(ToASCII)转为 **A-label**(punycode,`xn--` 前缀的纯 ASCII),`<localpart>` 经本节 lowercase canonical 规则归一为受限 ASCII；只有该 ASCII canonical 形态才是进入 `ck.schema.handle_claim.v1` 等 wire claim `handle` 字段、并由 [`handle-claim.schema.json`](../../artifacts/schemas/handle-claim.schema.json) ASCII-only pattern 校验的值。因此 schema pattern 是 ASCII-only **不是**与 §17 检测矛盾，而是有意分层:UTS#39 confusable 折叠在 U-label 上做(schema 校验不到、也不应在 wire canonical handle 上重复执行),schema pattern 只兜底"进入 wire 的 handle 已是受限 ASCII canonical 形态"。实现 MUST NOT 把含非 ASCII 字符的 U-label 直接作为 wire `handle` 提交(会被 schema 拒绝)，亦 MUST NOT 因 schema 通过就跳过 U-label 阶段的 NFC / UTS#39 检测。
 - **Handle 字符串的 wire-level 作用域**（normative）：handle 字符串作为 wire-level **权威字段**（actor reference、authorization subject、audit attribution、解析输入）MUST 只在以下三类位置出现：
-  1. **Handle claim lifecycle 对象与 issuer / coauth 本地管理请求**：`ck.schema.handle_claim.v1`、issuer / coauth 定义的申请、审批、重签、撤销、Directory withdraw、handle reassignment 等显式管理 handle 生命周期的请求、响应、签名 claim 与 audit receipt。这些管理 API 不属于 Cokret v1 core，但一旦在 Cokret wire 上作为 claim evidence 被消费，必须产出可验证的 `ck.schema.handle_claim.v1` 或明确的 revocation / audit evidence。
+  1. **Handle claim lifecycle 对象与 issuer / Auth Server 本地管理请求**：`ck.schema.handle_claim.v1`、issuer / Auth Server 定义的申请、审批、重签、撤销、Directory withdraw、handle reassignment 等显式管理 handle 生命周期的请求、响应、签名 claim 与 audit receipt。这些管理 API 不属于 Cokret v1 core，但一旦在 Cokret wire 上作为 claim evidence 被消费，必须产出可验证的 `ck.schema.handle_claim.v1` 或明确的 revocation / audit evidence。
   2. **Discovery / Directory query 请求与响应**：`/.well-known/cokret/handle?localpart=...`、`POST /_cokret/find/directory/resolve-handle`、`POST /_cokret/find/directory/list-handles-for-subject` 等解析路径的输入与输出。
   3. **客户端入口解析瞬间**：用户键入 handle 字符串到客户端 → 客户端解析为 `subject_id` 的临时过程；解析完成后 handle 字符串 MUST NOT 作为权威字段写入持久化事件、Realm history、grant 记录、ACL 表或缓存键以外的存储。
 

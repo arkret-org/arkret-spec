@@ -229,7 +229,7 @@ Principal Server 对每次 `/_cokret/self/*` 请求 MUST 校验（任一项失�
 
 该模型对齐 Matrix [MSC3861](https://github.com/matrix-org/matrix-spec-proposals/pull/3861)（Auth Server 签发凭据 + Resource Server 内省）的方向，并在其上叠加 DPoP sender-constraining(比 Matrix 的裸 bearer 更强)。
 
-**其它仍合法的入站凭据**:除 grant + DPoP 外，Principal Server 入站 MAY 并存：dev-mode 裸 bearer（本地开发回退）、以及对 coauth OAuth access token 的直接内省(RFC 7662 式)。这两条作为替代入站凭据保留；生产客户端默认走 grant + DPoP。
+**其它仍合法的入站凭据**:除 grant + DPoP 外，Principal Server 入站 MAY 并存：dev-mode 裸 bearer（本地开发回退）、以及对 Auth Server OAuth access token 的直接内省(RFC 7662 式)。这两条作为替代入站凭据保留；生产客户端默认走 grant + DPoP。
 
 ## 4. 标准响应 envelope
 

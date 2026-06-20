@@ -22,10 +22,10 @@ Circle 可以是 plaintext delivery-only scope，也可以是 MLS-backed cryptog
 
 ## 2. 设计原则
 
-1. **平面化，不嵌套**:Circle 不允许 `parent_circle_ref`。需要交叉成员关系时,actor 同时属于多个 Circle 即可；不需要 hierarchy。这条沿用 [`realm-links.md` §2](./realm-links.md) "link graph not tree" 的教训。
+1. **平面化，不嵌套**:Circle 不允许 `parent_circle_ref`。需要交叉成员关系时，actor 同时属于多个 Circle 即可；不需要 hierarchy。这条沿用 [`realm-links.md` §2](./realm-links.md) "link graph not tree" 的教训。
 2. **真子集 membership**:`Circle.members ⊆ Realm.members`,reducer 硬约束。
 3. **加密不降级父 Realm floor**:Circle 的 `encryption_profile` 可为 `none` 或 `mls_rfc9420`，但不得低于父 Realm / policy 的内容加密下限；E2EE Realm 或 `content_encryption_floor=e2ee_required` 下 MUST 为 `mls_rfc9420`。
-4. **MLS 独立，不可派生**:当 Circle 为 `mls_rfc9420` 时，其 MLS group 是独立 epoch 链,**MUST NOT** 从 Realm-default MLS group key 派生 Circle key。
+4. **MLS 独立，不可派生**:当 Circle 为 `mls_rfc9420` 时，其 MLS group 是独立 epoch 链，**MUST NOT** 从 Realm-default MLS group key 派生 Circle key。
 5. **不放宽父 Realm policy**:Circle 的 history visibility / metadata encryption floor **只能收紧，不能放宽**父 Realm policy floor。
 6. **Circle ≠ Group**:[`realm-and-space.md` §4](./realm-and-space.md) 的 **Group** 表达 principal/actor 集合(capability subject)。Circle 表达资源 / 事件 scope。两个概念正交，不可混淆。
 
@@ -37,7 +37,7 @@ Schema id: `ck.schema.circle.v1`
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:circle` | `ck:circle:<uuid>`(UUIDv7) | Circle ID。 |
 | `schema` | yes | `ck.schema.circle.v1` | 固定。 | 对象 schema。 |
-| `realm_id` | yes | `id:realm` | create-locked;Circle 永远属于一个 Realm,不可改绑。 | 归属 Realm(父安全/联邦边界)。 |
+| `realm_id` | yes | `id:realm` | create-locked;Circle 永远属于一个 Realm，不可改绑。 | 归属 Realm(父安全/联邦边界)。 |
 | `title` | yes | `string` | 1..256 chars。 | 人类可读名称。 |
 | `summary` | no | `string` | ≤2048 chars。 | 简短说明(渲染在 banner / 详情)。 |
 | `display` | yes | `object` | 见 §4。 | **跨客户端一致**的视觉身份字段；只对 `directory_visibility` 允许的 actor 投影。 |
@@ -45,7 +45,7 @@ Schema id: `ck.schema.circle.v1`
 | `join_rule` | yes | `enum(invite, request, open)` | 默认 `invite`。 | Circle 加入规则。`open` 仅允许父 Realm `join` 成员自助加入(`membership=join`);`request` 触发 `knock` 申请/批准流(见 §9.1 transition table);`invite` 只能由 Circle 管理员加入或邀请。 |
 | `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | 默认 `invited`。语义沿用 [`../governance/history-visibility.md`](../governance/history-visibility.md)。 | Circle 自己的历史可见性，但 effective visibility **不得宽于父 Realm 当前 policy floor**。 |
 | `content_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | 省略时继承父 Realm `content_encryption_floor`。effective = max(父 Realm, Circle)；只能收紧、不得放宽父 Realm floor，且 effective floor 是单向 ratchet(见 §7)。`e2ee_required` 仅在 `encryption_profile=mls_rfc9420` 时有意义；`encryption_profile=none` 的 Circle MUST 保持 `allow_plaintext`。 | Circle 内对象的 content 加密下限。 |
-| `metadata_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | 省略时继承父 Realm `metadata_encryption_floor`。effective = max(父 Realm, Circle)；只能收紧、不得放宽父 Realm floor，且 effective floor 是单向 ratchet(见 §7)。 | Circle 内对象的 metadata 加密下限，与 `content_encryption_floor` 对称;`e2ee_required` 时用户可读 metadata 进 `encrypted_metadata`。`encryption_profile=none` 时不得声明高于实际可执行能力的 metadata 加密保证。 |
+| `metadata_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | 省略时继承父 Realm `metadata_encryption_floor`。effective = max(父 Realm, Circle)；只能收紧、不得放宽父 Realm floor，且 effective floor 是单向 ratchet(见 §7)。 | Circle 内对象的 metadata 加密下限，与 `content_encryption_floor` 对称；`e2ee_required` 时用户可读 metadata 进 `encrypted_metadata`。`encryption_profile=none` 时不得声明高于实际可执行能力的 metadata 加密保证。 |
 | `agent_participation` | no | `object{reply, accept_third_party_mention, act_on_behalf: boolean}` | 整个 object 省略时继承父 Realm `agent_participation` ceiling。**逐位继承（normative）**：object 存在但某些 bool 位省略时，每个**省略的位**独立取父 Realm 对应位的值（按位继承，不是「object 一旦存在则缺省位取 false」）；只有**显式给出**的位才参与 Circle 自身声明。Circle ceiling 每一位（无论显式给出还是按位继承得来）只能收紧、不得放宽父 Realm ceiling（与 floor 同框架的 tighten-only 校验，违反返回 `failed_precondition`，`reason="agent_participation_ceiling_widen"`，见 §7）。它再被内层 Strand `agent_participation` 进一步收紧。详见 [`../authz/capabilities.md` §5.4](../authz/capabilities.md)。 | native personal agent 在该 Circle scope 内的参与上限。 |
 | `encryption_profile` | yes | `enum(none, mls_rfc9420)` | create-locked。父 Realm `encryption_profile=mls_rfc9420` 或 effective `content_encryption_floor=e2ee_required` 时 MUST 为 `mls_rfc9420`；父 Realm 允许明文时 MAY 为 `none`。未来 MLS 版本 / PQ-MLS / external provider 必须显式扩展 schema。 | Circle 内容加密形态。 |
 | `mls_group_ref` | conditional | `ref:mls` | 条件 `encryption_profile=mls_rfc9420`：满足时由 `ck.circle.create` reducer 派生、scope 绑定 `(realm_id, circle_id)`，`encryption_profile=none` 时 MUST NOT exist。**reducer 派生，actor MUST NOT 携带**（actor-supplied create payload 出现该字段 reducer MUST `schema_violation`）。字段使用 `_ref` 是因为 `ck:mls:<profile>:<profile_id>` 是 profile-scoped typed reference；MLS 标准 payload 内的原始 group id 继续命名为 `mls_group_id`。 | 独立 MLS group 引用。 |
@@ -64,11 +64,11 @@ Schema id: `ck.schema.circle.v1`
 
 | 子字段 | 必填 | 类型 | 约束 |
 | --- | --- | --- | --- |
-| `short_name` | yes | `string` | `^[A-Z][A-Za-z0-9 _-]{0,23}$`;在 `(realm_id, short_name)` 上 reducer 强制唯一(case-insensitive)。普通(非 sidecar)Circle 的 `ck.circle.create` / `ck.circle.update` 命中该唯一性冲突时 reducer MUST `failed_precondition`(`reason=circle_short_name_taken`，见 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json))；sidecar profile 路径的冲突改走 §11.1 的 `sidecar_create_denied`（为避免存在性侧信道，不区分 short_name 是否已占用）。 |
-| `color_token` | yes | `string` | 从受控 palette 选;v1 palette: `{slate, red, orange, amber, yellow, lime, green, emerald, teal, cyan, sky, blue, indigo, violet, fuchsia, pink, gray_high_contrast}`。客户端 MUST 映射 token → 主题颜色(浅/深/高对比),**不**得自行重分配 token。注:`gray_high_contrast` 是承载无障碍/高对比语义的特例 token,并非纯色相;v1 保留它在 palette 内以维持 wire 兼容，客户端 MUST 把它映射为高对比中性灰主题色。是否拆为独立 `display.high_contrast` 轴留待后续版本评估(不改变 v1 wire)。 |
-| `symbol` | yes | `object` | `{emoji?: string, glyph?: enum}`;二选一。`glyph` 取受控 snake_case 枚举（v1 canonical 集）:`{lock, shield, eye, eye_off, user_shield, fingerprint, key, diamond, flame, leaf, seal, compass, atom, bolt, moon, sun, star, globe, satellite, ring, chain, tag, flag, scroll, scale, hourglass, spark}`;客户端 MUST 把 glyph token 映射为本地 icon,MUST NOT 自行扩展未注册 token。实现 MUST 保证本表 glyph 集合与 `circle.schema.json` 的 `$defs/display/properties/symbol/properties/glyph/enum` 逐一相等(便于未来 lint)。 |
+| `short_name` | yes | `string` | `^[A-Z][A-Za-z0-9 _-]{0,23}$`；在 `(realm_id, short_name)` 上 reducer 强制唯一(case-insensitive)。普通(非 sidecar)Circle 的 `ck.circle.create` / `ck.circle.update` 命中该唯一性冲突时 reducer MUST `failed_precondition`(`reason=circle_short_name_taken`，见 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json))；sidecar profile 路径的冲突改走 §11.1 的 `sidecar_create_denied`（为避免存在性侧信道，不区分 short_name 是否已占用）。 |
+| `color_token` | yes | `string` | 从受控 palette 选；v1 palette: `{slate, red, orange, amber, yellow, lime, green, emerald, teal, cyan, sky, blue, indigo, violet, fuchsia, pink, gray_high_contrast}`。客户端 MUST 映射 token → 主题颜色(浅/深/高对比),**不**得自行重分配 token。注:`gray_high_contrast` 是承载无障碍/高对比语义的特例 token，并非纯色相；v1 保留它在 palette 内以维持 wire 兼容，客户端 MUST 把它映射为高对比中性灰主题色。是否拆为独立 `display.high_contrast` 轴留待后续版本评估(不改变 v1 wire)。 |
+| `symbol` | yes | `object` | `{emoji?: string, glyph?: enum}`；二选一。`glyph` 取受控 snake_case 枚举（v1 canonical 集）:`{lock, shield, eye, eye_off, user_shield, fingerprint, key, diamond, flame, leaf, seal, compass, atom, bolt, moon, sun, star, globe, satellite, ring, chain, tag, flag, scroll, scale, hourglass, spark}`；客户端 MUST 把 glyph token 映射为本地 icon,MUST NOT 自行扩展未注册 token。实现 MUST 保证本表 glyph 集合与 `circle.schema.json` 的 `$defs/display/properties/symbol/properties/glyph/enum` 逐一相等(便于未来 lint)。 |
 
-**颜色 token 与 symbol 必须在 spec 受控集中**,目的是同一 Circle 在 Alice 与 Bob 的客户端上呈现一致视觉，否则跨设备社会工程攻击成立。
+**颜色 token 与 symbol 必须在 spec 受控集中**，目的是同一 Circle 在 Alice 与 Bob 的客户端上呈现一致视觉，否则跨设备社会工程攻击成立。
 
 ## 5. Event 家族
 
@@ -80,9 +80,9 @@ Schema id: `ck.schema.circle.v1`
 | `ck.circle.update` | yes | `ck.patch.v1`(path 不含 `realm_id` / `encryption_profile`) | 改 title / summary / display / directory_visibility / join_rule / history_visibility。 |
 | `ck.circle.archive` | yes | object_lifecycle_payload | active → archived。 |
 | `ck.circle.restore` | yes | object_lifecycle_payload | archived → active。 |
-| `ck.circle.tombstone` | yes | object_lifecycle_payload | terminal;触发 §8 cascade。 |
-| `ck.circle.member.state` | yes | `{circle_id, actor_id, membership: invite\|join\|knock\|leave\|ban, ...}` | 与 `ck.member.state` 复用同一 `membership_state` 枚举(`invite / join / knock / leave / ban`),仅 scope 限定到 Circle;二者 wire 取值完全一致，不存在独立词形。reducer 先校验 actor 已是父 Realm `join` 成员;`knock` 仅在 `join_rule=request` 下允许(见 §9.1)。 |
-| `ck.circle.seal_commit` | no | `{circle_id, sub_seal_head_digest, epoch}` | reducer-derived:Circle sub-seal 按 profile cadence 周期性向 Realm Seal 提交不透明 commitment(§9),由服务端 / seal service 发出,actor 不直接提交。 |
+| `ck.circle.tombstone` | yes | object_lifecycle_payload | terminal；触发 §8 cascade。 |
+| `ck.circle.member.state` | yes | `{circle_id, actor_id, membership: invite\|join\|knock\|leave\|ban, ...}` | 与 `ck.member.state` 复用同一 `membership_state` 枚举(`invite / join / knock / leave / ban`)，仅 scope 限定到 Circle；二者 wire 取值完全一致，不存在独立词形。reducer 先校验 actor 已是父 Realm `join` 成员；`knock` 仅在 `join_rule=request` 下允许(见 §9.1)。 |
+| `ck.circle.seal_commit` | no | `{circle_id, sub_seal_head_digest, epoch}` | reducer-derived:Circle sub-seal 按 profile cadence 周期性向 Realm Seal 提交不透明 commitment(§9)，由服务端 / seal service 发出，actor 不直接提交。 |
 
 ## 6. 对象 scope 表达
 
@@ -98,26 +98,26 @@ Space.child_scope_policy      : object             # 子资源 placement/encrypt
 Morph.scope_circle_id         : id:circle | null
 ```
 
-**关键约束:Strand 永远只有一个 effective scope**。不存在 per-track scope —— 整个 Strand(synthesis、discussion、其他 track)共享同一事件 / 投递 / history 边界，要么都在 Realm-default,要么都在某个 Circle。
+**关键约束:Strand 永远只有一个 effective scope**。不存在 per-track scope —— 整个 Strand(synthesis、discussion、其他 track)共享同一事件 / 投递 / history 边界，要么都在 Realm-default，要么都在某个 Circle。
 
 ### 6.1 Reducer 规则
 
 - `scope_circle_id` 引用的 Circle MUST `realm_id` 与对象 `realm_id` 一致；否则 `schema_violation`(`reason=circle_realm_mismatch`)。
-- `scope_circle_id` 引用的 Circle MUST `state=active`;否则 `failed_precondition`(`reason=circle_not_active`)。
-- `scope_circle_id=null` 不表示"没有 scope";它表示 Realm-default scope。Reducer MUST 把它物化为 tagged `effective_scope = {kind:"realm", realm_id}`。
+- `scope_circle_id` 引用的 Circle MUST `state=active`；否则 `failed_precondition`(`reason=circle_not_active`)。
+- `scope_circle_id=null` 不表示"没有 scope"；它表示 Realm-default scope。Reducer MUST 把它物化为 tagged `effective_scope = {kind:"realm", realm_id}`。
 - `scope_circle_id=ck:circle:...` MUST 物化为 tagged `effective_scope = {kind:"circle", realm_id, circle_id}`。
 - Reducer 在接受每个 event 时 MUST 固化 `effective_scope`。该值进入 Event envelope 与 Seal/sub-seal leaf；在 MLS-backed scope 中还进入 E2EE AAD 与 MLS governance binding 输入。后续 `scope_circle_id` 改绑不得重解释旧 event。
-- Effective history visibility = 父 Realm policy floor 与 Circle `history_visibility` 的更严格者。Circle MAY 收紧父 Realm,不得放宽父 Realm 的隐私/合规下限。
+- Effective history visibility = 父 Realm policy floor 与 Circle `history_visibility` 的更严格者。Circle MAY 收紧父 Realm，不得放宽父 Realm 的隐私/合规下限。
 - 改绑 `scope_circle_id` 默认 reducer 拒绝(`failed_precondition` `reason=scope_rebind_forbidden`);profile MAY 允许，但 MUST audit-paired high-risk update。所有已存在 Message / 子内容保留其写入时的 `effective_scope` 与旧 scope 的 history / key eligibility；新内容才进新 scope。客户端 MUST 把切分前后历史分段展示。
-- Structural Relation / position cell 的 `effective_scope` **MUST be no broader than 参与端点中最窄的 scope**(取参与端点 scope 集合中最严格者作为关系事实自身的 scope)。具体例:`public Board (Realm-default)` 包含 `private Strand (Circle=HR-Conf)` 时,`contains` 关系事实与其 position cell 的 `effective_scope = Circle:HR-Conf`,**不是** Realm-default;非 Circle 成员看不到该 containment 关系、看不到 private Strand 的 rank/position,也看不到 board 上"此处有隐藏项"的可枚举元数据。
+- Structural Relation / position cell 的 `effective_scope` **MUST be no broader than 参与端点中最窄的 scope**(取参与端点 scope 集合中最严格者作为关系事实自身的 scope)。具体例:`public Board (Realm-default)` 包含 `private Strand (Circle=HR-Conf)` 时，`contains` 关系事实与其 position cell 的 `effective_scope = Circle:HR-Conf`,**不是** Realm-default；非 Circle 成员看不到该 containment 关系、看不到 private Strand 的 rank/position，也看不到 board 上"此处有隐藏项"的可枚举元数据。
 - 当参与端点分别落在同一 Realm 的两个不同 Circle，且没有 Realm-default 端点可作为共同公开侧时，这两个 scope 在 v1 中是**不可比较的并列 scope**。Reducer MUST NOT 选择任一 Circle 作为"更窄者"，MUST NOT 取并集，也 MUST NOT 自动把关系提升到 Realm-default。Structural Relation、position、parent、cascade 或任何会产生 target-side reverse projection 的事实 MUST `failed_precondition`(`reason=scope_incomparable`)。弱语义 reference 若 profile 显式允许，producer MUST 选择单一 source-side `scope_circle_id`，且 projection 对该 scope 外 caller 返回 `locked` / none，不得创建目标侧反向边或可枚举空洞。
 
 ### 6.2 `effective_scope` wire shape — submit-payload vs canonical reducer-output
 
-`effective_scope` 在 wire 上有**两个不同的形态**,机器契约 MUST 分别校验:
+`effective_scope` 在 wire 上有**两个不同的形态**，机器契约 MUST 分别校验:
 
-1. **Submit-payload form (actor-supplied)**:actor 在 `ck.strand.create` / `ck.morph.create` / `ck.relation.create` / `ck.space.create` 等建对象写事件的 `payload.object`(Relation 为 `payload.relation`)内联对象中 supply `scope_circle_id` 字段(可为 `null`)。**MUST NOT** 携带 `effective_scope` 顶层字段；若 supply，reducer MUST 返回 `schema_violation` (`reason=effective_scope_reducer_managed`)。`ck.message.create` 与 `ck.space.parent` **不**携带 `scope_circle_id`:Message 无独立 scope,其 `effective_scope` 由所属 Strand 的 scope 派生;`ck.space.parent` 是只设 parent 链的 cas_register Move,Space 的 `scope_circle_id` 在 `ck.space.create` 随对象写入。
-2. **Canonical reducer-output form (reducer-stamped, immutable)**:reducer 在接受 event 时把 `scope_circle_id` 物化为 tagged 对象，写入 Event envelope 的 `effective_scope` 字段 + 物化对象的 `effective_scope` cell。该字段一经写入 immutable;旧 event 即使 `scope_circle_id` 后续改绑也保留写入时的值。
+1. **Submit-payload form (actor-supplied)**:actor 在 `ck.strand.create` / `ck.morph.create` / `ck.relation.create` / `ck.space.create` 等建对象写事件的 `payload.object`(Relation 为 `payload.relation`)内联对象中 supply `scope_circle_id` 字段(可为 `null`)。**MUST NOT** 携带 `effective_scope` 顶层字段；若 supply，reducer MUST 返回 `schema_violation` (`reason=effective_scope_reducer_managed`)。`ck.message.create` 与 `ck.space.parent` **不**携带 `scope_circle_id`:Message 无独立 scope，其 `effective_scope` 由所属 Strand 的 scope 派生；`ck.space.parent` 是只设 parent 链的 cas_register Move,Space 的 `scope_circle_id` 在 `ck.space.create` 随对象写入。
+2. **Canonical reducer-output form (reducer-stamped, immutable)**:reducer 在接受 event 时把 `scope_circle_id` 物化为 tagged 对象，写入 Event envelope 的 `effective_scope` 字段 + 物化对象的 `effective_scope` cell。该字段一经写入 immutable；旧 event 即使 `scope_circle_id` 后续改绑也保留写入时的值。
 
 两个形态的 schema:
 
@@ -157,9 +157,9 @@ Morph.scope_circle_id         : id:circle | null
 
 Reducer 校验顺序(MUST):
 
-1. 解析 submit-payload,确认顶层无 `effective_scope`,确认 `scope_circle_id` 为合法 `id:circle | null`。
-2. 若 `scope_circle_id` 非 null:解析对应 Circle,校验 `realm_id` 一致 + `state=active`(§6.1)。
-3. 物化 tagged `effective_scope` 对象，写入 Event envelope + 物化 cell;后续 Event reader / projection / Seal verifier MUST 使用 canonical reducer-output form 进行 authorization 与 history visibility 评估。
+1. 解析 submit-payload，确认顶层无 `effective_scope`，确认 `scope_circle_id` 为合法 `id:circle | null`。
+2. 若 `scope_circle_id` 非 null:解析对应 Circle，校验 `realm_id` 一致 + `state=active`(§6.1)。
+3. 物化 tagged `effective_scope` 对象，写入 Event envelope + 物化 cell；后续 Event reader / projection / Seal verifier MUST 使用 canonical reducer-output form 进行 authorization 与 history visibility 评估。
 
 Conformance fixture 见 `artifacts/fixtures/circle-scope-fixture.json`，覆盖 None→None / 同scope→同scope / None→Some / Some→None / Some(A)→Some(B) 五种 rebind transition 与 schema-violation negative case。
 
@@ -167,11 +167,11 @@ Conformance fixture 见 `artifacts/fixtures/circle-scope-fixture.json`，覆盖 
 
 | 字段 | 影响对象 | 强制性 | 说明 |
 | --- | --- | --- | --- |
-| `Space.scope_circle_id` | Space 对象自身的 metadata 与 structural relation facts | reducer-enforced | Space 自身的 title / parent / rank / contains 事实落在该 Circle scope;**不**使 Space 成为独立 Realm 边界,Space 仍是 authorization-transparent 容器，只是它的 metadata 被该 Circle 的投递 / history / encryption profile 约束。 |
-| `Space.default_scope_circle_id` | 在该 Space 下**新建**的子 Strand / 子 Space | hint(可被显式覆盖) | 客户端默认填入该值,actor 仍可在 create payload 中显式提供另一 `scope_circle_id`。该 Circle 必须属于子资源 effective `default_realm_id`，而不是任意 Space metadata home Realm。不强制。 |
+| `Space.scope_circle_id` | Space 对象自身的 metadata 与 structural relation facts | reducer-enforced | Space 自身的 title / parent / rank / contains 事实落在该 Circle scope;**不**使 Space 成为独立 Realm 边界，Space 仍是 authorization-transparent 容器，只是它的 metadata 被该 Circle 的投递 / history / encryption profile 约束。 |
+| `Space.default_scope_circle_id` | 在该 Space 下**新建**的子 Strand / 子 Space | hint(可被显式覆盖) | 客户端默认填入该值，actor 仍可在 create payload 中显式提供另一 `scope_circle_id`。该 Circle 必须属于子资源 effective `default_realm_id`，而不是任意 Space metadata home Realm。不强制。 |
 | `Space.child_scope_policy` | 任何 placement / move 进入该 Space 的子对象 | reducer-enforced | `allow_any` / `require_e2ee` / `require_same_scope` / `require_scope_circle_id` 之一，见 §7。是真正的"该 Space 只接受这种 scope 的子对象"硬约束。 |
 
-实现常见错误:把 `default_scope_circle_id` 当成约束，或把 `scope_circle_id` 与 `default_scope_circle_id` 混用。三者各司其职,**不可**互相替代。
+实现常见错误:把 `default_scope_circle_id` 当成约束，或把 `scope_circle_id` 与 `default_scope_circle_id` 混用。三者各司其职，**不可**互相替代。
 
 ## 7. Realm-default scope、Circle scope 与加密覆盖范围
 
@@ -236,21 +236,21 @@ Reducer MUST 在 `ck.strand.create`、`ck.strand.move`、`ck.space.parent`、str
 
 ### 7.2 "宽 synthesis + 窄 discussion" 场景如何表达
 
-需要"公开锚 + 私密讨论"组合时,MUST 用 **两个 Strand + Relation** 表达;Strand 永远单一 scope,不存在 per-track 安全边界:
+需要"公开锚 + 私密讨论"组合时，MUST 用 **两个 Strand + Relation** 表达；Strand 永远单一 scope，不存在 per-track 安全边界:
 
 ```
-Strand F_public  (scope_circle_id = null)              ← 公开 seal Strand,承载 metadata.title / metadata.summary / stage / metadata.fields
-Strand F_private (scope_circle_id = ck:circle:0196419c-0000-7000-8000-000000000000; short_name=HR-Conf) ← Circle 内 Strand,承载敏感讨论与决策细节
+Strand F_public  (scope_circle_id = null)              ← 公开 seal Strand，承载 metadata.title / metadata.summary / stage / metadata.fields
+Strand F_private (scope_circle_id = ck:circle:0196419c-0000-7000-8000-000000000000; short_name=HR-Conf) ← Circle 内 Strand，承载敏感讨论与决策细节
 F_private --confidential_discussion_of--> F_public
 ```
 
-客户端 UI MAY 把这两个 Strand 在视觉上"组合显示"(同卡片标题区 + 切换 tab),但协议层它们是**两个独立对象**,各自有独立的:
+客户端 UI MAY 把这两个 Strand 在视觉上"组合显示"(同卡片标题区 + 切换 tab)，但协议层它们是**两个独立对象**，各自有独立的:
 - 时间线、消息历史
 - 成员、history visibility、投递 / 查询裁剪；若对应 scope 为 MLS-backed，则各自使用对应 MLS group(F_public 用 Realm-default,F_private 用 Circle MLS)
 - watch cell、stage、生命周期
-- 投影裁剪规则(无 Circle 成员的 Realm 成员只看到 F_public,看不到 F_private 的存在或活动元数据，符合 §9.1 投递不变量)
+- 投影裁剪规则(无 Circle 成员的 Realm 成员只看到 F_public，看不到 F_private 的存在或活动元数据，符合 §9.1 投递不变量)
 
-`confidential_discussion_of` 是标准 weak-semantic Relation kind(详见 [`relation.md`](./relation.md)),关系事实 MUST 存放在 `F_private` 的 Circle scope 内。这样 private 成员能从 private Strand 回到 public seal;非 Circle 成员不会在 public Strand 上看到"存在一个私密讨论"的可枚举边。
+`confidential_discussion_of` 是标准 weak-semantic Relation kind(详见 [`relation.md`](./relation.md))，关系事实 MUST 存放在 `F_private` 的 Circle scope 内。这样 private 成员能从 private Strand 回到 public seal；非 Circle 成员不会在 public Strand 上看到"存在一个私密讨论"的可枚举边。
 
 ## 8. Capability 与授权评估
 
@@ -260,10 +260,10 @@ Capability actions:
 | --- | --- | --- | --- |
 | `ck.circle.create` | medium | `ck.circle.create` | 创建 Circle。**默认不**在普通成员 bundle 中(防止 Circle 滥用稀释 UX)。 |
 | `ck.circle.manage` | medium | `ck.circle.update`, `ck.circle.archive`, `ck.circle.restore`, `ck.circle.tombstone` | 管理已存在 Circle。 |
-| `ck.circle.member.add` | low | `ck.circle.member.state`(payload.actor_id == envelope.actor_id,且 transition 合法) | 用户接受邀请、加入 `join_rule=open` 的 Circle 或自助退出；不得自助解除 ban。 |
-| `ck.circle.member.manage` | medium | `ck.circle.member.state`(actor_id != envelope.actor_id) | 邀请/移除他人;Circle admin 持有。 |
-| `ck.circle.member.add.others` | high | 同上 + 强制带 `ck.audit.accessed` 配对(与 `ck.strand.watch.set.others` 同模式) | 跨成员代写(罕用),审计配对。 |
-| `ck.circle.audit` | high | 空(read-only),配对 `ck.audit.accessed` | 不属于 Circle 的 Realm admin 读取 Circle 元数据 / activity rollup 的审计权。 |
+| `ck.circle.member.add` | low | `ck.circle.member.state`(payload.actor_id == envelope.actor_id，且 transition 合法) | 用户接受邀请、加入 `join_rule=open` 的 Circle 或自助退出；不得自助解除 ban。 |
+| `ck.circle.member.manage` | medium | `ck.circle.member.state`(actor_id != envelope.actor_id) | 邀请/移除他人；Circle admin 持有。 |
+| `ck.circle.member.add.others` | high | 同上 + 强制带 `ck.audit.accessed` 配对(与 `ck.strand.watch.set.others` 同模式) | 跨成员代写(罕用)，审计配对。 |
+| `ck.circle.audit` | high | 空(read-only)，配对 `ck.audit.accessed` | 不属于 Circle 的 Realm admin 读取 Circle 元数据 / activity rollup 的审计权。 |
 
 **授权评估两层 AND**:
 
@@ -274,9 +274,9 @@ authorized(actor, action, object) ⇔
      actor ∈ Circle(effective_scope(object).circle_id).members[at object.causal_frontier])
 ```
 
-其中 `effective_scope(object)` 对 durable Event 使用 immutable `effective_scope`,对 materialized object 使用当前 `scope_circle_id` 派生出的 tagged scope。capability 决定"能不能做",Circle membership 决定"够不够近"。任一不满足都拒绝。
+其中 `effective_scope(object)` 对 durable Event 使用 immutable `effective_scope`，对 materialized object 使用当前 `scope_circle_id` 派生出的 tagged scope。capability 决定"能不能做",Circle membership 决定"够不够近"。任一不满足都拒绝。
 
-Circle 管理类 grant MUST 显式约束到 `allowed_circle_ids` / `circle_id` selector,或由 Circle 自身的 admin cell 派生；不得把无约束的 Realm-wide `ck.circle.manage` 当作普通管理权限发放。Realm admin 需要读取 Circle 正文或成员细节时 MUST 走 `ck.circle.audit` + `ck.audit.accessed` 配对路径；MLS-backed Circle 中还不能获得历史解密 key,除非被正式加入该 Circle。Plaintext Circle 不存在历史解密 key，但仍不得绕过 Circle membership / audit gate 直接投递或查询。
+Circle 管理类 grant MUST 显式约束到 `allowed_circle_ids` / `circle_id` selector，或由 Circle 自身的 admin cell 派生；不得把无约束的 Realm-wide `ck.circle.manage` 当作普通管理权限发放。Realm admin 需要读取 Circle 正文或成员细节时 MUST 走 `ck.circle.audit` + `ck.audit.accessed` 配对路径；MLS-backed Circle 中还不能获得历史解密 key，除非被正式加入该 Circle。Plaintext Circle 不存在历史解密 key，但仍不得绕过 Circle membership / audit gate 直接投递或查询。
 
 ## 9. Membership 与 Lifecycle
 
@@ -288,7 +288,7 @@ Circle 管理类 grant MUST 显式约束到 `allowed_circle_ids` / `circle_id` s
 2. 父 Realm `ck.member.state -> leave/ban` 触发 **reducer-derived** cascade:该 actor 在该 Realm 所有 Circle 的 membership 收敛到 `leave`。对 `encryption_profile=mls_rfc9420` 的 Circle，还 MUST 触发对应 MLS `remove` proposal；plaintext Circle 不产生 MLS proposal。不需要 actor 显式写。
 
    **Cascade causal frontier 锚点（normative）**：该 derived cascade 没有独立显式 event，其因果锚点 MUST 取为触发 `leave/ban` 的父 Realm `ck.member.state` event 的 `event_digest`（记为 `F_cascade`）。被踢成员在该 Realm 的每个 Circle 的 effective membership，自 `F_cascade` 起（含因果上 ≥ `F_cascade` 的所有点）MUST 派生为 `leave`。由此定义 in-flight 并发写入的处置：被踢成员提交的、`prev_refs` 因果闭包**不**包含 `F_cascade`（即因果上并发或早于 cascade）的 Circle-scoped DataEvent，按其自身 causal frontier 处的 Circle membership 评估授权（§8 的 `members[at object.causal_frontier]`），此时该成员仍是 Circle member，写入按既有授权规则处理；但任何 `prev_refs` 因果闭包**包含** `F_cascade`（即因果上后继于 cascade）的 Circle-scoped DataEvent，其 `members[at object.causal_frontier]` 已派生为 `leave`，reducer MUST 拒绝（`failed_precondition`，`reason=circle_member_must_be_realm_member`）并 MUST NOT 投递。即：cascade 之后被踢成员对该 Circle 的写入 fail-closed，cascade 之前/并发的 in-flight 写入按各自因果点的成员资格裁决，不存在「被踢后仍能向 Circle 写入」的未定义窗口。
-3. **Circle 平面化，不允许嵌套**。需要交叉成员关系时,actor 同时属于多个 Circle 即可。
+3. **Circle 平面化，不允许嵌套**。需要交叉成员关系时，actor 同时属于多个 Circle 即可。
 4. Circle admin / moderator 不是 Realm admin 的隐式子集。需要 Circle-local 管理时，必须通过 Circle-scoped admin cell 或带 `circle_id` / `allowed_circle_ids` selector 的 capability grant 表达；v1 不注册单独的 `ck.circle.admin` action。
 
 Membership transition table（`membership` 复用 `ck.member.state` 的 `membership_state` 枚举 `invite / join / knock / leave / ban`）:
@@ -316,12 +316,12 @@ Membership transition table（`membership` 复用 `ck.member.state` 的 `members
 
 | 场景 | Realm-level / 未 scope 对象 | scope_circle_id 指向该 Circle 的对象 |
 | --- | --- | --- |
-| 父 Realm tombstone | 按 Realm lifecycle 停止 | Circle 全部 tombstone;对象按 Circle lifecycle 停止 |
+| 父 Realm tombstone | 按 Realm lifecycle 停止 | Circle 全部 tombstone；对象按 Circle lifecycle 停止 |
 | Circle archive | 不受影响 | 新写入 MUST fail closed(`failed_precondition`, `reason=circle_not_active`)；既有对象保持历史可读/可审计投影，但不得继续追加 Message / Morph / structural Relation / position update，直到 `ck.circle.restore` 使 Circle 恢复 active |
 | Circle tombstone | 不受影响 | 对象写入 MUST fail closed,projection 显示 scope unavailable;`scope_circle_id` 不会被自动 rewrite |
-| 父 Realm 收紧 history visibility | 按新 visibility | Effective visibility 重新计算为更严格值;Circle 不得保持比父 Realm 更宽的历史披露 |
+| 父 Realm 收紧 history visibility | 按新 visibility | Effective visibility 重新计算为更严格值；Circle 不得保持比父 Realm 更宽的历史披露 |
 | Circle history visibility 收紧 | 不受影响 | 投影、watch、message read/write 按新状态重新裁剪 |
-| `scope_circle_id` 改绑 | — | 默认拒;profile 允许时 audit-paired,新旧历史分段展示(见 §6.1) |
+| `scope_circle_id` 改绑 | — | 默认拒；profile 允许时 audit-paired，新旧历史分段展示(见 §6.1) |
 
 每个对象有唯一 scope,lifecycle 只需在该 scope 与父 Realm 两层间做判定，不存在跨双 scope 的组合表。
 
@@ -333,47 +333,47 @@ Membership transition table（`membership` 复用 `ck.member.state` 的 `members
 
 ### 9.3 Sync / 投递不变量
 
-> **Scope 投递不变量**:对任意事件 `E` 满足 `E.effective_scope.kind="circle"` 且 `E.effective_scope.circle_id=C`,Sync Service MUST NOT 向不属于 `C.members(at causal frontier of E)` 的 actor 投递 `E` 的 envelope 或 payload。订阅 Realm R 等价于订阅 (R 的 Realm-level events) ∪ (∀C ∈ R.circles, 若 actor ∈ C.members 则 C 的 scoped events,否则 ∅)。
+> **Scope 投递不变量**:对任意事件 `E` 满足 `E.effective_scope.kind="circle"` 且 `E.effective_scope.circle_id=C`,Sync Service MUST NOT 向不属于 `C.members(at causal frontier of E)` 的 actor 投递 `E` 的 envelope 或 payload。订阅 Realm R 等价于订阅 (R 的 Realm-level events) ∪ (∀C ∈ R.circles, 若 actor ∈ C.members 则 C 的 scoped events，否则 ∅)。
 
 特例:
-- `ck.circle.create` 的 authorization shell 是 Realm-level event,但 projection MUST 按 `directory_visibility` 裁剪。`directory_visibility=members` 时，非成员不得看到 Circle title、display、member_count、created_by 或可区分存在性的错误；最多只能看到不可枚举的 opaque commitment。非成员 Circle stub 的 shape MUST 固定为 `{ "visibility": "locked", "opaque_commitment": "<digest-or-fixed-placeholder>" }` 或等价字段集合；`opaque_commitment` MUST 是固定长度、不可逆、不可按 Circle title / short_name / member set 枚举的 digest，且不可见与不存在 Circle 的 list / get / search 响应 MUST 使用同一错误 envelope、同一字段集合和同一 timing bucket。普通 Circle 的该隐私要求由 `ck.vector.circle.directory_visibility_members_indistinguishable.v1` 覆盖；sidecar profile 还需额外满足 `ck.vector.sidecar.existence_privacy.v1`。
+- `ck.circle.create` 的 authorization shell 是 Realm-level event，但 projection MUST 按 `directory_visibility` 裁剪。`directory_visibility=members` 时，非成员不得看到 Circle title、display、member_count、created_by 或可区分存在性的错误；最多只能看到不可枚举的 opaque commitment。非成员 Circle stub 的 shape MUST 固定为 `{ "visibility": "locked", "opaque_commitment": "<digest-or-fixed-placeholder>" }` 或等价字段集合；`opaque_commitment` MUST 是固定长度、不可逆、不可按 Circle title / short_name / member set 枚举的 digest，且不可见与不存在 Circle 的 list / get / search 响应 MUST 使用同一错误 envelope、同一字段集合和同一 timing bucket。普通 Circle 的该隐私要求由 `ck.vector.circle.directory_visibility_members_indistinguishable.v1` 覆盖；sidecar profile 还需额外满足 `ck.vector.sidecar.existence_privacy.v1`。
 - `directory_visibility=realm_members` 时，属于父 Realm 但不属于该 Circle 的 caller 只能看到固定预览白名单：`circle_id`、`realm_id`、`visibility="realm_members"`、`display.color_token`、`display.symbol`、`member_count_bucket`、`join_rule` 与 `opaque_commitment`。不得向非 Circle 成员暴露 title、summary、raw member_count、成员 DID、created_by、join history 或 Circle 私有事件引用。非 Realm 成员与未授权 caller 必须收到与 `directory_visibility=members` 相同的 locked stub / not_found envelope 和 timing bucket。该要求由 `ck.vector.circle.directory_visibility_realm_members_indistinguishable.v1` 覆盖。
 - `ck.circle.member.state` 仅投递给该 Circle 的成员 + 完成 `ck.circle.audit` / `ck.audit.accessed` 配对的 audit reader。
-- `ck.circle.seal_commit` 是 Realm-level event,但只携带 opaque digest(见 §10),且触发节奏不得泄露 Circle 活动频率。
+- `ck.circle.seal_commit` 是 Realm-level event，但只携带 opaque digest(见 §10)，且触发节奏不得泄露 Circle 活动频率。
 
 ## 10. 加密 / Seal 集成
 
 ### 10.1 Circle encryption profiles
 
 - `encryption_profile=none`:Circle 是 plaintext scoped event boundary。Sync / query / projection / notification / export MUST 按 Circle membership 裁剪；服务端或明文存储后端可能接触 plaintext，部署 MUST 在 UI / policy / service description 中披露这种保证边界。
-- `encryption_profile=mls_rfc9420`:Circle 拥有独立 MLS group,独立 epoch,独立 key tree。**MUST NOT** 从 Realm-default MLS group key 派生 Circle key(否则全 Realm 都能解密)。
-- Realm 移除某 actor MUST 触发该 actor 所在所有 Circle 的 membership cascade；对 MLS-backed Circle 还 MUST 触发对应 MLS `remove` proposal,并在 Realm-default 也是 MLS-backed 时触发 Realm-default rotate。这是必要的密码学卫生,reducer-enforced。已知运维代价见 §10.3。
+- `encryption_profile=mls_rfc9420`:Circle 拥有独立 MLS group，独立 epoch，独立 key tree。**MUST NOT** 从 Realm-default MLS group key 派生 Circle key(否则全 Realm 都能解密)。
+- Realm 移除某 actor MUST 触发该 actor 所在所有 Circle 的 membership cascade；对 MLS-backed Circle 还 MUST 触发对应 MLS `remove` proposal，并在 Realm-default 也是 MLS-backed 时触发 Realm-default rotate。这是必要的密码学卫生，reducer-enforced。已知运维代价见 §10.3。
 - Circle MLS handshake (commit/welcome/proposal) 投递严格限于 Circle 成员，不进入 Realm-default sync 流。
 - MLS governance binding 的 scope 使用 tagged `effective_scope`。Realm-default MLS group 使用 `{kind:"realm", realm_id}`；Circle commit / welcome / genesis MUST 使用 `{kind:"circle", realm_id, circle_id}`，并绑定 `circle_id`、Circle membership frontier、Circle policy root 与父 Realm policy floor frontier。接收端验证时，`governance_binding.realm_id` / `circle_id` 与 `effective_scope` 任一不匹配 MUST fail closed；Strand `track_name` 或 `strand_id` 不得参与 MLS key scope 判定。
 
 ### 10.2 Seal stream
 
 - Circle 内事件维护 Circle sub-seal(只对 Circle 成员可读，记录完整 envelope + payload digest)。
-- Circle 按 profile 固定节拍触发 `ck.circle.seal_commit`,向 Realm Seal stream 提交 `sub_seal_head_digest`(不透明 SHA-256)。默认命名 profile 是 `ck.profile.circle_seal_cadence.fixed_5m.v1`：`period_ms=300000`、`max_jitter_ms=30000`、MUST emit empty-batch commitment、MUST NOT skip public seal ticks when the Circle has no new private events。移动端省电只能延迟客户端上传 private sub-seal entries；服务端/seal service 仍必须按公开 cadence 补空 commitment。不得按"每 N 个真实 event"触发，否则会泄露活动频率。低隐私部署若声明 event-count profile,必须显式标为不满足 confidential Circle profile。
-- 验证链:Circle member 验证时 `Circle sub-seal head ↔ Realm seal commitment ↔ Realm seal head`,三段闭合。非 Circle 成员只能验证 Realm seal 完整性。
+- Circle 按 profile 固定节拍触发 `ck.circle.seal_commit`，向 Realm Seal stream 提交 `sub_seal_head_digest`(不透明 SHA-256)。默认命名 profile 是 `ck.profile.circle_seal_cadence.fixed_5m.v1`：`period_ms=300000`、`max_jitter_ms=30000`、MUST emit empty-batch commitment、MUST NOT skip public seal ticks when the Circle has no new private events。移动端省电只能延迟客户端上传 private sub-seal entries；服务端/seal service 仍必须按公开 cadence 补空 commitment。不得按"每 N 个真实 event"触发，否则会泄露活动频率。低隐私部署若声明 event-count profile，必须显式标为不满足 confidential Circle profile。
+- 验证链:Circle member 验证时 `Circle sub-seal head ↔ Realm seal commitment ↔ Realm seal head`，三段闭合。非 Circle 成员只能验证 Realm seal 完整性。
 
 ### 10.3 Realm-member-removal MLS rotate amplification
 
-一次离职 / 踢人因此可能放大为 **M+R 次 MLS group rotation**，其中 `M` 是该 actor 所在的 MLS-backed Circle 数，`R` 是父 Realm-default scope 是否 MLS-backed(是则 1，否则 0)。Plaintext Circle 只做 membership / delivery cascade，不产生 MLS rotate。这是密码学卫生的必要代价(forward secrecy 与 post-compromise security 要求),不可省。
+一次离职 / 踢人因此可能放大为 **M+R 次 MLS group rotation**，其中 `M` 是该 actor 所在的 MLS-backed Circle 数，`R` 是父 Realm-default scope 是否 MLS-backed(是则 1，否则 0)。Plaintext Circle 只做 membership / delivery cascade，不产生 MLS rotate。这是密码学卫生的必要代价(forward secrecy 与 post-compromise security 要求)，不可省。
 
-操作上的缓解策略(profile MAY 实现,**不在 protocol normative 层强制**):
+操作上的缓解策略(profile MAY 实现，**不在 protocol normative 层强制**):
 
 - **批量 rotate**:profile MAY 把短时间窗内的多次 member removal 合并为单次 rotate proposal batch(MLS 协议本身支持 multi-proposal commit)。
-- **延迟 rotate 窗口**:profile MAY 声明 rotate 必须在 actor removal 后 ≤ X 完成。X 是该 profile 的 forward secrecy 窗口承诺,MUST 显式公开，且 MUST be no longer than profile 声明的最大可容忍泄露窗口(典型 ≤ 1 小时)。
-- **Circle 数量上限的运营建议**:产品上鼓励 Circle 少而稳定(参考 §11 UX 风险);profile MAY 软上限(例如单 Realm ≤ 64 Circle)以约束 delivery fanout 与 MLS rotate amplification 的最坏情况。
+- **延迟 rotate 窗口**:profile MAY 声明 rotate 必须在 actor removal 后 ≤ X 完成。X 是该 profile 的 forward secrecy 窗口承诺，MUST 显式公开，且 MUST be no longer than profile 声明的最大可容忍泄露窗口(典型 ≤ 1 小时)。
+- **Circle 数量上限(normative + 运营建议)**:[`../conformance/scalability-constraints.md` §5](../conformance/scalability-constraints.md) 设两条 **normative 硬上限**封顶最坏情况:单 Realm active Circle 数 ≤ 1,000、单 actor 所属 active **MLS-backed** Circle 数 ≤ 256(后者直接封顶本节 `M+R` 放大里的 `M`，即单次 membership 变更触发的最坏 MLS rotation 次数)；超限 reducer MUST reject(`circle_count_exceeded`)。在硬上限之上，产品 SHOULD 鼓励 Circle 少而稳定(参考 §11 UX 风险),profile MAY 进一步声明更紧的软上限(例如单 Realm ≤ 64 Circle)以进一步约束 delivery fanout 与 MLS rotate amplification。
 
-对 MLS-backed Circle，替代方案(共享 Realm-default key 派生 Circle key、或惰性 rotate 直到下一次实际通信)会破坏 Circle 的密码学隔离前提，使其退化为 plaintext delivery-only scope,声明 MLS-backed 时 **MUST NOT** 采纳。
+对 MLS-backed Circle，替代方案(共享 Realm-default key 派生 Circle key、或惰性 rotate 直到下一次实际通信)会破坏 Circle 的密码学隔离前提，使其退化为 plaintext delivery-only scope，声明 MLS-backed 时 **MUST NOT** 采纳。
 
 ## 11. Scope-identity UX safety invariants
 
-Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Circle A 的 Strand 工作，被通知 ping 到 Circle B 的 Strand,回复时误以为仍在 A 圈。这是真实泄露发生的瞬间。**因为 Strand 是单 scope 的(§6),所以"我在哪个 Circle"等价于"我在哪个 Strand",这反而让 UX 清晰**:每个 Strand 的视觉身份就是它 scope 的视觉身份，不存在"同一 Strand 内 synthesis 一个色、discussion 另一个色"的混乱。
+Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Circle A 的 Strand 工作，被通知 ping 到 Circle B 的 Strand，回复时误以为仍在 A 圈。这是真实泄露发生的瞬间。**因为 Strand 是单 scope 的(§6)，所以"我在哪个 Circle"等价于"我在哪个 Strand"，这反而让 UX 清晰**:每个 Strand 的视觉身份就是它 scope 的视觉身份，不存在"同一 Strand 内 synthesis 一个色、discussion 另一个色"的混乱。
 
-要让客户端能可靠区分 scope，以下信号 **MUST** 在 spec 层统一,**不**留给客户端各自发明:
+要让客户端能可靠区分 scope，以下信号 **MUST** 在 spec 层统一，**不**留给客户端各自发明:
 
 - **颜色 token**:同一 Circle 在 Alice 与 Bob 的客户端上必须呈现一致颜色，否则跨设备 social engineering 攻击成立。
 - **短名**:`short_name`(如 `HR-Conf`)相比裸 Circle ID（如 `ck:circle:01964...`）更易人工识别；客户端 SHOULD 显示 `short_name` 以辅助 scope 识别。
@@ -396,14 +396,14 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 
 `controller_agent_circle_key` 是 deterministic reuse key 的可展示派生：`base32(sha256(canonical("ck.agent_sidecar_circle.v1\n" + realm_id + "\n" + controller_principal_id)))`，小写截取 24 字符；`display.short_name` 使用 `"AI-" + controller_agent_circle_key[:12].upper()`。
 
-- **Reuse key**:每个 `(realm_id, controller_principal_id)` 在本 profile 下有且仅有一个 sidecar Circle(profile constant `per_realm_controller_agent_pool`)。reducer 以该 tuple 作为 idempotency key,并发 `ck.circle.create` 的 sidecar 路径 MUST 收敛到单一 Circle。
+- **Reuse key**:每个 `(realm_id, controller_principal_id)` 在本 profile 下有且仅有一个 sidecar Circle(profile constant `per_realm_controller_agent_pool`)。reducer 以该 tuple 作为 idempotency key，并发 `ck.circle.create` 的 sidecar 路径 MUST 收敛到单一 Circle。
 - **Membership**:active membership 由 `eligible_sidecar_agent(realm, controller, agent)` predicate 派生。当 agent 因 pause / deactivate / revoke / pairing_expired / accountability grant 失效等任何原因转出 eligible 集合时，reducer / service layer MUST **主动** fan-out 写入 `ck.circle.member.state`(membership: `leave` 或 `ban`)，不得等被动 reconcile，以消除 stale-membership 窗口。
 - **`display.short_name`** MUST 由 `controller_agent_circle_key` 派生，不接受 caller 提供任意字符串。short_name 碰撞且 caller 不是已有 Circle member 时，reducer MUST 返回 generic `failed_precondition` `reason=sidecar_create_denied`(不暴露 `short_name_already_taken` 这类可区分错误)，避免存在性侧信道。
 - **`directory_visibility="members"`**，non-member 不可见任何 sidecar Circle metadata。MLS-backed sidecar Circle SHOULD 设置 `metadata_encryption_floor="e2ee_required"`；plaintext sidecar Circle 不得宣称 metadata E2EE，只能承诺 non-member delivery / query / projection 裁剪。
 - **Membership 闭集**:实现 MUST NOT 把其它 human actor、非 accountable agent、Applet Ghost Actor 或外部 service principal 加入 controller-Realm sidecar Circle。
-- **History backfill**:新 eligible agent 加入既有 sidecar Circle 时,MLS-backed Circle 不允许转移过去 epoch group secrets。controller 显式同意 sidecar history backfill 时，实现 MUST 通过 application-level message resend 完成(controller 设备解密 plaintext 在新 epoch 下重新加密)，不得通过共享 MLS exporter secret / past commit secret 或等价手段。Plaintext sidecar Circle 同样 MUST 把历史 backfill 视为显式 plaintext 披露，受同等 capability / approval / audit 约束。
-- **Epoch / scope granularity**:同一 sidecar Circle 可承载多个 sidecar private Strand;MLS-backed Circle 的 epoch rotation 适用于该 Circle scope 下**所有** sidecar private Strand,不可按 Strand 独立 rotate(任何仍在 Circle 中的 member 都能解密该 Circle scope 下任一 Strand 的未来 epoch)。Plaintext Circle 没有 epoch,但 membership 变更后的投递 / 查询 eligibility 仍适用于该 Circle scope 下所有 sidecar private Strand。
-- **Sidecar Strand projection**:以 sidecar Circle 为 `scope_circle_id` 的 Strand MUST NOT 出现在 Realm-wide navigation / board / list / public search / public relation expansion / 目标 Strand projections。该 invariant 由 sidecar profile-specific reducer rule enforce,而不是给 Strand schema 加 `navigation_visibility` 字段。
+- **History backfill**:新 eligible agent 加入既有 sidecar Circle 时，MLS-backed Circle 不允许转移过去 epoch group secrets。controller 显式同意 sidecar history backfill 时，实现 MUST 通过 application-level message resend 完成(controller 设备解密 plaintext 在新 epoch 下重新加密)，不得通过共享 MLS exporter secret / past commit secret 或等价手段。Plaintext sidecar Circle 同样 MUST 把历史 backfill 视为显式 plaintext 披露，受同等 capability / approval / audit 约束。
+- **Epoch / scope granularity**:同一 sidecar Circle 可承载多个 sidecar private Strand;MLS-backed Circle 的 epoch rotation 适用于该 Circle scope 下**所有** sidecar private Strand，不可按 Strand 独立 rotate(任何仍在 Circle 中的 member 都能解密该 Circle scope 下任一 Strand 的未来 epoch)。Plaintext Circle 没有 epoch，但 membership 变更后的投递 / 查询 eligibility 仍适用于该 Circle scope 下所有 sidecar private Strand。
+- **Sidecar Strand projection**:以 sidecar Circle 为 `scope_circle_id` 的 Strand MUST NOT 出现在 Realm-wide navigation / board / list / public search / public relation expansion / 目标 Strand projections。该 invariant 由 sidecar profile-specific reducer rule enforce，而不是给 Strand schema 加 `navigation_visibility` 字段。
 - **新 agent eligibility 是 high-trust 动作**:当 controller 在已存在 sidecar Circle 的 Realm 内激活新 native personal agent 时，客户端 UI MUST 在 [`../identity/key-management.md` §3.6.1](../identity/key-management.md) 的 pairing approval 流程中显式披露 "该 agent 将自动获得现有 sidecar 私聊访问权"。
 
 ## 12. 与既有概念的区分
@@ -412,8 +412,8 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 | --- | --- | --- |
 | **Realm** | federation/identity boundary | membership 主源、Policy Server、capability registry、federation route、Realm-default MLS group |
 | **Circle** | intra-Realm 子事件 / 子消息边界 | 子集 membership、独立 history visibility、scope 投递 / 查询 / projection 裁剪；可选独立 MLS group |
-| **Group** | principal 集合(capability subject,见 [`realm-and-space.md` §4](./realm-and-space.md)) | 在 capability grant / policy 中作为主体集合;**不**持有密钥 |
-| **Space** | navigation 容器 | 导航/分组/Board/List;authorization-transparent;不持有 membership 或 key |
+| **Group** | principal 集合(capability subject，见 [`realm-and-space.md` §4](./realm-and-space.md)) | 在 capability grant / policy 中作为主体集合；**不**持有密钥 |
+| **Space** | navigation 容器 | 导航/分组/Board/List;authorization-transparent；不持有 membership 或 key |
 
 **关键不混淆点**:
 - Group 是 **principal 集合**(谁能做事);Circle 是 **资源 / 事件 scope**(哪些事件进入哪个成员圈，必要时由哪组密钥保护)。两者正交。

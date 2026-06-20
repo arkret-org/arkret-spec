@@ -1040,7 +1040,7 @@ Resolver MUST 返回下列方法相关证据字段，供客户端验证 control 
 
 `/_cokret/self/account/*` 承载当前 authenticated principal/device 的账号视角能力：一次性 viewer 自读、Actor Profile 自服务更新、account 聚合 streaming（跨 Realm frontier、to_device、account_data、device_lists、presence、unread / notification counts）、account describe 与 cursor revoke。snapshot manifest 入口独立放在 `/_cokret/self/snapshot/*`。逐 Realm 的事件读取与流式订阅走 `/_cokret/self/events/*`（`ck.self.events.query.scan`、`ck.self.events.stream.subscribe`），见 §3.3 / §3.4。
 
-注册与 session revoke 属认证生命周期，落 `/_cokret/gate/account/*`，与 `ck.gate.account.command.issue_session_grant` 共认证面。Handle 申请、审批、预分配、重签、撤销和管理员分配仍属于 issuer / coauth / 部署治理流程；Cokret account self-service endpoint 不得接受裸 `handle` 字段，也不得把未签名 handle 字符串返回为权威身份。实现如需管理面 MUST 使用自己的 negative-space root（例如 `/_soland/admin/*`），不得放在 `/_cokret/` 协议命名空间下。组织登记行 CRUD、owner-scoped policy document 存储 CRUD、后台策略编辑 UI 等部署本地管理能力不属于 v1 core operation surface；协议层只规定 signed Organization / Realm policy Event、`ck.self.policy.query.check` 的决策 envelope 以及相关 capability / reducer 语义。
+注册与 session revoke 属认证生命周期，落 `/_cokret/gate/account/*`，与 `ck.gate.account.command.issue_session_grant` 共认证面。Handle 申请、审批、预分配、重签、撤销和管理员分配仍属于 issuer / Auth Server / 部署治理流程；Cokret account self-service endpoint 不得接受裸 `handle` 字段，也不得把未签名 handle 字符串返回为权威身份。实现如需管理面 MUST 使用自己的 negative-space root（例如 `/_<impl>/admin/*`），不得放在 `/_cokret/` 协议命名空间下。组织登记行 CRUD、owner-scoped policy document 存储 CRUD、后台策略编辑 UI 等部署本地管理能力不属于 v1 core operation surface；协议层只规定 signed Organization / Realm policy Event、`ck.self.policy.query.check` 的决策 envelope 以及相关 capability / reducer 语义。
 
 ### 5.1 账号 viewer 与 profile 自服务
 

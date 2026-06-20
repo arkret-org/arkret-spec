@@ -180,6 +180,15 @@
       ]
     },
     {
+      "vector_id": "ck.vector.capability.membership_is_not_baseline.v1",
+      "status": "active",
+      "domain": "capability",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/capability-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ck.vector.capability.delegate_chain.v1",
       "status": "active",
       "domain": "capability",

@@ -140,7 +140,7 @@
           },
           "on_conflict": {
             "type": "string",
-            "description": "Conflict handling for mutually unreachable Relation candidates. deterministic_winner selects the candidate with the bytewise-smallest canonical event_digest; it MUST NOT use HLC, actor id, local receive order, database id, or service insertion order.",
+            "description": "Conflict handling for mutually unreachable Relation candidates. deterministic_winner selects the candidate with the bytewise-greatest canonical event_digest per the single canonical tie-break rule (zh/conformance/encoding.md §4.2); it MUST NOT use HLC, actor id, event_id, local receive order, database id, or service insertion order.",
             "enum": [
               "reject",
               "close_previous",
