@@ -352,7 +352,19 @@
       "type": "integer",
       "minimum": 0,
       "default": 86400000,
-      "description": "Realm-level maximum control-plane seal distance/time window for accepting DataEvents whose seal_ref predates an observed revocation seal. Receivers evaluate this window by seal topology and policy, not by unverified event signing time. High-risk Realms SHOULD use a short value or move the affected cell family to control plane."
+      "description": "Realm-level maximum control-plane seal distance/time window for accepting DataEvents whose seal_ref predates an observed revocation seal. Receivers evaluate this window by seal topology and policy (the notary-committed seal-time delta along the Seal DAG per authz/event-auth-state-resolution.md section 4.3), not by unverified event signing time. risk_tier=high capabilities get no grace (effective 0). High-risk Realms SHOULD use a short value or move the affected cell family to control plane."
+    },
+    "receipt_sla_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 86400000,
+      "description": "Realm-level deadline within which a pending control-plane Control Move MUST receive a signed receipt or signed rejection (authz/event-auth-state-resolution.md section 7.2). Measured by notary-committed seal time, not local receive time. Silent omission past this SLA (modulo bounded defers, see max_receipt_defers) is censorship evidence."
+    },
+    "max_receipt_defers": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 3,
+      "description": "Maximum cumulative number of signed defers a single pending Control Move may receive before include / signed-reject is mandatory (authz/event-auth-state-resolution.md section 7.2). Exceeding it without include/signed-reject is treated as silent omission / censorship evidence."
     },
     "seal_compaction_max_interval_ms": {
       "type": "integer",

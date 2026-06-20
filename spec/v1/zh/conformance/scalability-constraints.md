@@ -69,6 +69,9 @@ Cokret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | Seal DAG leaf 数 | 实现声明 | 超过时 SHOULD 请求或生成 signed compaction Seal；查询可使用 deterministic Seal view。 |
 | 单次 Lattice join CPU / wall-clock 预算 | 实现声明 | 服务 MUST 在 `server/describe.limits` 暴露；超出时返回可恢复错误或使用已验证 state_root + inclusion proof。 |
 | 单次 Lattice join 内存预算 | 实现声明 | 服务 MUST 暴露，超出时返回可恢复错误而不是 OOM。 |
+| `revocation_freshness_window_ms` | 86,400,000 ms（24h，default）| `realm.schema.json`；按 Seal DAG notary 提交时间差度量（[`event-auth-state-resolution.md` §4.3](../authz/event-auth-state-resolution.md)）。`risk_tier=high` capability 无宽限（等效 0）。高风险 Realm SHOULD 取更短值。 |
+| `receipt_sla_ms` | 86,400,000 ms（24h，default）| `realm.schema.json`；pending Control Move 得到 signed receipt / rejection 的截止（[`event-auth-state-resolution.md` §7.2](../authz/event-auth-state-resolution.md)）。按 notary 提交时间计。 |
+| 单个 pending Control Move 累计 defer 数（`max_receipt_defers`）| 3（default）| `realm.schema.json`；超过仍未 include / signed-reject 即等同无声遗漏，构成 censorship evidence（[`event-auth-state-resolution.md` §7.2](../authz/event-auth-state-resolution.md)）。 |
 
 CBA fallback 不得选择本地接收顺序或数据库 ID。Snapshot 必须有 Seal inclusion proof、state_root、frontier 和 chunk digest。对缺失、不可达或高成本 `refs` 的 backfill，接收方 MAY 在预算耗尽后把 DataEvent 保持 observed-only、把 Control Move 保持 pending，或返回 `dependency_missing`、`temporarily_unavailable`；不得在同步写入路径无界递归展开。
 

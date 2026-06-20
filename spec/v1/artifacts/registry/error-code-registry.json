@@ -2170,7 +2170,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "Conflict-recovery Move is missing the required `refs[role=state_witness]` reference. See zh/authz/event-auth-state-resolution.md §8.1."
+      "description": "Conflict-recovery Move is missing the required `refs[role=state_witness]` reference. See zh/authz/event-auth-state-resolution.md §9.5."
     },
     {
       "code": "recovery_witness_invalid",
@@ -2178,7 +2178,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "Conflict-recovery Move's inclusion proof cannot reconstruct the witness's `state_root`. See zh/authz/event-auth-state-resolution.md §8.1."
+      "description": "Conflict-recovery Move's inclusion proof cannot reconstruct the witness's `state_root`. See zh/authz/event-auth-state-resolution.md §9.5."
     },
     {
       "code": "recovery_witness_post_conflict",
@@ -2186,7 +2186,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "Conflict-recovery witness frontier has a causal path from one of the sibling Moves that triggered the bottom — i.e., the witness is not strictly pre-conflict. See zh/authz/event-auth-state-resolution.md §8.1."
+      "description": "Conflict-recovery witness frontier has a causal path from one of the sibling Moves that triggered the bottom — i.e., the witness is not strictly pre-conflict. See zh/authz/event-auth-state-resolution.md §9.5."
     },
     {
       "code": "recovery_capability_not_sealed",
@@ -2194,7 +2194,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "Conflict-recovery witness's state_root does not contain (or contains a divergent value for) the recovery_capability cell referenced by the grant. See zh/authz/event-auth-state-resolution.md §8.1."
+      "description": "Conflict-recovery witness's state_root does not contain (or contains a divergent value for) the recovery_capability cell referenced by the grant. See zh/authz/event-auth-state-resolution.md §9.5."
     },
     {
       "code": "recovery_witness_revoke_lagging",
@@ -2202,7 +2202,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "Conflict-recovery witness is older than the permitted freshness window, or local frontier has observed a revoke / supersede for the referenced recovery_capability after the witness frontier. Receivers MUST reject stale witness replay. See zh/authz/event-auth-state-resolution.md §8.1."
+      "description": "Conflict-recovery witness is older than the permitted freshness window, or local frontier has observed a revoke / supersede for the referenced recovery_capability after the witness frontier. Receivers MUST reject stale witness replay. See zh/authz/event-auth-state-resolution.md §9.5."
     },
     {
       "code": "challenge_proof_invalid",

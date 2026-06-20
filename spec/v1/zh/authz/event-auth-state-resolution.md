@@ -142,7 +142,11 @@ else:
   MUST reject or hide the DataEvent
 ```
 
-该规则不判断事件真实签发时间，也不依赖本地接收时间。producer 在本地已知撤销 seal 后仍用旧 `seal_ref` 签 DataEvent，协议不把它单独定义为可证明 fault；但所有已观察到 `R` 且窗口超限的 receiver MUST 拒绝或隐藏这些事件。需要强撤销即时性的 Realm SHOULD 缩短 `revocation_freshness_window`，或将相关 cell family 声明为 `sealed=true`。
+**`distance` 度量与窗口单位（normative）**：`revocation_freshness_window` 的权威字段是 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的 `revocation_freshness_window_ms`（integer，毫秒，`default 86400000`（24h），`minimum 0`）。`distance(seal_ref, R)` MUST 按**控制面 Seal DAG 上 notary 签署的提交时间差**度量：取撤销 Seal `R` 与 `seal_ref` 各自签名 transcript 内 notary 提交时间（沿 Seal DAG，`R` 是 `seal_ref` 后继，见 §6.3），求二者毫秒差。该度量只用进入 Seal 签名 transcript 的 notary 提交时间，**不**用 DataEvent 自报的 `created_at` 或本地接收时间——时间来自被签名的 Seal 拓扑，可验证、跨 receiver 确定复现。`distance > revocation_freshness_window_ms` 即超窗。
+
+该规则不判断事件真实签发时间，也不依赖本地接收时间。producer 在本地已知撤销 seal 后仍用旧 `seal_ref` 签 DataEvent，协议不把它单独定义为可证明 fault；但所有已观察到 `R` 且窗口超限的 receiver MUST 拒绝或隐藏这些事件（`stale_seal_ref`，§13）。
+
+**高风险 capability 的撤销即时性（normative）**：对 `risk_tier=high` capability（`risk_tier` 的权威源是 [`capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json)，散文镜像见 [`capabilities.md`](./capabilities.md)）授权的 DataEvent，撤销**不享受**新鲜度窗口宽限：receiver 一旦观察到覆盖该 capability 的撤销 Seal `R`，MUST 对 `seal_ref` 早于 `R` 的此类 DataEvent fail closed（等效 `revocation_freshness_window_ms = 0`），无论 `distance`；承载此类 capability 授权判定的 cell family SHOULD 声明 `sealed=true` 升控制面。中低风险 DataEvent 仍按上面的窗口判定。此外，producer 在本地已观察到 `R` 后仍用早于 `R` 的 `seal_ref` 继续签发 DataEvent，虽不构成可证明 fault，receiver / audit **SHOULD** 将其记录为 audit-loggable 可疑信号（stale-after-observed），供事后问责——这与"不可证明 fault"不矛盾：不自动惩罚，但留痕。需要强撤销即时性的 Realm SHOULD 缩短 `revocation_freshness_window_ms`，或将相关 cell family 声明为 `sealed=true`。
 
 Grant 晚于 producer 最新 seal 签发时，producer MUST 等下一个控制面 seal 后再签 data write。治理低频，等待 seal 是可接受成本。
 
@@ -327,17 +331,23 @@ Equivocation evidence 是普通 Control Move，event kind 为 **`ck.notary.fault
 - fork resolution 前，普通 joined governance view MUST NOT 纳入 quarantined Seal；
 - 仅 fork-resolution compaction Seal 或 genesis recovery path 可恢复推进。
 
+**以 quarantined Seal 作 `seal_ref` 锚点的 DataEvent（normative）**：当一条 DataEvent 的 `seal_ref` 指向已进入 `fork_quarantine` 的 Seal 时，receiver MUST NOT 用该 quarantined seal 的授权状态接受它进入 joined view，也 MUST NOT 直接按 `stale_seal_ref` 永久拒绝（quarantine 是控制面分叉、未必表示该 DataEvent 的授权基准非法）。receiver MUST 把它降级保持 **observed-only**（§13 `data_observed`，不参与 join、不投影为生效内容），并 hold pending 直到该 slot 的 fork resolution 产生胜出分支：
+  - 若 `seal_ref` 的 Seal 属**胜出分支**（resolution 后不再 quarantined），receiver MUST 用胜出分支下的授权状态按 §4.2 / §4.3 **重判**该 DataEvent，通过则正常接受；
+  - 若 `seal_ref` 的 Seal 属**落败分支**（resolution 后被弃），receiver MUST 按 `stale_seal_ref` 拒绝或隐藏该 DataEvent，producer 需以胜出分支的新 `seal_ref` 重新签发。
+
+  该处理与 §4.3 撤销新鲜度判定正交（前者针对控制面分叉，后者针对单链撤销），与 [`../sync/operations-sync.md`](../sync/operations-sync.md) 的 observed-only / backfill 保持语义（observed-only 的 DataEvent 不进 canonical join），不引入新状态。
+
 Threshold signer 使用委员会级 slot。若 2k > n，两个 threshold 签名的 quorum 交集可指认至少一个双签成员；否则部署 policy MUST 声明放弃自动指认。该声明是机器可校验项：threshold notary 的 Realm create payload MUST 携带 `notary.forensic_attribution ∈ {quorum_intersection, waived}`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json)），且取值与 `2k>n` 的算术关系由 reducer 校验、由 conformance vector `ck.vector.cba_lattice.threshold_forensic_attribution.v1` 固定。
 
 ### 7.2 控制面 receipt 与 inclusion obligation
 
-控制面 pending Control Move MUST 在 `receipt_sla_ms` 内得到签名 receipt 或签名 rejection。
+控制面 pending Control Move MUST 在 `receipt_sla_ms` 内得到签名 receipt 或签名 rejection。`receipt_sla_ms` 的权威字段是 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的 `receipt_sla_ms`（integer，毫秒，`default 86400000`（24h），`minimum 0`），与 `seal_compaction_max_interval_ms`（§6.2）同量级；其 wire 上限登记于 [`scalability-constraints.md`](../conformance/scalability-constraints.md) §4。SLA 计时以 notary 签署的提交时间为准（与 §4.3 `distance` 同源），不用本地接收时间。
 
 到期 receipt 在后续 Seal 中必须三选一：
 
 1. include；
 2. signed-reject，附可验证原因；
-3. 有限次 defer，附原因与新的到期边界。
+3. **有限次 defer**，附原因与新的到期边界；同一 pending Control Move 的累计 defer 次数 MUST NOT 超过 `max_receipt_defers`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json)，integer，`default 3`，`minimum 0`，上限登记于 [`scalability-constraints.md`](../conformance/scalability-constraints.md) §4）；超过该上限仍未 include / signed-reject 即等同无声遗漏，构成下面的 censorship evidence。
 
 无声遗漏构成 censorship evidence：
 
@@ -433,7 +443,7 @@ AvailabilityReceipt {
 - 每个 core lattice type 的默认 `bottom`：`cas_register` / `fsm` 默认 `reject`（强单值治理 cell，冲突即 fail-closed）；`or_set` / `ordered_log` / `counter` 的 join 在数学上永不产生 `⊥`，其 `bottom` 字段对收敛**inert**（registry 中即便登记为 `reject` 也只是占位值，reducer MUST NOT 据其产生 reject 语义；与 [`capabilities.md` §12.1](./capabilities.md) 对 or_set `bottom` 的 inert 处理一致）；`mv_register` 不产生 `⊥`（暴露多 heads 而非 bottom），无 `bottom` 语义。
 - cell family 未显式声明 `bottom` 时，reducer MUST 按上述 per-lattice-type 默认处理；MUST NOT 把未声明当作 `expose` 放宽强单值治理 cell。
 
-> `bottom=reject` cell 进入 `⊥` 后的恢复路径见 §9.4（升控制面继承的 recovery）与各 cell family 的 recovery profile 声明。
+> `bottom=reject` cell 进入 `⊥` 后的恢复路径由 §9.5 control cell `⊥` recovery 定义（conflict-recovery Move）。
 
 ### 9.2 Data plane 冲突
 
@@ -457,6 +467,23 @@ AvailabilityReceipt {
 1. **默认 `mv_register` + user-pick**：并发结果暴露多 heads，任何有写权限者可再签一个 DataEvent 收敛。
 2. **`sealed=true` 升控制面**：继承 Seal finality、`⊥` 和 recovery。
 3. **per-object sequencer**：schema 指定某 DID 线性化该 cell 的 DataEvent；sequencer 失效时 MUST 退回 `mv_register` 或升控制面。
+
+### 9.5 control cell `⊥` recovery（normative）
+
+`bottom=reject` 的控制面 cell（典型 `cas_register` / `fsm`）join 到 `⊥`（§9.1.1）后是**死状态**：所有依赖它的 Control Move precondition、DataEvent 授权判定与读路径 fail closed（`failed_bottom`）。把该 cell 从 `⊥` 拉回单一合法值，唯一途径是本节定义的 **conflict-recovery Move**。`bottom=expose` cell 的 `⊥` 暴露多 heads、由后续普通 Move 收敛，**不**适用本节、也不需要 recovery capability。
+
+conflict-recovery Move 不是新 event kind，而是一条**针对该 cell 的 Control Move**，由它携带的 `refs[]` role 与 reducer 的"`⊥` 唯一例外接受"规则识别。它 MUST 满足：
+
+1. **携带 recovery 授权与见证 ref**：`refs[]` MUST 含 `role=recovery_capability`（critical，授权本次 recovery 的 grant）与至少一个 `role=state_witness`（critical，见证 `⊥` 之前该 cell 合法单值的 frontier + inclusion proof）。缺 `state_witness` MUST `recovery_witness_missing`。这两个 role 已登记于 [`event-and-patch.md` §2.2](../models/event-and-patch.md) 的 `SemanticRef.role`。
+2. **witness 可重建 state_root**：`state_witness` 的 inclusion proof MUST 能重建该 witness frontier 的 `state_root`；不能则 `recovery_witness_invalid`。
+3. **witness 严格 pre-conflict**：`state_witness` frontier MUST NOT 有到触发 `⊥` 的任一 sibling Move 的因果路径（即必须早于冲突）；否则 `recovery_witness_post_conflict`。这保证 recovery 锚定的是冲突前的合法状态，而非把冲突之一单方面"洗白"。
+4. **recovery_capability 已 sealed 且在 witness 下成立**：`recovery_capability` grant 引用的 cell MUST 出现在 `state_witness` 的 `state_root` 中且取值不冲突；否则 `recovery_capability_not_sealed`。
+5. **witness 不陈旧、未被撤销**：`state_witness` MUST NOT 早于允许的 freshness window，且 local frontier MUST NOT 已观察到针对该 `recovery_capability` 的 revoke / supersede 晚于 witness frontier；违反则 `recovery_witness_revoke_lagging`（receiver MUST 拒绝 stale witness replay）。
+6. **必须 sealed**：conflict-recovery Move 是控制面 Move，MUST 经控制面 Seal 接受（继承 Seal finality），使"从 `⊥` 恢复到的单值"跨 receiver canonical 一致——与 §7.1 fork-resolution 的跨 receiver 确定性同纪律。reducer 在 cell 处于 `⊥` 时，**仅**接受满足上述全部条件的 conflict-recovery Move 写入该 cell（这是 `bottom=reject` cell 在 `⊥` 下对 `failed_bottom` 的唯一例外），把 cell 解析为该 Move 声明的单一合法值。
+
+**recovery capability 来源**：`recovery_capability` 由 Realm 的恢复权威持有——即 §7.2 闭环里的 **recovery notary**（genesis `recovery_members` / `mixed` profile 的 fallback notary）所辖的 recovery / fork-resolution 授权；它与 §7.1 的 fork-resolution、[`event-and-patch.md` §2.6](../models/event-and-patch.md) over-fork repair 复用同一恢复权威，不引入新授权主体。`single_did` 且未声明可用 recovery 路径的 Realm，control cell `⊥` 是诚实的死状态（与 §7.2 第 2 点"证据可流转但不可生效"同一限制，也是 genesis 强制 `recovery_members` 组织分离的理由之一）。
+
+**与 §7.1 的层次区分**：§7.1 恢复的是 **Seal-DAG 分叉**（equivocation / `fork_quarantine`）；本节恢复的是**未分叉治理状态内单个 cell 的 `⊥`**。两者由同一恢复权威书写、都经 Seal 接受，但作用对象不同，不可互相替代。
 
 ## 10. 查询语义
 
