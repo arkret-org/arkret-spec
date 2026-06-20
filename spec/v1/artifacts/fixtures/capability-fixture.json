@@ -74,6 +74,103 @@
       }
     },
     {
+      "name": "membership_without_capability_denies_core_writes",
+      "vector_id": "ck.vector.capability.membership_is_not_baseline.v1",
+      "memberships": [
+        {
+          "actor_id": "did:web:member.example",
+          "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+          "membership": "join"
+        }
+      ],
+      "grants": [],
+      "requests": [
+        {
+          "label": "message_create",
+          "actor_id": "did:web:member.example",
+          "action": "ck.message.create",
+          "resource": {
+            "kind": "strand",
+            "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+            "strand_id": "ck:strand:01964180-0000-7000-8000-000000000000"
+          },
+          "expected": {
+            "decision": "deny",
+            "reason_code": "no_strand_track_message_grant"
+          }
+        },
+        {
+          "label": "pin_add",
+          "actor_id": "did:web:member.example",
+          "action": "ck.pin.add",
+          "resource": {
+            "kind": "strand",
+            "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+            "strand_id": "ck:strand:01964180-0000-7000-8000-000000000000"
+          },
+          "expected": {
+            "decision": "deny",
+            "reason_code": "capability_denied"
+          }
+        },
+        {
+          "label": "rsvp_set",
+          "actor_id": "did:web:member.example",
+          "action": "ck.rsvp.set",
+          "resource": {
+            "kind": "strand",
+            "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+            "strand_id": "ck:strand:01964180-0000-7000-8000-000000000000"
+          },
+          "expected": {
+            "decision": "deny",
+            "reason_code": "capability_denied"
+          }
+        },
+        {
+          "label": "policy_manage",
+          "actor_id": "did:web:member.example",
+          "action": "ck.policy.manage",
+          "resource": {
+            "kind": "realm",
+            "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
+          },
+          "expected": {
+            "decision": "deny",
+            "reason_code": "capability_denied"
+          }
+        },
+        {
+          "label": "relation_create",
+          "actor_id": "did:web:member.example",
+          "action": "ck.relation.create",
+          "resource": {
+            "kind": "relation",
+            "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+            "cell": "ck:cell:ck.component.relation.v1:ck:relation:01964180-1000-7000-8000-000000000000"
+          },
+          "expected": {
+            "decision": "deny",
+            "reason_code": "capability_denied"
+          }
+        },
+        {
+          "label": "morph_create",
+          "actor_id": "did:web:member.example",
+          "action": "ck.morph.create",
+          "resource": {
+            "kind": "morph",
+            "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+            "cell": "ck:cell:ck.component.morph.v1:ck:morph:01964180-2000-7000-8000-000000000000"
+          },
+          "expected": {
+            "decision": "deny",
+            "reason_code": "capability_denied"
+          }
+        }
+      ]
+    },
+    {
       "name": "revoked_grant_denies_later_write",
       "events": [
         {
