@@ -189,6 +189,10 @@
     "ck.profile.signature.ecdsa_p256.v1",
     "ck.profile.signature.pqc.v1"
   ],
+  "kem_extension_profiles": [
+    "ck.profile.hpke.p256.v1",
+    "ck.profile.kem.hybrid_xwing.v1"
+  ],
   "candidate_profiles": [
     "ck.profile.candidate.join_policy.v1",
     "ck.profile.ucan_interop.v1"

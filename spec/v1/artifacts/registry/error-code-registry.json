@@ -1789,6 +1789,14 @@
       "description": "Proof / event signature `alg` is not in the conformance signature-algorithm allowlist. See zh/conformance/encoding.md."
     },
     {
+      "code": "unsupported_hpke_suite",
+      "applies_to": [
+        "service_call",
+        "auth_decision"
+      ],
+      "description": "HPKE suite id on an application-layer sealed surface (key-backup recipient_method=recovery_public_key, ck.secret.send, member-application encryption_envelope, file-transfer key_envelope) is not an active row in artifacts/registry/hpke-suite-registry.json (unknown, inactive, or reserved-but-not-activated). Receivers MUST fail closed rather than infer suite parameters from the AEAD name. See zh/identity/key-management.md §7.5.2."
+    },
+    {
       "code": "claim_rate_limited",
       "applies_to": [
         "service_call",

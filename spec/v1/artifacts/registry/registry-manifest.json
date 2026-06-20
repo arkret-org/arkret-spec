@@ -59,6 +59,14 @@
       "description": "Canonical MLS ciphersuite vocabulary for KeyPackage cipher_suites[] negotiation; unregistered suites fail closed."
     },
     {
+      "name": "hpke_suites",
+      "file": "registry/hpke-suite-registry.json",
+      "kind": "hpke_suite_registry",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Canonical HPKE (RFC 9180) suite (KEM x KDF x AEAD) vocabulary for non-MLS application-layer public-key sealing (key-backup recovery_public_key, did_recovery, to-device ck.secret.send, member-application and file-transfer key envelopes); unregistered suites fail closed. Fourth algorithm-agility registry alongside signature-alg, digest-suite and mls-ciphersuite."
+    },
+    {
       "name": "relation_kinds",
       "file": "registry/relation-kind-registry.json",
       "kind": "relation_kind_registry",

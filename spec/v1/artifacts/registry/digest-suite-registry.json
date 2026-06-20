@@ -61,7 +61,7 @@
       "role": "reserved_encoding_extension",
       "profile_gate": "ck.profile.encoding.cbor.v1",
       "activation_requirements": [
-        "ck.profile.encoding.cbor.v1 fully specified: deterministic encoding rules pinned (RFC 8949 §4.2 vs CDE), CDDL for envelope and canonical objects, schema-agnostic JSON<->CBOR type mapping",
+        "ck.profile.encoding.cbor.v1 fully specified: deterministic encoding rules pinned by directly adopting an upstream standardized deterministic CBOR profile (CDE, draft-ietf-cbor-cde, or dCBOR, draft-mcnally-deterministic-cbor) under draft-pinning discipline (draft change = new profile version) rather than a bespoke ruleset, CDDL for envelope and canonical objects, schema-agnostic JSON<->CBOR type mapping",
         "Per-suite conformance vectors published (canonical bytes, event_digest, state_root, receipt digest)",
         "Suite transition vectors published for json_jcs -> cbor transition Seals"
       ],

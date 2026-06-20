@@ -261,6 +261,7 @@ Strand Sync MUST NOT 因 actor 可读 Strand synthesis 就自动展开不可读 
 Cokret 不用全局链决定普通协作写入顺序。状态收敛由 cell family 的 Lattice / CRDT 规则定义：
 
 - OR-Set、ordered log、RGA、PN-counter、escrow counter 等可合并 cell MUST 对输入顺序不敏感。
+  > **序列 CRDT 选型注记（informative）**：上面把 **RGA（Replicated Growable Array）** 列为序列 cell 的示例算法。RGA 有学界充分记录的**并发插入交错（interleaving anomaly）**——两个 actor 在同一位置并发插入文本时，字符可能交错成乱序串。RGA 不是协作富文本的"最佳实践"基线：实现协作文本（`ck.profile.collaborative_text.v1`，见 [`../conformance/conformance-profiles.md` §3](../conformance/conformance-profiles.md)）时 SHOULD 优先采用消除 interleaving 的现代序列 CRDT —— **Eg-walker（Event Graph Walker，diamond-types）**、**Fugue/Peritext**（后者并处理富文本 mark 并发）或 **Loro/Yjs(YATA)**。其中 Eg-walker 在 event graph 上重放求值，与本规范的 event/causal-graph 范式天然同构、落地阻抗最小。序列 CRDT 仅活在该 opt-in extension profile、不进 core wire，因此算法升级是 profile 内的加法（新 lattice 标识 + 新 conformance vector / 新 `ck.profile.collaborative_text.v<n>`），不破坏任何 v1 core 签名字节。
 - 单值、硬配额、跨 cell 原子性和不可交换操作不得放在 data plane，除非使用专门 sequencer。
 - 并发不可合并时，reducer MUST 产生 structured bottom / conflict diagnostic，而不是用 HLC、actor id、数据库自增 ID、本地到达顺序或 Sync Service 顺序挑选 winner。
 - Timeline 展示顺序是 projection，MUST NOT 反向写入 canonical state、授权判断或 Lattice winner。

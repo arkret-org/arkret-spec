@@ -58,7 +58,7 @@ sidebar:
 | 算法 / 编码 profile id | `ck.rank.lexofractional.v1`、`ck.reducer.v1` | 定义文档（encoding.md §9、snapshot-schema.md）；它们不是 conformance profile，不进 conformance-profiles.json |
 | 设备验证方法名 | `ck.sas.v1`、`ck.qr.v1` | device-lifecycle.md（`ck.key.verification.request.methods` 词表） |
 | client-local scheme id（不进 wire 互操作面） | `ck.secret_storage.v1`、secret storage 的 `ck.mls.v1` | device-lifecycle.md / key-management.md |
-| 信封 scheme 常量 | `ck.blob.presign.v1` | media-and-blob.md §5.4.2（与已进 schema const 的 scheme 并存是允许的；进 schema const 后以 schema 为准） |
+| 信封 scheme 常量 | `ck.blob.presign.v1` | media-and-blob.md §5.4.2（与已进 schema const 的 scheme 并存是允许的；进 schema const 后以 schema 为准）。**例外**：HPKE 封装 suite id（`ck.hpke_*`）已进 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json)，按 registered 算法 agility suite 处理（与 signature / digest / mls-ciphersuite registry 并列），**不属**本豁免类别。 |
 | hash / transcript 域分隔标签 | `ck.agent_sidecar_circle.v1`、`ck.invite.claim.binding_proof.v1`、`ck.invite.claim.subject_proof.v1` | 使用处定义文档（MLS exporter label 除外——它有专属 exporter-label-registry） |
 | feature id（`supported_features` / `experimental_features` 值） | `ck.feature.identity.webvh_native_log.v1`、`ck.feature.mls_governance_binding.full.v1` | service-surface.md 与对应能力文档；feature id 是 describe 协商值，未识别值按各 describe 消费方规则忽略或 fail closed |
 | DID Document / 外部生态 profile 值 | `ck.org.governance.v1` | identity-did.md 示例上下文 |

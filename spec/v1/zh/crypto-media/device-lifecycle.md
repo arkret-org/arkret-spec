@@ -963,7 +963,7 @@ QR payload MUST NOT 包含长期私钥、secret storage key、recovery secret �
 | `request_id` | `string` | required | 关联到 pending 的 `ck.secret.request`；MUST 等于密封 plaintext 内被认证的 `request_id`。 |
 | `secret_id` | `string` | required | 与请求一致的 secret 标识。 |
 | `from_device` | `id:device` | required | 授权（已有）设备；MUST 等于 envelope 的 `sender_device_id`，且 MUST 是接收 principal 的未撤销设备。 |
-| `scheme` | `string` | required | MUST 为 `ck.hpke_x25519_aead_xchacha20poly1305.v1`。 |
+| `scheme` | `string` | required | MUST 为 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json) 中的 active suite id；v1 default-MUST 为 `ck.hpke_x25519_aead_xchacha20poly1305.v1`。未登记 / 非 active suite MUST fail closed（`unsupported_hpke_suite`）。 |
 | `enc` | `string` | required | base64url HPKE（RFC 9180）封装密钥（KEM 输出）。 |
 | `ciphertext` | `string` | required | base64url HPKE AEAD 密文。HPKE AAD 见下方定义。 |
 

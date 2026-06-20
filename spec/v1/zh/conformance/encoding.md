@@ -64,7 +64,7 @@ Event Envelope 的签名和 hash 输入 MUST 是去除 `proofs` 与 `unsigned` �
 
 v1 wire format 锁定为 canonical JSON。需要更紧凑或更适合受限设备的 binding 时，profile MAY 引入备用 canonical encoding：
 
-- **CBOR (RFC 8949) deterministic encoding** — 与 IETF MLS / COSE / WebAuthn 同源；适合 IoT、嵌入式与高密度 wire 场景。
+- **CBOR (RFC 8949) deterministic encoding** — 与 IETF MLS / COSE / WebAuthn 同源；适合 IoT、嵌入式与高密度 wire 场景。引入该 encoding 的 profile activation **SHOULD 直接 pin 上游已标准化的 deterministic CBOR profile —— CDE（CBOR Common Deterministic Encoding，draft-ietf-cbor-cde）或 dCBOR（draft-mcnally-deterministic-cbor）—— 而非自拟 deterministic 细则**，以复用上游 conformance 向量与多实现、并与 COSE / CWT 生态自然互通；自拟细则会重新发明等价规则并承担"与他人不互通"风险。所选 deterministic profile 按 MIMI 同构的 draft-pinning 纪律固定（draft 变更 = 新 profile 版本）。
 - 其他 binary encoding（如 protobuf、msgpack）SHOULD 通过 profile 单独引入，MUST NOT 静默替换 v1 canonical JSON。
 
 备用 canonical encoding 通过 **digest suite 机制**（§3.1 / §3.2、[`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json)）进入协议，规则如下：
@@ -250,6 +250,8 @@ Verifier 顺序固定为：先从 Event 中移除 `proofs` 与 `unsigned`，按 
 ### 6.1 Signature Suite registered set
 
 签名算法的 canonical 机器来源是 [`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json)(与 §3.2 Hash registered set 对称)，下表是其规范阅读视图。proof `alg` 字段 MUST 取自 registry active row 的 `proof_alg`；raw / non-JWS `signature_algorithm` 字段 MUST 取自 active row 的 `signature_algorithm`。散落于各 schema 的签名算法 enum MUST 由该 registry 校验，MUST NOT 在 schema 中私自引入未登记算法。`detached_jws` 形态的 `alg` 使用 JWS 标准标识(`EdDSA` 对应 Ed25519);非 JWS 形态(如 raw detached signature)按 registry 的 raw `signature_algorithm` 标识。
+
+对称地，**非-MLS 应用层公钥封装**（key-backup `recovery_public_key` / `did_recovery` envelope、to-device `ck.secret.send`、member-application 与 file-transfer key envelope）的 KEM/KDF/AEAD 算法 agility 由 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json)（HPKE，RFC 9180）承载，与签名、digest、MLS-ciphersuite 并列为第四个算法 agility 面；其 `hpke_suite` / envelope `scheme` 选择字段的 enum MUST 由 registry active rows 生成，未登记 suite MUST fail closed（`unsupported_hpke_suite`）。MLS 群组消息的 HPKE 内核仍由 [`mls-ciphersuite-registry.json`](../../artifacts/registry/mls-ciphersuite-registry.json) 承载，不在该 registry 范围内。
 
 表列与 registry active row 字段一一对应:`canonical_id`(下表 `Algo`)、`proof_alg`(JWS `alg`，detached_jws 形态用)、`signature_algorithm`(raw / non-JWS detached signature 形态用)。`Ed25519` 行的 `proof_alg`(`EdDSA`)与 `signature_algorithm`(`Ed25519`)不同，二者 MUST 分别取自对应列，不可互相替代。
 
@@ -540,6 +542,7 @@ rank_between(left, right):
 例如 `rank_between("", "0")` MUST 返回 `rank_exhausted`，因为在 start sentinel 与最小 rank `"0"` 之间不存在合法 rank。客户端或 reducer 遇到 `rank_exhausted` MUST 触发 rebalance 或要求调用方提交 `ck.container.rebalance`，MUST NOT 生成非法 rank。
 - 当 rank 长度超过 128，或连续插入导致实现无法生成短 rank，客户端 SHOULD 请求或提交 `ck.container.rebalance`。Reducer MUST NOT 接受超过 128 字符的 rank。
 - 同一 container 内 rank 完全相同的对象 MUST 按 `rank_source_event_hlc`、`rank_source_actor_id`、`rank_source_event_id`、`object_id` 继续排序；如果 rank source 元数据缺失，MUST 使用 `object_id` 作为最终稳定 tie-break，并在 conformance report 中声明降级。该 tie-break 仅用于 projection 展示序，不进入 canonical state、`state_root` 或授权判断。
+- **并发同 gap 插入抖动（concurrent-insert jitter，normative）**：两个客户端在同一 `(left, right)` gap 并发调用 `rank_between` 会确定性地算出相同 rank，落到上一条的 tie-break，体验上表现为顺序抖动。为降低该碰撞概率，`rank_between` 在该 gap 仍有剩余编码空间时 SHOULD 在所选 rank 尾部追加一段短随机 jitter 尾缀（合法 base-62 字符，不破坏 `left < rank < right` 严格不等式与 1..128 长度上限）；jitter 是 Figma / Observable fractional-indexing 的成熟做法，纯客户端生成，不改 wire 形态、不进入 digest 输入。jitter 只降低碰撞概率、不替代上一条的确定性 tie-break：rank 仍相同时 MUST 回落到 `rank_source_*` 全序。耗尽编码空间时按上一条走 `ck.container.rebalance`，MUST NOT 用 jitter 绕过 128 字符上限。
 - `ck.container.rebalance` 的 assignment 生成 MUST 基于权限裁剪前的 canonical ordered set。先按 reducer 已确定的稳定顺序排列 active edges，再选择最小宽度 `w`，使 `alphabet_length^w >= 2 * (item_count + 1)`；第 `i` 个对象（1-based）的 rank number 为 `floor(i * alphabet_length^w / (item_count + 1))`，以固定宽度 base62 编码并用 alphabet 第一个字符左填充。若所需 `w > 128`，实现 MUST reject 该 rebalance。
 - Rebalance assignments MUST 覆盖 container 内全部 active edges，且 MUST NOT 新增、删除或跨 container 移动 edge。CAS 的 `expected_state_digest` 不匹配时，MUST 拒绝整个 operation，MUST NOT 部分应用。
 

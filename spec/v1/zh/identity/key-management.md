@@ -724,7 +724,7 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 DEK 通过 HPKE（base mode）加密给 `recovery_public_key`：
 
 - `recipient_key_ref` MUST 是当前 accepted recovery policy（§8）中声明的 verification_method，或当前 DID Document 中声明的 `recoveryKeyAgreement`。
-- KEM MUST 是 `X25519` 或 `P-256`，KDF MUST 是 `HKDF-SHA256`，AEAD MUST 与 envelope 的 `aead.name` 一致。
+- HPKE suite MUST 是 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json) 中的 active 行，由 `encryption.hpke_suite` 选定；该字段缺省时 MUST 解释为 default-MUST 行 `ck.hpke_x25519_aead_xchacha20poly1305.v1`。`aead.name` MUST 等于所选 suite 的 AEAD。遇到未登记、非 active 或 reserved-未激活的 suite id，receiver MUST fail closed（`unsupported_hpke_suite`），MUST NOT 自由组合未登记的 KEM/KDF/AEAD，也 MUST NOT 仅凭 `aead.name` 推断 suite 参数。P-256 KEM 互操作经 profile-gated 行 `ck.hpke_p256_aead_aes256gcm.v1`（`ck.profile.hpke.p256.v1`）提供。HPKE 单发 base-mode 由 key schedule 内部派生 AEAD nonce，故 `recovery_public_key` envelope 不携带 wire `nonce`。
 - HPKE `info` MUST 包含 `canonical_json({backup_id, series_id, series_seq, actor_id, backup_class, backup_version, created_at})`；HPKE `aad` MUST 等于 envelope 的 AEAD AAD。
 - 受 DID 轮换影响：recovery key 轮换后产生的新 envelope MUST 引用新 verification_method；旧 envelope 在轮换 grace window 之后 receiver MUST 拒绝用旧 key 完成的解锁证明。
 - 当 `backup_class="did_recovery"` 时，envelope 顶层 `recovery_policy_ref{policy_id, policy_version}` MUST 等于当前 accepted recovery policy；`recipient_key_ref` 必须解析到该 policy 或当前 DID Document recovery key agreement 声明中的接收 key。不匹配 MUST `recovery_policy_mismatch`。其它 `backup_class` 使用 `recovery_public_key` 时，`recovery_policy_ref` 只是可签名 hint；若出现，receiver MUST 验证它与当前 accepted recovery policy 一致，但不得把它作为 MLS 历史或 secret storage 授权的替代。
@@ -738,6 +738,7 @@ DEK 通过 HPKE（base mode）加密给 `recovery_public_key`：
 - 当 `backup_class="mls_history"` 使用 `secret_storage_key` 时，envelope MAY 携带顶层 `recovery_policy_ref{policy_id, policy_version}` 作为恢复流程 hint；若出现，`auth_data.signed_fields` MUST 覆盖它，receiver MUST 验证它与当前 accepted recovery policy 一致。MLS 历史材料的释放仍以 active-series record、frontier_ref、Realm/MLS 授权与设备状态校验为准。
 - 新设备 MUST NOT 通过 `secret_storage_key` envelope 直接 bootstrap：新设备必须先经由 `passphrase_kdf`，或先经 recovery policy 释放 recovery private key 后通过 `recovery_public_key` 解出 root `secret_storage` key，然后才能拉取 `secret_storage_key` envelope。
 - 这是为了消除"新设备能解 wire envelope"的循环依赖。
+- **AEAD nonce 唯一性（normative）**：`secret_storage_key` 是长期复用的对称 wrap key，因此 `aead.nonce` MUST 在该 `recipient_key_ref` key 的整个生命周期内对每条 envelope 唯一——producer MUST 为每条新 envelope 生成至少 96-bit 的随机 nonce（或在该 key 下严格单调不回绕的 counter），且 MUST NOT 用同一 (`recipient_key_ref` key, `aead.nonce`) 对写第二条 envelope；需要更新内容时 MUST 生成新 `backup_id` 与新 `nonce`，并 SHOULD 轮换底层 wrap key。`nonce` 进入 `auth_data.signed_fields` 覆盖的 AEAD AAD（§7.4）。该约束与 `passphrase_kdf` 的 `nonce_salt` deterministic derivation（§7.5.1）、`recovery_public_key` 的 HPKE 内部 nonce 派生共同关闭三种 `recipient_method` 的 nonce-reuse 面。
 
 #### 7.5.4 门限恢复作为 recovery policy 层
 
@@ -816,7 +817,7 @@ v1 core 不把 `hardware_wrapped_key` 作为 `ck.schema.key_backup.v1.encryption
 v1 的备份枚举数量有限，但 envelope 结构需要支持未来 PQ / hybrid 迁移：
 
 - Receiver MUST 对未知 `encryption.kdf.name`、`encryption.aead.name`、`encryption.aead.aead_profile`、`encryption.recipient_method` fail closed（不得回退到默认）。
-- PQ / hybrid KEM agility MUST 通过未来 `recipient_method_profile` / `hpke_suite` / `kem_profile` 字段或 profile registry 声明，不得塞进 AEAD profile。`ck.aead.*` 只描述 AEAD 算法、nonce/tag/key 长度和 AAD 构造；receiver 收到把 KEM 语义编码进 `encryption.aead.aead_profile` 的 envelope MUST fail closed。
+- PQ / hybrid KEM agility MUST 通过 `encryption.hpke_suite` 选择子 + [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json) 声明，不得塞进 AEAD profile。PQ hybrid（X25519+ML-KEM-768）已在该 registry 预留 `ck.hpke_xwing_aead_xchacha20poly1305.v1`（status=reserved，profile `ck.profile.kem.hybrid_xwing.v1`），与 `ck.aead.hybrid_kem.*` 预留 namespace 对齐，待实现计划成立时按 registry 规则翻为 active。`ck.aead.*` 只描述 AEAD 算法、nonce/tag/key 长度和 AAD 构造；receiver 收到把 KEM 语义编码进 `encryption.aead.aead_profile` 的 envelope MUST fail closed。
 - 当 `frontier_ref` 携带 `seal_ref` 时，client 可以用 Seal inclusion proof 来证明 envelope 创建时刻不晚于 Seal commit；receiver MAY 在 sovereign / high_security_organization profile 中要求该证明。
 - 实现 MUST 在 envelope metadata 中保留 `additionalProperties` 与 `x_*` 前缀作为 forward-compat 扩展槽；MUST NOT 在 wire 上接受未知顶层字段（已由 schema `additionalProperties: false` 强制）。
 
