@@ -76,7 +76,7 @@ HTTP 路径的第一段是 trust-surface classifier（信任面分类器），�
 | 账号自服务与聚合同步 | `ck.self.account.query.viewer`、`ck.self.account.command.update_profile`、`ck.self.account.stream.subscribe`、`ck.self.account.query.describe`、`ck.self.account.command.revoke_cursor` | `/_cokret/self/account/*` |
 | Realm snapshot 入口 | `ck.snapshot.*` | `/_cokret/self/snapshot/*` |
 | Federation peer snapshot 入口 | `ck.peer.snapshot.*` | `/_cokret/peer/snapshot/*` |
-| 目录发现 | `ck.directory.*` | `/_cokret/find/directory/*` |
+| 目录发现 | `ck.find.directory.*` | `/_cokret/find/directory/*` |
 | Blob / media | `ck.blob.*` | `/_cokret/self/blob/*` |
 | 推送 | `ck.push.*` | `/_cokret/edge/push/*` |
 | 设备加密 | `ck.device_messages.*`、`ck.keys.*` | `/_cokret/self/device_messages/*`、`/_cokret/self/keys/*` |
@@ -382,7 +382,7 @@ paths:
 | `ck.self.snapshot.query.manifest_head` | `GET /_cokret/self/snapshot/head` | snapshot manifest |
 | `ck.peer.snapshot.query.manifest_head` | `GET /_cokret/peer/snapshot/head` | peer snapshot manifest |
 | `ck.self.projection.spaces.query.list` / `ck.self.projection.strands.query.list` / `ck.self.projection.morphs.query.list` / `ck.self.views.collection_projection.command.materialize` / `ck.self.projection.document.resource.get` | `GET /_cokret/self/projection/spaces`, `GET /_cokret/self/projection/strands`, `GET /_cokret/self/projection/morphs`, `POST /_cokret/self/views/{view_id}/projection`, `GET /_cokret/self/projection/documents/{morph_id}` | gRPC `SelfProjection/Spaces` / `SelfProjection/Strands` / `SelfProjection/Morphs` / `SelfViews/CollectionProjection` / `SelfProjection/Document`; MQ `projection.*` / `self.views.collection_projection.command.materialize` |
-| `ck.directory.search_*` / `ck.directory.resolve_*` / `ck.find.directory.query.list_handles_for_subject` | `POST /_cokret/find/directory/*`（含 `resolve-handle` 与 `list-handles-for-subject`） | gRPC Discovery Service |
+| `ck.find.directory.query.search_*` / `ck.find.directory.query.resolve_*` / `ck.find.directory.query.list_handles_for_subject` | `POST /_cokret/find/directory/*`（含 `resolve-handle` 与 `list-handles-for-subject`） | gRPC Discovery Service |
 | `ck.find.directory.command.announce` / `ck.find.directory.command.withdraw` / `ck.find.directory.push.command.register` | `POST /_cokret/find/directory/announce`, `POST /_cokret/find/directory/withdraw`, `POST /_cokret/find/directory/push/register` | gRPC Discovery Ingest Service |
 | `ck.self.blob.upload.create` / `ck.self.blob.resource.head` / `ck.self.blob.resource.get` | `POST /_cokret/self/blob/upload`, `HEAD/GET /_cokret/self/blob/get` | Object-store signed URL binding / gRPC blob service |
 | `ck.edge.push.command.register_device` / `ck.edge.push.command.notify` | `POST /_cokret/edge/push/register-device`, `POST /_cokret/edge/push/notify` | APNs/FCM adapter / MQ wakeup topic |

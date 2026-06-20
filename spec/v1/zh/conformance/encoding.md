@@ -495,7 +495,7 @@ Cursor 对客户端不透明，且 v1 core cursor 是 stateful handle。`h` 是 
 - **整个 cursor base64url 解码后 canonical bytes MUST ≤ 64 KiB**：超出时 issuing 服务 MUST 用 snapshot pointer / commitment hash 折叠，MUST NOT 直接产出超大 cursor；receiver 收到超大 cursor MUST `invalid_param`。
 - 大型 Realm 在 frontier 折叠为 `event_set_commitment.root` 或 snapshot pointer 后，仍 MAY 通过显式 sync extension profile 提供 range-based set reconciliation 能力，用于按差异大小协调缺口；该能力不得改变 Seal finality、Event 因果语义或 cursor 不透明性，且未声明该 profile 的 v1 consumer MUST 继续按 snapshot / backfill 路径恢复。
 - 支持 stream cursor 与 barrier cursor 的过期时间；两者的 TTL 硬上限数值由 §8.3 规则 9 唯一定义，本节只引用不重复字面数值。
-- 以适当错误拒绝非法 cursor。
+- 拒绝非法 cursor 时 MUST 按 §8.3 与 [`conformance-vectors.md`](./conformance-vectors.md) §1.11 的错误码闭集返回：语法 / schema 失败返回顶层 `invalid_param`（reason `invalid_cursor`），过期返回 `cursor_expired`，handle lookup / binding 失败返回 `cursor_integrity_invalid`。
 
 ## 9. Rank
 

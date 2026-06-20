@@ -361,6 +361,8 @@ strand_part            ::= strand_id | "*"
 
 Canonical JSON 中，多个 `resources[]` 的默认语义是 OR；同一 grant 内 constraints 按各自定义求交或 fail-closed。
 
+**Constraint 与 `resources[]` 的绑定粒度（normative）**：v1 的 `constraints[]` 作用于该 grant 内**全部**命中资源，对所有命中资源统一求值（allow 约束相交 AND，见 [`constraint-schema.md` §15.2](./constraint-schema.md)）；v1 **不存在** per-resource 局部约束语法——无法表达"对资源 A 施加约束 X、对资源 B 施加约束 Y"。因此当授予者需要对不同资源施加**异构**约束时，**MUST** 拆分为多个 grant（每个 grant 一组同质资源 + 对应约束），**MUST NOT** 把多个资源放进同一 grant 后期望 constraint 按资源分别绑定——后者会让所有约束对所有命中资源统一生效（典型表现为意外放宽：授予者以为"对 A 给字段 X、对 B 给字段 Y"，实际等价于对 A∪B 都给 X∪Y）。实现 / IAM 工具 SHOULD 在 UI 中提示该表达力边界，避免误授过宽。
+
 ## 6. 匹配算法
 
 给定目标资源和 selector：
@@ -376,8 +378,17 @@ function matches(target, selector):
     if selector.match_scope is absent:
         selector.match_scope = "exact"
 
+    # fail-closed：非法的 match_scope / kind 组合 MUST 拒绝整个 grant，
+    # 不得 `return false` 静默跳过该条目（与 §6 表的 schema_violation 裁决一致）。
+    if selector.match_scope not in {"exact", "children", "subtree", "realm_wide"}:
+        raise SchemaViolation("unknown match_scope")
     if selector.match_scope == "realm_wide" and not selector.realm_id:
-        return false
+        raise SchemaViolation("realm_wide selector missing realm_id")
+    # children / subtree 仅对 space 有效；realm_wide 仅对 space / circle 有效（见 §6 表）。
+    if selector.match_scope in {"children", "subtree"} and selector.kind != "space":
+        raise SchemaViolation("children/subtree match_scope only valid for space")
+    if selector.match_scope == "realm_wide" and selector.kind not in {"space", "circle"}:
+        raise SchemaViolation("realm_wide match_scope only valid for space/circle")
 
     if selector.kind == "realm":
         return target.type == "realm" and (

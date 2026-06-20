@@ -319,6 +319,27 @@ DID-method history → principal_signing_key (PSK)
 
 实现 MUST 把"未携带 `cross_signing_binding` 的 `ck.device.authorize`"与"binding 校验失败"区分上报，因为前者属于 bootstrap 例外（仅 [`identity/key-management.md` §5.0.1](../identity/key-management.md) inception 路径允许），后者属于密码学异常。
 
+#### 5.2.2 设备 lifecycle × trust 正交状态机（normative）
+
+设备状态由**两个正交维度**构成，二者独立演进、不可互相替代：
+
+- **Lifecycle 维度**：`active`（`ck.device.authorize` 在效）↔ `revoked`（`ck.device.revoke` 已吊销）。`revoked` 是 **terminal**——一旦吊销，该 `device_id` MUST NOT 被复活；重新启用需新设备新 `device_id` 走新 `ck.device.authorize`。目录态投影见 §8.2 `device_status`。
+- **Trust 维度**：`unverified` / `cross_signed` / `needs_reverification` / `verified`，由 §5.2.1 验证算法 + §14 reset 规则驱动。
+
+两维度正交关系与合法转换如下：
+
+| | trust=`unverified` | trust=`cross_signed` | trust=`needs_reverification` | trust=`verified` |
+| --- | --- | --- | --- | --- |
+| lifecycle=`active` | 初始态 / binding 缺失或校验失败（§5.2.1 步骤4） | §5.2.1 步骤5 binding 校验通过（generation 相等） | §5.2.1 步骤5 generation 小于（旧 binding）或 §14.2 reset 扩散 | SAS/QR 人工验证成功（§10.5）或入册权威背书路径 |
+| lifecycle=`revoked` | （吊销后 trust 维度冻结，见下） | — | — | — |
+
+正交转换规则：
+
+- **trust 出边**：`unverified → cross_signed`（binding 校验通过）；`cross_signed → verified`（人工 SAS/QR 验证）；`cross_signed`/`verified → needs_reverification`（cross-signing reset，§14.2 或 binding generation 落后）；`needs_reverification → cross_signed`（被新 generation SSK 重新 cross-sign，即出现 `ssk_generation == accepted_generation` 的有效 binding）；`needs_reverification → verified`（重新 cross-sign 后再次人工验证）。`verified` 不直接降回 `cross_signed`（人工信任只被 reset 显式作废为 `needs_reverification`）。
+- **lifecycle 出边**：`active → revoked`（`ck.device.revoke`），terminal，无逆边。
+- **revoked 设备的 trust 取值**：设备进入 `revoked` 后其 trust 维度**冻结**为吊销时刻的值且不再用于任何信任判定——receiver MUST 把 revoked 设备一律当作不可用于验签 / 不可接收新密钥（§8.2 / §9：`device_status != active` 即 fail-closed），无论其冻结的 trust 值为何。trust 维度仅对 `active` 设备有协议意义。
+- **非法迁移**：从 `revoked` 转出任何 lifecycle/trust 态 MUST 被拒绝（视为陈旧投影，按 control 流 frontier fail-closed）。
+
 ### 5.3 Bootstrap 例外
 
 [`identity/key-management.md` §5.0.1](../identity/key-management.md) 中首台设备由 inception key 自授权时，`ck.device.authorize.payload.cross_signing_binding` MUST 省略 `verification_method` 引用，并改用 `bootstrap_binding`：
@@ -387,6 +408,7 @@ Cokret 推送通道设计的目标是在不向 push gateway / vendor、上游 Sy
 - 撤销：设备 MUST 在同一 actor-private cell 上写后继 `ck.device.push_route` event 设置 `revoked: true` 或重新写入新 `push_target_id`；service / gateway MUST 在 actor-private state 收敛后停止接受旧伪名。
 - 轮换：客户端 SHOULD 在 push token 变化、设备恢复、Out-of-band 重新登录、或自定义 rotation 周期（默认 ≤ 90 天）时轮换 `push_target_id`。
 - 长期不可恢复性：服务方在丢弃旧 `push_target_id` 后 MUST NOT 保留可把旧 / 新伪名链接回同一 `(recipient_service_did, principal, device)` 的索引；只允许在 rotation 时短暂保留以便迁移未投递消息。短暂保留期 MUST ≤ 24h，或与单条未投递消息 TTL 取较短者；超过该窗口 MUST 物理删除旧 `push_target_id` 与对应索引材料，不得保留任何能把新旧映射回同一 device 的信息。
+- **条数与注册速率上限（normative）**：单一 `(recipient_service_did, principal_id, device_id)` 维度下并存的 active `push_route` 条数 MUST ≤ 16（v1 wire 上限；登记于 [`../conformance/scalability-constraints.md` §6.1](../conformance/scalability-constraints.md)），超过时服务端 MUST 拒绝新 `ck.device.push_route` 注册（`push_route_limit_exceeded`）。同一维度的 push-route 注册 / 轮换 MUST 限速，默认窗口 60s 内 ≤ 8 次写入；超额时返回限速响应并记内部审计 `push_route_registration_rate_limited`。该上限防止单设备通过无界 push_route 放大注册状态或制造可链接性面。
 
 ### 5a.3 不可链接性要求
 
@@ -477,9 +499,16 @@ Content-Type: application/json
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `ok` | `boolean` | required | 请求是否被处理。 |
+| `ok` | `boolean` | required | 请求是否被**接受处理**（见下 partial-success 规则）。 |
 | `delivered` | `object` | optional | 已入队或已投递设备摘要。 |
 | `unknown_devices` | `object` | optional | 无法识别或不可投递的设备。 |
+
+**Partial-success / 全局失败语义（normative）**：
+
+- **整体拒绝**（请求级失败：认证 / 授权失败、`Idempotency-Key` 冲突、所有目标 envelope 缺 `expires_at` / 已过期 / 超 TTL 上限、body 非 canonical）MUST 走 HTTP 错误响应（4xx，按 [`../sync/api-conventions.md`](../sync/api-conventions.md) error envelope），**不**用 `ok=false` 表达；此时不入队任何消息。
+- **部分成功**（请求被接受、至少一个目标被处理，但部分设备落入 `unknown_devices`）：`ok` MUST 为 `true`——`ok` 表达"请求已被接受并逐设备处理"，而非"全部设备均成功"。逐设备结果由 `delivered` / `unknown_devices` 表达。
+- **覆盖关系**：`delivered` 与 `unknown_devices` 的设备集合 MUST 互不相交，且其并集 MUST 等于请求 `messages` 中的全部 `(principal_id, device_id)` 目标全集（每个目标恰好出现在二者之一）。consumer 据此可断言无目标被静默丢弃。
+- 单设备因 TTL / `expires_at` 等可投递性原因不可入队时，该设备 MUST 计入 `unknown_devices`（携带可投递性失败语义），不使整请求失败。
 
 请求示例（非完整 schema）。`messages.{principal_id}.{device_id}` 的 `{device_id}` 是**收件设备**地址,`content.from_device` 是**发送设备**(MUST 等于 envelope `sender_device_id`,见 §10.1),二者为不同设备，故 UUID 不同：
 
@@ -666,7 +695,9 @@ POST /_cokret/self/keys/claim
 规则：
 
 - 服务端 MUST 仅对 verified 且未吊销设备返回 `device_signing_key`；对**吊销 / 未验**设备 MUST 省略 `device_signing_key`，并以 `device_status` 标注(吊销返 `revoked`)。即"省略 key" 与 "`device_status != active`" 等价表达设备不可用于验签。
-- **Tier-1 便捷面**：`device_signing_key` 承载服务端在 session-grant / `device.authorize` ingest 时已校验过的 `device_public_key` 断言。仅信服务端断言的客户端可用它达成 fail-closed 验证。
+- **Tier-1 便捷面（降级行为）**：`device_signing_key` 承载服务端在 session-grant / `device.authorize` ingest 时已校验过的 `device_public_key` 断言。仅信服务端断言而不独立验证交叉签名链的客户端，其设备身份信任根退化为"承载服务端诚实"，与 §4「device 身份不可由服务端伪造」相悖，故 **Tier-1 是显式降级行为，MUST NOT 作为 `e2ee_client` conformance profile 下 E2EE / 通话 proof 验签路径的默认行为**：
+  - 凡声明 `ck.profile.e2ee_client.v1` 的客户端，在 E2EE 消息与通话信令 proof 验签路径上 MUST 执行 §8.3 的 Tier-2 链验证；仅服务端断言（Tier-1）不满足该 profile 的接受判据。
+  - 不在该 profile 下、仅凭 Tier-1 接受 `device_signing_key` 的客户端，MUST 向用户披露"该设备身份未经密码学交叉签名链验证、信任根为承载服务端"（例如以 `unverified` / `device_unverified` 标识呈现），MUST NOT 把该设备呈现为已验证。
 - **Tier-2 硬化面**：返回 `cross_signing_binding`（每设备）与 `cross_signing`（每 principal）的客户端 MUST 按 §8.3 独立验证完整交叉签名链，**不信服务端对 `device_signing_key` 的断言**，仅在链验证通过后才接受该 key。服务端对在效设备 SHOULD 同时返回 Tier-2 字段；缺失时客户端 MUST 视为 `unverified` 并 fail-closed。
 
 接收方验 envelope / signal proof 时 MUST 按 `verification_method` = `` `{actor}#device` `` 经本目录解析 `device_signing_key` 得 verify_key；设备**吊销**(`device_status != active` 或目录省略 key)、目录**缺失**该 `(actor, device)`、Tier-2 链验证未通过、或验签失败者 MUST **fail-closed**：丢弃信号，MUST NOT 触发 UI、MUST NOT 入库。该规则同时适用于通话信令(详见 [`webrtc-signaling.md` §5.1](./webrtc-signaling.md))与持久消息接收路径。
@@ -756,6 +787,25 @@ POST /_cokret/self/keys/keypackages/revoke
 - Device / Key Server MUST 维护过期扫描或等价触发：KeyPackage `expires_at`、claim `expires_at`、device revoke、principal control state 失效、capability revoke 或 Realm policy 变更任一发生时，后续 `query` / `claim` MUST NOT 返回该 KeyPackage；后台清理不得是唯一防线。扫描周期 SHOULD ≤ 60s，且每次 `claim` 路径必须先做同步 freshness 判定。
 - KeyPackage claim MUST 对 `(requester_service_did, target_principal_id)` 做限速，默认窗口为 60s 内最多 5 次 claim 尝试。超过限额时对外仍使用反枚举响应（`claim_failed` 或通用 rate-limited envelope，不泄露目标存在性）；服务端内部审计 reason 记录为 `keypackage_claim_rate_limited`。
 - claim record SHOULD 被 Principal Server / Device Key Server 保留到 Welcome 过期后的一段短 TTL，用于重试、诊断和滥用审计；不得长期保留可关联 private Realm / MLS group 的明文目标信息。
+
+### 9.1 KeyPackage 状态机（normative）
+
+上述分散规则共同定义下列受控状态机，单段 KeyPackage（由 `keypackage_ref` 标识）的合法状态与转换为：
+
+| 状态 | 语义 | 合法后继 | 终态? |
+| --- | --- | --- | --- |
+| `published` | 已 upload，可被 claim | `claimed`（原子 claim）、`revoked`（device revoke / principal 失效 / KeyPackage `expires_at` 到期）、`retired`（account deactivation，§7.1） | 否 |
+| `claimed` | 已被某次 claim 原子占用 | `consumed`（Welcome 成功处理后 consume）、`revoked`（claim `expires_at` 到期 / device revoke / capability revoke） | 否 |
+| `consumed` | 已被 Welcome 消费 | —（终态） | **是** |
+| `revoked` | 因过期 / 吊销 / policy 失效不可用 | —（终态） | **是** |
+| `retired` | account deactivation 标记的 unused KeyPackage | —（终态） | **是** |
+
+转换约束：
+
+- **`published → claimed` 原子**：`claim` MUST 原子转换；同一 `keypackage_ref` 不得被多个 active claim 占用。
+- **`claimed` 不回 `published`**：claimed 但未 consume 的 KeyPackage 到达 claim `expires_at` 后 MUST 转 `revoked`，服务 MUST NOT 自动放回 `published`，也 MUST NOT 接受迟到的 consume。
+- **终态集合**：`{ consumed, revoked, retired }` 均为 terminal，任何转出 MUST 被拒绝。`published` / `claimed` 的过期或吊销一律收敛到 `revoked`（claim 路径同步 freshness 判定，扫描周期 SHOULD ≤ 60s，见上）。
+- **`retired`**：仅 account deactivation fanout（[`../identity/account-lifecycle.md` §7.1](../identity/account-lifecycle.md)）把 unused（`published`）KeyPackage 标 `retired`；已 `claimed` / `consumed` 的不改写。新邀请 MUST NOT 从 `retired` / `revoked` / `consumed` 的 KeyPackage 选取。
 
 ## 10. Verification Strands
 
@@ -1043,7 +1093,7 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
 
 - 备份 metadata MUST 绑定 actor DID、device id、backup id、backup class、created_at、ciphertext digest 和加密参数。
 - `backup_class="did_recovery"` 的 wire envelope MUST 使用 `recipient_method="recovery_public_key"`，并携带顶层 `recovery_policy_ref{policy_id, policy_version}`，且与当前 accepted recovery policy 一致；不一致 MUST `recovery_policy_mismatch`。`mls_history` 与 `secret_storage` envelope MAY 携带 `recovery_policy_ref` 作为恢复流程 hint；若出现，receiver MUST 验证它与当前 accepted recovery policy 一致，但不得用它替代 active-series record、frontier_ref 或 Realm/MLS 授权校验。
-- 上传设备 MUST 通过 `auth_data` 对 backup metadata 与 ciphertext digest 签名，并 SHOULD 携带 `auth_data.ssk_generation` 绑定当前 accepted `ck.cross_signing.publish.generation`（加固档 `ck.profile.*.e2ee.v1` 等 hardening profile 下 MUST 携带并纳入 `signed_fields`；core schema 不把 `ssk_generation` 列为 required，故核心档下缺失时按加固档策略处置，而非 schema `schema_violation`）。`auth_data.signed_fields` MUST 至少覆盖 `backup_id`、`actor_id`、`backup_class`、`backup_version`、`series_id`、`series_seq`、`supersedes`、`encryption`、`contents` 与 `ciphertext_digest`；非 genesis envelope 还 MUST 覆盖 `supersedes_digest`，携带 `frontier_ref` 时还 MUST 覆盖 `frontier_ref`，携带 `recovery_policy_ref` 时还 MUST 覆盖 `recovery_policy_ref`。签名链必须链接到当前 principal 的 self-signing / device trust chain。
+- 上传设备 MUST 通过 `auth_data` 对 backup metadata 与 ciphertext digest 签名，并 SHOULD 携带 `auth_data.ssk_generation` 绑定当前 accepted `ck.cross_signing.publish.generation`（加固档 `ck.profile.*.e2ee.v1` 等 hardening profile 下 MUST 携带并纳入 `signed_fields`；core schema 不把 `ssk_generation` 列为 required，故核心档下缺失时不报 schema `schema_violation`。但对高敏 `backup_class ∈ {secret_storage, did_recovery}`，receiver 即便在 core 档下也 MUST 在缺失 `ssk_generation` 时 fail-closed，详见 [`identity/key-management.md` §7.4.1](../identity/key-management.md)；`mls_history` 类缺失时按 hardening profile 策略处置）。`auth_data.signed_fields` MUST 至少覆盖 `backup_id`、`actor_id`、`backup_class`、`backup_version`、`series_id`、`series_seq`、`supersedes`、`encryption`、`contents` 与 `ciphertext_digest`；非 genesis envelope 还 MUST 覆盖 `supersedes_digest`，携带 `frontier_ref` 时还 MUST 覆盖 `frontier_ref`，携带 `recovery_policy_ref` 时还 MUST 覆盖 `recovery_policy_ref`。签名链必须链接到当前 principal 的 self-signing / device trust chain。
 - 服务端 MUST 只允许同一 actor 的当前授权设备、满足 recovery policy 的恢复流程，或 policy 明确授权的组织恢复服务读取备份密文。
 - 服务端返回备份列表时 SHOULD 最小化 metadata；不得向无关 caller 暴露 Realm membership、MLS group id 或历史范围。
 - 删除备份只删除服务端密文和 metadata；它不撤销 DID 控制权，也不改变 Realm membership。需要吊销设备或轮换 MLS epoch 时必须发布相应事件。

@@ -47,7 +47,7 @@ updated: 2026-06-10
 
 执行 `python tools/artifact_pipeline.py check` 时，CLI 输出与上表必须一致；任何不一致都说明
 canonical catalog 或派生工件出现 drift，必须在合并前修复。每次新增或退役 registry 项，MUST 同时
-按 `CHANGELOG.md` "extension profile 变更登记模板" 记录条目；上表计数为生成快照，可在 drift 暴露后刷新，但其权威性始终以 Canonical 文件与 `artifact_pipeline.py check` 输出为准。
+按 [`CHANGELOG.md`](../../CHANGELOG.md) "extension profile 变更登记模板" 记录条目；上表计数为生成快照，可在 drift 暴露后刷新，但其权威性始终以 Canonical 文件与 `artifact_pipeline.py check` 输出为准。
 
 规范稳定不等于任一实现已经获得完全互操作认证。当前仓库的本地工具只提供 artifact / schema / registry / fixture digest 发布门禁；reference validator、reference reducer、reference authz evaluator 与 conformance runner 尚未作为完整认证工具链发布。实现若宣称通过某个 profile，仍必须通过对应 reference validator、reference reducer、reference authz evaluator 与 conformance runner；这些工具和测试结果属于实现认证门槛，而不是降低或替代本规范的 wire contract。
 

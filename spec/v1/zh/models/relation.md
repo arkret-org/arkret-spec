@@ -144,6 +144,8 @@ Relation 的 `realm_id` 表示关系事实所在的源 Realm；`from_ref` / `to_
 - 不得把"源 Realm 写权限"误当成"目标 Realm 引用权限"——两者是**两次独立 capability check**。
 - 目标 Realm policy 拒绝引用时（例如 `discoverability=secret` + 不在 trusted issuer 列表），源 Realm 仍 MAY 接受 Relation 但**MUST**在 projection 层把它降级为 `ReferenceProjectionStatus.locked`，并不得泄露目标 Realm 的存在性细节。reducer 仍把 Relation 视为 `active` 写入 canonical event log；`locked` 只由 projection 在读取时对目标 Realm policy 做最新评估后派生而成。当目标 Realm 解除 policy 阻塞时，projection 在下一次重新评估时自动把同一 Relation 显示为 `accessible`（含具体目标 metadata），**无需**额外发布 "Relation unlock" 事件；同理 lock 与 unlock 之间不引入 reducer-level 状态机或新的 cell 类型。源 Realm SHOULD 缓存最近一次目标 policy 评估结果，以减少跨 Realm 探测；缓存 TTL 由目标 Realm `discoverability` policy 与 projection 实现 trade-off，但 MUST 在 policy 显式变更时即时失效。
 
+> **projection 态的收敛语义（normative 澄清）**：`ReferenceProjectionStatus`（`accessible` / `lazy_link` / `locked`）是 **reader-local 派生视图**，由各 reader 在读取时对目标 Realm policy 做最新评估（含各自缓存 TTL）得出，因此**不要求跨 reader 收敛**：在 policy 变更的传播窗口或不同缓存 TTL 下，两个 reader 对同一 Relation 同时派生出 `accessible` 与 `locked` 是**有意取舍**，不构成收敛缺口。Relation 的 canonical state 始终为 `active`（写入 canonical event log 的唯一权威态），不随 projection 态变化；本节的「不跨 reader 收敛」仅限投影/展示层，不影响任何 canonical state、授权或 winner 选择。
+
 **跨 Realm 强约束（reducer 必检）**：
 
 - `contains` 与 `belongs_to` MUST NOT 跨 Realm——reducer MUST 解析 `from_ref` / `to_ref` 指向的对象（Space / Strand / Message / Morph 等），确认其 `realm_id` 与 Relation 自身 `realm_id` 一致；任一不一致 MUST `failed_precondition`（`reason="cross_realm_structural_relation"`）。实现、日志和审计解释时 MUST 按“结构 Relation 跨 Realm”理解，不得解释为“同 Realm 内跨 Space”。本节给出的两端 enforce 责任表是这条规则的语义来源。
@@ -167,7 +169,7 @@ Realm schema、Realm profile 或 `relation_profiles` MAY 对标准默认值收�
 | `relation_kind` | yes | `string` | 被声明的 relation kind。 |
 | `from_type` | no | `string` | 起点类型约束，例如 `realm`、`space:board`、`space:list`、`strand`、`message`、`morph:*` 或 `did`。 |
 | `to_type` | no | `string` | 终点类型约束。 |
-| `relation_scope` | no | `enum(realm, space, board, global)` | 基数和去重作用域；默认 `realm`。`space` 表示在某 Space 内、`board` 是 `kind=board` Space 的简写。 |
+| `relation_scope` | no | `enum(realm, space, board, global)` | 基数和去重作用域；默认 `realm`。`space` 表示在某 Space 内、`board` 是 `kind=board` Space 的简写。**scope 解析失败处置（normative）**：当 `relation_scope ∈ {space, board}` 但 reducer 无法解析参与端点所属的 board/space 用作去重 / 基数 key 的 `board_space_id`（端点不隶属任何 board/space，或所属 board/space 已 `tombstoned`），reducer MUST `failed_precondition`（`reason=relation_scope_unresolved`）——MUST NOT 静默降级为 `realm` scope 去重、MUST NOT 跳过基数约束。producer 需重试时应改用可解析的 scope 或显式 `realm` scope 重新提交。 |
 | `cardinality` | yes | `enum(one_to_one, one_to_many, many_to_one, many_to_many)` | `one_to_many` 表示同一 `from_ref` 可有多个 `to_ref`，但同一 `to_ref` 在 scope 内最多一个 active `from_ref`。 |
 | `dedupe_key` | no | `array<string>` | 默认完整 tuple；可声明如 `["board_space_id", "to_ref"]`。 |
 | `max_to_per_from` | no | `integer` | 每个 `from_ref` 的 active `to_ref` 上限。 |
@@ -190,6 +192,15 @@ Realm schema、Realm profile 或 `relation_profiles` MAY 对标准默认值收�
 
 声明为 multi-edge 的 relation profile MUST 显式定义去重 key、排序字段和 conflict 处理。
 
+**`cardinality` 与 `max_*` 一致性校验（normative）**：`cardinality`（必填）与 `max_to_per_from` / `max_from_per_to`（可选）可表达互相矛盾的基数。reducer 在 accept RelationProfile（Realm schema / `relation_profiles` 注册或更新）时 MUST 校验三者一致，矛盾 MUST `schema_violation`（`reason=relation_profile_cardinality_conflict`）。一致性判据（`max_*` 只能在 `cardinality` 的方向语义内**收紧**，不得放宽或抵触）：
+
+- `cardinality=one_to_one`：每方向至多 1。声明 `max_to_per_from > 1` 或 `max_from_per_to > 1` MUST reject；`max_to_per_from=1` / `max_from_per_to=1` 允许（冗余但不矛盾）。
+- `cardinality=one_to_many`（同一 `from_ref` 多个 `to_ref`、同一 `to_ref` 至多一个 `from_ref`）：`max_from_per_to` MUST NOT > 1；`max_to_per_from` MAY 为任意正整数（收紧 `to` 侧上限）。
+- `cardinality=many_to_one`（对称于上）：`max_to_per_from` MUST NOT > 1；`max_from_per_to` MAY 为任意正整数。
+- `cardinality=many_to_many`：`max_to_per_from` / `max_from_per_to` MAY 为任意正整数，仅收紧上限，不构成矛盾。
+
+任一 `max_*` 取值 ≤ 0 MUST `schema_violation`。校验在 profile 注册时一次性完成，使后续 Relation 写入只需按已校验一致的 effective 基数判定，不在每次写入时重新比对 `cardinality` 与 `max_*`。
+
 ## 6. 冲突处理
 
 Relation conflict 的默认处理为：候选先通过格式、签名、授权、时钟窗口和 causal dependency 检查；严格因果后继 supersede 前驱；互不可达候选不得靠 HLC、actor id、本地接收顺序、数据库 ID 或服务端插入顺序自动选边。若 relation profile 能用业务 lattice 合并则合并；否则按 `on_conflict` 处理。
@@ -198,6 +209,10 @@ Relation conflict 的默认处理为：候选先通过格式、签名、授权�
 - `on_conflict="reject"` 表示 reducer 输出无 active 新 edge，并要求客户端重新基于最新 CBA query basis 提交修复 Event 或 Control Move。
 - `on_conflict="deterministic_winner"` 表示 reducer 对互不可达候选按 canonical `event_digest` bytewise 升序选择最小值作为唯一 active winner；其它候选必须记录为 conflict loser 或 tombstone，并保留其 `event_id` / `event_digest` 以便审计和显式修复。`event_digest` 是签名覆盖的 canonical Event digest，不得由 HLC、actor id 或接收顺序替代。
 - `require_review` MUST 输出可投影的 conflict 诊断，不得让两个互斥 active edge 同时进入 canonical projection。
+
+**conflict loser 集合上限（normative）**：同一去重 key 下并发候选（winner + losers）的总数 MUST 受上限约束，复用 sibling fork 上限——v1 public profile 为 **16**（与 [`event-and-patch.md` §2.6](./event-and-patch.md) 的 `(actor_id, actor_seq, prev_frontier_digest)` sibling 上限同值同范式）。当同一去重 key 的并发候选数超过 16 时，reducer MUST 对该去重 key 的整组候选 `failed_precondition`（`reason=relation_conflict_fanout_exceeded`），MUST NOT 无界保留 loser 记录；归一只能由后续基于最新 CBA query basis 的修复 Event / Control Move 产生。`deterministic_winner` 在 ≤16 候选内按 `event_digest` bytewise 升序选最小值为 active winner，其余 loser 记录 MUST 保留 `event_id` / `event_digest` 用于审计与显式修复。
+
+`require_review` 与 loser 记录输出的 conflict 诊断对象使用 [`relation.schema.json`](../../artifacts/schemas/relation.schema.json) 的 `$defs/RelationConflictDiagnostic`（每条 loser 至少含 `event_id`、`event_digest`、`dedupe_key` 投影、`reason`）；conflict 诊断是 projection-only evidence，`reducer_input` MUST 为 `false`，MUST NOT 被当作 canonical event bytes 或 dedupe authority。
 
 ## 7. 常见关系（按对象）
 

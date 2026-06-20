@@ -80,6 +80,8 @@ GET /_cokret/open/mimi/provider-directory
 
 目录响应 MUST 绑定 service DID、provider id、base URL、支持草案版本、endpoint 列表、MLS cipher suites、内容 profile、room policy components 和签名 proof。客户端和远端 provider MUST 验证 service DID、HTTP Message Signature、TLS endpoint、DID service endpoint 和 Realm policy 委托一致。
 
+**出站网络目标策略（normative，SSRF 防护）**：facade 在向对端 provider 声明的 `base_url`（及其派生 endpoint）发起任何 server-side 请求前，MUST 对该 URL（含 redirect 后实际目标）执行 [`../sync/api-conventions.md` §11.2](../sync/api-conventions.md) 出站网络目标策略；命中云 metadata / 内网 / 回环等禁止地址类别时 MUST 拒绝，`base_url` scheme MUST 限 `https`。签名 proof 只证明"是这个 provider"，不证明"网络目标合法"。
+
 ## 4. Room Binding
 
 允许被导出为 MIMI room 的 Cokret 对象 MUST 有写入 `ck.component.mimi.room_binding.v1` cell 的 Control Move effect。对应 Event kind 为 `ck.mimi.room_binding`；cell subject 是 `payload.mimi_room_uri`。
@@ -327,6 +329,8 @@ MIMI identifier MUST NOT 被直接作为 Cokret actor。映射规则：
 `ck.open.mimi.command.report_abuse` MUST 映射到 `ck.self.moderation.command.report`。E2EE report SHOULD 携带 message franking proof、encrypted evidence package、reporter signature、MIMI room id、provider id 和 target event hash。Facade MUST NOT 要求 reporter 向普通 provider 上传未加密明文；只有被 Realm policy 授权的 moderation recipient 可以解密 evidence。
 
 `ck.open.mimi.command.proxy_download` MUST 遵守 `ck.realm.asset_privacy_policy`。当 policy 要求 `provider_proxy` 或 `ohttp_relay` 时，facade 不得返回 direct object-store URL。下载成功不证明内容可信，客户端仍 MUST 验证 content hash、ciphertext digest 和 attachment metadata。
+
+**被代理 URL 的出站网络目标策略（normative，SSRF 防护）**：`proxy_download` 是 facade 代外部资产做 server-side fetch 的高危面。facade 在抓取被代理资产 URL（含 redirect / Alt-Svc 后实际目标）前 MUST 执行 [`../sync/api-conventions.md` §11.2](../sync/api-conventions.md) 出站网络目标策略；命中云 metadata / 内网 / 回环等禁止地址类别时 MUST 拒绝代理，不得向内部地址发起请求。被代理 URL 来自对端 provider，恶意 / 被攻陷 provider 可借此诱导 facade SSRF，故该校验 MUST 不可绕过。
 
 ## 12. Conformance
 

@@ -412,6 +412,7 @@ components:
               - failed_precondition
               - contact_not_accepted
               - contact_consent_missing
+              - peer_unresolvable
               - contact_request_not_pending
               - contact_request_expired
               - unsupported_digest_algorithm

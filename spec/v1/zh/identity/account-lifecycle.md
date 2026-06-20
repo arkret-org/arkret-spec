@@ -83,6 +83,21 @@ Cokret 身份由 DID principal 表示，但用户访问通常经过一个或多�
 
 `reason_code` 表达**为什么**进入该状态（如 `abuse_review` / `gdpr_request` / `password_compromise`）；状态本身表达**当前所处阶段的协议行为契约**。两者不可替代。
 
+**合法状态转换（normative）**：上面的 severity-order 仲裁解决"并发 head 选谁"，不替代"哪些 `from → to` 转换本身合法"的定义。`ck.account.status` reducer MUST 按下表判定单条状态转换是否合法；非法转换 MUST `failed_precondition`，`reason_code="account_status_transition_invalid"`：
+
+| from \ to | `active` | `soft_logged_out` | `locked` | `suspended` | `deactivated` | `erasure_pending` |
+| --- | --- | --- | --- | --- | --- | --- |
+| `active` | —（同态重放） | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `soft_logged_out` | ✓（§4，须 fresh DID proof） | — | ✓ | ✓ | ✓ | ✓ |
+| `locked` | ✓ | ✓ | — | ✓ | ✓ | ✓ |
+| `suspended` | ✓（appeal 解除，须 `supersedes_status_event_id`） | ✓ | ✓ | — | ✓ | ✓ |
+| `deactivated` | ✗（见下"重激活"） | ✗ | ✗ | ✗ | — | ✓ |
+| `erasure_pending` | ✗ | ✗ | ✗ | ✗ | ✗ | —（terminal） |
+
+- **降低严格度**（任一 `to` 严格度低于 `from`，如 `suspended → active`、`locked → soft_logged_out`）的转换 MUST 满足规则 2（引用 `supersedes_status_event_id` 且在当前 Seal view 可见），否则按并发候选处理，不构成有效转换。
+- **`erasure_pending` 为 terminal**（规则 3）：其唯一出边为空，任何转出 MUST 拒绝 `erasure_pending_is_terminal`。
+- **`deactivated` 重激活**（normative）：v1 **不**允许 `deactivated → active` 等任意降严格度转换。§7.1 的 deactivation fanout（device `revoked`、KeyPackage `retired`、session/push/to-device 撤销）是不可逆操作，v1 不定义其逆操作语义；需要恢复访问的用户 MUST 走新的 onboarding（绑定到同一 principal DID 的新 session/device/KeyPackage），而非把既有 `deactivated` account status 翻回 `active`。`deactivated` 的唯一合法出边是 `erasure_pending`（继续到擦除）。实现 MUST NOT 接受声称把 `deactivated` 降级回较低严格度状态的 `ck.account.status` event（`account_status_transition_invalid`）。
+
 状态发布为服务侧 signed account status：
 
 ```json
@@ -104,6 +119,13 @@ Current account status projection 是 ordered_log 上的确定性派生值，而
 2. 降低严格度的状态（例如 appeal 后回到 `active`）MUST 在 payload 的 `supersedes_status_event_id` 字段（见 [`event-payload.schema.json#/$defs/account_status_payload`](../../artifacts/schemas/event-payload.schema.json)）引用被解除的 status event id，且该引用必须在当前 Seal view 可见；否则它只是并发候选，不能覆盖更严格状态。
 3. **`erasure_pending` 是 terminal 状态（normative，不可逆）**：一旦某 `principal_id` 的 account status projection 进入 `erasure_pending`，它 MUST NOT 被任何 `supersedes_status_event_id` 引用降级回 `deactivated` / `suspended` / `locked` / `soft_logged_out` / `active` 中的任意一个。任何声称把 `erasure_pending` superseded 为较低严格度状态的 `ck.account.status` event MUST 被 reducer / projection 拒绝（`erasure_pending_is_terminal`），并保持 `erasure_pending` 为 current。理由：擦除流程一旦开始即对 blob bytes、account private state、受托 projection 执行不可逆的物理删除/最小化，把状态"恢复"为 active 会产生一个数据已被销毁却显示为正常的不一致账号。需要在擦除真正执行前撤销的，应在进入 `erasure_pending` 之前用较低严格度状态处理；进入 `erasure_pending` 之后只能继续完成擦除并发布 erasure receipt（§8）。`erasure_pending` 之上没有更严格状态，故规则 2 的"降低严格度"路径对它不适用。
 4. 同严格度并发时，以 `(effective_at, event_id)` 的 canonical order 取最大值作为 projection current，其他 head 仍保留在 ordered_log conflict/audit view 中。
+
+**Deactivation 进度 flag（normative）**：`status` 是封闭 6 值枚举（不含下列 token）。`deactivation_partial`（§7.1）与 `deactivation_federation_incomplete`（§7 末）**不是** `status` 值，而是 `deactivated` 状态下叠加的**独立服务侧 flag**，表达 deactivation fanout 的完成进度：
+
+- `deactivation_partial`：boolean，默认 `false`。当某条本地 fanout（session/device/applet/KeyPackage/push/to-device）因网络或服务不可达失败、服务端仍在重试时为 `true`。`status` 仍为 `deactivated`。
+- `deactivation_federation_incomplete`：boolean，默认 `false`。当该 principal 曾在其它 Principal Server 持有状态、源 Principal Server 未在 `deactivation_propagation_window_ms` 内得到 peer ack 时为 `true`，并触发 §7 末列出的写入暂停。`status` 仍为 `deactivated`。
+
+二者均为服务侧投影 flag，与封闭 6 值 `status` 正交，MUST NOT 作为 `status` 取值出现在 wire 上；客户端 UI 据此区分"停用进行中 / 已完成"。
 
 ## 4. Soft Logout
 
@@ -220,6 +242,8 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 - 本地/受托 projection：可删除或重新物化。
 - account private state：可删除。
 - policy/audit record：按合规周期保留最小字段。
+
+**擦除完成态语义（normative）**：v1 **不**新增 `erased` / `tombstoned` 终态。`erasure_pending` 的 "pending" 表示"擦除已发起且不可逆"，**不**表示"擦除尚未完成"——擦除流程进入该状态后 account status projection 永久停在 `erasure_pending`（§3 规则 3，terminal）。擦除是否**已物理完成**由 erasure receipt（下文）独立表征，而非由 status 推进表达：审计 / UI MUST 通过是否存在有效 `ck.schema.erasure_receipt.v1`（及其 `outcome`）区分"擦除排队 / 进行中"与"擦除已结束",MUST NOT 从 `erasure_pending` 本身推断完成与否。
 
 擦除完成后，服务端 SHOULD 发布 signed erasure receipt；若服务声明支持 hard erasure conformance，则 MUST 使用 `ck.schema.erasure_receipt.v1` payload，并可通过 `ck.audit.erasure_receipt` durable audit Event 发布。Receipt 至少绑定 `subject`、`erasure_scope.storage_boundary`、`outcome`、`erased_classes[]`、`retained_stub_digest`、`legal_hold_ref?`、`completed_at`、`issuer` 与 `proofs[]`。`proofs[]` MUST 至少包含 1 条，且其中至少一条由 `issuer` 当前有效的 verification method 签名；空 `proofs[]` MUST 触发下文 fail-closed 校验（等同 `proofs[]` 校验失败）。`retained_stub_digest` MUST 等于 `hash(canonical_json(retained_stub))`；stub 可内联在 receipt，也可通过 erasure receipt endpoint 获取，但两者 canonical bytes 必须一致。Stub 只保留验证 event graph、signature event_digest、seal inclusion、redaction authorization 与 receipt linkage 所需的最小字段，MUST NOT 保留已擦除明文或裸明文 digest。Receipt 只证明 issuer 在声明的存储边界内完成、部分完成或因 legal hold 阻止删除，不证明独立第三方副本已经消失。
 

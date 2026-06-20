@@ -156,6 +156,7 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 - 相同 `(actor_id, actor_seq)` 的多个 event 是 sibling fork。它们没有隐含先后顺序；展示排序可使用 HLC，但协议状态生效必须使用 DataEvent / Control Move 验证、Seal coverage 与 Lattice join。
 - 实现 MUST 对同一 `(actor_id, actor_seq, prev_frontier_digest)` 接受的 sibling 数量设置上限；v1 public profile 的上限为 16，超过后 MUST quarantine 或要求 actor chain repair。
 - 被判定为 rejected 的 fork 不推进 actor accepted frontier，也不得作为后续 accepted event 的 predecessor。
+- **over-fork repair 终局（normative）**：当某 `(actor_id, actor_seq, prev_frontier_digest)` 桶内合法签名 sibling 数超过上限时，「quarantine 或要求 actor chain repair」的收敛终局复用 [`../sync/federation.md` §4.5](../sync/federation.md) 定义的 fork resolution 机制，而非各实现自定义：(a) receiver MUST 把整个 over-fork 桶（该桶内全部 sibling，含上限内已 accepted 者）标为 quarantine，MUST NOT 把其中任何 sibling 推进为 actor accepted frontier；(b) 重新归一只能由 federation §4.5 的 `raw replay` / `quorum witness` / `operator-approved fork resolution` 三条终局路径之一产生一个 canonical 归一结果，由有 recovery / fork-resolution capability 的主体写入；(c) 在归一结果产生前，所有 receiver 对同一 over-fork 桶 MUST 一致地拒绝推进 frontier（即 quarantine 子集 = 整桶，跨 receiver 确定相同），避免不同 receiver quarantine 不同子集导致 accepted frontier 跨 receiver 分歧。over-fork 桶不适用 §2.6 的分桶限流容忍语义（限流只针对未超限的合法分叉计数）。
 
 `prev_frontier_digest` 的 canonical 计算为 `sha256:` + hex(SHA-256(JCS(sort_unique(prev_refs))))；`prev_refs` 先按 bytewise UTF-8 升序排序并去重，输入为空数组时编码为 `[]`。若 Realm 的 `digest_algorithm` 不是 `sha256`，同一结构使用该 Realm 声明的 digest algorithm，并把算法名前缀写入结果。该 digest 只用于 sibling fork 计数分桶，不参与 winner 选择。
 

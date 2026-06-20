@@ -92,7 +92,7 @@ token 要求：
 - `locator_token` MUST 至少 128 bit 熵；base64url 无 padding 编码时 128 bit 约为 22 字符，192 bit 为 32 字符。高安全部署 SHOULD 使用 192 bit 或更高，但 128 bit 已满足 v1 floor。
 - `locator_token` MUST NOT 是明文可解码的 `base64url(JSON)`，也不得在 token 明文中携带 `subject_id`、`recipient_service_did`、`expires_at`、策略状态或其它可识别 invitee 的材料。若部署需要 stateless token，payload MUST 先做 authenticated encryption；调用方仍只把它当 opaque bearer secret。
 - token MUST be unguessable、可撤销、可设置短 TTL，并 MAY 设置一次性使用。
-- endpoint 对不存在、过期、撤销、策略拒绝的响应 MUST 尽量不可区分。
+- endpoint 对不存在、过期、撤销、策略拒绝的对外响应 MUST byte-identical 或等价不可区分（含 status / body / headers）；timing 侧信道按 [`conformance/conformance-vectors.md`](../conformance/conformance-vectors.md) `ck.vector.invite.failure_indistinguishable.v1`（§9.7）收口（timing 差异 SHOULD ≤ 50ms，高安全 profile MUST 用 jitter / padding）。仅服务端 audit log MAY 记录具体 reason_code。
 - endpoint 返回体 MUST 是签名 `principal_locator`；调用方不能只信任 HTTPS URL。
 
 ## 4. `principal_locator`

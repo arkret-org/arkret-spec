@@ -34,7 +34,7 @@ Cokret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | 单个 Event `refs[]` 中 `role="authorized_by"` 的条目数量 | 64 | 超过时 MUST reject；authorized_by refs 必须是最小授权状态集合（见 [event-and-patch.md](../models/event-and-patch.md) §2.2）。 |
 | 单个 Event 的 `refs[]` 总条目数量 | 128 | 涵盖 `authorized_by` / `attestation` / `parent_event` / `after` / `recovery_capability` / `state_witness` / `inclusion_proof` 等所有 role；超过时 MUST reject（`schema_violation`，`reason_code=refs_too_large`）或拆分。 |
 | 同一 `(actor_id, actor_seq, prev_frontier_digest)` sibling fork 数 | 16 | 超过时 receiver MUST quarantine 或要求 actor chain repair；见 [event-and-patch.md](../models/event-and-patch.md) §2.6。 |
-| 单个 Relation / View / Morph `fields` canonical size | 256 KiB | 更大内容必须放入 Blob 或加密 payload。 |
+| 单个 Relation / View / Morph `fields` canonical size | 256 KiB | 更大内容必须放入 Blob 或加密 payload。Morph `facets` map 与 `labels` 数组（[common-fields.md](../models/common-fields.md) §3.1）计入同一对象 256 KiB budget，不另设独立条数上限；见 [morph.md](../models/morph.md) §2。 |
 | 关系展开深度 | 32 | Projection executor / graph query MUST enforce，跨 Realm 引用必须按 Lazy Link 截断（Lazy Link 定义见 [glossary.md](../overview/glossary.md) "Lazy Link"）。 |
 | 单 actor 每毫秒 HLC 生成事件数 | 65,536（HLC logical 4 hex 段上限） | HLC wire 形态为 `<unix_ms_hex_12>-<logical_hex_4>-<node_id_hash_8>`，logical 段为 16-bit；同一 actor 在同一 ms 内最多分配 65,536 个 logical 值（`0x0000`–`0xFFFF`，即 0..65535），第 65,537 个 event 触发 HLC logical 段饱和，producer MUST 等待至下一 ms 再生成或返回本地错误 `hlc_logical_overflow`，MUST NOT wrap 或复用相同 HLC。HLC 仅作为时间线 advisory tie-breaker，不参与授权或状态收敛——饱和不影响协议正确性，只影响展示排序。[^hlc-throughput] [^hlc-logical-width] |
 | 单 actor 持续吞吐建议 | ≤ 100,000 events/min | Producer SHOULD 在生产侧自我限速，避免在突发情况下饱和 HLC logical 段或下游 reducer。超过该建议持续吞吐时，actor SHOULD 拆分为多 device / 多 actor 并行，或考虑使用 batch event。 |
@@ -51,7 +51,7 @@ Cokret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | 项 | v1 默认上限 | 规则 |
 | --- | ---: | --- |
 | delegation chain 深度 | 4 | 超过时 MUST deny；profile MAY 声明更低上限。 |
-| 单次授权判定展开 grant 数 | 1,024 | 超过时 MUST fail closed、使用已验证 snapshot，或返回 `soft_fail` / `temporarily_unavailable`。 |
+| 单次授权判定展开 grant 数 | 1,024 | 超过时 MUST fail closed、使用已验证 snapshot，或返回 `soft_failed` / `temporarily_unavailable`。 |
 | 单个 grant 的 constraint 数 | 64 | 超过时 MUST reject。 |
 | 单个 resource selector AST 深度 | 16 | 超过时 MUST reject。 |
 | 高频路径 authz snapshot 最大重建延迟 | 5 秒（SHOULD，本地性能建议） | `chat_mvp`、`kanban_mvp`、`full_client` 和 `principal_server` 相关服务 SHOULD 满足。这是**本地性能 / SLA 建议**，非 wire interoperability bound——对端无法仅凭 wire object 核验本地重建是否 ≤5s，故不构成 §1 意义上的可互操作核验项。 |
@@ -124,7 +124,7 @@ Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一
 | --- | ---: | --- |
 | 单 principal active device 数 | 100 | 超过时 Device / Key Server MAY require admin approval or device cleanup。 |
 | 单 MLS commit 绑定的 `membership_frontier` refs | 128 | 超过时 MUST 使用签名 state root / snapshot reference。 |
-| KeyPackage 有效期 | 1 hour（下限）– 30 days（默认上限） | 更长有效期必须由 profile 明确声明。接收方 MUST NOT 使用已过期 KeyPackage 建立新 MLS 会话（过期复用是已知 E2EE 风险）；签发方 SHOULD NOT 签发有效期短于 1 小时的 KeyPackage（避免正常 join 流程内即过期）。实现 MAY 声明一个不超过该有效期 10% 的接收侧时钟偏差宽限窗口。 |
+| KeyPackage 有效期 | 1 hour（下限）– 30 days（默认上限） | 更长有效期必须由 profile 明确声明。接收方 MUST NOT 使用已过期 KeyPackage 建立新 MLS 会话（过期复用是已知 E2EE 风险）；签发方 SHOULD NOT 签发有效期短于 1 小时的 KeyPackage（避免正常 join 流程内即过期）。实现 MAY 声明一个不超过该有效期 10% 的接收侧时钟偏差宽限窗口。**Last-resort KeyPackage**（[encryption-and-audit.md](../crypto-media/encryption-and-audit.md) §2.6.2）的有效期 MUST 受同一 30 days 默认上限约束，且 **不享** "更长有效期由 profile 声明" 的豁免（last-resort 包复用 init/encryption key、弱化 Welcome 前向保密，其生命周期即弱化窗口硬上界）；`personal_node` profile MAY 放宽但 MUST 向用户披露。 |
 | to-device 队列 TTL | 24 hours（默认最大值） | `DeviceMessageEnvelope.expires_at` 不得晚于当前 service / Realm / profile TTL 上限；服务端 MUST 拒绝缺失、已过期、早于 `sent_at` 或超限的消息。高安全 profile SHOULD 声明更短 TTL。 |
 | KeyPackage claim 限速 | 60 seconds 内最多 5 次 / `(requester_service_did, target_principal_id)` | 超过限额时对外仍使用反枚举响应（`claim_failed` 或通用 rate-limited envelope），不得泄露目标存在性；服务端内部审计 reason 记录为 `keypackage_claim_rate_limited`。 |
 | 单次 to-device page | 1,000 | 服务端 MUST enforce。 |
@@ -144,6 +144,10 @@ Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一
 | key backup 每 principal 每 24h 下载上限 | 64（memory-hard profile 可声明 16–256） | 见 [key-management.md](../identity/key-management.md) §7.8。实现 MUST 在 `server/describe.limits` 或 profile 参数中公布实际上限；超限 MUST rate-limit / fail closed，并不得在日志或 telemetry 中泄露 plaintext keybag。 |
 | `push_target_id` rotation 周期 | 默认 ≤ 90 days | 见 [device-lifecycle.md](../crypto-media/device-lifecycle.md) §5a.1。客户端 SHOULD 在 push token 变化、设备恢复、out-of-band 重新登录或自定义 rotation 周期到达时轮换；高安全部署 SHOULD 声明更短周期。 |
 | 旧 / 新 `push_target_id` 可逆映射保留 | ≤ 24h，或单条未投递消息 TTL，取较短者 | 服务方只可在 rotation 时短暂保留映射以迁移未投递消息；超过窗口 MUST 物理删除旧 pseudonym 与索引材料，不得保留能把新旧映射回同一 device 的信息。 |
+| DM Realm active member count | 等于 2 | 见 [contact-and-direct-conversation.md](../identity/contact-and-direct-conversation.md) §7。向 active DM Realm 加第三人 MUST reject；升级多人聊天必须创建新的普通 Realm / Strand。 |
+| 加好友附言 `message` 长度 | 1..2000（NFC） | 见 [contact-and-direct-conversation.md](../identity/contact-and-direct-conversation.md) §4。`ck.self.contact.command.request` 的可选 `message` 超长或非 NFC MUST reject（`schema_violation`）。 |
+| 单 `(recipient_service_did, principal_id, device_id)` active `push_route` 条数 | 16 | 见 [device-lifecycle.md](../crypto-media/device-lifecycle.md) §5a.2。超过上限的 `ck.device.push_route` 注册 MUST reject，reason_code=`push_route_limit_exceeded`。 |
+| push-route 注册 / 轮换写入速率 | 60s 内 ≤ 8 次（同一上述维度） | 见 [device-lifecycle.md](../crypto-media/device-lifecycle.md) §5a.2。超额 MUST rate-limit，内部审计 reason `push_route_registration_rate_limited`。 |
 
 ## 7. Retention、Snapshot Pruning 与 Tombstone 上限
 
@@ -170,7 +174,7 @@ Pruning 前置条件：
 超过规模上限时：
 
 - 确定不可接受的结构输入 MUST reject。
-- 缺依赖或可通过 backfill / snapshot 恢复的输入 SHOULD `soft_fail` 或返回 `dependency_missing`。
+- 缺依赖或可通过 backfill / snapshot 恢复的输入 SHOULD `soft_failed` 或返回 `dependency_missing`。
 - 可能是滥用、fork 或异常来源的输入 MAY 进入 `quarantine`。
 - 所有可恢复错误 SHOULD 带 `retry_after_ms`、`next_retry_at`、backfill 起点或 snapshot frontier。
 

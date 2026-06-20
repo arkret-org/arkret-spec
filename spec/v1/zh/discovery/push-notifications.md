@@ -191,6 +191,8 @@ POST /_cokret/edge/push/unregister-device
 
 每条 rule MUST 在 wire 上声明其 `evaluation_locus` 为 `server` 或 `client`。Sync Service 只在 `server` rule 上做匹配；`client` rule 的语义由本节 §4.5 定义的降级流程承担。
 
+**`is_direct_message` / `member_count` 在 E2EE / 高隐私 Realm 的侧信道收口（normative）**：这两个 server-side 条件要求 Sync Service 读取精确成员数与"是否双人私聊"，在 E2EE Realm 中构成成员数与私聊存在性的侧信道（叠加 push timing 可近似重建"谁在和谁私聊"关系图）。因此：`member_count` 在 E2EE / `minimal-metadata` / 高隐私 Realm 中 SHOULD 仅对 server-side 规则暴露 bucket 化值（与 discovery §3 成员数 bucket+迟滞同口径），MUST NOT 暴露精确 `<= N` 比较所需的精确值；`is_direct_message` 的 server-side 投影 MUST 受 Realm policy gate，`minimal-metadata` Realm MUST 关闭该 server-side 条件并降级为 §4.5 的 client-side 评估。Realm policy 未授权时，实现 MUST NOT 在 E2EE Realm 用这两个条件做 server-side 匹配。
+
 #### 4.3.1 `strand_track` 与 per-track 通知
 
 Track 不持有独立 membership / 权限（见 [`../models/strand-and-message.md` §4](../models/strand-and-message.md)），但用户对不同 track 的关注度不同——例如想接收某个 Strand 的 `synthesis` 全部更新，但 `discussion` 只关心 @ 自己。`strand_track` condition 用于在通知层表达这种偏好，不影响访问控制。
@@ -477,6 +479,7 @@ Matrix 互通部署 MAY 声明 `ck.profile.push_gateway.matrix_passthrough.v1` �
 
 - Sync Service MUST NOT 在推送中包含 `encrypted_content` / `encrypted_metadata` / `encrypted_payload` 的任何部分
 - 推送网关被视为不可信第三方：`push_hint` 的白名单约束与 payload 最小化约束见 §2.2 与 §5.1，均为 MUST / MUST NOT，本节不重复其规范内容
+- **独立 Push Gateway 对 strip-前明文路由字段的处理（normative）**：`routing_metadata.realm_id`、`routing_metadata.mention_redirect_target_actor_ids`、`devices[].target_actor_id` 等 gateway-internal 字段在"出 provider 前 strip"之前对 Push Gateway 运营方本身明文可见。当 Push Gateway 是独立于 Sync Service 的第三方时，这些明文识别字段 MUST NOT 被该第三方持久化或记入日志（仅可在内存内用于本次 wakeup 的路由 / 去重 / 熔断 keying，处理后即丢弃），否则它能在 strip 前把设计为不可链接的 `push_target_id` 重新绑回 `realm_id` 与真实 actor DID，违反 blind wakeup 威胁模型。mention-redirect 路由 SHOULD 改用 keyed / pseudonymized actor 标识（类似 §4.5 `mention_routing_hmac`）而非明文 DID 列表，使独立 gateway 即便在 strip 前也无法解出真实 actor DID。
 
 ## 7. 静默时段 (Do Not Disturb)
 

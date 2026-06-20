@@ -335,6 +335,8 @@ Applet 调用 Cokret 节点时使用常规 Events API / Sync Service / authz API
 
 Base URL 来自 registration 的 `base_url`。
 
+**出站网络目标策略（normative，SSRF 防护）**：node 在向 Applet registration `base_url` 主动出站（transaction push、ping、describe、resolve 等任意 server-side fetch，含 redirect / Alt-Svc 后实际目标）之前，MUST 执行 [`../sync/api-conventions.md` §11.2](../sync/api-conventions.md) 出站网络目标策略；命中云 metadata / 内网 / 回环等禁止地址类别时 MUST 拒绝出站，`base_url` / webhook endpoint 的 scheme MUST 限 `https`。§4b registration preview / commit 时 MUST 对 `base_url` / webhook endpoint 预检该策略。§7.3.1 的逐次来源签名只证明"是这个 Applet"，不证明"目标 IP 合法"，二者 MUST 同时满足。
+
 **`ck.applet.*` 标识符的两类用途（normative 区分）**：`ck.applet.*` 前缀的标识符根据上下文分属两个互不混淆的命名空间，实现不得把二者当作同一对象：
 
 - **Event kind（进 Realm history）**：`ck.applet.registration`、`ck.applet.interop_session.start`、`ck.applet.interop_session.status`、`ck.applet.bridge_error`。这些是 durable Cokret Event，进入 Realm history，由 reducer 按 schema 校验；payload 字段以 `artifacts/schemas/event-payload.schema.json`（`applet_interop_session_start_payload` / `applet_interop_session_status_payload`，`ck.applet.bridge_error` 见 `applet-schema.md` §7）为权威。
@@ -860,4 +862,5 @@ Applet v1 conformance 按 profile 继承拆分。实现声明某 profile 时 MUS
 - **Origin 隔离**：widget MUST 在与 host 客户端隔离的 origin 中运行；host 客户端 MUST NOT 把自身 origin 的 cookie、localStorage、IndexedDB 或 in-memory session 暴露给 widget。
 - **Token scoping**：host 客户端 MUST NOT 把 Cokret 用户的 session token 或 device key 传给 widget；widget 只能拿到为其单独签发、scope 收敛到 `token_scope` 的短期 capability token，且该 token MUST NOT 超出 widget 声明的 scope。
 - **History 读取不可越权**：widget MUST NOT 通过任何接口读取超出其 capability scope 的 Event history；host 客户端 MUST 以 widget 的 scoped capability 为准做 history 访问授权，未授权范围 MUST 拒绝。
+- **写入同样不可越权（防 confused-deputy）**：所有经 widget scoped token 发起的调用——无论 read 还是 write——node / host MUST 以该 scoped capability 授权，MUST NOT 回退到 host 用户的 full session 权限。任何经 widget scoped token 的 Event submit / 副作用写入，其授权范围 MUST 受 `token_scope` 约束并 MUST NOT 超出；若写入路径回退到 host 用户 full session，widget 即可借宿主越权写入，构成 confused-deputy，MUST 拒绝。
 - **Consent**：`requires_consent=true` 时，host 客户端 MUST 在加载 widget 前向用户展示其 origin 与请求 scope，未获 consent MUST NOT 加载。

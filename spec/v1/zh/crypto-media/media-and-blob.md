@@ -138,6 +138,8 @@ AEAD nonce 在同一 `key_ref` 下复用会使该 key 下使用相关 nonce 的�
    - HMAC/Hash 输出截断后直接作为完整 nonce 的形态；
    - 任何不绑定 device_id + counter 的形态。
 
+4. **整文件形态(`ck.blob.whole_file_aead.v1`)接收方校验(normative)**: 整文件 envelope 只携单 `nonce` 字段，但该 `nonce` 本就是 encoding §10.1 的自描述结构 `sender_nonce_prefix || device_nonce_counter_be64`，故接收方 **MUST NOT** 把整文件形态的 `nonce` 当作不透明随机串接受，而 MUST 与分块形态(§3.3.2 逐段校验)对称地执行 encoding §10.1 的接收方义务：(a) 按声明 sender 的 `device_id` 重算 `sender_nonce_prefix` 并与 `nonce` 高位字节逐字节比对，不符 MUST fail closed(`aead_nonce_sender_domain_collision`)；(b) 取 `nonce` 低 8 字节为 `device_nonce_counter_be64`，纳入 per-`(key_ref, epoch, device_id, purpose, aead_profile)` 已见 counter 集合，重复 MUST `failed_precondition`(`aead_nonce_counter_replay`)。这样整文件形态获得与流式形态等价的"接收方可独立检测同 `(key_ref,epoch,device)` counter 复用"保证，sender 实现 bug 致 counter 复用不再只能在 AEAD 碰撞时才被发现。
+
 E2EE 附件 metadata MUST 使用 [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json) 的 wire 形态。Producer 必须提供 `ciphertext_digest`，不得提供明文 hash；若 deployment 出于审计需要保留 plaintext commitment，必须使用每事件随机 salt 的 commitment 或服务持有的 HMAC / pepper commitment，边界见 [`encryption-and-audit.md` §2.3.1](./encryption-and-audit.md)。普通 E2EE 附件 metadata 只暴露 `ciphertext_digest`。
 
 ### 3.2 形态选择：整文件 AEAD 与分块流式 AEAD
@@ -482,7 +484,7 @@ Cache-Control: public, immutable, max-age=31536000
 4. **blob_ref 一致性**：envelope `blob_ref` 与 query `blob_ref` 必须完全相同
 5. **Realm 绑定校验**：若 blob metadata 有 `realm_id`，envelope `realm_id` MUST 存在且完全相同；若 envelope 省略 `realm_id`，该 blob 必须是 deployment policy 显式允许的 public/global blob。为 Realm A 签发的 presign 不能作为 Realm B 的授权使用。
 6. **method 校验**：本次请求方法在 envelope `access_scope.method` 列表内
-7. **TTL 校验**：`now() ∈ (issued_at, expires_at)`；含合理 clock skew tolerance（如 ±30s）
+7. **TTL 校验**：`now() ∈ (issued_at, expires_at)`。允许的 clock skew tolerance MUST 取 [`../conformance/encoding.md`](../conformance/encoding.md) §（两层 drift 模型）的 `expected_future_skew_ms`（默认 30_000，即 ±30s）作为本短 TTL bearer 场景的 normative 容差，MUST NOT 超过 `hard_future_skew_ms`（300_000）上界。实现 MUST NOT 自定义更宽的容差使过期 presign 在无界时间内被接受。
 8. **nonce / 撤销校验**：`nonce` 未在撤销列表内；普通 `media_inline` / `thumbnail` presign 是短 TTL 多次可用 bearer URL，服务端 MUST NOT 把浏览器正常的重复 GET / HEAD / Range 请求当作 replay 拒绝。只有 profile 显式声明 single-use presign 时，才可维护 consumed set。
 9. **撤销 / 状态实时回查（normative）**：服务端在每次 presign GET / HEAD / Range 响应阶段 MUST 同步回查该 `blob_ref` 的**当前** redaction / erasure / ban / legal-hold 状态,**不得仅凭 envelope 自校验(签名 + TTL + scope)就放行**。只要当前状态命中 redaction / erasure / ban / legal hold,即便 envelope 仍在 TTL 内且签名有效，也 MUST 拒绝(`not_found`,audit `blob_redacted` / `legal_hold_active`)。该回查 MUST 在响应 bytes 之前完成，以闭合"签发后被 redact 的内容在 TTL 窗口内仍被已泄露 URL 拉取"的竞态(见 §5.4.4 撤销索引保留下界与 §5.4.4.1 fail-closed 规则)。
 10. **blob 状态与签发者校验**：签发时服务端 MUST 已确认请求方有权为该 `blob_ref` mint presign；响应时只能重新确认 envelope 绑定的 Realm / blob 仍一致、blob 未被 redacted / erased / banned / legal hold、issuer service DID 仍被部署信任。v1 bearer presign 无法在响应阶段证明当前请求者属于某个 audience。

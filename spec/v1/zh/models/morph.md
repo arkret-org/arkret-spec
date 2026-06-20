@@ -35,13 +35,13 @@ Schema id: `ck.schema.morph.v1`
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
 | `schema_refs` | yes | `array<string>` | 至少 1 项，唯一。 | `fields` 与 transition validation 的权威 schema 集合；`morph_type` / `facets` 不能替代。 |
 | `morph_type` | yes | `string` | 标准值见业务 profile，扩展不得使用未注册 `ck.` 前缀。**create-locked**，禁止后续修改。 | 开放类型 / 业务标签。 |
-| `facets` | no | `map<FacetConfig>` | 未知 facet 必须由 Realm schema / Morph profile 声明。 | Morph 暴露哪些已声明能力 hint。 |
+| `facets` | no | `map<FacetConfig>` | 未知 facet 必须由 Realm schema / Morph profile 声明。`facets` map 的总 canonical size **计入** Morph 对象的 256 KiB 上限（与 `fields` 同一 budget，见 [`../conformance/scalability-constraints.md` §2](../conformance/scalability-constraints.md)）；不另设独立 facet 条数上限，超出对象总上限 MUST reject（`payload_too_large` / `schema_violation`）。 | Morph 暴露哪些已声明能力 hint。 |
 | `metadata` | conditional | `object` | MAY 携带 `title` / `summary` 及 profile 定义的展示 metadata。与 `encrypted_metadata` 至多一个且不得并存（mutually exclusive, optional）。effective `metadata_encryption_floor` 要求加密对应 metadata 时 MUST 省略（改用 `encrypted_metadata`）。 | 用户可读 Morph metadata；Morph 业务字段仍在顶层 `fields`。MLS / E2EE 下按 `metadata_encryption_floor` 决定是否必须放入 `encrypted_metadata`。 |
 | `encrypted_metadata` | conditional | `EncryptedPayload` | 与 `metadata` 至多一个且不得并存（mutually exclusive, optional）；plaintext 是同一个 Morph metadata object。effective `metadata_encryption_floor` 要求加密 Morph metadata（E2EE profile）时 MUST 提供本字段；不要求时二者皆可省（Morph 无用户可读 metadata 时允许都不写）。 | E2EE 场景下包裹 Morph metadata。 |
 | `content` | no | `object` | 富文本/parts 见 [`content-types.md`](./content-types.md)。 | 正文内容。 |
 | `encrypted_content` | no | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Morph 正文内容。 |
 | `fields` | no | `object` | 字段 schema 由 `schema_refs` 决定。 | 自身属性。 |
-| `scope_circle_id` | no | `id:circle` | MUST 指向同一 Realm 的 Circle；reducer 校验 `scope_circle_id.realm_id == realm_id`，并把 immutable `effective_scope` 写入接受的 Event。 | 将 Morph 落入窄于 Realm 的 [Circle](./circle.md) scope。 |
+| `scope_circle_id` | no | `id:circle` | create 时 MUST 指向同一 Realm 的 Circle；reducer 校验 `scope_circle_id.realm_id == realm_id`，并把 immutable `effective_scope` 写入接受的 Event。**rebind 规则**：`ck.morph.update` 的 patch path `scope_circle_id` 默认 MUST 被 reducer 拒绝（`failed_precondition`，`reason=scope_rebind_forbidden`），与 [`circle.md` §6.1](./circle.md) 的通用 scope rebind 约束一致；只有显式声明允许 rebind 的 profile MAY 接受，且 MUST audit-paired high-risk update，并按 §6.1 保留已存在内容写入时的 `effective_scope` 与历史 / key eligibility（旧内容不重解释，仅新内容进新 scope）。 | 将 Morph 落入窄于 Realm 的 [Circle](./circle.md) scope。 |
 | `state` | no | `enum(active, archived, redacted)` | 状态转换必须有事件来源。`archived` 是**可逆中间态**（可经 `ck.morph.restore` 回到 `active`），不是终态；唯一不可逆终态是 `redacted`。Reducer 按 [common-fields.md §5.1](./common-fields.md) 校验源状态：`ck.morph.archive` MUST 来自 `active`（否则 `morph_not_active`）；`ck.morph.restore` MUST 来自 `archived`（否则 `morph_not_archived`）；`ck.redaction` 指向 Morph 时 MUST 来自 `{active, archived}`（否则 `morph_already_terminal`）；进入 `redacted` 后 MUST NOT 被任何 lifecycle event 修改。same-state self-transition MUST fail。 | 物化状态（物理生命周期）。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `stage` | yes | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | `ck.morph.create` 时 actor 必填（无默认值）。语义与转换规则见 [common-fields.md §5.3](./common-fields.md)；枚举值按 8 值统一。变更只能通过 `ck.morph.stage.set`；`ck.morph.update` 的 patch path `stage` / `stage_changed_at` MUST `schema_violation`。`fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` MUST `schema_violation`（forbidden-wire）。**不携带 reason 字段**：需要解释时由附加在 Morph 上的讨论性对象（profile-declared discussion Morph、关联 Strand 的 discussion track、或 `references` 指向本次 stage event 的 Message）承担。 | 业务进度阶段（与 `state` 正交）。 |
@@ -52,6 +52,20 @@ Schema id: `ck.schema.morph.v1`
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
 
 > `stage` 取值的非规范说明：Morph 上 `draft → proposed → done → superseded` 是常见的文档/草案推进路径，仅为示例性参考，枚举的完整取值与转换规则仍以 8 值统一口径（见 [common-fields.md §5.3](./common-fields.md)）为准。
+
+### 2.1 Event 家族
+
+本表为人类可读说明视图；完整集合与 `wire_scope` / `reducer_input` / lattice 属性以 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 为准，capability action 以 [`capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 为准，lifecycle 状态校验模板见 [`common-fields.md` §5.1 / §5.2](./common-fields.md)。
+
+| event kind | reducer_input | payload 形态 | capability action | 前置 / 说明 |
+| --- | --- | --- | --- | --- |
+| `ck.morph.create` | yes | full object | `ck.morph.create` | 创建 Morph；`morph_type` create-locked，`stage` 必填，`schema_refs[]` ≥1。reducer 固化 `effective_scope`（见 §6.1 / [circle.md §6](./circle.md)）。 |
+| `ck.morph.update` | yes | `ck.patch.v1` | `ck.morph.update` | 改 `fields` / `metadata` / `facets` / `content` / `schema_refs[]`（schema_refs 变更收窄为 additive-only fast path，见 §4.1）。patch path `morph_type` / `stage` / `stage_changed_at` MUST `schema_violation`。 |
+| `ck.morph.stage.set` | yes | stage transition payload | `ck.morph.stage.set` | 唯一改 `stage` 的路径；`stage_changed_at` reducer-derived。转换合法性见 [common-fields.md §5.3](./common-fields.md)。 |
+| `ck.morph.archive` | yes | object_lifecycle_payload | `ck.object.archive` | `active → archived`（可逆中间态，非终态）；源状态非 `active` 时 `morph_not_active`。 |
+| `ck.morph.restore` | yes | object_lifecycle_payload | `ck.object.restore` | `archived → active`；源状态非 `archived` 时 `morph_not_archived`。 |
+| `ck.morph.schema_migrate` | yes | `morph_schema_migrate_payload` | `ck.morph.schema_migrate` | schema_refs[] 演进的一等事件，承载 `compatibility_class ∈ {additive, breaking, transformation}`；breaking / transformation 需 opt-in profile。详见 §4.1。 |
+| `ck.redaction`（指向 Morph） | yes | redaction_payload | `ck.redaction` | 进入唯一不可逆终态 `redacted`；源状态 MUST ∈ `{active, archived}`，否则 `morph_already_terminal`。 |
 
 ## 3. 最小示例
 
@@ -158,6 +172,15 @@ Reducer-input event 若未在 `requirements.schema[]` 中绑定生效 schema 版
 
 - reducer MUST 在 `ck.morph.update` 检测到 `schema_refs[]` 实际变化时校验该变化是 additive；非 additive MUST reject 并返回 `morph_schema_refs_transformation_unsupported`，并提示客户端改走 `ck.morph.schema_migrate`。
 - breaking / transformation 路径**只能**通过 `ck.morph.schema_migrate` 表达。
+
+**additive 判定的 canonical 算法（normative）**：为保证两个实现 / 联邦 reducer 对同一 `ck.morph.update` 给出一致的 accept / reject（与 [`../sync/federation.md` §4.1](../sync/federation.md) `reducer_profile_digest` 想防的「同 Event 两端不同 cell 状态」对齐），「additive」MUST 按下列确定性谓词判定，记 `from` = update 写入前 Morph 的当前 `schema_refs[]`、`to` = update 后的 `schema_refs[]`，且二者各自展开为其引用 schema profile 声明的字段集（按各 profile 的 canonical 字段定义合并去重）：
+
+1. **superset 约束**：`to` 引用的 profile id 集合 MUST ⊇ `from` 引用的 profile id 集合（不得移除既有 profile）。
+2. **新增字段仅 optional**：`to` 相对 `from` 新增的每个字段 MUST 为 optional（无 `required` 语义、无非空默认强制）。新增 required 字段即非 additive。
+3. **既有字段不变**：对 `from` 与 `to` 共有的每个字段，其类型、约束（含 enum 取值集合、数值/长度上下界、`required` 状态、nullable 状态）MUST 在 `to` 中保持不变或**放宽**（放宽 = 取值域只增不减：enum 仅扩、上界仅升、下界仅降、required→optional、non-nullable→nullable）；任何收紧（取值域缩小、optional→required、nullable→non-nullable、类型变更）即非 additive。
+4. **无字段移除 / 语义改写**：`from` 中存在的字段 MUST NOT 在 `to` 中被删除或改变语义。
+
+满足 1–4 全部即判定为 additive，reducer MUST 接受；违反任一条即非 additive，reducer MUST reject（`morph_schema_refs_transformation_unsupported`）并提示改走 `ck.morph.schema_migrate`。该谓词只读 `from` / `to` 两侧 schema profile 的声明，不依赖实例数据，对所有 verifier 确定相同。
 
 reducer 在两种 path 下都 MUST 校验 `from_schema_refs[]`（或 `ck.morph.update` 写入前 Morph 的当前 `schema_refs[]`）与实际状态 set-equal；不一致 `failed_precondition`。
 

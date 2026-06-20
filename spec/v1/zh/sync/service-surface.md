@@ -207,7 +207,7 @@ GET /_cokret/describe
         "method": "oidc",
         "issuer": "https://auth.example.com",
         "openid_configuration": "https://auth.example.com/.well-known/openid-configuration",
-        "client_id": "yougen",
+        "client_id": "ck-example-client",
         "scopes": ["openid", "profile"],
         "grant_exchange": {"proof_kind": "oidc_code_exchange"}
       },

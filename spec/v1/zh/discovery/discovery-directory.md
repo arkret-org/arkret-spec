@@ -268,8 +268,8 @@ Actor / Principal 发现 MUST 尊重 holder 隐私：
 - 公开 persona MAY 出现在公共用户目录中。
 - Pairwise DID、私有 DID、设备 DID 与隐私敏感的 agent DID 默认 MUST NOT 出现在公共目录中。
 - Handle 搜索 MUST 仅返回绑定公开或 holder 已显式授权披露的 handle。
-- Handle 搜索 / 解析若会暴露 `subject` DID 或 `member_delivery_binding`，MUST 额外满足 requester proof、intent、audience / challenge 和 issuer policy；共同 Realm 或同组织排序信号不得单独授权披露。
-- Controller-scoped agent selector（`@<controller-handle>/<agent_slug>`）解析若会暴露 agent DID 或 selector claim，MUST 满足 requester 已与该 agent 共享可见 scope，或 selector claim `visibility="public"` / 当前 `audience` 明确授权该 requester 与当前 `intent`（mention 场景为 `intent="mention"`）。未授权、slug 不存在、controller 不存在、agent 不可见、claim revoked / expired / ambiguous 等结果 MUST 使用不可区分失败，避免枚举 controller 的 agent 名单。
+- Handle 搜索 / 解析若会暴露 `subject` DID 或 `member_delivery_binding`，MUST 额外满足 requester proof、intent、audience / challenge 和 issuer policy；共同 Realm 或同组织排序信号不得单独授权披露。这些受限 handle 解析的 not_found / unauthorized 分支 MUST 满足 §9.2 的失败不可区分（含**时延等同**）约束，不得因走完整校验失败与早退不存在产生可观测时序差。
+- Controller-scoped agent selector（`@<controller-handle>/<agent_slug>`）解析若会暴露 agent DID 或 selector claim，MUST 满足 requester 已与该 agent 共享可见 scope，或 selector claim `visibility="public"` / 当前 `audience` 明确授权该 requester 与当前 `intent`（mention 场景为 `intent="mention"`）。未授权、slug 不存在、controller 不存在、agent 不可见、claim revoked / expired / ambiguous 等结果 MUST 使用不可区分失败（含 §9.2 的**时延等同**约束），避免按时序差分枚举 controller 的 agent 名单。
 - Presence、common Realm、组织成员与联系人图谱 MUST NOT 通过搜索排序或自动补全泄露。
 
 在共享 Realm 中查询未知 actor profile，仅允许在渲染已授权内容（如显示名、头像）所必需的范围内进行；MUST NOT 借此泄露无关 handle 或组织账号。
@@ -368,7 +368,7 @@ Directory MUST NOT 索引任何**未通过 §8 ingest protocol opt-in 的**资�
 | Join 执行点 | `join_candidates[]` 中的 Realm ingress service 按 `join_rule` + Realm policy 接收 / 转发；最终由 reducer 收敛 |
 | 身份解析器 | DID resolver / identity registry / witness |
 | 消息或历史镜像 | Events API / Sync stream |
-| Service topology 权威 | DID Document `service` entry + `ck.organization.service_binding` |
+| Service topology 权威 | DID Document `service` entry |
 | 全网爬虫 | 不存在；ingest 仅按 §8 双向 opt-in |
 
 特别地：**Directory 不执行 join、不签发 invite token、不签发 capability grant**。Directory 的 join-side 责任到"产出 `realm_id + join_candidates[]` 让客户端能选择合格的 Realm ingress service 发起 join / invite-accept / knock"为止。能否实际加入由 Realm 的 `join_rule` 与 policy 决定（见 §3.0 三个独立 gate）。
@@ -642,6 +642,8 @@ POST /_cokret/find/directory/push/register
 | `ck.find.directory.command.withdraw` | `resource_id: id\|did\|handle`; `governance_proof: object`; `reason: string` | `effective_at: timestamp` | `withdrawal_ref: string`; `acked_at: timestamp` | `withdrawal_ref` 是 Directory-local audit reference，不是注册 typed ID；见 §8.7。 |
 | `ck.find.directory.push.command.register` | `subscriber_did: did`; `resource_filter: object`; `webhook_endpoint: url` | `secret: string`; `expires_at: timestamp` | `subscription_id: id`; `effective_at: timestamp` | 仅作为 pull 模式优化；不替代 §8.6 freshness 协议。 |
 
+**Plaintext query 跨请求关联（normative）**：上表 `query` 脱敏约束（不进入 URL / Referer / 未脱敏 access log）只堵旁路面；受托 Directory（半受信第三方）还 MUST NOT 在应用层把 `(requester_did, query_term, realm_id, timestamp)` 跨请求持久关联用于重建 requester 画像（"谁在找谁、对哪些 Realm 成员感兴趣"）。`search_users` / `search_actors` / `search_realms` 的 plaintext `query` 留存 MUST 有界并 SHOULD 脱敏 / 仅保留聚合反滥用指标；高隐私部署 SHOULD 走客户端本地索引或 §6 PSI / blind index 路径而非把 raw query 交给 Directory。口径对齐 §6 对 raw identifier 的保护与 [`../sync/privacy-preserving-search.md`](../sync/privacy-preserving-search.md) 对 access pattern 的风险登记。
+
 ### 9.0 Handle 解析（normative）
 
 Directory MAY 解析 `@alice:acme.example`、`alice@acme.example`、`alice:acme.example` 或 `acct:alice@acme.example` 这类 handle 输入。解析结果是**寻址证据**，不是成员资格、grant、invite delivery 授权或投递授权本身。base v1 invite/member-add 使用 [`../sync/invite-addressing.md`](../sync/invite-addressing.md) 的显式 `invite_address + introduction_evidence`；`resolve_handle(intent="invite" | "member_add")` 仅是可选 Directory/profile 输出。已知 `subject` DID 但不知道当前 handle 时，调用方使用 `list-handles-for-subject`；该接口返回的是当前 context 可见 handle claim set，不是 profile 或 MemberIdentity event。
@@ -688,7 +690,7 @@ Directory MUST NOT：
 4. `expires_at` 过期、`stale=true`、或 `policy_revision` / `source_refs` 与真相源不一致时，客户端 MUST 重新 `resolve_realm`，不得继续使用缓存 candidate。
 5. Candidate 只决定"把 join material 交给哪一个服务"；最终是否接受仍由 Realm auth state、Join Policy、capability、invite / review 链、event signature 和 reducer 校验决定。
 6. `member_delivery_binding.recipient_service_did` 与 `join_candidates[].service_did` 是两个不同方向：前者是成员加入后自己的投递服务，后者是本次加入 Realm 的 ingress service。实现 MUST NOT 从一个字段推导另一个字段。
-7. Directory / invite link MAY 按 requester、join_rule、discoverability、anti-enumeration policy 裁剪 candidate 数量；不得因 candidate 列表泄露完整成员 Principal Server 拓扑。
+7. Directory / invite link MAY 按 requester、join_rule、discoverability、anti-enumeration policy 裁剪 candidate 数量；不得因 candidate 列表泄露完整成员 Principal Server 拓扑。对 `restricted` / `unlisted` / `invite_only` / `secret` 的 Realm，candidate 裁剪 MUST 收紧为最小可用集合（例如仅 primary / ingress），MUST NOT 返回反映成员 Principal Server 分布的完整 `service_did` 列表——否则 candidate 的 `service_did` 集合会近似揭示成员 home server 拓扑，与成员数 bucket+迟滞的反枚举保护口径相违。`public` Realm 可在反枚举 policy 内返回较完整列表。
 8. `seal_head_ref`（optional）是 candidate `service_did` 在 `as_of` 时该 Realm 的**当前已接受 Seal head id**。被邀请人在 `invite -> join` 之前还不是成员，无法读取 membership 门控的 `ck.self.events.query.frontier` Realm Seal 视图，因此无法独立为其 `ck.member.state{membership="join"}` / `ck.invite.accept` 事件取得 `seal_ref`(DataEvent)或 `seal_basis` leaf(Control Move)。当 resolver 已对调用方授权解析该 Realm(成员、有效 `invite_token` 或 signed link)时，principal_server candidate SHOULD 给出 `seal_head_ref`，客户端 MUST 在签名前据此 stamp 该事件的 seal 引用——`seal_ref` 进入事件 digest 且被 proof 绑定，服务端无法在客户端签名后补填。`seal_head_ref` 是路由/锚定提示，不构成成员授权:接收服务仍 MUST 校验提交的 seal 引用与 invite。candidate `service_did` 不持有该 Realm 的 Seal(例如本次 resolve 的服务并不托管 / 不能 notarize 该 Realm)时 MUST 省略 `seal_head_ref`，客户端改向 candidate `endpoint`(托管 Realm 的服务)取数并提交。
 
 客户端选择算法 SHOULD 按 `priority` 升序，再按本地可达性与 `service_did` 稳定排序。候选不可达、返回 `not_found`、`policy_denied`、过期 / stale 诊断或等价 fail-closed 错误时，客户端 MAY 尝试下一个未过期候选；收到新的 `join_candidates[]` 诊断时 MUST 用新列表替换旧列表。所有重试 MUST 使用同一 canonical `realm_id`，不得把失败重试重定向到另一个 Realm。
@@ -784,7 +786,7 @@ Result：
 }
 ```
 
-实现 SHOULD 对"不存在"与"未授权访问的隐藏资源"使用相同的 status、相同时延等级与相同响应结构。
+**失败不可区分（含时延等同，normative）**：对"不存在"与"未授权访问的隐藏资源"，实现 MUST 使用相同的 status、相同响应结构与**相同时延等级**（constant-time 或固定时延桶，避免按是否走完整 presentation / claim / audience 校验产生可观测时序差）。该要求适用于 `resolve_realm`、`resolve_target`、`resolve_handle`、`resolve_agent_selector`、`list_handles_for_subject`、`search_users` / `search_actors` / `search_realms` 的所有 `not_found` / `unauthorized` 分支。否则攻击者可用时序差分逐个探测 handle / selector / 成员是否存在，即便响应体一致也能去匿名化组织成员名单与关系图。timing 侧信道收口对齐 [`../conformance/conformance-vectors.md`](../conformance/conformance-vectors.md) 的目录 resolve 反枚举 / blinding 条款（含 `resolve_target` 失败不可区分向量）；handle / agent-selector 解析的时序等同 conformance 向量为待补 artifact。
 
 ## 10. Parent Realm 与 Organization Directory
 

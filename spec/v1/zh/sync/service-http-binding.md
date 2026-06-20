@@ -114,7 +114,7 @@ Cokret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织�
 
 #### 2.1.3 非 spec `/_cokret/*` 路径群边界（catalog completeness，normative）
 
-§2.2 末条"实现不得用未声明路径绕过 canonical operation"是**强制**的 catalog-completeness 不变量。本节把它写实为可判定规则，并对历史上出现过的未登记 `/_cokret/*` 路径群逐簇裁决归位，作为 conformance 判定基准。
+§2.2 末条"实现不得用未声明路径绕过 canonical operation"是**强制**的 catalog-completeness 不变量。本节把它写实为可判定规则，并对未登记 `/_cokret/*` 路径群逐簇裁决归位，作为 conformance 判定基准。
 
 **规则（MUST）**：任何在 §2.1 生产 trust-surface 段（`self` / `gate` / `root` / `find` / `peer` / `open` / `edge`）下被实现暴露、或被任一对端消费的 `/_cokret/*` path，MUST 解析到 `contract-catalog.json#operation_registry` 中已登记的 canonical operation（并具备对应 OpenAPI binding 与 request/response schema ref）。一项能力若不在 catalog 中，只有三条互斥的合规归属：
 
@@ -124,11 +124,11 @@ Cokret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织�
 
 三者互斥；任一对端实现（含 cotest 等测试面）MUST NOT 把未登记 `/_cokret/*` 路径当作协议依赖消费，而应改查已注册 operation 或对应实现私有面。本节与 §2.1.2 正交：(c) 处理 test-only 观测，(a)/(b) 处理生产能力的归属。
 
-**既有路径群裁决（normative resolution）**。下表把审计中出现过的未登记 `/_cokret/*` 路径形态逐簇归位；标注的 canonical operation / event 即该能力的唯一合规协议入口，其余形态按 (b) 归实现私有面。
+**路径群裁决（normative resolution）**。下表把未登记 `/_cokret/*` 路径形态逐簇归位；标注的 canonical operation / event 即该能力的唯一合规协议入口，其余形态按 (b) 归实现私有面。
 
 A 类——真协议能力，**已由既有 canonical operation / event 覆盖，无需新增 operation**：
 
-| 历史未登记路径形态 | canonical 归属 |
+| 未登记路径形态 | canonical 归属 |
 | --- | --- |
 | session-grant 刷新 / 续期（`gate/auth/refresh` 等） | `ck.gate.account.command.refresh_session_grant`（`POST /_cokret/gate/account/session-grants/refresh`，§2.1.2） |
 | self account-secret / 设备恢复运行态（`self/keys/recovery`） | `ck.self.keys.backups.command.unlock`（key backup 解锁）+ `ck.root.identity.recovery_session.{create,resource.get,submit_proof,complete}`（恢复挑战应答，[account-lifecycle.md](../identity/account-lifecycle.md)）；无独立 `self/keys/recovery` operation |
@@ -141,7 +141,7 @@ B 类——产品 / 运维能力，被实现误放进协议段，按 (b) 归位�
 | webrtc / calls 信令面 | call 信令 `ck.call.signal` 走 ephemeral envelope（`ck.self.ephemeral.command.send`）；媒体凭证 `ck.self.call.media.exchange.issue_token`（`/_cokret/self/rtc/token`）+ `/_cokret/self/rtc/ice-config`；持久 call 状态 `ck.call.{state,recording.start,summary}` 走 self/events | 其余 call-setup / 私有信令旁路 → 媒体服务私有面 `/_soland/*`，不进 v1 core |
 | moderation 审查者工作台运行态 | `ck.moderation.{decision,decision.lift,appeal.submit,appeal.review,appeal.decision,appeal.close}` 事件经 self/events，realm authz capability 闸门；report 经 `ck.self.moderation.command.report` | 残留 `/_soland/admin` + OAuth admin scope 入口下线 |
 | relations / views / moves 直读 | `/_cokret/self/projection/*`、`/_cokret/self/views/*`（extension surface，非 canonical truth source，须服务显式声明） | 越出已声明 projection binding 的 relation/view/move 直读路径 → 实现私有面 |
-| authz / grants compat 路由 | capability 经 `ck.capability.{grant,revoke,delegate}` 事件 + `ck.self.policy.query.check` 预检 | legacy `/_soland/self/authz/grants` 及残留 `/_cokret/*` authz 直写 compat → capability 事件接进主 reducer 后删除，或降 `/_soland/*` 只读 |
+| authz / grants compat 路由 | capability 经 `ck.capability.{grant,revoke,delegate}` 事件 + `ck.self.policy.query.check` 预检 | 任何 `/_cokret/*` authz 直写 compat 路径 MUST NOT 存在；capability 一律走主 reducer 事件，相关运维只读视图归 `/_soland/*` |
 | blob 直写形态（`blob/put`） | `ck.self.blob.upload.create`（`POST /_cokret/self/blob/upload`）+ tus 续传 binding | `blob/put` 直写归并到 upload operation，或声明为 per-operation HTTP 伴生 binding（[transport-bindings.md §6.1](./transport-bindings.md)），不得作未注册 canonical 路径 |
 | 主权部署只读 realm/account 运维视图 | （无协议 operation——属运维级） | server info / stats 类只读运维视图 → sodmin 产品面 `/_soland/*` |
 

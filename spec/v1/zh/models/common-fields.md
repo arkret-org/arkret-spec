@@ -442,7 +442,8 @@ ck:capability:<uuid>     # abstract capability definition reference（非签名 
 ck:grant:<uuid>
 ck:invite:<uuid>
 ck:applet:<uuid>
-ck:blob:<hash>
+ck:blob:<uuid>                 # blob metadata row id
+ck:blob:sha256:...             # content-addressed special form（sha256:<hex>，digest-suite 见 digest-suite-registry.json）
 ck:receipt:<uuid>
 ck:trust_domain:<trust_domain_label>   # 非 UUID 形态，见下方说明
 ```

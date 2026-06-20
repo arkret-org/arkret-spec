@@ -43,6 +43,8 @@ Token 不得跨 Realm、Circle、MLS epoch 或 index generation 复用。实现 
 
 Blind-index token 是 deterministic keyed token：它不向服务端暴露明文 term，但会暴露同一 `index_generation` 内的查询频次、候选集合大小、access pattern 以及 term 共现结构。实现 MUST 把这些泄漏写入 Realm search policy 的风险评估；高隐私 Realm SHOULD 缩短 `index_generation` / epoch 轮换窗口，并限制服务端跨 generation 关联。Forward-private SSE、PIR-backed candidate retrieval 或 ORAM-style access hiding 只能作为显式 search extension profile 引入；base v1 blind index 不声称隐藏 access pattern。
 
+**向数据主体披露（normative）**：当 Realm 启用 deterministic blind_index（`deterministic_token`）使受托 search service 可观测上述 access pattern / 查询频次 / term 共现时，该 `leakage_class` 与承载它的受托 search service DID SHOULD 对受影响成员（数据主体）可见，客户端搜索 UI SHOULD 在搜索入口提示"本 Realm 的搜索由受托服务以可观测访问模式承载"。口径对齐 [`../governance/history-visibility.md` §5](../governance/history-visibility.md) 对 plaintext-visible 内容"UI MUST 展示"的披露强度——成员不应在不知情下让搜索 access pattern 被受托服务观测。
+
 ### 3.1 Forward-Private Search Extension
 
 `ck.profile.search.forward_private.v1` 继承 `ck.profile.search.blind_index.v1`，但 Realm `ck.realm.search_policy.enabled_profile_refs` 中必须同时启用该 profile，并声明 `leakage_class="forward_private"`。服务端 MUST 在 `*.describe` 或等价 feature discovery 中声明 OPRF suite、generation 轮换上限、revocation behavior 和 stale posting fail-closed 行为；客户端在缺少这些声明时 MUST 返回 `unsupported_feature`，不得把 deterministic blind-index provider 当作 forward-private provider 使用。

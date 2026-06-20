@@ -92,13 +92,24 @@ Schema id: `ck.schema.policy.v1`
 | `policy_type` | yes | `enum(access, encryption, retention, federation, moderation, discoverability, join, history_visibility, plaintext_visibility, media, applet, agent)` |  | 策略类型。 |
 | `rules` | yes | `array<PolicyRule>` | 每条规则必须有 `rule_id`、`kind`、`effect`；规则顶层 closed，profile 扩展必须使用 `kind=extension` + `schema_ref` / `profile_ref` + `params`。 | 策略规则。 |
 | `default_effect` | yes | `enum(allow, deny, quarantine, require_review)` |  | 默认效果。 |
-| `priority` | no | `integer` | 数值大者优先。 | 策略优先级。 |
+| `priority` | no | `integer` | 数值大者优先；缺省视为 `0`。同 `priority` 冲突的确定性裁决见下方说明。 | 策略优先级。 |
 | `not_before` | no | `timestamp` |  | 生效时间。 |
 | `expires_at` | no | `timestamp` |  | 过期时间。 |
 | `created_by` | yes | `did` | 必须有 policy/admin capability。 | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_by` | no | `did` | 必须有 policy/admin capability。 | 最近更新者。 |
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
+
+`PolicyRule` 的完整 closed schema（`rule_id` / `kind` / `effect` 必填，`kind` enum、各 kind 的条件字段、`kind=extension` 的 `schema_ref` / `profile_ref` / `params`）由 [`policy.schema.json`](../../artifacts/schemas/policy.schema.json) 的 `policy_rule` `$def` 权威定义；本节字段表不重复展开 rule 内部结构。
+
+**`rules[]` 求值与同 `priority` 冲突的确定性裁决（normative）**：reducer / Policy Server 求值 `rules[]` 时 MUST 按 `priority` 降序（数值大者先）评估；命中规则的 `effect` 即裁决结果，未命中任何规则时取 `default_effect`。当两条或多条规则同时命中目标、`priority` 相等、但 `effect` 不一致时，MUST 按以下确定性顺序裁决，**MUST NOT** 依赖 `rules[]` 数组顺序或本地求值顺序（否则跨实现结果分歧）：
+
+1. **deny-overrides**：命中的同 `priority` 规则中只要有一条 `effect=deny`，结果 MUST 为 `deny`；
+2. 否则若有 `effect=quarantine`，结果 MUST 为 `quarantine`；
+3. 否则若有 `effect=require_review`，结果 MUST 为 `require_review`；
+4. 否则（全部为 `allow`）结果为 `allow`。
+
+即同 `priority` 命中规则的 `effect` 按 `deny ≻ quarantine ≻ require_review ≻ allow` 的固定优先序合并，取最严结果。该裁决与 [`../authz/capabilities.md` §20](../authz/capabilities.md)「约束按最严格规则相交」的整体取严姿态一致。
 
 ### 3.3 Policy Server 与决策
 
@@ -122,9 +133,9 @@ Schema id: `ck.schema.capability.v1`
 | `schema` | yes | `ck.schema.capability.v1` |  | Schema ID。 |
 | `realm_id` | no | `id:realm` | 全局 grant 可省略但 SHOULD 避免。 | 作用域。 |
 | `issuer` | yes | `did` | 必须持有授予权限。 | 授权方。 |
-| `subject` | yes | `did` 或 `object` | 可为 DID 或 condition selector。 | 被授权主体。 |
-| `actions` | yes | `array<string>` | 例如 `ck.strand.update`、`ck.message.create`。 | 允许动作。 |
-| `resources` | yes | `array<object>` | 资源 selector。 | 资源范围。 |
+| `subject` | yes | `did` 或 `object` | 可为 DID 或 condition selector；condition selector 的结构与 `requires_claims` 等求值语义见 [`../authz/constraint-schema.md`](../authz/constraint-schema.md)（claim/attestation 条件）与 [`../authz/capabilities.md` §2.4 / §7](../authz/capabilities.md)（DID 主体 + Claim 条件模型）。matching 失败 fail-closed（deny）。 | 被授权主体。 |
+| `actions` | yes | `array<string>` | 例如 `ck.strand.update`、`ck.message.create`；逐字命中、不接受 wildcard，见 [`../authz/capabilities.md` §5](../authz/capabilities.md)。 | 允许动作。 |
+| `resources` | yes | `array<object>` | 资源 selector array，其 kind 词表、canonical JSON 结构、匹配算法与求值时机由 [`../authz/resource-selector-grammar.md`](../authz/resource-selector-grammar.md) 与 [`resource-selector.schema.json`](../../artifacts/schemas/resource-selector.schema.json) 权威定义；多个 `resources[]` 默认 OR。匹配失败 fail-closed（不命中即不授权）。 | 资源范围。 |
 | `constraints` | no | `array<object>` | 见 [`../authz/constraint-schema.md`](../authz/constraint-schema.md) §20.3 grant 示例。委托控制 MUST 通过 `constraint_type=delegation_control` 的 `max_delegation_depth` 表达；缺省（无 delegation_control 约束）等价于 `max_delegation_depth=0`，即不可转授。 | 约束条件。 |
 | `parent_grant_id` | no | `id:grant` | derived grant 必填；MUST 以 `ck:grant:` 开头，不得指向 `ck:capability:`。 | 父授权。 |
 | `issued_at` | no | `timestamp` | 承载 Grant 的"创建时间"语义，取代通用 `created_at`（见 [`common-fields.md` §3.2](./common-fields.md)）；retention / audit / 排序查询 MUST 用 `issued_at` / `expires_at` / `revoked_at`，不回退到通用 `created_at`。缺省时该 Grant 无创建时间真源，签发方 SHOULD 始终提供。 | 签发时间。 |
@@ -174,7 +185,8 @@ Schema id: `ck.schema.invite.v1`
 
 - Invite MUST 携带 `expires_at`。默认有效期 SHOULD be no greater than 7 天，高安全 Realm SHOULD be no greater than 24 小时；过期 invite 不得被 claim、accept 或用于派生新的 capability。
 - 接受 invite 后，相关 capability grant 才进入有效集合。
-- Invite state 转换的真源分两层：直接 DID 邀请由本节定义；3PID 邀请（邮箱、手机号等）的认领、失败和异常清理流程见 [`../sync/third-party-invites.md`](../sync/third-party-invites.md) §6.1。直接 DID 邀请的合法转换为 `pending -> accepted`（invitee 提交 `ck.invite.accept` 且 capability / delivery target 校验通过）、`pending -> rejected`（invitee 显式拒绝）、`pending -> expired`（`expires_at` 到达）、`pending -> revoked`（inviter 或持有撤销 capability 的 actor 撤销）、`pending -> revoked_by_capability_loss`（inviter 失去 invite capability）、`pending -> revoked_by_inviter_left`（inviter 不再是可邀请成员）、`pending -> invalidated_by_rate_limit`（反滥用策略命中）。`send_failed` 仅由投递服务在无法送达私有 invite delivery target 时写入；`claimed` 仅用于 3PID 流程。**`claimed` 不是终态**：3PID 邀请被认领（subject 已绑定，见 [`third-party-invites.md`](../sync/third-party-invites.md) §6.1）后，invite 沿用与 `pending` 相同的生命周期规则——合法出边为 `claimed -> accepted`（被认领 subject 提交 `ck.invite.accept`）、`claimed -> rejected`、`claimed -> expired`（`expires_at` 对 claimed invite 持续生效；认领后迟迟不 accept 的 invite 照常过期）、`claimed -> revoked`、`claimed -> revoked_by_capability_loss`、`claimed -> revoked_by_inviter_left`、`claimed -> invalidated_by_rate_limit`，各转换沿用 `pending` 出发的同名转换的触发条件与 `reason_code` 约定；`claimed -> claimed` 与 `claimed -> send_failed` 不合法（token 已原子用尽、投递阶段已结束）。每个非 `pending` 状态的写入事件 MUST 携带稳定 `reason_code`，并引用触发该转换的 event、policy frontier 或投递诊断。
+- Invite state 转换的真源分两层：直接 DID 邀请由本节定义；3PID 邀请（邮箱、手机号等）的认领、失败和异常清理流程见 [`../sync/third-party-invites.md`](../sync/third-party-invites.md) §6.1。直接 DID 邀请的合法转换为 `pending -> accepted`（invitee 提交 `ck.invite.accept` 且 capability / delivery target 校验通过）、`pending -> rejected`（invitee 显式拒绝）、`pending -> expired`（`expires_at` 到达）、`pending -> revoked`（inviter 或持有撤销 capability 的 actor 撤销）、`pending -> revoked_by_capability_loss`（inviter 失去 invite capability）、`pending -> revoked_by_inviter_left`（inviter 不再是可邀请成员）、`pending -> invalidated_by_rate_limit`（反滥用策略命中）。`send_failed` 仅由投递服务在无法送达私有 invite delivery target 时写入；**`send_failed` 不是终态**：投递失败后 invite 仍可被重投或正常清理，合法出边为 `send_failed -> pending`（投递服务重试投递成功，回到等待 claim/accept）、`send_failed -> expired`（`expires_at` 到达）、`send_failed -> revoked`、`send_failed -> revoked_by_capability_loss`、`send_failed -> revoked_by_inviter_left`、`send_failed -> invalidated_by_rate_limit`，各转换沿用 `pending` 出发的同名转换的触发条件与 `reason_code` 约定；`send_failed -> accepted` / `send_failed -> rejected` / `send_failed -> claimed` 不合法（私有 invite 尚未送达，被邀请方无从 accept/reject，且 `claimed` 仅用于 3PID 流程）。`claimed` 仅用于 3PID 流程。**`claimed` 不是终态**：3PID 邀请被认领（subject 已绑定，见 [`third-party-invites.md`](../sync/third-party-invites.md) §6.1）后，invite 沿用与 `pending` 相同的生命周期规则——合法出边为 `claimed -> accepted`（被认领 subject 提交 `ck.invite.accept`）、`claimed -> rejected`、`claimed -> expired`（`expires_at` 对 claimed invite 持续生效；认领后迟迟不 accept 的 invite 照常过期）、`claimed -> revoked`、`claimed -> revoked_by_capability_loss`、`claimed -> revoked_by_inviter_left`、`claimed -> invalidated_by_rate_limit`，各转换沿用 `pending` 出发的同名转换的触发条件与 `reason_code` 约定；`claimed -> claimed` 与 `claimed -> send_failed` 不合法（token 已原子用尽、投递阶段已结束）。每个非 `pending` 状态的写入事件 MUST 携带稳定 `reason_code`，并引用触发该转换的 event、policy frontier 或投递诊断。
+- **终态集合（normative）**：`accepted`、`rejected`、`revoked`、`revoked_by_capability_loss`、`revoked_by_inviter_left`、`expired`、`invalidated_by_rate_limit` 为**终态**（无合法出边，reducer MUST 拒绝任何后续 state 转换并以 `failed_precondition` 拒绝，`reason_code="invite_already_terminal"`）。`pending`、`claimed`、`send_failed` 为**非终态**（出边见上）。该终态集合是 Invite 流程轴的权威声明；实现 MUST NOT 从某状态"恰好无出边"反推终态属性，而 MUST 依据本声明。
 
 ## 6. 规范性引用
 

@@ -147,6 +147,22 @@ sidebar:
 
 **`recording_state`（录制维度，与 `state` 正交，normative）**：`{ recording, stopped, ready, failed }`，缺省=未录制。录制随 `ck.call.recording.start` 进入 `recording`；人工停止时通过 `ck.call.state` 写 `recording_state="stopped"`；artifact 入 Cokret blob pipeline 后转 `ready`，失败转 `failed`。录制态**独立于** `state`——通话可在 `active` 期间为 `recording_state="recording"`，通话 `ended` 之后再写 `recording_state="ready"`。`recording_state ∈ { ready, failed, stopped }` 时 SHOULD 携带 `recording_result.recording_start_event_id` 绑定本段录制的 start event；`ready` MUST 携带 `recording_result.artifact`（schema `ck.schema.call_recording_artifact.v1`），并携带 content digest / duration / media type / retention policy 投影字段；`failed` SHOULD 携带 `failure_reason_code`。v1 不为录制注册独立 result/stop event，录制态变化通过 `ck.call.state` 写入（见 §5）。
 
+#### `recording_state` / `transcript_state` 受控转换（normative）
+
+`recording_state` 与 `transcript_state` 各自是绑定到单段捕获（由其 `recording_start_event_id` / `transcript_start_event_id` 标识）的受控枚举，与主 `state` 及彼此正交。两者同构，转换表如下（以 `recording_state` 为例，`transcript_state` 把 `recording`→`transcribing`、`recording_start_event_id`→`transcript_start_event_id` 等价替换）：
+
+| `recording_state` | 语义 | 合法后继 | 终态? |
+| --- | --- | --- | --- |
+| （缺省=未录制） | 该 `call_id` 尚无录制段 | `recording`（接受 `ck.call.recording.start` 后） | — |
+| `recording` | 捕获进行中 | `stopped`、`ready`、`failed` | 否 |
+| `stopped` | 人工停止，可能无 artifact | `ready`（backend 事后产出 artifact） | **是**（除非升级为 `ready`） |
+| `ready` | artifact 已入库 | —（本段终态） | **是** |
+| `failed` | 捕获 / 入库失败 | —（本段终态） | **是** |
+
+- **终态集合**：`{ ready, failed }` 为硬终态；`stopped` 是软终态——只能向 `ready` 升级（同一 `recording_start_event_id`，backend 事后产出可用 artifact），不得转 `failed` 或回 `recording`。`ready` / `failed` 之后对同一捕获段的任何转出 MUST `failed_precondition`，`reason_code="recording_state_transition_invalid"`。
+- **非法转换**：源态为非终态时，任何不在"合法后继"列内的 `recording_state` / `transcript_state` 转换 MUST `failed_precondition`，`reason_code="recording_state_transition_invalid"`（转写用同一 reason_code）。新一段捕获 MUST 先接受新的 `ck.call.recording.start`（新 `recording_id`，见 §5），不得在终态上原地翻回 `recording`。
+- **多正交字段并发 join**：`state` / `recording_state` / `transcript_state` 写入同一 `ck.component.call.state.v1` cell（lattice=`fsm`，`bottom=reject`），但各字段是**独立的正交 fsm 维度**：reducer MUST 按 per-field 判定后继合法性与并发冲突，单条 `ck.call.state` 只写未变更字段的当前值。两个并发 sibling `ck.call.state` 对**同一**字段（如都改 `recording_state`）写入不同 `to` 值时，该字段的 fsm join MUST 返回 `Bottom{kind="conflict"}` 并按 `bottom=reject` 暴露 `failed_bottom`；对**不同**字段的并发写入互不冲突，分别独立 join。实现 MUST NOT 用 HLC、`created_at`、`event_id`、actor id、event digest 或接收顺序为任一字段选择 winner。
+
 ## 5. 录制与转写
 
 录制和转写默认关闭，必须由 Realm policy 和 call capability 显式允许。
@@ -214,6 +230,11 @@ sidebar:
 3. **加入信令**:各设备通过 `ck.call.signal{signal_type=focus_join}`(见 [`webrtc-signaling.md` §5](./webrtc-signaling.md))向选定 focus 迁移媒体；原 P2P leg 在所有参与者完成 `focus_join` 后 MUST 优雅拆除，迁移期间不得丢媒体(参照 §4.2 credential refresh 的"保留旧 allocation 直到迁移完成"原则)。
 4. **`mode` 写入**:升级落定后，下一条 `ck.call.state` 的 `mode` MUST 写 `sfu`,且一旦 `session_focus` committed 即不可在本生命周期内回退到 `p2p`(回退 P2P 需新 call)。
 5. **单调性**:`session_focus` 一经 committed 即 write-once(改写 MUST `session_focus_already_committed`,见 §4.1);升级到 SFU 后人数回落到 2 人 MUST NOT 自动降级回 P2P。
+6. **升级失败 / 迁移中断（normative）**:升级编排可能在三处失败——focus 不可达(选举出的 `session_focus` 无法建立媒体)、某设备 `focus_join` 中途失败、原 P2P leg 已拆除但 SFU leg 未建成的部分迁移态。处置规则:
+   - **focus 不可达且无可选 focus**:发起方 MUST 保留旧 P2P/mesh leg(尚未拆除时)继续承载已有媒体，并 SHOULD 在新的 accepted basis 上以下一候选 focus 重试 §6.2 选举(基于剩余 `foci_preferred`)；候选耗尽后，通话整体 MUST 转 `state="failed"`(`reason_code="call_state_transition_invalid"` 不适用——这是终态推进，按 §4.2 `active → failed` 合法转换)，不得停留在"已拆 P2P 又无 SFU"的不可解释悬挂态。
+   - **单设备 `focus_join` 失败**:不影响其它已迁移设备；该设备 SHOULD 重试 `focus_join`，持续失败则按本地策略以 `ck.call.signal{signal_type=leave}` 退出本通话，通话 `state` 不因单设备迁移失败而回退。
+   - **迁移期间不得丢媒体**:在所有参与者完成 `focus_join` **之前**,原 leg MUST NOT 被拆除(§6 第 3 条);若实现因故已提前拆除且 SFU 未建成,MUST 视为升级失败并按上面第一条处置(重试 focus 或转 `failed`),MUST NOT 静默丢弃通话状态。
+   - `session_focus` 一旦 committed 即 write-once:升级失败重试只能在 `session_focus` 尚未 committed 时切换候选 focus;已 committed 后 focus 不可达只能转 `failed` 并由用户新建通话(§6 第 4 条回退 P2P 需新 call 同理)。
 
 ## 7. 通话摘要（normative）
 
@@ -241,4 +262,19 @@ sidebar:
 - `ck.call.summary` 写入 `ck.component.call.summary.v1` cell,`cell_subject = payload.call_id`,lattice 为 `cas_register`、`bottom=reject`(write-once;divergent 重写 MUST `call_summary_invalid`)。
 - `final_state` MUST 是某终态，且该 `call_id` MUST 已存在终态 `ck.call.state` head;否则 reducer MUST `failed_precondition` `reason_code="call_summary_invalid"`。
 - `recording_state` / `transcript_state` 是终态时刻从 `ck.call.state` 镜像的捕获态；缺省表示未录制 / 未转写。
+
+**字段必填 / nullable 语义（normative）**:`ck.call.summary` payload 字段约束如下，reducer / consumer MUST 按此校验，不一致 `schema_violation`:
+
+| 字段 | 必填 | nullable | 说明 |
+| --- | --- | --- | --- |
+| `call_id` | 是 | 否 | 引用对应 `ck.call.state` 的 call。 |
+| `final_state` | 是 | 否 | MUST ∈ 终态集合且与现存终态 head 一致(见上)。 |
+| `mode` | 是 | 否 | 通话最终 `mode`。 |
+| `started_at` | 否 | 是 | 通话从未进入 `active`(如 `final_state ∈ { missed, cancelled }`)时 MUST 为 `null`;曾 `active` 时 SHOULD 填实际开始时刻。 |
+| `ended_at` | 否 | 是 | `final_state="ended"` 时 SHOULD 填结束时刻;`missed` / `cancelled` / `failed` 等非正常结束态 MUST 为 `null`(无明确"结束"时刻)。 |
+| `duration_ms` | 否 | 是 | 仅当 `started_at` 与 `ended_at` 均非 `null` 时 MUST 等于二者之差；否则 MUST 为 `null`。 |
+| `peak_participant_count` | 否 | 否 | 整数，缺省 `0`；上限同 §4.1 `participants[]`(≤ 1000)。 |
+| `distinct_participant_count` | 否 | 否 | 整数，缺省 `0`，MUST ≥ `peak_participant_count`。 |
+| `recording_state` | 否 | 否 | 缺省=未录制(见上)。 |
+| `transcript_state` | 否 | 否 | 缺省=未转写(见上)。 |
 - 写入 `ck.call.summary` 需要 `ck.call.join`(参见 [`../../artifacts/registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json));它不替代 `ck.call.state` 终态，而是其上的 durable 摘要投影。

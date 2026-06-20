@@ -217,7 +217,7 @@ Realm 有两个终态 event，语义不同：
 
 | from | to | writer / capability | 语义 |
 | --- | --- | --- | --- |
-| `leave` | `invite` | `ck.member.invite` 或 `ck.realm.admin` | 发出邀请或重新邀请。 |
+| `leave` | `invite` | `ck.realm.join.review` 或 `ck.realm.admin` | 发出邀请或重新邀请。 |
 | `leave` | `knock` | target actor，且当前 join rule / Join Policy 允许 knock | 申请加入；申请正文不得放入 member state Move。 |
 | `leave` | `join` | target actor 通过 public / restricted gate，或 `ck.realm.admin` | 直接加入或管理员加入。 |
 | `invite` | `join` | target actor，或 `ck.realm.admin` | 接受邀请或管理员完成加入。 |

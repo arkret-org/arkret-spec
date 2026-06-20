@@ -577,7 +577,7 @@ Schema id: `ck.schema.message.v1`
 | `state` | yes | `enum(active, redacted)` | 新建时 MUST 显式写 `active`(`state` 为 required,不靠默认补齐)。`redacted` 由 `ck.message.redact` reducer 设置（content / encrypted_content 被清空或替换为 redaction tombstone，但消息槽和审计元数据保留）。Message 不定义单独 `deleted` 终态；治理、retention 或 moderation 清除均落到 `redacted`。Message lifecycle 使用顶层 `state` 字段表达可见性。 | 消息生命周期状态。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `revision_root` | no | `id:message` | 第一条 revision MUST 等于 `id`；后续 revision 引用 chain 起点。同一 `revision_root` 下的 revision 形成有序 chain，由 `ck.message.revise` reducer 维护。**`ck.message.create` 的 payload MUST NOT 携带 `revision_root` 字段**（即使值与 `id` 相同）——首次创建时 reducer 自行初始化 `revision_root = id`；只有 `ck.message.revise` 与后续 revise event 才允许携带 `revision_root`，且其值 MUST 等于 chain 起点 message 的 `id`。create payload 出现 `revision_root` MUST 触发 `schema_violation`（见 [`artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。 | revision chain 起点（顶层 schema-validated）。 |
-| `edited_at` | no | `timestamp` | revision chain 中 latest revise event 的 `created_at`；首次 create 后未编辑时缺省。MUST be no earlier than `created_at`。 | 最近一次编辑时间。 |
+| `edited_at` | no | `timestamp` | 取 §9.5.1 选出的「最新可见 revision」对应 revise event 的 `created_at`；首次 create 后未编辑时缺省。MUST be no earlier than `created_at`。**仅为展示派生时间戳，MUST NOT 参与「最新可见 revision」的 winner 选择**（并发 revision 的 winner 由 §9.5.1 的 `event_digest` 全序确定，不由 `edited_at`/`created_at` 选边）。 | 最近一次编辑时间。 |
 | `redaction_ref` | conditional | `id:event` | `state=redacted` 时必填，指向触发 redaction 的 `ck.message.redact` event；其他 state MUST 缺省。 | redaction event 引用。 |
 | `attachments` | no | `array` | 按 profile 声明，通常通过 Relation `attached_to` 表达。 | 附件 hint。 |
 | `created_by` | yes | `did` |  | 发送者。 |
@@ -800,12 +800,24 @@ Message timeline 的同步与 reducer 行为：
 | 场景 | 收敛规则 |
 | --- | --- |
 | Message 创建 | append-only。Timeline 展示排序是 projection-only，默认键为 causal_depth → HLC → actor_id → actor_seq → event_id；不得输入 canonical state、授权或 winner 选择。 |
-| Message 编辑 | 并发 revision 共存于 revision chain；默认视图显示最新可见 revision。 |
+| Message 编辑 | 并发 revision 共存于 revision chain；默认视图显示的「最新可见 revision」由下文 §9.5.1 的确定性全序 winner 规则选出，审计视图保留全部 revision 分支。 |
 | Message 撤回 | 若 revision 与 redaction 并发，默认视图 redaction 优先；审计视图保留完整历史。 |
 | 撤回先到、原消息后到 | 接收方 MUST 保留 dangling redaction，待原消息到达后再应用；保留键为 `redacts` 目标 id / digest。 |
 | Reaction | Reaction-specific remove-wins set 收敛；同一 actor 对同一 emoji 的 add/remove 由 §9.8.3 定义。 |
 
 历史可见性枚举与 canonical 语义见 [`../authz/event-auth-state-resolution.md` §6](../authz/event-auth-state-resolution.md)。
+
+#### 9.5.1 并发 revision 的「最新可见 revision」全序选择（normative）
+
+同一 `revision_root` chain 内，两条 `ck.message.revise`（或 `ck.message.create` 后接 revise）若**因果上互不可达**（彼此不在对方的 `prev_refs` 因果闭包中），不存在天然的「谁更晚」。默认视图展示的「最新可见 revision」MUST 由下列确定性全序 winner 规则机械选出，与 [`relation.md` §6](./relation.md#6-冲突处理)（互不可达候选按 `event_digest` bytewise 升序）、[`identity/account-lifecycle.md` §106](../identity/account-lifecycle.md)（`(effective_at, event_id)` canonical order）同范式：
+
+1. **因果优先**：若一条 revise event 在另一条的 `prev_refs` 因果闭包中（严格因果后继），则后继 revision 胜出，前驱被该后继 supersede。此步用 prev_refs 因果序，不用任何墙钟字段。
+2. **并发 tie-break（canonical 全序）**：对一组**互不可达**的 revision，winner = 这些 revision 各自产生 event 的 canonical `event_digest` 按 bytewise 升序排序后的**最大值**（即字典序最后者）。`event_digest` 是签名覆盖的 canonical Event digest，是最终 tie-break 键，对所有 verifier 唯一确定。
+3. **绝对禁止的选择键**：winner 选择 MUST NOT 使用 `created_at` / HLC / `actor_id` / `actor_seq` / 本地接收顺序 / 数据库 ID / 服务端插入顺序中的任何一个作为选边依据。`created_at`（及由其派生的 `edited_at`，见 §9.2）是墙钟/HLC 量，按 [`../conformance/encoding.md` §7](../conformance/encoding.md) 不能单独决定因果，故不得作为「最新可见 revision」的 winner 选择键。
+
+该规则只决定**默认视图展示哪一条** revision，不改变 canonical event log：全部并发 revision 都保留在 revision chain 中，审计视图 MUST 能列出所有分支。`edited_at` 是对选出的可见 revision 的展示派生时间戳，不参与上述 winner 选择。
+
+> 与撤回的交互：若并发 revision 与 redaction 并存，先按本节选出可见 revision，再按 §9.5 表「Message 撤回」行（redaction 优先）裁决可见性。
 
 ### 9.6 Ephemeral 信号
 

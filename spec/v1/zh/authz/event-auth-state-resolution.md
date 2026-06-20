@@ -418,6 +418,23 @@ AvailabilityReceipt {
 | `mv_register` | 默认普通属性冲突载体，暴露 heads，UI 或后续 Event 收敛 | 禁止作为授权根 |
 | `cas_register` / `fsm` | 默认不可用；需 §9.4 opt-in | 治理 cell 标配；冲突走 bottom / recovery |
 
+#### 9.1.1 `bottom` policy（normative）
+
+控制面 cell 在 join 无法收敛到单一合法值时进入 `⊥`（bottom）。`⊥` 的暴露语义由 cell family 的 **`bottom` policy** 决定，取值为封闭枚举 `bottom ∈ {expose, reject}`：
+
+| `bottom` | 语义 |
+| --- | --- |
+| `expose` | join 产生 `⊥` 时把冲突 heads 暴露给读路径与后续 Move（不直接 fail-closed 写入）；典型用于 `or_set` 形态的并存/审计语义（如 §7.1 `(or_set, bottom=expose)` notary fault cell、moderation_state cell）。 |
+| `reject` | join 产生 `⊥` 时，所有依赖该 cell 的 Control Move precondition、DataEvent 授权判定与读路径 MUST fail closed，返回 `failed_bottom`（`reason=cell_in_bottom_state`，见 §13）；典型用于 `cas_register` / `fsm` 等强单值治理 cell。 |
+
+声明来源与默认值：
+
+- `bottom` policy 是 **cell family 属性**，由 Realm schema 的 cell family 声明（与 `lattice` 同处声明，权威载体为 [`registry/event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 对应 cell 的 `bottom` 字段）。
+- 每个 core lattice type 的默认 `bottom`：`cas_register` / `fsm` 默认 `reject`（强单值治理 cell，冲突即 fail-closed）；`or_set` / `ordered_log` / `counter` 的 join 在数学上永不产生 `⊥`，其 `bottom` 字段对收敛**inert**（registry 中即便登记为 `reject` 也只是占位值，reducer MUST NOT 据其产生 reject 语义；与 [`capabilities.md` §12.1](./capabilities.md) 对 or_set `bottom` 的 inert 处理一致）；`mv_register` 不产生 `⊥`（暴露多 heads 而非 bottom），无 `bottom` 语义。
+- cell family 未显式声明 `bottom` 时，reducer MUST 按上述 per-lattice-type 默认处理；MUST NOT 把未声明当作 `expose` 放宽强单值治理 cell。
+
+> `bottom=reject` cell 进入 `⊥` 后的恢复路径见 §9.4（升控制面继承的 recovery）与各 cell family 的 recovery profile 声明。
+
 ### 9.2 Data plane 冲突
 
 数据面相同 cell 上的有效并发写按该 cell Lattice join：

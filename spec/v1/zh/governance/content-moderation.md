@@ -111,7 +111,7 @@ POST /_cokret/self/moderation/report
 |------|------|------|------|
 | `report_id` | id | required | 举报记录 ID。 |
 | `status` | enum | required | 举报处理状态；`moderation-queue-item` 的**权威生命周期枚举** `{ submitted, resolved }`（语义、转换与终态见 §3.3）。提交后为 `submitted`；实现 MUST NOT 返回该枚举之外的值。 |
-| `routed_to` | did[] | optional | 该举报被路由 / 分诊到的 scoped moderator / 管理员 DID（若服务执行了路由则填充）。 |
+| `routed_to` | did[] | optional | 该举报被路由 / 分诊到的 scoped moderator / 管理员 DID（若服务执行了路由则填充）。**治理拓扑保护（normative）**：实现 MUST NOT 向不持有 moderation / governance capability 的普通 reporter 暴露具体 moderator / 管理员 DID——否则反复对不同 scope 举报即可枚举 Circle / Realm 的完整 moderator/admin DID 集合。对普通 reporter，响应 SHOULD 省略 `routed_to` 或仅返回布尔"已路由"指示（如 `routed: true`）；完整 `routed_to` DID 列表只对本身持有 moderation / governance capability 的 caller 返回。 |
 
 请求示例（非完整 schema）：
 
@@ -211,6 +211,7 @@ Evidence package MUST 加密给 `effective_scope` 对应 moderator audience。�
 - `franking_proof` MUST 在 canonical event routing metadata、ciphertext digest、AAD digest、sender claim、receiving service DID、接收时间与 `replay_nonce` 之上生成。其中 canonical event routing metadata 的覆盖在 wire 上由必填字段 `routing_metadata_digest` 承载（见 [`moderation-report.schema.json`](../../artifacts/schemas/moderation-report.schema.json) `franking_proof.required`），验证方 MUST 据此核验该覆盖。
 - `franking_proof` MUST NOT 包含 plaintext body、attachment filename、reply excerpt、mention 列表、private handle 或解密后内容 hash。
 - **群拓扑 / 时序元数据最小披露（normative）**：`sender_claim` MUST NOT 携带 raw `mls_group_id` 或明文 `epoch`。前者是群组身份、后者是 epoch 进度，均为元数据侧信道，向可能非该 E2EE 群成员的 moderator 披露会泄露群存在性与活跃 epoch 进度。需要把 sender claim 绑定到具体群上下文时，`mls_group_id` MUST 以不可逆 digest 形式（`mls_group_id_digest`，与 `routing_metadata_digest` 一致的 keyed/salted 或 plain digest 约定）出现；`epoch` MUST NOT 以明文整数出现于 `franking_proof`。
+- **`received_by` / `received_at` 向非群成员 moderator 最小化（normative）**：franking 的 `received_by`（接收服务 DID）与 `received_at`（精确接收时间）以明文加密给 moderator，而 moderator 不必是该 E2EE 群成员。明文 `received_by` 暴露消息归属的 Principal Server（服务拓扑 / 可把用户关联回 home server），明文 `received_at` 暴露秒级活动 timing。因此当接收 moderator 不是该消息所在群 / Circle 成员时，`received_by` SHOULD 降级为接收服务 DID 的 digest 或仅证明"某授权投递服务接收过"（不暴露具体 service DID），`received_at` SHOULD bucket 化（与 discovery / presence 的 last_active bucket 同口径）而非秒级精确值。§3.4.1 不存在治理密钥释放所需的精确 `received_by` / `received_at` 校验仅在持有对应治理 capability 的验证路径内进行，不向普通 reporter / 非群 moderator 暴露精确值。
 - `franking_proof` 只证明服务接收过对应密文事件；它不证明 reporter 提交的明文与密文一致，也不证明 sender 在群外不可抵赖地 authored 该明文。
 - Moderator 验证时 MUST 检查 reporter 可见性、目标消息 accepted state、encrypted envelope digest、franking service signature、AAD / ciphertext digest 和 evidence package 签名。
 - 若任一环节缺失，moderator MAY 把材料作为人工线索，但 MUST NOT 将 `franking_proof` 视为可验证投递证明。

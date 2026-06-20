@@ -465,7 +465,9 @@
     },
     "max_delegation_depth": {
       "type": "integer",
-      "minimum": 0
+      "minimum": 0,
+      "maximum": 64,
+      "description": "Maximum remaining delegation hops. Bounded by the DFS depth ceiling (64) defined in zh/authz/capabilities.md §10.2; reducers MUST reject grants declaring a larger value at accept time rather than only truncating during DFS."
     },
     "delegation_path": {
       "type": "array",

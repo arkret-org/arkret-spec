@@ -303,6 +303,8 @@ Frontier 比较必须区分“本地落后”和“本地更新”。若本地 a
 
 **CBA basis 例外（normative）**：reducer 评估 Event 时，DataEvent 只读取自身 `seal_ref` 指向的控制面 view，Control Move 只读取自身 `seal_basis` 指向的控制面 view；同一 ordered submit batch 的前序 Event 不会提前推进后续 Event 的授权基准。若同批内 revoke + 依赖该 grant 的 Event 同时到达，Policy Server fast-path cache MUST 按该 Event 的 CBA basis 评估，不得用同批后置 revoke 直接 deny；跨 Seal 延迟 revoke 仍按 §18 freshness fail closed。
 
+> **取舍与残留风险（informative）**：上述例外意味着同一 CBA basis 下的并发 in-flight 操作不会被同批后置 revoke 阻断——actor 若能把"撤销前最后一批写入"与撤销自身塞进同一 batch / 同一 basis，这些写入会按撤销前 basis 通过。对依赖**即时**撤销的高风险 grant（如紧急吊销被盗 agent key），紧急 revoke 不能跨越本例外立即生效；此类场景 SHOULD 把相关 cell family 声明为 `sealed=true` 或走 sealed control override / fork quarantine 路径，使紧急 revoke 跨越 CBA basis 例外立即生效。该残留风险与 [`event-auth-state-resolution.md` §4.3](./event-auth-state-resolution.md) 的撤销新鲜度窗口取舍同源。
+
 ## 6. Failure Mode
 
 `fail_mode`：
@@ -312,7 +314,9 @@ Frontier 比较必须区分“本地落后”和“本地更新”。若本地 a
 - `quarantine`：可提交但进入 quarantine。
 - `closed`：不可用时拒绝提交。
 
-公共开放 Realm SHOULD NOT 使用 `open`。关键安全 Realm MAY 使用 `closed`，但必须提供人工 break-glass capability。
+**缺省 fail-closed（normative）**：`ck.realm.policy_server` declaration 未显式声明 `fail_mode` 时，实现 **MUST** 按 `closed`（或部署 profile 声明的 `soft_deny`）处理，**MUST NOT** 把缺省解释为 `open`。任何把"未声明"等同 fail-open 的实现 MUST NOT 声明通过 v1 conformance——否则 Policy Server 宕机时全部内容风控（spam、malware_media、replay_suspect、rate_limit）会被静默跳过。
+
+公共开放 Realm **MUST NOT** 使用 `open`；声明了 `open` 的公开 Realm declaration，reducer / receiver MUST 以 `schema_violation` 拒绝，或要求显式 break-glass + 审计声明后才接受。关键安全 Realm MAY 使用 `closed`，但必须提供人工 break-glass capability。
 
 ## 7. Relationship to Capability Authorization
 

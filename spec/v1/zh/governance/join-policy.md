@@ -87,6 +87,7 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 
 - object 形式 `{ threshold, reviewers }`（N-of-M）写入时，reducer MUST 校验 `threshold <= |unique reviewers|`（`reviewers[]` 按 DID 去重后的元素数；[`event-payload.schema.json#/$defs/join_policy_payload`](../../artifacts/schemas/event-payload.schema.json) 已对 `reviewers` 声明 `uniqueItems: true`）。不满足时 MUST 以 `schema_violation` 拒绝该 policy 写入。
 - `majority` / `all` 的分母（reviewer 总数）与单个 reviewer 的资格（是否持有 `review_capability`）MUST 按**各 review accept Event 的 CBA basis** 取值（与 §5 "Gate predicate 评估时点"同一模型）。某条 accept 按其 basis 计入后，该 reviewer 在后续 Seal 失去 capability **不**追溯使既有 accept 失效；它只影响该 reviewer 此后新的 review 决策与新 envelope 投递（§8.2）。
+- **quorum 数学上不可达（normative）**：当 `reviewer_quorum` 为 object 形式 `{ threshold, reviewers }` 且在当前评估 frontier 下仍持有 `review_capability` 的 `reviewers[]` 元素数已 `< threshold`（如 reviewer 被撤销 capability 或离开 Realm，使剩余合格 reviewer 不足以达成 threshold），该 application 进入**不可达**状态。reducer / review 服务 MUST NOT 让 applicant 无声挂起至 `application_ttl`：检测到不可达时 MUST 把该 application 转为终态 reject，写入 §7.3 受控枚举 `reason_code="quorum_unreachable"`（见 [`../../artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)），并 SHOULD 通过 §11 / Realm policy 触发 join policy 重评（如降低 threshold 或补充 reviewer）。`majority` / `all` 形式因分母随合格 reviewer 集合动态收缩，不构成此意义上的不可达。
 
 ### 3.1 Gate 类型
 
@@ -208,6 +209,8 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 | `closed` | 不生效 | reducer 拒绝任何 join / knock / application Control Move。 |
 
 reducer 在 `ck.realm.join_rule` 与 join-policy cell 任一变更时 MUST 重新评估上述一致性约束；不一致 MUST `failed_precondition` 拒绝写入，并附带 `reason="join_rule_policy_mismatch"`。
+
+**存量 in-flight 申请处置（normative）**：当 `default_join_rule` 收紧为 `closed` 或 `invite`（即新入口模式不再接受 knock / application 路径）时，此前已处于 `knock` / `awaiting_review` / `changes_requested` 的存量未决申请 MUST NOT 因 join_rule 变更被静默保留为可继续审核状态。reducer 在 join_rule 收紧生效的 Seal basis 起 MUST：(a) 对收紧前已写入的未决申请，停止接受针对它们的新 `member.application.review{accept}` 与后续 `ck.invite.create`（除非该 invite 走收紧后仍合法的 `invite` 路径独立签发）；(b) 把这些未决申请转为终态 leave，写入 `reason_code="join_rule_tightened"`（见 [`../../artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)），不计 cooldown。已经 `accepted` 且对应 `ck.invite.create` 已落入 frontier 的申请不受影响（其 join 已由 invite 授权承载）。收紧为 `restricted` / `knock_restricted` 等仍保留 application 路径的模式时，存量未决申请按新 policy 的一致性约束在下次 review / 自动解析时重评，不强制转 leave。
 
 ## 5. 自动解析路径
 
@@ -398,8 +401,16 @@ reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applica
         knock ──submit member.application──▶ knock (with application_ref projection)
             │
             ├─ review.accept ──▶ invite (via ck.invite.create) ──▶ join (via ck.invite.accept)
-            ├─ review.request_changes ──▶ knock (awaiting applicant revision; ttl continues)
+            ├─ review.request_changes ──▶ knock[changes_requested] (awaiting applicant revision; ttl continues)
             ├─ review.reject ──▶ leave  (with rejected_at + cooldown_until projection)
+            ├─ application.cancel ──▶ leave
+            └─ application_ttl 到期 ──▶ leave (reducer 自动转换，reason_code="ttl_expired")
+
+        knock[changes_requested]
+            │  (ttl 继续从原申请提交时间计时，不重置)
+            ├─ applicant 修订重提 ──▶ knock[awaiting_review] (同一 application_ref)
+            ├─ review.accept ──▶ invite ──▶ join
+            ├─ review.reject ──▶ leave  (允许 reviewer 在 changes_requested 后直接 reject)
             ├─ application.cancel ──▶ leave
             └─ application_ttl 到期 ──▶ leave (reducer 自动转换，reason_code="ttl_expired")
 ```
@@ -451,6 +462,8 @@ Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声�
 applicant 完成挑战后，重新提交 join / application Control Move，在 `gate_proofs[]` 中追加 `{gate_id: "runtime:<challenge_id>", challenge_proof: {...}}`。`challenge_proof.challenge_id` 是 runtime challenge 的唯一匹配键；verifier MUST 仅按该键选择 challenge proof。Policy Server 重新校验后返回 `decision=allow`。`must_satisfy_before_resubmit=true` 时 reducer MUST 拒绝缺失对应 `challenge_id` proof 的重提。
 
 `bound_to.request_canonical_digest` 按 [`policy-server.md` §4.1](../authz/policy-server.md) 的 proof-stripped transcript 计算：它绑定首次被 challenge 的原始 join / application 请求，而不是包含 `challenge_proof` 自身的最终重提 Control Move。重提 Control Move 除追加 runtime challenge proof 外不得改变原始请求语义；任何字段变更都必须重新走 `ck.self.policy.query.check` 并获取新的 challenge。
+
+**`max_proof_age` 过期后的重发流程（normative）**：applicant 拿到 challenge obligation 后未在 `max_proof_age` 内完成、或提交了一个 issued 时刻已超 `max_proof_age` 的 `challenge_proof` 时，reducer / Policy Server MUST 以 `failed_precondition` + `reason_code="challenge_expired"`（见 [`../../artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）拒绝该重提，MUST NOT 把过期 proof 当作满足 obligation。被拒后 applicant MUST 重新提交原始 join / application Control Move 走一次 `ck.self.policy.query.check`，由 Policy Server 签发**新的** `challenge_id`（旧 `challenge_id` 不得复用满足新一轮 obligation）；applicant 对新 challenge 完成后按上文在 `gate_proofs[]` 追加对应新 `challenge_id` 的 proof。reducer MUST NOT 自动续期或自动重发 challenge——challenge 的签发权属 Policy Server，过期即作废、由 applicant 重新发起请求获取。
 
 `obligations[].type` 注册值（`rate_limit` / `challenge` / `review_hold` / `drop_attachment`）维护在 [`../authz/policy-server.md` §4](../authz/policy-server.md) 表中；本规范是 `challenge` 类型在 join 路径上的 normative wire schema，其它路径（如 `ck.message.create`）若使用 `challenge` 必须遵循同一 envelope。
 

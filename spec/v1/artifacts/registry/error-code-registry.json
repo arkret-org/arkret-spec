@@ -272,21 +272,6 @@
       "description": "The target Strand discussion track is disabled."
     },
     {
-      "code": "reaction_target_unsupported",
-      "applies_to": [
-        "schema_validation",
-        "state_resolution"
-      ],
-      "description": "Sub-reason for schema_violation when a ck.reaction.add / ck.reaction.remove target_ref points at an object kind that the deployment does not allow reactions on. v1 core only allows ck:message: targets; profiles MAY register additional target kinds. See zh/models/strand-and-message.md §9.8.2."
-    },
-    {
-      "code": "reaction_scope_mismatch",
-      "applies_to": [
-        "state_resolution"
-      ],
-      "description": "Sub-reason for failed_precondition when a ck.reaction.* target_ref resolves to an object outside the reaction event's stamped effective scope. Reactions MUST target an object within their own effective scope. See zh/models/strand-and-message.md §9.8.2."
-    },
-    {
       "code": "epoch_mismatch",
       "http_status": 409,
       "scope": "both",
@@ -375,13 +360,6 @@
       "http_status": 429,
       "scope": "both",
       "description": "The caller exceeded the current rate limit policy."
-    },
-    {
-      "code": "external_rate_limited",
-      "applies_to": [
-        "service_call"
-      ],
-      "description": "Bridge / applet transaction failed because the external upstream service rate-limited the request, distinct from the local `rate_limited` (this service's own limit). Carried as a bridge_error error_code with error_class=rate_limit; the caller MAY retry after retry_after_ms. See zh/extensions/applet-schema.md §7."
     },
     {
       "code": "timeout",
@@ -762,6 +740,12 @@
       "description": "Sub-reason for failed_precondition when ck.self.direct_conversation.command.resolve has an accepted contact but cannot verify target-holder active consent_scope=direct_message or any for the requester. See zh/identity/contact-and-direct-conversation.md and zh/identity/consent-model.md §6.2."
     },
     {
+      "code": "peer_unresolvable",
+      "http_status": 409,
+      "scope": "both",
+      "description": "Sub-reason for failed_precondition when ck.self.direct_conversation.command.resolve (create=true) cannot resolve the peer DID to a valid principal / control state, so no KeyPackage claim or Realm create is attempted. See zh/identity/contact-and-direct-conversation.md §6."
+    },
+    {
       "code": "contact_request_not_pending",
       "http_status": 409,
       "scope": "both",
@@ -860,14 +844,6 @@
         "auth_decision"
       ],
       "description": "A revoked effective Applet install attempted a future write, transaction push side effect, delegated action, widget token use, or E2EE join. Reducers and service-call handlers MUST fail closed after ck.self.applet.command.revoke / ck.capability.revoke has taken effect. See zh/extensions/applet-integration.md §4b."
-    },
-    {
-      "code": "applet_namespace_mismatch",
-      "applies_to": [
-        "state_resolution",
-        "auth_decision"
-      ],
-      "description": "Sub-reason for a delegated-handoff Event rejection when auth_data.executed_by is not within the applet_id registration's declared service / bot DID set or namespaces.actors pattern. Prevents a grant scoped to one applet from being exercised under an unrelated applet_id. See zh/extensions/applet-integration.md §11."
     },
     {
       "code": "invalid_avatar_blob_ref",
@@ -1114,6 +1090,30 @@
         "state_resolution"
       ],
       "description": "A `ck.account.status` event attempted to supersede an `erasure_pending` status (via `supersedes_status_event_id`) down to a lower-severity status. `erasure_pending` is terminal: erasure physically destroys data, so reducers / projections MUST reject the downgrade and keep `erasure_pending` as the current status. See zh/identity/account-lifecycle.md §3."
+    },
+    {
+      "code": "account_status_transition_invalid",
+      "applies_to": [
+        "account_status",
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "A `ck.account.status` event requested a `from → to` status transition not permitted by the account-status legal-transition table — e.g. reactivating a `deactivated` account (`deactivated → active`/any lower-severity), which v1 does not define because the §7.1 deactivation fanout (device revoked / KeyPackage retired / session revoked) is irreversible. The reducer / projection MUST `failed_precondition`. (Superseding `erasure_pending` uses the more specific `erasure_pending_is_terminal`.) See zh/identity/account-lifecycle.md §3."
+    },
+    {
+      "code": "push_route_limit_exceeded",
+      "applies_to": [
+        "event_envelope",
+        "service_call"
+      ],
+      "description": "A `ck.device.push_route` registration would exceed the v1 wire limit of 16 active push_route entries per `(recipient_service_did, principal_id, device_id)`. The server MUST reject the new registration. See zh/crypto-media/device-lifecycle.md §5a.2 and zh/conformance/scalability-constraints.md §6.1."
+    },
+    {
+      "code": "push_route_registration_rate_limited",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "Internal audit reason recorded when push-route registration / rotation writes for a `(recipient_service_did, principal_id, device_id)` exceed the default rate (8 writes per 60s). The outward response uses a generic rate-limited envelope; this reason is for server-side abuse detection only. See zh/crypto-media/device-lifecycle.md §5a.2 and zh/conformance/scalability-constraints.md §6.1."
     },
     {
       "code": "selector_actor_wildcard_forbidden",
@@ -1646,6 +1646,37 @@
       "description": "`ck.relation.tombstone` / `ck.relation.update` / equivalent Relation write rejected because the target Relation is already in the terminal state `tombstone`. In particular, `ck.relation.update` targeting a tombstoned Relation MUST be rejected with this reason_code."
     },
     {
+      "code": "relation_profile_cardinality_conflict",
+      "applies_to": [
+        "schema_validation",
+        "state_resolution"
+      ],
+      "description": "RelationProfile registration/update was rejected because its `cardinality` and `max_to_per_from` / `max_from_per_to` express contradictory bounds (e.g. one_to_one with max_to_per_from > 1, or many_to_one with max_to_per_from > 1), or a `max_*` value is <= 0. `max_*` may only tighten within the direction implied by `cardinality`. See zh/models/relation.md §5."
+    },
+    {
+      "code": "relation_scope_unresolved",
+      "applies_to": [
+        "state_resolution",
+        "service_call"
+      ],
+      "description": "A Relation write with `relation_scope` in {space, board} was rejected because the reducer could not resolve the participating endpoints' owning board/space (`board_space_id`) used as the dedupe/cardinality key — the endpoint belongs to no board/space, or the owning board/space is tombstoned. The reducer MUST NOT silently downgrade to realm-scope dedupe. See zh/models/relation.md §5."
+    },
+    {
+      "code": "relation_conflict_fanout_exceeded",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "The number of concurrent candidates (winner + losers) under a single Relation dedupe key exceeded the conflict fanout limit (v1 public profile: 16, aligned with the sibling fork limit in zh/models/event-and-patch.md §2.6). The reducer rejects the whole candidate group rather than retaining unbounded loser records; reconvergence requires a repair Event/Control Move on the latest CBA query basis. See zh/models/relation.md §6."
+    },
+    {
+      "code": "invite_already_terminal",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "An Invite state transition is rejected because the target Invite is already in a terminal flow state (`accepted` / `rejected` / `revoked` / `revoked_by_capability_loss` / `revoked_by_inviter_left` / `expired` / `invalidated_by_rate_limit`). Note the Invite `state` is the invite flow axis (not the generic object lifecycle axis); see zh/models/governance-objects.md §5.3."
+    },
+    {
       "code": "cross_signing_reset",
       "applies_to": [
         "event_envelope",
@@ -1941,6 +1972,13 @@
       "description": "A `ck.call.state` event requested a `state` transition from a non-terminal state that is not listed in the legal-successor table (transitions out of a terminal state use `call_state_terminal` instead). The reducer MUST `failed_precondition`. See zh/crypto-media/call-state.md §4.2."
     },
     {
+      "code": "recording_state_transition_invalid",
+      "applies_to": [
+        "event_envelope"
+      ],
+      "description": "A `ck.call.state` event requested a `recording_state` or `transcript_state` transition not listed in the per-capture controlled state machine (e.g. transitioning out of a terminal `ready` / `failed`, or `stopped → failed` / `stopped → recording`, or re-entering `recording` in place without a new `ck.call.recording.start`). The reducer MUST `failed_precondition`. The same code covers both the recording and transcript orthogonal dimensions. See zh/crypto-media/call-state.md §4.2."
+    },
+    {
       "code": "e2ee_key_source_unauthorised",
       "applies_to": [
         "service_call"
@@ -2088,6 +2126,13 @@
       "description": "An MLS Welcome arrived with a `claim_envelope` whose canonical signing input does not match the Welcome's actual intended_realm_id / claim_id / requester_did, or the envelope signature does not chain to the Welcome sender's self-signing key. See zh/crypto-media/encryption-and-audit.md §2.6."
     },
     {
+      "code": "keypackage_claim_rate_limited",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "Internal server-side audit reason recorded when an MLS KeyPackage claim exceeds the per-(requester_service_did, target_principal_id) rate limit. The outward response MUST stay anti-enumeration (generic `claim_failed` or rate-limited envelope) and MUST NOT leak target existence; this reason is the canonical audit-log token only. See zh/conformance/scalability-constraints.md §6 and zh/identity/key-management.md."
+    },
+    {
       "code": "delegation_cycle",
       "applies_to": [
         "event_envelope",
@@ -2102,6 +2147,14 @@
         "auth_decision"
       ],
       "description": "A delegated grant's `expires_at` is later than the parent grant's `expires_at`, or `not_before` is earlier than the parent's `not_before`. Delegation MUST NOT widen the parent's validity window. See zh/authz/capabilities.md §10."
+    },
+    {
+      "code": "grant_exceeds_issuer_authority",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A first-issue `ck.capability.grant` (no parent_grant_id) attempts to grant actions[] / resources[] that exceed the issuer's own effective capability at the issuing seal basis. Holding the `ck.capability.grant` action alone does not permit minting authority the issuer does not itself hold; reducers MUST fail closed (schema_violation for actions/resources over-scope, failed_precondition when the issuer does not hold the required upper bound at that basis), symmetric to the delegation narrowing rule. See zh/authz/capabilities.md §3.2."
     },
     {
       "code": "recovery_witness_missing",
@@ -2276,6 +2329,22 @@
       "description": "Realm `ck.realm.join_rule` and `ck.realm.policy_components` declare conflicting join modes (e.g., `restricted` with no gate configuration, or `knock_restricted` with all-auto gates degrading to `restricted`). See zh/governance/join-policy.md §4."
     },
     {
+      "code": "quorum_unreachable",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A member application under an object-form `reviewer_quorum` {threshold, reviewers} can no longer reach `threshold`: the count of reviewers still holding `review_capability` at the evaluation frontier dropped below `threshold`. The reducer / review service MUST terminate the application as a reject with reason_code=quorum_unreachable rather than letting it hang until application_ttl, and SHOULD trigger join-policy re-evaluation. See zh/governance/join-policy.md §3."
+    },
+    {
+      "code": "join_rule_tightened",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "An in-flight pending member application (knock / awaiting_review / changes_requested) was terminated to a terminal leave because the Realm `default_join_rule` was tightened to `closed` or `invite`, which no longer accepts the knock / application path. Does not count toward cooldown. Applications already accepted with a committed ck.invite.create are unaffected. See zh/governance/join-policy.md §4."
+    },
+    {
       "code": "delivery_binding_invalid",
       "applies_to": [
         "event_envelope",
@@ -2392,6 +2461,15 @@
       "description": "Handle registration or issuer conflict check failed wire-level NFC / UTS#39 confusable-skeleton / mixed-script constraints. Registries MUST reject instead of treating homograph variants as distinct identities. See zh/identity/identity-handles.md §17."
     },
     {
+      "code": "circle_short_name_taken",
+      "applies_to": [
+        "schema_validation",
+        "state_resolution",
+        "service_call"
+      ],
+      "description": "Non-sidecar Circle creation or display update failed the reducer-enforced case-insensitive uniqueness of display.short_name within (realm_id, short_name). Returned as a failed_precondition for ordinary Circle short_name collisions; sidecar Circle short_name collisions use sidecar_create_denied to avoid existence side channels. See zh/models/circle.md §4."
+    },
+    {
       "code": "sidecar_create_denied",
       "applies_to": [
         "auth_decision",
@@ -2478,6 +2556,14 @@
         "auth_decision"
       ],
       "description": "A join-policy challenge gate answer (e.g. CAPTCHA / proof-of-work / knowledge challenge) submitted with a member application failed verification. Used as a `reason_code` in member.application.review reject decisions. See zh/governance/join-policy.md §7.3."
+    },
+    {
+      "code": "challenge_expired",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A Policy Server challenge obligation was not satisfied within `max_proof_age`, or a challenge_proof was submitted whose issuance is older than `max_proof_age`. The reducer / Policy Server MUST reject with failed_precondition and MUST NOT auto-renew; the applicant must re-run ck.self.policy.query.check to obtain a fresh challenge_id. See zh/governance/join-policy.md §11."
     },
     {
       "code": "claim_invalid",
@@ -3292,6 +3378,36 @@
         "state_resolution"
       ],
       "description": "A Seal failed to discharge a FOCIL-style inclusion-list obligation: a listed, receipt-backed Control Move digest was neither included nor signed-rejected nor proven to fail batch pre-state verification within expiry_seal_count. Receivers MUST reject the entire Seal (rejected_seal). See authz/event-auth-state-resolution.md section 7.3 and schemas/inclusion-list.schema.json."
+    },
+    {
+      "code": "reaction_target_unsupported",
+      "applies_to": [
+        "schema_validation",
+        "state_resolution"
+      ],
+      "description": "Sub-reason for schema_violation when a ck.reaction.add / ck.reaction.remove target_ref points at an object kind that the deployment does not allow reactions on. v1 core only allows ck:message: targets; profiles MAY register additional target kinds. See zh/models/strand-and-message.md §9.8.2."
+    },
+    {
+      "code": "reaction_scope_mismatch",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "Sub-reason for failed_precondition when a ck.reaction.* target_ref resolves to an object outside the reaction event's stamped effective scope. Reactions MUST target an object within their own effective scope. See zh/models/strand-and-message.md §9.8.2."
+    },
+    {
+      "code": "external_rate_limited",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "Bridge / applet transaction failed because the external upstream service rate-limited the request, distinct from the local `rate_limited` (this service's own limit). Carried as a bridge_error error_code with error_class=rate_limit; the caller MAY retry after retry_after_ms. See zh/extensions/applet-schema.md §7."
+    },
+    {
+      "code": "applet_namespace_mismatch",
+      "applies_to": [
+        "state_resolution",
+        "auth_decision"
+      ],
+      "description": "Sub-reason for a delegated-handoff Event rejection when auth_data.executed_by is not within the applet_id registration's declared service / bot DID set or namespaces.actors pattern. Prevents a grant scoped to one applet from being exercised under an unrelated applet_id. See zh/extensions/applet-integration.md §11."
     }
   ]
 }

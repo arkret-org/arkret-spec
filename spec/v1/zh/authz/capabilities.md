@@ -119,6 +119,17 @@ Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
 
 条件化 grant MUST 明确 claim issuer、claim type、有效状态和适用资源范围。节点 MUST NOT 仅凭 handle 字符串后缀、邮箱域名或显示名判断条件成立。
 
+### 3.2 首发 grant 的 issuer 自身权限上界（normative）
+
+委派路径（`ck.capability.delegate` 派生 grant）由 §10.1 强制 `child.actions[] ⊆ parent.actions[]`、resources 收窄等上界约束，防止再授权扩权。**链首的首发 grant（`ck.capability.grant`，无 `parent_grant_id`）受对称的 issuer 自身权限上界约束**：仅持有 `ck.capability.grant` action 本身**不足以**签发任意 grant。
+
+签发首发（非 delegate 派生）`ck.capability.grant` 时，reducer **MUST** 校验：grant 的 `actions[]` 与 `resources[]` 所表达的能力 **MUST ⊆** issuer 在签发时点（按该 grant 的 seal basis / `auth_state_digest`）**自身有效持有**的 effective capability——即 issuer 自身经由 Realm 角色、`ck.realm.admin` / `ck.policy.manage` 等 admin capability、membership 或上游 grant，确实持有覆盖所授 `actions[]`（且 resources 不超出自身命中范围）的有效授权。issuer 不得签发授予他人超出自身持有能力的 grant。
+
+- 越界（`actions[]` 含 issuer 自身不持有的 action，或 `resources[]` 超出 issuer 自身命中范围）时 reducer **MUST** fail closed：对 actions / resources 越界返回 `schema_violation`（`reason="grant_exceeds_issuer_authority"`），对授权前置不成立（issuer 在该 basis 下不持有所需上界能力）返回 `failed_precondition`（`reason="grant_exceeds_issuer_authority"`）。实现 **MUST NOT** 把"持有 `ck.capability.grant` action"误当作"可凭空铸造任意 capability"。
+- 该校验在 issuer 的有效权限随撤销 / 过期收缩时同样适用：issuer 在签发 basis 下不再持有某 action，则不得据此签发包含该 action 的首发 grant。
+- 此规则关闭"窄 `ck.capability.grant` 持有者凭空签出更宽 grant"的权限提升面，与 §10.1 委派收窄对称；它**不**妨碍合法的 admin 角色分配——持有 `ck.realm.admin` 等 admin capability 的 issuer 本身即持有相应 action 上界，因此可正常把这些 action 授予他人。
+- v1 不定义"可凭空授予自身不持有能力"的 sovereign 豁免。若某部署确需此类豁免边界（如 founding admin bootstrap），MUST 由 Realm policy 显式声明该豁免及其权限来源，且 MUST NOT 默认开启；未显式声明时 reducer 按上述上界校验 fail closed。
+
 ## 4. Resource Selector
 
 Cokret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.schema.json`](../../artifacts/schemas/resource-selector.schema.json) 与 [`policy-server.md` §7.0](./policy-server.md) 为准）：
@@ -632,7 +643,7 @@ Delegation Move SHOULD 同时记录签发时点的 parent `auth_state_digest` / 
 
 1. 收到新的 `ck.capability.delegate(child_grant_id, parent_grant_id)` 时,reducer 沿 parent chain 做 DFS,直到遇到无 parent 的 root grant 或深度 = `max_delegation_depth_observed`。
 2. 若在 DFS 过程中发现新 `child_grant_id` 出现在已访问 ancestor 集合中(即新 grant 会 close 一条循环 path),reducer **MUST** 拒绝整条 delegation chain 上的本 Event,reason=`delegation_cycle`,MUST NOT 接受任何子 grant 即便它们单看 valid。
-3. DFS 深度上限 default 64,与 `actor_seq` causal chain 上限一致(`scalability-constraints.md`);超过深度的 chain 视作病态,reducer MUST 退化为拒绝。
+3. DFS 深度上限 default 64，与 `actor_seq` causal chain 上限一致(`scalability-constraints.md`)；超过深度的 chain 视作病态，reducer MUST 退化为拒绝。此外，grant 的 `max_delegation_depth` 字段本身 MUST ≤ 64:reducer 在 **accept grant 时** 即 MUST 校验该字段 ≤ DFS 深度上限，声明更大值的 grant MUST 以 `schema_violation` 拒绝(`grant-constraint.schema.json` 已用 `maximum:64` 静态强制)，而非仅在 DFS 遍历时截断——避免字段声明语义(可设至 2^31)与实际兜底上限(64)不一致而误导审计 / UI。
 4. 当 parent grant 已被 revoke 但 freshness 未到达时,reducer 仍 MUST 把它视为 cycle detection 的 ancestor 节点(prevent 攻击者 revoke-then-re-delegate 构造环)。
 5. 同一 delegate event 携带的多 child grant(批量委托)MUST 整体 fail-or-pass;部分接受会产生不完整的图结构,reducer MUST NOT 部分接受。
 

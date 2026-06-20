@@ -267,6 +267,7 @@ Account subscribe `delta` frame 包含以下 stream：
 - 字段范围仅限三类 context：`actor_profiles`（window 内出现的 actor）、`realm_metadata`（Realm-level Lattice cell value at window start）、`e2ee_epoch`（window 起点的 MLS epoch hint）。
 - 客户端 SHOULD 在渲染 window 内事件时优先用 `state_at_window_start` 而非"当前查询 basis"。
 - 服务端可以沿 Seal DAG 回溯控制面 basis，并按 DataEvent 因果闭包或观察性 `data_event_set_root` 定位 window 起点，再按各 Lattice 的 deterministic join 取 cell value 派生该状态；不可用时退路径 (b)。HLC 只能作为定位候选历史 view 的非权威索引 hint，MUST NOT 作为 cell value 选择键或状态判断依据。
+- **定位路径分歧时回退（normative）**：上一条的两条定位路径（DataEvent 因果闭包 vs 观察性 `data_event_set_root`）或不同实现，对同一 limited timeline 的 window 起点**可能定位到不同的 cell view**（渲染层 display name / `realm_metadata` / `e2ee_epoch` 错位）。由于本字段是 projection-only、不入协议状态，实现 MUST NOT 把某条路径的结果当作权威 cell value 对外承诺；当实现无法确定两条路径产出同一 window 起点 cell view 时，MUST 回退到路径 (b)（`preview_only=true`），不得输出"都合法但渲染态不同"的 `state_at_window_start`。若实现选择给出确定值，SHOULD 固定为"以该 limited timeline 首事件的 `prev_refs` 因果闭包在最近 Seal basis 下的 deterministic join"作为 canonical 定位规则，使同一输入跨实现产出同一渲染投影。
 
 **(b) 标记 `preview_only=true`** (回退路径)：
 

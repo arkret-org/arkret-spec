@@ -48,7 +48,7 @@ see_also:
 可选字段：`migration_group`（同一设计决策的批量条目归并标签，见 `renames.json.migration_group_definitions`）、
 `migration_tool_only: true`（仅离线 migration / replay 工具可消费的 disambiguation entry）。
 
-新增、移除或重命名标准 ck.* 概念时需同步更新这组 artifacts；CHANGELOG 条目和这些 artifacts 是
+新增、移除或重命名标准 ck.* 概念时需同步更新这组 artifacts；[`CHANGELOG.md`](../CHANGELOG.md) 条目和这些 artifacts 是
 "机器可发现的协议演化记录"的两面。该同步要求的规范效力由各 drift artifact 自身及 conformance 文档承载，本文仅作导航说明。
 
 #### 1.2.1 Parser 分层（导航摘要）
@@ -117,14 +117,14 @@ see_also:
 - signed Event Envelope 是唯一 canonical fact。
 - Principal Server 通过 `/_cokret/self/events/*` API 提交、读取、回填和验证 Event frontier。
 - Principal Server 是主体控制或委托的服务边界；Sync Service 是其 Realm 同步能力。
-- 搜索、inbox、notification 和 View projection 默认由客户端本地派生；可选受托服务也不得成为真相源。
+- 搜索、inbox、notification 和 View projection 默认由客户端本地派生；可选受托服务也不充当真相源（规范约束见 [`overview/architecture.md`](./overview/architecture.md) §3）。
 
 ### 3.4 Discoverability / Join Rule / History Visibility
 
 - Discoverability 决定资源能否被发现。
 - Join Rule 决定如何加入。
 - History Visibility 决定加入后能看到多少历史。
-- 三者必须分开判断。
+- 三者分开判断（规范约束见 [`governance/join-policy.md`](./governance/join-policy.md) 与 [`governance/history-visibility.md`](./governance/history-visibility.md)）。
 
 ### 3.5 Capability / Moderation / Personal Blocklist
 

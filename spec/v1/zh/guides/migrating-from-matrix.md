@@ -49,7 +49,7 @@ Cokret Applet 的差异不是简单“更强”，而是粒度不同：
 - Applet registration 是签名声明，可由 Realm owner、Organization、registry 或 authz service 接受。
 - Applet 不因 namespace 自动获得权限；每次写入仍需 capability。
 - 同一个 Applet 可以被不同 Realm 用不同 capability、不同可见性、不同对象范围启用。
-- 不同用户或组织可以在自己控制的 Realm 中启用不同 Applet，但必须受 Realm policy 和授权约束。
+- 不同用户或组织可以在自己控制的 Realm 中启用不同 Applet，并受 Realm policy 和授权约束（规范见 [`extensions/applet-integration.md`](../extensions/applet-integration.md)）。
 - Applet 可作为 bot、bridge、Ghost Actor controller、portal Realm manager、delegated agent / device 参与审计链。
 
 因此 Cokret 的优势是 **Realm / principal / capability 级别的可组合授权与审计**，不是无条件允许任何用户随意给任何 Realm 安装 Applet。
@@ -60,7 +60,7 @@ Matrix 可以通过 bot、appservice 或 bridge 接入 AI，但 AI 不是 Matrix
 
 - agent 可以是 principal、Actor、capability subject。
 - agent 输出可以写入 Message、Strand、Morph 或 Relation。
-- agent 权限必须窄范围、短时效、可撤销、可审计。
+- agent 权限采用窄范围、短时效、可撤销、可审计（规范见 [`identity/key-management.md`](../identity/key-management.md) §3 agent key）。
 - agent-to-agent 场景可以显式升级到 A2A / ACP / MCP bridge / 企业私有 agent API，并将 session、status、artifact、result 回写 Cokret。
 - Cokret 只要求协作事实、授权边界、审计摘要和最终结果进入协议账本，不要求把每个 token 或 tool call 都强制写成 durable Event。
 
@@ -90,7 +90,7 @@ Matrix 的 Olm / Megolm 生态成熟、部署广泛、客户端实现经验丰�
 - MLS 是 IETF 标准。
 - MLS 原生建模 group state、epoch、commit、proposal、member add/remove。
 - Cokret 可以把 MLS epoch 与 Realm membership、history visibility、device authorization、auditable E2EE 直接绑定。
-- 被移除成员必须在新 epoch 上 fail closed。
+- 被移除成员在新 epoch 上 fail closed（规范见 [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.5 MLS Governance Binding）。
 
 因此，Cokret 选择了 **更现代、标准化、适合动态群组协作治理的 MLS 基础**，而不是沿用 Matrix 的 Olm / Megolm。
 
@@ -229,7 +229,7 @@ Cokret Principal Server 是受 principal 或 Realm policy 控制的服务边界�
 
 Matrix 客户端通常从 sync、state、relations 和聚合接口构建体验。
 
-Cokret 明确把搜索、通知、inbox、board、table、graph 等作为派生体验。默认由客户端本地完成；可选受托服务不能成为真相源，输出必须可追溯到签名 Event、reducer profile 和授权状态。
+Cokret 明确把搜索、通知、inbox、board、table、graph 等作为派生体验。默认由客户端本地完成；可选受托服务不充当真相源，输出可追溯到签名 Event、reducer profile 和授权状态（规范见 [`overview/architecture.md`](../overview/architecture.md) §3）。
 
 ### 5.5 协作图比通信图更大
 
@@ -278,7 +278,7 @@ Matrix state event 没有显式的 cell 代数。Cokret v1 的 registry / Realm 
 - `lattice`（`or_set` / `mv_register` / `cas_register` / `fsm` / `counter` / `ordered_log`）
 - `bottom`（`reject` / `expose`）
 
-Receiver 不识别核心 lattice type MUST fail closed；扩展 cell family 必须通过 schema/profile 显式 opt-in。
+Receiver 不识别核心 lattice type 时 fail closed，扩展 cell family 通过 schema/profile 显式 opt-in（规范见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9 与 [`models/common-fields.md`](../models/common-fields.md) §3）。
 
 ### 6.5 E2EE Realm 的 MLS Governance Binding
 

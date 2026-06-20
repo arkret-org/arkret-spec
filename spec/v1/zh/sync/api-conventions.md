@@ -155,7 +155,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
         "method": "oidc",
         "issuer": "https://auth.example.com",
         "openid_configuration": "https://auth.example.com/.well-known/openid-configuration",
-        "client_id": "yougen",
+        "client_id": "ck-example-client",
         "scopes": ["openid", "profile"],
         "grant_exchange": {"proof_kind": "oidc_code_exchange"}
       },
@@ -474,7 +474,7 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 
 **path 不含版本段。** 所有 HTTP path 都是 `/_cokret/<信任段>/...` 形态的绝对路径，URL 只编码信任拓扑，版本是元数据，绝不放进 path（不存在 `/v1/`、`/api/v1`、`/cokret/v1`）。契约版本的唯一真相源是 `contract-catalog.json` 与 `protocol_version`（固定 `"1.0"`）；wire 级版本由 schema id（`ck.schema.*.v1`）和 event kind 版本后缀承载。
 
-版本与能力发现走 **`*.describe` 协商**：调用方 MUST 用 `describe.supported_operations` / `supported_profiles`（而非 path 里写死的版本）判断对端支持什么。破坏性变更通过新增 event kind / schema id + `renames.json` 的 `hard_reject` + `forbidden-wire-fields` + profile gating + CHANGELOG 发布门槛承载，从不发生"整面切 v2"。如确需在传输层标注协议版本，用请求/响应 header（`Cokret-Protocol-Version: 1.0`）或 media-type 参数做 content negotiation，**绝不放 path**。
+版本与能力发现走 **`*.describe` 协商**：调用方 MUST 用 `describe.supported_operations` / `supported_profiles`（而非 path 里写死的版本）判断对端支持什么。破坏性变更通过新增 event kind / schema id + `renames.json` 的 `hard_reject` + `forbidden-wire-fields` + profile gating + [`CHANGELOG.md`](../../CHANGELOG.md) 发布门槛承载，从不发生"整面切 v2"。如确需在传输层标注协议版本，用请求/响应 header（`Cokret-Protocol-Version: 1.0`）或 media-type 参数做 content negotiation，**绝不放 path**。
 
 每个服务 SHOULD 暴露 describe endpoint，返回：
 

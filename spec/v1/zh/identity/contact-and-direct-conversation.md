@@ -88,7 +88,7 @@ Consent revoke 与 contact tombstone 仍是两条显式事实：单独 revoke co
 
 | operation | HTTP | Body / Response | 说明 |
 | --- | --- | --- | --- |
-| `ck.self.contact.command.request` | `POST /_cokret/self/contacts/request` | `ContactRequestRequestBody` / `ContactRequestOutcome` | 写 requester 侧 request fact，并投递签名请求给 target；request body MAY 含可选 `message`(1..2000,NFC),透传到 `ck.contact.requested` 的 `message` 字段作为加好友附言；target 在对端 PS 时 MUST 携带可选 `recipient_service_did`(见 §4.1)以驱动跨端投递 |
+| `ck.self.contact.command.request` | `POST /_cokret/self/contacts/request` | `ContactRequestRequestBody` / `ContactRequestOutcome` | 写 requester 侧 request fact，并投递签名请求给 target；request body MAY 含可选 `message`(1..2000,NFC,wire bound 登记于 [`../conformance/scalability-constraints.md` §6.1](../conformance/scalability-constraints.md)),透传到 `ck.contact.requested` 的 `message` 字段作为加好友附言；target 在对端 PS 时 MUST 携带可选 `recipient_service_did`(见 §4.1)以驱动跨端投递 |
 | `ck.self.contact.command.respond` | `POST /_cokret/self/contacts/respond` | `ContactRespondRequestBody` / `ContactRespondOutcome` | 由 target 接受 / 拒绝 request；accept 同步写 target consent grants |
 | `ck.self.contact.query.list` | `GET /_cokret/self/contacts` | `ContactList` | 从 contact facts 投影，并附带 consent-derived scopes |
 | `ck.self.contact.command.tombstone` | `POST /_cokret/self/contacts/tombstone` | `ContactTombstoneRequestBody` / `ContactTombstone` | 写 holder 侧 tombstone；默认 revoke holder 给 peer 的 contact-managed consent；request body 含可选 `block_peer`(默认 false),为 true 时额外把 peer DID 写入 holder `invite_receive_policy.blocked_subjects`(硬拉黑) |
@@ -125,6 +125,7 @@ request 到达 `rejected`、`expired` 或 `tombstoned` 后，后续重新发起 
 - `contact_address.subject_id` 是该 fact 在 recipient 侧的归属 holder：`ck.contact.requested` 投递到 request target；`ck.contact.accepted` / `rejected` 反向投递回原 requester；`ck.contact.tombstoned` 投递到被 tombstone 的 peer。
 - recipient 把 fact 投影进 `subject_id` 的 contact projection（target 侧形成 `pending_incoming`；requester 侧 accept 形成 `accepted` 并带 `consent_grant_refs[]` / `invite_consent_grant_ref`；reject 形成 `rejected`；tombstone 把对应 row 降级）。
 - recipient 的 `invite_receive_policy.blocked_subjects` 命中 issuer 时，MUST fail-closed（drop + opaque），与 invite 投递的隐私侧信道防护一致。
+- **首次接触附言不绕过 consent gate（normative）**：`ck.contact.requested` 携带的 `message`（1..2000 自由文本，透传到 `contact_requested_payload.message`）在 target **accept 之前**是来自陌生 requester 的未经同意文本，不得直接落入 target 的可见 contact projection 充当骚扰 / 钓鱼 / 未授权信息投递通道。当 requester **不**在 target 的既有 contact 或 consent 白名单内（首次接触）时，recipient MUST 把该 `message` 与 invite 的 quarantine inbox 对齐处理：在 `pending_incoming` 行中 SHOULD 收窄 / stub 化（如仅显示"有附言，accept 后可见"而不直接渲染 2000 字正文），或把附言暂存于 quarantine 区，待 target 显式 accept / 放行后再呈现。`invite_receive_policy.blocked_subjects` 命中只在已知拉黑时 fail-closed；本约束补齐首次接触（尚无 block 记录）时的默认防护，使加好友附言不绕过 [`consent-model.md` §6.1](./consent-model.md) 的 quarantine gate。已在白名单 / 已 accepted contact 的 requester 的 `message` 不受此收窄约束。
 
 因 v1 principal DID（如 `did:web` / `did:webvh`）不强制内嵌 home Principal Server，requester 发起跨端 `ck.self.contact.command.request` 时 MUST 携带 target 的 `recipient_service_did`（与 invite 寻址同构），issuer 侧 PS 据此投递；同 PS 的 request 不需要该字段，本地直接投影。
 
@@ -152,7 +153,10 @@ Resolver MUST：
 2. 验证目标 holder 对 requester 有 active `consent_scope=direct_message` 或 `any`。若没有，返回 `failed_precondition` / `contact_consent_missing`。
 3. 查询 direct conversation binding。若已有 active canonical binding，返回其 `realm_id` 与 `main_strand_id`。
 4. 若 `create=false` 且不存在 binding，返回 `not_found`。
-5. 若 `create=true`，走既有 KeyPackage claim、Realm create / member add、MLS group create、Strand create，然后写 direct conversation binding fact。
+5. 若 `create=true`，走既有 KeyPackage claim、Realm create / member add、MLS group create、Strand create，然后写 direct conversation binding fact。该编排的失败路径 MUST 返回如下终态错误，且 MUST NOT 把半成品 Realm 作为 canonical binding 返回：
+   - **对端 principal 不可解析**（peer DID 无法解析到有效 principal / control state）：返回 `failed_precondition` / `peer_unresolvable`，不发起 KeyPackage claim 或 Realm create。
+   - **对端无可用 KeyPackage**（KeyPackage claim 全部失败，对端无 active KeyPackage 或全部过期 / 撤销）：返回 `failed_precondition` / `keypackage_unknown`（与 §9 KeyPackage claim 路径的反枚举错误口径一致，不泄露对端设备存在性 / 数量）。
+   - **create 编排中途失败**（Realm / membership / MLS group / Strand 任一步已创建但后续步骤或 binding fact 未写成）：返回 `temporarily_unavailable`（可重试）；已创建的 Realm 按下文 orphan / non-canonical 规则处理，MUST NOT 作为默认聊天入口返回。重试 MAY 在 participants / membership / main Strand / contact refs 完全匹配后补写 binding，否则创建新候选并由 deterministic canonical selection 收敛。
 
 Resolver create 是多步编排，不是单个 reducer 原子操作。若 Realm / membership / Strand 已创建但 binding fact 未写成，该 Realm 只能作为 orphan / non-canonical 候选存在；重试 MAY 在验证其 participants、membership、main Strand、contact refs 与请求 pair 完全匹配后补写 binding，否则必须创建新的候选并让 deterministic canonical selection 收敛。没有 binding 的 orphan Realm 不得作为默认聊天入口返回。
 
@@ -170,7 +174,7 @@ DM Realm MUST：
 
 - 使用 `encryption_profile="mls_rfc9420"`。不得把 `mls_dm` 注册为 Realm `encryption_profile` 新枚举。
 - 声明已注册的 direct conversation profile，并在 Realm `fields` 中使用已注册的 direct-conversation discriminator。不得使用 `fields.purpose="direct_message"`，因为 `fields.purpose` 已被 Principal Control Realm 语义占用。
-- active member count 等于 2。不得向 active DM Realm 加第三人；升级多人聊天必须创建新的普通 Realm / Strand，再用 Relation 或 Message 引用旧 DM 内容。
+- active member count 等于 2（wire bound，登记于 [`../conformance/scalability-constraints.md` §6.1](../conformance/scalability-constraints.md)）。不得向 active DM Realm 加第三人；升级多人聊天必须创建新的普通 Realm / Strand，再用 Relation 或 Message 引用旧 DM 内容。
 - `default_join_rule` 为 `closed` 或等价 fail-closed policy；第三方 invite / member_add MUST 被拒绝。
 - 对同一 unordered participant pair 至多保留一个 active canonical DM Realm。
 

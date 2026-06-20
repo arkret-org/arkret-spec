@@ -33,7 +33,7 @@ updated: 2026-06-10
 推荐响应头：
 
 - `Content-Type: application/schema+json`（至少 `application/json`）
-- `Cache-Control` 可按发布版本长期缓存，但 breaking schema 更新必须通过版本化 schema id 表达
+- `Cache-Control` 可按发布版本长期缓存；breaking schema 更新通过版本化 schema id 表达（规范见 [`../overview/release-readiness.md`](../overview/release-readiness.md)）
 
 Markdown catalog 页面可以继续存在于 `/catalog/schemas/`；它是人类阅读视图，不应替代 `$id` URL 的机器消费形态。
 
@@ -62,8 +62,8 @@ Soland 是 Principal Server，不是协议 registry 的来源。
 Yougen 是客户端，不应重新解释协议安全事实。
 
 - Agent audit binding、authz delegation、lattice pre-check、account data shape 应优先消费 SDK helper。
-- UI 可以持有 view-model 和 local cache，但 `client.ui`、`client.blocklist`、profile gate 结果必须能 roundtrip 到 server account data 或 server describe。
-- 附件/blob 展示应消费 SDK media/blob 类型和服务端 authenticated URL，不得长期使用 placeholder URL。
+- UI 可以持有 view-model 和 local cache；`client.ui`、`client.blocklist`、profile gate 结果应能 roundtrip 到 server account data 或 server describe。
+- 附件/blob 展示应消费 SDK media/blob 类型和服务端 authenticated URL，避免长期使用 placeholder URL。
 
 ## Cotest
 
@@ -71,7 +71,7 @@ Cotest 应测实现对 artifact 的遵循，而不是维护另一份手写协议
 
 - Profile gate tests 使用 generated `profile_requirements` 比较实现 surface。
 - Event payload negative tests 使用 SDK validator 构造已知 invalid vector。
-- 跨服务 scenario 可以 soft-gate 外部依赖，但一旦服务启动成功，断言必须是真实协议断言。
+- 跨服务 scenario 可以 soft-gate 外部依赖；一旦服务启动成功，断言应是真实协议断言。
 
 ## Migration Rule
 
