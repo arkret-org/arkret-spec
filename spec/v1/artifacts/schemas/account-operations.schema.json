@@ -141,6 +141,130 @@
       },
       "additionalProperties": false
     },
+    "account_registration_verification_policy": {
+      "type": "object",
+      "properties": {
+        "required": {
+          "type": "boolean",
+          "default": false
+        },
+        "code_digest": { "$ref": "#/$defs/hash" }
+      },
+      "additionalProperties": false
+    },
+    "account_registration_invitation_policy": {
+      "type": "object",
+      "properties": {
+        "required": {
+          "type": "boolean",
+          "default": false
+        },
+        "token_digests": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/hash" },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "account_registration_rate_limit_policy": {
+      "type": "object",
+      "required": [
+        "max_attempts",
+        "window_seconds"
+      ],
+      "properties": {
+        "max_attempts": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "window_seconds": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "account_registration_policy": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "verification_code": {
+          "$ref": "#/$defs/account_registration_verification_policy"
+        },
+        "organization_allowlist": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/non_empty_string" },
+          "uniqueItems": true
+        },
+        "invitation": {
+          "$ref": "#/$defs/account_registration_invitation_policy"
+        },
+        "rate_limit": {
+          "$ref": "#/$defs/account_registration_rate_limit_policy"
+        }
+      },
+      "additionalProperties": false
+    },
+    "account_registration_policy_evidence": {
+      "type": "object",
+      "properties": {
+        "verification_code": { "$ref": "#/$defs/non_empty_string" },
+        "organization": { "$ref": "#/$defs/non_empty_string" },
+        "invitation_token": { "$ref": "#/$defs/non_empty_string" }
+      },
+      "additionalProperties": false
+    },
+    "account_registration_audit_outcome": {
+      "type": "string",
+      "enum": [
+        "accepted",
+        "registration_closed",
+        "verification_code_required",
+        "verification_code_invalid",
+        "organization_not_allowed",
+        "invitation_required",
+        "invitation_invalid",
+        "rate_limited",
+        "duplicate_conflict"
+      ]
+    },
+    "account_registration_evidence_summary": {
+      "type": "object",
+      "properties": {
+        "verification_code_present": {
+          "type": "boolean",
+          "default": false
+        },
+        "invitation_token_present": {
+          "type": "boolean",
+          "default": false
+        },
+        "organization": { "$ref": "#/$defs/non_empty_string" }
+      },
+      "additionalProperties": false
+    },
+    "account_registration_audit": {
+      "type": "object",
+      "required": [
+        "outcome",
+        "policy_digest",
+        "evidence"
+      ],
+      "properties": {
+        "outcome": { "$ref": "#/$defs/account_registration_audit_outcome" },
+        "policy_digest": { "$ref": "#/$defs/hash" },
+        "evidence": { "$ref": "#/$defs/account_registration_evidence_summary" },
+        "retry_after_ms": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
     "profile_patch": {
       "allOf": [
         { "$ref": "./patch.schema.json" }
@@ -189,7 +313,8 @@
         },
         "display_name": { "$ref": "#/$defs/display_name" },
         "device_id": { "$ref": "#/$defs/device_id" },
-        "proof": { "$ref": "#/$defs/account_lifecycle_proof" }
+        "proof": { "$ref": "#/$defs/account_lifecycle_proof" },
+        "policy_evidence": { "$ref": "#/$defs/account_registration_policy_evidence" }
       },
       "additionalProperties": false
     },
@@ -207,7 +332,8 @@
         "primary_handle_claim": { "$ref": "./handle-claim.schema.json" },
         "primary_handle_claim_ref": { "$ref": "#/$defs/handle_claim_ref" },
         "handle_claim_digests": { "$ref": "#/$defs/handle_claim_digests" },
-        "profile": { "$ref": "./actor-profile.schema.json" }
+        "profile": { "$ref": "./actor-profile.schema.json" },
+        "registration_audit": { "$ref": "#/$defs/account_registration_audit" }
       },
       "not": {
         "required": [
