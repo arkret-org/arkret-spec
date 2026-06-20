@@ -809,7 +809,7 @@ Message timeline 的同步与 reducer 行为：
 
 #### 9.5.1 并发 revision 的「最新可见 revision」全序选择（normative）
 
-同一 `revision_root` chain 内，两条 `ck.message.revise`（或 `ck.message.create` 后接 revise）若**因果上互不可达**（彼此不在对方的 `prev_refs` 因果闭包中），不存在天然的「谁更晚」。默认视图展示的「最新可见 revision」MUST 由下列确定性全序 winner 规则机械选出，与 [`relation.md` §6](./relation.md#6-冲突处理)（互不可达候选按 `event_digest` bytewise 升序）、[`identity/account-lifecycle.md` §106](../identity/account-lifecycle.md)（`(effective_at, event_id)` canonical order）同范式：
+同一 `revision_root` chain 内，两条 `ck.message.revise`（或 `ck.message.create` 后接 revise）若**因果上互不可达**（彼此不在对方的 `prev_refs` 因果闭包中），不存在天然的「谁更晚」。默认视图展示的「最新可见 revision」MUST 由下列确定性全序 winner 规则机械选出，与 [`relation.md` §6](./relation.md#6-冲突处理)（互不可达候选按 `event_digest` bytewise 升序）、[`identity/account-lifecycle.md` §3](../identity/account-lifecycle.md)（`(effective_at, event_id)` canonical order）同属 canonical 全序 tie-break（各域的取端方向见各自定义）：
 
 1. **因果优先**：若一条 revise event 在另一条的 `prev_refs` 因果闭包中（严格因果后继），则后继 revision 胜出，前驱被该后继 supersede。此步用 prev_refs 因果序，不用任何墙钟字段。
 2. **并发 tie-break（canonical 全序）**：对一组**互不可达**的 revision，winner = 这些 revision 各自产生 event 的 canonical `event_digest` 按 bytewise 升序排序后的**最大值**（即字典序最后者）。`event_digest` 是签名覆盖的 canonical Event digest，是最终 tie-break 键，对所有 verifier 唯一确定。

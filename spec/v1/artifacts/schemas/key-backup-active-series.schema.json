@@ -168,7 +168,7 @@
         },
         "seal_ref": {
           "type": "string",
-          "pattern": "^ck:seal:sha256:[0-9a-f]{64}$"
+          "pattern": "^ck:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
         },
         "ssk_generation": {
           "type": "integer",

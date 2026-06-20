@@ -567,7 +567,7 @@ Probe 响应 payload：
 - `frontier_root` 主动交换 MUST 使用固定刷新 bucket 与 jitter，bucket 选择不得随 Realm 实时活动量变化；除 operator-triggered diagnostic 外，不得因为新 Event / push / backfill 活动立即触发额外 probe。
 - 对每个 accepted push / backfill range，要求 `ck.attestation.range_completeness` 使用 `federation_witness_attested` quorum；只有单源证明时 MAY 暂存为 pending，但不得推进 high-assurance completeness frontier；
 - 维护 per-peer / per-Realm frontier exchange 状态机，跟踪 `last_success_at` 与连续失败计数；
-- 连续 3 次 probe 失败（peer 不可达、签名失败、`frontier_root` 不一致超过 fork-resolution 阈值）**MUST** 把该 peer 在该 Realm 的状态标记为 `stale_peer`；
+- 连续 3 次 probe 失败（peer 不可达、签名失败、或经 §4.5.1 per-actor backfill 后仍无法调和的 `frontier_root` 不一致——即按 §4.5.1 升级为 `witness_disagreement` fork suspect 的二元判据，非任何未定义数值阈值）**MUST** 把该 peer 在该 Realm 的状态标记为 `stale_peer`；
 - `stale_peer` 状态期间：
   - **MUST** 拒绝以来自该 peer 的 push payload 在本地推进 Realm frontier（继续 quarantine，不让 silent fork 永久化），直到 fork resolution 或重新对齐；
   - **MUST** 通过 §8.6 威胁映射要求的 alarm 通道（operator dashboard / audit log / pager hook）暴露该状态；
@@ -912,6 +912,8 @@ Signature: sig1=:<base64>:
 ### 9.2 多 Principal Server 的 Gossip / 批量同步（增强项）
 
 该方向用于性能和可靠性提升，不是签名真实性的前提条件。最小实现可直接使用本文件 4/7 节的 push + pull。实现支持时应遵循：
+
+> **集合调和算法 pin（informative）**：本节与 [`../authz/event-auth-state-resolution.md` §155](../authz/event-auth-state-resolution.md) 把数据面传播指向"gossip / anti-entropy / RBSR（range-based set reconciliation）类"。但 v1 只给算法**类别**、未像 hash / signature / HPKE registry 那样 pin 一个可互操作的**具体** RBSR 算法。结果是跨实现 backfill 默认退化为逐 cursor scan/resolve（线性轮次），且不同实现的"RBSR 类"互不互通。建议 v2 引入一个 federation RBSR extension profile（profile id 待 v2 登记），pin 一个有多实现互通记录的具体算法（优先 Negentropy，或形式化更完整的 Meyer range-based set reconciliation），range fingerprint hash 复用 `digest-suite-registry`，落在 `/_cokret/peer/*` pull 轨之上、不改单 Event 签名语义。在该 profile 落地前，"RBSR 类"**不保证跨实现互通**，对端只能依赖本节的 push/pull 与 cursor 回填。此为 v2 路线图候选。
 
 - 批次内必须保持 `events` 的原始签名 Envelope 顺序与 `event_id` 可去重性。
 - Gossip 转发不得改变单条 Event 的语义、签名或时间线排序前置假设。

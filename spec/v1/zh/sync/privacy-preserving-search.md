@@ -25,7 +25,7 @@ see_also:
 - `ck.profile.search.blind_index.v1`: keyed blind token 服务端候选检索。
 - `ck.profile.search.forward_private.v1`: 在 blind-index 基础上叠加 server-assisted OPRF 与 generation-bound token derivation，降低长期增量泄漏；该 profile 为 opt-in extension，不改变 base blind-index 语义。
 
-任何接收 plaintext、可逆摘要、embedding 或用户可读 snippet 的服务仍必须通过 `plaintext_visible_services` 授权；本文 profile 不得被用来绕过该要求。
+任何接收 plaintext、可逆摘要、embedding 或用户可读 snippet 的服务仍必须通过 `plaintext_visible_services` 授权；本文 profile 不得被用来绕过该要求。Directory search、本文的 privacy-preserving search 与 bridge interop 三类检索面 MUST 保持隔离、互不泄露私有 plaintext；该不变量由 `ck.vector.search.surface_separation_no_plaintext_leakage.v1` 覆盖。
 
 ## 2. Client Encrypted Index
 
@@ -63,6 +63,8 @@ Forward-private profile 的最小 wire 语义：
 Policy 至少声明允许的 `enabled_profile_refs`、service DID、可接收数据类别、index retention 和 revocation behavior。是否允许 plaintext-visible search MUST 由 `data_classes` 中是否包含 `plaintext` / `reversible_summary` 表达，不得另设未注册的 boolean 字段。
 
 `leakage_class` 是闭合枚举：`deterministic_token`、`forward_private`、`access_hiding`。省略时等价于 `deterministic_token`。`ck.profile.search.blind_index.v1` 的 policy MUST 使用 `deterministic_token` 或更强值；声明 `ck.profile.search.forward_private.v1` 时 MUST 使用 `forward_private`，且 MUST 同时声明 `token_rotation_cadence_ms`。`access_hiding` 为 PIR / ORAM 类 profile 预留；没有显式 profile 支持时，实现 MUST fail closed，不得仅凭该字段声称 access-hiding。
+
+> **`access_hiding` reserved-suite 技术指向（informative）**：当前 `access_hiding` 是纯枚举占位，**无 activation requirements 或具体技术指向**——不像 PQ 签名指向 ML-DSA-65、备用编码指向 dCBOR/CDE 那样钉了上游方案，导致该档位无法被任何实现哪怕实验性地实现，且未来不同实现可能各自发明不兼容的 PIR 后端。建议比照 digest-suite / HPKE registry 的 reserved-row 纪律，为 `access_hiding` 登记候选技术族指向：单 / 多服务器 PIR（如 SimplePIR / DoublePIR）、enclave-backed PIR（Signal SealedSession 风格）、或 Path-ORAM；并声明其 activation requirements（后端协议规范 + leakage 分析 + conformance 向量），未满足前 MUST 继续 fail-closed。若 enclave 路线落地，其 attestation SHOULD 复用 [`../crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md) 的 attested_hardware 基础设施而非另起一套。此为 v2 路线图候选，v1 仅登记技术指向、不引入 wire。
 
 ## 5. Result Semantics
 

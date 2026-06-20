@@ -182,7 +182,7 @@ Reducer-input event 若未在 `requirements.schema[]` 中绑定生效 schema 版
 
 满足 1–4 全部即判定为 additive，reducer MUST 接受；违反任一条即非 additive，reducer MUST reject（`morph_schema_refs_transformation_unsupported`）并提示改走 `ck.morph.schema_migrate`。该谓词只读 `from` / `to` 两侧 schema profile 的声明，不依赖实例数据，对所有 verifier 确定相同。
 
-reducer 在两种 path 下都 MUST 校验 `from_schema_refs[]`（或 `ck.morph.update` 写入前 Morph 的当前 `schema_refs[]`）与实际状态 set-equal；不一致 `failed_precondition`。
+reducer 在两种 path 下都 MUST 校验 `from_schema_refs[]`（或 `ck.morph.update` 写入前 Morph 的当前 `schema_refs[]`）与实际状态 set-equal；不一致 `failed_precondition`（reason `morph_schema_refs_precondition_mismatch`，使客户端能把这种乐观并发 CAS 落空与本节其他 `morph_schema_*` 授权 / 变换失败区分）。
 
 > Rationale：static `schema_refs[]` freeze 会扼杀 Morph 的 evolvability；裸 update 会让 capability `allowed_morph_types` 通过 schema 漂移获得隐性扩张。v1 用 per-event `requirements.schema[]` 绑定 + `ck.morph.schema_migrate` 一等 event + schema-evolution capability gate 在两端之间取中：写入时绑定证据，验证时按写入版本解释；变更走显式 audit / capability，breaking / transformation 走 opt-in `ck.profile.morph.schema_migration_transformations.v1` profile。
 

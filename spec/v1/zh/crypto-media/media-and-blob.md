@@ -482,7 +482,7 @@ Cache-Control: public, immutable, max-age=31536000
 2. **签名校验**：用 envelope 内 `issuer_service_did` 当前 verification method 验证签名
 3. **scheme 校验**：仅识别注册 scheme id（v1 = `ck.blob.presign.v1`）；未知 scheme MUST 拒绝
 4. **blob_ref 一致性**：envelope `blob_ref` 与 query `blob_ref` 必须完全相同
-5. **Realm 绑定校验**：若 blob metadata 有 `realm_id`，envelope `realm_id` MUST 存在且完全相同；若 envelope 省略 `realm_id`，该 blob 必须是 deployment policy 显式允许的 public/global blob。为 Realm A 签发的 presign 不能作为 Realm B 的授权使用。
+5. **Realm 绑定校验**：若 blob metadata 有 `realm_id`，envelope `realm_id` MUST 存在且完全相同；若 envelope 省略 `realm_id`，该 blob **MUST** 是 deployment public/global 白名单中**显式登记**的 blob。服务端 **MUST NOT** 仅因 blob metadata 缺 `realm_id` 即推断其为 public/global——"缺失 `realm_id`"与"已授权公开"必须解耦：未显式登记在白名单的 realm-less blob（例如因上传 bug 漏设 `realm_id` 的 Realm-owned blob）MUST fail closed（`not_found`），不得为其签发无 Realm 绑定的 bearer URL。为 Realm A 签发的 presign 不能作为 Realm B 的授权使用。
 6. **method 校验**：本次请求方法在 envelope `access_scope.method` 列表内
 7. **TTL 校验**：`now() ∈ (issued_at, expires_at)`。允许的 clock skew tolerance MUST 取 [`../conformance/encoding.md`](../conformance/encoding.md) §（两层 drift 模型）的 `expected_future_skew_ms`（默认 30_000，即 ±30s）作为本短 TTL bearer 场景的 normative 容差，MUST NOT 超过 `hard_future_skew_ms`（300_000）上界。实现 MUST NOT 自定义更宽的容差使过期 presign 在无界时间内被接受。
 8. **nonce / 撤销校验**：`nonce` 未在撤销列表内；普通 `media_inline` / `thumbnail` presign 是短 TTL 多次可用 bearer URL，服务端 MUST NOT 把浏览器正常的重复 GET / HEAD / Range 请求当作 replay 拒绝。只有 profile 显式声明 single-use presign 时，才可维护 consumed set。

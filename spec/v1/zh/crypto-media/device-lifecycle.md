@@ -954,7 +954,7 @@ QR payload MUST NOT 包含长期私钥、secret storage key、recovery secret �
 | `request_id` | `string` | required | 调用方生成的随机关联 id；MUST NOT 在被应答或取消后重用。 |
 | `secret_id` | `string` | required | 被请求 secret 的不透明标识，例如 `org.example.mls_account_secret`。 |
 | `from_device` | `id:device` | required | 请求（新）设备；MUST 等于 envelope 的 `sender_device_id`。 |
-| `recipient_hpke_public_key` | `string` | required | 请求设备控制的 base64url X25519 HPKE 公钥，被请求设备据此密封；SHOULD 是设备 `hpke_key` 或已绑定的 SAS 验证 transcript 中已建立的密钥。 |
+| `recipient_hpke_public_key` | `string` | required | 请求设备控制的 base64url X25519 HPKE 公钥，被请求设备据此密封。它 **MUST** 逐字节等于目标 `from_device` 在该 principal 设备集投影（§4 device record / §6 device list）中登记的权威 `hpke_key`；不等即 fail closed（见下方规则）。**MUST NOT** 仅因该公钥"看似格式合法"或与某条 SAS transcript 内某值相符就接受——SAS（§10.3）只验证双方 device verify key（Ed25519），不覆盖 HPKE（X25519）密封密钥，故密封目标公钥必须独立绑定到权威 `hpke_key`。 |
 
 `ck.secret.send.content` 字段：
 
@@ -976,6 +976,7 @@ HPKE AAD（本 kind 的具体绑定）MUST 是对以下 6 个 envelope 字段的
 - 时序：`ck.secret.request` / `ck.secret.send` MUST 在两台设备完成 §10.3 SAS 验证之后发送。请求与发送绑定的设备 MUST 与该 SAS transcript 绑定的 device key 一致，防止“验证设备 A、把 secret 发给设备 B”。
 - TTL：二者受 §7 队列 TTL 约束；`ck.secret.send` SHOULD 使用更短 `expires_at`（推荐 10–60 分钟）。
 - 用户在环：被请求设备在发送 `ck.secret.send` 前 MUST 经用户显式授权，并 MUST 校验目标 device ∈ 本 principal 当前授权设备集合且未撤销。
+- 密封密钥绑定（normative）：被请求设备在密封并发送 `ck.secret.send` 前，MUST 校验请求中的 `recipient_hpke_public_key` 逐字节等于目标 `from_device` 在设备集投影（§4 device record / §6 device list，经 §8.3 Tier-2 链验证后视为权威）中登记的 `hpke_key`；不等 MUST fail closed（不密封、不发送），并 SHOULD 提示用户该请求异常。该校验闭合"验证设备 A 的 verify key、却把账户级 secret 密封给攻击者控制的 X25519 公钥"这一密钥绑定缝隙——它独立于 §10.3 SAS（SAS 只绑 verify key）。注：device `hpke_key` 由签名的 `ck.device.authorize` 事件承载、有事件签名链完整性背书，但当前 §5.2 `cross_signing_binding` 只覆盖 `device_public_key`（verify key）；把 `hpke_key` 一并纳入 cross-signing transcript 覆盖是更强绑定的后续硬化方向。
 - 反滥用：接收方 MUST 丢弃 unsolicited `ck.secret.send`（无本端 pending `request_id`）；`request_id` 用后即作废；对同一 `from_device` 的重复请求 SHOULD 限速；多次拒绝 SHOULD 提示用户考虑撤销该设备。
 - 审计：被请求设备 SHOULD 记录一次 secret 共享审计（如 `ck.audit.accessed`，`access_kind=secret_share`）。
 - 止损：误授权后，用户从任一已授权设备发起 §2.2 设备撤销并轮换对应 account secret、重新封装全部备份即可使被泄露设备失效。

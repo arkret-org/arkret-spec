@@ -270,16 +270,19 @@ DataEvent 的 `causal_refs[]` 可以帮助投影层稳定排序和诊断缺依�
 
 ## 10. Snapshot
 
-Snapshot 是恢复加速层，不是真相源。Snapshot manifest MUST 声明：
+Snapshot 是恢复加速层，不是真相源。Snapshot manifest MUST 声明以下字段（权威必填集见 [`../conformance/snapshot-schema.md`](../conformance/snapshot-schema.md) 与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 的 `required`，本清单与之等价）：
 
+- `id`（snapshot 自身 id）
 - `realm_id`
-- reducer / schema profile refs
-- chunk digests
-- data projection root 或 control `state_root`
-- covered Event frontier / Seal basis
+- `reducer_profile` 与 `schema_profile_refs`（reducer / schema profile refs）
+- `state_digest`（投影状态根：data projection root 或 control `state_root`，按 `security_class` 确定，**必填**）
+- `event_set_commitment`（绑定"哪些事件产生该状态"的承诺，与 `state_digest` 各自独立、**均必填**；客户端采用前 MUST 验证它，见下）
+- `frontier`（covered Event frontier / Seal basis）
+- `chunks`（chunk digests）
 - `security_class`
-- verification hints
-- issuer 与 signature
+- `created_by`（issuer）与 `created_at`
+- `authority_binding`（证明 `created_by` 在 `created_at` 被授权签发该 snapshot）
+- `signature`
 
 客户端采用 Snapshot 前 MUST 验证 signature、chunk digest、profile compatibility、basis freshness、Event set commitment 与必要 inclusion / omission challenge。验证失败时 MUST 丢弃 Snapshot 并回退到原始 Event / Seal 回放。
 

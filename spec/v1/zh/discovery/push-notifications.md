@@ -403,8 +403,8 @@ POST /_cokret/edge/push/notify
 | `notification.priority` | string | visible-only | profile-gated 优先级提示（如 `low`）。绝不进 blind。 |
 | `notification.membership` | string | visible-only | profile-gated 接收用户的成员关系状态。绝不进 blind。 |
 | `event_kind` | string | optional | 顶层（与 `notification` 并列）：源 Event kind（如 `ck.message`），供 gateway 将 Phase-P2 `ck.agent.*` 生命周期 / actor-private kind 路由为 no-fanout ack。粗粒度路由选择器，不带 Realm / sender / event 识别字段。 |
-| `reason_code` | string | optional | 顶层：Round-4 caller 提供的 wire-safe reason code。well-known 值 `historical_only` 标记 soland 诊断重放，**MUST NOT** 触发新 push fanout（gateway 回 200 幂等式 ack）。其它取值仅在操作显式定义处被接受。 |
-| `audit_envelope` | object | optional | 顶层：Round-4 `ck.audit.policy_access` 信封路由片段（`{access_kind, late_recovery_original_event_id?}`，派生自 floria `AuditEnvelopeMetadata`）。present 时该请求是审计管线事件（如 `e2ee_late_recovery` 访问通知）而非 push notify：gateway 写审计事件、回 200、跳过整条 push 管线。 |
+| `reason_code` | string | optional | 顶层：Round-4 caller 提供的 wire-safe reason code。well-known 值 `historical_only` 标记历史 / 诊断重放（非新事件），**MUST NOT** 触发新 push fanout（gateway 回 200 幂等式 ack）。其它取值仅在操作显式定义处被接受。 |
+| `audit_envelope` | object | optional | 顶层：Round-4 `ck.audit.policy_access` 信封路由片段（`{access_kind, late_recovery_original_event_id?}`）。present 时该请求是审计管线事件（如 `e2ee_late_recovery` 访问通知）而非 push notify：gateway 写审计事件、回 200、跳过整条 push 管线。 |
 
 > **传输层 header（非 body 字段）**：notify 的 `idempotency_key`→`Idempotency-Key` header；来源服务 DID→`Source-Service-DID` header；目标服务 DID 与 `recipient_service_did` 复用→`Destination-Service-DID` header（均为 `httpMessageSignature` 伴随项，见 [`../sync/service-http-binding.md` §3](../sync/service-http-binding.md) 与 openapi securitySchemes）。`operation_id` 由 URL path（operationId `ck.edge.push.command.notify`）唯一确定，不在 body 重复承载。以上字段 **MUST NOT** 出现在请求体内。
 

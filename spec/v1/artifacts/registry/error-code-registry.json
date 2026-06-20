@@ -3416,6 +3416,52 @@
         "auth_decision"
       ],
       "description": "Sub-reason for a delegated-handoff Event rejection when auth_data.executed_by is not within the applet_id registration's declared service / bot DID set or namespaces.actors pattern. Prevents a grant scoped to one applet from being exercised under an unrelated applet_id. See zh/extensions/applet-integration.md §11."
+    },
+    {
+      "code": "proof_binding_missing",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "Proof lacks a required `domain` or `audience` binding on a cross-service, cross-trust-domain, federation, or multi-audience call. Receivers MUST fail closed rather than accept a single-audience proof across services. A profile MAY define a more specific reason. See zh/models/event-and-patch.md §3."
+    },
+    {
+      "code": "schema_derivation_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "Diagnostic: the optional `conflict_keys_digest` derived by the producer does not match the digest a verifier derives from `effects[]` under its own schema version, surfacing a two-sided schema-derivation divergence early. NOT a security boundary — verifiers MUST always derive the conflict domain from `effects[]` regardless of this field. See zh/authz/event-auth-state-resolution.md §88."
+    },
+    {
+      "code": "morph_schema_refs_precondition_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "Sub-reason for failed_precondition when a `ck.morph.schema_migrate` / `ck.morph.update` declares `from_schema_refs[]` (or the writer's expected current `schema_refs[]`) that is not set-equal to the Morph's actual current state — an optimistic-concurrency (CAS) miss distinct from the other morph_schema_* authorization/transformation failures. See zh/models/morph.md §4.1."
+    },
+    {
+      "code": "unknown_kind",
+      "applies_to": [
+        "event_envelope"
+      ],
+      "description": "Current parser rejected an Event whose `kind` is not a registered v1 kind (including removed / renamed ids carried in artifacts/migration/removed-event-kinds.json). The live sync / federation / snapshot path does not perform payload-shape disambiguation; only the offline migration tool consumes such ids. See zh/spec-map.md §1.2.1 and zh/overview/evolution-and-compatibility.md."
+    },
+    {
+      "code": "unknown_field",
+      "applies_to": [
+        "event_envelope"
+      ],
+      "description": "Current parser rejected an Event carrying a top-level or payload field not declared by the closed schema for its kind (including removed / renamed fields in artifacts/registry/forbidden-wire-fields.json). Distinct from `schema_violation` in that it pinpoints an unrecognized field rather than a constraint violation on a known field. See zh/spec-map.md §1.2.1."
+    },
+    {
+      "code": "read_receipt_forced_public_world_readable_forbidden",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "Reducer rejected a read-receipt policy whose effective combination is `disclosure='required'` AND `visibility='public'` on a `world_readable` scope — forced emission of publicly-pullable read positions with no member opt-out (forced de-anonymized activity tracking) — unless the policy payload also sets the second explicit opt-in `allow_forced_public_world_readable_receipts=true`. See zh/discovery/read-receipts.md §2.5.1."
     }
   ]
 }

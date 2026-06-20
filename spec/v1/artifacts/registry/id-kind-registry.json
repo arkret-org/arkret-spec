@@ -42,10 +42,10 @@
     },
     {
       "kind": "seal",
-      "wire_form": "ck:seal:sha256:<digest>",
+      "wire_form": "ck:seal:(sha256|blake3):<digest>",
       "status": "active",
       "storage_recommendation": "Store as a content-addressed canonical Seal hash.",
-      "description": "Content-addressed Seal identifier."
+      "description": "Content-addressed Seal identifier. The digest-suite prefix follows the owning Realm's declared active digest suite (zh/conformance/encoding.md §3.3); sha256 and blake3 are the v1 active suites."
     },
     {
       "kind": "cell",

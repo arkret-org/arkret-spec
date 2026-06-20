@@ -85,6 +85,8 @@ did:webvh:<scid>:<host-and-path>
 
 默认值只表示"当系统需要为新用户创建 principal DID、且用户未明确选择其他 method 时使用 `did:webvh`"。协议仍然允许其他现有 DID method，只要实现能按该 method 的规范完成解析、控制权验证、（可选的）历史验证和服务委托验证。
 
+> **残留暴露面与 Key Transparency 方向（informative）**：`did:webvh` 的 `did.jsonl` hash chain + 可选 witness 提供的是**单个 DID 自身**控制权变更的可验证性。它**不**提供跨命名空间、可被任意第三方持续 monitor 的全局 Key Transparency 账本（CONIKS / Apple Contact Key Verification 类）。因此 v1 目录层的 equivocation 检测依赖各 DID 自身的 witness 覆盖与 [`../discovery/discovery-directory.md`](../discovery/discovery-directory.md) 的资源自签名，**hosting domain 对不同 verifier 出示不同 key 的针对性 split-view（尤其 `did:web` service method 与 `personal_node` 降级路径）是已知残留暴露面**：witness 只覆盖被签名的那条链，无法证明"我看到的 Alice 公钥 = 全世界看到的同一把"。未来若引入 handle→DID→verification-key 映射的可监控 KT（建议复用 Seal-DAG append-only log + 双签 equivocation evidence + VRF-keyed prefix tree，作为一个未来的 key-transparency extension profile，profile id 待 v2 登记，不改 v1 core wire），可把该暴露面收敛为可独立审计、equivocation 留不可抵赖证据。该方向为 v2 路线图候选，v1 仅在此登记暴露面。
+
 ### 3.1 Method Selection
 
 | 场景 | 默认 / 推荐 DID method | 说明 |

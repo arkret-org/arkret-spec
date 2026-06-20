@@ -106,7 +106,7 @@ Cokret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织�
 
 - `_conformance` 段首字符 `_` 表明它**不是** §2.1 的生产 trust-surface classifier，而是 test-only 保留段。所有测试 / 调试 / fixture-replay / 内部状态注入 / 内部状态 dump 端点 MUST 落在该段下；实现 MUST NOT 在生产 trust-surface 段下新增此类端点。
 - **暴露门（profile-gated，MUST）**：`/_cokret/_conformance/*` **仅在** 实现显式声明 `ck.profile.conformance_harness.v1`（test / conformance build profile）时暴露。**生产 profile（任何 `claimed_profiles` / `verified_profiles` 不含 `ck.profile.conformance_harness.v1` 的部署）MUST NOT 路由该命名空间**：路由层 MUST 对 `/_cokret/_conformance/*` 返回与未知路径相同的 `404 unrecognized_endpoint`，不得进入业务逻辑，也不得在 `GET /_cokret/describe` 的 `supported_operations` / `supported_features` 中宣告。该命名空间下的 operation MUST NOT 进入 `contract-catalog.json#operation_registry` 的生产 operation 集，也 MUST NOT 出现在 OpenAPI 生产 binding 中。
-- **生命周期（MUST）**：`_conformance` 端点是 ephemeral test affordance，不是稳定互操作契约。它们 MUST NOT 被任何对端实现作为协议依赖消费——通用客户端、Principal Server、Sync Service、federation peer、Applet、Push Gateway、yougen / sodmin 等生产组件 MUST NOT 调用、探测或依赖另一实现的 `_conformance` 端点。test build 之外的代码路径 MUST NOT 引用该命名空间。任一组件把 `_conformance` 端点当作生产能力消费即视为 profile violation。
+- **生命周期（MUST）**：`_conformance` 端点是 ephemeral test affordance，不是稳定互操作契约。它们 MUST NOT 被任何对端实现作为协议依赖消费——通用客户端、Principal Server、Sync Service、federation peer、Applet、Push Gateway 等任何生产组件（含实现自身的产品 / 运维面）MUST NOT 调用、探测或依赖另一实现的 `_conformance` 端点。test build 之外的代码路径 MUST NOT 引用该命名空间。任一组件把 `_conformance` 端点当作生产能力消费即视为 profile violation。
 - **test-only 能力集（normative 边界）**：以下类别属于 `_conformance` test-only 集——(a) 内部状态读出（reducer cell / seal DAG / bottom diagnostics / 幂等缓存内容的非授权裸读）；(b) 状态注入 / 强制推进（直接写 cell、强制 HLC、伪造 frontier、跳过 seal 覆盖）；(c) fixture replay / 确定性种子；(d) 时间 / 时钟 / 限流旁路；(e) 任何绕过 capability / Realm policy / history visibility / 签名校验的 inspection。生产面**永不**提供以上能力；需要协议级可观测性的生产场景（如 §5.3 的 `event_state` / `bottom` 暴露）走已注册的生产 operation，不走 `_conformance`。
 - **conformance 验证自身**：`ck.profile.conformance_harness.v1` 是 test build profile，**不构成** v1 core 互操作 profile，也不进入对端 fast-path 能力命中判断；声明它的部署 MUST 在 `development_mode=true` 或等价 test build 标记下运行，且 MUST NOT 同时对外宣告生产 `verified_profiles`（与 [`service-surface.md` §3.0](./service-surface.md) 的 `development_mode=true ⇒ verified_profiles=[]` 约束一致）。
 
@@ -119,7 +119,7 @@ Cokret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织�
 **规则（MUST）**：任何在 §2.1 生产 trust-surface 段（`self` / `gate` / `root` / `find` / `peer` / `open` / `edge`）下被实现暴露、或被任一对端消费的 `/_cokret/*` path，MUST 解析到 `contract-catalog.json#operation_registry` 中已登记的 canonical operation（并具备对应 OpenAPI binding 与 request/response schema ref）。一项能力若不在 catalog 中，只有三条互斥的合规归属：
 
 - **(a) 真协议能力** → MUST 先补 canonical operation（catalog + OpenAPI + §2.1 命名空间 + 对应 conformance profile）再暴露；在补齐前 MUST NOT 以未登记 `/_cokret/*` 路径作为事实协议面。
-- **(b) 产品 / 运维 / 部署私有能力** → MUST NOT 占用任何 `/_cokret/*` 生产段，而是放实现自己的 negative-space root（soland 即 `/_soland/*`），且 MUST NOT 列入 v1 core conformance 的生产 operation 集。
+- **(b) 产品 / 运维 / 部署私有能力** → MUST NOT 占用任何 `/_cokret/*` 生产段，而是放实现自己的 negative-space root（实现私有，例如 `/_<impl>/*`），且 MUST NOT 列入 v1 core conformance 的生产 operation 集。
 - **(c) test-only 调试 / conformance / fixture-replay** → 走 §2.1.2 的 `/_cokret/_conformance/*`，受 `ck.profile.conformance_harness.v1` gate。
 
 三者互斥；任一对端实现（含 cotest 等测试面）MUST NOT 把未登记 `/_cokret/*` 路径当作协议依赖消费，而应改查已注册 operation 或对应实现私有面。本节与 §2.1.2 正交：(c) 处理 test-only 观测，(a)/(b) 处理生产能力的归属。
@@ -134,16 +134,16 @@ A 类——真协议能力，**已由既有 canonical operation / event 覆盖�
 | self account-secret / 设备恢复运行态（`self/keys/recovery`） | `ck.self.keys.backups.command.unlock`（key backup 解锁）+ `ck.root.identity.recovery_session.{create,resource.get,submit_proof,complete}`（恢复挑战应答，[account-lifecycle.md](../identity/account-lifecycle.md)）；无独立 `self/keys/recovery` operation |
 | holder 发起第三方邀请（`self/invites/third-party`） | `ck.invite.third_party` Event 经 `ck.self.events.command.submit` 摄取（[third-party-invites.md §3.1](./third-party-invites.md)）；invite token 铸造是 holder ↔ 验证服务的私有交互，**不**构成独立 `/_cokret/*` operation |
 
-B 类——产品 / 运维能力，被实现误放进协议段，按 (b) 归位（治理归属原则同 §2.1.1：服务器 / 运维级能力走实现私有 `/_soland/*`，日常治理走协议事件 + capability 闸门，不占用 `/_cokret/*` 命名空间）：
+B 类——产品 / 运维能力，被实现误放进协议段，按 (b) 归位（治理归属原则同 §2.1.1：服务器 / 运维级能力走实现私有 negative-space root（例如 `/_<impl>/*`），日常治理走协议事件 + capability 闸门，不占用 `/_cokret/*` 命名空间）：
 
 | 误址簇 | canonical 协议归属（若该能力本就是协议能力） | 误址形态归位 |
 | --- | --- | --- |
 | webrtc / calls 信令面 | call 信令 `ck.call.signal` 走 ephemeral envelope（`ck.self.ephemeral.command.send`）；媒体凭证 `ck.self.call.media.exchange.issue_token`（`/_cokret/self/rtc/token`）+ `/_cokret/self/rtc/ice-config`；持久 call 状态 `ck.call.{state,recording.start,summary}` 走 self/events | 其余 call-setup / 私有信令旁路 → 媒体服务私有面 `/_soland/*`，不进 v1 core |
-| moderation 审查者工作台运行态 | `ck.moderation.{decision,decision.lift,appeal.submit,appeal.review,appeal.decision,appeal.close}` 事件经 self/events，realm authz capability 闸门；report 经 `ck.self.moderation.command.report` | 残留 `/_soland/admin` + OAuth admin scope 入口下线 |
+| moderation 审查者工作台运行态 | `ck.moderation.{decision,decision.lift,appeal.submit,appeal.review,appeal.decision,appeal.close}` 事件经 self/events，realm authz capability 闸门；report 经 `ck.self.moderation.command.report` | 残留实现私有 admin 路径（如 `/_<impl>/admin`）+ OAuth admin scope 入口下线 |
 | relations / views / moves 直读 | `/_cokret/self/projection/*`、`/_cokret/self/views/*`（extension surface，非 canonical truth source，须服务显式声明） | 越出已声明 projection binding 的 relation/view/move 直读路径 → 实现私有面 |
 | authz / grants compat 路由 | capability 经 `ck.capability.{grant,revoke,delegate}` 事件 + `ck.self.policy.query.check` 预检 | 任何 `/_cokret/*` authz 直写 compat 路径 MUST NOT 存在；capability 一律走主 reducer 事件，相关运维只读视图归 `/_soland/*` |
 | blob 直写形态（`blob/put`） | `ck.self.blob.upload.create`（`POST /_cokret/self/blob/upload`）+ tus 续传 binding | `blob/put` 直写归并到 upload operation，或声明为 per-operation HTTP 伴生 binding（[transport-bindings.md §6.1](./transport-bindings.md)），不得作未注册 canonical 路径 |
-| 主权部署只读 realm/account 运维视图 | （无协议 operation——属运维级） | server info / stats 类只读运维视图 → sodmin 产品面 `/_soland/*` |
+| 主权部署只读 realm/account 运维视图 | （无协议 operation——属运维级） | server info / stats 类只读运维视图 → 实现私有运维 / 产品面（例如 `/_<impl>/*`） |
 
 ### 2.2 端点契约规则
 
@@ -967,7 +967,7 @@ cursor + `has_more` 只告诉客户端"拿到了一页"，不告诉客户端"该
 GET /_cokret/self/events/subscribe?realms=<id>&after=<cursor>&catchup=true
 ```
 
-`after=<cursor>` 表示订阅起点：从该 cursor *之后*（排除）开始接收事件，与 [`ck.self.events.query.scan`](#33-查询--回填-eventckselfeventsquery) 的 `after=` 同义。Subscribe 天然只有"朝未来推进"一个方向，不接受 `before=` / `order=`；想要历史回填请用 `ck.self.events.query.scan`。
+`after=<cursor>` 表示订阅起点：从该 cursor *之后*（排除）开始接收事件，与 [`ck.self.events.query.scan`](#33-查询--回填-eventckselfeventsqueryscan) 的 `after=` 同义。Subscribe 天然只有"朝未来推进"一个方向，不接受 `before=` / `order=`；想要历史回填请用 `ck.self.events.query.scan`。
 
 支持多 realm / actor 一次订阅；`catchup=true` 时服务端只回放 `after=` 到当前 frontier 的追赶区间，再发出 `catchup_complete` 帧切到实时尾部。完整历史必须通过 `GET /_cokret/self/events` 的 `before` / `after` 分页或区间查询读取。
 
