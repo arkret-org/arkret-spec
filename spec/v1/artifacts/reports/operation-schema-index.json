@@ -22,7 +22,8 @@
           "handle",
           "display_name",
           "device_id",
-          "proof"
+          "proof",
+          "policy_evidence"
         ],
         "closed": true
       },
@@ -41,7 +42,8 @@
           "primary_handle_claim",
           "primary_handle_claim_ref",
           "handle_claim_digests",
-          "profile"
+          "profile",
+          "registration_audit"
         ],
         "closed": true
       }
@@ -2021,7 +2023,8 @@
           "invite_token",
           "signed_link",
           "requester",
-          "proofs"
+          "proof_challenge",
+          "claim_presentations"
         ],
         "closed": true
       },
@@ -2152,7 +2155,8 @@
           "organization_did",
           "source_realm_id",
           "requester",
-          "proofs",
+          "proof_challenge",
+          "claim_presentations",
           "cursor",
           "limit"
         ],

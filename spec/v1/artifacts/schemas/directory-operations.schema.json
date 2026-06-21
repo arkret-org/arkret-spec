@@ -126,6 +126,104 @@
       },
       "minItems": 1
     },
+    "directory_presented_claim": {
+      "type": "object",
+      "required": [
+        "claim_id",
+        "subject",
+        "issuer",
+        "claim_kind",
+        "value",
+        "issued_at"
+      ],
+      "properties": {
+        "claim_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "subject": {
+          "$ref": "#/$defs/did"
+        },
+        "issuer": {
+          "$ref": "#/$defs/did"
+        },
+        "claim_kind": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "value": {
+          "type": "object"
+        },
+        "issued_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "refreshed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "revoked_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "disclosed_fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "directory_restricted_claim_presentation": {
+      "type": "object",
+      "required": [
+        "kind",
+        "iss",
+        "verification_method",
+        "audience",
+        "nonce",
+        "claim",
+        "created_at",
+        "jws"
+      ],
+      "properties": {
+        "kind": {
+          "const": "ck.directory.restricted_claim_presentation.v1"
+        },
+        "iss": {
+          "$ref": "#/$defs/did"
+        },
+        "verification_method": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "audience": {
+          "$ref": "#/$defs/did"
+        },
+        "nonce": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "claim": {
+          "$ref": "#/$defs/directory_presented_claim"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "jws": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "directory_restricted_claim_presentations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/directory_restricted_claim_presentation"
+      },
+      "minItems": 1
+    },
     "source_refs": {
       "type": "array",
       "items": {
@@ -423,8 +521,11 @@
         "requester": {
           "$ref": "#/$defs/did"
         },
-        "proofs": {
-          "$ref": "#/$defs/proofs"
+        "proof_challenge": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "claim_presentations": {
+          "$ref": "#/$defs/directory_restricted_claim_presentations"
         },
         "cursor": {
           "$ref": "#/$defs/cursor"
@@ -477,8 +578,11 @@
         "requester": {
           "$ref": "#/$defs/did"
         },
-        "proofs": {
-          "$ref": "#/$defs/proofs"
+        "proof_challenge": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "claim_presentations": {
+          "$ref": "#/$defs/directory_restricted_claim_presentations"
         }
       },
       "anyOf": [
