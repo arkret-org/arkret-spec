@@ -196,6 +196,13 @@ MIMI facade 至少定义以下 canonical operation：
 - created / expires
 - body digest
 
+HTTP Message Signature profile（适用于 provider-to-provider 写入）：
+
+- 请求 MUST 携带 `Signature`、`Signature-Input`、`Content-Digest`、`Request-Canonical-Digest`、`Source-Service-DID`、`Destination-Service-DID` 和 `Provider-ID`；room-scoped endpoint 还 MUST 携带 `MIMI-Room-URI`。
+- `Content-Digest` MUST 是 RFC 9530 `sha-256=:base64(sha256(canonical_json(request_body))):`；`Request-Canonical-Digest` MUST 是同一 canonical request body 的 Cokret `sha256:<hex>` digest。
+- `Signature-Input` 的 covered components MUST 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`request-canonical-digest`、`source-service-did`、`destination-service-did`、`provider-id`；room-scoped endpoint MUST additionally cover `mimi-room-uri`。`created`、`expires`、`keyid` 和 `alg="ed25519"` 参数 MUST 存在，且 `expires-created <= 300s`、`created` 在接收方时钟 ±30s 内、`expires` 未过期。
+- `keyid` MUST 是 `Source-Service-DID` 所控制的 Ed25519 verification method；接收方 MUST 用 DID resolution 或已配置信任根解析它。HTTP signature 只认证 provider service source，不替代 Actor DID/device 签名、MLS transcript、capability 或 Realm policy 校验。
+
 Facade 接收请求后 MUST 先验证 MIMI envelope，再映射为 Cokret DataEvent、Control Move 或 to-device message。MIMI 传输签名只证明 provider 来源，不替代 Actor DID / device 签名、MLS transcript、capability 或 Realm policy。
 
 ## 6. Key Material

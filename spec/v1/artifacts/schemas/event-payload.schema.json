@@ -3063,6 +3063,16 @@
             "$ref": "#/$defs/object_ref"
           }
         },
+        "mention_sidecar_hash": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "uniqueItems": true,
+          "description": "Optional E2EE mention-routing sidecar tags for push-notification fallback. Tags are opaque keyed-HMAC routing tokens produced by the sender client only when Realm policy enables recipient_registered_token routing; services compare them to recipient-registered opaque tokens and MUST NOT derive MLS exporter secrets."
+        },
         "reply_to": {
           "$ref": "#/$defs/message_id",
           "description": "Optional creation convenience: the message this one replies to. The reducer records it as the message's reply linkage (lifting it onto the message content) and surfaces it as a replies_to relation in the message projection; it does not require a separate canonical ck.relation event. The materialized Message object itself carries no reply_to scalar. See strand-and-message.md §9.1."
