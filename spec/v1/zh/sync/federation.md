@@ -914,7 +914,7 @@ Signature: sig1=:<base64>:
 
 该方向用于性能和可靠性提升，不是签名真实性的前提条件。最小实现可直接使用本文件 4/7 节的 push + pull。实现支持时应遵循：
 
-> **集合调和算法 pin（informative）**：本节与 [`../authz/event-auth-state-resolution.md` §155](../authz/event-auth-state-resolution.md) 把数据面传播指向"gossip / anti-entropy / RBSR（range-based set reconciliation）类"。但 v1 只给算法**类别**、未像 hash / signature / HPKE registry 那样 pin 一个可互操作的**具体** RBSR 算法。结果是跨实现 backfill 默认退化为逐 cursor scan/resolve（线性轮次），且不同实现的"RBSR 类"互不互通。建议 v2 引入一个 federation RBSR extension profile（profile id 待 v2 登记），pin 一个有多实现互通记录的具体算法（优先 Negentropy，或形式化更完整的 Meyer range-based set reconciliation），range fingerprint hash 复用 `digest-suite-registry`，落在 `/_cokret/peer/*` pull 轨之上、不改单 Event 签名语义。在该 profile 落地前，"RBSR 类"**不保证跨实现互通**，对端只能依赖本节的 push/pull 与 cursor 回填。此为 v2 路线图候选。
+> **集合调和算法 pin（informative）**：本节与 [`../authz/event-auth-state-resolution.md` §155](../authz/event-auth-state-resolution.md) 把数据面传播指向"gossip / anti-entropy / RBSR（range-based set reconciliation）类"。跨实现需要具体算法 pin 时，双方 MAY 声明 `ck.profile.federation.rbsr.negentropy.v1` candidate profile：该 profile 把 federation set reconciliation 固定为 Negentropy-style range reconciliation，range fingerprint hash 复用 `digest-suite-registry` 的 active digest suite，运行在 `/_cokret/peer/*` pull 轨之上，不改变单 Event 签名语义。只有双方 ServiceDescribe 都声明该 profile 且 profile digest / hash suite / range bound 一致时，receiver 才可把 RBSR 摘要用于 backfill 缺口定位；任一条件不满足时，peer MUST 回退到本节的 push/pull 与 cursor 回填，不得把本地私有 RBSR 摘要当成互操作证据。
 
 - 批次内必须保持 `events` 的原始签名 Envelope 顺序与 `event_id` 可去重性。
 - Gossip 转发不得改变单条 Event 的语义、签名或时间线排序前置假设。

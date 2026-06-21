@@ -33,7 +33,7 @@
           "x25519mlkem768",
           "tls13+x25519mlkem768"
         ],
-        "soland_evidence_env": "SOLAND_PQ_TLS_DEPLOYMENT_PROBE"
+        "evidence_env": "COKRET_PQ_TLS_DEPLOYMENT_PROBE"
       }
     }
   ]

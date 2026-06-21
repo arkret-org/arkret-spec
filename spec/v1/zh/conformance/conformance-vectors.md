@@ -1131,30 +1131,57 @@ ck.vector.cba_lattice.threshold_forensic_attribution.v1
 
 失败条件：Case B/C 被接受；Case D 通过 schema 校验。
 
-### 2.19 Vector: CBA 旧词族 hard reject
+### 2.19 Vector: open_set 并发撤销 fail closed
 
 向量名称：
 
 ```text
-ck.vector.cba_lattice.rename_family_reject.v1
+ck.vector.cba_lattice.open_set_concurrent_revocation_fail_closed.v1
 ```
 
-本向量固化 [`migration/renames.json`](../../artifacts/migration/renames.json) `cba_notary_seal_rename` 组的 parser 行为：current v1 parser 对旧词族 MUST 直接拒绝，不得做 payload-shape 消歧。
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.3 与 §6.3：`open_set` notary profile 下，撤销 Seal 与 DataEvent 的 `seal_ref` 并发时，receiver 必须按 joined control view 重判授权，不能因为二者互不可达而把撤销窗口当成未发生。
 
-输入（逐项独立 case）：
+输入（fixture：[`cba-lattice-fixture.json`](../../artifacts/fixtures/cba-lattice-fixture.json) `open_set_concurrent_revocation_fail_closed`）：
 
-- Event 携带 `anchor_ref` / `anchor_basis` / `governance_ref` 字段。
-- Seal wire 携带 `anchorer_signature` / `signer_seq` / `anchored_at` 字段，或 typed id 使用已废除的 anchor 前缀（见 renames `typed_id_prefix` 条目）。
-- Realm create payload 使用 `anchor_profile` / `anchorer` 字段。
-- snapshot `event_set_commitment` 使用 `covered_seals` 字段。
-- `event_state` 出现 `pending_anchor` / `rejected_anchor` 取值。
+- **Case A**：两个并发 Seal leaf 中，一个覆盖 capability grant，另一个覆盖同一 grant 的 revoke；DataEvent 的 `seal_ref` 指向 grant leaf。
+- **Case B**：承载授权判定的 control cell 在并发 join 后进入 `⊥`，且 `bottom=reject`。
+- **Case C**：轻客户端只持有单 leaf 视图，无法独立验证 multi-leaf union basis。
 
 期望：
 
-- 每个 case：current parser MUST 以 `schema_violation` / `unknown_field` / `unknown_kind` 类错误拒绝，MUST NOT 静默改写或按新名解释。
-- 仅 `migration_tool` 层（离线批迁移）MAY 消费旧拼写。
+- Case A：receiver MUST 按 joined control view 判定该 capability 已撤销，DataEvent MUST fail closed（`stale_seal_ref`）；并发分支不计算 `distance`，不享受新鲜度窗口。
+- Case B：依赖该 cell 的 DataEvent 与 Control Move MUST fail closed（`cell_in_bottom_state` / `failed_bottom`）。
+- Case C：轻客户端 MUST hold pending 或 fail closed，MUST NOT 用单 leaf 授权结论接受该 DataEvent。
 
-失败条件：任一旧拼写被 current parser 接受或静默转换。
+失败条件：用 `seal_ref` 单分支接受并发撤销后的 DataEvent；把并发撤销套入后继距离窗口；轻客户端无法验证 joined view 时仍接受。
+
+### 2.20 Vector: conflict-recovery Move
+
+向量名称：
+
+```text
+ck.vector.cba_lattice.conflict_recovery_move.v1
+```
+
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.5：`bottom=reject` control cell 进入 `⊥` 后，只能由满足 recovery 授权、pre-conflict witness、sealed finality 与撤销新鲜度要求的 conflict-recovery Move 恢复为单值。
+
+输入（fixture：[`cba-lattice-fixture.json`](../../artifacts/fixtures/cba-lattice-fixture.json) `conflict_recovery_move`）：
+
+- **Case A**：合法 recovery Move，`refs[]` 同时携带 critical `recovery_capability` 与 `state_witness`，witness 可重建 pre-conflict `state_root`，recovery capability 已 sealed 且未被撤销。
+- **Case B**：缺失 `state_witness` 或 witness inclusion proof 无法重建 `state_root`。
+- **Case C**：`state_witness` 已位于冲突之后，或与触发 `⊥` 的 sibling Move 有因果路径。
+- **Case D**：`recovery_capability` 未 sealed、未出现在 witness state root 中，或 local frontier 已观察到晚于 witness 的 revoke / supersede。
+- **Case E**：recovery Move 未经控制面 Seal 接受。
+
+期望：
+
+- Case A：reducer MAY 把该 `bottom=reject` cell 从 `⊥` 解析为 recovery Move 声明的单一合法值；后续依赖该 cell 的判定按恢复后的 sealed state 执行。
+- Case B：MUST 拒绝（`recovery_witness_missing` / `recovery_witness_invalid`）。
+- Case C：MUST 拒绝（`recovery_witness_post_conflict`）。
+- Case D：MUST 拒绝（`recovery_capability_not_sealed` / `recovery_witness_revoke_lagging`）。
+- Case E：MUST 拒绝；unsealed recovery Move 不得改变 `⊥` cell。
+
+失败条件：普通 Control Move 在 `⊥` 下绕过 recovery 例外；post-conflict witness 被接受；recovery capability 未 sealed 或已撤销仍生效；未 sealed 的 recovery Move 改变 canonical state。
 
 ## 3. Redaction 与 Snapshot Vectors
 
@@ -1753,6 +1780,28 @@ ck.vector.capability.membership_is_not_baseline.v1
 
 - 成员资格（`ck.member.state{join}`）本身**不**隐含任何 action capability——授权核心是 allow-grant + explicit revoke（[`../authz/capabilities.md`](../authz/capabilities.md)、[`../governance/content-moderation.md` §2.4](../governance/content-moderation.md)），不存在"成员即可写"的 baseline 能力。
 - 无匹配 grant 时核心写入 MUST 被拒（`missing_capability`），且**没有任何 deny 层 / 成员身份能补足缺失的 capability**。
+
+### 4.6 Vector: 敏感字段读路径处理
+
+向量名称：
+
+```text
+ck.vector.auth.sensitive_field_handling.v1
+```
+
+本向量固化 [`constraint-schema.md`](../authz/constraint-schema.md) §16.2.1：`field_access.sensitive_fields` / `sensitive_handling` 是读路径输出义务，不是 admit/deny gate；命中敏感字段后，返回给请求方的 projection 必须按声明处理，不能泄露原值。
+
+输入（fixture：[`capability-fixture.json`](../../artifacts/fixtures/capability-fixture.json) `sensitive_field_handling`）：同一 read projection 包含 `profile.display_name`、`profile.email`、`profile.ssn`、`profile.salary`，策略分别覆盖 `hash`、`redact`、默认 `omit` 与无法取得 keyed digest key 的降级路径。
+
+期望：
+
+- `hash` 且具备 key/salt 时，输出 keyed/salted digest 或等价不可逆摘要，MUST NOT 返回原值或裸明文 hash。
+- `hash` 但缺少 key/salt 时，MUST 降级为 `omit`，MUST NOT 返回原值。
+- `redact` 时，输出不可逆占位（例如 `null` 或 `"[redacted]"`），MUST NOT 返回原值或可逆派生。
+- 未声明 `sensitive_handling` 时默认 `omit`。
+- 非敏感且允许读取的字段保持输出。
+
+失败条件：任一敏感字段以原值、裸 hash、可逆编码或未声明处理的形式返回；缺 key 的 `hash` 路径没有降级为 `omit`。
 
 ## 5. Sync Vectors
 

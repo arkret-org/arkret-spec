@@ -36,7 +36,7 @@
               "method": "oidc",
               "issuer": "https://auth.example.net",
               "openid_configuration": "https://auth.example.net/.well-known/openid-configuration",
-              "client_id": "yougen",
+              "client_id": "example_client",
               "grant_exchange": {
                 "proof_kind": "oidc_code_exchange"
               }
@@ -155,7 +155,7 @@
               "method": "oidc",
               "issuer": "https://auth.example.net",
               "openid_configuration": "https://auth.example.net/.well-known/openid-configuration",
-              "client_id": "yougen",
+              "client_id": "example_client",
               "grant_exchange": {
                 "proof_kind": "oidc_code_exchange"
               }
@@ -205,7 +205,7 @@
               "method": "oidc",
               "issuer": "https://auth.example.net",
               "openid_configuration": "https://auth.example.net/.well-known/openid-configuration",
-              "client_id": "yougen",
+              "client_id": "example_client",
               "grant_exchange": {
                 "proof_kind": "oidc_code_exchange"
               }
@@ -1119,7 +1119,7 @@
         "recovery_session_id": "ck:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
         "principal_id": "did:web:alice.example",
         "requesting_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
-        "trust_domain": "ck:trust_domain:soland.local",
+        "trust_domain": "ck:trust_domain:example.local",
         "policy_id": "ck:policy:019a6aa0-0000-7000-8000-0000000000bb",
         "policy_version": 1,
         "ssk_generation": 1,
@@ -1139,7 +1139,7 @@
         "recovery_session_id": "ck:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
         "principal_id": "did:web:alice.example",
         "requesting_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
-        "trust_domain": "ck:trust_domain:soland.local",
+        "trust_domain": "ck:trust_domain:example.local",
         "policy_id": "ck:policy:019a6aa0-0000-7000-8000-0000000000bb",
         "policy_version": 1,
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -1159,7 +1159,7 @@
         "recovery_session_id": "ck:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
         "principal_id": "did:web:alice.example",
         "requesting_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
-        "trust_domain": "ck:trust_domain:soland.local",
+        "trust_domain": "ck:trust_domain:example.local",
         "policy_id": "ck:policy:019a6aa0-0000-7000-8000-0000000000bb",
         "policy_version": 1,
         "ssk_generation": 1,
@@ -1178,7 +1178,7 @@
       "instance": {
         "principal_id": "did:web:alice.example",
         "requesting_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
-        "trust_domain": "ck:trust_domain:soland.local",
+        "trust_domain": "ck:trust_domain:example.local",
         "ssk_generation": 1
       }
     },
@@ -1189,7 +1189,7 @@
       "instance": {
         "principal_id": "did:web:alice.example",
         "requesting_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
-        "trust_domain": "ck:trust_domain:soland.local",
+        "trust_domain": "ck:trust_domain:example.local",
         "ssk_generation": 1,
         "unexpected": "x"
       },
@@ -1244,7 +1244,7 @@
         "kind": "principal_signing",
         "principal_id": "did:web:alice.example",
         "requesting_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
-        "trust_domain": "ck:trust_domain:soland.local",
+        "trust_domain": "ck:trust_domain:example.local",
         "policy_id": "ck:policy:019a6aa0-0000-7000-8000-0000000000bb",
         "policy_version": 1,
         "recovery_session_id": "ck:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
@@ -1265,7 +1265,7 @@
         "recovery_session_id": "ck:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
         "policy_id": "ck:policy:019a6aa0-0000-7000-8000-0000000000bb",
         "policy_version": 1,
-        "trust_domain": "ck:trust_domain:soland.local",
+        "trust_domain": "ck:trust_domain:example.local",
         "new_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
         "proof_summary": {
           "kind": "principal_signing",
@@ -1317,7 +1317,7 @@
         "recovery_session_id": "ck:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
         "policy_id": "ck:policy:019a6aa0-0000-7000-8000-0000000000bb",
         "policy_version": 1,
-        "trust_domain": "ck:trust_domain:soland.local",
+        "trust_domain": "ck:trust_domain:example.local",
         "new_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
         "proof_summary": {
           "kind": "principal_signing",

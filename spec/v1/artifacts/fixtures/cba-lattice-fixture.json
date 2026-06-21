@@ -690,85 +690,150 @@
       "vector_id": "ck.vector.cba_lattice.threshold_forensic_attribution.v1"
     },
     {
-      "name": "rename_family_reject",
-      "description": "Current v1 parsers hard-reject the retired Anchor/Anchorer/Governance spelling family; only offline migration tooling may consume it.",
+      "name": "open_set_concurrent_revocation_fail_closed",
+      "description": "A DataEvent whose seal_ref is locally valid is re-evaluated against the joined multi-leaf control view when a concurrent revocation branch is observed.",
+      "notary_profile": "open_set",
+      "seal_ref": "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "joined_leaf_set": [
+        "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "ck:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "data_event": {
+        "id": "ck:event:019641d2-0000-7000-8000-000000000000",
+        "plane": "data",
+        "seal_ref": "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "auth_context": {
+          "did": "did:web:alice.example",
+          "key_id": "device-1",
+          "key_epoch": 1,
+          "capability_refs": [
+            "ck:grant:0196410c-2000-7000-8000-000000000000"
+          ]
+        }
+      },
       "cases": [
         {
-          "surface": "event",
-          "legacy_identifier": "anchor_ref",
-          "kind_class": "wire_field_name",
-          "expected_error": "unknown_field"
+          "name": "concurrent_revoke_branch",
+          "concurrent_control_move": {
+            "kind": "ck.capability.revoke",
+            "grant_id": "ck:grant:0196410c-2000-7000-8000-000000000000",
+            "covered_by": "ck:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "joined_control_view": {
+            "capability_grant_live": false,
+            "cell_status": "value"
+          },
+          "expected": {
+            "data_event_result": "reject_or_hide",
+            "reason": "stale_seal_ref",
+            "freshness_window_applies": false
+          }
         },
         {
-          "surface": "event",
-          "legacy_identifier": "anchor_basis",
-          "kind_class": "wire_field_name",
-          "expected_error": "unknown_field"
+          "name": "authorization_cell_bottom",
+          "joined_control_view": {
+            "capability_grant_live": "unknown",
+            "cell_status": "bottom"
+          },
+          "expected": {
+            "data_event_result": "fail_closed",
+            "reason": "stale_seal_ref",
+            "freshness_window_applies": false
+          }
         },
         {
-          "surface": "event",
-          "legacy_identifier": "governance_ref",
-          "kind_class": "wire_field_name",
-          "expected_error": "unknown_field"
-        },
-        {
-          "surface": "seal",
-          "legacy_identifier": "anchorer_signature",
-          "kind_class": "wire_field_name",
-          "expected_error": "unknown_field"
-        },
-        {
-          "surface": "seal",
-          "legacy_identifier": "signer_seq",
-          "kind_class": "wire_field_name",
-          "expected_error": "unknown_field"
-        },
-        {
-          "surface": "seal",
-          "legacy_identifier": "anchored_at",
-          "kind_class": "wire_field_name",
-          "expected_error": "unknown_field"
-        },
-        {
-          "surface": "seal",
-          "legacy_identifier": "ck:anchor:",
-          "kind_class": "typed_id_prefix",
-          "expected_error": "unknown_kind"
-        },
-        {
-          "surface": "realm_create",
-          "legacy_identifier": "anchor_profile",
-          "kind_class": "wire_field_name",
-          "expected_error": "unknown_field"
-        },
-        {
-          "surface": "realm_create",
-          "legacy_identifier": "anchorer",
-          "kind_class": "wire_field_name",
-          "expected_error": "unknown_field"
-        },
-        {
-          "surface": "snapshot",
-          "legacy_identifier": "covered_seals",
-          "kind_class": "wire_field_name",
-          "expected_error": "unknown_field"
-        },
-        {
-          "surface": "event_state",
-          "legacy_identifier": "pending_anchor",
-          "kind_class": "wire_enum_value",
-          "expected_error": "schema_violation"
-        },
-        {
-          "surface": "event_state",
-          "legacy_identifier": "rejected_anchor",
-          "kind_class": "wire_enum_value",
-          "expected_error": "schema_violation"
+          "name": "light_client_without_joined_view",
+          "verifiable_joined_view": false,
+          "expected": {
+            "data_event_result": "pending_or_fail_closed",
+            "must_not_fanout": true,
+            "must_not_treat_seal_ref_as_sufficient": true
+          }
         }
       ],
-      "parser_tier": "current_parser",
-      "migration_tool_only": true,
-      "vector_id": "ck.vector.cba_lattice.rename_family_reject.v1"
+      "vector_id": "ck.vector.cba_lattice.open_set_concurrent_revocation_fail_closed.v1"
+    },
+    {
+      "name": "conflict_recovery_move",
+      "description": "A bottom=reject control cell recovers only through a sealed Control Move with recovery_capability and a pre-conflict state_witness.",
+      "cell": "ck:cell:ck.component.realm.policy.v1:ck.realm.019641d2-1000-7000-8000-000000000000",
+      "pre_conflict_value": {
+        "policy_revision": 7
+      },
+      "bottom_state": {
+        "status": "bottom",
+        "reason": "conflict"
+      },
+      "valid_recovery_move": {
+        "plane": "control",
+        "refs": [
+          {
+            "role": "recovery_capability",
+            "critical": true,
+            "id": "ck:grant:019641d2-2000-7000-8000-000000000000"
+          },
+          {
+            "role": "state_witness",
+            "critical": true,
+            "id": "ck:seal:sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        ],
+        "sealed_by": "ck:seal:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      },
+      "cases": [
+        {
+          "name": "valid_recovery",
+          "expected": {
+            "result": "accept_after_valid_seal",
+            "cell_status": "value",
+            "recovered_value": {
+              "policy_revision": 8
+            }
+          }
+        },
+        {
+          "name": "missing_state_witness",
+          "remove_ref_role": "state_witness",
+          "expected": {
+            "result": "failed_precondition",
+            "reason": "recovery_witness_missing"
+          }
+        },
+        {
+          "name": "post_conflict_witness",
+          "state_witness_relation": "post_conflict",
+          "expected": {
+            "result": "failed_precondition",
+            "reason": "recovery_witness_post_conflict"
+          }
+        },
+        {
+          "name": "recovery_capability_not_sealed",
+          "recovery_capability_in_witness": false,
+          "expected": {
+            "result": "failed_precondition",
+            "reason": "recovery_capability_not_sealed"
+          }
+        },
+        {
+          "name": "witness_revoke_lagging",
+          "recovery_capability_revoked_after_witness": true,
+          "expected": {
+            "result": "failed_precondition",
+            "reason": "recovery_witness_revoke_lagging"
+          }
+        },
+        {
+          "name": "unsealed_recovery_move",
+          "sealed_by": null,
+          "expected": {
+            "result": "control_pending",
+            "cell_remains": "bottom",
+            "query_result": "failed_bottom"
+          }
+        }
+      ],
+      "vector_id": "ck.vector.cba_lattice.conflict_recovery_move.v1"
     }
   ]
 }

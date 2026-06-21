@@ -190,12 +190,28 @@ GET /_cokret/describe
   "x_invite_addressing": {
     "supported_introduction_kinds": [
       "locator_ref",
+      "consent_grant",
       "shared_realm",
+      "handle_claim",
       "same_principal_server",
       "explicit_address"
     ],
     "recommended_introduction_kind": "locator_ref",
+    "handle_claim_default_behavior": "quarantine",
     "explicit_address_default_behavior": "quarantine"
+  },
+  "receive_policy_constraints": {
+    "policy_version": "2026-06-21",
+    "applies_to": ["invite_delivery", "contact_request"],
+    "permitted_introduction_kinds": [
+      "locator_ref",
+      "consent_grant",
+      "shared_realm",
+      "handle_claim"
+    ],
+    "handle_claim_max_behavior": "quarantine",
+    "explicit_address_max_behavior": "drop",
+    "allowed_handle_domains": ["alice.example.net"]
   },
   "auth_metadata": {
     "account_authority": {
@@ -312,6 +328,7 @@ GET /_cokret/describe
   这些 surface **不构成** Cokret v1 conformance 的一部分。
 - `development_mode: boolean` — 必填；为 `true` 时 `verified_profiles` MUST 为空。省略不是 false，SDK / conformance tooling MUST 把缺失视为 invalid describe。
 - `egress_network_policy` — 可选的出站网络策略摘要。会解析 DID、联邦 peer、媒体、snapshot、Policy Server、Webhook、Applet 或 Agent endpoint 的服务 SHOULD 暴露粗粒度策略；完整 SSRF 防护语义见 [`api-conventions.md`](./api-conventions.md) §11.2。
+- `receive_policy_constraints` — Principal Server 可选的部署 / 管理员级接收策略上限。它约束 `ck.peer.invites.command.submit` 与 `ck.peer.contacts.command.submit` 对 `locator_ref`、`handle_claim`、`explicit_address` 等 introduction evidence 的处理；客户端 MUST 把它渲染为“服务器约束”，不得把它当作 subject 自愿公开。语义见 [`invite-addressing.md`](./invite-addressing.md) §5.2。
 
 实现 MUST 明确区分 endpoint 可达性、feature 实现、profile claim 与 conformance verification：
 
@@ -775,7 +792,7 @@ POST /_cokret/find/directory/resolve-agent-selector
 POST /_cokret/find/directory/list-handles-for-subject
 ```
 
-Actor / handle directory MUST NOT return pairwise DID、private DID、private handle、未披露的组织账号或仅因共同 Realm 推断出的关系。`search-users` 可用于 mention autocomplete / 成员添加候选；`resolve-handle` MAY 解析 handle 为 `subject` DID 与 `member_delivery_binding`，但只在 claim、audience、requester policy 和 Realm intent 验证通过时披露。`resolve-agent-selector` 只做精确 `@<controller-handle>/<agent_slug>` compose-time 解析；成功时返回 agent DID 与当前可见 `ck.schema.agent_selector_claim.v1`，未授权、不可见、不存在、revoked / expired / ambiguous 时 MUST 使用与不存在不可区分的失败。`list-handles-for-subject` 用于已知 subject DID 时列出当前 context 可见 signed handle claims；它必须执行同样的 disclosure、issuer trust、audience 和 requester policy 过滤。Directory 返回的 `member_delivery_binding.recipient_service_did` 只是 join builder 输入，不能替代 Realm `delivery_binding` 或 grant 校验。
+Actor / handle directory MUST NOT return pairwise DID、private DID、private handle、未披露的组织账号或仅因共同 Realm 推断出的关系。`search-users` 可用于 mention autocomplete / contact request / 成员添加候选；`resolve-handle` MAY 解析 handle 为 `subject` DID 与 `member_delivery_binding`，但只在 claim、audience、requester policy 和 intent 验证通过时披露。`resolve-agent-selector` 只做精确 `@<controller-handle>/<agent_slug>` compose-time 解析；成功时返回 agent DID 与当前可见 `ck.schema.agent_selector_claim.v1`，未授权、不可见、不存在、revoked / expired / ambiguous 时 MUST 使用与不存在不可区分的失败。`list-handles-for-subject` 用于已知 subject DID 时列出当前 context 可见 signed handle claims；它必须执行同样的 disclosure、issuer trust、audience 和 requester policy 过滤。Directory 返回的 `member_delivery_binding.recipient_service_did` 只可作为 contact address / handle evidence / join builder 输入，不能替代 `receive_policy_constraints`、Realm `delivery_binding` 或 grant 校验。
 
 ### 8.6 私密联系人发现
 

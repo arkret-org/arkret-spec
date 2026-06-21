@@ -958,6 +958,10 @@ components:
             `verified_profiles` MUST be empty.
     IdentityResolveOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveOutcome
+    IdentityLogListOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/IdentityLogListOutcome
+    IdentityReceiptListOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/IdentityReceiptListOutcome
     AccountSubscribeFrame:
       $ref: ../schemas/account-subscribe-frame.schema.json
     ActorProfile:
@@ -3097,14 +3101,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  events:
-                    type: array
-                    items:
-                      $ref: ../schemas/did-key-log-entry.schema.json
-                  next_cursor:
-                    type: string
+                $ref: '#/components/schemas/IdentityLogListOutcome'
   /_cokret/root/identity/submit-did-operation:
     post:
       operationId: ck.root.identity.command.submit_did_operation
@@ -3140,12 +3137,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  receipts:
-                    type: array
-                    items:
-                      $ref: ../schemas/identity-receipt.schema.json
+                $ref: '#/components/schemas/IdentityReceiptListOutcome'
   /_cokret/root/identity/recovery-policy:
     post:
       operationId: ck.root.identity.recovery_policy.command.publish

@@ -47,7 +47,7 @@
       "description": "Bridge-implementation-defined runtime status for ck.applet.interop_session.status events. v1 does NOT mandate a canonical applet session state machine (unlike ck.agent.* which uses the 9-value agent_interop_session_status enum); bridges MAY restrict the set further in their applet manifest. The field name is `runtime_status` (not `status`) to keep applet object snapshots distinguishable from the canonical agent session state machine in agent.schema.json."
     },
     "params": {
-      "description": "Caller-supplied parameters for interop_session.start. Opaque to soland — bridge implementations interpret per applet manifest."
+      "description": "Caller-supplied parameters for interop_session.start. Opaque to the Cokret protocol — bridge implementations interpret per applet manifest."
     },
     "detail": {
       "type": "object",

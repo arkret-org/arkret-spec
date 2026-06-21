@@ -35,7 +35,7 @@ updated: 2026-06-10
 | Typed ID kind | 47 | `artifacts/registry/id-kind-registry.json` |
 | Service operation | 169 | `artifacts/registry/operation-registry.json` |
 | Claimable conformance profile | 81 | `artifacts/profiles/conformance-profiles.json` |
-| Profile id references | 106 | `artifacts/profiles/conformance-profiles.json` |
+| Profile id references | 108 | `artifacts/profiles/conformance-profiles.json` |
 
 上表的 `Schema` 是 **registered schema id** 计数（108）。`artifacts/schemas/` 下的 raw JSON Schema artifact file 数为 108，与 registered schema id 数一一对应（无文件复用、无孤儿文件），以 `schema-registry.json` 与目录实际内容为准，由 `artifact_pipeline.py check` 精确校验；其中 `ck.schema.event.v1` 直接登记到 `event-envelope.schema.json`（schema body 所在文件，不另占独立文件）。发布站点仍然 MUST raw 发布 registry 声明的 JSON Schema 文件及其同目录 `$ref` 目标，registry consumer 也必须递归解析同目录 `$ref`，MUST NOT 只下载 registry 直接列出的文件后停止。
 

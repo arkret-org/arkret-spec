@@ -9,6 +9,8 @@
     "ck.vector.directory.unlisted_exact_resolve.v1",
     "ck.vector.directory.invite_not_found_blinding.v1",
     "ck.vector.directory.resolve_target_blinding.v1",
+    "ck.vector.directory.resolve_handle_failure_blinding.v1",
+    "ck.vector.directory.resolve_agent_selector_failure_blinding.v1",
     "ck.vector.directory.organization_badge_verification.v1",
     "ck.vector.directory.pairwise_did_exclusion.v1",
     "ck.vector.directory.stale_result_rejection.v1",
@@ -77,6 +79,101 @@
           "discoverability",
           "member_count",
           "service_endpoints"
+        ]
+      }
+    },
+    {
+      "vector_id": "ck.vector.directory.resolve_handle_failure_blinding.v1",
+      "name": "resolve_handle_failure_blinding",
+      "operation_id": "ck.find.directory.query.resolve_handle",
+      "inputs": [
+        {
+          "label": "missing_handle",
+          "body": {
+            "handle": "missing:example.test",
+            "requester": "did:web:mallory.example"
+          }
+        },
+        {
+          "label": "hidden_handle",
+          "body": {
+            "handle": "hidden:example.test",
+            "requester": "did:web:mallory.example"
+          }
+        },
+        {
+          "label": "unauthorized_handle",
+          "body": {
+            "handle": "restricted:example.test",
+            "requester": "did:web:mallory.example"
+          }
+        }
+      ],
+      "expected": {
+        "same_http_status": 404,
+        "same_error_code": "not_found",
+        "same_body_shape": [
+          "ok",
+          "error.code",
+          "request_id"
+        ],
+        "same_timing_class": "directory_hidden_not_found",
+        "must_not_include": [
+          "subject",
+          "issuer",
+          "binding_state",
+          "member_delivery_binding",
+          "audience",
+          "claim_digest"
+        ]
+      }
+    },
+    {
+      "vector_id": "ck.vector.directory.resolve_agent_selector_failure_blinding.v1",
+      "name": "resolve_agent_selector_failure_blinding",
+      "operation_id": "ck.find.directory.query.resolve_agent_selector",
+      "inputs": [
+        {
+          "label": "missing_selector",
+          "body": {
+            "controller_subject": "did:web:alice.example",
+            "agent_slug": "missing",
+            "requester": "did:web:mallory.example"
+          }
+        },
+        {
+          "label": "hidden_selector",
+          "body": {
+            "controller_subject": "did:web:alice.example",
+            "agent_slug": "private-summary",
+            "requester": "did:web:mallory.example"
+          }
+        },
+        {
+          "label": "unauthorized_selector",
+          "body": {
+            "controller_subject": "did:web:alice.example",
+            "agent_slug": "restricted-summary",
+            "requester": "did:web:mallory.example"
+          }
+        }
+      ],
+      "expected": {
+        "same_http_status": 404,
+        "same_error_code": "not_found",
+        "same_body_shape": [
+          "ok",
+          "error.code",
+          "request_id"
+        ],
+        "same_timing_class": "directory_hidden_not_found",
+        "must_not_include": [
+          "agent_principal_id",
+          "controller_subject",
+          "binding_state",
+          "endpoint",
+          "capability_refs",
+          "audience"
         ]
       }
     },

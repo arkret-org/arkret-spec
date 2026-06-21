@@ -1,7 +1,7 @@
 {
   "suite": "push_rule_core_consistency",
   "profile": "ck.profile.push_gateway.blind_wakeup.v1",
-  "description": "Shared v1 push rule vectors for the SDK core used by soland, chime, and yougen.",
+  "description": "Shared v1 push rule vectors for conforming SDK implementations.",
   "cases": [
     {
       "name": "muted_direct_mention_short_circuits",
@@ -13,7 +13,7 @@
         "deliver": false,
         "blind_wakeup": false,
         "reason_code": "muted",
-        "yougen": {
+        "client_projection": {
           "should_notify": false,
           "watch_suppressed": true,
           "muted_short_circuit": true,
@@ -30,7 +30,7 @@
         "deliver": false,
         "blind_wakeup": false,
         "reason_code": "not_mentioned",
-        "yougen": {
+        "client_projection": {
           "should_notify": false,
           "watch_suppressed": true,
           "muted_short_circuit": false,
@@ -49,7 +49,7 @@
         "deliver": true,
         "blind_wakeup": false,
         "reason_code": "watch_allows",
-        "yougen": {
+        "client_projection": {
           "should_notify": true,
           "watch_suppressed": false,
           "muted_short_circuit": false,
@@ -69,7 +69,7 @@
         "deliver": true,
         "blind_wakeup": false,
         "reason_code": "watch_allows",
-        "yougen": {
+        "client_projection": {
           "should_notify": true,
           "watch_suppressed": false,
           "muted_short_circuit": false,
@@ -94,7 +94,7 @@
         "deliver": true,
         "blind_wakeup": false,
         "reason_code": "watch_allows",
-        "yougen": {
+        "client_projection": {
           "should_notify": true,
           "watch_suppressed": false,
           "muted_short_circuit": false,
@@ -116,7 +116,7 @@
         "deliver": false,
         "blind_wakeup": false,
         "reason_code": "not_participating",
-        "yougen": {
+        "client_projection": {
           "should_notify": false,
           "watch_suppressed": true,
           "muted_short_circuit": false,
@@ -135,7 +135,7 @@
         "deliver": true,
         "blind_wakeup": false,
         "reason_code": "watch_allows",
-        "yougen": {
+        "client_projection": {
           "should_notify": true,
           "watch_suppressed": false,
           "muted_short_circuit": false,
@@ -152,7 +152,7 @@
         "deliver": true,
         "blind_wakeup": false,
         "reason_code": "watch_allows",
-        "yougen": {
+        "client_projection": {
           "should_notify": true,
           "watch_suppressed": false,
           "muted_short_circuit": false,
@@ -168,7 +168,7 @@
         "is_e2ee": true,
         "local_decrypted": false
       },
-      "yougen": {
+      "client_projection": {
         "mentions_actor_known": false,
         "client_side_mentions_rule": true
       },
@@ -176,7 +176,7 @@
         "deliver": true,
         "blind_wakeup": true,
         "reason_code": "blind_wakeup_required",
-        "yougen": {
+        "client_projection": {
           "should_notify": false,
           "watch_suppressed": false,
           "muted_short_circuit": false,
@@ -192,14 +192,14 @@
         "is_e2ee": true,
         "local_decrypted": false
       },
-      "yougen": {
+      "client_projection": {
         "mentions_actor_known": false
       },
       "expected": {
         "deliver": true,
         "blind_wakeup": true,
         "reason_code": "blind_wakeup_required",
-        "yougen": {
+        "client_projection": {
           "should_notify": false,
           "watch_suppressed": false,
           "muted_short_circuit": false,
@@ -215,14 +215,14 @@
         "is_e2ee": true,
         "local_decrypted": false
       },
-      "yougen": {
+      "client_projection": {
         "mentions_actor_known": false
       },
       "expected": {
         "deliver": true,
         "blind_wakeup": true,
         "reason_code": "blind_wakeup_required",
-        "yougen": {
+        "client_projection": {
           "should_notify": false,
           "watch_suppressed": false,
           "muted_short_circuit": false,
@@ -243,7 +243,7 @@
         "deliver": false,
         "blind_wakeup": false,
         "reason_code": "muted",
-        "yougen": {
+        "client_projection": {
           "should_notify": false,
           "watch_suppressed": true,
           "muted_short_circuit": true,
@@ -263,7 +263,7 @@
         "deliver": false,
         "blind_wakeup": false,
         "reason_code": "not_mentioned",
-        "yougen": {
+        "client_projection": {
           "should_notify": false,
           "watch_suppressed": true,
           "muted_short_circuit": false,

@@ -317,7 +317,7 @@ POST /_cokret/find/directory/search-users
 Presence / mention 语义补充：
 
 - mention autocomplete SHOULD 在 body 中携带 `realm_id` 与 `intent="mention"`，使 Directory 能按共同 Realm / directory policy 裁剪结果。
-- 普通 mention autocomplete MUST NOT 请求或依赖 `member_delivery_binding`；只有 invite / member-add 流程可按 directory §9 的 `intent ∈ {invite, member_add}` 规则请求投递上下文。
+- 普通 mention autocomplete MUST NOT 请求或依赖 `member_delivery_binding`；只有 contact request / invite / member-add 流程可按 directory §9 的 `intent ∈ {contact_request, invite, member_add}` 规则请求投递上下文。
 - `results[].membership` 若返回，只是与 `realm_id` 相关的展示 hint，不得作为授权、加入资格或投递绑定依据。
 
 响应示例（非完整 schema）：

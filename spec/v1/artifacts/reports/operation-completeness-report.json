@@ -20,17 +20,16 @@
     "total_operations": 169,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "no_request_body": 3,
+      "no_request_body": 1,
       "service_describe": 7,
       "streaming_frame_schema": 2,
-      "typed_schema": 155
+      "typed_schema": 157
     },
     "by_tier_and_class": {
       "core": {
-        "no_request_body": 2,
         "service_describe": 4,
         "streaming_frame_schema": 2,
-        "typed_schema": 21
+        "typed_schema": 23
       },
       "deployment_local": {
         "typed_schema": 10
@@ -877,12 +876,14 @@
       "operation_id": "ck.root.identity.log.query.list",
       "tier": "core",
       "http": "GET /_cokret/root/identity/log",
-      "success_shape_kind": "inline_response",
+      "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": null,
-      "openapi_component_refs": {},
-      "completeness_class": "no_request_body",
-      "reason": "read-only operation with no request body and no typed JSON response component in OpenAPI."
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityLogListOutcome",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/IdentityLogListOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ck.root.identity.query.resolve",
@@ -902,12 +903,14 @@
       "operation_id": "ck.root.identity.receipts.query.list",
       "tier": "core",
       "http": "GET /_cokret/root/identity/receipts",
-      "success_shape_kind": "inline_response",
+      "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": null,
-      "openapi_component_refs": {},
-      "completeness_class": "no_request_body",
-      "reason": "read-only operation with no request body and no typed JSON response component in OpenAPI."
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityReceiptListOutcome",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/IdentityReceiptListOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
     },
     {
       "operation_id": "ck.root.identity.recovery_policy.command.publish",

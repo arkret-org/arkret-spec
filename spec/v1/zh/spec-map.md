@@ -29,40 +29,20 @@ see_also:
 
 **ck.\* 命名空间的机读登记边界（导航摘要）**：本段是**导航摘要，非规范源**（与本文 frontmatter `normative: false` 一致）。并非所有 `ck.*` 标识符都要求进入机读 registry；算法 / 编码 profile id、设备验证方法名、client-local scheme id、信封 scheme 常量、hash / transcript 域分隔标签、feature id、DID Document / 外部生态 profile 值、E2EE application message kind 与标准 account-data tag 词表等类别豁免机读登记，其权威定义由各自的定义文档承载。豁免类别全表与配套约束的权威定义见 [`conformance/schema-registry.md` §1.2](./conformance/schema-registry.md)；如本摘要与该权威源有出入，以 schema-registry.md §1.2 为权威。
 
-### 1.2 漂移检测 artifacts
+### 1.2 Current-wire artifact map
 
-为了让下游实现（SDK、yougen、soland、cotest 等）能够机器化地发现已经从协议中移除或被弃用的概念，
-`artifacts/registry/` 与 `artifacts/migration/` 下提供 drift detection artifacts。registry 类文件由
-`artifacts/registry/registry-manifest.json` 索引；migration 类文件由 migration manifest / scanner 配置直接消费：
+`artifacts/registry/registry-manifest.json` 索引 current v1 的机器可读源。实现、SDK、cotest 与 transport adapter 应优先消费这些 artifact，而不是从 Markdown 表格手抄定义：
 
-- `artifacts/migration/removed-event-kinds.json`：已移除的 Event.kind 列表。
-- `artifacts/migration/removed-operation-ids.json`：已移除的 operation id。
-- `artifacts/migration/deprecated-profile-ids.json`：已弃用或未 canonical 化的 profile id。
-- `artifacts/registry/forbidden-wire-fields.json`：current-wire 禁止字段及其适用上下文。
-- `artifacts/registry/forbidden-model-terms.json`：current-model prose / code identifier / UI 文案中的禁止术语及其替代物。
-- `artifacts/migration/renames.json`：移除或重命名概念到 v1 替代物的映射；`replacement=null` 表示概念被删除且无机械替代。
+- `artifacts/registry/contract-catalog.json`：event、schema、typed id、operation contract 的 canonical catalog。
+- `artifacts/registry/operation-registry.json`、`event-kind-registry.json`、`schema-registry.json`、`id-kind-registry.json`：从 canonical catalog 生成的 current-wire 视图。
+- `artifacts/registry/error-code-registry.json`：标准 service error 与 `reason_code` 的 canonical registry。
+- `artifacts/profiles/conformance-profiles.json`：profile、feature、unknown/unsupported 行为和 profile role 的机器矩阵。
+- `artifacts/schemas/*.schema.json`：wire object、DTO、event payload、proof、capability、cursor、seal 与 extension object 的 JSON Schema。
+- `artifacts/openapi/cokret-service-api.openapi.yaml`：HTTP/JSON binding shape；它约束 HTTP 形状，不替代抽象 operation、event kind、typed id 或 reducer 语义。
+- `artifacts/fixtures/*.json` 与 `artifacts/registry/vector-registry.json`：conformance vector 的机器索引与可执行样例。
+- `artifacts/registry/forbidden-wire-fields.json` 与 `artifacts/registry/forbidden-model-terms.json`：current-wire/current-model 的禁止字段和禁止术语检测源。
 
-每条 entry 公共字段：`id`、`since_revision`（生效起始的 spec revision）、`rejection_level`
-（`hard_reject` / `migration_only` / `compat_only` / `docs_only`）、`replacement`、`allowed_contexts`
-（`changelog` / `legacy_migration` / `interop_module` / `negative_test`）、`notes`；
-可选字段：`migration_group`（同一设计决策的批量条目归并标签，见 `renames.json.migration_group_definitions`）、
-`migration_tool_only: true`（仅离线 migration / replay 工具可消费的 disambiguation entry）。
-
-新增、移除或重命名标准 ck.* 概念时需同步更新这组 artifacts；[`CHANGELOG.md`](../CHANGELOG.md) 条目和这些 artifacts 是
-"机器可发现的协议演化记录"的两面。该同步要求的规范效力由各 drift artifact 自身及 conformance 文档承载，本文仅作导航说明。
-
-#### 1.2.1 Parser 分层（导航摘要）
-
-> 本小节是**导航摘要，非规范源**（与本文 frontmatter `normative: false` 一致），仅给出阅读路标，不在本文新增任何义务。Parser 分层的权威规则（含各层逐条约束）由 [`artifacts/migration/renames.json`](../artifacts/migration/renames.json) 的 `parser_tier_definitions` 字段承载；实现者一律以该机读源为准，如本摘要与之有出入，以 `renames.json.parser_tier_definitions` 为权威。
-
-`renames.json` 的条目按消费方分两层，两层的权威约束分别位于 `renames.json.parser_tier_definitions.current_parser` 与 `renames.json.parser_tier_definitions.migration_tool`：
-
-- **Current parser**：Sync Service、federation peer、snapshot consumer、reducer、conformance test runner —— 任何处理 live 或已持久化 v1 wire bytes 的组件。导航层面，它把 `renames.json` 中所有 `hard_reject` / `migration_only` 条目当作输入禁列，不做 payload-shape disambiguation，遇到旧 id 直接以 `unknown_kind` / `unknown_field` / `schema_violation` 等标准错误拒绝而非在线静默重写。逐条权威约束见 `renames.json.parser_tier_definitions.current_parser`。
-- **Migration tool**：离线批处理工具，读取非当前 v1 bytes 并改写成 canonical v1 形态。导航层面，它消费带 `migration_tool_only: true` 的 entry，且与实时 parser 表面隔离。逐条权威约束见 `renames.json.parser_tier_definitions.migration_tool`。
-
-这条分层把 payload-shape 鉴别复杂度限制在离线工具内：当前 v1 sync / federation / snapshot 路径不实现 fallback。`migration_tool_only` 标志使该隔离机器可检测，CI / lint 可据此拒绝在 reducer/service 代码里引用对应 entry。本小节不承载独立规范效力，权威效力来自上述 `parser_tier_definitions` 机读源。
-
-`removed-event-kinds.json` 携带一份与 `renames.json` 同构的 `parser_tier_definitions`（同样的 `current_parser` / `migration_tool` 两层），并对其 disambiguation entry 使用相同的 `migration_only` + `migration_tool_only: true` 表达；其 `migration_only` 拒绝层级表示该旧 kind 只在离线 migration / replay 工具内被消费，current parser 一律拒绝且不做 payload-shape 消歧。该文件**不携带** reader 面的"有界容忍窗口"语义——离线工具上下文由 `legacy_migration` allowed_context 与 `migration_tool_only` 标志表达，而非任何日期窗口字段。
+本文仅给出阅读地图；上述 artifact 的生成、校验和 drift 检测规则由各自 schema、registry 与 conformance 文档承载。
 
 ## 2. 推荐阅读顺序
 
@@ -144,8 +124,8 @@ see_also:
 | `overview/current-model.md` | Strand / track / Board / List / View 的统一模型说明。 |
 | `overview/release-readiness.md` | `v1` 发布基线、工件矩阵与稳定发布门槛。 |
 | `overview/glossary.md` | 全局术语表。 |
-| `overview/evolution-and-compatibility.md` | 协议演进与向后兼容总纲：版本承载、破坏性变更收敛、profile / capability 协商在演进中的整体角色（被 `conformance/conformance-profiles.md`、`conformance/encoding.md`、`sync/service-http-binding.md` 引用为演进导航入口）。 |
-| `guides/migrating-from-matrix.md` | 与 Matrix 的核心区别、边界和取舍（informative 对照，非真相源，详见 §4.10 实现指南组说明；面向 Matrix 实现者的迁移视角）。 |
+| `overview/evolution-and-compatibility.md` | 协议演进与 current-wire 边界：版本承载、加性演进、profile / capability 协商和 fail-closed 的整体入口（被 `conformance/conformance-profiles.md`、`conformance/encoding.md`、`sync/service-http-binding.md` 引用为演进导航入口）。 |
+| `guides/migrating-from-matrix.md` | 与 Matrix 的核心区别、边界和取舍（informative 对照，非真相源，详见 §4.10 实现指南组说明）。 |
 
 ### 4.2 身份、组织与隐私
 
@@ -277,9 +257,9 @@ see_also:
 
 | 文档 | 内容 |
 | --- | --- |
-| `guides/artifact-consumption.md` | SDK、cotest、yougen、soland 等下游如何消费 registry、OpenAPI、profiles 与 drift artifacts。 |
+| `guides/artifact-consumption.md` | SDK、conformance runner 与 transport adapter 如何消费 registry、OpenAPI、profiles 与 fixtures。 |
 | `guides/reference-implementation-guide.md` | 参考实现的模块边界、生成链路、测试入口和发布前检查顺序。 |
-| `guides/migrating-from-matrix.md` | 面向 Matrix 实现者的 informative 设计取舍对照（非真相源）；§4.1 同步列出便于概览读者定位。 |
+| `guides/migrating-from-matrix.md` | Matrix interop 的 informative 设计取舍对照（非真相源）；§4.1 同步列出便于概览读者定位。 |
 
 ## 5. 拆分原则
 

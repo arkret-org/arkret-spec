@@ -78,6 +78,7 @@ Handle MAY 变更、冻结、迁移或重新绑定。
 - Connection identifier 与 DID 的绑定默认是关系私有状态。除非 holder 明确发布为 handle 或 VC claim，其他 Realm 成员和 federation peer 不得获得该映射。
 - 同一字符串从 Connection Identifier 升格为 Handle MUST 经过 holder 显式 disclosure（写入 `alsoKnownAs`、签发 VC claim、或发布到 Directory）；实现不得在用户未授权时自动升格，也不得仅凭 provider 可达性证明把 connection identifier 公开为 handle。
 - Handle 只提供寻址和可选默认投递上下文；它不得作为 `actor_id`、grant subject、membership key 或 audit attribution。解析结果必须先归约为 DID 与可验证 claim，加入 Realm 时再物化为 `ck.member.state{join}.delivery_binding`。
+- Holder MAY 在 subject-private receive policy 中允许 verified handle claim 作为 first-contact / invite 的 `handle_claim` introduction evidence。该选择只表示"我愿意让别人通过这个 handle 找到并请求联系我"，不等于 consent grant、accepted contact、Realm membership 或 invite authorization；接收方仍 MUST 按 [`../sync/invite-addressing.md`](../sync/invite-addressing.md) §5 的 subject policy 与 Principal Server `receive_policy_constraints` 求交集后决定 drop / quarantine / notify。
 - Agent Selector 只提供 native personal agent 的 controller-scoped compose-time 寻址；它不得作为 `actor_id`、grant subject、membership key、delivery key、公开 Directory 搜索 / 列表索引键或 audit attribution。解析结果必须先归约为 agent DID，并受 selector claim 的 visibility / audience / requester policy 约束。
 - Administrative Identifier 是组织本地概念。协议层只规定它不得作为协议主体、不得作为 grant subject、不得作为 Event actor、不得在跨组织 federation 输出中泄露；其内部分配、回收和绑定规则由组织 governance 决定，超出本规范范围。
 - Display name 是可变 metadata，不得被用于 ACL、grant、audit attribution 或 sender verification。
@@ -307,7 +308,7 @@ Cokret v1 core **不定义**用户注册、handle 申请、邀请审批、管理
 
 已知 `subject` DID 但不知道当前 handle 时，客户端 / renderer MUST 使用 `ck.find.directory.query.list_handles_for_subject` 或 roster 内联 `handle_claims[]` 构造 `claim_set_snapshot`。已知 handle 字符串时，显示 / lookup 场景继续使用 `ck.find.directory.query.resolve_handle`。这两个方向不可互相替代：`resolve_handle` 是 handle → subject，`list_handles_for_subject` 是 subject/context → current visible claims。
 
-invite / member-add 不再把 `resolve_handle(intent="invite" | "member_add")` 作为 base 安全路径；正式 invite 寻址见 [`../sync/invite-addressing.md`](../sync/invite-addressing.md) 的 `invite_address + introduction_evidence` 模型。Directory 可选返回的 handle candidate 只能作为 builder evidence，不能替代显式 invite address、principal locator 或 Join Policy 复核。
+contact request / invite / member-add 不再把 `resolve_handle(intent="contact_request" | "invite" | "member_add")` 作为 base 安全路径；正式 invite 寻址见 [`../sync/invite-addressing.md`](../sync/invite-addressing.md) 的 `invite_address + introduction_evidence` 模型，联系人请求见 [`contact-and-direct-conversation.md`](./contact-and-direct-conversation.md) 的 `contact_address + introduction_evidence` 模型。Directory 可选返回的 handle claim / candidate 只能作为 introduction evidence 或 builder evidence，不能替代显式 address、principal locator、receive policy 或 Join Policy 复核。
 
 管理员或 issuer 后期修改 handle 的可见效果由 claim set 变化驱动：issuer 签发新 claim、撤销旧 claim、或改变 binding_state / expiry 后，`ck.find.directory.query.list_handles_for_subject` 和 roster hint MUST 反映新的 effective claim set。客户端 MAY 发布新的 `ck.member.identity.update` 来刷新 display-profile cache，但这不是 handle 变更生效的条件。
 
@@ -425,12 +426,13 @@ verifier 收到 candidate 时 MUST 按下列顺序失败 closed：
 
 ### 3.7.5 与 display resolve / mention resolve 的差异
 
-`ck.find.directory.query.resolve_handle` 三种 intent 返回的字段不同。candidate 只允许在可选 `member_add` / `invite` intent 下产生，且不得替代 [`../sync/invite-addressing.md`](../sync/invite-addressing.md) 的 base invite address / introduction evidence：
+`ck.find.directory.query.resolve_handle` 各 intent 返回的字段不同。candidate 只允许在可选 `member_add` / `invite` intent 下产生，且不得替代 [`../sync/invite-addressing.md`](../sync/invite-addressing.md) 的 base invite address / introduction evidence；`contact_request` intent 只产生可作为 `handle_claim` introduction evidence 的 verified handle claim，不产生 accepted contact 或 consent：
 
 | Intent | 返回字段（必含） | 是否产 candidate | 说明 |
 | --- | --- | --- | --- |
 | `lookup` / display resolve | `subject`、`handle`、`verified` | 否 | 仅用于显示双向验证状态；不暴露 `audience` 或 `member_delivery_binding`。 |
 | `mention` resolve | `subject`、`handle`、`display_name?` | 否 | mention autocomplete 需要的最小字段；MUST NOT 在未授权时披露 `member_delivery_binding`。结果存为 message 内 mention snapshot，不进入 membership builder。 |
+| `contact_request` resolve | `subject`、`handle`、`claims[]?`、`member_delivery_binding?` | 否 | 仅用于构造 `ck.peer.contacts.command.submit` 的 `handle_claim` introduction evidence；接收方仍按 subject policy 与 Principal Server `receive_policy_constraints` 决定 drop / quarantine / notify。 |
 | `member_add` / `invite` resolve | §3.7.1 全部 MUST 字段 | 可选 | 仅当 caller 已经过授权（共同 Space、Directory policy、organization grant 等）且 Directory 显式支持该 profile 时才返回。Directory 拒绝时使用与 "未发现资源" 不可区分的统一拒绝。 |
 
 实现 MUST NOT 跨 intent 复用结果：以 `mention` 解析拿到的 payload 不得提升为 candidate；以 `member_add` 解析拿到的 candidate 不得被广播到 mention autocomplete 缓存。

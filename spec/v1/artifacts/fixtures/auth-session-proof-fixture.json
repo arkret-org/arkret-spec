@@ -17,7 +17,7 @@
       "kind": "session_grant_request_binding",
       "principal_id": "did:web:alice.example",
       "device_id": "ck:device:0196419b-0000-7000-8000-000000000001",
-      "target_audience": "did:web:soland.example",
+      "target_audience": "did:web:service.example",
       "mismatched_audience": "did:web:other.example",
       "requested_scope": [
         "ck.self.events.write"
@@ -112,8 +112,8 @@
       "vector_id": "ck.vector.session.pop_presentation.v1",
       "kind": "http_message_signature_pop",
       "method": "POST",
-      "target_uri": "https://soland.example.com/_cokret/self/events",
-      "authority": "soland.example.com",
+      "target_uri": "https://service.example.com/_cokret/self/events",
+      "authority": "service.example.com",
       "path": "/_cokret/self/events",
       "body": "{\"hello\":\"world\"}",
       "idempotency_key": "idem-pop-0001",

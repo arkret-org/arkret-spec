@@ -153,7 +153,8 @@
   "identity_extension_profiles": [
     "ck.profile.public_network_identity.v1",
     "ck.profile.org_high_assurance_identity.v1",
-    "ck.profile.principal_control_realm.v1"
+    "ck.profile.principal_control_realm.v1",
+    "ck.profile.key_transparency.v1"
   ],
   "deployment_profiles": [
     "ck.profile.personal_node.v1",
@@ -195,7 +196,8 @@
   ],
   "candidate_profiles": [
     "ck.profile.candidate.join_policy.v1",
-    "ck.profile.ucan_interop.v1"
+    "ck.profile.ucan_interop.v1",
+    "ck.profile.federation.rbsr.negentropy.v1"
   ],
   "candidate_profiles_tier_rule": "Profiles pairing unregistered candidate workflow concept/action names / capabilities with an explicit fail-closed gate. Receivers MUST treat any capability action whose `profile` points to a candidate profile as unknown (risk_tier=high default) unless they implement the profile. Candidate profiles are NOT part of v1 active conformance and SHOULD be promoted (with paired wire Event.kind values registered under `ck.*`) once their underlying surface is formally registered.",
   "profile_roles_rule": "Every profile id MUST be annotated with exactly one role from the enum {client, server, gateway, directory, admin, interop}. Roles partition the profile namespace so that an implementation MUST NOT mistake e.g. a gateway profile (push_gateway, blob_node) for a client profile, or a deployment / hardening / vector profile (admin role) for a wire-conformance client / server profile. SDK manifests, client-side feature negotiation, and conformance harness loaders MUST consult `profile_roles` before claiming a profile as locally implemented. Roles in spec layer metadata; the per-profile object in `profile_requirements` MAY ALSO carry a `role` field for convenience, but `profile_roles` is the canonical source.",
@@ -214,10 +216,12 @@
     "ck.profile.directory_service.v1": "directory",
     "ck.profile.federation_minimal.v1": "server",
     "ck.profile.federation.high_assurance.v1": "server",
+    "ck.profile.federation.rbsr.negentropy.v1": "server",
     "ck.profile.identity_registry.v1": "directory",
     "ck.profile.auth_server.v1": "server",
     "ck.profile.public_network_identity.v1": "directory",
     "ck.profile.org_high_assurance_identity.v1": "directory",
+    "ck.profile.key_transparency.v1": "directory",
     "ck.profile.blob_node.v1": "gateway",
     "ck.profile.push_gateway.v1": "gateway",
     "ck.profile.push_gateway.blind_wakeup.v1": "gateway",
@@ -256,6 +260,7 @@
     "ck.profile.encoding.multihash.v1": "interop",
     "ck.profile.hash.blake3.v1": "interop",
     "ck.profile.hash_transition.v1": "interop",
+    "ck.profile.kem.hybrid_xwing.v1": "admin",
     "ck.profile.candidate.join_policy.v1": "admin",
     "ck.profile.mls_governance_binding.full.v1": "admin",
     "ck.profile.attested_audit.e2ee.v1": "admin",

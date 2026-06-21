@@ -3,7 +3,7 @@
   "version": 1,
   "kind": "forbidden_model_terms",
   "source_of_truth": true,
-  "description": "Terms that MUST NOT be used in current-model prose, code identifiers, or UI copy when referring to v1 core concepts. cotest scanner greps downstream prose and source for these terms and flags occurrences outside allowed_contexts.",
+  "description": "Current-model lint registry for terms that are not valid v1 core concept names. It is a prose/code hygiene aid, not a wire contract; conformance scanners may grep downstream prose and source for occurrences outside allowed_contexts.",
   "rejection_levels": {
     "hard_reject": "MUST NOT appear in current normative prose, current SDK / service code identifiers, or current UI copy describing v1 core model.",
     "migration_only": "MAY appear in clearly-marked migration documentation referencing legacy state.",

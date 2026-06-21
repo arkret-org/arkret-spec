@@ -3,7 +3,7 @@
   "version": 1,
   "kind": "removed_operation_ids",
   "source_of_truth": true,
-  "description": "Operation ids that have been removed from the canonical operation registry. Downstream HTTP / gRPC / MQ binding surfaces and SDK call sites MUST NOT advertise them. cotest scanner consumes this list to detect drift in implementation surfaces.",
+  "description": "Release/drift-tooling registry for operation ids that are not part of the current v1 operation contract. Current HTTP/gRPC/MQ bindings consume the active operation registry and OpenAPI binding; conformance scanners may consume this file for negative drift tests and release audit.",
   "rejection_levels": {
     "hard_reject": "MUST NOT appear in any current operation registry, OpenAPI document, gRPC schema, or SDK call site.",
     "migration_only": "MAY appear in time-bounded migration adapters; new bindings MUST NOT add it.",
@@ -207,7 +207,7 @@
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Admin / operator APIs are product-local and MUST NOT be registered under the Cokret protocol namespace. Servers that expose operator surfaces use their own negative-space root such as /_soland/admin/*."
+      "notes": "Admin / operator APIs are product-local and MUST NOT be registered under the Cokret protocol namespace. Servers that expose operator surfaces use their own negative-space root such as /_<deployment>/admin/*."
     },
     {
       "id": "ck.admin.get_server_status",
@@ -215,7 +215,7 @@
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Admin / operator APIs are product-local and MUST NOT be registered under the Cokret protocol namespace. Servers that expose operator surfaces use their own negative-space root such as /_soland/admin/*."
+      "notes": "Admin / operator APIs are product-local and MUST NOT be registered under the Cokret protocol namespace. Servers that expose operator surfaces use their own negative-space root such as /_<deployment>/admin/*."
     },
     {
       "id": "ck.admin.revoke_device",
@@ -223,7 +223,7 @@
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Admin / operator APIs are product-local and MUST NOT be registered under the Cokret protocol namespace. Servers that expose operator surfaces use their own negative-space root such as /_soland/admin/*."
+      "notes": "Admin / operator APIs are product-local and MUST NOT be registered under the Cokret protocol namespace. Servers that expose operator surfaces use their own negative-space root such as /_<deployment>/admin/*."
     },
     {
       "id": "ck.admin.update_account_status",
@@ -231,7 +231,7 @@
       "rejection_level": "hard_reject",
       "replacement": null,
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "Admin / operator APIs are product-local and MUST NOT be registered under the Cokret protocol namespace. Servers that expose operator surfaces use their own negative-space root such as /_soland/admin/*."
+      "notes": "Admin / operator APIs are product-local and MUST NOT be registered under the Cokret protocol namespace. Servers that expose operator surfaces use their own negative-space root such as /_<deployment>/admin/*."
     }
   ]
 }

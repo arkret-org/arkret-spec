@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/invite-receive-policy.schema.json",
-  "title": "Cokret Invite Receive Policy",
-  "description": "Subject-private policy used by a Principal Server to decide which invite delivery introduction evidence may notify the holder. This policy is not written into the target Realm durable event log.",
+  "title": "Cokret Invite and Contact Receive Policy",
+  "description": "Subject-private policy used by a Principal Server to decide which invite delivery or first-contact request introduction evidence may notify the holder. This policy is not written into the target Realm durable event log or the public contact fact log.",
   "type": "object",
   "required": [
     "schema",
@@ -36,13 +36,54 @@
       ],
       "description": "Default behavior for explicit_address evidence. Deployments SHOULD default to quarantine or drop, not notify."
     },
+    "handle_claim_behavior": {
+      "type": "string",
+      "enum": [
+        "drop",
+        "quarantine",
+        "notify"
+      ],
+      "description": "Default behavior for handle_claim evidence. Omitted means quarantine. A subject MAY set notify to allow verified handle-based requests to reach the holder, but the effective value is capped by receive_policy_constraints."
+    },
     "unknown_invites": {
       "type": "string",
       "enum": [
         "drop",
         "quarantine"
       ],
-      "description": "Behavior for delivery requests without compliant introduction_evidence."
+      "description": "Behavior for invite/contact delivery requests without compliant introduction_evidence."
+    },
+    "allowed_handle_domains": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/domain_name"
+      },
+      "uniqueItems": true,
+      "description": "Optional subject-private allowlist for canonical handle domains accepted as handle_claim evidence. Empty or omitted means no subject-level domain restriction; deployment constraints may still restrict the effective set."
+    },
+    "blocked_handle_domains": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/domain_name"
+      },
+      "uniqueItems": true,
+      "description": "Subject-private denylist for canonical handle domains. Matches are rejected before allowed_handle_domains is evaluated."
+    },
+    "trusted_handle_issuers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/did"
+      },
+      "uniqueItems": true,
+      "description": "Optional subject-private allowlist of handle claim issuers accepted for handle_claim evidence."
+    },
+    "trusted_directory_services": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/did"
+      },
+      "uniqueItems": true,
+      "description": "Optional subject-private allowlist of Directory service DIDs accepted as resolved_by for handle_claim evidence."
     },
     "trusted_realm_ids": {
       "type": "array",
@@ -75,7 +116,7 @@
     },
     "disclosure": {
       "$ref": "#/$defs/disclosure_policy",
-      "description": "Graded disclosure policy. Controls whether the invite delivery outcome reveals a real result (delivered/blocked/quarantined) to the inviter, by introduction trust tier. Omitted means the default: high_trust=outcome, low_trust=opaque."
+      "description": "Graded disclosure policy. Controls whether the invite/contact delivery outcome reveals a real result (delivered/blocked/quarantined) to the requester, by introduction trust tier. Omitted means the default: high_trust=outcome, discovery_trust=opaque, low_trust=opaque."
     }
   },
   "additionalProperties": false,
@@ -84,12 +125,30 @@
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
+    "did_method": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+$"
+    },
+    "domain_name": {
+      "type": "string",
+      "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$",
+      "description": "Canonical IDNA A-label domain. Subdomains are not implied; list each accepted domain explicitly."
+    },
+    "receive_behavior": {
+      "type": "string",
+      "enum": [
+        "drop",
+        "quarantine",
+        "notify"
+      ]
+    },
     "introduction_kind": {
       "type": "string",
       "enum": [
         "locator_ref",
         "consent_grant",
         "shared_realm",
+        "handle_claim",
         "same_principal_server",
         "explicit_address"
       ]
@@ -109,9 +168,109 @@
           "$ref": "#/$defs/disclosure_level",
           "description": "Disclosure level for the high-trust introduction tier: consent_grant, locator_ref, shared_realm. Default outcome."
         },
+        "discovery_trust": {
+          "$ref": "#/$defs/disclosure_level",
+          "description": "Disclosure level for public or restricted discovery evidence: handle_claim. Default opaque."
+        },
         "low_trust": {
           "$ref": "#/$defs/disclosure_level",
           "description": "Disclosure level for the low-trust introduction tier: same_principal_server, explicit_address, and missing/non-compliant evidence. Default opaque."
+        }
+      },
+      "additionalProperties": false
+    },
+    "receive_policy_constraints": {
+      "type": "object",
+      "description": "Deployment/admin upper bound applied to subject-private receive policies. The effective receive policy is the intersection of the subject policy and these constraints; constraints can only make a subject less reachable, never more reachable.",
+      "properties": {
+        "policy_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "applies_to": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "invite_delivery",
+              "contact_request"
+            ]
+          },
+          "uniqueItems": true,
+          "description": "Surfaces governed by this constraint object. Omitted means both invite_delivery and contact_request."
+        },
+        "permitted_introduction_kinds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/introduction_kind"
+          },
+          "uniqueItems": true,
+          "description": "Maximum set of introduction evidence kinds this deployment permits. Omitted means no deployment-level kind cap."
+        },
+        "forbidden_introduction_kinds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/introduction_kind"
+          },
+          "uniqueItems": true
+        },
+        "handle_claim_max_behavior": {
+          "$ref": "#/$defs/receive_behavior",
+          "description": "Maximum behavior allowed for handle_claim evidence using the order drop < quarantine < notify."
+        },
+        "explicit_address_max_behavior": {
+          "$ref": "#/$defs/receive_behavior",
+          "description": "Maximum behavior allowed for explicit_address evidence using the order drop < quarantine < notify."
+        },
+        "unknown_invites_max_behavior": {
+          "type": "string",
+          "enum": [
+            "drop",
+            "quarantine"
+          ]
+        },
+        "allowed_handle_domains": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/domain_name"
+          },
+          "uniqueItems": true,
+          "description": "Deployment-level allowlist for handle domains accepted as handle_claim evidence. Empty means no handle domain is accepted."
+        },
+        "trusted_handle_issuers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "uniqueItems": true
+        },
+        "trusted_directory_services": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "uniqueItems": true
+        },
+        "trusted_principal_services": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "uniqueItems": true
+        },
+        "blocked_principal_services": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "uniqueItems": true
+        },
+        "accepted_subject_did_methods": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/did_method"
+          },
+          "uniqueItems": true
         }
       },
       "additionalProperties": false

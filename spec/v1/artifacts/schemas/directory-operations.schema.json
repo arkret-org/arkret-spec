@@ -237,6 +237,7 @@
       "enum": [
         "lookup",
         "mention",
+        "contact_request",
         "invite",
         "member_add"
       ]

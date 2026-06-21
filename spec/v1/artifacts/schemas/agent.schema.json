@@ -61,7 +61,7 @@
       "description": "Session status for ck.agent.interop_session.status events. Same enum as agent_interop_session_status_payload.status in event-payload.schema.json — the registry-object snapshot MUST carry the canonical session state machine, not a coarse subset."
     },
     "params": {
-      "description": "Caller-supplied parameters for interop_session.start. Opaque to soland — agent runtimes interpret per agent manifest."
+      "description": "Caller-supplied parameters for interop_session.start. Opaque to the Cokret protocol — agent runtimes interpret per agent manifest."
     },
     "result": {
       "description": "Terminal payload for ck.agent.interop_session.result. Free-form; agents document the shape."

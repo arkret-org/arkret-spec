@@ -700,7 +700,7 @@ function matches_field_access(operation, constraint):
 - `hash`：以 profile 固定的 keyed/salted digest 替换原值（MUST NOT 使用裸明文哈希，避免低熵字典攻击；摘要构造复用 [`../governance/content-moderation.md` §3.4](../governance/content-moderation.md) 的 keyed/salted digest 纪律）。
 - `omit`：从响应中整体删除该字段键。
 
-未声明 `sensitive_handling` 时默认 `omit`。enforce 方无法对某命中字段施加要求的处理（例如无 key 计算 keyed digest）时 **MUST** 降级为 `omit` 而非返回原值。该义务的一致性向量尚待补充(见 [`../conformance/conformance-vectors.md`](../conformance/conformance-vectors.md))。
+未声明 `sensitive_handling` 时默认 `omit`。enforce 方无法对某命中字段施加要求的处理（例如无 key 计算 keyed digest）时 **MUST** 降级为 `omit` 而非返回原值。该义务由 conformance vector `ck.vector.auth.sensitive_field_handling.v1` 与 [`capability-fixture.json`](../../artifacts/fixtures/capability-fixture.json) 固定。
 
 ## 17. 安全考虑
 

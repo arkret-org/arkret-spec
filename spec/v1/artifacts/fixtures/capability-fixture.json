@@ -642,6 +642,85 @@
         "history_event_retained": true,
         "revoked_grant_currently_valid": false
       }
+    },
+    {
+      "name": "sensitive_field_handling",
+      "vector_id": "ck.vector.auth.sensitive_field_handling.v1",
+      "constraint": {
+        "constraint_type": "field_access",
+        "allowed_read_fields": [
+          "profile.display_name",
+          "profile.email",
+          "profile.ssn",
+          "profile.salary"
+        ],
+        "sensitive_fields": [
+          "profile.ssn",
+          "profile.salary"
+        ],
+        "sensitive_handling": "hash"
+      },
+      "projection_input": {
+        "profile": {
+          "display_name": "Alice",
+          "email": "alice@example.test",
+          "ssn": "123-45-6789",
+          "salary": "100000"
+        }
+      },
+      "cases": [
+        {
+          "name": "hash_with_key",
+          "available_digest_key": true,
+          "expected": {
+            "profile.display_name": "Alice",
+            "profile.email": "alice@example.test",
+            "profile.ssn": "digest:profile-redaction-v1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "profile.salary": "digest:profile-redaction-v1:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "must_not_include_original_values": [
+              "123-45-6789",
+              "100000"
+            ],
+            "digest_discipline": "keyed_salted"
+          }
+        },
+        {
+          "name": "hash_without_key_falls_back_to_omit",
+          "available_digest_key": false,
+          "expected": {
+            "omitted_fields": [
+              "profile.ssn",
+              "profile.salary"
+            ],
+            "must_not_include_original_values": [
+              "123-45-6789",
+              "100000"
+            ]
+          }
+        },
+        {
+          "name": "redact",
+          "override_sensitive_handling": "redact",
+          "expected": {
+            "profile.ssn": "[redacted]",
+            "profile.salary": "[redacted]",
+            "must_not_include_original_values": [
+              "123-45-6789",
+              "100000"
+            ]
+          }
+        },
+        {
+          "name": "default_omit",
+          "remove_sensitive_handling": true,
+          "expected": {
+            "omitted_fields": [
+              "profile.ssn",
+              "profile.salary"
+            ]
+          }
+        }
+      ]
     }
   ]
 }

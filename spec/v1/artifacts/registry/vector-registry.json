@@ -131,6 +131,16 @@
       ]
     },
     {
+      "vector_id": "ck.vector.auth.sensitive_field_handling.v1",
+      "status": "active",
+      "domain": "auth",
+      "description": "field_access.sensitive_fields read projection handling: redact/hash/omit remove original values, hash uses keyed/salted digest discipline, and unenforceable handling falls back to omit.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/capability-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ck.vector.blob.stream_aead_roundtrip.v1",
       "status": "active",
       "domain": "blob",
@@ -532,6 +542,26 @@
       "vector_id": "ck.vector.directory.resolve_target_blinding.v1",
       "status": "active",
       "domain": "directory",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
+        "spec/v1/zh/discovery/discovery-directory.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.directory.resolve_agent_selector_failure_blinding.v1",
+      "status": "active",
+      "domain": "directory",
+      "description": "resolve_agent_selector failure branches for missing, hidden, and unauthorized selectors return the same status, body shape, error class, and timing bucket.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
+        "spec/v1/zh/discovery/discovery-directory.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.directory.resolve_handle_failure_blinding.v1",
+      "status": "active",
+      "domain": "directory",
+      "description": "resolve_handle failure branches for missing, hidden, and unauthorized handles return the same status, body shape, error class, and timing bucket.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1367,9 +1397,19 @@
       ]
     },
     {
-      "vector_id": "ck.vector.cba_lattice.rename_family_reject.v1",
+      "vector_id": "ck.vector.cba_lattice.open_set_concurrent_revocation_fail_closed.v1",
       "status": "active",
       "domain": "cba_lattice",
+      "description": "open_set concurrent revocation is evaluated against the joined control view; revoked or bottom authorization cells fail closed without a freshness window.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.cba_lattice.conflict_recovery_move.v1",
+      "status": "active",
+      "domain": "cba_lattice",
+      "description": "bottom=reject control cell recovery accepts only a sealed conflict-recovery Move with valid recovery_capability and pre-conflict state_witness; negative cases pin recovery_witness_* reasons.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/cba-lattice-fixture.json"
       ]

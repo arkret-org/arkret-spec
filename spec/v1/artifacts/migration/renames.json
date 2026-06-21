@@ -3,7 +3,7 @@
   "version": 1,
   "kind": "renames",
   "source_of_truth": true,
-  "description": "Canonical rename mapping from removed / deprecated identifiers to their v1 replacements (or to null when the concept was deleted with no direct successor). cotest scanner and downstream migration tooling consume this as the single source of truth for mechanical renames. Replacement=null means there is no automatic substitution; readers / writers MUST follow the migration guidance in 'notes'.",
+  "description": "Release/drift-tooling registry for identifiers that are not part of the current v1 wire contract. Conformance scanners and offline release-audit tooling may consume this file for negative tests and mechanical rename reports; current parsers consume only active registries/schemas and reject identifiers listed here. Replacement=null means there is no automatic substitution; operational readers/writers follow the current-wire sources, not this file.",
   "rejection_levels": {
     "hard_reject": "After replacement, the old identifier MUST NOT appear in current code or wire bytes. Current v1 parsers MUST reject the old identifier without inspecting payload shape.",
     "migration_only": "Tolerated only inside offline migration / replay tools, NEVER in current v1 wire parsers. Current parsers (sync, federation, snapshot consumers, reducer) MUST reject the old identifier without inspecting payload shape; migration_tool_only entries below carry the `migration_tool_only: true` flag to make this enforceable. The 'mechanical replacement window' language has been retired — there is no in-band tolerance.",

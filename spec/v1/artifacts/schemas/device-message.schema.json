@@ -318,7 +318,7 @@
         "secret_id": {
           "type": "string",
           "pattern": "^[a-z0-9_]+$",
-          "description": "Opaque identifier of the requested secret, e.g. yougen_mls_account_secret."
+          "description": "Opaque identifier of the requested secret, e.g. example_mls_account_secret."
         },
         "from_device": {
           "$ref": "#/$defs/device_id",

@@ -4859,6 +4859,10 @@
           "$ref": "#/$defs/contact_event_refs",
           "description": "Consent grant event refs written by requester for every requested scope."
         },
+        "introduction_evidence_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Optional digest of the private contact request introduction_evidence carried by PeerContactDeliveryRequest. Raw evidence is not written into the contact fact log."
+        },
         "message": {
           "type": "string"
         }
@@ -6557,7 +6561,7 @@
     },
     "applet_interop_session_start_payload": {
       "type": "object",
-      "description": "Payload for ck.applet.interop_session.start. Parallel to ck.agent.interop_session.start but applet-scoped. Field vocabulary: applet.schema.json (session_id correlates start/status; params are caller-supplied, opaque to soland and interpreted per applet manifest). Unlike ck.agent.* there is NO canonical applet session state machine in v1.",
+      "description": "Payload for ck.applet.interop_session.start. Parallel to ck.agent.interop_session.start but applet-scoped. Field vocabulary: applet.schema.json (session_id correlates start/status; params are caller-supplied, opaque to the Cokret protocol and interpreted per applet manifest). Unlike ck.agent.* there is NO canonical applet session state machine in v1.",
       "required": [
         "applet_id",
         "session_id"
@@ -6584,7 +6588,7 @@
         "params": {
           "type": "object",
           "additionalProperties": true,
-          "description": "Caller-supplied parameters. Opaque to soland; bridge interprets per applet manifest."
+          "description": "Caller-supplied parameters. Opaque to the Cokret protocol; bridge interprets per applet manifest."
         },
         "created_at": {
           "$ref": "#/$defs/timestamp"

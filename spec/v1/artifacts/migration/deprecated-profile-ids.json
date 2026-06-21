@@ -3,7 +3,7 @@
   "version": 1,
   "kind": "deprecated_profile_ids",
   "source_of_truth": true,
-  "description": "Profile ids that have been removed or deprecated from ck.profile.* and MUST NOT be declared in service describe claims, conformance reports, or implementation manifests. cotest scanner uses this list to detect downstream drift.",
+  "description": "Release/drift-tooling registry for profile ids that are not part of the current v1 profile matrix. Current ServiceDescribe claims, conformance reports and implementation manifests consume conformance-profiles.json; conformance scanners may consume this file for negative drift tests and release audit.",
   "rejection_levels": {
     "hard_reject": "MUST be rejected if declared by a current implementation.",
     "migration_only": "MAY be tolerated as read-only legacy claim during migration window; new declarations MUST be rejected.",
@@ -23,7 +23,7 @@
       "rejection_level": "hard_reject",
       "replacement": "ck.profile.chat_mvp.v1",
       "allowed_contexts": ["changelog", "negative_test"],
-      "notes": "Single-modality profile ids never existed as canonical ck.profile.* entries; downstream (notably yougen) declared them informally. Use ck.profile.chat_mvp.v1 + the Realm's actual schema declaration to describe a chat-focused product."
+      "notes": "Single-modality profile ids never existed as canonical ck.profile.* entries. Use ck.profile.chat_mvp.v1 + the Realm's actual schema declaration to describe a chat-focused product."
     },
     {
       "id": "kanban_only_client",

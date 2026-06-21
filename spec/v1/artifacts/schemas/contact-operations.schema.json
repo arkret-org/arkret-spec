@@ -209,6 +209,10 @@
         "recipient_service_did": {
           "$ref": "#/$defs/did",
           "description": "Optional cross-Principal-Server addressing (see contact-and-direct-conversation.md §4.1). When target is hosted on a different Principal Server, the requester MUST supply the target home service DID so the issuer-side server federates the signed ck.contact.requested fact via ck.peer.contacts.command.submit. Omit for same-server requests."
+        },
+        "introduction_evidence": {
+          "$ref": "./peer-contact-delivery-request.schema.json#/$defs/contact_introduction_evidence",
+          "description": "Optional evidence explaining how the requester found the target. Required by the issuer-side Principal Server when it federates a first-contact request to another Principal Server; if omitted, the server MUST derive compliant evidence or treat the request as explicit_address."
         }
       },
       "additionalProperties": false

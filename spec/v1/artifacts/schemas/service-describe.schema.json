@@ -265,6 +265,10 @@
       },
       "additionalProperties": false
     },
+    "receive_policy_constraints": {
+      "$ref": "./invite-receive-policy.schema.json#/$defs/receive_policy_constraints",
+      "description": "Deployment/admin upper bound for subject-private invite/contact receive policies. Principal Servers SHOULD expose this in describe so clients can show which user reachability preferences are capped by server policy."
+    },
     "rate_limit_policy_id": {
       "type": "string",
       "minLength": 1,

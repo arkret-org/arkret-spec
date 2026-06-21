@@ -3,7 +3,7 @@
   "version": 1,
   "kind": "removed_event_kinds",
   "source_of_truth": true,
-  "description": "Machine-readable list of Event.kind values that have been removed from the Cokret v1 protocol. Downstream implementations (SDKs, yougen, soland, cotest) MUST treat these as schema_violation on the wire and MUST NOT introduce them as new contributions. cotest scanner consumes this list to detect drift.",
+  "description": "Release/drift-tooling registry for Event.kind values that are not part of the current v1 wire contract. Current parsers consume the active event-kind registry and reject these values as schema_violation/unknown_kind; conformance scanners may consume this file for negative drift tests and release audit.",
   "rejection_levels": {
     "hard_reject": "MUST be rejected at parse/reducer time. No legitimate occurrence on current wire or in current code.",
     "migration_only": "Tolerated only inside offline migration / replay tools, NEVER in current v1 wire parsers. Current parsers (sync, federation, snapshot consumers, reducer, conformance runner) MUST reject the old identifier without inspecting payload shape; migration_tool_only entries carry the `migration_tool_only: true` flag to make this enforceable. There is no in-band reader tolerance window; the prior 'bounded migration window readers MAY tolerate' language has been retired.",

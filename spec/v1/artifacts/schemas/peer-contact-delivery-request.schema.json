@@ -32,12 +32,35 @@
       ],
       "description": "The contact fact kind carried by contact_event. MUST equal contact_event.kind."
     },
+    "introduction_evidence": {
+      "$ref": "#/$defs/contact_introduction_evidence",
+      "description": "Required when fact_kind is ck.contact.requested. Explains why the requester may attempt first contact; the recipient applies its subject-private receive policy and deployment constraints before notifying the holder."
+    },
     "idempotency_key": {
       "type": "string",
       "minLength": 1,
       "maxLength": 256
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "fact_kind": {
+            "const": "ck.contact.requested"
+          }
+        },
+        "required": [
+          "fact_kind"
+        ]
+      },
+      "then": {
+        "required": [
+          "introduction_evidence"
+        ]
+      }
+    }
+  ],
   "additionalProperties": false,
   "$defs": {
     "did": {
@@ -48,6 +71,14 @@
       "type": "string",
       "format": "date-time",
       "pattern": "Z$"
+    },
+    "handle": {
+      "type": "string",
+      "pattern": "^[a-z0-9._+~-]{1,128}:[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$"
+    },
+    "event_ref": {
+      "type": "string",
+      "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "contact_address": {
       "type": "object",
@@ -67,6 +98,143 @@
         "recipient_service_type": {
           "const": "principal_server",
           "description": "v1 only allows Principal Server contact delivery. Omit by default; if present, the value MUST be principal_server."
+        }
+      },
+      "additionalProperties": false
+    },
+    "contact_introduction_evidence": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/locator_ref_evidence"
+        },
+        {
+          "$ref": "#/$defs/consent_grant_evidence"
+        },
+        {
+          "$ref": "#/$defs/shared_realm_evidence"
+        },
+        {
+          "$ref": "#/$defs/handle_claim_evidence"
+        },
+        {
+          "$ref": "#/$defs/same_principal_server_evidence"
+        },
+        {
+          "$ref": "#/$defs/explicit_address_evidence"
+        }
+      ]
+    },
+    "locator_ref_evidence": {
+      "type": "object",
+      "required": [
+        "kind",
+        "principal_locator"
+      ],
+      "properties": {
+        "kind": {
+          "const": "locator_ref"
+        },
+        "principal_locator": {
+          "$ref": "./principal-locator.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "consent_grant_evidence": {
+      "type": "object",
+      "required": [
+        "kind",
+        "consent_grant_ref"
+      ],
+      "properties": {
+        "kind": {
+          "const": "consent_grant"
+        },
+        "consent_grant_ref": {
+          "$ref": "#/$defs/event_ref",
+          "description": "Event ref of a target-issued ck.consent.grant whose scope covers the requested contact action, or any."
+        },
+        "consent_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      },
+      "additionalProperties": false
+    },
+    "shared_realm_evidence": {
+      "type": "object",
+      "required": [
+        "kind",
+        "realm_id",
+        "requester_member_ref",
+        "target_member_ref"
+      ],
+      "properties": {
+        "kind": {
+          "const": "shared_realm"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "requester_member_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "target_member_ref": {
+          "$ref": "#/$defs/event_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "handle_claim_evidence": {
+      "type": "object",
+      "required": [
+        "kind",
+        "handle",
+        "handle_claim"
+      ],
+      "properties": {
+        "kind": {
+          "const": "handle_claim"
+        },
+        "handle": {
+          "$ref": "#/$defs/handle",
+          "description": "Canonical handle string the requester used as the human-readable entry point."
+        },
+        "handle_claim": {
+          "$ref": "./handle-claim.schema.json",
+          "description": "Verified handle claim proving that handle resolves to contact_address.subject_id. The receiver MUST verify binding_state, proofs, expiry, issuer trust, visibility/audience policy, and that handle_claim.handle equals handle."
+        },
+        "resolved_by": {
+          "$ref": "#/$defs/did",
+          "description": "Optional Directory or issuer service DID that supplied the handle resolution."
+        },
+        "resolved_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "same_principal_server_evidence": {
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "const": "same_principal_server"
+        }
+      },
+      "additionalProperties": false
+    },
+    "explicit_address_evidence": {
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "const": "explicit_address"
         }
       },
       "additionalProperties": false

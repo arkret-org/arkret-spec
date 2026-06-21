@@ -134,7 +134,7 @@
         "contents": [
           {
             "item_type": "mls_group_state",
-            "secret_id": "yougen_mls_snapshot"
+            "secret_id": "example_mls_snapshot"
           }
         ],
         "ciphertext": "ciphertext-base64url-placeholder",
@@ -218,7 +218,7 @@
         "contents": [
           {
             "item_type": "mls_group_state",
-            "secret_id": "yougen_mls_snapshot"
+            "secret_id": "example_mls_snapshot"
           }
         ],
         "ciphertext": "ciphertext-base64url-placeholder",
@@ -290,7 +290,7 @@
         "contents": [
           {
             "item_type": "mls_group_state",
-            "secret_id": "yougen_mls_snapshot"
+            "secret_id": "example_mls_snapshot"
           }
         ],
         "ciphertext": "ciphertext-base64url-placeholder",
@@ -362,7 +362,7 @@
         "contents": [
           {
             "item_type": "mls_group_state",
-            "secret_id": "yougen_mls_snapshot"
+            "secret_id": "example_mls_snapshot"
           }
         ],
         "ciphertext": "ciphertext-base64url-placeholder",
@@ -436,7 +436,7 @@
         "contents": [
           {
             "item_type": "mls_group_state",
-            "secret_id": "yougen_mls_snapshot"
+            "secret_id": "example_mls_snapshot"
           }
         ],
         "ciphertext": "ciphertext-base64url-placeholder",
@@ -518,7 +518,7 @@
         "contents": [
           {
             "item_type": "recovery_key_share",
-            "secret_id": "yougen_did_recovery_share"
+            "secret_id": "example_did_recovery_share"
           }
         ],
         "ciphertext": "ciphertext-base64url-placeholder",

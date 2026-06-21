@@ -1275,14 +1275,16 @@
       "http": "GET /_cokret/root/identity/log",
       "grpc": "RootIdentity/GetLog",
       "mq": "root.identity.log.query.list",
-      "success_shape_kind": "inline_response"
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityLogListOutcome"
     },
     {
       "operation_id": "ck.root.identity.receipts.query.list",
       "http": "GET /_cokret/root/identity/receipts",
       "grpc": "RootIdentity/GetReceipts",
       "mq": "root.identity.receipts.query.list",
-      "success_shape_kind": "inline_response"
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityReceiptListOutcome"
     },
     {
       "operation_id": "ck.root.identity.query.resolve",

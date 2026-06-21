@@ -101,6 +101,12 @@
       "$ref": "#/$defs/IdentityDocumentView"
     },
     {
+      "$ref": "#/$defs/IdentityLogListOutcome"
+    },
+    {
+      "$ref": "#/$defs/IdentityReceiptListOutcome"
+    },
+    {
       "$ref": "#/$defs/IdentityResolveRequestBody"
     },
     {
@@ -1623,6 +1629,50 @@
         "cached_at": {
           "type": "string",
           "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    },
+    "IdentityLogListOutcome": {
+      "type": "object",
+      "description": "Result of ck.root.identity.log.query.list — paginated DID key-log entries for the requested DID.",
+      "required": [
+        "events",
+        "has_more"
+      ],
+      "properties": {
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "./did-key-log-entry.schema.json"
+          }
+        },
+        "next_cursor": {
+          "type": "string",
+          "description": "Opaque continuation cursor for the next page when has_more=true."
+        },
+        "has_more": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "IdentityReceiptListOutcome": {
+      "type": "object",
+      "description": "Result of ck.root.identity.receipts.query.list — witness receipts for a DID key-log head.",
+      "required": [
+        "receipts"
+      ],
+      "properties": {
+        "receipts": {
+          "type": "array",
+          "items": {
+            "$ref": "./identity-receipt.schema.json"
+          }
+        },
+        "threshold_met": {
+          "type": "boolean",
+          "description": "True when the returned receipt set satisfies the method or deployment witness threshold for the requested head. Omitted when the registry cannot evaluate threshold policy for this query."
         }
       },
       "additionalProperties": false

@@ -42,6 +42,10 @@
       "format": "date-time",
       "pattern": "Z$"
     },
+    "handle": {
+      "type": "string",
+      "pattern": "^[a-z0-9._+~-]{1,128}:[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$"
+    },
     "hash": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
@@ -98,6 +102,9 @@
         },
         {
           "$ref": "#/$defs/shared_realm_evidence"
+        },
+        {
+          "$ref": "#/$defs/handle_claim_evidence"
         },
         {
           "$ref": "#/$defs/same_principal_server_evidence"
@@ -166,6 +173,39 @@
         },
         "invitee_member_ref": {
           "$ref": "#/$defs/event_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "handle_claim_evidence": {
+      "type": "object",
+      "required": [
+        "kind",
+        "handle",
+        "handle_claim"
+      ],
+      "properties": {
+        "kind": {
+          "const": "handle_claim"
+        },
+        "handle": {
+          "$ref": "#/$defs/handle",
+          "description": "Canonical handle string the inviter used as the human-readable entry point."
+        },
+        "handle_claim": {
+          "$ref": "./handle-claim.schema.json",
+          "description": "Verified handle claim proving that handle resolves to invite_address.subject_id. The receiver MUST verify binding_state, proofs, expiry, issuer trust, visibility/audience policy, and that handle_claim.handle equals handle."
+        },
+        "member_delivery_binding_candidate": {
+          "$ref": "./member-delivery-binding-candidate.schema.json",
+          "description": "Optional builder evidence returned by a Directory or trusted issuer for intent=invite. When present, verifiers MUST check subject_id, handle, recipient_service_did, audience, issuer_service_did, expiry and proofs against this delivery."
+        },
+        "resolved_by": {
+          "$ref": "#/$defs/did",
+          "description": "Optional Directory or issuer service DID that supplied the handle resolution."
+        },
+        "resolved_at": {
+          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": false
