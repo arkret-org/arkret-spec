@@ -650,6 +650,8 @@ POST /_cokret/find/directory/push/register
 
 Directory MAY 解析 `@alice:acme.example`、`alice@acme.example`、`alice:acme.example` 或 `acct:alice@acme.example` 这类 handle 输入。解析结果是**寻址证据**，不是成员资格、grant、contact consent、invite delivery 授权或投递授权本身。base v1 invite/member-add 使用 [`../sync/invite-addressing.md`](../sync/invite-addressing.md) 的显式 `invite_address + introduction_evidence`；base contact request 使用 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) 的 `contact_address + introduction_evidence`。`resolve_handle(intent="contact_request" | "invite" | "member_add")` 仅是可选 Directory/profile 输出。已知 `subject` DID 但不知道当前 handle 时，调用方使用 `list-handles-for-subject`；该接口返回的是当前 context 可见 handle claim set，不是 profile 或 MemberIdentity event。
 
+当 `intent ∈ {contact_request, invite, member_add}` 时，能够评价 `subject` 的 `invite_receive_policy` 或等价接收策略的 Directory / Principal Server MUST 在披露 `subject` DID、`claims[]` 或 `member_delivery_binding` 前先按 `handle_claim` introduction evidence 执行接收策略；若策略结果为 `drop`，或部署要求的 receive-policy 证据不可验证，响应 MUST 使用与不存在不可区分的统一拒绝。无法评价接收策略的受托 Directory MUST 不得把解析成功解释为投递授权，且返回的证据 MUST 仍强制接收方 Principal Server / reducer 按 `receive_policy_constraints` 与 Join Policy 复核。
+
 当 `intent ∈ {contact_request, invite, member_add}` 且 Directory 返回 `member_delivery_binding` 时，响应 MUST 满足：
 
 1. `subject` / `did` 是被寻址主体的 principal DID；两者同时出现时 MUST byte-for-byte 相同。
