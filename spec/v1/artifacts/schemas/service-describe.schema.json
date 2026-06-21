@@ -474,6 +474,104 @@
       },
       "additionalProperties": false
     },
+    "resource_types": {
+      "type": "array",
+      "description": "Directory-service resource classes indexed by ck.find.directory.query.describe. Required when service_type=directory_service.",
+      "items": {
+        "$ref": "#/$defs/directory_resource_kind"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "discovery_profiles": {
+      "type": "array",
+      "description": "Directory discovery profiles and extension profile ids advertised by ck.find.directory.query.describe. Required when service_type=directory_service.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "restricted_query_proof": {
+      "type": "boolean",
+      "description": "Whether the directory requires holder-approved proof for restricted or privacy-sensitive query classes."
+    },
+    "ingest_modes": {
+      "type": "array",
+      "description": "Directory ingest modes supported by this instance.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "push",
+          "pull"
+        ]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "accept_policy_kind": {
+      "type": "string",
+      "description": "Directory resource acceptance policy advertised by ck.find.directory.query.describe.",
+      "enum": [
+        "open",
+        "allowlist",
+        "trust_root_signed",
+        "operator_review"
+      ]
+    },
+    "accept_policy_ref": {
+      "type": "object",
+      "description": "Optional human-readable or governance reference describing how a resource obtains directory acceptance.",
+      "additionalProperties": true
+    },
+    "default_ttl_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2592000,
+      "description": "Default directory entry TTL in seconds."
+    },
+    "max_ttl_seconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2592000,
+      "description": "Maximum accepted directory entry TTL in seconds."
+    },
+    "revalidation_grace_seconds": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2592000,
+      "description": "Grace period for refreshing indexed resources after TTL expiry."
+    },
+    "accepted_resource_kinds": {
+      "type": "array",
+      "description": "Subset of resource kinds accepted by this directory instance.",
+      "items": {
+        "$ref": "#/$defs/directory_resource_kind"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "accepted_did_methods": {
+      "type": "array",
+      "description": "Principal/governance DID methods accepted by this directory instance.",
+      "items": {
+        "type": "string",
+        "pattern": "^did:[a-z0-9]+$"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "takedown_contact": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Operator takedown notification or appeal contact, expressed as a DID or URL."
+    },
+    "rate_limits": {
+      "type": "object",
+      "description": "Readable per-DID, per-organization or per-IP directory quota limits.",
+      "additionalProperties": true
+    },
     "implemented_features": {
       "type": "array",
       "description": "feature_ids the service has implementation code for but does NOT necessarily claim conformance for. Tooling that builds a conformance matrix MUST treat this strictly weaker than `claimed_profiles`.",
@@ -634,6 +732,39 @@
       "if": {
         "properties": {
           "service_type": {
+            "const": "directory_service"
+          }
+        },
+        "required": [
+          "service_type"
+        ]
+      },
+      "then": {
+        "required": [
+          "resource_types",
+          "discovery_profiles",
+          "ingest_modes",
+          "accept_policy_kind",
+          "default_ttl_seconds",
+          "max_ttl_seconds",
+          "revalidation_grace_seconds",
+          "accepted_resource_kinds",
+          "accepted_did_methods",
+          "rate_limits"
+        ],
+        "properties": {
+          "supported_profiles": {
+            "contains": {
+              "const": "ck.profile.directory_service.v1"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "service_type": {
             "const": "push_gateway"
           }
         },
@@ -693,6 +824,16 @@
     "trust_domain": {
       "type": "string",
       "pattern": "^ck:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
+    },
+    "directory_resource_kind": {
+      "type": "string",
+      "enum": [
+        "realm",
+        "organization",
+        "actor",
+        "applet",
+        "handle"
+      ]
     },
     "timestamp": {
       "type": "string",

@@ -569,7 +569,7 @@ v1 core **不**定义 Directory 之间的 replication / federation 协议。每�
 
 ### 8.9 `ck.find.directory.query.describe` 扩展
 
-**Schema overlay 关系（normative）**：`ck.find.directory.query.describe` 响应是通用 `ck.schema.service_describe.v1` 的 **superset overlay**。Directory describe MUST 在通用 `service_describe` 基础上 extend 以下字段集，作为 directory-specific 字段权威列表：(a) `resource_types[]` 与 `discovery_profiles[]`（资源类别与索引 profile）；(b) `restricted_query_proof`（是否需要 holder-approved proof）；(c) 本节下表列出的 9 个 ingest 字段。`../sync/service-http-binding.md` 中所有 `ck.find.directory.query.describe` operation row 引用本节作为字段 superset 的权威定义，不另列重复表；任何 directory-specific 字段调整 MUST 先在本节落地。
+**Schema overlay 关系（normative）**：`ck.find.directory.query.describe` 响应是通用 `ck.schema.service_describe.v1` 的 **directory-service overlay**。这些 overlay 字段已作为裸字段登记在 [`service-describe.schema.json`](../../artifacts/schemas/service-describe.schema.json) 中，且仅在 `service_type=directory_service` 的 describe 响应上成为 required directory contract；实现 MUST NOT 把下列标准字段改写为 vendor-specific `x_*` 顶层字段。Directory describe MUST 在通用 `service_describe` 基础上 extend 以下字段集，作为 directory-specific 字段权威列表：(a) `resource_types[]` 与 `discovery_profiles[]`（资源类别与索引 profile）；(b) `restricted_query_proof`（是否需要 holder-approved proof）；(c) 本节下表列出的 9 个 ingest 字段。`../sync/service-http-binding.md` 中所有 `ck.find.directory.query.describe` operation row 引用本节作为字段 superset 的权威定义，不另列重复表；任何 directory-specific 字段调整 MUST 先在本节落地。
 
 Directory MUST 在 `describe` 响应中暴露 ingest 能力：
 
@@ -582,7 +582,7 @@ Directory MUST 在 `describe` 响应中暴露 ingest 能力：
 | `max_ttl_seconds` | `int` | TTL 上限，MUST ≤ 2,592,000。 |
 | `revalidation_grace_seconds` | `int` | TTL 到期宽限。 |
 | `accepted_resource_kinds` | `enum[]` | 本 directory 接受的资源类别子集。 |
-| `accepted_did_methods` | `string[]` | 接受的 principal/governance DID method。 |
+| `accepted_did_methods` | `string[]` | 接受的 principal/governance DID method token，形如 `did:web`、`did:webvh`。 |
 | `takedown_contact` | `did \| url?` | operator takedown 时的通知 / 申诉入口。 |
 | `rate_limits` | `object?` | per-DID / per-org / per-IP 配额上限的可读描述。 |
 

@@ -59,6 +59,73 @@
       }
     },
     {
+      "name": "service_describe_directory_overlay_valid",
+      "schema_ref": "schemas/service-describe.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "service_did": "did:web:directory.example.net",
+        "trust_domain": "ck:trust_domain:directory.example",
+        "service_type": "directory_service",
+        "protocol_version": "1.0",
+        "supported_profiles": [
+          "ck.profile.directory_service.v1"
+        ],
+        "supported_operations": [
+          "ck.find.directory.query.describe"
+        ],
+        "supported_bindings": [
+          {
+            "kind": "http_json",
+            "base_url": "https://directory.example.net"
+          }
+        ],
+        "supported_features": [],
+        "auth_metadata": {},
+        "limits": {},
+        "plaintext_visibility": {},
+        "rate_limit_policy": {},
+        "implemented_features": [],
+        "claimed_profiles": [],
+        "verified_profiles": [],
+        "experimental_features": [],
+        "compat_surfaces": [],
+        "development_mode": false,
+        "resource_types": [
+          "realm",
+          "organization",
+          "actor",
+          "applet",
+          "handle"
+        ],
+        "discovery_profiles": [
+          "ck.profile.directory_service.v1"
+        ],
+        "restricted_query_proof": true,
+        "ingest_modes": [
+          "push",
+          "pull"
+        ],
+        "accept_policy_kind": "open",
+        "default_ttl_seconds": 86400,
+        "max_ttl_seconds": 604800,
+        "revalidation_grace_seconds": 3600,
+        "accepted_resource_kinds": [
+          "realm",
+          "organization",
+          "actor",
+          "applet",
+          "handle"
+        ],
+        "accepted_did_methods": [
+          "did:web",
+          "did:webvh"
+        ],
+        "rate_limits": {
+          "per_resource_per_min": 60
+        }
+      }
+    },
+    {
       "name": "service_describe_missing_development_mode_rejected",
       "schema_ref": "schemas/service-describe.schema.json",
       "expect_valid": false,

@@ -2003,6 +2003,28 @@ def check_service_describe_alignment(lint: Lint) -> None:
         lint.fail(schema_path, "ServiceDescribe.properties.trust_domain missing")
     if "trust_domain" not in (component.get("properties") or {}):
         lint.fail(openapi_path, "components.schemas.ServiceDescribe.properties.trust_domain missing")
+    directory_fields = {
+        "resource_types",
+        "discovery_profiles",
+        "restricted_query_proof",
+        "ingest_modes",
+        "accept_policy_kind",
+        "accept_policy_ref",
+        "default_ttl_seconds",
+        "max_ttl_seconds",
+        "revalidation_grace_seconds",
+        "accepted_resource_kinds",
+        "accepted_did_methods",
+        "takedown_contact",
+        "rate_limits",
+    }
+    schema_properties = service_schema.get("properties") or {}
+    openapi_properties = component.get("properties") or {}
+    for field in sorted(directory_fields):
+        if field not in schema_properties:
+            lint.fail(schema_path, f"ServiceDescribe.properties.{field} missing")
+        if field not in openapi_properties:
+            lint.fail(openapi_path, f"components.schemas.ServiceDescribe.properties.{field} missing")
     if openapi_required != schema_required:
         lint.fail(
             openapi_path,

@@ -292,6 +292,8 @@ GET /_cokret/describe
 `directory/describe` / `applet/describe`）响应 MUST 使用同一个 canonical `ServiceDescribe` shape。除 `service_did`、`trust_domain`、`service_type`、`protocol_version`、`supported_profiles`、`supported_operations`、`supported_bindings`、`supported_features`、`auth_metadata`、`limits`、`plaintext_visibility` 和 `rate_limit_policy` / `rate_limit_policy_id` 之外，响应还 MUST 按 **claim level** 区分以下字段；schema 见
 [`service-describe.schema.json`](../../artifacts/schemas/service-describe.schema.json)（`ck.schema.service_describe.v1`）：
 
+当 `service_type=directory_service` 时，`ck.find.directory.query.describe` 还 MUST 按 [`discovery-directory.md` §8.9](../discovery/discovery-directory.md#89-ckfinddirectoryquerydescribe-扩展) 暴露已登记在 `ServiceDescribe` schema 中的 directory-specific 裸字段（例如 `resource_types[]`、`discovery_profiles[]`、`ingest_modes`、`accept_policy_kind`、TTL 与 `rate_limits` 字段）；这些字段不是 vendor-specific `x_*` 扩展。
+
 - `supported_operations: operation_id[]` — 该 endpoint 可被实际调用的 operation_id。仅表示 wire 可达，
   不构成 profile claim。元素 SHOULD 命中 `operation-registry.json` 注册项。
 - `trust_domain: ck:trust_domain:<scope>` — 部署级 replay boundary。客户端 / 接收方 MUST 要求它与 Realm create-locked trust domain、federation header 和本地 receive context 一致；不一致时不得接受 replay-sensitive proof。

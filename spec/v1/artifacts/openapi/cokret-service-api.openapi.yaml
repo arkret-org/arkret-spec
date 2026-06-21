@@ -761,6 +761,87 @@ components:
               type: boolean
             redirect_recheck:
               type: boolean
+        resource_types:
+          type: array
+          description: |
+            Directory-service resource classes indexed by
+            `ck.find.directory.query.describe`. Required when
+            `service_type=directory_service`.
+          items:
+            type: string
+            enum:
+            - realm
+            - organization
+            - actor
+            - applet
+            - handle
+        discovery_profiles:
+          type: array
+          description: |
+            Directory discovery profiles and extension profile ids advertised by
+            `ck.find.directory.query.describe`. Required when
+            `service_type=directory_service`.
+          items:
+            type: string
+        restricted_query_proof:
+          type: boolean
+          description: Whether restricted or privacy-sensitive queries require holder-approved proof.
+        ingest_modes:
+          type: array
+          description: Directory ingest modes supported by this instance.
+          items:
+            type: string
+            enum:
+            - push
+            - pull
+        accept_policy_kind:
+          type: string
+          description: Directory resource acceptance policy.
+          enum:
+          - open
+          - allowlist
+          - trust_root_signed
+          - operator_review
+        accept_policy_ref:
+          type: object
+          description: Optional human-readable or governance reference for obtaining directory acceptance.
+          additionalProperties: true
+        default_ttl_seconds:
+          type: integer
+          minimum: 1
+          maximum: 2592000
+        max_ttl_seconds:
+          type: integer
+          minimum: 1
+          maximum: 2592000
+        revalidation_grace_seconds:
+          type: integer
+          minimum: 0
+          maximum: 2592000
+        accepted_resource_kinds:
+          type: array
+          description: Subset of resource kinds accepted by this directory instance.
+          items:
+            type: string
+            enum:
+            - realm
+            - organization
+            - actor
+            - applet
+            - handle
+        accepted_did_methods:
+          type: array
+          description: Principal/governance DID methods accepted by this directory instance.
+          items:
+            type: string
+            pattern: ^did:[a-z0-9]+$
+        takedown_contact:
+          type: string
+          description: Operator takedown notification or appeal contact, expressed as a DID or URL.
+        rate_limits:
+          type: object
+          description: Readable per-DID, per-organization or per-IP directory quota limits.
+          additionalProperties: true
         implemented_features:
           type: array
           description: |
