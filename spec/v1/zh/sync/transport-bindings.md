@@ -85,7 +85,7 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 | `ck.self.account.command.update_profile` | 当前账号 profile 更新；`bio` 映射到 `profile_fields.bio`。 |
 | `ck.self.account.stream.subscribe` | 客户端账号视角聚合 streaming 订阅(NDJSON frame 流；与 `ck.self.events.stream.subscribe` 对称)。 |
 | `ck.gate.account.command.register` | 注册 / account binding；request 使用 `principal_id`，不接受旧 `did` 或裸 `handle` 字段。 |
-| `ck.gate.account.command.revoke_session` | 撤销 session grant / access token；不撤销 device authorization。 |
+| `ck.gate.account.command.revoke_session` | 撤销 session grant；不撤销 device authorization。 |
 | `ck.find.directory.query.search_realms` / `ck.find.directory.query.search_organizations` / `ck.find.directory.query.search_actors` / `ck.find.directory.query.search_users` | 授权搜索 Realm / Organization / Actor，以及用户目录条目（actor profile / handle 视图）。 |
 | `ck.find.directory.query.resolve_realm` / `ck.find.directory.query.resolve_organization` / `ck.find.directory.query.resolve_handle` / `ck.find.directory.query.resolve_agent_selector` / `ck.find.directory.query.list_handles_for_subject` | 精确解析 Realm / Organization / handle / controller-scoped agent selector，以及列出已知 subject 的当前可见 handle claims。 |
 | `ck.find.directory.command.announce` / `ck.find.directory.command.withdraw` / `ck.find.directory.push.command.register` | Discovery ingest：资源向 Directory 推送签名 discovery state、撤销 opt-in、或注册 pull-mode webhook 通知。详见 [`discovery/discovery-directory.md`](../discovery/discovery-directory.md) §8。 |

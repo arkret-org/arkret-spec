@@ -114,10 +114,10 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 
 受保护 endpoint 的请求 MUST 携带可验证的认证材料。会话出示方式按下列**推荐序**选择（越靠前越优先），实现 SHOULD 默认走 sender-constrained（proof-of-possession，PoP）路径，纯 bearer 仅作为兼容路径与低敏读：
 
-1. **`session_public_key` PoP（RFC 9421 HTTP Message Signature）—— 推荐默认**：请求用 `ck.session.grant` 委托的短期 `session_public_key`（私钥仅持有方掌握）对请求做 HTTP Message Signature。token 与签名密钥绑定，仅截获 `session_token` 不足以重放。详见 §3.2 与 [`service-http-binding.md` §2.5](./service-http-binding.md)。
+1. **`session_public_key` PoP（RFC 9421 HTTP Message Signature）—— 推荐默认**：请求用 `ck.session.grant` 委托的短期 `session_public_key`（私钥仅持有方掌握）对请求做 HTTP Message Signature。会话凭据与签名密钥绑定，仅截获 `ck.session.grant` 不足以重放。详见 §3.2 与 [`service-http-binding.md` §2.5](./service-http-binding.md)。
 2. **detached JWS request signature** 或等价 signed proof body：栈不便用 RFC 9421 时的等价 sender-constrained 出示。
 3. **mTLS**：用于受控企业或服务间通信。
-4. **`Authorization: Bearer <session_token>`（纯 bearer，兼容路径）**：只证明持有 token、不证明持有密钥；token 一旦泄露即可重放，**风险高于上述 PoP 路径**。仅在低敏读和兼容旧客户端时可接受（见 §3.2）。
+4. **`Authorization: Bearer <ck.session.grant>`（纯 bearer，兼容路径）**：只证明持有会话凭据、不证明持有密钥；凭据一旦泄露即可重放，**风险高于上述 PoP 路径**。仅在低敏读和兼容旧客户端时可接受（见 §3.2）。
 
 无论采用哪种传输认证方式，协议层权限判断最终 MUST 回到：
 
@@ -129,11 +129,11 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 
 服务端 MUST NOT 仅因 bearer token 存在就跳过 capability 检查。
 
-认证材料 MUST 放在 header、HTTP Message Signature、mTLS 握手或明确的 signed proof body 中。服务端 MUST NOT 接受 query string、path segment 或 fragment 中的 session token、access token、API key、签名密钥、长期 capability 或等价长期认证材料。
+认证材料 MUST 放在 header、HTTP Message Signature、mTLS 握手或明确的 signed proof body 中。服务端 MUST NOT 接受 query string、path segment 或 fragment 中的 session credential、API key、签名密钥、长期 capability 或等价长期认证材料。
 
 规则：
 
-- 带有 `access_token`、`session_token`、`api_key`、`auth`、`signature` 等 query 参数的受保护 endpoint 请求 MUST 被拒绝，除非对应 endpoint 明确把该字段定义为非认证业务参数。
+- 带有 `access_token`、`session_credential`、`api_key`、`auth`、`signature` 等 query 参数的受保护 endpoint 请求 MUST 被拒绝，除非对应 endpoint 明确把该字段定义为非认证业务参数。
 - 拒绝时 SHOULD 返回 `unauthenticated` 或 `invalid_param`，并且不得把 query 中的敏感值写入普通访问日志。
 - `ck.self.blob.command.presign` 是唯一标准 URL bearer 例外：它只能是单 blob、单用途、短时效、只读、可撤销的派生 token，不得等同于用户 session、API key 或长期 capability；完整约束见 [`../crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)。
 - 第三方邀请的 `#token=` fragment 是客户端 handoff，不是服务端认证入口。服务端不会收到 fragment；客户端读取后 MUST 通过 body / signed proof 提交 claim，并按 [`third-party-invites.md` §3.2](./third-party-invites.md) 清理 URL 与本地状态。
@@ -141,7 +141,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 
 ### 3.1 认证服务发现
 
-认证与授权服务器可以分离。Principal Server 的 `/_cokret/describe` MUST 公布 `auth_metadata.account_authority` 与 `auth_metadata.methods[]`。客户端先用 `account_authority.gate_account_base` 定位所有 Cokret `/_cokret/gate/account/*` 操作，再按 `methods[]` 中的标准 discovery 找认证 provider；不得把 OAuth/OIDC subject 当作 Cokret principal：
+认证与授权服务器可以分离。Principal Server 的 `/_cokret/describe` MUST 公布 `auth_metadata.account_authority` 与 `auth_metadata.methods[]`。客户端先用 `account_authority.gate_account_base` 定位所有客户端可见的 Cokret `/_cokret/gate/account/*` 操作，再按 `methods[]` 中的标准 discovery 找认证 provider；规范明确标记为部署内部 S2S 的 account 子操作（例如 `ck.gate.account.command.logout_auth_session`）只能由 Account Authority 按对应契约调用，不能由客户端派生。不得把 OAuth/OIDC subject 当作 Cokret principal：
 
 ```json
 {
@@ -179,12 +179,12 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 
 ### 3.2 Sender-constrained（proof-of-possession）会话出示
 
-`ck.session.grant` 已把短期 `session_public_key` 绑定到 principal / device / audience / origin（见 [`../crypto-media/device-lifecycle.md` §1 / §3](../crypto-media/device-lifecycle.md)）。但若日常请求只用 `Authorization: Bearer <session_token>` 出示，token 被窃即可在 audience 内重放，与 key 绑定设计脱节。按 [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700)（OAuth 2.0 Security BCP, BCP 240）"优先使用 sender-constrained token" 的指导，Cokret 把会话出示默认升级为 PoP。
+`ck.session.grant` 已把短期 `session_public_key` 绑定到 principal / device / audience / origin（见 [`../crypto-media/device-lifecycle.md` §1 / §3](../crypto-media/device-lifecycle.md)）。但若日常请求只用 `Authorization: Bearer <ck.session.grant>` 出示，凭据被窃即可在 audience 内重放，与 key 绑定设计脱节。按 [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700)（OAuth 2.0 Security BCP, BCP 240）"优先使用 sender-constrained token" 的指导，Cokret 把会话出示默认升级为 PoP。
 
 **SHOULD 默认（normative）**：
 
 - 对常规写操作（任何推进 actor_seq / Realm frontier 或产生持久副作用的请求）与敏感读（成员列表、私有 projection、key backup、device list、moderation 队列等），实现 **SHOULD** 用 RFC 9421 HTTP Message Signature 做 PoP 出示，签名密钥即该会话的 `session_public_key`。
-- 纯 `Authorization: Bearer <session_token>` 出示 **SHOULD** 仅用于低敏读（公开 / 已授权的非敏感 metadata、`public_metadata` describe、自身低敏 viewer 字段）与兼容旧客户端的降级路径。
+- 纯 `Authorization: Bearer <ck.session.grant>` 出示 **SHOULD** 仅用于低敏读（公开 / 已授权的非敏感 metadata、`public_metadata` describe、自身低敏 viewer 字段）与兼容旧客户端的降级路径。
 - 服务 **SHOULD** 通过 `auth_metadata.did_binding_methods` 公布是否支持 `session_http_signature`（RFC 9421 PoP），供客户端协商；不支持 PoP 的兼容服务仍 MUST 校验 bearer token 的 audience / issuer / expiry / session grant 状态与 capability。
 - 在 §11.2 之外，PoP 出示不改变 §3 其余规则：协议层权限判断仍 MUST 回到 actor DID / capability / Realm policy；PoP 只把"持有 token"升级为"持有绑定密钥"。
 
@@ -203,7 +203,7 @@ Replay window：PoP 出示**复用既有 replay window 机制**——签名时�
 
 ### 3.3 `/_cokret/self/*` 出示 grant + DPoP（normative，默认会话凭据路径）
 
-Account Authority 以 `ck.session.grant` 作为客户端唯一可见的会话凭据；Principal Server **不**为客户端铸发独立的本地 bearer，**不**存在 grant→principal-bearer 兑换 endpoint。客户端对 `/_cokret/self/*` 的每次请求 MUST 直接出示该 grant，并叠加一份 sender-constrained 的 **DPoP（[RFC 9449](https://www.rfc-editor.org/rfc/rfc9449)）** 持有证明：
+Account Authority 以 `ck.session.grant` 作为客户端唯一可见的会话凭据；Principal Server **不**为客户端铸发独立的本地 bearer，**不**存在第二个客户端可见的 Principal 本地凭据签发 endpoint。客户端对 `/_cokret/self/*` 的每次请求 MUST 直接出示该 grant，并叠加一份 sender-constrained 的 **DPoP（[RFC 9449](https://www.rfc-editor.org/rfc/rfc9449)）** 持有证明：
 
 ```http
 POST /_cokret/self/events
@@ -229,7 +229,7 @@ Principal Server 对每次 `/_cokret/self/*` 请求 MUST 校验（任一项失�
 
 该模型对齐 Matrix [MSC3861](https://github.com/matrix-org/matrix-spec-proposals/pull/3861)（Auth Server 签发凭据 + Resource Server 内省）的方向，并在其上叠加 DPoP sender-constraining(比 Matrix 的裸 bearer 更强)。
 
-**其它仍合法的入站凭据**:除 grant + DPoP 外，Principal Server 入站 MAY 并存：dev-mode 裸 bearer（本地开发回退）、以及对 Auth Server OAuth access token 的直接内省(RFC 7662 式)。这两条作为替代入站凭据保留；生产客户端默认走 grant + DPoP。
+**其它仍合法的入站凭据**:除 grant + DPoP 外，Principal Server MAY 在 development mode 保留本地开发凭据回退；生产客户端默认且规范化的 self-path 出示路径是 grant + DPoP。Auth Server 的 OIDC/OAuth 结果 MUST 先进入 Account Authority 的 `SessionGrantOutcome`，不得作为 Principal Server 的 self-path 直接凭据。
 
 ## 4. 标准响应 envelope
 

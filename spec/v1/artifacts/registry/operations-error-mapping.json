@@ -63,12 +63,10 @@
       "description": "DPoP-bound session-grant rotation (account-lifecycle §4.1). Single-use: a consumed grant cannot be rotated again (grant_already_consumed); the audience is locked to the prior grant (audience_mismatch); rotation is refused once the underlying browser session is logged out (session_logged_out). The caller MUST present a holder proof signed by the key bound into the grant's cnf.jkt."
     },
     {
-      "operation_id": "ck.gate.account.command.logout_session_grant",
-      "http_alias": "POST /_cokret/gate/account/session-grants/logout",
-      "operation_specific": [
-        "session_grant_not_found"
-      ],
-      "description": "Lower-level Account Authority grant-only logout (account-lifecycle §4.1): a holder proof bound into the grant's cnf.jkt revokes the grant and finishes the underlying browser session so the rotation chain cannot be resumed. Idempotent — re-presenting an already-revoked grant succeeds. Ordinary client hard logout should call ck.gate.account.command.logout."
+      "operation_id": "ck.gate.account.command.logout_auth_session",
+      "http_alias": "POST /_cokret/gate/account/auth-sessions/logout",
+      "operation_specific": [],
+      "description": "Account Authority to Auth Server S2S Auth-side logout sub-operation (account-lifecycle §4.1): a validated client-visible account /logout is represented by service-to-service authentication, and the Auth Server logs out the Auth-side browser/auth session owning the supplied grant so the rotation chain cannot be resumed. Idempotent: re-presenting an already-logged-out, revoked, unknown, or pruned auth session/grant succeeds with the chain treated as terminated. Ordinary clients MUST NOT call this operation; they retry ck.gate.account.command.logout."
     },
     {
       "operation_id": "ck.gate.account.command.introspect_session_grant",
@@ -80,7 +78,7 @@
       "operation_id": "ck.gate.account.command.logout",
       "http_alias": "POST /_cokret/gate/account/logout",
       "operation_specific": [],
-      "description": "Account Authority ordinary hard logout (account-lifecycle §4.1): terminates the grant rotation chain/browser session and the Principal-side local account session + device session record, then drops the device's pending to-device queue. Does not write ck.account.status, emit ck.device.revoke, or erase durable device authorization. Idempotent — no domain-specific failure beyond the universal surface."
+      "description": "Account Authority ordinary hard logout (account-lifecycle §4.1): the only client-visible logout entry. It validates the current ck.session.grant + DPoP, terminates the Auth-side auth session / grant rotation chain, and completes or durably schedules Principal-side local account/device session cleanup plus to-device/push removal. Does not write ck.account.status, emit ck.device.revoke, or erase durable device authorization. Idempotent — no domain-specific failure beyond the universal surface."
     },
     {
       "operation_id": "ck.gate.account.command.pair_agent_key",

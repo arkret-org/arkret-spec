@@ -229,29 +229,34 @@
       }
     },
     {
-      "operation_id": "ck.gate.account.command.logout_session_grant",
+      "operation_id": "ck.gate.account.command.logout_auth_session",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantLogoutRequestBody",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutRequestBody",
         "schema_kind": "object",
         "required": [
           "grant_jwt"
         ],
         "properties": [
-          "grant_jwt"
+          "grant_jwt",
+          "logout_request_digest",
+          "validated_at",
+          "reason_code"
         ],
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantLogoutOutcome",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutOutcome",
         "schema_kind": "object",
         "required": [
-          "revoked",
-          "browser_session_finished"
+          "ok",
+          "grant_chain_terminated",
+          "auth_session_logged_out"
         ],
         "properties": [
-          "revoked",
-          "browser_session_finished"
+          "ok",
+          "grant_chain_terminated",
+          "auth_session_logged_out"
         ],
         "closed": true
       }
@@ -1269,7 +1274,8 @@
           "requested_scopes",
           "message",
           "idempotency_key",
-          "recipient_service_did"
+          "recipient_service_did",
+          "introduction_evidence"
         ],
         "closed": true
       },
@@ -1394,7 +1400,12 @@
           "subject_id",
           "allowed_introduction_kinds",
           "explicit_address_behavior",
+          "handle_claim_behavior",
           "unknown_invites",
+          "allowed_handle_domains",
+          "blocked_handle_domains",
+          "trusted_handle_issuers",
+          "trusted_directory_services",
           "trusted_realm_ids",
           "trusted_principal_services",
           "blocked_principal_services",
@@ -1422,7 +1433,12 @@
           "subject_id",
           "allowed_introduction_kinds",
           "explicit_address_behavior",
+          "handle_claim_behavior",
           "unknown_invites",
+          "allowed_handle_domains",
+          "blocked_handle_domains",
+          "trusted_handle_issuers",
+          "trusted_directory_services",
           "trusted_realm_ids",
           "trusted_principal_services",
           "blocked_principal_services",
@@ -1446,7 +1462,12 @@
           "subject_id",
           "allowed_introduction_kinds",
           "explicit_address_behavior",
+          "handle_claim_behavior",
           "unknown_invites",
+          "allowed_handle_domains",
+          "blocked_handle_domains",
+          "trusted_handle_issuers",
+          "trusted_directory_services",
           "trusted_realm_ids",
           "trusted_principal_services",
           "blocked_principal_services",
@@ -2634,6 +2655,7 @@
           "contact_event",
           "contact_address",
           "fact_kind",
+          "introduction_evidence",
           "idempotency_key"
         ],
         "closed": true
