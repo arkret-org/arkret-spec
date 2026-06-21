@@ -42,6 +42,8 @@ Cokret 不设置独立的第三方分发服务器角色。跨主体、跨组织�
 
 Cokret 定义四种"包含 / 边界"语义对象：Realm、Circle、Space、Strand。
 
+本节的"判定顺序"是容器选型的唯一 normative 总入口。`overview/current-model.md` 与 `models/overview.md` 只作为读者导览引用本节与各对象专属文件，不重复承载容器升级 / 降级规则。
+
 *Table 2-1. 容器对象按使用场景索引（informative）。*
 
 | 使用场景 | 推荐对象 | 关键边界属性 |
@@ -144,11 +146,11 @@ Blob Store 提供附件、大对象和可选 snapshot chunk 的内容存储。
 
 Blob 地址可以多源，校验应基于内容哈希而不是单一 URL。
 
-### 2.6 Capability Authority
+### 2.6 Authz / Policy 角色
 
-Capability Authority 是一个逻辑角色，不要求独立部署。
+Authz / Policy 是一组逻辑职责，不要求独立部署，也不是独立的 service role 专名。运行时可拆成可缓存授权投影（例如 Principal Server 内置的 authz precheck）与签名决策服务 **Policy Server**；二者的 `service_type`、endpoint 与能力广告以 [`sync/service-surface.md` §2.5](../sync/service-surface.md) 与 [`sync/service-http-binding.md` §2.1](../sync/service-http-binding.md) 为准。
 
-它负责：
+这些职责包括：
 
 - 发布授权策略
 - 响应 grant / revoke / delegate 相关查询
@@ -205,7 +207,7 @@ Identity 部署常识（无法在 deployment profile 表中表达）：
 
 ## 3. 架构平面（Architectural Planes）
 
-七个平面按职责分层：核心栈包含 5 个平面——Presentation、Local Query / Projection（单一平面）、Distribution、Write、Identity；Confidentiality 与 Portability 是 2 个横切关注点，合计 7 个平面。
+架构按职责分层为 5 个核心平面与 2 个横切关注点。核心栈包含 Presentation、Projection、Distribution、Write、Identity；Confidentiality 与 Portability 是横切关注点，不计入核心栈层级。
 
 *Figure 3-1. 架构平面分层（informative）。*
 
@@ -214,7 +216,7 @@ flowchart TB
     subgraph Stack ["核心栈（自上而下：从用户视角到信任根）"]
         direction TB
         Pres["Presentation Plane<br/>kanban / table / timeline / graph<br/>人类审阅 / agent timeline"]
-        Proj["Local Query / Projection Plane<br/>当前态 / 视图 / 搜索 / read-your-writes barrier"]
+        Proj["Projection Plane<br/>当前态 / 视图 / 搜索 / read-your-writes barrier"]
         Dist["Distribution Plane<br/>sync stream / 增量 / cursor / federation"]
         Write["Write Plane<br/>Event 生成 / 签名 / Events API 提交"]
         Id["Identity Plane<br/>DID / handle / key rotation / witness / 服务发现"]
@@ -266,7 +268,7 @@ flowchart TB
 - realm 增量同步
 - 去重与 cursor
 
-### 3.4 Local Query / Projection Plane
+### 3.4 Projection Plane
 
 负责：
 
@@ -275,7 +277,7 @@ flowchart TB
 - 搜索
 - **因果一致性屏障 (Causal Barrier)**：客户端或可选受托服务在返回查询结果前，可根据本地 sync frontier 等待特定写入前沿的到达，保障“读己之所写”体验。
 
-（本平面全称 **Local Query / Projection Plane**，全文其余处简称 **Projection Plane**，二者同指一层，不是两层。）Projection Plane 的输出 MUST 是机器可解析的数据结构（例如 JSON 对象、cursor 列表、聚合统计）。Projection MUST NOT 依赖 Presentation Plane 的渲染逻辑。
+Projection Plane 的输出 MUST 是机器可解析的数据结构（例如 JSON 对象、cursor 列表、聚合统计）。Projection MUST NOT 依赖 Presentation Plane 的渲染逻辑。Local Query 是 Projection Plane 的职责之一，不是独立平面。
 
 ### 3.5 Presentation Plane
 
@@ -320,7 +322,7 @@ flowchart LR
         C1["Human Client"]
         C2["Agent Runtime"]
         C3["Applet / Automation"]
-        CQ["Local Search / Projection"]
+        CQ["Projection / Local Search"]
     end
 
     subgraph "Identity Plane"
@@ -478,7 +480,7 @@ Principal Server 不可以：
 
 - 伪造 actor Event
 - 静默删除仍然有效的历史 Event
-- 把未授权明文内容发送给未被 principal 或 Realm policy 委托的第三方服务——作为这条的**具体化**（见 §2.3 明文规则）：凡未声明为 `plaintext_visible_services` 的 Push、Blob preview、Policy preview 或任何受托 search / projection 服务，都属于"未委托第三方"，MUST NOT 收到非加密私有内容。后者不是独立的第二条禁令，而是前一条在常见受托服务上的落地形态。
+- 把未授权明文内容发送给未被 principal 或 Realm policy 委托的第三方服务。常见受托服务（Push、Blob preview、Policy preview、search / projection）是否可见私有明文，以 §2.3 的 `plaintext_visible_services` 规则为准。
 
 ### 6.3 Projection 可解释状态，但不应替代原始审计链
 

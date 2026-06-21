@@ -32,6 +32,20 @@ updated: 2026-06-11
 
 本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [normative-language.md](./normative-language.md) 解释；仅大写形式具规范约束力。
 
+### 0.1 Core-Invariant Formal Model 路线图（informative）
+
+Conformance vectors 是 v1 的当前互操作基线，但它们只能覆盖有限样例。对授权与收敛安全内核，v2 / high-assurance profile SHOULD 交付机器可校验的形式化模型或等价 property-based proof harness，并把发现的反例回灌为新的 `ck.vector.*`。该路线图不改变 v1 wire，也不把形式化工具作为 default profile 的发布 gate。
+
+形式化 proof obligations 至少 SHOULD 覆盖：
+
+- CBA / open_set 多 leaf 下 per-cell lattice join `J(L)` 是纯函数，且与输入顺序、接收方、墙钟无关；所有 conformant reducer 对同一 accepted Seal frontier 收敛到同一 cell value。
+- 并发分支撤销 fail closed：grant / capability revoke 与被授权 Event 并发时，joined control view MUST 重判并拒绝不再满足授权的 Event。
+- Capability delegation 单调衰减：`child.actions ⊆ parent.actions`、resource selector 不放宽、约束不放宽、`delegation_expiry_seal` 只能收窄或固定，不能被子 grant 延长。
+- Delegation graph 无环，且环检测在并发分支合并、离线 replay 与 migration context 下结果一致。
+- Control-cell bottom / conflict-recovery 只能按 `event-auth-state-resolution.md` §9.5 的唯一 recovery Move 出 ⊥，其它路径 fail closed。
+
+工具栈不在 v1 固定：TLA+ 适合状态机 / lattice 收敛，Tamarin / ProVerif 适合协议认证与攻击者模型，Alloy / property-based runner 可覆盖结构不变量。profile MAY 选择不同工具，但输出必须能被 reviewer 复现，并把每个 proof obligation 映射到规范章节、registry row 或 vector id。
+
 ## 1. Encoding & Crypto Vectors
 
 ### 1.1 目标
@@ -4049,20 +4063,22 @@ Expected：
 
 `vector_id`: `ck.vector.keypackage.last_resort_affinity_and_optionality.v1`
 
-本向量固化 §2.6.2 的 Realm affinity 与可选协商 fail-closed MUST：实现 MUST NOT 用单个全局 last-resort 包跨任意 Realm 复用，多次复用 MUST 限定在同一 `intended_realm_id` 内，跨 Realm 复用 MUST 拒绝（`last_resort_realm_affinity_violation`）；未声明 `ck.feature.mls_last_resort_keypackage.v1` 的服务端在池空时 MUST 继续 fail-closed，claim 响应 MUST NOT 返回 `last_resort=true` 的包（请求 last-resort 回退 MUST 拒绝，`last_resort_not_supported`）。
+本向量固化 §2.6.2 的 Realm affinity、可选协商与高保证 profile 禁用 fail-closed MUST：实现 MUST NOT 用单个全局 last-resort 包跨任意 Realm 复用，多次复用 MUST 限定在同一 `intended_realm_id` 内，跨 Realm 复用 MUST 拒绝（`last_resort_realm_affinity_violation`）；未声明 `ck.feature.mls_last_resort_keypackage.v1` 的服务端在池空时 MUST 继续 fail-closed，claim 响应 MUST NOT 返回 `last_resort=true` 的包（请求 last-resort 回退 MUST 拒绝，`last_resort_not_supported`）；`ck.profile.high_security_organization.v1` / `ck.profile.sovereign_deployment.v1` Realm 即使所在服务支持该 feature，也 MUST 禁止 last-resort join。
 
 Steps：
 
 - **Case A — 跨 Realm 复用拒绝**：声明该 feature 的服务端，尝试把绑定 `intended_realm_id = R1` 的 last-resort 包用于另一 Realm `R2` 的 Welcome / claim（`intended_realm_id` 不一致）。
 - **Case B — 未声明 feature 池空 fail-closed**：未在 `ck.server.query.describe.supported_features` 声明 `ck.feature.mls_last_resort_keypackage.v1` 的服务端，其某 Realm 普通包池耗尽；requester claim，并显式请求 last-resort 回退。
 - **Case C — holder 无该 Realm 条目（对照）**：声明该 feature 但 holder 离线期间某 Realm 尚无 last-resort 条目，该 Realm 普通包池空。
+- **Case D — 高保证 profile 禁用**：服务端全局支持 `ck.feature.mls_last_resort_keypackage.v1`，但目标 Realm 声明 `ck.profile.high_security_organization.v1` 或 `ck.profile.sovereign_deployment.v1`。
 
 Expected：
 
 - **Case A**：MUST 以 `last_resort_realm_affinity_violation` 拒绝；last-resort 包的多次使用语义是 Realm 内多次，跨 Realm 回退 MUST 由各 Realm 各自的 last-resort 池条目分别满足，不得退化为跨 Realm 复用。
 - **Case B**：服务端 MUST 继续 fail-closed（池空 claim 失败），claim 响应 MUST NOT 返回 `last_resort=true` 的包；对显式 last-resort 回退请求 MUST 返回 `last_resort_not_supported`。
 - **Case C**：该 Realm 的 claim 在不支持普通包回退时 MUST fail closed（与默认池空行为一致），不得退化为跨 Realm 复用其它 Realm 的 last-resort 包。
-- 三个 case 都保留 §2.6 的审计与隔离性质：每次消费 `intended_realm_id` 确定、claim-Realm 一致性可校验、`claim_envelope` Realm 反向 resolve 不被绕过。
+- **Case D**：该 Realm 的 describe / profile projection MUST 把 `ck.feature.mls_last_resort_keypackage.v1` 视为 forbidden feature；claim 响应 MUST NOT 返回 `last_resort=true` 的包，requester 若收到 `last_resort=true` claim record MUST fail closed（按池空 / profile-forbidden 处理），不得发 Welcome。
+- 所有 case 都保留 §2.6 的审计与隔离性质：每次消费 `intended_realm_id` 确定、claim-Realm 一致性可校验、`claim_envelope` Realm 反向 resolve 不被绕过。
 
 ## 18. Sender-Constrained Session Token Vectors
 

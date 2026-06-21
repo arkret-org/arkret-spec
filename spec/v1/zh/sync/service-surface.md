@@ -88,28 +88,28 @@ DID Document SHOULD 只负责：
 
 常见组合如下。这里的"需要"表示协议交互需要该能力存在，不表示每个用户都必须自建；个人和小团队通常只自建一个 Principal Server，其余基础设施可使用公共或托管服务。
 
-*Table 2-1. 服务角色与 REST namespace 对照（informative）。namespace 一栏与 service-http-binding.md §2.1 重合，本表是 informative 视图，canonical 单一来源是 [service-http-binding.md §2.1](./service-http-binding.md)。*
+*Table 2-1. 服务角色能力视图（informative）。REST namespace 的 canonical 单一来源是 [service-http-binding.md §2.1](./service-http-binding.md)；本表不重复 path 清单。*
 
-| 实际服务器 | 普通部署建议 | 通常暴露的 REST namespace | 主要能力 |
-| --- | --- | --- | --- |
-| Principal Server | 普通用户或组织自建的核心入口 | `/_cokret/describe`, `/_cokret/self/events/*`, `/_cokret/self/account/*`, `/_cokret/self/snapshot/*`, `/_cokret/peer/events/*`, `/_cokret/peer/invites`, `/_cokret/peer/snapshot/*`, `/_cokret/open/invite-locators/resolve`, 可代理 `/_cokret/self/blob/*`, `/_cokret/self/authz/*`, `/_cokret/self/device_messages/*`, `/_cokret/self/keys/*`；其 describe MUST 发布 `auth_metadata.account_authority` | 用户/组织的受控入口、Event 提交/读取、account viewer / profile 自服务、client sync、联邦 transaction、invite locator / 私有 invite delivery、服务发现聚合、明文可见边界执行。 |
-| Identity Resolution Infrastructure | 普通用户默认使用公共服务或本地 method resolver；高安全或隔离网络才自建完整基础设施 | `/_cokret/root/identity/*`, `/_cokret/describe` 或 method-specific resolver | DID document、DID / KERI log、handle binding、receipt、witness、watcher、OOBI、service endpoint discovery。 |
-| Account Authority | 个人部署通常与 Principal Server 同 origin；组织可由统一网关、Auth Server 或独立前置承载 | `/_cokret/gate/account/*`。对客户端必须是单一 `gate_account_base`；内部 MAY 委托 Auth Server 与 Principal Server | 账号准入、注册、session grant 签发 / 刷新 / 撤销 / 登出、device pairing、passkey/OIDC/SSO 结果换 grant、hard logout 内部编排。 |
-| Auth Server / method provider | 个人部署可内置；组织通常独立或接入 SSO / IdP | 标准认证协议 endpoint，例如 OIDC `/.well-known/openid-configuration`、`authorization_endpoint`、`token_endpoint`、`end_session_endpoint`；也可整体承载 Account Authority | 认证仪式、浏览器登录上下文、passkey/OIDC/SSO、issuer / subject 校验；不得作为零散 `gate/account` operation 的客户端可见目标，除非它整体就是 Account Authority。 |
-| Sync / Federation Server | 普通用户通常内置在 Principal Server | `/_cokret/self/account/*`, `/_cokret/self/snapshot/*`, `/_cokret/peer/events/*`, `/_cokret/peer/invites`, `/_cokret/peer/snapshot/*`, `/_cokret/describe` | client sync、subscription、backfill、snapshot head、跨域 transaction、invite delivery、重放和 destination 绑定校验。 |
-| Directory Server | 普通用户默认使用公共目录；组织发现或隔离网络才自建 | `/_cokret/find/directory/*`, `/_cokret/describe` | Realm/Organization/Actor/handle/Applet 的授权搜索和解析，私密联系人发现，最小披露发现。 |
-| Blob / Media Server | 个人通常内置；文件量大或高安全组织可独立 | `/_cokret/self/blob/*`, `/_cokret/self/rtc/*`, `/_cokret/describe` | blob upload、authenticated download、HEAD、Range、thumbnail、preview、retention、media safety。 |
-| Device / Key Server | E2EE profile 需要；个人通常内置在 Principal Server | `/_cokret/self/device_messages/*`, `/_cokret/self/keys/*`, `/_cokret/self/keys/keypackages/*`, `/_cokret/self/keys/backups/*`, `/_cokret/describe` | to-device message、one-time key、fallback key、MLS KeyPackage claim、device list、encrypted key backup metadata / ciphertext。 |
-| Authz / Policy Server | 个人可内置；共享 Realm 和组织治理建议独立 | `/_cokret/self/authz/*`, `/_cokret/self/policy/check`, `/_cokret/describe` | effective grants、invite 查询、capability precheck、签名 policy decision、risk / quarantine。 |
-| Push Gateway | 普通用户默认使用公共或托管推送；内网或高安全组织可自建 | `/_cokret/edge/push/*`, `/_cokret/describe` | push device register/unregister、脱敏通知投递、APNs/FCM/厂商推送适配。 |
-| Applet Server | 集成/桥接/自动化可选 | `/_cokret/edge/applet/*`, `/_cokret/describe` | applet describe、transaction、Ghost Actor、portal Realm、third-party lookup。 |
-| MIMI Provider Facade | 与外部 MIMI provider 互通时可选；可由 Principal Server、notary service 或 Applet Bridge 承载 | `/_cokret/open/mimi/*`, `/.well-known/mimi-protocol-directory`, `/_cokret/describe` | MIMI provider discovery、room binding、key material、submit message、groupInfo、consent、identifier query、abuse report、proxy download。 |
-| Agent Runtime Server | agent 场景可选但推荐 | `extensions/agent-*` 定义的 service surface，通常通过 `/_cokret/self/events` 写回结果 | agent 执行、tool 调用、A2A/ACP/MCP handoff。 |
-| Realtime Media Server | 通话/会议可选 | `/_cokret/self/rtc/ice-config`，以及 WebRTC signaling / TURN / SFU profile | ICE config、TURN/STUN、SFU/MCU、录制策略、短期媒体凭证。 |
-| Moderation / Compliance Server | 公共或组织部署建议独立 | `/_cokret/self/moderation/*`, `/_cokret/describe` | report、审核队列或扩展审核入口、server ACL、policy list、appeal、legal hold / erasure workflow。 |
-| Archive / Recovery Service | history sharing、late key recovery 或组织恢复场景可选；高安全部署必须显式声明 | `/_cokret/describe` + `supported_operations` 中的 keys / blob / events 子集 | Archive Node、Key Recovery Service 或 Recovery Service。只能按 Realm policy、history visibility、T0 membership 和 capability 返回最小必要 epoch material / backup envelope / recovery proof；不得因持有归档副本自动获得明文读取权。 |
+| 实际服务器 | 普通部署建议 | 主要能力 |
+| --- | --- | --- |
+| Principal Server | 普通用户或组织自建的核心入口 | 用户/组织的受控入口、Event 提交/读取、account viewer / profile 自服务、client sync、联邦 transaction、invite locator / 私有 invite delivery、服务发现聚合、明文可见边界执行；其 describe MUST 发布 `auth_metadata.account_authority`。 |
+| Identity Resolution Infrastructure | 普通用户默认使用公共服务或本地 method resolver；高安全或隔离网络才自建完整基础设施 | DID document、DID / KERI log、handle binding、receipt、witness、watcher、OOBI、service endpoint discovery。 |
+| Account Authority | 个人部署通常与 Principal Server 同 origin；组织可由统一网关、Auth Server 或独立前置承载 | 账号准入、注册、session grant 签发 / 刷新 / 撤销 / 登出、device pairing、passkey/OIDC/SSO 结果换 grant、hard logout 内部编排。对客户端必须是单一 `gate_account_base`；内部 MAY 委托 Auth Server 与 Principal Server。 |
+| Auth Server / method provider | 个人部署可内置；组织通常独立或接入 SSO / IdP | 认证仪式、浏览器登录上下文、passkey/OIDC/SSO、issuer / subject 校验；不得作为零散 `gate/account` operation 的客户端可见目标，除非它整体就是 Account Authority。 |
+| Sync / Federation Server | 普通用户通常内置在 Principal Server | client sync、subscription、backfill、snapshot head、跨域 transaction、invite delivery、重放和 destination 绑定校验。 |
+| Directory Server | 普通用户默认使用公共目录；组织发现或隔离网络才自建 | Realm/Organization/Actor/handle/Applet 的授权搜索和解析，私密联系人发现，最小披露发现。 |
+| Blob / Media Server | 个人通常内置；文件量大或高安全组织可独立 | blob upload、authenticated download、HEAD、Range、thumbnail、preview、retention、media safety。 |
+| Device / Key Server | E2EE profile 需要；个人通常内置在 Principal Server | to-device message、one-time key、fallback key、MLS KeyPackage claim、device list、encrypted key backup metadata / ciphertext。 |
+| Authz / Policy Server | 个人可内置；共享 Realm 和组织治理建议独立 | effective grants、invite 查询、capability precheck、签名 policy decision、risk / quarantine。 |
+| Push Gateway | 普通用户默认使用公共或托管推送；内网或高安全组织可自建 | push device register/unregister、脱敏通知投递、APNs/FCM/厂商推送适配。 |
+| Applet Server | 集成/桥接/自动化可选 | applet describe、transaction、Ghost Actor、portal Realm、third-party lookup。 |
+| MIMI Provider Facade | 与外部 MIMI provider 互通时可选；可由 Principal Server、notary service 或 Applet Bridge 承载 | MIMI provider discovery、room binding、key material、submit message、groupInfo、consent、identifier query、abuse report、proxy download。 |
+| Agent Runtime Server | agent 场景可选但推荐 | agent 执行、tool 调用、A2A/ACP/MCP handoff；具体 service surface 由 `extensions/agent-*` 定义，通常通过 Events API 写回结果。 |
+| Realtime Media Server | 通话/会议可选 | ICE config、TURN/STUN、SFU/MCU、录制策略、短期媒体凭证。 |
+| Moderation / Compliance Server | 公共或组织部署建议独立 | report、审核队列或扩展审核入口、server ACL、policy list、appeal、legal hold / erasure workflow。 |
+| Archive / Recovery Service | history sharing、late key recovery 或组织恢复场景可选；高安全部署必须显式声明 | Archive Node、Key Recovery Service 或 Recovery Service。只能按 Realm policy、history visibility、T0 membership 和 capability 返回最小必要 epoch material / backup envelope / recovery proof；不得因持有归档副本自动获得明文读取权。 |
 
-上表 namespace 一栏的第一段路径（`self` / `gate` / `root` / `find` / `peer` / `open` / `edge`）是 **trust-surface classifier（信任面分类器）**，编码"调用方↔服务"的攻击面类别，**不是授权结论**；实现 MUST NOT 把信任面段本身解释为授权通过、安全级别达标或明文可见许可。每个 operation 仍按自身契约执行 session / capability / DID proof / Realm policy / history visibility / rate limit 校验。完整规则见 [service-http-binding.md §2.1](./service-http-binding.md)。
+REST namespace 第一段路径（`self` / `gate` / `root` / `find` / `peer` / `open` / `edge`，见 [service-http-binding.md §2.1](./service-http-binding.md)）是 **trust-surface classifier（信任面分类器）**，编码"调用方↔服务"的攻击面类别，**不是授权结论**；实现 MUST NOT 把信任面段本身解释为授权通过、安全级别达标或明文可见许可。每个 operation 仍按自身契约执行 session / capability / DID proof / Realm policy / history visibility / rate limit 校验。
 
 #### 2.5.1 Account Authority 与认证方法发现
 

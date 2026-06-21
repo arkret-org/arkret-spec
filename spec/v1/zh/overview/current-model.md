@@ -54,6 +54,8 @@ Jira / Trello 一类产品里的细粒度 workflow status（例如 QA、Review�
 
 ## 4. 工作流容器
 
+容器选型的 normative 判定顺序以 [`architecture.md` §2.0](./architecture.md) 为准；本节只说明当前模型读法。
+
 工作流容器是独立的 `Space` 对象（`ck:space:`）。Space 是产品结构节点，不形成自己的 boundary；它的 metadata 写入 `realm_id` 指向的 home Realm，子资源默认落点由 `default_realm_id` 解析：
 
 - `Board Space`（`kind=board`）

@@ -34,6 +34,8 @@ Cokret 是联邦化、端到端加密（MLS）、事件溯源协议。客户端�
 
 > 演进 MUST 是“新代码永远能验证已接受的 current-v1 签名字节、并与对端按显式 profile 交集协商”；current parser MUST NOT 接受已移除的旧 draft wire、旧字段名或未登记 operation 作为兼容输入。旧 draft / pre-v1 字节只能由离线 migration tool 读取，不得进入实时 sync、federation、snapshot、reducer 或 conformance runner。
 
+**长期签名有效性路线图（informative）**：上述约束要求未来实现持续验证已接受的 v1 签名字节，但签名算法 agility 主要保护未来新签名，不自动给已落盘的 Ed25519 历史事件提供 archival timestamp / LTV 证据。v2 / high-assurance / legal-hold profile SHOULD 设计可加性的 archival timestamp extension：由 notary / witness 周期性对 `(frontier_root, observed_at, alg_epoch, digest_suite)` 或等价 Seal-DAG Merkle root 签发长期时间戳证据，并把证据作为 append-only audit material 或 profile-defined artifact 发布。未来某签名算法进入 deprecated / verify-only / retired 阶段后，verifier 可结合原始 Event signature、当时有效的 algorithm registry epoch 与 archival timestamp chain 判断“该签名在观察时间点已存在且当时算法仍被接受”。该路线图不改变 current v1 Event bytes；未知 archival timestamp profile 的实现按普通 extension 规则忽略或 fail closed，不得把缺失 LTV 证据解释为可改写历史事件。
+
 ## 3. 不可变签名字节 → 用重放/投影代替数据迁移
 
 历史事件是 append-only 的不可变日志。升级 MUST NOT 改写历史签名字节。允许变化的是**可重建的物化视图**：reducer / projection 在新代码下重新解释同一份历史事件，产出新的派生读模型（如 Space / Strand / Morph lifecycle projection、Collection、inbox、搜索索引）。

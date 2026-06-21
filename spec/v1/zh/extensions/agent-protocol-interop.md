@@ -256,6 +256,8 @@ Cancellation 是协议状态，不是只关本地 socket。持有 `ck.agent.inte
 
 `ck.agent.interop_session.result` 的 payload MUST 至少包含 `result_objects`、`artifacts` 或失败信息之一。`result_objects` 用于声明协议层可引用的持久化成果；v1 标准对象类型为 `strand`、`message`、`morph` 和 `blob` 引用。
 
+**结果对象 Realm 绑定（normative）**：`result_objects[].object_ref`、`artifacts[].object_ref` 以及任何 profile-defined Cokret object reference MUST 解析到与本 `ck.agent.interop_session.result.realm_id` 相同的 Realm，且 MUST 属于该 session start 时声明的任务 / artifact 允许范围。Reducer 在 accept result 前 MUST 对每个引用执行同 Realm 归属校验、对象可见性校验和 capability / egress policy 校验；跨 Realm 对象不得作为本 Realm session 的直接 `result_objects` 回流。需要记录外部系统或其它 Realm 的输出时，必须使用 `external_artifact_stub`、digest、Relation/reference 事件或显式 profile 注册的跨 Realm 引用机制，并分别通过对应 Realm 的授权路径。
+
 外部 artifact 清理职责：若 start / status / result 暴露了外部 transcript、临时文件、tool output 或 remote task handle，result 终态 MUST 明确 `artifact_retention`（`retain_by_policy` / `delete_requested` / `deleted` / `unknown`）以及 `artifact_digest` / deletion receipt。`cancelled`、`failed`、`expired` 终态若未能删除外部 artifact，必须保留最小 `external_artifact_stub`（`artifact_digest`、`remote_id_digest`、retention reason、cleanup retry policy），不得把未验证的外部删除当成已完成。
 
 Agent 产出的长期工作载体 SHOULD 优先落到 Strand：例如通过 Realm schema/profile、`metadata.fields.workflow_type`、Relation 或 labels 标记执行、决策、方案或研究类 Strand。需要聊天沉淀时，结果 MAY 同时附带 discussion Message 引用；二进制、代码包、长报告或外部 transcript 则 SHOULD 存为 Morph / Blob / Artifact，并在 result event 中引用 hash。

@@ -641,19 +641,31 @@ function evaluate_constraints(operation, grant_constraints):
 
 ### 16.1 时间匹配
 
+本节 pseudo-code 是 normative algorithm。时间约束求值的 `now` MUST 取执行授权判断的服务端时间或本地 reducer 在当前验证上下文中固定的 verification time；该时间源必须按 §17.2 绑定 [`../conformance/encoding.md`](../conformance/encoding.md) §7.2 的 `hard_future_skew_ms`（默认 300_000，即 5 分钟）作为上界容差。实现 MUST 在一次 constraint evaluation 内固定同一个 `now`，不得让同一 operation 的多个 temporal constraint 因重复取时钟而跨边界产生分歧。
+
 ```javascript
 function matches_temporal(operation, constraint):
-    now = current_timestamp()
+    now = verification_time_from_server_clock()
+    skew = hard_future_skew_ms()
 
-    if constraint.not_before and now < constraint.not_before:
+    if constraint.not_before and now + skew < constraint.not_before:
         return false
-    if constraint.expires_at and now > constraint.expires_at:
+    if constraint.expires_at and now - skew > constraint.expires_at:
         return false
     if constraint.recurrence:
-        return matches_recurrence(now, constraint.recurrence)
+        return matches_recurrence(now, skew, constraint.recurrence)
 
     return true
 ```
+
+`matches_recurrence(now, skew, recurrence)` 的 v1 语义：
+
+1. `recurrence.timezone` 缺省为 `UTC`；出现时 MUST 是 IANA timezone id。实现无法识别该 timezone 时 MUST fail closed（该 constraint 不匹配）。
+2. `recurrence.frequency` 缺省为 `daily`。v1 core 只定义 `daily` 与 `weekly` 的互操作命中规则；`monthly` / `custom` MUST 由声明该值的 extension profile 定义完整规则，否则接收方 MUST fail closed（该 constraint 不匹配）。
+3. `recurrence.days` 存在时，`now` 转换到 `timezone` 后的 weekday MUST 命中该集合；集合值为 `mon` / `tue` / `wed` / `thu` / `fri` / `sat` / `sun`。`frequency="weekly"` 时 `days` MUST 存在且非空；`frequency="daily"` 且 `days` 缺失时表示每天。
+4. `recurrence.window_start` / `recurrence.window_end` 要么同时缺失（表示全天），要么同时出现并按 schema 的本地 `HH:MM[:SS]` 解析。只出现其中一个时 MUST fail closed。二者同时出现时定义本地每日窗口：`window_start <= window_end` 表示同日闭开区间 `[window_start, window_end)`；`window_start > window_end` 表示跨午夜窗口 `[window_start, 24:00) ∪ [00:00, window_end)`。
+5. 窗口边界使用同一 `skew` 容差：`now + skew` 早于窗口起点或 `now - skew` 不早于窗口终点时不匹配；处在容差带内时按匹配处理，避免合法调用因服务端 / 客户端硬漂移在边界两侧产生跨实现分歧。
+6. 未登记 `frequency` 语义、无法解析的时间、DST gap 中不存在的本地时间、或 ambiguity 未被 timezone 规则确定时 MUST fail closed（该 constraint 不匹配），不得猜测或按本地机器时区回退。
 
 ### 16.2 字段访问匹配
 
@@ -706,7 +718,7 @@ function matches_field_access(operation, constraint):
 缓解措施：
 
 - 使用服务器时间进行验证
-- 允许的时钟偏差容差 MUST 取 [`../conformance/encoding.md`](../conformance/encoding.md) §（两层 drift 模型）的 `hard_future_skew_ms`（默认 300_000，即 ±5 分钟）作为约束 / claim 时间有效性这一较宽场景的 normative 上界容差；该值与 media-and-blob §5.4.3 presign 的短 TTL 场景容差（`expected_future_skew_ms`，±30s）是**不同场景的两个独立阈值**，均派生自 encoding.md 的同一两层 drift 模型，二者交叉引用、不应被实现各自任取。
+- 允许的时钟偏差容差 MUST 取 [`../conformance/encoding.md`](../conformance/encoding.md) §7.2（两层 drift 模型）的 `hard_future_skew_ms`（默认 300_000，即 ±5 分钟）作为约束 / claim 时间有效性这一较宽场景的 normative 上界容差；该值与 media-and-blob §5.4.3 presign 的短 TTL 场景容差（`expected_future_skew_ms`，±30s）是**不同场景的两个独立阈值**，均派生自 encoding.md 的同一两层 drift 模型，二者交叉引用、不应被实现各自任取。
 - 记录时间验证失败
 - 监控时间操纵尝试
 

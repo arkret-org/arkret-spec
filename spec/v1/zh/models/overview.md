@@ -133,6 +133,8 @@ flowchart TB
 
 ### 3.1 Realm 边界与 Space 容器
 
+容器选型的 normative 判定顺序以 [`../overview/architecture.md` §2.0](../overview/architecture.md) 为准；本节仅作为模型目录导览，具体字段与 reducer 规则仍以各对象专属文件为准。
+
 每个 `ck:realm:` 都是 security/sync/auth/E2EE 硬边界——复制、权限、schema、policy、membership、history visibility、加密、federation policy 都以它为根。Realm 不承担产品导航树职责：结构性分组、项目、folder、看板、列、泳道、calendar bucket 等由独立的 **Space** 对象（`ck:space:`）承担，Space 永远不形成独立边界。
 
 `security_class=high_assurance` 是 Realm 的可选标签，进一步收紧 federation policy 与默认审计/E2EE 选项。

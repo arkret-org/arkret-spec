@@ -1013,7 +1013,7 @@
       "vector_id": "ck.vector.keypackage.last_resort_affinity_and_optionality.v1",
       "status": "active",
       "domain": "keypackage",
-      "description": "Last-resort KeyPackage Realm affinity and optionality: cross-intended_realm_id reuse MUST be rejected with last_resort_realm_affinity_violation; a server not declaring the feature MUST fail closed on an empty pool and MUST NOT return a last_resort package, with explicit last-resort fallback returning last_resort_not_supported.",
+      "description": "Last-resort KeyPackage Realm affinity, optionality, and profile gating: cross-intended_realm_id reuse MUST be rejected with last_resort_realm_affinity_violation; a server not declaring the feature MUST fail closed on an empty pool and MUST NOT return a last_resort package, with explicit last-resort fallback returning last_resort_not_supported; high_security_organization and sovereign_deployment Realms MUST treat last-resort as forbidden even when the service supports the feature.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"

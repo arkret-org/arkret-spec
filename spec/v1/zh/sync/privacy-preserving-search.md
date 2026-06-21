@@ -39,6 +39,8 @@ Blind index 使用 keyed HMAC token。Posting 必须绑定 `realm_id`、`effecti
 
 服务端在返回候选前 MUST 执行 current-auth 与 history filter。撤权、history visibility 收紧、redaction、message expiry 或 MLS epoch rotate 后的 stale posting MUST fail closed：可以漏召回，不得越权召回。该不变量由 `ck.vector.search.blind_index_stale_posting_fail_closed.v1` 覆盖。
 
+服务端 MUST NOT 返回或暗示过滤前 posting list 的基数。`total`、`has_more`、分页 cursor、bucket / padding 后的 result count、timing bucket 和任何诊断字段都只能基于 current-auth / history filter 之后的候选集合计算；若实现需要暴露结果数量，必须对过滤后集合执行固定上限、padding 或 bucket 化，且不得让"过滤前 N 条、过滤后 0 条"与"过滤前 0 条"在 wire shape 或 timing 上可区分。否则 blind token 会退化为存在性 oracle，泄露 caller 无权看到的对象是否含有该 term。
+
 Token 不得跨 Realm、Circle、MLS epoch 或 index generation 复用。实现 SHOULD 定期轮换 index key，并把轮换与 policy frontier digest 绑定。
 
 Blind-index token 是 deterministic keyed token：它不向服务端暴露明文 term，但会暴露同一 `index_generation` 内的查询频次、候选集合大小、access pattern 以及 term 共现结构。实现 MUST 把这些泄漏写入 Realm search policy 的风险评估；高隐私 Realm SHOULD 缩短 `index_generation` / epoch 轮换窗口，并限制服务端跨 generation 关联。Forward-private SSE、PIR-backed candidate retrieval 或 ORAM-style access hiding 只能作为显式 search extension profile 引入；base v1 blind index 不声称隐藏 access pattern。

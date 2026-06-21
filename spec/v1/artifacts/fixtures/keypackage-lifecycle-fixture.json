@@ -116,13 +116,20 @@
         "cross_realm_reason": "last_resort_realm_affinity_violation",
         "unsupported_reason": "last_resort_not_supported",
         "no_cross_realm_fallback_reason": "keypackage_unknown",
+        "profile_forbidden_profiles": [
+          "ck.profile.high_security_organization.v1",
+          "ck.profile.sovereign_deployment.v1"
+        ],
+        "profile_forbidden_feature": "ck.feature.mls_last_resort_keypackage.v1",
+        "profile_forbidden_fail_closed": true,
         "claim_realm_matches_intended_realm": true
       },
       "assertions": [
         "last-resort KeyPackages are reusable only inside their intended_realm_id",
         "cross-Realm reuse fails with last_resort_realm_affinity_violation",
         "servers that do not advertise the feature must not return last_resort=true packages",
-        "a missing Realm-local last-resort entry fails closed instead of reusing another Realm's package"
+        "a missing Realm-local last-resort entry fails closed instead of reusing another Realm's package",
+        "high-security and sovereign Realms forbid ck.feature.mls_last_resort_keypackage.v1 and fail closed on last_resort=true claim records"
       ]
     },
     {

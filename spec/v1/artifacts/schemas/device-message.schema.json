@@ -346,11 +346,12 @@
       "properties": {
         "request_id": {
           "$ref": "#/$defs/transaction_id",
-          "description": "Correlates to the pending ck.secret.request; MUST equal the request_id authenticated inside the sealed plaintext. Receivers MUST drop sends that do not match a locally pending request_id."
+          "description": "Correlates to the pending ck.secret.request; MUST equal the request_id authenticated inside the sealed plaintext and HPKE AAD. Receivers MUST drop sends that do not match a locally pending request_id."
         },
         "secret_id": {
           "type": "string",
-          "pattern": "^[a-z0-9_]+$"
+          "pattern": "^[a-z0-9_]+$",
+          "description": "Opaque requested secret identifier; MUST equal the secret_id authenticated inside the sealed plaintext and HPKE AAD."
         },
         "from_device": {
           "$ref": "#/$defs/device_id",
@@ -367,7 +368,7 @@
         "ciphertext": {
           "type": "string",
           "minLength": 1,
-          "description": "base64url HPKE AEAD ciphertext over the secret plaintext. The HPKE AAD is the RFC 8785 JCS canonical JSON of {kind, sender_principal_id, sender_device_id, recipient_principal_id, recipient_device_id, expires_at_unix} where expires_at_unix is expires_at normalized to integer Unix seconds (device-lifecycle.md §10.7); both sides reconstruct it from the DeviceMessageEnvelope. Freshness for sent_at (server-assigned) is bound by the one-time request_id authenticated inside the sealed plaintext."
+          "description": "base64url HPKE AEAD ciphertext over the secret plaintext. The plaintext MUST carry the requested secret body, version, request_id and secret_id. The HPKE AAD is the RFC 8785 JCS canonical JSON of {kind, sender_principal_id, sender_device_id, recipient_principal_id, recipient_device_id, request_id, secret_id, expires_at_unix} where request_id/secret_id are the outer ck.secret.send content fields and expires_at_unix is expires_at normalized to integer Unix seconds (device-lifecycle.md §10.7); both sides reconstruct it from the DeviceMessageEnvelope plus content. Freshness for sent_at (server-assigned) is bound by the one-time request_id authenticated inside the sealed plaintext and AAD."
         }
       },
       "additionalProperties": true
