@@ -191,7 +191,7 @@ Content-Type: application/json
 - `ok`
 - `spam_flood`
 - `invite_token_risk`
-- `session_token_risk`
+- `session_credential_replay_risk`
 - `auth_threat`
 - `spoof_like`
 - `malware_media`

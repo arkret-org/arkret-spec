@@ -337,7 +337,7 @@
         "ck.gate.account.command.enroll_device",
         "ck.gate.account.command.issue_session_grant",
         "ck.gate.account.command.refresh_session_grant",
-        "ck.gate.account.command.logout_session_grant",
+        "ck.gate.account.command.logout_auth_session",
         "ck.gate.account.command.introspect_session_grant",
         "ck.gate.account.command.logout",
         "ck.gate.account.command.revoke_session",
@@ -422,13 +422,13 @@
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshOutcome"
     },
     {
-      "operation_id": "ck.gate.account.command.logout_session_grant",
+      "operation_id": "ck.gate.account.command.logout_auth_session",
       "http_only_variant": true,
-      "http": "POST /_cokret/gate/account/session-grants/logout",
-      "notes": "Account Authority lower-level grant-only logout (account-lifecycle §4.1): DPoP holder proof revokes the grant and finishes the underlying browser session, terminating the rotation chain. Ordinary client hard logout should use ck.gate.account.command.logout so Account Authority can also terminate Principal-side local account session state. HTTP-only lower-level op; not exposed over gRPC/MQ.",
+      "http": "POST /_cokret/gate/account/auth-sessions/logout",
+      "notes": "Account Authority to Auth Server S2S Auth-side logout sub-operation (account-lifecycle §4.1): the Account Authority has already validated the client-visible ck.gate.account.command.logout request, then calls this operation with service-to-service authentication to log out the Auth-side browser/auth session owning the presented ck.session.grant and terminate that session's grant rotation chain. Ordinary clients MUST NOT call this operation; they only call ck.gate.account.command.logout. HTTP-only S2S op; not exposed over gRPC/MQ.",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantLogoutRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantLogoutOutcome"
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutOutcome"
     },
     {
       "operation_id": "ck.gate.account.command.introspect_session_grant",
@@ -443,7 +443,7 @@
       "operation_id": "ck.gate.account.command.logout",
       "http_only_variant": true,
       "http": "POST /_cokret/gate/account/logout",
-      "notes": "Account Authority ordinary hard logout (account-lifecycle §4.1): terminate the grant rotation chain/browser session and the Principal-side local account session + device session record, then drop the device's queued to-device. Distinct from revoke_session (session-token-only). HTTP-only Account Authority op; not exposed over gRPC/MQ.",
+      "notes": "Account Authority ordinary hard logout (account-lifecycle §4.1): single client-visible logout entry. The handler validates the current ck.session.grant + DPoP, terminates the Auth-side auth session / grant rotation chain through ck.gate.account.command.logout_auth_session when Auth-side is split out, and completes or durably schedules the Principal-side local account session + device session cleanup and to-device/push removal. Distinct from revoke_session (targeted session-grant revoke). HTTP-only Account Authority op; not exposed over gRPC/MQ.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutOutcome"

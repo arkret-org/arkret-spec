@@ -117,25 +117,6 @@
             "minLength": 1
           },
           "uniqueItems": true
-        },
-        "oauth_issuer": {
-          "type": "string",
-          "format": "uri",
-          "description": "Compatibility alias for legacy clients. New clients MUST use methods[].issuer."
-        },
-        "openid_configuration": {
-          "type": "string",
-          "format": "uri",
-          "description": "Compatibility alias for legacy clients. New clients MUST use methods[].openid_configuration."
-        },
-        "supported_auth_methods": {
-          "type": "array",
-          "description": "Compatibility alias for legacy clients. New clients MUST use methods[].method.",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          },
-          "uniqueItems": true
         }
       },
       "additionalProperties": true

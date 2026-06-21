@@ -181,7 +181,7 @@ sidebar:
   - `malware_media`
   - `replay_suspect`
   - `invite_token_risk`
-  - `session_token_risk`
+  - `session_credential_replay_risk`
   - `fork_risk`
   - `resolver_risk`
   - `topology_risk`

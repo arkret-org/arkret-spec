@@ -678,19 +678,6 @@ components:
               type: array
               items:
                 type: string
-            oauth_issuer:
-              type: string
-              format: uri
-              deprecated: true
-            openid_configuration:
-              type: string
-              format: uri
-              deprecated: true
-            supported_auth_methods:
-              type: array
-              deprecated: true
-              items:
-                type: string
         supported_reducer_profiles:
           type: array
           description: Reducer profile ids whose digest_input rows are published in artifacts/registry/reducer-profile-registry.json.
@@ -1064,10 +1051,10 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody
     SessionGrantRefreshOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshOutcome
-    SessionGrantLogoutRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantLogoutRequestBody
-    SessionGrantLogoutOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantLogoutOutcome
+    AuthSessionLogoutRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutRequestBody
+    AuthSessionLogoutOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutOutcome
     SessionGrantIntrospectRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectRequestBody
     SessionGrantIntrospectOutcome:
@@ -6916,13 +6903,13 @@ paths:
       - bearerAuth: []
       summary: Revoke session grant or access-token authority.
       description: |
-        Revokes session grant / access-token authority, not device
+        Revokes session grant authority, not device
         authorization and not durable ck.account.status. An omitted request body
         revokes the current request's session grant. target_grant_id,
         target_device_id and all_sessions=true are mutually exclusive selectors.
 
         Cross grant, cross device, and all_sessions=true revocation requires a
-        fresh DID/device proof or explicit capability; a bearer access token
+        fresh DID/device proof or explicit capability; a bearer session credential
         alone is not enough to revoke other devices or all sessions.
       responses:
         '200':
@@ -6971,41 +6958,43 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SessionGrantRefreshRequestBody'
-  /_cokret/gate/account/session-grants/logout:
+  /_cokret/gate/account/auth-sessions/logout:
     servers:
     - url: https://{host}
       variables:
         host:
           default: localhost
     post:
-      operationId: ck.gate.account.command.logout_session_grant
+      operationId: ck.gate.account.command.logout_auth_session
       security:
-      - dpopProof: []
-      summary: Lower-level logout of a session grant.
+      - bearerAuth: []
+      summary: Auth-side session logout sub-operation.
       description: |
-        Lower-level grant-only logout at the Account Authority
-        (account-lifecycle §4.1). The caller presents a DPoP holder proof for
-        the key bound into the grant's cnf.jkt; the Account Authority / Auth-side
-        revokes the grant and finishes its underlying browser session, so the
-        rotation chain cannot be resumed by any holder proof afterwards
-        (subsequent refresh returns session_logged_out and introspection of any
-        grant under that browser session returns inactive). Ordinary client hard
-        logout SHOULD use /_cokret/gate/account/logout so Account Authority can
-        also terminate the Principal-side local account session and device
-        session record.
+        Account Authority to Auth Server service-to-service sub-operation used
+        by the single client-visible account logout. The Account Authority has
+        already validated Authorization: Bearer <ck.session.grant> plus DPoP on
+        POST /_cokret/gate/account/logout. It calls this endpoint with the
+        configured Account Authority -> Auth Server S2S bearer
+        (session_grant_introspection_bearer) to log out the Auth-side
+        browser/auth session owning the supplied grant and terminate that
+        session's grant rotation chain.
+
+        Ordinary clients MUST NOT call this endpoint, MUST NOT derive it from
+        gate_account_base, and MUST NOT retry it directly. Clients retry only
+        POST /_cokret/gate/account/logout.
       responses:
         '200':
-          description: Account Authority lower-level grant logout completed.
+          description: Auth-side session logout completed or was already inactive.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SessionGrantLogoutOutcome'
+                $ref: '#/components/schemas/AuthSessionLogoutOutcome'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SessionGrantLogoutRequestBody'
+              $ref: '#/components/schemas/AuthSessionLogoutRequestBody'
   /_cokret/gate/account/session-grants/introspect:
     servers:
     - url: https://{host}
@@ -7057,14 +7046,16 @@ paths:
         notes: Account hard logout MUST present the current ck.session.grant as Authorization bearer and a DPoP proof whose ath binds that grant and whose htm/htu bind POST /_cokret/gate/account/logout.
       summary: Account Authority hard logout.
       description: |
-        Ordinary hard logout at the Account Authority (account-lifecycle §4.1).
-        The Account Authority internally terminates the grant rotation chain and
-        browser/session authentication context, then terminates the
-        Principal-side local account session and device session record and drops
-        the device's queued to-device messages. Does not emit ck.device.revoke,
-        does not erase durable device authorization (re-login restores the
-        device), and does not rewrite ck.account.status. Distinct from
-        revoke_session (session-token-only).
+        Ordinary hard logout at the Account Authority (account-lifecycle §4.1),
+        and the only client-visible logout endpoint. The Account Authority
+        validates the current ck.session.grant plus DPoP, terminates the
+        Auth-side auth session / grant rotation chain (via
+        auth-sessions/logout when Auth-side is split out), then terminates or
+        durably schedules Principal-side local account/device session cleanup,
+        to-device drop, and push registration removal. Does not emit
+        ck.device.revoke, does not erase durable device authorization (re-login
+        restores the device), and does not rewrite ck.account.status. Distinct
+        from revoke_session (targeted session-grant revoke).
       responses:
         '200':
           description: Account Authority hard logout completed.

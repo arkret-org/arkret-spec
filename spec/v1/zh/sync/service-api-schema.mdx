@@ -301,6 +301,12 @@ paths:
   /_cokret/gate/account/session-grants/revoke:
     post:
       operationId: ck.gate.account.command.revoke_session
+  /_cokret/gate/account/auth-sessions/logout:
+    post:
+      operationId: ck.gate.account.command.logout_auth_session
+  /_cokret/gate/account/logout:
+    post:
+      operationId: ck.gate.account.command.logout
   /_cokret/gate/account/device-pair:
     post:
       operationId: ck.gate.account.command.pair_device
@@ -378,6 +384,8 @@ paths:
 | `ck.self.account.command.revoke_cursor` | `POST /_cokret/self/account/cursor/revoke` | gRPC `SelfAccount/CursorRevoke` / MQ `self.account.command.revoke_cursor` |
 | `ck.gate.account.command.register` | `POST /_cokret/gate/account/register` | gRPC `GateAccount/Register` / MQ `gate.account.command.register`；request 字段为 `principal_id`，`handle` 经 signed claim 链路。 |
 | `ck.gate.account.command.revoke_session` | `POST /_cokret/gate/account/session-grants/revoke` | gRPC `GateAccount/SessionRevoke` / MQ `gate.account.command.revoke_session` |
+| `ck.gate.account.command.logout_auth_session` | `POST /_cokret/gate/account/auth-sessions/logout` | Account Authority → Auth Server S2S 子操作；普通客户端不得调用；不提供 gRPC/MQ client binding |
+| `ck.gate.account.command.logout` | `POST /_cokret/gate/account/logout` | Account Authority hard logout 的唯一客户端入口；内部可调用 `logout_auth_session`，不提供 gRPC/MQ client binding |
 | `ck.self.ephemeral.command.send` | `POST /_cokret/self/ephemeral` | gRPC `SelfEphemeral/Send` / MQ `self.ephemeral.command.send`；承载 `ck.schema.ephemeral_envelope.v1`，不写 durable Event |
 | `ck.self.snapshot.query.manifest_head` | `GET /_cokret/self/snapshot/head` | snapshot manifest |
 | `ck.peer.snapshot.query.manifest_head` | `GET /_cokret/peer/snapshot/head` | peer snapshot manifest |

@@ -203,34 +203,55 @@
         }
       }
     },
-    "SessionGrantLogoutRequestBody": {
+    "AuthSessionLogoutRequestBody": {
       "type": "object",
       "additionalProperties": false,
+      "description": "Service-to-service Account Authority to Auth Server request that logs out the Auth-side session owning a ck.session.grant rotation chain.",
       "required": [
         "grant_jwt"
       ],
       "properties": {
         "grant_jwt": {
           "type": "string",
-          "description": "Session grant to revoke; presented with a DPoP holder proof for its cnf.jkt key."
+          "description": "Session grant used to locate the Auth-side session and its rotation chain."
+        },
+        "logout_request_digest": {
+          "type": "string",
+          "description": "Optional digest of the validated client-visible account /logout request that caused this S2S sub-operation."
+        },
+        "validated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the Account Authority validated the client-visible account /logout request."
+        },
+        "reason_code": {
+          "type": "string",
+          "enum": [
+            "account_logout"
+          ],
+          "description": "Reason for logging out the Auth-side session. v1 defines only account_logout for this S2S sub-operation."
         }
       }
     },
-    "SessionGrantLogoutOutcome": {
+    "AuthSessionLogoutOutcome": {
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "revoked",
-        "browser_session_finished"
+        "ok",
+        "grant_chain_terminated",
+        "auth_session_logged_out"
       ],
       "properties": {
-        "revoked": {
-          "type": "boolean",
-          "description": "Whether the presented grant was revoked by this call."
+        "ok": {
+          "type": "boolean"
         },
-        "browser_session_finished": {
+        "grant_chain_terminated": {
           "type": "boolean",
-          "description": "Whether the underlying Auth Server browser session was finished (terminating the rotation chain)."
+          "description": "Whether the grant rotation chain is now unable to refresh, including the already-terminated idempotent case."
+        },
+        "auth_session_logged_out": {
+          "type": "boolean",
+          "description": "Whether the underlying Auth-side browser/auth session is now logged out, including the already-logged-out idempotent case."
         }
       }
     },

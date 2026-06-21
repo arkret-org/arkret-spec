@@ -460,15 +460,15 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.gate.account.command.logout_session_grant",
+      "operation_id": "ck.gate.account.command.logout_auth_session",
       "tier": "deployment_local",
-      "http": "POST /_cokret/gate/account/session-grants/logout",
+      "http": "POST /_cokret/gate/account/auth-sessions/logout",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantLogoutRequestBody",
-      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantLogoutOutcome",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutOutcome",
       "openapi_component_refs": {
-        "request": "#/components/schemas/SessionGrantLogoutRequestBody",
-        "response": "#/components/schemas/SessionGrantLogoutOutcome"
+        "request": "#/components/schemas/AuthSessionLogoutRequestBody",
+        "response": "#/components/schemas/AuthSessionLogoutOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

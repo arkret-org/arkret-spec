@@ -28,7 +28,7 @@ Client Sync 是客户端 **账号视角聚合** 推流协议。它在 Events API
 
 ```http
 GET /_cokret/self/account/subscribe?catchup=true
-Authorization: Bearer <session_token>
+Authorization: Bearer <ck.session.grant>
 Accept: application/x-ndjson
 ```
 
@@ -546,7 +546,7 @@ Account data MUST 按 principal/device 授权隔离。联邦节点不得向其�
 
 ## 10. To-Device Delivery
 
-`to_device.messages` MUST 只包含当前 access token 对应 device 的消息。
+`to_device.messages` MUST 只包含当前 session credential 对应 device 的消息。
 
 ### 10.0 主接收路径与补拉路径 (normative)
 

@@ -52,7 +52,7 @@
       "challenge": "soft-logout-challenge-0001",
       "request": {
         "operation": "resume_soft_logged_out_session",
-        "refresh_token_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        "holder_key_id": "did:web:alice.example#device-key-1"
       },
       "proof_required_fields": [
         "principal_id",
@@ -64,12 +64,12 @@
         "expires_at"
       ],
       "expected": {
-        "refresh_only_reason": "did_proof_required",
+        "holder_only_reason": "did_proof_required",
         "proof_restores_state": "active",
         "max_replay_window_seconds": 300
       },
       "assertions": [
-        "a valid refresh token alone cannot restore a soft_logged_out session",
+        "a holder key alone cannot restore a soft_logged_out session",
         "the DID proof transcript covers principal_id, device_id, audience, challenge, request digest, issued_at, and expires_at",
         "verification burns the challenge and only then restores the session to active"
       ]

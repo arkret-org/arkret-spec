@@ -4158,7 +4158,7 @@ Expected：
 
 Steps：
 
-- **Case A — 高安全 profile 纯 bearer 写 / 敏感读**：在 `ck.profile.high_security_organization.v1`（或 `sovereign_deployment`）下，对常规写（推进 actor_seq / Realm frontier）或敏感读（成员列表、私有 projection、key backup、device list、moderation 队列等）只用 `Authorization: Bearer <session_token>` 出示，无 `Signature`。
+- **Case A — 高安全 profile 纯 bearer 写 / 敏感读**：在 `ck.profile.high_security_organization.v1`（或 `sovereign_deployment`）下，对常规写（推进 actor_seq / Realm frontier）或敏感读（成员列表、私有 projection、key backup、device list、moderation 队列等）只用 `Authorization: Bearer <ck.session.grant>` 出示，无 `Signature`。
 - **Case B — 默认 profile 同请求（对照）**：默认 profile 下对同一类（按 §3.2 属低敏 / 兼容路径或尚未协商 PoP 的兼容旧客户端）请求只用纯 bearer 出示。
 - **Case C — PoP 过窗**：携带合法签名的 PoP 出示，但 `created` / `expires` 超出 replay window（`expires - created` 超上限或 `created` 与本地时钟偏差超上限）。
 
