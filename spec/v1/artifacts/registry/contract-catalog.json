@@ -6595,7 +6595,9 @@
         "action": "ck.agent.interop_session.cancel",
         "category": "management",
         "risk_tier": "medium",
-        "required_constraints": [],
+        "required_constraints": [
+          "allowed_session_ids"
+        ],
         "target_event_kinds": [
           "ck.agent.interop_session.status",
           "ck.agent.interop_session.result"
@@ -6607,7 +6609,9 @@
         "action": "ck.agent.interop_session.stream_status",
         "category": "general",
         "risk_tier": "low",
-        "required_constraints": [],
+        "required_constraints": [
+          "allowed_session_ids"
+        ],
         "target_event_kinds": [
           "ck.agent.interop_session.status"
         ],
@@ -6620,6 +6624,7 @@
         "risk_tier": "high",
         "required_constraints": [
           "allowed_data_classes",
+          "allowed_session_ids",
           "max_artifact_bytes"
         ],
         "target_event_kinds": [

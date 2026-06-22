@@ -345,6 +345,14 @@
       },
       "uniqueItems": true
     },
+    "allowed_session_ids": {
+      "type": "array",
+      "description": "Limits agent interop-session status/result/cancel delegation to the listed ck:agent_interop_session ids.",
+      "items": {
+        "$ref": "./common-ids.schema.json#/$defs/agent_interop_session_id"
+      },
+      "uniqueItems": true
+    },
     "allowed_view_kinds": {
       "type": "array",
       "items": {
