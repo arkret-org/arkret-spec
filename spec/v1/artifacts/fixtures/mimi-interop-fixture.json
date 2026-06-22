@@ -2,6 +2,17 @@
   "suite": "mimi_interop",
   "version": "2026-04-30",
   "profile": "ck.profile.mimi_interop.v1",
+  "runner": "cotest::conformance::mimi_interop",
+  "covers_vectors": [
+    "ck.vector.mimi.provider_directory_draft_pinning.v1",
+    "ck.vector.mimi.room_binding_projection.v1",
+    "ck.vector.mimi.keypackage_claim_lifecycle.v1",
+    "ck.vector.mimi.content_roundtrip.v1",
+    "ck.vector.mimi.identifier_query_privacy.v1",
+    "ck.vector.mimi.consent_isolation.v1",
+    "ck.vector.mimi.proxy_download_policy.v1",
+    "ck.vector.mimi.unsupported_draft_fail_closed.v1"
+  ],
   "drafts": {
     "protocol": "draft-ietf-mimi-protocol-06",
     "content": "draft-ietf-mimi-content-08",
@@ -10,6 +21,7 @@
   },
   "cases": [
     {
+      "vector_id": "ck.vector.mimi.provider_directory_draft_pinning.v1",
       "name": "provider_directory_draft_pinning",
       "input": {
         "service_did": "did:web:mimi.example.com",
@@ -38,6 +50,7 @@
       "expected": "accepted_only_when_profile_and_pinned_drafts_match"
     },
     {
+      "vector_id": "ck.vector.mimi.room_binding_projection.v1",
       "name": "room_binding_projection",
       "input": {
         "kind": "ck.mimi.room_binding",
@@ -57,6 +70,45 @@
       "expected": "mimi_room_is_projection_not_canonical_truth"
     },
     {
+      "vector_id": "ck.vector.mimi.keypackage_claim_lifecycle.v1",
+      "name": "keypackage_claim_lifecycle",
+      "input": {
+        "operation_id": "ck.open.mimi.exchange.request_key_material",
+        "target_identifier": "mimi://remote.example/alice",
+        "realm_id": "ck:realm:0110c853-1d09-7044-b214-c74240110c85",
+        "mimi_room_uri": "mimi://mimi.example.com/rooms/01JSMIMI",
+        "requester_provider": "did:web:mimi.example.com",
+        "required_content_profile": "ck.profile.mimi_interop.v1",
+        "mls_capabilities": [
+          "mls-rfc9420"
+        ],
+        "cipher_suites": [
+          "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
+        ],
+        "allow_pseudonymous_credential": true,
+        "response": {
+          "claim_id": "mls-keypackage-claim-mimi-interop-1",
+          "keypackage_ref": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "device_binding": "ck:device:0110c853-1d09-7044-b214-c74240110c85",
+          "expires_at": "2026-04-30T01:00:00Z",
+          "supported_capabilities": [
+            "mls-rfc9420"
+          ],
+          "single_use": true
+        },
+        "after_welcome": {
+          "claim_state": "consumed"
+        },
+        "failure_shape": {
+          "policy_denied": "not_found_equivalent",
+          "no_available_device": "not_found_equivalent",
+          "target_not_visible": "not_found_equivalent"
+        }
+      },
+      "expected": "single_use_keypackage_claim_consumed_after_welcome_and_failure_shape_is_enumeration_safe"
+    },
+    {
+      "vector_id": "ck.vector.mimi.content_roundtrip.v1",
       "name": "submit_message_text_mapping",
       "input": {
         "source_format": "text/markdown;variant=GFM-MIMI",
@@ -67,6 +119,7 @@
       "expected": "mapped_event_preserves_original_envelope_digest_and_mimi_message_id"
     },
     {
+      "vector_id": "ck.vector.mimi.identifier_query_privacy.v1",
       "name": "identifier_query_blinded",
       "input": {
         "query": "mimi://remote.example/alice",
@@ -76,6 +129,7 @@
       "expected": "returns_psi_match_bits_and_invite_handoff_without_exposing_contact_graph"
     },
     {
+      "vector_id": "ck.vector.mimi.consent_isolation.v1",
       "name": "consent_isolation",
       "input": {
         "consent_state": "accepted",
@@ -85,6 +139,7 @@
       "expected": "consent_does_not_grant_space_read_or_write_capability"
     },
     {
+      "vector_id": "ck.vector.mimi.proxy_download_policy.v1",
       "name": "proxy_download_policy",
       "input": {
         "blob_ref": "ck:blob:0110c853-1d09-7044-b214-c74240110c85",
@@ -93,6 +148,7 @@
       "expected": "direct_object_store_url_is_not_returned"
     },
     {
+      "vector_id": "ck.vector.mimi.unsupported_draft_fail_closed.v1",
       "name": "unsupported_draft_fail_closed",
       "input": {
         "protocol_draft": "draft-ietf-mimi-protocol-99"

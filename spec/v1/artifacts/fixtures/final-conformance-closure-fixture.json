@@ -9,6 +9,7 @@
     "ck.vector.federation.timing_bucket.v1",
     "ck.vector.mls.governance_epoch_binding.v1",
     "ck.vector.moderation.franking_roundtrip.v1",
+    "ck.vector.moderation.evidence_package_minimal_disclosure.v1",
     "ck.vector.moderation.appeal_atomicity.v1",
     "ck.vector.relation.reference_projection_indistinguishable.v1",
     "ck.vector.sync.range_completeness_client_query.v1"
@@ -332,6 +333,108 @@
           "expected": {
             "decision": "reject",
             "reason": "schema_violation"
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "ck.vector.moderation.evidence_package_minimal_disclosure.v1",
+      "assertions": [
+        "evidence_package_targets_only_reported_events",
+        "recipient_public_key_binding_is_required",
+        "reporter_signature_is_required",
+        "mls_epoch_and_history_secrets_are_rejected",
+        "unrelated_plaintext_messages_are_rejected"
+      ],
+      "cases": [
+        {
+          "name": "targeted_encrypted_package_valid",
+          "target_refs": [
+            "ck:event:01965000-0000-7000-8000-000000000101"
+          ],
+          "plaintext_event_refs": [
+            "ck:event:01965000-0000-7000-8000-000000000101"
+          ],
+          "recipient_public_key_ref": "did:web:moderator.example#key-1",
+          "encrypted_to": "did:web:moderator.example#key-1",
+          "reporter_signature_present": true,
+          "included_material": [
+            "encrypted_envelope",
+            "franking_proof",
+            "attachment_digest",
+            "reporter_signature"
+          ],
+          "forbidden_material": [],
+          "expected": {
+            "decision": "accept",
+            "minimal_disclosure": true,
+            "governance_key_released": false
+          }
+        },
+        {
+          "name": "history_key_release_rejected",
+          "target_refs": [
+            "ck:event:01965000-0000-7000-8000-000000000101"
+          ],
+          "plaintext_event_refs": [
+            "ck:event:01965000-0000-7000-8000-000000000101"
+          ],
+          "recipient_public_key_ref": "did:web:moderator.example#key-1",
+          "encrypted_to": "did:web:moderator.example#key-1",
+          "reporter_signature_present": true,
+          "included_material": [
+            "encrypted_envelope",
+            "franking_proof"
+          ],
+          "forbidden_material": [
+            "mls_epoch_secret"
+          ],
+          "expected": {
+            "decision": "reject",
+            "reason": "schema_violation"
+          }
+        },
+        {
+          "name": "unrelated_message_plaintext_rejected",
+          "target_refs": [
+            "ck:event:01965000-0000-7000-8000-000000000101"
+          ],
+          "plaintext_event_refs": [
+            "ck:event:01965000-0000-7000-8000-000000000101",
+            "ck:event:01965000-0000-7000-8000-000000000102"
+          ],
+          "recipient_public_key_ref": "did:web:moderator.example#key-1",
+          "encrypted_to": "did:web:moderator.example#key-1",
+          "reporter_signature_present": true,
+          "included_material": [
+            "encrypted_envelope",
+            "franking_proof"
+          ],
+          "forbidden_material": [],
+          "expected": {
+            "decision": "reject",
+            "reason": "minimal_disclosure_violation"
+          }
+        },
+        {
+          "name": "recipient_binding_missing_rejected",
+          "target_refs": [
+            "ck:event:01965000-0000-7000-8000-000000000101"
+          ],
+          "plaintext_event_refs": [
+            "ck:event:01965000-0000-7000-8000-000000000101"
+          ],
+          "recipient_public_key_ref": "did:web:moderator.example#key-1",
+          "encrypted_to": "did:web:other.example#key-1",
+          "reporter_signature_present": true,
+          "included_material": [
+            "encrypted_envelope",
+            "franking_proof"
+          ],
+          "forbidden_material": [],
+          "expected": {
+            "decision": "reject",
+            "reason": "evidence_recipient_mismatch"
           }
         }
       ]

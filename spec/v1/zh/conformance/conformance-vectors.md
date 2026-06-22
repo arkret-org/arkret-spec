@@ -1447,7 +1447,7 @@ ck.vector.redaction.snapshot_pruning_stub.v1
 ck.vector.snapshot.inclusion_challenge.v1
 ```
 
-本向量固化 [`snapshot-schema.md`](./snapshot-schema.md) §6 `event_set_commitment` 的 inclusion-challenge 采样与 merkle branch 校验规则，使 high-assurance bootstrap 不依赖单一实现的私有判断。当前 v1 candidate 尚未发布该向量的机器 fixture；在 fixture 生成器与 `spec/v1/artifacts/fixtures/` 产物补齐前，结构与断言以本节为准，fixture 缺口按 Phase 2 tracking 处理。实现 MUST NOT 以“缺 fixture”为由跳过已由本节 prose 固化的 high-assurance bootstrap 校验。
+本向量固化 [`snapshot-schema.md`](./snapshot-schema.md) §6 `event_set_commitment` 的 inclusion-challenge 采样与 merkle branch 校验规则，使 high-assurance bootstrap 不依赖单一实现的私有判断。该向量已在 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 中注册为 active，并由 [`sync-fixture.json`](../../artifacts/fixtures/sync-fixture.json) 的 `snapshot_inclusion_challenge` 机器 fixture 与 `cotest::conformance::sync` runner 承载。实现 MUST 执行该 fixture-backed gate，并按本节 prose 与 fixture 固化的规则校验 high-assurance bootstrap。
 
 输入：
 

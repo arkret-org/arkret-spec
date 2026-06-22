@@ -645,7 +645,7 @@
     },
     {
       "id": "patch:stage",
-      "context": "morph_patch_payload",
+      "context": "morph_update_payload",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
       "replacement": "ck.morph.stage.set event",
@@ -655,6 +655,19 @@
         "negative_test"
       ],
       "notes": "ck.morph.update / ck.morph.schema_migrate payload's patch MUST NOT include path 'stage' or 'stage_changed_at'. Stage transitions are single-source: only ck.morph.stage.set may mutate these fields. See zh/models/common-fields.md §5.3.3 reducer hard constraint 6 and zh/models/morph.md §2."
+    },
+    {
+      "id": "patch:morph_type",
+      "context": "morph_update_payload",
+      "since_revision": "2026-06-22",
+      "rejection_level": "hard_reject",
+      "replacement": "ck.morph.create",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "ck.morph.update payload's patch MUST NOT include path 'morph_type'. morph_type is create-locked by ck.morph.create; attempts to mutate it after create fail closed with reason morph_type_immutable."
     },
     {
       "id": "valid_from",

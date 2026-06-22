@@ -58,9 +58,11 @@
         "grant_already_consumed",
         "session_logged_out",
         "audience_mismatch",
-        "session_grant_not_found"
+        "session_grant_not_found",
+        "did_proof_required",
+        "proof_invalid"
       ],
-      "description": "DPoP-bound session-grant rotation (account-lifecycle §4.1). Single-use: a consumed grant cannot be rotated again (grant_already_consumed); the audience is locked to the prior grant (audience_mismatch); rotation is refused once the underlying browser session is logged out (session_logged_out). The caller MUST present a holder proof signed by the key bound into the grant's cnf.jkt."
+      "description": "DPoP-bound session-grant rotation (account-lifecycle §4.1). Single-use: a consumed grant cannot be rotated again (grant_already_consumed); the audience is locked to the prior grant (audience_mismatch); rotation is refused once the underlying browser session is logged out (session_logged_out). The caller MUST present a holder proof signed by the key bound into the grant's cnf.jkt plus a fresh DID/device proof bound to principal_id, device_id, audience, request_canonical_digest, challenge, issued_at, and expires_at. Missing proof material returns did_proof_required; invalid signature, replay, transcript, device binding, or freshness semantics return proof_invalid."
     },
     {
       "operation_id": "ck.gate.account.command.logout_auth_session",

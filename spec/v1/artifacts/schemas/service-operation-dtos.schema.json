@@ -135,6 +135,12 @@
     },
     {
       "$ref": "#/$defs/SessionGrantOutcome"
+    },
+    {
+      "$ref": "#/$defs/SessionGrantRefreshRequestBody"
+    },
+    {
+      "$ref": "#/$defs/SessionGrantRefreshOutcome"
     }
   ],
   "$defs": {
@@ -142,7 +148,9 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "grant_jwt"
+        "grant_jwt",
+        "device_id",
+        "proof"
       ],
       "properties": {
         "grant_jwt": {
@@ -152,6 +160,72 @@
         "audience": {
           "type": "string",
           "description": "Optional; MUST equal the grant's bound audience if present (audience MUST NOT change across rotation, else audience_mismatch)."
+        },
+        "device_id": {
+          "type": "string",
+          "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "description": "Concrete authorized device restoring the soft-logged-out grant chain. MUST match the persisted grant device binding and the grant JWT device_id claim."
+        },
+        "proof": {
+          "$ref": "#/$defs/SessionGrantRefreshProof"
+        }
+      }
+    },
+    "SessionGrantRefreshProof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "proof_kind",
+        "challenge",
+        "request_canonical_digest",
+        "audience",
+        "issued_at",
+        "expires_at",
+        "signature"
+      ],
+      "properties": {
+        "proof_kind": {
+          "type": "string",
+          "description": "Fresh proof kind for soft-logout recovery. Current Account Authority implementations MUST accept did_bound_signature or paired_device_proof and fail closed on unsupported kinds.",
+          "enum": [
+            "did_bound_signature",
+            "paired_device_proof",
+            "passkey_assertion",
+            "oidc_code_exchange",
+            "agent_key_proof"
+          ]
+        },
+        "challenge": {
+          "type": "string",
+          "minLength": 16
+        },
+        "request_canonical_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Digest of the soft-logout restore request transcript bound by the proof."
+        },
+        "audience": {
+          "type": "string",
+          "description": "MUST equal the session grant audience."
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "MUST be after issued_at and no more than 300 seconds later."
+        },
+        "signature": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Detached JWS over the soft-logout proof transcript."
+        },
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
+          "description": "Optional DID URL expected to match the detached JWS kid; the DID component MUST match the session grant subject."
         }
       }
     },

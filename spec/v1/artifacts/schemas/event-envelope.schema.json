@@ -1194,7 +1194,6 @@
           "kind": {
             "enum": [
               "ck.realm.update",
-              "ck.morph.update",
               "ck.profile.update"
             ]
           }
@@ -1207,6 +1206,25 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/object_patch_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.morph.update"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/morph_update_payload"
           }
         }
       }

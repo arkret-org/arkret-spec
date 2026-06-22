@@ -1245,6 +1245,118 @@
       ]
     },
     {
+      "vector_id": "ck.vector.mimi.provider_directory_draft_pinning.v1",
+      "status": "active",
+      "domain": "mimi",
+      "applies_to_profiles": [
+        "ck.profile.mimi_interop.v1"
+      ],
+      "description": "MIMI Provider Facade directory claims are accepted only when the Cokret profile and pinned MIMI Internet-Draft versions match.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
+        "spec/v1/zh/extensions/mimi-interop.md",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.mimi.room_binding_projection.v1",
+      "status": "active",
+      "domain": "mimi",
+      "applies_to_profiles": [
+        "ck.profile.mimi_interop.v1"
+      ],
+      "description": "ck.mimi.room_binding projects a MIMI room onto a Realm or Strand scope without making the MIMI room canonical truth.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
+        "spec/v1/zh/extensions/mimi-interop.md",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.mimi.keypackage_claim_lifecycle.v1",
+      "status": "active",
+      "domain": "mimi",
+      "applies_to_profiles": [
+        "ck.profile.mimi_interop.v1"
+      ],
+      "description": "MIMI key-material exchange maps to the Cokret KeyPackage claim lifecycle: the claimed package is single-use, becomes consumed after Welcome, and enumeration-sensitive failures share one public shape.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
+        "spec/v1/zh/extensions/mimi-interop.md",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.mimi.content_roundtrip.v1",
+      "status": "active",
+      "domain": "mimi",
+      "applies_to_profiles": [
+        "ck.profile.mimi_interop.v1"
+      ],
+      "description": "MIMI message/content ingress preserves the original envelope digest and MIMI message identity when mapping into Cokret events.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
+        "spec/v1/zh/extensions/mimi-interop.md",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.mimi.identifier_query_privacy.v1",
+      "status": "active",
+      "domain": "mimi",
+      "applies_to_profiles": [
+        "ck.profile.mimi_interop.v1"
+      ],
+      "description": "MIMI identifier queries use private-contact-discovery semantics and do not expose a raw contact graph or reachability proof.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
+        "spec/v1/zh/extensions/mimi-interop.md",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.mimi.consent_isolation.v1",
+      "status": "active",
+      "domain": "mimi",
+      "applies_to_profiles": [
+        "ck.profile.mimi_interop.v1"
+      ],
+      "description": "MIMI consent state is isolated from Cokret Realm read/write capability grants.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
+        "spec/v1/zh/extensions/mimi-interop.md",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.mimi.proxy_download_policy.v1",
+      "status": "active",
+      "domain": "mimi",
+      "applies_to_profiles": [
+        "ck.profile.mimi_interop.v1"
+      ],
+      "description": "MIMI proxy download obeys asset privacy policy and does not return direct object-store URLs when provider proxying is required.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
+        "spec/v1/zh/extensions/mimi-interop.md",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.mimi.unsupported_draft_fail_closed.v1",
+      "status": "active",
+      "domain": "mimi",
+      "applies_to_profiles": [
+        "ck.profile.mimi_interop.v1"
+      ],
+      "description": "Unsupported MIMI draft versions fail closed or require a new profile without silently mutating the v1 reducer profile.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
+        "spec/v1/zh/extensions/mimi-interop.md",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ck.vector.mls.governance_epoch_binding.v1",
       "status": "active",
       "domain": "mls",
@@ -1279,6 +1391,17 @@
       "description": "E2EE franking proof construction, report submission, and moderator-side verification roundtrip per content-moderation.md section 3.4; digest mismatch or minimal-disclosure violations downgrade or reject the proof.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.moderation.evidence_package_minimal_disclosure.v1",
+      "status": "active",
+      "domain": "moderation",
+      "description": "E2EE moderation evidence packages are encrypted to the authorized moderation recipient, target only reported events, carry reporter signature evidence, and reject MLS epoch/history secrets or unrelated plaintext.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
+        "spec/v1/zh/governance/content-moderation.md",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -1657,10 +1780,11 @@
     },
     {
       "vector_id": "ck.vector.snapshot.inclusion_challenge.v1",
-      "status": "reserved",
+      "status": "active",
       "domain": "snapshot",
-      "description": "Reserved vector id for high-assurance snapshot inclusion-challenge sampling. Non-gating until a machine fixture and runner assertion are published under artifacts/fixtures/.",
+      "description": "High-assurance snapshot inclusion-challenge sampling verifies sufficient event_id and actor_seq_range coverage, recomputes the event-set Merkle root, rejects commitment-root mismatch, and rejects silent actor sequence gaps.",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/sync-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },

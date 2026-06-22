@@ -417,7 +417,7 @@
       "operation_id": "ck.gate.account.command.refresh_session_grant",
       "http_only_variant": true,
       "http": "POST /_cokret/gate/account/session-grants/refresh",
-      "notes": "DPoP-bound session-grant rotation (account-lifecycle §4.1, device-lifecycle §3.3). An authorized device presents a DPoP holder proof for the grant's cnf.jkt and rotates onto a fresh grant; the old grant is single-use revoked. Account Authority-local op; not exposed over gRPC/MQ.",
+      "notes": "DPoP-bound session-grant rotation (account-lifecycle §4.1, device-lifecycle §3.3). An authorized device presents a DPoP holder proof for the grant's cnf.jkt plus a fresh DID/device proof bound to principal_id, device_id, audience, request_canonical_digest, challenge, issued_at, and expires_at; expires_at - issued_at MUST be <=300s. The old grant is single-use revoked. Account Authority-local op; not exposed over gRPC/MQ.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshOutcome"

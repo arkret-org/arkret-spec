@@ -1556,6 +1556,41 @@
       },
       "additionalProperties": false
     },
+    "morph_update_payload": {
+      "type": "object",
+      "description": "Payload class for ck.morph.update. Patches ordinary Morph fields on the Morph identified by target_ref. morph_type is create-locked by ck.morph.create and MUST NOT appear in patch; stage and stage_changed_at are single-sourced by ck.morph.stage.set.",
+      "required": [
+        "target_ref",
+        "patch"
+      ],
+      "properties": {
+        "target_ref": {
+          "$ref": "#/$defs/morph_id"
+        },
+        "patch": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/patch"
+            },
+            {
+              "propertyNames": {
+                "not": {
+                  "enum": [
+                    "morph_type",
+                    "stage",
+                    "stage_changed_at"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "expected_state_digest": {
+          "$ref": "#/$defs/hash"
+        }
+      },
+      "additionalProperties": false
+    },
     "profile_realm_override_payload": {
       "type": "object",
       "description": "Realm-scoped actor profile override payload for ck.profile.realm_override. target_ref is the Actor Profile being overridden; target_realm_id is the Realm where the override applies.",
@@ -2984,6 +3019,10 @@
         "allow_public_receipts_on_world_readable": {
           "type": "boolean",
           "description": "Opt-in switch for the visibility='public' + history_visibility='world_readable' combination. Defaults to false. When false the reducer MUST reject that combination; when true the reducer admits it with a warning. See zh/discovery/read-receipts.md §2.5.1."
+        },
+        "allow_forced_public_world_readable_receipts": {
+          "type": "boolean",
+          "description": "Second opt-in switch for disclosure='required' + visibility='public' + history_visibility='world_readable'. Defaults to false. The reducer MUST reject the forced public world-readable combination unless this field is true in addition to allow_public_receipts_on_world_readable=true. See zh/discovery/read-receipts.md §2.5.1."
         }
       },
       "additionalProperties": false
