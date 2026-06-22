@@ -2489,6 +2489,14 @@
       "description": "Handle registration or issuer conflict check failed wire-level NFC / UTS#39 confusable-skeleton / mixed-script constraints. Registries MUST reject instead of treating homograph variants as distinct identities. See zh/identity/identity-handles.md §17."
     },
     {
+      "code": "realm_alias_homograph_forbidden",
+      "applies_to": [
+        "schema_validation",
+        "service_call"
+      ],
+      "description": "Realm alias registration or conflict check failed wire-level NFC / UTS#39 confusable-skeleton / mixed-script constraints within the realm-alias namespace. Registries MUST reject instead of treating homograph variants as distinct aliases. Cross-namespace (handle vs realm alias) homographs are disambiguated by sigil, not namespace uniqueness. See zh/discovery/object-addressing.md §3.3."
+    },
+    {
       "code": "circle_short_name_taken",
       "applies_to": [
         "schema_validation",

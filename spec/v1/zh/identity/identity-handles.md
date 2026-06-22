@@ -113,6 +113,8 @@ Handle 分两层：**显示形态**面向用户，**canonical handle** 面向协
 
 `handle` 的 wire 形态由 [`artifacts/schemas/handle-claim.schema.json`](../../artifacts/schemas/handle-claim.schema.json) 强制：必须匹配 `<localpart>:<domain>`，且 `<localpart>` 已 canonicalize 为小写。`@<localpart>:<domain>`、`<localpart>@<domain>`、`acct:`、裸 host 等其它形态在 `handle` 中被 schema 拒绝；客户端 MAY 接受这种字符串作为输入捷径，但 normalize 前 MUST NOT 出现在签名 transcript、`alsoKnownAs`、缓存键或 Directory query 中。`acct:` 互通别名只能进入 `handle_aliases[]`。
 
+**与 realm alias 的关系（normative）**：handle 的 `@` sigil 与 realm alias 的 `#` sigil（见 [`discovery/object-addressing.md` §3.3](../discovery/object-addressing.md)）构成同一套人类短地址体系：两者 canonical 形态同为 `<localpart>:<domain>`（不含 sigil），但占据**不相交命名空间**——handle 经 `resolve_handle` 解析为 holder / principal DID，realm alias 经 `resolve_realm` 解析为 `ck:realm:<uuid>`。同一 `<localpart>:<domain>` MAY 同时是一个 handle 与一个 realm alias；协议**不要求**二者全局唯一，sigil 在显示 / 输入期区分类型，线上字段凭其类型上下文消歧。`@` 与 `#` 均为展示 + 输入路由 affordance，strip 后才进 wire。
+
 ### 3.2 解析结果必含字段
 
 Handle 解析结果（无论来自 Directory、Principal Server、Organization claim 还是 holder 自托管 well-known）MUST 至少包含 `handle`、`subject`、`issuer`、`binding_state`、`proofs` 与 `created_at`；`expires_at` 按 `binding_state` 与 delivery binding 条件必填；`handle_aliases[]` 为 **可选**（optional，与 §3.2.1 表及 §3.7.1 的 MAY 一致），不是必含字段：
