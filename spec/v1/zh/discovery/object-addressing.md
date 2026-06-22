@@ -74,8 +74,8 @@ web+cokret:realm/<realm>/strand/<strand>?lt=invite&tok=<token>   # invite link
 
 **Realm alias canonical grammar**：realm alias 的 canonical 形态是 `<localpart>:<domain>`，与 [`identity/identity-handles.md` §3.1/§17](../identity/identity-handles.md) 定义的 handle canonical 形态**同语法**：
 
-- `<localpart>`：post-IDNA ASCII，`[a-z0-9._+~-]{1,128}`，MUST 已 canonicalize 为小写。
-- `<domain>`：运营该 alias 的部署 / 组织（realm alias 的 issuer）的权威域，至少两个 label，每 label `[a-z0-9]([a-z0-9-]*[a-z0-9])?`，IDN 经 IDNA2008 ToASCII 转 A-label 后验证。
+- `<localpart>`：post-IDNA ASCII，字符集 `a-z` / `0-9` / `. _ + ~ -`，长度 1–128，MUST 已 canonicalize 为小写（与 handle localpart 同字母表）。
+- `<domain>`：运营该 alias 的部署 / 组织（realm alias 的 issuer）的权威域，至少两个 label，每 label 的字符规则与 handle `<domain>`（见 [`identity/identity-handles.md` §17](../identity/identity-handles.md)）一致，IDN 经 IDNA2008 ToASCII 转 A-label 后验证。
 - canonical alias **不含** sigil。`#general:acme.example`、`general@acme.example`、裸 `general` 等形态 MUST NOT 作为 canonical alias 出现在 `web+cokret:` path 段、缓存键或 `resolve_*` 规范化结果中（带 sigil 形态仅可作为 §下文「输入路由」的解析输入）。
 
 **人类短地址与 sigil（display + 输入路由）**：面向人的短地址用前导 sigil 标注目标类型：
