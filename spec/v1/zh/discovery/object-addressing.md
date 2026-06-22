@@ -57,7 +57,7 @@ web+cokret:realm/<realm>/strand/<strand>?lt=invite&tok=<token>   # invite link
 
 - **realm 是身份，进 path；join routing 不进 URL query。** realm 脱离 path 则 strand 无法定位（授权 / 解析以 Realm 为根，见 [`models/circle.md`](../models/circle.md)）；加入时可用的 Realm ingress service 由 `resolve_realm` / `resolve_target` 返回的 `join_candidates[]` 给出，不写入地址本体。
 - **Strand / Message 地址 MUST 携带 `realm/<realm>`**；缺少 Realm 根时解析方 MUST fail-closed（返回 `not_found`），不得做全网 strand_id 猜测。
-- **`<realm>` 段消歧（normative）**：该段匹配 UUIDv7 文本形态时解释为 `realm_id`；否则解释为 **alias**（域名样式 / 含 `.` 的人类可读名）。`<strand>` / `<msg>` 段**只**接受裸 uuid。path 内裸 uuid 是 URI 压缩形态；进入 token target descriptor（§4）或下游比对前，解析方 MUST 按 path keyword 重建 typed canonical ID（`ck:realm:<uuid>` / `ck:strand:<uuid>` / `ck:message:<uuid>`）。alias 仅作为解析输入形态，MUST 先经常规 Realm 解析路径规范化为 canonical `realm_id`，后续身份比对一律绑定 `realm_id` 而非 alias 字符串。
+- **`<realm>` 段消歧（normative）**：该段匹配 UUIDv7 文本形态时解释为 `realm_id`；否则解释为 **realm alias**（canonical grammar `<localpart>:<domain>`，见 §3.3）。判据等价：裸 uuid → `realm_id`，含 `:` 而非 UUIDv7 文本 → alias。`<strand>` / `<msg>` 段**只**接受裸 uuid。path 内裸 uuid 是 URI 压缩形态；进入 token target descriptor（§4）或下游比对前，解析方 MUST 按 path keyword 重建 typed canonical ID（`ck:realm:<uuid>` / `ck:strand:<uuid>` / `ck:message:<uuid>`）。alias 仅作为解析输入形态，MUST 先经常规 Realm 解析路径规范化为 canonical `realm_id`，后续身份比对一律绑定 `realm_id` 而非 alias 字符串。
 - **未知 path keyword fail-closed**：v1 合法 keyword 只有 `realm` / `strand` / `m`，且层级顺序 MUST 为 `realm` ⊃ `strand` ⊃ `m`。解析方遇到未注册 keyword、顺序错乱或缺中间层级时 MUST 返回 `not_found`，不得猜测。未来扩展对象类型（如 `morph` / `space` / `circle`）MUST 显式扩 keyword 表；旧客户端遇到未知 keyword 一律按 fail-closed 处理，保证 forward-compat 下不分叉。
 - Message 锚点 keyword 固定为 `m/`（对齐协议层 [Message 对象](../models/strand-and-message.md#9-message)，而非底层 event envelope）。在 v1 中，`m/<msg>` 只寻址 Strand discussion track 内的 `ck:message:` 对象；synthesis track 的结构化内容应通过 Strand / Morph / Relation 等对象地址或 profile 显式注册的未来 keyword 寻址，不得把 `m/` 解释为任意 track-local item。
 - **Circle-scoped Strand**（`Strand.scope_circle_id != null`）的地址形态**不**额外暴露 circle id：scope 由解析后的访问判定决定，地址层不泄露 Circle 存在性（见 §6）。
@@ -67,6 +67,40 @@ web+cokret:realm/<realm>/strand/<strand>?lt=invite&tok=<token>   # invite link
 - `action=<view|join|reply>`：纯 UI 意图 hint，默认 `view`；解析方 MAY 忽略，**MUST NOT** 据此放大权限。
 - `lt` / `tok`：授权组件，见 §4。
 - `action` 是"删掉不改变指向什么"的纯提示；`lt` / `tok` 携带授权类别，删除 `tok` 把链接降级为 `reference`。
+
+### 3.3 Realm alias 与人类短地址（normative）
+
+`<realm>` 段的 alias 与用户 handle 共享同一套人类地址形态，二者只在 sigil 与命名空间上区分。
+
+**Realm alias canonical grammar**：realm alias 的 canonical 形态是 `<localpart>:<domain>`，与 [`identity/identity-handles.md` §3.1/§17](../identity/identity-handles.md) 定义的 handle canonical 形态**同语法**：
+
+- `<localpart>`：post-IDNA ASCII，`[a-z0-9._+~-]{1,128}`，MUST 已 canonicalize 为小写。
+- `<domain>`：运营该 alias 的部署 / 组织（realm alias 的 issuer）的权威域，至少两个 label，每 label `[a-z0-9]([a-z0-9-]*[a-z0-9])?`，IDN 经 IDNA2008 ToASCII 转 A-label 后验证。
+- canonical alias **不含** sigil。`#general:acme.example`、`general@acme.example`、裸 `general` 等形态 MUST NOT 作为 canonical alias 出现在 `web+cokret:` path 段、缓存键或 `resolve_*` 规范化结果中（带 sigil 形态仅可作为 §下文「输入路由」的解析输入）。
+
+**人类短地址与 sigil（display + 输入路由）**：面向人的短地址用前导 sigil 标注目标类型：
+
+| 短地址形态 | 目标类型 | 解析 operation |
+| --- | --- | --- |
+| `@<localpart>:<domain>` | 用户 handle | `resolve_handle`（见 [identity-handles §3](../identity/identity-handles.md)） |
+| `#<localpart>:<domain>` | realm alias | `resolve_realm`（见 [discovery-directory §9](./discovery-directory.md)） |
+
+sigil 承担两个 normative 职责：
+
+- **输出（display / share）**：客户端渲染、@mention、可分享短文本、二维码 SHOULD 以带 sigil 形态呈现 realm alias（`#`）与 handle（`@`），使人一眼区分「频道 / realm」与「人」。
+- **输入路由（parse）**：客户端接受带 sigil 输入时，MUST 用 sigil 选择解析命名空间（`#` → `resolve_realm`，`@` → `resolve_handle`），并在解析前 strip sigil 还原 canonical `<localpart>:<domain>`。
+
+sigil 是展示与输入层 affordance，**不是 wire 的一部分**：strip 后的 canonical 才进 `resolve_*` 输入、`web+cokret:` path、§4.2 target descriptor、签名 transcript、Directory 缓存键、`handle` / alias 字段。这与 handle 的 `@` 纪律（identity-handles §3.1）一致。
+
+**无 sigil 裸输入的 default（normative）**：通用输入框 / 搜索框收到无 sigil 的裸 `<localpart>:<domain>` 时，客户端 MUST NOT 静默猜测单一类型，而是：
+
+- MUST 同时对 handle 与 realm alias 两个命名空间发起解析；
+- 命中**唯一**命名空间时直接采用该结果；
+- 命中**多个**命名空间时 MUST 向用户呈现消歧选择（`@…` vs `#…`），不得擅自取其一。
+
+**命名空间不相交，无全局唯一约束（normative）**：handle 与 realm alias 占据**两个不相交的命名空间**，分别由 `resolve_handle` 解析为 holder / principal DID、由 `resolve_realm` 解析为 `ck:realm:<uuid>`。协议 **MUST NOT** 要求两命名空间间全局唯一：同一 `<localpart>:<domain>` MAY 同时是一个 handle 与一个 realm alias，由 sigil 在显示 / 输入期区分，线上字段（自带类型上下文）无歧义。同一 `<domain>` 的 issuer **MAY** 选择在两命名空间间保留 / 对齐同名（本地治理策略），但这不是协议强制约束，实现 MUST NOT 因此在两命名空间间引入跨注册表唯一性检查。
+
+**混淆防护（normative）**：realm alias 注册 / 解析 MUST 复用 handle §17 的 wire-level canonical 比较纪律——先 NFC normalization、再 UTS#39 confusable skeleton 折叠，并拒绝 script-mixed label 与 hyphen-disallowed-position 形态——但在 **realm alias 命名空间内**做冲突检测，错误形态 registration 返回 `failed_precondition` `reason="realm_alias_homograph_forbidden"`。跨命名空间（handle vs realm alias）的同形不由命名空间唯一性消解，而由 sigil 区分与上述 issuer 可选保留策略处理。
 
 ## 4. Link 类型与授权 token
 
