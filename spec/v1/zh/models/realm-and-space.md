@@ -179,6 +179,17 @@ Realm 有两个终态 event，语义不同：
 
 被 `archived` 或 `frozen` facet 关闭普通写入的 Realm 收到非豁免普通写入时，reducer / 服务端 MUST 返回 `realm_frozen`（HTTP 403）；审计类豁免仍按 §2.6.1 的终态规则和 error-code registry 处理。
 
+#### 2.6.0.1 产品态"解散 Realm"映射（normative）
+
+产品层若给 Realm owner / admin 提供"不转让、直接解散 / 关闭这个 Realm"的选择，wire 层 MUST 映射为 `ck.realm.destroy`，而不是 `ck.realm.tombstone`：
+
+- `ck.realm.tombstone` 只用于**有 successor Realm 的迁移 / 接续**。它 MUST 携带 `successor_realm_id`，表示旧 Realm 不再活跃但由 successor 接续历史可达性。没有 successor 时，客户端 / server MUST NOT 用 tombstone 表达"解散"。
+- `ck.realm.destroy` 用于**无 successor 的永久关闭**。accepted 后 Realm 仍可作为终态记录、审计对象和按 retention / history visibility 可读取的历史存在，但普通成员写入、消息发送、Circle / Strand / Relation 新写入等 MUST fail closed（`realm_terminal_state`）。这正是"Realm 还在，但所有成员不能继续发言 / 协作"的不可逆产品语义。
+- `ck.realm.freeze` 用于**可逆只读冻结**（incident hold、管理员临时锁场、等待治理决策等）。如果产品文案承诺"解散 / 永久关闭"，不得只写 `freeze=true`；如果产品文案承诺"临时只读 / 可恢复"，不得写 `destroy`。
+- `ck.realm.archive` 用于软隐藏 / 默认列表移出，不是 ownership transfer、迁移或解散的替代品。
+
+实现的 UI 可以把上述 wire event 命名为"解散 Realm"、"关闭 Realm"或"冻结 Realm"，但审计、capability、federation 与 reducer MUST 以本节的 event 语义为准。ownership transfer 是成员 / capability 治理动作，不改变 Realm lifecycle；当 owner/admin 不愿 transfer 时，应在 `freeze`（可逆只读）与 `destroy`（无 successor 永久关闭）之间选择，而不是滥用 `tombstone`。
+
 #### 2.6.1 `ck.realm.destroy` 终态规则（normative）
 
 `ck.realm.destroy` accepted 进入 frontier 之后：

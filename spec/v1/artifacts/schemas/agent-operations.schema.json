@@ -91,6 +91,10 @@
       "type": "string",
       "pattern": "^ck:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
+    "message_id": {
+      "type": "string",
+      "pattern": "^ck:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
     "hash": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
@@ -633,22 +637,85 @@
       },
       "additionalProperties": false
     },
-    "agent_sidecar_thread_ensure_request_body": {
+    "agent_sidecar_context_ref": {
       "type": "object",
       "required": [
-        "realm_id",
-        "agent_principal_id",
-        "controller_principal_id"
+        "realm_id"
       ],
       "properties": {
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
-        "agent_principal_id": {
-          "$ref": "#/$defs/did"
+        "strand_id": {
+          "$ref": "#/$defs/strand_id"
         },
+        "track_name": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "message_id": {
+          "$ref": "#/$defs/message_id"
+        },
+        "relation_id": {
+          "$ref": "#/$defs/relation_id"
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "strand_id"
+          ],
+          "not": {
+            "required": [
+              "relation_id"
+            ]
+          }
+        },
+        {
+          "required": [
+            "relation_id"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "strand_id"
+                ]
+              },
+              {
+                "required": [
+                  "message_id"
+                ]
+              },
+              {
+                "required": [
+                  "track_name"
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "agent_sidecar_thread_ensure_request_body": {
+      "type": "object",
+      "required": [
+        "controller_principal_id",
+        "context_ref"
+      ],
+      "properties": {
         "controller_principal_id": {
           "$ref": "#/$defs/did"
+        },
+        "addressed_agent_principal_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "uniqueItems": true
+        },
+        "context_ref": {
+          "$ref": "#/$defs/agent_sidecar_context_ref"
         }
       },
       "additionalProperties": false

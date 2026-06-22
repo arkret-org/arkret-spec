@@ -58,6 +58,27 @@
         },
         "deleted": {
           "type": "boolean"
+        },
+        "archived": {
+          "type": "boolean",
+          "default": false
+        },
+        "frozen": {
+          "type": "boolean",
+          "default": false
+        },
+        "terminal_state": {
+          "type": "string",
+          "enum": [
+            "tombstoned",
+            "destroyed"
+          ]
+        },
+        "successor_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "freeze_expires_at": {
+          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": false
