@@ -93,6 +93,7 @@ sidebar:
 | `ck.schema.circle.v1` | Circle (intra-Realm scoped event/message boundary; see [`../models/circle.md`](../models/circle.md)) |
 | `ck.schema.strand.v1` | Strand |
 | `ck.schema.message.v1` | Message |
+| `ck.schema.content_block_poll.v1` | Poll Content Block |
 | `ck.schema.morph.v1` | Morph |
 | `ck.schema.relation.v1` | Relation |
 | `ck.schema.view.v1` | View |

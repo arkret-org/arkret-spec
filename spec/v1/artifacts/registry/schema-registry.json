@@ -36,6 +36,12 @@
       "file": "schemas/message.schema.json"
     },
     {
+      "schema_id": "ck.schema.content_block_poll.v1",
+      "file": "schemas/content-block-poll.schema.json",
+      "status": "active",
+      "description": "Canonical content-block schema for ck.content.poll and ck.content.poll.response."
+    },
+    {
       "schema_id": "ck.schema.personal_productivity.v1",
       "file": "schemas/personal-productivity.schema.json",
       "status": "active",
