@@ -361,7 +361,7 @@
         "proof": {
           "type": "object",
           "additionalProperties": false,
-          "description": "Holder-proof challenge presented for an active grant (proof_required). Signed by the session key bound into the grant.",
+          "description": "Optional S2S holder confirmation signed by the session key bound into the grant. Principal Servers validating /_cokret/self/* grant+DPoP requests do not require a client-carried introspection proof; they verify the request DPoP locally against the returned cnf_jkt.",
           "required": [
             "challenge",
             "proof_jwt"
@@ -408,7 +408,7 @@
         },
         "proof_required": {
           "type": "boolean",
-          "description": "Whether a holder proof is required to confirm the grant active."
+          "description": "Whether an additional S2S holder proof is required to confirm the grant active for this introspection request. Default Principal Server grant+DPoP validation uses the request DPoP instead of this field."
         },
         "one_time_use_consumed": {
           "type": "boolean",

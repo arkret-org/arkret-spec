@@ -7009,11 +7009,12 @@ paths:
       description: |
         RFC 7662-style introspection used by a Principal Server to validate a
         presented session grant. The caller supplies the grant id or grant_jwt
-        (plus an optional audience and, for an active grant, a holder-proof
-        challenge) and gets back whether the grant is active, a standardized
-        status, and non-secret grant metadata — including session_public_key for
-        RFC 9421 PoP verification. READ-ONLY: introspection MUST NOT consume or
-        revoke the grant (consumption/rotation is the refresh endpoint's job).
+        (plus an optional audience and optional S2S holder confirmation) and
+        gets back whether the grant is active, a standardized status, and
+        non-secret grant metadata — including session_public_key for RFC 9421
+        PoP verification and cnf_jkt for local DPoP verification on
+        /_cokret/self/*. READ-ONLY: introspection MUST NOT consume or revoke
+        the grant (consumption/rotation is the refresh endpoint's job).
         Authenticated by the configured session_grant_introspection_bearer (a
         server-local static bearer) or an admin scope.
       responses:

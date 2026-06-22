@@ -215,7 +215,7 @@ Principal Server 对每次 `/_cokret/self/*` 请求 MUST 校验（任一项失�
 
 - **DPoP 签名**:DPoP proof JWT MUST 用 grant 绑定的持有密钥签名，其公钥 JWK thumbprint（[RFC 7638](https://www.rfc-editor.org/rfc/rfc7638)）MUST 等于 grant 的 `cnf.jkt`(Principal Server 通过 session-grant 内省取得 `cnf_jkt`,见 §3.1 与下文)。
 - **DPoP 绑定声明**:`htm` MUST 等于请求方法、`htu` MUST 等于请求 URL、`ath` MUST 等于所出示 grant 的 hash;这些把该 proof 钉死到「本方法 + 本 URL + 本 grant」,防跨 endpoint / 跨 grant 复用。`htu` 比对遵循 [RFC 9449](https://www.rfc-editor.org/rfc/rfc9449) §4.3,先剥离 query 与 fragment 再比 scheme + authority + path。**authority 规范化**:`htu` 的 authority 是客户端看到的 gate origin;当 Principal Server 部署在重写 `Host` 的网关之后(上游 `Host` 可能被改写为内部源),实现 MUST 以网关记录的客户端可见 host(`X-Forwarded-Host` 首跳)为准比对 authority,仅在无任何可信 authority 头时回退到 path-only 绑定(同源直连部署)。
-- **grant active**:grant MUST 经 session-grant 内省判定 active(`ck.gate.account.command.introspect_session_grant`)。Principal Server **MAY** 缓存内省结果，但 TTL **SHOULD ≤ 120s**；对敏感操作 MUST 旁路缓存、强制重新内省(吊销生效上界即缓存 TTL，见 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md))。
+- **grant active**:grant MUST 经 session-grant 内省判定 active(`ck.gate.account.command.introspect_session_grant`)。Principal Server **MAY** 缓存内省结果，但 TTL **SHOULD ≤ 120s**；对敏感操作 MUST 旁路缓存、强制重新内省(吊销生效上界即缓存 TTL，见 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md))。内省的 `proof` 字段是部署内部 S2S 的可选附加确认；默认 self-path 客户端只发送本节的 `Authorization` + `DPoP`，Principal Server MUST 依据内省返回的 `cnf_jkt` 在本地校验该请求的 DPoP，不得要求客户端再发送额外的 session-grant introspection proof header。
 - **audience**:grant 的 audience MUST 等于本 Principal Server 的 service DID。
 - **scope**:grant scope MUST 含 Principal Server 的 session.bind scope 与 device scope。
 - **principal / device 绑定**:grant 绑定的 principal / device MUST 与请求一致。

@@ -194,6 +194,8 @@ Content-Type: application/json
   "signature": {
     "alg": "EdDSA",
     "kid": "did:web:media.example.com#key-1",
+    "signature_input": "ck.media.ice_config.v1",
+    "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "sig": "base64url..."
   }
 }
@@ -223,6 +225,7 @@ Content-Type: application/json
     ```
 
     第一段是固定 ASCII 域分隔 label（逐字节等于 `ck.media.ice_config.v1`），随后单字节 `0x00` 分隔，再接去掉 `signature` 自身后的响应对象的 canonical JSON（RFC 8785 JCS：键按字母序、无多余空白，故字段书写顺序无关）。该 label MUST 与 [`media-service-binding.md` §3.1](./media-service-binding.md) 媒体签名 domain label 分离表登记的常量逐字节一致，且 MUST 区别于 `ck.media.participant_binding.v1`——这把 ICE config 签名与 participant binding 签名隔离，防止同一 issuer key 的签名被跨用途重解释。任何 media service MUST 按此构造，任何客户端 MUST 按此验签；实现 MUST NOT 引入私有 domain 前缀，也 MUST NOT 复用 participant_binding label。
+  - `signature.signature_input` MUST 显式携带该固定 label（`ck.media.ice_config.v1`），`signature.payload_digest` MUST 等于 `sha256:` + SHA-256(canonical_json(响应对象去除顶层 `signature` 字段))。这两个字段用于调试、审计与跨实现互操作校验；它们不改变上面的签名字节定义，验签时仍只把顶层 `signature` 字段整体移除。
 - 客户端 MUST 尊重 `ttl_seconds`，过期后重新获取。
 - 高隐私 Realm MAY 设置 `force_turn=true`，禁止 host/srflx candidate 泄露本地或公网 IP。
 

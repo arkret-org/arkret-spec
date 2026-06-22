@@ -167,6 +167,8 @@
       "required": [
         "kid",
         "alg",
+        "signature_input",
+        "payload_digest",
         "sig"
       ],
       "properties": {
@@ -182,6 +184,16 @@
             "ES256",
             "ML-DSA-65"
           ]
+        },
+        "signature_input": {
+          "type": "string",
+          "const": "ck.media.ice_config.v1",
+          "description": "Domain-separation label prepended to the ICE config signing bytes. v1 fixes this to ck.media.ice_config.v1 and it MUST NOT be reused for participant binding signatures."
+        },
+        "payload_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "SHA-256 digest of the RFC 8785 canonical ICE config response object with the top-level signature field removed. This is the canonical payload covered after the signature_input label and 0x00 separator."
         },
         "sig": {
           "type": "string",
