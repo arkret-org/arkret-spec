@@ -249,10 +249,10 @@ Morph 权限粒度与 Strand 平行(`ck.morph.read` / `ck.morph.create` / `ck.mo
 
 ### 5.4 管理动作
 
-- `ck.circle.create`（创建 Circle；默认不进入普通成员 bundle）
-- `ck.circle.manage`（管理 Circle lifecycle / metadata；MUST 通过 `allowed_circle_ids` 或 `kind="circle"` selector 收窄）
+- `ck.circle.create`（创建 Circle；默认不进入普通成员 bundle；Realm 管理员交接若希望接手者能继续创建 Circle，必须显式把本 action 纳入交接 bundle 或产品管理员角色）
+- `ck.circle.manage`（管理 Circle lifecycle / metadata；MUST 通过 `allowed_circle_ids` 或 `kind="circle"` selector 收窄；不得由 `ck.realm.admin`、Realm owner transfer 或无约束 Realm-wide grant 隐式推出）
 - `ck.circle.member.add`（自助加入 / 接受邀请 / 自助离开，受 Circle join_rule 与父 Realm membership gate 约束）
-- `ck.circle.member.manage`（邀请、移除或 ban 他人；MUST 通过 `allowed_circle_ids` 或 `kind="circle"` selector 收窄）
+- `ck.circle.member.manage`（邀请、移除或 ban 他人；MUST 通过 `allowed_circle_ids` 或 `kind="circle"` selector 收窄；Realm admin transfer 不自动赋予本 action，也不自动创建 Circle membership）
 - `ck.circle.member.add.others`（high risk；代他人写入 Circle membership，MUST 与 `ck.audit.accessed` 配对）
 - `ck.circle.audit`（high risk；审计读取 Circle 元数据 / activity rollup，MUST 与 `ck.audit.accessed` 配对）
 - `ck.realm.admin`

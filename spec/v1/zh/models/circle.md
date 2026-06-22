@@ -278,6 +278,8 @@ authorized(actor, action, object) ⇔
 
 Circle 管理类 grant MUST 显式约束到 `allowed_circle_ids` / `circle_id` selector，或由 Circle 自身的 admin cell 派生；不得把无约束的 Realm-wide `ck.circle.manage` 当作普通管理权限发放。Realm admin 需要读取 Circle 正文或成员细节时 MUST 走 `ck.circle.audit` + `ck.audit.accessed` 配对路径；MLS-backed Circle 中还不能获得历史解密 key，除非被正式加入该 Circle。Plaintext Circle 不存在历史解密 key，但仍不得绕过 Circle membership / audit gate 直接投递或查询。
 
+**Realm 管理权交接与 Circle 隔离（normative）**：Realm ownership / admin capability transfer 只转移 Realm 治理能力，MUST NOT 隐式创建任何 `ck.circle.member.state`、MUST NOT 把接手管理员加入既有 Circle、MUST NOT 赋予既有 Circle 的历史读取 / 解密资格，也不是交接前必须完成的前置条件。若产品希望新管理员继续创建新的 Circle，应在交接 bundle 中显式授予 `ck.circle.create`（或等价的产品管理员角色中显式包含该 action）；这不影响任何既有 Circle。若需要新管理员接管某个既有 Circle 的 lifecycle / membership 管理，必须对该 Circle 显式签发带 `allowed_circle_ids` 的 `ck.circle.manage` / `ck.circle.member.manage` grant；若需要其参与内容讨论，则必须按 §9.1 写入明确的 Circle membership transition。实现 MAY 在交接向导中提示“可选移交哪些 Circle 的管理/成员资格”，但 MUST NOT 要求“把目标管理员加入所有 Circle”作为 Realm admin transfer 的协议条件。
+
 ## 9. Membership 与 Lifecycle
 
 ### 9.1 Membership 拓扑
@@ -289,7 +291,7 @@ Circle 管理类 grant MUST 显式约束到 `allowed_circle_ids` / `circle_id` s
 
    **Cascade causal frontier 锚点（normative）**：该 derived cascade 没有独立显式 event，其因果锚点 MUST 取为触发 `leave/ban` 的父 Realm `ck.member.state` event 的 `event_digest`（记为 `F_cascade`）。被踢成员在该 Realm 的每个 Circle 的 effective membership，自 `F_cascade` 起（含因果上 ≥ `F_cascade` 的所有点）MUST 派生为 `leave`。由此定义 in-flight 并发写入的处置：被踢成员提交的、`prev_refs` 因果闭包**不**包含 `F_cascade`（即因果上并发或早于 cascade）的 Circle-scoped DataEvent，按其自身 causal frontier 处的 Circle membership 评估授权（§8 的 `members[at object.causal_frontier]`），此时该成员仍是 Circle member，写入按既有授权规则处理；但任何 `prev_refs` 因果闭包**包含** `F_cascade`（即因果上后继于 cascade）的 Circle-scoped DataEvent，其 `members[at object.causal_frontier]` 已派生为 `leave`，reducer MUST 拒绝（`failed_precondition`，`reason=circle_member_must_be_realm_member`）并 MUST NOT 投递。即：cascade 之后被踢成员对该 Circle 的写入 fail-closed，cascade 之前/并发的 in-flight 写入按各自因果点的成员资格裁决，不存在「被踢后仍能向 Circle 写入」的未定义窗口。
 3. **Circle 平面化，不允许嵌套**。需要交叉成员关系时，actor 同时属于多个 Circle 即可。
-4. Circle admin / moderator 不是 Realm admin 的隐式子集。需要 Circle-local 管理时，必须通过 Circle-scoped admin cell 或带 `circle_id` / `allowed_circle_ids` selector 的 capability grant 表达；v1 不注册单独的 `ck.circle.admin` action。
+4. Circle admin / moderator 不是 Realm admin 的隐式子集。需要 Circle-local 管理时，必须通过 Circle-scoped admin cell 或带 `circle_id` / `allowed_circle_ids` selector 的 capability grant 表达；v1 不注册单独的 `ck.circle.admin` action。Realm admin transfer 不改变本条不变量：接手者不是自动 Circle member，也不是自动 Circle-local manager。
 
 Membership transition table（`membership` 复用 `ck.member.state` 的 `membership_state` 枚举 `invite / join / knock / leave / ban`）:
 
@@ -316,7 +318,7 @@ Membership transition table（`membership` 复用 `ck.member.state` 的 `members
 
 | 场景 | Realm-level / 未 scope 对象 | scope_circle_id 指向该 Circle 的对象 |
 | --- | --- | --- |
-| 父 Realm tombstone | 按 Realm lifecycle 停止 | Circle 全部 tombstone；对象按 Circle lifecycle 停止 |
+| 父 Realm tombstone / destroy | 按 Realm lifecycle 停止 | Circle 全部 tombstone；对象按 Circle lifecycle 停止；tombstone 到 successor Realm 时不会自动把 Circle membership / MLS key / history grant 迁移到 successor |
 | Circle archive | 不受影响 | 新写入 MUST fail closed(`failed_precondition`, `reason=circle_not_active`)；既有对象保持历史可读/可审计投影，但不得继续追加 Message / Morph / structural Relation / position update，直到 `ck.circle.restore` 使 Circle 恢复 active |
 | Circle tombstone | 不受影响 | 对象写入 MUST fail closed,projection 显示 scope unavailable;`scope_circle_id` 不会被自动 rewrite |
 | 父 Realm 收紧 history visibility | 按新 visibility | Effective visibility 重新计算为更严格值；Circle 不得保持比父 Realm 更宽的历史披露 |
