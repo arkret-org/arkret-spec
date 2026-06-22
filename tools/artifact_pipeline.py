@@ -32,6 +32,7 @@ import json
 import re
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -65,6 +66,22 @@ def load_contract_catalog() -> dict[str, Any]:
     return data
 
 
+def catalog_generation_metadata(catalog: dict[str, Any]) -> tuple[str, str]:
+    version = catalog.get("version")
+    generated_at = catalog.get("generated_at")
+    if not isinstance(version, str) or not version:
+        raise SystemExit("contract catalog missing version")
+    if not isinstance(generated_at, str) or not generated_at:
+        raise SystemExit("contract catalog missing generated_at")
+    try:
+        datetime.fromisoformat(generated_at.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise SystemExit(f"contract catalog generated_at must be RFC3339: {generated_at}") from exc
+    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", version) and not generated_at.startswith(version):
+        raise SystemExit("contract catalog generated_at date must match version")
+    return version, generated_at
+
+
 def current_release_tag() -> str:
     if not SITE_META_PATH.exists():
         raise SystemExit(f"missing site release metadata: {SITE_META_PATH.relative_to(ROOT).as_posix()}")
@@ -88,10 +105,8 @@ def public_catalog_paths() -> list[Path]:
 
 
 def generated_registry_payloads(catalog: dict[str, Any]) -> dict[Path, dict[str, Any]]:
-    version = catalog.get("version")
+    version, generated_at = catalog_generation_metadata(catalog)
     generated = catalog.get("generated_registries")
-    if not isinstance(version, str) or not version:
-        raise SystemExit("contract catalog missing version")
     if not isinstance(generated, list) or not generated:
         raise SystemExit("contract catalog missing generated_registries")
 
@@ -111,6 +126,7 @@ def generated_registry_payloads(catalog: dict[str, Any]) -> dict[Path, dict[str,
         payloads[ARTIFACTS / file_ref] = {
             "version": version,
             "source_of_truth": False,
+            "generated_at": generated_at,
             "generated_from": "registry/contract-catalog.json",
             "generated_by": "tools/artifact_pipeline.py",
             **section_payload,
@@ -169,10 +185,8 @@ def schema_summary(schema_ref: str) -> dict[str, Any]:
 
 
 def operation_schema_index_payload(catalog: dict[str, Any]) -> dict[str, Any]:
-    version = catalog.get("version")
+    version, generated_at = catalog_generation_metadata(catalog)
     operation_registry = catalog.get("operation_registry")
-    if not isinstance(version, str) or not version:
-        raise SystemExit("contract catalog missing version")
     if not isinstance(operation_registry, dict):
         raise SystemExit("contract catalog missing operation_registry")
 
@@ -199,6 +213,7 @@ def operation_schema_index_payload(catalog: dict[str, Any]) -> dict[str, Any]:
     return {
         "version": version,
         "source_of_truth": False,
+        "generated_at": generated_at,
         "generated_from": [
             "registry/contract-catalog.json",
             "schemas/*.schema.json"

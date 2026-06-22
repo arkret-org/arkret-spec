@@ -124,6 +124,11 @@
         "target_actor_id": {
           "$ref": "#/$defs/did",
           "description": "Gateway-internal mention-redirect routing key: the actor DID this device's user is registered as on the recipient principal server. Paired with notification.routing_metadata.mention_redirect_target_actor_ids to drive the fail-closed per-device routing gate. MUST be stripped before any provider call; MUST NOT be forwarded to a provider. See push-notifications.md §4.5 / §5.1."
+        },
+        "visible_notification_opt_in": {
+          "type": "boolean",
+          "default": false,
+          "description": "Receiver device authorization state for ck.profile.push_gateway.visible_notification.v1. Missing or false means this device MUST receive only blind_wakeup output even if the caller service is plaintext-visible; visible metadata requires an explicit per-device opt-in."
         }
       },
       "additionalProperties": false

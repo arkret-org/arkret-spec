@@ -44,6 +44,7 @@ from __future__ import annotations
 
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -69,6 +70,22 @@ def load_json(path: Path) -> Any:
 
 def dump_json(data: Any) -> str:
     return json.dumps(data, ensure_ascii=False, indent=2) + "\n"
+
+
+def catalog_generation_metadata(catalog: dict[str, Any]) -> tuple[str, str]:
+    version = catalog.get("version")
+    generated_at = catalog.get("generated_at")
+    if not isinstance(version, str) or not version:
+        raise SystemExit("contract catalog missing version")
+    if not isinstance(generated_at, str) or not generated_at:
+        raise SystemExit("contract catalog missing generated_at")
+    try:
+        datetime.fromisoformat(generated_at.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise SystemExit(f"contract catalog generated_at must be RFC3339: {generated_at}") from exc
+    if len(version) == 10 and generated_at[:10] != version:
+        raise SystemExit("contract catalog generated_at date must match version")
+    return version, generated_at
 
 
 def normalize_artifact_ref(ref: str | None) -> str | None:
@@ -247,7 +264,7 @@ def classify(
 
 def build_report() -> dict[str, Any]:
     catalog = load_json(CATALOG)
-    version = catalog.get("version")
+    version, generated_at = catalog_generation_metadata(catalog)
     operation_registry = catalog.get("operation_registry") or {}
     operations = operation_registry.get("operations") or []
 
@@ -310,6 +327,7 @@ def build_report() -> dict[str, Any]:
     return {
         "version": version,
         "source_of_truth": False,
+        "generated_at": generated_at,
         "generated_from": [
             "registry/contract-catalog.json",
             "openapi/cokret-service-api.openapi.yaml",

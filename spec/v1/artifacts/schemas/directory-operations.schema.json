@@ -649,6 +649,12 @@
         "requester": {
           "$ref": "#/$defs/did"
         },
+        "proof_challenge": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "claim_presentations": {
+          "$ref": "#/$defs/directory_restricted_claim_presentations"
+        },
         "proofs": {
           "$ref": "#/$defs/proofs"
         },
@@ -935,14 +941,20 @@
         "proof_challenge": {
           "$ref": "#/$defs/non_empty_string"
         },
+        "claim_presentations": {
+          "$ref": "#/$defs/directory_restricted_claim_presentations"
+        },
         "intent": {
           "$ref": "#/$defs/intent"
         },
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
         "requester": {
           "$ref": "#/$defs/did"
+        },
+        "audience": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "proofs": {
           "$ref": "#/$defs/proofs"

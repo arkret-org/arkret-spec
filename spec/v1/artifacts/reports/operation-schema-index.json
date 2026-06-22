@@ -1,6 +1,7 @@
 {
-  "version": "2026-05-08",
+  "version": "2026-06-22",
   "source_of_truth": false,
+  "generated_at": "2026-06-22T00:00:00Z",
   "generated_from": [
     "registry/contract-catalog.json",
     "schemas/*.schema.json"
@@ -584,14 +585,13 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_request_body",
         "schema_kind": "object",
         "required": [
-          "realm_id",
-          "agent_principal_id",
-          "controller_principal_id"
+          "controller_principal_id",
+          "context_ref"
         ],
         "properties": [
-          "realm_id",
-          "agent_principal_id",
-          "controller_principal_id"
+          "controller_principal_id",
+          "addressed_agent_principal_ids",
+          "context_ref"
         ],
         "closed": true
       },
@@ -1886,9 +1886,11 @@
           "handle",
           "expected_did",
           "proof_challenge",
+          "claim_presentations",
           "intent",
-          "realm_id",
           "requester",
+          "audience",
+          "realm_id",
           "proofs"
         ],
         "closed": true
@@ -2076,6 +2078,8 @@
         "properties": [
           "address",
           "requester",
+          "proof_challenge",
+          "claim_presentations",
           "proofs",
           "token"
         ],
@@ -4313,7 +4317,12 @@
           "realm_id",
           "owner",
           "members",
-          "deleted"
+          "deleted",
+          "archived",
+          "frozen",
+          "terminal_state",
+          "successor_realm_id",
+          "freeze_expires_at"
         ],
         "closed": true
       }
