@@ -2143,7 +2143,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "An MLS Welcome arrived with a `claim_envelope` whose canonical signing input does not match the Welcome's actual intended_realm_id / claim_id / requester_did, or the envelope signature does not chain to the Welcome sender's self-signing key. See zh/crypto-media/encryption-and-audit.md §2.6."
+      "description": "An MLS Welcome arrived with a `claim_envelope` whose canonical signing input does not match the Welcome's actual intended_realm_id / claim_id / requester_did, or the envelope signature does not chain to the requester's current accepted self-signing key or requester device authorization. See zh/crypto-media/encryption-and-audit.md §2.6."
     },
     {
       "code": "keypackage_claim_rate_limited",

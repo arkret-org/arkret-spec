@@ -593,16 +593,17 @@ KeyPackage `device_signature`(§2.6 上面的字段表)在发布时签名,**早�
 | `intended_realm_id` | id | Welcome 真正加入的 Realm ID (与 Realm governance state 同源)。 |
 | `claim_id` | id | claim 阶段 server 返回的 `claim_id`,绑定 (requester, target_keypackage, intended_realm_id, nonce, expiry)。 |
 | `requester_did` | did | Welcome 发送方 principal DID。 |
-| `ssk_generation` | integer | claim 签发时接收端 principal 当前 accepted cross-signing generation；MUST 与 `claim_ref.ssk_generation` 相同。 |
+| `ssk_generation` | integer | requester 使用 cross-signing SSK 签名时的当前 accepted generation。与 `requester_device_id` 精确二选一。 |
+| `requester_device_id` | id:device | requester 使用 service-attested / enrollment-authority device key 签名时的已授权设备 id。与 `ssk_generation` 精确二选一。 |
 | `nonce` | string | per-Welcome 唯一的 ≥ 128 bit 随机串。 |
 | `welcome_digest` | hash | MLS Welcome 消息本身的 canonical-bytes digest。 |
 | `created_at` | timestamp | 签名时间；接收方校验在 KeyPackage `expires_at` 与 claim `expires_at` 之内。 |
 
-`claim_envelope.signature` MUST 由 `requester_did` 的当前 active **self-signing key** 签发(不是 Delivery Service service key,不是 KeyPackage 的 device_signature 派生)。接收端 **MUST**:
+`claim_envelope.signature` MUST 绑定到 `requester_did` 当前 accepted requester identity:cross-signing requester MUST 携带 `ssk_generation` 并由该 generation 的 active **self-signing key** 签发；service-attested / enrollment-authority requester MUST 携带 `requester_device_id` 并由该设备当前 accepted `ck.device.authorize.payload.device_public_key` 签发。二者 MUST 精确二选一。签名方不是 Delivery Service service key,也不是被 claim 的 KeyPackage 的 `device_signature`。接收端 **MUST**:
 
-1. 通过 DID control chain 验证 `claim_envelope.signature` → `requester_did`;
+1. 对 cross-signing path,通过 DID control chain 验证 `claim_envelope.signature` → `requester_did` 的当前 accepted SSK generation;对 service-attested / enrollment-authority path,验证 `requester_device_id` 属于 `requester_did` 的当前未撤销 accepted device projection,且 signature `kid` 指向该 projection 的 `device_public_key`;
 2. 校验 `intended_realm_id` 等于 MLS Welcome 内 group_id 反向 resolve 出的 Realm(防止 server-side rewrite);
-3. 校验 `claim_id` 在 KeyPackage `claimed` 元数据中可见，`claim_envelope.nonce` 与 `claim_id` 关联的 nonce 一致，`claim_envelope.keypackage_digest == payload.keypackage_digest == payload.claim_ref.keypackage_digest`，且 `claim_envelope.ssk_generation == payload.claim_ref.ssk_generation == current accepted cross-signing generation`;
+3. 校验 `claim_id` 在 KeyPackage `claimed` 元数据中可见，`claim_envelope.nonce` 与 `claim_id` 关联的 nonce 一致，`claim_envelope.keypackage_digest == payload.keypackage_digest == payload.claim_ref.keypackage_digest`，`payload.claim_ref` 的 claimed-device trust binding 仍指向被 claim 设备当前 accepted state，且 `claim_envelope` 的 requester signing binding 仍指向 requester 当前 accepted SSK generation 或 accepted requester device;不得把 `payload.claim_ref.device_authorize_event_id` 当作 requester 签名身份使用;
 4. 校验 `welcome_digest` 等于 `canonical_digest(welcome_bytes)`,防止 envelope 被剥离后重新封装。
 
 任一项失败 → 拒绝 Welcome,reason=`keypackage_welcome_envelope_mismatch`,并 SHOULD 触发 client UI 警示，明确披露本次 Welcome envelope 无效，且邀请方身份无法为该 Realm 验证；具体本地化文案由客户端决定。
