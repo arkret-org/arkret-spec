@@ -185,9 +185,30 @@
         "key_package",
         "capabilities",
         "capabilities_digest",
-        "ssk_generation",
         "expires_at",
         "device_signature"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "ssk_generation"
+          ],
+          "not": {
+            "required": [
+              "device_authorize_event_id"
+            ]
+          }
+        },
+        {
+          "required": [
+            "device_authorize_event_id"
+          ],
+          "not": {
+            "required": [
+              "ssk_generation"
+            ]
+          }
+        }
       ],
       "properties": {
         "claim_id": {
@@ -217,6 +238,9 @@
         "ssk_generation": {
           "type": "integer",
           "minimum": 1
+        },
+        "device_authorize_event_id": {
+          "$ref": "#/$defs/non_empty_string"
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"

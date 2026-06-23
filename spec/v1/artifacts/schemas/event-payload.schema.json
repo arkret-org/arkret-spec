@@ -659,6 +659,11 @@
       "type": "string",
       "pattern": "^(ck:(realm|circle|space|actor_profile|strand|message|morph|relation|view|policy|grant|invite|call|agent_interop_session|audit_binding|audit_session|audit_release|blob|snapshot|event|franking_proof|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ck:blob:sha256:[0-9a-f]{64}|did:[^\\s]+|sha256:[0-9a-f]{64})$"
     },
+    "keypackage_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque content-addressed or service-scoped MLS KeyPackage reference. Hash-shaped refs MUST use keypackage_digest for digest bytes."
+    },
     "audit_binding_id": {
       "type": "string",
       "pattern": "^ck:audit_binding:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -5747,7 +5752,7 @@
           "$ref": "#/$defs/device_id"
         },
         "keypackage_ref": {
-          "$ref": "#/$defs/object_ref"
+          "$ref": "#/$defs/keypackage_ref"
         },
         "keypackage_digest": {
           "$ref": "#/$defs/hash",
@@ -5758,20 +5763,41 @@
         },
         "claim_ref": {
           "type": "object",
-          "description": "KeyPackage claim binding used by the receiver before decrypting the Welcome. claim_id, keypackage_ref, and keypackage_digest must match the top-level fields; capabilities_digest is sha256(JCS(claimed_capabilities)) from the single-use claim response; ssk_generation is the accepted cross-signing generation used when the claim was issued.",
+          "description": "KeyPackage claim binding used by the receiver before decrypting the Welcome. claim_id, keypackage_ref, and keypackage_digest must match the top-level fields; capabilities_digest is sha256(JCS(claimed_capabilities)) from the single-use claim response. Exactly one trust binding is present: ssk_generation for cross-signing devices, or device_authorize_event_id for service-attested enrollment-authority devices.",
           "required": [
             "claim_id",
             "keypackage_ref",
             "keypackage_digest",
-            "capabilities_digest",
-            "ssk_generation"
+            "capabilities_digest"
+          ],
+          "oneOf": [
+            {
+              "required": [
+                "ssk_generation"
+              ],
+              "not": {
+                "required": [
+                  "device_authorize_event_id"
+                ]
+              }
+            },
+            {
+              "required": [
+                "device_authorize_event_id"
+              ],
+              "not": {
+                "required": [
+                  "ssk_generation"
+                ]
+              }
+            }
           ],
           "properties": {
             "claim_id": {
               "$ref": "#/$defs/non_empty_string"
             },
             "keypackage_ref": {
-              "$ref": "#/$defs/object_ref"
+              "$ref": "#/$defs/keypackage_ref"
             },
             "keypackage_digest": {
               "$ref": "#/$defs/hash"
@@ -5782,28 +5808,52 @@
             "ssk_generation": {
               "type": "integer",
               "minimum": 1
+            },
+            "device_authorize_event_id": {
+              "$ref": "#/$defs/non_empty_string"
             }
           },
           "additionalProperties": false
         },
         "claim_envelope": {
           "type": "object",
-          "description": "Detached self-signing-key signature binding the claimed KeyPackage to this Welcome, Realm, claim nonce, and Welcome digest before decrypting the Welcome.",
+          "description": "Detached requester signature binding the claimed KeyPackage to this Welcome, Realm, claim nonce, and Welcome digest before decrypting the Welcome. Exactly one requester signing binding is present: ssk_generation for requester SSK signatures, or requester_device_id for service-attested requester device signatures.",
           "required": [
             "keypackage_ref",
             "keypackage_digest",
             "intended_realm_id",
             "claim_id",
             "requester_did",
-            "ssk_generation",
             "nonce",
             "welcome_digest",
             "created_at",
             "signature"
           ],
+          "oneOf": [
+            {
+              "required": [
+                "ssk_generation"
+              ],
+              "not": {
+                "required": [
+                  "requester_device_id"
+                ]
+              }
+            },
+            {
+              "required": [
+                "requester_device_id"
+              ],
+              "not": {
+                "required": [
+                  "ssk_generation"
+                ]
+              }
+            }
+          ],
           "properties": {
             "keypackage_ref": {
-              "$ref": "#/$defs/object_ref"
+              "$ref": "#/$defs/keypackage_ref"
             },
             "keypackage_digest": {
               "$ref": "#/$defs/hash"
@@ -5820,6 +5870,9 @@
             "ssk_generation": {
               "type": "integer",
               "minimum": 1
+            },
+            "requester_device_id": {
+              "$ref": "#/$defs/device_id"
             },
             "nonce": {
               "$ref": "#/$defs/non_empty_string"
@@ -5897,7 +5950,7 @@
           "$ref": "#/$defs/device_id"
         },
         "keypackage_ref": {
-          "$ref": "#/$defs/object_ref"
+          "$ref": "#/$defs/keypackage_ref"
         },
         "keypackage_digest": {
           "$ref": "#/$defs/hash",
