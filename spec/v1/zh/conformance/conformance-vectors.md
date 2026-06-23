@@ -24,6 +24,8 @@ updated: 2026-06-11
 14. Encryption Floor Ratchet
 15. Moderation / Policy Server / Key Backup / Federation Ingress
 
+MIMI Provider Facade 的 active interop vectors 为 `ck.vector.mimi.provider_directory_draft_pinning.v1`、`ck.vector.mimi.room_binding_projection.v1`、`ck.vector.mimi.keypackage_claim_lifecycle.v1`、`ck.vector.mimi.content_roundtrip.v1`、`ck.vector.mimi.identifier_query_privacy.v1`、`ck.vector.mimi.consent_isolation.v1`、`ck.vector.mimi.proxy_download_policy.v1` 与 `ck.vector.mimi.unsupported_draft_fail_closed.v1`；详细语义见 [`mimi-interop.md`](../extensions/mimi-interop.md)，可执行数据见 [`mimi-interop-fixture.json`](../../artifacts/fixtures/mimi-interop-fixture.json)。
+
 可执行向量数据集位于 [`spec/v1/artifacts/fixtures/`](../../artifacts/fixtures/)；
 本文档把对应规范条款与文件入口集中呈现，便于一致性测试 runner 引用。
 所有 `ck.vector.*` 标识符的机器索引位于 [`vector-registry.json`](../../artifacts/registry/vector-registry.json)；新增、删除或重命名向量时 MUST 同步更新该 registry，并通过 `tools/artifact_pipeline.py check` 的闭包校验。领域文档中定义的向量（例如 Directory / PSI / Search）只要在 registry `source_refs` 中登记，即属于同一 conformance suite。
@@ -373,7 +375,7 @@ ck.vector.encoding.event_batch_receipt_digest.v1
   "schema": "ck.schema.event_batch_receipt.v1",
   "receipt_id": "ck:receipt:01964186-0000-7000-8000-000000000000",
   "issuer": "did:web:alice.example",
-  "receipt_scope": {
+  "scope": {
     "actor_id": "did:web:alice.example"
   },
   "frontier": {
@@ -390,20 +392,20 @@ ck.vector.encoding.event_batch_receipt_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"frontier":{"actor_seq":1,"event_digest":"sha256:1111111111111111111111111111111111111111111111111111111111111111"},"issuer":"did:web:alice.example","receipt_id":"ck:receipt:01964186-0000-7000-8000-000000000000","receipt_scope":{"actor_id":"did:web:alice.example"},"schema":"ck.schema.event_batch_receipt.v1"}
+{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"frontier":{"actor_seq":1,"event_digest":"sha256:1111111111111111111111111111111111111111111111111111111111111111"},"issuer":"did:web:alice.example","receipt_id":"ck:receipt:01964186-0000-7000-8000-000000000000","schema":"ck.schema.event_batch_receipt.v1","scope":{"actor_id":"did:web:alice.example"}}
 ```
 
 期望 digest：
 
 ```text
-sha256:a828dc768e814ca0be50b5014e1115612776fa342f66df849e8bdd7e72dfa9b4
+sha256:c6dfa574b41c04ca7d909c2d3b6dc40c5312c6e4ba7187b181c2ef99b2ae4529
 ```
 
 失败条件：
 
 - `events` 数组被排序或去重后再 hash。
 - proof 字段被包含进 receipt digest。
-- `issuer`、`receipt_scope`、`frontier` 或 `schema` 被排除在 digest 外。
+- `issuer`、`scope`、`frontier` 或 `schema` 被排除在 digest 外。
 - `receipt_id` 大小写被实现私自改写。
 
 ### 1.8 Vector: Signature Binding Payload
@@ -3866,6 +3868,12 @@ Expected：
 - **Case A**：全部校验通过后，moderator MAY 把 `franking_proof` 视为可验证投递证明；evidence package MUST NOT 包含 Realm / Circle 历史 key、MLS epoch secret、exporter secret 或允许 moderator 解密未举报消息的材料；举报 MUST NOT 触发任何治理密钥释放（§3.4.1：MUST NOT 把 `ck.self.moderation.command.report` 自动升级为 `ck.audit.session.request`）。
 - **Case B(a)**：任一 digest 环节不符时，moderator MAY 把材料作为人工线索，但 MUST NOT 将该 `franking_proof` 视为可验证投递证明。
 - **Case B(b)**：schema / receiver MUST 拒绝携带 raw `mls_group_id`、明文 `epoch` 或 plaintext body 的 `franking_proof`（§3.4 最小披露 MUST NOT 条款）。
+
+### 15.1.1 Vector: Moderation Evidence Package Minimal Disclosure
+
+`vector_id`: `ck.vector.moderation.evidence_package_minimal_disclosure.v1`
+
+本向量固化 [`content-moderation.md`](../governance/content-moderation.md) §3.4 的 evidence package 最小披露闭包：evidence package MUST 加密给 `effective_scope` 对应 moderator audience，MUST 只包含 reporter 可见且愿意提交的目标证据，MUST NOT 包含 Realm / Circle 历史 key、MLS epoch secret、exporter secret 或允许 moderator 解密未举报消息的材料。
 
 ### 15.2 Vector: Moderation Appeal 状态转换原子性
 

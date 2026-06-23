@@ -27,6 +27,17 @@ updated: 2026-06-10
 - `draft-ietf-mimi-room-policy-03`
 - `draft-kohbrok-mimi-identifiers-01`
 
+本 profile 的 active conformance vectors 为：
+
+- `ck.vector.mimi.provider_directory_draft_pinning.v1`
+- `ck.vector.mimi.room_binding_projection.v1`
+- `ck.vector.mimi.keypackage_claim_lifecycle.v1`
+- `ck.vector.mimi.content_roundtrip.v1`
+- `ck.vector.mimi.identifier_query_privacy.v1`
+- `ck.vector.mimi.consent_isolation.v1`
+- `ck.vector.mimi.proxy_download_policy.v1`
+- `ck.vector.mimi.unsupported_draft_fail_closed.v1`
+
 这些草案仍是 Internet-Draft。实现 MUST 在 `server/describe` 和 MIMI provider directory 中声明实际支持的 draft version。草案更新导致 wire 语义变化时，Cokret MUST 通过新的 interop profile 版本处理，不得改变 v1 核心状态语义。
 
 ## 2. 角色

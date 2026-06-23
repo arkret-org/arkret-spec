@@ -2481,7 +2481,7 @@ def check_signed_object_closure(lint: Lint) -> None:
         if batch.get("additionalProperties") is not False:
             lint.fail(batch_path, "event batch receipt root additionalProperties must be false")
         properties = batch.get("properties") or {}
-        for name in ("receipt_scope", "frontier"):
+        for name in ("scope", "frontier"):
             schema = properties.get(name)
             if not isinstance(schema, dict) or schema.get("additionalProperties") is not False:
                 lint.fail(batch_path, f"event batch receipt {name} additionalProperties must be false")
@@ -2630,13 +2630,21 @@ def check_openapi_error_enum_alignment(lint: Lint) -> None:
 
 
 def check_wire_schema_no_bare_scope(lint: Lint) -> None:
-    """Wire schemas must use domain-prefixed scope field names."""
+    """Wire schemas must use bare scope only for an object's own boundary field."""
+    allowed = {
+        ("erasure-receipt.schema.json", "$.properties"),
+        ("erasure-receipt.schema.json", "$.$defs.verification_stub.properties"),
+        ("erasure-verification-stub.schema.json", "$.properties"),
+        ("event-batch-receipt.schema.json", "$.properties"),
+    }
     for path in sorted((ARTIFACTS / "schemas").glob("*.schema.json")):
         data = load_json(lint, path)
         if not isinstance(data, dict):
             continue
         for json_path, value, key in walk_json(data):
             if key == "properties" and isinstance(value, dict) and "scope" in value:
+                if (path.name, json_path) in allowed:
+                    continue
                 lint.fail(path, f"{json_path}.scope uses bare wire field `scope`; use a domain-prefixed name")
 
 

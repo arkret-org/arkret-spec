@@ -204,7 +204,7 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
   "schema": "ck.schema.event_batch_receipt.v1",
   "receipt_id": "ck:receipt:01964186-0000-7000-8000-000000000000",
   "issuer": "did:web:alice.example",
-  "receipt_scope": {
+  "scope": {
     "actor_id": "did:web:alice.example"
   },
   "frontier": {
@@ -216,7 +216,7 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 }
 ```
 
-`receipt_digest = sha256(canonical_json(receipt_without_proofs))`。`issuer`、`receipt_scope`、`frontier`、`events`、`schema` 必须进入 digest，防止 receipt 被跨 actor、跨 Realm 或跨前沿重放。
+`receipt_digest = sha256(canonical_json(receipt_without_proofs))`。`issuer`、`scope`、`frontier`、`events`、`schema` 必须进入 digest，防止 receipt 被跨 actor、跨 Realm 或跨前沿重放。
 
 ## 6. Signature
 
@@ -256,7 +256,7 @@ Proof MUST bind（下列为绑定字段集合；canonical binding object 的实�
 
 Verifier 顺序固定为：先从 Event 中移除 `proofs` 与 `unsigned`，按 §1 canonicalize 并计算 `event_digest`；再与 `proof.event_digest` constant-time 比对；最后按上表字段构造 canonical binding object 并验证 detached JWS。实现 MUST NOT 直接签 HTTP envelope、transport metadata 或只签 `payload` 字段。
 
-**Realm 绑定（normative）**：event proof 通过 `event_digest` 间接绑定 `realm_id` —— `event_digest = canonical_digest(event_without_proofs_unsigned)` 覆盖整个 envelope，而 envelope MUST 含 `realm_id` 字段（见 §1.6 event digest 向量）；任何改写 `realm_id` 的尝试都会改变 `event_digest`，使 proof 验证失败。因此 event proof 对跨 Realm 重放提供与 Event Batch Receipt 的 `receipt_scope` 等价的保护：receipt 显式绑定 `receipt_scope`（见 §5），event proof 经由 `event_digest` 覆盖 `realm_id`。实现 MUST 在验证 proof 前确认 envelope 的 `realm_id` 与处理上下文的目标 Realm 一致，MUST NOT 仅凭 proof 验证通过就跨 Realm 接受同一 Event。
+**Realm 绑定（normative）**：event proof 通过 `event_digest` 间接绑定 `realm_id` —— `event_digest = canonical_digest(event_without_proofs_unsigned)` 覆盖整个 envelope，而 envelope MUST 含 `realm_id` 字段（见 §1.6 event digest 向量）；任何改写 `realm_id` 的尝试都会改变 `event_digest`，使 proof 验证失败。因此 event proof 对跨 Realm 重放提供与 Event Batch Receipt 的 `scope` 等价的保护：receipt 显式绑定 `scope`（见 §5），event proof 经由 `event_digest` 覆盖 `realm_id`。实现 MUST 在验证 proof 前确认 envelope 的 `realm_id` 与处理上下文的目标 Realm 一致，MUST NOT 仅凭 proof 验证通过就跨 Realm 接受同一 Event。
 
 ### 6.1 Signature Suite registered set
 
