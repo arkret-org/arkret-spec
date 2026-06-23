@@ -324,6 +324,10 @@
             "revoke_widget_only",
             "revoke_delegated_sessions"
           ]
+        },
+        "proof": {
+          "$ref": "../schemas/account-operations.schema.json#/$defs/account_lifecycle_proof",
+          "description": "Required when revoke_mode includes delegated session revocation in production. The proof signs the canonical ck.gate.account.command.revoke_session transcript reconstructed from the active applet install selector."
         }
       },
       "additionalProperties": false

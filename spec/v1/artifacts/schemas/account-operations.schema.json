@@ -33,6 +33,21 @@
       "type": "string",
       "pattern": "^ck:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
+    "applet_id": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^ck:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        {
+          "$ref": "#/$defs/did"
+        }
+      ]
+    },
+    "typed_ref": {
+      "type": "string",
+      "pattern": "^ck:[a-z][a-z0-9_]*:[A-Za-z0-9._:-]+$"
+    },
     "hash": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
@@ -369,7 +384,42 @@
         "target_grant_id": { "$ref": "#/$defs/grant_id" },
         "target_device_id": { "$ref": "#/$defs/device_id" },
         "all_sessions": { "const": true },
+        "applet_id": { "$ref": "#/$defs/applet_id" },
+        "effective_scope": {
+          "$ref": "../schemas/applet-install-plan.schema.json#/$defs/effective_scope"
+        },
+        "registration_epoch": { "$ref": "#/$defs/hash" },
+        "service_did": { "$ref": "#/$defs/did" },
+        "capability_grant_refs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/typed_ref" },
+          "uniqueItems": true
+        },
         "proof": { "$ref": "#/$defs/account_lifecycle_proof" }
+      },
+      "dependentRequired": {
+        "applet_id": [
+          "effective_scope",
+          "registration_epoch"
+        ],
+        "effective_scope": [
+          "applet_id",
+          "registration_epoch"
+        ],
+        "registration_epoch": [
+          "applet_id",
+          "effective_scope"
+        ],
+        "service_did": [
+          "applet_id",
+          "effective_scope",
+          "registration_epoch"
+        ],
+        "capability_grant_refs": [
+          "applet_id",
+          "effective_scope",
+          "registration_epoch"
+        ]
       },
       "not": {
         "anyOf": [
@@ -389,6 +439,24 @@
             "required": [
               "target_device_id",
               "all_sessions"
+            ]
+          },
+          {
+            "required": [
+              "target_grant_id",
+              "applet_id"
+            ]
+          },
+          {
+            "required": [
+              "target_device_id",
+              "applet_id"
+            ]
+          },
+          {
+            "required": [
+              "all_sessions",
+              "applet_id"
             ]
           }
         ]
