@@ -67,7 +67,7 @@
           "pattern": "^ck:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         }
       ],
-      "description": "backup_id of the immediate predecessor in the same series_id. MUST be null for series_seq=0; MUST be non-null and reference an existing predecessor for series_seq>0."
+      "description": "backup_id of the immediate predecessor in the same series_id. MUST be absent for series_seq=0; MUST be present, non-null, and reference an existing predecessor for series_seq>0."
     },
     "supersedes_digest": {
       "$ref": "#/$defs/hash",
@@ -640,11 +640,6 @@
             },
             {
               "contains": {
-                "const": "supersedes"
-              }
-            },
-            {
-              "contains": {
                 "const": "encryption"
               }
             },
@@ -664,14 +659,41 @@
               }
             }
           ],
-          "description": "Names of envelope fields covered by the signature; MUST include backup_id, actor_id, backup_class, backup_version, series_id, series_seq, supersedes, encryption, domain_separation, contents, ciphertext_digest, and when present supersedes_digest, frontier_ref, recovery_policy_ref, and (hardening profile) ssk_generation."
+          "description": "Names of envelope fields covered by the signature; MUST include backup_id, actor_id, backup_class, backup_version, series_id, series_seq, encryption, domain_separation, contents, ciphertext_digest, and when present supersedes, supersedes_digest, frontier_ref, and recovery_policy_ref."
         },
         "ssk_generation": {
           "type": "integer",
           "minimum": 1,
-          "description": "Accepted ck.cross_signing.publish.generation of the self-signing key generation that authorized the device signing this backup. Hardening profiles require receivers to reject envelopes whose generation is below the current accepted generation outside the rotation grace window."
+          "description": "Accepted ck.cross_signing.publish.generation of the self-signing key generation that authorized the device signing this backup. Exactly one of auth_data.ssk_generation and auth_data.device_authorize_event_id identifies the device trust root."
+        },
+        "device_authorize_event_id": {
+          "type": "string",
+          "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "description": "Accepted ck.device.authorize event id anchoring the service_attested/enrollment-authority device signing this backup. Exactly one of auth_data.ssk_generation and auth_data.device_authorize_event_id identifies the device trust root."
         }
       },
+      "oneOf": [
+        {
+          "required": [
+            "ssk_generation"
+          ],
+          "not": {
+            "required": [
+              "device_authorize_event_id"
+            ]
+          }
+        },
+        {
+          "required": [
+            "device_authorize_event_id"
+          ],
+          "not": {
+            "required": [
+              "ssk_generation"
+            ]
+          }
+        }
+      ],
       "patternProperties": {
         "^x_[a-z][a-z0-9_]{0,63}$": true
       },
@@ -840,19 +862,22 @@
         ]
       },
       "then": {
-        "properties": {
-          "supersedes": {
-            "type": "null"
+        "allOf": [
+          {
+            "not": {
+              "required": [
+                "supersedes"
+              ]
+            }
+          },
+          {
+            "not": {
+              "required": [
+                "supersedes_digest"
+              ]
+            }
           }
-        },
-        "required": [
-          "supersedes"
-        ],
-        "not": {
-          "required": [
-            "supersedes_digest"
-          ]
-        }
+        ]
       }
     },
     {
@@ -877,6 +902,11 @@
             "properties": {
               "signed_fields": {
                 "allOf": [
+                  {
+                    "contains": {
+                      "const": "supersedes"
+                    }
+                  },
                   {
                     "contains": {
                       "const": "supersedes_digest"

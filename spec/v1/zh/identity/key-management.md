@@ -530,7 +530,6 @@ Cokret v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata 
   "backup_version": "kb_1",
   "series_id": "ck:backup_series:01964137-1000-7000-8000-000000000000",
   "series_seq": 0,
-  "supersedes": null,
   "created_at": "2026-04-26T00:00:00Z",
   "encryption": {
     "recipient_method": "passphrase_kdf",
@@ -675,18 +674,19 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 
 因此，解密能力最多是 recovery factor；真正改变 DID 控制状态必须落成 DID method history、key log、`recover`、`rotate`、`ck.device.authorize` 或等价 signed event。
 
-#### 7.4.1 备份签名的交叉签名信任根锚定（normative）
+#### 7.4.1 备份签名的设备信任根锚定（normative）
 
-`auth_data.signature` 由上传设备的 device signing key 产生（`auth_data.verification_method` 指向该 device key）。仅设备签名只能证明“某个持有该 device key 的实体写了它”，无法独立抵御**恶意服务器联合一个被攻破 / 已撤销的旧 device key 注入或替换备份 envelope**。因此 receiver 在信任并使用一条 backup envelope（恢复或读取）前 MUST 把该签名锚定到 actor 的交叉签名信任根：
+`auth_data.signature` 由上传设备的 device signing key 产生（`auth_data.verification_method` 指向该 device key）。仅设备签名只能证明“某个持有该 device key 的实体写了它”，无法独立抵御**恶意服务器联合一个被攻破 / 已撤销的旧 device key 注入或替换备份 envelope**。因此 receiver 在信任并使用一条 backup envelope（恢复或读取）前 MUST 把该签名锚定到 actor 当前 accepted 设备信任根：
 
-- receiver MUST 验证 `auth_data.verification_method` 指向的 device key 在 envelope `created_at` 时点属于该 actor 的有效设备集，即存在由当前 self-signing key（SSK，定义与 `ck.cross_signing.publish` 见 [`../crypto-media/device-lifecycle.md` §5](../crypto-media/device-lifecycle.md)）签发、链接到当前 published 交叉签名代际的 `ck.device.authorize`；
-- envelope MUST 携带对签发该设备授权的 self-signing key 代际的绑定（`auth_data.ssk_generation`）。这里的 `ssk_generation` 与 `ck.device.authorize.payload.cross_signing_binding.ssk_generation`、`ck.cross_signing.publish.generation` 是同一 cross-signing 代际计数（reset 时 `generation += 1`），其权威定义与单调性规则见 [`../crypto-media/device-lifecycle.md` §5](../crypto-media/device-lifecycle.md)（cross-signing publish）与 [`§14`](../crypto-media/device-lifecycle.md)（cross-signing reset / generation 推进）。receiver MUST 拒绝代际早于当前 published generation 且超出 rotation grace window 的 envelope（`stale_backup_trust_generation`）；
-- 无法链接到当前交叉签名信任根的 envelope（设备未授权 / 已撤销 / 代际不符）MUST 被视为 `untrusted_backup_signature` 并拒绝用于恢复，即使其 series 链与 `ciphertext_digest` 自洽。
-- **高敏 backup_class 的 `ssk_generation` 强制存在（normative）**：上一条的代际比对依赖 `auth_data.ssk_generation` 存在。`ssk_generation` 在 core schema 中非 required（见 [`../crypto-media/device-lifecycle.md` §12](../crypto-media/device-lifecycle.md)），但对 `backup_class ∈ {secret_storage, did_recovery}` 这两类高敏备份，缺失 `ssk_generation` 时 receiver MUST 对该 envelope fail-closed（`stale_backup_trust_generation`），MUST NOT 退回到"device key 在 `created_at` 时点是否有效"的较弱判定接受它用于恢复或读取。即：core 档下 `secret_storage` / `did_recovery` envelope 的 `auth_data.ssk_generation` 实质为 receiver 端强制要求，使恶意服务端联合旧 / 已撤销 device key 注入的高敏备份无法绕过代际比对。`mls_history` 类不受此强制约束，仍按各档 hardening profile 策略处置。
+- receiver MUST 验证 `auth_data.verification_method` 指向的 device key 属于该 actor 当前 accepted、未撤销的设备投影，并且该 device key 验证 `auth_data.signature` 覆盖的 canonical envelope；
+- cross-signing 设备路径：envelope MUST 携带对签发该设备授权的 self-signing key 代际的绑定（`auth_data.ssk_generation`）。这里的 `ssk_generation` 与 `ck.device.authorize.payload.cross_signing_binding.ssk_generation`、`ck.cross_signing.publish.generation` 是同一 cross-signing 代际计数（reset 时 `generation += 1`），其权威定义与单调性规则见 [`../crypto-media/device-lifecycle.md` §5](../crypto-media/device-lifecycle.md)（cross-signing publish）与 [`§14`](../crypto-media/device-lifecycle.md)（cross-signing reset / generation 推进）。receiver MUST 拒绝代际早于当前 published generation 且超出 rotation grace window 的 envelope（`stale_backup_trust_generation`）；
+- service-attested / enrollment-authority 设备路径（见 [`../crypto-media/device-lifecycle.md` §5.4](../crypto-media/device-lifecycle.md)）：envelope MUST 携带 `auth_data.device_authorize_event_id`，且该值 MUST 等于该 `auth_data.device_id` 当前 accepted 的 `ck.device.authorize` event id。receiver MUST 使用该设备投影中的 `payload.device_public_key` 验证 `auth_data.signature`；`auth_data.ssk_generation` 在此路径 MUST 缺失，因为 account authority 不持有、不得伪造本 principal 的 SSK；
+- `auth_data.ssk_generation` 与 `auth_data.device_authorize_event_id` MUST 精确二选一。二者同时存在、同时缺失、设备未授权、设备已撤销、代际不符、授权事件不符或签名验不过的 envelope MUST 被视为 `untrusted_backup_signature`（代际过旧时可用 `stale_backup_trust_generation`）并拒绝用于恢复，即使其 series 链与 `ciphertext_digest` 自洽。
+- **高敏 backup_class 的信任锚强制存在（normative）**：对 `backup_class ∈ {secret_storage, did_recovery}` 这两类高敏备份，receiver MUST fail-closed，MUST NOT 退回到"device key 在 `created_at` 时点是否有效"的较弱判定接受它用于恢复或读取。即：core 档下 `secret_storage` / `did_recovery` envelope 必须携带上述两个合法信任锚之一，使恶意服务端联合旧 / 已撤销 device key 注入的高敏备份无法绕过信任根比对。`mls_history` 类也必须满足本节签名锚定；其 freshness / frontier 强化仍按各档 hardening profile 策略处置。
 
-这样 envelope 的真实性锚定在 actor 的交叉签名树，而不是“碰巧持有某个 device key”，与 series 链（§7.6，防回滚 / 扣留）正交：前者保证 authenticity，后者保证 freshness / 单调性。
+这样 envelope 的真实性锚定在 actor 当前设备信任根，而不是“碰巧持有某个 device key”，与 series 链（§7.6，防回滚 / 扣留）正交：前者保证 authenticity，后者保证 freshness / 单调性。
 
-> **Schema 影响**：`ck.schema.key_backup.v1.auth_data.ssk_generation` 绑定 [`ck.cross_signing.publish`](../crypto-media/device-lifecycle.md) 的 `generation`（见 [`../crypto-media/device-lifecycle.md` §5](../crypto-media/device-lifecycle.md)）。`auth_data.ssk_generation` 是唯一合法字段；携带 `auth_data.x_ssk_generation` 的 envelope MUST reject（`schema_violation`，登记于 `artifacts/migration/renames.json`）。
+> **Schema 影响**：`ck.schema.key_backup.v1.auth_data.ssk_generation` 绑定 [`ck.cross_signing.publish`](../crypto-media/device-lifecycle.md) 的 `generation`（见 [`../crypto-media/device-lifecycle.md` §5](../crypto-media/device-lifecycle.md)）；`ck.schema.key_backup.v1.auth_data.device_authorize_event_id` 绑定 [`ck.device.authorize`](../crypto-media/device-lifecycle.md) 的 accepted event id（见 [`../crypto-media/device-lifecycle.md` §5.4](../crypto-media/device-lifecycle.md)）。二者 MUST 精确二选一；携带 `auth_data.x_ssk_generation` 或 `auth_data.x_device_authorize_event_id` 的 envelope MUST reject（`schema_violation`，登记于 `artifacts/migration/renames.json`）。
 
 ### 7.5 Recipient Method Profiles
 
@@ -764,8 +764,8 @@ v1 core 不把 `hardware_wrapped_key` 作为 `ck.schema.key_backup.v1.encryption
 
 - `series_id` 是 `ck:backup_series:<uuid>` typed-id。每个 `series_id` MUST 只属于一个 `(actor_id, backup_class)`，但同一 `(actor_id, backup_class)` MAY 在密钥泄露轮换或迁移过渡期拥有多个 series。常规状态下只能有一个 active series；当前 active series MUST 由下方 `ck.schema.key_backup_active_series.v1` signed active-series record 选择，不得由服务端返回顺序推断。
 - 新 envelope MUST 满足 `series_seq == prev.series_seq + 1`；`supersedes` MUST 是同 `series_id` 中上一条 envelope 的 `backup_id`，且 `supersedes_digest` MUST 等于上一条 envelope 排除 `auth_data.signature` 后 canonical_json 的哈希。
-- genesis envelope MUST `series_seq == 0`，`supersedes == null`，且 MUST NOT 携带 `supersedes_digest`。
-- `auth_data.signed_fields` MUST 覆盖 `series_id` / `series_seq` / `supersedes`；非 genesis envelope 还 MUST 覆盖 `supersedes_digest`，携带 `frontier_ref` 时还 MUST 覆盖 `frontier_ref`（schema 已在 `signed_fields.allOf.contains` / 条件分支中强制）；服务端 MUST NOT 替换这些字段。
+- genesis envelope MUST `series_seq == 0`，且 MUST NOT 携带 `supersedes` 或 `supersedes_digest`。
+- `auth_data.signed_fields` MUST 覆盖 `series_id` / `series_seq`；非 genesis envelope 还 MUST 覆盖 `supersedes` 与 `supersedes_digest`，携带 `frontier_ref` 时还 MUST 覆盖 `frontier_ref`（schema 已在 `signed_fields.allOf.contains` / 条件分支中强制）；服务端 MUST NOT 替换这些字段。
 - `frontier_ref` 是 RECOMMENDED 字段；当声明 `ck.profile.key_backup.memory_hard.v1` 或更高 hardening profile 时，`secret_storage` 与 `did_recovery` 类备份的新 envelope MUST 携带 `frontier_ref.frontier_digest`，并 SHOULD 携带 `frontier_ref.seal_ref` 与 `frontier_ref.ssk_generation`。
 - **`mls_history` 释放的 frontier 校验为 MUST（normative，非 `personal_node` profile）**：除 `personal_node` profile 外，`mls_history` 类备份的释放（恢复设备解出 MLS 历史材料）MUST 校验 active-series record（§7.6 `ck.schema.key_backup_active_series.v1`）并验证 envelope 的 `frontier_ref`（`frontier_digest`，可达时连同 `seal_ref` / `ssk_generation`）与当前 accepted control-stream frontier 一致；缺失 active-series record 或 frontier 校验不通过时 MUST fail closed，不得释放。否则服务端可静默回放旧 series，让恢复设备解出已 retired 的 MLS 历史密钥（正是本节要堵塞的回滚释放攻击）。该 MUST 取代上方矩阵 `mls_history × secret_storage_key` 单元格"释放仍以…为准"散文表述中可被读成可选的部分。
 - **Active-series record**：当某 `(actor_id, backup_class)` 存在多个 series，或实现需要向新设备声明 canonical series 时，principal control stream MUST 发布 event kind `ck.key_backup.active_series`，payload MUST validate as `ck.schema.key_backup_active_series.v1`。该 record MUST 至少绑定 `schema`、`actor_id`、`backup_class`、`active_series_id`、`issued_at`、`previous_series_ids[]`、`frontier_ref{frontier_digest, seal_ref?, ssk_generation}` 与签名 `auth_data`；`auth_data.signed_fields` MUST 覆盖这些字段，`auth_data.ssk_generation` MUST 等于当前 accepted self-signing generation。`active_series_id` MUST 指向同 `(actor_id, backup_class)` 下的 genesis 或 successor series；`previous_series_ids[]` 只用于 retention / read-old-data 过渡，不得作为 primary recovery source。Receiver MUST 先验证该 record 链接到当前 principal control stream 与当前 accepted self-signing generation，再使用其 `active_series_id` 拉取备份链。Envelope 自身的 `frontier_ref` 只证明该 envelope 创建时的 control-stream 位置，不能替代 active-series record。
