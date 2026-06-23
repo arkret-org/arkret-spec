@@ -104,6 +104,7 @@ grpc:
       MemberRemove: ck.self.circle.member.resource.delete
       ScopeRotate: ck.self.circle.command.rotate_scope
       Archive: ck.self.circle.command.archive
+      Restore: ck.self.circle.command.restore
       Tombstone: ck.self.circle.command.tombstone
     SelfRealmLink:
       List: ck.self.realm_link.query.list
@@ -317,6 +318,7 @@ mq:
     self.circle.member.resource.delete: ck.self.circle.member.resource.delete
     self.circle.command.rotate_scope: ck.self.circle.command.rotate_scope
     self.circle.command.archive: ck.self.circle.command.archive
+    self.circle.command.restore: ck.self.circle.command.restore
     self.circle.command.tombstone: ck.self.circle.command.tombstone
     self.realm_link.query.list: ck.self.realm_link.query.list
     self.realm_link.command.create: ck.self.realm_link.command.create

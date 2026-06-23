@@ -1756,6 +1756,56 @@
       }
     },
     {
+      "operation_id": "ck.self.circle.command.restore",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
+        "schema_kind": "object",
+        "required": [],
+        "properties": [
+          "reason_code"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
+        "schema_kind": "object",
+        "required": [
+          "circle_id",
+          "realm_id",
+          "title",
+          "directory_visibility",
+          "join_rule",
+          "history_visibility",
+          "encryption_profile",
+          "state",
+          "members",
+          "created_by",
+          "created_at"
+        ],
+        "properties": [
+          "circle_id",
+          "realm_id",
+          "title",
+          "summary",
+          "directory_visibility",
+          "join_rule",
+          "history_visibility",
+          "content_encryption_floor",
+          "metadata_encryption_floor",
+          "encryption_profile",
+          "mls_group_ref",
+          "state",
+          "members",
+          "created_by",
+          "created_at",
+          "updated_by",
+          "updated_at"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ck.self.circle.command.tombstone",
       "success_shape_kind": "typed_response",
       "request": {

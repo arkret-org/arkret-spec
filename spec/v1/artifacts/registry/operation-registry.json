@@ -146,6 +146,7 @@
         "ck.self.circle.member.resource.delete",
         "ck.self.circle.command.rotate_scope",
         "ck.self.circle.command.archive",
+        "ck.self.circle.command.restore",
         "ck.self.circle.command.tombstone"
       ]
     },
@@ -939,6 +940,16 @@
       "grpc": "SelfCircle/Archive",
       "mq": "self.circle.command.archive",
       "notes": "Builds ck.circle.archive; transition follows the Circle lifecycle matrix (reducer rejects illegal transitions with circle_not_active).",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
+      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view"
+    },
+    {
+      "operation_id": "ck.self.circle.command.restore",
+      "http": "POST /_cokret/self/circles/{circle_id}/restore",
+      "grpc": "SelfCircle/Restore",
+      "mq": "self.circle.command.restore",
+      "notes": "Builds ck.circle.restore; transition follows the Circle lifecycle matrix (reducer rejects illegal transitions with circle_not_archived). Restore re-enables new writes after pending MLS membership removals are settled.",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view"

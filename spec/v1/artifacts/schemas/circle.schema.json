@@ -120,7 +120,8 @@
         "active",
         "archived",
         "tombstoned"
-      ]
+      ],
+      "description": "Circle lifecycle state. v1 defines active, archived, and tombstoned only; Circle has no independent freeze or destroy state because parent Realm freeze/destroy applies at the Realm boundary."
     },
     "state_changed_at": {
       "$ref": "#/$defs/timestamp"

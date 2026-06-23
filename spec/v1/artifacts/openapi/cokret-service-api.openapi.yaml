@@ -4397,6 +4397,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CircleView'
+  /_cokret/self/circles/{circle_id}/restore:
+    post:
+      operationId: ck.self.circle.command.restore
+      security:
+      - bearerAuth: []
+      summary: Restore an archived Circle (ck.circle.restore).
+      parameters:
+      - in: path
+        name: circle_id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CircleLifecycleRequestBody'
+      responses:
+        '200':
+          description: Circle restored.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CircleView'
   /_cokret/self/circles/{circle_id}/tombstone:
     post:
       operationId: ck.self.circle.command.tombstone

@@ -18,13 +18,13 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 173,
+    "total_operations": 174,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 1,
       "service_describe": 7,
       "streaming_frame_schema": 2,
-      "typed_schema": 161
+      "typed_schema": 162
     },
     "by_tier_and_class": {
       "core": {
@@ -39,7 +39,7 @@
         "binary_or_redirect": 2,
         "no_request_body": 1,
         "service_describe": 2,
-        "typed_schema": 109
+        "typed_schema": 110
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -1473,6 +1473,20 @@
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
       "openapi_component_refs": {
         "request": "#/components/schemas/CircleCreateRequestBody",
+        "response": "#/components/schemas/CircleView"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.self.circle.command.restore",
+      "tier": "extension",
+      "http": "POST /_cokret/self/circles/{circle_id}/restore",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
+      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/CircleLifecycleRequestBody",
         "response": "#/components/schemas/CircleView"
       },
       "completeness_class": "typed_schema",

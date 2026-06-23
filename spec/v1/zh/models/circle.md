@@ -314,6 +314,8 @@ Membership transition table（`membership` 复用 `ck.member.state` 的 `members
 
 ### 9.2 Lifecycle cascade
 
+Circle lifecycle 只有 `active` / `archived` / `tombstoned` 三态，对应 `ck.circle.archive` / `ck.circle.restore` / `ck.circle.tombstone`。v1 不定义 `ck.circle.freeze` 或 `ck.circle.destroy`：`archived` 是可恢复的新写入冻结；`tombstoned` 是 Circle 本身的不可逆终态；父 Realm 的 `freeze` / `destroy` 在父边界统一生效，Circle 不持有独立 federation identity 或 successor 语义。
+
 因为对象只有单一 scope,lifecycle cascade 简单:
 
 | 场景 | Realm-level / 未 scope 对象 | scope_circle_id 指向该 Circle 的对象 |
