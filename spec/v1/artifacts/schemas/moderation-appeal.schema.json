@@ -33,7 +33,7 @@
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
     "target_ref": {
-      "type": "string",
+      "$ref": "./event-payload.schema.json#/$defs/object_ref",
       "description": "The original moderation target (message, strand, member, blob, etc.) — same typed-id form as the appealed decision's target."
     },
     "timestamp": {

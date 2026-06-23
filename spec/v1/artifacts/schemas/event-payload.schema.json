@@ -301,6 +301,10 @@
       "pattern": "^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "A Space with kind=list."
     },
+    "actor_profile_id": {
+      "type": "string",
+      "pattern": "^ck:actor_profile:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
     "message_id": {
       "type": "string",
       "pattern": "^ck:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -1606,8 +1610,7 @@
       ],
       "properties": {
         "target_ref": {
-          "type": "string",
-          "pattern": "^ck:actor_profile:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "$ref": "#/$defs/actor_profile_id"
         },
         "target_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"

@@ -22,8 +22,7 @@
       "description": "Governance boundary for this report. When absent, the report is Realm-default. Circle-scoped targets MUST resolve to the target Circle and route only to scoped moderators/admins."
     },
     "target_ref": {
-      "type": "string",
-      "pattern": "^(ck:(event|strand|realm|message|morph|relation|view|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ck:blob:sha256:[0-9a-f]{64})$"
+      "$ref": "./event-payload.schema.json#/$defs/object_ref"
     },
     "report_reason_code": {
       "type": "string",
@@ -48,8 +47,7 @@
     "evidence_refs": {
       "type": "array",
       "items": {
-        "type": "string",
-        "pattern": "^(ck:(event|message|blob|franking_proof|morph|relation):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ck:blob:sha256:[0-9a-f]{64})$"
+        "$ref": "./event-payload.schema.json#/$defs/object_ref"
       },
       "uniqueItems": true
     },
