@@ -138,7 +138,9 @@ Schema id: `ck.schema.realm.v1`
 
 1. **物化 Realm metadata**：把 `payload.object` 写入 reducer 视图（schema 校验、`encryption_profile` / `security_class` / `notary_profile` / `digest_algorithm` 等 create-locked 字段固化）。
 2. **写入 `ck.component.member.state.v1` cell**（`subject=created_by`，state=`join`，hlc 取自 create event）。这 **不要求** 发起者额外提交一条 `ck.member.state{join}` event，event 本身的 `created_by == actor_id` 已经是 spec 规定的成员资格凭证（[`common-fields.md` §3](common-fields.md)、[`event-and-patch.md` §2.5](event-and-patch.md#25-create-类-event-的跨字段语义校验)）。
-3. **写入 `ck.component.realm.create.v1` cell**（cas_register，bottom=reject，duplicate create 拒绝为 `realm_already_exists`）。
+3. **写入 `ck.component.realm.create.v1` cell**（ordered_log，bottom=expose，genesis singleton）。该 cell 记录 accepted create 条目用于审计 / backfill；reducer 仍 MUST 把同一 Realm id 的第二条 create 拒绝为 `realm_already_exists`，不得把 duplicate create 作为普通 log append 接受。
+
+Realm bootstrap event set 以 `ck.realm.create` 开始。创建时没有可引用的 accepted Seal，因此 `ck.realm.create` 以及同一 `ck.self.events.command.submit` 批次中紧随其后、由同一 `actor_id` 写入同一 Realm 初始配置的 bootstrap follow-up event（`ck.realm.policy_components` / `ck.realm.join_rule` / `ck.realm.history_visibility` / `ck.realm.discovery` / `ck.realm.plaintext_visible_services` / 初始 invite 用 `ck.member.state`）MAY 携带 bootstrap `preconditions[]` / `effects[]` 而不携带 `seal_basis`。这些 follow-up event 的 bootstrap basis 是本批 create 已按 wire 顺序 accepted、对应 cell 尚无 accepted 值（常见 wire 形态为 `head_eq null`），以及 `payload.object.created_by == actor_id` 所建立的 creator membership。此例外只适用于同一 submit batch 的 Realm genesis 初始化；批次结束后，所有写 control plane cell 的 reducer-input event 仍按 [`event-auth-state-resolution.md` §5](../authz/event-auth-state-resolution.md#5-control-move) 携带非空 `seal_basis.leaves[]`。
 
 Authz 含义：
 

@@ -428,7 +428,7 @@
       }
     },
     {
-      "$comment": "Known active reducer-input event kinds MUST carry effects and exactly one CBA basis shape: DataEvent (seal_ref + auth_context, no preconditions/seal_basis) OR Control Move (seal_basis, no seal_ref/auth_context). Unknown extension kinds must declare their own critical extension requirements and are not matched by this branch.",
+      "$comment": "Known active reducer-input event kinds MUST carry effects and exactly one CBA basis shape: DataEvent (seal_ref + auth_context, no preconditions/seal_basis), Control Move (seal_basis, no seal_ref/auth_context), the ck.realm.create genesis bootstrap shape, OR a Realm bootstrap follow-up shape (same submit batch after create; batch context is enforced by admission, not JSON Schema). Unknown extension kinds must declare their own critical extension requirements and are not matched by this branch.",
       "if": {
         "properties": {
           "kind": {
@@ -643,6 +643,71 @@
                 {
                   "required": [
                     "auth_context"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "properties": {
+              "kind": {
+                "const": "ck.realm.create"
+              }
+            },
+            "required": [
+              "kind"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "seal_ref"
+                  ]
+                },
+                {
+                  "required": [
+                    "auth_context"
+                  ]
+                },
+                {
+                  "required": [
+                    "seal_basis"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "ck.member.state",
+                  "ck.realm.discovery",
+                  "ck.realm.history_visibility",
+                  "ck.realm.join_rule",
+                  "ck.realm.plaintext_visible_services",
+                  "ck.realm.policy_components"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "seal_ref"
+                  ]
+                },
+                {
+                  "required": [
+                    "auth_context"
+                  ]
+                },
+                {
+                  "required": [
+                    "seal_basis"
                   ]
                 }
               ]
@@ -1048,6 +1113,25 @@
         ]
       },
       "then": {
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "seal_ref"
+              ]
+            },
+            {
+              "required": [
+                "auth_context"
+              ]
+            },
+            {
+              "required": [
+                "seal_basis"
+              ]
+            }
+          ]
+        },
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/realm_create_payload"

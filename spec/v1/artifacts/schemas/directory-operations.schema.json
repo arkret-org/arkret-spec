@@ -392,6 +392,28 @@
         "avatar_blob_ref": {
           "$ref": "./blob.schema.json#/properties/blob_ref"
         },
+        "verified_badge": {
+          "type": "boolean",
+          "description": "Public organization verification badge suitable for directory preview rendering."
+        },
+        "member_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Public exact organization member count when the organization directory policy permits exact counts."
+        },
+        "realms": {
+          "type": "array",
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/realm_id"
+          },
+          "uniqueItems": true,
+          "description": "Public Realm ids linked to this organization when the organization directory policy permits Realm fan-out preview."
+        },
+        "realm_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Count of public Realm ids linked to this organization."
+        },
         "as_of": {
           "$ref": "#/$defs/timestamp"
         },

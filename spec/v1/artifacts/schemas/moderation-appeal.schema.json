@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/moderation-appeal.schema.json",
   "title": "Cokret Moderation Appeal",
-  "description": "Payload shapes for the four ck.moderation.appeal.* event kinds (submit / review / decision / close) that close the moderation appeal loop. Each kind writes the ck.component.moderation.appeal.v1 cell on a deterministic state machine: (none) → submitted → under_review → decided → closed, with close also allowed from submitted/under_review for appellant withdrawal or a deployment's authorized close service (close is a manual/authorized action; the protocol mandates no auto-close timer or cool-off duration). The decided state additionally records the verdict (uphold / overturn / modify); overturn MUST be paired in the same ordered submit batch or equivalent control transaction with a ck.moderation.decision.lift event referencing the original decision. All payloads carry realm_id and reducers MUST require it to equal the enclosing Event.realm_id and the appealed decision's Realm. See zh/governance/content-moderation.md §5.5 (appeal strand). Capability: ck.moderation.appeal.submit (any member, low risk) for submit; ck.moderation.appeal.review (moderator) for review/decision/manual reviewer close; appellant withdrawal is authorized by closer == appellant.",
+  "description": "Payload shapes for the four ck.moderation.appeal.* event kinds (submit / review / decision / close) that close the moderation appeal loop. Each kind writes the ck.component.moderation.appeal.v1 cell on a deterministic state machine: (none) → submitted → under_review → decided → closed; close from submitted/under_review is allowed only for appellant withdrawal (closer == appellant and close_reason=appellant_withdrawn). The decided state additionally records the verdict (uphold / overturn / modify); overturn MUST be paired in the same ordered submit batch or equivalent control transaction with a ck.moderation.decision.lift event referencing the original decision. All payloads carry realm_id and reducers MUST require it to equal the enclosing Event.realm_id and the appealed decision's Realm. See zh/governance/content-moderation.md §5.5 (appeal strand). Capability: ck.moderation.appeal.submit (any member, low risk) for submit; ck.moderation.appeal.review (moderator) for review/decision/manual reviewer close after decided; appellant withdrawal is authorized by closer == appellant.",
   "type": "object",
   "oneOf": [
     {
@@ -53,7 +53,7 @@
     },
     "submit_payload": {
       "type": "object",
-      "description": "ck.moderation.appeal.submit — opens the appeal. Writes appeal cell (state=submitted). MUST be issued by an appellant who is the original moderation target's controller (member appealing their own ban / message removal) or by an authorized advocate listed in Realm policy. appellant MUST hold ck.moderation.appeal.submit capability.",
+      "description": "ck.moderation.appeal.submit — opens the appeal. Writes appeal cell (state=submitted). MUST be issued by an appellant who is the original moderation target's controller (member appealing their own ban / message removal) or by an authorized advocate listed in Realm policy. A Realm member appellant is admitted by baseline membership; a non-member advocate MUST be authorized by Realm policy / ck.moderation.appeal.submit capability.",
       "required": [
         "appeal_id",
         "realm_id",
@@ -234,7 +234,7 @@
     },
     "close_payload": {
       "type": "object",
-      "description": "ck.moderation.appeal.close — closes the appeal from submitted/under_review/decided. Reviewer close and a deployment's authorized close service use the review capability; appellant withdrawal is authorized by closer == appellant while state is submitted or under_review. close is a manual/authorized action: the protocol does not mandate any auto-close timer, timeout duration, or cool-off duration — deployment/Realm policy decides those. Idempotency only: the same (decision_ref, appellant) pair MUST NOT have two non-closed appeals concurrently; a fresh appeal_id is allowed once the prior appeal cell is closed.",
+      "description": "ck.moderation.appeal.close — closes the appeal from decided, or from submitted/under_review only for appellant withdrawal. Reviewer close and a deployment's authorized close service use the review capability after the appeal is decided; appellant withdrawal is authorized by closer == appellant plus close_reason=appellant_withdrawn while state is submitted or under_review. close is a manual/authorized action: the protocol does not mandate any auto-close timer, timeout duration, or cool-off duration — deployment/Realm policy decides those. Idempotency only: the same (decision_ref, appellant) pair MUST NOT have two non-closed appeals concurrently; a fresh appeal_id is allowed once the prior appeal cell is closed.",
       "required": [
         "appeal_id",
         "realm_id",

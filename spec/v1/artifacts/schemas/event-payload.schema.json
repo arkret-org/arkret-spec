@@ -6826,7 +6826,9 @@
       "description": "Payload for ck.moderation.decision. An sealed moderation decision that writes an or_set add effect onto the ck.component.moderation_state.v1 cell whose subject is target_ref (the moderated target_event_id / target_object_id canonical string). See zh/authz/policy-server.md §7.1 and zh/governance/content-moderation.md §2.6 / §8.1. The decision verb is the runtime result set hard_deny / soft_deny / quarantine / require_review (all lower snake_case; allow is never sealed and soft_deny does not itself write the cell). The optional action carries the finer-grained §5.3 moderation_policy action family. The actor MUST independently hold ck.realm.moderation_policy or ck.policy.manage; refs[role=authorized_by] SHOULD reference the Policy Server signed decision for audit (not a capability source).",
       "required": [
         "target_ref",
-        "decision"
+        "decision",
+        "issuer",
+        "request_canonical_digest"
       ],
       "properties": {
         "target_ref": {
@@ -6842,6 +6844,14 @@
             "require_review"
           ],
           "description": "Runtime decision verb (content-moderation.md §2.5 / §8.1). Lower snake_case; implementations MUST NOT introduce uppercase or camelCase variants."
+        },
+        "issuer": {
+          "$ref": "./common-ids.schema.json#/$defs/did",
+          "description": "Actor or service DID issuing the sealed moderation decision. Reducers use it as part of the or_set add tag and appeal separation-of-duties check."
+        },
+        "request_canonical_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "JCS SHA-256 digest of the moderated request or event preview bound to the Policy Server decision. Part of the moderation_state or_set add tag."
         },
         "action": {
           "type": "string",

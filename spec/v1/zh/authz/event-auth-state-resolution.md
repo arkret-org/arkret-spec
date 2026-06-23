@@ -174,7 +174,7 @@ SeenReceipt 只证明"被某个主体看见"，不证明事件有效、不提议
 
 ## 5. Control Move
 
-Control Move 是写 control plane cell 的 Event。它仍使用 Event Envelope，但 MUST 携带 `seal_basis`，MUST NOT 携带 `seal_ref`。
+Control Move 是写 control plane cell 的 Event。它仍使用 Event Envelope，但 MUST 携带 `seal_basis`，MUST NOT 携带 `seal_ref`。唯一例外是 [`ck.realm.create`](../models/realm-and-space.md#25-ckrealmcreate-reducer-bootstrapnormative) 所属 Realm bootstrap event set：Realm 创建前不存在可引用的 accepted Seal，因此 create 及同一 submit batch 内由同一 actor 写入同一 Realm 初始配置的 bootstrap follow-up event MAY 携带 bootstrap `effects[]` / `preconditions[]` 而不携带 `seal_basis`；此例外不得推广到 batch 外或非 bootstrap Control Move。
 
 ```text
 ControlMove {

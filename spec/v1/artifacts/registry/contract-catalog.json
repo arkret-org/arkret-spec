@@ -2125,7 +2125,7 @@
         "cell_family": "ck.component.moderation_state.v1",
         "cell_subject": {
           "type": "string",
-          "field": "payload.decision_id"
+          "field": "payload.target_ref"
         },
         "lattice": "or_set",
         "bottom": "reject"
@@ -2140,7 +2140,7 @@
         "cell_family": "ck.component.moderation_state.v1",
         "cell_subject": {
           "type": "string",
-          "field": "payload.decision_ref"
+          "field": "payload.target_ref"
         },
         "lattice": "or_set",
         "bottom": "reject"
