@@ -44,8 +44,7 @@
       "description": "Predecessor policy_id. Null only for the genesis policy of a principal."
     },
     "trust_domain": {
-      "type": "string",
-      "pattern": "^ck:trust_domain:[A-Za-z0-9_.:-]{1,128}$",
+      "$ref": "./common-ids.schema.json#/$defs/trust_domain",
       "description": "Deployment-scope trust domain identifier the policy applies to. Cross-domain proofs MUST fail."
     },
     "allowed_proof_kinds": {
@@ -674,8 +673,7 @@
           "description": "Convenience tuple equivalent to `{policy_id, policy_version: version}`. When present, it MUST match policy_id/version."
         },
         "trust_domain": {
-          "type": "string",
-          "pattern": "^ck:trust_domain:[A-Za-z0-9_.:-]{1,128}$"
+          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
         },
         "allowed_proof_kinds": {
           "type": "array",

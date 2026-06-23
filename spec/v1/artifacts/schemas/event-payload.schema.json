@@ -661,7 +661,7 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^(ck:(realm|circle|space|actor_profile|strand|message|morph|relation|view|policy|grant|invite|call|agent_interop_session|audit_binding|audit_session|audit_release|blob|snapshot|event|franking_proof|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ck:blob:sha256:[0-9a-f]{64}|did:[^\\s]+|sha256:[0-9a-f]{64})$"
+      "pattern": "^(ck:(realm|circle|space|actor_profile|strand|message|morph|relation|view|policy|grant|invite|call|agent_interop_session|audit_binding|audit_session|audit_release|blob|snapshot|event|franking_proof|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ck:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
     },
     "keypackage_ref": {
       "type": "string",

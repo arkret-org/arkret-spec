@@ -43,7 +43,7 @@
       "$ref": "#/$defs/ref"
     },
     "rank": {
-      "type": "string",
+      "$ref": "#/$defs/rank",
       "description": "Top-level rank string for ordered relations (e.g. contains-list-strand position). Encoding follows conformance/encoding.md §9. Aligned with Space.rank so all rank-bearing canonical objects expose rank at the top level instead of fields.rank."
     },
     "fields": {
@@ -144,6 +144,10 @@
       "type": "string",
       "pattern": "^(ck:(realm|space|actor_profile|strand|message|morph|relation|event|view|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ck:blob:(sha256|blake3):[0-9a-f]{64}|did:.+)$",
       "description": "Typed canonical reference. Allowed kinds: realm, space, actor_profile, strand, message, morph, relation, event, view, blob metadata ID, content-addressed blob ref (active digest suites per artifacts/registry/digest-suite-registry.json; v1: sha256 / blake3), or DID. Space is a valid Relation endpoint (board/list containers, e.g. board --contains--> list). The blob ref suite set is aligned with blob.schema.json and notification.schema.json so any content-addressed blob ref accepted in those schemas is also accepted as a Relation endpoint."
+    },
+    "rank": {
+      "type": "string",
+      "pattern": "^[0-9A-Za-z]{1,128}$"
     },
     "did": {
       "type": "string",

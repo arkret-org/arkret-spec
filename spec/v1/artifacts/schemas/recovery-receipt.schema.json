@@ -46,8 +46,7 @@
       "minimum": 1
     },
     "trust_domain": {
-      "type": "string",
-      "pattern": "^ck:trust_domain:[A-Za-z0-9_.:-]{1,128}$"
+      "$ref": "./common-ids.schema.json#/$defs/trust_domain"
     },
     "new_device_id": {
       "type": "string",

@@ -193,7 +193,7 @@
           "$ref": "./relation.schema.json#/$defs/ref"
         },
         "source_actor_id": {
-          "type": "string"
+          "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "source_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -202,7 +202,7 @@
           "$ref": "./relation.schema.json#/$defs/ref"
         },
         "target_actor_id": {
-          "type": "string"
+          "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "target_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"

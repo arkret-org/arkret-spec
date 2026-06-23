@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.io/artifacts/schemas/common-ids.schema.json",
-  "title": "Cokret Common Typed-ID Definitions",
-  "description": "Shared typed-ID pattern $defs referenced cross-file by multiple object schemas so a single id-form change propagates without inline drift. Defs-only: not an object or event schema. See zh/models/common-fields.md §6 and artifacts/registry/id-kind-registry.json for the authoritative ID kind registry.",
+  "title": "Cokret Common ID and Reference Definitions",
+  "description": "Shared ID and reference pattern $defs referenced cross-file by multiple object schemas so a single form change propagates without inline drift. Defs-only: not an object or event schema. See zh/models/common-fields.md and artifacts/registry/id-kind-registry.json for the authoritative ID kind registry.",
   "$defs": {
     "realm_id": {
       "type": "string",
@@ -12,9 +12,25 @@
       "type": "string",
       "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
+    "device_id": {
+      "type": "string",
+      "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "grant_id": {
+      "type": "string",
+      "pattern": "^ck:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
     "agent_interop_session_id": {
       "type": "string",
       "pattern": "^ck:agent_interop_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "blob_ref": {
+      "type": "string",
+      "pattern": "^ck:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
+    },
+    "trust_domain": {
+      "type": "string",
+      "pattern": "^ck:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
     },
     "did": {
       "type": "string",

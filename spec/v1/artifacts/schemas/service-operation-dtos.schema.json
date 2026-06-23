@@ -162,8 +162,7 @@
           "description": "Optional; MUST equal the grant's bound audience if present (audience MUST NOT change across rotation, else audience_mismatch)."
         },
         "device_id": {
-          "type": "string",
-          "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "$ref": "./common-ids.schema.json#/$defs/device_id",
           "description": "Concrete authorized device restoring the soft-logged-out grant chain. MUST match the persisted grant device binding and the grant JWT device_id claim."
         },
         "proof": {
@@ -244,7 +243,7 @@
       ],
       "properties": {
         "grant_id": {
-          "type": "string"
+          "$ref": "./common-ids.schema.json#/$defs/grant_id"
         },
         "grant_jwt": {
           "type": "string",
@@ -272,7 +271,7 @@
           "description": "RFC 7638 thumbprint of the holder key (equals the grant's cnf.jkt)."
         },
         "previous_grant_id": {
-          "type": "string",
+          "$ref": "./common-ids.schema.json#/$defs/grant_id",
           "description": "The prior grant, single-use revoked on success."
         }
       }
@@ -291,6 +290,7 @@
         },
         "logout_request_digest": {
           "type": "string",
+          "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
           "description": "Optional digest of the validated client-visible account /logout request that caused this S2S sub-operation."
         },
         "validated_at": {
@@ -347,8 +347,8 @@
       ],
       "properties": {
         "id": {
-          "type": "string",
-          "description": "Grant id (ULID). Mutually exclusive with grant_jwt."
+          "$ref": "./common-ids.schema.json#/$defs/grant_id",
+          "description": "Grant id. Mutually exclusive with grant_jwt."
         },
         "grant_jwt": {
           "type": "string",
@@ -436,7 +436,7 @@
       ],
       "properties": {
         "id": {
-          "type": "string"
+          "$ref": "./common-ids.schema.json#/$defs/grant_id"
         },
         "issuer": {
           "type": "string"
@@ -448,7 +448,7 @@
           "type": "string"
         },
         "device_id": {
-          "type": "string"
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
         },
         "audience": {
           "type": "string"
@@ -711,11 +711,11 @@
       ],
       "properties": {
         "blob_ref": {
-          "type": "string",
+          "$ref": "./common-ids.schema.json#/$defs/blob_ref",
           "description": "Target blob. MUST be a content-addressed ref or visible blob metadata id."
         },
         "realm_id": {
-          "type": "string",
+          "$ref": "./common-ids.schema.json#/$defs/realm_id",
           "description": "Realm binding for Realm-owned blobs. Servers MUST include the same realm_id in the presign envelope and reject mismatches with blob metadata; only deployment-public/global blobs may omit this field."
         },
         "max_age_seconds": {
@@ -1694,7 +1694,8 @@
           }
         },
         "state_digest": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
         },
         "evaluated_at": {
           "type": "string"
@@ -3182,7 +3183,8 @@
           "description": "External pointer to the Snapshot manifest; MUST equal schemas/snapshot.schema.json#/properties/id."
         },
         "state_digest": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
         },
         "snapshot_frontier": {
           "type": "array",

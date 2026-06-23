@@ -35,8 +35,7 @@
       "pattern": "^ck:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "trust_domain": {
-      "type": "string",
-      "pattern": "^ck:trust_domain:[A-Za-z0-9_.:-]{1,128}$"
+      "$ref": "./common-ids.schema.json#/$defs/trust_domain"
     },
     "challenge": {
       "type": "string",
