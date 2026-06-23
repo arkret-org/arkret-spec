@@ -74,6 +74,30 @@
       "description": "Session was soft-logged-out and must be refreshed."
     },
     {
+      "code": "account_locked",
+      "http_status": 401,
+      "scope": "both",
+      "description": "The principal account is locked. Existing session grants are invalidated and protected requests MUST fail closed; new session issuance MAY surface the same code with a 403 policy-denial status."
+    },
+    {
+      "code": "account_suspended",
+      "http_status": 403,
+      "scope": "both",
+      "description": "The principal account is suspended. Existing sessions may observe account state where permitted, but new session issuance and writes MUST fail closed with this code."
+    },
+    {
+      "code": "account_deactivated",
+      "http_status": 401,
+      "scope": "both",
+      "description": "The principal account is deactivated. Existing session grants are invalidated and protected requests MUST fail closed; new session issuance MAY surface the same code with a 403 policy-denial status."
+    },
+    {
+      "code": "account_erased",
+      "http_status": 401,
+      "scope": "both",
+      "description": "The principal account is in terminal erasure_pending state. Existing session grants are invalidated and protected requests MUST fail closed with this code instead of a generic unauthenticated response."
+    },
+    {
       "code": "did_proof_required",
       "http_status": 401,
       "scope": "both",

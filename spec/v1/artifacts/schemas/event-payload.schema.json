@@ -1626,12 +1626,13 @@
     },
     "strand_patch_payload": {
       "type": "object",
+      "description": "Payload class for ck.strand.update. Patches ordinary Strand fields on the Strand identified by target_ref.",
       "required": [
-        "strand_id",
+        "target_ref",
         "patch"
       ],
       "properties": {
-        "strand_id": {
+        "target_ref": {
           "$ref": "#/$defs/strand_id"
         },
         "patch": {

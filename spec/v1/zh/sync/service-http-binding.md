@@ -762,7 +762,7 @@ POST /_cokret/self/events
     "capability_refs": ["ck:grant:0196410c-0000-7000-8000-000000000000"]
   },
   "payload": {
-    "strand_id": "ck:strand:019640c6-8000-7000-8000-000000000000",
+    "target_ref": "ck:strand:019640c6-8000-7000-8000-000000000000",
     "patch": { "metadata.fields.review_status": "approved" }
   },
   "proofs": [

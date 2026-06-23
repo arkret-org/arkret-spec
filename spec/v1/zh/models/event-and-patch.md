@@ -109,7 +109,7 @@ Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。�
     }
   ],
   "payload": {
-    "strand_id": "ck:strand:019640c6-8000-7000-8000-000000000000",
+    "target_ref": "ck:strand:019640c6-8000-7000-8000-000000000000",
     "patch": {
       "metadata.fields.review_status": "approved"
     }
@@ -281,7 +281,7 @@ reducer MUST 在 patch path 命中 redactable field + `$op="unset"` 时返回 `s
 
 ### 4.3 在 Event 中的位置
 
-Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `payload.strand_id`、`payload.morph_id`、`payload.relation_id`、`payload.view_id` 或该 kind schema 声明的等价字段表达。详见 [`../sync/operations-sync.md`](../sync/operations-sync.md) §7.2 / §8。
+Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `payload.target_ref`、`payload.relation_id`、`payload.view_id` 或该 kind schema 声明的等价字段表达。`ck.strand.update` 使用 `payload.target_ref` 指向目标 Strand；`ck.strand.tracks.update` 等专用 track 事件仍使用自身 schema 声明的目标字段。详见 [`../sync/operations-sync.md`](../sync/operations-sync.md) §7.2 / §8。
 
 下面是一个 `ck.strand.update` event 中携带 `payload.patch` 字段 delta 的典型示例，覆盖直接 `set` 值（`metadata.fields.review_status` 标量字段）、对象形态 `set`（`metadata.fields.due_date`）、`unset`（`metadata.fields.dropped_field`）与 `add`（`labels.security` 集合追加）四类 op：
 
@@ -326,7 +326,7 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
     }
   ],
   "payload": {
-    "strand_id": "ck:strand:019640c6-8000-7000-8000-000000000000",
+    "target_ref": "ck:strand:019640c6-8000-7000-8000-000000000000",
     "patch": {
       "metadata.fields.review_status": { "$op": "set", "value": "approved" },
       "metadata.fields.due_date": { "$op": "set", "value": "2026-06-01" },
