@@ -167,6 +167,10 @@
       "tier": "extension",
       "operations": [
         "ck.self.realm.resource.get",
+        "ck.self.realm.command.archive",
+        "ck.self.realm.command.freeze",
+        "ck.self.realm.command.tombstone",
+        "ck.self.realm.command.destroy",
         "ck.self.realm.query.export",
         "ck.self.realm.moderation_policy.query.effective",
         "ck.self.realm.moderation_policy.resource.replace"
@@ -1665,6 +1669,46 @@
       "mq": "self.realm.resource.get",
       "notes": "Reads the Realm lifecycle projection (owner + members + deleted). Returns not_found when the Realm is invisible to the caller.",
       "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view"
+    },
+    {
+      "operation_id": "ck.self.realm.command.archive",
+      "http": "POST /_cokret/self/realms/{realm_id}/archive",
+      "grpc": "SelfRealm/Archive",
+      "mq": "self.realm.command.archive",
+      "notes": "Builds a ck.realm.archive Move. The archived facet changes when the lifecycle event is accepted into the Realm event log; archived=false clears the archived facet unless a terminal lifecycle state already applies.",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
+      "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view"
+    },
+    {
+      "operation_id": "ck.self.realm.command.freeze",
+      "http": "POST /_cokret/self/realms/{realm_id}/freeze",
+      "grpc": "SelfRealm/Freeze",
+      "mq": "self.realm.command.freeze",
+      "notes": "Builds a ck.realm.freeze Move. The frozen facet changes when the lifecycle event is accepted into the Realm event log; frozen=true rejects ordinary non-exempt writes with realm_frozen and frozen=false clears the freeze facet unless a terminal lifecycle state already applies.",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
+      "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view"
+    },
+    {
+      "operation_id": "ck.self.realm.command.tombstone",
+      "http": "POST /_cokret/self/realms/{realm_id}/tombstone",
+      "grpc": "SelfRealm/Tombstone",
+      "mq": "self.realm.command.tombstone",
+      "notes": "Builds a terminal ck.realm.tombstone Move with a successor_realm_id. The tombstoned state changes when the lifecycle event is accepted into the Realm event log; later ordinary writes fail with realm_terminal_state.",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_tombstone_payload",
+      "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view"
+    },
+    {
+      "operation_id": "ck.self.realm.command.destroy",
+      "http": "POST /_cokret/self/realms/{realm_id}/destroy",
+      "grpc": "SelfRealm/Destroy",
+      "mq": "self.realm.command.destroy",
+      "notes": "Builds a terminal ck.realm.destroy Move. The destroyed state changes when the lifecycle event is accepted into the Realm event log; later ordinary writes fail with realm_terminal_state.",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_destroy_payload",
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view"
     },
     {

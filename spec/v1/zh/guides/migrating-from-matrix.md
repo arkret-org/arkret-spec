@@ -6,7 +6,7 @@ stability: v1
 updated: 2026-06-10
 ---
 
-> 本文件为面向 Matrix 实现者的 informative 设计取舍对照，不是协议真相源；任何规范约束以被引用的具体规范章节的 MUST / SHOULD 规则为准。
+> 本文件为面向 Matrix 实现者的 informative 设计取舍对照，不是协议真相源；任何协议约束以被引用的具体规范章节为准。
 
 ## 1. 目标
 
@@ -36,7 +36,7 @@ Cokret 的核心抽象是 **signed Event + per-actor event chain + Realm + Circl
 | 外部 agent 协议 | 无原生 A2A / ACP handoff 语义。 | A2A / ACP / MCP bridge / custom agent API 可作为受控 agent protocol session。 |
 | E2EE | 当前 Matrix E2EE 基于 Olm / Megolm。 | Cokret 推荐 MLS RFC 9420 作为群组 E2EE 基础。 |
 | 查询与视图 | 客户端主要从 sync、state、relations、聚合 API 还原体验。 | View 是一等投影定义；搜索和 projection 默认由客户端本地派生，不能成为真相源。 |
-| 明文服务边界 | Homeserver 和 appservice 的明文可见性依赖部署、加密和桥接配置。 | 非 E2EE 私有内容必须只进入 principal 或 Realm policy 明确委托的服务；明文可见服务用 `plaintext_visible_services` 声明。 |
+| 明文服务边界 | Homeserver 和 appservice 的明文可见性依赖部署、加密和桥接配置。 | 非 E2EE 私有内容由 principal 或 Realm policy 明确委托的服务处理；明文可见服务用 `plaintext_visible_services` 声明。 |
 
 ## 4. 核心概念对比深化
 
@@ -47,7 +47,7 @@ Matrix Application Service 是成熟的桥接机制，适合让 homeserver 与�
 Cokret Applet 的差异不是简单“更强”，而是粒度不同：
 
 - Applet registration 是签名声明，可由 Realm owner、Organization、registry 或 authz service 接受。
-- Applet 不因 namespace 自动获得权限；每次写入仍需 capability。
+- Applet 不因 namespace 自动获得权限；写入授权仍由 capability 表达。
 - 同一个 Applet 可以被不同 Realm 用不同 capability、不同可见性、不同对象范围启用。
 - 不同用户或组织可以在自己控制的 Realm 中启用不同 Applet，并受 Realm policy 和授权约束（规范见 [`extensions/applet-integration.md`](../extensions/applet-integration.md)）。
 - Applet 可作为 bot、bridge、Ghost Actor controller、portal Realm manager、delegated agent / device 参与审计链。
@@ -62,24 +62,24 @@ Matrix 可以通过 bot、appservice 或 bridge 接入 AI，但 AI 不是 Matrix
 - agent 输出可以写入 Message、Strand、Morph 或 Relation。
 - agent 权限采用窄范围、短时效、可撤销、可审计（规范见 [`identity/key-management.md`](../identity/key-management.md) §3 agent key）。
 - agent-to-agent 场景可以显式升级到 A2A / ACP / MCP bridge / 企业私有 agent API，并将 session、status、artifact、result 回写 Cokret。
-- Cokret 只要求协作事实、授权边界、审计摘要和最终结果进入协议账本，不要求把每个 token 或 tool call 都强制写成 durable Event。
+- Cokret 把协作事实、授权边界、审计摘要和最终结果放入协议账本，不把每个 token 或 tool call 都建模为 durable Event。
 
 ### 4.3 身份系统的演进
 
 Cokret 的身份与发布模型借鉴 atprotocol 的几个方向：
 
 - DID 是稳定身份根，handle 是可变入口。
-- handle 需要双向验证。
+- handle 采用双向验证模型。
 - DID Document 用于服务发现和 key discovery。
 - 每个 actor 通过 `actor_id`、`actor_seq` 和 `prev_refs` 形成可验证 event chain。
 - signed Event Envelope 是发布单元，服务器不能伪造 principal 写入。
 
-这不要求普通用户直接看见或管理 DID。客户端和服务端 MAY 提供类似 Matrix 的 `@user:domain` 体验，把它作为联系人搜索、登录名、组织 handle 或桥接 alias；在提交持久 Event、grant 或 MLS membership 前，必须解析或绑定到 principal DID。
+这不要求普通用户直接看见或管理 DID。客户端和服务端可以提供类似 Matrix 的 `@user:domain` 体验，把它作为联系人搜索、登录名、组织 handle 或桥接 alias；持久 Event、grant 或 MLS membership 的权威主体仍是 principal DID。
 
 但 Cokret 不等同于 atprotocol：
 
 - atprotocol 主要面向公开 record 与 PDS；Cokret 面向多方协作 Realm、授权状态、私有内容、E2EE 和企业治理。
-- Cokret v1 core 默认普通用户身份方法是 `did:webvh`（提供可审计 DID 控制历史，抵御 DNS / TLS 单点失陷），同时支持 `did:web`（service DID / `personal_node` profile）和 `did:key`（bootstrap / 设备）。`did:pkh`（钱包）、`did:plc`（AT Protocol interop）、KERI 等 method 作为 interop extension profile 提供，不属于 v1 core 互操作必需。
+- Cokret v1 core 默认普通用户身份方法是 `did:webvh`（提供可审计 DID 控制历史，抵御 DNS / TLS 单点失陷），同时支持 `did:web`（service DID / `personal_node` profile）和 `did:key`（bootstrap / 设备）。`did:pkh`（钱包）、`did:plc`（AT Protocol interop）、KERI 等 method 作为 interop extension profile 提供，不属于 v1 core 互操作基线。
 - Cokret 的 Event 记录协作事实，不是公开内容分发 record。
 - Cokret 把 Realm policy、capability、Applet、Agent、MLS 和受托明文服务边界都纳入同一协作协议边界。
 
@@ -104,15 +104,15 @@ Matrix 的 Olm / Megolm 生态成熟、部署广泛、客户端实现经验丰�
 | --- | --- | --- |
 | Device Ed25519 fingerprint key | `ck:device:` 记录里的 `verify_key` (Ed25519) | Cokret 把 device 公钥写进 `ck:device:` 记录（详见 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §4），并由 `ck.device.authorize` Event 锚定到 principal DID，而非 homeserver 账号。 |
 | Device Curve25519 identity key | `ck:device:` 记录里的 `hpke_key` (X25519) | 用于 HPKE-based to-device 通道、KeyPackage init key 来源、加密 backup envelope 接收。Matrix Curve25519 用于 Olm 长期 DH，语义对等但用途窄一些。 |
-| (homeserver 账号绑定) | DID method controller / inception key | Cokret 在 master 密钥之上多一层：DID method 的初始控制材料（`did:webvh` entry-0 controller、`did:plc` rotation key、KERI inception 等）是身份根。principal signing key 必须进入 DID method history / key log，而不是 homeserver 内部状态。详见 [`identity/key-management.md`](../identity/key-management.md) §5.0。 |
+| (homeserver 账号绑定) | DID method controller / inception key | Cokret 在 master 密钥之上多一层：DID method 的初始控制材料（`did:webvh` entry-0 controller、`did:plc` rotation key、KERI inception 等）是身份根。principal signing key 的历史归属由 DID method history / key log 表达，而不是 homeserver 内部状态。详见 [`identity/key-management.md`](../identity/key-management.md) §5.0。 |
 
 #### 4.5.2 Prekey 与会话引导
 
 | Matrix | Cokret | 说明 |
 | --- | --- | --- |
-| `/_matrix/client/v3/keys/upload` Curve25519 OTK | `POST /_cokret/self/keys/upload` 的 `one_time_keys` | 语义一致，用于非 MLS 加密或 MLS 引导。`claim` MUST 原子消费一次性 key。 |
-| Fallback key | `fallback_keys` 字段，`fallback=true` 标记 | Cokret 规范要求成功建立会话后尽快轮换；Matrix 行为类似但描述较弱。 |
-| (Olm OTK 同时承担群组成员引导) | MLS KeyPackage 独立 claim API | Cokret 把 MLS KeyPackage 从 OTK 池里拆出来：`/_cokret/self/keys/keypackages/upload`、`/_cokret/self/keys/keypackages/claim`、`/_cokret/self/keys/keypackages/consume`、`/_cokret/self/keys/keypackages/revoke`，新增 **`required_capabilities` ⊆ KeyPackage `capabilities` normative subset rule**，并对 claim 失败做反枚举（统一返回 `claim_failed`）。Matrix 无对应概念。 |
+| `/_matrix/client/v3/keys/upload` Curve25519 OTK | `POST /_cokret/self/keys/upload` 的 `one_time_keys` | 语义一致，用于非 MLS 加密或 MLS 引导。一次性 key 的原子消费规则由 key operation 章节定义。 |
+| Fallback key | `fallback_keys` 字段，`fallback=true` 标记 | Cokret 在会话建立后倾向更快轮换；Matrix 行为类似但描述较弱。 |
+| (Olm OTK 同时承担群组成员引导) | MLS KeyPackage 独立 claim API | Cokret 把 MLS KeyPackage 从 OTK 池里拆出来：`/_cokret/self/keys/keypackages/upload`、`/_cokret/self/keys/keypackages/claim`、`/_cokret/self/keys/keypackages/consume`、`/_cokret/self/keys/keypackages/revoke`，并把 capability 子集校验与反枚举失败形态放在 KeyPackage 规范中。Matrix 无对应概念。 |
 
 #### 4.5.3 群组消息密钥
 
@@ -128,59 +128,59 @@ Cokret 沿用 Matrix 的三层 cross-signing 结构（[`crypto-media/device-life
 
 | 角色 | Matrix | Cokret |
 | --- | --- | --- |
-| 用户身份根 | Master key | `principal_signing_key`，轮换 MUST 进入 DID method history / key log |
+| 用户身份根 | Master key | `principal_signing_key`，轮换历史进入 DID method history / key log |
 | 签名本账号所有设备 | Self-signing key | `self_signing_key`（存 secret storage，跨设备共享） |
 | 签名其他用户身份 key | User-signing key | `user_signing_key`（同上） |
 
-差异：Cokret `principal_signing_key` 的演进绑定到 DID method 链（`did:webvh` entry、`did:plc` operation 等），不是 homeserver 内部状态；`self_signing_key` / `user_signing_key` 在 cross-signing reset 时整条信任链置为 `needs_reverification`，并需要 DID 控制证明、recovery 解锁、设备 quorum 签名或受信账户恢复服务签名之一。
+差异：Cokret `principal_signing_key` 的演进绑定到 DID method 链（`did:webvh` entry、`did:plc` operation 等），不是 homeserver 内部状态；`self_signing_key` / `user_signing_key` 在 cross-signing reset 时整条信任链置为 `needs_reverification`，后续恢复材料由 DID 控制证明、recovery 解锁、设备 quorum 签名或受信账户恢复服务签名表达。
 
-线级形态：SSK / USK 公钥与 PSK 绑定通过 `ck.cross_signing.publish`（[`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5.1）公布到 principal control stream；每条 `ck.device.authorize` 在 `content.cross_signing_binding` 中携带 SSK 对设备 `verify_key` 的签名（§5.2），并显式声明 `ssk_generation`。Reset 写 `ck.cross_signing.reset`（§14.1），`new_generation = previous_generation + 1`，并必须在 `ck.profile.cross_signing.reset.v1` 的 `parameters.publish_recovery_window_seconds` 窗口内发布对应 publish，否则接收方对该 `new_generation` 的 device authorization MUST 拒绝。验证 transaction 检测到 reset 时以 `code=cross_signing_reset` 取消，对应 §10.6 / §14.3 cancel code。
+线级形态：SSK / USK 公钥与 PSK 绑定通过 `ck.cross_signing.publish`（[`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5.1）公布到 principal control stream；每条 `ck.device.authorize` 在 `content.cross_signing_binding` 中携带 SSK 对设备 `verify_key` 的签名（§5.2），并显式声明 `ssk_generation`。Reset 写 `ck.cross_signing.reset`（§14.1），`new_generation = previous_generation + 1`；publish 恢复窗口、device authorization 接受规则和 `cross_signing_reset` cancel code 由 device lifecycle 章节给出。
 
 #### 4.5.5 Secret Storage 与 Key Backup
 
 | Matrix | Cokret | 说明 |
 | --- | --- | --- |
-| Secure Secret Storage（SSSS）统一保管 cross-signing / megolm backup 等 | `ck.secret_storage.v1`（**client-local only**）+ wire 上传走 `ck.schema.key_backup.v1` | Cokret v1 不再把 secret storage envelope 作为 wire 格式；服务端只接受 `ck.schema.key_backup.v1`，每条 backup MUST 声明 `backup_class`。 |
-| 一把 backup key 覆盖所有 secret 类别 | **域隔离**：`did_recovery` / `secret_storage` / `mls_history` 三类 `backup_class`，各自独立 KDF info、HKDF 子密钥、AEAD AAD、wrap key | 防止"一把口令同时控制身份签名和 E2EE 历史"。`self_signing_key` / `user_signing_key` 与 MLS group secrets backup key 必须分到不同 envelope 或不同 subdomain key。详见 [`identity/key-management.md`](../identity/key-management.md) §7。 |
+| Secure Secret Storage（SSSS）统一保管 cross-signing / megolm backup 等 | `ck.secret_storage.v1`（**client-local only**）+ wire 上传走 `ck.schema.key_backup.v1` | Cokret v1 不再把 secret storage envelope 作为 wire 格式；服务端 wire backup 使用 `ck.schema.key_backup.v1` 与 `backup_class` 分类。 |
+| 一把 backup key 覆盖所有 secret 类别 | **域隔离**：`did_recovery` / `secret_storage` / `mls_history` 三类 `backup_class`，各自独立 KDF info、HKDF 子密钥、AEAD AAD、wrap key | 防止"一把口令同时控制身份签名和 E2EE 历史"。`self_signing_key` / `user_signing_key` 与 MLS group secrets backup key 归入不同 envelope 或不同 subdomain key。详见 [`identity/key-management.md`](../identity/key-management.md) §7。 |
 | 一把 recovery key 解锁 SSSS | recovery key + 门限 / 社交恢复 share | Cokret 把 recovery 表达为 `recovery_policy`，可声明 threshold、share holder、有效期、approval 条件；share holder 不自动获得读取内容能力。 |
-| (Matrix 未明确约束) | "能解密某段历史" MUST NOT 单独作为账号所有权证明 | Cokret 显式禁止把解密 oracle 当成 DID 控制证明，并定义了固定格式、限速、绑定 audience / service DID 的 challenge 流程。 |
+| (Matrix 未明确约束) | "能解密某段历史" 不单独作为账号所有权证明 | Cokret 把 DID 控制证明与解密能力分开，并定义了固定格式、限速、绑定 audience / service DID 的 challenge 流程。 |
 
 #### 4.5.6 Push 通道密钥
 
 Matrix pusher 把 (user, device, push token) 映射作为 push gateway 可见标识符，没有跨设备 / 跨通道 / 跨 Realm 的不可链接性规范。Cokret 在 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5a 引入 `push_target_id`：
 
-- per `(recipient_service_did, principal, device, push_route)` 伪名；至少 128 bit 熵，推荐 256 bit；高安全 deployment profile（`high_security_organization` / `sovereign_deployment` 等）MUST ≥ 256 bit（权威下限见 `device-lifecycle.md` §5a.1）。
-- MUST NOT 由公开 DID、`device_id`、平台 push token、handle、邮箱或电话号码推导。
-- 同一 principal 在不同 `recipient_service_did`、两台设备或同一 device 的两条 push_route 上的 `push_target_id`，对 push gateway / vendor / 第三方 transport MUST NOT be linkable。
-- gateway / vendor 不得保留可逆映射；被 member delivery binding 授权的 Sync Service 仅可在本服务上下文内持有运行时索引，轮换或失效后旧伪名不得被服务端链接回当前 `(recipient_service_did, principal, device)`。
-- 推送 payload 必须是 `encrypted-envelope.schema.json` 形态或等价 ephemeral encrypted blob；gateway / vendor 不得解密。
+- per `(recipient_service_did, principal, device, push_route)` 伪名；熵下限和高安全部署参数见 `device-lifecycle.md` §5a.1。
+- 伪名派生不使用公开 DID、`device_id`、平台 push token、handle、邮箱或电话号码作为可观察输入。
+- 同一 principal 在不同 `recipient_service_did`、两台设备或同一 device 的两条 push_route 上得到不可链接的 `push_target_id`。
+- gateway / vendor 不保存可逆映射；被 member delivery binding 授权的 Sync Service 在本服务上下文内持有运行时索引。
+- 推送 payload 以加密 envelope 或等价 ephemeral encrypted blob 表达，gateway / vendor 不持有解密语义。
 
 #### 4.5.7 Cokret 新增的密钥类别
 
 以下密钥类别在 Matrix 中没有显式协议层定义（属于实现侧或 appservice 侧约定），Cokret 在 [`identity/key-management.md`](../identity/key-management.md) §3 中作为一等协议原语：
 
-- **Session key（`ck.session.grant`）**：浏览器、OIDC、SSO、远程执行环境的短期会话密钥。MUST 绑定 audience / origin / service / scope / 过期时间；不得签发长期 device grant、不得访问 E2EE 历史密钥。资源服务器仍 MUST 重新验证 DID control state，而不是把 OIDC 成功视为 DID 控制证明。
-- **Agent key**：AI agent / bot / CI / automation 的一等密钥类型，MUST 有 scope、`expires_at`、accountable actor 绑定，SHOULD 用 proposal / approval 约束高风险动作。Matrix bot 复用 user / appservice token，没有这一层 scope/审计要求。
-- **Applet delegated device key**：Applet 代表 Ghost Actor 或桥接用户参与 E2EE 时，使用受限的 delegated device 密钥；`device_id` MUST 标记 `applet_id`，capability MUST 限定 Realm / 协议 / 动作 / 有效期，**且 delegated device 不得签发新的人类 device**。to-device 权限只覆盖其 namespace 内 actor。Matrix appservice 的 ghost user 没有 device-level 委托语义。
-- **Inception key**：DID method 层的初始控制密钥，是 principal control realm genesis 与首台 `ck.device.authorize` 的信任根。使用后 SHOULD 立即写入 DID method 轮换链中并从首台设备销毁，或作为 recovery share 存入 secret storage；MUST NOT 长期作为日常 device signing key。
+- **Session key（`ck.session.grant`）**：浏览器、OIDC、SSO、远程执行环境的短期会话密钥。其 audience / origin / service / scope / 过期时间绑定和 DID control state 复验由 key-management 与 account lifecycle 章节定义。
+- **Agent key**：AI agent / bot / CI / automation 的一等密钥类型，带 scope、`expires_at`、accountable actor 绑定；高风险动作可由 proposal / approval 约束。Matrix bot 复用 user / appservice token，没有这一层 scope/审计结构。
+- **Applet delegated device key**：Applet 代表 Ghost Actor 或桥接用户参与 E2EE 时，使用受限的 delegated device 密钥；`device_id` 标记 `applet_id`，capability 限定 Realm / 协议 / 动作 / 有效期，delegated device 不签发新的人类 device。to-device 权限只覆盖其 namespace 内 actor。Matrix appservice 的 ghost user 没有 device-level 委托语义。
+- **Inception key**：DID method 层的初始控制密钥，是 principal control realm genesis 与首台 `ck.device.authorize` 的信任根。常见部署在使用后把它写入 DID method 轮换链并从首台设备销毁，或作为 recovery share 存入 secret storage；日常 device signing 使用独立设备密钥。
 
 #### 4.5.8 验证 / 登录 / 设备授权的语义解耦
 
-Matrix to-device 验证（SAS / QR）成功后，客户端实现常常顺势把设备视为"已信任、已授权"，登录与设备授权也较多耦合在 homeserver 的 `/login` 路径上。Cokret MUST 严格分开三件事（[`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §1.2）：
+Matrix to-device 验证（SAS / QR）成功后，客户端实现常常顺势把设备视为"已信任、已授权"，登录与设备授权也较多耦合在 homeserver 的 `/login` 路径上。Cokret 把三件事分开建模（[`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §1.2）：
 
-| 操作 | Cokret 允许产出 | Cokret MUST NOT 自动产出 |
+| 操作 | Cokret 允许产出 | Cokret 不自动产出 |
 | --- | --- | --- |
 | 登录因子验证（密码 / passkey / OIDC / SSO） | 短期 `ck.session.grant`、触发 recovery、请求已授权设备授权 | 长期 device、`ck.device.authorize`、E2EE 历史密钥访问 |
 | 设备授权 | `ck.device.authorize`、DID key-log operation、`ck.device.list_update`、MLS Welcome 资格 | 仅凭密码 / SSO 通过即视作设备授权 |
 | 设备密钥验证（SAS / QR） | `user_signing_key` 签名（跨 principal）、本地信任标记 | 长期 device grant、Realm capability、登录态 |
 
-验证消息形状（`ck.key.verification.{request, ready, start, accept, key, mac, done, cancel}`）与 Matrix 一致，但 Cokret 进一步规范化：
+验证消息形状（`ck.key.verification.{request, ready, start, accept, key, mac, done, cancel}`）与 Matrix 一致，但 Cokret 对生命周期和 transcript 绑定给出更明确的规范章节：
 
-- `request.expires_at` MUST be no later than `timestamp + 10m`；用户 2 分钟未交互 SHOULD 本地取消。
-- SAS transcript MUST 绑定双方 principal id、device id、verify key、transaction id、method、算法选择、双方 ephemeral key 与待验证 key id。
-- QR payload MUST 至少绑定 transaction id、展示端 principal/device、intended verifier、一次性 secret 或 commitment、`expires_at`、supported method；MUST NOT 包含长期私钥、secret storage key、recovery secret 或 MLS group secret。
+- `request.expires_at` 与本地交互超时由 device lifecycle 章节给出。
+- SAS transcript 覆盖双方 principal id、device id、verify key、transaction id、method、算法选择、双方 ephemeral key 与待验证 key id。
+- QR payload 覆盖 transaction id、展示端 principal/device、intended verifier、一次性 secret 或 commitment、`expires_at`、supported method，并排除长期私钥、secret storage key、recovery secret 或 MLS group secret。
 - 跨 principal 验证只表达人工信任；本端 `user_signing_key` 签名对方 identity key，不改变对方设备授权状态。
-- cancel code 由 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §10.6 给出固定 registry;本指南不抄录具体取值，实现 MUST 以该 registry 为唯一权威源(避免本文成为陈旧副本)。
+- cancel code 由 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §10.6 给出固定 registry；本指南不抄录具体取值，避免成为陈旧副本。
 
 #### 4.5.9 完整性评估
 
@@ -223,7 +223,7 @@ Matrix homeserver 是用户与 room federation 的核心承载点。
 
 Cokret Principal Server 是受 principal 或 Realm policy 控制的服务边界，不是身份本身，也不是真相源。它可以承载 Events API、Sync、Blob、Push、Policy，但协议仍保持分层。
 
-这也是 Cokret 去掉独立第三方分发服务器后的核心边界：未加密私有内容不应进入不受用户、组织或 Realm policy 控制的第三方服务。
+这也是 Cokret 去掉独立第三方分发服务器后的核心边界：未加密私有内容停留在用户、组织或 Realm policy 控制的服务边界内。
 
 ### 5.4 Query / Projection 是客户端派生层
 
@@ -287,7 +287,7 @@ Matrix 的 E2EE（Olm/Megolm）和 room state 是两条并行轨。Cokret v1 引
 - **Commit 侧** —— 每个 `ck.mls.commit` 携带 `governance_binding`（GroupContext extension `mls_governance_binding`），把 membership / policy / capability / discussion-metadata roots 哈希进 MLS transcript。
 - **Lattice 侧** —— MLS commit 是 Control Move，写入 `mls_epoch_cell`、`key_schedule_cell` 与 `covered_seals_cell`（or_set）。E2EE message DataEvent 用 `seal_ref` 指向已被 MLS governance binding 覆盖的治理 Seal。
 
-**理由**：撤销、ban、device revoke 和 policy 收紧不能只在应用层 accepted；它们必须被 MLS epoch / key schedule 覆盖后才能影响新消息解密能力。`covered_seals_cell` 让这条 "governance state 已被 commit attest 覆盖" 的事实变成可被 reducer 确定性查询的 lattice cell，而不是隐含在 transcript hash 里的 ad-hoc 检查。governance / recovery Move 不引用 `covered_seals_cell`，因此 MLS 卡住不会阻止冲突修复。
+**理由**：撤销、ban、device revoke 和 policy 收紧不只停在应用层 accepted；它们被 MLS epoch / key schedule 覆盖后才影响新消息解密能力。`covered_seals_cell` 让这条 "governance state 已被 commit attest 覆盖" 的事实变成可被 reducer 确定性查询的 lattice cell，而不是隐含在 transcript hash 里的 ad-hoc 检查。governance / recovery Move 不引用 `covered_seals_cell`，因此 MLS 卡住不会阻止冲突修复。
 
 ### 6.6 Holder-Private Consent
 
@@ -297,7 +297,7 @@ Matrix 没有显式的 consent state——是否接受 invite / DM 由 client UI
 
 ## 7. Matrix 仍然更强的地方
 
-Cokret 不应忽略 Matrix 的成熟度：
+Cokret 可以继续吸收 Matrix 的成熟经验：
 
 - Matrix 有更成熟的实时通信和客户端生态。
 - Matrix room federation、state resolution、E2EE 客户端实现、bridge 生态有多年生产经验。

@@ -20,7 +20,6 @@
         ],
         "properties": [
           "principal_id",
-          "handle",
           "display_name",
           "device_id",
           "proof",
@@ -137,6 +136,7 @@
           "requested_scope",
           "agent_key_authorization_ref",
           "agent_scope_request",
+          "applet_delegation",
           "proof"
         ],
         "closed": true
@@ -171,6 +171,11 @@
           "target_grant_id",
           "target_device_id",
           "all_sessions",
+          "applet_id",
+          "effective_scope",
+          "registration_epoch",
+          "service_did",
+          "capability_grant_refs",
           "proof"
         ],
         "closed": true
@@ -195,11 +200,15 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody",
         "schema_kind": "object",
         "required": [
-          "grant_jwt"
+          "grant_jwt",
+          "device_id",
+          "proof"
         ],
         "properties": [
           "grant_jwt",
-          "audience"
+          "audience",
+          "device_id",
+          "proof"
         ],
         "closed": true
       },
@@ -904,7 +913,8 @@
         "properties": [
           "effective_scope",
           "reason_code",
-          "revoke_mode"
+          "revoke_mode",
+          "proof"
         ],
         "closed": true
       },
@@ -4321,8 +4331,166 @@
           "archived",
           "frozen",
           "terminal_state",
+          "successor_realm_id"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.realm.command.archive",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
+        "schema_kind": "object",
+        "required": [
+          "archived"
+        ],
+        "properties": [
+          "archived",
+          "reason"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
+        "schema_kind": "object",
+        "required": [
+          "ok",
+          "realm_id",
+          "owner",
+          "members",
+          "deleted"
+        ],
+        "properties": [
+          "ok",
+          "realm_id",
+          "owner",
+          "members",
+          "deleted",
+          "archived",
+          "frozen",
+          "terminal_state",
+          "successor_realm_id"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.realm.command.freeze",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
+        "schema_kind": "object",
+        "required": [
+          "frozen"
+        ],
+        "properties": [
+          "frozen",
+          "reason"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
+        "schema_kind": "object",
+        "required": [
+          "ok",
+          "realm_id",
+          "owner",
+          "members",
+          "deleted"
+        ],
+        "properties": [
+          "ok",
+          "realm_id",
+          "owner",
+          "members",
+          "deleted",
+          "archived",
+          "frozen",
+          "terminal_state",
+          "successor_realm_id"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.realm.command.tombstone",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_tombstone_payload",
+        "schema_kind": "object",
+        "required": [
+          "reason",
+          "successor_realm_id"
+        ],
+        "properties": [
+          "reason",
           "successor_realm_id",
-          "freeze_expires_at"
+          "replacement_event"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
+        "schema_kind": "object",
+        "required": [
+          "ok",
+          "realm_id",
+          "owner",
+          "members",
+          "deleted"
+        ],
+        "properties": [
+          "ok",
+          "realm_id",
+          "owner",
+          "members",
+          "deleted",
+          "archived",
+          "frozen",
+          "terminal_state",
+          "successor_realm_id"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.self.realm.command.destroy",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_destroy_payload",
+        "schema_kind": "object",
+        "required": [
+          "reason"
+        ],
+        "properties": [
+          "reason",
+          "retention_policy_id",
+          "verification_stub_required"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
+        "schema_kind": "object",
+        "required": [
+          "ok",
+          "realm_id",
+          "owner",
+          "members",
+          "deleted"
+        ],
+        "properties": [
+          "ok",
+          "realm_id",
+          "owner",
+          "members",
+          "deleted",
+          "archived",
+          "frozen",
+          "terminal_state",
+          "successor_realm_id"
         ],
         "closed": true
       }

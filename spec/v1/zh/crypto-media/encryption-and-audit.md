@@ -138,7 +138,7 @@ Realm policy MUST 通过 `ck.realm.policy_components.metadata_encryption_floor` 
 | `epoch` | integer | 是 | MLS epoch 编号 |
 | `content_type` | string | 是 | 解密后内容的 MIME 类型 |
 | `ciphertext` | base64url | 是 | `mls-rfc9420` profile 为 MLS PrivateMessage / application message 序列化字节。 |
-| `authentication_tag` | base64url | 禁止 | v1 唯一 scheme `mls-rfc9420` 下 **MUST NOT 出现**:MLS profile 的 tag 已在 MLS message 内，不重复拆出;schema 用顶层 `not` 拒绝该字段（携带者 `schema_violation`）。仅当未来引入真正的 raw AEAD / exporter-AEAD profile（放宽 `scheme` enum)时才会为该 scheme 解禁。 |
+| `authentication_tag` | base64url | 禁止 | v1 唯一 scheme `mls-rfc9420` 下 **MUST NOT 出现**:MLS profile 的 tag 已在 MLS message 内，不重复拆出;schema 用顶层 `not` 拒绝该字段（携带者 `schema_violation`）。 |
 | `aad_visibility_event_id` | enum(hidden, routing_digest, opaque_id) | 是 | `aad.event_id` / `aad.event_ref_digest` 的 schema discriminator；receiver 必须按该值校验 AAD 字段集合。 |
 | `aad` | object | 是 | 路由元数据；明文但被 AEAD 认证。 |
 | `aad.realm_id` | id:realm | 是 | 路由与授权的 Realm。 |
@@ -211,7 +211,7 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 ```
 
 3. `payload_metadata_bytes = canonical_json(payload_metadata)`。
-4. `encrypted_payload_bytes = base64url_decode(ciphertext)`。v1 `mls-rfc9420` scheme 下 envelope MUST NOT 携带 `authentication_tag`（见 §2.3.1），故该步骤不追加 tag,`payload_digest` 输入无歧义。仅在未来 raw AEAD / exporter-AEAD profile（届时显式放宽 `scheme` 并解禁该字段）下，才追加 `base64url_decode(authentication_tag)`。
+4. `encrypted_payload_bytes = base64url_decode(ciphertext)`。v1 `mls-rfc9420` scheme 下 envelope MUST NOT 携带 `authentication_tag`（见 §2.3.1），故该步骤不追加 tag,`payload_digest` 输入无歧义。
 5. `payload_digest = "sha256:" + sha256(payload_metadata_bytes || encrypted_payload_bytes)`。
 
 `mls-rfc9420` profile 中，MLS PrivateMessage 本身还必须把 `aad_bytes` 作为 MLS authenticated data 或 profile 声明的等价 authenticated input；`payload_digest` 是 Cokret envelope 的外层完整性检查，不替代 MLS AEAD。
@@ -393,7 +393,7 @@ flowchart TB
 
 MLS 不应只保护正文，也必须帮助成员发现服务端是否向不同客户端展示了不同的成员、策略或 discussion 元数据 —— 这是引入 MLS Governance Binding 的根本动机。撤销、ban、device revoke 和 policy 收紧不能只在应用层 accepted；它们必须被 MLS epoch / key schedule 覆盖后才能影响新消息解密能力。
 
-MLS group 的 scope 绑定到 tagged `effective_scope`：`{kind:"realm", realm_id}` 时 group 覆盖 Realm-default scope（Realm 自身使用 `encryption_profile="mls_rfc9420"`）；`{kind:"circle", realm_id, circle_id}` 时仅当该 [Circle](../models/circle.md) 使用 `encryption_profile="mls_rfc9420"` 才拥有独立 MLS group，与 Realm-default group 完全独立，且 Circle key MUST NOT 从 Realm-default key 派生。两个 group 通过 `(realm_id, circle_id?)` 复合 scope 区分，不再依赖 track-scoped fallback 或跨 Realm linked-Realm 模型。
+MLS group 的 scope 绑定到 tagged `effective_scope`：`{kind:"realm", realm_id}` 时 group 覆盖 Realm-default scope（Realm 自身使用 `encryption_profile="mls_rfc9420"`）；`{kind:"circle", realm_id, circle_id}` 时仅当该 [Circle](../models/circle.md) 使用 `encryption_profile="mls_rfc9420"` 才拥有独立 MLS group，与 Realm-default group 完全独立，且 Circle key MUST NOT 从 Realm-default key 派生。两个 group 通过 `(realm_id, circle_id?)` 复合 scope 区分，不依赖 track-scoped key model 或跨 Realm linked-Realm 模型。
 
 #### 2.5.1 Governance Binding Payload (`governance_binding`)
 
@@ -472,12 +472,12 @@ Control Move 在被 accepted Seal 覆盖前是 pending；进入 `sealed` 后是�
 
 #### 2.5.3 GroupContext Extension 定义
 
-Cokret 定义以下 MLS GroupContext extension 绑定形状；实际 codepoint 必须通过实现 profile、部署 profile 或未来 registry 协商，不能静默占用未声明的公共 codepoint。
+Cokret v1 定义以下 MLS GroupContext extension 绑定形状；codepoint 以 `artifacts/registry/mls-extension-registry.json` 中的 active entry 为准。
 
 | 字段 | 值 |
 |------|-----|
 | ExtensionType（IANA name） | `mls_governance_binding`（与 `artifacts/registry/mls-extension-registry.json` 的 source-of-truth name 一致） |
-| ExtensionType（数值 codepoint） | `0xF1C0` ∈ MLS GroupContext **private-use range `0xF000`–`0xFFFF`**（RFC 9420 §17.6 / IANA MLS registry）。**Cokret v1 wire 形态固定（pinned）为 `0xF1C0`,任何实现 MUST 使用该 codepoint;deployment policy MUST NOT 用其他 codepoint 覆盖该 binding。** `ck.profile.mls_governance_binding.full.v1` MUST 使用 `0xF1C0`。未来若需要全网注册，可通过 IETF MLS extensions registry specification-required 流程申请 standard codepoint,并在新 hardening profile 中显式声明，作为单独的 wire 版本，而不是 v1 内的私有覆盖。所有 Cokret 私有 MLS 扩展 codepoint 集中登记在 `artifacts/registry/mls-extension-registry.json`。 |
+| ExtensionType（数值 codepoint） | `0xF1C0` ∈ MLS GroupContext **private-use range `0xF000`–`0xFFFF`**（RFC 9420 §17.6 / IANA MLS registry）。**Cokret v1 wire 形态固定（pinned）为 `0xF1C0`,任何实现 MUST 使用该 codepoint;deployment policy MUST NOT 用其他 codepoint 覆盖该 binding。** `ck.profile.mls_governance_binding.full.v1` MUST 使用 `0xF1C0`。所有 Cokret 私有 MLS 扩展 codepoint 集中登记在 `artifacts/registry/mls-extension-registry.json`。 |
 | ExtensionData | `governance_binding` 对象的 CBOR 编码 |
 
 CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)。字段顺序按 lexicographic key 排列；标注为 optional 的字段（如 `capability_root`、`circle_id`、`discussion_metadata_digest`）在不满足出现条件时 **MUST 从 CBOR map 整体省略该 key，MUST NOT 写入 null 占位**——deterministic CBOR 下 null 占位会改变 canonical 字节序，导致不同实现对同一 governance binding 得出不一致编码；lexicographic key 排序只对实际存在（present）的 key 生效。下表中的字段顺序仅为可读性展示，实际 wire 顺序以 present key 的 lexicographic 排序为准：
@@ -505,18 +505,18 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
 
 | 字段 | 是否在 MLS GroupContext 已被绑定 | 保留理由 |
 |------|------------------------------|---------|
-| `binding_version` / `encoding_profile` | 否 | **必须**：把 codepoint 之外的 wire version 与 canonical encoding 锁入 signed bytes，避免未来 codepoint 或 CBOR profile 变化时不同实现对同一 governance binding 得出不同 canonical 形态。 |
+| `binding_version` / `encoding_profile` | 否 | **必须**：把 codepoint 之外的 wire version 与 canonical encoding 锁入 signed bytes，使不同实现对同一 governance binding 得出相同 canonical 形态。 |
 | `mls_group_id` | 是（MLS group_id 是 GroupContext 的标准字段） | **保留**：让 binding payload 可离线独立审计——审计员只读取 governance_binding bytes 即可验证它属于哪个 MLS group，无需附带完整 commit envelope 或 GroupContext。 |
 | `next_epoch` / `previous_epoch` | 是（MLS epoch 是 GroupContext 的标准字段） | **保留**：同上，为离线审计提供完整 epoch 上下文；同时让 `covered_seals_cell` reducer 在不访问 MLS 库的情况下也能 join。 |
 | `effective_scope` / `realm_id` / `circle_id` | **否**（Cokret-specific，MLS 不知道 Realm / Circle 概念） | **必须**：`effective_scope` 是把 MLS group 锚定到 Cokret governance state 的核心绑定；Realm-default group 使用 `{kind:"realm", realm_id}`，Circle group 使用 `{kind:"circle", realm_id, circle_id}`。`realm_id` 与可选 `circle_id` 是离线审计冗余字段，MUST 与 `effective_scope` 一致；缺失或不一致会使 governance_binding 可能被错误重绑定到不同 Realm/Circle 的 commit。 |
 | `policy_root` / `capability_root` / `membership_frontier` / `discussion_metadata_digest` | 否 | **必须**：governance state 的核心证据，本规范的根本目的。 |
 | `binding_profile` / `reducer_profile` | 否 | **必须**：profile id 决定接收方如何解释 root hash 与 frontier 集合；不能从 MLS transcript 推导。 |
 
-简言之：MLS-redundant 字段（`mls_group_id` / `previous_epoch` / `next_epoch`）以约 ~50 字节的 wire 代价换取 binding payload 的离线自含性，这是有意识设计而不是 leftover；非冗余字段是 governance binding 真正承载的事实。Wire-size 进一步优化（如把 redundant 字段折叠成单个 commit_seal hash）属于未来 hardening profile，不进入 v1 core。
+简言之：MLS-redundant 字段（`mls_group_id` / `previous_epoch` / `next_epoch`）以约 ~50 字节的 wire 代价换取 binding payload 的离线自含性；非冗余字段是 governance binding 真正承载的事实。
 
 **为什么禁止私有 codepoint 覆盖（normative rationale）**：允许 deployment 在 IANA 私用段内选择不同 codepoint（例如 `0xF1C1`）覆盖 `0xF1C0` 的路径在联邦边界 (federation Realm 跨 deployment) 上**无法静态 enforce**——两个独立合规的 deployment 各自合法选择不同 codepoint 后，接入同一 federation Realm 时, GroupContext extensions 中**任意一侧看不到对方的 extension**(因为 codepoint 不同)。MLS receiver 对未知 codepoint 的 extension 默认 ignore,因此 governance binding 会**静默退化为单边 binding**：本端按自己的 codepoint 解析+校验 + `confirmed_transcript_hash` 推进, 对端 binding 缺失但 epoch 仍前进 = 等价于 binding 被绕过。Receiver 没有可靠途径区分"对方使用了不同 codepoint(私有覆盖)"与"对方实现根本不携带 binding extension(降级 binding)"。
 
-为关闭这条 federation 静默降级路径,v1 取消 deployment 私有覆盖。需要更换 codepoint 的部署 MUST 申请新 hardening profile（与对应 `mls_governance_binding.full.v<n>` 配套）并显式声明，使得"使用不同 codepoint"成为可观察的 wire 版本切换而非 codepoint-only 私有约定。
+为关闭这条 federation 静默降级路径，v1 不提供 deployment 私有 codepoint 覆盖机制；声明 `ck.profile.mls_governance_binding.full.v1` 的实现只能发送和接受 `0xF1C0`。
 
 `governance_binding` 是封闭对象；不得携带 `"strand_id"`、`"track"` 或其它 profile 未登记字段。Strand / Message 上下文只可作为 application message context / AAD 出现，**不**决定 key scope；key scope 只能由 `effective_scope` 决定，并且必须进入 deterministic CBOR canonical bytes。
 
@@ -524,8 +524,8 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
 
 - 声明 full binding profile 时，`mls_governance_binding` extension MUST 出现在每次 `ck.mls.commit` 对应的 GroupContext `extensions` 字段中。
 - `confirmed_transcript_hash` 的计算覆盖包含该 extension 的 GroupContext，从而将 Cokret 应用状态绑定到 MLS transcript。
-- 若底层 MLS 库暂不支持 GroupContext extension，base E2EE profile MUST 至少把 `governance_binding` 放入签名 Event 和 Commit transcript hash 可验证覆盖的字段中，并在实现文档中声明降级原因；不得声称支持 full binding profile，不得参与 MLS-backed federation 互操作下界声明，也不得把该降级表示为 `ck.profile.mls_governance_binding.full.v1`。
-- 接收方在声称 full binding 或 federation MLS 下界的上下文中看不到 `0xF1C0` extension、看到不同私有 codepoint、或只能看到 Event payload 中的未扩展 fallback 时，MUST fail closed：该 commit 不得推进 `mls_epoch_cell` / `covered_seals_cell`，依赖它的 DataEvent 必须保持 `decryption_pending` / `state_mismatch` 或 quarantine。
+- 不能发送或验证该 GroupContext extension 的实现不得声明 `ck.profile.mls_governance_binding.full.v1`，不得参与 MLS-backed federation 互操作下界声明。
+- 接收方在声称 full binding 或 federation MLS 下界的上下文中看不到 `0xF1C0` extension，或看到不同私有 codepoint 时，MUST fail closed：该 commit 不得推进 `mls_epoch_cell` / `covered_seals_cell`，依赖它的 DataEvent 必须保持 `decryption_pending` / `state_mismatch` 或 quarantine。
 - 接收方验证 Commit 时 MUST 解码 `mls_governance_binding` extension 并执行 section 2.5 中的 `governance_binding` 验证规则。
 
 ### 2.6 KeyPackage Claim 生命周期
@@ -756,7 +756,7 @@ Reaction 事件 (`ck.reaction.*`) 的可见性规则：
 
     其中 `canonical_emoji` 为 NFC 归一化后的 Unicode 字节串;`MLS-Exporter` 即 MLS RFC9420 §8.5,使用当前 group epoch 的 exporter secret。Sync Service 仍可做 OR-Set dedup / rate-limit / push fanout / reducer 聚合(只要发送方同 epoch 内同一 emoji 派生相同 key 即可得到相同 tag);但 **server 无法从已知 emoji 字典(≈3700 项)枚举 tag → emoji** 的反查，因为 key 取自 MLS exporter secret,群外不可知。
   - 明文 `annotation` MUST 省略；annotation 文本随 `encrypted_payload` 一同加密。
-  - Routing tag 的构造经由 `MLS-Exporter` 自然绑定 `mls_group_id`(exporter secret 由 group 派生) 与当前 `epoch`(每次 commit 必变);`realm_id` 通过 exporter `context` 参数额外绑定，即便未来 MLS 库或部署出现 group_id 重用 / 碰撞,realm_id 绑定仍能阻止跨 Realm 重放。接收方 MUST 在路由层校验 routing tag 与当前 Realm / epoch 一致。
+  - Routing tag 的构造经由 `MLS-Exporter` 自然绑定 `mls_group_id`(exporter secret 由 group 派生) 与当前 `epoch`(每次 commit 必变);`realm_id` 通过 exporter `context` 参数额外绑定，即便 group_id 出现重用 / 碰撞,realm_id 绑定仍能阻止跨 Realm 重放。接收方 MUST 在路由层校验 routing tag 与当前 Realm / epoch 一致。
   - **Within-epoch 频次分析的剩余 tradeoff**：keyed HMAC 在同 epoch 内"emoji X 被使用过 N 次"的频次仍然可见(同 emoji 同 epoch 产生同 tag,这是 OR-Set dedup 的前提);要消除该侧信道需要 per-message 随机 salt,但会破坏 dedup 与幂等。剩余频次侧信道按以下方式缓解:隐私优先 Realm SHOULD 通过缩短 MLS epoch lifetime 限制单个 epoch 内可观察到的频次窗口（例如每 1 小时或 100 commit 强制一次 commit），以及 SHOULD 通过 `aad_visibility=hidden` 关闭 message_id 暴露，使频次只能 per-target_ref 而非 per-message 关联。普通 Realm 的基线 epoch 自保推进（触发阈值、重复 commit 抑制、与成员变动 commit 的合并）见 §5.6。
 - Minimal-metadata Realm (`ck.profile.mls.minimal_metadata_realm.v1`): 同上，且 `actor_id` MUST 使用 Realm-scoped pairwise DID,因此 `(actor_id, target_ref, routing_digest)` 三元组在服务侧也不直接暴露 principal。对声明该 profile 的 Realm，上一条中针对 within-epoch 频次侧信道的两项缓解从 SHOULD 升为 MUST：客户端 / committer MUST 通过缩短 MLS epoch lifetime 限制单 epoch 内可观察的频次窗口，且 epoch lifetime MUST ≤ 1 小时（实现 MAY 声明更短）；同时该 Realm MUST 使用 `aad_visibility=hidden` 关闭 message_id 暴露，使频次只能 per-target_ref 而非 per-message 关联。
 - `ck.reaction.remove` 走相同规则；`encrypted_payload` 明文的 `remove_add_event_ids[]` MAY 引用要撤销的 add 事件 id 以加速本地 OR-Set 收敛，但不得将该 id 暴露在外层明文。
@@ -933,13 +933,13 @@ MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 ## 6. 离线支持与消息延迟到达
 - 凭借 MLS 的 Ratchet Tree，即使某成员长时间离线，只要他没有被驱逐出群组，他上线后依然能通过同步全量的 `ck.mls.commit` 操作跟上 Epoch 的演进，并解密积压在 Sync Service 中的加密事件。
 - 对于极端网络分区情况，客户端 SHOULD 保存尚未完全确认的前驱 Epoch 密钥状态，直到所有相关的历史 `encrypted_payload` 都已被成功拉取与解密。
-- 这种前驱 Epoch 保留是有界的恢复缓存，不是为未来新成员历史共享而无限期保存先前 secret。客户端 MUST 对本地先前 epoch key 使用设备保护存储或明确授权的 key backup，并在 retention / legal hold / erasure policy 不再要求保留时销毁。
+- 这种前驱 Epoch 保留是有界的恢复缓存，不是为后加入成员历史共享而无限期保存先前 secret。客户端 MUST 对本地先前 epoch key 使用设备保护存储或明确授权的 key backup，并在 retention / legal hold / erasure policy 不再要求保留时销毁。
 
 ## 7. v1 集成要求
 
 - KeyPackage 在 DID Document 或 Device / Key Server 中的映射 MUST 绑定 principal DID、device id、KeyPackage hash、supported cipher suites、created_at、expires_at、revocation status 和 device signature。客户端必须通过 DID 控制链和 device trust chain 验证后才能加密。
 - 当 Audit Applet Binding 声明 `audit_assurance_class = "attested_hardware"`（profile = `ck.profile.attested_audit.e2ee.v1`）时，release service remote attestation MUST 绑定 measurement、service DID、`audit_service_actor_id`、policy version、audit purpose、operator DID、created_at 和 expiry。Attestation 只能证明受控输出路径和代码身份，不能绕过 `ck.audit.release`、notice 与 RYW receipt 要求。`ck.profile.disclosed_audit.e2ee.v1` 不得伪造或暗示存在 TEE attestation；client UI 必须按 [`audited-e2ee.md`](./audited-e2ee.md) 的两类提示区分展示，不得合并、省略关键限定词。
-- Signal / Double Ratchet 私信互操作只能作为 profile-specific fallback。fallback 必须声明会话 identity binding、device verification、forward secrecy profile、history visibility 差异和迁移边界；不得在 MLS Realm 内静默降级。
+- Signal / Double Ratchet 私信互操作只能作为 profile-specific interop profile。该 profile 必须声明会话 identity binding、device verification、forward secrecy profile、history visibility 差异和互通边界；不得在 MLS Realm 内静默降级。
 
 > **PQ 覆盖边界（informative，防误读）**：v1 的后量子覆盖分为三层：签名层（`ML-DSA-65`，[`../conformance/encoding.md` §6.1](../conformance/encoding.md)）与传输层（TLS `X25519MLKEM768`，[`../sync/federation.md` §3.2](../sync/federation.md)）已有 PQ 选项；应用层内容机密性由 MLS ciphersuite registry 与非-MLS HPKE suite registry 分别控制。读者 MUST NOT 把传输层 TLS PQ 误读为已覆盖 E2EE 正文：Harvest-Now-Decrypt-Later 攻击者收割的是落盘 / 转发的 E2EE 密文，其机密性取决于 MLS / HPKE 的 KEM 而非 TLS（TLS 只保护单次传输跳）。
 >

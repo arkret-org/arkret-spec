@@ -1691,9 +1691,6 @@
         },
         "reason": {
           "type": "string"
-        },
-        "effective_at": {
-          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": false
@@ -2268,9 +2265,6 @@
         },
         "reason": {
           "type": "string"
-        },
-        "effective_at": {
-          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": false
@@ -2330,12 +2324,6 @@
         },
         "reason": {
           "type": "string"
-        },
-        "effective_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "freeze_expires_at": {
-          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": false
@@ -2355,9 +2343,6 @@
         },
         "replacement_event": {
           "$ref": "#/$defs/event_ref"
-        },
-        "effective_at": {
-          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": false
@@ -2370,9 +2355,6 @@
       "properties": {
         "reason": {
           "type": "string"
-        },
-        "effective_at": {
-          "$ref": "#/$defs/timestamp"
         },
         "retention_policy_id": {
           "$ref": "#/$defs/object_ref"

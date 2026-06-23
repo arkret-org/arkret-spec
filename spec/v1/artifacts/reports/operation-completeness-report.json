@@ -18,13 +18,13 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 169,
+    "total_operations": 173,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 1,
       "service_describe": 7,
       "streaming_frame_schema": 2,
-      "typed_schema": 157
+      "typed_schema": 161
     },
     "by_tier_and_class": {
       "core": {
@@ -39,7 +39,7 @@
         "binary_or_redirect": 2,
         "no_request_body": 1,
         "service_describe": 2,
-        "typed_schema": 105
+        "typed_schema": 109
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -2155,6 +2155,62 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.realm.command.archive",
+      "tier": "extension",
+      "http": "POST /_cokret/self/realms/{realm_id}/archive",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
+      "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/RealmArchivePayload",
+        "response": "#/components/schemas/RealmLifecycleView"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.self.realm.command.destroy",
+      "tier": "extension",
+      "http": "POST /_cokret/self/realms/{realm_id}/destroy",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_destroy_payload",
+      "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/RealmDestroyPayload",
+        "response": "#/components/schemas/RealmLifecycleView"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.self.realm.command.freeze",
+      "tier": "extension",
+      "http": "POST /_cokret/self/realms/{realm_id}/freeze",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
+      "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/RealmFreezePayload",
+        "response": "#/components/schemas/RealmLifecycleView"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.self.realm.command.tombstone",
+      "tier": "extension",
+      "http": "POST /_cokret/self/realms/{realm_id}/tombstone",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_tombstone_payload",
+      "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/RealmTombstonePayload",
+        "response": "#/components/schemas/RealmLifecycleView"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ck.self.realm.moderation_policy.query.effective",

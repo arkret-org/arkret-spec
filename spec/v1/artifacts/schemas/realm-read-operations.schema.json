@@ -76,9 +76,6 @@
         },
         "successor_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "freeze_expires_at": {
-          "$ref": "#/$defs/timestamp"
         }
       },
       "additionalProperties": false

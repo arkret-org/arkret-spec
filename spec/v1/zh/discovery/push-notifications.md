@@ -52,8 +52,6 @@ Blind wakeup **不是可选 extension**，而是 push gateway 的**默认互操�
 
 Presence 不得作为精确 push timing oracle。服务端把 presence update、watch recompute 与 push activation 组合使用时，MUST 至少按 Realm policy 声明的 bucket 粒度（默认不小于 60s；高隐私部署 SHOULD 使用 5min 或更粗）批处理或延迟；不得在用户刚上线 / 刚离线的瞬间立即发出可被 provider 观察到的 per-event push burst。该规则不阻止本地客户端在已在线连接上立即显示通知；它只约束第三方 push provider 可见的出向时序。
 
-> **路线图注记（informative，2026-06 评审采纳）**：v1 的 provider 抽象（`push_gateway` URL + opaque `push_key`）可无损承载两条尚未显式注册的 route：**Web Push**（RFC 8030 协议 / RFC 8291 消息加密 / RFC 8292 VAPID——其 ECE 端到端加密 payload 与 blind wakeup 的"上游只见 pseudonym"模型天然互补）与 **UnifiedPush**（无 GMS Android 生态的事实标准；对 `sovereign_deployment` 目标场景是实际可用性问题）。注册显式 binding 时的工作集：route profile id、与 `blind_wakeup` 基线的兼容性矩阵、collapse-key 不可链接规则对这两类 provider 的对照行、UnifiedPush distributor（通常为用户自选第三方）是否纳入 `plaintext_visible_services` 披露框架。本注记不预注册 binding id；现有 APNs / FCM / 自建 gateway 路径不受影响。
-
 ## 3. 推送设备注册
 
 ### 3.1 注册接口
@@ -387,15 +385,13 @@ POST /_cokret/edge/push/notify
 | `notification.devices` | object[] | required | 目标设备数组。 |
 | `notification.devices[].push_key` | string | required | 目标平台 push token。 |
 | `notification.devices[].app_id` | string | optional | 目标应用标识。 |
-| `notification.devices[].target_actor_id` | did | optional（routing-stripped） | gateway-internal mention-redirect 路由键：该设备用户在接收 principal server 上注册的 actor DID。与 `notification.routing_metadata.mention_redirect_target_actor_ids` 配对，驱动 per-device fail-closed 路由门。**MUST 在出 provider 前 strip，MUST NOT 转发给 provider**（见 §4.5）。 |
+| `notification.devices[].target_route_token` | string | optional（routing-stripped） | gateway-internal mention-redirect 路由 token。与 `notification.route_tokens.mention_redirect_target_route_tokens` 配对，驱动 per-device fail-closed 路由门。该 token 不得包含或可逆推出 actor DID、Realm id、Circle id、event id、handle、平台 push token 或其它跨上下文稳定标识。**MUST 在出 provider 前 strip，MUST NOT 转发给 provider**（见 §4.5）。 |
 | `notification.devices[].visible_notification_opt_in` | boolean | optional（默认 `false`；routing-stripped） | 接收设备授权状态中的 `visible_notification` opt-in 投影。仅当 Realm policy、调用服务 visible profile 与该字段三者同时允许时，Push Gateway 才可处理本表 visible-only 字段；缺失或 `false` 时该设备 MUST 回退到 `blind_wakeup`，不得接收明文标题、发送者显示名或 typed-id preview。MUST NOT 转发给 provider。 |
-| `notification.routing_metadata` | object | optional（routing-stripped） | gateway-internal 路由片段，blind 与 visible 通知共有。其下所有字段都只驱动 gateway 侧路由 / 去重 / per-(provider,realm,circle) 熔断状态，**MUST 在出 provider 前 strip，MUST NOT 转发给 provider**。注意：`routing_metadata.realm_id` 是 gateway-internal 路由路径，与 blind_notification 顶层硬禁的 client-visible `realm_id` 是**不同**字段，二者并存、schema 显式区分两种 realm_id。 |
-| `notification.routing_metadata.realm_id` | id:realm | optional（routing-stripped） | gateway-internal Realm 安全边界 id，用于路由 / 去重 / 熔断 keying。出 provider 前 strip。与 blind 顶层禁的 client-visible `realm_id` 不同。 |
-| `notification.routing_metadata.circle_id` | id:circle | optional（routing-stripped） | [Circle](../models/circle.md)（Realm 内加密子边界）id，使同名 Strand 在不同 Circle 不碰撞。出 provider 前 strip。 |
-| `notification.routing_metadata.scope_circle_id` | id:circle | optional（routing-stripped） | 源 Strand 绑定 Circle scope 时的 `scope_circle_id`。gateway-internal，出 provider 前 strip。 |
-| `notification.routing_metadata.effective_scope` | object | optional（routing-stripped） | reducer 在源 Event 信封上盖的不可变 scope 绑定，内部 tag 在 `kind`：`{kind:"realm",realm_id}` 或 `{kind:"circle",realm_id,circle_id}`（派生自 SDK `cokret::EffectiveScope`）。出 provider 前 strip。 |
-| `notification.routing_metadata.mention_redirect_target_actor_ids` | did[] | optional（routing-stripped） | Round-4 mention-redirect 路由 allow-list：被允许接收本 wakeup 的 actor DID。非空时每个 `devices[].target_actor_id` MUST 出现在此列表，否则该设备 fail-closed（不调 provider、不解密正文）。接收方据此 plaintext 列表校验自身是否在内而**无需解密正文**。gateway-internal，出 provider 前 strip（见 §4.5）。 |
-| `notification.routing_metadata.delivery_binding_frontier` | string | optional（routing-stripped） | federation hop 来源 notify 时接收方已接受的 Realm delivery-binding frontier；接收方 frontier 更新则返回 `delivery_binding_stale`。Realm 级 gateway-internal 概念，出 provider 前 strip。 |
+| `notification.route_tokens` | object | optional（routing-stripped） | gateway-internal opaque token 集合，blind 与 visible 通知共有。第三方 Push Gateway 只可把 token 用作路由、去重、熔断和等值比较输入；token 由接收 Sync / Principal Service 生成，并绑定 `recipient_service_did`、Push Gateway service DID、用途、scope 与 salt epoch。其下所有字段 **MUST 在出 provider 前 strip，MUST NOT 转发给 provider**。 |
+| `notification.route_tokens.realm_route_token` | string | optional（routing-stripped） | Realm 级路由 / 去重 / 熔断 token；不得是 Realm id 或可逆 Realm id 编码。 |
+| `notification.route_tokens.scope_route_token` | string | optional（routing-stripped） | effective Realm / Circle scope 的 opaque token；不得携带 Circle id、`effective_scope` 对象或其它可识别 scope 原文。 |
+| `notification.route_tokens.mention_redirect_target_route_tokens` | string[] | optional（routing-stripped） | mention-redirect 路由 allow-list。非空时每个 `devices[].target_route_token` MUST 出现在此列表，否则该设备 fail-closed（不调 provider、不解密正文）。接收方据此 token 列表完成等值比较，无需解密正文，也不会向第三方 gateway 暴露 actor DID。 |
+| `notification.route_tokens.delivery_binding_frontier_token` | string | optional（routing-stripped） | federation hop 来源 notify 的 stale-route 检测 token；不得携带 raw Realm frontier。 |
 | `notification.strand_id` | id:strand | visible-only | profile-gated Strand id。绝不进 blind。 |
 | `notification.message_id` | id:message | visible-only | profile-gated Message id。绝不进 blind。 |
 | `notification.sender_actor_display_name` | string | visible-only | profile-gated 发送者显示名。绝不进 blind（§2.2 已列入 MUST NOT 清单）。 |
@@ -412,12 +408,12 @@ POST /_cokret/edge/push/notify
 
 **Notify body / product-private body / provider payload 三层边界（normative）**：
 
-1. `/_cokret/edge/push/notify` 请求体只承载本节表中定义的协议字段，且由 `push-operations.schema.json#/$defs/push_notify_request_body` 的闭合 schema 约束。产品内部 UI 草稿、DND/snooze 状态、push rule 明文、provider adapter 原始字段、APNs/FCM/WebPush 私有 body、`provider_payload`、`content` 或 `content_*` preview 字段 **MUST NOT** 进入该协议 body；实现需要这些信息时，只能在调用方产品私有进程内完成求值，并把结果压缩成本节定义的 `wakeup_kind` / `push_hint` / `reason_code` / `routing_metadata` 等最小协议字段。
+1. `/_cokret/edge/push/notify` 请求体只承载本节表中定义的协议字段，且由 `push-operations.schema.json#/$defs/push_notify_request_body` 的闭合 schema 约束。产品内部 UI 草稿、DND/snooze 状态、push rule 明文、provider adapter 原始字段、APNs/FCM/WebPush 私有 body、`provider_payload`、`content` 或 `content_*` preview 字段 **MUST NOT** 进入该协议 body；实现需要这些信息时，只能在调用方产品私有进程内完成求值，并把结果压缩成本节定义的 `wakeup_kind` / `push_hint` / `reason_code` / `route_tokens` 等最小协议字段。
 2. Product-private body 是调用方服务内部状态，不是 Cokret v1 wire surface。它 MAY 包含本地化资源键、UI 文案模板、静默时段、snooze target 或 provider adapter 配置，但这些字段 MUST 在进入 `ck.edge.push.command.notify` 前被消费或丢弃。不得通过 `notification.extra`、`content`、`payload`、`data`、`provider_payload` 或任何自由对象把 product-private body 透传给 Push Gateway。
-3. Provider payload 是 Push Gateway 对 APNs / FCM / WebPush / OEM provider 的出向请求；它由 gateway 根据已验证的 notify body 重新构造。默认 `blind_wakeup` 下 provider payload 的允许集合是 `push_target_id`、`wakeup_kind`、合规的 `push_hint` / `push_hint_l10n_key`、最小化 counts 以及 provider 必需的不可链接 collapse key；`routing_metadata`、`devices[].target_actor_id`、`reason_code`、`event_kind`、`audit_envelope` 和任何 Realm / sender / event / content 字段 MUST 在出 provider 前 strip。
+3. Provider payload 是 Push Gateway 对 APNs / FCM / WebPush / OEM provider 的出向请求；它由 gateway 根据已验证的 notify body 重新构造。默认 `blind_wakeup` 下 provider payload 的允许集合是 `push_target_id`、`wakeup_kind`、合规的 `push_hint` / `push_hint_l10n_key`、最小化 counts 以及 provider 必需的不可链接 collapse key；`route_tokens`、`devices[].target_route_token`、`reason_code`、`event_kind`、`audit_envelope` 和任何 Realm / sender / event / content 字段 MUST 在出 provider 前 strip。
 4. `ck.profile.push_gateway.visible_notification.v1` 只放宽本表列出的 profile-gated 标题/标签/typed-id 字段，不引入自由正文容器。即使 Realm policy 和设备 opt-in 允许 visible notification，`notification.content`、`body`、`preview`、`summary`、provider-specific `data` 或任意 `content_*` 字段仍不属于 v1 notify body；需要完整标题与正文的客户端 SHOULD 由 blind wakeup 唤醒后本地拉取、解密并渲染。
 
-`notification.event_id`、`notification.realm_id`（client-visible 顶层）、`notification.kind`、`notification.sender_actor_id`、`notification.sender_actor_display_name`、`notification.realm_title`、`notification.strand_title` 等识别字段 **MUST NOT** 出现在 `ck.profile.push_gateway.blind_wakeup.v1`（默认互操作隐私基线）的 payload 中（`notification.routing_metadata.realm_id` 是不同的 gateway-internal 路由字段，不在此禁列内）。若某部署确实需要让受信 Push Gateway 承载可见通知，必须声明独立的 `ck.profile.push_gateway.visible_notification.v1` profile，并满足全部条件：
+`notification.event_id`、`notification.realm_id`（client-visible 顶层）、`notification.kind`、`notification.sender_actor_id`、`notification.sender_actor_display_name`、`notification.realm_title`、`notification.strand_title` 等识别字段 **MUST NOT** 出现在 `ck.profile.push_gateway.blind_wakeup.v1`（默认互操作隐私基线）的 payload 中。独立第三方 Push Gateway 的路由输入只能使用 `route_tokens` 与 `devices[].target_route_token`；raw Realm id、Circle id、`effective_scope`、actor DID allow-list 或其它可识别路由原文不得进入 `/_cokret/edge/push/notify` wire。若某部署确实需要让受信 Push Gateway 承载可见通知，必须声明独立的 `ck.profile.push_gateway.visible_notification.v1` profile，并满足全部条件：
 
 1. Realm policy 显式把该 Push Gateway 列入 `plaintext_visible_services`，且声明允许 `visible_notification`。
 2. 接收设备在其授权状态中显式记录 `visible_notification` opt-in；未 opt-in 的设备 MUST 回退到 `ck.profile.push_gateway.blind_wakeup.v1`。
@@ -425,6 +421,7 @@ POST /_cokret/edge/push/notify
 4. payload 不得标记为 `blind_wakeup`，conformance suite 必须按较高隐私风险 profile 测试。
 5. 可见字段仍受最小化约束，不得包含正文、DID URL、跨 Realm stable correlation key、IP / geolocation 或未列入 profile 的自由文本。
 6. E2EE 默认实现不得依赖该 profile；完整通知标题与正文 SHOULD 由客户端被唤醒、拉取并本地解密后渲染。
+7. `visible_notification` 只放宽本表列出的展示字段，不放宽路由元数据边界；独立第三方 Push Gateway 仍只能接收 opaque route token。与 Sync / Principal Service 同一运营、日志、审计和信任边界内的 co-resident gateway 可以在实现内部使用 raw id，但这些 raw id 不属于 Cokret edge notify wire。
 
 Matrix 互通部署 MAY 声明 `ck.profile.push_gateway.matrix_passthrough.v1` 用于桥接遗留 Matrix push gateway 形态。该 profile 与 `ck.profile.push_gateway.blind_wakeup.v1` **不兼容**：bridge MUST 把流量分区，确保任一基于默认 v1 baseline 协商的 `(recipient_service_did, device)` 元组永远不会收到 matrix_passthrough payload。
 
@@ -472,7 +469,7 @@ Matrix 互通部署 MAY 声明 `ck.profile.push_gateway.matrix_passthrough.v1` �
 1. Alice 发送加密消息到 Realm S
 2. Alice 的客户端不在 Event 明文元数据中附加 sender / Realm 可识别 `push_hint`；若需要提示，只能使用 `push_hint: "new_message"` 或 `l10n_key`
 3. Sync Service 收到 Event，匹配推送规则
-4. Sync Service 向 Bob 的推送网关发送 `blind_wakeup` 通知（只含 `push_target_id`、`wakeup_kind`、可选计数和设备路由字段）
+4. Sync Service 向 Bob 的推送网关发送 `blind_wakeup` 通知（只含 `push_target_id`、`wakeup_kind`、可选计数和 opaque route token）
 5. Bob 的设备收到推送，唤醒客户端
 6. 客户端从 Sync Service 拉取加密 Event 并解密
 7. 客户端在本地展示完整的消息内容
@@ -481,7 +478,7 @@ Matrix 互通部署 MAY 声明 `ck.profile.push_gateway.matrix_passthrough.v1` �
 
 - Sync Service MUST NOT 在推送中包含 `encrypted_content` / `encrypted_metadata` / `encrypted_payload` 的任何部分
 - 推送网关被视为不可信第三方：`push_hint` 的白名单约束与 payload 最小化约束见 §2.2 与 §5.1，均为 MUST / MUST NOT，本节不重复其规范内容
-- **独立 Push Gateway 对 strip-前明文路由字段的处理（normative）**：`routing_metadata.realm_id`、`routing_metadata.mention_redirect_target_actor_ids`、`devices[].target_actor_id` 等 gateway-internal 字段在"出 provider 前 strip"之前对 Push Gateway 运营方本身明文可见。当 Push Gateway 是独立于 Sync Service 的第三方时，这些明文识别字段 MUST NOT 被该第三方持久化或记入日志（仅可在内存内用于本次 wakeup 的路由 / 去重 / 熔断 keying，处理后即丢弃），否则它能在 strip 前把设计为不可链接的 `push_target_id` 重新绑回 `realm_id` 与真实 actor DID，违反 blind wakeup 威胁模型。mention-redirect 路由 SHOULD 改用 keyed / pseudonymized actor 标识（类似 §4.5 `mention_routing_hmac`）而非明文 DID 列表，使独立 gateway 即便在 strip 前也无法解出真实 actor DID。
+- 独立 Push Gateway 的路由输入 MUST 是 opaque token：`route_tokens` 与 `devices[].target_route_token` 不得包含、编码或可逆推出 DID、Realm id、Circle id、Event id、Message id、Strand id、handle、平台 push token 或长期稳定 correlation key。mention redirect 只按 token 等值比较 fail closed；token 到真实对象的映射只保留在接收 Sync / Principal Service 的授权上下文内。
 
 ## 7. 静默时段 (Do Not Disturb)
 

@@ -2164,20 +2164,6 @@
       "notes": "Account subscribe to_device container carries DeviceMessageEnvelope objects, not Event envelopes."
     },
     {
-      "id": "until#realm_freeze_payload",
-      "wire_id": "until",
-      "kind_class": "wire_field_name",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "freeze_expires_at",
-      "allowed_contexts": [
-        "changelog",
-        "legacy_migration",
-        "negative_test"
-      ],
-      "notes": "Realm freeze time upper bounds use the canonical expires_at suffix with a domain prefix."
-    },
-    {
       "id": "actor#agent_audit_binding",
       "wire_id": "actor",
       "kind_class": "wire_field_name",

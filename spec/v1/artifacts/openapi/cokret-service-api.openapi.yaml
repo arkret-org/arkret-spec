@@ -1007,6 +1007,14 @@ components:
       $ref: ../schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view
     RealmLifecycleView:
       $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view
+    RealmArchivePayload:
+      $ref: ../schemas/event-payload.schema.json#/$defs/realm_archive_payload
+    RealmFreezePayload:
+      $ref: ../schemas/event-payload.schema.json#/$defs/realm_freeze_payload
+    RealmTombstonePayload:
+      $ref: ../schemas/event-payload.schema.json#/$defs/realm_tombstone_payload
+    RealmDestroyPayload:
+      $ref: ../schemas/event-payload.schema.json#/$defs/realm_destroy_payload
     RealmExport:
       $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_export
     RealmEffectiveModerationPolicy:
@@ -6500,6 +6508,106 @@ paths:
         required: true
         schema:
           type: string
+      responses:
+        '200':
+          description: Realm lifecycle projection.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealmLifecycleView'
+  /_cokret/self/realms/{realm_id}/archive:
+    post:
+      operationId: ck.self.realm.command.archive
+      security:
+      - bearerAuth: []
+      summary: Submit a ck.realm.archive lifecycle Move.
+      parameters:
+      - in: path
+        name: realm_id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RealmArchivePayload'
+      responses:
+        '200':
+          description: Realm lifecycle projection.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealmLifecycleView'
+  /_cokret/self/realms/{realm_id}/freeze:
+    post:
+      operationId: ck.self.realm.command.freeze
+      security:
+      - bearerAuth: []
+      summary: Submit a ck.realm.freeze lifecycle Move.
+      parameters:
+      - in: path
+        name: realm_id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RealmFreezePayload'
+      responses:
+        '200':
+          description: Realm lifecycle projection.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealmLifecycleView'
+  /_cokret/self/realms/{realm_id}/tombstone:
+    post:
+      operationId: ck.self.realm.command.tombstone
+      security:
+      - bearerAuth: []
+      summary: Submit a ck.realm.tombstone lifecycle Move.
+      parameters:
+      - in: path
+        name: realm_id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RealmTombstonePayload'
+      responses:
+        '200':
+          description: Realm lifecycle projection.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealmLifecycleView'
+  /_cokret/self/realms/{realm_id}/destroy:
+    post:
+      operationId: ck.self.realm.command.destroy
+      security:
+      - bearerAuth: []
+      summary: Submit a ck.realm.destroy lifecycle Move.
+      parameters:
+      - in: path
+        name: realm_id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RealmDestroyPayload'
       responses:
         '200':
           description: Realm lifecycle projection.

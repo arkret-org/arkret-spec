@@ -116,6 +116,10 @@ grpc:
       Delete: ck.self.realm_policy_server.resource.delete
     SelfRealm:
       Get: ck.self.realm.resource.get
+      Archive: ck.self.realm.command.archive
+      Freeze: ck.self.realm.command.freeze
+      Tombstone: ck.self.realm.command.tombstone
+      Destroy: ck.self.realm.command.destroy
       Export: ck.self.realm.query.export
       ModerationPolicyEffective: ck.self.realm.moderation_policy.query.effective
       ModerationPolicySet: ck.self.realm.moderation_policy.resource.replace
@@ -322,6 +326,10 @@ mq:
     self.realm_policy_server.resource.replace: ck.self.realm_policy_server.resource.replace
     self.realm_policy_server.resource.delete: ck.self.realm_policy_server.resource.delete
     self.realm.resource.get: ck.self.realm.resource.get
+    self.realm.command.archive: ck.self.realm.command.archive
+    self.realm.command.freeze: ck.self.realm.command.freeze
+    self.realm.command.tombstone: ck.self.realm.command.tombstone
+    self.realm.command.destroy: ck.self.realm.command.destroy
     self.realm.query.export: ck.self.realm.query.export
     self.realm.moderation_policy.query.effective: ck.self.realm.moderation_policy.query.effective
     self.realm.moderation_policy.resource.replace: ck.self.realm.moderation_policy.resource.replace

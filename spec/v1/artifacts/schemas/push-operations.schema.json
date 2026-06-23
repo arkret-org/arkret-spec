@@ -61,6 +61,11 @@
       "pattern": "^[A-Za-z0-9._:-]{16,256}$",
       "description": "Pairwise pseudonym for one (recipient_service_did, principal, device, push_route) tuple. It MUST NOT be a DID, DID URL, Realm id, Strand id, Message id, Event id, or stable cross-Realm correlation key."
     },
+    "push_route_token": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._~-]{22,512}$",
+      "description": "Opaque service-generated routing token. It MUST NOT contain, encode, or be reversibly derived from a DID, DID URL, Realm id, Circle id, Strand id, Message id, Event id, handle, platform push token, or stable cross-context correlation key."
+    },
     "registration_id": {
       "type": "string",
       "pattern": "^[A-Za-z0-9._:-]{1,128}$",
@@ -121,9 +126,9 @@
         "platform": {
           "$ref": "#/$defs/non_empty_string"
         },
-        "target_actor_id": {
-          "$ref": "#/$defs/did",
-          "description": "Gateway-internal mention-redirect routing key: the actor DID this device's user is registered as on the recipient principal server. Paired with notification.routing_metadata.mention_redirect_target_actor_ids to drive the fail-closed per-device routing gate. MUST be stripped before any provider call; MUST NOT be forwarded to a provider. See push-notifications.md §4.5 / §5.1."
+        "target_route_token": {
+          "$ref": "#/$defs/push_route_token",
+          "description": "Gateway-internal mention-redirect routing token for this device route. Paired with notification.route_tokens.mention_redirect_target_route_tokens to drive the fail-closed per-device routing gate. MUST be stripped before any provider call; MUST NOT be forwarded to a provider. See push-notifications.md §4.5 / §5.1."
         },
         "visible_notification_opt_in": {
           "type": "boolean",
@@ -133,77 +138,29 @@
       },
       "additionalProperties": false
     },
-    "effective_scope": {
+    "route_tokens": {
       "type": "object",
-      "description": "Reducer-stamped immutable scope binding mirrored from the originating Event envelope (event-envelope.schema.json $defs.effective_scope). Internally tagged on `kind`. Gateway-internal routing metadata; MUST be stripped before a provider sees it. Derived from the SDK `cokret::EffectiveScope` (kind=realm{realm_id} | circle{realm_id,circle_id}).",
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "realm_id"
-          ],
-          "properties": {
-            "kind": {
-              "const": "realm"
-            },
-            "realm_id": {
-              "$ref": "./common-ids.schema.json#/$defs/realm_id"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "kind",
-            "realm_id",
-            "circle_id"
-          ],
-          "properties": {
-            "kind": {
-              "const": "circle"
-            },
-            "realm_id": {
-              "$ref": "./common-ids.schema.json#/$defs/realm_id"
-            },
-            "circle_id": {
-              "$ref": "./common-ids.schema.json#/$defs/circle_id"
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
-    "routing_metadata": {
-      "type": "object",
-      "description": "Gateway-internal routing fragment shared by blind and visible notifications. Every field here drives gateway-side routing / dedup / per-(provider,realm,circle) circuit-breaker state and MUST be stripped before the gateway calls any push provider; it MUST NOT be forwarded to a provider. NOTE: routing_metadata.realm_id is a distinct, gateway-internal routing path and is NOT the client-visible top-level realm_id that blind_notification forbids; the two realm_id surfaces coexist and are deliberately separated here.",
+      "description": "Gateway-internal opaque routing fragment shared by blind and visible notifications. Every field here drives gateway-side routing / dedup / circuit-breaker state and MUST be stripped before the gateway calls any push provider; it MUST NOT be forwarded to a provider. Tokens are issued by the recipient Sync or Principal Service and bound to recipient_service_did, push gateway service DID, purpose, scope, and salt epoch.",
       "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id",
-          "description": "Gateway-internal Realm security-boundary id used for routing / dedup / circuit-breaker keying. Stripped before any provider call. Distinct from the client-visible realm_id that blind_notification forbids at the top level."
+        "realm_route_token": {
+          "$ref": "#/$defs/push_route_token",
+          "description": "Opaque token for Realm-level routing / dedup / circuit-breaker keying."
         },
-        "circle_id": {
-          "$ref": "./common-ids.schema.json#/$defs/circle_id",
-          "description": "CKP-0007 Circle (intra-Realm encryption sub-boundary) id. Drives per-Circle routing / dedup so two strands with the same name in different Circles do not collide. Plaintext circle_id MUST be stripped before any provider call."
+        "scope_route_token": {
+          "$ref": "#/$defs/push_route_token",
+          "description": "Opaque token for the effective Realm or Circle scope of this wakeup."
         },
-        "scope_circle_id": {
-          "$ref": "./common-ids.schema.json#/$defs/circle_id",
-          "description": "Strand-declared scope_circle_id when the originating Strand is bound to a Circle scope. Gateway-internal; stripped before any provider call."
-        },
-        "effective_scope": {
-          "$ref": "#/$defs/effective_scope"
-        },
-        "mention_redirect_target_actor_ids": {
+        "mention_redirect_target_route_tokens": {
           "type": "array",
-          "description": "Round-4 mention-redirect routing allow-list: actor DIDs permitted to receive this wakeup. When non-empty, each device's device_route.target_actor_id MUST appear here or that device is failed closed (no provider call, no body decryption). Plaintext routing list; receivers verify inclusion WITHOUT decrypting the body. Gateway-internal; MUST be stripped before any provider call. See push-notifications.md §4.5.",
+          "description": "Mention-redirect routing allow-list. When non-empty, each device's device_route.target_route_token MUST appear here or that device is failed closed (no provider call, no body decryption). Gateway-internal; MUST be stripped before any provider call. See push-notifications.md §4.5.",
           "items": {
-            "$ref": "#/$defs/did"
-          }
+            "$ref": "#/$defs/push_route_token"
+          },
+          "uniqueItems": true
         },
-        "delivery_binding_frontier": {
-          "$ref": "#/$defs/non_empty_string",
-          "description": "Receiver's accepted Realm delivery-binding frontier when the notify originated from a federation hop; the receiver returns delivery_binding_stale if its accepted frontier is ahead. Realm-level gateway-internal concept; MUST be stripped before any provider call."
+        "delivery_binding_frontier_token": {
+          "$ref": "#/$defs/push_route_token",
+          "description": "Opaque token representing the receiver's delivery-binding frontier for stale-route detection."
         }
       },
       "additionalProperties": false
@@ -270,8 +227,8 @@
         "counts": {
           "$ref": "#/$defs/counts"
         },
-        "routing_metadata": {
-          "$ref": "#/$defs/routing_metadata"
+        "route_tokens": {
+          "$ref": "#/$defs/route_tokens"
         },
         "devices": {
           "type": "array",
@@ -364,8 +321,8 @@
         "counts": {
           "$ref": "#/$defs/counts"
         },
-        "routing_metadata": {
-          "$ref": "#/$defs/routing_metadata"
+        "route_tokens": {
+          "$ref": "#/$defs/route_tokens"
         },
         "devices": {
           "type": "array",
@@ -517,7 +474,7 @@
     },
     "push_notify_request_body": {
       "type": "object",
-      "description": "Closed Cokret notify body. Product-private notification bodies, provider adapter payloads, APNs/FCM/WebPush data dictionaries, `content`, `content_*`, `provider_payload`, DND/snooze state, and push-rule plaintext are outside this wire surface and MUST be consumed before this body is built. Provider-facing payloads are reconstructed by the gateway from this closed shape and MUST strip routing_metadata / reason_code / event_kind / audit_envelope before provider dispatch.",
+      "description": "Closed Cokret notify body. Product-private notification bodies, provider adapter payloads, APNs/FCM/WebPush data dictionaries, `content`, `content_*`, `provider_payload`, DND/snooze state, and push-rule plaintext are outside this wire surface and MUST be consumed before this body is built. Provider-facing payloads are reconstructed by the gateway from this closed shape and MUST strip route_tokens / reason_code / event_kind / audit_envelope before provider dispatch.",
       "required": [
         "notification"
       ],
