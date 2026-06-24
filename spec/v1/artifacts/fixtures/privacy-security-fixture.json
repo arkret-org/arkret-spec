@@ -452,7 +452,7 @@
             "operation_id": "ck.open.mimi.command.notify",
             "payload": {
               "room_id": "mimi-room-7d9e",
-              "notification_type": "blind_wakeup",
+              "notification_type": "message",
               "target": "opaque-bridge-target",
               "payload_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
             }

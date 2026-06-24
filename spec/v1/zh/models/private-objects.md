@@ -3,7 +3,7 @@ title: Private & Derived Objects
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-10
+updated: 2026-06-24
 ---
 
 ## 0. 规范语言
@@ -72,7 +72,7 @@ Schema id: `ck.schema.notification.v1`
 | `source_ref` | no | `id:(message\|strand\|morph\|relation\|view\|blob)` | 取值形如 `ck:(message\|strand\|morph\|relation\|view\|blob):…`，union 枚举即此 6 类。render-only hint;reducer MUST 以 `source_event_id` 为权威。 | 可选 canonical 对象引用，供客户端直接渲染通知目标。 |
 | `strand_id` | no | `id:strand` |  | 可选 Strand 上下文，用于路由通知。 |
 | `track_name` | no | `string` | `^[a-z][a-z0-9_]{0,63}$`。 | 可选，来源 Strand 上的 track key。 |
-| `notification_type` | yes | `enum(mention, reply, assignment, invite, reaction, policy, call, applet, agent, moderation, system)` |  | 通知类型。 |
+| `notification_type` | yes | `enum(message, mention, reply, assignment, invite, reaction, policy, call, applet, agent, moderation, system)` |  | 通知类型。 |
 | `priority` | yes | `enum(low, normal, high, urgent)` |  | 优先级。 |
 | `state` | yes | `enum(unread, read, dismissed, archived)` | Notification projection-state 例外；表示 inbox/read 状态，不表示 canonical object 物理 lifecycle。 | 通知状态。 |
 | `preview` | no | `object` | E2EE 场景必须脱敏。 | 展示摘要。 |
@@ -83,6 +83,7 @@ Schema id: `ck.schema.notification.v1`
 
 - Notification 是派生 projection；客户端 / 服务端 SHOULD 从 source event + actor preferences 计算，不要把它当作独立真相源持久化为 durable canonical event。
 - E2EE Realm 中 `preview` 必须由发送者客户端脱敏后置入推送 envelope；服务端不得用明文重新生成 preview。
+- `notification_type=message` 表示普通 `ck.message.create` 在接收者 effective watch / push rule 允许普通消息提醒时产生的 inbox / push 提醒；默认 `mentions_only` 不得为非定向普通消息产生该类型。当同一 source event 对同一 actor 同时命中 `mention`、`reply`、`assignment` 等更具体原因时，dispatcher MUST NOT 额外产生重复的 `message` notification。
 - `notification_type=applet` / `agent` / `policy` / `moderation` 等扩展类型的语义见 [`../extensions/applet-integration.md`](../extensions/applet-integration.md)、[`../extensions/agent-protocol-interop.md`](../extensions/agent-protocol-interop.md)、[`../authz/policy-server.md`](../authz/policy-server.md) 与 [`../governance/content-moderation.md`](../governance/content-moderation.md)。
 
 ### 3.4 Mention notification 派生

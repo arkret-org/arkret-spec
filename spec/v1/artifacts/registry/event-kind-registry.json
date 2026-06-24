@@ -793,7 +793,7 @@
       "cell_family": "ck.component.strand.metadata.v1",
       "cell_subject": {
         "type": "id:strand",
-        "field": "payload.target_ref"
+        "field": "payload.strand_id"
       },
       "lattice": "cas_register",
       "bottom": "reject"

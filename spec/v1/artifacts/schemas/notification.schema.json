@@ -62,6 +62,7 @@
     "notification_type": {
       "type": "string",
       "enum": [
+        "message",
         "mention",
         "reply",
         "assignment",
