@@ -3,7 +3,7 @@ title: Transport Bindings
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-11
+updated: 2026-06-24
 ---
 
 ## 0. 规范语言
@@ -83,7 +83,7 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 | `ck.peer.snapshot.query.manifest_head` | federation peer 获取 snapshot-assisted bootstrap 的 manifest head。 |
 | `ck.self.account.query.viewer` | 当前 holder 的账号主体自读；响应使用 signed handle claim / ref / digest。 |
 | `ck.self.account.command.update_profile` | 当前账号 profile 更新；`bio` 映射到 `profile_fields.bio`。 |
-| `ck.self.account.stream.subscribe` | 客户端账号视角聚合 streaming 订阅(NDJSON frame 流；与 `ck.self.events.stream.subscribe` 对称)。 |
+| `ck.self.account.stream.subscribe` | 客户端账号视角聚合同步入口；HTTP/JSON binding 可用单次 `SyncOutcome` 长轮询，NDJSON / WebSocket-style binding 可用 account-aggregate frame stream。 |
 | `ck.gate.account.command.register` | 注册 / account binding；request 使用 `principal_id`，不接受旧 `did` 或裸 `handle` 字段。 |
 | `ck.gate.account.command.revoke_session` | 撤销 session grant；不撤销 device authorization。 |
 | `ck.find.directory.query.search_realms` / `ck.find.directory.query.search_organizations` / `ck.find.directory.query.search_actors` / `ck.find.directory.query.search_users` | 授权搜索 Realm / Organization / Actor，以及用户目录条目（actor profile / handle 视图）。 |

@@ -3,7 +3,7 @@ title: Service API Schema（统一 OpenAPI）
 status: candidate
 normative: false
 stability: v1
-updated: 2026-06-10
+updated: 2026-06-24
 see_also:
   - service-http-binding.md
   - api-conventions.md
@@ -380,7 +380,7 @@ paths:
 | `ck.peer.events.query.scan_body` | `POST /_cokret/peer/events/query` | HTTP-only body binding variant of `ck.peer.events.query.scan` |
 | `ck.self.account.query.viewer` | `GET /_cokret/self/account/viewer` | gRPC `SelfAccount/Viewer` / MQ `self.account.query.viewer`；响应使用 signed handle claim / ref / digest，不返回未签名裸 handle 作为账号权威字段。 |
 | `ck.self.account.command.update_profile` | `POST /_cokret/self/account/profile` | gRPC `SelfAccount/UpdateProfile` / MQ `self.account.command.update_profile`；`bio` 映射到 `profile_fields.bio`，不接受 `avatar_url`。 |
-| `ck.self.account.stream.subscribe` | `GET /_cokret/self/account/subscribe` | gRPC `SelfAccount/Subscribe` / WebSocket account-aggregate stream;NDJSON frames(`delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`);`dropped` / `resync_required` MAY carry `reconnect_after_ms` |
+| `ck.self.account.stream.subscribe` | `GET /_cokret/self/account/subscribe` | HTTP `Accept: application/json` returns one bounded long-poll `SyncOutcome`; `Accept: application/x-ndjson` / WebSocket-style transports carry account-aggregate frames(`delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`);`dropped` / `resync_required` MAY carry `reconnect_after_ms` |
 | `ck.self.account.command.revoke_cursor` | `POST /_cokret/self/account/cursor/revoke` | gRPC `SelfAccount/CursorRevoke` / MQ `self.account.command.revoke_cursor` |
 | `ck.gate.account.command.register` | `POST /_cokret/gate/account/register` | gRPC `GateAccount/Register` / MQ `gate.account.command.register`；request 字段为 `principal_id`，`handle` 经 signed claim 链路。 |
 | `ck.gate.account.command.revoke_session` | `POST /_cokret/gate/account/session-grants/revoke` | gRPC `GateAccount/SessionRevoke` / MQ `gate.account.command.revoke_session` |
@@ -422,7 +422,7 @@ paths:
 - OpenAPI 只定义形态，不定义核心语义。核心语义仍由本协议对象模型、授权状态、签名、同步与加密规范给出。
 - 实现不得因为支持 core Event / Account aggregate 就默认声称支持目录、MIMI、账户登录、管理员或 E2EE key-management surface；这些能力必须通过 `supported_operations`、`supported_profiles` 或两者同时显式声明。
 - 所有 path 都是 `/_cokret/<信任段>/...` 形态的绝对路径，不含版本段；`servers` 只声明 `https://{host}`。生成 OpenAPI 时无需 path-level `servers` 覆盖，协议版本通过 `*.describe` / `supported_operations` 协商（可选 `Cokret-Protocol-Version` header），不放进 path。
-- `GET /_cokret/self/account/subscribe`（`ck.self.account.stream.subscribe`）是客户端账号视角聚合 streaming 订阅(跨 Realm delta + to_device + account_data + device_lists + presence);`GET /_cokret/self/events`(`ck.self.events.query.scan`,可双向)是按 selector 的事件查询/历史回补;`GET /_cokret/self/events/subscribe`(`ck.self.events.stream.subscribe`,可携 bounded catch-up replay)是按 selector 的事件流订阅。`ck.self.account.stream.subscribe` 与 `ck.self.events.stream.subscribe` 是对称的两类 streaming 订阅(account-aggregate vs per-Realm event log);三类操作的 selector、auth、frame schema 与 freshness 行为不同,不得互相替代,也不得新增未声明的 canonical account / events endpoint。
+- `GET /_cokret/self/account/subscribe`（`ck.self.account.stream.subscribe`）是客户端账号视角聚合同步入口(跨 Realm delta + to_device + account_data + device_lists + presence)，HTTP binding 支持 JSON 长轮询与 NDJSON frame stream；`GET /_cokret/self/events`(`ck.self.events.query.scan`,可双向、分页，默认 limit 100)是按 selector 的事件查询/历史回补；`GET /_cokret/self/events/subscribe`(`ck.self.events.stream.subscribe`,可携 bounded catch-up replay)是按 selector 的事件流订阅。`ck.self.account.stream.subscribe` 与 `ck.self.events.stream.subscribe` 是对称但不等价的订阅(account-aggregate vs per-Realm event log)；三类操作的 selector、auth、frame schema 与 freshness 行为不同,不得互相替代,也不得新增未声明的 canonical account / events endpoint。
 - 生成的 OpenAPI 引用统一 error envelope，覆盖 `404 unrecognized_endpoint`、`405 method_not_allowed`、`429 rate_limited` 与 `503 temporarily_unavailable` 的标准响应。
 - OpenAPI security scheme 不定义 query string token 认证；受保护 endpoint 使用 header / signature / mTLS / signed proof body 等认证方式。
 - Blob / media endpoint 的 schema 显式声明 `Content-Type`、`Content-Disposition`、`Range`、`Content-Range`、`Location` 和缓存头行为，避免通过 header 泄露不可见资源。
