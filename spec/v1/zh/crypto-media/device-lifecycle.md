@@ -1169,6 +1169,18 @@ Cokret 使用 `ck.realm_key.share` 共享历史解密材料。共享前发送设
 - `policy_denied`
 - `unknown_session`
 
+### 13.1 来源级扣留 vs 主体级拒绝（normative）
+
+`ck.realm_key.withheld` 必须区分两类语义，二者对接收端是否为终态不同：
+
+- **主体级拒绝**——`not_member` / `history_not_visible`，或接收 principal/device 已处于 ban / leave / removed / account 失权态。该 reader 在目标 `T0` 本就不具读资格，withhold 为**终态 fail-closed**；客户端 MUST NOT 重试，事件维持 metadata-only。
+- **来源级扣留**——reader 在 `T0` 仍具读资格（§3 visibility 通过、receiver 未失权），仅因本次请求所用 `key_source` 不在命中 `restricted_rules[]` rule 的 `key_sources` 内（或该来源未满足 audit/device 验证）而被拒，`withheld_reason_code` 取 `policy_denied`。该扣留**只对当前来源终态、对该 reader 非终态**：
+
+  - key source MUST NOT 把它当作主体级拒绝；接收端 MUST 将事件保持在 `decryption_pending` 可恢复车道（§2.3.4 `key_unavailable` 语义），不得降级为"已拒绝"展示。
+  - 接收端 SHOULD 从 effective `ck.realm.history_sharing_policy` 命中 rule 的 `key_sources` 解析出授权来源集合，并改向其中任一来源（`key_backup` / `archive_node` / `verified_member_device` / `recovery_service`）重新请求；对已具读资格的 reader 公布该集合不构成披露。
+  - 被重新请求的授权来源 MUST 独立重跑本节完整闸门——读资格是必要非充分条件，授权来源不得因 reader 读资格成立就跳过 T0 / device / audit 校验。
+  - 若当前无任何授权来源可服务，事件停在 `decryption_pending`，超时后按 §2.3.4 转 `decryption_failed`，日后仍可经 §2.3.5 late key recovery 解锁。任何时点都不得出现"读资格成立却被标记为永久不可解"的终态。
+
 ## 14. Cross-Signing Reset
 
 重置 `self_signing_key` 或 `user_signing_key` 是高风险操作。实现 MUST 要求以下至少一种证明：

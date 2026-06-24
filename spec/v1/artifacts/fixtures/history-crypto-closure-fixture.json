@@ -293,6 +293,7 @@
       "assertions": [
         "history_visibility_shared_alone_does_not_authorize_key_share",
         "explicit_history_sharing_policy_allows_bound_key_share",
+        "read_eligible_unauthorized_source_is_recoverable_not_terminal_and_advertises_retry_sources",
         "client_without_key_share_keeps_prejoin_event_decryption_pending"
       ],
       "scenarios": [
@@ -324,6 +325,31 @@
             "decision": "share_key",
             "key_scope_policy_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
             "membership_frontier_digest_present": true
+          }
+        },
+        {
+          "name": "read_allowed_but_key_source_not_authorized",
+          "history_visibility": "shared",
+          "history_sharing_policy": {
+            "policy_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "pre_join_history": "allow_if_visibility_allows",
+            "allowed_key_sources": [
+              "key_backup"
+            ],
+            "audit_satisfied": true
+          },
+          "key_source": "peer_device",
+          "receiver_state_valid": true,
+          "membership_frontier_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "expected": {
+            "decision": "withhold",
+            "reason": "policy_denied",
+            "read_allowed": true,
+            "terminal_for_reader": false,
+            "client_prejoin_event_state": "decryption_pending",
+            "retry_key_sources": [
+              "key_backup"
+            ]
           }
         },
         {
