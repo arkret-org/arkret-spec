@@ -703,7 +703,7 @@ POST /_cokret/self/keys/claim
 - **Cross-signing 硬化面**：返回 `cross_signing_binding`（每设备）与 `cross_signing`（每 principal）的客户端 MUST 按 §8.3 独立验证完整交叉签名链，**不信服务端对 `device_signing_key` 的断言**，仅在链验证通过后才接受该 key。服务端对在效 cross-signing 设备 SHOULD 同时返回这些字段；缺失时客户端 MUST 视为 `unverified` 并 fail-closed。
 - **Service-attested 入册面**：使用 §5.4 托管 DID / enrollment-authority 模型的 principal 不产生 `ck.cross_signing.publish`，其设备授权以 accepted `ck.device.authorize` 的 `enrollment_authority_binding` 为信任根。`keys/query` 对这类 active verified 设备返回 `device_signing_key` 时 MUST 同时返回 `enrollment_authority_binding` 与 `device_authorize_event_id`。客户端在普通事件热路径上 MUST 把这二者视为 current principal-control 设备集投影锚：缺失、`kind != "service_attested"`、`device_authorize_event_id` 不合法或设备已吊销时 MUST fail-closed；不得因缺少 `cross_signing_binding` 把合法 service-attested 设备误判为 Tier-1 降级。
 
-接收方验 envelope / signal proof 时 MUST 按 `verification_method` = `` `{actor}#device` `` 经本目录解析 `device_signing_key` 得 verify_key；设备**吊销**(`device_status != active` 或目录省略 key)、目录**缺失**该 `(actor, device)`、cross-signing 链验证未通过、service-attested 投影锚缺失/不合法、或验签失败者 MUST **fail-closed**：丢弃信号，MUST NOT 触发 UI，持久消息 MUST 标为不可验证且不得当作已验证明文呈现。该规则同时适用于通话信令(详见 [`webrtc-signaling.md` §5.1](./webrtc-signaling.md))与持久消息接收路径。
+接收方验 envelope / signal proof 时 MUST 按 `verification_method` = `` `{actor}#{device_id}` ``（fragment 是完整 `ck:device:<uuidv7>`）经本目录解析 `device_signing_key` 得 verify_key；设备**吊销**(`device_status != active` 或目录省略 key)、目录**缺失**该 `(actor, device)`、cross-signing 链验证未通过、service-attested 投影锚缺失/不合法、或验签失败者 MUST **fail-closed**：丢弃信号，MUST NOT 触发 UI，持久消息 MUST 标为不可验证且不得当作已验证明文呈现。该规则同时适用于通话信令(详见 [`webrtc-signaling.md` §5.1](./webrtc-signaling.md))与持久消息接收路径。
 
 #### 8.3 客户端交叉签名链验证（Tier-2，normative）
 

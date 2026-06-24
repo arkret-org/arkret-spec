@@ -54,7 +54,7 @@
     },
     "proof": {
       "$ref": "#/$defs/ephemeral_proof",
-      "description": "Detached-JWS proof over the canonical ephemeral envelope, structurally isomorphic to the durable Event proof ($defs/event_proof in event-envelope.schema.json / models/event-and-patch.md §3). Required for ck.call.signal; RECOMMENDED for ck.receipt.read so receivers can verify origin without trusting relay. presence / typing MAY omit proof for cost reasons; receivers MUST NOT promote unsigned signals to durable state. Signing input is the canonical proof binding object {event_digest, actor_id, verification_method, created_at, domain?, audience?}; event_digest is canonical_digest of the envelope with `proof` removed (RFC 8785 JCS). verification_method MUST be the `{actor_id}#device` DID URL and its controller DID MUST equal envelope actor_id. See crypto-media/webrtc-signaling.md §5."
+      "description": "Detached-JWS proof over the canonical ephemeral envelope, structurally isomorphic to the durable Event proof ($defs/event_proof in event-envelope.schema.json / models/event-and-patch.md §3). Required for ck.call.signal; RECOMMENDED for ck.receipt.read so receivers can verify origin without trusting relay. presence / typing MAY omit proof for cost reasons; receivers MUST NOT promote unsigned signals to durable state. Signing input is the canonical proof binding object {event_digest, actor_id, verification_method, created_at, domain?, audience?}; event_digest is canonical_digest of the envelope with `proof` removed (RFC 8785 JCS). verification_method MUST be `{actor_id}#{device_id}` where the fragment is the full `ck:device:<uuidv7>` id, and its controller DID MUST equal envelope actor_id. See crypto-media/webrtc-signaling.md §5."
     }
   },
   "allOf": [
@@ -160,7 +160,7 @@
         "verification_method": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-          "description": "DID URL of the signing device key. For ck.call.signal MUST be `{actor_id}#device`; verifier MUST strip the fragment for controller comparison and MUST compare that controller DID bit-identically to the envelope actor_id, then resolve the verify key from the device directory (keys/query device_signing_key, keys-operations.schema.json). Same form as event_proof.verification_method."
+          "description": "DID URL of the signing device key. For ck.call.signal MUST be `{actor_id}#{device_id}` where the fragment is the full `ck:device:<uuidv7>` id; verifier MUST strip the fragment for controller comparison and MUST compare that controller DID bit-identically to the envelope actor_id, then resolve the verify key from the device directory (keys/query device_signing_key, keys-operations.schema.json). Same form as event_proof.verification_method."
         },
         "alg": {
           "type": "string",
