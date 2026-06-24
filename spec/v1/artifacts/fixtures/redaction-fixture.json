@@ -30,7 +30,75 @@
       "name": "snapshot_pruning_stub",
       "vector_id": "ck.vector.redaction.snapshot_pruning_stub.v1",
       "input": "redacted_payload_pruned_after_snapshot",
-      "expected": "snapshot_and_backfill_retain_verification_stub"
+      "expected": "snapshot_and_backfill_retain_verification_stub",
+      "event": {
+        "event_id": "ck:event:01970e58-0004-7000-8000-0000000005a1",
+        "kind": "ck.message.create",
+        "realm_id": "ck:realm:01970e58-0004-7000-8000-000000000001",
+        "actor_id": "did:web:alice.example",
+        "sender_actor_id": "did:web:alice.example",
+        "created_at": "2026-04-26T00:00:00Z",
+        "payload": {
+          "strand_id": "ck:strand:01970e58-0004-7000-8000-000000000002",
+          "content": {
+            "kind": "ck.content.text",
+            "body": "pruned snapshot plaintext"
+          }
+        },
+        "proofs": [
+          {
+            "verification_method": "did:web:alice.example#ck_device_0197",
+            "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "signature": "signature-base64url-placeholder"
+          }
+        ]
+      },
+      "redaction_receipt": {
+        "target_event_id": "ck:event:01970e58-0004-7000-8000-0000000005a1",
+        "redaction_event_id": "ck:event:01970e58-0004-7000-8000-0000000005a2",
+        "fields": [
+          "payload.content"
+        ],
+        "reason": {
+          "code": "retention_pruning",
+          "note": "payload pruned after snapshot frontier per retention policy"
+        },
+        "snapshot": {
+          "frontier_root": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "verification_stub": {
+            "stub_schema": "ck.schema.erasure_verification_stub.v1",
+            "subject": {
+              "kind": "event",
+              "ref": "ck:event:01970e58-0004-7000-8000-0000000005a1"
+            },
+            "scope": {
+              "storage_boundary": "projection_store",
+              "realm_id": "ck:realm:01970e58-0004-7000-8000-000000000001"
+            },
+            "event_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+            "redaction_authorization_ref": "ck:event:01970e58-0004-7000-8000-0000000005a2",
+            "receipt_id": "ck:receipt:01970e58-0004-7000-8000-0000000005a3",
+            "completed_at": "2026-04-26T00:05:00Z"
+          }
+        }
+      },
+      "expected_projection": {
+        "event_id": "ck:event:01970e58-0004-7000-8000-0000000005a1",
+        "kind": "ck.message.create",
+        "realm_id": "ck:realm:01970e58-0004-7000-8000-000000000001",
+        "actor_id": "did:web:alice.example",
+        "created_at": "2026-04-26T00:00:00Z",
+        "redacted_because": {
+          "code": "retention_pruning",
+          "note": "payload pruned after snapshot frontier per retention policy"
+        },
+        "payload": {
+          "strand_id": "ck:strand:01970e58-0004-7000-8000-000000000002"
+        },
+        "content_present": false,
+        "proofs_present": false,
+        "verification_stub_retained": true
+      }
     },
     {
       "name": "space_target_ref_schema",
@@ -48,7 +116,96 @@
       "name": "hard_erasure_receipt",
       "vector_id": "ck.vector.redaction.hard_erasure_receipt.v1",
       "input": "hard_erasure_with_verification_stub",
-      "expected": "signed_receipt_and_stub_conform_no_plaintext_fingerprint_legal_hold_blocks"
+      "expected": "signed_receipt_and_stub_conform_no_plaintext_fingerprint_legal_hold_blocks",
+      "event": {
+        "event_id": "ck:event:01970e58-0004-7000-8000-0000000004b1",
+        "kind": "ck.message.create",
+        "realm_id": "ck:realm:01970e58-0004-7000-8000-000000000001",
+        "actor_id": "did:web:alice.example",
+        "sender_actor_id": "did:web:alice.example",
+        "created_at": "2026-04-26T00:00:00Z",
+        "payload": {
+          "strand_id": "ck:strand:01970e58-0004-7000-8000-000000000002",
+          "content": {
+            "kind": "ck.content.text",
+            "body": "hard erased plaintext"
+          }
+        },
+        "proofs": [
+          {
+            "verification_method": "did:web:alice.example#ck_device_0197",
+            "payload_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "signature": "signature-base64url-placeholder"
+          }
+        ]
+      },
+      "redaction_receipt": {
+        "schema": "ck.schema.erasure_receipt.v1",
+        "receipt_id": "ck:receipt:01970e58-0004-7000-8000-0000000004b3",
+        "issuer": "did:web:soland.example",
+        "subject": {
+          "kind": "event",
+          "ref": "ck:event:01970e58-0004-7000-8000-0000000004b1"
+        },
+        "scope": {
+          "storage_boundary": "canonical_log_minimization",
+          "realm_id": "ck:realm:01970e58-0004-7000-8000-000000000001",
+          "target_refs": [
+            "ck:event:01970e58-0004-7000-8000-0000000004b1"
+          ]
+        },
+        "outcome": "completed",
+        "erased_classes": [
+          "canonical_payload_bytes",
+          "derived_plaintext"
+        ],
+        "retained_stub_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        "retained_stub": {
+          "stub_schema": "ck.schema.erasure_verification_stub.v1",
+          "subject": {
+            "kind": "event",
+            "ref": "ck:event:01970e58-0004-7000-8000-0000000004b1"
+          },
+          "scope": {
+            "storage_boundary": "canonical_log_minimization",
+            "realm_id": "ck:realm:01970e58-0004-7000-8000-000000000001"
+          },
+          "event_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+          "redaction_authorization_ref": "ck:event:01970e58-0004-7000-8000-0000000004b2",
+          "receipt_id": "ck:receipt:01970e58-0004-7000-8000-0000000004b3",
+          "completed_at": "2026-04-26T00:05:00Z"
+        },
+        "legal_hold_ref": null,
+        "completed_at": "2026-04-26T00:05:00Z",
+        "issued_at": "2026-04-26T00:05:00Z",
+        "proofs": [
+          {
+            "verification_method": "did:web:soland.example#federation-fanout-key",
+            "payload_digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+            "signature": "receipt-signature-base64url-placeholder"
+          }
+        ]
+      },
+      "expected_projection": {
+        "event_id": "ck:event:01970e58-0004-7000-8000-0000000004b1",
+        "kind": "ck.message.create",
+        "realm_id": "ck:realm:01970e58-0004-7000-8000-000000000001",
+        "actor_id": "did:web:alice.example",
+        "created_at": "2026-04-26T00:00:00Z",
+        "redacted_because": {
+          "code": "hard_erasure",
+          "receipt_id": "ck:receipt:01970e58-0004-7000-8000-0000000004b3"
+        },
+        "payload": {
+          "strand_id": "ck:strand:01970e58-0004-7000-8000-000000000002"
+        },
+        "content_present": false,
+        "proofs_present": false,
+        "erasure_receipt_outcome": "completed",
+        "retained_stub_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        "verification_stub_retained": true,
+        "plaintext_fingerprint_present": false
+      }
     }
   ]
 }

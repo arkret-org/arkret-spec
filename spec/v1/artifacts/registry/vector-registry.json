@@ -1406,6 +1406,30 @@
       ]
     },
     {
+      "vector_id": "ck.vector.morph.transformation_rename.v1",
+      "status": "active",
+      "domain": "morph",
+      "applies_to_profiles": [
+        "ck.profile.morph.schema_migration_transformations.v1"
+      ],
+      "description": "Deterministic ck.morph.schema_migrate transformation: a ck.transform.rename.v1 rule renames a Morph field and leaves unrelated fields untouched; the post-migration fields projection is canonical-JSON byte-equal across replays.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/morph-schema-migration-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.morph.transformation_default_backfill.v1",
+      "status": "active",
+      "domain": "morph",
+      "applies_to_profiles": [
+        "ck.profile.morph.schema_migration_transformations.v1"
+      ],
+      "description": "Deterministic ck.morph.schema_migrate transformation: a ck.transform.default_backfill.v1 rule backfills a new optional field with a fixed default while preserving existing fields; idempotent and replay-deterministic.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/morph-schema-migration-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ck.vector.cba_lattice.data_event_accepts_without_seal_finality.v1",
       "status": "active",
       "domain": "cba_lattice",

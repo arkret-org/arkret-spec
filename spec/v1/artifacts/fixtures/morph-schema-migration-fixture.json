@@ -1,0 +1,78 @@
+{
+  "profile": "ck.profile.morph.schema_migration_transformations.v1",
+  "version": "2026-06-24",
+  "suite": "morph_schema_migration",
+  "runner": "cotest::e2e::models::morph_schema_migration",
+  "description": "Deterministic ck.morph.schema_migrate transformation vectors (zh/models/morph.md §4.1 S3 + the migration profile additional_requirements.deterministic_transformation_must). Each vector seeds a Morph from input.fields with input.from_schema_refs, POSTs a ck.morph.schema_migrate carrying input.payload, then asserts the post-migration Morph fields projection equals expected_output under Cokret canonical JSON (sorted keys, no whitespace). expected_output_digest is sha256 over those canonical bytes. The transformation_rules[] dialect ids are the canonical ck.transform.*.v1 set the profile transformation_rules_v1_grammar declares. Schema ids are the registered reference profiles ck.schema.morph.customer_risk.v1 and its additive extension ck.schema.morph.customer_risk.ext.v1.",
+  "covers_vectors": [
+    "ck.vector.morph.transformation_rename.v1",
+    "ck.vector.morph.transformation_default_backfill.v1"
+  ],
+  "vectors": [
+    {
+      "vector_id": "ck.vector.morph.transformation_rename.v1",
+      "kind": "morph_schema_migrate_transformation",
+      "description": "A field-rename transformation: fields.risk_score is renamed to fields.score; the unrelated fields.status passes through untouched. Pure rename, replay-deterministic.",
+      "input": {
+        "morph_type": "customer_risk",
+        "from_schema_refs": ["ck.schema.morph.customer_risk.v1"],
+        "fields": {
+          "risk_score": 7,
+          "status": "open"
+        },
+        "payload": {
+          "from_schema_refs": ["ck.schema.morph.customer_risk.v1"],
+          "to_schema_refs": [
+            "ck.schema.morph.customer_risk.v1",
+            "ck.schema.morph.customer_risk.ext.v1"
+          ],
+          "compatibility_class": "transformation",
+          "transformation_rules": [
+            {
+              "rule": "ck.transform.rename.v1",
+              "from": "risk_score",
+              "to": "score"
+            }
+          ]
+        }
+      },
+      "expected_output": {
+        "score": 7,
+        "status": "open"
+      },
+      "expected_output_digest": "sha256:26963200f86db72ffe26be9f61c6d0fd69520da45d7789846991410642623002"
+    },
+    {
+      "vector_id": "ck.vector.morph.transformation_default_backfill.v1",
+      "kind": "morph_schema_migrate_transformation",
+      "description": "A default-backfill transformation: a new optional field fields.priority is backfilled with the deterministic default \"normal\" while existing fields.status is preserved. Backfill is idempotent (it never overwrites a present value).",
+      "input": {
+        "morph_type": "customer_risk",
+        "from_schema_refs": ["ck.schema.morph.customer_risk.v1"],
+        "fields": {
+          "status": "open"
+        },
+        "payload": {
+          "from_schema_refs": ["ck.schema.morph.customer_risk.v1"],
+          "to_schema_refs": [
+            "ck.schema.morph.customer_risk.v1",
+            "ck.schema.morph.customer_risk.ext.v1"
+          ],
+          "compatibility_class": "transformation",
+          "transformation_rules": [
+            {
+              "rule": "ck.transform.default_backfill.v1",
+              "to": "priority",
+              "value": "normal"
+            }
+          ]
+        }
+      },
+      "expected_output": {
+        "priority": "normal",
+        "status": "open"
+      },
+      "expected_output_digest": "sha256:2e65212a3ffcf95965be6a743922ae0e5d4231dfe4d842551e3da2b0118d815e"
+    }
+  ]
+}

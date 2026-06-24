@@ -100,6 +100,11 @@
       "description": "Reference business-field schema used by the Morph type-system example. It validates the customer_risk fields.status / fields.severity payload carried inside ck.schema.morph.v1 containers."
     },
     {
+      "schema_id": "ck.schema.morph.customer_risk.ext.v1",
+      "file": "schemas/morph-customer-risk-ext.schema.json",
+      "description": "Reference additive extension business-field schema for the customer_risk example, used by the ck.morph.schema_migrate transformation conformance vectors (ck.vector.morph.transformation_*). Declares the optional renamed score / backfilled priority fields a transformation migration introduces on top of ck.schema.morph.customer_risk.v1."
+    },
+    {
       "schema_id": "ck.schema.relation.v1",
       "file": "schemas/relation.schema.json"
     },
