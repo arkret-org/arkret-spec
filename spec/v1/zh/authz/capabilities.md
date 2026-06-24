@@ -707,7 +707,7 @@ conformance：[`capability-fixture.json`](../../artifacts/fixtures/capability-fi
 
 invite / notification / read-cursor 等用户可见操作 MUST 由对应 capability action 授权（见下列）；实现 MUST NOT 通过权限模型之外的私有通道授予这些操作。
 
-- 创建 / 取消 invite 需要 `ck.invite.create` / `ck.invite.revoke`
+- 创建 / 取消普通定向 invite 需要 `ck.invite.create` / `ck.invite.cancel`；第三方/token invite 撤销需要 `ck.invite.revoke`
 - 接受发给自己的 invite 需要 `ck.invite.accept`
 - 写入自己的 `read_cursor` 需要 `ck.read_cursor.advance`（事件 kind 同名）
 - 读取 notification 需要 `ck.notification.read`
