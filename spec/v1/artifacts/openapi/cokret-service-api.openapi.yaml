@@ -2809,6 +2809,10 @@ components:
           - string
           - 'null'
           format: date-time
+        updated_by:
+          type:
+          - string
+          - 'null'
         updated_at:
           type:
           - string
