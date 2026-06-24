@@ -3,7 +3,7 @@ title: Client Sync
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-12
+updated: 2026-06-24
 ---
 
 ## 0. 规范语言
@@ -12,7 +12,7 @@ updated: 2026-06-12
 
 ## 1. 目标
 
-Client Sync 是客户端 **账号视角聚合** 推流协议。它在 Events API 之上提供跨 Realm 的稳定 delta 视图（包含 to_device、account_data、device_lists、presence、unread / notification counts），以**长连接 NDJSON 流**的形式由服务端按需推送。它不是裸事件读取——逐 Realm 的事件查询和实时订阅请使用 `ck.self.events.query.scan` / `ck.self.events.stream.subscribe`。
+Client Sync 是客户端 **账号视角聚合** 同步协议。它在 Events API 之上提供跨 Realm 的稳定 delta 视图（包含 to_device、account_data、device_lists、presence、unread / notification counts），由服务端按需推送或以有界长轮询返回。它不是裸事件读取——逐 Realm 的事件查询和实时订阅请使用 `ck.self.events.query.scan` / `ck.self.events.stream.subscribe`。
 
 `ck.self.account.stream.subscribe` 与 `ck.self.events.stream.subscribe` 是对称的两类 streaming 订阅:
 - `ck.self.events.stream.subscribe` 是**逐 Realm / actor 的事件流**(selector 范围内的每条 Event)
@@ -29,12 +29,17 @@ Client Sync 是客户端 **账号视角聚合** 推流协议。它在 Events API
 ```http
 GET /_cokret/self/account/subscribe?catchup=true
 Authorization: Bearer <ck.session.grant>
-Accept: application/x-ndjson
+Accept: application/json
 ```
 
-上面是 **initial account sync** 的 canonical 调用：不带 `after`，显式设置 `catchup=true`。这里的 `catchup` 不是"返回全部历史记录"，而是要求服务端先发送当前账号 baseline（有限 timeline + 必要 state + account-scoped 当前位置），再以 `catchup_complete` 标记 baseline 完成并进入实时推送。常规网络重连使用 `GET /_cokret/self/account/subscribe?after=<cursor>&catchup=true` 补齐断线期间的账号 delta；收到 `dropped` frame 后的补洞重连同样使用 `GET /_cokret/self/account/subscribe?after=<cursor>&catchup=true`。
+上面是 **initial account sync** 的 canonical 长轮询调用：不带 `after`，显式设置 `catchup=true`。这里的 `catchup` 不是"返回全部历史记录"，而是要求服务端返回当前账号 baseline（有限 timeline + 必要 state + account-scoped 当前位置）。常规网络重连使用 `GET /_cokret/self/account/subscribe?after=<cursor>&catchup=true` 补齐断线期间的账号 delta；收到 `dropped` frame 后的补洞重连同样使用 `GET /_cokret/self/account/subscribe?after=<cursor>&catchup=true`。
 
-该端点对应 `ck.self.account.stream.subscribe`,wire 形态是长连接 NDJSON 流。它聚合跨 Realm delta、to_device、account_data、device_lists、presence;不同于 `GET /_cokret/self/events/subscribe`(按 selector 的事件流订阅)和 `GET /_cokret/self/events?before=...` / `?after=...`(按 selector 的双向历史查询)。三者可以共享 cursor 与授权规则，但 `operation_id`、响应语义与所属 namespace 不同:account 同步在 `ck.account.*`,snapshot 入口在 `ck.snapshot.*`,事件读取在 `ck.events.*`。
+该端点对应 `ck.self.account.stream.subscribe`，HTTP binding 支持两种响应编码：
+
+- `Accept: application/json`：推荐给浏览器和普通客户端的有界长轮询形态。响应体是单个 `SyncOutcome` JSON 对象；当 `after` 存在且没有新 delta 时，服务端 MAY 等待到 `max_wait_ms` / 部署默认窗口后返回空 delta。JSON 响应关闭连接，不发送 `catchup_complete` 行。
+- `Accept: application/x-ndjson`：长连接 frame stream 形态。响应体是 `AccountSubscribeFrame` NDJSON；`catchup=true` 时 baseline / catch-up delta 后发送 `catchup_complete`，然后可继续进入实时推送。
+
+两种编码使用相同的 query 参数、cursor、授权与 delta 语义；客户端 MUST 同时把 `SyncOutcome.cursor` 或 cursor-bearing frame 的 `cursor` 作为下一次 `after=` 起点。该端点聚合跨 Realm delta、to_device、account_data、device_lists、presence；不同于 `GET /_cokret/self/events/subscribe`(按 selector 的事件流订阅)和 `GET /_cokret/self/events?before=...` / `?after=...`(按 selector 的双向历史查询)。三者可以共享 cursor 与授权规则，但 `operation_id`、响应语义与所属 namespace 不同：account 同步在 `ck.account.*`，snapshot 入口在 `ck.snapshot.*`，事件读取在 `ck.events.*`。
 
 Account subscribe 的服务边界是当前 authenticated session 绑定的 Principal Server service DID。若同一 principal DID 同时在个人 Principal Server 与组织 Principal Server 上有账号/设备上下文，客户端必须分别维护 session、cursor、to-device queue 和 push registration,并对每个上下文建立独立的 `/_cokret/self/account/subscribe` 长连接。某个 Realm 的 timeline / notification delta 只应出现在该成员 effective `delivery_binding.recipient_service_did` 指向的服务上;DID Document 中的默认 Principal Server 不得把其它 Realm-scoped delivery binding 的 delta 聚合进自己的 `/_cokret/self/account/subscribe` 流。
 
@@ -74,7 +79,7 @@ Account subscribe 的服务边界是当前 authenticated session 绑定的 Princ
 
 Presence 变更不是 account subscribe 的 query 参数。客户端要广播 `online` / `offline` / `unavailable` 等 presence 意图时，MUST 通过 `POST /_cokret/self/ephemeral` 提交 `ck.presence` ephemeral envelope，并按该 operation 执行 `ck.presence.broadcast` 授权、TTL、幂等和日志最小披露规则。`GET /_cokret/self/account/subscribe` MUST 保持只读：建立、恢复或重放订阅不得触发 presence 广播或其它 server-side mutation。
 
-响应 frame 形态(`application/x-ndjson`,每行一个 JSON 对象):
+NDJSON 响应 frame 形态(`application/x-ndjson`,每行一个 JSON 对象):
 
 | `kind` | 是否含 `cursor` | 含义 |
 | --- | --- | --- |
@@ -704,10 +709,10 @@ Initial sync 的账号入口是:
 
 ```http
 GET /_cokret/self/account/subscribe?catchup=true
-Accept: application/x-ndjson
+Accept: application/json
 ```
 
-也就是不带 `after`,并显式请求 `catchup=true`。服务器 MUST 先发送至少一个 `delta` frame 作为账号 baseline,再发送 `catchup_complete`,然后继续保持连接进入实时推送。Baseline 不是完整历史记录；它只覆盖客户端首屏与账号状态恢复所需的当前视图。Baseline `delta` SHOULD：
+也就是不带 `after`,并显式请求 `catchup=true`。使用 JSON 长轮询时，服务器 MUST 返回一个覆盖当前账号 baseline 的 `SyncOutcome`；使用 NDJSON stream 时，服务器 MUST 先发送至少一个 `delta` frame 作为账号 baseline,再发送 `catchup_complete`,然后 MAY 继续保持连接进入实时推送。Baseline 不是完整历史记录；它只覆盖客户端首屏与账号状态恢复所需的当前视图。Baseline `delta` / `SyncOutcome` SHOULD：
 
 - 返回用户当前 joined/invited/knocked Realms 的摘要。
 - 对活跃 Realm 返回有限 timeline。
