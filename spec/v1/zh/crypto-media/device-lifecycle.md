@@ -1150,11 +1150,15 @@ Cokret 使用 `ck.realm_key.share` 共享历史解密材料。共享前发送设
 - 设备未撤销。
 - 设备通过 self-signing 或人工验证，或 Realm policy 允许未验证设备。
 - history visibility 允许该 principal 获取目标历史范围，且判定时点使用目标 Event range 的 deterministic `T0`，不得使用本地到达顺序或 wall clock。
-- effective `ck.realm.history_sharing_policy` 允许该 receiver class、scope、epoch range 和 key source；当 Realm / Circle history visibility 为 `restricted` 时，必须命中 `restricted_rules[]`，否则 MUST withhold。
+- effective `ck.realm.history_sharing_policy` 允许该 receiver class、scope、epoch range 和 key source；当 Realm / Circle history visibility 为 `restricted` 时，必须命中 `restricted_rules[]`，且本次请求所用 key 来源 MUST 在命中 rule 的 `key_sources` 内（命中 read rule 但来源不在 `key_sources` 时只放行读取、不交付 key），否则 MUST withhold。
 - `key_scope.policy_digest` 绑定本次判定使用的 Realm policy / MLS governance policy root；如判定依赖 membership frontier，`key_scope.membership_frontier_digest` SHOULD 同时写入。
 - `sender_device_signature` MUST 覆盖发送设备、接收 principal/device、`key_scope`、`aad_digest?`、`ciphertext` 或 `encrypted_key_ref` 与 `created_at`。接收方 MUST 验证该签名链接到当前有效 sender device key，且不得只依赖传输层认证。
 - 对 `history_visibility=joined` 的 scope，join 前 epoch key MUST 被拒绝；对 `invited`，share range MUST be no earlier than receiver 的有效 invite frontier；对 `shared`，join 前 history key share 仍需要 policy 明确允许；对 `world_readable`，E2EE key 不因 public history 自动公开。
+- current safety policy（redaction / erasure / retention / ban·remove / legal hold）未禁止继续向该 principal / device 交付。
+- audit profile 要求的 `ck.realm_key.share_audit` / `ck.audit.accessed` 已满足。
 - Archive Node、Key Recovery Service、Recovery Service 或 peer 不能因为持有备份副本就绕过上述检查；服务端 operator 权限不是 key share 授权。
+
+本节是 key-share 资格校验的 **canonical 来源**；history-visibility、late key recovery 等处对发送侧前置校验的引用以本节为准，不再各自重述。
 
 拒绝共享时发送 `ck.realm_key.withheld`，其 payload 使用 `withheld_reason_code` 承载原因码：
 
