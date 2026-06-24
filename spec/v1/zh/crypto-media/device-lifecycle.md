@@ -682,9 +682,11 @@ POST /_cokret/self/keys/claim
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `device_signing_key` | `did:key`(Ed25519 multibase) | optional | 该设备的**权威验签公钥**，来源 = 该设备权威 `ck.device.authorize.payload.device_public_key`(§5.2)。MUST **仅对 verified 且未吊销**的设备返回。 |
+| `device_signing_key` | `did:key`(Ed25519 multibase) | optional | 该设备的**权威验签公钥**，来源 = 该设备权威 `ck.device.authorize.payload.device_public_key`(§5.2/§5.4)。MUST **仅对 verified 且未吊销**的设备返回。 |
 | `device_status` | `enum(active, revoked)` | optional | 目录态。`active` = 该设备 `device.authorize` 在效且未吊销；`revoked` = 已被 `ck.device.revoke` 吊销。 |
 | `cross_signing_binding` | `object` | optional | **Tier-2**：该设备权威 `ck.device.authorize.payload.cross_signing_binding`（§5.2）原样回显，形态 `{verification_method, alg, ssk_generation, signature}`。供客户端独立验证 device key ← SSK 链路。inception bootstrap 设备无此字段（§5.0.1 例外）。 |
+| `enrollment_authority_binding` | `object` | optional | **service-attested**：该设备权威 `ck.device.authorize.payload.enrollment_authority_binding`（§5.4）原样回显，形态 `{kind="service_attested", authority_did, authorization_ref}`。供客户端确认该 device-set 投影来自已接受的入册权威路径，而非 Tier-1 裸服务断言。 |
+| `device_authorize_event_id` | `event_id` | optional | 当前 device-set 投影对应的 accepted `ck.device.authorize` event id。对 `service_attested` 设备，本字段 MUST 与 `enrollment_authority_binding` 一起返回，并标识其 `payload.device_public_key` 被投影为 `device_signing_key` 的授权事件。 |
 
 并在 `keys_query_outcome` 顶层附带**每 principal** 的交叉签名根材料：
 
@@ -695,12 +697,13 @@ POST /_cokret/self/keys/claim
 规则：
 
 - 服务端 MUST 仅对 verified 且未吊销设备返回 `device_signing_key`；对**吊销 / 未验**设备 MUST 省略 `device_signing_key`，并以 `device_status` 标注(吊销返 `revoked`)。即"省略 key" 与 "`device_status != active`" 等价表达设备不可用于验签。
-- **Tier-1 便捷面（降级行为）**：`device_signing_key` 承载服务端在 session-grant / `device.authorize` ingest 时已校验过的 `device_public_key` 断言。仅信服务端断言而不独立验证交叉签名链的客户端，其设备身份信任根退化为"承载服务端诚实"，与 §4「device 身份不可由服务端伪造」相悖，故 **Tier-1 是显式降级行为，MUST NOT 作为 `e2ee_client` conformance profile 下 E2EE / 通话 proof 验签路径的默认行为**：
+- **Tier-1 便捷面（降级行为）**：`device_signing_key` 承载服务端在 session-grant / `device.authorize` ingest 时已校验过的 `device_public_key` 断言。既没有 §8.3 `cross_signing_binding` 链、也没有 §5.4 `enrollment_authority_binding` + `device_authorize_event_id` 入册投影锚的客户端，其设备身份信任根退化为"承载服务端诚实"，与 §4「device 身份不可由服务端伪造」相悖，故 **Tier-1 是显式降级行为，MUST NOT 作为 `e2ee_client` conformance profile 下 E2EE / 通话 proof 验签路径的默认行为**：
   - 凡声明 `ck.profile.e2ee_client.v1` 的客户端，在 E2EE 消息与通话信令 proof 验签路径上 MUST 执行 §8.3 的 Tier-2 链验证；仅服务端断言（Tier-1）不满足该 profile 的接受判据。
   - 不在该 profile 下、仅凭 Tier-1 接受 `device_signing_key` 的客户端，MUST 向用户披露"该设备身份未经密码学交叉签名链验证、信任根为承载服务端"（例如以 `unverified` / `device_unverified` 标识呈现），MUST NOT 把该设备呈现为已验证。
-- **Tier-2 硬化面**：返回 `cross_signing_binding`（每设备）与 `cross_signing`（每 principal）的客户端 MUST 按 §8.3 独立验证完整交叉签名链，**不信服务端对 `device_signing_key` 的断言**，仅在链验证通过后才接受该 key。服务端对在效设备 SHOULD 同时返回 Tier-2 字段；缺失时客户端 MUST 视为 `unverified` 并 fail-closed。
+- **Cross-signing 硬化面**：返回 `cross_signing_binding`（每设备）与 `cross_signing`（每 principal）的客户端 MUST 按 §8.3 独立验证完整交叉签名链，**不信服务端对 `device_signing_key` 的断言**，仅在链验证通过后才接受该 key。服务端对在效 cross-signing 设备 SHOULD 同时返回这些字段；缺失时客户端 MUST 视为 `unverified` 并 fail-closed。
+- **Service-attested 入册面**：使用 §5.4 托管 DID / enrollment-authority 模型的 principal 不产生 `ck.cross_signing.publish`，其设备授权以 accepted `ck.device.authorize` 的 `enrollment_authority_binding` 为信任根。`keys/query` 对这类 active verified 设备返回 `device_signing_key` 时 MUST 同时返回 `enrollment_authority_binding` 与 `device_authorize_event_id`。客户端在普通事件热路径上 MUST 把这二者视为 current principal-control 设备集投影锚：缺失、`kind != "service_attested"`、`device_authorize_event_id` 不合法或设备已吊销时 MUST fail-closed；不得因缺少 `cross_signing_binding` 把合法 service-attested 设备误判为 Tier-1 降级。
 
-接收方验 envelope / signal proof 时 MUST 按 `verification_method` = `` `{actor}#device` `` 经本目录解析 `device_signing_key` 得 verify_key；设备**吊销**(`device_status != active` 或目录省略 key)、目录**缺失**该 `(actor, device)`、Tier-2 链验证未通过、或验签失败者 MUST **fail-closed**：丢弃信号，MUST NOT 触发 UI、MUST NOT 入库。该规则同时适用于通话信令(详见 [`webrtc-signaling.md` §5.1](./webrtc-signaling.md))与持久消息接收路径。
+接收方验 envelope / signal proof 时 MUST 按 `verification_method` = `` `{actor}#device` `` 经本目录解析 `device_signing_key` 得 verify_key；设备**吊销**(`device_status != active` 或目录省略 key)、目录**缺失**该 `(actor, device)`、cross-signing 链验证未通过、service-attested 投影锚缺失/不合法、或验签失败者 MUST **fail-closed**：丢弃信号，MUST NOT 触发 UI，持久消息 MUST 标为不可验证且不得当作已验证明文呈现。该规则同时适用于通话信令(详见 [`webrtc-signaling.md` §5.1](./webrtc-signaling.md))与持久消息接收路径。
 
 #### 8.3 客户端交叉签名链验证（Tier-2，normative）
 

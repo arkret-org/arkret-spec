@@ -44,6 +44,10 @@
       "type": "string",
       "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
+    "event_id": {
+      "type": "string",
+      "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
     "backup_id": {
       "type": "string",
       "pattern": "^ck:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -137,7 +141,7 @@
     "did_key": {
       "type": "string",
       "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$",
-      "description": "Authoritative device signing key as an Ed25519 did:key (multibase base58btc, multicodec ed25519-pub). Mirrors ck.device.authorize.payload.device_public_key (device-lifecycle.md §5.2). This is the verify key receivers resolve via verification_method `{actor}#device` to check ck.call.signal / ephemeral envelope and durable Event proofs."
+      "description": "Authoritative device signing key as an Ed25519 did:key (multibase base58btc, multicodec ed25519-pub). Mirrors ck.device.authorize.payload.device_public_key (device-lifecycle.md §5.2 / §5.4). This is the verify key receivers resolve via verification_method `{actor}#device` to check ck.call.signal / ephemeral envelope and durable Event proofs."
     },
     "device_status": {
       "type": "string",
@@ -165,6 +169,13 @@
         },
         "cross_signing_binding": {
           "$ref": "#/$defs/cross_signing_binding"
+        },
+        "enrollment_authority_binding": {
+          "$ref": "./event-payload.schema.json#/$defs/device_enrollment_authority_binding"
+        },
+        "device_authorize_event_id": {
+          "$ref": "#/$defs/event_id",
+          "description": "Accepted ck.device.authorize event id anchoring the current device-set projection. For service_attested / enrollment-authority devices this pairs with enrollment_authority_binding and identifies the accepted authorization event whose payload.device_public_key is exposed as device_signing_key."
         }
       },
       "additionalProperties": false
