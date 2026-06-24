@@ -2851,7 +2851,7 @@ Expected：
 
 Steps：
 
-1. 调用 `ck.self.projection.spaces.query.list` / `strands` / `morphs`，请求 `limit=1`。
+1. 调用 `ck.self.space.query.list` / `strand` / `morph`，请求 `limit=1`。
 2. 使用返回的 `next_cursor` 继续读取。
 3. 下游 service-call 返回缺失 `has_more` 或 cursor 形态不合法的响应。
 

@@ -228,11 +228,13 @@ grpc:
       Report: ck.self.moderation.command.report
     SelfPolicy:
       Check: ck.self.policy.query.check
-    SelfProjection:
-      Document: ck.self.projection.document.resource.get
-      Strands: ck.self.projection.strands.query.list
-      Morphs: ck.self.projection.morphs.query.list
-      Spaces: ck.self.projection.spaces.query.list
+    SelfSpace:
+      List: ck.self.space.query.list
+    SelfStrand:
+      List: ck.self.strand.query.list
+    SelfMorph:
+      List: ck.self.morph.query.list
+      Get: ck.self.morph.resource.get
     SelfViews:
       CollectionProjection: ck.self.views.collection_projection.command.materialize
     EdgePush:
@@ -361,10 +363,10 @@ mq:
     self.keys.backups.command.unlock: ck.self.keys.backups.command.unlock
     self.keys.backups.resource.delete: ck.self.keys.backups.resource.delete
     self.moderation.command.report: ck.self.moderation.command.report
-    self.projection.spaces.query.list: ck.self.projection.spaces.query.list
-    self.projection.strands.query.list: ck.self.projection.strands.query.list
-    self.projection.morphs.query.list: ck.self.projection.morphs.query.list
-    self.projection.document.resource.get: ck.self.projection.document.resource.get
+    self.space.query.list: ck.self.space.query.list
+    self.strand.query.list: ck.self.strand.query.list
+    self.morph.query.list: ck.self.morph.query.list
+    self.morph.resource.get: ck.self.morph.resource.get
     self.views.collection_projection.command.materialize: ck.self.views.collection_projection.command.materialize
     open.mimi.query.provider_directory: ck.open.mimi.query.provider_directory
     open.mimi.exchange.request_key_material: ck.open.mimi.exchange.request_key_material

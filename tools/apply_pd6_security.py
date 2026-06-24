@@ -60,9 +60,10 @@ OPERATIONS: dict[str, str] = {
     "ck.self.account.stream.subscribe": "user_bearer",              # account-aggregate streaming; user only
     "ck.self.account.command.revoke_cursor": "user_bearer",
     "ck.self.snapshot.query.manifest_head": "user_or_service",
-    "ck.self.projection.spaces.query.list": "user_or_service",
-    "ck.self.projection.strands.query.list": "user_or_service",
-    "ck.self.projection.morphs.query.list": "user_or_service",
+    "ck.self.space.query.list": "user_or_service",
+    "ck.self.strand.query.list": "user_or_service",
+    "ck.self.morph.query.list": "user_or_service",
+    "ck.self.morph.resource.get": "user_or_service",
 
     # directory_discovery
     "ck.find.directory.query.describe": "public_no_auth",

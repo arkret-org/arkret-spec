@@ -2244,9 +2244,9 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
         lint.fail(openapi_path, "SessionGrantRequestBody.proof.required must include audience")
 
     projection_components = {
-        "ck.self.projection.spaces.query.list": "ProjectionSpaceList",
-        "ck.self.projection.strands.query.list": "ProjectionStrandList",
-        "ck.self.projection.morphs.query.list": "ProjectionMorphList",
+        "ck.self.space.query.list": "ProjectionSpaceList",
+        "ck.self.strand.query.list": "ProjectionStrandList",
+        "ck.self.morph.query.list": "ProjectionMorphList",
     }
     for operation_id, component_name in projection_components.items():
         operation = find_operation(operation_id)

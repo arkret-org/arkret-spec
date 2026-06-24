@@ -4956,7 +4956,7 @@
       }
     },
     {
-      "operation_id": "ck.self.projection.strands.query.list",
+      "operation_id": "ck.self.strand.query.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionStrandList",
@@ -4978,7 +4978,7 @@
       }
     },
     {
-      "operation_id": "ck.self.projection.morphs.query.list",
+      "operation_id": "ck.self.morph.query.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionMorphList",
@@ -5000,7 +5000,7 @@
       }
     },
     {
-      "operation_id": "ck.self.projection.spaces.query.list",
+      "operation_id": "ck.self.space.query.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpaceList",
@@ -5058,7 +5058,7 @@
       }
     },
     {
-      "operation_id": "ck.self.projection.document.resource.get",
+      "operation_id": "ck.self.morph.resource.get",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/view.schema.json#/$defs/document_morph_projection_outcome",

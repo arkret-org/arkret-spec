@@ -4974,7 +4974,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.projection.strands.query.list",
+      "replacement": "ck.self.strand.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4988,7 +4988,7 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.projection.morphs.query.list",
+      "replacement": "ck.self.morph.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5002,13 +5002,69 @@
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.projection.spaces.query.list",
+      "replacement": "ck.self.space.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
       "notes": "Trust-surface segment prepended (ck.projection.spaces -> ck.self.projection.spaces); old un-prefixed operation_id MUST NOT appear on current wire."
+    },
+    {
+      "id": "ck.self.projection.spaces.query.list",
+      "kind_class": "operation_id",
+      "migration_group": "operation_id_projection_namespace_collapse",
+      "since_revision": "2026-06-24",
+      "rejection_level": "hard_reject",
+      "replacement": "ck.self.space.query.list",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Projection read namespace collapsed into the Realm resource surface (/_cokret/self/projection/spaces -> /_cokret/self/realms/{realm_id}/spaces); the projection-namespaced operation_id MUST NOT appear on current wire."
+    },
+    {
+      "id": "ck.self.projection.strands.query.list",
+      "kind_class": "operation_id",
+      "migration_group": "operation_id_projection_namespace_collapse",
+      "since_revision": "2026-06-24",
+      "rejection_level": "hard_reject",
+      "replacement": "ck.self.strand.query.list",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Projection read namespace collapsed into the Realm resource surface (/_cokret/self/projection/strands -> /_cokret/self/realms/{realm_id}/strands); the projection-namespaced operation_id MUST NOT appear on current wire."
+    },
+    {
+      "id": "ck.self.projection.morphs.query.list",
+      "kind_class": "operation_id",
+      "migration_group": "operation_id_projection_namespace_collapse",
+      "since_revision": "2026-06-24",
+      "rejection_level": "hard_reject",
+      "replacement": "ck.self.morph.query.list",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Projection read namespace collapsed into the Realm resource surface (/_cokret/self/projection/morphs -> /_cokret/self/realms/{realm_id}/morphs); the projection-namespaced operation_id MUST NOT appear on current wire."
+    },
+    {
+      "id": "ck.self.projection.document.resource.get",
+      "kind_class": "operation_id",
+      "migration_group": "operation_id_projection_namespace_collapse",
+      "since_revision": "2026-06-24",
+      "rejection_level": "hard_reject",
+      "replacement": "ck.self.morph.resource.get",
+      "allowed_contexts": [
+        "changelog",
+        "legacy_migration",
+        "negative_test"
+      ],
+      "notes": "Projection document read namespace collapsed into the Realm Morph resource surface (/_cokret/self/projection/documents/{morph_id} -> /_cokret/self/realms/{realm_id}/morphs/{morph_id}); the projection-namespaced operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ck.push.notify",

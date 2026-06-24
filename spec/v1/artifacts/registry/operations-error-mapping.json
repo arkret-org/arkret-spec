@@ -1008,20 +1008,20 @@
       ]
     },
     {
-      "operation_id": "ck.self.projection.strands.query.list",
-      "http_alias": "GET /_cokret/self/projection/strands",
+      "operation_id": "ck.self.strand.query.list",
+      "http_alias": "GET /_cokret/self/realms/{realm_id}/strands",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.projection.morphs.query.list",
-      "http_alias": "GET /_cokret/self/projection/morphs",
+      "operation_id": "ck.self.morph.query.list",
+      "http_alias": "GET /_cokret/self/realms/{realm_id}/morphs",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.projection.spaces.query.list",
-      "http_alias": "GET /_cokret/self/projection/spaces",
+      "operation_id": "ck.self.space.query.list",
+      "http_alias": "GET /_cokret/self/realms/{realm_id}/spaces",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
@@ -1032,8 +1032,8 @@
       "description": "Optional extension read surface that materializes a View{kind=collection} projection bound to the returned frontier; it is a derived read model, not a canonical truth source, and carries no domain-specific reply shape beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.projection.document.resource.get",
-      "http_alias": "GET /_cokret/self/projection/documents/{morph_id}",
+      "operation_id": "ck.self.morph.resource.get",
+      "http_alias": "GET /_cokret/self/realms/{realm_id}/morphs/{morph_id}",
       "operation_specific": [],
       "description": "Optional extension read surface for a single document Morph projection; it is a derived read model, not a canonical truth source, and carries no domain-specific reply shape beyond the universal failure surface."
     },
