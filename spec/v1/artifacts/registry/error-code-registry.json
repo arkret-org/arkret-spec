@@ -1054,6 +1054,46 @@
       "description": "A ck.realm.create event attempted to create a Realm id whose genesis cell is already set. Reducer MUST reject the duplicate create without rewriting create-locked fields."
     },
     {
+      "code": "realm_organization_authorization_invalid",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "A ck.realm.organization statement failed organization-side authorization: payload.authorization.proof did not verify against the organization DID control state, threshold governance quorum, or the verification_method, or issuer_role is not allowed for the relationship. This is the generic organization-consent failure used when no more specific realm_organization_* reason applies. Downstream implementations MUST emit this exact code rather than inventing a bare string."
+    },
+    {
+      "code": "realm_organization_delegation_missing",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "A ck.realm.organization statement whose authorization.issuer_role is governance_service or account_authority omitted authorization.delegation_ref, or the referenced delegation does not resolve to a live organization DID delegation whose purpose covers ck.realm.organization and the requested relationship/control_scopes."
+    },
+    {
+      "code": "realm_organization_expired",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "A ck.realm.organization statement is outside its validity window: the evaluation time is before payload.not_before, after payload.expires_at, or outside the referenced delegation's validity period. Schema validation passes; the reducer MUST reject the statement as expired or not-yet-valid."
+    },
+    {
+      "code": "realm_organization_scope_missing",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "A ck.realm.organization statement asserts a control_scope (or relationship) that the verified organization-side authorization or its delegation does not cover. The endorsement boundary in payload.control_scopes exceeds what the proof/delegation grants."
+    },
+    {
+      "code": "realm_organization_realm_acceptance_missing",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "A ck.realm.organization statement lacks the Realm-side acceptance layer: the writing principal does not hold ck.realm.admin and the event is not part of an allowed create-bootstrap initial-configuration batch. Realm-side acceptance is independent of the organization-side proof."
+    },
+    {
       "code": "out_of_order_bootstrap",
       "applies_to": [
         "event_envelope",

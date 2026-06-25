@@ -17,7 +17,6 @@
         "backup_version": "kb_1",
         "series_id": "ck:backup_series:01964137-1000-7000-8000-000000000000",
         "series_seq": 0,
-        "supersedes": null,
         "created_at": "2026-04-26T00:00:00Z",
         "encryption": {
           "recipient_method": "passphrase_kdf",
@@ -79,7 +78,6 @@
             "backup_version",
             "series_id",
             "series_seq",
-            "supersedes",
             "encryption",
             "domain_separation",
             "contents",
@@ -101,7 +99,6 @@
         "backup_version": "kb_1",
         "series_id": "ck:backup_series:01964138-1000-7000-8000-000000000010",
         "series_seq": 0,
-        "supersedes": null,
         "recovery_policy_ref": {
           "policy_id": "ck:policy:01964140-0000-7000-8000-000000000000",
           "policy_version": 1
@@ -152,7 +149,6 @@
             "backup_version",
             "series_id",
             "series_seq",
-            "supersedes",
             "recovery_policy_ref",
             "encryption",
             "domain_separation",
@@ -176,7 +172,6 @@
         "backup_version": "kb_1",
         "series_id": "ck:backup_series:01964138-1000-7000-8000-000000000011",
         "series_seq": 0,
-        "supersedes": null,
         "recovery_policy_ref": {
           "policy_id": "ck:policy:01964140-0000-7000-8000-000000000000",
           "policy_version": 1
@@ -228,6 +223,7 @@
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
+          "ssk_generation": 1,
           "signed_fields": [
             "backup_id",
             "actor_id",
@@ -235,7 +231,6 @@
             "backup_version",
             "series_id",
             "series_seq",
-            "supersedes",
             "recovery_policy_ref",
             "encryption",
             "domain_separation",
@@ -258,7 +253,6 @@
         "backup_version": "kb_1",
         "series_id": "ck:backup_series:01964138-1000-7000-8000-000000000012",
         "series_seq": 0,
-        "supersedes": null,
         "recovery_policy_ref": {
           "policy_id": "ck:policy:01964140-0000-7000-8000-000000000000",
           "policy_version": 1
@@ -300,6 +294,7 @@
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
+          "ssk_generation": 1,
           "signed_fields": [
             "backup_id",
             "actor_id",
@@ -307,7 +302,6 @@
             "backup_version",
             "series_id",
             "series_seq",
-            "supersedes",
             "recovery_policy_ref",
             "encryption",
             "domain_separation",
@@ -329,7 +323,6 @@
         "backup_version": "kb_1",
         "series_id": "ck:backup_series:01964138-1000-7000-8000-000000000013",
         "series_seq": 0,
-        "supersedes": null,
         "recovery_policy_ref": {
           "policy_id": "ck:policy:01964140-0000-7000-8000-000000000000",
           "policy_version": 1
@@ -380,7 +373,6 @@
             "backup_version",
             "series_id",
             "series_seq",
-            "supersedes",
             "recovery_policy_ref",
             "encryption",
             "domain_separation",
@@ -404,7 +396,6 @@
         "backup_version": "kb_1",
         "series_id": "ck:backup_series:01964138-1000-7000-8000-000000000014",
         "series_seq": 0,
-        "supersedes": null,
         "recovery_policy_ref": {
           "policy_id": "ck:policy:01964140-0000-7000-8000-000000000000",
           "policy_version": 1
@@ -446,6 +437,7 @@
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
+          "ssk_generation": 1,
           "signed_fields": [
             "backup_id",
             "actor_id",
@@ -453,7 +445,6 @@
             "backup_version",
             "series_id",
             "series_seq",
-            "supersedes",
             "recovery_policy_ref",
             "encryption",
             "domain_separation",
@@ -476,7 +467,6 @@
         "backup_version": "kb_1",
         "series_id": "ck:backup_series:01964138-1000-7000-8000-000000000015",
         "series_seq": 0,
-        "supersedes": null,
         "recovery_policy_ref": {
           "policy_id": "ck:policy:01964140-0000-7000-8000-000000000000",
           "policy_version": 1
@@ -528,6 +518,7 @@
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
+          "ssk_generation": 1,
           "signed_fields": [
             "backup_id",
             "actor_id",
@@ -535,7 +526,6 @@
             "backup_version",
             "series_id",
             "series_seq",
-            "supersedes",
             "recovery_policy_ref",
             "encryption",
             "domain_separation",
@@ -648,7 +638,6 @@
         "backup_class": "secret_storage",
         "backup_version": "kb_1",
         "series_seq": 0,
-        "supersedes": null,
         "created_at": "2026-04-26T00:00:00Z",
         "encryption": {
           "recipient_method": "passphrase_kdf",
@@ -695,6 +684,7 @@
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
+          "ssk_generation": 1,
           "signed_fields": [
             "backup_id",
             "actor_id",
@@ -702,7 +692,6 @@
             "backup_version",
             "series_id",
             "series_seq",
-            "supersedes",
             "encryption",
             "domain_separation",
             "contents",
@@ -770,6 +759,7 @@
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
+          "ssk_generation": 1,
           "signed_fields": [
             "backup_id",
             "actor_id",
@@ -799,7 +789,6 @@
         "backup_version": "kb_1",
         "series_id": "ck:backup_series:01964137-1000-7000-8000-000000000000",
         "series_seq": 0,
-        "supersedes": null,
         "created_at": "2026-04-26T00:00:00Z",
         "encryption": {
           "recipient_method": "passphrase_kdf",
@@ -845,6 +834,7 @@
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
+          "ssk_generation": 1,
           "signed_fields": [
             "backup_id",
             "actor_id",
@@ -852,7 +842,6 @@
             "backup_version",
             "series_id",
             "series_seq",
-            "supersedes",
             "encryption",
             "domain_separation",
             "contents",
@@ -874,7 +863,6 @@
         "backup_version": "kb_1",
         "series_id": "ck:backup_series:01964137-1000-7000-8000-000000000000",
         "series_seq": 0,
-        "supersedes": null,
         "created_at": "2026-04-26T00:00:00Z",
         "encryption": {
           "recipient_method": "passphrase_kdf",
@@ -921,6 +909,7 @@
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
+          "ssk_generation": 1,
           "signed_fields": [
             "backup_id",
             "actor_id",
@@ -928,7 +917,6 @@
             "backup_version",
             "series_id",
             "series_seq",
-            "supersedes",
             "encryption",
             "domain_separation",
             "contents",
@@ -950,7 +938,6 @@
         "backup_version": "kb_1",
         "series_id": "ck:backup_series:01964137-1000-7000-8000-000000000000",
         "series_seq": 0,
-        "supersedes": null,
         "created_at": "2026-04-26T00:00:00Z",
         "encryption": {
           "recipient_method": "passphrase_kdf",
@@ -996,6 +983,7 @@
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
+          "ssk_generation": 1,
           "signed_fields": [
             "backup_id",
             "actor_id",
@@ -1003,7 +991,6 @@
             "backup_version",
             "series_id",
             "series_seq",
-            "supersedes",
             "encryption",
             "domain_separation",
             "contents",
@@ -1072,6 +1059,7 @@
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
+          "ssk_generation": 1,
           "signed_fields": [
             "backup_id",
             "actor_id",
@@ -1102,7 +1090,6 @@
         "backup_version": "kb_mixed",
         "series_id": "ck:backup_series:01964137-2000-7000-8000-000000000000",
         "series_seq": 0,
-        "supersedes": null,
         "created_at": "2026-04-26T00:00:00Z",
         "encryption": {
           "recipient_method": "passphrase_kdf",
@@ -1154,6 +1141,7 @@
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
+          "ssk_generation": 1,
           "signed_fields": [
             "backup_id",
             "actor_id",
@@ -1161,7 +1149,6 @@
             "backup_version",
             "series_id",
             "series_seq",
-            "supersedes",
             "encryption",
             "domain_separation",
             "contents",
