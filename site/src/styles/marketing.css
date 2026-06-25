@@ -31,13 +31,13 @@
   --ck-fg: #f7efe5;
   --ck-fg-muted: #b8aa98;
   --ck-fg-subtle: #8d7b68;
-  --ck-accent: #e13a2c;
-  --ck-accent-strong: #ff6a42;
+  --ck-accent: #e66538;
+  --ck-accent-strong: #ff8042;
   --ck-accent-2: #f0b44d;
-  --ck-accent-soft: rgba(225, 58, 44, 0.16);
+  --ck-accent-soft: rgba(230, 101, 56, 0.16);
   --ck-success: #4ade80;
   --ck-warn: #d7952b;
-  --ck-hero-glow: rgba(225, 58, 44, 0.22);
+  --ck-hero-glow: rgba(230, 101, 56, 0.22);
   --ck-hero-glow-2: rgba(240, 180, 77, 0.16);
   --ck-on-accent: #1f0b05;
   /* Layered shadow tokens — soft halo + grounded edge instead of one stamp. */
@@ -65,13 +65,13 @@
   --ck-fg: #18100c;
   --ck-fg-muted: #62564a;
   --ck-fg-subtle: #867568;
-  --ck-accent: #b91f14;
-  --ck-accent-strong: #85150e;
+  --ck-accent: #c3481e;
+  --ck-accent-strong: #9a3b15;
   --ck-accent-2: #d6942f;
-  --ck-accent-soft: rgba(185, 31, 20, 0.09);
+  --ck-accent-soft: rgba(195, 72, 30, 0.09);
   --ck-success: #16a34a;
   --ck-warn: #b86f11;
-  --ck-hero-glow: rgba(185, 31, 20, 0.095);
+  --ck-hero-glow: rgba(195, 72, 30, 0.095);
   --ck-hero-glow-2: rgba(214, 148, 47, 0.105);
   --ck-on-accent: #fffaf2;
   --ck-shadow-card:
