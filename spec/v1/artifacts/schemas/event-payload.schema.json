@@ -217,6 +217,92 @@
         }
       ]
     },
+    "delivery_binding_policy_payload": {
+      "type": "object",
+      "$comment": "Payload for ck.realm.delivery_binding_policy. Closed object so that misspelled fields are rejected with schema_violation. The enclosing Event envelope carries realm_id. See zh/governance/member-delivery-binding.md §4.",
+      "description": "Realm-level constraints on member delivery_binding acceptance: which binding_source values are admissible, which recipient services are allowed, which endorsers are required, whether DID Document fallback / unroutable membership are permitted, and who may sign rebind. allowed_recipient_services is fail-closed: empty array [] = reject any recipient service; use the explicit sentinel [\"*\"] to mean unrestricted. minProperties: 1 so an empty {} payload is schema_violation (semantically equivalent to never writing the event).",
+      "minProperties": 1,
+      "properties": {
+        "realm_id": {
+          "type": "string",
+          "description": "Optional echo of the Realm this policy governs; authoritative scope is the enclosing envelope realm_id."
+        },
+        "allow_binding_sources": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "explicit",
+              "did_document_default",
+              "invite",
+              "join_policy",
+              "organization_policy",
+              "realm_policy"
+            ]
+          },
+          "description": "Subset of binding_source values allowed to appear in an accepted binding. Default (when this policy event is absent) is [\"did_document_default\"] for personal / public Realms; organization Realms MUST narrow it explicitly."
+        },
+        "allow_did_document_default": {
+          "type": "boolean",
+          "description": "Whether binding_source=did_document_default is permitted. Defaults to false. Organization / compliance Realms MUST keep it false."
+        },
+        "allowed_recipient_services": {
+          "oneOf": [
+            {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/did"
+              },
+              "description": "Closed allow-list of recipient_service_did values. Empty array [] = reject any recipient service (fail-closed): the reducer MUST reject routable joins (delivery_binding_policy_mismatch) when the recipient service is neither on this list, nor covered by the [\"*\"] sentinel, nor endorsed via required_endorsers. The empty array MUST NOT be interpreted as 'unrestricted'."
+            },
+            {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 1,
+              "items": {
+                "const": "*"
+              },
+              "description": "The explicit unrestricted sentinel [\"*\"]. Lifts ONLY the recipient-service allow-list dimension; it does NOT exempt required_endorsers or other §2 acceptance criteria. The unrestricted meaning MUST be declared explicitly via this sentinel and never inferred from an empty array."
+            }
+          ],
+          "description": "Either an array of recipient service DIDs (possibly empty = fail-closed reject) or exactly the sentinel [\"*\"] for unrestricted. Defaults to [] (reject / fail-closed) when this field is omitted. See zh/governance/member-delivery-binding.md §2 / §4."
+        },
+        "required_endorsers": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "description": "When allowed_recipient_services is non-empty, the recipient_service_did's service_acceptance_ref MUST be endorsed by one of these governance DIDs. Empty array = no mandatory endorsement requirement."
+        },
+        "allow_unroutable_membership": {
+          "type": "boolean",
+          "description": "Whether delivery_status=\"unroutable\" members are permitted. Defaults to false."
+        },
+        "rebind_authorization": {
+          "type": "string",
+          "enum": [
+            "member",
+            "member_and_admin",
+            "admin_only",
+            "service_only",
+            "any"
+          ],
+          "description": "Legal signer / endorser set for rebind Control Moves. Defaults to member_and_admin. See §6."
+        },
+        "expires_after_seconds": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "description": "Maximum validity of any binding in this Realm; unset/null = no expiry."
+        }
+      },
+      "additionalProperties": false
+    },
     "hash": {
       "type": "string",
       "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
