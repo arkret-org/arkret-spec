@@ -414,6 +414,7 @@
         "recipient_hpke_public_key",
         "requested_source_class",
         "target_source_ref",
+        "target_principal_id",
         "created_at"
       ],
       "properties": {
@@ -451,6 +452,10 @@
               "$ref": "#/$defs/did"
             }
           ]
+        },
+        "target_principal_id": {
+          "$ref": "#/$defs/did",
+          "description": "Principal that owns target_source_ref (the to-device queue is addressed by (principal, device_id)). Carried so the relay routes directly without scanning Realm members to reverse-lookup the device's principal."
         },
         "created_at": {
           "$ref": "#/$defs/timestamp"
