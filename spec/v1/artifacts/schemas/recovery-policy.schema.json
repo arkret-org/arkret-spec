@@ -179,6 +179,15 @@
       },
       "description": "Recovery services explicitly declared in the principal's DID Document (or sovereign trust seal). Required when allowed_proof_kinds contains 'trusted_recovery_service'."
     },
+    "recovery_keys": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/recovery_key_entry"
+      },
+      "description": "Recovery signing keys this principal authorizes to satisfy a 'recovery_unlock' proof. Each entry binds a verification method (24-word Recovery Key derived signing key, or hardware-released equivalent) to the principal. A recovery_unlock proof's recovery_secret_ref MUST resolve to one of these entries that is non-revoked and within its validity window at the proof's binding time; the proof signature MUST verify under that entry's public key. Required when allowed_proof_kinds contains 'recovery_unlock'. See identity/key-management.md §7.5.2 and crypto-media/device-lifecycle.md §14.4 / §15."
+    },
     "approval_requirement": {
       "type": "object",
       "description": "Two-person rule / cooldown enforcement layered on top of cryptographic proofs.",
@@ -497,6 +506,30 @@
     {
       "if": {
         "required": [
+          "recovery_keys"
+        ]
+      },
+      "then": {
+        "properties": {
+          "auth_data": {
+            "properties": {
+              "signed_fields": {
+                "allOf": [
+                  {
+                    "contains": {
+                      "const": "recovery_keys"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
           "not_before"
         ]
       },
@@ -601,6 +634,26 @@
           "trusted_recovery_services"
         ]
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "allowed_proof_kinds": {
+            "type": "array",
+            "contains": {
+              "const": "recovery_unlock"
+            }
+          }
+        },
+        "required": [
+          "allowed_proof_kinds"
+        ]
+      },
+      "then": {
+        "required": [
+          "recovery_keys"
+        ]
+      }
     }
   ],
   "patternProperties": {
@@ -612,10 +665,57 @@
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
     },
+    "did_url": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#]+#[A-Za-z0-9._:-]+$"
+    },
     "timestamp": {
       "type": "string",
       "format": "date-time",
       "pattern": "Z$"
+    },
+    "recovery_key_entry": {
+      "type": "object",
+      "description": "A recovery signing key the principal authorizes for 'recovery_unlock' proofs. The verification_method is the stable recovery_secret_ref a recovery_unlock proof MUST reference; the proof signature is verified under this entry's public key resolved via verification_method.",
+      "required": [
+        "verification_method",
+        "alg",
+        "not_before",
+        "expires_at"
+      ],
+      "properties": {
+        "verification_method": {
+          "$ref": "#/$defs/did_url",
+          "description": "DID URL (e.g. `did:webvh:...#recovery-1`) identifying this recovery signing key. This is the value a recovery_unlock proof carries in recovery_secret_ref / verification_method and MUST be unique within recovery_keys[]."
+        },
+        "alg": {
+          "type": "string",
+          "enum": [
+            "Ed25519"
+          ],
+          "description": "Signature algorithm the recovery key signs with. v1 fixes this to Ed25519."
+        },
+        "not_before": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Earliest instant this recovery key may authorize a recovery_unlock proof."
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Instant after which this recovery key MUST NOT authorize a recovery_unlock proof."
+        },
+        "revoked_at": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/timestamp"
+            }
+          ],
+          "description": "When set, the entry is revoked from this instant onward and MUST NOT satisfy any recovery_unlock proof whose binding time is at or after it."
+        }
+      },
+      "additionalProperties": false
     },
     "hash": {
       "type": "string",

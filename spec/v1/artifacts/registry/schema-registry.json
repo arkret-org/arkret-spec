@@ -318,13 +318,13 @@
       "schema_id": "ck.schema.recovery_policy.v1",
       "file": "schemas/recovery-policy.schema.json",
       "status": "active",
-      "description": "Wire payload schema for the principal recovery policy. Bound to the Principal Control Realm via signed publish / rotate / share-revoke; receivers MUST reject recovery / rotate / ck.device.authorize and cross-signing-reset evidence whose proof family is not allowed by the currently accepted recovery policy. See identity/key-management.md §3.3 / §7 / §8."
+      "description": "Wire payload schema for the principal recovery policy. Bound to the Principal Control Realm via signed publish / rotate / share-revoke; receivers MUST reject recovery / rotate / ck.device.authorize and cross-signing-reset evidence whose proof family is not allowed by the currently accepted recovery policy. recovery_keys[] declares the recovery signing keys a recovery_unlock proof MUST resolve against. See identity/key-management.md §3.3 / §7 / §8 and crypto-media/device-lifecycle.md §14.4 / §15."
     },
     {
       "schema_id": "ck.schema.recovery_session.v1",
       "file": "schemas/recovery-session.schema.json",
       "status": "active",
-      "description": "Wire contract for the device recovery session state machine, including create/get session shape, proof submit/complete request and response helpers, and principal_signing recovery proof transcript. See crypto-media/device-lifecycle.md §15."
+      "description": "Wire contract for the device recovery session state machine, including create/get session shape, proof submit/complete request and response helpers, and principal_signing / recovery_unlock recovery proof transcripts. See crypto-media/device-lifecycle.md §15."
     },
     {
       "schema_id": "ck.schema.recovery_receipt.v1",
