@@ -3774,7 +3774,7 @@ Expected:
 
 Setup:
 
-1. Realm R 为 `encryption_profile="mls_rfc9420"`，`history_visibility.value = "shared"`。
+1. Realm R 为 `encryption_profile="mls_rfc9420"`、`content_scheme="mls-exporter-aead-v1"`，`history_visibility.value = "shared"`。
 2. Alice 在 epoch 7 发送 `E_before`。
 3. Bob 在 epoch 9 加入并成功处理 Welcome。
 4. Key source S 尝试向 Bob 发送覆盖 epoch 7 的 `ck.realm_key.share`。
@@ -3784,6 +3784,7 @@ Expected:
 - 若 effective `ck.realm.history_sharing_policy` 缺失，或 `pre_join_history="deny"` / `rule_only` 且无匹配 rule，S MUST withhold，reason SHOULD 为 `history_not_visible` 或 `policy_denied`。
 - 若 policy 明确允许 `pre_join_history="allow_if_visibility_allows"`、`allowed_key_sources` 包含 S 的来源类型、receiver state 合法且 audit 要求满足，S MAY 发送 key share；payload `key_scope.policy_digest` MUST 覆盖该 policy root，`membership_frontier_digest` SHOULD 覆盖 Bob join frontier。
 - Bob 客户端 MUST NOT 因 `history_visibility=shared` 自行推断 epoch 7 key；没有合法 key share 时，`E_before` 保持 `decryption_pending` / `decryption_failed`。
+- 若 Realm R 的 epoch 7 effective `content_scheme="mls-rfc9420"`，S MUST NOT 为 join 前内容发送可用 key share；该 epoch 不存在可交付给后加入者的 `history_secret`。
 
 ## 14. Encryption Floor Ratchet Vectors
 

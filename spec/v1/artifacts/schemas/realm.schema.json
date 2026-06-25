@@ -210,6 +210,14 @@
         "external"
       ]
     },
+    "content_scheme": {
+      "type": "string",
+      "enum": [
+        "mls-rfc9420",
+        "mls-exporter-aead-v1"
+      ],
+      "description": "Content-envelope encryption scheme for MLS-backed Realms (crypto-media/encryption-and-audit.md §2.10). Orthogonal to encryption_profile, which only declares whether an MLS group exists. mls-rfc9420 = MLS PrivateMessage (per-message forward secrecy, NOT shareable to later joiners). mls-exporter-aead-v1 = MLS-Exporter-derived per-epoch history_secret AEAD (history shareable to authorized later joiners via ck.realm_key.share; per-epoch forward secrecy). MUST be carried in the MLS governance binding policy_root so receivers can determine, per epoch T0, which scheme applies. Absent: mls-rfc9420 for encryption_profile=mls_rfc9420 Realms; not applicable when encryption_profile=none/external."
+    },
     "content_encryption_floor": {
       "type": "string",
       "enum": [
@@ -601,6 +609,21 @@
             "required": [
               "purpose"
             ]
+          }
+        }
+      }
+    },
+    {
+      "$comment": "content_scheme is only meaningful for MLS-backed Realms. Plaintext or external encryption Realms MUST NOT declare an MLS content envelope scheme.",
+      "if": {
+        "required": [
+          "content_scheme"
+        ]
+      },
+      "then": {
+        "properties": {
+          "encryption_profile": {
+            "const": "mls_rfc9420"
           }
         }
       }

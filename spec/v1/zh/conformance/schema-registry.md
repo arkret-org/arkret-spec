@@ -248,6 +248,7 @@ sidebar:
 | `ck.mls.commit_failed` | MLS commit or Welcome processing failure diagnostic |
 | `ck.mls.welcome` | MLS Welcome ref |
 | `ck.mls.keypackage` | MLS KeyPackage publication |
+| `ck.realm_key.request` | Realm history key request to-device signal (receiver → key source) |
 | `ck.realm_key.share` | Realm key share |
 | `ck.realm_key.withheld` | Realm key withheld notice |
 | `ck.realm_key.share_audit` | Auditable history key share marker |

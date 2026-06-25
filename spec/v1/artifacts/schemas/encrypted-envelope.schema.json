@@ -32,7 +32,10 @@
   },
   "properties": {
     "scheme": {
-      "const": "mls-rfc9420"
+      "enum": [
+        "mls-rfc9420",
+        "mls-exporter-aead-v1"
+      ]
     },
     "version": {
       "type": "string",
@@ -126,7 +129,10 @@
       ],
       "properties": {
         "algorithm": {
-          "const": "MLS"
+          "enum": [
+            "MLS",
+            "MLS-EXPORTER-AEAD"
+          ]
         },
         "group_state_ref": {
           "oneOf": [
@@ -157,6 +163,52 @@
     }
   },
   "allOf": [
+    {
+      "if": {
+        "properties": {
+          "scheme": {
+            "const": "mls-rfc9420"
+          }
+        },
+        "required": [
+          "scheme"
+        ]
+      },
+      "then": {
+        "properties": {
+          "key_ref": {
+            "properties": {
+              "algorithm": {
+                "const": "MLS"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "scheme": {
+            "const": "mls-exporter-aead-v1"
+          }
+        },
+        "required": [
+          "scheme"
+        ]
+      },
+      "then": {
+        "properties": {
+          "key_ref": {
+            "properties": {
+              "algorithm": {
+                "const": "MLS-EXPORTER-AEAD"
+              }
+            }
+          }
+        }
+      }
+    },
     {
       "if": {
         "properties": {

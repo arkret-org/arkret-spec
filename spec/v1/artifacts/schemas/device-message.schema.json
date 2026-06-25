@@ -281,6 +281,25 @@
           }
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.realm_key.request"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content": {
+            "$ref": "#/$defs/realm_key_request_content"
+          }
+        }
+      }
     }
   ],
   "$defs": {
@@ -291,6 +310,18 @@
     "device_id": {
       "type": "string",
       "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "realm_id": {
+      "type": "string",
+      "pattern": "^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "circle_id": {
+      "type": "string",
+      "pattern": "^ck:circle:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
     },
     "timestamp": {
       "type": "string",
@@ -372,6 +403,141 @@
         }
       },
       "additionalProperties": true
+    },
+    "realm_key_request_content": {
+      "type": "object",
+      "description": "ck.realm_key.request to-device content (device-lifecycle.md §13.2). A read-eligible receiver asks a concrete key source to evaluate policy and, if authorized, deliver historical history_secret material via durable ck.realm_key.share or an equivalent policy-authorized recovery path. Carries no key material itself.",
+      "required": [
+        "key_scope",
+        "recipient_principal_id",
+        "recipient_device_id",
+        "recipient_hpke_public_key",
+        "requested_source_class",
+        "target_source_ref",
+        "created_at"
+      ],
+      "properties": {
+        "key_scope": {
+          "$ref": "#/$defs/realm_key_request_scope"
+        },
+        "recipient_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "recipient_device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "recipient_hpke_public_key": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Recipient device HPKE public key (KeyPackage init key or equivalent) the key source MUST verify as an authorized device key for recipient_principal_id before sealing history_secret."
+        },
+        "requested_source_class": {
+          "type": "string",
+          "enum": [
+            "own_device",
+            "verified_member_device",
+            "archive_node",
+            "recovery_service"
+          ],
+          "description": "Source class this request targets. key_backup is intentionally excluded because it is retrieved via ck.self.keys.backups.command.unlock."
+        },
+        "target_source_ref": {
+          "description": "Concrete source this request is routed to: a device_id for own_device / verified_member_device, or a service DID for archive_node / recovery_service. Service-targeted reuse of this to-device kind is valid only when ServiceDescribe exposes a concrete recipient_device_id / queue target for the service DID; otherwise the service MUST expose a dedicated operation.",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/device_id"
+            },
+            {
+              "$ref": "#/$defs/did"
+            }
+          ]
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_key_request_scope": {
+      "type": "object",
+      "required": [
+        "effective_scope",
+        "from_epoch",
+        "to_epoch"
+      ],
+      "properties": {
+        "effective_scope": {
+          "$ref": "#/$defs/effective_scope",
+          "description": "Tagged scope of the requested key material. Realm-default history uses {kind:'realm', realm_id}; Circle history uses {kind:'circle', realm_id, circle_id}."
+        },
+        "policy_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Optional requester-observed policy digest hint. The key source MUST recompute the effective policy from accepted history before sharing."
+        },
+        "membership_frontier_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Optional requester-observed membership frontier hint. The key source MUST recompute recipient eligibility from accepted history before sharing."
+        },
+        "from_epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "to_epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "history_visibility": {
+          "type": "string",
+          "enum": [
+            "world_readable",
+            "shared",
+            "invited",
+            "joined",
+            "restricted"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "effective_scope": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm"
+            },
+            "realm_id": {
+              "$ref": "#/$defs/realm_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "realm_id",
+            "circle_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "circle"
+            },
+            "realm_id": {
+              "$ref": "#/$defs/realm_id"
+            },
+            "circle_id": {
+              "$ref": "#/$defs/circle_id"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     },
     "key_verification_content": {
       "type": "object",

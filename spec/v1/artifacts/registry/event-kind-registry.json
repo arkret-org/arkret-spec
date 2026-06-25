@@ -1959,6 +1959,14 @@
       "payload": "MLS KeyPackage publication"
     },
     {
+      "event_kind": "ck.realm_key.request",
+      "category": "e2ee",
+      "status": "active",
+      "wire_scope": "ephemeral_event",
+      "reducer_input": false,
+      "payload": "Realm history key request (receiver to key source); ephemeral to-device signal relayed to the target source, not a reducer-input durable event"
+    },
+    {
       "event_kind": "ck.realm_key.share",
       "category": "e2ee",
       "status": "active",

@@ -132,6 +132,27 @@
       "empty_context_forbidden": true,
       "empty_context_error": "failed_precondition",
       "forbid_reuse_with": []
+    },
+    {
+      "label": "ck-history-v1",
+      "purpose": "Per-epoch history_secret root for mls-exporter-aead-v1 content encryption; may be retained and re-sealed to authorized later joiners via ck.realm_key.share",
+      "defined_in": "zh/crypto-media/encryption-and-audit.md §2.10.1",
+      "context_fields": [
+        "realm_id"
+      ],
+      "context_encoding": "realm_id UTF-8 bytes exactly as serialized in the enclosing Realm id string",
+      "output_length": "KDF.Nh for the active MLS ciphersuite",
+      "applies_to_profiles": [
+        "ck.profile.e2ee_client.v1"
+      ],
+      "grandfathered": false,
+      "empty_context_forbidden": true,
+      "empty_context_error": "e2ee_key_source_unauthorised",
+      "forbid_reuse_with": [
+        "cokret-aead-sender-nonce-prefix-v1",
+        "cokret-reaction-routing-v1",
+        "cokret-mention-routing-v1"
+      ]
     }
   ]
 }
