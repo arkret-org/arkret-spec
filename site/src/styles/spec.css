@@ -40,17 +40,17 @@
 
 :root[data-theme="dark"],
 :root:not([data-theme]) {
-  --sl-color-accent-low: #3a120d;
-  --sl-color-accent: #e13a2c;
+  --sl-color-accent-low: #3a1f0c;
+  --sl-color-accent: #e66538;
   --sl-color-accent-high: #ffd18a;
   --sl-color-text-accent: #f0b44d;
 }
 
 :root[data-theme="light"] {
   --sl-color-accent-low: #f9e6d5;
-  --sl-color-accent: #b91f14;
-  --sl-color-accent-high: #58140d;
-  --sl-color-text-accent: #9d1b12;
+  --sl-color-accent: #c3481e;
+  --sl-color-accent-high: #5a2a0f;
+  --sl-color-text-accent: #a8501a;
 }
 
 /* Pagination link title — pin weight to semibold so the page name
