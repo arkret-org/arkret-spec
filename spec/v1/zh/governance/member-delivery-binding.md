@@ -27,7 +27,7 @@ see_also:
 1. `payload.delivery_status ∈ {routable, unroutable}` 显式声明。
 2. `delivery_status="routable"` 时 `payload.delivery_binding` 必填，且其 `binding_source` 在 Realm `ck.component.realm.delivery_binding_policy.v1`（§4）的 `allow_binding_sources` 集合内。
 3. `delivery_status="unroutable"` 仅当 Realm policy 显式允许（`allow_unroutable_membership=true`），且该成员的客户端理解"该 Realm 仅向本地可见、不接收服务端推送 / 同步 / to-device / push / key-package 投递"。
-4. `delivery_binding.recipient_service_did` 出现在 Realm policy 的 `allowed_recipient_services`（若声明），否则 MUST 被 `required_endorsers` 中至少一个治理 DID 通过 `service_acceptance_ref` 引用的 acceptance Event 背书。
+4. `delivery_binding.recipient_service_did` 出现在 Realm policy 的 `allowed_recipient_services` 集合内，或该 policy 显式声明哨兵 `["*"]`（unrestricted）；否则 MUST 被 `required_endorsers` 中至少一个治理 DID 通过 `service_acceptance_ref` 引用的 acceptance Event 背书。**`allowed_recipient_services` 为空集 `[]` 时 = 拒绝（fail-closed，见 §4 字段表）**：既未命中 allowlist、又未声明 `["*"]` 哨兵、又无 `required_endorsers` 背书时，reducer MUST 拒绝该 routable join（`delivery_binding_policy_mismatch`），不得把空集解释为"不限"放行。
 5. `delivery_binding` 的 `binding_source`-conditional required 字段满足 [`event-payload.schema.json#/$defs/member_delivery_binding`](../../artifacts/schemas/event-payload.schema.json)（例如 `did_document_default` MUST 含 `did_document_digest`；`explicit` / `invite` / `organization_policy` MUST 含 `service_acceptance_ref`；policy-driven source MUST 含 `policy_event_ref`）。
 6. `delivery_binding.delivery_modes` 是该 binding 的**显式**模式集合；空集合或缺失等价于 schema violation。普通"全功能"成员 SHOULD 列出 `["events", "sync", "to_device", "push", "key_packages"]`。
 
@@ -111,7 +111,7 @@ Realm 通过独立的 `ck.realm.delivery_binding_policy` event 声明对成员�
 | --- | --- | --- | --- |
 | `allow_binding_sources` | `enum[]` | `["did_document_default"]` for 个人 / 公开 Realm；组织 Realm 必须显式收窄 | 允许出现在被接受 binding 中的 `binding_source` 子集。 |
 | `allow_did_document_default` | `boolean` | `false` | 是否允许 binding_source=did_document_default。组织 / 合规 Realm MUST 设为 `false`。 |
-| `allowed_recipient_services` | `did[]` | `[]`（不限） | 允许出现在 `recipient_service_did` 的封闭集合。空数组等价于"不限"——此 fail-open 默认**仅适用个人 / 公开 Realm**。**组织 / 合规 Realm MUST 显式声明非空 allowlist**；漏配空集会放开任意 recipient service，与本文整体 fail-closed 取向（§2 / §5 / §6）相悖。需要"不限"语义时 SHOULD 显式表达，不应依赖漏配的空集。 |
+| `allowed_recipient_services` | `did[] \| ["*"]` | `[]`（**拒绝 / fail-closed**） | 允许出现在 `recipient_service_did` 的封闭集合。**默认空集 `[]` = 拒绝任意 recipient service（fail-closed）**，不再是"不限"——与本文整体 fail-closed 取向（§2 / §5 / §6）一致；漏配空集时 reducer MUST 拒绝 routable join（`delivery_binding_policy_mismatch`），不得放开任意 recipient service。需要"不限"语义时 MUST **显式声明哨兵** `["*"]`（unrestricted 标记），而非依赖空集。普通成员 binding 仍必须满足 `binding_source` / 背书等其余 §2 准则；`["*"]` 只解除 recipient service allowlist 这一维度的限制，不豁免 `required_endorsers` 等其它校验。 |
 | `required_endorsers` | `did[]` | `[]` | 当 `allowed_recipient_services` 非空时，`recipient_service_did` 的 `service_acceptance_ref` MUST 由其中一个治理 DID 背书；否则空数组表示无强制背书要求。 |
 | `allow_unroutable_membership` | `boolean` | `false` | 是否允许 `delivery_status="unroutable"` 成员。 |
 | `rebind_authorization` | `enum(member, member_and_admin, admin_only, service_only, any)` | `member_and_admin` | rebind Control Move 的合法签名 / 背书集合（见 §6）。 |

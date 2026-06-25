@@ -184,6 +184,8 @@ Matrix to-device 验证（SAS / QR）成功后，客户端实现常常顺势把�
 
 #### 4.5.9 完整性评估
 
+> **informative 自评**：本小节是面向 Matrix 迁移读者的对照性自评，**不是** coverage / conformance 的权威真相源。某能力是否构成 v1 一致性要求，以 [`conformance/conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json)（及 [`conformance/`](../conformance/) 下相关文档）与 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) 为准；本节列举仅供迁移规划参考，MUST NOT 被当作 coverage 结论的权威依据。
+
 按 Matrix device-key 模型逐项比对，Cokret v1 已经覆盖：
 
 - covered: device identity key（Ed25519 / X25519）

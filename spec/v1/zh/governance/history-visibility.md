@@ -60,6 +60,11 @@ Current read-time member state 只决定服务是否可以继续提供 server-me
 
 Reducer MUST 拒绝把 effective Realm 或 Circle history visibility 设置为 `restricted`，除非同一 CBA basis 或同一 ordered submit batch 的前序 Event 已接受一个有效 `ck.realm.history_sharing_policy`。拒绝原因 SHOULD 使用 `history_sharing_policy_missing`。policy 存在但未覆盖目标 scope / audience / range 时的 fail-closed 行为见 §3.1 末尾「`restricted` fail-closed 集中声明」。
 
+**`world_readable` removal 后 backfill 与 §2 "current read-time member state" 的关系（normative，消歧）**：§3 表 `world_readable` 行声明"removal 后仍 MAY 读公开 projection，remove_frontier 不收回该读取资格"，这与 §2 "current read-time member state 只决定服务是否可以继续提供 server-mediated backfill / key share" 不冲突，二者作用面不同：
+
+- **reference / 公开 projection 读取资格**：`world_readable` 的 event-time eligibility 不依赖成员资格（任何通过 discoverability / reference disclosure 的 reader 即可读授权视图），故被 remove 的 reader 对该公开 projection 的读取资格**不被 `remove_frontier(reader)` 收回**——这是 enum 语义层面的可见性。
+- **server-mediated backfill 仍受 current safety policy 独立 gate**：上述读取资格成立**不**等于服务必须继续提供 server-mediated 明文 backfill。§1 gate 4（current safety policy）对每次 backfill 独立求值——即便 `world_readable` 使 event-time eligibility 与 reference disclosure 通过，当前 ban / remove / redaction / erasure / retention / legal-hold safety policy 仍 MAY 独立拒绝继续向该已 remove reader 提供 server-mediated 明文 backfill（返回 redacted / public projection 或 `policy_denied`）。即：可见性 gate（gate 3）放行 ≠ safety policy gate（gate 4）放行；被 ban/remove 的 reader 仍可读已落库公开 projection，但服务的明文 backfill 交付可被 gate 4 收紧。这与 §2 "current read-time member state 决定服务是否继续 server-mediated backfill" 完全一致。
+
 ### 3.1 `restricted_rules[]` 结构
 
 `restricted` 的判定语义由 effective `ck.realm.history_sharing_policy` 的 `restricted_rules[]` 显式承载；其 canonical wire schema 为 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 的 `$defs/history_sharing_restricted_rule`（`additionalProperties:false`）。本节给出 v1 normative 字段约束：
@@ -127,7 +132,7 @@ Preview policy MUST 满足：
 2. effective `ck.realm.history_sharing_policy` 允许该 receiver class、scope、epoch range 和 key source。**对 `restricted` scope，命中的 `restricted_rules[]` rule 还 MUST 在其 `key_sources` 中列出本次请求所用的 key 来源（见 §3.1）——`key_sources` 未覆盖该来源时只放行读取、不授予 key**；仅满足 §3 read 判定不足以放行 key share。
 3. 交付侧机制校验——对 `share_class="member_device"`，device 未撤销且通过要求的验证、current safety policy（redaction / erasure / retention / ban·remove / legal hold）未禁止继续交付、audit profile 要求的留痕、`key_scope` / `sender_device_signature` 绑定，按 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §13 的 canonical key-share 校验执行；对 `share_class="realm_recovery_key"`，按 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.10.8 的 RRK DID service 与 durability policy 校验执行。本节不再重述。
 
-上述 1–2 是 history-visibility 本身的判定；3 引用 device-lifecycle §13 的 canonical 列表。如果任一条件不满足，key source MUST 发送 `ck.realm_key.withheld` 或等价诊断，并使用 `history_not_visible`、`not_member`、`policy_denied` 或更具体 reason。Key source MUST NOT 因为自己持有 backup、Archive Node 副本或 service operator 权限而跳过这些检查。
+上述 1–2 是 history-visibility 本身的判定；3 引用 device-lifecycle §13 的 canonical 列表。**ban / remove / legal-hold 后 key withhold 已被该 canonical 列表覆盖**：[`../crypto-media/device-lifecycle.md` §13](../crypto-media/device-lifecycle.md) 的 current safety policy 校验项明确含 "redaction / erasure / retention / **ban·remove** / **legal hold**"（见该节 `current safety policy（redaction / erasure / retention / ban·remove / legal hold）未禁止继续向该 principal / device 交付` 条），且 §13.1 把"接收 principal/device 已处于 ban / leave / removed / account 失权态"列为**主体级拒绝**的终态 fail-closed（`not_member` / `history_not_visible`）。因此本文不重复定义这些项的扣留逻辑，以 device-lifecycle §13 / §13.1 为 canonical 真源。如果任一条件不满足，key source MUST 发送 `ck.realm_key.withheld` 或等价诊断，并使用 `history_not_visible`、`not_member`、`policy_denied` 或更具体 reason。Key source MUST NOT 因为自己持有 backup、Archive Node 副本或 service operator 权限而跳过这些检查。
 
 本节只规定**被选中的 source 交付前必须满足的条件**；接收方如何**发现、选择并请求**一个具体 key source（policy 允许的 `key_sources` ∩ `ServiceDescribe` 声明可用的途径，按优先级，经 `ck.realm_key.request` 发起或 `key_backup` unlock 取回），见 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §13.2。
 

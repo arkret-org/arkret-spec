@@ -61,7 +61,7 @@ Sync / account aggregate service MAY 观察或持有执行该职责所必需的�
 
 `on_send` 的 anchor 是 accepted Event 的 canonical send seal HLC。
 
-`on_first_read` 的 anchor 是第一个有效 read trigger contribution 的 `position_hlc` 与聚合服务接受时间中按实现 profile 固定规则选出的稳定 HLC；同一 message 一旦产生 first-read anchor，后续 contribution、重复投递或 replay MUST NOT 改写 anchor。
+`on_first_read` 的 anchor 是第一个有效 read trigger contribution 的 canonical 稳定 HLC。**canonical 选取规则（normative）**：anchor = `max(position_hlc, accepted_at_hlc)`，其中 `position_hlc` 是该 contribution 的 read position HLC、`accepted_at_hlc` 是聚合服务接受该 contribution 时铸造的 HLC（二者 HLC 相等时取相同值，不产生分歧）。该规则是确定性的、不依赖实现 profile：任何聚合服务 / 客户端对同一第一个有效 contribution MUST 收敛到同一 anchor，使跨实现、跨聚合服务的过期判定一致。同一 message 一旦产生 first-read anchor，后续 contribution、重复投递或 replay MUST NOT 改写 anchor。
 
 `on_last_read` 的 anchor 是冻结 `eligible_reader_set` 中每个 principal 均有一个有效 contribution 后的最大 contribution HLC；若 read-trigger window 先结束，anchor 为该 window 的结束 HLC / timestamp。`read_trigger_window_ms` 由 effective `ck.realm.disappearing_policy` 给出；缺省时 MUST 使用 `max_ttl_ms` 作为上限窗口。`eligible_reader_set` 为空时，`on_first_read` 与 `on_last_read` MUST 退化为 `on_send` anchor，且不得暴露"无人可读"作为成员枚举信号。
 
@@ -95,7 +95,7 @@ Saved items、pins、replies、search index、push snippet 和 blob preview MUST
 
 到期后保留的 encrypted envelope、Event、Seal、batch receipt、message id、strand id、track name、expiry metadata 和最小审计引用仍可存在。它们是 append-only history 的一部分，但不得包含可解密正文或可逆摘要。
 
-Late key recovery 也不得复活已过期 plaintext。若目标消息已超过 `expired_at`，或 retention policy 已要求销毁内容 key，客户端和 key recovery source MUST 按 [`encryption-and-audit.md` §2.3.5](./encryption-and-audit.md) 拒绝 late recovery，保留 expiry stub / metadata-only 状态，并记录 `late_recovery_rejected_expired`。
+Late key recovery 也不得复活已过期 plaintext。该 expiry / retention guard 的权威规则单一定义于 [`encryption-and-audit.md` §2.3.5（条 e）](./encryption-and-audit.md)（含拒绝条件、`late_recovery_rejected_expired` 记录与 key recovery source 侧义务）；本节不复述该规则，以避免双份维护漂移，客户端与 key recovery source MUST 直接以 §2.3.5(e) 为准。
 
 ## 5. Realm Policy
 

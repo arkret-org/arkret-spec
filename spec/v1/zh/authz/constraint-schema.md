@@ -314,6 +314,34 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 
+### 7.3 委托控制字段的 reducer 求值规则（normative）
+
+§7.1 / §7.2 的委托控制字段不只是枚举声明；reducer 在 accept `ck.capability.delegate` 派生 grant 时 **MUST** 按下列规则求值，违反即 fail closed。这些规则与 [`capabilities.md` §10.1](./capabilities.md) 的收窄约束表叠加生效（先过 §10.1 的 actions/resources/window 收窄，再过本节字段规则）。
+
+**`prohibit_subdelegation`**：
+
+- `prohibit_subdelegation=true` ⇒ child grant 的 `max_delegation_depth` **MUST = 0**。reducer 在派生 child 时 MUST 强制把 child 的 `max_delegation_depth` 视为 `0`；若 child grant 声明了 `max_delegation_depth > 0`，reducer **MUST** 返回 `schema_violation`（`reason="subdelegation_prohibited"`）。`prohibit_subdelegation=true` 的 grant 持有者 MUST NOT 再签发任何下游 `ck.capability.delegate`。
+- `prohibit_subdelegation=false`（默认）时不额外约束，深度仍受 §10.1 `max_delegation_depth ≤ parent - 1` 与 §10.2 DFS 上限 64 治理。
+
+**`allow_scope_expansion`**：
+
+- v1 中 [`capabilities.md` §10.1](./capabilities.md) 强制 child `actions[]` ⊆ parent、`resources[]` 为 parent 的 selector-narrowing 子集。`allow_scope_expansion=true` 与该收窄不变量直接矛盾，因此 **v1 reducer MUST 拒绝** `allow_scope_expansion=true`，返回 `schema_violation`（`reason="scope_expansion_forbidden"`）。该字段在 v1 wire 上只允许取 `false`（缺省即 `false`）；声明 `true` 不构成"扩权许可"，而是非法 grant。
+- 若未来某 profile 确需 scope 扩展语义，MUST 注册独立 profile 并在该 profile 内重新定义上界来源；v1 core 不提供。
+
+**`delegation_scope`（三值）**：取值 ∈ `{narrowing_only, same_scope, custom}`，reducer 校验规则：
+
+| 值 | 校验规则 |
+| --- | --- |
+| `narrowing_only`（缺省） | child 的 `actions[]` MUST ⊊ 或 ⊆ parent，`resources[]` MUST 是 parent 的 selector-narrowing 子集，且 child `constraints[]` MUST 至少与 parent 等严（含 parent 全部 deny/quarantine/require_review，MAY 增更严 allow）。等同 §10.1 的默认收窄语义。 |
+| `same_scope` | child 的 `actions[]` MUST = parent（逐元素相等集合），`resources[]` MUST 与 parent selector 等价（既不放宽也不收窄），`constraints[]` MUST ⊇ parent 约束集。用于"原样转授但不扩权"的场景（如委托给 standby principal）。任一维度不等价 MUST 返回 `schema_violation`（`reason="delegation_scope_mismatch"`）。 |
+| `custom` | 必须由声明该值的 extension profile 定义完整收窄判据；未声明对应 profile 的 reducer **MUST fail closed**（`schema_violation`，`reason="delegation_scope_custom_unsupported"`），MUST NOT 把 `custom` 当作 `narrowing_only` 的别名放行。 |
+
+未注册的 `delegation_scope` 值 MUST fail closed。`delegation_scope` 与 `allow_scope_expansion` 同时出现且语义冲突时（如 `same_scope` 但 `allow_scope_expansion=true`），按更严格规则裁决——`allow_scope_expansion=true` 在 v1 已被独立拒绝（见上），因此该组合整体 `schema_violation`。
+
+**`require_parent_reference`**：
+
+- `require_parent_reference=true`（委托链上 SHOULD 默认）⇒ child `ck.capability.delegate` event **MUST** 携带 `refs[role="parent_grant"]` 指向 parent grant id（见 [`capabilities.md` §10.2](./capabilities.md)）；缺失 MUST 返回 `failed_precondition`（`reason="missing_parent_reference"`）。该字段使 delegation 链可被 §10.2 cycle detection 与 §10.3 revoke 因果传播追踪。
+
 ## 8. 配额 (Quota)
 
 ### 8.1 操作频率（subtype=rate）
@@ -636,6 +664,42 @@ function evaluate_constraints(operation, grant_constraints):
 ```
 
 实现 SHOULD 按 §2.3 的 `evaluation_class` 分组：先跑 `stateless` 与 `grant_local` 的 fast path（命中即可短路返回 DENIED / QUARANTINED / REQUIRES_REVIEW），再跑 `realm_state` 与 `external` 的 slow path（必要时走异步 / 缓存绑定 frontier）。`external` 类约束 MUST NOT 缓存。
+
+### 15.4 跨 grant 全局合并（normative）
+
+§15.3 的 `evaluate_constraints` 只对**单个 grant 内部**的约束集求值。当一次操作被**多个**有效 grant 命中时（典型：subject 同时持有一个 Realm-wide grant 与一个针对同一 strand 的 deny grant，或一个宽授权 grant 加一个独立的 quarantine grant），授权判定 **MUST** 先把**全部命中 grant** 的约束做全局合并后再裁决，**MUST NOT** 退化成"逐个 grant 单独跑 §15.3、任一 grant 返回 ALLOWED 即整体放行"。否则一条命中 grant 的 deny / quarantine / require_review 可被"另开一个无 deny 的命中 grant"绕过——这是 v1 明令禁止的授权放大面。
+
+合并裁决规则（与 §15.1 的 effect 短路顺序一致，但作用域提升到全命中集）：
+
+- **deny / quarantine / require_review 跨 grant 全局生效**：只要**任一**命中 grant 内**任一** `deny` / `quarantine` / `require_review` 约束命中本次操作，整体判定 **MUST** 按该 effect 收紧（按 deny → quarantine → require_review 短路顺序），**MUST NOT** 因为存在另一个不含该约束的命中 grant 而放行。全局 deny 优先于任何 grant 的 allow。
+- **allow 仍按 per-grant 满足**：`actions[]` 命中、resource selector 命中、且该 grant 内全部 `allow` 约束满足（§15.2 AND）的 grant，称为一个**满足的依赖 grant**。整体 ALLOWED 要求：①无任何跨 grant deny / quarantine / require_review 命中；且 ②至少存在一个满足的依赖 grant 覆盖本次 `(action, resource)`。一个 grant 的 allow 约束**只**约束该 grant 自身是否成为满足的依赖 grant，不跨 grant 相交——即 grant A 的 `allowed_write_fields` 不会限制 grant B 的 allow 判定。
+
+跨 grant 入口算法：
+
+```
+function evaluate_constraints_across_grants(operation, matched_grants):
+    # matched_grants: 已通过 actions[]/resource selector 命中筛选的全部有效 grant
+    # 1. 全局收集所有命中 grant 的 deny/quarantine/review 约束，跨 grant 求并
+    for grant in matched_grants:
+        for c in grant.constraints if c.effect == "deny":
+            if matches(operation, c):
+                return DENIED            # 全局 deny 优先，跨 grant 生效
+    for grant in matched_grants:
+        for c in grant.constraints if c.effect == "quarantine":
+            if matches(operation, c):
+                return QUARANTINED
+    for grant in matched_grants:
+        for c in grant.constraints if c.effect == "require_review":
+            if matches(operation, c):
+                return REQUIRES_REVIEW
+    # 2. allow 按 per-grant 满足：存在任一 grant 其全部 allow 约束满足即可
+    for grant in matched_grants:
+        if all(matches(operation, c) for c in grant.constraints if c.effect == "allow"):
+            return ALLOWED               # 该 grant 是一个满足的依赖 grant
+    return DENIED                        # default deny：无满足的依赖 grant
+```
+
+该算法是 §15.3 单 grant 求值在全命中集上的提升：第 1 步把 deny / quarantine / require_review 的命中集从单 grant 扩展到全部命中 grant 的并集（任一命中即收紧）；第 2 步保留 allow 的 per-grant AND 语义（一个 grant 内的 allow 约束只对该 grant 自身生效，grant 之间是 OR）。该规则与 [`capabilities.md` §20](./capabilities.md)「允许动作取并集，约束按最严格规则相交」一致：动作并集 = 第 2 步任一满足的依赖 grant 覆盖即可；约束相交的最严格语义 = 第 1 步 deny/quarantine/review 跨 grant 全局生效。实现 **MUST NOT** 把多 grant 当作可互相漂白彼此 deny 的冗余授权。
 
 ## 16. 约束匹配
 

@@ -275,6 +275,10 @@ MIMI facade MUST 支持接收：
 
 facade 在 Cokret ↔ MIMI 之间转换一条内容时，SHOULD 生成 **Content Mapping Receipt**（`content_mapping_receipt`，`kind="ck.mimi.mapping_receipt"`，schema `ck.schema.mimi_interop.v1`，见 [`mimi-interop.schema.json`](../../artifacts/schemas/mimi-interop.schema.json)），作为该次格式映射的可审计证据。它记录 `mimi_room_uri`、`source_format` → `target_format`、被映射源信封摘要 `original_envelope_digest` 与目标 `mapped_operation_id`（可选携带 `mimi_message_id` / `cokret_event_id` / `accepted_at`），使双向投递的内容转换可被追溯与对账。该回执是 EXTENSION 范围对象，不进入 v1 core 互操作必需集。
 
+**生成强度（normative）**：Content Mapping Receipt 是跨协议内容映射的唯一可审计证据。在 E2EE Realm、regulated-audit Realm（Realm policy 声明合规审计要求），或本地 binding `local_provider_role="hub"`（本地 facade 即拥有该 room URI、对外承担 room 真相投影责任）时，facade 在每次 Cokret ↔ MIMI 内容转换时 MUST 生成 Content Mapping Receipt；这些场景下缺失 receipt 的映射 MUST 被视为不可审计而拒绝或 quarantine。其余普通场景仍为 SHOULD。
+
+## 9. Policy Mapping
+
 Cokret v1 把 Realm-level policy 映射为 Control Move effects on cell families。Facade 在 MIMI room policy 与 Cokret state 之间转换时，读取 registry 中的 `cell_family`、`lattice` 与 `bottom`。
 
 ### 9.1 Cell Family 互译

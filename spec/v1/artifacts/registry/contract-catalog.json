@@ -5807,6 +5807,28 @@
         "event_mapping_kind": "same_name"
       },
       {
+        "action": "ck.morph.archive",
+        "category": "morph",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ck.morph.archive"
+        ],
+        "profile": null,
+        "event_mapping_kind": "same_name"
+      },
+      {
+        "action": "ck.morph.restore",
+        "category": "morph",
+        "risk_tier": "medium",
+        "required_constraints": [],
+        "target_event_kinds": [
+          "ck.morph.restore"
+        ],
+        "profile": null,
+        "event_mapping_kind": "same_name"
+      },
+      {
         "action": "ck.strand.archive",
         "category": "strand",
         "risk_tier": "medium",

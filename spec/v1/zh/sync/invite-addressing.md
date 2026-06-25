@@ -216,6 +216,7 @@ effective_receive_policy =
 - 部署约束只能让 subject 更不容易被联系，MUST NOT 把 subject 从更隐私的设置强制放宽为可通知。若 subject 选择 `drop`，管理员不能通过约束把结果提升为 `quarantine` 或 `notify`。
 - `permitted_introduction_kinds` 与 `forbidden_introduction_kinds` 先于 subject allowlist 生效；任一约束拒绝的 evidence kind MUST 按 `drop` 或 indistinguishable policy denial 处理。
 - 行为强度排序为 `drop < quarantine < notify`。`handle_claim_max_behavior`、`explicit_address_max_behavior` 与 `unknown_invites_max_behavior` 是上限；effective behavior 取 subject 行为与上限中更严格者。
+- `disclosure_max` 是部署 / 管理员对 §5.1 分级披露粒度的上限，按 §2 引入信任分档给出 `{high_trust_max, discovery_trust_max, low_trust_max}`，取值同 `disclosure_level` 枚举（`opaque < outcome`，opaque 更保守）。字段或某档省略表示该档不设部署级披露上限。**effective disclosure 取 subject `invite_receive_policy.disclosure` 与 `disclosure_max` 中更保守（更接近 `opaque`）者**，使部署可以把 subject 自愿设为 `outcome` 的披露强制收紧为 `opaque`（反枚举 / 反侧信道），但 MUST NOT 把 subject 设为 `opaque` 的披露放宽为 `outcome`。该交集与上面的行为交集独立计算：先按行为上限定 drop / quarantine / notify，再按 `disclosure_max` 定 outcome 是否可回送。`blocked_subjects` / `blocked_principal_services` 命中时仍无条件强制 `opaque`，不受 `disclosure_max` 影响。
 - `allowed_handle_domains`、`trusted_handle_issuers`、`trusted_directory_services`、`trusted_principal_services`、`accepted_subject_did_methods` 是部署级 allowlist；字段省略表示该维度不设部署级上限，字段存在且为空数组表示不接受该维度的任何候选。非空时必须命中。未命中 MUST 视为策略拒绝，不得通过响应区分“存在但被策略拒绝”和“不存在”。
 - `blocked_principal_services` 命中时 MUST `drop` 且强制 `opaque`。
 

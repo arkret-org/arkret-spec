@@ -38,6 +38,7 @@ sidebar:
 
 6. **钓鱼与品牌仿冒（Phishing / Social Engineering）**
    通过目录、邀请、授权提示、签名展示链条进行误导，引导用户执行高风险动作。
+   **Realm alias 同形 / 抢注细分（与 [`discovery/object-addressing.md` §3.3](../discovery/object-addressing.md) 交叉引用）**:攻击者注册与目标 Realm alias 视觉同形（homograph / confusable）或抢注的 `<localpart>:<domain>` realm alias，借 `web+cokret:` 短地址 / `#alias` 分享链接诱导用户进入冒名 Realm。防护以 object-addressing §3.3「混淆防护」为权威——realm alias 注册 / 解析 MUST 复用 handle §17 的 wire-level canonical 比较纪律（NFC normalization、UTS#39 confusable skeleton 折叠、拒绝 script-mixed label 与 hyphen-disallowed-position 形态），在 realm alias 命名空间内做冲突检测，错误形态 registration 返回 `failed_precondition` `reason="realm_alias_homograph_forbidden"`；且 landing / handler 域名不是信任锚（object-addressing §5.1），客户端 MUST 以解析后的 canonical `realm_id` 为唯一信任锚。
 
 7. **恶意附件与链接传播（Malware / Unsafe Media）**
    上传/分享高风险附件、链接、可疑 blob，诱导后续执行或传播。
@@ -80,7 +81,7 @@ sidebar:
 
 20. **推送网关与通知元数据滥用（Push/Gateway Abuse）**
     攻击者利用未鉴权的 gateway 注册、metadata 推送接口、超频或伪造事件触发隐私侧信道或 DoS。
-    **推送侧信道细分（与 [`discovery/push-notifications.md` §2.2 / §2.4 / §5.1](../discovery/push-notifications.md) 交叉引用）**:具体威胁向量包括——(a) **collapse / dedup key 跨 window 关联**:provider 可见的 collapse / dedup key 若跨 delivery window 稳定，可关联同一目标的连续 wakeup，还原活动模式；防护见 push-notifications §2.4「Provider 侧 collapse / dedup key 约束」(跨 window 不可链接随机值，MUST NOT 直接用 `source_event_digest` / event id / Realm id 等稳定派生)。(b) **push timing oracle**:在用户刚上线 / 离线瞬间发出可被 provider 观察的 per-event push burst，使 presence 成为精确 timing oracle；防护见 push-notifications §2.4(按 Realm policy bucket 粒度，默认 ≥ 60s 批处理 / 延迟)。(c) **`push_target_id` 可链接性**:伪名若可跨 Realm / Principal Server 关联即成行为追踪点；防护见 push-notifications §2.2(per-(recipient_service_did, principal, device, push_route) pairwise pseudonym，keyed salt 派生，跨上下文不可复用)。(d) **counts 活动侧信道**:明文绝对未读数让 provider 重建累计活跃度画像；防护见 push-notifications §5.1(blind_wakeup 下 counts MUST NOT 携带明文绝对未读数，改用布尔 / 增量 / bucket)。
+    **推送侧信道细分（与 [`discovery/push-notifications.md` §2.2 / §2.4 / §5.1](../discovery/push-notifications.md) 交叉引用）**:具体威胁向量包括——(a) **collapse / dedup key 跨 window 关联**:provider 可见的 collapse / dedup key 若跨 delivery window 稳定，可关联同一目标的连续 wakeup，还原活动模式；防护见 push-notifications §2.4「Provider 侧 collapse / dedup key 约束」(跨 window 不可链接随机值，MUST NOT 直接用 `source_event_digest` / event id / Realm id 等稳定派生)。(b) **push timing oracle**:在用户刚上线 / 离线瞬间发出可被 provider 观察的 per-event push burst，使 presence 成为精确 timing oracle；防护见 push-notifications §2.4(按 Realm policy bucket 粒度，默认 ≥ 60s 批处理 / 延迟)。(c) **`push_target_id` 可链接性**:伪名若可跨 Realm / Principal Server 关联即成行为追踪点；防护见 push-notifications §2.2(per-(recipient_service_did, principal, device, push_route) pairwise pseudonym，keyed salt 派生，跨上下文不可复用)。(d) **counts 活动侧信道**:明文绝对未读数让 provider 重建累计活跃度画像；防护见 push-notifications §5.1(blind_wakeup 下 counts MUST NOT 携带明文绝对未读数，改用布尔 / 增量 / bucket)。(e) **`is_direct_message` / `member_count` DM 关系图重建**:push rule 的 server-side 条件 `is_direct_message` 与 `member_count` 要求 Sync Service 读取精确成员数与"是否双人私聊"，在 E2EE Realm 中构成成员数与私聊存在性侧信道；叠加 push timing 可近似重建"谁在和谁私聊"的 DM 关系图。防护见 push-notifications §4.3「`is_direct_message` / `member_count` 在 E2EE / 高隐私 Realm 的侧信道收口」为权威(`member_count` 仅暴露 bucket 化值、口径同 discovery §3；`is_direct_message` 受 Realm policy gate，`minimal-metadata` Realm MUST 关闭并降级为 §4.5 client-side 评估)。
 
 21. **URL 凭证泄露（URL Credential Leakage）**
     将 session token、API key 或签名材料放入 query string，导致浏览器历史、代理日志、崩溃日志、复制链接或 referrer 泄露。
@@ -98,6 +99,9 @@ sidebar:
 
 25. **Directory ingest 写路径滥用（Directory Ingest Abuse）**
     攻击者污染 Directory 的发现 / 投影 ingest 写路径（与 [`discovery/discovery-directory.md` §8.10 / §11](../discovery/discovery-directory.md) 交叉引用）。具体向量:**announce replay**(重放过期 announce 让陈旧条目复活)、**`as_of` skew**(伪造 `as_of` 时间使旧状态看似最新)、**policy_revision rollback**(回退 policy_revision 绕过更严策略)、**DID hijack**(劫持 announce 来源 DID 冒名注入条目)、**source-ref 伪造**(伪造来源引用让未授权条目进入 directory)、**takedown spoofing**(伪造下架 / takedown 让合法条目被移除)。防护以 discovery-directory §8.10 / §11 的来源 DID 验签、`as_of` 单调 / 时间锚校验、policy_revision 单调、announce 一次性 / 过期窗口、source-ref 授权核验与 takedown 授权链为权威。
+
+26. **实时活动信号去匿名追踪（Real-time Activity-Signal Deanonymization）**
+    攻击者（外部 world-readable 观察者、受托 Sync Service 或共谋成员）订阅并关联实时活动信号——read receipt（`ck.receipt.read`）已读位置、typing（`ck.typing`）逐键活动、presence（`ck.presence` 的 `dnd` / `idle` / bucket 化 `last_active_at`）以及 push wakeup timing——以重建特定 actor 的活动时间序列、作息画像，甚至在 world-readable scope 下对外部观察者去匿名其阅读 / 输入行为。这些信号单独看是产品功能，关联后成为去匿名 timing oracle。防护以各自正文为权威：read receipt 的 world-readable / forced-public 组合 fail-closed 与 fanout 收口见 [`discovery/read-receipts.md` §2.5.1](../discovery/read-receipts.md)；typing 的 world_readable scope fail-closed 与 presence `dnd`/`idle` 对未授权观察者 MUST 降级见 [`discovery/profiles-presence.md` §3.4 / §3.5](../discovery/profiles-presence.md)；push wakeup 不得成为 presence timing oracle（bucket 化、默认 ≥60s 批处理）见 [`discovery/push-notifications.md` §2.4](../discovery/push-notifications.md)。
 
 ### 2.1a 需 profile 才能缓解的攻击项（base v1 不直接防御）
 

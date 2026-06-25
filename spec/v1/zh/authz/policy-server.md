@@ -52,6 +52,17 @@ Realm 可通过 state event 声明策略服务：
 
 `policy_sources[]` 中每一项 MUST 是 `{"kind": "<event_kind>"}` 形态的 object（如示例所示）。Reducer / Policy Server canonical transcript 仅接受 object form；不接受裸字符串简写——若实现需要把字符串映射到 object，必须在客户端构造 Event 之前完成，使写到 wire 上的形态始终是 canonical object，避免 signature/hash transcript 在不同实现之间不一致。
 
+### 2.1 policy_sources 不可解析时 fail-closed（normative）
+
+`policy_sources[]` 中任一 referenced policy event（如 `ck.realm.moderation_policy` / `ck.organization.moderation_policy`）在 Policy Server 评估某请求时，于该请求的当前 seal view 下**缺失、未被任何 accepted Seal 覆盖、被 redact / tombstone、或解析为 `⊥`（多 head 冲突）**时，Policy Server **MUST** 把该 policy source 视为不可解析，并按该 `ck.realm.policy_server` declaration 的 `fail_mode` 处理（§6；未显式声明 `fail_mode` 时缺省即 `closed`），**MUST NOT** 把"policy source 不可解析"等同于"该 source 为空 policy / 无规则"而按 allow 放行。
+
+- `fail_mode=closed`（含缺省）：不可解析时该路径请求 MUST 拒绝（`hard_deny`，`reason_code="policy_violation"` 或部署声明的更具体码）。
+- `fail_mode=soft_deny`：MUST 阻止默认客户端提交，MAY 允许 proposal / 重试。
+- `fail_mode=quarantine`：可提交但进入 quarantine。
+- `fail_mode=open`：仅在 declaration 显式声明且非公开 Realm 时才允许按基础授权继续（§6 对 `open` 的硬约束适用）。
+
+被 redact 是不可解析的一种：一个被 redact 的 moderation_policy event MUST NOT 被解释为"放开该 policy 维度"。多个 policy_sources 中只要有任一不可解析，整体即按上述 fail_mode 处理，MUST NOT 因其余 source 可解析就跳过缺失 source 的治理维度。
+
 ## 3. Check Request
 
 ```http
@@ -301,6 +312,17 @@ Policy decision 签名输入 MUST 包含：
 
 Frontier 比较必须区分“本地落后”和“本地更新”。若本地 accepted authorization / policy / membership frontier 严格晚于 decision 绑定的 frontier（即本地已看到 decision 签发后发生的 grant revoke、membership 变化、policy 变化或相关 state digest 变化），receiver MUST fail closed 并重新请求 `/_cokret/self/policy/check`；不得把旧 decision 复用到更新后的 auth state。只有本地 frontier 可证明小于或等于 decision frontier，且 decision 仍在 `expires_at` 窗口内时，才可把不一致视为本地落后并按完整授权 / 补拉路径处理。
 
+#### 5.1 跨 issuer 复用 decision 的比较基准（normative）
+
+`auth_state_digest` 在跨实现 wire 上是 **issuer-local opaque commitment**（见 [`capabilities.md` §18.1](./capabilities.md)）：除非具体 deployment profile 声明了可复算的 auth-state canonical encoding，第三方 verifier **无法逐字重算**签发者的 `auth_state_digest`。因此上文"`auth_state_digest` 与本地 accepted auth state 一致"的逐字比较步骤，**只对签发该 decision 的同一 Policy Server（同 issuer）自缓存复用成立**——签发者复用自己签发的 decision 时，可逐字比较自己产生的 opaque digest。
+
+**跨 issuer 复用（接收方 ≠ decision 签发者，典型为联邦 §9 收到 origin 附带的 decision）时**：接收方 **MUST NOT** 依赖对 `auth_state_digest` 的逐字比较来判定 decision 仍有效（它无法逐字重算该 opaque 值，逐字比较步骤不可执行）。接收方 MUST 改用下列二者之一：
+
+1. **比较结构化 frontier digest**：用 `policy_frontier_digest` 与 `membership_frontier_digest`（这两者绑定可按 `auth_frontier` 取得的 accepted policy / membership frontier，而非纯 issuer-local opaque commitment）与接收方本地按相同 frontier 解析出的值比较，并按上文"本地落后 vs 本地更新"规则裁决；或
+2. **本地重跑**：接收方按 §9 在本地重新执行 capability/auth 验证与（如配置）本地 `/_cokret/self/policy/check`，不复用 origin decision 的授权判定。
+
+接收方 MUST NOT 把"无法逐字重算 `auth_state_digest`"解释为"digest 校验通过"或"授权通过"——这正是 [`capabilities.md` §18.1](./capabilities.md) 对 opaque digest 的 verifier 纪律。只有同 issuer 自缓存路径可逐字比 `auth_state_digest`；跨 issuer 路径的安全判定 MUST 来自 frontier digest 比较或本地重跑。该规则与 §9「MUST NOT 因 origin policy allow 而跳过本地 capability/auth 验证」一致。
+
 **CBA basis 例外（normative）**：reducer 评估 Event 时，DataEvent 只读取自身 `seal_ref` 指向的控制面 view，Control Move 只读取自身 `seal_basis` 指向的控制面 view；同一 ordered submit batch 的前序 Event 不会提前推进后续 Event 的授权基准。若同批内 revoke + 依赖该 grant 的 Event 同时到达，Policy Server fast-path cache MUST 按该 Event 的 CBA basis 评估，不得用同批后置 revoke 直接 deny；跨 Seal 延迟 revoke 仍按 §18 freshness fail closed。
 
 > **取舍与残留风险（informative）**：上述例外意味着同一 CBA basis 下的并发 in-flight 操作不会被同批后置 revoke 阻断——actor 若能把"撤销前最后一批写入"与撤销自身塞进同一 batch / 同一 basis，这些写入会按撤销前 basis 通过。对依赖**即时**撤销的高风险 grant（如紧急吊销被盗 agent key），紧急 revoke 不能跨越本例外立即生效；此类场景 SHOULD 把相关 cell family 声明为 `sealed=true` 或走 sealed control override / fork quarantine 路径，使紧急 revoke 跨越 CBA basis 例外立即生效。该残留风险与 [`event-auth-state-resolution.md` §4.3](./event-auth-state-resolution.md) 的撤销新鲜度窗口取舍同源。
@@ -370,7 +392,7 @@ Policy Server fast path 与 sealed control decision 的关系：
 
 - Fast path 上，Policy Server 返回 `quarantine` / `hard_deny` 后，origin Principal Server SHOULD **同步** 提交 `ck.moderation.decision` Control Move。Control Move 提交前 origin 节点 MAY 本地隐藏目标作为优化，但**不得**以 fast-path 决策永久代替 sealed control decision。
 - 若 origin 节点 24 小时内（或 Realm policy 声明的更短窗口）未能把 fast-path quarantine 提升为 sealed control decision，处理方式 MUST 按未能提升的根因分类，不得对所有失败统一静默解除：
-  - **(a) 传输 / 可用性类**——Seal issuer unreachable、`temporarily_unavailable`、控制面 fork quarantine、提交超时等纯可达性故障：窗口到期后 MUST 解除本地隐藏并退回到 sealed control state 实际值。这避免单一 origin 在 Seal 故障期间无限期隔离他人内容。
+  - **(a) 传输 / 可用性类**——Seal issuer unreachable、`temporarily_unavailable`、控制面 fork quarantine、提交超时等纯可达性故障：窗口到期后 MUST 解除本地隐藏并退回到 sealed control state 实际值。这避免单一 origin 在 Seal 故障期间无限期隔离他人内容。**但自动退回 allow 前，origin MUST 产出可验证的不可达证据**——即按 [`event-auth-state-resolution.md` §7.2](./event-auth-state-resolution.md) 的 receipt SLA 超时证明 / censorship evidence（如对 Seal issuer 的签名提交回执缺失证明、超时计时锚定到 frontier 的可验证记录），并把该证据写入 moderation history trail（§7.1 "Fast-path 退回的 UX 规则" 的独立 moderation history）。仅凭 origin **自报**"传输失败"而无可验证证据时，MUST NOT 享受本（a）类自动退回 allow，而 MUST 按下方（b）类升级为 `require_review`（或保持隐藏并向 Realm 审核方告警）。这避免恶意 origin 通过谎报"传输失败"把一条本应进入 sealed control 的隔离决策静默漂白成 allow。
   - **(b) reducer 主动拒绝类**——Control Move 被 reducer 以 capability / 权限原因拒绝（例如 origin actor 失去 `ck.realm.moderation_policy` capability，或 `failed_precondition` 源于授权 / 前置条件不成立而非传输故障）：此时窗口到期 SHOULD 升级为 `require_review`，或保持隐藏并向 Realm 审核方告警，**不得**静默解除本地隐藏。理由是该类失败表明决策的授权基础本身存疑，静默解除会让一条可能合规的审核意图被悄悄丢弃。实现 MUST 能区分这两类原因（传输 / 可用性 vs reducer 授权拒绝），并据此选择解除或升级 / 保持隐藏。
 - Receiver 节点收到 fast-path quarantine signaling（Policy Server 签名）但无对应 sealed Control Move 时，MAY 临时隐藏目标作为风险缓解，但 MUST 在 UI 中标记 `moderation_control_pending` 并在 sealed decision 抵达后切换显示。
 

@@ -40,7 +40,7 @@ Pin note 若存在 MUST 加密，除非 Realm policy 明确允许该 note plaint
 
 `ck.pin.add` 添加或更新一个 `(pin_scope, target_ref)` pin entry，携带 rank 和可选 note。`ck.pin.remove` tombstone 同一 entry。`ck.pin.reorder` 只更新 rank；不得改变 target 或 pin scope。
 
-重排必须保持稳定：相同 rank 冲突时，projection 使用 event causal order 和 event id 作 deterministic tie-breaker，但 writer SHOULD 使用 rank rebalance 避免长期冲突。
+重排必须保持稳定：相同 rank 冲突时，projection 使用 event causal order 作主裁——严格因果后继 supersede 前驱；对互不可达（并发）候选，MUST 使用与 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) / [`relation.md` §6](./relation.md) 一致的 `event_digest` bytewise **最大值** 作 deterministic tie-breaker（`event_digest` 是签名覆盖的 canonical Event digest，不得由 `event_id`、HLC、actor id 或接收顺序替代）。writer SHOULD 使用 rank rebalance 避免长期冲突。
 
 ## 5. Interactions
 

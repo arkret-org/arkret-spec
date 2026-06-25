@@ -53,7 +53,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
 
 **gateway profile**（`role=gateway`;完整定义与子 profile 见 [`conformance-profiles.md`](./conformance-profiles.md) §11）:
 
-- `ck.profile.push_gateway.v1`（`depends_on` `ck.profile.push_gateway.blind_wakeup.v1`;`visible_notification` / `matrix_passthrough` 为 opt-in）
+- `ck.profile.push_gateway.v1`（`depends_on` `ck.profile.push_gateway.blind_wakeup.v1`;`visible_notification` / `matrix_passthrough` 为 opt-in）。注意 `ck.profile.push_gateway.matrix_passthrough.v1` 的 `role` 机器真源（[`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json)）为 **`interop`**（非 `gateway`），它在此处仅作为 push_gateway 的 opt-in 互通扩展列出；其 role 以 json `role` 字段为准，与 [`conformance-profiles.md`](./conformance-profiles.md) §11 表一致。
 - `ck.profile.blob_node.v1`
 
 **hardening profile**（overlay,`role=admin`,非独立实现角色；权威全集以 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) 的 `hardening_profiles` 为准）:
@@ -148,7 +148,9 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
 | Moderation | report / queue item schema、E2EE evidence package、franking、operator ACL | appeal / audit trail |
 | Agent Runtime | capability grant 解释、knowledge source 声明、owner presence policy、join policy、capability revoke | approval UX、tool call audit |
 
-**向量覆盖现状（normative，gate 语义澄清）**：上表"MUST 覆盖"表达的是**认证测试范围承诺**，不等于每行当前都有已注册的可执行向量。覆盖实况以 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 为准；MIMI Provider Facade 的 draft pinning、room binding、KeyPackage claim、content roundtrip、identifier privacy、consent isolation、proxy download、unsupported draft fail-closed 已由 `mimi-interop-fixture.json` 中的 active vectors 与 `cotest::conformance::mimi_interop` runner 承载；Moderation evidence package 已由 `ck.vector.moderation.evidence_package_minimal_disclosure.v1`、`ck.vector.moderation.franking_roundtrip.v1` 与 `ck.vector.moderation.appeal_atomicity.v1` 承载；Snapshot inclusion challenge 已由 `ck.vector.snapshot.inclusion_challenge.v1` 与 `sync-fixture.json` 中的机器断言承载。service-http-binding / api-conventions 行为语义当前仍以 OpenAPI 形状测试和 prose 约束为主，尚不单独构成 §6.1 `v1-conformance-certified` 的 vector gate。Policy Server（`ck.vector.policy_server.decision_replay_rejected.v1`、`ck.vector.policy_server.request_digest_recompute.v1`）、key backup（`ck.vector.key_backup.unlock_proof.v1`、`ck.vector.key_backup.kdf_floor_rejected.v1`）与 federation（`ck.vector.federation.idempotency_after_key_revoke.v1`、`ck.vector.federation.timing_bucket.v1`）已脱离零覆盖清单。实现 MUST NOT 仅凭通过现有向量集合就宣称尚未被 registry active vectors 覆盖的行"已认证覆盖"；新增 gate 是否生效 MUST 以 vector-registry 的 active 状态、fixture 证据与 runner 断言为准（见 §6.1）。
+**向量覆盖现状（normative，gate 语义澄清）**：上表"MUST 覆盖"表达的是**认证测试范围承诺**，不等于每行当前都有已注册的可执行向量。每行**当前是否已有 active 可执行向量**的实况以 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 的 active 状态、对应 `fixtures/*.json` 证据与 runner 断言为唯一查询真源；本文不再镜像逐条 vector id 清单（镜像会随 registry 演进漂移）。service-http-binding / api-conventions 行为语义当前仍以 OpenAPI 形状测试和 prose 约束为主，尚不单独构成 §6.1 `v1-conformance-certified` 的 vector gate。
+
+不变量（normative）：实现 **MUST NOT 仅凭通过现有向量集合就宣称尚未被 registry active vectors 覆盖的行"已认证覆盖"**；某行的 gate 是否生效 MUST 以 vector-registry 的 active 状态、fixture 证据与 runner 断言为准（见 §6.1），不得以本表"MUST 覆盖"承诺或任何 prose 列举替代该查询。
 
 ## 6. 执行与发布要求
 

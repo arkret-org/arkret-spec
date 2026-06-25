@@ -130,6 +130,15 @@ Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
 - 此规则关闭"窄 `ck.capability.grant` 持有者凭空签出更宽 grant"的权限提升面，与 §10.1 委派收窄对称；它**不**妨碍合法的 admin 角色分配——持有 `ck.realm.admin` 等 admin capability 的 issuer 本身即持有相应 action 上界，因此可正常把这些 action 授予他人。
 - v1 不定义"可凭空授予自身不持有能力"的 sovereign 豁免。若某部署确需此类豁免边界（如 founding admin bootstrap），MUST 由 Realm policy 显式声明该豁免及其权限来源，且 MUST NOT 默认开启；未显式声明时 reducer 按上述上界校验 fail closed。
 
+**确定性 basis 与 freshness 解耦（normative）**：首发 grant 的 issuer 上界校验 MUST 有确定性求值 basis，不得退化为对 §18.2 freshness 的循环依赖（"上界够新才算够新"）。具体：
+
+- issuer 自身有效持有的 effective capability（上界 ancestor 能力）**MUST** 在该 `ck.capability.grant` Control Move 的 **`seal_basis` joined view**（[`event-auth-state-resolution.md` §6.3.1](./event-auth-state-resolution.md) 的 deterministic joined control view）下解析。该 joined view 是确定性的：给定 `seal_basis`，ancestor 能力的撤销 / 存活状态有唯一解，与 freshness 置信判定**正交**——basis 本身固定了"按此 view 看 ancestor 是否仍授权"，而 freshness 只回答"此 basis 是否够新以排除尚未观察到的 revoke"。
+- 若 issuer 的上界 ancestor 能力在该 `seal_basis` joined view 下**被撤销 / superseded / expired / tombstoned**（即 joined view 下 ancestor 已不授权），首发 grant **MUST** `failed_precondition`（`reason="grant_exceeds_issuer_authority"`），不论 freshness 状态如何——这是 basis 内确定性结果，不是 freshness 问题。
+- 若 issuer 的上界 ancestor 能力在该 joined view 下存活，但该 basis 的 **freshness 为 `unknown`**（[§18.2](#182-撤销新鲜度-revocation-freshness)）：`ck.capability.grant` 属高风险授权动作，**按 §18.2 风险表对高风险动作 `unknown` 即 fail closed** 处理，首发 grant **MUST** `failed_precondition`（`reason="grant_exceeds_issuer_authority"`，附 `freshness_state`），不得在 freshness 不可确认时仍签出依赖该 ancestor 的首发 grant。`stale` 状态按 §18.2 高风险行同样 fail closed。
+- joined view 出现 `⊥`（multi-head / fork quarantine，见 [`event-auth-state-resolution.md` §6.3.1](./event-auth-state-resolution.md)）时该上界分支 MUST fail closed，MUST NOT 任取一个 head 作为上界来源。
+
+该规则使首发 grant 的上界校验有"先按 seal_basis joined view 确定性解析 ancestor 授权，再按 §18.2 对 basis 新鲜度做高风险 fail-closed"的两步确定性算法，消除 §18.2 freshness 与上界校验之间的循环依赖。
+
 ## 4. Resource Selector
 
 Cokret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.schema.json`](../../artifacts/schemas/resource-selector.schema.json) 与 [`policy-server.md` §7.0](./policy-server.md) 为准）：
@@ -161,6 +170,8 @@ Cokret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 
 机器可读的 canonical 动作集（含 `risk_tier`、`required_constraints`、`required_evaluator_checks`、`target_event_kinds`、`event_mapping_kind`、`profile`）MUST 来自 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json)；本节的散文枚举只是该 registry 的 human-readable 镜像，新增 / 修改动作 MUST 先改 `contract-catalog.json` 的 `capability_action_registry` 节并跑 `tools/artifact_pipeline.py generate`，再回流到本节。
 
+**散文枚举 ↔ registry 一致性 gate（normative）**：本节 §5.1–§5.6 散文枚举的 action token 集合，及散文中标注的每个 action 的 `target_event_kinds` / `risk_tier` / `event_mapping_kind` / `profile`，**MUST** 与 `capability-action-registry.json` 对应字段**双向等价**——既不得有散文列出而 registry 缺失的 action（反之亦然），也不得有同一 action 在散文标注与 registry 声明之间的 `target_event_kinds` / `risk_tier` 不一致。该等价性 **MUST** 由 artifact lint gate(`tools/lint_artifacts.py` 的 registry 一致性校验，纳入 CI 强制)双向自动校验：任一方向的成员漂移或属性漂移 **MUST** 触发 conformance 失败，MUST NOT 仅靠人工 review 保证。该 gate 既覆盖 §5 整体动作集，也覆盖 §5.0 四类偏离与 §5.0.1 聚合 admin 覆盖集的 RFC 约束（散文新增 target_event_kinds 成员必须同步 registry 且经 RFC）。
+
 裸名动作（例如 `realm.upgrade` 或 `realm.link.manage`）MUST NOT 被接受。`ck.realm.admin` 覆盖普通 Realm 管理动作，但 MUST NOT 自动覆盖 E2EE key export、legal hold bypass 或审计降级——后者 MUST 在 grant `actions[]` 中显式列出对应 high-risk 动作。
 
 ### 5.0 Action ↔ Event kind 偏离类别（normative reference）
@@ -181,6 +192,15 @@ Cokret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 **聚合 admin 的覆盖语义仅作用于 event-kind 解析层，不改变授权层 `actions[]` 的逐字命中规则。** 例如 `ck.policy.manage` 在 §5.4 与具体的 `ck.policy.set` / `ck.policy.rule` / `ck.policy.action` 并列：持有 `ck.policy.manage` 的 grant 表示该 admin action 在 registry 中聚合覆盖 `ck.policy.*` 与 `ck.realm.policy_*` 系列对应的 **event kinds**（audit / reducer 据 `target_event_kinds` 解析），但它**不在授权层自动等价于持有 `ck.policy.set` / `ck.policy.rule` / `ck.policy.action` 这三个具体 action token**。授权判定仍 MUST 按 §5「`actions[]` MUST 逐字命中、MUST NOT wildcard / segment 通配」执行：要授予某具体 policy 子动作，grant 的 `actions[]` MUST 显式列出 `ck.policy.manage`（若 receiver 已声明并接受该 action 对相应 event kinds 的聚合覆盖）或对应的具体 action token，二者不可互相推断。
 
 新增动作 MUST 默认与 event kind 同名；只有上述四类之一的明确理由可以偏离，且必须在 `contract-catalog.json` 内显式声明 `target_event_kinds` 与 `event_mapping_kind`。**新增偏离类别 MUST 在 RFC 中讨论后才能加表项；MUST NOT 通过 lint 例外或注释方式悄悄引入新桥**。
+
+#### 5.0.1 聚合 admin 覆盖集防权限蠕变（normative）
+
+聚合 admin 动作（`ck.realm.admin`、`ck.policy.manage` 等，见上表第一类）的 `target_event_kinds` 是一个随 registry 演进可能增长的集合。若允许它随 registry 静默膨胀，则一个早先签发、覆盖范围较窄的历史 grant 会因后续向某聚合 action 的 `target_event_kinds` 新增成员而**自动扩大**其实际授权面（权限蠕变 / authority creep）。为关闭该面，v1 固定：
+
+- 向任一聚合 admin action 的 `target_event_kinds` **新增成员 MUST 经 RFC**（与 §5.0 末段的偏离类别变更同级流程），MUST NOT 通过 lint 例外、注释或非 RFC 的 registry 直接编辑引入。
+- 既有 grant 对该新增成员的覆盖 **MUST NOT 对历史 grant 自动生效**。`target_event_kinds` 扩张后，一个在扩张前签发的 grant 持有该聚合 action 时，其对**新增** event kind 的授权 MUST 由部署**显式 opt-in**（部署 policy 声明接受该聚合 action 的新版本覆盖集）或对受影响 grant **重签**（issuer 在扩张后的 registry basis 下重新签发 grant）后才生效。
+- 实现 MUST 能区分"grant 签发时点聚合 action 覆盖的 event kind 集"与"当前 registry 覆盖集"，并在历史 grant 未 opt-in / 未重签时，对**仅由扩张才纳入**的 event kind **fail closed**（按未授权处理），而不是按当前 registry 集自动放行。该 basis 与 §3.2 首发 grant issuer 上界校验、§18.1 `auth_state_digest` 绑定的 registry 版本协同：grant 的有效覆盖集锚定到其签发 basis，registry 扩张不回溯放宽历史授权。
+- 收窄（从 `target_event_kinds` 移除成员）不受 opt-in 约束——移除只会收紧历史 grant 的覆盖，不构成权限放大。
 
 ### 5.1 通用动作
 
@@ -285,7 +305,7 @@ Morph 权限粒度与 Strand 平行(`ck.morph.read` / `ck.morph.create` / `ck.mo
 - `ck.self.agent.sidecar_thread.command.ensure`(aggregate admin action,`target_event_kinds=[ck.circle.create, ck.circle.member.state, ck.strand.create, ck.relation.create]`,profile=`ck.profile.agent_sidecar_thread.v1`。该 action MAY 作为 self-scoped default capability 授予 Realm active member，仅允许创建 / 复用自己的 sidecar profile constrained Circle / Strand / Relation；不授予普通 `ck.circle.create`。Controller-private projection 写入(`ck.agent.sidecar_projection.v1`)不属于此 grant 集合)
 - `ck.agent.sidecar_thread.write`(profile action;`target_event_kinds=[ck.message.create]`,resource 必须限定 sidecar private Strand)
 - `ck.agent.sidecar_thread.publish`(profile action;target event kinds 由最终发布目标决定，至少包括 `ck.message.create`，受 reply-as-agent / act-on-behalf attribution 规则约束)
-- `ck.self.agent.participation.resource.replace`(controller-only aggregate admin;profile=`ck.profile.agent_participation_policy.v1`，`target_event_kinds=[ck.capability.grant, ck.capability.revoke]`。controller 设置某 agent 在某 scope 的参与选择 `{reply, accept_third_party_mention, act_on_behalf}`；服务端校验 `selection ⊆ effective_ceiling`（deployment ⊇ Realm ⊇ Circle ⊇ Strand 的单调收紧 fold），超出对应位返回 `failed_precondition`（`reason="agent_participation_exceeds_ceiling"`）。`reply` / `act_on_behalf` effective 为真时物化为既有 `ck.capability.grant`（`ck.message.create` 等），为假时 `ck.capability.revoke`；`accept_third_party_mention` 不物化为 grant，而是 driver of [`../models/strand-and-message.md` §9.4](../models/strand-and-message.md) 的第三方 mention 投递 gate。controller-owned `ck.agent.participation.v1` account-data 写入不纳入此 grant 集合（由 controller 对自身 account-data 的固有写权批准）。Realm-level ceiling 由持有 `ck.realm.admin` 的 principal 通过 `ck.realm.policy_components` 的 `agent_participation` 组件写入；Circle / Strand ceiling 分别由 `ck.circle.manage` / `ck.strand.admin` 写入对应 object 的 `agent_participation` 字段，reducer 强制 tighten-only。Realm / Circle / Strand ceiling 分别见 [`../models/realm-and-space.md`](../models/realm-and-space.md)、[`../models/circle.md`](../models/circle.md)、[`../models/strand-and-message.md` §9.4.5](../models/strand-and-message.md))
+- `ck.self.agent.participation.resource.replace`(controller-only aggregate admin;profile=`ck.profile.agent_participation_policy.v1`，`target_event_kinds=[ck.capability.grant, ck.capability.revoke]`。controller 设置某 agent 在某 scope 的参与选择 `{reply, accept_third_party_mention, act_on_behalf}`；服务端校验 `selection ⊆ effective_ceiling`（deployment ⊇ Realm ⊇ Circle ⊇ Strand 的单调收紧 fold），超出对应位返回 `failed_precondition`（`reason="agent_participation_exceeds_ceiling"`）。**fold 各层不可读时 fail-closed（normative）**：effective_ceiling 的四层 fold（deployment / Realm / Circle / Strand ceiling）中**任一层** cell 在求值 basis 下处于 `⊥`（多 head / fork quarantine）或不可解析（缺失、frontier 不可达、freshness `unknown`）时，该层 **MUST** 按**最严格**值参与 fold——即对该层取空 selection / 全 deny（该层对每个参与位贡献"不允许"），而**不得**按"该层无声明 = 不收紧"放宽到上层 ceiling。由于 fold 是单调收紧（AND 各层），任一层贡献全 deny 即令 effective_ceiling 在对应位收紧为 deny；此时若 `selection` 在该位请求允许，`ck.self.agent.participation.resource.replace` **MUST** 返回 `failed_precondition`（`reason="agent_participation_ceiling_unresolved"`），MUST NOT 物化对应 `ck.capability.grant`。这保证 fold 的单调收紧不被某层不可读静默破坏（不可读层绝不放宽下层选择）。`reply` / `act_on_behalf` effective 为真时物化为既有 `ck.capability.grant`（`ck.message.create` 等），为假时 `ck.capability.revoke`；`accept_third_party_mention` 不物化为 grant，而是 driver of [`../models/strand-and-message.md` §9.4](../models/strand-and-message.md) 的第三方 mention 投递 gate。controller-owned `ck.agent.participation.v1` account-data 写入不纳入此 grant 集合（由 controller 对自身 account-data 的固有写权批准）。Realm-level ceiling 由持有 `ck.realm.admin` 的 principal 通过 `ck.realm.policy_components` 的 `agent_participation` 组件写入；Circle / Strand ceiling 分别由 `ck.circle.manage` / `ck.strand.admin` 写入对应 object 的 `agent_participation` 字段，reducer 强制 tighten-only。Realm / Circle / Strand ceiling 分别见 [`../models/realm-and-space.md`](../models/realm-and-space.md)、[`../models/circle.md`](../models/circle.md)、[`../models/strand-and-message.md` §9.4.5](../models/strand-and-message.md))
 - `ck.agent.protocol.discover`（profile=`ck.profile.agent_runtime.v1`，risk_tier=low，`non_event_surface`，无 target event：发现 agent runtime 协议端点 / capability，仅服务面发现，不写入 event）
 - `ck.agent.interop_session.start`（profile=`ck.profile.agent_runtime.v1`，high risk；启动 agent interop session，`event_mapping_kind=same_name`，target=`ck.agent.interop_session.start`；required constraint `allowed_endpoints` + `allowed_data_classes`）
 - `ck.agent.interop_session.cancel`（profile=`ck.profile.agent_runtime.v1`，medium；取消 / 终止 session，`event_mapping_kind=operation_verb`，target=`{ck.agent.interop_session.status, ck.agent.interop_session.result}`）
@@ -405,7 +425,7 @@ Cokret v1 支持以下约束字段（按 constraint family 分组，与 `grant-c
 - `allowed_data_classes`
 - `allowed_endpoints`
 
-**delegation_control**
+**delegation_control**（求值规则见 [`constraint-schema.md` §7.3](./constraint-schema.md)：`prohibit_subdelegation=true` ⇒ child `max_delegation_depth` MUST=0；`allow_scope_expansion=true` 在 v1 MUST 被 reducer 拒绝（`schema_violation`，与 §10.1 收窄不变量矛盾）；`delegation_scope` 三值 `narrowing_only`/`same_scope`/`custom` 各自校验规则）
 
 - `max_delegation_depth`
 - `delegation_path`
@@ -778,7 +798,7 @@ Cokret v1 至少区分：
 4. 展开 delegation，并执行 cycle detection。
 5. 判断 resource selector 是否覆盖 target。
 6. 判断 action 是否匹配。
-7. 判断 constraints 是否满足。
+7. 判断 constraints 是否满足。**当多个 grant 同时命中该 `(action, resource)` 时，constraint 求值 MUST 走 [`constraint-schema.md` §15.4](./constraint-schema.md) 的跨 grant 全局合并入口（`evaluate_constraints_across_grants`），任一命中 grant 的 deny / quarantine / require_review 全局生效，MUST NOT 逐 grant 独立求值后取"任一 ALLOWED 即放行"。**
 8. 若 grant 或 constraint 要求 claim，拉取并验证 claim / attestation。
 9. 判断 claim issuer 是否可信。
 10. 判断 claim 是否有效、未过期、未撤销。
@@ -881,7 +901,7 @@ Cokret v1 固定：
 
 - Resource selector 语法由 `resource-selector-grammar.md` 和 `resource-selector.schema.json` 固定。
 - Constraint schema 由 `constraint-schema.md` 固定。
-- 多个 grant 命中时，允许动作取并集，但约束按最严格规则相交。
+- 多个 grant 命中时，允许动作取并集，但约束按最严格规则相交：deny / quarantine / require_review 跨**全部**命中 grant 全局生效（全局 deny 优先），任一命中 grant 的 deny 不得被另一无 deny 命中 grant 绕过；allow 仍按"每个满足的依赖 grant 内 allow 全满足"判定。确定性跨 grant 入口算法见 [`constraint-schema.md` §15.4](./constraint-schema.md)。
 - Moderation policy MUST NOT 凭空授予 capability。
 - Approval proof 与 proposal 状态机由本文件、`event-auth-state-resolution.md` 和 conformance vectors 固定。
 - Claim / attestation envelope 使用 `../models/event-and-patch.md` §3 的 Proof、`../identity/identity-handles.md` 的 claim / VC 规则与 §16 的 presentation 规则。

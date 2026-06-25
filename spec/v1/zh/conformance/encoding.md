@@ -132,7 +132,7 @@ Snapshot reducer output root 与 snapshot event-set commitment 使用同一 Merk
 
 ### 3.4 Multihash 兼容（profile-gated）
 
-声明 `ck.profile.encoding.multihash.v1` 的实现 MAY 在 wire 上接受 multihash 风格的二进制 hash header（multicodec varint + length + digest）作为额外 reading format，但 canonical JSON 上的 wire value 仍 MUST 使用 §3.1 的 `<algo>:<hex>` 字符串形态。引入 multihash profile 的目的是与 IPFS / libp2p / Iroh 生态做内容寻址互通；它不替换 v1 wire 默认。
+声明 `ck.profile.encoding.multihash.v1` 的实现 MAY 在 wire 上接受 multihash 风格的二进制 hash header（multicodec varint + length + digest）作为额外 reading format，但 canonical JSON 上的 wire value 仍 MUST 使用 §3.1 的 `<suite>:<hex>` 字符串形态。引入 multihash profile 的目的是与 IPFS / libp2p / Iroh 生态做内容寻址互通；它不替换 v1 wire 默认。
 
 ## 4. ID
 
@@ -270,7 +270,7 @@ Verifier 顺序固定为：先从 Event 中移除 `proofs` 与 `unsigned`，按 
 | --- | --- | --- | --- | --- |
 | `Ed25519` | `EdDSA`（JWS, crv=Ed25519） | `Ed25519` | **v1 default-MUST**；所有 receiver MUST 支持。Event proof、receipt proof、device cross-signing binding 等核心签名默认使用。 | 不抗量子(Shor 可破)；通过 `ck.profile.signature.pqc.v1` 迁移到后量子 suite。 |
 | `ECDSA-P256-SHA256` | `ES256`（JWS, P-256 + SHA-256） | `ES256` | v1 optional；声明 `ck.profile.signature.ecdsa_p256.v1` 的实现 MUST 支持。用于需要与 WebAuthn / FIDO2 / 既有 PKI 互通的部署。 | 不抗量子(Shor 可破)；选择仅出于生态互通。 |
-| `ML-DSA-65` | `ML-DSA-65`（NIST FIPS 204, Dilithium category 3） | `ML-DSA-65` | v1 profile-gated；声明 `ck.profile.signature.pqc.v1` 的实现 MUST 支持。后量子格基签名，用于长生命周期审计签名与抗量子迁移。 | 抗量子(NIST PQC 标准);wire 形态 `<algo>:<...>` 已为加法准备好，无需重写 wire。 |
+| `ML-DSA-65` | `ML-DSA-65`（NIST FIPS 204, Dilithium category 3） | `ML-DSA-65` | v1 profile-gated；声明 `ck.profile.signature.pqc.v1` 的实现 MUST 支持。后量子格基签名，用于长生命周期审计签名与抗量子迁移。 | 抗量子(NIST PQC 标准);wire 形态 `<suite>:<...>` 已为加法准备好，无需重写 wire。 |
 
 实现 MUST:
 
@@ -409,7 +409,7 @@ Stream cursor body 示例：
 {
   "v": "1",
   "purpose": "stream",
-  "t": "2026-04-26T00:00:00.000Z",
+  "t": "2026-04-26T00:00:00Z",
   "x": 1714080000000,
   "h": "abcdefghijklmnopqrstuv"
 }
@@ -421,7 +421,7 @@ Barrier cursor body 示例：
 {
   "v": "1",
   "purpose": "barrier",
-  "t": "2026-04-26T00:00:00.000Z",
+  "t": "2026-04-26T00:00:00Z",
   "x": 1714080000000,
   "h": "0123456789abcdefghijkl"
 }
@@ -431,7 +431,7 @@ Barrier cursor body 示例：
 |------|------|------|------|
 | `v` | string | 是 | cursor 版本，v1 固定 `"1"` |
 | `purpose` | enum(`stream`,`barrier`) | 是 | 用途鉴别 |
-| `t` | timestamp | 是 | 生成时间戳（RFC 3339 UTC,MUST 以 `Z` 结尾；毫秒部分可选——`...59Z` 与 `...59.000Z` 均合法，本文示例混用两种精度仅为展示） |
+| `t` | timestamp | 是 | 生成时间戳（RFC 3339 UTC,MUST 以 `Z` 结尾）。**canonical 精度固定为秒级、不带小数部分**（形如 `2099-12-30T23:59:59Z`，与 [`encoding-fixture.json`](../../artifacts/fixtures/encoding-fixture.json) 向量 `ck.vector.encoding.cursor_opaque.core.v1` 的 `t` 真源一致）：服务端生成 cursor 时 MUST NOT 写入毫秒小数（`.000Z` 等），以消除同一逻辑时刻产生两种 canonical 编码的二义；接收方对带毫秒小数的 `t` MUST reject `invalid_param`。 |
 | `x` | integer | 是 | 过期时间戳（Unix ms） |
 | `h` | string | 是 | 服务端 opaque handle（≥ 128 bit 熵），见 §8.3.1。stream positions 或 barrier target 均由 `h` 在服务端绑定表中解析，MUST NOT 内联进 cursor body。 |
 
@@ -463,7 +463,7 @@ Barrier cursor body 示例：
 6. 解码后 `purpose` 是 `stream` 或 `barrier`。
 7. 解码后 `x` 在未来（允许 5 分钟时钟偏差）。
 8. cursor 被消费的 binding context MUST 与 `purpose` 一致；binding context 的具体 wire 位置由对应 transport / API binding 定义。若 `purpose=barrier` 的 cursor 出现在 stream context，或 `purpose=stream` 的 cursor 出现在 barrier context，接收方 MUST 返回 `invalid_param`。
-9. **TTL 硬上限**：先校验 `t` 的 well-formedness——`t` MUST 是合法 RFC 3339 UTC 时间戳（§8.2 要求 `Z` 结尾），且 `t` 解析得到的 Unix ms MUST ≤ `x` 解析得到的 Unix ms；`t` 非法（不可解析、非 UTC / 非 `Z` 结尾）或 `t_ms > x` 的 cursor MUST reject `invalid_param`（否则 `x - t_ms` 为负或解析异常，可令损坏 / 恶意 cursor 绕过下方 TTL 硬上限）。此外 `t` MUST NOT 位于未来：`t_ms` MUST ≤ 接收时刻的 Unix ms + 时钟偏差容忍（5 分钟，口径同规则 7）；超出 MUST reject `invalid_param`（否则 issuing 方可把 `t` 写成接近 `x` 的未来时间，令名义 TTL `x - t_ms` 通过下方硬上限校验，而实际剩余有效期 `x - now` 远超上限，绕过 TTL 硬上限）。随后以 `t` 解析为 Unix ms 后，`x - t_ms` MUST 满足以下硬上限：barrier cursor ≤ 3,600,000 ms（1 小时），stream cursor ≤ 604,800,000 ms（7 天）。超出上限的 cursor 视为 issuing 服务的协议错误，接收方 MUST reject `invalid_param`。理由：barrier cursor 仅是 RYW 等待屏障，过期意义随 frontier 追上而失去；stream cursor 在数周活动后已无因果对齐价值。
+9. **TTL 硬上限**：先校验 `t` 的 well-formedness——`t` MUST 是合法 RFC 3339 UTC 时间戳（§8.2 要求 `Z` 结尾且为秒级、不带小数部分），且 `t` 解析得到的 Unix ms MUST ≤ `x` 解析得到的 Unix ms；`t` 非法（不可解析、非 UTC / 非 `Z` 结尾 / 带毫秒小数等非 canonical 精度）或 `t_ms > x` 的 cursor MUST reject `invalid_param`（否则 `x - t_ms` 为负或解析异常，可令损坏 / 恶意 cursor 绕过下方 TTL 硬上限）。此外 `t` MUST NOT 位于未来：`t_ms` MUST ≤ 接收时刻的 Unix ms + 时钟偏差容忍（5 分钟，口径同规则 7）；超出 MUST reject `invalid_param`（否则 issuing 方可把 `t` 写成接近 `x` 的未来时间，令名义 TTL `x - t_ms` 通过下方硬上限校验，而实际剩余有效期 `x - now` 远超上限，绕过 TTL 硬上限）。随后以 `t` 解析为 Unix ms 后，`x - t_ms` MUST 满足以下硬上限：barrier cursor ≤ 3,600,000 ms（1 小时），stream cursor ≤ 604,800,000 ms（7 天）。超出上限的 cursor 视为 issuing 服务的协议错误，接收方 MUST reject `invalid_param`。理由：barrier cursor 仅是 RYW 等待屏障，过期意义随 frontier 追上而失去；stream cursor 在数周活动后已无因果对齐价值。
 
 非法 cursor MUST reject，错误 `invalid_param`；已过期 cursor MUST reject，错误 `cursor_expired`；完整性校验失败（见 §8.3.1）MUST reject，错误 `cursor_integrity_invalid`。
 
@@ -644,3 +644,5 @@ nonce = sender_nonce_prefix || device_nonce_counter_be64
 - **接收方 replay 防护**：接收方 MUST 维护 per-`(key_ref, epoch, device_id, purpose, aead_profile)` 已见 counter 集合或等价无误判结构，重复 counter MUST 触发 `failed_precondition` reason=`aead_nonce_counter_replay`。
 - **AAD binding**：AEAD AAD MUST 绑定 `(key_ref, ciphertext_digest, nonce)` canonical 形态，防止 (key, nonce) 下的 ciphertext 被与另一 AAD 配对解密。
 - **不同 AEAD 用途独立 nonce 域**：`purpose` MUST 写入 exporter context。标准 purpose 取值由消费域文档声明；未声明 purpose 的 AEAD envelope MUST fail closed。
+
+**Registry 真源（normative）**：上式使用的 MLS-Exporter label `cokret-aead-sender-nonce-prefix-v1` 是 wire-breaking 的安全域分隔参数，MUST 登记于 [`exporter-label-registry.json`](../../artifacts/registry/exporter-label-registry.json)（该 registry 是全部 normative MLS-Exporter label 的 canonical source of truth，`defined_in` 回指本节）；实现 MUST 使用与该 registry 行完全一致的 label 字符串与 `context_fields` 形状（`{key_ref, epoch, device_id, purpose, aead_profile}`），MUST NOT 以空 context 派生，未登记 label MUST fail closed。其中 `aead_profile` 标识所选 AEAD 算法 suite，其合法取值 enum MUST 由 HPKE / AEAD 算法 agility registry（[`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json)，§6.1）派生，未登记 suite MUST fail closed。

@@ -363,6 +363,12 @@ Canonical JSON 中，多个 `resources[]` 的默认语义是 OR；同一 grant �
 
 **Constraint 与 `resources[]` 的绑定粒度（normative）**：v1 的 `constraints[]` 作用于该 grant 内**全部**命中资源，对所有命中资源统一求值（allow 约束相交 AND，见 [`constraint-schema.md` §15.2](./constraint-schema.md)）；v1 **不存在** per-resource 局部约束语法——无法表达"对资源 A 施加约束 X、对资源 B 施加约束 Y"。因此当授予者需要对不同资源施加**异构**约束时，**MUST** 拆分为多个 grant（每个 grant 一组同质资源 + 对应约束），**MUST NOT** 把多个资源放进同一 grant 后期望 constraint 按资源分别绑定——后者会让所有约束对所有命中资源统一生效（典型表现为意外放宽：授予者以为"对 A 给字段 X、对 B 给字段 Y"，实际等价于对 A∪B 都给 X∪Y）。实现 / IAM 工具 SHOULD 在 UI 中提示该表达力边界，避免误授过宽。
 
+**deny 侧对偶陷阱（normative，安全后果）**：上述"约束作用于全部命中资源"对 `deny` / `quarantine` / `require_review` 约束**同样成立**，且其错向后果是**意外放宽授权命中面**而非收紧，安全代价更高。一条 `deny` / `quarantine` / `require_review` 约束作用于该 grant 内**全部**命中资源，**无法**只对 `resources[]` 中的某个子集生效。因此：
+
+- 若授予者意图"对资源 A 拒绝（deny）、对资源 B 允许"，**MUST** 把 A、B 拆成**两个独立 grant**（A 的 grant 内放 deny，B 的 grant 内放 allow），**MUST NOT** 把 A、B 放进同一 grant 后期望该 deny 只命中 A。在同一 grant 内放 deny，会让该 deny 连带拒绝本应允许的 B（典型表现为意外收紧 B），或反过来——授予者误以为"该 grant 已对 A 设 deny 兜底"，但实际若 B 不命中该 deny 的 `matches` 谓词，B 仍按 grant 的 allow 放行，A 的 deny 并不能阻止**另一个**命中 B 的 grant 放行 B（跨 grant deny 全局生效见 [`constraint-schema.md` §15.4](./constraint-schema.md)，但**同 grant 内**的 deny 仍只在该 grant 的命中资源集上按 `matches` 求值）。
+- 需要 **per-resource deny** 语义时，授予者 **MUST** 拆 grant：把需要拒绝的资源单独放入一个只含 deny / quarantine / require_review 约束的 grant，把允许的资源放入另一个 allow grant。依赖单 grant 内 deny 做"部分资源拒绝"是 v1 表达力之外的误用。
+- 安全后果：deny 侧拆分不当会同时引入两类风险——(i) 把 deny 写宽（误拒合法资源，可用性受损）；(ii) 把 deny 误当作对某资源的兜底但该 deny 谓词实际不命中目标资源，导致以为已拒绝的资源仍可经同一或另一 grant 放行（授权放大）。实现 / IAM 工具 **MUST** 在 UI 中对"同一 grant 混放 deny 与多资源"给出显式告警，**SHOULD** 引导拆 grant，而不是只在 allow 侧 SHOULD 警告。
+
 ## 6. 匹配算法
 
 给定目标资源和 selector：
@@ -472,6 +478,10 @@ function matches(target, selector):
         if selector.space_id:
             if selector.match_scope == "exact":
                 return selector.space_id == target.id
+            # children / subtree：target.parent_space_id / target.ancestor_space_ids
+            # MUST 在被授权操作的 CBA basis 下确定性解析；parent cell 多 head / ⊥ 时
+            # MUST fail closed（failed_bottom，space_parent_chain_in_bottom_state），
+            # 不得任取一个 head。见本节 match_scope 表后的 normative 段。
             if selector.match_scope == "children":
                 return target.parent_space_id == selector.space_id
             if selector.match_scope == "subtree":
@@ -512,6 +522,12 @@ function matches(target, selector):
 | `children` | 仅对 `space` 有效，匹配直接子 Space；其它 kind 使用该值 MUST `schema_violation`。 |
 | `subtree` | 仅对 `space` 有效，匹配该 Space 自身及所有后代 Space；后代关系必须来自已验证的 Space parent chain。 |
 | `realm_wide` | 仅在 `realm_id` 存在时有效，匹配该 Realm 内该 kind 的全部资源；缺少 `realm_id` MUST `schema_violation`。 |
+
+**`children` / `subtree` 的 ancestor chain 确定性锚定（normative，防 split authz）**：`children` 的 `target.parent_space_id` 与 `subtree` 的 `target.ancestor_space_ids`（Space parent chain）在并发 reparent 下可能出现多 head（同一 Space 的 parent cell 在不同 head 上指向不同 parent），若授权判定任取一个 head 解析 ancestor chain，则不同节点对"该 Space 是否落在 subtree 内"得出分歧（split authz）。为关闭该面：
+
+- `children` / `subtree` match_scope 的 parent / ancestor chain **MUST** 在**被授权操作的 CBA basis**（DataEvent 的 `seal_ref` 指向的控制面 view，或 Control Move 的 `seal_basis` 指向的控制面 view；见 [`event-auth-state-resolution.md`](./event-auth-state-resolution.md)）下**确定性解析**。给定该 basis，目标 Space 的 parent chain 有唯一解，授权判定 MUST 用该唯一解，MUST NOT 用任意本地最新 head 或其他 basis 解析的 chain。
+- 当目标 Space（或其 ancestor chain 上任一 Space）的 parent cell 在该 basis 下处于**多 head / `⊥`**（并发 reparent 未收敛、fork quarantine 等）时，该 `subtree` / `children` 授权分支 **MUST fail closed**：`matches` 对该目标返回不命中（授权按 deny 处理），相关 DataEvent / Control Move MUST `failed_bottom`（`reason="space_parent_chain_in_bottom_state"`），**MUST NOT** 任取一个 head 作为 parent 来判定命中。这与 §6 matches 算法对非法 match_scope 组合的 fail-closed 裁决一致：宁可拒绝也不在歧义 parent chain 下静默放行。
+- `exact` match_scope 不解析 ancestor chain，不受本规则约束；`realm_wide` 按 `realm_id` 命中、亦不依赖 parent chain。
 
 Selector match 之后，节点还必须执行 action、constraint、claim、approval、moderation、policy、`allowed_tracks` action scope、history visibility 和 E2EE key eligibility 检查。
 

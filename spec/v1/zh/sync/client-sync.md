@@ -39,7 +39,7 @@ Accept: application/json
 - `Accept: application/json`：推荐给浏览器和普通客户端的有界长轮询形态。响应体是单个 `SyncOutcome` JSON 对象；当 `after` 存在且没有新 delta 时，服务端 MAY 等待到 `max_wait_ms` / 部署默认窗口后返回空 delta。JSON 响应关闭连接，不发送 `catchup_complete` 行。
 - `Accept: application/x-ndjson`：长连接 frame stream 形态。响应体是 `AccountSubscribeFrame` NDJSON；`catchup=true` 时 baseline / catch-up delta 后发送 `catchup_complete`，然后可继续进入实时推送。
 
-两种编码使用相同的 query 参数、cursor、授权与 delta 语义；客户端 MUST 同时把 `SyncOutcome.cursor` 或 cursor-bearing frame 的 `cursor` 作为下一次 `after=` 起点。该端点聚合跨 Realm delta、to_device、account_data、device_lists、presence；不同于 `GET /_cokret/self/events/subscribe`(按 selector 的事件流订阅)和 `GET /_cokret/self/events?before=...` / `?after=...`(按 selector 的双向历史查询)。三者可以共享 cursor 与授权规则，但 `operation_id`、响应语义与所属 namespace 不同：account 同步在 `ck.account.*`，snapshot 入口在 `ck.snapshot.*`，事件读取在 `ck.events.*`。
+两种编码使用相同的 query 参数、cursor、授权与 delta 语义；客户端 MUST 同时把 `SyncOutcome.cursor` 或 cursor-bearing frame 的 `cursor` 作为下一次 `after=` 起点。该端点聚合跨 Realm delta、to_device、account_data、device_lists、presence；不同于 `GET /_cokret/self/events/subscribe`(按 selector 的事件流订阅)和 `GET /_cokret/self/events?before=...` / `?after=...`(按 selector 的双向历史查询)。三者可以共享 cursor 与授权规则，但 `operation_id`、响应语义与所属 namespace 不同：account 同步在 `ck.self.account.*`，snapshot 入口在 `ck.self.snapshot.*`，事件读取在 `ck.self.events.*`（权威 operation namespace 以 [`../../artifacts/registry/operation-registry.json`](../../artifacts/registry/operation-registry.json) 为准，canonical 均带 `ck.self.*` 信任面前缀；`ck.account.*` / `ck.snapshot.*` / `ck.events.*` 只是 surface-group 口语简称，不是 wire operation_id）。
 
 Account subscribe 的服务边界是当前 authenticated session 绑定的 Principal Server service DID。若同一 principal DID 同时在个人 Principal Server 与组织 Principal Server 上有账号/设备上下文，客户端必须分别维护 session、cursor、to-device queue 和 push registration,并对每个上下文建立独立的 `/_cokret/self/account/subscribe` 长连接。某个 Realm 的 timeline / notification delta 只应出现在该成员 effective `delivery_binding.recipient_service_did` 指向的服务上;DID Document 中的默认 Principal Server 不得把其它 Realm-scoped delivery binding 的 delta 聚合进自己的 `/_cokret/self/account/subscribe` 流。
 
@@ -272,7 +272,7 @@ Account subscribe `delta` frame 包含以下 stream：
 - 字段范围仅限三类 context：`actor_profiles`（window 内出现的 actor）、`realm_metadata`（Realm-level Lattice cell value at window start）、`e2ee_epoch`（window 起点的 MLS epoch hint）。
 - 客户端 SHOULD 在渲染 window 内事件时优先用 `state_at_window_start` 而非"当前查询 basis"。
 - 服务端可以沿 Seal DAG 回溯控制面 basis，并按 DataEvent 因果闭包或观察性 `data_event_set_root` 定位 window 起点，再按各 Lattice 的 deterministic join 取 cell value 派生该状态；不可用时退路径 (b)。HLC 只能作为定位候选历史 view 的非权威索引 hint，MUST NOT 作为 cell value 选择键或状态判断依据。
-- **定位路径分歧时回退（normative）**：上一条的两条定位路径（DataEvent 因果闭包 vs 观察性 `data_event_set_root`）或不同实现，对同一 limited timeline 的 window 起点**可能定位到不同的 cell view**（渲染层 display name / `realm_metadata` / `e2ee_epoch` 错位）。由于本字段是 projection-only、不入协议状态，实现 MUST NOT 把某条路径的结果当作权威 cell value 对外承诺；当实现无法确定两条路径产出同一 window 起点 cell view 时，MUST 回退到路径 (b)（`preview_only=true`），不得输出"都合法但渲染态不同"的 `state_at_window_start`。若实现选择给出确定值，SHOULD 固定为"以该 limited timeline 首事件的 `prev_refs` 因果闭包在最近 Seal basis 下的 deterministic join"作为 canonical 定位规则，使同一输入跨实现产出同一渲染投影。
+- **单一 canonical 定位规则（normative）**：上一条提到 window 起点可由 DataEvent 因果闭包或观察性 `data_event_set_root` 定位，但这两条路径对同一 limited timeline 的 window 起点**可能定位到不同的 cell view**（渲染层 display name / `realm_metadata` / `e2ee_epoch` 错位），"是否分歧"本身没有确定判据。为消除双路径歧义，凡实现选择给出 `state_at_window_start` 确定值，**MUST**（不再是 SHOULD）使用唯一 canonical 定位规则：**以该 limited timeline 首事件的 `prev_refs` 因果闭包在最近 Seal basis 下的 deterministic join 取 cell value**。该规则是确定性算法，对同一输入跨实现产出同一渲染投影，因此不存在"两条路径产出不同 cell view"的合法分歧。由于本字段是 projection-only、不入协议状态，实现仍 MUST NOT 把它当作权威 cell value 对外承诺；当实现无法按上述 canonical 规则计算出确定值（例如缺 Seal basis 或缺首事件因果闭包）时，MUST 回退到路径 (b)（`preview_only=true`），不得输出非 canonical 定位规则得出的 `state_at_window_start`。
 
 **(b) 标记 `preview_only=true`** (回退路径)：
 
@@ -415,7 +415,7 @@ event_id ASC
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `actor_id` | DID | MUST | 等于当前 effective `ck.member.state` cell subject / `payload.actor_id`。高隐私 Realm 中 MAY 是 Realm-scoped pairwise DID；真实 principal 的披露由当前 effective `ck.member.identity.update` events 决定。 |
+| `actor_id` | DID | MUST | 等于当前 effective `ck.member.state` cell subject / `payload.actor_id`。高隐私 Realm 中 MAY 是 Realm-scoped pairwise DID；作为**长期 membership key** 的 pairwise DID MUST 由 `did:webvh` 派生（可持久解析 / 轮换 / 撤销）或在部署 `method_policy` 中显式豁免，MUST NOT 使用被标为 `ephemeral_only` 的 `did:key`（见 [`sovereign-deployment.md` §3.1](./sovereign-deployment.md)）。真实 principal 的披露由当前 effective `ck.member.identity.update` events 决定。 |
 | `membership` | enum | MUST | 当前 effective membership，取 `join` / `invite` / `knock`。leave / ban 不进入 roster。 |
 | `subject_id` | DID | MAY | handle claim 的 `subject` 对应的 holder / principal DID，不是 Realm `actor_id`。当当前响应已经按 Realm disclosure policy 向调用方披露该 member 的 principal / holder DID 时可返回。若 subject 仅在 encrypted MemberIdentity 中披露，服务端 MAY 省略，由客户端解密后再走 `ck.find.directory.query.list_handles_for_subject`。返回 `identity_events`、`handle_claim_digests`、`handle_claims` 或 `handle_claims_limited` 时该字段 MUST 存在。 |
 | `identity_event_ids` | event id array | MAY | 当前 effective `ck.member.identity.update` event ids。客户端 MAY 按这些 id backfill 原始事件；服务端 MAY 把这些原始 Event envelope 内联到 `identity_events[]` 或 `state.events`。 |
@@ -575,7 +575,8 @@ To-device 队列删除由**显式 ack** 驱动，与 stream cursor 解耦；任�
 2. **显式 ack**：客户端把该批次所有消息**持久化处理完成**（密钥材料、verification transcript、secret 已落盘）后，MUST 调用 `ck.self.device_messages.command.ack`（`POST /_cokret/self/device_messages/ack`，body `{ack_token}`）。确认是**累计且单调**的：服务端删除该令牌覆盖位置（含）之前的全部已投递消息；ack 一个早于当前确认位置的令牌是合法 no-op，返回 `{ok: true}` 且 MUST NOT 回退确认位置。该操作天然幂等，不需要 `Idempotency-Key`。
 3. **ack 校验**：服务端 MUST 校验 `ack_token` 绑定与当前 authenticated `(principal_id, device_id)` 匹配；unknown / 过期 / cross-binding 令牌 MUST 返回 `invalid_param`（reason `invalid_ack_token`）且 MUST NOT 删除任何排队消息。
 4. **cursor 只读**：`/_cokret/self/account/subscribe` 的 `after=` 与 `GET /_cokret/self/device_messages` 的 `from=` 只决定读取 / 续传位置。客户端建立新的 subscribe 连接时（无论 `after=` 位置），服务端 MUST 重新投递所有未确认、未过期的 to-device 消息；客户端 MUST 容忍重复投递，并按消息内容的事务标识（`transaction_id` / `request_id` 等）幂等处理。
-5. **过期与丢失信号**：未确认消息仍受 `DeviceMessageEnvelope.expires_at` 与 [`device-lifecycle.md` §7](../crypto-media/device-lifecycle.md) 队列 TTL 约束，过期 MUST 清除。服务端自该设备上次确认位置以来因过期或容量约束丢弃过未确认消息时，SHOULD 在下一个含 `to_device` 的响应中设置 `to_device.lost=true`；客户端收到后 SHOULD 触发密钥恢复路径（key backup / key re-request），MUST NOT 静默假设队列完整。
+5. **过期与丢失信号**：未确认消息仍受 `DeviceMessageEnvelope.expires_at` 与 [`device-lifecycle.md` §7](../crypto-media/device-lifecycle.md) 队列 TTL 约束，过期 MUST 清除。服务端自该设备上次确认位置以来因过期或容量约束丢弃过未确认消息时，SHOULD 在下一个含 `to_device` 的响应中设置 `to_device.lost=true`；客户端收到后 SHOULD 触发密钥恢复路径（key backup / key re-request），MUST NOT 静默假设队列完整。**E2EE client profile 升级（normative）**：对声明 `ck.profile.e2ee_client.v1` 的客户端及其服务对端，由于丢弃的未确认 to-device 消息可能承载不可再生的 MLS Welcome / secret share / key material，上述两个 SHOULD 升为 **MUST**——服务端丢弃过该设备未确认消息时 **MUST** 设置 `to_device.lost=true`；客户端见到 `to_device.lost=true` 时 **MUST** 进入 key re-request / key backup 恢复路径，**MUST NOT** 静默把队列当作完整，以免 E2EE 密钥材料永久丢失而不被检出。
+6. **`ack_token` 独立于 stream cursor 生命周期（normative）**：`dropped` / `resync_required` frame、`cursor_expired` / `cursor_integrity_invalid` / `cursor_unrecognized` 失效、以及任何清空本地 cursor 缓存的恢复动作，均 **MUST NOT** 使既有未确认的 `ack_token` 失效。`ack_token` 绑定的是 `(principal_id, device_id, to-device 队列高水位)`，与 stream cursor（`after=` / `from=`）的 wire 形态、TTL、purpose 和 revocation 体系完全独立（见 §10.1 第 1 条与 §12）。客户端在 cursor 失效 / dropped / resync 后重建订阅时，仍 MAY 用先前持有的有效 `ack_token` 确认已持久化处理的批次；服务端 MUST 仍按 §10.1 第 3 条校验该 token 的 `(principal_id, device_id)` 绑定并执行累计删除，不得仅因 stream cursor 已被重置就把该 token 当作 unknown / cross-binding 拒绝。该口径与 §12.2.1（cursor revoke 不影响已签发 `ack_token`）一致。
 
 > Rationale: cursor 前进表达的是「客户端收到了 frame」，安全删除需要的是「客户端已把载荷持久化」。把删除绑在 cursor 推进上（Matrix `/sync` 的隐式 ack 模型）会留下崩溃窗口：客户端收到 frame、cursor 已推进、但 MLS Welcome / secret share 尚未落盘即崩溃 → 消息被服务端删除、密钥材料永久丢失。显式 ack 把两个语义拆开后，cursor 不再是 to-device 不可逆删除的闸门；§12 的 cursor 完整性校验仍然原样保留——它防护的是伪造 / 跨绑定位点导致的静默缺口（含 `device_lists` 缺口的 E2EE 后果）、barrier 存在性预言机与 catch-up 成本放大，而非 to-device 删除。
 
@@ -642,7 +643,9 @@ Filter MUST 是服务端可验证 JSON，不得包含任意脚本。服务器 MA
 
 服务端 SHOULD 将 handle → binding 映射持久化（或以其它方式保证其跨进程重启存活），使服务重启不会把所有未过期 cursor 同时变成未知 handle、迫使全部客户端按 §12.3 重做 initial sync。仅内存实现不违反完整性契约（未知 handle 仍按 `cursor_integrity_invalid` 失败 closed），但其重启代价随活跃客户端数线性放大；持久化实现 SHOULD 同时对未过期 handle 做超出 TTL 的及时清理（例如客户端出示更新 cursor 即可证明严格更旧的同流 handle 已被取代），避免 handle 表无界增长。
 
-对生产级部署，上述耐久性从 SHOULD 升级为 MUST：声明 `ck.profile.small_team.v1`、`ck.profile.organization.v1`、`ck.profile.high_security_organization.v1`、`ck.profile.sovereign_deployment.v1`、`ck.profile.sovereign_enclave.v1` 或 `ck.profile.isolated_sovereign_network.v1` 任一 deployment profile 的服务，MUST 保证未过期 cursor handle 绑定跨进程重启可解析，且 MUST 实现 TTL GC 与被取代 handle 的前进清理；常规重启或计划内升级把全部活跃客户端打回 initial sync 视为不满足该 profile 声明。`ck.profile.personal_node.v1`（个人/开发单机）维持 SHOULD。
+对生产级部署，上述耐久性从 SHOULD 升级为 MUST：声明 `ck.profile.small_team.v1`、`ck.profile.organization.v1`、`ck.profile.high_security_organization.v1`、`ck.profile.sovereign_deployment.v1`、`ck.profile.sovereign_enclave.v1` 或 `ck.profile.isolated_sovereign_network.v1` 任一 deployment profile 的服务，MUST 保证未过期 cursor handle 绑定跨进程重启可解析，且 MUST 实现 TTL GC 与被取代 handle 的前进清理；常规重启或计划内升级把全部活跃客户端打回 initial sync 视为不满足该 profile 声明。
+
+`ck.profile.personal_node.v1`（个人/开发单机）的 personal_node cursor handle 持久化默认维持 SHOULD；**但启用 E2EE 时升级（normative）**：当该 personal_node 服务于启用 E2EE 的账号（承载 `ck.profile.e2ee_client.v1` 客户端或 `encryption_profile=mls_rfc9420` Realm）时，未过期 cursor handle 绑定的跨进程重启持久化 **MUST** 实现；若实现确实无法持久化该绑定，则每次重启后 **MUST** 对受影响客户端强制重发完整 `device_lists` baseline（等同 initial sync 的 device list 全量 baseline）。理由：重启即丢 cursor 会把 E2EE 设备信任刷新静默退化为全量重置，而 `device_lists` 缺口只能靠重做 initial sync 恢复（见 §2.2 第 1 条）；二者必择其一，不得让 E2EE 设备信任在重启后处于既不持久也不强制重建的状态。
 
 ### 12.2 校验流程 (normative)
 
@@ -767,6 +770,8 @@ E2EE Realm 的同步必须把“事件顺序”和“密钥可用性”分开处
 ### 15.1 `decryption_pending` timeout and recovery
 
 客户端首次把某事件标记为 `decryption_pending` 时 MUST 记录 `first_pending_at`、缺失的 `(realm_id, strand_id?, track_name?, group_id, epoch)`、已尝试的恢复 source 和最近一次错误。默认 `decryption_pending_timeout` 为 7 天；Realm policy 或实现 profile MAY 声明更短值，高保障 profile SHOULD 更短，但不得无限期保持无诊断 pending。
+
+**`first_pending_at` 计时基准（normative）**：`first_pending_at` MUST 取该 pending 事件自身的因果时间——`hlc`（首选）或 `created_at`，而 **MUST NOT** 取 per-device 本地墙钟"首次见到该事件"的时刻。这使 `decryption_pending_timeout` 在 **account 维度单调**：同一事件在不同设备、重启或重新 initial sync 后重新进入 pending 时，timeout deadline（`first_pending_at + decryption_pending_timeout`）保持稳定，不会因换设备或重启而把 7 天窗口刷新重置。若实现需要跨设备协调 pending 诊断状态，SHOULD 通过 account-data 同步 `first_pending_at`（取各设备记录中**最早**的因果时间），使 timeout 判定不被任何单设备的较晚墙钟首见时刻推后。
 
 在 timeout 前，客户端 SHOULD 按以下顺序恢复：
 

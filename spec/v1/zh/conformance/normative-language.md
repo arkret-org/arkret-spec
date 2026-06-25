@@ -49,6 +49,12 @@ see_also:
 - 在 normative 章节内，字段表、schema 表、error code 表、operation 表和状态机表默认具有规范力；只有明确标为 quick reference、导航、示例、对照或 informative 的表格才是说明性内容。
 - 容器型表格（速查 / 决策树 / 字段速览）默认 informative；规范字段表（含 MUST / 必填）建议显式标 normative，但缺少显式标记不降低上一条所述规范力。
 
+**已登记的容器表 normative 例外（双向闭合）**：下列容器型表格虽形如速查 / 索引，但其 caption 显式声明为 normative 权威位置，因而**不**适用上一条"容器表默认 informative"规则，其行内大写规范关键字具规范约束力：
+
+- [`overview/glossary.md` §2](../overview/glossary.md) Table 1（术语表）：caption 声明"本表行内的大写规范关键字具规范约束力，声明'以本条为单一锚点'的条目即为该约束的 canonical 权威位置"。该 caption 已回指本节，本条与之构成双向登记。
+
+新增此类"形如容器表但承载 canonical normative 约束"的表格时，MUST 在表 caption 显式声明 normative 并回指本节，同时在本清单补登一行。
+
 段落级行内标注 `**<标签>（normative）**`（例如 `**字段命名（normative）**：……`）表示对所在段落（含紧随其后的表格）规范力的**强调**：它提示读者该段承载规范要求，但不改变该段在所属章节中的默认规范力，也不把 informative 上下文升级为 normative。该标注仅在 frontmatter `normative: true` 的文档中有效；frontmatter `normative: false` 的文档不得承载 normative 规则，其中出现的此类标注无规范效力——此类文档只能以摘要 + 指针形式引用 normative 文档中的规则。
 
 ## 5. 关键字使用例
@@ -67,6 +73,7 @@ see_also:
 
 Schema 字段、event kind 与 map / 集合字段使用复数（`tracks`、`refs`、`proofs`、`schema_refs`、`prev_refs`、`owning_organizations`）；单值 scalar 字段使用单数，并显式标明 value category（例如 `track_name`、`actor_id`、`realm_id`、`schema`）。
 
+- **单 / 复数由 cardinality 决定（normative）**：字段的单数 / 复数形态 MUST 由其 wire cardinality 唯一决定——承载单一引用用单数（`schema`、`seal_ref`、`policy_event_ref`），承载多引用用复数 / 数组形态（`schema_refs`、`prev_refs`、`proofs`）。单数与复数形态**不可互改、不可互换**：`schema` 与 `schema_refs` 是 cardinality 不同的两个字段，MUST NOT 被实现当作同义可替换字段读写。权威命名与 cardinality 判定规则以 [`../models/common-fields.md` §2.1](../models/common-fields.md) 为单一真源。
 - 复数 ↔ 单数不互改；现有字段保留既定形态（即使个别历史命名看起来与本规则不完全对齐，也不在 v1 内改名）。
 - 新增 wire 字段 MUST 按 cardinality 选用单 / 复数形式；不得使用 `*_list` / `*_array` / `*_set` 后缀替代复数。
 - 与之配套的 `*_ref` / `*_refs` / `*_id` / `*_ids` 后缀规则见 [`../models/common-fields.md` §2.1](../models/common-fields.md)。

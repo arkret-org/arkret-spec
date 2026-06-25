@@ -36,8 +36,8 @@ Schema id: `ck.schema.morph.v1`
 | `schema_refs` | yes | `array<string>` | 至少 1 项，唯一。 | `fields` 与 transition validation 的权威 schema 集合；`morph_type` / `facets` 不能替代。 |
 | `morph_type` | yes | `string` | 标准值见业务 profile，扩展不得使用未注册 `ck.` 前缀。**create-locked**，禁止后续修改。 | 开放类型 / 业务标签。 |
 | `facets` | no | `map<FacetConfig>` | 未知 facet 必须由 Realm schema / Morph profile 声明。`facets` map 的总 canonical size **计入** Morph 对象的 256 KiB 上限（与 `fields` 同一 budget，见 [`../conformance/scalability-constraints.md` §2](../conformance/scalability-constraints.md)）；不另设独立 facet 条数上限，超出对象总上限 MUST reject（`payload_too_large` / `schema_violation`）。 | Morph 暴露哪些已声明能力 hint。 |
-| `metadata` | conditional | `object` | MAY 携带 `title` / `summary` 及 profile 定义的展示 metadata。与 `encrypted_metadata` 至多一个且不得并存（mutually exclusive, optional）。effective `metadata_encryption_floor` 要求加密对应 metadata 时 MUST 省略（改用 `encrypted_metadata`）。 | 用户可读 Morph metadata；Morph 业务字段仍在顶层 `fields`。MLS / E2EE 下按 `metadata_encryption_floor` 决定是否必须放入 `encrypted_metadata`。 |
-| `encrypted_metadata` | conditional | `EncryptedPayload` | 与 `metadata` 至多一个且不得并存（mutually exclusive, optional）；plaintext 是同一个 Morph metadata object。effective `metadata_encryption_floor` 要求加密 Morph metadata（E2EE profile）时 MUST 提供本字段；不要求时二者皆可省（Morph 无用户可读 metadata 时允许都不写）。 | E2EE 场景下包裹 Morph metadata。 |
+| `metadata` | no | `object` | MAY 携带 `title` / `summary` 及 profile 定义的展示 metadata。与 `encrypted_metadata` 至多一个且不得并存（mutually exclusive, optional）。effective `metadata_encryption_floor` 要求加密对应 metadata 时 MUST 省略（改用 `encrypted_metadata`）。 | 用户可读 Morph metadata；Morph 业务字段仍在顶层 `fields`。MLS / E2EE 下按 `metadata_encryption_floor` 决定是否必须放入 `encrypted_metadata`。 |
+| `encrypted_metadata` | no | `EncryptedPayload` | 与 `metadata` 至多一个且不得并存（mutually exclusive, optional）；plaintext 是同一个 Morph metadata object。effective `metadata_encryption_floor` 要求加密 Morph metadata（E2EE profile）时 MUST 提供本字段；不要求时二者皆可省（Morph 无用户可读 metadata 时允许都不写）。 | E2EE 场景下包裹 Morph metadata。 |
 | `content` | no | `object` | 富文本/parts 见 [`content-types.md`](./content-types.md)。 | 正文内容。 |
 | `encrypted_content` | no | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Morph 正文内容。 |
 | `fields` | no | `object` | 字段 schema 由 `schema_refs` 决定。 | 自身属性。 |
@@ -62,8 +62,8 @@ Schema id: `ck.schema.morph.v1`
 | `ck.morph.create` | yes | full object | `ck.morph.create` | 创建 Morph；`morph_type` create-locked，`stage` 必填，`schema_refs[]` ≥1。reducer 固化 `effective_scope`（见 §6.1 / [circle.md §6](./circle.md)）。 |
 | `ck.morph.update` | yes | `ck.patch.v1` | `ck.morph.update` | 改 `fields` / `metadata` / `facets` / `content` / `schema_refs[]`（schema_refs 变更收窄为 additive-only fast path，见 §4.1）。patch path `morph_type` / `stage` / `stage_changed_at` MUST `schema_violation`。 |
 | `ck.morph.stage.set` | yes | stage transition payload | `ck.morph.stage.set` | 唯一改 `stage` 的路径；`stage_changed_at` reducer-derived。转换合法性见 [common-fields.md §5.3](./common-fields.md)。 |
-| `ck.morph.archive` | yes | object_lifecycle_payload | `ck.object.archive` | `active → archived`（可逆中间态，非终态）；源状态非 `active` 时 `morph_not_active`。 |
-| `ck.morph.restore` | yes | object_lifecycle_payload | `ck.object.restore` | `archived → active`；源状态非 `archived` 时 `morph_not_archived`。 |
+| `ck.morph.archive` | yes | object_lifecycle_payload | `ck.morph.archive` | `active → archived`（可逆中间态，非终态）；源状态非 `active` 时 `morph_not_active`。 |
+| `ck.morph.restore` | yes | object_lifecycle_payload | `ck.morph.restore` | `archived → active`；源状态非 `archived` 时 `morph_not_archived`。 |
 | `ck.morph.schema_migrate` | yes | `morph_schema_migrate_payload` | `ck.morph.schema_migrate` | schema_refs[] 演进的一等事件，承载 `compatibility_class ∈ {additive, breaking, transformation}`；breaking / transformation 需 opt-in profile。详见 §4.1。 |
 | `ck.redaction`（指向 Morph） | yes | redaction_payload | `ck.redaction` | 进入唯一不可逆终态 `redacted`；源状态 MUST ∈ `{active, archived}`，否则 `morph_already_terminal`。 |
 

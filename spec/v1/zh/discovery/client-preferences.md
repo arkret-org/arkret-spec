@@ -39,6 +39,16 @@ updated: 2026-06-10
 }
 ```
 
+### 2.3 服务端 policy projection 能力协商（normative）
+
+account data 默认是 holder-private 加密数据，Sync Service 只存不透明密文（§2.1）。但部分 policy 投影（如 `ck.presence.visibility` 的 `presence_visibility` enum、`ck.account.blocklist` 的最小 data_class）需要服务端在执行 presence / typing fanout gate（[`profiles-presence.md` §3.4`](./profiles-presence.md)）或代表用户做 blocklist 过滤（§3.5）时读取。"account data 加密"与"服务端执行 policy"之间存在张力：若服务端完全无法读取最小 policy projection，它无法在服务端可靠 gate；若它能读，则突破了 holder-private 边界。v1 通过**显式能力协商**消解，而非让实现各自假定：
+
+- 服务端 MUST 在 `ck.server.query.describe`（`ServiceDescribe`）中声明它能否读取最小 policy projection，至少覆盖 `presence_visibility` 与 `blocklist` 两个 data_class（例如通过 `plaintext_visible_services.data_classes` 或等价 `policy_projection_readable[]` 声明）。未声明即视为**不能读取**（fail-closed 默认）。
+- 客户端据该声明选择执行位置：
+  - 服务端声明可读对应 projection 且 holder 已显式授权 → 客户端 MAY 采用**服务端 gate**（服务端据 projection 执行 presence / typing fanout 与 blocklist 过滤）。
+  - 服务端未声明可读、或 holder 未授权 → 客户端 MUST 采用**客户端本地 gate**，并且服务端 MUST 对跨设备 / 跨接收方 fanout fail closed（与 [`profiles-presence.md` §3.4`](./profiles-presence.md) "无法读取最小 policy projection 时 MUST 对 fanout fail closed" 同口径）。
+- 无论哪种模式，服务端执行 blocklist / presence 过滤 MUST NOT 让发送方、被查询方或 federation peer 区分"被屏蔽"与"无权限 / 不存在 / 离线"（§3.5）。该协商只决定 gate 在哪一侧执行，不改变对外不可区分要求。
+
 ## 3. 标准账户数据类型
 
 为了保证不同客户端间的互操作性，本规范定义了以下标准 Key 命名空间：

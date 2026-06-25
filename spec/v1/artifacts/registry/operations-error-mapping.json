@@ -29,6 +29,12 @@
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
+      "operation_id": "ck.gate.account.command.enroll_device",
+      "http_alias": "POST /_cokret/gate/account/device-enroll",
+      "operation_specific": ["proof_invalid", "duplicate_conflict", "failed_precondition"],
+      "description": "Enrolls a device via the principal's designated enrollment authority. proof_invalid when the enrollment proof / controller binding does not verify against the authority designated in the principal DID document; duplicate_conflict when the device record already exists; failed_precondition when the enrollment-authority designation is absent or stale at the accepted-at frontier. See zh/identity/key-management.md §5.0.6 and zh/identity/identity-did.md §3.2."
+    },
+    {
       "operation_id": "ck.gate.account.command.issue_session_grant",
       "http_alias": "POST /_cokret/gate/account/session-grants",
       "operation_specific": [
@@ -1160,6 +1166,12 @@
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
+      "operation_id": "ck.self.circle.command.restore",
+      "http_alias": "POST /_cokret/self/circles/{circle_id}/restore",
+      "operation_specific": ["failed_precondition"],
+      "description": "Restores an archived Circle. failed_precondition (carrying a reason in the *_not_archived family) when the target Circle is not in an archived state, or is in a terminal (tombstoned/deleted) state from which restore is illegal. See zh/models/circle.md §9."
+    },
+    {
       "operation_id": "ck.self.circle.command.tombstone",
       "http_alias": "POST /_cokret/self/circles/{circle_id}/tombstone",
       "operation_specific": [],
@@ -1206,6 +1218,30 @@
       "http_alias": "DELETE /_cokret/self/realms/{realm_id}/policy-server",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.realm.command.archive",
+      "http_alias": "POST /_cokret/self/realms/{realm_id}/archive",
+      "operation_specific": ["failed_precondition"],
+      "description": "Archives a Realm. failed_precondition (carrying a reason in the realm-state family) when the Realm is already archived or in a terminal (frozen/tombstoned) state from which archive is not a legal transition. See zh/models/realm-and-space.md §2."
+    },
+    {
+      "operation_id": "ck.self.realm.command.freeze",
+      "http_alias": "POST /_cokret/self/realms/{realm_id}/freeze",
+      "operation_specific": ["failed_precondition"],
+      "description": "Freezes a Realm (suspends writes while preserving state). failed_precondition when the Realm is already frozen or in a terminal (tombstoned) state. See zh/models/realm-and-space.md §2."
+    },
+    {
+      "operation_id": "ck.self.realm.command.tombstone",
+      "http_alias": "POST /_cokret/self/realms/{realm_id}/tombstone",
+      "operation_specific": ["failed_precondition"],
+      "description": "Tombstones a Realm (irreversible terminal state). failed_precondition when the Realm is already in a terminal state, or when an open legal hold / erasure obligation blocks the transition. See zh/models/realm-and-space.md §2 and zh/identity/account-lifecycle.md §8."
+    },
+    {
+      "operation_id": "ck.self.realm.command.destroy",
+      "http_alias": "POST /_cokret/self/realms/{realm_id}/destroy",
+      "operation_specific": ["failed_precondition"],
+      "description": "Destroys a Realm's residual storage after tombstone (irreversible). failed_precondition when the Realm has not first reached the tombstoned precursor state, or when a legal hold blocks erasure. See zh/models/realm-and-space.md §2 and zh/identity/account-lifecycle.md §8."
     },
     {
       "operation_id": "ck.self.realm.resource.get",

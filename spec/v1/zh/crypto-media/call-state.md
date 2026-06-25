@@ -219,11 +219,17 @@ sidebar:
 - **审计锁定**：`retention.audit_lock=true` 时该 artifact 处于 legal / audit hold，**任何**删除（含 retention 到期、manual）MUST 被拒绝 `legal_hold_active`，直到 audit 级 action 解除锁定；audit_lock 优先于 `retention_expires_at` 与 capability。
 - **删除审计**：每次删除尝试 MUST 至少在服务审计日志中记录 `trigger`、`outcome`、`requested_by?`、`trigger_event_id?`、`requested_at`、`completed_at?`、`erasure_receipt_ref?`、`legal_hold_ref?` 与 `failure_reason_code?`，其 wire 形态见 `call-recording-artifact.schema.json#/$defs/call_recording_deletion_audit`。删除完成时 MUST 产出或引用 `ck.schema.erasure_receipt.v1`（可作为 `ck.audit.erasure_receipt` durable event），并把 `erasure_receipt_ref` 绑定到 deletion audit；因 legal hold 阻塞时 MUST 记录 `outcome="blocked_by_legal_hold"` 与 `legal_hold_ref`，不得伪造成已删除。
 - **客户端二次确认**:录制 / 转写从未捕获进入捕获态（`recording_state="recording"` / `transcript_state="transcribing"`）前 MUST 取得用户的第二次显式同意，并将事实记入 `retention.consent_confirmed=true`。reducer 见到捕获态而对应 `retention.consent_confirmed` 不为 true 时 MUST `failed_precondition` `reason_code="recording_consent_required"`。
+- **`consent_confirmed` 的保证类别（normative，诚实标注）**：`consent_confirmed=true` 是**流程性约束**，**不是**密码学同意证明——它由发起方客户端单方面置真，协议层无法强制其真实性（与 audited-e2ee `disclosed_policy` 同类：声明 / 留痕但不提供硬强制）。实现、UI、采购或合规文案 MUST NOT 把 `consent_confirmed=true` 表述为"已获得（被录制方的）密码学同意"或等价措辞，避免 false-positive 合规声明；该字段只表示"发起方声明已在本端取得用户二次确认"。
+- **可选 per-participant consent acknowledgment（更强合规 profile，normative）**：需要可验证同意的部署 MAY 启用更强 profile，要求每个被录制方**设备签名**一条 consent acknowledgment——其 signing input MUST 覆盖 `(call_id, recording_artifact_ref 或 capture epoch, consenting_actor_id, consenting_device_id, consented_at)`，签名身份按 [`device-lifecycle.md` §8.2/§8.3](../crypto-media/device-lifecycle.md) 的设备验签公钥目录解析并 fail-closed 验证。启用该 profile 时，reducer MUST 对缺少所需被录制方 acknowledgment 的捕获态 `failed_precondition` `reason_code="recording_consent_required"`；该签名集合是 `disclosed_policy` 之上的 `attested`-类强保证，可作为可审计同意证据。未启用该 profile 的部署仍只具备上一条的流程性保证，不得声称等价。
 - retention 字段是 `recording_result` / `transcript_result` 的子对象，与 §4.2 录制态机正交；它只约束 artifact 生命周期，不改变通话 `state`。
 
 ## 6. P2P→SFU 升级（normative）
 
-通话可以 P2P 起步（`mode="p2p"`），但当并发参与者人数 **> 2** 时 MUST 从 P2P 收敛到 SFU。触发与协商规则:
+通话可以 P2P 起步（`mode="p2p"`），但当并发参与者人数 **> 2** 时 MUST 从 P2P 收敛到 SFU。
+
+**并发升级收敛性（normative）**：分布式下各设备对"将达 3 人"的本地观测可能不同步，因而多台设备可能并发发起升级。这**不**产生 split-brain：升级 MUST 复用 §5 的 deterministic, no-vote focus 选举（由 oldest_membership 的 `foci_preferred[0]` 确定性选出 `session_focus`），且 `session_focus` 为 write-once（§6 第 5 条 / §4.1），任意子集设备并发发起的升级最终都被同一 `session_focus` 值吸收——首个被服务端接受的 `session_focus` 写入定锚，其余并发写入按 write-once 收敛到同值或被拒为 `session_focus_already_committed`。因此并发升级收敛到同一 SFU focus，不依赖各设备观测同步，也不引入投票或 leader 选举。
+
+触发与协商规则:
 
 1. **触发条件**:任一参与设备观察到当前 active 参与者(已 accepted answer 的 leg)将达到 3 人时,MUST 发起升级，不得继续以 P2P / full-mesh 承载 3 人以上(`mesh` 仅 SHOULD 用于 3–4 人且不作为默认，见 §2)。
 2. **focus 协商**:升级 MUST 复用 [`media-service-binding.md` §5](./media-service-binding.md) 的 deterministic, no-vote focus 选举——由 oldest_membership 的 `foci_preferred[0]` 选出 `session_focus` 并写入首个携带 `session_focus` 的 `ck.call.state`。升级**不**引入新的投票或 leader 选举路径。

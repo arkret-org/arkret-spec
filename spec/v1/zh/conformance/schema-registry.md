@@ -31,6 +31,8 @@ sidebar:
 
 其中 `error-code-registry.json` 是标准 service error code 与批处理逐项 `reason_code` 的 canonical registry；本文后续 event/schema 表只提供文档视图，不重复维护错误码全集。
 
+各 registry（schema / event kind / typed ID / operation / profile）的**当前 registered 计数及其 CI 门禁**（由 `tools/lint_artifacts.py` 的 `check_release_readiness_counts` 对照 Canonical registry 自动校验）集中登记在 [`overview/release-readiness.md` §2](../overview/release-readiness.md) 的计数表；本文不重复维护计数，引用时以该表与各 Canonical JSON registry 为权威来源。
+
 ### 1.1 schema id ↔ 文件名映射例外（normative）
 
 下游 SDK / IDE 插件不得用 "schema id 去掉前缀 + 换分隔符" 这种机械推导拿文件名；MUST 从 `schema-registry.json` 读取每条 `{schema_id, file}` 对。当前 v1 已知的不能机械推导的对应关系：

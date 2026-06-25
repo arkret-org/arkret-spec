@@ -345,13 +345,13 @@ ck.vector.encoding.event_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"did:web:alice.example","actor_seq":1,"auth_context":{"capability_refs":["ck:grant:0196410c-0000-7000-8000-000000000000"],"did":"did:web:alice.example","key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00Z","effects":[{"cell":"ck:cell:message:019640ed-8000-7000-8000-000000000000","op":{"kind":"append","value":{"strand_id":"ck:strand:01964137-0000-7000-8000-000000000000","message_id":"ck:message:019640ed-8000-7000-8000-000000000000","track_name":"discussion"}}}],"event_id":"ck:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"ck.message.create","payload":{"content":{"body":"hello","kind":"ck.content.text"},"strand_id":"ck:strand:01964137-0000-7000-8000-000000000000","message_id":"ck:message:019640ed-8000-7000-8000-000000000000","track_name":"discussion"},"prev_refs":[],"realm_id":"ck:realm:01964137-0000-7000-8000-000000000000","refs":[],"seal_ref":"ck:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"}
+{"actor_id":"did:web:alice.example","actor_seq":1,"auth_context":{"capability_refs":["ck:grant:0196410c-0000-7000-8000-000000000000"],"did":"did:web:alice.example","key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00Z","effects":[{"cell":"ck:cell:message:019640ed-8000-7000-8000-000000000000","op":{"kind":"append","value":{"message_id":"ck:message:019640ed-8000-7000-8000-000000000000","strand_id":"ck:strand:01964137-0000-7000-8000-000000000000","track_name":"discussion"}}}],"event_id":"ck:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"ck.message.create","payload":{"content":{"body":"hello","kind":"ck.content.text"},"message_id":"ck:message:019640ed-8000-7000-8000-000000000000","strand_id":"ck:strand:01964137-0000-7000-8000-000000000000","track_name":"discussion"},"prev_refs":[],"realm_id":"ck:realm:01964137-0000-7000-8000-000000000000","refs":[],"seal_ref":"ck:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"}
 ```
 
 期望 digest：
 
 ```text
-sha256:2a98c4056c6c7a251b2c410530d796ad5df3858097b0926b4748a98cb0e8eea3
+sha256:40af797d715183121c9edfee11716c108ec5578c319f06699eda699837db60c9
 ```
 
 判定规则：
@@ -416,7 +416,7 @@ sha256:c6dfa574b41c04ca7d909c2d3b6dc40c5312c6e4ba7187b181c2ef99b2ae4529
 ck.vector.encoding.signature_binding_payload.v1
 ```
 
-签名前的 binding object（其中 `event_digest` 仅为占位值，取自 §1.3 `ck.vector.encoding.canonical_json.basic.v1` 的 digest `sha256:43258cff...`，用于固定本向量的 binding canonical 形态；它**不是** §1.6 真实 event digest `sha256:297487d8...`。本向量只断言 binding object 的 canonical bytes 与 digest，不要求该 `event_digest` 与任一具体 event 一致）：
+签名前的 binding object（其中 `event_digest` 仅为占位值，取自 §1.3 `ck.vector.encoding.canonical_json.basic.v1` 的 digest `sha256:43258cff...`，用于固定本向量的 binding canonical 形态；它**不是** §1.6 真实 event digest——后者以本节同名向量 `ck.vector.encoding.event_digest.v1` 的 `expected_digest` 为唯一真源，本处不再硬编码其字面量。本向量只断言 binding object 的 canonical bytes 与 digest，不要求该 `event_digest` 与任一具体 event 一致）：
 
 ```json
 {

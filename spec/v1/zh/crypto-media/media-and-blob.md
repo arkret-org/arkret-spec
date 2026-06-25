@@ -487,6 +487,13 @@ Cache-Control: public, immutable, max-age=31536000
 7. **TTL 校验**：`now() ∈ (issued_at, expires_at)`。允许的 clock skew tolerance MUST 取 [`../conformance/encoding.md`](../conformance/encoding.md) §（两层 drift 模型）的 `expected_future_skew_ms`（默认 30_000，即 ±30s）作为本短 TTL bearer 场景的 normative 容差，MUST NOT 超过 `hard_future_skew_ms`（300_000）上界。实现 MUST NOT 自定义更宽的容差使过期 presign 在无界时间内被接受。
 8. **nonce / 撤销校验**：`nonce` 未在撤销列表内；普通 `media_inline` / `thumbnail` presign 是短 TTL 多次可用 bearer URL，服务端 MUST NOT 把浏览器正常的重复 GET / HEAD / Range 请求当作 replay 拒绝。只有 profile 显式声明 single-use presign 时，才可维护 consumed set。
 9. **撤销 / 状态实时回查（normative）**：服务端在每次 presign GET / HEAD / Range 响应阶段 MUST 同步回查该 `blob_ref` 的**当前** redaction / erasure / ban / legal-hold 状态,**不得仅凭 envelope 自校验(签名 + TTL + scope)就放行**。只要当前状态命中 redaction / erasure / ban / legal hold,即便 envelope 仍在 TTL 内且签名有效，也 MUST 拒绝(`not_found`,audit `blob_redacted` / `legal_hold_active`)。该回查 MUST 在响应 bytes 之前完成，以闭合"签发后被 redact 的内容在 TTL 窗口内仍被已泄露 URL 拉取"的竞态(见 §5.4.4 撤销索引保留下界与 §5.4.4.1 fail-closed 规则)。
+
+   **一致性边界（normative）**：本回查**不要求**每次都向远端撤销权威发起网络往返。参考实现 MAY 命中 §5.4.4 保留到 `expires_at` 的**本地撤销 / 失效索引**做 O(1) 查询，因此本步骤的常态成本是本地命中而非每次远程查。允许的 staleness 上界按状态类别分级：
+
+   - 普通 redaction / erasure / ban 命中：MAY 采用**有界 staleness**——本地撤销索引相对撤销权威的滞后 MUST ≤ 撤销索引传播延迟（部署声明的 `revocation_index_propagation_max_ms`，缺省取与 [`encoding.md`](../conformance/encoding.md) 两层 drift 模型同量级、SHOULD ≤ 30,000 ms）；在该窗口内本地索引尚未收到的撤销可短暂未命中，但 presign TTL（≤ 1h）与撤销索引保留下界共同把暴露面收敛在有界窗口内。
+   - **legal-hold / erasure（强一致 MUST）**：legal hold 与硬擦除命中 MUST 强一致——服务端 MUST NOT 用可能滞后的缓存放行：本地索引未能确认"无 legal hold / 未 erased"时 MUST fail closed（`not_found` / `legal_hold_active`），不得在 staleness 窗口内放行受 legal hold 约束的内容。
+
+   实现不得以"性能"为由把 legal-hold / erasure 降级为有界 staleness，也不得对普通 redaction 引入无界 staleness 使已 redact 内容在 presign 整个 TTL 内持续可取。
 10. **blob 状态与签发者校验**：签发时服务端 MUST 已确认请求方有权为该 `blob_ref` mint presign；响应时只能重新确认 envelope 绑定的 Realm / blob 仍一致、blob 未被 redacted / erased / banned / legal hold、issuer service DID 仍被部署信任。v1 bearer presign 无法在响应阶段证明当前请求者属于某个 audience。
 11. **Realm presign 资格实时重判（normative）**：服务端在响应阶段 MUST 重判该 `blob_ref` 所属 Realm 当前是否已收紧为 minimal-metadata（声明 `ck.profile.mls.minimal_metadata_realm.v1` 或 `routing_unlinkability_required=true`）或在 `ck.realm.asset_privacy_policy`（§6）中声明 `direct_download_allowed=false`；命中任一 MUST 拒绝（`not_found`，audit `minimal_metadata_presign_forbidden` / `direct_download_disallowed_presign_forbidden`），不得仅凭签发时该 Realm 尚未收紧就放行。这闭合"签发时 Realm 非 minimal-metadata / 允许 direct download、签发后 policy 收紧、已发 presign 仍在 TTL 内被拉取从而绕过新 policy"的竞态，与 §5.4.4.1 签发侧的同名禁令构成两侧闭合。
 

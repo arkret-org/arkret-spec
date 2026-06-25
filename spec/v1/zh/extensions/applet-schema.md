@@ -365,7 +365,7 @@ GET /_cokret/edge/applet/protocols/{protocol}
 
 ## 8. Applet Interop Session Events
 
-Applet 外部会话使用三类 Realm event 回流状态。字段的机器可读真源是 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 中对应 payload `$defs`；本节只列出 wire 语义。
+Applet 外部会话使用两类 Realm event 回流状态（`ck.applet.interop_session.start` 与 `ck.applet.interop_session.status`）。字段的机器可读真源是 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 中对应 payload `$defs`（`$defs/applet_interop_session_start_payload`、`$defs/applet_interop_session_status_payload`）；本节只列出 wire 语义。与 `ck.agent.interop_session.*` 不同，v1 不为 applet interop session 定义 canonical result 事件或 session 状态机；`runtime_status` 由 applet bridge 实现按 applet manifest 解释。
 
 ### 8.1 `ck.applet.interop_session.start`
 

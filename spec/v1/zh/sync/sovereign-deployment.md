@@ -186,6 +186,16 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
 - 涉及关联风险的外部协作 SHOULD 使用 pairwise DID。
 - 指向公共 Sync Service / Directory 的 DID Document service endpoint 在未 allowlist 时 MUST 被忽略。
 
+**`did:key` 的 `ephemeral_only` enforcement 语义（normative）**：`method_policy` 把某 method（默认 `did:key`）设为 `ephemeral_only` 时，该取值是可测试约束而非口号。落入 `ephemeral_only` 的 DID **MUST NOT** 被用作：
+
+- principal-level `ck.capability.grant` / `ck.capability.delegate` 的 grant subject；
+- 跨 epoch 的 membership key（即作为 `ck.member.state` 的长期 `actor_id` 跨越 MLS epoch rotation 或 Seal epoch 持续有效）；
+- 任何长期身份锚点（DID resolver / witness / OOBI 解析意义上的持久主体）。
+
+`ephemeral_only` DID **只能**作为 per-session / per-device 的 ephemeral binding 出现（一次会话或一台设备生命周期内的临时凭据 / 临时签名 key），其有效期不得跨越所绑定 session / device 的生命周期。reducer / Policy Server 收到以 `ephemeral_only` DID 为 principal-level grant subject 或跨 epoch membership key 的写入时 MUST fail closed。
+
+这与 [`client-sync.md` §8.1](./client-sync.md) 中"高隐私 Realm MAY 用 Realm-scoped pairwise `did:key` 作 `actor_id`"协调：作为**长期 membership key 的 pairwise DID** 不属于 `ephemeral_only`，MUST 由 `did:webvh` 派生（可持久解析、可轮换、可撤销），或在 `method_policy` 中对该用途**显式豁免**（例如把承载长期 pairwise membership 的 method 标为 `allowlist` 而非 `ephemeral_only`）。纯 per-session / per-device 的 `did:key` ephemeral binding 不需要该豁免。
+
 ## 4. External Collaboration Realm 在 sovereign deployment 下的强制 policy
 
 启用 `ck.profile.sovereign_deployment.v1` 的部署中，组织 MAY 创建 External Collaboration Realm，允许外部网络的人员或组织加入特定协作范围。该 Realm 是隔离边界，不应让外部主体直接进入组织主网络。Realm 角色分类见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md)。

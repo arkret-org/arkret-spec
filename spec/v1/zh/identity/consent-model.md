@@ -318,6 +318,16 @@ MIMI 协议有 `request_consent` / `update_consent` 操作（`ck.open.mimi.comma
 - audit projection MAY 记录 consent state 变化（用于合规审查），但 audit access 必须经 holder 授权或 legal hold 边界。
 - pairwise DID / pseudonym 场景下，consent 可绑定 pairwise DID 而非真实 principal DID；reducer 不强制 consent.peer 必须是 principal DID。
 
+### 8.1 Pairwise consent 的反骚扰局限与聚合 revoke（normative for client UI）
+
+consent 的去重 / 撤销键含 `intent.peer`（counterparty DID 或 pairwise DID，见 §3.2）。这带来一个协议层局限：**骚扰者每换一个新 pairwise DID 发起联系，就构成一个全新的 `(consent_id, peer)` 入口**——holder 此前对旧 pairwise DID 的 `ck.consent.revoke` 不会覆盖新 pairwise DID，default profile 下该新 peer 仍可经 §6.1.1 quarantine inbox 暂存，重新出现在 holder 的待 review 列表中。协议层无法在 wire 上判定两个 pairwise DID 是否指向同一真实主体（这正是 pairwise pseudonym 的隐私目标），因此**不能**在 consent cell 语义中强制把多 pairwise DID 折叠到同一撤销键。
+
+为收敛该局限，对反骚扰能力作如下要求：
+
+- **聚合 revoke（SHOULD）**：当 holder 客户端能够在本地把多个 pairwise DID link 到同一真实主体（例如经 [`identity-did.md` §4.2`](./identity-did.md) continuity proof、holder 本地维护的 contact↔pairwise 映射、或 holder 显式标注"这些都是同一人"）时，反骚扰 / block UI **SHOULD** 提供"聚合 revoke"：一次操作对该主体名下 holder 已知的全部 pairwise `(consent_id, peer)` 入口分别构造 `ck.consent.revoke`，并对后续来自这些已知 pairwise DID 的 quarantine 暂存项默认丢弃，而非逐个 peer 手动撤销。该 link 判定是 holder-side 本地能力，不进入 consent cell 的 wire 语义，也不要求 holder 向任何 peer 或服务端披露 pairwise 关联。
+- **协议局限披露（SHOULD）**：UI **SHOULD** 向 holder 明示：单条 consent revoke 只对一个 pairwise DID 生效；对方更换 pairwise DID 后可能重新进入 quarantine inbox，聚合 revoke 仅覆盖 holder 客户端**当前已能 link** 的 pairwise DID，无法阻止 holder 尚未识别为同一主体的全新 pairwise DID。
+- **profile 边界**：`require_explicit_consent` profile 下该反骚扰面更小——无 active grant 的 invite（无论换不换 pairwise DID）一律 §6.1 step 2 `failed_precondition` 直接拒绝、不进入 quarantine inbox，骚扰者换 pairwise DID 也得不到 holder 侧的待 review 入口或任何可联系信号（§6.1.1 不向 requester 暴露可联系信号）。该 profile 因此把 pairwise 切换骚扰面收敛为"必须先获得 holder 显式 grant 才能产生任何 holder-visible 入口"。
+
 ## 9. 与未来 Capability Constraint 的关系
 
 扩展 profile MAY 引入 capability constraint type `consent_required`，使某些 capability grant 在 Control Move 验证时 runtime check holder consent。本规范定义的 consent cell 是该 constraint 的查询源。在引入该 constraint 前，consent gate 由 invite / contact service 在投递前查询 cell join 值实现，不直接出现在 DataEvent 上。

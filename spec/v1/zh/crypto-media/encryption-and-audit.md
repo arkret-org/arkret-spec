@@ -18,7 +18,7 @@ sidebar:
 
 本规范定义了 Cokret 官方推荐的加密标准，旨在实现：
 - 基于 **MLS (RFC 9420)** 的高效大规模协作加密
-- 强前向安全 (Forward Secrecy) 与后向安全 (Post-Compromise Security)
+- 强前向安全 (Forward Secrecy) 与后向安全 (Post-Compromise Security)——此为默认 `mls-rfc9420` 内容 scheme 的属性；启用 §2.10 `mls-exporter-aead-v1` 且保留 per-epoch `history_secret` 的 Realm，其 FS / PCS 在被保留 epoch 上按 §2.10.5 退化为限定形态（per-epoch FS、PCS 仅对未被保留的 epoch 成立）
 - **可审查加密 (Auditable E2EE)**，在 TEE / HSM / 等价受控执行 profile 下把合规解密绑定到可验证审计记录；在 software-only profile 下提供透明审计流程，但不声称具备同等密码学强制力。
 
 ## 2. 基础加密架构：MLS 与 Cokret 的融合
@@ -758,7 +758,7 @@ Reaction 事件 (`ck.reaction.*`) 的可见性规则：
     其中 `canonical_emoji` 为 NFC 归一化后的 Unicode 字节串;`MLS-Exporter` 即 MLS RFC9420 §8.5,使用当前 group epoch 的 exporter secret。Sync Service 仍可做 OR-Set dedup / rate-limit / push fanout / reducer 聚合(只要发送方同 epoch 内同一 emoji 派生相同 key 即可得到相同 tag);但 **server 无法从已知 emoji 字典(≈3700 项)枚举 tag → emoji** 的反查，因为 key 取自 MLS exporter secret,群外不可知。
   - 明文 `annotation` MUST 省略；annotation 文本随 `encrypted_payload` 一同加密。
   - Routing tag 的构造经由 `MLS-Exporter` 自然绑定 `mls_group_id`(exporter secret 由 group 派生) 与当前 `epoch`(每次 commit 必变);`realm_id` 通过 exporter `context` 参数额外绑定，即便 group_id 出现重用 / 碰撞,realm_id 绑定仍能阻止跨 Realm 重放。接收方 MUST 在路由层校验 routing tag 与当前 Realm / epoch 一致。
-  - **Within-epoch 频次分析的剩余 tradeoff**：keyed HMAC 在同 epoch 内"emoji X 被使用过 N 次"的频次仍然可见(同 emoji 同 epoch 产生同 tag,这是 OR-Set dedup 的前提);要消除该侧信道需要 per-message 随机 salt,但会破坏 dedup 与幂等。剩余频次侧信道按以下方式缓解:隐私优先 Realm SHOULD 通过缩短 MLS epoch lifetime 限制单个 epoch 内可观察到的频次窗口（例如每 1 小时或 100 commit 强制一次 commit），以及 SHOULD 通过 `aad_visibility=hidden` 关闭 message_id 暴露，使频次只能 per-target_ref 而非 per-message 关联。普通 Realm 的基线 epoch 自保推进（触发阈值、重复 commit 抑制、与成员变动 commit 的合并）见 §5.6。
+  - **Within-epoch 频次分析的剩余 tradeoff（风险登记，normative honesty）**：keyed HMAC 在同 epoch 内"emoji X 被使用过 N 次"的频次仍然可见(同 emoji 同 epoch 产生同 tag,这是 OR-Set dedup 的前提);要消除该侧信道需要 per-message 随机 salt,但会破坏 dedup 与幂等。**风险登记**：routing tag 防的是离线字典枚举（群外不可由已知 emoji 字典反查 tag→emoji），但**不防频率分析**。在长 epoch 下，观察方（Sync Service / 持有 routing metadata 的中间服务）可从稳定 tag 提取两类可关联信号——(1) **per-emoji 频率分布**：每个 tag 在该 epoch 内的出现次数构成一张直方图，结合公开的 emoji 使用频率先验可对高频项（如 👍 / ❤️）做去匿名化猜测；(2) **per-DID 等值聚类**：同 `(actor_id, tag)` 反复出现使观察方能按 tag 把同一发送者的反应聚成等价类，即便不知道 tag 对应哪个 emoji，也能刻画"某 DID 偏好某固定 emoji"的可链接画像；epoch 越长，可观察窗口越大，去匿名化与聚类越可靠。**因此本机制提供的是机密性（confidentiality）而非不可关联性（unlinkability）——二者不等价，本规范不声称 routing tag 隐藏 per-emoji/per-DID 的频率与等值结构。** 缓解：隐私优先 Realm SHOULD 通过缩短 MLS epoch lifetime 限制单个 epoch 内可观察到的频次窗口（例如每 1 小时或 100 commit 强制一次 commit），以及 SHOULD 通过 `aad_visibility=hidden` 关闭 message_id 暴露，使频次只能 per-target_ref 而非 per-message 关联；对高频项 MAY 额外引入 per-epoch padding / 盲化（如发送 decoy reaction 或对高频 tag 做计数扰动），但该缓解不在 v1 默认互操作范围、且不得破坏 OR-Set dedup 语义。普通 Realm 的基线 epoch 自保推进（触发阈值、重复 commit 抑制、与成员变动 commit 的合并）见 §5.6。
 - Minimal-metadata Realm (`ck.profile.mls.minimal_metadata_realm.v1`): 同上，且 `actor_id` MUST 使用 Realm-scoped pairwise DID,因此 `(actor_id, target_ref, routing_digest)` 三元组在服务侧也不直接暴露 principal。对声明该 profile 的 Realm，上一条中针对 within-epoch 频次侧信道的两项缓解从 SHOULD 升为 MUST：客户端 / committer MUST 通过缩短 MLS epoch lifetime 限制单 epoch 内可观察的频次窗口，且 epoch lifetime MUST ≤ 1 小时（实现 MAY 声明更短）；同时该 Realm MUST 使用 `aad_visibility=hidden` 关闭 message_id 暴露，使频次只能 per-target_ref 而非 per-message 关联。
 - `ck.reaction.remove` 走相同规则；`encrypted_payload` 明文的 `remove_add_event_ids[]` MAY 引用要撤销的 add 事件 id 以加速本地 OR-Set 收敛，但不得将该 id 暴露在外层明文。
 
@@ -791,6 +791,8 @@ scheme 选择是 Realm policy 字段 `ck.realm.content_scheme`（[`realm.schema.
 
 接收方 MUST 先按 §2.10.3 验签确定作者设备，再用 `history_secret[N]` 派生 `K_content[N]`、按 §10.1 用作者 `device_id` 重算 `sender_nonce_prefix` 校验 nonce 与 replay、以 `aad_bytes` 为 AEAD AAD 解密；AEAD 校验失败 MUST 按 §2.3.4（`payload_digest_mismatch` / `key_unavailable`）处理，不得把结果纳入 verified timeline。作者设备身份由 §2.10.3 Event 签名与 §10.1 nonce 前缀双重绑定。
 
+**共享 `K_content[N]` 的关键安全前提（normative）**：与标准 MLS（`mls-rfc9420`，每个发送方有独立的 secret-tree 派生 leaf key、AEAD 上下文天然按 leaf 隔离）不同，本 scheme 的 `K_content[N]` 是**全 epoch 成员共享的同一把 AEAD key**。这使 **nonce / prefix 唯一性从"实现细节"上升为关键安全前提**：在共享 key 下，任意两个发送方若复用同一 `(K_content[N], nonce)` 即发生灾难性 AEAD nonce 重用（泄露 keystream / 可伪造）。因此本 scheme 比标准 MLS 更脆——其安全性额外依赖跨设备 nonce 前缀不碰撞。两条 MUST：(1) 发送方按 §10.1 `sender_nonce_prefix || device_nonce_counter_be64` 构造 nonce，per-sender 前缀 + 持久单调计数器保证 `(K_content[N], nonce)` 跨设备唯一、不回退 random；(2) **接收方对 nonce 的 sender prefix 校验 MUST NOT 省略**——接收方 MUST 按 §10.1 用已验签作者 `device_id` 重算期望的 `sender_nonce_prefix` 并逐字节比对密文携带的 nonce 前缀，不匹配 MUST fail closed（按 `payload_digest_mismatch` 处理），以闭合"伪造方借他人 prefix 制造碰撞"的面。prefix 唯一性与碰撞防护的 canonical 契约见 [`../conformance/encoding.md`](../conformance/encoding.md) §10.1。
+
 #### 2.10.3 作者认证（normative）
 
 `mls-exporter-aead-v1` 的内容密钥为**全 epoch 成员共享的对称键**，AEAD 只证明“某成员所为”、**不证明是哪个成员**——`mls-rfc9420` 的发送方 leaf 签名在本 scheme 下不存在。因此内容作者性 MUST 完全由 Event 外层签名承载：
@@ -802,6 +804,10 @@ scheme 选择是 Realm policy 字段 `ck.realm.content_scheme`（[`realm.schema.
 
 缺失上述任一条等于把群内冒名漏洞放出（任一成员可伪造“看似他人所写”的内容）。
 
+**与 minimal-metadata pairwise DID 的交互（normative）**：上述作者性校验把签名链接到"`actor_id` 当前授权的设备"。当 Realm 同时启用 §2.7 `ck.profile.mls.minimal_metadata_realm.v1` 时，Event Envelope 的 `actor_id` 是 **Realm-scoped pairwise DID**（不是真实 principal DID）。此时本节作者签名的验证 MUST 在**该 pairwise DID 的设备集投影域内**进行——即 receiver 校验"内容事件的签名链接到该 pairwise DID（及其绑定的 MLS leaf credential）当前授权的设备"，而**不**在验证内容作者性这一步解析真实 principal。真实 principal 的揭示走 §2.7 的端到端加密 `ck.identity_link`（pairwise DID → principal DID 的签名映射），与内容作者性校验解耦：内容只需证明"某 pairwise sender 所写且其设备授权有效"，是否提升为"已验证 principal DID 发送者"由 `ck.identity_link` 映射额外决定（§2.7：无法建立映射时 MUST 仅呈现为未验证 pairwise sender，MUST NOT 提升为已验证 principal）。
+
+> **实现缺口登记（留协调者）**：上述"在 pairwise DID 设备集投影域内验签"要求设备验签公钥目录（[`device-lifecycle.md` §8.2](./device-lifecycle.md)）能按 **pairwise-scoped 设备集**解析 `(pairwise_did, device_id) → device_signing_key`。当前 §8.2 的 `keys/query` 目录以 `(principal_id, device_id)` 为键，并未定义 pairwise-DID-scoped 的设备目录投影；因此 minimal-metadata Realm 下"用 pairwise DID 而非 principal DID 解析作者设备公钥"在 v1 spec 层尚无明确的目录承载。这是**真实实现缺口**：要么 §8.2 增补 pairwise-scoped 设备目录面（pairwise DID 绑定的 MLS leaf credential 作为验签锚），要么 minimal-metadata Realm 的内容作者性验签依赖 MLS leaf credential（绑定 pairwise DID，§2.7）而非 `keys/query` principal 目录。本条仅登记该缺口供协调者裁决，不在本次改动中引入新的目录 schema。
+
 #### 2.10.4 历史密钥交付（normative）
 
 `mls-exporter-aead-v1` Realm 的历史共享通过 `ck.realm_key.share` 交付 `history_secret`：其 `ciphertext` / `encrypted_key_ref` MUST 为该区间内**每个 epoch 的 `history_secret` 集合**（`{history_secret[from_epoch], …, history_secret[to_epoch]}`，区间见 `key_scope.from_epoch` / `to_epoch`）经 HPKE 封装到接收方公钥的密文，服务器不可解。普通成员设备交付 MUST 使用 `share_class="member_device"`，封装目标是**接收方掌握对应私钥的设备 HPKE 公钥**，并携带 `recipient_device_id`。注意 MLS KeyPackage init key 的私钥通常不被 MLS 栈暴露供带外解封，故接收设备 SHOULD 发布/广告一把**专用设备 HPKE 公钥**（在 `ck.realm_key.request.recipient_hpke_public_key` 中携带，或预先 publish）供 provider seal，而非依赖 KeyPackage init key。发送前 MUST 通过 [`device-lifecycle.md`](./device-lifecycle.md) §13 的 canonical key-share 资格校验与 [`../governance/history-visibility.md`](../governance/history-visibility.md) §6 判定。接收方安装 `history_secret[N]` 后即可解 epoch-N 的 `decryption_pending` 内容，纳入 §2.3.5 late-recovery 状态机。
@@ -812,8 +818,10 @@ scheme 选择是 Realm policy 字段 `ck.realm.content_scheme`（[`realm.schema.
 
 - 要充当 epoch-N key source 的成员 MUST 在可分享窗口内保留 `history_secret[N]`，MUST 加密保存（at-rest，置于设备 / 账号 secret 之下），并 MUST 在 Realm / retention policy 要求销毁或 erasure 时删除。
 - **前向安全边界**：`history_secret[N]` 可派生 epoch-N 全部消息键，故 `mls-exporter-aead-v1` 的 FS 粒度为 **per-epoch 而非 per-message**——持有该根期间一次设备失陷暴露整段 epoch。Realm SHOULD 通过缩短 MLS epoch lifetime / 提高 commit 频次限制单 epoch 爆炸半径（与 §2.9 / §5.6 同机制）。
+- **后向安全（PCS）边界（normative）**：标准 MLS（`mls-rfc9420`）的 PCS 保证是：成员设备失陷后，一次后续 Commit（heal）即可让攻击者**失去**对此后 epoch 的解密能力。`mls-exporter-aead-v1` 在**长期保留** `history_secret` 的 epoch 上**削弱**这一保证——只要某 epoch 的 `history_secret[N]` 仍被任何在线 key_source / RRK 持有者保留，对该 root 的失陷就持续暴露该 epoch 内容，后续 Commit 无法 heal 已被保留并泄露的旧 root。因此本 scheme 的 PCS 退化为"**仅对那些未被任何在线 key_source / 持久封存方保留的 epoch 成立**"：已按 §2.10.5 删除 `history_secret[N]` 的 epoch 恢复标准 PCS 语义；仍被保留（为历史共享 / durability）的 epoch 不享有标准 PCS。选择 `mls-exporter-aead-v1` 且保留 `history_secret` 的 Realm MUST 在 policy / UI 披露该 PCS 边界（"被保留 epoch 的历史在 root 失陷下不因后续 Commit 而恢复保护"），MUST NOT 在文案中对这些 epoch 宣称无限定的"强 PCS"。该边界与 §1 的 PCS 主张对齐——§1 的强 PCS 是默认 `mls-rfc9420` 形态的属性，本 scheme 在保留 root 的范围内是其显式限定例外。
 - 不需要历史共享的 `mls-exporter-aead-v1` epoch，key source SHOULD 在该 epoch 关闭且本地内容已落地后删除 `history_secret[N]`，以近似恢复长期前向安全。
 - 选择 `mls-exporter-aead-v1` 的 Realm MUST 在 policy / UI 披露“内容前向安全为 per-epoch 粒度、且历史可被授权后加入者解密”，MUST NOT 在文案中宣称 per-message FS。
+- **踢后不可回收的残留（非保证，normative honesty）**：与 [`audited-e2ee.md` §7](./audited-e2ee.md) 的非保证项同构，本 scheme 明确**不保证**：移除 / ban 一个曾在某 epoch 充当 key_source（或仅作为该 epoch 普通成员而持有 `history_secret[N]`）的成员后，能撤回或销毁该成员设备上**已保留的** `history_secret[N]`。§2.4.1 的 ban / revoke + epoch 推进只保证被移除成员**得不到此后新 epoch 的 group secret**；它**不能**追溯回收对方设备本地已落盘的旧 epoch `history_secret`，因而该成员对其在任期间合法可解的 epoch 区间内容**仍可继续解密**。这是 `mls-exporter-aead-v1`（"可保留、可重新封装"的 per-epoch 根）**固有的代价**——把历史授权给后加入者的能力，与"踢后旧成员对历史立即失能"在密码学上不可兼得。实现 / UI / 采购文案 MUST NOT 声称移除或 ban 会使被移除成员对其曾合法可见的历史内容失去解密能力，也 MUST NOT 把 §2.4.1 的 ban 即时性表述为覆盖旧 epoch 内容。该非保证项与 §2.10.6"关闭只向前 / 已交付 `history_secret` 无法追溯收回"一致。
 
 #### 2.10.6 生命周期与可逆性（normative）
 

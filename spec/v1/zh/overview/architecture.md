@@ -209,6 +209,8 @@ Identity 部署常识（无法在 deployment profile 表中表达）：
 
 架构按职责分层为 5 个核心平面与 2 个横切关注点。核心栈包含 Presentation、Projection、Distribution、Write、Identity；Confidentiality 与 Portability 是横切关注点，不计入核心栈层级。
 
+> **规范力说明**：本节（§3 及各子节）的平面划分、职责描述与图示均为 **informative**，用于说明架构分层意图，不单独承载机器可校验的约束。各平面涉及的实质 normative 字段约束、授权过滤与查询行为以对应专门文档为权威源——尤其 Projection / 查询的可解析输出与授权过滤规则见 [`conformance/query-schema.md` §8-§9](../conformance/query-schema.md)。本节文字与上述 normative 文档冲突时以后者为准。
+
 *Figure 3-1. 架构平面分层（informative）。*
 
 ```mermaid
@@ -277,7 +279,7 @@ flowchart TB
 - 搜索
 - **因果一致性屏障 (Causal Barrier)**：客户端或可选受托服务在返回查询结果前，可根据本地 sync frontier 等待特定写入前沿的到达，保障“读己之所写”体验。
 
-Projection Plane 的输出 MUST 是机器可解析的数据结构（例如 JSON 对象、cursor 列表、聚合统计）。Projection MUST NOT 依赖 Presentation Plane 的渲染逻辑。Local Query 是 Projection Plane 的职责之一，不是独立平面。
+Projection Plane 的输出是机器可解析的数据结构（例如 JSON 对象、cursor 列表、聚合统计），不依赖 Presentation Plane 的渲染逻辑；该输出形态的权威 normative 约束（response 结构、`basis` / `frontier` / `grade`）见 [`conformance/query-schema.md` §8](../conformance/query-schema.md)，授权过滤与不绕过 Realm policy / history visibility / E2EE 可见性的 normative 规则见 [同文 §9](../conformance/query-schema.md)。本子节的描述为 informative，字段约束以该锚点为准。Local Query 是 Projection Plane 的职责之一，不是独立平面。
 
 ### 3.5 Presentation Plane
 
@@ -287,7 +289,7 @@ Projection Plane 的输出 MUST 是机器可解析的数据结构（例如 JSON 
 - 人类审阅队列
 - agent protocol session timeline
 
-Presentation Plane 消费 Projection Plane 的输出，产生人类或 agent 可交互的渲染结果。Presentation MUST NOT 持有对象状态的唯一副本；对象能力来自对象类型、schema/profile 和 capability，facets 只作为已声明能力的查询与投影 hint。
+Presentation Plane 消费 Projection Plane 的输出，产生人类或 agent 可交互的渲染结果。Presentation 不持有对象状态的唯一副本（派生输出不得成为唯一真相源的 normative 约束见 §6.3 与 [`conformance/query-schema.md` §9](../conformance/query-schema.md)）；对象能力来自对象类型、schema/profile 和 capability，facets 只作为已声明能力的查询与投影 hint。
 
 ### 3.6 Confidentiality Plane
 

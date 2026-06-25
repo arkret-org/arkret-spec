@@ -297,9 +297,11 @@ Snapshot 后续恢复流程：
 
 ## 11. 首次加入 Realm
 
+**加入提交目标（normative）**：跨域加入时"向哪台服务提交 join material"的唯一权威来源是 `ck.find.directory.query.resolve_realm` / `ck.find.directory.query.resolve_target` / signed invite metadata 返回的 `join_candidates[]`（规范定义见 [`federation.md` §5.0](./federation.md)）。客户端 / 提交服务 MUST NOT 从 Realm ID、邀请者所在 Principal Server、被邀请者自己的 Principal Server 或 URL 路由提示推导加入提交目标；所有重试 MUST 绑定同一 canonical `realm_id`。
+
 推荐流程：
 
-1. 解析 Realm metadata 与 service binding。
+1. 解析 Realm metadata 与 service binding；按 [`federation.md` §5.0](./federation.md) 取得 canonical `realm_id` 与 `join_candidates[]`，并以 `join_candidates[]` 作为 join material 的提交目标。
 2. 获取与 caller 相关的 invite、claim、grant 或 presentation challenge。
 3. 拉取当前 Seal 与必要控制面 proof。
 4. 验证 membership / capability / policy。

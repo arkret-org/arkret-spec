@@ -322,6 +322,16 @@ Cokret v1 的联邦批量传播采用依赖感知的 partial accept：最小原�
 
 **partial accept 后的 retry 边界（normative）**：sender 收到包含非空 `accepted[]` / `duplicate[]` 且仍有 `rejected[]` / `quarantine[]` / 未发送依赖的响应后，MUST 把下一次 retry 组装成新的 batch，只包含尚未被 `accepted[]` ∪ `duplicate[]` 确认且仍需投递的 Event；不得原样重放包含已确认 Event 的旧 `events[]` 来“补齐失败项”。内容完全相同的幂等重复项 MUST 列入 `duplicate[]`（幂等 no-op），MUST NOT 当作 `rejected[]`。新 batch MUST 重新计算 `Content-Digest`、`Request-Canonical-Digest` 与签名 transcript；幂等缓存命中旧 batch 不得被当作新 retry 的成功证明。接收方 SHOULD 在 `rejected[]` 项内携带原数组 `index` 与 `id`，让 sender 能机械求差；若响应缺少 `index`，sender MUST 以 `id` 集合为准剔除 `accepted[] ∪ duplicate[]`（已投递集合）。
 
+**两类 quarantine 的退避与收敛边界（normative）**：partial accept 后进入 `quarantine[]` 的项分两类语义，sender 与接收方 MUST 区分处理，避免活锁：
+
+- **fork-detection quarantine（§4.5.1）**：probe / 提交路径检出同 `event_id` 不同 hash、`witness_disagreement` 或不可调和 frontier_root 的项。它是 fail-closed 安全态，**可长驻留**，依赖 raw replay / quorum witness / operator-approved fork resolution（驻留语义见 §4.5.1）。sender **MUST NOT** 对这类 quarantine 做无界自动重交——简单重发不能解除 fork，重交只会放大；sender 收到 fork-class quarantine（如 `duplicate_conflict` probe-detected）时 MUST 停止自动重交并进入 operator diagnostic。
+- **dependency / proof quarantine（`dependency_missing` / `stale_seal_ref` / 缺 proof / 缺可用性）**：这类项是**可收敛**的——缺的依赖 / 更新的 Seal basis backfill 到位后即可被接受。对这类 quarantine：
+  - sender MUST 使用**有界重交**：指数退避（建议起始 ≥ 1s，上界 ≥ 60s，加 jitter），对同一 `(event_id, 依赖 frontier)` 的重交次数设上限；超过上限 MUST 停止自动重交并进入 operator diagnostic，不得无限轮询。
+  - 重交前 sender SHOULD 先把缺失依赖 / 更新的控制面 Seal 通过 `ck.peer.events.command.submit`（依赖事件）或等待控制面 Seal 更新后**补齐**，再按 [`operations-sync.md` §5](./operations-sync.md) 的"`accepted ∪ duplicate` 求差后重提"组装新 batch，而不是原样重放旧 `events[]`。
+  - 接收方 SHOULD 在 quarantine 项的诊断中暴露**缺依赖 backfill 提示**（缺的 `prev_refs` / `seal_ref` / proof 引用），使 sender 的 backfill 有界收敛；接收方 MAY 对长期无法补齐依赖的 dependency/proof quarantine 项给出 GC 提示（声明该项将被本地清退），但清退不改变该 Event 的签名事实，sender 仍可在补齐依赖后重新提交。
+
+该划分与 operations-sync §5 的逐项失败原因（`dependency_missing` / `causal_conflict` / `capability_denied` / `soft_failed`）对齐：可收敛类走有界重交 + backfill，fork 类走带外 resolution，不混用同一套自动重试。
+
 接收方服务绑定规则（normative）：
 
 v1 联邦投递有**两条互不重叠的路径**，sender MUST 明确区分：
@@ -568,7 +578,9 @@ Probe 响应 payload：
 - `frontier_root` 主动交换 MUST 使用固定刷新 bucket 与 jitter，bucket 选择不得随 Realm 实时活动量变化；除 operator-triggered diagnostic 外，不得因为新 Event / push / backfill 活动立即触发额外 probe。
 - 对每个 accepted push / backfill range，要求 `ck.attestation.range_completeness` 使用 `federation_witness_attested` quorum；只有单源证明时 MAY 暂存为 pending，但不得推进 high-assurance completeness frontier；
 - 维护 per-peer / per-Realm frontier exchange 状态机，跟踪 `last_success_at` 与连续失败计数；
-- 连续 3 次 probe 失败（peer 不可达、签名失败、或经 §4.5.1 per-actor backfill 后仍无法调和的 `frontier_root` 不一致——即按 §4.5.1 升级为 `witness_disagreement` fork suspect 的二元判据，非任何未定义数值阈值）**MUST** 把该 peer 在该 Realm 的状态标记为 `stale_peer`；
+- **失败分类与计数（normative，避免把 silent fork 延迟到第 3 次才暴露）**：probe 失败 MUST 按两类分别处理，二者不共用同一容忍计数窗口：
+  - **可达性 / 签名失败类**（peer 不可达、超时、HTTP 错误、签名验证失败、frontier payload schema 无效）：用**退避计数**，连续 3 次失败 **MUST** 把该 peer 在该 Realm 的状态标记为 `stale_peer`。这类失败可能是瞬态网络问题，给有界容忍窗口合理。
+  - **frontier_root 不一致类**（经 §4.5.1 per-actor backfill 后仍无法调和的 `frontier_root` / range-completeness root 不一致）：这是 §4.5.1 的 `witness_disagreement` 二元判据，**第 1 次**经 backfill 仍不可调和即 **MUST** quarantine 该 peer 在该 Realm 的增量（§4.5.1 已为 MUST），并立即视为 fork suspect。它 **MUST NOT** 进入上面可达性 / 签名失败的 3 次容忍窗口——把不可调和的 frontier 分歧混入"连续 3 次"计数会把已可证明的 silent fork 暴露延迟两个 probe 周期。frontier_root 不一致一经 backfill 确认，即触发 quarantine 与 `stale_peer` 级别的 fork 处理，不等待计数累积。
 - `stale_peer` 状态期间：
   - **MUST** 拒绝以来自该 peer 的 push payload 在本地推进 Realm frontier（继续 quarantine，不让 silent fork 永久化），直到 fork resolution 或重新对齐；
   - **MUST** 通过 §8.6 威胁映射要求的 alarm 通道（operator dashboard / audit log / pager hook）暴露该状态；
@@ -588,8 +600,9 @@ Probe 响应 payload：
 1. 客户端 / 提交服务在提交 `ck.invite.accept`、`ck.member.state{membership="join"}`、`ck.member.state{membership="knock"}` 或 application receipt 前，MUST 通过 `ck.find.directory.query.resolve_realm` / `ck.find.directory.query.resolve_target` / signed invite metadata 取得 canonical `realm_id` 与 `join_candidates[]`。
 2. 提交方 MAY 选择任一未过期 candidate；协议不要求通过邀请者 Principal Server，也不要求通过被邀请者自己的 Principal Server 加入。被邀请者自己的 Principal Server 仍负责其本地账号视角、device / to-device / KeyPackage 等投递，但这不等于 Realm ingress。
 3. Candidate 服务接收 join-side submission 时，MUST 独立验证 `realm_id`、Event signature、candidate 是否仍被当前 Realm auth state / `sync_endpoints` / service delegation / peer policy 授权，以及 Join Policy / invite / review 链是否允许该提交。Candidate 本身不是 authorization grant。
-4. `join_candidates[]` 是唯一标准 Realm join ingress 列表；客户端不得从 URL hint、邀请者 service DID、被邀请者 Principal Server 或成员 delivery binding 推导候选。
-5. 候选不可达、过期、frontier / policy stale、或返回 fail-closed redirect diagnostics 时，客户端 MAY 按 candidate 列表尝试下一个候选；新的诊断如果携带 `join_candidates[]`，MUST 替换旧列表。所有重试 MUST 绑定同一 canonical `realm_id`，不得跨 Realm 重定向。
+4. **join-side 接收的最小披露失败语义（normative）**：candidate 服务接收 `ck.invite.accept` / `ck.member.state{membership="join"|"knock"}` / application receipt 时，§3.2 定义的**统一最小披露失败族**（存在性不可区分 + 固定 timing bucket）MUST 同样适用于该接收路径——对外 MUST NOT 可区分"该 `(realm_id, subject)` 不存在 pending invite / 不是该 Realm 成员候选"与"存在但本提交鉴权 / 完整性 / Join Policy 校验失败"。具体而言：对这两类原因 MUST 返回同一 HTTP status 与同一 `reason_code`（沿用 §3.2 的统一鉴权失败码），响应可见字段 MUST NOT 携带 Realm / invite / membership 是否存在的可区分信息，timing MUST 归一到 §3.2 同口径的固定 bucket（≥30 次采样 p95 差异 SHOULD ≤ 50ms，高安全 profile MUST 使 p99 落入同桶）。真实 reason 仅写入接收方审计日志。这把"可探测 `(realm_id, subject)` 是否存在 pending invite"的枚举面在 join-side submission 接收上关闭，与 [`third-party-invites.md` §6](./third-party-invites.md) 的不可枚举 claim 响应口径一致。
+5. `join_candidates[]` 是唯一标准 Realm join ingress 列表；客户端不得从 URL hint、邀请者 service DID、被邀请者 Principal Server 或成员 delivery binding 推导候选。
+6. 候选不可达、过期、frontier / policy stale、或返回 fail-closed redirect diagnostics 时，客户端 MAY 按 candidate 列表尝试下一个候选；新的诊断如果携带 `join_candidates[]`，MUST 替换旧列表。所有重试 MUST 绑定同一 canonical `realm_id`，不得跨 Realm 重定向。
 
 ### 5.1 邀请流程
 
@@ -840,6 +853,12 @@ Signature: sig1=:<base64>:
 - 先执行低成本 envelope / size / signature transcript 校验，再进入昂贵的 DID resolution、auth chain 展开和 reducer 预演
 - 对连续失败来源使用有界队列和 `Retry-After`，不得让失败请求触发无限 backfill 或 retry fanout
 
+**Pull 路径反枚举 / anti-amplification（normative）**：push（§4.1）已有重放 cache、批次大小上限与 §8.5 回压窗口，但 pull（GET scan）/ resolve 路径的反洪泛与枚举防护此前弱于 push。为对齐，`ck.peer.events.query.scan`（`GET /_cokret/peer/events`）与 `ck.peer.events.query.resolve`（`POST /_cokret/peer/events/resolve`）MUST 与 §4.5.1 frontier probe **同口径**按 `(realm_id, peer_service_did)` 限速：
+
+- 接收方 MUST 维护 per-`(realm_id, peer_service_did)` 的请求计数 / 速率窗口，并在超过部署声明上限时返回 `rate_limited`（附 `retry_after_ms` / HTTP `Retry-After`）或 `temporarily_unavailable`；该限速维度与 frontier probe 的 `(realm_id, peer_service_did)` 限速一致，使授权 peer 无法通过高频 scan / resolve 枚举 Realm 内容或推断活跃度时间序列。
+- 该上限独立于 §8.5 的失败率熔断：scan / resolve 即便每次都成功返回事件，也 MUST 受 per-`(realm_id, peer_service_did)` 速率约束，不得让"全部成功"的高频拉取绕过 anti-amplification。
+- 对未授权 / 不可见 Realm 的 scan / resolve，仍 MUST 使用与不存在不可区分的失败语义（§3.2 最小披露），不得让限速响应本身泄露 Realm 是否存在。
+
 ### 8.2 选择性拒绝
 
 节点有权选择性拒绝来自特定域的联邦请求（参见 3.3 节的域信任模型），这不违反协议。被拒绝的域可以通过其他途径（如用户直接下载可见 Event 历史）获取信息。
@@ -864,6 +883,8 @@ Signature: sig1=:<base64>:
 - 相同 `(origin, destination, Idempotency-Key)` 且 canonical hash 相同 MAY 幂等接受；
 - 单事件级别仍以 `event_id` 去重，规则见 4.3 节；
 - 对同一 `(Source-Service-DID, Destination-Service-DID, endpoint, realm_id?)` 计数窗口，若 60 秒内相同 canonical request hash 被拒绝 ≥ 3 次，或 5 分钟内总请求数 ≥ 10 且失败率 ≥ 50%，接收方 MUST 将该来源在该 endpoint / Realm 范围内暂停至少 60 秒，并返回 `rate_limited`（可附 `retry_after_ms` / HTTP `Retry-After`）或 `temporarily_unavailable`。
+
+**该回压窗口同样覆盖 pull 路径（normative）**：上面的失败率熔断与暂停窗口不仅适用于 push（`POST /_cokret/peer/events`），也 MUST 适用于 pull / resolve（`GET /_cokret/peer/events` 的 `ck.peer.events.query.scan`、`POST /_cokret/peer/events/resolve` 的 `ck.peer.events.query.resolve`）。无 body 的 GET pull 没有 `Request-Canonical-Digest`，其"相同 canonical request hash"判定改用 `(@method, @target-uri, source/destination service DID, trust domain, endpoint digest)` 规范化键（§3.2 GET pull transcript 绑定的同一组件集），其余熔断阈值、暂停时长与 `Retry-After` 语义与 push 一致。这与 §8.1 的 per-`(realm_id, peer_service_did)` 速率上限互补：§8.1 限稳态速率，本条限失败放大与抖动。
 
 #### 8.5.1 Idempotency cache 绑定 service key state（normative）
 
@@ -921,7 +942,7 @@ Signature: sig1=:<base64>:
 - 不得以批处理成功作为 Event 被最终可验证的充要条件；最终仍以 `event_id`、签名、因果前沿验证判定是否可见。
 - 每个 batch 应带可核验的批次摘要（例如请求级 hash）以便对端做重试/重放检测。
 - 若实现启用多跳 gossip 而不是直接 push / pull，每个 federation transaction MUST 携带由 service-to-service 签名覆盖的 transport-level path metadata，例如 `relay_path`、`hop_count` 和 `max_hops`。接收方发现自己的 service DID 已在路径中、`origin`/`destination` 与签名 transcript 不一致，或超过 `max_hops` 时，MUST reject 或 quarantine。path metadata 不能替代单条 Event 的 Actor 签名，也不是 Actor canonical event 的一部分。
-  - **path 防剥离（normative）**：逐跳（per-hop）签名只覆盖本跳无法防止中间节点截断 / 重写 `relay_path` 前缀（只要自己这一跳签名自洽、接收方 DID 不在保留路径中，接收方无法检测前缀被剥离，使 `hop_count` / `max_hops` 防环与放大控制失效）。因此 `relay_path` SHOULD 采用 **append-only 链式签名**：每一跳的签名覆盖**完整前缀 path**（含所有更早条目），任何剥离 / 重排导致后续签名失配而被接收方检测。实现若不采用链式签名，MUST 明确声明 `relay_path` metadata 不承担防环 / 防放大安全语义，并对 gossip 转发设置独立的**全局放大速率上限**（不依赖 path 完整性），防止路径剥离造成的转发放大。
+  - **path 防剥离（normative）**：逐跳（per-hop）签名只覆盖本跳无法防止中间节点截断 / 重写 `relay_path` 前缀（只要自己这一跳签名自洽、接收方 DID 不在保留路径中，接收方无法检测前缀被剥离，使 `hop_count` / `max_hops` 防环与放大控制失效）。因此启用多跳 gossip relay 的实现 **MUST** 对 `relay_path` 采用 **append-only 链式签名**：每一跳的签名覆盖**完整前缀 path**（含所有更早条目），任何剥离 / 重排导致后续签名失配而被接收方检测；接收方对链式签名失配的 `relay_path` MUST reject 或 quarantine。仅在以下情况可免除链式签名 MUST：实现明确声明本节多跳 gossip relay **out-of-v1-scope / 非 conformance**（即不声明任何启用多跳 gossip 的 binding / feature），此时本条不构成 conformance 约束。若实现确需启用多跳 gossip 但无法提供链式签名，则 MUST NOT 把 `relay_path` 的 `hop_count` / `max_hops` 当作防环 / 防放大安全机制，并 MUST 对 gossip 转发设置独立的、不依赖 path 完整性的**全局放大速率上限**——可测试下界为：per-`(realm_id, origin)` 与 per-`(realm_id, peer_service_did)` 的转发 fanout 因子 MUST 有声明上限，单位窗口内超过该 fanout 上限的转发 MUST 被丢弃或降级为 `rate_limited`，使任何路径剥离都无法把转发量放大到超过该 per-origin / per-peer fanout 上限。
 - 转发方 MUST 在 fanout 前按 `event_id` 与 canonical event hash 去重。实现 SHOULD 维护有界的 `(realm_id, event_id, peer_service_did)` replay cache，并对 `origin`、Realm 和 peer 维度设置 in-flight 上限。队列超过本地策略时返回 `rate_limited` 或 `temporarily_unavailable` 并带 `Retry-After`，不得制造无界重试风暴。
 
 ### 9.3 跨域权限委托与级联（明确边界项）

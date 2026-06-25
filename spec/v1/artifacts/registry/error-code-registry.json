@@ -2241,6 +2241,62 @@
       "description": "A first-issue `ck.capability.grant` (no parent_grant_id) attempts to grant actions[] / resources[] that exceed the issuer's own effective capability at the issuing seal basis. Holding the `ck.capability.grant` action alone does not permit minting authority the issuer does not itself hold; reducers MUST fail closed (schema_violation for actions/resources over-scope, failed_precondition when the issuer does not hold the required upper bound at that basis), symmetric to the delegation narrowing rule. See zh/authz/capabilities.md §3.2."
     },
     {
+      "code": "subdelegation_prohibited",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A `ck.capability.delegate` was issued from a parent grant carrying `prohibit_subdelegation=true`, or attempts to set the child's `max_delegation_depth` above 0 when the parent prohibits sub-delegation. When `prohibit_subdelegation=true` the child's `max_delegation_depth` MUST be 0; reducers MUST reject any further delegation. See zh/authz/capabilities.md §6 / §10."
+    },
+    {
+      "code": "scope_expansion_forbidden",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A grant or delegation set `allow_scope_expansion=true`. v1 does not permit a child to expand beyond the parent's resources/actions; the reducer MUST reject (schema_violation) because the field directly conflicts with the §10.1 `resources MUST ⊆ parent` invariant. See zh/authz/constraint-schema.md §7 / zh/authz/capabilities.md §10.1."
+    },
+    {
+      "code": "delegation_scope_mismatch",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A delegated grant violated its parent's `delegation_scope`: `narrowing_only` requires the child resources/actions to be a strict-or-equal subset that narrows at least one axis, and `same_scope` requires the child to match the parent's scope exactly. The reducer MUST reject a child that exceeds or fails to satisfy the declared narrowing discipline. See zh/authz/constraint-schema.md §7."
+    },
+    {
+      "code": "delegation_scope_custom_unsupported",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A grant declared `delegation_scope=custom`, which v1 does not define an evaluable semantics for. The reducer MUST reject (schema_violation) until a future profile assigns custom-scope evaluation rules. See zh/authz/constraint-schema.md §7."
+    },
+    {
+      "code": "missing_parent_reference",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A delegated grant whose parent carries `require_parent_reference=true` omitted the explicit `parent_grant_id` / `refs[role=authorized_by]` linkage back to the parent grant. The reducer MUST reject so the delegation chain stays explicitly anchored. See zh/authz/constraint-schema.md §7 / zh/authz/capabilities.md §10."
+    },
+    {
+      "code": "agent_participation_ceiling_unresolved",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "Evaluating `ck.self.agent.participation.resource.replace` required folding the deployment⊇Realm⊇Circle⊇Strand agent-participation ceiling, but one or more layers were in a bottom (⊥) / unresolvable state at the operation's basis. The fold MUST treat any unresolved layer as the most restrictive (empty selection / full deny) and the replace MUST `failed_precondition`; an unresolved layer MUST NOT be read as 'no declaration = no tightening'. See zh/authz/capabilities.md §5.4."
+    },
+    {
+      "code": "space_parent_chain_in_bottom_state",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "A `match_scope=subtree` / `children` selector required resolving the target Space's ancestor chain under the authorizing operation's CBA basis, but the `ck.space.parent` cell was in a multi-head / bottom (⊥) state. The subtree authorization branch MUST fail closed rather than pick an arbitrary head, otherwise the same grant could authorize divergently across receivers (split authz). See zh/authz/resource-selector-grammar.md §6."
+    },
+    {
       "code": "recovery_witness_missing",
       "applies_to": [
         "event_envelope",
@@ -2943,6 +2999,14 @@
         "state_resolution"
       ],
       "description": "A non-bootstrap ck.device.authorize event was submitted outside the principal's bound principal_control Realm, or the Realm purpose/profile/created_by does not match the device owner and issuer principal. Reducer MUST fail closed. See zh/identity/key-management.md §5.0.3."
+    },
+    {
+      "code": "device_enrollment_authority_snapshot_missing",
+      "applies_to": [
+        "auth_decision",
+        "state_resolution"
+      ],
+      "description": "A service_attested ck.device.authorize was signed by an enrollment authority whose DID has no history-resolution method (e.g. did:web), but its enrollment_authority_binding omits the inline issuance-time verification method snapshot and/or controller proof required for point-in-time historical re-verification. Without these, the authorization cannot be re-verified at its signing time and a rotated/hijacked current document could forge re-verification, so the receiver MUST reject. See zh/identity/key-management.md §5.0.6 and zh/identity/identity-did.md §3.2."
     },
     {
       "code": "cell_in_bottom_state",

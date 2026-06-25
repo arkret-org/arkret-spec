@@ -16,6 +16,8 @@ updated: 2026-06-10
 
 Relation 连接的是对象引用：标准字段使用 `from_ref` / `to_ref`，其值可以指向 `realm`、`space`、`actor_profile`、`strand`、`message`、`morph`、`relation`、`event`、`view`、`blob` 的 `ck:<kind>:` typed ID，或一个 DID。Actor 端点没有 actor typed-ID 对象——当端点是 Actor 时直接使用该 actor 的 DID（principal），而不是某个 actor typed-ID（见 [`overview.md` §3.4](./overview.md) 与 [`common-fields.md` §4.1](./common-fields.md#41-did-适用边界)）。
 
+> **端点 kind 子集与其它"可引用 kind 子集"字段的关系（informative）**：Relation 端点允许的 kind 集合与 Notification `source_ref`（[`private-objects.md` §3.2](./private-objects.md)）、Read Cursor `read_scope`（[`private-objects.md` §2.2](./private-objects.md)）各自硬编码不同子集，**目前无单一 referenceability 真源**：差异由各自语义决定（Relation 端点 = 可连边的图节点，故含 `realm` / `event` / DID；Notification = 可被通知指向的内容对象；Read Cursor = 可定位已读位置的时间线容器）。三处实现 MUST 按各自 schema 校验，长期收敛方向是 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 的 referenceability 类别。
+
 公共字段、lifecycle、reducer 总则见 [`common-fields.md`](./common-fields.md)。
 
 联系人关系不是 Relation。`ck.relation.*` 是 Realm-scoped 协作图边，`realm_id` 必填；跨 Realm 的联系人请求、接受、拒绝、tombstone 与 direct conversation binding 的真源是 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) 定义的 principal-scoped facts。实现 MUST NOT 用 `relation_kind=contact` 或等价自定义 Relation 替代 `ck.contact.*`。

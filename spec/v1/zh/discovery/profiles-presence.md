@@ -277,7 +277,7 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 
 当 `presence_visibility="nobody"` 时，客户端 MUST NOT 发送 `ck.presence`，Sync Service MUST NOT 转发既有或缓存的 `ck.presence`；接收方看到的结果必须与从未收到 presence 一致。
 
-`dnd` / `idle` 会泄露"用户在线但勿扰 / 空闲"，可被用于推断作息，属与 `last_active_at` 同类的活动侧信道。对不在 presence 可见集合内（不满足 `presence_visibility` 授权）的观察者，`dnd` / `idle` SHOULD 降级为 `offline` 或与 `online` 不可区分，不得向其暴露细分的勿扰 / 空闲状态。
+`dnd` / `idle` 会泄露"用户在线但勿扰 / 空闲"，可被用于推断作息，属与 `last_active_at` 同类的活动侧信道。对不在 presence 可见集合内（不满足 `presence_visibility` 授权）的观察者，`dnd` / `idle` MUST 降级为 `offline` 或与 `online` 不可区分，不得向其暴露细分的勿扰 / 空闲状态；该降级与 `presence_visibility="nobody"` 的 MUST 隐藏同强度，避免 dnd/idle 成为绕过授权的活动侧信道。满足 `presence_visibility` 授权的观察者（授权集内）MAY 保留 `dnd` / `idle` 细分。
 
 ### 3.5 Typing 指示器
 
@@ -299,6 +299,7 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 - 客户端 SHOULD 在用户停止输入后主动发送 `typing: false`
 - Typing 指示器 MUST 遵循与 Presence 至少同等严格的可见性策略：当 `presence_visibility="nobody"` 或接收方不在允许集合内时，不得发送或转发 `ck.typing`；`contacts_only` 时只可发给明确联系人且仍需满足 Realm membership / history visibility。
 - Sync Service 转发 typing 前 MUST 同时检查发送者与接收者在目标 Strand effective scope（Realm-default 或 Circle）的可见性、personal blocklist 过滤结果和 `discussion` track 状态。被屏蔽、无权读取 discussion、或不可枚举的接收方 MUST 看到与未发生 typing 一致的空结果，不得收到可区分的拒绝。
+- **world_readable scope fail-closed（normative）**：typing 是逐键级实时活动信号，比 presence `last_active_at` 更细。在 `history_visibility=world_readable` 的 Realm / Strand 且对外可见的 scope 下，Sync Service MUST NOT 主动把 `ck.typing` fanout 给非成员的外部 world-readable 观察者；typing 的 fanout 目标 MUST 限制在该 Strand effective scope 的 active member 集合内（`scope_circle_id` 指向 Circle 时为该 Circle 成员）。该口径与 [read-receipts.md §2.5.1](./read-receipts.md) 的 receipt fanout 收口对齐——"历史 world-readable"（读取已落库历史）不等于"实时活动信号 world-readable"（主动广播逐键 typing），二者解耦：world-readable 历史可见性不构成把 typing 主动推送给非成员外部观察者的义务。
 
 ## 4. 用户目录 (User Directory)
 
@@ -346,7 +347,7 @@ Presence / mention 语义补充：
 
 ## 5. v1 规则
 
-- 头像若公开可见，必须使用公开 blob 或公开缩略图；私有或 E2EE Realm 的头像/图标应使用 authenticated media 或加密 blob，服务端不得因头像请求泄露 Realm 存在性。
+- 头像若公开可见，必须使用公开 blob 或公开缩略图；私有或 E2EE Realm 的头像/图标应使用 authenticated media 或加密 blob，服务端不得因头像请求泄露 Realm 存在性。对隐藏（`unlisted` / `invite_only` / `secret` 等不可发现）Realm 的头像 / 图标请求，其失败 MUST 与"资源不存在"**不可区分（含响应形态与时延等同）**，口径对齐 [`../security/server-threat-model.md` §4.4](../security/server-threat-model.md) 的目录防枚举与统一错误形态、[`discovery-directory.md` §3](./discovery-directory.md) 的 `not_found` blinding；不得因头像请求走 authenticated media 完整校验失败与早退不存在产生可观测时序差，从而把媒体请求变成 Realm 存在性枚举侧信道（与 server-threat-model §2 #22 媒体侧信道探测同口径）。
 - Profile 字段 MUST 受 schema 验证。组织可通过 Organization policy 限定 `profile_fields` 的字段名、类型、最大长度、敏感性和披露范围。
 - profile 内 `handle`（§2.2）经 Directory / projection 披露时 MUST 同受 handle 披露 gate 约束——只能披露公开或调用方已获授权的 handle，不得借 profile 投影旁路 handle 搜索（§4.1 与 `discovery-directory.md` §5）的披露限制。
 - Presence 跨域联邦默认 opt-in，必须短 TTL、最小字段、按关系或 Realm policy 授权；不得用 presence 推断 pairwise DID、私有组织成员资格或隐藏 Realm 拓扑。

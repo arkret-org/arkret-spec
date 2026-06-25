@@ -129,7 +129,9 @@ Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一
 | --- | ---: | --- |
 | 单 principal active device 数 | 100 | 超过时 Device / Key Server MAY require admin approval or device cleanup。 |
 | 单 MLS commit 绑定的 `membership_frontier` refs | 128 | 超过时 MUST 使用签名 state root / snapshot reference。 |
-| KeyPackage 有效期 | 1 hour（下限）– 30 days（默认上限） | 更长有效期必须由 profile 明确声明。接收方 MUST NOT 使用已过期 KeyPackage 建立新 MLS 会话（过期复用是已知 E2EE 风险）；签发方 SHOULD NOT 签发有效期短于 1 小时的 KeyPackage（避免正常 join 流程内即过期）。实现 MAY 声明一个不超过该有效期 10% 的接收侧时钟偏差宽限窗口。**Last-resort KeyPackage**（[encryption-and-audit.md](../crypto-media/encryption-and-audit.md) §2.6.2）的有效期 MUST 受同一 30 days 默认上限约束，且 **不享** "更长有效期由 profile 声明" 的豁免（last-resort 包复用 init/encryption key、弱化 Welcome 前向保密，其生命周期即弱化窗口硬上界）；`personal_node` profile MAY 放宽但 MUST 向用户披露。 |
+| 普通 KeyPackage 有效期 | 1 hour（下限）– 30 days（默认上限） | 更长有效期必须由 profile 明确声明。接收方 MUST NOT 使用已过期 KeyPackage 建立新 MLS 会话（过期复用是已知 E2EE 风险）；签发方 SHOULD NOT 签发有效期短于 1 小时的 KeyPackage（避免正常 join 流程内即过期）。 |
+| Last-resort KeyPackage 有效期 | 30 days（默认上限） | **Last-resort KeyPackage**（[encryption-and-audit.md](../crypto-media/encryption-and-audit.md) §2.6.2）的有效期 MUST 受与普通 KeyPackage 同一 30 days 默认上限约束，且 **不享** "更长有效期由 profile 声明" 的豁免（last-resort 包复用 init/encryption key、弱化 Welcome 前向保密，其生命周期即弱化窗口硬上界）；`personal_node` profile MAY 放宽但 MUST 向用户披露。 |
+| KeyPackage 接收侧时钟偏差宽限 | ≤ 有效期的 10% | 实现 MAY 声明一个不超过该 KeyPackage 有效期 10% 的接收侧时钟偏差宽限窗口；该宽限同时适用于普通与 last-resort KeyPackage 的过期判定。 |
 | to-device 队列 TTL | 24 hours（默认最大值） | `DeviceMessageEnvelope.expires_at` 不得晚于当前 service / Realm / profile TTL 上限；服务端 MUST 拒绝缺失、已过期、早于 `sent_at` 或超限的消息。高安全 profile SHOULD 声明更短 TTL。 |
 | KeyPackage claim 限速 | 60 seconds 内最多 5 次 / `(requester_service_did, target_principal_id)` | 超过限额时对外仍使用反枚举响应（`claim_failed` 或通用 rate-limited envelope），不得泄露目标存在性；服务端内部审计 reason 记录为 `keypackage_claim_rate_limited`。 |
 | 单次 to-device page | 1,000 | 服务端 MUST enforce。 |

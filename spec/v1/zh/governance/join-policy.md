@@ -35,6 +35,8 @@ updated: 2026-06-10
 
 独立 join-policy Event.kind / schema 仍未进入 active registry。任何未声明 `ck.profile.candidate.join_policy.v1` 的实现 MUST 把 application / review workflow 当作未知高风险 surface，返回 `unsupported_feature`、`unsupported_event_kind`、`capability_denied` 或等价 fail-closed 结果；MUST NOT 把未注册裸名 kind 写入 shared Realm history。
 
+**base v1 knock 不得退化为明文 spam 通道（normative）**：申请材料对外不可见（§2 设计原则 2）与 reviewer-only 加密承载（§8）都属于 candidate surface（`ck.profile.candidate.join_policy.v1`）能力；**未声明该 profile 的 base v1 实现没有任何受保护的申请正文承载层**。为避免 base v1 下 `default_join_rule=knock` 退化为 Matrix `m.room.member{knock}.reason` 那样的默认可见明文 spam 通道，base v1（未声明 candidate profile）下的 `ck.member.state{membership="knock"}` Control Move **MUST NOT 携带任何申请正文 / 自由文本 / answers / 3PID / 附件**——该 Control Move 公开，正文一旦携带即对 Realm 可见侧成员暴露并成为 spam 注入面。reducer 在 base v1 收到携带正文字段的 knock Control Move MUST 拒绝（`schema_violation` 或 `unsupported_feature`）。需要结构化申请材料时，实现 MUST 先声明 `ck.profile.candidate.join_policy.v1` 并通过 §8 的 reviewer-only encryption envelope / profile-private 承载提交正文，而非塞进公开 knock。这一禁止与 §8.2 末尾"申请正文 MUST NOT 进入 `ck.member.state{knock}` Control Move"在 base v1 层同口径，构成两侧闭合。
+
 `default_join_rule` 枚举（[`../models/realm-and-space.md` §2.3](../models/realm-and-space.md)）只表达粗粒度的入口模式：`public` 直接进、`invite` 必须有人邀、`knock` 可申请、`restricted` / `knock_restricted` 有附加条件、`closed` 不收新人。但是 `restricted` 的"条件"是什么、`knock` 申请里能否带结构化材料、人工审批的决策是否上链审计、CAPTCHA / proof-of-work 等运行时挑战如何接入——这些都需要本文件统一定义。
 
 本文定义的 **Join Policy** 与 `default_join_rule` 正交又互补：
@@ -135,6 +137,8 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 `principal_admission` 是 hard pre-admission gate：只要 Join Policy 中出现该 gate，reducer MUST 在普通 `combinator` 解析、application form 或 manual review 之前先评估它；任一 `principal_admission` gate 失败时，当前 join / knock / application MUST fail closed，applicant 不得通过其它 gate 或人工审核路径绕过 principal 准入约束。
 
 加入失败对外 MUST 使用通用 `gate_check_failed`，不得向 external applicant 区分"method 不允许"、"DID 不在 allowlist"、"DID 在 denylist"等细节；细节 MAY 写入 reviewer / admin 可见审计日志。
+
+**细分原因对 applicant 永不可见是预期，非缝隙（normative，消歧）**：`principal_admission` 是 hard pre-admission gate，在普通 `combinator` 解析、application form、manual review 之前评估，也即在 applicant 提交 stage 1 `ck.member.state{knock}` 进入 §7.3 半信任申请-审核态**之前**就已对其 fail closed。因此被 `principal_admission` 拒绝者**永远到达不了** §7.3 半信任态，§7.3「knock 之后才解锁面向本人的细粒度 review reason」对其不适用——其拒绝细分原因（method / allowlist / denylist 命中）对 applicant **永不可见**（仅 reviewer / admin audit 可见）。这是刻意设计：principal 准入是比半信任申请更靠前的硬门，不向未通过硬门的探测者透露准入名单结构，与 §5「外部 applicant 失败不可枚举」一致，并非 §7.3 半信任披露规则的缝隙或遗漏。
 
 示例：
 
@@ -359,6 +363,8 @@ application 进入 `accepted` 状态后：
 Realm 主 MLS group 不包含尚未 join 的 applicant，因此申请正文不能直接走 Realm MLS group。MUST 使用以下机制之一：
 
 1. **Reviewer Sub-Group MLS**：Realm 维护一个独立 MLS group `ck:mls:reviewer_subgroup:<realm_id>:reviewers`，成员是当前所有 `review_capability` 持有方。applicant 通过 reviewer set 中任一成员公布的 KeyPackage 出 group commit + welcome，将 application 正文作为该 sub-group 的 application message 投递。reducer 通过 `ck.mls.commit.governance_binding` 验证 sub-group roster 与 capability 一致。
+
+   **新加入 reviewer 的加入前 epoch 解密约束（normative，与 applicant 单向约束对称）**：新加入 reviewer sub-group 的 reviewer 与上方 applicant 单向约束对称——新 reviewer MUST NOT 获得加入其 commit 之前 epoch 的 application 解密能力。MLS forward secrecy 保证每次 reviewer roster 变更推进 epoch 后，新成员仅能解密自其加入 epoch 起的 sub-group 消息，不能解密加入前已投递的历史 application 正文。实现 SHOULD 让每条 application 投递（applicant add+remove）与每次 reviewer roster 变更各推进一次 epoch，使"哪些 reviewer 能看到哪条 application"按 epoch 边界确定。需要让新 reviewer 复核加入前的 pending application 时，MUST 由已持有该 application 明文的现任 reviewer 经显式、受审计的 re-share（如 §8.2(2) Envelope Encryption 重新封装给新 reviewer device）完成，不得依赖 sub-group 历史 key 自动回授；这是对称残留的显式声明，而非隐式放宽。
 
    **applicant 单向投递约束（normative）**：applicant 未 join Realm、不应成为 reviewer sub-group 的持久成员，也 MUST NOT 因投递申请而获得读取该 sub-group 后续 epoch（其他 applicant 申请、reviewer 间通信）的能力。因此：
    - applicant 加入 reviewer sub-group 的 commit 与将其移出的 commit MUST 在**同一或紧邻的 commit**内完成——投递正文后 applicant MUST 立刻被 remove，sub-group MUST 推进到不含该 applicant 的新 epoch；reducer / sub-group 维护方 MUST NOT 让 applicant 停留在 roster 中跨越多个 epoch。

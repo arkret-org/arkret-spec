@@ -111,7 +111,7 @@ POST /_cokret/self/moderation/report
 |------|------|------|------|
 | `report_id` | id | required | 举报记录 ID。 |
 | `status` | enum | required | 举报处理状态；`moderation-queue-item` 的**权威生命周期枚举** `{ submitted, resolved }`（语义、转换与终态见 §3.3）。提交后为 `submitted`；实现 MUST NOT 返回该枚举之外的值。 |
-| `routed_to` | did[] | optional | 该举报被路由 / 分诊到的 scoped moderator / 管理员 DID（若服务执行了路由则填充）。**治理拓扑保护（normative）**：实现 MUST NOT 向不持有 moderation / governance capability 的普通 reporter 暴露具体 moderator / 管理员 DID——否则反复对不同 scope 举报即可枚举 Circle / Realm 的完整 moderator/admin DID 集合。对普通 reporter，响应 SHOULD 省略 `routed_to` 或仅返回布尔"已路由"指示（如 `routed: true`）；完整 `routed_to` DID 列表只对本身持有 moderation / governance capability 的 caller 返回。 |
+| `routed_to` | did[] | optional | 该举报被路由 / 分诊到的 scoped moderator / 管理员 DID（若服务执行了路由则填充）。**治理拓扑保护（normative）**：实现 MUST NOT 向不持有 moderation / governance capability 的普通 reporter 暴露具体 moderator / 管理员 DID——否则反复对不同 scope 举报即可枚举 Circle / Realm 的完整 moderator/admin DID 集合。对普通 reporter，响应 MUST 省略 `routed_to` 或仅返回布尔"已路由"指示（如 `routed: true`），不得回退到 `SHOULD`——前句的 MUST NOT 暴露与本句的披露收口口径一致；完整 `routed_to` DID 列表 MUST 仅对本身持有 moderation / governance capability 的 caller 返回。 |
 
 请求示例（非完整 schema）：
 
@@ -396,6 +396,7 @@ Domain target 的匹配必须基于已验证 service DID / DID Document endpoint
 - `quarantine_message` MUST 在审核通过前阻止事件进入普通用户可见视图。
 - 内容过滤 SHOULD 优先使用 hash、label 或本地分类；E2EE Realm MUST NOT 要求向服务端过滤器上传明文。
 - Realm blocklist MUST NOT 静默覆盖密码学历史。要改变已 accepted 事件的呈现，需通过 redaction / tombstone / quarantine 事件实现。
+- **`redact_on_accept` 的 redact capability 前提（normative）**：`redact_on_accept` 在 review / accept 阶段自动产生对目标消息的 redaction，等价于代表 policy 作者行使 `ck.message.redact`。与 §5.1 "`ck.realm.moderation_policy` 不隐含撤回他人消息的 `ck.message.redact` 权"口径一致：声明含 `redact_on_accept` action 的 `ck.realm.moderation_policy` 的 policy 作者 MUST 同时持有 `ck.message.redact` capability（撤回他人消息的非 `.own` 形态）。reducer 在接受携带 `redact_on_accept` 的 policy 写入、以及在 accept 阶段执行该自动 redaction 时 MUST 校验该 capability；policy 作者不持有时 MUST 拒绝该 action（`capability_denied`），不得仅凭 `ck.realm.moderation_policy` 隐式获得 redact 权。
 
 ### 5.4 消息审核队列
 

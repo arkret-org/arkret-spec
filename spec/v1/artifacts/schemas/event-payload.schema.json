@@ -765,6 +765,69 @@
         "authorization_ref": {
           "$ref": "#/$defs/non_empty_string",
           "description": "Reference to the delegation evidence designating authority_did as an enrollment authority for this principal (DID-document service delegation, materialized grant, or the accepted delegation event). MUST match the envelope authorization_ref."
+        },
+        "authority_verification_method_snapshot": {
+          "type": "object",
+          "description": "Inline snapshot of the enrollment authority's signing verification method as it existed at issuance time. REQUIRED when the enrollment authority DID has no history-resolution method (e.g. did:web) so that historical re-verification depends only on event-carried evidence, not on online resolution of the authority's current DID document. Receivers MUST verify proofs[] with this snapshot's public key. A ck.device.authorize issued by a no-history-resolution-method authority that omits this snapshot (or authority_controller_proof) MUST be rejected with reason device_enrollment_authority_snapshot_missing. See zh/identity/key-management.md §5.0.6 step4 and zh/identity/identity-did.md §3.2.",
+          "required": [
+            "method_id"
+          ],
+          "oneOf": [
+            {
+              "required": [
+                "public_key_multibase"
+              ]
+            },
+            {
+              "required": [
+                "public_key_jwk"
+              ]
+            }
+          ],
+          "properties": {
+            "method_id": {
+              "$ref": "#/$defs/non_empty_string",
+              "description": "Verification method id of the snapshotted key within the enrollment authority DID document at issuance time."
+            },
+            "public_key_multibase": {
+              "$ref": "#/$defs/non_empty_string",
+              "description": "Multibase-encoded public key of the snapshotted verification method. Exactly one of public_key_multibase / public_key_jwk MUST be present."
+            },
+            "public_key_jwk": {
+              "type": "object",
+              "minProperties": 1,
+              "description": "JWK form of the snapshotted verification method public key. Exactly one of public_key_multibase / public_key_jwk MUST be present."
+            },
+            "alg": {
+              "$ref": "#/$defs/non_empty_string",
+              "description": "Signature algorithm of the snapshotted verification method."
+            }
+          },
+          "additionalProperties": false
+        },
+        "authority_controller_proof": {
+          "type": "object",
+          "description": "Controller proof linking authority_verification_method_snapshot to the enrollment authority DID's controller set at issuance time, signed by the authority DID's then-current controller key over 'this verification method belongs to this DID and is authorized to sign device authorizations'. REQUIRED alongside authority_verification_method_snapshot when the enrollment authority DID has no history-resolution method. See zh/identity/key-management.md §5.0.6 step4.",
+          "required": [
+            "controller_method_id",
+            "signature",
+            "signed_at"
+          ],
+          "properties": {
+            "controller_method_id": {
+              "$ref": "#/$defs/non_empty_string",
+              "description": "Verification method id of the controller key (within the enrollment authority DID document) that produced this proof."
+            },
+            "signature": {
+              "$ref": "#/$defs/non_empty_string",
+              "description": "Controller signature binding the snapshotted verification method to the authority DID and its device-authorization-signing authority."
+            },
+            "signed_at": {
+              "$ref": "#/$defs/timestamp",
+              "description": "Issuance time of the controller proof."
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -3156,7 +3219,7 @@
       ]
     },
     "read_receipt_policy_payload": {
-      "$comment": "Payload for ck.realm.read_receipt_policy. Closed object (additionalProperties=false) so that typos in the privacy-floor escape switch `allow_child_privacy_tightening_against_required` cause schema_violation rather than silent acceptance. The enclosing Event envelope already carries `realm_id`; the payload does NOT duplicate it. `minProperties: 1` aligns with the generic state_payload branch in event-envelope.schema.json (ck.realm.* policy events): an empty `{}` payload is semantically identical to never writing the event (cell stays null with the same effective defaults), so it MUST be schema_violation rather than a silent no-op. See zh/discovery/read-receipts.md §2.5.",
+      "$comment": "Payload for ck.realm.read_receipt_policy. Closed object (additionalProperties=false) so that typos in the structured compliance opt-in object `receipt_compliance_opt_in` (or its sub-fields) cause schema_violation rather than silent acceptance. The enclosing Event envelope already carries `realm_id`; the payload does NOT duplicate it. `minProperties: 1` aligns with the generic state_payload branch in event-envelope.schema.json (ck.realm.* policy events): an empty `{}` payload is semantically identical to never writing the event (cell stays null with the same effective defaults), so it MUST be schema_violation rather than a silent no-op. The three former parallel boolean escape switches (allow_child_privacy_tightening_against_required / allow_public_receipts_on_world_readable / allow_forced_public_world_readable_receipts) are merged into the nested receipt_compliance_opt_in object; an absent object / absent sub-field / false / misspelling all mean NOT opted in (reject, fail-closed). See zh/discovery/read-receipts.md §2.5.1.",
       "type": "object",
       "minProperties": 1,
       "properties": {
@@ -3179,17 +3242,24 @@
         "scope_overrides_allowed": {
           "type": "boolean"
         },
-        "allow_child_privacy_tightening_against_required": {
-          "type": "boolean",
-          "description": "Privacy-floor escape switch. Defaults to false. When the parent policy sets disclosure='required' and this field is true, a child Realm MAY tighten disclosure to 'optional' or 'disabled'. Misspellings (e.g., a missing underscore) cause schema_violation because additionalProperties=false; runtime mismatches yield read_receipt_compliance_floor_violated."
-        },
-        "allow_public_receipts_on_world_readable": {
-          "type": "boolean",
-          "description": "Opt-in switch for the visibility='public' + history_visibility='world_readable' combination. Defaults to false. When false the reducer MUST reject that combination; when true the reducer admits it with a warning. See zh/discovery/read-receipts.md §2.5.1."
-        },
-        "allow_forced_public_world_readable_receipts": {
-          "type": "boolean",
-          "description": "Second opt-in switch for disclosure='required' + visibility='public' + history_visibility='world_readable'. Defaults to false. The reducer MUST reject the forced public world-readable combination unless this field is true in addition to allow_public_receipts_on_world_readable=true. See zh/discovery/read-receipts.md §2.5.1."
+        "receipt_compliance_opt_in": {
+          "type": "object",
+          "description": "Structured compliance opt-in object replacing the three former parallel boolean escape switches. Absent object means nothing is opted in. Each sub-field defaults to false; absent / false / misspelled sub-fields all mean NOT opted in, so the reducer MUST treat them as reject (fail-closed). forced_public_world_readable_receipts is a SECOND gate on top of public_receipts_on_world_readable (the former being true does not relieve the latter). Closed object (additionalProperties=false) so unrecognized sub-fields are rejected with schema_violation at wire-parse time. See zh/discovery/read-receipts.md §2.5.1.",
+          "properties": {
+            "child_privacy_tightening_against_required": {
+              "type": "boolean",
+              "description": "Privacy-floor escape switch. When the parent policy sets disclosure='required' and this is true, a child Realm MAY tighten disclosure to 'optional' or 'disabled'; otherwise the reducer rejects with read_receipt_compliance_floor_violated."
+            },
+            "public_receipts_on_world_readable": {
+              "type": "boolean",
+              "description": "Opt-in for the visibility='public' + history_visibility='world_readable' combination. When false the reducer MUST reject that combination (read_receipt_visibility_combination_invalid); when true it admits the combination with a warning diagnostic."
+            },
+            "forced_public_world_readable_receipts": {
+              "type": "boolean",
+              "description": "Second opt-in for disclosure='required' + visibility='public' + history_visibility='world_readable'. The reducer MUST reject the forced public world-readable combination (read_receipt_forced_public_world_readable_forbidden) unless this is true in addition to public_receipts_on_world_readable=true."
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

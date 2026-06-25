@@ -71,7 +71,13 @@ Cokret v1 把三件事分开处理：
 ### 2.2 设备吊销
 当设备丢失时，用户可从任何其他已授权设备、DID 控制密钥或 recovery policy 允许的恢复服务发起吊销操作：发布 `ck.device.revoke`，停止接受该设备的新签名写入，并对受影响的 MLS 群组触发 `Remove` 与 Epoch 更新。若该设备曾被写入 DID Document，撤销流程还必须按 DID method 规则移除或失效对应 verification method。
 
-`ck.device.revoke` 是 principal control stream 上的 Control Move：其 Event Envelope MUST 携带 `seal_basis`（撤销方签名时观察到的 accepted Seal view `{leaves[], control_event_set_root, state_root}`，进入 canonical event bytes 并被撤销证明签名覆盖，见 `../authz/event-auth-state-resolution.md` §5）；payload 不携带任何 frontier 字段。客户端铸造单 leaf basis 的注册来源是 `ck.self.events.query.frontier?realm_id=<principal_control_realm_id>`（Realm Seal view `{realm_id, seal_id, control_event_set_root, state_root, hlc?}`，取 `leaves=[seal_id]`）；该来源不可用时 MUST fail closed，不得伪造 basis。撤销自被 accepted Seal 覆盖（`control_sealed`）起生效；Principal Server / Sync Service 在拒绝该设备后续 session grant、KeyPackage、to-device write 或 Event write 时，MUST 以该 covering Seal 或其后继 Seal view 作为判定依据，不得用本地布尔缓存替代；撤销已提交但尚未 sealed 期间，受理服务 SHOULD 预先 fail closed。
+`ck.device.revoke` 是 principal control stream 上的 Control Move：其 Event Envelope MUST 携带 `seal_basis`（撤销方签名时观察到的 accepted Seal view `{leaves[], control_event_set_root, state_root}`，进入 canonical event bytes 并被撤销证明签名覆盖，见 `../authz/event-auth-state-resolution.md` §5）；payload 不携带任何 frontier 字段。客户端铸造单 leaf basis 的注册来源是 `ck.self.events.query.frontier?realm_id=<principal_control_realm_id>`（Realm Seal view `{realm_id, seal_id, control_event_set_root, state_root, hlc?}`，取 `leaves=[seal_id]`）；该来源不可用时 MUST fail closed，不得伪造 basis。撤销自被 accepted Seal 覆盖（`control_sealed`）起生效；Principal Server / Sync Service 在拒绝该设备后续 session grant、KeyPackage、to-device write 或 Event write 时，MUST 以该 covering Seal 或其后继 Seal view 作为判定依据，不得用本地布尔缓存替代。
+
+**accepted→sealed 窗口的预先 fail-closed（normative）**：撤销已被受理服务 accepted、但尚未被 covering Seal 覆盖（`control_sealed`）的窗口内，受理服务对该设备后续 session grant / KeyPackage / to-device write / Event write 的处置规则按 profile 分级：
+
+- 通用部署 SHOULD 在该窗口内预先 fail closed（拒绝该设备的上述请求）。
+- **声明 `ck.profile.e2ee_client.v1` 或任何专门 hardening / 高安全 deployment profile（如 `high_security_organization` / `sovereign_deployment`）的部署 MUST 在该窗口内预先 fail closed**——高安全语境下"撤销已提交即不再为该设备服务"是硬承诺，不得在等待 Seal 期间继续放行被撤销设备的写入或密钥获取。
+- 该 accepted→sealed 窗口本身 MUST 有界：其上界即控制面 Seal finality 延迟，受 [`encryption-and-audit.md` §2.4](../crypto-media/encryption-and-audit.md) `max_mls_commit_delay_ms`（默认 30,000 ms）同量级约束；超过该 effective 上界仍未 sealed 时，受理服务 MUST 对该设备一律 fail closed，不得无界停留在"已 accepted 撤销但仍按未撤销放行"的状态。
 
 共享 E2EE Realm 不能只看到“某设备已撤销”的服务端布尔值就推进新 epoch。对应 `ck.mls.commit` Remove 的 `governance_binding.membership_frontier` MUST 覆盖该 `ck.device.revoke` 事件本身，或覆盖一个已经把该撤销导入 Realm governance state 的显式 Control Move，且该撤销 MUST 已被 principal control stream 的 accepted Seal 覆盖；否则该 Remove 不满足 MLS Governance Binding，新的 `covered_seals_cell` 不得声称已覆盖该设备撤销。
 
@@ -140,6 +146,26 @@ Cokret 使用三层签名链：
 - `user_signing_key`：签名其他 principal 的 identity key，表达人工验证后的信任。
 
 `self_signing_key` 和 `user_signing_key` SHOULD 存入加密 secret storage，并通过新设备验证后共享。
+
+#### 5.0 Principal 身份模型归一决策表（normative）
+
+v1 并存两套设备入册信任根，但二者**不是对等可选**：**B 模型（enrollment-authority / 托管 DID）是 v1 的权威路径**，A 模型（client-self-signing / inception bootstrap）是**受限 / legacy** 形态，仅用于客户端自持控制密钥且无可用入册权威的场景。receiver 端不得在两套口径间漂移；下表把"principal 身份模型 → 适用 binding 形态 → 验证 regime"归一，所有 receiver MUST 按此单一判定函数选择验证路径：
+
+| principal 身份模型 | DID 形态 | `ck.device.authorize` binding 字段（`oneOf` 三选一） | 信任根 | 验证 regime | 状态 |
+| --- | --- | --- | --- | --- | --- |
+| **B：enrollment-authority（托管 DID）** | account-authority 代铸 DID（DID 文档 `service` 指派入册权威） | `enrollment_authority_binding`（§5.4） | DID 文档指派的入册权威（单一权威，持久服务密钥） | §5.4：入册时解析入册权威 DID 验签；热路径用 current 设备集投影锚（`device_authorize_event_id`） | **权威（v1 默认）** |
+| **A：client-self-signing（cross-signing）** | 客户端自持控制密钥的 DID（`ck.cross_signing.publish` 确立 PSK→SSK） | `cross_signing_binding`（§5.2） | PSK→SSK 交叉签名链 | §5.2.1 / §8.3：DID 锚定 PSK→验 SSK binding→验 device binding | **受限 / legacy**：仅自持控制密钥模型适用 |
+| **A-bootstrap：inception 自授权** | 首台设备由 inception key 自授权（control stream 尚无 `ck.cross_signing.publish`） | `bootstrap_binding`（§5.3） | DID inception key（24h 在线窗口后退场） | §5.3：control stream 无 publish 时方接受；首次 publish 后 MUST 转 §5.2 | **受限 / legacy bootstrap-only** |
+
+判定函数（receiver MUST 单一入口执行，不得按本地偏好在 A/B 间漂移）：
+
+1. 读该设备权威 `ck.device.authorize` 的 binding 字段（schema `oneOf` 保证三者互斥）。
+2. `enrollment_authority_binding` ⇒ 走 **B 模型** §5.4 验证 regime（入册时解析权威 / 热路径用设备集投影锚），且该 principal control stream MUST NOT 出现 `ck.cross_signing.publish`（出现即口径冲突，fail closed）。
+3. `cross_signing_binding` ⇒ 走 **A 模型** §5.2.1 / §8.3 链验证；该路径为受限 / legacy，仅当 principal 为客户端自持控制密钥模型时适用。
+4. `bootstrap_binding` ⇒ 走 **A-bootstrap** §5.3，仅当 control stream 尚无任何 `ck.cross_signing.publish` 时接受；首次 publish 后该路径 inert。
+5. 三者皆无或多于一个 ⇒ fail closed（`unverified` / `schema_violation`）。
+
+下文 §5.1–§5.3 定义 A 模型（cross-signing / inception bootstrap）的细节，§5.4 定义 B 模型（enrollment-authority）的细节；§8.2/§8.3 的设备验签公钥目录对两套 regime 分别给出 Tier-2 与 service-attested 投影锚。
 
 ### 5.1 Cross-Signing Publish Envelope
 
@@ -785,7 +811,7 @@ POST /_cokret/self/keys/keypackages/revoke
 - **`required_capabilities` ⊆ KeyPackage `capabilities`（normative subset rule）**：claim request 中的 `required_capabilities` 集合 MUST 是被领取 KeyPackage 上声明的 `capabilities`（见 [`encryption-and-audit.md` §2.6 KeyPackage payload](./encryption-and-audit.md)）的**子集**。任何 `required_capabilities ∖ capabilities ≠ ∅` 的 claim MUST 被服务端拒绝（与其它 claim 失败一致使用统一不透明错误码 `claim_failed`，但服务端 SHOULD 在内部审计日志中记录 `keypackage_capability_overreach` 以便滥用检测）。该规则避免了"客户端在 claim 时声明超过 KeyPackage 实际声明的能力，使后续 Welcome / Commit 在错误能力假设下进行"的隐性越权。
 - Device / Key Server 在 claim 成功响应中返回的每条 claim MUST 包含 `keypackage_digest = canonical_digest(KeyPackage bytes)`、`capabilities_digest = sha256(JCS(capabilities))`，并携带 claimed 设备的 trust binding。cross-signing 设备携带当前 accepted `ssk_generation`；§5.4 service-attested / enrollment-authority 设备携带该设备 accepted `ck.device.authorize` 的 `device_authorize_event_id`。二者 MUST 精确二选一。`ck.mls.welcome` MUST 回填同一 KeyPackage hash 到顶层 `payload.keypackage_digest` 和 `payload.claim_ref.keypackage_digest`，回填同一 digest 到 `payload.claim_ref.capabilities_digest`，并把 claim record 的 trust binding 原样回填到 `payload.claim_ref`；Welcome 接收端在解密前必须比对这些值与本地 claim 记录，并确认该 trust binding 仍指向 claimed 设备当前 accepted state，防止 group manager 或中间服务在 Welcome 阶段替换 KeyPackage、扩大 KeyPackage 能力集合、复用旧 SSK generation 或旧设备授权事件的 claim。
 - `payload.claim_envelope` 是 requester 对本次 Welcome 的独立签名 transcript，签名身份绑定 requester 而不是被 claim 的设备。cross-signing requester MUST 在 envelope 中携带 requester 当前 accepted `ssk_generation`，并用该 generation 的 SSK 签名；service-attested / enrollment-authority requester MUST 在 envelope 中携带 `requester_device_id`，并用该设备当前 accepted `ck.device.authorize.payload.device_public_key` 对 envelope canonical bytes 签名。二者 MUST 精确二选一。服务端和接收端 MUST 校验 envelope 的 `requester_did`、`requester_device_id`（若存在）、signature `kid` 与当前未撤销设备投影一致；不得把 claim/claim_ref 中属于 recipient KeyPackage 的 `device_authorize_event_id` 当作 requester 签名身份使用。
-- `claim` 失败响应 MUST 对不存在、不可见、无可用设备和 policy denied 做反枚举处理。对外错误码 SHOULD 合并为单一不透明错误码 `claim_failed`，不得返回可区分失败原因的 error message。服务端 SHOULD 使用统一状态码、最小响应体、限速和延迟填充降低时序侧信道；实现不得故意让不同失败原因产生稳定可测的响应差异。
+- `claim` 失败响应 MUST 对不存在、不可见、无可用设备和 policy denied 做反枚举处理。对外错误码合并为单一不透明错误码 `claim_failed`：通用部署 SHOULD 合并，**声明 `ck.profile.e2ee_client.v1` 的服务端 MUST 合并**——即在 `e2ee_client` profile 下，subset-rule 违反（§上条 `keypackage_capability_overreach`）、不存在、不可见、无可用设备、policy denied、过期 / 撤销等**所有**失败原因 MUST 对外返回同一 `claim_failed`，不得让 subset-rule 违反与其它失败产生可区分响应，否则攻击者可借响应差异探测目标 KeyPackage 的 capability 指纹（哪些 capability 被声明 / 未声明）。任何 profile 下都不得返回可区分失败原因的 error message。服务端 SHOULD 使用统一状态码、最小响应体、限速和延迟填充降低时序侧信道；实现不得故意让不同失败原因产生稳定可测的响应差异。
 - 设备 SHOULD 维持 `keypackage_min_available` 低水位，默认 8。Device / Key Server 的 claim / query 响应 SHOULD 返回调用方可见的 `available_count`；客户端发现可用 KeyPackage 低于低水位时，MUST 在下一次 sync / device maintenance 周期补充上传，避免邀请路径因耗尽而失败。
 - claimed 但未 consume 的 KeyPackage 到达 claim `expires_at` 后 MUST 转为 revoked / unusable 状态；服务不得把它自动放回 `published`，也不得接受迟到的 consume。设备需要重新发布新的 KeyPackage。
 - Device / Key Server MUST 维护过期扫描或等价触发：KeyPackage `expires_at`、claim `expires_at`、device revoke、principal control state 失效、capability revoke 或 Realm policy 变更任一发生时，后续 `query` / `claim` MUST NOT 返回该 KeyPackage；后台清理不得是唯一防线。扫描周期 SHOULD ≤ 60s，且每次 `claim` 路径必须先做同步 freshness 判定。
