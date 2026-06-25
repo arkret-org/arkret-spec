@@ -1233,7 +1233,7 @@ Cokret 使用 `ck.realm_key.share` 共享历史解密材料。共享前发送设
 
 合法性来自 source 对授权事件日志的**重验**，而非对请求内容的信任；伪造的请求无法越过 membership / device / policy 任一关。
 
-**push 豁免与落点（优化路径，normative）**：持有相应 `history_secret` 且已确认接收方 read-eligible 的 source MAY 不等 `ck.realm_key.request`、直接提交 durable `ck.realm_key.share`，仍 MUST 通过 §13 完整闸门与上述等价 recipient/device/policy 校验。其可行**落点是 admission（发 `ck.mls.welcome` 之时），不是 invite 之时**——invite 时被邀请者尚未发布 KeyPackage / 设备公钥，无可封装目标，故 invite 只能携带历史**资格意图**（policy 声明该 invitee 可看的 range），不能携带 sealed key。到 admission 时 admin 已 claim 到被邀请者 KeyPackage（即构造 Welcome 所用的同一把），故可在同一流程顺手 seal `history_secret[from..to]` 并提交 share，无额外往返；admin 不持有的更早 epoch 由 receiver 事后按本节 pull 补全。
+**push 豁免与落点（优化路径，normative）**：持有相应 `history_secret` 且已确认接收方 read-eligible 的 source MAY 不等 `ck.realm_key.request`、直接提交 durable `ck.realm_key.share`，仍 MUST 通过 §13 完整闸门与上述等价 recipient/device/policy 校验。其可行**落点是 admission（发 `ck.mls.welcome` 之时），不是 invite 之时**——invite 时被邀请者尚未发布 KeyPackage / 设备公钥，无可封装目标，故 invite 只能携带历史**资格意图**（policy 声明该 invitee 可看的 range），不能携带 sealed key。push 的 seal 目标 MUST 是**接收方掌握私钥的设备 HPKE 公钥**（§2.10.4）——MLS KeyPackage init key 的私钥通常不暴露供带外解封，故 admin **不能**直接用 claim 到的 KeyPackage init key seal。因此 push-at-admission **仅当**接收设备已发布/可获取一把专用设备 HPKE 公钥时成立；否则历史交付走 **request 驱动**:receiver 在 `ck.realm_key.request.recipient_hpke_public_key` 中广告其设备 HPKE 公钥，provider 据此 seal 并提交 share。admin 不持有的更早 epoch 同样由 receiver 事后按本节 pull 补全。
 
 ## 14. Cross-Signing Reset
 
