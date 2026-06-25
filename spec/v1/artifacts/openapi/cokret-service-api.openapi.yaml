@@ -317,6 +317,10 @@ components:
               - session_logged_out
               - audience_mismatch
               - soft_logged_out
+              - account_locked
+              - account_suspended
+              - account_deactivated
+              - account_erased
               - did_proof_required
               - invalid_signature
               - http_signature_required

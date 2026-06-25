@@ -804,7 +804,7 @@ scheme 选择是 Realm policy 字段 `ck.realm.content_scheme`（[`realm.schema.
 
 #### 2.10.4 历史密钥交付（normative）
 
-`mls-exporter-aead-v1` Realm 的历史共享通过 `ck.realm_key.share` 交付 `history_secret`：其 `ciphertext` / `encrypted_key_ref` MUST 为该区间内**每个 epoch 的 `history_secret` 集合**（`{history_secret[from_epoch], …, history_secret[to_epoch]}`，区间见 `key_scope.from_epoch` / `to_epoch`）经 HPKE 封装到**接收方掌握对应私钥的设备 HPKE 公钥**的密文，服务器不可解。注意 MLS KeyPackage init key 的私钥通常不被 MLS 栈暴露供带外解封，故接收设备 SHOULD 发布/广告一把**专用设备 HPKE 公钥**（在 `ck.realm_key.request.recipient_hpke_public_key` 中携带，或预先 publish）供 provider seal，而非依赖 KeyPackage init key。发送前 MUST 通过 [`device-lifecycle.md`](./device-lifecycle.md) §13 的 canonical key-share 资格校验与 [`../governance/history-visibility.md`](../governance/history-visibility.md) §6 判定。接收方安装 `history_secret[N]` 后即可解 epoch-N 的 `decryption_pending` 内容，纳入 §2.3.5 late-recovery 状态机。
+`mls-exporter-aead-v1` Realm 的历史共享通过 `ck.realm_key.share` 交付 `history_secret`：其 `ciphertext` / `encrypted_key_ref` MUST 为该区间内**每个 epoch 的 `history_secret` 集合**（`{history_secret[from_epoch], …, history_secret[to_epoch]}`，区间见 `key_scope.from_epoch` / `to_epoch`）经 HPKE 封装到接收方公钥的密文，服务器不可解。普通成员设备交付 MUST 使用 `share_class="member_device"`，封装目标是**接收方掌握对应私钥的设备 HPKE 公钥**，并携带 `recipient_device_id`。注意 MLS KeyPackage init key 的私钥通常不被 MLS 栈暴露供带外解封，故接收设备 SHOULD 发布/广告一把**专用设备 HPKE 公钥**（在 `ck.realm_key.request.recipient_hpke_public_key` 中携带，或预先 publish）供 provider seal，而非依赖 KeyPackage init key。发送前 MUST 通过 [`device-lifecycle.md`](./device-lifecycle.md) §13 的 canonical key-share 资格校验与 [`../governance/history-visibility.md`](../governance/history-visibility.md) §6 判定。接收方安装 `history_secret[N]` 后即可解 epoch-N 的 `decryption_pending` 内容，纳入 §2.3.5 late-recovery 状态机。
 
 `mls-rfc9420`（PrivateMessage）Realm 不具备可交付的 `history_secret`，其 `ck.realm_key.share` 不适用于 join 前内容（那些 epoch 的 secret tree 已焚）。
 
@@ -825,6 +825,28 @@ scheme 选择是 Realm policy 字段 `ck.realm.content_scheme`（[`realm.schema.
 #### 2.10.7 互操作（normative）
 
 `mls-exporter-aead-v1` 的内容**不是**标准 MLS application message，内容层不与仅支持 `mls-rfc9420` 的 MLS 实现 wire 互通；密钥分发层（KeyPackage / Welcome / Commit / governance binding）仍为标准 MLS。`scheme="mls-exporter-aead-v1"` 已注册进 [`encrypted-envelope.schema.json`](../../artifacts/schemas/encrypted-envelope.schema.json) 的 `scheme` 枚举（与 `key_ref.algorithm="MLS-EXPORTER-AEAD"` 经 schema 的 `if/then` 绑定）；声明本 scheme 的 Realm，其服务端 `ServiceDescribe.supported_features` MUST 列出 `ck.feature.mls_exporter_aead.v1`。
+
+#### 2.10.8 Realm 恢复密钥（RRK）持久化封存（normative）
+
+§2.10.4 的 `history_secret` 交付依赖**一个活成员**做 key source / re-share；当某 Realm 的全体成员设备失效或全员离职时，该 epoch 的 `history_secret` 不再有任何活着的持有者，密文虽在但永久不可解。这违背企业语境下"数据不丢失"的持久性要求。Realm 持久化策略（[`../models/realm-and-space.md` §2.3 `durability_policy`](../models/realm-and-space.md)）通过把每个 epoch 的 `history_secret` 额外封给一组**离线恢复方（Realm Recovery Key, RRK）**关闭这一暴露面。
+
+适用条件：本节仅对 `content_scheme=mls-exporter-aead-v1` 的 Realm 适用。纯 `mls-rfc9420`（PrivateMessage）Realm 没有可交付的 `history_secret`（§2.10.4），其组织级历史恢复结构上不可达，MUST NOT 声称由 RRK 提供；此类 Realm 的成员级 durable 备份仍走 [`../identity/key-management.md` §7 `mls_history`](../identity/key-management.md)。
+
+封存义务：
+
+- 当 effective `durability_policy.mode != none` 时，推进 epoch 的 `ck.mls.commit` 提交方 MUST 在该 commit accepted 后、且在按 §2.10.5 删除 `history_secret[N]` **之前**，为 `durability_policy.recovery_recipients[]` 的每个接收方发布一条 `ck.realm_key.share`。该 share MUST 使用 `share_class="realm_recovery_key"`，`recipient_principal_id` 等于该接收方 `principal_id`，`recipient_verification_method` 等于该接收方 `verification_method`，`recovery_recipient_id` 等于该接收方 `recipient_id`，且 MUST NOT 携带 `recipient_device_id`；其 `ciphertext` 按 §2.10.4 把 `history_secret[N]`（或自上次封存以来的 epoch 区间集合）HPKE 封装到该 `verification_method` 所声明的 RRK HPKE 公钥。该封存对接收方而言是 **provider-initiated**（无需接收方在线 claim），与 §2.10.4 的 join-time request/response 路径并存。
+- **接收方解析与校验**：发送前 MUST 解析每个 `recovery_recipients[].principal_id` 的当前 DID Document，确认 `verification_method` 是该 principal 发布的、被一条 active `CokretRealmHistoryRecoveryKey` service entry 指定的活跃 verification method（见 [`../identity/identity-did.md` §8.3](../identity/identity-did.md)）；不可解析、已撤销或未被该 service entry 指定时 MUST fail closed（`durability_recovery_recipient_unverified`），MUST NOT 回退到任意公钥。
+- **eager 时序（防 FS-GC 竞态）**：RRK 封存 MUST 是 eager 的。任何成员 MUST NOT 在某 epoch 的全部 `recovery_recipients[]` 封存 `ck.realm_key.share` 被 accepted 落盘（read-your-writes）之前，按 §2.10.5 GC 掉该 epoch 的 `history_secret[N]`；否则崩溃窗口内该 epoch 的组织可恢复性永久丢失。实现遇到"`history_secret` 已不可得但封存尚未完成"的情况 MUST 报 `durability_seal_missing_before_gc` 并保留该 secret 直至封存完成或 policy 不再要求。
+- **threshold 模式**：`durability_policy.mode=threshold` 时，封存目标是门限恢复策略的接收方集合；释放（恢复时重建 RRK 私钥）走 [`../identity/key-management.md` §7.5.4 / §8](../identity/key-management.md) 门限 recovery policy，本节只负责按 epoch 把 `history_secret` 封给这些接收方公钥。
+- **存储与恢复读取**：RRK 封存的 `ck.realm_key.share` 是 durable Event，进 Realm 事件日志，服务端以密文存储不可解。组织恢复时按持久化策略取回这些 Event，用 RRK 私钥 HPKE-open 得到各 epoch `history_secret[N]`，再按 §2.10.1 派生 `K_content[N]` 解密历史内容。
+- **统一后加入者历史**：RRK 同时充当 §2.10.4 的"永远在的后备 re-sharer"——常态后加入者仍由活成员 re-share；无活成员时，RRK 持有者临时上线把授权 epoch 区间 re-seal 给新成员。RRK 封存不改变 §2.10.5 的 per-epoch FS 边界对**普通成员**的语义，但**对 RRK 持有者**，持久化封存意味着该 epoch FS 被刻意保留（设计取舍，MUST 按 §2.10.5 与下条披露）。
+
+披露义务：
+
+- 声明 `durability_policy.mode != none` 的 Realm，其 policy / UI MUST 向成员披露"本 Realm 历史已持续封存给恢复方 `<可验证身份>`，该恢复方持有者可解密全部历史"，并标明 mode（`org_recovery_key` 单点 / `threshold` k-of-n）。文案 MUST NOT 把存在 RRK 描述成"恢复方正在实时旁听"——RRK 离线、不是 MLS 成员、不接收实时 fanout，只在恢复时取出。
+- `durability_policy` 的变更是控制面 Move，MUST 由后续 `ck.mls.commit` 覆盖对应 frontier 后方对新 epoch 的封存义务生效（与 §2.4.1 / §2.5 一致），并 MUST 触发对受影响成员的重新披露。
+
+与其它机制的边界：RRK 解决的是**机密性轴的持久性**（成员清空后谁能解密），与 [`../sync/federation.md` §2](../sync/federation.md) notary `mixed` profile 的 `recovery_members`（**finality 轴**：主 notary 失效后谁能继续签发 Seal）正交，二者 MUST NOT 互相替代。RRK 也不是 §3 audited-e2ee 的 `ck.audit.*` release——后者是按窗口、非常驻的合规取证，不提供组织永续持有。
 
 ## 3. 受审计的端到端加密 (Audited E2EE) — 可选 hardening profile
 

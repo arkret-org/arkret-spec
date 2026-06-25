@@ -3041,6 +3041,7 @@
           "threshold",
           "device_quorum",
           "trusted_recovery_services",
+          "recovery_keys",
           "approval_requirement",
           "audit",
           "issued_at",

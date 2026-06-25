@@ -56,7 +56,8 @@
       "type": "array",
       "items": {
         "$ref": "#/$defs/did"
-      }
+      },
+      "description": "Declared or projected organization principals associated with this Realm. Each DID MUST resolve to an Organization principal. This field alone is not a verified ownership/governance endorsement; clients and directories MUST require an active ck.realm.organization statement for verified badges or organization-controlled semantics."
     },
     "schema_refs": {
       "type": "array",
@@ -254,6 +255,124 @@
           "additionalProperties": false
         }
       },
+      "additionalProperties": false
+    },
+    "durability_policy": {
+      "type": "object",
+      "description": "Realm Recovery Key (RRK) durability policy (models/realm-and-space.md §2.3.1, crypto-media/encryption-and-audit.md §2.10.8). Declares who can recover Realm history after all member devices are lost or all members leave. Confidentiality-axis durability, orthogonal to notary / notary.recovery_* (finality axis: who signs Seals). Recovery recipients are offline HPKE public keys, NOT MLS members. Only effective (mode != none) when content_scheme=mls-exporter-aead-v1; declaring mode != none on an mls-rfc9420 Realm MUST failed_precondition (durability_scheme_incompatible). Granularity = organization composition (point a sensitive Realm's owning_organizations at a finer org), not a per-Realm knob; parent-org retention = list the parent org RRK in recovery_recipients (explicit, member-visible). Written via ck.realm.policy_components.",
+      "required": [
+        "mode"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "none",
+            "org_recovery_key",
+            "threshold"
+          ],
+          "description": "none = no organizational recovery path (total member loss = permanent loss). org_recovery_key = single org RRK. threshold = k-of-n recovery recipients."
+        },
+        "recovery_recipients": {
+          "type": "array",
+          "description": "Recovery recipients (RRK holders). MUST be non-empty when mode != none. Each verification_method MUST point to a verification method designated by an active CokretRealmHistoryRecoveryKey service entry published by principal_id, domain-separated from the principal's did_recovery key.",
+          "items": {
+            "$ref": "#/$defs/recovery_recipient"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "threshold": {
+          "type": "object",
+          "description": "k-of-n threshold parameters, required when mode=threshold. k <= n and n MUST equal len(recovery_recipients).",
+          "required": [
+            "k",
+            "n"
+          ],
+          "properties": {
+            "k": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "n": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "none"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "recovery_recipients"
+                  ]
+                },
+                {
+                  "required": [
+                    "threshold"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "org_recovery_key"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "required": [
+              "recovery_recipients"
+            ],
+            "not": {
+              "required": [
+                "threshold"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "threshold"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "$comment": "The arithmetic rule 1 <= k <= n == len(recovery_recipients) is reducer/conformance validation because JSON Schema cannot compare threshold.n to array length portably.",
+            "required": [
+              "recovery_recipients",
+              "threshold"
+            ]
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "federation_policy": {
@@ -642,6 +761,33 @@
       "type": "string",
       "format": "date-time",
       "pattern": "Z$"
+    },
+    "recovery_recipient": {
+      "type": "object",
+      "required": [
+        "recipient_id",
+        "principal_id",
+        "verification_method"
+      ],
+      "properties": {
+        "recipient_id": {
+          "type": "string",
+          "description": "Realm-unique stable id for this recovery recipient."
+        },
+        "principal_id": {
+          "$ref": "#/$defs/did",
+          "description": "Principal holding the RRK private key. SHOULD resolve to an Organization Principal for org_recovery_key/threshold; MAY be a personal principal for personal Realms."
+        },
+        "verification_method": {
+          "type": "string",
+          "description": "Reference to a verification method in principal_id's DID Document designated by an active CokretRealmHistoryRecoveryKey service entry (identity/identity-did.md §8.3). The RRK HPKE public key; history-recovery domain, separate from did_recovery."
+        },
+        "controller_organization": {
+          "$ref": "#/$defs/did",
+          "description": "Organization DID controlling this recovery recipient, when derivable; receiver MAY use it to verify org attribution."
+        }
+      },
+      "additionalProperties": false
     },
     "sync_endpoint": {
       "type": "object",

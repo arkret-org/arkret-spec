@@ -4179,6 +4179,11 @@ def check_error_code_closure(lint: Lint) -> None:
     non_error_code_tokens = {
         "allow_child_privacy_tightening_against_required",
         "on_conflict",
+        # Sync stream frame.kind tokens, not reason codes. Their endpoint-layer
+        # error codes are stream_dropped / stream_resync_required (client-sync.md
+        # §5, service-http-binding.md §1015); the bare frame.kind ends in
+        # _required and would otherwise trip the code-shape heuristic.
+        "resync_required",
     }
 
     for path in markdown_files():

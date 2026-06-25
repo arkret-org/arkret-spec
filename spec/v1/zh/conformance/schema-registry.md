@@ -157,7 +157,7 @@ sidebar:
 | `ck.realm.create` | Realm create |
 | `ck.realm.update` | Realm patch |
 | `ck.realm.upgrade` | Realm version upgrade |
-| `ck.realm.organization` | Realm official sponsor statement |
+| `ck.realm.organization` | Organization-authorized Realm relationship statement or revocation |
 | `ck.realm.link` | Typed Realm link graph edge |
 | `ck.realm.inheritance_policy` | Policy inheritance declaration from a source Realm (subject=`payload.source_realm_id`) |
 | `ck.realm.join_rule` | Join rule state |
@@ -249,7 +249,7 @@ sidebar:
 | `ck.mls.welcome` | MLS Welcome ref |
 | `ck.mls.keypackage` | MLS KeyPackage publication |
 | `ck.realm_key.request` | Realm history key request to-device signal (receiver → key source) |
-| `ck.realm_key.share` | Realm key share |
+| `ck.realm_key.share` | Realm key share（成员设备历史交付或 RRK 持久化封存） |
 | `ck.realm_key.withheld` | Realm key withheld notice |
 | `ck.realm_key.share_audit` | Auditable history key share marker |
 | `ck.agent.endpoint` | Agent protocol endpoint declaration |

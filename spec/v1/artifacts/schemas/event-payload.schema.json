@@ -994,6 +994,182 @@
       },
       "additionalProperties": false
     },
+    "realm_organization_payload": {
+      "type": "object",
+      "description": "Organization-side endorsement or revocation for a Realm relationship. Reducer validation MUST require realm_id to match the top-level Event.realm_id, organization_id to resolve to an Organization principal, the Realm-side writer to hold ck.realm.admin, and authorization to verify against the organization DID control state or a delegated service whose purpose covers this relationship and control_scopes.",
+      "required": [
+        "statement_id",
+        "realm_id",
+        "organization_id",
+        "relationship",
+        "status",
+        "control_scopes",
+        "issued_at",
+        "authorization"
+      ],
+      "properties": {
+        "statement_id": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Stable id of this organization statement. It is audit identity, not the reducer cell subject; the reducer cell subject is (organization_id, relationship)."
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id",
+          "description": "Realm the organization statement is bound to. MUST equal the enclosing Event.realm_id."
+        },
+        "organization_id": {
+          "$ref": "#/$defs/did",
+          "description": "Organization principal DID that endorses, governs, sponsors, certifies, or revokes the Realm relationship."
+        },
+        "relationship": {
+          "type": "string",
+          "enum": [
+            "owner",
+            "governance",
+            "sponsor",
+            "directory_certifier"
+          ],
+          "description": "Relationship being asserted or revoked for this organization and Realm."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "revoked"
+          ]
+        },
+        "control_scopes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "official_badge",
+              "realm_admin",
+              "notary_control",
+              "policy_server",
+              "delivery_binding_policy",
+              "durability_policy",
+              "moderation_policy",
+              "retention_policy",
+              "directory_listing",
+              "plaintext_visible_service"
+            ]
+          },
+          "description": "Machine-readable scopes covered by the organization's consent. A scope here is an endorsement boundary only; actual Realm control still requires the corresponding Realm policy, notary, capability, or service-binding event."
+        },
+        "issued_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "not_before": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/nullable_timestamp"
+        },
+        "supersedes_statement_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "revokes_statement_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "realm_frontier_digest": {
+          "$ref": "#/$defs/hash",
+          "description": "Optional digest of the Realm control frontier the organization evaluated when issuing this statement."
+        },
+        "organization_policy_ref": {
+          "$ref": "#/$defs/object_ref",
+          "description": "Optional DID-document delegation URL, policy object, governance decision, or attestation reference used to evaluate the statement."
+        },
+        "authorization": {
+          "type": "object",
+          "description": "Organization-side authorization proof. This is independent of the Realm-side ck.realm.admin authorization required to write the event into Realm history.",
+          "required": [
+            "issuer",
+            "issuer_role",
+            "verification_method",
+            "signed_at",
+            "proof"
+          ],
+          "properties": {
+            "issuer": {
+              "$ref": "#/$defs/did",
+              "description": "Organization DID or delegated service DID that issued this statement."
+            },
+            "issuer_role": {
+              "type": "string",
+              "enum": [
+                "organization_did",
+                "governance_service",
+                "account_authority",
+                "threshold_quorum"
+              ]
+            },
+            "verification_method": {
+              "$ref": "#/$defs/verification_method"
+            },
+            "delegation_ref": {
+              "$ref": "#/$defs/object_ref",
+              "description": "Required when issuer_role is governance_service or account_authority. It MUST resolve to a live organization DID delegation whose purpose covers ck.realm.organization and the requested relationship/control_scopes."
+            },
+            "executed_by": {
+              "$ref": "#/$defs/did",
+              "description": "Optional human administrator or service principal that initiated the organization-side decision. This does not become the organization principal."
+            },
+            "signed_at": {
+              "$ref": "#/$defs/timestamp"
+            },
+            "proof": {
+              "$ref": "#/$defs/signature_material",
+              "description": "Signature, threshold transcript, or governance-service attestation over the canonical organization statement binding statement_id, realm_id, organization_id, relationship, status, control_scopes, issued_at, validity window, and statement replacement/revocation fields."
+            }
+          },
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "issuer_role": {
+                    "enum": [
+                      "governance_service",
+                      "account_authority"
+                    ]
+                  }
+                },
+                "required": [
+                  "issuer_role"
+                ]
+              },
+              "then": {
+                "required": [
+                  "delegation_ref"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "revoked"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "revokes_statement_id"
+            ]
+          }
+        }
+      ]
+    },
     "space_create_payload": {
       "type": "object",
       "description": "Create payload uses the full Space object schema for wire validation. Semantic validation MUST require payload.object.created_by to match the top-level actor_id and payload.object.created_at to match the top-level created_at before acceptance.",
@@ -5993,12 +6169,54 @@
     "realm_key_share_payload": {
       "type": "object",
       "required": [
+        "share_class",
         "recipient_principal_id",
-        "recipient_device_id",
         "sender_device_id",
         "key_scope",
         "sender_device_signature",
         "created_at"
+      ],
+      "oneOf": [
+        {
+          "properties": {
+            "share_class": {
+              "const": "member_device"
+            }
+          },
+          "required": [
+            "recipient_device_id"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "recipient_verification_method"
+                ]
+              },
+              {
+                "required": [
+                  "recovery_recipient_id"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "properties": {
+            "share_class": {
+              "const": "realm_recovery_key"
+            }
+          },
+          "required": [
+            "recipient_verification_method",
+            "recovery_recipient_id"
+          ],
+          "not": {
+            "required": [
+              "recipient_device_id"
+            ]
+          }
+        }
       ],
       "anyOf": [
         {
@@ -6013,18 +6231,38 @@
         }
       ],
       "properties": {
+        "share_class": {
+          "type": "string",
+          "enum": [
+            "member_device",
+            "realm_recovery_key"
+          ],
+          "description": "Discriminator for the key-share target. member_device seals history_secret material to a concrete authorized recipient device. realm_recovery_key seals the same material to a durability_policy RecoveryRecipient RRK verification method (crypto-media/encryption-and-audit.md §2.10.8)."
+        },
         "recipient_principal_id": {
-          "$ref": "#/$defs/did"
+          "$ref": "#/$defs/did",
+          "description": "For member_device shares, the member principal receiving the history key. For realm_recovery_key shares, the durability_policy.recovery_recipients[].principal_id that published the RRK verification method."
         },
         "recipient_device_id": {
-          "$ref": "#/$defs/device_id"
+          "$ref": "#/$defs/device_id",
+          "description": "Required only for share_class=member_device. The concrete authorized recipient device whose HPKE public key receives the sealed history_secret material."
+        },
+        "recipient_verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s]+#[A-Za-z0-9._:-]+$",
+          "description": "Required only for share_class=realm_recovery_key. DID URL of the RRK HPKE public key, equal to durability_policy.recovery_recipients[].verification_method and designated by an active CokretRealmHistoryRecoveryKey service entry in recipient_principal_id's DID Document."
+        },
+        "recovery_recipient_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Required only for share_class=realm_recovery_key. Stable durability_policy.recovery_recipients[].recipient_id covered by this RRK seal."
         },
         "sender_device_id": {
           "$ref": "#/$defs/device_id"
         },
         "sender_device_signature": {
           "$ref": "#/$defs/signature_material",
-          "description": "Detached device signature over canonical share metadata and ciphertext reference; verifiers MUST bind sender_device_id, recipient_principal_id, recipient_device_id, key_scope, aad_digest?, ciphertext/encrypted_key_ref and created_at."
+          "description": "Detached device signature over canonical share metadata and ciphertext reference. Verifiers MUST bind share_class, sender_device_id, recipient_principal_id, the variant target fields (recipient_device_id OR recipient_verification_method + recovery_recipient_id), key_scope, aad_digest?, ciphertext/encrypted_key_ref and created_at."
         },
         "key_scope": {
           "$ref": "#/$defs/realm_key_scope"

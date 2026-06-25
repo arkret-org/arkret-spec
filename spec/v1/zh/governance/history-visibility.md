@@ -125,7 +125,7 @@ Preview policy MUST 满足：
 
 1. 目标 Event range 在 `T0` 下通过 §3 visibility 判定。
 2. effective `ck.realm.history_sharing_policy` 允许该 receiver class、scope、epoch range 和 key source。**对 `restricted` scope，命中的 `restricted_rules[]` rule 还 MUST 在其 `key_sources` 中列出本次请求所用的 key 来源（见 §3.1）——`key_sources` 未覆盖该来源时只放行读取、不授予 key**；仅满足 §3 read 判定不足以放行 key share。
-3. 交付侧机制校验——device 未撤销且通过要求的验证、current safety policy（redaction / erasure / retention / ban·remove / legal hold）未禁止继续交付、audit profile 要求的留痕、`key_scope` / `sender_device_signature` 绑定——按 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §13 的 canonical key-share 校验执行，本节不再重述。
+3. 交付侧机制校验——对 `share_class="member_device"`，device 未撤销且通过要求的验证、current safety policy（redaction / erasure / retention / ban·remove / legal hold）未禁止继续交付、audit profile 要求的留痕、`key_scope` / `sender_device_signature` 绑定，按 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §13 的 canonical key-share 校验执行；对 `share_class="realm_recovery_key"`，按 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.10.8 的 RRK DID service 与 durability policy 校验执行。本节不再重述。
 
 上述 1–2 是 history-visibility 本身的判定；3 引用 device-lifecycle §13 的 canonical 列表。如果任一条件不满足，key source MUST 发送 `ck.realm_key.withheld` 或等价诊断，并使用 `history_not_visible`、`not_member`、`policy_denied` 或更具体 reason。Key source MUST NOT 因为自己持有 backup、Archive Node 副本或 service operator 权限而跳过这些检查。
 

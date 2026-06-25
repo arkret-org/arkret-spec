@@ -78,7 +78,7 @@ Schema id: `ck.schema.realm.v1`
 | `summary` | no | `string` | SHOULD <= 2048 chars。 | 简短说明。 |
 | `security_class` | no | `enum(standard, high_assurance)` | 默认 `standard`。`high_assurance` MUST 满足 `federation_policy ∈ {closed, restricted, quarantine}`。 | 安全等级标签。 |
 | `trust_domain` | yes | `id:trust_domain` | create-locked；必须匹配部署 `ServiceDescribe.trust_domain` 与 Realm receive context。 | 跨 deployment replay boundary。 |
-| `owning_organizations` | no | `array<did>` | 每项必须可解析为 Organization Principal。 | 官方或治理组织。 |
+| `owning_organizations` | no | `array<did>` | 每项必须可解析为 Organization Principal；仅是 create/update 中的声明或投影，已验证归属必须有 active `ck.realm.organization`。 | 官方或治理组织。 |
 | `schema_refs` | yes | `array<string>` | MUST 包含 `ck.schema.realm.v1`。 | 启用 schema / profile。 |
 | `relation_profiles` | no | `array<RelationProfile>` | 同一 `(relation_kind, from_type, to_type, scope)` 至多一个 active profile。 | Relation 基数、去重和冲突规则。 |
 | `policy_id` | no | `id:policy` | reducer 派生。 | 当前 Realm access policy 引用。 |
@@ -90,6 +90,7 @@ Schema id: `ck.schema.realm.v1`
 | `content_scheme` | no | `enum(mls-rfc9420, mls-exporter-aead-v1)` | reducer 派生（Realm policy 字段，经 `ck.realm.policy_components` 写入并纳入 MLS governance binding `policy_root`）。仅当 `encryption_profile=mls_rfc9420` 时适用；缺省为 `mls-rfc9420`。`mls-rfc9420` 使用 MLS PrivateMessage，join 前历史不可被后加入者解密；`mls-exporter-aead-v1` 使用 per-epoch `history_secret`，可在 history sharing policy 授权下经 `ck.realm_key.share` 交付。切换只对后续 epoch 生效，完整语义见 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.10。 | MLS-backed content envelope scheme。 |
 | `content_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | reducer 派生（Realm policy 字段，经 Realm policy facet event 写入，非直接 PATCH）。这是 Realm 真正的"内容加密开关"：`e2ee_required` 时 Strand / Message / Morph / Blob content 的 `effective_scope` MUST 为 MLS-backed，plaintext content reducer MUST `failed_precondition`（reason=`content_encryption_floor_violation`）。缺省 `allow_plaintext`。**单向 ratchet**：一旦 effective 值达到 `e2ee_required`，后续降回 `allow_plaintext` 的写入 MUST `failed_precondition`（reason=`content_encryption_floor_downgrade`）。完整语义见 [`circle.md` §7](./circle.md)。 | Realm 级 content 加密下限。 |
 | `metadata_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | reducer 派生（Realm policy 字段，经 Realm policy facet event 写入，非直接 PATCH），与 `content_encryption_floor` 对称。比较序 `allow_plaintext < e2ee_required`；effective 值取父 Realm / Circle / Space `child_scope_policy` / 对象 profile 的最大值，低于 effective 的写入 MUST `failed_precondition`（reason=`metadata_encryption_floor_violation`），MUST NOT 被 Circle / Space / 对象 profile 放宽。**单向 ratchet**：一旦 effective 值达到 `e2ee_required`，后续降回 `allow_plaintext` 的写入 MUST `failed_precondition`（reason=`metadata_encryption_floor_downgrade`）。缺省：`mls_rfc9420` 或 `content_encryption_floor=e2ee_required` 的 Realm 为 `e2ee_required`，否则 `allow_plaintext`。完整语义见 [`circle.md` §7](./circle.md)。 | Realm 级 metadata 加密下限。 |
+| `durability_policy` | no | `object` | reducer 派生（Realm policy 字段，经 `ck.realm.policy_components` 写入，非直接 PATCH）。仅当 `content_scheme=mls-exporter-aead-v1` 时 `mode != none` 才有效（见 §2.3.1）。 | Realm 恢复密钥（RRK）持久化策略。 |
 | `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | reducer 派生。 | 联邦策略。 |
 | `sync_endpoints` | no | `array<ServiceBinding>` | Realm-level shared notary / Sync Service / mirror / federation 服务绑定；不是成员级 delivery binding。详见 [`../sync/federation.md`](../sync/federation.md)。 | Realm 委托同步与联邦入口。 |
 | `notary_profile` | yes | `enum(single_did, threshold, open_set, mixed)` | create-locked。 | Seal finality profile。 |
@@ -106,6 +107,53 @@ Schema id: `ck.schema.realm.v1`
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_by` | no | `did` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` |  | 更新时间。 |
+
+### 2.3.0 Realm 组织归属与治理同意（normative）
+
+`owning_organizations` 是 Realm metadata 中的声明 / 投影字段，不单独产生"官方 Realm"、"组织治理 Realm"或"组织控制 Realm"语义。客户端、Directory、搜索索引和管理 UI MUST NOT 仅凭该数组展示 verified badge、组织官方背书、组织治理归属或组织控制权。
+
+已验证的组织关系 MUST 由 active `ck.realm.organization` 表示。该事件有两层独立授权：
+
+1. **Realm-side acceptance**：事件必须作为目标 Realm 的 durable reducer-input event 被接受；写入者必须满足 `ck.realm.admin`，或处于 §2.5 允许的 create bootstrap 同批初始配置路径。这表示 Realm 当前治理面接受该组织关系声明。
+2. **Organization-side consent**：`payload.authorization` 必须验证到 `payload.organization_id` 的 DID control state、threshold governance proof，或该组织 DID Document / governance profile 显式委派的 Account Authority / `CokretGovernanceService`。委派 purpose MUST 覆盖 `ck.realm.organization`、`payload.relationship` 和 `payload.control_scopes`；事件时间必须落在 delegation 有效期内，且未被撤销。
+
+`ck.realm.organization` 的 reducer cell subject 是 `(payload.organization_id, payload.relationship)`；`payload.status="active"` 表示该组织关系当前生效，`payload.status="revoked"` 表示同一组织关系已撤销。`statement_id` 只用于审计和替换 / 撤销链路，不是 cell subject。Directory 或客户端显示"官方 / 组织治理 / sponsor / directory certified"状态时，MUST 同时检查该 cell 的 latest accepted value 为 `active`、已到 `not_before`（若存在）、未超过 `expires_at`（若存在）、`control_scopes` 覆盖所展示的语义，并按时点解析组织 DID / delegation。
+
+不同控制语义不能由组织归属自动推导：
+
+- `relationship="owner"` 或 `control_scopes` 包含 `official_badge` 只表示组织背书该 Realm 的身份归属；不自动授予组织管理员 capability。
+- 组织能否管理成员、policy、retention、moderation 或明文可见服务，仍由 `ck.realm.admin` capability、Realm policy facet、service binding 或对应控制事件决定。
+- 组织作为 notary、notary controller、RRK 接收方或 delivery binding authority，必须分别由 `notary` / notary control move、`durability_policy`、`ck.realm.delivery_binding_policy` 等字段和事件明确表示；不得从 `owning_organizations` 或 `ck.realm.organization` 自动继承。
+- Realm admin 单方面把某个组织 DID 写入 `owning_organizations`，如果没有对应 active `ck.realm.organization` 组织侧证明，接收方 MUST 把它视为未验证声明。
+
+### 2.3.1 `durability_policy`（Realm 恢复密钥 / RRK，normative）
+
+`durability_policy` 声明在该 Realm 全体成员设备失效或全员离职后，谁能解开 Realm 历史。它是机密性轴的**持久性**策略，与 `notary`（finality 轴：谁签 Seal）、`notary.recovery_*`（主 notary 失效后谁接管盖章）正交，二者 MUST NOT 互相替代。
+
+恢复方（Realm Recovery Key, RRK）是一组**离线 HPKE 接收方公钥**，**不是 MLS 成员**、不进 ratchet 树、不接收实时 fanout，只在恢复时取出。封存机制（每 epoch eager 把 `history_secret` 封给恢复方）见 [`../crypto-media/encryption-and-audit.md` §2.10.8](../crypto-media/encryption-and-audit.md)。
+
+| 子字段 | 必填 | 类型 | 约束 | 说明 |
+| --- | --- | --- | --- | --- |
+| `mode` | yes | `enum(none, org_recovery_key, threshold)` | 默认 `none`。 | `none`=无组织恢复路径（丢光即永久丢失）；`org_recovery_key`=单把 org-RRK；`threshold`=k-of-n。 |
+| `recovery_recipients` | conditional | `array<RecoveryRecipient>` | `mode != none` 时 MUST 非空且 `uniqueItems`。 | 恢复方列表。 |
+| `threshold` | conditional | `object{k:int, n:int}` | `mode=threshold` 时必填，`1 <= k <= n == len(recovery_recipients)`。 | 门限参数。 |
+
+`RecoveryRecipient`：
+
+| 子字段 | 必填 | 类型 | 约束 | 说明 |
+| --- | --- | --- | --- | --- |
+| `recipient_id` | yes | `string` | Realm 内唯一。 | 接收方稳定标识。 |
+| `principal_id` | yes | `did` | `org_recovery_key` / `threshold` 模式下 SHOULD 解析为 Organization Principal；个人 Realm MAY 为个人 principal。 | 持有 RRK 私钥的主体。 |
+| `verification_method` | yes | `string` | MUST 指向 `principal_id` DID Document 中被 active `CokretRealmHistoryRecoveryKey` service entry 指定的活跃 verification method（见 [`../identity/identity-did.md` §8.3](../identity/identity-did.md)）。 | RRK HPKE 公钥引用。 |
+| `controller_organization` | no | `did` | 存在时 receiver MAY 据此核验组织归属。 | 控制该恢复方的组织。 |
+
+规则（normative）：
+
+- **粒度 = 组织组合，不在 Realm 上加旋钮**：爆炸半径 = 某 org 拥有的 Realm 集合；要更细隔离就把敏感 Realm 的 `owning_organizations` 指向更细的 org（例如独立的 HR org），而不是给 Realm 加 RRK 粒度机制。父组织保留访问 = 把父 org 的 RRK 也列入 `recovery_recipients`（显式、成员可见，无暗继承）。
+- **域隔离**：`verification_method` 指向的 RRK MUST 是 history-recovery 域专用 key，独立于 `principal_id` 的 `did_recovery` 域钥匙（[`../identity/key-management.md` §7.1](../identity/key-management.md)）；攻破"能解 Realm 历史"MUST NOT 等于"能改组织身份"。
+- **成员可见**：`mode != none` 时客户端 MUST 按 [`../crypto-media/encryption-and-audit.md` §2.10.8](../crypto-media/encryption-and-audit.md) 披露义务向成员展示恢复方可验证身份与 mode。
+- **写入路径**：`durability_policy` 经 `ck.realm.policy_components` 写入（不新增 event kind），随 `policy_revision` 单调推进；变更 MUST 由后续 `ck.mls.commit` 覆盖 frontier 后对新 epoch 的封存义务生效。
+- **scheme 约束**：`mode != none` 仅在 `content_scheme=mls-exporter-aead-v1` 时有效；在 `mls-rfc9420` Realm 上声明 `mode != none` MUST `failed_precondition`（reason=`durability_scheme_incompatible`），因为后者无可交付 `history_secret`。
 
 ### 2.4 最小示例
 

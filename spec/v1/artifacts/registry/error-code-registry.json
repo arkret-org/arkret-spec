@@ -3048,6 +3048,27 @@
       "description": "Sub-reason for failed_precondition when a ck.realm.policy_components or ck.circle.update would lower a scope's effective content_encryption_floor from e2ee_required back to allow_plaintext. The effective content encryption floor is a one-way ratchet (monotonically non-decreasing); tightening is allowed, lowering is rejected. See zh/models/realm-and-space.md §2.5 and zh/models/circle.md §7."
     },
     {
+      "code": "durability_scheme_incompatible",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "Sub-reason for failed_precondition when a ck.realm.policy_components write declares durability_policy.mode != none on a Realm whose content_scheme is not mls-exporter-aead-v1. mls-rfc9420 Realms have no deliverable history_secret, so Realm Recovery Key (RRK) durability is structurally unavailable. See zh/models/realm-and-space.md §2.3.1 and zh/crypto-media/encryption-and-audit.md §2.10.8."
+    },
+    {
+      "code": "durability_recovery_recipient_unverified",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "Sub-reason for failed_precondition when an RRK durability seal cannot resolve a durability_policy.recovery_recipients[].verification_method to a verification method designated by an active CokretRealmHistoryRecoveryKey service entry published by the named principal_id. The sealer MUST fail closed and MUST NOT fall back to any other key. See zh/crypto-media/encryption-and-audit.md §2.10.8 and zh/identity/identity-did.md §8.3."
+    },
+    {
+      "code": "durability_seal_missing_before_gc",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "Sub-reason for failed_precondition raised when a member would GC an epoch's history_secret before the RRK durability ck.realm_key.share for every durability_policy.recovery_recipients[] is accepted (read-your-writes), i.e. the eager-seal precondition is unmet. The member MUST retain history_secret[N] until the durability seal is accepted or the policy no longer requires it. See zh/crypto-media/encryption-and-audit.md §2.10.8 and §2.10.5."
+    },
+    {
       "code": "metadata_encryption_floor_downgrade",
       "applies_to": [
         "state_resolution"

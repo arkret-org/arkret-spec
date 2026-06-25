@@ -548,6 +548,17 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
 - 组织 DID 的密钥轮换、恢复和停用 MUST 进入 DID method 的可验证历史。
 - 组织所有权转移 MUST 由原控制状态授权，并生成可验证 transfer / recovery 记录；实现 MUST NOT 因域名、商标或 UI 文案变化自动认定组织所有权转移。
 
+#### Organization principal 与 Account Authority 边界（normative）
+
+Organization principal 是一个可控制的 DID principal，有 DID Document、governance policy、delegated service 和 Principal Control Realm（PCR）等控制状态；它不是一个供多人共享密码登录的人工账号。实现 MUST NOT 为组织 principal 定义共享用户名 / 共享密码 / 共享 human session，并把这种凭据当作组织控制权。成员、管理员或自动化服务登录时，登录的是自己的 principal 或 service principal；代表组织执行动作时，必须额外出示组织 DID 控制状态、governance service attestation、threshold proof 或 DID Document 中声明的 service delegation。
+
+组织 PCR genesis 只能由下列授权之一创建或接受：
+
+1. 组织 DID method inception / controller key 的证明，且证明绑定 `principal_control_realm_id`、`fields.purpose="principal_control"` 和 `ck.profile.principal_control_realm.v1`。
+2. 组织 DID Document / governance profile 显式委派的 Account Authority 或 `CokretGovernanceService`，其 delegation purpose MUST 覆盖 `principal_control_realm_bootstrap`，事件 MUST 记录实际执行主体（例如 `executed_by` 或组织侧 governance decision id），且接收方必须按事件时间解析该 delegation。
+
+OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证；它本身不是组织 DID 控制证明。Account Authority MAY 在验证企业 IdP 结果后为该自然人签发 `ck.session.grant`，也 MAY 按组织治理策略触发组织 DID / PCR 的托管创建流程；但最终写入组织 PCR、组织 DID delegation 或 `ck.realm.organization` 的事件仍 MUST 绑定组织授权证据。客户端和服务器 MUST NOT 把 IdP 的 `sub`、域名归属、租户管理员 UI 或 Auth-side session 直接等同为 Organization principal 控制权。
+
 #### 标准 service entry 类型
 
 | `type` | 适用 DID 主体 | 用途 | 引用规范 |
@@ -556,6 +567,7 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
 | `CokretPrincipalServer` | Principal / Organization | 该 DID 的默认服务发现入口（非强制投递入口） | §3 |
 | `CokretContinuityProof` | Principal / Organization | 原 DID 暴露的 continuity proof 获取入口（迁移时 MUST 暴露） | §4.2 |
 | `CokretContinuityAccepted` | Principal / Organization | 新 DID 暴露的反向 continuity acceptance（迁移时 MUST 暴露） | §4.2 |
+| `CokretRealmHistoryRecoveryKey` | Organization / Principal | 指定该主体的离线 Realm 历史恢复公钥（RRK），供 Realm `durability_policy` 引用 | §8.3 |
 
 客户端判断“谁控制该组织”时，应验证：
 
@@ -599,6 +611,45 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
 1. recovery policy 必须在事故前写入 DID method history 或 governance profile，包含 threshold、recovery service / guardian、cooldown、通知和审计要求。
 2. 恢复事件必须绑定 incident id、旧 history head、新 key set、失效 key set、原因和生效延迟。
 3. 客户端在 cooldown 内 SHOULD 显示高风险状态；高风险 Realm MAY 冻结组织 admin 动作，直到 recovery witness / approval 完成。
+
+### 8.3 Realm History Recovery Key（RRK，normative）
+
+`CokretRealmHistoryRecoveryKey` service entry 指定该主体（通常是 Organization Principal）持有的一把**离线 Realm 历史恢复公钥（RRK）**。它供 Realm `durability_policy.recovery_recipients[]` 引用，使组织在该 Realm 全体成员设备失效或全员离职后仍能解开历史（机制见 [`../crypto-media/encryption-and-audit.md` §2.10.8`](../crypto-media/encryption-and-audit.md)，策略字段见 [`../models/realm-and-space.md` §2.3.1`](../models/realm-and-space.md)）。
+
+```json
+{
+  "verificationMethod": [
+    {
+      "id": "did:webvh:zQ3shAcmeGovScidVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example#realm-history-recovery-1",
+      "type": "Multikey",
+      "controller": "did:webvh:zQ3shAcmeGovScidVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
+      "publicKeyMultibase": "z..."
+    }
+  ],
+  "keyAgreement": [
+    "did:webvh:zQ3shAcmeGovScidVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example#realm-history-recovery-1"
+  ],
+  "service": [
+    {
+      "id": "did:webvh:zQ3shAcmeGovScidVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example#realm-history-recovery",
+      "type": "CokretRealmHistoryRecoveryKey",
+      "serviceEndpoint": {
+        "verificationMethod": "did:webvh:zQ3shAcmeGovScidVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example#realm-history-recovery-1",
+        "kem": "hpke",
+        "domain": "mls_history"
+      }
+    }
+  ]
+}
+```
+
+规则：
+
+- RRK 的 HPKE 公钥 MUST 以标准 `verificationMethod`（`type=Multikey`）承载，并 MUST 同时被 `keyAgreement` 关系引用（它用于 encryption-to / 密钥协商）。`CokretRealmHistoryRecoveryKey` service entry 的 `serviceEndpoint.verificationMethod` MUST 指向该 VM，`serviceEndpoint.domain` MUST 为 `mls_history`。
+- **域隔离（MUST）**：RRK MUST 独立于该主体 `did_recovery` 域的恢复钥匙（[`key-management.md` §7.1`](./key-management.md)）。同一把 key MUST NOT 既作 `did_recovery` 又作 `CokretRealmHistoryRecoveryKey`；攻破"能解 Realm 历史"MUST NOT 等于"能改该主体身份"。
+- **引用校验**：Realm `durability_policy.recovery_recipients[].verification_method` MUST 等于某个 `principal_id` 当前 DID Document 中、被一条 active `CokretRealmHistoryRecoveryKey` service entry 指定的 VM；解析不到、已撤销或未被该 service entry 指定时，封存方 MUST fail closed（`durability_recovery_recipient_unverified`），MUST NOT 回退到任意 key。
+- **轮换按时点解析**:RRK 轮换进入 DID method 可验证历史；receiver 复验历史 RRK 封存的 `ck.realm_key.share` 时 MUST 按封存 Event 的 accepted-at 对该主体 DID 做按时点解析，用当时 active 的 RRK 验证，与 §4.2 / [`key-management.md` §5.0.6`](./key-management.md) 的按时点解析纪律一致。
+- RRK 私钥的离线保管、门限拆分与释放走 [`key-management.md` §8`](./key-management.md) recovery policy（24 词 / threshold / hardware），subject 为该 principal、域为 history-recovery。
 
 ## 9. 验证规则
 

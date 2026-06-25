@@ -210,6 +210,8 @@ MLS KeyPackage key 用于加入加密 Realm。
 
 `principal_control_realm_id` MUST 可通过 DID Document service、normalized principal view、device/key server describe endpoint 或本地 account binding 验证。客户端无法验证 control Realm 与 principal DID 的绑定时，MUST fail closed：不得接受该 principal 的新 device grant、session grant、KeyPackage 或 device revocation 状态。
 
+Organization principal 的 control stream 遵守同一 PCR 规则，但它没有共享 human password account。组织 PCR 的 genesis / recovery / delegated write MUST 由组织 DID inception/controller proof、满足组织 governance threshold 的 proof、或组织 DID Document / governance profile 明确委派的 Account Authority / `CokretGovernanceService` 授权。委派路径的 purpose MUST 覆盖对应动作（例如 `principal_control_realm_bootstrap`、`device_enrollment`、`session_issuer` 或 `ck.realm.organization`），且事件必须保留实际执行主体（`executed_by`、governance decision id 或等价审计 ref）。普通企业 SSO/OIDC/passkey 登录只认证某个管理员 principal；它不能单独创建、登录或控制组织 PCR，除非该 Account Authority 同时出示上述组织侧 delegation / governance proof。
+
 实现 MAY 用 identity sidecar、device registry 或 DID/key-log operation 存储同一状态，但它们必须提供等价的签名、digest、auth dependency 和撤销语义；桥接到 Event Envelope 时仍必须遵守上述 `realm_id` 规则。
 
 ## 5. 设备授权流程
@@ -496,6 +498,7 @@ Cokret v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata 
 - AEAD AAD MUST 绑定 `actor_id`、`device_id`、`backup_class`、`backup_version`、item type、created_at 和 schema/profile id，防止把 ciphertext 从一个域重放到另一个域。
 - 即使用户选择同一个 passphrase，客户端也必须先用 KDF 得到 root unlock key，再用 `HKDF(root, info="cokret-key-backup/<backup_class>/<subdomain>/v1")` 派生域内子密钥；不得复用裸 KDF 输出。
 - `did_recovery` 域不得和 `mls_history` 域共享 wrap key、recovery share 或 key commitment。攻破 `mls_history` backup key 不得允许 DID rotate / recover；攻破 DID recovery share 也不得直接解密 MLS 历史。
+- **组织 / Realm Recovery Key（RRK）属 history-recovery 域**：Realm `durability_policy` 引用的 RRK（[`identity-did.md` §8.3](./identity-did.md)、[`../models/realm-and-space.md` §2.3.1](../models/realm-and-space.md)）是 principal（通常为 Organization）持有的、用于解 Realm 历史的 HPKE 接收钥匙，与本域 `mls_history` 同性质而作用域为 Realm。它 MUST 独立于该 principal 的 `did_recovery` 钥匙：同一把 key MUST NOT 既作 `did_recovery` 又作 `CokretRealmHistoryRecoveryKey`。RRK 私钥的离线保管 / 门限 / 硬件释放复用 §8 recovery policy（subject = 该 principal、域 = history-recovery）。
 - `self_signing_key` / `user_signing_key` 与 MLS group secrets backup key MUST 分成不同 backup envelope 或不同 subdomain key，并 SHOULD 要求不同 passphrase、硬件保护或门限恢复策略。**单一 passphrase 同时控制身份签名和 E2EE 历史**的失败模式在任何部署上都不可接受。只有 `ck.profile.personal_node.v1` MAY 接受 `mixed_secret_storage=true` 的本地备份 envelope；`small_team`、`organization`、`high_security_organization`、`sovereign_deployment` 等 profile MUST 拒绝该 flag。mixed 模式若使用 `passphrase_kdf`，MUST 使用 Argon2id 且 `memory_kib >= 262144`、`iterations >= 4`、`parallelism >= 1`。
 
 以下材料 MAY 进入客户端加密备份，但 MUST 只以密文形式保存：

@@ -1601,9 +1601,27 @@
       "if": {
         "properties": {
           "kind": {
+            "const": "ck.realm.organization"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_organization_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
             "enum": [
               "ck.realm.upgrade",
-              "ck.realm.organization",
               "ck.realm.link",
               "ck.organization.discovery",
               "ck.actor.discovery",

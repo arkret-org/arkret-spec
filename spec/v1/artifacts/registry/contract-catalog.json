@@ -108,9 +108,23 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Realm official or sponsoring organization statement",
+        "payload": "Organization-authorized Realm relationship statement or revocation",
         "cell_family": "ck.component.realm.organization.v1",
-        "cell_subject": null,
+        "cell_subject": {
+          "type": "tuple",
+          "components": [
+            {
+              "name": "organization_id",
+              "type": "did",
+              "field": "payload.organization_id"
+            },
+            {
+              "name": "relationship",
+              "type": "string",
+              "field": "payload.relationship"
+            }
+          ]
+        },
         "lattice": "cas_register",
         "bottom": "reject"
       },
@@ -2005,7 +2019,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "crypto_verifiable",
-        "payload": "Realm key share"
+        "payload": "Realm key share: member-device history key delivery or RRK durability seal"
       },
       {
         "event_kind": "ck.realm_key.withheld",
