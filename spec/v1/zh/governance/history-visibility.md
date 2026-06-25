@@ -129,6 +129,8 @@ Preview policy MUST 满足：
 
 上述 1–2 是 history-visibility 本身的判定；3 引用 device-lifecycle §13 的 canonical 列表。如果任一条件不满足，key source MUST 发送 `ck.realm_key.withheld` 或等价诊断，并使用 `history_not_visible`、`not_member`、`policy_denied` 或更具体 reason。Key source MUST NOT 因为自己持有 backup、Archive Node 副本或 service operator 权限而跳过这些检查。
 
+本节只规定**被选中的 source 交付前必须满足的条件**；接收方如何**发现、选择并请求**一个具体 key source（policy 允许的 `key_sources` ∩ `ServiceDescribe` 声明可用的途径，按优先级，经 `ck.realm_key.request` 发起或 `key_backup` unlock 取回），见 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §13.2。
+
 ## 7. 测试向量要求
 
 实现声明支持 `ck.profile.e2ee_client.v1`、Directory preview、或 `ck.realm.preview_policy` 时，MUST 覆盖以下行为：

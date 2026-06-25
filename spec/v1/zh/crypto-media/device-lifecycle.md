@@ -1181,6 +1181,60 @@ Cokret 使用 `ck.realm_key.share` 共享历史解密材料。共享前发送设
   - 被重新请求的授权来源 MUST 独立重跑本节完整闸门——读资格是必要非充分条件，授权来源不得因 reader 读资格成立就跳过 T0 / device / audit 校验。
   - 若当前无任何授权来源可服务，事件停在 `decryption_pending`，超时后按 §2.3.4 转 `decryption_failed`，日后仍可经 §2.3.5 late key recovery 解锁。任何时点都不得出现"读资格成立却被标记为永久不可解"的终态。
 
+### 13.2 历史 key 请求、来源发现与选择（normative）
+
+§13 / §13.1 规定了 key source **交付**前的资格与扣留语义；本节规定接收方**如何发现、选择并向具体来源发起请求**——这是与交付独立的发现 + 请求流程。
+
+**`ck.realm_key.request`**——read-eligible 的接收方向某个 key source 发起的历史 key 请求。它是 **ephemeral to-device 触发信号**（`wire_scope=ephemeral_event`、非 reducer-input durable event，与 `ck.key.verification.request` 同类），使用 [`device-message.schema.json`](../../artifacts/schemas/device-message.schema.json) 的 `DeviceMessageEnvelope.content`，经 device message 队列中继到 `target_source_ref` 指向的来源；它不进入 reducer state、不需 effects/seal，也不得使用 durable `EventEnvelope`。content 字段顺序对齐本表：
+
+| 字段 | 必填 | 说明 |
+| --- | --- | --- |
+| `key_scope` | yes | 请求的 `effective_scope`、`from_epoch` / `to_epoch`（请求的 epoch 区间）。 |
+| `recipient_principal_id` | yes | 接收主体 DID（MUST == 请求签名者，§13.2 校验 1）。 |
+| `recipient_device_id` | yes | 接收设备 id。 |
+| `recipient_hpke_public_key` | yes | 用于封装 `history_secret` 的接收设备公钥（KeyPackage init key 或等价设备公钥）。 |
+| `requested_source_class` | yes | 本次面向的来源类别，取 `own_device` / `verified_member_device` / `archive_node` / `recovery_service`。**不含 `key_backup`**——它走 `ck.self.keys.backups.command.unlock`、不经本请求。 |
+| `target_source_ref` | yes | 本请求路由到的**具体来源**：peer（`own_device` / `verified_member_device`）为目标 `device_id`，service（`archive_node` / `recovery_service`）为 service DID。若 service 复用本 to-device kind，`DeviceMessageEnvelope.recipient_principal_id` MUST 等于该 service DID，`recipient_device_id` MUST 是该 service 在 describe 中暴露的具体队列 / 设备目标；未暴露时 MUST 走服务专有 operation。无该字段则 relay / service 路由与审计无法定位来源。 |
+
+**触发**：接收方在某 Event 处于 `decryption_pending` 且自身在该 Event 的 `T0` read-eligible（[`../governance/history-visibility.md`](../governance/history-visibility.md) §3）时 MAY 发起；对 `decryption_failed` 的 late recovery 同样适用（§2.3.5）。`ck.realm_key.request` 只是发起信号，不降低任何授权要求——被请求来源 MUST 独立执行 §13 canonical 校验后才交付。
+
+**两类场景的来源不同（normative）**：
+
+- **同 principal 恢复**——已是成员、在新设备上恢复或丢设备后恢复**自己已有权读取**的历史。来源为 `own_device`（同 principal 另一台在线设备）或 `key_backup`（**接收方本人的** `mls_history` key backup，加密于其本人 recovery key 之下、经 unlock 取回；见 [`../identity/key-management.md`](../identity/key-management.md) §7.7 与 `backup_class="mls_history"`）。`mls_history` backup 只装"用户已有权读取的"历史，故 `key_backup` 只适用本场景。
+- **跨 principal 新成员**——首次加入、获取 join 前**从未持有**的历史。来源为 `verified_member_device`（现有成员重新分享其保留的 `history_secret`）、`archive_node` 或 `recovery_service`。**`own_device` / `key_backup` 不适用**：新成员从未有权读取这些 epoch，其本人 backup 里也不会有它们。
+
+**来源选择 = 三层求交（normative）**：接收方选择来源 MUST 同时满足——
+
+1. **policy 允许**：来源类别在 effective `ck.realm.history_sharing_policy` 命中 rule 的 `key_sources` 内（§13 / history-visibility §6 / §3.1）。
+2. **describe 可用**：该来源对应能力在权威 `ServiceDescribe.supported_features` 中声明——按 [`../sync/service-surface.md`](../sync/service-surface.md) §3 的能力发现原则，客户端 MUST 以 describe 为权威发现面，不得对猜测 endpoint 直接探测。
+3. 取 `policy 允许 ∩ describe 可用` 的交集，**先按上文场景筛掉不适用的来源**，再按优先级逐一尝试——同 principal 恢复推荐 `own_device` → `key_backup`；跨 principal 新成员推荐 `verified_member_device` → `archive_node` → `recovery_service`；部署 MAY 在 Realm policy 覆盖该顺序。交集为空时事件停在 `decryption_pending`（§13.1 末条），不得报永久不可解。
+
+**服务端能力广告**：服务端 MUST 通过 `ServiceDescribe.supported_features` 声明其支持的历史 key 投递途径：
+
+- `ck.feature.realm_key.backup_retrieval.v1`：托管 key_backup 取回（`POST /_cokret/self/keys/backups/{backup_id}/unlock`，见 [`../identity/key-management.md`](../identity/key-management.md) §7.7）。
+- `ck.feature.realm_key.peer_relay.v1`：中继 peer 的 `ck.realm_key.request`（device-to-device，经 device message 队列投递）；授权后的 `ck.realm_key.share` / `ck.realm_key.withheld` 仍是 durable event，队列 MAY 只投递其 event ref / 通知。
+- `ck.feature.realm_key.archive_retrieval.v1`：作为 archive_node 服务历史 key。
+
+`archive_node` / `recovery_service` / `key_recovery_service` 是独立 `service_type`（service-surface §3 注册值），其取回 endpoint 由 Realm policy 点名的 service DID 各自 describe 暴露。
+
+**每来源的请求 / 取回映射**：
+
+- `key_backup`：走 `ck.self.keys.backups.command.unlock`（unlock proof，§7.7），**不**使用 `ck.realm_key.request`。
+- `verified_member_device` / `own_device`：发 `ck.realm_key.request` 给目标设备，服务端按 `peer_relay` 中继；目标设备校验 §13 闸门后提交 durable `ck.realm_key.share` 或 `ck.realm_key.withheld`（MAY 另经 to-device 队列通知接收方对应 event ref）。
+- `archive_node` / `recovery_service`：按该服务 describe 声明的 endpoint 取回；只有当 describe 暴露可接收 `DeviceMessageEnvelope` 的具体 queue/device target 时 MAY 复用 `ck.realm_key.request`，否则 MUST 使用服务专有 operation。
+
+**请求合法性校验（normative）**：`ck.realm_key.request` 是非授权性的**触发信号**——被请求 source MUST NOT 因为收到请求就交付，而是独立按 §13 canonical 闸门 + 授权事件日志 fail-closed 重验下列**全部**，任一不过 MUST 回 `ck.realm_key.withheld`：
+
+1. **只能为自己请求**：`recipient_principal_id` MUST == 请求事件**签名者**的 principal；不接受代他人请求。
+2. **recipient 在目标范围 `T0` eligible**：按 Realm 事件日志中 recipient 的 `ck.member.state` 判定其在 `key_scope` 各 epoch 的 `T0` 为 read-eligible（history-visibility §3）；membership 取自**签名事件日志**，不取自请求自述。
+3. **policy 允许**：effective `ck.realm.history_sharing_policy` 命中 rule 覆盖该 receiver class、`key_scope` 区间与本 source 类别（含 `restricted_rules[].key_sources`）。
+4. **请求来自 recipient 的授权设备**：`ck.realm_key.request` 的签名 MUST 链到 recipient principal 在 `T0` 当前授权的设备。
+5. **seal 目标属于 recipient**：`recipient_hpke_public_key` MUST 是该 recipient principal 的**已授权设备**公钥（对 KeyPackage / device-list 校验），防止把历史 seal 到未授权 key。
+
+合法性来自 source 对授权事件日志的**重验**，而非对请求内容的信任；伪造的请求无法越过 membership / device / policy 任一关。
+
+**push 豁免与落点（优化路径，normative）**：持有相应 `history_secret` 且已确认接收方 read-eligible 的 source MAY 不等 `ck.realm_key.request`、直接提交 durable `ck.realm_key.share`，仍 MUST 通过 §13 完整闸门与上述等价 recipient/device/policy 校验。其可行**落点是 admission（发 `ck.mls.welcome` 之时），不是 invite 之时**——invite 时被邀请者尚未发布 KeyPackage / 设备公钥，无可封装目标，故 invite 只能携带历史**资格意图**（policy 声明该 invitee 可看的 range），不能携带 sealed key。到 admission 时 admin 已 claim 到被邀请者 KeyPackage（即构造 Welcome 所用的同一把），故可在同一流程顺手 seal `history_secret[from..to]` 并提交 share，无额外往返；admin 不持有的更早 epoch 由 receiver 事后按本节 pull 补全。
+
 ## 14. Cross-Signing Reset
 
 重置 `self_signing_key` 或 `user_signing_key` 是高风险操作。实现 MUST 要求以下至少一种证明：
