@@ -2731,6 +2731,10 @@ components:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_provision_request_body
     AgentProvisionOutcome:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_provision_outcome
+    AgentProtocolDiscoverRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_request_body
+    AgentProtocolDiscoverOutcome:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_outcome
     AgentList:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_list
     AgentView:
@@ -2980,6 +2984,10 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody
     DirectoryWithdrawOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawOutcome
+    DirectoryTakedownAppealRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealRequestBody
+    DirectoryTakedownAppealOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealOutcome
   responses:
     NotFound:
       description: Not found or not visible.
@@ -5791,6 +5799,28 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DirectoryWithdrawRequestBody'
+  /_cokret/find/directory/takedown/appeal:
+    post:
+      operationId: ck.find.directory.command.takedown_appeal
+      security:
+      - bearerAuth: []
+      - httpMessageSignature: []
+        sourceServiceDid: []
+        destinationServiceDid: []
+        contentDigest: []
+      responses:
+        '200':
+          description: Signed decision receipt acknowledging the takedown appeal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DirectoryTakedownAppealOutcome'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DirectoryTakedownAppealRequestBody'
   /_cokret/find/directory/search-realms:
     post:
       operationId: ck.find.directory.query.search_realms
@@ -7320,6 +7350,25 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AgentProvisionRequestBody'
+  /_cokret/self/agents/discover:
+    post:
+      operationId: ck.self.agent.protocol.query.discover
+      description: Discover an agent runtime's declared external protocol endpoints from the public ck.agent.endpoint registry projection (agent-protocol-interop.md §5.1).
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Agent protocol endpoint projection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentProtocolDiscoverOutcome'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentProtocolDiscoverRequestBody'
   /_cokret/self/agents/{agent_principal_id}:
     get:
       operationId: ck.self.agent.resource.get

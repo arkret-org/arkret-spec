@@ -18,13 +18,13 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 174,
+    "total_operations": 176,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 1,
       "service_describe": 7,
       "streaming_frame_schema": 2,
-      "typed_schema": 162
+      "typed_schema": 164
     },
     "by_tier_and_class": {
       "core": {
@@ -39,7 +39,7 @@
         "binary_or_redirect": 2,
         "no_request_body": 1,
         "service_describe": 2,
-        "typed_schema": 110
+        "typed_schema": 112
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -205,6 +205,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/DirectoryAnnounceRequestBody",
         "response": "#/components/schemas/DirectoryAnnounceOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.find.directory.command.takedown_appeal",
+      "tier": "extension",
+      "http": "POST /_cokret/find/directory/takedown/appeal",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealOutcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/DirectoryTakedownAppealRequestBody",
+        "response": "#/components/schemas/DirectoryTakedownAppealOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1246,6 +1260,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/AgentParticipationReplaceRequestBody",
         "response": "#/components/schemas/AgentParticipationOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ck.self.agent.protocol.query.discover",
+      "tier": "extension",
+      "http": "POST /_cokret/self/agents/discover",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_request_body",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/AgentProtocolDiscoverRequestBody",
+        "response": "#/components/schemas/AgentProtocolDiscoverOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

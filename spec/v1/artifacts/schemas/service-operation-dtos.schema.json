@@ -1337,6 +1337,93 @@
         }
       }
     },
+    "DirectoryTakedownAppealRequestBody": {
+      "type": "object",
+      "description": "Resource-side appeal packet against an operator takedown; the bound fields and governance signature are normative per discovery-directory.md §8.7.",
+      "additionalProperties": false,
+      "required": [
+        "takedown_id",
+        "resource_id",
+        "appellant_did",
+        "argument_digest",
+        "requested_outcome",
+        "created_at",
+        "governance_proof"
+      ],
+      "properties": {
+        "takedown_id": {
+          "type": "string",
+          "description": "The operator takedown_id from the takedown notice.",
+          "pattern": "^takedown:[A-Za-z0-9._:-]{1,128}$"
+        },
+        "resource_id": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^ck:(realm|applet):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            {
+              "$ref": "#/$defs/ActorDid"
+            },
+            {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9._+-]{0,127}:[a-z0-9.-]{1,253}$"
+            }
+          ]
+        },
+        "appellant_did": {
+          "$ref": "#/$defs/ActorDid"
+        },
+        "argument_digest": {
+          "type": "string",
+          "description": "Digest of the appeal argument / evidence bundle (sha256:<hex>).",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "requested_outcome": {
+          "type": "string",
+          "enum": [
+            "overturn",
+            "reduce_scope",
+            "reinstate"
+          ]
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "governance_proof": {
+          "type": "object",
+          "description": "Signature by the resource governance key or an authorized advocate, equivalent strength to withdraw.governance_proof.",
+          "additionalProperties": true
+        }
+      }
+    },
+    "DirectoryTakedownAppealOutcome": {
+      "type": "object",
+      "description": "Signed decision receipt acknowledging an appeal submission per discovery-directory.md §8.7 step 3.",
+      "additionalProperties": false,
+      "required": [
+        "appeal_id",
+        "received_at",
+        "decision_receipt"
+      ],
+      "properties": {
+        "appeal_id": {
+          "type": "string",
+          "description": "Directory-local audit reference for the appeal; not a registered ck:<kind> typed ID.",
+          "pattern": "^appeal:[A-Za-z0-9._:-]{1,128}$"
+        },
+        "received_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "decision_receipt": {
+          "type": "object",
+          "description": "Signed Directory decision receipt; status pending until adjudicated.",
+          "additionalProperties": true
+        }
+      }
+    },
     "EphemeralSubmitOutcome": {
       "type": "object",
       "description": "Result of ck.ephemeral.send. `accepted=true` means the Sync Service\nadmitted the short-lived signal into its ephemeral fanout path. No\nEvent ID, actor_seq, Seal coverage, or durable receipt is minted.\n",

@@ -416,6 +416,37 @@
       }
     },
     {
+      "operation_id": "ck.self.agent.protocol.query.discover",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_request_body",
+        "schema_kind": "object",
+        "required": [
+          "agent_id"
+        ],
+        "properties": [
+          "agent_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_outcome",
+        "schema_kind": "object",
+        "required": [
+          "agent_id",
+          "supported_protocols"
+        ],
+        "properties": [
+          "agent_id",
+          "supported_protocols",
+          "agent_card_url",
+          "metadata_url",
+          "endpoint_url"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ck.self.agent.resource.get",
       "success_shape_kind": "typed_response",
       "response": {
@@ -2357,6 +2388,48 @@
         "properties": [
           "withdrawal_ref",
           "acked_at"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ck.find.directory.command.takedown_appeal",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealRequestBody",
+        "schema_kind": "object",
+        "required": [
+          "takedown_id",
+          "resource_id",
+          "appellant_did",
+          "argument_digest",
+          "requested_outcome",
+          "created_at",
+          "governance_proof"
+        ],
+        "properties": [
+          "takedown_id",
+          "resource_id",
+          "appellant_did",
+          "argument_digest",
+          "requested_outcome",
+          "created_at",
+          "governance_proof"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealOutcome",
+        "schema_kind": "object",
+        "required": [
+          "appeal_id",
+          "received_at",
+          "decision_receipt"
+        ],
+        "properties": [
+          "appeal_id",
+          "received_at",
+          "decision_receipt"
         ],
         "closed": true
       }

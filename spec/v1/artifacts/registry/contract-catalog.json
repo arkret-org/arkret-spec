@@ -3599,6 +3599,7 @@
           "ck.find.directory.query.private_contact_discovery",
           "ck.find.directory.command.announce",
           "ck.find.directory.command.withdraw",
+          "ck.find.directory.command.takedown_appeal",
           "ck.find.directory.push.command.register"
         ]
       },
@@ -3843,6 +3844,7 @@
           "ck.gate.account.command.pair_agent_key",
           "ck.self.agent.command.provision",
           "ck.self.agent.query.list",
+          "ck.self.agent.protocol.query.discover",
           "ck.self.agent.resource.get",
           "ck.self.agent.command.pause",
           "ck.self.agent.command.resume",
@@ -3965,6 +3967,16 @@
         "mq": "self.agent.query.list",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_list"
+      },
+      {
+        "operation_id": "ck.self.agent.protocol.query.discover",
+        "http": "POST /_cokret/self/agents/discover",
+        "grpc": "SelfAgent/ProtocolDiscover",
+        "mq": "self.agent.protocol.query.discover",
+        "notes": "Probe the public ck.agent.endpoint registry for an agent's declared external protocol endpoints; returns the projection of an accepted ck.agent.endpoint event (no controller-private fields). Authorized by the ck.agent.protocol.discover capability action (profile ck.profile.agent_runtime.v1). See agent-protocol-interop.md §5.1 / §11 / §12.",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_request_body",
+        "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_outcome"
       },
       {
         "operation_id": "ck.self.agent.resource.get",
@@ -4582,6 +4594,16 @@
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawOutcome"
+      },
+      {
+        "operation_id": "ck.find.directory.command.takedown_appeal",
+        "http": "POST /_cokret/find/directory/takedown/appeal",
+        "grpc": "FindDirectory/TakedownAppeal",
+        "mq": "find.directory.command.takedown_appeal",
+        "notes": "Resource-side appeal against an operator takedown. The appeal packet MUST bind takedown_id, resource id, appellant DID, argument/evidence digest, requested_outcome and created_at, signed by the resource governance key or an authorized advocate; the Directory returns a signed decision receipt. See discovery-directory.md §8.7.",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealRequestBody",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealOutcome"
       },
       {
         "operation_id": "ck.self.events.query.describe",

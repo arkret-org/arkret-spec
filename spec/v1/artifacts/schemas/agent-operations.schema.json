@@ -479,6 +479,57 @@
       },
       "additionalProperties": false
     },
+    "agent_protocol_discover_request_body": {
+      "type": "object",
+      "description": "Probe the public ck.agent.endpoint registry for an agent's declared external protocol endpoints.",
+      "required": [
+        "agent_id"
+      ],
+      "properties": {
+        "agent_id": {
+          "$ref": "#/$defs/did"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_protocol_discover_outcome": {
+      "type": "object",
+      "description": "Projection of an accepted ck.agent.endpoint event (agent-protocol-interop.md §5.1); controller-private fields are not surfaced. supported_protocols is constrained to the §11 adapter registry.",
+      "required": [
+        "agent_id",
+        "supported_protocols"
+      ],
+      "properties": {
+        "agent_id": {
+          "$ref": "#/$defs/did"
+        },
+        "supported_protocols": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "a2a",
+              "acp",
+              "mcp_bridge",
+              "http_custom"
+            ]
+          }
+        },
+        "agent_card_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "metadata_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "endpoint_url": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "additionalProperties": false
+    },
     "agent_list": {
       "type": "object",
       "required": [

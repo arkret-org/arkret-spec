@@ -54,6 +54,7 @@ grpc:
     SelfAgent:
       Provision: ck.self.agent.command.provision
       List: ck.self.agent.query.list
+      ProtocolDiscover: ck.self.agent.protocol.query.discover
       Get: ck.self.agent.resource.get
       Pause: ck.self.agent.command.pause
       Resume: ck.self.agent.command.resume
@@ -159,6 +160,7 @@ grpc:
       SearchUsers: ck.find.directory.query.search_users
       PushRegister: ck.find.directory.push.command.register
       Withdraw: ck.find.directory.command.withdraw
+      TakedownAppeal: ck.find.directory.command.takedown_appeal
     SelfEvents:
       Describe: ck.self.events.query.describe
       Frontier: ck.self.events.query.frontier
@@ -296,6 +298,7 @@ mq:
     gate.account.command.pair_agent_key: ck.gate.account.command.pair_agent_key
     self.agent.command.provision: ck.self.agent.command.provision
     self.agent.query.list: ck.self.agent.query.list
+    self.agent.protocol.query.discover: ck.self.agent.protocol.query.discover
     self.agent.resource.get: ck.self.agent.resource.get
     self.agent.command.pause: ck.self.agent.command.pause
     self.agent.command.resume: ck.self.agent.command.resume
@@ -353,6 +356,7 @@ mq:
     find.directory.query.list_handles_for_subject: ck.find.directory.query.list_handles_for_subject
     find.directory.command.announce: ck.find.directory.command.announce
     find.directory.command.withdraw: ck.find.directory.command.withdraw
+    find.directory.command.takedown_appeal: ck.find.directory.command.takedown_appeal
     find.directory.push.command.register: ck.find.directory.push.command.register
     self.keys.keypackages.upload.create: ck.self.keys.keypackages.upload.create
     self.keys.keypackages.command.claim: ck.self.keys.keypackages.command.claim
