@@ -208,6 +208,14 @@
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
+      "operation_id": "ck.self.agent.protocol.query.discover",
+      "http_alias": "POST /_cokret/self/agents/discover",
+      "operation_specific": [
+        "not_found"
+      ],
+      "description": "Probe the public ck.agent.endpoint registry for an agent's declared external protocol endpoints. Missing, unauthorized, not-visible, or revoked endpoint registrations all collapse into a single not_found surface indistinguishable from nonexistence (matches the ck.find.directory.query.resolve_agent_selector uniform surface); the op never returns candidate endpoints for an agent the caller may not discover."
+    },
+    {
       "operation_id": "ck.gate.account.exchange.complete_oidc",
       "http_alias": "POST /_cokret/gate/account/oidc/callback",
       "operation_specific": [],
@@ -555,6 +563,19 @@
         "signature_invalid",
         "not_found"
       ]
+    },
+    {
+      "operation_id": "ck.find.directory.command.takedown_appeal",
+      "http_alias": "POST /_cokret/find/directory/takedown/appeal",
+      "operation_specific": [
+        "not_found",
+        "directory_not_authorized",
+        "signature_invalid",
+        "signature_stale",
+        "governance_key_invalid",
+        "takedown_in_force"
+      ],
+      "description": "Resource-side appeal against an operator takedown (discovery-directory.md §8.7). not_found covers an unknown takedown_id; directory_not_authorized / governance_key_invalid / signature_invalid / signature_stale cover an appellant whose governance key or authorized-advocate signature does not validate against the resource the takedown targets; takedown_in_force is returned while the takedown remains effective and the appeal has not been overturned. The Directory returns a signed decision receipt on success."
     },
     {
       "operation_id": "ck.self.events.query.describe",

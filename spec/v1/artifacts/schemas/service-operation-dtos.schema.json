@@ -2566,6 +2566,18 @@
           "type": "string",
           "format": "date-time"
         },
+        "grant_id": {
+          "$ref": "./common-ids.schema.json#/$defs/grant_id",
+          "description": "Stable id of the issued session grant. Returned for every grant (human and agent) so the client can reference, refresh, introspect or revoke this exact grant without re-parsing the opaque session_grant. Mirrors SessionGrantRefreshOutcome.grant_id."
+        },
+        "session_public_key": {
+          "type": "string",
+          "description": "JWK of the holder/session key the grant is bound to (the device holder key). The client needs this to perform RFC 9421 PoP and to derive the DPoP cnf.jkt for /_cokret/self/* requests (api-conventions.md §3.2 / §3.3); returning it at issue time avoids a mandatory introspect round-trip before the first self-path request. Equals the grant's bound session_public_key for both human and agent grants. Mirrors SessionGrantRefreshOutcome.session_public_key."
+        },
+        "audience": {
+          "type": "string",
+          "description": "Audience the grant is bound to (the Principal Server / service the grant is valid for). MUST equal the grant's bound audience. Mirrors SessionGrantRefreshOutcome.audience."
+        },
         "granted_scope": {
           "type": "array",
           "items": {

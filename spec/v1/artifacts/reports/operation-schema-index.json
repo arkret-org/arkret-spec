@@ -154,6 +154,9 @@
           "device_id",
           "session_grant",
           "expires_at",
+          "grant_id",
+          "session_public_key",
+          "audience",
           "granted_scope",
           "scope_details"
         ],

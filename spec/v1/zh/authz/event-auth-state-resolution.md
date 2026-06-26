@@ -260,16 +260,46 @@ Seal 的累计控制面覆盖集不作为必需 wire 字段出现，而由递归
 covered_set(S) = set(S.delta) union covered_set(P) for every P in S.predecessor_refs
 ```
 
-Seal MUST 签 `control_event_set_root`。默认 root 是对 canonical 升序 `covered_set(S)` 的 RFC6962 Merkle root：
+Seal MUST 签 `control_event_set_root`。默认 root 是对 canonical 升序 `covered_set(S)` 的 RFC 6962 Merkle root，**精确字节规则按 §6.2.2 的统一 Seal Merkle 组合规则**（leaf = `H(0x00 || event_digest_raw_bytes)`，内部节点 = `H(0x01 || left || right)`，`H` 为该 Realm 声明的 hash suite，v1 default `sha256`）：
 
+- leaf 顺序：`covered_set(S)` 内每个控制面 `event_digest` 按其 `<suite>:<hex>` wire 值的 Unicode code point 升序排列；进入树前 MUST 去掉 `sha256:` 前缀并解码为 raw bytes 作为 `H(0x00 || …)` 的输入（§6.2.2）；
 - inclusion proof 使用 Merkle audit path；
 - non-membership proof 使用 sorted-neighbor proof；
-- 空集合 root 使用 RFC6962 空树 root；
+- 空集合 root 使用 §6.2.2 定义的 RFC 6962 空树 root（`H` over the empty byte string）；
 - 更复杂的 radix trie / zkVM state proof MAY 在后续规范中作为规模触发机制定义，但 v1 core 不依赖它。
 
 `control_event_set_root` 是 `seal_basis`、控制面 receipt obligation、inclusion list、censorship evidence 与 seal transparency 的共同锚点。`delta[]` 只是本批新增集合；root 承诺的是递归覆盖集。Compaction Seal MAY 显式携带 `covered_event_digests[]`，但 receiver MUST 验证它等于 `delta[]` 与所有 predecessor 覆盖集的并集。
 
 **Compaction 节律是结构性义务（normative）**：因为累计覆盖集由 `predecessor_refs + delta` 递归定义，compaction Seal（携带 `covered_event_digests[]` 或等价可验证全覆盖 manifest 的 Seal）是新 verifier 唯一的有界 bootstrap 物化点。Realm MUST 在 create payload 中声明 `seal_compaction_max_interval_ms`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json)，默认 86,400,000 ms；`open_set` 部署 MUST ≤ 24h，`threshold` 部署 MUST ≤ 7d，`single_did` SHOULD ≤ 24h）。notary 超出声明间隔仍未签发 compaction Seal 时，receiver SHOULD 触发治理健康告警；新 verifier 此时只能退回从 genesis 走链或从最近已验证 compaction Seal 接链。该义务由 conformance vector `ck.vector.cba_lattice.seal_compaction_interval_enforced.v1` 固定。
+
+### 6.2.1 治理 `state_root` 的 Merkle 计算规则（normative）
+
+Seal 顶层的治理 `state_root`（§6 Seal schema、§4 Control Move `seal_basis.state_root`、§6.3 step 10 "重算治理 state_root"、§7.1 log entry 中的同名字段）是对**当前 joined 治理状态全部 control cell** 的 authenticated Merkle root。它与 §6.2 `control_event_set_root`、§6.4 三个观测 root 同属一个 Seal 的承诺族，**MUST 使用 §6.2.2 的统一 Seal Merkle 组合规则**（带 `0x00` / `0x01` 域分隔），使一个 Realm 实现可对全部 Seal 级 root 共用同一套 Merkle 代码与 conformance vector 形状，并使 governance root 获得与观测 root 同等的 leaf/node 第二原像域分隔。
+
+leaf 集合与顺序：
+
+- **成员**：`state_root` 覆盖**当前 joined 治理视图 `J(L)`（§6.3.1）下每一个 non-`⊥` 物化值的 control cell**——即至少被 `covered(L)` 中某个 Control Move effect 命中、且按其 lattice join 后得到确定值的 control cell。data plane cell 不进入 `state_root`（数据面承诺走 §6.4 `data_view_root`）。
+- **每个 cell 的 leaf 输入**：`leaf_preimage = canonical_json({ "cell": "<cell_wire_id>", "state": <state_object> })`，其中
+  - `<cell_wire_id>` 是该 cell 的 canonical tuple 引用 `ck:cell:<component>:<subject>`（[`conformance/encoding.md` §4](../conformance/encoding.md)）；
+  - `<state_object>` 在 cell 物化为具体值时为 `{ "value": <lattice_value> }`；在 cell 物化为 `⊥`（`failed_bottom`，§9.1.1）需要进入 root 的实现中为 `{ "bottom": <Bottom> }`，且该 `Bottom` 在进入 leaf 前 **MUST 移除 `seal_view` 字段**——`seal_view` 引用 Seal 自身，保留它会在计算 `state_root` 时形成自引用循环；移除后两个仅 `seal_view` 不同的 `⊥` 产生同一 leaf。
+  - `canonical_json` 按 [`conformance/encoding.md` §2](../conformance/encoding.md)（RFC 8785 JCS 同口径）。
+- **leaf hash**：`leaf = H(0x00 || leaf_preimage_utf8_bytes)`（§6.2.2；先取 canonical JSON 的 UTF-8 字节，再前缀 `0x00`）。
+- **leaf 顺序**：按 `<cell_wire_id>` 的 Unicode code point 升序排列；树构造本身不再排序（§6.2.2）。
+
+inclusion proof 使用 Merkle audit path，non-membership 使用 sorted-neighbor proof，与 §6.2 / §6.4 同形。空治理视图（无任何 non-`⊥` control cell）的 `state_root` 为 §6.2.2 的 RFC 6962 空树 root。`apply_seal`（§6.3 step 10/11）重算的 `state_root` MUST 按本规则计算并与 Seal 声明值逐字节比对；不匹配 MUST 拒绝（`rejected_seal`）。
+
+### 6.2.2 Seal Merkle 组合规则（RFC 6962，normative）
+
+本节定义 §6.2 `control_event_set_root`、§6.2.1 `state_root` 与 §6.4 三个观测 root **共用**的 byte-level Merkle 组合规则，使一个实现可共用一套 Merkle 代码。`H` 取该 Realm 声明的 hash suite（v1 default-MUST `sha256`，见 [`conformance/encoding.md` §3.1](../conformance/encoding.md)）；wire 输出形态为 `<suite>:<lowercase_hex>`。
+
+- **leaf**：`leaf = H(0x00 || leaf_data)`。各 root 的 `leaf_data` 由其领域规则给出：`state_root` 为 §6.2.1 的 `leaf_preimage` UTF-8 字节；`data_view_root` 为 `canonical_json(KeyView)` UTF-8 字节（§6.4）；`control_event_set_root` / `data_event_set_root` / `availability_root` 为对应 `<suite>:<hex>` digest 去前缀解码后的 raw bytes（§6.2 / §6.4）。
+- **内部节点**：`node = H(0x01 || left || right)`，`left` / `right` 为左右子节点的 raw hash 输出字节。
+- **leaf 顺序**：树构造本身不排序；各领域规则先声明 leaf 顺序（`state_root` / `data_view_root` 按 cell_id code point 升序；`control_event_set_root` / `data_event_set_root` 按 digest wire 值 canonical 升序；`availability_root` 按 receipt digest canonical 升序）。
+- **奇数层**：某一层节点数为奇数时，尾节点**原样提升**到上一层，**MUST NOT 复制**（RFC 6962：在不超过当前节点数的最大 2 的幂处分割，右子树可较小）。
+- **单 leaf 树**：root 等于该单 leaf 的 `H(0x00 || leaf_data)`（**注意带 `0x00` 前缀**，不是裸 `leaf_data` 的 hash）。
+- **空集合**：root 为 `H` over the empty byte string；`sha256` 下即 `sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`（与 RFC 6962 §2.1 `MTH({}) = SHA-256()` 一致）。
+
+> **与 snapshot Merkle 的区分（normative）**：本组合规则（带 `0x00` / `0x01` 域分隔、单 leaf 带前缀）适用于 **Seal 级 root**；[`conformance/encoding.md` §3.3.1](../conformance/encoding.md) 的 snapshot / event-set Merkle 规则（无前缀、单 leaf 等于裸 digest）适用于 **snapshot `state_digest` 与 event-set commitment**。二者是两个独立的 Merkle 族，实现 MUST NOT 互换：Seal root 用本节规则，snapshot root 用 encoding.md §3.3.1 规则。
 
 ### 6.3 Seal 接受规则
 
@@ -317,12 +347,12 @@ KeyView {
 }
 ```
 
-**观测 root 的计算规则（normative，三个 root 同构）**：
+**观测 root 的计算规则（normative，三个 root 同构）**——三者均按 §6.2.2 的统一 Seal Merkle 组合规则（`leaf = H(0x00 || leaf_data)`、`node = H(0x01 || left || right)`、单 leaf 带前缀、空集合用 RFC 6962 空树 root）计算，仅 `leaf_data` 与 leaf 顺序按各自领域规则不同：
 
-- `data_view_root` = 按 `cell_id` Unicode code point 升序排列的 KeyView 记录的 RFC 6962 Merkle root；leaf 输入为 `H(0x00 || canonical_json(KeyView))`，内部节点为 `H(0x01 || left || right)`，空集合用该 algo 的空树 root。
-- `data_event_set_root` = 该 seal 窗口内 notary 观察到的数据面 `event_digest` 集合（canonical 升序）的 RFC 6962 Merkle root。
-- `availability_root` = 该 seal 窗口内 notary 接受的 AvailabilityReceipt 的 canonical bytes 摘要集合（canonical 升序）的 RFC 6962 Merkle root。
-- 三者的 inclusion proof 一律使用 Merkle audit path，non-membership 一律使用 sorted-neighbor proof——与 §6.2 `control_event_set_root` 的证明形态一致，实现可共用同一套 Merkle 代码与 conformance vector 形状。
+- `data_view_root` = 按 `cell_id` Unicode code point 升序排列的 KeyView 记录的 root；每个 leaf 的 `leaf_data` 为 `canonical_json(KeyView)` 的 UTF-8 字节。
+- `data_event_set_root` = 该 seal 窗口内 notary 观察到的数据面 `event_digest` 集合（按 wire 值 canonical 升序）的 root；每个 leaf 的 `leaf_data` 为对应 digest 去 `sha256:` 前缀解码后的 raw bytes。
+- `availability_root` = 该 seal 窗口内 notary 接受的 AvailabilityReceipt 的 canonical bytes 摘要集合（canonical 升序）的 root；leaf_data 同上为 raw digest bytes。
+- 三者的 inclusion proof 一律使用 Merkle audit path，non-membership 一律使用 sorted-neighbor proof——与 §6.2 `control_event_set_root`、§6.2.1 `state_root` 的证明形态一致，实现共用 §6.2.2 同一套 Merkle 代码与 conformance vector 形状。
 
 轻客户端对单个 data cell 的标准查询凭证是 **KeyViewProof**（wire schema：[`key-view-proof.schema.json`](../../artifacts/schemas/key-view-proof.schema.json)）：`{realm_id, seal_id, data_view_root, key_view, audit_path[]}`，verifier 重算 leaf 并沿 audit path 收敛到该 Seal 签名覆盖的 `data_view_root`。
 

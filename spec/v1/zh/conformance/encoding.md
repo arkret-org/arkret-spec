@@ -594,7 +594,7 @@ _Informative._ 本小节只做导航锚，不搬迁任何 normative 内容；各
 | 编码对象 | canonical 定义位置 |
 | --- | --- |
 | Cell subject 编码(复合 subject hash 形态、标准复合 subject 表) | 本文 §9.5 |
-| `state_root` 的 Merkle 编码与 inclusion 规则 | [`authz/event-auth-state-resolution.md` §4.2](../authz/event-auth-state-resolution.md) |
+| `state_root` 的 Merkle 编码与 inclusion 规则（治理 `state_root` leaf/node 域分隔 + 统一 Seal Merkle 组合规则） | [`authz/event-auth-state-resolution.md` §6.2.1 / §6.2.2](../authz/event-auth-state-resolution.md) |
 | `state_root` / Seal hash 的 wire 形态与 algo 固定规则 | 本文 §3.3 |
 | Hash wire 形态(`<suite>:<hex>`)与 Digest Suite registered set | 本文 §3.1 / §3.2 |
 | Cell tuple 引用形态(`ck:cell:<component>:<subject>`) | 本文 §4(special forms) |
