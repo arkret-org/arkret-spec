@@ -483,6 +483,19 @@
               "items": {
                 "type": "string"
               }
+            },
+            "recipient_method": {
+              "type": "string",
+              "enum": [
+                "passphrase_kdf",
+                "recovery_public_key",
+                "secret_storage_key"
+              ],
+              "description": "SEC-04: the envelope's encryption.recipient_method bound into the AEAD AAD so a ciphertext can never be cross-opened under the wrong recipient interpretation. Sealer and opener reconstruct it byte-identically from the stored envelope; receivers MUST fail closed on a method/AAD mismatch."
+            },
+            "recipient_key_ref": {
+              "type": "string",
+              "description": "SEC-04: the envelope's encryption.recipient_key_ref (recipient key / verification method) bound into the AEAD AAD so the recipient identity is part of the authenticated context."
             }
           },
           "patternProperties": {
