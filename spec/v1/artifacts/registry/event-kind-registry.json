@@ -2118,7 +2118,7 @@
         "field": "payload.target_ref"
       },
       "lattice": "or_set",
-      "bottom": "reject"
+      "bottom": "expose"
     },
     {
       "event_kind": "ck.moderation.decision.lift",
@@ -2133,7 +2133,7 @@
         "field": "payload.target_ref"
       },
       "lattice": "or_set",
-      "bottom": "reject"
+      "bottom": "expose"
     },
     {
       "event_kind": "ck.moderation.appeal.submit",
