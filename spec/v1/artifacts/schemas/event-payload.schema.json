@@ -109,7 +109,7 @@
         },
         "service_acceptance_ref": {
           "$ref": "#/$defs/event_ref",
-          "description": "Reference to the recipient service's prior service_acceptance / endorsement Event. Required when binding_source = explicit or organization_policy; reducer MUST verify the referenced Event is signed by recipient_service_did and its scope covers this Realm."
+          "description": "Reference to the recipient service's prior service_acceptance / endorsement Event. Required when binding_source = explicit, invite, or organization_policy; reducer MUST verify the referenced Event is signed by recipient_service_did and its scope covers this Realm. Producers MUST NOT fabricate this ref for realm bootstrap; bootstrap without real service evidence must use another binding_source with its own evidence or remain unroutable."
         },
         "holder_proof_ref": {
           "$ref": "#/$defs/event_ref",

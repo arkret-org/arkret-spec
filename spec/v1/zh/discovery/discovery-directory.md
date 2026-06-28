@@ -562,6 +562,8 @@ Directory 接受 ingest（无论 push 或 pull）前 MUST 顺序完成：
 
 Operator takedown 的申诉 / 恢复 MUST 形成可验证闭环：
 
+`ck.find.directory.command.takedown_appeal` 是该闭环的标准协议 operation，但它是 **operator takedown 能力的声明式子面**，不是每个 directory service 的无条件必选端点。Directory 只有在 `ck.find.directory.query.describe.supported_operations` 中声明 `ck.find.directory.command.takedown_appeal`，或在 `takedown_contact` / takedown notice 中给出该 HTTP endpoint 时，才 MUST 路由并实现 `POST /_cokret/find/directory/takedown/appeal`。未提供 operator takedown 或只提供离线 / 私有治理联系通道的 Directory MUST 从 `supported_operations` 省略该 operation；省略本身不构成 catalog-completeness 违规。若服务声明了该 operation 却未挂载，或 notice 给出 endpoint 但返回 `unrecognized_endpoint`，则为不合规。
+
 1. takedown notice MUST 向资源 governance contact 提供 `takedown_id`、resource id、policy reason code、evidence digest、effective_at、appeal endpoint / contact 和 Directory service DID signature；
 2. 资源端提交 appeal 时，appeal packet MUST 绑定 `takedown_id`、resource id、appellant DID、argument / evidence digest、requested_outcome 和 created_at，并由资源 governance key 或授权 advocate 签名；
 3. Directory 审核结果 MUST 写入内部 audit log，并返回 signed decision receipt；若 overturned，Directory MUST 在下一次 ingest 或 ≤1h 内解除 `takedown_in_force`，并接受资源端最新 signed discovery state；

@@ -3,7 +3,7 @@ title: Member Delivery Binding
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-10
+updated: 2026-06-29
 see_also:
   - join-policy.md
   - ../sync/federation.md
@@ -76,6 +76,16 @@ reducer 校验上述任一条失败 MUST 拒绝该 Control Move 并返回 `deliv
 Reducer MUST 在 gate proof 通过前先校验 applicant 是否具备提交 `ck.member.state{join}` 的 capability 或等价 invite / join-authorized grant；gate 只能增加限制，不能创造权限。最终 `binding_source` 不在 `allow_binding_sources` 中、或优先级决策得到的 binding 与 policy allowlist 冲突时，reducer MUST 返回 `delivery_binding_policy_mismatch`，不得降级到下一个来源。
 
 Realm history SHOULD NOT 写入受限组织 handle 明文。需要审计时，Control Move 可引用 handle claim / service acceptance Event 的 `event_id`，或在私有 review / invite 流程中保存最小披露记录；公开成员状态只需要 DID 与 `delivery_binding`。
+
+#### 3.1.1 Realm bootstrap 与初始成员（normative）
+
+`ck.realm.create` 的 creator membership 是 [`../models/realm-and-space.md` §2.5](../models/realm-and-space.md#25-ckrealmcreate-reducer-bootstrapnormative) 定义的 reducer 派生状态，不是客户端显式提交的 `ck.member.state{membership="join"}` Event。实现 MUST NOT 为这条隐式 creator membership 伪造 `binding_source="invite"`、`service_acceptance_ref` 或其它不存在的 join evidence。若 creator 需要在创建批次内立即成为 routable member，同一 `ck.self.events.command.submit` 批次 MAY 在 `ck.realm.create` 之后、由同一 `actor_id` 提交一条 `ck.member.state{membership="join"}` 同状态 self-transition（前态为 reducer 已派生的 `join`），专门物化 `delivery_binding`；该 binding MUST 使用本节已有来源之一，并携带对应真实证据：
+
+- `did_document_default`：必须携带 `did_document_digest`，且 Realm policy 显式允许 DID Document fallback；
+- `explicit` / `organization_policy`：必须携带真实 `service_acceptance_ref`（以及 `organization_policy` 的 `policy_event_ref`）；
+- `join_policy` / `realm_policy`：必须携带真实 `policy_event_ref`。
+
+初始批次中为其他 actor 写入 `ck.member.state{membership="join"}` 时也适用 §3.1 的普通规则。Handle 字符串本身、Directory `resolve_handle` 失败结果、或仅由客户端本地拼造的 DID / service DID 都不得作为 routable delivery binding；没有真实 `recipient_service_did` 证据时，producer 只能提交 `delivery_status="unroutable"`（若 Realm policy 允许），或改走后续 invite / rebind 流程。`binding_source="invite"` 只在存在真实 invite delivery / service-acceptance evidence 时使用；它不是 realm bootstrap 的兜底来源。
 
 ## 4. Policy 事件：`ck.realm.delivery_binding_policy`
 
