@@ -154,7 +154,7 @@ Reader 决策规则：
 - 若 reader 无法解析某个 schema_ref（未知 profile id），按 `requirements` 通用 fail-closed 规则处理（unknown critical → quarantine / soft_fail）。
 
 **S2. `schema_refs[]` Update 受控**：`ck.morph.update` event 修改 `schema_refs[]` 字段时 **MUST**：
-- 走 *schema-evolution policy* gate：实现 SHOULD 通过 Realm schema / Morph profile 声明的高 tier capability action（如 `ck.morph.schema_migrate`）授权；未声明该 policy 或未携带对应 `authorization_ref` 的更新 reducer **MUST** 拒绝并返回 `failed_precondition` reason=`morph_schema_refs_evolution_unauthorized`；
+- 走 *schema-evolution policy* gate：Realm schema / Morph profile **MUST** 声明可授权该 schema evolution 的 capability action；默认 action 为 `ck.morph.schema_migrate`，Realm profile MAY 为 additive-only path 声明更窄的 additive schema action，但该 action 也必须登记在 capability registry 中并绑定本 Morph / Realm 资源范围。未声明 policy、issuer 不持有该 action、或 event 未携带可验证 `authorization_ref` 的更新，reducer **MUST** 拒绝并返回 `failed_precondition` reason=`morph_schema_refs_evolution_unauthorized`；
 - 该 event 自身的 `requirements.schema[]` **MUST** 同时包含旧版本与新版本（重叠期声明），便于 reader 判定 "本 event 之后 Morph 进入新 schema 集合"；
 - audit log **MUST** 记录该 schema 变更，包括 issuer、`schema_refs` 旧值/新值、authorization_ref。
 
@@ -164,13 +164,14 @@ Reducer-input event 若未在 `requirements.schema[]` 中绑定生效 schema 版
 
 **S3. Schema Migration 一等 event**：`ck.morph.schema_migrate` 是 schema_refs[] 演进的一等事件，payload 形态由 `ck.schema.event_payload.v1#/$defs/morph_schema_migrate_payload` 定义。该 event 显式声明 `from_schema_refs[]` / `to_schema_refs[]` / `compatibility_class` ∈ {`additive`, `breaking`, `transformation`}，并通过高 tier capability action `ck.morph.schema_migrate` 鉴权（capability 缺失 reducer MUST `capability_denied`）。规则：
 
-- `additive`：to_schema_refs[] 仅添加 optional 字段或向后兼容 profile；任何历史 reducer-input event 无需重新解释。Core reducer MUST 接受。
+- `additive`：to_schema_refs[] 仅添加 optional 字段或加性兼容 profile；任何历史 reducer-input event 无需重新解释。Core reducer MUST 接受。
 - `breaking`：to_schema_refs[] 删除字段、收紧约束或更改字段语义；历史 event 仍按写入时 schema 验证（per S1），新 event 按 to_schema_refs[] 验证。Core reducer **MUST NOT** 接受，除非 Realm 显式声明 `ck.profile.morph.schema_migration_transformations.v1` opt-in profile；未声明则 reducer MUST `failed_precondition` reason=`morph_schema_refs_transformation_unsupported`。
 - `transformation`：需要 per-event 数据 transform 把旧 payload shape 映射到新；payload `transformation_rules[]` 必填且 SHOULD 遵守 deterministic / replay-safe 约束。同样需 `ck.profile.morph.schema_migration_transformations.v1` profile 启用，否则 reducer MUST `failed_precondition` reason=`morph_schema_refs_transformation_unsupported`。
 
 `ck.morph.update` event 修改 `schema_refs[]` 字段（即仍走原有路径）被收窄为 **additive-only** 的 fast path：
 
 - reducer MUST 在 `ck.morph.update` 检测到 `schema_refs[]` 实际变化时校验该变化是 additive；非 additive MUST reject 并返回 `morph_schema_refs_transformation_unsupported`，并提示客户端改走 `ck.morph.schema_migrate`。
+- additive fast path 仍然 **MUST** 满足 S2 的 schema-evolution policy gate；`additive` 只表示兼容性类别允许用 `ck.morph.update` 表达，不表示 `schema_refs[]` 可以在没有授权 action / `authorization_ref` 的情况下裸更新。
 - breaking / transformation 路径**只能**通过 `ck.morph.schema_migrate` 表达。
 
 **additive 判定的 canonical 算法（normative）**：为保证两个实现 / 联邦 reducer 对同一 `ck.morph.update` 给出一致的 accept / reject（与 [`../sync/federation.md` §4.1](../sync/federation.md) `reducer_profile_digest` 想防的「同 Event 两端不同 cell 状态」对齐），「additive」MUST 按下列确定性谓词判定，记 `from` = update 写入前 Morph 的当前 `schema_refs[]`、`to` = update 后的 `schema_refs[]`，且二者各自展开为其引用 schema profile 声明的字段集（按各 profile 的 canonical 字段定义合并去重）：

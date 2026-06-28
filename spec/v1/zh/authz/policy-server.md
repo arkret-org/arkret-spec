@@ -372,7 +372,7 @@ Policy Server decision 是 out-of-band 的签名决策，本身不进入 Realm S
 为此 v1 引入 `ck.component.moderation_state.v1` cell family：
 
 - `cell_family = ck.component.moderation_state.v1`
-- `cell_subject` = `target_event_id` 或 `target_object_id` 的 canonical 字符串。
+- `cell_subject` = `payload.target_ref` 的 canonical 字符串；`target_ref` 可指向 event 或 object，但 reducer MUST 只从这一单字段派生 cell subject，避免同一目标因别名字段分裂成不同 cell。
 - `lattice = or_set`，`bottom = expose`。每个 add tag 形如 `<decision_kind>:<issuer_did>:<request_canonical_digest>`，确保不同 issuer 的同类决策可以并存且幂等。
 
 对应 wire event：

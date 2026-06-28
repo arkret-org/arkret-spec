@@ -120,8 +120,9 @@ sidebar:
   3. `expires_at` > event `created_at`（不接受已过期 binding）；
   4. `sig` 通过签名验证。
   任一失败 → `failed_precondition` `reason="participant_binding_invalid"`。
+- `participant_mute_overrides[]`：主持人强制静音的 durable 当前覆盖集。每项绑定 `(actor_id, device_id)`，携带 `audio_muted` / `video_muted`、`muted_by` 与 `muted_at`；写入者 MUST 持有 `ck.call.moderate`。SFU / token issuer 在签发或刷新 participant token 前 MUST 应用该覆盖集，收紧对应 call leg 的 send permission；客户端本地 UI / track 状态也 MUST 镜像覆盖集。撤销强制静音通过新的 `ck.call.state` 移除或改写对应 entry，而不是依赖旧 `mute_state` 帧过期。
 
-高频 speaking/mute/video 状态 SHOULD 走 ephemeral channel；会议开始、结束、参与者加入/离开 MAY 采样或摘要写入 durable state。
+高频 speaking、自主 mute/video 状态 SHOULD 走 ephemeral channel；主持人 `by=moderator` 的强制静音不是纯高频 UI 状态，MUST 通过 `participant_mute_overrides[]` 在 durable `ck.call.state` 中留下当前覆盖集并驱动服务端媒体权限。
 
 ### 4.2 `state` 状态机（normative）
 
@@ -204,7 +205,7 @@ sidebar:
 
 转写与录制平行：默认关闭，MUST 由 Realm policy 与 `ck.call.transcribe` capability 显式允许。转写态走 `ck.call.state` 的**独立字段** `transcript_state`（`{ transcribing, stopped, ready, failed }`，缺省=未转写），与 `state` 及 `recording_state` 三者正交。
 
-- 启动转写复用 `ck.call.recording.start` event kind，但 `capture_kind="transcript"`（缺省 `recording` 用于向后兼容）；其 `recording_id` 同样是稳定 opaque 句柄，约束与 §5 录制 `recording_id` 完全一致（ASCII 子集 `[A-Za-z0-9._-]`、1–128 字节、逐字节 canonical、接收方 MUST NOT normalize），并进入 transcript key exporter Context。缺少 `ck.call.transcribe` 时 MUST 拒绝，`reason_code="transcription_denied"`。
+- 启动转写复用 `ck.call.recording.start` event kind，但 `capture_kind="transcript"`（未携带 `capture_kind` 时的 missing-field default 为 `recording`）；其 `recording_id` 同样是稳定 opaque 句柄，约束与 §5 录制 `recording_id` 完全一致（ASCII 子集 `[A-Za-z0-9._-]`、1–128 字节、逐字节 canonical、接收方 MUST NOT normalize），并进入 transcript key exporter Context。缺少 `ck.call.transcribe` 时 MUST 拒绝，`reason_code="transcription_denied"`。
 - 客户端 MUST 对所有参会者显示转写进行中提示（与录制提示同等级别）。
 - 转写文本 MUST 作为 **encrypted Blob / 受控 media object** 存储，绝不明文落 backend。转写 artifact 的加密 key MUST 由 Cokret MLS exporter 派生，**label 固定为 ASCII 字符串 `"ck-rtc-transcript-key/v1"`**（与 SFrame `"ck-rtc-frame-key/v1"`、录制 `"ck-rtc-recording-key/v1"` 区分），`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, transcript_start_event_id})`，输出 32 bytes；canonical 登记见 [`../../artifacts/registry/exporter-label-registry.json`](../../artifacts/registry/exporter-label-registry.json)。复用其它 label、空 Context，或接受 backend / KMS 自生成的 transcript key MUST fail closed `transcription_artifact_pipeline_bypassed`。
 - 转写结果通过 `ck.call.state` 写入 `transcript_state`，并在 `transcript_result` 中引用 `transcript_start_event_id`；`ready` / `failed` 还 SHOULD 携带 content digest、media type、language 与 retention policy。手动停止时写 `transcript_state="stopped"`，不要求产生 artifact。

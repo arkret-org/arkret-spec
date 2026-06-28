@@ -180,10 +180,11 @@
         "alg": {
           "type": "string",
           "enum": [
-            "EdDSA",
             "ES256",
+            "EdDSA",
             "ML-DSA-65"
-          ]
+          ],
+          "description": "Signature algorithm. Values MUST be active proof_alg entries in signature-alg-registry.json. Default v1 deployments use EdDSA; stronger or deployment-specific profiles MAY require another registered algorithm while preserving the exact signing input defined in webrtc-signaling.md §4.1."
         },
         "signature_input": {
           "type": "string",

@@ -38,7 +38,7 @@ Cokret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织�
 | `gate` | 认证入口 | account（auth / session-grant） |
 | `root` | 身份信任根：DID / key log / receipt；不是 Unix/root 管理员权限 | identity |
 | `find` | 目录发现 | directory |
-| `peer` | 对等 Cokret 服务器 | federation server↔server wire：`peer.events`、`peer.snapshot`、`peer.invites` |
+| `peer` | 对等 Cokret 服务器 | federation server↔server wire：`peer.events`、`peer.snapshot`、`peer.invites`、`peer.contacts` |
 | `open` | 外部协议互通 / 外部 handoff 面；不表示 public / no-auth access | mimi、invite_locator |
 | `edge` | 推送 / 桥接网关 | push·applet |
 
@@ -54,6 +54,7 @@ Cokret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织�
 | `/_cokret/self/events/*` | 客户端、Principal Server、授权 Event 副本 | signed Event 提交、按 ID 读取、批量读取、actor/Realm 双向历史查询(query)、流式订阅(subscribe，含 bounded catch-up replay)、frontier 查询。 | `operations-sync.md`、`service-surface.md` |
 | `/_cokret/peer/events/*` | 对等 Principal Server / Federation Server | federation peer 推送、拉取 / backfill、按 ID 补洞、frontier probe。所有请求 MUST 使用 service-to-service 签名、Source/Destination service DID 与 trust-domain header，并通过 Realm `federation_peer` 授权。 | `federation.md`、`operations-sync.md` |
 | `/_cokret/peer/invites` | 对等 Principal Server | 私有 invite delivery：邀请方 Principal Server 将 `ck.invite.create`、显式 invite address 与 introduction evidence 投递给被邀请方 Principal Server。所有请求 MUST 使用 service-to-service 签名并绑定 Destination service DID。 | `invite-addressing.md` |
+| `/_cokret/peer/contacts` | 对等 Principal Server | 私有 contact fact delivery：一方 Principal Server 将 `ck.contact.requested` / `accepted` / `rejected` / `tombstoned` 原签名 envelope 投递给对端 holder 的 Principal Server。它不接收共享 Realm Event，不推进 Realm reducer / Seal。所有请求 MUST 使用 service-to-service 签名并绑定 Destination service DID。 | `identity/contact-and-direct-conversation.md`、`federation.md` |
 | `/_cokret/self/account/*` | 客户端、Principal Server | account viewer 自读、profile 更新、account 聚合 streaming 订阅(`GET /_cokret/self/account/subscribe`)、describe 与 cursor revoke。逐 Realm 的事件流读取走 `/_cokret/self/events/*`。 | `client-sync.md`、`service-surface.md`、`profiles-presence.md` |
 | `/_cokret/self/snapshot/*` | 客户端、Principal Server | Realm snapshot manifest 入口(`GET /_cokret/self/snapshot/head`)。 | `client-sync.md`、`service-surface.md` |
 | `/_cokret/peer/snapshot/*` | 对等 Principal Server / Federation Server | federation snapshot-assisted bootstrap manifest 入口(`GET /_cokret/peer/snapshot/head`)。 | `federation.md`、`snapshot.schema.json` |
@@ -70,7 +71,7 @@ Cokret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织�
 | `/_cokret/open/invite-locators/resolve` | 扫码客户端、Principal Server | 外部 handoff：把 URL fragment / OOB 中取得的 locator token 通过 JSON body 换成签名 `principal_locator`。token MUST NOT 出现在 URL path 或 query。 | `invite-addressing.md` |
 | `/_cokret/open/mimi/*` | Cokret 服务、MIMI provider facade | 外部协议互通；`open` 表示 interop / handoff surface，不表示公开免认证访问。 | `mimi-interop.md` |
 
-客户端视角的常用 API 集合通常包括 `/_cokret/describe`、`/_cokret/root/identity/*`、`/_cokret/self/events/*`、`/_cokret/self/account/*`、`/_cokret/self/snapshot/*`、`/_cokret/self/realms/*`、`/_cokret/self/views/*`、`/_cokret/find/directory/*`、`/_cokret/self/blob/*`、`/_cokret/edge/push/*`、`/_cokret/self/device_messages/*`、`/_cokret/self/keys/*`、`/_cokret/self/authz/*`。federation / Principal Server 服务间 API 集合包括 `/_cokret/peer/events/*`、`/_cokret/peer/snapshot/*` 与 `/_cokret/peer/invites`；locator 二维码 / 链接 handoff 使用 `/_cokret/open/invite-locators/resolve`。policy、applet、push 等非 federation 服务间调用按各自 trust surface 暴露。搜索、inbox、notification 和 View projection 默认是客户端本地派生；Realm 作用域对象读取（`/_cokret/self/realms/{realm_id}/spaces|strands|morphs`、`/_cokret/self/realms/{realm_id}/morphs/{morph_id}`）与 `/_cokret/self/views/*` projection 绑定属于 extension surface，必须由服务显式声明支持，且不得成为 canonical truth source。
+客户端视角的常用 API 集合通常包括 `/_cokret/describe`、`/_cokret/root/identity/*`、`/_cokret/self/events/*`、`/_cokret/self/account/*`、`/_cokret/self/snapshot/*`、`/_cokret/self/realms/*`、`/_cokret/self/views/*`、`/_cokret/find/directory/*`、`/_cokret/self/blob/*`、`/_cokret/edge/push/*`、`/_cokret/self/device_messages/*`、`/_cokret/self/keys/*`、`/_cokret/self/authz/*`。federation / Principal Server 服务间 API 集合包括 `/_cokret/peer/events/*`、`/_cokret/peer/snapshot/*`、`/_cokret/peer/invites` 与 `/_cokret/peer/contacts`；locator 二维码 / 链接 handoff 使用 `/_cokret/open/invite-locators/resolve`。policy、applet、push 等非 federation 服务间调用按各自 trust surface 暴露。搜索、inbox、notification 和 View projection 默认是客户端本地派生；Realm 作用域对象读取（`/_cokret/self/realms/{realm_id}/spaces|strands|morphs`、`/_cokret/self/realms/{realm_id}/morphs/{morph_id}`）与 `/_cokret/self/views/*` projection 绑定属于 extension surface，必须由服务显式声明支持，且不得成为 canonical truth source。
 
 #### 2.1.1 账号/设备接口归属判据
 

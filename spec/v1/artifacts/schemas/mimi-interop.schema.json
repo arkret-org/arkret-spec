@@ -176,7 +176,8 @@
             "mimi_room_uri",
             "binding_scope",
             "hub_provider",
-            "local_provider_role"
+            "local_provider_role",
+            "status"
           ],
           "properties": {
             "profile": {

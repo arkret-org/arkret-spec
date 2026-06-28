@@ -24,15 +24,15 @@ Calendar event 是一个带 `ck.profile.calendar_event.v1` 的 Strand profile，
 
 ## 2. Schedule 字段
 
-`ck.profile.calendar_event.v1` 的 schedule fields MUST 至少支持：
+`ck.profile.calendar_event.v1` 的 schedule object MUST 支持以下字段；其中 `start` / `end` / `timezone` / `all_day` 是 `calendar-event.schema.json` 的 required core，`recurrence` / `location` / `call_id` 是可选 profile fields（出现时按本节校验）：
 
-- `start`: RFC 3339 timestamp 或 all-day date。
-- `end`: RFC 3339 timestamp 或 all-day date，必须晚于 `start`。
-- `timezone`: IANA time zone name；all-day 事件也必须保留。
-- `all_day`: boolean。
-- `recurrence`: v1 RRULE 子集。
-- `location`: 加密 envelope 或封闭的 plaintext `calendar_location` 对象。
-- `call_id`: 可选 Cokret 通话 / 会议 session ID。
+- `start`（required）：RFC 3339 timestamp 或 all-day date。
+- `end`（required）：RFC 3339 timestamp 或 all-day date，必须晚于 `start`。
+- `timezone`（required）：IANA time zone name；all-day 事件也必须保留。
+- `all_day`（required）：boolean。
+- `recurrence`（optional）：v1 RRULE 子集。
+- `location`（optional）：加密 envelope 或封闭的 plaintext `calendar_location` 对象。
+- `call_id`（optional）：Cokret 通话 / 会议 session ID。
 
 字段顺序在 schema 和 prose 中 MUST 保持上述顺序，避免实现把 `timezone` 或 `all_day` 作为后补语义。
 

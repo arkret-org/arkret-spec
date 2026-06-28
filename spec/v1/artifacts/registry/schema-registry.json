@@ -451,6 +451,12 @@
       "description": "Controller-signed package used by ck.self.applet.command.install preview/commit to derive ck.applet.registration and capability grants. Distribution object only; not Realm history truth and not authorization."
     },
     {
+      "schema_id": "ck.schema.applet_widget_declaration.v1",
+      "file": "schemas/applet-widget-declaration.schema.json",
+      "status": "active",
+      "description": "Closed declaration for Applet UI widget origin, CSP, scoped token capability scope, and consent gate."
+    },
+    {
       "schema_id": "ck.schema.applet_install_plan.v1",
       "file": "schemas/applet-install-plan.schema.json",
       "status": "active",

@@ -151,7 +151,7 @@ E2EE 附件 metadata MUST 使用 [`blob.schema.json#/$defs/encrypted_attachment`
 | `ck.blob.whole_file_aead.v1` | 整文件单次 AEAD：单 `nonce` + 单 `ciphertext_digest`，整体密文校验通过后才释放明文。 | 默认形态；小文件、缩略图。 |
 | `ck.blob.stream_aead.v1` | 分块流式 AEAD（STREAM / OAE2）：明文切成固定大小 segment，每段独立 AEAD 加密，可边下边验、内存有界。 | 大文件、流式播放、跨设备传输。见 §3.3。 |
 
-- envelope **MUST** 携带 `scheme` 字段。为向后兼容，缺省 `scheme` 时接收方 MUST 按 `ck.blob.whole_file_aead.v1`（整文件形态）解释。
+- envelope **MUST** 携带 `scheme` 字段。未携带 `scheme` 字段时的 missing-field default 为 `ck.blob.whole_file_aead.v1`（整文件形态）。
 - 发送方 **MAY** 对任意附件选用 `ck.blob.stream_aead.v1`；大文件 **SHOULD** 选用分块形态（见 [`models/file-transfer.md`](../models/file-transfer.md)）。
 - 接收方 **MUST** 按 envelope 的 `scheme` 字段分派解密路径；遇到未知 `scheme` MUST fail closed（`unsupported_attachment_scheme`），不得回退到任何其它形态尝试解密。
 - 两种形态的 envelope 都 MUST 满足 §3.1 的 AEAD nonce 纪律；分块形态的 nonce 兼容关系见 §3.3.2。

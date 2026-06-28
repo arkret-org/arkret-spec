@@ -284,7 +284,9 @@ policy MAY 声明 `ck.realm.policy_components` 中的 `preauth` component 包含
 
 ### 6.2 Contact / DM 前置 gate
 
-类似地，发起 1:1 message Realm、WebRTC call、presence subscription 时，发起方 SHOULD 验证目标的 consent state（consent_scope = `direct_message` / `voice_call` / `video_call` / `presence`）。
+发起 1:1 message Realm、WebRTC call、presence subscription 时，发起方客户端 **MUST** 在发起前 preflight 目标的 consent state（consent_scope = `direct_message` / `voice_call` / `video_call` / `presence`），但该 preflight **不是**接收侧授权根。目标 holder 的 Principal Server、Sync Service、Call / Media token issuer 与目标客户端在投递、fanout、响铃 UI、presence fanout、media token 签发或入会前 **MUST** 重新执行 consent gate；没有 active 目标 consent（对应 scope 或 `any`）时必须 fail closed / quarantine（按 profile），且不得触发响铃 UI、presence 可见性、typing/receipt 副作用或 call token 签发。接收侧 **MUST NOT** 信任发起方提交的 consent proof 作为唯一依据。
+
+WebRTC `ck.call.signal{signal_type=invite}` 在服务端投递与目标客户端展示前都 MUST 校验 `voice_call` / `video_call` consent；无 consent 的 invite MUST 被丢弃或进入 profile 声明的 quarantine，且不得产生 VoIP push / ringing UI。Presence subscription / fanout 由 Sync Service 在每次订阅建立和每次 fanout 前校验 holder 对 observer 的 `presence` consent；无 consent 时不得泄露在线、离线、last active bucket 或订阅是否存在。
 
 `ck.self.direct_conversation.command.resolve` 是联系人私聊入口；它 MUST 同时检查 accepted contact projection 与目标 holder 对 requester 的 active `direct_message` / `any` consent。只有 consent、没有 accepted contact 时，resolver MUST fail closed（`failed_precondition` / `contact_not_accepted`）；只有 accepted contact、没有可验证 consent 时，resolver MUST fail closed（`failed_precondition` / `contact_consent_missing`）。非联系人但基于 consent 发起的一次性 DM profile 若未来需要，必须另行注册 operation，不得复用该 resolver。
 

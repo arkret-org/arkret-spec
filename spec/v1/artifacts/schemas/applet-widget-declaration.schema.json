@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spec.cokret.dev/v1/schemas/applet-widget-declaration.schema.json",
+  "title": "Applet Widget Declaration",
+  "description": "Closed declaration for an Applet UI widget origin, CSP, scoped token capability scope, and consent gate.",
+  "type": "object",
+  "required": [
+    "schema",
+    "widget_origin",
+    "csp",
+    "token_scope",
+    "requires_consent"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "ck.schema.applet_widget_declaration.v1"
+    },
+    "widget_origin": {
+      "type": "string",
+      "description": "HTTPS origin only: scheme, host, and optional port; no path, query, or fragment.",
+      "pattern": "^https://[^/?#\\s]+$"
+    },
+    "csp": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Content-Security-Policy that the host client MUST enforce for the widget document."
+    },
+    "token_scope": {
+      "type": "object",
+      "description": "Maximum capability scope for the short-lived widget token.",
+      "required": [
+        "actions",
+        "resources",
+        "expires_at"
+      ],
+      "properties": {
+        "actions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+          }
+        },
+        "resources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "./resource-selector.schema.json"
+          }
+        },
+        "realm_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/realm_id"
+          }
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "max_ttl_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3600
+        }
+      },
+      "patternProperties": {
+        "^x_[a-z][a-z0-9_]{0,63}$": true
+      },
+      "additionalProperties": false
+    },
+    "requires_consent": {
+      "type": "boolean"
+    }
+  },
+  "patternProperties": {
+    "^x_[a-z][a-z0-9_]{0,63}$": true
+  },
+  "additionalProperties": false
+}

@@ -16,7 +16,7 @@ updated: 2026-06-10
 
 Relation 连接的是对象引用：标准字段使用 `from_ref` / `to_ref`，其值可以指向 `realm`、`space`、`actor_profile`、`strand`、`message`、`morph`、`relation`、`event`、`view`、`blob` 的 `ck:<kind>:` typed ID，或一个 DID。Actor 端点没有 actor typed-ID 对象——当端点是 Actor 时直接使用该 actor 的 DID（principal），而不是某个 actor typed-ID（见 [`overview.md` §3.4](./overview.md) 与 [`common-fields.md` §4.1](./common-fields.md#41-did-适用边界)）。
 
-> **端点 kind 子集与其它"可引用 kind 子集"字段的关系（informative）**：Relation 端点允许的 kind 集合与 Notification `source_ref`（[`private-objects.md` §3.2](./private-objects.md)）、Read Cursor `read_scope`（[`private-objects.md` §2.2](./private-objects.md)）各自硬编码不同子集，**目前无单一 referenceability 真源**：差异由各自语义决定（Relation 端点 = 可连边的图节点，故含 `realm` / `event` / DID；Notification = 可被通知指向的内容对象；Read Cursor = 可定位已读位置的时间线容器）。三处实现 MUST 按各自 schema 校验，长期收敛方向是 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 的 referenceability 类别。
+> **端点 kind 子集与其它"可引用 kind 子集"字段的关系（informative）**：Relation 端点允许的 kind 集合与 Notification `source_ref`（[`private-objects.md` §3.2](./private-objects.md)）、Read Cursor `read_scope`（[`private-objects.md` §2.2](./private-objects.md)）各自不同；差异由各自语义决定（Relation 端点 = 可连边的图节点，故含 `realm` / `event` / DID；Notification = 可被通知指向的内容对象；Read Cursor = 可定位已读位置的时间线容器）。三处实现 MUST 按各自 schema 校验字段形状，同时以 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 的 `referenceability` 作为 typed-id kind 子集的机读真相源；Relation 端点对应 `relation_endpoint` 类别。Actor DID 端点不属于 typed-id kind，仍由 DID grammar 与 `common-fields.md` §4.1 约束。
 
 公共字段、lifecycle、reducer 总则见 [`common-fields.md`](./common-fields.md)。
 
@@ -77,6 +77,8 @@ assigned_to, references, derived_from, attached_to, has_default_view,
 summarized_from, promoted_from_discussion, watches, agent_sidecar_of,
 confidential_discussion_of
 ```
+
+其中 `summarized_from` 与 `promoted_from_discussion` 是 active 标准 kind 中的 **profile-required typing** 子类：registry 将二者标记为 `weak_semantic=true`，且 from/to 类型 MUST 由 Realm schema 或 RelationProfile 显式声明；未声明时，它们只是不透明弱语义引用边，不提供开箱即用的摘要或讨论升级强语义。
 
 > **未注册的 relation_kind 处理规则**：`produced` / `used` / `triggered_by` / `has_log` 这类名字在 v1 没有 schema / profile / fixture 定义 from/to 类型、基数或 capability action，因此在 v1 wire 上视为**未注册的 relation_kind**——实现遇到时 SHOULD 保留为不透明边并在 projection 层标记 `unknown_relation_kind`，**MUST NOT** 据此自动推断容器、依赖或可见性语义。扩展 profile 注册之前 producer 不应使用。
 

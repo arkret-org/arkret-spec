@@ -1314,7 +1314,7 @@
           ]
         },
         "lattice": "or_set",
-        "bottom": "reject"
+        "bottom": "expose"
       },
       {
         "event_kind": "ck.agent.key.revoke",
@@ -1332,7 +1332,7 @@
           ]
         },
         "lattice": "or_set",
-        "bottom": "reject"
+        "bottom": "expose"
       },
       {
         "event_kind": "ck.agent.key.rotate",
@@ -2952,6 +2952,12 @@
         "description": "Controller-signed package used by ck.self.applet.command.install preview/commit to derive ck.applet.registration and capability grants. Distribution object only; not Realm history truth and not authorization."
       },
       {
+        "schema_id": "ck.schema.applet_widget_declaration.v1",
+        "file": "schemas/applet-widget-declaration.schema.json",
+        "status": "active",
+        "description": "Closed declaration for Applet UI widget origin, CSP, scoped token capability scope, and consent gate."
+      },
+      {
         "schema_id": "ck.schema.applet_install_plan.v1",
         "file": "schemas/applet-install-plan.schema.json",
         "status": "active",
@@ -3155,6 +3161,9 @@
         "category": "core_object",
         "status": "active",
         "wire_form": "ck:actor_profile:<uuid>",
+        "referenceability": [
+          "relation_endpoint"
+        ],
         "description": "Actor profile object ID"
       },
       {
@@ -3232,6 +3241,10 @@
         "category": "core_object",
         "status": "active",
         "wire_form": "ck:blob:<uuid>",
+        "referenceability": [
+          "relation_endpoint",
+          "notification_source"
+        ],
         "description": "Blob metadata row ID; content-addressed blobs use the special digest form"
       },
       {
@@ -3267,6 +3280,9 @@
         "category": "core_object",
         "status": "active",
         "wire_form": "ck:circle:<uuid>",
+        "referenceability": [
+          "read_cursor_scope_ref"
+        ],
         "description": "Circle object ID — intra-Realm scoped event/message boundary. Hosts its own membership (strict subset of parent Realm.members), history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity, policy server, or capability registry — those remain on the parent Realm. See zh/models/circle.md."
       },
       {
@@ -3274,6 +3290,11 @@
         "category": "core_object",
         "status": "active",
         "wire_form": "ck:strand:<uuid>",
+        "referenceability": [
+          "relation_endpoint",
+          "notification_source",
+          "read_cursor_scope_ref"
+        ],
         "description": "Strand object ID"
       },
       {
@@ -3309,6 +3330,9 @@
         "category": "event_history",
         "status": "active",
         "wire_form": "ck:event:<uuid>",
+        "referenceability": [
+          "relation_endpoint"
+        ],
         "description": "Event Envelope ID"
       },
       {
@@ -3358,6 +3382,11 @@
         "category": "core_object",
         "status": "active",
         "wire_form": "ck:message:<uuid>",
+        "referenceability": [
+          "relation_endpoint",
+          "notification_source",
+          "read_cursor_thread_root"
+        ],
         "description": "Message object ID"
       },
       {
@@ -3365,6 +3394,10 @@
         "category": "core_object",
         "status": "active",
         "wire_form": "ck:morph:<uuid>",
+        "referenceability": [
+          "relation_endpoint",
+          "notification_source"
+        ],
         "description": "Morph object ID"
       },
       {
@@ -3421,6 +3454,10 @@
         "category": "core_object",
         "status": "active",
         "wire_form": "ck:relation:<uuid>",
+        "referenceability": [
+          "relation_endpoint",
+          "notification_source"
+        ],
         "description": "Relation object ID"
       },
       {
@@ -3456,6 +3493,10 @@
         "category": "core_object",
         "status": "active",
         "wire_form": "ck:space:<uuid>",
+        "referenceability": [
+          "relation_endpoint",
+          "read_cursor_scope_ref"
+        ],
         "description": "Space object ID — structural grouping object inside a Realm (board, list, swimlane, calendar bucket, etc.). Authorization-transparent: never carries its own membership / policy / E2EE group; resolves to the containing Realm."
       },
       {
@@ -3463,6 +3504,10 @@
         "category": "core_object",
         "status": "active",
         "wire_form": "ck:realm:<uuid>",
+        "referenceability": [
+          "relation_endpoint",
+          "read_cursor_scope_kind"
+        ],
         "description": "Realm object ID — security / sync / auth / E2EE boundary. Always carries membership, policy, history_visibility, MLS group binding, and federation policy."
       },
       {
@@ -3477,6 +3522,10 @@
         "category": "core_object",
         "status": "active",
         "wire_form": "ck:view:<uuid>",
+        "referenceability": [
+          "relation_endpoint",
+          "notification_source"
+        ],
         "description": "View object ID"
       }
     ],

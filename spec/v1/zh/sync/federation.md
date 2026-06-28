@@ -178,6 +178,12 @@ Fail-closed 条件：
 
 上述失败 MUST 在接收方推进本地 Realm frontier 前处理：写入型 push 返回 reject/quarantine 或 `temporarily_unavailable`，pull/backfill 结果保持未验证，不得清除 `state_mismatch`，snapshot/frontier witness 也不得把该 MLS epoch 标为可用。错误对外仍遵守 §3.2 / §8.3 的最小披露原则；内部 audit reason 可以记录为 `profile_unsupported`、`mls_send_pause_advisory_requires_e2ee_relaxed_profile`、`conflicting_e2ee_profiles`、`e2ee_relaxed_federation_policy_unsupported`、`mls_governance_binding_stale` 或对应 binding mismatch 族。
 
+### 4.0.2 Principal-private peer 投递面（invite / contact）不是共享 Event 接收轨（normative）
+
+`/_cokret/peer/invites`（`ck.peer.invites.command.submit`）与 `/_cokret/peer/contacts`（`ck.peer.contacts.command.submit`）是 Principal-private 事实投递面：它们只承载目标 holder 的 invite / contact command submit envelope，用于把邀请、联系人请求 / 响应 / tombstone 等 principal-scoped fact 投递到对端 Principal Server。它们 **MUST NOT** 接受任意 Realm durable Event，**MUST NOT** 推进共享 Realm reducer、Seal、CBA frontier 或 state root，也 **MUST NOT** 被实现当作 `/_cokret/peer/events` 的并行替代 fanout 通道。
+
+这两个 endpoint 仍属于 `/_cokret/peer/*` 联邦协议面，因而 MUST 复用 §3 的 service-to-service HTTP Message Signature、trust-domain、destination binding、body digest、最小披露错误和 replay 防护。接收方只把其 payload 投影进目标 holder 的 principal control / account-private 处理路径，并按 [`identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) 与 [`identity/consent-model.md`](../identity/consent-model.md) 的 consent / contact gate 处理；任何尝试在这两个 endpoint 中夹带共享 Realm Event Envelope 的请求 MUST fail closed（`schema_violation` 或 `capability_denied`，对外仍遵守最小披露）。
+
 ### 4.1 推送模式 (Push)
 
 > **v1 联邦使用专用 peer HTTP API surface**。跨域 Event 推送、拉取、补洞、frontier probe 与 snapshot bootstrap 必须使用 `/_cokret/peer/*` 路径和 `ck.peer.*` operation_id。`/_cokret/self/*` 是当前 principal / 自服务会话攻击面，不承接 federation server-to-server wire。本节描述的所有规则适用于 `ck.peer.events.*` / `ck.peer.snapshot.query.manifest_head` 调用。
@@ -227,9 +233,9 @@ Signature: sig1=:base64...:
 | `service_binding_ref.delivery_binding_frontier` | body | `id[]` | required | 发送方解析投递目标时所依据的 member delivery binding 因果前沿。接收方 MUST 校验该前沿在自己的 Realm 视图中可达，且对应到当前 effective `delivery_binding.recipient_service_did = Destination-Service-DID`。前沿落后于当前接收方 binding（接收方已收到 rebind handover frontier `F` 而 sender 仍按旧 binding 投递）时，接收方 MUST 返回 `delivery_binding_stale` 并在响应中带回 `new_recipient_service_did` 与 `handover_frontier`，sender 切到新目标后重试。 |
 | `service_binding_ref.delivery_binding_diagnostics` | body | `object` | optional | 纯诊断字段。可携带 `basis: ["member_delivery_binding"\|"realm_sync_endpoint"]` 等本次投递的来源标签，便于排查；不得替代接收方独立校验。 |
 | `service_binding_ref.destination_service_type` | body | `string` | required | 目标服务类型，例如 `principal_server`。 |
-| `service_binding_ref.reducer_profile_digest` | body | `sha256:<hash>` | required | 发送方在此 Realm 使用的 reducer profile canonical digest。计算规则见 §4.1.1，输入对象来自 [`reducer-profile-registry.json`](../../artifacts/registry/reducer-profile-registry.json) 对应 `profile_id` 的 `digest_input`。接收方 MUST 与自己的 reducer profile digest 比对；不一致 MUST 拒绝整批请求并返回 `reducer_profile_mismatch`。这避免了同一 Event 在两端 reducer 下产生不同 cell 状态、state_root 或 covered_seals，进而被 idempotent 接受却不可重放的隐性失败。 |
+| `service_binding_ref.reducer_profile_digest` | body | `sha256:<hash>` | required | 发送方在此 Realm 使用的 reducer profile canonical digest。计算规则见下文 `reducer_profile_digest` 计算规则，输入对象来自 [`reducer-profile-registry.json`](../../artifacts/registry/reducer-profile-registry.json) 对应 `profile_id` 的 `digest_input`。接收方 MUST 与自己的 reducer profile digest 比对；不一致 MUST 拒绝整批请求并返回 `reducer_profile_mismatch`。这避免了同一 Event 在两端 reducer 下产生不同 cell 状态、state_root 或 covered_seals，进而被 idempotent 接受却不可重放的隐性失败。 |
 
-#### 4.1.1 `reducer_profile_digest` 计算规则（normative）
+#### `reducer_profile_digest` 计算规则（normative）
 
 `reducer_profile_digest` 的唯一机器可读源是 [`artifacts/registry/reducer-profile-registry.json`](../../artifacts/registry/reducer-profile-registry.json)。发送方 MUST 选取目标 Realm 声明的 reducer profile `profile_id` 对应 registry row，并只对该 row 的 `digest_input` 对象计算 digest：
 
@@ -307,10 +313,15 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(digest
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
+| `status` | `enum(accepted, duplicate, partial, historical_only)` | required | 整体提交结果状态；`partial` 表示同一批次中同时存在 accepted / duplicate 与 rejected / quarantine 项；`historical_only` 仅用于历史 replay / backfill 结果，必须携带 `original_outcome`。 |
 | `accepted` | `id[]` | required | 首次接受的 Event ID；不含幂等重复项。 |
 | `duplicate` | `id[]` | optional | 内容完全相同的幂等重复项（幂等 no-op）；同一 `event_id` MUST NOT 同时出现在 `accepted[]` 与 `duplicate[]`。 |
-| `rejected` | `object[]` | required | 被拒绝项；每项 SHOULD 包含 `id`、`reason_code` 和可审计说明。 |
+| `rejected` | `object[]` | optional | 被拒绝项；每项 SHOULD 包含 `id`、`reason_code` 和可审计说明。为空或省略表示本批无单项拒绝。 |
 | `quarantine` | `id[]` | optional | 进入隔离队列等待人工或异步验证的 Event ID。 |
+| `original_outcome` | `object` | conditional | 仅 `status=historical_only` 时出现；保留原始提交的 accepted / duplicate / rejected / quarantine 摘要，防止历史重放被误解为本次新接受。 |
+| `actor_frontier` | `object[]` | optional | 接收方可披露的 actor frontier hint；不得跨 visibility boundary 泄露。 |
+| `realm_frontier` | `object` | optional | 接收方可披露的 Realm Seal / frontier hint；不得跨 visibility boundary 泄露。 |
+| `cursor` | `string` | optional | 后续查询 / retry cursor；opaque，不能被客户端解释为权限证明。 |
 
 4. `server-beta.com` 独立验证每个 Event 的 Actor 签名、Realm policy、服务委托、接收方服务绑定和因果链，然后决定是否接受
 
@@ -413,7 +424,7 @@ sequenceDiagram
     Alpha->>Pol: 解析应接收的 Principal Server
     Pol-->>Alpha: 接收方列表 + service_binding_ref<br>(realm_policy_digest / membership_frontier / delivery_binding_frontier / reducer_profile_digest)
     Alpha->>Beta: POST /_cokret/peer/events (ck.peer.events.command.submit)<br>HTTP Message Sig (RFC 9421)<br>Source/Destination Service DID + Trust Domain<br>Content-Digest / Request-Canonical-Digest<br>service_binding_ref / events 数组
-    note over Beta: 校验:<br>1. 签名 transcript + destination DID 匹配<br>2. content-digest 覆盖 body<br>3. allow list / federation_policy<br>4. service_binding_ref 与本地一致<br>5. 逐 Event verify_event + actor chain<br>6. CBA basis + Lattice / Seal
+    note over Beta: 校验:<br>1. 签名 transcript + destination DID 匹配<br>2. content-digest 覆盖 body<br>3. allow list / federation_policy<br>4. service_binding_ref 与本地一致<br>5. reducer_profile_digest 逐字节一致(不一致整批拒绝)<br>6. 逐 Event verify_event + actor chain<br>7. CBA basis + Lattice / Seal
     Beta-->>Alpha: 200 + accepted / rejected / quarantine
     note over Alpha: 失败项<br>重试 / quarantine / 暴露给上游 actor
 ```

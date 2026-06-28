@@ -527,7 +527,7 @@ Handle claim 获取与刷新规则：
 
 `lazy_load_members=true` 时，服务端 MAY 截断 `members[]` 为 timeline 涉及的 actor + `summary.heroes` 子集，但此时 MUST 设置 `members_limited=true`，并 SHOULD 提供 `members_next_cursor` 或等价分页提示。客户端看到 `members_limited=true` MUST NOT 把 `members[]` 当作完整成员列表。`members[]` 的去重键是 `actor_id`；同一 `actor_id` 出现多次时客户端 MUST 保留首条并忽略后续。
 
-`summary` 中的 `heroes` 与本节 `members[]` 互补：`heroes` 是当成员数超过显示阈值时挑选的少量代表性 DID（与 Matrix 行为兼容），`members[]` 是当前响应内可投影的 roster 条目集合；完整性由 `members_limited` / pagination 明确表达。
+`summary` 中的 `heroes` 与本节 `members[]` 互补：`heroes` 是当成员数超过显示阈值时挑选的少量代表性 DID，`members[]` 是当前响应内可投影的 roster 条目集合；完整性由 `members_limited` / pagination 明确表达。
 
 ## 9. Account Data and Private State
 

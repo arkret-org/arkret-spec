@@ -99,6 +99,8 @@ Realm policy MUST 通过 `ck.realm.policy_components.metadata_encryption_floor` 
 
 `metadata_encryption_floor` 必须纳入 MLS governance binding `policy_root`。客户端 / 服务端不得仅通过 `encryption_profile="mls_rfc9420"` 推断 metadata 处理方式；缺省规则是：MLS 或 `content_encryption_floor=e2ee_required` Realm 为 `e2ee_required`，其他 Realm 为 `allow_plaintext`。
 
+`plaintext_visible_services` 的生效边界与 MLS governance binding 对齐。任何扩大或收缩都 MUST 被新的 `ck.mls.commit` 覆盖后，才可用于该 scope 后续 epoch 的新明文披露判定；在覆盖前，客户端与服务端 MUST 继续使用上一 accepted epoch 的 `policy_root`。当列表收缩或移除某服务时，被移除服务从覆盖该变更的下一 epoch 起 MUST NOT 再接收新的明文、可逆摘要、索引输入、通知摘要或 media plaintext；该服务在移除前已合法收到的历史副本不能被密码学回收，但其继续保留、删除、审计和导出义务 MUST 按移除前已声明的 retention / erasure policy 执行。对 in-flight 明文，发送方和转发服务 MUST 在观察到收缩 frontier 后停止新的投递，无法证明属于旧 epoch 授权窗口的任务 MUST fail closed。
+
 #### 2.3.1 Envelope Wire 结构
 
 加密信封的 wire 形态是 [`artifacts/schemas/encrypted-envelope.schema.json`](../../artifacts/schemas/encrypted-envelope.schema.json) 的 canonical 表达。最小示例：
@@ -652,7 +654,7 @@ RFC 9420 Section 10 明确承认 last-resort KeyPackage 模式（生产 MLS 部�
 - 提供 last-resort 回退的服务端 MUST 在 `ck.server.query.describe.supported_features` 中声明 `ck.feature.mls_last_resort_keypackage.v1`；未声明该 feature 的服务端 MUST 继续 fail-closed（池空 claim 失败），claim 响应 MUST NOT 返回 `last_resort=true` 的包。
 - device 发布 last-resort 包前 SHOULD 校验目标服务端声明了该 feature；requester 收到 `last_resort=true` claim 记录时，若其本地 profile 不接受 last-resort 路径（例如高保证 Realm 要求严格单次性），MUST NOT 用该包发 Welcome，并 SHOULD 视为池空（按默认 fail-closed 处理）。
 - 是否在某 Realm 允许 last-resort join 由 Realm policy / profile 决定：要求严格前向保密的 Realm MAY 通过 profile 禁止 last-resort join；`ck.profile.high_security_organization.v1` / `ck.profile.sovereign_deployment.v1` MUST 禁止。此时即便服务端支持该 feature，该 Realm 的邀请 MUST 走单次包或 fail closed。
-- 该能力对现有路径**完全向后兼容**：不声明 feature、不发布 last-resort 包的部署，其 claim / consume / Welcome 行为与本小节引入前完全一致。
+- 这是加性 feature：不声明 feature、不发布 last-resort 包的部署，其 claim / consume / Welcome 行为保持默认 fail-closed 路径不变。
 
 ### 2.7 Minimal-Metadata E2EE Realm
 

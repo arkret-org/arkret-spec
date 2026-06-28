@@ -227,13 +227,16 @@
       "required": [
         "scheme",
         "aead_profile",
-        "nonce",
         "aad",
         "key_delivery"
       ],
       "properties": {
         "scheme": {
-          "const": "ck.file_transfer.encrypted_blob.v1"
+          "type": "string",
+          "enum": [
+            "ck.blob.whole_file_aead.v1",
+            "ck.blob.stream_aead.v1"
+          ]
         },
         "aead_profile": {
           "type": "string",
@@ -243,6 +246,19 @@
         },
         "nonce": {
           "$ref": "#/$defs/base64url"
+        },
+        "nonce_prefix": {
+          "$ref": "#/$defs/base64url"
+        },
+        "segment_size": {
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 8388608
+        },
+        "segment_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1048576
         },
         "aad": {
           "$ref": "#/$defs/encryption_aad"
@@ -258,6 +274,56 @@
           ]
         }
       },
+      "oneOf": [
+        {
+          "$comment": "whole-file AEAD form: single nonce, no stream segment parameters",
+          "properties": {
+            "scheme": {
+              "const": "ck.blob.whole_file_aead.v1"
+            }
+          },
+          "required": [
+            "nonce"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "nonce_prefix"
+                ]
+              },
+              {
+                "required": [
+                  "segment_size"
+                ]
+              },
+              {
+                "required": [
+                  "segment_count"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "$comment": "streaming chunked AEAD form: nonce_prefix and fixed segment parameters, no whole-file nonce",
+          "properties": {
+            "scheme": {
+              "const": "ck.blob.stream_aead.v1"
+            }
+          },
+          "required": [
+            "nonce_prefix",
+            "segment_size",
+            "segment_count"
+          ],
+          "not": {
+            "required": [
+              "nonce"
+            ]
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "encryption_aad": {
@@ -327,7 +393,6 @@
         "transfer_id",
         "blob_ref",
         "aead_profile",
-        "nonce",
         "content_digest",
         "key_envelope",
         "expires_at"
@@ -348,6 +413,19 @@
         "nonce": {
           "$ref": "#/$defs/base64url"
         },
+        "nonce_prefix": {
+          "$ref": "#/$defs/base64url"
+        },
+        "segment_size": {
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 8388608
+        },
+        "segment_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1048576
+        },
         "content_digest": {
           "$ref": "#/$defs/hash"
         },
@@ -358,6 +436,46 @@
           "$ref": "#/$defs/timestamp"
         }
       },
+      "oneOf": [
+        {
+          "$comment": "whole-file file-transfer key message: single nonce, no stream segment parameters",
+          "required": [
+            "nonce"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "nonce_prefix"
+                ]
+              },
+              {
+                "required": [
+                  "segment_size"
+                ]
+              },
+              {
+                "required": [
+                  "segment_count"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "$comment": "streaming file-transfer key message: nonce_prefix and fixed segment parameters, no whole-file nonce",
+          "required": [
+            "nonce_prefix",
+            "segment_size",
+            "segment_count"
+          ],
+          "not": {
+            "required": [
+              "nonce"
+            ]
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "key_envelope": {

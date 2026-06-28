@@ -41,6 +41,8 @@ Cokret 身份由 DID principal 表示，但用户访问通常经过一个或多�
 - 绑定到用户已控制的 principal DID，并验证 DID proof、device binding 或等价 session grant。
 - 为该服务账号创建受支持的托管 DID，并记录 controller、recovery policy、trust domain、service-account 绑定和审计证据。
 
+托管 DID 分支在允许最终 actor 持久写入前，MUST 证明其 recovery policy 已形成可用恢复路径：默认 MUST 满足 [`key-management.md` §5.0.1](./key-management.md) 的 first-backup gate（至少一个可验证、可恢复、非空的 active policy / backup 路径已经生效），并满足 §7.11 对加密 Realm 写入前恢复路径的要求。只有 deployment 明确声明 `ck.profile.personal_node.v1` 且该用户显式选择 `single_point_of_failure=true` 时，才 MAY 跳过 first-backup gate；该跳过选择 MUST 进入 account binding / audit evidence，且不得作为组织或托管企业账号的默认行为。
+
 未绑定 DID 的 session MAY 执行注册、风险检查、邀请预览、邮箱验证、设备初始化等 pre-registration 操作；MUST NOT 作为最终 actor 提交 Realm Event、capability grant、MLS membership、service delegation 或 federation transaction。
 
 如果用户后续改用自有 DID、pairwise DID 或组织私有 DID，服务 MAY 根据 policy 迁移 handle、service account binding、credential 或后续写入身份。历史 Event 的 `actor_id` 和 grant `subject` MUST NOT 被改写；需要表达迁移时，应发布显式 claim、attestation、profile update 或 account binding record。
@@ -278,7 +280,7 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 Native personal agent(`actor_kind="agent"`,`accountable_principal_ids` 指向 controller principal)的 lifecycle 是 controller 账户 lifecycle 的从属体:
 
 - **Provisioning** 由 controller 通过 `ck.self.agent.command.provision` operation 发起，fan-out 写入 Actor Profile、`ck.identity.accountability_grant`、初始 `ck.capability.grant`(带 `effective_after_first_authorized_key=true` flag)。Agent provisioning status 投影闭合枚举:`pending_runtime_key` → `active`(pairing 完成) / `pairing_expired`(pairing 窗口过期) → `paused` / `deactivated`。
-- **Pause**(`ck.self.agent.command.pause`):保留 agent identity、`accountability_grant`、`agent_key_authorize`、capability grants 的 durable state。Auth Server MUST 拒绝新 agent session grant；已签发 session token SHOULD 在 revocation freshness window(≤ 该部署 agent session 最大 TTL，见 [`key-management.md` §3.6.1](./key-management.md))内 fail closed，实现可选同步 revocation 或自然过期 + status 重查。Pending action requests SHOULD 标 `awaiting_resume`。
+- **Pause**(`ck.self.agent.command.pause`):保留 agent identity、`accountability_grant`、`agent_key_authorize`、capability grants 的 durable state。Auth Server MUST 拒绝新 agent session grant；已签发 session token MUST 在 revocation freshness window(≤ 该部署 agent session 最大 TTL，见 [`key-management.md` §3.6.1](./key-management.md))内通过 introspection、status check、revocation list 或等价机制 fail closed。实现 MAY 选择同步 revocation 或每次资源访问强制 status 重查，但 MUST NOT 仅依赖自然过期窗口继续接受 paused agent token。Pending action requests SHOULD 标 `awaiting_resume`。
 - **Resume**(`ck.self.agent.command.resume`):前 MUST 重新校验 controller、agent、key、capability、Realm policy 与 `accountability_grant` freshness；任一不通过则拒绝 resume,agent 保持 `paused`。
 - **Deactivate**(`ck.self.agent.command.deactivate`):terminal state,fan-out `ck.agent.key.revoke`、`ck.capability.revoke` / delegation revoke、runtime endpoint revoke、pending action request 失效。Sidecar Circle 同步移除该 agent；若该 Circle 为 MLS-backed，则执行 MLS remove 与 epoch rotation（见 [`../models/circle.md` §11.1](../models/circle.md)）。
 - **Controller lifecycle 传播**:Controller 进入 `deactivated` / `suspended` 时，其 accountable native agents 的 active sessions MUST 通过本节 revocation 链失效，后续 agent session grant MUST fail closed。Accountability grant 失效同样使 agent 进入 ineligible 状态。

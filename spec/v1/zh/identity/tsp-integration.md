@@ -106,6 +106,9 @@ DID Document 或 normalized principal view 中出现 `ck.service.tsp` 只是一�
 
 - `ck.cross_signing.publish`
 - `ck.cross_signing.reset`
+- `ck.device.authorize`
+- `ck.device.revoke`
+- `ck.session.grant`
 - 跨 `trust_domain` 的 `ck.member.state`
 - 跨 `trust_domain` 的 `ck.invite.create`
 

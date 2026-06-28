@@ -110,7 +110,7 @@ updated: 2026-06-10
 | `ghost_policy` | yes | Ghost Actor 支持与 accountability 模板。 |
 | `delegation_policy` | yes | delegated native-user acting 请求；默认 false。 |
 | `e2ee_policy` | yes | MLS join 请求；默认 false。 |
-| `widget` | optional | widget origin / CSP / token scope / consent。 |
+| `widget` | optional | Applet UI widget declaration；若存在，MUST validate `ck.schema.applet_widget_declaration.v1`（[`applet-widget-declaration.schema.json`](../../artifacts/schemas/applet-widget-declaration.schema.json)）。 |
 | `package_digest` | yes | canonical package hash。 |
 | `registration_epoch` | yes | canonical security epoch hash。 |
 | `created_at` | yes | package 创建时间。 |
@@ -134,9 +134,11 @@ Package -> registration 派生映射:
 | `requested_scopes` | `requested_scopes` | 原样复制；仍只是请求声明。 |
 | `registration_epoch` | `registration_epoch` | 由 canonical derived registration + DID/key/endpoint/auth evidence 计算。 |
 | `webhook_auth` | `webhook_auth` | 原样复制；必须覆盖 transaction push signature 验证锚点。`key_ref` MUST 归属于 `service_did`，绑定当前 `registration_epoch`；key rotate 后必须通过新的 effective registration / install 生效，旧 key 不得继续放行 inbound push。 |
-| `manifest` | `claimed_profiles` + `limits` + policies + optional widget | 作为 snapshot 放入 manifest，但不得替代顶层 required 字段。 |
+| `manifest` | `claimed_profiles` + `limits` + policies + optional widget declaration | 作为 snapshot 放入 manifest，但不得替代顶层 required 字段；widget snapshot MUST 保持 `ck.schema.applet_widget_declaration.v1` 的闭合形态。 |
 | `proof` | `proof` | detached proof 覆盖 canonical package 或 derived registration object。 |
 | `created_at` | `created_at` | 原样复制。 |
+
+Widget declaration 的字段顺序与 schema 一致：`schema`、`widget_origin`、`csp`、`token_scope`、`requires_consent`。`token_scope` 是对象而非字符串数组，至少包含 `actions[]`、`resources[]` 与 `expires_at`；host / node 签发给 widget 的短期 token MUST 是该 scope 的子集，不能回退到用户 full session 权限。
 
 ## 1b. Applet Install Operation Objects
 
@@ -356,7 +358,7 @@ GET /_cokret/edge/applet/protocols/{protocol}
 | `error_class` | `string`（封闭枚举） | required | 错误类别封闭枚举，取值 **MUST** 属于 `external_network` / `auth` / `schema` / `rate_limit` / `policy`(供聚合与告警)。`error_class` 是粗粒度类别，具体错误码由 `error_code` 承载(例如 `error_class="rate_limit"` 配 `error_code="external_rate_limited"`);二者不得混用。`rate_limit` 是该枚举的 canonical 类别名,[`applet-integration.md` §14](./applet-integration.md) 的重试语境用 `rate_limited` 指同一类错误状态。该枚举的机读 enum 权威源为 [`schemas/event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 的 `ck.applet.bridge_error` payload。 |
 | `error_code` | `string` | required | 具体错误码（如 `external_rate_limited`）。 |
 | `retriable` | `boolean` | required | 该错误是否可重试；发送方据此决定是否以相同 `Idempotency-Key` 重试（与 [`applet-integration.md` §14](./applet-integration.md) 重试规则一致）。 |
-| `visibility_scope` | `string` | required | 该 error event 的可见范围枚举（如 `realm_admins` / `applet_controller` / `realm_members`）；客户端 MUST 按此限制展示，MUST NOT 把 bridge 内部错误细节暴露给无关成员。 |
+| `visibility_scope` | `string`（封闭枚举） | required | 该 error event 的可见范围枚举，取值 MUST 属于 `realm_admins` / `applet_controller` / `realm_members`；客户端 MUST 按此限制展示，MUST NOT 把 bridge 内部错误细节暴露给无关成员。 |
 | `external_ref` | `object` | optional | 外部网络引用（protocol / network id 等）；MUST NOT 包含未授权外部正文明文。 |
 | `message` | `string` | optional | 人类可读摘要；MUST NOT 泄露未授权外部正文。 |
 | `retry_after_ms` | `int` | optional | 建议重试延迟，仅当 `retriable=true` 时有意义。 |

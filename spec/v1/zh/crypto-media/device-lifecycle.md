@@ -149,19 +149,19 @@ Cokret 使用三层签名链：
 
 #### 5.0 Principal 身份模型归一决策表（normative）
 
-v1 并存两套设备入册信任根，但二者**不是对等可选**：**B 模型（enrollment-authority / 托管 DID）是 v1 的权威路径**，A 模型（client-self-signing / inception bootstrap）是**受限 / legacy** 形态，仅用于客户端自持控制密钥且无可用入册权威的场景。receiver 端不得在两套口径间漂移；下表把"principal 身份模型 → 适用 binding 形态 → 验证 regime"归一，所有 receiver MUST 按此单一判定函数选择验证路径：
+v1 并存两套设备入册信任根，但二者**不是对等可选**：**B 模型（enrollment-authority / 托管 DID）是 v1 的权威路径**，A 模型（client-self-signing / inception bootstrap）是**受限 / 非权威**形态，仅用于客户端自持控制密钥且无可用入册权威的场景。receiver 端不得在两套口径间漂移；下表把"principal 身份模型 → 适用 binding 形态 → 验证 regime"归一，所有 receiver MUST 按此单一判定函数选择验证路径：
 
 | principal 身份模型 | DID 形态 | `ck.device.authorize` binding 字段（`oneOf` 三选一） | 信任根 | 验证 regime | 状态 |
 | --- | --- | --- | --- | --- | --- |
 | **B：enrollment-authority（托管 DID）** | account-authority 代铸 DID（DID 文档 `service` 指派入册权威） | `enrollment_authority_binding`（§5.4） | DID 文档指派的入册权威（单一权威，持久服务密钥） | §5.4：入册时解析入册权威 DID 验签；热路径用 current 设备集投影锚（`device_authorize_event_id`） | **权威（v1 默认）** |
-| **A：client-self-signing（cross-signing）** | 客户端自持控制密钥的 DID（`ck.cross_signing.publish` 确立 PSK→SSK） | `cross_signing_binding`（§5.2） | PSK→SSK 交叉签名链 | §5.2.1 / §8.3：DID 锚定 PSK→验 SSK binding→验 device binding | **受限 / legacy**：仅自持控制密钥模型适用 |
-| **A-bootstrap：inception 自授权** | 首台设备由 inception key 自授权（control stream 尚无 `ck.cross_signing.publish`） | `bootstrap_binding`（§5.3） | DID inception key（24h 在线窗口后退场） | §5.3：control stream 无 publish 时方接受；首次 publish 后 MUST 转 §5.2 | **受限 / legacy bootstrap-only** |
+| **A：client-self-signing（cross-signing）** | 客户端自持控制密钥的 DID（`ck.cross_signing.publish` 确立 PSK→SSK） | `cross_signing_binding`（§5.2） | PSK→SSK 交叉签名链 | §5.2.1 / §8.3：DID 锚定 PSK→验 SSK binding→验 device binding | **受限 / 非权威**：仅自持控制密钥模型适用 |
+| **A-bootstrap：inception 自授权** | 首台设备由 inception key 自授权（control stream 尚无 `ck.cross_signing.publish`） | `bootstrap_binding`（§5.3） | DID inception key（24h 在线窗口后退场） | §5.3：control stream 无 publish 时方接受；首次 publish 后 MUST 转 §5.2 | **受限 / bootstrap-only** |
 
 判定函数（receiver MUST 单一入口执行，不得按本地偏好在 A/B 间漂移）：
 
 1. 读该设备权威 `ck.device.authorize` 的 binding 字段（schema `oneOf` 保证三者互斥）。
 2. `enrollment_authority_binding` ⇒ 走 **B 模型** §5.4 验证 regime（入册时解析权威 / 热路径用设备集投影锚），且该 principal control stream MUST NOT 出现 `ck.cross_signing.publish`（出现即口径冲突，fail closed）。
-3. `cross_signing_binding` ⇒ 走 **A 模型** §5.2.1 / §8.3 链验证；该路径为受限 / legacy，仅当 principal 为客户端自持控制密钥模型时适用。
+3. `cross_signing_binding` ⇒ 走 **A 模型** §5.2.1 / §8.3 链验证；该路径为受限 / 非权威，仅当 principal 为客户端自持控制密钥模型时适用。
 4. `bootstrap_binding` ⇒ 走 **A-bootstrap** §5.3，仅当 control stream 尚无任何 `ck.cross_signing.publish` 时接受；首次 publish 后该路径 inert。
 5. 三者皆无或多于一个 ⇒ fail closed（`unverified` / `schema_violation`）。
 

@@ -31,11 +31,6 @@
           ],
           "description": "Expiry anchor trigger. on_first_read / on_last_read are driven by private read cursor or policy-allowed receipt inputs through anonymous aggregate trigger contributions; expiry metadata MUST NOT expose reader identity."
         },
-        "seal_hlc": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Reducer / projection fixed anchor HLC. Once a read-trigger anchor is accepted for a message, duplicate delivery or replay MUST NOT refresh it."
-        },
         "grace_ms": {
           "type": "integer",
           "minimum": 0,

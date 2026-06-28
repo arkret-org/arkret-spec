@@ -4085,7 +4085,12 @@ def check_release_readiness_counts(lint: Lint, known: dict[str, set[str]]) -> No
 
     profile_data = load_json(lint, ARTIFACTS / "profiles" / "conformance-profiles.json") or {}
     profile_requirements_count = len(profile_data.get("profile_requirements", []))
-    profile_tiers_count = len(profile_data.get("profile_tiers", []))
+    profile_tiers = profile_data.get("profile_tiers", {})
+    profile_tiers_count = (
+        sum(1 for value in profile_tiers.values() if isinstance(value, list))
+        if isinstance(profile_tiers, dict)
+        else 0
+    )
 
     expected: dict[str, int] = {
         "Event kind（active）": len(known["active_event_kinds"]),
@@ -4108,12 +4113,16 @@ def check_release_readiness_counts(lint: Lint, known: dict[str, set[str]]) -> No
 
     for label, want in expected.items():
         if label in {"profile_requirements", "profile_tiers"}:
-            # Look in inline prose: "...另含 N 个 `profile_requirements`..."
-            for inline_match in re.finditer(
-                rf"(\d+)\s*个\s*`{label}`",
-                text,
-            ):
-                have = int(inline_match.group(1))
+            inline_patterns = [
+                rf"(\d+)\s*(?:个|组|block|blocks)?\s*`{label}`",
+                rf"`{label}`\s*(?:block|blocks|分组)?\s*[（(](\d+)[）)]",
+            ]
+            inline_counts: list[int] = []
+            for pattern in inline_patterns:
+                inline_counts.extend(int(match.group(1)) for match in re.finditer(pattern, text))
+            if not inline_counts:
+                lint.fail(path, f"missing prose count for `{label}`")
+            for have in inline_counts:
                 if have != want:
                     lint.fail(
                         path,

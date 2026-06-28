@@ -111,6 +111,7 @@ GET /_cokret/open/mimi/provider-directory
     },
     "hub_provider": "did:web:mimi.example.com",
     "local_provider_role": "hub",
+    "status": "accepted",
     "follower_providers": [
       "did:web:remote.example"
     ],
@@ -156,6 +157,8 @@ MIMI facade 对 Cokret Realm 的入站投影失败时，MUST 使用稳定 reason
 | `mimi_room_state_incompatible` | MIMI room state 使用当前 profile 不支持的 lifecycle、membership、policy 形态，或试图把未被双方显式声明支持的 `ck.profile.e2ee_relaxed.v1` 降级当作 full MLS Governance Binding 投影。 | reject 或要求使用新 interop profile。 |
 | `mimi_provider_unreachable` | provider directory、key material 或 groupInfo 依赖暂时不可达。 | `temporarily_unavailable` + bounded retry；不得接受无 binding 的 fallback。 |
 | `mimi_draft_unsupported` | 对端声明的 MIMI draft version 不在本 profile 支持集合。 | reject；不得按相近草案猜测解析。 |
+| `mimi_room_binding_status_transition_invalid` | `ck.mimi.room_binding.payload.status` 初始值非法、迁移不在 §4.2 表内，或试图修改 `revoked` 终态。 | reject；不得把缺失或未知 status 当作 accepted。 |
+| `mimi_observer_write_forbidden` | `local_provider_role=observer` 的 binding 试图代表本地参与方向 MIMI room 提交 write。 | reject；observer 只读投影不得产生 write side effect。 |
 
 ### 4.2 `status` 生命周期状态机（normative）
 

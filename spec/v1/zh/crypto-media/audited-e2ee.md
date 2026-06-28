@@ -121,6 +121,8 @@ Receiver MUST 校验 request 的 scope、purpose 和 release mode 均被 binding
 
 Authorize payload MUST 引用 `session_id`、`binding_id`、`approver_actor_id`、批准的 epoch / target 范围、release mode、notice policy 和 expiry。批准范围不得超过 request、binding、release window policy 与每个目标加密时 eligibility snapshot 的交集。
 
+Authorization 只授予一个有界 release 窗口，不是一次性永久凭证。`ck.audit.release` 被 accepted 时，reducer MUST 重新校验对应 `ck.audit.applet_binding.status == "active"`，且 authorize payload 的 `expiry` 尚未到期；任一条件不满足，release MUST 被拒绝（binding 非 active 使用 `audit_release_binding_inactive`，authorize 过期使用 `auth_expired` 或更具体的 release expiry reason）。Attested release service 在输出 wrapped material 或明文 evidence 前 MUST 执行同一 guard，并且不得仅凭先前见过的 authorize 事件继续 release。
+
 ### 4.3 Notice
 
 `ck.audit.session.notice` 是 release 前的成员通知 / 公告留痕。Notice MUST 进入对应 scope 的 durable history，并至少公开：
@@ -162,7 +164,7 @@ Authorize payload MUST 引用 `session_id`、`binding_id`、`approver_actor_id`�
 
 Release event MUST 先 accepted，并取得有效 `ck.audit.ryw_receipt` 后，attested release service 才能输出 wrapped material。`disclosed_policy` 也 MUST 按同一顺序记录，但其保证是流程性。
 
-Receiver / reducer MUST 拒绝任何缺失 `eligibility_proof`、`eligibility_proof` 与 binding policy 不一致、`sealed_epoch_range.first_epoch < first_auditable_epoch`，或 target 在其 encryption-time eligibility snapshot 中未包含该 binding / release mode 的 release。该拒绝使用 `audit_release_retroactive_scope_forbidden` 或 `audit_release_manifest_invalid`，取决于错误是越过不可追溯边界还是 manifest 自身不一致。
+Receiver / reducer MUST 拒绝任何缺失 `eligibility_proof`、`eligibility_proof` 与 binding policy 不一致、`sealed_epoch_range.first_epoch < first_auditable_epoch`，或 target 在其 encryption-time eligibility snapshot 中未包含该 binding / release mode 的 release。Release 被 accepted 时还 MUST 重新校验 binding 仍为 `active`、authorize 未过 expiry、notice 已按 scope 留痕且 session 未 close。该拒绝使用 `audit_release_retroactive_scope_forbidden`、`audit_release_manifest_invalid`、`audit_release_binding_inactive` 或 `auth_expired`，取决于错误是越过不可追溯边界、manifest 自身不一致、binding 已暂停 / revoked，还是授权窗口已过期。
 
 ### 4.5 Close
 
@@ -174,7 +176,7 @@ Receiver / reducer MUST 拒绝任何缺失 `eligibility_proof`、`eligibility_pr
 
 默认 release mode 是目标证据 release：只针对 `target_refs[]` 输出最小 evidence package。Evidence package SHOULD 由当前持有明文的成员设备、授权保管服务或符合 Realm policy 的受控服务加密给 `recipient_public_key_ref`。该模式不 release MLS epoch secret，也不让审计 applet 获得后续消息能力。
 
-`targeted_evidence_release` 的 evidence package MAY 包含被请求消息的明文、附件 digest、原始 encrypted envelope、franking proof、reporter / custodian 签名和必要上下文；MUST NOT 包含无关消息或超出授权范围的历史 key。
+`targeted_evidence_release` 的 evidence package MAY 包含被请求消息的明文、附件 digest、原始 encrypted envelope、franking proof、reporter / custodian 签名和必要上下文；MUST NOT 包含无关消息、超出授权范围的历史 key，或未被 `target_refs[]` 与 `eligibility_proof` 同时覆盖的同 epoch 明文。每个明文 item MUST 对应一个通过 §4.4 eligibility proof 的 `target_ref`，并满足该 target 的 encryption-time eligibility snapshot、`first_auditable_epoch` 与 release window。成员或 custodian 能解密某个 epoch 的更多明文，不等于可以把整 epoch 明文打包进 targeted evidence；超出 target 交集的明文 MUST 被拒绝并记录为 `audit_release_manifest_invalid` 或 `audit_release_retroactive_scope_forbidden`。
 
 ### 5.2 `sealed_epoch_key_release`（高风险）
 

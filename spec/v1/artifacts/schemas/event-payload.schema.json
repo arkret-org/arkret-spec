@@ -3607,11 +3607,6 @@
           ],
           "description": "Expiry anchor trigger. on_first_read / on_last_read are driven by private read cursor or policy-allowed receipt inputs through anonymous aggregate trigger contributions; expiry metadata MUST NOT expose reader identity."
         },
-        "seal_hlc": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Reducer / projection fixed anchor HLC. Once a read-trigger anchor is accepted for a message, duplicate delivery or replay MUST NOT refresh it."
-        },
         "grace_ms": {
           "type": "integer",
           "minimum": 0,
@@ -7023,8 +7018,13 @@
           "type": "boolean"
         },
         "visibility_scope": {
-          "$ref": "#/$defs/non_empty_string",
-          "description": "Visibility scope enum for the error event (e.g. realm_admins / applet_controller / realm_members). Clients MUST honor it and MUST NOT expose bridge-internal detail to unrelated members."
+          "type": "string",
+          "enum": [
+            "realm_admins",
+            "applet_controller",
+            "realm_members"
+          ],
+          "description": "Closed visibility scope enum for the error event. Clients MUST honor it and MUST NOT expose bridge-internal detail to unrelated members."
         },
         "external_ref": {
           "type": "object",
@@ -7129,8 +7129,12 @@
       "type": "object",
       "description": "Payload for ck.mimi.room_binding. Writes the ck.component.mimi.room_binding.v1 cell whose subject is payload.mimi_room_uri (see event-kind-registry.json cell_subject). Authoritative field set: zh/extensions/mimi-interop.md §3. The binding is a projection of a Cokret Realm/Strand discussion track into a MIMI room; it is not canonical truth. Creation / update / revocation MUST hold ck.policy.manage, ck.realm.admin, or an equivalent interop capability. E2EE MIMI rooms MUST bind mls_group_id and pass the MLS Governance Binding covered_seals_cell precondition.",
       "required": [
+        "profile",
         "mimi_room_uri",
-        "binding_scope"
+        "binding_scope",
+        "hub_provider",
+        "local_provider_role",
+        "status"
       ],
       "properties": {
         "profile": {
@@ -7168,7 +7172,7 @@
           "enum": [
             "hub",
             "follower",
-            "bridge_only"
+            "observer"
           ]
         },
         "follower_providers": {
@@ -7186,17 +7190,19 @@
           "$ref": "#/$defs/non_empty_string",
           "description": "MIMI content profile, e.g. application/mimi-content."
         },
-        "policy_component_root": {
-          "$ref": "#/$defs/hash"
+        "policy_root": {
+          "$ref": "#/$defs/hash",
+          "description": "Digest of the Cokret policy component projection bound to this MIMI room binding."
         },
         "status": {
           "type": "string",
           "enum": [
             "proposed",
             "accepted",
-            "revoked"
+            "revoked",
+            "migrating"
           ],
-          "description": "Lifecycle state of the binding. accepted bindings authorize projection; revoked bindings stop new MIMI writes (only backfill / tombstone / report / legal hold / migration proof maintenance remains)."
+          "description": "Lifecycle state of the binding. Initial status MUST be proposed or accepted; legal transitions are defined in zh/extensions/mimi-interop.md §4.2. accepted bindings authorize projection; revoked bindings stop new MIMI writes; migrating stops new writes until a verified migration proof returns the binding to accepted or revoked."
         },
         "created_at": {
           "$ref": "#/$defs/timestamp"
@@ -8295,6 +8301,46 @@
               },
               "removed_at": {
                 "$ref": "#/$defs/timestamp"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "participant_mute_overrides": {
+          "type": "array",
+          "maxItems": 1000,
+          "description": "Current durable moderator mute overrides. Each entry records the effective server-enforced audio/video send permission override for one call leg. SFU/token issuer MUST apply these overrides before issuing or accepting media send permissions; clients MUST mirror them locally. See crypto-media/webrtc-signaling.md §6.1.",
+          "items": {
+            "type": "object",
+            "required": [
+              "actor_id",
+              "device_id",
+              "audio_muted",
+              "video_muted",
+              "muted_by",
+              "muted_at"
+            ],
+            "properties": {
+              "actor_id": {
+                "$ref": "./common-ids.schema.json#/$defs/did"
+              },
+              "device_id": {
+                "$ref": "#/$defs/device_id"
+              },
+              "audio_muted": {
+                "type": "boolean"
+              },
+              "video_muted": {
+                "type": "boolean"
+              },
+              "muted_by": {
+                "$ref": "./common-ids.schema.json#/$defs/did"
+              },
+              "muted_at": {
+                "$ref": "#/$defs/timestamp"
+              },
+              "reason": {
+                "$ref": "#/$defs/non_empty_string"
               }
             },
             "additionalProperties": false

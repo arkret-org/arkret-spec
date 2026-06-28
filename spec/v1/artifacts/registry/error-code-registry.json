@@ -656,6 +656,12 @@
       "description": "The requested media, call, recording, or SFU policy is not supported by the service or negotiated media profile."
     },
     {
+      "code": "media_negotiation_failed",
+      "http_status": 409,
+      "scope": "service_call",
+      "description": "SDP / ICE media negotiation failed after the request passed authorization and schema validation. Clients MAY retry with a fresh offer or rejoin flow; services MUST NOT treat this as authorization success for any durable call-state transition."
+    },
+    {
       "code": "unsupported_feature",
       "http_status": 501,
       "scope": "both",
@@ -1544,6 +1550,15 @@
         "auth_decision"
       ],
       "description": "A ck.audit.session.* or ck.audit.release event referenced no active ck.audit.applet_binding for the target Realm/Circle effective_scope. Audit release MUST fail closed without an active binding."
+    },
+    {
+      "code": "audit_release_binding_inactive",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision",
+        "service_call"
+      ],
+      "description": "ck.audit.release was evaluated after the referenced ck.audit.applet_binding became suspended or revoked. Reducer and release service MUST recheck binding status at release time and fail closed unless it is still active."
     },
     {
       "code": "audit_release_scope_mismatch",

@@ -446,31 +446,8 @@
       "additionalProperties": false
     },
     "widget": {
-      "type": "object",
-      "description": "Optional widget origin / CSP / token scope / consent declaration.",
-      "properties": {
-        "origin": {
-          "type": "string",
-          "format": "uri"
-        },
-        "csp": {
-          "$ref": "#/$defs/non_empty_string"
-        },
-        "token_scope": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/non_empty_string"
-          },
-          "uniqueItems": true
-        },
-        "consent_required": {
-          "type": "boolean"
-        }
-      },
-      "patternProperties": {
-        "^x_[a-z][a-z0-9_]{0,63}$": true
-      },
-      "additionalProperties": false
+      "$ref": "./applet-widget-declaration.schema.json",
+      "description": "Optional Applet widget declaration. When present, it MUST validate ck.schema.applet_widget_declaration.v1."
     }
   },
   "patternProperties": {

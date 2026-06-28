@@ -1282,7 +1282,7 @@
         ]
       },
       "lattice": "or_set",
-      "bottom": "reject"
+      "bottom": "expose"
     },
     {
       "event_kind": "ck.agent.key.revoke",
@@ -1300,7 +1300,7 @@
         ]
       },
       "lattice": "or_set",
-      "bottom": "reject"
+      "bottom": "expose"
     },
     {
       "event_kind": "ck.agent.key.rotate",

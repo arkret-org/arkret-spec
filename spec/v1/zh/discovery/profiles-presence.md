@@ -28,6 +28,7 @@ updated: 2026-06-10
 {
   "id": "ck:actor_profile:019640ab-0000-7000-8000-000000000000",
   "schema": "ck.schema.actor_profile.v1",
+  "realm_id": "ck:realm:01964166-0000-7000-8000-000000000000",
   "principal_id": "did:web:alice.example.com",
   "actor_kind": "user",
   "display_name": "Alice Chen",
@@ -48,7 +49,7 @@ updated: 2026-06-10
 }
 ```
 
-字段顺序与 §2.2 表 / canonical schema property ordering 一致（…`handle`、`agent_slug`、`avatar_blob_ref`、`status`、`accountable_principal_ids`、`profile_fields`、`created_at`、`updated_by`、`updated_at`）；`updated_by` / `updated_at` 为可选字段，初始 `ck.profile.create` 后尚未发生更新时 MAY 省略。
+字段顺序与 §2.2 表 / canonical schema property ordering 一致（…`schema`、`realm_id`、`principal_id`、`actor_kind`、`display_name`、`handle`、`agent_slug`、`avatar_blob_ref`、`status`、`accountable_principal_ids`、`profile_fields`、`created_at`、`updated_by`、`updated_at`）；`realm_id`、`updated_by` / `updated_at` 为可选字段，初始 `ck.profile.create` 后尚未发生更新时 MAY 省略。
 
 ### 2.2 标准 Profile 字段
 
@@ -56,6 +57,7 @@ updated: 2026-06-10
 |------|------|------|------|
 | `id` | id:actor_profile | MUST | Profile 对象 ID。 |
 | `schema` | string | MUST | `ck.schema.actor_profile.v1`。 |
+| `realm_id` | id:realm | 可选 | Profile state 所属的 principal control Realm 或 profile materialization scope。存在时 MUST 与承载该 profile create/update 的 principal control Realm 或授权 materialization scope 一致；不得被当作协作 Realm membership 或读取权限。 |
 | `principal_id` | did | MUST | Actor / Principal DID。 |
 | `actor_kind` | enum | MUST | `user`、`org`、`team`、`agent`、`service` 或 `integration`（不含 `device`：设备非 actor 主体，见 [`../models/actor.md` §2](../models/actor.md)）。 |
 | `display_name` | string | MUST | 人类可读的显示名（最大 128 字符）。 |
@@ -88,6 +90,7 @@ Profile 初始状态通过 `ck.profile.create` Move / compatible Event 提交到
     "object": {
       "id": "ck:actor_profile:019640ab-0000-7000-8000-000000000000",
       "schema": "ck.schema.actor_profile.v1",
+      "realm_id": "ck:realm:01964166-0000-7000-8000-000000000000",
       "principal_id": "did:web:alice.example.com",
       "actor_kind": "user",
       "display_name": "Alice Chen",
