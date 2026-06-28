@@ -919,4 +919,4 @@ Cokret 没有采用该路径，核心原因是 **revoke / attenuation 必须进�
 
 因此 Cokret 在核心层坚持 grant-as-signed-Event + lattice-revoke,使授权状态与对象状态共享同一套收敛与 freshness 语义。
 
-未来 Cokret MAY 提供 `ck.profile.ucan_interop.v1`,把外部 UCAN 作为 claim / attestation 输入桥接进自有模型（外部 UCAN 仅作为 §7 claim/attestation 一类证据被消费，而不替代内生 grant cell）。该 profile 标记为 staging extension / 未来工作，不在 v1 核心 normative 范围内；在其落地前，实现 MUST NOT 依赖外部 bearer 能力链直接授权。
+未来 Cokret MAY 提供单独登记的 UCAN interop profile，把外部 UCAN 作为 claim / attestation 输入桥接进自有模型（外部 UCAN 仅作为 §7 claim/attestation 一类证据被消费，而不替代内生 grant cell）。在该 profile 进入 active conformance 前，实现 MUST NOT 依赖外部 bearer 能力链直接授权。

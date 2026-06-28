@@ -14,7 +14,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json",
-      "sha256": "b7f2f4ba00da5cf8ed4057fc138ab4f77c313f5aaea4ee35c2f25949644f08e8"
+      "sha256": "a66f57e027288fb0d80658670efcd76d679c6f7fed7122067a7dc7fb8e95e160"
     },
     {
       "path": "spec/v1/artifacts/fixtures/blob-stream-aead-fixture.json",
@@ -70,7 +70,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json",
-      "sha256": "04f2d02f54fd7dcbed31d7a831d5609029a1b8edb5baacaccf5af5771890ea06"
+      "sha256": "f4585c6f84a64cb4776510081d60e94282c935a4ddea41ea09148348219aac61"
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",

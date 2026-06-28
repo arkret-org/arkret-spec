@@ -53,6 +53,8 @@ Payload 字段：
 | `label` | no | `string` | 本地显示标签；不参与授权或确认语义。 |
 | `commitment` | no | `hash` | profile-specific 承诺值；需要双方确认、mirror、migration、confidential extension 或 attestation 的 profile MAY 要求它并定义 transcript。core `ck.realm.link` 不给该字段赋予通用授权语义。 |
 
+`status` MUST 出现在已签名的 `ck.realm.link` Event payload 中。操作 DTO 或 builder 若向调用方暴露 `status="active"` 默认值，MUST 在 Event canonicalization / signing 之前把该默认值 materialize 到 payload；reducer / receiver MUST 拒绝缺少 `status` 的持久 `ck.realm.link` Event。
+
 标准 `link_kind`：
 
 | kind | 含义 | 是否允许授权派生 |
@@ -62,6 +64,7 @@ Payload 字段：
 | `join_gate_from` | 本 Realm 的 join policy 可引用目标 Realm 的 membership / claim snapshot 作为 gate。 | no |
 | `inherits_policy_from` | 本 Realm 选择性继承目标 Realm 的收窄型 policy。 | MAY，必须 narrow-only。 |
 | `confidential_extension_of` | 本 Realm 是另一个 Realm 中某个 Strand / Space / discussion 的机密扩展。 | no |
+| `mirror_of` | 本 Realm 是目标 Realm 的镜像、只读副本或同步投影；mirror profile 必须定义方向、冲突处理、commitment / evidence transcript 与可写边界。 | no |
 | `split_from` | 本 Realm 从目标 Realm 拆分或迁移而来。 | no |
 | `replaces` | 本 Realm 替代目标 Realm。 | no，除非 replacement profile 明确声明。 |
 

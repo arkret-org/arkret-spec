@@ -100,7 +100,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 
 **版本与前向兼容**
 
-- 当前 baseline 是 tus 1.0.0。IETF httpbis 的 *Resumable Uploads*（`draft-ietf-httpbis-resumable-upload`）标准化后，其 binding MUST 以新的 feature id（如 `ck.feature.blob.resumable_upload.ietf.v1`）与新的 `supported_bindings.kind` 增量声明，不改写本节 tus 1.0.0 语义；客户端按 describe 声明的 feature / binding 选择具体协议，对两者均可同时声明的服务端 SHOULD 优先选用其支持的最新标准化形态。
+- 当前 baseline 是 tus 1.0.0。IETF httpbis 的 *Resumable Uploads*（`draft-ietf-httpbis-resumable-upload`）标准化后，其 binding MUST 通过单独登记的 feature id 与新的 `supported_bindings.kind` 增量声明，不改写本节 tus 1.0.0 语义；客户端按 describe 声明的 feature / binding 选择具体协议，对两者均可同时声明的服务端 SHOULD 优先选用其支持的最新标准化形态。
 
 ## 3. Encrypted Attachment
 

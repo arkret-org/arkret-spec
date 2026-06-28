@@ -7,7 +7,13 @@
     {
       "probe_id": "deployment_probe.tls.pq_hybrid_x25519mlkem768.v1",
       "status": "active",
-      "scope": "all_v1_deployments",
+      "scope": "high_security_and_sovereign_profiles",
+      "applies_to_profiles": [
+        "ck.profile.high_security_organization.v1",
+        "ck.profile.sovereign_deployment.v1",
+        "ck.profile.sovereign_enclave.v1",
+        "ck.profile.isolated_sovereign_network.v1"
+      ],
       "applies_to_connections": [
         "client_service",
         "service_to_service",
@@ -27,7 +33,7 @@
       },
       "probe": {
         "kind": "tls_negotiated_group",
-        "success_condition": "the completed handshake negotiated TLS group X25519MLKEM768; a peer that does not offer that group is rejected rather than downgraded",
+        "success_condition": "for high-security or sovereign profile claims, the completed handshake negotiated TLS group X25519MLKEM768; a peer that does not offer that group is rejected rather than downgraded",
         "success_values": [
           "verified",
           "x25519mlkem768",

@@ -471,17 +471,17 @@ SHOULD 支持：
 - 离线 witness receipt
 - 带签名审计的 break-glass 流程
 
-### 15.1 Sender-constrained 会话出示（高安全 profile MUST）
+### 15.1 Sender-constrained 会话出示
 
-依据 [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700)（OAuth 2.0 Security BCP, BCP 240）"优先使用 sender-constrained token" 的指导，Cokret 默认把会话出示升级为 proof-of-possession（PoP）：常规写与敏感读 **SHOULD** 用会话 `session_public_key` 做 RFC 9421 HTTP Message Signature 出示，纯 bearer 降级为兼容路径与低敏读（见 [`../sync/api-conventions.md` §3.2](../sync/api-conventions.md)）。
+依据 [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700)（OAuth 2.0 Security BCP, BCP 240）"优先使用 sender-constrained token" 的指导，Cokret v1 production protected endpoint 的会话出示必须是 proof-of-possession（PoP）：`/_cokret/self/*` 使用 `ck.session.grant` + DPoP，常规写与敏感读使用会话 `session_public_key` 的 RFC 9421 HTTP Message Signature 或等价 sender-constrained proof。裸 `Authorization: Bearer` 可作为 DPoP / PoP 绑定中的 grant 载体，但不能单独作为受保护 endpoint 的认证成功依据（见 [`../sync/api-conventions.md` §3.2](../sync/api-conventions.md)）。
 
-在高安全 deployment profile 下该出示由 SHOULD 升为 **MUST**。涉及的 profile 与其 `conformance-profiles.json#profile_requirements` 中的 `additional_requirements.sender_constrained_session_pop_must` 一一对应：
+在高安全 deployment profile 下，常规写与敏感读的 sender-constrained 出示必须使用 RFC 9421 HTTP Message Signature 形态并绑定 transcript/body。涉及的 profile 与其 `conformance-profiles.json#profile_requirements` 中的 `additional_requirements.sender_constrained_session_pop_must` 一一对应：
 
 - `ck.profile.high_security_organization.v1`
 - `ck.profile.sovereign_deployment.v1`（`ck.profile.sovereign_enclave.v1` 经 `inherits` 继承）
 - `ck.profile.isolated_sovereign_network.v1`（经 `inherits` 同时继承上述两者，无需重复声明）
 
-这些 profile 下，对常规写（任何推进 `actor_seq` / Realm frontier 或产生持久副作用的请求）与敏感读，实现 MUST 要求 PoP 出示：RFC 9421 签名密钥为 `ck.session.grant` 委托的 `session_public_key`，覆盖 `@method` / `@target-uri` / `@authority`、`content-digest`（带 body 时）与参与幂等的 `Idempotency-Key`，`created` / `expires` 落在既有 replay window 内（量级见 [`../sync/federation.md` §3.2](../sync/federation.md) 与 [`encoding.md` §6](./encoding.md)）。纯 `Authorization: Bearer`（无 `Signature`）对这些操作 MUST 被拒绝；纯 bearer 仅对低敏 / `public_metadata` 读保持可接受。header 形态见 [`../sync/service-http-binding.md` §2.5](../sync/service-http-binding.md)。
+这些 profile 下，对常规写（任何推进 `actor_seq` / Realm frontier 或产生持久副作用的请求）与敏感读，实现 MUST 要求 RFC 9421 PoP 出示：签名密钥为 `ck.session.grant` 委托的 `session_public_key`，覆盖 `@method` / `@target-uri` / `@authority`、`content-digest`（带 body 时）与参与幂等的 `Idempotency-Key`，`created` / `expires` 落在既有 replay window 内（量级见 [`../sync/federation.md` §3.2](../sync/federation.md) 与 [`encoding.md` §6](./encoding.md)）。纯 `Authorization: Bearer`（无 DPoP / `Signature` / mTLS 绑定）对任何生产 current-v1 受保护 endpoint MUST 被拒绝；公开 metadata surface 若返回 public response，必须按未认证请求处理，不得授予 session / capability 语义。header 形态见 [`../sync/service-http-binding.md` §2.5](../sync/service-http-binding.md)。
 
 ## 16. Sovereign Client
 
@@ -553,7 +553,7 @@ Deployment profile 用于发布与验收，不替代实现 profile。完整 depl
 - auditable E2EE 或受控 plaintext-visible boundary
 - break-glass audit
 - server ACL 和 quarantine
-- sender-constrained（PoP）会话出示：常规写与敏感读 MUST 用 `session_public_key` 的 RFC 9421 HTTP Message Signature 出示，纯 bearer 对这些操作 MUST 被拒绝（详见 §15.1）
+- sender-constrained（PoP）会话出示：常规写与敏感读 MUST 用 `session_public_key` 的 RFC 9421 HTTP Message Signature 出示；生产 current-v1 受保护 endpoint 对裸 bearer 的拒绝规则见 §15.1
 
 `ck.profile.isolated_sovereign_network.v1` MUST cover：
 

@@ -2418,7 +2418,8 @@
       "type": "object",
       "required": [
         "target_realm_id",
-        "link_kind"
+        "link_kind",
+        "status"
       ],
       "properties": {
         "target_realm_id": {
@@ -2432,6 +2433,7 @@
             "join_gate_from",
             "inherits_policy_from",
             "confidential_extension_of",
+            "mirror_of",
             "split_from",
             "replaces"
           ]

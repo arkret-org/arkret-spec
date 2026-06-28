@@ -8,7 +8,7 @@
     "ck.vector.auth.soft_logout_did_proof.v1",
     "ck.vector.identity.did_proof_replay_window.v1",
     "ck.vector.session.pop_presentation.v1",
-    "ck.vector.session.bearer_replay_rejected_high_security.v1"
+    "ck.vector.session.bare_bearer_rejected_protected.v1"
   ],
   "cases": [
     {
@@ -139,24 +139,26 @@
       ]
     },
     {
-      "name": "bearer_replay_rejected_high_security",
-      "vector_id": "ck.vector.session.bearer_replay_rejected_high_security.v1",
-      "kind": "profile_pop_requirement",
+      "name": "bare_bearer_rejected_protected",
+      "vector_id": "ck.vector.session.bare_bearer_rejected_protected.v1",
+      "kind": "protected_endpoint_pop_requirement",
       "high_security_profile": "ck.profile.high_security_organization.v1",
       "default_profile": "ck.profile.minimal_client.v1",
       "sensitive_action": "regular_write",
-      "compat_action": "low_sensitivity_compat_read",
+      "bare_bearer_action": "protected_current_v1_endpoint",
+      "public_metadata_surface": "unauthenticated_public_response_only",
       "created": 1716000000,
       "expires": 1716003600,
       "max_window_seconds": 300,
       "expected": {
-        "high_security_bearer_reason": "unauthenticated",
-        "default_bearer": "accepted",
+        "high_security_bare_bearer_reason": "unauthenticated",
+        "default_protected_bare_bearer_reason": "unauthenticated",
+        "public_metadata_bare_bearer": "treated_as_unauthenticated_public_request",
         "over_window_pop_reason": "unauthenticated"
       },
       "assertions": [
-        "high-security and sovereign deployments reject plain bearer for regular writes and sensitive reads",
-        "default profile may accept bearer on compatibility low-sensitivity paths",
+        "production current-v1 protected endpoints reject bare bearer unless sender-constrained proof is present",
+        "public metadata surfaces do not treat bare bearer as session or capability authentication",
         "PoP created/expires outside the replay window is rejected even after replay-cache eviction"
       ]
     }

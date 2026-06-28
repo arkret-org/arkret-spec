@@ -392,17 +392,15 @@ Policy Server fast path 与 sealed control decision 的关系：
 
 - Fast path 上，Policy Server 返回 `quarantine` / `hard_deny` 后，origin Principal Server SHOULD **同步** 提交 `ck.moderation.decision` Control Move。Control Move 提交前 origin 节点 MAY 本地隐藏目标作为优化，但**不得**以 fast-path 决策永久代替 sealed control decision。
 - 若 origin 节点 24 小时内（或 Realm policy 声明的更短窗口）未能把 fast-path quarantine 提升为 sealed control decision，处理方式 MUST 按未能提升的根因分类，不得对所有失败统一静默解除：
-  - **(a) 传输 / 可用性类**——Seal issuer unreachable、`temporarily_unavailable`、控制面 fork quarantine、提交超时等纯可达性故障：窗口到期后 MUST 解除本地隐藏并退回到 sealed control state 实际值。这避免单一 origin 在 Seal 故障期间无限期隔离他人内容。**但自动退回 allow 前，origin MUST 产出可验证的不可达证据**——即按 [`event-auth-state-resolution.md` §7.2](./event-auth-state-resolution.md) 的 receipt SLA 超时证明 / censorship evidence（如对 Seal issuer 的签名提交回执缺失证明、超时计时锚定到 frontier 的可验证记录），并把该证据写入 moderation history trail（§7.1 "Fast-path 退回的 UX 规则" 的独立 moderation history）。仅凭 origin **自报**"传输失败"而无可验证证据时，MUST NOT 享受本（a）类自动退回 allow，而 MUST 按下方（b）类升级为 `require_review`（或保持隐藏并向 Realm 审核方告警）。这避免恶意 origin 通过谎报"传输失败"把一条本应进入 sealed control 的隔离决策静默漂白成 allow。
+  - **(a) 传输 / 可用性类**——Seal issuer unreachable、`temporarily_unavailable`、控制面 fork quarantine、提交超时等纯可达性故障：窗口到期后 MUST 解除本地隐藏并退回到 sealed control state 实际值。这避免单一 origin 在 Seal 故障期间无限期隔离他人内容。**但自动退回 allow 前，origin MUST 产出可验证的不可达证据**——即按 [`event-auth-state-resolution.md` §7.2](./event-auth-state-resolution.md) 的 receipt SLA 超时证明 / censorship evidence（如对 Seal issuer 的签名提交回执缺失证明、超时计时锚定到 frontier 的可验证记录），并把该证据写入 moderation history trail（§7.1 "Fast-path 退回的协议通知规则" 的独立 moderation history）。仅凭 origin **自报**"传输失败"而无可验证证据时，MUST NOT 享受本（a）类自动退回 allow，而 MUST 按下方（b）类升级为 `require_review`（或保持隐藏并向 Realm 审核方告警）。这避免恶意 origin 通过谎报"传输失败"把一条本应进入 sealed control 的隔离决策静默漂白成 allow。
   - **(b) reducer 主动拒绝类**——Control Move 被 reducer 以 capability / 权限原因拒绝（例如 origin actor 失去 `ck.realm.moderation_policy` capability，或 `failed_precondition` 源于授权 / 前置条件不成立而非传输故障）：此时窗口到期 SHOULD 升级为 `require_review`，或保持隐藏并向 Realm 审核方告警，**不得**静默解除本地隐藏。理由是该类失败表明决策的授权基础本身存疑，静默解除会让一条可能合规的审核意图被悄悄丢弃。实现 MUST 能区分这两类原因（传输 / 可用性 vs reducer 授权拒绝），并据此选择解除或升级 / 保持隐藏。
-- Receiver 节点收到 fast-path quarantine signaling（Policy Server 签名）但无对应 sealed Control Move 时，MAY 临时隐藏目标作为风险缓解，但 MUST 在 UI 中标记 `moderation_control_pending` 并在 sealed decision 抵达后切换显示。
+- Receiver 节点收到 fast-path quarantine signaling（Policy Server 签名）但无对应 sealed Control Move 时，MAY 临时隐藏目标作为风险缓解，但 MUST 在 query / projection / sync surface 中把该目标标记为 `moderation_control_pending`，并在 sealed decision 抵达后按 sealed control state 重新投影。GUI 客户端、CLI、bot 或审计消费者如何呈现该状态属于产品层；协议只要求状态可见、可订阅且不被误投影为最终 sealed decision。
 
-**Fast-path 退回的 UX 规则**：当 fast-path quarantine 因 24h 升级失败而被解除时，receiver MUST：
+**Fast-path 退回的协议通知规则**：当 fast-path quarantine 因 24h 升级失败而被解除时，receiver MUST：
 
-- 通过 ephemeral signal（client_sync extension）通知所有当前 viewing 该 Realm 的客户端，附带 `reason_code=moderation_control_lifted` 与 `affected_event_id` 列表。
-- 客户端 UI MUST 显式提示用户内容重新可见（避免用户误以为自己看错），不得静默切换显示。形态可以是:
-  - 该 Realm 顶部 banner: "X 条内容因审核未达成共识已恢复显示"
-  - 在 audit log / moderation history view 中保留 `quarantine_attempted_at` + `lifted_at` + `reason` 三段 trail（不是普通 message redaction history，而是独立的 moderation history）。
-- 已发出的 push notification SHOULD 由 push gateway 通过 silent update 收回（Apple/Google 平台的 silent push），但**不得**重新发送通知（避免双倍打扰）。
+- 在 query / projection / sync surface 中发布 `reason_code=moderation_control_lifted` 与受影响 object refs，使已观察该 Realm 的订阅者能把本地 `moderation_control_pending` 状态切换为 sealed control state 的当前值。
+- 在独立 moderation history trail 中保留 `quarantine_attempted_at`、`lifted_at`、`reason` 与可验证的退回证据；该 trail 不是普通 message redaction history。
+- 若部署提供 push / notification binding，MAY 使用平台支持的更新或撤回机制发送 revocation hint；该 hint 是 transport-specific optimization，不得作为 sealed control state 的唯一真相源，也不得重新发送原始通知。
 - audit / search / projection 应从那一刻起按 sealed control state 重建受影响 view；缓存中曾被 fast-path 隐藏的 entry MUST 立即失效。
 
 ### 7.2 错误码与 reason_code 扩展
@@ -411,7 +409,7 @@ Policy Server fast path 与 sealed control decision 的关系：
 
 - `moderation_control_pending` — fast-path quarantine 已记录，但 sealed Control Move 未到达。
 - `moderation_control_lifted` — 此前 sealed quarantine 已被 `ck.moderation.decision.lift` 解除。
-- `moderation_control_split` — moderation cell 在当前 control view 下出现 ⊥（或 expose 多 head）；所有引用该 cell 的 read / write / distribute / policy-check 路径 MUST fail closed，`reason="moderation_state_conflict"`，UI 应显式提示而不是默默选 winner。实现不得在冲突期间选择任一 head 作为临时 allow。
+- `moderation_control_split` — moderation cell 在当前 control view 下出现 ⊥（或 expose 多 head）；所有引用该 cell 的 read / write / distribute / policy-check 路径 MUST fail closed，`reason="moderation_state_conflict"`，query / projection / sync surface MUST 暴露冲突状态而不得默默选 winner。实现不得在冲突期间选择任一 head 作为临时 allow。
 
 ## 8. Antifraud Mapping from Server Abuse Practice
 

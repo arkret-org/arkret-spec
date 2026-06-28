@@ -1793,10 +1793,10 @@
       ]
     },
     {
-      "vector_id": "ck.vector.session.bearer_replay_rejected_high_security.v1",
+      "vector_id": "ck.vector.session.bare_bearer_rejected_protected.v1",
       "status": "active",
       "domain": "session",
-      "description": "Under ck.profile.high_security_organization.v1 / sovereign_deployment, plain Authorization: Bearer (no Signature) on regular writes / sensitive reads MUST be rejected with unauthenticated, while the default profile accepts it as a compatibility downgrade; a PoP signature whose created/expires falls outside the replay window MUST be rejected.",
+      "description": "Production current-v1 protected endpoints MUST reject bare Authorization: Bearer unless it is bound by DPoP, an RFC 9421 HTTP Message Signature, detached JWS, mTLS, or equivalent sender-constrained proof; high-security profiles additionally require RFC 9421 PoP for regular writes / sensitive reads; a PoP signature whose created/expires falls outside the replay window MUST be rejected.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json"

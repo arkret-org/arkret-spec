@@ -20,7 +20,7 @@ Operation 语义本身可映射到不同 transport；但 **v1 core wire conforma
 
 - 请求和响应默认使用 `Content-Type: application/json`。
 - 写请求 MUST 支持幂等键或内容 ID 幂等。
-- 认证 MAY 使用 bearer token、HTTP Message Signature、DID proof 或 transport-specific binding。会话出示按 [`api-conventions.md` §3](./api-conventions.md) 推荐序选择：`/_cokret/self/*` 的默认会话凭据是直接出示 `ck.session.grant` + `DPoP`（[RFC 9449](https://www.rfc-editor.org/rfc/rfc9449)，[`api-conventions.md` §3.3](./api-conventions.md)），Principal Server 经 session-grant 内省（缓存 ≤120s）+ DPoP 校验放行，**不**铸独立本地 bearer、**不**暴露第二个客户端可见的 Principal 本地凭据签发 endpoint；带 body 写与敏感读可叠加 `session_public_key` 的 RFC 9421 HTTP Message Signature（sender-constrained / PoP），纯 bearer 降级为兼容路径与低敏读；高安全 profile 下 PoP 出示升为 MUST（§2.5）。
+- 认证 MUST 使用 DPoP、HTTP Message Signature、DID proof、mTLS 或等价 sender-constrained binding。会话出示按 [`api-conventions.md` §3](./api-conventions.md) 推荐序选择：`/_cokret/self/*` 的默认会话凭据是直接出示 `ck.session.grant` + `DPoP`（[RFC 9449](https://www.rfc-editor.org/rfc/rfc9449)，[`api-conventions.md` §3.3](./api-conventions.md)），Principal Server 经 session-grant 内省（缓存 ≤120s）+ DPoP 校验放行，**不**铸独立本地 bearer、**不**暴露第二个客户端可见的 Principal 本地凭据签发 endpoint；带 body 写与敏感读 MUST 使用 `session_public_key` 的 RFC 9421 HTTP Message Signature 或等价 sender-constrained proof。裸 `Authorization: Bearer` 只能作为 DPoP / PoP 绑定中的 grant 载体；生产 current-v1 受保护 endpoint MUST NOT 接受裸 bearer 作为认证成功（§2.5）。
 - 服务 MUST 通过 describe / feature discovery 暴露实际支持路径、profile 和限制。
 - 错误响应 MUST 使用统一 error schema。
 - 认证材料 MUST 放在 header、HTTP Message Signature、mTLS 或 signed proof body 中；受保护 endpoint MUST NOT 接受 query string 认证。
@@ -715,7 +715,7 @@ header 规则：
 - 参与幂等 / replay key 的 `Idempotency-Key` MUST 进入签名 transcript；出现 `X-Cokret-Wait-For` 时 SHOULD 一并覆盖，避免被替换。
 - 签名 parameters MUST 包含 `created` 与 `expires`；`keyid` MUST 指向当前会话 `ck.session.grant` 委托的 `session_public_key` kid。
 - 接收方 MUST 校验签名密钥与 grant 绑定的 principal / device / audience / origin 一致，并按既有 replay window（签名时效窗口，量级见 `federation.md` §3.2 / `encoding.md` §6）拒绝过窗或重放出示；时效窗口外的逐字节重放即使 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒绝。
-- `Authorization: Bearer` header MAY 与 PoP 签名并存（携带 `ck.session.grant` 供服务端定位会话与 grant），但出示是否被接受由签名 transcript 而非裸凭据决定；纯 bearer（无 `Signature`）在高安全 profile 的常规写与敏感读上 MUST 被拒绝。
+- `Authorization: Bearer` header MAY 与 DPoP / PoP 签名并存（携带 `ck.session.grant` 供服务端定位会话与 grant），但出示是否被接受由 sender-constrained proof transcript 而非裸凭据决定；纯 bearer（无 DPoP / `Signature` / mTLS 绑定）在生产 current-v1 受保护 endpoint 上 MUST 被拒绝。
 
 ## 3. Events API
 

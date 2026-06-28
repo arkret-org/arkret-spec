@@ -146,9 +146,9 @@ Sovereign client(在 `ck.profile.sovereign_deployment.v1` 语境下)逐条强制
 - Realm 默认 `discoverability=secret` 或 `invite_only`(SHOULD)。
 - Realm 默认 `join_rule=invite` 或 `restricted`(SHOULD)。
 - Policy Server 默认 `closed` 或 `quarantine` fail mode(SHOULD)。
-- PQ-hybrid TLS：service-to-service（federation peer）与 client-service 的 TLS 1.3 连接 MUST 支持并优先协商混合后量子 group `X25519MLKEM768`（draft-ietf-tls-ecdhe-mlkem），对端不提供时 MUST fail closed，MUST NOT 静默降级到纯经典 key exchange(MUST;v1 传输层基线，缓解仅靠 TLS 保护的传输面的 Harvest-Now-Decrypt-Later 风险)。
+- PQ-hybrid TLS：service-to-service（federation peer）与 client-service 的 TLS 1.3 连接 MUST 支持并协商混合后量子 group `X25519MLKEM768`（draft-ietf-tls-ecdhe-mlkem），对端不提供时 MUST fail closed，MUST NOT 静默降级到纯经典 key exchange（MUST；sovereign / 高安全部署要求，缓解仅靠 TLS 保护的传输面的 Harvest-Now-Decrypt-Later 风险）。
 
-> **PQ-hybrid TLS（v1 传输层基线 MUST）**：上一条 PQ-hybrid TLS 要求是 v1 传输层基线，对所有 v1 部署与所有 profile（含 v1 default profile）生效——并非仅 sovereign / 高安全 profile;sovereign 部署只是在本节复述该基线以明确其适用，而非独立承载义务。规范义务的 canonical 表述见 [`transport-bindings.md` §5](./transport-bindings.md)。该基线零 wire 字段成本，纯在 TLS 握手层，不改 Cokret wire envelope / schema / object model，与 §3.2 / federation §3.2 的 RFC 9421 请求签名正交。conformance 验证为 deployment-profile 握手探针（握手后检查协商 named group 是否为 `X25519MLKEM768`，见 §11），而非 object-model conformance vector。完整威胁论据见 [`../security/server-threat-model.md` §2.4](../security/server-threat-model.md)；联邦链路见 [`federation.md` §3.2](./federation.md)。
+> **PQ-hybrid TLS（sovereign / 高安全 MUST）**：上一条 PQ-hybrid TLS 要求是 sovereign / 高安全 profile 的硬性部署要求。规范义务的 canonical 表述见 [`transport-bindings.md` §5](./transport-bindings.md)。该要求零 wire 字段成本，纯在 TLS 握手层，不改 Cokret wire envelope / schema / object model，与 §3.2 / federation §3.2 的 RFC 9421 请求签名正交。conformance 验证为 deployment-profile 握手探针（握手后检查协商 named group 是否为 `X25519MLKEM768`，见 §11），而非 object-model conformance vector。完整威胁论据见 [`../security/server-threat-model.md` §2.4](../security/server-threat-model.md)；联邦链路见 [`federation.md` §3.2](./federation.md)。
 
 ## 3.1 DID Policy
 
@@ -379,7 +379,7 @@ Sovereign deployment 下的 External Collaboration Realm SHOULD 默认：
 - 跨域事件审计
 - 外部 grant 撤销与 epoch 轮换
 - enclave 的 import / export review 元数据
-- **PQ-hybrid TLS 握手探针（v1 传输层基线）**：对 service-to-service（federation peer）与 client-service TLS 1.3 连接，握手完成后检查协商出的 TLS named group 是否等于 `X25519MLKEM768`，并验证对端不提供该 group 时 fail closed（不降级到纯经典 key exchange）。这是适用于所有 v1 部署的 deployment-profile 握手探针，不是 object-model conformance vector；基线义务的 canonical 表述见 [`transport-bindings.md` §5](./transport-bindings.md)，威胁论据见 [`../security/server-threat-model.md` §2.4](../security/server-threat-model.md)。
+- **PQ-hybrid TLS 握手探针（sovereign / 高安全）**：对 service-to-service（federation peer）与 client-service TLS 1.3 连接，握手完成后检查协商出的 TLS named group 是否等于 `X25519MLKEM768`，并验证对端不提供该 group 时 fail closed（不降级到纯经典 key exchange）。这是 sovereign / 高安全 deployment-profile 握手探针，不是 object-model conformance vector；canonical 表述见 [`transport-bindings.md` §5](./transport-bindings.md)，威胁论据见 [`../security/server-threat-model.md` §2.4](../security/server-threat-model.md)。
 
 ### 11.1 联邦 frontier 主动交换 (high-assurance)
 

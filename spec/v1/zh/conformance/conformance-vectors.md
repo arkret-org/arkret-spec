@@ -3935,7 +3935,7 @@ Expected：
 
 Steps：
 
-- **Case A — 正路径**：恢复设备在 recovery session 内提交符合 `ck.schema.key_backup_unlock_proof.v1` 的 proof（绑定 `recovery_session_id`、`principal_id`、`requesting_device_id`、`backup_id`、`backup_class`、`series_id`、`ciphertext_digest`、`proof_kind`、`proof_digest`、`issued_at`），服务端用当前 session state 重建 transcript 比对 `proof_digest` 后返回 ciphertext；客户端 AEAD/HPKE open 后校验明文符合 `ck.schema.key_backup_plaintext.v1` 且 `backup_id` / `backup_class` / `series_id` / `series_seq` byte-for-byte 等于外层 envelope。
+- **Case A — 正路径**：恢复设备在 recovery session 内提交符合 `ck.schema.key_backup_unlock_proof.v1` 的 proof（绑定 `recovery_session_id`、`principal_id`、`requesting_device_id`、`backup_id`、`backup_class`、`series_id`、`ciphertext_digest`、`proof_kind`、`proof_digest`、`issued_at`），服务端用当前 session state 重建 transcript 比对 `proof_digest` 后返回 ciphertext；客户端按机器 fixture `key-backup-hardening-fixture.json` 的 `crypto_transcript` 重算 AEAD open（`aead` / `key_b64u` / `nonce_b64u` / `aad_canonical_json` / `ciphertext_b64u` / `tag_b64u`），校验得到的明文符合 `ck.schema.key_backup_plaintext.v1`，且 `backup_id` / `backup_class` / `series_id` / `series_seq` byte-for-byte 等于外层 envelope。HPKE recipient 的端到端 transcript 由 HPKE suite 向量覆盖；本向量的机器正样本使用对称 AEAD transcript 固化 unlock proof 与 envelope / plaintext 绑定。
 - **Case B — 绑定不符 / 凭证降级**：(a) proof 的 `ciphertext_digest` 指向另一 envelope，或 `requesting_device_id` 与本次 session 的新设备 key 不一致，或 `proof_digest` 与服务端重建的 transcript 不符；(b) 调用方仅携带 bearer token、无 fresh device proof 请求同一端点。
 
 Expected：
@@ -4068,14 +4068,14 @@ Expected：
 
 Steps：
 
-- **Case A — 未知 scheme**：envelope 声明 `scheme` 为既非 `ck.blob.whole_file_aead.v1` 亦非 `ck.blob.stream_aead.v1` 的未知值（如 `ck.blob.stream_aead.v2`）。
+- **Case A — 未知 scheme**：envelope 声明 `scheme` 为既非 `ck.blob.whole_file_aead.v1` 亦非 `ck.blob.stream_aead.v1` 的未知值（如 `example.invalid_blob_scheme`）。
 - **Case B — 形态字段混用**：单个 envelope 同时携带整文件形态字段 `nonce` 与分块形态字段 `nonce_prefix`（及 `segment_size` / `segment_count`），违反 `encrypted_attachment` 的 `oneOf`。
 
 Expected：
 
 - **Case A**：接收方 MUST fail closed，返回 `unsupported_attachment_scheme`，MUST NOT 回退到 `ck.blob.whole_file_aead.v1` 或任何其它形态尝试解密。
 - **Case B**：schema 校验 MUST 失败（`oneOf` 两个分支互斥，同时含 `nonce` 与 `nonce_prefix` / `segment_*` 不命中任一分支）；接收方 MUST 拒绝该 envelope，不得择一形态解释。
-- 对照：缺省 `scheme` 时 MUST 按 `ck.blob.whole_file_aead.v1`（整文件形态、单 `nonce`）解释（§3.2 向后兼容条款），不属于本反例。
+- 对照：缺省 `scheme` 时 MUST 按 `ck.blob.whole_file_aead.v1`（整文件形态、单 `nonce`）解释（§3.2 current default rule），不属于本反例。
 
 ## 17. Last-Resort KeyPackage Vectors
 
@@ -4140,7 +4140,7 @@ Expected：
 
 ## 18. Sender-Constrained Session Token Vectors
 
-本节收拢 sender-constrained（proof-of-possession，PoP）会话出示的 conformance 向量，固化 [`api-conventions.md`](../sync/api-conventions.md) §3 / §3.2 的推荐序、SHOULD 默认与高安全 profile MUST 升级，以及 [`service-http-binding.md`](../sync/service-http-binding.md) §2.5 的 RFC 9421 HTTP Message Signature header 形状与 transcript 绑定。每个 `vector_id` 均为规范性引用目标，登记于 [`vector-registry.json`](../../artifacts/registry/vector-registry.json)。
+本节收拢 sender-constrained（proof-of-possession，PoP）会话出示的 conformance 向量，固化 [`api-conventions.md`](../sync/api-conventions.md) §3 / §3.2 的生产 current-v1 受保护 endpoint PoP 要求，以及 [`service-http-binding.md`](../sync/service-http-binding.md) §2.5 的 RFC 9421 HTTP Message Signature header 形状与 transcript 绑定。每个 `vector_id` 均为规范性引用目标，登记于 [`vector-registry.json`](../../artifacts/registry/vector-registry.json)。
 
 ### 18.1 Vector: PoP Presentation
 
@@ -4159,22 +4159,22 @@ Expected：
 - **Case B(a)**：`@method` / `@target-uri` / `@authority` / `content-digest` 任一与重算结果不符时验签失败，MUST 拒绝（grant 已撤销 / 过期 / audience / origin 不匹配同样 MUST 以 `unauthenticated` 拒绝）。
 - **Case B(b)**：接收方 MUST 在验签前先校验 body 实际 hash 与 `Content-Digest` header 一致，不一致 MUST 拒绝，不得仅凭 header 自报 digest 通过。
 
-### 18.2 Vector: Bearer Replay Rejected Under High Security
+### 18.2 Vector: Bare Bearer Rejected On Protected Endpoints
 
-`vector_id`: `ck.vector.session.bearer_replay_rejected_high_security.v1`
+`vector_id`: `ck.vector.session.bare_bearer_rejected_protected.v1`
 
-本向量固化 §3.2 / §2.5 的高安全 profile MUST 升级与 replay window MUST：在 `ck.profile.high_security_organization.v1` / `sovereign_deployment` 下，对常规写与敏感读用纯 `Authorization: Bearer`（无 `Signature`）MUST 被拒绝；默认 profile 下纯 bearer 对低敏 / 兼容路径是允许的降级；PoP 的 `created` / `expires` 超出 replay window 即使 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒绝（口径同 `federation.md` §3.2 / `encoding.md` §6 签名时效窗口）。
+本向量固化 §3.2 / §2.5 的 sender-constrained 会话出示与 replay window MUST：生产 current-v1 受保护 endpoint MUST 要求 DPoP、RFC 9421 HTTP Message Signature、detached JWS、mTLS 或等价 sender-constrained proof；纯 `Authorization: Bearer`（无 DPoP / PoP / mTLS 绑定）对受保护 endpoint MUST 被拒绝。`ck.profile.high_security_organization.v1` / `sovereign_deployment` 进一步要求常规写与敏感读使用带 transcript/body 绑定的 RFC 9421 HTTP Message Signature。PoP 的 `created` / `expires` 超出 replay window 即使 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒绝（口径同 `federation.md` §3.2 / `encoding.md` §6 签名时效窗口）。
 
 Steps：
 
-- **Case A — 高安全 profile 纯 bearer 写 / 敏感读**：在 `ck.profile.high_security_organization.v1`（或 `sovereign_deployment`）下，对常规写（推进 actor_seq / Realm frontier）或敏感读（成员列表、私有 projection、key backup、device list、moderation 队列等）只用 `Authorization: Bearer <ck.session.grant>` 出示，无 `Signature`。
-- **Case B — 默认 profile 同请求（对照）**：默认 profile 下对同一类（按 §3.2 属低敏 / 兼容路径或尚未协商 PoP 的兼容旧客户端）请求只用纯 bearer 出示。
+- **Case A — 高安全 profile 纯 bearer 写 / 敏感读**：在 `ck.profile.high_security_organization.v1`（或 `sovereign_deployment`）下，对常规写（推进 actor_seq / Realm frontier）或敏感读（成员列表、私有 projection、key backup、device list、moderation 队列等）只用 `Authorization: Bearer <ck.session.grant>` 出示，无 `Signature` / `Signature-Input`，且无 DPoP / mTLS 绑定。
+- **Case B — 默认 profile 受保护 endpoint 纯 bearer**：默认 profile 下对任一受保护 current-v1 endpoint 只用 `Authorization: Bearer <ck.session.grant>` 出示，无 DPoP / PoP / mTLS 绑定。公开 metadata endpoint 若设计为无需认证的 public surface，MAY 返回公开响应，但 MUST NOT 把裸 bearer 当作认证成功的 session presentation。
 - **Case C — PoP 过窗**：携带合法签名的 PoP 出示，但 `created` / `expires` 超出 replay window（`expires - created` 超上限或 `created` 与本地时钟偏差超上限）。
 
 Expected：
 
-- **Case A**：MUST 以 `unauthenticated` 拒绝；高安全 profile 对常规写与敏感读要求 PoP 出示（见 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) 对应 profile 的 `additional_requirements`），纯 bearer 对这些操作 MUST 被拒绝。
-- **Case B**：默认 profile 下作为允许的降级被接受（对照正样本）；服务端仍 MUST 校验 bearer token 的 audience / issuer / expiry / session grant 状态与 capability。
+- **Case A**：MUST 以 `unauthenticated` 拒绝；高安全 profile 对常规写与敏感读要求 RFC 9421 PoP 出示（见 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) 对应 profile 的 `additional_requirements`），纯 bearer 对这些操作 MUST 被拒绝。
+- **Case B**：受保护 endpoint MUST 以 `unauthenticated` 拒绝。若 endpoint 是公开 metadata surface，响应 MUST 按未认证 public request 处理，不得授予 session/capability 语义。
 - **Case C**：过窗签名即使 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒绝；时效窗口外的逐字节重放同样 MUST 拒绝。
 
 ## 19. Applet Transaction Push Vectors
