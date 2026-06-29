@@ -578,7 +578,7 @@
       }
     },
     {
-      "$comment": "single_did notary profiles must declare an explicit recovery notary path at Realm create time. Distinct controlling organization is semantic/reducer validation because JSON Schema cannot compare DID-controller derivations across resolver evidence.",
+      "$comment": "single_did notary profiles bind one DID as the primary notary. controller_organization / recovery_controller_organizations / recovery_members are required ONLY when the deployment can derive a controlling organization (see notary.controller_organization 'when ... can derive it'; decisions/0003 §7 — personal / orgless Realms legitimately omit them and fall back to per-user recovery). When a controller_organization IS declared, an explicit recovery-notary diversity path MUST accompany it. The distinct-controller arithmetic stays semantic/reducer validation because JSON Schema cannot compare DID-controller derivations across resolver evidence.",
       "if": {
         "properties": {
           "notary_profile": {
@@ -594,22 +594,38 @@
           "notary": {
             "required": [
               "type",
-              "did",
-              "recovery_members",
-              "controller_organization",
-              "recovery_controller_organizations"
+              "did"
             ],
             "properties": {
               "type": {
                 "const": "single_did"
-              },
-              "recovery_members": {
-                "minItems": 1
-              },
-              "recovery_controller_organizations": {
-                "minItems": 1
               }
-            }
+            },
+            "allOf": [
+              {
+                "$comment": "Org-controlled single_did Realms MUST declare the recovery-notary diversity path alongside the controlling organization.",
+                "if": {
+                  "required": [
+                    "controller_organization"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "recovery_members",
+                    "controller_organization",
+                    "recovery_controller_organizations"
+                  ],
+                  "properties": {
+                    "recovery_members": {
+                      "minItems": 1
+                    },
+                    "recovery_controller_organizations": {
+                      "minItems": 1
+                    }
+                  }
+                }
+              }
+            ]
           }
         }
       }
