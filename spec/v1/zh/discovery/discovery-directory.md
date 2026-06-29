@@ -73,12 +73,12 @@ Realm discovery policy SHOULD 由 `ck.realm.discovery` state event 表达：
       {
         "type": "claim",
         "claim_type": "org_membership",
-        "organization": "did:web:acme.example",
-        "issuer": "did:web:acme.example"
+        "organization": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
+        "issuer": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example"
       }
     ],
     "directory_services": [
-      "did:web:directory.acme.example"
+      "did:webvh:z43vHHHeh32Hnyv6t7X3t33Xs:directory.acme.example"
     ],
     "anti_enumeration": {
       "require_exact_alias_for_unlisted": true,
@@ -222,7 +222,7 @@ Organization discovery policy SHOULD 通过组织 profile 状态或 governance r
 ```json
 {
   "kind": "ck.organization.discovery",
-  "organization_did": "did:web:acme.example",
+  "organization_did": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
   "discoverability": "public",
   "profile_visibility": {
     "display_name": "public",
@@ -233,11 +233,11 @@ Organization discovery policy SHOULD 通过组织 profile 状态或 governance r
     "services": "listed"
   },
   "directory_services": [
-    "did:web:directory.acme.example"
+    "did:webvh:z43vHHHeh32Hnyv6t7X3t33Xs:directory.acme.example"
   ],
   "proof": {
     "kind": "detached_jws",
-    "verification_method": "did:web:acme.example#governance-key-1",
+    "verification_method": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example#governance-key-1",
     "jws": "..."
   }
 }
@@ -483,8 +483,8 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
 ```json
 {
   "resource_kind": "organization",
-  "resource_id": "did:web:acme.example",
-  "principal_server_did": "did:web:principal.acme.example",
+  "resource_id": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
+  "principal_server_did": "did:webvh:z3omZGak5a5es84Ph2kfPs4UP:principal.acme.example",
   "as_of": "2026-05-10T08:00:00Z",
   "policy_revision": "01JTV0KQ7K5ZP4VN6C9WEZK2X1",
   "ttl_seconds": 86400,
@@ -493,16 +493,16 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
   ],
   "discovery_state": {
     "kind": "ck.organization.discovery",
-    "organization_did": "did:web:acme.example",
+    "organization_did": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
     "discoverability": "public",
     "directory_services": [
-      "did:web:directory.example",
-      "did:web:directory.acme.example"
+      "did:webvh:zAvx6fqPK7h5rBjBiBRbmLmd6:directory.example",
+      "did:webvh:z43vHHHeh32Hnyv6t7X3t33Xs:directory.acme.example"
     ],
     "profile_visibility": { "...": "..." },
     "proof": {
       "kind": "detached_jws",
-      "verification_method": "did:web:acme.example#governance-key-1",
+      "verification_method": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example#governance-key-1",
       "jws": "..."
     }
   }
@@ -723,10 +723,10 @@ Directory MUST NOT：
 {
   "query": "release",
   "search_scope": {
-    "organization_did": "did:web:acme.example",
+    "organization_did": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
     "source_realm_id": null
   },
-  "requester": "did:web:alice.example.com",
+  "requester": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "proofs": [
     "ck:presentation:..."
   ],
@@ -748,13 +748,13 @@ Result：
       "join_rule": "knock_restricted",
       "history_visibility": "joined",
       "owning_organizations": [
-        "did:web:acme.example"
+        "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example"
       ],
       "preview_ref": "ck:event:<uuid>",
       "join_candidates": [
         {
           "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-          "service_did": "did:web:principal.acme.example",
+          "service_did": "did:webvh:z3omZGak5a5es84Ph2kfPs4UP:principal.acme.example",
           "service_type": "principal_server",
           "role": "primary",
           "endpoint": "https://principal.acme.example",

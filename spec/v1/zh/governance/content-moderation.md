@@ -126,7 +126,7 @@ POST /_cokret/self/moderation/report
   "target_ref": "ck:message:01964200-0000-7000-8000-000000000002",
   "report_reason_code": "harassment",
   "description": "This message contains targeted personal attacks.",
-  "reporter": "did:web:alice.example.com"
+  "reporter": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com"
 }
 ```
 
@@ -198,11 +198,11 @@ Evidence package MUST 加密给 `effective_scope` 对应 moderator audience。�
   "ciphertext_digest": "sha256:...",
   "aad_digest": "sha256:...",
   "sender_claim": {
-    "actor_id": "did:web:alice.example.com",
+    "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
     "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
     "mls_group_id_digest": "sha256:..."
   },
-  "received_by": "did:web:server.acme.example",
+  "received_by": "did:webvh:z5a3yeFnKQFn6ZqPY1Qgv3RrZ:server.acme.example",
   "received_at": "2026-04-30T00:00:00Z",
   "replay_nonce": "base64url...",
   "signature": "base64url..."
@@ -249,7 +249,7 @@ Franking 信任链：
       "entry_id": "ck:block:019640b3-cc00-7000-8000-000000000000",
       "target": {
         "kind": "actor",
-        "did": "did:web:spammer.example.com"
+        "did": "did:webvh:zGMfBAbnRTYqW4943CVr9Dcii:spammer.example.com"
       },
       "mode": "block",
       "applies_to": ["messages", "mentions", "dm"],
@@ -323,11 +323,11 @@ Realm MAY 使用 `ck.realm.moderation_policy` state event 声明黑名单、允�
       {
         "target": {
           "kind": "actor",
-          "did": "did:web:spammer.example.com"
+          "did": "did:webvh:zGMfBAbnRTYqW4943CVr9Dcii:spammer.example.com"
         },
         "action": "deny_join",
         "reason_code": "spam",
-        "created_by": "did:web:acme.example#mod",
+        "created_by": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example#mod",
         "created_at": "2026-04-26T00:00:00Z",
         "expires_at": null
       },
@@ -517,7 +517,7 @@ Principal Server 可以配置本地服务器级 ACL，控制哪些 peer 的联�
         {
           "target": {
             "kind": "service_did",
-            "did": "did:web:spam-node.example"
+            "did": "did:webvh:z5GPnjxXzWM85J3Kw6iMV4Tj2:spam-node.example"
           },
           "action": "deny_federation",
           "reason_code": "abuse_network"
@@ -562,13 +562,13 @@ Organization MAY 为其控制或背书的 Realm 与服务发布组织级审核�
 ```json
 {
   "kind": "ck.organization.moderation_policy",
-  "organization_did": "did:web:acme.example",
+  "organization_did": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
   "policy_id": "ck:org-policy:abuse-v1",
   "policy_scope": {
     "realm_ids": ["ck:realm:01964280-0000-7000-8000-000000000000"],
     "service_dids": [
-      "did:web:server.acme.example",
-      "did:web:policy.acme.example"
+      "did:webvh:z5a3yeFnKQFn6ZqPY1Qgv3RrZ:server.acme.example",
+      "did:webvh:z9hEFwrg1A6sjcDxhuzWJGKhe:policy.acme.example"
     ],
     "applies_to_owned_realms": true
   },
@@ -576,7 +576,7 @@ Organization MAY 为其控制或背书的 Realm 与服务发布组织级审核�
     {
       "target": {
         "kind": "organization",
-        "did": "did:web:known-abuse.example"
+        "did": "did:webvh:z6zPnbtvkN7vxa9zUyCgGyX52:known-abuse.example"
       },
       "action": "deny_federation",
       "reason_code": "abuse_network"
@@ -585,7 +585,7 @@ Organization MAY 为其控制或背书的 Realm 与服务发布组织级审核�
       "target": {
         "kind": "claim_selector",
         "claim_type": "org_membership",
-        "issuer": "did:web:untrusted.example"
+        "issuer": "did:webvh:zCJLLNnZDTQJWQp7tztodmPUc:untrusted.example"
       },
       "action": "deny_restricted_join"
     }
@@ -594,7 +594,7 @@ Organization MAY 为其控制或背书的 Realm 与服务发布组织级审核�
   "expires_at": null,
   "proof": {
     "kind": "detached_jws",
-    "verification_method": "did:web:acme.example#governance-key-1",
+    "verification_method": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example#governance-key-1",
     "jws": "..."
   }
 }

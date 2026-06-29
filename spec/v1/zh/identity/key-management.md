@@ -319,7 +319,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
   "new_did": "did:webvh:<scid>:<host>",
   "purpose": "principal_method_upgrade",
   "trust_domain": "ck:trust_domain:<deployment-or-realm>",
-  "audience": ["did:web:registry.example"],
+  "audience": ["did:webvh:z2Cxbwy2o7AmBLzdfDbix8WAP:registry.example"],
   "issued_at": "2026-05-19T00:00:00Z",
   "transfer_evidence": {
     "old_did_document_canonical_digest": "sha256:<64-hex>",
@@ -367,7 +367,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 4. 校验 `inception_public_key_fingerprint`,确认它等于步骤 3 中签名验证命中的那条 `verificationMethod[]` 条目的派生 fingerprint(不要求该条目位于 index 0);失败 → reject `inception_upgrade_fingerprint_mismatch`。
 5. 校验 `trust_domain` 与 `audience` 域绑定；失败 → reject `inception_upgrade_evidence_insufficient`。
 6. 校验 `did:webvh` `entry 0` 的 SCID / entry hash / controller proof(标准 `did:webvh` inception 验证)——这一段独立于 `did:web` 阶段。
-7. 写入"该 principal 已通过 §5.0.5 跨 method 升级"标记；后续 Event 的 `actor_id` MAY 是 `did:web:...`(历史 Event)或 `did:webvh:...`(升级后 Event);receiver MUST 把两者视作同一 principal,但**不接受**任何新签名的 Event 仍引用 `did:web` inception key——升级后 inception key MUST 进入 `did:webvh` rotation 链或销毁(§5.0.1 步骤 5)。
+7. 写入"该 principal 已通过 §5.0.5 跨 method 升级"标记；后续 Event 的 `actor_id` MAY 是 `did:webvh:z8kSru9qAfd1G7AvcVjggdEKy:...`(历史 Event)或 `did:webvh:...`(升级后 Event);receiver MUST 把两者视作同一 principal,但**不接受**任何新签名的 Event 仍引用 `did:web` inception key——升级后 inception key MUST 进入 `did:webvh` rotation 链或销毁(§5.0.1 步骤 5)。
 
 ##### 5.0.5.4 不允许的简化
 
@@ -465,7 +465,7 @@ Cokret v1 使用 `ck.session.grant` 作为 principal control stream 中的标准
 {
   "grant_id": "ck:grant:01964198-0000-7000-8000-000000000000",
   "realm_id": "ck:realm:01964198-7000-7000-8000-000000000000",
-  "issuer": "did:web:auth-gateway.example.com",
+  "issuer": "did:webvh:z99jGJ9cd12QASVtC6r35kV5q:auth-gateway.example.com",
   "subject": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "session_public_key": "z6Mss...",
   "audience": "https://app.example.com",
@@ -569,7 +569,7 @@ Cokret v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata 
     "subdomain": "account_keys",
     "aead_aad": {
       "schema": "ck.schema.key_backup.v1",
-      "actor_id": "did:web:alice.example",
+      "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
       "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
       "backup_class": "secret_storage",
       "backup_version": "kb_1",
@@ -872,7 +872,7 @@ Recovery policy 的标准发布面是 `POST /_cokret/root/identity/recovery-poli
     "shares": [
       {
         "share_id": "s1",
-        "holder": "did:web:alice-friend.example",
+        "holder": "did:webvh:zFUHaR4UpA8gSoyk7J4AgYBHa:alice-friend.example",
         "transport": "hpke_x25519",
         "share_commitment": {
           "algorithm": "feldman-vss-sha256",

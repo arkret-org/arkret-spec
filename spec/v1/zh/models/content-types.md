@@ -42,7 +42,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
   "strand_id": "ck:strand:...",
   "track_name": "discussion",
   "state": "active",
-  "created_by": "did:web:alice.example",
+  "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "created_at": "2026-04-26T00:00:00Z",
 
   "content": {
@@ -91,7 +91,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
   "kind": "ck.content.text",
   "body": "@bob 请确认这个 item 的 legal 风险。",
   "format": "markdown",
-  "formatted_body": "<mention did=\"did:web:bob.example\">@bob</mention> 请确认这个 item 的 legal 风险。"
+  "formatted_body": "<mention did=\"did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example\">@bob</mention> 请确认这个 item 的 legal 风险。"
 }
 ```
 
@@ -353,7 +353,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
   "format": "markdown",
   "reply_context": {
     "ref": "ck:message:01964200-0000-7000-8000-000000000129",
-    "sender_actor_id": "did:web:alice.example",
+    "sender_actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
     "excerpt": "这个方案可行吗？"
   }
 }

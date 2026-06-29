@@ -173,12 +173,12 @@ Schema id: `ck.schema.realm.v1`
   "notary_profile": "single_did",
   "notary": {
     "type": "single_did",
-    "did": "did:web:notary.acme.example",
-    "recovery_members": ["did:web:recovery-notary.example"],
-    "controller_organization": "did:web:acme.example",
-    "recovery_controller_organizations": ["did:web:recovery-org.example"]
+    "did": "did:webvh:zAKD7rB7Tn8G84VgUBAjn8p2h:notary.acme.example",
+    "recovery_members": ["did:webvh:z8wtK7VwY3xTRFNPwZixinUFx:recovery-notary.example"],
+    "controller_organization": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
+    "recovery_controller_organizations": ["did:webvh:zGnKWC3QoYaXLNsfmH6VfPke4:recovery-org.example"]
   },
-  "created_by": "did:web:acme.example",
+  "created_by": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
@@ -503,7 +503,7 @@ Project Space：
   "default_realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "kind": "project",
   "title": "Website Redesign",
-  "created_by": "did:web:alice.example",
+  "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
@@ -519,7 +519,7 @@ Confidential sibling Space：
   "parent_space_id": "ck:space:019640a0-8000-7000-8000-000000000000",
   "kind": "project",
   "title": "Pricing Strategy",
-  "created_by": "did:web:alice.example",
+  "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```

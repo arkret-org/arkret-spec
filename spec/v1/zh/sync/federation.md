@@ -54,7 +54,7 @@ Cokret 是去中心化协议，不同用户或组织各自运行受控 Principal
 
 ```json
 {
-  "id": "did:web:server.acme.example.com",
+  "id": "did:webvh:zCXaWSDv1afiBoxDX5sVBU5an:server.acme.example.com",
   "service": [
     {
       "id": "#cokret-principal-server",
@@ -199,8 +199,8 @@ Fail-closed 条件：
 ```
 POST /_cokret/peer/events
 Host: server-beta.com
-Source-Service-DID: did:web:server-alpha.com
-Destination-Service-DID: did:web:server-beta.com
+Source-Service-DID: did:webvh:z4YZEfM4SYVUdnZbosrGu69JK:server-alpha.com
+Destination-Service-DID: did:webvh:z2z1rvs6FuSuJWQcRMn6p8K3m:server-beta.com
 Destination-Service-Endpoint-Digest: sha256:<hex>
 Source-Trust-Domain: ck:trust_domain:did.webvh.alpha.example
 Destination-Trust-Domain: ck:trust_domain:did.webvh.beta.example
@@ -272,7 +272,7 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(digest
       "event_id": "ck:event:0196419b-2000-7000-8000-000000000001",
       "kind": "ck.read_cursor.advance",
       "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-      "actor_id": "did:web:alice.example",
+      "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
       "actor_seq": 42,
       "created_at": "2026-04-26T00:00:00Z",
       "prev_refs": [],
@@ -280,7 +280,7 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(digest
       "payload": {
         "id": "ck:read_cursor:0196419b-3000-7000-8000-000000000001",
         "schema": "ck.schema.read_cursor.v1",
-        "actor_id": "did:web:alice.example",
+        "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
         "device_id": "ck:device:0196419b-3000-7000-8000-000000000002",
         "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
         "read_scope": {
@@ -298,7 +298,7 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(digest
         {
           "kind": "detached_jws",
           "alg": "EdDSA",
-          "verification_method": "did:web:alice.example#device-1",
+          "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#device-1",
           "event_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
           "created_at": "2026-04-26T00:00:00Z",
           "jws": "a..b"
@@ -451,8 +451,8 @@ Cokret v1 联邦推送使用 `POST /_cokret/peer/events`（`ck.peer.events.comma
 ```
 GET /_cokret/peer/events?realms=ck:realm:...&before=<cursor>&limit=100
 Host: server-alpha.com
-Source-Service-DID: did:web:server-beta.com
-Destination-Service-DID: did:web:server-alpha.com
+Source-Service-DID: did:webvh:z2z1rvs6FuSuJWQcRMn6p8K3m:server-beta.com
+Destination-Service-DID: did:webvh:z4YZEfM4SYVUdnZbosrGu69JK:server-alpha.com
 Signature-Input: ...
 Signature: ...
 ```
@@ -549,12 +549,12 @@ Probe 响应 payload：
   "max_hlc": "01970e589d21-0004-a13f9c2e",
   "frontier_root": "sha256:...",
   "actor_seq_upper_bounds": {
-    "did:web:alice.example.com": 144,
-    "did:web:bob.example.org": 87
+    "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com": 144,
+    "did:webvh:zARwgBSVhdiZNBCvbrVoYd8zG:bob.example.org": 87
   },
   "witness_receipts": [],
   "observed_at": "2026-05-18T08:30:00Z",
-  "issuer": "did:web:server-alpha.com",
+  "issuer": "did:webvh:z4YZEfM4SYVUdnZbosrGu69JK:server-alpha.com",
   "signature": {}
 }
 ```
@@ -662,14 +662,14 @@ Bob 也可以主动申请加入。具体流程取决于 Realm 的 `ck.realm.join
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "sync_endpoints": [
     {
-      "did": "did:web:server-alpha.com",
+      "did": "did:webvh:z4YZEfM4SYVUdnZbosrGu69JK:server-alpha.com",
       "endpoint": "https://server-alpha.com",
       "role": "primary",
       "service_type": "principal_server",
       "plaintext_visible": true
     },
     {
-      "did": "did:web:server-beta.com",
+      "did": "did:webvh:z2z1rvs6FuSuJWQcRMn6p8K3m:server-beta.com",
       "endpoint": "https://server-beta.com",
       "role": "mirror",
       "service_type": "principal_server",
@@ -729,8 +729,8 @@ v1 联邦与单域 client 请求不共享 HTTP attack surface：federation serve
 
 ```
 POST /_cokret/peer/events
-Source-Service-DID: did:web:server.acme.example
-Destination-Service-DID: did:web:server.beta.example
+Source-Service-DID: did:webvh:z5a3yeFnKQFn6ZqPY1Qgv3RrZ:server.acme.example
+Destination-Service-DID: did:webvh:z94DeARq4Vqk5S1h3tFsxPnwq:server.beta.example
 Destination-Service-Endpoint-Digest: sha256:<hex>
 Source-Trust-Domain: ck:trust_domain:did.webvh.acme.example
 Destination-Trust-Domain: ck:trust_domain:did.webvh.beta.example

@@ -170,7 +170,7 @@ transport MUST 各自通过 binding profile 单独 normative 化。
 ```json
 {
   "service_type": "principal_server",
-  "service_did": "did:web:server.example",
+  "service_did": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example",
   "supported_bindings": [
     {
       "kind": "http_json",

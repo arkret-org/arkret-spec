@@ -109,11 +109,11 @@ GET /_cokret/open/mimi/provider-directory
       "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
       "strand_id": "ck:strand:01964137-0000-7000-8000-000000000000"
     },
-    "hub_provider": "did:web:mimi.example.com",
+    "hub_provider": "did:webvh:z5dPBhAYJdfYhFqD3peyGJcxj:mimi.example.com",
     "local_provider_role": "hub",
     "status": "accepted",
     "follower_providers": [
-      "did:web:remote.example"
+      "did:webvh:z2B174DcqrzvV5vkzDBdSwVvy:remote.example"
     ],
     "mls_group_id": "base64url...",
     "content_profile": "application/mimi-content",

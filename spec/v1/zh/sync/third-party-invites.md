@@ -47,15 +47,15 @@ updated: 2026-06-19
     "id": "ck:invite:0196419b-1000-7000-8000-000000000000",
     "schema": "ck.schema.invite.v1",
     "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-    "inviter": "did:web:alice.example",
+    "inviter": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
     "third_party_id": {
       "display_name_hint": "external invite",
       "token_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "token_salt_id": "salt-2026-04-28-invite-001",
       "oob_code_kind": "offline_token",
       "token_entropy_bits": 128,
-      "verification_service_did": "did:web:identity.alice.example",
-      "verification_public_key": "did:web:identity.alice.example#invite-001",
+      "verification_service_did": "did:webvh:z6TrH1Ntf6QjaSBbShfKTrNbt:identity.alice.example",
+      "verification_public_key": "did:webvh:z6TrH1Ntf6QjaSBbShfKTrNbt:identity.alice.example#invite-001",
       "max_claims": 1
     },
     "join_rule_snapshot": {
@@ -113,7 +113,7 @@ forbidden: https://app.cokret.example/invite/<invite_token>                     
 
 ## 4. 认领流程 (Claiming)
 
-当 Bob 收到邮件并点击链接，他在客户端完成了注册并获得了自己的 `did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com`（v1 core 默认 principal DID method 为 `did:webvh`，见 [identity-did.md §3](../identity/identity-did.md)；`personal_node` profile 的 Bob 可选 `did:web:bob.example.com`，其他 deployment profile 不得使用 `did:web` 作为长期 principal）。接下来他需要认领这个邀请。
+当 Bob 收到邮件并点击链接，他在客户端完成了注册并获得了自己的 `did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com`（v1 core 默认 principal DID method 为 `did:webvh`，见 [identity-did.md §3](../identity/identity-did.md)；`personal_node` profile 的 Bob 可选 `did:webvh:z4Uy7eEwDuHWSxMT2dHWEWPip:bob.example.com`，其他 deployment profile 不得使用 `did:web` 作为长期 principal）。接下来他需要认领这个邀请。
 
 ### 4.1 出示 Token 与绑定
 
@@ -134,8 +134,8 @@ Bob 的客户端将 `invite_token`、自己的 DID、设备证明和 intended Re
   "token_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "claim_nonce": "01JX7Z5Q9Y4K2M8N6P3R1T0V",
   "binding_proof": {
-    "verification_service_did": "did:web:identity.alice.example",
-    "verification_method": "did:web:identity.alice.example#invite-001",
+    "verification_service_did": "did:webvh:z6TrH1Ntf6QjaSBbShfKTrNbt:identity.alice.example",
+    "verification_method": "did:webvh:z6TrH1Ntf6QjaSBbShfKTrNbt:identity.alice.example#invite-001",
     "subject_id": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com",
     "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
     "audience": "cokret.invite.claim",

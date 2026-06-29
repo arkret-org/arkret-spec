@@ -79,7 +79,7 @@ sidebar:
     "session_focus": "fra-1",
     "participants": [
       {
-        "actor_id": "did:web:alice.example.com",
+        "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
         "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
         "joined_at": "2026-04-26T00:00:00Z",
         "foci_preferred": ["fra-1", "us-east-1"],
@@ -89,12 +89,12 @@ sidebar:
           "realm_id": "ck:realm:...",
           "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
           "focus_id": "fra-1",
-          "actor_id": "did:web:alice.example.com",
+          "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
           "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
           "participant_identity": "ck:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
           "issued_at": "2026-04-26T00:00:00Z",
           "expires_at": "2026-04-26T00:05:00Z",
-          "issuer_kid": "did:web:media.example#key-1",
+          "issuer_kid": "did:webvh:zCxjAemtszNh7bTFGWFS4m8gv:media.example#key-1",
           "sig": "base64url..."
         },
         "media": {
@@ -177,7 +177,7 @@ sidebar:
   "payload": {
     "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
     "recording_id": "rtc-recording-0196441d-0000-7000-8000-000000000000",
-    "recording_agent": "did:web:recorder.example",
+    "recording_agent": "did:webvh:zCYG7PrN3Yt1TdX4X8gfYFA4R:recorder.example",
     "mode": "audio_video",
     "visible_notice": true
   }

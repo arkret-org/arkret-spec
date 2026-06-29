@@ -891,7 +891,7 @@ MIMI Interop profile MUST 额外提供：
 
 ```json
 {
-  "service_did": "did:web:server.example.com",
+  "service_did": "did:webvh:z6h868X7rdVapSQTt7ehsQB8v:server.example.com",
   "service_type": "principal_server",
   "protocol_version": "1.0",
   "supported_profiles": [

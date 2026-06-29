@@ -361,7 +361,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 {
   "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-  "actor_id": "did:web:alice.example",
+  "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "actor_seq": 4,
   "kind": "ck.message.create",
   "created_at": "2026-04-26T00:00:00Z",
@@ -379,7 +379,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
   ],
   "seal_ref": "ck:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "auth_context": {
-    "did": "did:web:alice.example",
+    "did": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
     "key_id": "device-1",
     "key_epoch": 1,
     "capability_refs": ["ck:grant:0196410c-0000-7000-8000-000000000000"]
@@ -393,7 +393,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
     {
       "kind": "detached_jws",
       "alg": "EdDSA",
-      "verification_method": "did:web:alice.example#device-1",
+      "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#device-1",
       "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
       "created_at": "2026-04-26T00:00:00Z",
       "jws": "eyJhbGciOiJFZERTQSJ9..signature"
@@ -408,7 +408,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 {
   "event_id": "ck:event:019640ed-9000-7000-8000-000000000000",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-  "actor_id": "did:web:bob.example",
+  "actor_id": "did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example",
   "actor_seq": 7,
   "kind": "ck.message.create",
   "created_at": "2026-04-26T00:01:00Z",
@@ -426,7 +426,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
   ],
   "seal_ref": "ck:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "auth_context": {
-    "did": "did:web:bob.example",
+    "did": "did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example",
     "key_id": "device-1",
     "key_epoch": 1,
     "capability_refs": ["ck:grant:0196410c-1000-7000-8000-000000000000"]
@@ -440,7 +440,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
     {
       "kind": "detached_jws",
       "alg": "EdDSA",
-      "verification_method": "did:web:bob.example#device-1",
+      "verification_method": "did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example#device-1",
       "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
       "created_at": "2026-04-26T00:01:00Z",
       "jws": "eyJhbGciOiJFZERTQSJ9..signature"
@@ -459,7 +459,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 {
   "event_id": "ck:event:019640ee-0000-7000-8000-000000000000",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-  "actor_id": "did:web:carol.example",
+  "actor_id": "did:webvh:zCELkEydSckveKumo1eHsfN2G:carol.example",
   "actor_seq": 12,
   "kind": "ck.reaction.add",
   "created_at": "2026-04-26T00:02:00Z",
@@ -473,12 +473,12 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
   "effects": [
     {
       "cell": "ck:cell:ck.component.message.reactions.v1:ck:message:019640ed-8000-7000-8000-000000000000",
-      "op": { "kind": "add", "value": { "actor_id": "did:web:carol.example", "key": "+1" } }
+      "op": { "kind": "add", "value": { "actor_id": "did:webvh:zCELkEydSckveKumo1eHsfN2G:carol.example", "key": "+1" } }
     }
   ],
   "seal_ref": "ck:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "auth_context": {
-    "did": "did:web:carol.example",
+    "did": "did:webvh:zCELkEydSckveKumo1eHsfN2G:carol.example",
     "key_id": "device-2",
     "key_epoch": 1,
     "capability_refs": ["ck:grant:0196410c-2000-7000-8000-000000000000"]
@@ -491,7 +491,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
     {
       "kind": "detached_jws",
       "alg": "EdDSA",
-      "verification_method": "did:web:carol.example#device-2",
+      "verification_method": "did:webvh:zCELkEydSckveKumo1eHsfN2G:carol.example#device-2",
       "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
       "created_at": "2026-04-26T00:02:00Z",
       "jws": "eyJhbGciOiJFZERTQSJ9..signature"
@@ -735,7 +735,7 @@ POST /_cokret/self/events
 {
   "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-  "actor_id": "did:web:alice.example.com",
+  "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "actor_seq": 42,
   "kind": "ck.strand.update",
   "created_at": "2026-04-22T08:30:00Z",
@@ -760,7 +760,7 @@ POST /_cokret/self/events
   ],
   "seal_ref": "ck:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
   "auth_context": {
-    "did": "did:web:alice.example.com",
+    "did": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
     "key_id": "device-1",
     "key_epoch": 3,
     "capability_refs": ["ck:grant:0196410c-0000-7000-8000-000000000000"]
@@ -773,7 +773,7 @@ POST /_cokret/self/events
     {
       "kind": "detached_jws",
       "alg": "EdDSA",
-      "verification_method": "did:web:alice.example.com#device-1",
+      "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#device-1",
       "event_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
       "created_at": "2026-04-22T08:30:00Z",
       "jws": "..."
@@ -787,8 +787,8 @@ POST /_cokret/self/events
 ```json
 {
   "events": [
-    { "event_id": "ck:event:...", "realm_id": "ck:realm:...", "actor_id": "did:web:...", "actor_seq": 42, "kind": "ck.strand.update", "...": "..." },
-    { "event_id": "ck:event:...", "realm_id": "ck:realm:...", "actor_id": "did:web:...", "actor_seq": 43, "kind": "ck.message.create", "...": "..." }
+    { "event_id": "ck:event:...", "realm_id": "ck:realm:...", "actor_id": "did:webvh:z8kSru9qAfd1G7AvcVjggdEKy:...", "actor_seq": 42, "kind": "ck.strand.update", "...": "..." },
+    { "event_id": "ck:event:...", "realm_id": "ck:realm:...", "actor_id": "did:webvh:z8kSru9qAfd1G7AvcVjggdEKy:...", "actor_seq": 43, "kind": "ck.message.create", "...": "..." }
   ]
 }
 ```
@@ -800,7 +800,7 @@ POST /_cokret/self/events
   "status": "accepted",
   "accepted": ["ck:event:019640ed-8000-7000-8000-000000000000"],
   "actor_frontier": {
-    "actor_id": "did:web:alice.example.com",
+    "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
     "actor_seq": 42,
     "event_id": "ck:event:019640ed-8000-7000-8000-000000000000"
   },
@@ -1032,7 +1032,7 @@ POST /_cokret/root/identity/resolve
 
 ```json
 {
-  "did": "did:web:alice.example"
+  "did": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example"
 }
 ```
 
@@ -1041,7 +1041,7 @@ POST /_cokret/root/identity/resolve
 ```json
 {
   "did_document": {
-    "id": "did:web:alice.example",
+    "id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
     "verificationMethod": [],
     "service": []
   },

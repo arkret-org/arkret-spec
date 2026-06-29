@@ -139,7 +139,7 @@ account data 默认是 holder-private 加密数据，Sync Service 只存不透�
       "entry_id": "ck:block:019640b3-cc00-7000-8000-000000000000",
       "target": {
         "kind": "actor",
-        "did": "did:web:spammer.example.com"
+        "did": "did:webvh:zGMfBAbnRTYqW4943CVr9Dcii:spammer.example.com"
       },
       "mode": "block",
       "applies_to": [
@@ -194,7 +194,7 @@ account data 默认是 holder-private 加密数据，Sync Service 只存不透�
   "version": 1,
   "subject": {
     "kind": "actor",
-    "did": "did:web:wang.example.com"
+    "did": "did:webvh:z5Z2tUHXdembzXVX7EE5SJp5g:wang.example.com"
   },
   "local_name": "老王（前同事）",
   "note": "2024 年 CokretCon 认识",
@@ -252,7 +252,7 @@ account data 默认是 holder-private 加密数据，Sync Service 只存不透�
   "tags": ["work", "high_signal"],
   "pinned": true,
   "verified_title_at_save": "Engineering",
-  "verified_owning_organizations_at_save": ["did:web:acme.example"],
+  "verified_owning_organizations_at_save": ["did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example"],
   "saved_at": "2026-05-08T10:00:00Z",
   "updated_at": "2026-05-08T10:00:00Z"
 }

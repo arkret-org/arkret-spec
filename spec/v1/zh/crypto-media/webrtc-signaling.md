@@ -83,7 +83,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
   "seq": 30,
   "data": {
     "action": "kick",
-    "target_actor_id": "did:web:bob.example",
+    "target_actor_id": "did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example",
     "target_device_id": "ck:device:01964137-0000-7000-8000-000000000000",
     "reason": "policy_violation"
   }
@@ -169,7 +169,7 @@ Content-Type: application/json
 {
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "call_id": "ck:call:0196419c-0000-7000-8000-000000000000",
-  "actor_id": "did:web:alice.example",
+  "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
   "ttl_seconds": 600,
   "refresh_lead_seconds": 60,
@@ -195,7 +195,7 @@ Content-Type: application/json
   },
   "signature": {
     "alg": "EdDSA",
-    "kid": "did:web:media.example.com#key-1",
+    "kid": "did:webvh:z7ECJ5c1A1o5Xr1AdPqPCBD7L:media.example.com#key-1",
     "signature_input": "ck.media.ice_config.v1",
     "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "sig": "base64url..."
@@ -262,7 +262,7 @@ Content-Type: application/json
 {
   "kind": "ck.call.signal",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-  "actor_id": "did:web:alice.example.com",
+  "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
   "sent_at": "2026-04-26T00:00:00Z",
   "expires_at": "2026-04-26T00:00:30Z",
@@ -275,7 +275,7 @@ Content-Type: application/json
   "proof": {
     "kind": "detached_jws",
     "alg": "EdDSA",
-    "verification_method": "did:web:alice.example.com#ck:device:01964137-0000-7000-8000-000000000000",
+    "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#ck:device:01964137-0000-7000-8000-000000000000",
     "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
     "created_at": "2026-04-26T00:00:00Z",
     "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJl"
@@ -451,7 +451,7 @@ Candidate payload:
     "audio_muted": true,
     "video_muted": true,
     "by": "moderator",
-    "target_actor_id": "did:web:bob.example",
+    "target_actor_id": "did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example",
     "target_device_id": "ck:device:01964137-0000-7000-8000-000000000000"
   }
 }

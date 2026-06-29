@@ -81,7 +81,7 @@ Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。�
 {
   "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-  "actor_id": "did:web:alice.example",
+  "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "actor_seq": 4,
   "kind": "ck.strand.update",
   "created_at": "2026-04-26T00:00:00Z",
@@ -95,7 +95,7 @@ Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。�
   ],
   "seal_ref": "ck:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
   "auth_context": {
-    "did": "did:web:alice.example",
+    "did": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
     "key_id": "device-1",
     "key_epoch": 7,
     "capability_refs": [
@@ -118,7 +118,7 @@ Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。�
     {
       "kind": "detached_jws",
       "alg": "EdDSA",
-      "verification_method": "did:web:alice.example#device-1",
+      "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#device-1",
       "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
       "created_at": "2026-04-26T00:00:00Z",
       "jws": "eyJhbGciOiJFZERTQSJ9..signature"
@@ -300,7 +300,7 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
 {
   "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-  "actor_id": "did:web:alice.example",
+  "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "actor_seq": 5,
   "kind": "ck.strand.update",
   "created_at": "2026-04-26T00:00:00Z",
@@ -312,7 +312,7 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
   ],
   "seal_ref": "ck:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
   "auth_context": {
-    "did": "did:web:alice.example",
+    "did": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
     "key_id": "device-1",
     "key_epoch": 7,
     "capability_refs": [
@@ -337,7 +337,7 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
     {
       "kind": "detached_jws",
       "alg": "EdDSA",
-      "verification_method": "did:web:alice.example#device-1",
+      "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#device-1",
       "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
       "created_at": "2026-04-26T00:00:00Z",
       "jws": "eyJhbGciOiJFZERTQSJ9..signature"

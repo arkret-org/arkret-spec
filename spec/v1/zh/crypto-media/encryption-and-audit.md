@@ -550,7 +550,7 @@ published -> claimed -> consumed
 {
   "kind": "ck.mls.keypackage",
   "keypackage_id": "ck:mls:kp:01JS...",
-  "principal_id": "did:web:alice.example.com",
+  "principal_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
   "keypackage_ref": "sha256:...",
   "keypackage_digest": "sha256:canonical_keypackage_bytes",
@@ -677,7 +677,7 @@ Profile 规则：
   "schema": "ck.schema.identity_link.v1",
   "status": "active",
   "pairwise_did": "did:key:z6Mkpseudonymous",
-  "principal_id": "did:web:alice.example",
+  "principal_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "device_id": "ck:device:019a6aa0-0000-7000-8000-000000000000",
   "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
   "trust_domain": "ck:trust_domain:did.webvh.example",
@@ -686,7 +686,7 @@ Profile 规则：
   "mls_epoch": 1,
   "effective_at": "2026-05-20T00:00:00Z",
   "proof": {
-    "verification_method": "did:web:alice.example#key-1",
+    "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#key-1",
     "signature_algorithm": "Ed25519",
     "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "signature": "c2ln"

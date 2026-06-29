@@ -60,7 +60,7 @@ Canonical 方向由 `from_ref -> to_ref` 定义。反向语义 SHOULD 由查询�
   "from_ref": "ck:space:019640b6-8000-7000-8000-000000000000",
   "to_ref": "ck:strand:019640c6-8000-7000-8000-000000000000",
   "rank": "mV",
-  "created_by": "did:web:bob.example",
+  "created_by": "did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```

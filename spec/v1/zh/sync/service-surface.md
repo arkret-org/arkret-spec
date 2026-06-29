@@ -144,7 +144,7 @@ GET /_cokret/describe
 
 ```json schema=schemas/service-describe.schema.json
 {
-  "service_did": "did:web:alice.example.net",
+  "service_did": "did:webvh:zCm2ZfnfjnNcgaUrSkWyf5UtD:alice.example.net",
   "trust_domain": "ck:trust_domain:did.webvh.alice.example",
   "service_type": "principal_server",
   "protocol_version": "1.0",
@@ -286,7 +286,7 @@ GET /_cokret/describe
       "verification_run_id": "verify-2026-05-02T000000Z",
       "artifact_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "artifact_ref": "https://verifier.example/log/verify-2026-05-02T000000Z",
-      "verifier_did": "did:web:verifier.example",
+      "verifier_did": "did:webvh:zC72cg8H1bJUTB6ZngzxP68BJ:verifier.example",
       "signature": "base64url:...",
       "timestamp": "2026-05-02T00:00:00Z"
     }
@@ -659,7 +659,7 @@ Inbox 和 notification 可以由客户端从本地 Event、read cursor、mention
   "realm_ids": ["ck:realm:0196419b-0000-7000-8000-000000000000"],
   "object_types": ["message", "strand", "morph"],
   "morph_types": ["comment"],
-  "sender_actor_id": "did:web:alice.example.com",
+  "sender_actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "time_range": {
     "after": "2026-04-01T00:00:00Z",
     "before": "2026-04-26T00:00:00Z"

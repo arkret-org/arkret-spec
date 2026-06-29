@@ -163,9 +163,9 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
   "default_principal_method": "did:webvh",
   "allowed_methods": ["did:webvh", "did:web", "did:plc", "did:key"],
   "trust_roots": [
-    "did:web:registry.defense.example",
-    "did:web:witness-1.defense.example",
-    "did:web:witness-2.defense.example"
+    "did:webvh:zE2ucm2oH9PCib4kBzLEAkFqa:registry.defense.example",
+    "did:webvh:z2TiX7ug9JmCNeioq6D2V4VjK:witness-1.defense.example",
+    "did:webvh:z8rCaf8NFL1av8pHxRpz8APYa:witness-2.defense.example"
   ],
   "public_resolver_allowed": false,
   "method_policy": {
@@ -211,10 +211,10 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
       "schema": "ck.schema.realm.v1",
       "security_class": "high_assurance",
       "title": "External Collaboration",
-      "created_by": "did:web:defense.example",
+      "created_by": "did:webvh:zGsmzvyUSDby8As5bHG3kAtWL:defense.example",
       "trust_domain": "ck:trust_domain:did.webvh.defense.example",
       "owning_organizations": [
-        "did:web:defense.example"
+        "did:webvh:zGsmzvyUSDby8As5bHG3kAtWL:defense.example"
       ],
       "schema_refs": [
         "ck.schema.realm.v1"
@@ -227,7 +227,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
       "notary_profile": "single_did",
       "notary": {
         "type": "single_did",
-        "did": "did:web:server.defense.example"
+        "did": "did:webvh:zCnzAMiBV2XXjoWzmojUF2YbL:server.defense.example"
       },
       "revocation_freshness_window_ms": 86400000,
       "created_at": "2026-04-26T00:00:00Z"
@@ -276,8 +276,8 @@ Sovereign 部署默认采用 **single_did Notary profile**：每个 Realm 由组
 ```json
 {
   "claim_type": "external_org_authorization",
-  "issuer": "did:web:defense.example",
-  "subject": "did:web:contractor.example",
+  "issuer": "did:webvh:zGsmzvyUSDby8As5bHG3kAtWL:defense.example",
+  "subject": "did:webvh:zGTog8Hi4N3h8YrvWRQ2Lr3RP:contractor.example",
   "claim_scope": {
     "realm_id": "ck:realm:400d7400-0000-7000-8000-000000000000",
     "roles": ["contractor_reviewer"],

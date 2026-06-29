@@ -64,7 +64,7 @@ Cokret DID method adapter SHOULD 暴露某个 principal 或服务是否支持 TS
 ```json
 {
   "type": "ck.service.tsp",
-  "id": "did:web:server.example#tsp",
+  "id": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example#tsp",
   "serviceEndpoint": "https://server.example/tsp",
   "supported_vid_schemes": ["did", "urn"],
   "supported_modes": ["direct", "routed", "nested"],

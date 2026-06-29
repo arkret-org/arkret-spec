@@ -103,10 +103,10 @@ Realm 通过独立的 `ck.realm.delivery_binding_policy` event 声明对成员�
     ],
     "allow_did_document_default": false,
     "allowed_recipient_services": [
-      "did:web:principal.acme.example"
+      "did:webvh:z3omZGak5a5es84Ph2kfPs4UP:principal.acme.example"
     ],
     "required_endorsers": [
-      "did:web:acme.example"
+      "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example"
     ],
     "allow_unroutable_membership": false,
     "rebind_authorization": "member_and_admin",

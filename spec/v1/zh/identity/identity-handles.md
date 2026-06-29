@@ -68,7 +68,7 @@ Handle MAY 变更、冻结、迁移或重新绑定。
 - `@alice:acme.example/summary` → Agent Selector；发送前必须归约为 agent DID，`summary` 不是 handle localpart。
 - 组织账号、计费账号、客服账号、受管员工编号 → Administrative Identifier。
 - `Alice Zhang`、昵称 → Display Name。
-- `did:webvh:...`、`did:web:...`、`did:key:...` → Principal DID。
+- `did:webvh:...`、`did:webvh:z8kSru9qAfd1G7AvcVjggdEKy:...`、`did:key:...` → Principal DID。
 
 规则：
 
@@ -339,8 +339,8 @@ Handle 的 issuer 决定它的信任锚点；同一 canonical handle 形态可�
 | Issuer 类型 | 典型场景 | 验证锚点 |
 | --- | --- | --- |
 | **Holder DID（self-issued）** | 用户自己控制 `<domain>`，自己运营单用户 Principal Server 或 well-known endpoint。例：`@alice:alice.dev` 由 Alice 的 DID 签发。 | (a) `<domain>` 解析 `https://<domain>/.well-known/cokret/handle?localpart=<localpart>` 或 DNS TXT `_cokret.<domain>` 返回签名 handle claim；(b) holder DID Document `alsoKnownAs` 含对应 `<localpart>:<domain>`；两侧均验签通过。 |
-| **Organization DID** | 组织把 handle 签发给员工或受管成员。例：`@alice:acme.example` 由 `did:web:acme.example` 签发给 Alice 个人 DID。 | issuer claim + holder DID Document `alsoKnownAs`（公开 handle）或受限 presentation；audience / scope 限定到目标 Realm / 组织。 |
-| **Principal Server service DID** | Principal Server 为它承载的用户签发 handle。例：托管平台 `did:web:principal.acme.example`。 | claim 由 service DID 签发，service DID 由 Organization DID 委派（DID Document service entry 或 governance attestation）；最终归约到 Organization 信任根。 |
+| **Organization DID** | 组织把 handle 签发给员工或受管成员。例：`@alice:acme.example` 由 `did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example` 签发给 Alice 个人 DID。 | issuer claim + holder DID Document `alsoKnownAs`（公开 handle）或受限 presentation；audience / scope 限定到目标 Realm / 组织。 |
+| **Principal Server service DID** | Principal Server 为它承载的用户签发 handle。例：托管平台 `did:webvh:z3omZGak5a5es84Ph2kfPs4UP:principal.acme.example`。 | claim 由 service DID 签发，service DID 由 Organization DID 委派（DID Document service entry 或 governance attestation）；最终归约到 Organization 信任根。 |
 | **受信 Directory DID** | 公共 Directory 索引 handle 并发放短期 routable claim。 | Directory claim + 上游 `source_refs`；Directory 是镜像层，不是真相源。 |
 
 **自托管即单用户实例**：用户自己控制域名时，handle 形态仍是 `alice:alice.dev`（或任意 localpart），与组织部署完全一致；只是 issuer 与 holder 是同一个 DID。verifier 解析时按 §5 走 `<domain>` 的 well-known 通道发现 issuer，再走 issuer claim + alsoKnownAs 双向验证——验证路径自然分流，不依赖其它字符串 shape。
@@ -637,14 +637,14 @@ Handle 解析示例：
   "handle": "alice:acme.example",
   "handle_aliases": ["acct:alice@acme.example"],
   "subject": "did:webvh:z2dmjA1ice:users.acme.example",
-  "issuer": "did:web:acme.example",
-  "issuer_service_did": "did:web:principal.acme.example",
+  "issuer": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
+  "issuer_service_did": "did:webvh:z3omZGak5a5es84Ph2kfPs4UP:principal.acme.example",
   "claim_kind": "organization_handle",
   "visibility": "restricted",
   "binding_state": "verified",
   "audience": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "member_delivery_binding": {
-    "recipient_service_did": "did:web:principal.acme.example",
+    "recipient_service_did": "did:webvh:z3omZGak5a5es84Ph2kfPs4UP:principal.acme.example",
     "recipient_service_type": "principal_server",
     "binding_source": "organization_policy",
     "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
@@ -656,7 +656,7 @@ Handle 解析示例：
   "proofs": [{
     "kind": "detached_jws",
     "alg": "EdDSA",
-    "verification_method": "did:web:principal.acme.example#key-1",
+    "verification_method": "did:webvh:z3omZGak5a5es84Ph2kfPs4UP:principal.acme.example#key-1",
     "payload_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "created_at": "2026-05-19T00:00:00Z",
     "audience": "ck:realm:0196419b-0000-7000-8000-000000000000",
@@ -817,10 +817,10 @@ DID Document MUST NOT 被用作跨组织身份画像。公开或半公开 DID Do
 ```json
 {
   "type": ["verifiable_credential", "cokret_org_membership_credential"],
-  "issuer": "did:web:google.example",
+  "issuer": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
   "credentialSubject": {
     "id": "did:key:z6Mkgpairwise...",
-    "org": "did:web:google.example",
+    "org": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
     "member": true,
     "handle_verified": true
   },
@@ -853,18 +853,18 @@ Verifier MUST 使用最小披露请求，不得请求“所有 alias”或“所
 ```json
 {
   "type": "cokret_presentation_request",
-  "audience": "did:web:google.example",
+  "audience": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
   "domain": "google.example",
   "challenge": "ck_chal_01J...",
   "accepted_issuers": [
-    "did:web:google.example",
-    "did:web:trusted-hr.example"
+    "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
+    "did:webvh:z63bVQgiDj3vkHkgjzVuvJdte:trusted-hr.example"
   ],
   "required_claims": [
     {
       "type": "cokret_org_membership_credential",
       "constraints": {
-        "org": "did:web:google.example",
+        "org": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
         "member": true
       },
       "disclosure": "abstract"
@@ -917,7 +917,7 @@ Capability policy MAY 依赖 verified claim，但 grant subject 仍然是 DID。
 
 ```text
 grant subject = did:key:z6Mkgpairwise...
-condition = has valid cokret_org_membership_credential where org = did:web:google.example
+condition = has valid cokret_org_membership_credential where org = did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example
 ```
 
 错误：
@@ -964,17 +964,17 @@ grant subject = alice@google.com
 {
   "kind": "ck.identity.presentation_request",
   "request_id": "ck:request:d8764019-0000-7000-8000-000000000000",
-  "verifier_did": "did:web:login.google.example",
-  "represented_org": "did:web:google.example",
+  "verifier_did": "did:webvh:zGZ728E4hbEuyDPggPzuioG6n:login.google.example",
+  "represented_org": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
   "domain": "google.example",
   "challenge": "ck_chal_01J...",
   "purpose": "space_join",
-  "accepted_issuers": ["did:web:google.example"],
+  "accepted_issuers": ["did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example"],
   "required_claims": [
     {
       "claim_type": "cokret_org_membership_credential",
       "constraints": {
-        "org": "did:web:google.example",
+        "org": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
         "member": true
       },
       "disclosure": "abstract"
@@ -1006,16 +1006,16 @@ Verifier MUST 对该请求签名，或通过已认证的关系通道发送。Wal
 {
   "kind": "ck.identity.disclosure_policy",
   "policy_id": "ck:policy:a1cb0019-0000-7000-8000-000000000000",
-  "holder_did": "did:web:holder.example.com",
+  "holder_did": "did:webvh:z64Hmi2jCpmp1cUuWEwCgdNn5:holder.example.com",
   "audience": {
-    "org_did": "did:web:google.example",
-    "verifier_dids": ["did:web:login.google.example"],
+    "org_did": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
+    "verifier_dids": ["did:webvh:zGZ728E4hbEuyDPggPzuioG6n:login.google.example"],
     "tsp_vids": ["did:webs:google.example:verifier"]
   },
   "allowed_claims": [
     {
       "claim_type": "verified_handle",
-      "issuer": "did:web:google.example",
+      "issuer": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
       "subject_id": "did:key:z6Mkgpairwise...",
       "disclosure": "explicit",
       "fields": ["handle"],
@@ -1066,8 +1066,8 @@ Response MUST NOT 包含未披露字段、base proof、无关的 credential iden
   "receipt_id": "ck:receipt:a1cb0019-0000-7000-8000-000000000000",
   "request_id": "ck:request:d8764019-0000-7000-8000-000000000000",
   "holder_did": "did:key:z6Mkgpairwise...",
-  "verifier_did": "did:web:login.google.example",
-  "represented_org": "did:web:google.example",
+  "verifier_did": "did:webvh:zGZ728E4hbEuyDPggPzuioG6n:login.google.example",
+  "represented_org": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
   "presentation_digest": "sha256:...",
   "proof_profile": "vc_di_bbs_2023",
   "transport": "tsp",
@@ -1101,8 +1101,8 @@ Service authorization claim 示例：
 
 ```json
 {
-  "issuer": "did:web:google.example",
-  "subject": "did:web:login.google.example",
+  "issuer": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
+  "subject": "did:webvh:zGZ728E4hbEuyDPggPzuioG6n:login.google.example",
   "claim_type": "org_service_authorization",
   "service": "cokret_verifier",
   "expires_at": "2026-07-26T00:00:00Z"

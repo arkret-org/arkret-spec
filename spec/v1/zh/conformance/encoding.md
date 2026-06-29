@@ -203,9 +203,9 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 {
   "schema": "ck.schema.event_batch_receipt.v1",
   "receipt_id": "ck:receipt:01964186-0000-7000-8000-000000000000",
-  "issuer": "did:web:alice.example",
+  "issuer": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "scope": {
-    "actor_id": "did:web:alice.example"
+    "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example"
   },
   "frontier": {
     "actor_seq": 1,
@@ -226,7 +226,7 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 {
   "kind": "detached_jws",
   "alg": "EdDSA",
-  "verification_method": "did:web:alice.example#device-1",
+  "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#device-1",
   "created_at": "2026-04-26T00:00:00Z",
   "event_digest": "sha256:...",
   "jws": "..."

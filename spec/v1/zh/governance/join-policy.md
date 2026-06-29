@@ -233,7 +233,7 @@ applicant 直接提交：
     "membership": "join",
     "delivery_status": "routable",
     "delivery_binding": {
-      "recipient_service_did": "did:web:principal.org-a.example",
+      "recipient_service_did": "did:webvh:zumXV7yCE8UjvfwVEcio4oN3f:principal.org-a.example",
       "recipient_service_type": "principal_server",
       "binding_scope": "realm",
       "binding_source": "explicit",
@@ -249,7 +249,7 @@ applicant 直接提交：
         "gate_id": "g-captcha",
         "challenge_proof": {
           "challenge_id": "chg_01HXY9PM0AB6Y7VN2C7M4WG5KQ",
-          "issued_by": "did:web:captcha.example",
+          "issued_by": "did:webvh:zaeuR1WGwz5pkZueKCmyqGFqu:captcha.example",
           "proof": "base64url:..."
         }
       }
@@ -450,7 +450,7 @@ Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声�
       "type": "challenge",
       "challenge_id": "chg_01HXY9PM0AB6Y7VN2C7M4WG5KQ",
       "kinds": ["captcha", "pow"],
-      "issuer": "did:web:captcha.example",
+      "issuer": "did:webvh:zaeuR1WGwz5pkZueKCmyqGFqu:captcha.example",
       "endpoint": "https://captcha.example/challenge/01HXY9PM0AB6Y7VN2C7M4WG5KQ",
       "max_proof_age": "PT5M",
       "must_satisfy_before_resubmit": true,
@@ -504,7 +504,7 @@ applicant 完成挑战后，重新提交 join / application Control Move，在 `
           "kind": "claim_required",
           "auto_resolve": true,
           "requires_claims": [
-            {"claim_type": "membership", "issuer": "did:web:openresearch.org", "status": "active"}
+            {"claim_type": "membership", "issuer": "did:webvh:zHqvNofxnbRjYqHgjiWCQ5jj6:openresearch.org", "status": "active"}
           ]
         },
         {
@@ -524,7 +524,7 @@ applicant 完成挑战后，重新提交 join / application Control Move，在 `
           "gate_id": "g-captcha",
           "kind": "challenge_response",
           "auto_resolve": true,
-          "provider_did": "did:web:captcha.example",
+          "provider_did": "did:webvh:zaeuR1WGwz5pkZueKCmyqGFqu:captcha.example",
           "challenge_kinds": ["captcha"],
           "max_proof_age": "PT5M"
         }

@@ -29,7 +29,7 @@ sidebar:
 {
   "kind": "ck.realm.media_service",
   "payload": {
-    "service_id": "did:web:media.example.com",
+    "service_id": "did:webvh:z7ECJ5c1A1o5Xr1AdPqPCBD7L:media.example.com",
     "modes": [
       "turn",
       "sfu"
@@ -101,7 +101,7 @@ Content-Type: application/json
 {
   "realm_id": "ck:realm:...",
   "call_id": "ck:call:...",
-  "actor_id": "did:web:alice.example.com",
+  "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "device_id": "ck:device:...",
   "focus_id": "fra-1",
   "capability_refs": ["ck:grant:..."],
@@ -123,16 +123,16 @@ Content-Type: application/json
     "realm_id": "ck:realm:...",
     "call_id": "ck:call:...",
     "focus_id": "fra-1",
-    "actor_id": "did:web:alice.example.com",
+    "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
     "device_id": "ck:device:...",
     "participant_identity": "ck:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
     "issued_at": "2026-05-27T12:29:56Z",
     "expires_at": "2026-05-27T12:34:56Z",
-    "issuer_kid": "did:web:media.example#key-1",
+    "issuer_kid": "did:webvh:zCxjAemtszNh7bTFGWFS4m8gv:media.example#key-1",
     "sig": "base64url..."
   },
   "expires_at": "2026-05-27T12:34:56Z",
-  "service_signature": { "kid": "did:web:media.example#key-1", "sig": "base64url..." }
+  "service_signature": { "kid": "did:webvh:zCxjAemtszNh7bTFGWFS4m8gv:media.example#key-1", "sig": "base64url..." }
 }
 ```
 

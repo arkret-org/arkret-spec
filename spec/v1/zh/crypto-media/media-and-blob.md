@@ -24,7 +24,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
   "content_digest": "sha256:...",
   "size_bytes": 1234,
   "media_type": "image/png",
-  "created_by": "did:web:alice.example",
+  "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "created_at": "2026-04-26T00:00:00Z",
   "encryption": null
 }
@@ -446,7 +446,7 @@ Cache-Control: public, immutable, max-age=31536000
   "scheme": "ck.blob.presign.v1",
   "blob_ref": "ck:blob:sha256:0123456789abcdef...",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-  "issuer_service_did": "did:web:blob.acme.example",
+  "issuer_service_did": "did:webvh:z9L9sKcFqigzdgN2ucF1V6ztq:blob.acme.example",
   "issued_at": "2026-05-18T10:00:00Z",
   "expires_at": "2026-05-18T10:05:00Z",
   "purpose": "media_inline",
@@ -582,13 +582,13 @@ Cache-Control: public, immutable, max-age=31536000
     ],
     "direct_download_allowed": false,
     "upload_services": [
-      "did:web:blob.acme.example"
+      "did:webvh:z9L9sKcFqigzdgN2ucF1V6ztq:blob.acme.example"
     ],
     "download_proxy_services": [
-      "did:web:media-proxy.acme.example"
+      "did:webvh:zGKqLZm5euMAfKUjGMsFkXR9E:media-proxy.acme.example"
     ],
     "ohttp_gateway_services": [
-      "did:web:ohttp-gateway.example"
+      "did:webvh:zAQ5daUZibU8q3K1aaxD9vMRg:ohttp-gateway.example"
     ],
     "max_plaintext_metadata": [
       "size_bucket",

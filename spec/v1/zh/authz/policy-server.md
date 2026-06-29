@@ -22,10 +22,10 @@ Realm 可通过 state event 声明策略服务：
 {
   "kind": "ck.realm.policy_server",
   "payload": {
-    "server_id": "did:web:policy.example.com",
+    "server_id": "did:webvh:z9oyrNdJAoqkAh5Remo6dZUdV:policy.example.com",
     "endpoint": "https://policy.example.com/_cokret/self/policy/check",
     "public_keys": [
-      "did:web:policy.example.com#key-1"
+      "did:webvh:z9oyrNdJAoqkAh5Remo6dZUdV:policy.example.com#key-1"
     ],
     "applies_to": [
       "join",
@@ -101,7 +101,7 @@ Content-Type: application/json
   "actor_id": "did:webvh:...",
   "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
   "source": {
-    "service_did": "did:web:server.example",
+    "service_did": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example",
     "service_type": "principal_server",
     "source_ip_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "signed_transport": true
@@ -110,14 +110,14 @@ Content-Type: application/json
     "kind": "ck.message.create",
     "content_digest": "sha256:...",
     "redacted_content": {
-      "mentions": ["did:web:bob.example.com"],
+      "mentions": ["did:webvh:z4Uy7eEwDuHWSxMT2dHWEWPip:bob.example.com"],
       "media": [{"blob_id": "blob:...", "mime": "image/png"}]
     }
   },
   "auth_context": {
     "membership": "join",
     "capability_ids": ["grant:..."],
-    "origin_service": "did:web:server.example"
+    "origin_service": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example"
   }
 }
 ```
@@ -168,7 +168,7 @@ Content-Type: application/json
     "actor_id": "did:webvh:...",
     "action": "ck.message.create",
     "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    "policy_server_id": "did:web:policy.example.com"
+    "policy_server_id": "did:webvh:z9oyrNdJAoqkAh5Remo6dZUdV:policy.example.com"
   },
   "decision": "allow",
   "reason_code": "ok",
@@ -181,7 +181,7 @@ Content-Type: application/json
     {"type": "rate_limit", "bucket": "message", "remaining": 20}
   ],
   "signature": {
-    "kid": "did:web:policy.example.com#key-1",
+    "kid": "did:webvh:z9oyrNdJAoqkAh5Remo6dZUdV:policy.example.com#key-1",
     "sig": "base64url..."
   }
 }
@@ -255,14 +255,14 @@ provider 颁发的 challenge proof 形态：
 ```json
 {
   "challenge_id": "chg_01HXY9PM0AB6Y7VN2C7M4WG5KQ",
-  "issued_by": "did:web:captcha.example",
+  "issued_by": "did:webvh:zaeuR1WGwz5pkZueKCmyqGFqu:captcha.example",
   "issued_at": "2026-04-26T00:00:00Z",
   "expires_at": "2026-04-26T00:05:00Z",
   "bound_to": { "...": "echo of obligation.bound_to" },
   "proof_method": "captcha-v1 | pow-sha256 | webauthn-attestation | oidc-id-token",
   "proof_value": "base64url:...",
   "signature": {
-    "kid": "did:web:captcha.example#key-1",
+    "kid": "did:webvh:zaeuR1WGwz5pkZueKCmyqGFqu:captcha.example#key-1",
     "sig": "base64url:..."
   }
 }

@@ -45,14 +45,14 @@ updated: 2026-06-24
 {
   "kind": "ck.receipt.read",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-  "actor_id": "did:web:alice.example",
+  "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "sent_at": "2026-04-26T10:00:00Z",
   "expires_at": "2026-04-26T10:00:30Z",
   "payload": {
     "receipt_type": "read",
     "schema": "ck.schema.read_receipt.v1",
     "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-    "actor_id": "did:web:alice.example",
+    "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
     "read_scope": {
       "kind": "strand",
       "ref": "ck:strand:01964200-0000-7000-8000-000000000001",
@@ -172,7 +172,7 @@ Read cursor schema：`ck.schema.read_cursor.v1`。Read Cursor 是 actor-private 
 {
   "id": "ck:read_cursor:01964137-0000-7000-8000-000000000001",
   "schema": "ck.schema.read_cursor.v1",
-  "actor_id": "did:web:alice.example",
+  "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "read_scope": {
@@ -223,7 +223,7 @@ Read Cursor 是 actor-private 状态。最小结构示例：
 
 ```json
 {
-  "actor_id": "did:web:alice.example",
+  "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "read_scope": {
@@ -250,7 +250,7 @@ Receipt 可以公开或私有，取决于 Realm policy。schema：`ck.schema.rea
   "receipt_type": "read",
   "schema": "ck.schema.read_receipt.v1",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-  "actor_id": "did:web:alice.example",
+  "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "read_scope": {
     "kind": "strand",
     "ref": "ck:strand:01964200-0000-7000-8000-000000000001",
@@ -269,7 +269,7 @@ Notification 是派生 projection，不是 canonical truth。schema：`ck.schema
 {
   "id": "ck:notification:01964157-8000-7000-8000-000000000000",
   "schema": "ck.schema.notification.v1",
-  "actor_id": "did:web:alice.example",
+  "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "source_event_id": "ck:event:0196434a-8000-7000-8000-000000000000",
   "source_ref": "ck:message:0196434c-c000-7000-8000-000000000000",

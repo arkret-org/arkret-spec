@@ -388,7 +388,7 @@ event_id ASC
           "schema": "ck.schema.handle_claim.v1",
           "handle": "alice:acme.example",
           "subject": "did:webvh:zQmPr8...",
-          "issuer": "did:web:acme.example",
+          "issuer": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
           "binding_state": "verified",
           "created_at": "2026-05-27T00:00:00Z",
           "expires_at": "2026-06-27T00:00:00Z",
@@ -396,7 +396,7 @@ event_id ASC
             {
               "kind": "detached_jws",
               "alg": "EdDSA",
-              "verification_method": "did:web:acme.example#key-1",
+              "verification_method": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example#key-1",
               "payload_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
               "created_at": "2026-05-27T00:00:00Z",
               "jws": "aaa.bbb.ccc"

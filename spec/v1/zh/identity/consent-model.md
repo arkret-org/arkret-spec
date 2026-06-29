@@ -90,7 +90,7 @@ ControlMove(ck.consent.grant) {
       value: {
         intent: {                          // projection-level dedupe key
           consent_id: <consent_id>,
-          peer:       "did:web:bob.example.com",
+          peer:       "did:webvh:z4Uy7eEwDuHWSxMT2dHWEWPip:bob.example.com",
           consent_scope: "invite"
         },
         not_before:   "2026-05-07T00:00:00Z",
@@ -121,7 +121,7 @@ Payload-only schema 示例：
 ```json schema=schemas/event-payload.schema.json#/$defs/consent_grant_payload
 {
   "consent_id": "consent-alice-bob-invite-001",
-  "peer": "did:web:bob.example.com",
+  "peer": "did:webvh:z4Uy7eEwDuHWSxMT2dHWEWPip:bob.example.com",
   "consent_scope": "invite",
   "not_before": "2026-05-07T00:00:00Z",
   "expires_at": "2026-12-31T00:00:00Z",

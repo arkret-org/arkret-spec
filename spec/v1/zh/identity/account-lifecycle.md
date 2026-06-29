@@ -113,7 +113,7 @@ Cokret 身份由 DID principal 表示，但用户访问通常经过一个或多�
   "reason_code": "abuse_review",
   "effective_at": "2026-04-26T00:00:00Z",
   "appeal_uri": "https://example.com/appeal/acct_...",
-  "signature": {"kid": "did:web:auth.example#key-1", "sig": "..."}
+  "signature": {"kid": "did:webvh:zGtABZixoZZ3m4cFx3E65LCmg:auth.example#key-1", "sig": "..."}
 }
 ```
 

@@ -297,7 +297,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "constraint_type": "delegation_control",
   "effect": "allow",
   "max_delegation_depth": 2,
-  "delegation_path": ["did:web:org.example.com"],
+  "delegation_path": ["did:webvh:zABpBQTRWzuVZjF4X1cTUVGZ8:org.example.com"],
   "prohibit_subdelegation": false
 }
 ```
@@ -388,7 +388,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "approval_required": true,
   "approval_mode": "before_commit",
   "approval_actor_ids": [
-    "did:web:manager.example.com"
+    "did:webvh:z2f4PssK2Np2TL71GtW46BC6K:manager.example.com"
   ],
   "approval_relation": "controller",
   "timeout": "PT72H",
@@ -407,8 +407,8 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "proposal_morph_type": "proposal",
   "approval_threshold": "majority",
   "approval_actor_ids": [
-    "did:web:approver1.example.com",
-    "did:web:approver2.example.com"
+    "did:webvh:zBKfb3ss3d2vsHuUhDkuNgSsS:approver1.example.com",
+    "did:webvh:zFZyvJ85CyxcAXBp6TQfLSPQa:approver2.example.com"
   ]
 }
 ```
@@ -450,14 +450,14 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "requires_claims": [
     {
       "claim_type": "org_membership",
-      "issuer": "did:web:acme.com",
-      "organization": "did:web:acme.com",
+      "issuer": "did:webvh:zGPwcewZ4W5tpgJnGa3T8reYM:acme.com",
+      "organization": "did:webvh:zGPwcewZ4W5tpgJnGa3T8reYM:acme.com",
       "status": "active",
       "roles": ["employee", "contractor"]
     }
   ],
   "trusted_claim_issuers": [
-    "did:web:acme.com"
+    "did:webvh:zGPwcewZ4W5tpgJnGa3T8reYM:acme.com"
   ],
   "claim_refresh_required": true,
   "claim_max_age": "PT24H"
@@ -488,7 +488,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "subtype": "accountability",
   "effect": "allow",
   "accountability_required": true,
-  "responsible_actor": "did:web:guardian.example.com",
+  "responsible_actor": "did:webvh:z2vHtethmmzFY86zLhnqXP4rr:guardian.example.com",
   "accountability_relation": "guardian",
   "log_all_operations": true,
   "require_signature": true
@@ -504,8 +504,8 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "effect": "require_review",
   "guardian_approval_required": true,
   "guardian_actor_refs": [
-    "did:web:parent1.example.com",
-    "did:web:parent2.example.com"
+    "did:webvh:z82PFJkUuQZejFmNvW4u3ZU59:parent1.example.com",
+    "did:webvh:z6TTT4uWX85mtomzdpBz259yF:parent2.example.com"
   ],
   "approval_threshold": "unanimous"
 }
@@ -538,7 +538,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "max_key_age": "P30D",
   "require_key_backup": true,
   "approved_key_issuers": [
-    "did:web:keys.example.com"
+    "did:webvh:zJCNANaMhJJU6AhUzXiMTaXKq:keys.example.com"
   ]
 }
 ```
@@ -845,7 +845,7 @@ function matches_field_access(operation, constraint):
 ```json
 {
   "grant_id": "ck:grant:...",
-  "subject": "did:web:agent.example.com",
+  "subject": "did:webvh:z7JFwDcjH8CMYDmNUkUBhGpNN:agent.example.com",
   "actions": ["ck.object.read", "ck.strand.create", "ck.morph.create"],
   "resources": [
     {
@@ -875,7 +875,7 @@ function matches_field_access(operation, constraint):
       "subtype": "accountability",
       "effect": "allow",
       "accountability_required": true,
-      "responsible_actor": "did:web:owner.example.com"
+      "responsible_actor": "did:webvh:zG3K9Kaj8YcWDiopkdAiWoCxY:owner.example.com"
     },
     {
       "constraint_type": "claim_based",
@@ -961,10 +961,10 @@ Grant envelope 字段、签名规则与必填性以
   "requires_claims": [
     {
       "claim_type": "cokret_org_membership_credential",
-      "trusted_issuers": ["did:web:google.example"],
+      "trusted_issuers": ["did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example"],
       "subject_matches_actor": true,
       "value_constraints": {
-        "org": "did:web:google.example",
+        "org": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
         "member": true
       }
     }
@@ -980,7 +980,7 @@ Grant envelope 字段、签名规则与必填性以
   "subtype": "approval",
   "effect": "require_review",
   "approval_mode": "before_commit",
-  "approval_actor_ids": ["did:web:manager.example"],
+  "approval_actor_ids": ["did:webvh:zGd8mMoLD7F4He4Kf8PpXJur1:manager.example"],
   "approval_threshold": "quorum",
   "timeout": "PT24H",
   "reason_required": true

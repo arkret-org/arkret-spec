@@ -286,8 +286,8 @@ Resolver policy MUST 至少定义：
       "require_witness": "required",
       "witness_threshold": 1,
       "trusted_witnesses": [
-        "did:web:witness-a.example",
-        "did:web:witness-b.example"
+        "did:webvh:zFEcxx2zsuYLbjx2ncBvnE9sW:witness-a.example",
+        "did:webvh:zJ9Q5oVHyeFp6SKXd9HcMpBpY:witness-b.example"
       ],
       "outage_mode": "cache_only_low_risk_read",
       "outage_max_duration_ms": 86400000
@@ -372,7 +372,7 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
 
 一个组织 MAY 自建 Auth Server，同时接受多种 DID method 的用户 DID。典型流程是：
 
-1. 用户提交 `did:webvh:...`（v1 core 默认）、`did:web:...`（service DID 或 `personal_node` profile principal）、handle、邀请链接或组织账号；声明 AT 互通的部署也接受 `did:plc:...`。
+1. 用户提交 `did:webvh:...`（v1 core 默认）、`did:webvh:z8kSru9qAfd1G7AvcVjggdEKy:...`（service DID 或 `personal_node` profile principal）、handle、邀请链接或组织账号；声明 AT 互通的部署也接受 `did:plc:...`。
 2. 组织 Auth Server 按本地 trust policy 选择 resolver。v1 core 默认 principal 解析路径是 `did:webvh`（验证 `did.jsonl` 链 + SCID + entry hash chain + witness）；service DID 通常是 `did:web`；`personal_node` profile MAY 降级 principal 解析路径为 `did:web`；高安全部署可以只允许 allowlist 中的 resolver 和 trust roots。
 3. Auth Server 或客户端解析 DID Document，校验 method history、witness / directory evidence、service delegation 和可接受的 trust domain。
 4. 用户用 DID 控制密钥、设备密钥、passkey / OIDC 绑定证明或组织要求的 VC presentation 完成登录绑定。
@@ -398,7 +398,7 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
   "kind": "ck.did.proof",
   "purpose": "account_binding",
   "did": "did:webvh:zQ3sh7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-  "audience": "did:web:auth.acme.example",
+  "audience": "did:webvh:zA5MZ8QSzW1MFABBM2ubUPuPY:auth.acme.example",
   "origin": "https://auth.acme.example",
   "challenge": "base64url-random",
   "issued_at": "2026-04-26T00:00:00Z",
@@ -477,7 +477,7 @@ Identity Resolution Surface MAY 提供统一 API 来提交或查询 method-speci
     }
   ],
   "policy_context": {
-    "audience": "did:web:registry.example",
+    "audience": "did:webvh:z2Cxbwy2o7AmBLzdfDbix8WAP:registry.example",
     "purpose": "did_update"
   }
 }
@@ -533,7 +533,7 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
     },
     "service_delegations": [
       {
-        "service_did": "did:web:server.acme.example",
+        "service_did": "did:webvh:z5a3yeFnKQFn6ZqPY1Qgv3RrZ:server.acme.example",
         "purposes": ["principal_server", "space_endorsement"],
         "validFrom": "2026-04-26T00:00:00Z",
         "validUntil": null

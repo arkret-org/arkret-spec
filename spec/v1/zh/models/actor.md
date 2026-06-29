@@ -84,7 +84,7 @@ Schema id: `ck.schema.actor_profile.v1`
 
 ### 3.3.1 `accountable_principal_ids` 的可验证性（normative）
 
-`accountable_principal_ids` 是社工攻击面: actor 可以单方填入 `accountable_principal_ids: ["did:web:famous-org.example"]`,让其他客户端 / Directory UI 显示 "由 famous-org 担保" 的暗示信任，即便 famous-org 从未批准过。这对接收方做出"是否互动 / 是否接受邀请"的判断有真实影响。
+`accountable_principal_ids` 是社工攻击面: actor 可以单方填入 `accountable_principal_ids: ["did:webvh:z6shM8wDREPSST7ZtxGkuFsk6:famous-org.example"]`,让其他客户端 / Directory UI 显示 "由 famous-org 担保" 的暗示信任，即便 famous-org 从未批准过。这对接收方做出"是否互动 / 是否接受邀请"的判断有真实影响。
 
 因此 reducer **MUST** 校验:
 

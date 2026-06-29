@@ -103,7 +103,7 @@ Schema id: `ck.schema.strand.v1`
   "scope_circle_id": "ck:circle:019640dc-8000-7000-8000-000000000000",
   "state": "active",
   "stage": "in_progress",
-  "created_by": "did:web:alice.example",
+  "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
@@ -596,12 +596,12 @@ Schema id: `ck.schema.message.v1`
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "strand_id": "ck:strand:019640f9-8000-7000-8000-000000000000",
   "track_name": "discussion",
-  "created_by": "did:web:alice.example",
+  "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "content": {
     "kind": "ck.content.text",
     "body": "@bob 请确认这个 item 的 legal 风险。",
     "format": "markdown",
-    "formatted_body": "<mention did=\"did:web:bob.example\">@bob</mention> 请确认这个 item 的 legal 风险。"
+    "formatted_body": "<mention did=\"did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example\">@bob</mention> 请确认这个 item 的 legal 风险。"
   },
   "state": "active",
   "revision_root": "ck:message:0196414c-8000-7000-8000-000000000000",
@@ -631,7 +631,7 @@ Schema id: `ck.schema.message.v1`
           "discussion": { "is_primary": true }
         },
         "stage": "in_progress",
-        "created_by": "did:web:alice.example",
+        "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
         "created_at": "2026-04-26T00:00:00Z"
       }
     }

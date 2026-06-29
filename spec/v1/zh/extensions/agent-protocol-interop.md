@@ -76,7 +76,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 ```json
 {
   "kind": "ck.agent.endpoint",
-  "agent_id": "did:web:agent.example.com",
+  "agent_id": "did:webvh:z7JFwDcjH8CMYDmNUkUBhGpNN:agent.example.com",
   "endpoints": [
     {
       "protocol": "a2a",
@@ -109,11 +109,11 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 {
   "kind": "ck.agent.interop_session.start",
   "realm_id": "ck:realm:...",
-  "actor_id": "did:web:requesting-agent.example.com",
+  "actor_id": "did:webvh:zJ9BR1Wso7TdHzifQDHtN8HTd:requesting-agent.example.com",
   "payload": {
     "session_id": "ck:agent_interop_session:019643c0-0000-7000-8000-000000000000",
     "task_strand_id": "ck:strand:4accc010-0000-7000-8000-000000000000",
-    "counterparty_agent": "did:web:remote-agent.example.com",
+    "counterparty_agent": "did:webvh:zB54CCsfUsS7ywusJTQVGBWVd:remote-agent.example.com",
     "protocol": "a2a",
     "external_protocol_version": "1.x",
     "endpoint_ref": "https://agent.example/.well-known/agent-card.json",
@@ -202,7 +202,7 @@ Cancellation 是协议状态，不是只关本地 socket。持有 `ck.agent.inte
     "session_id": "ck:agent_interop_session:019643c0-0000-7000-8000-000000000000",
     "external_task_id": "a2a-task-123",
     "status": "cancelled",
-    "cancelled_by": "did:web:requesting-agent.example.com",
+    "cancelled_by": "did:webvh:zJ9BR1Wso7TdHzifQDHtN8HTd:requesting-agent.example.com",
     "cancelled_at": "2026-04-26T00:05:00Z",
     "reason_code": "user_cancelled",
     "external_cancel_ref": "a2a-cancel-789",

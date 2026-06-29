@@ -30,7 +30,7 @@ base v1 invite **MUST NOT** 依赖 `ck.find.directory.query.resolve_handle(inten
 ```json
 {
   "subject_id": "did:webvh:z2dmjBobExample:users.bob.example:bob",
-  "recipient_service_did": "did:web:ps.bob.example"
+  "recipient_service_did": "did:webvh:zGiUQcWG9yy3Z9pMs15w7JHgc:ps.bob.example"
 }
 ```
 
@@ -108,7 +108,7 @@ token 要求：
 {
   "schema": "ck.schema.principal_locator.v1",
   "subject_id": "did:webvh:z2dmjBobExample:users.bob.example:bob",
-  "recipient_service_did": "did:web:ps.bob.example",
+  "recipient_service_did": "did:webvh:zGiUQcWG9yy3Z9pMs15w7JHgc:ps.bob.example",
   "issued_at": "2026-06-07T10:00:00Z",
   "expires_at": "2026-06-07T10:15:00Z",
   "locator_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
@@ -117,7 +117,7 @@ token 要求：
       "proof_purpose": "recipient_service_acceptance",
       "proof": {
         "kind": "detached_jws",
-        "verification_method": "did:web:ps.bob.example#server-key-1",
+        "verification_method": "did:webvh:zGiUQcWG9yy3Z9pMs15w7JHgc:ps.bob.example#server-key-1",
         "alg": "EdDSA",
         "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "created_at": "2026-06-07T10:00:00Z",
@@ -235,8 +235,8 @@ effective_receive_policy =
   "handle_claim_max_behavior": "quarantine",
   "explicit_address_max_behavior": "drop",
   "allowed_handle_domains": ["acme.example"],
-  "trusted_handle_issuers": ["did:web:directory.acme.example"],
-  "trusted_directory_services": ["did:web:directory.acme.example"],
+  "trusted_handle_issuers": ["did:webvh:z43vHHHeh32Hnyv6t7X3t33Xs:directory.acme.example"],
+  "trusted_directory_services": ["did:webvh:z43vHHHeh32Hnyv6t7X3t33Xs:directory.acme.example"],
   "accepted_subject_did_methods": ["did:webvh"]
 }
 ```
@@ -250,7 +250,7 @@ effective_receive_policy =
   "invite_id": "ck:invite:0196419b-0000-7000-8000-000000000010",
   "invitee": "did:webvh:z2dmjBobExample:users.bob.example:bob",
   "invite_delivery_target": {
-    "recipient_service_did": "did:web:ps.bob.example"
+    "recipient_service_did": "did:webvh:zGiUQcWG9yy3Z9pMs15w7JHgc:ps.bob.example"
   },
   "introduction_evidence_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
   "expires_at": "2026-06-14T10:00:00Z"

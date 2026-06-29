@@ -31,7 +31,7 @@ sidebar:
 ```json
 {
   "alg": "EdDSA",
-  "kid": "did:web:media.example#key-1",
+  "kid": "did:webvh:zCxjAemtszNh7bTFGWFS4m8gv:media.example#key-1",
   "payload": {
     "call_id": "ck:call:...",
     "focus_id": "fra-1",
@@ -78,7 +78,7 @@ SFU response：
     "sdp": "v=0\r\n..."
   },
   "sfu_signature": {
-    "kid": "did:web:media.example#key-1",
+    "kid": "did:webvh:zCxjAemtszNh7bTFGWFS4m8gv:media.example#key-1",
     "sig": "base64url..."
   }
 }

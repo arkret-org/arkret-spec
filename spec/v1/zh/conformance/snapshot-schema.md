@@ -54,10 +54,10 @@ Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `c
     "soft_failed_digest": "sha256:...",
     "quarantined_digest": "sha256:..."
   },
-  "created_by": "did:web:server.example",
+  "created_by": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example",
   "created_at": "2026-04-26T00:00:00Z",
   "authority_binding": {
-    "issuer": "did:web:server.example",
+    "issuer": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example",
     "authority_kind": "realm_policy_snapshot_issuer",
     "auth_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "auth_frontier": ["ck:event:019640ed-8000-7000-8000-000000000000"],
@@ -66,7 +66,7 @@ Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `c
   "signature": {
     "kind": "detached_jws",
     "alg": "EdDSA",
-    "verification_method": "did:web:server.example#snapshot-key-1",
+    "verification_method": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example#snapshot-key-1",
     "payload_digest": "sha256:...",
     "created_at": "2026-04-26T00:00:00Z",
     "jws": "..."
@@ -251,7 +251,7 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
   "issuer_signature": {
     "kind": "detached_jws",
     "alg": "EdDSA",
-    "verification_method": "did:web:server.example#snapshot-key-1",
+    "verification_method": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example#snapshot-key-1",
     "payload_digest": "sha256:...",
     "created_at": "2026-04-26T00:00:00Z",
     "jws": "..."

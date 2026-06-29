@@ -29,7 +29,7 @@ updated: 2026-06-10
   "id": "ck:actor_profile:019640ab-0000-7000-8000-000000000000",
   "schema": "ck.schema.actor_profile.v1",
   "realm_id": "ck:realm:01964166-0000-7000-8000-000000000000",
-  "principal_id": "did:web:alice.example.com",
+  "principal_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "actor_kind": "user",
   "display_name": "Alice Chen",
   "handle": "alice",
@@ -44,7 +44,7 @@ updated: 2026-06-10
     "organization": "Acme Corp"
   },
   "created_at": "2026-04-26T00:00:00Z",
-  "updated_by": "did:web:alice.example.com",
+  "updated_by": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "updated_at": "2026-04-26T00:01:00Z"
 }
 ```
@@ -80,7 +80,7 @@ Profile 初始状态通过 `ck.profile.create` Move / compatible Event 提交到
   "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
   "kind": "ck.profile.create",
   "realm_id": "ck:realm:01964166-0000-7000-8000-000000000000",
-  "actor_id": "did:web:alice.example.com",
+  "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "actor_seq": 1,
   "created_at": "2026-04-26T00:00:00Z",
   "hlc": "01970e589d21-0001-a13f9c2e",
@@ -91,7 +91,7 @@ Profile 初始状态通过 `ck.profile.create` Move / compatible Event 提交到
       "id": "ck:actor_profile:019640ab-0000-7000-8000-000000000000",
       "schema": "ck.schema.actor_profile.v1",
       "realm_id": "ck:realm:01964166-0000-7000-8000-000000000000",
-      "principal_id": "did:web:alice.example.com",
+      "principal_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
       "actor_kind": "user",
       "display_name": "Alice Chen",
       "handle": "alice",
@@ -108,7 +108,7 @@ Profile 初始状态通过 `ck.profile.create` Move / compatible Event 提交到
     {
       "kind": "detached_jws",
       "alg": "EdDSA",
-      "verification_method": "did:web:alice.example.com#key-1",
+      "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#key-1",
       "event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "created_at": "2026-04-26T00:00:00Z",
       "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
@@ -124,7 +124,7 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
   "event_id": "ck:event:019640ed-8400-7000-8000-000000000000",
   "kind": "ck.profile.update",
   "realm_id": "ck:realm:01964166-0000-7000-8000-000000000000",
-  "actor_id": "did:web:alice.example.com",
+  "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "actor_seq": 2,
   "created_at": "2026-04-26T00:01:00Z",
   "hlc": "01970e598d21-0001-a13f9c2e",
@@ -143,7 +143,7 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
     {
       "kind": "detached_jws",
       "alg": "EdDSA",
-      "verification_method": "did:web:alice.example.com#key-1",
+      "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#key-1",
       "event_digest": "sha256:6b5ad6b5ad6b7ad6b5ad6b5ad6b5ad6b6b5ad6b5ad6b7ad6b5ad6b5ad6b5ad6b",
       "created_at": "2026-04-26T00:01:00Z",
       "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
@@ -169,7 +169,7 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
   "event_id": "ck:event:019640ed-8800-7000-8000-000000000000",
   "kind": "ck.profile.realm_override",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-  "actor_id": "did:web:alice.example.com",
+  "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "actor_seq": 3,
   "created_at": "2026-04-26T00:02:00Z",
   "hlc": "01970e5a8d21-0001-a13f9c2e",
@@ -191,7 +191,7 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
     {
       "kind": "detached_jws",
       "alg": "EdDSA",
-      "verification_method": "did:web:alice.example.com#key-1",
+      "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#key-1",
       "event_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       "created_at": "2026-04-26T00:02:00Z",
       "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
@@ -228,7 +228,7 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 {
   "kind": "ck.presence",
   "state": "online",
-  "actor_id": "did:web:alice.example.com",
+  "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "status_message": "On vacation until May 5",
   "ttl_ms": 60000
 }
@@ -250,7 +250,7 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 {
   "kind": "ck.presence",
   "state": "idle",
-  "actor_id": "did:web:alice.example.com",
+  "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "last_active_at": "2026-04-26T10:00:00Z/PT1H",
   "ttl_ms": 60000
 }
@@ -289,7 +289,7 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 ```json
 {
   "kind": "ck.typing",
-  "actor_id": "did:web:alice.example.com",
+  "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "strand_id": "ck:strand:01964200-0000-7000-8000-000000000001",
   "typing": true,

@@ -65,8 +65,8 @@ ID 语义：
   "id": "ck:grant:0196410c-0000-7000-8000-000000000000",
   "schema": "ck.schema.capability.v1",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-  "issuer": "did:web:acme.example.com",
-  "subject": "did:web:agent.copy.example.com",
+  "issuer": "did:webvh:z6qRDFWgaBgTY3UGDLivJztno:acme.example.com",
+  "subject": "did:webvh:z8NNMm8UHw7JcDSuuZd34UisF:agent.copy.example.com",
   "actions": [
     "ck.strand.read",
     "ck.strand.update",
@@ -104,7 +104,7 @@ ID 语义：
     {
       "kind": "detached_jws",
       "alg": "EdDSA",
-      "verification_method": "did:web:acme.example.com#device-1",
+      "verification_method": "did:webvh:z6qRDFWgaBgTY3UGDLivJztno:acme.example.com#device-1",
       "payload_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
       "created_at": "2026-04-26T00:00:00Z",
       "jws": "eyJhbGciOiJFZERTQSJ9..signature"

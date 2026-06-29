@@ -220,32 +220,32 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
 
 ```json schema=schemas/cross-signing-publish.schema.json
 {
-  "principal_id": "did:web:alice.example",
+  "principal_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "trust_domain": "ck:trust_domain:did.webvh.example",
   "principal_signing_key": {
-    "kid": "did:web:alice.example#ck_principal_signing_v1",
+    "kid": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#ck_principal_signing_v1",
     "alg": "EdDSA",
     "public_key": "AA",
     "key_format": "raw_base64url"
   },
   "self_signing_key": {
-    "kid": "did:web:alice.example#ck_self_signing_v1",
+    "kid": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#ck_self_signing_v1",
     "alg": "EdDSA",
     "public_key": "BB",
     "key_format": "raw_base64url",
     "binding": {
-      "verification_method": "did:web:alice.example#ck_principal_signing_v1",
+      "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#ck_principal_signing_v1",
       "alg": "EdDSA",
       "signature": "c2ln"
     }
   },
   "user_signing_key": {
-    "kid": "did:web:alice.example#ck_user_signing_v1",
+    "kid": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#ck_user_signing_v1",
     "alg": "EdDSA",
     "public_key": "CC",
     "key_format": "raw_base64url",
     "binding": {
-      "verification_method": "did:web:alice.example#ck_principal_signing_v1",
+      "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#ck_principal_signing_v1",
       "alg": "EdDSA",
       "signature": "c2ln"
     }
@@ -541,7 +541,7 @@ Content-Type: application/json
 ```json
 {
   "messages": {
-    "did:web:alice.example.com": {
+    "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com": {
       "ck:device:01964137-0000-7000-8000-000000000000": {
         "kind": "ck.key.verification.request",
         "expires_at": "2026-04-26T00:10:00Z",
@@ -566,7 +566,7 @@ Content-Type: application/json
 ```json
 {
   "messages": {
-    "did:web:alice.example.com": {
+    "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com": {
       "ck:device:01964136-8000-7000-8000-000000000000": {
         "kind": "ck.key.verification.request",
         "expires_at": "2026-04-26T00:10:00Z",
@@ -1311,13 +1311,13 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
 {
   "trust_domain": "ck:trust_domain:did.webvh.example",
   "reset_event_id": "ck:event:0196414c-5000-7000-8000-000000000000",
-  "principal_id": "did:web:alice.example",
+  "principal_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "previous_generation": 1,
   "new_generation": 2,
   "reset_reason_code": "rotation",
   "proof": {
     "kind": "principal_signing",
-    "verification_method": "did:web:alice.example#ck_principal_signing_v1",
+    "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#ck_principal_signing_v1",
     "alg": "EdDSA",
     "signature": "c2ln"
   },

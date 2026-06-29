@@ -104,7 +104,7 @@ updated: 2026-06-10
 {
   "kind": "assigned_to",
   "direction": "out",
-  "target_ref": "did:web:alice.example"
+  "target_ref": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example"
 }
 ```
 
