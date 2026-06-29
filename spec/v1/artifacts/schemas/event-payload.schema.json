@@ -3759,7 +3759,15 @@
           ]
         },
         "comment": {
-          "$ref": "#/$defs/encrypted_payload"
+          "description": "RSVP comment. MUST be an encrypted_payload unless Realm policy explicitly permits a plaintext-visible RSVP comment (calendar-event.md §5).",
+          "oneOf": [
+            { "$ref": "#/$defs/encrypted_payload" },
+            {
+              "type": "string",
+              "maxLength": 2000,
+              "description": "Plaintext RSVP comment; only permitted when Realm policy lists the receiving service as plaintext-visible."
+            }
+          ]
         }
       },
       "additionalProperties": false

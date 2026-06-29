@@ -245,6 +245,14 @@
                 "migrating"
               ],
               "description": "Room binding lifecycle status. Initial status MUST be proposed or accepted; legal transitions are proposed->accepted, proposed->revoked, accepted->migrating, accepted->revoked, migrating->accepted (verified migration proof), migrating->revoked. revoked is the only terminal state; illegal transitions are rejected with mimi_room_binding_status_transition_invalid. Normative state machine: zh/extensions/mimi-interop.md §4.2."
+            },
+            "migration_outcome": {
+              "type": "string",
+              "enum": [
+                "completed",
+                "rolled_back"
+              ],
+              "description": "Outcome of a migrating->accepted transition: completed (new topology in effect) or rolled_back (original topology restored). MUST be present on a migrating->accepted Control Move so the result is auditable; MUST be absent on other transitions. Normative: zh/extensions/mimi-interop.md §4.2."
             }
           },
           "additionalProperties": true

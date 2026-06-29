@@ -69,6 +69,8 @@ canonical catalog 或派生工件出现 drift，必须在合并前修复。每�
 
 ## 3. 工件矩阵
 
+> 「对应工件」列同时列出 prose 与机读工件：`.md` / `.mdx` 文件为**说明性 prose**，`.json` / `.yaml`（registry / schema / profiles / fixtures / OpenAPI / bindings）为**机读 canonical**；二者冲突时以机读 canonical 与 `contract-catalog.json` 为权威源。
+
 | 主题 | 对应工件 | 当前要求 |
 | --- | --- | --- |
 | 唯一事实 envelope | `zh/sync/operations-sync.md`, `artifacts/schemas/event-envelope.schema.json`, `artifacts/schemas/event-payload.schema.json` | Event Envelope 是唯一共享 wire fact；Operation 只用于服务 operation 或 SDK 内部构造路径。 |
@@ -106,6 +108,8 @@ canonical catalog 或派生工件出现 drift，必须在合并前修复。每�
 - 站点生产依赖 MUST NOT 存在未处理的 high / moderate `npm audit` finding；如需例外，必须在 release-readiness report 中记录影响面与补偿措施。
 
 ### 5.2 `v1-interop-preview` 实现互操作预览
+
+> **门槛依赖（normative）**：本 gate 与 §5.3 依赖 §6 的 reference validator / reducer / authz / conformance runner 交付；如 §2 所述这些工具**尚未**作为完整认证工具链发布。因此 §5.2 / §5.3 是 §5.1（仅依赖本地 artifact / schema / registry / fixture digest 门禁）之上的 **future gate**，在 §6 工具发布前不可执行，不构成当前 `v1.0.0` stable promotion（§5.1）的前置条件。
 
 - 至少两个独立实现通过同一 reference validator 的 `core_event_store` 向量
 - 能重放官方 sync / state / capability fixture

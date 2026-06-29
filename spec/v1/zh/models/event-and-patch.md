@@ -330,7 +330,7 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
     "patch": {
       "metadata.fields.review_status": { "$op": "set", "value": "approved" },
       "metadata.fields.due_date": { "$op": "set", "value": "2026-06-01" },
-      "labels.security": { "$op": "set", "value": "confidential" }
+      "labels.security": { "$op": "add", "value": "confidential" }
     }
   },
   "proofs": [

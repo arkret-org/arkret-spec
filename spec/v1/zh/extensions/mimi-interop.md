@@ -173,12 +173,12 @@ MIMI facade 对 Cokret Realm 的入站投影失败时，MUST 使用稳定 reason
   | `proposed` | `revoked` | 协商被拒绝、超时或发起方撤回。 |
   | `accepted` | `migrating` | hub 迁移 / provider 拓扑替换开始。 |
   | `accepted` | `revoked` | 持有 §4 要求 capability 的管理操作撤销 binding。 |
-  | `migrating` | `accepted` | migration proof 验证通过：迁移完成（新拓扑生效）或回滚（恢复原拓扑）。 |
+  | `migrating` | `accepted` | migration proof 验证通过；MUST 携带 `payload.migration_outcome` 区分 `completed`（新拓扑生效）或 `rolled_back`（恢复原拓扑）。 |
   | `migrating` | `revoked` | 迁移失败且不回滚，或管理操作撤销。 |
 
 - **终态**：`revoked` 是唯一终态；对 `revoked` binding 的任何 `status` 变更 MUST 被拒绝。同一对象若需重新导出为 MIMI room，MUST 以新的 `mimi_room_uri` 建立新 binding 并重新通过 §4 的 capability 校验，不得复活已撤销 binding。
 - **非法迁移**：不在上表中的迁移（含初始状态违例与 `revoked` 后写入）MUST 被 reducer 以 `mimi_room_binding_status_transition_invalid` 拒绝。
-- **`migrating` 窗口语义**：进入 `migrating` 后，facade 对该 binding MUST 停止接受新的 MIMI writes 投影，仅允许 backfill、tombstone、report、legal hold 与 migration 所需的 groupInfo / state 转移及 migration proof 提交；`migrating -> accepted` 的 Control Move MUST 引用已验证的 migration proof，hub / follower 拓扑变更只能随该迁移落地。
+- **`migrating` 窗口语义**：进入 `migrating` 后，facade 对该 binding MUST 停止接受新的 MIMI writes 投影，仅允许 backfill、tombstone、report、legal hold 与 migration 所需的 groupInfo / state 转移及 migration proof 提交；`migrating -> accepted` 的 Control Move MUST 引用已验证的 migration proof 并携带 `payload.migration_outcome ∈ {completed, rolled_back}`（其它转换 MUST NOT 携带该字段），使"迁移完成"与"回滚"在 binding 状态上可区分、可审计；hub / follower 拓扑变更只能随该迁移落地。
 - **可写性判定**：仅 `accepted` 状态接受新的 MIMI writes 投影。`proposed` 状态下 facade MUST NOT 把 MIMI room state 投影到 Realm（目录 / 协商类流量除外）；`revoked` 后行为见 §4 撤销规则。
 - **并发收敛**：`ck.mimi.room_binding` 是写入 `ck.component.mimi.room_binding.v1` cell 的 Control Move，并发更新由控制面 Seal 串行化仲裁，不存在数据面并发合并；后到的冲突 Move 在其 seal basis 下按本状态机重新校验，非法即拒绝。
 

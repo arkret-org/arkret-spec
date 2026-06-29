@@ -363,7 +363,7 @@ Canonical JSON 中，多个 `resources[]` 的默认语义是 OR；同一 grant �
 
 **Constraint 与 `resources[]` 的绑定粒度（normative）**：v1 的 `constraints[]` 作用于该 grant 内**全部**命中资源，对所有命中资源统一求值（allow 约束相交 AND，见 [`constraint-schema.md` §15.2](./constraint-schema.md)）；v1 **不存在** per-resource 局部约束语法——无法表达"对资源 A 施加约束 X、对资源 B 施加约束 Y"。因此当授予者需要对不同资源施加**异构**约束时，**MUST** 拆分为多个 grant（每个 grant 一组同质资源 + 对应约束），**MUST NOT** 把多个资源放进同一 grant 后期望 constraint 按资源分别绑定——后者会让所有约束对所有命中资源统一生效（典型表现为意外放宽：授予者以为"对 A 给字段 X、对 B 给字段 Y"，实际等价于对 A∪B 都给 X∪Y）。实现 / IAM 工具 SHOULD 在 UI 中提示该表达力边界，避免误授过宽。
 
-**deny 侧对偶陷阱（normative，安全后果）**：上述"约束作用于全部命中资源"对 `deny` / `quarantine` / `require_review` 约束**同样成立**，且其错向后果是**意外放宽授权命中面**而非收紧，安全代价更高。一条 `deny` / `quarantine` / `require_review` 约束作用于该 grant 内**全部**命中资源，**无法**只对 `resources[]` 中的某个子集生效。因此：
+**deny 侧对偶陷阱（normative，安全后果）**：上述"约束作用于全部命中资源"对 `deny` / `quarantine` / `require_review` 约束**同样成立**，且其错向后果是**意外放宽授权命中面**而非收紧，安全代价更高。一条 `deny` / `quarantine` / `require_review` 约束作用于该 grant 内**全部**命中资源，**无法**只对 `resources[]` 中的某个子集生效。**求值口径澄清（normative，与 [`constraint-schema.md` §15.3](./constraint-schema.md) 算法一致）**：这里"作用于全部命中资源"指该约束在求值时对**每个被求值的 (action, target)** 按其 `matches(operation, c)` 谓词独立判定——谓词命中该 target 即生效；"全部命中资源"是该谓词在 grant selector 下可命中的资源**全集**，**不是**"对 grant 的 `resources[]` 无条件统一拒绝"。即约束的作用域 = 谓词可命中集合，但实际是否对某次 operation 生效仍取决于该次 target 是否命中谓词。因此：
 
 - 若授予者意图"对资源 A 拒绝（deny）、对资源 B 允许"，**MUST** 把 A、B 拆成**两个独立 grant**（A 的 grant 内放 deny，B 的 grant 内放 allow），**MUST NOT** 把 A、B 放进同一 grant 后期望该 deny 只命中 A。在同一 grant 内放 deny，会让该 deny 连带拒绝本应允许的 B（典型表现为意外收紧 B），或反过来——授予者误以为"该 grant 已对 A 设 deny 兜底"，但实际若 B 不命中该 deny 的 `matches` 谓词，B 仍按 grant 的 allow 放行，A 的 deny 并不能阻止**另一个**命中 B 的 grant 放行 B（跨 grant deny 全局生效见 [`constraint-schema.md` §15.4](./constraint-schema.md)，但**同 grant 内**的 deny 仍只在该 grant 的命中资源集上按 `matches` 求值）。
 - 需要 **per-resource deny** 语义时，授予者 **MUST** 拆 grant：把需要拒绝的资源单独放入一个只含 deny / quarantine / require_review 约束的 grant，把允许的资源放入另一个 allow grant。依赖单 grant 内 deny 做"部分资源拒绝"是 v1 表达力之外的误用。
@@ -390,11 +390,11 @@ function matches(target, selector):
         raise SchemaViolation("unknown match_scope")
     if selector.match_scope == "realm_wide" and not selector.realm_id:
         raise SchemaViolation("realm_wide selector missing realm_id")
-    # children / subtree 仅对 space 有效；realm_wide 仅对 space / circle 有效（见 §6 表）。
+    # children / subtree 仅对 space 有效；realm_wide 对 space / circle / object / morph 有效（见 §6 表）。
     if selector.match_scope in {"children", "subtree"} and selector.kind != "space":
         raise SchemaViolation("children/subtree match_scope only valid for space")
-    if selector.match_scope == "realm_wide" and selector.kind not in {"space", "circle"}:
-        raise SchemaViolation("realm_wide match_scope only valid for space/circle")
+    if selector.match_scope == "realm_wide" and selector.kind not in {"space", "circle", "object", "morph"}:
+        raise SchemaViolation("realm_wide match_scope only valid for space/circle/object/morph")
 
     if selector.kind == "realm":
         return target.type == "realm" and (
@@ -512,7 +512,7 @@ function matches(target, selector):
     return false
 ```
 
-> `space` / `circle` 配合 `allowed_space_kinds` 等 constraint 在 selector 命中之后再做收窄（见 §6 末段与 §7）；`space` / `circle` 的 wildcard 形态 MUST 携带 `realm_id`，不得跨 Realm 命中；`blob` 的目标身份字段为 `blob_ref`；`notification` / `read_cursor` 是 realm-scoped 的 \*-only selector，schema 已强制 `realm_id` 必填、不接受精确对象 id。
+> `space` / `circle` 配合 `allowed_space_kinds` 等 constraint 在 selector 命中之后再做收窄（见 §6 末段与 §7）；`space` / `circle` / `object` / `morph` 的 `realm_wide` wildcard 形态 MUST 携带 `realm_id`，不得跨 Realm 命中（`object` / `morph` 的 `realm_wide` 命中该 Realm 内对应 `object_type` / `morph_type` 的全部资源，用于表达 Realm 全域的对象/Morph 授权）；`blob` 的目标身份字段为 `blob_ref`；`notification` / `read_cursor` 是 realm-scoped 的 \*-only selector，schema 已强制 `realm_id` 必填、不接受精确对象 id。
 
 `match_scope` 的语义固定如下：
 

@@ -46,6 +46,14 @@ v1 内部演进采用以下加性方式：
 
 Profile 命名采用 `ck.profile.<name>.v<major>`。`<major>` 是该 profile 自身的演进轴，不是 HTTP path 版本，也不是另一个协议版本。
 
+### 3.1 破坏性变更的承载（normative）
+
+v1 wire 内 **MUST NOT** in-place 改变任一已接受 event kind / schema / 字段的 canonical bytes 语义。需要破坏性语义（与既有 current-v1 语义不兼容）时：
+
+- 破坏性语义 **MUST** 通过**新增** event kind / schema id（或新 major profile）承载，并明确与旧 current-v1 标识符的语义边界；旧标识符在其退役前保持原语义不变。
+- 旧标识符的退役（rename / removal）**MUST** 登记到 [`../../artifacts/migration/`](../../artifacts/migration/)（如 `renames.json`），current parser 按其 `hard_reject` 层级拒绝旧标识符，离线迁移层负责把旧数据正规化后再进入 v1 validator。
+- v1 **不**通过"整面切 v2"或 URL path 版本段承载破坏性变更；`v1` 后缀是长期锚点（消歧见 [`../index.md` §1](../index.md)）。
+
 ## 4. Profile / capability 协商
 
 每个实现 MUST 声明自己支持的 profile、operation、feature、schema 与 binding（见 [conformance/conformance-profiles.md](../conformance/conformance-profiles.md) §1-§2.1）。互通集合由双方声明能力的交集确定：
@@ -63,7 +71,7 @@ pre-auth 的根级能力广告位于 `GET /_cokret/describe`（`ck.server.query.
 
 ## 6. 签名位面与 `unsigned` 位面
 
-`unsigned` 是传输或本地附加信息，MUST NOT 影响 event digest 或 proof `event_digest`（见 [conformance/encoding.md](../conformance/encoding.md) §2）。因此 `unsigned` 可以承载可丢弃的本地/传输元信息；任何影响授权、状态机、密钥材料、审计或投影真相的内容不得只放在 `unsigned` 中。
+`unsigned` 是传输或本地附加信息，MUST NOT 影响 event digest 或 proof `event_digest`（见 [conformance/encoding.md](../conformance/encoding.md) §2）。因此 `unsigned` 可以承载可丢弃的本地/传输元信息；任何影响授权、状态机、密钥材料、审计，或任何进入 reducer / canonical projection 计算的真相输入（projection 本身是派生层、非真相源，此处指"被 reducer 消费以派生 canonical 状态的签名输入"，而非派生出的投影结果）的内容，不得只放在 `unsigned` 中。
 
 ## 7. 可操作清单
 

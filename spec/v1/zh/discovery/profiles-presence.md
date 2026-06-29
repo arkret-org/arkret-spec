@@ -256,7 +256,7 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 }
 ```
 
-该 wire 值表示"最后活跃落在以 `2026-04-26T10:00:00Z` 为起点、粒度 `PT1H`（1 小时）的 bucket 内"，bucket 起点 MUST 按 policy 声明的粒度向下取整对齐（同一 bucket 内任意精确时间映射到同一 wire 值），使接收方无法据此还原秒级活动 timing。
+该 wire 值表示"最后活跃落在以 `2026-04-26T10:00:00Z` 为起点、粒度 `PT1H`（1 小时）的 bucket 内"，bucket 起点 MUST 按 policy 声明的粒度向下取整对齐（同一 bucket 内任意精确时间映射到同一 wire 值），使接收方无法据此还原秒级活动 timing。bucket 粒度（`duration`）MUST NOT 细于 policy 声明的最小粒度下限（缺省 SHOULD ≥ 60 秒）：过细的 bucket 会使边界采样退化为接近秒级的活动 timing 侧信道，与"不还原秒级 timing"的目的相悖。
 
 ### 3.4 隐私控制
 
@@ -277,6 +277,8 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 | `nobody` | 完全隐藏在线状态（对所有人显示为 offline） |
 
 `ck.presence.visibility` 是 principal-private policy projection：Principal / Sync Service MAY 读取并投影其中的 `presence_visibility` enum，用于执行 `ck.presence` 与 `ck.typing` 的提交、读取和 fanout gate；服务端不得借此读取或披露 Profile 字段、`status_message`、联系人备注、精确 `last_active_at` 或其它 account data 明文。若服务端无法读取该最小 policy projection（例如部署选择端到端 opaque account data 且没有受托投影服务），它 MUST 对跨设备 / 跨接收方 fanout fail closed：不得把 presence 或 typing 转发给不能在本地证明属于允许集合的接收方。
+
+**`contacts_only` 的"联系人"集合真源与 fail-closed（normative）**：`contacts_only` 中的"明确联系人"集合 MUST 取自 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) 的 `ck.contact.*` accepted-contact fact log，**不是** `ck.presence.visibility` 的 enum，也不是 client-preferences 的本地联系人备注（备注不打开 presence gate）。服务端执行 `contacts_only` gate 需要可读的 accepted-contact 投影；当服务端无法读取该 contacts 集合（未托管该投影 / 端到端 opaque）时，`contacts_only` MUST 与上一段一致 fail closed——退化为客户端本地 gate、MUST NOT 退化为 `public`，即对不能在本地证明属于 accepted-contact 集合的接收方不转发。
 
 当 `presence_visibility="nobody"` 时，客户端 MUST NOT 发送 `ck.presence`，Sync Service MUST NOT 转发既有或缓存的 `ck.presence`；接收方看到的结果必须与从未收到 presence 一致。
 

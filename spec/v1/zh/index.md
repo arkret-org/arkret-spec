@@ -63,7 +63,7 @@ Cokret v1 明确不把以下内容作为基础互操作必需项：
 
 ## 3. 文档地图（Document Map）
 
-[spec-map.md](./spec-map.md) 是总目录。README 仅保留顶层入口与实施路径，避免因 profile 增长变成长清单。
+[spec-map.md](./spec-map.md) 是总目录。仓库根 `README.md` 仅保留顶层入口与实施路径，避免因 profile 增长变成长清单。
 
 ### 3.1 实施清单（Implementation Checklist, _informative_）
 

@@ -99,6 +99,7 @@ Cokret 身份由 DID principal 表示，但用户访问通常经过一个或多�
 | `erasure_pending` | ✗ | ✗ | ✗ | ✗ | ✗ | —（terminal） |
 
 - **降低严格度**（任一 `to` 严格度低于 `from`，如 `suspended → active`、`locked → soft_logged_out`）的转换 MUST 满足规则 2（引用 `supersedes_status_event_id` 且在当前 Seal view 可见），否则按并发候选处理，不构成有效转换。
+  - **例外：`soft_logged_out → active` 自助恢复**（normative）：该转换由 §4 的 fresh DID proof（设备 / principal 重新证明控制权）授权，**不要求** `supersedes_status_event_id`；fresh DID proof 即构成有效降严格度转换的充分凭据。其余降严格度转换（`suspended → active`、`locked → *` 等）仍按规则 2 要求 `supersedes_status_event_id`。
 - **`erasure_pending` 为 terminal**（规则 3）：其唯一出边为空，任何转出 MUST 拒绝 `erasure_pending_is_terminal`。
 - **`deactivated` 重激活**（normative）：v1 **不**允许 `deactivated → active` 等任意降严格度转换。§7.1 的 deactivation fanout（device `revoked`、KeyPackage `retired`、session/push/to-device 撤销）是不可逆操作，v1 不定义其逆操作语义；需要恢复访问的用户 MUST 走新的 onboarding（绑定到同一 principal DID 的新 session/device/KeyPackage），而非把既有 `deactivated` account status 翻回 `active`。`deactivated` 的唯一合法出边是 `erasure_pending`（继续到擦除）。实现 MUST NOT 接受声称把 `deactivated` 降级回较低严格度状态的 `ck.account.status` event（`account_status_transition_invalid`）。
 
@@ -230,7 +231,7 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 
 约束：
 
-- **不自动 ban**：deactivation 不等于 Realm 内 `ck.member.state` 转 `ban`/`leave`。哪些 Realm membership 自动 `ck.member.state = leave`（自愿停用）vs. 保留 `join`（policy 决定）由 Realm policy 的 `account_deactivation.member_action` 字段控制。该字段是封闭枚举，v1 取值域为：
+- **不自动 ban**：deactivation 不等于 Realm 内 `ck.member.state` 转 `ban`/`leave`。哪些 Realm membership 自动 `ck.member.state = leave`（自愿停用）vs. 保留 `join`（policy 决定）由 Realm policy component `account_deactivation.member_action` 字段控制（该字段作为 Realm policy component 的登记见 [`../models/realm-and-space.md` §2.1](../models/realm-and-space.md)，经 `ck.realm.policy_components` 写入；本节是其封闭枚举与处置语义的单一权威源）。该字段是封闭枚举，v1 取值域为：
   - `leave_self_initiated`（默认）：把该 principal 在本 Realm 的 membership 视为自愿退出，自动转 `ck.member.state = leave`。
   - `retain_membership`：保留 `join`，由 Realm policy 在后续显式处置（deactivation 本身不改 membership state）。
   - `leave_all`：无条件把该 principal 在本 Realm 的 membership 转 `leave`，等同 self-initiated 但不区分触发方语义。
@@ -285,6 +286,16 @@ Native personal agent(`actor_kind="agent"`,`accountable_principal_ids` 指向 co
 - **Deactivate**(`ck.self.agent.command.deactivate`):terminal state,fan-out `ck.agent.key.revoke`、`ck.capability.revoke` / delegation revoke、runtime endpoint revoke、pending action request 失效。Sidecar Circle 同步移除该 agent；若该 Circle 为 MLS-backed，则执行 MLS remove 与 epoch rotation（见 [`../models/circle.md` §11.1](../models/circle.md)）。
 - **Controller lifecycle 传播**:Controller 进入 `deactivated` / `suspended` 时，其 accountable native agents 的 active sessions MUST 通过本节 revocation 链失效，后续 agent session grant MUST fail closed。Accountability grant 失效同样使 agent 进入 ineligible 状态。
 - **Pairing expiry**:`pairing.expires_at` 到达且未完成 pairing 时，服务 MUST 自动 `ck.capability.revoke` 撤销 pending grant,agent status 转 `pairing_expired`;controller 可重新发起 pairing 或显式 revoke 进入 `deactivated`。
+
+**合法迁移表（normative）**：上述闭合枚举的合法 (from → to) 转换如下；表中未列出的转换 MUST 拒绝（`failed_precondition`，非法 agent provisioning 转换）。`deactivated` 是 terminal 状态（无出边）。
+
+| from \ to | `pending_runtime_key` | `active` | `pairing_expired` | `paused` | `deactivated` |
+| --- | --- | --- | --- | --- | --- |
+| `pending_runtime_key` | — | ✓（pairing 完成） | ✓（pairing 窗口过期） | ✗ | ✓（显式 deactivate） |
+| `active` | ✗ | — | ✗ | ✓（pause） | ✓（deactivate） |
+| `pairing_expired` | ✓（重新发起 pairing） | ✗ | — | ✗ | ✓（显式 revoke） |
+| `paused` | ✗ | ✓（resume，须重校验，见上） | ✗ | — | ✓（deactivate） |
+| `deactivated` | ✗ | ✗ | ✗ | ✗ | —（terminal） |
 
 具体 wire 与 conformance 规则见 [`key-management.md` §3.6.1](./key-management.md)、[`../sync/service-http-binding.md` §2.4](../sync/service-http-binding.md) 与 [`../conformance/conformance-profiles.md` §18.1](../conformance/conformance-profiles.md)。
 

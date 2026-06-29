@@ -361,7 +361,7 @@ function compare_hlc(hlc1, hlc2):
 实现 MUST：
 
 - 用正则 `^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$` 验证 HLC 格式。HLC **纯格式违例**（不匹配该正则、段长 / 字符集 / 大小写不合、`unix_ms_hex > ffffffffffff` 等单纯的 well-formedness 失败）MUST 返回 `schema_violation`（与 [`conformance-vectors.md` §1.10.1](./conformance-vectors.md) 钉定的单值一致）。`schema_violation` / `causal_conflict` / `soft_fail` / quarantine 的多选处置仅适用于 §7「溢出规则」中的语义回绕 / 单调性违例场景（格式合法但 `logical_hex` 从 `ffff` 回绕、复用 tuple 等），不适用于纯格式违例。
-- 按本节的两层 drift 模型验证物理时间：超 `hard_future_skew_ms`（默认 300_000）MUST reject / quarantine；超 `expected_future_skew_ms`（默认 30_000）SHOULD soft-fail / quarantine。该校验是 envelope freshness / DoS guard，不是授权、Lattice winner、Control Move precondition 或 Seal finality 输入；通过 drift 校验的 HLC 仍只可用于 timeline tie-breaker。
+- 按本节的两层 drift 模型验证物理时间：超 `hard_future_skew_ms` MUST reject / quarantine；超 `expected_future_skew_ms` SHOULD soft-fail / quarantine。这两个阈值的默认数值以规模上限登记表 [`scalability-constraints.md`](./scalability-constraints.md) §2 为单一真相源（本节不重复字面值，避免漂移）。该校验是 envelope freshness / DoS guard，不是授权、Lattice winner、Control Move precondition 或 Seal finality 输入；通过 drift 校验的 HLC 仍只可用于 timeline tie-breaker。
 - profile MAY 通过 `state_event_expected_future_skew_ms` 对 state event（capability / membership / policy / service binding / Realm upgrade / MLS commit 等）施加更严窗口；未声明时按 `expected_future_skew_ms` 处理。
 - 拒绝 `unix_ms_hex > ffffffffffff` 的 HLC 值（物理时间溢出，需未来扩展 HLC profile 才可使用）。
 - 维护本地单调性；本地时钟落后远端时推进到远端时间，超前时限制推进速率。
@@ -519,7 +519,7 @@ Cursor 对客户端不透明，且 v1 core cursor 是 stateful handle。`h` 是 
 - 字符集固定为 ASCII `0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz`，按该字符集顺序比较。
 - Rank MUST 是 1..128 字符的字符串，且每个字符 MUST 来自上述字符集。
 - 排序 MUST 使用逐字符字典序；若一个字符串是另一个字符串的前缀，较短者排在较前。
-- `rank_between(left, right)` MUST 返回一个严格满足 `left < rank < right` 的 rank，或返回规范错误 `rank_exhausted`。`left` 或 `right` MAY 为空，表示容器开头或结尾的哨兵边界。
+- `rank_between(left, right)` MUST 返回一个严格满足 `left < rank < right` 的 rank，或返回规范错误 `rank_exhausted`（该 wire/reducer 错误码的机读归属见 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）。`left` 或 `right` MAY 为空，表示容器开头或结尾的哨兵边界。
 - 标准 midpoint 算法 MUST 是有界算法，不能在无间隙边界无限循环。参考伪代码：
 
 ```text

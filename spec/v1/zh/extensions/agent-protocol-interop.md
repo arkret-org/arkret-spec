@@ -184,7 +184,7 @@ Endpoint 退役也是协议状态，不只是外部连接关闭。Agent owner、
 | `cancelled` | 无 | yes |
 | `expired` | 无 | yes |
 
-`ck.agent.interop_session.start` 被 accepted 后，同一 `session_id` 的 canonical 初始状态固定为 `negotiating`。第一条 `ck.agent.interop_session.status` 或 `ck.agent.interop_session.result` 必须是上表中 `negotiating` 的合法后继；若第一条 result 写入终态，其 `status` 也必须是 `negotiating` 的合法终态后继。
+`ck.agent.interop_session.start` 被 accepted 后，同一 `session_id` 的 canonical 初始状态固定为 `negotiating`。第一条 `ck.agent.interop_session.status` 或 `ck.agent.interop_session.result` 必须是上表中 `negotiating` 的合法后继；若第一条 result 写入终态，其 `status` 也必须是 `negotiating` 的合法终态后继。**禁跳步（normative，消歧）**：`negotiating` 的合法后继**不含** `working` / `completed`，因此正常完成路径 MUST 经 `negotiating → accepted → working → completed` 逐态推进；reducer MUST 拒绝从 `negotiating` 直达 `working` / `completed` 的事件（`agent_protocol_malformed_response`）。§5.4 result 示例与 §6 时序图为简洁省略了中间态，**不**表示允许跳步。
 
 Reducer MUST 对同一 `session_id` 的 accepted `ck.agent.interop_session.status` / `.result` 事件按 Seal application order 回放；同一 Seal 内无法由因果关系区分的候选 MUST 按 [`encoding.md` §4.2](../conformance/encoding.md) 的并发候选最终 tie-break 规则处理，即使用 canonical Event bytes 计算出的 `event_digest`，选择 bytewise greatest digest 作为该排序位置的 canonical candidate。`created_at` 与 `event_id` MUST NOT 作为最终 tie-break 或 winner selection 输入。每个候选状态 MUST 符合上表；从终态转出、跳过合法后继或对同一终态写入冲突 result 的事件 MUST fail closed，reason=`agent_protocol_malformed_response`。`ck.agent.interop_session.result` 是终态写入；当同一 canonical candidate 同时表达 status 与 result 语义时，result 的 `status` 作为 canonical terminal status。
 

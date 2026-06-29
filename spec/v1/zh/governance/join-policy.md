@@ -342,7 +342,9 @@ application 进入 `accepted` 状态后：
 
 1. 任一 reviewer 提交 `ck.invite.create`，`refs[role="join_authorised_by"]` MUST 引用对应 `member.application.review{accept}` 的 signed review receipt digest；若实现 profile 已注册私有 review Event kind，MAY 引用该 Event id。`reviewer_quorum` 为 object 形式（N-of-M）时，`refs[role="join_authorised_by"]` MUST 引用**满足 `threshold` 的全部** review accept receipt digest（每条计入 quorum 的 accept 各一条 ref），使 reducer 与审计方可独立复核 quorum 在引用的 accept 集合上成立；
 2. applicant 提交 `ck.invite.accept`；
-3. reducer 在写入 `ck.invite.create` 时再次校验：被引用的 review accept 仍指向尚未消费的 application（防止同一 accept 被复用）、reviewer 在当前 frontier 仍持有 `review_capability`、application 未过 `application_ttl`、未被后续 `reject` / `cancel` 覆盖。
+3. reducer 在写入 `ck.invite.create` 时再次校验：被引用的 review accept 仍指向尚未消费的 application（防止同一 accept 被复用）、application 未过 `application_ttl`、未被后续 `reject` / `cancel` 覆盖；且每条被引用的 review accept 在**其自身 CBA basis**（该 accept receipt 的 seal_basis）下由当时持有 `review_capability` 的 reviewer 签发。
+
+**已计入 quorum 的 accept 不追溯失效（normative，竞态衔接）**：reviewer 在签发某条 accept 之后失去 `review_capability`（被撤销 / 离开 Realm），**不**追溯使该条已计入 quorum 的 accept 失效——其有效性锚定在该 accept 自身的 CBA basis（与 §3 "accept 不追溯失效" 一致）。§3 的 quorum **不可达**检测只在 threshold **尚未达成**时，看当前仍合格 reviewer 是否 `< threshold`；一旦 N-of-M 的 threshold 已被合法 accept 集合达成，后续个别 reviewer 失权不回退该 quorum，也不阻塞本节 invite 写入。因此 §7.5(3) 不再要求"全部被引用 reviewer 在写入当前 frontier 仍持有 capability"，只要求每条 accept 在其各自 basis 上成立。
 
 校验失败 `failed_precondition`，`reason_code="join_authorisation_invalid"`。
 

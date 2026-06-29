@@ -322,11 +322,11 @@ state=unread, cursor=<cursor>, limit=<int>
 
 ### 6.5 多设备合并
 
-多设备 read cursor 合并规则：
+多设备 read cursor 合并规则（按下列优先级,normative）：
 
-- 同一 read_scope 取 causally latest read cursor
-- 并发 read cursor 取 HLC 最大
-- HLC 相同按 device id tie-break
+1. **因果优先**：同一 read_scope 取 causally latest read cursor——若 cursor A 的 position 因果上晚于（dominates）cursor B，则取 A，**与 HLC / device_id 无关**。合并结果 MUST NOT 回退到任何被它因果支配的更早 cursor 之前（即不得造成未读计数反弹，与 §6.6.5 一致）。
+2. **并发才比 HLC**：仅当两 cursor 的 position **因果不可比（并发）**时，才取 HLC 最大者。
+3. **HLC 相等才用 device_id**：仅当并发且 HLC 全等时，才按 device id 字典序作确定性 tie-break。该 tie-break 只在两 position 因果等价（互不支配）时用于选出确定性 winner,MUST NOT 用来选中一个被另一方因果支配的更早 position。
 
 通知状态 SHOULD 由 read cursor 与 notification rule 共同推导而来。
 

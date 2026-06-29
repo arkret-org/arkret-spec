@@ -56,6 +56,8 @@ Schema id: `ck.schema.read_cursor.v1`
 
 `notification` SHOULD 是从 Event / Strand / Message / Relation 派生的 inbox projection，**不是 canonical truth**。它面向单个 actor 的 inbox / push pipeline，不参与协作图归约。
 
+**inbox `state` 的跨设备真源（normative）**：`notification` 对象本身不被持久化为共享 canonical event，但其可变 inbox `state`（`unread` / `read` / `dismissed` / `archived`）的跨设备收敛真源是 **actor-private account data**：`read` 由 read cursor（[`../discovery/read-receipts.md`](../discovery/read-receipts.md)）派生；`dismissed` / `archived` 由 actor-private account-data key 承载（key 规则见 [`../discovery/client-preferences.md`](../discovery/client-preferences.md)），并按 account-data 的 LWW（HLC + tie-break）跨设备收敛。客户端 MUST 从该真源重算 inbox `state`，MUST NOT 把某设备本地的 `dismissed` / `archived` 当作不可同步的纯本地状态而在其它设备丢失。
+
 完整推送规则、push gateway、E2EE 脱敏推送策略见 [`../discovery/push-notifications.md`](../discovery/push-notifications.md)。
 
 ### 3.2 Schema 与字段

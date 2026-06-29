@@ -336,7 +336,7 @@ Frontier 比较必须区分“本地落后”和“本地更新”。若本地 a
 - `quarantine`：可提交但进入 quarantine。
 - `closed`：不可用时拒绝提交。
 
-**缺省 fail-closed（normative）**：`ck.realm.policy_server` declaration 未显式声明 `fail_mode` 时，实现 **MUST** 按 `closed`（或部署 profile 声明的 `soft_deny`）处理，**MUST NOT** 把缺省解释为 `open`。任何把"未声明"等同 fail-open 的实现 MUST NOT 声明通过 v1 conformance——否则 Policy Server 宕机时全部内容风控（spam、malware_media、replay_suspect、rate_limit）会被静默跳过。
+**缺省 fail-closed（normative）**：`ck.realm.policy_server` declaration 未显式声明 `fail_mode` 时，实现 **MUST** 按 `closed` 处理，**MUST NOT** 把缺省解释为 `open`，也 **MUST NOT** 把缺省解释为 `soft_deny`。`soft_deny` 作为 fail mode 只有在 `ck.realm.policy_server` declaration（或部署 profile）**显式声明** `fail_mode=soft_deny` 时才适用——显式声明本身即非"未声明"情形，故不与"缺省即 `closed`"冲突。任何把"未声明"等同 fail-open 的实现 MUST NOT 声明通过 v1 conformance——否则 Policy Server 宕机时全部内容风控（spam、malware_media、replay_suspect、rate_limit）会被静默跳过。
 
 公共开放 Realm **MUST NOT** 使用 `open`；声明了 `open` 的公开 Realm declaration，reducer / receiver MUST 以 `schema_violation` 拒绝，或要求显式 break-glass + 审计声明后才接受。关键安全 Realm MAY 使用 `closed`，但必须提供人工 break-glass capability。
 
