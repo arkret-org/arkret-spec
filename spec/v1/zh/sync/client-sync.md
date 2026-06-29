@@ -737,6 +737,17 @@ E2EE client 在处理 encrypted event 前 MUST：
 
 服务器 MUST NOT 因无法解密而过滤 encrypted event。
 
+### 14.1 解密缓存与历史密钥的本地静态加密 (normative)
+
+`e2ee_required` Realm 的客户端在本地持久化解密产物与密钥材料时 MUST 满足以下约束。本节针对客户端 at-rest 层(Web 的 localStorage / IndexedDB、原生磁盘、OS 缓存),与服务端零知识承诺正交。
+
+- **解密明文缓存**:解密后保留的 reduced state cache、materialized view cache,以及为渲染前向保密(逐条 ratchet,密钥用后即焚)消息而缓存的解密明文——包括远端成员消息明文缓存与作者自身明文侧车——MUST 以静态加密形式持久化，或仅驻内存;**MUST NOT** 以明文写入任何持久化存储。
+- **历史密钥材料**:join 前历史解密所需的密钥材料(per-`(realm, epoch)` `history_secret`、exporter 派生密钥，或等价的逐条解密密钥)MUST 存于硬化密钥存储，其保护级别 MUST 等同于账户 MLS secret(在 Web 上即非导出 SubtleCrypto 密钥 + IndexedDB 层);**MUST NOT** 以明文落盘，且 **MUST NOT** 镜像到弱化的同步/首屏存储层(如 localStorage)。
+- **静态加密包裹密钥的归属**:用于上述明文缓存静态加密的 at-rest 包裹密钥本身 MUST 存于硬化密钥存储。当硬化存储不可用时，客户端 MUST fail closed——缓存仅驻内存、**MUST NOT** 以明文落盘兜底，除非用户显式 opt-in 并被告知降级风险。
+- **生命周期擦除**:设备 lock、软登出与设备吊销后，客户端 SHOULD 丢弃驻内存的 at-rest 包裹密钥并清除解密明文缓存，使已落盘的密文不可再解(本机范围；无法远程擦除其他设备)。
+
+实现侧自检(descriptive):落盘完成后直接读取持久化存储的原始字节，对加密 Realm 的解密明文与历史密钥 **MUST NOT** 命中已知明文/密钥字节；此自检作为防止"新增内联字段又把敏感数据明文落盘"的回归守卫。交叉引用见 [`encryption-and-audit.md` §5.6](../crypto-media/encryption-and-audit.md)。
+
 ## 15. E2EE and MLS Sync Performance
 
 E2EE Realm 的同步必须把“事件顺序”和“密钥可用性”分开处理。事件可以先进入本地 raw event cache；解密可以异步完成。

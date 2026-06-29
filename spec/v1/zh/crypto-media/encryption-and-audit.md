@@ -1009,6 +1009,8 @@ MLS Commit 的输入和输出必须在 Event payload 中可验证表达：
 
 **第一义务是接收链持久化（normative）**：客户端成功解密某 epoch 的 application message 后，MUST 持久化推进后的 MLS group state（含有界的 skipped message key 缓存），不得在下次解密时从更早的快照重放 ratchet——"解密成功但不落盘、重启后同 epoch 消息不可解"是实现缺陷，MUST NOT 以提高 commit 频率来掩盖。
 
+**本地静态加密（normative，交叉引用）**：上述被持久化的推进后 group state、skipped message key 缓存、以及为渲染前向保密消息而保留的解密明文缓存，均属敏感本地材料，其 at-rest 保护 MUST 满足 [`sync/client-sync.md` §14.1](../sync/client-sync.md) 的解密缓存与历史密钥静态加密约束——即静态加密或仅驻内存，且 join 前历史密钥材料(§6 的前驱 epoch 保留与 history sharing 密钥)MUST 存于等同账户 MLS secret 保护级别的硬化密钥存储,MUST NOT 明文落盘或镜像到弱化存储层。
+
 在此前提下，自保 commit 规则如下：
 
 - **触发（SHOULD）**：某 MLS-backed scope 在无 pending membership proposal 的情况下，当前 epoch 满足任一条件时，eligible committer（持有该 scope `ck.mls.commit` capability 的成员）SHOULD 发起一次 self-update Commit（`proposal_refs=[]`，仅 path update）：
