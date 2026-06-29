@@ -18,13 +18,13 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 176,
+    "total_operations": 177,
     "by_completeness_class": {
       "binary_or_redirect": 2,
       "no_request_body": 1,
       "service_describe": 7,
       "streaming_frame_schema": 2,
-      "typed_schema": 164
+      "typed_schema": 165
     },
     "by_tier_and_class": {
       "core": {
@@ -39,7 +39,7 @@
         "binary_or_redirect": 2,
         "no_request_body": 1,
         "service_describe": 2,
-        "typed_schema": 112
+        "typed_schema": 113
       },
       "interop_bridge": {
         "service_describe": 1,
@@ -2330,6 +2330,19 @@
       "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome",
       "openapi_component_refs": {
         "response": "#/components/schemas/RealmLinkMutationOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ck.self.realm_organization.query.list",
+      "tier": "extension",
+      "http": "GET /_cokret/self/realms/{realm_id}/organizations",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/RealmOrganizationRelationshipList"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."

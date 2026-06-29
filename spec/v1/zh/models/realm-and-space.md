@@ -126,6 +126,8 @@ Schema id: `ck.schema.realm.v1`
 - 组织作为 notary、notary controller、RRK 接收方或 delivery binding authority，必须分别由 `notary` / notary control move、`durability_policy`、`ck.realm.delivery_binding_policy` 等字段和事件明确表示；不得从 `owning_organizations` 或 `ck.realm.organization` 自动继承。
 - Realm admin 单方面把某个组织 DID 写入 `owning_organizations`，如果没有对应 active `ck.realm.organization` 组织侧证明，接收方 MUST 把它视为未验证声明。
 
+被授权读取 Realm 的客户端通过 self-surface 操作 `ck.self.realm_organization.query.list`（`GET /_cokret/self/realms/{realm_id}/organizations`，response schema `schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list`）取回该 Realm 的 `ck.realm.organization` 关系投影（active / revoked / expired，latest-per-`(organization_id, relationship)`，由 reducer 派生 `lifecycle_phase`）以及无验证语句的 `declared_organization_hints`。客户端 MUST 仅在 `lifecycle_phase=verified_active` 时显示官方 / 治理 / 背书状态，并 MUST 把 `declared_organization_hints` 渲染为未验证声明。public discovery 路径（teabay Directory 的 `ck.find.directory.query.resolve_realm` / `resolve_organization`）受 anti-enumeration 约束，不替代成员 / admin 侧的本操作。
+
 ### 2.3.1 `durability_policy`（Realm 恢复密钥 / RRK，normative）
 
 `durability_policy` 声明在该 Realm 全体成员设备失效或全员离职后，谁能解开 Realm 历史。它是机密性轴的**持久性**策略，与 `notary`（finality 轴：谁签 Seal）、`notary.recovery_*`（主 notary 失效后谁接管盖章）正交，二者 MUST NOT 互相替代。

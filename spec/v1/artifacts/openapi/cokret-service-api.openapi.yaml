@@ -1009,6 +1009,8 @@ components:
       $ref: ../schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_replace_request_body
     RealmPolicyServerView:
       $ref: ../schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view
+    RealmOrganizationRelationshipList:
+      $ref: ../schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list
     RealmLifecycleView:
       $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view
     RealmArchivePayload:
@@ -6508,6 +6510,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RealmEffectivePolicyOutcome'
+  /_cokret/self/realms/{realm_id}/organizations:
+    get:
+      operationId: ck.self.realm_organization.query.list
+      security:
+      - bearerAuth: []
+      summary: List projected ck.realm.organization relationships for a Realm.
+      parameters:
+      - in: path
+        name: realm_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Realm organization-relationship projection.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RealmOrganizationRelationshipList'
   /_cokret/self/realms/{realm_id}/policy-server:
     get:
       operationId: ck.self.realm_policy_server.resource.get

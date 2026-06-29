@@ -4363,6 +4363,25 @@
       }
     },
     {
+      "operation_id": "ck.self.realm_organization.query.list",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "relationships",
+          "declared_organization_hints"
+        ],
+        "properties": [
+          "realm_id",
+          "relationships",
+          "declared_organization_hints"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ck.self.realm_policy_server.resource.get",
       "success_shape_kind": "typed_response",
       "response": {
@@ -5269,7 +5288,8 @@
           "handle_claim_digests",
           "state",
           "devices",
-          "profile"
+          "profile",
+          "is_server_admin"
         ],
         "closed": true
       }

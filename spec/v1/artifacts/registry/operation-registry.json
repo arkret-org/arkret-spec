@@ -159,6 +159,7 @@
         "ck.self.realm_link.command.create",
         "ck.self.realm_link.resource.delete",
         "ck.self.realm_link.query.effective_policy",
+        "ck.self.realm_organization.query.list",
         "ck.self.realm_policy_server.resource.get",
         "ck.self.realm_policy_server.resource.replace",
         "ck.self.realm_policy_server.resource.delete"
@@ -1673,6 +1674,15 @@
       "notes": "Returns the merged effective policy after walking governed_by / inherits_policy_from ancestors per the Realm's ck.realm.inheritance_policy. inheritance_mode=none when no inheritance policy is projected (implicit inheritance is forbidden).",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_effective_policy_outcome"
+    },
+    {
+      "operation_id": "ck.self.realm_organization.query.list",
+      "http": "GET /_cokret/self/realms/{realm_id}/organizations",
+      "grpc": "SelfRealmOrganization/List",
+      "mq": "self.realm_organization.query.list",
+      "notes": "Returns the projected ck.realm.organization relationship statements for the Realm (active / revoked / expired, latest-per-(organization_id, relationship)) plus declared owning_organizations hints with no verified statement. The caller must be authorized to read the Realm. A relationship is only verified when lifecycle_phase=verified_active; declared_organization_hints are unverified claims and MUST NOT be rendered as official / governed / endorsed.",
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list"
     },
     {
       "operation_id": "ck.self.realm_policy_server.resource.get",

@@ -112,6 +112,8 @@ grpc:
       Create: ck.self.realm_link.command.create
       Delete: ck.self.realm_link.resource.delete
       EffectivePolicy: ck.self.realm_link.query.effective_policy
+    SelfRealmOrganization:
+      List: ck.self.realm_organization.query.list
     SelfRealmPolicyServer:
       Get: ck.self.realm_policy_server.resource.get
       Replace: ck.self.realm_policy_server.resource.replace
@@ -329,6 +331,7 @@ mq:
     self.realm_link.command.create: ck.self.realm_link.command.create
     self.realm_link.resource.delete: ck.self.realm_link.resource.delete
     self.realm_link.query.effective_policy: ck.self.realm_link.query.effective_policy
+    self.realm_organization.query.list: ck.self.realm_organization.query.list
     self.realm_policy_server.resource.get: ck.self.realm_policy_server.resource.get
     self.realm_policy_server.resource.replace: ck.self.realm_policy_server.resource.replace
     self.realm_policy_server.resource.delete: ck.self.realm_policy_server.resource.delete

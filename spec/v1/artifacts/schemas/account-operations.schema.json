@@ -304,7 +304,11 @@
         "handle_claim_digests": { "$ref": "#/$defs/handle_claim_digests" },
         "state": { "$ref": "#/$defs/account_state" },
         "devices": { "$ref": "#/$defs/device_summaries" },
-        "profile": { "$ref": "./actor-profile.schema.json" }
+        "profile": { "$ref": "./actor-profile.schema.json" },
+        "is_server_admin": {
+          "type": "boolean",
+          "description": "True when the authenticated principal is a deployment server administrator (the server's configured admin principal set). Operator-only product surfaces (e.g. organization creation) gate their UI on this. Reducer/config-derived, not a stored account field; absent or false means non-admin."
+        }
       },
       "not": {
         "required": [

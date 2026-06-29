@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cokret.io/artifacts/schemas/realm-organization-operations.schema.json",
+  "title": "Cokret Realm Organization-Relationship Read Operation DTOs",
+  "description": "Closed response DTO for the self-surface Realm organization-relationship read operation (ck.self.realm_organization.query.list). Returns the projected ck.realm.organization statements (active / revoked / expired) for a Realm plus the declared owning_organizations hints that have no verified statement. The verified rows mirror the canonical realm_organization_payload field order; lifecycle_phase is reducer-derived. A row here is a projection only: an organization relationship is only verified when lifecycle_phase=verified_active, and actual Realm control still requires the corresponding Realm policy / notary / capability / service-binding event. See spec/v1/zh/models/realm-and-space.md §2.3.0 and schemas/event-payload.schema.json#/$defs/realm_organization_payload.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/realm_organization_relationship_list"
+    }
+  ],
+  "$defs": {
+    "did": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+$"
+    },
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "nullable_timestamp": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+    },
+    "relationship": {
+      "type": "string",
+      "enum": [
+        "owner",
+        "governance",
+        "sponsor",
+        "directory_certifier"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "revoked"
+      ]
+    },
+    "control_scope": {
+      "type": "string",
+      "enum": [
+        "official_badge",
+        "realm_admin",
+        "notary_control",
+        "policy_server",
+        "delivery_binding_policy",
+        "durability_policy",
+        "moderation_policy",
+        "retention_policy",
+        "directory_listing",
+        "plaintext_visible_service"
+      ]
+    },
+    "issuer_role": {
+      "type": "string",
+      "enum": [
+        "organization_did",
+        "governance_service",
+        "account_authority",
+        "threshold_quorum"
+      ]
+    },
+    "lifecycle_phase": {
+      "type": "string",
+      "enum": [
+        "verified_active",
+        "revoked_or_expired"
+      ],
+      "description": "Reducer-derived lifecycle phase of the projected statement. verified_active = latest accepted statement for (organization_id, relationship) is status=active and within its validity window. revoked_or_expired = the relationship has been revoked or is outside its not_before/expires_at window. Declared-only organization hints with no statement are carried in declared_organization_hints, not as rows."
+    },
+    "realm_organization_relationship_row": {
+      "type": "object",
+      "required": [
+        "statement_id",
+        "organization_id",
+        "relationship",
+        "status",
+        "control_scopes",
+        "issued_at",
+        "issuer_role",
+        "lifecycle_phase"
+      ],
+      "properties": {
+        "statement_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "organization_id": {
+          "$ref": "#/$defs/did"
+        },
+        "relationship": {
+          "$ref": "#/$defs/relationship"
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "control_scopes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/control_scope"
+          }
+        },
+        "issued_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "not_before": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/nullable_timestamp"
+        },
+        "supersedes_statement_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "revokes_statement_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "realm_frontier_digest": {
+          "$ref": "#/$defs/hash"
+        },
+        "issuer_role": {
+          "$ref": "#/$defs/issuer_role"
+        },
+        "delegation_ref": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Resolved authorization.delegation_ref for delegated issuer roles (governance_service / account_authority)."
+        },
+        "lifecycle_phase": {
+          "$ref": "#/$defs/lifecycle_phase"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_organization_relationship_list": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "relationships",
+        "declared_organization_hints"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "relationships": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/realm_organization_relationship_row"
+          },
+          "description": "Projected ck.realm.organization statement rows (verified_active and revoked_or_expired), latest-per-(organization_id, relationship)."
+        },
+        "declared_organization_hints": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/did"
+          },
+          "uniqueItems": true,
+          "description": "owning_organizations declared hints (realm-and-space.md §2.3.0) that have NO verified ck.realm.organization statement. These are unverified claims and MUST NOT be rendered as official / governed / endorsed."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
