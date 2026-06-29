@@ -50,7 +50,7 @@ Cokret 是去中心化协议，不同用户或组织各自运行受控 Principal
 
 ### 3.1 基于 DID 的服务器身份
 
-每个 Principal Server / Events API 节点 MUST 拥有自己的 DID（通常是 `did:web`），并在其 DID Document 中声明 Service Endpoints：
+每个 Principal Server / Events API 节点 MUST 拥有自己的 DID（默认 `did:webvh`；仅低风险或外部互通服务 MAY 显式降级为 no-history `did:web`，并 MUST 声明无历史信任强度，见 [`../identity/identity-did.md` §3](../identity/identity-did.md)），并在其 DID Document 中声明 Service Endpoints：
 
 ```json
 {

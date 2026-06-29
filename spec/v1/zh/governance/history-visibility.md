@@ -84,7 +84,7 @@ Reducer MUST 拒绝把 effective Realm 或 Circle history visibility 设置为 `
 
 **`restricted` fail-closed 集中声明（normative）**：上述所有 `restricted` 判定的校验主体是执行读取 / key share 的服务（reducer 或 key source）；校验时点为每次读取 / backfill / key share 请求。任一判定失败 MUST fail closed——无匹配 rule 时返回 `history_not_visible`，policy 未覆盖目标 scope / audience / range 时返回 `policy_denied`，缺少 key share rule 或 proof 时 MUST withhold key material。本节其它处（§3 语义表 `restricted` 行、§3 末尾段落）对 restricted 的描述均引用本声明，不再各自重述 fail-closed 行为。
 
-## 4. Preview / Peek
+## 4. Preview
 
 Preview 是读取授权的一种受限投影，不是加入、写入或完整历史读取。Cokret v1 区分四类 preview：
 

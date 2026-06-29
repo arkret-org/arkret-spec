@@ -270,7 +270,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 | --- | --- | --- | --- |
 | `kind` | const `ck.content.poll` | MUST | content block 判别。 |
 | `body` | `string` | MUST | fallback 文本，用于不支持 poll 渲染的客户端。 |
-| `poll.kind` | `string` | MUST | 计票披露模式；封闭枚举（示例 `disclosed`）以 `ck.content.poll` content-block schema 为权威源，客户端 MUST NOT 自行扩展。 |
+| `poll.kind` | `string` | MUST | 计票披露模式；封闭枚举，v1 仅 `disclosed` 一个取值（schema 为 `const`），以 `ck.content.poll` content-block schema 为权威源，客户端 MUST NOT 自行扩展。 |
 | `poll.max_selections` | `integer`（≥ 1） | MUST | 单次响应最多可选 answer 数。 |
 | `poll.question` | content block | MAY | 题干富文本；省略时以 `body` 为题。 |
 | `poll.answers[]` | `array` | MUST | 候选项数组，每项 `{ id: string, text: content block }`；`id` 在同一 poll 内 MUST 唯一。 |

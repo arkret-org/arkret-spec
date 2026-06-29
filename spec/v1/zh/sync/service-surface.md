@@ -740,6 +740,8 @@ blob 校验 MUST 基于内容哈希，而不是单一 URL。
 
 directory 是授权过滤后的发现与搜索服务面。它是派生索引，不是真相源。
 
+> 本节各 `POST /_cokret/find/directory/...` 路径为 **informative 示意**；canonical operation_id 与 HTTP path 以 [`service-http-binding.md` §2.1](./service-http-binding.md) 与 `artifacts/registry/operation-registry.json`（`ck.find.directory.*`）为准。
+
 ### 8.1 描述 directory
 
 ```text

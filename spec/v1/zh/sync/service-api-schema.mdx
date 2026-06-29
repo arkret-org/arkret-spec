@@ -69,22 +69,22 @@ HTTP 路径的第一段是 trust-surface classifier（信任面分类器），�
 | 分组 | `operation_id` 前缀 | 默认 HTTP 命名空间 |
 | --- | --- | --- |
 | 服务发现 | `ck.server.*` | `/_cokret/describe` |
-| 身份信任根与 registry | `ck.identity.*` | `/_cokret/root/identity/*` |
-| Events | `ck.events.*` | `/_cokret/self/events/*` |
+| 身份信任根与 registry | `ck.root.identity.*` | `/_cokret/root/identity/*` |
+| Events | `ck.self.events.*` | `/_cokret/self/events/*` |
 | Federation peer events | `ck.peer.events.*` | `/_cokret/peer/events/*` |
 | 短时信号（ephemeral） | `ck.self.ephemeral.command.send` | `/_cokret/self/ephemeral` |
 | 账号自服务与聚合同步 | `ck.self.account.query.viewer`、`ck.self.account.command.update_profile`、`ck.self.account.stream.subscribe`、`ck.self.account.query.describe`、`ck.self.account.command.revoke_cursor` | `/_cokret/self/account/*` |
-| Realm snapshot 入口 | `ck.snapshot.*` | `/_cokret/self/snapshot/*` |
+| Realm snapshot 入口 | `ck.self.snapshot.*` | `/_cokret/self/snapshot/*` |
 | Federation peer snapshot 入口 | `ck.peer.snapshot.*` | `/_cokret/peer/snapshot/*` |
 | 目录发现 | `ck.find.directory.*` | `/_cokret/find/directory/*` |
-| Blob / media | `ck.blob.*` | `/_cokret/self/blob/*` |
-| 推送 | `ck.push.*` | `/_cokret/edge/push/*` |
-| 设备加密 | `ck.device_messages.*`、`ck.keys.*` | `/_cokret/self/device_messages/*`、`/_cokret/self/keys/*` |
-| 授权与策略 | `ck.authz.*`、`ck.policy.*` | `/_cokret/self/authz/*`、`/_cokret/self/policy/check` |
-| 媒体服务 | `ck.media.*`、`ck.self.call.media.exchange.issue_token` | `/_cokret/self/rtc/ice-config`、`/_cokret/self/rtc/token` |
-| 审核 | `ck.moderation.*` | `/_cokret/self/moderation/*` |
-| Applet | `ck.applet.*` | `/_cokret/edge/applet/*` |
-| MIMI 外部协议互操作 | `ck.mimi.*` | `/_cokret/open/mimi/*` |
+| Blob / media | `ck.self.blob.*` | `/_cokret/self/blob/*` |
+| 推送 | `ck.edge.push.*` | `/_cokret/edge/push/*` |
+| 设备加密 | `ck.self.device_messages.*`、`ck.self.keys.*` | `/_cokret/self/device_messages/*`、`/_cokret/self/keys/*` |
+| 授权与策略 | `ck.self.authz.*`、`ck.self.policy.*` | `/_cokret/self/authz/*`、`/_cokret/self/policy/check` |
+| 媒体服务 | `ck.self.media.*`、`ck.self.call.media.exchange.issue_token` | `/_cokret/self/rtc/ice-config`、`/_cokret/self/rtc/token` |
+| 审核 | `ck.self.moderation.*` | `/_cokret/self/moderation/*` |
+| Applet | `ck.edge.applet.*` | `/_cokret/edge/applet/*` |
+| MIMI 外部协议互操作 | `ck.open.mimi.*` | `/_cokret/open/mimi/*` |
 | 账户注册、登录与设备配对 | `ck.gate.account.*` | `/_cokret/gate/account/*` |
 
 ## 3. OpenAPI 参考快照（非穷尽示例）

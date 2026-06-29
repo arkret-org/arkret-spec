@@ -330,7 +330,7 @@ Presence / mention 语义补充：
 {
   "results": [
     {
-      "handle": "alice@example.com",
+      "handle": "alice:example.com",
       "display_name": "Alice Chen",
       "avatar_blob_ref": "ck:blob:sha256:a1b2c3...",
       "membership": "joined"

@@ -24,6 +24,8 @@ updated: 2026-06-10
 - `registry/id-kind-registry.json`: typed ID kind 与 wire form。
 - `profiles/conformance-profiles.json`: profile inheritance、required operations、event kinds、schemas、fixtures、features、capability actions、cell namespaces、rejected event kinds。
 
+> 上述 `registry/{event-kind,operation,schema,id-kind}-registry.json` 是从 canonical `registry/contract-catalog.json` 生成的机器视图；contract-catalog 是它们的 single source of truth，实现 / SDK / lint 直接消费这些生成视图即可，但新增 / 修改 contract 时 MUST 改 contract-catalog 再重生成。
+
 手写常量只能作为 ergonomics alias；admission、profile claim、conformance gate 应避免以手写常量作为唯一事实来源。
 
 ## JSON Schema `$id` 与发布形态

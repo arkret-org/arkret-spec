@@ -297,18 +297,18 @@ Membership transition table（`membership` 复用 `ck.member.state` 的 `members
 
 | from | to | writer |
 | --- | --- | --- |
-| none / leave | invite | `ck.circle.member.manage` |
-| none / leave | knock | target actor，仅当 `join_rule=request`(自助申请；申请正文 MUST NOT 进入该 Move，沿用 [`../governance/join-policy.md` §8](../governance/join-policy.md) 的加密 envelope 约定) |
+| leave | invite | `ck.circle.member.manage` |
+| leave | knock | target actor，仅当 `join_rule=request`(自助申请；申请正文 MUST NOT 进入该 Move，沿用 [`../governance/join-policy.md` §8](../governance/join-policy.md) 的加密 envelope 约定) |
 | knock | invite | `ck.circle.member.manage`(批准申请转为邀请) |
 | knock | join | `ck.circle.member.manage`(直接批准加入) |
 | knock | leave | target actor(撤回)或 `ck.circle.member.manage`(拒绝) |
 | invite | join | target actor (`ck.circle.member.add`) 或 `ck.circle.member.manage` |
-| none / leave | join | target actor only when `join_rule=open`; otherwise `ck.circle.member.manage` |
+| leave | join | target actor only when `join_rule=open`; otherwise `ck.circle.member.manage` |
 | join | leave | target actor or `ck.circle.member.manage` |
-| none / invite / knock / join / leave | ban | `ck.circle.member.manage` |
+| invite / knock / join / leave | ban | `ck.circle.member.manage` |
 | ban | leave / invite | `ck.circle.member.manage` only; self-service MUST fail closed |
 
-> **枚举统一（normative）**：Circle membership 与 Realm `ck.member.state` 共用 schema `$defs/membership_state`（`invite / join / knock / leave / ban`），是单一真源，二者 MUST NOT 出现取值分叉。v1 wire MUST 仅使用 canonical 值。
+> **枚举统一（normative）**：Circle membership 与 Realm `ck.member.state` 共用 schema `$defs/membership_state`（`invite / join / knock / leave / ban`），是单一真源，二者 MUST NOT 出现取值分叉。v1 wire MUST 仅使用 canonical 值。Circle membership 同样以 `leave` 为 initial_state（非成员初始态），**不存在单独的 `none` wire 值**；上表以 `leave` 表达"尚未加入 / 已离开"的起点。
 
 > **Same-state 重复提交（normative）**：上表未列出的 transition（含任意 same-state 自转换 `invite -> invite`、`knock -> knock`、`join -> join`、`leave -> leave`、`ban -> ban`）MUST `failed_precondition`，`reason=invalid_membership_transition`。**与 Realm FSM 的差异（normative）**：[`realm-and-space.md` §2.7](./realm-and-space.md) 的 Realm membership FSM **显式允许** `join -> join`（成员保持加入状态下的 delivery binding / membership metadata 迁移），而 Circle membership **不复用** Realm 的该 delivery-binding 迁移语义——Circle 不承载成员级 delivery binding（投递裁剪由 Circle membership 集合直接决定，见 §9.3），没有 "保持成员但迁移绑定" 的合法用途，故 Circle `join -> join` **非法**。Circle 与 Realm 一致之处仅在于把 `leave -> leave`、`ban -> ban` 等无语义自转换列为非法；本条不应被读作 "Circle 完全复用 Realm §2.7 的合法转换集"。membership 是独立于物理 lifecycle state(active/archived) 的轴，复用 `membership_state` 枚举但**不**受 [`common-fields.md` §5.1](./common-fields.md) 的 lifecycle same-state 规则覆盖；本节是 Circle membership same-state 行为的权威归属。需要幂等重试的 producer MUST 基于当前 membership state 重新提交合法 transition，而非重放 same-state 写入。
 
