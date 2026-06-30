@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/content-block-poll.schema.json",
+  "$id": "https://cokret.org/v1/schemas/content-block-poll.schema.json",
   "title": "Cokret Poll Content Block",
   "description": "Canonical content-block schema for ck.content.poll and ck.content.poll.response.",
   "oneOf": [

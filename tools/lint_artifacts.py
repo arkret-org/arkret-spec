@@ -3894,10 +3894,14 @@ def resolve_json_pointer(document: Any, fragment: str) -> Any:
 
 
 def load_json_schema_for_uri(uri: str) -> Any:
-    prefix = "https://cokret.io/artifacts/"
+    # Canonical schema $id base: https://cokret.org/v1/schemas/<name>.schema.json
+    # (the /v1/ segment pins the spec major version so v2 schemas get distinct
+    # $ids). All schemas live on disk under ARTIFACTS/schemas/, so strip the
+    # base and resolve the remaining filename there.
+    prefix = "https://cokret.org/v1/schemas/"
     if not uri.startswith(prefix):
         raise ValueError(f"unsupported remote schema URI {uri}")
-    path = ARTIFACTS / uri[len(prefix):]
+    path = ARTIFACTS / "schemas" / uri[len(prefix):]
     return parse_json_text(path.read_text(encoding="utf-8"))
 
 

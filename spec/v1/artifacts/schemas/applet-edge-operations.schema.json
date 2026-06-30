@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/applet-edge-operations.schema.json",
+  "$id": "https://cokret.org/v1/schemas/applet-edge-operations.schema.json",
   "title": "Cokret Applet Edge Operation DTOs",
   "description": "Closed request/response DTOs for Applet edge and bridge operations.",
   "anyOf": [

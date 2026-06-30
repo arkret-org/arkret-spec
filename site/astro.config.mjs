@@ -80,7 +80,7 @@ function planeItems(plane, order = []) {
  * version is a directory drop + sidebar entry; nothing else changes.
  */
 export default defineConfig({
-  site: "https://cokret.io",
+  site: "https://cokret.org",
   trailingSlash: "always",
   redirects: {
     // Locale roots have no normative prose entry; send visitors to the

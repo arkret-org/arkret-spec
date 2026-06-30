@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/service-operation-dtos.schema.json",
+  "$id": "https://cokret.org/v1/schemas/service-operation-dtos.schema.json",
   "title": "Cokret Service Operation DTOs",
   "description": "Canonical request and response DTOs for service operations. OpenAPI components reference this artifact so SDK and conformance tooling use one schema source.",
   "anyOf": [

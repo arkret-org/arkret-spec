@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/blob-operations.schema.json",
+  "$id": "https://cokret.org/v1/schemas/blob-operations.schema.json",
   "title": "Cokret Blob Operation DTOs",
   "description": "Closed request/response DTOs for blob service operations whose wire shape is not the full blob metadata resource.",
   "anyOf": [

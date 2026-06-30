@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/circle-operations.schema.json",
+  "$id": "https://cokret.org/v1/schemas/circle-operations.schema.json",
   "title": "Cokret Circle Self-Management Operation DTOs",
   "description": "Closed request/response DTOs for the self-surface Circle administration operations (ck.self.circle.*). Each operation builds a canonical ck.circle.* Operation and routes it through the standard local accept pipeline; the durable Circle object model is circle.schema.json. See spec/v1/zh/models/circle.md and spec/v1/zh/sync/service-http-binding.md.",
   "anyOf": [

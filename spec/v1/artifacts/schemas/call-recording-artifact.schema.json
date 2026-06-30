@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/call-recording-artifact.schema.json",
+  "$id": "https://cokret.org/v1/schemas/call-recording-artifact.schema.json",
   "title": "Cokret Call Recording Artifact",
   "description": "Canonical metadata for a call recording artifact after it has entered the Cokret blob pipeline. It binds the blob, recording start event, MLS exporter recording key context, retention policy and deletion audit surface without introducing a ck:recording or ck:artifact storage key.",
   "type": "object",

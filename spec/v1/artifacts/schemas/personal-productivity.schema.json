@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/personal-productivity.schema.json",
+  "$id": "https://cokret.org/v1/schemas/personal-productivity.schema.json",
   "title": "Cokret Personal Productivity Account Data",
   "description": "Plaintext shapes that MUST be encrypted before writing ck.profile.personal_productivity.v1 account-data values.",
   "oneOf": [

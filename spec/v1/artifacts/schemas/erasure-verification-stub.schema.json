@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/erasure-verification-stub.schema.json",
+  "$id": "https://cokret.org/v1/schemas/erasure-verification-stub.schema.json",
   "title": "Cokret Erasure Verification Stub",
   "description": "Minimal retained verification stub bound by erasure-receipt.retained_stub_digest. It preserves event graph, proof, seal, redaction, legal-hold and receipt linkage evidence without retaining erased plaintext.",
   "type": "object",

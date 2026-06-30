@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/draft-sync.schema.json",
+  "$id": "https://cokret.org/v1/schemas/draft-sync.schema.json",
   "title": "Cokret Draft Sync Account Data",
   "type": "object",
   "description": "Encrypted account-data plaintext shape for ck.profile.draft_sync.v1.",

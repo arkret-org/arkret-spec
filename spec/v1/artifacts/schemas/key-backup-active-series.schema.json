@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/key-backup-active-series.schema.json",
+  "$id": "https://cokret.org/v1/schemas/key-backup-active-series.schema.json",
   "title": "Cokret Key Backup Active Series Record",
   "description": "Signed principal-control record selecting the canonical backup series for one (actor_id, backup_class). This closes the rollback gap when multiple series exist after compromise rotation or migration. Receivers MUST verify this record before choosing a series from list results.",
   "type": "object",

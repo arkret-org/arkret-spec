@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/keypackage-operations.schema.json",
+  "$id": "https://cokret.org/v1/schemas/keypackage-operations.schema.json",
   "title": "Cokret MLS KeyPackage Operation DTOs",
   "description": "Closed request and response DTOs for ck.keys.keypackages.{upload,claim,consume,revoke}. Individual OpenAPI components reference the $defs entries in this bundle.",
   "oneOf": [

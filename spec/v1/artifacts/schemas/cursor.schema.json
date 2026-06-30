@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/cursor.schema.json",
+  "$id": "https://cokret.org/v1/schemas/cursor.schema.json",
   "$defs": {
     "timestamp": {
       "type": "string",

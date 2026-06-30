@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/agent-selector-claim.schema.json",
+  "$id": "https://cokret.org/v1/schemas/agent-selector-claim.schema.json",
   "title": "Cokret Agent Selector Claim",
   "description": "Signed claim binding a controller-scoped native personal agent selector slug to an agent principal DID. It powers @<controller-handle>/<agent_slug> compose-time resolution without making the agent carry a public handle.",
   "type": "object",

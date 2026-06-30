@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/applet-install-operations.schema.json",
+  "$id": "https://cokret.org/v1/schemas/applet-install-operations.schema.json",
   "title": "Cokret Applet Install Operation DTOs",
   "description": "Closed request/response DTOs for ck.self.applet.install.command.preview, ck.self.applet.command.install, and ck.self.applet.command.revoke. The InstallPlan body itself is defined in applet-install-plan.schema.json.",
   "oneOf": [

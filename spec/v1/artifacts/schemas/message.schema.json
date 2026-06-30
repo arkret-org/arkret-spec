@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/message.schema.json",
+  "$id": "https://cokret.org/v1/schemas/message.schema.json",
   "title": "Cokret Message",
   "type": "object",
   "required": [

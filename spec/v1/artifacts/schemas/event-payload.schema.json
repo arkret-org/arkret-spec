@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/event-payload.schema.json",
+  "$id": "https://cokret.org/v1/schemas/event-payload.schema.json",
   "title": "Cokret Standard Event Payloads",
   "description": "Definitions bundle for common payload contracts used by registered ck.* Event.kind values. The root schema is intentionally generic and MUST NOT be used as a complete payload validator. Event validators MUST validate the full Event Envelope and dispatch by Event.kind to the matching $defs payload class using artifacts/registry/event-kind-registry.json.",
   "$ref": "#/$defs/generic_standard_payload",

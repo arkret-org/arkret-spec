@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/applet-ghost-operations.schema.json",
+  "$id": "https://cokret.org/v1/schemas/applet-ghost-operations.schema.json",
   "title": "Cokret Applet Ghost Actor Operation DTOs",
   "description": "Closed request/response DTOs for ck.self.applet.ghost.command.provision. An installed Applet service / bridge asks the Principal Server to provision (or idempotently re-validate) an Applet-managed Ghost Actor profile plus accountability grant for one external user. The server MUST re-check applet_id / service_did / realm_id / ghost namespace against the active registration before minting anything.",
   "oneOf": [

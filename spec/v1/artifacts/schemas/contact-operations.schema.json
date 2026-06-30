@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/contact-operations.schema.json",
+  "$id": "https://cokret.org/v1/schemas/contact-operations.schema.json",
   "title": "Cokret Contact and Direct Conversation Operation DTOs",
   "description": "Closed request/response DTOs for contact lifecycle operations and direct conversation resolver.",
   "anyOf": [

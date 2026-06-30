@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/agent.schema.json",
+  "$id": "https://cokret.org/v1/schemas/agent.schema.json",
   "title": "Cokret Agent Protocol Object",
   "description": "Schema-registry object for agent protocol metadata snapshots. Event payloads for ck.agent.* MUST use the typed payload definitions in event-payload.schema.json; this object is not a loose transport envelope and is closed at the top level except for x_* extensions.",
   "type": "object",

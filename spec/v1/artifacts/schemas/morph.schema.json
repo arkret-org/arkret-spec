@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/morph.schema.json",
+  "$id": "https://cokret.org/v1/schemas/morph.schema.json",
   "title": "Cokret Morph",
   "type": "object",
   "required": [

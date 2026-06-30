@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/authz-operations.schema.json",
+  "$id": "https://cokret.org/v1/schemas/authz-operations.schema.json",
   "title": "Cokret Authorization Operation DTOs",
   "description": "Closed response DTOs for authorization query operations that need operation-specific list envelopes.",
   "anyOf": [

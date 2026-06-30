@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/account-data-operations.schema.json",
+  "$id": "https://cokret.org/v1/schemas/account-data-operations.schema.json",
   "title": "Cokret Account Data Self-Management Operation DTOs",
   "description": "Closed request/response DTOs for the self-surface actor-private account_data operations (ck.self.account_data.*). PUT builds a ck.account_data.set actor-private write; the server stores content verbatim (clients own canonical encoding and, for sensitive keys, client-side encryption). data_type keys are dot-delimited namespaces validated against account-data-type-registry.json. See spec/v1/zh/discovery/client-preferences.md.",
   "anyOf": [

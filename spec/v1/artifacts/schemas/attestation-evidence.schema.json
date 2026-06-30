@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/attestation-evidence.schema.json",
+  "$id": "https://cokret.org/v1/schemas/attestation-evidence.schema.json",
   "title": "Cokret Attested Audit Release Evidence",
   "description": "Structured remote-attestation evidence envelope for an audit applet release service under ck.profile.attested_audit.e2ee.v1. This is the wire form behind audit_assurance_class=attested_hardware: a verifier MUST be able to validate release-service measurement, attestation chain trust root, attestation key freshness, operator identity, Realm/Circle binding, and audit release policy hash without trusting prose declarations. Evidence binds the controlled output path for ck.audit.release; it does not add the applet to MLS and does not grant realtime plaintext access. See zh/crypto-media/audited-e2ee.md §6.",
   "type": "object",

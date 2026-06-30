@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/moderation-appeal.schema.json",
+  "$id": "https://cokret.org/v1/schemas/moderation-appeal.schema.json",
   "title": "Cokret Moderation Appeal",
   "description": "Payload shapes for the four ck.moderation.appeal.* event kinds (submit / review / decision / close) that close the moderation appeal loop. Each kind writes the ck.component.moderation.appeal.v1 cell on a deterministic state machine: (none) → submitted → under_review → decided → closed; close from submitted/under_review is allowed only for appellant withdrawal (closer == appellant and close_reason=appellant_withdrawn). The decided state additionally records the verdict (uphold / overturn / modify); overturn MUST be paired in the same ordered submit batch or equivalent control transaction with a ck.moderation.decision.lift event referencing the original decision. All payloads carry realm_id and reducers MUST require it to equal the enclosing Event.realm_id and the appealed decision's Realm. See zh/governance/content-moderation.md §5.5 (appeal strand). Capability: ck.moderation.appeal.submit (any member, low risk) for submit; ck.moderation.appeal.review (moderator) for review/decision/manual reviewer close after decided; appellant withdrawal is authorized by closer == appellant.",
   "type": "object",

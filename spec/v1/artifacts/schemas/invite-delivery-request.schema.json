@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/invite-delivery-request.schema.json",
+  "$id": "https://cokret.org/v1/schemas/invite-delivery-request.schema.json",
   "title": "Cokret Invite Delivery Request",
   "description": "Private service-to-service request used by an inviter-side Principal Server to deliver a Realm invite to the invitee-side Principal Server. The request carries an explicit invite address and introduction evidence; raw locator tokens are never written into durable Realm events.",
   "type": "object",

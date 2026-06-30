@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/availability-receipt.schema.json",
+  "$id": "https://cokret.org/v1/schemas/availability-receipt.schema.json",
   "title": "Cokret AvailabilityReceipt",
   "description": "Signed holder commitment that Event bytes are available until retention_expires_at. Digest membership roots do not prove byte availability; CBA models availability independently.",
   "type": "object",

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/realm-join-candidate.schema.json",
+  "$id": "https://cokret.org/v1/schemas/realm-join-candidate.schema.json",
   "title": "Cokret Realm Join Candidate",
   "description": "Time-bounded routing hint for submitting Realm join, invite-accept, knock, or restricted-join material through a qualified Realm service. This object is not membership authorization and is distinct from member_delivery_binding.",
   "type": "object",

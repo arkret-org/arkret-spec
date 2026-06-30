@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/did-continuity-proof.schema.json",
+  "$id": "https://cokret.org/v1/schemas/did-continuity-proof.schema.json",
   "title": "Cokret DID Continuity Proof",
   "description": "Payload profile for ck.did.proof continuity transitions, including cross-method did:web -> did:webvh upgrades.",
   "type": "object",

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/key-backup-plaintext.schema.json",
+  "$id": "https://cokret.org/v1/schemas/key-backup-plaintext.schema.json",
   "title": "Cokret Key Backup Plaintext Keybag",
   "description": "Canonical plaintext carried inside ck.schema.key_backup.v1 ciphertext after AEAD/HPKE open. The public envelope contents[] is only an index; this keybag is the import truth source.",
   "type": "object",

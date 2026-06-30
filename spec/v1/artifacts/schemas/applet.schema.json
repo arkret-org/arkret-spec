@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/applet.schema.json",
+  "$id": "https://cokret.org/v1/schemas/applet.schema.json",
   "title": "Cokret Applet Protocol Object",
   "description": "Schema-registry object for applet protocol metadata snapshots. Event payloads for ck.applet.* MUST use the typed payload definitions in event-payload.schema.json; this object is not a loose transport envelope and is closed at the top level except for x_* extensions.",
   "type": "object",

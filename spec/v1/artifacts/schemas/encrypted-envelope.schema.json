@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/encrypted-envelope.schema.json",
+  "$id": "https://cokret.org/v1/schemas/encrypted-envelope.schema.json",
   "title": "Cokret Encrypted Payload Envelope",
   "type": "object",
   "required": [

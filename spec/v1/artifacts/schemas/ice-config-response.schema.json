@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/ice-config-response.schema.json",
+  "$id": "https://cokret.org/v1/schemas/ice-config-response.schema.json",
   "title": "Cokret Media ICE Config Result",
   "description": "Result shape for the WebRTC media service ICE config endpoint. Used by ck.profile.webrtc_media.v1; see crypto-media/webrtc-signaling.md §4.",
   "type": "object",

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/bottom.schema.json",
+  "$id": "https://cokret.org/v1/schemas/bottom.schema.json",
   "title": "Cokret Bottom Diagnostics",
   "description": "Structured diagnostic for cell join values that resolve to bottom (⊥). Surfaced on /account/subscribe, /events, and state query responses when a cell's effective Lattice value is undefined under the current CBA query basis. See spec/v1/zh/authz/event-auth-state-resolution.md §5.1.",
   "type": "object",

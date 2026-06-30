@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/mimi-operations.schema.json",
+  "$id": "https://cokret.org/v1/schemas/mimi-operations.schema.json",
   "title": "Cokret MIMI Operation DTOs",
   "description": "Closed request/response DTOs for MIMI provider interop operation bindings.",
   "anyOf": [

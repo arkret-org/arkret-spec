@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/invite-receive-policy.schema.json",
+  "$id": "https://cokret.org/v1/schemas/invite-receive-policy.schema.json",
   "title": "Cokret Invite and Contact Receive Policy",
   "description": "Subject-private policy used by a Principal Server to decide which invite delivery or first-contact request introduction evidence may notify the holder. This policy is not written into the target Realm durable event log or the public contact fact log.",
   "type": "object",

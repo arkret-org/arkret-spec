@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/query.schema.json",
+  "$id": "https://cokret.org/v1/schemas/query.schema.json",
   "title": "Cokret Query / Search Request Shapes",
   "description": "Canonical wire schema for client query / projection and search request bodies and their reusable building blocks (filters, sort, relation query). The OpenAPI document references these $defs so there is a single source of truth. Human-readable semantics: zh/conformance/query-schema.md. facet_name / view_renderer are copies of the shared OpenAPI enums (kept local so this file is self-contained); the authoritative facet / renderer enums also live in the OpenAPI components and MUST stay in lockstep.",
   "$defs": {

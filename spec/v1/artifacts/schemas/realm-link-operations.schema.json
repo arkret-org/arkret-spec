@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/realm-link-operations.schema.json",
+  "$id": "https://cokret.org/v1/schemas/realm-link-operations.schema.json",
   "title": "Cokret Realm Link Self-Management Operation DTOs",
   "description": "Closed request/response DTOs for the self-surface cross-Realm link operations (ck.self.realm_link.*). Each write builds a ck.realm.link Move and routes it through the local accept pipeline so the reducer's realm_link_* validators (cycle detection, self-reference, kind validation) run. The durable link payload is the canonical ck.realm.link; see spec/v1/zh/models/realm-links.md.",
   "anyOf": [

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/resource-selector.schema.json",
+  "$id": "https://cokret.org/v1/schemas/resource-selector.schema.json",
   "title": "Cokret Resource Selector",
   "type": "object",
   "required": [

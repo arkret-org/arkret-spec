@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/search-service.schema.json",
+  "$id": "https://cokret.org/v1/schemas/search-service.schema.json",
   "title": "Cokret Privacy-Preserving Search",
   "oneOf": [
     {

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/agent-operations.schema.json",
+  "$id": "https://cokret.org/v1/schemas/agent-operations.schema.json",
   "title": "Cokret Account Pairing and Agent Operation DTOs",
   "description": "Closed request and response DTOs for account pairing and native personal agent management operations.",
   "oneOf": [

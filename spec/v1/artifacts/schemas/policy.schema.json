@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/policy.schema.json",
+  "$id": "https://cokret.org/v1/schemas/policy.schema.json",
   "title": "Cokret Policy",
   "type": "object",
   "required": [

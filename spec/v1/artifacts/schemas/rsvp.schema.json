@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/rsvp.schema.json",
+  "$id": "https://cokret.org/v1/schemas/rsvp.schema.json",
   "title": "Cokret RSVP Event Payload",
   "$ref": "./event-payload.schema.json#/$defs/rsvp_set_payload"
 }

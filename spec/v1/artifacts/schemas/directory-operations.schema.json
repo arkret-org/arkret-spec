@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/directory-operations.schema.json",
+  "$id": "https://cokret.org/v1/schemas/directory-operations.schema.json",
   "title": "Cokret Directory Operation DTOs",
   "description": "Closed request/response DTOs for Directory discovery search, resolve, private contact discovery, handle lookup, agent selector lookup, and push webhook registration operations.",
   "anyOf": [

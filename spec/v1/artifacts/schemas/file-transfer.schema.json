@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/file-transfer.schema.json",
+  "$id": "https://cokret.org/v1/schemas/file-transfer.schema.json",
   "title": "Cokret File Transfer Account Data",
   "type": "object",
   "description": "Plaintext shape that MUST be encrypted before writing ck.profile.file_transfer.v1 account-data values.",

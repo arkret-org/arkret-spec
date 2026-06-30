@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/event-batch-receipt.schema.json",
+  "$id": "https://cokret.org/v1/schemas/event-batch-receipt.schema.json",
   "title": "Cokret Event Batch Receipt",
   "type": "object",
   "required": [

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/member-delivery-binding-candidate.schema.json",
+  "$id": "https://cokret.org/v1/schemas/member-delivery-binding-candidate.schema.json",
   "title": "Cokret Member Delivery Binding Candidate",
   "description": "Builder-side candidate object that ferries Handle resolution output (intent=member_add | invite) or a trusted-issuer-signed equivalent into the Realm member_add / invite pipeline. Produces a Realm-scoped member_delivery_binding only after the reducer independently re-validates against Join Policy. See identity-handles.md §3.7.",
   "type": "object",

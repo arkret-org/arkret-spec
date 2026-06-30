@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.io/artifacts/schemas/account-operations.schema.json",
+  "$id": "https://cokret.org/v1/schemas/account-operations.schema.json",
   "title": "Cokret Account Self-Service Operation DTOs",
   "description": "Closed request and response DTOs for account self-service operations: viewer, register, profile update, and session revocation.",
   "anyOf": [
