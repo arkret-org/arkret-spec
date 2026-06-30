@@ -163,7 +163,7 @@
         },
         "device_id": {
           "$ref": "./common-ids.schema.json#/$defs/device_id",
-          "description": "Concrete authorized device restoring the soft-logged-out grant chain. MUST match the persisted grant device binding and the grant JWT device_id claim."
+          "description": "Concrete authorized device restoring the soft-logged-out grant chain. MUST match the persisted grant device binding."
         },
         "proof": {
           "$ref": "#/$defs/SessionGrantRefreshProof"
