@@ -778,6 +778,8 @@ Reaction 事件的 `aad.event_kind` 始终为明文 (`ck.reaction.add` / `ck.rea
 
 scheme 选择是 Realm policy 字段 `ck.realm.content_scheme`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json)，取 `mls-rfc9420` / `mls-exporter-aead-v1`；缺省时 `encryption_profile=mls_rfc9420` 的 Realm 视为 `mls-rfc9420`），MUST 纳入 MLS governance binding 的 `policy_root`（§2.5.1）。同一 Realm 的 effective content scheme 由该字段在每个 epoch 的 `T0` 决定；不同 epoch 可使用不同 scheme（切换只对其后 epoch 生效，§2.10.6）。每条密文 envelope 自身的 `scheme` 字段记录其所用 scheme，故接收方解密时直接读 envelope，无需回溯 policy。
 
+**与 `history_visibility` 的强制联动（normative）**：在 `encryption_profile=mls_rfc9420` 的 Realm 中，`history_visibility ∈ {world_readable, shared, invited}` 表示允许后加入 / 加入前读取历史；这只有在 effective `content_scheme=mls-exporter-aead-v1` 时结构上可实现。若 effective `content_scheme=mls-rfc9420`（包括缺省值）或未声明 history-capable scheme，则该 Realm 只能使用 `history_visibility ∈ {joined, restricted}`。reducer / admission MUST 拒绝任何 `ck.realm.create` bootstrap、`ck.realm.history_visibility` 或 `ck.realm.policy_components` 写入导致的非法有效组合，返回 `failed_precondition`，reason=`history_visibility_requires_history_capable_scheme`。选择 `mls-exporter-aead-v1` 只表示历史在密码学上**可**按 policy 交付，并不自动打开 pre-join delivery；`history_visibility=joined` / `restricted` 仍可与 exporter scheme 同用，以便未来 policy 或 RRK 能力可用但默认不放开历史。
+
 本 scheme 只选择**内容信封层**的加密方式，与 Realm 级 `encryption_profile`（仍为 `mls_rfc9420`，表示该 Realm 为 MLS-backed）**正交**；§2.4 epoch 推进、§2.4.1 send-pause 与 §2.5 MLS Governance Binding 对本 scheme **照常适用**——ban / revoke / policy 收紧仍须被后续 `ck.mls.commit` 覆盖方对新内容生效。
 
 #### 2.10.1 密钥派生（normative）
