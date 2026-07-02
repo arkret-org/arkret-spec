@@ -163,6 +163,20 @@ def normalize_cokret_path_token(token: str) -> str:
     return token.rstrip(".,;:，。；：）)]】>")
 
 
+def is_local_see_also_target(value: str) -> bool:
+    return not (
+        value.startswith("#")
+        or value.startswith("http://")
+        or value.startswith("https://")
+        or value.startswith("mailto:")
+    )
+
+
+def see_also_target_path(path: Path, value: str) -> Path:
+    target = value.split("#", 1)[0].split("?", 1)[0]
+    return (path.parent / target).resolve()
+
+
 def is_registered_cokret_path_or_namespace(token: str) -> bool:
     if token == "/_cokret/_conformance/*" or token.startswith("/_cokret/_conformance/"):
         return True
@@ -206,6 +220,28 @@ def lint_file(path: Path) -> list[Finding]:
         )
 
     is_normative = bool(fm.get("normative"))
+    see_also = fm.get("see_also")
+    if see_also is not None:
+        if not isinstance(see_also, list) or any(not isinstance(item, str) for item in see_also):
+            findings.append(
+                Finding(path, 1, "FM004", "frontmatter see_also must be a list of strings", "error")
+            )
+        else:
+            for item in see_also:
+                if not is_local_see_also_target(item):
+                    continue
+                target_path = see_also_target_path(path, item)
+                try:
+                    target_path.relative_to(ROOT)
+                except ValueError:
+                    findings.append(
+                        Finding(path, 1, "FM005", f"see_also target escapes repository: {item}", "error")
+                    )
+                    continue
+                if not target_path.exists():
+                    findings.append(
+                        Finding(path, 1, "FM006", f"see_also target does not exist relative to document: {item}", "error")
+                    )
 
     is_self_normative_language = path.name == "normative-language.md"
     if is_normative and not is_self_normative_language and "normative-language.md" not in text:

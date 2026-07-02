@@ -3,14 +3,14 @@ title: Operations And Sync
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-11
+updated: 2026-07-02
 see_also:
-  - sync/service-surface.md
-  - sync/client-sync.md
-  - authz/event-auth-state-resolution.md
-  - models/event-and-patch.md
-  - conformance/encoding.md
-  - conformance/normative-language.md
+  - service-surface.md
+  - client-sync.md
+  - ../authz/event-auth-state-resolution.md
+  - ../models/event-and-patch.md
+  - ../conformance/encoding.md
+  - ../conformance/normative-language.md
 ---
 
 ## 0. 规范语言

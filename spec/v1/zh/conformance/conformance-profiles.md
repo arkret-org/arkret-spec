@@ -3,7 +3,7 @@ title: 实现 Profile 与一致性要求
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-10
+updated: 2026-07-02
 sidebar:
   label: 实现 Profile
 ---

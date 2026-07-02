@@ -3,12 +3,12 @@ title: 协议演进与 current-wire 边界
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-21
+updated: 2026-07-02
 see_also:
-  - conformance/encoding.md
-  - conformance/conformance-profiles.md
-  - sync/service-http-binding.md
-  - conformance/normative-language.md
+  - ../conformance/encoding.md
+  - ../conformance/conformance-profiles.md
+  - ../sync/service-http-binding.md
+  - ../conformance/normative-language.md
 sidebar:
   label: 协议演进
 ---

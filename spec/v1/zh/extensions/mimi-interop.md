@@ -3,7 +3,7 @@ title: MIMI Interoperability
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-10
+updated: 2026-07-02
 ---
 
 > **状态：interop extension profile（非 v1 core 互操作必需）**。本文档描述的 MIMI Provider Facade 跟踪的

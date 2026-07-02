@@ -1,7 +1,7 @@
 {
-  "version": "2026-06-22",
+  "version": "2026-07-02",
   "source_of_truth": false,
-  "generated_at": "2026-06-22T00:00:00Z",
+  "generated_at": "2026-07-02T00:00:00Z",
   "generated_from": "registry/contract-catalog.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -21,7 +21,7 @@
     "Events API, Sync durable history, Federation, and canonical reducers MUST accept only active entries with wire_scope=durable_event unless an implementation profile explicitly defines a private channel for actor_private_event.",
     "Entries with wire_scope=ephemeral_event MUST be carried only on ephemeral channels and MUST NOT advance Seal coverage, governance state_root, or reducer state.",
     "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into shared Realm data-plane history or control-plane Seal history.",
-    "Reducer-input durable kinds MAY declare cell_family, cell_subject, lattice, bottom, and (cas_register only) initial_value. cell_family is a stable ck.component.*.v<n> URI; cell_subject is null, a payload field path, or a composite descriptor; bottom is reject or expose. initial_value declares the value the cas_register reports before any DataEvent or Control Move effect has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` Control Move predicates implements singleton-once-set cells.",
+    "Reducer-input durable kinds MAY declare cell_family, cell_subject, plane, sealed, lattice, bottom, and (cas_register only) initial_value. cell_family is a stable ck.component.*.v<n> URI; cell_subject is null, a payload field path, or a composite descriptor; plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject or expose. initial_value declares the value the cas_register reports before any DataEvent or Control Move effect has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` Control Move predicates implements singleton-once-set cells.",
     "Registered exemption: protocol-singleton cells that are not written through a single event_kind are NOT indexed here. Currently the only such cell family is ck.component.notary.v1 (per-Realm notary cell, lattice=cas_register, bottom=reject): its genesis value comes from the ck.realm.create payload notary object and subsequent changes are ordinary notary-finalized Control Moves; its canonical definition lives in zh/authz/event-auth-state-resolution.md section 4.4. Any future cell family without a single writer kind MUST be added to this exemption list explicitly.",
     "Lattice MUST be one of: core types or_set, mv_register, cas_register, fsm, counter, ordered_log; or extension types lww_register, rga (only declarable on cells with cell_role in {ui_affordance, content, draft, cosmetic} and only valid for receivers that implement ck.profile.collaborative_text.v1; receivers without that profile MUST fail closed with unsupported_lattice_type when an event_kind references a cell using lww_register or rga). Authorization, policy, notary, membership, and lifecycle cells MUST NOT use lww_register or rga.",
     "State convergence is defined by CBA: DataEvent effects are locally accepted against seal_ref, Control Move effects are finalized by Seals, and per-cell Lattice join remains deterministic. Event Envelope routing fields MUST NOT be used as ordering authority.",
@@ -45,7 +45,9 @@
       "cell_family": "ck.component.realm.create.v1",
       "cell_subject": null,
       "lattice": "ordered_log",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.realm.update",
@@ -68,7 +70,9 @@
         "field": "payload.target_reducer_profile"
       },
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.realm.organization",
@@ -94,7 +98,9 @@
         ]
       },
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.realm.link",
@@ -120,7 +126,9 @@
         ]
       },
       "lattice": "ordered_log",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.realm.policy",
@@ -132,7 +140,9 @@
       "cell_family": "ck.component.realm.policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.realm.join_rule",
@@ -144,7 +154,9 @@
       "cell_family": "ck.component.realm.join_rule.v1",
       "cell_subject": null,
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.realm.history_visibility",
@@ -156,7 +168,9 @@
       "cell_family": "ck.component.realm.history_visibility.v1",
       "cell_subject": null,
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.realm.discovery",
@@ -168,7 +182,9 @@
       "cell_family": "ck.component.realm.discovery.v1",
       "cell_subject": null,
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.realm.preview_policy",
@@ -180,7 +196,9 @@
       "cell_family": "ck.component.realm.preview_policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.realm.disappearing_policy",
@@ -193,7 +211,9 @@
       "cell_family": "ck.component.realm.disappearing_policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.realm.search_policy",
@@ -206,7 +226,9 @@
       "cell_family": "ck.component.realm.search_policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.realm.set_default_strand",
@@ -218,7 +240,9 @@
       "cell_family": "ck.component.realm.set_default_strand.v1",
       "cell_subject": null,
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.realm.policy_server",
@@ -230,7 +254,9 @@
       "cell_family": "ck.component.realm.policy_server.v1",
       "cell_subject": null,
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.realm.policy_components",
@@ -242,7 +268,9 @@
       "cell_family": "ck.component.realm.policy_components.v1",
       "cell_subject": null,
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.realm.history_sharing_policy",
@@ -254,7 +282,9 @@
       "cell_family": "ck.component.realm.history_sharing_policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.realm.delivery_binding_policy",
@@ -266,7 +296,9 @@
       "cell_family": "ck.component.realm.delivery_binding_policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.realm.asset_privacy_policy",
@@ -278,7 +310,9 @@
       "cell_family": "ck.component.realm.asset_privacy_policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.realm.read_receipt_policy",
@@ -290,7 +324,9 @@
       "cell_family": "ck.component.realm.read_receipt_policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.realm.moderation_policy",
@@ -302,7 +338,9 @@
       "cell_family": "ck.component.realm.moderation_policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.realm.plaintext_visible_services",
@@ -314,7 +352,9 @@
       "cell_family": "ck.component.realm.plaintext_visible_services.v1",
       "cell_subject": null,
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.realm.media_service",
@@ -326,7 +366,9 @@
       "cell_family": "ck.component.realm.media_service.v1",
       "cell_subject": null,
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.realm.schema",
@@ -338,7 +380,9 @@
       "cell_family": "ck.component.realm.schema.v1",
       "cell_subject": null,
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.realm.inheritance_policy",
@@ -353,7 +397,9 @@
         "field": "payload.source_realm_id"
       },
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.realm.archive",
@@ -366,7 +412,9 @@
       "cell_family": "ck.component.realm.archive.v1",
       "cell_subject": null,
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.realm.freeze",
@@ -379,7 +427,9 @@
       "cell_family": "ck.component.realm.freeze.v1",
       "cell_subject": null,
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.realm.tombstone",
@@ -392,7 +442,9 @@
       "cell_family": "ck.component.realm.tombstone.v1",
       "cell_subject": null,
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.realm.destroy",
@@ -405,7 +457,9 @@
       "cell_family": "ck.component.realm.destroy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.circle.create",
@@ -417,7 +471,9 @@
       "cell_family": "ck.component.circle.create.v1",
       "cell_subject": null,
       "lattice": "ordered_log",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.circle.update",
@@ -454,7 +510,9 @@
       "cell_family": "ck.component.circle.tombstone.v1",
       "cell_subject": null,
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.circle.member.state",
@@ -472,7 +530,9 @@
         ]
       },
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.circle.seal_commit",
@@ -620,7 +680,9 @@
         "field": "payload.rule_id"
       },
       "lattice": "ordered_log",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.policy.action",
@@ -650,6 +712,8 @@
       },
       "lattice": "or_set",
       "bottom": "expose",
+      "plane": "control",
+      "sealed": true,
       "admission": "crypto_verifiable"
     },
     {
@@ -672,6 +736,8 @@
       },
       "lattice": "or_set",
       "bottom": "expose",
+      "plane": "control",
+      "sealed": true,
       "admission": "crypto_verifiable"
     },
     {
@@ -692,6 +758,8 @@
       },
       "lattice": "fsm",
       "bottom": "reject",
+      "plane": "control",
+      "sealed": true,
       "parameters": {
         "initial_state": "leave",
         "states": [
@@ -787,7 +855,9 @@
         ]
       },
       "lattice": "ordered_log",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.strand.create",
@@ -810,7 +880,9 @@
         "field": "payload.strand_id"
       },
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.strand.archive",
@@ -841,7 +913,9 @@
         "field": "payload.strand_id"
       },
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.strand.tracks.update",
@@ -856,7 +930,9 @@
         "field": "payload.strand_id"
       },
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.strand.move",
@@ -882,7 +958,9 @@
         ]
       },
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.strand.reorder",
@@ -908,7 +986,9 @@
         ]
       },
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.strand.watch.set",
@@ -934,7 +1014,9 @@
         ]
       },
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.space.create",
@@ -965,7 +1047,9 @@
         "field": "payload.space_id"
       },
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.space.archive",
@@ -1004,7 +1088,9 @@
         "field": "payload.strand_id"
       },
       "lattice": "ordered_log",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "data",
+      "sealed": false
     },
     {
       "event_kind": "ck.message.revise",
@@ -1035,7 +1121,9 @@
         "field": "payload.target_ref"
       },
       "lattice": "or_set",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "data",
+      "sealed": false
     },
     {
       "event_kind": "ck.reaction.remove",
@@ -1050,7 +1138,9 @@
         "field": "payload.target_ref"
       },
       "lattice": "or_set",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "data",
+      "sealed": false
     },
     {
       "event_kind": "ck.rsvp.set",
@@ -1075,7 +1165,9 @@
         "field": "payload.pin_scope.id"
       },
       "lattice": "or_set",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "data",
+      "sealed": false
     },
     {
       "event_kind": "ck.pin.remove",
@@ -1091,7 +1183,9 @@
         "field": "payload.pin_scope.id"
       },
       "lattice": "or_set",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "data",
+      "sealed": false
     },
     {
       "event_kind": "ck.pin.reorder",
@@ -1107,7 +1201,9 @@
         "field": "payload.pin_scope.id"
       },
       "lattice": "or_set",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "data",
+      "sealed": false
     },
     {
       "event_kind": "ck.redaction",
@@ -1170,7 +1266,9 @@
         "field": "payload.morph_id"
       },
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.relation.create",
@@ -1225,7 +1323,9 @@
         "field": "payload.view_id"
       },
       "lattice": "mv_register",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "data",
+      "sealed": false
     },
     {
       "event_kind": "ck.view.update",
@@ -1240,7 +1340,9 @@
         "field": "payload.view_id"
       },
       "lattice": "mv_register",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "data",
+      "sealed": false
     },
     {
       "event_kind": "ck.view.reconcile",
@@ -1255,7 +1357,9 @@
         "field": "payload.view_id"
       },
       "lattice": "mv_register",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "data",
+      "sealed": false
     },
     {
       "event_kind": "ck.agent.endpoint",
@@ -1282,7 +1386,9 @@
         ]
       },
       "lattice": "or_set",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.agent.key.revoke",
@@ -1300,7 +1406,9 @@
         ]
       },
       "lattice": "or_set",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.agent.key.rotate",
@@ -1318,7 +1426,9 @@
         ]
       },
       "lattice": "or_set",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.self.agent.pause",
@@ -1333,7 +1443,9 @@
         "field": "payload.agent_principal_id"
       },
       "lattice": "fsm",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.self.agent.resume",
@@ -1348,7 +1460,9 @@
         "field": "payload.agent_principal_id"
       },
       "lattice": "fsm",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.self.agent.deactivate",
@@ -1363,7 +1477,9 @@
         "field": "payload.agent_principal_id"
       },
       "lattice": "fsm",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.agent.draft.propose",
@@ -1434,7 +1550,9 @@
         "field": "payload.grant_id"
       },
       "lattice": "or_set",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.capability.delegate",
@@ -1449,7 +1567,9 @@
         "field": "payload.grant_id"
       },
       "lattice": "or_set",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.capability.revoke",
@@ -1464,7 +1584,9 @@
         "field": "payload.grant_id"
       },
       "lattice": "or_set",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.capability.derived",
@@ -1479,7 +1601,9 @@
         "field": "payload.grant_id"
       },
       "lattice": "or_set",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.session.grant",
@@ -1495,7 +1619,9 @@
         "field": "payload.grant_id"
       },
       "lattice": "or_set",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.consent.grant",
@@ -1511,7 +1637,9 @@
         "field": "payload.consent_id"
       },
       "lattice": "or_set",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.consent.revoke",
@@ -1527,7 +1655,9 @@
         "field": "payload.consent_id"
       },
       "lattice": "or_set",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.contact.requested",
@@ -1543,7 +1673,9 @@
         "field": "payload.target"
       },
       "lattice": "ordered_log",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.contact.accepted",
@@ -1559,7 +1691,9 @@
         "field": "payload.requester"
       },
       "lattice": "ordered_log",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.contact.rejected",
@@ -1575,7 +1709,9 @@
         "field": "payload.requester"
       },
       "lattice": "ordered_log",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.contact.tombstoned",
@@ -1591,7 +1727,9 @@
         "field": "payload.peer"
       },
       "lattice": "ordered_log",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.direct_conversation.bound",
@@ -1607,7 +1745,9 @@
         "field": "payload.pair_key"
       },
       "lattice": "ordered_log",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.account.status",
@@ -1623,7 +1763,9 @@
         "field": "payload.principal_id"
       },
       "lattice": "ordered_log",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.account.blocklist",
@@ -1670,7 +1812,9 @@
         "field": "payload.object.id"
       },
       "lattice": "mv_register",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.profile.update",
@@ -1686,7 +1830,9 @@
         "field": "payload.target_ref"
       },
       "lattice": "mv_register",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.profile.realm_override",
@@ -1714,7 +1860,9 @@
         ]
       },
       "lattice": "or_set",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.device.revoke",
@@ -1733,7 +1881,9 @@
         ]
       },
       "lattice": "or_set",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.device.list_update",
@@ -1749,7 +1899,9 @@
         "field": "payload.principal_id"
       },
       "lattice": "or_set",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.key_backup.active_series",
@@ -1777,7 +1929,9 @@
         ]
       },
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.device.push_route",
@@ -1797,7 +1951,9 @@
         ]
       },
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.cross_signing.publish",
@@ -1825,7 +1981,9 @@
         ]
       },
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.cross_signing.reset",
@@ -1842,7 +2000,9 @@
         "field": "payload.principal_id"
       },
       "lattice": "ordered_log",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.key.verification.request",
@@ -2118,7 +2278,9 @@
         "field": "payload.target_ref"
       },
       "lattice": "or_set",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.moderation.decision.lift",
@@ -2133,7 +2295,9 @@
         "field": "payload.target_ref"
       },
       "lattice": "or_set",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.moderation.appeal.submit",
@@ -2148,7 +2312,9 @@
         "field": "payload.appeal_id"
       },
       "lattice": "fsm",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.moderation.appeal.review",
@@ -2163,7 +2329,9 @@
         "field": "payload.appeal_id"
       },
       "lattice": "fsm",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.moderation.appeal.decision",
@@ -2178,7 +2346,9 @@
         "field": "payload.appeal_id"
       },
       "lattice": "fsm",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.moderation.appeal.close",
@@ -2193,7 +2363,9 @@
         "field": "payload.appeal_id"
       },
       "lattice": "fsm",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.read_cursor.advance",
@@ -2326,7 +2498,9 @@
         "field": "payload.mimi_room_uri"
       },
       "lattice": "mv_register",
-      "bottom": "expose"
+      "bottom": "expose",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.call.signal",
@@ -2350,6 +2524,8 @@
       },
       "lattice": "fsm",
       "bottom": "reject",
+      "plane": "control",
+      "sealed": true,
       "parameters": {
         "initial_states": [
           "scheduled",
@@ -2459,7 +2635,9 @@
         "field": "payload.call_id"
       },
       "lattice": "cas_register",
-      "bottom": "reject"
+      "bottom": "reject",
+      "plane": "control",
+      "sealed": true
     },
     {
       "event_kind": "ck.sovereign.did_policy",

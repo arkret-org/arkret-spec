@@ -3,7 +3,7 @@ title: Cokret Protocol
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-10
+updated: 2026-07-02
 see_also:
   - spec-map.md
   - overview/architecture.md

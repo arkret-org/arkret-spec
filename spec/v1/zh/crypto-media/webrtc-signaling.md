@@ -3,7 +3,7 @@ title: WebRTC Calls and Meetings
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-10
+updated: 2026-07-02
 sidebar:
   label: WebRTC Calls
 ---

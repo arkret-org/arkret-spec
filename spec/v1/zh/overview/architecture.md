@@ -3,14 +3,14 @@ title: Architecture
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-10
+updated: 2026-07-02
 see_also:
-  - sync/operations-sync.md
-  - sync/service-surface.md
-  - sync/sovereign-deployment.md
-  - models/realm-and-space.md
-  - models/circle.md
-  - conformance/normative-language.md
+  - ../sync/operations-sync.md
+  - ../sync/service-surface.md
+  - ../sync/sovereign-deployment.md
+  - ../models/realm-and-space.md
+  - ../models/circle.md
+  - ../conformance/normative-language.md
 ---
 
 ## 0. 规范语言
@@ -327,27 +327,27 @@ flowchart LR
         CQ["Projection / Local Search"]
     end
 
-    subgraph "Identity Plane"
+    subgraph "Identity Services"
         DID["DID Document"]
         REG["Identity Registry"]
         WIT["Witness / Replica"]
     end
 
-    subgraph "Write Plane"
+    subgraph "Write Services"
         EV["Actor Event Chain"]
         ER["Events API / Event Store"]
     end
 
-    subgraph "Principal Server / Sync Plane"
+    subgraph "Principal Server / Sync Services"
         PS1["Principal Server A"]
         PS2["Principal Server B"]
     end
 
-    subgraph "Discovery Plane"
+    subgraph "Directory Services"
         DIR["Directory"]
     end
 
-    subgraph "Content / Policy Plane"
+    subgraph "Content / Policy Services"
         BLOB["Blob Store"]
         AUTHZ["Authz Service"]
         POL["Policy Server"]

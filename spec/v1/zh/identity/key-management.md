@@ -3,7 +3,7 @@ title: Key Management
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-12
+updated: 2026-07-02
 ---
 
 ## 0. 规范语言

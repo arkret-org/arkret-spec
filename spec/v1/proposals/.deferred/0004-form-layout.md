@@ -7,7 +7,7 @@ updated: 2026-05-25
 status: deferred-to-v1.1
 created: 2026-05-23
 authors:
-  - did:web:cokret.example
+  - did:webvh:z8kSru9qAfd1G7AvcVjggdEKy:cokret.example
 depends_on: [CKP-0002, CKP-0003]
 ---
 

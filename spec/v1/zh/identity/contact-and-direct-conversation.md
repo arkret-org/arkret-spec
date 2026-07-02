@@ -3,7 +3,7 @@ title: Contact & Direct Conversation Lifecycle
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-10
+updated: 2026-07-02
 see_also:
   - consent-model.md
   - ../discovery/discovery-directory.md
@@ -64,6 +64,8 @@ Contact 负责关系状态：`pending_outgoing` / `pending_incoming` / `accepted
 
 该 requester-side grant 的生命周期 MUST 与 request 绑定，不得在 request 终结后长期残留为开放的反向 consent gate：当 requester 看到该 request 对应的 `ck.contact.rejected`、`ck.contact.tombstoned`，或 request 在 `contact_request_pending_ttl`（部署可配，默认 SHOULD ≤ 14 天）内仍处 `pending_outgoing` 而超时（无论先到者），requester 的 PCR MUST 自动对 `requester_consent_refs[]` 引用的 active grant dots 发 `ck.consent.revoke`。这些 dots 同时是 contact-managed consent，故也纳入 §3 / `ck.self.contact.command.tombstone` 的级联枚举范围；若 requester 无法枚举完整 dots，MUST 按 partial / fail-closed 处理并标记，不得报告完整撤销。该自动 revoke 不依赖 target 配合，目的是关闭"已死 request 留下长期开放的 requester→target 反向 consent gate"的暴露面。
 
+**`contact_request_pending_ttl` 计时锚与权威侧（normative）**：过期计时锚 MUST 是 canonical `ck.contact.requested` fact 的 `created_at`，去重折叠时取 §2 选定的最早未终结 canonical request。`contact_request_pending_ttl` 是 holder 本侧投影 / operation policy：requester 侧用本侧 TTL 决定何时自动 revoke `requester_consent_refs[]`；target 侧用本侧 TTL 决定 `ck.self.contact.command.respond` 是否仍可接受该 `request_id`。任一侧观察到对方已 tombstone / reject / revoke 使 consent gate 不再满足时，resolver 与 direct conversation gate MUST fail closed；迟到的 accept fact MAY 作为审计事实保存，但不得让本 holder 的 effective contact row 越过已失效的 contact-managed consent gate。
+
 `ck.self.contact.command.respond(action="accept")` MUST：
 
 1. 验证 request 存在、target 是当前 holder、request 未被 target 已拒绝 / 接受 / 终止。
@@ -99,7 +101,7 @@ Consent revoke 与 contact tombstone 仍是两条显式事实：单独 revoke co
 - `pending_incoming`：本 holder 收到 request，尚未 respond。
 - `accepted`：已看到合法 `ck.contact.accepted`，且本 holder 未 tombstone。
 - `rejected`：已看到合法 `ck.contact.rejected`。
-- `expired`：request 超过 `contact_request_pending_ttl` 后的派生投影态；过期不是新的 contact fact，但对该 `request_id` 的 accept/respond MUST fail closed。
+- `expired`：request 自 canonical `ck.contact.requested.created_at` 起超过本 holder `contact_request_pending_ttl` 后的派生投影态；过期不是新的 contact fact，但对该 `request_id` 的 accept/respond MUST fail closed。
 - `tombstoned`：本 holder 已 tombstone，或已看到 peer tombstone 且投影选择暴露该状态。
 
 request 到达 `rejected`、`expired` 或 `tombstoned` 后，后续重新发起 contact request 不复用旧 `request_id`；除非 Realm / holder policy 另有 cooldown 或 block_peer 限制，协议本身不禁止重新 request。

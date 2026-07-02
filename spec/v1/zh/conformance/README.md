@@ -3,7 +3,7 @@ title: Cokret v1 一致性工件索引
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-10
+updated: 2026-07-02
 ---
 
 本目录是 Cokret v1 一致性规范的 normative prose 入口。它只承载文字化规范，

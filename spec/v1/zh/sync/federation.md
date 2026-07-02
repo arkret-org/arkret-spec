@@ -3,7 +3,7 @@ title: Federation
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-10
+updated: 2026-07-02
 ---
 
 ## 0. 规范语言
@@ -279,6 +279,9 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(digest
       "refs": [],
       "seal_ref": "ck:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
       "auth_context": {
+        "did": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
+        "key_id": "device-1",
+        "key_epoch": 1,
         "capability_refs": ["ck:grant:0196419b-3000-7000-8000-000000000004"]
       },
       "effects": [

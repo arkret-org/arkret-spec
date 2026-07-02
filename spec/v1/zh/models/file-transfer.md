@@ -3,7 +3,7 @@ title: File Transfer
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-10
+updated: 2026-07-02
 see_also:
   - private-objects.md
   - personal-productivity.md

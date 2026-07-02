@@ -962,6 +962,11 @@
         "principal_id": "did:web:alice.example",
         "device_id": "ck:device:019a6aa0-0000-7000-8000-000000000000",
         "device_public_key": "z6MkDevicePublicKey",
+        "hpke_key": "z6MkDeviceHpkePublicKey",
+        "algorithms": [
+          "ck.device.alg.ed25519.v1",
+          "ck.device.hpke.x25519_hkdf_sha256.v1"
+        ],
         "authorized_by": "ck:device:019a6aa0-1000-7000-8000-000000000000",
         "not_before": "2026-05-20T00:00:00Z",
         "expires_at": null,
@@ -986,6 +991,11 @@
         "principal_id": "did:web:alice.example",
         "device_id": "ck:device:019a6aa0-0000-7000-8000-000000000000",
         "device_public_key": "z6MkDevicePublicKey",
+        "hpke_key": "z6MkDeviceHpkePublicKey",
+        "algorithms": [
+          "ck.device.alg.ed25519.v1",
+          "ck.device.hpke.x25519_hkdf_sha256.v1"
+        ],
         "authorized_by": "did:web:alice.example",
         "not_before": "2026-05-20T00:00:00Z",
         "bootstrap_binding": {

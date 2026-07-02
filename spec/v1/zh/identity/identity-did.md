@@ -3,7 +3,7 @@ title: DID Identity
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-29
+updated: 2026-07-02
 ---
 
 ## 0. 规范语言
@@ -372,7 +372,7 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
 
 一个组织 MAY 自建 Auth Server，同时接受多种 DID method 的用户 DID。典型流程是：
 
-1. 用户提交 `did:webvh:...`（v1 core 默认）、`did:webvh:z8kSru9qAfd1G7AvcVjggdEKy:...`（service DID 或 `personal_node` profile principal）、handle、邀请链接或组织账号；声明 AT 互通的部署也接受 `did:plc:...`。
+1. 用户提交 `did:webvh:...`（v1 core 默认）、`did:web:...`（service DID 或 `personal_node` profile principal）、handle、邀请链接或组织账号；声明 AT 互通的部署也接受 `did:plc:...`。
 2. 组织 Auth Server 按本地 trust policy 选择 resolver。v1 core 默认 principal 解析路径是 `did:webvh`（验证 `did.jsonl` 链 + SCID + entry hash chain + witness）；service DID 通常是 `did:web`；`personal_node` profile MAY 降级 principal 解析路径为 `did:web`；高安全部署可以只允许 allowlist 中的 resolver 和 trust roots。
 3. Auth Server 或客户端解析 DID Document，校验 method history、witness / directory evidence、service delegation 和可接受的 trust domain。
 4. 用户用 DID 控制密钥、设备密钥、passkey / OIDC 绑定证明或组织要求的 VC presentation 完成登录绑定。

@@ -280,7 +280,7 @@ Agent runtime 只需要 bootstrap material:
 ```json
 {
   "cokret_base_url": "https://cokret.example",
-  "service_did": "did:web:cokret.example",
+  "service_did": "did:webvh:z8CokretnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:cokret.example",
   "agent_principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
   "pairing_request_id": "01970000-0000-7000-8000-000000000020",
   "pairing_code": "R7K9-2M4P",

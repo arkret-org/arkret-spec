@@ -3,7 +3,7 @@ title: Applet Schema and Field Reference
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-10
+updated: 2026-07-02
 ---
 
 ## 0. 规范语言
@@ -18,10 +18,10 @@ updated: 2026-06-10
 {
   "kind": "ck.applet.registration",
   "applet_id": "ck:applet:dd552c17-0000-7000-8000-000000000000",
-  "service_did": "did:web:applet.example",
+  "service_did": "did:webvh:z5ApPLeTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:applet.example",
   "controller_did": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
   "base_url": "https://applet.example/applet",
-  "bot_actor_id": "did:web:applet.example:bot",
+  "bot_actor_id": "did:webvh:z5ApPLeTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:applet.example:bot",
   "protocols": ["slack"],
   "namespaces": {
     "actors": [],
@@ -35,7 +35,7 @@ updated: 2026-06-10
   "registration_epoch": "sha256:<canonical-registration-epoch-hash>",
   "webhook_auth": {
     "type": "http_message_signature",
-    "key_ref": "did:web:applet.example#server-key-1"
+    "key_ref": "did:webvh:z5ApPLeTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:applet.example#server-key-1"
   },
   "proof": {
     "kind": "detached_jws",
@@ -110,7 +110,7 @@ updated: 2026-06-10
 | `ghost_policy` | yes | Ghost Actor 支持与 accountability 模板。 |
 | `delegation_policy` | yes | delegated native-user acting 请求；默认 false。 |
 | `e2ee_policy` | yes | MLS join 请求；默认 false。 |
-| `widget` | optional | Applet UI widget declaration；若存在，MUST validate `ck.schema.applet_widget_declaration.v1`（[`applet-widget-declaration.schema.json`](../../artifacts/schemas/applet-widget-declaration.schema.json)）。 |
+| `widget` | optional | Applet UI widget declaration；若存在，MUST 通过 `ck.schema.applet_widget_declaration.v1`（[`applet-widget-declaration.schema.json`](../../artifacts/schemas/applet-widget-declaration.schema.json)）校验。 |
 | `package_digest` | yes | canonical package hash。 |
 | `registration_epoch` | yes | canonical security epoch hash。 |
 | `created_at` | yes | package 创建时间。 |
@@ -161,7 +161,7 @@ Install preview request:
 }
 ```
 
-`InstallPlan` 的机器契约是 [`schemas/applet-install-plan.schema.json`](../../artifacts/schemas/applet-install-plan.schema.json)。它 MUST include `schema="ck.schema.applet_install_plan.v1"`、`plan_id`、`applet_id`、`package_digest`、`registration_epoch`、`effective_scope`、`requested_scopes`、`approved_scopes`、`denied_scopes`、`events_to_submit`、`capability_constraints`、`namespace_conflicts`、`e2ee_effect`、`widget_effect`、`warnings`、`plan_digest`。`plan_digest` 的 canonical input 是按 [`encoding.md`](../conformance/encoding.md) canonical JSON 编码的 InstallPlan object，且在计算输入中省略 `plan_digest` 字段本身。
+`InstallPlan` 的机器契约是 [`schemas/applet-install-plan.schema.json`](../../artifacts/schemas/applet-install-plan.schema.json)。它 MUST 包含 `schema="ck.schema.applet_install_plan.v1"`、`plan_id`、`applet_id`、`package_digest`、`registration_epoch`、`effective_scope`、`requested_scopes`、`approved_scopes`、`denied_scopes`、`events_to_submit`、`capability_constraints`、`namespace_conflicts`、`e2ee_effect`、`widget_effect`、`warnings`、`plan_digest`。`plan_digest` 的 canonical input 是按 [`encoding.md`](../conformance/encoding.md) canonical JSON 编码的 InstallPlan object，且在计算输入中省略 `plan_digest` 字段本身。
 
 Install commit request:
 
@@ -193,9 +193,9 @@ Install commit request:
 }
 ```
 
-Commit response MUST validate [`schemas/applet-install-operations.schema.json#/$defs/applet_install_outcome`](../../artifacts/schemas/applet-install-operations.schema.json) and include `ok`、`install_id`、`applet_id`、`registration_event_ref`、`registration_epoch`、`bot_actor_id`、`capability_grant_refs`、`membership_event_refs`、`e2ee_authorization_refs`、`widget_policy_ref`、`effective_status`、`rejected`。
+Commit 响应 MUST 通过 [`schemas/applet-install-operations.schema.json#/$defs/applet_install_outcome`](../../artifacts/schemas/applet-install-operations.schema.json) 校验，并包含 `ok`、`install_id`、`applet_id`、`registration_event_ref`、`registration_epoch`、`bot_actor_id`、`capability_grant_refs`、`membership_event_refs`、`e2ee_authorization_refs`、`widget_policy_ref`、`effective_status`、`rejected`。
 
-`effective_scope.kind="realm"` MUST only contain `kind` and `realm_id`。`effective_scope.kind="circle"` MUST contain `kind`、`realm_id` and `circle_id`。单次 install operation MUST only target one effective_scope。recomputed plan `plan_digest` 不等于提交的 `plan_digest` 时 MUST fail closed，reason=`applet_install_plan_mismatch`。
+`effective_scope.kind="realm"` MUST 只包含 `kind` 与 `realm_id`。`effective_scope.kind="circle"` MUST 包含 `kind`、`realm_id` 与 `circle_id`。单次 install operation MUST 只作用于一个 effective_scope。recomputed plan `plan_digest` 不等于提交的 `plan_digest` 时 MUST fail closed，reason=`applet_install_plan_mismatch`。
 
 **preview `allow_ghost_actors` 与 commit `actor_policy.ghost_actor_mode` 一致性(normative)**:preview 的 `approval_request.allow_ghost_actors`(布尔)与 commit `actor_policy.ghost_actor_mode`(三值 `disallowed` / `controller_approved` / `policy_declared`)表达同一 ghost actor 准入意图,commit 时二者 MUST 语义一致，不一致 MUST fail closed:
 
@@ -209,19 +209,19 @@ Commit response MUST validate [`schemas/applet-install-operations.schema.json#/$
 ```json
 {
   "exclusive": true,
-  "pattern": "did:web:applet.example:ghost:*"
+  "pattern": "did:webvh:z5ApPLeTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:applet.example:ghost:*"
 }
 ```
 
-Pattern grammar:
+Pattern 语法：
 
-- `*` matches exactly one segment，且 `*` **不跨 segment 分隔符**。
-- `**` matches one or more path-like segments，且**仅对 `/` 分隔符**有 path-like 语义（即 `**` 只跨 `/`，不跨 `:`）。
-- literal `*` MUST be escaped as `\\*`。
+- `*` 匹配恰好一个 segment，且 `*` **不跨 segment 分隔符**。
+- `**` 匹配一个或多个 path-like segment，且**仅对 `/` 分隔符**有 path-like 语义（即 `**` 只跨 `/`，不跨 `:`）。
+- 字面量 `*` MUST 转义为 `\\*`。
 
 **Segment 分隔符（normative）**：segment 边界由 pattern 所属命名空间决定，匹配前 pattern 与目标字符串按相同分隔符集合切分：
 
-- **Actor namespace（DID pattern）**：分隔符为 `:`。`*` 匹配 DID 中由 `:` 分隔的**单一** segment，MUST NOT 跨越 `:`。例如 `did:web:slack-bridge.example:ghost:*` 匹配 `did:web:slack-bridge.example:ghost:u123`，但 MUST NOT 匹配 `did:web:slack-bridge.example:ghost:team:u123`（后者跨了一个额外 `:` segment）。DID pattern 中 `**` 同样不跨 `:`——DID 没有 path-like `/` 结构，因此 DID pattern MUST NOT 依赖 `**` 的跨段语义。`#fragment` 不参与 namespace 匹配。
+- **Actor namespace（DID pattern）**：分隔符为 `:`。`*` 匹配 DID 中由 `:` 分隔的**单一** segment，MUST NOT 跨越 `:`。例如 `did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:*` 匹配 `did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:u123`，但 MUST NOT 匹配 `did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:team:u123`（后者跨了一个额外 `:` segment）。DID pattern 中 `**` 同样不跨 `:`——DID 没有 path-like `/` 结构，因此 DID pattern MUST NOT 依赖 `**` 的跨段语义。`#fragment` 不参与 namespace 匹配。
 - **Realm / portal namespace pattern**：分隔符集合为 `:` 与 `/`。`*` 匹配由 `:` 或 `/` 分隔的单一 segment，不跨任一分隔符；`**` 只对 `/` 分隔的 path-like 尾段生效（匹配一个或多个 `/`-分隔 segment），MUST NOT 跨 `:`。例如 `slack:team:*:channel:*` 匹配 `slack:team:T123:channel:C456`；`slack.acme.example/*` 匹配单层 path，`slack.acme.example/**` 匹配多层 path。
 - 任一分隔符集合下，`*` / `**` MUST NOT 匹配空 segment；exclusive namespace 的冲突判定按 [`applet-integration.md` §4.1](./applet-integration.md) 在切分后的 segment 序列上进行。
 
@@ -252,7 +252,7 @@ Idempotency-Key: <opaque-string>
 
 ```json
 {
-  "source_service_did": "did:web:server.example",
+  "source_service_did": "did:webvh:z7SrvceTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:server.example",
   "events": [],
   "ephemeral": []
 }
@@ -285,7 +285,7 @@ GET /_cokret/edge/applet/actors/{actor_id}
 ```json
 {
   "exists": true,
-  "actor_id": "did:web:applet.example:ghost:u123",
+  "actor_id": "did:webvh:z5ApPLeTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:applet.example:ghost:u123",
   "display_name": "Alice",
   "external_ref": {}
 }

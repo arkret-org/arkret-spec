@@ -5,12 +5,12 @@ sidebar:
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-10
+updated: 2026-07-02
 see_also:
-  - models/common-fields.md
-  - models/realm-and-space.md
-  - models/strand-and-message.md
-  - conformance/normative-language.md
+  - common-fields.md
+  - realm-and-space.md
+  - strand-and-message.md
+  - ../conformance/normative-language.md
 ---
 
 ## 0. 规范语言

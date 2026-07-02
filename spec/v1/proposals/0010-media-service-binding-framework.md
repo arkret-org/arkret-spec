@@ -41,7 +41,7 @@ discussion: <pending>
 [`webrtc-signaling.md` §6.1](../zh/crypto-media/webrtc-signaling.md) 的 `ck.realm.media_service` 把 SFU 视为单实例 endpoint：
 
 ```json
-{ "service_id": "did:web:media.example.com",
+{ "service_id": "did:webvh:z8MediaTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:media.example.com",
   "sfu_endpoint": "https://sfu.example.com",
   ... }
 ```
@@ -90,7 +90,7 @@ Matrix 走过的弯路给出明确答案（详见 [MSC4143 MatrixRTC](https://gi
 {
   "kind": "ck.realm.media_service",
   "payload": {
-    "service_id": "did:web:media.example.com",
+    "service_id": "did:webvh:z8MediaTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:media.example.com",
     "foci": [
       {
         "focus_id": "fra-1",
@@ -135,7 +135,7 @@ Content-Type: application/json
 {
   "realm_id": "ck:realm:...",
   "call_id": "ck:call:...",
-  "actor_id": "did:web:alice.example.com",
+  "actor_id": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:alice.example.com",
   "device_id": "ck:device:...",
   "focus_id": "fra-1",
   "capability_refs": ["ck:grant:..."],
@@ -157,16 +157,16 @@ Content-Type: application/json
     "realm_id": "ck:realm:...",
     "call_id": "ck:call:...",
     "focus_id": "fra-1",
-    "actor_id": "did:web:alice.example.com",
+    "actor_id": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:alice.example.com",
     "device_id": "ck:device:...",
     "participant_identity": "ck:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
     "issued_at": "2026-05-27T12:29:56Z",
     "expires_at": "2026-05-27T12:34:56Z",
-    "issuer_kid": "did:web:media.example#key-1",
+    "issuer_kid": "did:webvh:z8MediaTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:media.example#key-1",
     "sig": "..."
   },
   "expires_at": "2026-05-27T12:34:56Z",
-  "service_signature": { "kid": "did:web:media.example#key-1", "sig": "..." }
+  "service_signature": { "kid": "did:webvh:z8MediaTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:media.example#key-1", "sig": "..." }
 }
 ```
 
@@ -192,7 +192,7 @@ Content-Type: application/json
     "session_focus": "fra-1",
     "participants": [
       {
-        "actor_id": "did:web:alice.example.com",
+        "actor_id": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:alice.example.com",
         "device_id": "ck:device:...",
         "foci_preferred": ["fra-1", "us-east-1"],
         "participant_identity": "ck:rtc_participant:0198c2f4-0000-7000-8000-000000000000",

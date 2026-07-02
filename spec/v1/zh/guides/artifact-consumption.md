@@ -3,7 +3,7 @@ title: Artifact Consumption Guide
 status: candidate
 normative: false
 stability: v1
-updated: 2026-06-10
+updated: 2026-07-02
 ---
 
 # Cokret v1 Artifact Consumption Guide

@@ -98,6 +98,7 @@ REGISTRY_LATTICES = {
     "rga",
 }
 REGISTRY_BOTTOMS = {"reject", "expose"}
+REGISTRY_PLANES = {"data", "control"}
 LIFECYCLE_UNSAFE_LATTICES = {"lww_register", "rga"}
 
 FULL_MARKDOWN_EXAMPLE_SCHEMAS = {
@@ -1222,6 +1223,17 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         if bottom is not None and bottom not in REGISTRY_BOTTOMS:
             lint.fail(event_path, f"{kind} has unknown bottom {bottom!r}")
         cell_family = row.get("cell_family")
+        if cell_family is not None:
+            if not isinstance(cell_family, str):
+                lint.fail(event_path, f"{kind} cell_family must be a string")
+            plane = row.get("plane")
+            if plane not in REGISTRY_PLANES:
+                lint.fail(event_path, f"{kind} cell_family row must declare plane=data|control")
+            sealed = row.get("sealed")
+            if not isinstance(sealed, bool):
+                lint.fail(event_path, f"{kind} cell_family row must declare sealed boolean")
+            elif (plane == "control") != sealed:
+                lint.fail(event_path, f"{kind} sealed must be true iff plane=control")
         lifecycle_status_cell = (
             isinstance(cell_family, str) and ".status." in cell_family
         ) or kind.rsplit(".", 1)[-1] in {"pause", "resume", "deactivate"}

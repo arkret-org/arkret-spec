@@ -3,7 +3,7 @@ title: Member Delivery Binding
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-29
+updated: 2026-07-02
 see_also:
   - join-policy.md
   - ../sync/federation.md

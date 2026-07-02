@@ -3,7 +3,7 @@ title: Third-Party Invites
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-19
+updated: 2026-07-02
 ---
 
 ## 0. 规范语言

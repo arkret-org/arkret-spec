@@ -49,7 +49,7 @@ title: <短句,大写起>
 status: draft | review | accepted | rejected | withdrawn | superseded | deferred-to-v1.1
 created: YYYY-MM-DD
 authors:
-  - did:web:alice.example  # 或者 GitHub handle / 邮箱
+  - did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:alice.example  # 或者 GitHub handle / 邮箱
 # 以下按需:
 depends_on: [CKP-MMMM]
 supersedes: [CKP-MMMM]

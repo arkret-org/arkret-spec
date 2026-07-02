@@ -3,7 +3,7 @@ title: 从 Matrix 迁移到 Cokret
 status: candidate
 normative: false
 stability: v1
-updated: 2026-06-10
+updated: 2026-07-02
 ---
 
 > 本文件为面向 Matrix 实现者的 informative 设计取舍对照，不是协议真相源；任何协议约束以被引用的具体规范章节为准。

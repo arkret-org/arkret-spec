@@ -389,7 +389,7 @@ short_name = "AI-" + controller_agent_circle_key[:12].upper()
       },
       "scope_circle_id": "ck:circle:01970000-0000-7000-8000-000000000080",
       "stage": "in_progress",
-      "created_by": "did:web:controller.example",
+      "created_by": "did:webvh:z3CtrlrTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:controller.example",
       "created_at": "2026-04-26T00:00:00Z"
     }
   }

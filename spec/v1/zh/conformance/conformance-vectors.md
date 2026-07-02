@@ -3,7 +3,7 @@ title: Conformance Vectors
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-11
+updated: 2026-07-02
 ---
 
 本文是 v1 conformance 测试向量的人类阅读入口，按域分组呈现核心 normative steps。完整 active vector 集合的机器真相源是 `artifacts/registry/vector-registry.json`；测试 runner MUST 从 registry 的 `source_refs` 加载本文件、领域文档与 fixture，不得假定本文件正文穷尽列出所有 vector id。

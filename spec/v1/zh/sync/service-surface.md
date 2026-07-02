@@ -3,13 +3,13 @@ title: Service Surface And Bootstrap
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-11
+updated: 2026-07-02
 see_also:
-  - sync/service-http-binding.md
-  - sync/operations-sync.md
-  - sync/transport-bindings.md
-  - sync/federation.md
-  - conformance/normative-language.md
+  - service-http-binding.md
+  - operations-sync.md
+  - transport-bindings.md
+  - federation.md
+  - ../conformance/normative-language.md
 ---
 
 ## 0. 规范语言

@@ -3,7 +3,7 @@ title: 授权约束 Schema
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-10
+updated: 2026-07-02
 ---
 
 ## 0. 规范语言

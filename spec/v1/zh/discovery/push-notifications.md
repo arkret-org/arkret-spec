@@ -3,7 +3,7 @@ title: Push Notifications
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-19
+updated: 2026-07-02
 ---
 
 ## 0. 规范语言
@@ -95,7 +95,9 @@ Push registration 的作用域是接收该请求的 Sync Service / Principal Ser
 |------|------|------|------|
 | `ok` | boolean | required | 注册是否被接受 |
 | `registration_id` | id | optional | 服务端分配的注册 ID |
-| `expires_at` | datetime | optional | 注册或 push token 的过期时间 |
+| `expires_at` | datetime | optional | 本 Sync / Principal Service 上该 push registration 记录的服务端有效期；不表示 APNs / FCM / WebPush provider token 自身过期时间 |
+
+`expires_at` 若出现，MUST 只约束本次 Cokret push registration 记录。Provider token 的平台生命周期、撤销或轮换由 provider adapter 在实现内部处理，或通过新的注册请求提交新的 `push_key`；不得把 provider token 过期时间塞入 `expires_at`。客户端 SHOULD 在 `expires_at` 前主动重注册；到期后服务端 MUST 停止使用该 registration 投递 push，并在下一次注册 / describe / sync 投影中以等价的 `push_registration_expired` 状态或重新注册要求暴露给该 holder。`ck.device.push_route` 的轮换周期仍由 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5a.2 约束；若两者都存在，较早失效者控制实际投递。
 
 ### 3.2 注销接口
 

@@ -3,7 +3,7 @@ title: Audited End-to-End Encryption (Profile)
 status: candidate
 normative: true
 stability: v1
-updated: 2026-06-10
+updated: 2026-07-02
 sidebar:
   label: Audited E2EE
 ---
