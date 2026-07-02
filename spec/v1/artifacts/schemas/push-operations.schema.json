@@ -167,14 +167,14 @@
     },
     "audit_envelope": {
       "type": "object",
-      "description": "Round-4 `ck.audit.policy_access` envelope routing fragment carried alongside a notify request. When present, the request is an audit-pipeline event (e.g. an `e2ee_late_recovery` access notice), not a push notify: the gateway writes the audit event, acks 200, and skips the push pipeline. Derived from floria `AuditEnvelopeMetadata` (mirror of cokret::AuditPolicyAccessPayload wire fields the gateway needs).",
+      "description": "`ck.audit.accessed` envelope routing fragment carried alongside a notify request. When present, the request is an audit-pipeline event (e.g. an `e2ee_late_recovery` access notice), not a push notify: the gateway writes the audit event, acks 200, and skips the push pipeline.",
       "required": [
         "access_kind"
       ],
       "properties": {
         "access_kind": {
           "$ref": "#/$defs/non_empty_string",
-          "description": "ck.audit.policy_access.access_kind. The gateway branches on `e2ee_late_recovery` to skip the push pipeline."
+          "description": "ck.audit.accessed.access_kind. The gateway branches on `e2ee_late_recovery` to skip the push pipeline."
         },
         "late_recovery_original_event_id": {
           "$ref": "#/$defs/event_id",
@@ -495,7 +495,7 @@
         },
         "reason_code": {
           "$ref": "#/$defs/non_empty_string",
-          "description": "Round-4 caller-supplied wire-safe reason code. The well-known value `historical_only` marks an implementation diagnostic replay that MUST NOT trigger a fresh push fanout (the gateway answers a 200 idempotency-style ack). Other values are honored only where the operation defines them."
+          "description": "Caller-supplied wire-safe reason code. The well-known value `historical_only` marks a diagnostic replay that MUST NOT trigger a fresh push fanout (the gateway answers a 200 idempotency-style ack). Other values are honored only where the operation defines them."
         },
         "audit_envelope": {
           "$ref": "#/$defs/audit_envelope"

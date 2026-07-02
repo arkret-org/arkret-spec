@@ -41,8 +41,10 @@ see_also:
 `transfer_id` 由发送设备生成，MUST 至少包含 128 bit 随机熵，wire 形态见 `file-transfer.schema.json#/$defs/transfer_id`。`transfer_key` MUST 按下式派生：
 
 ```text
-transfer_key = base64url(HMAC-SHA256(account-data namespace key, transfer_id))
+transfer_key = derive_account_data_key(transfer_id)
 ```
+
+`derive_account_data_key` 与 `account_data_namespace_key` 的密钥归属见 [`client-preferences.md` §2.2](../discovery/client-preferences.md)；服务端不得获得该 namespace key。
 
 `transfer_key` 只用于 account-data key。原始 `transfer_id`、`blob_ref`、文件名、MIME、目标设备 id 和任何明文 hash MUST NOT 出现在 account-data key 中。
 
@@ -68,7 +70,7 @@ transfer_key = base64url(HMAC-SHA256(account-data namespace key, transfer_id))
 | `retention_expires_at` | yes | transfer record 最晚保留时间。 |
 | `state` | yes | `available` / `downloaded` / `dismissed` / `deleted`。 |
 
-Producer MUST NOT 写入任何明文文件 digest / hash 字段（例如 `plaintext_digest`、`plaintext_sha256` 或历史附件字段 `cleartext_sha256`）、裸 `sha256`、裸 `size` 或任何可枚举本地路径字段。Receiver 遇到这些字段 MUST fail closed；schema 的 `additionalProperties:false` 同样会拒绝未列入 `ck.schema.file_transfer.v1` 的同义字段。
+Producer MUST NOT 写入任何明文文件 digest / hash 字段（例如 `plaintext_digest`、`plaintext_sha256`、`cleartext_sha256` 或任何同义明文字段）、裸 `sha256`、裸 `size` 或任何可枚举本地路径字段。Receiver 遇到这些字段 MUST fail closed；schema 的 `additionalProperties:false` 同样会拒绝未列入 `ck.schema.file_transfer.v1` 的同义字段，且 [`forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json) 对这些字段名提供机器可检索的 hard reject 约束。
 
 ## 4. 加密与 key delivery
 

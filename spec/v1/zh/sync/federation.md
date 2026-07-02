@@ -270,29 +270,38 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(digest
   "events": [
     {
       "event_id": "ck:event:0196419b-2000-7000-8000-000000000001",
-      "kind": "ck.read_cursor.advance",
+      "kind": "ck.message.create",
       "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
       "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
       "actor_seq": 42,
       "created_at": "2026-04-26T00:00:00Z",
       "prev_refs": [],
       "refs": [],
+      "seal_ref": "ck:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "auth_context": {
+        "capability_refs": ["ck:grant:0196419b-3000-7000-8000-000000000004"]
+      },
+      "effects": [
+        {
+          "cell": "ck:cell:message:0196419b-3000-7000-8000-000000000001",
+          "op": {
+            "kind": "append",
+            "value": {
+              "message_id": "ck:message:0196419b-3000-7000-8000-000000000001",
+              "strand_id": "ck:strand:0196419b-3000-7000-8000-000000000003",
+              "track_name": "discussion"
+            }
+          }
+        }
+      ],
       "payload": {
-        "id": "ck:read_cursor:0196419b-3000-7000-8000-000000000001",
-        "schema": "ck.schema.read_cursor.v1",
-        "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
-        "device_id": "ck:device:0196419b-3000-7000-8000-000000000002",
-        "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-        "read_scope": {
-          "kind": "strand",
-          "ref": "ck:strand:0196419b-3000-7000-8000-000000000003",
-          "track_name": "discussion"
-        },
-        "position": {
-          "event_id": "ck:event:0196419b-1000-7000-8000-000000000001",
-          "hlc": "01970e589d21-0001-a13f9c2e"
-        },
-        "updated_at": "2026-04-26T00:00:00Z"
+        "message_id": "ck:message:0196419b-3000-7000-8000-000000000001",
+        "strand_id": "ck:strand:0196419b-3000-7000-8000-000000000003",
+        "track_name": "discussion",
+        "content": {
+          "kind": "ck.content.text",
+          "body": "hello from alpha"
+        }
       },
       "proofs": [
         {
@@ -331,7 +340,7 @@ Cokret v1 的联邦批量传播采用依赖感知的 partial accept：最小原�
 
 `events[]` MUST 按数组顺序处理。同批中已接受的 Event 仅可作为**解析材料**（resolution-only）出现在后续 Event 中：可以满足 `prev_refs` 的 byte / event-id 解析、actor event chain 链接、`causal_refs` 或 payload-level causal reference 等结构性引用；但**不得**作为同批后续 Event 的授权基准。DataEvent MUST 按自身 `seal_ref` 验证；Control Move MUST 按自身 `seal_basis` 验证。同批前序 Event 创建、delegate、恢复、扩权或 revoke 的 grant / policy **不**对后续 Event 提前生效，依赖方必须等待控制面 Seal 更新后重交，否则当前批 MUST 以 `dependency_missing` / `stale_seal_ref` / `capability_denied` 拒绝或隔离（与 [`service-http-binding.md`](./service-http-binding.md) §`POST /_cokret/peer/events` 同批授权可见性规则、[`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 的 CBA basis 模型一致）。同批中尚未处理、已拒绝或隔离的 Event 不能被视为已接受依赖。单条 Event 失败不得回滚同批已接受 Event；响应 MUST 将成功项放入 `accepted[]`，失败项放入 `rejected[]`，需要异步校验的项放入 `quarantine[]`。依赖同批失败或缺失 Event 的后续项 MUST 以 `dependency_missing`、`causal_conflict` 或等价原因拒绝/隔离。
 
-**partial accept 后的 retry 边界（normative）**：sender 收到包含非空 `accepted[]` / `duplicate[]` 且仍有 `rejected[]` / `quarantine[]` / 未发送依赖的响应后，MUST 把下一次 retry 组装成新的 batch，只包含尚未被 `accepted[]` ∪ `duplicate[]` 确认且仍需投递的 Event；不得原样重放包含已确认 Event 的旧 `events[]` 来“补齐失败项”。内容完全相同的幂等重复项 MUST 列入 `duplicate[]`（幂等 no-op），MUST NOT 当作 `rejected[]`。新 batch MUST 重新计算 `Content-Digest`、`Request-Canonical-Digest` 与签名 transcript；幂等缓存命中旧 batch 不得被当作新 retry 的成功证明。接收方 SHOULD 在 `rejected[]` 项内携带原数组 `index` 与 `id`，让 sender 能机械求差；若响应缺少 `index`，sender MUST 以 `id` 集合为准剔除 `accepted[] ∪ duplicate[]`（已投递集合）。
+**partial accept 后的 retry 边界（normative）**：sender 收到包含非空 `accepted[]` / `duplicate[]` 且仍有 `rejected[]` / `quarantine[]` / 未发送依赖的响应后，MUST 把下一次 retry 组装成新的 batch，只包含尚未被 `accepted[]` ∪ `duplicate[]` 确认且仍需投递的 Event；不得原样重放包含已确认 Event 的旧 `events[]` 来“补齐失败项”。内容完全相同的幂等重复项 MUST 列入 `duplicate[]`（幂等 no-op），MUST NOT 当作 `rejected[]`。新 batch MUST 使用新的 `Idempotency-Key`（或省略），并重新计算 `Content-Digest`、`Request-Canonical-Digest` 与签名 transcript；MUST NOT 以旧 `Idempotency-Key` 配新 canonical body 重交，幂等缓存命中旧 batch 不得被当作新 retry 的成功证明。接收方 SHOULD 在 `rejected[]` 项内携带原数组 `index` 与 `id`，让 sender 能机械求差；若响应缺少 `index`，sender MUST 以 `id` 集合为准剔除 `accepted[] ∪ duplicate[]`（已投递集合）。
 
 **两类 quarantine 的退避与收敛边界（normative）**：partial accept 后进入 `quarantine[]` 的项分两类语义，sender 与接收方 MUST 区分处理，避免活锁：
 
@@ -399,7 +408,7 @@ Rebind handover：
 
 > `delivery_binding_stale` 响应体与内嵌 `handover_proof` 结构已登记为 canonical artifact [`delivery-binding-stale.schema.json`](../../artifacts/schemas/delivery-binding-stale.schema.json)（schema id `ck.schema.delivery_binding_stale.v1`），互操作实现可机器校验该响应体；相关 reason code（`delivery_binding_stale` / `delivery_binding_handover_proof_invalid` / `delivery_binding_handover_rate_limited` / `delivery_binding_handed_over`）登记于 `error-code-registry.json`。
 >
-> `handover_grace_seconds`（默认 `86400`）是该 handover 路径的部署常量，与 `allowed_recipient_services`（由 `ck.realm.delivery_binding_policy` 声明）一并属于 Realm policy / 部署常量，不进入 `delivery_binding_stale` 响应体 schema；其 normative 语义由本节散文与 `ck.realm.delivery_binding_policy` 承载。
+> `handover_grace_seconds`（默认 `86400`）是该 handover 路径的部署常量，与 `allowed_recipient_services`（由 `ck.realm.delivery_binding_policy` 声明）一并属于 Realm policy / 部署常量，不进入 `delivery_binding_stale` 响应体 schema；其 normative 语义由 [`governance/member-delivery-binding.md` §6](../governance/member-delivery-binding.md) 承载，本节仅镜像默认值与联邦 wire 形态。
 
 撤销 / 移除 cascading：
 
@@ -538,7 +547,7 @@ Probe **MUST** 是 capability-gated：
 - 被 Realm service binding 授权为 federation peer 的服务方可读取该 Realm 的 frontier 完整形态；
 - 未授权 reader **MUST NOT** 通过该 endpoint 取得 frontier 完整形态（防止 actor 集合枚举）；服务端必须使用与不存在 Realm 不可区分的失败语义。
 - Probe 请求与响应都 **MUST** 走 §3 节点间认证。
-- 已授权 peer 的 probe 仍然 MUST 按 `(realm_id, peer_service_did)` 限速，并使用固定响应 timing bucket（同桶判定口径同 §3.2：≥ 30 次采样下 p95 差异 SHOULD ≤ 50ms，高安全 profile 时 MUST 使 p99 也落入同一 bucket，对齐 [`models/relation.md` §4.5](../models/relation.md)）；服务端不得让授权 peer 通过高频轮询 `frontier_root` 推断 Realm 活跃度时间序列。
+- 已授权 peer 的 probe 仍然 MUST 按 `(realm_id, peer_service_did)` 限速，并使用固定响应 timing bucket（同桶判定口径同 §3.2：≥ 30 次采样下 p95 差异 SHOULD ≤ 50ms，高安全 profile 时 MUST 使 p99 也落入同一 bucket，对齐 [`models/relation.md` §4.5](../models/relation.md)）。服务端对外可见的 `frontier_root` 与 `actor_seq_upper_bounds` snapshot MUST 至少按固定刷新 bucket 发布，bucket 选择不得随 Realm 实时活动量变化；除 operator-triggered diagnostic 外，不得因新 Event / push / backfill 活动立即刷新对某 peer 可见的 probe 值。该固定 bucket 机制与限速 / timing bucket 共同构成 baseline 防护，使授权 peer 不能通过规律轮询 root 取值变化重建 Realm 活跃度时间序列。
 
 Probe 响应 payload：
 
@@ -563,8 +572,8 @@ Probe 响应 payload：
 
 - `heads[]` 是当前 accepted frontier 的稳定 event hash；接收方比较两端 heads 集合发现差异。
 - `max_hlc` 是 issuer 在 frontier 处观察到的最大 HLC；用于检测时钟严重偏移。
-- `frontier_root` 是 canonical Merkle root over `(heads[] ∪ sorted(actor_seq_upper_bounds))`；签名仅覆盖该 root 与 `(realm_id, issuer, observed_at)`，便于轻量比对而无需重传全部字段。
-- `actor_seq_upper_bounds` 是 issuer 视角每个 federation-visible actor 的 `actor_seq` 上界，用于检测 *per-actor* 缺口（silent fork 常表现为某 actor 的某段 seq 在对端不可见而全局 frontier 仍单调推进）。
+- `frontier_root` 是 canonical Merkle root over `(heads[] ∪ sorted(actor_seq_upper_bounds))`，使用 [`event-auth-state-resolution.md` §6.2.2](../authz/event-auth-state-resolution.md) 的 Seal Merkle 族（`leaf = H(0x00 || leaf_data)`，`node = H(0x01 || left || right)`，空集合 root 同 §6.2.2），不得使用 snapshot Merkle 族。leaf 集合由两类 typed leaf 组成并按 `leaf_sort_key` 的 canonical UTF-8 byte order 升序排列：`heads` leaf 的 `leaf_data = canonical_json({"type":"head","event_digest":<digest>})`，`leaf_sort_key = "head:" + <digest>`；`actor_seq_upper_bounds` leaf 的 `leaf_data = canonical_json({"type":"actor_seq_upper_bound","actor_id":<did>,"actor_seq_upper_bound":<integer>})`，`leaf_sort_key = "actor:" + <actor_id>`。签名仅覆盖该 root 与 `(realm_id, issuer, observed_at)`，便于轻量比对而无需重传全部字段。
+- `actor_seq_upper_bounds` 是 issuer 视角每个 federation-visible actor 的 `actor_seq` 上界，用于检测 *per-actor* 缺口（silent fork 常表现为某 actor 的某段 seq 在对端不可见而全局 frontier 仍单调推进）。Issuer MUST 按 probing peer 的投递 / 服务范围裁剪该 map：只返回该 peer 依据 Realm policy、member delivery binding 或 federation role 有 need-to-know 的 actor 子集；不得把与该 peer 无投递或审计职责的其它组织 / 其它服务范围 actor DID 和 seq 上界暴露给该 peer。高隐私 Realm MAY 先只返回聚合 `frontier_root`，在发现差异后再用 per-actor challenge / backfill 展开最小必要子集。
 - `witness_receipts[]` 可选，包含 witness / receipt service 对 frontier 的 attestation。
 - `signature` 是 issuing service 对 canonical probe payload 的签名，按 §3.2 规则。
 
@@ -586,7 +595,7 @@ Probe 响应 payload：
 启用 `ck.profile.federation.high_assurance.v1`（high-assurance / sovereign / regulated / multi-writer federation 部署，详见 [`sovereign-deployment.md`](./sovereign-deployment.md)）的服务 **MUST**：
 
 - 每个 federation-visible Realm 与每个授权 peer 的 frontier probe 间隔 ≤ **1 小时**；
-- `frontier_root` 主动交换 MUST 使用固定刷新 bucket 与 jitter，bucket 选择不得随 Realm 实时活动量变化；除 operator-triggered diagnostic 外，不得因为新 Event / push / backfill 活动立即触发额外 probe。
+- `frontier_root` 主动交换 MUST 使用固定刷新 bucket 与 jitter，bucket 选择不得随 Realm 实时活动量变化；除 operator-triggered diagnostic 外，不得因为新 Event / push / backfill 活动立即触发额外 probe。high-assurance profile 的 bucket 上限 MUST ≤ 1 小时，并且主动交换与按需 probe 共享同一对外可见 snapshot 口径。
 - 对每个 accepted push / backfill range，要求 `ck.attestation.range_completeness` 使用 `federation_witness_attested` quorum；只有单源证明时 MAY 暂存为 pending，但不得推进 high-assurance completeness frontier；
 - 维护 per-peer / per-Realm frontier exchange 状态机，跟踪 `last_success_at` 与连续失败计数；
 - **失败分类与计数（normative，避免把 silent fork 延迟到第 3 次才暴露）**：probe 失败 MUST 按两类分别处理，二者不共用同一容忍计数窗口：

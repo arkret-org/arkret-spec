@@ -2779,7 +2779,7 @@
         "audit_decision",
         "state_resolution"
       ],
-      "description": "A ck.attestation.range_completeness attestation's root (payload schema ck.schema.range_completeness_attestation.v1) does not match the locally-recomputed Merkle root over the scope's reducer-input events. Indicates either silent omission by the issuer or scope/canonicalization drift. See zh/sync/operations-sync.md §4.2.4 step 4."
+      "description": "A ck.attestation.range_completeness attestation's root (payload schema ck.schema.range_completeness_attestation.v1) does not match the locally-recomputed Merkle root over the scope's reducer-input events. Indicates either silent omission by the issuer or scope/canonicalization drift. See zh/sync/operations-sync.md §6.4.4 step 4."
     },
     {
       "code": "range_completeness_actor_seq_gap",
@@ -2787,7 +2787,7 @@
         "audit_decision",
         "state_resolution"
       ],
-      "description": "Verifier's local actor view contains a per-actor seq gap inside an interval that a ck.attestation.range_completeness attestation (payload schema ck.schema.range_completeness_attestation.v1) declared complete. Most likely indicator of silent fork or partial replication divergence beyond the attestation's stated scope. See zh/sync/operations-sync.md §4.2.4 step 6."
+      "description": "Verifier's local actor view contains a per-actor seq gap inside an interval that a ck.attestation.range_completeness attestation (payload schema ck.schema.range_completeness_attestation.v1) declared complete. Most likely indicator of silent fork or partial replication divergence beyond the attestation's stated scope. See zh/sync/operations-sync.md §6.4.4 step 6."
     },
     {
       "code": "witness_disagreement",
@@ -2795,7 +2795,7 @@
         "state_resolution",
         "federation_transaction"
       ],
-      "description": "Two overlapping-scope witness attestations (or peers) disagree on the event_id / event_digest for the same (actor_id, actor_seq), or return irreconcilable frontier_root / range-completeness root for the same range. The verifier MUST quarantine the affected range / peer and fail closed: the attestation MUST NOT be used to display 'history complete', clear an E2EE state mismatch, accept a snapshot, or submit a recovery Move. Recovery requires raw Event replay, a higher quorum, or operator-approved fork resolution. See zh/sync/operations-sync.md §4.2.3 / §4.2.4 step 7 and zh/sync/federation.md §4.5.1."
+      "description": "Two overlapping-scope witness attestations (or peers) disagree on the event_id / event_digest for the same (actor_id, actor_seq), or return irreconcilable frontier_root / range-completeness root for the same range. The verifier MUST quarantine the affected range / peer and fail closed: the attestation MUST NOT be used to display 'history complete', clear an E2EE state mismatch, accept a snapshot, or submit a recovery Move. Recovery requires raw Event replay, a higher quorum, or operator-approved fork resolution. See zh/sync/operations-sync.md §6.4.2 / §6.4.4 step 7 and zh/sync/federation.md §4.5.1."
     },
     {
       "code": "relaxed_window_exceeds_ceiling",
@@ -3375,7 +3375,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "A counter-lattice inc / dec op would move the cell's cumulative value past `parameters.max` (or below `parameters.min`) declared in the cell schema. The op MUST be rejected at validate_op / verify_move time with top-level `failed_precondition` carrying this reason_code; it never enters the join. See zh/authz/event-auth-state-resolution.md §5.3.5."
+      "description": "A counter-lattice inc / dec op would move the cell's cumulative value past `parameters.max` (or below `parameters.min`) declared in the cell schema. The op MUST be rejected at validate_op / verify_move time with top-level `failed_precondition` carrying this reason_code; it never enters the join. See zh/authz/event-auth-state-resolution.md §9.3."
     },
     {
       "code": "invalid_membership_transition",

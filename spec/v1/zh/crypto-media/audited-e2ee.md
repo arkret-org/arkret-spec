@@ -119,9 +119,9 @@ Receiver MUST 校验 request 的 scope、purpose 和 release mode 均被 binding
 
 `ck.audit.session.authorize` 由 Realm / Circle policy 指定的 approver 签发。Approver MUST 独立持有对应 scope 的高风险 audit authorization capability；Realm admin 权限不得自动覆盖 Circle-scoped audit session，除非该 grant 显式包含目标 Circle。
 
-Authorize payload MUST 引用 `session_id`、`binding_id`、`approver_actor_id`、批准的 epoch / target 范围、release mode、notice policy 和 expiry。批准范围不得超过 request、binding、release window policy 与每个目标加密时 eligibility snapshot 的交集。
+Authorize payload MUST 引用 `session_id`、`binding_id`、`approver_actor_id`、批准的 epoch / target 范围、release mode、notice policy、expiry、`approved_recipient_audit_actor_id` 与 `approved_recipient_public_key_ref`。`approved_recipient_public_key_ref` MUST 解析为 `approved_recipient_audit_actor_id` 当前 DID 文档或该 actor 已 accepted device/key registry 中授权用于 audit release 的 verification method；若该 key 由专用 audit key registry / hardware attestation key 承载，authorize payload MUST 同时绑定对应 registry / attestation evidence digest。批准范围不得超过 request、binding、release window policy 与每个目标加密时 eligibility snapshot 的交集。
 
-Authorization 只授予一个有界 release 窗口，不是一次性永久凭证。`ck.audit.release` 被 accepted 时，reducer MUST 重新校验对应 `ck.audit.applet_binding.status == "active"`，且 authorize payload 的 `expiry` 尚未到期；任一条件不满足，release MUST 被拒绝（binding 非 active 使用 `audit_release_binding_inactive`，authorize 过期使用 `auth_expired` 或更具体的 release expiry reason）。Attested release service 在输出 wrapped material 或明文 evidence 前 MUST 执行同一 guard，并且不得仅凭先前见过的 authorize 事件继续 release。
+Authorization 只授予一个有界 release 窗口，不是一次性永久凭证。`ck.audit.release` 被 accepted 时，reducer MUST 重新校验对应 `ck.audit.applet_binding.status == "active"`，authorize payload 的 `expiry` 尚未到期，且 release 的 `recipient_audit_actor_id` / `recipient_public_key_ref` 与 authorize payload 中批准的 `approved_recipient_audit_actor_id` / `approved_recipient_public_key_ref` 逐字节一致；任一条件不满足，release MUST 被拒绝（binding 非 active 使用 `audit_release_binding_inactive`，authorize 过期使用 `auth_expired` 或更具体的 release expiry reason；recipient/key mismatch 使用 `audit_release_manifest_invalid`）。Attested release service 在输出 wrapped material 或明文 evidence 前 MUST 执行同一 guard，并且不得仅凭先前见过的 authorize 事件继续 release。
 
 ### 4.3 Notice
 
@@ -153,7 +153,7 @@ Authorization 只授予一个有界 release 窗口，不是一次性永久凭证
 | `target_refs` | conditional | target-based release 时必填。 |
 | `seal_ref` / `seal_digest` | yes | release 所依赖的 accepted history seal。 |
 | `recipient_audit_actor_id` | yes | 接收材料的审计主体。 |
-| `recipient_public_key_ref` | yes | release material 加密目标 key。 |
+| `recipient_public_key_ref` | yes | release material 加密目标 key；MUST 等于 authorize payload 的 `approved_recipient_public_key_ref`，并解析为 `recipient_audit_actor_id` 授权的 audit release 接收 key。 |
 | `approver_actor_id` | yes | 授权者。 |
 | `notice_ref` | yes | 对应 `ck.audit.session.notice`。 |
 | `purpose_class` / `legal_basis_ref` | yes | 目的与依据。 |
@@ -162,9 +162,9 @@ Authorization 只授予一个有界 release 窗口，不是一次性永久凭证
 | `sealed_by_commit_ref` | conditional | 若 release 涉及 MLS epoch，MUST 引用把 active epoch 推进后的 `ck.mls.commit`。 |
 | `wrapped_material_digest[]` | yes | 已输出材料的 digest 列表；不内联明文。 |
 
-Release event MUST 先 accepted，并取得有效 `ck.audit.ryw_receipt` 后，attested release service 才能输出 wrapped material。`disclosed_policy` 也 MUST 按同一顺序记录，但其保证是流程性。
+Release event MUST 先 accepted，并取得有效 `ck.audit.ryw_receipt` 后，attested release service 才能输出 wrapped material。输出前，release service MUST 重新解析并验证 `recipient_public_key_ref` 仍是 `recipient_audit_actor_id` 授权的 audit release 接收 key；不得把 material 加密给 release manifest 自带但未被 authorize 批准、或不属于该审计主体的 key。`disclosed_policy` 也 MUST 按同一顺序记录，但其保证是流程性。
 
-Receiver / reducer MUST 拒绝任何缺失 `eligibility_proof`、`eligibility_proof` 与 binding policy 不一致、`sealed_epoch_range.first_epoch < first_auditable_epoch`，或 target 在其 encryption-time eligibility snapshot 中未包含该 binding / release mode 的 release。Release 被 accepted 时还 MUST 重新校验 binding 仍为 `active`、authorize 未过 expiry、notice 已按 scope 留痕且 session 未 close。该拒绝使用 `audit_release_retroactive_scope_forbidden`、`audit_release_manifest_invalid`、`audit_release_binding_inactive` 或 `auth_expired`，取决于错误是越过不可追溯边界、manifest 自身不一致、binding 已暂停 / revoked，还是授权窗口已过期。
+Receiver / reducer MUST 拒绝任何缺失 `eligibility_proof`、`eligibility_proof` 与 binding policy 不一致、`sealed_epoch_range.first_epoch < first_auditable_epoch`，或 target 在其 encryption-time eligibility snapshot 中未包含该 binding / release mode 的 release。Release 被 accepted 时还 MUST 重新校验 binding 仍为 `active`、authorize 未过 expiry、authorize 批准的 recipient actor/key 与 release manifest 一致、`recipient_public_key_ref` 解析到 `recipient_audit_actor_id` 授权 key、notice 已按 scope 留痕且 session 未 close。该拒绝使用 `audit_release_retroactive_scope_forbidden`、`audit_release_manifest_invalid`、`audit_release_binding_inactive` 或 `auth_expired`，取决于错误是越过不可追溯边界、manifest 自身不一致、binding 已暂停 / revoked，还是授权窗口已过期。
 
 ### 4.5 Close
 

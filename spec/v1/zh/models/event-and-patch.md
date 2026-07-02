@@ -49,13 +49,13 @@ Schema id: `ck.schema.event.v1`
 | `event_id` | yes | `id:event` | 事件稳定 typed ID。事件 canonical digest / proof hash 见 `conformance-vectors.md`。 | 事件 ID。 |
 | `kind` | yes | `string` | 标准 effect kind SHOULD 使用 `ck.` 前缀。Registry 可声明 `cell_family`、`cell_subject`、`lattice` 和 `bottom`，供 CBA reducer 使用。 | 事件 kind。 |
 | `realm_id` | yes | `id:realm` | Realm create 可在 payload 中建立。 | 所属 Realm。 |
-| `effective_scope` | reducer-stamped | `object` | Reducer 接受 Event 时从 Realm/Circle scope 物化并 immutable 写入；进入 canonical Event bytes、Seal/sub-seal leaves、E2EE AAD 与 MLS governance binding input。Actor-supplied submit payload MUST NOT 携带该字段，reducer MUST `schema_violation` (`reason=effective_scope_reducer_managed`)。 | 事件有效作用域。 |
+| `effective_scope` | reducer-stamped | `object` | Reducer 接受 Event 时从 Realm/Circle scope 物化并 immutable 写入 accepted envelope；进入 Seal/sub-seal leaves、E2EE AAD 与 MLS governance binding input。Actor-supplied submit payload MUST NOT 携带该字段，reducer MUST `schema_violation` (`reason=effective_scope_reducer_managed`)。该 reducer-stamped 字段不参与 producer proof 的 `event_digest` 输入（见 §3），其完整性由接受后的 envelope、Seal/sub-seal/AAD 承诺和存储回放规则承担。 | 事件有效作用域。 |
 | `actor_id` | yes | `did` | 必须匹配 proof 控制链(`executed_by` 缺失时);`executed_by` 存在时 proof 控制链对齐 `executed_by`。 | 事件归属的 principal of record。 |
 | `executed_by` | conditional | `did` | agent / applet / delegated service 代 `actor_id` 写入时出现。出现时 MUST 与 `authorization_ref` 同时出现；Applet delegated 写入还 MUST 同时出现 `applet_id`。进入 canonical bytes、event digest、E2EE AAD。Receiver MUST 校验 proof `verification_method` 解析到 `executed_by`。 | act-on-behalf 时实际签发该 wire write 的主体。 |
 | `authorization_ref` | conditional | `id:grant` 或 `id:event` | `executed_by` 存在时必填；Applet-originated 写入携带 `applet_id` 时也必填。优先引用已物化的 `ck:grant:*`；若授权仍以 Event 表达，则引用产生该 grant / delegation 的 accepted Event。Reducer MUST 校验该 grant / delegation 覆盖目标 event kind / resource / fresh approval,并在 effective validity window 内。 | act-on-behalf / Applet grant / delegation 引用。 |
 | `applet_id` | conditional | `id:applet` | Applet、Ghost Actor、bridge 或 delegated applet 路径引入 Event 时必填。进入 canonical bytes 与 event digest；出现时 MUST 同时出现 `authorization_ref`。 | signed Applet provenance。 |
 | `external_ref` | no | `object` | 外部网络 provenance。若用于回环防护、外部消息幂等、审计或用户可见出处，MUST 放在 Event Envelope 顶层并由签名覆盖；出现时 MUST 同时出现 `applet_id`。不得包含未授权外部正文明文。 | signed external provenance。 |
-| `actor_kind` | reducer-stamped | `enum(user, org, team, agent, service, integration)` | 不含 `device`（设备非 actor 主体，见 [`actor.md` §2](./actor.md)）。Reducer 在接受时从 `actor_id` 的 Actor Profile 解析并 immutable 写入。**Actor-supplied submit payload MUST NOT 携带**,reducer MUST `schema_violation` (`reason=actor_kind_reducer_managed`)。 | 审计 / 离线读取的 actor 类型 projection。 |
+| `actor_kind` | reducer-stamped | `enum(user, org, team, agent, service, integration)` | 不含 `device`（设备非 actor 主体，见 [`actor.md` §2](./actor.md)）。Reducer 在接受时从 `actor_id` 的 Actor Profile 解析并 immutable 写入 accepted envelope。**Actor-supplied submit payload MUST NOT 携带**,reducer MUST `schema_violation` (`reason=actor_kind_reducer_managed`)。该 reducer-stamped 字段不参与 producer proof 的 `event_digest` 输入（见 §3）。 | 审计 / 离线读取的 actor 类型 projection。 |
 | `actor_seq` | yes | `integer` | 同一 actor 因果路径上严格递增；并发 sibling fork 可出现相同高度。 | Actor 链高度 / 防回退索引。 |
 | `created_at` | yes | `timestamp` | 不能单独决定因果。 | 创建时间。 |
 | `hlc` | no | `string` | `<unix_ms_hex>-<logical_hex>-<node_id_hash>`。**Advisory 字段** — 进入 canonical bytes 与签名以防被中间方重写，但语义上只是 timeline display tie-breaker，不参与 authorization、Lattice join、Control Move precondition 或 Seal finality。详见 `encoding.md` §7。 | HLC（advisory）。 |
@@ -156,7 +156,7 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 - 相同 `(actor_id, actor_seq)` 的多个 event 是 sibling fork。它们没有隐含先后顺序；展示排序可使用 HLC，但协议状态生效必须使用 DataEvent / Control Move 验证、Seal coverage 与 Lattice join。
 - 实现 MUST 对同一 `(actor_id, actor_seq, prev_frontier_digest)` 接受的 sibling 数量设置上限；v1 public profile 的上限为 16，超过后 MUST quarantine 或要求 actor chain repair。
 - 被判定为 rejected 的 fork 不推进 actor accepted frontier，也不得作为后续 accepted event 的 predecessor。
-- **over-fork repair 终局（normative）**：当某 `(actor_id, actor_seq, prev_frontier_digest)` 桶内合法签名 sibling 数超过上限时，「quarantine 或要求 actor chain repair」的收敛终局复用 [`../sync/federation.md` §4.5](../sync/federation.md) 定义的 fork resolution 机制，而非各实现自定义：(a) receiver MUST 把整个 over-fork 桶（该桶内全部 sibling，含上限内已 accepted 者）标为 quarantine，MUST NOT 把其中任何 sibling 推进为 actor accepted frontier；(b) 重新归一只能由 federation §4.5 的 `raw replay` / `quorum witness` / `operator-approved fork resolution` 三条终局路径之一产生一个 canonical 归一结果，由有 recovery / fork-resolution capability 的主体写入；(c) 在归一结果产生前，所有 receiver 对同一 over-fork 桶 MUST 一致地拒绝推进 frontier（即 quarantine 子集 = 整桶，跨 receiver 确定相同），避免不同 receiver quarantine 不同子集导致 accepted frontier 跨 receiver 分歧。over-fork 桶不适用 §2.6 的分桶限流容忍语义（限流只针对未超限的合法分叉计数）。
+- **over-fork repair 终局（normative）**：当某 `(actor_id, actor_seq, prev_frontier_digest)` 桶内合法签名 sibling 数超过上限时，「quarantine 或要求 actor chain repair」的收敛终局复用 [`../sync/federation.md` §4.5](../sync/federation.md) 定义的 fork resolution 机制，而非各实现自定义：(a) receiver MUST 把整个 over-fork 桶（该桶内全部 sibling，含上限内已 accepted 者）标为 quarantine，MUST NOT 把其中任何 sibling 推进为 actor accepted frontier；(b) 重新归一只能由 federation §4.5 的 `raw replay` / `quorum witness` / `operator-approved fork resolution` 三条终局路径之一产生一个 canonical 归一结果，由有 recovery / fork-resolution capability 的主体写入；(c) 在归一结果产生前，所有 receiver 对同一 over-fork 桶 MUST 一致地拒绝推进 frontier（即 quarantine 子集 = 整桶，跨 receiver 确定相同），避免不同 receiver quarantine 不同子集导致 accepted frontier 跨 receiver 分歧。over-fork 桶不适用 §2.6 的分桶限流容忍语义（限流只针对未超限的合法分叉计数）。追溯进入 quarantine 的 sibling 的 effects MUST 从所有 data/control cell 的 join 输入集中移除，并按"非 quarantine accepted set 的纯函数"确定性重算 projection；以这些 sibling 作为 `prev_refs`、`refs[role=authorized_by]`、critical ref 或 payload-level critical causal ref 的后续 Event MUST 转为 `dependency_missing` / pending，不得继续使用被 quarantine 的 predecessor 维持 accepted 状态。
 
 `prev_frontier_digest` 的 canonical 计算为 `sha256:` + hex(SHA-256(JCS(sort_unique(prev_refs))))；`prev_refs` 先按 bytewise UTF-8 升序排序并去重，输入为空数组时编码为 `[]`。若 Realm 的 `digest_algorithm` 不是 `sha256`，同一结构使用该 Realm 声明的 digest algorithm，并把算法名前缀写入结果。该 digest 只用于 sibling fork 计数分桶，不参与 winner 选择。
 
@@ -173,7 +173,7 @@ Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire val
 | `kind` | yes | `enum(detached_jws)` | 初版必须支持。 | 证明类型。 |
 | `alg` | yes | `string` | 初版默认 `EdDSA`。 | 签名算法。 |
 | `verification_method` | yes | `string` | DID URL。 | 公钥/设备方法。 |
-| `event_digest` | yes | `hash` | MUST 等价于 `canonical_digest(envelope_without_proofs_unsigned)`：hash 输入是去除 `proofs` 与 `unsigned` 之后的整个 canonical Event envelope（含 `event_id`、`kind`、`actor_id`、`executed_by`、`authorization_ref`、`applet_id`、`external_ref`、`payload`、`refs`、`causal_refs`、`preconditions`、`effects`、`seal_ref`、`auth_context`、`seal_basis`、`requirements`、`hlc` 等）。 | canonical Event digest。 |
+| `event_digest` | yes | `hash` | MUST 等价于 `canonical_digest(envelope_without_proofs_unsigned_reducer_stamps)`：hash 输入是去除 `proofs`、`unsigned` 与 reducer-stamped 顶层字段（当前为 `effective_scope`、`actor_kind`）之后的 canonical Event envelope（含 `event_id`、`kind`、`actor_id`、`executed_by`、`authorization_ref`、`applet_id`、`external_ref`、`payload`、`refs`、`causal_refs`、`preconditions`、`effects`、`seal_ref`、`auth_context`、`seal_basis`、`requirements`、`hlc` 等）。 | producer-signed canonical Event digest。 |
 | `created_at` | yes | `timestamp` |  | 签名时间。 |
 | `domain` | no | `string` | 同一 trust domain 内 SHOULD 设置；跨服务、跨 trust domain 或 federation profile 下 MUST 设置。 | 域绑定。 |
 | `audience` | no | `string` 或 `array<string>` | 同一 service audience 内 SHOULD 设置；跨域/服务调用、多受众调用或 federation profile 下 MUST 设置。 | 受众绑定。 |
@@ -185,6 +185,7 @@ DID proof JSON Schema MUST 与 [`../identity/identity-did.md`](../identity/ident
 
 ```json
 {
+  "context": "ck-event-proof-v1",
   "event_digest": "sha256:<canonical envelope hash>",
   "actor_id": "<event.actor_id>",
   "verification_method": "<proof.verification_method>",
@@ -194,7 +195,7 @@ DID proof JSON Schema MUST 与 [`../identity/identity-did.md`](../identity/ident
 }
 ```
 
-Verifier MUST 先移除 `proofs` 与 `unsigned` 计算 canonical Event hash，并与 `proof.event_digest` 比对；随后按上述字段构造 canonical proof binding object，验证 detached JWS 覆盖该 binding object。这样 `event_digest` 绑定完整 Event，而 JWS transcript 同时绑定 actor、verification method、时间、domain/audience，避免跨服务或跨 actor 重放。
+Verifier MUST 先移除 `proofs`、`unsigned` 与 reducer-stamped 顶层字段（当前为 `effective_scope`、`actor_kind`）计算 producer-signed canonical Event hash，并与 `proof.event_digest` 比对；随后按上述字段构造 canonical proof binding object，且 MUST 写入固定 signing-context `context="ck-event-proof-v1"`，再验证 detached JWS 覆盖该 binding object。这样 `event_digest` 绑定 producer 提交的完整 Event，reducer-stamped 字段则在 accepted envelope、Seal/sub-seal/AAD 与存储回放中保持 immutable，不得被联邦 peer 或中间服务重写。JWS transcript 同时绑定 context、actor、verification method、时间、domain/audience，避免跨签名对象族、跨服务或跨 actor 重放。
 
 在 cross-service、cross-trust-domain、federation 或任何 profile 声明的多受众调用中，缺少 `domain` 或缺少所需 `audience` 的 proof MUST fail closed（`proof_binding_missing` 或 profile 声明的更具体 reason）。同一服务内单受众本地写入 MAY 省略其中一项，但 verifier 仍 MUST 把处理上下文中的 Realm / service audience 与 envelope `realm_id`、proof controller 和 capability 绑定分开校验；不得因为 proof 验签通过就跨服务接受同一 Event。
 
@@ -360,7 +361,7 @@ Patch path 之间若同时写入父子路径、同一路径重复写入、或一
 
 Event Batch Receipt 是可选审计/同步加速对象，**不是 canonical history**，也**不是 reducer input**。缺少 receipt 不得导致格式、签名、授权和因果均有效的 Event 被拒绝，除非 deployment profile 额外要求 witness。
 
-Receipt 的覆盖语义是 **set-bound**：`events[]` 列出 issuer *选择* 承诺的 event 集合。它提供该集合的 *integrity*（未被中间人篡改），不提供该 `scope` 下的 *completeness*（issuer 未静默丢弃属于该范围的其他 event）。即便实现额外叠加 Merkle / set commitment，恶意 issuer 仍可只承诺自己愿意承诺的子集——所以 batch receipt MUST NOT 被实现解释为 range completeness 证明。range completeness 由已注册的 active attestation event `ck.attestation.range_completeness`（payload schema `ck.schema.range_completeness_attestation.v1`）承担，其 `event_range` 必须有显式 range 语义（per-actor seq interval + frontier 上下界）+ witness quorum 或独立 seal 背书。详见 [`../sync/operations-sync.md`](../sync/operations-sync.md) §4.2 与 [`../overview/glossary.md`](../overview/glossary.md) *integrity vs completeness*。
+Receipt 的覆盖语义是 **set-bound**：`events[]` 列出 issuer *选择* 承诺的 event 集合。它提供该集合的 *integrity*（未被中间人篡改），不提供该 `scope` 下的 *completeness*（issuer 未静默丢弃属于该范围的其他 event）。即便实现额外叠加 Merkle / set commitment，恶意 issuer 仍可只承诺自己愿意承诺的子集——所以 batch receipt MUST NOT 被实现解释为 range completeness 证明。range completeness 由已注册的 active attestation event `ck.attestation.range_completeness`（payload schema `ck.schema.range_completeness_attestation.v1`）承担，其 `event_range` 必须有显式 range 语义（per-actor seq interval + frontier 上下界）+ witness quorum 或独立 seal 背书。详见 [`../sync/operations-sync.md`](../sync/operations-sync.md) §6.4 与 [`../overview/glossary.md`](../overview/glossary.md) *integrity vs completeness*。
 
 > **概念分层**（normative）：`ck.event_batch_receipt` 是 **receipt object 名称**（不是 Event Envelope `kind`）。它的唯一 wire 形态是带 `schema = "ck.schema.event_batch_receipt.v1"` 字段的独立对象；它**不**出现在 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 中，**不**会作为 `Event.kind` 出现在 Events API 提交路径上，也**不**进入 reducer 输入。任何试图把 `ck.event_batch_receipt` 当作 Event kind 提交给 `ck.self.events.command.submit` 的实现 MUST `schema_violation`，因为 Event schema 的 `kind` enum 与 event-kind-registry 同步且不含此名。下游 SDK / cotest scanner 在 prose / fixture 中遇到 `ck.event_batch_receipt` 时 MUST 把它当 schema-id-prefix / receipt-object-name 处理，不进入 active event-kind 检查表。
 

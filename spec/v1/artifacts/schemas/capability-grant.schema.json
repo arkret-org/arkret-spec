@@ -127,6 +127,7 @@
     },
     "proofs": {
       "type": "array",
+      "description": "Detached grant proofs sign canonical_json({context:'ck-capability-grant-proof-v1', payload_digest, issuer, subject, verification_method, created_at, domain?, audience?}); context is a fixed signing-context domain tag, not a wire field. payload_digest is the canonical hash of the grant body with proofs removed.",
       "items": {
         "$ref": "./event-envelope.schema.json#/$defs/proof"
       },

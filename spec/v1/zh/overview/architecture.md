@@ -126,7 +126,7 @@ Principal Server 不是身份本身，也不能替 principal 伪造 Event，**�
 - `plaintext_visible_services` 条目 MUST 声明机器可校验的 `data_classes[]`（例如 `message_content`、`attachment_preview`、`full_text_index`、`embedding`、`notification_summary`、`media_plaintext`）和 `visibility`；自由文本 `purposes` 只用于解释，MUST NOT 单独作为明文授权依据。
 - 修改 `plaintext_visible_services` 的事件必须经 `ck.realm.plaintext_visible_services` 授权；普通 `ck.realm.update` 或服务自声明 MUST NOT 隐式扩大明文可见边界。
 - 接收方 Principal Server 对非加密内容是可见方；这属于用户或组织控制边界的一部分，不应被描述成透明转发层。
-- public plaintext Realm 必须同时看四个独立信号：`discoverability` 是否公开可发现、`join_rule` 是否可公开加入、`history_visibility` 是否世界可读、`encryption_profile` 是否未加密；任一项 MUST NOT 自动推导其它项。history snippet / public export 还必须受 `ck.realm.preview_policy` 或等价 export policy 约束；若 Realm 未声明 `preview_policy`，缺省 MUST fail-closed（不暴露任何 history snippet / export），MUST NOT 因 `history_visibility=world_readable` 而自动放行。`preview_policy` 取值与缺省规则的权威源见 [`governance/history-visibility.md`](../governance/history-visibility.md)。
+- public plaintext Realm 必须同时看四个独立信号：`discoverability` 是否公开可发现、`join_rule` 是否可公开加入、`history_visibility` 是否世界可读、`encryption_profile` 是否未加密；任一项 MUST NOT 自动推导其它项。history snippet / public export 还必须受 `ck.realm.preview_policy` 或等价 export policy 约束；若 Realm 未声明 `preview_policy`，缺省 MUST fail closed（不暴露任何 history snippet / export），MUST NOT 因 `history_visibility=world_readable` 而自动放行。`preview_policy` 取值与缺省规则的权威源见 [`governance/history-visibility.md`](../governance/history-visibility.md)。
 - 未受信的第三方服务只能接收公开内容、密文 envelope 或不可解析 payload。
 
 ### 2.4 Client Query / Projection
@@ -198,7 +198,7 @@ Principal Server
 
 Identity 部署常识（无法在 deployment profile 表中表达）：
 
-- v1 core 默认 principal DID method 与默认 service DID method 均为 `did:webvh`：`did.jsonl` 历史链 + SCID + witness 提供可审计 DID 控制历史。无域名用户的 `did.jsonl` 由 Auth Server 在自有子域代为托管。`did:web`（无历史链）只能作为显式 no-history service profile 与 `personal_node` profile 的可选 principal method；`did:webvh` hosting 暂不可达时只允许 cache-only degraded mode，MUST NOT live fallback 到 `did:web`。cache-only degraded mode 的缓存有效期（7d cache age）/ TTL 耗尽后 MUST fail-closed（不得无限期缓存信任旧 DID 文档），完整阈值与 fail-closed 不变量见 [`identity/identity-did.md` §3.4](../identity/identity-did.md)。
+- v1 core 默认 principal DID method 与默认 service DID method 均为 `did:webvh`：`did.jsonl` 历史链 + SCID + witness 提供可审计 DID 控制历史。无域名用户的 `did.jsonl` 由 Auth Server 在自有子域代为托管。`did:web`（无历史链）只能作为显式 no-history service profile 与 `personal_node` profile 的可选 principal method；`did:webvh` hosting 暂不可达时只允许 cache-only degraded mode，MUST NOT live fallback 到 `did:web`。cache-only degraded mode 的缓存有效期（7d cache age）/ TTL 耗尽后 MUST fail closed（不得无限期缓存信任旧 DID 文档），完整阈值与 fail-closed 不变量见 [`identity/identity-did.md` §3.4](../identity/identity-did.md)。
 - 服务 DID 默认使用 `did:webvh`（可审计控制历史）；仅低风险或外部互通服务 MAY 显式降级为 no-history `did:web`，且 MUST 在 describe / resolver evidence 中声明无历史信任强度（权威源见 [`identity/identity-did.md` §3](../identity/identity-did.md)）；临时 / 测试 / 设备 / bootstrap 使用 `did:key`；KERI 等可作为辅助 root / trust binding（interop extension profile）；AT Protocol interop 部署额外挂 `did:plc` adapter（interop extension profile）。
 - Auth Server 与 Identity Resolution Infrastructure 不必同源部署：登录服务器证明"这个服务账户 / 设备当前绑定到哪个 DID"，identity resolver 返回或验证该 DID 的控制密钥、key state、method history / KERI log 和服务委托；组织 Policy / Authz 再决定授权。
 - 客户端和服务器必须按本地 trust policy 选择 resolver，MUST NOT 因为 DID 字符串可解析就跳过 method evidence、trust root 和 service delegation 校验；私有部署 MAY 只允许 allowlist 中的 resolver trust domain。

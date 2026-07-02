@@ -354,6 +354,18 @@
       "notes": "Encrypted Envelope MUST NOT carry `cleartext_commitment`. The bare plaintext hash is dictionary-attackable offline against low-entropy plaintext; v1 E2EE producers MUST NOT emit it and receivers MUST reject any envelope that carries it (top-level `not.required` in schemas/encrypted-envelope.schema.json). Future profiles needing plaintext commitment MUST define a keyed/salted form rather than this bare hash."
     },
     {
+      "id": "cleartext_sha256",
+      "context": "file_transfer_payload_or_account_data_value",
+      "since_revision": "2026-07-02",
+      "rejection_level": "hard_reject",
+      "replacement": null,
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
+      "notes": "File transfer account-data values MUST NOT carry a bare plaintext file hash. The only digest field for the stored Blob is ciphertext `content_digest`; plaintext digest aliases such as `cleartext_sha256`, `plaintext_sha256`, or `plaintext_digest` are rejected."
+    },
+    {
       "id": "metadata.fields.stage",
       "context": "strand_payload",
       "since_revision": "2026-05-23",

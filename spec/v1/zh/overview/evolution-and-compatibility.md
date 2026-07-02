@@ -60,7 +60,7 @@ v1 wire 内 **MUST NOT** in-place 改变任一已接受 event kind / schema / �
 
 - 未声明的 optional extension 可以省略交互或返回 `unsupported_feature` / `feature_not_advertised`；
 - 未声明的 required feature、critical extension、高风险 action 或影响授权 / 安全 / 密钥材料的能力 MUST fail closed；
-- federation peer 在接受跨域事件、snapshot、key package、directory claim、capability decision 或 applet transaction 前，必须验证本地 profile 与对端 profile 的交集覆盖该对象的全部 required semantics；
+- federation peer 在接受跨域事件、snapshot、KeyPackage、directory claim、capability decision 或 applet transaction 前，必须验证本地 profile 与对端 profile 的交集覆盖该对象的全部 required semantics；
 - client 与 SDK 不得把本地 UI/配置开关当成协议能力声明；协议能力以 ServiceDescribe、profile matrix、event/schema registry 与签名对象内的 profile 绑定为准。
 
 ## 5. 传输层 versionless

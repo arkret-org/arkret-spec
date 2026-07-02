@@ -30,7 +30,7 @@ Cokret canonical JSON MUST 使用：
 - timestamp 使用 RFC 3339 UTC，尾部 `Z`；签名输入 MUST NOT 接受本地时区、隐式时区或 leap-second 变体。
 - 字段名使用 snake_case。
 
-Event Envelope 的签名和 hash 输入 MUST 是去除 `proofs` 与 `unsigned` 后的 canonical JSON bytes，并且 MUST 保留 `event_id`。`unsigned` 是传输/本地附加信息，MUST NOT 影响 event digest 或 proof `event_digest`。实现 MUST NOT 对已经签名的 bytes 做大小写规范化、ID 前缀补全、字段默认值补写、key 重排以外的语义改写。签名字节的不可变性是协议演进的根约束——升级 MUST NOT 改写历史签名 bytes，而是用重放/投影重建派生视图，详见 [overview/evolution-and-compatibility.md](../overview/evolution-and-compatibility.md)。
+Event Envelope 的签名和 hash 输入 MUST 是去除 `proofs`、`unsigned` 与 **reducer-stamped 顶层字段**（v1 当前为 `effective_scope`、`actor_kind`）后的 canonical JSON bytes，并且 MUST 保留 `event_id`。`unsigned` 是传输/本地附加信息，MUST NOT 影响 event digest 或 proof `event_digest`。reducer-stamped 字段由 producer 提交时 MUST NOT 携带、reducer 接受时才 immutable 写入，因此**不进入 producer `proof.event_digest`**（否则联邦 peer 独立重算 digest 必与 producer 签名失配）；它们经 accepted envelope 存储、Seal / sub-seal observational 承诺与（MLS-backed scope 下的）E2EE AAD / MLS governance binding input 单独承诺，权威定义见 [`../models/event-and-patch.md` §2.2](../models/event-and-patch.md) 与 [`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)。实现 MUST NOT 对已经签名的 bytes 做大小写规范化、ID 前缀补全、字段默认值补写、key 重排以外的语义改写。签名字节的不可变性是协议演进的根约束——升级 MUST NOT 改写历史签名 bytes，而是用重放/投影重建派生视图，详见 [overview/evolution-and-compatibility.md](../overview/evolution-and-compatibility.md)。
 
 生产者 MUST 在所有 v1 签名对象中使用 JSON integer 表示数值。Schema 要求小数语义的字段（如概率、进度、置信度）MUST 使用整数 + scale（见上文 `_basis_points` 等约定），生产者和消费者按预定义 scale 解释，无须做 number canonicalization。任何 v1 schema MUST NOT 新增 `type: number`（非整数）字段；遗留字段 MUST 在下一个 schema profile 升级时迁移到整数 + scale。
 
@@ -71,7 +71,7 @@ v1 wire format 锁定为 canonical JSON。需要更紧凑或更适合受限设�
 
 - 引入备用 encoding 的 profile（id 形如 `ck.profile.encoding.cbor.v1`）MUST 在 digest-suite registry 注册对应 suite（如 `cbor.sha256`），并交付该 suite 的 activation requirements：deterministic 编码细则、CDDL、**schema 无关**的 JSON ↔ 该编码类型映射（string→text string、integer→integer 的哑映射；归一化 MUST NOT 依赖 schema 知识，否则 digest 会随 schema registry 版本漂移）、以及 per-suite conformance vectors。
 - **归一化编码是 Realm 级声明**：Realm 在 create event 的 `digest_algorithm` 字段锁定唯一 suite（§3.3），该声明是权威；事件 envelope 的 `requirements.features[]` 声明对应 encoding profile 作为能力要求，但 MUST NOT 与 Realm 声明的 suite 冲突。未声明备用 suite 的 Realm 一律按 canonical JSON 解析。
-- 由于 Realm 级 suite 排他（§3.3），同一 Realm 内不存在 JSON 与备用编码两套并行 digest，**跨编码的双向 digest 等价向量不是验证路径的需求**；仅当 profile 提供 json→备用编码的 suite transition 路径时，MUST 给出 transition Seal 双 root 向量（见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.5）。
+- 由于 Realm 级 suite 排他（§3.3），同一 Realm 内不存在 JSON 与备用编码两套并行 digest，**跨编码的双向 digest 等价向量不是验证路径的需求**；仅当 profile 提供 json→备用编码的 suite transition 路径时，MUST 给出 transition Seal 双 root 向量（见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.2）。
 - 实现 MAY 出于调试 / 退化传输目的输出备用编码 Realm 中对象的 JSON 渲染视图，但该视图是 informational 投影：MUST NOT 进入签名、digest、`prev_refs` 解析或任何 canonical 路径。
 
 ## 3. Hash
@@ -117,7 +117,7 @@ v1 active 集合刻意保持最小（`sha256` + `blake3`）。需要 algorithm d
 
 **Realm 级 suite 排他（normative）**：一个 Realm 同一时刻 MUST 只有一个 live digest suite；Realm 内所有后续 Seal / Event digest / state_root / receipt digest MUST 使用同一 suite。接收方在 Realm 上下文中遇到 suite 前缀与该 Realm 声明不符的 digest（Transition Seal 的 `previous_state_root` 除外）MUST 按 schema_violation 拒绝，即使该 suite 本身是 receiver 支持的 active suite——这条排他规则消除"同一语义对象在同一 Realm 内拥有两个合法 digest"的去重 / 重放二义性（`duplicate_conflict` 配对、`prev_refs` 解析、幂等键均依赖单一 digest 定义）。跨 Realm 引用按 digest 值自带的 suite 前缀验证，无需上下文。
 
-切换 suite（hash 分量升级，或归一化编码分量切换）需要通过 `ck.profile.hash_transition.v1` snapshot commitment + signed compaction Seal 在 frontier 上做一次 suite transition Seal，新旧 suite 都能在 transition Seal 上验证 inclusion。详细规则见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.5（digest suite transition）。
+切换 suite（hash 分量升级，或归一化编码分量切换）需要通过 `ck.profile.hash_transition.v1` snapshot commitment + signed compaction Seal 在 frontier 上做一次 suite transition Seal，新旧 suite 都能在 transition Seal 上验证 inclusion。详细规则见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.2（digest suite transition）。
 
 ### 3.3.1 Snapshot / Event-set Merkle Root 编码
 
@@ -216,7 +216,7 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 }
 ```
 
-`receipt_digest = sha256(canonical_json(receipt_without_proofs))`。`issuer`、`scope`、`frontier`、`events`、`schema` 必须进入 digest，防止 receipt 被跨 actor、跨 Realm 或跨前沿重放。
+`receipt_digest = sha256(canonical_json(receipt_without_proofs))`。`issuer`、`scope`、`frontier`、`events`、`schema` 必须进入 digest，防止 receipt 被跨 actor、跨 Realm 或跨前沿重放。Event Batch Receipt proof 的 detached bytes MUST 是 canonical binding object `{context:"ck-receipt-proof-v1", payload_digest:receipt_digest, issuer, verification_method, created_at, domain?, audience?}`；`context` 是固定 signing-context domain tag，不在 receipt wire body 中单独携带。
 
 ## 6. Signature
 
@@ -235,7 +235,8 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 
 Proof MUST bind（下列为绑定字段集合；canonical binding object 的实际字节顺序由 §2 canonical JSON 的 JCS key 排序决定，下方 JSON 示例与本清单的列举顺序仅为可读性，不代表签名字节顺序）:
 
-- `event_digest = canonical_digest(event_without_proofs_unsigned)`
+- `context = "ck-event-proof-v1"`：固定 signing-context domain tag；不从 Event envelope 读取，verifier 构造 binding object 时 MUST 写入该常量。
+- `event_digest = canonical_digest(envelope_without_proofs_unsigned_reducer_stamps)`
 - `actor_id`
 - `verification_method`
 - `created_at`
@@ -245,6 +246,7 @@ Proof MUST bind（下列为绑定字段集合；canonical binding object 的实�
 
 ```json
 {
+  "context": "ck-event-proof-v1",
   "event_digest": "sha256:<canonical event hash>",
   "actor_id": "<event.actor_id>",
   "verification_method": "<proof.verification_method>",
@@ -254,9 +256,11 @@ Proof MUST bind（下列为绑定字段集合；canonical binding object 的实�
 }
 ```
 
-Verifier 顺序固定为：先从 Event 中移除 `proofs` 与 `unsigned`，按 §1 canonicalize 并计算 `event_digest`；再与 `proof.event_digest` constant-time 比对；最后按上表字段构造 canonical binding object 并验证 detached JWS。实现 MUST NOT 直接签 HTTP envelope、transport metadata 或只签 `payload` 字段。
+Verifier 顺序固定为：先从 Event 中移除 `proofs`、`unsigned` 与 reducer-stamped 顶层字段（当前为 `effective_scope`、`actor_kind`），按 §1 canonicalize 并计算 `event_digest`；再与 `proof.event_digest` constant-time 比对；最后按上表字段构造 canonical binding object（含固定 `context`）并验证 detached JWS。实现 MUST NOT 直接签 HTTP envelope、transport metadata 或只签 `payload` 字段。
 
-**Realm 绑定（normative）**：event proof 通过 `event_digest` 间接绑定 `realm_id` —— `event_digest = canonical_digest(event_without_proofs_unsigned)` 覆盖整个 envelope，而 envelope MUST 含 `realm_id` 字段（见 §1.6 event digest 向量）；任何改写 `realm_id` 的尝试都会改变 `event_digest`，使 proof 验证失败。因此 event proof 对跨 Realm 重放提供与 Event Batch Receipt 的 `scope` 等价的保护：receipt 显式绑定 `scope`（见 §5），event proof 经由 `event_digest` 覆盖 `realm_id`。实现 MUST 在验证 proof 前确认 envelope 的 `realm_id` 与处理上下文的目标 Realm 一致，MUST NOT 仅凭 proof 验证通过就跨 Realm 接受同一 Event。
+非 Event 的 detached proof（使用 `payload_digest` 的 receipt、capability grant、snapshot witness、handle claim 等）MUST 同样在 canonical proof binding object 内包含对象族固定 `context` 常量。每个对象族的规范或 schema description MUST 定义自己的 context 值；MUST NOT 复用 `ck-event-proof-v1`，也 MUST NOT 省略 context 后只签 `{payload_digest, verification_method, created_at, ...}`。
+
+**Realm 绑定（normative）**：event proof 通过 `event_digest` 间接绑定 `realm_id` —— `event_digest = canonical_digest(envelope_without_proofs_unsigned_reducer_stamps)` 覆盖 producer Event envelope，而 envelope MUST 含 `realm_id` 字段（见 §1.6 event digest 向量）；任何改写 `realm_id` 的尝试都会改变 `event_digest`，使 proof 验证失败。因此 event proof 对跨 Realm 重放提供与 Event Batch Receipt 的 `scope` 等价的保护：receipt 显式绑定 `scope`（见 §5），event proof 经由 `event_digest` 覆盖 `realm_id`。实现 MUST 在验证 proof 前确认 envelope 的 `realm_id` 与处理上下文的目标 Realm 一致，MUST NOT 仅凭 proof 验证通过就跨 Realm 接受同一 Event。
 
 ### 6.1 Signature Suite registered set
 
@@ -376,9 +380,9 @@ causal_depth ASC, hlc ASC, actor_id ASC, actor_seq ASC, event_id ASC
 
 协议状态 MUST NOT 使用 timeline 排序选择 winner。DataEvent / Control Move 的 CBA basis、Seal coverage 与 Lattice join 决定当前 cell value；并发不可合并时返回 structured bottom。Timeline 展示顺序与 cell value 是两种不同 projection：前者排历史，后者由 Lattice 计算。实现 MUST 在 profile 中明确使用哪一个，MUST NOT 把 timeline 中最后出现的 Event 直接当作状态 value。
 
-客户端只有在已知 causal closure 足以判断两个 Event 在 `prev_refs` 与 `refs[role="after"]` 图中互不可达时，才可把 HLC 用作最终 timeline tie-breaker。若 backfill、dependency fetch 或 snapshot-assisted verification 尚未补齐到可判断互不可达，客户端 MUST 把排序标记为 provisional（例如 pending/backfilling），或使用 `created_at` / 本地接收序作为临时 UI 占位；MUST NOT 把 HLC 排序结果写入持久 projection、审计导出或任何声称“最终顺序”的视图。
+客户端只有在已知 causal closure 足以判断两个 Event 在 `prev_refs`、`refs[role="after"]`、`causal_refs` 与 payload 物化的 reply/reference edge 图中互不可达时，才可把 HLC 用作最终 timeline tie-breaker。若 backfill、dependency fetch 或 snapshot-assisted verification 尚未补齐到可判断互不可达，客户端 MUST 把排序标记为 provisional（例如 pending/backfilling），或使用 `created_at` / 本地接收序作为临时 UI 占位；MUST NOT 把 HLC 排序结果写入持久 projection、审计导出或任何声称“最终顺序”的视图。
 
-`causal_depth` 只用于 timeline / batch 展示排序。它的 canonical projection 定义为：在已知 causal closure 内，仅沿 `prev_refs` 与 `refs[role="after"]` 边计算最长路径长度；genesis depth 为 0。若任一参与排序的 Event 缺失这些边上的 predecessor，接收方 MUST 把该 Event 的 depth 标记为 provisional，不得声称最终 timeline 顺序，也不得把该 depth 输入协议状态收敛、授权或 winner 选择。
+`causal_depth` 只用于 timeline / batch 展示排序。它的 canonical projection 定义为：在已知 causal closure 内，沿 `prev_refs ∪ refs[role="after"] ∪ causal_refs ∪ payload 物化的 reply/reference edge` 计算最长路径长度；genesis depth 为 0。若任一参与排序的 Event 缺失这些边上的 predecessor，接收方 MUST 把该 Event 的 depth 标记为 provisional，不得声称最终 timeline 顺序，也不得把该 depth 输入协议状态收敛、授权或 winner 选择。
 
 ## 8. Cursor
 

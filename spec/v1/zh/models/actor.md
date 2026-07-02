@@ -108,7 +108,7 @@ Schema id: `ck.schema.actor_profile.v1`
 
 **UI / projection 责任**:
 
-- 客户端 UI **MUST** 把 `accountable_principal_ids[]` 中已校验通过的 DID 与 unverified(grant 缺失 / 过期 / revoked)的 DID 在视觉上严格区分(例如 verified 显示 "由 X 担保" 加 verified 图标,unverified 显示 "声明可问责到 X(未验证)" 加 warning 图标或完全隐藏)。
+- 客户端 UI **MUST** 把 `accountable_principal_ids[]` 中已校验通过的 DID 与 unverified(grant 缺失 / 过期 / revoked)的 DID 以可感知、可测试的 presentation invariant 区分；具体文案、图形、隐藏策略或控件形式属于实现自由，但 verified 与 unverified 两种状态不得在同一上下文中呈现为等价信任暗示。
 - 客户端 UI **MUST NOT** 仅根据 actor profile 字面值显示信任暗示。
 - Directory / Search 投影把 `accountable_principal_ids` 作为过滤条件时 MUST 只对 verified 条目生效。
 

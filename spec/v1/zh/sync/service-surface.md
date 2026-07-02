@@ -119,16 +119,12 @@ Principal Server 的根级 `/_cokret/describe` 是客户端登录 / account flow
 
 本登录 / account flow 最多并存三类 origin：Principal Server（发现启动）、Account Authority（全部 `gate/account` Cokret 操作）和认证 method provider / issuer（标准认证协议）。完整 Cokret 客户端仍可按其它 spec 访问 Directory、Blob、Media、Push 等 service origin；这些不改变 account flow 的路由规则。
 
-推荐 deployment profile：
+Deployment profile 的 canonical 机器真源是 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) 的 `deployment_profiles` 集合；本文不得另注册 profile id。下列形态仅是服务角色组合说明，实际部署 MUST 声明 canonical id（如 `ck.profile.personal_node.v1`、`ck.profile.organization.v1`、`ck.profile.high_security_organization.v1`、`ck.profile.sovereign_deployment.v1`）并按 profile registry 校验能力面：
 
-- `principal_server_personal`：一个 Principal Server；内部合并 Events API + Sync/Federation + Blob + Device/Key + Authz；客户端可自行维护本地 search / projection；Identity Resolution Infrastructure、Directory、Push 和 TURN/Media 默认可用公共服务。
-- `principal_server_organization`：一个组织委托的 Principal Server；通常搭配 Auth Server；需要统一授权和审计时增加 Policy Server；Blob、Directory、Push 可按规模和合规要求拆分。
-- `principal_server_secure_organization`：一个或多个组织委托的 Principal Server，搭配 Auth Server、Identity Resolution Infrastructure、Policy/Authz、Blob/Media；公共 Directory、Push 或外部 federation ingress 只作为可选互联入口。
-- `isolated_enclave`：Principal + Identity Resolution Infrastructure + Auth + Directory + Policy/Authz + Events/Blob + Sync/Federation + Audit/Compliance 全部在信任域内部署。
-- `public_federation_ingress`：Principal/Federation + Policy + Moderation + Directory 的受限组合，不默认可见明文。
-- `applet_service`：Applet Server + Event writer + Authz precheck，只在授权 namespace 和 capability 内工作。
-- `mimi_provider_facade`：MIMI facade + Device/Key + Federation/Authz integration，只投影被 `ck.mimi.room_binding` 授权的 Realm / Strand discussion track。
-- `agent_runtime`：Agent Runtime + Event writer，所有写入仍通过 principal / agent DID 签名。
+- 个人节点可把 Principal Server、Events API、Sync/Federation、Blob、Device/Key 与 Authz 合并到同一 trust domain，并使用公共 Directory、Push 或 TURN/Media 服务。
+- 组织节点通常把 Principal Server 与 Auth Server、Policy/Authz、Blob/Media、Directory、Push 等服务按规模和合规边界拆分。
+- 高安全或主权部署把 Principal、Identity Resolution、Auth、Directory、Policy/Authz、Events/Blob、Sync/Federation 与 Audit/Compliance 保持在受控 trust domain 内；公共 Directory、Push 或外部 federation ingress 只能作为显式授权的互联入口。
+- Applet、MIMI facade、Agent runtime、Moderation、Archive/Recovery 等角色是 service role / capability 组合，不是 deployment profile id；它们只能在已声明 profile 允许的 namespace、capability、Realm policy 与 service describe 范围内工作。
 
 客户端选择服务时 MUST 先解析 DID Document 与 Realm policy，再校验 `server/describe`。不得因为多个服务位于同一域名，就默认它们拥有相同权限或相同明文可见范围。
 
@@ -840,19 +836,7 @@ POST /_cokret/self/authz/check
 
 ## 10.1 Personal Agent Surface
 
-Native personal agent 的 management 与 sidecar operations 落在 `/_cokret/self/agents/*` 与 `/_cokret/self/agent-sidecar-threads*`,pairing 与 session grant 复用 `/_cokret/gate/account/*`:
-
-| Operation | HTTP binding | Profile |
-| --- | --- | --- |
-| `ck.self.agent.command.provision` | `POST /_cokret/self/agents` | `ck.profile.personal_agent_provisioning.v1` |
-| `ck.gate.account.command.pair_agent_key` | `POST /_cokret/gate/account/agent-key-pair` | `ck.profile.personal_agent_provisioning.v1` |
-| `ck.gate.account.command.issue_session_grant`(扩展为 `proof.proof_kind="agent_key_proof"` 分支) | `POST /_cokret/gate/account/session-grants` | `ck.profile.agent_auth.v1` |
-| `ck.self.agent.query.list` / `ck.self.agent.resource.get` | `GET /_cokret/self/agents` / `GET /_cokret/self/agents/{agent_principal_id}` | `ck.profile.personal_agent_provisioning.v1` |
-| `ck.self.agent.command.pause` / `resume` / `deactivate` / `rotate_key` | `POST /_cokret/self/agents/{agent_principal_id}/pause`, `POST /_cokret/self/agents/{agent_principal_id}/resume`, `POST /_cokret/self/agents/{agent_principal_id}/deactivate`, `POST /_cokret/self/agents/{agent_principal_id}/rotate-key` | `ck.profile.personal_agent_provisioning.v1` |
-| `ck.self.agent.grant.command.attach` / `ck.self.agent.grant.resource.delete` | `POST /_cokret/self/agents/{agent_principal_id}/grants` / `DELETE /_cokret/self/agents/{agent_principal_id}/grants/{grant_id}` | `ck.profile.personal_agent_provisioning.v1` |
-| `ck.self.agent.sidecar_thread.command.ensure` | `POST /_cokret/self/agent-sidecar-threads:ensure` | `ck.profile.agent_sidecar_thread.v1` |
-| `ck.self.agent.participation.resource.replace` | `PUT /_cokret/self/agents/{agent_principal_id}/participation` | `ck.profile.agent_participation_policy.v1` |
-| `ck.self.agent.participation.resource.get` | `GET /_cokret/self/agents/{agent_principal_id}/participation` | `ck.profile.agent_participation_policy.v1` |
+Native personal agent 的 management、pairing、session grant 与 sidecar operations 属于 self / gate trust surface 上的语义操作；canonical HTTP path、request/response schema 与 binding completeness index 由 [`service-http-binding.md` §2.4.1](./service-http-binding.md) 维护，本文只声明语义边界。实现 MUST 使用 operation catalog 中登记的 `ck.self.agent.*`、`ck.gate.account.*` 与 `ck.self.agent.sidecar_thread.*` 操作名，不得从本节散文推导额外路径、profile id 或快捷授权。
 
 约束:
 
@@ -924,7 +908,7 @@ Cokret v1 的首次加入流程：
 
 ### 14.1 存储责任与 Blob Quota
 - **成本归属**：Realm 的整体数据大小、历史 Event 数量及附属的 Blob 存储成本，逻辑上必须绑定到 Realm 的 `owner` 或负责托管的 `responsible_actor_id`。
-- **拒绝写入**：当 Blob 服务或 Principal Server 评估该 Realm 占用的资源已超出预设的 Policy 配额 (Quota) 时，MUST 返回明确的资源超限错误 (如 HTTP 413 或 402)，并拒收新写入的 Event 或大文件 Blob。
+- **拒绝写入**：当 Blob 服务或 Principal Server 评估该 Realm 占用的资源已超出预设的 Policy 配额 (Quota) 时，MUST 返回明确的协议错误语义（例如 `quota_exceeded`、`payload_too_large` 或 profile 注册的付费/资源门槛错误），并拒收新写入的 Event 或大文件 Blob。HTTP status 映射属于 binding 层，见 [`api-conventions.md` §4.1](./api-conventions.md) 与 [`service-http-binding.md`](./service-http-binding.md)。
 
 ### 14.2 写频率控制 (Rate Limiting)
 - Events API 和 Sync Service 节点 SHOULD 基于 `actor_id` 与 `realm_id` 实施严格的并发和频率限制。

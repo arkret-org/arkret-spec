@@ -65,8 +65,8 @@ Schema id: `ck.schema.circle.v1`
 | 子字段 | 必填 | 类型 | 约束 |
 | --- | --- | --- | --- |
 | `short_name` | yes | `string` | `^[A-Z][A-Za-z0-9 _-]{0,23}$`；在 `(realm_id, short_name)` 上 reducer 强制唯一(case-insensitive)。普通(非 sidecar)Circle 的 `ck.circle.create` / `ck.circle.update` 命中该唯一性冲突时 reducer MUST `failed_precondition`(`reason=circle_short_name_taken`，见 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json))；sidecar profile 路径的冲突改走 §11.1 的 `sidecar_create_denied`（为避免存在性侧信道，不区分 short_name 是否已占用）。 |
-| `color_token` | yes | `string` | 从受控 palette 选；v1 palette: `{slate, red, orange, amber, yellow, lime, green, emerald, teal, cyan, sky, blue, indigo, violet, fuchsia, pink, gray_high_contrast}`。客户端 MUST 映射 token → 主题颜色(浅/深/高对比),**不**得自行重分配 token。注:`gray_high_contrast` 是承载无障碍/高对比语义的特例 token，并非纯色相；v1 保留它在 palette 内以维持 wire 兼容，客户端 MUST 把它映射为高对比中性灰主题色。是否拆为独立 `display.high_contrast` 轴留待后续版本评估(不改变 v1 wire)。 |
-| `symbol` | yes | `object` | `{emoji?: string, glyph?: enum}`；二选一。`glyph` 取受控 snake_case 枚举（v1 canonical 集）:`{lock, shield, eye, eye_off, user_shield, fingerprint, key, diamond, flame, leaf, seal, compass, atom, bolt, moon, sun, star, globe, satellite, ring, chain, tag, flag, scroll, scale, hourglass, spark}`；客户端 MUST 把 glyph token 映射为本地 icon,MUST NOT 自行扩展未注册 token。实现 MUST 保证本表 glyph 集合与 `circle.schema.json` 的 `$defs/display/properties/symbol/properties/glyph/enum` 逐一相等(便于未来 lint)。 |
+| `color_token` | yes | `string` | 从 `circle.schema.json#/$defs/display/properties/color_token/enum` 的受控 palette 选；该 schema enum 是 canonical 机器真源。客户端 MUST 映射 token → 主题颜色(浅/深/高对比),**不**得自行重分配 token。`gray_high_contrast` 是承载无障碍/高对比语义的特例 token，并非纯色相；客户端 MUST 把它映射为高对比中性灰主题色。 |
+| `symbol` | yes | `object` | `{emoji?: string, glyph?: enum}`；二选一。`glyph` 取 `circle.schema.json#/$defs/display/properties/symbol/properties/glyph/enum` 的受控 snake_case 枚举；该 schema enum 是 canonical 机器真源。客户端 MUST 把 glyph token 映射为本地 icon,MUST NOT 自行扩展未注册 token。 |
 
 **颜色 token 与 symbol 必须在 spec 受控集中**，目的是同一 Circle 在 Alice 与 Bob 的客户端上呈现一致视觉，否则跨设备社会工程攻击成立。
 
@@ -289,7 +289,7 @@ Circle 管理类 grant MUST 显式约束到 `allowed_circle_ids` / `circle_id` s
 1. `Circle.members ⊆ Realm.members`。reducer 在 `ck.circle.member.state -> join` 时，若 target actor 的父 Realm `ck.member.state` 不是 `join`,MUST `failed_precondition` `reason=circle_member_must_be_realm_member`。
 2. 父 Realm `ck.member.state -> leave/ban` 触发 **reducer-derived** cascade:该 actor 在该 Realm 所有 Circle 的 membership 收敛到 `leave`。对 `encryption_profile=mls_rfc9420` 的 Circle，还 MUST 触发对应 MLS `remove` proposal；plaintext Circle 不产生 MLS proposal。不需要 actor 显式写。
 
-   **Cascade causal frontier 锚点（normative）**：该 derived cascade 没有独立显式 event，其因果锚点 MUST 取为触发 `leave/ban` 的父 Realm `ck.member.state` event 的 `event_digest`（记为 `F_cascade`）。被踢成员在该 Realm 的每个 Circle 的 effective membership，自 `F_cascade` 起（含因果上 ≥ `F_cascade` 的所有点）MUST 派生为 `leave`。由此定义 in-flight 并发写入的处置：被踢成员提交的、`prev_refs` 因果闭包**不**包含 `F_cascade`（即因果上并发或早于 cascade）的 Circle-scoped DataEvent，按其自身 causal frontier 处的 Circle membership 评估授权（§8 的 `members[at object.causal_frontier]`），此时该成员仍是 Circle member，写入按既有授权规则处理；但任何 `prev_refs` 因果闭包**包含** `F_cascade`（即因果上后继于 cascade）的 Circle-scoped DataEvent，其 `members[at object.causal_frontier]` 已派生为 `leave`，reducer MUST 拒绝（`failed_precondition`，`reason=circle_member_must_be_realm_member`）并 MUST NOT 投递。即：cascade 之后被踢成员对该 Circle 的写入 fail-closed，cascade 之前/并发的 in-flight 写入按各自因果点的成员资格裁决，不存在「被踢后仍能向 Circle 写入」的未定义窗口。
+   **Cascade seal 锚点（normative）**：该 derived cascade 没有独立显式 event，其治理锚点 MUST 取为覆盖触发 `leave/ban` 的父 Realm `ck.member.state` event 的 Seal（记为 `S_cascade`），并以该 control view 中的 event digest 作为审计证据。Circle-scoped DataEvent 的授权 MUST 在该 event 自身 `seal_ref` 所指向的 joined control view 上求值：若 `seal_ref` 已包含 `S_cascade` 或包含同一父 Realm membership 变更，则该 actor 在所有 Circle 的 effective membership 派生为 `leave`，reducer MUST 拒绝其写入（`failed_precondition`，`reason=circle_member_must_be_realm_member`）并 MUST NOT 投递；若 `seal_ref` 尚未包含该 cascade，写入只能按该 `seal_ref` 视图下的成员资格暂定接受，并受 revocation freshness / backfill 规则约束。服务端不得用 producer 提供的 `prev_refs` 因果闭包替代 `seal_ref` 治理视图；需要表达 in-flight 窗口时，MUST 用从事件 `seal_ref` 到 `S_cascade` 的 sealed-control predecessor 关系定义，而不是用 payload-level refs。
 3. **Circle 平面化，不允许嵌套**。需要交叉成员关系时，actor 同时属于多个 Circle 即可。
 4. Circle admin / moderator 不是 Realm admin 的隐式子集。需要 Circle-local 管理时，必须通过 Circle-scoped admin cell 或带 `circle_id` / `allowed_circle_ids` selector 的 capability grant 表达；v1 不注册单独的 `ck.circle.admin` action。Realm admin transfer 不改变本条不变量：接手者不是自动 Circle member，也不是自动 Circle-local manager。
 
@@ -303,6 +303,7 @@ Membership transition table（`membership` 复用 `ck.member.state` 的 `members
 | knock | join | `ck.circle.member.manage`(直接批准加入) |
 | knock | leave | target actor(撤回)或 `ck.circle.member.manage`(拒绝) |
 | invite | join | target actor (`ck.circle.member.add`) 或 `ck.circle.member.manage` |
+| invite | leave | target actor(拒绝邀请)或 `ck.circle.member.manage`(撤销邀请) |
 | leave | join | target actor only when `join_rule=open`; otherwise `ck.circle.member.manage` |
 | join | leave | target actor or `ck.circle.member.manage` |
 | invite / knock / join / leave | ban | `ck.circle.member.manage` |
@@ -409,7 +410,7 @@ Circle 引入的最大实践风险是**跨 Circle 上下文混淆**:用户在 Ci
 - **History backfill**:新 eligible agent 加入既有 sidecar Circle 时，MLS-backed Circle 不允许转移过去 epoch group secrets。controller 显式同意 sidecar history backfill 时，实现 MUST 通过 application-level message resend 完成(controller 设备解密 plaintext 在新 epoch 下重新加密)，不得通过共享 MLS exporter secret / past commit secret 或等价手段。Plaintext sidecar Circle 同样 MUST 把历史 backfill 视为显式 plaintext 披露，受同等 capability / approval / audit 约束。
 - **Epoch / scope granularity**:同一 sidecar Circle 可承载多个 sidecar private Strand;MLS-backed Circle 的 epoch rotation 适用于该 Circle scope 下**所有** sidecar private Strand，不可按 Strand 独立 rotate(任何仍在 Circle 中的 member 都能解密该 Circle scope 下任一 Strand 的未来 epoch)。Plaintext Circle 没有 epoch，但 membership 变更后的投递 / 查询 eligibility 仍适用于该 Circle scope 下所有 sidecar private Strand。
 - **Sidecar Strand projection**:以 sidecar Circle 为 `scope_circle_id` 的 Strand MUST NOT 出现在 Realm-wide navigation / board / list / public search / public relation expansion / 目标 Strand projections。该 invariant 由 sidecar profile-specific reducer rule enforce，而不是给 Strand schema 加 `navigation_visibility` 字段。
-- **新 agent eligibility 是 high-trust 动作**:当 controller 在已存在 sidecar Circle 的 Realm 内激活新 native personal agent 时，客户端 UI MUST 在 [`../identity/key-management.md` §3.6.1](../identity/key-management.md) 的 pairing approval 流程中显式披露 "该 agent 将自动获得现有 sidecar 私聊访问权"。
+- **新 agent eligibility 是 high-trust 动作**:当 controller 在已存在 sidecar Circle 的 Realm 内激活新 native personal agent 时，客户端 MUST 在 [`../identity/key-management.md` §3.6.1](../identity/key-management.md) 的 pairing approval 流程中显式披露该 agent 会获得既有 sidecar scope 访问权，并要求 holder 作出可审计确认；具体文案、控件形式和展示样式属于实现自由。
 
 ## 12. 与既有概念的区分
 

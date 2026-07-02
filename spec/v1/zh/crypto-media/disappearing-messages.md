@@ -65,7 +65,7 @@ Sync / account aggregate service MAY 观察或持有执行该职责所必需的�
 
 `on_last_read` 的 anchor 是冻结 `eligible_reader_set` 中每个 principal 均有一个有效 contribution 后的最大 contribution HLC；若 read-trigger window 先结束，anchor 为该 window 的结束 HLC / timestamp。`read_trigger_window_ms` 由 effective `ck.realm.disappearing_policy` 给出；缺省时 MUST 使用 `max_ttl_ms` 作为上限窗口。`eligible_reader_set` 为空时，`on_first_read` 与 `on_last_read` MUST 退化为 `on_send` anchor，且不得暴露"无人可读"作为成员枚举信号。
 
-`expired_at = min(anchor + ttl_ms + grace_ms, send_seal_hlc + max_ttl_ms + grace_ms)`；其中 `send_seal_hlc` 是该 message create 被 accepted 的 canonical send seal HLC，`max_ttl_ms` 来自同一 policy frontier 下的 effective `ck.realm.disappearing_policy`。该上限保证 `on_last_read` 的等待窗口不会变成额外 plaintext lifetime。`expired_at` 只控制 projection、local cache 和 key shredding，不得进入 authorization、membership、history visibility 或 reducer acceptance 判定。不同副本在 wall-clock 边界附近的短暂显示差异是允许的；一旦观察到相同 anchor、send seal 和 policy，projection MUST 收敛到相同 stub。
+`expired_at = min(anchor + ttl_ms + grace_ms, send_seal_hlc + max_ttl_ms)`；其中 `send_seal_hlc` 是该 message create 被 accepted 的 canonical send seal HLC，`max_ttl_ms` 来自同一 policy frontier 下的 effective `ck.realm.disappearing_policy`。该上限保证 `on_last_read` 的等待窗口和 `grace_ms` 都不会变成额外 plaintext lifetime：`ttl_ms + grace_ms` MUST 受 `max_ttl_ms` 约束。`expired_at` 只控制 projection、local cache 和 key shredding，不得进入 authorization、membership、history visibility 或 reducer acceptance 判定。不同副本在 wall-clock 边界附近的短暂显示差异是允许的；一旦观察到相同 anchor、send seal 和 policy，projection MUST 收敛到相同 stub。
 
 ### 2.4 幂等、重放与离线多设备
 
@@ -101,7 +101,7 @@ Late key recovery 也不得复活已过期 plaintext。该 expiry / retention gu
 
 `ck.realm.disappearing_policy` 写入 Realm policy cell。策略至少定义 enablement、最大 TTL、允许 trigger、默认 grace window 和是否允许 plaintext realms 使用该 profile。
 
-`ck.realm.disappearing_policy.read_trigger_window_ms` 是 `on_last_read` 等待 read contributions 的最大窗口；若省略，effective value MUST 等于 `max_ttl_ms`，且显式配置时 MUST 满足 `read_trigger_window_ms <= max_ttl_ms`。该窗口不是额外 plaintext lifetime：最终过期按 §2.3 的 `min(anchor + ttl_ms + grace_ms, send_seal_hlc + max_ttl_ms + grace_ms)` 计算，且 `ttl_ms + grace_ms` MUST 受 `max_ttl_ms` 约束。Realm 若允许 `on_first_read` 或 `on_last_read`，MUST 在加入 / 进入 scope 时向用户披露：客户端会发送 private read trigger contribution，但该 contribution 不等同于公开 read receipt，且不得向其他成员显示 reader identity。
+`ck.realm.disappearing_policy.read_trigger_window_ms` 是 `on_last_read` 等待 read contributions 的最大窗口；若省略，effective value MUST 等于 `max_ttl_ms`，且显式配置时 MUST 满足 `read_trigger_window_ms <= max_ttl_ms`。该窗口不是额外 plaintext lifetime：最终过期按 §2.3 的 `min(anchor + ttl_ms + grace_ms, send_seal_hlc + max_ttl_ms)` 计算，且 `ttl_ms + grace_ms` MUST 受 `max_ttl_ms` 约束。Realm 若允许 `on_first_read` 或 `on_last_read`，MUST 在加入 / 进入 scope 时向用户披露：客户端会发送 private read trigger contribution；该 contribution 不显示 reader identity，但发送者可能从最终过期时刻推断粗粒度读取时序，因此它不等同于公开 read receipt。
 
 不支持 `ck.profile.disappearing.v1` 的实现 MUST fail closed：可以显示无法解密 / 不支持提示，但不得把带 expiry 的消息当作普通永久消息处理。
 

@@ -226,6 +226,114 @@ Event batch receipt 是 best-effort RYW / 加速 / 审计 hint，只对 issuer �
 
 需要证明“某范围内没有漏给事件”时，必须使用带显式 range 的 attestation：per-actor seq interval、from/to frontier、root、count 与 witness quorum。Set-bound Merkle commitment 只能证明集合未被篡改，不能证明范围未被删减。
 
+`ck.attestation.range_completeness` 是 v1 已注册 active event kind（payload schema `ck.schema.range_completeness_attestation.v1`，artifact [`range-completeness-attestation.schema.json`](../../artifacts/schemas/range-completeness-attestation.schema.json)），用于提供 *completeness* 证明——即“该范围内没有 reducer-input event 被静默丢弃”。它与 `ck.event_batch_receipt`（set-bound integrity）和 `ck.audit.ryw_receipt`（per-event RYW）正交：completeness 需要 range 语义 + per-actor seq interval + witness 背书，缺一不可。
+
+#### 6.4.1 Scope 语义
+
+- `from_frontier` 是 **exclusive** 下界；attestation 覆盖该 frontier *之后* 因果发生的 reducer-input event。
+- `to_frontier` 是 **inclusive** 上界。
+- `actor_seq_ranges[]` 给出每个在 `(from_frontier, to_frontier]` 区间内产生 reducer-input event 的 actor 的 seq 区间（half-open `(from_seq_exclusive, to_seq_inclusive]`）。MUST 覆盖区间内所有产生 reducer-input event 的 actor；不可遗漏。
+- silent fork 经常表现为“某个 actor 的某段 seq 在对端不可见而全局 frontier 仍单调推进”——这就是为什么必须显式 per-actor seq interval，仅有 frontier 不够。
+
+#### 6.4.2 `root` 计算
+
+`root` 是 canonical Merkle root over **scope 内全部 reducer-input event 的 `(actor_id, actor_seq, event_id, payload_hash)` 四元组排序集合**：
+
+1. 收集 scope 内每个 actor 在其 seq interval 内的全部 accepted reducer-input event；
+2. 对每个 event 形成 leaf `canonical_bytes({actor_id, actor_seq, event_id, payload_hash})`；
+3. 按 `(actor_id, actor_seq)` 字典序排序；
+4. 计算 binary Merkle tree（hash 算法按 Realm `digest_algorithm` 声明的 digest suite，见 [`../conformance/encoding.md` §3.3](../conformance/encoding.md)）；
+5. `count` MUST 等于叶子数。
+
+不包含 non-reducer event（read marker / typing 等）。leaves 排序确定性使 verifier 可以局部 backfill 后独立重算 `root`。
+
+#### 6.4.3 Witness Attestation 与 sovereign-grade 完整性
+
+`witness_attestation` 复用 `ck.audit.ryw_receipt.witness_attestation` 的语义（见 [`../crypto-media/audited-e2ee.md` §4.1.1](../crypto-media/audited-e2ee.md)）：
+
+- `witness_attestation.kind="federation_witness_attested"` MUST 满足 `witnesses[].length >= 2`、`(issuer, controlling_organization, verification_method)` 两两 distinct、且每个 `issuer` 在 Realm `audit.range_completeness_witnesses[]` 中已声明。
+- `witness_attestation.kind="single_source"` 是单签发者的诚实声明，MUST `witnesses.length == 1`。
+
+**重要**：`single_source` attestation 不构成 sovereign-grade completeness 证明——它只是 issuer 的自报。需要“对方未藏分支”语义保证的部署 MUST 要求 `federation_witness_attested`。这是 silent fork 抗性的最后一道防线：base batch receipt（integrity）+ frontier exchange（probe）+ range-completeness attestation（completeness with witness quorum）才能完整覆盖。
+
+#### 6.4.4 Verifier 协议
+
+接收方 verifier 验证 attestation 时 MUST：
+
+1. 校验所有 `proofs[]` 与 `witness_attestation.witnesses[].verification_method` 签名；
+2. 校验 `witness_attestation.kind` 与 `witnesses[]` cardinality / distinctness / Realm policy 列表一致；
+3. 校验 `from_frontier` / `to_frontier` 因果一致（`to_frontier` ⊇ `from_frontier`）；
+4. 若 verifier 自身持有 scope 内事件，MUST 重算 `root` 并 constant-time 比较；不一致 `range_completeness_root_mismatch`；
+5. 若 verifier 只持有 scope 子集，可以验证 inclusion proof（按 standard Merkle inclusion）；不持有任何 scope 事件时只能记录 attestation 不能确认 completeness；
+6. 校验 `actor_seq_ranges[]` 中每个 actor 的 seq interval 与 verifier 本地视图（partial replication 后）一致；本地视图若发现缺口而 attestation 声称完整，MUST `range_completeness_actor_seq_gap`；
+7. 声明 `security_class=high_assurance` 或 `ck.profile.federation.high_assurance.v1` 的 Realm，若 `witness_attestation` 未达 `federation_witness_attested` quorum 或 witness 集合彼此对 `root` / `actor_seq_ranges[]` 给出不一致背书，MUST 按 `witness_disagreement` fail closed，不得据 `single_source` 自报解除 completeness 关注。
+
+#### 6.4.5 与其它原语的关系
+
+| 原语 | scope | 提供 | 不提供 |
+| --- | --- | --- | --- |
+| `ck.event_batch_receipt` | issuer 选择的 events 集合 | integrity（给的没被改） | completeness（没漏给） |
+| `ck.audit.ryw_receipt` | 单个 `ck.audit.accessed` event | RYW witness attestation | range coverage |
+| `ck.attestation.range_completeness`（本节） | 显式 (from_frontier, to_frontier] + per-actor seq intervals | completeness with witness quorum | per-event payload 解密能力 |
+
+issuer / verifier 应根据需求选取；混用以补强各自边界。客户端读取面的暴露方式见 [`service-http-binding.md` §3.3.6](./service-http-binding.md)（optional feature `events_query_range_completeness`）；联邦面 server-to-server 强制语义见 [`federation.md` §4.5.3](./federation.md)。
+
+#### 6.4.1 Payload 与 root（normative）
+
+`ck.attestation.range_completeness` 的 payload schema 是 [`range-completeness-attestation.schema.json`](../../artifacts/schemas/range-completeness-attestation.schema.json)（schema id `ck.schema.range_completeness_attestation.v1`）。payload MUST 至少声明：
+
+- `realm_id`：完整性范围所属 Realm；
+- `event_range.from_frontier.realm_frontier[]`：下界 frontier（exclusive）；
+- `event_range.to_frontier.realm_frontier[]`：上界 frontier（inclusive）；
+- `event_range.actor_seq_ranges[]`：每个 actor 的 `(from_seq_exclusive, to_seq_inclusive]` 区间；
+- `root`：对范围内全部 reducer-input Event 的 Merkle root；
+- `count`：参与 root 的 leaf 数；
+- `witness_attestation.kind` 与 `witness_attestation.witnesses[]`。
+
+`root` 的 leaf 集 MUST 恰好是 `realm_id` 下位于 `(from_frontier, to_frontier]` 且 actor seq 落入对应 `actor_seq_ranges[]` 的全部 reducer-input Event。每个 leaf 的 `leaf_data` 为下列 closed object 的 canonical JSON UTF-8 bytes：
+
+```json
+{
+  "actor_id": "<event.actor_id>",
+  "actor_seq": 0,
+  "event_id": "<event.event_id>",
+  "event_digest": "<event.proofs[0].event_digest>"
+}
+```
+
+leaf 顺序按 `(actor_id code point ASC, actor_seq ASC, event_id ASC, event_digest ASC)` 排列；Merkle 组合 MUST 使用 [`event-auth-state-resolution.md` §6.2.2](../authz/event-auth-state-resolution.md) 的 Seal Merkle 组合规则（`leaf = H(0x00 || leaf_data)`、`node = H(0x01 || left || right)`、空集合 root 为 `H("")`），`H` 取该 Realm 的 `digest_algorithm`。`count` MUST 等于 leaf 数；`root` MUST 等于该 leaf 集重算结果。
+
+#### 6.4.2 Quorum 语义（normative）
+
+`witness_attestation.kind="single_source"` 表示 issuer 自报：verifier MAY 用它检测传输篡改和本地缺口，但 MUST NOT 把它当作 sovereign-grade completeness 证明。`single_source` payload 的 `witnesses[]` MUST 至少包含 issuer 自身或一个声明代表 issuer 的 witness entry；issuer、verification method 与 proof controller 不一致时 MUST `schema_violation`。
+
+`witness_attestation.kind="federation_witness_attested"` 表示独立 witness quorum 已对同一 `(realm_id, from_frontier, to_frontier, actor_seq_ranges, root, count)` 签署一致见证。verifier MUST 校验：
+
+1. `witnesses[].issuer`、`verification_method`、`controlling_organization` 在 quorum 内 pairwise distinct 到 policy 要求的最小独立性；
+2. 每个 witness 均在 Realm policy `audit.range_completeness_witnesses[]` 或等价 profile-declared witness 集合内；
+3. witness proof 覆盖同一 canonical payload digest；
+4. 任意两个 witness 对同一 range 给出不同 `root`、`count` 或 `actor_seq_ranges[]` 时，verifier MUST 标记 `witness_disagreement`，quarantine 该 range / peer，并 fail closed，不得把任一方结果展示为完整。
+
+声明 `security_class=high_assurance` 或 `ck.profile.federation.high_assurance.v1` 的 Realm，解除 completeness 关注时 MUST 只接受 `federation_witness_attested`；`single_source` 只能作为诊断输入。
+
+#### 6.4.3 single-source issuer 行为（normative）
+
+签发 `single_source` attestation 的 issuer MUST 先从自己的 accepted store 构造 `(from_frontier, to_frontier]` 范围，按 §6.4.1 计算 `actor_seq_ranges[]`、`root` 与 `count`，再签名 payload。issuer 不得仅依据分页结果、查询过滤器结果或一组 `events[]` 响应临时推断完整性；范围必须来自该 issuer 对 Realm history 的 accepted frontier 视图。issuer 后续发现该 range 内存在漏收、over-fork quarantine、签名无效或 actor chain repair 时，MUST 将旧 attestation 视为 stale diagnostic，不得继续作为 completeness 证明返回。
+
+#### 6.4.4 verifier 协议（normative）
+
+客户端或 peer 验证 range-completeness attestation 时 MUST 按下列顺序执行：
+
+1. 验证承载 EventEnvelope 的签名、`event_digest`、`kind="ck.attestation.range_completeness"` 与 payload `schema="ck.schema.range_completeness_attestation.v1"`；payload schema 校验失败即 `schema_violation`。
+2. 校验 `realm_id`、`from_frontier`、`to_frontier` 与查询 / backfill scope 一致；attestation 的 range MAY over-cover 响应页，但 verifier 只能对本地已经 backfill 完成且落在 attestation range 内的交集声明完整。
+3. 校验 `actor_seq_ranges[]` canonical 排序、无重复 actor、每个 `from_seq_exclusive < to_seq_inclusive`；不满足时 `schema_violation`。
+4. 从本地已验证 accepted store 取出 `(from_frontier, to_frontier]` 且匹配 `actor_seq_ranges[]` 的全部 reducer-input Event，按 §6.4.1 重算 Merkle root；不一致 MUST `range_completeness_root_mismatch`。
+5. 重算 leaf 数并与 `count` 比对；不一致 MUST `range_completeness_root_mismatch`。
+6. 对每个 `actor_seq_ranges[]`，verifier MUST 比对本地视图的 per-actor seq interval：若本地在该区间内存在缺口、已知 quarantine / dependency_missing 输入，或存在区间内 accepted Event 未被 leaf 覆盖，而 attestation 声称完整，MUST `range_completeness_actor_seq_gap` 并 fail closed。
+7. 按 §6.4.2 校验 quorum；witness 对同一 range 的 payload 不一致、policy 不承认 witness、或 high-assurance Realm 只收到 `single_source` 时，MUST `witness_disagreement` 或 profile 指定的更具体 reason，quarantine 该 completeness 结论。
+
+上述任一步失败时，verifier MAY 继续展示已签名 Event 自身，但 MUST NOT 向用户、上层 API 或审计报告声明该范围“历史完整”。
+
 ## 7. 同步面
 
 同步面以可见性裁剪后的 Event、receipt、Seal、snapshot 与 projection delta 组成。

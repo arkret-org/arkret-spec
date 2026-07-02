@@ -2865,9 +2865,11 @@
           "kind",
           "realm_id",
           "actor_id",
+          "device_id",
           "sent_at",
           "expires_at",
-          "payload"
+          "payload",
+          "proof"
         ],
         "properties": [
           "kind",

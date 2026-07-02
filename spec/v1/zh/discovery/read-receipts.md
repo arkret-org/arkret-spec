@@ -46,6 +46,7 @@ updated: 2026-06-24
   "kind": "ck.receipt.read",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
+  "device_id": "ck:device:019640dd-8000-7000-8000-000000000000",
   "sent_at": "2026-04-26T10:00:00Z",
   "expires_at": "2026-04-26T10:00:30Z",
   "payload": {
@@ -61,6 +62,14 @@ updated: 2026-06-24
     "event_id": "ck:event:01964387-7000-7000-8000-000000000000",
     "hlc": "01970e589d21-0004-a13f9c2e",
     "created_at": "2026-04-26T10:00:00Z"
+  },
+  "proof": {
+    "kind": "detached_jws",
+    "alg": "EdDSA",
+    "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#ck:device:019640dd-8000-7000-8000-000000000000",
+    "event_digest": "sha256:...",
+    "created_at": "2026-04-26T10:00:00Z",
+    "jws": "..."
   }
 }
 ```
@@ -69,7 +78,10 @@ updated: 2026-06-24
 |------|------|
 | `event_id` | 用户已读的最新那条 Event 的 ID。由于因果性，表示该 Event 及其因果前驱均已读。 |
 | `actor_id` | 阅读者 DID。该字段名与协议中其它 actor-引用字段一致。 |
+| `device_id` / `proof` | 来源设备与 detached proof。所有 `ck.receipt.read` 广播 MUST 携带；`proof.verification_method` 的 controller DID MUST 等于 `actor_id`，fragment MUST 等于 `device_id`，签名 context 为 `ck-ephemeral-proof-v1`。 |
 | `hlc` | 可选；当 Sync Service 需要按 HLC 合并 / 去重多个 receipts 时由客户端附带。 |
+
+**来源真实性（normative）**：Sync Service 接收 `ck.receipt.read` 时 MUST 同时校验提交会话的 authenticated principal 与 envelope `actor_id` 一致、`proof` 验证通过、`proof.verification_method` 控制者等于 `actor_id` 且 fragment 等于 `device_id`。跨服务、联邦或 relay 转发的 read receipt 若无法验证该 actor device proof，接收方 MUST 丢弃；服务端签名的转发断言只能作为传输层 provenance，不能替代 actor device proof。`ck.schema.ephemeral_envelope.v1` 因此把 `device_id` 与 `proof` 作为所有 broadcast ephemeral kind 的必填字段。
 
 ### 2.3 防雪崩与合并
 
@@ -116,7 +128,7 @@ Realm MAY 通过 `ck.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 
 规则：
 
-- 该策略是**软声明 / 合规承诺**，不是密码学强制。`ck.receipt.read` 由客户端自愿生成，恶意或不合规客户端始终可以"看了不报"，与 audited E2EE 的 RYW receipt（[`crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md) §4）不同。Realm policy MUST NOT 把 `ck.receipt.read` 当作密码学审计回执使用。
+- 该策略是**软声明 / 合规承诺**，不是密码学强制。`ck.receipt.read` 由客户端自愿生成，恶意或不合规客户端始终可以"看了不报"，与 audited E2EE 的 RYW receipt（[`crypto-media/audited-e2ee.md`](../crypto-media/audited-e2ee.md) §4）不同。软声明只允许合规客户端按用户偏好不发送自己的 receipt；任何 actor、service、relay 或 federation peer 都不得伪造他人的 `ck.receipt.read`，也不得转发来源 proof 无法验证的 receipt。Realm policy MUST NOT 把 `ck.receipt.read` 当作密码学审计回执使用。
 - 客户端 MUST 在 join Realm / 进入 Strand 时明示当前生效 `disclosure` 与 `visibility`，并在用户偏好 UI 中标注该 scope 的开关是否被 policy 锁定。
 - `disclosure="required"`：合规客户端 MUST NOT 允许用户在该 scope 把 `ck.read_receipt.preferences` 设为 `send=false`，并 SHOULD 在每次进入 track 时按 §2.2 发送至少一条覆盖当前可见 head 的 receipt。
 - `disclosure="disabled"`：合规客户端 MUST NOT 生成该 scope 的 `ck.receipt.read`；Sync Service 收到时 SHOULD 丢弃并返回或广播 `policy_violation` 语义。Read Cursor 不受影响。

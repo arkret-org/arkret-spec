@@ -23,11 +23,11 @@ see_also:
 
 ## 2. 私有 key 派生
 
-账户数据 key 不得泄露原始目标引用、集合名称或字段路径。实现 MUST 使用账户数据 namespace key 派生稳定、不透明的 key 片段：
+账户数据 key 不得泄露原始目标引用、集合名称或字段路径。实现 MUST 使用 [`client-preferences.md` §2.2](../discovery/client-preferences.md) 定义的 `account_data_namespace_key` / `derive_account_data_key` 派生稳定、不透明的 key 片段：
 
-- `target_key = base64url(HMAC-SHA256(account-data namespace key, canonical_target_ref))`
-- `collection_key = base64url(HMAC-SHA256(account-data namespace key, normalized_collection_title))`
-- saved item 的 `target_key = base64url(HMAC-SHA256(account-data namespace key, collection_key || canonical_target_ref))`
+- `target_key = derive_account_data_key(canonical_target_ref)`
+- `collection_key = derive_account_data_key(normalized_collection_title)`
+- saved item 的 `target_key = derive_account_data_key(collection_key || canonical_target_ref)`
 
 `canonical_target_ref` MUST 使用 canonical JSON / typed-id 规范化后的对象引用；同一目标在同一 principal 下必须得到同一 key，不同 principal 之间不得可链接。
 

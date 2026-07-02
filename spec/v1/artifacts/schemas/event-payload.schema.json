@@ -789,7 +789,7 @@
     },
     "device_cross_signing_binding": {
       "type": "object",
-      "description": "SSK signature binding a ck.device.authorize payload's device_public_key to the principal's accepted cross-signing generation. Canonical signing input is defined in zh/crypto-media/device-lifecycle.md §5.2.",
+      "description": "SSK signature binding a ck.device.authorize payload's device_public_key, hpke_key and algorithms to the principal's accepted cross-signing generation. Canonical signing input is defined in zh/crypto-media/device-lifecycle.md §5.2.",
       "required": [
         "verification_method",
         "alg",
@@ -834,7 +834,7 @@
     },
     "device_enrollment_authority_binding": {
       "type": "object",
-      "description": "Delegated-authority binding for a ck.device.authorize event admitted as service_attested: the device_public_key is attested for this principal by an enrollment authority designated in the principal's DID document (CokretDeviceEnrollmentAuthority service, or a capabilityDelegation verification method). Used by the managed-DID (account-authority) onboarding path where no client-held self-signing key (SSK) or DID inception key signs the device binding. The cryptographic signer is the envelope proof (verification_method MUST map to executed_by); this object records the trust root for device-trust-chain consumers. Receivers MUST verify authority_did is the enrollment authority designated by the principal DID document resolved at this event's accepted-at, and that authorization_ref delegation covers device authorization. See zh/crypto-media/device-lifecycle.md §5.4 and zh/identity/key-management.md §5.0.6.",
+      "description": "Delegated-authority binding for a ck.device.authorize event admitted as service_attested: the device_public_key, hpke_key and algorithms are attested for this principal by an enrollment authority designated in the principal's DID document (CokretDeviceEnrollmentAuthority service, or a capabilityDelegation verification method). Used by the managed-DID (account-authority) onboarding path where no client-held self-signing key (SSK) or DID inception key signs the device binding. The cryptographic signer is the envelope proof (verification_method MUST map to executed_by); this object records the trust root for device-trust-chain consumers. Receivers MUST verify authority_did is the enrollment authority designated by the principal DID document resolved at this event's accepted-at, and that authorization_ref delegation covers device authorization. See zh/crypto-media/device-lifecycle.md §5.4 and zh/identity/key-management.md §5.0.6.",
       "required": [
         "kind",
         "authority_did",
@@ -5650,6 +5650,8 @@
         "principal_id",
         "device_id",
         "device_public_key",
+        "hpke_key",
+        "algorithms",
         "authorized_by",
         "not_before"
       ],
@@ -5696,6 +5698,14 @@
         },
         "device_public_key": {
           "$ref": "#/$defs/non_empty_string"
+        },
+        "hpke_key": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Device HPKE public key used for secret/key envelope sealing. MUST be covered by cross_signing_binding (§5.2) or enrollment-authority Event proof (§5.4); services MUST NOT substitute this value in projection."
+        },
+        "algorithms": {
+          "$ref": "#/$defs/string_list",
+          "description": "Canonical sorted unique algorithm ids supported by this device. Enters device trust binding transcript together with device_public_key and hpke_key."
         },
         "device_key_algorithm": {
           "$ref": "#/$defs/non_empty_string"
@@ -7589,6 +7599,14 @@
         "approver_actor_id": {
           "$ref": "#/$defs/did"
         },
+        "approved_recipient_audit_actor_id": {
+          "$ref": "#/$defs/did",
+          "description": "Audit subject approved to receive release material. Required on ck.audit.session.authorize; ck.audit.release.recipient_audit_actor_id MUST match it byte-for-byte."
+        },
+        "approved_recipient_public_key_ref": {
+          "$ref": "#/$defs/verification_method",
+          "description": "Audit release recipient key approved by ck.audit.session.authorize. MUST resolve to approved_recipient_audit_actor_id's authorized audit-release key; ck.audit.release.recipient_public_key_ref MUST match it byte-for-byte."
+        },
         "closer_actor_id": {
           "$ref": "#/$defs/did"
         },
@@ -7709,6 +7727,8 @@
           "required": [
             "request_ref",
             "approver_actor_id",
+            "approved_recipient_audit_actor_id",
+            "approved_recipient_public_key_ref",
             "approved_release_mode",
             "notice_policy",
             "expires_at"
@@ -7868,7 +7888,8 @@
           "$ref": "#/$defs/did"
         },
         "recipient_public_key_ref": {
-          "$ref": "#/$defs/verification_method"
+          "$ref": "#/$defs/verification_method",
+          "description": "Release material encryption target. MUST equal the authorize payload's approved_recipient_public_key_ref and resolve to recipient_audit_actor_id's authorized audit-release key."
         },
         "approver_actor_id": {
           "$ref": "#/$defs/did"

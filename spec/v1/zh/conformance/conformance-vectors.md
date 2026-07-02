@@ -864,7 +864,7 @@ ck.vector.state_root.incremental.v1
 
 输入：
 
-- 一个已被接受的 Seal `A0`，其控制面覆盖集写入 N 个 cell（`cell_1 … cell_N`，N ≥ 8）；实现已按 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.1 缓存 `cell → leaf_digest` 表。
+- 一个已被接受的 Seal `A0`，其控制面覆盖集写入 N 个 cell（`cell_1 … cell_N`，N ≥ 8）；实现已按 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §6.2.1 缓存 `cell → leaf_digest` 表。
 - 一个新的 Seal `A1`（`predecessor_refs=[A0]`），控制面 `delta[]` 仅修改其中 K 个 cell（K ≤ N，包含 K=1 / K=N/2 / K=N 三种 case）。
 - 一个 corner-case Seal `A2`：`delta[]` 是空 set（无新 control effect）。
 - 一个 schema-evolution case `A3`：`delta[]` 包含一个新 cell（之前从未有过 effect），并删除一个旧 cell 的 effect（通过 lattice 的 ⊥/tombstone 机制）。
@@ -874,7 +874,7 @@ ck.vector.state_root.incremental.v1
 每个 case MUST 同时计算：
 
 - `state_root_incremental`：仅对受影响 cell 重算 leaf_digest 与 Merkle 分支，复用 `A0` 缓存。
-- `state_root_full`：丢弃缓存，按 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.2 从 Seal 覆盖集全量重算所有 cell 的 leaf_digest 与 Merkle root。
+- `state_root_full`：丢弃缓存，按 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §6.2.1 / §6.2.2 从 Seal 覆盖集全量重算所有 cell 的 leaf_digest 与 Merkle root。
 
 判定要求：
 
@@ -890,7 +890,7 @@ ck.vector.state_root.incremental.v1
 - 受影响 cell 集合按 receive order 而非 `cell_wire` lex order 排序。
 - A2 case 下错把 `state_root` 重置为空摘要。
 
-实现 MUST 在 conformance 报告中分别报告四个 case 的 `state_root_incremental` 与 `state_root_full`，并标记 pass / fail。该 vector 验证 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §4.2.3 中"增量与全量必须等价"的要求。
+实现 MUST 在 conformance 报告中分别报告四个 case 的 `state_root_incremental` 与 `state_root_full`，并标记 pass / fail。该 vector 验证 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §6.2.1 / §6.2.2 中"增量与全量必须等价"的要求。
 
 ### 2.10 Vector: `ck.strand.tracks.update` 原子 patch
 
@@ -934,7 +934,7 @@ ck.vector.strand_tracks_update.atomic.v1
 ck.vector.lattice.fsm_join.v1
 ```
 
-本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §5.3.4 `fsm` lattice 的 join 规则：“同一 CBA basis 内相同 `(from,to)` 的重复 transition 是幂等的；同一 `from` 指向不同 `to` 的 sibling transition 返回 ⊥。跨 basis 顺序仅由 causal refs 与 Seal DAG 决定；同一 basis 内不得用 HLC、接收顺序或 actor id 选择状态机 winner。”
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.1 `fsm` lattice 的 join 规则：“同一 CBA basis 内相同 `(from,to)` 的重复 transition 是幂等的；同一 `from` 指向不同 `to` 的 sibling transition 返回 ⊥。跨 basis 顺序仅由 causal refs 与 Seal DAG 决定；同一 basis 内不得用 HLC、接收顺序或 actor id 选择状态机 winner。”
 
 输入（cell schema：`fsm`，`bottom=reject`，`parameters.initial_state="invited"`，`allowed_transitions` 含 `(invited,join)`、`(invited,decline)`）：
 
@@ -961,7 +961,7 @@ ck.vector.lattice.fsm_join.v1
 ck.vector.cba_lattice.cas_mixed_basis.v1
 ```
 
-本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §5.3.3 的 **Basis 强制（normative）**：“cas_register 的 set effect 在目标 cell 的 settled 值为非初始态时，Control Move MUST 携带针对本 cell 的 `head_eq` precondition；DataEvent MUST 通过 causal refs 与 lattice 规则表达同等 CAS 约束。缺失时，receiver MUST 以 `failed_precondition` 拒绝该 effect，并按多 cell 原子性拒绝整个 reducer input，不接受‘无 CAS 强制写’。”
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.1 的 **Basis 强制（normative）**：“cas_register 的 set effect 在目标 cell 的 settled 值为非初始态时，Control Move MUST 携带针对本 cell 的 `head_eq` precondition；DataEvent MUST 通过 causal refs 与 lattice 规则表达同等 CAS 约束。缺失时，receiver MUST 以 `failed_precondition` 拒绝该 effect，并按多 cell 原子性拒绝整个 reducer input，不接受‘无 CAS 强制写’。”
 
 输入（cas_register cell，未声明 `initial_value`，初值 `null`；前置 Seal 已把 settled 值推进到 `v1`，即非初始态）：
 
@@ -988,7 +988,7 @@ ck.vector.cba_lattice.cas_mixed_basis.v1
 ck.vector.lattice.ordered_log_gap.v1
 ```
 
-本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §5.3.6 `ordered_log` 的缺口规则：“issuer 子链出现缺口时，缺口后的 entry MUST 保留为 pending / diagnostic 输入，但不得进入 cell value、`state_root` leaf 或授权判断；依赖补齐后按同一规则重算。”
+本向量固化 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.1 `ordered_log` 的缺口规则：“issuer 子链出现缺口时，缺口后的 entry MUST 保留为 pending / diagnostic 输入，但不得进入 cell value、`state_root` leaf 或授权判断；依赖补齐后按同一规则重算。”
 
 输入（ordered_log cell，`bottom=expose`，cell schema 声明 `parameters.entry_id_field`）：
 
@@ -3072,7 +3072,7 @@ Expected：
 Steps：
 
 1. 客户端因 `dropped` / cursor 失效按 [`client-sync.md` §12.3](../sync/client-sync.md) 恢复，调用 `ck.self.events.query.scan`（`include_completeness=true`）backfill 区间 `(F1, F2]`。
-2. 服务端返回完整事件页 + `range_completeness.attestation_refs[]`；客户端按 [`operations-sync.md` §4.2.4](../sync/operations-sync.md) 重算 Merkle root 并核对 `actor_seq_ranges[]`。
+2. 服务端返回完整事件页 + `range_completeness.attestation_refs[]`；客户端按 [`operations-sync.md` §6.4.4](../sync/operations-sync.md) 重算 Merkle root 并核对 `actor_seq_ranges[]`。
 3. 变体 A：服务端从响应中扣下 Bob `seq 14..16` 的事件，但返回同一 attestation。
 4. 变体 B：服务端未声明该 feature，收到 `include_completeness=true`。
 5. 变体 C：attestation 仅为 `single_source`，而 Realm 声明 `security_class=high_assurance`。

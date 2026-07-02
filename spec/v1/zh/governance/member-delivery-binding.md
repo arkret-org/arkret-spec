@@ -26,14 +26,16 @@ see_also:
 
 1. `payload.delivery_status ∈ {routable, unroutable}` 显式声明。
 2. `delivery_status="routable"` 时 `payload.delivery_binding` 必填，且其 `binding_source` 在 Realm `ck.component.realm.delivery_binding_policy.v1`（§4）的 `allow_binding_sources` 集合内。
-3. `delivery_status="unroutable"` 仅当 Realm policy 显式允许（`allow_unroutable_membership=true`），且该成员的客户端理解"该 Realm 仅向本地可见、不接收服务端推送 / 同步 / to-device / push / key-package 投递"。
+3. `delivery_status="unroutable"` 仅当 Realm policy 显式允许（`allow_unroutable_membership=true`）。
 4. `delivery_binding.recipient_service_did` 出现在 Realm policy 的 `allowed_recipient_services` 集合内，或该 policy 显式声明哨兵 `["*"]`（unrestricted）；否则 MUST 被 `required_endorsers` 中至少一个治理 DID 通过 `service_acceptance_ref` 引用的 acceptance Event 背书。**`allowed_recipient_services` 为空集 `[]` 时 = 拒绝（fail-closed，见 §4 字段表）**：既未命中 allowlist、又未声明 `["*"]` 哨兵、又无 `required_endorsers` 背书时，reducer MUST 拒绝该 routable join（`delivery_binding_policy_mismatch`），不得把空集解释为"不限"放行。
 5. `delivery_binding` 的 `binding_source`-conditional required 字段满足 [`event-payload.schema.json#/$defs/member_delivery_binding`](../../artifacts/schemas/event-payload.schema.json)（例如 `did_document_default` MUST 含 `did_document_digest`；`explicit` / `invite` / `organization_policy` MUST 含 `service_acceptance_ref`；policy-driven source MUST 含 `policy_event_ref`）。
 6. `delivery_binding.delivery_modes` 是该 binding 的**显式**模式集合；空集合或缺失等价于 schema violation。普通"全功能"成员 SHOULD 列出 `["events", "sync", "to_device", "push", "key_packages"]`。
 
 reducer 校验上述任一条失败 MUST 拒绝该 Control Move 并返回 `delivery_binding_invalid`，**不得**降级为部分接受。
 
-注意：`payload.delivery_binding` / `member_delivery_binding.recipient_service_did` 描述的是成员加入后接收 events、sync、to-device、push、key package 的目标 Principal Server；`join_candidates[]` 描述的是本次 join / invite-accept / knock material 可提交到哪些 Realm ingress service。两者方向不同、生命周期不同、授权来源不同。Join builder 和 reducer MUST NOT 从 `join_candidates[].service_did` 推导成员 `delivery_binding`，也 MUST NOT 从成员 `delivery_binding.recipient_service_did` 推导 Realm ingress candidate。
+声明可加入 unroutable member Realm 的客户端 profile SHOULD 在 join / accept UI 中披露："该 Realm 仅向本地可见，不接收服务端推送、同步、to-device、push 或 KeyPackage 投递"。该披露是客户端 profile 义务，不参与 reducer 接受条件；reducer 的可验证判据仅为上述 policy 和 payload 条件。
+
+注意：`payload.delivery_binding` / `member_delivery_binding.recipient_service_did` 描述的是成员加入后接收 events、sync、to-device、push、KeyPackage 的目标 Principal Server；`join_candidates[]` 描述的是本次 join / invite-accept / knock material 可提交到哪些 Realm ingress service。两者方向不同、生命周期不同、授权来源不同。Join builder 和 reducer MUST NOT 从 `join_candidates[].service_did` 推导成员 `delivery_binding`，也 MUST NOT 从成员 `delivery_binding.recipient_service_did` 推导 Realm ingress candidate。
 
 ## 3. `binding_source` 与责任方
 
@@ -64,6 +66,8 @@ reducer 校验上述任一条失败 MUST 拒绝该 Control Move 并返回 `deliv
 3. 对可选 handle 辅助路径，先按 [`identity/identity-handles.md` §3.1](../identity/identity-handles.md) 规范化为 canonical `handle`，再仅在 Directory / Organization 明确支持时调用 `ck.find.directory.query.resolve_handle(intent="member_add" | "invite")`。不支持、无权或解析失败时，客户端 MUST 回到基础路径，要求提供 locator 或显式 address；不得本地合成 remote `recipient_service_did`。
 4. 若可选解析结果携带 `MemberDeliveryBindingCandidate` 或 `member_delivery_binding`，验证其 handle claim / presentation 绑定 `handle`、`subject_id`、`member_delivery_binding.recipient_service_did`、issuer、`issued_at`、`expires_at`、撤销状态与 `audience`。claim `audience` MUST 等于目标 `realm_id` 或邀请方 service DID 之一；不一致 MUST 视作未授权 claim。
 5. 将有效 delivery evidence 物化为 `payload.delivery_binding` 时，按 Realm `ck.realm.delivery_binding_policy` 选择 `binding_source`：
+   - 多个来源同时可用时，reducer MUST 按固定优先级选择唯一 binding：`explicit` > `organization_policy` > `invite` > `join_policy` > `realm_policy` > `did_document_default`。
+   - 选择最高优先级来源后，若该来源不在 `allow_binding_sources` 内、`recipient_service_did` 不在 `allowed_recipient_services` 内，或缺少该来源的条件性 evidence，reducer MUST 拒绝并返回 `delivery_binding_policy_mismatch`；MUST NOT 降级尝试较低优先级来源。
    - invite locator / invite delivery 已携带并通过接收服务背书的 binding 使用 `invite`，并携带 `service_acceptance_ref`；
    - Realm join policy 推导的 binding 使用 `join_policy`，并携带 `policy_event_ref`；
    - 组织目录 / 员工名录背书的地址使用 `organization_policy`，并携带 `service_acceptance_ref` + `policy_event_ref`；

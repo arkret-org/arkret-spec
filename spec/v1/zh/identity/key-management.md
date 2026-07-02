@@ -232,7 +232,7 @@ Inception bootstrap MUST 使用 DID method 自身的初始控制密钥作为信�
    - `ck.profile.principal_control_realm.v1` 的机器化要求见 `artifacts/profiles/conformance-profiles.json#profile_requirements`：control Realm MUST 使用 allowlist-only event kind policy；普通 Strand / Message / Space / Relation / View / Morph / Call 协作事件在该 Realm 内 MUST `principal_control_event_kind_forbidden`。
    - `encryption_profile = "mls_rfc9420"`，`content_encryption_floor = "e2ee_required"`，`metadata_encryption_floor = "e2ee_required"`，`history_visibility = "restricted"`，`notary_profile = "single_did"`，`notary = <principal DID>`。Principal Control Realm 的 `encryption_profile` 在 v1 中被 `ck.profile.principal_control_realm.v1` 固定为 `mls_rfc9420`，两条加密 floor 被固定为 `e2ee_required`（v1 不存在明文地板的 PCR）；producer MUST NOT 使用 `none` 或 `external`，也 MUST NOT 把任一 floor 声明为低于 `e2ee_required`。`history_visibility = "restricted"`：新授权的同 principal 设备读取 join 前控制历史走 durable device-list / normalized principal view baseline 与 policy 受控的 MLS history key share，PCR MUST NOT 使用 `joined`。
 
-   **PCR history key share 释放授权（normative）**：PCR 的 MLS history key share 释放判定 MUST NOT 退化为"只要 device 在 device-list 即给全部历史 epoch key"。释放方 MUST：(a) 校验接收设备持有一条 accepted、链接到当前 published 交叉签名代际的 `ck.device.authorize`（`generation` 定义见 [`../crypto-media/device-lifecycle.md` §5](../crypto-media/device-lifecycle.md)）；代际早于当前 accepted generation 的设备 MUST NOT 释放历史 key share；(b) 以该设备权威 `ck.device.authorize` 在 control stream 中的因果位置（其 accepted frontier）为 baseline 判定可释放的 epoch 区间，绝不释放该 baseline 之外、与该设备无关的更早或并发分支 epoch key。此外，对承载历史 recovery secret 副本的最敏感 epoch 区间，释放方 SHOULD 额外要求该设备已完成 SAS/QR 设备密钥验证或由入册权威（§5.4）背书后才释放；未满足时 MUST fail-closed（不释放该敏感区间的 history key share），与 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) 对协作 Realm 成员 key share 校验的 fail-closed 纪律对齐。该约束是 PCR 单成员语境下对 history key share 的专用 restricted 规则，独立于协作 Realm 的 membership 校验路径。
+   **PCR history key share 释放授权（normative）**：PCR 的 MLS history key share 释放判定 MUST NOT 退化为"只要 device 在 device-list 即给全部历史 epoch key"。释放方 MUST：(a) 校验接收设备持有一条 accepted、链接到当前 published 交叉签名代际的 `ck.device.authorize`（`generation` 定义见 [`../crypto-media/device-lifecycle.md` §5](../crypto-media/device-lifecycle.md)）；代际早于当前 accepted generation 的设备 MUST NOT 释放历史 key share；(b) 以该设备权威 `ck.device.authorize` 在 control stream 中的因果位置（其 accepted frontier）为 baseline 判定可释放的 epoch 区间，绝不释放该 baseline 之外、与该设备无关的更早或并发分支 epoch key。此外，对承载历史 recovery secret 副本的最敏感 epoch 区间，释放方 SHOULD 额外要求该设备已完成 SAS/QR 设备密钥验证或由入册权威（§5.4）背书后才释放；未满足时 MUST fail closed（不释放该敏感区间的 history key share），与 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) 对协作 Realm 成员 key share 校验的 fail-closed 纪律对齐。该约束是 PCR 单成员语境下对 history key share 的专用 restricted 规则，独立于协作 Realm 的 membership 校验路径。
    - `created_by = <principal DID>`，`security_class = "high_assurance"`（强制 federation_policy ∈ {closed, restricted, quarantine}）。
 
    Event 的 `actor_id` 是 principal DID，`proofs[]` 由 inception key 签发，`refs[]` 引用 `did:webvh` entry 0 的 `versionId` 和 SCID 作为身份证据 ref（`role="did_inception"`，`critical=true`）。Receiver 验证 control realm genesis 时 MUST 同时校验 `fields.purpose=principal_control`、`schema_refs` 包含 `ck.profile.principal_control_realm.v1`、`encryption_profile="mls_rfc9420"` 与 `content_encryption_floor=metadata_encryption_floor="e2ee_required"`；前三项缺一即按普通非 PCR Realm 处理（不再具备 control stream 的特殊语义），若已声明 PCR profile 但 `encryption_profile` 或任一加密 floor 不匹配则 MUST reject。
@@ -367,7 +367,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 4. 校验 `inception_public_key_fingerprint`,确认它等于步骤 3 中签名验证命中的那条 `verificationMethod[]` 条目的派生 fingerprint(不要求该条目位于 index 0);失败 → reject `inception_upgrade_fingerprint_mismatch`。
 5. 校验 `trust_domain` 与 `audience` 域绑定；失败 → reject `inception_upgrade_evidence_insufficient`。
 6. 校验 `did:webvh` `entry 0` 的 SCID / entry hash / controller proof(标准 `did:webvh` inception 验证)——这一段独立于 `did:web` 阶段。
-7. 写入"该 principal 已通过 §5.0.5 跨 method 升级"标记；后续 Event 的 `actor_id` MAY 是 `did:webvh:z8kSru9qAfd1G7AvcVjggdEKy:...`(历史 Event)或 `did:webvh:...`(升级后 Event);receiver MUST 把两者视作同一 principal,但**不接受**任何新签名的 Event 仍引用 `did:web` inception key——升级后 inception key MUST 进入 `did:webvh` rotation 链或销毁(§5.0.1 步骤 5)。
+7. 写入"该 principal 已通过 §5.0.5 跨 method 升级"标记；后续 Event 的 `actor_id` MAY 是 `did:web:...`(历史 Event)或 `did:webvh:...`(升级后 Event);receiver MUST 把两者视作同一 principal,但**不接受**任何新签名的 Event 仍引用 `did:web` inception key——升级后 inception key MUST 进入 `did:webvh` rotation 链或销毁(§5.0.1 步骤 5)。
 
 ##### 5.0.5.4 不允许的简化
 
@@ -500,7 +500,7 @@ Cokret v1 使用 `ck.session.grant` 作为 principal control stream 中的标准
 Cokret v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata 中声明备份域，且不得把一个域的解锁材料当作另一个域的授权证明：
 
 - `did_recovery`：恢复 DID 控制链所需的 recovery key share、门限恢复 share metadata 或受信恢复服务证明。它只能用于 `recovery_policy` 允许的 `recover` / `rotate` / `ck.device.authorize` 等操作。
-- `secret_storage`：保存 `self_signing_key`、`user_signing_key`、recovery secret、MLS group secrets backup key、applet delegated device secret 和 encrypted private account data cache。其中**承载 SSK 的恢复定向副本**（`recipient_method="recovery_public_key"`）属于 fresh-device 恢复的 recovery-bootstrap unlock set：它的域仍是 `secret_storage`，但因为只用 recovery 公钥加密，可在设备授权之前仅凭 recovery 私钥解锁（见 [`../crypto-media/device-lifecycle.md` §15 step 4](../crypto-media/device-lifecycle.md)）。这不破坏域隔离——SSK 不解密 MLS 历史，攻破该副本不等于攻破 `mls_history` 或 `did_recovery`。
+- `secret_storage`：保存 `self_signing_key`、`user_signing_key`、recovery secret、MLS group secrets backup key、`account_data_namespace_key`、applet delegated device secret 和 encrypted private account data cache。`account_data_namespace_key` 属于 `secret_storage/account_data_namespace/v1` 子域，只用于 [`../discovery/client-preferences.md` §2.2](../discovery/client-preferences.md) 的 account-data key 派生，不得暴露给服务端或跨 principal 复用。其中**承载 SSK 的恢复定向副本**（`recipient_method="recovery_public_key"`）属于 fresh-device 恢复的 recovery-bootstrap unlock set：它的域仍是 `secret_storage`，但因为只用 recovery 公钥加密，可在设备授权之前仅凭 recovery 私钥解锁（见 [`../crypto-media/device-lifecycle.md` §15 step 4](../crypto-media/device-lifecycle.md)）。这不破坏域隔离——SSK 不解密 MLS 历史，攻破该副本不等于攻破 `mls_history` 或 `did_recovery`。
 - `mls_history`：保存用户已有权读取的 Realm / MLS-backed Circle 的 MLS group state、历史 epoch key material、pending Welcome 和必要的 epoch 缺口恢复 metadata。
 
 域隔离规则：
@@ -696,7 +696,7 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 - cross-signing 设备路径：envelope MUST 携带对签发该设备授权的 self-signing key 代际的绑定（`auth_data.ssk_generation`）。这里的 `ssk_generation` 与 `ck.device.authorize.payload.cross_signing_binding.ssk_generation`、`ck.cross_signing.publish.generation` 是同一 cross-signing 代际计数（reset 时 `generation += 1`），其权威定义与单调性规则见 [`../crypto-media/device-lifecycle.md` §5](../crypto-media/device-lifecycle.md)（cross-signing publish）与 [`§14`](../crypto-media/device-lifecycle.md)（cross-signing reset / generation 推进）。receiver MUST 拒绝代际早于当前 published generation 且超出 rotation grace window 的 envelope（`stale_backup_trust_generation`）；
 - service-attested / enrollment-authority 设备路径（见 [`../crypto-media/device-lifecycle.md` §5.4](../crypto-media/device-lifecycle.md)）：envelope MUST 携带 `auth_data.device_authorize_event_id`，且该值 MUST 等于该 `auth_data.device_id` 当前 accepted 的 `ck.device.authorize` event id。receiver MUST 使用该设备投影中的 `payload.device_public_key` 验证 `auth_data.signature`；`auth_data.ssk_generation` 在此路径 MUST 缺失，因为 account authority 不持有、不得伪造本 principal 的 SSK；
 - `auth_data.ssk_generation` 与 `auth_data.device_authorize_event_id` MUST 精确二选一。二者同时存在、同时缺失、设备未授权、设备已撤销、代际不符、授权事件不符或签名验不过的 envelope MUST 被视为 `untrusted_backup_signature`（代际过旧时可用 `stale_backup_trust_generation`）并拒绝用于恢复，即使其 series 链与 `ciphertext_digest` 自洽。
-- **高敏 backup_class 的信任锚强制存在（normative）**：对 `backup_class ∈ {secret_storage, did_recovery}` 这两类高敏备份，receiver MUST fail-closed，MUST NOT 退回到"device key 在 `created_at` 时点是否有效"的较弱判定接受它用于恢复或读取。即：core 档下 `secret_storage` / `did_recovery` envelope 必须携带上述两个合法信任锚之一，使恶意服务端联合旧 / 已撤销 device key 注入的高敏备份无法绕过信任根比对。`mls_history` 类也必须满足本节签名锚定；其 freshness / frontier 强化仍按各档 hardening profile 策略处置。
+- **高敏 backup_class 的信任锚强制存在（normative）**：对 `backup_class ∈ {secret_storage, did_recovery}` 这两类高敏备份，receiver MUST fail closed，MUST NOT 退回到"device key 在 `created_at` 时点是否有效"的较弱判定接受它用于恢复或读取。即：core 档下 `secret_storage` / `did_recovery` envelope 必须携带上述两个合法信任锚之一，使恶意服务端联合旧 / 已撤销 device key 注入的高敏备份无法绕过信任根比对。`mls_history` 类也必须满足本节签名锚定；其 freshness / frontier 强化仍按各档 hardening profile 策略处置。
 
 这样 envelope 的真实性锚定在 actor 当前设备信任根，而不是“碰巧持有某个 device key”，与 series 链（§7.6，防回滚 / 扣留）正交：前者保证 authenticity，后者保证 freshness / 单调性。
 
@@ -840,7 +840,7 @@ v1 的备份枚举数量有限，但 envelope 结构需要支持未来 PQ / hybr
 
 Recovery Key 配置完成（genesis recovery policy accepted 且 §5.0.1 first-backup gate 通过）后，客户端 SHOULD 自动、持续地维护密钥备份，而不是把备份当作一次性手动动作：
 
-- account secret（`self_signing_key` / `user_signing_key`、recovery secret 等 `secret_storage` 域材料）、历史密钥材料（MLS group state / epoch key material 等 `mls_history` 域材料）与 encrypted private account data cache 发生新增或轮换时，客户端 SHOULD 自动上传对应 `ck.schema.key_backup.v1` envelope，遵守 §7.6 series 链规则。
+- account secret（`self_signing_key` / `user_signing_key`、recovery secret、`account_data_namespace_key` 等 `secret_storage` 域材料）、历史密钥材料（MLS group state / epoch key material 等 `mls_history` 域材料）与 encrypted private account data cache 发生新增或轮换时，客户端 SHOULD 自动上传对应 `ck.schema.key_backup.v1` envelope，遵守 §7.6 series 链规则。
 - 自动备份 SHOULD NOT 要求用户手动触发或重复输入凭证；envelope 加密给 recovery public key（§7.5.2）只使用公钥，不需要用户在场。客户端 MAY 额外提供手动"立即备份"入口。
 - 自动备份失败（网络、§7.8 限速、series 冲突）时，客户端 SHOULD 退避重试，并在持续失败超过实现定义的窗口时向用户显式提示备份落后；SHOULD NOT 静默丢弃待备份材料。
 - 本节不放宽 §7.1 的禁止项：device private key、session key、已发布的 KeyPackage private key 等仍 MUST NOT 进入自动备份。
@@ -936,7 +936,11 @@ Recovery policy 是 principal control state；它的发布、轮换、撤销 MUS
 share holder（无论是个人 DID、托管服务 DID，还是 hardware module）在向恢复请求方释放 share 时 MUST：
 
 - 验证 `recovery_session_id` 来源——session id MUST 来自当前 accepted recovery policy 中的 announcement event 或 trusted_recovery_service 签发的 challenge；不得接受任何 client 直接构造的 session id。
-- 在签发 share release 之前 MUST 验证：(a) 请求方设备的 device key 已绑定到目标 principal 的 control stream 中某个尚未 revoke 的 device record；(b) holder 自己未被 §8.1 revoke；(c) 当前时间在 `not_before` / `expires_at` 范围内。
+- 在签发 share release 之前 MUST 验证 holder 自己未被 §8.1 revoke，且当前时间在该 share 的 `not_before` / `expires_at` 范围内。
+- share release 的请求方绑定按 `proof_kind` 分流：
+  - `device_quorum`：请求方设备的 device key MUST 已绑定到目标 principal control stream 中某个尚未 revoke 的 device record；不满足则拒绝 release。
+  - `threshold_recovery` / `recovery_unlock`：请求方设备 MAY 是尚未授权的新设备。holder MUST 验证 `recovery_session_id`、当前 policy/version、requesting device key proof-of-possession、session challenge、`requesting_device_id` 与 share request transcript 一致，并按 policy 要求完成 holder 侧 OOB / announcement / approval 检查；MUST NOT 要求该新设备预先存在于 control stream。恢复完成后的 `ck.device.authorize` 仍必须按 `crypto-media/device-lifecycle.md` §15 由恢复出的 SSK 或被 policy 授权路径签发。
+  - 其它 future `proof_kind` 未在 policy 中 active 登记前 MUST fail closed；不得把 `threshold_recovery` 当作 `device_quorum` 的弱化别名。
 - share release transcript MUST 绑定 `(share_id, holder, recovery_session_id, requesting_device_id, audience, issued_at)`，并由 holder 签名；coordinator 在 reconstruction 之前 MUST 重放该 transcript 比对，并 MUST NOT 把同一 transcript 用于两次 reconstruction。
 - holder MAY 引入额外 OOB confirmation（电话回拨、共享密语）；该层不在 protocol normative 之内，但被纳入 holder 自身的安全 surface。
 

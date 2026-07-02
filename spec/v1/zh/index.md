@@ -106,7 +106,7 @@ Cokret v1 明确不把以下内容作为基础互操作必需项：
 - `principal_id = DID URI`，Handle 只作为可迁移的人类可读入口。
 - Resolver policy 必须声明可用 DID method、默认 method、信任根与 fail-closed 规则。
 - **v1 core 默认 principal DID method 为 `did:webvh`**：在 `did:web` 之上叠加 `did.jsonl` 历史链 + SCID + witness evidence，提供可审计的 DID 控制历史，抵御 DNS / TLS 单点失陷。
-- `did:webvh` 是 v1 core 默认 principal DID method 与默认 service DID method；`did:web` 仅作为显式 no-history service profile 与 **`personal_node` deployment profile 的可选 principal method**；`did:webvh` hosting 暂时不可达时只允许 [`identity/identity-did.md`](./identity/identity-did.md) 定义的 cache-only degraded mode，MUST NOT live fallback 到 `did:web`；缓存有效期 / TTL 耗尽后 MUST fail-closed（见 [`identity/identity-did.md` §3.4](./identity/identity-did.md)），不得无限期缓存信任旧 DID 文档。
+- `did:webvh` 是 v1 core 默认 principal DID method 与默认 service DID method；`did:web` 仅作为显式 no-history service profile 与 **`personal_node` deployment profile 的可选 principal method**；`did:webvh` hosting 暂时不可达时只允许 [`identity/identity-did.md`](./identity/identity-did.md) 定义的 cache-only degraded mode，MUST NOT live fallback 到 `did:web`；缓存有效期 / TTL 耗尽后 MUST fail closed（见 [`identity/identity-did.md` §3.4](./identity/identity-did.md)），不得无限期缓存信任旧 DID 文档。
 - 临时、测试、设备、邀请、bootstrap 使用 `did:key`；MUST NOT 作为默认长期主身份。
 - 钱包绑定（`did:pkh`）、AT Protocol 互通（`did:plc` adapter）、KERI 系列等是 interop extension profile，不属于 v1 core 互操作必需。
 - DID 文档、history chain 与 method evidence 需按各自 method 的 verifier 校验。

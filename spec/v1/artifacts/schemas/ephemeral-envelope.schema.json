@@ -2,15 +2,17 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cokret.org/v1/schemas/ephemeral-envelope.schema.json",
   "title": "Cokret Ephemeral Broadcast Envelope",
-  "description": "Wire shape for broadcast ephemeral signals — ck.presence, ck.typing, ck.receipt.read, ck.call.signal. These signals have wire_scope=ephemeral_event in event-kind-registry.json: they MUST NOT carry CBA reducer fields, MUST NOT advance Seal coverage, governance state_root or actor_seq, MUST NOT enter reducer state, and MUST NOT be submitted via ck.events.submit. They are carried on dedicated ephemeral channels (sync subscribe live stream, presence/typing fanout, call signaling channel) and are dropped at TTL. Point-to-point to-device signals (ck.key.verification.*) use device-message.schema.json instead — they have a sender+recipient pair and do not match this broadcast shape. See zh/sync/operations-sync.md §2.3 (wire-scope reject rule) and zh/crypto-media/webrtc-signaling.md §5 (ephemeral channel transport).",
+  "description": "Wire shape for broadcast ephemeral signals — ck.presence, ck.typing, ck.receipt.read, ck.call.signal. These signals have wire_scope=ephemeral_event in event-kind-registry.json: they MUST NOT carry CBA reducer fields, MUST NOT advance Seal coverage, governance state_root or actor_seq, MUST NOT enter reducer state, and MUST NOT be submitted via ck.events.submit. All broadcast ephemeral signals require a device_id and detached proof so receivers can verify actor source authenticity without trusting relay attribution. They are carried on dedicated ephemeral channels (sync subscribe live stream, presence/typing fanout, call signaling channel) and are dropped at TTL. Point-to-point to-device signals (ck.key.verification.*) use device-message.schema.json instead — they have a sender+recipient pair and do not match this broadcast shape. See zh/sync/operations-sync.md §2.3 (wire-scope reject rule) and zh/crypto-media/webrtc-signaling.md §5 (ephemeral channel transport).",
   "type": "object",
   "required": [
     "kind",
     "realm_id",
     "actor_id",
+    "device_id",
     "sent_at",
     "expires_at",
-    "payload"
+    "payload",
+    "proof"
   ],
   "properties": {
     "kind": {
@@ -34,7 +36,7 @@
     "device_id": {
       "type": "string",
       "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Originating device. Optional but RECOMMENDED so receivers can dedupe per-device typing/presence signals."
+      "description": "Originating device. Required for all broadcast ephemeral signals; proof.verification_method fragment MUST equal this full device_id."
     },
     "sent_at": {
       "type": "string",
@@ -54,7 +56,7 @@
     },
     "proof": {
       "$ref": "#/$defs/ephemeral_proof",
-      "description": "Detached-JWS proof over the canonical ephemeral envelope, structurally isomorphic to the durable Event proof ($defs/event_proof in event-envelope.schema.json / models/event-and-patch.md §3). Required for ck.call.signal; RECOMMENDED for ck.receipt.read so receivers can verify origin without trusting relay. presence / typing MAY omit proof for cost reasons; receivers MUST NOT promote unsigned signals to durable state. Signing input is the canonical proof binding object {event_digest, actor_id, verification_method, created_at, domain?, audience?}; event_digest is canonical_digest of the envelope with `proof` removed (RFC 8785 JCS). verification_method MUST be `{actor_id}#{device_id}` where the fragment is the full `ck:device:<uuidv7>` id, and its controller DID MUST equal envelope actor_id. See crypto-media/webrtc-signaling.md §5."
+      "description": "Detached-JWS proof over the canonical ephemeral envelope, structurally isomorphic to the durable Event proof ($defs/event_proof in event-envelope.schema.json / models/event-and-patch.md §3). Required for every broadcast ephemeral kind (ck.presence, ck.typing, ck.receipt.read, ck.call.signal) so receivers can verify origin without trusting relay attribution. Signing input is the canonical proof binding object {context:'ck-ephemeral-proof-v1', event_digest, actor_id, verification_method, created_at, domain?, audience?}; event_digest is canonical_digest of the envelope with `proof` removed (RFC 8785 JCS). verification_method MUST be `{actor_id}#{device_id}` where the fragment is the full `ck:device:<uuidv7>` id, and its controller DID MUST equal envelope actor_id. See crypto-media/webrtc-signaling.md §5."
     }
   },
   "allOf": [
@@ -70,10 +72,6 @@
         ]
       },
       "then": {
-        "required": [
-          "device_id",
-          "proof"
-        ],
         "properties": {
           "payload": {
             "type": "object",
@@ -140,7 +138,7 @@
     },
     "ephemeral_proof": {
       "type": "object",
-      "description": "Detached-JWS proof for a broadcast ephemeral envelope. Structurally isomorphic to event-envelope.schema.json #/$defs/event_proof: same kind / alg / verification_method / event_digest / created_at / jws shape, so a single EdDSA detached-JWS verifier serves both durable Event proofs and ephemeral signal proofs. The only difference is which canonical bytes feed event_digest (here: the ephemeral envelope with `proof` removed).",
+      "description": "Detached-JWS proof for a broadcast ephemeral envelope. Structurally isomorphic to event-envelope.schema.json #/$defs/event_proof: same kind / alg / verification_method / event_digest / created_at / jws shape, so a single EdDSA detached-JWS verifier serves both durable Event proofs and ephemeral signal proofs. The binding object carries context='ck-ephemeral-proof-v1'. The only difference is which canonical bytes feed event_digest (here: the ephemeral envelope with `proof` removed).",
       "required": [
         "kind",
         "verification_method",
@@ -155,12 +153,12 @@
           "enum": [
             "detached_jws"
           ],
-          "description": "detached_jws = device signature over the canonical proof binding object canonical_json({event_digest, actor_id, verification_method, created_at, domain?, audience?}). event_digest is the canonical ephemeral-envelope hash with `proof` removed (RFC 8785 JCS)."
+          "description": "detached_jws = device signature over the canonical proof binding object canonical_json({context:'ck-ephemeral-proof-v1', event_digest, actor_id, verification_method, created_at, domain?, audience?}). event_digest is the canonical ephemeral-envelope hash with `proof` removed (RFC 8785 JCS)."
         },
         "verification_method": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-          "description": "DID URL of the signing device key. For ck.call.signal MUST be `{actor_id}#{device_id}` where the fragment is the full `ck:device:<uuidv7>` id; verifier MUST strip the fragment for controller comparison and MUST compare that controller DID bit-identically to the envelope actor_id, then resolve the verify key from the device directory (keys/query device_signing_key, keys-operations.schema.json). Same form as event_proof.verification_method."
+          "description": "DID URL of the signing device key. MUST be `{actor_id}#{device_id}` where the fragment is the full `ck:device:<uuidv7>` id and equals envelope.device_id; verifier MUST strip the fragment for controller comparison and MUST compare that controller DID bit-identically to the envelope actor_id, then resolve the verify key from the device directory (keys/query device_signing_key, keys-operations.schema.json). Same form as event_proof.verification_method."
         },
         "alg": {
           "type": "string",

@@ -319,7 +319,7 @@ Strand 永远只有**一个** effective scope。整个 Strand（含所有 track�
 
 - `scope_circle_id=null` 时，Strand 与所有 track 的事件落在父 Realm 的 Realm-default scope；reducer 把 `effective_scope` 物化为 `{kind:"realm", realm_id}`。
 - `scope_circle_id` 指向 Circle 时，整个 Strand 与所有 track 的事件落在该 Circle 的 membership / history / delivery / query / encryption profile scope；reducer 把 `effective_scope` 物化为 `{kind:"circle", realm_id, circle_id}`。
-- `effective_scope` 是 reducer 在每个 event 接受时**immutable stamped**，进入 signed Event canonical bytes；在 MLS-backed scope 中还进入 E2EE AAD / MLS governance binding。若 Seal 通过 `data_event_set_root` 观察该 DataEvent，观察性 root 只证明同一 event digest，不改变数据面 finality。后续 `scope_circle_id` 改绑不得重解释旧 event。
+- `effective_scope` 是 reducer 在每个 event 接受时**immutable stamped**，进入 accepted Event envelope；它不参与 producer proof 的 `event_digest` 输入（见 [`event-and-patch.md` §3](./event-and-patch.md)），但在 MLS-backed scope 中进入 E2EE AAD / MLS governance binding，并可被 Seal/sub-seal 观察性承诺覆盖。若 Seal 通过 `data_event_set_root` 观察该 DataEvent，观察性 root 只证明同一 producer event digest，不改变数据面 finality。后续 `scope_circle_id` 改绑不得重解释旧 event。
 - 改绑 `scope_circle_id` 默认 reducer 拒绝（`failed_precondition` `reason=scope_rebind_forbidden`）；profile MAY 允许，但 MUST audit-paired high-risk update，且既有历史保留在原 scope，新内容才进新 scope。
 - 跨 Strand 的"宽 synthesis + 窄 discussion"模式见 [`circle.md` §7.2](./circle.md)：两个 Strand + `confidential_discussion_of` Relation。
 - Watch、通知、生命周期、metadata 加密 floor 等跨 scope 行为统一在 [`circle.md` §6 / §7 / §9 / §10](./circle.md) 描述；本文件不定义额外特例。
@@ -453,7 +453,7 @@ value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
 约束：
 
 - `null` value 等价于 `mentions_only`。客户端必须显式 `level: null` 来清空，不允许通过省略 `level` 字段隐式清空——避免 wire 上的歧义。
-- 同一 `(strand_id, watcher_actor_id)` cell 内的并发写入按标准 cas_register 收敛。`expected_value` 编译为 [event-auth-state-resolution.md §4.2.4](../authz/event-auth-state-resolution.md) 描述的 `head_eq` precondition，**比较整个 cell value**（不是单字段）。例如 cell 当前是 `{level:"all", level_public:true}` 时，希望 CAS 升级到 `all` + 公开 → 必须写 `expected_value: {level:"all", level_public: true}`；只写 `expected_value: {level:"all"}` 不匹配。省略 `expected_value` 等价 `head_eq null`：只有 cell 尚未存在时通过；cell 已存在时 MUST `failed_precondition`，不得把省略字段解释为 last-write-wins 或无条件覆盖。
+- 同一 `(strand_id, watcher_actor_id)` cell 内的并发写入按标准 cas_register 收敛。`expected_value` 编译为 [event-auth-state-resolution.md §9.3.1](../authz/event-auth-state-resolution.md) 描述的 `head_eq` precondition，**比较整个 cell value**（不是单字段）。例如 cell 当前是 `{level:"all", level_public:true}` 时，希望 CAS 升级到 `all` + 公开 → 必须写 `expected_value: {level:"all", level_public: true}`；只写 `expected_value: {level:"all"}` 不匹配。省略 `expected_value` 等价 `head_eq null`：只有 cell 尚未存在时通过；cell 已存在时 MUST `failed_precondition`，不得把省略字段解释为 last-write-wins 或无条件覆盖。
 - **Cell 是 truth source，`watches` Relation 是派生投影**。客户端 MUST NOT 通过 `ck.relation.create / update / delete relation_kind=watches` 直接编辑该 Relation；reducer 收到对该派生 Relation 的直接写入 MUST `schema_violation`（与 [`./realm-and-space.md` §3.6](./realm-and-space.md) 派生 `contains` Relation 的双源约束同模式）。
 - Cell 的 scope 归属：`<strand_id>` 隐含决定 Strand.realm_id；cell 的 `effective_scope` 由 Strand.scope_circle_id 决定（`scope_circle_id=null` → cell 落在 Realm-default scope namespace；`scope_circle_id` 指向 Circle → cell 落在该 Circle scope namespace，单源不双投影）。详见 §8.9。
 

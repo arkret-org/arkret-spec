@@ -133,6 +133,24 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
 - `ck.vector.capability.approval_constraint.v1`
   - high risk action 未满足 approval 时应软拒绝或进入 proposal 流程。
 
+**Capability coverage plan（normative gate plan）**：进入 `v1-conformance-certified` 前，capability fixture / runner MUST 增加并执行下列负向与正向覆盖；在对应 `ck.vector.*` 行进入 `vector-registry.json` active 状态前，实现不得声称这些行为已通过 vector gate：
+
+- 首发 grant issuer 上界校验：grant 的 `actions[]` / `resources[]` 超出 issuer 当前 effective capability 时 MUST 拒绝（`grant_exceeds_issuer_authority`），并覆盖 freshness unknown fail-closed。
+- effective validity window 归一化：`effective_not_before >= effective_expires_at` MUST 拒绝（`grant_validity_window_empty`）。
+- `delegation_expiry_seal` 防滚动续期：re-delegate MUST NOT 刷新整条链的 expiry seal，任何 widened expiry MUST 拒绝。
+- delegation cycle detection：含 revoke-then-re-delegate 与 batch 场景的环 MUST 拒绝（`delegation_cycle`）。
+- `depends_on_moderation_state` 静态 lint：满足 capabilities.md §18.1 条件而缺少显式 `true` 的 grant MUST schema-fail。
+- freshness 风险表：高风险 `stale` / `unknown` MUST fail closed；中风险 `unknown` MUST fail closed；本地 pending tier 在 `unknown` 下 MUST 不对外同步。
+- 跨 grant 全局合并：任一命中 grant 的 deny / quarantine / require_review MUST 全局生效，runner MUST 覆盖"MUST NOT 逐 grant 独立求值后取任一 ALLOWED 即放行"的负向样例。
+
+### 4.5 Client Sync coverage plan
+
+进入 `v1-conformance-certified` 前，sync fixture / runner MUST 增加并执行下列覆盖；在对应 `ck.vector.*` 行进入 `vector-registry.json` active 状态前，实现不得声称这些行为已通过 vector gate：
+
+- explicit delivery ack：`ack_token` 签发、累计单调 ack、cross-binding 校验、invalid ack 拒绝，以及服务端丢弃未确认 to-device 消息后 `to_device.lost=true` 的升级路径。
+- cursor binding：`filter_digest` canonical 计算、query-scope digest 绑定、跨 scope 回传 cursor 时返回 `cursor_integrity_invalid`。
+- limited timeline state：实现返回确定性 `state_at_window_start` 时，MUST 使用 limited timeline 首事件 `prev_refs` 因果闭包在最近 Seal basis 下的 deterministic join；无法计算时 MUST 使用安全降级而不得伪造状态。
+
 ## 5. 组件级测试矩阵（必测）
 
 | 组件 | MUST 覆盖 | SHOULD 覆盖 |

@@ -297,7 +297,7 @@ DID-method history → principal_signing_key (PSK)
                        └── user_signing_key (USK)   ── signs ──► other principal's verify_key
 ```
 
-每条 `ck.device.authorize` 事件 MUST 在 `payload.cross_signing_binding` 字段携带 SSK 对该设备 `verify_key` 的签名：
+每条 `ck.device.authorize` 事件 MUST 在 `payload.cross_signing_binding` 字段携带 SSK 对该设备 `verify_key`、`hpke_key` 与声明算法集合的签名：
 
 ```json
 {
@@ -306,6 +306,8 @@ DID-method history → principal_signing_key (PSK)
     "principal_id": "did:webvh:...",
     "device_id": "ck:device:...",
     "device_public_key": "z6Mk...",
+    "hpke_key": "z6LS...",
+    "algorithms": ["ck.mls.v1", "ck.hpke_x25519_aead_xchacha20poly1305.v1"],
     "cross_signing_binding": {
       "verification_method": "did:webvh:...#ck_self_signing_v1",
       "alg": "EdDSA",
@@ -325,9 +327,13 @@ DID-method history → principal_signing_key (PSK)
     "principal_id": <did>,
     "device_id": <id:device>,
     "device_public_key": <public_key>,
+    "hpke_key": <hpke_public_key>,
+    "algorithms": <sorted_unique_algorithm_ids>,
     "ssk_generation": <ssk_generation>
   })
 ```
+
+`algorithms` 在进入 signing input 前 MUST 按 UTF-8 bytewise 升序排序并去重；producer MUST 在 `ck.device.authorize.payload.algorithms` 中写入同一 canonical 数组。`hpke_key` 与 `device_public_key` 均为该设备授权记录的一部分，MUST 逐字节进入签名输入；receiver MUST NOT 接受只覆盖 verify key 而不覆盖 HPKE 密封 key 的 `cross_signing_binding`。
 
 #### 5.2.1 验证算法（normative）
 
@@ -338,7 +344,7 @@ DID-method history → principal_signing_key (PSK)
 3. 校验 `publish.self_signing_key.binding.signature` 由 PSK 对 §5.1 canonical 输入签名。
 4. 在该设备的最新 `ck.device.authorize` 事件中读取 `cross_signing_binding`；若缺失 MUST 视为 `unverified`，不得回退到"已授权 ⇒ cross-signed"。
 5. 比较 `cross_signing_binding.ssk_generation` 与 `accepted_generation`：
-   - 相等：用当前 SSK 公钥校验签名；通过则 `cross_signed`，失败则 `unverified`。
+   - 相等：用当前 SSK 公钥校验签名，签名输入 MUST 覆盖该设备当前 `device_public_key`、`hpke_key`、canonical `algorithms` 与 `ssk_generation`；通过则 `cross_signed`，失败则 `unverified`。
    - 小于：cross-signing 在该设备签发后已重置；设备 trust state MUST 强制降为 `needs_reverification`（见 §14）。
    - 大于：未来 generation；MUST 视为 `unverified` 并触发 stream re-sync。
 6. 跨 principal 信任（USK 签对方 PSK / device key）按对称流程执行：本端 USK binding 必须签发对方 PSK 的 `(kid, generation)` 元组而不是裸公钥，避免对方静默轮换 PSK 后仍继承信任。
@@ -397,10 +403,13 @@ receiver 接受 `bootstrap_binding` 当且仅当该 principal 的 control stream
 
 该 `ck.device.authorize` Event 的信封 MUST 采用 [`models/common-fields.md`](../models/common-fields.md) 的委派执行形态：`actor_id` = principal DID（记录主体），`executed_by` = 入册权威 DID（实际写入方，等于 `authority_did`），`authorization_ref` = principal DID 文档中指派该权威的委派条目（`did_delegation_ref`，即 [`identity/identity-did.md`](../identity/identity-did.md) 的 `CokretDeviceEnrollmentAuthority` service 条目，或一条 `capabilityDelegation` verification method）。Event `proofs[]` 由入册权威的签名密钥签发，其 `verification_method` MUST 映射到 `executed_by`（而非 `actor_id`）。入册权威的签名密钥是一把**持久服务密钥**，与 §5.0.1 step5 必须退场的 inception key 无关；Auth Server 等账号权威 **MUST NOT** 持有或伪造本 principal 的 SSK。
 
+该 Event payload MUST 显式携带 `device_public_key`、`hpke_key` 与 canonical `algorithms` 数组；入册权威的 Event proof 通过 `event_digest` 覆盖这些字段。`algorithms` MUST 按 UTF-8 bytewise 升序排序并去重。Receiver MUST 拒绝缺失 `hpke_key`、缺失 `algorithms`、或只由入册权威证明 verify key 而未证明 HPKE 密封 key 的 `service_attested` 设备授权。
+
 receiver 接受 `service_attested` 的 `ck.device.authorize` 时 MUST 校验：
 
 1. `authority_did`（= `executed_by`）确为 principal DID 文档**在本 Event accepted-at 时点解析**所指派的入册权威（按时点解析见下），且 `authorization_ref` 委派覆盖设备授权动作；不满足则 `reject`，reason `device_enrollment_authority_not_designated`。
 2. `proofs[]` 用入册权威 DID **按时点解析**得到的签名公钥验签通过。
+3. `proofs[]` 覆盖的 canonical Event payload 中的 `device_public_key`、`hpke_key` 与 `algorithms` 必须逐字节等于进入设备集投影的 verify key、HPKE key 与算法集合；任何投影替换或重排后不等 MUST fail closed。
 
 `device_id` 是 principal 作用域内的 typed id（`ck:device:<uuid>`），由客户端在该会话内一致使用；入册产生的 `device_public_key` 投影写入设备行时即以该 `device_id` 为键，与会话/恢复查找口径一致。
 
@@ -710,8 +719,8 @@ POST /_cokret/self/keys/claim
 | --- | --- | --- | --- |
 | `device_signing_key` | `did:key`(Ed25519 multibase) | optional | 该设备的**权威验签公钥**，来源 = 该设备权威 `ck.device.authorize.payload.device_public_key`(§5.2/§5.4)。MUST **仅对 verified 且未吊销**的设备返回。 |
 | `device_status` | `enum(active, revoked)` | optional | 目录态。`active` = 该设备 `device.authorize` 在效且未吊销；`revoked` = 已被 `ck.device.revoke` 吊销。 |
-| `cross_signing_binding` | `object` | optional | **Tier-2**：该设备权威 `ck.device.authorize.payload.cross_signing_binding`（§5.2）原样回显，形态 `{verification_method, alg, ssk_generation, signature}`。供客户端独立验证 device key ← SSK 链路。inception bootstrap 设备无此字段（§5.0.1 例外）。 |
-| `enrollment_authority_binding` | `object` | optional | **service-attested**：该设备权威 `ck.device.authorize.payload.enrollment_authority_binding`（§5.4）原样回显，形态 `{kind="service_attested", authority_did, authorization_ref}`。供客户端确认该 device-set 投影来自已接受的入册权威路径，而非 Tier-1 裸服务断言。 |
+| `cross_signing_binding` | `object` | optional | **Tier-2**：该设备权威 `ck.device.authorize.payload.cross_signing_binding`（§5.2）原样回显，形态 `{verification_method, alg, ssk_generation, signature}`。供客户端独立验证 device verify key、HPKE key 与算法集合 ← SSK 链路。inception bootstrap 设备无此字段（§5.0.1 例外）。 |
+| `enrollment_authority_binding` | `object` | optional | **service-attested**：该设备权威 `ck.device.authorize.payload.enrollment_authority_binding`（§5.4）原样回显，形态 `{kind="service_attested", authority_did, authorization_ref}`。供客户端确认该 device-set 投影中的 device verify key、HPKE key 与算法集合来自已接受的入册权威路径，而非 Tier-1 裸服务断言。 |
 | `device_authorize_event_id` | `event_id` | optional | 当前 device-set 投影对应的 accepted `ck.device.authorize` event id。对 `service_attested` 设备，本字段 MUST 与 `enrollment_authority_binding` 一起返回，并标识其 `payload.device_public_key` 被投影为 `device_signing_key` 的授权事件。 |
 
 并在 `keys_query_outcome` 顶层附带**每 principal** 的交叉签名根材料：
@@ -727,7 +736,7 @@ POST /_cokret/self/keys/claim
   - 凡声明 `ck.profile.e2ee_client.v1` 的客户端，在 E2EE 消息与通话信令 proof 验签路径上 MUST 执行 §8.3 的 Tier-2 链验证；仅服务端断言（Tier-1）不满足该 profile 的接受判据。
   - 不在该 profile 下、仅凭 Tier-1 接受 `device_signing_key` 的客户端，MUST 向用户披露"该设备身份未经密码学交叉签名链验证、信任根为承载服务端"（例如以 `unverified` / `device_unverified` 标识呈现），MUST NOT 把该设备呈现为已验证。
 - **Cross-signing 硬化面**：返回 `cross_signing_binding`（每设备）与 `cross_signing`（每 principal）的客户端 MUST 按 §8.3 独立验证完整交叉签名链，**不信服务端对 `device_signing_key` 的断言**，仅在链验证通过后才接受该 key。服务端对在效 cross-signing 设备 SHOULD 同时返回这些字段；缺失时客户端 MUST 视为 `unverified` 并 fail-closed。
-- **Service-attested 入册面**：使用 §5.4 托管 DID / enrollment-authority 模型的 principal 不产生 `ck.cross_signing.publish`，其设备授权以 accepted `ck.device.authorize` 的 `enrollment_authority_binding` 为信任根。`keys/query` 对这类 active verified 设备返回 `device_signing_key` 时 MUST 同时返回 `enrollment_authority_binding` 与 `device_authorize_event_id`。客户端在普通事件热路径上 MUST 把这二者视为 current principal-control 设备集投影锚：缺失、`kind != "service_attested"`、`device_authorize_event_id` 不合法或设备已吊销时 MUST fail-closed；不得因缺少 `cross_signing_binding` 把合法 service-attested 设备误判为 Tier-1 降级。
+- **Service-attested 入册面**：使用 §5.4 托管 DID / enrollment-authority 模型的 principal 不产生 `ck.cross_signing.publish`，其设备授权以 accepted `ck.device.authorize` 的 `enrollment_authority_binding` 为信任根。`keys/query` 对这类 active verified 设备返回 `device_signing_key` 或 `hpke_key` 时 MUST 同时返回 `enrollment_authority_binding` 与 `device_authorize_event_id`。客户端在普通事件热路径和 secret / key envelope 密封路径上 MUST 把这二者视为 current principal-control 设备集投影锚：缺失、`kind != "service_attested"`、`device_authorize_event_id` 不合法、投影中的 `device_public_key` / `hpke_key` / `algorithms` 与 accepted Event payload 不等或设备已吊销时 MUST fail closed；不得因缺少 `cross_signing_binding` 把合法 service-attested 设备误判为 Tier-1 降级。
 
 接收方验 envelope / signal proof 时 MUST 按 `verification_method` = `` `{actor}#{device_id}` ``（fragment 是完整 `ck:device:<uuidv7>`）经本目录解析 `device_signing_key` 得 verify_key；设备**吊销**(`device_status != active` 或目录省略 key)、目录**缺失**该 `(actor, device)`、cross-signing 链验证未通过、service-attested 投影锚缺失/不合法、或验签失败者 MUST **fail-closed**：丢弃信号，MUST NOT 触发 UI，持久消息 MUST 标为不可验证且不得当作已验证明文呈现。该规则同时适用于通话信令(详见 [`webrtc-signaling.md` §5.1](./webrtc-signaling.md))与持久消息接收路径。
 
@@ -737,8 +746,8 @@ POST /_cokret/self/keys/claim
 
 1. **DID 锚定**：独立解析 `actor` 的 DID，校验 `cross_signing.{actor}.principal_signing_key`（`kid` + `public_key`）等于该 DID 当前控制集中对应 verification method 的密钥（逐字节）；不符 MUST 视为 `unverified`。
 2. **PSK→SSK**：用上一步 DID 锚定的 PSK 校验 `self_signing_key.binding.signature` 覆盖 §5.1 self-signing canonical 输入；不通过 MUST `unverified`。
-3. **SSK→device**：读该设备 `cross_signing_binding`；缺失 MUST `unverified`（除 §5.0.1 inception bootstrap 例外）。比较 `cross_signing_binding.ssk_generation` 与 `cross_signing.{actor}.generation`：相等则用 `self_signing_key.public_key` 校验 `cross_signing_binding.signature` 覆盖 §5.2 `"ck-device-trust-bind-v1\n" + canonical_json({principal_id, device_id, device_public_key, ssk_generation})`；小于 MUST `needs_reverification`（降级，不接受）；大于 MUST `unverified` 并触发 re-sync。
-4. **接受判据**：仅当 1–3 全部得 `cross_signed` 时，客户端方接受 `device_signing_key` 用于 proof 验签；任一步失败 MUST fail-closed（按 `unverified` 处理：丢弃该 `(actor,device)` 的 proof，不触发 UI、不入库）。
+3. **SSK→device**：读该设备 `cross_signing_binding`；缺失 MUST `unverified`（除 §5.0.1 inception bootstrap 例外）。比较 `cross_signing_binding.ssk_generation` 与 `cross_signing.{actor}.generation`：相等则用 `self_signing_key.public_key` 校验 `cross_signing_binding.signature` 覆盖 §5.2 `"ck-device-trust-bind-v1\n" + canonical_json({principal_id, device_id, device_public_key, hpke_key, algorithms, ssk_generation})`；小于 MUST `needs_reverification`（降级，不接受）；大于 MUST `unverified` 并触发 re-sync。
+4. **接受判据**：仅当 1–3 全部得 `cross_signed` 时，客户端方接受 `device_signing_key` 用于 proof 验签；任一步失败 MUST fail closed（按 `unverified` 处理：丢弃该 `(actor,device)` 的 proof，不触发 UI、不入库）。
 5. `device_public_key` 取自 `device_signing_key`(did:key 内嵌的 Ed25519 公钥)，并 MUST 与第 3 步 binding 输入中的 `device_public_key` 为同一把 key——即客户端验证的正是它将用于 proof 验签的那把 key，闭合"目录给的 key ⇔ 被交叉签名背书的 key"。
 
 `POST /_cokret/self/keys/claim` 请求字段：
@@ -1006,7 +1015,7 @@ HPKE AAD（本 kind 的具体绑定）MUST 是对以下字段的 canonical JSON�
 - 时序：`ck.secret.request` / `ck.secret.send` MUST 在两台设备完成 §10.3 SAS 验证之后发送。请求与发送绑定的设备 MUST 与该 SAS transcript 绑定的 device key 一致，防止“验证设备 A、把 secret 发给设备 B”。
 - TTL：二者受 §7 队列 TTL 约束；`ck.secret.send` SHOULD 使用更短 `expires_at`（推荐 10–60 分钟）。
 - 用户在环：被请求设备在发送 `ck.secret.send` 前 MUST 经用户显式授权，并 MUST 校验目标 device ∈ 本 principal 当前授权设备集合且未撤销。
-- 密封密钥绑定（normative）：被请求设备在密封并发送 `ck.secret.send` 前，MUST 校验请求中的 `recipient_hpke_public_key` 逐字节等于目标 `from_device` 在设备集投影（§4 device record / §6 device list，经 §8.3 Tier-2 链验证后视为权威）中登记的 `hpke_key`；不等 MUST fail closed（不密封、不发送），并 SHOULD 提示用户该请求异常。该校验闭合"验证设备 A 的 verify key、却把账户级 secret 密封给攻击者控制的 X25519 公钥"这一密钥绑定缝隙——它独立于 §10.3 SAS（SAS 只绑 verify key）。注：device `hpke_key` 由签名的 `ck.device.authorize` 事件承载、有事件签名链完整性背书，但当前 §5.2 `cross_signing_binding` 只覆盖 `device_public_key`（verify key）；把 `hpke_key` 一并纳入 cross-signing transcript 覆盖是更强绑定的后续硬化方向。
+- 密封密钥绑定（normative）：被请求设备在密封并发送 `ck.secret.send` 前，MUST 校验请求中的 `recipient_hpke_public_key` 逐字节等于目标 `from_device` 在设备集投影（§4 device record / §6 device list，经 §8.3 Tier-2 链验证或 §5.4 service-attested 投影锚验证后视为权威）中登记的 `hpke_key`；不等 MUST fail closed（不密封、不发送），并 SHOULD 提示用户该请求异常。该校验闭合"验证设备 A 的 verify key、却把账户级 secret 密封给攻击者控制的 X25519 公钥"这一密钥绑定缝隙——它独立于 §10.3 SAS（SAS 只绑 verify key）。device `hpke_key` MUST 已被 §5.2 `cross_signing_binding` 或 §5.4 入册权威 Event proof 覆盖；仅有服务端投影、但无法验证 HPKE key 绑定的设备不得作为账户级 secret 的接收目标。
 - 反滥用：接收方 MUST 丢弃 unsolicited `ck.secret.send`（无本端 pending `request_id`）；`request_id` 用后即作废；对同一 `from_device` 的重复请求 SHOULD 限速；多次拒绝 SHOULD 提示用户考虑撤销该设备。
 - 审计：被请求设备 SHOULD 记录一次 secret 共享审计（如 `ck.audit.accessed`，`access_kind=secret_share`）。
 - 止损：误授权后，用户从任一已授权设备发起 §2.2 设备撤销并轮换对应 account secret、重新封装全部备份即可使被泄露设备失效。

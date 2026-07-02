@@ -230,7 +230,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 ### 4.8 通知消息 `ck.content.notice`
 
-由系统或 Bot/Agent 生成的通知性消息，客户端 SHOULD 以视觉上区别于用户消息的样式渲染：
+由系统或 Bot/Agent 生成的通知性消息，客户端 SHOULD 通过可感知的 presentation invariant 与用户撰写消息区分；具体样式、控件和文案属于实现自由：
 
 ```json
 {

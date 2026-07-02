@@ -950,6 +950,7 @@
     },
     "directory_resolve_handle_request_body": {
       "type": "object",
+      "description": "Resolve a canonical handle. For restricted handle claims, requester / proofs / claim_presentations / audience / realm_id are authorization inputs; services MUST use indistinguishable denial for anonymous or unauthorized restricted, revoked, rate-limited, and not-found cases.",
       "required": [
         "handle"
       ],
@@ -1099,6 +1100,7 @@
     },
     "directory_list_handles_for_subject_request_body": {
       "type": "object",
+      "description": "List currently visible handle claims for a subject. The service MUST apply the same visibility, audience, requester proof, rate-limit, and indistinguishable-denial rules as resolve_handle; absence of a returned handle is not proof the subject has none.",
       "required": [
         "subject"
       ],

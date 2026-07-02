@@ -137,7 +137,7 @@ TSP transport 不引入平行 operation namespace。若 TSP adapter 需要 trans
 
 规则：
 
-- TSP authenticity 不替代 Cokret event signature；两者 SHOULD 都验证。
+- TSP authenticity 不替代 Cokret event signature / operation proof。任何通过 TSP 承载的 Cokret operation（包括非持久 operation、控制消息、Event 提交、capability 驱动动作）在进入 Cokret operation layer 前，receiver MUST 验证对应的 Cokret 签名、payload proof 或 capability-bound proof；仅凭 TSP relationship / channel authentication MUST NOT 放行。没有 Cokret operation 语义的 TSP-private 控制消息必须留在 `tsp.adapter.*` namespace，不得伪装成 Cokret operation。
 - TSP confidentiality 不替代 Realm E2EE；它只保护 transport message payload。
 - TSP relationship 不自动授予 Realm membership 或 capability。
 - TSP routed mode 中 intermediary 不应被视为可信授权方。

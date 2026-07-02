@@ -299,11 +299,11 @@ Client Sync 的事件顺序是展示顺序和增量恢复顺序，不是授权�
 服务器返回 `timeline.events` 时 MUST 满足：
 
 1. 同一响应内的事件按 deterministic timeline projection order 排列。
-2. 若事件 B 直接依赖事件 A，且 A 在同一响应窗口中可见，则 A MUST 出现在 B 之前。
+2. 若事件 B 通过 `prev_refs`、`refs[role="after"]`、`causal_refs` 或 payload 物化的 reply/reference edge（如 `replies_to`）直接依赖事件 A，且 A 在同一响应窗口中可见，则 A MUST 出现在 B 之前。
 3. 如果依赖事件因过滤、权限、分页或缺失而不在响应中，B MUST 保留原始 Event Envelope 中客户端可见的完整 `prev_refs[]` 与 `refs[]` 条目；客户端把其中未在本响应出现、且本地 store 未命中的 `prev_refs[]` 或 `refs[role=authorized_by]` 判为 backfill 目标，并在补齐前 soft fail 或延迟渲染。若某个依赖引用本身因权限不可见，服务端不得伪造占位引用；该事件按 `timeline.limited=true` / `preview_only=true` 或对应 `unauthorized` 诊断处理。
 4. 服务器 MUST NOT 使用本地数据库自增 ID、接收顺序或 Sync Service 到达顺序作为跨实现排序依据。
 
-默认 timeline projection order（不输入 canonical state、授权判断或 winner 选择）：
+Canonical default timeline projection order（不输入 canonical state、授权判断或 winner 选择；请求未显式声明并协商其它 profile 排序时，服务器 MUST 使用本顺序）：
 
 ```text
 causal_depth ASC,
@@ -315,7 +315,7 @@ event_id ASC
 
 其中：
 
-- `causal_depth` 来自已知 DAG / prev refs。
+- `causal_depth` 来自已知 DAG：`prev_refs ∪ refs[role="after"] ∪ causal_refs ∪ payload 物化的 reply/reference edge`。
 - `hlc` 用于近实时排序。
 - `actor_seq` 只在同一 actor 的已知因果路径内辅助排序；并发 sibling fork 仍由后续 tie-breaker 收敛。
 - `event_id` 是最终 tie-breaker。
@@ -572,7 +572,7 @@ Account data MUST 按 principal/device 授权隔离。联邦节点不得向其�
 To-device 队列删除由**显式 ack** 驱动，与 stream cursor 解耦；任何 cursor（`after=` / `from=`）都 **MUST NOT** 触发队列删除：
 
 1. **`ack_token` 签发**：服务端在每个携带非空 `to_device.messages` 的 `delta` frame 中 MUST 附带 `to_device.ack_token`；`GET /_cokret/self/device_messages` 的每个非空响应页同样 MUST 携带顶层 `ack_token`。`ack_token` 是 server-issued 不透明确认令牌，绑定 `(principal_id, device_id, 该批次的队列高水位)`，覆盖该批次及其之前所有已投递消息。它**不是 cursor**：不使用 `ck:cursor:` wire 形态，不进入 cursor schema / TTL / purpose 体系；客户端 MUST 把它当作不透明字符串原样回传。令牌 MUST 不可伪造：不可猜测（解码后熵 ≥ 128 bit）或等价的服务端查表绑定。**wire 形态（normative）**：`ack_token` MUST 是单个 UTF-8 字符串，且 MUST NOT 超过 1024 字节；客户端按不透明字符串原样回传、不解析其内部结构，服务端 MUST 拒绝超长或非 UTF-8 的 token（`invalid_param`）。该上界保证跨实现可移植，避免无界 token。
-2. **显式 ack**：客户端把该批次所有消息**持久化处理完成**（密钥材料、verification transcript、secret 已落盘）后，MUST 调用 `ck.self.device_messages.command.ack`（`POST /_cokret/self/device_messages/ack`，body `{ack_token}`）。确认是**累计且单调**的：服务端删除该令牌覆盖位置（含）之前的全部已投递消息；ack 一个早于当前确认位置的令牌是合法 no-op，返回 `{ok: true}` 且 MUST NOT 回退确认位置。该操作天然幂等，不需要 `Idempotency-Key`。
+2. **显式 ack**：客户端仅在该 `ack_token` 覆盖位置（含）之前的**所有已投递消息**都已持久化处理完成（密钥材料、verification transcript、secret 已落盘）后，MUST 调用 `ck.self.device_messages.command.ack`（`POST /_cokret/self/device_messages/ack`，body `{ack_token}`）。确认是**累计且单调**的：服务端删除该令牌覆盖位置（含）之前的全部已投递消息；ack 一个早于当前确认位置的令牌是合法 no-op，返回 `{ok: true}` 且 MUST NOT 回退确认位置。并行 dispatcher MUST 维护"最高已连续持久化队列位点"，MUST NOT ack 覆盖位置晚于任何未持久化消息的 token。该操作天然幂等，不需要 `Idempotency-Key`。
 3. **ack 校验**：服务端 MUST 校验 `ack_token` 绑定与当前 authenticated `(principal_id, device_id)` 匹配；unknown / 过期 / cross-binding 令牌 MUST 返回 `invalid_param`（reason `invalid_ack_token`）且 MUST NOT 删除任何排队消息。
 4. **cursor 只读**：`/_cokret/self/account/subscribe` 的 `after=` 与 `GET /_cokret/self/device_messages` 的 `from=` 只决定读取 / 续传位置。客户端建立新的 subscribe 连接时（无论 `after=` 位置），服务端 MUST 重新投递所有未确认、未过期的 to-device 消息；客户端 MUST 容忍重复投递，并按消息内容的事务标识（`transaction_id` / `request_id` 等）幂等处理。
 5. **过期与丢失信号**：未确认消息仍受 `DeviceMessageEnvelope.expires_at` 与 [`device-lifecycle.md` §7](../crypto-media/device-lifecycle.md) 队列 TTL 约束，过期 MUST 清除。服务端自该设备上次确认位置以来因过期或容量约束丢弃过未确认消息时，SHOULD 在下一个含 `to_device` 的响应中设置 `to_device.lost=true`；客户端收到后 SHOULD 触发密钥恢复路径（key backup / key re-request），MUST NOT 静默假设队列完整。**E2EE client profile 升级（normative）**：对声明 `ck.profile.e2ee_client.v1` 的客户端及其服务对端，由于丢弃的未确认 to-device 消息可能承载不可再生的 MLS Welcome / secret share / key material，上述两个 SHOULD 升为 **MUST**——服务端丢弃过该设备未确认消息时 **MUST** 设置 `to_device.lost=true`；客户端见到 `to_device.lost=true` 时 **MUST** 进入 key re-request / key backup 恢复路径，**MUST NOT** 静默把队列当作完整，以免 E2EE 密钥材料永久丢失而不被检出。
@@ -683,7 +683,7 @@ Cursor revoke 不能替代 cursor integrity：服务端仍必须先做 §12.2 �
 
 恢复流程按触发原因分成两类互斥分支，客户端 MUST 先按 §4 的分类判定原因再进入对应分支；两类分支对"旧 cursor 是否可继续复用"的处理**根本不同**，不得混用同一套 `after=` 取值。
 
-> **frontier 不是 cursor（前置约定）**：`account/describe`（`ServiceDescribe` 私有 frontier 扩展字段）与 `snapshot/head`（`ck.schema.snapshot.v1` manifest 的 `frontier.event_ids`）返回的 frontier 是 **boundary head event id 集合**，不是 stream cursor（`ck:cursor:<base64url>`）。`ck.self.events.query.scan` / `ck.self.account.stream.subscribe` 的 `before=` / `after=` 参数类型严格是 `cursor`（见 [`service-http-binding.md` §3.3.2](./service-http-binding.md)），任何其它边界参数 MUST 触发 `invalid_param`。因此客户端 **MUST NOT** 把 frontier event id 直接填入 `after=` / `before=`；frontier 在恢复中只作为 backfill 的**停止判据**（拉到的事件命中 `frontier.event_ids` / `event_set_commitment.covered_event_ids` 即接上当前态），续传位置由 `events.query` 响应返回的 `prev_cursor` / `next_cursor` 决定。
+> **frontier 不是 cursor（前置约定）**：`account/describe`（`ServiceDescribe` 私有 frontier 扩展字段）与 `snapshot/head`（`ck.schema.snapshot.v1` manifest 的 `frontier.event_ids`）返回的 frontier 是 **boundary head event id 集合**，不是 stream cursor（`ck:cursor:<base64url>`）。`ck.self.events.query.scan` / `ck.self.account.stream.subscribe` 的 `before=` / `after=` 参数类型严格是 `cursor`（见 [`service-http-binding.md` §3.3.2](./service-http-binding.md)），任何其它边界参数 MUST 触发 `invalid_param`。因此客户端 **MUST NOT** 把 frontier event id 直接填入 `after=` / `before=`；frontier 在恢复中只作为 backfill 的**集合停止判据**：必须命中 `frontier.event_ids` 中的每一个 head，且已拉窗口内所有可见事件的 `prev_refs` / critical refs 因果闭包要么已解析、要么落在已验证的 `event_set_commitment` 覆盖集内，才算接上当前态。续传位置由 `events.query` 响应返回的 `prev_cursor` / `next_cursor` 决定。
 
 #### 12.3.1 `cursor_expired` / `cursor_integrity_invalid` / `cursor_unrecognized`（旧 cursor MUST 废弃）
 
@@ -692,7 +692,7 @@ cursor 本端状态失效（TTL 超时，或 tamper / 未知 handle / cross-bind
 1. 客户端 MUST 清空本地 cursor 缓存（含该流的 `after=` 高水位）；**MUST NOT** 把已失效的旧 cursor 复用为任何 `after=` / `before=` 起点或 backfill 续传位置。`filter_digest`、未确认写入和最后可验证 frontier 可保留用于 backfill 停止判定，但 frontier 不得当作 cursor 使用。
 2. 客户端从下列两条合法新起点二选一，二者都不复用旧 cursor：
    - **(A) 重做 initial sync**：无 `after` 重新建立 `ck.self.account.stream.subscribe?catchup=true`（`after=` 缺省 + `catchup=true`），由服务端发 baseline `delta` 重新签发新 cursor。
-   - **(B) snapshot 加速 bootstrap**：调用 `ck.self.snapshot.query.manifest_head` 取 `ck.schema.snapshot.v1` manifest，MUST 先验证签名、签名者授权、`state_digest`、`frontier`、`event_set_commitment` 和每个 chunk digest（[`service-http-binding.md` §6.1](./service-http-binding.md)、§13）。验证通过后把 `frontier.event_ids` 作为该 Realm 已知态边界，再以 `ck.self.events.query.scan` **从 server head 向更旧方向 backfill**（省略 `after`，即隐式 `before=<server_head>`，并用响应 `prev_cursor` 作为下一页 `before=`），直到拉到的事件命中 `frontier.event_ids` / `event_set_commitment.covered_event_ids` 即停止；账号聚合面仍按 (A) 重新建立 subscribe 取得新 cursor。
+   - **(B) snapshot 加速 bootstrap**：调用 `ck.self.snapshot.query.manifest_head` 取 `ck.schema.snapshot.v1` manifest，MUST 先验证签名、签名者授权、`state_digest`、`frontier`、`event_set_commitment` 和每个 chunk digest（[`service-http-binding.md` §6.1](./service-http-binding.md)、§13）。验证通过后把 `frontier.event_ids` 作为该 Realm 已知态边界，再以 `ck.self.events.query.scan` **从 server head 向更旧方向 backfill**（省略 `after`，即隐式 `before=<server_head>`，并用响应 `prev_cursor` 作为下一页 `before=`），直到 `frontier.event_ids` 中每一个 head 都已在本地命中，且窗口内所有已拉事件的 `prev_refs` / critical refs 因果闭包要么已解析、要么落在已验证的 `event_set_commitment` 覆盖集内；在此之前 timeline MUST 保持 `limited` / provisional，不得声称历史完整。账号聚合面仍按 (A) 重新建立 subscribe 取得新 cursor。
 3. 若 snapshot 校验失败、manifest 不可用或服务端未宣告 `ck.self.snapshot.query.manifest_head`，客户端 MUST 回退到 (A) 的 initial sync 或纯 Event history replay，**不得**把未验证 snapshot 作为 accepted state，也不得退回复用旧 cursor。
 
 #### 12.3.2 `stale_frontier`（旧 cursor 仍有效，可继续 backfill）

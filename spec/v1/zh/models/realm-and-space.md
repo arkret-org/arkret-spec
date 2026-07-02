@@ -460,7 +460,7 @@ bottom  := reject
 value   := id:space | null
 ```
 
-**Plane 裁决（normative，CBA）**：与 §3.6 `ck.component.strand.position.v1` 同型，`ck.space.parent` 的默认裁决是 **`plane := control`（`sealed=true`，升控制面）**——这保留下表 `cas_register` / `bottom=reject` / `head_eq` CAS basis 的全部语义不变。因此 `ck.space.parent` 是 **Control Move**（携带 `seal_basis`，**不**携带 `seal_ref`，由 Seal 裁决），而非 data-plane DataEvent：按 [`event-auth-state-resolution.md` §4.2](../authz/event-auth-state-resolution.md) DataEvent MUST NOT 携带 preconditions、且 §9.1 中 `cas_register` 在 data plane 默认不可用、`bottom=reject` 是控制面 / sealed 语义，带 `head_eq` CAS + `bottom=reject` 的 `ck.space.parent` 结构上只能是 Control Move。Realm schema MAY 按 §9.4 三选一改声明为 data-plane `mv_register`（并发 reparent 暴露多 heads、任意写权限者一笔收敛、无协议 `⊥`）或 per-object sequencer；改声明后 `head_eq` 退化为诊断字段。`event-kind-registry.json` 中 `ck.space.parent` 行的 plane/sealed 语义以本节为准。
+**Plane 裁决（normative，CBA）**：与 §3.6 `ck.component.strand.position.v1` 同型，`ck.space.parent` 的默认裁决是 **`plane := control`（`sealed=true`，升控制面）**——这保留下表 `cas_register` / `bottom=reject` / `head_eq` CAS basis 的全部语义不变。因此 `ck.space.parent` 是 **Control Move**（携带 `seal_basis`，**不**携带 `seal_ref`，由 Seal 裁决），而非 data-plane DataEvent：按 [`event-and-patch.md` §2.2](./event-and-patch.md) DataEvent MUST NOT 携带 preconditions，且 [`event-auth-state-resolution.md` §9.1](../authz/event-auth-state-resolution.md) 中 `cas_register` 在 data plane 默认不可用、`bottom=reject` 是控制面 / sealed 语义，带 `head_eq` CAS + `bottom=reject` 的 `ck.space.parent` 结构上只能是 Control Move。Realm schema MAY 按 §9.4 三选一改声明为 data-plane `mv_register`（并发 reparent 暴露多 heads、任意写权限者一笔收敛、无协议 `⊥`）或 per-object sequencer；改声明后 `head_eq` 退化为诊断字段。`event-kind-registry.json` 中 `ck.space.parent` 行的 plane/sealed 语义以本节为准。
 
 规则：
 

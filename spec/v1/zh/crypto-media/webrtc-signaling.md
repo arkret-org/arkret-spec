@@ -217,7 +217,7 @@ Content-Type: application/json
   ```
 
   `nonce` MUST 对每个 `(call_id, actor_id, device_id)` fresh，media service MUST 在签名 ICE config 的内部审计记录中保留 nonce freshness evidence，且不得把 nonce 或其稳定派生值写入 TURN username 之外的可跨 Realm 关联字段。Refresh 时同一 active call leg MAY 复用 pseudonym 以避免 TURN 误判为不同会话，但新 call、new device leg、超过 `ttl_seconds + refresh grace` 的恢复、或 policy 要求匿名重置时 MUST 生成新 pseudonym。Pseudonym 不得仅由稳定 ID 确定性派生。
-- ICE config response MUST 由 media service 签名；`signature.alg` MUST 是 [`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json) 的 active `proof_alg` 值。default v1 部署使用 `EdDSA`(ed25519)；高保证或部署特定 profile MAY 要求 registry 中的其它 active 算法，但签名 canonical bytes 与本节 domain label 不变。签名 canonical bytes MUST 覆盖 `realm_id`、`call_id`、`actor_id`、`device_id`、`issued_at`、`issued_at_bucket`、`bucket_seconds`、`ttl_seconds`、`ice_servers[]` 与策略字段；TLS + service DID 绑定只能认证通道，不能替代响应对象签名。
+- ICE config response MUST 由 media service 签名；`signature.alg` MUST 是 [`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json) 的 active `proof_alg` 值。default v1 部署使用 `EdDSA`(Ed25519)；高保证或部署特定 profile MAY 要求 registry 中的其它 active 算法，但签名 canonical bytes 与本节 domain label 不变。签名 canonical bytes MUST 覆盖 `realm_id`、`call_id`、`actor_id`、`device_id`、`issued_at`、`issued_at_bucket`、`bucket_seconds`、`ttl_seconds`、`ice_servers[]` 与策略字段；TLS + service DID 绑定只能认证通道，不能替代响应对象签名。
   - **签名 domain label（normative，跨实现互通契约）**：ICE config response `signature.sig` MUST 是 issuer 私钥（对应 `signature.kid`）按 `signature.alg` 指定算法对下列字节串产生的签名；`signature.alg="EdDSA"` 时该签名为 Ed25519。`ES256`、`ML-DSA-65` 等其它 active `proof_alg` 值只改变验签算法和 key type，不改变本 signing input、domain label 或 payload digest：
 
     ```text

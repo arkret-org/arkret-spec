@@ -31,7 +31,7 @@ Handle、邮箱、域名用户名等人类可读标识 MUST NOT 作为权限主�
 
 ### 2.2 权限必须显式表达
 
-不要依赖以下隐式假设：
+实现 MUST NOT 依赖以下隐式假设：
 
 - 进入 Realm 就拥有全部能力。
 - 能编辑 Strand synthesis 就一定能在 discussion 里发消息，除非有效 access policy 明确继承并授予该动作。
@@ -39,7 +39,7 @@ Handle、邮箱、域名用户名等人类可读标识 MUST NOT 作为权限主�
 
 ### 2.3 权限判定基于当时有效的 capability 集
 
-操作是否合法，应由该时点有效 grant 集决定。
+操作是否合法 MUST 由该时点有效 grant 集决定。
 
 ### 2.4 DID 是主体，Claim 是条件
 
@@ -782,13 +782,14 @@ Cokret v1 至少区分：
 
 ## 17. 决策执行位置
 
-权限检查 MUST 至少在以下位置执行：
+权限检查 MUST 至少在以下协议边界执行：
 
-- client 预检查
 - Events API 接收写入时
 - Sync Service 分发前
 - 受托 search / projection 服务返回结果前
 - blob store 下发内容前
+
+声明主客户端、web 客户端或离线编辑 profile 的实现 SHOULD 在本地提交前执行同等语义的预检查，以降低失败回滚和本地 pending 噪声；该预检查是 UX / 性能优化，不能替代上述服务端或 reducer 边界的 MUST 检查，也不能作为接受、分发或下发内容的唯一依据。
 
 ## 18. 最小权限判定算法与性能优化
 
@@ -858,7 +859,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 
 - `fresh`：节点已观察到控制面 Seal 更新时间在 `freshness_required_ms` 窗口内，或持有 ≥1 受信 notary / witness 在该窗口内签发的 frontier attestation。
 - `stale`：上一次控制面 Seal 更新或受信 attestation 超出 `freshness_required_ms` 窗口，但仍小于 `freshness_hard_limit_ms`。
-- `unknown`：节点处于网络分区、frontier 来源不可达、notary 长时间无新 Seal，或本地时钟与受信时间源 drift 超出 `clock_skew_tolerance_ms`。
+- `unknown`：节点处于网络分区、frontier 来源不可达、notary 长时间无新 Seal、本地时钟与受信时间源 drift 超出 `clock_skew_tolerance_ms`，或上一次控制面 Seal 更新 / 受信 attestation 的年龄 **大于等于** `freshness_hard_limit_ms`。超过 hard limit 的状态 MUST 归入 `unknown`，不得继续按 `stale` 处理。
 
 **`freshness_unknown` ≠ allow**：当判定的状态是 `stale` 或 `unknown` 时，节点 MUST 按动作风险等级强制降级，绝不能因"找不到 revoke 证据"就默认为"未撤销"：
 
@@ -874,12 +875,12 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 
 实现 MUST：
 
-- 在 `server/describe.limits` 暴露 `freshness_required_ms`、`freshness_hard_limit_ms`、`clock_skew_tolerance_ms`，让客户端协商。任何 registry 中 `risk_tier=high` 或未登记而按默认规则视为 high 的动作，其 `freshness_required_ms` MUST 严格大于 `2 * clock_skew_tolerance_ms`；否则本地时钟偏差可覆盖整个 freshness window，receiver MUST 把配置视为 `schema_violation` / deployment misconfiguration。默认值：高风险 `freshness_required_ms = 180_000`、`freshness_hard_limit_ms = 300_000`；中风险 `freshness_required_ms = 300_000`；clock_skew_tolerance_ms = 60_000。
+- 在 `server/describe.limits` 暴露 `freshness_required_ms`、`freshness_hard_limit_ms`、`clock_skew_tolerance_ms`，让客户端协商。任何 registry 中 `risk_tier=high` 或未登记而按默认规则视为 high 的动作，其 `freshness_required_ms` MUST 严格大于 `2 * clock_skew_tolerance_ms`；否则本地时钟偏差可覆盖整个 freshness window，receiver MUST 把配置视为 `schema_violation` / deployment misconfiguration。默认值：高风险 `freshness_required_ms = 180_000`、`freshness_hard_limit_ms = 300_000`；中风险 `freshness_required_ms = 300_000`、`freshness_hard_limit_ms = 600_000`；clock_skew_tolerance_ms = 60_000。
 - 在 `unknown` / `stale` 拒绝响应中返回 `freshness_state`、`last_known_frontier_age_ms`、`notary_status`、`retry_after_ms`，让客户端 UI 区分"被拒绝"和"暂时不能确认"。
 - 客户端在低风险 `unknown` 模式下 MUST 在 UI 中标记本地 pending 写入为 `pending_local`（例如灰色发送中状态），并暴露"分区恢复后可能丢弃"的提示。
 - MUST NOT 用 cache TTL 静默掩盖 `unknown` 状态。任何高风险动作 fast path 命中后，若 cache entry 的 `auth_state_digest` 对应的 frontier 已超出 `freshness_required_ms`，MUST 从 cache 降级回完整判定。
 - MUST NOT 通过把高风险动作降级为中风险（例如把 `ck.capability.revoke` 标记为 "low_risk_followup"）来绕过本表。动作风险等级 MUST 由 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 的 `risk_tier` 字段声明，MUST NOT 接受 grant-side override。
-- 单个分区窗口内允许的本地 pending 数量 MUST 限制（默认 ≤ 1000 / Realm / 5 minutes），超过后客户端 SHOULD 转为离线模式提示用户，避免 pending 队列爆炸。
+- 本地 pending 数量 MUST 按 Realm 维度限制在滚动时间窗口内（默认 ≤ 1000 / Realm / 5 minutes）；同一网络分区 episode 持续超过 5 minutes 时，quota 窗口继续滚动计算，不把整个 episode 合并为单一无限长窗口。超过限额后客户端 SHOULD 转为离线模式提示用户，避免 pending 队列爆炸。
 
 **默认 fail closed**：当实现无法确定动作风险等级、或动作来自尚未注册的 capability action 时，freshness 判定 MUST 默认按高风险处理（`stale` / `unknown` 即拒绝），而不是按低风险放行。这条 default 是为了让任何未来引入的高风险动作在进入 capability registry 前不会被旧实现误判为低风险路径。
 

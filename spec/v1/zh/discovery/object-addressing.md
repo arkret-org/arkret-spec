@@ -40,7 +40,7 @@ web+cokret:realm/<realm>/strand/<strand>/m/<msg>?action=view
 
 | 部分 | 承载 | 规则 |
 | --- | --- | --- |
-| **path** | containment 链 = 身份 + 解析顺序 | path keyword 携带对象类型，值是**裸 uuid**（剥掉 `ck:<kind>:` sigil）。层级固定 `realm/<r>` ⊃ `strand/<f>` ⊃ `m/<msg>`。 |
+| **path** | containment 链 = 身份 + 解析顺序 | path keyword 携带对象类型，值是**裸 UUID**（剥掉 `ck:<kind>:` sigil）。层级固定 `realm/<r>` ⊃ `strand/<f>` ⊃ `m/<msg>`。 |
 | **query** | 非身份提示 + 授权组件 | `action`、`lt`、`tok`（见 §3.2 / §4）。 |
 | **fragment** | 隐私敏感位（仅 HTTPS 形态） | 见 §5。 |
 
@@ -56,8 +56,8 @@ web+cokret:realm/<realm>/strand/<strand>?lt=invite&tok=<token>   # invite link
 ### 3.1 Path 规则（normative）
 
 - **realm 是身份，进 path；join routing 不进 URL query。** realm 脱离 path 则 strand 无法定位（授权 / 解析以 Realm 为根，见 [`models/circle.md`](../models/circle.md)）；加入时可用的 Realm ingress service 由 `resolve_realm` / `resolve_target` 返回的 `join_candidates[]` 给出，不写入地址本体。
-- **Strand / Message 地址 MUST 携带 `realm/<realm>`**；缺少 Realm 根时解析方 MUST fail-closed（返回 `not_found`），不得做全网 strand_id 猜测。
-- **`<realm>` 段消歧（normative）**：该段匹配 UUIDv7 文本形态时解释为 `realm_id`；否则解释为 **realm alias**（canonical grammar `<localpart>:<domain>`，见 §3.3）。判据等价：裸 uuid → `realm_id`，含 `:` 而非 UUIDv7 文本 → alias。`<strand>` / `<msg>` 段**只**接受裸 uuid。path 内裸 uuid 是 URI 压缩形态；进入 token target descriptor（§4）或下游比对前，解析方 MUST 按 path keyword 重建 typed canonical ID（`ck:realm:<uuid>` / `ck:strand:<uuid>` / `ck:message:<uuid>`）。alias 仅作为解析输入形态，MUST 先经常规 Realm 解析路径规范化为 canonical `realm_id`，后续身份比对一律绑定 `realm_id` 而非 alias 字符串。
+- **Strand / Message 地址 MUST 携带 `realm/<realm>`**；缺少 Realm 根时解析方 MUST fail closed（返回 `not_found`），不得做全网 strand_id 猜测。
+- **`<realm>` 段消歧（normative）**：该段匹配 UUIDv7 文本形态时解释为 `realm_id`；否则解释为 **realm alias**（canonical grammar `<localpart>:<domain>`，见 §3.3）。判据等价：裸 UUID → `realm_id`，含 `:` 而非 UUIDv7 文本 → alias。`<strand>` / `<msg>` 段**只**接受裸 UUID。path 内裸 UUID 是 URI 压缩形态；进入 token target descriptor（§4）或下游比对前，解析方 MUST 按 path keyword 重建 typed canonical ID（`ck:realm:<uuid>` / `ck:strand:<uuid>` / `ck:message:<uuid>`）。alias 仅作为解析输入形态，MUST 先经常规 Realm 解析路径规范化为 canonical `realm_id`，后续身份比对一律绑定 `realm_id` 而非 alias 字符串。
 - **未知 path keyword fail-closed**：v1 合法 keyword 只有 `realm` / `strand` / `m`，且层级顺序 MUST 为 `realm` ⊃ `strand` ⊃ `m`。解析方遇到未注册 keyword、顺序错乱或缺中间层级时 MUST 返回 `not_found`，不得猜测。未来扩展对象类型（如 `morph` / `space` / `circle`）MUST 显式扩 keyword 表；旧客户端遇到未知 keyword 一律按 fail-closed 处理，保证 forward-compat 下不分叉。
 - Message 锚点 keyword 固定为 `m/`（对齐协议层 [Message 对象](../models/strand-and-message.md#9-message)，而非底层 event envelope）。在 v1 中，`m/<msg>` 只寻址 Strand discussion track 内的 `ck:message:` 对象；synthesis track 的结构化内容应通过 Strand / Morph / Relation 等对象地址或 profile 显式注册的未来 keyword 寻址，不得把 `m/` 解释为任意 track-local item。
 - **Circle-scoped Strand**（`Strand.scope_circle_id != null`）的地址形态**不**额外暴露 circle id：scope 由解析后的访问判定决定，地址层不泄露 Circle 存在性（见 §6）。
@@ -146,7 +146,7 @@ token 签名 payload **MUST** 包含 **target descriptor** + 生命周期字段�
 
 `target_digest = "sha256:" || hex(sha256(JCS(target_descriptor)))`，其中 `JCS` 是 [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785) JSON Canonicalization Scheme。
 
-- `realm_id` / `strand_id` / `message_id` 字段值 MUST 使用 typed canonical ID（`ck:realm:<uuid>` 等），不得使用 path 中的裸 uuid 或 alias 原文；`realm_id` 必须是 alias 规范化（§3.1）后的 canonical Realm ID。
+- `realm_id` / `strand_id` / `message_id` 字段值 MUST 使用 typed canonical ID（`ck:realm:<uuid>` 等），不得使用 path 中的裸 UUID 或 alias 原文；`realm_id` 必须是 alias 规范化（§3.1）后的 canonical Realm ID。
 - **`target_digest` 只覆盖身份元组（`realm` / `strand` / `m`）与 `link_type`**，**MUST NOT** 纳入 `action` / `tok` / `lt` 或任何其它 query hint。后果是确定的：路由提示刷新或 UI action 改变**不**使 token 失效；而换一个 Strand / Message、或把 `preview` token 当 `invite` token 使用，必然换 digest、token 不可挪用。白名单外字段 MUST NOT 进 digest——与 [`identity/identity-handles.md` §3.2.1](../identity/identity-handles.md) `claim_digest` 同纪律。
 - 生命周期字段 `aud` / `exp` / `nonce` 在 token payload 内，但**不属于** target descriptor（它们是 token 自身有效性边界，不是被寻址对象的身份）。
 - 签发端与 `resolve_target` 端 MUST 用同一 shape 与省略规则，否则 digest 不可比对。

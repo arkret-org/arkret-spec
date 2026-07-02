@@ -2085,7 +2085,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": false,
-      "payload": "Range-bound completeness attestation. Distinct from ck.audit.ryw_receipt (per-event read-your-writes hint) and ck.event_batch_receipt (set-bound integrity hint): this attestation asserts completeness over an explicit (from_frontier, to_frontier) + per-actor seq interval range. Issuer commits to having observed every reducer-input event in scope; witness quorum or independent seal backing is required for non-self-attested deployments. See zh/sync/operations-sync.md §4.2."
+      "payload": "Range-bound completeness attestation. Distinct from ck.audit.ryw_receipt (per-event read-your-writes hint) and ck.event_batch_receipt (set-bound integrity hint): this attestation asserts completeness over an explicit (from_frontier, to_frontier) + per-actor seq interval range. Issuer commits to having observed every reducer-input event in scope; witness quorum or independent seal backing is required for non-self-attested deployments. See zh/sync/operations-sync.md §6.4."
     },
     {
       "event_kind": "ck.self.moderation.report",

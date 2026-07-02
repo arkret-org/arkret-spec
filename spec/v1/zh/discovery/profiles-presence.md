@@ -227,10 +227,24 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 ```json
 {
   "kind": "ck.presence",
-  "state": "online",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
-  "status_message": "On vacation until May 5",
-  "ttl_ms": 60000
+  "device_id": "ck:device:019640dd-8000-7000-8000-000000000000",
+  "sent_at": "2026-04-26T10:00:00Z",
+  "expires_at": "2026-04-26T10:01:00Z",
+  "payload": {
+    "state": "online",
+    "status_message": "On vacation until May 5",
+    "ttl_ms": 60000
+  },
+  "proof": {
+    "kind": "detached_jws",
+    "alg": "EdDSA",
+    "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#ck:device:019640dd-8000-7000-8000-000000000000",
+    "event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "created_at": "2026-04-26T10:00:00Z",
+    "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
+  }
 }
 ```
 
@@ -238,25 +252,40 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 |------|------|------|------|
 | `state` | string | MUST | 状态值 |
 | `actor_id` | did | MUST | 发送 presence 的 actor DID。 |
+| `device_id` / `proof` | id:device / object | MUST | 所有 `ck.presence` 广播 MUST 携带来源设备与 detached proof；`proof.verification_method` 的 controller DID MUST 等于 `actor_id`，fragment MUST 等于 `device_id`。 |
 | `last_active_at` | string | 可选 | 最后活跃时间，承载两种互斥 wire 形态，由值中是否含 `/` 判别：（1）精确形态为 RFC 3339 UTC timestamp（如 `2026-04-26T10:00:00Z`，不含 `/`）；（2）bucket 形态为 ISO 8601 interval `<start>/<duration>`（如 `2026-04-26T10:00:00Z/PT1H`，含 `/`）。接收方 MUST 据是否含 `/` 选择解析路径。默认 MUST 省略，或按 policy bucket 化为粗粒度（例如分钟 / 小时级）；**仅当** presence policy 显式允许精确披露时才发送精确（秒级）timestamp。精确秒级值会成为活动 timing 侧信道，因此不得作为默认行为。 |
 | `status_message` | string | 可选 | 当前状态消息（来自 Profile）。MUST ≤ 256 字符（Unicode code point 计），按 [`conformance/encoding.md` §2.1](../conformance/encoding.md) NFC 规范化，MUST NOT 含除 `U+0009`/`U+000A` 外的 C0/C1 控制字符。presence 广播的 `status_message` MAY 与 Profile 的 `profile_fields.status_message` 不同（presence 可为临时覆盖值），但两者受同一长度与规范化约束。 |
 | `ttl_ms` | integer | SHOULD | 存活时间（毫秒），超时后客户端应将该用户视为 offline |
 
 当 presence policy 未显式允许精确披露时，`last_active_at` 默认省略；若 policy 要求携带粗粒度活跃度，MUST 以 bucket 化形态发送，bucket 边界（分钟 / 小时级）按 policy 声明，确定性编码，不得发送秒级精确 timestamp。bucket 化广播示例：
 
-`last_active_at` 解析必须是确定性的：若值中包含 `/`，接收方 MUST 按 ISO 8601 interval `<start>/<duration>` 解析，且值中必须恰好一个 `/`，`start` 必须是 RFC 3339 UTC timestamp，`duration` 必须是正 ISO 8601 duration；若值中不包含 `/`，接收方 MUST 按 RFC 3339 UTC timestamp 解析。解析失败、本地时区表示、缺少 `Z`、duration 为零或负数、额外 `/`、**`start` 未对齐到 `duration` 边界**（`start` MUST 是以 `duration` 为粒度的对齐边界——即 `start` 落在某个 `duration` 整数倍的 bucket 起点；接收方据 `duration` 独立重算 `start` 应有的对齐值并比对，未对齐即视为畸形）、或试图修补 / 猜测畸形值时，接收方 MUST 丢弃该 presence update 或按 `schema_violation` fail closed，不得降级为更精确或更宽松的活跃度显示。该接收方对齐校验闭合"发送方（buggy 或恶意）以未对齐的秒级 `start` 把 bucket 退化为秒级活动 timing 侧信道"——发送方对齐（见下）是单侧 MUST，接收方独立复核构成两侧闭合。
+`last_active_at` 解析必须是确定性的：若值中包含 `/`，接收方 MUST 按 ISO 8601 interval `<start>/<duration>` 解析，且值中必须恰好一个 `/`，`start` 必须是 RFC 3339 UTC timestamp，`duration` 必须是正 ISO 8601 fixed-duration，且 `duration >= PT60S`；`P1M` / `P1Y` 等日历长度不固定的 duration 不得用于 presence bucket。bucket 对齐以 Unix epoch UTC 为唯一原点：`aligned_start = floor(unix_seconds(start) / seconds(duration)) * seconds(duration)`。若值中不包含 `/`，接收方 MUST 按 RFC 3339 UTC timestamp 解析。解析失败、本地时区表示、缺少 `Z`、duration 为零或负数、duration 小于 `PT60S`、非 fixed-duration、额外 `/`、**`start` 未对齐到 `duration` 边界**（接收方据上述 Unix epoch UTC 算法独立重算 `start` 应有的对齐值并比对，未对齐即视为畸形）、或试图修补 / 猜测畸形值时，接收方 MUST 丢弃该 presence update 或按 `schema_violation` fail closed，不得降级为更精确或更宽松的活跃度显示。该接收方对齐与下界校验闭合"发送方（buggy 或恶意）以未对齐或过细 duration 的值把 bucket 退化为秒级活动 timing 侧信道"——发送方对齐（见下）是单侧 MUST，接收方独立复核构成两侧闭合。
 
 ```json
 {
   "kind": "ck.presence",
-  "state": "idle",
+  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
-  "last_active_at": "2026-04-26T10:00:00Z/PT1H",
-  "ttl_ms": 60000
+  "device_id": "ck:device:019640dd-8000-7000-8000-000000000000",
+  "sent_at": "2026-04-26T10:00:00Z",
+  "expires_at": "2026-04-26T10:01:00Z",
+  "payload": {
+    "state": "idle",
+    "last_active_at": "2026-04-26T10:00:00Z/PT1H",
+    "ttl_ms": 60000
+  },
+  "proof": {
+    "kind": "detached_jws",
+    "alg": "EdDSA",
+    "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#ck:device:019640dd-8000-7000-8000-000000000000",
+    "event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "created_at": "2026-04-26T10:00:00Z",
+    "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
+  }
 }
 ```
 
-该 wire 值表示"最后活跃落在以 `2026-04-26T10:00:00Z` 为起点、粒度 `PT1H`（1 小时）的 bucket 内"，bucket 起点 MUST 按 policy 声明的粒度向下取整对齐（同一 bucket 内任意精确时间映射到同一 wire 值），使接收方无法据此还原秒级活动 timing。bucket 粒度（`duration`）MUST NOT 细于 policy 声明的最小粒度下限（缺省 SHOULD ≥ 60 秒）：过细的 bucket 会使边界采样退化为接近秒级的活动 timing 侧信道，与"不还原秒级 timing"的目的相悖。
+该 wire 值表示"最后活跃落在以 `2026-04-26T10:00:00Z` 为起点、粒度 `PT1H`（1 小时）的 bucket 内"，bucket 起点 MUST 按 policy 声明的粒度向下取整对齐（同一 bucket 内任意精确时间映射到同一 wire 值），使接收方无法据此还原秒级活动 timing。bucket 粒度（`duration`）MUST NOT 细于 policy 声明的最小粒度下限，且协议绝对下界为 `PT60S`：过细的 bucket 会使边界采样退化为接近秒级的活动 timing 侧信道，与"不还原秒级 timing"的目的相悖。
 
 ### 3.4 隐私控制
 
@@ -278,6 +307,8 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 
 `ck.presence.visibility` 是 principal-private policy projection：Principal / Sync Service MAY 读取并投影其中的 `presence_visibility` enum，用于执行 `ck.presence` 与 `ck.typing` 的提交、读取和 fanout gate；服务端不得借此读取或披露 Profile 字段、`status_message`、联系人备注、精确 `last_active_at` 或其它 account data 明文。若服务端无法读取该最小 policy projection（例如部署选择端到端 opaque account data 且没有受托投影服务），它 MUST 对跨设备 / 跨接收方 fanout fail closed：不得把 presence 或 typing 转发给不能在本地证明属于允许集合的接收方。
 
+**来源真实性（normative）**：Sync Service 接收 `ck.presence` / `ck.typing` 时 MUST 同时校验提交会话的 authenticated principal 与 envelope `actor_id` 一致、`proof` 验证通过、`proof.verification_method` 控制者等于 `actor_id` 且 fragment 等于 `device_id`。跨服务、联邦或 relay 转发的 presence / typing 若无法验证该 proof，接收方 MUST 丢弃；服务端签名的转发断言只能作为传输层 provenance，不能替代 actor device proof。携带自由文本 `status_message` 的 presence 不得走 unsigned 路径。
+
 **`contacts_only` 的"联系人"集合真源与 fail-closed（normative）**：`contacts_only` 中的"明确联系人"集合 MUST 取自 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) 的 `ck.contact.*` accepted-contact fact log，**不是** `ck.presence.visibility` 的 enum，也不是 client-preferences 的本地联系人备注（备注不打开 presence gate）。服务端执行 `contacts_only` gate 需要可读的 accepted-contact 投影；当服务端无法读取该 contacts 集合（未托管该投影 / 端到端 opaque）时，`contacts_only` MUST 与上一段一致 fail closed——退化为客户端本地 gate、MUST NOT 退化为 `public`，即对不能在本地证明属于 accepted-contact 集合的接收方不转发。
 
 当 `presence_visibility="nobody"` 时，客户端 MUST NOT 发送 `ck.presence`，Sync Service MUST NOT 转发既有或缓存的 `ck.presence`；接收方看到的结果必须与从未收到 presence 一致。
@@ -293,9 +324,22 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
   "kind": "ck.typing",
   "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-  "strand_id": "ck:strand:01964200-0000-7000-8000-000000000001",
-  "typing": true,
-  "ttl_ms": 5000
+  "device_id": "ck:device:019640dd-8000-7000-8000-000000000000",
+  "sent_at": "2026-04-26T10:00:00Z",
+  "expires_at": "2026-04-26T10:00:05Z",
+  "payload": {
+    "strand_id": "ck:strand:01964200-0000-7000-8000-000000000001",
+    "typing": true,
+    "ttl_ms": 5000
+  },
+  "proof": {
+    "kind": "detached_jws",
+    "alg": "EdDSA",
+    "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#ck:device:019640dd-8000-7000-8000-000000000000",
+    "event_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "created_at": "2026-04-26T10:00:00Z",
+    "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
+  }
 }
 ```
 

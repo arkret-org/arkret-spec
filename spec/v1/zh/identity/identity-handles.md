@@ -354,11 +354,13 @@ Handle 按 holder 披露意图分两类：
 
 公开 / 受限之间的差异只在 alsoKnownAs / 公开 directory 的可见性上。两者 wire 形态、双签证据要求、`delivery_binding` 构造规则相同。
 
+受限 handle 的 issuer / Directory / well-known endpoint MUST 在返回 claim 前验证 requester、audience、intent 与 disclosure policy。匿名或未授权调用方查询受限 handle 时，服务 MUST 返回与"不存在该 handle"不可区分的响应（status、错误码、body shape、timing bucket 与 cache headers 不得泄露 not-found / revoked / restricted / unauthorized 的差异），且不得返回 `subject`、`member_delivery_binding`、claim digest 或其它可枚举 hint。Issuer 和 Directory 对 handle 解析、`list_handles_for_subject` 与 well-known 请求均 MUST 实施 per-source / per-account / per-handle 前缀限速；超限时对匿名调用方同样使用不可区分拒绝，内部审计可记录精确原因。
+
 ### 3.6 与跨上下文 unlinkability 的关系
 
 `member_delivery_binding.recipient_service_did` 必然在解析结果中暴露 handle 与服务的绑定关系；同一 holder 在两个上下文使用同一公开 DID 时，外部观察者通过 `subject` 字段仍能关联到同一人。**Handle 不提供跨上下文 unlinkability**。
 
-需要不可关联的部署 MUST 为每个上下文使用 pairwise / private DID（见 §10、§11、§16），并在每个 pairwise DID 下独立签发 handle claim。pairwise DID 与 handle 是正交机制：handle 解决"易懂寻址 + 可选默认投递"，pairwise DID 解决"跨关系不可关联"。
+需要不可关联的部署 MUST 为每个上下文使用 pairwise / private DID（见 §10、§11、§16），并在每个 pairwise DID 下独立签发 handle claim。若 handle claim 携带 membership 用途的 `member_delivery_binding.recipient_service_did`，不同 pairwise DID 在需要跨上下文 unlinkability 的部署中也 MUST 使用不可关联的 `recipient_service_did`（独立 service DID、按上下文拆分的 service DID，或提供同等 unlinkability 的隐私中继）。如果两个 pairwise DID 的 claim 复用同一个 `recipient_service_did`，实现 MUST 把这视为显式的可关联部署选择，并在文档 / UI 中披露这些 persona 可通过承载服务 DID 被关联；不得声称该 handle claim 提供跨上下文 unlinkability。pairwise DID 与 handle 是正交机制：handle 解决"易懂寻址 + 可选默认投递"，pairwise DID 解决"跨关系不可关联"。
 
 ### 3.7 MemberDeliveryBindingCandidate
 
@@ -596,7 +598,8 @@ Handle 解析分为两个方向：
 1. **`<domain>` 的 well-known**：`GET https://<domain>/.well-known/cokret/handle?localpart=<localpart>`。响应是 `ck.schema.handle_claim.v1` 形态的签名 claim。
    - 用于 holder 自托管（domain 拥有者 == subject DID）与单实例 Principal Server 部署。
    - **`.well-known/cokret/handle` 是签名 issuer 通道，不是泛 resolver 端点（normative）。** 该路径的语义被钉死为"返回该 `<domain>` 作为 issuer 为 `<localpart>` 签发的 signed `ck.schema.handle_claim.v1`"。任何在该路径作出响应的部署都被 verifier 当作该 handle 的候选 issuer。因此：
-     - 能签发 claim 的 issuer（holder 自托管 well-known、单实例 / 组织 Principal Server）MUST 在此返回 200 + 签名 claim，或返回明确的 not-found / revoked issuer-side 状态。
+     - 能签发 claim 的 issuer（holder 自托管 well-known、单实例 / 组织 Principal Server）MUST 在此返回 200 + 签名 claim，或返回 issuer-side not-found / revoked 状态；但对匿名或未授权调用方，not-found、revoked、restricted、unauthorized 与 rate-limited MUST 使用不可区分响应，避免把该端点变成 handle / 雇佣关系枚举 oracle。只有已认证且按 policy 有权观察该 claim 的调用方 MAY 获得精确 revoked / expired / not-found 诊断。
+     - 受限 handle claim MUST 经 requester / audience 授权后才可由 well-known 返回。授权证据 MAY 是 bearer session、DPoP/device proof、Directory `claim_presentations[]`、Realm invitation / membership context 或 issuer 本地 policy 可验证的等价证明；缺失或验证失败时按上一条不可区分拒绝处理。
      - **纯 resolver（只索引 / 转发、自身签不了 handle claim 的服务）MUST NOT 占用该路径返回未签名的 issuer-probe 结果。** 纯 resolver 在 `.well-known/cokret/handle` 的合规行为只有两种：(a) **不提供该端点 / 返回 `404`**；或 (b) **显式委托**到上游可签发 issuer（例如 HTTP 重定向到该 issuer 的 well-known，或在响应中给出可独立验签的上游 `source_refs` 指向 signed claim）。它 MUST NOT 在该路径返回任何未签名的 handle / subject / probe payload——否则 verifier 会把一个签不了 claim 的服务误当 issuer，污染 §5 的 issuer 选择与 §6 的双向验证。
      - resolver 想暴露"这个 handle 我索引到哪个 subject / issuer"这类 **issuer-probe / 索引查询**，MUST 走产品私有面（私有 API、内部 directory query 等），不得借用 `.well-known/cokret/handle`。需要被 Cokret verifier 采信时，走第 3 步 signed Directory response（`ck.schema.handle_claim.v1` + `source_refs`），而不是未签名 probe。
 2. **DNS TXT**：`_cokret.<domain>` 或 `_cokret.<localpart>.<domain>`。仅当 DNSSEC validation 成功**且** TXT 内含可验证签名时才能作为 issuer 通道；裸 DNS TXT 只是发现 hint。
@@ -605,7 +608,7 @@ Handle 解析分为两个方向：
 
 解析结果 MUST 包含 §3.2 列出的字段；audience / scope / expiry 决定使用范围。multiple issuer 同时签发同一 handle 时，verifier 按本地 trust policy 选最严格者；issuer 之间冲突（不同 `subject`）MUST fail closed 并交人工处理。
 
-账号侧 claim 管理不走 Directory 搜索，但 v1 core 也不定义账号侧管理 API：当前登录 principal 如何在注册、换设备、管理员修改或 claim 续期后拿到自己的 claims，是 issuer / Auth Server / 部署本地 bootstrap 的职责。Directory 只解析已经签发且对调用方可见的 claims；它不得被当作 handle 申请、审批或管理员治理接口。
+账号侧 claim 管理不走 Directory 搜索，但 v1 core 也不定义账号侧管理 API：当前登录 principal 如何在注册、换设备、管理员修改或 claim 续期后拿到自己的 claims，是 issuer / Auth Server / 部署本地 bootstrap 的职责。Directory 只解析已经签发且对调用方可见的 claims；它不得被当作 handle 申请、审批或管理员治理接口。`ck.find.directory.query.list_handles_for_subject` MUST 应用与 `resolve_handle` 相同的 visibility、audience、requester proof、不可区分拒绝与限速规则；未授权调用方不得通过已知 subject 枚举其受限组织 handle。
 
 Handle 解析示例：
 
@@ -1215,7 +1218,7 @@ Verifier MUST：
 
   违反该作用域规则的事件 schema 在 conformance 测试中 MUST 失败：把 handle 字符串当作**权威 actor 引用字段**（而非显式声明的派生投影或 audit metadata）的 schema 视为 v1 不合规。
 - DNS TXT record 格式 MUST 绑定 `handle`、`subject`、issuer、`service_did`、`created_at`、`expires_at` 和 signature / hash commitment；过期或不匹配时不得显示 verified。
-- Well-known / Directory response schema MUST 返回 `subject` DID、canonical `handle`、issuer、proof、validity、optional `member_delivery_binding` 和 optional challenge；公开 handle 客户端必须做 DID `alsoKnownAs` 双向验证，受限 handle 必须做 issuer claim / audience / policy 验证。
+- Well-known / Directory response schema MUST 返回 `subject` DID、canonical `handle`、issuer、proof、validity、optional `member_delivery_binding` 和 optional challenge；公开 handle 客户端必须做 DID `alsoKnownAs` 双向验证，受限 handle 必须做 issuer claim / audience / policy 验证。匿名或未授权调用方查询受限 handle、revoked handle 或不存在 handle 时，response MUST 不可区分。
 - Credential schema、presentation request、disclosure policy 和 disclosure receipt 必须绑定 holder DID、verifier DID、audience、challenge、domain、disclosed fields、withheld fields 和 proof profile。
 - Status list profile MUST 支持凭证撤销和暂停。授权依赖的 credential 无法确认状态时 MUST fail closed。
 - BBS / SD-JWT VC conformance vectors MUST 覆盖选择性披露、challenge/domain 绑定、错误 issuer、过期凭证、撤销凭证和 pairwise DID unlinkability。

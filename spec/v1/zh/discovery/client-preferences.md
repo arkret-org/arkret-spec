@@ -28,6 +28,8 @@ updated: 2026-06-10
 
 所有的偏好数据以 Key-Value 字典的形式组织。每次修改是对某个 Key 的全量覆盖（使用 `ck.account_data.set` 操作）。
 
+**Account-data namespace key（normative）**：需要从私有对象引用、集合名、搜索索引 shard 或其它敏感输入派生 account-data key 片段时，producer MUST 使用同一 principal 的 `account_data_namespace_key`。该密钥是 client-local `secret_storage` 域材料，存储于 `secret_storage/account_data_namespace/v1` 子域，并按 [`../identity/key-management.md` §7.1](../identity/key-management.md) / §7.10 进入备份与轮换流程；服务端、Directory、Search 或 relay MUST NOT 看到该密钥。标准派生 primitive 为 `derive_account_data_key(input) = base64url(HMAC-SHA256(account_data_namespace_key, input))`，其中 `input` MUST 是 canonical JSON、typed id 或本规范逐项定义的规范化字节串。不同 principal 的 namespace key MUST 独立；namespace key 轮换后，客户端 MUST 以新的 account-data key 重写对应 encrypted value，并在同一更新事务中 tombstone 旧 key 或保留只读迁移索引，避免把同一私有对象长期映射到两个可链接 key。
+
 ```json
 {
   "kind": "ck.account_data.set",

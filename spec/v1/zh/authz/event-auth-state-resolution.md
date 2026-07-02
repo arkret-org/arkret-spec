@@ -242,6 +242,8 @@ Seal {
 }
 ```
 
+`completeness_root` 是控制面 per-actor 区间承诺，MUST 使用 §6.2.2 的统一 Seal Merkle 组合规则。leaf 集合为当前 `covered_set(S)` 中每个 control-plane actor 的连续 actor_seq 覆盖区间；每个 leaf 的 `leaf_data = canonical_json({ "actor_id": <did>, "from_seq": <integer>, "to_seq": <integer>, "event_digests": [<digest>...] })` 的 UTF-8 字节，其中 `event_digests[]` 是该 actor 在 `[from_seq,to_seq]` 内按 `actor_seq ASC, event_digest ASC` 排列的控制面 Event digest。leaf 按 `(actor_id, from_seq, to_seq)` canonical code point / integer 顺序排列。对同一 actor，相邻 Seal 的 interval set MUST 单调：已承诺区间不得收缩、不得产生未解释的 gap，`to_seq` 只能非降；compaction Seal MAY 合并相邻连续区间，但合并后覆盖的 digest 集合必须逐字节等价。空控制面覆盖集的 `completeness_root` 为 §6.2.2 空树 root。Auditor 的 `completeness_monotonic` 即按该 interval 偏序验证每个 actor 的覆盖区间非缩、无回退、无重写。
+
 ### 6.1 Seal id 与签名 transcript
 
 `id = ck:seal:<algo>:<hex>`，hex MUST 等于 `H(seal_canonical_bytes)`。`id` 与 `notary_signature` 不进入 `seal_canonical_bytes`。除这两个字段外，所有顶层字段都进入 canonical bytes 和 signature transcript，包括 `control_event_set_root`、`notary_seq` 与所有 optional observational roots。
@@ -281,7 +283,7 @@ leaf 集合与顺序：
 - **成员**：`state_root` 覆盖**当前 joined 治理视图 `J(L)`（§6.3.1）下每一个 non-`⊥` 物化值的 control cell**——即至少被 `covered(L)` 中某个 Control Move effect 命中、且按其 lattice join 后得到确定值的 control cell。data plane cell 不进入 `state_root`（数据面承诺走 §6.4 `data_view_root`）。
 - **每个 cell 的 leaf 输入**：`leaf_preimage = canonical_json({ "cell": "<cell_wire_id>", "state": <state_object> })`，其中
   - `<cell_wire_id>` 是该 cell 的 canonical tuple 引用 `ck:cell:<component>:<subject>`（[`conformance/encoding.md` §4](../conformance/encoding.md)）；
-  - `<state_object>` 在 cell 物化为具体值时为 `{ "value": <lattice_value> }`；在 cell 物化为 `⊥`（`failed_bottom`，§9.1.1）需要进入 root 的实现中为 `{ "bottom": <Bottom> }`，且该 `Bottom` 在进入 leaf 前 **MUST 移除 `seal_view` 字段**——`seal_view` 引用 Seal 自身，保留它会在计算 `state_root` 时形成自引用循环；移除后两个仅 `seal_view` 不同的 `⊥` 产生同一 leaf。
+  - `<state_object>` 在 cell 物化为具体值时为 `{ "value": <lattice_value> }`。`⊥`（`failed_bottom`，§9.1.1）cell **一律不进入** `state_root` leaf 集；它通过失败状态、冲突 heads 与 §9.5 recovery witness 暴露，不作为治理 root 成员编码。
   - `canonical_json` 按 [`conformance/encoding.md` §2](../conformance/encoding.md)（RFC 8785 JCS 同口径）。
 - **leaf hash**：`leaf = H(0x00 || leaf_preimage_utf8_bytes)`（§6.2.2；先取 canonical JSON 的 UTF-8 字节，再前缀 `0x00`）。
 - **leaf 顺序**：按 `<cell_wire_id>` 的 Unicode code point 升序排列；树构造本身不再排序（§6.2.2）。
@@ -504,7 +506,28 @@ AvailabilityReceipt {
 
 数据面 counter 只允许本地可判定的 issuer-local 消耗：每个 issuer 只能消耗自己切片内的额度，并且消耗 Event 必须沿该 issuer actor chain 串行累计验证。
 
+同一 issuer 在同一 `(actor_id, actor_seq, prev_frontier_digest)` sibling 桶内产生多个 counter / escrow 消耗 Event 时，receiver MUST 把该桶视为 issuer-local escrow equivocation，而不是在 sibling 间选择 winner 或把消耗简单求和。该桶中命中同一 issuer 切片的全部 counter 消耗 effects MUST 对该切片 fail closed：在 actor chain repair / fork-resolution 产生 canonical 单分支前，这些消耗不得进入 counter cell value、不得减少可用余额、也不得被后续消耗作为已花费前缀跳过。其它不依赖该切片的 cell 可按其自身 lattice 规则继续 join。若某领域需要 sibling fork 下仍保持 counter 强一致，必须把该 counter cell 声明为 `sealed=true` 升控制面或使用 §9.4 per-object sequencer。
+
 跨 issuer `transfer` 同时改变两个 issuer 的切片，属于跨 cell / 跨 issuer invariant；默认 MUST 升控制面，或使用 per-object sequencer 线性化。否则两个并发 transfer 可能单笔合法、合并后超支。
+
+### 9.3.1 core lattice join 与 `head_eq` predicate（normative）
+
+本节是 Control Move `preconditions[]` 中 `Predicate` 与 core lattice join 规则的散文权威；schema 只给字段形状，不能替代本节的求值语义。
+
+- **`head_eq`**：谓词形态为 `{kind:"head_eq", cell:"ck:cell:...", value:<json>}`。Reducer MUST 在该 Move 的 `seal_basis` 治理 view 下读取目标 cell 的 settled value，并按 canonical JSON whole-value compare 与 `value` 比较；二者 bit-exact 相等时通过。cell 缺失时 settled value 为 `null`，因此省略业务字段与显式缺省不得被当作匹配。若目标 cell 在该 basis 下为 `⊥`，`head_eq` MUST fail closed（failure status `failed_bottom`，`reason=cell_in_bottom_state`，见 §13）。
+- **`cas_register`**：set effect 在目标 cell 的 settled 值为非初始态时，Control Move MUST 携带命中本 cell 的 `head_eq` precondition；DataEvent 若声明使用 CAS 语义，MUST 通过 causal refs 与领域 lattice 规则表达同等约束。缺失 CAS basis 时 receiver MUST 以 `failed_precondition` 拒绝该 effect，并按多 cell 原子性拒绝整个 reducer input，不得实现无条件覆盖。并发且互不可达的 CAS set 若都在各自 `seal_basis` 下通过但写入不同值，join 结果为 `⊥`；同值重复 set 幂等。
+- **`fsm`**：transition effect MUST 声明 `from` 与 `to`。同一 CBA basis 内相同 `(from,to)` 的重复 transition 是幂等的；同一 `from` 指向不同 `to` 的 sibling transition 返回 `⊥`。跨 basis 顺序仅由 causal refs 与 Seal DAG 决定；同一 basis 内不得用 HLC、接收顺序或 actor id 选择状态机 winner。
+- **`ordered_log`**：entry MUST 绑定 issuer 与 issuer-local seq。每个 issuer 子链只把从起点开始的连续 prefix 纳入 cell value；issuer 子链出现缺口时，缺口后的 entry MUST 保留为 pending / diagnostic 输入，但不得进入 cell value、`state_root` leaf 或授权判断。依赖补齐后按同一规则确定性重算。
+- **`or_set` / `counter` / `mv_register`**：`or_set` 按 observed-remove dot 集合 join；`counter` 只在 §9.3 允许的 issuer-local 切片内求和；`mv_register` 暴露并发 heads 而不产生 `⊥`。领域文档可进一步收窄这些 lattice 的合法 effect，但不得改变交换、结合、幂等的 core join 要求。
+
+### 9.3.2 digest suite transition Seal（normative）
+
+Realm 的 `digest_algorithm` 只能通过控制面 suite-transition Control Move 改变。transition Move MUST 经 Seal 接受，并在该 Transition Seal 上同时承诺旧 suite 与新 suite：
+
+1. transition Move 的 payload MUST 声明 `from_digest_algorithm`、`to_digest_algorithm`、`transition_snapshot_ref` 与 `snapshot_commitment`；`from_digest_algorithm` MUST 等于当前 Realm live suite，`to_digest_algorithm` MUST 是 digest-suite registry 的 active row，且不得违反 registry 的 no-downgrade strength order。
+2. Transition Seal body MUST 携带 `previous_state_root`，其 suite prefix 等于 `from_digest_algorithm`，并继续携带普通 `state_root`，其 suite prefix 等于 `to_digest_algorithm`。`previous_state_root` 是 §3.3 Realm 级 suite 排他的唯一豁免字段。
+3. Verifier MUST 用旧 suite 重算 transition 前治理 view 的 `previous_state_root`，用新 suite 重算 transition 后治理 view 的 `state_root`，并验证 `snapshot_commitment` 对同一 control/data frontier 的 inclusion。任一 root、snapshot commitment 或 suite strength 判定不匹配时，Transition Seal MUST `rejected_seal`。
+4. Transition Seal 接受后，该 Realm 内所有后续 Event digest、Seal id、state_root、Merkle leaf 与 receipt digest MUST 使用 `to_digest_algorithm`；旧 suite 只可出现在历史对象和该 Transition Seal 的 `previous_state_root` 中。
 
 ### 9.4 非治理强一致对象
 
@@ -551,7 +574,7 @@ basis {
 | `sealed` | Control Move 被已接受 Seal 覆盖并进入治理 `state_root`；仅控制面使用。 |
 | `witnessed` | 对应 seal 另有 policy 要求的 witness / auditor attestation。 |
 | `forked` | 查询依赖的控制面分支处于 `fork_quarantine`。 |
-| `stale` | `seal_ref` 超 freshness window、seal 超期或撤销缺口超限。 |
+| `stale` | `seal_ref` / 撤销信息仍在 freshness window 内但需要刷新控制面后才能提升等级的降级接受结果；一旦撤销缺口或 seal freshness 超出 hard limit，结果 MUST 拒绝或隐藏（`stale_seal_ref`），不得以 `grade=stale` 返回。 |
 
 轻客户端验证 query 结果时 MUST 验：
 

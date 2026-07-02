@@ -457,7 +457,7 @@
               },
               "transcript_digest": {
                 "$ref": "#/$defs/hash",
-                "description": "Digest of the holder's share release transcript bound to share_id, holder, recovery_session_id, requesting_device_id, audience, and issued_at."
+                "description": "Digest of the holder's share release transcript bound to share_id, holder, recovery_session_id, requesting_device_id, audience, and issued_at. For threshold_recovery / recovery_unlock the requesting device may be a not-yet-authorized new device; holder validation binds proof-of-possession and the recovery session instead of requiring an existing device record."
               },
               "verification_method": {
                 "$ref": "#/$defs/did_url"

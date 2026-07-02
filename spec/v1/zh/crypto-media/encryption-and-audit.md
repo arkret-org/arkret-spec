@@ -459,6 +459,7 @@ MLS group 的 key scope 由 `effective_scope`（§2.5 开头）唯一决定，**
 
 **E2EE DataEvent 的 seal_ref 求值规则（normative）**：E2EE application message DataEvent 的 `seal_ref` MUST 指向已被 `covered_seals_cell` 覆盖的治理 Seal；该 Seal view 中的 membership / policy / capability frontier 必须与消息 epoch / key schedule 一致。求值规则：
 
+- `M` 定义为该消息 `effective_scope` 在当前治理视图下需要被 MLS epoch 覆盖的 governance Seal 集合：包括消息 `seal_ref` 指向的 Seal、该 scope 最新 accepted membership / history visibility / plaintext-visible service / asset privacy / logging / bot / applet / agent policy / moderation policy / capability grant-revoke frontier 所属的 Seal，以及这些 frontier 因 Realm/Circle cascade 产生的最新治理 Seal。`M` 是 scope 级集合，不是 producer 自选的 per-message 子集；任一新 governance Seal 推进都会把对应元素加入 `M`，直到后续 accepted MLS Commit 重新 attest。
 - 覆盖满足 **当且仅当** `M` 中**每一个**元素都在该 Seal view 下的 `covered_seals_cell` `active_dots` 的 attested-frontier 并集内（全称量化，不是存在量化）；任一元素求值为 `expose` → 整个 coverage false → DataEvent `failed_precondition`，reducer 不接受该消息进入 verified timeline。
 - `contains` 在 sealed control state 上求值，不读取本地未 sealed 的 pending commit；客户端不得用"我本地已构造但尚未被 accepted Seal 覆盖的 commit"来满足该 coverage。
 - `M` 单调增长：governance Seal 推进后，旧 covered 集合不自动覆盖新元素；新元素回到默认 `expose`，直到后续 commit 重新 attest——这正是 ban / revoke 在新消息上生效的机制。

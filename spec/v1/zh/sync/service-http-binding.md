@@ -139,7 +139,7 @@ B 类——产品 / 运维能力，被实现误放进协议段，按 (b) 归位�
 
 | 误址簇 | canonical 协议归属（若该能力本就是协议能力） | 误址形态归位 |
 | --- | --- | --- |
-| webrtc / calls 信令面 | call 信令 `ck.call.signal` 走 ephemeral envelope（`ck.self.ephemeral.command.send`）；媒体凭证 `ck.self.call.media.exchange.issue_token`（`/_cokret/self/rtc/token`）+ `/_cokret/self/rtc/ice-config`；持久 call 状态 `ck.call.{state,recording.start,summary}` 走 self/events | 其余 call-setup / 私有信令旁路 → 媒体服务私有面 `/_<impl>/*`，不进 v1 core |
+| WebRTC / calls 信令面 | call 信令 `ck.call.signal` 走 ephemeral envelope（`ck.self.ephemeral.command.send`）；媒体凭证 `ck.self.call.media.exchange.issue_token`（`/_cokret/self/rtc/token`）+ `/_cokret/self/rtc/ice-config`；持久 call 状态 `ck.call.{state,recording.start,summary}` 走 self/events | 其余 call-setup / 私有信令旁路 → 媒体服务私有面 `/_<impl>/*`，不进 v1 core |
 | moderation 审查者工作台运行态 | `ck.moderation.{decision,decision.lift,appeal.submit,appeal.review,appeal.decision,appeal.close}` 事件经 self/events，realm authz capability 闸门；report 经 `ck.self.moderation.command.report` | 残留实现私有 admin 路径（如 `/_<impl>/admin`）+ OAuth admin scope 入口下线 |
 | relations / views / moves 直读 | Realm 作用域对象读（`/_cokret/self/realms/{realm_id}/spaces|strands|morphs`、`/_cokret/self/realms/{realm_id}/morphs/{morph_id}`）、`/_cokret/self/views/*`（extension surface，非 canonical truth source，须服务显式声明） | 越出已声明 read binding 的 relation/view/move 直读路径 → 实现私有面 |
 | authz / grants compat 路由 | capability 经 `ck.capability.{grant,revoke,delegate}` 事件 + `ck.self.policy.query.check` 预检 | 任何 `/_cokret/*` authz 直写 compat 路径 MUST NOT 存在；capability 一律走主 reducer 事件，相关运维只读视图归 `/_<impl>/*` |
@@ -960,7 +960,7 @@ POST 形态与 GET 形态**完全等价**：参数集（`realms` / `actors` / `b
 
 #### 3.3.6 Range completeness（optional feature：`events_query_range_completeness`）
 
-cursor + `has_more` 只告诉客户端"拿到了一页"，不告诉客户端"该范围内没有事件被静默扣下"。`prev_refs` DAG 能把**被引用**的缺失依赖暴露为 backfill 目标，但不在已见事件因果过去中的整条 sibling 分支（如被扣下的 ban / 撤销 / moderation 事件）无法被 DAG 发现——这正是 [`operations-sync.md` §4.2](./operations-sync.md) `ck.attestation.range_completeness` 针对的 silent fork 形态。本节把该原语接到客户端读取面。
+cursor + `has_more` 只告诉客户端"拿到了一页"，不告诉客户端"该范围内没有事件被静默扣下"。`prev_refs` DAG 能把**被引用**的缺失依赖暴露为 backfill 目标，但不在已见事件因果过去中的整条 sibling 分支（如被扣下的 ban / 撤销 / moderation 事件）无法被 DAG 发现——这正是 [`operations-sync.md` §6.4](./operations-sync.md) `ck.attestation.range_completeness` 针对的 silent fork 形态。本节把该原语接到客户端读取面。
 
 在 `ServiceDescribe.supported_features[]` 声明 `events_query_range_completeness` 的服务 MUST 支持：
 
@@ -968,7 +968,7 @@ cursor + `has_more` 只告诉客户端"拿到了一页"，不告诉客户端"该
 2. **响应**：附带可选字段 `range_completeness`（见 [`EventsQueryOutcome`](../../artifacts/schemas/service-operation-dtos.schema.json)）：`attestation_refs[]` 是覆盖本批次事件范围的 `ck.attestation.range_completeness` event id 集合；服务端 MAY 经 `attestations[]` 内联这些引用对应的**完整 EventEnvelope**（`kind="ck.attestation.range_completeness"`）。每个内联 Event 的 `event_id` MUST 出现在 `attestation_refs[]` 中；客户端 MUST 先验证 EventEnvelope 签名、`event_digest` 与 `payload.schema="ck.schema.range_completeness_attestation.v1"`，再按 payload 执行 range completeness 验证。服务端 SHOULD 按固定 frontier bucket 预计算 attestation（与 [`federation.md` §4.5.3](./federation.md) 的 probe bucket 对齐），返回覆盖集而不是按页边界现算；over-coverage 合法，客户端按 scope 取交集验证。
 3. **无覆盖时**：省略 `range_completeness` 字段。客户端 MUST 把缺失视为"该范围未被 attest"，不得视为错误，也不得视为完整性确认。
 
-客户端验证 MUST 遵循 [`operations-sync.md` §4.2.4](./operations-sync.md) verifier 协议：backfill 完成后客户端持有 scope 全集，适用其第 4 步（重算 Merkle root 并比较，不一致 `range_completeness_root_mismatch`）与第 6 步（`actor_seq_ranges[]` 与本地视图比对，本地有缺口而 attestation 声称完整时 `range_completeness_actor_seq_gap`）；`witness_disagreement` 按其第 7 步 fail closed。`single_source` attestation 只是 issuer 自报（§4.2.3），不构成 sovereign-grade 证明；声明 `security_class=high_assurance` 或 `ck.profile.federation.high_assurance.v1` 的 Realm，客户端 MUST 只接受 `federation_witness_attested` quorum 解除 completeness 关注。
+客户端验证 MUST 遵循 [`operations-sync.md` §6.4.4](./operations-sync.md) verifier 协议：backfill 完成后客户端持有 scope 全集，适用其第 4 步（重算 Merkle root 并比较，不一致 `range_completeness_root_mismatch`）与第 6 步（`actor_seq_ranges[]` 与本地视图比对，本地有缺口而 attestation 声称完整时 `range_completeness_actor_seq_gap`）；`witness_disagreement` 按其第 7 步 fail closed。`single_source` attestation 只是 issuer 自报（§6.4.3），不构成 sovereign-grade 证明；声明 `security_class=high_assurance` 或 `ck.profile.federation.high_assurance.v1` 的 Realm，客户端 MUST 只接受 `federation_witness_attested` quorum 解除 completeness 关注。
 
 适用范围与边界：
 

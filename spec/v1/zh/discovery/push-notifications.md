@@ -356,7 +356,7 @@ E2EE Realm 中，Sync Service 不持有正文密钥，无法在 server 端评估
 
     minimal-metadata Realm 与 audited E2EE Realm MUST 保持 `disabled`，即使显式声明也不得启用 `recipient_registered_token`。
 
-    **该 MUST 须 conformance vector 固化（normative，可测试条目）**：上述"minimal-metadata / audited E2EE Realm 拒绝 `mention_routing_hint=recipient_registered_token`"是可测试的拒绝行为，MUST 由 conformance vector 固化为机器可执行断言——具体断言："声明 `ck.profile.minimal_metadata.*` 或 audited E2EE profile 的 Realm，在其 policy 显式声明 `mention_routing_hint=recipient_registered_token` 时，实现 MUST 按 `disabled` 处理（拒绝注册 / 比较 / 持久化 mention routing sidecar），mention 一律回退到 §4.5 第 1-5 步 blind / batch wakeup"。该 vector 建议命名为 push 域的 `mention_routing_hint_disabled_on_hardened_realm`（完整 id 由协调者按 conformance vector 命名规范登记）；新增该 vector 涉及 conformance-vectors registry 与 vector mirror 表，**留协调者**登记，本节正文先把该 MUST 表述为可测试条目，待登记后再回填正式 vector id 引用。
+    **该 MUST 须 conformance vector 固化（normative，可测试条目）**：上述"minimal-metadata / audited E2EE Realm 拒绝 `mention_routing_hint=recipient_registered_token`"是可测试的拒绝行为，MUST 由 conformance vector 固化为机器可执行断言——具体断言："声明 `ck.profile.mls.minimal_metadata_realm.v1` 或 audited E2EE profile 的 Realm，在其 policy 显式声明 `mention_routing_hint=recipient_registered_token` 时，实现 MUST 按 `disabled` 处理（拒绝注册 / 比较 / 持久化 mention routing sidecar），mention 一律回退到 §4.5 第 1-5 步 blind / batch wakeup"。该 vector 建议命名为 push 域的 `mention_routing_hint_disabled_on_hardened_realm`（完整 id 由协调者按 conformance vector 命名规范登记）；新增该 vector 涉及 conformance-vectors registry 与 vector mirror 表，**留协调者**登记，本节正文先把该 MUST 表述为可测试条目，待登记后再回填正式 vector id 引用。
 
 明确禁止：
 
@@ -403,10 +403,10 @@ POST /_cokret/edge/push/notify
 | `notification.priority` | string | visible-only | profile-gated 优先级提示（如 `low`）。绝不进 blind。 |
 | `notification.membership` | string | visible-only | profile-gated 接收用户的成员关系状态。绝不进 blind。 |
 | `event_kind` | string | optional | 顶层（与 `notification` 并列）：源 Event kind（如 `ck.message`），供 gateway 将 Phase-P2 `ck.agent.*` 生命周期 / actor-private kind 路由为 no-fanout ack。粗粒度路由选择器，不带 Realm / sender / event 识别字段。 |
-| `reason_code` | string | optional | 顶层：Round-4 caller 提供的 wire-safe reason code。well-known 值 `historical_only` 标记历史 / 诊断重放（非新事件），**MUST NOT** 触发新 push fanout（gateway 回 200 幂等式 ack）。其它取值仅在操作显式定义处被接受。 |
-| `audit_envelope` | object | optional | 顶层：Round-4 `ck.audit.policy_access` 信封路由片段（`{access_kind, late_recovery_original_event_id?}`）。present 时该请求是审计管线事件（如 `e2ee_late_recovery` 访问通知）而非 push notify：gateway 写审计事件、回 200、跳过整条 push 管线。 |
+| `reason_code` | string | optional | 顶层：caller 提供的 wire-safe reason code。well-known 值 `historical_only` 标记诊断重放（非新事件），**MUST NOT** 触发新 push fanout（gateway 回 200 幂等式 ack）。其它取值仅在操作显式定义处被接受。 |
+| `audit_envelope` | object | optional | 顶层：`ck.audit.accessed` 信封路由片段（`{access_kind, late_recovery_original_event_id?}`）。present 时该请求是审计管线事件（如 `e2ee_late_recovery` 访问通知）而非 push notify：gateway 写审计事件、回 200、跳过整条 push 管线。 |
 
-> **传输层 header（非 body 字段）**：notify 的 `idempotency_key`→`Idempotency-Key` header；来源服务 DID→`Source-Service-DID` header；目标服务 DID 与 `recipient_service_did` 复用→`Destination-Service-DID` header（均为 `httpMessageSignature` 伴随项，见 [`../sync/service-http-binding.md` §3](../sync/service-http-binding.md) 与 openapi securitySchemes）。`operation_id` 由 URL path（operationId `ck.edge.push.command.notify`）唯一确定，不在 body 重复承载。以上字段 **MUST NOT** 出现在请求体内。
+> **传输层 header（非 body 字段）**：notify 的 `idempotency_key`→`Idempotency-Key` header；来源服务 DID→`Source-Service-DID` header；目标服务 DID 与 `recipient_service_did` 复用→`Destination-Service-DID` header（均为 `httpMessageSignature` 伴随项，见 [`../sync/service-http-binding.md` §3](../sync/service-http-binding.md) 与 OpenAPI securitySchemes）。`operation_id` 由 URL path（operationId `ck.edge.push.command.notify`）唯一确定，不在 body 重复承载。以上字段 **MUST NOT** 出现在请求体内。
 
 **Notify body / product-private body / provider payload 三层边界（normative）**：
 
