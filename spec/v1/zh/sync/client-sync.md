@@ -3,7 +3,7 @@ title: Client Sync
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-03
 ---
 
 ## 0. 规范语言
@@ -77,7 +77,7 @@ Account subscribe 的服务边界是当前 authenticated session 绑定的 Princ
 | `filter.event_types` | query | `string[]` | optional | 事件类型 allow list。 |
 | `filter.not_event_types` | query | `string[]` | optional | 事件类型 deny list。 |
 
-Presence 变更不是 account subscribe 的 query 参数。客户端要广播 `online` / `offline` / `unavailable` 等 presence 意图时，MUST 通过 `POST /_cokret/self/ephemeral` 提交 `ck.presence` ephemeral envelope，并按该 operation 执行 `ck.presence.broadcast` 授权、TTL、幂等和日志最小披露规则。`GET /_cokret/self/account/subscribe` MUST 保持只读：建立、恢复或重放订阅不得触发 presence 广播或其它 server-side mutation。
+Presence 变更不是 account subscribe 的 query 参数。客户端要广播 `online` / `idle` / `dnd` / `offline`（closed set，见 [profiles-presence.md §3.2](../discovery/profiles-presence.md)）presence 状态时，MUST 通过 `POST /_cokret/self/ephemeral` 提交 `ck.presence` ephemeral envelope，并按该 operation 执行 `ck.presence.broadcast` 授权、TTL、幂等和日志最小披露规则。`GET /_cokret/self/account/subscribe` MUST 保持只读：建立、恢复或重放订阅不得触发 presence 广播或其它 server-side mutation。
 
 NDJSON 响应 frame 形态(`application/x-ndjson`,每行一个 JSON 对象):
 
@@ -544,6 +544,7 @@ Handle claim 获取与刷新规则：
 - `ck.contacts.actor.<did>`
 - `ck.contacts.realm.<realm_id>`
 - `ck.presence.visibility`
+- `ck.presence.preference`
 - `ck.read_receipt.preferences`
 - `ck.account.invite_quarantine`
 

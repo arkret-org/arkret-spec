@@ -52,7 +52,7 @@
     },
     "payload": {
       "type": "object",
-      "description": "Kind-specific signal payload. Schema per kind is defined by the producing module (e.g. zh/crypto-media/webrtc-signaling.md for ck.call.signal, zh/discovery/read-receipts.md for ck.receipt.read). Payload MUST NOT carry mutable governance state — that belongs in a durable event."
+      "description": "Kind-specific signal payload. Schema per kind is defined by the producing module (e.g. zh/crypto-media/webrtc-signaling.md for ck.call.signal, zh/discovery/profiles-presence.md §3.5 for ck.typing, zh/discovery/read-receipts.md for ck.receipt.read). Payload MUST NOT carry mutable governance state — that belongs in a durable event."
     },
     "proof": {
       "$ref": "#/$defs/ephemeral_proof",
@@ -113,6 +113,51 @@
               "data": {
                 "type": "object",
                 "description": "Signal-type-specific payload body (invite/answer/candidate/mute_state/...). Declared as the closed payload field per webrtc-signaling.md §5/§6; optional because some signals (e.g. ack) carry no body. Inner shape is signal_type-specific and intentionally open."
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ck.typing"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "strand_id",
+              "typing"
+            ],
+            "properties": {
+              "strand_id": {
+                "type": "string",
+                "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "description": "Strand whose timeline the actor is typing into. Fanout MUST be clipped to the Strand effective scope per zh/discovery/profiles-presence.md §3.5."
+              },
+              "track_name": {
+                "type": "string",
+                "const": "discussion",
+                "description": "Optional Strand track key the actor is typing into. Mirrors message.schema.json#/properties/track_name: v1 Message timelines are restricted to the discussion track, so when present this MUST be 'discussion'; when omitted receivers MUST resolve it to 'discussion'. Kept explicit so future profiles that register additional writable timelines can disambiguate typing targets without changing the envelope shape."
+              },
+              "typing": {
+                "type": "boolean",
+                "description": "true = actor started or continues typing; false = actor stopped typing and receivers SHOULD clear the indicator immediately."
+              },
+              "ttl_ms": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Client-side auto-clear hint in milliseconds. The envelope expires_at remains the authoritative drop deadline; per-kind soft cap for typing is 15s."
               }
             },
             "additionalProperties": true

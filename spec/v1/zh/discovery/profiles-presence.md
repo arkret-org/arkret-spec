@@ -3,7 +3,7 @@ title: Profiles And Presence
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-03
 ---
 
 ## 0. 规范语言
@@ -17,6 +17,7 @@ updated: 2026-07-02
 - Actor Profile 的标准字段与更新机制
 - 在线状态 (Presence) 的广播与隐私保护
 - 自定义状态消息
+- 手动状态偏好（用户主动固定状态）、状态过期与多设备聚合
 
 ## 2. Actor Profile
 
@@ -220,6 +221,11 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 | `offline` | 用户离线 |
 | `dnd` | 勿扰模式（在线但不希望被打扰） |
 
+`state` 是 v1 闭集：仅上表四值合法。接收方遇到未知 `state` 值 MUST 丢弃该 presence update 或按 `schema_violation` fail closed，MUST NOT 猜测映射为近似状态（历史实现遗留的 `unavailable`、`busy` 等值不是 v1 wire 值）。
+
+- _Informative._ "忙碌 / 会议中 / 请勿打扰"一类用户主动设置的繁忙态统一映射为 `dnd`，更细的语义（例如"开会中"、"烦躁"）通过 `status_message`（§3.3）表达；v1 不为具体情绪 / 场景扩充 `state` 枚举。"隐身"（自己在线但对他人显示离线）也不是 `state` 值，通过 `ck.presence.visibility="nobody"`（§3.4）实现，从而把状态语义与可见性策略分离。
+- `state` 可以由客户端自动判定（前台活跃 → `online`、无操作超时 → `idle`），也可以由用户通过手动状态偏好固定（§3.6）；两者的仲裁规则见 §3.6。
+
 ### 3.3 Presence 广播格式
 
 通过 Sync Service 的 Ephemeral Channel 广播：
@@ -287,6 +293,16 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 
 该 wire 值表示"最后活跃落在以 `2026-04-26T10:00:00Z` 为起点、粒度 `PT1H`（1 小时）的 bucket 内"，bucket 起点 MUST 按 policy 声明的粒度向下取整对齐（同一 bucket 内任意精确时间映射到同一 wire 值），使接收方无法据此还原秒级活动 timing。bucket 粒度（`duration`）MUST NOT 细于 policy 声明的最小粒度下限，且协议绝对下界为 `PT60S`：过细的 bucket 会使边界采样退化为接近秒级的活动 timing 侧信道，与"不还原秒级 timing"的目的相悖。
 
+**多设备聚合（normative）**：同一 `actor_id` 的多个设备 MAY 并发广播 `ck.presence`（各自携带自己的 `device_id` / `proof`）。观察者（客户端，或做服务端投影聚合的 Sync Service）MUST 把该 actor 全部未过期（`expires_at` 未到且 `ttl_ms` 未超时）的广播聚合为单一 actor presence，聚合规则必须确定性：
+
+1. `state` 取未过期信号中优先级最高者，优先级为 `dnd > online > idle`；没有任何未过期信号时该 actor 视为 `offline`。
+2. `status_message` 取未过期信号中 `sent_at` 最新的非空 `status_message`；均无时客户端 SHOULD 回退展示 Profile 的 `profile_fields.status_message`（§2.2）。
+3. `last_active_at`（若按 policy 披露）取未过期信号中最新的值；比较前 MUST 先按本节解析校验，畸形值 fail closed 丢弃、不参与聚合。
+
+手动状态偏好（§3.6）的跨设备一致性由发送侧保证（各设备读取同一份 account data），接收方不区分某个 `state` 是自动判定还是手动固定，聚合规则不变。
+
+presence 广播内的 `status_message` 是临时覆盖值，展示优先级高于 Profile 的持久 `profile_fields.status_message`；presence 信号全部过期后，客户端 SHOULD 回退展示持久值。
+
 ### 3.4 隐私控制
 
 用户可以控制 Presence 的可见范围：
@@ -329,6 +345,7 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
   "expires_at": "2026-04-26T10:00:05Z",
   "payload": {
     "strand_id": "ck:strand:01964200-0000-7000-8000-000000000001",
+    "track_name": "discussion",
     "typing": true,
     "ttl_ms": 5000
   },
@@ -343,12 +360,41 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 }
 ```
 
+payload 形状由 [`ephemeral-envelope.schema.json`](../../artifacts/schemas/ephemeral-envelope.schema.json) 的 `ck.typing` 分支约束：`strand_id` 与 `typing` 必填，`track_name` / `ttl_ms` 可选。
+
+- `track_name` 标识正在输入的目标 track，口径与 `ck.message.create` payload 的 `track_name` 一致（[`message.schema.json`](../../artifacts/schemas/message.schema.json)）：v1 Message 时间线限定在 `discussion` track，因此 present 时 MUST 为 `"discussion"`；省略时接收方 MUST 解析为 `discussion`。携带其他值的信号 MUST 被拒收（`schema_violation`）。该字段为未来声明多可写时间线的 profile 预留定位维度，届时放宽枚举即可，不需要改信封结构。
 - `ttl_ms` 到期后客户端应自动清除 Typing 指示
 - 客户端 SHOULD 限制 Typing 广播频率（建议每 3 秒最多一次）
 - 客户端 SHOULD 在用户停止输入后主动发送 `typing: false`
 - Typing 指示器 MUST 遵循与 Presence 至少同等严格的可见性策略：当 `presence_visibility="nobody"` 或接收方不在允许集合内时，不得发送或转发 `ck.typing`；`contacts_only` 时只可发给明确联系人且仍需满足 Realm membership / history visibility。
-- Sync Service 转发 typing 前 MUST 同时检查发送者与接收者在目标 Strand effective scope（Realm-default 或 Circle）的可见性、personal blocklist 过滤结果和 `discussion` track 状态。被屏蔽、无权读取 discussion、或不可枚举的接收方 MUST 看到与未发生 typing 一致的空结果，不得收到可区分的拒绝。
+- Sync Service 转发 typing 前 MUST 同时检查发送者与接收者在目标 Strand effective scope（Realm-default 或 Circle）的可见性、personal blocklist 过滤结果和目标 track（payload `track_name`，省略解析为 `discussion`）的启用状态。被屏蔽、无权读取目标 track、或不可枚举的接收方 MUST 看到与未发生 typing 一致的空结果，不得收到可区分的拒绝。
 - **world_readable scope fail-closed（normative）**：typing 是逐键级实时活动信号，比 presence `last_active_at` 更细。在 `history_visibility=world_readable` 的 Realm / Strand 且对外可见的 scope 下，Sync Service MUST NOT 主动把 `ck.typing` fanout 给非成员的外部 world-readable 观察者；typing 的 fanout 目标 MUST 限制在该 Strand effective scope 的 active member 集合内（`scope_circle_id` 指向 Circle 时为该 Circle 成员）。该口径与 [read-receipts.md §2.5.1](./read-receipts.md) 的 receipt fanout 收口对齐——"历史 world-readable"（读取已落库历史）不等于"实时活动信号 world-readable"（主动广播逐键 typing），二者解耦：world-readable 历史可见性不构成把 typing 主动推送给非成员外部观察者的义务。
+
+### 3.6 手动状态偏好 (Manual Presence Preference)
+
+自动状态判定（前台活跃 → `online`、无操作超时 → `idle`、断连 / TTL 过期 → `offline`）覆盖大多数场景，但用户还需要能把自己的状态主动固定为某个值（例如切到 `dnd` 开会），且该选择要跨设备、跨重连生效。presence 广播本身是 ephemeral（§3.1），不承担持久化；手动偏好的标准存储位置是 actor-private Account Data key `ck.presence.preference`（见 [`account-data-type-registry.json`](../../artifacts/registry/account-data-type-registry.json)），通过 `ck.account_data.set` 写入，payload 形态：
+
+```json
+{
+  "manual_state": "dnd",
+  "status_message": "开会中，稍后回复",
+  "clears_at": "2026-07-03T12:00:00Z"
+}
+```
+
+| 字段 | 类型 | 必需 | 说明 |
+|------|------|------|------|
+| `manual_state` | enum | 可选 | `online`、`idle` 或 `dnd`（§3.2 闭集去掉 `offline`）。缺省表示恢复自动判定。"隐身"不是 `manual_state` 值，MUST 通过 `ck.presence.visibility="nobody"`（§3.4）实现；`offline` 由停止广播 / TTL 过期自然表达，不作为可固定值。 |
+| `status_message` | string | 可选 | 临时状态消息覆盖值，作为该 principal 各设备广播 `ck.presence` 时 payload `status_message` 的来源；长度与规范化约束同 §3.3（≤256 字符、NFC、控制字符限制）。 |
+| `clears_at` | timestamp | 可选 | 过期时间（RFC 3339 UTC）。到期后整份偏好等价于缺省：客户端 MUST 恢复自动状态判定并停止广播其中的临时 `status_message`。缺省表示手动偏好持续生效，直到被显式改写或清除。 |
+
+规则（normative）：
+
+- 存在未过期 `manual_state` 时，该 principal 的**所有**设备广播 `ck.presence` 的 `state` MUST 等于 `manual_state`；本地自动 idle 检测 MUST NOT 覆盖它。设备离线仍由广播缺失 / TTL 过期自然表现为 `offline`（§3.3 多设备聚合）。
+- `ck.presence.preference` 是**发送侧执行**的端侧偏好：执行主体是该 principal 自己的客户端。服务端 MUST NOT 要求读取该 key 的明文或投影（区别于 `ck.presence.visibility` 的最小 policy projection，§3.4），也不得把它纳入任何 policy projection 面；presence 隐私 gate 只以 `ck.presence.visibility` 为服务端可见输入。
+- `clears_at` 的到期判定在发送侧完成；客户端 SHOULD 在到期后的下一次广播周期内恢复自动状态，不要求毫秒级精确。客户端 SHOULD 在设置临时状态时提供常见过期档位（如 30 分钟 / 1 小时 / 今天）。
+- 手动 `dnd` 只改变 presence 展示语义，MUST NOT 被服务端隐式解释为通知抑制；通知抑制由 `ck.push_rules` / `ck.dnd_schedule`（[client-preferences.md §3.2](./client-preferences.md)）独立控制。客户端 SHOULD 在用户手动切换 `dnd` 时提供联动写入通知抑制的选项（informative UX 建议）。
+- 该 key 属于用户自身偏好，接收方无从（也无需）区分手动与自动状态；因此它不引入新的可见性面，§3.4 的全部隐私 gate 原样适用。
 
 ## 4. 用户目录 (User Directory)
 

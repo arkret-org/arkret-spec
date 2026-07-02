@@ -1,5 +1,5 @@
 {
-  "version": "2026-05-23",
+  "version": "2026-07-03",
   "source_of_truth": true,
   "description": "Canonical registry of standard Account Data key patterns. Account Data is actor/private state written through ck.account_data.set unless a row explicitly lists another actor-private event kind.",
   "account_data_types": [
@@ -122,6 +122,19 @@
       "source_refs": [
         "spec/v1/zh/discovery/profiles-presence.md",
         "spec/v1/zh/sync/client-sync.md"
+      ]
+    },
+    {
+      "key_pattern": "ck.presence.preference",
+      "status": "active",
+      "scope": "principal_private_preference",
+      "storage": "encrypted_account_data",
+      "write_event_kinds": [
+        "ck.account_data.set"
+      ],
+      "description": "Principal-private manual presence preference: pinned manual_state (online/idle/dnd), temporary status_message override, and clears_at expiry. Enforced client-side at send time across all of the principal's devices; services MUST NOT require plaintext or a projection of this key and MUST NOT treat it as a policy projection surface.",
+      "source_refs": [
+        "spec/v1/zh/discovery/profiles-presence.md"
       ]
     },
     {
