@@ -70,7 +70,7 @@
         "plane": "data",
         "seal_ref": "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "auth_context": {
-          "did": "did:web:alice.example",
+          "did": "did:webvh:z6mkfixture:alice.example",
           "key_id": "device-1",
           "key_epoch": 1,
           "capability_refs": [
@@ -178,7 +178,7 @@
           "plane": "data",
           "seal_ref": "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "auth_context": {
-            "did": "did:web:bob.example",
+            "did": "did:webvh:z6mkfixture:bob.example",
             "key_id": "device-1",
             "key_epoch": 1,
             "capability_refs": [
@@ -505,12 +505,12 @@
       "description": "A multi-signer notary Seal must discharge valid inclusion-list obligations by inclusion, signed reject, or pre-state verification failure proof.",
       "notary_profile": {
         "type": "threshold",
-        "proposer_id": "did:web:notary-proposer.example",
-        "signer_id": "did:web:notary-signer.example"
+        "proposer_id": "did:webvh:z6mkfixture:notary-proposer.example",
+        "signer_id": "did:webvh:z6mkfixture:notary-signer.example"
       },
       "inclusion_list": {
         "realm_id": "ck:realm:019641c6-8000-7000-8000-000000000000",
-        "signer_id": "did:web:notary-signer.example",
+        "signer_id": "did:webvh:z6mkfixture:notary-signer.example",
         "list_seq": 7,
         "event_digests": [
           "sha256:7777777777777777777777777777777777777777777777777777777777777777"
@@ -519,7 +519,7 @@
         "created_at": "2026-06-11T00:00:00Z",
         "signature": {
           "kind": "detached_jws",
-          "verification_method": "did:web:notary-signer.example#key-1",
+          "verification_method": "did:webvh:z6mkfixture:notary-signer.example#key-1",
           "alg": "EdDSA",
           "payload_digest": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
           "created_at": "2026-06-11T00:00:00Z",
@@ -574,7 +574,7 @@
       "description": "Two different Seals signed by the same notary in the same slot authorize public equivocation evidence, quarantine the fork, and reject later Seals from that signer.",
       "fault_pair": {
         "realm_id": "ck:realm:019641c6-8000-7000-8000-000000000000",
-        "signer_id": "did:web:notary.example",
+        "signer_id": "did:webvh:z6mkfixture:notary.example",
         "notary_seq": 42,
         "seal_a": {
           "id": "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -589,7 +589,7 @@
         "event_kind": "ck.notary.fault.equivocation",
         "submitter_capability_refs": [],
         "payload": {
-          "signer_id": "did:web:notary.example",
+          "signer_id": "did:webvh:z6mkfixture:notary.example",
           "seal_a": "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "seal_b": "ck:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         }
@@ -604,7 +604,7 @@
         "remaining_signer_policy": "continue_if_quorum_else_notary_paused"
       },
       "invalid_parallel_leaf_case": {
-        "signer_id": "did:web:other-notary.example",
+        "signer_id": "did:webvh:z6mkfixture:other-notary.example",
         "notary_seq": 43,
         "expected": {
           "result": "failed_precondition"
@@ -621,11 +621,11 @@
           "notary": {
             "type": "threshold",
             "members": [
-              "did:web:n1.example",
-              "did:web:n2.example",
-              "did:web:n3.example",
-              "did:web:n4.example",
-              "did:web:n5.example"
+              "did:webvh:z6mkfixture:n1.example",
+              "did:webvh:z6mkfixture:n2.example",
+              "did:webvh:z6mkfixture:n3.example",
+              "did:webvh:z6mkfixture:n4.example",
+              "did:webvh:z6mkfixture:n5.example"
             ],
             "threshold": 3,
             "forensic_attribution": "quorum_intersection"
@@ -639,11 +639,11 @@
           "notary": {
             "type": "threshold",
             "members": [
-              "did:web:n1.example",
-              "did:web:n2.example",
-              "did:web:n3.example",
-              "did:web:n4.example",
-              "did:web:n5.example"
+              "did:webvh:z6mkfixture:n1.example",
+              "did:webvh:z6mkfixture:n2.example",
+              "did:webvh:z6mkfixture:n3.example",
+              "did:webvh:z6mkfixture:n4.example",
+              "did:webvh:z6mkfixture:n5.example"
             ],
             "threshold": 3,
             "forensic_attribution": "waived"
@@ -658,10 +658,10 @@
           "notary": {
             "type": "threshold",
             "members": [
-              "did:web:n1.example",
-              "did:web:n2.example",
-              "did:web:n3.example",
-              "did:web:n4.example"
+              "did:webvh:z6mkfixture:n1.example",
+              "did:webvh:z6mkfixture:n2.example",
+              "did:webvh:z6mkfixture:n3.example",
+              "did:webvh:z6mkfixture:n4.example"
             ],
             "threshold": 2,
             "forensic_attribution": "quorum_intersection"
@@ -676,9 +676,9 @@
           "notary": {
             "type": "threshold",
             "members": [
-              "did:web:n1.example",
-              "did:web:n2.example",
-              "did:web:n3.example"
+              "did:webvh:z6mkfixture:n1.example",
+              "did:webvh:z6mkfixture:n2.example",
+              "did:webvh:z6mkfixture:n3.example"
             ],
             "threshold": 2
           },
@@ -703,7 +703,7 @@
         "plane": "data",
         "seal_ref": "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "auth_context": {
-          "did": "did:web:alice.example",
+          "did": "did:webvh:z6mkfixture:alice.example",
           "key_id": "device-1",
           "key_epoch": 1,
           "capability_refs": [

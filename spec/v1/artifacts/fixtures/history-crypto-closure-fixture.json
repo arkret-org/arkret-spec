@@ -24,7 +24,7 @@
         {
           "name": "visible_at_t0_post_ban_still_recoverable",
           "event_id": "ck:event:0196419b-0000-7000-8000-000000005001",
-          "receiver": "did:web:bob.example",
+          "receiver": "did:webvh:z6mkfixture:bob.example",
           "t0_visible": true,
           "t0_member": true,
           "post_t0_membership": "ban",
@@ -50,7 +50,7 @@
         {
           "name": "not_visible_at_t0_rejected",
           "event_id": "ck:event:0196419b-0000-7000-8000-000000005002",
-          "receiver": "did:web:bob.example",
+          "receiver": "did:webvh:z6mkfixture:bob.example",
           "t0_visible": false,
           "t0_member": false,
           "post_t0_membership": "join",
@@ -65,7 +65,7 @@
         {
           "name": "source_without_recheck_rejected",
           "event_id": "ck:event:0196419b-0000-7000-8000-000000005003",
-          "receiver": "did:web:bob.example",
+          "receiver": "did:webvh:z6mkfixture:bob.example",
           "t0_visible": true,
           "t0_member": true,
           "post_t0_membership": "active",
@@ -91,13 +91,13 @@
         "ttl_ms": 60000,
         "grace_ms": 5000,
         "eligible_principals": [
-          "did:web:bob.example",
-          "did:web:carol.example"
+          "did:webvh:z6mkfixture:bob.example",
+          "did:webvh:z6mkfixture:carol.example"
         ]
       },
       "contributions": [
         {
-          "principal_id": "did:web:bob.example",
+          "principal_id": "did:webvh:z6mkfixture:bob.example",
           "device_id": "ck:device:0196419b-0000-7000-8000-000000006101",
           "anchor_hlc": "01970e589d21-0001-a13f9c2e"
         }
@@ -139,7 +139,7 @@
         {
           "label": "bob_phone",
           "message_id": "ck:message:0196419b-0000-7000-8000-000000006201",
-          "principal_id": "did:web:bob.example",
+          "principal_id": "did:webvh:z6mkfixture:bob.example",
           "device_id": "ck:device:0196419b-0000-7000-8000-000000006202",
           "hlc": "01970e589d21-0001-a13f9c2e",
           "opaque_token": "read-token-bob-m1"
@@ -147,7 +147,7 @@
         {
           "label": "bob_desktop_later",
           "message_id": "ck:message:0196419b-0000-7000-8000-000000006201",
-          "principal_id": "did:web:bob.example",
+          "principal_id": "did:webvh:z6mkfixture:bob.example",
           "device_id": "ck:device:0196419b-0000-7000-8000-000000006203",
           "hlc": "01970e589d22-0001-a13f9c2e",
           "opaque_token": "read-token-bob-m1"
@@ -155,7 +155,7 @@
         {
           "label": "old_replay",
           "message_id": "ck:message:0196419b-0000-7000-8000-000000006201",
-          "principal_id": "did:web:bob.example",
+          "principal_id": "did:webvh:z6mkfixture:bob.example",
           "device_id": "ck:device:0196419b-0000-7000-8000-000000006202",
           "hlc": "01970e589d20-0001-a13f9c2e",
           "opaque_token": "read-token-bob-m1"
@@ -163,7 +163,7 @@
         {
           "label": "cross_message_replay",
           "message_id": "ck:message:0196419b-0000-7000-8000-000000006299",
-          "principal_id": "did:web:bob.example",
+          "principal_id": "did:webvh:z6mkfixture:bob.example",
           "device_id": "ck:device:0196419b-0000-7000-8000-000000006202",
           "hlc": "01970e589d23-0001-a13f9c2e",
           "opaque_token": "read-token-bob-m1"
@@ -188,22 +188,22 @@
       "message_id": "ck:message:0196419b-0000-7000-8000-000000006301",
       "trigger": "on_last_read",
       "eligible_principals": [
-        "did:web:bob.example",
-        "did:web:carol.example",
-        "did:web:david.example"
+        "did:webvh:z6mkfixture:bob.example",
+        "did:webvh:z6mkfixture:carol.example",
+        "did:webvh:z6mkfixture:david.example"
       ],
       "contributions": [
         {
-          "principal_id": "did:web:bob.example",
+          "principal_id": "did:webvh:z6mkfixture:bob.example",
           "device_id": "bob-phone"
         },
         {
-          "principal_id": "did:web:carol.example",
+          "principal_id": "did:webvh:z6mkfixture:carol.example",
           "device_id": "carol-phone"
         }
       ],
       "unreachable_principals": [
-        "did:web:david.example"
+        "did:webvh:z6mkfixture:david.example"
       ],
       "read_trigger_window_elapsed": true,
       "offline_devices": [
@@ -236,7 +236,7 @@
         ]
       },
       "token": {
-        "aud": "did:web:bob.example",
+        "aud": "did:webvh:z6mkfixture:bob.example",
         "target_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "link_type": "preview",
         "ttl_seconds": 300
@@ -244,7 +244,7 @@
       "requests": [
         {
           "name": "bob_preview",
-          "caller": "did:web:bob.example",
+          "caller": "did:webvh:z6mkfixture:bob.example",
           "target_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "link_type": "preview",
           "expected": {
@@ -260,7 +260,7 @@
         },
         {
           "name": "mallory_scope_confused_target",
-          "caller": "did:web:mallory.example",
+          "caller": "did:webvh:z6mkfixture:mallory.example",
           "target_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
           "link_type": "preview",
           "expected": {
@@ -270,7 +270,7 @@
         },
         {
           "name": "link_type_rewritten_to_invite",
-          "caller": "did:web:bob.example",
+          "caller": "did:webvh:z6mkfixture:bob.example",
           "target_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "link_type": "invite",
           "expected": {

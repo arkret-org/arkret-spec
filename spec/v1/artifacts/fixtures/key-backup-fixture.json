@@ -1177,7 +1177,7 @@
           "shares": [
             {
               "share_id": "s1",
-              "holder": "did:web:bob.example",
+              "holder": "did:webvh:z6mkfixture:bob.example",
               "transport": "hpke_x25519",
               "share_commitment": {
                 "algorithm": "feldman-vss-sha256",
@@ -1186,7 +1186,7 @@
             },
             {
               "share_id": "s2",
-              "holder": "did:web:carol.example",
+              "holder": "did:webvh:z6mkfixture:carol.example",
               "transport": "hpke_x25519",
               "share_commitment": {
                 "algorithm": "feldman-vss-sha256",

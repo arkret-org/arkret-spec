@@ -143,14 +143,14 @@
       "kind": "unlock_proof_binding",
       "session": {
         "recovery_session_id": "ck:recovery_session:0196419b-0000-7000-8000-000000000100",
-        "principal_id": "did:web:alice.example",
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
         "requesting_device_id": "ck:device:0196419b-0000-7000-8000-000000000002",
         "proof_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "fresh_device_proof": true
       },
       "envelope": {
         "backup_id": "ck:backup:0196419b-0000-7000-8000-000000000200",
-        "actor_id": "did:web:alice.example",
+        "actor_id": "did:webvh:z6mkfixture:alice.example",
         "backup_class": "secret_storage",
         "series_id": "ck:backup_series:0196419b-0000-7000-8000-000000000300",
         "series_seq": 4,
@@ -168,7 +168,7 @@
       "proof": {
         "schema": "ck.schema.key_backup_unlock_proof.v1",
         "recovery_session_id": "ck:recovery_session:0196419b-0000-7000-8000-000000000100",
-        "principal_id": "did:web:alice.example",
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
         "requesting_device_id": "ck:device:0196419b-0000-7000-8000-000000000002",
         "backup_id": "ck:backup:0196419b-0000-7000-8000-000000000200",
         "backup_class": "secret_storage",
@@ -178,7 +178,7 @@
         "proof_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "issued_at": "2026-06-19T00:00:00Z",
         "auth_data": {
-          "verification_method": "did:web:alice.example#device-2",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#device-2",
           "signature_algorithm": "Ed25519",
           "signature": "c2lnbmF0dXJl",
           "signed_fields": [
@@ -215,7 +215,7 @@
         "aead": "chacha20_poly1305",
         "key_b64u": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
         "nonce_b64u": "oKGio6Slpqeoqaqr",
-        "aad_canonical_json": "{\"actor_id\":\"did:web:alice.example\",\"backup_class\":\"secret_storage\",\"backup_id\":\"ck:backup:0196419b-0000-7000-8000-000000000200\",\"created_at\":\"2026-06-19T00:00:00Z\",\"recipient_method\":\"secret_storage_key\",\"schema\":\"ck.schema.key_backup.v1\",\"series_id\":\"ck:backup_series:0196419b-0000-7000-8000-000000000300\",\"series_seq\":4}",
+        "aad_canonical_json": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"backup_class\":\"secret_storage\",\"backup_id\":\"ck:backup:0196419b-0000-7000-8000-000000000200\",\"created_at\":\"2026-06-19T00:00:00Z\",\"recipient_method\":\"secret_storage_key\",\"schema\":\"ck.schema.key_backup.v1\",\"series_id\":\"ck:backup_series:0196419b-0000-7000-8000-000000000300\",\"series_seq\":4}",
         "plaintext_canonical_json": "{\"backup_class\":\"secret_storage\",\"backup_id\":\"ck:backup:0196419b-0000-7000-8000-000000000200\",\"items\":[{\"item_type\":\"mls_group_secrets_backup_key\",\"secret_b64u\":\"c2VjcmV0\",\"secret_id\":\"mls_group_secrets_backup_key\"}],\"schema\":\"ck.schema.key_backup_plaintext.v1\",\"series_id\":\"ck:backup_series:0196419b-0000-7000-8000-000000000300\",\"series_seq\":4}",
         "ciphertext_b64u": "d4kaPi6Nt93_bJ91j4nfwb8tttwxDxT8x6y0wxAFpi5AonTrzaKK-pmlkZ8ncxstcKYrW2J5G7sXZTJ2eBucqpzLV34IxKXAEsD_sT2AmVMwqT_TLIymkEsaerCs4ILS6CIK061hNo6NKRQH-Z9vjDinkW93PYbW94vSPMfg700aTo6b_dSkoWTWtEgK6nx84PAtywVNaSObA9iLj7GTJqKYfWAO914G-4uubLrCCC6F25YCbfuT6RbwtBBGLXd2V_Knd3W4eDMIY5FSAEyaR_B3LIvbsRSwURLsiuJkpfuIweYs7ZcGMNH2ERETObjqgwlh5qzwNMm1weK0_fdKvR_aQpoAJ_RlfxVCvizqsjTIu6Z6T0bgq5t1m3eEflNO2OIhIRjLzlXbursxdlrRuizKPNja1A_06KoxjHzPPWD1ifOdilP8UW8784ET1LqHLeFKa759wz4J",
         "tag_b64u": "W9EVZsCAgTqZvfKrrpDupQ",

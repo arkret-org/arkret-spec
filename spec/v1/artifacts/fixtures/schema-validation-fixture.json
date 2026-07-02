@@ -9,7 +9,7 @@
       "schema_ref": "schemas/service-describe.schema.json",
       "expect_valid": true,
       "instance": {
-        "service_did": "did:web:alice.example.net",
+        "service_did": "did:webvh:z6mkfixture:alice.example.net",
         "trust_domain": "ck:trust_domain:did.webvh.alice.example",
         "service_type": "principal_server",
         "protocol_version": "1.0",
@@ -63,7 +63,7 @@
       "schema_ref": "schemas/service-describe.schema.json",
       "expect_valid": true,
       "instance": {
-        "service_did": "did:web:directory.example.net",
+        "service_did": "did:webvh:z6mkfixture:directory.example.net",
         "trust_domain": "ck:trust_domain:directory.example",
         "service_type": "directory_service",
         "protocol_version": "1.0",
@@ -131,7 +131,7 @@
       "expect_valid": false,
       "first_expected_error": "$: 'development_mode' is a required property",
       "instance": {
-        "service_did": "did:web:alice.example.net",
+        "service_did": "did:webvh:z6mkfixture:alice.example.net",
         "trust_domain": "ck:trust_domain:did.webvh.alice.example",
         "service_type": "principal_server",
         "protocol_version": "1.0",
@@ -182,7 +182,7 @@
       "expect_valid": false,
       "first_expected_error": "$: 'trust_domain' is a required property",
       "instance": {
-        "service_did": "did:web:alice.example.net",
+        "service_did": "did:webvh:z6mkfixture:alice.example.net",
         "service_type": "principal_server",
         "protocol_version": "1.0",
         "supported_profiles": [],
@@ -235,7 +235,7 @@
         "id": "ck:realm:0196419b-0000-7000-8000-000000000000",
         "schema": "ck.schema.realm.v1",
         "title": "Launch Plan Confidential Realm",
-        "created_by": "did:web:acme.example",
+        "created_by": "did:webvh:z6mkfixture:acme.example",
         "trust_domain": "ck:trust_domain:did.webvh.acme.example",
         "schema_refs": [
           "ck.schema.realm.v1"
@@ -247,13 +247,13 @@
         "notary_profile": "single_did",
         "notary": {
           "type": "single_did",
-          "did": "did:web:notary.acme.example",
+          "did": "did:webvh:z6mkfixture:notary.acme.example",
           "recovery_members": [
-            "did:web:recovery-notary.example"
+            "did:webvh:z6mkfixture:recovery-notary.example"
           ],
-          "controller_organization": "did:web:acme.example",
+          "controller_organization": "did:webvh:z6mkfixture:acme.example",
           "recovery_controller_organizations": [
-            "did:web:recovery-org.example"
+            "did:webvh:z6mkfixture:recovery-org.example"
           ]
         },
         "created_at": "2026-04-26T00:00:00Z"
@@ -267,7 +267,7 @@
         "id": "ck:realm:0196419b-0000-7000-8000-000000000010",
         "schema": "ck.schema.realm.v1",
         "title": "Alice Principal Control Realm",
-        "created_by": "did:web:alice.example",
+        "created_by": "did:webvh:z6mkfixture:alice.example",
         "trust_domain": "ck:trust_domain:did.webvh.alice.example",
         "schema_refs": [
           "ck.schema.realm.v1",
@@ -280,13 +280,13 @@
         "notary_profile": "single_did",
         "notary": {
           "type": "single_did",
-          "did": "did:web:alice.example",
+          "did": "did:webvh:z6mkfixture:alice.example",
           "recovery_members": [
-            "did:web:alice-recovery.example"
+            "did:webvh:z6mkfixture:alice-recovery.example"
           ],
-          "controller_organization": "did:web:alice-org.example",
+          "controller_organization": "did:webvh:z6mkfixture:alice-org.example",
           "recovery_controller_organizations": [
-            "did:web:alice-recovery-org.example"
+            "did:webvh:z6mkfixture:alice-recovery-org.example"
           ]
         },
         "fields": {
@@ -305,7 +305,7 @@
         "id": "ck:realm:0196419b-0000-7000-8000-000000000011",
         "schema": "ck.schema.realm.v1",
         "title": "Alice Principal Control Realm",
-        "created_by": "did:web:alice.example",
+        "created_by": "did:webvh:z6mkfixture:alice.example",
         "trust_domain": "ck:trust_domain:did.webvh.alice.example",
         "schema_refs": [
           "ck.schema.realm.v1",
@@ -318,13 +318,13 @@
         "notary_profile": "single_did",
         "notary": {
           "type": "single_did",
-          "did": "did:web:alice.example",
+          "did": "did:webvh:z6mkfixture:alice.example",
           "recovery_members": [
-            "did:web:alice-recovery.example"
+            "did:webvh:z6mkfixture:alice-recovery.example"
           ],
-          "controller_organization": "did:web:alice-org.example",
+          "controller_organization": "did:webvh:z6mkfixture:alice-org.example",
           "recovery_controller_organizations": [
-            "did:web:alice-recovery-org.example"
+            "did:webvh:z6mkfixture:alice-recovery-org.example"
           ]
         },
         "fields": {
@@ -345,7 +345,7 @@
         "id": "ck:realm:0196419b-0000-7000-8000-000000000000",
         "schema": "ck.schema.realm.v1",
         "title": "Launch Plan Confidential Realm",
-        "created_by": "did:web:acme.example",
+        "created_by": "did:webvh:z6mkfixture:acme.example",
         "schema_refs": [
           "ck.schema.realm.v1"
         ],
@@ -368,7 +368,7 @@
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
         "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
         "source": {
-          "service_did": "did:web:server.example",
+          "service_did": "did:webvh:z6mkfixture:server.example",
           "service_type": "principal_server",
           "source_ip_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "signed_transport": true
@@ -379,7 +379,7 @@
         },
         "auth_context": {
           "membership": "join",
-          "origin_service": "did:web:server.example"
+          "origin_service": "did:webvh:z6mkfixture:server.example"
         }
       }
     },
@@ -394,7 +394,7 @@
         "action": "ck.message.create",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
         "source": {
-          "service_did": "did:web:server.example",
+          "service_did": "did:webvh:z6mkfixture:server.example",
           "service_type": "principal_server",
           "signed_transport": true
         }
@@ -411,7 +411,7 @@
           "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
           "action": "ck.message.create",
           "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "policy_server_id": "did:web:policy.example.com"
+          "policy_server_id": "did:webvh:z6mkfixture:policy.example.com"
         },
         "decision": "allow",
         "reason_code": "ok",
@@ -420,7 +420,7 @@
         "policy_frontier_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
         "membership_frontier_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
         "signature": {
-          "kid": "did:web:policy.example.com#key-1",
+          "kid": "did:webvh:z6mkfixture:policy.example.com#key-1",
           "sig": "base64url..."
         }
       }
@@ -439,7 +439,7 @@
         "policy_frontier_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
         "membership_frontier_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
         "signature": {
-          "kid": "did:web:policy.example.com#key-1",
+          "kid": "did:webvh:z6mkfixture:policy.example.com#key-1",
           "sig": "base64url..."
         }
       }
@@ -452,7 +452,7 @@
         "event_id": "ck:event:019a6aa0-0000-7000-8000-000000000000",
         "kind": "ck.read_cursor.advance",
         "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
-        "actor_id": "did:web:alice.example",
+        "actor_id": "did:webvh:z6mkfixture:alice.example",
         "actor_seq": 1,
         "created_at": "2026-05-20T00:00:00Z",
         "hlc": "01970e589d21-0001-a13f9c2e",
@@ -461,7 +461,7 @@
         "payload": {
           "id": "ck:read_cursor:019a6aa0-1000-7000-8000-000000000000",
           "schema": "ck.schema.read_cursor.v1",
-          "actor_id": "did:web:alice.example",
+          "actor_id": "did:webvh:z6mkfixture:alice.example",
           "device_id": "ck:device:019a6aa0-2000-7000-8000-000000000000",
           "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
           "read_scope": {
@@ -479,7 +479,7 @@
           {
             "kind": "detached_jws",
             "alg": "EdDSA",
-            "verification_method": "did:web:alice.example#key-1",
+            "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
             "event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "created_at": "2026-05-20T00:00:00Z",
             "jws": "a..b"
@@ -496,7 +496,7 @@
         "event_id": "ck:event:019a6aa0-5000-7000-8000-000000000000",
         "kind": "ck.audit.session.request",
         "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
-        "actor_id": "did:web:audit.example",
+        "actor_id": "did:webvh:z6mkfixture:audit.example",
         "actor_seq": 1,
         "created_at": "2026-06-04T00:00:00Z",
         "hlc": "01970e589d21-0001-a13f9c2e",
@@ -542,7 +542,7 @@
           {
             "kind": "detached_jws",
             "alg": "EdDSA",
-            "verification_method": "did:web:audit.example#key-1",
+            "verification_method": "did:webvh:z6mkfixture:audit.example#key-1",
             "event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
             "created_at": "2026-06-04T00:00:00Z",
             "jws": "a..b"
@@ -576,8 +576,8 @@
       "instance": {
         "id": "ck:grant:0196410c-1000-7000-8000-000000000000",
         "schema": "ck.schema.capability.v1",
-        "issuer": "did:web:owner.example",
-        "subject": "did:web:alice.example",
+        "issuer": "did:webvh:z6mkfixture:owner.example",
+        "subject": "did:webvh:z6mkfixture:alice.example",
         "actions": [
           "ck.strand.*"
         ],
@@ -591,7 +591,7 @@
           {
             "kind": "detached_jws",
             "alg": "EdDSA",
-            "verification_method": "did:web:owner.example#key-1",
+            "verification_method": "did:webvh:z6mkfixture:owner.example#key-1",
             "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "created_at": "2026-05-20T00:00:00Z",
             "jws": "a..b"
@@ -616,7 +616,7 @@
         "notary_seq": 1,
         "notary_signature": {
           "alg": "EdDSA",
-          "verification_method": "did:web:notary.example#key-1",
+          "verification_method": "did:webvh:z6mkfixture:notary.example#key-1",
           "payload_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
           "created_at": "2026-05-20T00:00:00Z",
           "jws": "a..b"
@@ -694,21 +694,21 @@
       "schema_ref": "schemas/did-key-log-entry.schema.json",
       "expect_valid": true,
       "instance": {
-        "did": "did:web:alice.example",
+        "did": "did:webvh:z6mkfixture:alice.example",
         "seq": 1,
         "operation": "rotate",
         "prev_event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "head_event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "operation_body": {
           "method": "webvh",
-          "rotate_to": "did:web:alice.example#key-2"
+          "rotate_to": "did:webvh:z6mkfixture:alice.example#key-2"
         },
         "created_at": "2026-05-20T00:00:00Z",
         "proofs": [
           {
             "kind": "detached_jws",
             "alg": "EdDSA",
-            "verification_method": "did:web:alice.example#key-1",
+            "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
             "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
             "created_at": "2026-05-20T00:00:00Z",
             "jws": "a..b"
@@ -721,10 +721,10 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/agent_key_authorize_payload",
       "expect_valid": true,
       "instance": {
-        "agent_principal_id": "did:web:agent.example",
-        "key_id": "did:web:agent.example#key-1",
-        "verification_method": "did:web:agent.example#key-1",
-        "accountable_principal_id": "did:web:alice.example",
+        "agent_principal_id": "did:webvh:z6mkfixture:agent.example",
+        "key_id": "did:webvh:z6mkfixture:agent.example#key-1",
+        "verification_method": "did:webvh:z6mkfixture:agent.example#key-1",
+        "accountable_principal_id": "did:webvh:z6mkfixture:alice.example",
         "agent_key_scope": {
           "actions": [
             "ck.strand.update"
@@ -755,15 +755,15 @@
         "id": "ck:invite:019a6aa0-0000-7000-8000-000000000000",
         "schema": "ck.schema.invite.v1",
         "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
-        "inviter": "did:web:alice.example",
+        "inviter": "did:webvh:z6mkfixture:alice.example",
         "third_party_id": {
           "display_name_hint": "A.",
           "token_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "token_salt_id": "salt-2026-05",
           "oob_code_kind": "offline_token",
           "token_entropy_bits": 128,
-          "verification_service_did": "did:web:verify.example",
-          "verification_public_key": "did:web:verify.example#key-1",
+          "verification_service_did": "did:webvh:z6mkfixture:verify.example",
+          "verification_public_key": "did:webvh:z6mkfixture:verify.example#key-1",
           "max_claims": 1
         },
         "join_rule_snapshot": {},
@@ -779,7 +779,7 @@
       "instance": {
         "schema": "ck.schema.identity_link.v1",
         "pairwise_did": "did:key:z6Mkpseudonymous",
-        "principal_id": "did:web:alice.example",
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
         "device_id": "ck:device:019a6aa0-0000-7000-8000-000000000000",
         "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
         "trust_domain": "ck:trust_domain:did.webvh.example",
@@ -787,7 +787,7 @@
         "mls_epoch": 1,
         "effective_at": "2026-05-20T00:00:00Z",
         "proof": {
-          "verification_method": "did:web:alice.example#key-1",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
           "signature_algorithm": "Ed25519",
           "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "signature": "c2ln"
@@ -802,14 +802,14 @@
       "instance": {
         "schema": "ck.schema.identity_link.v1",
         "pairwise_did": "did:key:z6Mkpseudonymous",
-        "principal_id": "did:web:alice.example",
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
         "device_id": "ck:device:019a6aa0-0000-7000-8000-000000000000",
         "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
         "mls_leaf_index": 0,
         "mls_epoch": 1,
         "effective_at": "2026-05-20T00:00:00Z",
         "proof": {
-          "verification_method": "did:web:alice.example#key-1",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#key-1",
           "signature_algorithm": "Ed25519",
           "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "signature": "c2ln"
@@ -823,8 +823,8 @@
       "instance": {
         "evidence_id": "ck:attestation:019a6aa0-0000-7000-8000-000000000000",
         "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
-        "audit_service_actor_id": "did:web:audit.example",
-        "service_did": "did:web:audit.example",
+        "audit_service_actor_id": "did:webvh:z6mkfixture:audit.example",
+        "service_did": "did:webvh:z6mkfixture:audit.example",
         "platform": {
           "family": "software_test_only",
           "vendor": "cokret",
@@ -844,12 +844,12 @@
           "alg": "EdDSA",
           "public_key_b64u": "AA"
         },
-        "verification_method": "did:web:audit.example#attestation-1",
+        "verification_method": "did:webvh:z6mkfixture:audit.example#attestation-1",
         "validity": {
           "not_before": "2026-05-20T00:00:00Z",
           "expires_at": "2026-06-20T00:00:00Z"
         },
-        "operator_did": "did:web:operator.example",
+        "operator_did": "did:webvh:z6mkfixture:operator.example",
         "audit_purpose": "internal_policy_audit",
         "audit_policy_version_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "created_at": "2026-05-20T00:00:00Z",
@@ -857,7 +857,7 @@
           {
             "kind": "detached_jws",
             "alg": "EdDSA",
-            "verification_method": "did:web:operator.example#key-1",
+            "verification_method": "did:webvh:z6mkfixture:operator.example#key-1",
             "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
             "created_at": "2026-05-20T00:00:00Z",
             "jws": "a..b"
@@ -873,8 +873,8 @@
       "instance": {
         "evidence_id": "ck:attestation:019a6aa0-0000-7000-8000-000000000000",
         "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
-        "audit_service_actor_id": "did:web:audit.example",
-        "service_did": "did:web:audit.example",
+        "audit_service_actor_id": "did:webvh:z6mkfixture:audit.example",
+        "service_did": "did:webvh:z6mkfixture:audit.example",
         "platform": {
           "family": "software_test_only",
           "vendor": "cokret",
@@ -894,12 +894,12 @@
           "alg": "EdDSA",
           "public_key_b64u": "AA"
         },
-        "verification_method": "did:web:audit.example#attestation-1",
+        "verification_method": "did:webvh:z6mkfixture:audit.example#attestation-1",
         "validity": {
           "not_before": "2026-05-20T00:00:00Z",
           "expires_at": "2026-06-20T00:00:00Z"
         },
-        "operator_did": "did:web:operator.example",
+        "operator_did": "did:webvh:z6mkfixture:operator.example",
         "audit_purpose": "internal_policy_audit",
         "audit_policy_version_digest": "blake3:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "created_at": "2026-05-20T00:00:00Z",
@@ -907,7 +907,7 @@
           {
             "kind": "detached_jws",
             "alg": "EdDSA",
-            "verification_method": "did:web:operator.example#key-1",
+            "verification_method": "did:webvh:z6mkfixture:operator.example#key-1",
             "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
             "created_at": "2026-05-20T00:00:00Z",
             "jws": "a..b"
@@ -921,31 +921,31 @@
       "expect_valid": false,
       "first_expected_error": "$: 'trust_domain' is a required property",
       "instance": {
-        "principal_id": "did:web:alice.example",
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
         "principal_signing_key": {
-          "kid": "did:web:alice.example#psk",
+          "kid": "did:webvh:z6mkfixture:alice.example#psk",
           "alg": "EdDSA",
           "public_key": "AA",
           "key_format": "raw_base64url"
         },
         "self_signing_key": {
-          "kid": "did:web:alice.example#ssk",
+          "kid": "did:webvh:z6mkfixture:alice.example#ssk",
           "alg": "EdDSA",
           "public_key": "BB",
           "key_format": "raw_base64url",
           "binding": {
-            "verification_method": "did:web:alice.example#psk",
+            "verification_method": "did:webvh:z6mkfixture:alice.example#psk",
             "alg": "EdDSA",
             "signature": "c2ln"
           }
         },
         "user_signing_key": {
-          "kid": "did:web:alice.example#usk",
+          "kid": "did:webvh:z6mkfixture:alice.example#usk",
           "alg": "EdDSA",
           "public_key": "CC",
           "key_format": "raw_base64url",
           "binding": {
-            "verification_method": "did:web:alice.example#psk",
+            "verification_method": "did:webvh:z6mkfixture:alice.example#psk",
             "alg": "EdDSA",
             "signature": "c2ln"
           }
@@ -959,7 +959,7 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_payload",
       "expect_valid": true,
       "instance": {
-        "principal_id": "did:web:alice.example",
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
         "device_id": "ck:device:019a6aa0-0000-7000-8000-000000000000",
         "device_public_key": "z6MkDevicePublicKey",
         "hpke_key": "z6MkDeviceHpkePublicKey",
@@ -971,14 +971,14 @@
         "not_before": "2026-05-20T00:00:00Z",
         "expires_at": null,
         "cross_signing_binding": {
-          "verification_method": "did:web:alice.example#ck_self_signing_v1",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ck_self_signing_v1",
           "alg": "EdDSA",
           "ssk_generation": 1,
           "signature": "c2ln"
         },
         "proof": {
           "kind": "detached_jws",
-          "verification_method": "did:web:alice.example#device-old",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#device-old",
           "jws": "..."
         }
       }
@@ -988,7 +988,7 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_payload",
       "expect_valid": true,
       "instance": {
-        "principal_id": "did:web:alice.example",
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
         "device_id": "ck:device:019a6aa0-0000-7000-8000-000000000000",
         "device_public_key": "z6MkDevicePublicKey",
         "hpke_key": "z6MkDeviceHpkePublicKey",
@@ -996,15 +996,15 @@
           "ck.device.alg.ed25519.v1",
           "ck.device.hpke.x25519_hkdf_sha256.v1"
         ],
-        "authorized_by": "did:web:alice.example",
+        "authorized_by": "did:webvh:z6mkfixture:alice.example",
         "not_before": "2026-05-20T00:00:00Z",
         "bootstrap_binding": {
           "kind": "inception_self_authorized",
-          "did_method_evidence_ref": "did:web:alice.example/entry-0"
+          "did_method_evidence_ref": "did:webvh:z6mkfixture:alice.example/entry-0"
         },
         "device_signature": {
           "kind": "detached_jws",
-          "verification_method": "did:web:alice.example#inception",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#inception",
           "jws": "..."
         }
       }
@@ -1017,7 +1017,7 @@
       "instance": {
         "kind": "ck.call.signal",
         "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
-        "actor_id": "did:web:alice.example",
+        "actor_id": "did:webvh:z6mkfixture:alice.example",
         "device_id": "ck:device:019a6aa0-0000-7000-8000-000000000000",
         "sent_at": "2026-05-20T00:00:00Z",
         "expires_at": "2026-05-20T00:00:30Z",
@@ -1053,7 +1053,7 @@
             "call_id": "ck:call:019a7360-0000-7000-8000-000000000001",
             "focus_id": "fra-1",
             "recording_id": "rtc-recording-019a7360-0000-7000-8000-000000000002",
-            "media_service_did": "did:web:recorder.example",
+            "media_service_did": "did:webvh:z6mkfixture:recorder.example",
             "recording_start_event_id": "ck:event:019a7360-0000-7000-8000-000000000003"
           },
           "ciphertext_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
@@ -1065,7 +1065,7 @@
           "audit_lock": false,
           "consent_confirmed": true
         },
-        "produced_by": "did:web:recorder.example",
+        "produced_by": "did:webvh:z6mkfixture:recorder.example",
         "recording_initiator_capability_ref": "ck:grant:019a7360-0000-7000-8000-000000000006",
         "created_at": "2026-06-19T00:00:00Z",
         "deletion_audit": {
@@ -1102,7 +1102,7 @@
             "call_id": "ck:call:019a7360-0000-7000-8000-000000000001",
             "focus_id": "fra-1",
             "recording_id": "rtc-recording-019a7360-0000-7000-8000-000000000002",
-            "media_service_did": "did:web:recorder.example",
+            "media_service_did": "did:webvh:z6mkfixture:recorder.example",
             "recording_start_event_id": "ck:event:019a7360-0000-7000-8000-000000000003"
           },
           "ciphertext_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
@@ -1114,7 +1114,7 @@
           "audit_lock": false,
           "consent_confirmed": true
         },
-        "produced_by": "did:web:recorder.example",
+        "produced_by": "did:webvh:z6mkfixture:recorder.example",
         "recording_initiator_capability_ref": "ck:grant:019a7360-0000-7000-8000-000000000006",
         "created_at": "2026-06-19T00:00:00Z"
       },
@@ -1127,7 +1127,7 @@
       "instance": {
         "schema": "ck.schema.recovery_session.v1",
         "recovery_session_id": "ck:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
-        "principal_id": "did:web:alice.example",
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
         "requesting_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
         "trust_domain": "ck:trust_domain:example.local",
         "policy_id": "ck:policy:019a6aa0-0000-7000-8000-0000000000bb",
@@ -1147,7 +1147,7 @@
       "instance": {
         "schema": "ck.schema.recovery_session.v1",
         "recovery_session_id": "ck:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
-        "principal_id": "did:web:alice.example",
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
         "requesting_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
         "trust_domain": "ck:trust_domain:example.local",
         "policy_id": "ck:policy:019a6aa0-0000-7000-8000-0000000000bb",
@@ -1167,7 +1167,7 @@
       "instance": {
         "schema": "ck.schema.recovery_session.v1",
         "recovery_session_id": "ck:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
-        "principal_id": "did:web:alice.example",
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
         "requesting_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
         "trust_domain": "ck:trust_domain:example.local",
         "policy_id": "ck:policy:019a6aa0-0000-7000-8000-0000000000bb",
@@ -1186,7 +1186,7 @@
       "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body",
       "expect_valid": true,
       "instance": {
-        "principal_id": "did:web:alice.example",
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
         "requesting_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
         "trust_domain": "ck:trust_domain:example.local",
         "ssk_generation": 1
@@ -1197,7 +1197,7 @@
       "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body",
       "expect_valid": false,
       "instance": {
-        "principal_id": "did:web:alice.example",
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
         "requesting_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
         "trust_domain": "ck:trust_domain:example.local",
         "ssk_generation": 1,
@@ -1212,7 +1212,7 @@
       "instance": {
         "kind": "principal_signing",
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-        "verification_method": "did:web:alice.example#k",
+        "verification_method": "did:webvh:z6mkfixture:alice.example#k",
         "alg": "EdDSA",
         "signature": "c2ln"
       }
@@ -1224,7 +1224,7 @@
       "instance": {
         "kind": "principal_signing",
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-        "verification_method": "did:web:alice.example#k",
+        "verification_method": "did:webvh:z6mkfixture:alice.example#k",
         "signature": "c2ln"
       },
       "first_expected_error": "$: 'alg' is a required property"
@@ -1252,7 +1252,7 @@
       "instance": {
         "type": "ck.identity.recovery_proof.v1",
         "kind": "principal_signing",
-        "principal_id": "did:web:alice.example",
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
         "requesting_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
         "trust_domain": "ck:trust_domain:example.local",
         "policy_id": "ck:policy:019a6aa0-0000-7000-8000-0000000000bb",
@@ -1271,7 +1271,7 @@
       "instance": {
         "schema": "ck.schema.recovery_receipt.v1",
         "receipt_id": "ck:receipt:019a6aa0-0000-7000-8000-0000000000cc",
-        "principal_id": "did:web:alice.example",
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
         "recovery_session_id": "ck:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
         "policy_id": "ck:policy:019a6aa0-0000-7000-8000-0000000000bb",
         "policy_version": 1,
@@ -1294,7 +1294,7 @@
         "started_at": "2026-05-30T00:00:00Z",
         "completed_at": "2026-05-30T00:00:01Z",
         "auth_data": {
-          "verification_method": "did:web:alice.example#ck:device:019a6aa0-0000-7000-8000-000000000099",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ck:device:019a6aa0-0000-7000-8000-000000000099",
           "signature_algorithm": "Ed25519",
           "signature": "c2ln",
           "signed_fields": [
@@ -1323,7 +1323,7 @@
       "instance": {
         "schema": "ck.schema.recovery_receipt.v1",
         "receipt_id": "ck:receipt:019a6aa0-0000-7000-8000-0000000000cc",
-        "principal_id": "did:web:alice.example",
+        "principal_id": "did:webvh:z6mkfixture:alice.example",
         "recovery_session_id": "ck:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
         "policy_id": "ck:policy:019a6aa0-0000-7000-8000-0000000000bb",
         "policy_version": 1,
@@ -1338,7 +1338,7 @@
         "started_at": "2026-05-30T00:00:00Z",
         "completed_at": "2026-05-30T00:00:01Z",
         "auth_data": {
-          "verification_method": "did:web:alice.example#ck:device:019a6aa0-0000-7000-8000-000000000099",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ck:device:019a6aa0-0000-7000-8000-000000000099",
           "signature_algorithm": "Ed25519",
           "signature": "c2ln",
           "signed_fields": [
@@ -1369,10 +1369,10 @@
         "schema": "ck.schema.applet_package.v1",
         "package_id": "applet-package-demo-1",
         "applet_id": "ck:applet:019a6aa0-0000-7000-8000-000000000000",
-        "service_did": "did:web:applet.example",
-        "controller_did": "did:web:vendor.example",
+        "service_did": "did:webvh:z6mkfixture:applet.example",
+        "controller_did": "did:webvh:z6mkfixture:vendor.example",
         "base_url": "https://applet.example",
-        "bot_actor_id": "did:web:applet.example",
+        "bot_actor_id": "did:webvh:z6mkfixture:applet.example",
         "claimed_profiles": [
           "ck.profile.applet_service.v1"
         ],
@@ -1398,7 +1398,7 @@
         },
         "webhook_auth": {
           "type": "http_message_signature",
-          "key_ref": "did:web:applet.example#webhook-1",
+          "key_ref": "did:webvh:z6mkfixture:applet.example#webhook-1",
           "accepted_algs": [
             "EdDSA"
           ]
@@ -1425,7 +1425,7 @@
         "created_at": "2026-05-20T00:00:00Z",
         "proof": {
           "kind": "detached_jws",
-          "verification_method": "did:web:vendor.example#key-1",
+          "verification_method": "did:webvh:z6mkfixture:vendor.example#key-1",
           "alg": "EdDSA",
           "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
           "created_at": "2026-05-20T00:00:00Z",
@@ -1442,10 +1442,10 @@
         "schema": "ck.schema.applet_package.v1",
         "package_id": "applet-package-demo-1",
         "applet_id": "ck:applet:019a6aa0-0000-7000-8000-000000000000",
-        "service_did": "did:web:applet.example",
-        "controller_did": "did:web:vendor.example",
+        "service_did": "did:webvh:z6mkfixture:applet.example",
+        "controller_did": "did:webvh:z6mkfixture:vendor.example",
         "base_url": "https://applet.example",
-        "bot_actor_id": "did:web:applet.example",
+        "bot_actor_id": "did:webvh:z6mkfixture:applet.example",
         "claimed_profiles": [
           "ck.profile.applet_service.v1"
         ],
@@ -1471,7 +1471,7 @@
         },
         "webhook_auth": {
           "type": "http_message_signature",
-          "key_ref": "did:web:applet.example#webhook-1",
+          "key_ref": "did:webvh:z6mkfixture:applet.example#webhook-1",
           "accepted_algs": [
             "EdDSA"
           ]
@@ -1508,10 +1508,10 @@
         "schema": "ck.schema.applet_package.v1",
         "package_id": "applet-package-demo-1",
         "applet_id": "ck:applet:019a6aa0-0000-7000-8000-000000000000",
-        "service_did": "did:web:applet.example",
-        "controller_did": "did:web:vendor.example",
+        "service_did": "did:webvh:z6mkfixture:applet.example",
+        "controller_did": "did:webvh:z6mkfixture:vendor.example",
         "base_url": "https://applet.example",
-        "bot_actor_id": "did:web:applet.example",
+        "bot_actor_id": "did:webvh:z6mkfixture:applet.example",
         "claimed_profiles": [
           "ck.profile.applet_service.v1"
         ],
@@ -1537,7 +1537,7 @@
         },
         "webhook_auth": {
           "type": "http_message_signature",
-          "key_ref": "did:web:applet.example#webhook-1",
+          "key_ref": "did:webvh:z6mkfixture:applet.example#webhook-1",
           "accepted_algs": [
             "RS256"
           ]
@@ -1562,7 +1562,7 @@
         "created_at": "2026-05-20T00:00:00Z",
         "proof": {
           "kind": "detached_jws",
-          "verification_method": "did:web:vendor.example#key-1",
+          "verification_method": "did:webvh:z6mkfixture:vendor.example#key-1",
           "alg": "EdDSA",
           "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
           "created_at": "2026-05-20T00:00:00Z",
@@ -1579,10 +1579,10 @@
         "schema": "ck.schema.applet_package.v1",
         "package_id": "applet-package-demo-1",
         "applet_id": "ck:applet:019a6aa0-0000-7000-8000-000000000000",
-        "service_did": "did:web:applet.example",
-        "controller_did": "did:web:vendor.example",
+        "service_did": "did:webvh:z6mkfixture:applet.example",
+        "controller_did": "did:webvh:z6mkfixture:vendor.example",
         "base_url": "https://applet.example",
-        "bot_actor_id": "did:web:applet.example",
+        "bot_actor_id": "did:webvh:z6mkfixture:applet.example",
         "claimed_profiles": [
           "ck.profile.applet_service.v1"
         ],
@@ -1608,7 +1608,7 @@
         },
         "webhook_auth": {
           "type": "http_message_signature",
-          "key_ref": "did:web:applet.example#webhook-1",
+          "key_ref": "did:webvh:z6mkfixture:applet.example#webhook-1",
           "accepted_algs": [
             "EdDSA"
           ]
@@ -1631,7 +1631,7 @@
         "created_at": "2026-05-20T00:00:00Z",
         "proof": {
           "kind": "detached_jws",
-          "verification_method": "did:web:vendor.example#key-1",
+          "verification_method": "did:webvh:z6mkfixture:vendor.example#key-1",
           "alg": "EdDSA",
           "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
           "created_at": "2026-05-20T00:00:00Z",

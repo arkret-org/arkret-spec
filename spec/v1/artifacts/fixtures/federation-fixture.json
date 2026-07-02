@@ -5,19 +5,19 @@
     "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
     "principal_servers": [
       {
-        "service_did": "did:web:server-alpha.example",
+        "service_did": "did:webvh:z6mkfixture:server-alpha.example",
         "endpoint": "https://server-alpha.example",
         "role": "origin",
         "plaintext_visible": true
       },
       {
-        "service_did": "did:web:server-beta.example",
+        "service_did": "did:webvh:z6mkfixture:server-beta.example",
         "endpoint": "https://server-beta.example",
         "role": "participant",
         "plaintext_visible": false
       },
       {
-        "service_did": "did:web:server-gamma.example",
+        "service_did": "did:webvh:z6mkfixture:server-gamma.example",
         "endpoint": "https://server-gamma.example",
         "role": "witness",
         "plaintext_visible": false
@@ -98,8 +98,8 @@
     {
       "name": "http_message_signature_digest",
       "input": {
-        "source_service_did": "did:web:server-alpha.example",
-        "destination_service_did": "did:web:server-beta.example",
+        "source_service_did": "did:webvh:z6mkfixture:server-alpha.example",
+        "destination_service_did": "did:webvh:z6mkfixture:server-beta.example",
         "method": "POST",
         "target_uri": "https://server-beta.example/_cokret/peer/events",
         "operation_id": "ck.peer.events.command.submit",
@@ -110,9 +110,9 @@
     {
       "name": "source_destination_service_did_mismatch",
       "input": {
-        "signature_source_service_did": "did:web:server-alpha.example",
-        "header_source_service_did": "did:web:server-gamma.example",
-        "header_destination_service_did": "did:web:server-beta.example"
+        "signature_source_service_did": "did:webvh:z6mkfixture:server-alpha.example",
+        "header_source_service_did": "did:webvh:z6mkfixture:server-gamma.example",
+        "header_destination_service_did": "did:webvh:z6mkfixture:server-beta.example"
       },
       "expected": "request_rejected_or_quarantined"
     },
@@ -137,8 +137,8 @@
     {
       "name": "pull_authorization",
       "input": {
-        "requester": "did:web:server-beta.example",
-        "source": "did:web:server-alpha.example",
+        "requester": "did:webvh:z6mkfixture:server-beta.example",
+        "source": "did:webvh:z6mkfixture:server-alpha.example",
         "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
         "requested_visibility": "private_plaintext",
         "requester_plaintext_visible": false

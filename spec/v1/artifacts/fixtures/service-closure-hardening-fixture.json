@@ -25,14 +25,14 @@
       "state": {
         "invite_id": "ck:invite:0196419b-0000-7000-8000-000000001001",
         "claim_nonce": "nonce-001",
-        "subject_id": "did:web:alice.example",
+        "subject_id": "did:webvh:z6mkfixture:alice.example",
         "binding_proof_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "binding_proof": "proof-for-alice"
       },
       "requests": [
         {
           "name": "idempotent_same_subject_replay",
-          "subject_id": "did:web:alice.example",
+          "subject_id": "did:webvh:z6mkfixture:alice.example",
           "binding_proof_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "expected": {
             "decision": "accept",
@@ -41,7 +41,7 @@
         },
         {
           "name": "resubject_to_mallory",
-          "subject_id": "did:web:mallory.example",
+          "subject_id": "did:webvh:z6mkfixture:mallory.example",
           "binding_proof_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "expected": {
             "decision": "reject",
@@ -53,7 +53,7 @@
       ],
       "reducer_event": {
         "kind": "ck.invite.claim",
-        "subject_id": "did:web:mallory.example",
+        "subject_id": "did:webvh:z6mkfixture:mallory.example",
         "invite_id": "ck:invite:0196419b-0000-7000-8000-000000001001",
         "claim_nonce": "nonce-001",
         "expected": {
@@ -130,7 +130,7 @@
         "cursor_binds_caller_selector_and_purpose",
         "malformed_downstream_page_is_invalid_response"
       ],
-      "caller": "did:web:alice.example",
+      "caller": "did:webvh:z6mkfixture:alice.example",
       "selector_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       "purpose": "ck.self.space.query.list",
       "responses": [
@@ -142,7 +142,7 @@
           "has_more": true,
           "next_cursor": "ck:cursor:projection-page-1",
           "cursor_binding": {
-            "caller": "did:web:alice.example",
+            "caller": "did:webvh:z6mkfixture:alice.example",
             "selector_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
             "purpose": "ck.self.space.query.list"
           },
@@ -185,7 +185,7 @@
           "has_more": true,
           "next_cursor": "ck:cursor:projection-page-3",
           "cursor_binding": {
-            "caller": "did:web:mallory.example",
+            "caller": "did:webvh:z6mkfixture:mallory.example",
             "selector_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
             "purpose": "ck.self.space.query.list"
           },
@@ -208,16 +208,16 @@
           "name": "actor_seq_digest_disagreement",
           "witnesses": [
             {
-              "witness_id": "did:web:witness-a.example",
+              "witness_id": "did:webvh:z6mkfixture:witness-a.example",
               "realm_id": "ck:realm:0196419b-0000-7000-8000-000000003001",
-              "actor_id": "did:web:alice.example",
+              "actor_id": "did:webvh:z6mkfixture:alice.example",
               "actor_seq": 7,
               "event_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
             },
             {
-              "witness_id": "did:web:witness-b.example",
+              "witness_id": "did:webvh:z6mkfixture:witness-b.example",
               "realm_id": "ck:realm:0196419b-0000-7000-8000-000000003001",
-              "actor_id": "did:web:alice.example",
+              "actor_id": "did:webvh:z6mkfixture:alice.example",
               "actor_seq": 7,
               "event_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
             }
@@ -232,13 +232,13 @@
           "name": "range_root_disagreement",
           "attestations": [
             {
-              "issuer": "did:web:witness-a.example",
+              "issuer": "did:webvh:z6mkfixture:witness-a.example",
               "from_frontier": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
               "to_frontier": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
               "range_root": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
             },
             {
-              "issuer": "did:web:witness-b.example",
+              "issuer": "did:webvh:z6mkfixture:witness-b.example",
               "from_frontier": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
               "to_frontier": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
               "range_root": "sha256:9999999999999999999999999999999999999999999999999999999999999999"

@@ -302,7 +302,7 @@ ck.vector.encoding.event_digest.v1
   "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
   "kind": "ck.message.create",
   "realm_id": "ck:realm:01964137-0000-7000-8000-000000000000",
-  "actor_id": "did:web:alice.example",
+  "actor_id": "did:webvh:z6mkfixture:alice.example",
   "actor_seq": 1,
   "created_at": "2026-04-26T00:00:00Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
@@ -323,7 +323,7 @@ ck.vector.encoding.event_digest.v1
   ],
   "seal_ref": "ck:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
   "auth_context": {
-    "did": "did:web:alice.example",
+    "did": "did:webvh:z6mkfixture:alice.example",
     "key_id": "device-1",
     "key_epoch": 1,
     "capability_refs": [
@@ -345,13 +345,13 @@ ck.vector.encoding.event_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"did:web:alice.example","actor_seq":1,"auth_context":{"capability_refs":["ck:grant:0196410c-0000-7000-8000-000000000000"],"did":"did:web:alice.example","key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00Z","effects":[{"cell":"ck:cell:message:019640ed-8000-7000-8000-000000000000","op":{"kind":"append","value":{"message_id":"ck:message:019640ed-8000-7000-8000-000000000000","strand_id":"ck:strand:01964137-0000-7000-8000-000000000000","track_name":"discussion"}}}],"event_id":"ck:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"ck.message.create","payload":{"content":{"body":"hello","kind":"ck.content.text"},"message_id":"ck:message:019640ed-8000-7000-8000-000000000000","strand_id":"ck:strand:01964137-0000-7000-8000-000000000000","track_name":"discussion"},"prev_refs":[],"realm_id":"ck:realm:01964137-0000-7000-8000-000000000000","refs":[],"seal_ref":"ck:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"}
+{"actor_id":"did:webvh:z6mkfixture:alice.example","actor_seq":1,"auth_context":{"capability_refs":["ck:grant:0196410c-0000-7000-8000-000000000000"],"did":"did:webvh:z6mkfixture:alice.example","key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00Z","effects":[{"cell":"ck:cell:message:019640ed-8000-7000-8000-000000000000","op":{"kind":"append","value":{"message_id":"ck:message:019640ed-8000-7000-8000-000000000000","strand_id":"ck:strand:01964137-0000-7000-8000-000000000000","track_name":"discussion"}}}],"event_id":"ck:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"ck.message.create","payload":{"content":{"body":"hello","kind":"ck.content.text"},"message_id":"ck:message:019640ed-8000-7000-8000-000000000000","strand_id":"ck:strand:01964137-0000-7000-8000-000000000000","track_name":"discussion"},"prev_refs":[],"realm_id":"ck:realm:01964137-0000-7000-8000-000000000000","refs":[],"seal_ref":"ck:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"}
 ```
 
 期望 digest：
 
 ```text
-sha256:40af797d715183121c9edfee11716c108ec5578c319f06699eda699837db60c9
+sha256:7dd89cbf24de3183c28323e5b64e7d0b214cf0d546cb9804d1ef34a17c6410c1
 ```
 
 判定规则：
@@ -374,9 +374,9 @@ ck.vector.encoding.event_batch_receipt_digest.v1
 {
   "schema": "ck.schema.event_batch_receipt.v1",
   "receipt_id": "ck:receipt:01964186-0000-7000-8000-000000000000",
-  "issuer": "did:web:alice.example",
+  "issuer": "did:webvh:z6mkfixture:alice.example",
   "scope": {
-    "actor_id": "did:web:alice.example"
+    "actor_id": "did:webvh:z6mkfixture:alice.example"
   },
   "frontier": {
     "actor_seq": 1,
@@ -392,13 +392,13 @@ ck.vector.encoding.event_batch_receipt_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"frontier":{"actor_seq":1,"event_digest":"sha256:1111111111111111111111111111111111111111111111111111111111111111"},"issuer":"did:web:alice.example","receipt_id":"ck:receipt:01964186-0000-7000-8000-000000000000","schema":"ck.schema.event_batch_receipt.v1","scope":{"actor_id":"did:web:alice.example"}}
+{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"frontier":{"actor_seq":1,"event_digest":"sha256:1111111111111111111111111111111111111111111111111111111111111111"},"issuer":"did:webvh:z6mkfixture:alice.example","receipt_id":"ck:receipt:01964186-0000-7000-8000-000000000000","schema":"ck.schema.event_batch_receipt.v1","scope":{"actor_id":"did:webvh:z6mkfixture:alice.example"}}
 ```
 
 期望 digest：
 
 ```text
-sha256:c6dfa574b41c04ca7d909c2d3b6dc40c5312c6e4ba7187b181c2ef99b2ae4529
+sha256:71c78811d4d74c64d975c6fb53dbaa33a2a24507d80c090593c89927ef0f5a6a
 ```
 
 失败条件：
@@ -421,8 +421,8 @@ ck.vector.encoding.signature_binding_payload.v1
 ```json
 {
   "event_digest": "sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
-  "actor_id": "did:web:alice.example",
-  "verification_method": "did:web:alice.example#device-1",
+  "actor_id": "did:webvh:z6mkfixture:alice.example",
+  "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
@@ -430,13 +430,13 @@ ck.vector.encoding.signature_binding_payload.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"did:web:alice.example","created_at":"2026-04-26T00:00:00Z","event_digest":"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777","verification_method":"did:web:alice.example#device-1"}
+{"actor_id":"did:webvh:z6mkfixture:alice.example","created_at":"2026-04-26T00:00:00Z","event_digest":"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777","verification_method":"did:webvh:z6mkfixture:alice.example#device-1"}
 ```
 
 期望 digest：
 
 ```text
-sha256:98d7da309a94b0d188404e649a81fa240e338d62a7848c0ce699c3bbf85f3c6c
+sha256:d94c02b84f5805afb06cecbb6b2ff489b5675bc6989102ea72643536af17e4bc
 ```
 
 判定规则：
@@ -1215,7 +1215,7 @@ ck.vector.redaction.preserve_fields.v1
     "event_id": "ck:event:0196414c-3000-7000-8000-000000000000",
     "kind": "ck.message.create",
     "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
-    "actor_id": "did:web:alice.example.com",
+    "actor_id": "did:webvh:z6mkfixture:alice.example.com",
     "created_at": "2026-04-26T00:00:00Z",
     "hlc": "01970e589d24-0001-aaaaaaaa",
     "prev_refs": [],
@@ -1246,7 +1246,7 @@ ck.vector.redaction.preserve_fields.v1
     "event_id": "ck:event:0196418a-0360-7000-8000-000000000000",
     "kind": "ck.redaction",
     "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
-    "actor_id": "did:web:alice.example.com",
+    "actor_id": "did:webvh:z6mkfixture:alice.example.com",
     "created_at": "2026-04-26T00:00:02Z",
     "hlc": "01970e589d24-0002-bbbbbbbb",
     "prev_refs": [
@@ -1370,7 +1370,7 @@ ck.vector.redaction.policy_scope.v1
       "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
       "created_at": "2026-04-26T00:00:01Z",
       "hlc": "01970e589d25-0001-22222222",
-      "actor_id": "did:web:policy-bot.example.com",
+      "actor_id": "did:webvh:z6mkfixture:policy-bot.example.com",
       "payload": {
         "target_id": "ck:event:0196417d-8400-7000-8000-000000000000",
         "policy_scope": "public",
@@ -1381,7 +1381,7 @@ ck.vector.redaction.policy_scope.v1
       "event_id": "ck:event:0196417d-8f00-7000-8000-000000000000",
       "kind": "ck.redaction",
       "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
-      "actor_id": "did:web:policy-admin.example",
+      "actor_id": "did:webvh:z6mkfixture:policy-admin.example",
       "payload": {
         "redacts": "ck:event:0196417d-8400-7000-8000-000000000000",
         "reason_code": "policy_recall"
@@ -1498,7 +1498,7 @@ ck.vector.capability.delegate_chain.v1
 {
   "base": {
     "kind": "ck.capability.grant",
-    "subject": "did:web:root-admin.example.com",
+    "subject": "did:webvh:z6mkfixture:root-admin.example.com",
     "actions": [
       "ck.realm.admin"
     ],
@@ -1509,10 +1509,10 @@ ck.vector.capability.delegate_chain.v1
       "event_id": "ck:event:019640d0-c000-7000-8000-000000000000",
       "kind": "ck.capability.delegate",
       "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
-      "actor_id": "did:web:root-admin.example.com",
+      "actor_id": "did:webvh:z6mkfixture:root-admin.example.com",
       "payload": {
         "parent_grant_id": "ck:grant:019640d0-b800-7000-8000-000000000000",
-        "subject": "did:web:ops.example.com",
+        "subject": "did:webvh:z6mkfixture:ops.example.com",
         "resources": [
           {
             "kind": "realm",
@@ -1547,10 +1547,10 @@ ck.vector.capability.delegate_chain.v1
       "event_id": "ck:event:019640d0-c400-7000-8000-000000000000",
       "kind": "ck.capability.delegate",
       "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
-      "actor_id": "did:web:ops.example.com",
+      "actor_id": "did:webvh:z6mkfixture:ops.example.com",
       "payload": {
         "parent_grant_id": "ck:grant:019640d0-c000-7000-8000-000000000000",
-        "subject": "did:web:intern.example.com",
+        "subject": "did:webvh:z6mkfixture:intern.example.com",
         "resources": [
           {
             "kind": "realm",
@@ -1572,8 +1572,8 @@ ck.vector.capability.delegate_chain.v1
             "constraint_type": "scope_limitation",
             "effect": "allow",
             "allowed_audiences": [
-              "did:web:partner.example",
-              "did:web:vendor.example"
+              "did:webvh:z6mkfixture:partner.example",
+              "did:webvh:z6mkfixture:vendor.example"
             ]
           }
         ]
@@ -1584,11 +1584,11 @@ ck.vector.capability.delegate_chain.v1
     }
   ],
   "action_query": {
-    "actor_id": "did:web:intern.example.com",
+    "actor_id": "did:webvh:z6mkfixture:intern.example.com",
     "action": "ck.invite.create",
     "resource": "ck:realm:0196414c-8000-7000-8000-000000000000",
     "request_time": "2026-04-26T01:00:00Z",
-    "request_audience": "did:web:vendor.example"
+    "request_audience": "did:webvh:z6mkfixture:vendor.example"
   }
 }
 ```
@@ -1636,7 +1636,7 @@ ck.vector.capability.revoke_rollback.v1
       "kind": "ck.capability.grant",
       "payload": {
         "grant_id": "ck:grant:01964101-2800-7000-8000-000000000000",
-        "subject": "did:web:alice.example.com",
+        "subject": "did:webvh:z6mkfixture:alice.example.com",
         "actions": [
           "ck.message.create"
         ]
@@ -1655,7 +1655,7 @@ ck.vector.capability.revoke_rollback.v1
       "event_id": "ck:event:019641d1-2800-7000-8000-000000000000",
       "kind": "ck.member.state",
       "payload": {
-        "actor_id": "did:web:alice.example.com",
+        "actor_id": "did:webvh:z6mkfixture:alice.example.com",
         "membership": "leave"
       },
       "created_at": "2026-04-26T00:00:02Z"
@@ -1663,7 +1663,7 @@ ck.vector.capability.revoke_rollback.v1
     {
       "event_id": "ck:event:0196414c-c04a-7000-8000-000000000000",
       "kind": "ck.message.create",
-      "actor_id": "did:web:alice.example.com",
+      "actor_id": "did:webvh:z6mkfixture:alice.example.com",
       "created_at": "2026-04-26T00:00:03Z",
       "payload": {
         "strand_id": "ck:strand:0196418d-cc00-7000-8000-000000000000",
@@ -1710,7 +1710,7 @@ ck.vector.capability.approval_constraint.v1
   "event": {
     "event_id": "ck:event:01964148-a800-7000-8000-000000000000",
     "kind": "ck.policy.action",
-    "actor_id": "did:web:contractor.example",
+    "actor_id": "did:webvh:z6mkfixture:contractor.example",
     "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
     "hlc": "01970e589d26-0001-aaaaaaaa",
     "payload": {
@@ -1726,14 +1726,14 @@ ck.vector.capability.approval_constraint.v1
   "capabilities": [
     {
       "kind": "ck.capability.grant",
-      "subject": "did:web:contractor.example",
+      "subject": "did:webvh:z6mkfixture:contractor.example",
       "actions": [
         "ck.realm.admin"
       ]
     },
     {
       "kind": "ck.capability.grant",
-      "subject": "did:web:approver-1.example.com",
+      "subject": "did:webvh:z6mkfixture:approver-1.example.com",
       "actions": [
         "ck.approval.vote"
       ]
@@ -1828,7 +1828,7 @@ ck.vector.auth.sensitive_field_handling.v1
 ```json
 {
   "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
-  "actor_id": "did:web:actor-a.example.com",
+  "actor_id": "did:webvh:z6mkfixture:actor-a.example.com",
   "actor_seq": 1,
   "hlc": "019b76daa800-0000-a13f9c2e",
   "prev_refs": [],
@@ -1956,7 +1956,7 @@ ck.vector.disappearing.on_last_read_offline_window.v1
           "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
           "kind": "board",
           "title": "Release Board",
-          "created_by": "did:web:alice.example.com",
+          "created_by": "did:webvh:z6mkfixture:alice.example.com",
           "created_at": "2026-04-26T00:00:00Z"
         }
       }
@@ -1975,7 +1975,7 @@ ck.vector.disappearing.on_last_read_offline_window.v1
           "kind": "list",
           "title": "Todo",
           "rank": "U",
-          "created_by": "did:web:alice.example.com",
+          "created_by": "did:webvh:z6mkfixture:alice.example.com",
           "created_at": "2026-04-26T00:00:00Z"
         }
       }
@@ -1999,7 +1999,7 @@ ck.vector.disappearing.on_last_read_offline_window.v1
             }
           },
           "stage": "planned",
-          "created_by": "did:web:alice.example.com",
+          "created_by": "did:webvh:z6mkfixture:alice.example.com",
           "created_at": "2026-04-26T00:00:00Z"
         },
         "initial_relations": [
@@ -2067,7 +2067,7 @@ ck.vector.disappearing.on_last_read_offline_window.v1
 ```json
 {
   "strand_id": "ck:strand:019640c5-0400-7000-8000-000000000000",
-  "viewer": "did:web:viewer.example.com",
+  "viewer": "did:webvh:z6mkfixture:viewer.example.com",
   "viewer_can_read_strand": true,
   "viewer_is_track_member": false
 }
@@ -2160,7 +2160,7 @@ ck.vector.disappearing.on_last_read_offline_window.v1
           "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
           "kind": "board",
           "title": "Release Board",
-          "created_by": "did:web:alice.example.com",
+          "created_by": "did:webvh:z6mkfixture:alice.example.com",
           "created_at": "2026-05-15T10:00:00Z"
         }
       }
@@ -2394,7 +2394,7 @@ Input — `ck.member.state{membership="join"}` Control Move payload：
   "membership": "join",
   "delivery_status": "routable",
   "delivery_binding": {
-    "recipient_service_did": "did:web:principal.acme.example",
+    "recipient_service_did": "did:webvh:z6mkfixture:principal.acme.example",
     "recipient_service_type": "principal_server",
     "binding_scope": "realm",
     "binding_source": "explicit",
@@ -2406,17 +2406,17 @@ Input — `ck.member.state{membership="join"}` Control Move payload：
 }
 ```
 
-预设：Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_binding_sources` 包含 `explicit`、`allowed_recipient_services` 包含 `did:web:principal.acme.example`、`required_endorsers` 含 `did:web:acme.example`，`service_acceptance_ref` 引用的 Event 由 `did:web:principal.acme.example` 签发且 scope 覆盖该 Realm。
+预设：Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_binding_sources` 包含 `explicit`、`allowed_recipient_services` 包含 `did:webvh:z6mkfixture:principal.acme.example`、`required_endorsers` 含 `did:webvh:z6mkfixture:acme.example`，`service_acceptance_ref` 引用的 Event 由 `did:webvh:z6mkfixture:principal.acme.example` 签发且 scope 覆盖该 Realm。
 
 期望：
 - reducer 接受 join Control Move；写入成员 cell。
-- 此后任何向 Alice 投递的 Realm S event/sync/to_device/push/key_packages MUST 走 `did:web:principal.acme.example`，**禁止**触发 DID Document service entry resolution。
+- 此后任何向 Alice 投递的 Realm S event/sync/to_device/push/key_packages MUST 走 `did:webvh:z6mkfixture:principal.acme.example`，**禁止**触发 DID Document service entry resolution。
 
 ### 7.3 Vector: `did_document_default` Fallback 物化
 
 `vector_id`: `ck.vector.membership.delivery_binding.did_document_default.v1`
 
-Input — Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_did_document_default=true`，其余字段未限制；Alice DID Document service `CokretPrincipalServer` 指向 `did:web:personal.alice.example`，canonical hash `sha256:abc...`。
+Input — Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_did_document_default=true`，其余字段未限制；Alice DID Document service `CokretPrincipalServer` 指向 `did:webvh:z6mkfixture:personal.alice.example`，canonical hash `sha256:abc...`。
 
 客户端构造 join Control Move 时 MUST 先解析 DID Document 并物化进 binding：
 
@@ -2427,7 +2427,7 @@ Input — Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_did_docu
   "membership": "join",
   "delivery_status": "routable",
   "delivery_binding": {
-    "recipient_service_did": "did:web:personal.alice.example",
+    "recipient_service_did": "did:webvh:z6mkfixture:personal.alice.example",
     "recipient_service_type": "principal_server",
     "binding_scope": "realm",
     "binding_source": "did_document_default",
@@ -2473,15 +2473,15 @@ Input — Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_unroutab
 
 序列：
 
-1. **Initial join**（`F0`）：Alice join with `recipient_service_did=did:web:personal.alice.example`，accepted。
-2. **Events 流量**：Realm 内事件 `E1, E2` 进入因果图，sender 将它们投递到 `did:web:personal.alice.example`。
-3. **Rebind**（`F1`）：Alice 提交同状态 `ck.member.state{membership="join"}` self-transition，新 binding 指向 `did:web:principal.acme.example`，签名按 `rebind_authorization` 规则。Control Move accepted。
+1. **Initial join**（`F0`）：Alice join with `recipient_service_did=did:webvh:z6mkfixture:personal.alice.example`，accepted。
+2. **Events 流量**：Realm 内事件 `E1, E2` 进入因果图，sender 将它们投递到 `did:webvh:z6mkfixture:personal.alice.example`。
+3. **Rebind**（`F1`）：Alice 提交同状态 `ck.member.state{membership="join"}` self-transition，新 binding 指向 `did:webvh:z6mkfixture:principal.acme.example`，签名按 `rebind_authorization` 规则。Control Move accepted。
 4. **Post-rebind events**：sender 投递 `E3, E4` 时观察 `service_binding_ref.delivery_binding_frontier`：
-   - sender frontier ≥ `F1` → 投递到 `did:web:principal.acme.example`；
-   - sender frontier 仍 `< F1` 且投到旧 `did:web:personal.alice.example` → 旧服务在 `handover_grace_seconds` 内接受并返回 `delivery_binding_stale + new_recipient_service_did=did:web:principal.acme.example + handover_frontier=F1`；sender MUST 切换后重试，**不得**回退到 DID Document。
+   - sender frontier ≥ `F1` → 投递到 `did:webvh:z6mkfixture:principal.acme.example`；
+   - sender frontier 仍 `< F1` 且投到旧 `did:webvh:z6mkfixture:personal.alice.example` → 旧服务在 `handover_grace_seconds` 内接受并返回 `delivery_binding_stale + new_recipient_service_did=did:webvh:z6mkfixture:principal.acme.example + handover_frontier=F1`；sender MUST 切换后重试，**不得**回退到 DID Document。
    - sender frontier ≥ `F1` 但仍投到旧 → 旧服务 reject `delivery_binding_handed_over`。
 5. **Grace 结束**：旧服务停止接受新 Realm S event；本地 to-device 队列、push registration、MLS group share state 进入 destruction。
-6. **撤销**：Alice 离职，Org-A 治理 key 提交 `ck.member.state{membership="leave"}` 或 `ck.capability.revoke`。`F2` 之后 sender MUST NOT 继续向 `did:web:principal.acme.example` 投递该 Realm 的内容；MUST NOT 转而退回 `did:web:personal.alice.example`（DID Document fallback）；该 actor 在 Realm S 中变成 **non-member**。
+6. **撤销**：Alice 离职，Org-A 治理 key 提交 `ck.member.state{membership="leave"}` 或 `ck.capability.revoke`。`F2` 之后 sender MUST NOT 继续向 `did:webvh:z6mkfixture:principal.acme.example` 投递该 Realm 的内容；MUST NOT 转而退回 `did:webvh:z6mkfixture:personal.alice.example`（DID Document fallback）；该 actor 在 Realm S 中变成 **non-member**。
 
 期望：
 - 整个序列中 sender 解析投递目标 MUST 完全依赖 effective member cell 的 `delivery_binding`，DID Document service entry 永远不被 query。
@@ -2530,7 +2530,7 @@ Input — 邀请方在 Acme 组织 Realm 中添加 `@alice:acme.example`。客�
   "handle": "@alice:acme.example",
   "intent": "member_add",
   "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-  "requester": "did:web:bob.example",
+  "requester": "did:webvh:z6mkfixture:bob.example",
   "proof_challenge": "ck-challenge-001"
 }
 ```
@@ -2550,11 +2550,11 @@ Directory 返回 verified handle claim：
     "handle": "alice:acme.example",
     "handle_aliases": ["acct:alice@acme.example"],
     "subject": "did:webvh:z2dmjA1ice:users.acme.example",
-    "issuer": "did:web:acme.example",
+    "issuer": "did:webvh:z6mkfixture:acme.example",
     "binding_state": "verified",
     "audience": "ck:realm:0196419b-0000-7000-8000-000000000000",
     "member_delivery_binding": {
-      "recipient_service_did": "did:web:principal.acme.example",
+      "recipient_service_did": "did:webvh:z6mkfixture:principal.acme.example",
       "recipient_service_type": "principal_server",
       "binding_source": "organization_policy",
       "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
@@ -2566,7 +2566,7 @@ Directory 返回 verified handle claim：
     "proofs": [{
       "kind": "detached_jws",
       "alg": "EdDSA",
-      "verification_method": "did:web:principal.acme.example#key-1",
+      "verification_method": "did:webvh:z6mkfixture:principal.acme.example#key-1",
       "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       "created_at": "2026-05-19T00:00:00Z",
       "audience": "ck:realm:0196419b-0000-7000-8000-000000000000",
@@ -2574,7 +2574,7 @@ Directory 返回 verified handle claim：
     }]
   }],
   "member_delivery_binding": {
-    "recipient_service_did": "did:web:principal.acme.example",
+    "recipient_service_did": "did:webvh:z6mkfixture:principal.acme.example",
     "recipient_service_type": "principal_server",
     "binding_source": "organization_policy",
     "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
@@ -2588,7 +2588,7 @@ Directory 返回 verified handle claim：
 Expected join Control Move:
 
 - `payload.actor_id = did:webvh:z2dmjA1ice:users.acme.example`。
-- `payload.delivery_binding.recipient_service_did = did:web:principal.acme.example`。
+- `payload.delivery_binding.recipient_service_did = did:webvh:z6mkfixture:principal.acme.example`。
 - `payload.delivery_binding.binding_source = organization_policy`。
 - `payload.delivery_binding.service_acceptance_ref` 与 `policy_event_ref` 来自 verified claim / policy。
 - Control Move payload MUST NOT 把 `@alice:acme.example` 当作 actor、cell subject 或 grant subject；受限 handle 明文 SHOULD NOT 进入公开 Realm history。
@@ -2610,7 +2610,7 @@ Negative cases：
 
 Steps：
 
-1. Origin service `did:web:alpha.example` 使用 active service key 向 destination 提交 `POST /_cokret/peer/events`（`ck.peer.events.command.submit`），header 绑定 `Source-Service-DID`、`Destination-Service-DID`、`Source-Trust-Domain`、`Destination-Trust-Domain`、`Request-Canonical-Digest`、`Idempotency-Key`，批次 accepted。
+1. Origin service `did:webvh:z6mkfixture:alpha.example` 使用 active service key 向 destination 提交 `POST /_cokret/peer/events`（`ck.peer.events.command.submit`），header 绑定 `Source-Service-DID`、`Destination-Service-DID`、`Source-Trust-Domain`、`Destination-Trust-Domain`、`Request-Canonical-Digest`、`Idempotency-Key`，批次 accepted。
 2. Realm policy 或 DID Document 随后撤销该 origin service key；destination 的 accepted authorization frontier 前进。
 3. 攻击者重放完全相同的 HTTP body、signature 与 `Idempotency-Key`。
 
@@ -2816,8 +2816,8 @@ Expected：
 
 Steps：
 
-1. 第三方邀请 token 已被验证服务原子消费并签发了绑定 `subject_id=did:web:alice.example` 的 `binding_proof`。
-2. 攻击者用同一已消费 token 向验证服务发起第二次签发请求，指向不同 `subject_id=did:web:mallory.example`。
+1. 第三方邀请 token 已被验证服务原子消费并签发了绑定 `subject_id=did:webvh:z6mkfixture:alice.example` 的 `binding_proof`。
+2. 攻击者用同一已消费 token 向验证服务发起第二次签发请求，指向不同 `subject_id=did:webvh:z6mkfixture:mallory.example`。
 3. 攻击者另把承载该已消费 token 重绑到不同 subject 的 `ck.invite.claim` Event 提交给 reducer。
 
 Expected：
@@ -2898,7 +2898,7 @@ Expected：
 
 Steps：
 
-1. Auth Server 发出 DID proof challenge，绑定 `purpose="account_binding"`、`audience=did:web:auth.example`、`origin=https://auth.example`、随机 nonce、`issued_at=T0`、`expires_at=T0+300s`。
+1. Auth Server 发出 DID proof challenge，绑定 `purpose="account_binding"`、`audience=did:webvh:z6mkfixture:auth.example`、`origin=https://auth.example`、随机 nonce、`issued_at=T0`、`expires_at=T0+300s`。
 2. Client 提交签名正确的 proof，服务器接受并 burn challenge。
 3. 攻击者第二次提交同一 proof。
 4. 攻击者把相同签名 transcript 用到另一 audience/origin，或提交 `expires_at - issued_at = 3600s` 的 proof。
@@ -3465,7 +3465,7 @@ Expected:
 
 Steps:
 
-1. 攻击者 DID `did:web:rogue.example` 模拟 token issuer 签发一个语法合法的 token。
+1. 攻击者 DID `did:webvh:z6mkfixture:rogue.example` 模拟 token issuer 签发一个语法合法的 token。
 2. Client 收到该响应。
 
 Expected:
@@ -4189,7 +4189,7 @@ Expected：
 
 Steps：
 
-- **Case A — 合法 app/bridge→cokret inbound**：已安装 Applet registration `service_did=did:web:bridge.example`，`registration_epoch=sha256:<R>`，`webhook_auth.key_ref=did:web:bridge.example#tx-1`，install active。Applet 提交 `POST /_cokret/edge/applet/transactions`，header `Source-Service-DID=did:web:bridge.example`、`Destination-Service-DID=did:web:principal.example`、`Idempotency-Key=tx-001`、`Content-Digest` 与 body 一致；`Signature-Input` 覆盖 required components，`keyid=did:web:bridge.example#tx-1`，`created` / `expires` 在窗口内；body `source_service_did` 与 header 一致，`events[]` 中的 `applet_id`、`authorization_ref`、`proofs[]` 与 actor namespace / capability grant 均有效。
+- **Case A — 合法 app/bridge→cokret inbound**：已安装 Applet registration `service_did=did:webvh:z6mkfixture:bridge.example`，`registration_epoch=sha256:<R>`，`webhook_auth.key_ref=did:webvh:z6mkfixture:bridge.example#tx-1`，install active。Applet 提交 `POST /_cokret/edge/applet/transactions`，header `Source-Service-DID=did:webvh:z6mkfixture:bridge.example`、`Destination-Service-DID=did:webvh:z6mkfixture:principal.example`、`Idempotency-Key=tx-001`、`Content-Digest` 与 body 一致；`Signature-Input` 覆盖 required components，`keyid=did:webvh:z6mkfixture:bridge.example#tx-1`，`created` / `expires` 在窗口内；body `source_service_did` 与 header 一致，`events[]` 中的 `applet_id`、`authorization_ref`、`proofs[]` 与 actor namespace / capability grant 均有效。
 - **Case B — 缺签名 / 纯 bearer**：同一 body 只携带 `Authorization: Bearer` 或完全缺少 `Signature` / `Signature-Input`。
 - **Case C — transcript / source 混淆**：签名覆盖的 `source-service-did`、header `Source-Service-DID` 或 body `source_service_did` 三者任一不同；或 `Destination-Service-DID` 不等于实际接收服务；或 `Content-Digest` 与 body 不一致。
 - **Case D — idempotency replay**：重复 Case A 的相同 headers/body/signature anchor；随后再次使用同一 `(operation_id, direction, Source-Service-DID, Destination-Service-DID, Idempotency-Key)`，但改变 body digest、`webhook_auth.key_ref` / `keyid`、`registration_epoch` 或 actor namespace。

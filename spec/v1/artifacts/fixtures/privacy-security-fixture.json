@@ -45,21 +45,21 @@
           "label": "missing",
           "body": {
             "realm_id": "ck:realm:019640a5-0000-7000-8000-000000000000",
-            "requester": "did:web:mallory.example"
+            "requester": "did:webvh:z6mkfixture:mallory.example"
           }
         },
         {
           "label": "hidden",
           "body": {
             "realm_id": "ck:realm:019640b5-8000-7000-8000-000000000000",
-            "requester": "did:web:mallory.example"
+            "requester": "did:webvh:z6mkfixture:mallory.example"
           }
         },
         {
           "label": "invite_only_without_proof",
           "body": {
             "realm_id": "ck:realm:019640c6-0000-7000-8000-000000000000",
-            "requester": "did:web:mallory.example"
+            "requester": "did:webvh:z6mkfixture:mallory.example"
           }
         }
       ],
@@ -91,21 +91,21 @@
           "label": "missing_handle",
           "body": {
             "handle": "missing:example.test",
-            "requester": "did:web:mallory.example"
+            "requester": "did:webvh:z6mkfixture:mallory.example"
           }
         },
         {
           "label": "hidden_handle",
           "body": {
             "handle": "hidden:example.test",
-            "requester": "did:web:mallory.example"
+            "requester": "did:webvh:z6mkfixture:mallory.example"
           }
         },
         {
           "label": "unauthorized_handle",
           "body": {
             "handle": "restricted:example.test",
-            "requester": "did:web:mallory.example"
+            "requester": "did:webvh:z6mkfixture:mallory.example"
           }
         }
       ],
@@ -136,25 +136,25 @@
         {
           "label": "missing_selector",
           "body": {
-            "controller_subject": "did:web:alice.example",
+            "controller_subject": "did:webvh:z6mkfixture:alice.example",
             "agent_slug": "missing",
-            "requester": "did:web:mallory.example"
+            "requester": "did:webvh:z6mkfixture:mallory.example"
           }
         },
         {
           "label": "hidden_selector",
           "body": {
-            "controller_subject": "did:web:alice.example",
+            "controller_subject": "did:webvh:z6mkfixture:alice.example",
             "agent_slug": "private-summary",
-            "requester": "did:web:mallory.example"
+            "requester": "did:webvh:z6mkfixture:mallory.example"
           }
         },
         {
           "label": "unauthorized_selector",
           "body": {
-            "controller_subject": "did:web:alice.example",
+            "controller_subject": "did:webvh:z6mkfixture:alice.example",
             "agent_slug": "restricted-summary",
-            "requester": "did:web:mallory.example"
+            "requester": "did:webvh:z6mkfixture:mallory.example"
           }
         }
       ],
@@ -182,7 +182,7 @@
       "name": "private_contact_discovery_padding_and_cardinality",
       "operation_id": "ck.find.directory.query.private_contact_discovery",
       "input": {
-        "requester": "did:web:alice.example",
+        "requester": "did:webvh:z6mkfixture:alice.example",
         "contacts": [
           {
             "blinded_identifier": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -257,13 +257,13 @@
       "name": "plaintext_visible_service_required_for_private_body_processing",
       "operation_id": "ck.self.events.command.submit",
       "input": {
-        "service_did": "did:web:search.example",
+        "service_did": "did:webvh:z6mkfixture:search.example",
         "event_kind": "ck.message.create",
         "content_class": "private_plaintext",
         "realm_policy": {
           "plaintext_visible_services": [
             {
-              "service_did": "did:web:principal.example",
+              "service_did": "did:webvh:z6mkfixture:principal.example",
               "service_type": "principal_server",
               "data_classes": [
                 "message_content"
@@ -384,7 +384,7 @@
       "name": "search_result_not_authorization_proof",
       "profile": "ck.profile.search.blind_index.v1",
       "input": {
-        "requester": "did:web:alice.example",
+        "requester": "did:webvh:z6mkfixture:alice.example",
         "candidate_hit": {
           "object_ref_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
           "score_basis_points": 9100

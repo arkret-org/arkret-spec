@@ -14,10 +14,10 @@
             "explicit"
           ],
           "allowed_recipient_services": [
-            "did:web:principal.acme.example"
+            "did:webvh:z6mkfixture:principal.acme.example"
           ],
           "required_endorsers": [
-            "did:web:acme.example"
+            "did:webvh:z6mkfixture:acme.example"
           ]
         }
       },
@@ -30,7 +30,7 @@
           "membership": "join",
           "delivery_status": "routable",
           "delivery_binding": {
-            "recipient_service_did": "did:web:principal.acme.example",
+            "recipient_service_did": "did:webvh:z6mkfixture:principal.acme.example",
             "recipient_service_type": "principal_server",
             "binding_scope": "realm",
             "binding_source": "explicit",
@@ -54,7 +54,7 @@
       },
       "expected": {
         "outcome": "accepted",
-        "delivery_route": "did:web:principal.acme.example",
+        "delivery_route": "did:webvh:z6mkfixture:principal.acme.example",
         "must_not_query_did_document_after_accept": true
       }
     },
@@ -68,7 +68,7 @@
         },
         "did_document_service": {
           "service_type": "CokretPrincipalServer",
-          "recipient_service_did": "did:web:personal.alice.example",
+          "recipient_service_did": "did:webvh:z6mkfixture:personal.alice.example",
           "canonical_digest": "sha256:abc0000000000000000000000000000000000000000000000000000000000000"
         }
       },
@@ -81,7 +81,7 @@
           "membership": "join",
           "delivery_status": "routable",
           "delivery_binding": {
-            "recipient_service_did": "did:web:personal.alice.example",
+            "recipient_service_did": "did:webvh:z6mkfixture:personal.alice.example",
             "recipient_service_type": "principal_server",
             "binding_scope": "realm",
             "binding_source": "did_document_default",
@@ -99,7 +99,7 @@
       },
       "expected": {
         "outcome": "accepted",
-        "delivery_route": "did:web:personal.alice.example",
+        "delivery_route": "did:webvh:z6mkfixture:personal.alice.example",
         "missing_did_document_digest_reason_code": "schema_violation",
         "policy_disallow_reason_code": "delivery_binding_policy_mismatch",
         "must_not_runtime_fallback_to_did_document": true
@@ -136,27 +136,27 @@
         "initial_frontier": "F0",
         "rebind_frontier": "F1",
         "leave_frontier": "F2",
-        "old_service": "did:web:personal.alice.example",
-        "new_service": "did:web:principal.acme.example"
+        "old_service": "did:webvh:z6mkfixture:personal.alice.example",
+        "new_service": "did:webvh:z6mkfixture:principal.acme.example"
       },
       "operation": "federation_delivery_route_resolution",
       "sequence": [
         {
           "frontier": "F0",
-          "expected_route": "did:web:personal.alice.example"
+          "expected_route": "did:webvh:z6mkfixture:personal.alice.example"
         },
         {
           "frontier": "less_than_F1",
-          "sent_to": "did:web:personal.alice.example",
+          "sent_to": "did:webvh:z6mkfixture:personal.alice.example",
           "expected_response": {
             "reason_code": "delivery_binding_stale",
-            "new_recipient_service_did": "did:web:principal.acme.example",
+            "new_recipient_service_did": "did:webvh:z6mkfixture:principal.acme.example",
             "handover_frontier": "F1"
           }
         },
         {
           "frontier": "greater_or_equal_F1",
-          "sent_to": "did:web:personal.alice.example",
+          "sent_to": "did:webvh:z6mkfixture:personal.alice.example",
           "expected_response": {
             "reason_code": "delivery_binding_handed_over"
           }
@@ -181,7 +181,7 @@
             "organization_policy"
           ],
           "allowed_recipient_services": [
-            "did:web:principal.acme.example"
+            "did:webvh:z6mkfixture:principal.acme.example"
           ]
         }
       },
@@ -194,7 +194,7 @@
           "membership": "join",
           "delivery_status": "routable",
           "delivery_binding": {
-            "recipient_service_did": "did:web:untrusted.example",
+            "recipient_service_did": "did:webvh:z6mkfixture:untrusted.example",
             "recipient_service_type": "principal_server",
             "binding_scope": "realm",
             "binding_source": "explicit",

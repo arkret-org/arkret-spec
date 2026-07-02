@@ -92,7 +92,7 @@
         "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
         "kind": "ck.message.create",
         "realm_id": "ck:realm:01964137-0000-7000-8000-000000000000",
-        "actor_id": "did:web:alice.example",
+        "actor_id": "did:webvh:z6mkfixture:alice.example",
         "actor_seq": 1,
         "created_at": "2026-04-26T00:00:00Z",
         "hlc": "01970e589d21-0004-a13f9c2e",
@@ -113,7 +113,7 @@
         ],
         "seal_ref": "ck:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
         "auth_context": {
-          "did": "did:web:alice.example",
+          "did": "did:webvh:z6mkfixture:alice.example",
           "key_id": "device-1",
           "key_epoch": 1,
           "capability_refs": [
@@ -130,8 +130,8 @@
           }
         }
       },
-      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:web:alice.example\",\"actor_seq\":1,\"auth_context\":{\"capability_refs\":[\"ck:grant:0196410c-0000-7000-8000-000000000000\"],\"did\":\"did:web:alice.example\",\"key_epoch\":1,\"key_id\":\"device-1\"},\"created_at\":\"2026-04-26T00:00:00Z\",\"effects\":[{\"cell\":\"ck:cell:message:019640ed-8000-7000-8000-000000000000\",\"op\":{\"kind\":\"append\",\"value\":{\"message_id\":\"ck:message:019640ed-8000-7000-8000-000000000000\",\"strand_id\":\"ck:strand:01964137-0000-7000-8000-000000000000\",\"track_name\":\"discussion\"}}}],\"event_id\":\"ck:event:019640ed-8000-7000-8000-000000000000\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"ck.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ck.content.text\"},\"message_id\":\"ck:message:019640ed-8000-7000-8000-000000000000\",\"strand_id\":\"ck:strand:01964137-0000-7000-8000-000000000000\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"realm_id\":\"ck:realm:01964137-0000-7000-8000-000000000000\",\"refs\":[],\"seal_ref\":\"ck:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222\"}",
-      "expected_digest": "sha256:40af797d715183121c9edfee11716c108ec5578c319f06699eda699837db60c9",
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"actor_seq\":1,\"auth_context\":{\"capability_refs\":[\"ck:grant:0196410c-0000-7000-8000-000000000000\"],\"did\":\"did:webvh:z6mkfixture:alice.example\",\"key_epoch\":1,\"key_id\":\"device-1\"},\"created_at\":\"2026-04-26T00:00:00Z\",\"effects\":[{\"cell\":\"ck:cell:message:019640ed-8000-7000-8000-000000000000\",\"op\":{\"kind\":\"append\",\"value\":{\"message_id\":\"ck:message:019640ed-8000-7000-8000-000000000000\",\"strand_id\":\"ck:strand:01964137-0000-7000-8000-000000000000\",\"track_name\":\"discussion\"}}}],\"event_id\":\"ck:event:019640ed-8000-7000-8000-000000000000\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"ck.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ck.content.text\"},\"message_id\":\"ck:message:019640ed-8000-7000-8000-000000000000\",\"strand_id\":\"ck:strand:01964137-0000-7000-8000-000000000000\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"realm_id\":\"ck:realm:01964137-0000-7000-8000-000000000000\",\"refs\":[],\"seal_ref\":\"ck:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222\"}",
+      "expected_digest": "sha256:7dd89cbf24de3183c28323e5b64e7d0b214cf0d546cb9804d1ef34a17c6410c1",
       "rules": [
         "event digest MUST be derived from canonical bytes after stripping proofs and unsigned, before redaction",
         "event_id MUST appear inside the digest input but does not replace the digest",
@@ -145,9 +145,9 @@
       "input": {
         "schema": "ck.schema.event_batch_receipt.v1",
         "receipt_id": "ck:receipt:01964186-0000-7000-8000-000000000000",
-        "issuer": "did:web:alice.example",
+        "issuer": "did:webvh:z6mkfixture:alice.example",
         "scope": {
-          "actor_id": "did:web:alice.example"
+          "actor_id": "did:webvh:z6mkfixture:alice.example"
         },
         "frontier": {
           "actor_seq": 1,
@@ -158,8 +158,8 @@
         ],
         "created_at": "2026-04-26T00:00:00Z"
       },
-      "expected_canonical_bytes_utf8": "{\"created_at\":\"2026-04-26T00:00:00Z\",\"events\":[\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"],\"frontier\":{\"actor_seq\":1,\"event_digest\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"},\"issuer\":\"did:web:alice.example\",\"receipt_id\":\"ck:receipt:01964186-0000-7000-8000-000000000000\",\"schema\":\"ck.schema.event_batch_receipt.v1\",\"scope\":{\"actor_id\":\"did:web:alice.example\"}}",
-      "expected_digest": "sha256:c6dfa574b41c04ca7d909c2d3b6dc40c5312c6e4ba7187b181c2ef99b2ae4529",
+      "expected_canonical_bytes_utf8": "{\"created_at\":\"2026-04-26T00:00:00Z\",\"events\":[\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"],\"frontier\":{\"actor_seq\":1,\"event_digest\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"},\"issuer\":\"did:webvh:z6mkfixture:alice.example\",\"receipt_id\":\"ck:receipt:01964186-0000-7000-8000-000000000000\",\"schema\":\"ck.schema.event_batch_receipt.v1\",\"scope\":{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\"}}",
+      "expected_digest": "sha256:71c78811d4d74c64d975c6fb53dbaa33a2a24507d80c090593c89927ef0f5a6a",
       "fail_conditions": [
         "events array sorted or deduplicated before hashing",
         "proof field included in receipt digest",
@@ -171,13 +171,13 @@
       "vector_id": "ck.vector.encoding.signature_binding_payload.v1",
       "kind": "canonical_json_digest",
       "input": {
-        "actor_id": "did:web:alice.example",
-        "verification_method": "did:web:alice.example#device-1",
+        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
         "created_at": "2026-04-26T00:00:00Z",
         "event_digest": "sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777"
       },
-      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:web:alice.example\",\"created_at\":\"2026-04-26T00:00:00Z\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:web:alice.example#device-1\"}",
-      "expected_digest": "sha256:98d7da309a94b0d188404e649a81fa240e338d62a7848c0ce699c3bbf85f3c6c",
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"created_at\":\"2026-04-26T00:00:00Z\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
+      "expected_digest": "sha256:d94c02b84f5805afb06cecbb6b2ff489b5675bc6989102ea72643536af17e4bc",
       "rules": [
         "proof MUST bind event_digest, actor DID, verification_method, and created_at",
         "cross-service / cross-domain verification SHOULD additionally bind domain or audience",

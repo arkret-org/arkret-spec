@@ -7,8 +7,8 @@
       "grants": [
         {
           "id": "ck:grant:0196410c-0000-7000-8000-000000000000",
-          "issuer": "did:web:owner.example",
-          "subject": "did:web:alice.example",
+          "issuer": "did:webvh:z6mkfixture:owner.example",
+          "subject": "did:webvh:z6mkfixture:alice.example",
           "actions": [
             "ck.strand.read",
             "ck.strand.update"
@@ -23,7 +23,7 @@
         }
       ],
       "request": {
-        "actor_id": "did:web:alice.example",
+        "actor_id": "did:webvh:z6mkfixture:alice.example",
         "action": "ck.strand.update",
         "resource": {
           "kind": "strand",
@@ -43,8 +43,8 @@
       "grants": [
         {
           "id": "ck:grant:0196410c-0400-7000-8000-000000000000",
-          "issuer": "did:web:owner.example",
-          "subject": "did:web:alice.example",
+          "issuer": "did:webvh:z6mkfixture:owner.example",
+          "subject": "did:webvh:z6mkfixture:alice.example",
           "actions": [
             "ck.strand.read",
             "ck.strand.update"
@@ -59,7 +59,7 @@
         }
       ],
       "request": {
-        "actor_id": "did:web:alice.example",
+        "actor_id": "did:webvh:z6mkfixture:alice.example",
         "action": "ck.message.create",
         "resource": {
           "kind": "strand",
@@ -78,7 +78,7 @@
       "vector_id": "ck.vector.capability.membership_is_not_baseline.v1",
       "memberships": [
         {
-          "actor_id": "did:web:member.example",
+          "actor_id": "did:webvh:z6mkfixture:member.example",
           "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
           "membership": "join"
         }
@@ -87,7 +87,7 @@
       "requests": [
         {
           "label": "message_create",
-          "actor_id": "did:web:member.example",
+          "actor_id": "did:webvh:z6mkfixture:member.example",
           "action": "ck.message.create",
           "resource": {
             "kind": "strand",
@@ -101,7 +101,7 @@
         },
         {
           "label": "pin_add",
-          "actor_id": "did:web:member.example",
+          "actor_id": "did:webvh:z6mkfixture:member.example",
           "action": "ck.pin.add",
           "resource": {
             "kind": "strand",
@@ -115,7 +115,7 @@
         },
         {
           "label": "rsvp_set",
-          "actor_id": "did:web:member.example",
+          "actor_id": "did:webvh:z6mkfixture:member.example",
           "action": "ck.rsvp.set",
           "resource": {
             "kind": "strand",
@@ -129,7 +129,7 @@
         },
         {
           "label": "policy_manage",
-          "actor_id": "did:web:member.example",
+          "actor_id": "did:webvh:z6mkfixture:member.example",
           "action": "ck.policy.manage",
           "resource": {
             "kind": "realm",
@@ -142,7 +142,7 @@
         },
         {
           "label": "relation_create",
-          "actor_id": "did:web:member.example",
+          "actor_id": "did:webvh:z6mkfixture:member.example",
           "action": "ck.relation.create",
           "resource": {
             "kind": "relation",
@@ -156,7 +156,7 @@
         },
         {
           "label": "morph_create",
-          "actor_id": "did:web:member.example",
+          "actor_id": "did:webvh:z6mkfixture:member.example",
           "action": "ck.morph.create",
           "resource": {
             "kind": "morph",
@@ -179,7 +179,7 @@
           "hlc": "01970e589d21-0001-a13f9c2e",
           "payload": {
             "grant_id": "ck:grant:0196410c-0800-7000-8000-000000000000",
-            "subject": "did:web:alice.example",
+            "subject": "did:webvh:z6mkfixture:alice.example",
             "actions": [
               "ck.strand.update"
             ],
@@ -236,7 +236,7 @@
           "hlc": "01970e589d30-0001-a13f9c2e",
           "payload": {
             "grant_id": "ck:grant:0196410c-1000-7000-8000-000000000000",
-            "subject": "did:web:alice.example",
+            "subject": "did:webvh:z6mkfixture:alice.example",
             "actions": [
               "ck.strand.update"
             ],
@@ -301,7 +301,7 @@
           "hlc": "01970e589d34-0001-a13f9c2e",
           "payload": {
             "grant_id": "ck:grant:0196410c-1400-7000-8000-000000000000",
-            "subject": "did:web:alice.example",
+            "subject": "did:webvh:z6mkfixture:alice.example",
             "actions": [
               "ck.strand.update"
             ],
@@ -327,7 +327,7 @@
           "hlc": "01970e589d36-0001-a13f9c2e",
           "payload": {
             "grant_id": "ck:grant:0196410c-1400-7000-8000-000000000000",
-            "subject": "did:web:alice.example",
+            "subject": "did:webvh:z6mkfixture:alice.example",
             "actions": [
               "ck.strand.update"
             ],
@@ -372,8 +372,8 @@
       "vector_id": "ck.vector.capability.approval_constraint.v1",
       "grant": {
         "id": "ck:grant:0196410c-0c00-7000-8000-000000000000",
-        "issuer": "did:web:owner.example",
-        "subject": "did:web:agent.example",
+        "issuer": "did:webvh:z6mkfixture:owner.example",
+        "subject": "did:webvh:z6mkfixture:agent.example",
         "actions": [
           "ck.agent.interop_session.start"
         ],
@@ -421,7 +421,7 @@
       "base": {
         "grant_id": "ck:grant:019640d0-b800-7000-8000-000000000000",
         "root_event_id": "ck:event:01964180-0350-72ab-a000-000000000000",
-        "subject": "did:web:root-admin.example.com",
+        "subject": "did:webvh:z6mkfixture:root-admin.example.com",
         "actions": [
           "ck.realm.admin"
         ]
@@ -431,10 +431,10 @@
           "event_id": "ck:event:019640d0-c000-7000-8000-000000000000",
           "kind": "ck.capability.delegate",
           "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
-          "actor_id": "did:web:root-admin.example.com",
+          "actor_id": "did:webvh:z6mkfixture:root-admin.example.com",
           "payload": {
             "parent_grant_id": "ck:grant:019640d0-b800-7000-8000-000000000000",
-            "subject": "did:web:ops.example.com",
+            "subject": "did:webvh:z6mkfixture:ops.example.com",
             "resources": [
               {
                 "kind": "realm",
@@ -473,10 +473,10 @@
           "event_id": "ck:event:019640d0-c400-7000-8000-000000000000",
           "kind": "ck.capability.delegate",
           "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
-          "actor_id": "did:web:ops.example.com",
+          "actor_id": "did:webvh:z6mkfixture:ops.example.com",
           "payload": {
             "parent_grant_id": "ck:grant:019640d0-c000-7000-8000-000000000000",
-            "subject": "did:web:intern.example.com",
+            "subject": "did:webvh:z6mkfixture:intern.example.com",
             "resources": [
               {
                 "kind": "realm",
@@ -498,8 +498,8 @@
                 "constraint_type": "scope_limitation",
                 "effect": "allow",
                 "allowed_audiences": [
-                  "did:web:partner.example",
-                  "did:web:vendor.example"
+                  "did:webvh:z6mkfixture:partner.example",
+                  "did:webvh:z6mkfixture:vendor.example"
                 ]
               }
             ]
@@ -514,11 +514,11 @@
         }
       ],
       "action_query": {
-        "actor_id": "did:web:intern.example.com",
+        "actor_id": "did:webvh:z6mkfixture:intern.example.com",
         "action": "ck.invite.create",
         "resource": "ck:realm:0196414c-8000-7000-8000-000000000000",
         "request_time": "2026-04-26T01:00:00Z",
-        "request_audience": "did:web:vendor.example"
+        "request_audience": "did:webvh:z6mkfixture:vendor.example"
       },
       "expected": {
         "authorized": true,
@@ -545,7 +545,7 @@
           "created_at": "2026-04-26T00:00:00Z",
           "payload": {
             "grant_id": "ck:grant:01964101-2800-7000-8000-000000000000",
-            "subject": "did:web:alice.example.com",
+            "subject": "did:webvh:z6mkfixture:alice.example.com",
             "actions": [
               "ck.message.create"
             ]
@@ -564,14 +564,14 @@
           "kind": "ck.member.state",
           "created_at": "2026-04-26T00:00:02Z",
           "payload": {
-            "actor_id": "did:web:alice.example.com",
+            "actor_id": "did:webvh:z6mkfixture:alice.example.com",
             "membership": "leave"
           }
         },
         {
           "event_id": "ck:event:0196414c-c04a-7000-8000-000000000000",
           "kind": "ck.message.create",
-          "actor_id": "did:web:alice.example.com",
+          "actor_id": "did:webvh:z6mkfixture:alice.example.com",
           "created_at": "2026-04-26T00:00:03Z",
           "payload": {
             "strand_id": "ck:strand:0196418d-cc00-7000-8000-000000000000",
@@ -601,7 +601,7 @@
       "grants": [
         {
           "grant_id": "ck:grant:01964110-0000-7000-8000-000000000000",
-          "subject": "did:web:alice.example.com",
+          "subject": "did:webvh:z6mkfixture:alice.example.com",
           "actions": [
             "ck.strand.update"
           ]
@@ -609,7 +609,7 @@
         {
           "grant_id": "ck:grant:01964110-0400-7000-8000-000000000000",
           "parent_grant_id": "ck:grant:01964110-0000-7000-8000-000000000000",
-          "subject": "did:web:bob.example.com",
+          "subject": "did:webvh:z6mkfixture:bob.example.com",
           "actions": [
             "ck.strand.update"
           ]

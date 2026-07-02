@@ -24,7 +24,7 @@
       "vector_id": "ck.vector.mimi.provider_directory_draft_pinning.v1",
       "name": "provider_directory_draft_pinning",
       "input": {
-        "service_did": "did:web:mimi.example.com",
+        "service_did": "did:webvh:z6mkfixture:mimi.example.com",
         "service_type": "mimi_provider_facade",
         "supported_profiles": [
           "ck.profile.mimi_interop.v1"
@@ -61,7 +61,7 @@
             "realm_id": "ck:realm:0110c853-1d09-7044-b214-c74240110c85",
             "strand_id": "ck:strand:0110c853-1d09-7044-b214-c74240110c85"
           },
-          "hub_provider": "did:web:mimi.example.com",
+          "hub_provider": "did:webvh:z6mkfixture:mimi.example.com",
           "local_provider_role": "hub",
           "mls_group_id": "mls-group-01",
           "status": "accepted"
@@ -77,7 +77,7 @@
         "target_identifier": "mimi://remote.example/alice",
         "realm_id": "ck:realm:0110c853-1d09-7044-b214-c74240110c85",
         "mimi_room_uri": "mimi://mimi.example.com/rooms/01JSMIMI",
-        "requester_provider": "did:web:mimi.example.com",
+        "requester_provider": "did:webvh:z6mkfixture:mimi.example.com",
         "required_content_profile": "ck.profile.mimi_interop.v1",
         "mls_capabilities": [
           "mls-rfc9420"
@@ -123,7 +123,7 @@
       "name": "identifier_query_blinded",
       "input": {
         "query": "mimi://remote.example/alice",
-        "requester_provider": "did:web:mimi.example.com",
+        "requester_provider": "did:webvh:z6mkfixture:mimi.example.com",
         "privacy_mode": "private_contact_discovery"
       },
       "expected": "returns_psi_match_bits_and_invite_handoff_without_exposing_contact_graph"

@@ -10,7 +10,7 @@
         {
           "event_id": "ck:event:01964185-0400-7000-8000-000000000000",
           "kind": "ck.reaction.add",
-          "actor_id": "did:web:alice.example",
+          "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000000",
             "key": "👍"
@@ -19,7 +19,7 @@
         {
           "event_id": "ck:event:0196418c-0400-7000-8000-000000000000",
           "kind": "ck.reaction.remove",
-          "actor_id": "did:web:alice.example",
+          "actor_id": "did:webvh:z6mkfixture:alice.example",
           "causal_refs": [
             "ck:event:01964185-0400-7000-8000-000000000000"
           ],
@@ -46,7 +46,7 @@
         {
           "event_id": "ck:event:01964185-0800-7000-8000-000000000000",
           "kind": "ck.reaction.add",
-          "actor_id": "did:web:alice.example",
+          "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000000",
             "key": "🎉"
@@ -55,7 +55,7 @@
         {
           "event_id": "ck:event:01964185-0800-7000-8000-000000000001",
           "kind": "ck.reaction.add",
-          "actor_id": "did:web:alice.example",
+          "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000000",
             "key": "🎉"
@@ -68,7 +68,7 @@
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000000",
             "key": "🎉",
             "members": [
-              "did:web:alice.example"
+              "did:webvh:z6mkfixture:alice.example"
             ],
             "count": 1
           }
@@ -86,7 +86,7 @@
         {
           "event_id": "ck:event:01964185-0c00-7000-8000-000000000000",
           "kind": "ck.reaction.add",
-          "actor_id": "did:web:bob.example",
+          "actor_id": "did:webvh:z6mkfixture:bob.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000000",
             "key": "🚀"
@@ -95,7 +95,7 @@
         {
           "event_id": "ck:event:0196418c-0c00-7000-8000-000000000000",
           "kind": "ck.reaction.remove",
-          "actor_id": "did:web:bob.example",
+          "actor_id": "did:webvh:z6mkfixture:bob.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000000",
             "key": "🚀"
@@ -119,7 +119,7 @@
         {
           "event_id": "ck:event:01964185-1000-7000-8000-000000000000",
           "kind": "ck.reaction.add",
-          "actor_id": "did:web:alice.example",
+          "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000000",
             "key": "👍"
@@ -128,7 +128,7 @@
         {
           "event_id": "ck:event:01964185-1000-7000-8000-000000000001",
           "kind": "ck.reaction.add",
-          "actor_id": "did:web:bob.example",
+          "actor_id": "did:webvh:z6mkfixture:bob.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000000",
             "key": "👍"
@@ -141,8 +141,8 @@
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000000",
             "key": "👍",
             "members": [
-              "did:web:alice.example",
-              "did:web:bob.example"
+              "did:webvh:z6mkfixture:alice.example",
+              "did:webvh:z6mkfixture:bob.example"
             ],
             "count": 2
           }
@@ -156,7 +156,7 @@
         {
           "event_id": "ck:event:01964185-1400-7000-8000-000000000000",
           "kind": "ck.reaction.add",
-          "actor_id": "did:web:alice.example",
+          "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
             "target_ref": "ck:message:8238ad61-2055-7c9d-a502-b4e7844047ce",
             "key": "👀"
@@ -181,7 +181,7 @@
         {
           "event_id": "ck:event:01964185-1800-7000-8000-000000000000",
           "kind": "ck.reaction.add",
-          "actor_id": "did:web:alice.example",
+          "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000000",
             "key": "❤"
@@ -190,7 +190,7 @@
         {
           "event_id": "ck:event:01964147-0000-7000-8000-000000000129",
           "kind": "ck.message.redact",
-          "actor_id": "did:web:owner.example",
+          "actor_id": "did:webvh:z6mkfixture:owner.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000000"
           }
@@ -217,7 +217,7 @@
         {
           "event_id": "ck:event:01964185-1c00-7000-8000-000000000000",
           "kind": "ck.reaction.add",
-          "actor_id": "did:web:alice.example",
+          "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000020",
             "key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
@@ -246,7 +246,7 @@
         {
           "event_id": "ck:event:01964185-1c00-7000-8000-000000000001",
           "kind": "ck.reaction.add",
-          "actor_id": "did:web:alice.example",
+          "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000020",
             "key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
@@ -279,7 +279,7 @@
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000020",
             "routing_digest_key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
             "members": [
-              "did:web:alice.example"
+              "did:webvh:z6mkfixture:alice.example"
             ],
             "count": 1
           }
@@ -302,7 +302,7 @@
         {
           "event_id": "ck:event:01964185-2000-7000-8000-000000000000",
           "kind": "ck.reaction.add",
-          "actor_id": "did:web:alice.example",
+          "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000020",
             "key": "sha256:11111111111111111111111111111111111111111111111111111111111111aa",
@@ -330,7 +330,7 @@
         {
           "event_id": "ck:event:01964185-2000-7000-8000-000000000001",
           "kind": "ck.reaction.add",
-          "actor_id": "did:web:alice.example",
+          "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000020",
             "key": "sha256:222222222222222222222222222222222222222222222222222222222222222b",
@@ -363,7 +363,7 @@
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000020",
             "decrypted_key": "👍",
             "members": [
-              "did:web:alice.example"
+              "did:webvh:z6mkfixture:alice.example"
             ],
             "count": 1
           }
@@ -377,7 +377,7 @@
         {
           "event_id": "ck:event:01964185-2400-7000-8000-000000000000",
           "kind": "ck.reaction.add",
-          "actor_id": "did:web:alice.example",
+          "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000000",
             "key": "👍"
@@ -386,9 +386,9 @@
         {
           "event_id": "ck:event:0196418d-a400-7000-8000-000000000000",
           "kind": "ck.capability.revoke",
-          "actor_id": "did:web:owner.example",
+          "actor_id": "did:webvh:z6mkfixture:owner.example",
           "payload": {
-            "target_ref": "did:web:alice.example",
+            "target_ref": "did:webvh:z6mkfixture:alice.example",
             "actions": [
               "ck.reaction.add"
             ]
@@ -397,7 +397,7 @@
         {
           "event_id": "ck:event:01964185-2400-7000-8000-000000000001",
           "kind": "ck.reaction.add",
-          "actor_id": "did:web:alice.example",
+          "actor_id": "did:webvh:z6mkfixture:alice.example",
           "causal_refs": [
             "ck:event:0196418d-a400-7000-8000-000000000000"
           ],
@@ -417,7 +417,7 @@
             "target_ref": "ck:message:01964147-0000-7000-8000-000000000000",
             "key": "👍",
             "members": [
-              "did:web:alice.example"
+              "did:webvh:z6mkfixture:alice.example"
             ],
             "count": 1
           }
@@ -428,7 +428,7 @@
       "name": "rate_limit_high_rate_reaction_burst",
       "notes": "Servers MAY rate-limit ck.reaction.add per actor; the reducer MUST treat rate-limited events as either rate_limited or quarantine, never as accepted-then-silently-dropped.",
       "events_meta": {
-        "actor_id": "did:web:bot.example",
+        "actor_id": "did:webvh:z6mkfixture:bot.example",
         "rate_per_second_observed": 200,
         "policy_limit_per_second": 20
       },
