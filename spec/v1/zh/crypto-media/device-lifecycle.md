@@ -118,7 +118,7 @@ Cokret v1 把三件事分开处理：
   "device_id": "ck:device:019640dd-8000-7000-8000-000000000000",
   "principal_id": "did:webvh:...",
   "display_name": "Alice iPhone",
-  "algorithms": ["ck.mls.v1", "ck.hpke_x25519_aead_xchacha20poly1305.v1"],
+  "algorithms": ["ck.hpke_x25519_aead_xchacha20poly1305.v1", "ck.mls.v1"],
   "verify_key": {
     "kty": "OKP",
     "crv": "Ed25519",
@@ -307,7 +307,7 @@ DID-method history → principal_signing_key (PSK)
     "device_id": "ck:device:...",
     "device_public_key": "z6Mk...",
     "hpke_key": "z6LS...",
-    "algorithms": ["ck.mls.v1", "ck.hpke_x25519_aead_xchacha20poly1305.v1"],
+    "algorithms": ["ck.hpke_x25519_aead_xchacha20poly1305.v1", "ck.mls.v1"],
     "cross_signing_binding": {
       "verification_method": "did:webvh:...#ck_self_signing_v1",
       "alg": "EdDSA",
@@ -718,6 +718,8 @@ POST /_cokret/self/keys/claim
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `device_signing_key` | `did:key`(Ed25519 multibase) | optional | 该设备的**权威验签公钥**，来源 = 该设备权威 `ck.device.authorize.payload.device_public_key`(§5.2/§5.4)。MUST **仅对 verified 且未吊销**的设备返回。 |
+| `hpke_key` | `string`(multibase) | optional | 该设备的 **HPKE 密封公钥**，来源 = 该设备权威 `ck.device.authorize.payload.hpke_key`(§5.2/§5.4)**原样回显**；服务端 MUST NOT 在投影中替换该值。MUST 仅对 verified 且未吊销的设备返回。 |
+| `trust_algorithms` | `string[]` | optional | 该设备声明的 canonical 算法集合，来源 = `ck.device.authorize.payload.algorithms`(§5.2)**原样回显**（UTF-8 bytewise 升序、去重）。与承载 prekey bundle 的同级 `algorithms` map 是不同字段。客户端执行 §8.3 第 3 步时以本字段与 `hpke_key`、`device_signing_key` 一起重建 `ck-device-trust-bind-v1` 输入。 |
 | `device_status` | `enum(active, revoked)` | optional | 目录态。`active` = 该设备 `device.authorize` 在效且未吊销；`revoked` = 已被 `ck.device.revoke` 吊销。 |
 | `cross_signing_binding` | `object` | optional | **Tier-2**：该设备权威 `ck.device.authorize.payload.cross_signing_binding`（§5.2）原样回显，形态 `{verification_method, alg, ssk_generation, signature}`。供客户端独立验证 device verify key、HPKE key 与算法集合 ← SSK 链路。inception bootstrap 设备无此字段（§5.0.1 例外）。 |
 | `enrollment_authority_binding` | `object` | optional | **service-attested**：该设备权威 `ck.device.authorize.payload.enrollment_authority_binding`（§5.4）原样回显，形态 `{kind="service_attested", authority_did, authorization_ref}`。供客户端确认该 device-set 投影中的 device verify key、HPKE key 与算法集合来自已接受的入册权威路径，而非 Tier-1 裸服务断言。 |

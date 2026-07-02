@@ -311,7 +311,8 @@ apply_seal(A):
   2. 校验 notary_seq 单调性和 notary_signature。
   3. 校验 delta[] canonical 升序去重。
   4. 校验 delta[] 与所有 predecessor covered_set 不相交。
-  5. 校验 delta[] 每项都是已知、签名有效、尚未 sealed 的 Control Move digest。
+  5. 校验 delta[] 每项都是已知、签名有效、且未被本 Seal predecessor closure 覆盖的 Control Move digest
+     （"尚未 sealed" 的判定范围见下方并发 leaf 规则）。
   6. 计算 covered_set(A) = delta(A) union predecessor covered sets。
   7. 校验 control_event_set_root == root(covered_set(A)).
   8. 在 predecessor joined governance state 下批量 verify_control_move(delta[])。
@@ -321,6 +322,8 @@ apply_seal(A):
 ```
 
 Seal 被拒绝时，其 `delta[]` 内 Control Move 不因此有效。节点 MAY 保留这些 Move 作为 pending / diagnostic 输入，但 MUST NOT 让它们推进 query 或授权。
+
+**并发 leaf 覆盖同一 pending Control Move（normative）**：步骤 5 中 "尚未 sealed" 的判定范围**只**是本 Seal 的 predecessor closure，即步骤 6 递归并集所得的 predecessor `covered_set`——等价于步骤 4 的不相交校验；receiver **MUST NOT** 以自身全局已接受 Seal 集合作为判定范围。特别地，`open_set` profile 下某 Control Move 已被另一个**并发**（不在本 Seal predecessor closure 内的）已接受 Seal leaf 覆盖时，receiver **MUST NOT** 因此拒绝本 Seal；否则接受结果将随 leaf 到达顺序变化，产生永久分叉，违反 §6.3.1 "`J(L)` 是 `L` 的纯函数、与到达顺序无关" 的收敛保证。同一 Control Move 被多个并发 leaf 覆盖是合法状态：`covered(L)` 按 Control Move digest 内容寻址取并集，重复覆盖自然去重，join 结果不受影响。
 
 #### 6.3.1 Deterministic joined control view（multi-leaf join，normative）
 

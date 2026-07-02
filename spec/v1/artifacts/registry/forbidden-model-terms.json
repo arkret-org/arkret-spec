@@ -135,19 +135,6 @@
       "notes": "Chinese form of 'Controlled Collaboration Realm'; use 'External Collaboration Realm' per zh/models/realm-and-space.md §2.7. The strict sovereign-deployment policy previously implied by '受控' is now stated as a deployment-profile requirement on External Collaboration Realm in zh/sync/sovereign-deployment.md §4."
     },
     {
-      "id": "协作 Realm",
-      "context": "prose_or_ui_copy",
-      "since_revision": "2026-05-25",
-      "rejection_level": "docs_only",
-      "replacement": "Collaboration Realm / Internal Collaboration Realm / External Collaboration Realm（视语境而定）",
-      "allowed_contexts": [
-        "changelog",
-        "legacy_migration",
-        "negative_test"
-      ],
-      "notes": "The bare phrase '协作 Realm' was used historically with two distinct meanings: (a) in identity / consent / profile chapters, contrasting with Principal Control Realm — replace with 'Collaboration Realm'; (b) in sovereign-deployment / architecture chapters, implicitly meaning a cross-trust-domain Realm — replace with 'External Collaboration Realm'. Bare '协作 Realm' is docs_only (kept in CHANGELOG / migration prose) because the phrase still reads naturally as a descriptive Chinese noun phrase; for new normative content, use the precise category from realm-and-space.md §2.7. Compound descriptive uses (e.g. '大型协作 Realm', '多方协作 Realm') are unaffected by this entry — they describe a Realm's scale or membership shape, not the Realm category."
-    },
-    {
       "id": "cx.",
       "term": "cx.",
       "rejection_level": "hard_reject",

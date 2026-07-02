@@ -665,7 +665,7 @@ Delegation Move SHOULD 同时记录签发时点的 parent `auth_state_digest` / 
 
 1. 收到新的 `ck.capability.delegate(child_grant_id, parent_grant_id)` 时,reducer 沿 parent chain 做 DFS,直到遇到无 parent 的 root grant 或深度 = `max_delegation_depth_observed`。
 2. 若在 DFS 过程中发现新 `child_grant_id` 出现在已访问 ancestor 集合中(即新 grant 会 close 一条循环 path),reducer **MUST** 拒绝整条 delegation chain 上的本 Event,reason=`delegation_cycle`,MUST NOT 接受任何子 grant 即便它们单看 valid。
-3. DFS 深度上限 default 64，与 `actor_seq` causal chain 上限一致(`scalability-constraints.md`)；超过深度的 chain 视作病态，reducer MUST 退化为拒绝。此外，grant 的 `max_delegation_depth` 字段本身 MUST ≤ 64:reducer 在 **accept grant 时** 即 MUST 校验该字段 ≤ DFS 深度上限，声明更大值的 grant MUST 以 `schema_violation` 拒绝(`grant-constraint.schema.json` 已用 `maximum:64` 静态强制)，而非仅在 DFS 遍历时截断——避免字段声明语义(可设至 2^31)与实际兜底上限(64)不一致而误导审计 / UI。
+3. DFS 深度上限 default 4，即 [`scalability-constraints.md` §3](../conformance/scalability-constraints.md) 的 delegation chain 深度 canonical 上限(profile MAY 声明更低上限，MUST NOT 放宽)；超过深度的 chain 视作病态，reducer MUST 退化为拒绝。此外，grant 的 `max_delegation_depth` 字段本身 MUST ≤ 4:reducer 在 **accept grant 时** 即 MUST 校验该字段 ≤ DFS 深度上限，声明更大值的 grant MUST 以 `schema_violation` 拒绝(`grant-constraint.schema.json` 已用 `maximum:4` 静态强制)，而非仅在 DFS 遍历时截断——避免字段声明语义与实际兜底上限(4)不一致而误导审计 / UI。
 4. 当 parent grant 已被 revoke 但 freshness 未到达时,reducer 仍 MUST 把它视为 cycle detection 的 ancestor 节点(prevent 攻击者 revoke-then-re-delegate 构造环)。
 5. 同一 delegate event 携带的多 child grant(批量委托)MUST 整体 fail-or-pass;部分接受会产生不完整的图结构,reducer MUST NOT 部分接受。
 

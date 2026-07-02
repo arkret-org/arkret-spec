@@ -164,6 +164,17 @@
         "device_signing_key": {
           "$ref": "#/$defs/did_key"
         },
+        "hpke_key": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "The device HPKE public key used for secret / key envelope sealing, echoed verbatim from the authoritative ck.device.authorize.payload.hpke_key (device-lifecycle.md §5.2/§5.4). MUST only be returned for verified, non-revoked devices; services MUST NOT substitute this value in projection."
+        },
+        "trust_algorithms": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "description": "The canonical (UTF-8 bytewise sorted, deduplicated) algorithm ids echoed verbatim from ck.device.authorize.payload.algorithms; together with device_signing_key and hpke_key this is the material the §5.2 ck-device-trust-bind-v1 transcript covers. Distinct from the sibling `algorithms` prekey-bundle map."
+        },
         "device_status": {
           "$ref": "#/$defs/device_status"
         },

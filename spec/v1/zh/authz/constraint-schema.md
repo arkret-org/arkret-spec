@@ -321,7 +321,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 **`prohibit_subdelegation`**：
 
 - `prohibit_subdelegation=true` ⇒ child grant 的 `max_delegation_depth` **MUST = 0**。reducer 在派生 child 时 MUST 强制把 child 的 `max_delegation_depth` 视为 `0`；若 child grant 声明了 `max_delegation_depth > 0`，reducer **MUST** 返回 `schema_violation`（`reason="subdelegation_prohibited"`）。`prohibit_subdelegation=true` 的 grant 持有者 MUST NOT 再签发任何下游 `ck.capability.delegate`。
-- `prohibit_subdelegation=false`（默认）时不额外约束，深度仍受 §10.1 `max_delegation_depth ≤ parent - 1` 与 §10.2 DFS 上限 64 治理。
+- `prohibit_subdelegation=false`（默认）时不额外约束，深度仍受 §10.1 `max_delegation_depth ≤ parent - 1` 与 §10.2 DFS 上限 4 治理。
 
 **`allow_scope_expansion`**：
 

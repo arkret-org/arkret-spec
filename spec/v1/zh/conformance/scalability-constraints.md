@@ -50,7 +50,7 @@ Cokret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 
 | 项 | v1 默认上限 | 规则 |
 | --- | ---: | --- |
-| delegation chain 深度 | 4 | 超过时 MUST deny；profile MAY 声明更低上限。 |
+| delegation chain 深度 | 4 | canonical 上限；[`capabilities.md` §10.2](../authz/capabilities.md) DFS 深度上限与 `grant-constraint.schema.json` `max_delegation_depth` 的 `maximum` MUST 与此值一致。超过时 MUST deny；profile MAY 声明更低上限。 |
 | 单次授权判定展开 grant 数 | 1,024 | 超过时 MUST fail closed、使用已验证 snapshot，或返回 `soft_failed` / `temporarily_unavailable`。 |
 | 单个 grant 的 constraint 数 | 64 | 超过时 MUST reject。 |
 | 单个 resource selector AST 深度 | 16 | 超过时 MUST reject。 |

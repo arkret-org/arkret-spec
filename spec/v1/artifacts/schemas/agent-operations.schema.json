@@ -334,6 +334,8 @@
       "required": [
         "device_id",
         "device_public_key",
+        "hpke_key",
+        "algorithms",
         "actor_seq"
       ],
       "properties": {
@@ -347,6 +349,18 @@
             }
           ],
           "description": "This session's device public key as a did:key multibase string (z6Mk…) or base64."
+        },
+        "hpke_key": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "This device’s HPKE sealing public key (multibase). Enters ck.device.authorize.payload.hpke_key verbatim and is covered by the enrollment-authority Event proof (device-lifecycle.md §5.4)."
+        },
+        "algorithms": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "minItems": 1,
+          "description": "Canonical (UTF-8 bytewise sorted, deduplicated) algorithm ids the device supports. Enters ck.device.authorize.payload.algorithms verbatim (device-lifecycle.md §5.2/§5.4)."
         },
         "actor_seq": {
           "type": "integer",
