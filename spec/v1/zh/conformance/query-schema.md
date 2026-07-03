@@ -187,7 +187,7 @@ Projection 只减少返回字段，不提升权限。
 | grade | 语义 |
 | --- | --- |
 | `local` | 本地已知 data DAG 或 control cache 的结果，无外部承诺。 |
-| `seen` | 相关 DataEvent 持有 SeenReceipt，但未被 seal 观测承诺。 |
+| `seen` | 相关 DataEvent 被至少一个服务或 witness 签发的 Event Batch Receipt 覆盖，但未被 seal 观测承诺。 |
 | `observed` | 数据面结果进入某个 seal 的 `data_view_root` / `data_event_set_root`；这是观测承诺，不是 finality。 |
 | `sealed` | Control Move 被已接受 Seal 覆盖并进入治理 `state_root`；仅控制面使用。 |
 | `witnessed` | 对应 seal 另有 policy 要求的 witness / auditor attestation。 |

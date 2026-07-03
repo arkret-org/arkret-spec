@@ -210,17 +210,19 @@ flowchart TB
 
 Event 是 canonical history；receipt、attestation、snapshot 与 Seal observation 是加速层或审计证明，不替代 Event 自身签名。
 
-### 6.1 SeenReceipt
+### 6.1 Event Batch Receipt
 
-SeenReceipt 证明某服务、客户端或 witness 已看到某 Event digest。SeenReceipt 可用于 read-your-writes、跨服务对账、轻客户端同步与 censorship 诊断；它不证明该 Event 已进入控制面 finality。
+Event Batch Receipt（schema [`event-batch-receipt.schema.json`](../../artifacts/schemas/event-batch-receipt.schema.json)，`ck.schema.event_batch_receipt.v1`，字段与概念分层见 [`../models/event-and-patch.md` §5](../models/event-and-patch.md)）是 best-effort RYW / 加速 / 审计 hint：issuer（服务、客户端或 witness）证明已看到并承诺 `events[]` 所列 Event 集合的 integrity。它可用于 read-your-writes（驱动查询等级 `local → seen`，§8）、跨服务对账、轻客户端同步与 censorship 诊断；它不证明 Event 已进入控制面 finality，只对 issuer 选择承诺的集合提供 integrity，不提供范围 completeness。接收方 MUST 能在没有 batch receipt 的情况下验证单个 Event。
+
+单事件确认是 `events[]` 单元素的退化形态（原 SeenReceipt，已合并——合并说明与被取消字段的理由见 [`../authz/event-auth-state-resolution.md` §4.4](../authz/event-auth-state-resolution.md)）；协议不再定义独立的单事件 receipt 对象。
 
 ### 6.2 AvailabilityReceipt
 
 AvailabilityReceipt（schema [`availability-receipt.schema.json`](../../artifacts/schemas/availability-receipt.schema.json)）证明 holder 在某 retention window 内承诺保存指定 Event bytes 或 blob bytes。它可被 Seal 的 `availability_root` 观测，查询等级为 `observed` 或 `witnessed`，但不替代事件签名、授权验证或 Lattice 收敛。
 
-### 6.3 Event Batch Receipt
+### 6.3 Audit RYW Receipt
 
-Event batch receipt 是 best-effort RYW / 加速 / 审计 hint，只对 issuer 选择承诺的事件集合提供 integrity，不提供范围 completeness。接收方 MUST 能在没有 batch receipt 的情况下验证单个 Event。
+`ck.audit.ryw_receipt`（schema [`audit-ryw-receipt.schema.json`](../../artifacts/schemas/audit-ryw-receipt.schema.json)，`ck.schema.audit_ryw_receipt.v1`）是审计释放路径专用的 per-event RYW witness attestation：它对单个 `ck.audit.accessed` / `ck.audit.release` Event 提供带 witness 背书的 accepted 确认，是 audited-E2EE release gate 的前置条件（见 [`../crypto-media/audited-e2ee.md` §6](../crypto-media/audited-e2ee.md)）。与 §6.1 的通用 hint 不同，它带强制 witness attestation 结构与 fail-closed 校验，并具有 "object + durable event kind" 双形态（[`../models/event-and-patch.md` §5.1](../models/event-and-patch.md)）。
 
 ### 6.4 Range-bound Completeness Attestation
 
@@ -357,7 +359,7 @@ Strand Sync MUST NOT 因 actor 可读 Strand synthesis 就自动展开不可读 
 | grade | 语义 |
 | --- | --- |
 | `local` | 本地尚未获得外部 receipt 或观测。 |
-| `seen` | 至少一个服务或 witness 对 Event 签发 SeenReceipt。 |
+| `seen` | 至少一个服务或 witness 签发的 Event Batch Receipt 覆盖该 Event（§6.1）。 |
 | `observed` | DataEvent 或 availability material 被 Seal 的观测 root 覆盖。 |
 | `sealed` | Control Move 被有效 Seal 覆盖并进入控制面 `state_root`；仅控制面使用。 |
 | `witnessed` | 独立 witness quorum 对范围、frontier 或可用性签发证明。 |

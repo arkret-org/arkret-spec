@@ -37,7 +37,7 @@ Cokret v1 的一致性层采用 **CBA（Control-plane Basis-committed Sealing）
 | seal_basis | Control Move 签名覆盖的控制面基线：`{leaves[], control_event_set_root, state_root}`。 |
 | control_event_set_root | Seal 对递归控制面覆盖集 `covered_set(S)` 的 authenticated root。basis、inclusion、non-membership、receipt obligation 与 censorship evidence 都以它为锚点。 |
 | KeyView | Seal 对某个 data cell 的观测记录，包含 cell、lattice type、heads / value digest 与 last covered event。 |
-| SeenReceipt | relay / notary / witness 对某个数据面 Event 的签名"已看见"回执。它不是准入证明，不进入 state。 |
+| Event Batch Receipt | issuer（relay / notary / witness / Principal Server）对其选择承诺的 Event 集合签发的 receipt object（`ck.schema.event_batch_receipt.v1`）。数据面单事件"已看见"确认是其 `events[]` 单元素用法（原 SeenReceipt，已合并，见 §4.4）。它不是准入证明，不进入 state。 |
 | AvailabilityReceipt | holder 对某个 Event bytes 在 retention 窗口内可获取的签名承诺。 |
 
 ## 3. Plane 判定
@@ -152,25 +152,15 @@ else:
 
 Grant 晚于 producer 最新 seal 签发时，producer MUST 等下一个控制面 seal 后再签 data write。治理低频，等待 seal 是可接受成本。
 
-### 4.4 数据面传播与 SeenReceipt
+### 4.4 数据面传播与 Event Batch Receipt
 
 数据面传播使用 gossip、anti-entropy 或 RBSR 类集合调和。同步摘要可以作为 federation probe 的 data frontier。
 
-Relay / notary / witness 收到 DataEvent 时 SHOULD 返回：
+Relay / notary / witness 收到 DataEvent 时 SHOULD 返回一个 Event Batch Receipt（receipt object，schema [`event-batch-receipt.schema.json`](../../artifacts/schemas/event-batch-receipt.schema.json)，schema id `ck.schema.event_batch_receipt.v1`，字段与概念分层见 [`../models/event-and-patch.md` §5](../models/event-and-patch.md)）。单事件确认即 `events[]` 只含该 `event_digest` 的单元素 receipt：`scope` 携带 `realm_id`，`created_at` 为 issuer 看见该事件的时间，`frontier` 为签发时 issuer 前沿。
 
-```text
-SeenReceipt {
-  realm_id
-  event_digest
-  received_at
-  receipt_seq
-  expires_at
-  issuer
-  signature
-}
-```
+> **合并说明（normative）**：v1 早期草案曾把这一用途单列为 "SeenReceipt"（`{realm_id, event_digest, received_at, receipt_seq, expires_at, issuer, signature}`）。它与 Event Batch Receipt 语义同层——issuer 签名的、非 canonical、只保 set integrity 的 hint——且从未注册 schema，故收敛为 Event Batch Receipt 的单元素用法，协议中不再存在独立的 SeenReceipt 对象。旧结构的 `receipt_seq` 与 `expires_at` 一并取消：全规范无消费者——issuer 侧漏发/扣发检测由 [`../sync/operations-sync.md` §6.4](../sync/operations-sync.md) range-completeness attestation 与 frontier probe 承担，equivocation 检测归 Seal 的 `notary_seq`（§7.1）；receipt 是 best-effort hint 且"已看见"是不可撤销的事实陈述，过期语义没有可执行含义，receipt 的保留期属部署本地 retention 决策。
 
-SeenReceipt 只证明"被某个主体看见"，不证明事件有效、不提议排序、不进入控制面 state。部署 MAY 关闭 SeenReceipt；关闭后同账号 RYW 与数据面审查诊断能力降低。
+Event Batch Receipt 只证明"issuer 看见并承诺所列事件集合的 integrity"，不证明事件有效、不提议排序、不进入控制面 state、不提供范围 completeness。部署 MAY 不签发数据面 receipt；关闭后同账号 RYW（`grade=seen`）与数据面审查诊断能力降低。
 
 ## 5. Control Move
 
@@ -416,7 +406,7 @@ Censorship evidence 是普通 Control Move，event kind 为 **`ck.notary.fault.c
 **问责闭环与 recovery 路径的绑定（normative）**：被告 notary 可能审查针对自己的 fault / censorship evidence。为此：
 
 1. fault evidence Move 持有的 receipt（或经 federation probe 传播的副本）对 **recovery notary**（genesis `recovery_members` / `mixed` profile 的 fallback notary）构成与 inclusion list 等同的收录义务：recovery notary 签发任何 recovery / fork-resolution Seal 时，MUST include、signed-reject 或证明验证失败所有其已知的、处于义务窗口内的 fault evidence Move；
-2. `single_did` 下，evidence 经 federation probe / SeenReceipt 渠道流转至 recovery notary；若 Realm 未声明可用 recovery 路径，问责退化为"证据可流转但不可生效"的审计态——这是 `single_did` 的诚实限制，也是 genesis 强制 `recovery_members` 组织分离的理由之一；
+2. `single_did` 下，evidence 经 federation probe / Event Batch Receipt 渠道流转至 recovery notary；若 Realm 未声明可用 recovery 路径，问责退化为"证据可流转但不可生效"的审计态——这是 `single_did` 的诚实限制，也是 genesis 强制 `recovery_members` 组织分离的理由之一；
 3. multi-signer profile 下，任何非 fault 方 signer 都可把 evidence 列入 inclusion list（§7.3），不必等待 recovery 路径。
 
 ### 7.3 Inclusion list
@@ -463,7 +453,7 @@ AvailabilityReceipt {
 
 - 控制面 Seal include 一个 Control Move 前，MUST 满足 Realm availability policy。小 Realm 默认要求 notary + 至少一个 witness 持有 bytes；组织 Realm MAY 要求 m-of-n storage witnesses。
 - Snapshot / backfill 承诺 MUST 同样满足 availability policy。
-- 数据面默认 SHOULD 在 relay 签 SeenReceipt 时同时签 availability 承诺；高对抗部署 MAY 要求更高 storage quorum。
+- 数据面默认 SHOULD 在 relay 签 Event Batch Receipt（§4.4）时同时签 availability 承诺；高对抗部署 MAY 要求更高 storage quorum。
 - erasure coding / data availability sampling 不进 v1 core。
 
 ## 9. Lattice 与冲突语义
@@ -572,7 +562,7 @@ basis {
 | grade | 语义 |
 | --- | --- |
 | `local` | 本地已知 data DAG 或 control cache 的结果，无外部承诺。 |
-| `seen` | 相关 DataEvent 持有 SeenReceipt，但未被 seal 观测承诺。 |
+| `seen` | 相关 DataEvent 被至少一个服务或 witness 签发的 Event Batch Receipt 覆盖，但未被 seal 观测承诺。 |
 | `observed` | 数据面结果进入某个 seal 的 `data_view_root` / `data_event_set_root`；这是观测承诺，不是 finality。 |
 | `sealed` | Control Move 被已接受 Seal 覆盖并进入治理 `state_root`；仅控制面使用。 |
 | `witnessed` | 对应 seal 另有 policy 要求的 witness / auditor attestation。 |
@@ -601,7 +591,7 @@ E2EE message 不等待数据面 seal；它只等待其 `seal_ref` 对应的 MLS 
 ## 12. Snapshot、GC 与恢复
 
 1. 未被任何控制面 Seal 覆盖集覆盖、且未被 active pending Control Move / recovery Move 引用的 Control Move MAY GC。
-2. DataEvent 的 GC 由 data DAG sync、SeenReceipt、AvailabilityReceipt、retention policy 与 application retention 决定；GC 不得破坏仍需验证的 actor chain、causal refs 或 availability commitment。
+2. DataEvent 的 GC 由 data DAG sync、Event Batch Receipt、AvailabilityReceipt、retention policy 与 application retention 决定；GC 不得破坏仍需验证的 actor chain、causal refs 或 availability commitment。
 3. 已 seal 的 Control Move MUST 保留审计 stub；payload 可按 retention / erasure 规则裁剪。
 4. Snapshot 是某个 accepted Seal 的 materialized proof，不是独立真相源。没有可验证 Seal / inclusion proof 的 snapshot MUST NOT 用于授权 allow。
 
