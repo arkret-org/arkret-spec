@@ -243,6 +243,12 @@
       "description": "Closed request/response DTO bundle for self-surface cross-Realm link operations (ck.self.realm_link.*); see zh/models/realm-links.md."
     },
     {
+      "schema_id": "ck.schema.realm_organization_operations.v1",
+      "file": "schemas/realm-organization-operations.schema.json",
+      "status": "active",
+      "description": "Closed response DTO bundle for self-surface Realm organization relationship reads (ck.self.realm_organization.*); see zh/models/realm-and-space.md."
+    },
+    {
       "schema_id": "ck.schema.realm_policy_server_operations.v1",
       "file": "schemas/realm-policy-server-operations.schema.json",
       "status": "active",
