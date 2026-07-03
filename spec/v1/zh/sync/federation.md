@@ -343,7 +343,7 @@ Cokret v1 的联邦批量传播采用依赖感知的 partial accept：最小原�
 
 `events[]` MUST 按数组顺序处理。同批中已接受的 Event 仅可作为**解析材料**（resolution-only）出现在后续 Event 中：可以满足 `prev_refs` 的 byte / event-id 解析、actor event chain 链接、`causal_refs` 或 payload-level causal reference 等结构性引用；但**不得**作为同批后续 Event 的授权基准。DataEvent MUST 按自身 `seal_ref` 验证；Control Move MUST 按自身 `seal_basis` 验证。同批前序 Event 创建、delegate、恢复、扩权或 revoke 的 grant / policy **不**对后续 Event 提前生效，依赖方必须等待控制面 Seal 更新后重交，否则当前批 MUST 以 `dependency_missing` / `stale_seal_ref` / `capability_denied` 拒绝或隔离（与 [`service-http-binding.md`](./service-http-binding.md) §`POST /_cokret/peer/events` 同批授权可见性规则、[`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 的 CBA basis 模型一致）。同批中尚未处理、已拒绝或隔离的 Event 不能被视为已接受依赖。单条 Event 失败不得回滚同批已接受 Event；响应 MUST 将成功项放入 `accepted[]`，失败项放入 `rejected[]`，需要异步校验的项放入 `quarantine[]`。依赖同批失败或缺失 Event 的后续项 MUST 以 `dependency_missing`、`causal_conflict` 或等价原因拒绝/隔离。
 
-**partial accept 后的 retry 边界（normative）**：sender 收到包含非空 `accepted[]` / `duplicate[]` 且仍有 `rejected[]` / `quarantine[]` / 未发送依赖的响应后，MUST 把下一次 retry 组装成新的 batch，只包含尚未被 `accepted[]` ∪ `duplicate[]` 确认且仍需投递的 Event；不得原样重放包含已确认 Event 的旧 `events[]` 来“补齐失败项”。内容完全相同的幂等重复项 MUST 列入 `duplicate[]`（幂等 no-op），MUST NOT 当作 `rejected[]`。新 batch MUST 使用新的 `Idempotency-Key`（或省略），并重新计算 `Content-Digest`、`Request-Canonical-Digest` 与签名 transcript；MUST NOT 以旧 `Idempotency-Key` 配新 canonical body 重交，幂等缓存命中旧 batch 不得被当作新 retry 的成功证明。接收方 SHOULD 在 `rejected[]` 项内携带原数组 `index` 与 `id`，让 sender 能机械求差；若响应缺少 `index`，sender MUST 以 `id` 集合为准剔除 `accepted[] ∪ duplicate[]`（已投递集合）。
+**partial accept 后的 retry 边界（normative）**：sender 收到包含非空 `accepted[]` / `duplicate[]` 且仍有 `rejected[]` / `quarantine[]` / 未发送依赖的响应后，MUST 把下一次 retry 组装成新的 batch，只包含尚未被 `accepted[]` ∪ `duplicate[]` 确认且仍需投递的 Event；不得原样重放包含已确认 Event 的旧 `events[]` 来“补齐失败项”。内容完全相同的幂等重复项 MUST 列入 `duplicate[]`（幂等 no-op），MUST NOT 当作 `rejected[]`。新 batch MUST 使用新的 `Idempotency-Key`（或省略），并重新计算 `Content-Digest`、`Request-Canonical-Digest` 与签名 transcript；MUST NOT 以旧 `Idempotency-Key` 配新 canonical body 重交，幂等缓存命中旧 batch 不得被当作新 retry 的成功证明。接收方 SHOULD 在 `rejected[]` 项内携带原数组 `index` 与 `id`，让 sender 能机械求差；若响应缺少 `index`，sender MUST 以 `id` 集合为准剔除 `accepted[] ∪ duplicate[]`（已投递集合）。本条只约束**求差重组后的新 batch**（body 已变化，必须换 key）；未收到任何响应（超时 / 网络失败 / 5xx）时对**逐字节相同**请求的全量重试义务相反——MUST 复用同一 `Idempotency-Key`，见 [`api-conventions.md` §6.2](./api-conventions.md)；两者互补不冲突。
 
 **两类 quarantine 的退避与收敛边界（normative）**：partial accept 后进入 `quarantine[]` 的项分两类语义，sender 与接收方 MUST 区分处理，避免活锁：
 
@@ -903,8 +903,9 @@ Signature: sig1=:<base64>:
 节点 MUST 将 `Idempotency-Key` 与请求 canonical hash 绑定后执行幂等和重放检查。任何参与该检查的 `Idempotency-Key` MUST 被 HTTP Message Signature 覆盖；未签名的 `Idempotency-Key` MUST NOT 用作幂等或 replay key：
 
 - 相同 `(origin, destination, Idempotency-Key)` 但 canonical hash 不同 MUST 拒绝；
-- 相同 `(origin, destination, Idempotency-Key)` 且 canonical hash 相同 MAY 幂等接受；
-- 单事件级别仍以 `event_id` 去重，规则见 4.3 节；
+- 相同 `(origin, destination, Idempotency-Key)` 且 canonical hash 相同 MAY 幂等接受（sender 侧对应的全量重试同 key 义务见 [`api-conventions.md` §6.2](./api-conventions.md)）；
+- 幂等 / replay 记录的保留窗口遵循 [`api-conventions.md` §6.1](./api-conventions.md)：自记录创建起至少 24 小时，且不短于 §3.2 签名时效窗口加最大允许时钟偏移；
+- 单事件级别仍以 `event_id` 去重，规则见 4.3 节；`event_id` 去重是 durable Event 语义的一部分，不受上述幂等记录保留窗口限制；
 - 对同一 `(Source-Service-DID, Destination-Service-DID, endpoint, realm_id?)` 计数窗口，若 60 秒内相同 canonical request hash 被拒绝 ≥ 3 次，或 5 分钟内总请求数 ≥ 10 且失败率 ≥ 50%，接收方 MUST 将该来源在该 endpoint / Realm 范围内暂停至少 60 秒，并返回 `rate_limited`（可附 `retry_after_ms` / HTTP `Retry-After`）或 `temporarily_unavailable`。
 
 **该回压窗口同样覆盖 pull 路径（normative）**：上面的失败率熔断与暂停窗口不仅适用于 push（`POST /_cokret/peer/events`），也 MUST 适用于 pull / resolve（`GET /_cokret/peer/events` 的 `ck.peer.events.query.scan`、`POST /_cokret/peer/events/resolve` 的 `ck.peer.events.query.resolve`）。无 body 的 GET pull 没有 `Request-Canonical-Digest`，其"相同 canonical request hash"判定改用 `(@method, @target-uri, source/destination service DID, trust domain, endpoint digest)` 规范化键（§3.2 GET pull transcript 绑定的同一组件集），其余熔断阈值、暂停时长与 `Retry-After` 语义与 push 一致。这与 §8.1 的 per-`(realm_id, peer_service_did)` 速率上限互补：§8.1 限稳态速率，本条限失败放大与抖动。

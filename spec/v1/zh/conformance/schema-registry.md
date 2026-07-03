@@ -3,7 +3,7 @@ title: Standard Event and Object Schema Registry
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-03
 sidebar:
   label: Schema Registry
 ---
@@ -291,3 +291,25 @@ v1 canonical object（Event Envelope / Operation / Event Batch Receipt / Snapsho
 未知 critical feature MUST fail closed。Event Envelope 的 `requirements` 对象（含 `schema[]` / `reducer` / `features[]` / `critical_extensions[]`）是 v1 固定的扩展声明位置，全部进入 canonical bytes 并参与 `event_digest`。`requirements.critical_extensions[]` 每项必须包含 `id`、`extension_scope` 和 `fail_closed=true`；entry 顶层不得携带未声明字段，扩展参数必须放入 `parameters`，大对象必须用 `material_digest` 绑定。
 
 OpenAPI DTO MAY 使用 `additionalProperties: false`。若 DTO 内嵌 canonical protocol object，内嵌对象 MUST 按 registry schema 解析，并按本节规则处理：未声明字段拒绝，显式扩展位内容保留。
+
+### 6.1 注册表条目演进兼容级别（normative）
+
+上文覆盖字段级演进；本节回答**值集级**演进：event kind、error code、闭集枚举等新增合法值时的兼容级别，以及已发布实现的处置义务。判定的第一步是区分值集的权威承载形态（与 §1.2 的机读归属规则同源）；同一 token 不得同时以两种承载形态声明。
+
+**a. 开放注册集（open registry set）**——以独立 registry JSON 承载的字符串值集合：event kind（`event-kind-registry.json`）、error `code` / `reason_code`（`error-code-registry.json`）、relation kind（`relation-kind-registry.json`）、capability action、feature id 等。
+
+- 新增条目是**向后兼容演进**（minor）：只体现在 registry 的 `version` / `generated_at` 推进，不要求新 schema 版本，也不要求 schema profile bump。
+- 已发布实现遇到不在其本地 registry 快照中的值时，MUST 按**未知值保留**处理：不得因此让整个对象 / 信封反序列化失败。反序列化层保留之后的语义处置按各消费面既有规则执行——未知值保留**不等于**语义接受：写入权威接收方对未声明支持的标准 event kind 仍按 [conformance-profiles.md §2.1](./conformance-profiles.md) 返回 `unsupported_feature` / `unsupported_event_kind` / `schema_violation` 或 quarantine；未注册 relation kind 按 relation-kind-registry `registry_rules` 保留为 opaque edge 且不得推断语义；fail-closed 门（未知 critical feature、授权判定）照常适用。
+- 生成代码 SHOULD 为开放注册集值提供 non-exhaustive / `Unknown(String)` 兜底变体，MUST NOT 用封闭 enum 让未知值导致整体反序列化失败。
+
+**b. schema 内闭集枚举（closed enum）**——由 JSON Schema `enum` 关键词在 canonical schema 中承载的封闭值集：如 Event Envelope 的 `actor_kind`（`user` / `org` / `team` / `agent` / `service` / `integration`）、cursor 的 `purpose`（`stream` / `barrier`）。
+
+- 向闭集枚举新增值 MUST 伴随对应 schema 版本 bump（新 `ck.schema.*.v<n+1>`，并经 §6 的变更说明流程反映到 `conformance-profiles.json#profile_requirements` 的 `required_schemas`）。不允许"原地扩 enum、版本不动"。
+- 已发布旧实现对新值按 `schema_violation` 硬拒是**合规行为**，不是互操作缺陷；发起方在对端未声明新 schema 版本前 MUST NOT 发送新值（能力交集原则）。
+- 生成代码 MAY 用封闭 enum 类型（无 Unknown 兜底）表达闭集值；闭集枚举值导致的反序列化失败不违反 a 条的"未知值保留"义务——该义务只适用于开放注册集。
+
+**c. `status` 字段与新增 / 弃用纪律**——registry 条目 `status` 的当前值域为 `active`（标准条目，可产生、可按各 registry 规则接受；event-kind / schema registry 的全部条目现均为 `active`）与 `profile_extension`（仅在声明对应 profile 时有效；现用于 `id-kind-registry.json` 的 `special_forms`）。
+
+- 新增条目 MUST 以 `active`（或 `profile_extension`）登记进 canonical 真源（generated registry 一律经 `contract-catalog.json` → pipeline 再生成，见 §1）。
+- 弃用不删行：条目退出标准面时 MUST 将 `status` 置为 `deprecated` 并保留该行，保证历史 event / backfill 可解释。`deprecated` 条目 MUST NOT 用于新产生的 wire 写入；接收侧处置遵循各 registry 自身 `registry_rules`（例如 event-kind registry 规定 Events API / durable history / federation / reducer 只接受 `active` 条目——即 event kind 一旦 deprecated，新 admission 被拒绝；已 accepted 的历史事件不受追溯影响）。
+- 物理删除 registry 行只允许用于从未在任何发布版本出现过的条目。v1 当前没有 `deprecated` 条目；引入首个 `deprecated` 条目时 MUST 同步检查各消费方 lint / 生成器对该 status 值的处理。

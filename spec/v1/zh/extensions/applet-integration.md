@@ -436,6 +436,7 @@ Cokret Sync Service / Events API 向 Applet 推送事件批次。
 - 相同幂等 identity、相同 canonical body digest 且相同 `source_signature_anchor` 的重复投递 MUST 返回原 outcome 或等价成功，不得再次执行外部副作用。
 - 相同幂等 identity 但 canonical body digest、source / destination service DID 或 `source_signature_anchor` 任一不一致时 MUST fail closed；若认证先通过则返回 `duplicate_conflict`，若签名 / source 绑定先失败则返回 §7.3.1 的认证失败 reason。
 - 单事件级别仍以 `event_id` 去重；重复 `event_id` 且内容一致 MUST `accepted`，内容不一致 MUST 拒绝。
+- 幂等记录的保留窗口遵循 [`api-conventions.md` §6.1](../sync/api-conventions.md)：自记录创建起至少 24 小时，且不短于 §7.3.1 签名时效窗口加最大允许时钟偏移；本节不定义更短窗口。
 - Applet SHOULD 先持久化幂等记录，再执行外部副作用。
 - Applet MUST 验证 source service DID 和 HTTP message signature。
 - Applet MUST 独立验证 event signature，不得只信任推送方。

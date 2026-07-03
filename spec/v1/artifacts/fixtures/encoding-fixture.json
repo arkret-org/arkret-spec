@@ -1,7 +1,8 @@
 {
   "profile": "ck.profile.encoding_vectors.v1",
-  "version": "2026-05-06",
-  "description": "Machine-readable encoding & crypto vectors mirrored from zh/conformance/conformance-vectors.md §1.3-§1.12. Conformance runners MUST execute every vector and compare canonical_bytes / digest / order outputs. The crypto.ed25519_detached_jws vector lives separately in crypto-signature-fixture.json; the rank_order vector covers hex-Base32 rank string ordering (LIST item placement).",
+  "version": "2026-07-03",
+  "description": "Machine-readable encoding & crypto vectors mirrored from zh/conformance/conformance-vectors.md §1.3-§1.13. Conformance runners MUST execute every vector and compare canonical_bytes / digest / order outputs. The crypto.ed25519_detached_jws vector lives separately in crypto-signature-fixture.json; the rank_order vector covers hex-Base32 rank string ordering (LIST item placement).",
+  "generator_semantics": "Vectors of kind *_reject_generated carry a `generator` object instead of literal input bytes: the runner MUST construct the input at execution time from the generator parameters (e.g. nesting_depth, array_item_count) following the generator.rule text, so the fixture never stores megabyte-scale literals. Rejection is asserted exactly as for literal-input vectors.",
   "vectors": [
     {
       "vector_id": "ck.vector.encoding.canonical_json.basic.v1",
@@ -277,10 +278,10 @@
       "vector_id": "ck.vector.encoding.canonical_json.utf16_supplementary_order.v1",
       "kind": "canonical_json",
       "input": {
-        "??": 1,
-        "?": 2
+        "\ud83d\ude00": 1,
+        "\uffff": 2
       },
-      "expected_canonical_bytes_utf8": "{\"??\":1,\"?\":2}",
+      "expected_canonical_bytes_utf8": "{\"\ud83d\ude00\":1,\"\uffff\":2}",
       "rules": [
         "UTF-16 code-unit ordering places the supplementary-plane key before U+FFFF because its high surrogate 0xD83D sorts before 0xFFFF."
       ]
@@ -339,6 +340,168 @@
         "invalid_encoding",
         "invalid_canonical_json",
         "schema_violation"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.encoding.reject_structure_depth_exceeded.v1",
+      "kind": "canonical_json_reject_generated",
+      "generator": {
+        "kind": "deep_nesting",
+        "nesting_depth": 65,
+        "rule": "runner builds a JSON object nested 65 levels deep, e.g. {\"a\":{\"a\":{...{\"a\":1}...}}} where the top-level container counts as depth 1; a mixed object/array variant of the same depth MUST also reject"
+      },
+      "expected": "reject",
+      "rules": [
+        "canonical JSON / deterministic CBOR structure nesting depth MUST NOT exceed 64 (objects and arrays combined, top-level container = depth 1); see zh/conformance/scalability-constraints.md section 2",
+        "receiver MUST fail bounded before recursive descent can exhaust the stack (depth-bounded recursion or explicit worklist)",
+        "a control input of depth exactly 64 MUST be accepted (the limit is inclusive)"
+      ],
+      "rejection_reason_codes": [
+        "structure_depth_exceeded",
+        "schema_violation"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.encoding.reject_cbor_length_bomb.v1",
+      "kind": "cbor_reject_raw",
+      "input_hex": "5affffffffdeadbeef",
+      "expected": "reject",
+      "rules": [
+        "byte string header (0x5a, 4-byte length) declares 4294967295 bytes but only 4 bytes of input remain; declared length MUST be <= remaining input",
+        "decoder MUST reject before allocating any buffer sized from the declared length (capacity-bomb resistance)",
+        "applies to every hand-written deterministic CBOR structure, including the mls_governance_binding GroupContext extension"
+      ],
+      "rejection_reason_codes": [
+        "cbor_bounds_invalid",
+        "schema_violation"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.encoding.reject_cbor_indefinite_length.v1",
+      "kind": "cbor_reject_raw",
+      "input_hex": "bf616101ff",
+      "expected": "reject",
+      "rules": [
+        "input is the indefinite-length map {_ \"a\": 1} (0xbf ... 0xff); indefinite-length items (map 0xbf, array 0x9f, string 0x5f/0x7f) violate RFC 8949 section 4.2 deterministic encoding and MUST reject",
+        "receiver MUST NOT normalise indefinite-length items into definite-length form and continue",
+        "applies to every hand-written deterministic CBOR structure, including the mls_governance_binding GroupContext extension"
+      ],
+      "rejection_reason_codes": [
+        "cbor_not_deterministic",
+        "schema_violation"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.encoding.reject_cbor_array_bounds.v1",
+      "kind": "cbor_reject_generated",
+      "generator": {
+        "kind": "cbor_array_items",
+        "array_item_count": 65537,
+        "rule": "runner emits a definite-length CBOR array header declaring 65537 items followed by 65537 encodings of unsigned integer 0"
+      },
+      "expected": "reject",
+      "rules": [
+        "a single array or map in a hand-written deterministic CBOR structure MUST NOT declare or contain more than 65536 items; see zh/conformance/scalability-constraints.md section 2",
+        "decoder MUST NOT preallocate item storage from the declared count before the bound check"
+      ],
+      "rejection_reason_codes": [
+        "cbor_bounds_invalid",
+        "schema_violation"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.encoding.multibase_did_key.core.v1",
+      "kind": "multibase_did_key",
+      "description": "Golden vectors for the base58btc multibase encoding of Ed25519 public keys with the 0xed01 multicodec prefix and the resulting did:key identifier. Generated and round-trip verified (encode -> decode) by the reference implementation.",
+      "cases": [
+        {
+          "label": "all_0x2a",
+          "public_key_hex": "2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a",
+          "public_key_b64u": "KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio",
+          "multicodec_prefix_hex": "ed01",
+          "expected_multibase": "z6MkhHrTbtosB4xyyJM217fS4ry35F7JhZ5oA9uVHErBJDL5",
+          "expected_did_key": "did:key:z6MkhHrTbtosB4xyyJM217fS4ry35F7JhZ5oA9uVHErBJDL5"
+        },
+        {
+          "label": "all_0x00",
+          "public_key_hex": "0000000000000000000000000000000000000000000000000000000000000000",
+          "public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "multicodec_prefix_hex": "ed01",
+          "expected_multibase": "z6MkeTG3bFFSLYVU7VqhgZxqr6YzpaGrQtFMh1uvqGy1vDnP",
+          "expected_did_key": "did:key:z6MkeTG3bFFSLYVU7VqhgZxqr6YzpaGrQtFMh1uvqGy1vDnP"
+        },
+        {
+          "label": "fixed_sequential",
+          "public_key_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+          "public_key_b64u": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+          "multicodec_prefix_hex": "ed01",
+          "expected_multibase": "z6MkeTGwHmLmuCmgg4ABYhzWVh6ZX7hTwWt8gguAretUfc9c",
+          "expected_did_key": "did:key:z6MkeTGwHmLmuCmgg4ABYhzWVh6ZX7hTwWt8gguAretUfc9c"
+        }
+      ],
+      "rules": [
+        "multibase encoding MUST be base58btc with the leading 'z' prefix (multibase table)",
+        "the multicodec prefix for Ed25519 public keys MUST be the varint 0xed01, prepended to the 32 raw public key bytes before base58btc encoding",
+        "decode MUST round-trip to the original 32 public key bytes; a multibase string whose decoded payload is not exactly 34 bytes (2-byte multicodec prefix + 32 key bytes) or whose prefix is not 0xed01 MUST be rejected",
+        "did:key identifiers embed the multibase string verbatim: did:key:<multibase>"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.encoding.signature_binding_payload_domain.v1",
+      "kind": "canonical_json_digest",
+      "input": {
+        "event_digest": "sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
+        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
+        "created_at": "2026-04-26T00:00:00Z",
+        "domain": "sync.service.example"
+      },
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"created_at\":\"2026-04-26T00:00:00Z\",\"domain\":\"sync.service.example\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
+      "expected_digest": "sha256:05b9c24fac21638d3db0b6e79a1f2008e9bb4ae73afcc4762aba41d22a1f4bfc",
+      "rules": [
+        "base binding fields follow ck.vector.encoding.signature_binding_payload.v1 (event_digest, actor DID, verification_method, created_at)",
+        "cross-domain verification binds the target service domain via the optional domain field; the canonical bytes sort it between created_at and event_digest",
+        "absent optional fields MUST be omitted from the canonical binding object entirely; a null placeholder changes the canonical bytes and MUST NOT be emitted"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.encoding.signature_binding_payload_audience.v1",
+      "kind": "canonical_json_digest",
+      "input": {
+        "event_digest": "sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
+        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
+        "created_at": "2026-04-26T00:00:00Z",
+        "audience": "did:webvh:z6mkfixture:sync.example"
+      },
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"audience\":\"did:webvh:z6mkfixture:sync.example\",\"created_at\":\"2026-04-26T00:00:00Z\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
+      "expected_digest": "sha256:baa6c07823ca3b385cfd38448873bed609916ffc38f814303aeeaddf21e5ed75",
+      "rules": [
+        "base binding fields follow ck.vector.encoding.signature_binding_payload.v1 (event_digest, actor DID, verification_method, created_at)",
+        "audience-constrained verification binds a single audience DID via the optional audience field",
+        "absent optional fields MUST be omitted from the canonical binding object entirely; a null placeholder changes the canonical bytes and MUST NOT be emitted"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.encoding.signature_binding_payload_domain_audience.v1",
+      "kind": "canonical_json_digest",
+      "input": {
+        "event_digest": "sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777",
+        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "verification_method": "did:webvh:z6mkfixture:alice.example#device-1",
+        "created_at": "2026-04-26T00:00:00Z",
+        "domain": "sync.service.example",
+        "audience": [
+          "did:webvh:z6mkfixture:sync.example",
+          "did:webvh:z6mkfixture:media.example"
+        ]
+      },
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"audience\":[\"did:webvh:z6mkfixture:sync.example\",\"did:webvh:z6mkfixture:media.example\"],\"created_at\":\"2026-04-26T00:00:00Z\",\"domain\":\"sync.service.example\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
+      "expected_digest": "sha256:8b74c68d2c3e004a5f15672264c2d5987a75fceb26d09d4fcb54c1ce9fa526c9",
+      "rules": [
+        "base binding fields follow ck.vector.encoding.signature_binding_payload.v1 (event_digest, actor DID, verification_method, created_at)",
+        "domain and audience MAY be combined; audience MAY be an array of DIDs whose order is preserved verbatim in the canonical bytes",
+        "absent optional fields MUST be omitted from the canonical binding object entirely; a null placeholder changes the canonical bytes and MUST NOT be emitted"
       ]
     }
   ],

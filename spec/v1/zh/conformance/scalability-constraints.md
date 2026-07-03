@@ -3,7 +3,7 @@ title: Scalability Constraints
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-03
 ---
 
 ## 0. 规范语言
@@ -36,6 +36,9 @@ Cokret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | 同一 `(actor_id, actor_seq, prev_frontier_digest)` sibling fork 数 | 16 | 超过时 receiver MUST quarantine 或要求 actor chain repair；见 [event-and-patch.md](../models/event-and-patch.md) §2.6。 |
 | 单个 Relation / View / Morph `fields` canonical size | 256 KiB | 更大内容必须放入 Blob 或加密 payload。Morph `facets` map 与 `labels` 数组（[common-fields.md](../models/common-fields.md) §3.1）计入同一对象 256 KiB budget，不另设独立条数上限；见 [morph.md](../models/morph.md) §2。 |
 | 关系展开深度 | 32 | Projection executor / graph query MUST enforce，跨 Realm 引用必须按 Lazy Link 截断（Lazy Link 定义见 [glossary.md](../overview/glossary.md) "Lazy Link"）。 |
+| canonical JSON / deterministic CBOR 结构最大嵌套深度 | 64 | 适用于进入 canonical bytes 的任何 JSON / CBOR 结构（Event / Operation envelope、payload、`fields`，以及 `mls_governance_binding` 等手写 deterministic CBOR 结构）；object 与 array 混合计深，顶层容器深度为 1，深度 64 的输入 MUST 被接受（上限含边界）。超过时 MUST reject（`schema_violation`，`reason_code=structure_depth_exceeded`），MUST NOT 截断或部分解析后继续处理；实现的递归下降 MUST 有深度界或改用显式 worklist，不得依赖栈耗尽崩溃兜底。负例见 [conformance-vectors.md](./conformance-vectors.md) §1.12.1。 |
+| 手写 deterministic CBOR 结构单个 array / map 项数 | 65,536 | 适用于 `mls_governance_binding`（[encryption-and-audit.md](../crypto-media/encryption-and-audit.md) §2.5.3）等不经 JSON schema 校验的手写 deterministic CBOR 结构。单个 array 或 map 声明或实际项数超过 65,536 时 decoder MUST reject（`schema_violation`，`reason_code=cbor_bounds_invalid`），且 MUST NOT 依据声明项数在校验前预分配内存。 |
+| 手写 CBOR 声明长度自洽性 | 声明长度 ≤ 剩余输入 | CBOR string / byte string / array / map 头部声明的长度或项数 MUST ≤ 实际剩余输入可满足的量；违反时 decoder MUST 在按声明长度分配缓冲区之前 reject（`schema_violation`，`reason_code=cbor_bounds_invalid`）。indefinite-length 项（map `0xbf` / array `0x9f` / string `0x5f`、`0x7f`）违反 deterministic encoding（RFC 8949 §4.2），MUST reject（`schema_violation`，`reason_code=cbor_not_deterministic`），不得归一化后接受。负例见 [conformance-vectors.md](./conformance-vectors.md) §1.12.1。 |
 | 单 actor 每毫秒 HLC 生成事件数 | 65,536（HLC logical 4 hex 段上限） | HLC wire 形态为 `<unix_ms_hex_12>-<logical_hex_4>-<node_id_hash_8>`，logical 段为 16-bit；同一 actor 在同一 ms 内最多分配 65,536 个 logical 值（`0x0000`–`0xFFFF`，即 0..65535），第 65,537 个 event 触发 HLC logical 段饱和，producer MUST 等待至下一 ms 再生成或返回本地错误 `hlc_logical_overflow`，MUST NOT wrap 或复用相同 HLC。HLC 仅作为时间线 advisory tie-breaker，不参与授权或状态收敛——饱和不影响协议正确性，只影响展示排序。[^hlc-throughput] [^hlc-logical-width] |
 | 单 actor 持续吞吐建议 | ≤ 100,000 events/min | Producer SHOULD 在生产侧自我限速，避免在突发情况下饱和 HLC logical 段或下游 reducer。超过该建议持续吞吐时，actor SHOULD 拆分为多 device / 多 actor 并行，或考虑使用 batch event。 |
 | HLC `hard_future_skew_ms`（硬 future drift 上限） | 300,000 ms（5 分钟） | 见 [encoding.md](./encoding.md) §7.2。HLC `unix_ms` 超本地时钟该阈值时 receiver MUST reject / quarantine。该校验是 envelope freshness / DoS guard，非授权、Lattice winner、Control Move precondition 或 Seal finality 输入。 |
@@ -136,7 +139,7 @@ Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一
 | KeyPackage claim 限速 | 60 seconds 内最多 5 次 / `(requester_service_did, target_principal_id)` | 超过限额时对外仍使用反枚举响应（`claim_failed` 或通用 rate-limited envelope），不得泄露目标存在性；服务端内部审计 reason 记录为 `keypackage_claim_rate_limited`。 |
 | 单次 to-device page | 1,000 | 服务端 MUST enforce。 |
 | 分块流式 AEAD 附件 `segment_size` 取值范围 | 1 KiB（1,024）– 8 MiB（8,388,608），默认 256 KiB（262,144） | 见 [media-and-blob.md](../crypto-media/media-and-blob.md) §3.3。超出范围 MUST reject（`schema_violation`）；`segment_size` 越界或与 `segment_count`、`size_bytes` 不自洽时接收方 MUST fail closed。 |
-| 分块流式 AEAD 附件 `segment_count` 上限 | 1,048,576（2^20） | 见 [media-and-blob.md](../crypto-media/media-and-blob.md) §3.3。`segment_index` 为 `u32`（硬上界 2^32），但 v1 wire 互操作上限为 2^20；超过时 MUST reject（`schema_violation`）。`segment_count` MUST 等于 `ceil(size_bytes_plaintext / segment_size)` 并与实际段数一致，否则接收方 MUST 拒绝（`segment_bounds_invalid` / `segment_sequence_invalid`）。 |
+| 分块流式 AEAD 附件 `segment_count` 上限 | 1,048,576（2^20） | 见 [media-and-blob.md](../crypto-media/media-and-blob.md) §3.3。`segment_index` 为 `u32`（硬上界 2^32），但 v1 wire 互操作上限为 2^20；超过时 MUST reject（`schema_violation`）。`segment_count` MUST 等于 `ceil(size_bytes_plaintext / segment_size)` 并与实际段数一致，否则接收方 MUST 拒绝（`segment_bounds_invalid` / `segment_sequence_invalid`）。声明字段越界 / 不自洽负例见 [conformance-vectors.md](./conformance-vectors.md) §16.5（`ck.vector.blob.stream_aead_bounds_rejected.v1`）。 |
 
 ### 6.1 身份、邀请与推送隐私窗口
 

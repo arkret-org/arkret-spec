@@ -1,7 +1,8 @@
 {
   "suite": "event_envelope_negative",
   "profile": "ck.profile.core_event_store.v1",
-  "version": "2026-05-02",
+  "version": "2026-07-03",
+  "notes": "Cases whose input carries a `generator` object instead of a literal event are constructed by the runner at execution time: starting from the embedded `base_event`, the runner applies the generator rule (e.g. inflating one field, key, or value until the canonical envelope reaches `target_canonical_bytes`) and then submits the generated envelope. This keeps megabyte-scale adversarial payloads out of the fixture file while keeping the reject assertion executable. Size limits are defined in zh/conformance/scalability-constraints.md section 2 (1 MiB = 1048576 bytes canonical envelope cap).",
   "cases": [
     {
       "name": "reject_bare_event_kind",
@@ -487,6 +488,144 @@
         "decision": "reject",
         "error_code": "schema_violation",
         "reason": "ephemeral_event MUST NOT be inserted into durable Event history"
+      }
+    },
+    {
+      "name": "reject_oversize_envelope_canonical_bytes",
+      "input": {
+        "generator": {
+          "kind": "oversize_envelope",
+          "target_canonical_bytes": 1048577,
+          "filler_json_pointer": "/payload/content/body",
+          "filler_char": "a",
+          "rule": "runner repeats filler_char at filler_json_pointer until the canonical envelope byte length reaches target_canonical_bytes (1 MiB + 1)",
+          "base_event": {
+            "event_id": "ck:event:019a6b50-0000-7000-8000-000000000000",
+            "kind": "ck.message.create",
+            "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
+            "actor_id": "did:webvh:z6mkfixture:alice.example",
+            "actor_seq": 16,
+            "created_at": "2026-05-02T00:00:08Z",
+            "hlc": "01970e589d29-0001-a13f9c2e",
+            "prev_refs": [
+              "ck:event:019a6ae0-0000-7000-8000-000000000000"
+            ],
+            "refs": [
+              {
+                "id": "ck:event:5139099c-b114-7e4c-8149-a8048971a269",
+                "role": "authorized_by",
+                "critical": true
+              }
+            ],
+            "payload": {
+              "strand_id": "ck:strand:019a7140-0000-7000-8000-000000000000",
+              "content": {
+                "kind": "ck.content.text",
+                "body": ""
+              }
+            },
+            "proofs": []
+          }
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "payload_too_large",
+        "limit": "canonical Event / Operation envelope <= 1048576 bytes (1 MiB)",
+        "must_not_enter_reducer": true,
+        "reason": "receiver MUST enforce the envelope byte cap before canonicalisation completes buffering unbounded input; large content belongs in a Blob"
+      }
+    },
+    {
+      "name": "reject_oversize_object_key",
+      "input": {
+        "generator": {
+          "kind": "long_object_key",
+          "target_canonical_bytes": 1048577,
+          "filler_json_pointer": "/payload/content",
+          "filler_char": "k",
+          "rule": "runner inserts into the object at filler_json_pointer a member whose KEY is filler_char repeated until the canonical envelope byte length reaches target_canonical_bytes; the member value is the integer 1",
+          "base_event": {
+            "event_id": "ck:event:019a6b60-0000-7000-8000-000000000000",
+            "kind": "ck.message.create",
+            "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
+            "actor_id": "did:webvh:z6mkfixture:alice.example",
+            "actor_seq": 17,
+            "created_at": "2026-05-02T00:00:09Z",
+            "hlc": "01970e589d2a-0001-a13f9c2e",
+            "prev_refs": [
+              "ck:event:019a6ae0-0000-7000-8000-000000000000"
+            ],
+            "refs": [
+              {
+                "id": "ck:event:5139099c-b114-7e4c-8149-a8048971a269",
+                "role": "authorized_by",
+                "critical": true
+              }
+            ],
+            "payload": {
+              "strand_id": "ck:strand:019a7140-0000-7000-8000-000000000000",
+              "content": {
+                "kind": "ck.content.text",
+                "body": "oversized key host"
+              }
+            },
+            "proofs": []
+          }
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "payload_too_large",
+        "limit": "canonical Event / Operation envelope <= 1048576 bytes (1 MiB)",
+        "must_not_enter_reducer": true,
+        "reason": "object KEY bytes count toward the canonical envelope cap exactly like value bytes; receiver MUST NOT truncate or intern the key and continue"
+      }
+    },
+    {
+      "name": "reject_oversize_string_value",
+      "input": {
+        "generator": {
+          "kind": "long_string_value",
+          "target_canonical_bytes": 1048577,
+          "filler_json_pointer": "/payload/content/body",
+          "filler_char": "s",
+          "rule": "runner replaces the string at filler_json_pointer with filler_char repeated until the canonical envelope byte length reaches target_canonical_bytes",
+          "base_event": {
+            "event_id": "ck:event:019a6b70-0000-7000-8000-000000000000",
+            "kind": "ck.message.create",
+            "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
+            "actor_id": "did:webvh:z6mkfixture:alice.example",
+            "actor_seq": 18,
+            "created_at": "2026-05-02T00:00:10Z",
+            "hlc": "01970e589d2b-0001-a13f9c2e",
+            "prev_refs": [
+              "ck:event:019a6ae0-0000-7000-8000-000000000000"
+            ],
+            "refs": [
+              {
+                "id": "ck:event:5139099c-b114-7e4c-8149-a8048971a269",
+                "role": "authorized_by",
+                "critical": true
+              }
+            ],
+            "payload": {
+              "strand_id": "ck:strand:019a7140-0000-7000-8000-000000000000",
+              "content": {
+                "kind": "ck.content.text",
+                "body": ""
+              }
+            },
+            "proofs": []
+          }
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "payload_too_large",
+        "limit": "canonical Event / Operation envelope <= 1048576 bytes (1 MiB)",
+        "must_not_enter_reducer": true,
+        "reason": "a single oversized string value MUST trip the envelope cap; streaming parsers MUST bound string buffering instead of accumulating the full value first"
       }
     }
   ]

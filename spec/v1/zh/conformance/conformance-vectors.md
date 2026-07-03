@@ -445,6 +445,22 @@ sha256:d94c02b84f5805afb06cecbb6b2ff489b5675bc6989102ea72643536af17e4bc
 - 需要跨服务或跨域验证时，profile SHOULD 额外绑定 domain / audience。
 - 签名算法测试向量由本文件第 13 节的 crypto fixture 要求补充真实 public key 和 detached JWS；本文固定签名前 canonical binding 输入。
 
+### 1.8.1 Vector: Signature Binding Payload domain / audience 变体
+
+`vector_id`:
+
+- `ck.vector.encoding.signature_binding_payload_domain.v1`
+- `ck.vector.encoding.signature_binding_payload_audience.v1`
+- `ck.vector.encoding.signature_binding_payload_domain_audience.v1`
+
+§1.8 的 base binding object 只含四个必备字段。跨服务 / 跨域验证 SHOULD 追加可选的 `domain` 或 `audience` 绑定；本组向量固化这两个可选字段进入 canonical binding bytes 的字节形态（来源：`encoding-fixture.json`，由参考实现实跑生成并 round-trip 自验）：
+
+- `domain` 为字符串，按 canonical JSON 键序排在 `created_at` 与 `event_digest` 之间；
+- `audience` 可为单个 DID 字符串或 DID 数组；数组语义为"面向多个受众服务"，元素顺序在 canonical bytes 中逐字保留；
+- 缺省的可选字段 MUST 从 binding object 中整体省略——写入 `null` 占位会改变 canonical bytes，MUST NOT 出现。
+
+Expected：三个向量的 `expected_canonical_bytes_utf8` 与 `expected_digest` MUST byte-for-byte 复现。
+
 ### 1.9 Vector: HLC Order
 
 向量名称：
@@ -608,6 +624,28 @@ sha256:fa4d70fb617f745133f88062dace64f909c370027191f6f8c04b143c3258a4a8
 - 实现 MUST NOT hash 明文 payload。
 - 实现 MUST NOT 省略路由和解密所需的 `payload_metadata` 字段，否则 Sync Service 无法安全去重和审计密文 envelope。
 
+### 1.12.1 Vector: 畸形二进制 Payload 拒绝（结构深度 / CBOR bounds）
+
+本节固化 [scalability-constraints.md](./scalability-constraints.md) §2 的 canonical 结构嵌套深度上限（64）与手写 deterministic CBOR 的 decode bounds（单 array / map ≤ 65,536 项；声明长度 MUST ≤ 剩余输入；indefinite-length 项拒绝）。机器可读向量在 [`encoding-fixture.json`](../../artifacts/fixtures/encoding-fixture.json)；体量型输入（深嵌套、超大数组）用 **generator 描述字段**表达，runner MUST 按 generator 规则在执行时构造输入，fixture 本身不存放兆级字面量。
+
+向量名称：
+
+```text
+ck.vector.encoding.reject_structure_depth_exceeded.v1
+ck.vector.encoding.reject_cbor_length_bomb.v1
+ck.vector.encoding.reject_cbor_indefinite_length.v1
+ck.vector.encoding.reject_cbor_array_bounds.v1
+```
+
+判定规则：
+
+- **`reject_structure_depth_exceeded`**（generator：`nesting_depth = 65`）：runner 构造嵌套 65 层的 JSON 对象（object 与 array 混合计深，顶层容器深度为 1）。canonicalizer / receiver MUST reject（`schema_violation`，`reason_code=structure_depth_exceeded`），且 MUST 在递归耗尽栈之前有界地失败；深度恰为 64 的对照输入 MUST 被接受（上限含边界）。
+- **`reject_cbor_length_bomb`**（raw bytes `5affffffffdeadbeef`）：byte string 头声明 4,294,967,295 字节但剩余输入只有 4 字节。decoder MUST 在按声明长度分配缓冲区之前 reject（`schema_violation`，`reason_code=cbor_bounds_invalid`）。
+- **`reject_cbor_indefinite_length`**（raw bytes `bf616101ff`，即 indefinite-length map `{_ "a": 1}`）：indefinite-length 项违反 deterministic encoding（RFC 8949 §4.2），MUST reject（`schema_violation`，`reason_code=cbor_not_deterministic`）；SDK 已在 `mls_governance_binding` 解码路径拒绝，本向量将其锁定为跨实现 MUST。
+- **`reject_cbor_array_bounds`**（generator：`array_item_count = 65537`）：runner 构造声明并携带 65,537 个项的 definite-length CBOR array。decoder MUST reject（`schema_violation`，`reason_code=cbor_bounds_invalid`），且 MUST NOT 在 bound 校验前按声明项数预分配存储。
+- CBOR 向量适用于一切手写 deterministic CBOR 结构，包括 `mls_governance_binding` GroupContext extension（[encryption-and-audit.md](../crypto-media/encryption-and-audit.md) §2.5.3）。
+- 超 1 MiB envelope、超长 object key / string value 的 generator 负例见 [`event-envelope-negative-fixture.json`](../../artifacts/fixtures/event-envelope-negative-fixture.json)（`payload_too_large`）。
+
 ### 1.13 覆盖矩阵
 
 | 向量 | Minimal Client | Full Client | E2EE Client | Events API | Principal Server |
@@ -628,6 +666,18 @@ sha256:fa4d70fb617f745133f88062dace64f909c370027191f6f8c04b143c3258a4a8
 | `ck.vector.encoding.reject_malformed_hlc.v1` | MUST | MUST | MUST | MUST | SHOULD |
 | `ck.vector.encoding.cursor_opaque.core.v1` | MUST | MUST | MUST | MAY | SHOULD |
 | `ck.vector.encoding.encrypted_envelope_digest.v1` | MAY | SHOULD | MUST | MAY | MUST |
+| `ck.vector.encoding.reject_structure_depth_exceeded.v1` | MUST | MUST | MUST | MUST | MUST |
+| `ck.vector.encoding.reject_cbor_length_bomb.v1` | MAY | SHOULD | MUST | MAY | MUST |
+| `ck.vector.encoding.reject_cbor_indefinite_length.v1` | MAY | SHOULD | MUST | MAY | MUST |
+| `ck.vector.encoding.reject_cbor_array_bounds.v1` | MAY | SHOULD | MUST | MAY | MUST |
+| `ck.vector.encoding.signature_binding_payload_domain.v1` | SHOULD | SHOULD | SHOULD | MUST | MUST |
+| `ck.vector.encoding.signature_binding_payload_audience.v1` | SHOULD | SHOULD | SHOULD | MUST | MUST |
+| `ck.vector.encoding.signature_binding_payload_domain_audience.v1` | SHOULD | SHOULD | SHOULD | MUST | MUST |
+| `ck.vector.encoding.crypto.es256_detached_jws.v1` | MAY | MAY | MAY | MAY | MAY |
+| `ck.vector.encoding.crypto.mldsa65_raw_detached_signature.v1` | MAY | MAY | MAY | MAY | MAY |
+| `ck.vector.encoding.crypto.signature_negative.v1` | MUST | MUST | MUST | MUST | MUST |
+| `ck.vector.encoding.reject_invalid_cursor.core.v1` | MAY | MAY | MAY | MUST | MUST |
+| `ck.vector.encoding.multibase_did_key.core.v1` | SHOULD | SHOULD | MUST | MUST | MUST |
 
 ### 1.14 Crypto Fixture 要求
 
@@ -638,12 +688,28 @@ sha256:fa4d70fb617f745133f88062dace64f909c370027191f6f8c04b143c3258a4a8
 - DID Document verification method
 - canonical Event payload、`event_digest`、proof binding object、detached JWS signing input 和 expected rejection 条件
 
+fixture 同时固化以下向量（2026-07-03 起）：
+
+- `ck.vector.encoding.crypto.es256_detached_jws.v1` — ES256（ECDSA P-256，RFC 6979 确定性签名）detached JWS 正向量；由 `ck.profile.signature.ecdsa_p256.v1` 门控，声明该 profile 的实现 MUST 通过。
+- `ck.vector.encoding.crypto.mldsa65_raw_detached_signature.v1` — ML-DSA-65（NIST FIPS 204）raw detached signature 正向量（registry `proof_kind = raw_detached_signature`，无 JOSE 包装）；由 `ck.profile.signature.pqc.v1` 门控。
+- `ck.vector.encoding.crypto.signature_negative.v1` — 可执行负向量组：坏签名（位翻转）、`alg=none`、alg 与解析出的密钥类型错配、截断公钥、detached JWS payload 段非空。所有做签名验证的实现 MUST 逐条拒绝，且拒绝原因 MUST 来自 fixture 声明的稳定错误码。
+
 后续 conformance suite 仍应增加扩展 fixture：
 
 - key rotation 后的 signature verification
 - redaction 前后 event digest 验证
 
 测试私钥只能用于公开测试向量，不得被任何生产实现信任。生产 profile MUST 拒绝测试 DID、测试 key id 或测试 trust domain。
+
+### 1.14.1 HPKE Suite Fixture 要求
+
+自动化 conformance suite MUST 加载 `spec/v1/artifacts/fixtures/hpke-suite-fixture.json`。该 fixture 为 `hpke-suite-registry.json` 中与 RFC 9180 组合完全一致的 suite 固化 Base mode（`SetupBaseS` / `SetupBaseR`）字节级已知答案向量：
+
+- `ck.vector.hpke.x25519_chacha20poly1305_base.v1`
+- `ck.vector.hpke.x25519_aes256gcm_base.v1`
+- `ck.vector.hpke.p256_aes256gcm_base.v1`
+
+每条向量含 KEM 密钥材料、`enc`、`shared_secret`、key schedule 输出与首条密文；实现 MUST byte-for-byte 复现，负例（篡改密文、未注册 suite id）MUST fail closed。含 XChaCha20-Poly1305 的 suite 不在 RFC 9180 AEAD 注册表内，其 key-schedule 参数（`aead_id`、`Nk`/`Nn`）尚未在正文钉死，fixture 的 `uncovered_suites` 如实登记该缺口；在参数定案前 MUST NOT 为其杜撰向量。
 
 ### 1.15 Cross-Domain Vector Seals
 
@@ -657,6 +723,22 @@ sha256:fa4d70fb617f745133f88062dace64f909c370027191f6f8c04b143c3258a4a8
 - `ck.vector.lattice.ordered_log_join.v1`
 - `ck.vector.circle.directory_visibility_realm_members_indistinguishable.v1`
 - `ck.vector.calendar.rsvp_occurrence_key.v1`
+
+### 1.16 Vector: Cursor 拒绝负例
+
+`vector_id`: `ck.vector.encoding.reject_invalid_cursor.core.v1`（来源：`cursor-negative-fixture.json`）
+
+§1.11 固化 cursor 对客户端的不透明性；本向量固化签发服务侧的拒绝语义。fixture 的每个 case 是一条形似合法的 `ck:cursor:` token，conformant 签发服务在推进任何服务端状态之前 MUST 拒绝：超长 token、非法 base64url、畸形 JSON、重复键、非 NFC 字符串、内联 positions、未知字段、不支持的版本、过短 handle、非 canonical 时间戳、负 TTL、超 TTL 上限（stream / barrier 各一）、已过期。
+
+Expected：前 13 类 `reason_code = invalid_cursor`（顶层错误码 `invalid_param`），过期 case `reason_code = cursor_expired`；客户端侧行为仍按 §1.11——decode 失败时按不透明字符串处理，MUST NOT 因此中断协议。
+
+### 1.17 Vector: Multibase did:key 编码
+
+`vector_id`: `ck.vector.encoding.multibase_did_key.core.v1`（来源：`encoding-fixture.json`）
+
+固化 Ed25519 公钥的 base58btc multibase 编码（含 `0xed01` multicodec 前缀）与 `did:key` 标识符的金向量，为联邦验签与设备密钥目录的公共编码面提供跨实现锚点。cases 覆盖 all-0x2A、all-0x00 边界与固定顺序字节三组公钥。
+
+Expected：`expected_multibase` / `expected_did_key` MUST byte-for-byte 复现；decode MUST round-trip 回原始 32 字节公钥，前缀非 `0xed01` 或长度非 34 字节 MUST 拒绝。
 
 ## 2. CBA · Lattice Vectors
 
@@ -3961,6 +4043,16 @@ Expected：
 - 对照正样本：Argon2id `memory_kib >= 65536` 且 `iterations >= 3` 且 `parallelism >= 1` 的 envelope，以及 `iterations >= 600000`、合法 `digest_algorithm` 且声明 `degraded_profile_reason` 的 PBKDF2 envelope MUST accept。
 - Argon2id 可用时新建 envelope MUST NOT 默认选择 PBKDF2；未知 `encryption.kdf.name` MUST fail closed，不得回退到默认。
 
+### 15.6.1 Vector: Passphrase KDF → AEAD 端到端 KAT
+
+`vector_id`: `ck.vector.key_backup.passphrase_kdf_kat.v1`（来源：`key-backup-hardening-fixture.json` `passphrase_kdf_kat` case）
+
+本向量固化 [`key-management.md`](../identity/key-management.md) §7.2 passphrase_kdf 路径的端到端字节链：Argon2id（固定参数 + 固定盐）→ HKDF-SHA256 子密钥（aead / nonce / commitment，per-backup_class 域分隔）→ canonical nonce transcript 的确定性 XChaCha20-Poly1305 nonce → ciphertext、`ciphertext_digest` 与 `key_commitment`。这是跨设备 / 跨实现解锁互操作的生死线：任一中间值漂移都会造成"备份永远解不开"。
+
+Steps：按 `kat_cases` 的 input（passphrase、Argon2id 参数与盐、binding、nonce_salt、明文）逐级派生，与 intermediate（root key、三个 HKDF 子密钥、canonical nonce transcript、AAD）及 expected（nonce、ciphertext、digest、commitment）比对。
+
+Expected：所有中间值与输出 MUST byte-for-byte 复现；固定盐 / 参数仅限测试向量，生产实现 MUST 使用新鲜随机盐。
+
 ### 15.7 Vector: Federation Ingress 鉴权失败 Timing Bucket
 
 `vector_id`: `ck.vector.federation.timing_bucket.v1`
@@ -4076,6 +4168,25 @@ Expected：
 - **Case A**：接收方 MUST fail closed，返回 `unsupported_attachment_scheme`，MUST NOT 回退到 `ck.blob.whole_file_aead.v1` 或任何其它形态尝试解密。
 - **Case B**：schema 校验 MUST 失败（`oneOf` 两个分支互斥，同时含 `nonce` 与 `nonce_prefix` / `segment_*` 不命中任一分支）；接收方 MUST 拒绝该 envelope，不得择一形态解释。
 - 对照：缺省 `scheme` 时 MUST 按 `ck.blob.whole_file_aead.v1`（整文件形态、单 `nonce`）解释（§3.2 current default rule），不属于本反例。
+
+### 16.5 Vector: Streaming AEAD Declared Bounds Rejected
+
+`vector_id`: `ck.vector.blob.stream_aead_bounds_rejected.v1`
+
+本向量固化 [scalability-constraints.md](./scalability-constraints.md) §6 的 segment 声明上限 MUST：`segment_size` ∈ [1 KiB（1,024）, 8 MiB（8,388,608）]、`segment_count` ≤ 2^20（1,048,576），且 `segment_count` MUST 等于 `ceil(size_bytes / segment_size)`；越界或不自洽的 envelope MUST 在密钥派生 / 任何 segment 下载开始之前 reject / fail closed。所有 case 均为**声明字段负例**：判定只依据 envelope 声明的 `segment_size` / `segment_count` / `size_bytes` 数值本身，runner MUST NOT 真实构造对应体量的明文或密文。
+
+Steps：
+
+- **Case A — `segment_count` 超上限**：envelope 声明 `segment_count = 1048577`（2^20 + 1），`segment_size = 262144`，`size_bytes` 与二者自洽。
+- **Case B1 — `segment_size` 低于下限**：envelope 声明 `segment_size = 1023`（< 1 KiB）。
+- **Case B2 — `segment_size` 高于上限**：envelope 声明 `segment_size = 8388609`（> 8 MiB）。
+- **Case C — `segment_count` 与 `size_bytes` 不自洽**：envelope 声明 `segment_size = 262144`、`segment_count = 4`，但 `size_bytes = 2621440`（需要 `ceil(2621440 / 262144) = 10` 段）。
+
+Expected：
+
+- **Case A / B1 / B2**：MUST reject（`schema_violation`，`reason_code=segment_bounds_invalid`）；Case B1 / B2 亦不满足 [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json) 已声明的 `segment_size` `minimum` / `maximum`。
+- **Case C**：接收方 MUST fail closed（`schema_violation`，`reason_code=segment_bounds_invalid`）；不得先按声明值开始下载再在流中途发现不符。
+- 全部 case 中接收方 MUST NOT 依据未经校验的声明值预分配缓冲区、下载计划或段索引表；拒绝 MUST 发生在密钥派生与首段获取之前。
 
 ## 17. Last-Resort KeyPackage Vectors
 

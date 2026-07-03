@@ -181,6 +181,16 @@
       ]
     },
     {
+      "vector_id": "ck.vector.blob.stream_aead_bounds_rejected.v1",
+      "status": "active",
+      "domain": "blob",
+      "description": "Streaming AEAD declared-bounds negatives (declared fields only, no multi-MiB payload materialised): segment_count above 2^20, segment_size below 1 KiB or above 8 MiB, and segment_count inconsistent with ceil(size_bytes / segment_size) MUST all be rejected fail-closed (schema_violation, reason_code segment_bounds_invalid) before key derivation or any segment download.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/blob-stream-aead-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ck.vector.capability.approval_constraint.v1",
       "status": "active",
       "domain": "capability",
@@ -742,11 +752,56 @@
       ]
     },
     {
+      "vector_id": "ck.vector.encoding.crypto.es256_detached_jws.v1",
+      "status": "active",
+      "domain": "encoding",
+      "applies_to_profiles": [
+        "ck.profile.signature.ecdsa_p256.v1"
+      ],
+      "description": "ECDSA P-256 (ES256, RFC 6979 deterministic) detached JWS golden vector over the canonical proof binding object, mirroring the ed25519 vector structure for the optional interop signature suite.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.encoding.crypto.mldsa65_raw_detached_signature.v1",
+      "status": "active",
+      "domain": "encoding",
+      "applies_to_profiles": [
+        "ck.profile.signature.pqc.v1"
+      ],
+      "description": "ML-DSA-65 (FIPS 204) raw detached signature golden vector over the canonical proof binding object bytes (registry proof_kind raw_detached_signature; keygen from a recorded xi seed, signature published as a recorded value that verifiers only verify).",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.encoding.crypto.signature_negative.v1",
+      "status": "active",
+      "domain": "encoding",
+      "description": "Executable signature negative family: bit-flipped signature, alg=none, alg/key-type mismatch (ES256 header resolving to an Ed25519 key), truncated public key, and a non-empty detached-JWS payload segment that still verifies in attached form; every case MUST be rejected with the recorded error_code.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ck.vector.encoding.cursor_opaque.core.v1",
       "status": "active",
       "domain": "encoding",
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.encoding.reject_invalid_cursor.core.v1",
+      "status": "active",
+      "domain": "encoding",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/cursor-negative-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
@@ -793,6 +848,36 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.encoding.reject_cbor_array_bounds.v1",
+      "status": "active",
+      "domain": "encoding",
+      "description": "Hand-written deterministic CBOR bounds: a definite-length array declaring/carrying 65537 items (generator-described, built by the runner) exceeds the v1 cap of 65536 items per array/map and MUST be rejected (reason_code cbor_bounds_invalid) without preallocating from the declared count.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/encoding-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.encoding.reject_cbor_indefinite_length.v1",
+      "status": "active",
+      "domain": "encoding",
+      "description": "CBOR indefinite-length item (raw bytes bf616101ff, the indefinite-length map {_ \"a\": 1}) violates RFC 8949 section 4.2 deterministic encoding and MUST be rejected (reason_code cbor_not_deterministic); locks the SDK's existing indefinite-length rejection on the mls_governance_binding decode path.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/encoding-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.encoding.reject_cbor_length_bomb.v1",
+      "status": "active",
+      "domain": "encoding",
+      "description": "CBOR capacity bomb: a byte string header declaring 4294967295 bytes with only 4 bytes of remaining input (raw bytes 5affffffffdeadbeef) MUST be rejected (reason_code cbor_bounds_invalid) before any buffer is allocated from the declared length.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]
     },
     {
@@ -850,7 +935,44 @@
       ]
     },
     {
+      "vector_id": "ck.vector.encoding.reject_structure_depth_exceeded.v1",
+      "status": "active",
+      "domain": "encoding",
+      "description": "Canonical structure depth cap: a JSON object nested 65 levels deep (generator-described, built by the runner; top-level container = depth 1) exceeds the v1 maximum nesting depth of 64 (objects and arrays combined) and MUST be rejected (reason_code structure_depth_exceeded) with bounded recursion; a depth-64 control input MUST be accepted.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/encoding-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ck.vector.encoding.signature_binding_payload.v1",
+      "status": "active",
+      "domain": "encoding",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/encoding-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.encoding.signature_binding_payload_domain.v1",
+      "status": "active",
+      "domain": "encoding",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/encoding-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.encoding.signature_binding_payload_audience.v1",
+      "status": "active",
+      "domain": "encoding",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/encoding-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.encoding.signature_binding_payload_domain_audience.v1",
       "status": "active",
       "domain": "encoding",
       "source_refs": [
@@ -921,6 +1043,39 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.hpke.x25519_chacha20poly1305_base.v1",
+      "status": "active",
+      "domain": "hpke",
+      "description": "RFC 9180 base-mode byte-level KAT for ck.hpke_x25519_aead_chacha20poly1305.v1 (DHKEM(X25519, HKDF-SHA256) / HKDF-SHA256 / ChaCha20-Poly1305): DeriveKeyPair, encap, key-schedule intermediates, seq-0/1 ciphertexts and export values MUST reproduce byte-for-byte.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.hpke.x25519_aes256gcm_base.v1",
+      "status": "active",
+      "domain": "hpke",
+      "description": "RFC 9180 base-mode byte-level KAT for ck.hpke_x25519_aead_aes256gcm.v1 (DHKEM(X25519, HKDF-SHA256) / HKDF-SHA256 / AES-256-GCM): DeriveKeyPair, encap, key-schedule intermediates, seq-0/1 ciphertexts and export values MUST reproduce byte-for-byte.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.hpke.p256_aes256gcm_base.v1",
+      "status": "active",
+      "domain": "hpke",
+      "applies_to_profiles": [
+        "ck.profile.hpke.p256.v1"
+      ],
+      "description": "RFC 9180 base-mode byte-level KAT for ck.hpke_p256_aead_aes256gcm.v1 (DHKEM(P-256, HKDF-SHA256) / HKDF-SHA256 / AES-256-GCM, profile-gated interop suite): DeriveKeyPair, encap, key-schedule intermediates, seq-0/1 ciphertexts and export values MUST reproduce byte-for-byte.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
@@ -1008,6 +1163,15 @@
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.key_backup.passphrase_kdf_kat.v1",
+      "status": "active",
+      "domain": "key_backup",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
@@ -1857,6 +2021,15 @@
       "description": "Canonical JSON object key ordering follows UTF-16 code units for supplementary-plane keys.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.encoding.multibase_did_key.core.v1",
+      "status": "active",
+      "domain": "encoding",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/encoding-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {

@@ -103,7 +103,7 @@ HTTP method 不是 operation action 的来源：同一 `query.scan` 语义可以
 HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id` 的最后一个词：
 
 - `GET` / `HEAD`：只读、无 server-side mutation；可用 path/query 定位资源、projection 或分页读取位置。读取 cursor 不得触发队列删除或 ack。
-- `POST`：提交 command、batch、proof、搜索/复杂查询 body、入队、fanout、创建服务端分配 id 的资源，或执行由签名/admission 决定效果的操作。写请求使用 `POST` 时仍 MUST 通过 `Idempotency-Key`、对象 id、request id、canonical hash 或 protocol sequence 提供幂等/重放语义。
+- `POST`：提交 command、batch、proof、搜索/复杂查询 body、入队、fanout、创建服务端分配 id 的资源，或执行由签名/admission 决定效果的操作。写请求使用 `POST` 时仍 MUST 通过 `Idempotency-Key`、对象 id、request id、canonical hash 或 protocol sequence 提供幂等/重放语义。每个 operation 具体采用哪种机制、以及是否可安全全量重试，以 [`operation-registry.json`](../../artifacts/registry/operation-registry.json) 的 `idempotency_mechanism` / `retry_safe` 字段为机读真相源（见 §6）。
 - `PUT`：仅用于“客户端对一个已知 URI 表达完整目标表示或当前 slot 值”的创建/替换/设置。重复发送同一 URI 和同一表示 MUST 不产生额外副作用；同一 URI 上不同表示按该 slot 的覆盖、版本或 precondition 规则处理。
 - `DELETE`：删除一个已知 URI 表示的资源、binding 或 slot；重复删除必须有定义良好的幂等结果。
 - `PATCH`：仅在规范显式定义 patch document 语义、冲突检测和幂等边界时使用；否则 partial update 使用 `POST` command 或 `PUT` slot replacement。
@@ -313,12 +313,29 @@ CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字
 - `request_id`
 - endpoint-specific `idempotency_key`
 
+**机读真相源（normative）**：每个 operation 实际采用哪种幂等机制（§2.5 所列 `Idempotency-Key` / 对象 id / request id / canonical hash / protocol sequence），以 [`operation-registry.json`](../../artifacts/registry/operation-registry.json) 中该 operation 的 `idempotency_mechanism` 字段为机读真相源；配套 `retry_safe` 布尔字段声明"逐字节相同的全量重试是否不产生重复副作用"（`true` = 重试返回原 outcome、等价幂等 no-op 或确定性冲突；`false` = 盲目重试可能重复副作用或消费一次性材料）。客户端 MUST NOT 对 `retry_safe=false` 的 operation 在未带外确认首次请求效果的情况下自动重试。
+
 规则：
 
 - 相同幂等键 + 相同 canonical request body MUST 返回与首次请求语义等价的结果。
 - 相同幂等键 + 不同 canonical request body MUST 返回 `duplicate_conflict`。
 - 服务端 SHOULD 记录幂等键与 canonical request hash；联邦与服务间写入 MUST 将该 hash 纳入签名 transcript 或 transaction replay cache。
-- 服务端 SHOULD 记录幂等结果至少到相关 Event 被最终同步或过期。
+
+### 6.1 幂等记录保留窗口（normative）
+
+- 接收方 MUST 自幂等记录创建时刻起保留该记录**至少 24 小时**。
+- 该保留窗口 MUST ≥ 对应请求面的签名时效 replay window（`expires - created` 上限，见 §3.2 与 [`federation.md` §3.2](./federation.md)）加最大允许时钟偏移。
+- 保留窗口内，同一幂等键 + 相同 canonical request body 的重放 MUST 返回与首次请求语义等价的原 outcome；同一幂等键 + 不同 canonical request body 仍按本节上文规则返回 `duplicate_conflict`。
+- 保留窗口过后的重放行为由实现自定（MAY 按新请求处理或拒绝），但实现 MUST NOT 对窗口外的重放声称幂等保证。
+- 在 24 小时下限之上，服务端 SHOULD 记录幂等结果至少到相关 Event 被最终同步或过期。
+
+Applet transaction push 的幂等记录（[`applet-integration.md` §7.3](../extensions/applet-integration.md)）与联邦幂等 / replay cache（[`federation.md` §8.5](./federation.md)）都遵循本节保留窗口，不另行定义更短窗口。
+
+### 6.2 客户端重试义务（normative）
+
+- **全量重试同 key**：语义上同一请求的全量重试（即重交完全相同的请求以补偿超时 / 网络失败 / 5xx）MUST 复用同一幂等键（`Idempotency-Key` / `event_id` / `request_id`，按该 operation 的 `idempotency_mechanism`），且 canonical form 的 request body MUST 逐字节相同。
+- **改内容必换 key**：请求内容修改后重交 MUST 换新幂等键，MUST NOT 以旧幂等键携带新 canonical body 重交（服务端按上文规则返回 `duplicate_conflict`）。
+- **partial retry 是新 batch，不是全量重试**：联邦批量提交发生 partial accept 后，按 `accepted[] ∪ duplicate[]` 求差重组的下一次提交是**新请求**，MUST 使用新的 `Idempotency-Key`（或省略），见 [`federation.md` §4.1](./federation.md) partial-retry 条文。本条与其不冲突：body 逐字节相同的全量重试复用同 key，body 已变化（求差重组）的重交必须换 key；接收方对同 `(origin, destination, Idempotency-Key)` 且 canonical hash 相同的请求 MAY 幂等接受的条文（[`federation.md` §8.5](./federation.md)）保持不变。
 
 ## 7. Cursor（统一不透明 token）
 
@@ -439,6 +456,8 @@ X-Cokret-Wait-For: <cursor>
 ```
 
 HTTP response MUST 同时设置 `Retry-After` header。`Retry-After` 的值按 HTTP 标准使用秒数或 HTTP date；若同时存在 `Retry-After` 与 `retry_after_ms`，客户端 MUST 优先使用 `Retry-After`。
+
+**超长 `Retry-After` 与客户端重试预算（normative）**：当 `Retry-After` 指示的等待时长超出客户端自身的重试预算 / 退避上限时，客户端 MAY 放弃该请求并向上层报告失败；但只要选择继续重试，就 MUST NOT 早于 `Retry-After` 指示的时刻重试同一请求——不得把超长 `Retry-After` 按本地退避上限截断（clamp）后提前重试。
 
 规则：
 

@@ -1,11 +1,12 @@
 {
   "profile": "ck.profile.e2ee_client.v1",
-  "version": "2026-06-19",
+  "version": "2026-07-03",
   "suite": "key_backup_hardening",
   "runner": "cotest::conformance::key_backup_hardening",
   "covers_vectors": [
     "ck.vector.key_backup.kdf_floor_rejected.v1",
-    "ck.vector.key_backup.unlock_proof.v1"
+    "ck.vector.key_backup.unlock_proof.v1",
+    "ck.vector.key_backup.passphrase_kdf_kat.v1"
   ],
   "cases": [
     {
@@ -227,7 +228,7 @@
         "valid_unlock": "accepted",
         "binding_mismatch_reason": "recovery_evidence_unbound",
         "bearer_only_reason": "unauthenticated",
-        "cross_actor_reason": "forbidden",
+        "cross_actor_reason": "capability_denied",
         "plaintext_metadata_matches_envelope": true
       },
       "assertions": [
@@ -236,6 +237,134 @@
         "the fixture AEAD transcript opens to plaintext using crypto_transcript.key_b64u, nonce_b64u, and aad_canonical_json",
         "bearer-only access without a fresh device proof is rejected",
         "plaintext metadata must match the outer envelope after decrypt/open"
+      ]
+    },
+    {
+      "name": "passphrase_kdf_kat",
+      "vector_id": "ck.vector.key_backup.passphrase_kdf_kat.v1",
+      "kind": "passphrase_kdf_kat",
+      "description": "End-to-end known-answer vectors for the passphrase_kdf recipient path: Argon2id (fixed params + salt) -> HKDF-SHA256 subkeys (aead / nonce / commitment) -> deterministic XChaCha20-Poly1305 nonce over the canonical nonce transcript -> ciphertext, ciphertext digest and key commitment. Every byte value was produced by the reference implementation from the declared inputs and MUST be reproduced byte-for-byte by conformant implementations; the intermediate values pin each derivation stage so a drift is attributable.",
+      "kat_cases": [
+        {
+          "label": "secret_storage_no_device",
+          "input": {
+            "passphrase_utf8": "correct horse battery staple",
+            "argon2id": {
+              "memory_kib": 65536,
+              "iterations": 3,
+              "parallelism": 4,
+              "output_len": 32,
+              "version": "0x13",
+              "salt_hex": "2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a",
+              "salt_b64u": "KioqKioqKioqKioqKioqKg"
+            },
+            "binding": {
+              "backup_id": "ck:backup:01964137-0000-7000-8000-000000000000",
+              "actor_id": "did:webvh:z6mkfixture:alice.example",
+              "device_id": null,
+              "backup_class": "secret_storage",
+              "backup_version": "kb_1",
+              "created_at": "2026-04-26T00:00:00Z",
+              "item_types": [
+                "recovery_secret"
+              ]
+            },
+            "nonce_salt_hex": "02020202020202020202020202020202",
+            "nonce_salt_b64u": "AgICAgICAgICAgICAgICAg",
+            "plaintext_utf8": "{\"recovery_secret\":\"fixture-plaintext-one\"}"
+          },
+          "intermediate": {
+            "root_key_hex": "a983c30032133eaee62e2ce9bb35d0f4f609da2cb1aeb14f09bac7acc4d5a6e0",
+            "hkdf_sha256_subkeys": {
+              "aead": {
+                "info": "cokret-key-backup/secret_storage/aead/v1",
+                "subkey_hex": "9f94a1105e9f54b3127df47a82f4db39dc289b984746304e6a62baa7b1479cbb"
+              },
+              "nonce": {
+                "info": "cokret-key-backup-aead-nonce-v1",
+                "subkey_hex": "a4b195ea9fbb45c0ac5511f6120fc28d2d745ed74b15d99b88c8ff63c3e6b677"
+              },
+              "commitment": {
+                "info": "cokret-key-backup/secret_storage/commitment/v1",
+                "subkey_hex": "086756b7c0fbacaa1f47bd947b73eab26eb3eddea40171c249175f7fd11cd883"
+              }
+            },
+            "nonce_transcript_canonical_json": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"aead\":\"xchacha20_poly1305\",\"aead_profile\":\"ck.aead.xchacha20_poly1305.v1\",\"backup_class\":\"secret_storage\",\"backup_id\":\"ck:backup:01964137-0000-7000-8000-000000000000\",\"backup_version\":\"kb_1\",\"created_at\":\"2026-04-26T00:00:00Z\",\"device_id\":null,\"nonce_salt\":\"AgICAgICAgICAgICAgICAg\"}",
+            "aead_aad_canonical_json": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"backup_class\":\"secret_storage\",\"backup_version\":\"kb_1\",\"created_at\":\"2026-04-26T00:00:00Z\",\"device_id\":null,\"item_types\":[\"recovery_secret\"],\"schema\":\"ck.schema.key_backup.v1\"}"
+          },
+          "expected": {
+            "aead": "xchacha20_poly1305",
+            "aead_profile": "ck.aead.xchacha20_poly1305.v1",
+            "nonce_hex": "853cde5e180c03496a1c59c53033b5fa6a2a4acb0989b079",
+            "nonce_b64u": "hTzeXhgMA0lqHFnFMDO1-moqSssJibB5",
+            "ciphertext_b64u": "mMF-N_DKYu6n3so5hvuParSqDu5V-ux4zlVSfnH6I3qLIrKMqVzEmq2cOwNPDPS2BAv5j4Z7GyKjR5U",
+            "ciphertext_digest": "sha256:ba3fbe648b79c5ce629afad4960e6d9ca198a48a927f68f81a62094840f3fb8c",
+            "key_commitment": "sha256:fab0222fb7086fff89d857330ba1c3552a36fe72aced782df36807115835c5e6"
+          }
+        },
+        {
+          "label": "did_recovery_with_device",
+          "input": {
+            "passphrase_utf8": "pässwörd zwölf drüben",
+            "argon2id": {
+              "memory_kib": 65536,
+              "iterations": 3,
+              "parallelism": 4,
+              "output_len": 32,
+              "version": "0x13",
+              "salt_hex": "000102030405060708090a0b0c0d0e0f",
+              "salt_b64u": "AAECAwQFBgcICQoLDA0ODw"
+            },
+            "binding": {
+              "backup_id": "ck:backup:0196419b-0000-7000-8000-000000000201",
+              "actor_id": "did:webvh:z6mkfixture:bob.example",
+              "device_id": "ck:device:0196419b-0000-7000-8000-000000000002",
+              "backup_class": "did_recovery",
+              "backup_version": "kb_1",
+              "created_at": "2026-07-03T00:00:00Z",
+              "item_types": [
+                "recovery_secret"
+              ]
+            },
+            "nonce_salt_hex": "a0a1a2a3a4a5a6a7a8a9aaabacadaeaf",
+            "nonce_salt_b64u": "oKGio6SlpqeoqaqrrK2urw",
+            "plaintext_utf8": "{\"did_rotation_key\":\"fixture-plaintext-two\"}"
+          },
+          "intermediate": {
+            "root_key_hex": "9984698690db20b90f8c9c02b8739ca80f9b2950e9c3b6640eebc2f61930b667",
+            "hkdf_sha256_subkeys": {
+              "aead": {
+                "info": "cokret-key-backup/did_recovery/aead/v1",
+                "subkey_hex": "78a0bcf070af3c9d527b801fa26e86105994346f246745e1bdc544aad445cf3e"
+              },
+              "nonce": {
+                "info": "cokret-key-backup-aead-nonce-v1",
+                "subkey_hex": "05730f3ef7537d2ed274a945ed53a51b7af4e874541074dbf9780f82e3887e10"
+              },
+              "commitment": {
+                "info": "cokret-key-backup/did_recovery/commitment/v1",
+                "subkey_hex": "f2dc37f24f1d717c1e5a5829b41fe0b5906a11dbcc9bb3c38170e4edc3cf9ba7"
+              }
+            },
+            "nonce_transcript_canonical_json": "{\"actor_id\":\"did:webvh:z6mkfixture:bob.example\",\"aead\":\"xchacha20_poly1305\",\"aead_profile\":\"ck.aead.xchacha20_poly1305.v1\",\"backup_class\":\"did_recovery\",\"backup_id\":\"ck:backup:0196419b-0000-7000-8000-000000000201\",\"backup_version\":\"kb_1\",\"created_at\":\"2026-07-03T00:00:00Z\",\"device_id\":\"ck:device:0196419b-0000-7000-8000-000000000002\",\"nonce_salt\":\"oKGio6SlpqeoqaqrrK2urw\"}",
+            "aead_aad_canonical_json": "{\"actor_id\":\"did:webvh:z6mkfixture:bob.example\",\"backup_class\":\"did_recovery\",\"backup_version\":\"kb_1\",\"created_at\":\"2026-07-03T00:00:00Z\",\"device_id\":\"ck:device:0196419b-0000-7000-8000-000000000002\",\"item_types\":[\"recovery_secret\"],\"schema\":\"ck.schema.key_backup.v1\"}"
+          },
+          "expected": {
+            "aead": "xchacha20_poly1305",
+            "aead_profile": "ck.aead.xchacha20_poly1305.v1",
+            "nonce_hex": "fbe0913fbf31831433e5c618b9629f8146a9d10bad2377cb",
+            "nonce_b64u": "--CRP78xgxQz5cYYuWKfgUap0QutI3fL",
+            "ciphertext_b64u": "rLu7uY9XEvEpWjFLMzgn5ix9pzxCBXFt2uBdKiO7cpgzzzCE0MPSZ9aGND821IGtphWGT86G-7ff5ldp",
+            "ciphertext_digest": "sha256:c5ef1c9e37f0edea559e6cc61cb5f3ae212a9b5297a5d4508e5129df80353d41",
+            "key_commitment": "sha256:bb911dcda52923f03c990046f4da1989bec6e400438740212f28e940093d3fe2"
+          }
+        }
+      ],
+      "rules": [
+        "Argon2id parameters and salt are fixed test inputs; production implementations MUST use fresh random salts and MUST NOT trust these test values",
+        "HKDF-SHA256 info strings are domain-separated per backup_class as recorded in each case (aead / commitment) plus the class-independent nonce subkey",
+        "the deterministic AEAD nonce MUST be derived from the canonical JSON nonce transcript exactly as recorded in nonce_transcript_canonical_json",
+        "the AEAD AAD MUST be the canonical JSON binding recorded in aead_aad_canonical_json; key_commitment and ciphertext_digest MUST match byte-for-byte"
       ]
     }
   ]

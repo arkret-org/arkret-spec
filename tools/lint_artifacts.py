@@ -1311,6 +1311,43 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
                 lint.fail(operation_path, f"{operation_id} missing mq binding")
             else:
                 operation_mq_map[operation_id] = mq
+        # Idempotency contract fields: every write operation (command / upload /
+        # exchange kinds, plus resource.replace / resource.delete) MUST declare
+        # idempotency_mechanism + retry_safe; read-only operations MUST NOT.
+        segments = operation_id.split(".")
+        op_kind = segments[-2] if len(segments) >= 2 else ""
+        op_action = segments[-1] if segments else ""
+        is_write_operation = op_kind in {"command", "upload", "exchange"} or (
+            op_kind == "resource" and op_action in {"replace", "delete"}
+        )
+        idempotency_mechanism = row.get("idempotency_mechanism")
+        retry_safe = row.get("retry_safe")
+        allowed_mechanisms = {
+            "idempotency_key",
+            "object_id",
+            "request_id",
+            "canonical_hash",
+            "protocol_sequence",
+            "none",
+        }
+        if is_write_operation:
+            if idempotency_mechanism not in allowed_mechanisms:
+                lint.fail(
+                    operation_path,
+                    f"{operation_id} is a write operation and must declare idempotency_mechanism "
+                    f"as one of {sorted(allowed_mechanisms)} (got {idempotency_mechanism!r})",
+                )
+            if not isinstance(retry_safe, bool):
+                lint.fail(
+                    operation_path,
+                    f"{operation_id} is a write operation and must declare retry_safe as a boolean",
+                )
+        else:
+            if "idempotency_mechanism" in row or "retry_safe" in row:
+                lint.fail(
+                    operation_path,
+                    f"{operation_id} is read-only and must not declare idempotency_mechanism / retry_safe",
+                )
 
     capability_tiers = operation_registry.get("capability_tiers")
     surface_groups = operation_registry.get("surface_groups")

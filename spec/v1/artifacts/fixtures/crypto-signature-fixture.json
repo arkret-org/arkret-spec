@@ -1,6 +1,6 @@
 {
   "profile": "ck.profile.crypto_signature_vectors.v1",
-  "version": "2026-05-02",
+  "version": "2026-07-03",
   "vectors": [
     {
       "name": "ck.vector.encoding.crypto.ed25519_detached_jws.v1",
@@ -191,6 +191,364 @@
       },
       "event_digest": "sha256:f976febcb0d282226ccecd9d2802c2a1ed17c27499613b06ae8560f233fd481b",
       "payload_digest": "sha256:f976febcb0d282226ccecd9d2802c2a1ed17c27499613b06ae8560f233fd481b"
+    },
+    {
+      "name": "ck.vector.encoding.crypto.es256_detached_jws.v1",
+      "description": "ECDSA P-256 (ES256, RFC 6979 deterministic) detached JWS over the canonical proof binding object for a Cokret Event Envelope. Optional interop suite gated by ck.profile.signature.ecdsa_p256.v1.",
+      "alg": "ES256",
+      "applies_to_profiles": [
+        "ck.profile.signature.ecdsa_p256.v1"
+      ],
+      "did_document_fragment": {
+        "id": "did:webvh:z6mkfixture:alice.example#es256-2026-07-fixture",
+        "type": "JsonWebKey2020",
+        "controller": "did:webvh:z6mkfixture:alice.example",
+        "publicKeyJwk": {
+          "crv": "P-256",
+          "x": "elkxgIYMQDfIPBJ0mEXI7hQk3Sl_rcuJXjWCVdLH0rI",
+          "y": "qMolWA8mJv5XkGL_G5n_kcJKDaBvsytb4gFIySSfVlA",
+          "kty": "EC"
+        }
+      },
+      "test_private_key_jwk": {
+        "crv": "P-256",
+        "d": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+        "x": "elkxgIYMQDfIPBJ0mEXI7hQk3Sl_rcuJXjWCVdLH0rI",
+        "y": "qMolWA8mJv5XkGL_G5n_kcJKDaBvsytb4gFIySSfVlA",
+        "kty": "EC",
+        "note": "Public conformance test key only (d = fixed seed bytes 0x00..0x1f). Production profiles MUST reject this test DID/key domain. Signature is RFC 6979 deterministic, so this vector is fully reproducible from the seed."
+      },
+      "event_without_proofs": {
+        "event_id": "ck:event:019a54b0-0000-7000-8000-000000000001",
+        "kind": "ck.message.create",
+        "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
+        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "actor_seq": 1,
+        "created_at": "2026-05-02T00:00:00Z",
+        "hlc": "01970e589d21-0001-a13f9c2e",
+        "prev_refs": [],
+        "refs": [],
+        "effects": [
+          {
+            "cell": "ck:cell:message:019a54b0-0000-7000-8000-000000000000",
+            "op": {
+              "kind": "append",
+              "value": {
+                "strand_id": "ck:strand:019a7140-0000-7000-8000-000000000000",
+                "message_id": "ck:message:019a54b0-0000-7000-8000-000000000000",
+                "track_name": "discussion"
+              }
+            }
+          }
+        ],
+        "seal_ref": "ck:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "auth_context": {
+          "did": "did:webvh:z6mkfixture:alice.example",
+          "key_id": "es256-2026-07-fixture",
+          "key_epoch": 1,
+          "capability_refs": [
+            "ck:grant:0196410c-0000-7000-8000-000000000000"
+          ]
+        },
+        "payload": {
+          "strand_id": "ck:strand:019a7140-0000-7000-8000-000000000000",
+          "track_name": "discussion",
+          "message_id": "ck:message:019a54b0-0000-7000-8000-000000000000",
+          "content": {
+            "kind": "ck.content.text",
+            "body": "hello"
+          }
+        },
+        "requirements": {
+          "schema": [
+            "ck.profile.chat_mvp.v1"
+          ],
+          "reducer": "ck.profile.core_event_store.v1",
+          "features": [
+            "ck.feature.detached_jws.v1"
+          ],
+          "critical_extensions": [
+            {
+              "id": "ck.feature.message_content_block.v1",
+              "extension_scope": "payload",
+              "schema_ref": "ck.profile.chat_mvp.v1",
+              "fail_closed": true
+            }
+          ]
+        }
+      },
+      "canonical_event_payload": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"actor_seq\":1,\"auth_context\":{\"capability_refs\":[\"ck:grant:0196410c-0000-7000-8000-000000000000\"],\"did\":\"did:webvh:z6mkfixture:alice.example\",\"key_epoch\":1,\"key_id\":\"es256-2026-07-fixture\"},\"created_at\":\"2026-05-02T00:00:00Z\",\"effects\":[{\"cell\":\"ck:cell:message:019a54b0-0000-7000-8000-000000000000\",\"op\":{\"kind\":\"append\",\"value\":{\"message_id\":\"ck:message:019a54b0-0000-7000-8000-000000000000\",\"strand_id\":\"ck:strand:019a7140-0000-7000-8000-000000000000\",\"track_name\":\"discussion\"}}}],\"event_id\":\"ck:event:019a54b0-0000-7000-8000-000000000001\",\"hlc\":\"01970e589d21-0001-a13f9c2e\",\"kind\":\"ck.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ck.content.text\"},\"message_id\":\"ck:message:019a54b0-0000-7000-8000-000000000000\",\"strand_id\":\"ck:strand:019a7140-0000-7000-8000-000000000000\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"realm_id\":\"ck:realm:019a7360-0000-7000-8000-000000000000\",\"refs\":[],\"requirements\":{\"critical_extensions\":[{\"extension_scope\":\"payload\",\"fail_closed\":true,\"id\":\"ck.feature.message_content_block.v1\",\"schema_ref\":\"ck.profile.chat_mvp.v1\"}],\"features\":[\"ck.feature.detached_jws.v1\"],\"reducer\":\"ck.profile.core_event_store.v1\",\"schema\":[\"ck.profile.chat_mvp.v1\"]},\"seal_ref\":\"ck:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111\"}",
+      "binding_object": {
+        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "created_at": "2026-05-02T00:00:00Z",
+        "domain": "cokret-event-v1",
+        "verification_method": "did:webvh:z6mkfixture:alice.example#es256-2026-07-fixture",
+        "event_digest": "sha256:6f31014719848571f9417a43e9d1945b7b2a64892c7ccbc0da007244d5796a98",
+        "payload_digest": "sha256:6f31014719848571f9417a43e9d1945b7b2a64892c7ccbc0da007244d5796a98"
+      },
+      "canonical_binding_payload": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"created_at\":\"2026-05-02T00:00:00Z\",\"domain\":\"cokret-event-v1\",\"event_digest\":\"sha256:6f31014719848571f9417a43e9d1945b7b2a64892c7ccbc0da007244d5796a98\",\"payload_digest\":\"sha256:6f31014719848571f9417a43e9d1945b7b2a64892c7ccbc0da007244d5796a98\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#es256-2026-07-fixture\"}",
+      "binding_digest": "sha256:bb1349db9549984de66d1d925bd7eda28a0e1caefe1887f261d5361ba78ecc16",
+      "protected_header": {
+        "alg": "ES256",
+        "kid": "did:webvh:z6mkfixture:alice.example#es256-2026-07-fixture",
+        "typ": "JOSE"
+      },
+      "protected_header_canonical": "{\"alg\":\"ES256\",\"kid\":\"did:webvh:z6mkfixture:alice.example#es256-2026-07-fixture\",\"typ\":\"JOSE\"}",
+      "detached_payload_b64u": "eyJhY3Rvcl9pZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlIiwiY3JlYXRlZF9hdCI6IjIwMjYtMDUtMDJUMDA6MDA6MDBaIiwiZG9tYWluIjoiY29rcmV0LWV2ZW50LXYxIiwiZXZlbnRfZGlnZXN0Ijoic2hhMjU2OjZmMzEwMTQ3MTk4NDg1NzFmOTQxN2E0M2U5ZDE5NDViN2IyYTY0ODkyYzdjY2JjMGRhMDA3MjQ0ZDU3OTZhOTgiLCJwYXlsb2FkX2RpZ2VzdCI6InNoYTI1Njo2ZjMxMDE0NzE5ODQ4NTcxZjk0MTdhNDNlOWQxOTQ1YjdiMmE2NDg5MmM3Y2NiYzBkYTAwNzI0NGQ1Nzk2YTk4IiwidmVyaWZpY2F0aW9uX21ldGhvZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlI2VzMjU2LTIwMjYtMDctZml4dHVyZSJ9",
+      "jws_signing_input": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlI2VzMjU2LTIwMjYtMDctZml4dHVyZSIsInR5cCI6IkpPU0UifQ.eyJhY3Rvcl9pZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlIiwiY3JlYXRlZF9hdCI6IjIwMjYtMDUtMDJUMDA6MDA6MDBaIiwiZG9tYWluIjoiY29rcmV0LWV2ZW50LXYxIiwiZXZlbnRfZGlnZXN0Ijoic2hhMjU2OjZmMzEwMTQ3MTk4NDg1NzFmOTQxN2E0M2U5ZDE5NDViN2IyYTY0ODkyYzdjY2JjMGRhMDA3MjQ0ZDU3OTZhOTgiLCJwYXlsb2FkX2RpZ2VzdCI6InNoYTI1Njo2ZjMxMDE0NzE5ODQ4NTcxZjk0MTdhNDNlOWQxOTQ1YjdiMmE2NDg5MmM3Y2NiYzBkYTAwNzI0NGQ1Nzk2YTk4IiwidmVyaWZpY2F0aW9uX21ldGhvZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlI2VzMjU2LTIwMjYtMDctZml4dHVyZSJ9",
+      "proof": {
+        "kind": "detached_jws",
+        "alg": "ES256",
+        "verification_method": "did:webvh:z6mkfixture:alice.example#es256-2026-07-fixture",
+        "created_at": "2026-05-02T00:00:00Z",
+        "domain": "cokret-event-v1",
+        "jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlI2VzMjU2LTIwMjYtMDctZml4dHVyZSIsInR5cCI6IkpPU0UifQ..SzNERF50Xadtqr9-RHZa_IyEOnMsZinDIVJ9arB77frOi_lkMAKT44IztiIJ-GekImDxNyXvVTOyRxzcNKVbvQ",
+        "event_digest": "sha256:6f31014719848571f9417a43e9d1945b7b2a64892c7ccbc0da007244d5796a98",
+        "payload_digest": "sha256:6f31014719848571f9417a43e9d1945b7b2a64892c7ccbc0da007244d5796a98"
+      },
+      "event_with_proof": {
+        "event_id": "ck:event:019a54b0-0000-7000-8000-000000000001",
+        "kind": "ck.message.create",
+        "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
+        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "actor_seq": 1,
+        "created_at": "2026-05-02T00:00:00Z",
+        "hlc": "01970e589d21-0001-a13f9c2e",
+        "prev_refs": [],
+        "refs": [],
+        "effects": [
+          {
+            "cell": "ck:cell:message:019a54b0-0000-7000-8000-000000000000",
+            "op": {
+              "kind": "append",
+              "value": {
+                "strand_id": "ck:strand:019a7140-0000-7000-8000-000000000000",
+                "message_id": "ck:message:019a54b0-0000-7000-8000-000000000000",
+                "track_name": "discussion"
+              }
+            }
+          }
+        ],
+        "seal_ref": "ck:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "auth_context": {
+          "did": "did:webvh:z6mkfixture:alice.example",
+          "key_id": "es256-2026-07-fixture",
+          "key_epoch": 1,
+          "capability_refs": [
+            "ck:grant:0196410c-0000-7000-8000-000000000000"
+          ]
+        },
+        "payload": {
+          "strand_id": "ck:strand:019a7140-0000-7000-8000-000000000000",
+          "track_name": "discussion",
+          "message_id": "ck:message:019a54b0-0000-7000-8000-000000000000",
+          "content": {
+            "kind": "ck.content.text",
+            "body": "hello"
+          }
+        },
+        "requirements": {
+          "schema": [
+            "ck.profile.chat_mvp.v1"
+          ],
+          "reducer": "ck.profile.core_event_store.v1",
+          "features": [
+            "ck.feature.detached_jws.v1"
+          ],
+          "critical_extensions": [
+            {
+              "id": "ck.feature.message_content_block.v1",
+              "extension_scope": "payload",
+              "schema_ref": "ck.profile.chat_mvp.v1",
+              "fail_closed": true
+            }
+          ]
+        },
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "alg": "ES256",
+            "verification_method": "did:webvh:z6mkfixture:alice.example#es256-2026-07-fixture",
+            "created_at": "2026-05-02T00:00:00Z",
+            "domain": "cokret-event-v1",
+            "jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlI2VzMjU2LTIwMjYtMDctZml4dHVyZSIsInR5cCI6IkpPU0UifQ..SzNERF50Xadtqr9-RHZa_IyEOnMsZinDIVJ9arB77frOi_lkMAKT44IztiIJ-GekImDxNyXvVTOyRxzcNKVbvQ",
+            "event_digest": "sha256:6f31014719848571f9417a43e9d1945b7b2a64892c7ccbc0da007244d5796a98",
+            "payload_digest": "sha256:6f31014719848571f9417a43e9d1945b7b2a64892c7ccbc0da007244d5796a98"
+          }
+        ]
+      },
+      "expected": {
+        "verification_result": "valid",
+        "reject_if_event_digest_changes": true,
+        "reject_if_binding_is_not_canonical_json": true,
+        "reject_if_jws_payload_segment_is_non_empty_for_detached_profile": true,
+        "reject_if_verification_method_not_in_did_document": true,
+        "reject_if_receiver_does_not_declare_profile": "ck.profile.signature.ecdsa_p256.v1"
+      },
+      "event_digest": "sha256:6f31014719848571f9417a43e9d1945b7b2a64892c7ccbc0da007244d5796a98",
+      "payload_digest": "sha256:6f31014719848571f9417a43e9d1945b7b2a64892c7ccbc0da007244d5796a98"
+    },
+    {
+      "name": "ck.vector.encoding.crypto.mldsa65_raw_detached_signature.v1",
+      "description": "ML-DSA-65 (NIST FIPS 204) raw detached signature over the canonical proof binding object bytes (registry proof_kind = raw_detached_signature; no JOSE wrapping). PQC suite gated by ck.profile.signature.pqc.v1.",
+      "signature_algorithm": "ML-DSA-65",
+      "proof_kind": "raw_detached_signature",
+      "applies_to_profiles": [
+        "ck.profile.signature.pqc.v1"
+      ],
+      "keygen_seed_b64u": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+      "keygen_note": "Public conformance test key only, derived via FIPS 204 ML-DSA.KeyGen from the recorded 32-byte xi seed (bytes 0x00..0x1f). Production profiles MUST reject this test DID/key domain.",
+      "public_key_b64u": "SGg9kZeOMes93biwRzSC0riKX2JZSf2PWKVh5pa9TCfQWzjbsu3wHmZO_YG-HqiTaIzmiqLVHFlY-LvG606J7mfSwDIJVNVyEsrHIp_x1urwOSi9UVEfjYjYR3NsfeJzDVl45UEHExYJeIZ3Eb9VOaC_xMNQwr5XK68O4uL7Fsz-oIAo2ZrEmuu3WTfdzhEc2rYv_zzqi6IjPR5W-8XFoecm3mP63SrwFrEZF3-j2XGi2Sdxc_zlW2d0WvC3wh1Zfb65Pmoy80HEmlqL6eglCI0fKqRRVdbIrhU2fk6wA7j994UQcZSXOfn_8JAj6vRRBNKoSkWQbu1GcaRNwo0nmHu1XfaenoVh9hqApyaZUDhl_tm37nKo4XoZxAgUT0spr-9wMcOm2FcWELQsn0ISRaiPGX4WgSsDEVm2W5aH5bPpNMUiWumKebpz0rOZ1zUQ7_rRnlO4RQ8LqPzhAS_ZjSYKdKqqE_riSaAGscNPW6C4gvJjeCIvs28ig8JD8P_rXxu0FKCnDVXj1ApWtsvIiuHwO3sogtmN7qKOFFyd7f2OrxzvLtlKiwUPiWT0bR6g0MKkPg3aYYKtv09u0XW2dCJXhZvyLzpBfs8fnYkxe15TnVh68WueExPgRRT_pkuos_8rgyH4gRyz-wIsj2ROcKS4Ci-_7mBKu3N5CR6o5sXHTfwCg2ZrQMB5OHACggShNr9dqVaOt5jTSQOL2wwR4DRF54R8tQacdc8orGAcd5nZWCEN28siblGv758d5HsHOHPW0_l0Vr7eCFCC50opiyzUj0swkxVfNmyPpgHGr4WN-jLAhJGyopiH-QM1lJpdbtqmeYgqOpXWv22XCiIfS509jL84SvgarJXisylOBHiayDcnpdwEVZ-Wr0HYoFNRb-7uvFJ0brarKBngkQhxDYNfAR-mMGWHKtM01c3_srIxBQfpL8mTrjF9qX9PMJza8PZ-2Z2QIVV2CDhJ-VOyRtf-2z_bZ2eYUKWtQE5kFH-3z09q7d0Fr7S4NJaNH-iAFJYNzl2UIjZSbhKkeNaeX75pcDELMIwGhFAYz8eyq0MKE6axrHuwLMy7PZEawvEQaGE_vgKb_c4Cz1zTiVDtcsg5RO37x1YVr4f4ZMBR88VUVsVBKGOkDAbR2rVivf8FcbjTw5F7vTAIgLul6Zgjm5X6kbfWQW1POYs6280wmD7TWStNnvfUI2_QD1DZiqU6I1rEFycg932WFyZymAz-j_elpwJ4PtwroxsiWQFaES_H9GipwvlGQDkALTDvZ4tMt5i8EWIWv3qafBi6A7e1j9B1FdMRUEnTYUvnoH50QwB1DfHSxYdTOJBZ6vw9eFzN0xwHZIvtwDpcO4rUbQZNWcE9VzdHKfxOKVNi4qUZEgRTBCi8FSKvoo_1_hZV4wTKW8jCetDgxqOd1N8olWwUs4zJNoLO_kArvV6C0pxGTkTrXTe0j8Vo3-DMbo4WuuoF5RNVkPGSlOc-g2ewIW27gVAwud5VkT8IA5xCNRxZ5VFd1a-OCJoV5iXo9t7mOThsRkl9eiYyiHdN5YGn3pYptBtEJBQfl4-4MxII797DxuDeObxXBj89zWxHA3PAiJHqKcvHzG1kg7iIkIOs6GqntRscLP5uKtGNl842-8VupC-ul-anrBFIZEeMNm3x67HnsRqQmFBP1Zdb3x9J3HAAK2PBc5qdJj-61Ac_ap9sK4r0tMMyoQOgz_pd7rLQYso8IV_TYAJr58UWT0pEJO90lIgE1m9GSHcyyCAseVR4ZHtOpx1ifAhgJMyjVKQfCHezjxmzd0rSCVyNpTsGniHHauLSAH4WcZ7UAIDTNPfaUun1pZkEOcrwg6lbgz8CrRCgjBptDyYMAHKFvUovR3A6Wu9GUofSU7GKwiUUMWIQ_1ZoFLEPh6KT1vGZ08OVmZDQwSaLT1DV-fzvu_I3vQwouAGC1mWXQfFPEL-7IbuhKrYgqiOW9WwGhrTqkBeZAiQhay_orXbEqRSO75qGo2Naaqd7wdz7b7pZp339qbdTDcDKhkjI2XNzjgG6uPCLSQXoSqRkG9YCQQzZdSAmXy8jHys14V6y-gTSvZTVp3q68eDhYQEKmQCH9bRuqYiyvAUS_aD6kj2t1sRcUwHQlINnMmW1qy4Q9LpSD2u61WSlw9Xie9sID30g4TKWoxgZVMOcZJyUPr4X31wfeq4Kj-EmxHdYWl1NZIoNAItq9ejNMb5pqSltTz_SXthvIh5Lk_ZfWSmWdTNiS5I1dQwwcHVQtYU20QmnExxaW75KVxVWfBJTSux2YHYe67n64okcd0WJuA5WatVX3e9zZxlrcifqmHDvCd3-x51rkxmmh5tSBddr96ulrPM6-1nRf8VOaDg9a-Wgjptm2lPc3gCLspS4WCvRMs3MSZWf28IeUnIYgMitA1LHnwOkO72ExM39xsUpAF4efNmjSacWijVWm6XeqBiWjVqRRmvW5k4gv2JBcZivxOgcKN137UAoIyOYtS-96GvIT0dbkBZxDOKqvBGga026yQHsFs82XKPy1TgTlIppOg-T55xGyl1abco9KMpQrRi9E_ylUFndmxhfefnEcZak6BshBLxGCgUeAvLoRE8",
+      "event_without_proofs": {
+        "event_id": "ck:event:019a54b0-0000-7000-8000-000000000002",
+        "kind": "ck.message.create",
+        "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
+        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "actor_seq": 1,
+        "created_at": "2026-05-02T00:00:00Z",
+        "hlc": "01970e589d21-0001-a13f9c2e",
+        "prev_refs": [],
+        "refs": [],
+        "effects": [
+          {
+            "cell": "ck:cell:message:019a54b0-0000-7000-8000-000000000000",
+            "op": {
+              "kind": "append",
+              "value": {
+                "strand_id": "ck:strand:019a7140-0000-7000-8000-000000000000",
+                "message_id": "ck:message:019a54b0-0000-7000-8000-000000000000",
+                "track_name": "discussion"
+              }
+            }
+          }
+        ],
+        "seal_ref": "ck:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "auth_context": {
+          "did": "did:webvh:z6mkfixture:alice.example",
+          "key_id": "mldsa65-2026-07-fixture",
+          "key_epoch": 1,
+          "capability_refs": [
+            "ck:grant:0196410c-0000-7000-8000-000000000000"
+          ]
+        },
+        "payload": {
+          "strand_id": "ck:strand:019a7140-0000-7000-8000-000000000000",
+          "track_name": "discussion",
+          "message_id": "ck:message:019a54b0-0000-7000-8000-000000000000",
+          "content": {
+            "kind": "ck.content.text",
+            "body": "hello"
+          }
+        }
+      },
+      "canonical_event_payload": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"actor_seq\":1,\"auth_context\":{\"capability_refs\":[\"ck:grant:0196410c-0000-7000-8000-000000000000\"],\"did\":\"did:webvh:z6mkfixture:alice.example\",\"key_epoch\":1,\"key_id\":\"mldsa65-2026-07-fixture\"},\"created_at\":\"2026-05-02T00:00:00Z\",\"effects\":[{\"cell\":\"ck:cell:message:019a54b0-0000-7000-8000-000000000000\",\"op\":{\"kind\":\"append\",\"value\":{\"message_id\":\"ck:message:019a54b0-0000-7000-8000-000000000000\",\"strand_id\":\"ck:strand:019a7140-0000-7000-8000-000000000000\",\"track_name\":\"discussion\"}}}],\"event_id\":\"ck:event:019a54b0-0000-7000-8000-000000000002\",\"hlc\":\"01970e589d21-0001-a13f9c2e\",\"kind\":\"ck.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ck.content.text\"},\"message_id\":\"ck:message:019a54b0-0000-7000-8000-000000000000\",\"strand_id\":\"ck:strand:019a7140-0000-7000-8000-000000000000\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"realm_id\":\"ck:realm:019a7360-0000-7000-8000-000000000000\",\"refs\":[],\"seal_ref\":\"ck:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111\"}",
+      "binding_object": {
+        "actor_id": "did:webvh:z6mkfixture:alice.example",
+        "created_at": "2026-05-02T00:00:00Z",
+        "domain": "cokret-event-v1",
+        "verification_method": "did:webvh:z6mkfixture:alice.example#mldsa65-2026-07-fixture",
+        "event_digest": "sha256:abaa30ebfce7e3dfcdfe88a62b0b6e3cf99eda93c33b8448b2543e230d0ccb54",
+        "payload_digest": "sha256:abaa30ebfce7e3dfcdfe88a62b0b6e3cf99eda93c33b8448b2543e230d0ccb54"
+      },
+      "canonical_binding_payload": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"created_at\":\"2026-05-02T00:00:00Z\",\"domain\":\"cokret-event-v1\",\"event_digest\":\"sha256:abaa30ebfce7e3dfcdfe88a62b0b6e3cf99eda93c33b8448b2543e230d0ccb54\",\"payload_digest\":\"sha256:abaa30ebfce7e3dfcdfe88a62b0b6e3cf99eda93c33b8448b2543e230d0ccb54\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#mldsa65-2026-07-fixture\"}",
+      "binding_digest": "sha256:035027649d7e34c26cfed15e1734a9282ea97c66ee7cc2b514f802fa7bb4334d",
+      "detached_payload_b64u": "eyJhY3Rvcl9pZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlIiwiY3JlYXRlZF9hdCI6IjIwMjYtMDUtMDJUMDA6MDA6MDBaIiwiZG9tYWluIjoiY29rcmV0LWV2ZW50LXYxIiwiZXZlbnRfZGlnZXN0Ijoic2hhMjU2OmFiYWEzMGViZmNlN2UzZGZjZGZlODhhNjJiMGI2ZTNjZjk5ZWRhOTNjMzNiODQ0OGIyNTQzZTIzMGQwY2NiNTQiLCJwYXlsb2FkX2RpZ2VzdCI6InNoYTI1NjphYmFhMzBlYmZjZTdlM2RmY2RmZTg4YTYyYjBiNmUzY2Y5OWVkYTkzYzMzYjg0NDhiMjU0M2UyMzBkMGNjYjU0IiwidmVyaWZpY2F0aW9uX21ldGhvZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlI21sZHNhNjUtMjAyNi0wNy1maXh0dXJlIn0",
+      "raw_signing_input": "UTF-8 bytes of canonical_binding_payload (detached_payload_b64u is its base64url form, provided for cross-checking only; the signed bytes are the unencoded canonical JSON)",
+      "signature_b64u": "UzGi7UwNDVncnYmnoRDV0sl4h8EYWCyDQzmPc1-dOyub-_XvQm2u2bw4br4-wqVqm07foQ5IWAmhtyrpMrgt-UK64ORL9UnxZJ2Hf6Q540l3AP9ckppj9kSvzeGNSYJMDuEcNpfhcW4K55JuqBxTdRgYjMmZguFtyy0uqewDHPNHCmreoYo1cuubwk5C7w2BhljvDxW1i9GDEf9MFoqEzmLeENTnXPLLsdK-V8hSNi2fgOXYkeNAFXXuSigIYMqjC1u5U8amCZ_obBBKi-RNHiBNcDV_7wWgP3ascuU-ihZLRRW_m_CY7LO4YO7mXHT7jz5AUMS9mEw7z00iMLO4J-iZZUiJJ1l3lxI_TWQuNqRmu0sfOpjpw9rLoDCEFoWX-KDek7f4bVrUaSzi6DUNbuqMk5W70uYt8yJim8fJCE-4kEou2QqrcWcxHJDL2UKzuQ_V_OAjZs_HG8KOOGKhJI9fOrSiqN_5JRuO_hIrCgYk7uXAYQtLdM7UVtJgPdzZ_OMDis2X1yFZpvAjshVvzCbjaF3RhBw9QFiZ7kZvheyUP1NYMR1dNkPDdtVWgqqD5G-j4k8k1MO1LGjgpu4Y7KBe0fQSi3BFQvTZcOYo8mbitUx45pIQXwhr65hmtETEQjrk90kMjVy19AVhtz3oR7wIGCHNfZ2uO_a8IuIL134yl34Jb82AShZ-se1XZwnpQmw44afTRVCtKiknsudH32Mh_zJXM6AU2ylzMHWWe7a-xd3t9fsLxROHx_VkEWxH1FCcFRnmuikBhBqsZ_khsDs2wKpZECOQR_t8k9amw3xsBcZ5UCwAN7cc7e0iAuNX1whRLL83xId6oFl6QKnNruUVjxeq_lVk4B04PpFSQyRmSnLEUuOQyp6xPBYvjrsfoj_84msDX20CDOHgV7-pH3dM-WFL8SFCmiSNIG1WGekC9RMzDL2wCdSQu9TAx1jyryfwB25xRewgtJnTehtxFNapoPfYnN8-7VdixidmdcpFST6lliIcaUO0PPGf5-bwhFWK3hPvddS-QUo-ucWdkilvo_9d7QQdS5cSpyFsxD9cBUZEGbvXfSFrzGfHotTOAZc68uDiRbJ21yHPYcpTkqV0WNRUySHzF96J_zxwYZHYtl10Yz60GdUUaJ37IxAuEgF3eTMKBprdGKV5HiOgTrwyZtp5RXSiZbRt9JVR5ZdDRbNnHKCHafFDvAV10CBTkj1isD5tNnHPvlFvIWqOHSOYA2OW5r065MLbYg-AcDnEWztq47n5iz-WVKhUYQZQ_FZCmIVuwjB5Hdk16CHIQHt00vHxKSPTh7lPolIc83yurpeGGG3_Bk8BhzJEirdBwXSPyuytMWH7KJscjXRYQ77vfxeW1FrXO9CJcKWVOTHrjIdNKvIlWOhdHEEPhI4No20rtZmoYB7mAUt4mJ9Dt6Fgj0f6vPX7SjjBxzffEUKt-S24tAY2g0WwYAnzW4eIdXhVXm3JLonzoGsJD512VUkN9qC_FyVAksOs_2vSrhXoZZ2vGLWtoWm6eL7eSrhVZ7UwlkJjR95XLndv9G1Ej0-8bw4fBilSzVH4HPQsmAqnplqh9B5EmdGmmbiFdgpbgHDyLxPguGOLYTV5gh_9EfPjUHPJ6GbOrY5SIQjapMVnEKLLuuo8R-DkALDZphf_fSS11ymLfbTwFh2AC0j2HZ1HsE4oldrXonaFZlpSpoB72kOx41_lmpu6WR4-W5jo84j7_65CfIiXS9oxsvgEgK7kVAvLHK_pOEpbhRIXwegQs7_k83bDUFhW-CEp5xX2DuTGxRRv_kfAugT5qWlHG-oyFVz1afjiPd6Hy1kcoCcQN_h3h_YXTDS7j19NfvACiaeC27WDq-_K9_mzh08W3AfLjtCNYGY2CPMeYPO4Vl8Urw2rqJo_5Y7rQ2_BletpDlxCAQrsVZrJfrs8rwZXW9c5B2AobMPWL9eWFvLliOlszUgCub0wMWdvAyD5X8rtR0twn2Xdpt9hdCNHsn0FuRnwNHByEWN5KdrzVfnUnhA8c-jwJa2sQdDdl9aKy0C3F6LNJk3ai_G3S8TicctN7Qe5sf9zVNTzOMzrOcDnBHI6oNExXvo9q5VJKnL3_215xMITJEXCsQWO-uxZ1g4yRulRCWC7l1Hu_tsxdVupVjjwoV7BWLxXMprnSR4kNim6sEu8Tz9H7DSnru730tjdk2gZTD9zg3z7oMYjK4zw7itp6Jsu5dtHktr-_KJbU7JYaRxSFgfQlSx5-Qe4W22UifvJCc8gTv-HD9o1TAhn_0wuDNd2zVuhwW-iTbLfKSL5HUUW5FATiiw2QPUO_rSrvtlPcRJyCKy_Tzm_7Y0kIPgO45FZVcNNDuJnuAUSH-mUkQ09pSdFYrsCxbj4dt_YoOu7-rHmOgvavN0qz_HJlTorSFJ7urWEAX7hdgPghjEKcFE28L-aM62Je1-Nry5aX-X_Veu1m9os-lR0KwaY7MT9g9z5tQNDFn1TwmzFvorShUeKjsyUADvDtfr3gLx8XMWeWQfTQ3Tidop4Tj7U_hfLdj6uPjk6qsSwDqfct4v9cS6pGw6P8ud2RvmyEOJ87ioqLvy4Y6IYrPwBgH54FBaCy3MH70Um2CI7lgy0KwmNFjSIrFG5WNP4h78HGIEE4aTSI5otE3C577Wq1ZkL-u7MUFux-_J9eKhs2_yC88UmwfyTz2383OBvacVzHlGa7pZRnKo5Uti6Wd9j_XEy3qiuTQdf9u_HbgwxtE0sHJ2Fm_p4YzMBhZ_26uCxpeAcbmilrSK_n9hrgPbOV3FgeDtHyMT-siQTeXcalnF5OcU079Xudb9CoGtpW1zqZcJZRoHwwtnr3bcCcBWZMgZRmcyEMiuhySSil-6Ktdgv4TDvdQXJgqj5Q5ivIgt9uGWkgvS9uQGH0JPOXmcZvh7dOudYrf7c2ny0qG0pvuIfoDFSCHLSKuWCyCsPMRR8xJrWkdK5slqNH72XskUMg268bCcE6UXiV6ERWVJzJbeKcu2pltaCGpwzKC4UWdVCShY0VUegjrklgmjxfZOdORFQ4V5hU35Cpv3NRN7EShgn02QWNVlgm-LcP9UzTRuGkYG2Fz_TWD5Vyz5WmazkobGpN9yzh76A6uWCezRT-qWVbIYiCfcTZhYngKewDdFP0kWaMjzlxJr3PcYJAVWb-ncuDsfEfak9eEoLtkg69h6v7aV9_Ux63S4okaIUSrjykHjLdKSlHVQbmffEHbrC5YWIWmWSV7aDERVPdeTzaaYv6nxmtLcrgtJLgnMvzYcCnYCNU57JLIBD-UJ6y2tYYdXdwPaC9o0-xS6UZBuCxQp0SEJNYmhnirJamg3oe9S3U0YTup0HTk0lFNqiMdYIRfhO8s9gN69vb7DRFuyX-zj9L3COhZ1AjSmEn_gAeI65F6bwK4IWRWikh-mR4nJREWaVOF0gTRdvFa-WYcvde9omF41psbxEFFymU0n4O-Wc1og88lqSp17JWuRheHPaousdGocq3xi3affP8c2VbqqFkYH-vMxEC6Fju5pM1dHCSjGNwAEx1o9Qg7jJbKClkYTfdrAjFLU6FYpgwjshBt9FaRO5LKemTesnP0vE0q5GP-GxgDXdWHH6HNjKTT2W6ole10eHznhg8oJWzfquE59Ge5K2ssj7iLkNVsBa9oLb_gkXnOFCnd9kWYDeI7anWJLUt6d4POkNwk4_i_rkVx3w0sqTRL4Q8e2GqGgFM8iO64I6FTujhoz_g89xkwV_lS2vx9ECo2_SLE3JUhXhytz-aJ-cDDx-0o_F6LJpKFDIIH7snFkD4VmOnT2lYfGStLOlPG4PE6Aa6zPkZzxd5Y7iMoXO_z0LbxyGAxjEsCF_nczHeY-bupcw1EENvVzsNipU2DnmBVGt0zA7wpbRhxujZnBYwPwCzEIJoH37MZ4PxEBknEOURL7JRnOS4J5qB7EsyY3ZZWH6wJVdJy5_-Qaq-sBtC9V2PACkc4Xql8MZVWvZq_fG5hbPmZCSQ70wzNl2zYq05Rlc7R3PLyQaNAYqp2vt9jgCoCxBmRBuybATHBORlaB20l_Tf-i3l-2-rVtVGHAUEtnuyK9vvCO_POCaCwRKYHopxflfVMZROTlMFQciZ0e4XOo6C61wEm2XXVDCJvNb6YBjLpw_-NuaZ38ZqeMACrn1jHXbA-2Juj4GJ3nRXbkQKHGziTMQjiG2PqO6HqcrmeX-nVCUKkGqdAuEuse_12Py1CqroW487GVvEv2rAAZ78gzy_aRJutzYsauEgry6skpEWVj01qjjl1BRD_RSnVAW0X4bagohzLJ-4y-tPfRfURIDPW-dQ8JblRoXTykqUll4jLMDEypueYvKz9bsICw3webq-Bdgmp3QFDk-gbXUEYC78f4AAAAAAAAAAAAAAAAAAAAABhAXHCIn",
+      "signature_note": "Recorded value produced with the FIPS 204 deterministic variant (rnd = 32 zero bytes). Verifiers MUST only verify; producers are NOT required to reproduce these exact signature bytes (hedged signing is allowed).",
+      "expected": {
+        "verification_result": "valid",
+        "reject_if_event_digest_changes": true,
+        "reject_if_binding_is_not_canonical_json": true,
+        "reject_if_verification_method_not_in_did_document": true,
+        "reject_if_receiver_does_not_declare_profile": "ck.profile.signature.pqc.v1"
+      },
+      "event_digest": "sha256:abaa30ebfce7e3dfcdfe88a62b0b6e3cf99eda93c33b8448b2543e230d0ccb54",
+      "payload_digest": "sha256:abaa30ebfce7e3dfcdfe88a62b0b6e3cf99eda93c33b8448b2543e230d0ccb54"
+    }
+  ],
+  "negative_cases_vector_id": "ck.vector.encoding.crypto.signature_negative.v1",
+  "negative_cases": [
+    {
+      "name": "reject_flipped_signature_bit",
+      "base_vector": "ck.vector.encoding.crypto.ed25519_detached_jws.v1",
+      "description": "One bit of the Ed25519 signature is flipped (first signature byte XOR 0x01); everything else is byte-identical to the valid vector.",
+      "proof_jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlI2VkMjU1MTktMjAyNi0wNS1maXh0dXJlIiwidHlwIjoiSk9TRSJ9..-v4NHDsjnEeeEmsg4hrWIFGgxdtLmJIDJRvwqClLfIizZmojXIX7ZMHjegdTiO5E3xj-HwLavLtR2rDJIC9pCg",
+      "jws_signing_input": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlI2VkMjU1MTktMjAyNi0wNS1maXh0dXJlIiwidHlwIjoiSk9TRSJ9.eyJhY3Rvcl9pZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlIiwiY3JlYXRlZF9hdCI6IjIwMjYtMDUtMDJUMDA6MDA6MDBaIiwiZG9tYWluIjoiY29rcmV0LWV2ZW50LXYxIiwiZXZlbnRfZGlnZXN0Ijoic2hhMjU2OmY5NzZmZWJjYjBkMjgyMjI2Y2NlY2Q5ZDI4MDJjMmExZWQxN2MyNzQ5OTYxM2IwNmFlODU2MGYyMzNmZDQ4MWIiLCJwYXlsb2FkX2RpZ2VzdCI6InNoYTI1NjpmOTc2ZmViY2IwZDI4MjIyNmNjZWNkOWQyODAyYzJhMWVkMTdjMjc0OTk2MTNiMDZhZTg1NjBmMjMzZmQ0ODFiIiwidmVyaWZpY2F0aW9uX21ldGhvZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlI2VkMjU1MTktMjAyNi0wNS1maXh0dXJlIn0",
+      "public_key_jwk": {
+        "crv": "Ed25519",
+        "kty": "OKP",
+        "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "invalid_signature",
+        "reason": "signature bytes do not verify against the canonical proof binding object"
+      }
+    },
+    {
+      "name": "reject_alg_none",
+      "base_vector": "ck.vector.encoding.crypto.ed25519_detached_jws.v1",
+      "description": "Protected header declares alg=none. The signature segment carries well-formed base64url bytes so the rejection MUST come from the algorithm allowlist, not from shape validation.",
+      "protected_header": {
+        "alg": "none",
+        "kid": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
+        "typ": "JOSE"
+      },
+      "proof_jws": "eyJhbGciOiJub25lIiwia2lkIjoiZGlkOndlYnZoOno2bWtmaXh0dXJlOmFsaWNlLmV4YW1wbGUjZWQyNTUxOS0yMDI2LTA1LWZpeHR1cmUiLCJ0eXAiOiJKT1NFIn0..-_4NHDsjnEeeEmsg4hrWIFGgxdtLmJIDJRvwqClLfIizZmojXIX7ZMHjegdTiO5E3xj-HwLavLtR2rDJIC9pCg",
+      "expected": {
+        "decision": "reject",
+        "error_code": "unsupported_signature_alg",
+        "reason": "alg=none is not an active row of signature-alg-registry.json; critical proofs MUST fail closed before any verification is attempted"
+      }
+    },
+    {
+      "name": "reject_alg_key_type_mismatch",
+      "base_vector": "ck.vector.encoding.crypto.ed25519_detached_jws.v1",
+      "description": "Protected header declares ES256 and the signature genuinely verifies under a P-256 key, but kid resolves to the Ed25519 OKP verification method. The verifier MUST bind alg to the resolved key type (jwk_kty/jwk_crv per signature-alg-registry.json) and fail closed.",
+      "protected_header": {
+        "alg": "ES256",
+        "kid": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
+        "typ": "JOSE"
+      },
+      "proof_jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlI2VkMjU1MTktMjAyNi0wNS1maXh0dXJlIiwidHlwIjoiSk9TRSJ9..Z1fU1Y7ILV9WAQJ9fACEhXjnt_WshwU8ZgykxAHrbDkJh9C2s7vNKPhTs20e7mOJZOSrWbbrjFJNsl39ndVlbA",
+      "resolved_public_key_jwk": {
+        "crv": "Ed25519",
+        "kty": "OKP",
+        "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "invalid_signature",
+        "reason": "declared alg ES256 does not match the resolved verification method key type (OKP/Ed25519); implementations MUST NOT verify with a substituted key"
+      }
+    },
+    {
+      "name": "reject_truncated_public_key",
+      "base_vector": "ck.vector.encoding.crypto.ed25519_detached_jws.v1",
+      "description": "The DID Document publicKeyJwk.x is truncated to 31 bytes; the JWS is the untampered valid vector value.",
+      "proof_jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlI2VkMjU1MTktMjAyNi0wNS1maXh0dXJlIiwidHlwIjoiSk9TRSJ9..-_4NHDsjnEeeEmsg4hrWIFGgxdtLmJIDJRvwqClLfIizZmojXIX7ZMHjegdTiO5E3xj-HwLavLtR2rDJIC9pCg",
+      "public_key_jwk": {
+        "crv": "Ed25519",
+        "kty": "OKP",
+        "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMQ"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "invalid_signature",
+        "reason": "verification key fails to parse (31 bytes is not an Ed25519 public key length); key material errors MUST fail closed, not fall back to another key"
+      }
+    },
+    {
+      "name": "reject_non_empty_payload_segment",
+      "base_vector": "ck.vector.encoding.crypto.ed25519_detached_jws.v1",
+      "description": "The detached payload is re-attached as the JWS payload segment. The signature still verifies as an attached JWS over the identical signing input, so accepting it would silently downgrade the detached profile; receivers MUST reject on the non-empty payload segment alone.",
+      "proof_jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlI2VkMjU1MTktMjAyNi0wNS1maXh0dXJlIiwidHlwIjoiSk9TRSJ9.eyJhY3Rvcl9pZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlIiwiY3JlYXRlZF9hdCI6IjIwMjYtMDUtMDJUMDA6MDA6MDBaIiwiZG9tYWluIjoiY29rcmV0LWV2ZW50LXYxIiwiZXZlbnRfZGlnZXN0Ijoic2hhMjU2OmY5NzZmZWJjYjBkMjgyMjI2Y2NlY2Q5ZDI4MDJjMmExZWQxN2MyNzQ5OTYxM2IwNmFlODU2MGYyMzNmZDQ4MWIiLCJwYXlsb2FkX2RpZ2VzdCI6InNoYTI1NjpmOTc2ZmViY2IwZDI4MjIyNmNjZWNkOWQyODAyYzJhMWVkMTdjMjc0OTk2MTNiMDZhZTg1NjBmMjMzZmQ0ODFiIiwidmVyaWZpY2F0aW9uX21ldGhvZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlI2VkMjU1MTktMjAyNi0wNS1maXh0dXJlIn0.-_4NHDsjnEeeEmsg4hrWIFGgxdtLmJIDJRvwqClLfIizZmojXIX7ZMHjegdTiO5E3xj-HwLavLtR2rDJIC9pCg",
+      "expected": {
+        "decision": "reject",
+        "error_code": "invalid_signature",
+        "reason": "detached_jws payload segment MUST be empty in compact serialization (encoding.md section 6) even when the attached form would verify"
+      }
     }
   ]
 }

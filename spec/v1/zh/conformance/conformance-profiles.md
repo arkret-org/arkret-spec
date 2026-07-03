@@ -3,7 +3,7 @@ title: 实现 Profile 与一致性要求
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-03
 sidebar:
   label: 实现 Profile
 ---
@@ -90,6 +90,16 @@ v1 stable + extension catalog 已包含较大的 implementation / deployment / v
 实现侧：客户端 SHOULD 在 conformance 声明中暴露 `inherits` 与 `adds` 信息，让对端能在 fast path 中按继承关系做能力命中判断，避免逐 profile 列举。
 
 Profile 正文中的 prose MUST 项必须能映射到 `artifacts/profiles/conformance-profiles.json#profile_requirements` 的 `required_endpoints` / `required_event_kinds` / `required_schemas` / `required_fixtures` / `feature_discovery`，或在 `prose_requirement_coverage` 中列出对应 registry、fixture 或 conformance runner。没有一一字段的 prose MUST 不得悬空；新增 profile 时 reviewer MUST 拒绝缺少覆盖映射的 prose MUST 清单。
+
+### 2.1.2 可裁剪构建与 profile 声明对账（normative）
+
+§2.1 的"实现只声明自己实际支持的 profile"对可裁剪模块构建（Cargo feature、编译开关、插件拆分等形态的实现或 SDK）有一条显式推论：
+
+- 以可裁剪模块构建的实现 / SDK MUST 保证其 profile 声明面（`ServiceDescribe.claimed_profiles`、`supported_profiles`、SDK 静态导出的 conformance 声明常量等）与**当前构建产物的实际编译能力**一致，而不是与全功能构建的能力一致。
+- 构建期裁剪掉某 profile 的任一 MUST 能力（对应 `profile_requirements` 中 `required_endpoints` / `required_event_kinds` / `required_schemas` 的实现模块）时，该构建 MUST 同时摘除该 profile 的声明——通过构建期对账（feature gate 与声明常量联动）或等效守卫实现。裁剪构建（例如 `--no-default-features`）继续静态声明完整 required 面（如 `e2ee_client` 的 required 集合）即违反本条与 §2.1 的声明纪律。
+- 对端按 §1 的能力交集原则信任声明面；声明面与编译能力脱钩会把 fail-closed 协商变成 fail-open，因此本条按声明纪律缺陷处理，而非文档瑕疵。
+
+SDK 侧构建期守卫的具体实现形态（feature 矩阵测试、声明常量的 cfg 拼装等）属实现审查范畴，本文不规定唯一做法。
 
 ## 2.2 场景化 Profile
 
@@ -929,3 +939,53 @@ MIMI Interop profile MUST 额外提供：
 
 `full_client` 和 `e2ee_client` 是产品可用性的目标 profile。  
 `enterprise_client` 和 `agent_runtime` 是高价值扩展 profile，但不应阻塞基础互操作。
+
+## 23. 库 / SDK 一致性说明
+
+Conformance 面此前全部以部署形态 profile 为单位（`profile_requirements` 只绑 endpoints / event kinds / schemas / fixtures）。但本文与 [conformance-vectors.md](./conformance-vectors.md) 中存在一批**客户端侧 MUST**，它们约束的是实现内部行为或库 API 形状（例如"proof 验证不能被跳过""cursor MUST NOT 被结构化解析"），部署级黑盒测试无法完整覆盖。本节为库 / SDK（区别于部署形态 client）提供统一的可测性分级、条款映射与 API 形状实现指引。
+
+**本节定位（normative for grading, informative for tooling）**：本节不新增 profile、不新增 wire MUST、不扩展 `profile_requirements` 机读面；表中条款全部是既有条款的重述，其覆盖映射仍在各原始定义位置（§2.1.1 的悬空禁令不因本节复述而重复计数）。本节的作用是（a）给每条客户端侧 MUST 一个明确的可测性等级，（b）给"黑盒测不到"的条款一个审计锚点与 SDK 实现指引。
+
+### 23.1 可测性三级
+
+| 等级 | 名称 | 含义 | 核查手段 |
+| --- | --- | --- | --- |
+| **V** | 黑盒向量可测 | 条款违反会在 wire 可观测行为（接受/拒绝、错误码、出向流量）上暴露 | `vector-registry.json` 中的 conformance vector 与 `artifacts/fixtures/*.json` |
+| **A** | 仅 API 形状可保证 | 条款约束库内部行为，黑盒不可靠观测；但可以通过**不提供违规捷径的公开 API 面**在类型/接口层面结构性排除 | SDK 公开 API 面审查（§23.3 指引） |
+| **U** | 仅审计可保证 | 条款既非 wire 可观测、也无法靠 API 形状排除（涉及配置面、内部执行顺序或数据流向） | 代码审计 / 实现自述 + 抽样复核 |
+
+一条 prose MUST 可以同时命中多级：拒收行为是 V，"不得提供跳过入口"是 A，内部顺序是 U。分级取**最强可达手段**标注，并列出补充级。
+
+### 23.2 客户端侧 MUST 条款的可测性映射
+
+| # | 条款（摘述） | 真相源 | 分级 |
+| --- | --- | --- | --- |
+| 1 | Event Envelope MUST 先过 `ck.schema.event.v1` 与 payload class 校验，失败 MUST `schema_violation`，不得进入 reducer（先验证后消费） | 本文 §3 | **V**（`event-envelope-negative-fixture.json`）；"先于消费"的内部顺序为 U |
+| 2 | `proof`、`hlc`、`actor_seq`、`prev_refs`、`refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过 | 本文 §3 | **V**（负例向量拒收）；"库不得暴露跳过入口"为 A |
+| 3 | `auth` 约束必须执行，不得通过客户端配置豁免 | 本文 §3 | **U**（配置面审计）；辅以 A（不提供豁免配置项） |
+| 4 | 对 `causal` 关系、`revoked` 与 `proof` 失效状态 MUST fail-closed，不得静默接受 | 本文 §3；conformance-vectors §2.19 | **V**（`ck.vector.cba_lattice.*` 并发撤销 fail closed 向量） |
+| 5 | cursor MUST 当作不透明字符串保存回传；SDK / 应用层 MUST NOT 解析内部字段构造请求 | conformance-vectors §1.11（`ck.vector.encoding.cursor_opaque.core.v1`） | **A**（不暴露结构化解码 API）；黑盒仅能以变异 handle cursor 抽样旁证 |
+| 6 | canonicalization 失败（duplicate key、malformed UTF-8、隐式 NFC 归一）MUST reject，不得"修复"后继续 hash / 验签 | conformance-vectors §1.4–1.5 | **V**（encoding 负例向量） |
+| 7 | malformed HLC MUST reject，不得截断、补零或大小写折叠后接受 | conformance-vectors §1.9–1.10 | **V** |
+| 8 | 重试 / 等待期间 `prev_refs`、`refs[role=authorized_by]`、`actor_seq` 约束 MUST NOT 放松 | conformance-vectors §1.10 | **V**（重放向量）；内部重试路径为 U |
+| 9 | E2EE：`governance_binding` root 不匹配 MUST NOT 继续解密正文；未验证 KeyPackage 所属 DID 不得加密 | 本文 §6；conformance-vectors §2.5.1 | **V**（root mismatch 拒收向量）；"不解密"的本地行为为 U，KeyPackage DID 验证入口为 A |
+| 10 | E2EE：MUST NOT 把明文 / 解密密钥交给未授权 Sync / search / projection 服务 | 本文 §6、§8 | **V**（privacy regression 出向流量观测）为主；本地泄露面为 U |
+| 11 | 轻客户端 MUST NOT 用单 leaf 授权结论接受 DataEvent，MUST hold pending 或 fail closed | conformance-vectors §2.19 Case C | **V**（以 SDK API 输出为观测点） |
+| 12 | late key recovery：`T0` 不可见 / key source unauthorized 时 MUST 拒绝解密（先验证后消费） | conformance-vectors late_key_recovery 向量族 | **V** |
+| 13 | 未知 critical feature / `requirements` 不匹配 MUST fail closed | 本文 §3、§20 | **V**（downgrade / unsupported feature tests） |
+| 14 | 生产 profile MUST 拒绝测试 DID、测试 key id、测试 trust domain | conformance-vectors §1.14 | **V** |
+
+### 23.3 "仅 API 形状可保证"类的 SDK 实现指引
+
+针对上表 A 级（含 A 补充级）条款，SDK：
+
+- SHOULD NOT 在客户端可达的公开 API 面提供 cursor 结构化解码（base64url 解码 + 内部字段访问）helper；cursor SHOULD 以不透明 newtype / opaque string 类型建模（对应条款 5）。
+- SHOULD NOT 提供跳过 proof / schema 验证的公开入口（`verify=false` 参数、insecure 构造器、直接产出"已验证"类型的裸构造函数等）；测试性 bypass 若确需存在，SHOULD 置于非默认 feature / 内部模块，不得从默认公开面可达（对应条款 1、2、9）。
+- SHOULD 采用"验证即构造"（parse, don't validate）类型形态：未通过 envelope schema + proof 验证的字节不产出可直接消费的 Event 值类型（对应条款 1、2）。
+- SHOULD 把 fail-closed 判定（causal / revoked / proof 失效、未知 critical feature）实现为默认路径；任何放宽行为 SHOULD 是显式、可审计的 opt-in，而非默认参数（对应条款 3、4、13）。
+
+声明遵循本节的 SDK SHOULD 在其 conformance 声明或发布文档中列出所覆盖的条款行号（§23.2 的 # 列），作为 U / A 级条款的审计锚点。
+
+### 23.4 与机读面的关系
+
+V 级条款的机读挂点是既有 `vector-registry.json` 与 `artifacts/fixtures/*.json`，无需新增。A / U 级条款在 v1 不进入 `profile_requirements`（该结构只表达部署可测面）；其核查以 §23.3 的 API 面审查与代码审计为准。若未来引入 SDK 级机读声明面，MUST 以新顶层结构提出，不得复用 `profile_requirements` 的字段语义。

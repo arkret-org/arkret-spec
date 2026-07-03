@@ -30,7 +30,9 @@
     "Operations with typed OpenAPI bodies SHOULD declare request_schema_ref and/or response_schema_ref. The referenced schema fragment is the source for generated DTO docs and MUST match the OpenAPI component referenced by the HTTP binding.",
     "Operations that still bind OpenAPI request/response bodies to OperationRequest or OperationResult MUST declare generic_binding with request/response booleans, reason, profile_gate, and migration_plan; core-tier operations MUST NOT use generic bindings.",
     "operation_id values MUST end with <kind>.<action>. The kind segment MUST be one of query, stream, resource, command, upload, or exchange; the action segment MUST describe protocol semantics and MUST NOT be an HTTP method name.",
-    "resource.replace operations MUST bind to HTTP PUT; resource.delete operations MUST bind to HTTP DELETE; command, upload, exchange, and complex query body operations SHOULD bind to HTTP POST unless their operation notes define a stricter resource URI replacement contract."
+    "resource.replace operations MUST bind to HTTP PUT; resource.delete operations MUST bind to HTTP DELETE; command, upload, exchange, and complex query body operations SHOULD bind to HTTP POST unless their operation notes define a stricter resource URI replacement contract.",
+    "Every write operation (kind command/upload/exchange, and resource.replace / resource.delete) MUST declare idempotency_mechanism (one of idempotency_key, object_id, request_id, canonical_hash, protocol_sequence, none) and retry_safe (boolean). Read-only operations (query/stream/resource.get/resource.head) MUST NOT declare these fields.",
+    "idempotency_mechanism is the machine-readable source of truth for which idempotency mechanism from api-conventions.md section 6 an operation uses. retry_safe=true means a byte-identical full retry of the same request cannot produce duplicate side effects: it returns the original outcome, an equivalent idempotent no-op, or a deterministic conflict. retry_safe=false means blind retries MAY duplicate side effects or consume one-time material; clients MUST NOT retry such operations without out-of-band reconciliation."
   ],
   "capability_tiers": {
     "core": "Base interoperable surfaces implied by claiming Cokret v1 protocol support (service discovery, identity registry, events/account aggregate).",
@@ -386,6 +388,8 @@
       "grpc": "GateAccount/Register",
       "mq": "gate.account.command.register",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_request_body",
       "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_outcome"
     },
@@ -395,6 +399,8 @@
       "grpc": "GateAccount/DevicePair",
       "mq": "gate.account.command.pair_device",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_outcome"
     },
@@ -405,6 +411,8 @@
       "mq": "gate.account.command.enroll_device",
       "notes": "Managed-DID (account-authority) device enrollment, device-lifecycle.md §5.4 / key-management.md §5.0.6. The authenticated session asks its designated enrollment authority to mint a service_attested ck.device.authorize for this session's own device; the authority signs with its persistent enrollment key (never the principal SSK) and returns the full Event. The caller submits it verbatim to POST /_cokret/self/events. Distinct from pair_device (§2.1), which lands an existing-device SAS/QR approval and carries a pairing_code; enroll_device is the bootstrap / first-device path where no sibling device can approve.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_enroll_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_enroll_outcome"
     },
@@ -415,6 +423,8 @@
       "mq": "gate.account.command.issue_session_grant",
       "notes": "Account Authority single-call grant exchange. The response is the client-visible SessionGrantOutcome; any Principal-side local session provisioning is internal to the Account Authority. There is no separate client-visible grant-to-bearer exchange step: the client presents the returned ck.session.grant directly to /_cokret/self/* with a DPoP proof (api-conventions §3.3). For proof_kind=oidc_code_exchange, the Account Authority exchanges the authorization code at the issuer token_endpoint and validates issuer/state/nonce/redirect_uri/principal/device/audience binding before issuing the grant; the client MAY omit principal_id at first sign-in, in which case the Account Authority derives/mints the principal DID and returns it in SessionGrantOutcome.principal_id.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome"
     },
@@ -424,6 +434,8 @@
       "grpc": "GateAccount/SessionRevoke",
       "mq": "gate.account.command.revoke_session",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": false,
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/session_revoke_request_body",
       "response_schema_ref": "schemas/account-operations.schema.json#/$defs/session_revoke_outcome"
     },
@@ -433,6 +445,8 @@
       "http": "POST /_cokret/gate/account/session-grants/refresh",
       "notes": "DPoP-bound session-grant rotation (account-lifecycle §4.1, device-lifecycle §3.3). An authorized device presents a DPoP holder proof for the grant's cnf.jkt plus a fresh DID/device proof bound to principal_id, device_id, audience, request_canonical_digest, challenge, issued_at, and expires_at; expires_at - issued_at MUST be <=300s. The old grant is single-use revoked. Account Authority-local op; not exposed over gRPC/MQ.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshOutcome"
     },
@@ -442,6 +456,8 @@
       "http": "POST /_cokret/gate/account/auth-sessions/logout",
       "notes": "Account Authority to Auth Server S2S Auth-side logout sub-operation (account-lifecycle §4.1): the Account Authority has already validated the client-visible ck.gate.account.command.logout request, then calls this operation with service-to-service authentication to log out the Auth-side browser/auth session owning the presented ck.session.grant and terminate that session's grant rotation chain. Ordinary clients MUST NOT call this operation; they only call ck.gate.account.command.logout. HTTP-only S2S op; not exposed over gRPC/MQ.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutOutcome"
     },
@@ -451,6 +467,8 @@
       "http": "POST /_cokret/gate/account/session-grants/introspect",
       "notes": "Server-to-server session-grant introspection (RFC 7662-style). The Principal Server validating a presented grant calls this with the grant id or grant_jwt (+ optional audience and optional S2S holder confirmation) and learns whether it is active, plus non-secret grant metadata. The introspection response MUST include the grant's cnf_jkt (RFC 7638 thumbprint of the bound DPoP holder key) so the Principal Server can verify the per-request DPoP proof on /_cokret/self/* (api-conventions §3.3); clients do not send a separate introspection-proof header on self-path requests. session_public_key is also returned for RFC 9421 PoP verification. READ-ONLY: introspection MUST NOT consume/revoke the grant. Authenticated by the configured session_grant_introspection_bearer (server-local); not exposed over gRPC/MQ.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": true,
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectOutcome"
     },
@@ -460,6 +478,8 @@
       "http": "POST /_cokret/gate/account/logout",
       "notes": "Account Authority ordinary hard logout (account-lifecycle §4.1): single client-visible logout entry. The handler validates the current ck.session.grant + DPoP, terminates the Auth-side auth session / grant rotation chain through ck.gate.account.command.logout_auth_session when Auth-side is split out, and completes or durably schedules the Principal-side local account session + device session cleanup and to-device/push removal. Distinct from revoke_session (targeted session-grant revoke). HTTP-only Account Authority op; not exposed over gRPC/MQ.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutOutcome"
     },
@@ -469,6 +489,8 @@
       "grpc": "GateAccount/AgentKeyPair",
       "mq": "gate.account.command.pair_agent_key",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_outcome"
     },
@@ -478,6 +500,8 @@
       "grpc": "SelfAgent/Provision",
       "mq": "self.agent.command.provision",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome"
     },
@@ -513,6 +537,8 @@
       "grpc": "SelfAgent/Pause",
       "mq": "self.agent.command.pause",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": false,
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pause_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state"
     },
@@ -522,6 +548,8 @@
       "grpc": "SelfAgent/Resume",
       "mq": "self.agent.command.resume",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": false,
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_resume_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state"
     },
@@ -531,6 +559,8 @@
       "grpc": "SelfAgent/Deactivate",
       "mq": "self.agent.command.deactivate",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": false,
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_deactivate_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state"
     },
@@ -540,6 +570,8 @@
       "grpc": "SelfAgent/RotateKey",
       "mq": "self.agent.command.rotate_key",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_rotate_key_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_rotate_key_outcome"
     },
@@ -549,6 +581,8 @@
       "grpc": "SelfAgent/GrantAttach",
       "mq": "self.agent.grant.command.attach",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_outcome"
     },
@@ -558,6 +592,8 @@
       "grpc": "SelfAgent/GrantDetach",
       "mq": "self.agent.grant.resource.delete",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": true,
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_detach_outcome"
     },
     {
@@ -566,6 +602,8 @@
       "grpc": "SelfAgent/SidecarThreadEnsure",
       "mq": "self.agent.sidecar_thread.command.ensure",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": true,
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_outcome"
     },
@@ -575,6 +613,8 @@
       "grpc": "SelfAgent/ParticipationReplace",
       "mq": "self.agent.participation.resource.replace",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": true,
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_replace_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome"
     },
@@ -593,6 +633,8 @@
       "mq": "gate.account.exchange.complete_oidc",
       "notes": "Optional Account Authority browser redirect landing / handoff for deployments that use an OIDC redirect URI under /_cokret/gate/account. It MUST NOT issue or return SessionGrantOutcome, ck.session.grant, or Principal local session material; client-visible grant issuance remains ck.gate.account.command.issue_session_grant.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome"
     },
@@ -609,6 +651,8 @@
       "grpc": "SelfApplet/InstallPreview",
       "mq": "self.applet.install.command.preview",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": true,
       "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_preview_request_body",
       "response_schema_ref": "schemas/applet-install-plan.schema.json"
     },
@@ -618,6 +662,8 @@
       "grpc": "SelfApplet/Install",
       "mq": "self.applet.command.install",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "idempotency_key",
+      "retry_safe": true,
       "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_request_body",
       "response_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_outcome"
     },
@@ -659,6 +705,8 @@
       "grpc": "SelfApplet/Revoke",
       "mq": "self.applet.command.revoke",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "idempotency_key",
+      "retry_safe": true,
       "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_request_body",
       "response_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_outcome"
     },
@@ -668,6 +716,8 @@
       "grpc": "SelfApplet/GhostProvision",
       "mq": "self.applet.ghost.command.provision",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "idempotency_key",
+      "retry_safe": true,
       "request_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body",
       "response_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_outcome"
     },
@@ -693,6 +743,8 @@
       "grpc": "EdgeApplet/Transaction",
       "mq": "edge.applet.command.transaction",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "idempotency_key",
+      "retry_safe": true,
       "request_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body",
       "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_outcome",
       "auth_requirements": {
@@ -788,6 +840,8 @@
       "grpc": "SelfBlob/Upload",
       "mq": "self.blob.upload.create",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "canonical_hash",
+      "retry_safe": true,
       "request_schema_ref": "schemas/blob-operations.schema.json#/$defs/blob_upload_request_body",
       "response_schema_ref": "schemas/blob-operations.schema.json#/$defs/blob_upload_outcome"
     },
@@ -798,6 +852,8 @@
       "mq": "self.blob.command.presign",
       "notes": "Issues a short-TTL, single-blob, read-only pre-signed URL whose authorization material rides in the URL itself (query string). Used as a deliberate carve-out of the no-credentials-in-URL rule (server-threat-model.md S21) so that browser primitives like <img src> / <video src> / <link href> can render protected media without setting Authorization headers. NOT for E2EE blob inline preview (E2EE attachment fetch MUST keep the blob_ref + key out of any URL the server can log). See media-and-blob.md §5.4.",
       "success_shape_kind": "schema_resource",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignOutcome"
     },
@@ -816,6 +872,8 @@
       "mq": "self.device_messages.command.send",
       "notes": "Enqueues caller-supplied DeviceMessageEnvelope targets into recipient device queues. HTTP binding is POST because the request is a batch command against a queue collection, deduplicated by (sender, Idempotency-Key), and does not replace a single URI-addressed message resource. Queue pruning is only via ck.self.device_messages.command.ack.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "idempotency_key",
+      "retry_safe": true,
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendOutcome"
     },
@@ -826,6 +884,8 @@
       "mq": "self.device_messages.command.ack",
       "notes": "Explicit, cumulative, monotonic to-device delivery acknowledgement (client-sync.md §10.1). Queue deletion happens only here; stream cursor advancement (account subscribe after=, device_messages from=) is read-only and MUST NOT prune the queue. Re-acking the same or an older token is a legal no-op. Unknown / expired / cross-bound tokens are rejected with invalid_param (reason invalid_ack_token) without deleting anything.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "protocol_sequence",
+      "retry_safe": true,
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckOutcome"
     },
@@ -836,6 +896,8 @@
       "mq": "self.contact.command.request",
       "notes": "Writes requester-side ck.contact.requested fact and requester-side consent grants for requested scopes; MUST NOT write target consent or accepted fact.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_request_body",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_outcome"
     },
@@ -846,6 +908,8 @@
       "mq": "self.contact.command.respond",
       "notes": "Target-side accept/reject of a contact request. Accept writes target-controlled consent grants; reject writes no consent.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": false,
       "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_request_body",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_outcome"
     },
@@ -865,6 +929,8 @@
       "mq": "self.contact.command.tombstone",
       "notes": "Holder-side contact tombstone. Default revocation is limited to contact-managed active consent dots.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": false,
       "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request_body",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone"
     },
@@ -884,6 +950,8 @@
       "mq": "self.invite_receive_policy.resource.replace",
       "notes": "Replace the authenticated subject's private invite-receive policy. The body MUST set subject_id equal to the session actor; the override shares the same store as ck.self.contact.command.tombstone(block_peer) blocked_subjects writes.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": true,
       "request_schema_ref": "schemas/invite-receive-policy.schema.json",
       "response_schema_ref": "schemas/invite-receive-policy.schema.json"
     },
@@ -894,6 +962,8 @@
       "mq": "self.direct_conversation.command.resolve",
       "notes": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent; create=true creates canonical DM Realm, main Strand, and binding.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": true,
       "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_request_body",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_outcome"
     },
@@ -904,6 +974,8 @@
       "mq": "self.circle.command.create",
       "notes": "Builds a ck.circle.create Operation in the named parent Realm and routes it through the local accept pipeline. Reducer-locked fields (mls_group_ref, state) MUST NOT be actor-supplied; encryption_profile='none' is allowed only when the parent Realm policy floor permits plaintext.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_create_request_body",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view"
     },
@@ -932,6 +1004,8 @@
       "mq": "self.circle.member.command.add",
       "notes": "Builds ck.circle.member.state. Activating another actor requires ck.circle.member.manage narrowed to this Circle, and the target MUST already be a joined parent-Realm member (strict-subset invariant); a self-join is gated by join_rule.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": false,
       "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_member_request_body",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome"
     },
@@ -942,6 +1016,8 @@
       "mq": "self.circle.member.resource.delete",
       "notes": "Builds ck.circle.member.state with membership=leave for the path actor_id.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": true,
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome"
     },
     {
@@ -951,6 +1027,8 @@
       "mq": "self.circle.command.rotate_scope",
       "notes": "Rotates the Circle's bound MLS group. MUST NOT acknowledge a rotation without actually changing the cryptographic scope; returns unsupported_feature until the MLS genesis/commit/welcome cascade is wired end-to-end.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_outcome"
     },
     {
@@ -960,6 +1038,8 @@
       "mq": "self.circle.command.archive",
       "notes": "Builds ck.circle.archive; transition follows the Circle lifecycle matrix (reducer rejects illegal transitions with circle_not_active).",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": false,
       "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view"
     },
@@ -970,6 +1050,8 @@
       "mq": "self.circle.command.restore",
       "notes": "Builds ck.circle.restore; transition follows the Circle lifecycle matrix (reducer rejects illegal transitions with circle_not_archived). Restore re-enables new writes after pending MLS membership removals are settled.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": false,
       "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view"
     },
@@ -980,6 +1062,8 @@
       "mq": "self.circle.command.tombstone",
       "notes": "Builds ck.circle.tombstone (terminal). Response surfaces the terminal state with empty members.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": false,
       "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view"
     },
@@ -989,6 +1073,8 @@
       "grpc": "FindDirectory/Announce",
       "mq": "find.directory.command.announce",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome"
     },
@@ -1104,6 +1190,8 @@
       "grpc": "FindDirectory/PushRegister",
       "mq": "find.directory.push.command.register",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": false,
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_push_register_request_body",
       "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_push_register_outcome"
     },
@@ -1113,6 +1201,8 @@
       "grpc": "FindDirectory/Withdraw",
       "mq": "find.directory.command.withdraw",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": false,
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawOutcome"
     },
@@ -1123,6 +1213,8 @@
       "mq": "find.directory.command.takedown_appeal",
       "notes": "Resource-side appeal against an operator takedown. The appeal packet MUST bind takedown_id, resource id, appellant DID, argument/evidence digest, requested_outcome and created_at, signed by the resource governance key or an authorized advocate; the Directory returns a signed decision receipt. See discovery-directory.md §8.7.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealOutcome"
     },
@@ -1192,6 +1284,8 @@
       "mq": "self.events.command.submit",
       "notes": "Durable self event submission, including ck.invite.claim. For ck.invite.claim, the receiving Realm reducer is the authoritative state machine: it MUST match token_commitment, re-check verification_service_did allowlist against current Realm policy, reject claim_nonce replay, perform pending -> claimed / membership-proposal effects, and run expiry cleanup before accepting.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "protocol_sequence",
+      "retry_safe": true,
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome"
     },
@@ -1248,6 +1342,8 @@
       "mq": "peer.events.command.submit",
       "notes": "Federation peer event push. Body is EventsSubmitFederationRequestBody and the caller MUST use service-to-service authentication with Source/Destination service DID and trust-domain headers. Federated ck.invite.claim events are still decided by the destination Realm reducer, which MUST enforce token_commitment, current allowlist re-check, claim_nonce replay rejection, membership proposal conversion, and expiry cleanup; peer ingress prechecks are not state authority.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "protocol_sequence",
+      "retry_safe": true,
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome"
     },
@@ -1258,6 +1354,8 @@
       "mq": "peer.invites.command.submit",
       "notes": "Private Principal Server to Principal Server invite delivery. Requires service-to-service authentication, Destination-Service-DID equal to invite_address.recipient_service_did, a ck.invite.create event whose invitee equals invite_address.subject_id, and introduction_evidence accepted by the recipient invite_receive_policy.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "idempotency_key",
+      "retry_safe": true,
       "request_schema_ref": "schemas/invite-delivery-request.schema.json",
       "response_schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome"
     },
@@ -1268,6 +1366,8 @@
       "mq": "peer.contacts.command.submit",
       "notes": "Private Principal Server to Principal Server contact fact delivery. Requires service-to-service authentication, Destination-Service-DID equal to contact_address.recipient_service_did, and a signed ck.contact.* envelope the recipient projects into the target holder's contact projection without re-signing.",
       "success_shape_kind": "schema_resource",
+      "idempotency_mechanism": "idempotency_key",
+      "retry_safe": true,
       "request_schema_ref": "schemas/peer-contact-delivery-request.schema.json",
       "response_schema_ref": "schemas/peer-contact-delivery-request.schema.json#/$defs/peer_contact_delivery_outcome"
     },
@@ -1287,6 +1387,8 @@
       "mq": "self.ephemeral.command.send",
       "notes": "Canonical broadcast ephemeral send operation for ck.schema.ephemeral_envelope.v1. Carries ck.presence, ck.typing, ck.receipt.read, and ck.call.signal; MUST NOT persist the signal as a durable Event or advance actor_seq / Realm frontier.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/ephemeral-envelope.schema.json",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EphemeralSubmitOutcome"
     },
@@ -1297,6 +1399,8 @@
       "mq": "self.call.media.exchange.issue_token",
       "notes": "Media service token exchange operation (CKP-0010). Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in ck.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / cokret-native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/media-service-binding.md §3.",
       "success_shape_kind": "schema_resource",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeOutcome"
     },
@@ -1346,6 +1450,8 @@
       "grpc": "RootIdentity/SubmitDidOperation",
       "mq": "root.identity.command.submit_did_operation",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "protocol_sequence",
+      "retry_safe": true,
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitOutcome"
     },
@@ -1365,6 +1471,8 @@
       "mq": "root.identity.recovery_policy.command.publish",
       "notes": "Publish a signed ck.schema.recovery_policy.v1 genesis policy or rotation for the authenticated principal. HTTP binding is POST because the principal/authority is derived from authenticated proof and signed policy state rather than a URI-addressed resource slot. Servers MUST verify auth_data.signed_fields, signature authority, version monotonicity, and supersedes linkage before accepting.",
       "success_shape_kind": "schema_resource",
+      "idempotency_mechanism": "protocol_sequence",
+      "retry_safe": true,
       "request_schema_ref": "schemas/recovery-policy.schema.json",
       "response_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_outcome"
     },
@@ -1374,6 +1482,8 @@
       "grpc": "RootIdentity/RecoverySessionCreate",
       "mq": "root.identity.recovery_session.command.create",
       "success_shape_kind": "schema_resource",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body",
       "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_state"
     },
@@ -1391,6 +1501,8 @@
       "grpc": "RootIdentity/RecoverySessionSubmitProof",
       "mq": "root.identity.recovery_session.command.submit_proof",
       "success_shape_kind": "schema_resource",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_request_body",
       "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_outcome"
     },
@@ -1400,6 +1512,8 @@
       "grpc": "RootIdentity/RecoverySessionComplete",
       "mq": "root.identity.recovery_session.command.complete",
       "success_shape_kind": "schema_resource",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": false,
       "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body",
       "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_outcome"
     },
@@ -1409,6 +1523,8 @@
       "grpc": "SelfKeys/Claim",
       "mq": "self.keys.command.claim",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_claim_request_body",
       "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_claim_outcome"
     },
@@ -1418,6 +1534,8 @@
       "grpc": "SelfKeys/BackupsDelete",
       "mq": "self.keys.backups.resource.delete",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": true,
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_request_body",
       "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_outcome"
     },
@@ -1435,6 +1553,8 @@
       "grpc": "SelfKeys/BackupsReplace",
       "mq": "self.keys.backups.resource.replace",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "idempotency_key",
+      "retry_safe": true,
       "request_schema_ref": "schemas/key-backup.schema.json",
       "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_replace_outcome"
     },
@@ -1444,6 +1564,8 @@
       "grpc": "SelfKeys/BackupsUnlock",
       "mq": "self.keys.backups.command.unlock",
       "success_shape_kind": "schema_resource",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_request_body",
       "response_schema_ref": "schemas/key-backup.schema.json"
     },
@@ -1453,6 +1575,8 @@
       "grpc": "SelfKeys/KeyPackagesClaim",
       "mq": "self.keys.keypackages.command.claim",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_request_body",
       "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_outcome"
     },
@@ -1462,6 +1586,8 @@
       "grpc": "SelfKeys/KeyPackagesConsume",
       "mq": "self.keys.keypackages.command.consume",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": false,
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_request_body",
       "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_outcome"
     },
@@ -1471,6 +1597,8 @@
       "grpc": "SelfKeys/KeyPackagesRevoke",
       "mq": "self.keys.keypackages.command.revoke",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": false,
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_request_body",
       "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_outcome"
     },
@@ -1480,6 +1608,8 @@
       "grpc": "SelfKeys/KeyPackagesUpload",
       "mq": "self.keys.keypackages.upload.create",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_request_body",
       "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_outcome"
     },
@@ -1498,6 +1628,8 @@
       "grpc": "SelfKeys/Upload",
       "mq": "self.keys.upload.create",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": false,
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_upload_request_body",
       "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_upload_outcome"
     },
@@ -1543,6 +1675,8 @@
       "grpc": "OpenMimi/KeyMaterial",
       "mq": "open.mimi.exchange.request_key_material",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_outcome"
     },
@@ -1552,6 +1686,8 @@
       "grpc": "OpenMimi/Notify",
       "mq": "open.mimi.command.notify",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_notify_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_notify_outcome"
     },
@@ -1570,6 +1706,8 @@
       "mq": "open.mimi.command.proxy_download",
       "bridges_to": "ck.self.blob.resource.get",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_outcome"
     },
@@ -1580,6 +1718,8 @@
       "mq": "open.mimi.command.report_abuse",
       "bridges_to": "ck.self.moderation.command.report",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_outcome"
     },
@@ -1589,6 +1729,8 @@
       "grpc": "OpenMimi/RequestConsent",
       "mq": "open.mimi.command.request_consent",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_outcome"
     },
@@ -1598,6 +1740,8 @@
       "grpc": "OpenMimi/RoomUpdate",
       "mq": "open.mimi.command.update_room",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_outcome"
     },
@@ -1607,6 +1751,8 @@
       "grpc": "OpenMimi/SubmitMessage",
       "mq": "open.mimi.command.submit_message",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_outcome"
     },
@@ -1616,6 +1762,8 @@
       "grpc": "OpenMimi/UpdateConsent",
       "mq": "open.mimi.command.update_consent",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_outcome"
     },
@@ -1625,6 +1773,8 @@
       "grpc": "SelfModeration/Report",
       "mq": "self.moderation.command.report",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/moderation-report.schema.json",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ModerationReportOutcome"
     },
@@ -1654,6 +1804,8 @@
       "mq": "self.realm_link.command.create",
       "notes": "Builds a ck.realm.link Move from realm_id -> target_realm_id. The reducer runs realm_link_* validators (cycle detection, self-reference, kind validation); a rejected payload returns 422 with the canonical reason code (e.g. realm_link_cycle, realm_link_self_reference).",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": false,
       "request_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_create_request_body",
       "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome"
     },
@@ -1664,6 +1816,8 @@
       "mq": "self.realm_link.resource.delete",
       "notes": "Writes a tombstoning ck.realm.link Move (status=tombstoned) for the (realm_id, target_realm_id, link_kind) triple. link_kind defaults to governed_by; callers may override via the link_kind query param.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": true,
       "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome"
     },
     {
@@ -1700,6 +1854,8 @@
       "mq": "self.realm_policy_server.resource.replace",
       "notes": "Builds a ck.realm.policy_server Move (admission capability ck.policy.manage). Reducer validates URL scheme and on_timeout enum. This admin DTO is a simplified projection of the canonical payload (server_id/endpoint/public_keys/applies_to/fail_mode).",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": true,
       "request_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_replace_request_body",
       "response_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view"
     },
@@ -1709,7 +1865,9 @@
       "grpc": "SelfRealmPolicyServer/Delete",
       "mq": "self.realm_policy_server.resource.delete",
       "notes": "Tombstones the per-Realm ck.realm.policy_server cell so callers fall back to the governed_by chain or local-only capability check. Empty success response.",
-      "success_shape_kind": "empty_response"
+      "success_shape_kind": "empty_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": true
     },
     {
       "operation_id": "ck.self.realm.resource.get",
@@ -1727,6 +1885,8 @@
       "mq": "self.realm.command.archive",
       "notes": "Builds a ck.realm.archive Move. The archived facet changes when the lifecycle event is accepted into the Realm event log; archived=false clears the archived facet unless a terminal lifecycle state already applies.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": false,
       "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view"
     },
@@ -1737,6 +1897,8 @@
       "mq": "self.realm.command.freeze",
       "notes": "Builds a ck.realm.freeze Move. The frozen facet changes when the lifecycle event is accepted into the Realm event log; frozen=true rejects ordinary non-exempt writes with realm_frozen and frozen=false clears the freeze facet unless a terminal lifecycle state already applies.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": false,
       "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view"
     },
@@ -1747,6 +1909,8 @@
       "mq": "self.realm.command.tombstone",
       "notes": "Builds a terminal ck.realm.tombstone Move with a successor_realm_id. The tombstoned state changes when the lifecycle event is accepted into the Realm event log; later ordinary writes fail with realm_terminal_state.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": false,
       "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_tombstone_payload",
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view"
     },
@@ -1757,6 +1921,8 @@
       "mq": "self.realm.command.destroy",
       "notes": "Builds a terminal ck.realm.destroy Move. The destroyed state changes when the lifecycle event is accepted into the Realm event log; later ordinary writes fail with realm_terminal_state.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": false,
       "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_destroy_payload",
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view"
     },
@@ -1785,6 +1951,8 @@
       "mq": "self.realm.moderation_policy.resource.replace",
       "notes": "Writes a Realm moderation-policy override (ck.realm.moderation_policy). Only the Realm owner may write; an override that loosens an action an organization policy denies requires explicit organization approval embedded in the document, otherwise the server returns requires_organization_approval.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": true,
       "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_replace_request_body",
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_document"
     },
@@ -1813,6 +1981,8 @@
       "mq": "self.consent.command.grant",
       "notes": "Builds a ck.consent.grant Control Move on the holder's consent cell. The authenticated actor MUST be authorized to write the holder's consent (holder or an explicitly authorized controller/agent).",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": false,
       "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view"
     },
@@ -1823,6 +1993,8 @@
       "mq": "self.consent.command.revoke",
       "notes": "Builds a ck.consent.revoke Control Move enumerating the active grant dots for the (consent_id, peer, consent_scope). Revoking consent_scope=any cascades all concrete scopes; revoking a concrete scope leaves others intact.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": false,
       "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view"
     },
@@ -1833,6 +2005,8 @@
       "mq": "self.consent.command.request",
       "notes": "Opens a pending consent request from the authenticated peer to a holder. peer_did defaults to and MUST equal the authenticated actor; the holder account MUST exist.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_request_body",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view"
     },
@@ -1861,6 +2035,8 @@
       "mq": "self.account_data.resource.replace",
       "notes": "Builds a ck.account_data.set actor-private write. Controller-private registered types reject agent / applet / service principals. content is stored verbatim; clients own canonical encoding and (for sensitive keys) client-side encryption.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": true,
       "request_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_replace_request_body",
       "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_entry"
     },
@@ -1871,6 +2047,8 @@
       "mq": "self.account_data.resource.delete",
       "notes": "Deletes one account_data entry and fans out an actor-private update to the holder's other devices.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": true,
       "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_delete_outcome"
     },
     {
@@ -1880,6 +2058,8 @@
       "mq": "self.read_cursor.command.advance",
       "notes": "Builds a ck.read_cursor.advance actor-private write for (actor_id, realm_id, read_scope, position). Multi-device convergence is by HLC max with device_id tiebreak; the cursor is never published into shared Realm history.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "protocol_sequence",
+      "retry_safe": true,
       "request_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_cursor_advance_request_body",
       "response_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_marker_outcome"
     },
@@ -1926,6 +2106,8 @@
       "mq": "self.views.collection_projection.command.materialize",
       "notes": "Optional extension read surface that materializes a View{kind=collection} projection such as board/list/table/calendar. The response is a derived read model computed from signed Events, reducer profile, View definition, and the returned frontier; it is not a canonical truth source.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": true,
       "request_schema_ref": "schemas/view.schema.json#/$defs/view_projection_request_body",
       "response_schema_ref": "schemas/view.schema.json#/$defs/collection_projection_view"
     },
@@ -1944,6 +2126,8 @@
       "grpc": "EdgePush/Notify",
       "mq": "edge.push.command.notify",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "idempotency_key",
+      "retry_safe": true,
       "request_schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_request_body",
       "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_outcome"
     },
@@ -1953,6 +2137,8 @@
       "grpc": "EdgePush/RegisterDevice",
       "mq": "edge.push.command.register_device",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": false,
       "request_schema_ref": "schemas/push-operations.schema.json#/$defs/push_register_device_request_body",
       "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_register_device_outcome"
     },
@@ -1962,6 +2148,8 @@
       "grpc": "EdgePush/UnregisterDevice",
       "mq": "edge.push.command.unregister_device",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": false,
       "request_schema_ref": "schemas/push-operations.schema.json#/$defs/push_unregister_device_request_body",
       "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_unregister_device_outcome"
     },
@@ -1995,6 +2183,8 @@
       "mq": "self.account.command.update_profile",
       "notes": "Holder-bound service wrapper around ck.profile.update / Actor Profile projection. Request body is a closed patch over display_name, avatar_blob_ref, and profile_fields.<key>; profile_fields.bio is the canonical personal bio field and avatar_url is not accepted on the Cokret protocol path.",
       "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_request_body",
       "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_outcome"
     },
@@ -2013,6 +2203,8 @@
       "mq": "self.account.command.revoke_cursor",
       "notes": "High-assurance optional endpoint to revoke a previously issued cursor authority. Revocation hits return cursor_revoked and MUST NOT advance account subscribe position, barrier wait, or dropped recovery state. To-device queue deletion is decoupled from cursors entirely and happens only via ck.self.device_messages.command.ack.",
       "success_shape_kind": "schema_resource",
+      "idempotency_mechanism": "object_id",
+      "retry_safe": true,
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeOutcome"
     },

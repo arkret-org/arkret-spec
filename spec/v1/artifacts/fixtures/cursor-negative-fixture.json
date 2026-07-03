@@ -1,0 +1,118 @@
+{
+  "profile": "ck.profile.encoding_vectors.v1",
+  "version": "2026-07-03",
+  "description": "Machine-readable negative cursor vectors mirrored from zh/conformance/conformance-vectors.md section 1.16. Complements the positive opaqueness vector ck.vector.encoding.cursor_opaque.core.v1: every case below is a schema-valid-looking ck:cursor: token that a conformant receiver MUST reject before advancing any server-side state. reason_code values are stable codes from error-code-registry.json (invalid_cursor is surfaced under top-level invalid_param).",
+  "vectors": [
+    {
+      "vector_id": "ck.vector.encoding.reject_invalid_cursor.core.v1",
+      "kind": "cursor_negative",
+      "cases": [
+        {
+          "name": "oversized_token",
+          "input_cursor": "ck:cursor:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "decoded_body_utf8": null,
+          "expected_reason_code": "invalid_cursor",
+          "violation": "encoded token exceeds the 4KB body cap before any decode work"
+        },
+        {
+          "name": "invalid_base64url",
+          "input_cursor": "ck:cursor:!!!not-base64url!!!",
+          "decoded_body_utf8": null,
+          "expected_reason_code": "invalid_cursor",
+          "violation": "token payload is not unpadded base64url"
+        },
+        {
+          "name": "malformed_json",
+          "input_cursor": "ck:cursor:eyJ2IjoiMSI",
+          "decoded_body_utf8": "{\"v\":\"1\"",
+          "expected_reason_code": "invalid_cursor",
+          "violation": "decoded body is not valid JSON"
+        },
+        {
+          "name": "duplicate_json_key",
+          "input_cursor": "ck:cursor:eyJ2IjoiMSIsInYiOiIxIiwicHVycG9zZSI6InN0cmVhbSIsInQiOiIyMDI2LTA2LTA2VDAwOjAwOjAwWiIsIngiOjQxMDI0NDQ3OTkwMDAsImgiOiJhYmNkZWZnaGlqa2xtbm9wcXJzdHV2In0",
+          "decoded_body_utf8": "{\"v\":\"1\",\"v\":\"1\",\"purpose\":\"stream\",\"t\":\"2026-06-06T00:00:00Z\",\"x\":4102444799000,\"h\":\"abcdefghijklmnopqrstuv\"}",
+          "expected_reason_code": "invalid_cursor",
+          "violation": "duplicate JSON key violates canonical JSON ingress rules"
+        },
+        {
+          "name": "non_nfc_string",
+          "input_cursor": "ck:cursor:eyJoIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1diIsInB1cnBvc2UiOiJzdHJlYW0iLCJ0IjoiY2FmZcyBIiwidiI6IjEiLCJ4Ijo0MTAyNDQ0Nzk5MDAwfQ",
+          "decoded_body_utf8": null,
+          "expected_reason_code": "invalid_cursor",
+          "violation": "decoded t string value is not Unicode NFC (it carries U+0065 U+0301 instead of the NFC composed form U+00E9); canonical JSON ingress MUST reject. The raw body is intentionally not inlined here so this fixture file itself stays NFC-clean; the base64url token is the authoritative input."
+        },
+        {
+          "name": "inline_positions_rejected",
+          "input_cursor": "ck:cursor:eyJoIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1diIsInB1cnBvc2UiOiJzdHJlYW0iLCJzIjp7fSwidCI6IjIwMjYtMDYtMDZUMDA6MDA6MDBaIiwidiI6IjEiLCJ4Ijo0MTAyNDQ0Nzk5MDAwfQ",
+          "decoded_body_utf8": "{\"h\":\"abcdefghijklmnopqrstuv\",\"purpose\":\"stream\",\"s\":{},\"t\":\"2026-06-06T00:00:00Z\",\"v\":\"1\",\"x\":4102444799000}",
+          "expected_reason_code": "invalid_cursor",
+          "violation": "v1 core cursor body carries only the opaque handle; inline position state (s) violates the closed {v,purpose,t,x,h} schema"
+        },
+        {
+          "name": "unknown_field_rejected",
+          "input_cursor": "ck:cursor:eyJfY29tcHJlc3Npb24iOiJub25lIiwiaCI6ImFiY2RlZmdoaWprbG1ub3BxcnN0dXYiLCJwdXJwb3NlIjoic3RyZWFtIiwidCI6IjIwMjYtMDYtMDZUMDA6MDA6MDBaIiwidiI6IjEiLCJ4Ijo0MTAyNDQ0Nzk5MDAwfQ",
+          "decoded_body_utf8": "{\"_compression\":\"none\",\"h\":\"abcdefghijklmnopqrstuv\",\"purpose\":\"stream\",\"t\":\"2026-06-06T00:00:00Z\",\"v\":\"1\",\"x\":4102444799000}",
+          "expected_reason_code": "invalid_cursor",
+          "violation": "additional properties beyond {v,purpose,t,x,h} are rejected"
+        },
+        {
+          "name": "unsupported_version",
+          "input_cursor": "ck:cursor:eyJoIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1diIsInB1cnBvc2UiOiJzdHJlYW0iLCJ0IjoiMjAyNi0wNi0wNlQwMDowMDowMFoiLCJ2IjoiMiIsIngiOjQxMDI0NDQ3OTkwMDB9",
+          "decoded_body_utf8": "{\"h\":\"abcdefghijklmnopqrstuv\",\"purpose\":\"stream\",\"t\":\"2026-06-06T00:00:00Z\",\"v\":\"2\",\"x\":4102444799000}",
+          "expected_reason_code": "invalid_cursor",
+          "violation": "cursor version is not in supported_versions (v1 core supports only \"1\")"
+        },
+        {
+          "name": "handle_too_short",
+          "input_cursor": "ck:cursor:eyJoIjoic2hvcnRoYW5kbGUiLCJwdXJwb3NlIjoic3RyZWFtIiwidCI6IjIwMjYtMDYtMDZUMDA6MDA6MDBaIiwidiI6IjEiLCJ4Ijo0MTAyNDQ0Nzk5MDAwfQ",
+          "decoded_body_utf8": "{\"h\":\"shorthandle\",\"purpose\":\"stream\",\"t\":\"2026-06-06T00:00:00Z\",\"v\":\"1\",\"x\":4102444799000}",
+          "expected_reason_code": "invalid_cursor",
+          "violation": "stateful handle h is shorter than the 22-character minimum (>=128 bits of entropy)"
+        },
+        {
+          "name": "non_canonical_timestamp",
+          "input_cursor": "ck:cursor:eyJoIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1diIsInB1cnBvc2UiOiJzdHJlYW0iLCJ0IjoiMjAyNi0wNi0wNlQwMDowMDowMCswMDowMCIsInYiOiIxIiwieCI6NDEwMjQ0NDc5OTAwMH0",
+          "decoded_body_utf8": "{\"h\":\"abcdefghijklmnopqrstuv\",\"purpose\":\"stream\",\"t\":\"2026-06-06T00:00:00+00:00\",\"v\":\"1\",\"x\":4102444799000}",
+          "expected_reason_code": "invalid_cursor",
+          "violation": "t must be a canonical UTC Z timestamp; the +00:00 offset form is rejected"
+        },
+        {
+          "name": "negative_ttl",
+          "input_cursor": "ck:cursor:eyJoIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1diIsInB1cnBvc2UiOiJzdHJlYW0iLCJ0IjoiMjA5OS0xMi0zMVQwMDowMDowMFoiLCJ2IjoiMSIsIngiOjQxMDIyNzIwMDAwMDB9",
+          "decoded_body_utf8": "{\"h\":\"abcdefghijklmnopqrstuv\",\"purpose\":\"stream\",\"t\":\"2099-12-31T00:00:00Z\",\"v\":\"1\",\"x\":4102272000000}",
+          "expected_reason_code": "invalid_cursor",
+          "violation": "t is after x (negative TTL)"
+        },
+        {
+          "name": "stream_ttl_exceeds_cap",
+          "input_cursor": "ck:cursor:eyJoIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1diIsInB1cnBvc2UiOiJzdHJlYW0iLCJ0IjoiMjAyMC0wMS0wMVQwMDowMDowMFoiLCJ2IjoiMSIsIngiOjQxMDI0NDQ3OTkwMDB9",
+          "decoded_body_utf8": "{\"h\":\"abcdefghijklmnopqrstuv\",\"purpose\":\"stream\",\"t\":\"2020-01-01T00:00:00Z\",\"v\":\"1\",\"x\":4102444799000}",
+          "expected_reason_code": "invalid_cursor",
+          "violation": "x - t exceeds the stream-purpose hard TTL cap of 7 days (encoding.md section 8.3 rule 12)"
+        },
+        {
+          "name": "barrier_ttl_exceeds_cap",
+          "input_cursor": "ck:cursor:eyJoIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1diIsInB1cnBvc2UiOiJiYXJyaWVyIiwidCI6IjIwMjAtMDEtMDFUMDA6MDA6MDBaIiwidiI6IjEiLCJ4Ijo0MTAyNDQ0Nzk5MDAwfQ",
+          "decoded_body_utf8": "{\"h\":\"abcdefghijklmnopqrstuv\",\"purpose\":\"barrier\",\"t\":\"2020-01-01T00:00:00Z\",\"v\":\"1\",\"x\":4102444799000}",
+          "expected_reason_code": "invalid_cursor",
+          "violation": "x - t exceeds the barrier-purpose hard TTL cap of 1 hour (encoding.md section 8.3 rule 12)"
+        },
+        {
+          "name": "expired",
+          "input_cursor": "ck:cursor:eyJoIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1diIsInB1cnBvc2UiOiJzdHJlYW0iLCJ0IjoiMjAyMC0wMS0wMVQwMDowMDowMFoiLCJ2IjoiMSIsIngiOjE1Nzc5MjMyMDAwMDB9",
+          "decoded_body_utf8": "{\"h\":\"abcdefghijklmnopqrstuv\",\"purpose\":\"stream\",\"t\":\"2020-01-01T00:00:00Z\",\"v\":\"1\",\"x\":1577923200000}",
+          "expected_reason_code": "cursor_expired",
+          "violation": "x expiry is in the past"
+        }
+      ],
+      "fixture_freshness_note": "All timestamps are pinned so every case stays deterministically rejectable for the spec lifetime: expired cases use year-2020 values (always past), TTL-cap and negative-TTL cases use year-2099 x values (not expired before 2099) with a violation that is checked before any now-relative comparison could differ.",
+      "rules": [
+        "receivers MUST reject every case before advancing subscription position, barrier wait, or any other server-side state",
+        "syntax / schema / TTL-bound failures surface as top-level invalid_param with reason_code invalid_cursor; expiry uses cursor_expired; handle lookup or cross-binding failures (not covered here, they need server state) use cursor_integrity_invalid",
+        "receivers MUST enforce the 4KB cap on the encoded token before spending base64 or JSON parsing work",
+        "TTL bound checks MUST validate t well-formedness first, then t <= x, then t not in the future beyond clock skew, then x - t against the per-purpose cap, so a corrupt t cannot bypass the cap"
+      ]
+    }
+  ]
+}

@@ -18,7 +18,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/blob-stream-aead-fixture.json",
-      "sha256": "b4af17b43e5120d56572415aa21e244fd8222ccaa6007e9ecb67aa22c0758329"
+      "sha256": "7d562bfa2adefcae71e644a9df8e3114e87c9d41a223b52b567378b06c623850"
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-state-core-fixture.json",
@@ -42,15 +42,19 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
-      "sha256": "43e58d9aa1d4442edc01957b4440657b3c27741fb42f5aa2a610c17c43d2c101"
+      "sha256": "28f9e890e4b3a6e0464e81c0f2baa1c609406baa7b98ad6449f97487391abbdb"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/cursor-negative-fixture.json",
+      "sha256": "f144842f66fa22113b9669f637a71cfe7de06f6674471023b9e37a3c5a3360bf"
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "da871b44fb36dbd92d6185bbf99ac8795bfc82b668b1e46f9b481921768bb7e5"
+      "sha256": "c9d2f41f725b7237414bc3b57c085a79615690b0d15c9f9800b32836c687de7f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-envelope-negative-fixture.json",
-      "sha256": "308865fe625c3b12449060e45ff6b66d67bb1cf68f1b8ac4e2ad54b3f54b7621"
+      "sha256": "76d52722d5ab9e0d96eddcb63cb0e42929df024f8955a1282ff03a45983e7f3a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-fixture.json",
@@ -65,12 +69,16 @@
       "sha256": "85791e78c33b6adb6deadf1bf8166fe3807a91c8636d9e21c9da78d41dfad98c"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",
+      "sha256": "06f6464847e9b6ca6593469691b720c8a296bab4631a68e8b47206493720047d"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
       "sha256": "85125967d2325a9c6016e2dd1a6b0424219131f91c48e9055031dd9444e922ba"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json",
-      "sha256": "0edaaadaf004143bfa296a0bf3e1443fe2af5d17e14f9f1b6f87e74998053d0c"
+      "sha256": "0abd92913dc3a9aab01a222ece068328807af3278ed1654ea783a7991e6712ef"
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",

@@ -414,6 +414,8 @@ components:
               - profile_unsupported
               - unsupported_join_rule
               - failed_precondition
+              - failed_plane
+              - failed_bottom
               - contact_not_accepted
               - contact_consent_missing
               - peer_unresolvable
@@ -3653,6 +3655,21 @@ paths:
         Accepts a service-to-service federation event batch. This is the only
         canonical HTTP binding for federation event push; client/self event
         submission remains under `/_cokret/self/events`.
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        required: false
+        description: |
+          Conditional batch idempotency / replay key (federation.md section 3.2
+          and 8.5). Required whenever the sender wants request-level idempotency,
+          a batch replay key, or partial-retry dedup; when present it MUST be
+          covered by the HTTP Message Signature transcript. A byte-identical full
+          retry MUST reuse the same key; a re-assembled partial-retry batch MUST
+          use a fresh key (or omit the header).
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
       requestBody:
         required: true
         content:
