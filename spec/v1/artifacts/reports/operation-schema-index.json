@@ -93,11 +93,15 @@
         "required": [
           "device_id",
           "device_public_key",
+          "hpke_key",
+          "algorithms",
           "actor_seq"
         ],
         "properties": [
           "device_id",
           "device_public_key",
+          "hpke_key",
+          "algorithms",
           "actor_seq",
           "not_before"
         ],

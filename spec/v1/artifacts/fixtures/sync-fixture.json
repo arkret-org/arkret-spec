@@ -161,7 +161,7 @@
       "created_at": "2026-04-26T00:00:00Z",
       "event_set_commitment": {
         "algorithm": "merkle_event_set_v1",
-        "root": "sha256:663b70818b0551bf86da916111973f883af05027585689bc8ccd9ca950999167",
+        "root": "sha256:849c66bb905413797d14bfaee18f5c09b4e575271db9de498eb9821aaa9b274c",
         "covered_event_count": 20,
         "actor_seq_ranges": [
           { "actor_id": "did:webvh:z6mkfixture:alice.example", "from_seq": 100, "to_seq": 106, "root": "sha256:0226d526369020fd32f3f2aa4a277270f6808e46262019ee2a00b2636f052dc9" },
@@ -230,7 +230,7 @@
     },
     "base_response": {
       "commitment_algorithm": "merkle_event_set_v1",
-      "commitment_root": "sha256:663b70818b0551bf86da916111973f883af05027585689bc8ccd9ca950999167",
+      "commitment_root": "sha256:849c66bb905413797d14bfaee18f5c09b4e575271db9de498eb9821aaa9b274c",
       "proofs": [
         { "kind": "event_id", "event_id": "ck:event:01965000-0000-7000-8000-000000000001" },
         { "kind": "event_id", "event_id": "ck:event:01965000-0000-7000-8000-000000000004" },

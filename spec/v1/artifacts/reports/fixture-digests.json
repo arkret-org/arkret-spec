@@ -138,7 +138,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sync-fixture.json",
-      "sha256": "f073c58520d8268f82869756738ff41c9cc4252ea1e13c8448a261447fc18104"
+      "sha256": "4db88f0c8deb26fca0ea0d7f3b78c80dae85efab7dbf47bc6be13eb6537365f3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",
