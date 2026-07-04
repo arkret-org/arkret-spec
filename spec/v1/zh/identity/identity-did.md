@@ -246,6 +246,36 @@ artifact。
 
 详见 [`../crypto-media/device-lifecycle.md` §14.1](../crypto-media/device-lifecycle.md) 的 reset proof transcript 与 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 中 `cross_domain_replay_rejected` 条目。
 
+### 3.7 服务身份自举（Service Identity Bootstrap）
+
+一个服务的 `service_did` 与其签名私钥是同一事实的两面：service DID 是该服务签发的一切凭据（`ck.session.grant`、notary seal、claim attestation）、其派生子身份（如 `{service_did}:users:<id>`）以及 §3.6 `trust_domain` 的稳定根。因此 service identity MUST 在服务生命周期内稳定，MUST NOT 在每次启动时重新生成——重新生成会使此前签发的所有凭据与派生身份成为无根孤儿。
+
+本节规范服务如何获得并持有自身 service identity。目标是让部署**无需人工 mint DID 字符串即可启动**，同时以 fail-closed 纪律防止身份被代持或被静默替换。约束按重要性排列：
+
+- **I-1 密钥自持**：每个服务 MUST 自行生成自身 service DID 的签名私钥，私钥 MUST NOT 离开该服务的信任边界。一个服务 MAY 作为另一主体 `did:webvh` 的 **hosting**（存放公开 `did.jsonl` 日志、代为发布 inception / rotation 条目），但 MUST NOT 生成或持有该主体的控制私钥；被托管方的 inception / rotation 条目 MUST 由被托管方用自己的密钥签名后提交。违反此约束会使 hosting 方能够伪造被托管方签发的凭据，等于消除签发方与验证方之间的信任边界。
+
+- **I-2 持久身份为真相源，config 为 fail-closed pin**：服务的权威 service identity（签名密钥 + `did.jsonl` 日志）MUST 持久化在该服务自身的持久层。部署配置中的 service DID 值（例如 coauth `cokret.service_did` / soland `service_did`）是**可选的 pin**：
+  - 若已配置且与持久层身份**不一致**，服务 MUST 拒绝启动并输出明确诊断（用于抓住误挂错误数据卷 / 误连错误库导致的身份漂移）；
+  - 若已配置且持久层为空，见 I-3 的采纳规则；
+  - 若未配置，服务 MUST 采用持久层身份。
+
+- **I-3 显式 bootstrap 门（防命名空间分叉）**："持久层无 service identity" 有两种可能——真正的首次部署，或数据丢失 / 误配导致的灾难。二者 MUST NOT 一律按首次部署静默 mint 新身份：
+  - 持久层为空 **且** 存在显式 bootstrap 信号（部署侧一次性授权，例如启动标志或一次性 provisioning token，具体形式由实现定义）时，服务 MAY 生成新 service identity 并落库；
+  - 持久层为空 **且** 已配置 service DID（存量部署升级路径）时，服务 MUST 把该配置值连同其对应密钥采纳为权威身份并落库（**首启动自动采纳**，保证既有部署升级不中断），此后按 I-2 将 config 视为 pin；采纳前 MUST 校验配置的 DID 与可用密钥材料匹配，不匹配 MUST 拒绝启动；
+  - 持久层**已存在**但 service identity 记录缺失或与预期不符时，服务 MUST 拒绝启动而非重新 mint。
+
+启动流程（informative，说明 I-1..I-3 如何组合）：
+
+- 自身即为 `did:webvh` hosting 的服务（例如托管自己 `did.jsonl` 的 principal server）在满足 I-3 的 bootstrap 条件时，本地生成密钥、构造 inception 条目、写入自身 webvh 日志并落库，全过程无需外部网络。
+- 依赖外部 `did:webvh` hosting 的服务（例如以 principal server 为宿主的 Auth Server），在满足 I-3 时本地生成**自己的**密钥、构造 inception，并提交到宿主的 DID operation 端点；宿主按 I-1 只发布公开日志、不接触其私钥。此依赖使宿主 MUST 先于被托管服务就绪。
+
+Profile 分层（承接 §3.4 的 witness 要求，不新增语义）：
+
+- `personal_node` / `small_team`：自举产出的 `did:webvh` 若仅由宿主自身见证（self-witness），属 §3.4 的单 witness 降级——MUST 按 §3.4 对高风险写入的 witness 规则处理，并向用户暴露降级状态；MUST NOT 把 self-witness 宣称为具备外部见证的信任强度。
+- `organization` / `high_security_organization` / `sovereign_deployment`：自举产出的 service identity MUST 满足 §3.4 对应 profile 的 ≥2 distinct-org witness（及高保障 profile 的 log-backed witness）要求，MUST NOT 以宿主自见证作为高风险控制判断的唯一依据。
+
+> service identity 的采纳、分叉阻断与 pin 不匹配都是**启动期**判定：服务据此**拒绝启动**并输出 operator-facing 诊断，不是 wire 层错误响应，故不进入 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json)。启动成功后该服务对外呈现的 service DID 即稳定，后续 rotation 遵循 §7.2 与 §4.2 的 method-specific 与 continuity 规则。
+
 ## 4. Identity Resolution Infrastructure
 
 Cokret 把身份解析抽象为 `Identity Resolution Infrastructure`，而不是要求所有 DID method 都部署同一种 Identity Registry。不同 DID method 的解析状态来源不同：
