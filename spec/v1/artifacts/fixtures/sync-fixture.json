@@ -1,5 +1,5 @@
 {
-  "profile": "ck.profile.sync_vectors.v1",
+  "profile": "ck.vector_group.sync.v1",
   "version": "2026-05-02",
   "collection_projection": {
     "projection": "collection",

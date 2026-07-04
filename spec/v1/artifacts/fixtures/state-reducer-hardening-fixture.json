@@ -1,5 +1,5 @@
 {
-  "profile": "ck.profile.cba_lattice_vectors.v1",
+  "profile": "ck.vector_group.cba_lattice.v1",
   "version": "2026-06-19",
   "suite": "state_reducer_hardening",
   "runner": "cotest::conformance::state_reducer_hardening",

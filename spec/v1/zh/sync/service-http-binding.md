@@ -106,12 +106,12 @@ Cokret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织�
 ```
 
 - `_conformance` 段首字符 `_` 表明它**不是** §2.1 的生产 trust-surface classifier，而是 test-only 保留段。所有测试 / 调试 / fixture-replay / 内部状态注入 / 内部状态 dump 端点 MUST 落在该段下；实现 MUST NOT 在生产 trust-surface 段下新增此类端点。
-- **暴露门（profile-gated，MUST）**：`/_cokret/_conformance/*` **仅在** 实现显式声明 `ck.profile.conformance_harness.v1`（test / conformance build profile）时暴露。**生产 profile（任何 `claimed_profiles` / `verified_profiles` 不含 `ck.profile.conformance_harness.v1` 的部署）MUST NOT 路由该命名空间**：路由层 MUST 对 `/_cokret/_conformance/*` 返回与未知路径相同的 `404 unrecognized_endpoint`，不得进入业务逻辑，也不得在 `GET /_cokret/describe` 的 `supported_operations` / `supported_features` 中宣告。该命名空间下的 operation MUST NOT 进入 `contract-catalog.json#operation_registry` 的生产 operation 集，也 MUST NOT 出现在 OpenAPI 生产 binding 中。
+- **暴露门（development-mode-gated，MUST）**：`/_cokret/_conformance/*` **仅在** 实现以 `development_mode=true`（canonical test-build 姿态标记，`GET /_cokret/describe` 顶层字段，见 [`service-surface.md` §3.0](./service-surface.md)）运行时暴露。**生产部署（`development_mode=false`）MUST NOT 路由该命名空间**：路由层 MUST 对 `/_cokret/_conformance/*` 返回与未知路径相同的 `404 unrecognized_endpoint`，不得进入业务逻辑，也不得在 `GET /_cokret/describe` 的 `supported_operations` / `supported_features` 中宣告。该命名空间下的 operation MUST NOT 进入 `contract-catalog.json#operation_registry` 的生产 operation 集，也 MUST NOT 出现在 OpenAPI 生产 binding 中。
 - **生命周期（MUST）**：`_conformance` 端点是 ephemeral test affordance，不是稳定互操作契约。它们 MUST NOT 被任何对端实现作为协议依赖消费——通用客户端、Principal Server、Sync Service、federation peer、Applet、Push Gateway 等任何生产组件（含实现自身的产品 / 运维面）MUST NOT 调用、探测或依赖另一实现的 `_conformance` 端点。test build 之外的代码路径 MUST NOT 引用该命名空间。任一组件把 `_conformance` 端点当作生产能力消费即视为 profile violation。
 - **test-only 能力集（normative 边界）**：以下类别属于 `_conformance` test-only 集——(a) 内部状态读出（reducer cell / seal DAG / bottom diagnostics / 幂等缓存内容的非授权裸读）；(b) 状态注入 / 强制推进（直接写 cell、强制 HLC、伪造 frontier、跳过 seal 覆盖）；(c) fixture replay / 确定性种子；(d) 时间 / 时钟 / 限流旁路；(e) 任何绕过 capability / Realm policy / history visibility / 签名校验的 inspection。生产面**永不**提供以上能力；需要协议级可观测性的生产场景（如 §5.3 的 `event_state` / `bottom` 暴露）走已注册的生产 operation，不走 `_conformance`。
-- **conformance 验证自身**：`ck.profile.conformance_harness.v1` 是 test build profile，**不构成** v1 core 互操作 profile，也不进入对端 fast-path 能力命中判断；声明它的部署 MUST 在 `development_mode=true` 或等价 test build 标记下运行，且 MUST NOT 同时对外宣告生产 `verified_profiles`（与 [`service-surface.md` §3.0](./service-surface.md) 的 `development_mode=true ⇒ verified_profiles=[]` 约束一致）。
+- **conformance 验证自身**：test-build 姿态的 canonical 标记是 `development_mode=true`（[`service-surface.md` §3.0](./service-surface.md)），**不再**有独立的 `ck.profile.*` test-build profile——test build 不是对端可协商能力，不进入 `claimed_profiles` / `verified_profiles`、不构成 v1 core 互操作 profile、也不进入对端 fast-path 能力命中判断。`development_mode=true` 的部署 MUST NOT 同时对外宣告生产 `verified_profiles`（与 [`service-surface.md` §3.0](./service-surface.md) 的 `development_mode=true ⇒ verified_profiles=[]` 约束一致）。
 
-§2.1.1 的"部署私有审批面必须放在实现自己的 negative-space root 下"是同一原则的另一面：私有**产品**面放实现自己的 root；test-only **调试 / conformance** 面放 `/_cokret/_conformance/*` 并受 `ck.profile.conformance_harness.v1` gate。二者都不得污染生产 trust-surface 段，也都不得列入 v1 core conformance 的生产 operation 集。
+§2.1.1 的"部署私有审批面必须放在实现自己的 negative-space root 下"是同一原则的另一面：私有**产品**面放实现自己的 root；test-only **调试 / conformance** 面放 `/_cokret/_conformance/*` 并受 `development_mode=true` gate。二者都不得污染生产 trust-surface 段，也都不得列入 v1 core conformance 的生产 operation 集。
 
 #### 2.1.3 非 spec `/_cokret/*` 路径群边界（catalog completeness，normative）
 
@@ -121,7 +121,7 @@ Cokret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织�
 
 - **(a) 真协议能力** → MUST 先补 canonical operation（catalog + OpenAPI + §2.1 命名空间 + 对应 conformance profile）再暴露；在补齐前 MUST NOT 以未登记 `/_cokret/*` 路径作为事实协议面。
 - **(b) 产品 / 运维 / 部署私有能力** → MUST NOT 占用任何 `/_cokret/*` 生产段，而是放实现自己的 negative-space root（实现私有，例如 `/_<impl>/*`），且 MUST NOT 列入 v1 core conformance 的生产 operation 集。
-- **(c) test-only 调试 / conformance / fixture-replay** → 走 §2.1.2 的 `/_cokret/_conformance/*`，受 `ck.profile.conformance_harness.v1` gate。
+- **(c) test-only 调试 / conformance / fixture-replay** → 走 §2.1.2 的 `/_cokret/_conformance/*`，受 `development_mode=true` gate。
 
 三者互斥；任一对端实现（含 cotest 等测试面）MUST NOT 把未登记 `/_cokret/*` 路径当作协议依赖消费，而应改查已注册 operation 或对应实现私有面。本节与 §2.1.2 正交：(c) 处理 test-only 观测，(a)/(b) 处理生产能力的归属。
 

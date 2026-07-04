@@ -1,5 +1,5 @@
 {
-  "profile": "ck.profile.crypto_signature_vectors.v1",
+  "profile": "ck.vector_group.crypto_signature.v1",
   "version": "2026-07-03",
   "vectors": [
     {

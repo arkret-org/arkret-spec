@@ -1,6 +1,6 @@
 {
   "suite": "schema_validation",
-  "profile": "ck.profile.privacy_security_vectors.v1",
+  "profile": "ck.vector_group.privacy_security.v1",
   "version": "2026-05-20",
   "description": "Minimal positive and negative schema-validation cases for core wire objects. tools/lint_artifacts.py validates schema_validation_cases[] against schema_ref.",
   "schema_validation_cases": [

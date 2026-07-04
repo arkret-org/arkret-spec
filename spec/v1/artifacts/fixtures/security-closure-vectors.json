@@ -1,6 +1,6 @@
 {
   "suite": "security_closure_vectors",
-  "profile": "ck.profile.privacy_security_vectors.v1",
+  "profile": "ck.vector_group.privacy_security.v1",
   "version": "2026-05-20",
   "description": "Structured negative/edge-case fixtures for security vectors referenced by prose. tools/lint_artifacts.py validates vector_id closure and runner fields for implementation conformance tests.",
   "security_closure_vectors": [

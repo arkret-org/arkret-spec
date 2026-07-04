@@ -1,5 +1,5 @@
 {
-  "profile": "ck.profile.capability_vectors.v1",
+  "profile": "ck.vector_group.capability.v1",
   "version": "2026-05-02",
   "fixtures": [
     {

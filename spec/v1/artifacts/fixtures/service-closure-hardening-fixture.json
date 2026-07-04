@@ -1,5 +1,5 @@
 {
-  "profile": "ck.profile.privacy_security_vectors.v1",
+  "profile": "ck.vector_group.privacy_security.v1",
   "version": "2026-06-19",
   "suite": "service_closure_hardening",
   "runner": "cotest::conformance::service_closure_hardening",

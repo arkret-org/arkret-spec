@@ -1,6 +1,6 @@
 {
   "suite": "privacy_security",
-  "profile": "ck.profile.privacy_security_vectors.v1",
+  "profile": "ck.vector_group.privacy_security.v1",
   "version": "2026-05-02",
   "conformance_vectors": [
     "ck.vector.directory.public_realm_search.v1",

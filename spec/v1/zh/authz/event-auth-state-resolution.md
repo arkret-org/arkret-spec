@@ -305,7 +305,9 @@ apply_seal(A):
      （"尚未 sealed" 的判定范围见下方并发 leaf 规则）。
   6. 计算 covered_set(A) = delta(A) union predecessor covered sets。
   7. 校验 control_event_set_root == root(covered_set(A)).
-  8. 在 predecessor joined governance state 下批量 verify_control_move(delta[])。
+  8. 在 predecessor joined governance state 下批量 verify_control_move(delta[])
+     （"批量"= delta[] 内每个 Move 的 preconditions[] 均对**同一冻结 predecessor 基线**求值，
+      同批前序 Move 的 effect MUST NOT 提前进入后续 Move 的 precondition 基线；与 §6.3.1 step 3 同一 frozen-baseline 规则）。
   9. 任一 Control Move 失败则拒绝整个 Seal。
   10. 原子应用 Control Move effects，重算治理 state_root。
   11. state_root 匹配则接受；否则拒绝并生成 seal fault 诊断。
@@ -323,8 +325,10 @@ Seal 被拒绝时，其 `delta[]` 内 Control Move 不因此有效。节点 MAY 
 
 1. **覆盖集并集**:`covered(L) = ⋃_i covered_set(S_i)`（§6.2 递归覆盖集的并集）。因 `covered_set` 仅取并集、Control Move digest 内容寻址，`covered(L)` 与 leaf 到达顺序无关。
 2. **Move 应用偏序**:`covered(L)` 内的 Control Move 按其 Seal DAG 因果序构成偏序；线性（有因果先后）的 Move 按因果序应用。
-3. **并发 Move 的确定性定序**:对偏序中**互不可达**（并发）的 Control Move，按 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) 的统一 canonical 全序（`event_digest` bytewise 最大优先的全序展开）线性化后应用——保证带 `preconditions[]` 的并发 Move 在所有 receiver 上以同一顺序求值。
-4. **per-cell Lattice join**:每个 control cell 按其声明的 lattice（§9）合并 `covered(L)` 中所有命中该 cell 的 Move 效果；`cas_register` / `fsm` 等强一致 cell 上的并发互斥写按 §9.1.1 进入 `⊥`（`bottom=reject` 则该 cell 物化为 `failed_bottom`，依赖它的后续 Move fail closed，按 §9.5 conflict-recovery 解析）。
+3. **并发 Move 的确定性定序**:对偏序中**互不可达**（并发）的 Control Move，按 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) 的统一 canonical 全序（`event_digest` bytewise 最大优先的全序展开）线性化。该全序**仅**用于给所有 receiver 一个共享的确定性**应用 / 暴露顺序**（step 4 join 结果的呈现顺序、以及需要"最大 head"消歧的读路径投影），**MUST NOT** 用于推进 `preconditions[]` 的求值基线。
+   - **precondition 求值基线（frozen predecessor，normative）**:每个 Move `M` 的 `preconditions[]` **MUST** 对 `M` 在 `covered(L)` 内**因果前驱**的 joined 治理状态求值——即冻结在"`M` 及所有与 `M` 并发的 Move 尚未应用"的那个 predecessor 基线上；线性化中排在 `M` 之前的**并发** Move 的 effect **MUST NOT** 进入 `M` 的 precondition 求值基线。这与全协议 CBA basis 规则同一（[`policy-server.md` §CBA basis 例外](./policy-server.md)、`ck.vector.cba_lattice.same_batch_does_not_advance_authorization_basis.v1`）:同批 / 并发前序 effect 只提供原子提交便利，不自我满足后续 precondition。
+   - **对强一致 cell 的后果**:因此同一 `cas_register` / `fsm` cell 上的两个并发互斥写**都**通过各自 precondition（都看见同一冻结基线），在 step 4 join 到 `⊥`——全序 **MUST NOT** 被用来给强一致治理 cell 静默选出单一 winner。[`../conformance/encoding.md` §4.2](../conformance/encoding.md) 的 `event_digest` bytewise-greatest tie-break **只**用于数据面 / 投影展示的确定性选择（relation / message revision / account status 等 §4.2 列举 domain），**MUST NOT** 用于控制面强一致 cell 的冲突裁决。
+4. **per-cell Lattice join**:每个 control cell 按其声明的 lattice（§9）合并 `covered(L)` 中所有命中该 cell 的 Move 效果；`cas_register` / `fsm` 等强一致 cell 上的并发互斥写按 §9.1.1 进入 `⊥`（`bottom=reject` 则该 cell 物化为 `failed_bottom`，依赖它的后续 Move fail closed，按 §9.5 conflict-recovery 解析）。落 `⊥` 的 cell 是治理终态，**不进入** `state_root`（§6.2.1）;它**不能**被普通后续 Control Move 收敛，唯一出路是 §9.5 的 conflict-recovery Move。
 5. **结果**:`J(L)` 是所有 control cell 的 join 结果集合；它就是 receiver 在 step 8 `verify_control_move` 与所有授权判定（capability / membership / policy）所用的 "predecessor joined governance state"。
 
 `J(L)` 是 `L` 的纯函数（不依赖到达顺序、本地时钟或接收方身份），因此观察到相同 leaf 集的 receiver 得到逐 cell 相同的治理状态；leaf 集不同的 receiver 在缺失 leaf 补齐后收敛到同一 `J`。compaction Seal（§6.2）把 `covered(L)` 物化为有界 bootstrap 点，使新 verifier 无需重放全链即可重建 `J`。

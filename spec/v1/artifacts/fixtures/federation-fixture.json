@@ -1,6 +1,6 @@
 {
   "suite": "federation",
-  "profile": "ck.profile.federation_vectors.v1",
+  "profile": "ck.vector_group.federation.v1",
   "topology": {
     "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
     "principal_servers": [

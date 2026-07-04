@@ -1,6 +1,6 @@
 {
   "suite": "reaction",
-  "profile": "ck.profile.reaction_vectors.v1",
+  "profile": "ck.vector_group.reaction.v1",
   "version": "2026-05-08",
   "notes": "Reducer-level vectors for ck.reaction.add / ck.reaction.remove. Convergence is OR-Set on (actor_id, target_ref, key); see zh/models/strand-and-message.md §9.8 (Reaction model + authoritative OR-Set semantics) and zh/crypto-media/encryption-and-audit.md §2.9 (plaintext-vs-encrypted visibility).",
   "cases": [

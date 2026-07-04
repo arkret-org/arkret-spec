@@ -230,14 +230,14 @@ def profile_summary_text() -> str:
         raise SystemExit("invalid conformance profile registry")
     implementation_profiles = data.get("implementation_profiles", [])
     deployment_profiles = data.get("deployment_profiles", [])
-    vector_profiles = data.get("vector_profiles", [])
+    vector_groups = data.get("vector_groups", [])
     hardening_profiles = data.get("hardening_profiles", [])
     profile_requirements = data.get("profile_requirements", {})
     return (
         "profile summary: "
         f"{len(implementation_profiles)} implementation, "
         f"{len(deployment_profiles)} deployment, "
-        f"{len(vector_profiles)} vector, "
+        f"{len(vector_groups)} vector-group, "
         f"{len(hardening_profiles)} hardening, "
         f"{len(profile_requirements)} requirement blocks"
     )

@@ -46,6 +46,7 @@ SCHEMA_ID_TOKEN_RE = re.compile(r"\bck\.schema\.[a-z0-9_]+(?:\.[a-z0-9_]+)*\.v[0
 PROFILE_ID_RE = re.compile(r"^ck\.profile\.[a-z0-9][a-z0-9_.-]*\.v[0-9]+$")
 PROFILE_ID_TOKEN_RE = re.compile(r"\bck\.profile\.[a-z0-9][a-z0-9_.-]*\.v[0-9]+\b")
 VECTOR_ID_TOKEN_RE = re.compile(r"\bck\.vector\.[a-z0-9_.-]+\.v[0-9]+\b")
+VECTOR_GROUP_ID_RE = re.compile(r"^ck\.vector_group\.[a-z0-9][a-z0-9_.-]*\.v[0-9]+$")
 TYPED_ID_TOKEN_RE = re.compile(r"\bck:([a-z0-9_]+):([A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*)")
 UUID7_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
 SHA256_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
@@ -1395,7 +1396,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
     profiles: set[str] = set()
     claimable_profiles: set[str] = set()
     if isinstance(profile_registry, dict):
-        for key in ("implementation_profiles", "deployment_profiles", "hardening_profiles", "vector_profiles"):
+        for key in ("implementation_profiles", "deployment_profiles", "hardening_profiles"):
             values = profile_registry.get(key)
             if isinstance(values, list):
                 claimable_profiles.update(
@@ -1529,7 +1530,7 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
         return
 
     declared_profiles: set[str] = set()
-    for key in ("implementation_profiles", "deployment_profiles", "hardening_profiles", "vector_profiles"):
+    for key in ("implementation_profiles", "deployment_profiles", "hardening_profiles"):
         values = data.get(key, [])
         if isinstance(values, list):
             declared_profiles.update(item for item in values if isinstance(item, str) and item.startswith("ck.profile."))
@@ -1602,6 +1603,89 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
                 lint.fail(path, f"{profile_id} feature_discovery.required must be a list")
             if not isinstance(feature_discovery.get("unsupported_optional"), str):
                 lint.fail(path, f"{profile_id} feature_discovery.unsupported_optional must be a string")
+
+
+def check_vector_group_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
+    # Conformance-vector groups are fixture/runner groupings, NOT ck.profile.*
+    # capability-negotiation profiles. They live in their own ck.vector_group.*
+    # namespace with a dedicated requirements matrix, kept out of profile_roles /
+    # profile_requirements so the capability namespace stays pure.
+    path = ARTIFACTS / "profiles" / "conformance-profiles.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return
+
+    groups = data.get("vector_groups")
+    requirements = data.get("vector_group_requirements")
+    if not isinstance(groups, list):
+        lint.fail(path, "missing vector_groups list")
+        return
+    if not isinstance(requirements, dict):
+        lint.fail(path, "missing vector_group_requirements matrix")
+        return
+
+    group_ids: set[str] = set()
+    for gid in groups:
+        if not isinstance(gid, str) or not VECTOR_GROUP_ID_RE.fullmatch(gid):
+            lint.fail(path, f"vector_groups entry has invalid vector-group id: {gid}")
+        else:
+            group_ids.add(gid)
+
+    for gid in sorted(group_ids - set(requirements.keys())):
+        lint.fail(path, f"vector_group_requirements missing declared vector group: {gid}")
+
+    fixture_files = {fixture.name for fixture in (ARTIFACTS / "fixtures").glob("*.json")}
+    required_keys = {
+        "required_endpoints",
+        "required_event_kinds",
+        "rejected_event_kinds",
+        "required_schemas",
+        "required_fixtures",
+        "optional_extensions",
+        "feature_discovery",
+    }
+
+    for gid, requirement in requirements.items():
+        if gid not in group_ids:
+            lint.fail(path, f"vector_group_requirements key is not a declared vector group: {gid}")
+        if not isinstance(requirement, dict):
+            lint.fail(path, f"{gid} requirement must be an object")
+            continue
+        for missing_key in sorted(required_keys - set(requirement.keys())):
+            lint.fail(path, f"{gid} missing {missing_key}")
+
+        for operation_id in requirement.get("required_endpoints", []):
+            if operation_id not in known["operation_ids"]:
+                lint.fail(path, f"{gid} requires unknown operation_id: {operation_id}")
+
+        for event_kind in requirement.get("required_event_kinds", []):
+            if isinstance(event_kind, str) and event_kind.startswith("wire_scope:"):
+                continue
+            if event_kind not in known["event_kinds"]:
+                lint.fail(path, f"{gid} requires unknown Event.kind: {event_kind}")
+
+        for event_kind in requirement.get("rejected_event_kinds", []):
+            if isinstance(event_kind, str) and event_kind.startswith("wire_scope:"):
+                continue
+            if event_kind not in known["event_kinds"]:
+                lint.fail(path, f"{gid} rejects unknown Event.kind: {event_kind}")
+
+        for schema_id in requirement.get("required_schemas", []):
+            if schema_id not in known["schema_ids"]:
+                lint.fail(path, f"{gid} requires unknown schema: {schema_id}")
+
+        for fixture in requirement.get("required_fixtures", []):
+            if fixture not in fixture_files:
+                lint.fail(path, f"{gid} requires missing fixture: {fixture}")
+
+        feature_discovery = requirement.get("feature_discovery")
+        if not isinstance(feature_discovery, dict):
+            lint.fail(path, f"{gid} feature_discovery must be an object")
+        else:
+            if not isinstance(feature_discovery.get("required"), list):
+                lint.fail(path, f"{gid} feature_discovery.required must be a list")
+            if not isinstance(feature_discovery.get("unsupported_optional"), str):
+                lint.fail(path, f"{gid} feature_discovery.unsupported_optional must be a string")
 
 
 def check_event_ref_invariants_in_value(lint: Lint, path: Path, json_path: str, value: Any) -> None:
@@ -5149,6 +5233,7 @@ def main() -> int:
     known = check_registries(lint)
     check_schema_refs(lint, known)
     check_profile_requirements(lint, known)
+    check_vector_group_requirements(lint, known)
     check_event_schema_coverage(lint, known)
     check_operation_surfaces(lint, known)
     check_service_describe_alignment(lint)

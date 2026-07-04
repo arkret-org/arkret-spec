@@ -1,5 +1,5 @@
 {
-  "profile": "ck.profile.cba_lattice_vectors.v1",
+  "profile": "ck.vector_group.cba_lattice.v1",
   "version": "2026-06-11",
   "notes": [
     "These vectors pin CBA dual-plane semantics. DataEvent vectors use effects + seal_ref + auth_context and never use preconditions. Control Move vectors use effects + seal_basis and may use preconditions.",

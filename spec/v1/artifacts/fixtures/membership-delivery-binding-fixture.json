@@ -1,6 +1,6 @@
 {
   "suite": "membership_delivery_binding_vectors",
-  "profile": "ck.profile.privacy_security_vectors.v1",
+  "profile": "ck.vector_group.privacy_security.v1",
   "version": "2026-05-23",
   "description": "Machine-readable fixtures for ck.member.state{membership=join} delivery_binding closure. The effective member cell is the only authority for Realm-scoped delivery routing; DID Document service entries are materialized only at join/rebind time and are never a runtime fallback.",
   "vectors": [

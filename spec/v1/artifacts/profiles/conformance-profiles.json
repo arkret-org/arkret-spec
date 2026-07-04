@@ -145,10 +145,7 @@
       "v1_minimal_interop_floor": "Minimum profile for claiming v1 Event Store interop. Higher-level client, service, federation, blob, push, identity, and sovereign profiles remain independently claimable.",
       "extension_profile_implementation": "Optional. Tracks implementation profiles outside the v1 minimal interop floor, including evolving external standards (MIMI Internet-Drafts; A2A/ACP/MCP unstandardized agent protocols; Applet registry/audit SLA) and opt-in product/privacy features such as productivity, disappearing messages, calendar events, pins, and search. Implementations claiming v1 core MAY omit these entirely; implementations MUST claim only entries they actually support. When an underlying external standard matures, a replacement profile with stable version pinning can supersede that entry."
     },
-    "test_build_profile": [
-      "ck.profile.conformance_harness.v1"
-    ],
-    "test_build_profile_rule": "Test/conformance build-only profile. Gates the test-only /_cokret/_conformance/* debug namespace (see zh/sync/service-http-binding.md §2.1.2). NOT a v1 core interop or claimable production profile: deployments declaring it MUST run under development_mode=true with verified_profiles empty, and MUST NOT expose this namespace or advertise it from any production trust surface. Production components MUST NOT consume another implementation _conformance endpoint."
+    "test_build_stance_rule": "Test/conformance builds are marked solely by the canonical development_mode=true flag on the ServiceDescribe (see zh/sync/service-http-binding.md §2.1.2 and zh/sync/service-surface.md §3.0), which gates the test-only /_cokret/_conformance/* debug namespace and forces verified_profiles=[]. There is no separate ck.profile.* test-build profile: a test build is a deployment stance, not a negotiated interop capability."
   },
   "identity_extension_profiles": [
     "ck.profile.public_network_identity.v1",
@@ -275,22 +272,6 @@
     "ck.profile.notary.threshold.v1": "admin",
     "ck.profile.notary.open_set.v1": "admin",
     "ck.profile.notary.mixed_recovery.v1": "admin",
-    "ck.profile.capability_vectors.v1": "interop",
-    "ck.profile.crypto_signature_vectors.v1": "interop",
-    "ck.profile.encoding_vectors.v1": "interop",
-    "ck.profile.event_envelope_negative_vectors.v1": "interop",
-    "ck.profile.discovery_vectors.v1": "interop",
-    "ck.profile.event_kind_lattice_dispatch_vectors.v1": "interop",
-    "ck.profile.event_kind_payload_coverage_vectors.v1": "interop",
-    "ck.profile.operation_registry_coverage_vectors.v1": "interop",
-    "ck.profile.error_code_registry_coverage_vectors.v1": "interop",
-    "ck.profile.federation_vectors.v1": "interop",
-    "ck.profile.privacy_security_vectors.v1": "interop",
-    "ck.profile.reaction_vectors.v1": "interop",
-    "ck.profile.redaction_vectors.v1": "interop",
-    "ck.profile.sync_vectors.v1": "interop",
-    "ck.profile.mimi_interop_vectors.v1": "interop",
-    "ck.profile.cba_lattice_vectors.v1": "interop",
     "ck.profile.personal_productivity.v1": "client",
     "ck.profile.draft_sync.v1": "client",
     "ck.profile.file_transfer.v1": "client",
@@ -348,24 +329,433 @@
     "ck.profile.circle_seal_cadence.fixed_5m.v1",
     "ck.profile.accountable_principals.strict_reject.v1"
   ],
-  "vector_profiles": [
-    "ck.profile.capability_vectors.v1",
-    "ck.profile.crypto_signature_vectors.v1",
-    "ck.profile.encoding_vectors.v1",
-    "ck.profile.event_envelope_negative_vectors.v1",
-    "ck.profile.discovery_vectors.v1",
-    "ck.profile.event_kind_lattice_dispatch_vectors.v1",
-    "ck.profile.event_kind_payload_coverage_vectors.v1",
-    "ck.profile.operation_registry_coverage_vectors.v1",
-    "ck.profile.error_code_registry_coverage_vectors.v1",
-    "ck.profile.federation_vectors.v1",
-    "ck.profile.privacy_security_vectors.v1",
-    "ck.profile.reaction_vectors.v1",
-    "ck.profile.redaction_vectors.v1",
-    "ck.profile.cba_lattice_vectors.v1",
-    "ck.profile.sync_vectors.v1",
-    "ck.profile.mimi_interop_vectors.v1"
+  "vector_groups": [
+    "ck.vector_group.capability.v1",
+    "ck.vector_group.crypto_signature.v1",
+    "ck.vector_group.encoding.v1",
+    "ck.vector_group.event_envelope_negative.v1",
+    "ck.vector_group.discovery.v1",
+    "ck.vector_group.event_kind_lattice_dispatch.v1",
+    "ck.vector_group.event_kind_payload_coverage.v1",
+    "ck.vector_group.operation_registry_coverage.v1",
+    "ck.vector_group.error_code_registry_coverage.v1",
+    "ck.vector_group.federation.v1",
+    "ck.vector_group.privacy_security.v1",
+    "ck.vector_group.reaction.v1",
+    "ck.vector_group.redaction.v1",
+    "ck.vector_group.cba_lattice.v1",
+    "ck.vector_group.sync.v1",
+    "ck.vector_group.mimi_interop.v1"
   ],
+  "vector_group_requirements": {
+    "ck.vector_group.capability.v1": {
+      "required_endpoints": [
+        "ck.self.authz.query.check"
+      ],
+      "required_event_kinds": [
+        "ck.capability.grant",
+        "ck.capability.revoke",
+        "ck.member.state"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ck.schema.capability.v1",
+        "ck.schema.grant_constraint.v1",
+        "ck.schema.resource_selector.v1"
+      ],
+      "required_fixtures": [
+        "capability-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "vector_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
+    },
+    "ck.vector_group.crypto_signature.v1": {
+      "required_endpoints": [],
+      "required_event_kinds": [
+        "ck.invite.third_party",
+        "ck.invite.claim",
+        "ck.message.create"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ck.schema.event.v1",
+        "ck.schema.seal.v1"
+      ],
+      "required_fixtures": [
+        "crypto-signature-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "ed25519_detached_jws"
+        ],
+        "unsupported_optional": "not applicable"
+      }
+    },
+    "ck.vector_group.encoding.v1": {
+      "required_endpoints": [],
+      "required_event_kinds": [
+        "ck.message.create"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ck.schema.event.v1",
+        "ck.schema.cursor.v1",
+        "ck.schema.event_batch_receipt.v1",
+        "ck.schema.seal.v1"
+      ],
+      "required_fixtures": [
+        "encoding-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "canonical_json",
+          "hlc",
+          "cursor"
+        ],
+        "unsupported_optional": "not applicable"
+      }
+    },
+    "ck.vector_group.event_envelope_negative.v1": {
+      "required_endpoints": [
+        "ck.self.events.command.submit"
+      ],
+      "required_event_kinds": [
+        "ck.message.create",
+        "ck.read_cursor.advance",
+        "ck.typing"
+      ],
+      "rejected_event_kinds": [
+        "wire_scope:actor_private_event",
+        "wire_scope:ephemeral_event"
+      ],
+      "required_schemas": [
+        "ck.schema.event.v1",
+        "ck.schema.event_payload.v1",
+        "ck.schema.seal.v1"
+      ],
+      "required_fixtures": [
+        "event-envelope-negative-fixture.json"
+      ],
+      "required_cotest_suites": [
+        {
+          "suite": "event_envelope_fixture",
+          "artifact_fixture": "event-envelope-negative-fixture.json"
+        }
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "negative_vector_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
+    },
+    "ck.vector_group.discovery.v1": {
+      "required_endpoints": [
+        "ck.server.query.describe"
+      ],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": [],
+      "required_cotest_suites": [
+        {
+          "suite": "discovery_profile_fixture",
+          "local_fixture": "discovery_profile_fixture.json"
+        }
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "supported_profiles",
+          "supported_operations",
+          "surface_tier_rules"
+        ],
+        "unsupported_optional": "not applicable"
+      }
+    },
+    "ck.vector_group.event_kind_lattice_dispatch.v1": {
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": [],
+      "required_cotest_suites": [
+        {
+          "suite": "event_kind_lattice_dispatch_fixture",
+          "local_fixture": "event_kind_lattice_dispatch_fixture.json"
+        }
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "event_kind_lattice_dispatch_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
+    },
+    "ck.vector_group.event_kind_payload_coverage.v1": {
+      "required_endpoints": [
+        "ck.self.events.command.submit"
+      ],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ck.schema.event.v1",
+        "ck.schema.event_payload.v1"
+      ],
+      "required_fixtures": [],
+      "required_cotest_suites": [
+        {
+          "suite": "event_kind_payload_coverage_fixture",
+          "local_fixture": "event_kind_payload_coverage_fixture.json"
+        }
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "event_kind_payload_coverage_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
+    },
+    "ck.vector_group.operation_registry_coverage.v1": {
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": [],
+      "required_cotest_suites": [
+        {
+          "suite": "operation_registry_coverage_fixture",
+          "local_fixture": "operation_registry_coverage_fixture.json"
+        }
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "operation_registry_coverage_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
+    },
+    "ck.vector_group.error_code_registry_coverage.v1": {
+      "required_endpoints": [],
+      "required_event_kinds": [],
+      "rejected_event_kinds": [],
+      "required_schemas": [],
+      "required_fixtures": [],
+      "required_cotest_suites": [
+        {
+          "suite": "error_code_registry_coverage_fixture",
+          "local_fixture": "error_code_registry_coverage_fixture.json"
+        }
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "error_code_registry_coverage_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
+    },
+    "ck.vector_group.federation.v1": {
+      "required_endpoints": [],
+      "required_event_kinds": [
+        "ck.realm.create",
+        "ck.member.state"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ck.schema.event.v1",
+        "ck.schema.seal.v1"
+      ],
+      "required_fixtures": [
+        "federation-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "federation_vector_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
+    },
+    "ck.vector_group.privacy_security.v1": {
+      "required_endpoints": [
+        "ck.find.directory.query.resolve_realm",
+        "ck.find.directory.query.private_contact_discovery",
+        "ck.self.events.command.submit",
+        "ck.self.blob.resource.head",
+        "ck.edge.push.command.notify"
+      ],
+      "required_event_kinds": [
+        "ck.message.create"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ck.schema.event_payload.v1",
+        "ck.schema.invite.v1",
+        "ck.schema.notification.v1",
+        "ck.schema.blob.v1"
+      ],
+      "required_fixtures": [
+        "membership-delivery-binding-fixture.json",
+        "privacy-security-fixture.json",
+        "security-closure-vectors.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "privacy_vector_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
+    },
+    "ck.vector_group.reaction.v1": {
+      "required_endpoints": [
+        "ck.self.events.command.submit",
+        "ck.self.events.query.scan"
+      ],
+      "required_event_kinds": [
+        "ck.message.create",
+        "ck.message.redact",
+        "ck.reaction.add",
+        "ck.reaction.remove",
+        "ck.capability.revoke"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ck.schema.event.v1",
+        "ck.schema.event_payload.v1"
+      ],
+      "required_fixtures": [
+        "reaction-fixture.json"
+      ],
+      "optional_extensions": [
+        "ck.profile.e2ee_client.v1"
+      ],
+      "feature_discovery": {
+        "required": [
+          "reaction_or_set_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
+    },
+    "ck.vector_group.redaction.v1": {
+      "required_endpoints": [
+        "ck.self.events.command.submit",
+        "ck.self.events.query.scan"
+      ],
+      "required_event_kinds": [
+        "ck.message.create",
+        "ck.message.redact",
+        "ck.redaction"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ck.schema.event.v1",
+        "ck.schema.event_payload.v1",
+        "ck.schema.seal.v1"
+      ],
+      "required_fixtures": [
+        "redaction-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "redaction_vector_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
+    },
+    "ck.vector_group.sync.v1": {
+      "required_endpoints": [
+        "ck.self.account.stream.subscribe",
+        "ck.self.events.query.scan",
+        "ck.self.snapshot.query.manifest_head"
+      ],
+      "required_event_kinds": [
+        "ck.message.create",
+        "ck.member.state"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ck.schema.account_subscribe_frame.v1",
+        "ck.schema.cursor.v1",
+        "ck.schema.snapshot.v1"
+      ],
+      "required_fixtures": [
+        "sync-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "sync_vector_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
+    },
+    "ck.vector_group.mimi_interop.v1": {
+      "required_endpoints": [
+        "ck.open.mimi.query.provider_directory",
+        "ck.open.mimi.command.update_room",
+        "ck.open.mimi.command.submit_message"
+      ],
+      "required_event_kinds": [
+        "ck.mimi.room_binding",
+        "ck.mls.keypackage"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ck.schema.mimi_interop.v1"
+      ],
+      "required_fixtures": [
+        "mimi-interop-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "mimi_vector_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
+    },
+    "ck.vector_group.cba_lattice.v1": {
+      "required_endpoints": [
+        "ck.self.events.command.submit"
+      ],
+      "required_event_kinds": [
+        "ck.member.state",
+        "ck.strand.move",
+        "ck.strand.reorder",
+        "ck.policy.set"
+      ],
+      "rejected_event_kinds": [],
+      "required_schemas": [
+        "ck.schema.seal.v1",
+        "ck.schema.event.v1",
+        "ck.schema.event_payload.v1"
+      ],
+      "required_fixtures": [
+        "cba-lattice-fixture.json"
+      ],
+      "optional_extensions": [],
+      "feature_discovery": {
+        "required": [
+          "cba_lattice_vector_runner"
+        ],
+        "unsupported_optional": "not applicable"
+      }
+    }
+  },
   "profile_requirements": {
     "ck.profile.principal_control_realm.v1": {
       "role": "admin",
@@ -2871,413 +3261,6 @@
           "forbidden_marketing_terms_check"
         ],
         "unsupported_optional": "fail closed before joining auditable encrypted Realm"
-      }
-    },
-    "ck.profile.capability_vectors.v1": {
-      "required_endpoints": [
-        "ck.self.authz.query.check"
-      ],
-      "required_event_kinds": [
-        "ck.capability.grant",
-        "ck.capability.revoke",
-        "ck.member.state"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ck.schema.capability.v1",
-        "ck.schema.grant_constraint.v1",
-        "ck.schema.resource_selector.v1"
-      ],
-      "required_fixtures": [
-        "capability-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "vector_runner"
-        ],
-        "unsupported_optional": "not applicable"
-      }
-    },
-    "ck.profile.crypto_signature_vectors.v1": {
-      "required_endpoints": [],
-      "required_event_kinds": [
-        "ck.invite.third_party",
-        "ck.invite.claim",
-        "ck.message.create"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.seal.v1"
-      ],
-      "required_fixtures": [
-        "crypto-signature-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "ed25519_detached_jws"
-        ],
-        "unsupported_optional": "not applicable"
-      }
-    },
-    "ck.profile.encoding_vectors.v1": {
-      "required_endpoints": [],
-      "required_event_kinds": [
-        "ck.message.create"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.cursor.v1",
-        "ck.schema.event_batch_receipt.v1",
-        "ck.schema.seal.v1"
-      ],
-      "required_fixtures": [
-        "encoding-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "canonical_json",
-          "hlc",
-          "cursor"
-        ],
-        "unsupported_optional": "not applicable"
-      }
-    },
-    "ck.profile.event_envelope_negative_vectors.v1": {
-      "required_endpoints": [
-        "ck.self.events.command.submit"
-      ],
-      "required_event_kinds": [
-        "ck.message.create",
-        "ck.read_cursor.advance",
-        "ck.typing"
-      ],
-      "rejected_event_kinds": [
-        "wire_scope:actor_private_event",
-        "wire_scope:ephemeral_event"
-      ],
-      "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.event_payload.v1",
-        "ck.schema.seal.v1"
-      ],
-      "required_fixtures": [
-        "event-envelope-negative-fixture.json"
-      ],
-      "required_cotest_suites": [
-        {
-          "suite": "event_envelope_fixture",
-          "artifact_fixture": "event-envelope-negative-fixture.json"
-        }
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "negative_vector_runner"
-        ],
-        "unsupported_optional": "not applicable"
-      }
-    },
-    "ck.profile.discovery_vectors.v1": {
-      "required_endpoints": [
-        "ck.server.query.describe"
-      ],
-      "required_event_kinds": [],
-      "rejected_event_kinds": [],
-      "required_schemas": [],
-      "required_fixtures": [],
-      "required_cotest_suites": [
-        {
-          "suite": "discovery_profile_fixture",
-          "local_fixture": "discovery_profile_fixture.json"
-        }
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "supported_profiles",
-          "supported_operations",
-          "surface_tier_rules"
-        ],
-        "unsupported_optional": "not applicable"
-      }
-    },
-    "ck.profile.event_kind_lattice_dispatch_vectors.v1": {
-      "required_endpoints": [],
-      "required_event_kinds": [],
-      "rejected_event_kinds": [],
-      "required_schemas": [],
-      "required_fixtures": [],
-      "required_cotest_suites": [
-        {
-          "suite": "event_kind_lattice_dispatch_fixture",
-          "local_fixture": "event_kind_lattice_dispatch_fixture.json"
-        }
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "event_kind_lattice_dispatch_runner"
-        ],
-        "unsupported_optional": "not applicable"
-      }
-    },
-    "ck.profile.event_kind_payload_coverage_vectors.v1": {
-      "required_endpoints": [
-        "ck.self.events.command.submit"
-      ],
-      "required_event_kinds": [],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.event_payload.v1"
-      ],
-      "required_fixtures": [],
-      "required_cotest_suites": [
-        {
-          "suite": "event_kind_payload_coverage_fixture",
-          "local_fixture": "event_kind_payload_coverage_fixture.json"
-        }
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "event_kind_payload_coverage_runner"
-        ],
-        "unsupported_optional": "not applicable"
-      }
-    },
-    "ck.profile.operation_registry_coverage_vectors.v1": {
-      "required_endpoints": [],
-      "required_event_kinds": [],
-      "rejected_event_kinds": [],
-      "required_schemas": [],
-      "required_fixtures": [],
-      "required_cotest_suites": [
-        {
-          "suite": "operation_registry_coverage_fixture",
-          "local_fixture": "operation_registry_coverage_fixture.json"
-        }
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "operation_registry_coverage_runner"
-        ],
-        "unsupported_optional": "not applicable"
-      }
-    },
-    "ck.profile.error_code_registry_coverage_vectors.v1": {
-      "required_endpoints": [],
-      "required_event_kinds": [],
-      "rejected_event_kinds": [],
-      "required_schemas": [],
-      "required_fixtures": [],
-      "required_cotest_suites": [
-        {
-          "suite": "error_code_registry_coverage_fixture",
-          "local_fixture": "error_code_registry_coverage_fixture.json"
-        }
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "error_code_registry_coverage_runner"
-        ],
-        "unsupported_optional": "not applicable"
-      }
-    },
-    "ck.profile.federation_vectors.v1": {
-      "required_endpoints": [],
-      "required_event_kinds": [
-        "ck.realm.create",
-        "ck.member.state"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.seal.v1"
-      ],
-      "required_fixtures": [
-        "federation-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "federation_vector_runner"
-        ],
-        "unsupported_optional": "not applicable"
-      }
-    },
-    "ck.profile.privacy_security_vectors.v1": {
-      "required_endpoints": [
-        "ck.find.directory.query.resolve_realm",
-        "ck.find.directory.query.private_contact_discovery",
-        "ck.self.events.command.submit",
-        "ck.self.blob.resource.head",
-        "ck.edge.push.command.notify"
-      ],
-      "required_event_kinds": [
-        "ck.message.create"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ck.schema.event_payload.v1",
-        "ck.schema.invite.v1",
-        "ck.schema.notification.v1",
-        "ck.schema.blob.v1"
-      ],
-      "required_fixtures": [
-        "membership-delivery-binding-fixture.json",
-        "privacy-security-fixture.json",
-        "security-closure-vectors.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "privacy_vector_runner"
-        ],
-        "unsupported_optional": "not applicable"
-      }
-    },
-    "ck.profile.reaction_vectors.v1": {
-      "required_endpoints": [
-        "ck.self.events.command.submit",
-        "ck.self.events.query.scan"
-      ],
-      "required_event_kinds": [
-        "ck.message.create",
-        "ck.message.redact",
-        "ck.reaction.add",
-        "ck.reaction.remove",
-        "ck.capability.revoke"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.event_payload.v1"
-      ],
-      "required_fixtures": [
-        "reaction-fixture.json"
-      ],
-      "optional_extensions": [
-        "ck.profile.e2ee_client.v1"
-      ],
-      "feature_discovery": {
-        "required": [
-          "reaction_or_set_runner"
-        ],
-        "unsupported_optional": "not applicable"
-      }
-    },
-    "ck.profile.redaction_vectors.v1": {
-      "required_endpoints": [
-        "ck.self.events.command.submit",
-        "ck.self.events.query.scan"
-      ],
-      "required_event_kinds": [
-        "ck.message.create",
-        "ck.message.redact",
-        "ck.redaction"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.event_payload.v1",
-        "ck.schema.seal.v1"
-      ],
-      "required_fixtures": [
-        "redaction-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "redaction_vector_runner"
-        ],
-        "unsupported_optional": "not applicable"
-      }
-    },
-    "ck.profile.sync_vectors.v1": {
-      "required_endpoints": [
-        "ck.self.account.stream.subscribe",
-        "ck.self.events.query.scan",
-        "ck.self.snapshot.query.manifest_head"
-      ],
-      "required_event_kinds": [
-        "ck.message.create",
-        "ck.member.state"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ck.schema.account_subscribe_frame.v1",
-        "ck.schema.cursor.v1",
-        "ck.schema.snapshot.v1"
-      ],
-      "required_fixtures": [
-        "sync-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "sync_vector_runner"
-        ],
-        "unsupported_optional": "not applicable"
-      }
-    },
-    "ck.profile.mimi_interop_vectors.v1": {
-      "required_endpoints": [
-        "ck.open.mimi.query.provider_directory",
-        "ck.open.mimi.command.update_room",
-        "ck.open.mimi.command.submit_message"
-      ],
-      "required_event_kinds": [
-        "ck.mimi.room_binding",
-        "ck.mls.keypackage"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ck.schema.mimi_interop.v1"
-      ],
-      "required_fixtures": [
-        "mimi-interop-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "mimi_vector_runner"
-        ],
-        "unsupported_optional": "not applicable"
-      }
-    },
-    "ck.profile.cba_lattice_vectors.v1": {
-      "required_endpoints": [
-        "ck.self.events.command.submit"
-      ],
-      "required_event_kinds": [
-        "ck.member.state",
-        "ck.strand.move",
-        "ck.strand.reorder",
-        "ck.policy.set"
-      ],
-      "rejected_event_kinds": [],
-      "required_schemas": [
-        "ck.schema.seal.v1",
-        "ck.schema.event.v1",
-        "ck.schema.event_payload.v1"
-      ],
-      "required_fixtures": [
-        "cba-lattice-fixture.json"
-      ],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "cba_lattice_vector_runner"
-        ],
-        "unsupported_optional": "not applicable"
       }
     },
     "ck.profile.notary.single_did.v1": {
