@@ -42,7 +42,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
-      "sha256": "9dd7f58cd65ce56c0881bcd9354ae14f8ddaa0c0d611b64d4940b25d24d34352"
+      "sha256": "59d2c75a7eda390af092462ea14c2b8e15589b322a93610246ce3d6ee6fd64dd"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cursor-negative-fixture.json",
@@ -50,7 +50,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "77675edaa305f5fb879b1a648c9c311e3edb84f30d95242d83b9cf17ac1b5dfb"
+      "sha256": "c99d169515e4b489d5e4a5cacf4c6bdc75aec3ff6c736d61908230bb45c8962d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-envelope-negative-fixture.json",
