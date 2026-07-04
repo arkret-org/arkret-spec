@@ -585,6 +585,11 @@ Applet 写入 Cokret MUST 使用常规 `/_cokret/self/events` submit 接口。
 - `authorization_ref`
 - `proofs[]`
 
+`authorization_ref` 的取值按事件签署主体区分：
+
+- **Delegated-ghost / masquerading 事件**（`actor_id` 为 ghost / bot / delegated native actor，即 Applet 代表已授权 actor 署名的常见情形）：`authorization_ref` MUST 指向该 ghost 的 `ck.identity.accountability_grant`（见 [§9](#9-ghost-actor-provisioning) 与 [§11](#11-masquerading-与-delegated-agent)），表达“Applet 以委托授权身份代表该 actor 行事”的委托链。
+- **Service-actor 自署事件**（`actor_id` 为 Applet 自身的 service DID，如 portal strand 创建、`ck.applet.bridge_error` 审计等运维 / 审计事件，非委托 ghost）：此类事件不存在委托关系，`authorization_ref` MUST 指向该 Applet 的 registration grant（[§5.1](#51-applet-registration) 安装授权）而非某个 ghost 的 accountability_grant；若部署未为 Applet registration 铸造独立的 grant ref，service-actor 自署事件 MAY 省略 `authorization_ref`（签名的 `applet_id` 与 service-DID `actor_id` 已承载 provenance）。两类事件的 `applet_id` 均 MUST 携带。
+
 示例：
 
 ```json
