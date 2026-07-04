@@ -2016,7 +2016,7 @@
     {
       "vector_id": "ck.vector.encoding.canonical_json.utf16_supplementary_order.v1",
       "status": "active",
-      "profile": "ck.profile.encoding_vectors.v1",
+      "profile": "ck.vector_group.encoding.v1",
       "domain": "encoding",
       "description": "Canonical JSON object key ordering follows UTF-16 code units for supplementary-plane keys.",
       "source_refs": [
@@ -2101,7 +2101,7 @@
     {
       "vector_id": "ck.vector.lattice.mv_register_join.v1",
       "status": "active",
-      "profile": "ck.profile.cba_lattice_vectors.v1",
+      "profile": "ck.vector_group.cba_lattice.v1",
       "domain": "lattice",
       "description": "mv_register join/validate_op convergence for the same CBA Event set.",
       "source_refs": [
@@ -2111,7 +2111,7 @@
     {
       "vector_id": "ck.vector.lattice.counter_join.v1",
       "status": "active",
-      "profile": "ck.profile.cba_lattice_vectors.v1",
+      "profile": "ck.vector_group.cba_lattice.v1",
       "domain": "lattice",
       "description": "counter join/validate_op convergence for the same CBA Event set.",
       "source_refs": [
@@ -2121,7 +2121,7 @@
     {
       "vector_id": "ck.vector.lattice.ordered_log_join.v1",
       "status": "active",
-      "profile": "ck.profile.cba_lattice_vectors.v1",
+      "profile": "ck.vector_group.cba_lattice.v1",
       "domain": "lattice",
       "description": "ordered_log join/validate_op convergence for the same CBA Event set.",
       "source_refs": [
@@ -2131,7 +2131,7 @@
     {
       "vector_id": "ck.vector.lattice.fsm_join.v1",
       "status": "active",
-      "profile": "ck.profile.cba_lattice_vectors.v1",
+      "profile": "ck.vector_group.cba_lattice.v1",
       "domain": "lattice",
       "description": "fsm join: identical (from,to) sibling transitions converge idempotently; same-from different-to siblings return bottom (reject path).",
       "source_refs": [
@@ -2141,7 +2141,7 @@
     {
       "vector_id": "ck.vector.lattice.ordered_log_gap.v1",
       "status": "active",
-      "profile": "ck.profile.cba_lattice_vectors.v1",
+      "profile": "ck.vector_group.cba_lattice.v1",
       "domain": "lattice",
       "description": "ordered_log issuer sub-chain seq gap yields contiguous_prefix plus pending_gap diagnostics; deterministic recompute after backfill.",
       "source_refs": [
