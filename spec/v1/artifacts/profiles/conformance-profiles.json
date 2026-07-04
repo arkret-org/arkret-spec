@@ -2364,6 +2364,12 @@
         "service_method_default": "did:webvh",
         "principal_method_downgrade_allowed": true,
         "downgrade_note": "Personal node MAY use did:web as principal method when explicitly declared. Upgrade to small_team or higher MUST migrate to did:webvh per identity-did.md §4.2.2."
+      },
+      "account_authority": {
+        "requirement": "recommended_self_hosted",
+        "role_profile": "ck.profile.auth_server.v1",
+        "escape_hatch": "external_delegated_declared",
+        "note": "personal_node SHOULD co-deploy a self-hosted Account Authority (Auth Server): account registration, recovery, device enrollment, session-grant issuance, and did.jsonl hosting for domainless users. The Account Authority MAY be co-located in the same process/node as the principal server (see architecture.md §2.8) but keeps a distinct service DID and boundary. A deployment MAY delegate to a shared/external auth server, but MUST declare the delegation in service-describe auth_metadata so the inherited trust dependency (control over account recovery, device enrollment, and DID continuity) is explicit and auditable. Sources: overview/architecture.md minimal-deployment topology, sync/service-surface.md §2.5."
       }
     },
     "ck.profile.small_team.v1": {
@@ -2413,6 +2419,12 @@
         ],
         "service_method_default": "did:webvh",
         "principal_method_downgrade_allowed": false
+      },
+      "account_authority": {
+        "requirement": "recommended_self_hosted",
+        "role_profile": "ck.profile.auth_server.v1",
+        "escape_hatch": "external_delegated_declared",
+        "note": "small_team SHOULD co-deploy a self-hosted Account Authority (Auth Server): account registration, recovery, device enrollment, session-grant issuance, and did.jsonl hosting for domainless users. The Account Authority MAY be co-located in the same process/node as the principal server (see architecture.md §2.8) but keeps a distinct service DID and boundary. A deployment MAY delegate to a shared/external auth server, but MUST declare the delegation in service-describe auth_metadata so the inherited trust dependency (control over account recovery, device enrollment, and DID continuity) is explicit and auditable. Sources: overview/architecture.md minimal-deployment topology, sync/service-surface.md §2.5."
       }
     },
     "ck.profile.organization.v1": {
