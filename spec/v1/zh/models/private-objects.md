@@ -74,7 +74,7 @@ Schema id: `ck.schema.notification.v1`
 | `source_ref` | no | `id:(message\|strand\|morph\|relation\|view\|blob)` | 取值形如 `ck:(message\|strand\|morph\|relation\|view\|blob):…`，union 枚举即此 6 类。render-only hint;reducer MUST 以 `source_event_id` 为权威。**子集差异（informative）**：本字段允许的 kind 子集与 Relation 端点（[`relation.md` §1](./relation.md)，端点另允许 `realm` / `space` / `actor_profile` / `event` / DID）、Read Cursor `read_scope`（§2.2，scope 限 `realm` / `circle` / `space` / `strand` / `thread`）各自不同；差异由各自语义决定（Notification 渲染目标 = 可被通知指向的内容对象；Relation 端点 = 可连边的图节点；Read Cursor scope = 可定位已读位置的时间线容器）。三处实现 MUST 按各自 schema 校验字段形状，同时以 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 的 `referenceability` 作为 kind 子集的机读真相源；本字段对应 `notification_source` 类别。 | 可选 canonical 对象引用，供客户端直接渲染通知目标。 |
 | `strand_id` | no | `id:strand` |  | 可选 Strand 上下文，用于路由通知。 |
 | `track_name` | no | `string` | `^[a-z][a-z0-9_]{0,63}$`。 | 可选，来源 Strand 上的 track key。 |
-| `notification_type` | yes | `enum(message, mention, reply, assignment, invite, reaction, policy, call, applet, agent, moderation, system)` |  | 通知类型。 |
+| `notification_type` | yes | `enum(message, mention, reply, assignment, schedule, invite, reaction, policy, call, applet, agent, moderation, system)` |  | 通知类型。 |
 | `priority` | yes | `enum(low, normal, high, urgent)` |  | 优先级。 |
 | `state` | yes | `enum(unread, read, dismissed, archived)` | Notification projection-state 例外；表示 inbox/read 状态，不表示 canonical object 物理 lifecycle。 | 通知状态。 |
 | `preview` | no | `object` | E2EE 场景必须脱敏。 | 展示摘要。 |
@@ -86,6 +86,8 @@ Schema id: `ck.schema.notification.v1`
 - Notification 是派生 projection；客户端 / 服务端 SHOULD 从 source event + actor preferences 计算，不要把它当作独立真相源持久化为 durable canonical event。
 - E2EE Realm 中 `preview` 必须由发送者客户端脱敏后置入推送 envelope；服务端不得用明文重新生成 preview。
 - `notification_type=message` 表示普通 `ck.message.create` 在接收者 effective watch / push rule 允许普通消息提醒时产生的 inbox / push 提醒；默认 `mentions_only` 不得为非定向普通消息产生该类型。当同一 source event 对同一 actor 同时命中 `mention`、`reply`、`assignment` 等更具体原因时，dispatcher MUST NOT 额外产生重复的 `message` notification。
+- `notification_type=assignment` 表示当前 actor 被新增为某 Strand 的 `assigned_to` target；它不是普通 message 的别名。
+- `notification_type=schedule` 表示该 actor 需要知晓的 Strand due date 或 Calendar schedule 变更；它覆盖 `metadata.fields.due_at` 与 [`calendar-event.md`](./calendar-event.md) §2 schedule fields。
 - `notification_type=applet` / `agent` / `policy` / `moderation` 等扩展类型的语义见 [`../extensions/applet-integration.md`](../extensions/applet-integration.md)、[`../extensions/agent-protocol-interop.md`](../extensions/agent-protocol-interop.md)、[`../authz/policy-server.md`](../authz/policy-server.md) 与 [`../governance/content-moderation.md`](../governance/content-moderation.md)。
 
 ### 3.4 Mention notification 派生
@@ -98,6 +100,47 @@ Schema id: `ck.schema.notification.v1`
 - 派生器 MUST 在生成 notification 前应用 access check、history visibility、`level=muted`、blocklist、DND 与 push rule 覆盖；无访问权或被静音时不得留下可查询的 notification stub。
 - 派生器、delivery response、inbox projection 与 push payload MUST NOT 暴露 audience 展开结果、recipient count、watcher 列表、watch level 或命中原因；sender 不得区分某 receiver 是因历史参与、watch 还是 direct mention 命中。
 - `preview` 在 E2EE / redaction / history-limited 场景下 MUST 为空或使用已授权的脱敏摘要；不得因为 notification projection 需要展示而扩大源 Message 的明文可见性。
+
+### 3.5 Assignment notification 派生
+
+当一个 accepted `ck.relation.create` 满足下列条件时，notification dispatcher MUST 为被分配 actor 派生 `notification_type=assignment`：
+
+- `relation_kind="assigned_to"`。
+- `from_ref` 是 active Strand id，`to_ref` 是 actor DID。
+- Relation create 不是现有 active `(realm_id, relation_kind, from_ref, to_ref)` assignment tuple 的 no-op 重放；同一 `(actor_id, source_event_id, notification_type=assignment)` 最多生成一个 notification。
+- 接收 actor 对该 Strand 的 effective Realm / Circle scope 有读取权，且未被 `level=muted`、blocklist、DND 或 push rule 覆盖抑制。
+
+派生 notification 的 `actor_id` MUST 是 `to_ref`，`realm_id` MUST 是 Relation 所属 Realm，`source_event_id` MUST 是产生该 Relation create 的 Event id，`source_ref` SHOULD 是新增的 Relation id，`strand_id` MUST 是 `from_ref`。若 source Event 无独立 Event id，服务端 MAY 使用承载该 Event 的 operation id 作为本地 `source_event_id` 投影键，但跨服务 wire 输出仍 SHOULD 使用 canonical Event id。
+
+解除 assignment（Relation tombstone）默认不产生 `assignment` notification；需要审计或流程提示的产品 MAY 在本地 UI 活动流展示，但不得把 tombstone 当作新的 assignment。发送者自分配默认不通知自己，除非 receiver 私有 push rule 显式 opt-in。
+
+Assignment 只影响通知订阅与 inbox 派生，不扩大 Strand 访问权；无访问权时 dispatcher MUST 不留下可查询 notification stub，也不得通过 push 发送 wakeup。
+
+### 3.6 Schedule notification 派生
+
+当 accepted `ck.strand.update` 的 patch 改变下列任一路径时，notification dispatcher MUST 视为 schedule-relevant change：
+
+- `metadata.fields.due_at`
+- `metadata.fields.start`
+- `metadata.fields.end`
+- `metadata.fields.timezone`
+- `metadata.fields.all_day`
+- `metadata.fields.recurrence`
+- `metadata.fields.location`
+- `metadata.fields.call_id`
+- `metadata.fields.attendees`
+
+Schedule notification 的 receiver set 是下列集合的并集，并在生成前按 access check、history visibility、`level=muted`、blocklist、DND 与 push rule 覆盖过滤：
+
+- 该 Strand 当前 active `assigned_to` Relation 的 `to_ref` actors。
+- Calendar event profile 中 `attendees[].actor_id` actors。
+- 对该 Strand 显式选择 `watch=all` 的 watchers。
+
+默认 `mentions_only` / 隐含 `participating` 不因普通 schedule field 变更自动通知；但 actor 同时处于上述 receiver set（例如 assignee 或 attendee）时，dispatcher SHOULD 将 push-rule EventContext 标记为 target-directed，以避免被普通消息规则错误过滤。发送者默认不通知自己，除非私有 push rule 显式 opt-in。
+
+派生 notification 的 `notification_type` MUST 是 `schedule`，`source_event_id` MUST 是该 `ck.strand.update` 的 Event id，`source_ref` SHOULD 是被更新的 Strand id，`strand_id` MUST 是被更新的 Strand id。对同一 `(actor_id, source_event_id, notification_type=schedule)` MUST 去重；一次 patch 同时改 due date 和 calendar fields 也只生成一条 schedule notification。
+
+E2EE / plaintext policy 不允许服务端读取 schedule fields 时，服务端不得为了通知而解密或扩展明文可见性；实现 MAY 发送不含 preview 的 blind wakeup，或让客户端在本地解密后根据同一规则完成 inbox 派生。
 
 ## 4. 与 Account Data 的关系
 

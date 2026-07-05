@@ -294,7 +294,7 @@ Notification 是派生 projection，不是 canonical truth。schema：`ck.schema
 }
 ```
 
-`notification_type` 是封闭枚举，其权威取值集合以 [`notification.schema.json`](../../artifacts/schemas/notification.schema.json) 为准:`message` / `mention` / `reply` / `assignment` / `invite` / `reaction` / `policy` / `call` / `applet` / `agent` / `moderation` / `system`(共 12 值);取未列值的 notification MUST 视为非法。
+`notification_type` 是封闭枚举，其权威取值集合以 [`notification.schema.json`](../../artifacts/schemas/notification.schema.json) 为准:`message` / `mention` / `reply` / `assignment` / `schedule` / `invite` / `reaction` / `policy` / `call` / `applet` / `agent` / `moderation` / `system`(共 13 值);取未列值的 notification MUST 视为非法。
 
 notification / read scope 的 track 字段统一为 `track_name`，`track` 在 schema 层被拒绝（notification.schema.json 顶层 `not.required:["track"]`）。
 

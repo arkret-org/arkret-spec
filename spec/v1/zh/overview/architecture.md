@@ -196,7 +196,7 @@ Principal Server                 Account Authority (Auth Server)
 
 Account Authority 为什么**不**属于「可外挂的公共基础设施」：账户注册与恢复、设备 enroll、claim attestation 以及无域名用户的 DID 历史链（`did.jsonl`）托管都落在这一角色上——它掌握账户生死与身份连续性。把它委托给共享 / 他方 Auth Server，等于把这些控制权交给对方，与 Cokret 的自我主权前提冲突。因此 `personal_node` / `small_team` 的默认姿态是自建 Account Authority（SHOULD）；确需委托共享 Auth Server 时，MUST 在 `service-describe`（`auth_metadata`）中显式声明该委托，使继承来的信任依赖（对账户恢复、设备 enroll、DID 连续性的控制权）可审计——逃生舱，非默认。此姿态与 [`sync/service-surface.md` §2.5](../sync/service-surface.md) 中 Account Authority「个人部署通常与 Principal Server 同 origin」一致。两个服务各自的 service DID 如何在启动时自动获得（无需人工 mint / 手贴 DID）、以及 config 值如何降级为 fail-closed pin，见 [`identity/identity-did.md` §3.7](../identity/identity-did.md)。
 
-默认仍可使用、且属于低主权风险的公共基础设施（读侧 / 传输侧）：Identity Resolution Infrastructure（DID 解析，只读）、Directory Server、Push Gateway、TURN / Media Relay。普通用户不应被要求单独部署这些或 Moderation / Compliance Server；搜索、inbox、notification 和 View projection 默认在客户端本地派生。只有身份主权、内网隔离、合规审计、公共网络不可依赖或受控跨组织 federation 场景才应把这些读侧 / 传输侧基础设施也收回自建。
+默认仍可使用、且属于低主权风险的公共基础设施（读侧 / 传输侧）：Identity Resolution Infrastructure（DID 解析，只读）、Directory Server、Push Gateway、TURN / Media Relay。普通用户不应被要求单独部署这些或 Moderation Server；搜索、inbox、notification 和 View projection 默认在客户端本地派生。只有身份主权、内网隔离、合规审计、公共网络不可依赖或受控跨组织 federation 场景才应把这些读侧 / 传输侧基础设施也收回自建。
 
 Identity 部署常识（无法在 deployment profile 表中表达）：
 
