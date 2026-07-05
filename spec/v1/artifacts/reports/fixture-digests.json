@@ -38,7 +38,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
-      "sha256": "8f9db932ebd4cd2f27cdeef41815120af639d92fe4d96a48bbe1234899964619"
+      "sha256": "7301b97c7039333b22d6c3464e1f38789bafc76a0ea6b7c13892ac2d60494a18"
     },
     {
       "path": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
