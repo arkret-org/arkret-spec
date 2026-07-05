@@ -98,13 +98,15 @@ Cokret v1 把三件事分开处理：
 
 ### 3.3 设备持有绑定与 grant 轮换（normative）
 
-为在「会话凭据短期有效」与「设备会话可跨多日免重登」之间取得一致,session grant 采用**设备密钥持有绑定 + 滚动轮换**模型:
+为在「会话凭据短期有效」与「设备会话可跨多日免重登」之间取得一致,session grant 采用 **grant-binding key 持有绑定 + 滚动轮换**模型:
 
-- **持有绑定(cnf.jkt)**:签发 `ck.session.grant` 时,Auth Server MUST 要求客户端出示一个由其稳定设备密钥(holder key,RFC 9449 DPoP 式持有证明)签名的 proof,并把该密钥的 RFC 7638 JWK 指纹写入 grant 的 `cnf.jkt`(RFC 7800 confirmation)。该设备密钥即设备的持有凭证;`cnf.jkt` 把 grant 绑定到「持有该私钥的设备」,而非仅记一个 `device_id` 字符串。
-- **grant 直接出示、短期轮换**:Principal Server 不铸第二个本地会话凭据；客户端以 `ck.session.grant` + DPoP 直接访问 `/_cokret/self/*`。grant 自身为分钟到小时级 TTL，客户端在 grant 临期时用**仍有效的 grant** 与同一设备 holder key 轮换出新 grant。
-- **轮换(rotation)**:grant 临近自身过期时，客户端用**同一设备 holder key** 签 DPoP 持有证明，向 Auth Server 的 session-grant 轮换端点(见 [`../sync/service-http-binding.md` §2.3](../sync/service-http-binding.md))换出一张新 grant。Auth Server MUST 校验 proof 的 JWK 指纹等于旧 grant 的 `cnf.jkt`(证明持有同一设备私钥)，新 grant 保持 `cnf.jkt` 不变、刷新过期、继承 subject/scope/audience；旧 grant MUST 单次使用吊销。如此滚动使设备会话存活到天级，**直到设备被吊销、grant 链被吊销、或底层 `browser_session` 被终结(登出)**——三者任一即拒绝继续轮换(见 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md))。
-- **不引入长期离线续期凭据**:本协议以「设备 holder key 轮换 grant」承担续期职责,grant 自身保持分钟到小时级 TTL;不依赖、也不要求签发 OAuth `offline_access` 类长期续期凭据。
-- **登出即终结**:轮换链挂靠在 Auth Server 的 `browser_session` 上；`browser_session` 被登出终结后，即便持有正确的设备私钥(指纹匹配 `cnf.jkt`)也 MUST NOT 再轮换出新 grant——续期必须重新走完整认证。
+- **持有绑定(cnf.jkt)**:签发 `ck.session.grant` 时,Auth Server MUST 要求客户端出示一个由其 **grant-binding key**(即 DPoP key,RFC 9449 DPoP 式持有证明)签名的 proof,并把该 key 的 RFC 7638 JWK 指纹写入 grant 的 `cnf.jkt`(RFC 7800 confirmation)。`cnf.jkt` 把 grant 绑定到「持有该私钥的会话/设备」,而非仅记一个 `device_id` 字符串。
+- **grant 直接出示、短期轮换**:Principal Server 不铸第二个本地会话凭据；客户端以 `ck.session.grant` + DPoP 直接访问 `/_cokret/self/*`。grant 自身为分钟到小时级 TTL，客户端在 grant 临期时用**仍有效的 grant** 与同一 grant-binding key 轮换出新 grant。
+- **轮换(rotation)**:grant 临近自身过期时，客户端用**同一 grant-binding key** 签 DPoP 持有证明，向 Auth Server 的 session-grant 轮换端点(见 [`../sync/service-http-binding.md` §2.3](../sync/service-http-binding.md))换出一张新 grant。Auth Server MUST 校验 proof 的 JWK 指纹等于旧 grant 的 `cnf.jkt`(证明持有同一 grant-binding 私钥)，新 grant 保持 `cnf.jkt` 不变、刷新过期、继承 subject/scope/audience；旧 grant MUST 单次使用吊销。如此滚动使设备会话存活到天级，**直到设备被吊销、grant 链被吊销、或底层 `browser_session` 被终结(登出)**——三者任一即拒绝继续轮换(见 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md))。
+- **不引入长期离线续期凭据**:本协议以「grant-binding key 轮换 grant」承担续期职责,grant 自身保持分钟到小时级 TTL;不依赖、也不要求签发 OAuth `offline_access` 类长期续期凭据。
+- **登出即终结**:轮换链挂靠在 Auth Server 的 `browser_session` 上；`browser_session` 被登出终结后，即便持有正确的 grant-binding 私钥(指纹匹配 `cnf.jkt`)也 MUST NOT 再轮换出新 grant——续期必须重新走完整认证。
+
+**grant-binding key 与设备身份 key 的生命周期正交(normative)**:`grant-binding key` 是**会话认证凭据**,`cnf.jkt`、`ck.session.grant` 轮换与 hard-logout 清除只作用于它；它按 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md) 在 hard logout 时被清除、下次登录轮换,soft recovery 路径保留。§5.2 的**设备身份 key**(`device_public_key` / `verify_key`,签事件 / KeyPackage / MLS leaf)是 E2EE 信任根，只经 `ck.device.revoke` + 重新入册轮换。二者是两个正交角色:**实现即便复用同一密钥字节，也 MUST 保证 grant-binding key 的轮换或清除不导致设备身份 key 变更或被覆盖**——否则一次重新登录即把该设备静默逐出其 MLS 群组并丢失历史解密能力。会话生命周期(登录 / 登出 / grant 轮换)MUST NOT 触发设备身份 key 的重铸(见 §5.2)。
 
 此模式只把 Web2 SSO 作为登录因子和会话授权输入。它不授予 E2EE 密钥访问权，不自动创建长期设备，不替代 `ck.device.authorize`、DID/key-log operation 或 recovery policy。
 
@@ -297,6 +299,8 @@ DID-method history → principal_signing_key (PSK)
                        └── user_signing_key (USK)   ── signs ──► other principal's verify_key
 ```
 
+**设备身份 key 稳定性(normative)**:设备的 `device_public_key`(= `verify_key`,per-device Ed25519)是该设备的 E2EE 信任根，签事件、KeyPackage 与 MLS leaf,并投影进设备验签公钥目录(§8.2)供 receiver 解析。它**只经 `ck.device.revoke` + 以新 key 重新入册(= 新设备)轮换**;会话生命周期——登录、登出、`ck.session.grant` 轮换——**MUST NOT** 触发它的重铸或覆盖。与之相对,§3.3 的 grant-binding(DPoP)key 是会话认证凭据，按 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md) 随登出/重登轮换；二者生命周期正交，实现即便复用同一密钥字节，也 MUST 保证 grant-binding key 的轮换不改变设备身份 key(见 §3.3)。
+
 每条 `ck.device.authorize` 事件 MUST 在 `payload.cross_signing_binding` 字段携带 SSK 对该设备 `verify_key`、`hpke_key` 与声明算法集合的签名：
 
 ```json
@@ -424,7 +428,7 @@ receiver 接受 `service_attested` 的 `ck.device.authorize` 时 MUST 校验：
 
 **inception 窗口不适用：** `service_attested` 的 `ck.device.authorize` 不携带 `did_inception` ref，[`identity/key-management.md` §5.0.1 step5](../identity/key-management.md) 的 inception key 24h 在线窗口门对其天然 inert。
 
-**客户端请求入口（normative）：** 客户端经 canonical gate 操作 `ck.gate.account.command.enroll_device`（`POST /_cokret/gate/account/device-enroll`，request `account_device_enroll_request_body {device_id, device_public_key, actor_seq, not_before?}`、response `account_device_enroll_outcome {principal_id, device_id, authority_did, authorized_event}`）向其指派的入册权威请求该 `service_attested` 签名。请求 MUST 以当前 `ck.session.grant`（`Authorization: bearer`）+ holder DPoP proof（绑定 grant `cnf.jkt` 与本 endpoint）认证；入册权威校验该会话拥有目标 principal 后，用其持久 enrollment key 铸造 `ck.device.authorize` 并返回完整 Event，客户端原样提交到 `POST /_cokret/self/events`。该操作是 §2.1 `pair_device`（已授权设备 SAS/QR 审批，携 `pairing_code`）之外、用于无兄弟设备可审批的 bootstrap / 首台设备路径。入册权威 endpoint 与其它 `/_cokret/gate/account/*` 同处一个 Account Authority `gate_account_base`。
+**客户端请求入口（normative）：** 客户端经 canonical gate 操作 `ck.gate.account.command.enroll_device`（`POST /_cokret/gate/account/device-enroll`，request `account_device_enroll_request_body {device_id, device_public_key, actor_seq, not_before?}`、response `account_device_enroll_outcome {principal_id, device_id, authority_did, authorized_event}`）向其指派的入册权威请求该 `service_attested` 签名。请求 MUST 以当前 `ck.session.grant`（`Authorization: bearer`）+ DPoP proof（用 grant-binding key 签、绑定 grant `cnf.jkt` 与本 endpoint）认证；入册权威校验该会话拥有目标 principal 后，用其持久 enrollment key 铸造 `ck.device.authorize` 并返回完整 Event，客户端原样提交到 `POST /_cokret/self/events`。该操作是 §2.1 `pair_device`（已授权设备 SAS/QR 审批，携 `pairing_code`）之外、用于无兄弟设备可审批的 bootstrap / 首台设备路径。入册权威 endpoint 与其它 `/_cokret/gate/account/*` 同处一个 Account Authority `gate_account_base`。
 
 ## 5a. Privacy-Preserving Push
 
@@ -570,7 +574,7 @@ Content-Type: application/json
 }
 ```
 
-同一 principal 的新设备请求旧设备验证/授权时，MUST 使用同一 `POST /_cokret/self/device_messages` wire shape 投递 `ck.key.verification.request`。发送方必须是 gate 签发的 holder-bound session，或受限 fresh-device session grant；后者只能发送 `ck.key.verification.*` bootstrap 消息给同 principal 的已授权设备。请求 content SHOULD 携带 `purpose="same_principal_device_authorization"` 和供 UI 比对/后续 gate finalize 使用的 pairing 材料：
+同一 principal 的新设备请求旧设备验证/授权时，MUST 使用同一 `POST /_cokret/self/device_messages` wire shape 投递 `ck.key.verification.request`。发送方必须是 gate 签发的 grant-binding session，或受限 fresh-device session grant；后者只能发送 `ck.key.verification.*` bootstrap 消息给同 principal 的已授权设备。请求 content SHOULD 携带 `purpose="same_principal_device_authorization"` 和供 UI 比对/后续 gate finalize 使用的 pairing 材料：
 
 ```json
 {

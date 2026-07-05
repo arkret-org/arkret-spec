@@ -20,7 +20,7 @@ Cokret 身份由 DID principal 表示，但用户访问通常经过一个或多�
 | --- | --- | --- |
 | DID principal | `did:webvh:...` | DID controller / recovery policy |
 | Service account | `alice@example.com` 登录入口 | account service |
-| Device session | session grant / holder key | auth service |
+| Device session | session grant / grant-binding key | auth service |
 | Event / private state | signed Event history / private account data | Events API + principal policy |
 | Realm membership | `ck.member.state`（状态机定义见 [`../models/realm-and-space.md`](../models/realm-and-space.md)） | Realm policy/capability |
 
@@ -74,7 +74,7 @@ Cokret 身份由 DID principal 表示，但用户访问通常经过一个或多�
 
 **正交性矩阵**：六个状态各自承载独立 lifecycle 行为，不能合并。下表给出关键正交维度，新状态提案 MUST 论证它在该矩阵中占据未覆盖的格子，否则用 `reason_code` 表达即可：
 
-| 状态 | 触发方 | Session grant | Holder proof refresh | Device trust | E2EE secret storage | Event history | 详细规则 |
+| 状态 | 触发方 | Session grant | DPoP grant 轮换 | Device trust | E2EE secret storage | Event history | 详细规则 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `active` | — | 有效 | 有效 | 保留 | 保留 | 保留 | — |
 | `soft_logged_out` | auth service / 用户 logout | 已撤销 | 可在 fresh DID/device proof 下 refresh | 保留 | 保留 | 保留 | §4 |
@@ -85,7 +85,7 @@ Cokret 身份由 DID principal 表示，但用户访问通常经过一个或多�
 
 `reason_code` 表达**为什么**进入该状态（如 `abuse_review` / `gdpr_request` / `password_compromise`）；状态本身表达**当前所处阶段的协议行为契约**。两者不可替代。
 
-**认证错误码（normative）**：Account status 导致 session grant 或 holder proof 失效时，服务端 MUST 返回与 current status 匹配的专用错误码，而不是退化成通用 `unauthenticated` / `capability_denied`。已签发 session 访问受保护 `/_cokret/self/*` 资源时：`soft_logged_out` 返回 `401 soft_logged_out`；`locked` 返回 `401 account_locked`；`deactivated` 返回 `401 account_deactivated`；`erasure_pending` 返回 `401 account_erased`。新 session grant 签发、session refresh 或登录完成阶段遇到当前 status 时：`locked` SHOULD 返回 `403 account_locked`；`suspended` MUST 返回 `403 account_suspended`；`deactivated` SHOULD 返回 `403 account_deactivated`；`erasure_pending` MUST 返回 `401 account_erased`。这些 code 的机器真源是 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json)；HTTP status 的差异只表达“已持有 grant 失效”与“新 grant 被 policy 拒发”的入口差异，不改变 account status 语义。
+**认证错误码（normative）**：Account status 导致 session grant 或 grant-binding proof 失效时，服务端 MUST 返回与 current status 匹配的专用错误码，而不是退化成通用 `unauthenticated` / `capability_denied`。已签发 session 访问受保护 `/_cokret/self/*` 资源时：`soft_logged_out` 返回 `401 soft_logged_out`；`locked` 返回 `401 account_locked`；`deactivated` 返回 `401 account_deactivated`；`erasure_pending` 返回 `401 account_erased`。新 session grant 签发、session refresh 或登录完成阶段遇到当前 status 时：`locked` SHOULD 返回 `403 account_locked`；`suspended` MUST 返回 `403 account_suspended`；`deactivated` SHOULD 返回 `403 account_deactivated`；`erasure_pending` MUST 返回 `401 account_erased`。这些 code 的机器真源是 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json)；HTTP status 的差异只表达“已持有 grant 失效”与“新 grant 被 policy 拒发”的入口差异，不改变 account status 语义。
 
 **合法状态转换（normative）**：上面的 severity-order 仲裁解决"并发 head 选谁"，不替代"哪些 `from → to` 转换本身合法"的定义。`ck.account.status` reducer MUST 按下表判定单条状态转换是否合法；非法转换 MUST `failed_precondition`，`reason_code="account_status_transition_invalid"`：
 
@@ -145,7 +145,7 @@ Current account status projection 是 ordered_log 上的确定性派生值，而
 
 `soft_logged_out -> active` 的恢复 MUST 绑定 fresh DID proof：session grant refresh、OIDC callback 或 re-auth 只能作为会话恢复材料，不能单独把账号状态恢复为 `active`。服务端 MUST 要求当前 principal DID 的授权 device key、account auth key、passkey 或 recovery policy 允许的密钥对一次性 challenge 签名，并把签名覆盖 `principal_id`、`device_id`、`audience`、`request_canonical_digest`、`challenge`、`issued_at` 与 `expires_at`。**`device_id` 绑定要求**:multi-device principal（principal 控制 ≥1 个授权 device key）下 `device_id` **MUST** 必填并被签名覆盖，绑定到发起恢复请求的具体 device，使该 challenge-response proof 不能被同 principal 的其它设备复用完成会话恢复（满足"会话绑定到 DID 与 device"目标）；仅当 principal 在 control stream 中**无任何未撤销 device record**（即不持有任何当前有效的 device-bound key，例如纯 account-auth-key / passkey 恢复路径）时 `device_id` 方可省略。服务端 MUST 依据该 principal control stream 中 device record 的当前状态（存在 ≥1 条未撤销 device record 即豁免不成立）判定豁免，**MUST NOT** 仅凭本次 proof 的签名 key 类型判定——否则持有未撤销 device-bound key 的 multi-device principal 可用 passkey / account-auth-key 签 proof 伪造"无 device key"假象，从而绕过本节要关闭的同 principal 其它设备复用 proof 窗口。豁免不成立时 MUST NOT 接受缺 `device_id` 的 proof。
 
-**豁免判定的 frontier 新鲜度（normative，fail-closed）**：上述"无任何未撤销 device record"豁免判定 **MUST** 基于 **fresh control-stream frontier**——即服务端读取的 principal control-stream device 集投影必须满足本地 freshness policy（与 [`../authz/capabilities.md` §18.2](../authz/capabilities.md) 高风险 action 在 freshness `unknown` 时 fail-closed 的纪律一致）。当 control stream 因分区 / outage 不可达、frontier stale 或 device 集投影 freshness 为 `unknown` 时，服务端 **MUST** 保守按"该 principal 存在 device record"处理：即视为 multi-device principal，`device_id` 必填且必须被签名覆盖，缺 `device_id` 的恢复 proof **MUST NOT** 被接受（豁免不成立）。**MUST NOT** 把"暂时读不到 device record"乐观解释为"无 device record ⇒ 可省略 `device_id`"——否则攻击者可在分区窗口内用 passkey / account-auth-key 签一份缺 `device_id` 的 proof，伪造"该 principal 无 device key"假象绕过设备绑定。`did:webvh` resolver 处于 §3.4 cache-only degraded mode 时该恢复 / 绑定路径属于高风险写入，遵循 [`identity-did.md` §3.4](./identity-did.md) 的 fail-closed 不变量。其中 `issued_at` 与 `expires_at` 是 **必填**（不再是可选）：服务端 MUST 拒绝缺失任一字段、`expires_at` 已过当前时钟、`expires_at - issued_at > 300s`、`issued_at` 相对服务端时钟的偏移（双向）超出 skew 容忍（SHOULD ≤ 300s），或 `issued_at` 晚于服务端当前时钟加 skew 容忍（即 proof 自称在未来签发）的 proof。这把 soft-logout 重放窗口的上界固定为 ≤ 300s，与 [`identity-did.md` §5.1](./identity-did.md) `ck.did.proof` 的 replay window（`expires_at - issued_at ≤ 300s` + skew ≤ 300s）对齐——否则签发方可把 `expires_at` 任意拉远，使一份 soft-logout 恢复 proof 在无上界的时间内反复重放。缺失该证明时返回 `401 did_proof_required`；`expires_at` 缺失或新鲜度超限时返回 `401 did_proof_required`（reason `did_proof_replay_window_exceeded`）；holder proof 单独存在时也 MUST NOT 静默签发新的 active session grant。
+**豁免判定的 frontier 新鲜度（normative，fail-closed）**：上述"无任何未撤销 device record"豁免判定 **MUST** 基于 **fresh control-stream frontier**——即服务端读取的 principal control-stream device 集投影必须满足本地 freshness policy（与 [`../authz/capabilities.md` §18.2](../authz/capabilities.md) 高风险 action 在 freshness `unknown` 时 fail-closed 的纪律一致）。当 control stream 因分区 / outage 不可达、frontier stale 或 device 集投影 freshness 为 `unknown` 时，服务端 **MUST** 保守按"该 principal 存在 device record"处理：即视为 multi-device principal，`device_id` 必填且必须被签名覆盖，缺 `device_id` 的恢复 proof **MUST NOT** 被接受（豁免不成立）。**MUST NOT** 把"暂时读不到 device record"乐观解释为"无 device record ⇒ 可省略 `device_id`"——否则攻击者可在分区窗口内用 passkey / account-auth-key 签一份缺 `device_id` 的 proof，伪造"该 principal 无 device key"假象绕过设备绑定。`did:webvh` resolver 处于 §3.4 cache-only degraded mode 时该恢复 / 绑定路径属于高风险写入，遵循 [`identity-did.md` §3.4](./identity-did.md) 的 fail-closed 不变量。其中 `issued_at` 与 `expires_at` 是 **必填**（不再是可选）：服务端 MUST 拒绝缺失任一字段、`expires_at` 已过当前时钟、`expires_at - issued_at > 300s`、`issued_at` 相对服务端时钟的偏移（双向）超出 skew 容忍（SHOULD ≤ 300s），或 `issued_at` 晚于服务端当前时钟加 skew 容忍（即 proof 自称在未来签发）的 proof。这把 soft-logout 重放窗口的上界固定为 ≤ 300s，与 [`identity-did.md` §5.1](./identity-did.md) `ck.did.proof` 的 replay window（`expires_at - issued_at ≤ 300s` + skew ≤ 300s）对齐——否则签发方可把 `expires_at` 任意拉远，使一份 soft-logout 恢复 proof 在无上界的时间内反复重放。缺失该证明时返回 `401 did_proof_required`；`expires_at` 缺失或新鲜度超限时返回 `401 did_proof_required`（reason `did_proof_replay_window_exceeded`）；grant-binding proof 单独存在时也 MUST NOT 静默签发新的 active session grant。
 
 ### 4.1 显式登出（hard logout）与跨服务吊销编排
 
@@ -160,15 +160,15 @@ Current account status projection 是 ordered_log 上的确定性派生值，而
 POST /_cokret/gate/account/logout
 ```
 
-该请求 MUST 使用 `Authorization: Bearer <ck.session.grant>` 出示当前 grant，并带 `DPoP` holder proof；DPoP `ath` MUST 绑定该 grant，`htu` MUST 绑定由 `gate_account_base` 派生出的 `/logout` URL，使 Account Authority 能定位要终结的 grant chain 与 principal device session。客户端 MUST NOT 分别向 Auth Server 与 Principal Server 两个 origin 发起登出；部署内部的分权威调用是 Account Authority 的实现细节。普通客户端可见的 logout endpoint **只有** `POST /_cokret/gate/account/logout`。
+该请求 MUST 使用 `Authorization: Bearer <ck.session.grant>` 出示当前 grant，并带 `DPoP` proof；DPoP `ath` MUST 绑定该 grant，`htu` MUST 绑定由 `gate_account_base` 派生出的 `/logout` URL，使 Account Authority 能定位要终结的 grant chain 与 principal device session。客户端 MUST NOT 分别向 Auth Server 与 Principal Server 两个 origin 发起登出；部署内部的分权威调用是 Account Authority 的实现细节。普通客户端可见的 logout endpoint **只有** `POST /_cokret/gate/account/logout`。
 
-1. **客户端** MUST：停止 sync、清除本地 session credential / `session_grant` / OIDC 凭证；hard logout SHOULD 额外清除本设备的 holder(DPoP)私钥，使下次登录轮换 `cnf.jkt`(软恢复路径 MUST 保留该 key 以便 refresh)。
-2. **Account Authority → Auth-side** MUST 登出当前 grant 所属的 Auth-side session / `browser_session` 并终结其 `ck.session.grant` 轮换链。若 Auth-side 不在同进程，Account Authority MUST 调用标准 S2S 子操作 `POST /_cokret/gate/account/auth-sessions/logout`(`ck.gate.account.command.logout_auth_session`)；该调用 MUST 使用 Account Authority → Auth Server 的部署内 S2S bearer（同 `session_grant_introspection_bearer` 认证族），MUST NOT 复用客户端为高层 `/logout` URL 铸造的 DPoP proof。此后 (i) 凭同一 `cnf.jkt` 设备 holder proof 调 `refresh` MUST 被拒(`session_logged_out`)，整条轮换链不可再续；(ii) 该 Auth-side session 下任何 grant 的 introspection MUST 返回 inactive(即设备密钥不能在登出后重建或维持会话)。
+1. **客户端** MUST：停止 sync、清除本地 session credential / `session_grant` / OIDC 凭证；hard logout SHOULD 额外清除本设备的 grant-binding(DPoP)私钥，使下次登录轮换 `cnf.jkt`(软恢复路径 MUST 保留该 key 以便 refresh)。
+2. **Account Authority → Auth-side** MUST 登出当前 grant 所属的 Auth-side session / `browser_session` 并终结其 `ck.session.grant` 轮换链。若 Auth-side 不在同进程，Account Authority MUST 调用标准 S2S 子操作 `POST /_cokret/gate/account/auth-sessions/logout`(`ck.gate.account.command.logout_auth_session`)；该调用 MUST 使用 Account Authority → Auth Server 的部署内 S2S bearer（同 `session_grant_introspection_bearer` 认证族），MUST NOT 复用客户端为高层 `/logout` URL 铸造的 DPoP proof。此后 (i) 凭同一 `cnf.jkt` grant-binding proof 调 `refresh` MUST 被拒(`session_logged_out`)，整条轮换链不可再续；(ii) 该 Auth-side session 下任何 grant 的 introspection MUST 返回 inactive(即 grant-binding key 不能在登出后重建或维持会话)。
 3. **Account Authority → Principal-side** MUST：作废该 grant 的本地 session-grant 内省缓存（下次内省即得 `active=false`）、吊销 / 标记该 principal 本地 account session 与**本地设备会话记录**(使后续以该设备签名的 device-scoped 操作在本 Principal Server fail closed)+ drop 该设备的待投递 to-device 消息，并移除该设备作用域内的 push registration。因 Principal Server 不为客户端铸独立本地 bearer（会话凭据即 grant 本身，见上），此处无单独的本地 bearer 可撤——作废内省缓存 + 撤设备会话记录即足以使该设备后续 `/_cokret/self/*` 请求 fail closed。此操作终结该设备在本 Principal Server 的本地会话状态，但 **不** 改写 `ck.account.status`、不发 `ck.device.revoke` 协议事件、不擦除 durable device authorization 历史(用户重新登录即可在本设备恢复)。注意它与 `ck.gate.account.command.revoke_session`(仅撤 session grant、不触设备会话记录，用于"撤某个会话但保留设备")是不同操作。
 
 `POST /_cokret/gate/account/auth-sessions/logout` 是部署内部 S2S 子操作，不是客户端 account flow。该子操作 MUST 幂等：同一 Auth-side session / grant 已登出、已吊销、未知或已被剪枝时，Auth Server 仍 MUST 返回成功并把链视为已终结；鉴权失败、请求体不合法、或 Auth Server 无法确认完成时才返回错误。普通客户端、yougen、浏览器 UI 与移动客户端 **MUST NOT** 调用或自行派生该路径；即使高层 `/logout` 失败，客户端也只能重试 `ck.gate.account.command.logout`。客户端和服务实现 **MUST NOT** 依赖任何实现私有 / 产品私有(例如 `/_<impl>/*`)路由完成登出。
 
-**登出耐久性(normative)**：hard logout 的本地清除(步骤 1)与 Account Authority 服务端编排(步骤 2、3)不是原子的——客户端在清本地凭证后、Account Authority 返回前可能崩溃、关页或离线。为防止「本地已登出但服务端轮换链仍存活」的窗口，客户端 **SHOULD** 在执行本地清除**之前**把登出意图(至少：Account Authority `/logout` endpoint、grant JWT、用于铸 holder proof 的设备 holder key)持久化(journal)，并在调用失败时重试(含下次启动重放)，直至 Account Authority 确认 grant 链终结后方清除该 journal。其中 Auth-side grant + `browser_session` 终结是耐久性关键步：它一旦完成，轮换链不可再续，后续无法恢复本地 account session。由于 `ck.session.grant` 有受限 TTL(见 [`crypto-media/device-lifecycle.md` §3.3](../crypto-media/device-lifecycle.md))，客户端 **MAY** 在该 TTL(加时钟 skew 容忍)过后停止重试：此时整条链已因自然过期失效，journal 中已无可吊销之物。重试 **MUST** 幂等——对已吊销/已过期 grant 再次调 hard logout 不应被视为错误。
+**登出耐久性(normative)**：hard logout 的本地清除(步骤 1)与 Account Authority 服务端编排(步骤 2、3)不是原子的——客户端在清本地凭证后、Account Authority 返回前可能崩溃、关页或离线。为防止「本地已登出但服务端轮换链仍存活」的窗口，客户端 **SHOULD** 在执行本地清除**之前**把登出意图(至少：Account Authority `/logout` endpoint、grant JWT、用于铸 grant-binding(DPoP)proof 的 grant-binding key)持久化(journal)，并在调用失败时重试(含下次启动重放)，直至 Account Authority 确认 grant 链终结后方清除该 journal。其中 Auth-side grant + `browser_session` 终结是耐久性关键步：它一旦完成，轮换链不可再续，后续无法恢复本地 account session。由于 `ck.session.grant` 有受限 TTL(见 [`crypto-media/device-lifecycle.md` §3.3](../crypto-media/device-lifecycle.md))，客户端 **MAY** 在该 TTL(加时钟 skew 容忍)过后停止重试：此时整条链已因自然过期失效，journal 中已无可吊销之物。重试 **MUST** 幂等——对已吊销/已过期 grant 再次调 hard logout 不应被视为错误。
 
 **执行顺序与失败语义(normative)**：Auth-side session logout / grant-chain 终结是耐久性关键步，Account Authority SHOULD 先完成步骤 2，再完成 Principal-side 本地清理。若步骤 2 失败且没有可证明的 durable completion，Account Authority MUST NOT 向客户端返回 `ok=true`；应返回可重试错误（例如 `temporarily_unavailable`）。若步骤 2 已成功而步骤 3 暂时失败，Account Authority MAY 返回成功前把 Principal-side 清理持久化到 durable retry 队列；重复执行高层 `/logout` MUST 幂等。客户端在收到失败或网络中断时 MUST 只重试 `POST /_cokret/gate/account/logout`，MUST NOT 直接调用 `auth-sessions/logout`。
 
@@ -184,7 +184,7 @@ POST /_cokret/gate/account/logout
 
 - 拒绝新 session grant。
 - 可允许 recovery / appeal / export。
-- SHOULD 拒绝 holder proof refresh（与 §3 正交性矩阵 `locked` 行一致）。
+- SHOULD 拒绝 DPoP grant 轮换（与 §3 正交性矩阵 `locked` 行一致）。
 - 不自动删除 Event history 或私有 account data。
 
 已登录设备 SHOULD 收到 account status sync，并停止提交写事件。
@@ -269,7 +269,7 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 用户或服务可撤销：
 
 - 单个 session grant
-- 单个 holder-bound session chain
+- 单个 grant-binding session chain
 - 单个 device
 - 全部 session
 - Applet delegated session

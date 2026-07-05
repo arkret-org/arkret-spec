@@ -80,7 +80,7 @@ Cokret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织�
 - `/_cokret/gate/account/*` 是认证与准入边界。凡是签发、刷新或撤销 `ck.session.grant`，消费 OIDC / passkey / recovery proof / pairing code，或把一次短期配对证明落成新的 durable device authorization 的操作，MUST 放在 `gate`。`ck.gate.account.command.pair_device` 属于此类：它消费短期 pairing proof 和已授权设备的 fresh proof，返回 `ck.device.authorize` / `ck.device.list_update` 相关引用或等价结果；它不得成为普通 to-device 消息队列。
 - `/_cokret/self/*` 是当前 authenticated principal/device 的运行态。凡是读取账号投影、维护 account subscribe、读写当前设备 to-device 队列、发布/查询 E2EE key、KeyPackage 或 key backup 的操作，属于 `self`。`ck.self.device_messages.command.send` / `ck.self.device_messages.query.list` / `ck.self.device_messages.command.ack` 属于此类：它是已认证会话下的 per-device 私有投递队列，即使载荷是 `ck.key.verification.*`，也不承担设备准入授权本身。
 - 新设备尚未被 `ck.device.authorize` 接受时，若 gate 已签发 fresh-device restricted `ck.session.grant`，该 grant MAY 只允许向同 principal 的已授权设备发送/接收 `ck.key.verification.*` bootstrap 消息；它 MUST NOT 允许 `ck.secret.*`、key backup unlock、KeyPackage 发布或 Realm E2EE history 读取。`ck.secret.request/send` 只能在目标新设备已经被 durable device list 接受并完成验证绑定后使用。
-- `/_cokret/root/identity/*` 承载 DID、key log、recovery policy/session 等身份根状态；这些操作可能发生在完整 holder-bound self session 之前，不能为了“设备相关”而移动到 `self`。
+- `/_cokret/root/identity/*` 承载 DID、key log、recovery policy/session 等身份根状态；这些操作可能发生在完整 grant-binding self session 之前，不能为了“设备相关”而移动到 `self`。
 - `/_cokret/edge/push/*` 只注册/注销唤醒路由和投递盲通知。push MAY 提醒旧设备打开同步，但 push payload 不是验证请求真相源，也不得携带可替代 to-device transcript 的授权材料。
 
 #### 2.1.2 Account Authority 路由规则
