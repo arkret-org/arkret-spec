@@ -389,7 +389,7 @@
           "description": "Authorizing (existing) device; MUST equal envelope sender_device_id and MUST be a non-revoked device of the recipient principal."
         },
         "scheme": {
-          "const": "ck.hpke_x25519_aead_xchacha20poly1305.v1"
+          "const": "ck.hpke_x25519_aead_chacha20poly1305.v1"
         },
         "enc": {
           "type": "string",

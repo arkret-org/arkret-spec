@@ -1,7 +1,7 @@
 {
   "version": "2026-06-20",
   "source_of_truth": true,
-  "description": "Canonical HPKE (RFC 9180) suite vocabulary for v1 application-layer public-key sealing surfaces that are NOT carried inside MLS: key-backup `recovery_public_key` envelopes, did_recovery envelopes, to-device sealed material (`ck.secret.send`), member-application reviewer envelopes and file-transfer key envelopes. An HPKE suite names the (KEM, KDF, AEAD) triple; its canonical_id is the wire scheme / `hpke_suite` selector value. The KEM (DHKEM-X25519-HKDF-SHA256) and KDF (HKDF-SHA256) use RFC 9180 primitive ids, but the application-layer seal/open transcript is a Cokret-specific base-mode DH-box (ephemeral X25519 -> X25519-DH with the recipient key -> HKDF-SHA256 over a caller-supplied info transcript binding the ephemeral and recipient public keys -> AEAD), NOT RFC 9180's SetupBaseS / key_schedule / LabeledExtract / LabeledExpand with an internally derived base_nonce. This is the fourth algorithm-agility registry, symmetric to signature-alg-registry.json, digest-suite-registry.json and mls-ciphersuite-registry.json. MLS group messages keep their own HPKE internals via mls-ciphersuite-registry.json and are out of scope here.",
+  "description": "Canonical HPKE (RFC 9180) suite vocabulary for v1 application-layer public-key sealing surfaces that are NOT carried inside MLS: key-backup `recovery_public_key` envelopes, did_recovery envelopes, to-device sealed material (`ck.secret.send`), member-application reviewer envelopes and file-transfer key envelopes. An HPKE suite names the (KEM, KDF, AEAD) triple; its canonical_id is the wire scheme / `hpke_suite` selector value. The KEM (DHKEM-X25519-HKDF-SHA256), the KDF (HKDF-SHA256) and the application-layer seal/open transcript are standard RFC 9180 base mode (SetupBaseS / SetupBaseR): the RFC 9180 key_schedule with LabeledExtract / LabeledExpand derives key, base_nonce and exporter_secret from the DHKEM shared secret and the caller `info`, and the AEAD nonce is the internally derived base_nonce XOR seq (single-shot seq=0), NOT carried on the wire. This is the fourth algorithm-agility registry, symmetric to signature-alg-registry.json, digest-suite-registry.json and mls-ciphersuite-registry.json. MLS group messages keep their own HPKE internals via mls-ciphersuite-registry.json and are out of scope here.",
   "suite_id_grammar": "suite_id = 'ck.hpke_' kem_id '_aead_' aead_id '.v' major ; each id segment matches [a-z0-9]+ . The canonical_id is the full wire string; it is NOT freely composed from parts — only suites present as rows below exist, and only status=active rows are valid on wire.",
   "registry_rules": [
     "Only suites present as rows in this registry exist. Implementations MUST NOT compose KEM/KDF/AEAD ids freely; only status=active rows are valid on wire.",
@@ -9,26 +9,13 @@
     "Schema enum values for HPKE suite selector fields (e.g. ck.schema.key_backup.v1 encryption.hpke_suite, the ck.secret.send / member-application / file-transfer envelope `scheme` const) MUST be generated from active rows' canonical_id.",
     "When a surface carries both an explicit `hpke_suite` selector and an AEAD `name`/profile field, the AEAD MUST equal the selected suite's aead; a mismatch MUST be rejected (schema_violation). A surface MAY omit the selector only where a single default-MUST suite is pinned by its defining document, in which case the absent selector denotes that row.",
     "status=reserved rows pin the wire id and profile gate but MUST NOT appear on wire until every activation_requirements entry is met and the row is flipped to active in a registry release. Receivers MUST fail closed (unsupported_hpke_suite) on a reserved suite id seen on wire before activation.",
-    "The registry is intentionally minimal: new KEM families (post-quantum / hybrid), new KDFs and new AEADs enter additively as new rows with their own profile gates and conformance vectors; the ck.hpke_*_aead_*.v* wire form needs no rewrite. Nonce handling is per-surface, not RFC 9180 key-schedule-derived: the `recovery_public_key` / did_recovery envelopes carry a fresh random 24-byte XChaCha nonce on the wire (`enc` plus nonce||ciphertext), while the single-use to-device `ck.secret.send` seal uses a fixed zero nonce that is safe only because every seal mints a fresh ephemeral key. Implementations MUST preserve each surface's nonce discipline; see zh/identity/key-management.md §7.5 for the symmetric key-backup nonce-uniqueness rules."
+    "The registry is intentionally minimal: new KEM families (post-quantum / hybrid), new KDFs and new AEADs enter additively as new rows with their own profile gates and conformance vectors; the ck.hpke_*_aead_*.v* wire form needs no rewrite. Nonce handling is RFC 9180 key-schedule-derived, uniformly across every HPKE-sealed surface (`recovery_public_key` / did_recovery envelopes, the to-device `ck.secret.send` seal, member-application and file-transfer key envelopes): the AEAD nonce is base_nonce XOR seq (single-shot seq=0) and MUST NOT be carried on the wire; each seal mints a fresh ephemeral key, so base_nonce is unique per envelope. See zh/identity/key-management.md §7.5 for the symmetric (non-HPKE) key-backup nonce-uniqueness rules."
   ],
   "kem_strength_order": {
     "order": ["dhkem_p256_hkdf_sha256", "dhkem_x25519_hkdf_sha256", "xwing_x25519_mlkem768"],
     "note": "Classical KEMs are treated as equal classical strength; the hybrid xwing row is strictly stronger (adds ML-KEM-768 post-quantum confidentiality). Consumed by any future no-downgrade rule on suite transition."
   },
   "suites": [
-    {
-      "canonical_id": "ck.hpke_x25519_aead_xchacha20poly1305.v1",
-      "kem": "dhkem_x25519_hkdf_sha256",
-      "kem_rfc9180_id": "0x0020",
-      "kdf": "hkdf_sha256",
-      "kdf_rfc9180_id": "0x0001",
-      "aead": "xchacha20_poly1305",
-      "mode": "base",
-      "status": "active",
-      "role": "v1_default_must",
-      "profile_gate": null,
-      "security_note": "v1 default-MUST application-layer HPKE suite. KEM DHKEM(X25519, HKDF-SHA256) and KDF HKDF-SHA256 are RFC 9180 base; the AEAD is XChaCha20-Poly1305 (extended 192-bit nonce, outside RFC 9180's base AEAD registry but widely implemented), retained as the v1 default for the to-device / member-application / file-transfer envelopes that already pin this id. Classical (not post-quantum)."
-    },
     {
       "canonical_id": "ck.hpke_x25519_aead_aes256gcm.v1",
       "kem": "dhkem_x25519_hkdf_sha256",
@@ -53,9 +40,9 @@
       "aead_rfc9180_id": "0x0003",
       "mode": "base",
       "status": "active",
-      "role": "v1_optional_interop",
+      "role": "v1_default_must",
       "profile_gate": null,
-      "security_note": "All-RFC-9180 suite (96-bit-nonce ChaCha20-Poly1305) for software-only platforms preferring the base RFC 9180 AEAD over the extended-nonce XChaCha variant. Classical."
+      "security_note": "v1 default-MUST application-layer HPKE suite: all-RFC-9180 base mode DHKEM(X25519, HKDF-SHA256) + HKDF-SHA256 + 96-bit-nonce ChaCha20-Poly1305 (SetupBaseS / SetupBaseR, key_schedule-derived base_nonce, no wire nonce). Software-friendly (constant-time, no AES hardware needed), the default for the recovery_public_key / did_recovery / to-device / member-application / file-transfer envelopes. Classical (not post-quantum)."
     },
     {
       "canonical_id": "ck.hpke_p256_aead_aes256gcm.v1",
@@ -72,12 +59,13 @@
       "security_note": "P-256 KEM for WebAuthn/FIDO2/PKI key-agreement interop, mirroring the ECDSA-P256 signature row. Profile-gated; receivers not advertising ck.profile.hpke.p256.v1 fail closed. Classical."
     },
     {
-      "canonical_id": "ck.hpke_xwing_aead_xchacha20poly1305.v1",
+      "canonical_id": "ck.hpke_xwing_aead_chacha20poly1305.v1",
       "kem": "xwing_x25519_mlkem768",
       "kem_draft": "draft-connolly-cfrg-xwing-kem",
       "kdf": "hkdf_sha256",
       "kdf_rfc9180_id": "0x0001",
-      "aead": "xchacha20_poly1305",
+      "aead": "chacha20_poly1305",
+      "aead_rfc9180_id": "0x0003",
       "mode": "base",
       "status": "reserved",
       "role": "reserved_pqc_hybrid",

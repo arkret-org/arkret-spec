@@ -28,7 +28,7 @@
         "ck.profile.kem.hybrid_xwing.v1 fully specified with the X-Wing KEM draft pinned (draft-connolly-cfrg-xwing-kem) under MIMI-style draft-pinning discipline (draft change = new profile version)",
         "IETF/IANA MLS ciphersuite code point assigned for the X-Wing hybrid suite and recorded here as rfc9420_id (registry release required; receivers MUST NOT improvise a private code point)",
         "Per-suite MLS conformance vectors published (KeyPackage encoding, welcome/commit KEM encap/decap, group key schedule)",
-        "Coverage-priority alignment recorded: activates only after the HPKE X-Wing row (hpke-suite-registry.json ck.hpke_xwing_aead_xchacha20poly1305.v1) — static ciphertext backups are the primary Harvest-Now-Decrypt-Later target, MLS group KEM is the second wave"
+        "Coverage-priority alignment recorded: activates only after the HPKE X-Wing row (hpke-suite-registry.json ck.hpke_xwing_aead_chacha20poly1305.v1) — static ciphertext backups are the primary Harvest-Now-Decrypt-Later target, MLS group KEM is the second wave"
       ],
       "security_note": "Reserved post-quantum hybrid MLS suite (X-Wing = X25519 + ML-KEM-768 KEM; AES-128-GCM; Ed25519 signatures) per the encryption-and-audit.md PQ roadmap and 'MLS 内容 KEM 边界' scoping note. Hybrid confidentiality: secure if either X25519 or ML-KEM-768 holds. Not on wire until activated; receivers MUST fail closed on this suite before activation."
     }

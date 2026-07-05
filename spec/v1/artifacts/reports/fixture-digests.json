@@ -70,7 +70,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",
-      "sha256": "06f6464847e9b6ca6593469691b720c8a296bab4631a68e8b47206493720047d"
+      "sha256": "1675f125e81e8a5b42d9b1b71c0de430699118848656dd7b2e2cf13fcb479a84"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",

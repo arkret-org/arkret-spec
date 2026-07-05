@@ -11,12 +11,7 @@
   ],
   "uncovered_suites": [
     {
-      "canonical_id": "ck.hpke_x25519_aead_xchacha20poly1305.v1",
-      "status": "active",
-      "reason": "XChaCha20-Poly1305 is outside the RFC 9180 AEAD registry, and the spec does not yet pin the key-schedule parameters this suite needs for an interoperable KAT (the 2-byte aead_id that enters the HPKEv1 suite_id, plus Nk/Nn). Until the construction is pinned in crypto-media prose or the registry row, byte-level vectors cannot be generated without inventing normative content. Tracked as a residual item of SPEC-CRY-02."
-    },
-    {
-      "canonical_id": "ck.hpke_xwing_aead_xchacha20poly1305.v1",
+      "canonical_id": "ck.hpke_xwing_aead_chacha20poly1305.v1",
       "status": "reserved",
       "reason": "Reserved row; per its activation_requirements the per-suite conformance vectors are published at activation time, not before."
     }

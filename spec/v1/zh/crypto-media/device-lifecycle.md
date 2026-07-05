@@ -118,7 +118,7 @@ Cokret v1 把三件事分开处理：
   "device_id": "ck:device:019640dd-8000-7000-8000-000000000000",
   "principal_id": "did:webvh:...",
   "display_name": "Alice iPhone",
-  "algorithms": ["ck.hpke_x25519_aead_xchacha20poly1305.v1", "ck.mls.v1"],
+  "algorithms": ["ck.hpke_x25519_aead_chacha20poly1305.v1", "ck.mls.v1"],
   "verify_key": {
     "kty": "OKP",
     "crv": "Ed25519",
@@ -307,7 +307,7 @@ DID-method history → principal_signing_key (PSK)
     "device_id": "ck:device:...",
     "device_public_key": "z6Mk...",
     "hpke_key": "z6LS...",
-    "algorithms": ["ck.hpke_x25519_aead_xchacha20poly1305.v1", "ck.mls.v1"],
+    "algorithms": ["ck.hpke_x25519_aead_chacha20poly1305.v1", "ck.mls.v1"],
     "cross_signing_binding": {
       "verification_method": "did:webvh:...#ck_self_signing_v1",
       "alg": "EdDSA",
@@ -1004,7 +1004,7 @@ QR payload MUST NOT 包含长期私钥、secret storage key、recovery secret �
 | `request_id` | `string` | required | 关联到 pending 的 `ck.secret.request`；MUST 等于密封 plaintext 内被认证的 `request_id`。 |
 | `secret_id` | `string` | required | 与请求一致的 secret 标识。 |
 | `from_device` | `id:device` | required | 授权（已有）设备；MUST 等于 envelope 的 `sender_device_id`，且 MUST 是接收 principal 的未撤销设备。 |
-| `scheme` | `string` | required | MUST 为 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json) 中的 active suite id；v1 default-MUST 为 `ck.hpke_x25519_aead_xchacha20poly1305.v1`。未登记 / 非 active suite MUST fail closed（`unsupported_hpke_suite`）。 |
+| `scheme` | `string` | required | MUST 为 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json) 中的 active suite id；v1 default-MUST 为 `ck.hpke_x25519_aead_chacha20poly1305.v1`。未登记 / 非 active suite MUST fail closed（`unsupported_hpke_suite`）。 |
 | `enc` | `string` | required | base64url HPKE（RFC 9180）封装密钥（KEM 输出）。 |
 | `ciphertext` | `string` | required | base64url HPKE AEAD 密文。HPKE AAD 见下方定义。 |
 
