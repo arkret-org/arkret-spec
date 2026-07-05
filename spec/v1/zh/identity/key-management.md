@@ -395,7 +395,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 
    作为该 inline-快照要求的替代，deployment policy MAY 直接**禁止 `did:web` 等无历史 method 作入册权威轮换**——要求入册权威在轮换前先按 [`identity-did.md` §4.2.2 / §5.0.5](./identity-did.md) 升级到 `did:webvh`,使按时点解析重新可用。v1 推荐前者(inline 快照 + controller proof)，因为它不强制所有托管 DID 部署升级 method。
 
-   > **schema 协调（留协调者）**：上述 inline 快照 + controller proof 需要在 `device_enrollment_authority_binding`（[`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) `$defs/device_enrollment_authority_binding`，当前 `additionalProperties:false` 且仅含 `kind`/`authority_did`/`authorization_ref`）新增可选字段（建议 `authority_verification_method_snapshot {method_id, public_key_multibase|public_key_jwk, alg}` 与 `authority_controller_proof {controller_method_id, signature, signed_at}`），并新增 reason_code `device_enrollment_authority_snapshot_missing`。正文已定义语义；schema / error-code-registry 字段新增留协调者。
+   > **schema 落地状态**：上述 inline 快照 + controller proof 已在 `device_enrollment_authority_binding`（[`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) `$defs/device_enrollment_authority_binding`）落地为可选字段 `authority_verification_method_snapshot {method_id, public_key_multibase|public_key_jwk, alg}` 与 `authority_controller_proof {controller_method_id, signature, signed_at}`；对应 fail-closed reason_code `device_enrollment_authority_snapshot_missing` 已登记于 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json)。正文语义与 schema / error-code 均已同步。
 5. **provenance**:每条设备授权记录 MUST 记录其入册权威与来源(文档锚定 / 仅策略);联邦只采信文档锚定者。
 
 自主权路径(客户端自持控制密钥、用 `capabilityDelegation` 指向自有 verification method 作入册权威)与本节对称，采用同一 `service_attested` 信封，仅 `authority_did` 指向用户自有控制密钥所属 DID;实现 MAY 暂不启用该分支，但 schema 与校验 MUST 为其保留扩展位，不得静默放行未指派的权威。

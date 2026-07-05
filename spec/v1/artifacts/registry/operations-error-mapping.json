@@ -1,6 +1,6 @@
 {
   "$schema": "https://cokret.dev/spec/v1/artifacts/registry/operations-error-mapping.schema.json",
-  "version": "2026-06-10",
+  "version": "2026-07-05",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
@@ -1221,6 +1221,12 @@
       "http_alias": "GET /_cokret/self/realms/{realm_id}/effective-policy",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
+    },
+    {
+      "operation_id": "ck.self.realm_organization.query.list",
+      "http_alias": "GET /_cokret/self/realms/{realm_id}/organizations",
+      "operation_specific": [],
+      "description": "No operation-specific error codes beyond the universal failure surface. Read is gated by Realm read authorization (capability_denied, universal)."
     },
     {
       "operation_id": "ck.self.realm_policy_server.resource.get",

@@ -1,5 +1,5 @@
 {
-  "version": "2026-05-23",
+  "version": "2026-07-05",
   "codes": [
     {
       "code": "bad_json",
@@ -3629,6 +3629,62 @@
         "state_resolution"
       ],
       "description": "A Seal failed to discharge a FOCIL-style inclusion-list obligation: a listed, receipt-backed Control Move digest was neither included nor signed-rejected nor proven to fail batch pre-state verification within expiry_seal_count. Receivers MUST reject the entire Seal (rejected_seal). See authz/event-auth-state-resolution.md section 7.3 and schemas/inclusion-list.schema.json."
+    },
+    {
+      "code": "delta_contains_data_event",
+      "applies_to": [
+        "event_auth_state",
+        "state_resolution"
+      ],
+      "description": "A Seal delta contained a data-plane (DataEvent) digest. A Seal delta MUST carry newly sealed control-plane event digests only; including a DataEvent digest is a Seal validation failure and receivers MUST reject the Seal (rejected_seal). See models/event-and-patch.md and fixtures/cba-lattice-fixture.json."
+    },
+    {
+      "code": "covered_set_mismatch",
+      "applies_to": [
+        "event_auth_state",
+        "state_resolution"
+      ],
+      "description": "A compaction Seal's covered set does not match the deterministic control view of the interval it claims to compact. Mismatched coverage MUST reject; only full-coverage compaction within seal_compaction_max_interval_ms enables bootstrap. See authz/event-auth-state-resolution.md and fixtures/cba-lattice-fixture.json."
+    },
+    {
+      "code": "forensic_attribution_mismatch",
+      "applies_to": [
+        "event_auth_state",
+        "state_resolution"
+      ],
+      "description": "A threshold-notary Seal's declared forensic_attribution mode (e.g. waived or quorum_intersection) does not satisfy the Realm's forensic-attribution obligation for the signer set. The Seal MUST reject. See fixtures/cba-lattice-fixture.json."
+    },
+    {
+      "code": "insufficient_challenge_samples",
+      "applies_to": [
+        "client_sync",
+        "snapshot_verification"
+      ],
+      "description": "A high-assurance range/challenge attestation does not carry the required minimum number of event_id (or equivalent) samples. The challenge MUST reject. See sync/client-sync.md and fixtures/sync-fixture.json."
+    },
+    {
+      "code": "minimal_disclosure_violation",
+      "applies_to": [
+        "moderation_decision",
+        "moderation_report"
+      ],
+      "description": "A moderation evidence package discloses material beyond the minimal-disclosure obligation (for example unrelated plaintext message bodies, MLS epoch or history secrets). The evidence submission MUST reject. See governance/content-moderation.md."
+    },
+    {
+      "code": "evidence_recipient_mismatch",
+      "applies_to": [
+        "moderation_decision",
+        "moderation_report"
+      ],
+      "description": "A moderation evidence package's encrypted_to recipient does not match the declared recipient_public_key_ref binding. The submission MUST reject. See governance/content-moderation.md."
+    },
+    {
+      "code": "revoke_undo_invalid_signature",
+      "applies_to": [
+        "authz",
+        "auth_decision"
+      ],
+      "description": "A capability revoke-undo (rollback) references a revoke whose signature does not verify. The undo MUST fail closed and the original revoke stays in effect. See authz/capabilities.md and fixtures/capability-fixture.json."
     },
     {
       "code": "reaction_target_unsupported",
