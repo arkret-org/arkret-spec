@@ -61,3 +61,9 @@ RSVP 通过 `ck.rsvp.set` 写入。payload 必须包含 `event_ref`、`status` �
 RSVP projection 按 actor 对 `(event_ref, occurrence)` 做 LWW 收敛。`occurrence=null` 表示整个 series；实例级 RSVP 使用 recurrence instance key。该 key MUST 是 occurrence 的 local wall-clock start 按事件 `timezone` 展开后写成 `YYYY-MM-DD`（all-day）或 `YYYY-MM-DDTHH:mm:ss[Zone]`（非 all-day，Zone 为 IANA timezone 名）的 canonical 字符串；同一 series instance 在所有实现中必须生成相同 key。重复写同一 status 是 no-op，较新 HLC 的不同 status 替换旧值。
 
 `ck.rsvp.set` 只表达回应，不修改 Strand schedule，不创建 attendees，也不赋予访问权。
+
+## 6. Schedule notification
+
+Calendar schedule 变更通过 `ck.strand.update` 修改 §2 字段。实现 MUST 按 [`private-objects.md` §3.6](./private-objects.md#36-schedule-notification-派生) 派生 `notification_type=schedule`，并只通知当前有访问权且未被 muted / DND / push rule 抑制的 receiver。
+
+Calendar attendees 是 schedule notification 的 receiver set 输入，不是访问权真源；无 Realm / Circle 读取权的 attendee MUST 不收到 notification 或 push wakeup。RSVP 变更默认不产生 schedule notification；RSVP 自身的 UI 状态由 RSVP projection 展示。

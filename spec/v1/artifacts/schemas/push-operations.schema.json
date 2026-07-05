@@ -199,6 +199,8 @@
           "enum": [
             "message",
             "mention",
+            "assignment",
+            "schedule",
             "reaction",
             "call_invite",
             "reminder",
@@ -293,6 +295,8 @@
           "enum": [
             "message",
             "mention",
+            "assignment",
+            "schedule",
             "reaction",
             "call_invite",
             "reminder",
