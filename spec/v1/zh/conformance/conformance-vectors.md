@@ -2715,7 +2715,7 @@ Steps：
 Expected：
 
 - 三种情况均 MUST 拒绝 join / publish media key。
-- 失败原因分别为 `media_plaintext_policy_missing`、`media_plaintext_service_not_visible`、`media_plaintext_warning_missing` 或实现映射到等价稳定 reason_code。
+- 前两种情况（policy_root 未覆盖 `media_service_decrypts`、SFU 未列入 `plaintext_visible_services`）的稳定失败原因均为已注册的 `media_plaintext_service_not_authorised`（见 `../../artifacts/registry/error-code-registry.json`，其描述同时覆盖这两个子情形）；UI 未显示 required plaintext warning 的情况 MUST 以等价稳定 reason_code 拒绝 join。
 
 ### 9.3 Vector: Identity Link Eager Invalidation
 

@@ -609,6 +609,7 @@
       "required_fixtures": [
         "membership-delivery-binding-fixture.json",
         "privacy-security-fixture.json",
+        "realm-organization-fixture.json",
         "security-closure-vectors.json"
       ],
       "optional_extensions": [],

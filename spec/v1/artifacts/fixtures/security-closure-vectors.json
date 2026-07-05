@@ -172,7 +172,7 @@
           },
           "expected": {
             "outcome": "rejected",
-            "reason_code": "media_plaintext_policy_missing",
+            "reason_code": "media_plaintext_service_not_authorised",
             "invariants": [
               "client does not publish plaintext-visible media key"
             ]
@@ -194,16 +194,16 @@
             },
             "expected_state_transition": {
               "outcome": "rejected",
-              "reason_code": "media_plaintext_policy_missing",
+              "reason_code": "media_plaintext_service_not_authorised",
               "invariants": [
                 "client does not publish plaintext-visible media key"
               ]
             },
             "expected_external_response": {
               "outcome": "rejected",
-              "reason_code": "media_plaintext_policy_missing"
+              "reason_code": "media_plaintext_service_not_authorised"
             },
-            "expected_audit_reason": "media_plaintext_policy_missing"
+            "expected_audit_reason": "media_plaintext_service_not_authorised"
           }
         },
         {
@@ -215,7 +215,7 @@
           },
           "expected": {
             "outcome": "rejected",
-            "reason_code": "media_plaintext_service_not_visible",
+            "reason_code": "media_plaintext_service_not_authorised",
             "invariants": [
               "SFU cannot negotiate plaintext media unless listed by Realm policy"
             ]
@@ -241,16 +241,16 @@
             },
             "expected_state_transition": {
               "outcome": "rejected",
-              "reason_code": "media_plaintext_service_not_visible",
+              "reason_code": "media_plaintext_service_not_authorised",
               "invariants": [
                 "SFU cannot negotiate plaintext media unless listed by Realm policy"
               ]
             },
             "expected_external_response": {
               "outcome": "rejected",
-              "reason_code": "media_plaintext_service_not_visible"
+              "reason_code": "media_plaintext_service_not_authorised"
             },
-            "expected_audit_reason": "media_plaintext_service_not_visible"
+            "expected_audit_reason": "media_plaintext_service_not_authorised"
           }
         }
       ]

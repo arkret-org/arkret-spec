@@ -3,17 +3,13 @@
   "version": 1,
   "kind": "deprecated_profile_ids",
   "source_of_truth": true,
-  "description": "Release/drift-tooling registry for profile ids that are not part of the current v1 profile matrix. Current ServiceDescribe claims, conformance reports and implementation manifests consume conformance-profiles.json; conformance scanners may consume this file for negative drift tests and release audit.",
+  "description": "Release/drift-tooling registry for profile ids that are not part of the current v1 profile matrix. Current ServiceDescribe claims, conformance reports and implementation manifests consume conformance-profiles.json; conformance scanners may consume this file for negative drift tests and release audit. This is CI/release drift-detection tooling, not a current-wire normative contract: every entry is hard-reject on the wire, there is no migration/compat tolerance window and no offline migration layer; removed ids MAY appear only in changelog documentation and in cotest negative drift fixtures that assert rejection.",
   "rejection_levels": {
     "hard_reject": "MUST be rejected if declared by a current implementation.",
-    "migration_only": "MAY be tolerated as read-only legacy claim during migration window; new declarations MUST be rejected.",
-    "compat_only": "Allowed only on explicit interop / legacy compatibility surfaces.",
     "docs_only": "Removed from machine surfaces; survives in CHANGELOG / migration notes."
   },
   "allowed_context_definitions": {
     "changelog": "Reference in CHANGELOG or migration documentation.",
-    "legacy_migration": "Reference in code that translates legacy implementation manifests.",
-    "interop_module": "Reference in an explicit interop binding (not core).",
     "negative_test": "Reference in cotest drift fixtures that assert rejection."
   },
   "entries": [
@@ -22,7 +18,10 @@
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": "ck.profile.chat_mvp.v1",
-      "allowed_contexts": ["changelog", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Single-modality profile ids never existed as canonical ck.profile.* entries. Use ck.profile.chat_mvp.v1 + the Realm's actual schema declaration to describe a chat-focused product."
     },
     {
@@ -30,7 +29,10 @@
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": "ck.profile.kanban_mvp.v1",
-      "allowed_contexts": ["changelog", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "See chat_only_client. Use ck.profile.kanban_mvp.v1; modality is expressed via Realm schema / morph_type_profiles, not via single-modality profile gating."
     },
     {
@@ -38,7 +40,10 @@
       "since_revision": "2026-05-20",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Agent workspace profile was withdrawn from v1. Private agent context (mirror Realm + agent_task FSM + mention_redirect / import_attestation) is now treated as a deployment-local concern outside the canonical protocol. Generic agent participation is still supported via ck.member.state + ck.capability.grant + ck.agent.* protocol session events (ck.profile.agent_runtime.v1)."
     },
     {
@@ -46,7 +51,10 @@
       "since_revision": "2026-05-20",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Removed with ck.profile.agent_workspace.v1."
     },
     {
@@ -54,7 +62,10 @@
       "since_revision": "2026-05-20",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Removed with ck.profile.agent_workspace.v1."
     },
     {
@@ -62,7 +73,10 @@
       "since_revision": "2026-05-20",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Reserved placeholder id removed with ck.profile.agent_workspace.v1."
     },
     {
@@ -70,7 +84,10 @@
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
       "replacement": "ck.profile.mls.minimal_metadata_realm.v1",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Realm/Space inversion cleanup. Current v1 uses ck.profile.mls.minimal_metadata_realm.v1 because the profile scope is the Realm E2EE / routing boundary."
     },
     {
@@ -78,7 +95,10 @@
       "since_revision": "2026-06-04",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Removed from v1 governance. Realm/Circle moderation reports route to scoped administrators with reporter-supplied encrypted evidence and optional franking proof; they MUST NOT depend on exporter-secret verifiers or sender-bound plaintext commitment."
     }
   ]

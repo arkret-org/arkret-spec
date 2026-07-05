@@ -2,6 +2,9 @@
   "suite": "realm_organization_conformance",
   "fixture_kind": "schema_and_semantic",
   "profile": "ck.vector_group.privacy_security.v1",
+  "covers_vectors": [
+    "ck.vector.realm_organization.schema_semantic.v1"
+  ],
   "version": "2026-06-25",
   "spec_anchor": "spec/v1/zh/models/realm-and-space.md#2.3.0",
   "source_refs": [

@@ -122,7 +122,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/realm-organization-fixture.json",
-      "sha256": "15a48d31b33070735cdd5e5f610160fefa191222b2ce1d909b1991b9dca9db1f"
+      "sha256": "6019101b82c490c430145a5512306cfcd2d65ec708fde3898f7f8a4e8d4f5ea1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",
@@ -134,7 +134,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-closure-vectors.json",
-      "sha256": "d399934382476df9d94eeeeb937e83398edd924a7820d036a1322b90946d1b48"
+      "sha256": "7a54e959436c9157026e325f5ee6d8688e43faee025d50016f83b6c240b57c91"
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-closure-hardening-fixture.json",

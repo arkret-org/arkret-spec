@@ -51,7 +51,7 @@ Profile 命名采用 `ck.profile.<name>.v<major>`。`<major>` 是该 profile 自
 v1 wire 内 **MUST NOT** in-place 改变任一已接受 event kind / schema / 字段的 canonical bytes 语义。需要破坏性语义（与既有 current-v1 语义不兼容）时：
 
 - 破坏性语义 **MUST** 通过**新增** event kind / schema id（或新 major profile）承载，并明确与旧 current-v1 标识符的语义边界；旧标识符在其退役前保持原语义不变。
-- 旧标识符的退役（rename / removal）**MUST** 登记到 [`../../artifacts/migration/`](../../artifacts/migration/)（如 `renames.json`），current parser 按其 `hard_reject` 层级拒绝旧标识符，离线迁移层负责把旧数据正规化后再进入 v1 validator。
+- 旧标识符的退役（rename / removal）**MUST** 登记到 [`../../artifacts/migration/`](../../artifacts/migration/)。这些登记表是 **CI / 发布期的 drift-detection 工具**，不是 current-wire normative 契约：current parser 一律按 `hard_reject` 拒绝旧标识符、不做 payload-shape 消歧。其中 `removed-event-kinds.json` / `removed-operation-ids.json` / `deprecated-profile-ids.json` 已收敛为纯 hard-reject 黑名单，**不含** `migration_only` / `compat_only` 容忍窗口或离线迁移解析层，退役标识符只允许出现在 CHANGELOG 文档与断言拒绝的 cotest negative fixture 中（v1 尚未发布，不承载旧数据兼容）；`renames.json` 额外承载 rename old→new 的映射登记。
 - v1 **不**通过"整面切 v2"或 URL path 版本段承载破坏性变更；`v1` 后缀是长期锚点（消歧见 [`../index.md` §1](../index.md)）。
 
 ## 4. Profile / capability 协商

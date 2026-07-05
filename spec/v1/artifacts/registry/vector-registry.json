@@ -2170,6 +2170,14 @@
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
+    },
+    {
+      "vector_id": "ck.vector.realm_organization.schema_semantic.v1",
+      "status": "active",
+      "domain": "realm_organization",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/realm-organization-fixture.json"
+      ]
     }
   ]
 }

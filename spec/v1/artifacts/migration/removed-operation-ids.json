@@ -3,17 +3,13 @@
   "version": 1,
   "kind": "removed_operation_ids",
   "source_of_truth": true,
-  "description": "Release/drift-tooling registry for operation ids that are not part of the current v1 operation contract. Current HTTP/gRPC/MQ bindings consume the active operation registry and OpenAPI binding; conformance scanners may consume this file for negative drift tests and release audit.",
+  "description": "Release/drift-tooling registry for operation ids that are not part of the current v1 operation contract. Current HTTP/gRPC/MQ bindings consume the active operation registry and OpenAPI binding; conformance scanners may consume this file for negative drift tests and release audit. This is CI/release drift-detection tooling, not a current-wire normative contract: every entry is hard-reject on the wire, there is no migration/compat tolerance window and no offline migration layer; removed ids MAY appear only in changelog documentation and in cotest negative drift fixtures that assert rejection.",
   "rejection_levels": {
     "hard_reject": "MUST NOT appear in any current operation registry, OpenAPI document, gRPC schema, or SDK call site.",
-    "migration_only": "MAY appear in time-bounded migration adapters; new bindings MUST NOT add it.",
-    "compat_only": "Only on explicit interop / compatibility surfaces.",
     "docs_only": "Removed from machine surfaces; survives in CHANGELOG / migration notes."
   },
   "allowed_context_definitions": {
     "changelog": "Reference in CHANGELOG or migration documentation.",
-    "legacy_migration": "Reference in time-bounded migration adapter code.",
-    "interop_module": "Reference in an explicit interop binding (not core).",
     "negative_test": "Reference in cotest drift fixtures that assert rejection."
   },
   "entries": [
@@ -22,7 +18,10 @@
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Companion to removed cx.strand.track.member event kind. Tracks do not have independent membership."
     },
     {
@@ -30,7 +29,10 @@
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Companion to removed cx.strand.track.member event kind."
     },
     {
@@ -38,7 +40,10 @@
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Companion to removed cx.strand.track.history_visibility event kind."
     },
     {
@@ -46,7 +51,10 @@
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Companion to removed cx.strand.track.read_receipt_policy event kind."
     },
     {
@@ -54,7 +62,10 @@
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Companion to removed cx.strand.track.policy_components event kind."
     },
     {
@@ -62,7 +73,10 @@
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Companion to removed cx.field.position.move event kind."
     },
     {
@@ -70,7 +84,10 @@
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Companion to removed cx.field.position.reorder event kind."
     },
     {
@@ -78,7 +95,10 @@
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Companion to removed cx.realm.lifecycle.set snapshot event."
     },
     {
@@ -86,7 +106,10 @@
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Companion to removed cx.realm.policy.set snapshot event."
     },
     {
@@ -94,7 +117,10 @@
       "since_revision": "2026-05-21",
       "rejection_level": "hard_reject",
       "replacement": "cx.events.resolve",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Renamed to express identifier dereference rather than range/query semantics."
     },
     {
@@ -102,7 +128,10 @@
       "since_revision": "2026-05-21",
       "rejection_level": "hard_reject",
       "replacement": "cx.account.subscribe",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Account-aggregate delivery moved out of the /sync namespace and from long-poll response shape to NDJSON streaming frames."
     },
     {
@@ -110,7 +139,10 @@
       "since_revision": "2026-05-21",
       "rejection_level": "hard_reject",
       "replacement": "cx.account.describe",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Account-aggregate service describe moved to the /account namespace."
     },
     {
@@ -118,7 +150,10 @@
       "since_revision": "2026-05-21",
       "rejection_level": "hard_reject",
       "replacement": "cx.snapshot.head",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Snapshot manifest discovery is no longer part of the account sync namespace."
     },
     {
@@ -126,7 +161,10 @@
       "since_revision": "2026-05-21",
       "rejection_level": "hard_reject",
       "replacement": "cx.account.subscribe",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Historical Matrix-derived account long-poll name; v1 uses streaming account subscribe."
     },
     {
@@ -134,7 +172,10 @@
       "since_revision": "2026-05-21",
       "rejection_level": "hard_reject",
       "replacement": "cx.events.query",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Historical unary event listing operation; v1 uses cx.events.query for actor/Realm selector reads."
     },
     {
@@ -142,7 +183,10 @@
       "since_revision": "2026-05-21",
       "rejection_level": "hard_reject",
       "replacement": "cx.events.query",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Historical backfill operation; v1 folds backward/window reads into cx.events.query."
     },
     {
@@ -150,7 +194,10 @@
       "since_revision": "2026-05-21",
       "rejection_level": "hard_reject",
       "replacement": "cx.events.subscribe",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Historical Realm stream operation; v1 uses cx.events.subscribe for Realm/actor event streams."
     },
     {
@@ -158,7 +205,10 @@
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
       "replacement": "cx.applet.resolve_realm",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Realm/Space inversion cleanup plus resolver naming: the operation resolves Applet portal Realms by realm_id_or_alias, not in-Realm Space containers. HTTP path remains /applet/realms/{realm_id_or_alias}; gRPC becomes EdgeApplet/ResolveRealm and MQ becomes edge.applet.resolve_realm."
     },
     {
@@ -166,7 +216,10 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.applet.resolve_actor",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Single-object Applet actor lookup now uses resolve_* naming."
     },
     {
@@ -174,7 +227,10 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.applet.resolve_realm",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Single-object Applet Realm lookup now uses resolve_* naming."
     },
     {
@@ -182,7 +238,10 @@
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
       "replacement": "cx.directory.push.register",
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Directory webhook registration now uses push.register to avoid collision with streaming subscribe operations."
     },
     {
@@ -190,7 +249,10 @@
       "since_revision": "2026-05-20",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Removed with cx.profile.agent_workspace.v1; private mirror-strand resolution is no longer a protocol-level operation."
     },
     {
@@ -198,7 +260,10 @@
       "since_revision": "2026-05-20",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Removed with cx.profile.agent_workspace.v1."
     },
     {
@@ -206,7 +271,10 @@
       "since_revision": "2026-06-04",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Admin / operator APIs are product-local and MUST NOT be registered under the Cokret protocol namespace. Servers that expose operator surfaces use their own negative-space root such as /_<deployment>/admin/*."
     },
     {
@@ -214,7 +282,10 @@
       "since_revision": "2026-06-04",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Admin / operator APIs are product-local and MUST NOT be registered under the Cokret protocol namespace. Servers that expose operator surfaces use their own negative-space root such as /_<deployment>/admin/*."
     },
     {
@@ -222,7 +293,10 @@
       "since_revision": "2026-06-04",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Admin / operator APIs are product-local and MUST NOT be registered under the Cokret protocol namespace. Servers that expose operator surfaces use their own negative-space root such as /_<deployment>/admin/*."
     },
     {
@@ -230,7 +304,10 @@
       "since_revision": "2026-06-04",
       "rejection_level": "hard_reject",
       "replacement": null,
-      "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
+      "allowed_contexts": [
+        "changelog",
+        "negative_test"
+      ],
       "notes": "Admin / operator APIs are product-local and MUST NOT be registered under the Cokret protocol namespace. Servers that expose operator surfaces use their own negative-space root such as /_<deployment>/admin/*."
     }
   ]

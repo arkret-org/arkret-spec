@@ -3880,6 +3880,36 @@
         "batch_item"
       ],
       "description": "Per-event rejection reason in an Applet edge transaction response (rejected[].reason_code) when the receiving applet hit an internal failure while processing that item; mirrors the top-level internal_error endpoint code at batch-item granularity. See zh/extensions/applet-integration.md \u00a77.3."
+    },
+    {
+      "code": "service_key_revoked",
+      "applies_to": ["federation_transaction", "auth_decision"],
+      "description": "Federation idempotency replay outcome: a cached federated request was re-evaluated and the origin service's signing key is now revoked, so the cache hit is treated as historical_only and MUST NOT bypass current key-state verification. See zh/conformance/conformance-vectors.md §9 (ck.vector.federation.idempotency_after_key_revoke.v1)."
+    },
+    {
+      "code": "consent_revoked",
+      "applies_to": ["auth_decision"],
+      "description": "Authorization outcome when a cached consent decision is re-evaluated and the underlying consent has been revoked; the stale cache entry MUST NOT authorize the action. See zh/conformance/conformance-vectors.md §9 (ck.vector.consent.cache_invalidation.v1)."
+    },
+    {
+      "code": "identity_link_no_longer_visible",
+      "applies_to": ["identity_resolution"],
+      "description": "An identity-link resolution was invalidated because the linked identity is no longer visible to the requester after a membership transition or capability revoke; directory / sync / invite caches MUST drop the stale link. See zh/conformance/conformance-vectors.md §9 (ck.vector.identity_link.eager_invalidation.v1)."
+    },
+    {
+      "code": "identity_link_policy_tightened",
+      "applies_to": ["identity_resolution"],
+      "description": "An identity-link resolution was invalidated because the governing visibility / link policy was tightened after the link was cached. See zh/conformance/conformance-vectors.md §9 (ck.vector.identity_link.policy_tightening_invalidation.v1)."
+    },
+    {
+      "code": "invalidated_by_rate_limit",
+      "applies_to": ["auth_decision"],
+      "description": "An out-of-band invite code attempt was invalidated because the per-code attempt rate limit was exceeded. See zh/conformance/conformance-vectors.md §9 (ck.vector.invite.oob_code_entropy.v1)."
+    },
+    {
+      "code": "invite_oob_entropy_too_low",
+      "applies_to": ["auth_decision"],
+      "description": "An out-of-band invite code was rejected because its entropy is below the required floor. See zh/conformance/conformance-vectors.md §9 (ck.vector.invite.oob_code_entropy.v1)."
     }
   ]
 }
