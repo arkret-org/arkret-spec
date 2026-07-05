@@ -4462,6 +4462,82 @@ def check_operations_error_mapping_closure(lint: Lint) -> None:
     for code in sorted(unresolved):
         lint.fail(mapping_path, f"error code referenced but not in error-code-registry.json: {code!r}")
 
+    # Coverage invariant (rules.operation_coverage): every operation_id in
+    # operation-registry.json MUST appear in operations[] exactly once, and
+    # operations[] MUST NOT reference an operation_id absent from the registry.
+    op_registry_path = ARTIFACTS / "registry" / "operation-registry.json"
+    op_registry = load_json(lint, op_registry_path)
+    if isinstance(op_registry, dict) and isinstance(operations, list):
+        registry_ids = {
+            row.get("operation_id")
+            for row in op_registry.get("operations", [])
+            if isinstance(row, dict) and isinstance(row.get("operation_id"), str)
+        }
+        mapping_counts: dict[str, int] = {}
+        for row in operations:
+            if isinstance(row, dict) and isinstance(row.get("operation_id"), str):
+                op_id = row["operation_id"]
+                mapping_counts[op_id] = mapping_counts.get(op_id, 0) + 1
+        for op_id in sorted(registry_ids):
+            count = mapping_counts.get(op_id, 0)
+            if count == 0:
+                lint.fail(mapping_path, f"operation_id in operation-registry.json missing from operations[]: {op_id!r}")
+            elif count > 1:
+                lint.fail(mapping_path, f"operation_id appears {count} times in operations[] (must be exactly once): {op_id!r}")
+        for op_id in sorted(mapping_counts):
+            if op_id not in registry_ids:
+                lint.fail(mapping_path, f"operations[] references operation_id absent from operation-registry.json: {op_id!r}")
+
+
+FIXTURE_REJECT_DECISION_KEYS = ("decision", "result", "seal_result", "event_state")
+_REJECT_REASON_CODE_RE = re.compile(r"^[a-z][a-z0-9_]+$")
+
+
+def check_fixture_reject_reason_closure(lint: Lint) -> None:
+    """Fixture reject `reason` codes must resolve in error-code-registry.json.
+
+    Only enumerable reason_code-style values (snake_case identifiers) sitting in
+    a reject / deny decision context (or a rollback object) are gated; free-text
+    `reason` prose is ignored per the models/common-fields.md reason vs
+    reason_code convention.
+    """
+    registry_path = ARTIFACTS / "registry" / "error-code-registry.json"
+    registry = load_json(lint, registry_path)
+    if not isinstance(registry, dict):
+        return
+    known_codes = {
+        row.get("code")
+        for section in ("codes", "reason_codes")
+        for row in registry.get(section, [])
+        if isinstance(row, dict) and isinstance(row.get("code"), str)
+    }
+
+    def is_reject(value: Any) -> bool:
+        return isinstance(value, str) and ("reject" in value or value == "deny")
+
+    def walk(node: Any, parent_key: str | None, json_path: str, path: Path) -> None:
+        if isinstance(node, dict):
+            reason = node.get("reason")
+            if isinstance(reason, str) and _REJECT_REASON_CODE_RE.fullmatch(reason):
+                reject_ctx = parent_key == "rollback" or any(
+                    is_reject(node.get(key)) for key in FIXTURE_REJECT_DECISION_KEYS
+                )
+                if reject_ctx and reason not in known_codes:
+                    lint.fail(
+                        path,
+                        f"{json_path}.reason reject code not in error-code-registry.json: {reason!r}",
+                    )
+            for key, value in node.items():
+                walk(value, key, f"{json_path}/{key}", path)
+        elif isinstance(node, list):
+            for index, value in enumerate(node):
+                walk(value, parent_key, f"{json_path}[{index}]", path)
+
+    for path in sorted((ARTIFACTS / "fixtures").glob("**/*.json")):
+        data = load_json(lint, path)
+        if data is not None:
+            walk(data, None, "$", path)
+
 
 def check_cross_doc_anchors(lint: Lint) -> None:
     """T4-4: cross-doc anchor check.
@@ -5278,6 +5354,7 @@ def main() -> int:
     check_release_readiness_counts(lint, known)
     check_error_code_registry_uniqueness(lint)
     check_operations_error_mapping_closure(lint)
+    check_fixture_reject_reason_closure(lint)
     check_error_code_closure(lint)
     check_cross_doc_anchors(lint)
     check_openapi_no_floating_number(lint)
