@@ -5723,7 +5723,8 @@
           "$ref": "#/$defs/nullable_timestamp"
         },
         "device_signature": {
-          "$ref": "#/$defs/signature_material"
+          "$ref": "#/$defs/signature_material",
+          "description": "Device possession proof for ck.device.authorize. When present, it MUST be an Ed25519/EdDSA detached signature by the private key corresponding to device_public_key over the ck-device-authorize-possession-v1 canonical input defined in zh/crypto-media/device-lifecycle.md §5.2. It MUST NOT be signed by the grant-binding (DPoP) key / session_public_key / cnf.jkt key. Recovery-strand device authorization requires this field."
         },
         "proof": {
           "$ref": "#/$defs/signature_material"

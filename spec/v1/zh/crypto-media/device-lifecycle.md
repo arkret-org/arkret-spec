@@ -339,6 +339,31 @@ DID-method history → principal_signing_key (PSK)
 
 `algorithms` 在进入 signing input 前 MUST 按 UTF-8 bytewise 升序排序并去重；producer MUST 在 `ck.device.authorize.payload.algorithms` 中写入同一 canonical 数组。`hpke_key` 与 `device_public_key` 均为该设备授权记录的一部分，MUST 逐字节进入签名输入；receiver MUST NOT 接受只覆盖 verify key 而不覆盖 HPKE 密封 key 的 `cross_signing_binding`。
 
+当 `ck.device.authorize.payload.device_signature` 出现时，它 MUST 是由该 payload 中 `device_public_key` 对应的**设备身份 key 私钥**签出的 possession proof。该签名不是 SSK 签名；SSK 只签 `cross_signing_binding`。该签名也 MUST NOT 使用 grant-binding（DPoP）key、`session_public_key` 或 grant `cnf.jkt` 对应私钥；这些是会话授权凭证，不是设备身份。receiver MUST 用 `device_public_key` 验证 `device_signature`，失败时拒绝该 `ck.device.authorize`。在 recovery strand（§15）产生的 `ck.device.authorize` 中，`device_signature` REQUIRED，因为服务端不得在只看到 SSK 授权时假定恢复客户端持有新设备私钥。
+
+`device_signature` 的 canonical signing input：
+
+```text
+"ck-device-authorize-possession-v1\n"
++ canonical_json({
+    "principal_id": <did>,
+    "device_id": <id:device>,
+    "device_public_key": <public_key>,
+    "hpke_key": <hpke_public_key>,
+    "algorithms": <sorted_unique_algorithm_ids>,
+    "device_key_algorithm": <algorithm>,
+    "authorized_by": <device_or_principal_ref>,
+    "not_before": <timestamp>,
+    "expires_at": <timestamp_or_null>,
+    "scopes": <sorted_unique_scope_ids_or_null>,
+    "recovery_session_id": <id:recovery_session_or_null>,
+    "authorization_binding_kind": "cross_signing" | "bootstrap" | "enrollment_authority",
+    "cross_signing_generation": <ssk_generation_or_null>
+  })
+```
+
+`device_key_algorithm` MUST be `EdDSA`/`Ed25519` for v1 `device_signature` verification. Optional `expires_at`, `scopes`, and `recovery_session_id` are normalized to `null` when absent; `scopes` is sorted and deduplicated before signing. Signature bytes, `device_signature`, `proof`, and the nested authorization-binding signature material are deliberately excluded to avoid circular transcripts; `authorization_binding_kind` plus `cross_signing_generation` binds the possession proof to the authorization regime and cross-signing generation.
+
 #### 5.2.1 验证算法（normative）
 
 接收方判定 `device` 是否 cross-signed 时 MUST 执行：

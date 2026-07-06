@@ -531,7 +531,7 @@
     },
     "device_authorize_material": {
       "type": "object",
-      "description": "A complete, client-signed ck.device.authorize payload used by the recovery strand. It MUST also validate against event-payload.schema.json#/$defs/device_authorize_payload. The recovering client unlocks the self-signing key (SSK) from the did_recovery backup during the proof/verify phase, signs the new device's cross_signing_binding with it, submits the resulting ordinary Event Envelope to the principal control stream, and passes only the accepted authorization_event_id to recovery_session_complete_request_body. The server MUST verify before completing the recovery session: (a) device_id == session.requesting_device_id; (b) recovery_session_id == this session's id; (c) principal_id == session.principal_id; (d) cross_signing_binding.ssk_generation == session.ssk_generation (else device_recovery_ssk_generation_mismatch). Recovery is never a bootstrap-first-device case, so cross_signing_binding (not bootstrap_binding) is required.",
+      "description": "A complete, client-signed ck.device.authorize payload used by the recovery strand. It MUST also validate against event-payload.schema.json#/$defs/device_authorize_payload. The recovering client unlocks the self-signing key (SSK) from the did_recovery backup during the proof/verify phase, signs the new device's cross_signing_binding with that SSK, signs device_signature with the new device identity private key over the ck-device-authorize-possession-v1 canonical input, submits the resulting ordinary Event Envelope to the principal control stream, and passes only the accepted authorization_event_id to recovery_session_complete_request_body. The server MUST verify before completing the recovery session: (a) device_id == session.requesting_device_id; (b) recovery_session_id == this session's id; (c) principal_id == session.principal_id; (d) cross_signing_binding.ssk_generation == session.ssk_generation (else device_recovery_ssk_generation_mismatch); (e) device_signature verifies with device_public_key. Recovery is never a bootstrap-first-device case, so cross_signing_binding (not bootstrap_binding) is required.",
       "required": [
         "principal_id",
         "device_id",
@@ -563,7 +563,7 @@
         "device_signature": {
           "type": "string",
           "minLength": 1,
-          "description": "New-device self-signature proving possession of device_public_key. Satisfies event-payload.schema.json device_authorize_payload's proof/device_signature anyOf."
+          "description": "New-device Ed25519/EdDSA signature proving possession of the private key corresponding to device_public_key. The signing input is ck-device-authorize-possession-v1, defined in crypto-media/device-lifecycle.md §5.2. Satisfies event-payload.schema.json device_authorize_payload's proof/device_signature anyOf."
         },
         "recovery_session_id": {
           "$ref": "#/$defs/recovery_session_id"
@@ -603,7 +603,7 @@
     },
     "recovery_session_complete_request_body": {
       "type": "object",
-      "description": "The recovering client first submits, to POST /events on the principal control realm, (1) a `ck.device.authorize` (shape per $defs/device_authorize_material, also event-payload.schema.json device_authorize_payload) signed with the SSK unlocked from the did_recovery backup, and (2) a `ck.device.list_update` for the new device — both as ordinary signed Event Envelopes carrying the next actor_seq on the principal control stream. Completion then REFERENCES the resulting durable event ids; the server resolves each from the event store and verifies it is the right kind, bound to this recovery_session_id + requesting_device_id, and (for authorize) that its cross_signing_binding verifies against the accepted SSK. The server does not author/sign control events on the principal's behalf.",
+      "description": "The recovering client first submits, to POST /events on the principal control realm, (1) a `ck.device.authorize` (shape per $defs/device_authorize_material, also event-payload.schema.json device_authorize_payload) whose cross_signing_binding is signed with the SSK unlocked from the did_recovery backup and whose device_signature is signed with the new device identity private key, and (2) a `ck.device.list_update` for the new device — both as ordinary signed Event Envelopes carrying the next actor_seq on the principal control stream. Completion then REFERENCES the resulting durable event ids; the server resolves each from the event store and verifies it is the right kind, bound to this recovery_session_id + requesting_device_id, that its cross_signing_binding verifies against the accepted SSK, and that its device_signature verifies against device_public_key. The server does not author/sign control events on the principal's behalf.",
       "required": [
         "authorization_event_id",
         "device_list_update_event_id"
