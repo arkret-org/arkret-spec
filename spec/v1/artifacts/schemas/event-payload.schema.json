@@ -4413,7 +4413,7 @@
     },
     "agent_key_scope": {
       "type": "object",
-      "description": "Closed authorization scope for an agent signing key. Resource selectors and actions are both explicit so the key cannot silently widen its authority through omitted dimensions.",
+      "description": "Closed authorization scope for an agent signing key. Resource selectors and actions are both explicit so the key cannot silently widen its authority through omitted dimensions. actions may contain service operation ids (for example ck.self.events.stream.subscribe) and content capability action tokens (for example ck.event.read); content capability grants are not the sole source for service-surface scope.",
       "required": [
         "actions",
         "resources"
@@ -4500,7 +4500,7 @@
     },
     "agent_key_authorize_payload": {
       "type": "object",
-      "description": "Payload for ck.agent.key.authorize. Binds one concrete agent signing key to an accountable principal, explicit agent_key_scope, audience, validity window, and approval evidence.",
+      "description": "Payload for ck.agent.key.authorize. Binds one concrete agent signing key to an accountable principal, explicit agent_key_scope, audience, validity window, approval evidence, and both the service-surface and content-capability ceilings that later agent_key_proof sessions must narrow from.",
       "required": [
         "agent_principal_id",
         "key_id",

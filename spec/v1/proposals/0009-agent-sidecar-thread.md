@@ -451,7 +451,7 @@ Agent runtime SHOULD NOT 只凭宽泛的 "create hidden channels" grant 调用�
 | Action | 注册形态 |
 | --- | --- |
 | `ck.self.agent.sidecar_thread.ensure` | 聚合 admin action。`capability-action-registry.json` MUST 声明 `target_event_kinds=[ck.circle.create,ck.circle.member.state,ck.strand.create,ck.relation.create]`。 Controller-private projection account-data(§4.14 `ck.agent.sidecar_projection.v1`)的写入**不**纳入此 action 的 grantable set——它由 controller principal 自己对自身 account-data 的固有写权批准,与 sidecar ensure 解耦,因此 ensure caller 不需要持有任何 account-data 写 grant 也能成功。 |
-| `ck.agent.sidecar_thread.read` | **v1 不注册**。读取 sidecar metadata 与 private Strand messages 复用现有 `ck.self.events.query` / `ck.self.events.subscribe`,resource selector 限定为 sidecar private Strand / sidecar Circle scope 即可,不需要 sidecar-specific read action。 |
+| `ck.agent.sidecar_thread.read` | **v1 不注册**。读取 sidecar metadata 与 private Strand messages 复用现有 `ck.self.events.query.scan` / `ck.self.events.stream.subscribe`,resource selector 限定为 sidecar private Strand / sidecar Circle scope 即可,不需要 sidecar-specific read action。 |
 | `ck.agent.sidecar_thread.write` | Profile action;`target_event_kinds=[ck.message.create]`,resource 必须限定为 sidecar private Strand。 |
 | `ck.agent.sidecar_thread.publish` | Profile action;target event kinds 由最终发布目标决定,至少包括 `ck.message.create`,并受 CKP-0008 reply-as-agent / act-on-behalf attribution 规则约束。 |
 
@@ -681,7 +681,7 @@ v1 选择"每个 `(realm, controller)` 一个 Circle"而不是 participant set,�
 
 Accepted profile SHOULD 增加以下 conformance fixtures:
 
-1. Subscribe/query 隔离:non-sidecar-member 对目标 Realm `ck.self.events.subscribe` 与 `ck.self.events.query` 返回 zero events referencing sidecar Circle / Strand / Relation。
+1. Subscribe/query 隔离:non-sidecar-member 对目标 Realm `ck.self.events.stream.subscribe` 与 `ck.self.events.query.scan` 返回 zero events referencing sidecar Circle / Strand / Relation。
 2. 反向 relation 不泄露:对 `to_ref=<target_message_id>` 的 relation query,non-sidecar-member 看不到 `agent_sidecar_of` 边。
 3. Directory 不可枚举:non-member 对 Realm directory 调用返回 zero hits for sidecar Circle title、display、short_name 或 member_count。
 4. Notification fanout 隔离:sidecar 内 `ck.message.create` 不触发目标 Strand members 的 notification。

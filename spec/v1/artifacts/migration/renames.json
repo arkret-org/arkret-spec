@@ -4518,7 +4518,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.events.subscribe -> ck.self.events.subscribe); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended and stream verb made explicit; ck.events.subscribe maps to ck.self.events.stream.subscribe. Old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ck.identity.describe_registry",

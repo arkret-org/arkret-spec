@@ -51,7 +51,7 @@ merged_into:
 | 位 | 含义 | 默认 |
 | --- | --- | --- |
 | `reply` | agent 可以在该 scope 内以自身身份（reply-as-agent）写入 `ck.message.create` / `ck.reaction.add`。 | `false` |
-| `accept_third_party_mention` | 由 **非 controller** 的 principal 发出、target 为该 agent 的 mention，会被投递给该 agent（notification fanout + agent `ck.self.events.subscribe` 投影），并可触发 agent 自主处理。`false` 时第三方 mention 对该 agent 不可见，只有 controller 自己的 mention / sidecar prompt 能到达。 | `false` |
+| `accept_third_party_mention` | 由 **非 controller** 的 principal 发出、target 为该 agent 的 mention，会被投递给该 agent（notification fanout + agent `ck.self.events.stream.subscribe` 投影），并可触发 agent 自主处理。`false` 时第三方 mention 对该 agent 不可见，只有 controller 自己的 mention / sidecar prompt 能到达。 | `false` |
 | `act_on_behalf` | agent 可写入 `actor_id=controller, executed_by=agent` 的 act-on-behalf event（受 CKP-0008 §4.10 的 fresh approval / accountability 约束）。 | `false` |
 
 三位构成一个偏序格（按蕴含关系）。一个 `AgentParticipation` 值 P1 ⊆ P2 当且仅当 P1 的每一位为真都蕴含 P2 对应位为真。空集（全 `false`）是最小元，全 `true` 是最大元。
@@ -144,7 +144,7 @@ ck.agent.participation.v1:<agent_principal_id>:<scope_key>
 
 1. 解析该 message 所在 effective_scope（Strand → Circle/Realm）的、针对该 agent 的 effective participation（§4.4 ceiling ∩ §5 controller selection）。
 2. 若 mention 作者 == 该 agent 的 controller principal：照常投递（仍受该 agent 是否被授权读取该 scope 约束）。
-3. 若 mention 作者 != controller 且 effective `accept_third_party_mention=false`：MUST NOT 为该 agent 派生任何 mention notification、inbox row、push wakeup，也 MUST NOT 把该 mention 纳入该 agent 的 `ck.self.events.subscribe` 投影。该抑制只针对 agent 自身；对 message 的其他人类 target、shared history、其它投影无影响。
+3. 若 mention 作者 != controller 且 effective `accept_third_party_mention=false`：MUST NOT 为该 agent 派生任何 mention notification、inbox row、push wakeup，也 MUST NOT 把该 mention 纳入该 agent 的 `ck.self.events.stream.subscribe` 投影。该抑制只针对 agent 自身；对 message 的其他人类 target、shared history、其它投影无影响。
 4. 若 `accept_third_party_mention=true`：照常投递，并受 `level=muted`、blocklist、DND、rate-limit 等既有更高优先级规则约束（沿用 §9.4 现有覆盖顺序）。
 
 该 gate 是 reducer/dispatcher 强制规则，不依赖 agent runtime 自觉。`ck.message.mention.broadcast`（audience mention）命中 agent 时同样适用本 gate；CKP-0008 §4.9 已要求自动化 actor 的 audience mention 采用更低 quota 与 accountability 约束。
@@ -273,7 +273,7 @@ mention 接受是 **inbound 路由** 决策（"要不要把别人的 @ 推给我
 
 - [ ] `zh/sync/service-surface.md` §10.1：补 `ck.self.agent.participation.{set,get}` 两个 operation 的散文条目与 session `scope_details.participation` overlay 说明。
 - [ ] `zh/conformance/conformance-profiles.md`：补 `ck.profile.agent_participation_policy.v1` 的散文注册（artifact `conformance-profiles.json` 已注册）。
-- [ ] `zh/conformance/conformance-vectors.md`：补 ceiling tighten-only、effective=ceiling∩selection、第三方 mention gate、selection-within-ceiling、session overlay 五个 feature 的 conformance vector。其中第三方 mention gate vector MUST 覆盖非追溯时序 case：mention 发生于 effective `accept_third_party_mention=false` 期间 → controller 翻转为 `true` → agent 上线同步 → 断言该 agent 的 mention notification / inbox row / `ck.self.events.subscribe` 投影对该历史 mention 零记录（normative 语义见 `zh/models/strand-and-message.md` §9.4.5"求值时点与非追溯语义"）。
+- [ ] `zh/conformance/conformance-vectors.md`：补 ceiling tighten-only、effective=ceiling∩selection、第三方 mention gate、selection-within-ceiling、session overlay 五个 feature 的 conformance vector。其中第三方 mention gate vector MUST 覆盖非追溯时序 case：mention 发生于 effective `accept_third_party_mention=false` 期间 → controller 翻转为 `true` → agent 上线同步 → 断言该 agent 的 mention notification / inbox row / `ck.self.events.stream.subscribe` 投影对该历史 mention 零记录（normative 语义见 `zh/models/strand-and-message.md` §9.4.5"求值时点与非追溯语义"）。
 - [ ] session `scope_details.participation[]` overlay（§7.1）的 schema 落点：其形态 SHOULD 与 `agent-operations.schema.json#/$defs/agent_participation_entry`（`{scope, selection, ceiling, effective}`）对齐，而非 §7.1 当前示例的扁平形态——两处需统一后再落 schema。
 
 ## 12. 引用

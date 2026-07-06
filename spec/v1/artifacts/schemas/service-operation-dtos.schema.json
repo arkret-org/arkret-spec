@@ -2237,7 +2237,7 @@
         },
         "agent_scope_request": {
           "type": "object",
-          "description": "`ck.profile.agent_auth.v1` overlay (CKP-0008 §4.6). Narrowing hints for the\nissued session scope; the server still intersects with the agent's accepted\ncapability grants and Realm policy. REQUIRED when `proof.proof_kind=\"agent_key_proof\"`;\nMUST be omitted for human session grants. `track_names` is a request-side\nnarrowing field only — the materialized session grant MUST express track scope\nvia the canonical `allowed_tracks` constraint, not via a new `track_names` grant.\n",
+          "description": "`ck.profile.agent_auth.v1` overlay (CKP-0008 §4.6). Narrowing hints for the\nissued session scope. Service-surface requested_scope values are intersected\nwith the accepted agent_key_scope service ceiling and endpoint/resource policy;\ncontent actions are additionally intersected with effective capability grants,\nmembership, history visibility and E2EE policy. REQUIRED when\n`proof.proof_kind=\"agent_key_proof\"`; MUST be omitted for human session grants.\n`track_names` is a request-side narrowing field only — the materialized session\ngrant MUST express track scope via the canonical `allowed_tracks` constraint,\nnot via a new `track_names` grant.\n",
           "additionalProperties": false,
           "properties": {
             "realm_ids": {
@@ -2261,6 +2261,10 @@
               }
             }
           }
+        },
+        "dpop_binding_proof": {
+          "$ref": "#/$defs/SessionGrantDpopBindingProof",
+          "description": "`ck.profile.agent_auth.v1` overlay (CKP-0008 §4.6). DPoP proof JWT for the holder key that the issued session grant will bind to. REQUIRED when `proof.proof_kind=\"agent_key_proof\"`; the Account Authority verifies the proof and materializes the resulting JWK thumbprint into the issued grant's `cnf.jkt` / session_public_key binding."
         },
         "applet_delegation": {
           "$ref": "#/$defs/SessionGrantAppletDelegation",
@@ -2353,7 +2357,7 @@
       },
       "allOf": [
         {
-          "description": "Machine-enforceable agent_key_proof branch selector. When `proof.proof_kind` is\n`agent_key_proof`, the request MUST carry the `ck.profile.agent_auth.v1` overlay\nfields (`agent_key_authorization_ref`, `agent_scope_request`, `proof.verification_method`);\nwhen it is any other enum value, those fields MUST be absent. SDKs and server-side\nvalidators MUST reject violations at schema-validation time, not at proof-validator\ntime.\n",
+          "description": "Machine-enforceable agent_key_proof branch selector. When `proof.proof_kind` is\n`agent_key_proof`, the request MUST carry the `ck.profile.agent_auth.v1` overlay\nfields (`agent_key_authorization_ref`, `agent_scope_request`, `dpop_binding_proof`,\n`proof.verification_method`); when it is any other enum value, agent-only fields\nMUST be absent. SDKs and server-side validators MUST reject violations at\nschema-validation time, not at proof-validator time.\n",
           "if": {
             "properties": {
               "proof": {
@@ -2374,7 +2378,8 @@
           "then": {
             "required": [
               "agent_key_authorization_ref",
-              "agent_scope_request"
+              "agent_scope_request",
+              "dpop_binding_proof"
             ],
             "properties": {
               "proof": {
@@ -2397,6 +2402,13 @@
                 "not": {
                   "required": [
                     "agent_scope_request"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "dpop_binding_proof"
                   ]
                 }
               },
@@ -2499,6 +2511,20 @@
         }
       ]
     },
+    "SessionGrantDpopBindingProof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "proof_jwt"
+      ],
+      "properties": {
+        "proof_jwt": {
+          "type": "string",
+          "minLength": 1,
+          "description": "RFC 9449 DPoP proof JWT over the session-grant issuance endpoint. For agent_key_proof issuance this proves possession of the holder key before the Account Authority returns the session grant."
+        }
+      }
+    },
     "SessionGrantAppletDelegation": {
       "type": "object",
       "additionalProperties": false,
@@ -2586,7 +2612,7 @@
         },
         "scope_details": {
           "type": "object",
-          "description": "`ck.profile.agent_auth.v1` overlay (CKP-0008 §4.6). Materialized narrow scope\nactually granted to the agent runtime session, after intersecting `agent_scope_request`\nwith capability grants and Realm policy. Present iff the request was the\n`proof.proof_kind=\"agent_key_proof\"` branch; absent for human session grants.\n",
+          "description": "`ck.profile.agent_auth.v1` overlay (CKP-0008 §4.6). Materialized narrow scope\nactually granted to the agent runtime session. Service-surface scope is the\nintersection of requested_scope, accepted agent_key_scope and endpoint/resource\npolicy; content actions are additionally constrained by effective capability\ngrants, membership, history visibility and E2EE policy. Present iff the request\nwas the `proof.proof_kind=\"agent_key_proof\"` branch; absent for human session\ngrants.\n",
           "additionalProperties": false,
           "properties": {
             "realm_ids": {

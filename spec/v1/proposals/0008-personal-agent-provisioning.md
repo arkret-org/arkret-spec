@@ -304,8 +304,8 @@ Bootstrap material 是一次性、短期、可撤销的 pairing 输入。它不�
 新增 account/auth profile operation:
 
 ```text
-POST /auth/account/agent-key-pair
-operation_id: ck.gate.account.agent_key_pair
+POST /_cokret/gate/account/agent-key-pair
+operation_id: ck.gate.account.command.pair_agent_key
 profile: ck.profile.personal_agent_provisioning.v1
 ```
 
@@ -331,6 +331,14 @@ profile: ck.profile.personal_agent_provisioning.v1
     "kind": "self_asserted",
     "software": "savfox-agent",
     "version": "0.1.0"
+  },
+  "authorize_event": {
+    "event_id": "ck:event:01970000-0000-7000-8000-000000000021",
+    "kind": "ck.agent.key.authorize",
+    "payload": {
+      "agent_principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
+      "verification_method": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant#runtime-key-1"
+    }
   }
 }
 ```
@@ -340,6 +348,7 @@ profile: ck.profile.personal_agent_provisioning.v1
 - SHOULD 优先使用 runtime-generated private key。
 - 除非 deployment profile 明确声明 custodial-key 语义并向用户披露风险,生产托管 agent MUST NOT 使用服务端生成的 private key。
 - Pairing token MUST 短期、单次、audience-bound、request-digest-bound、可撤销。
+- Request body MUST 携带 `pairing_request_id` 和 controller / policy engine 已签名的 `authorize_event`。生产实现不得在缺少可审计 `ck.agent.key.authorize` envelope 的情况下把 runtime key 置为 active。
 - Pairing endpoint MUST 校验 `verification_method` 的 DID 部分(strip fragment 与 query 后)与请求体中 `agent_principal_id` bit-identical;不匹配 MUST fail closed(`reason="verification_method_principal_mismatch"`),不得自动选用任一为准。
 - Pairing approval MUST 写入可审计的 `ck.agent.key.authorize` event。
 - 写入的 `agent_key_scope` MUST 不宽于 controller 已批准的初始 capability 与 Realm policy;它覆盖**内容能力与服务面两轴**，是后续 session 服务面 scope(如 `ck.self.events.stream.subscribe`)的批准来源，该来源独立于 content capability grants(见 §4.6 与 [`../zh/authz/capabilities.md` §9.1](../zh/authz/capabilities.md))。
@@ -354,8 +363,8 @@ Agent runtime 在日常运行时 MUST NOT 被要求完成人类 coauth UI。CAPT
 本 profile 复用现有 account/auth session grant 入口,通过扩展 `SessionGrantRequestBody.proof.proof_kind` 新增 `agent_key_proof` 分支区分 agent runtime 认证:
 
 ```text
-POST /auth/account/session-grants
-operation_id: ck.gate.account.issue_session_grant
+POST /_cokret/gate/account/session-grants
+operation_id: ck.gate.account.command.issue_session_grant
 profile: ck.profile.agent_auth.v1
 ```
 
@@ -373,6 +382,9 @@ profile: ck.profile.agent_auth.v1
     "strand_ids": ["ck:strand:01970000-0000-7000-8000-000000000001"],
     "track_names": ["summary"]
   },
+  "dpop_binding_proof": {
+    "proof_jwt": "eyJ0eXAiOiJkcG9wK2p3dCIsImFsZyI6IkVkRFNBIn0..."
+  },
   "proof": {
     "proof_kind": "agent_key_proof",
     "verification_method": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant#runtime-key-1",
@@ -385,9 +397,9 @@ profile: ck.profile.agent_auth.v1
 }
 ```
 
-`agent_key_authorization_ref`、`agent_scope_request` 和 `proof.verification_method` 是 `ck.profile.agent_auth.v1` 对现有 `SessionGrantRequestBody` 的 schema overlay。`verification_method` 承载 DID URL,遵循 [`common-fields.md` §2.1.3](../zh/models/common-fields.md#213-_did)。Accepted 后应扩展 OpenAPI typed schema;在 proposal 阶段不改 artifact。
+`agent_key_authorization_ref`、`agent_scope_request`、`dpop_binding_proof` 和 `proof.verification_method` 是 `ck.profile.agent_auth.v1` 对现有 `SessionGrantRequestBody` 的 schema overlay。`verification_method` 承载 DID URL,遵循 [`common-fields.md` §2.1.3](../zh/models/common-fields.md#213-_did)。OpenAPI / JSON Schema artifact 必须为 `proof.proof_kind="agent_key_proof"` 分支声明这些字段的独立 required 条件。
 
-Wire 影响:本提案不新增 sibling endpoint,也不引入顶层 `grant_type` discriminator。Accepted 后需要把现有 `SessionGrantRequestBody.proof.proof_kind` 枚举扩展为包含 `agent_key_proof`,并为该分支定义独立 required fields、proof canonicalization 与 validator。实现不得让 `agent_key_proof` 走 password / OIDC / passkey 的 validator fallback。
+Wire 影响:本提案不新增 sibling endpoint,也不引入顶层 `grant_type` discriminator。`SessionGrantRequestBody.proof.proof_kind` 枚举包含 `agent_key_proof`,并为该分支定义独立 required fields、proof canonicalization 与 validator。实现不得让 `agent_key_proof` 走 password / OIDC / passkey 的 validator fallback。
 
 `agent_scope_request` 是 `ck.profile.agent_auth.v1` overlay,不进入通用 human `SessionGrantRequestBody` schema。`agent_scope_request.track_names` 是请求侧窄化字段;签发后的 capability / session scope MUST 物化为现有 capability vocabulary 中的 `allowed_tracks` 等 registered constraints,不得把 `track_names` 当作新的 grant constraint。
 
@@ -413,7 +425,8 @@ Wire 影响:本提案不新增 sibling endpoint,也不引入顶层 `grant_type` 
 
 - key MUST 被一个 accepted、未过期、未撤销的 `ck.agent.key.authorize` 授权。
 - key proof MUST 绑定 challenge、audience、request canonical digest、agent principal、`verification_method`、nonce 和 expiry。
-- `request_canonical_digest` MUST 覆盖整个 session grant request 的 canonical bytes,但不包含 `proof.signature` 自身。
+- `dpop_binding_proof.proof_jwt` MUST 绑定将要接收 session grant 的 DPoP holder key;成功签发的 `SessionGrantOutcome.session_public_key` / `cnf.jkt` MUST 与该 proof 的 JWK thumbprint 一致。缺少或无法校验该 binding proof 时,`agent_key_proof` 分支 MUST fail closed。
+- `request_canonical_digest` MUST 覆盖 session grant request binding object 的 canonical bytes,包括 `principal_id`、`requested_scope`、`agent_key_authorization_ref`、`agent_scope_request` 与 `dpop_binding_proof` 摘要,但不包含 `proof.signature` 自身,也不得把可由签名字段循环决定的 `proof` 整体纳入 digest。
 - Auth Server MUST 维护 challenge / nonce replay table 或等价一次性校验状态,至少覆盖 proof `expires_at` 后的 replay grace window。已使用或过期 challenge MUST 拒绝。
 - requested scope MUST 不宽于 `agent_key_scope` 与 policy constraints。两轴分别校验:**内容能力** action MUST 不宽于 effective capability grants;**服务面 scope**(`ck.self.*` 服务动作，如 `ck.self.events.stream.subscribe`)由 `agent_key_scope` / Realm policy 批准的服务面上界界定,**不**派生自 content capability grants(见 [`../zh/authz/capabilities.md` §9.1](../zh/authz/capabilities.md))。
 - accountable actor、controller principal 与 agent principal MUST 未 deactivated、未 suspended,且未被 policy 阻断。Controller 进入 `deactivated` / `suspended` 后,其 accountable agent 的 active sessions MUST 通过 account lifecycle / revocation 链失效,后续 session grant MUST fail closed。
@@ -455,7 +468,7 @@ controller 通过人类 UI 在带外批准。批准会产生新的 capability / 
 
 上述模式只用于 UI / SDK 预设,本表仅作背景与风险叙述。**canonical 展开(每个预设到 `actions[]` / required constraints / resource scope 的权威映射)以 [`../zh/authz/capabilities.md` §9.1](../zh/authz/capabilities.md) 为准。** Server 接收和持久化的是 §4.9 中的 capability actions、resource selectors、constraints 与 TTL;模式名本身不进入 canonical wire。预设是 additive shorthand,多选为并集,不表达 deny / cap / only;`read` 仅覆盖事件投影读,MUST NOT 隐含 `ck.object.read*` / `ck.strand.read` / E2EE history key / MLS membership(见 §9.1)。
 
-> `read` 行早期草稿曾列出 `ck.self.events.subscribe`(未注册名);注册名是服务动作 `ck.self.events.stream.subscribe` / `ck.self.events.query.scan`(见 [`../zh/authz/capabilities.md` §5.5](../zh/authz/capabilities.md))。事件订阅 / 查询面是**服务面**,由 agent **session scope**(§4.6)授权,与内容读能力 `ck.event.read` 是正交两层、按 **AND** 组合(见 [`../zh/authz/capabilities.md` §9.1](../zh/authz/capabilities.md) 与 [`../zh/models/relation.md` §4.2](../zh/models/relation.md));`ck.event.read` **MUST NOT** 被当作授予该服务面。因此本 §4.7 表的 canonical actions 只列内容层能力(`read` → `ck.event.read`),服务面 scope 由 §4.6 的 `granted_scope` 承载,二者不混写。另注意 E2EE 边界:E2EE Realm 中 `read` 预设不含内容解密能力——agent 的 E2EE access MUST 作为独立 MLS member 表达(§4.6),`ck.event.read` grant 只界定读取 surface 可返回的 event envelope 范围;低于 Realm 粒度的 resource selector 收窄由读取 surface 的投递过滤 enforce,不构成密码学隔离(见 [`../zh/authz/capabilities.md` §9.1](../zh/authz/capabilities.md)「Membership 派生读取与受托读取」)。
+> `read` 预设的事件订阅 / 查询面是**服务面**,由 agent **session scope**(§4.6)授权,注册动作为 `ck.self.events.stream.subscribe` / `ck.self.events.query.scan`(见 [`../zh/authz/capabilities.md` §5.5](../zh/authz/capabilities.md));它与内容读能力 `ck.event.read` 是正交两层、按 **AND** 组合(见 [`../zh/authz/capabilities.md` §9.1](../zh/authz/capabilities.md) 与 [`../zh/models/relation.md` §4.2](../zh/models/relation.md))。`ck.event.read` **MUST NOT** 被当作授予该服务面。因此本 §4.7 表的 canonical actions 只列内容层能力(`read` → `ck.event.read`),服务面 scope 由 §4.6 的 `granted_scope` 承载,二者不混写。另注意 E2EE 边界:E2EE Realm 中 `read` 预设不含内容解密能力——agent 的 E2EE access MUST 作为独立 MLS member 表达(§4.6),`ck.event.read` grant 只界定读取 surface 可返回的 event envelope 范围;低于 Realm 粒度的 resource selector 收窄由读取 surface 的投递过滤 enforce,不构成密码学隔离(见 [`../zh/authz/capabilities.md` §9.1](../zh/authz/capabilities.md)「Membership 派生读取与受托读取」)。
 
 Draft-only 只表示"agent 提出候选内容,等待 controller 批准"。它本身不是"在当前 Strand 内开一个隐形私聊"。若产品需要 controller 与 agent 围绕某个 Strand / Message 位置持续对话,见 CKP-0009 `Agent Sidecar Thread`。
 

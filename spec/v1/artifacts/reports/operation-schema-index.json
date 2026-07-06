@@ -140,6 +140,7 @@
           "requested_scope",
           "agent_key_authorization_ref",
           "agent_scope_request",
+          "dpop_binding_proof",
           "applet_delegation",
           "proof"
         ],
@@ -343,17 +344,21 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_request_body",
         "schema_kind": "object",
         "required": [
-          "agent_principal_id",
-          "verification_method",
-          "public_key",
-          "proof_of_possession"
-        ],
-        "properties": [
+          "pairing_request_id",
           "agent_principal_id",
           "verification_method",
           "public_key",
           "proof_of_possession",
-          "runtime_attestation"
+          "authorize_event"
+        ],
+        "properties": [
+          "pairing_request_id",
+          "agent_principal_id",
+          "verification_method",
+          "public_key",
+          "proof_of_possession",
+          "runtime_attestation",
+          "authorize_event"
         ],
         "closed": true
       },

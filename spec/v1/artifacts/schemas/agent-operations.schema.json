@@ -23,6 +23,9 @@
       "$ref": "#/$defs/agent_provision_outcome"
     },
     {
+      "$ref": "#/$defs/agent_pairing_bootstrap"
+    },
+    {
       "$ref": "#/$defs/agent_list"
     },
     {
@@ -405,12 +408,18 @@
     "agent_key_pair_request_body": {
       "type": "object",
       "required": [
+        "pairing_request_id",
         "agent_principal_id",
         "verification_method",
         "public_key",
-        "proof_of_possession"
+        "proof_of_possession",
+        "authorize_event"
       ],
       "properties": {
+        "pairing_request_id": {
+          "$ref": "#/$defs/opaque_local_id",
+          "description": "Single-use pairing artifact id returned by agent_provision_outcome. Profile-local, short-lived and not a durable protocol object ref."
+        },
         "agent_principal_id": {
           "$ref": "#/$defs/did"
         },
@@ -425,6 +434,12 @@
         },
         "runtime_attestation": {
           "$ref": "#/$defs/runtime_attestation"
+        },
+        "authorize_event": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": true,
+          "description": "Fully-signed ck.agent.key.authorize Event envelope approved by the controller or policy engine. Required so key activation never depends on an unaudited pairing side effect."
         }
       },
       "additionalProperties": false
@@ -489,6 +504,84 @@
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_pairing_bootstrap": {
+      "type": "object",
+      "description": "One-time bootstrap material handed to a personal agent runtime after provisioning. This is not a session grant, capability grant or long-term secret.",
+      "required": [
+        "schema",
+        "cokret_base_url",
+        "service_did",
+        "agent_principal_id",
+        "pairing_request_id",
+        "pairing_code",
+        "pairing_expires_at",
+        "requested_scope",
+        "service_scope",
+        "content_grant_summary"
+      ],
+      "properties": {
+        "schema": {
+          "type": "string",
+          "const": "ck.schema.agent_pairing_bootstrap.v1"
+        },
+        "cokret_base_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "service_did": {
+          "$ref": "#/$defs/did"
+        },
+        "agent_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "pairing_request_id": {
+          "$ref": "#/$defs/opaque_local_id"
+        },
+        "pairing_code": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "pairing_expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "requested_scope": {
+          "$ref": "#/$defs/agent_key_scope",
+          "description": "Controller-approved ceiling for the runtime key. actions may include both service operation ids and content capability action tokens."
+        },
+        "service_scope": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "uniqueItems": true,
+          "description": "Service-surface operation ids the runtime may request in SessionGrantRequestBody.requested_scope, for example ck.self.events.stream.subscribe. These are independent from content capability grants."
+        },
+        "content_grant_summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "actions",
+            "grant_refs"
+          ],
+          "properties": {
+            "actions": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/non_empty_string"
+              },
+              "uniqueItems": true
+            },
+            "grant_refs": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/grant_id"
+              },
+              "uniqueItems": true
+            }
+          }
         }
       },
       "additionalProperties": false

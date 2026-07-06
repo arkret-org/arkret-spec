@@ -3489,9 +3489,9 @@ Steps:
 
 Expected:
 
-- 第 1 步 MUST NOT 为 `A` 派生任何 mention notification、inbox row、push wakeup，也 MUST NOT 把该 mention 纳入 `A` 的 `ck.self.events.subscribe` 投影；抑制只针对 `A`，对 message 的其他 human target、shared history、其它投影无影响。
+- 第 1 步 MUST NOT 为 `A` 派生任何 mention notification、inbox row、push wakeup，也 MUST NOT 把该 mention 纳入 `A` 的 `ck.self.events.stream.subscribe` 投影；抑制只针对 `A`，对 message 的其他 human target、shared history、其它投影无影响。
 - 第 2 步照常投递(controller 自己的 mention 不受此 gate，仍受 `A` 是否被授权读取该 scope 约束)。
-- 第 3 步翻转 **非追溯**：第 1 步发生在 `false` 期间的历史 mention，翻转为 `true` 后对 `A` 仍 MUST 零记录(notification / inbox row / `ck.self.events.subscribe` 投影皆无)。
+- 第 3 步翻转 **非追溯**：第 1 步发生在 `false` 期间的历史 mention，翻转为 `true` 后对 `A` 仍 MUST 零记录(notification / inbox row / `ck.self.events.stream.subscribe` 投影皆无)。
 - 第 4 步在 `true` 期间的第三方 mention 照常投递，并受 `level=muted`、blocklist、DND、rate-limit 等既有更高优先级规则约束。
 
 ## 12. Media Service Binding Vectors
