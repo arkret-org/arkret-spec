@@ -621,6 +621,34 @@ system/human -> `ck.strand.update` 或 `ck.morph.update`
 - 不保留 agent 执行审计链。
 - 高风险操作不需要 approval。
 
+### 9.1 Personal-agent 授权预设展开（normative）
+
+产品 UI / SDK MAY 暴露 personal-agent 授权预设(`read`、`draft`、`reply_as_agent`、`act_on_behalf`、`organizer`),以简化 `ck.profile.personal_agent_provisioning.v1` 下的 agent 授权输入。本节是这些预设到 canonical grant 的**权威展开定义**。
+
+预设名的语义约束(MUST):
+
+- **预设名不进入 canonical wire。** 预设只是 UI / SDK 便捷输入;server 接收与持久化的永远是 `ck.capability.grant` 的 `actions[]`、resource selector、registered constraints 与 effective validity window(§6.1)。任何 grant 校验、审计、delegation 收窄都基于展开后的 canonical 形态,MUST NOT 依赖预设名。
+- **预设是 additive shorthand,不表达 deny / cap / only。** 同时选择多个预设时，结果是各预设 action / grant template 的**并集**;预设**不**移除、上限化或否定任何其他预设授予的权限。历史命名(如 `read_only` / `draft_only`)有 deny / cap 误导性,MUST NOT 作为 normative 预设名出现。若部署需要收窄，收窄只能通过 resource selector 与 constraint 表达，不能通过预设名。
+- **实现 MUST NOT 引入未在下表登记的预设名**(例如 `write_summary` 等任意字符串)而不先在本表登记。
+- **高风险预设 MUST 展开为完整 grant template**——包含 registry 要求的 required constraints 与有限 `expires_at`,而非无约束的 action union。
+
+canonical 展开表:
+
+| 预设 | Canonical actions | Required constraints | Resource scope | 语义 / 边界 |
+| --- | --- | --- | --- | --- |
+| `read` | `ck.event.read` | 显式 resource selector(MUST) | 显式 Realm / Strand / Circle scope,MUST NOT Realm-wide 无约束 | 授予**内容层**事件投影读能力。`ck.event.read` 是 `non_event_surface` 的内容读能力,**MUST NOT** 被解释为授予 events 服务面本身——agent 要真正调用 events 查询 / 订阅 endpoint,其 **session 还 MUST 携带对应服务面 scope**(`ck.self.events.query.scan` / `ck.self.events.stream.subscribe`,§5.5;见下方「服务面 scope 与内容能力分层」)。二者按 **AND** 组合:读取 surface 由服务面 scope 授权,payload 由 `ck.event.read` + membership / history visibility 授权(见 [`../models/relation.md` §4.2](../models/relation.md))。**MUST NOT** 隐含 object content/history 读取、`ck.object.read*`、`ck.strand.read`、E2EE history key 或 MLS membership。 |
+| `read_content` / `read_history` | `ck.object.read_content` / `ck.object.read_history`(按需分别授予) | 显式 resource selector(MUST) | 同上 | 对象正文 / 历史读取是**独立的 additive 预设**,不折叠进 `read`。实现若需要"读事件+读正文",MUST 分别授予这些 action,而不是扩大 `read` 的展开集合。 |
+| `draft` | `ck.agent.draft.propose`, `ck.agent.action_request` | `expires_at`(MUST,registry required) | controller-private control surface | 允许 agent 提出候选草稿 / 动作请求，由 Principal Server materialize controller-owned `ck.agent.draft.v1` account-data(见 [`../models/private-objects.md` §4.1](../models/private-objects.md))。两个 action 均 profile-gated 于 `ck.profile.personal_agent_provisioning.v1`。**MUST NOT** 直接发布到 shared Realm / Strand(不得展开为 `ck.message.create` / `ck.strand.create` 或任何 `wire_scope=durable_event`)。 |
+| `reply_as_agent` | `ck.message.create`, `ck.reaction.add` | 显式 resource selector(MUST) | 显式 Strand / Circle scope | agent 以自身 principal identity 在授权 scope 内发消息 / 加反应。 |
+| `act_on_behalf` | `ck.message.create`(及选定 workflow actions) | controller approval / accountability 证据(MUST,见 §8)+ 有限 `expires_at`(MUST)+ resource selector narrowing + audit evidence ref | 显式 scope,MUST NOT 全 Realm 无约束 | **高风险。** `actor_id` 为 controller、`executed_by` 为 agent 的 accountable-actor 授权(§8)。MUST 携带 controller approval / accountability 约束,MUST NOT 仅做 action union。 |
+| `organizer` | `ck.strand.create`, `ck.strand.update`, `ck.relation.create`,受限 `ck.message.create` | `ck.strand.update` MUST 携带 `allowed_write_fields`(registry required);显式 resource selector(MUST) | 显式 Realm / Space scope | **中到高风险。** 结构化编排权限。包含 `ck.strand.update` 时 MUST 通过 `allowed_write_fields` 限定可写字段,MUST NOT 展开为无约束的 strand 全字段写。 |
+
+**服务面 scope 与内容能力分层(normative)。** 本展开表定义的是**内容层 capability grant**(`ck.capability.grant.actions[]`)。要真正调用某服务面 endpoint,调用方 session **MUST** 另行携带对应**服务面 scope**——例如 events 面的 `ck.self.events.query.scan` / `ck.self.events.stream.subscribe`(§5.5 服务动作),由 session 签发时 provision(personal agent 见 [`../../proposals/0008-personal-agent-provisioning.md` §4.6](../../proposals/0008-personal-agent-provisioning.md))。服务面 scope 与内容能力是**正交两层，按 AND 组合**:持有 `ck.event.read` 内容能力 **MUST NOT** 被解释为授予该服务面(§5.0 `actions[]` 逐字命中、无 subsumption),持有服务面 scope 也不授予内容读；最终可见性再叠加 membership / history visibility(见 [`../models/relation.md` §4.2](../models/relation.md))。预设展开 **MUST NOT** 把服务面 scope 混入本内容能力表——服务面授权随 session 演进，与本表解耦，二者可各自独立演进。
+
+**Membership 派生读取与受托读取(normative)。** Realm 成员的常规事件读取由 membership + history visibility + E2EE epoch policy 判定(见 [`../governance/history-visibility.md`](../governance/history-visibility.md) 与 [`../sync/service-http-binding.md`](../sync/service-http-binding.md) 中 events 读取面的授权规则),实现 **MUST NOT** 把持有显式 `ck.event.read` grant 作为成员读取的前置条件；本表 `read` 预设的 grant 形态服务于**受托主体**(personal agent 等非成员 principal)的显式窄化授权。在 E2EE Realm 中,`ck.event.read` grant 只界定读取 surface 可向该受托 session 返回的 event envelope 范围；内容可解密性由 MLS membership 决定——agent 的 E2EE access MUST 作为独立 MLS member 表达(personal agent 见 [`../../proposals/0008-personal-agent-provisioning.md` §4.6](../../proposals/0008-personal-agent-provisioning.md)),本 grant **MUST NOT** 被解释为 MLS admission 或任何 key share。低于 Realm 粒度的 resource selector 收窄由读取 surface 的投递过滤执行——实现 **MUST** 在读取 surface enforce 该过滤，且 **MUST NOT** 把该过滤宣称为密码学隔离(同 Realm 内不承诺对已入组成员的强读隔离，强读隔离必须切分 Realm,见 [`../models/realm-and-space.md` §1](../models/realm-and-space.md))。
+
+> 上表 canonical actions 与 required constraints 以 [`../../artifacts/registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 为准。当 registry 声明某 action 的 `required_constraints` 或 `risk_tier` 变化时，本表 MUST 随之更新；二者冲突时以 registry 为权威。
+
 ## 10. Delegation
 
 委托表示 subject 可以将其能力的一部分再授予第三方。

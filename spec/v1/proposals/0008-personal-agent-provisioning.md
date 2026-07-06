@@ -145,7 +145,7 @@ profile: ck.profile.personal_agent_provisioning.v1
   },
   "requested_capabilities": [
     {
-      "actions": ["ck.self.events.subscribe"],
+      "actions": ["ck.event.read"],
       "resources": [
         {
           "kind": "object",
@@ -342,7 +342,7 @@ profile: ck.profile.personal_agent_provisioning.v1
 - Pairing token MUST 短期、单次、audience-bound、request-digest-bound、可撤销。
 - Pairing endpoint MUST 校验 `verification_method` 的 DID 部分(strip fragment 与 query 后)与请求体中 `agent_principal_id` bit-identical;不匹配 MUST fail closed(`reason="verification_method_principal_mismatch"`),不得自动选用任一为准。
 - Pairing approval MUST 写入可审计的 `ck.agent.key.authorize` event。
-- 写入的 `agent_key_scope` MUST 不宽于 controller 已批准的初始 capability 与 Realm policy。
+- 写入的 `agent_key_scope` MUST 不宽于 controller 已批准的初始 capability 与 Realm policy;它覆盖**内容能力与服务面两轴**，是后续 session 服务面 scope(如 `ck.self.events.stream.subscribe`)的批准来源，该来源独立于 content capability grants(见 §4.6 与 [`../zh/authz/capabilities.md` §9.1](../zh/authz/capabilities.md))。
 - `approval_evidence` SHOULD 引用 pairing request 或 controller approval event。
 - v1 `runtime_attestation.kind` 的最低 baseline 是 `self_asserted`。Accepted profile SHOULD 把批准后的 runtime attestation 摘要写入 `ck.agent.key.authorize` payload 或可验证 refs,使 grant validator 能执行 attestation constraint。实现遇到无法解析的 attestation kind MUST fail closed。后续 TEE / SLSA / hosted workload attestation 可以作为更高级 profile 进入同一 slot,不需要再改 agent key authorization 的主线 wire。
 - **Sidecar exposure 披露(与 CKP-0009 §3 invariant 10 联动)**:在写入 `ck.agent.key.authorize` 之前的 controller approval UI 上,如果该 controller 在新 agent 将要 active 的任一 Realm 中已存在 `ck.profile.agent_sidecar_thread.v1` sidecar Circle,实现 MUST 向 controller 显式披露 "该 agent 激活后将自动获得这些 Realm 中现有 AI sidecar 私聊的访问权"(以及涉及的 Realm 列表与 sidecar 数量)。该披露是 pairing approval 的必备信息项,不能折叠进通用 capability 列表。Controller 必须能在不批准 pairing 的前提下取消该流程。
@@ -366,7 +366,7 @@ profile: ck.profile.agent_auth.v1
 ```json
 {
   "principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
-  "requested_scope": ["ck.self.events.subscribe", "ck.message.create"],
+  "requested_scope": ["ck.self.events.stream.subscribe", "ck.message.create"],
   "agent_key_authorization_ref": "ck:event:01970000-0000-7000-8000-000000000021",
   "agent_scope_request": {
     "realm_ids": ["ck:realm:01970000-0000-7000-8000-000000000000"],
@@ -398,7 +398,7 @@ Wire 影响:本提案不新增 sibling endpoint,也不引入顶层 `grant_type` 
   "principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
   "session_grant": "opaque-short-lived-token",
   "expires_at": "2026-05-26T10:30:00Z",
-  "granted_scope": ["ck.self.events.subscribe", "ck.message.create"],
+  "granted_scope": ["ck.self.events.stream.subscribe", "ck.message.create"],
   "scope_details": {
     "realm_ids": ["ck:realm:01970000-0000-7000-8000-000000000000"],
     "strand_ids": ["ck:strand:01970000-0000-7000-8000-000000000001"],
@@ -415,7 +415,7 @@ Wire 影响:本提案不新增 sibling endpoint,也不引入顶层 `grant_type` 
 - key proof MUST 绑定 challenge、audience、request canonical digest、agent principal、`verification_method`、nonce 和 expiry。
 - `request_canonical_digest` MUST 覆盖整个 session grant request 的 canonical bytes,但不包含 `proof.signature` 自身。
 - Auth Server MUST 维护 challenge / nonce replay table 或等价一次性校验状态,至少覆盖 proof `expires_at` 后的 replay grace window。已使用或过期 challenge MUST 拒绝。
-- requested scope MUST 不宽于 `agent_key_scope`、effective capability grants 与 policy constraints。
+- requested scope MUST 不宽于 `agent_key_scope` 与 policy constraints。两轴分别校验:**内容能力** action MUST 不宽于 effective capability grants;**服务面 scope**(`ck.self.*` 服务动作，如 `ck.self.events.stream.subscribe`)由 `agent_key_scope` / Realm policy 批准的服务面上界界定,**不**派生自 content capability grants(见 [`../zh/authz/capabilities.md` §9.1](../zh/authz/capabilities.md))。
 - accountable actor、controller principal 与 agent principal MUST 未 deactivated、未 suspended,且未被 policy 阻断。Controller 进入 `deactivated` / `suspended` 后,其 accountable agent 的 active sessions MUST 通过 account lifecycle / revocation 链失效,后续 session grant MUST fail closed。
 - 签发的 session MUST short-lived、audience-bound、scope-bound、可撤销。
 - Agent session grant 默认最大 TTL SHOULD 为 15 分钟。Deployment MAY 声明更短 TTL;若声明更长 TTL,必须通过 profile 暴露上限、风险理由和额外 revocation freshness 要求,且不应超过 60 分钟。
@@ -447,13 +447,15 @@ controller 通过人类 UI 在带外批准。批准会产生新的 capability / 
 
 | 模式 | Actor identity | 典型动作 | 主要风险 |
 | --- | --- | --- | --- |
-| `read` | agent | `ck.self.events.subscribe`, `ck.event.read`, object read actions | 低到中,取决于 data class |
+| `read` | agent | `ck.event.read`(仅事件投影读;object content/history 读是独立预设,不隐含) | 低到中,取决于 data class |
 | `draft` | agent -> controller-private control surface | 候选 `ck.agent.draft.propose` / `ck.agent.action_request`;由 Principal Server materialize controller-owned `ck.agent.draft.v1` account data | 发布/共享写入风险低;机密性风险取决于 read scope,可高 |
 | `reply_as_agent` | agent | `ck.message.create`, `ck.reaction.add` | 中 |
 | `act_on_behalf` | controller 作为 `actor_id`,agent 作为 `executed_by` | `ck.message.create`,选定 workflow actions | 高 |
 | `organizer` | agent | `ck.strand.create`, `ck.strand.update`, `ck.relation.create`,受限 `ck.message.create` | 中到高 |
 
-上述模式只用于 UI / SDK 预设。Server 接收和持久化的是 §4.9 中的 capability actions、resource selectors、constraints 与 TTL;模式名本身不进入 canonical wire。
+上述模式只用于 UI / SDK 预设,本表仅作背景与风险叙述。**canonical 展开(每个预设到 `actions[]` / required constraints / resource scope 的权威映射)以 [`../zh/authz/capabilities.md` §9.1](../zh/authz/capabilities.md) 为准。** Server 接收和持久化的是 §4.9 中的 capability actions、resource selectors、constraints 与 TTL;模式名本身不进入 canonical wire。预设是 additive shorthand,多选为并集,不表达 deny / cap / only;`read` 仅覆盖事件投影读,MUST NOT 隐含 `ck.object.read*` / `ck.strand.read` / E2EE history key / MLS membership(见 §9.1)。
+
+> `read` 行早期草稿曾列出 `ck.self.events.subscribe`(未注册名);注册名是服务动作 `ck.self.events.stream.subscribe` / `ck.self.events.query.scan`(见 [`../zh/authz/capabilities.md` §5.5](../zh/authz/capabilities.md))。事件订阅 / 查询面是**服务面**,由 agent **session scope**(§4.6)授权,与内容读能力 `ck.event.read` 是正交两层、按 **AND** 组合(见 [`../zh/authz/capabilities.md` §9.1](../zh/authz/capabilities.md) 与 [`../zh/models/relation.md` §4.2](../zh/models/relation.md));`ck.event.read` **MUST NOT** 被当作授予该服务面。因此本 §4.7 表的 canonical actions 只列内容层能力(`read` → `ck.event.read`),服务面 scope 由 §4.6 的 `granted_scope` 承载,二者不混写。另注意 E2EE 边界:E2EE Realm 中 `read` 预设不含内容解密能力——agent 的 E2EE access MUST 作为独立 MLS member 表达(§4.6),`ck.event.read` grant 只界定读取 surface 可返回的 event envelope 范围;低于 Realm 粒度的 resource selector 收窄由读取 surface 的投递过滤 enforce,不构成密码学隔离(见 [`../zh/authz/capabilities.md` §9.1](../zh/authz/capabilities.md)「Membership 派生读取与受托读取」)。
 
 Draft-only 只表示"agent 提出候选内容,等待 controller 批准"。它本身不是"在当前 Strand 内开一个隐形私聊"。若产品需要 controller 与 agent 围绕某个 Strand / Message 位置持续对话,见 CKP-0009 `Agent Sidecar Thread`。
 
@@ -505,7 +507,7 @@ Accepted 后 draft-only MUST 注册 controller-owned account-data type `ck.agent
 隐私边界:
 
 - Draft storage MUST 使用 `wire_scope=actor_private_event` 的通道,例如 encrypted account data 或 actor-private stream;不得进入 shared Realm data-plane history 或 control-plane Seal history。
-- Target Realm 的 `ck.self.events.subscribe`、`ck.self.events.query`、shared reducer、Realm search index、notification fanout 和 push preview MUST NOT 返回 draft content。
+- Target Realm 的 `ck.self.events.stream.subscribe`、`ck.self.events.query.scan`、shared reducer、Realm search index、notification fanout 和 push preview MUST NOT 返回 draft content。
 - `ck.self.account.subscribe` 只能把 controller-owned approval draft 返回给 controller principal 的授权 session,以及 scope 明确包含该 draft / account-data 访问权的 agent runtime。
 - 若服务端存储 draft 明文,该部署 MUST 把明文可见服务写入 profile / policy 并向 controller 披露;默认语义 SHOULD 是服务端只保存 encrypted account data。
 - Draft 可以引用目标 `realm_id`、`strand_id`、`track_name`、`message_id` 或 cursor,但这些引用不授予目标 Realm 成员读取 draft 内容的权利。
