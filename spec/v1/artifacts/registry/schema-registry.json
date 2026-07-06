@@ -545,6 +545,12 @@
       "description": "Closed request/response DTO bundle for account pairing and native personal agent management operations."
     },
     {
+      "schema_id": "ck.schema.agent_pairing_bootstrap.v1",
+      "file": "schemas/agent-operations.schema.json",
+      "status": "active",
+      "description": "One-time bootstrap DTO for personal agent runtime pairing. Defined as agent-operations.schema.json#/$defs/agent_pairing_bootstrap."
+    },
+    {
       "schema_id": "ck.schema.applet_edge_operations.v1",
       "file": "schemas/applet-edge-operations.schema.json",
       "status": "active",
