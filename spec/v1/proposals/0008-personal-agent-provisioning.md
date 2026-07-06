@@ -208,7 +208,7 @@ profile: ck.profile.personal_agent_provisioning.v1
 - `agent_did_method`: 接受 `zh/identity/identity-did.md` 注册的 DID method 列表(典型为 `did:webvh`、`did:plc`、`did:keri`)。Method 不在该列表时 fail closed。
 - `runtime.kind`: v1 枚举 `{custom_endpoint, custodial}`。`custom_endpoint` = controller 提供 runtime URL 自托管;`custodial` = deployment 提供 hosted runtime,并按 §4.5 规则向 controller 披露 custodial-key 风险。未来 attestation profile 可扩展该枚举。未知值 fail closed。
 
-`requested_capabilities` 示例使用 canonical grant shape。产品 UI / SDK MAY 接受 §4.7 表中的预设名(`read_only`、`draft_only`、`reply_as_agent`、`act_on_behalf`、`organizer`),但服务端写入的 capability grant MUST 展开为 `actions[]`、resource selectors、registered constraints 与 TTL;预设名本身不进入 canonical wire,且实现不得引入未注册的预设名(例如 `write_summary` 等任意字符串)而不在 §4.7 表中登记。
+`requested_capabilities` 示例使用 canonical grant shape。产品 UI / SDK MAY 接受 §4.7 表中的预设名(`read`、`draft`、`reply_as_agent`、`act_on_behalf`、`organizer`),但服务端写入的 capability grant MUST 展开为 `actions[]`、resource selectors、registered constraints 与 TTL;预设名本身不进入 canonical wire,且实现不得引入未注册的预设名(例如 `write_summary` 等任意字符串)而不在 §4.7 表中登记。
 
 响应:
 
@@ -447,8 +447,8 @@ controller 通过人类 UI 在带外批准。批准会产生新的 capability / 
 
 | 模式 | Actor identity | 典型动作 | 主要风险 |
 | --- | --- | --- | --- |
-| `read_only` | agent | `ck.self.events.subscribe`, `ck.event.read`, object read actions | 低到中,取决于 data class |
-| `draft_only` | agent -> controller-private control surface | 候选 `ck.agent.draft.propose` / `ck.agent.action_request`;由 Principal Server materialize controller-owned `ck.agent.draft.v1` account data | 发布/共享写入风险低;机密性风险取决于 read scope,可高 |
+| `read` | agent | `ck.self.events.subscribe`, `ck.event.read`, object read actions | 低到中,取决于 data class |
+| `draft` | agent -> controller-private control surface | 候选 `ck.agent.draft.propose` / `ck.agent.action_request`;由 Principal Server materialize controller-owned `ck.agent.draft.v1` account data | 发布/共享写入风险低;机密性风险取决于 read scope,可高 |
 | `reply_as_agent` | agent | `ck.message.create`, `ck.reaction.add` | 中 |
 | `act_on_behalf` | controller 作为 `actor_id`,agent 作为 `executed_by` | `ck.message.create`,选定 workflow actions | 高 |
 | `organizer` | agent | `ck.strand.create`, `ck.strand.update`, `ck.relation.create`,受限 `ck.message.create` | 中到高 |
@@ -466,7 +466,7 @@ Draft-only 只表示"agent 提出候选内容,等待 controller 批准"。它本
 
 ### 4.8 Draft-only 私有存储
 
-`draft_only` 的核心语义是:agent 可以提出候选内容,但不能把候选内容提交到目标 Realm / Strand 的共享历史。Draft MUST NOT 作为 `ck.message.create`、`ck.strand.create` 或任何目标 Realm 的 `wire_scope=durable_event` 写入。
+`draft` 的核心语义是:agent 可以提出候选内容,但不能把候选内容提交到目标 Realm / Strand 的共享历史。Draft MUST NOT 作为 `ck.message.create`、`ck.strand.create` 或任何目标 Realm 的 `wire_scope=durable_event` 写入。
 
 Draft-only 至少有两类私有状态:
 

@@ -185,7 +185,7 @@ Sidecar private Strand SHOULD lazy-create。controller-Realm sidecar Circle 也 
 
 - 只打开目标 Strand 页面。
 - 只拥有某个 agent。
-- 只存在 `draft_only` account-data 草稿。
+- 只存在 `draft` account-data 草稿。
 - 只因为 agent 有 read permission 或 watch 了某个 Strand。
 
 v1 profile 固定两条 reuse 策略(canonical 定义见 §4.5.2 表):
@@ -301,7 +301,7 @@ Sidecar Circle 的 active membership MUST 收敛为:
 - 两个 sidecar private Strand `F'_{A,F1,M1}` 与 `F'_{A,F2,M2}`,二者 `scope_circle_id = C_A`。
 - 两条 sidecar private Relation `agent_sidecar_of`,分别从 `F'_{A,F1,M1}` 指向 M1、从 `F'_{A,F2,M2}` 指向 M2,`scope_circle_id` 同样指向 `C_A`。
 
-高敏感上下文若不想让某些 agent 看到对话内容,本 profile 内的唯一手段是 controller 选择不创建 sidecar(改用 `draft_only` / one-shot approval 流程),或在打开 sidecar 前 `pause` 不期望看到该对话的 agent(pause 是可恢复操作;deactivate 是 terminal,不该用于临时排除)。实现 MUST NOT 在本 profile 下为单个 sidecar 偷偷创建第二个 Circle 以绕开 invariant 9。
+高敏感上下文若不想让某些 agent 看到对话内容,本 profile 内的唯一手段是 controller 选择不创建 sidecar(改用 `draft` / one-shot approval 流程),或在打开 sidecar 前 `pause` 不期望看到该对话的 agent(pause 是可恢复操作;deactivate 是 terminal,不该用于临时排除)。实现 MUST NOT 在本 profile 下为单个 sidecar 偷偷创建第二个 Circle 以绕开 invariant 9。
 
 #### 4.5.3 历史 backfill 的密码学边界(normative)
 
