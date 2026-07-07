@@ -17,6 +17,12 @@
       "$ref": "#/$defs/agent_key_pair_outcome"
     },
     {
+      "$ref": "#/$defs/agent_runtime_approval_request_body"
+    },
+    {
+      "$ref": "#/$defs/agent_runtime_approval_outcome"
+    },
+    {
       "$ref": "#/$defs/agent_provision_request_body"
     },
     {
@@ -460,6 +466,64 @@
         },
         "authorized_event_ref": {
           "$ref": "#/$defs/event_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_runtime_approval_request_body": {
+      "type": "object",
+      "description": "Runtime-to-controller pending approval request for native personal-agent key pairing. The runtime proves possession of the local key and the short pairing code; the controller still must approve by signing ck.agent.key.authorize and submitting agent_key_pair_request_body.",
+      "required": [
+        "pairing_code",
+        "pairing_request_id",
+        "agent_principal_id",
+        "verification_method",
+        "public_key",
+        "proof_of_possession"
+      ],
+      "properties": {
+        "pairing_code": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "pairing_request_id": {
+          "$ref": "#/$defs/opaque_local_id",
+          "description": "Single-use pairing artifact id returned by agent_provision_outcome. Profile-local, short-lived and not a durable protocol object ref."
+        },
+        "agent_principal_id": {
+          "$ref": "#/$defs/did"
+        },
+        "verification_method": {
+          "$ref": "#/$defs/did_url"
+        },
+        "public_key": {
+          "$ref": "#/$defs/public_key"
+        },
+        "proof_of_possession": {
+          "$ref": "#/$defs/proof"
+        },
+        "runtime_attestation": {
+          "$ref": "#/$defs/runtime_attestation"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_runtime_approval_outcome": {
+      "type": "object",
+      "required": [
+        "ok",
+        "approval_request_id",
+        "status"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        },
+        "approval_request_id": {
+          "$ref": "#/$defs/opaque_local_id"
+        },
+        "status": {
+          "$ref": "#/$defs/agent_status"
         }
       },
       "additionalProperties": false
