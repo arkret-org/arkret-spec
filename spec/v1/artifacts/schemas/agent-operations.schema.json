@@ -26,6 +26,9 @@
       "$ref": "#/$defs/agent_pairing_bootstrap"
     },
     {
+      "$ref": "#/$defs/agent_pairing_resolve_request_body"
+    },
+    {
       "$ref": "#/$defs/agent_list"
     },
     {
@@ -538,6 +541,22 @@
         },
         "pairing_expires_at": {
           "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_pairing_resolve_request_body": {
+      "type": "object",
+      "description": "Body-only resolver input for short agent pairing handoff links. The token is obtained from a URL fragment or equivalent out-of-band channel and MUST NOT be sent in URL path or query.",
+      "required": [
+        "pairing_token"
+      ],
+      "properties": {
+        "pairing_token": {
+          "type": "string",
+          "minLength": 22,
+          "maxLength": 512,
+          "pattern": "^[A-Za-z0-9_-]+$"
         }
       },
       "additionalProperties": false

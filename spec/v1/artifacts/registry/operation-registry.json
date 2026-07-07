@@ -341,7 +341,8 @@
       "surface": "invite_locator_handoff",
       "tier": "extension",
       "operations": [
-        "ck.open.invite_locator.query.resolve"
+        "ck.open.invite_locator.query.resolve",
+        "ck.open.agent_pairing.query.resolve"
       ]
     },
     {
@@ -1651,6 +1652,16 @@
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/principal_locator_resolve_request_body",
       "response_schema_ref": "schemas/principal-locator.schema.json"
+    },
+    {
+      "operation_id": "ck.open.agent_pairing.query.resolve",
+      "http": "POST /_cokret/open/agent-pairing/resolve",
+      "grpc": "OpenAgentPairing/Resolve",
+      "mq": "open.agent_pairing.query.resolve",
+      "notes": "Resolves a short-lived agent pairing token carried out-of-band, usually as a URL fragment in a QR/link. The pairing token MUST be sent in the JSON body, never in URL path or query string; the response is the six-field agent_pairing_bootstrap.",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pairing_resolve_request_body",
+      "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pairing_bootstrap"
     },
     {
       "operation_id": "ck.open.mimi.query.group_info",

@@ -2735,6 +2735,10 @@ components:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_provision_request_body
     AgentProvisionOutcome:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_provision_outcome
+    AgentPairingBootstrap:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_pairing_bootstrap
+    AgentPairingResolveRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_pairing_resolve_request_body
     AgentProtocolDiscoverRequestBody:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_request_body
     AgentProtocolDiscoverOutcome:
@@ -5492,6 +5496,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PrincipalLocator'
+  /_cokret/open/agent-pairing/resolve:
+    post:
+      operationId: ck.open.agent_pairing.query.resolve
+      security: []
+      x-cokret-auth:
+        public_metadata: false
+        proof_in_body: true
+      summary: Resolve a short-lived agent pairing token.
+      description: |
+        Resolves an out-of-band agent pairing token into the six-field
+        agent_pairing_bootstrap. The token is sent in the JSON body; QR/link
+        handoff SHOULD carry it in the URL fragment so HTTP servers, proxies,
+        and Referer logs do not receive the token in path or query string.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentPairingResolveRequestBody'
+      responses:
+        '200':
+          description: Agent pairing bootstrap.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentPairingBootstrap'
   /_cokret/open/mimi/provider-directory:
     get:
       operationId: ck.open.mimi.query.provider_directory
