@@ -512,22 +512,14 @@
       "type": "object",
       "description": "One-time bootstrap material handed to a personal agent runtime after provisioning. This is not a session grant, capability grant or long-term secret.",
       "required": [
-        "schema",
         "cokret_base_url",
         "service_did",
         "agent_principal_id",
         "pairing_request_id",
         "pairing_code",
-        "pairing_expires_at",
-        "requested_scope",
-        "service_scope",
-        "content_grant_summary"
+        "pairing_expires_at"
       ],
       "properties": {
-        "schema": {
-          "type": "string",
-          "const": "ck.schema.agent_pairing_bootstrap.v1"
-        },
         "cokret_base_url": {
           "type": "string",
           "format": "uri"
@@ -546,42 +538,6 @@
         },
         "pairing_expires_at": {
           "$ref": "#/$defs/timestamp"
-        },
-        "requested_scope": {
-          "$ref": "#/$defs/agent_key_scope",
-          "description": "Controller-approved ceiling for the runtime key. actions may include both service operation ids and content capability action tokens."
-        },
-        "service_scope": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/non_empty_string"
-          },
-          "uniqueItems": true,
-          "description": "Service-surface operation ids the runtime may request in SessionGrantRequestBody.requested_scope, for example ck.self.events.stream.subscribe. These are independent from content capability grants."
-        },
-        "content_grant_summary": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "actions",
-            "grant_refs"
-          ],
-          "properties": {
-            "actions": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/non_empty_string"
-              },
-              "uniqueItems": true
-            },
-            "grant_refs": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/grant_id"
-              },
-              "uniqueItems": true
-            }
-          }
         }
       },
       "additionalProperties": false
