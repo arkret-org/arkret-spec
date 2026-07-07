@@ -2542,7 +2542,7 @@
         "auth_decision",
         "state_resolution"
       ],
-      "description": "A member join / invite / delivery-binding candidate failed cryptographic or policy validation before membership acceptance: signature invalid, subject / service DID mismatch, expired candidate, unresolved issuer, or missing binding proof. Reducers MUST reject the Move fail-closed rather than partially accepting membership. See zh/governance/join-policy.md \u00a75.3 and zh/identity/identity-handles.md \u00a73.7."
+      "description": "A member join / invite / delivery-binding candidate passed schema validation but failed cryptographic or semantic evidence validation before membership acceptance: signature invalid, subject / service DID mismatch, expired candidate, unresolved issuer, missing or invalid referenced service-acceptance / policy evidence, or evidence whose scope does not cover the Realm. Pure schema-level omissions and shape failures, including missing delivery_binding for a routable member, missing source-conditional binding fields, or missing / empty delivery_modes, remain schema_violation and MUST be rejected before reducer policy validation. Reducers MUST reject the Move fail-closed rather than partially accepting membership. Realm policy allowlist, source-priority, endorsement, or allow_unroutable failures use delivery_binding_policy_mismatch instead. See zh/governance/member-delivery-binding.md \u00a72 and zh/identity/identity-handles.md \u00a73.7."
     },
     {
       "code": "delivery_binding_policy_mismatch",
@@ -2551,7 +2551,7 @@
         "auth_decision",
         "state_resolution"
       ],
-      "description": "The resolved member delivery binding source or recipient_service_did conflicts with the Realm join policy allowlist / priority rules. Reducers MUST NOT fall through to a lower-priority binding source after this mismatch. See zh/governance/join-policy.md \u00a75.4."
+      "description": "The resolved member delivery binding source, recipient_service_did, endorsement set, unroutable-membership status, or selected source priority conflicts with the Realm delivery_binding_policy allowlist / priority rules. Reducers MUST NOT fall through to a lower-priority binding source after this mismatch. See zh/governance/member-delivery-binding.md \u00a72 and \u00a73.1."
     },
     {
       "code": "principal_control_event_kind_forbidden",

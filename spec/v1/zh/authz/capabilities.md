@@ -258,7 +258,7 @@ Morph 权限粒度与 Strand 平行(`ck.morph.read` / `ck.morph.create` / `ck.mo
 
 - `ck.event.read`
 - `ck.message.create`
-- `ck.message.mention.broadcast`（high risk；允许在 `ck.message.create` / `ck.message.revise` 中新增 audience mention，例如 `@all` / `@here`。必须同时持有普通消息写入授权，且 grant MUST 携带 rate-limit quota（`max_operations` + `period`），Realm / Circle policy MUST 声明允许的 audience 与 `max_recipients`；`@here` 映射为 `audience="strand_engaged"` 且不使用 presence / online 状态；详见 [`../models/strand-and-message.md` §9.4.4](../models/strand-and-message.md)）
+- `ck.message.mention.broadcast`（high risk；允许在 `ck.message.create` / `ck.message.revise` 中新增 audience mention，例如 `@all` / `@here`。必须同时持有普通消息写入授权，且 grant MUST 携带 rate-limit quota（`max_operations` + `period` + `constraint_scope`），Realm / Circle policy MUST 声明允许的 audience 与 `max_recipients`；`@here` 映射为 `audience="strand_engaged"` 且不使用 presence / online 状态；详见 [`../models/strand-and-message.md` §9.4.4](../models/strand-and-message.md)）
 - `ck.message.revise`
 - `ck.message.revise.own`
 - `ck.message.redact`
@@ -438,8 +438,8 @@ Cokret v1 支持以下约束字段（按 constraint family 分组，与 `grant-c
 
 **quota**
 
-- `rate_limit`（`max_operations` + `period`，可选 `burst`）
-- `resource_limit`（`max_resources` + `resource_type`，可选 `period`；见 [`constraint-schema.md` §8.2](./constraint-schema.md)）
+- `rate_limit`（`max_operations` + `period` + `constraint_scope`，可选 `burst`）
+- `resource_limit`（`max_resources` + `resource_type` + `constraint_scope`，可选 `period`；见 [`constraint-schema.md` §8.2](./constraint-schema.md)）
 - `blob_max_bytes`
 - `blob_presign_max_ttl_seconds`
 - `max_total_blob_bytes`
@@ -534,8 +534,9 @@ effective_expires_at = min(grant.expires_at?, temporal.expires_at[]?)
 | `delegation_scope` | `delegation_control` | — | `delegation_scope`（`narrowing_only` / `same_scope` / `custom`） |
 | `allow_scope_expansion` | `delegation_control` | — | `allow_scope_expansion` |
 | `require_parent_reference` | `delegation_control` | — | `require_parent_reference` |
-| `rate_limit` | `quota` | `rate` | `max_operations`, `period`, `burst` |
-| `max_total_blob_bytes` | `quota` | `resource` | `max_total_blob_bytes`（scope 内累计字节上限） |
+| `rate_limit` | `quota` | `rate` | `max_operations`, `period`, `constraint_scope`, `burst` |
+| `resource_limit` | `quota` | `resource` | `max_resources`, `resource_type`, `constraint_scope`（scope 内累计资源数量上限） |
+| `max_total_blob_bytes` | `quota` | `resource` | `max_total_blob_bytes`, `constraint_scope`（scope 内累计字节上限） |
 | `approval_required` | `claim_based` | `approval` | `approval_required` |
 | `approval_mode` | `claim_based` | `approval` | `approval_mode` |
 | `approval_actor_ids` | `claim_based` | `approval` | `approval_actor_ids` |

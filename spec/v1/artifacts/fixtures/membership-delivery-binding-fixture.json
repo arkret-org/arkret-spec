@@ -19,7 +19,17 @@
           "required_endorsers": [
             "did:webvh:z6mkfixture:acme.example"
           ]
-        }
+        },
+        "service_acceptance_events": [
+          {
+            "event_id": "ck:event:7d000001-0000-7000-8000-000000000000",
+            "verification_method": "did:webvh:z6mkfixture:principal.acme.example#key-1",
+            "scope_realm_id": "ck:realm:7d000000-0000-7000-8000-000000000000",
+            "endorsed_by": [
+              "did:webvh:z6mkfixture:acme.example"
+            ]
+          }
+        ]
       },
       "operation": "ck.self.events.command.submit",
       "input": {
@@ -211,7 +221,60 @@
         "outcome": "rejected",
         "reason_code": "delivery_binding_policy_mismatch",
         "must_not_try_next_binding_source": true
-      }
+      },
+      "additional_cases": [
+        {
+          "case_id": "allowlisted_service_missing_required_endorser",
+          "given_state": {
+            "realm_id": "ck:realm:7d000000-0000-7000-8000-000000000000",
+            "delivery_binding_policy": {
+              "allow_binding_sources": [
+                "explicit"
+              ],
+              "allowed_recipient_services": [
+                "did:webvh:z6mkfixture:principal.acme.example"
+              ],
+              "required_endorsers": [
+                "did:webvh:z6mkfixture:acme.example"
+              ]
+            },
+            "service_acceptance_events": [
+              {
+                "event_id": "ck:event:7d000003-0000-7000-8000-000000000000",
+                "verification_method": "did:webvh:z6mkfixture:principal.acme.example#key-1",
+                "scope_realm_id": "ck:realm:7d000000-0000-7000-8000-000000000000",
+                "endorsed_by": []
+              }
+            ]
+          },
+          "input": {
+            "event_kind": "ck.member.state",
+            "payload": {
+              "realm_id": "ck:realm:7d000000-0000-7000-8000-000000000000",
+              "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
+              "membership": "join",
+              "delivery_status": "routable",
+              "delivery_binding": {
+                "recipient_service_did": "did:webvh:z6mkfixture:principal.acme.example",
+                "recipient_service_type": "principal_server",
+                "binding_scope": "realm",
+                "binding_source": "explicit",
+                "delivery_modes": [
+                  "events",
+                  "sync"
+                ],
+                "resolved_at": "2026-05-19T10:00:00Z",
+                "service_acceptance_ref": "ck:event:7d000003-0000-7000-8000-000000000000"
+              }
+            }
+          },
+          "expected": {
+            "outcome": "rejected",
+            "reason_code": "delivery_binding_policy_mismatch",
+            "must_not_accept_allowlisted_service_without_required_endorser": true
+          }
+        }
+      ]
     }
   ]
 }

@@ -2488,7 +2488,7 @@ Input — `ck.member.state{membership="join"}` Control Move payload：
 }
 ```
 
-预设：Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_binding_sources` 包含 `explicit`、`allowed_recipient_services` 包含 `did:webvh:z6mkfixture:principal.acme.example`、`required_endorsers` 含 `did:webvh:z6mkfixture:acme.example`，`service_acceptance_ref` 引用的 Event 由 `did:webvh:z6mkfixture:principal.acme.example` 签发且 scope 覆盖该 Realm。
+预设：Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_binding_sources` 包含 `explicit`、`allowed_recipient_services` 包含 `did:webvh:z6mkfixture:principal.acme.example`、`required_endorsers` 含 `did:webvh:z6mkfixture:acme.example`，`service_acceptance_ref` 引用的 Event 由 `did:webvh:z6mkfixture:principal.acme.example` 签发且 scope 覆盖该 Realm，并由 `required_endorsers` 中的 `did:webvh:z6mkfixture:acme.example` 背书。
 
 期望：
 - reducer 接受 join Control Move；写入成员 cell。
@@ -2578,7 +2578,8 @@ Steps:
 
 1. Realm policy 不允许 `binding_source=explicit`，但 join Control Move 携带 explicit `delivery_binding`。
 2. Realm policy 声明 `allowed_recipient_services`，但 `delivery_binding.recipient_service_did` 不在集合内且没有满足 `required_endorsers` 的 proof。
-3. Realm policy 不允许 `allow_unroutable_membership`，但 join Control Move 携带 `delivery_status="unroutable"`。
+3. Realm policy 声明非空 `required_endorsers`，但 `service_acceptance_ref` 未被其中任一治理 DID 背书，即使 `recipient_service_did` 命中 `allowed_recipient_services` 或 `["*"]` 哨兵也一样。
+4. Realm policy 不允许 `allow_unroutable_membership`，但 join Control Move 携带 `delivery_status="unroutable"`。
 
 Expected:
 
@@ -2679,7 +2680,7 @@ Negative cases：
 
 - Directory 返回 `verified=false` 或 challenge / audience 不匹配 → builder MUST NOT 构造 handle-based join。
 - 返回 `subject != did` → client MUST reject `handle_subject_mismatch`。
-- 返回 `member_delivery_binding.recipient_service_did` 但 Realm `allowed_recipient_services` 不包含该 DID，且没有 required endorser 背书 → reducer MUST reject `delivery_binding_invalid`。
+- 返回 `member_delivery_binding.recipient_service_did` 但 Realm `allowed_recipient_services` 不包含该 DID，且没有 required endorser 背书 → reducer MUST reject `delivery_binding_policy_mismatch`。
 - 返回无 `member_delivery_binding.recipient_service_did` → 只能作为 DID lookup；除非 Realm policy 允许 `did_document_default` 并物化 fallback，否则 reducer MUST reject handle-based join。
 
 ## 9. Security Closure Vectors
@@ -3135,7 +3136,7 @@ Steps：
 
 1. Strand `F` 中 Alice 准备发送 Message，Message effective scope 包含 Bob、Carol、Dave、Erin、Frank，但不包含 Grace。
 2. Bob 在 `F` 的 discussion track 中有一条 active Message；Carol 的 effective watch level 为 `all`；Dave 为 `mentions_only`；Erin 为 `muted`；Frank 只有 active assignment；Grace 无读取权。
-3. Realm / Circle policy 允许 `audience="strand_engaged"`，声明有限 `max_recipients` 与 quota；Alice 同时持有 `ck.message.create` 与带 `max_operations` + `period` 的 `ck.message.mention.broadcast`。
+3. Realm / Circle policy 允许 `audience="strand_engaged"`，声明有限 `max_recipients` 与 quota；Alice 同时持有 `ck.message.create` 与带 `max_operations` + `period` + `constraint_scope` 的 `ck.message.mention.broadcast`。
 4. Alice 发送 `audience_mention{audience="strand_engaged", mention_text_original="@here"}`。另一次测试中，Bob / Carol 的 presence 状态分别在 online / offline 间切换，但其他输入不变。
 
 Expected：

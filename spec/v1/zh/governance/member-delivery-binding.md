@@ -3,7 +3,7 @@ title: Member Delivery Binding
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-07
 see_also:
   - join-policy.md
   - ../sync/federation.md
@@ -27,11 +27,11 @@ see_also:
 1. `payload.delivery_status ∈ {routable, unroutable}` 显式声明。
 2. `delivery_status="routable"` 时 `payload.delivery_binding` 必填，且其 `binding_source` 在 Realm `ck.component.realm.delivery_binding_policy.v1`（§4）的 `allow_binding_sources` 集合内。
 3. `delivery_status="unroutable"` 仅当 Realm policy 显式允许（`allow_unroutable_membership=true`）。
-4. `delivery_binding.recipient_service_did` 出现在 Realm policy 的 `allowed_recipient_services` 集合内，或该 policy 显式声明哨兵 `["*"]`（unrestricted）；否则 MUST 被 `required_endorsers` 中至少一个治理 DID 通过 `service_acceptance_ref` 引用的 acceptance Event 背书。**`allowed_recipient_services` 为空集 `[]` 时 = 拒绝（fail-closed，见 §4 字段表）**：既未命中 allowlist、又未声明 `["*"]` 哨兵、又无 `required_endorsers` 背书时，reducer MUST 拒绝该 routable join（`delivery_binding_policy_mismatch`），不得把空集解释为"不限"放行。
+4. `delivery_binding.recipient_service_did` 的服务准入 MUST 满足：该 DID 出现在 Realm policy 的 `allowed_recipient_services` 集合内，或该 policy 显式声明哨兵 `["*"]`（unrestricted），或该 DID 被 `required_endorsers` 中至少一个治理 DID 通过 `service_acceptance_ref` 引用的 acceptance Event 背书。`required_endorsers` 非空时，该背书要求独立生效：即使命中 allowlist 或 `["*"]` 哨兵，`service_acceptance_ref` 仍 MUST 被其中至少一个治理 DID 背书。**`allowed_recipient_services` 为空集 `[]` 时 = 拒绝（fail-closed，见 §4 字段表）**：既未命中 allowlist、又未声明 `["*"]` 哨兵、又无 `required_endorsers` 背书时，reducer MUST 拒绝该 routable join（`delivery_binding_policy_mismatch`），不得把空集解释为"不限"放行。
 5. `delivery_binding` 的 `binding_source`-conditional required 字段满足 [`event-payload.schema.json#/$defs/member_delivery_binding`](../../artifacts/schemas/event-payload.schema.json)（例如 `did_document_default` MUST 含 `did_document_digest`；`explicit` / `invite` / `organization_policy` MUST 含 `service_acceptance_ref`；policy-driven source MUST 含 `policy_event_ref`）。
 6. `delivery_binding.delivery_modes` 是该 binding 的**显式**模式集合；空集合或缺失等价于 schema violation。普通"全功能"成员 SHOULD 列出 `["events", "sync", "to_device", "push", "key_packages"]`。
 
-reducer 校验上述任一条失败 MUST 拒绝该 Control Move 并返回 `delivery_binding_invalid`，**不得**降级为部分接受。
+接收方 MUST 先执行 [`event-payload.schema.json#/$defs/membership_payload`](../../artifacts/schemas/event-payload.schema.json) 与 `member_delivery_binding` schema 校验。`delivery_status` 非法、`delivery_status="routable"` 但缺少 `payload.delivery_binding`、`delivery_binding` 字段结构或 conditional required 字段不满足 schema、`delivery_modes` 缺失或为空时，返回 `schema_violation`，reducer 不进入 policy validation。schema 合法后，reducer 校验上述准则失败时 MUST 拒绝该 Control Move，**不得**降级为部分接受：签名无效、subject / service DID 不匹配、候选过期、issuer 未解析、`service_acceptance_ref` / `policy_event_ref` 引用的 evidence 不存在或语义无效时，返回 `delivery_binding_invalid`；Realm policy 对 `allow_unroutable_membership`、`allow_binding_sources`、`allowed_recipient_services`、`required_endorsers` 或来源优先级的校验失败时，返回 `delivery_binding_policy_mismatch`。
 
 声明可加入 unroutable member Realm 的客户端 profile SHOULD 在 join / accept UI 中披露："该 Realm 仅向本地可见，不接收服务端推送、同步、to-device、push 或 KeyPackage 投递"。该披露是客户端 profile 义务，不参与 reducer 接受条件；reducer 的可验证判据仅为上述 policy 和 payload 条件。
 
@@ -67,7 +67,7 @@ reducer 校验上述任一条失败 MUST 拒绝该 Control Move 并返回 `deliv
 4. 若可选解析结果携带 `MemberDeliveryBindingCandidate` 或 `member_delivery_binding`，验证其 handle claim / presentation 绑定 `handle`、`subject_id`、`member_delivery_binding.recipient_service_did`、issuer、`issued_at`、`expires_at`、撤销状态与 `audience`。claim `audience` MUST 等于目标 `realm_id` 或邀请方 service DID 之一；不一致 MUST 视作未授权 claim。
 5. 将有效 delivery evidence 物化为 `payload.delivery_binding` 时，按 Realm `ck.realm.delivery_binding_policy` 选择 `binding_source`：
    - 多个来源同时可用时，reducer MUST 按固定优先级选择唯一 binding：`explicit` > `organization_policy` > `invite` > `join_policy` > `realm_policy` > `did_document_default`。
-   - 选择最高优先级来源后，若该来源不在 `allow_binding_sources` 内、`recipient_service_did` 不在 `allowed_recipient_services` 内，或缺少该来源的条件性 evidence，reducer MUST 拒绝并返回 `delivery_binding_policy_mismatch`；MUST NOT 降级尝试较低优先级来源。
+   - schema MUST 先校验该 `binding_source` 的 conditional required evidence 字段；缺少 `service_acceptance_ref` / `policy_event_ref` / `did_document_digest` 等 source-specific 必填字段时，接收方 MUST 以 `schema_violation` 拒绝，reducer 不进入来源选择或 policy validation。字段齐备后，若 evidence 引用不可解析、签名无效、scope 不覆盖目标 Realm，reducer MUST 拒绝并返回 `delivery_binding_invalid`；若该来源不在 `allow_binding_sources` 内；或 `recipient_service_did` 既不在 `allowed_recipient_services` 内、也未被 `["*"]` 哨兵覆盖、且无 `required_endorsers` 背书；或 `required_endorsers` 非空但 `service_acceptance_ref` 未被其中任一治理 DID 背书，reducer MUST 拒绝并返回 `delivery_binding_policy_mismatch`。上述失败均 MUST NOT 降级尝试较低优先级来源。
    - invite locator / invite delivery 已携带并通过接收服务背书的 binding 使用 `invite`，并携带 `service_acceptance_ref`；
    - Realm join policy 推导的 binding 使用 `join_policy`，并携带 `policy_event_ref`；
    - 组织目录 / 员工名录背书的地址使用 `organization_policy`，并携带 `service_acceptance_ref` + `policy_event_ref`；
@@ -126,7 +126,7 @@ Realm 通过独立的 `ck.realm.delivery_binding_policy` event 声明对成员�
 | `allow_binding_sources` | `enum[]` | `["did_document_default"]` for 个人 / 公开 Realm；组织 Realm 必须显式收窄 | 允许出现在被接受 binding 中的 `binding_source` 子集。 |
 | `allow_did_document_default` | `boolean` | `false` | 是否允许 binding_source=did_document_default。组织 / 合规 Realm MUST 设为 `false`。 |
 | `allowed_recipient_services` | `did[] \| ["*"]` | `[]`（**拒绝 / fail-closed**） | 允许出现在 `recipient_service_did` 的封闭集合。**默认空集 `[]` = 拒绝任意 recipient service（fail-closed）**，不再是"不限"——与本文整体 fail-closed 取向（§2 / §5 / §6）一致；漏配空集时 reducer MUST 拒绝 routable join（`delivery_binding_policy_mismatch`），不得放开任意 recipient service。需要"不限"语义时 MUST **显式声明哨兵** `["*"]`（unrestricted 标记），而非依赖空集。普通成员 binding 仍必须满足 `binding_source` / 背书等其余 §2 准则；`["*"]` 只解除 recipient service allowlist 这一维度的限制，不豁免 `required_endorsers` 等其它校验。 |
-| `required_endorsers` | `did[]` | `[]` | 当 `allowed_recipient_services` 非空时，`recipient_service_did` 的 `service_acceptance_ref` MUST 由其中一个治理 DID 背书；否则空数组表示无强制背书要求。 |
+| `required_endorsers` | `did[]` | `[]` | 非空时，`recipient_service_did` 的 `service_acceptance_ref` MUST 由其中一个治理 DID 背书；该要求独立于 `allowed_recipient_services` 与 `["*"]` 哨兵。空数组表示无强制背书要求。 |
 | `allow_unroutable_membership` | `boolean` | `false` | 是否允许 `delivery_status="unroutable"` 成员。 |
 | `rebind_authorization` | `enum(member, member_and_admin, admin_only, service_only, any)` | `member_and_admin` | rebind Control Move 的合法签名 / 背书集合（见 §6）。 |
 | `expires_after_seconds` | `int?` | unset = 不过期 | 该 Realm 中所有 binding 的最大有效期；reducer MUST 在物化时把 `delivery_binding.expires_at = resolved_at + expires_after_seconds`，除非 binding 显式声明更短的 `expires_at`。 |

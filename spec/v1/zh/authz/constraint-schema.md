@@ -3,7 +3,7 @@ title: 授权约束 Schema
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-07-07
 ---
 
 ## 0. 规范语言
@@ -66,7 +66,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | `scope_limitation` | （省略 = 普通 scope） | core | Realm / Strand / View / track 范围。 | core |
 | `scope_limitation` 带 `allowed_relation_kinds` / `allowed_*_container_refs` | — | extension | 看板 / 容器移动范围。 | `ck.profile.kanban_mvp.v1` |
 | `delegation_control` | — | core | 委托深度、路径、`delegation_scope` 等。 | core |
-| `quota` | `rate` | core | 操作频率（`max_operations` + `period` + `burst`）。 | core |
+| `quota` | `rate` | core | 操作频率（`max_operations` + `period` + `constraint_scope` + `burst`）。 | core |
 | `quota` | `resource` | extension | 资源大小 / 数量（`blob_max_bytes` / `max_resources` / `max_total_blob_bytes`）。 | `ck.profile.constraint.resource_limit.v1` |
 | `claim_based` | `claim` | extension | `requires_claims[]` 凭证 / 证明要求；包含原 `accountability`（responsible / guardian / controller 通过 claim 表达）和原 `device_session`（device binding 通过 claim issuer = device cross-signing key 表达）。 | `ck.profile.constraint.claim_based.v1` |
 | `claim_based` | `approval` | extension | 预审批 / proposal-then-approve / approval workflow。 | `ck.profile.constraint.approval_workflow.v1` |
@@ -94,7 +94,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | `delegation_control` | `grant_local` | (grant_id) | 只看 grant 自身 path / depth |
 | `quota` (`subtype=rate`) | `external` | 不可缓存 | 必须查 actor 历史计数 |
 | `quota` (`subtype=resource`，`blob_max_bytes` 单次) | `stateless` | 单次操作的字节计数无需历史 | |
-| `quota` (`subtype=resource`，`max_total_blob_bytes` 累计) | `external` | 不可缓存 | 必须查 scope 内累计 |
+| `quota` (`subtype=resource`，`max_resources` / `max_total_blob_bytes` 累计) | `external` | 不可缓存 | 必须查 scope 内累计 |
 | `claim_based` (`subtype=claim`) | `external` | 不可缓存 | 必须查 claim issuer revocation 状态 |
 | `claim_based` (`subtype=approval`) | `external` | 不可缓存 | 等待 approval event |
 | `claim_based` (`subtype=accountability`) | `grant_local` | (grant_id) | guardian / responsible 在 grant 中声明 |
@@ -354,9 +354,20 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "max_operations": 100,
   "period": "PT1H",
   "burst": 10,
-  "constraint_scope": "per_space|global"
+  "constraint_scope": "per_space"
 }
 ```
+
+`constraint_scope` 是封闭 v1 枚举，取值 MUST 属于 `{per_actor, per_space, per_realm, global}`；未注册值是 `schema_violation`，接收方 MUST fail closed。`quota` 计数器始终按 actor 绑定，并以 `grant_id` + `constraint_id`（缺失时用该 constraint 的 canonical hash）区分不同授权约束；`constraint_scope` 只选择额外切片维度：
+
+| `constraint_scope` | quota counter key |
+| --- | --- |
+| `per_actor` | `(actor_id)` |
+| `per_space` | `(actor_id, realm_id, space_id)`；操作无法确定目标 Space 时 MUST fail closed |
+| `per_realm` | `(actor_id, realm_id)`；操作无法确定目标 Realm 时 MUST fail closed |
+| `global` | `(actor_id)` across the enforcing service's global quota domain；不得把它解释为不受 actor 约束的部署级总量 |
+
+`max_operations` MUST 携带 `constraint_scope`。`period` 窗口使用 §16.1 的同一 verification time；实现不能用本地不一致时钟为不同节点生成彼此不可比较的窗口边界。
 
 ### 8.2 资源限制（subtype=resource）
 
@@ -375,6 +386,8 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 ```
 
 `blob_presign_max_ttl_seconds` 是 `ck.self.blob.command.presign` 的必需约束之一，服务端 MUST 将请求的 `max_age_seconds` 收窄到该值、deployment policy 上限和协议硬上限 3600 秒三者的最小值。`max_artifact_bytes` 限制 applet / agent / export 等操作可产生或外发的单个 artifact 大小。
+
+`max_resources` 与 `max_total_blob_bytes` 这类累计资源 quota 使用 §8.1 的同一 `constraint_scope` 枚举和 counter key 规则，二者均 MUST 携带 `constraint_scope`。`blob_max_bytes` / `max_artifact_bytes` 是单次操作上限，不需要历史计数，也不需要 `constraint_scope`。
 
 ## 9. 审批工作流（claim_based, subtype=approval）
 
@@ -576,7 +589,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 
-`blob_max_bytes` 限制单次上传 blob 的最大字节数。`max_total_blob_bytes` 限制 `constraint_scope` 内的累计 blob 大小。
+`blob_max_bytes` 限制单次上传 blob 的最大字节数。`max_total_blob_bytes` 限制 `constraint_scope` 内的累计 blob 大小；该字段 MUST 与 §8.1 的封闭 `constraint_scope` 枚举一起出现。
 
 ### 14.2 消息编辑窗口与撤回窗口
 

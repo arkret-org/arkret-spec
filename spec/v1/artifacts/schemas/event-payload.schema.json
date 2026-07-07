@@ -255,7 +255,7 @@
               "items": {
                 "$ref": "#/$defs/did"
               },
-              "description": "Closed allow-list of recipient_service_did values. Empty array [] = reject any recipient service (fail-closed): the reducer MUST reject routable joins (delivery_binding_policy_mismatch) when the recipient service is neither on this list, nor covered by the [\"*\"] sentinel, nor endorsed via required_endorsers. The empty array MUST NOT be interpreted as 'unrestricted'."
+              "description": "Closed allow-list of recipient_service_did values. Empty array [] = reject any recipient service (fail-closed): the reducer MUST reject routable joins (delivery_binding_policy_mismatch) when the recipient service is neither on this list, nor covered by the [\"*\"] sentinel, nor endorsed via required_endorsers. The empty array MUST NOT be interpreted as 'unrestricted'. Non-empty required_endorsers remains mandatory even when the service is listed here."
             },
             {
               "type": "array",
@@ -275,7 +275,7 @@
           "items": {
             "$ref": "#/$defs/did"
           },
-          "description": "When allowed_recipient_services is non-empty, the recipient_service_did's service_acceptance_ref MUST be endorsed by one of these governance DIDs. Empty array = no mandatory endorsement requirement."
+          "description": "When this array is non-empty, the recipient_service_did's service_acceptance_ref MUST be endorsed by one of these governance DIDs, regardless of allowed_recipient_services or the [\"*\"] sentinel. Empty array = no mandatory endorsement requirement."
         },
         "allow_unroutable_membership": {
           "type": "boolean",

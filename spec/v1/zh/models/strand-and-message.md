@@ -770,7 +770,7 @@ Audience expansion 的结果只用于 receiver-side notification / inbox / local
 包含 `audience_mention` 节点的 `ck.message.create` 或会新增 audience mention 的 `ck.message.revise`，MUST 同时满足：
 
 - 普通消息写入授权：actor 持有 `ck.message.create` / `ck.message.revise` 对目标 Strand discussion scope 的有效授权。
-- 广播 mention 授权：actor 额外持有 `ck.message.mention.broadcast`。该 action 是 high risk，MUST 带有限期 grant、resource selector narrowing 与 rate-limit quota（`max_operations` + `period`）；持有该 action 本身不授权发送消息。
+- 广播 mention 授权：actor 额外持有 `ck.message.mention.broadcast`。该 action 是 high risk，MUST 带有限期 grant、resource selector narrowing 与 rate-limit quota（`max_operations` + `period` + `constraint_scope`）；持有该 action 本身不授权发送消息。
 - Realm / Circle policy 明确允许对应 `audience`，并声明有限 `max_recipients`、时间窗口 quota 和超过阈值时的处理（deny / require_review / quarantine）。若 effective policy 未声明 audience mention 策略，dispatcher 与 reducer admission MUST 按禁用处理。
 - Dispatcher MUST 在 fanout 前计算 `recipient_count`，并在超过 effective `max_recipients`、rate limit 或 review gate 时拒绝通知派发；不得先推送再异步撤回。
 - 自动化 actor / agent 使用 audience mention 时，Realm policy SHOULD 要求 `accountability_required` 或等价负责主体约束，并 SHOULD 采用更低 quota。

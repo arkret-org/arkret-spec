@@ -653,7 +653,8 @@
       "risk_tier": "high",
       "required_constraints": [
         "max_operations",
-        "period"
+        "period",
+        "constraint_scope"
       ],
       "required_evaluator_checks": [
         "message_create_or_revise_authorized",

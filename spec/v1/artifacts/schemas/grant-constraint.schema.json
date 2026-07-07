@@ -533,7 +533,14 @@
       "minimum": 0
     },
     "constraint_scope": {
-      "type": "string"
+      "type": "string",
+      "enum": [
+        "per_actor",
+        "per_space",
+        "per_realm",
+        "global"
+      ],
+      "description": "Closed v1 quota counting scope. Unknown values are schema violations and MUST fail closed. Quota counters are actor-bound; the enum selects the additional slicing dimension: actor only, actor+space, actor+realm, or actor across the enforcing service's global quota domain."
     },
     "max_resources": {
       "type": "integer",
@@ -766,6 +773,45 @@
       "then": {
         "required": [
           "subtype"
+        ]
+      }
+    },
+    {
+      "$comment": "Rate quotas need an explicit counting scope; otherwise SDKs cannot derive a stable counter key.",
+      "if": {
+        "required": [
+          "max_operations"
+        ]
+      },
+      "then": {
+        "required": [
+          "constraint_scope"
+        ]
+      }
+    },
+    {
+      "$comment": "Cumulative resource quotas need an explicit counting scope; single-operation fields such as blob_max_bytes do not.",
+      "if": {
+        "required": [
+          "max_total_blob_bytes"
+        ]
+      },
+      "then": {
+        "required": [
+          "constraint_scope"
+        ]
+      }
+    },
+    {
+      "$comment": "Cumulative resource-count quotas need an explicit counting scope.",
+      "if": {
+        "required": [
+          "max_resources"
+        ]
+      },
+      "then": {
+        "required": [
+          "constraint_scope"
         ]
       }
     }
