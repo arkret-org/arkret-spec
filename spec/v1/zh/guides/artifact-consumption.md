@@ -59,9 +59,9 @@ Soland 是 Principal Server，不是协议 registry 的来源。
 - 对没有手写强语义 validator 的 active event kind，Soland 应 fallback 到 SDK artifact payload validator。
 - `src/kinds.rs` 中的常量应逐步缩为 server-local alias 和 readable match arms；新增 standard event kind 不应要求先修改 `kinds.rs` 才能被识别。
 
-## Yougen
+## Inkson
 
-Yougen 是客户端，不应重新解释协议安全事实。
+Inkson 是客户端，不应重新解释协议安全事实。
 
 - Agent audit binding、authz delegation、lattice pre-check、account data shape 应优先消费 SDK helper。
 - UI 可以持有 view-model 和 local cache；`client.ui`、`client.blocklist`、profile gate 结果应能 roundtrip 到 server account data 或 server describe。

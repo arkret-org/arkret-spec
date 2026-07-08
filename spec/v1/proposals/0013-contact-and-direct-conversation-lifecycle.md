@@ -239,7 +239,7 @@ DM 主 Strand MUST:
 3. 增补 direct conversation binding、DM Realm profile、DM main Strand binding,并注册 pair key canonical encoding。
 4. 注册 `ck.contact.*` 与 `ck.self.direct_conversation.resolve` operation,同步 OpenAPI、operation registry、error mapping。
 5. soland 将 `/_soland/self/contacts/*` 迁移到 `/_cokret/self/contacts/*`,内部 contacts 表降级为 projection/cache,不得再作为真源。
-6. yougen 从硬编码 `_soland` endpoint 迁移到 catalog operation;联系人列表展示 `state`、方向化 consent scopes 与 direct conversation 入口三层。
+6. inkson 从硬编码 `_soland` endpoint 迁移到 catalog operation;联系人列表展示 `state`、方向化 consent scopes 与 direct conversation 入口三层。
 7. cotest 增加 conformance:
    - requester 不能替 target 写 contact accepted 或 consent grant;
    - pending/rejected/tombstoned 不得从 consent active/no-consent 伪造;
@@ -262,4 +262,4 @@ DM 主 Strand MUST:
 
 - 姊妹提案:[CKP-0012 Account Self-Service Operations](./0012-account-and-contact-self-operations.md)(分拆来源)。
 - `zh/identity/consent-model.md`、`zh/discovery/discovery-directory.md`、`zh/models/relation.md`、`zh/models/realm-and-space.md`、`zh/models/strand-and-message.md`。
-- 下游:[`yougen/src/api/account.rs`](../../../../yougen/src/api/account.rs)(`_soland/self/contacts/*` 硬编码现状)。
+- 下游:[`inkson/src/api/account.rs`](../../../../inkson/src/api/account.rs)(`_soland/self/contacts/*` 硬编码现状)。

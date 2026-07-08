@@ -1,6 +1,6 @@
 ---
 ckp: CKP-0014
-title: Implementation-local HTTP surfaces found in coauth / yougen audit
+title: Implementation-local HTTP surfaces found in coauth / inkson audit
 normative: false
 stability: v1
 updated: 2026-06-16
@@ -21,7 +21,7 @@ merged_to:
   - artifacts/openapi/cokret-service-api.openapi.yaml
 ---
 
-# CKP-0014: Implementation-local HTTP surfaces found in coauth / yougen audit
+# CKP-0014: Implementation-local HTTP surfaces found in coauth / inkson audit
 
 > **Status: accepted and merged 2026-06-16.** This proposal is now historical
 > rationale. The normative source of truth is `zh/` plus `artifacts/`; do not
@@ -29,7 +29,7 @@ merged_to:
 
 ## 1. Scope
 
-The 2026-06 coauth / yougen audit found several implementation-local URLs that
+The 2026-06 coauth / inkson audit found several implementation-local URLs that
 were previously documented, mocked, or called as if they belonged to the Cokret
 HTTP namespace. This proposal lists the concrete candidates that need a protocol
 decision before any implementation can expose them as `/_cokret/*`.
@@ -83,9 +83,9 @@ These were observed as soland-local ingest surfaces:
 Open question: whether they should map to existing event submission /
 federation transaction operations instead of receiving dedicated HTTP bindings.
 
-## 5. Client self-service candidates from yougen
+## 5. Client self-service candidates from inkson
 
-yougen still has product scaffold code for device management, recovery UI,
+inkson still has product scaffold code for device management, recovery UI,
 media signaling, Circle administration, and local projection helpers. These need
 separate protocol decisions before they can be Cokret HTTP bindings:
 
@@ -142,7 +142,7 @@ account-data blocklist, telemetry) stay draft and are deferred to later waves;
 none of them is registered as a `ck.self.*` operation yet. In particular the
 canonical account-data surface is the verbatim, opaque
 `ck.self.account_data.*` family at `/_cokret/self/account_data/{data_type}`,
-which is **not** the same as the yougen `POST /_cokret/self/account-data/blocklist`
+which is **not** the same as the inkson `POST /_cokret/self/account-data/blocklist`
 helper listed above.
 
 ## 6. Admin / operations surface adjudication (2026-06 sodmin audit)

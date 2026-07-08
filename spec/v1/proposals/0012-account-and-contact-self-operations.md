@@ -37,7 +37,7 @@ merged_to:
 - **账户一次性自读 / profile 更新**落 `self` 段(`/_cokret/self/account/*`);
 - **账户注册 / 自助 logout**落认证入口段 `gate`(`/_cokret/gate/account/*`)——账户创建与会话撤销属认证生命周期,不落 `self`。
 
-当前 yougen 通过硬编码 soland 私有路径(`/_soland/self/account/me`、`/_soland/gate/auth/logout` 等,见 [`yougen/src/api/account.rs`](../../../../yougen/src/api/account.rs))访问这些能力,使其退化为 **soland 专用客户端**,而非通用 Cokret 客户端。本提案补齐对应协议 operation,消除该耦合。
+当前 inkson 通过硬编码 soland 私有路径(`/_soland/self/account/me`、`/_soland/gate/auth/logout` 等,见 [`inkson/src/api/account.rs`](../../../../inkson/src/api/account.rs))访问这些能力,使其退化为 **soland 专用客户端**,而非通用 Cokret 客户端。本提案补齐对应协议 operation,消除该耦合。
 
 非目标:不引入新 Realm event / reducer 行为;不动 wire 加密路径;不收编 admin 面(`/_soland/admin/*` 按 CHANGELOG 2026-06-04 仍属实现产品面);联系人关系见 CKP-0013。
 
@@ -65,8 +65,8 @@ ck.gate.account.oidc_callback   ck.gate.account.agent_key_pair
 
 证据表明 soland 实现层早已使用一批未进 catalog 的 operation id:
 
-- yougen [`api/account.rs`](../../../../yougen/src/api/account.rs) 注释:profile 更新 "Mirrors soland's `ck.self.account.update_profile` wire shape";硬编码 `_soland/self/account/{register,me,profile}`、`_soland/gate/auth/logout`。
-- yougen [`api/keys.rs`](../../../../yougen/src/api/keys.rs) 注释:设备吊销 "NOT spec's `ck.admin.revoke_device`"。
+- inkson [`api/account.rs`](../../../../inkson/src/api/account.rs) 注释:profile 更新 "Mirrors soland's `ck.self.account.update_profile` wire shape";硬编码 `_soland/self/account/{register,me,profile}`、`_soland/gate/auth/logout`。
+- inkson [`api/keys.rs`](../../../../inkson/src/api/keys.rs) 注释:设备吊销 "NOT spec's `ck.admin.revoke_device`"。
 
 即协议与实现已出现**事实漂移**:实现自定义 operation 名,但协议 catalog 不承认。本提案把其中应属协议层的部分正式化,把应属产品层的部分明确划走。
 
@@ -120,11 +120,11 @@ ck.gate.account.oidc_callback   ck.gate.account.agent_key_pair
 
 直接采纳 soland 已用的 `ck.self.account.update_profile` operation 名,但不采纳 soland 临时 DTO 作为 v1 wire。v1 wire 必须沿用 Actor Profile 的 canonical 字段名:头像引用是 `avatar_blob_ref`(`id:blob`),任意展示扩展进入 `profile_fields.<key>`;不得新增 `avatar` / `avatar_ref` / `avatar_url` 作为 canonical 字段。需要兼容 `avatar_url` 的实现 MAY 在 `_soland` 兼容层或 migration adapter 中把 URL 上传 / 解析为 Blob 后写入 `avatar_blob_ref`,但 `/_cokret/self/account/profile` 的协议请求不得接受 URL 作为头像真相源。
 
-`patch` MUST 原子应用,并复用 [`event-and-patch.md`](../zh/models/event-and-patch.md) §4 的路径语法、`set` / `unset` / `add` / `remove` 语义与 reducer-managed 字段保护。`display_name` 写入后必须满足 [`actor-profile.schema.json`](../artifacts/schemas/actor-profile.schema.json) 的长度约束;清空可选字段使用 `$op:"unset"`。`bio` 不是 Actor Profile 顶层 canonical 字段;soland / yougen 现有 `bio` MUST 迁移为 `profile_fields.bio`。下列路径 MUST reject:`handle`、`status`、`principal_id`、`actor_kind`、`accountable_principal_ids`、任何 authorization / lifecycle / handle claim 字段。Handle 仍只来自 signed `ck.schema.handle_claim.v1`,不得通过 profile patch 设置、覆盖或撤销。
+`patch` MUST 原子应用,并复用 [`event-and-patch.md`](../zh/models/event-and-patch.md) §4 的路径语法、`set` / `unset` / `add` / `remove` 语义与 reducer-managed 字段保护。`display_name` 写入后必须满足 [`actor-profile.schema.json`](../artifacts/schemas/actor-profile.schema.json) 的长度约束;清空可选字段使用 `$op:"unset"`。`bio` 不是 Actor Profile 顶层 canonical 字段;soland / inkson 现有 `bio` MUST 迁移为 `profile_fields.bio`。下列路径 MUST reject:`handle`、`status`、`principal_id`、`actor_kind`、`accountable_principal_ids`、任何 authorization / lifecycle / handle claim 字段。Handle 仍只来自 signed `ck.schema.handle_claim.v1`,不得通过 profile patch 设置、覆盖或撤销。
 
 `ck.self.account.update_profile` 是 holder-bound service wrapper,不是新的 profile 真相源。服务端接受后 MUST 写入或等价产生 `ck.profile.update` / Actor Profile projection;不得只修改实现私有 account 表再把它伪装成 canonical profile。
 
-**与既有投影面的协同(已收敛)**:yougen 现实现把 profile 更新**同时**镜像到 (a) directory 的可发现 profile、(b) 跨设备 account-data(`client.ui.avatar_blob_ref`)。v1 已将该副作用边界收敛为: `ck.self.account.update_profile` 只承诺更新 server 侧 canonical profile,不隐式触发 `ck.find.directory.announce` 或 `ck.account_data.set`。需要可发现 profile 或跨设备 UI/avatar 状态同步的客户端 / 服务,必须继续显式走对应 Directory / Account Data 路径,直到后续 profile 另行声明更强 fan-out 契约。
+**与既有投影面的协同(已收敛)**:inkson 现实现把 profile 更新**同时**镜像到 (a) directory 的可发现 profile、(b) 跨设备 account-data(`client.ui.avatar_blob_ref`)。v1 已将该副作用边界收敛为: `ck.self.account.update_profile` 只承诺更新 server 侧 canonical profile,不隐式触发 `ck.find.directory.announce` 或 `ck.account_data.set`。需要可发现 profile 或跨设备 UI/avatar 状态同步的客户端 / 服务,必须继续显式走对应 Directory / Account Data 路径,直到后续 profile 另行声明更强 fan-out 契约。
 
 ### 3.4 `ck.gate.account.session_revoke` — 自助 logout
 
@@ -145,7 +145,7 @@ ck.gate.account.oidc_callback   ck.gate.account.agent_key_pair
 
 ## 4. Non-goals / 仅迁移、不新增 operation
 
-下列 yougen 现有 `_soland/` 调用**已有协议等价 operation**,只需迁移调用、无需新增:
+下列 inkson 现有 `_soland/` 调用**已有协议等价 operation**,只需迁移调用、无需新增:
 
 | 现状(soland 私有) | 应改用(已存在) |
 | --- | --- |
@@ -172,15 +172,15 @@ ck.gate.account.oidc_callback   ck.gate.account.agent_key_pair
 - `operations-error-mapping.json`(`invalid_avatar_blob_ref`、`unsupported_profile_patch_path`、`session_grant_not_found`、`session_revoke_selector_conflict` 等错误映射);
 - `zh/sync/service-http-binding.md`:`/_cokret/self/account/*` 行扩展 `viewer`/`profile`;`/_cokret/gate/account/*` 行扩展 `register`/`session-grants/revoke`;
 - `zh/sync/service-surface.md` Principal Server / Auth Server surface 列表;
-- 下游 soland(把上述端点同时挂到 `/_cokret/...` 或迁移)、yougen(改调协议路径 + wire shape)、cotest(契约测试)。
+- 下游 soland(把上述端点同时挂到 `/_cokret/...` 或迁移)、inkson(改调协议路径 + wire shape)、cotest(契约测试)。
 
 下游迁移必须显式处理以下 wire break,不得只改 URL:
 
-- register:yougen / soland 现状 `{ did, handle, display_name, device_id }` 必须迁移为 `{ principal_id, display_name?, device_id?, proof? }`;`did` → `principal_id`;裸 `handle` 删除。首次 handle 只能经 issuer / coauth 签发的 `ck.schema.handle_claim.v1` 或 claim digest/ref 返回,不得继续由 register body 设置。
-- update_profile:yougen / soland 现状 `{ display_name, bio, avatar_url }` 必须迁移为 `{ patch }`;`bio` → `profile_fields.bio`;`avatar_url` 由兼容层上传 / 解析为 Blob 后写 `avatar_blob_ref`,或由客户端直接提交 `avatar_blob_ref`。
+- register:inkson / soland 现状 `{ did, handle, display_name, device_id }` 必须迁移为 `{ principal_id, display_name?, device_id?, proof? }`;`did` → `principal_id`;裸 `handle` 删除。首次 handle 只能经 issuer / coauth 签发的 `ck.schema.handle_claim.v1` 或 claim digest/ref 返回,不得继续由 register body 设置。
+- update_profile:inkson / soland 现状 `{ display_name, bio, avatar_url }` 必须迁移为 `{ patch }`;`bio` → `profile_fields.bio`;`avatar_url` 由兼容层上传 / 解析为 Blob 后写 `avatar_blob_ref`,或由客户端直接提交 `avatar_blob_ref`。
 - update_profile 副作用:在 §6 Q3 合入前,客户端切到 `/_cokret/self/account/profile` 后仍 MUST 另行保留必要的 `ck.find.directory.announce` / `ck.account_data.set` 调用,以维持可发现 profile 与跨设备头像 / UI state 同步;不得因换端点而静默丢失 directory 可见性或 account-data fan-out。
 
-本提案四项 operation 的核心边界已钉死,可独立合入,直接解 yougen 对 `_soland/self/account/*` 与 `_soland/gate/auth/logout` 的硬编码,不依赖 CKP-0013。`update_profile` 的 directory / account-data fan-out 是否纳入契约仍按 §6 Q3 作为后续增强;在纳入前,该 operation 只承诺更新 server canonical profile。
+本提案四项 operation 的核心边界已钉死,可独立合入,直接解 inkson 对 `_soland/self/account/*` 与 `_soland/gate/auth/logout` 的硬编码,不依赖 CKP-0013。`update_profile` 的 directory / account-data fan-out 是否纳入契约仍按 §6 Q3 作为后续增强;在纳入前,该 operation 只承诺更新 server canonical profile。
 
 ## 6. Open questions
 

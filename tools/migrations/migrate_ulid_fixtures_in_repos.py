@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Migrate ULID-shaped test/example IDs to UUIDv7 across implementation repos
-(soland, yougen, floria, chime, sodmin, cotest, cokret-rust-sdk).
+(soland, inkson, floria, chime, sodmin, cotest, cokret-rust-sdk).
 
 Reuses the typed-prefix-anchored regex from migrate_ulid_to_uuid7.py to
 restrict replacements to actual `ck:<kind>:<26-char>` references and quoted
@@ -25,7 +25,7 @@ REPOS = [
     # scid, internal admin tokens) that are NOT Cokret typed UUIDs and would
     # break at parse if blanket-converted.
     "soland",
-    "yougen",
+    "inkson",
     "floria",
     "chime",
     "sodmin",

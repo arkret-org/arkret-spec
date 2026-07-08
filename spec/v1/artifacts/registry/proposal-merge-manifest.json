@@ -211,7 +211,7 @@
     },
     {
       "ckp": "CKP-0014",
-      "title": "Implementation-local HTTP surfaces found in coauth / yougen audit",
+      "title": "Implementation-local HTTP surfaces found in coauth / inkson audit",
       "status": "accepted_merged",
       "merged_on": "2026-06-16",
       "proposal_file": "proposals/0014-implementation-local-http-surfaces.md",
