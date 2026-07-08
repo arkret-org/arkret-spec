@@ -396,6 +396,9 @@ POST /_cokret/edge/push/notify
 | `notification.route_tokens.scope_route_token` | string | optional（routing-stripped） | effective Realm / Circle scope 的 opaque token；不得携带 Circle id、`effective_scope` 对象或其它可识别 scope 原文。 |
 | `notification.route_tokens.mention_redirect_target_route_tokens` | string[] | optional（routing-stripped） | mention-redirect 路由 allow-list。非空时每个 `devices[].target_route_token` MUST 出现在此列表，否则该设备 fail-closed（不调 provider、不解密正文）。接收方据此 token 列表完成等值比较，无需解密正文，也不会向第三方 gateway 暴露 actor DID。 |
 | `notification.route_tokens.delivery_binding_frontier_token` | string | optional（routing-stripped） | federation hop 来源 notify 的 stale-route 检测 token；不得携带 raw Realm frontier。 |
+| `notification.event_id` | id:event | visible-only required | profile-gated Event id。仅 visible notification 形态必填，绝不进 blind 或 provider 出向 payload。 |
+| `notification.realm_id` | id:realm | visible-only required | profile-gated Realm id。仅 visible notification 形态必填，绝不进 blind 或 provider 出向 payload。 |
+| `notification.sender_actor_id` | did | visible-only required | profile-gated 发送者 actor DID。仅 visible notification 形态必填，绝不进 blind 或 provider 出向 payload。 |
 | `notification.strand_id` | id:strand | visible-only | profile-gated Strand id。绝不进 blind。 |
 | `notification.message_id` | id:message | visible-only | profile-gated Message id。绝不进 blind。 |
 | `notification.sender_actor_display_name` | string | visible-only | profile-gated 发送者显示名。绝不进 blind（§2.2 已列入 MUST NOT 清单）。 |
@@ -434,7 +437,7 @@ Matrix 互通部署 MAY 声明 `ck.profile.push_gateway.matrix_passthrough.v1` �
 ```json
 {
   "notification": {
-    "push_target_id": "ck_push_pseudo_01js0pt0000000000000000000",
+    "push_target_id": "ck:pseudonym:push:01js0pt0000000000000000000",
     "wakeup_kind": "message",
     "counts": {
       "badge": "2-5",

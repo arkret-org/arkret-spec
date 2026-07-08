@@ -58,8 +58,8 @@
     },
     "push_target_id": {
       "type": "string",
-      "pattern": "^[A-Za-z0-9._:-]{16,256}$",
-      "description": "Pairwise pseudonym for one (recipient_service_did, principal, device, push_route) tuple. It MUST NOT be a DID, DID URL, Realm id, Strand id, Message id, Event id, or stable cross-Realm correlation key."
+      "pattern": "^ck:pseudonym:push:[A-Za-z0-9_-]{22,128}$",
+      "description": "Typed pairwise pseudonym for one (recipient_service_did, principal, device, push_route) tuple. It MUST NOT be a DID, DID URL, Realm id, Strand id, Message id, Event id, or stable cross-Realm correlation key."
     },
     "push_route_token": {
       "type": "string",
