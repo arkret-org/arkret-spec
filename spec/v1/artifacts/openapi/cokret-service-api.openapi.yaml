@@ -253,36 +253,770 @@ components:
       schema:
         type: string
   schemas:
-    ActorDid:
-      type: string
-      pattern: ^did:[a-z0-9]+:[^\s#?]+$
-      description: Bare DID used as a Cokret actor/principal identifier. DID URL fragments belong in verification_method, not actor_id/principal_id.
-    ServiceDid:
-      type: string
-      pattern: ^did:[a-z0-9]+:[^\s#?]+$
-      description: Bare DID identifying a service endpoint.
-    RealmId:
-      type: string
-      pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-    StrandId:
-      type: string
-      pattern: ^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-    EventId:
-      type: string
-      pattern: ^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-    DeviceId:
-      type: string
-      pattern: ^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-    GrantId:
-      type: string
-      pattern: ^ck:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-    Cursor:
-      type: string
-      pattern: ^ck:cursor:[A-Za-z0-9_-]+$
+    AccountDataDeleteOutcome:
+      $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_delete_outcome
+    AccountDataEntry:
+      $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_entry
+    AccountDataList:
+      $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_list
+    AccountDataReplaceRequestBody:
+      $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_replace_request_body
+    AccountDeviceEnrollOutcome:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/account_device_enroll_outcome
+    AccountDeviceEnrollRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/account_device_enroll_request_body
+    AccountDevicePairOutcome:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/account_device_pair_outcome
+    AccountDevicePairRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body
     AccountId:
       type: string
       pattern: ^[A-Za-z0-9._:-]{1,128}$
       description: Deployment-local account identifier. It is not a Cokret principal DID and not a protocol object typed ID.
+    AccountLogoutOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutOutcome
+    AccountLogoutRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutRequestBody
+    AccountOidcCallbackOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome
+    AccountOidcCallbackRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody
+    AccountRegisterOutcome:
+      $ref: ../schemas/account-operations.schema.json#/$defs/account_register_outcome
+    AccountRegisterRequestBody:
+      $ref: ../schemas/account-operations.schema.json#/$defs/account_register_request_body
+    AccountSubscribeFrame:
+      $ref: ../schemas/account-subscribe-frame.schema.json
+    AccountUpdateProfileOutcome:
+      $ref: ../schemas/account-operations.schema.json#/$defs/account_update_profile_outcome
+    AccountUpdateProfileRequestBody:
+      $ref: ../schemas/account-operations.schema.json#/$defs/account_update_profile_request_body
+    AccountView:
+      $ref: ../schemas/account-operations.schema.json#/$defs/account_view
+    ActorDid:
+      type: string
+      pattern: ^did:[a-z0-9]+:[^\s#?]+$
+      description: Bare DID used as a Cokret actor/principal identifier. DID URL fragments belong in verification_method, not actor_id/principal_id.
+    ActorProfile:
+      $ref: ../schemas/actor-profile.schema.json
+    AgentDeactivateRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_deactivate_request_body
+    AgentGrantAttachOutcome:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_grant_attach_outcome
+    AgentGrantAttachRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_grant_attach_request_body
+    AgentGrantDetachOutcome:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_grant_detach_outcome
+    AgentKeyPairOutcome:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_key_pair_outcome
+    AgentKeyPairRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_key_pair_request_body
+    AgentLifecycleState:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state
+    AgentList:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_list
+    AgentPairingBootstrap:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_pairing_bootstrap
+    AgentPairingResolveRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_pairing_resolve_request_body
+    AgentParticipationOutcome:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_participation_outcome
+    AgentParticipationReplaceRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_participation_replace_request_body
+    AgentPauseRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_pause_request_body
+    AgentProtocolDiscoverOutcome:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_outcome
+    AgentProtocolDiscoverRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_request_body
+    AgentProvisionOutcome:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_provision_outcome
+    AgentProvisionRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_provision_request_body
+    AgentResumeRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_resume_request_body
+    AgentRotateKeyOutcome:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_rotate_key_outcome
+    AgentRotateKeyRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_rotate_key_request_body
+    AgentSidecarThreadEnsureOutcome:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_outcome
+    AgentSidecarThreadEnsureRequestBody:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_request_body
+    AgentView:
+      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_view
+    AppletActorView:
+      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_actor_view
+    AppletInstallOutcome:
+      $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_install_outcome
+    AppletInstallPlan:
+      $ref: ../schemas/applet-install-plan.schema.json
+    AppletInstallPreviewRequestBody:
+      $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_install_preview_request_body
+    AppletInstallRequestBody:
+      $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_install_request_body
+    AppletPingOutcome:
+      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_ping_outcome
+    AppletProtocolMetadata:
+      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_protocol_metadata
+    AppletRealmView:
+      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view
+    AppletRevokeOutcome:
+      $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_revoke_outcome
+    AppletRevokeRequestBody:
+      $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_revoke_request_body
+    AppletThirdPartyLocationList:
+      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_location_list
+    AppletThirdPartyUserList:
+      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_user_list
+    AppletTransactionOutcome:
+      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_outcome
+    AppletTransactionRequestBody:
+      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body
+    AuthSessionLogoutOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutOutcome
+    AuthSessionLogoutRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutRequestBody
+    AuthzCheckOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckOutcome
+    AuthzCheckRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckRequestBody
+    AuthzInviteList:
+      $ref: ../schemas/authz-operations.schema.json#/$defs/authz_invite_list
+    BlobUploadOutcome:
+      $ref: ../schemas/blob-operations.schema.json#/$defs/blob_upload_outcome
+    BlobUploadRequestBody:
+      $ref: ../schemas/blob-operations.schema.json#/$defs/blob_upload_request_body
+    BooleanFilter:
+      $ref: ../schemas/query.schema.json#/$defs/boolean_filter
+    BottomDiagnostic:
+      $ref: ../schemas/bottom.schema.json
+    CellQueryEnvelope:
+      type: object
+      description: 'Wire envelope for state-query / projection responses on a single
+        cell. `status` MUST be `value` when the join is defined, `bottom` when the
+        cell resolved to ⊥ on a `bottom=reject` lattice (caller MUST treat as
+        fail-closed), and `conflict` when a `bottom=expose` lattice surfaces
+        candidate heads to the projection / UI without selecting a winner. See
+        zh/sync/service-surface.md §5.3 and zh/authz/event-auth-state-resolution.md
+        §5.1.'
+      required:
+      - cell
+      - status
+      properties:
+        cell:
+          type: string
+          pattern: ^ck:cell:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*$
+        status:
+          type: string
+          enum:
+          - value
+          - bottom
+          - conflict
+        value:
+          description: 'Effective Lattice value when status=value. Shape is
+            cell-type specific (or_set members, mv_register tuple, cas_register
+            atom, fsm state, counter integer, ordered_log tail).'
+        heads:
+          type: array
+          uniqueItems: true
+          description: Candidate heads when status=conflict on a `bottom=expose`
+            cell. Receivers MUST NOT use this for authorization decisions.
+          items: true
+        bottom:
+          $ref: '#/components/schemas/BottomDiagnostic'
+        seal_view:
+          type: object
+          description: Seal leaves / state_root the value or bottom was
+            observed under. Mirrors `bottom.seal_view` when status≠value.
+          required:
+          - leaves
+          properties:
+            leaves:
+              type: array
+              minItems: 1
+              uniqueItems: true
+              items:
+                type: string
+                pattern: ^ck:seal:sha256:[0-9a-f]{64}$
+            state_root:
+              type: string
+              pattern: ^sha256:[0-9a-f]{64}$
+          additionalProperties: false
+      additionalProperties: true
+    CircleCreateRequestBody:
+      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_create_request_body
+    CircleLifecycleRequestBody:
+      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body
+    CircleList:
+      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_list
+    CircleMemberRequestBody:
+      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_member_request_body
+    CircleMembershipOutcome:
+      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_membership_outcome
+    CircleScopeRotateOutcome:
+      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_outcome
+    CircleView:
+      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_view
+    CollectionCrosstabGroupSource:
+      type: object
+      required:
+      - model
+      - row_key
+      - column_key
+      properties:
+        model:
+          type: string
+          const: crosstab_cell
+        row_key:
+          type: string
+          minLength: 1
+        column_key:
+          type: string
+          minLength: 1
+      additionalProperties: false
+    CollectionCrosstabPosition:
+      type: object
+      required:
+      - model
+      - row_key
+      - column_key
+      - sort_key
+      properties:
+        model:
+          type: string
+          const: crosstab_cell
+        row_key:
+          type: string
+          minLength: 1
+        column_key:
+          type: string
+          minLength: 1
+        sort_key:
+          type: string
+          minLength: 1
+      additionalProperties: false
+    CollectionFieldValueGroupSource:
+      type: object
+      required:
+      - model
+      - field
+      - value
+      properties:
+        model:
+          type: string
+          const: field_value
+        field:
+          type: string
+          pattern: ^[a-zA-Z0-9_]+(\.[a-zA-Z0-9_]+)*$
+        value:
+          oneOf:
+          - type: string
+          # lint-waiver(type:number): CollectionFieldValueGroupSource.value is a UI/query
+          # filter parameter accepting whatever the projected field's runtime type is. It
+          # does not enter canonical Event bytes. A follow-up wire revision MAY migrate
+          # decimal-needing field types to {integer, scale} envelope; see _todos.md T2-3.
+          - type: number
+          - type: boolean
+      additionalProperties: false
+    CollectionFieldValuePosition:
+      type: object
+      required:
+      - model
+      - container_id
+      - rank
+      properties:
+        model:
+          type: string
+          const: field_value
+        container_id:
+          type: string
+          minLength: 1
+        rank:
+          type: string
+          pattern: ^[0-9A-Za-z]{1,128}$
+      additionalProperties: false
+    CollectionGroupSource:
+      oneOf:
+      - $ref: '#/components/schemas/CollectionFieldValueGroupSource'
+      - $ref: '#/components/schemas/CollectionRelationGroupSource'
+      - $ref: '#/components/schemas/CollectionTimeBucketGroupSource'
+      - $ref: '#/components/schemas/CollectionCrosstabGroupSource'
+    CollectionProjectionGroup:
+      type: object
+      required:
+      - key
+      - title
+      - source
+      - items
+      - limited
+      properties:
+        key:
+          type: string
+          minLength: 1
+        title:
+          type: string
+          minLength: 1
+        rank:
+          type: string
+          pattern: ^[0-9A-Za-z]{1,128}$
+        source:
+          $ref: '#/components/schemas/CollectionGroupSource'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectionItem'
+        next_cursor:
+          oneOf:
+          - type: string
+            pattern: ^ck:cursor:[A-Za-z0-9_-]+$
+          - type: 'null'
+        limited:
+          type: boolean
+        wip_state:
+          type: string
+          enum:
+          - ok
+          - over_limit
+          - unknown
+        total_estimate:
+          type: integer
+          minimum: 0
+      allOf:
+      - if:
+          properties:
+            source:
+              properties:
+                model:
+                  const: field_value
+              required:
+              - model
+          required:
+          - source
+        then:
+          properties:
+            items:
+              type: array
+              items:
+                allOf:
+                - $ref: '#/components/schemas/ProjectionItem'
+                - type: object
+                  required:
+                  - position
+                  properties:
+                    position:
+                      $ref: '#/components/schemas/CollectionFieldValuePosition'
+      - if:
+          properties:
+            source:
+              properties:
+                model:
+                  const: relation_container
+              required:
+              - model
+          required:
+          - source
+        then:
+          properties:
+            items:
+              type: array
+              items:
+                allOf:
+                - $ref: '#/components/schemas/ProjectionItem'
+                - type: object
+                  required:
+                  - position
+                  properties:
+                    position:
+                      $ref: '#/components/schemas/CollectionRelationPosition'
+      - if:
+          properties:
+            source:
+              properties:
+                model:
+                  const: time_bucket
+              required:
+              - model
+          required:
+          - source
+        then:
+          properties:
+            items:
+              type: array
+              items:
+                allOf:
+                - $ref: '#/components/schemas/ProjectionItem'
+                - type: object
+                  required:
+                  - position
+                  properties:
+                    position:
+                      $ref: '#/components/schemas/CollectionTimeWindowPosition'
+      - if:
+          properties:
+            source:
+              properties:
+                model:
+                  const: crosstab_cell
+              required:
+              - model
+          required:
+          - source
+        then:
+          properties:
+            items:
+              type: array
+              items:
+                allOf:
+                - $ref: '#/components/schemas/ProjectionItem'
+                - type: object
+                  required:
+                  - position
+                  properties:
+                    position:
+                      $ref: '#/components/schemas/CollectionCrosstabPosition'
+      additionalProperties: false
+    CollectionProjectionView:
+      $ref: ../schemas/view.schema.json#/$defs/collection_projection_view
+    CollectionRelationGroupSource:
+      type: object
+      required:
+      - model
+      - scope_container_id
+      - container_id
+      - relation_kind
+      properties:
+        model:
+          type: string
+          const: relation_container
+        scope_container_id:
+          type: string
+          pattern: ^ck:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        container_id:
+          type: string
+          pattern: ^ck:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        relation_kind:
+          type: string
+          minLength: 1
+      additionalProperties: false
+    CollectionRelationPosition:
+      type: object
+      required:
+      - model
+      - scope_container_id
+      - container_id
+      - relation_kind
+      - relation_id
+      - rank
+      properties:
+        model:
+          type: string
+          const: relation
+        scope_container_id:
+          type: string
+          pattern: ^ck:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        container_id:
+          type: string
+          pattern: ^ck:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        relation_kind:
+          type: string
+          minLength: 1
+        relation_id:
+          type: string
+          pattern: ^ck:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        rank:
+          type: string
+          pattern: ^[0-9A-Za-z]{1,128}$
+      additionalProperties: false
+    CollectionTimeBucketGroupSource:
+      type: object
+      required:
+      - model
+      - start
+      - end
+      - timezone
+      properties:
+        model:
+          type: string
+          const: time_bucket
+        start:
+          type: string
+          format: date-time
+          pattern: Z$
+        end:
+          type: string
+          format: date-time
+          pattern: Z$
+        timezone:
+          type: string
+          minLength: 1
+      additionalProperties: false
+    CollectionTimeWindowPosition:
+      type: object
+      required:
+      - model
+      - start
+      - sort_key
+      properties:
+        model:
+          type: string
+          const: time_window
+        start:
+          type: string
+          format: date-time
+          pattern: Z$
+        end:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        timezone:
+          type: string
+          minLength: 1
+        sort_key:
+          type: string
+          minLength: 1
+      additionalProperties: false
+    CompositeProjectionView:
+      type: object
+      required:
+      - projection
+      - view_id
+      - widgets
+      - frontier
+      properties:
+        projection:
+          type: string
+          const: composite
+        renderer:
+          $ref: '#/components/schemas/ViewRenderer'
+        view_id:
+          type: string
+          pattern: ^ck:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        realm_id:
+          type: string
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        frontier:
+          $ref: '#/components/schemas/StateFrontier'
+        widgets:
+          type: array
+          items:
+            $ref: '#/components/schemas/CompositeProjectionWidget'
+        stale:
+          type: boolean
+      additionalProperties: false
+    CompositeProjectionWidget:
+      type: object
+      required:
+      - id
+      - title
+      - projection
+      - frontier
+      properties:
+        id:
+          type: string
+          minLength: 1
+        title:
+          type: string
+          minLength: 1
+        projection:
+          type: string
+          enum:
+          - collection
+          - timeline
+          - graph
+          - document
+          - composite
+        renderer:
+          $ref: '#/components/schemas/ViewRenderer'
+        frontier:
+          $ref: '#/components/schemas/StateFrontier'
+        result:
+          type: object
+        error:
+          $ref: '#/components/schemas/ErrorEnvelope'
+      additionalProperties: false
+    ConsentCellList:
+      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_cell_list
+    ConsentCellView:
+      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_cell_view
+    ConsentRequestRequestBody:
+      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_request_request_body
+    ConsentUpdateRequestBody:
+      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_update_request_body
+    ContactList:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_list
+    ContactRequestOutcome:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_request_outcome
+    ContactRequestRequestBody:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_request_request_body
+    ContactRespondOutcome:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_respond_outcome
+    ContactRespondRequestBody:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_respond_request_body
+    ContactTombstone:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_tombstone
+    ContactTombstoneRequestBody:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_tombstone_request_body
+    Cursor:
+      type: string
+      pattern: ^ck:cursor:[A-Za-z0-9_-]+$
+    DeviceId:
+      type: string
+      pattern: ^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+    DeviceMessageEnvelope:
+      $ref: ../schemas/device-message.schema.json
+    DeviceMessagesAckOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckOutcome
+    DeviceMessagesAckRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckRequestBody
+    DeviceMessagesGetOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetOutcome
+    DeviceMessagesSendOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendOutcome
+    DeviceMessagesSendRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendRequestBody
+    DeviceMessageTarget:
+      type: object
+      required:
+      - kind
+      - expires_at
+      - content
+      properties:
+        kind:
+          type: string
+          pattern: ^ck\.[a-z0-9_]+(\.[a-z0-9_]+)*$
+        content:
+          type: object
+        expires_at:
+          type: string
+          format: date-time
+          pattern: Z$
+      additionalProperties: false
+    DidOperationSubmitOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitOutcome
+    DidOperationSubmitRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody
+    DirectConversationResolveOutcome:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_outcome
+    DirectConversationResolveRequestBody:
+      $ref: ../schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_request_body
+    DirectoryActorSearchOutcome:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_actor_search_outcome
+    DirectoryAgentSelectorResolutionOutcome:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_agent_selector_resolution_outcome
+    DirectoryAnnounceOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome
+    DirectoryAnnounceRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody
+    DirectoryHandleResolutionOutcome:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_handle_resolution_outcome
+    DirectoryListHandlesForSubjectRequestBody:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_list_handles_for_subject_request_body
+    DirectoryOrganizationResolutionOutcome:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_organization_resolution_outcome
+    DirectoryOrganizationSearchOutcome:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_organization_search_outcome
+    DirectoryPrivateContactDiscoveryOutcome:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_outcome
+    DirectoryPrivateContactDiscoveryRequestBody:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_request_body
+    DirectoryPushRegisterOutcome:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_push_register_outcome
+    DirectoryPushRegisterRequestBody:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_push_register_request_body
+    DirectoryRealmResolutionOutcome:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_realm_resolution_outcome
+    DirectoryRealmSearchOutcome:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_realm_search_outcome
+    DirectoryResolveAgentSelectorRequestBody:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_resolve_agent_selector_request_body
+    DirectoryResolveHandleRequestBody:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_resolve_handle_request_body
+    DirectoryResolveOrganizationRequestBody:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_resolve_organization_request_body
+    DirectoryResolveRealmRequestBody:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_resolve_realm_request_body
+    DirectoryResolveTargetRequestBody:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_resolve_target_request_body
+    DirectorySearchActorsRequestBody:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_search_actors_request_body
+    DirectorySearchOrganizationsRequestBody:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_search_organizations_request_body
+    DirectorySearchRealmsRequestBody:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_search_realms_request_body
+    DirectorySearchUsersRequestBody:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_search_users_request_body
+    DirectorySubjectHandleList:
+      $ref: ../schemas/list-handles-for-subject-response.schema.json
+    DirectoryTakedownAppealOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealOutcome
+    DirectoryTakedownAppealRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealRequestBody
+    DirectoryTargetResolutionOutcome:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_target_resolution_outcome
+    DirectoryUserSearchOutcome:
+      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_user_search_outcome
+    DirectoryWithdrawOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawOutcome
+    DirectoryWithdrawRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody
+    DocumentMorphProjectionOutcome:
+      $ref: ../schemas/view.schema.json#/$defs/document_morph_projection_outcome
+    DocumentProjectionSection:
+      type: object
+      required:
+      - object
+      - sort_key
+      properties:
+        object:
+          $ref: '#/components/schemas/ProjectionObject'
+        sort_key:
+          type: string
+          minLength: 1
+        depth:
+          type: integer
+          minimum: 0
+        body:
+          type: object
+        redacted:
+          type: boolean
+      additionalProperties: false
+    DocumentProjectionView:
+      type: object
+      required:
+      - projection
+      - view_id
+      - sections
+      - frontier
+      properties:
+        projection:
+          type: string
+          const: document
+        renderer:
+          $ref: '#/components/schemas/ViewRenderer'
+        view_id:
+          type: string
+          pattern: ^ck:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        realm_id:
+          type: string
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        frontier:
+          $ref: '#/components/schemas/StateFrontier'
+        sections:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentProjectionSection'
+        next_cursor:
+          oneOf:
+          - type: string
+            pattern: ^ck:cursor:[A-Za-z0-9_-]+$
+          - type: 'null'
+        stale:
+          type: boolean
+      additionalProperties: false
+    EphemeralSubmitOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EphemeralSubmitOutcome
     ErrorEnvelope:
       type: object
       required:
@@ -452,6 +1186,596 @@ components:
               type: object
         request_id:
           type: string
+    EventId:
+      type: string
+      pattern: ^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+    EventsFrontierAccountClientState:
+      type: object
+      description: Account-client ck.self.events.query.frontier response.
+      required:
+      - frontier
+      properties:
+        frontier:
+          type: object
+          description: |
+            Either an actor frontier (`{actor_id, actor_seq, event_id}`) or a
+            Realm frontier (`{realm_id, seal_id, control_event_set_root,
+            state_root, hlc?}`) shape depending on which selector was passed;
+            servers MUST NOT leak frontiers across visibility boundaries.
+            The Realm shape is the registered account-client source for
+            minting a single-leaf Control Move `seal_basis`
+            (`leaves=[seal_id]`) and a DataEvent `seal_ref`; for the caller's
+            own principal control realm the Principal Server MUST serve it.
+            Clients MUST fail closed when this source is unavailable.
+        receipts:
+          type: array
+          items:
+            type: object
+      additionalProperties: false
+    EventsFrontierFederationPeerState:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerState
+    EventsFrontierState:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierState
+    EventsQueryOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome
+    EventsResolveOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsResolveOutcome
+    EventsResolveRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody
+    EventsSubmitBatchRequestBody:
+      type: object
+      description: Batch ck.self.events.command.submit request used by account clients.
+      required:
+      - events
+      properties:
+        events:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/EventSubmitEnvelope'
+      additionalProperties: false
+    EventsSubmitFederationRequestBody:
+      type: object
+      description: Federation service-to-service ck.peer.events.command.submit request body.
+      required:
+      - service_binding_ref
+      - events
+      properties:
+        service_binding_ref:
+          $ref: '#/components/schemas/FederationServiceBindingRef'
+        events:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/EventSubmitEnvelope'
+      additionalProperties: false
+    EventsSubmitOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome
+    EventsSubscribeFrame:
+      type: object
+      description: 'One NDJSON line emitted by ck.events.subscribe. Per-kind constraints
+        mirror service-http-binding.md §3.4 and align in strictness with account-subscribe-frame.schema.json:
+        `event` carries realm_id + cursor + payload; `frontier` / `catchup_complete`
+        carry cursor (realm_id present = that Realm''s frontier/catchup, absent =
+        whole subscription); `epoch_rotation` is a realm-scoped boundary hint (realm_id
+        + payload, no cursor); `dropped` requires a usable recovery cursor + realm_id
+        — if no cursor exists, servers MUST emit `resync_required` instead; `resync_required`
+        / `unauthorized` carry no cursor (realm_id present = realm-scoped, absent
+        = whole subscription / session); `heartbeat` carries nothing.'
+      required:
+      - kind
+      properties:
+        kind:
+          type: string
+          enum:
+          - event
+          - frontier
+          - heartbeat
+          - catchup_complete
+          - epoch_rotation
+          - dropped
+          - resync_required
+          - unauthorized
+        realm_id:
+          type: string
+        cursor:
+          type: string
+          description: Stream cursor. REQUIRED on event / frontier / catchup_complete
+            / dropped; forbidden on epoch_rotation / resync_required / unauthorized
+            / heartbeat.
+        payload:
+          type: object
+        reconnect_after_ms:
+          type: integer
+          minimum: 1
+          description: Optional server-directed minimum delay before opening another ck.self.events.stream.subscribe stream for the same caller/selector scope. MAY appear only on dropped and resync_required frames; clients MUST wait at least this delay before reconnecting, and servers MUST reject earlier reconnect attempts with 429 plus Retry-After.
+      allOf:
+      - if:
+          properties:
+            kind:
+              const: event
+          required:
+          - kind
+        then:
+          required:
+          - realm_id
+          - cursor
+          - payload
+      - if:
+          properties:
+            kind:
+              const: epoch_rotation
+          required:
+          - kind
+        then:
+          required:
+          - realm_id
+          - payload
+          not:
+            required:
+            - cursor
+      - if:
+          properties:
+            kind:
+              enum:
+              - frontier
+              - catchup_complete
+          required:
+          - kind
+        then:
+          required:
+          - cursor
+          not:
+            required:
+            - payload
+      - if:
+          properties:
+            kind:
+              const: dropped
+          required:
+          - kind
+        then:
+          required:
+          - realm_id
+          - cursor
+          not:
+            required:
+            - payload
+      - if:
+          properties:
+            kind:
+              const: resync_required
+          required:
+          - kind
+        then:
+          not:
+            anyOf:
+            - required:
+              - cursor
+            - required:
+              - payload
+      - if:
+          properties:
+            kind:
+              const: unauthorized
+          required:
+          - kind
+        then:
+          not:
+            anyOf:
+            - required:
+              - cursor
+            - required:
+              - payload
+            - required:
+              - reconnect_after_ms
+      - if:
+          properties:
+            kind:
+              const: heartbeat
+          required:
+          - kind
+        then:
+          not:
+            anyOf:
+            - required:
+              - realm_id
+            - required:
+              - cursor
+            - required:
+              - payload
+            - required:
+              - reconnect_after_ms
+      - if:
+          properties:
+            kind:
+              enum:
+              - event
+              - frontier
+              - catchup_complete
+              - epoch_rotation
+          required:
+          - kind
+        then:
+          not:
+            required:
+            - reconnect_after_ms
+      additionalProperties: false
+    EventStateView:
+      type: object
+      description: Per-event protocol-state field surfaced on /account/subscribe and /events
+        responses (zh/sync/service-surface.md §5.3, zh/authz/event-auth-state-resolution.md
+        §13). Implementations MUST attach this on every reducer-input Event
+        included in a timeline/state response so clients can render fail-closed
+        UI without recomputing the join.
+      required:
+      - event_id
+      - event_digest
+      - event_state
+      properties:
+        event_id:
+          type: string
+          pattern: ^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        event_digest:
+          type: string
+          description: Canonical hash of the event's canonical bytes (excluding
+            proofs and unsigned); equals proof.event_digest. Used as the Seal
+            frontier item for this event. Algorithm family aligned with
+            schemas/seal.schema.json#/$defs/event_digest — active digest
+            suites per registry/digest-suite-registry.json (v1 sha256 / blake3,
+            64 hex).
+          pattern: ^(?:sha256|blake3):[0-9a-f]{64}$
+        event_state:
+          type: string
+          enum:
+          - data_local
+          - data_observed
+          - control_pending
+          - control_sealed
+          - failed_precondition
+          - failed_plane
+          - failed_bottom
+          - rejected_seal
+          - fork_quarantine
+          - stale_seal_ref
+        bottom:
+          $ref: '#/components/schemas/BottomDiagnostic'
+      additionalProperties: false
+    EventSubmitEnvelope:
+      allOf:
+      - $ref: ../schemas/event-envelope.schema.json
+      - type: object
+        not:
+          anyOf:
+          - required:
+            - actor_kind
+          - required:
+            - effective_scope
+        description: |
+          Actor-supplied ck.self.events.command.submit input envelope. It reuses the base Event
+          shape for actor intent fields but forbids reducer-managed accepted-output
+          projections such as actor_kind and effective_scope. Services stamp those
+          fields only after accept and expose them on read/query/sync envelopes.
+    EventView:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventView
+    FacetName:
+      type: string
+      enum:
+      - container
+      - replyable
+      - schedulable
+      - assignable
+      - stateful
+      - rankable
+      - reviewable
+      - notifiable
+      - documentable
+      - renderable
+    FederationServiceBindingRef:
+      type: object
+      description: |
+        Request-level service binding snapshot carried by federation
+        service-to-service ck.peer.events.command.submit calls. This is metadata for the
+        receiver to verify the sender's delivery decision; client writes omit it.
+      required:
+      - realm_id
+      - realm_policy_digest
+      - membership_frontier
+      - delivery_binding_frontier
+      - destination_service_type
+      - reducer_profile_digest
+      properties:
+        realm_id:
+          type: string
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        realm_policy_digest:
+          type: string
+          pattern: ^sha256:[0-9a-f]{64}$
+        membership_frontier:
+          type: array
+          items:
+            type: string
+            pattern: ^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        delivery_binding_frontier:
+          type: array
+          items:
+            type: string
+            pattern: ^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        delivery_binding_diagnostics:
+          type: object
+          additionalProperties: true
+        destination_service_type:
+          type: string
+          minLength: 1
+        reducer_profile_digest:
+          type: string
+          description: SHA-256 over the Cokret canonical JSON bytes of the matching digest_input object in artifacts/registry/reducer-profile-registry.json. Receivers recompute from their effective Realm reducer profile and reject the whole federation batch with reducer_profile_mismatch on mismatch.
+          pattern: ^sha256:[0-9a-f]{64}$
+      additionalProperties: false
+    FieldFilter:
+      $ref: ../schemas/query.schema.json#/$defs/field_filter
+    GhostActorProvisionOutcome:
+      $ref: ../schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_outcome
+    GhostActorProvisionRequestBody:
+      $ref: ../schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body
+    GrantId:
+      type: string
+      pattern: ^ck:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+    GrantList:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/GrantList
+    GraphProjectionEdge:
+      type: object
+      required:
+      - relation_id
+      - relation_kind
+      - from_ref
+      - to_ref
+      properties:
+        relation_id:
+          type: string
+          pattern: ^ck:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        relation_kind:
+          type: string
+          minLength: 1
+        from_ref:
+          type: string
+          pattern: ^(ck:(realm|space|circle|strand|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
+        to_ref:
+          type: string
+          pattern: ^(ck:(realm|space|circle|strand|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
+        rank:
+          type: string
+          pattern: ^[0-9A-Za-z]{1,128}$
+        truncated:
+          type: boolean
+      additionalProperties: false
+    GraphProjectionNode:
+      type: object
+      required:
+      - object
+      - depth
+      properties:
+        object:
+          $ref: '#/components/schemas/ProjectionObject'
+        depth:
+          type: integer
+          minimum: 0
+        lazy:
+          type: boolean
+        truncated:
+          type: boolean
+      additionalProperties: false
+    GraphProjectionView:
+      type: object
+      required:
+      - projection
+      - view_id
+      - nodes
+      - edges
+      - frontier
+      properties:
+        projection:
+          type: string
+          const: graph
+        renderer:
+          $ref: '#/components/schemas/ViewRenderer'
+        view_id:
+          type: string
+          pattern: ^ck:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        realm_id:
+          type: string
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        frontier:
+          $ref: '#/components/schemas/StateFrontier'
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphProjectionNode'
+        edges:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphProjectionEdge'
+        next_cursor:
+          oneOf:
+          - type: string
+            pattern: ^ck:cursor:[A-Za-z0-9_-]+$
+          - type: 'null'
+        limited:
+          type: boolean
+        stale:
+          type: boolean
+      additionalProperties: false
+    HandleClaim:
+      $ref: ../schemas/handle-claim.schema.json
+    IdentityDocumentView:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/IdentityDocumentView
+    IdentityLogListOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/IdentityLogListOutcome
+    IdentityReceiptListOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/IdentityReceiptListOutcome
+    IdentityResolveOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveOutcome
+    InboxView:
+      type: object
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectionItem'
+        next_cursor:
+          type: string
+        frontier:
+          $ref: '#/components/schemas/StateFrontier'
+      additionalProperties: false
+    InviteDeliveryOutcome:
+      $ref: ../schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome
+    InviteDeliveryRequest:
+      $ref: ../schemas/invite-delivery-request.schema.json
+    InviteReceivePolicy:
+      $ref: ../schemas/invite-receive-policy.schema.json
+    KeyPackagesClaimOutcome:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_outcome
+    KeyPackagesClaimRequestBody:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_request_body
+    KeyPackagesConsumeOutcome:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_outcome
+    KeyPackagesConsumeRequestBody:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_request_body
+    KeyPackagesRevokeOutcome:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_outcome
+    KeyPackagesRevokeRequestBody:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_request_body
+    KeyPackagesUploadOutcome:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_outcome
+    KeyPackagesUploadRequestBody:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_request_body
+    KeysBackupsDeleteOutcome:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_delete_outcome
+    KeysBackupsDeleteRequestBody:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_delete_request_body
+    KeysBackupsList:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_list
+    KeysBackupsReplaceOutcome:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_replace_outcome
+    KeysBackupsUnlockRequestBody:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_request_body
+    KeysClaimOutcome:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_claim_outcome
+    KeysClaimRequestBody:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_claim_request_body
+    KeysQueryOutcome:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_query_outcome
+    KeysQueryRequestBody:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_query_request_body
+    KeysUploadOutcome:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_upload_outcome
+    KeysUploadRequestBody:
+      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_upload_request_body
+    MediaIceConfigOutcome:
+      $ref: ../schemas/ice-config-response.schema.json
+    MediaIceConfigRequestBody:
+      $ref: ../schemas/media-operations.schema.json#/$defs/media_ice_config_request_body
+    MimiGroupInfoOutcome:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_group_info_outcome
+    MimiIdentifierQueryOutcome:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_outcome
+    MimiIdentifierQueryRequestBody:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_request_body
+    MimiKeyMaterialOutcome:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_key_material_outcome
+    MimiKeyMaterialRequestBody:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body
+    MimiNotifyOutcome:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_notify_outcome
+    MimiNotifyRequestBody:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_notify_request_body
+    MimiProxyDownloadOutcome:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_outcome
+    MimiProxyDownloadRequestBody:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_request_body
+    MimiReportAbuseOutcome:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_outcome
+    MimiReportAbuseRequestBody:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_request_body
+    MimiRequestConsentOutcome:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_outcome
+    MimiRequestConsentRequestBody:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_request_body
+    MimiRoomUpdateOutcome:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_room_update_outcome
+    MimiRoomUpdateRequestBody:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_room_update_request_body
+    MimiSubmitMessageOutcome:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_outcome
+    MimiSubmitMessageRequestBody:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_request_body
+    MimiUpdateConsentOutcome:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_outcome
+    MimiUpdateConsentRequestBody:
+      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body
+    ModerationQueueView:
+      type: object
+      required:
+      - items
+      - has_more
+      properties:
+        items:
+          type: array
+          items:
+            $ref: ../schemas/moderation-queue-item.schema.json
+        next_cursor:
+          type: string
+        has_more:
+          type: boolean
+        counts:
+          type: object
+      additionalProperties: false
+    ModerationReportOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ModerationReportOutcome
+    NotificationProjectionView:
+      type: object
+      required:
+      - notifications
+      properties:
+        notifications:
+          type: array
+          items:
+            $ref: ../schemas/notification.schema.json
+        counts:
+          type: object
+        next_cursor:
+          type: string
+      additionalProperties: false
+    ObjectLookupOutcome:
+      type: object
+      required:
+      - object
+      - visibility
+      properties:
+        object:
+          $ref: '#/components/schemas/ProjectionObject'
+        state_after:
+          $ref: '#/components/schemas/StateFrontier'
+        visibility:
+          type: string
+          enum:
+          - visible
+          - redacted
+          - partial
+      additionalProperties: false
+    ObjectRef:
+      type: string
+      pattern: ^ck:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+    PolicyCheckOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome
+    PolicyCheckRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequestBody
+    PrincipalLocator:
+      $ref: ../schemas/principal-locator.schema.json
+    PrincipalLocatorResolveRequestBody:
+      $ref: ../schemas/principal-locator.schema.json#/$defs/principal_locator_resolve_request_body
     Problem:
       type: object
       description: |
@@ -485,6 +1809,398 @@ components:
           type: string
           description: Request identifier (from `request_id`).
       additionalProperties: true
+    ProjectionAssignedToRelation:
+      type: object
+      additionalProperties: false
+      required:
+      - relation_id
+      - actor_id
+      properties:
+        relation_id:
+          type: string
+          pattern: ^ck:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        actor_id:
+          type: string
+          pattern: ^did:[a-z0-9]+:[^\s#?]+$
+      description: Read-model edge backing a Strand assigned_to Relation. relation_id is needed by clients to tombstone the assignment; actor_id mirrors the Relation to_ref.
+    ProjectionItem:
+      type: object
+      required:
+      - object
+      properties:
+        object:
+          $ref: '#/components/schemas/ProjectionObject'
+        render:
+          type: string
+          enum:
+          - card
+          - row
+          - tile
+          - compact
+          - badge
+          - message
+        display:
+          type: object
+        position:
+          oneOf:
+          - $ref: '#/components/schemas/CollectionFieldValuePosition'
+          - $ref: '#/components/schemas/CollectionRelationPosition'
+          - $ref: '#/components/schemas/CollectionTimeWindowPosition'
+          - $ref: '#/components/schemas/CollectionCrosstabPosition'
+          - type: object
+            required:
+            - sort_key
+            properties:
+              sort_key:
+                type: string
+                minLength: 1
+            additionalProperties: false
+        state:
+          type: object
+      additionalProperties: false
+    ProjectionMorphList:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionMorphList
+    ProjectionMorphRow:
+      type: object
+      additionalProperties: false
+      required:
+      - morph_id
+      - realm_id
+      - morph_type
+      - state
+      properties:
+        morph_id:
+          type: string
+          pattern: ^ck:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        realm_id:
+          type: string
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        morph_type:
+          type: string
+        state:
+          type: string
+          enum:
+          - active
+          - archived
+          - redacted
+        title:
+          type:
+          - string
+          - 'null'
+        created_by:
+          type:
+          - string
+          - 'null'
+        created_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        updated_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        state_changed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    ProjectionObject:
+      type: object
+      required:
+      - id
+      - type
+      properties:
+        id:
+          type: string
+          pattern: ^ck:(realm|space|circle|strand|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        type:
+          type: string
+          enum:
+          - realm
+          - space
+          - circle
+          - strand
+          - message
+          - morph
+        morph_type:
+          type: string
+        facets:
+          type: array
+          items:
+            $ref: '#/components/schemas/FacetName'
+          uniqueItems: true
+        title:
+          type: string
+        fields:
+          type: object
+      additionalProperties: false
+    ProjectionSpaceList:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpaceList
+    ProjectionSpaceRow:
+      type: object
+      additionalProperties: false
+      required:
+      - space_id
+      - realm_id
+      - kind
+      - title
+      - state
+      properties:
+        space_id:
+          type: string
+          pattern: ^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        realm_id:
+          type: string
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        kind:
+          type: string
+          description: Space kind such as `board`, `list`, `folder`, or a profile-registered kind.
+        title:
+          type: string
+        parent_space_id:
+          type:
+          - string
+          - 'null'
+        rank:
+          type:
+          - string
+          - 'null'
+        state:
+          type: string
+          enum:
+          - active
+          - archived
+          - tombstoned
+        created_by:
+          type:
+          - string
+          - 'null'
+        created_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        updated_by:
+          type:
+          - string
+          - 'null'
+        updated_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        state_changed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    ProjectionStrandList:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionStrandList
+    ProjectionStrandRow:
+      type: object
+      additionalProperties: false
+      required:
+      - strand_id
+      - realm_id
+      - state
+      properties:
+        strand_id:
+          type: string
+          pattern: ^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        realm_id:
+          type: string
+          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        state:
+          type: string
+          enum:
+          - active
+          - archived
+          - redacted
+        state_changed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        title:
+          type:
+          - string
+          - 'null'
+          description: Derived display title from plaintext-visible Strand metadata.title; null when metadata is encrypted or hidden from the service profile.
+        summary:
+          type:
+          - string
+          - 'null'
+          description: Derived display summary from plaintext-visible Strand metadata.summary; null when metadata is encrypted or hidden from the service profile.
+        board_space_id:
+          type:
+          - string
+          - 'null'
+          pattern: ^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          description: Derived board Space id from ck.component.strand.position.v1; not canonical Strand object state.
+        list_space_id:
+          type:
+          - string
+          - 'null'
+          pattern: ^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          description: Derived list Space id from ck.component.strand.position.v1; not canonical Strand object state.
+        rank:
+          type:
+          - string
+          - 'null'
+          description: Derived rank within list_space_id from ck.component.strand.position.v1.
+        assigned_actor_ids:
+          type: array
+          items:
+            type: string
+            pattern: ^did:[a-z0-9]+:[^\s#?]+$
+          description: Derived current assignee Actor DIDs from visible active Relation(relation_kind=assigned_to, from_ref=strand_id). Empty or absent means the Strand is unassigned for this projection caller. This is read-model state, not canonical Strand object metadata.
+        assigned_to_relations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectionAssignedToRelation'
+          description: Read-only active assigned_to Relation edges backing assigned_actor_ids. Clients use relation_id to tombstone assignments.
+        created_by:
+          type:
+          - string
+          - 'null'
+        created_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        updated_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    PushNotifyOutcome:
+      $ref: ../schemas/push-operations.schema.json#/$defs/push_notify_outcome
+    PushNotifyRequestBody:
+      $ref: ../schemas/push-operations.schema.json#/$defs/push_notify_request_body
+    PushRegisterDeviceOutcome:
+      $ref: ../schemas/push-operations.schema.json#/$defs/push_register_device_outcome
+    PushRegisterDeviceRequestBody:
+      $ref: ../schemas/push-operations.schema.json#/$defs/push_register_device_request_body
+    PushUnregisterDeviceOutcome:
+      $ref: ../schemas/push-operations.schema.json#/$defs/push_unregister_device_outcome
+    PushUnregisterDeviceRequestBody:
+      $ref: ../schemas/push-operations.schema.json#/$defs/push_unregister_device_request_body
+    QueryFilter:
+      $ref: ../schemas/query.schema.json#/$defs/query_filter
+    QueryRequestBody:
+      $ref: ../schemas/query.schema.json#/$defs/query_request_body
+    RawQueryOutcome:
+      type: object
+      required:
+      - projection
+      - rows
+      - frontier
+      properties:
+        projection:
+          type: string
+          const: raw
+        rows:
+          type: array
+          items:
+            type: object
+        next_cursor:
+          type: string
+          pattern: ^ck:cursor:[A-Za-z0-9_-]+$
+        total_estimate:
+          type: integer
+          minimum: 0
+        frontier:
+          $ref: '#/components/schemas/StateFrontier'
+        stale:
+          type: boolean
+      additionalProperties: false
+    ReadCursorAdvanceRequestBody:
+      $ref: ../schemas/read-cursor-operations.schema.json#/$defs/read_cursor_advance_request_body
+    ReadCursorList:
+      $ref: ../schemas/read-cursor-operations.schema.json#/$defs/read_cursor_list
+    ReadMarkerOutcome:
+      $ref: ../schemas/read-cursor-operations.schema.json#/$defs/read_marker_outcome
+    RealmArchivePayload:
+      $ref: ../schemas/event-payload.schema.json#/$defs/realm_archive_payload
+    RealmDestroyPayload:
+      $ref: ../schemas/event-payload.schema.json#/$defs/realm_destroy_payload
+    RealmEffectiveModerationPolicy:
+      $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_effective_moderation_policy
+    RealmEffectivePolicyOutcome:
+      $ref: ../schemas/realm-link-operations.schema.json#/$defs/realm_effective_policy_outcome
+    RealmExport:
+      $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_export
+    RealmFreezePayload:
+      $ref: ../schemas/event-payload.schema.json#/$defs/realm_freeze_payload
+    RealmId:
+      type: string
+      pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+    RealmLifecycleView:
+      $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view
+    RealmLinkCreateRequestBody:
+      $ref: ../schemas/realm-link-operations.schema.json#/$defs/realm_link_create_request_body
+    RealmLinkList:
+      $ref: ../schemas/realm-link-operations.schema.json#/$defs/realm_link_list
+    RealmLinkMutationOutcome:
+      $ref: ../schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome
+    RealmModerationPolicyDocument:
+      $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_document
+    RealmModerationPolicyReplaceRequestBody:
+      $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_replace_request_body
+    RealmOrganizationRelationshipList:
+      $ref: ../schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list
+    RealmPolicyServerReplaceRequestBody:
+      $ref: ../schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_replace_request_body
+    RealmPolicyServerView:
+      $ref: ../schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view
+    RealmTombstonePayload:
+      $ref: ../schemas/event-payload.schema.json#/$defs/realm_tombstone_payload
+    ReferenceProjectionStatus:
+      type: string
+      description: Projection-only status for cross-Realm references. It maps Relation/View/Space hierarchy responses to accessible, lazy link, or locked anti-enumeration stubs.
+      enum:
+      - accessible
+      - lazy_link
+      - locked
+    RelationQuery:
+      $ref: ../schemas/query.schema.json#/$defs/relation_query
+    SearchMatch:
+      type: object
+      required:
+      - object
+      properties:
+        object:
+          $ref: '#/components/schemas/ProjectionObject'
+        score:
+          # lint-waiver(type:number): Search ranking score is a non-canonical, non-signed
+          # query-time annotation. It MUST NOT enter canonical Event bytes or any signed
+          # artefact. A follow-up wire revision MAY migrate this to score_basis_points
+          # (integer, 0..10000) so SDK codegen stops emitting float; see _todos.md T2-3.
+          type: number
+        highlights:
+          type: array
+          items:
+            type: object
+      additionalProperties: false
+    SearchMatchList:
+      type: object
+      required:
+      - matches
+      properties:
+        matches:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchMatch'
+        next_cursor:
+          type: string
+        total_estimate:
+          type: integer
+          minimum: 0
+      additionalProperties: false
+    SearchRequestBody:
+      $ref: ../schemas/query.schema.json#/$defs/search_request_body
     ServiceDescribe:
       type: object
       description: |
@@ -949,612 +2665,26 @@ components:
           description: |
             Mirror of the service's development_mode flag. When true,
             `verified_profiles` MUST be empty.
-    IdentityResolveOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveOutcome
-    IdentityLogListOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/IdentityLogListOutcome
-    IdentityReceiptListOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/IdentityReceiptListOutcome
-    AccountSubscribeFrame:
-      $ref: ../schemas/account-subscribe-frame.schema.json
-    ActorProfile:
-      $ref: ../schemas/actor-profile.schema.json
-    HandleClaim:
-      $ref: ../schemas/handle-claim.schema.json
-    AccountView:
-      $ref: ../schemas/account-operations.schema.json#/$defs/account_view
-    AccountRegisterRequestBody:
-      $ref: ../schemas/account-operations.schema.json#/$defs/account_register_request_body
-    AccountRegisterOutcome:
-      $ref: ../schemas/account-operations.schema.json#/$defs/account_register_outcome
-    ContactRequestRequestBody:
-      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_request_request_body
-    ContactRequestOutcome:
-      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_request_outcome
-    ContactRespondRequestBody:
-      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_respond_request_body
-    ContactRespondOutcome:
-      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_respond_outcome
-    ContactList:
-      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_list
-    ContactTombstoneRequestBody:
-      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_tombstone_request_body
-    ContactTombstone:
-      $ref: ../schemas/contact-operations.schema.json#/$defs/contact_tombstone
-    DirectConversationResolveRequestBody:
-      $ref: ../schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_request_body
-    DirectConversationResolveOutcome:
-      $ref: ../schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_outcome
-    CircleCreateRequestBody:
-      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_create_request_body
-    CircleView:
-      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_view
-    CircleList:
-      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_list
-    CircleMemberRequestBody:
-      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_member_request_body
-    CircleMembershipOutcome:
-      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_membership_outcome
-    CircleScopeRotateOutcome:
-      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_outcome
-    CircleLifecycleRequestBody:
-      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body
-    RealmLinkCreateRequestBody:
-      $ref: ../schemas/realm-link-operations.schema.json#/$defs/realm_link_create_request_body
-    RealmLinkList:
-      $ref: ../schemas/realm-link-operations.schema.json#/$defs/realm_link_list
-    RealmLinkMutationOutcome:
-      $ref: ../schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome
-    RealmEffectivePolicyOutcome:
-      $ref: ../schemas/realm-link-operations.schema.json#/$defs/realm_effective_policy_outcome
-    RealmPolicyServerReplaceRequestBody:
-      $ref: ../schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_replace_request_body
-    RealmPolicyServerView:
-      $ref: ../schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view
-    RealmOrganizationRelationshipList:
-      $ref: ../schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list
-    RealmLifecycleView:
-      $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view
-    RealmArchivePayload:
-      $ref: ../schemas/event-payload.schema.json#/$defs/realm_archive_payload
-    RealmFreezePayload:
-      $ref: ../schemas/event-payload.schema.json#/$defs/realm_freeze_payload
-    RealmTombstonePayload:
-      $ref: ../schemas/event-payload.schema.json#/$defs/realm_tombstone_payload
-    RealmDestroyPayload:
-      $ref: ../schemas/event-payload.schema.json#/$defs/realm_destroy_payload
-    RealmExport:
-      $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_export
-    RealmEffectiveModerationPolicy:
-      $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_effective_moderation_policy
-    RealmModerationPolicyReplaceRequestBody:
-      $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_replace_request_body
-    RealmModerationPolicyDocument:
-      $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_document
-    ConsentCellView:
-      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_cell_view
-    ConsentCellList:
-      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_cell_list
-    ConsentUpdateRequestBody:
-      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_update_request_body
-    ConsentRequestRequestBody:
-      $ref: ../schemas/consent-operations.schema.json#/$defs/consent_request_request_body
-    AccountDataReplaceRequestBody:
-      $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_replace_request_body
-    AccountDataEntry:
-      $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_entry
-    AccountDataList:
-      $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_list
-    AccountDataDeleteOutcome:
-      $ref: ../schemas/account-data-operations.schema.json#/$defs/account_data_delete_outcome
-    ReadCursorAdvanceRequestBody:
-      $ref: ../schemas/read-cursor-operations.schema.json#/$defs/read_cursor_advance_request_body
-    ReadMarkerOutcome:
-      $ref: ../schemas/read-cursor-operations.schema.json#/$defs/read_marker_outcome
-    ReadCursorList:
-      $ref: ../schemas/read-cursor-operations.schema.json#/$defs/read_cursor_list
-    InviteReceivePolicy:
-      $ref: ../schemas/invite-receive-policy.schema.json
-    AccountUpdateProfileRequestBody:
-      $ref: ../schemas/account-operations.schema.json#/$defs/account_update_profile_request_body
-    AccountUpdateProfileOutcome:
-      $ref: ../schemas/account-operations.schema.json#/$defs/account_update_profile_outcome
-    SessionRevokeRequestBody:
-      $ref: ../schemas/account-operations.schema.json#/$defs/session_revoke_request_body
-    SessionRevokeOutcome:
-      $ref: ../schemas/account-operations.schema.json#/$defs/session_revoke_outcome
-    SessionGrantRefreshRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody
-    SessionGrantRefreshOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshOutcome
-    AuthSessionLogoutRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutRequestBody
-    AuthSessionLogoutOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutOutcome
-    SessionGrantIntrospectRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectRequestBody
+    ServiceDid:
+      type: string
+      pattern: ^did:[a-z0-9]+:[^\s#?]+$
+      description: Bare DID identifying a service endpoint.
     SessionGrantIntrospectOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectOutcome
-    AccountLogoutRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutRequestBody
-    AccountLogoutOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutOutcome
-    BottomDiagnostic:
-      $ref: ../schemas/bottom.schema.json
-    KeysUploadRequestBody:
-      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_upload_request_body
-    KeysUploadOutcome:
-      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_upload_outcome
-    KeysQueryRequestBody:
-      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_query_request_body
-    KeysQueryOutcome:
-      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_query_outcome
-    KeysClaimRequestBody:
-      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_claim_request_body
-    KeysClaimOutcome:
-      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_claim_outcome
-    KeysBackupsReplaceOutcome:
-      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_replace_outcome
-    KeysBackupsList:
-      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_list
-    KeysBackupsUnlockRequestBody:
-      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_request_body
-    KeysBackupsDeleteRequestBody:
-      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_delete_request_body
-    KeysBackupsDeleteOutcome:
-      $ref: ../schemas/keys-operations.schema.json#/$defs/keys_backups_delete_outcome
-    KeyPackagesUploadRequestBody:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_request_body
-    KeyPackagesUploadOutcome:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_outcome
-    KeyPackagesClaimRequestBody:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_request_body
-    KeyPackagesClaimOutcome:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_outcome
-    KeyPackagesConsumeRequestBody:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_request_body
-    KeyPackagesConsumeOutcome:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_outcome
-    KeyPackagesRevokeRequestBody:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_request_body
-    KeyPackagesRevokeOutcome:
-      $ref: ../schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_outcome
-    AppletInstallPreviewRequestBody:
-      $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_install_preview_request_body
-    AppletInstallPlan:
-      $ref: ../schemas/applet-install-plan.schema.json
-    AppletInstallRequestBody:
-      $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_install_request_body
-    AppletInstallOutcome:
-      $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_install_outcome
-    AppletRevokeRequestBody:
-      $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_revoke_request_body
-    AppletRevokeOutcome:
-      $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_revoke_outcome
-    GhostActorProvisionRequestBody:
-      $ref: ../schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body
-    GhostActorProvisionOutcome:
-      $ref: ../schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_outcome
-    AppletPingOutcome:
-      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_ping_outcome
-    AppletTransactionRequestBody:
-      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body
-    AppletTransactionOutcome:
-      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_outcome
-    AppletActorView:
-      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_actor_view
-    AppletRealmView:
-      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view
-    AppletProtocolMetadata:
-      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_protocol_metadata
-    AppletThirdPartyUserList:
-      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_user_list
-    AppletThirdPartyLocationList:
-      $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_location_list
-    PushRegisterDeviceRequestBody:
-      $ref: ../schemas/push-operations.schema.json#/$defs/push_register_device_request_body
-    PushRegisterDeviceOutcome:
-      $ref: ../schemas/push-operations.schema.json#/$defs/push_register_device_outcome
-    PushUnregisterDeviceRequestBody:
-      $ref: ../schemas/push-operations.schema.json#/$defs/push_unregister_device_request_body
-    PushUnregisterDeviceOutcome:
-      $ref: ../schemas/push-operations.schema.json#/$defs/push_unregister_device_outcome
-    PushNotifyRequestBody:
-      $ref: ../schemas/push-operations.schema.json#/$defs/push_notify_request_body
-    PushNotifyOutcome:
-      $ref: ../schemas/push-operations.schema.json#/$defs/push_notify_outcome
-    MediaIceConfigRequestBody:
-      $ref: ../schemas/media-operations.schema.json#/$defs/media_ice_config_request_body
-    MediaIceConfigOutcome:
-      $ref: ../schemas/ice-config-response.schema.json
-    BlobUploadRequestBody:
-      $ref: ../schemas/blob-operations.schema.json#/$defs/blob_upload_request_body
-    BlobUploadOutcome:
-      $ref: ../schemas/blob-operations.schema.json#/$defs/blob_upload_outcome
-    DirectorySearchRealmsRequestBody:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_search_realms_request_body
-    DirectoryRealmSearchOutcome:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_realm_search_outcome
-    DirectoryResolveRealmRequestBody:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_resolve_realm_request_body
-    DirectoryRealmResolutionOutcome:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_realm_resolution_outcome
-    DirectoryResolveTargetRequestBody:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_resolve_target_request_body
-    DirectoryTargetResolutionOutcome:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_target_resolution_outcome
-    DirectorySearchOrganizationsRequestBody:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_search_organizations_request_body
-    DirectoryOrganizationSearchOutcome:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_organization_search_outcome
-    DirectoryResolveOrganizationRequestBody:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_resolve_organization_request_body
-    DirectoryOrganizationResolutionOutcome:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_organization_resolution_outcome
-    DirectorySearchActorsRequestBody:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_search_actors_request_body
-    DirectoryActorSearchOutcome:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_actor_search_outcome
-    DirectorySearchUsersRequestBody:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_search_users_request_body
-    DirectoryUserSearchOutcome:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_user_search_outcome
-    DirectoryResolveHandleRequestBody:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_resolve_handle_request_body
-    DirectoryHandleResolutionOutcome:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_handle_resolution_outcome
-    DirectoryResolveAgentSelectorRequestBody:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_resolve_agent_selector_request_body
-    DirectoryAgentSelectorResolutionOutcome:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_agent_selector_resolution_outcome
-    DirectoryListHandlesForSubjectRequestBody:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_list_handles_for_subject_request_body
-    DirectorySubjectHandleList:
-      $ref: ../schemas/list-handles-for-subject-response.schema.json
-    DirectoryPrivateContactDiscoveryRequestBody:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_request_body
-    DirectoryPrivateContactDiscoveryOutcome:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_outcome
-    DirectoryPushRegisterRequestBody:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_push_register_request_body
-    DirectoryPushRegisterOutcome:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_push_register_outcome
-    PrincipalLocator:
-      $ref: ../schemas/principal-locator.schema.json
-    PrincipalLocatorResolveRequestBody:
-      $ref: ../schemas/principal-locator.schema.json#/$defs/principal_locator_resolve_request_body
-    InviteDeliveryRequest:
-      $ref: ../schemas/invite-delivery-request.schema.json
-    InviteDeliveryOutcome:
-      $ref: ../schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome
-    MimiKeyMaterialRequestBody:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body
-    MimiKeyMaterialOutcome:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_key_material_outcome
-    MimiRoomUpdateRequestBody:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_room_update_request_body
-    MimiRoomUpdateOutcome:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_room_update_outcome
-    MimiNotifyRequestBody:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_notify_request_body
-    MimiNotifyOutcome:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_notify_outcome
-    MimiSubmitMessageRequestBody:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_request_body
-    MimiSubmitMessageOutcome:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_outcome
-    MimiGroupInfoOutcome:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_group_info_outcome
-    MimiRequestConsentRequestBody:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_request_body
-    MimiRequestConsentOutcome:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_outcome
-    MimiUpdateConsentRequestBody:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body
-    MimiUpdateConsentOutcome:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_outcome
-    MimiIdentifierQueryRequestBody:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_request_body
-    MimiIdentifierQueryOutcome:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_outcome
-    MimiReportAbuseRequestBody:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_request_body
-    MimiReportAbuseOutcome:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_outcome
-    MimiProxyDownloadRequestBody:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_request_body
-    MimiProxyDownloadOutcome:
-      $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_outcome
-
-    # =========================================================================
-    # Typed request / response schemas for stable core operations.
-    # See zh/sync/service-http-binding.md for normative field semantics.
-    # Per OpenAPI binding policy in info.description: events / account /
-    # snapshot / identity / authz core surfaces carry typed schemas so SDK
-    # generators can derive
-    # operation-specific required fields without consulting prose. This v1
-    # OpenAPI document intentionally does not publish generic OperationRequest /
-    # OperationResult components; future profile-gated generic bindings must be
-    # declared in the operation registry and may not claim generated-SDK
-    # completeness.
-    # =========================================================================
-    FederationServiceBindingRef:
-      type: object
-      description: |
-        Request-level service binding snapshot carried by federation
-        service-to-service ck.peer.events.command.submit calls. This is metadata for the
-        receiver to verify the sender's delivery decision; client writes omit it.
-      required:
-      - realm_id
-      - realm_policy_digest
-      - membership_frontier
-      - delivery_binding_frontier
-      - destination_service_type
-      - reducer_profile_digest
-      properties:
-        realm_id:
-          type: string
-          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        realm_policy_digest:
-          type: string
-          pattern: ^sha256:[0-9a-f]{64}$
-        membership_frontier:
-          type: array
-          items:
-            type: string
-            pattern: ^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        delivery_binding_frontier:
-          type: array
-          items:
-            type: string
-            pattern: ^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        delivery_binding_diagnostics:
-          type: object
-          additionalProperties: true
-        destination_service_type:
-          type: string
-          minLength: 1
-        reducer_profile_digest:
-          type: string
-          description: SHA-256 over the Cokret canonical JSON bytes of the matching digest_input object in artifacts/registry/reducer-profile-registry.json. Receivers recompute from their effective Realm reducer profile and reject the whole federation batch with reducer_profile_mismatch on mismatch.
-          pattern: ^sha256:[0-9a-f]{64}$
-      additionalProperties: false
-
-    EventSubmitEnvelope:
-      allOf:
-      - $ref: ../schemas/event-envelope.schema.json
-      - type: object
-        not:
-          anyOf:
-          - required:
-            - actor_kind
-          - required:
-            - effective_scope
-        description: |
-          Actor-supplied ck.self.events.command.submit input envelope. It reuses the base Event
-          shape for actor intent fields but forbids reducer-managed accepted-output
-          projections such as actor_kind and effective_scope. Services stamp those
-          fields only after accept and expose them on read/query/sync envelopes.
-
-    EventsSubmitBatchRequestBody:
-      type: object
-      description: Batch ck.self.events.command.submit request used by account clients.
-      required:
-      - events
-      properties:
-        events:
-          type: array
-          minItems: 1
-          items:
-            $ref: '#/components/schemas/EventSubmitEnvelope'
-      additionalProperties: false
-
-    EventsSubmitFederationRequestBody:
-      type: object
-      description: Federation service-to-service ck.peer.events.command.submit request body.
-      required:
-      - service_binding_ref
-      - events
-      properties:
-        service_binding_ref:
-          $ref: '#/components/schemas/FederationServiceBindingRef'
-        events:
-          type: array
-          minItems: 1
-          items:
-            $ref: '#/components/schemas/EventSubmitEnvelope'
-      additionalProperties: false
-
-    EventsSubmitOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome
-    EventView:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventView
-    EventsResolveRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody
-    EventsResolveOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsResolveOutcome
-    EventsQueryOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome
-    EventsSubscribeFrame:
-      type: object
-      description: 'One NDJSON line emitted by ck.events.subscribe. Per-kind constraints
-        mirror service-http-binding.md §3.4 and align in strictness with account-subscribe-frame.schema.json:
-        `event` carries realm_id + cursor + payload; `frontier` / `catchup_complete`
-        carry cursor (realm_id present = that Realm''s frontier/catchup, absent =
-        whole subscription); `epoch_rotation` is a realm-scoped boundary hint (realm_id
-        + payload, no cursor); `dropped` requires a usable recovery cursor + realm_id
-        — if no cursor exists, servers MUST emit `resync_required` instead; `resync_required`
-        / `unauthorized` carry no cursor (realm_id present = realm-scoped, absent
-        = whole subscription / session); `heartbeat` carries nothing.'
-      required:
-      - kind
-      properties:
-        kind:
-          type: string
-          enum:
-          - event
-          - frontier
-          - heartbeat
-          - catchup_complete
-          - epoch_rotation
-          - dropped
-          - resync_required
-          - unauthorized
-        realm_id:
-          type: string
-        cursor:
-          type: string
-          description: Stream cursor. REQUIRED on event / frontier / catchup_complete
-            / dropped; forbidden on epoch_rotation / resync_required / unauthorized
-            / heartbeat.
-        payload:
-          type: object
-        reconnect_after_ms:
-          type: integer
-          minimum: 1
-          description: Optional server-directed minimum delay before opening another ck.self.events.stream.subscribe stream for the same caller/selector scope. MAY appear only on dropped and resync_required frames; clients MUST wait at least this delay before reconnecting, and servers MUST reject earlier reconnect attempts with 429 plus Retry-After.
-      allOf:
-      - if:
-          properties:
-            kind:
-              const: event
-          required:
-          - kind
-        then:
-          required:
-          - realm_id
-          - cursor
-          - payload
-      - if:
-          properties:
-            kind:
-              const: epoch_rotation
-          required:
-          - kind
-        then:
-          required:
-          - realm_id
-          - payload
-          not:
-            required:
-            - cursor
-      - if:
-          properties:
-            kind:
-              enum:
-              - frontier
-              - catchup_complete
-          required:
-          - kind
-        then:
-          required:
-          - cursor
-          not:
-            required:
-            - payload
-      - if:
-          properties:
-            kind:
-              const: dropped
-          required:
-          - kind
-        then:
-          required:
-          - realm_id
-          - cursor
-          not:
-            required:
-            - payload
-      - if:
-          properties:
-            kind:
-              const: resync_required
-          required:
-          - kind
-        then:
-          not:
-            anyOf:
-            - required:
-              - cursor
-            - required:
-              - payload
-      - if:
-          properties:
-            kind:
-              const: unauthorized
-          required:
-          - kind
-        then:
-          not:
-            anyOf:
-            - required:
-              - cursor
-            - required:
-              - payload
-            - required:
-              - reconnect_after_ms
-      - if:
-          properties:
-            kind:
-              const: heartbeat
-          required:
-          - kind
-        then:
-          not:
-            anyOf:
-            - required:
-              - realm_id
-            - required:
-              - cursor
-            - required:
-              - payload
-            - required:
-              - reconnect_after_ms
-      - if:
-          properties:
-            kind:
-              enum:
-              - event
-              - frontier
-              - catchup_complete
-              - epoch_rotation
-          required:
-          - kind
-        then:
-          not:
-            required:
-            - reconnect_after_ms
-      additionalProperties: false
-
-    EventsFrontierState:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierState
-    EventsFrontierAccountClientState:
-      type: object
-      description: Account-client ck.self.events.query.frontier response.
-      required:
-      - frontier
-      properties:
-        frontier:
-          type: object
-          description: |
-            Either an actor frontier (`{actor_id, actor_seq, event_id}`) or a
-            Realm frontier (`{realm_id, seal_id, control_event_set_root,
-            state_root, hlc?}`) shape depending on which selector was passed;
-            servers MUST NOT leak frontiers across visibility boundaries.
-            The Realm shape is the registered account-client source for
-            minting a single-leaf Control Move `seal_basis`
-            (`leaves=[seal_id]`) and a DataEvent `seal_ref`; for the caller's
-            own principal control realm the Principal Server MUST serve it.
-            Clients MUST fail closed when this source is unavailable.
-        receipts:
-          type: array
-          items:
-            type: object
-      additionalProperties: false
-
-    EventsFrontierFederationPeerState:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerState
-
+    SessionGrantIntrospectRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectRequestBody
+    SessionGrantOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome
+    SessionGrantRefreshOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshOutcome
+    SessionGrantRefreshRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody
+    SessionGrantRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequestBody
+    SessionRevokeOutcome:
+      $ref: ../schemas/account-operations.schema.json#/$defs/session_revoke_outcome
+    SessionRevokeRequestBody:
+      $ref: ../schemas/account-operations.schema.json#/$defs/session_revoke_request_body
     SnapshotBootstrap:
       type: object
       description: Optional ck.peer.events.query.scan acceleration hint for federation pull / backfill. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).
@@ -1591,371 +2721,8 @@ components:
           type: object
         verification_hints:
           type: object
-
-    IdentityDocumentView:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/IdentityDocumentView
-    CellQueryEnvelope:
-      type: object
-      description: 'Wire envelope for state-query / projection responses on a single
-        cell. `status` MUST be `value` when the join is defined, `bottom` when the
-        cell resolved to ⊥ on a `bottom=reject` lattice (caller MUST treat as
-        fail-closed), and `conflict` when a `bottom=expose` lattice surfaces
-        candidate heads to the projection / UI without selecting a winner. See
-        zh/sync/service-surface.md §5.3 and zh/authz/event-auth-state-resolution.md
-        §5.1.'
-      required:
-      - cell
-      - status
-      properties:
-        cell:
-          type: string
-          pattern: ^ck:cell:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*$
-        status:
-          type: string
-          enum:
-          - value
-          - bottom
-          - conflict
-        value:
-          description: 'Effective Lattice value when status=value. Shape is
-            cell-type specific (or_set members, mv_register tuple, cas_register
-            atom, fsm state, counter integer, ordered_log tail).'
-        heads:
-          type: array
-          uniqueItems: true
-          description: Candidate heads when status=conflict on a `bottom=expose`
-            cell. Receivers MUST NOT use this for authorization decisions.
-          items: true
-        bottom:
-          $ref: '#/components/schemas/BottomDiagnostic'
-        seal_view:
-          type: object
-          description: Seal leaves / state_root the value or bottom was
-            observed under. Mirrors `bottom.seal_view` when status≠value.
-          required:
-          - leaves
-          properties:
-            leaves:
-              type: array
-              minItems: 1
-              uniqueItems: true
-              items:
-                type: string
-                pattern: ^ck:seal:sha256:[0-9a-f]{64}$
-            state_root:
-              type: string
-              pattern: ^sha256:[0-9a-f]{64}$
-          additionalProperties: false
-      additionalProperties: true
-    EventStateView:
-      type: object
-      description: Per-event protocol-state field surfaced on /account/subscribe and /events
-        responses (zh/sync/service-surface.md §5.3, zh/authz/event-auth-state-resolution.md
-        §13). Implementations MUST attach this on every reducer-input Event
-        included in a timeline/state response so clients can render fail-closed
-        UI without recomputing the join.
-      required:
-      - event_id
-      - event_digest
-      - event_state
-      properties:
-        event_id:
-          type: string
-          pattern: ^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        event_digest:
-          type: string
-          description: Canonical hash of the event's canonical bytes (excluding
-            proofs and unsigned); equals proof.event_digest. Used as the Seal
-            frontier item for this event. Algorithm family aligned with
-            schemas/seal.schema.json#/$defs/event_digest — active digest
-            suites per registry/digest-suite-registry.json (v1 sha256 / blake3,
-            64 hex).
-          pattern: ^(?:sha256|blake3):[0-9a-f]{64}$
-        event_state:
-          type: string
-          enum:
-          - data_local
-          - data_observed
-          - control_pending
-          - control_sealed
-          - failed_precondition
-          - failed_plane
-          - failed_bottom
-          - rejected_seal
-          - fork_quarantine
-          - stale_seal_ref
-        bottom:
-          $ref: '#/components/schemas/BottomDiagnostic'
-      additionalProperties: false
-    DeviceMessageEnvelope:
-      $ref: ../schemas/device-message.schema.json
-    DeviceMessageTarget:
-      type: object
-      required:
-      - kind
-      - expires_at
-      - content
-      properties:
-        kind:
-          type: string
-          pattern: ^ck\.[a-z0-9_]+(\.[a-z0-9_]+)*$
-        content:
-          type: object
-        expires_at:
-          type: string
-          format: date-time
-          pattern: Z$
-      additionalProperties: false
-    DeviceMessagesSendRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendRequestBody
-    DeviceMessagesSendOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendOutcome
-    DeviceMessagesGetOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetOutcome
-    DeviceMessagesAckRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckRequestBody
-    DeviceMessagesAckOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckOutcome
-    GrantList:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/GrantList
-    AuthzInviteList:
-      $ref: ../schemas/authz-operations.schema.json#/$defs/authz_invite_list
-    AuthzCheckRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckRequestBody
-    AuthzCheckOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckOutcome
-    ModerationQueueView:
-      type: object
-      required:
-      - items
-      - has_more
-      properties:
-        items:
-          type: array
-          items:
-            $ref: ../schemas/moderation-queue-item.schema.json
-        next_cursor:
-          type: string
-        has_more:
-          type: boolean
-        counts:
-          type: object
-      additionalProperties: false
-    ModerationReportOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ModerationReportOutcome
-    FieldFilter:
-      $ref: ../schemas/query.schema.json#/$defs/field_filter
-    BooleanFilter:
-      $ref: ../schemas/query.schema.json#/$defs/boolean_filter
-    QueryFilter:
-      $ref: ../schemas/query.schema.json#/$defs/query_filter
     SortSpec:
       $ref: ../schemas/query.schema.json#/$defs/sort_spec
-    RelationQuery:
-      $ref: ../schemas/query.schema.json#/$defs/relation_query
-    FacetName:
-      type: string
-      enum:
-      - container
-      - replyable
-      - schedulable
-      - assignable
-      - stateful
-      - rankable
-      - reviewable
-      - notifiable
-      - documentable
-      - renderable
-    ViewRenderer:
-      type: string
-      enum:
-      - board
-      - list
-      - table
-      - calendar
-      - gantt
-      - timeline
-      - thread
-      - chat
-      - forum
-      - graph
-      - tree
-      - document
-      - dashboard
-      - custom
-    QueryRequestBody:
-      $ref: ../schemas/query.schema.json#/$defs/query_request_body
-    ObjectRef:
-      type: string
-      pattern: ^ck:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-    ObjectLookupOutcome:
-      type: object
-      required:
-      - object
-      - visibility
-      properties:
-        object:
-          $ref: '#/components/schemas/ProjectionObject'
-        state_after:
-          $ref: '#/components/schemas/StateFrontier'
-        visibility:
-          type: string
-          enum:
-          - visible
-          - redacted
-          - partial
-      additionalProperties: false
-    StrandDiscussionTimelineView:
-      type: object
-      required:
-      - entries
-      properties:
-        entries:
-          type: array
-          items:
-            $ref: '#/components/schemas/TimelineProjectionEntry'
-        messages:
-          type: array
-          items:
-            $ref: '#/components/schemas/ProjectionObject'
-        next_cursor:
-          type: string
-        state_after:
-          $ref: '#/components/schemas/StateFrontier'
-      additionalProperties: false
-    StrandDiscussionSummary:
-      type: object
-      required:
-      - strand
-      properties:
-        strand:
-          $ref: '#/components/schemas/ProjectionObject'
-        relation:
-          type: object
-        summary:
-          type: object
-        unread:
-          type: integer
-          minimum: 0
-      additionalProperties: false
-    StrandDiscussionList:
-      type: object
-      required:
-      - strands
-      properties:
-        strands:
-          type: array
-          items:
-            $ref: '#/components/schemas/StrandDiscussionSummary'
-        summaries:
-          type: object
-        next_cursor:
-          type: string
-        state_after:
-          $ref: '#/components/schemas/StateFrontier'
-      additionalProperties: false
-    NotificationProjectionView:
-      type: object
-      required:
-      - notifications
-      properties:
-        notifications:
-          type: array
-          items:
-            $ref: ../schemas/notification.schema.json
-        counts:
-          type: object
-        next_cursor:
-          type: string
-      additionalProperties: false
-    InboxView:
-      type: object
-      required:
-      - items
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/ProjectionItem'
-        next_cursor:
-          type: string
-        frontier:
-          $ref: '#/components/schemas/StateFrontier'
-      additionalProperties: false
-    SearchRequestBody:
-      $ref: ../schemas/query.schema.json#/$defs/search_request_body
-    SearchMatch:
-      type: object
-      required:
-      - object
-      properties:
-        object:
-          $ref: '#/components/schemas/ProjectionObject'
-        score:
-          # lint-waiver(type:number): Search ranking score is a non-canonical, non-signed
-          # query-time annotation. It MUST NOT enter canonical Event bytes or any signed
-          # artefact. A follow-up wire revision MAY migrate this to score_basis_points
-          # (integer, 0..10000) so SDK codegen stops emitting float; see _todos.md T2-3.
-          type: number
-        highlights:
-          type: array
-          items:
-            type: object
-      additionalProperties: false
-    SearchMatchList:
-      type: object
-      required:
-      - matches
-      properties:
-        matches:
-          type: array
-          items:
-            $ref: '#/components/schemas/SearchMatch'
-        next_cursor:
-          type: string
-        total_estimate:
-          type: integer
-          minimum: 0
-      additionalProperties: false
-    SpaceHierarchyView:
-      type: object
-      required:
-      - root_space_id
-      - children
-      properties:
-        root_space_id:
-          type: string
-          pattern: ^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        root:
-          $ref: '#/components/schemas/ProjectionObject'
-        children:
-          type: array
-          items:
-            $ref: '#/components/schemas/SpaceHierarchyChild'
-        edges:
-          type: array
-          items:
-            $ref: '#/components/schemas/SpaceHierarchyEdge'
-        next_cursor:
-          type: string
-        cycle_detected:
-          type: boolean
-      additionalProperties: false
-    SpaceHierarchyEdgeStatus:
-      type: string
-      description: Derived status of a parent-child hierarchy edge.
-      enum:
-      - confirmed
-      - unconfirmed_link
-      - rejected
-      - tombstoned
-    ReferenceProjectionStatus:
-      type: string
-      description: Projection-only status for cross-Realm references. It maps Relation/View/Space hierarchy responses to accessible, lazy link, or locked anti-enumeration stubs.
-      enum:
-      - accessible
-      - lazy_link
-      - locked
     SpaceHierarchyChild:
       type: object
       required:
@@ -1994,6 +2761,38 @@ components:
         relation_kind:
           type: string
       additionalProperties: false
+    SpaceHierarchyEdgeStatus:
+      type: string
+      description: Derived status of a parent-child hierarchy edge.
+      enum:
+      - confirmed
+      - unconfirmed_link
+      - rejected
+      - tombstoned
+    SpaceHierarchyView:
+      type: object
+      required:
+      - root_space_id
+      - children
+      properties:
+        root_space_id:
+          type: string
+          pattern: ^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+        root:
+          $ref: '#/components/schemas/ProjectionObject'
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpaceHierarchyChild'
+        edges:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpaceHierarchyEdge'
+        next_cursor:
+          type: string
+        cycle_detected:
+          type: boolean
+      additionalProperties: false
     StateFrontier:
       type: object
       required:
@@ -2030,419 +2829,58 @@ components:
                 pattern: ^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$
             additionalProperties: false
       additionalProperties: false
-    RawQueryOutcome:
+    StrandDiscussionList:
       type: object
       required:
-      - projection
-      - rows
-      - frontier
+      - strands
       properties:
-        projection:
-          type: string
-          const: raw
-        rows:
+        strands:
           type: array
           items:
-            type: object
+            $ref: '#/components/schemas/StrandDiscussionSummary'
+        summaries:
+          type: object
         next_cursor:
           type: string
-          pattern: ^ck:cursor:[A-Za-z0-9_-]+$
-        total_estimate:
-          type: integer
-          minimum: 0
-        frontier:
+        state_after:
           $ref: '#/components/schemas/StateFrontier'
-        stale:
-          type: boolean
       additionalProperties: false
-    CollectionFieldValueGroupSource:
+    StrandDiscussionSummary:
       type: object
       required:
-      - model
-      - field
-      - value
+      - strand
       properties:
-        model:
-          type: string
-          const: field_value
-        field:
-          type: string
-          pattern: ^[a-zA-Z0-9_]+(\.[a-zA-Z0-9_]+)*$
-        value:
-          oneOf:
-          - type: string
-          # lint-waiver(type:number): CollectionFieldValueGroupSource.value is a UI/query
-          # filter parameter accepting whatever the projected field's runtime type is. It
-          # does not enter canonical Event bytes. A follow-up wire revision MAY migrate
-          # decimal-needing field types to {integer, scale} envelope; see _todos.md T2-3.
-          - type: number
-          - type: boolean
-      additionalProperties: false
-    CollectionRelationGroupSource:
-      type: object
-      required:
-      - model
-      - scope_container_id
-      - container_id
-      - relation_kind
-      properties:
-        model:
-          type: string
-          const: relation_container
-        scope_container_id:
-          type: string
-          pattern: ^ck:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        container_id:
-          type: string
-          pattern: ^ck:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        relation_kind:
-          type: string
-          minLength: 1
-      additionalProperties: false
-    CollectionTimeBucketGroupSource:
-      type: object
-      required:
-      - model
-      - start
-      - end
-      - timezone
-      properties:
-        model:
-          type: string
-          const: time_bucket
-        start:
-          type: string
-          format: date-time
-          pattern: Z$
-        end:
-          type: string
-          format: date-time
-          pattern: Z$
-        timezone:
-          type: string
-          minLength: 1
-      additionalProperties: false
-    CollectionCrosstabGroupSource:
-      type: object
-      required:
-      - model
-      - row_key
-      - column_key
-      properties:
-        model:
-          type: string
-          const: crosstab_cell
-        row_key:
-          type: string
-          minLength: 1
-        column_key:
-          type: string
-          minLength: 1
-      additionalProperties: false
-    CollectionGroupSource:
-      oneOf:
-      - $ref: '#/components/schemas/CollectionFieldValueGroupSource'
-      - $ref: '#/components/schemas/CollectionRelationGroupSource'
-      - $ref: '#/components/schemas/CollectionTimeBucketGroupSource'
-      - $ref: '#/components/schemas/CollectionCrosstabGroupSource'
-    CollectionFieldValuePosition:
-      type: object
-      required:
-      - model
-      - container_id
-      - rank
-      properties:
-        model:
-          type: string
-          const: field_value
-        container_id:
-          type: string
-          minLength: 1
-        rank:
-          type: string
-          pattern: ^[0-9A-Za-z]{1,128}$
-      additionalProperties: false
-    CollectionRelationPosition:
-      type: object
-      required:
-      - model
-      - scope_container_id
-      - container_id
-      - relation_kind
-      - relation_id
-      - rank
-      properties:
-        model:
-          type: string
-          const: relation
-        scope_container_id:
-          type: string
-          pattern: ^ck:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        container_id:
-          type: string
-          pattern: ^ck:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        relation_kind:
-          type: string
-          minLength: 1
-        relation_id:
-          type: string
-          pattern: ^ck:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        rank:
-          type: string
-          pattern: ^[0-9A-Za-z]{1,128}$
-      additionalProperties: false
-    CollectionTimeWindowPosition:
-      type: object
-      required:
-      - model
-      - start
-      - sort_key
-      properties:
-        model:
-          type: string
-          const: time_window
-        start:
-          type: string
-          format: date-time
-          pattern: Z$
-        end:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        timezone:
-          type: string
-          minLength: 1
-        sort_key:
-          type: string
-          minLength: 1
-      additionalProperties: false
-    CollectionCrosstabPosition:
-      type: object
-      required:
-      - model
-      - row_key
-      - column_key
-      - sort_key
-      properties:
-        model:
-          type: string
-          const: crosstab_cell
-        row_key:
-          type: string
-          minLength: 1
-        column_key:
-          type: string
-          minLength: 1
-        sort_key:
-          type: string
-          minLength: 1
-      additionalProperties: false
-    CollectionProjectionGroup:
-      type: object
-      required:
-      - key
-      - title
-      - source
-      - items
-      - limited
-      properties:
-        key:
-          type: string
-          minLength: 1
-        title:
-          type: string
-          minLength: 1
-        rank:
-          type: string
-          pattern: ^[0-9A-Za-z]{1,128}$
-        source:
-          $ref: '#/components/schemas/CollectionGroupSource'
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/ProjectionItem'
-        next_cursor:
-          oneOf:
-          - type: string
-            pattern: ^ck:cursor:[A-Za-z0-9_-]+$
-          - type: 'null'
-        limited:
-          type: boolean
-        wip_state:
-          type: string
-          enum:
-          - ok
-          - over_limit
-          - unknown
-        total_estimate:
+        strand:
+          $ref: '#/components/schemas/ProjectionObject'
+        relation:
+          type: object
+        summary:
+          type: object
+        unread:
           type: integer
           minimum: 0
-      allOf:
-      - if:
-          properties:
-            source:
-              properties:
-                model:
-                  const: field_value
-              required:
-              - model
-          required:
-          - source
-        then:
-          properties:
-            items:
-              type: array
-              items:
-                allOf:
-                - $ref: '#/components/schemas/ProjectionItem'
-                - type: object
-                  required:
-                  - position
-                  properties:
-                    position:
-                      $ref: '#/components/schemas/CollectionFieldValuePosition'
-      - if:
-          properties:
-            source:
-              properties:
-                model:
-                  const: relation_container
-              required:
-              - model
-          required:
-          - source
-        then:
-          properties:
-            items:
-              type: array
-              items:
-                allOf:
-                - $ref: '#/components/schemas/ProjectionItem'
-                - type: object
-                  required:
-                  - position
-                  properties:
-                    position:
-                      $ref: '#/components/schemas/CollectionRelationPosition'
-      - if:
-          properties:
-            source:
-              properties:
-                model:
-                  const: time_bucket
-              required:
-              - model
-          required:
-          - source
-        then:
-          properties:
-            items:
-              type: array
-              items:
-                allOf:
-                - $ref: '#/components/schemas/ProjectionItem'
-                - type: object
-                  required:
-                  - position
-                  properties:
-                    position:
-                      $ref: '#/components/schemas/CollectionTimeWindowPosition'
-      - if:
-          properties:
-            source:
-              properties:
-                model:
-                  const: crosstab_cell
-              required:
-              - model
-          required:
-          - source
-        then:
-          properties:
-            items:
-              type: array
-              items:
-                allOf:
-                - $ref: '#/components/schemas/ProjectionItem'
-                - type: object
-                  required:
-                  - position
-                  properties:
-                    position:
-                      $ref: '#/components/schemas/CollectionCrosstabPosition'
       additionalProperties: false
-    CollectionProjectionView:
-      $ref: ../schemas/view.schema.json#/$defs/collection_projection_view
-    ViewProjectionRequestBody:
-      $ref: ../schemas/view.schema.json#/$defs/view_projection_request_body
-    DocumentMorphProjectionOutcome:
-      $ref: ../schemas/view.schema.json#/$defs/document_morph_projection_outcome
-    ProjectionObject:
+    StrandDiscussionTimelineView:
       type: object
       required:
-      - id
-      - type
+      - entries
       properties:
-        id:
-          type: string
-          pattern: ^ck:(realm|space|circle|strand|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        type:
-          type: string
-          enum:
-          - realm
-          - space
-          - circle
-          - strand
-          - message
-          - morph
-        morph_type:
-          type: string
-        facets:
+        entries:
           type: array
           items:
-            $ref: '#/components/schemas/FacetName'
-          uniqueItems: true
-        title:
+            $ref: '#/components/schemas/TimelineProjectionEntry'
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectionObject'
+        next_cursor:
           type: string
-        fields:
-          type: object
+        state_after:
+          $ref: '#/components/schemas/StateFrontier'
       additionalProperties: false
-    ProjectionItem:
-      type: object
-      required:
-      - object
-      properties:
-        object:
-          $ref: '#/components/schemas/ProjectionObject'
-        render:
-          type: string
-          enum:
-          - card
-          - row
-          - tile
-          - compact
-          - badge
-          - message
-        display:
-          type: object
-        position:
-          oneOf:
-          - $ref: '#/components/schemas/CollectionFieldValuePosition'
-          - $ref: '#/components/schemas/CollectionRelationPosition'
-          - $ref: '#/components/schemas/CollectionTimeWindowPosition'
-          - $ref: '#/components/schemas/CollectionCrosstabPosition'
-          - type: object
-            required:
-            - sort_key
-            properties:
-              sort_key:
-                type: string
-                minLength: 1
-            additionalProperties: false
-        state:
-          type: object
-      additionalProperties: false
+    StrandId:
+      type: string
+      pattern: ^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
     TimelineProjectionEntry:
       type: object
       required:
@@ -2518,484 +2956,25 @@ components:
         stale:
           type: boolean
       additionalProperties: false
-    GraphProjectionNode:
-      type: object
-      required:
-      - object
-      - depth
-      properties:
-        object:
-          $ref: '#/components/schemas/ProjectionObject'
-        depth:
-          type: integer
-          minimum: 0
-        lazy:
-          type: boolean
-        truncated:
-          type: boolean
-      additionalProperties: false
-    GraphProjectionEdge:
-      type: object
-      required:
-      - relation_id
-      - relation_kind
-      - from_ref
-      - to_ref
-      properties:
-        relation_id:
-          type: string
-          pattern: ^ck:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        relation_kind:
-          type: string
-          minLength: 1
-        from_ref:
-          type: string
-          pattern: ^(ck:(realm|space|circle|strand|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
-        to_ref:
-          type: string
-          pattern: ^(ck:(realm|space|circle|strand|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
-        rank:
-          type: string
-          pattern: ^[0-9A-Za-z]{1,128}$
-        truncated:
-          type: boolean
-      additionalProperties: false
-    GraphProjectionView:
-      type: object
-      required:
-      - projection
-      - view_id
-      - nodes
-      - edges
-      - frontier
-      properties:
-        projection:
-          type: string
-          const: graph
-        renderer:
-          $ref: '#/components/schemas/ViewRenderer'
-        view_id:
-          type: string
-          pattern: ^ck:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        realm_id:
-          type: string
-          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        frontier:
-          $ref: '#/components/schemas/StateFrontier'
-        nodes:
-          type: array
-          items:
-            $ref: '#/components/schemas/GraphProjectionNode'
-        edges:
-          type: array
-          items:
-            $ref: '#/components/schemas/GraphProjectionEdge'
-        next_cursor:
-          oneOf:
-          - type: string
-            pattern: ^ck:cursor:[A-Za-z0-9_-]+$
-          - type: 'null'
-        limited:
-          type: boolean
-        stale:
-          type: boolean
-      additionalProperties: false
-    DocumentProjectionSection:
-      type: object
-      required:
-      - object
-      - sort_key
-      properties:
-        object:
-          $ref: '#/components/schemas/ProjectionObject'
-        sort_key:
-          type: string
-          minLength: 1
-        depth:
-          type: integer
-          minimum: 0
-        body:
-          type: object
-        redacted:
-          type: boolean
-      additionalProperties: false
-    DocumentProjectionView:
-      type: object
-      required:
-      - projection
-      - view_id
-      - sections
-      - frontier
-      properties:
-        projection:
-          type: string
-          const: document
-        renderer:
-          $ref: '#/components/schemas/ViewRenderer'
-        view_id:
-          type: string
-          pattern: ^ck:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        realm_id:
-          type: string
-          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        frontier:
-          $ref: '#/components/schemas/StateFrontier'
-        sections:
-          type: array
-          items:
-            $ref: '#/components/schemas/DocumentProjectionSection'
-        next_cursor:
-          oneOf:
-          - type: string
-            pattern: ^ck:cursor:[A-Za-z0-9_-]+$
-          - type: 'null'
-        stale:
-          type: boolean
-      additionalProperties: false
-    CompositeProjectionWidget:
-      type: object
-      required:
-      - id
-      - title
-      - projection
-      - frontier
-      properties:
-        id:
-          type: string
-          minLength: 1
-        title:
-          type: string
-          minLength: 1
-        projection:
-          type: string
-          enum:
-          - collection
-          - timeline
-          - graph
-          - document
-          - composite
-        renderer:
-          $ref: '#/components/schemas/ViewRenderer'
-        frontier:
-          $ref: '#/components/schemas/StateFrontier'
-        result:
-          type: object
-        error:
-          $ref: '#/components/schemas/ErrorEnvelope'
-      additionalProperties: false
-    CompositeProjectionView:
-      type: object
-      required:
-      - projection
-      - view_id
-      - widgets
-      - frontier
-      properties:
-        projection:
-          type: string
-          const: composite
-        renderer:
-          $ref: '#/components/schemas/ViewRenderer'
-        view_id:
-          type: string
-          pattern: ^ck:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        realm_id:
-          type: string
-          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        frontier:
-          $ref: '#/components/schemas/StateFrontier'
-        widgets:
-          type: array
-          items:
-            $ref: '#/components/schemas/CompositeProjectionWidget'
-        stale:
-          type: boolean
-      additionalProperties: false
-    PolicyCheckRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequestBody
-    PolicyCheckOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome
-    SessionGrantRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequestBody
-    SessionGrantOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome
-    AccountDevicePairRequestBody:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body
-    AccountDevicePairOutcome:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/account_device_pair_outcome
-    AccountDeviceEnrollRequestBody:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/account_device_enroll_request_body
-    AccountDeviceEnrollOutcome:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/account_device_enroll_outcome
-    AgentKeyPairRequestBody:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_key_pair_request_body
-    AgentKeyPairOutcome:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_key_pair_outcome
-    AgentProvisionRequestBody:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_provision_request_body
-    AgentProvisionOutcome:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_provision_outcome
-    AgentPairingBootstrap:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_pairing_bootstrap
-    AgentPairingResolveRequestBody:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_pairing_resolve_request_body
-    AgentProtocolDiscoverRequestBody:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_request_body
-    AgentProtocolDiscoverOutcome:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_outcome
-    AgentList:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_list
-    AgentView:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_view
-    AgentPauseRequestBody:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_pause_request_body
-    AgentResumeRequestBody:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_resume_request_body
-    AgentDeactivateRequestBody:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_deactivate_request_body
-    AgentLifecycleState:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state
-    AgentRotateKeyRequestBody:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_rotate_key_request_body
-    AgentRotateKeyOutcome:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_rotate_key_outcome
-    AgentGrantAttachRequestBody:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_grant_attach_request_body
-    AgentGrantAttachOutcome:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_grant_attach_outcome
-    AgentGrantDetachOutcome:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_grant_detach_outcome
-    AgentSidecarThreadEnsureRequestBody:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_request_body
-    AgentSidecarThreadEnsureOutcome:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_outcome
-    AgentParticipationReplaceRequestBody:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_participation_replace_request_body
-    AgentParticipationOutcome:
-      $ref: ../schemas/agent-operations.schema.json#/$defs/agent_participation_outcome
-    AccountOidcCallbackRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody
-    AccountOidcCallbackOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome
-    DidOperationSubmitRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody
-    DidOperationSubmitOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitOutcome
-    ProjectionSpaceRow:
-      type: object
-      additionalProperties: false
-      required:
-      - space_id
-      - realm_id
-      - kind
-      - title
-      - state
-      properties:
-        space_id:
-          type: string
-          pattern: ^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        realm_id:
-          type: string
-          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        kind:
-          type: string
-          description: Space kind such as `board`, `list`, `folder`, or a profile-registered kind.
-        title:
-          type: string
-        parent_space_id:
-          type:
-          - string
-          - 'null'
-        rank:
-          type:
-          - string
-          - 'null'
-        state:
-          type: string
-          enum:
-          - active
-          - archived
-          - tombstoned
-        created_by:
-          type:
-          - string
-          - 'null'
-        created_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        updated_by:
-          type:
-          - string
-          - 'null'
-        updated_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        state_changed_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-    ProjectionSpaceList:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpaceList
-    ProjectionAssignedToRelation:
-      type: object
-      additionalProperties: false
-      required:
-      - relation_id
-      - actor_id
-      properties:
-        relation_id:
-          type: string
-          pattern: ^ck:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        actor_id:
-          type: string
-          pattern: ^did:[a-z0-9]+:[^\s#?]+$
-      description: Read-model edge backing a Strand assigned_to Relation. relation_id is needed by clients to tombstone the assignment; actor_id mirrors the Relation to_ref.
-    ProjectionStrandRow:
-      type: object
-      additionalProperties: false
-      required:
-      - strand_id
-      - realm_id
-      - state
-      properties:
-        strand_id:
-          type: string
-          pattern: ^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        realm_id:
-          type: string
-          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        state:
-          type: string
-          enum:
-          - active
-          - archived
-          - redacted
-        state_changed_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        title:
-          type:
-          - string
-          - 'null'
-          description: Derived display title from plaintext-visible Strand metadata.title; null when metadata is encrypted or hidden from the service profile.
-        summary:
-          type:
-          - string
-          - 'null'
-          description: Derived display summary from plaintext-visible Strand metadata.summary; null when metadata is encrypted or hidden from the service profile.
-        board_space_id:
-          type:
-          - string
-          - 'null'
-          pattern: ^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-          description: Derived board Space id from ck.component.strand.position.v1; not canonical Strand object state.
-        list_space_id:
-          type:
-          - string
-          - 'null'
-          pattern: ^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-          description: Derived list Space id from ck.component.strand.position.v1; not canonical Strand object state.
-        rank:
-          type:
-          - string
-          - 'null'
-          description: Derived rank within list_space_id from ck.component.strand.position.v1.
-        assigned_actor_ids:
-          type: array
-          items:
-            type: string
-            pattern: ^did:[a-z0-9]+:[^\s#?]+$
-          description: Derived current assignee Actor DIDs from visible active Relation(relation_kind=assigned_to, from_ref=strand_id). Empty or absent means the Strand is unassigned for this projection caller. This is read-model state, not canonical Strand object metadata.
-        assigned_to_relations:
-          type: array
-          items:
-            $ref: '#/components/schemas/ProjectionAssignedToRelation'
-          description: Read-only active assigned_to Relation edges backing assigned_actor_ids. Clients use relation_id to tombstone assignments.
-        created_by:
-          type:
-          - string
-          - 'null'
-        created_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        updated_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-    ProjectionStrandList:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionStrandList
-    ProjectionMorphRow:
-      type: object
-      additionalProperties: false
-      required:
-      - morph_id
-      - realm_id
-      - morph_type
-      - state
-      properties:
-        morph_id:
-          type: string
-          pattern: ^ck:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        realm_id:
-          type: string
-          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-        morph_type:
-          type: string
-        state:
-          type: string
-          enum:
-          - active
-          - archived
-          - redacted
-        title:
-          type:
-          - string
-          - 'null'
-        created_by:
-          type:
-          - string
-          - 'null'
-        created_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        updated_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        state_changed_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-    ProjectionMorphList:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionMorphList
-    EphemeralSubmitOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EphemeralSubmitOutcome
-    DirectoryAnnounceRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody
-    DirectoryAnnounceOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome
-    DirectoryWithdrawRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody
-    DirectoryWithdrawOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawOutcome
-    DirectoryTakedownAppealRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealRequestBody
-    DirectoryTakedownAppealOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealOutcome
+    ViewProjectionRequestBody:
+      $ref: ../schemas/view.schema.json#/$defs/view_projection_request_body
+    ViewRenderer:
+      type: string
+      enum:
+      - board
+      - list
+      - table
+      - calendar
+      - gantt
+      - timeline
+      - thread
+      - chat
+      - forum
+      - graph
+      - tree
+      - document
+      - dashboard
+      - custom
   responses:
     NotFound:
       description: Not found or not visible.

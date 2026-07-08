@@ -2066,6 +2066,34 @@ def check_openapi_contract_shape(lint: Lint, path: Path, text: str) -> None:
         finish_operation(line_no if "line_no" in locals() else 0)
 
 
+def check_openapi_schema_component_order(lint: Lint) -> None:
+    openapi_path = ARTIFACTS / "openapi" / "cokret-service-api.openapi.yaml"
+    openapi = load_yaml(lint, openapi_path)
+    if not isinstance(openapi, dict):
+        return
+
+    schemas = openapi.get("components", {}).get("schemas", {})
+    if not isinstance(schemas, dict):
+        lint.fail(openapi_path, "components.schemas missing")
+        return
+
+    names = list(schemas)
+    expected = sorted(names, key=str.casefold)
+    if names == expected:
+        return
+
+    index, actual, wanted = next(
+        (index, actual, expected[index])
+        for index, actual in enumerate(names)
+        if actual != expected[index]
+    )
+    lint.fail(
+        openapi_path,
+        "components.schemas must be sorted alphabetically; "
+        f"position {index + 1} has {actual}, expected {wanted}",
+    )
+
+
 def check_operation_surfaces(lint: Lint, known: dict[str, set[str]]) -> None:
     openapi_path = ARTIFACTS / "openapi" / "cokret-service-api.openapi.yaml"
     openapi_text = openapi_path.read_text(encoding="utf-8")
@@ -5311,6 +5339,7 @@ def main() -> int:
     check_profile_requirements(lint, known)
     check_vector_group_requirements(lint, known)
     check_event_schema_coverage(lint, known)
+    check_openapi_schema_component_order(lint)
     check_operation_surfaces(lint, known)
     check_service_describe_alignment(lint)
     check_policy_check_alignment(lint)
