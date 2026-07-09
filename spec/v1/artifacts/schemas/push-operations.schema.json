@@ -188,6 +188,7 @@
       "required": [
         "push_target_id",
         "wakeup_kind",
+        "timing_profile_hint",
         "devices"
       ],
       "properties": {
@@ -207,6 +208,14 @@
             "scheduled_send",
             "expiry_invalidation"
           ]
+        },
+        "timing_profile_hint": {
+          "type": "string",
+          "enum": [
+            "default",
+            "traffic_metadata_hardened"
+          ],
+          "description": "Closed timing/profile hint from Sync Service. traffic_metadata_hardened means the source Realm or route declares ck.profile.traffic_metadata_hardened.v1 and the Push Gateway MUST use a 300s or coarser provider-visible timing bucket. Gateway-internal; MUST be stripped before any provider call. See push-notifications.md §2.4 / §4.5 / §5.1."
         },
         "push_hint": {
           "type": "string",
@@ -281,6 +290,7 @@
       "required": [
         "push_target_id",
         "wakeup_kind",
+        "timing_profile_hint",
         "devices",
         "event_id",
         "realm_id",
@@ -303,6 +313,14 @@
             "scheduled_send",
             "expiry_invalidation"
           ]
+        },
+        "timing_profile_hint": {
+          "type": "string",
+          "enum": [
+            "default",
+            "traffic_metadata_hardened"
+          ],
+          "description": "Closed timing/profile hint from Sync Service. traffic_metadata_hardened means the source Realm or route declares ck.profile.traffic_metadata_hardened.v1 and the Push Gateway MUST use a 300s or coarser provider-visible timing bucket. Gateway-internal; MUST be stripped before any provider call. See push-notifications.md §2.4 / §4.5 / §5.1."
         },
         "push_hint": {
           "type": "string",

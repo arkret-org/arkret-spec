@@ -385,6 +385,7 @@ POST /_cokret/edge/push/notify
 | `notification.push_hint` | string | optional | 受信通知服务提供的脱敏提示形态选择器，与 `wakeup_kind` 是不同字段：`blind_wakeup` 下其封闭枚举为 `new_message` / `incoming_call` / `mention_self`（见 §4.5），或哨兵值 `l10n_key`。**`l10n_key` 是「形态选择器」而非字面展示 token**：当 `push_hint == "l10n_key"` 时，实际本地化键 MUST 由独立字段 `push_hint_l10n_key` 承载（不得把 l10n key 直接塞进 `push_hint` 值）。不得包含正文、sender DID / handle、Realm id / 名称、Strand / Message id、reaction 实际值或 stable correlation key。 |
 | `notification.push_hint_l10n_key` | string | conditional | 仅当 `push_hint == "l10n_key"` 时出现且 MUST 提供；承载实际本地化键 token（如 `push.new_message`），由客户端在解密后用于本地渲染。MUST NOT 携带正文或任何识别性 metadata。 |
 | `notification.evaluation_locus_unresolved` | boolean | optional | E2EE client-side rule 降级信号（见 §4.5 第 3 步）：为 `true` 表示客户端已被唤醒但 server 端规则匹配尚未确定。纯本地评估信号，不携带 metadata。 |
+| `notification.timing_profile_hint` | string | required | Sync Service 提供的闭合时序 / profile hint，封闭枚举 `default` / `traffic_metadata_hardened`。当值为 `traffic_metadata_hardened` 时，表示源 Realm 或 route 声明 `ck.profile.traffic_metadata_hardened.v1`；Push Gateway MUST 对 provider 可见出向 push 使用 300s 或更粗 timing bucket。该字段只驱动 gateway 内部时序，不得转发给 provider，也不得替代 `wakeup_default` 或 payload disclosure profile。 |
 | `notification.counts` | object | optional | 未读数、未接来电数等计数。**`blind_wakeup` 下约束（normative）**：绝对未读数是活动侧信道，会让 provider 推断用户的累计活跃度，且 §2.2 已将"未读绝对计数明文"列入 `push_hint` MUST NOT 清单；为避免该 MUST NOT 被本字段架空，`blind_wakeup` 下 counts **MUST NOT** 携带明文绝对未读数。counts MUST 改用以下形态之一：粗粒度布尔 badge（如"有/无新内容"）、`unread_increment` 增量，或按 Realm policy 声明粒度 **bucket 化**的未读数。**封闭默认 bucket grid（normative）**：采用 bucket 化形态时，未声明 policy grid 的实现 MUST 使用封闭默认 grid `1` / `2-5` / `6-20` / `21+`（与 [`discovery-directory.md` §3](./discovery-directory.md) member_count bucket 同为协议固定枚举，使迟滞带宽有可计算基准）。policy MAY 声明更细或更粗的自定义 grid，但 MUST 是封闭枚举（请求方收到不在 grid 内的 bucket 字符串 MUST 视作不合规并丢弃），不得使用开放 / 无界粒度——否则下方迟滞带宽公式（依赖"相邻有限 bucket 跨度"）无可计算基准。无论何种形态，counts MUST NOT 跨 `push_target_id` 关联，也不得用于在 provider 侧重建跨 Realm 累计活动画像。**边界振荡侧信道（normative）**：与 [`discovery-directory.md` §3](./discovery-directory.md) member_count bucket 同理，真实未读数在两个 bucket 边界附近抖动时，provider 反复观察 bucket 翻转可逼近精确计数。因此采用 bucket 化形态时，bucket 输出 MUST 带迟滞（hysteresis）且最小驻留时间：bucket 一旦切换，MUST 在 policy 声明或本段默认的最小驻留窗口内保持稳定，不得在边界两侧逐次 notify 即翻转；实现 MUST 仅在真实计数越过 bucket 边界并持续超过 policy 声明或本段默认的迟滞带宽后才切换输出 bucket。默认最小驻留窗口与默认迟滞带宽复用 [`discovery-directory.md` §3](./discovery-directory.md) member_count bucket 口径：最小驻留窗口 MUST ≥ max(当前通知聚合窗口、provider 可观察刷新间隔)；默认迟滞带宽 = max(2, ceil(相邻有限 bucket 跨度较小者 × 0.10))，其中 bucket"跨度"按**含端点计数**（`upper − lower + 1`）计算，与 [`discovery-directory.md` §3](./discovery-directory.md) 同口径（如 `501-2000` 跨度 = 1500）；开放上界 bucket（如 `21+`）以前一个有限 bucket 的跨度为参照基数（默认 grid 下 `6-20` 跨度 = 15，故 `21+` 参照基数 = 15）。policy MAY 声明更大的绝对值或比例，但不得低于该默认值；声明 0 或更小值 MUST 按不合规处理。`unread_increment` 与布尔 badge 形态不受 bucket 迟滞约束（前者只传增量、后者不暴露绝对量级）。 |
 | `notification.devices` | object[] | required | 目标设备数组。 |
 | `notification.devices[].push_key` | string | required | 目标平台 push token。 |
@@ -417,7 +418,7 @@ POST /_cokret/edge/push/notify
 
 1. `/_cokret/edge/push/notify` 请求体只承载本节表中定义的协议字段，且由 `push-operations.schema.json#/$defs/push_notify_request_body` 的闭合 schema 约束。产品内部 UI 草稿、DND/snooze 状态、push rule 明文、provider adapter 原始字段、APNs/FCM/WebPush 私有 body、`provider_payload`、`content` 或 `content_*` preview 字段 **MUST NOT** 进入该协议 body；实现需要这些信息时，只能在调用方产品私有进程内完成求值，并把结果压缩成本节定义的 `wakeup_kind` / `push_hint` / `reason_code` / `route_tokens` 等最小协议字段。
 2. Product-private body 是调用方服务内部状态，不是 Cokret v1 wire surface。它 MAY 包含本地化资源键、UI 文案模板、静默时段、snooze target 或 provider adapter 配置，但这些字段 MUST 在进入 `ck.edge.push.command.notify` 前被消费或丢弃。不得通过 `notification.extra`、`content`、`payload`、`data`、`provider_payload` 或任何自由对象把 product-private body 透传给 Push Gateway。
-3. Provider payload 是 Push Gateway 对 APNs / FCM / WebPush / OEM provider 的出向请求；它由 gateway 根据已验证的 notify body 重新构造。默认 `blind_wakeup` 下 provider payload 的允许集合是 `push_target_id`、`wakeup_kind`、合规的 `push_hint` / `push_hint_l10n_key`、最小化 counts 以及 provider 必需的不可链接 collapse key；`route_tokens`、`devices[].target_route_token`、`reason_code`、`event_kind`、`audit_envelope` 和任何 Realm / sender / event / content 字段 MUST 在出 provider 前 strip。
+3. Provider payload 是 Push Gateway 对 APNs / FCM / WebPush / OEM provider 的出向请求；它由 gateway 根据已验证的 notify body 重新构造。默认 `blind_wakeup` 下 provider payload 的允许集合是 `push_target_id`、`wakeup_kind`、合规的 `push_hint` / `push_hint_l10n_key`、最小化 counts 以及 provider 必需的不可链接 collapse key；`timing_profile_hint`、`route_tokens`、`devices[].target_route_token`、`reason_code`、`event_kind`、`audit_envelope` 和任何 Realm / sender / event / content 字段 MUST 在出 provider 前 strip。
 4. `ck.profile.push_gateway.visible_notification.v1` 只放宽本表列出的 profile-gated 标题/标签/typed-id 字段，不引入自由正文容器。即使 Realm policy 和设备 opt-in 允许 visible notification，`notification.content`、`body`、`preview`、`summary`、provider-specific `data` 或任意 `content_*` 字段仍不属于 v1 notify body；需要完整标题与正文的客户端 SHOULD 由 blind wakeup 唤醒后本地拉取、解密并渲染。
 
 `notification.event_id`、`notification.realm_id`（client-visible 顶层）、`notification.kind`、`notification.sender_actor_id`、`notification.sender_actor_display_name`、`notification.realm_title`、`notification.strand_title` 等识别字段 **MUST NOT** 出现在 `ck.profile.push_gateway.blind_wakeup.v1`（默认互操作隐私基线）的 payload 中。独立第三方 Push Gateway 的路由输入只能使用 `route_tokens` 与 `devices[].target_route_token`；raw Realm id、Circle id、`effective_scope`、actor DID allow-list 或其它可识别路由原文不得进入 `/_cokret/edge/push/notify` wire。若某部署确实需要让受信 Push Gateway 承载可见通知，必须声明独立的 `ck.profile.push_gateway.visible_notification.v1` profile，并满足全部条件：
@@ -439,6 +440,7 @@ Matrix 互通部署 MAY 声明 `ck.profile.push_gateway.matrix_passthrough.v1` �
   "notification": {
     "push_target_id": "ck:pseudonym:push:01js0pt0000000000000000000",
     "wakeup_kind": "message",
+    "timing_profile_hint": "default",
     "counts": {
       "badge": "2-5",
       "missed_call": 0
@@ -476,7 +478,7 @@ Matrix 互通部署 MAY 声明 `ck.profile.push_gateway.matrix_passthrough.v1` �
 1. Alice 发送加密消息到 Realm S
 2. Alice 的客户端不在 Event 明文元数据中附加 sender / Realm 可识别 `push_hint`；若需要提示，只能使用 `push_hint: "new_message"` 或 `l10n_key`
 3. Sync Service 收到 Event，匹配推送规则
-4. Sync Service 向 Bob 的推送网关发送 `blind_wakeup` 通知（只含 `push_target_id`、`wakeup_kind`、可选计数和 opaque route token）
+4. Sync Service 向 Bob 的推送网关发送 `blind_wakeup` 通知（只含 `push_target_id`、`wakeup_kind`、`timing_profile_hint`、可选计数和 opaque route token）
 5. Bob 的设备收到推送，唤醒客户端
 6. 客户端从 Sync Service 拉取加密 Event 并解密
 7. 客户端在本地展示完整的消息内容
