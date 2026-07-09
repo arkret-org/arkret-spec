@@ -1180,6 +1180,60 @@ components:
               - not_member
               - morph_profile_widens_schema_ref
               - morph_type_immutable
+              - applet_already_registered
+              - applet_effective_scope_mismatch
+              - applet_install_projection_incomplete
+              - applet_install_required
+              - applet_namespace_conflict
+              - applet_package_expired
+              - applet_registration_epoch_evidence_mismatch
+              - applet_registration_epoch_evidence_missing
+              - applet_registration_epoch_signing_key_mismatch
+              - applet_transaction_in_progress
+              - bot_actor_revoked
+              - enclave_no_upstream_proxy_for_external
+              - enclave_not_trusted
+              - external_invite_actor_mismatch
+              - external_user_no_main_access
+              - upstream_unavailable
+              - agent_provision_fanout_unavailable
+              - cannot_pair_current_device
+              - cross_signing_state_missing
+              - device_already_authorized
+              - device_not_authorized
+              - device_revoked
+              - discovery_failed
+              - first_backup_gate_unsatisfied
+              - fresh_device_scope_violation
+              - invalid_avatar_url
+              - recovery_authorization_device_mismatch
+              - recovery_authorization_principal_mismatch
+              - recovery_authorization_session_mismatch
+              - recovery_control_event_kind_mismatch
+              - recovery_control_event_not_found
+              - recovery_list_update_device_mismatch
+              - recovery_list_update_principal_mismatch
+              - recovery_policy_conflict
+              - recovery_policy_device_not_authorized
+              - recovery_policy_id_mismatch
+              - recovery_policy_missing
+              - recovery_policy_revoked
+              - recovery_policy_trust_domain_mismatch
+              - recovery_policy_version_mismatch
+              - recovery_proof_authority_invalid
+              - recovery_proof_kind_not_allowed
+              - recovery_proof_kind_unimplemented
+              - recovery_receipt_conflict
+              - recovery_session_conflict
+              - recovery_session_id_reused
+              - recovery_session_not_pending
+              - mimi_e2ee_boundary_unmarked
+              - mimi_payload_digest_mismatch
+              - mimi_payload_invalid
+              - mimi_reporter_resolution_required
+              - franking_tampered
+              - mls_keypackage_claim_request_expired
+              - snapshot_chunk_digest_mismatch
             message:
               type: string
             retry_after_ms:

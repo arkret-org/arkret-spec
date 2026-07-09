@@ -1013,6 +1013,390 @@
       "http_status": 422,
       "scope": "both",
       "description": "A Morph update attempted to change an immutable morph_type after creation."
+    },
+    {
+      "code": "applet_already_registered",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "An applet with the same identity is already registered for the realm."
+    },
+    {
+      "code": "applet_effective_scope_mismatch",
+      "http_status": 404,
+      "scope": "endpoint",
+      "description": "The applet install projection does not match the requested effective scope."
+    },
+    {
+      "code": "applet_install_projection_incomplete",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The applet install projection is not yet complete."
+    },
+    {
+      "code": "applet_install_required",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The operation requires the applet to be installed first."
+    },
+    {
+      "code": "applet_namespace_conflict",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The applet namespace conflicts with an existing registration."
+    },
+    {
+      "code": "applet_package_expired",
+      "http_status": 400,
+      "scope": "endpoint",
+      "description": "The submitted applet package has expired."
+    },
+    {
+      "code": "applet_registration_epoch_evidence_mismatch",
+      "http_status": 400,
+      "scope": "endpoint",
+      "description": "Applet registration epoch evidence does not match the expected epoch."
+    },
+    {
+      "code": "applet_registration_epoch_evidence_missing",
+      "http_status": 400,
+      "scope": "endpoint",
+      "description": "Applet registration epoch evidence is missing."
+    },
+    {
+      "code": "applet_registration_epoch_signing_key_mismatch",
+      "http_status": 400,
+      "scope": "endpoint",
+      "description": "Applet registration epoch signing key does not match the registered key."
+    },
+    {
+      "code": "applet_transaction_in_progress",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "Another applet transaction is already in progress."
+    },
+    {
+      "code": "bot_actor_revoked",
+      "http_status": 403,
+      "scope": "endpoint",
+      "description": "The bot actor has been revoked and may not act."
+    },
+    {
+      "code": "enclave_no_upstream_proxy_for_external",
+      "http_status": 403,
+      "scope": "endpoint",
+      "description": "No upstream proxy is configured for external egress from the enclave."
+    },
+    {
+      "code": "enclave_not_trusted",
+      "http_status": 403,
+      "scope": "endpoint",
+      "description": "The enclave is not trusted for the requested operation."
+    },
+    {
+      "code": "external_invite_actor_mismatch",
+      "http_status": 403,
+      "scope": "endpoint",
+      "description": "The external invite actor does not match the authenticated actor."
+    },
+    {
+      "code": "external_user_no_main_access",
+      "http_status": 403,
+      "scope": "endpoint",
+      "description": "The external user has no access to the main deployment surface."
+    },
+    {
+      "code": "upstream_unavailable",
+      "http_status": 412,
+      "scope": "endpoint",
+      "description": "A required upstream dependency is unavailable."
+    },
+    {
+      "code": "agent_provision_fanout_unavailable",
+      "http_status": 501,
+      "scope": "endpoint",
+      "description": "Agent provisioning fanout is not available on this deployment."
+    },
+    {
+      "code": "cannot_pair_current_device",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The current device cannot pair with itself."
+    },
+    {
+      "code": "cross_signing_state_missing",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "Cross-signing state is missing for the principal."
+    },
+    {
+      "code": "device_already_authorized",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The device is already authorized."
+    },
+    {
+      "code": "device_not_authorized",
+      "http_status": 403,
+      "scope": "endpoint",
+      "description": "The device is not authorized for the requested operation."
+    },
+    {
+      "code": "device_revoked",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The device has been revoked."
+    },
+    {
+      "code": "discovery_failed",
+      "http_status": 404,
+      "scope": "endpoint",
+      "description": "Discovery of the requested resource failed."
+    },
+    {
+      "code": "first_backup_gate_unsatisfied",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The first did_recovery backup gate requirements are not satisfied."
+    },
+    {
+      "code": "fresh_device_scope_violation",
+      "http_status": 403,
+      "scope": "endpoint",
+      "description": "A fresh device attempted an operation outside its permitted scope."
+    },
+    {
+      "code": "invalid_avatar_url",
+      "http_status": 400,
+      "scope": "endpoint",
+      "description": "The provided avatar URL is invalid."
+    },
+    {
+      "code": "recovery_authorization_device_mismatch",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The recovery authorization device does not match."
+    },
+    {
+      "code": "recovery_authorization_principal_mismatch",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The recovery authorization principal does not match."
+    },
+    {
+      "code": "recovery_authorization_session_mismatch",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The recovery authorization session does not match."
+    },
+    {
+      "code": "recovery_control_event_kind_mismatch",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The recovery control event kind does not match the expected kind."
+    },
+    {
+      "code": "recovery_control_event_not_found",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The referenced recovery control event was not found."
+    },
+    {
+      "code": "recovery_list_update_device_mismatch",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The recovery list update device does not match."
+    },
+    {
+      "code": "recovery_list_update_principal_mismatch",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The recovery list update principal does not match."
+    },
+    {
+      "code": "recovery_policy_conflict",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The recovery policy conflicts with the current state."
+    },
+    {
+      "code": "recovery_policy_device_not_authorized",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The device is not authorized under the recovery policy."
+    },
+    {
+      "code": "recovery_policy_id_mismatch",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The recovery policy id does not match."
+    },
+    {
+      "code": "recovery_policy_missing",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "No recovery policy is registered for the principal."
+    },
+    {
+      "code": "recovery_policy_revoked",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The recovery policy has been revoked."
+    },
+    {
+      "code": "recovery_policy_trust_domain_mismatch",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The recovery policy trust domain does not match."
+    },
+    {
+      "code": "recovery_policy_version_mismatch",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The recovery policy version does not match."
+    },
+    {
+      "code": "recovery_proof_authority_invalid",
+      "http_status": 401,
+      "scope": "endpoint",
+      "description": "The recovery proof authority is invalid."
+    },
+    {
+      "code": "recovery_proof_kind_not_allowed",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The recovery proof kind is not allowed."
+    },
+    {
+      "code": "recovery_proof_kind_unimplemented",
+      "http_status": 501,
+      "scope": "endpoint",
+      "description": "The recovery proof kind is not implemented."
+    },
+    {
+      "code": "recovery_receipt_conflict",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The recovery receipt conflicts with the current state."
+    },
+    {
+      "code": "recovery_session_conflict",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The recovery session conflicts with the current state."
+    },
+    {
+      "code": "recovery_session_id_reused",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The recovery session id has already been used."
+    },
+    {
+      "code": "recovery_session_not_pending",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The recovery session is not in a pending state."
+    },
+    {
+      "code": "federation_actor_origin_rejected",
+      "http_status": 403,
+      "scope": "service_call",
+      "description": "The federated actor origin was rejected by inbound policy."
+    },
+    {
+      "code": "federation_interop_track_only",
+      "http_status": 501,
+      "scope": "service_call",
+      "description": "The requested federation surface is interop-track only."
+    },
+    {
+      "code": "federation_origin_denied",
+      "http_status": 403,
+      "scope": "service_call",
+      "description": "The federated origin was denied."
+    },
+    {
+      "code": "federation_private_read_rail_local_only",
+      "http_status": 501,
+      "scope": "service_call",
+      "description": "The private read rail is local-only and not federated."
+    },
+    {
+      "code": "realm_federation_policy_closed",
+      "http_status": 403,
+      "scope": "service_call",
+      "description": "The realm federation policy is closed."
+    },
+    {
+      "code": "realm_federation_policy_invalid",
+      "http_status": 403,
+      "scope": "service_call",
+      "description": "The realm federation policy is invalid."
+    },
+    {
+      "code": "realm_federation_policy_quarantine",
+      "http_status": 403,
+      "scope": "service_call",
+      "description": "The realm federation policy has quarantined the peer."
+    },
+    {
+      "code": "realm_federation_policy_restricted",
+      "http_status": 403,
+      "scope": "service_call",
+      "description": "The realm federation policy restricts this peer."
+    },
+    {
+      "code": "realm_moderation_policy_denied",
+      "http_status": 403,
+      "scope": "service_call",
+      "description": "The realm moderation policy denied the federated action."
+    },
+    {
+      "code": "mimi_e2ee_boundary_unmarked",
+      "http_status": 400,
+      "scope": "endpoint",
+      "description": "The MIMI payload crosses the E2EE boundary without being marked."
+    },
+    {
+      "code": "mimi_payload_digest_mismatch",
+      "http_status": 400,
+      "scope": "endpoint",
+      "description": "The MIMI payload digest does not match."
+    },
+    {
+      "code": "mimi_payload_invalid",
+      "http_status": 400,
+      "scope": "endpoint",
+      "description": "The MIMI payload is invalid."
+    },
+    {
+      "code": "mimi_reporter_resolution_required",
+      "http_status": 403,
+      "scope": "endpoint",
+      "description": "MIMI reporter resolution is required before this action."
+    },
+    {
+      "code": "stale_peer_state_unavailable",
+      "http_status": 503,
+      "scope": "service_call",
+      "description": "The peer's state is stale and temporarily unavailable."
+    },
+    {
+      "code": "franking_tampered",
+      "http_status": 400,
+      "scope": "endpoint",
+      "description": "The franking tag is tampered or does not verify."
+    },
+    {
+      "code": "mls_keypackage_claim_request_expired",
+      "http_status": 409,
+      "scope": "endpoint",
+      "description": "The MLS KeyPackage claim request has expired."
+    },
+    {
+      "code": "snapshot_chunk_digest_mismatch",
+      "http_status": 400,
+      "scope": "endpoint",
+      "description": "A conformance snapshot chunk digest does not match the declared digest."
     }
   ],
   "reason_codes": [
