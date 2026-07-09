@@ -28,13 +28,13 @@ updated: 2026-07-02
 | `enum(...)` | 枚举字符串。 |
 | `timestamp` | RFC 3339 UTC string，必须以 `Z` 结尾。 |
 | `did` | DID URI string。 |
-| `id:<kind>` | `ck:<kind>:<uuid>` typed ID，或该 kind 在 `id-kind-registry.json` 声明的特殊 wire form。 |
+| `id:<kind>` | `ak:<kind>:<uuid>` typed ID，或该 kind 在 `id-kind-registry.json` 声明的特殊 wire form。 |
 | `ref:<kind>` | 指向 `<kind>` 的 typed reference material；wire form 同样由 `id-kind-registry.json` 或对应 profile 声明，但字段语义是因果 / proof / content-addressed / profile-scoped reference，而不是普通对象主键。 |
 | `hash` | 自描述 `<digest-suite>:<lowercase_hex_digest>`（suite 取 `digest-suite-registry.json` 的 active 套件，如 `sha256:` / `blake3:`；实际套件由 Realm `digest_algorithm` 决定）。 |
-| `cursor` | `ck:cursor:<base64url>` opaque string。 |
+| `cursor` | `ak:cursor:<base64url>` opaque string。 |
 | `patch` | `ck.patch.v1` 形态的 JSON patch 片段，具体路径与 op 规则见 [`event-and-patch.md`](./event-and-patch.md)。 |
 
-注：`device_id` 不是例外字段；它的类型是 `id:device`，wire form MUST 为 `ck:device:<uuid>`。只有部分辅助标识符（如 `transaction_id`、`backup_version`、`stream_id`）使用领域特定前缀（如 `ver_`、`kb_`、`devstream_`），不遵循 `ck:<kind>:<uuid>` 格式。这些标识符的编码规则由各自所在章节定义。`recording_id` 是 [`crypto-media/call-state.md` §5](../crypto-media/call-state.md) 定义的 opaque 领域标识（示例形态 `rtc-recording-<uuid>`）：它是 backend 媒体服务（如 LiveKit Egress）生成的 opaque 录制 lifecycle 句柄，进入 recording key exporter Context，**不是** `ck:*` typed ID。
+注：`device_id` 不是例外字段；它的类型是 `id:device`，wire form MUST 为 `ak:device:<uuid>`。只有部分辅助标识符（如 `transaction_id`、`backup_version`、`stream_id`）使用领域特定前缀（如 `ver_`、`kb_`、`devstream_`），不遵循 `ak:<kind>:<uuid>` 格式。这些标识符的编码规则由各自所在章节定义。`recording_id` 是 [`crypto-media/call-state.md` §5](../crypto-media/call-state.md) 定义的 opaque 领域标识（示例形态 `rtc-recording-<uuid>`）：它是 backend 媒体服务（如 LiveKit Egress）生成的 opaque 录制 lifecycle 句柄，进入 recording key exporter Context，**不是** `ak:*` typed ID。
 
 `ck-` / `cx_` 前缀命名约定（normative）：`ck-` / `ck_` 是 Arkret 的正命名前缀；新增或推荐的 canonical 命名 **MUST NOT** 使用 `ck-` / `cx_` 前缀。MLS GroupContext extension 的当前 wire 名是 `mls_governance_binding`（codepoint 0xF1C0，非 ck 名），实现 MUST 用 `mls_governance_binding`、MUST NOT 把 `cx_governance_binding` 作为当前 wire 名。
 
@@ -44,8 +44,8 @@ updated: 2026-07-02
 - `null` 只有在类型中明确写出时才允许。
 - Event Envelope 顶层未知字段 MUST 被 schema validation 拒绝；非关键扩展只能放入 `payload.x_*`，且仅当该 payload kind 的 schema 显式声明 `x_*` patternProperties 扩展槽时才可使用——未声明扩展槽的 payload kind 不接受任何未知字段（payload schema 的 `additionalProperties: false` 即权威判定）。实现 MUST 在 canonical bytes、存储、转发和 backfill 中保留 schema 允许的 `x_*` 字段，但 MUST NOT 让 `x_*` 字段绕过 capability、schema、policy 或加密约束。需要扩展槽的 payload kind SHOULD 先在对应 schema 登记 `x_*` patternProperties 槽再使用；当前已声明扩展槽的 payload kind 以 schema 为准（现仅 `invite_payload`）。未知 critical extension MUST fail closed。
 - 签名和 hash 输入 MUST 使用 canonical JSON。
-- `id:<kind>` 在 wire、canonical object、fixture、签名和跨服务引用中 MUST 使用完整 typed ID。数据库内部 MAY 只存 raw id，但在序列化、签名、hash、联邦、sync cursor 和审计回放前必须恢复 `ck:<kind>:` 前缀；不得把数据库主键或表名当作协议 ID 的替代品。
-- 当 `id:<kind>` 出现在 JSON object key 中时，它仍然属于 wire value；例如 `messages.{principal_id}.{device_id}` 中的 `{device_id}` MUST 使用完整 `ck:device:<uuid>`，MUST NOT 写成局部别名如 `dev_a` 或 `a`。
+- `id:<kind>` 在 wire、canonical object、fixture、签名和跨服务引用中 MUST 使用完整 typed ID。数据库内部 MAY 只存 raw id，但在序列化、签名、hash、联邦、sync cursor 和审计回放前必须恢复 `ak:<kind>:` 前缀；不得把数据库主键或表名当作协议 ID 的替代品。
+- 当 `id:<kind>` 出现在 JSON object key 中时，它仍然属于 wire value；例如 `messages.{principal_id}.{device_id}` 中的 `{device_id}` MUST 使用完整 `ak:device:<uuid>`，MUST NOT 写成局部别名如 `dev_a` 或 `a`。
 - `summary` / `description` 命名约定：canonical object 或 projection row 的短摘要、列表预览、聚合摘要使用 `summary`；Strand 的用户可读短摘要放在 `metadata.summary` 或 `encrypted_metadata`，不得作为顶层 `summary`。原因说明、补充说明、长说明或 schema / registry 元数据说明使用 `description`。OpenAPI 自身标准关键字 `summary` / `description` 按 OpenAPI 语义使用。若字段承载人类可读名称，canonical object 默认使用 `title`；Strand 使用 `metadata.title` 或 `encrypted_metadata`，Actor / user-facing identity profile 使用 `display_name`；`name` 只用于外部协议、加密算法、service surface 或 registry 内部 label，不作为 Realm / Space / Strand 等 canonical object 的显示名。
 - Projection row 若表达 canonical object 的同一概念，MUST 沿用 canonical 字段名（例如 `title`、`summary`、`avatar_blob_ref`、`owning_organizations`），MUST NOT 另起 `name`、`avatar`、`official_organizations` 等别名。若服务需要返回渲染友好的派生对象，字段名 MUST 明确带 projection 语义并有 schema；v1 默认不定义通用 `avatar` projection，头像引用使用 `avatar_blob_ref`。
 - `_id` / `_ref` / `_did` 后缀约定见 §2.1。简要规则：单一具体 protocol object kind 使用 `_id`；因果 / proof / schema-profile / content-addressed / polymorphic reference 使用 `_ref` / `_refs`；原始 DID ecosystem material 使用 `_did`。字段后缀表达 wire value category，不表达授权、同步、保留或加密是否级联；这些语义 MUST 由 role prefix、schema description 与对象专属章节定义。
@@ -58,7 +58,7 @@ updated: 2026-07-02
 - `recipient_service_did` 与 `audience` 不可互换：前者是物理路由目标 service DID，后者是密码学 transcript / proof 的受众绑定。即使 `audience` 只有一个 DID，也不得替代 `recipient_service_did`；反之亦然。
 - `scope` 命名约定：当 scope 是该对象自身的边界字段时，wire schema 使用裸 `scope`（与对象自身 `id` 的命名规则相同），例如 `ck.schema.erasure_receipt.v1.scope`、`ck.schema.erasure_verification_stub.v1.scope`、`ck.schema.event_batch_receipt.v1.scope`。当字段引用外部对象、表达子结构中的特定作用域，或同一 payload 同时出现多个 scope 语义时，必须用领域前缀说明形态与用途，例如 `read_scope`、`event_range`、`match_scope`、`claim_scope`、`agent_key_scope`、`consent_scope`、`realm_key_scope`、`extension_scope`、`constraint_scope`、`policy_scope`、`search_scope`、`relation_scope`。Registry 元数据若表示条目适用范围，可继续使用 `scope`。
 - 诊断命名约定：机器可枚举的失败 / 恢复 / reset 原因使用 `reason_code` 或带领域前缀的 `*_reason_code`；人类可读自由文本使用 `reason` 或 `description`。受控枚举不得命名为 `reason`。
-- ID kind 与 wire prefix 必须使用完整 snake_case 名称，不得使用缩写前缀（例如使用 `ck:notification:`、`ck:device_message:`、`ck:key_event:`、`ck:moderation_queue_item:`、`ck:request:`、`ck:transaction:`、`ck:franking_proof:`）。
+- ID kind 与 wire prefix 必须使用完整 snake_case 名称，不得使用缩写前缀（例如使用 `ak:notification:`、`ak:device_message:`、`ak:key_event:`、`ak:moderation_queue_item:`、`ak:request:`、`ak:transaction:`、`ak:franking_proof:`）。
 - CRDT lattice 字段使用 `lattice`，枚举值使用 snake_case（如 `or_set`、`mv_register`、`cas_register`、`ordered_log`、`lww_register`）。新增 lattice 枚举不得使用 kebab-case。
 - Event kind 动词使用动词原形表达 reducer 动作（如 `authorize`、`revoke`、`rotate`、`tombstone`）；只有纯状态通告或外部标准名有明确理由时才可使用过去分词。
 - Capability action 命名约定：
@@ -100,7 +100,7 @@ expected_<role>_<kind>_id
 - Blob 或 content-addressed 引用：`blob_ref`、`avatar_blob_ref`、`thumbnail_blob_ref`。
 - Schema / Profile / Feature 引用：`schema_refs`、`profile_ref`、`feature_ref`。
 - Proof / evidence / transcript 引用：`evidence_ref`、`proof_ref`、`service_acceptance_ref`、`policy_event_ref`。
-- Profile-scoped typed reference 或 profile-defined 非 UUID form：例如 `mls_group_ref` 使用 `ck:mls:<profile>:<profile_id>`，由 E2EE profile 校验。它故意不同于 MLS 标准 payload 内的原始 `mls_group_id`。
+- Profile-scoped typed reference 或 profile-defined 非 UUID form：例如 `mls_group_ref` 使用 `ak:mls:<profile>:<profile_id>`，由 E2EE profile 校验。它故意不同于 MLS 标准 payload 内的原始 `mls_group_id`。
 - Polymorphic reference：字段允许多个 protocol kind、DID、content-addressed value 或 hash 形态时使用 `_ref`，例如 `target_ref`、`object_ref`、Relation 的 `from_ref` / `to_ref`。
 
 新增字段若只允许一个具体 canonical materialized object kind，且不是上述因果、proof、schema/profile、content-addressed 或 profile-scoped reference，MUST 使用 `_id` 而不是 `_ref`。
@@ -119,7 +119,7 @@ expected_<role>_<kind>_id
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:*` | typed ID 前缀决定对象种类（`ck:strand:` 即 strand 对象，依此类推）。 | 对象稳定 ID；前缀就是 type，不再单独写 `type` 字段。 |
+| `id` | yes | `id:*` | typed ID 前缀决定对象种类（`ak:strand:` 即 strand 对象，依此类推）。 | 对象稳定 ID；前缀就是 type，不再单独写 `type` 字段。 |
 | `schema` | yes | `string` | SHOULD 是 `ck.schema.*.vN` 或反向域名 schema id。 | 验证 schema id。 |
 | `realm_id` | conditional | `id:realm` | Realm 外对象可省略。 | 所属 Realm。 |
 | `created_by` | conditional | `did` | 系统派生对象可由 `derived_from` 替代。 | 创建主体（创建该对象的 Event 的 `actor_id`）。 |
@@ -133,7 +133,7 @@ expected_<role>_<kind>_id
 | `labels` | no | `array<string>` | SHOULD 小写短标签。 | 用户或系统标签。 |
 | `fields` | no | `object` | 字段 schema 由对象类型自身的 `schema_refs` 决定。 | 扩展字段；v1 唯一标准扩展容器。 |
 
-对象种类由 `id` 的 typed prefix（`ck:strand:` / `ck:realm:` / ...）唯一决定；扩展字段统一走 `fields`，由对象 `schema_refs` 约束。Event Envelope 不是 Materialized Object，事件类型由顶层 `kind` 表达。
+对象种类由 `id` 的 typed prefix（`ak:strand:` / `ak:realm:` / ...）唯一决定；扩展字段统一走 `fields`，由对象 `schema_refs` 约束。Event Envelope 不是 Materialized Object，事件类型由顶层 `kind` 表达。
 
 ### 3.0.1 Size 字段命名
 
@@ -229,22 +229,22 @@ expected_<role>_<kind>_id
 
 ### 4.1 DID 适用边界
 
-DID 是 Arkret 的主体标识，不是普通协作对象 ID。标准协作对象（Realm / Circle / Space / Strand / Message / Morph / Relation / View / Policy / Grant / Invite / Blob 等）MUST 使用 `ck:<kind>:` typed ID 作为对象 ID；只有当字段表达 actor / principal / issuer / subject / service / controller / accountable party 时，才使用 DID 或 DID URL。设备不在此列：设备不是 actor 主体、没有自己的 DID，其标识是 `device_id`（`ck:device:<uuid>` typed ID），见 [`../crypto-media/device-lifecycle.md` §4](../crypto-media/device-lifecycle.md)。
+DID 是 Arkret 的主体标识，不是普通协作对象 ID。标准协作对象（Realm / Circle / Space / Strand / Message / Morph / Relation / View / Policy / Grant / Invite / Blob 等）MUST 使用 `ak:<kind>:` typed ID 作为对象 ID；只有当字段表达 actor / principal / issuer / subject / service / controller / accountable party 时，才使用 DID 或 DID URL。设备不在此列：设备不是 actor 主体、没有自己的 DID，其标识是 `device_id`（`ak:device:<uuid>` typed ID），见 [`../crypto-media/device-lifecycle.md` §4](../crypto-media/device-lifecycle.md)。
 
 因此，"需要有 DID"的对象与结构按下表理解：
 
 | 对象 / 结构 | 必须包含的 DID 字段 | 说明 |
 | --- | --- | --- |
-| Actor identity（user / org / team / agent / service / integration） | DID 本身 | Actor 的身份根就是 DID；若需要在协作图中展示，则用 Actor Profile 承载展示字段。**不含 device**：设备不是 actor 主体、无独立 DID，仅有 `device_id`（`ck:device:<uuid>`），见 device-lifecycle §4。 |
-| Actor Profile (`ck:actor_profile:`) | `principal_id` | Profile 只是展示镜像；`principal_id` 才是授权、签名和审计归属的主体 DID。 |
-| Event Envelope (`ck:event:`) | `actor_id`; Proof 中的 `verification_method` 为 DID URL | `actor_id` 是签署并提交事件的 actor DID，MUST 匹配 proof 控制链。 |
-| Realm (`ck:realm:`) | `created_by` | Realm create event 的授权 principal；`owning_organizations[]` 可选使用组织 DID。 |
+| Actor identity（user / org / team / agent / service / integration） | DID 本身 | Actor 的身份根就是 DID；若需要在协作图中展示，则用 Actor Profile 承载展示字段。**不含 device**：设备不是 actor 主体、无独立 DID，仅有 `device_id`（`ak:device:<uuid>`），见 device-lifecycle §4。 |
+| Actor Profile (`ak:actor_profile:`) | `principal_id` | Profile 只是展示镜像；`principal_id` 才是授权、签名和审计归属的主体 DID。 |
+| Event Envelope (`ak:event:`) | `actor_id`; Proof 中的 `verification_method` 为 DID URL | `actor_id` 是签署并提交事件的 actor DID，MUST 匹配 proof 控制链。 |
+| Realm (`ak:realm:`) | `created_by` | Realm create event 的授权 principal；`owning_organizations[]` 可选使用组织 DID。 |
 | Circle / Space / Strand / Message / Morph / Relation / View / Policy / Blob metadata | `created_by`; 更新时可有 `updated_by` | 这些对象自身不使用 DID 做 `id`；DID 只记录创建 / 更新主体。协作图对象的创建 / 更新主体由 reducer 从对应 Event 的 `actor_id` 派生；Blob metadata 的 `created_by` 来自 authenticated media 写入主体。 |
-| Capability Grant (`ck:grant:`) | `issuer`; `subject` 为具体主体时必须是 DID | `subject` 也可以是条件 selector；handle、邮箱、域名用户名等不得作为权限主体主键。 |
-| Invite (`ck:invite:`) | `inviter`; `invitee` 在直接 DID 邀请时使用 DID | [3PID](../overview/glossary.md) 邀请可没有 `invitee`，但认领后必须绑定可验证主体。 |
+| Capability Grant (`ak:grant:`) | `issuer`; `subject` 为具体主体时必须是 DID | `subject` 也可以是条件 selector；handle、邮箱、域名用户名等不得作为权限主体主键。 |
+| Invite (`ak:invite:`) | `inviter`; `invitee` 在直接 DID 邀请时使用 DID | [3PID](../overview/glossary.md) 邀请可没有 `invitee`，但认领后必须绑定可验证主体。 |
 | Read Cursor / Notification | `actor_id` | actor-private 或派生对象，`actor_id` 表示该私有状态所属主体。 |
 | Event Batch Receipt / Identity Receipt / Audit Receipt | `issuer` 或 schema 声明的签发 / 主体 DID 字段 | receipt 的签发、覆盖范围和验证必须回到可解析 DID。 |
-| Relation endpoint | 当 endpoint 是 Actor 时，`from_ref` / `to_ref` 使用 DID | 指向普通对象时仍使用 `ck:<kind>:` typed ID；Relation 不把对象 ID 转换为 DID。 |
+| Relation endpoint | 当 endpoint 是 Actor 时，`from_ref` / `to_ref` 使用 DID | 指向普通对象时仍使用 `ak:<kind>:` typed ID；Relation 不把对象 ID 转换为 DID。 |
 
 任何可签名、可被授予 capability、可作为审计责任主体或可被 Realm / service policy allowlist 的实体，MUST 有可解析 DID。仅作为内容、容器、投影或关系事实存在的对象，不需要也不得发明独立 DID；它们通过 typed ID 被引用，通过 `created_by` / `updated_by` 等字段关联到 DID 主体。
 
@@ -438,31 +438,31 @@ Message 与 Relation 没有 `archived` 态(见 §5.2 模板使用约束):它们�
 Protocol typed identifier / reference 的 wire value MUST 使用带类型前缀的稳定字符串：
 
 ```text
-ck:realm:<uuid>
-ck:space:<uuid>
-ck:strand:<uuid>
-ck:message:<uuid>
-ck:morph:<uuid>
-ck:relation:<uuid>
-ck:actor_profile:<uuid>
-ck:event:<uuid>
-ck:view:<uuid>
-ck:policy:<uuid>
-ck:capability:<uuid>     # abstract capability definition reference（非签名 grant；签名 grant 用 ck:grant:）；真源 artifacts/registry/id-kind-registry.json `capability` 条目
-ck:grant:<uuid>
-ck:invite:<uuid>
-ck:applet:<uuid>
-ck:blob:<uuid>                 # blob metadata row id
-ck:blob:sha256:...             # content-addressed special form（sha256:<hex>，digest-suite 见 digest-suite-registry.json）
-ck:receipt:<uuid>
-ck:trust_domain:<trust_domain_label>   # 非 UUID 形态，见下方说明
+ak:realm:<uuid>
+ak:space:<uuid>
+ak:strand:<uuid>
+ak:message:<uuid>
+ak:morph:<uuid>
+ak:relation:<uuid>
+ak:actor_profile:<uuid>
+ak:event:<uuid>
+ak:view:<uuid>
+ak:policy:<uuid>
+ak:capability:<uuid>     # abstract capability definition reference（非签名 grant；签名 grant 用 ak:grant:）；真源 artifacts/registry/id-kind-registry.json `capability` 条目
+ak:grant:<uuid>
+ak:invite:<uuid>
+ak:applet:<uuid>
+ak:blob:<uuid>                 # blob metadata row id
+ak:blob:sha256:...             # content-addressed special form（sha256:<hex>，digest-suite 见 digest-suite-registry.json）
+ak:receipt:<uuid>
+ak:trust_domain:<trust_domain_label>   # 非 UUID 形态，见下方说明
 ```
 
 UUID 部分 MUST 使用 UUIDv7（time-ordered），便于审计与排序；content-addressed form 使用对应 digest。
 
-并非所有 ID kind 都是 `ck:<kind>:<uuidv7>`。`ck:trust_domain:` 是 deployment-scoped replay boundary 标识：其 wire form 为 `ck:trust_domain:<trust_domain_label>`，`<trust_domain_label>` 是稳定的部署信任域标签（例如 `ck:trust_domain:did.webvh.acme.example`），不是 UUID。它 create-locked 在 Realm `trust_domain` 字段上，MUST 匹配部署 `ServiceDescribe.trust_domain` 与 Realm receive context（见 [`realm-and-space.md` §2.3](./realm-and-space.md)）。
+并非所有 ID kind 都是 `ak:<kind>:<uuidv7>`。`ak:trust_domain:` 是 deployment-scoped replay boundary 标识：其 wire form 为 `ak:trust_domain:<trust_domain_label>`，`<trust_domain_label>` 是稳定的部署信任域标签（例如 `ak:trust_domain:did.webvh.acme.example`），不是 UUID。它 create-locked 在 Realm `trust_domain` 字段上，MUST 匹配部署 `ServiceDescribe.trust_domain` 与 Realm receive context（见 [`realm-and-space.md` §2.3](./realm-and-space.md)）。
 
-`ck:cell:` / `ck:cursor:` / `ck:seal:` 等同步 / 状态原语的 wire form 见各自章节与 `artifacts/registry/id-kind-registry.json`，不在本协作图对象 ID 约定表内。上表只是常见 wire value 形态摘要，完整 ID kind 注册表及唯一真源见 `artifacts/registry/id-kind-registry.json`。本节不决定字段名：普通 canonical object 主键仍是 `id`，Event / Receipt / Backup 等 artifact 可用 `<artifact>_id`，Blob / Snapshot / MLS 等 reference 形态按 §2.1 使用 `_ref`。
+`ak:cell:` / `ak:cursor:` / `ak:seal:` 等同步 / 状态原语的 wire form 见各自章节与 `artifacts/registry/id-kind-registry.json`，不在本协作图对象 ID 约定表内。上表只是常见 wire value 形态摘要，完整 ID kind 注册表及唯一真源见 `artifacts/registry/id-kind-registry.json`。本节不决定字段名：普通 canonical object 主键仍是 `id`，Event / Receipt / Backup 等 artifact 可用 `<artifact>_id`，Blob / Snapshot / MLS 等 reference 形态按 §2.1 使用 `_ref`。
 
 ### 6.1 Policy 对象 vs 内联配置的字段命名约定（normative）
 
@@ -470,7 +470,7 @@ UUID 部分 MUST 使用 UUIDv7（time-ordered），便于审计与排序；conte
 
 - **`<axis>_profile`**：v1 协议级**固定选项**（create-locked 或 reducer-enforced 收敛），值是封闭 enum 字符串（`"mls_rfc9420"` / `"single_did"` / `"sha256"` / ...）。schema 内联约束，无需引用独立对象。变更需要新 event kind（如 hash-transition Seal）或新 Realm。
 - **`<axis>_policy`**：v1 协议级**软策略字段**，值仍是 enum 字符串（`"open"` / `"restricted"` / `"closed"` / `"quarantine"` 等），但描述运行时执行策略，与其他 cell state 有交互。同样内联，不通过引用对象。
-- **`<axis>_policy_id`**：指向独立 Policy 对象（`ck:policy:<uuid>`）的 ID，pattern `^ck:policy:[0-9a-f]{8}-...`。Policy 对象自身有 schema 与版本，可以被多个对象共享、被 governance event 修订。独立对象用于：(a) 跨对象复用、(b) 大体积或频繁变更、(c) 需要独立审计 / 签名链。
+- **`<axis>_policy_id`**：指向独立 Policy 对象（`ak:policy:<uuid>`）的 ID，pattern `^ak:policy:[0-9a-f]{8}-...`。Policy 对象自身有 schema 与版本，可以被多个对象共享、被 governance event 修订。独立对象用于：(a) 跨对象复用、(b) 大体积或频繁变更、(c) 需要独立审计 / 签名链。
 - **`<axis>_floor`**：某条加密 / 隐私轴上的**下限**字段，值与对应 `<axis>_profile` 取同一封闭 enum，但语义是"只能向上收紧、MUST NOT 放宽继承到的上游基线"。它用于子作用域声明比父作用域更严格的下限：父作用域（Realm）声明基线时用 `<axis>_profile`（例如 Realm 的 `metadata_encryption_floor`），子作用域（Circle、Space `child_scope_policy`）声明下限时用 `<axis>_floor`（例如 Circle 的 `metadata_encryption_floor`）。effective 值取上游 `_profile` 与各层 `_floor` 的更严格者（见 [`circle.md` §7](./circle.md)）。父字段保留 `_profile` 名、子字段使用 `_floor` 名是有意区分，不视为同义别名混用。
 
 判定流程：写新字段时若是**封闭 enum**（值集已知、协议级固定）用 `_profile` 或 `_policy`；若是**指向 Policy 对象**用 `_policy_id`；不得在同一对象上同时定义 `xxx_policy` 与 `xxx_policy_id` 表示同一个轴。若字段引用的是"授权该决策的 policy revision Event"，使用带 event 语义的 `_ref` 名称，例如 `policy_event_ref`，不得与 `policy_id` 混用。

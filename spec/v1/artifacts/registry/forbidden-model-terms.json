@@ -28,7 +28,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Contrix is the legacy brand name (lowercase `contrix`, wire prefixes `cx.` / `cx:`). Use Arkret / arkret / `ck.` / `ck:` in all current prose, identifiers, file names, and UI copy. See renames.json migration group brand_namespace_cx_to_ck."
+      "notes": "Contrix is the legacy brand name (lowercase `contrix`, wire prefixes `cx.` / `cx:`). Use Arkret / arkret / `ck.` / `ak:` in all current prose, identifiers, file names, and UI copy. See renames.json migration group brand_namespace_cx_to_ck."
     },
     {
       "id": "Room",
@@ -156,7 +156,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Legacy Contrix typed-ID prefix. Current Arkret v1 typed IDs use ck:; cx: may appear only in migration notes or negative tests."
+      "notes": "Legacy Contrix typed-ID prefix. Current Arkret v1 typed IDs use ak:; cx: may appear only in migration notes or negative tests."
     },
     {
       "id": "cleartext",

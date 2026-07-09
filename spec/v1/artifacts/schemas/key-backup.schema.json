@@ -21,14 +21,14 @@
   "properties": {
     "backup_id": {
       "type": "string",
-      "pattern": "^ck:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/did"
     },
     "device_id": {
       "type": "string",
-      "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "backup_class": {
       "type": "string",
@@ -49,7 +49,7 @@
     },
     "series_id": {
       "type": "string",
-      "pattern": "^ck:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ak:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Stable identifier for one immutable chain of backup envelopes belonging to a single (actor_id, backup_class). A pair MAY have multiple series during compromise rotation or migration; active series selection is outside this envelope and MUST come from the signed active-series record in identity/key-management.md §7.6. Receivers use (actor_id, backup_class, series_id) to detect server-side rollback / withholding within the selected series."
     },
     "series_seq": {
@@ -64,7 +64,7 @@
         },
         {
           "type": "string",
-          "pattern": "^ck:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         }
       ],
       "description": "backup_id of the immediate predecessor in the same series_id. MUST be absent for series_seq=0; MUST be present, non-null, and reference an existing predecessor for series_seq>0."
@@ -85,7 +85,7 @@
         },
         "seal_ref": {
           "type": "string",
-          "pattern": "^ck:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
+          "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
         },
         "ssk_generation": {
           "type": "integer",
@@ -104,7 +104,7 @@
       "properties": {
         "policy_id": {
           "type": "string",
-          "pattern": "^ck:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "policy_version": {
           "type": "integer",
@@ -546,11 +546,11 @@
           },
           "first_event_id": {
             "type": "string",
-            "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           },
           "last_event_id": {
             "type": "string",
-            "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           },
           "secret_id": {
             "type": "string",
@@ -592,7 +592,7 @@
       "properties": {
         "device_id": {
           "type": "string",
-          "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "verification_method": {
           "type": "string",
@@ -680,7 +680,7 @@
         },
         "device_authorize_event_id": {
           "type": "string",
-          "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "Accepted ck.device.authorize event id anchoring the service_attested/enrollment-authority device signing this backup. Exactly one of auth_data.ssk_generation and auth_data.device_authorize_event_id identifies the device trust root."
         }
       },
@@ -908,7 +908,7 @@
         "properties": {
           "supersedes": {
             "type": "string",
-            "pattern": "^ck:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "pattern": "^ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           },
           "auth_data": {
             "properties": {

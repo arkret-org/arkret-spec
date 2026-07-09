@@ -68,7 +68,7 @@ Saved item 与 shared pin 不同：saved item 是 holder-private collection；sh
 - `kind=message` 时，`slot_key=compose`。
 - `kind=strand_field` 时，`slot_key=field_<sha256(canonical_field_path)>`。
 
-草稿 value MUST 加密，并至少包含 `target_ref`、`kind`、`draft_slot`、`content`、`updated_hlc`、`origin_device_id` 和 `retention_expires_at`。`origin_device_id` MUST 是完整 `ck:device:<uuid>` typed ID；原始 `target_ref` MUST NOT 出现在 account-data key 中。
+草稿 value MUST 加密，并至少包含 `target_ref`、`kind`、`draft_slot`、`content`、`updated_hlc`、`origin_device_id` 和 `retention_expires_at`。`origin_device_id` MUST 是完整 `ak:device:<uuid>` typed ID；原始 `target_ref` MUST NOT 出现在 account-data key 中。
 
 草稿冲突按 `(actor, target_key, draft_slot)` 做 last-writer-wins。`updated_hlc` 是比较源；设备本地时钟不可信时，客户端 SHOULD 保留本地冲突副本供用户恢复，但 shared reducer 不参与草稿合并。
 

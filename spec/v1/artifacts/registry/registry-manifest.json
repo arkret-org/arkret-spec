@@ -114,7 +114,7 @@
       "source_role": "generated",
       "source_of_truth": false,
       "generated_from": "registry/contract-catalog.json",
-      "description": "Generated registry view for ck:<kind>: typed ID prefixes and storage/wire rules."
+      "description": "Generated registry view for ak:<kind>: typed ID prefixes and storage/wire rules."
     },
     {
       "name": "operations",

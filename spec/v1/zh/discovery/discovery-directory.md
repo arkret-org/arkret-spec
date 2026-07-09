@@ -445,7 +445,7 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
 
 ### 8.3 Push 模式：`ck.find.directory.command.announce`
 
-**Endpoint**：`POST /_cokret/find/directory/announce`
+**Endpoint**：`POST /_arkret/find/directory/announce`
 
 **认证**：
 
@@ -457,20 +457,20 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
 | `resource_kind` | `enum(realm, organization, actor, applet, handle)` | required | 资源类别。 |
-| `resource_id` | `id \| did \| handle` | required | 资源主键：Realm 用 `ck:realm:...`；Organization / Actor / Applet 用 DID；handle 用 canonical handle string。 |
+| `resource_id` | `id \| did \| handle` | required | 资源主键：Realm 用 `ak:realm:...`；Organization / Actor / Applet 用 DID；handle 用 canonical handle string。 |
 | `discovery_state` | `object` | required | 完整签名 `ck.{kind}.discovery` payload（含 `proof`）。MUST 与真相源 byte-for-byte 一致。 |
 | `source_refs` | `id[]` | required | 真相源 event id 列表，至少包含产生当前 effective discovery state 的 seal / state event id。 |
 | `as_of` | `timestamp` | required | 资源端声明的 effective 时间；与服务端时间偏差 > 5 min MUST 拒绝（`signature_stale`）。 |
 | `policy_revision` | `string` | required | `discovery_state` 对应的 effective policy revision；Realm 资源必须等于 `ck.realm.policy_components.policy_revision` 或由该 revision 派生。 |
 | `principal_server_did` | `did` | required | 当前资源真相源所在的 Principal Server service DID（用于 Directory 在需要时 pull 验证）。 |
 | `ttl_seconds` | `int` | optional | 期望保留时长；缺省采用 `default_ttl_seconds`。MUST ≤ `max_ttl_seconds`（§8.6）。 |
-| `supersedes_announce_id` | `ck:announce:<uuidv7>` | optional | 上一次 announce id；用于幂等替换与 audit 链接。该 id 只在签发它的 Directory 内有权威含义。 |
+| `supersedes_announce_id` | `ak:announce:<uuidv7>` | optional | 上一次 announce id；用于幂等替换与 audit 链接。该 id 只在签发它的 Directory 内有权威含义。 |
 
 **响应**：
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `announce_id` | `ck:announce:<uuidv7>` | 本次 ingest 记录 id，例如 `ck:announce:0196419b-0000-7000-8000-000000000000`。这是 Directory 本地 ingest 记录；typed 形态只用于统一 validator / SDK 处理，不赋予跨 Directory 的全局对象权威。 |
+| `announce_id` | `ak:announce:<uuidv7>` | 本次 ingest 记录 id，例如 `ak:announce:0196419b-0000-7000-8000-000000000000`。这是 Directory 本地 ingest 记录；typed 形态只用于统一 validator / SDK 处理，不赋予跨 Directory 的全局对象权威。 |
 | `indexed_at` | `timestamp` | Directory 完成索引的服务器时间。 |
 | `effective_ttl_seconds` | `int` | Directory 实际授予的 TTL。 |
 | `next_revalidation_after` | `timestamp` | 下一次 re-announce 或 pull-refresh 的最早时间。 |
@@ -511,7 +511,7 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
 
 ### 8.4 Pull 模式与 push webhook 注册：`ck.find.directory.push.command.register`
 
-Pull 模式不得调用资源 Principal Server 的 `/_cokret/self/events/*`。资源若允许 Directory 主动 refresh discovery state，必须通过 `/_cokret/find/directory/*` ingest / pull profile 暴露 Directory 专用读取面，并在 `supported_operations` 中声明对应 Directory operation；Directory 只能读取该资源签名的 effective discovery state，不得把 Events API 当作通用 discovery dump。
+Pull 模式不得调用资源 Principal Server 的 `/_arkret/self/events/*`。资源若允许 Directory 主动 refresh discovery state，必须通过 `/_arkret/find/directory/*` ingest / pull profile 暴露 Directory 专用读取面，并在 `supported_operations` 中声明对应 Directory operation；Directory 只能读取该资源签名的 effective discovery state，不得把 Events API 当作通用 discovery dump。
 
 Directory 拉取流程：
 
@@ -554,7 +554,7 @@ Directory 接受 ingest（无论 push 或 pull）前 MUST 顺序完成：
 撤销 opt-in 有三条等价路径，Directory MUST 全部支持：
 
 1. **资源端发布新 state**：`ck.{kind}.discovery` 中将 `directory_services` 移除本 Directory DID，或将 `discoverability` 改为 `secret` / `unlisted`。Directory 在下一次 ingest 周期内 MUST 移除条目；push-only 部署中资源 SHOULD 同时调用路径 2 加速生效。
-2. **资源端主动 withdraw**：`POST /_cokret/find/directory/withdraw`，body 含 `resource_id`、`reason`、governance key 签名（与 announce 同等强度）。Directory MUST 在 ≤ 1h 内停止披露。
+2. **资源端主动 withdraw**：`POST /_arkret/find/directory/withdraw`，body 含 `resource_id`、`reason`、governance key 签名（与 announce 同等强度）。Directory MUST 在 ≤ 1h 内停止披露。
 3. **Directory operator takedown**：单方面下架（policy 违规、abuse、法律）。Directory MUST：
    - 在内部 audit log 记录 `takedown_id`、operator、reason、生效时间；
    - 通过 `ck.find.directory.query.describe.takedown_contact` 暴露的入口或 DID document `service` entry 中声明的 governance contact 通知资源端；
@@ -562,7 +562,7 @@ Directory 接受 ingest（无论 push 或 pull）前 MUST 顺序完成：
 
 Operator takedown 的申诉 / 恢复 MUST 形成可验证闭环：
 
-`ck.find.directory.command.takedown_appeal` 是该闭环的标准协议 operation，但它是 **operator takedown 能力的声明式子面**，不是每个 directory service 的无条件必选端点。Directory 只有在 `ck.find.directory.query.describe.supported_operations` 中声明 `ck.find.directory.command.takedown_appeal`，或在 `takedown_contact` / takedown notice 中给出该 HTTP endpoint 时，才 MUST 路由并实现 `POST /_cokret/find/directory/takedown/appeal`。未提供 operator takedown 或只提供离线 / 私有治理联系通道的 Directory MUST 从 `supported_operations` 省略该 operation；省略本身不构成 catalog-completeness 违规。若服务声明了该 operation 却未挂载，或 notice 给出 endpoint 但返回 `unrecognized_endpoint`，则为不合规。
+`ck.find.directory.command.takedown_appeal` 是该闭环的标准协议 operation，但它是 **operator takedown 能力的声明式子面**，不是每个 directory service 的无条件必选端点。Directory 只有在 `ck.find.directory.query.describe.supported_operations` 中声明 `ck.find.directory.command.takedown_appeal`，或在 `takedown_contact` / takedown notice 中给出该 HTTP endpoint 时，才 MUST 路由并实现 `POST /_arkret/find/directory/takedown/appeal`。未提供 operator takedown 或只提供离线 / 私有治理联系通道的 Directory MUST 从 `supported_operations` 省略该 operation；省略本身不构成 catalog-completeness 违规。若服务声明了该 operation 却未挂载，或 notice 给出 endpoint 但返回 `unrecognized_endpoint`，则为不合规。
 
 1. takedown notice MUST 向资源 governance contact 提供 `takedown_id`、resource id、policy reason code、evidence digest、effective_at、appeal endpoint / contact 和 Directory service DID signature；
 2. 资源端提交 appeal 时，appeal packet MUST 绑定 `takedown_id`、resource id、appellant DID、argument / evidence digest、requested_outcome 和 created_at，并由资源 governance key 或授权 advocate 签名；
@@ -616,20 +616,20 @@ Directory operator MAY 维护资源黑名单（abuse、垃圾、法律）；命�
 Recommended operations：
 
 ```text
-GET  /_cokret/find/directory/describe
-POST /_cokret/find/directory/search-realms
-POST /_cokret/find/directory/resolve-realm
-POST /_cokret/find/directory/search-organizations
-POST /_cokret/find/directory/resolve-organization
-POST /_cokret/find/directory/search-actors
-POST /_cokret/find/directory/search-users
-POST /_cokret/find/directory/resolve-handle
-POST /_cokret/find/directory/resolve-agent-selector
-POST /_cokret/find/directory/list-handles-for-subject
-POST /_cokret/find/directory/private-contact-discovery
-POST /_cokret/find/directory/announce
-POST /_cokret/find/directory/withdraw
-POST /_cokret/find/directory/push/register
+GET  /_arkret/find/directory/describe
+POST /_arkret/find/directory/search-realms
+POST /_arkret/find/directory/resolve-realm
+POST /_arkret/find/directory/search-organizations
+POST /_arkret/find/directory/resolve-organization
+POST /_arkret/find/directory/search-actors
+POST /_arkret/find/directory/search-users
+POST /_arkret/find/directory/resolve-handle
+POST /_arkret/find/directory/resolve-agent-selector
+POST /_arkret/find/directory/list-handles-for-subject
+POST /_arkret/find/directory/private-contact-discovery
+POST /_arkret/find/directory/announce
+POST /_arkret/find/directory/withdraw
+POST /_arkret/find/directory/push/register
 ```
 
 字段级定义：

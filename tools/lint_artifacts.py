@@ -47,7 +47,7 @@ PROFILE_ID_RE = re.compile(r"^ck\.profile\.[a-z0-9][a-z0-9_.-]*\.v[0-9]+$")
 PROFILE_ID_TOKEN_RE = re.compile(r"\bck\.profile\.[a-z0-9][a-z0-9_.-]*\.v[0-9]+\b")
 VECTOR_ID_TOKEN_RE = re.compile(r"\bck\.vector\.[a-z0-9_.-]+\.v[0-9]+\b")
 VECTOR_GROUP_ID_RE = re.compile(r"^ck\.vector_group\.[a-z0-9][a-z0-9_.-]*\.v[0-9]+$")
-TYPED_ID_TOKEN_RE = re.compile(r"\bck:([a-z0-9_]+):([A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*)")
+TYPED_ID_TOKEN_RE = re.compile(r"\bak:([a-z0-9_]+):([A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*)")
 UUID7_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
 SHA256_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 OPENAPI_OPERATION_ID_RE = re.compile(r"^\s*operationId:\s*([A-Za-z0-9_.-]+)\s*$", re.MULTILINE)
@@ -56,7 +56,7 @@ JSON_FENCE_RE = re.compile(r"```json(?P<meta>[^\n`]*)\n(?P<body>.*?)```", re.IGN
 JSON_FENCE_SCHEMA_ATTR_RE = re.compile(r"\bschema=(?:\"([^\"]+)\"|'([^']+)'|([^\s]+))")
 JSON_FENCE_EXPECT_ATTR_RE = re.compile(r"\bexpect=(valid|invalid)\b")
 JSON_FENCE_FIRST_ERROR_ATTR_RE = re.compile(r"\bfirst_error=(?:\"([^\"]+)\"|'([^']+)'|([^\s]+))")
-TYPED_ID_PREFIX_TOKEN_RE = re.compile(r"\bck:([a-z0-9_]+):")
+TYPED_ID_PREFIX_TOKEN_RE = re.compile(r"\bak:([a-z0-9_]+):")
 MARKDOWN_LINK_RE = re.compile(r"!?\[[^\]]*\]\(([^)\s]+(?:#[^)]+)?)\)")
 RULE_MARKER_EMOJI_RE = re.compile(r"[✅❌]")
 CKP_ID_RE = re.compile(r"^CKP-[0-9]{4}$")
@@ -752,7 +752,7 @@ def check_legacy_announce_id_form(lint: Lint) -> None:
 
     ``ann_<hex>`` appeared in prose before Directory announce records were
     registered as typed IDs. The canonical v1 wire form is now
-    ``ck:announce:<uuidv7>``; keeping this guard prevents examples or fixtures
+    ``ak:announce:<uuidv7>``; keeping this guard prevents examples or fixtures
     from reintroducing the unregistered local prefix.
     """
     scan_paths = sorted(SPEC_ROOT.rglob("*.md"))
@@ -767,7 +767,7 @@ def check_legacy_announce_id_form(lint: Lint) -> None:
                 lint.fail(
                     path,
                     f"line {line_no}: legacy Directory announce id form `ann_*` is forbidden; "
-                    "use `ck:announce:<uuidv7>`.",
+                    "use `ak:announce:<uuidv7>`.",
                 )
 
 
@@ -1272,7 +1272,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         if isinstance(kind, str) and not re.fullmatch(r"[a-z0-9_]+", kind):
             lint.fail(id_path, f"id kind has invalid format: {kind}")
         if isinstance(kind, str) and isinstance(wire_form, str) and not wire_form.startswith(f"ak:{kind}:"):
-            lint.fail(id_path, f"{kind} wire_form must start with ck:{kind}:")
+            lint.fail(id_path, f"{kind} wire_form must start with ak:{kind}:")
 
     special_id_kinds = unique_values(lint, id_path, id_registry.get("special_forms", []), "kind")
 
@@ -2198,12 +2198,12 @@ def check_service_describe_alignment(lint: Lint) -> None:
     if not isinstance(paths, dict):
         return
     describe_paths = [
-        "/_cokret/describe",
-        "/_cokret/self/events/describe",
-        "/_cokret/root/identity/describe",
-        "/_cokret/self/account/describe",
-        "/_cokret/find/directory/describe",
-        "/_cokret/edge/applet/describe",
+        "/_arkret/describe",
+        "/_arkret/self/events/describe",
+        "/_arkret/root/identity/describe",
+        "/_arkret/self/account/describe",
+        "/_arkret/find/directory/describe",
+        "/_arkret/edge/applet/describe",
     ]
     for describe_path in describe_paths:
         response_schema = (
@@ -2229,9 +2229,9 @@ def check_policy_check_alignment(lint: Lint) -> None:
     if not isinstance(paths, dict) or not isinstance(components, dict):
         return
     if "/arkret/v1/check" in paths:
-        lint.fail(openapi_path, "legacy /arkret/v1/check policy path must not be present; use /_cokret/self/policy/check")
+        lint.fail(openapi_path, "legacy /arkret/v1/check policy path must not be present; use /_arkret/self/policy/check")
 
-    policy_path = paths.get("/_cokret/self/policy/check", {}).get("post", {})
+    policy_path = paths.get("/_arkret/self/policy/check", {}).get("post", {})
     request_schema = (
         policy_path.get("requestBody", {})
         .get("content", {})
@@ -2246,9 +2246,9 @@ def check_policy_check_alignment(lint: Lint) -> None:
         .get("schema")
     )
     if request_schema != {"$ref": "#/components/schemas/PolicyCheckRequestBody"}:
-        lint.fail(openapi_path, "/_cokret/self/policy/check requestBody must reference PolicyCheckRequestBody")
+        lint.fail(openapi_path, "/_arkret/self/policy/check requestBody must reference PolicyCheckRequestBody")
     if response_schema != {"$ref": "#/components/schemas/PolicyCheckOutcome"}:
-        lint.fail(openapi_path, "/_cokret/self/policy/check 200 response must reference PolicyCheckOutcome")
+        lint.fail(openapi_path, "/_arkret/self/policy/check 200 response must reference PolicyCheckOutcome")
 
     request_component = resolve_openapi_component_schema(lint, openapi_path, components, "PolicyCheckRequestBody")
     response_component = resolve_openapi_component_schema(lint, openapi_path, components, "PolicyCheckOutcome")
@@ -2691,7 +2691,7 @@ def check_typed_id_prose_consistency(lint: Lint) -> None:
         if path.resolve() in allowed_legacy_paths:
             continue
         if "ak:txn:" in path.read_text(encoding="utf-8"):
-            lint.fail(path, "legacy ck:txn: prefix present outside migration/forbidden registries")
+            lint.fail(path, "legacy ak:txn: prefix present outside migration/forbidden registries")
 
 
 def check_binding_variant_non_http(lint: Lint) -> None:
@@ -2745,7 +2745,7 @@ def check_rename_operation_replacements(lint: Lint, known: dict[str, set[str]]) 
             )
 
 
-DEVICE_ID_PATTERN = r"^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+DEVICE_ID_PATTERN = r"^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
 DID_LEGACY_PREFIX_PATTERN = r"^did:"
 DID_LEGACY_GREEDY_PATTERN = r"^did:[a-z0-9]+:[^\s]+$"
 DID_BARE_PATTERN = r"^did:[a-z0-9]+:[^\s#?]+$"
@@ -2872,7 +2872,7 @@ def check_did_and_device_constraints(lint: Lint) -> None:
             if isinstance(device_schema, dict) and not (
                 device_schema.get("$ref") or device_schema.get("pattern") == DEVICE_ID_PATTERN
             ):
-                lint.fail(openapi_path, f"{json_path}.device_id must use the canonical ck:device UUIDv7 pattern")
+                lint.fail(openapi_path, f"{json_path}.device_id must use the canonical ak:device UUIDv7 pattern")
 
             vm_schema = value.get("verification_method")
             if isinstance(vm_schema, dict) and not (
@@ -2885,7 +2885,7 @@ def check_did_and_device_constraints(lint: Lint) -> None:
             if isinstance(schema, dict) and not (
                 schema.get("$ref") or schema.get("pattern") == DEVICE_ID_PATTERN
             ):
-                lint.fail(openapi_path, f"{json_path}.schema must use the canonical ck:device UUIDv7 pattern")
+                lint.fail(openapi_path, f"{json_path}.schema must use the canonical ak:device UUIDv7 pattern")
 
 
 def infer_openapi_success_shape(operation_id: str, method: str, schema: Any) -> str:
@@ -3463,10 +3463,10 @@ def check_cross_source_drift(lint: Lint, known: dict[str, set[str]]) -> None:
                 lint.fail(path, f"line {line_no}: placeholder section reference must be replaced with a stable heading or real section number")
 
             if "/arkret/v1/check" in line:
-                lint.fail(path, f"line {line_no}: legacy policy path /arkret/v1/check must be replaced with /_cokret/self/policy/check")
+                lint.fail(path, f"line {line_no}: legacy policy path /arkret/v1/check must be replaced with /_arkret/self/policy/check")
 
             if TRUST_DOMAIN_JSON_DID_RE.search(line):
-                lint.fail(path, f"line {line_no}: trust_domain must use ck:trust_domain:<scope>, not a raw DID")
+                lint.fail(path, f"line {line_no}: trust_domain must use ak:trust_domain:<scope>, not a raw DID")
 
             if LEGACY_DID_METHOD_REGEX_RE.search(line):
                 lint.fail(path, f"line {line_no}: DID regex must not allow ':'/'.'/'_' inside the method segment")
@@ -3783,18 +3783,18 @@ def check_security_closure_vectors(lint: Lint) -> None:
 def check_typed_id_token(lint: Lint, path: Path, json_path: str, token_kind: str, rest: str, known: dict[str, set[str]]) -> None:
     if token_kind == "blob" and rest.startswith("sha256:"):
         if not SHA256_RE.fullmatch(rest):
-            lint.fail(path, f"{json_path} has invalid ck:blob:sha256 reference")
+            lint.fail(path, f"{json_path} has invalid ak:blob:sha256 reference")
         return
     if token_kind in known["id_kinds"]:
         candidate = rest[:36]
         if not UUID7_RE.fullmatch(candidate):
-            lint.fail(path, f"{json_path} has invalid ck:{token_kind}: typed UUIDv7 reference")
+            lint.fail(path, f"{json_path} has invalid ak:{token_kind}: typed UUIDv7 reference")
         return
     if token_kind in known["special_id_kinds"]:
         if not rest:
-            lint.fail(path, f"{json_path} has empty ck:{token_kind}: special reference")
+            lint.fail(path, f"{json_path} has empty ak:{token_kind}: special reference")
         return
-    lint.fail(path, f"{json_path} references unregistered typed ID kind: ck:{token_kind}:")
+    lint.fail(path, f"{json_path} references unregistered typed ID kind: ak:{token_kind}:")
 
 
 def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
@@ -3986,7 +3986,7 @@ def check_markdown_json_value(lint: Lint, path: Path, json_path: str, value: Any
             kind, rest = match.group(1), match.group(2)
             if is_placeholder_typed_id(rest):
                 if kind not in known["id_kinds"] and kind not in known["special_id_kinds"]:
-                    lint.fail(path, f"{json_path} markdown JSON references unregistered typed ID kind: ck:{kind}:")
+                    lint.fail(path, f"{json_path} markdown JSON references unregistered typed ID kind: ak:{kind}:")
                 continue
             check_typed_id_token(lint, path, json_path, kind, rest, known)
 
@@ -4200,7 +4200,7 @@ def check_markdown_examples(lint: Lint, known: dict[str, set[str]]) -> None:
         for prefix_match in TYPED_ID_PREFIX_TOKEN_RE.finditer(text):
             kind = prefix_match.group(1)
             if kind not in known["id_kinds"] and kind not in known["special_id_kinds"]:
-                lint.fail(path, f"markdown references unregistered typed ID kind: ck:{kind}:")
+                lint.fail(path, f"markdown references unregistered typed ID kind: ak:{kind}:")
 
         for match in TYPED_ID_TOKEN_RE.finditer(text):
             kind, rest = match.group(1), match.group(2)

@@ -121,14 +121,14 @@ Contact-managed consent dots 指通过该 contact request / accepted fact 的 `r
 
 ### 3.4 Contact operation surface
 
-全部 operation 要求 `user_session`,落 `/_cokret/self/...`。
+全部 operation 要求 `user_session`,落 `/_arkret/self/...`。
 
 | operation | HTTP | Body / Response | 说明 |
 | --- | --- | --- | --- |
-| `ck.self.contact.request` | `POST /_cokret/self/contacts/request` | `{ target: did, requested_scopes?: consent_scope[], idempotency_key?: string }` | 写 requester 侧 request fact,并投递签名请求给 target |
-| `ck.self.contact.respond` | `POST /_cokret/self/contacts/respond` | `{ request_id, requester: did, action: "accept"\|"reject", granted_scopes?: consent_scope[] }` | 由 target 接受/拒绝 request;accept 同步写 target consent grants |
-| `ck.self.contact.list` | `GET /_cokret/self/contacts` | `ContactList` | 从 contact facts 投影,并附带 consent-derived `effective_scopes` |
-| `ck.self.contact.tombstone` | `POST /_cokret/self/contacts/tombstone` | `{ contact: did, revoke_scopes?: consent_scope[] }` | 写 holder 侧 tombstone;默认 revoke holder 给 peer 的全部 contact-managed consent |
+| `ck.self.contact.request` | `POST /_arkret/self/contacts/request` | `{ target: did, requested_scopes?: consent_scope[], idempotency_key?: string }` | 写 requester 侧 request fact,并投递签名请求给 target |
+| `ck.self.contact.respond` | `POST /_arkret/self/contacts/respond` | `{ request_id, requester: did, action: "accept"\|"reject", granted_scopes?: consent_scope[] }` | 由 target 接受/拒绝 request;accept 同步写 target consent grants |
+| `ck.self.contact.list` | `GET /_arkret/self/contacts` | `ContactList` | 从 contact facts 投影,并附带 consent-derived `effective_scopes` |
+| `ck.self.contact.tombstone` | `POST /_arkret/self/contacts/tombstone` | `{ contact: did, revoke_scopes?: consent_scope[] }` | 写 holder 侧 tombstone;默认 revoke holder 给 peer 的全部 contact-managed consent |
 
 `ContactListRow` MUST 至少区分:
 
@@ -156,7 +156,7 @@ CKP-0013 采用窄读:既有 invite/consent handoff stub MAY 继续存在,但它
 
 | operation | HTTP | Body / Response | 说明 |
 | --- | --- | --- | --- |
-| `ck.self.direct_conversation.resolve` | `POST /_cokret/self/direct-conversations/resolve` | `{ peer: did, create?: boolean }` → `{ realm_id?, main_strand_id?, state, created?: boolean }` | 解析或创建这对 actor 的 canonical 1:1 DM 入口 |
+| `ck.self.direct_conversation.resolve` | `POST /_arkret/self/direct-conversations/resolve` | `{ peer: did, create?: boolean }` → `{ realm_id?, main_strand_id?, state, created?: boolean }` | 解析或创建这对 actor 的 canonical 1:1 DM 入口 |
 
 Resolver MUST:
 
@@ -238,7 +238,7 @@ DM 主 Strand MUST:
 2. 收敛 `discovery-directory.md` / `service-surface.md` / `consent-model.md` 关于 private contact discovery response 的措辞:保留最小 invite/consent handoff stub,但明确不含 contact request token。
 3. 增补 direct conversation binding、DM Realm profile、DM main Strand binding,并注册 pair key canonical encoding。
 4. 注册 `ck.contact.*` 与 `ck.self.direct_conversation.resolve` operation,同步 OpenAPI、operation registry、error mapping。
-5. soland 将 `/_soland/self/contacts/*` 迁移到 `/_cokret/self/contacts/*`,内部 contacts 表降级为 projection/cache,不得再作为真源。
+5. soland 将 `/_soland/self/contacts/*` 迁移到 `/_arkret/self/contacts/*`,内部 contacts 表降级为 projection/cache,不得再作为真源。
 6. inkson 从硬编码 `_soland` endpoint 迁移到 catalog operation;联系人列表展示 `state`、方向化 consent scopes 与 direct conversation 入口三层。
 7. cotest 增加 conformance:
    - requester 不能替 target 写 contact accepted 或 consent grant;

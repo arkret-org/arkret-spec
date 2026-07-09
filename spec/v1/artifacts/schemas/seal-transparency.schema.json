@@ -33,7 +33,7 @@
     },
     "seal_id": {
       "type": "string",
-      "pattern": "^ck:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
+      "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
     },
     "control_event_set_root": {
       "$ref": "#/$defs/hash"

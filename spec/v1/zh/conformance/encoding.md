@@ -139,24 +139,24 @@ Snapshot reducer output root 与 snapshot event-set commitment 使用同一 Merk
 协议 wire / canonical object 层的 typed ID 格式：
 
 ```text
-ck:<kind>:<uuid>
+ak:<kind>:<uuid>
 ```
 
 标准 `kind` 的机器可读 source of truth 是 `artifacts/registry/id-kind-registry.json`。本文只定义通用规则。
 
-`ck:` 前缀表示 Arkret 协议命名空间；`<kind>` 表示对象或引用类型；`<uuid>` 是该类型下的稳定 ID。完整 typed ID 是 wire value 的一部分，MUST 出现在：
+`ak:` 前缀表示 Arkret 协议命名空间；`<kind>` 表示对象或引用类型；`<uuid>` 是该类型下的稳定 ID。完整 typed ID 是 wire value 的一部分，MUST 出现在：
 
 - Event Envelope、canonical object、receipt、snapshot、fixture 和 OpenAPI / non-HTTP DTO。
 - canonical JSON、签名 payload、`event_digest`、cursor 内部 state、federation payload、audit log。
 - 跨服务引用、日志和错误响应中需要自描述对象类型的字段。
 
-数据库或本地索引实现 MAY 不把 `ck:<kind>:` 前缀作为主键的一部分存储——例如直接用 PostgreSQL `uuid` / `BYTEA(16)` 列存 16 字节 raw value，由表名或显式 `kind` 列提供类型上下文。实现若这样存储，MUST 在进入 canonical JSON、签名、hash、联邦转发、sync cursor、audit replay 或 API response 前恢复完整 typed ID。接收方验证签名、hash、backfill 或 replay 时，MUST 按完整 typed ID 比较，MUST NOT 用数据库 row id、自增 id、表名推断或隐式转换替代 wire value。
+数据库或本地索引实现 MAY 不把 `ak:<kind>:` 前缀作为主键的一部分存储——例如直接用 PostgreSQL `uuid` / `BYTEA(16)` 列存 16 字节 raw value，由表名或显式 `kind` 列提供类型上下文。实现若这样存储，MUST 在进入 canonical JSON、签名、hash、联邦转发、sync cursor、audit replay 或 API response 前恢复完整 typed ID。接收方验证签名、hash、backfill 或 replay 时，MUST 按完整 typed ID 比较，MUST NOT 用数据库 row id、自增 id、表名推断或隐式转换替代 wire value。
 
-`<kind>` 是 canonical bytes 的一部分。实现 MUST NOT 把 `ck:receipt:<id>` 改写成 `ck:event:<id>`，也 MUST NOT 因为字段名叫 `receipt_id` 就在验证时补前缀。字段名可以辅助 schema 校验，但不能替代 signed wire ID。
+`<kind>` 是 canonical bytes 的一部分。实现 MUST NOT 把 `ak:receipt:<id>` 改写成 `ak:event:<id>`，也 MUST NOT 因为字段名叫 `receipt_id` 就在验证时补前缀。字段名可以辅助 schema 校验，但不能替代 signed wire ID。
 
 v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中的 `<uuid>` 段 MUST 是 [RFC 9562](https://datatracker.ietf.org/doc/html/rfc9562) UUID **version 7**：48-bit Unix-millisecond timestamp（big-endian）+ 4-bit version=`0111` + 12-bit `rand_a` + 2-bit variant=`10` + 62-bit `rand_b`，按 RFC 9562 §4 的 canonical 36-character lowercase hex 形式 `xxxxxxxx-xxxx-7xxx-Nxxx-xxxxxxxxxxxx` 序列化（其中 `N ∈ {8, 9, a, b}`，对应 RFC 4122 variant 1）。外部导入数据若是大写或带 URN/Microsoft braces 等变体形式，MUST 在生成 v1 Event Envelope、object id、cursor payload 或 proof `event_digest` 前规范化为小写无前缀的 36-char hyphen-separated 形式。已经进入签名 canonical bytes 的 ID MUST NOT 在验证、转发、backfill 或审计回放时重写大小写或形式。
 
-同一 producer 在同一 millisecond 内连续产出 SHOULD 使用 RFC 9562 §6.2 列出的 monotonic 方法之一（推荐 Method 1：单调随机段递增）以保证字典序稳定且与时间序一致。**v1 wire MUST NOT 接受其他 UUID version 替代**——v1（基于 MAC + 时间戳）、v3/v5（命名空间 hash）、v4（纯随机）、v6（重排时间戳）、v8（自定义）以及任何非 UUID 格式的等价 ID（UUIDv7、KSUID、Snowflake、TSID、CUID）即使经过 hex 重编码并伪造 version=7 nibble，也 MUST NOT 作为 typed `ck:<kind>:<uuid>` 的 ID 段使用；wire 上锁定单一构造方式以避免 prev_refs / refs / cursor / index 出现两套分布。这条限制是 wire 兼容性约束，不是收敛或审计要求：receiver 校验以正则 + 长度 + version/variant nibble 为准，不对 timestamp 段做语义解析；但 producer SHOULD 拒绝产出 timestamp 段明显畸形（远未来或远过去于本地时钟超过实现声明阈值）的 ID，并 SHOULD 在生成时检测同 actor 时钟回退导致的非单调情况。
+同一 producer 在同一 millisecond 内连续产出 SHOULD 使用 RFC 9562 §6.2 列出的 monotonic 方法之一（推荐 Method 1：单调随机段递增）以保证字典序稳定且与时间序一致。**v1 wire MUST NOT 接受其他 UUID version 替代**——v1（基于 MAC + 时间戳）、v3/v5（命名空间 hash）、v4（纯随机）、v6（重排时间戳）、v8（自定义）以及任何非 UUID 格式的等价 ID（UUIDv7、KSUID、Snowflake、TSID、CUID）即使经过 hex 重编码并伪造 version=7 nibble，也 MUST NOT 作为 typed `ak:<kind>:<uuid>` 的 ID 段使用；wire 上锁定单一构造方式以避免 prev_refs / refs / cursor / index 出现两套分布。这条限制是 wire 兼容性约束，不是收敛或审计要求：receiver 校验以正则 + 长度 + version/variant nibble 为准，不对 timestamp 段做语义解析；但 producer SHOULD 拒绝产出 timestamp 段明显畸形（远未来或远过去于本地时钟超过实现声明阈值）的 ID，并 SHOULD 在生成时检测同 actor 时钟回退导致的非单调情况。
 
 `event_id` 不是 canonical bytes 的 hash，是 producer 在签名前分配并写入 canonical bytes 的稳定 typed UUIDv7。Envelope 的内容指纹由 `proof.event_digest`（≡ `canonical_digest(envelope_without_proofs_unsigned)`）承担；`event_id` 与 hash 是两个独立字段，相同 `event_id` 配不同 canonical hash MUST 触发 `duplicate_conflict` quarantine（见 [`operations-sync.md` §2.1](../sync/operations-sync.md)）。
 
@@ -164,14 +164,14 @@ v1 wire、JSON Schema、registry、fixture 和所有签名 canonical object 中�
 
 特殊 ID/ref 形式（与 [`id-kind-registry.json` `special_forms[]`](../../artifacts/registry/id-kind-registry.json) 一一对应）：
 
-- `ck:cursor:<base64url>` 是 opaque token，不是 typed UUIDv7 object ID。
-- `ck:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` 是内容寻址 Blob ref；`ck:blob:019640ba-0000-7000-8000-000000000000` 是 Blob metadata ID。二者 MUST NOT 混用。
-- `ck:seal:sha256:<digest>` 是内容寻址 Seal hash（active special form；见 `id-kind-registry.json`）。
-- `ck:cell:<component>:<subject>` 是 canonical cell tuple 引用（active special form；component 来自 cell-component registry，subject 是 cell 的 subject key）。
-- `ck:mls:<profile>:<profile_id>`、`ck:pseudonym:<scope_id>:<random>` 等 profile-scoped form 必须由对应 profile 注册和校验。
-- `ck:trust_domain:<scope>` 是部署 / 联邦信任域 ref，不是 typed UUIDv7 object ID；`<scope>` 的 profile 与匹配规则由 Realm / federation policy 声明。
+- `ak:cursor:<base64url>` 是 opaque token，不是 typed UUIDv7 object ID。
+- `ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` 是内容寻址 Blob ref；`ak:blob:019640ba-0000-7000-8000-000000000000` 是 Blob metadata ID。二者 MUST NOT 混用。
+- `ak:seal:sha256:<digest>` 是内容寻址 Seal hash（active special form；见 `id-kind-registry.json`）。
+- `ak:cell:<component>:<subject>` 是 canonical cell tuple 引用（active special form；component 来自 cell-component registry，subject 是 cell 的 subject key）。
+- `ak:mls:<profile>:<profile_id>`、`ak:pseudonym:<scope_id>:<random>` 等 profile-scoped form 必须由对应 profile 注册和校验。
+- `ak:trust_domain:<scope>` 是部署 / 联邦信任域 ref，不是 typed UUIDv7 object ID；`<scope>` 的 profile 与匹配规则由 Realm / federation policy 声明。
 
-自定义 profile 若新增 `ck:<kind>:` 前缀，MUST 在 profile registry 或扩展 registry 中声明 kind、wire form、存储边界和校验规则。未注册的 `ck:<kind>:` typed ID MUST 被视为未知 critical wire type，除非所在字段明确允许 opaque string。
+自定义 profile 若新增 `ak:<kind>:` 前缀，MUST 在 profile registry 或扩展 registry 中声明 kind、wire form、存储边界和校验规则。未注册的 `ak:<kind>:` typed ID MUST 被视为未知 critical wire type，除非所在字段明确允许 opaque string。
 
 ### 4.1 Field Naming: `_id` / `_ref` / `_did`（normative）
 
@@ -391,7 +391,7 @@ causal_depth ASC, hlc ASC, actor_id ASC, actor_seq ASC, event_id ASC
 Cursor 是不透明字符串：
 
 ```text
-ck:cursor:<base64url>
+ak:cursor:<base64url>
 ```
 
 ### 8.1 客户端契约
@@ -459,7 +459,7 @@ Barrier cursor body 示例：
 
 服务端接收 cursor 时 MUST 验证：
 
-1. 前缀以 `ck:cursor:` 开头。
+1. 前缀以 `ak:cursor:` 开头。
 2. 其余部分是合法 base64url。
 3. 解码后是合法 JSON。
 4. 解码后 body MUST 通过 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)：`v` / `purpose` / `t` / `x` / `h` 必填，未知非私有字段、`_mac`、`_sig` 以及任何内联位置 / target 字段均 MUST reject `invalid_param`。
@@ -585,9 +585,9 @@ rank_between(left, right):
 | `ck.component.device.authorization.v1` / `ck.device.authorize` | `[principal_id, device_id]` |
 | `ck.component.device.authorization.v1` / `ck.device.revoke` | `[principal_id, device_id]` |
 
-`principal_id` MUST 是无 fragment 的完整 DID URI（见 §4）；`device_id` MUST 是完整 `id:device` typed ID（`ck:device:<uuidv7>`）。
+`principal_id` MUST 是无 fragment 的完整 DID URI（见 §4）；`device_id` MUST 是完整 `id:device` typed ID（`ak:device:<uuidv7>`）。
 
-非复合 cell（例如 member 用 actor DID、capability grant 用 grant id、Realm policy 用 Realm id）直接把规范化 subject 放入 `ck:cell:<component>:<subject>`，不需要 hash 化。
+非复合 cell（例如 member 用 actor DID、capability grant 用 grant id、Realm policy 用 Realm id）直接把规范化 subject 放入 `ak:cell:<component>:<subject>`，不需要 hash 化。
 
 接收方收到不符合本节定义的复合 subject components_array 时 MUST 返回 `schema_violation`。文档中若以管道分隔形态展示复合 subject，MUST 显式标注 "informational; canonical cell subject is base64url(sha256(canonical_json(...)))"。
 
@@ -601,7 +601,7 @@ _Informative._ 本小节只做导航锚，不搬迁任何 normative 内容；各
 | `state_root` 的 Merkle 编码与 inclusion 规则（治理 `state_root` leaf/node 域分隔 + 统一 Seal Merkle 组合规则） | [`authz/event-auth-state-resolution.md` §6.2.1 / §6.2.2](../authz/event-auth-state-resolution.md) |
 | `state_root` / Seal hash 的 wire 形态与 algo 固定规则 | 本文 §3.3 |
 | Hash wire 形态(`<suite>:<hex>`)与 Digest Suite registered set | 本文 §3.1 / §3.2 |
-| Cell tuple 引用形态(`ck:cell:<component>:<subject>`) | 本文 §4(special forms) |
+| Cell tuple 引用形态(`ak:cell:<component>:<subject>`) | 本文 §4(special forms) |
 
 ## 10. Encrypted Envelope Digest
 

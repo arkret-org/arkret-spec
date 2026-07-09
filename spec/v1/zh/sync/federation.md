@@ -58,7 +58,7 @@ Arkret 是去中心化协议，不同用户或组织各自运行受控 Principal
   "service": [
     {
       "id": "#arkret-principal-server",
-      "type": "CokretPrincipalServer",
+      "type": "ArkretPrincipalServer",
       "serviceEndpoint": "https://server.acme.example.com"
     }
   ],
@@ -72,7 +72,7 @@ Arkret 是去中心化协议，不同用户或组织各自运行受控 Principal
 }
 ```
 
-其中 DID Document 的 `service.type` 使用协议注册名（如 `CokretPrincipalServer`），服务 describe 响应中的 `service_type` 使用运行时注册值（如 `principal_server`）。联邦鉴权 MUST 校验两者的绑定关系，不得只凭域名或 URL 接受请求。
+其中 DID Document 的 `service.type` 使用协议注册名（如 `ArkretPrincipalServer`），服务 describe 响应中的 `service_type` 使用运行时注册值（如 `principal_server`）。联邦鉴权 MUST 校验两者的绑定关系，不得只凭域名或 URL 接受请求。
 
 ### 3.2 请求签名
 
@@ -90,11 +90,11 @@ Arkret 是去中心化协议，不同用户或组织各自运行受控 Principal
 - `destination-service-endpoint-digest`（自定义 header `Destination-Service-Endpoint-Digest`；shared ingress / 多租户 / allowlist endpoint 场景必填）
 - `source-trust-domain`（自定义 header `Source-Trust-Domain`）
 - `destination-trust-domain`（自定义 header `Destination-Trust-Domain`）
-- `request-canonical-digest`（自定义 header `Request-Canonical-Digest`；带 body 或需要批次幂等 / replay key 的请求必填，`POST /_cokret/peer/events` MUST 携带。无 body 的 `GET` pull MUST NOT 携带 `Request-Canonical-Digest`，`Signature-Input` 也 MUST NOT 绑定 `request-canonical-digest`；其查询语义由 `@method` / `@target-uri` 及 source / destination service DID、trust domain、endpoint digest 绑定）
+- `request-canonical-digest`（自定义 header `Request-Canonical-Digest`；带 body 或需要批次幂等 / replay key 的请求必填，`POST /_arkret/peer/events` MUST 携带。无 body 的 `GET` pull MUST NOT 携带 `Request-Canonical-Digest`，`Signature-Input` 也 MUST NOT 绑定 `request-canonical-digest`；其查询语义由 `@method` / `@target-uri` 及 source / destination service DID、trust domain、endpoint digest 绑定）
 - `idempotency-key`（自定义 header `Idempotency-Key`；当该 header 参与幂等或 replay key 时必填并进入签名 transcript）
 - 签名 parameters MUST 包含 `created` 与 `expires`（不得用 `Date` header 替代）
 
-**签名时效窗口（normative）**：接收方 MUST 拒绝时效不合规的签名（统一归入本节末"时间窗口失效"的最小披露错误）；以下任一 MUST 拒绝——`expires - created` 超过 300s（协议常量，量级同 [`encoding.md`](../conformance/encoding.md) §7.2 的 `hard_future_skew_ms`）、`created` 偏离接收方本地时钟超过 ±30s（量级同 `expected_future_skew_ms`）、或 `expires` 已过接收方本地时钟。**即便有界 replay cache 已 evict 对应条目，落在该签名时效窗口之外的逐字节重放也 MUST 因 `expires` / `created` 校验失败而被拒**：重放防护的有效期由协议常量界定，不交给发送方可控的 `expires` 值与 replay cache 容量。对不携带 `Idempotency-Key` 的 `POST /_cokret/peer/events` 批次，批次级 replay 防护退化为仅靠该签名时效窗口加单事件 `event_id` 去重兜底，故高价值写路径 SHOULD 携带 `Idempotency-Key`。
+**签名时效窗口（normative）**：接收方 MUST 拒绝时效不合规的签名（统一归入本节末"时间窗口失效"的最小披露错误）；以下任一 MUST 拒绝——`expires - created` 超过 300s（协议常量，量级同 [`encoding.md`](../conformance/encoding.md) §7.2 的 `hard_future_skew_ms`）、`created` 偏离接收方本地时钟超过 ±30s（量级同 `expected_future_skew_ms`）、或 `expires` 已过接收方本地时钟。**即便有界 replay cache 已 evict 对应条目，落在该签名时效窗口之外的逐字节重放也 MUST 因 `expires` / `created` 校验失败而被拒**：重放防护的有效期由协议常量界定，不交给发送方可控的 `expires` 值与 replay cache 容量。对不携带 `Idempotency-Key` 的 `POST /_arkret/peer/events` 批次，批次级 replay 防护退化为仅靠该签名时效窗口加单事件 `event_id` 去重兜底，故高价值写路径 SHOULD 携带 `Idempotency-Key`。
 
 签名验证规则：
 
@@ -146,13 +146,13 @@ Realm 级 server ACL 的权威表达是 `ck.realm.moderation_policy` 中的 serv
 
 ### 4.0 单轨联邦接收（唯一互通入口，normative）
 
-跨域联邦接收**收敛为单轨**：`POST /_cokret/peer/events`（`ck.peer.events.command.submit`）是**唯一**的 federation Event 接收轨。所有跨 deployment 的 Event 接收——包括 DataEvent、Control Move（含 Move / Anchor / Seal-bearing 控制面事件）——MUST 统一走该单一 sealed Event Envelope 通道：
+跨域联邦接收**收敛为单轨**：`POST /_arkret/peer/events`（`ck.peer.events.command.submit`）是**唯一**的 federation Event 接收轨。所有跨 deployment 的 Event 接收——包括 DataEvent、Control Move（含 Move / Anchor / Seal-bearing 控制面事件）——MUST 统一走该单一 sealed Event Envelope 通道：
 
 - 每条联邦接收的载体都是签名 `ck.schema.event.v1` Event Envelope（DataEvent 携带 `seal_ref`，Control Move 携带 `seal_basis`），由 §3 节点间认证 + §4.1 service binding 快照保护，由接收方按 §4.1.0 独立验证签名 / 因果链 / CBA basis / Seal。不存在第二套按对象类型分轨（如把 Move、Anchor、Operation 拆成不同接收 endpoint）的联邦接收形态。
-- **实现私有 peer 入站轨 MUST NOT 作为联邦互通入口**：实现可以在自己的 negative-space root（如 `/_<impl>/peer/...`）下保留部署本地的内部接收 / 调试路径，但这类私有轨 MUST NOT 被任何跨厂商 / 跨 deployment 对端当作联邦投递目标，MUST NOT 接受外部 federation peer 的 Move / Anchor / Operation 推送，也 MUST NOT 在 `GET /_cokret/describe` 的 `supported_operations` 中作为 federation surface 宣告。它们只能降级为**只读调试 / 部署本地内部** affordance，或整体移除；保留时 MUST 在 `profile_limitations()` 等价声明中标注为 deployment-local-only、非互通入口，且 MUST 与 `/_cokret/peer/events` 施加同等或更严的 §3 service-to-service 认证与授权（不得出现"私有轨有 9421 验签、协议轨反而没有"的姿态倒挂——协议轨 `/_cokret/peer/events` 的 §3.2 RFC 9421 service signature 是 MUST，私有轨不得以更弱姿态接收外部流量）。
-- 任一对端把实现私有 peer 轨当作联邦投递目标，或任一接收方在私有轨上接受外部 federation 写入，均视为 federation profile violation；跨 deployment 互通声明（`ck.profile.federation_minimal.v1` 等）只覆盖 `/_cokret/peer/*` 协议轨。
+- **实现私有 peer 入站轨 MUST NOT 作为联邦互通入口**：实现可以在自己的 negative-space root（如 `/_<impl>/peer/...`）下保留部署本地的内部接收 / 调试路径，但这类私有轨 MUST NOT 被任何跨厂商 / 跨 deployment 对端当作联邦投递目标，MUST NOT 接受外部 federation peer 的 Move / Anchor / Operation 推送，也 MUST NOT 在 `GET /_arkret/describe` 的 `supported_operations` 中作为 federation surface 宣告。它们只能降级为**只读调试 / 部署本地内部** affordance，或整体移除；保留时 MUST 在 `profile_limitations()` 等价声明中标注为 deployment-local-only、非互通入口，且 MUST 与 `/_arkret/peer/events` 施加同等或更严的 §3 service-to-service 认证与授权（不得出现"私有轨有 9421 验签、协议轨反而没有"的姿态倒挂——协议轨 `/_arkret/peer/events` 的 §3.2 RFC 9421 service signature 是 MUST，私有轨不得以更弱姿态接收外部流量）。
+- 任一对端把实现私有 peer 轨当作联邦投递目标，或任一接收方在私有轨上接受外部 federation 写入，均视为 federation profile violation；跨 deployment 互通声明（`ck.profile.federation_minimal.v1` 等）只覆盖 `/_arkret/peer/*` 协议轨。
 
-> 单轨收敛同时消除了双轨各自演化、验签 / policy 闸门姿态倒挂的风险：唯一受 conformance gate 的联邦接收轨是 `/_cokret/peer/events`，其 9421 验签、trust-domain、destination binding、reducer-profile digest 与最小披露失败语义均由 §3 / §4.1 强制。
+> 单轨收敛同时消除了双轨各自演化、验签 / policy 闸门姿态倒挂的风险：唯一受 conformance gate 的联邦接收轨是 `/_arkret/peer/events`，其 9421 验签、trust-domain、destination binding、reducer-profile digest 与最小披露失败语义均由 §3 / §4.1 强制。
 
 ### 4.0.1 MLS-backed Realm 联邦互操作下界（normative）
 
@@ -180,13 +180,13 @@ Fail-closed 条件：
 
 ### 4.0.2 Principal-private peer 投递面（invite / contact）不是共享 Event 接收轨（normative）
 
-`/_cokret/peer/invites`（`ck.peer.invites.command.submit`）与 `/_cokret/peer/contacts`（`ck.peer.contacts.command.submit`）是 Principal-private 事实投递面：它们只承载目标 holder 的 invite / contact command submit envelope，用于把邀请、联系人请求 / 响应 / tombstone 等 principal-scoped fact 投递到对端 Principal Server。它们 **MUST NOT** 接受任意 Realm durable Event，**MUST NOT** 推进共享 Realm reducer、Seal、CBA frontier 或 state root，也 **MUST NOT** 被实现当作 `/_cokret/peer/events` 的并行替代 fanout 通道。
+`/_arkret/peer/invites`（`ck.peer.invites.command.submit`）与 `/_arkret/peer/contacts`（`ck.peer.contacts.command.submit`）是 Principal-private 事实投递面：它们只承载目标 holder 的 invite / contact command submit envelope，用于把邀请、联系人请求 / 响应 / tombstone 等 principal-scoped fact 投递到对端 Principal Server。它们 **MUST NOT** 接受任意 Realm durable Event，**MUST NOT** 推进共享 Realm reducer、Seal、CBA frontier 或 state root，也 **MUST NOT** 被实现当作 `/_arkret/peer/events` 的并行替代 fanout 通道。
 
-这两个 endpoint 仍属于 `/_cokret/peer/*` 联邦协议面，因而 MUST 复用 §3 的 service-to-service HTTP Message Signature、trust-domain、destination binding、body digest、最小披露错误和 replay 防护。接收方只把其 payload 投影进目标 holder 的 principal control / account-private 处理路径，并按 [`identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) 与 [`identity/consent-model.md`](../identity/consent-model.md) 的 consent / contact gate 处理；任何尝试在这两个 endpoint 中夹带共享 Realm Event Envelope 的请求 MUST fail closed（`schema_violation` 或 `capability_denied`，对外仍遵守最小披露）。
+这两个 endpoint 仍属于 `/_arkret/peer/*` 联邦协议面，因而 MUST 复用 §3 的 service-to-service HTTP Message Signature、trust-domain、destination binding、body digest、最小披露错误和 replay 防护。接收方只把其 payload 投影进目标 holder 的 principal control / account-private 处理路径，并按 [`identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) 与 [`identity/consent-model.md`](../identity/consent-model.md) 的 consent / contact gate 处理；任何尝试在这两个 endpoint 中夹带共享 Realm Event Envelope 的请求 MUST fail closed（`schema_violation` 或 `capability_denied`，对外仍遵守最小披露）。
 
 ### 4.1 推送模式 (Push)
 
-> **v1 联邦使用专用 peer HTTP API surface**。跨域 Event 推送、拉取、补洞、frontier probe 与 snapshot bootstrap 必须使用 `/_cokret/peer/*` 路径和 `ck.peer.*` operation_id。`/_cokret/self/*` 是当前 principal / 自服务会话攻击面，不承接 federation server-to-server wire。本节描述的所有规则适用于 `ck.peer.events.*` / `ck.peer.snapshot.query.manifest_head` 调用。
+> **v1 联邦使用专用 peer HTTP API surface**。跨域 Event 推送、拉取、补洞、frontier probe 与 snapshot bootstrap 必须使用 `/_arkret/peer/*` 路径和 `ck.peer.*` operation_id。`/_arkret/self/*` 是当前 principal / 自服务会话攻击面，不承接 federation server-to-server wire。本节描述的所有规则适用于 `ck.peer.events.*` / `ck.peer.snapshot.query.manifest_head` 调用。
 
 本文件中的联邦载荷项是 v1 规范性 Event Envelope。请求与响应体中的共享事实字段使用 `events[]`，不引入第二套 Operation wire object。
 
@@ -197,13 +197,13 @@ Fail-closed 条件：
 3. `server-alpha.com` 向 `server-beta.com` 发送推送请求：
 
 ```
-POST /_cokret/peer/events
+POST /_arkret/peer/events
 Host: server-beta.com
 Source-Service-DID: did:webvh:z4YZEfM4SYVUdnZbosrGu69JK:server-alpha.com
 Destination-Service-DID: did:webvh:z2z1rvs6FuSuJWQcRMn6p8K3m:server-beta.com
 Destination-Service-Endpoint-Digest: sha256:<hex>
-Source-Trust-Domain: ck:trust_domain:did.webvh.alpha.example
-Destination-Trust-Domain: ck:trust_domain:did.webvh.beta.example
+Source-Trust-Domain: ak:trust_domain:did.webvh.alpha.example
+Destination-Trust-Domain: ak:trust_domain:did.webvh.beta.example
 Content-Digest: sha256=:<base64>:
 Request-Canonical-Digest: sha256:<hex>
 Idempotency-Key: <opaque-key>
@@ -220,11 +220,11 @@ Signature: sig1=:base64...:
 | `Destination-Service-Endpoint-Digest` | header | `sha256:<hash>` | conditional | shared ingress / 多租户 / allowlist endpoint 场景 required；endpoint canonical URL 的 digest，MUST 进入签名 transcript 并与 DID Document service endpoint 或 Realm policy allowlist 匹配。 |
 | `Source-Trust-Domain` | header | `id:trust_domain` | required | 来源 deployment trust domain；与签名 transcript 绑定，用于 receiver trust policy、审计与跨域 replay 隔离。 |
 | `Destination-Trust-Domain` | header | `id:trust_domain` | required | 目标 deployment trust domain；MUST 等于接收方 `ServiceDescribe.trust_domain` 与目标 Realm `trust_domain`。 |
-| `Request-Canonical-Digest` | header | `sha256:<hash>` | conditional | 仅有 body 请求携带（`POST /_cokret/peer/events` required）；canonical request body 的 SHA-256 digest，MUST 与 `Content-Digest` 指向同一 body，并进入签名 transcript 与幂等 replay key。无 body 的 `GET` pull MUST NOT 携带该 header，`Signature-Input` 也 MUST NOT 绑定 `request-canonical-digest`。 |
+| `Request-Canonical-Digest` | header | `sha256:<hash>` | conditional | 仅有 body 请求携带（`POST /_arkret/peer/events` required）；canonical request body 的 SHA-256 digest，MUST 与 `Content-Digest` 指向同一 body，并进入签名 transcript 与幂等 replay key。无 body 的 `GET` pull MUST NOT 携带该 header，`Signature-Input` 也 MUST NOT 绑定 `request-canonical-digest`。 |
 | `Idempotency-Key` | header | `string` | conditional | 当发送方希望请求级幂等、批次 replay key 或 partial retry 去重时 required；该 header MUST 进入 HTTP Message Signature transcript。 |
-| `Signature-Input` | header | `string` | required | HTTP Message Signature 输入；MUST 至少绑定 `@method`、`@target-uri`、`@authority`、`source-service-did`、`destination-service-did`、`source-trust-domain`、`destination-trust-domain`，以及 `created` / `expires` 参数。有 body 请求（`POST /_cokret/peer/events`）MUST 额外绑定 `content-digest` 与 `request-canonical-digest`；无 body 的 `GET` pull MUST NOT 绑定 `content-digest` / `request-canonical-digest`。出现 `Destination-Service-Endpoint-Digest` 时也 MUST 绑定 `destination-service-endpoint-digest`；出现 `Idempotency-Key` 时也 MUST 绑定 `idempotency-key`。 |
+| `Signature-Input` | header | `string` | required | HTTP Message Signature 输入；MUST 至少绑定 `@method`、`@target-uri`、`@authority`、`source-service-did`、`destination-service-did`、`source-trust-domain`、`destination-trust-domain`，以及 `created` / `expires` 参数。有 body 请求（`POST /_arkret/peer/events`）MUST 额外绑定 `content-digest` 与 `request-canonical-digest`；无 body 的 `GET` pull MUST NOT 绑定 `content-digest` / `request-canonical-digest`。出现 `Destination-Service-Endpoint-Digest` 时也 MUST 绑定 `destination-service-endpoint-digest`；出现 `Idempotency-Key` 时也 MUST 绑定 `idempotency-key`。 |
 | `Signature` | header | `string` | required | 来源 service DID 的 HTTP Message Signature。 |
-| `Content-Digest` | header | `string` | conditional | 仅有 body 请求携带（`POST /_cokret/peer/events` required）；请求体摘要，MUST 覆盖 canonical request body，接收方 MUST 在验签前先校验 body 实际 hash 与 header 一致，再走签名 transcript 校验。无 body 的 `GET` pull MUST NOT 携带该 header，`Signature-Input` 也 MUST NOT 绑定 `content-digest`。 |
+| `Content-Digest` | header | `string` | conditional | 仅有 body 请求携带（`POST /_arkret/peer/events` required）；请求体摘要，MUST 覆盖 canonical request body，接收方 MUST 在验签前先校验 body 实际 hash 与 header 一致，再走签名 transcript 校验。无 body 的 `GET` pull MUST NOT 携带该 header，`Signature-Input` 也 MUST NOT 绑定 `content-digest`。 |
 | `events` | body | `object[]` | required | Event Envelope 数组；每项 MUST 是完整签名 `ck.schema.event.v1`。复用 §3 client write 同一 schema，不引入第二套形态。 |
 | `service_binding_ref` | body | `object` | required | 接收方服务绑定快照（v1 联邦特有的请求级元数据；client write 时省略）。 |
 | `service_binding_ref.realm_id` | body | `id` | required | 受影响的 Realm。在多 Realm 批量推送中，发送方 SHOULD 把不同 Realm 的 events 拆成独立请求；单请求 MUST 至少携带一个 `realm_id`。 |
@@ -245,7 +245,7 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(digest
 
 其中 `canonical_json` 是 [`encoding.md` §2](../conformance/encoding.md) 的 Arkret canonical JSON。`digest_input` 对象本身包含 profile 继承、required / rejected event-kind 集、schema / fixture / lattice 约束以及对应规范源引用；实现不得改用本地配置对象、ServiceDescribe 摘要或手写 `{domain, profile}` 对象来计算此字段。
 
-接收方 MUST 用同一 registry 规则重算自己在该 Realm 上实际执行的 reducer profile digest，并与请求字段逐字节比对。缺少 registry row、profile_id 未声明、canonicalization 不支持、digest suite 不是 active `sha256`，或重算结果不一致，均 MUST fail closed；对于 `POST /_cokret/peer/events`，失败结果是整批拒绝并返回 `reducer_profile_mismatch`，不得 partial accept。
+接收方 MUST 用同一 registry 规则重算自己在该 Realm 上实际执行的 reducer profile digest，并与请求字段逐字节比对。缺少 registry row、profile_id 未声明、canonicalization 不支持、digest suite 不是 active `sha256`，或重算结果不一致，均 MUST fail closed；对于 `POST /_arkret/peer/events`，失败结果是整批拒绝并返回 `reducer_profile_mismatch`，不得 partial accept。
 
 
 请求示例（`Source-Service-DID` / `Destination-Service-DID` 由 header 承载，不重复在 body 中）：
@@ -341,7 +341,7 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(digest
 
 Arkret v1 的联邦批量传播采用依赖感知的 partial accept：最小原子单元是单个 Event 及其已接受依赖，而不是整个请求数组。接收方已经 accepted 的 Event 不因后续 Event 失败而回滚；后续 Event 若依赖同批失败项，必须拒绝或隔离并暴露依赖诊断。需要 all-or-nothing 批处理的部署必须通过 profile / critical extension 显式协商。
 
-`events[]` MUST 按数组顺序处理。同批中已接受的 Event 仅可作为**解析材料**（resolution-only）出现在后续 Event 中：可以满足 `prev_refs` 的 byte / event-id 解析、actor event chain 链接、`causal_refs` 或 payload-level causal reference 等结构性引用；但**不得**作为同批后续 Event 的授权基准。DataEvent MUST 按自身 `seal_ref` 验证；Control Move MUST 按自身 `seal_basis` 验证。同批前序 Event 创建、delegate、恢复、扩权或 revoke 的 grant / policy **不**对后续 Event 提前生效，依赖方必须等待控制面 Seal 更新后重交，否则当前批 MUST 以 `dependency_missing` / `stale_seal_ref` / `capability_denied` 拒绝或隔离（与 [`service-http-binding.md`](./service-http-binding.md) §`POST /_cokret/peer/events` 同批授权可见性规则、[`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 的 CBA basis 模型一致）。同批中尚未处理、已拒绝或隔离的 Event 不能被视为已接受依赖。单条 Event 失败不得回滚同批已接受 Event；响应 MUST 将成功项放入 `accepted[]`，失败项放入 `rejected[]`，需要异步校验的项放入 `quarantine[]`。依赖同批失败或缺失 Event 的后续项 MUST 以 `dependency_missing`、`causal_conflict` 或等价原因拒绝/隔离。
+`events[]` MUST 按数组顺序处理。同批中已接受的 Event 仅可作为**解析材料**（resolution-only）出现在后续 Event 中：可以满足 `prev_refs` 的 byte / event-id 解析、actor event chain 链接、`causal_refs` 或 payload-level causal reference 等结构性引用；但**不得**作为同批后续 Event 的授权基准。DataEvent MUST 按自身 `seal_ref` 验证；Control Move MUST 按自身 `seal_basis` 验证。同批前序 Event 创建、delegate、恢复、扩权或 revoke 的 grant / policy **不**对后续 Event 提前生效，依赖方必须等待控制面 Seal 更新后重交，否则当前批 MUST 以 `dependency_missing` / `stale_seal_ref` / `capability_denied` 拒绝或隔离（与 [`service-http-binding.md`](./service-http-binding.md) §`POST /_arkret/peer/events` 同批授权可见性规则、[`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 的 CBA basis 模型一致）。同批中尚未处理、已拒绝或隔离的 Event 不能被视为已接受依赖。单条 Event 失败不得回滚同批已接受 Event；响应 MUST 将成功项放入 `accepted[]`，失败项放入 `rejected[]`，需要异步校验的项放入 `quarantine[]`。依赖同批失败或缺失 Event 的后续项 MUST 以 `dependency_missing`、`causal_conflict` 或等价原因拒绝/隔离。
 
 **partial accept 后的 retry 边界（normative）**：sender 收到包含非空 `accepted[]` / `duplicate[]` 且仍有 `rejected[]` / `quarantine[]` / 未发送依赖的响应后，MUST 把下一次 retry 组装成新的 batch，只包含尚未被 `accepted[]` ∪ `duplicate[]` 确认且仍需投递的 Event；不得原样重放包含已确认 Event 的旧 `events[]` 来“补齐失败项”。内容完全相同的幂等重复项 MUST 列入 `duplicate[]`（幂等 no-op），MUST NOT 当作 `rejected[]`。新 batch MUST 使用新的 `Idempotency-Key`（或省略），并重新计算 `Content-Digest`、`Request-Canonical-Digest` 与签名 transcript；MUST NOT 以旧 `Idempotency-Key` 配新 canonical body 重交，幂等缓存命中旧 batch 不得被当作新 retry 的成功证明。接收方 SHOULD 在 `rejected[]` 项内携带原数组 `index` 与 `id`，让 sender 能机械求差；若响应缺少 `index`，sender MUST 以 `id` 集合为准剔除 `accepted[] ∪ duplicate[]`（已投递集合）。本条只约束**求差重组后的新 batch**（body 已变化，必须换 key）；未收到任何响应（超时 / 网络失败 / 5xx）时对**逐字节相同**请求的全量重试义务相反——MUST 复用同一 `Idempotency-Key`，见 [`api-conventions.md` §6.2](./api-conventions.md)；两者互补不冲突。
 
@@ -382,7 +382,7 @@ for each member m of Realm S that needs to receive event E:
 
 **MUST NOT fallback** 路径（语义权威：[`governance/member-delivery-binding.md` §5](../governance/member-delivery-binding.md)，本节不另行定义）：
 
-- 即便 `recipient_service_did` 解析失败、binding 过期或被撤销，sender **MUST NOT** 退回 actor DID Document 的 `CokretPrincipalServer` service entry 作为替代目的地；本地账号、OIDC/SSO 绑定、员工目录记录、device session 均不构成 Realm-scoped 投递授权。投递授权来源与完整的路由不可降级原则以 [`governance/member-delivery-binding.md` §5](../governance/member-delivery-binding.md) 为准。
+- 即便 `recipient_service_did` 解析失败、binding 过期或被撤销，sender **MUST NOT** 退回 actor DID Document 的 `ArkretPrincipalServer` service entry 作为替代目的地；本地账号、OIDC/SSO 绑定、员工目录记录、device session 均不构成 Realm-scoped 投递授权。投递授权来源与完整的路由不可降级原则以 [`governance/member-delivery-binding.md` §5](../governance/member-delivery-binding.md) 为准。
 - wire 侧补充：DID Document service entry 是 actor event source / 非 Realm 默认服务发现入口（§6.2），与 member-level delivery 解耦。
 
 **权威划分（normative）**：member-level delivery 与 rebind handover 的**语义**权威是 [`governance/member-delivery-binding.md`](../governance/member-delivery-binding.md)——路由不可降级原则见其 §5，handover 接受集合全分类与 `handover_grace_seconds` 见其 §6。本节只承载联邦 **wire 形态**：`delivery_binding_stale` 响应体、`handover_proof` 校验、handover 限速与重定向边界。两处表述如有分歧，语义以 member-delivery-binding.md 为准，wire 形态以本节为准。
@@ -435,7 +435,7 @@ sequenceDiagram
     Cli->>Alpha: 提交 signed Event 到 Realm S
     Alpha->>Pol: 解析应接收的 Principal Server
     Pol-->>Alpha: 接收方列表 + service_binding_ref<br>(realm_policy_digest / membership_frontier / delivery_binding_frontier / reducer_profile_digest)
-    Alpha->>Beta: POST /_cokret/peer/events (ck.peer.events.command.submit)<br>HTTP Message Sig (RFC 9421)<br>Source/Destination Service DID + Trust Domain<br>Content-Digest / Request-Canonical-Digest<br>service_binding_ref / events 数组
+    Alpha->>Beta: POST /_arkret/peer/events (ck.peer.events.command.submit)<br>HTTP Message Sig (RFC 9421)<br>Source/Destination Service DID + Trust Domain<br>Content-Digest / Request-Canonical-Digest<br>service_binding_ref / events 数组
     note over Beta: 校验:<br>1. 签名 transcript + destination DID 匹配<br>2. content-digest 覆盖 body<br>3. allow list / federation_policy<br>4. service_binding_ref 与本地一致<br>5. reducer_profile_digest 逐字节一致(不一致整批拒绝)<br>6. 逐 Event verify_event + actor chain<br>7. CBA basis + Lattice / Seal
     Beta-->>Alpha: 200 + accepted / rejected / quarantine
     note over Alpha: 失败项<br>重试 / quarantine / 暴露给上游 actor
@@ -449,7 +449,7 @@ sequenceDiagram
 
 ### 4.1.1 批量推送与幂等
 
-Arkret v1 联邦推送使用 `POST /_cokret/peer/events`（`ck.peer.events.command.submit`）：
+Arkret v1 联邦推送使用 `POST /_arkret/peer/events`（`ck.peer.events.command.submit`）：
 
 - 幂等以 `(Source-Service-DID, Destination-Service-DID, event_id)` 逐事件去重；接收方对重复 `event_id` 且内容一致 MUST 在 `duplicate[]` 中确认（幂等 no-op）而非报错，内容不一致 MUST 以 `duplicate_conflict`（409）拒绝（参见 §4.3）。
 - 批次级重放检测使用签名 transcript 中的 `Request-Canonical-Digest` 与 `Idempotency-Key` header（详见 §8.5），不引入额外的 path 事务 ID。
@@ -458,10 +458,10 @@ Arkret v1 联邦推送使用 `POST /_cokret/peer/events`（`ck.peer.events.comma
 
 ### 4.2 拉取模式 (Pull / Backfill)
 
-当节点发现自己的因果图中存在缺失（`prev_refs` 或 `refs[role=authorized_by]` 引用了本地没有的 Event）时，可以主动向源 Principal Server 的 peer surface 拉取。v1 联邦 pull 使用 `ck.peer.events.query.scan`（`GET /_cokret/peer/events`），通过 `before=<cursor>` 表示历史回填（取该 cursor 之前最近一批），认证使用与 §4.1 同一套 service signature header：
+当节点发现自己的因果图中存在缺失（`prev_refs` 或 `refs[role=authorized_by]` 引用了本地没有的 Event）时，可以主动向源 Principal Server 的 peer surface 拉取。v1 联邦 pull 使用 `ck.peer.events.query.scan`（`GET /_arkret/peer/events`），通过 `before=<cursor>` 表示历史回填（取该 cursor 之前最近一批），认证使用与 §4.1 同一套 service signature header：
 
 ```
-GET /_cokret/peer/events?realms=ck:realm:...&before=<cursor>&limit=100
+GET /_arkret/peer/events?realms=ak:realm:...&before=<cursor>&limit=100
 Host: server-alpha.com
 Source-Service-DID: did:webvh:z2z1rvs6FuSuJWQcRMn6p8K3m:server-beta.com
 Destination-Service-DID: did:webvh:z4YZEfM4SYVUdnZbosrGu69JK:server-alpha.com
@@ -491,7 +491,7 @@ GET pull 无 body，但签名 transcript MUST 覆盖 §3.2 中适用于无 body 
 | `next_cursor` | `cursor` | optional | 朝**更新事件**方向的延续位置；下次请求传入 `after=<next_cursor>` 继续 catch-up。 |
 | `has_more` | `boolean` | required | 是否仍有可拉取的 Event；客户端到达 oldest accessible event 时 `false`。 |
 
-> `snapshot_bootstrap` 字段以 optional 形式出现在 `ck.peer.events.query.scan` 响应中（仅 Realm policy 显式允许时）。若接收方需要直接按 event id / digest 补洞，必须使用 `POST /_cokret/peer/events/resolve`（`ck.peer.events.query.resolve`），不得改用 self surface。
+> `snapshot_bootstrap` 字段以 optional 形式出现在 `ck.peer.events.query.scan` 响应中（仅 Realm policy 显式允许时）。若接收方需要直接按 event id / digest 补洞，必须使用 `POST /_arkret/peer/events/resolve`（`ck.peer.events.query.resolve`），不得改用 self surface。
 
 **Pull 授权 freshness（normative，与 §8.5.1 互补）**：§8.5.1 处理的是 push 路径——把 service key state 一起进入 idempotency cache key，从而在 cache hit 时仍重做授权检查；而 pull 路径根本**不进幂等缓存**：无 body 的 `GET` pull 省略 `Content-Digest` / `Request-Canonical-Digest`（§3.2），因此不像 push 那样把 canonical digest 纳入幂等缓存键。两条路径用**不同机制**关闭同一个"撤销后重放"窗口（push 靠 cache-key 绑定 + cache hit 重校验，pull 靠每次请求强制重新解析 service binding freshness），互为补充而非镜像对称。每次 pull 请求，接收方（被拉取的源服务）MUST 在返回事件前重新解析并校验请求方 `Source-Service-DID` 的 service binding freshness——当前 `verification_method` 仍 active、未 revoke，且该 source 在目标 Realm policy 下仍持有 `federation_peer` 角色——并 MUST NOT 因 `(Source-Service-DID, query)` 命中任何幂等 / 响应缓存而豁免该重新授权检查。请求方 service key 已 revoke 或 service binding 已被 Realm policy 移除时，MUST 返回 `capability_denied` / `policy_denied`，不得从缓存回放历史事件批次给已失权的 puller。
 
@@ -543,7 +543,7 @@ GET pull 无 body，但签名 transcript MUST 覆盖 §3.2 中适用于无 body 
 
 #### 4.5.1 Frontier Probe 能力 (MUST)
 
-每个参与 Realm S 的 federation peer **MUST** 暴露 `GET /_cokret/peer/events/frontier`（`ck.peer.events.query.frontier`），使被 Realm S policy 授权的对端 peer 可以按需查询当前 frontier。该 endpoint 只承接 federation peer probe 调用面：调用方必须是被 Realm service binding（`sync_endpoints` 或等价 policy facet）授权的 federation peer 服务 DID，鉴权必须满足 §3 节点间认证，响应形态是完整 `(heads, max_hlc, frontier_root, actor_seq_upper_bounds, witness_receipts, signature)`。
+每个参与 Realm S 的 federation peer **MUST** 暴露 `GET /_arkret/peer/events/frontier`（`ck.peer.events.query.frontier`），使被 Realm S policy 授权的对端 peer 可以按需查询当前 frontier。该 endpoint 只承接 federation peer probe 调用面：调用方必须是被 Realm service binding（`sync_endpoints` 或等价 policy facet）授权的 federation peer 服务 DID，鉴权必须满足 §3 节点间认证，响应形态是完整 `(heads, max_hlc, frontier_root, actor_seq_upper_bounds, witness_receipts, signature)`。
 
 Probe **MUST** 是 capability-gated：
 
@@ -695,11 +695,11 @@ Bob 也可以主动申请加入。具体流程取决于 Realm 的 `ck.realm.join
 
 ### 6.2 Actor Event Source 发现
 
-DID Document 的 `service[type=CokretPrincipalServer]` 是该 Actor DID 的**默认 event source**，**不是** Realm-scoped 投递入口。两者用途严格分开：
+DID Document 的 `service[type=ArkretPrincipalServer]` 是该 Actor DID 的**默认 event source**，**不是** Realm-scoped 投递入口。两者用途严格分开：
 
 | 用途 | 解析路径 |
 | --- | --- |
-| 拉取 actor 的 per-actor event chain（非 Realm 上下文） | `DID Document -> service[type=CokretPrincipalServer] -> serviceEndpoint` |
+| 拉取 actor 的 per-actor event chain（非 Realm 上下文） | `DID Document -> service[type=ArkretPrincipalServer] -> serviceEndpoint` |
 | Bootstrap 一个 actor 刚发现时的服务发现 hint | 同上 |
 | Realm policy 显式允许 `did_document_default` 且 join 时已物化进 `delivery_binding` 的来源 | 同上（仅作为 join 时的 source；join 之后**仍**走 member binding） |
 | 已加入 Realm 的成员的 events / account aggregate / to_device / push / key_packages 投递 | **MUST** 走 [`governance/member-delivery-binding.md` §5](../governance/member-delivery-binding.md) 的 member binding 路径；**MUST NOT** 用 DID Document |
@@ -726,26 +726,26 @@ GET https://<domain>/.well-known/arkret/server
 
 ## 7. 联邦请求 vs 单域 client 请求
 
-v1 联邦与单域 client 请求不共享 HTTP attack surface：federation server-to-server wire 使用 `/_cokret/peer/*`，client / self 请求使用 `/_cokret/self/*`。二者可共享 Event Envelope / cursor / snapshot manifest 等数据 schema，但 operation_id 与 HTTP path 必须分开。wire 细节见 §4.1 / §4.2 与 [`service-http-binding.md`](./service-http-binding.md)。
+v1 联邦与单域 client 请求不共享 HTTP attack surface：federation server-to-server wire 使用 `/_arkret/peer/*`，client / self 请求使用 `/_arkret/self/*`。二者可共享 Event Envelope / cursor / snapshot manifest 等数据 schema，但 operation_id 与 HTTP path 必须分开。wire 细节见 §4.1 / §4.2 与 [`service-http-binding.md`](./service-http-binding.md)。
 
 | 联邦行为 | peer endpoint | 认证模式 |
 | --- | --- | --- |
-| 跨域推送 Event（含批处理） | `POST /_cokret/peer/events`（`ck.peer.events.command.submit`） | service_signature（HTTP Message Signature）+ `Source-Service-DID` / `Destination-Service-DID` / `Source-Trust-Domain` / `Destination-Trust-Domain` / `Request-Canonical-Digest` header；Realm policy 必须列出 source service DID 为合法 federation peer。 |
-| 跨域 backfill / 拉取缺失历史 | `GET /_cokret/peer/events?before=<cursor>`（`ck.peer.events.query.scan`） | 同一 service signature 规则；无 body 的 pull 请求不携带 `Content-Digest` / `Request-Canonical-Digest`（`Signature-Input` 也不绑定 `content-digest` / `request-canonical-digest`），但仍 MUST 绑定 source/destination service DID 与 trust domain。 |
-| 跨域按 id / digest 补洞 | `POST /_cokret/peer/events/resolve`（`ck.peer.events.query.resolve`） | 同上；服务端按 Realm policy、history visibility 与 reference disclosure 裁剪响应。 |
-| 跨域 Realm 成员视图 | `GET /_cokret/peer/events`（`ck.peer.events.query.scan`） + `ck.member.state` 过滤 | 同上；服务端按 Realm policy 决定哪些成员对该 service DID 可见。 |
-| 跨域 snapshot-assisted bootstrap | `GET /_cokret/peer/snapshot/head`（`ck.peer.snapshot.query.manifest_head`） | 同上；manifest 必须签名并绑定 authority_binding。 |
-| 跨域 actor / DID 验证 | `POST /_cokret/root/identity/resolve`（`ck.root.identity.query.resolve`） | 该端点本就是公共服务面；联邦请求按调用方信任策略缓存。 |
+| 跨域推送 Event（含批处理） | `POST /_arkret/peer/events`（`ck.peer.events.command.submit`） | service_signature（HTTP Message Signature）+ `Source-Service-DID` / `Destination-Service-DID` / `Source-Trust-Domain` / `Destination-Trust-Domain` / `Request-Canonical-Digest` header；Realm policy 必须列出 source service DID 为合法 federation peer。 |
+| 跨域 backfill / 拉取缺失历史 | `GET /_arkret/peer/events?before=<cursor>`（`ck.peer.events.query.scan`） | 同一 service signature 规则；无 body 的 pull 请求不携带 `Content-Digest` / `Request-Canonical-Digest`（`Signature-Input` 也不绑定 `content-digest` / `request-canonical-digest`），但仍 MUST 绑定 source/destination service DID 与 trust domain。 |
+| 跨域按 id / digest 补洞 | `POST /_arkret/peer/events/resolve`（`ck.peer.events.query.resolve`） | 同上；服务端按 Realm policy、history visibility 与 reference disclosure 裁剪响应。 |
+| 跨域 Realm 成员视图 | `GET /_arkret/peer/events`（`ck.peer.events.query.scan`） + `ck.member.state` 过滤 | 同上；服务端按 Realm policy 决定哪些成员对该 service DID 可见。 |
+| 跨域 snapshot-assisted bootstrap | `GET /_arkret/peer/snapshot/head`（`ck.peer.snapshot.query.manifest_head`） | 同上；manifest 必须签名并绑定 authority_binding。 |
+| 跨域 actor / DID 验证 | `POST /_arkret/root/identity/resolve`（`ck.root.identity.query.resolve`） | 该端点本就是公共服务面；联邦请求按调用方信任策略缓存。 |
 
 ### 7.1 跨域 Event 推送
 
 ```
-POST /_cokret/peer/events
+POST /_arkret/peer/events
 Source-Service-DID: did:webvh:z5a3yeFnKQFn6ZqPY1Qgv3RrZ:server.acme.example
 Destination-Service-DID: did:webvh:z94DeARq4Vqk5S1h3tFsxPnwq:server.beta.example
 Destination-Service-Endpoint-Digest: sha256:<hex>
-Source-Trust-Domain: ck:trust_domain:did.webvh.acme.example
-Destination-Trust-Domain: ck:trust_domain:did.webvh.beta.example
+Source-Trust-Domain: ak:trust_domain:did.webvh.acme.example
+Destination-Trust-Domain: ak:trust_domain:did.webvh.beta.example
 Request-Canonical-Digest: sha256:...
 Idempotency-Key: <opaque-key>
 Signature-Input: sig1=("@method" "@target-uri" "@authority" "content-digest" "source-service-did" "destination-service-did" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain" "request-canonical-digest" "idempotency-key");created=...;expires=...
@@ -757,19 +757,19 @@ Signature: sig1=:<base64>:
 ### 7.2 跨域 Backfill
 
 ```
-GET /_cokret/peer/events?realms=<id>&before=<cursor>&limit=<n>
+GET /_arkret/peer/events?realms=<id>&before=<cursor>&limit=<n>
 Signature-Input: sig1=("@method" "@target-uri" "@authority" "source-service-did" "destination-service-did" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain");created=...;expires=...
 Signature: sig1=:<base64>:
 ```
 
-字段定义见 §4.2；service operation id 为 `ck.peer.events.query.scan`，`before=<cursor>` 用于回填历史（取 cursor 之前最近一批，默认 descending）。空间历史按 Realm policy 与 history visibility 过滤；snapshot bootstrap 通过 `/_cokret/peer/snapshot/head` 获取，或作为 `ck.peer.events.query.scan` 的 `snapshot_bootstrap` 加速字段返回。
+字段定义见 §4.2；service operation id 为 `ck.peer.events.query.scan`，`before=<cursor>` 用于回填历史（取 cursor 之前最近一批，默认 descending）。空间历史按 Realm policy 与 history visibility 过滤；snapshot bootstrap 通过 `/_arkret/peer/snapshot/head` 获取，或作为 `ck.peer.events.query.scan` 的 `snapshot_bootstrap` 加速字段返回。
 
 ### 7.3 查询 Realm 成员
 
 跨域参与方查询某 Realm 成员视图时，使用 `ck.peer.events.query.scan` 并过滤 `kind=ck.member.state`：
 
 ```
-GET /_cokret/peer/events?realms=<id>&kinds=ck.member.state&after=<cursor>&limit=<n>
+GET /_arkret/peer/events?realms=<id>&kinds=ck.member.state&after=<cursor>&limit=<n>
 Signature-Input: sig1=("@method" "@target-uri" "@authority" "source-service-did" "destination-service-did" "destination-service-endpoint-digest" "source-trust-domain" "destination-trust-domain");created=...;expires=...
 Signature: sig1=:<base64>:
 ```
@@ -794,9 +794,9 @@ Signature: sig1=:<base64>:
 
 ### 7.4 验证 Actor
 
-跨域 actor 验证复用 `POST /_cokret/root/identity/resolve` 公共服务面（`ck.root.identity.query.resolve`）。该端点本就是公共 DID 解析入口，但 Arkret 实现 MUST 按调用方信任策略限速、缓存、并对私有 / pairwise DID 拒绝匿名公开。
+跨域 actor 验证复用 `POST /_arkret/root/identity/resolve` 公共服务面（`ck.root.identity.query.resolve`）。该端点本就是公共 DID 解析入口，但 Arkret 实现 MUST 按调用方信任策略限速、缓存、并对私有 / pairwise DID 拒绝匿名公开。
 
-下面列出 `holder-approved proof challenge` 高级 query 形态的字段集——这是 `/_cokret/root/identity/resolve` 的一种调用形态，不是独立 operation。
+下面列出 `holder-approved proof challenge` 高级 query 形态的字段集——这是 `/_arkret/root/identity/resolve` 的一种调用形态，不是独立 operation。
 
 请求字段：
 
@@ -876,7 +876,7 @@ Signature: sig1=:<base64>:
 - 先执行低成本 envelope / size / signature transcript 校验，再进入昂贵的 DID resolution、auth chain 展开和 reducer 预演
 - 对连续失败来源使用有界队列和 `Retry-After`，不得让失败请求触发无限 backfill 或 retry fanout
 
-**Pull 路径反枚举 / anti-amplification（normative）**：push（§4.1）已有重放 cache、批次大小上限与 §8.5 回压窗口，但 pull（GET scan）/ resolve 路径的反洪泛与枚举防护此前弱于 push。为对齐，`ck.peer.events.query.scan`（`GET /_cokret/peer/events`）与 `ck.peer.events.query.resolve`（`POST /_cokret/peer/events/resolve`）MUST 与 §4.5.1 frontier probe **同口径**按 `(realm_id, peer_service_did)` 限速：
+**Pull 路径反枚举 / anti-amplification（normative）**：push（§4.1）已有重放 cache、批次大小上限与 §8.5 回压窗口，但 pull（GET scan）/ resolve 路径的反洪泛与枚举防护此前弱于 push。为对齐，`ck.peer.events.query.scan`（`GET /_arkret/peer/events`）与 `ck.peer.events.query.resolve`（`POST /_arkret/peer/events/resolve`）MUST 与 §4.5.1 frontier probe **同口径**按 `(realm_id, peer_service_did)` 限速：
 
 - 接收方 MUST 维护 per-`(realm_id, peer_service_did)` 的请求计数 / 速率窗口，并在超过部署声明上限时返回 `rate_limited`（附 `retry_after_ms` / HTTP `Retry-After`）或 `temporarily_unavailable`；该限速维度与 frontier probe 的 `(realm_id, peer_service_did)` 限速一致，使授权 peer 无法通过高频 scan / resolve 枚举 Realm 内容或推断活跃度时间序列。
 - 该上限独立于 §8.5 的失败率熔断：scan / resolve 即便每次都成功返回事件，也 MUST 受 per-`(realm_id, peer_service_did)` 速率约束，不得让"全部成功"的高频拉取绕过 anti-amplification。
@@ -908,7 +908,7 @@ Signature: sig1=:<base64>:
 - 单事件级别仍以 `event_id` 去重，规则见 4.3 节；`event_id` 去重是 durable Event 语义的一部分，不受上述幂等记录保留窗口限制；
 - 对同一 `(Source-Service-DID, Destination-Service-DID, endpoint, realm_id?)` 计数窗口，若 60 秒内相同 canonical request hash 被拒绝 ≥ 3 次，或 5 分钟内总请求数 ≥ 10 且失败率 ≥ 50%，接收方 MUST 将该来源在该 endpoint / Realm 范围内暂停至少 60 秒，并返回 `rate_limited`（可附 `retry_after_ms` / HTTP `Retry-After`）或 `temporarily_unavailable`。
 
-**该回压窗口同样覆盖 pull 路径（normative）**：上面的失败率熔断与暂停窗口不仅适用于 push（`POST /_cokret/peer/events`），也 MUST 适用于 pull / resolve（`GET /_cokret/peer/events` 的 `ck.peer.events.query.scan`、`POST /_cokret/peer/events/resolve` 的 `ck.peer.events.query.resolve`）。无 body 的 GET pull 没有 `Request-Canonical-Digest`，其"相同 canonical request hash"判定改用 `(@method, @target-uri, source/destination service DID, trust domain, endpoint digest)` 规范化键（§3.2 GET pull transcript 绑定的同一组件集），其余熔断阈值、暂停时长与 `Retry-After` 语义与 push 一致。这与 §8.1 的 per-`(realm_id, peer_service_did)` 速率上限互补：§8.1 限稳态速率，本条限失败放大与抖动。
+**该回压窗口同样覆盖 pull 路径（normative）**：上面的失败率熔断与暂停窗口不仅适用于 push（`POST /_arkret/peer/events`），也 MUST 适用于 pull / resolve（`GET /_arkret/peer/events` 的 `ck.peer.events.query.scan`、`POST /_arkret/peer/events/resolve` 的 `ck.peer.events.query.resolve`）。无 body 的 GET pull 没有 `Request-Canonical-Digest`，其"相同 canonical request hash"判定改用 `(@method, @target-uri, source/destination service DID, trust domain, endpoint digest)` 规范化键（§3.2 GET pull transcript 绑定的同一组件集），其余熔断阈值、暂停时长与 `Retry-After` 语义与 push 一致。这与 §8.1 的 per-`(realm_id, peer_service_did)` 速率上限互补：§8.1 限稳态速率，本条限失败放大与抖动。
 
 #### 8.5.1 Idempotency cache 绑定 service key state（normative）
 
@@ -939,7 +939,7 @@ Signature: sig1=:<base64>:
 
 联邦场景下，Principal Server 之间应支持基于快照的快速恢复（snapshot-assisted bootstrap），否则首次加入或大范围缺失时会退化为全量历史回放，影响可用性。实现层面：
 
-在 `GET /_cokret/peer/events?before=<cursor>`（`ck.peer.events.query.scan`）响应中，服务端 SHOULD 在可用时提供 `snapshot_bootstrap`（可选字段）；需要单独读取 manifest head 时使用 `GET /_cokret/peer/snapshot/head`（`ck.peer.snapshot.query.manifest_head`）：
+在 `GET /_arkret/peer/events?before=<cursor>`（`ck.peer.events.query.scan`）响应中，服务端 SHOULD 在可用时提供 `snapshot_bootstrap`（可选字段）；需要单独读取 manifest head 时使用 `GET /_arkret/peer/snapshot/head`（`ck.peer.snapshot.query.manifest_head`）：
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
@@ -959,7 +959,7 @@ Signature: sig1=:<base64>:
 
 该方向用于性能和可靠性提升，不是签名真实性的前提条件。最小实现可直接使用本文件 4/7 节的 push + pull。实现支持时应遵循：
 
-> **集合调和算法 pin（informative）**：本节与 [`../authz/event-auth-state-resolution.md` §155](../authz/event-auth-state-resolution.md) 把数据面传播指向"gossip / anti-entropy / RBSR（range-based set reconciliation）类"。跨实现需要具体算法 pin 时，双方 MAY 声明 `ck.profile.federation.rbsr.negentropy.v1` candidate profile：该 profile 把 federation set reconciliation 固定为 Negentropy-style range reconciliation，range fingerprint hash 复用 `digest-suite-registry` 的 active digest suite，运行在 `/_cokret/peer/*` pull 轨之上，不改变单 Event 签名语义。只有双方 ServiceDescribe 都声明该 profile 且 profile digest / hash suite / range bound 一致时，receiver 才可把 RBSR 摘要用于 backfill 缺口定位；任一条件不满足时，peer MUST 回退到本节的 push/pull 与 cursor 回填，不得把本地私有 RBSR 摘要当成互操作证据。
+> **集合调和算法 pin（informative）**：本节与 [`../authz/event-auth-state-resolution.md` §155](../authz/event-auth-state-resolution.md) 把数据面传播指向"gossip / anti-entropy / RBSR（range-based set reconciliation）类"。跨实现需要具体算法 pin 时，双方 MAY 声明 `ck.profile.federation.rbsr.negentropy.v1` candidate profile：该 profile 把 federation set reconciliation 固定为 Negentropy-style range reconciliation，range fingerprint hash 复用 `digest-suite-registry` 的 active digest suite，运行在 `/_arkret/peer/*` pull 轨之上，不改变单 Event 签名语义。只有双方 ServiceDescribe 都声明该 profile 且 profile digest / hash suite / range bound 一致时，receiver 才可把 RBSR 摘要用于 backfill 缺口定位；任一条件不满足时，peer MUST 回退到本节的 push/pull 与 cursor 回填，不得把本地私有 RBSR 摘要当成互操作证据。
 
 - 批次内必须保持 `events` 的原始签名 Envelope 顺序与 `event_id` 可去重性。
 - Gossip 转发不得改变单条 Event 的语义、签名或时间线排序前置假设。

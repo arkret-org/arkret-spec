@@ -14,10 +14,10 @@ updated: 2026-07-02
 
 本文集中定义 Arkret 协作图中的**事件 / 签名 / 增量 / 审计 receipt 对象**：
 
-- **Event Envelope**（`ck:event:`）：reducer 输入与审计事实的 wire 表示。
+- **Event Envelope**（`ak:event:`）：reducer 输入与审计事实的 wire 表示。
 - **Proof**：签名证明 envelope。
 - **Field Patch (`ck.patch.v1`)**：非 create 类更新的标准字段增量格式。
-- **Event Batch Receipt**（`ck:receipt:`）：可选审计 / 同步加速对象。
+- **Event Batch Receipt**（`ak:receipt:`）：可选审计 / 同步加速对象。
 
 CBA 双平面、DataEvent、Control Move、Seal、Lattice、cell 模型、authority chain 与 state 收敛细节由 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 承担；本文聚焦对象级 schema、字段、reducer 总则与 patch 语义。
 
@@ -52,7 +52,7 @@ Schema id: `ck.schema.event.v1`
 | `effective_scope` | reducer-stamped | `object` | Reducer 接受 Event 时从 Realm/Circle scope 物化并 immutable 写入 accepted envelope；进入 Seal/sub-seal leaves、E2EE AAD 与 MLS governance binding input。Actor-supplied submit payload MUST NOT 携带该字段，reducer MUST `schema_violation` (`reason=effective_scope_reducer_managed`)。该 reducer-stamped 字段不参与 producer proof 的 `event_digest` 输入（见 §3），其完整性由接受后的 envelope、Seal/sub-seal/AAD 承诺和存储回放规则承担。 | 事件有效作用域。 |
 | `actor_id` | yes | `did` | 必须匹配 proof 控制链(`executed_by` 缺失时);`executed_by` 存在时 proof 控制链对齐 `executed_by`。 | 事件归属的 principal of record。 |
 | `executed_by` | conditional | `did` | agent / applet / delegated service 代 `actor_id` 写入时出现。出现时 MUST 与 `authorization_ref` 同时出现；Applet delegated 写入还 MUST 同时出现 `applet_id`。进入 canonical bytes、event digest、E2EE AAD。Receiver MUST 校验 proof `verification_method` 解析到 `executed_by`。 | act-on-behalf 时实际签发该 wire write 的主体。 |
-| `authorization_ref` | conditional | `id:grant` 或 `id:event` | `executed_by` 存在时必填；Applet-originated 写入携带 `applet_id` 时也必填。优先引用已物化的 `ck:grant:*`；若授权仍以 Event 表达，则引用产生该 grant / delegation 的 accepted Event。Reducer MUST 校验该 grant / delegation 覆盖目标 event kind / resource / fresh approval,并在 effective validity window 内。 | act-on-behalf / Applet grant / delegation 引用。 |
+| `authorization_ref` | conditional | `id:grant` 或 `id:event` | `executed_by` 存在时必填；Applet-originated 写入携带 `applet_id` 时也必填。优先引用已物化的 `ak:grant:*`；若授权仍以 Event 表达，则引用产生该 grant / delegation 的 accepted Event。Reducer MUST 校验该 grant / delegation 覆盖目标 event kind / resource / fresh approval,并在 effective validity window 内。 | act-on-behalf / Applet grant / delegation 引用。 |
 | `applet_id` | conditional | `id:applet` | Applet、Ghost Actor、bridge 或 delegated applet 路径引入 Event 时必填。进入 canonical bytes 与 event digest；出现时 MUST 同时出现 `authorization_ref`。 | signed Applet provenance。 |
 | `external_ref` | no | `object` | 外部网络 provenance。若用于回环防护、外部消息幂等、审计或用户可见出处，MUST 放在 Event Envelope 顶层并由签名覆盖；出现时 MUST 同时出现 `applet_id`。不得包含未授权外部正文明文。 | signed external provenance。 |
 | `actor_kind` | reducer-stamped | `enum(user, org, team, agent, service, integration)` | 不含 `device`（设备非 actor 主体，见 [`actor.md` §2](./actor.md)）。Reducer 在接受时从 `actor_id` 的 Actor Profile 解析并 immutable 写入 accepted envelope。**Actor-supplied submit payload MUST NOT 携带**,reducer MUST `schema_violation` (`reason=actor_kind_reducer_managed`)。该 reducer-stamped 字段不参与 producer proof 的 `event_digest` 输入（见 §3）。 | 审计 / 离线读取的 actor 类型 projection。 |
@@ -104,7 +104,7 @@ Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。�
   },
   "effects": [
     {
-      "cell": "ak:cell:ck.component.strand.metadata.v1:ck:strand:019640c6-8000-7000-8000-000000000000",
+      "cell": "ak:cell:ck.component.strand.metadata.v1:ak:strand:019640c6-8000-7000-8000-000000000000",
       "op": { "kind": "set", "value": { "metadata.fields.review_status": "approved" } }
     }
   ],
@@ -134,7 +134,7 @@ Event MUST 被签名。Reducer MUST 拒绝任何 signature、schema、capability
 Event Envelope 的顶层 `kind` 是唯一 payload discriminator。State convergence 只能从 CBA effect 显式给出的 cell id 与 lattice op 推导，不从 envelope kind 隐式推导 state slot。
 
 - `payload.type` 不得重复写入 `ck.*` Event kind。
-- Payload 引用被创建对象时通过 `payload.object.id` 或 `payload.target_ref` 等 typed-id 字段表达，前缀（`ck:strand:` 等）即对象种类，不写单独的 `payload.object.type`。
+- Payload 引用被创建对象时通过 `payload.object.id` 或 `payload.target_ref` 等 typed-id 字段表达，前缀（`ak:strand:` 等）即对象种类，不写单独的 `payload.object.type`。
 - `actor_id` 是该 Event 归属的 principal of record。**当 `executed_by` 存在时**(act-on-behalf),实际签发该 Event 的是 `executed_by` 表示的 agent / applet / delegated service principal,proof.verification_method 解析到 `executed_by`;`actor_id` 仍是 accountable principal,用于审计 / 渲染 / accountable_principal_ids 链。Receiver MUST 同时校验 `executed_by`、`authorization_ref` 指向的 active grant / delegation，以及对应 native agent key authorization 或 Applet registration / registration_epoch 绑定之间的一致性，否则 fail closed。物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`,但不得替代 Event proof、capability 或 CBA basis 校验。
 - `actor_kind` 是 reducer-stamped 投影，由 reducer 在接受 Event 时从 `actor_id` 的 Actor Profile 解析得到 immutable 值；它让审计 / 取证 / offline reader 不必反向解析 Actor Profile 即可判断该 Event 是 agent 行为(`actor_kind="agent"`) 还是 controller 行为。Actor 提交侧 MUST NOT 携带该字段。
 - 启用 `ck.profile.mls.minimal_metadata_realm.v1` 时，`actor_id` MAY 是 Realm / Strand track scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `ck.schema.identity_link.v1` payload（`ck.identity_link` application message / MLS private extension）、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
@@ -322,7 +322,7 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
   },
   "effects": [
     {
-      "cell": "ak:cell:ck.component.strand.metadata.v1:ck:strand:019640c6-8000-7000-8000-000000000000",
+      "cell": "ak:cell:ck.component.strand.metadata.v1:ak:strand:019640c6-8000-7000-8000-000000000000",
       "op": { "kind": "set", "value": { "metadata.fields.review_status": "approved", "metadata.fields.due_date": "2026-06-01", "labels.security": "confidential" } }
     }
   ],

@@ -177,7 +177,7 @@ runtime MUST 把该 `participation` 视为本 session 的行为契约：`reply=f
 ### 7.2 读取 operation
 
 ```text
-GET /_cokret/self/agents/{agent_principal_id}/participation
+GET /_arkret/self/agents/{agent_principal_id}/participation
 operation_id: ck.self.agent.participation.get
 ```
 
@@ -198,8 +198,8 @@ runtime 副本只为减少无谓尝试与改善 UX，不承担安全边界。
 ### 8.1 Operations（service-surface §10.1）
 
 ```text
-PUT  /_cokret/self/agents/{agent_principal_id}/participation   ck.self.agent.participation.set
-GET  /_cokret/self/agents/{agent_principal_id}/participation   ck.self.agent.participation.get
+PUT  /_arkret/self/agents/{agent_principal_id}/participation   ck.self.agent.participation.set
+GET  /_arkret/self/agents/{agent_principal_id}/participation   ck.self.agent.participation.get
 ```
 
 `set` 请求体：

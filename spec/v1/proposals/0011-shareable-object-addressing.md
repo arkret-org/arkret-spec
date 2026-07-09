@@ -24,7 +24,7 @@ merged_into: spec/v1/zh/discovery/object-addressing.md
 
 核心是把三件被混淆的东西分层:
 
-- **逻辑地址 grammar**(已存在的 `ck:strand:<uuid>` 等不透明 id,不动);
+- **逻辑地址 grammar**(已存在的 `ak:strand:<uuid>` 等不透明 id,不动);
 - **可注册 URI scheme `web+arkret:`**(app-to-app / "在 App 打开");
 - **HTTPS 落地链接**(matrix.to 模型,用户真正复制粘贴的那串,fragment-based)。
 
@@ -38,13 +38,13 @@ merged_into: spec/v1/zh/discovery/object-addressing.md
 
 [`discovery-directory.md` §9](../zh/discovery/discovery-directory.md) 已有 `ck.find.directory.resolve_realm`,接受 `realm_id | alias | invite_token | signed_link`,并返回 `via_services`(host Principal Server service DID)——这正是 Matrix `matrix.to` 里 `?via=` 路由提示的等价物。**但它只解析到 Realm**:没有"分享某个具体 Strand / Message"的对象级入口。
 
-`ck:strand:<uuid>` 是全局唯一 UUIDv7,但**不可路由**:光有 strand_id 不知道它属于哪个 Realm、由哪台 server 托管。用户要分享一个 Strand,目前只能复制各自客户端的私有 URL(`app.foo.com/strand/…`、`bar://strand/…`),换个客户端就打不开。
+`ak:strand:<uuid>` 是全局唯一 UUIDv7,但**不可路由**:光有 strand_id 不知道它属于哪个 Realm、由哪台 server 托管。用户要分享一个 Strand,目前只能复制各自客户端的私有 URL(`app.foo.com/strand/…`、`bar://strand/…`),换个客户端就打不开。
 
 ### 2.2 外部对照
 
 Matrix 用**三件套**解决同一问题,值得直接借形:
 
-- 逻辑 id:`!room:server` / `$event`(↔ Arkret `ck:strand:` / `ck:message:`);
+- 逻辑 id:`!room:server` / `$event`(↔ Arkret `ak:strand:` / `ak:message:`);
 - 注册 URI scheme:`matrix:roomid/<id>/e/<event>?via=`(↔ 本提案 `web+arkret:`);
 - HTTPS 分享页:`https://matrix.to/#/!room:server/$event?via=`(↔ 本提案 HTTPS 落地)。
 
@@ -62,7 +62,7 @@ web+arkret:realm/<realm>/strand/<strand>/m/<msg>?via=<service_did>&via=<service_
 
 | 部分 | 承载 | 规则 |
 | --- | --- | --- |
-| **path** | containment 链 = 身份 + 解析顺序 | keyword 带类型,值是**裸 uuid**(剥掉 `ck:strand:` sigil)。层级:`realm/<r>` ⊃ `strand/<f>` ⊃ `m/<msg>`。 |
+| **path** | containment 链 = 身份 + 解析顺序 | keyword 带类型,值是**裸 uuid**(剥掉 `ak:strand:` sigil)。层级:`realm/<r>` ⊃ `strand/<f>` ⊃ `m/<msg>`。 |
 | **query** | 非身份提示 + 授权组件 | `via`(多值,物理路由)、`action`(UI 意图:`view`(默认)/`join`/`reply`)、`lt`(link_type,见 §3.4)、`tok`(授权 token,见 §3.4)。语法上都在 query-suffix,但只有 `via`/`action` 是"删掉不改变目标"的纯提示;`lt`/`tok` 携带授权类别。 |
 | **fragment** | 隐私敏感位(仅 HTTPS 形态) | 见 §3.3。 |
 
@@ -78,7 +78,7 @@ web+arkret:realm/<realm>/strand/<strand>?via=<did>&lt=invite&tok=<token>   # inv
 规则:
 
 - **realm 是身份,进 path;via 是路由,进 query。** realm 脱离 path 则 strand 无法定位(authz/解析以 Realm 为根,见 [CKP-0007](./0007-circle-primitive.md));via 是"此刻哪台 server 托管该 Realm",可增删过期、不影响身份。
-- `<realm>` 接受 `realm_id`(裸 uuid)或 **alias**(域名样式)。消歧:含 `.` 且非 UUIDv7 shape → alias;UUIDv7 shape → id。`<strand>` / `<msg>` 只接受裸 uuid。path 内裸 uuid 只是 URI 压缩形态;进入 token target descriptor 前,解析方 **MUST** 按 path keyword 重建 typed canonical ID(`ck:realm:<uuid>` / `ck:strand:<uuid>` / `ck:message:<uuid>`)。alias 只作为解析输入形态;带 token 的地址在验 token 前 **MUST** 先按常规 Realm 解析路径(必要时使用 `via`)解析出 canonical `realm_id`,后续 target digest 一律绑定 `realm_id` 而不是 alias 字符串。
+- `<realm>` 接受 `realm_id`(裸 uuid)或 **alias**(域名样式)。消歧:含 `.` 且非 UUIDv7 shape → alias;UUIDv7 shape → id。`<strand>` / `<msg>` 只接受裸 uuid。path 内裸 uuid 只是 URI 压缩形态;进入 token target descriptor 前,解析方 **MUST** 按 path keyword 重建 typed canonical ID(`ak:realm:<uuid>` / `ak:strand:<uuid>` / `ak:message:<uuid>`)。alias 只作为解析输入形态;带 token 的地址在验 token 前 **MUST** 先按常规 Realm 解析路径(必要时使用 `via`)解析出 canonical `realm_id`,后续 target digest 一律绑定 `realm_id` 而不是 alias 字符串。
 - Strand / Message 地址 **MUST** 携带 `realm/<realm>` + 至少一个 `via`;两者缺一,解析方 fail-closed(不做全网 strand_id 猜测)。
 - **未知 path keyword fail-closed**:v1 合法 keyword 只有 `realm` / `strand` / `m`,且层级顺序必须是 `realm` ⊃ `strand` ⊃ `m`。解析方遇到未注册 keyword、顺序错乱或缺中间层级时 **MUST** 返回 `not_found`,不得猜测。未来扩展对象类型(`morph` / `space` / `circle` 等)**MUST** 显式扩 keyword 表;旧客户端遇到新 keyword 一律按 fail-closed 处理,保证 forward-compat 下不分叉。
 - **Token wire syntax(normative)**:授权组件**统一**用两个参数,**禁止** `invite_token=` / `signed_link=` 等分叉参数名(消除客户端生成互不互通链接):
@@ -93,7 +93,7 @@ web+arkret:realm/<realm>/strand/<strand>?via=<did>&lt=invite&tok=<token>   # inv
 
 | Envelope | 形态 | 用途 |
 | --- | --- | --- |
-| **逻辑 id** | `ck:strand:<uuid>`(不变) | 协议内部 / `resolve_*` 输入;不是 URI,不塞 `?via=`。 |
+| **逻辑 id** | `ak:strand:<uuid>`(不变) | 协议内部 / `resolve_*` 输入;不是 URI,不塞 `?via=`。 |
 | **`web+arkret:`** | `web+arkret:realm/…/strand/…?via=…` | "在 App 打开"。原生 app 经 OS 级 handler 直接接收(真·本地,不经任何 web server)。web 客户端经 `navigator.registerProtocolHandler('web+arkret', <https-template>)` 登记——注意 handler 模板的隐私约束见 §3.3。 |
 | **HTTPS 落地** | `https://<landing>/#realm/…/strand/…?via=…` | 用户复制粘贴的默认形态;`#` 后整体 = 上面同一 grammar。 |
 
@@ -123,7 +123,7 @@ HTTPS 落地链接中,`strand` / `m` / `via` / 尤其授权 token **MUST** 放�
 **Token 必须绑定 canonical target(normative)**:`preview` / `invite` token 仅有 expiry / audience / 可吊销**不够**——其签名 payload **MUST** 覆盖它授权的具体对象,否则 `resolve_target` 把 `address` 与 `token` 当独立输入时,A 对象的有效 token 会被重放到 B 地址(scope confusion)。具体要求:
 
 - token 签名 payload **MUST** 包含 **target descriptor** + 生命周期字段:
-  - **target descriptor** = normalize 后的身份元组 `{realm_id, strand_id?, message_id?}` + `link_type`;等价地可表示为 `target_digest = "sha256:" || hex(sha256(JCS(target_descriptor)))`。`realm_id` / `strand_id` / `message_id` 字段值 **MUST** 使用 typed canonical ID wire form(`ck:realm:<uuid>` / `ck:strand:<uuid>` / `ck:message:<uuid>`),不得使用 path 中的裸 uuid 或 alias 原文。`realm_id` 必须是 Directory 解析后的 canonical Realm ID;若地址 path 中 `<realm>` 是 alias,`resolve_target` 必须先按常规 Realm 解析路径(必要时使用 `via`)完成 alias → `realm_id` 规范化,再计算/比对 digest。alias 解析失败、alias 与 token 绑定的 `realm_id` 不一致、或无法取得 canonical `realm_id` 时,均返回统一 `not_found`。
+  - **target descriptor** = normalize 后的身份元组 `{realm_id, strand_id?, message_id?}` + `link_type`;等价地可表示为 `target_digest = "sha256:" || hex(sha256(JCS(target_descriptor)))`。`realm_id` / `strand_id` / `message_id` 字段值 **MUST** 使用 typed canonical ID wire form(`ak:realm:<uuid>` / `ak:strand:<uuid>` / `ak:message:<uuid>`),不得使用 path 中的裸 uuid 或 alias 原文。`realm_id` 必须是 Directory 解析后的 canonical Realm ID;若地址 path 中 `<realm>` 是 alias,`resolve_target` 必须先按常规 Realm 解析路径(必要时使用 `via`)完成 alias → `realm_id` 规范化,再计算/比对 digest。alias 解析失败、alias 与 token 绑定的 `realm_id` 不一致、或无法取得 canonical `realm_id` 时,均返回统一 `not_found`。
   - **descriptor canonical shape(确定性,normative)**:`target_descriptor` 是**恰好**如下字段的对象,缺省的层级字段 **MUST 整键省略**(不得写 `null`——避免 JCS 因 `null` vs 省略产生不同 digest):
 
     ```json
@@ -156,7 +156,7 @@ HTTPS 落地链接中,`strand` / `m` / `via` / 尤其授权 token **MUST** 放�
 
 - **新增 normative 文件**(accepted 后):`spec/v1/zh/discovery/object-addressing.md`(grammar + 三 envelope + 解析契约)。
 - **改动** [`discovery-directory.md` §9](../zh/discovery/discovery-directory.md):operation-registry 增 `ck.find.directory.query.resolve_target`;§9.1 `via_services` 语义复用。
-- **artifact**:source of truth 是 `contract-catalog.json`(`source_of_truth: true`)——`resolve_target` operation_id 先在此新增;`operation-registry.json` 等 `generated_registries` 由 `tools/artifact_pipeline.py generate` 派生,**不得手工改**。`openapi/arkret-service-api.openapi.yaml`(`POST /_cokret/find/directory/resolve-target`)与 HTTP binding / prose 表是对齐 artifact,需要在同一 accepted patch 中同步更新,再由 `tools/artifact_pipeline.py check` 校验它们与 catalog/registry 一致。`id-kind-registry.json` 若需"address grammar"附注,也应通过 `contract-catalog.json` 的 id-kind source 更新后生成(非新 id kind)。
+- **artifact**:source of truth 是 `contract-catalog.json`(`source_of_truth: true`)——`resolve_target` operation_id 先在此新增;`operation-registry.json` 等 `generated_registries` 由 `tools/artifact_pipeline.py generate` 派生,**不得手工改**。`openapi/arkret-service-api.openapi.yaml`(`POST /_arkret/find/directory/resolve-target`)与 HTTP binding / prose 表是对齐 artifact,需要在同一 accepted patch 中同步更新,再由 `tools/artifact_pipeline.py check` 校验它们与 catalog/registry 一致。`id-kind-registry.json` 若需"address grammar"附注,也应通过 `contract-catalog.json` 的 id-kind source 更新后生成(非新 id kind)。
 - **Invite token 生命周期复用**:`invite` token 的签发 / 过期 / 吊销复用 [`join-policy.md`](../zh/governance/join-policy.md) 既有 `invite_token` / `signed_link` 生命周期,本提案**不另发明** revocation 机制;`resolve_target` 在 §3.4 target descriptor 校验通过后,仍 **MUST** 走 join-policy 的 token 有效性 / 吊销检查。`preview` token 的授权与吊销归属属于未决设计点,见 §6。
 - **不触碰** event-kind / capability / schema 的 wire 约束;**不需要** forbidden-wire 守卫(没有新 on-wire 字段进对象 / payload)。
 - **隐私**:地址 grammar 与 anti-enumeration、Circle 存在性隐私([CKP-0007](./0007-circle-primitive.md))、handle 可迁移原则([`identity-handles.md` §3.8](../zh/identity/identity-handles.md))一致——realm alias 是可迁移 label,历史链接靠 realm_id + via 仍可解析。
@@ -164,9 +164,9 @@ HTTPS 落地链接中,`strand` / `m` / `via` / 尤其授权 token **MUST** 放�
 ## 5. Rationale & alternatives
 
 - **扁平 query(`?realm=&strand=&m=`)被否**:丢失解析顺序信号;跨对象类型扩展需每类型一个 param 名且有歧义;把身份(`strand=`)和提示(`via=`)压到同一句法层,抹掉 §3.4 想要的 identity/hint 边界。层级 path 把 containment 与解析顺序写进语法。
-- **裸 `ck:` 作 URI scheme 被否**:浏览器 `registerProtocolHandler` 只允许 `web+` 前缀(或内置安全名单),裸 `ck:` 永远注册不了——而多客户端(含 web PWA)正是本提案前提;且 `ck:strand:019…` 与 id 字面量完全相同会产生歧义;2 字母 scheme IANA 注册基本不可行。`web+arkret:` 丑但几乎不直接露给用户(用户分享 HTTPS 落地链接)。
+- **裸 `ak:` 作 URI scheme 被否**:浏览器 `registerProtocolHandler` 只允许 `web+` 前缀(或内置安全名单),裸 `ak:` 永远注册不了——而多客户端(含 web PWA)正是本提案前提;且 `ak:strand:019…` 与 id 字面量完全相同会产生歧义;2 字母 scheme IANA 注册基本不可行。`web+arkret:` 丑但几乎不直接露给用户(用户分享 HTTPS 落地链接)。
 - **纯路径(via 也进 path)被否**:`via` 真·多值、真·非身份,`/via/<did>/via/<did>` 既丑又混淆物理路由与逻辑身份。
-- **只做原生 scheme(`ck://`)被否**:把 web 客户端排除在链接处理之外,违背"客户端无关"目标。原生 app 仍可私下额外认领,但 spec 祝福的互通 scheme 是 `web+arkret:`。
+- **只做原生 scheme(`ak://`)被否**:把 web 客户端排除在链接处理之外,违背"客户端无关"目标。原生 app 仍可私下额外认领,但 spec 祝福的互通 scheme 是 `web+arkret:`。
 
 ## 6. Open questions（合入决议）
 

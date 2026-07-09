@@ -14,7 +14,7 @@ frame_schemas:
     properties:
       frame_id:
         type: string
-        pattern: "^ck:frame:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        pattern: "^ak:frame:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       operation_id:
         type: string
       stream_id:

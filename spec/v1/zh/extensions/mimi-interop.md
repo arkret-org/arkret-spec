@@ -54,7 +54,7 @@ MIMI facade 不是新的真相源。Arkret native 侧的 canonical truth 是 sig
 
 ## 3. Provider Discovery
 
-支持 MIMI 的服务 MUST 在 DID Document service entry 和 `GET /_cokret/describe` 中声明：
+支持 MIMI 的服务 MUST 在 DID Document service entry 和 `GET /_arkret/describe` 中声明：
 
 ```json
 {
@@ -86,7 +86,7 @@ MIMI facade 不是新的真相源。Arkret native 侧的 canonical truth 是 sig
 
 ```text
 GET /.well-known/mimi-protocol-directory
-GET /_cokret/open/mimi/provider-directory
+GET /_arkret/open/mimi/provider-directory
 ```
 
 目录响应 MUST 绑定 service DID、provider id、base URL、支持草案版本、endpoint 列表、MLS cipher suites、内容 profile、room policy components 和签名 proof。客户端和远端 provider MUST 验证 service DID、HTTP Message Signature、TLS endpoint、DID service endpoint 和 Realm policy 委托一致。
@@ -188,17 +188,17 @@ MIMI facade 至少定义以下 canonical operation：
 
 | operation_id | HTTP binding | 语义 |
 | --- | --- | --- |
-| `ck.open.mimi.query.provider_directory` | `GET /_cokret/open/mimi/provider-directory` | 返回 MIMI provider feature profile。 |
-| `ck.open.mimi.exchange.request_key_material` | `POST /_cokret/open/mimi/key-material` | 领取 MLS KeyPackage，映射到 Arkret KeyPackage claim lifecycle。 |
-| `ck.open.mimi.command.update_room` | `POST /_cokret/open/mimi/strands/{strand_id}/update` | 提交或转发 room state / MLS update。 |
-| `ck.open.mimi.command.notify` | `POST /_cokret/open/mimi/strands/{strand_id}/notify` | provider 间投递通知、fanout 或 delivery event。 |
-| `ck.open.mimi.command.submit_message` | `POST /_cokret/open/mimi/strands/{strand_id}/messages` | 提交 MIMI encrypted application message。 |
-| `ck.open.mimi.query.group_info` | `GET /_cokret/open/mimi/strands/{strand_id}/group-info` | 获取 MLS groupInfo / room projection。 |
-| `ck.open.mimi.command.request_consent` | `POST /_cokret/open/mimi/consent/request` | 请求建立跨 provider 联系或 room invite consent。 |
-| `ck.open.mimi.command.update_consent` | `POST /_cokret/open/mimi/consent/update` | 更新 consent state。 |
-| `ck.open.mimi.query.identifiers` | `POST /_cokret/open/mimi/identifiers/query` | 查询 connection identifier / MIMI URI 的可达性。 |
-| `ck.open.mimi.command.report_abuse` | `POST /_cokret/open/mimi/report-abuse` | 提交跨 provider abuse report，支持 E2EE franking proof。 |
-| `ck.open.mimi.command.proxy_download` | `POST /_cokret/open/mimi/proxy-download` | 代理或 oblivious 下载资产。 |
+| `ck.open.mimi.query.provider_directory` | `GET /_arkret/open/mimi/provider-directory` | 返回 MIMI provider feature profile。 |
+| `ck.open.mimi.exchange.request_key_material` | `POST /_arkret/open/mimi/key-material` | 领取 MLS KeyPackage，映射到 Arkret KeyPackage claim lifecycle。 |
+| `ck.open.mimi.command.update_room` | `POST /_arkret/open/mimi/strands/{strand_id}/update` | 提交或转发 room state / MLS update。 |
+| `ck.open.mimi.command.notify` | `POST /_arkret/open/mimi/strands/{strand_id}/notify` | provider 间投递通知、fanout 或 delivery event。 |
+| `ck.open.mimi.command.submit_message` | `POST /_arkret/open/mimi/strands/{strand_id}/messages` | 提交 MIMI encrypted application message。 |
+| `ck.open.mimi.query.group_info` | `GET /_arkret/open/mimi/strands/{strand_id}/group-info` | 获取 MLS groupInfo / room projection。 |
+| `ck.open.mimi.command.request_consent` | `POST /_arkret/open/mimi/consent/request` | 请求建立跨 provider 联系或 room invite consent。 |
+| `ck.open.mimi.command.update_consent` | `POST /_arkret/open/mimi/consent/update` | 更新 consent state。 |
+| `ck.open.mimi.query.identifiers` | `POST /_arkret/open/mimi/identifiers/query` | 查询 connection identifier / MIMI URI 的可达性。 |
+| `ck.open.mimi.command.report_abuse` | `POST /_arkret/open/mimi/report-abuse` | 提交跨 provider abuse report，支持 E2EE franking proof。 |
+| `ck.open.mimi.command.proxy_download` | `POST /_arkret/open/mimi/proxy-download` | 代理或 oblivious 下载资产。 |
 
 所有写入型 endpoint MUST 使用 HTTP Message Signatures 或等价 service proof，并绑定：
 
@@ -276,7 +276,7 @@ MIMI facade MUST 支持接收：
 
 ### 8.1 Content Mapping Receipt
 
-facade 在 Arkret ↔ MIMI 之间转换一条内容时，SHOULD 生成 **Content Mapping Receipt**（`content_mapping_receipt`，`kind="ck.mimi.mapping_receipt"`，schema `ck.schema.mimi_interop.v1`，见 [`mimi-interop.schema.json`](../../artifacts/schemas/mimi-interop.schema.json)），作为该次格式映射的可审计证据。它记录 `mimi_room_uri`、`source_format` → `target_format`、被映射源信封摘要 `original_envelope_digest` 与目标 `mapped_operation_id`（可选携带 `mimi_message_id` / `cokret_event_id` / `accepted_at`），使双向投递的内容转换可被追溯与对账。该回执是 EXTENSION 范围对象，不进入 v1 core 互操作必需集。
+facade 在 Arkret ↔ MIMI 之间转换一条内容时，SHOULD 生成 **Content Mapping Receipt**（`content_mapping_receipt`，`kind="ck.mimi.mapping_receipt"`，schema `ck.schema.mimi_interop.v1`，见 [`mimi-interop.schema.json`](../../artifacts/schemas/mimi-interop.schema.json)），作为该次格式映射的可审计证据。它记录 `mimi_room_uri`、`source_format` → `target_format`、被映射源信封摘要 `original_envelope_digest` 与目标 `mapped_operation_id`（可选携带 `mimi_message_id` / `arkret_event_id` / `accepted_at`），使双向投递的内容转换可被追溯与对账。该回执是 EXTENSION 范围对象，不进入 v1 core 互操作必需集。
 
 **生成强度（normative）**：Content Mapping Receipt 是跨协议内容映射的唯一可审计证据。在 E2EE Realm、regulated-audit Realm（Realm policy 声明合规审计要求），或本地 binding `local_provider_role="hub"`（本地 facade 即拥有该 room URI、对外承担 room 真相投影责任）时，facade 在每次 Arkret ↔ MIMI 内容转换时 MUST 生成 Content Mapping Receipt；这些场景下缺失 receipt 的映射 MUST 被视为不可审计而拒绝或 quarantine。其余普通场景仍为 SHOULD。
 

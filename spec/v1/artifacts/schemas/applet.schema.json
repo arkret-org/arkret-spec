@@ -13,7 +13,7 @@
       "const": "ck.schema.applet.v1"
     },
     "applet_id": {
-      "description": "Stable applet identifier. MUST be either a DID or the registered typed-id form ck:applet:<uuidv7>. Arbitrary opaque strings are not valid wire identifiers; bridge-specific aliases belong in namespace / external_ref fields.",
+      "description": "Stable applet identifier. MUST be either a DID or the registered typed-id form ak:applet:<uuidv7>. Arbitrary opaque strings are not valid wire identifiers; bridge-specific aliases belong in namespace / external_ref fields.",
       "oneOf": [
         {
           "type": "string",
@@ -21,7 +21,7 @@
         },
         {
           "type": "string",
-          "pattern": "^ck:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         }
       ]
     },

@@ -14,8 +14,8 @@ authors:
 
 引入两个轻量结构性分类对象:
 
-- `ck:component:` — Realm 内的子分类("Frontend / Backend / Mobile"或"Auth / Billing / Search"),比 Space 更轻量,纯标签 + owner,不形成自己的 boundary 或 navigation tree。
-- `ck:version:` — 时间限定的发布窗口("v1.2 release","2026 Q3 GA"),Strand 通过 Relation `targets_version` / `fixed_in_version` 关联。
+- `ak:component:` — Realm 内的子分类("Frontend / Backend / Mobile"或"Auth / Billing / Search"),比 Space 更轻量,纯标签 + owner,不形成自己的 boundary 或 navigation tree。
+- `ak:version:` — 时间限定的发布窗口("v1.2 release","2026 Q3 GA"),Strand 通过 Relation `targets_version` / `fixed_in_version` 关联。
 
 Strand / Morph 通过 Relation 与它们关联,projection 提供按 component / version 分组的视图。
 
@@ -33,13 +33,13 @@ Jira 截图左栏 "Components" 和 "Versions" 是 first-class 实体而不是 fr
 
 ## 3. Specification
 
-### 3.1 `ck:component:` 对象
+### 3.1 `ak:component:` 对象
 
 Schema id: `ck.schema.component.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:component` | `ck:component:<uuid>` | Component ID。 |
+| `id` | yes | `id:component` | `ak:component:<uuid>` | Component ID。 |
 | `realm_id` | yes | `id:realm` | — | 归属 Realm。 |
 | `key` | yes | `string` | `^[a-z][a-z0-9_-]{0,63}$`;`(realm_id, key)` 唯一;**create-locked**。 | 机器名。 |
 | `name` | yes | `string` | 1..128 chars。 | 显示名。 |
@@ -52,13 +52,13 @@ Schema id: `ck.schema.component.v1`
 
 应用关系:`strand --in_component--> component`(many-to-many)。
 
-### 3.2 `ck:version:` 对象
+### 3.2 `ak:version:` 对象
 
 Schema id: `ck.schema.version.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:version` | `ck:version:<uuid>` | Version ID。 |
+| `id` | yes | `id:version` | `ak:version:<uuid>` | Version ID。 |
 | `realm_id` | yes | `id:realm` | — | 归属 Realm。 |
 | `key` | yes | `string` | `^[a-z0-9][a-z0-9._-]{0,63}$`(允许 `1.2.3` 形态;create-locked)。 | 机器名。 |
 | `name` | yes | `string` | 1..128 chars。 | 显示名("v1.2 GA","2026 Q3 release")。 |
@@ -146,7 +146,7 @@ Schema id: `ck.schema.version.v1`
 - [ ] Version 是否需要 dependencies(`blocks_release_of`)?engineering team 常用。建议作为 Relation 而非内嵌字段。
 - [ ] release_state archived 是否需要 unarchive?(发布的 version 已是事实,反向只能用 tombstone)
 - [ ] 跨 Realm dashboard 引用 component / version:同 Realm 限制,还是允许 organization-level shared?postpone。
-- [ ] Bug 模板 + component / version 的联动:`ck:strand_type:` 是否声明默认 component / version?这把 CKP-0002 / CKP-0003 / CKP-0006 都耦合起来,留给 form_layout 表达 picker default,不在 schema 层面强联动。
+- [ ] Bug 模板 + component / version 的联动:`ak:strand_type:` 是否声明默认 component / version?这把 CKP-0002 / CKP-0003 / CKP-0006 都耦合起来,留给 form_layout 表达 picker default,不在 schema 层面强联动。
 
 ## 7. Migration plan
 

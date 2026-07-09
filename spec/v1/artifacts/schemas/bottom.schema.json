@@ -27,7 +27,7 @@
       "uniqueItems": true,
       "items": {
         "type": "string",
-        "pattern": "^ck:cell:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*$"
+        "pattern": "^ak:cell:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*$"
       },
       "description": "Cell ids participating in the bottom diagnostic. Multi-cell when a multi-cell Control Move atomically failed across linked cells."
     },
@@ -36,7 +36,7 @@
       "uniqueItems": true,
       "items": {
         "type": "string",
-        "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       },
       "description": "Reducer-input event ids whose effects (or precondition checks) produced this bottom. Empty allowed when the cell's bottom is structural (e.g. notary cell schema_error) and not tied to a specific event."
     },
@@ -53,7 +53,7 @@
           "uniqueItems": true,
           "items": {
             "type": "string",
-            "pattern": "^ck:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
+            "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
           }
         },
         "state_root": {

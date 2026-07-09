@@ -50,7 +50,7 @@ merged_into:
 提案引入三个可选 profile:
 
 - `ck.profile.personal_agent_provisioning.v1`: controller 创建 native agent principal、Actor Profile、accountability 绑定、初始 agent key 授权和受限 capability grant。
-- `ck.profile.agent_auth.v1`: agent runtime 复用 `/auth/account/session-grants`,使用 `proof.proof_kind="agent_key_proof"` 换取短期 `ck.session.grant`,不重复走人类 coauth。
+- `ck.profile.agent_auth.v1`: agent runtime 复用 `/auth/account/session-grants`,使用 `proof.proof_kind="agent_key_proof"` 换取短期 `ak.session.grant`,不重复走人类 coauth。
 - `ck.profile.agent_delegation_policy.v1`: Realm policy 与 capability constraint 定义 agent 可读、可写、可整理、可代用户执行的范围。
 
 非目标:本提案不取代 Applet + Ghost Actor。管理员安装的桥接服务、外部系统托管的 actor 池和 Applet 管理的虚拟身份仍应使用 Applet + Ghost Actor。本提案只处理 native personal / workspace AI agent。
@@ -65,7 +65,7 @@ merged_into:
 - `ck.identity.accountability_grant` 可表达 agent 对谁负责。
 - `ck.agent.key.authorize` / rotate / revoke 可管理 agent signing key。
 - `ck.capability.grant` / delegate / revoke 可授权 agent 的具体能力。
-- `ck.session.grant` 可承载短期运行时访问。
+- `ak.session.grant` 可承载短期运行时访问。
 
 但是协议尚未定义一个顺滑的端到端流程来回答以下实际问题:
 
@@ -80,7 +80,7 @@ merged_into:
 ## 3. 设计不变量
 
 1. **人类 coauth 只属于控制面**:创建 agent、批准 key、扩权、恢复和高风险操作需要 controller 的人类认证或设备证明。Agent 日常运行不应被要求完成 CAPTCHA、OTP、SSO redirect 或 WebAuthn user presence。
-2. **Agent runtime 使用 key proof 换短期 session**:runtime 持有 agent key 或 workload credential,通过 `proof_kind="agent_key_proof"` 获取短期 `ck.session.grant`。
+2. **Agent runtime 使用 key proof 换短期 session**:runtime 持有 agent key 或 workload credential,通过 `proof_kind="agent_key_proof"` 获取短期 `ak.session.grant`。
 3. **不返回长期私钥**:`ck.self.agent.provision` 响应 MUST NOT 包含长期 private key。默认由 runtime 本地生成 key pair,再由 controller 批准 public key。
 4. **不继承 controller 最大权限**:agent effective permission 是多重约束交集,不是 controller 权限的自动拷贝。
 5. **高风险操作转成人类 approval request**:需要人类批准时,服务端返回 structured approval request,而不是把 agent runtime 重定向到人类登录页面。
@@ -95,7 +95,7 @@ merged_into:
 | Controller principal | 创建 agent 并对 agent 负责的人类、组织或团队 principal。 |
 | Agent principal | 表示 AI agent 的 native DID principal,通常拥有 `actor_kind="agent"`。 |
 | Agent runtime | 持有 agent private key、硬件凭据或 workload credential 并执行任务的进程或托管服务。 |
-| Auth Server | 验证 agent key proof 与撤销状态后签发短期 `ck.session.grant`。 |
+| Auth Server | 验证 agent key proof 与撤销状态后签发短期 `ak.session.grant`。 |
 | Realm policy | 决定该 Realm 是否允许 personal agent、委托执行、track 写入、tool / data-class 访问。 |
 
 ### 4.2 Native personal agent
@@ -123,7 +123,7 @@ Agent principal 不是 Ghost Actor。它可以按 DID 与 account policy 独立�
 新增 profile operation:
 
 ```text
-POST /_cokret/self/agents
+POST /_arkret/self/agents
 operation_id: ck.self.agent.provision
 profile: ck.profile.personal_agent_provisioning.v1
 ```
@@ -227,9 +227,9 @@ profile: ck.profile.personal_agent_provisioning.v1
 }
 ```
 
-`pairing_request_id` 是 account/auth profile-local artifact ID,不是 `ck:<kind>:<uuid>` protocol object id。Accepted schema MUST 显式声明其 opaque UUIDv7 wire form、TTL 与单次消费规则;其它 durable Event 或 object 若引用 pairing approval 结果,应引用 accepted event (`*_event_id` / `authorization_ref`),而不是把 pairing request 当作可长期解析的 `_ref`。
+`pairing_request_id` 是 account/auth profile-local artifact ID,不是 `ak:<kind>:<uuid>` protocol object id。Accepted schema MUST 显式声明其 opaque UUIDv7 wire form、TTL 与单次消费规则;其它 durable Event 或 object 若引用 pairing approval 结果,应引用 accepted event (`*_event_id` / `authorization_ref`),而不是把 pairing request 当作可长期解析的 `_ref`。
 
-响应 MUST NOT 包含长期 private key、refresh token 或可直接长期调用 Events API 的 bearer token。也 MUST NOT 引入 custom URI scheme(例如 `arkret://`)承载 pairing / management / approval 入口。客户端跳转链接由客户端自己用 deployment 已知的 `cokret_base_url` 拼接 HTTPS URL,例如 `https://<cokret_base_url>/auth/account/agent-pair?request=<pairing_request_id>`;移动端依赖 OS Universal Links / App Links 把 HTTPS URL 路由到原生 app。这样 spec 不背 URI scheme 注册债,联邦多实例下 host 也不会丢失。
+响应 MUST NOT 包含长期 private key、refresh token 或可直接长期调用 Events API 的 bearer token。也 MUST NOT 引入 custom URI scheme(例如 `arkret://`)承载 pairing / management / approval 入口。客户端跳转链接由客户端自己用 deployment 已知的 `arkret_base_url` 拼接 HTTPS URL,例如 `https://<arkret_base_url>/auth/account/agent-pair?request=<pairing_request_id>`;移动端依赖 OS Universal Links / App Links 把 HTTPS URL 路由到原生 app。这样 spec 不背 URI scheme 注册债,联邦多实例下 host 也不会丢失。
 
 #### 4.3.1 Provisioning `status` 枚举
 
@@ -279,8 +279,8 @@ Agent runtime 只需要 bootstrap material:
 
 ```json
 {
-  "cokret_base_url": "https://arkret.example",
-  "service_did": "did:webvh:z8CokretnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:arkret.example",
+  "arkret_base_url": "https://arkret.example",
+  "service_did": "did:webvh:z8ArkretnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:arkret.example",
   "agent_principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
   "pairing_request_id": "01970000-0000-7000-8000-000000000020",
   "pairing_code": "R7K9-2M4P",
@@ -304,7 +304,7 @@ Bootstrap material 是一次性、短期、可撤销的 pairing 输入。它不�
 新增 account/auth profile operation:
 
 ```text
-POST /_cokret/gate/account/agent-key-pair
+POST /_arkret/gate/account/agent-key-pair
 operation_id: ck.gate.account.command.pair_agent_key
 profile: ck.profile.personal_agent_provisioning.v1
 ```
@@ -363,7 +363,7 @@ Agent runtime 在日常运行时 MUST NOT 被要求完成人类 coauth UI。CAPT
 本 profile 复用现有 account/auth session grant 入口,通过扩展 `SessionGrantRequestBody.proof.proof_kind` 新增 `agent_key_proof` 分支区分 agent runtime 认证:
 
 ```text
-POST /_cokret/gate/account/session-grants
+POST /_arkret/gate/account/session-grants
 operation_id: ck.gate.account.command.issue_session_grant
 profile: ck.profile.agent_auth.v1
 ```
@@ -450,7 +450,7 @@ Agent 的 E2EE access MUST 作为独立 MLS member 表达,不得把 agent 伪装
 }
 ```
 
-`approval_request_id` 是 account/auth profile-local opaque artifact ID,不是 target Strand / Event / Grant 的 reference。Agent runtime 不要解释成 URL,也不要尝试打开 UI。Controller 客户端在自己的 session 中查询该 id 对应的 approval request 详情(端点由 deployment 文档定义,典型路径 `GET https://<cokret_base_url>/auth/account/approvals/<approval_request_id>`),并在人类 UI 中带外批准。本 profile 不引入 custom URI scheme 来承载 approval 跳转——理由同 §4.3 末尾。
+`approval_request_id` 是 account/auth profile-local opaque artifact ID,不是 target Strand / Event / Grant 的 reference。Agent runtime 不要解释成 URL,也不要尝试打开 UI。Controller 客户端在自己的 session 中查询该 id 对应的 approval request 详情(端点由 deployment 文档定义,典型路径 `GET https://<arkret_base_url>/auth/account/approvals/<approval_request_id>`),并在人类 UI 中带外批准。本 profile 不引入 custom URI scheme 来承载 approval 跳转——理由同 §4.3 末尾。
 
 controller 通过人类 UI 在带外批准。批准会产生新的 capability / delegation / approval event,agent retry 时引用该 event。
 
@@ -661,14 +661,14 @@ Schema impact:该形态要求 Event Envelope 增加 signed `executed_by` 与 `au
 新增 profile operations:
 
 ```text
-GET  /_cokret/self/agents
-GET  /_cokret/self/agents/{agent_principal_id}
-POST /_cokret/self/agents/{agent_principal_id}/pause
-POST /_cokret/self/agents/{agent_principal_id}/resume
-POST /_cokret/self/agents/{agent_principal_id}/deactivate
-POST /_cokret/self/agents/{agent_principal_id}/rotate-key
-POST /_cokret/self/agents/{agent_principal_id}/grants
-DELETE /_cokret/self/agents/{agent_principal_id}/grants/{grant_id}
+GET  /_arkret/self/agents
+GET  /_arkret/self/agents/{agent_principal_id}
+POST /_arkret/self/agents/{agent_principal_id}/pause
+POST /_arkret/self/agents/{agent_principal_id}/resume
+POST /_arkret/self/agents/{agent_principal_id}/deactivate
+POST /_arkret/self/agents/{agent_principal_id}/rotate-key
+POST /_arkret/self/agents/{agent_principal_id}/grants
+DELETE /_arkret/self/agents/{agent_principal_id}/grants/{grant_id}
 ```
 
 Revocation MUST 使以下材料失效:
@@ -696,7 +696,7 @@ Agent key rotation SHOULD 复用 `ck.agent.key.rotate`,并要求 replacement key
 
 - `pause`: `ck.self.agent.pause` 或等价 signed agent status event / principal-control state。
 - `resume`: `ck.self.agent.resume` 或等价 signed status transition。
-- `deactivate`: `ck.self.agent.deactivate` terminal state,并 fan-out `ck.agent.key.revoke`、`ck.capability.revoke` / delegation revoke、runtime endpoint revoke。canonical op id 为 `ck.self.agent.deactivate`,URL `/_cokret/self/agents/{agent_principal_id}/deactivate`。
+- `deactivate`: `ck.self.agent.deactivate` terminal state,并 fan-out `ck.agent.key.revoke`、`ck.capability.revoke` / delegation revoke、runtime endpoint revoke。canonical op id 为 `ck.self.agent.deactivate`,URL `/_arkret/self/agents/{agent_principal_id}/deactivate`。
 - `rotate-key`: `ck.agent.key.rotate`,记录 replacement key proof 与 approval evidence。
 
 `ck.self.agent.pause` / `ck.self.agent.resume` / `ck.self.agent.deactivate` 已在 accepted artifact 中作为 active event kinds 注册;此处保留枚举以便 audit material 实现者快速查找。
@@ -713,12 +713,12 @@ Agent key rotation SHOULD 复用 `ck.agent.key.rotate`,并要求 replacement key
 - `zh/models/event-and-patch.md` 或 Event Envelope 相关章节:为 act-on-behalf 增加 signed `executed_by` 与 `authorization_ref` 字段、canonicalization、Seal 输入与校验规则。同时 SHOULD 在 Event Envelope 上 cache 一个 `actor_kind` projection(由 reducer 在写入时从 Actor Profile 解析),让审计 / 取证 / offline reader 不必反向解析 Actor Profile 即可判断 event 是 agent 行为或 controller 行为。该 projection 是 reducer-stamped immutable 字段,不进入 actor-supplied submit payload。
 - `zh/extensions/applet-integration.md`: 澄清管理员管理的 Ghost AI agents 是 Applet-managed external/integration actors,而本 CKP 覆盖 native personal agents。
 - `zh/extensions/agent-protocol-interop.md`: 确保 agent runtime session 不暗示支持外部 A2A / ACP session。
-- `zh/sync/service-surface.md` 与 `service-http-binding.md`: 增加 profile operations。本 CKP 不引入 custom URI scheme;客户端 deep-link 由 OS Universal Links / App Links 拦截标准 HTTPS URL(host 来自 deployment 已知的 `cokret_base_url`)。
+- `zh/sync/service-surface.md` 与 `service-http-binding.md`: 增加 profile operations。本 CKP 不引入 custom URI scheme;客户端 deep-link 由 OS Universal Links / App Links 拦截标准 HTTPS URL(host 来自 deployment 已知的 `arkret_base_url`)。
 - `zh/conformance/conformance-profiles.md`: 增加三个新 profile 与测试期望。
 
 ### 5.2 Accepted 后可能需要的 artifact 改动
 
-- `operation-registry.json`: 增加 `ck.self.agent.provision`、`ck.gate.account.agent_key_pair`、list/get/pause/resume/deactivate/rotate_key/grant management operations(canonical op id `ck.self.agent.deactivate`, URL `/_cokret/self/agents/{agent_principal_id}/deactivate`,旧 `/revoke` 形态不再 normative)。Agent runtime session 复用现有 `ck.gate.account.issue_session_grant` operation,不注册单独的 agent-session 签发 operation。
+- `operation-registry.json`: 增加 `ck.self.agent.provision`、`ck.gate.account.agent_key_pair`、list/get/pause/resume/deactivate/rotate_key/grant management operations(canonical op id `ck.self.agent.deactivate`, URL `/_arkret/self/agents/{agent_principal_id}/deactivate`,旧 `/revoke` 形态不再 normative)。Agent runtime session 复用现有 `ck.gate.account.issue_session_grant` operation,不注册单独的 agent-session 签发 operation。
 - `event-kind-registry.json`: 不增加 `ck.self.agent.provision` aggregate event;provisioning operation fan-out 到 `ck.profile.create`、`ck.identity.accountability_grant`、`ck.agent.key.authorize`、`ck.capability.grant` 等既有 durable events。增加 `ck.self.agent.pause`、`ck.self.agent.resume`、`ck.self.agent.deactivate` 或等价 lifecycle state events,并增加 `ck.agent.draft.propose`、`ck.agent.action_request`、`ck.agent.action_approve`、`ck.agent.action_reject` draft/action-request family。
 - `account-data-type-registry.json`: 增加 `ck.agent.draft.v1`,key pattern 建议为 `ck.agent.draft.v1:<agent_principal_id>:<draft_id>`,并声明 `encrypted_at_rest=true`、tombstone 与 retention 规则。
 - `capability-action-registry.json`: 增加 `ck.self.agent.provision` 作为 aggregate admin action,其 `target_event_kinds` MUST 显式列出 fan-out 子事件,例如 `ck.profile.create`、`ck.identity.accountability_grant`、`ck.agent.key.authorize`、`ck.capability.grant`,并标注 migration group。Agent management actions 同样必须声明 target event kinds,不得从 action 字符串推断。
@@ -755,7 +755,7 @@ Bearer token 泄露后更难约束和追溯。Agent runtime SHOULD 使用 privat
 
 ### 6.5 为什么复用 `/auth/account/session-grants`
 
-Session grant 是 account/auth surface 的统一产物。复用 `/auth/account/session-grants` 可以避免出现两套 token 签发、撤销、TTL、audience 和审计路径,也让客户端与资源服务器只需要理解一种 `ck.session.grant` 生命周期。
+Session grant 是 account/auth surface 的统一产物。复用 `/auth/account/session-grants` 可以避免出现两套 token 签发、撤销、TTL、audience 和审计路径,也让客户端与资源服务器只需要理解一种 `ak.session.grant` 生命周期。
 
 风险是 human login 与 machine runtime auth 被实现混淆。因此本 profile 要求三道闸:独立 schema 分支、独立 proof validator、返回 scope 只能来自 agent key authorization / capability grant / Realm policy / requested scope 的交集。任何实现若无法区分该分支,必须拒绝 `agent_key_proof`,不得降级到其它 proof kind。
 

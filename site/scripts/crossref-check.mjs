@@ -42,7 +42,7 @@ const profiles = (() => {
     [
       ...(data.implementation_profiles ?? []),
       ...(data.deployment_profiles ?? []),
-      ...(data.vector_profiles ?? []),
+      ...(data.vector_groups ?? []),
       ...(data.hardening_profiles ?? []),
     ]
   );

@@ -13,7 +13,7 @@ depends_on: [CKP-0002, CKP-0003]
 
 ## 1. Summary
 
-引入 `ck:form_layout:` 一等对象,声明 Strand / Morph 单对象详情面板中字段的排列、分组、"hide when empty" 分隔、tab 切分。Realm admin 通过它统一治理 UI 布局,避免每个客户端硬编码。
+引入 `ak:form_layout:` 一等对象,声明 Strand / Morph 单对象详情面板中字段的排列、分组、"hide when empty" 分隔、tab 切分。Realm admin 通过它统一治理 UI 布局,避免每个客户端硬编码。
 
 ## 2. Motivation
 
@@ -23,17 +23,17 @@ Jira 截图最直观的功能是"Work item layout":per-work-type 拖拽字段顺
 
 ## 3. Specification
 
-### 3.1 `ck:form_layout:` 对象
+### 3.1 `ak:form_layout:` 对象
 
 Schema id: `ck.schema.form_layout.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:form_layout` | `ck:form_layout:<uuid>` | Layout ID。 |
+| `id` | yes | `id:form_layout` | `ak:form_layout:<uuid>` | Layout ID。 |
 | `realm_id` | yes | `id:realm` | — | 归属 Realm。 |
 | `name` | yes | `string` | 1..128 chars。 | Layout 显示名(管理界面用)。 |
 | `target_object_kind` | yes | `enum(strand, morph)` | v1 范围;后续可扩。 | 这份 layout 用于哪类对象。 |
-| `target_type_ref` | conditional | `id:strand_type \| id:morph_type_key` | `target_object_kind=strand` 时引用 `ck:strand_type:`;`target_object_kind=morph` 时引用 `morph_type` 字符串 key。 | 该 layout 绑定的 type。**未设置**则为该 object_kind 的 fallback default layout。 |
+| `target_type_ref` | conditional | `id:strand_type \| id:morph_type_key` | `target_object_kind=strand` 时引用 `ak:strand_type:`;`target_object_kind=morph` 时引用 `morph_type` 字符串 key。 | 该 layout 绑定的 type。**未设置**则为该 object_kind 的 fallback default layout。 |
 | `sections` | yes | `array<Section>` | 至少 1 个 section。 | 详情面板分区,见 §3.2。 |
 | `tabs` | no | `array<Tab>` | 可选 tab 切分。 | 见 §3.3。 |
 | `state` | yes | `enum(active, archived, tombstoned)` | 同 common-fields §5。 | 生命周期。 |
@@ -113,13 +113,13 @@ Schema id: `ck.schema.form_layout.v1`
 - 新增 event_kinds(6 条)+ capability actions(1 条)。
 - 新增 profile:`ck.profile.form_layout.v1`。
 - **reducer 不校验 layout 内容**:layout 是纯展示元数据,wire 上 layout 引用的 field_def / strand_type 不存在时,reducer 在 layout 写入时校验引用合法性,但**不**联动校验 Strand 数据。
-- View(`ck:view:`)与 form_layout 关系:View 服务 collection(多对象列表),form_layout 服务 detail(单对象)。两者职责正交。
+- View(`ak:view:`)与 form_layout 关系:View 服务 collection(多对象列表),form_layout 服务 detail(单对象)。两者职责正交。
 
 ## 5. Rationale & alternatives
 
 ### 5.1 为什么不扩展 View 来承担 detail layout?
 
-候选 A:`ck:view: kind=detail` + renderer 表达字段排列。
+候选 A:`ak:view: kind=detail` + renderer 表达字段排列。
 
 否决理由:
 - View 的语义是"查询 + 渲染对象集合",detail 是单对象;两者的 filter / sort / column 概念不通用

@@ -82,9 +82,9 @@ DID Document SHOULD 只负责：
 
 ### 2.5 实际服务器与服务面组合
 
-实际部署中的“服务器”是一个或多个服务面的组合，不是协议真相源。实现可以合并服务器，但必须在 `GET /_cokret/describe` 中明确 `service_type`、`supported_operations`、认证方式、限制和 profile。
+实际部署中的“服务器”是一个或多个服务面的组合，不是协议真相源。实现可以合并服务器，但必须在 `GET /_arkret/describe` 中明确 `service_type`、`supported_operations`、认证方式、限制和 profile。
 
-协议层统一使用 **Principal Server** 表示 principal 控制或委托的受控入口。登录与账号准入另有一个客户端可见的 **Account Authority** 角色：客户端从 Principal Server 的 `/_cokret/describe` 发现它，之后所有客户端可见的 `/_cokret/gate/account/*` 请求都只发往该 Account Authority。部署内部 S2S 子操作只可由 Account Authority 按对应 operation 契约调用，不能由客户端派生。不同部署形态的差异由 deployment profile、支持的 operation、是否内置 Auth / Account、Policy、Events API、Blob、Identity Resolution 等能力表达。
+协议层统一使用 **Principal Server** 表示 principal 控制或委托的受控入口。登录与账号准入另有一个客户端可见的 **Account Authority** 角色：客户端从 Principal Server 的 `/_arkret/describe` 发现它，之后所有客户端可见的 `/_arkret/gate/account/*` 请求都只发往该 Account Authority。部署内部 S2S 子操作只可由 Account Authority 按对应 operation 契约调用，不能由客户端派生。不同部署形态的差异由 deployment profile、支持的 operation、是否内置 Auth / Account、Policy、Events API、Blob、Identity Resolution 等能力表达。
 
 常见组合如下。这里的"需要"表示协议交互需要该能力存在，不表示每个用户都必须自建；个人和小团队通常只自建一个 Principal Server，其余基础设施可使用公共或托管服务。
 
@@ -113,9 +113,9 @@ REST namespace 第一段路径（`self` / `gate` / `root` / `find` / `peer` / `o
 
 #### 2.5.1 Account Authority 与认证方法发现
 
-Principal Server 的根级 `/_cokret/describe` 是客户端登录 / account flow 的启动入口。`auth_metadata.account_authority` MUST 给出一个绝对 `gate_account_base`，客户端发起的 Arkret `/_cokret/gate/account/*` 请求都 MUST 从该 base 派生。客户端 MUST NOT 根据 operation 名称自行判断某个请求该打 Principal Server、某个请求该打 Auth Server；若 Auth Server 与 Principal Server 分进程或分 origin，部署 MUST 提供一个位于认证 TCB 内的 Account Authority 前置（网关、反代或同进程合并）完整承载该 base，并在内部按 operation 路由。`ck.gate.account.command.logout_auth_session` 是 Account Authority → Auth Server 的 S2S 子操作，普通客户端 MUST NOT 调用或从 `gate_account_base` 派生。
+Principal Server 的根级 `/_arkret/describe` 是客户端登录 / account flow 的启动入口。`auth_metadata.account_authority` MUST 给出一个绝对 `gate_account_base`，客户端发起的 Arkret `/_arkret/gate/account/*` 请求都 MUST 从该 base 派生。客户端 MUST NOT 根据 operation 名称自行判断某个请求该打 Principal Server、某个请求该打 Auth Server；若 Auth Server 与 Principal Server 分进程或分 origin，部署 MUST 提供一个位于认证 TCB 内的 Account Authority 前置（网关、反代或同进程合并）完整承载该 base，并在内部按 operation 路由。`ck.gate.account.command.logout_auth_session` 是 Account Authority → Auth Server 的 S2S 子操作，普通客户端 MUST NOT 调用或从 `gate_account_base` 派生。
 
-`auth_metadata.methods[]` 只描述认证方法（例如 `oidc`、`passkey`、`device_pairing`、未来 `gnap`）及其 provider / issuer / discovery，不决定 `gate/account` 的路由。OIDC method MUST 使用标准 discovery 与标准 `authorization_endpoint` / `token_endpoint`；Arkret 不定义 `/_cokret/gate/auth/oauth/*` 这类私有 OAuth endpoint family。标准认证结果进入 Arkret 的桥是 Account Authority 的 `POST {gate_account_base}/session-grants`，响应为 `SessionGrantOutcome`；Principal 本地 session provisioning 属 Account Authority 内部编排，不得暴露第二个客户端可见的 Principal 本地凭据签发 endpoint。 <!-- lint-ignore: CW001 - forbidden historical path named only as a negative example. -->
+`auth_metadata.methods[]` 只描述认证方法（例如 `oidc`、`passkey`、`device_pairing`、未来 `gnap`）及其 provider / issuer / discovery，不决定 `gate/account` 的路由。OIDC method MUST 使用标准 discovery 与标准 `authorization_endpoint` / `token_endpoint`；Arkret 不定义 `/_arkret/gate/auth/oauth/*` 这类私有 OAuth endpoint family。标准认证结果进入 Arkret 的桥是 Account Authority 的 `POST {gate_account_base}/session-grants`，响应为 `SessionGrantOutcome`；Principal 本地 session provisioning 属 Account Authority 内部编排，不得暴露第二个客户端可见的 Principal 本地凭据签发 endpoint。 <!-- lint-ignore: CW001 - forbidden historical path named only as a negative example. -->
 
 本登录 / account flow 最多并存三类 origin：Principal Server（发现启动）、Account Authority（全部 `gate/account` Arkret 操作）和认证 method provider / issuer（标准认证协议）。完整 Arkret 客户端仍可按其它 spec 访问 Directory、Blob、Media、Push 等 service origin；这些不改变 account flow 的路由规则。
 
@@ -133,10 +133,10 @@ Deployment profile 的 canonical 机器真源是 [`conformance-profiles.json`](.
 所有网络可发现服务 MUST 提供：
 
 ```text
-GET /_cokret/describe
+GET /_arkret/describe
 ```
 
-*Example (informative). `/_cokret/describe` 响应示例，字段权威定义以 schema 为准。*
+*Example (informative). `/_arkret/describe` 响应示例，字段权威定义以 schema 为准。*
 
 ```json schema=schemas/service-describe.schema.json
 {
@@ -169,7 +169,7 @@ GET /_cokret/describe
     },
     {
       "kind": "tus",
-      "base_url": "https://alice.example.net/_cokret/self/blob/resumable",
+      "base_url": "https://alice.example.net/_arkret/self/blob/resumable",
       "operations": ["ck.self.blob.upload.create"],
       "extension_profile_required": null,
       "tus_version": ["1.0.0"],
@@ -216,7 +216,7 @@ GET /_cokret/describe
   "auth_metadata": {
     "account_authority": {
       "origin": "https://alice.example.net",
-      "gate_account_base": "https://alice.example.net/_cokret/gate/account"
+      "gate_account_base": "https://alice.example.net/_arkret/gate/account"
     },
     "methods": [
       {
@@ -299,7 +299,7 @@ GET /_cokret/describe
 
 服务类型命名规则：
 
-- DID Document `service.type` 使用协议注册名，例如 `CokretPrincipalServer`、`CokretDirectory`。
+- DID Document `service.type` 使用协议注册名，例如 `ArkretPrincipalServer`、`ArkretDirectory`。
 - describe 响应的 `service_type` 使用小写注册值，例如 `principal_server`、`sync_node`、`identity_registry`、`auth_server`、`blob_node`、`directory_service`、`device_key_service`、`authz_service`、`policy_server`、`push_gateway`、`applet_service`、`mimi_provider_facade`、`agent_runtime`、`media_service`、`sfu_service`、`turn_service`、`moderation_service`、`archive_node`、`key_recovery_service`、`recovery_service`。其中 `sync_node` 保留：它不是独立的 describe-only 角色，而是 `realm.schema.json` / `realm-join-candidate.schema.json` 的 service class 枚举值，仅当 Realm policy 授权其接收 join-side submission / delivery binding 时使用（见 [`realm-join-candidate.schema.json`](../../artifacts/schemas/realm-join-candidate.schema.json)）。
 - conformance profile 使用 `ck.profile.*` 标识，例如 `ck.profile.principal_server.v1`。
 - 实现 MUST 区分这三层名称，不得把 DID service type、运行时 service_type 与 conformance profile 混用。
@@ -314,7 +314,7 @@ GET /_cokret/describe
 
 - `supported_operations: operation_id[]` — 该 endpoint 可被实际调用的 operation_id。仅表示 wire 可达，
   不构成 profile claim。元素 SHOULD 命中 `operation-registry.json` 注册项。
-- `trust_domain: ck:trust_domain:<scope>` — 部署级 replay boundary。客户端 / 接收方 MUST 要求它与 Realm create-locked trust domain、federation header 和本地 receive context 一致；不一致时不得接受 replay-sensitive proof。
+- `trust_domain: ak:trust_domain:<scope>` — 部署级 replay boundary。客户端 / 接收方 MUST 要求它与 Realm create-locked trust domain、federation header 和本地 receive context 一致；不一致时不得接受 replay-sensitive proof。
 - `implemented_features: feature_id[]` — 服务有实现代码、但 **不一定** 通过 conformance verification 的 feature。
   构建 conformance matrix 的工具 MUST 把它视为严格弱于 `claimed_profiles`。
 - `claimed_profiles: [{profile_id, claim_kind: "self_claimed", ...}]` — 服务自声明加入的 profile。
@@ -351,7 +351,7 @@ Identity Resolution Surface 是 DID method resolver、registry、witness、watch
 #### 3.1.1 描述 registry
 
 ```text
-GET /_cokret/root/identity/describe
+GET /_arkret/root/identity/describe
 ```
 
 返回：
@@ -364,7 +364,7 @@ GET /_cokret/root/identity/describe
 #### 3.1.2 获取当前 DID Document
 
 ```text
-GET /_cokret/root/identity/document?did=<did>
+GET /_arkret/root/identity/document?did=<did>
 ```
 
 返回 SHOULD 包含：
@@ -377,7 +377,7 @@ GET /_cokret/root/identity/document?did=<did>
 #### 3.1.3 获取 DID 日志
 
 ```text
-GET /_cokret/root/identity/log?did=<did>&cursor=<cursor>&limit=<n>
+GET /_arkret/root/identity/log?did=<did>&cursor=<cursor>&limit=<n>
 ```
 
 用于：
@@ -413,7 +413,7 @@ did method 原生日志有更强互操作格式时 MAY 直接返回该 method �
 #### 3.1.4 提交 DID 更新
 
 ```text
-POST /_cokret/root/identity/submit-did-operation
+POST /_arkret/root/identity/submit-did-operation
 ```
 
 请求体 SHOULD 包含：
@@ -435,7 +435,7 @@ POST /_cokret/root/identity/submit-did-operation
 #### 3.1.5 获取 receipt / witness 证明
 
 ```text
-GET /_cokret/root/identity/receipts?did=<did>&head=<event-hash>
+GET /_arkret/root/identity/receipts?did=<did>&head=<event-hash>
 ```
 
 #### 3.1.6 写入确认建议
@@ -450,7 +450,7 @@ Arkret v1 要求：
 
 ## 4. Events API
 
-Events API 是 Principal Server 提供的 signed Event 提交、读取、回填和前沿查询接口。普通部署 SHOULD 由 Principal Server 直接暴露 `/_cokret/self/events/*`。
+Events API 是 Principal Server 提供的 signed Event 提交、读取、回填和前沿查询接口。普通部署 SHOULD 由 Principal Server 直接暴露 `/_arkret/self/events/*`。
 
 Arkret v1 不规定 Event 在服务端的物化形态——不要求集中式 record 仓库、提交日志或仓库命名接口。Principal Server 可以托管、复制或索引 Event,但接收方仍必须验证 Event 签名、DID 控制链、canonical hash、`actor_seq` 路径递增、`prev_refs` 与 `refs[role=authorized_by]` 因果依赖和 `event_id` 幂等性。
 
@@ -459,7 +459,7 @@ Events API 至少应提供以下语义：
 ### 4.1 描述 Events API
 
 ```text
-GET /_cokret/self/events/describe
+GET /_arkret/self/events/describe
 ```
 
 返回：
@@ -472,7 +472,7 @@ GET /_cokret/self/events/describe
 ### 4.2 提交 Event
 
 ```text
-POST /_cokret/self/events
+POST /_arkret/self/events
 ```
 
 请求体是一个 Event Envelope，或 profile 明确允许的 Event Envelope 数组。
@@ -489,7 +489,7 @@ POST /_cokret/self/events
 ### 4.3 获取单个 Event
 
 ```text
-GET /_cokret/self/events/{event_id}
+GET /_arkret/self/events/{event_id}
 ```
 
 不可见或不存在的 Event MUST 使用统一 `not_found` 语义，除非调用方有审计/管理权限。
@@ -497,7 +497,7 @@ GET /_cokret/self/events/{event_id}
 ### 4.4 批量获取 Event
 
 ```text
-POST /_cokret/self/events/resolve
+POST /_arkret/self/events/resolve
 ```
 
 请求体可携带一组 `event_ids` 或 `event_digests`。响应按 Realm policy、history visibility、E2EE envelope policy 和 redaction policy 过滤 payload。
@@ -505,8 +505,8 @@ POST /_cokret/self/events/resolve
 ### 4.5 列出 / 回填 Event
 
 ```text
-GET /_cokret/self/events?actors=<did>&realms=<id>&before=<cursor>&limit=<n>    # 历史 backfill
-GET /_cokret/self/events?actors=<did>&realms=<id>&after=<cursor>&limit=<n>     # catch-up
+GET /_arkret/self/events?actors=<did>&realms=<id>&before=<cursor>&limit=<n>    # 历史 backfill
+GET /_arkret/self/events?actors=<did>&realms=<id>&after=<cursor>&limit=<n>     # catch-up
 ```
 
 参数完整定义与"近邻先返回"默认顺序规则见 [`service-http-binding.md` §3.3](./service-http-binding.md)。
@@ -521,8 +521,8 @@ GET /_cokret/self/events?actors=<did>&realms=<id>&after=<cursor>&limit=<n>     #
 ### 4.6 获取 Event frontier
 
 ```text
-GET /_cokret/self/events/frontier?actor_id=<did>
-GET /_cokret/self/events/frontier?realm_id=<id>
+GET /_arkret/self/events/frontier?actor_id=<did>
+GET /_arkret/self/events/frontier?realm_id=<id>
 ```
 
 返回调用方可见范围内的 actor frontier、Realm frontier、latest HLC、可选 witness receipt / event batch receipt。frontier 只用于同步和强一致读取，不能替代 Event 集合本身。
@@ -533,35 +533,35 @@ Account Aggregate / Snapshot Surface 是 Principal Server 提供的 **账号视�
 
 本节定义 account 与 snapshot 两类操作（事件流读取请到 Events Surface）：
 
-- `GET /_cokret/self/account/viewer`：当前 holder 的账号主体自读（`ck.self.account.query.viewer`）。响应使用 signed handle claim / ref / digest，不把未签名裸 `handle` 作为账号权威字段。
-- `POST /_cokret/self/account/profile`：当前账号 profile 更新（`ck.self.account.command.update_profile`）。patch 路径仅限 `display_name`、`avatar_blob_ref`、`profile_fields.<key>`；个人简介 MUST 写入 `profile_fields.bio`（规范强度见 [`service-http-binding.md` §5.1](service-http-binding.md)）。
-- `GET /_cokret/self/account/subscribe`：客户端账号视角聚合同步（`ck.self.account.stream.subscribe`），见 `client-sync.md`。
-- `GET /_cokret/self/account/describe`：account aggregate service describe（`ck.self.account.query.describe`）。
-- `POST /_cokret/self/account/cursor/revoke`：撤销账号聚合订阅 cursor（`ck.self.account.command.revoke_cursor`）。
-- `GET /_cokret/self/snapshot/head`：snapshot manifest 入口。
+- `GET /_arkret/self/account/viewer`：当前 holder 的账号主体自读（`ck.self.account.query.viewer`）。响应使用 signed handle claim / ref / digest，不把未签名裸 `handle` 作为账号权威字段。
+- `POST /_arkret/self/account/profile`：当前账号 profile 更新（`ck.self.account.command.update_profile`）。patch 路径仅限 `display_name`、`avatar_blob_ref`、`profile_fields.<key>`；个人简介 MUST 写入 `profile_fields.bio`（规范强度见 [`service-http-binding.md` §5.1](service-http-binding.md)）。
+- `GET /_arkret/self/account/subscribe`：客户端账号视角聚合同步（`ck.self.account.stream.subscribe`），见 `client-sync.md`。
+- `GET /_arkret/self/account/describe`：account aggregate service describe（`ck.self.account.query.describe`）。
+- `POST /_arkret/self/account/cursor/revoke`：撤销账号聚合订阅 cursor（`ck.self.account.command.revoke_cursor`）。
+- `GET /_arkret/self/snapshot/head`：snapshot manifest 入口。
 
 `ck.self.account.command.update_profile` 不隐式替代 directory 或 cross-device account-data fan-out。实现若仍需维持可发现性或跨设备头像/简介同步，必须显式调用 `ck.find.directory.command.announce`、`ck.account_data.set` 或等价已声明 operation。
 
 事件流读取统一在：
 
-- `GET /_cokret/self/events?realms=...&before=...` 或 `&after=...`（`ck.self.events.query.scan`，双向 cursor；`before` 取历史方向，`after` 取未来方向。详见 [`service-http-binding.md` §3.3](./service-http-binding.md)）
-- `GET /_cokret/self/events/subscribe?realms=...&catchup=...`（`ck.self.events.stream.subscribe`，可从 `after=` 追赶到当前 frontier，并支持多 realm 一次订阅）
+- `GET /_arkret/self/events?realms=...&before=...` 或 `&after=...`（`ck.self.events.query.scan`，双向 cursor；`before` 取历史方向，`after` 取未来方向。详见 [`service-http-binding.md` §3.3](./service-http-binding.md)）
+- `GET /_arkret/self/events/subscribe?realms=...&catchup=...`（`ck.self.events.stream.subscribe`，可从 `after=` 追赶到当前 frontier，并支持多 realm 一次订阅）
 
-实现不得把账号聚合 (`/_cokret/self/account/subscribe`) 和裸事件读 (`/_cokret/self/events`) 合并成语义不明的单一“stream”接口；它们的 selector、auth、frame schema、freshness 行为都不同。其他 transport MAY 使用不同帧名，但必须映射到上述 canonical operation。
+实现不得把账号聚合 (`/_arkret/self/account/subscribe`) 和裸事件读 (`/_arkret/self/events`) 合并成语义不明的单一“stream”接口；它们的 selector、auth、frame schema、freshness 行为都不同。其他 transport MAY 使用不同帧名，但必须映射到上述 canonical operation。
 
 ### 5.1 Account 自服务与描述
 
 ```text
-GET /_cokret/self/account/viewer
-POST /_cokret/self/account/profile
-GET /_cokret/self/account/describe
-POST /_cokret/self/account/cursor/revoke
+GET /_arkret/self/account/viewer
+POST /_arkret/self/account/profile
+GET /_arkret/self/account/describe
+POST /_arkret/self/account/cursor/revoke
 ```
 
 ### 5.2 snapshot 入口
 
 ```text
-GET /_cokret/self/snapshot/head?realm_id=<id>
+GET /_arkret/self/snapshot/head?realm_id=<id>
 ```
 
 用于拿到当前推荐 snapshot manifest：响应即完整 `ck.schema.snapshot.v1` manifest（不含 chunk bytes），chunk bytes 经 manifest `chunks[].chunk_ref` 走 blob surface 获取。v1 的 `snapshot` namespace 仅 `ck.self.snapshot.query.manifest_head` 一个 canonical operation；snapshot manifest 与 chunk 的防投毒校验流程见 §11。无法产出真实签名 manifest 的部署 MUST NOT 宣告本操作并 MUST 返回 `not_implemented`，不得伪造证明字段。
@@ -574,11 +574,11 @@ State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回�
 
 ```json
 {
-  "cell": "ak:cell:ck.component.realm.policy.v1:ck:realm:0196419b-0000-7000-8000-000000000000",
+  "cell": "ak:cell:ck.component.realm.policy.v1:ak:realm:0196419b-0000-7000-8000-000000000000",
   "status": "bottom",
   "bottom": {
     "kind": "conflict",
-    "cells": ["ak:cell:ck.component.realm.policy.v1:ck:realm:0196419b-0000-7000-8000-000000000000"],
+    "cells": ["ak:cell:ck.component.realm.policy.v1:ak:realm:0196419b-0000-7000-8000-000000000000"],
     "event_ids": [
       "ak:event:84210000-0000-7000-8000-000000000000…",
       "ak:event:a5294000-0000-7000-8000-000000000000…"
@@ -600,7 +600,7 @@ State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回�
 - `event_state="fork_quarantine"` 表达控制面 Seal 分叉已被证明；UI 与自动化 MUST 停止基于该 fork 的普通治理 allow，直到 recovery path 给出新的 sealed basis。
 - `bottom_escalation_after_ms` 超时后服务端 MUST 在 `bottom.escalated_at` 标记，并向 admin / recovery governance 渠道带外通知；超时本身不自动选 winner。
 
-`/_cokret/self/account/subscribe` / `/_cokret/self/events` 响应 MUST 在文档化字段位置嵌入上述 `bottom` 对象（精确 wire 形态见 [`bottom.schema.json`](../../artifacts/schemas/bottom.schema.json)；HTTP 字段位置以 [`service-http-binding.md`](service-http-binding.md) 与 OpenAPI 为准）。
+`/_arkret/self/account/subscribe` / `/_arkret/self/events` 响应 MUST 在文档化字段位置嵌入上述 `bottom` 对象（精确 wire 形态见 [`bottom.schema.json`](../../artifacts/schemas/bottom.schema.json)；HTTP 字段位置以 [`service-http-binding.md`](service-http-binding.md) 与 OpenAPI 为准）。
 
 ### 5.4 明文与服务信任
 
@@ -633,9 +633,9 @@ Arkret v1 不定义必需的远端索引或应用视图服务面。当前态查�
 - cursor
 - limit
 - `view_id`、`projection` 与 `renderer`：非 raw projection SHOULD 使用核心原语 `collection` / `timeline` / `graph` / `document` / `composite`；例如看板展示使用 `projection="collection", renderer="board"`。
-- barrier `cursor`：可选。若实现支持读己之所写等待，则必须把等待条件绑定到本地已知的因果前沿，例如特定 `event_id` / event hash / Realm frontier。Wire 形态与 stream cursor 共享 `ck:cursor:<base64url>`，由内部 `purpose` 字段区分（见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 与 [`api-conventions.md` §7](./api-conventions.md)）。
+- barrier `cursor`：可选。若实现支持读己之所写等待，则必须把等待条件绑定到本地已知的因果前沿，例如特定 `event_id` / event hash / Realm frontier。Wire 形态与 stream cursor 共享 `ak:cursor:<base64url>`，由内部 `purpose` 字段区分（见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 与 [`api-conventions.md` §7](./api-conventions.md)）。
 
-barrier cursor 在 Query / Projection 语义中是读己之所写 barrier，不是 Client Sync 的 stream cursor / `after=` resume token。实现 MAY 把它编码为 opaque token，但内部 MUST 绑定调用方、`realm_id`、目标 `event_id`、event hash、filter / query hash、服务 DID 和过期时间。Projection 服务收到该 cursor 时，应等待本地可验证 frontier 覆盖目标事件；若等待超时返回 `timeout`，若服务本地 frontier 明确落后返回 `stale_frontier`，若服务暂时无法追赶或不可用返回 `temporarily_unavailable`。Client Sync 仍必须只使用 [`client-sync.md`](./client-sync.md) 定义的 stream cursor 作为 `/_cokret/self/account/subscribe after=`。
+barrier cursor 在 Query / Projection 语义中是读己之所写 barrier，不是 Client Sync 的 stream cursor / `after=` resume token。实现 MAY 把它编码为 opaque token，但内部 MUST 绑定调用方、`realm_id`、目标 `event_id`、event hash、filter / query hash、服务 DID 和过期时间。Projection 服务收到该 cursor 时，应等待本地可验证 frontier 覆盖目标事件；若等待超时返回 `timeout`，若服务本地 frontier 明确落后返回 `stale_frontier`，若服务暂时无法追赶或不可用返回 `temporarily_unavailable`。Client Sync 仍必须只使用 [`client-sync.md`](./client-sync.md) 定义的 stream cursor 作为 `/_arkret/self/account/subscribe after=`。
 
 ### 6.2 Strand Discussion / Context Projection
 
@@ -709,7 +709,7 @@ blob 服务至少应提供：
 ### 7.1 上传 blob
 
 ```text
-POST /_cokret/self/blob/upload
+POST /_arkret/self/blob/upload
 ```
 
 返回：
@@ -721,13 +721,13 @@ POST /_cokret/self/blob/upload
 ### 7.2 查询 blob 头信息
 
 ```text
-HEAD /_cokret/self/blob/get?blob_ref=<ref>
+HEAD /_arkret/self/blob/get?blob_ref=<ref>
 ```
 
 ### 7.3 下载 blob
 
 ```text
-GET /_cokret/self/blob/get?blob_ref=<ref>
+GET /_arkret/self/blob/get?blob_ref=<ref>
 ```
 
 blob 校验 MUST 基于内容哈希，而不是单一 URL。
@@ -736,12 +736,12 @@ blob 校验 MUST 基于内容哈希，而不是单一 URL。
 
 directory 是授权过滤后的发现与搜索服务面。它是派生索引，不是真相源。
 
-> 本节各 `POST /_cokret/find/directory/...` 路径为 **informative 示意**；canonical operation_id 与 HTTP path 以 [`service-http-binding.md` §2.1](./service-http-binding.md) 与 `artifacts/registry/operation-registry.json`（`ck.find.directory.*`）为准。
+> 本节各 `POST /_arkret/find/directory/...` 路径为 **informative 示意**；canonical operation_id 与 HTTP path 以 [`service-http-binding.md` §2.1](./service-http-binding.md) 与 `artifacts/registry/operation-registry.json`（`ck.find.directory.*`）为准。
 
 ### 8.1 描述 directory
 
 ```text
-GET /_cokret/find/directory/describe
+GET /_arkret/find/directory/describe
 ```
 
 返回：
@@ -754,7 +754,7 @@ GET /_cokret/find/directory/describe
 ### 8.2 搜索 Realm
 
 ```text
-POST /_cokret/find/directory/search-realms
+POST /_arkret/find/directory/search-realms
 ```
 
 请求 MAY 包含：
@@ -772,7 +772,7 @@ Directory MUST 对每个结果应用 `ck.realm.discovery`、Realm policy、organ
 ### 8.3 精确解析 Realm
 
 ```text
-POST /_cokret/find/directory/resolve-realm
+POST /_arkret/find/directory/resolve-realm
 ```
 
 用于通过 `realm_id`、alias、invite token 或 signed link 获取 stripped preview state。对 `invite_only` / `secret` Realm，未授权请求 MUST 返回与不存在相同的错误形态。
@@ -780,8 +780,8 @@ POST /_cokret/find/directory/resolve-realm
 ### 8.4 搜索与解析 Organization
 
 ```text
-POST /_cokret/find/directory/search-organizations
-POST /_cokret/find/directory/resolve-organization
+POST /_arkret/find/directory/search-organizations
+POST /_arkret/find/directory/resolve-organization
 ```
 
 Organization directory MUST respect organization discovery policy。公开组织 DID 可解析不表示成员列表、官方 Realm 列表、服务拓扑或治理策略全文可公开。
@@ -789,11 +789,11 @@ Organization directory MUST respect organization discovery policy。公开组织
 ### 8.5 搜索 Actor / Handle
 
 ```text
-POST /_cokret/find/directory/search-actors
-POST /_cokret/find/directory/search-users
-POST /_cokret/find/directory/resolve-handle
-POST /_cokret/find/directory/resolve-agent-selector
-POST /_cokret/find/directory/list-handles-for-subject
+POST /_arkret/find/directory/search-actors
+POST /_arkret/find/directory/search-users
+POST /_arkret/find/directory/resolve-handle
+POST /_arkret/find/directory/resolve-agent-selector
+POST /_arkret/find/directory/list-handles-for-subject
 ```
 
 Actor / handle directory MUST NOT return pairwise DID、private DID、private handle、未披露的组织账号或仅因共同 Realm 推断出的关系。`search-users` 可用于 mention autocomplete / contact request / 成员添加候选；`resolve-handle` MAY 解析 handle 为 `subject` DID 与 `member_delivery_binding`，但只在 claim、audience、requester policy 和 intent 验证通过时披露。`resolve-agent-selector` 只做精确 `@<controller-handle>/<agent_slug>` compose-time 解析；成功时返回 agent DID 与当前可见 `ck.schema.agent_selector_claim.v1`，未授权、不可见、不存在、revoked / expired / ambiguous 时 MUST 使用与不存在不可区分的失败。`list-handles-for-subject` 用于已知 subject DID 时列出当前 context 可见 signed handle claims；它必须执行同样的 disclosure、issuer trust、audience 和 requester policy 过滤。Directory 返回的 `member_delivery_binding.recipient_service_did` 只可作为 contact address / handle evidence / join builder 输入，不能替代 `receive_policy_constraints`、Realm `delivery_binding` 或 grant 校验。该字段是 **builder evidence，不是 delivery 授权**：它**不是** member-level delivery 的权威路由来源（权威来源是 effective `ck.member.state.delivery_binding`），reducer MUST 按 [`../governance/member-delivery-binding.md`](../governance/member-delivery-binding.md) 重新物化 effective delivery binding，不得把 Directory 披露的该字段直接当作投递目标授权。语义边界回指 [`invite-addressing.md` §9](./invite-addressing.md)。
@@ -801,14 +801,14 @@ Actor / handle directory MUST NOT return pairwise DID、private DID、private ha
 ### 8.6 私密联系人发现
 
 ```text
-POST /_cokret/find/directory/private-contact-discovery
+POST /_arkret/find/directory/private-contact-discovery
 ```
 
 该操作用于 `ck.private_contact_discovery.v1`。请求 MUST 使用 blinded / padded connection identifier batch，响应只返回 PSI set-membership 命中位图与最小 invite/consent handoff stub；MUST NOT 返回 contact request handoff token、time-bound reachability proof、原始 connection identifier、完整 profile、成员列表、Realm membership 或关系图谱。联系人请求与 direct conversation resolver 的正式语义见 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md)。
 
 ## 9. MIMI Provider Facade Surface（extension profile）
 
-MIMI Provider Facade 不属于 v1 core service surface。完整定义见 [`../extensions/mimi-interop.md`](../extensions/mimi-interop.md)（标记为 interop extension profile）。声称 v1 core 的实现 **不要求** 提供 `/_cokret/open/mimi/*` 路径；只有显式声明 `ck.profile.mimi_interop.v1` 的部署才暴露该子面。
+MIMI Provider Facade 不属于 v1 core service surface。完整定义见 [`../extensions/mimi-interop.md`](../extensions/mimi-interop.md)（标记为 interop extension profile）。声称 v1 core 的实现 **不要求** 提供 `/_arkret/open/mimi/*` 路径；只有显式声明 `ck.profile.mimi_interop.v1` 的部署才暴露该子面。
 
 ## 10. Capability / Invite Surface
 
@@ -817,15 +817,15 @@ MIMI Provider Facade 不属于 v1 core service surface。完整定义见 [`../ex
 至少建议提供：
 
 ```text
-GET /_cokret/self/authz/effective-grants?realm_id=<id>&subject=<did>
+GET /_arkret/self/authz/effective-grants?realm_id=<id>&subject=<did>
 ```
 
 ```text
-GET /_cokret/self/authz/invites?realm_id=<id>&subject=<did-or-handle>
+GET /_arkret/self/authz/invites?realm_id=<id>&subject=<did-or-handle>
 ```
 
 ```text
-POST /_cokret/self/authz/check
+POST /_arkret/self/authz/check
 ```
 
 `check` 接口适合：
@@ -840,8 +840,8 @@ Native personal agent 的 management、pairing、session grant 与 sidecar opera
 
 约束:
 
-- 本 surface 不引入 custom URI scheme(`arkret://` 等);所有 deep-link 由客户端用 deployment 已知的 `cokret_base_url` 拼接标准 HTTPS URL,移动端依赖 OS Universal Links / App Links。
-- `pairing_request_id` 与 `approval_request_id` 都是 account/auth profile-local opaque UUIDv7 短期 artifact,不是 `ck:<kind>:<uuid>` 协议对象 id;agent runtime 收到 `approval_request_id` MUST NOT 解释成 URL 或尝试打开 UI,只能由 controller 的人类 session 带外查询。
+- 本 surface 不引入 custom URI scheme(`arkret://` 等);所有 deep-link 由客户端用 deployment 已知的 `arkret_base_url` 拼接标准 HTTPS URL,移动端依赖 OS Universal Links / App Links。
+- `pairing_request_id` 与 `approval_request_id` 都是 account/auth profile-local opaque UUIDv7 短期 artifact,不是 `ak:<kind>:<uuid>` 协议对象 id;agent runtime 收到 `approval_request_id` MUST NOT 解释成 URL 或尝试打开 UI,只能由 controller 的人类 session 带外查询。
 - `{agent_principal_id}` 是 DID,在 URL path 中 MUST 按 RFC 3986 percent-encoding。
 - `ck.self.agent.command.provision` MAY 接收 `agent_slug`。服务端若接受该字段，MUST 生成或更新当前有效的 `ck.schema.agent_selector_claim.v1`（controller-scoped selector claim），并 MAY 把 `agent_slug` 写入 agent Actor Profile 作为投影 hint。`agent_slug` 只用于 `@<controller-handle>/<agent_slug>` 输入别名到 agent principal DID 的 compose-time 解析;list/get projection SHOULD 返回当前有效 selector claim 的 slug 供 controller UI 与 mention picker 使用。服务端 MUST 拒绝或 fail closed 处理同一 verified controller 下 active native agent 的 selector claim 冲突。
 - participation operation 使用 `agent-operations.schema.json#/$defs/agent_participation_entry` 形态返回 `selection`、`ceiling` 与 `effective`。`set` 只能由 controller 调用，服务端 MUST 校验 `selection ⊆ effective_ceiling(scope)`；`get` 可由 controller 或该 agent runtime 调用。
@@ -858,7 +858,7 @@ Arkret v1 的首次加入流程：
 3. 从 DID Document 和 Realm policy 发现 Principal Server / identity registry / events / account / snapshot / blob / authz 服务
 4. 拉取与该 principal 相关的 invite / grant 视图
 5. 获取 Realm metadata 与 snapshot head
-6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `created_by`（即签发者 DID，与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 一致）、`created_at`、`authority_binding`、`signature`、`state_digest` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须匹配 `created_by`，且 `authority_binding` 必须证明该 DID 在 `created_at` 时是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。high-assurance profile 下，`authority_binding.witness_attestations[]` 或等价 quorum proof 必须可验证；缺失时不得作为高保证 snapshot 使用。若校验失败，客户端 MUST 丢弃快照并回退到 `GET /_cokret/self/events?before=<cursor>`（`ck.self.events.query.scan`）进行原始 Event 历史回放。
+6. 下载 snapshot manifest 与 chunk。**防投毒要求 (Snapshot Validation)**：由于 Sync Service 仍是服务节点，快照可能被恶意篡改。客户端 MUST 验证快照 manifest 的规范字段 `created_by`（即签发者 DID，与 [`snapshot.schema.json`](../../artifacts/schemas/snapshot.schema.json) 一致）、`created_at`、`authority_binding`、`signature`、`state_digest` (Merkle Root)、frontier 和每个 chunk digest。`signature` 的 signer 必须匹配 `created_by`，且 `authority_binding` 必须证明该 DID 在 `created_at` 时是 Realm owner、Realm policy 授权的 snapshot issuer 或 witness quorum 成员。high-assurance profile 下，`authority_binding.witness_attestations[]` 或等价 quorum proof 必须可验证；缺失时不得作为高保证 snapshot 使用。若校验失败，客户端 MUST 丢弃快照并回退到 `GET /_arkret/self/events?before=<cursor>`（`ck.self.events.query.scan`）进行原始 Event 历史回放。
 7. 从 frontier 之后拉取 backfill / sync stream 增量
 8. 本地执行 reducer
 9. 建立 read cursor、notification cursor 等个人状态

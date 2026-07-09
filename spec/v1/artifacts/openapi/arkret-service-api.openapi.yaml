@@ -78,9 +78,9 @@ info:
 
     Path namespace convention: every path is absolute under the negative-space
 
-    root `/_cokret/` and carries NO version segment. The first segment after
+    root `/_arkret/` and carries NO version segment. The first segment after
 
-    `/_cokret/` is a trust-surface classifier encoding the caller-to-server trust
+    `/_arkret/` is a trust-surface classifier encoding the caller-to-server trust
 
     relationship and attack-surface class. The "trust circle" terminology is an
 
@@ -99,7 +99,7 @@ info:
 
     service-delegation, rate-limit, and disclosure checks. The pre-auth capability
 
-    advertisement lives at the root meta position `/_cokret/describe`.
+    advertisement lives at the root meta position `/_arkret/describe`.
 
 
     Versioning is NOT expressed in the path. The protocol version is negotiated via
@@ -171,7 +171,7 @@ components:
       name: Source-Trust-Domain
       description: |
         Federation companion to httpMessageSignature. Identifies the source
-        deployment trust domain (`ck:trust_domain:<scope>`) and MUST be covered
+        deployment trust domain (`ak:trust_domain:<scope>`) and MUST be covered
         by the signature transcript.
     destinationTrustDomain:
       type: apiKey
@@ -179,7 +179,7 @@ components:
       name: Destination-Trust-Domain
       description: |
         Federation companion to httpMessageSignature. Identifies the receiver
-        deployment trust domain (`ck:trust_domain:<scope>`) and MUST match the
+        deployment trust domain (`ak:trust_domain:<scope>`) and MUST match the
         destination service / Realm receive context before reducer logic runs.
     requestCanonicalDigest:
       type: apiKey
@@ -236,7 +236,7 @@ components:
         in this OpenAPI document; deployments MAY require it on product-local
         management APIs outside the Arkret protocol namespace.
   headers:
-    XCokretRequestId:
+    XArkretRequestId:
       description: Stable request identifier.
       schema:
         type: string
@@ -244,7 +244,7 @@ components:
       description: Idempotency key for write requests.
       schema:
         type: string
-    XCokretWaitFor:
+    XArkretWaitFor:
       description: Causal frontier token the caller is waiting on.
       schema:
         type: string
@@ -410,7 +410,7 @@ components:
       properties:
         cell:
           type: string
-          pattern: ^ck:cell:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*$
+          pattern: ^ak:cell:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*$
         status:
           type: string
           enum:
@@ -442,7 +442,7 @@ components:
               uniqueItems: true
               items:
                 type: string
-                pattern: ^ck:seal:sha256:[0-9a-f]{64}$
+                pattern: ^ak:seal:sha256:[0-9a-f]{64}$
             state_root:
               type: string
               pattern: ^sha256:[0-9a-f]{64}$
@@ -573,7 +573,7 @@ components:
         next_cursor:
           oneOf:
           - type: string
-            pattern: ^ck:cursor:[A-Za-z0-9_-]+$
+            pattern: ^ak:cursor:[A-Za-z0-9_-]+$
           - type: 'null'
         limited:
           type: boolean
@@ -695,10 +695,10 @@ components:
           const: relation_container
         scope_container_id:
           type: string
-          pattern: ^ck:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         container_id:
           type: string
-          pattern: ^ck:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         relation_kind:
           type: string
           minLength: 1
@@ -718,16 +718,16 @@ components:
           const: relation
         scope_container_id:
           type: string
-          pattern: ^ck:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         container_id:
           type: string
-          pattern: ^ck:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         relation_kind:
           type: string
           minLength: 1
         relation_id:
           type: string
-          pattern: ^ck:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         rank:
           type: string
           pattern: ^[0-9A-Za-z]{1,128}$
@@ -796,10 +796,10 @@ components:
           $ref: '#/components/schemas/ViewRenderer'
         view_id:
           type: string
-          pattern: ^ck:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         widgets:
@@ -864,10 +864,10 @@ components:
       $ref: ../schemas/contact-operations.schema.json#/$defs/contact_tombstone_request_body
     Cursor:
       type: string
-      pattern: ^ck:cursor:[A-Za-z0-9_-]+$
+      pattern: ^ak:cursor:[A-Za-z0-9_-]+$
     DeviceId:
       type: string
-      pattern: ^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      pattern: ^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
     DeviceMessageEnvelope:
       $ref: ../schemas/device-message.schema.json
     DeviceMessagesAckOutcome:
@@ -1001,10 +1001,10 @@ components:
           $ref: '#/components/schemas/ViewRenderer'
         view_id:
           type: string
-          pattern: ^ck:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         sections:
@@ -1014,7 +1014,7 @@ components:
         next_cursor:
           oneOf:
           - type: string
-            pattern: ^ck:cursor:[A-Za-z0-9_-]+$
+            pattern: ^ak:cursor:[A-Za-z0-9_-]+$
           - type: 'null'
         stale:
           type: boolean
@@ -1246,7 +1246,7 @@ components:
           type: string
     EventId:
       type: string
-      pattern: ^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      pattern: ^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
     EventsFrontierAccountClientState:
       type: object
       description: Account-client ck.self.events.query.frontier response.
@@ -1473,7 +1473,7 @@ components:
       properties:
         event_id:
           type: string
-          pattern: ^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         event_digest:
           type: string
           description: Canonical hash of the event's canonical bytes (excluding
@@ -1545,7 +1545,7 @@ components:
       properties:
         realm_id:
           type: string
-          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_policy_digest:
           type: string
           pattern: ^sha256:[0-9a-f]{64}$
@@ -1553,12 +1553,12 @@ components:
           type: array
           items:
             type: string
-            pattern: ^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            pattern: ^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         delivery_binding_frontier:
           type: array
           items:
             type: string
-            pattern: ^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            pattern: ^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         delivery_binding_diagnostics:
           type: object
           additionalProperties: true
@@ -1578,7 +1578,7 @@ components:
       $ref: ../schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body
     GrantId:
       type: string
-      pattern: ^ck:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      pattern: ^ak:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
     GrantList:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/GrantList
     GraphProjectionEdge:
@@ -1591,16 +1591,16 @@ components:
       properties:
         relation_id:
           type: string
-          pattern: ^ck:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         relation_kind:
           type: string
           minLength: 1
         from_ref:
           type: string
-          pattern: ^(ck:(realm|space|circle|strand|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
+          pattern: ^(ak:(realm|space|circle|strand|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
         to_ref:
           type: string
-          pattern: ^(ck:(realm|space|circle|strand|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
+          pattern: ^(ak:(realm|space|circle|strand|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|did:.+)$
         rank:
           type: string
           pattern: ^[0-9A-Za-z]{1,128}$
@@ -1639,10 +1639,10 @@ components:
           $ref: '#/components/schemas/ViewRenderer'
         view_id:
           type: string
-          pattern: ^ck:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         nodes:
@@ -1656,7 +1656,7 @@ components:
         next_cursor:
           oneOf:
           - type: string
-            pattern: ^ck:cursor:[A-Za-z0-9_-]+$
+            pattern: ^ak:cursor:[A-Za-z0-9_-]+$
           - type: 'null'
         limited:
           type: boolean
@@ -1825,7 +1825,7 @@ components:
       additionalProperties: false
     ObjectRef:
       type: string
-      pattern: ^ck:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      pattern: ^ak:(realm|space|circle|strand|message|morph|relation|view):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
     PolicyCheckOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome
     PolicyCheckRequestBody:
@@ -1876,7 +1876,7 @@ components:
       properties:
         relation_id:
           type: string
-          pattern: ^ck:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         actor_id:
           type: string
           pattern: ^did:[a-z0-9]+:[^\s#?]+$
@@ -1929,10 +1929,10 @@ components:
       properties:
         morph_id:
           type: string
-          pattern: ^ck:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         morph_type:
           type: string
         state:
@@ -1972,7 +1972,7 @@ components:
       properties:
         id:
           type: string
-          pattern: ^ck:(realm|space|circle|strand|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:(realm|space|circle|strand|message|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         type:
           type: string
           enum:
@@ -2008,10 +2008,10 @@ components:
       properties:
         space_id:
           type: string
-          pattern: ^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         kind:
           type: string
           description: Space kind such as `board`, `list`, `folder`, or a profile-registered kind.
@@ -2066,10 +2066,10 @@ components:
       properties:
         strand_id:
           type: string
-          pattern: ^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         state:
           type: string
           enum:
@@ -2095,13 +2095,13 @@ components:
           type:
           - string
           - 'null'
-          pattern: ^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
           description: Derived board Space id from ck.component.strand.position.v1; not canonical Strand object state.
         list_space_id:
           type:
           - string
           - 'null'
-          pattern: ^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
           description: Derived list Space id from ck.component.strand.position.v1; not canonical Strand object state.
         rank:
           type:
@@ -2165,7 +2165,7 @@ components:
             type: object
         next_cursor:
           type: string
-          pattern: ^ck:cursor:[A-Za-z0-9_-]+$
+          pattern: ^ak:cursor:[A-Za-z0-9_-]+$
         total_estimate:
           type: integer
           minimum: 0
@@ -2194,7 +2194,7 @@ components:
       $ref: ../schemas/event-payload.schema.json#/$defs/realm_freeze_payload
     RealmId:
       type: string
-      pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
     RealmLifecycleView:
       $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view
     RealmLinkCreateRequestBody:
@@ -2299,7 +2299,7 @@ components:
           type: string
         trust_domain:
           type: string
-          pattern: ^ck:trust_domain:[a-z0-9][a-z0-9._\-:]{0,127}$
+          pattern: ^ak:trust_domain:[a-z0-9][a-z0-9._\-:]{0,127}$
           description: Deployment trust-domain boundary used for cross-deployment replay protection.
         supported_profiles:
           type: array
@@ -2388,7 +2388,7 @@ components:
             Authentication and account-session discovery metadata. Principal
             Server describe responses MUST include account_authority and
             methods[]. Methods describe standard authentication providers and
-            proof kinds only; all Arkret /_cokret/gate/account/* routing is
+            proof kinds only; all Arkret /_arkret/gate/account/* routing is
             derived from account_authority.gate_account_base.
           additionalProperties: true
           properties:
@@ -2405,7 +2405,7 @@ components:
                 gate_account_base:
                   type: string
                   format: uri
-                  pattern: /_cokret/gate/account/?$
+                  pattern: /_arkret/gate/account/?$
             methods:
               type: array
               minItems: 1
@@ -2789,7 +2789,7 @@ components:
       properties:
         realm_id:
           type: string
-          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         edge_status:
           $ref: '#/components/schemas/SpaceHierarchyEdgeStatus'
         accessible:
@@ -2810,10 +2810,10 @@ components:
       properties:
         parent_space_id:
           type: string
-          pattern: ^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         child_space_id:
           type: string
-          pattern: ^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         edge_status:
           $ref: '#/components/schemas/SpaceHierarchyEdgeStatus'
         relation_kind:
@@ -2835,7 +2835,7 @@ components:
       properties:
         root_space_id:
           type: string
-          pattern: ^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         root:
           $ref: '#/components/schemas/ProjectionObject'
         children:
@@ -2863,7 +2863,7 @@ components:
           type: array
           items:
             type: string
-            pattern: ^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            pattern: ^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         actor_frontiers:
           type: array
           items:
@@ -2881,7 +2881,7 @@ components:
                 minimum: 0
               event_id:
                 type: string
-                pattern: ^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+                pattern: ^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
               hlc:
                 type: string
                 pattern: ^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$
@@ -2938,7 +2938,7 @@ components:
       additionalProperties: false
     StrandId:
       type: string
-      pattern: ^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      pattern: ^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
     TimelineProjectionEntry:
       type: object
       required:
@@ -2959,7 +2959,7 @@ components:
           - tombstone
         event_id:
           type: string
-          pattern: ^ck:(evt|event):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:(evt|event):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         object:
           $ref: '#/components/schemas/ProjectionObject'
         actor_id:
@@ -2973,7 +2973,7 @@ components:
           minLength: 1
         thread_id:
           type: string
-          pattern: ^ck:(strand|message):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:(strand|message):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         body:
           type: object
         redacted:
@@ -2994,10 +2994,10 @@ components:
           $ref: '#/components/schemas/ViewRenderer'
         view_id:
           type: string
-          pattern: ^ck:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         realm_id:
           type: string
-          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
         frontier:
           $ref: '#/components/schemas/StateFrontier'
         entries:
@@ -3007,7 +3007,7 @@ components:
         next_cursor:
           oneOf:
           - type: string
-            pattern: ^ck:cursor:[A-Za-z0-9_-]+$
+            pattern: ^ak:cursor:[A-Za-z0-9_-]+$
           - type: 'null'
         limited:
           type: boolean
@@ -3075,7 +3075,7 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorEnvelope'
 paths:
-  /_cokret/describe:
+  /_arkret/describe:
     get:
       operationId: ck.server.query.describe
       security: []
@@ -3094,7 +3094,7 @@ paths:
           $ref: '#/components/responses/RateLimited'
         '503':
           $ref: '#/components/responses/TemporarilyUnavailable'
-  /_cokret/root/identity/resolve:
+  /_arkret/root/identity/resolve:
     post:
       operationId: ck.root.identity.query.resolve
       security:
@@ -3121,7 +3121,7 @@ paths:
                 $ref: '#/components/schemas/IdentityResolveOutcome'
         '404':
           $ref: '#/components/responses/NotFound'
-  /_cokret/root/identity/document:
+  /_arkret/root/identity/document:
     get:
       operationId: ck.root.identity.document.resource.get
       security:
@@ -3143,7 +3143,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IdentityDocumentView'
-  /_cokret/root/identity/log:
+  /_arkret/root/identity/log:
     get:
       operationId: ck.root.identity.log.query.list
       security:
@@ -3158,7 +3158,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IdentityLogListOutcome'
-  /_cokret/root/identity/submit-did-operation:
+  /_arkret/root/identity/submit-did-operation:
     post:
       operationId: ck.root.identity.command.submit_did_operation
       security:
@@ -3179,7 +3179,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DidOperationSubmitRequestBody'
-  /_cokret/root/identity/receipts:
+  /_arkret/root/identity/receipts:
     get:
       operationId: ck.root.identity.receipts.query.list
       security:
@@ -3194,7 +3194,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/IdentityReceiptListOutcome'
-  /_cokret/root/identity/recovery-policy:
+  /_arkret/root/identity/recovery-policy:
     post:
       operationId: ck.root.identity.recovery_policy.command.publish
       security:
@@ -3237,7 +3237,7 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/recovery-policy.schema.json#/$defs/recovery_policy_active_outcome
-  /_cokret/root/identity/recovery-sessions:
+  /_arkret/root/identity/recovery-sessions:
     post:
       operationId: ck.root.identity.recovery_session.command.create
       security:
@@ -3258,7 +3258,7 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/recovery-session.schema.json#/$defs/recovery_session_state
-  /_cokret/root/identity/recovery-sessions/{recovery_session_id}:
+  /_arkret/root/identity/recovery-sessions/{recovery_session_id}:
     get:
       operationId: ck.root.identity.recovery_session.resource.get
       security:
@@ -3279,7 +3279,7 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/recovery-session.schema.json#/$defs/recovery_session_state
-  /_cokret/root/identity/recovery-sessions/{recovery_session_id}/proofs:
+  /_arkret/root/identity/recovery-sessions/{recovery_session_id}/proofs:
     post:
       operationId: ck.root.identity.recovery_session.command.submit_proof
       security:
@@ -3306,7 +3306,7 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_outcome
-  /_cokret/root/identity/recovery-sessions/{recovery_session_id}/complete:
+  /_arkret/root/identity/recovery-sessions/{recovery_session_id}/complete:
     post:
       operationId: ck.root.identity.recovery_session.command.complete
       security:
@@ -3333,7 +3333,7 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/recovery-session.schema.json#/$defs/recovery_session_complete_outcome
-  /_cokret/self/events:
+  /_arkret/self/events:
     post:
       operationId: ck.self.events.command.submit
       security:
@@ -3358,7 +3358,7 @@ paths:
             Idempotency-Key:
               $ref: '#/components/headers/IdempotencyKey'
             X-Arkret-Request-Id:
-              $ref: '#/components/headers/XCokretRequestId'
+              $ref: '#/components/headers/XArkretRequestId'
           content:
             application/json:
               schema:
@@ -3469,7 +3469,7 @@ paths:
         '400':
           description: |
             `invalid_param` — unrecognized `order` enum value or malformed cursor.
-  /_cokret/self/events/query:
+  /_arkret/self/events/query:
     post:
       operationId: ck.self.events.query.scan_body
       security:
@@ -3483,7 +3483,7 @@ paths:
         contentDigest: []
       summary: ck.self.events.query.scan in HTTP POST body form (for long/complex queries).
       description: |
-        Semantically identical to `GET /_cokret/self/events` (`ck.self.events.query.scan`); the same
+        Semantically identical to `GET /_arkret/self/events` (`ck.self.events.query.scan`); the same
         selector / cursor / order / filter parameter set is transported as a
         JSON request body instead of URL query parameters. Use this form when
         any of:
@@ -3510,7 +3510,7 @@ paths:
               $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody
       responses:
         '200':
-          description: Event query page (same shape as GET /_cokret/self/events response)
+          description: Event query page (same shape as GET /_arkret/self/events response)
           content:
             application/json:
               schema:
@@ -3518,7 +3518,7 @@ paths:
         '400':
           description: |
             `invalid_param` — unrecognized `order` enum value or malformed cursor.
-  /_cokret/self/events/subscribe:
+  /_arkret/self/events/subscribe:
     get:
       operationId: ck.self.events.stream.subscribe
       x-arkret-required-any-of:
@@ -3543,7 +3543,7 @@ paths:
         the bounded catch-up range from that cursor up to the current frontier,
         then emits `catchup_complete` per Realm and continues with live frames.
         This is not a request for all historical events; full history is read
-        through `GET /_cokret/self/events` pagination / range queries.
+        through `GET /_arkret/self/events` pagination / range queries.
       parameters:
       - name: realms
         in: query
@@ -3583,7 +3583,7 @@ paths:
             application/x-ndjson:
               schema:
                 $ref: '#/components/schemas/EventsSubscribeFrame'
-  /_cokret/self/events/describe:
+  /_arkret/self/events/describe:
     get:
       operationId: ck.self.events.query.describe
       security: []
@@ -3594,7 +3594,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServiceDescribe'
-  /_cokret/self/events/{event_id}:
+  /_arkret/self/events/{event_id}:
     get:
       operationId: ck.self.events.resource.get
       security:
@@ -3620,7 +3620,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventView'
-  /_cokret/self/events/resolve:
+  /_arkret/self/events/resolve:
     post:
       operationId: ck.self.events.query.resolve
       security:
@@ -3642,7 +3642,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventsResolveOutcome'
-  /_cokret/self/events/frontier:
+  /_arkret/self/events/frontier:
     get:
       operationId: ck.self.events.query.frontier
       x-arkret-required-any-of:
@@ -3669,7 +3669,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventsFrontierState'
-  /_cokret/peer/events/describe:
+  /_arkret/peer/events/describe:
     get:
       operationId: ck.peer.events.query.describe
       security: []
@@ -3680,7 +3680,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServiceDescribe'
-  /_cokret/peer/events:
+  /_arkret/peer/events:
     post:
       operationId: ck.peer.events.command.submit
       security:
@@ -3695,7 +3695,7 @@ paths:
       description: |
         Accepts a service-to-service federation event batch. This is the only
         canonical HTTP binding for federation event push; client/self event
-        submission remains under `/_cokret/self/events`.
+        submission remains under `/_arkret/self/events`.
       parameters:
       - in: header
         name: Idempotency-Key
@@ -3801,7 +3801,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventsQueryOutcome'
-  /_cokret/peer/events/query:
+  /_arkret/peer/events/query:
     post:
       operationId: ck.peer.events.query.scan_body
       security:
@@ -3814,7 +3814,7 @@ paths:
         contentDigest: []
       summary: ck.peer.events.query.scan in HTTP POST body form.
       description: |
-        Semantically identical to `GET /_cokret/peer/events`; transports the
+        Semantically identical to `GET /_arkret/peer/events`; transports the
         selector / cursor / order / filter parameter set as a JSON body.
       requestBody:
         required: true
@@ -3829,7 +3829,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventsQueryOutcome'
-  /_cokret/peer/events/resolve:
+  /_arkret/peer/events/resolve:
     post:
       operationId: ck.peer.events.query.resolve
       security:
@@ -3854,7 +3854,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventsResolveOutcome'
-  /_cokret/peer/events/frontier:
+  /_arkret/peer/events/frontier:
     get:
       operationId: ck.peer.events.query.frontier
       security:
@@ -3876,7 +3876,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventsFrontierFederationPeerState'
-  /_cokret/peer/invites:
+  /_arkret/peer/invites:
     post:
       operationId: ck.peer.invites.command.submit
       security:
@@ -3907,7 +3907,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InviteDeliveryOutcome'
-  /_cokret/peer/contacts:
+  /_arkret/peer/contacts:
     post:
       operationId: ck.peer.contacts.command.submit
       security:
@@ -3929,7 +3929,7 @@ paths:
         rejected / tombstoned) without re-signing it. This is the federation
         delivery path for the principal-scoped contact fact log
         (contact-and-direct-conversation.md §2), distinct from the Realm invite
-        delivery on /_cokret/peer/invites.
+        delivery on /_arkret/peer/invites.
       requestBody:
         required: true
         content:
@@ -3943,7 +3943,7 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/peer-contact-delivery-request.schema.json#/$defs/peer_contact_delivery_outcome
-  /_cokret/self/ephemeral:
+  /_arkret/self/ephemeral:
     post:
       operationId: ck.self.ephemeral.command.send
       security:
@@ -3982,7 +3982,7 @@ paths:
             `capability_denied` or `policy_violation` — caller cannot broadcast
             this signal in the Realm, or the effective read-receipt policy
             disables `ck.receipt.read`.
-  /_cokret/self/rtc/token:
+  /_arkret/self/rtc/token:
     post:
       operationId: ck.self.call.media.exchange.issue_token
       security:
@@ -4040,7 +4040,7 @@ paths:
             whose `type` is unsupported by this token issuer; or
             `media_service_foci_required` when `ck.realm.media_service` does
             not declare explicit media foci.
-  /_cokret/self/account/viewer:
+  /_arkret/self/account/viewer:
     get:
       operationId: ck.self.account.query.viewer
       security:
@@ -4064,7 +4064,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AccountView'
-  /_cokret/self/account/subscribe:
+  /_arkret/self/account/subscribe:
     get:
       operationId: ck.self.account.stream.subscribe
       security:
@@ -4096,7 +4096,7 @@ paths:
         description: Barrier cursor (purpose=barrier) returned from a prior write. Server holds the first delta frame until the local frontier covers target.event_id, or emits an error frame (timeout / stale_frontier / temporarily_unavailable).
         schema:
           type: string
-          pattern: '^ck:cursor:.+$'
+          pattern: '^ak:cursor:.+$'
       - name: after
         in: query
         description: |
@@ -4106,7 +4106,7 @@ paths:
           server first emits a baseline delta.
         schema:
           type: string
-          pattern: '^ck:cursor:.+$'
+          pattern: '^ak:cursor:.+$'
       - name: catchup
         in: query
         description: |
@@ -4116,7 +4116,7 @@ paths:
           and `after` is omitted, this is initial account sync: server first
           emits a current baseline delta, then `catchup_complete`, then
           real-time push. This parameter never means "return all history";
-          complete event history is retrieved via `GET /_cokret/self/events`.
+          complete event history is retrieved via `GET /_arkret/self/events`.
         schema:
           type: boolean
           default: false
@@ -4138,7 +4138,7 @@ paths:
             application/x-ndjson:
               schema:
                 $ref: '#/components/schemas/AccountSubscribeFrame'
-  /_cokret/self/account/profile:
+  /_arkret/self/account/profile:
     post:
       operationId: ck.self.account.command.update_profile
       security:
@@ -4167,7 +4167,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AccountUpdateProfileRequestBody'
-  /_cokret/self/account/cursor/revoke:
+  /_arkret/self/account/cursor/revoke:
     post:
       operationId: ck.self.account.command.revoke_cursor
       security:
@@ -4193,7 +4193,7 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeOutcome
-  /_cokret/self/contacts/request:
+  /_arkret/self/contacts/request:
     post:
       operationId: ck.self.contact.command.request
       security:
@@ -4216,7 +4216,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ContactRequestOutcome'
-  /_cokret/self/contacts/respond:
+  /_arkret/self/contacts/respond:
     post:
       operationId: ck.self.contact.command.respond
       security:
@@ -4238,7 +4238,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ContactRespondOutcome'
-  /_cokret/self/contacts:
+  /_arkret/self/contacts:
     get:
       operationId: ck.self.contact.query.list
       security:
@@ -4261,7 +4261,7 @@ paths:
         required: false
         schema:
           type: string
-          pattern: ^ck:cursor:[A-Za-z0-9_-]+$
+          pattern: ^ak:cursor:[A-Za-z0-9_-]+$
       - name: limit
         in: query
         required: false
@@ -4276,7 +4276,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ContactList'
-  /_cokret/self/contacts/tombstone:
+  /_arkret/self/contacts/tombstone:
     post:
       operationId: ck.self.contact.command.tombstone
       security:
@@ -4298,7 +4298,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ContactTombstone'
-  /_cokret/self/circles:
+  /_arkret/self/circles:
     get:
       operationId: ck.self.circle.query.list
       security:
@@ -4313,7 +4313,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       responses:
         '200':
           description: Circles visible to the caller in the named Realm.
@@ -4343,7 +4343,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CircleView'
-  /_cokret/self/circles/{circle_id}:
+  /_arkret/self/circles/{circle_id}:
     get:
       operationId: ck.self.circle.resource.get
       security:
@@ -4365,7 +4365,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CircleView'
-  /_cokret/self/circles/{circle_id}/members:
+  /_arkret/self/circles/{circle_id}/members:
     post:
       operationId: ck.self.circle.member.command.add
       security:
@@ -4394,7 +4394,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CircleMembershipOutcome'
-  /_cokret/self/circles/{circle_id}/members/{actor_id}:
+  /_arkret/self/circles/{circle_id}/members/{actor_id}:
     delete:
       operationId: ck.self.circle.member.resource.delete
       security:
@@ -4418,7 +4418,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CircleMembershipOutcome'
-  /_cokret/self/circles/{circle_id}/scope-rotate:
+  /_arkret/self/circles/{circle_id}/scope-rotate:
     post:
       operationId: ck.self.circle.command.rotate_scope
       security:
@@ -4448,7 +4448,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CircleScopeRotateOutcome'
-  /_cokret/self/circles/{circle_id}/archive:
+  /_arkret/self/circles/{circle_id}/archive:
     post:
       operationId: ck.self.circle.command.archive
       security:
@@ -4473,7 +4473,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CircleView'
-  /_cokret/self/circles/{circle_id}/restore:
+  /_arkret/self/circles/{circle_id}/restore:
     post:
       operationId: ck.self.circle.command.restore
       security:
@@ -4498,7 +4498,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CircleView'
-  /_cokret/self/circles/{circle_id}/tombstone:
+  /_arkret/self/circles/{circle_id}/tombstone:
     post:
       operationId: ck.self.circle.command.tombstone
       security:
@@ -4523,7 +4523,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CircleView'
-  /_cokret/self/invite-receive-policy:
+  /_arkret/self/invite-receive-policy:
     get:
       operationId: ck.self.invite_receive_policy.resource.get
       security:
@@ -4562,7 +4562,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InviteReceivePolicy'
-  /_cokret/self/direct-conversations/resolve:
+  /_arkret/self/direct-conversations/resolve:
     post:
       operationId: ck.self.direct_conversation.command.resolve
       security:
@@ -4585,7 +4585,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DirectConversationResolveOutcome'
-  /_cokret/self/snapshot/head:
+  /_arkret/self/snapshot/head:
     get:
       operationId: ck.self.snapshot.query.manifest_head
       security:
@@ -4613,7 +4613,7 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/snapshot.schema.json
-  /_cokret/peer/snapshot/head:
+  /_arkret/peer/snapshot/head:
     get:
       operationId: ck.peer.snapshot.query.manifest_head
       security:
@@ -4639,7 +4639,7 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/snapshot.schema.json
-  /_cokret/self/realms/{realm_id}/spaces:
+  /_arkret/self/realms/{realm_id}/spaces:
     get:
       operationId: ck.self.space.query.list
       security:
@@ -4660,7 +4660,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       - name: include_terminal
         in: query
         required: false
@@ -4673,7 +4673,7 @@ paths:
         required: false
         schema:
           type: string
-          pattern: ^ck:cursor:[A-Za-z0-9_-]+$
+          pattern: ^ak:cursor:[A-Za-z0-9_-]+$
       - name: limit
         in: query
         required: false
@@ -4688,7 +4688,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProjectionSpaceList'
-  /_cokret/self/realms/{realm_id}/strands:
+  /_arkret/self/realms/{realm_id}/strands:
     get:
       operationId: ck.self.strand.query.list
       security:
@@ -4708,7 +4708,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       - name: include_terminal
         in: query
         required: false
@@ -4721,7 +4721,7 @@ paths:
         required: false
         schema:
           type: string
-          pattern: ^ck:cursor:[A-Za-z0-9_-]+$
+          pattern: ^ak:cursor:[A-Za-z0-9_-]+$
       - name: limit
         in: query
         required: false
@@ -4736,7 +4736,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProjectionStrandList'
-  /_cokret/self/realms/{realm_id}/morphs:
+  /_arkret/self/realms/{realm_id}/morphs:
     get:
       operationId: ck.self.morph.query.list
       security:
@@ -4756,7 +4756,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       - name: include_terminal
         in: query
         required: false
@@ -4769,7 +4769,7 @@ paths:
         required: false
         schema:
           type: string
-          pattern: ^ck:cursor:[A-Za-z0-9_-]+$
+          pattern: ^ak:cursor:[A-Za-z0-9_-]+$
       - name: limit
         in: query
         required: false
@@ -4784,7 +4784,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProjectionMorphList'
-  /_cokret/self/views/{view_id}/projection:
+  /_arkret/self/views/{view_id}/projection:
     post:
       operationId: ck.self.views.collection_projection.command.materialize
       security:
@@ -4805,7 +4805,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^ck:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       requestBody:
         required: false
         content:
@@ -4819,7 +4819,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CollectionProjectionView'
-  /_cokret/self/realms/{realm_id}/morphs/{morph_id}:
+  /_arkret/self/realms/{realm_id}/morphs/{morph_id}:
     get:
       operationId: ck.self.morph.resource.get
       security:
@@ -4840,13 +4840,13 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       - name: morph_id
         in: path
         required: true
         schema:
           type: string
-          pattern: ^ck:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       responses:
         '200':
           description: Document Morph projection visible to the caller.
@@ -4854,7 +4854,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DocumentMorphProjectionOutcome'
-  /_cokret/find/directory/resolve-handle:
+  /_arkret/find/directory/resolve-handle:
     post:
       operationId: ck.find.directory.query.resolve_handle
       security:
@@ -4876,7 +4876,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DirectoryResolveHandleRequestBody'
-  /_cokret/find/directory/resolve-agent-selector:
+  /_arkret/find/directory/resolve-agent-selector:
     post:
       operationId: ck.find.directory.query.resolve_agent_selector
       security:
@@ -4898,7 +4898,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DirectoryResolveAgentSelectorRequestBody'
-  /_cokret/find/directory/list-handles-for-subject:
+  /_arkret/find/directory/list-handles-for-subject:
     post:
       operationId: ck.find.directory.query.list_handles_for_subject
       security:
@@ -4921,7 +4921,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DirectorySubjectHandleList'
-  /_cokret/find/directory/private-contact-discovery:
+  /_arkret/find/directory/private-contact-discovery:
     post:
       operationId: ck.find.directory.query.private_contact_discovery
       security:
@@ -4939,7 +4939,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DirectoryPrivateContactDiscoveryOutcome'
-  /_cokret/self/blob/upload:
+  /_arkret/self/blob/upload:
     post:
       operationId: ck.self.blob.upload.create
       security:
@@ -4949,7 +4949,7 @@ paths:
           description: Blob accepted
           headers:
             X-Arkret-Request-Id:
-              $ref: '#/components/headers/XCokretRequestId'
+              $ref: '#/components/headers/XArkretRequestId'
           content:
             application/json:
               schema:
@@ -4963,7 +4963,7 @@ paths:
             encoding:
               content:
                 contentType: application/octet-stream
-  /_cokret/self/blob/get:
+  /_arkret/self/blob/get:
     head:
       operationId: ck.self.blob.resource.head
       security:
@@ -5013,7 +5013,7 @@ paths:
     - name: blob_ref
       in: query
       required: true
-      description: Content-addressed blob reference (`ck:blob:sha256:<hex>`) or metadata id (`ck:blob:<uuid>`).
+      description: Content-addressed blob reference (`ak:blob:sha256:<hex>`) or metadata id (`ak:blob:<uuid>`).
       schema:
         type: string
     - name: presign
@@ -5036,7 +5036,7 @@ paths:
         §5.4.
       schema:
         type: string
-  /_cokret/self/blob/presign:
+  /_arkret/self/blob/presign:
     post:
       operationId: ck.self.blob.command.presign
       security:
@@ -5066,7 +5066,7 @@ paths:
             `not_found` — blob does not exist or is not visible to the
             caller. MUST NOT differentiate between non-existence and lack of
             visibility.
-  /_cokret/edge/push/register-device:
+  /_arkret/edge/push/register-device:
     post:
       operationId: ck.edge.push.command.register_device
       security:
@@ -5084,7 +5084,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PushRegisterDeviceRequestBody'
-  /_cokret/edge/push/unregister-device:
+  /_arkret/edge/push/unregister-device:
     post:
       operationId: ck.edge.push.command.unregister_device
       security:
@@ -5102,7 +5102,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PushUnregisterDeviceRequestBody'
-  /_cokret/edge/push/notify:
+  /_arkret/edge/push/notify:
     post:
       operationId: ck.edge.push.command.notify
       security:
@@ -5136,7 +5136,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PushNotifyRequestBody'
-  /_cokret/self/authz/check:
+  /_arkret/self/authz/check:
     post:
       operationId: ck.self.authz.query.check
       security:
@@ -5158,7 +5158,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthzCheckOutcome'
-  /_cokret/self/authz/effective-grants:
+  /_arkret/self/authz/effective-grants:
     get:
       operationId: ck.self.authz.grants.query.effective
       security:
@@ -5173,7 +5173,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GrantList'
-  /_cokret/self/device_messages:
+  /_arkret/self/device_messages:
     post:
       operationId: ck.self.device_messages.command.send
       security:
@@ -5212,7 +5212,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceMessagesGetOutcome'
-  /_cokret/self/device_messages/ack:
+  /_arkret/self/device_messages/ack:
     post:
       operationId: ck.self.device_messages.command.ack
       security:
@@ -5238,7 +5238,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceMessagesAckOutcome'
-  /_cokret/self/keys/upload:
+  /_arkret/self/keys/upload:
     post:
       operationId: ck.self.keys.upload.create
       security:
@@ -5256,7 +5256,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/KeysUploadRequestBody'
-  /_cokret/self/keys/query:
+  /_arkret/self/keys/query:
     post:
       operationId: ck.self.keys.query.lookup
       security:
@@ -5278,7 +5278,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/KeysQueryRequestBody'
-  /_cokret/self/keys/claim:
+  /_arkret/self/keys/claim:
     post:
       operationId: ck.self.keys.command.claim
       security:
@@ -5300,7 +5300,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/KeysClaimRequestBody'
-  /_cokret/self/keys/keypackages/upload:
+  /_arkret/self/keys/keypackages/upload:
     post:
       operationId: ck.self.keys.keypackages.upload.create
       security:
@@ -5318,7 +5318,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/KeyPackagesUploadRequestBody'
-  /_cokret/self/keys/keypackages/claim:
+  /_arkret/self/keys/keypackages/claim:
     post:
       operationId: ck.self.keys.keypackages.command.claim
       security:
@@ -5340,7 +5340,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/KeyPackagesClaimRequestBody'
-  /_cokret/self/keys/keypackages/consume:
+  /_arkret/self/keys/keypackages/consume:
     post:
       operationId: ck.self.keys.keypackages.command.consume
       security:
@@ -5362,7 +5362,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/KeyPackagesConsumeRequestBody'
-  /_cokret/self/keys/keypackages/revoke:
+  /_arkret/self/keys/keypackages/revoke:
     post:
       operationId: ck.self.keys.keypackages.command.revoke
       security:
@@ -5380,7 +5380,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/KeyPackagesRevokeRequestBody'
-  /_cokret/self/keys/backups/{backup_id}:
+  /_arkret/self/keys/backups/{backup_id}:
     put:
       operationId: ck.self.keys.backups.resource.replace
       security:
@@ -5391,7 +5391,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^ck:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       requestBody:
         required: true
         content:
@@ -5415,7 +5415,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^ck:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       requestBody:
         required: true
         content:
@@ -5429,7 +5429,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/KeysBackupsDeleteOutcome'
-  /_cokret/self/keys/backups/{backup_id}/unlock:
+  /_arkret/self/keys/backups/{backup_id}/unlock:
     post:
       operationId: ck.self.keys.backups.command.unlock
       security:
@@ -5445,7 +5445,7 @@ paths:
         required: true
         schema:
           type: string
-          pattern: ^ck:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:backup:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       requestBody:
         required: true
         content:
@@ -5459,7 +5459,7 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/key-backup.schema.json
-  /_cokret/self/keys/backups:
+  /_arkret/self/keys/backups:
     get:
       operationId: ck.self.keys.backups.query.list
       security:
@@ -5471,7 +5471,7 @@ paths:
         description: Filter by backup series. When present, response metadata is ordered by series_seq ascending so clients can rebuild the chain.
         schema:
           type: string
-          pattern: ^ck:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       - in: query
         name: backup_class
         required: false
@@ -5489,7 +5489,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/KeysBackupsList'
-  /_cokret/self/moderation/report:
+  /_arkret/self/moderation/report:
     post:
       operationId: ck.self.moderation.command.report
       security:
@@ -5507,7 +5507,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ModerationReportOutcome'
-  /_cokret/open/invite-locators/resolve:
+  /_arkret/open/invite-locators/resolve:
     post:
       operationId: ck.open.invite_locator.query.resolve
       security: []
@@ -5533,7 +5533,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PrincipalLocator'
-  /_cokret/open/agent-pairing/resolve:
+  /_arkret/open/agent-pairing/resolve:
     post:
       operationId: ck.open.agent_pairing.query.resolve
       security: []
@@ -5559,7 +5559,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AgentPairingBootstrap'
-  /_cokret/open/agent-pairing/runtime-key-requests:
+  /_arkret/open/agent-pairing/runtime-key-requests:
     post:
       operationId: ck.open.agent_pairing.command.submit_runtime_key_request
       security: []
@@ -5587,7 +5587,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AgentRuntimeApprovalOutcome'
-  /_cokret/open/mimi/provider-directory:
+  /_arkret/open/mimi/provider-directory:
     get:
       operationId: ck.open.mimi.query.provider_directory
       security: []
@@ -5598,7 +5598,7 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/mimi-interop.schema.json
-  /_cokret/open/mimi/key-material:
+  /_arkret/open/mimi/key-material:
     post:
       operationId: ck.open.mimi.exchange.request_key_material
       security:
@@ -5619,7 +5619,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MimiKeyMaterialRequestBody'
-  /_cokret/open/mimi/strands/{strand_id}/update:
+  /_arkret/open/mimi/strands/{strand_id}/update:
     post:
       operationId: ck.open.mimi.command.update_room
       security:
@@ -5646,7 +5646,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MimiRoomUpdateRequestBody'
-  /_cokret/open/mimi/strands/{strand_id}/notify:
+  /_arkret/open/mimi/strands/{strand_id}/notify:
     post:
       operationId: ck.open.mimi.command.notify
       security:
@@ -5673,7 +5673,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MimiNotifyRequestBody'
-  /_cokret/open/mimi/strands/{strand_id}/messages:
+  /_arkret/open/mimi/strands/{strand_id}/messages:
     post:
       operationId: ck.open.mimi.command.submit_message
       security:
@@ -5700,7 +5700,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MimiSubmitMessageRequestBody'
-  /_cokret/open/mimi/strands/{strand_id}/group-info:
+  /_arkret/open/mimi/strands/{strand_id}/group-info:
     get:
       operationId: ck.open.mimi.query.group_info
       security:
@@ -5731,7 +5731,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MimiGroupInfoOutcome'
-  /_cokret/open/mimi/consent/request:
+  /_arkret/open/mimi/consent/request:
     post:
       operationId: ck.open.mimi.command.request_consent
       security:
@@ -5752,7 +5752,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MimiRequestConsentRequestBody'
-  /_cokret/open/mimi/consent/update:
+  /_arkret/open/mimi/consent/update:
     post:
       operationId: ck.open.mimi.command.update_consent
       security:
@@ -5773,7 +5773,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MimiUpdateConsentRequestBody'
-  /_cokret/open/mimi/identifiers/query:
+  /_arkret/open/mimi/identifiers/query:
     post:
       operationId: ck.open.mimi.query.identifiers
       security:
@@ -5794,7 +5794,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MimiIdentifierQueryRequestBody'
-  /_cokret/open/mimi/report-abuse:
+  /_arkret/open/mimi/report-abuse:
     post:
       operationId: ck.open.mimi.command.report_abuse
       security:
@@ -5815,7 +5815,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MimiReportAbuseRequestBody'
-  /_cokret/open/mimi/proxy-download:
+  /_arkret/open/mimi/proxy-download:
     post:
       operationId: ck.open.mimi.command.proxy_download
       security:
@@ -5836,7 +5836,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MimiProxyDownloadRequestBody'
-  /_cokret/root/identity/describe:
+  /_arkret/root/identity/describe:
     get:
       operationId: ck.root.identity.registry.query.describe
       security: []
@@ -5847,7 +5847,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServiceDescribe'
-  /_cokret/self/account/describe:
+  /_arkret/self/account/describe:
     get:
       operationId: ck.self.account.query.describe
       security: []
@@ -5858,7 +5858,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServiceDescribe'
-  /_cokret/find/directory/describe:
+  /_arkret/find/directory/describe:
     get:
       operationId: ck.find.directory.query.describe
       security: []
@@ -5869,7 +5869,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServiceDescribe'
-  /_cokret/find/directory/announce:
+  /_arkret/find/directory/announce:
     post:
       operationId: ck.find.directory.command.announce
       security:
@@ -5891,7 +5891,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DirectoryAnnounceRequestBody'
-  /_cokret/find/directory/withdraw:
+  /_arkret/find/directory/withdraw:
     post:
       operationId: ck.find.directory.command.withdraw
       security:
@@ -5913,7 +5913,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DirectoryWithdrawRequestBody'
-  /_cokret/find/directory/takedown/appeal:
+  /_arkret/find/directory/takedown/appeal:
     post:
       operationId: ck.find.directory.command.takedown_appeal
       security:
@@ -5935,7 +5935,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DirectoryTakedownAppealRequestBody'
-  /_cokret/find/directory/search-realms:
+  /_arkret/find/directory/search-realms:
     post:
       operationId: ck.find.directory.query.search_realms
       security:
@@ -5957,7 +5957,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DirectorySearchRealmsRequestBody'
-  /_cokret/find/directory/resolve-realm:
+  /_arkret/find/directory/resolve-realm:
     post:
       operationId: ck.find.directory.query.resolve_realm
       security:
@@ -5979,7 +5979,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DirectoryResolveRealmRequestBody'
-  /_cokret/find/directory/resolve-target:
+  /_arkret/find/directory/resolve-target:
     post:
       operationId: ck.find.directory.query.resolve_target
       security:
@@ -6001,7 +6001,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DirectoryResolveTargetRequestBody'
-  /_cokret/find/directory/search-organizations:
+  /_arkret/find/directory/search-organizations:
     post:
       operationId: ck.find.directory.query.search_organizations
       security:
@@ -6023,7 +6023,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DirectorySearchOrganizationsRequestBody'
-  /_cokret/find/directory/resolve-organization:
+  /_arkret/find/directory/resolve-organization:
     post:
       operationId: ck.find.directory.query.resolve_organization
       security:
@@ -6045,7 +6045,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DirectoryResolveOrganizationRequestBody'
-  /_cokret/find/directory/search-actors:
+  /_arkret/find/directory/search-actors:
     post:
       operationId: ck.find.directory.query.search_actors
       security:
@@ -6067,7 +6067,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DirectorySearchActorsRequestBody'
-  /_cokret/find/directory/search-users:
+  /_arkret/find/directory/search-users:
     post:
       operationId: ck.find.directory.query.search_users
       security:
@@ -6089,7 +6089,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DirectorySearchUsersRequestBody'
-  /_cokret/find/directory/push/register:
+  /_arkret/find/directory/push/register:
     post:
       operationId: ck.find.directory.push.command.register
       security:
@@ -6111,7 +6111,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DirectoryPushRegisterRequestBody'
-  /_cokret/self/authz/invites:
+  /_arkret/self/authz/invites:
     get:
       operationId: ck.self.authz.invites.query.list
       security:
@@ -6129,13 +6129,13 @@ paths:
         required: false
         schema:
           type: string
-          pattern: ^ck:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+          pattern: ^ak:realm:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
       - in: query
         name: cursor
         required: false
         schema:
           type: string
-          pattern: ^ck:cursor:[A-Za-z0-9_-]+$
+          pattern: ^ak:cursor:[A-Za-z0-9_-]+$
       responses:
         '200':
           description: Authorized invite query
@@ -6143,7 +6143,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthzInviteList'
-  /_cokret/edge/applet/ping:
+  /_arkret/edge/applet/ping:
     get:
       operationId: ck.edge.applet.query.ping
       security:
@@ -6157,7 +6157,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AppletPingOutcome'
-  /_cokret/edge/applet/describe:
+  /_arkret/edge/applet/describe:
     get:
       operationId: ck.edge.applet.query.describe
       security: []
@@ -6168,7 +6168,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServiceDescribe'
-  /_cokret/edge/applet/transactions:
+  /_arkret/edge/applet/transactions:
     post:
       operationId: ck.edge.applet.command.transaction
       security:
@@ -6186,7 +6186,7 @@ paths:
             request_body_field: false
             directions:
               node_to_applet: Source-Service-DID current service DID verification method; Destination-Service-DID MUST equal the Applet registration service_did.
-              applet_to_cokret_inbound: Applet registration webhook_auth.key_ref; DID part MUST equal Source-Service-DID and the active effective install service_did.
+              applet_to_arkret_inbound: Applet registration webhook_auth.key_ref; DID part MUST equal Source-Service-DID and the active effective install service_did.
           covered_components:
           - '@method'
           - '@target-uri'
@@ -6237,7 +6237,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AppletTransactionRequestBody'
-  /_cokret/edge/applet/actors/{actor_id}:
+  /_arkret/edge/applet/actors/{actor_id}:
     get:
       operationId: ck.edge.applet.actor.query.resolve
       security:
@@ -6258,7 +6258,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AppletActorView'
-  /_cokret/edge/applet/realms/{realm_id_or_alias}:
+  /_arkret/edge/applet/realms/{realm_id_or_alias}:
     get:
       operationId: ck.edge.applet.realm.query.resolve
       security:
@@ -6279,7 +6279,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AppletRealmView'
-  /_cokret/edge/applet/protocols/{protocol}:
+  /_arkret/edge/applet/protocols/{protocol}:
     get:
       operationId: ck.edge.applet.query.protocol_metadata
       security: []
@@ -6297,7 +6297,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AppletProtocolMetadata'
-  /_cokret/edge/applet/third_party/users:
+  /_arkret/edge/applet/third_party/users:
     get:
       operationId: ck.edge.applet.third_party_users.query.list
       security:
@@ -6330,7 +6330,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AppletThirdPartyUserList'
-  /_cokret/edge/applet/third_party/locations:
+  /_arkret/edge/applet/third_party/locations:
     get:
       operationId: ck.edge.applet.third_party_locations.query.list
       security:
@@ -6363,7 +6363,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AppletThirdPartyLocationList'
-  /_cokret/self/applets/install/preview:
+  /_arkret/self/applets/install/preview:
     post:
       operationId: ck.self.applet.install.command.preview
       security:
@@ -6381,7 +6381,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AppletInstallPreviewRequestBody'
-  /_cokret/self/applets/install:
+  /_arkret/self/applets/install:
     post:
       operationId: ck.self.applet.command.install
       security:
@@ -6407,7 +6407,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AppletInstallRequestBody'
-  /_cokret/self/applets/{applet_id}/ghosts/provision:
+  /_arkret/self/applets/{applet_id}/ghosts/provision:
     post:
       operationId: ck.self.applet.ghost.command.provision
       summary: Provision an Applet-managed Ghost Actor for one external user.
@@ -6452,7 +6452,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/GhostActorProvisionRequestBody'
-  /_cokret/self/applets/{applet_id}/revoke:
+  /_arkret/self/applets/{applet_id}/revoke:
     post:
       operationId: ck.self.applet.command.revoke
       security:
@@ -6483,7 +6483,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AppletRevokeRequestBody'
-  /_cokret/self/policy/check:
+  /_arkret/self/policy/check:
     post:
       operationId: ck.self.policy.query.check
       summary: Signed policy decision.
@@ -6509,7 +6509,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PolicyCheckRequestBody'
-  /_cokret/self/realms/{realm_id}/links:
+  /_arkret/self/realms/{realm_id}/links:
     get:
       operationId: ck.self.realm_link.query.list
       security:
@@ -6571,7 +6571,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RealmLinkMutationOutcome'
-  /_cokret/self/realms/{realm_id}/links/{target_realm_id}:
+  /_arkret/self/realms/{realm_id}/links/{target_realm_id}:
     delete:
       operationId: ck.self.realm_link.resource.delete
       security:
@@ -6603,7 +6603,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RealmLinkMutationOutcome'
-  /_cokret/self/realms/{realm_id}/effective-policy:
+  /_arkret/self/realms/{realm_id}/effective-policy:
     get:
       operationId: ck.self.realm_link.query.effective_policy
       security:
@@ -6622,7 +6622,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RealmEffectivePolicyOutcome'
-  /_cokret/self/realms/{realm_id}/organizations:
+  /_arkret/self/realms/{realm_id}/organizations:
     get:
       operationId: ck.self.realm_organization.query.list
       security:
@@ -6641,7 +6641,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RealmOrganizationRelationshipList'
-  /_cokret/self/realms/{realm_id}/policy-server:
+  /_arkret/self/realms/{realm_id}/policy-server:
     get:
       operationId: ck.self.realm_policy_server.resource.get
       security:
@@ -6698,7 +6698,7 @@ paths:
       responses:
         '200':
           description: Realm policy-server config tombstoned (empty body).
-  /_cokret/self/realms/{realm_id}:
+  /_arkret/self/realms/{realm_id}:
     get:
       operationId: ck.self.realm.resource.get
       security:
@@ -6717,7 +6717,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RealmLifecycleView'
-  /_cokret/self/realms/{realm_id}/archive:
+  /_arkret/self/realms/{realm_id}/archive:
     post:
       operationId: ck.self.realm.command.archive
       security:
@@ -6742,7 +6742,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RealmLifecycleView'
-  /_cokret/self/realms/{realm_id}/freeze:
+  /_arkret/self/realms/{realm_id}/freeze:
     post:
       operationId: ck.self.realm.command.freeze
       security:
@@ -6767,7 +6767,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RealmLifecycleView'
-  /_cokret/self/realms/{realm_id}/tombstone:
+  /_arkret/self/realms/{realm_id}/tombstone:
     post:
       operationId: ck.self.realm.command.tombstone
       security:
@@ -6792,7 +6792,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RealmLifecycleView'
-  /_cokret/self/realms/{realm_id}/destroy:
+  /_arkret/self/realms/{realm_id}/destroy:
     post:
       operationId: ck.self.realm.command.destroy
       security:
@@ -6817,7 +6817,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RealmLifecycleView'
-  /_cokret/self/realms/{realm_id}/export:
+  /_arkret/self/realms/{realm_id}/export:
     get:
       operationId: ck.self.realm.query.export
       security:
@@ -6836,7 +6836,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RealmExport'
-  /_cokret/self/realms/{realm_id}/moderation-policy/effective:
+  /_arkret/self/realms/{realm_id}/moderation-policy/effective:
     get:
       operationId: ck.self.realm.moderation_policy.query.effective
       security:
@@ -6855,7 +6855,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RealmEffectiveModerationPolicy'
-  /_cokret/self/realms/{realm_id}/moderation-policy:
+  /_arkret/self/realms/{realm_id}/moderation-policy:
     put:
       operationId: ck.self.realm.moderation_policy.resource.replace
       security:
@@ -6885,7 +6885,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RealmModerationPolicyDocument'
-  /_cokret/self/consent/cells:
+  /_arkret/self/consent/cells:
     get:
       operationId: ck.self.consent.query.list
       security:
@@ -6898,7 +6898,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConsentCellList'
-  /_cokret/self/consent/cells/{holder_did}:
+  /_arkret/self/consent/cells/{holder_did}:
     get:
       operationId: ck.self.consent.resource.get
       security:
@@ -6934,7 +6934,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConsentCellView'
-  /_cokret/self/consent/cells/{holder_did}/grant:
+  /_arkret/self/consent/cells/{holder_did}/grant:
     post:
       operationId: ck.self.consent.command.grant
       security:
@@ -6959,7 +6959,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConsentCellView'
-  /_cokret/self/consent/cells/{holder_did}/revoke:
+  /_arkret/self/consent/cells/{holder_did}/revoke:
     post:
       operationId: ck.self.consent.command.revoke
       security:
@@ -6984,7 +6984,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConsentCellView'
-  /_cokret/self/consent/request:
+  /_arkret/self/consent/request:
     post:
       operationId: ck.self.consent.command.request
       security:
@@ -7003,7 +7003,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConsentCellView'
-  /_cokret/self/account_data:
+  /_arkret/self/account_data:
     get:
       operationId: ck.self.account_data.query.list
       security:
@@ -7016,7 +7016,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AccountDataList'
-  /_cokret/self/account_data/{data_type}:
+  /_arkret/self/account_data/{data_type}:
     get:
       operationId: ck.self.account_data.resource.get
       security:
@@ -7077,7 +7077,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AccountDataDeleteOutcome'
-  /_cokret/self/read-cursors:
+  /_arkret/self/read-cursors:
     get:
       operationId: ck.self.read_cursor.query.list
       security:
@@ -7114,7 +7114,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReadMarkerOutcome'
-  /_cokret/self/rtc/ice-config:
+  /_arkret/self/rtc/ice-config:
     servers:
     - url: https://{host}
       variables:
@@ -7137,7 +7137,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MediaIceConfigRequestBody'
-  /_cokret/gate/account/register:
+  /_arkret/gate/account/register:
     servers:
     - url: https://{host}
       variables:
@@ -7174,7 +7174,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AccountRegisterRequestBody'
-  /_cokret/gate/account/session-grants:
+  /_arkret/gate/account/session-grants:
     servers:
     - url: https://{host}
       variables:
@@ -7201,7 +7201,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SessionGrantRequestBody'
-  /_cokret/gate/account/session-grants/revoke:
+  /_arkret/gate/account/session-grants/revoke:
     servers:
     - url: https://{host}
       variables:
@@ -7234,7 +7234,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SessionRevokeRequestBody'
-  /_cokret/gate/account/session-grants/refresh:
+  /_arkret/gate/account/session-grants/refresh:
     servers:
     - url: https://{host}
       variables:
@@ -7268,7 +7268,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SessionGrantRefreshRequestBody'
-  /_cokret/gate/account/auth-sessions/logout:
+  /_arkret/gate/account/auth-sessions/logout:
     servers:
     - url: https://{host}
       variables:
@@ -7282,8 +7282,8 @@ paths:
       description: |
         Account Authority to Auth Server service-to-service sub-operation used
         by the single client-visible account logout. The Account Authority has
-        already validated Authorization: Bearer <ck.session.grant> plus DPoP on
-        POST /_cokret/gate/account/logout. It calls this endpoint with the
+        already validated Authorization: Bearer <ak.session.grant> plus DPoP on
+        POST /_arkret/gate/account/logout. It calls this endpoint with the
         configured Account Authority -> Auth Server S2S bearer
         (session_grant_introspection_bearer) to log out the Auth-side
         browser/auth session owning the supplied grant and terminate that
@@ -7291,7 +7291,7 @@ paths:
 
         Ordinary clients MUST NOT call this endpoint, MUST NOT derive it from
         gate_account_base, and MUST NOT retry it directly. Clients retry only
-        POST /_cokret/gate/account/logout.
+        POST /_arkret/gate/account/logout.
       responses:
         '200':
           description: Auth-side session logout completed or was already inactive.
@@ -7305,7 +7305,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AuthSessionLogoutRequestBody'
-  /_cokret/gate/account/session-grants/introspect:
+  /_arkret/gate/account/session-grants/introspect:
     servers:
     - url: https://{host}
       variables:
@@ -7323,7 +7323,7 @@ paths:
         gets back whether the grant is active, a standardized status, and
         non-secret grant metadata — including session_public_key for RFC 9421
         PoP verification and cnf_jkt for local DPoP verification on
-        /_cokret/self/*. READ-ONLY: introspection MUST NOT consume or revoke
+        /_arkret/self/*. READ-ONLY: introspection MUST NOT consume or revoke
         the grant (consumption/rotation is the refresh endpoint's job).
         Authenticated by the configured session_grant_introspection_bearer (a
         server-local static bearer) or an admin scope.
@@ -7340,7 +7340,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SessionGrantIntrospectRequestBody'
-  /_cokret/gate/account/logout:
+  /_arkret/gate/account/logout:
     servers:
     - url: https://{host}
       variables:
@@ -7354,12 +7354,12 @@ paths:
       x-arkret-auth:
         public_metadata: false
         holder_proof: true
-        notes: Account hard logout MUST present the current ck.session.grant as Authorization bearer and a DPoP proof whose ath binds that grant and whose htm/htu bind POST /_cokret/gate/account/logout.
+        notes: Account hard logout MUST present the current ak.session.grant as Authorization bearer and a DPoP proof whose ath binds that grant and whose htm/htu bind POST /_arkret/gate/account/logout.
       summary: Account Authority hard logout.
       description: |
         Ordinary hard logout at the Account Authority (account-lifecycle §4.1),
         and the only client-visible logout endpoint. The Account Authority
-        validates the current ck.session.grant plus DPoP, terminates the
+        validates the current ak.session.grant plus DPoP, terminates the
         Auth-side auth session / grant rotation chain (via
         auth-sessions/logout when Auth-side is split out), then terminates or
         durably schedules Principal-side local account/device session cleanup,
@@ -7380,7 +7380,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AccountLogoutRequestBody'
-  /_cokret/gate/account/device-pair:
+  /_arkret/gate/account/device-pair:
     servers:
     - url: https://{host}
       variables:
@@ -7403,7 +7403,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AccountDevicePairRequestBody'
-  /_cokret/gate/account/device-enroll:
+  /_arkret/gate/account/device-enroll:
     servers:
     - url: https://{host}
       variables:
@@ -7426,7 +7426,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AccountDeviceEnrollRequestBody'
-  /_cokret/gate/account/agent-key-pair:
+  /_arkret/gate/account/agent-key-pair:
     servers:
     - url: https://{host}
       variables:
@@ -7452,7 +7452,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AgentKeyPairRequestBody'
-  /_cokret/self/agents:
+  /_arkret/self/agents:
     get:
       operationId: ck.self.agent.query.list
       description: List native personal agents visible to the authenticated controller.
@@ -7483,7 +7483,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AgentProvisionRequestBody'
-  /_cokret/self/agents/discover:
+  /_arkret/self/agents/discover:
     post:
       operationId: ck.self.agent.protocol.query.discover
       description: Discover an agent runtime's declared external protocol endpoints from the public ck.agent.endpoint registry projection (agent-protocol-interop.md §5.1).
@@ -7502,7 +7502,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AgentProtocolDiscoverRequestBody'
-  /_cokret/self/agents/{agent_principal_id}:
+  /_arkret/self/agents/{agent_principal_id}:
     get:
       operationId: ck.self.agent.resource.get
       description: Read one native personal agent projection.
@@ -7521,7 +7521,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AgentView'
-  /_cokret/self/agents/{agent_principal_id}/pause:
+  /_arkret/self/agents/{agent_principal_id}/pause:
     post:
       operationId: ck.self.agent.command.pause
       description: Pause a native personal agent and reject new agent sessions.
@@ -7546,7 +7546,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AgentPauseRequestBody'
-  /_cokret/self/agents/{agent_principal_id}/resume:
+  /_arkret/self/agents/{agent_principal_id}/resume:
     post:
       operationId: ck.self.agent.command.resume
       description: Resume a paused native personal agent after freshness and sidecar disclosure checks.
@@ -7571,7 +7571,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AgentResumeRequestBody'
-  /_cokret/self/agents/{agent_principal_id}/deactivate:
+  /_arkret/self/agents/{agent_principal_id}/deactivate:
     post:
       operationId: ck.self.agent.command.deactivate
       description: Terminally deactivate a native personal agent. fan-out ck.agent.key.revoke / ck.capability.revoke / runtime endpoint revocation.
@@ -7596,7 +7596,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AgentDeactivateRequestBody'
-  /_cokret/self/agents/{agent_principal_id}/rotate-key:
+  /_arkret/self/agents/{agent_principal_id}/rotate-key:
     post:
       operationId: ck.self.agent.command.rotate_key
       description: Rotate the active runtime key for a native personal agent.
@@ -7621,7 +7621,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AgentRotateKeyRequestBody'
-  /_cokret/self/agents/{agent_principal_id}/grants:
+  /_arkret/self/agents/{agent_principal_id}/grants:
     post:
       operationId: ck.self.agent.grant.command.attach
       description: Attach a capability grant to a native personal agent.
@@ -7646,7 +7646,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AgentGrantAttachRequestBody'
-  /_cokret/self/agents/{agent_principal_id}/grants/{grant_id}:
+  /_arkret/self/agents/{agent_principal_id}/grants/{grant_id}:
     delete:
       operationId: ck.self.agent.grant.resource.delete
       description: Detach or revoke a capability grant from a native personal agent.
@@ -7670,7 +7670,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AgentGrantDetachOutcome'
-  /_cokret/self/agent-sidecar-threads:ensure:
+  /_arkret/self/agent-sidecar-threads:ensure:
     post:
       operationId: ck.self.agent.sidecar_thread.command.ensure
       description: |
@@ -7699,7 +7699,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AgentSidecarThreadEnsureRequestBody'
-  /_cokret/self/agents/{agent_principal_id}/participation:
+  /_arkret/self/agents/{agent_principal_id}/participation:
     put:
       operationId: ck.self.agent.participation.resource.replace
       description: Set an agent's participation selection for a scope (controller-self only).
@@ -7742,7 +7742,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AgentParticipationOutcome'
-  /_cokret/gate/account/oidc/callback:
+  /_arkret/gate/account/oidc/callback:
     servers:
     - url: https://{host}
       variables:
@@ -7755,7 +7755,7 @@ paths:
         public_metadata: false
         proof_in_body: true
         proof_field: code
-        notes: Optional browser redirect landing only. It validates state/code/nonce for deployment handoff, but MUST NOT return SessionGrantOutcome, ck.session.grant, or Principal local session material; client-visible grant issuance is only via POST /_cokret/gate/account/session-grants with proof_kind=oidc_code_exchange.
+        notes: Optional browser redirect landing only. It validates state/code/nonce for deployment handoff, but MUST NOT return SessionGrantOutcome, ak.session.grant, or Principal local session material; client-visible grant issuance is only via POST /_arkret/gate/account/session-grants with proof_kind=oidc_code_exchange.
       responses:
         '200':
           description: OIDC browser handoff accepted; no session material is returned.

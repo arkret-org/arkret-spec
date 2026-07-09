@@ -161,7 +161,7 @@
           "recipient_method": "secret_storage_key",
           "aead": "chacha20_poly1305",
           "nonce_b64u": "oKGio6Slpqeoqaqr",
-          "aad_kind": "cokret_key_backup_envelope_v1"
+          "aad_kind": "arkret_key_backup_envelope_v1"
         },
         "ciphertext_b64u": "d4kaPi6Nt93_bJ91j4nfwb8tttwxDxT8x6y0wxAFpi5AonTrzaKK-pmlkZ8ncxstcKYrW2J5G7sXZTJ2eBucqpzLV34IxKXAEsD_sT2AmVMwqT_TLIymkEsaerCs4ILS6CIK061hNo6NKRQH-Z9vjDinkW93PYbW94vSPMfg700aTo6b_dSkoWTWtEgK6nx84PAtywVNaSObA9iLj7GTJqKYfWAO914G-4uubLrCCC6F25YCbfuT6RbwtBBGLXd2V_Knd3W4eDMIY5FSAEyaR_B3LIvbsRSwURLsiuJkpfuIweYs7ZcGMNH2ERETObjqgwlh5qzwNMm1weK0_fdKvR_aQpoAJ_RlfxVCvizqsjTIu6Z6T0bgq5t1m3eEflNO2OIhIRjLzlXbursxdlrRuizKPNja1A_06KoxjHzPPWD1ifOdilP8UW8784ET1LqHLeFKa759wz4J",
         "tag_b64u": "W9EVZsCAgTqZvfKrrpDupQ"

@@ -6,8 +6,8 @@
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ck",
   "storage_rules": [
-    "Protocol wire objects, canonical JSON, signatures, hashes, fixtures, logs, API DTOs, and cross-service references MUST use the full typed form ck:<kind>:<uuid> unless a special form below applies.",
-    "Storage implementations MAY store raw 16-byte UUID values (e.g. PostgreSQL `uuid` column) without the ck:<kind>: prefix when the table, column, or explicit kind field already supplies the type context.",
+    "Protocol wire objects, canonical JSON, signatures, hashes, fixtures, logs, API DTOs, and cross-service references MUST use the full typed form ak:<kind>:<uuid> unless a special form below applies.",
+    "Storage implementations MAY store raw 16-byte UUID values (e.g. PostgreSQL `uuid` column) without the ak:<kind>: prefix when the table, column, or explicit kind field already supplies the type context.",
     "Implementations that store raw IDs MUST restore the full typed form before computing canonical JSON, event IDs, payload hashes, detached proofs, federation payloads, sync cursors, or audit logs.",
     "The <kind> segment is part of the signed/canonical wire value. It MUST NOT be changed, inferred differently, or stripped during verification, forwarding, backfill, or replay.",
     "The UUID segment MUST be RFC 9562 UUID version 7 (48-bit Unix-millisecond timestamp + 4-bit version=7 + 12-bit rand_a + 2-bit variant=10b + 62-bit rand_b), serialized as the canonical 36-character lowercase hex form `xxxxxxxx-xxxx-7xxx-Nxxx-xxxxxxxxxxxx` where N ∈ {8,9,a,b}."
@@ -25,7 +25,7 @@
       "wire_form": "ak:blob:sha256:<digest>",
       "status": "active",
       "storage_recommendation": "Store digest bytes/hex separately from any logical blob row ID.",
-      "description": "Content-addressed blob reference; distinct from ck:blob:<uuid> blob metadata IDs."
+      "description": "Content-addressed blob reference; distinct from ak:blob:<uuid> blob metadata IDs."
     },
     {
       "kind": "mls",
@@ -86,7 +86,7 @@
       "category": "extension",
       "status": "active",
       "wire_form": "ak:agent_interop_session:<uuid>",
-      "description": "Agent interop session ID. Note the cross-surface naming: this typed ID uses the short form `agent_interop_session`, while the corresponding event kinds use the full form `ck.agent.interop_session.{start,status,result}` and capability actions use `ck.agent.interop_session.{start,cancel,stream_status,attach_artifact,read_transcript}`. The three surfaces all refer to the same session concept; downstream tooling MUST NOT assume `ck:<event-prefix>:<uuid>` mechanical derivation."
+      "description": "Agent interop session ID. Note the cross-surface naming: this typed ID uses the short form `agent_interop_session`, while the corresponding event kinds use the full form `ck.agent.interop_session.{start,status,result}` and capability actions use `ck.agent.interop_session.{start,cancel,stream_status,attach_artifact,read_transcript}`. The three surfaces all refer to the same session concept; downstream tooling MUST NOT assume `ak:<event-prefix>:<uuid>` mechanical derivation."
     },
     {
       "kind": "announce",
@@ -174,14 +174,14 @@
       "category": "media",
       "status": "active",
       "wire_form": "ak:rtc_participant:<uuid>",
-      "description": "SFU-local participant handle (CKP-0010). Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_did, issued_at_bucket)` by the media service token issuer. MUST NOT carry any actor-identifying material; only appears in `ck.call.state.participants[].participant_identity` and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `ck:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern."
+      "description": "SFU-local participant handle (CKP-0010). Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_did, issued_at_bucket)` by the media service token issuer. MUST NOT carry any actor-identifying material; only appears in `ck.call.state.participants[].participant_identity` and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `ak:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern."
     },
     {
       "kind": "capability",
       "category": "authz",
       "status": "active",
       "wire_form": "ak:capability:<uuid>",
-      "description": "Abstract capability definition reference ID; signed grant objects use ck:grant:<uuid>."
+      "description": "Abstract capability definition reference ID; signed grant objects use ak:grant:<uuid>."
     },
     {
       "kind": "circle",
@@ -224,7 +224,7 @@
       "category": "identity",
       "status": "active",
       "wire_form": "ak:device:<uuid>",
-      "description": "Device identifier (ck:device:<uuid>). A device is a typed ID scoped to an owning principal, NOT a DID and NOT an actor principal. Device keys are registered as verification methods under the owning principal DID via ck.device.authorize."
+      "description": "Device identifier (ak:device:<uuid>). A device is a typed ID scoped to an owning principal, NOT a DID and NOT an actor principal. Device keys are registered as verification methods under the owning principal DID via ck.device.authorize."
     },
     {
       "kind": "device_message",
@@ -438,5 +438,5 @@
     }
   ],
   "uuid_pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-  "typed_uuid_pattern": "^ck:<kind>:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+  "typed_uuid_pattern": "^ak:<kind>:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
 }

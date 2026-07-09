@@ -1040,7 +1040,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Space parent declaration. Parent is another ck:space: or null; cross-Realm parent is navigation only and never propagates Realm membership, capabilities, history, E2EE keys, retention, or federation policy.",
+      "payload": "Space parent declaration. Parent is another ak:space: or null; cross-Realm parent is navigation only and never propagates Realm membership, capabilities, history, E2EE keys, retention, or federation policy.",
       "cell_family": "ck.component.space.parent.v1",
       "cell_subject": {
         "type": "id:space",
@@ -1606,7 +1606,7 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.session.grant",
+      "event_kind": "ak.session.grant",
       "category": "authz",
       "status": "active",
       "wire_scope": "durable_event",

@@ -107,7 +107,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 默认 HTTP binding：
 
 ```http
-POST /_cokret/self/rtc/ice-config
+POST /_arkret/self/rtc/ice-config
 Authorization: Bearer <token>
 Content-Type: application/json
 ```
@@ -116,7 +116,7 @@ Content-Type: application/json
 
 客户端调用 `ice_config_endpoint` 前 MUST 读取当前 `ck.realm.media_service` state event，并校验该 event 被当前 epoch MLS governance binding 覆盖（见 [`media-service-binding.md` §2.1](./media-service-binding.md)）。覆盖校验失败 MUST fail closed(`media_service_binding_uncovered`)，不得向该 endpoint 请求 ICE/TURN credential。
 
-**凭证缓存与日志脱敏（normative）**：ICE config 响应体携带短期 TURN `credential` / `username`（bearer 性质）。`POST /_cokret/self/rtc/ice-config` 响应 MUST 携带 `Cache-Control: private, no-store`；服务端 MUST NOT 在 access log / metrics / tracing 中记录响应体中的 `credential` 与 `username` 原文，客户端 MUST NOT 把 TURN credential 持久化到普通日志 / 浏览器历史 / analytics。这与 blob presign bearer URL（[`media-and-blob.md` §5.4.3](./media-and-blob.md)）同级:虽然媒体帧另有 SFrame E2EE 且 credential 短时效 per-call，被缓存 / 落日志的 credential 在 TTL 窗口内仍可被取用以滥用 TURN 中继资源。
+**凭证缓存与日志脱敏（normative）**：ICE config 响应体携带短期 TURN `credential` / `username`（bearer 性质）。`POST /_arkret/self/rtc/ice-config` 响应 MUST 携带 `Cache-Control: private, no-store`；服务端 MUST NOT 在 access log / metrics / tracing 中记录响应体中的 `credential` 与 `username` 原文，客户端 MUST NOT 把 TURN credential 持久化到普通日志 / 浏览器历史 / analytics。这与 blob presign bearer URL（[`media-and-blob.md` §5.4.3](./media-and-blob.md)）同级:虽然媒体帧另有 SFrame E2EE 且 credential 短时效 per-call，被缓存 / 落日志的 credential 在 TTL 窗口内仍可被取用以滥用 TURN 中继资源。
 
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
@@ -275,7 +275,7 @@ Content-Type: application/json
   "proof": {
     "kind": "detached_jws",
     "alg": "EdDSA",
-    "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#ck:device:01964137-0000-7000-8000-000000000000",
+    "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#ak:device:01964137-0000-7000-8000-000000000000",
     "event_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
     "created_at": "2026-04-26T00:00:00Z",
     "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJl"
@@ -287,7 +287,7 @@ Content-Type: application/json
 
 `ck.call.signal` 的 `proof` 是 detached-JWS，**形态与持久 Event proof 同构**（[`../models/event-and-patch.md` §3](../models/event-and-patch.md) 与 `event-envelope.schema.json` 的 `$defs/event_proof`）：字段为 `kind` = `detached_jws`、`alg`(默认 `EdDSA`)、`verification_method`、`event_digest`、`created_at`、`jws`，schema 见 [`ephemeral-envelope.schema.json`](../../artifacts/schemas/ephemeral-envelope.schema.json) 的 `$defs/ephemeral_proof`。
 
-- `verification_method` MUST 是 `` `{actor_id}#{device_id}` `` 形式的 DID URL，fragment 是完整 `ck:device:<uuidv7>`；其 controller DID(去 fragment / query 后)MUST 与 envelope `actor_id` 逐字节相等。
+- `verification_method` MUST 是 `` `{actor_id}#{device_id}` `` 形式的 DID URL，fragment 是完整 `ak:device:<uuidv7>`；其 controller DID(去 fragment / query 后)MUST 与 envelope `actor_id` 逐字节相等。
 - `event_digest` MUST 等价于 `canonical_digest(envelope_without_proof)`：对**移除 `proof` 字段后**的整个 ephemeral envelope(`kind`、`realm_id`、`actor_id`、`device_id`、`sent_at`、`expires_at`、`payload`)按 RFC 8785 JCS（canonical JSON，见 [`../conformance/encoding.md`](../conformance/encoding.md)）序列化后取 hash，前缀算法名(如 `sha256:`)。
 - `jws` 的 detached-JWS payload / transcript MUST 是 canonical proof binding object，而非把整个 envelope bytes 放进 JWS payload：
 

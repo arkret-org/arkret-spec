@@ -14,8 +14,8 @@ updated: 2026-07-02
 
 本文定义 Arkret 协作图中两个最常用的对象：
 
-- **Strand**（`ck:strand:`）：Realm 内统一的协作主对象，承载"这件事本身"。
-- **Message**（`ck:message:`）：Strand `discussion` track 时间线中的原子消息。
+- **Strand**（`ak:strand:`）：Realm 内统一的协作主对象，承载"这件事本身"。
+- **Message**（`ak:message:`）：Strand `discussion` track 时间线中的原子消息。
 
 Strand 通过 `tracks` map 表达多种能力面，并可选通过 `scope_circle_id` 把整个 Strand 落在 Realm 内的某个 [Circle](./circle.md)（子事件 / 子消息边界；可按父 Realm floor 启用独立 MLS）。Track 模型、access 规则、conflict 收敛、ephemeral 信号都在本文一处讲完。
 
@@ -55,7 +55,7 @@ Schema id: `ck.schema.strand.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:strand` | 以 `ck:strand:` 开头。 | Strand ID。 |
+| `id` | yes | `id:strand` | 以 `ak:strand:` 开头。 | Strand ID。 |
 | `schema` | yes | `ck.schema.strand.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
 | `scope_circle_id` | no | `id:circle` | 必须是同 Realm 内的 Circle（`Circle.realm_id == Strand.realm_id`）；否则 `schema_violation` `reason=circle_realm_mismatch`。引用的 Circle MUST `state=active`，否则 `failed_precondition` `reason=circle_not_active`（完整约束见 §5）。Reducer 把 `null` 物化为 `effective_scope={kind:"realm",...}`，把 Circle 引用物化为 `effective_scope={kind:"circle",...}`。改绑默认拒（`scope_rebind_forbidden`）。 | 整个 Strand 的 effective scope（含所有 track）。未设置时 Strand 落在 Realm-default scope；设置时整个 Strand（含 synthesis、discussion）落在该 Circle 的 membership / history / delivery / query / encryption profile 边界内。详见 §5 与 [`circle.md`](./circle.md)。 |
@@ -333,7 +333,7 @@ flowchart LR
     subgraph Realm ["ak:realm: — 父 Realm（federation / policy / capability registry）"]
         direction TB
         StrandA["ak:strand: F_A<br/>scope_circle_id = null"]
-        StrandB["ak:strand: F_B<br/>scope_circle_id = ck:circle:0196419c-0000-7000-8000-000000000000"]
+        StrandB["ak:strand: F_B<br/>scope_circle_id = ak:circle:0196419c-0000-7000-8000-000000000000"]
         RealmScope["Realm-default scope<br/>+ Realm membership"]
         subgraph Circle ["ak:circle: C — 子事件边界"]
             direction TB
@@ -432,7 +432,7 @@ Wire 形态：`ck.strand.watch.set` durable event 写入下文 §8.3 描述的 c
 ```text
 event_kind  := ck.strand.watch.set
 cell_family := ck.component.strand.watch.v1
-cell_id     := ck:cell:ck.component.strand.watch.v1:<strand_id>:<watcher_actor_id>
+cell_id     := ak:cell:ck.component.strand.watch.v1:<strand_id>:<watcher_actor_id>
 lattice     := cas_register
 bottom      := reject
 value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
@@ -565,7 +565,7 @@ Schema id: `ck.schema.message.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:message` | 以 `ck:message:` 开头。 | Message ID。 |
+| `id` | yes | `id:message` | 以 `ak:message:` 开头。 | Message ID。 |
 | `schema` | yes | `ck.schema.message.v1` | const。 | Schema ID。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
 | `strand_id` | yes | `id:strand` |  | 所属 Strand。 |
@@ -865,7 +865,7 @@ Payload schema：[`event-payload.schema.json#/$defs/reaction_payload`](../../art
 
 #### 9.8.2 Target 范围（v1 决策）
 
-v1 core 的 Reaction `target_ref` MUST 指向与该 reaction 同一 effective scope 内的一条 `ck:message:`（即 discussion track 上的 Message）。`reaction_payload.target_ref` 的 wire 类型虽是通用 `ref:object`，但 reducer MUST 对 v1 core 拒绝非 `ck:message:` 的 target（`schema_violation`，`reason="reaction_target_unsupported"`）。Profile MAY 注册额外可表态对象（例如 Strand synthesis、Morph）；未声明该 profile 的实现遇到未知 target kind MUST fail closed，不得静默接受。
+v1 core 的 Reaction `target_ref` MUST 指向与该 reaction 同一 effective scope 内的一条 `ak:message:`（即 discussion track 上的 Message）。`reaction_payload.target_ref` 的 wire 类型虽是通用 `ref:object`，但 reducer MUST 对 v1 core 拒绝非 `ak:message:` 的 target（`schema_violation`，`reason="reaction_target_unsupported"`）。Profile MAY 注册额外可表态对象（例如 Strand synthesis、Morph）；未声明该 profile 的实现遇到未知 target kind MUST fail closed，不得静默接受。
 
 跨 effective scope 表态不允许：`target_ref` 必须落在 reaction event 自身 stamped 的 effective scope 内，否则 `failed_precondition`（`reason="reaction_scope_mismatch"`）。
 

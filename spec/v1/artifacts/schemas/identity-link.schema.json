@@ -38,19 +38,19 @@
     },
     "device_id": {
       "type": "string",
-      "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "trust_domain": {
       "type": "string",
-      "pattern": "^ck:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$",
+      "pattern": "^ak:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$",
       "description": "Deployment-scope trust domain. Receiver MUST require this value to match the current Realm / service trust_domain before accepting a pairwise DID -> principal DID mapping."
     },
     "strand_id": {
       "type": "string",
-      "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Optional application-message context marker for the Strand carrying the identity link. It does not create independent membership or key scope; key scope is determined by effective_scope."
     },
     "track_name": {
@@ -79,7 +79,7 @@
     },
     "disclosure_policy_id": {
       "type": "string",
-      "pattern": "^ck:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "proof": {
       "type": "object",

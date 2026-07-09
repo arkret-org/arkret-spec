@@ -76,13 +76,13 @@ discussion: <PR / issue 链接>
 
 | CKP | 标题 | Status | 备注 |
 | --- | --- | --- | --- |
-| [CKP-0001](./.deferred/0001-label-entity.md) | Label as first-class entity | deferred-to-v1.1 | 把 `labels: array<string>` 升级为 `ck:label:` 对象 + `labeled_with` Relation |
-| [CKP-0002](./.deferred/0002-strand-type.md) | Strand Type (Work Item Type) | deferred-to-v1.1 | 引入 `ck:strand_type:`(Task / Sub-task / Bug / Story / ...) |
-| [CKP-0003](./.deferred/0003-field-catalog.md) | Field Catalog | deferred-to-v1.1 | 引入 `ck:field_def:` 可复用 typed 字段目录 |
+| [CKP-0001](./.deferred/0001-label-entity.md) | Label as first-class entity | deferred-to-v1.1 | 把 `labels: array<string>` 升级为 `ak:label:` 对象 + `labeled_with` Relation |
+| [CKP-0002](./.deferred/0002-strand-type.md) | Strand Type (Work Item Type) | deferred-to-v1.1 | 引入 `ak:strand_type:`(Task / Sub-task / Bug / Story / ...) |
+| [CKP-0003](./.deferred/0003-field-catalog.md) | Field Catalog | deferred-to-v1.1 | 引入 `ak:field_def:` 可复用 typed 字段目录 |
 | [CKP-0004](./.deferred/0004-form-layout.md) | Form Layout | deferred-to-v1.1 | 单 Strand 详情面板字段排列(类似 Jira "Work item layout") |
 | [CKP-0005](./.deferred/0005-workflow-state-machine.md) | Workflow State Machine | deferred-to-v1.1 | per-Realm workflow profile 状态机,映射到协议级 stage bucket |
-| [CKP-0006](./.deferred/0006-component-version.md) | Component & Version classifiers | deferred-to-v1.1 | `ck:component:` / `ck:version:` 结构性分类对象 |
-| [CKP-0007](./0007-circle-primitive.md) | Circle — intra-Realm cryptographic sub-boundary primitive | **accepted** (merged 2026-05-25 → [`zh/models/circle.md`](../zh/models/circle.md)) | 引入 `ck:circle:` 作为 Realm 内的密码学子边界(独立 MLS / 子集成员 / 独立 history),**彻底删除** `Strand.discussion_realm_ref`,Strand 永远单一 scope |
+| [CKP-0006](./.deferred/0006-component-version.md) | Component & Version classifiers | deferred-to-v1.1 | `ak:component:` / `ak:version:` 结构性分类对象 |
+| [CKP-0007](./0007-circle-primitive.md) | Circle — intra-Realm cryptographic sub-boundary primitive | **accepted** (merged 2026-05-25 → [`zh/models/circle.md`](../zh/models/circle.md)) | 引入 `ak:circle:` 作为 Realm 内的密码学子边界(独立 MLS / 子集成员 / 独立 history),**彻底删除** `Strand.discussion_realm_ref`,Strand 永远单一 scope |
 | [CKP-0008](./0008-personal-agent-provisioning.md) | 个人 AI Agent 创建与运行时认证 | **accepted** (merged 2026-05-26 → identity / agent runtime normative files) | 用户创建 native AI agent、runtime key pairing、`proof_kind=agent_key_proof` 换短期 session、权限交集与 act-on-behalf 边界 |
 | [CKP-0009](./0009-agent-sidecar-thread.md) | Agent Sidecar Thread（Agent 旁路私聊线程） | **accepted** (merged 2026-05-26 → sidecar thread normative files) | 在 Strand / Message 上下文中为 controller 与自己的 native AI agent 创建私有 sidecar thread,支持 controller-home / context-Realm home,并定义 E2EE / 存在性隐私边界 |
 | [CKP-0010](./0010-media-service-binding-framework.md) | Media Service Binding Framework（媒体服务 Backend 绑定框架） | **accepted** (merged 2026-05-27 → [`zh/crypto-media/media-service-binding.md`](../zh/crypto-media/media-service-binding.md)、`call-state.md` 及 `bindings/`) | 把 `ck.realm.media_service` 从单 SFU endpoint 升级为 multi-focus + transport-agnostic backend 抽象;定义统一 token exchange、session focus 持久化、participant binding、E2EE key injection 契约、recording artifact 流转;LiveKit / mediasoup / Janus / MoQ 通过附录绑定接入 |

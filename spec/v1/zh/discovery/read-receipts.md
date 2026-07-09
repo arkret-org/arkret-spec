@@ -35,7 +35,7 @@ updated: 2026-07-02
 ### 2.1 临时性与高频特征
 
 与具体的业务数据不同，已读回执变动极其频繁（用户每次滑动屏幕都会产生），并且其历史记录没有长期保留价值。
-因此，Read Receipt MUST 仅作为 **Ephemeral Event** 通过 Sync Service 的 Ephemeral Channel 广播，不写入持久化 Event 因果图中。HTTP/JSON 参考 binding 为 `ck.self.ephemeral.command.send`（`POST /_cokret/self/ephemeral`），请求体使用 `ck.schema.ephemeral_envelope.v1`，其中 `kind="ck.receipt.read"`。
+因此，Read Receipt MUST 仅作为 **Ephemeral Event** 通过 Sync Service 的 Ephemeral Channel 广播，不写入持久化 Event 因果图中。HTTP/JSON 参考 binding 为 `ck.self.ephemeral.command.send`（`POST /_arkret/self/ephemeral`），请求体使用 `ck.schema.ephemeral_envelope.v1`，其中 `kind="ck.receipt.read"`。
 
 ### 2.2 广播格式
 
@@ -66,7 +66,7 @@ updated: 2026-07-02
   "proof": {
     "kind": "detached_jws",
     "alg": "EdDSA",
-    "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#ck:device:019640dd-8000-7000-8000-000000000000",
+    "verification_method": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#ak:device:019640dd-8000-7000-8000-000000000000",
     "event_digest": "sha256:...",
     "created_at": "2026-04-26T10:00:00Z",
     "jws": "..."
@@ -178,7 +178,7 @@ Read Cursor 作为一种持久化的个人状态，MUST 作为加密 account dat
 
 ### 3.2 格式
 
-Read cursor schema：`ck.schema.read_cursor.v1`。Read Cursor 是 actor-private 持久状态，存放在加密 account data 或 actor-private stream 中；wire 对象的 `id` MUST 使用 `ck:read_cursor:<uuid7>` typed ID。实现 MAY 为 account data 使用本地存储 key，但该 key 不得替代 wire 对象 `id`。Read Cursor 按 §6.1 / §6.6 绑定 `(actor_id, realm_id, read_scope, position, hlc, device_id)`：
+Read cursor schema：`ck.schema.read_cursor.v1`。Read Cursor 是 actor-private 持久状态，存放在加密 account data 或 actor-private stream 中；wire 对象的 `id` MUST 使用 `ak:read_cursor:<uuid7>` typed ID。实现 MAY 为 account data 使用本地存储 key，但该 key 不得替代 wire 对象 `id`。Read Cursor 按 §6.1 / §6.6 绑定 `(actor_id, realm_id, read_scope, position, hlc, device_id)`：
 
 ```json
 {

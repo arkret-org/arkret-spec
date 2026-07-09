@@ -23,7 +23,7 @@ Realm 可通过 state event 声明策略服务：
   "kind": "ck.realm.policy_server",
   "payload": {
     "server_id": "did:webvh:z9oyrNdJAoqkAh5Remo6dZUdV:policy.example.com",
-    "endpoint": "https://policy.example.com/_cokret/self/policy/check",
+    "endpoint": "https://policy.example.com/_arkret/self/policy/check",
     "public_keys": [
       "did:webvh:z9oyrNdJAoqkAh5Remo6dZUdV:policy.example.com#key-1"
     ],
@@ -66,7 +66,7 @@ Realm 可通过 state event 声明策略服务：
 ## 3. Check Request
 
 ```http
-POST /_cokret/self/policy/check
+POST /_arkret/self/policy/check
 Authorization: Bearer <service_token>
 Content-Type: application/json
 ```
@@ -213,7 +213,7 @@ Content-Type: application/json
 - `topology_risk`
 - `snapshot_risk`
 
-`obligations` 可用于返回风控动作（例如 `rate_limit`、`challenge`、`review_hold`、`drop_attachment`）。  
+`obligations` 可用于返回风控动作（例如 `rate_limit`、`challenge`、`review_hold`、`drop_attachment`）。
 `next_retry_at` SHOULD 仅在限流/退避路径返回。
 
 #### 4.1 Obligation `challenge` Wire Schema
@@ -246,7 +246,7 @@ Content-Type: application/json
 
 `challenge` obligation 中的 `bound_to.request_canonical_digest` 是**被 challenge 的原始请求 hash**，不是包含 `challenge_proof` 自身的重提 Event hash。计算规则：
 
-1. 首次 `/_cokret/self/policy/check` 时，调用方对原始 Event preview / application private record body 做 JCS canonical SHA-256，作为 `request_canonical_digest`。
+1. 首次 `/_arkret/self/policy/check` 时，调用方对原始 Event preview / application private record body 做 JCS canonical SHA-256，作为 `request_canonical_digest`。
 2. 客户端重提时可以在 `gate_proofs[]` 或 envelope proof 区追加 runtime challenge proof；reducer 重新计算 hash 时 MUST 先移除 runtime challenge proof 条目（`gate_id="runtime:<challenge_id>"` 或等价 envelope proof 字段），再按同一 JCS 规则计算。
 3. provider 签发的 proof MUST 绑定该原始 hash、`challenge_id`、`actor_id`、`action`、`realm_id?`、`device_id?`、`expires_at` 和 issuer。实现 MUST NOT 要求 proof 内 hash 等于“包含 proof 自身的最终 Event hash”，否则会形成自引用 transcript。
 
@@ -310,7 +310,7 @@ Policy decision 签名输入 MUST 包含：
 4. `auth_state_digest`、`policy_frontier_digest`、`membership_frontier_digest` 与本地 accepted authorization / policy / membership frontier 一致；不一致 MUST 回退完整授权判定或重新请求 policy check;
 5. 该 decision 未被同一 policy_server 后续的 `ck.moderation.decision.lift` 或 sealed control override 撤销。
 
-Frontier 比较必须区分“本地落后”和“本地更新”。若本地 accepted authorization / policy / membership frontier 严格晚于 decision 绑定的 frontier（即本地已看到 decision 签发后发生的 grant revoke、membership 变化、policy 变化或相关 state digest 变化），receiver MUST fail closed 并重新请求 `/_cokret/self/policy/check`；不得把旧 decision 复用到更新后的 auth state。只有本地 frontier 可证明小于或等于 decision frontier，且 decision 仍在 `expires_at` 窗口内时，才可把不一致视为本地落后并按完整授权 / 补拉路径处理。
+Frontier 比较必须区分“本地落后”和“本地更新”。若本地 accepted authorization / policy / membership frontier 严格晚于 decision 绑定的 frontier（即本地已看到 decision 签发后发生的 grant revoke、membership 变化、policy 变化或相关 state digest 变化），receiver MUST fail closed 并重新请求 `/_arkret/self/policy/check`；不得把旧 decision 复用到更新后的 auth state。只有本地 frontier 可证明小于或等于 decision frontier，且 decision 仍在 `expires_at` 窗口内时，才可把不一致视为本地落后并按完整授权 / 补拉路径处理。
 
 #### 5.1 跨 issuer 复用 decision 的比较基准（normative）
 
@@ -319,7 +319,7 @@ Frontier 比较必须区分“本地落后”和“本地更新”。若本地 a
 **跨 issuer 复用（接收方 ≠ decision 签发者，典型为联邦 §9 收到 origin 附带的 decision）时**：接收方 **MUST NOT** 依赖对 `auth_state_digest` 的逐字比较来判定 decision 仍有效（它无法逐字重算该 opaque 值，逐字比较步骤不可执行）。接收方 MUST 改用下列二者之一：
 
 1. **比较结构化 frontier digest**：用 `policy_frontier_digest` 与 `membership_frontier_digest`（这两者绑定可按 `auth_frontier` 取得的 accepted policy / membership frontier，而非纯 issuer-local opaque commitment）与接收方本地按相同 frontier 解析出的值比较，并按上文"本地落后 vs 本地更新"规则裁决；或
-2. **本地重跑**：接收方按 §9 在本地重新执行 capability/auth 验证与（如配置）本地 `/_cokret/self/policy/check`，不复用 origin decision 的授权判定。
+2. **本地重跑**：接收方按 §9 在本地重新执行 capability/auth 验证与（如配置）本地 `/_arkret/self/policy/check`，不复用 origin decision 的授权判定。
 
 接收方 MUST NOT 把"无法逐字重算 `auth_state_digest`"解释为"digest 校验通过"或"授权通过"——这正是 [`capabilities.md` §18.1](./capabilities.md) 对 opaque digest 的 verifier 纪律。只有同 issuer 自缓存路径可逐字比 `auth_state_digest`；跨 issuer 路径的安全判定 MUST 来自 frontier digest 比较或本地重跑。该规则与 §9「MUST NOT 因 origin policy allow 而跳过本地 capability/auth 验证」一致。
 
@@ -388,6 +388,8 @@ Reducer 与所有读路径 MUST：
 - 对包含 `require_review` 决策的目标，按 review proposal 状态机展示，不允许默认渲染。
 - `ck.moderation.decision.lift` 解除决策时，受影响的 search / projection cache MUST 立即重算。
 
+**多 decision fold（normative）**：`ck.component.moderation_state.v1` 是 OR-Set，多个 active add 是正常值。对当前路径适用的 entries 必须按 [`content-moderation.md` §2.6](../governance/content-moderation.md#26-moderation-决策-must-sealed) 的封闭收紧序 `hard_deny > quarantine > require_review > none` 求 effective verdict；同级多 entry 幂等合并并保留全部审计来源。实现不得把普通多 entry 集合误判为 split，也不得用 HLC / 到达顺序选一个 issuer。active `require_review` add 同时是 pending-review 真相源，其 allow / quarantine / hard-deny 解除路径必须使用该节规定的原子 lift / replacement batch。
+
 Policy Server fast path 与 sealed control decision 的关系：
 
 - Fast path 上，Policy Server 返回 `quarantine` / `hard_deny` 后，origin Principal Server SHOULD **同步** 提交 `ck.moderation.decision` Control Move。Control Move 提交前 origin 节点 MAY 本地隐藏目标作为优化，但**不得**以 fast-path 决策永久代替 sealed control decision。
@@ -409,7 +411,7 @@ Policy Server fast path 与 sealed control decision 的关系：
 
 - `moderation_control_pending` — fast-path quarantine 已记录，但 sealed Control Move 未到达。
 - `moderation_control_lifted` — 此前 sealed quarantine 已被 `ck.moderation.decision.lift` 解除。
-- `moderation_control_split` — moderation cell 在当前 control view 下出现 ⊥（或 expose 多 head）；所有引用该 cell 的 read / write / distribute / policy-check 路径 MUST fail closed，`reason="moderation_state_conflict"`，query / projection / sync surface MUST 暴露冲突状态而不得默默选 winner。实现不得在冲突期间选择任一 head 作为临时 allow。
+- `moderation_control_split` — moderation cell 在当前 control view 下出现真正不可 join 的损坏状态（例如同一 add identity 对应不同 canonical bytes、remove provenance 无法验证或 registry/lattice 证据不一致）；所有引用该 cell 的 read / write / distribute / policy-check 路径 MUST fail closed，`reason="moderation_state_conflict"`，query / projection / sync surface MUST 暴露冲突状态而不得默默选 winner。普通 OR-Set 多 active entries **不是** split，必须按 §7.1 的 deterministic strictest fold 处理。
 
 ## 8. Antifraud Mapping from Server Abuse Practice
 

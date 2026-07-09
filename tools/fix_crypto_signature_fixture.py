@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-"""Recompute payload_digest and re-sign the JWS in
-crypto-signature-fixture.json after the ULID→UUIDv7 migration changed
-the canonical event bytes.
+"""Recompute canonical digests and signatures in crypto-signature-fixture.json.
 
 Idempotent: running it twice gives the same result. The fixture's
 canonical_event_payload, canonical_binding_payload, protected_header,
-and test_private_key_jwk are the inputs; everything else is derived.
+test_private_key_jwk, and keygen_seed_b64u are the inputs; everything else is
+derived.
 """
 from __future__ import annotations
 
@@ -18,7 +17,8 @@ from pathlib import Path
 from cryptography.hazmat.primitives.asymmetric.ed25519 import (
     Ed25519PrivateKey,
 )
-from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import ec, utils
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "spec" / "v1" / "artifacts" / "fixtures" / "crypto-signature-fixture.json"
@@ -35,6 +35,40 @@ def b64u_decode(s: str) -> bytes:
 
 def canonical_json_str(obj) -> str:
     return json.dumps(obj, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+
+
+def sign_jws_input(jwk: dict, signing_input: bytes) -> bytes:
+    if jwk.get("crv") == "Ed25519":
+        return Ed25519PrivateKey.from_private_bytes(b64u_decode(jwk["d"])).sign(signing_input)
+    if jwk.get("crv") == "P-256":
+        private_value = int.from_bytes(b64u_decode(jwk["d"]), "big")
+        private_key = ec.derive_private_key(private_value, ec.SECP256R1())
+        der_signature = private_key.sign(
+            signing_input,
+            ec.ECDSA(hashes.SHA256(), deterministic_signing=True),
+        )
+        r, s = utils.decode_dss_signature(der_signature)
+        return r.to_bytes(32, "big") + s.to_bytes(32, "big")
+    raise SystemExit(f"unsupported crv: {jwk.get('crv')}")
+
+
+def sign_mldsa65_vector(v: dict, binding_canon: bytes) -> None:
+    try:
+        from dilithium_py.ml_dsa import ML_DSA_65
+    except ImportError as exc:
+        raise SystemExit(
+            "ML-DSA-65 regeneration requires dilithium-py>=1.4.0"
+        ) from exc
+
+    seed = b64u_decode(v["keygen_seed_b64u"])
+    public_key, private_key = ML_DSA_65.key_derive(seed)
+    recorded_public_key = b64u_decode(v["public_key_b64u"])
+    if public_key != recorded_public_key:
+        raise SystemExit("ML-DSA-65 derived public key differs from recorded fixture key")
+    signature = ML_DSA_65.sign(private_key, binding_canon, deterministic=True)
+    if not ML_DSA_65.verify(public_key, binding_canon, signature):
+        raise SystemExit("ML-DSA-65 self-verification failed")
+    v["signature_b64u"] = b64u(signature)
 
 
 def regen_vector(v: dict) -> dict:
@@ -79,6 +113,13 @@ def regen_vector(v: dict) -> dict:
     # "payload" of the JWS, not the event bytes. Recompute.
     v["detached_payload_b64u"] = b64u(binding_canon)
 
+    jwk = v.get("test_private_key_jwk")
+    if not isinstance(jwk, dict):
+        if v.get("signature_algorithm") == "ML-DSA-65":
+            sign_mldsa65_vector(v, binding_canon)
+            return v
+        raise SystemExit(f"unsupported signature vector: {v.get('name')}")
+
     # JWS protected header b64u
     proto_canon = canonical_json_str(v["protected_header"])
     v["protected_header_canonical"] = proto_canon
@@ -88,13 +129,7 @@ def regen_vector(v: dict) -> dict:
     signing_input = f"{proto_b64}.{v['detached_payload_b64u']}"
     v["jws_signing_input"] = signing_input
 
-    # Sign with Ed25519 private key from JWK
-    jwk = v["test_private_key_jwk"]
-    if jwk["crv"] != "Ed25519":
-        raise SystemExit(f"unsupported crv: {jwk['crv']}")
-    d_bytes = b64u_decode(jwk["d"])
-    sk = Ed25519PrivateKey.from_private_bytes(d_bytes)
-    sig = sk.sign(signing_input.encode("ascii"))
+    sig = sign_jws_input(jwk, signing_input.encode("ascii"))
     sig_b64 = b64u(sig)
 
     # Detached JWS: header..signature (note: middle empty because payload is
@@ -120,10 +155,8 @@ def main() -> int:
     data = json.loads(FIXTURE.read_text(encoding="utf-8"))
     for v in data.get("vectors", []):
         regen_vector(v)
-    FIXTURE.write_text(
-        json.dumps(data, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    with FIXTURE.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(json.dumps(data, ensure_ascii=False, indent=2) + "\n")
     print(f"updated {FIXTURE.relative_to(ROOT).as_posix()}")
     return 0
 

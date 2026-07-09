@@ -3,7 +3,7 @@ title: Arkret-Native SFU Binding (reference impl)
 status: candidate
 normative: true
 stability: v1
-profile: ck.profile.media_service_binding.cokret_native.v1
+profile: ck.profile.media_service_binding.arkret_native.v1
 updated: 2026-07-02
 sidebar:
   label: Arkret-native Binding
@@ -22,7 +22,7 @@ sidebar:
 
 本 binding 仅作 reference / conformance 用途，**MUST NOT** 作为生产媒体后端被 claim；生产部署 **MUST** 使用 production-grade 的 `media_service_binding` 子 profile（如 `ck.profile.media_service_binding.livekit.v1`）。
 
-声明 `ck.profile.media_service_binding.cokret_native.v1` 的部署 MUST 同时声明 `ck.profile.media_service_binding.v1`。
+声明 `ck.profile.media_service_binding.arkret_native.v1` 的部署 MUST 同时声明 `ck.profile.media_service_binding.v1`。
 
 ## 2. Token Exchange
 
@@ -131,7 +131,7 @@ Arkret-native reference impl **不实现** SFU-to-SFU cascading；同一 `cascad
 
 ## 9. Conformance Vectors
 
-实现声明 `ck.profile.media_service_binding.cokret_native.v1` 时，至少通过：
+实现声明 `ck.profile.media_service_binding.arkret_native.v1` 时，至少通过：
 
 - 上游 `ck.profile.media_service_binding.v1` 的 9 个核心 vector（focus_selection / session_focus / token_exchange / token_issuer_unauthorised / participant_binding / unknown_type / e2ee_key_source / participant_identity / recording_artifact）。
 - arkret-native-specific：实现自由附加，但 wire 不得引入 v1 周期内 unregistered 字段。

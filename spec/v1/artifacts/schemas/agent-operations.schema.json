@@ -85,27 +85,27 @@
     },
     "device_id": {
       "type": "string",
-      "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "event_id": {
       "type": "string",
-      "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "grant_id": {
       "type": "string",
-      "pattern": "^ck:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "strand_id": {
       "type": "string",
-      "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "relation_id": {
       "type": "string",
-      "pattern": "^ck:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "message_id": {
       "type": "string",
-      "pattern": "^ck:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "hash": {
       "type": "string",
@@ -132,7 +132,7 @@
     "opaque_local_id": {
       "type": "string",
       "pattern": "^[A-Za-z0-9._:-]{1,128}$",
-      "description": "Deployment-local short-lived account/auth artifact id. It is not a ck:<kind> protocol object id."
+      "description": "Deployment-local short-lived account/auth artifact id. It is not a ak:<kind> protocol object id."
     },
     "proof": {
       "type": "object",
@@ -387,7 +387,7 @@
     },
     "account_device_enroll_outcome": {
       "type": "object",
-      "description": "The signed `service_attested` ck.device.authorize Event for the requested device. The account authority does not contact the Principal Server; the caller submits `authorized_event` verbatim to POST /_cokret/self/events.",
+      "description": "The signed `service_attested` ck.device.authorize Event for the requested device. The account authority does not contact the Principal Server; the caller submits `authorized_event` verbatim to POST /_arkret/self/events.",
       "required": [
         "principal_id",
         "device_id",
@@ -579,7 +579,7 @@
       "type": "object",
       "description": "One-time bootstrap material handed to a personal agent runtime after provisioning. This is not a session grant, capability grant or long-term secret.",
       "required": [
-        "cokret_base_url",
+        "arkret_base_url",
         "service_did",
         "agent_principal_id",
         "pairing_request_id",
@@ -587,7 +587,7 @@
         "pairing_expires_at"
       ],
       "properties": {
-        "cokret_base_url": {
+        "arkret_base_url": {
           "type": "string",
           "format": "uri"
         },
@@ -691,7 +691,7 @@
         },
         "next_cursor": {
           "type": "string",
-          "pattern": "^ck:cursor:[A-Za-z0-9_-]+$"
+          "pattern": "^ak:cursor:[A-Za-z0-9_-]+$"
         },
         "has_more": {
           "type": "boolean"

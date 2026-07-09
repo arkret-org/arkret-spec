@@ -65,9 +65,9 @@ v1 wire 内 **MUST NOT** in-place 改变任一已接受 event kind / schema / �
 
 ## 5. 传输层 versionless
 
-默认 HTTP/JSON binding 的 path 都在 negative-space 根 `/_cokret/` 之下且不含版本段；版本与能力发现由 `*.describe` / `supported_operations` / `supported_profiles` / `supported_features` 承载。见 [sync/service-http-binding.md](../sync/service-http-binding.md) §2.1。
+默认 HTTP/JSON binding 的 path 都在 negative-space 根 `/_arkret/` 之下且不含版本段；版本与能力发现由 `*.describe` / `supported_operations` / `supported_profiles` / `supported_features` 承载。见 [sync/service-http-binding.md](../sync/service-http-binding.md) §2.1。
 
-pre-auth 的根级能力广告位于 `GET /_cokret/describe`（`ck.server.query.describe`）。实现不得通过 URL path 后缀、私有 header 或部署约定绕开 ServiceDescribe 的能力声明。
+pre-auth 的根级能力广告位于 `GET /_arkret/describe`（`ck.server.query.describe`）。实现不得通过 URL path 后缀、私有 header 或部署约定绕开 ServiceDescribe 的能力声明。
 
 ## 6. 签名位面与 `unsigned` 位面
 
@@ -82,4 +82,4 @@ pre-auth 的根级能力广告位于 `GET /_cokret/describe`（`ck.server.query.
 3. **显式协商**：跨 client/service/federation 的新能力必须能从 describe/profile 交集中判断可用性。
 4. **fail closed**：未知 required feature、critical extension、高风险 action、未登记 operation/kind/field 与不匹配 profile 均按源文档定义的稳定错误或 quarantine 处理。
 5. **可测试**：每个影响 wire、状态机、授权、安全、同步或互操作的新增义务都应配套 conformance vector、fixture 或明确测试计划。
-6. **不泄漏产品面**：`/_cokret/` 只承载协议语义；部署私有管理、运营或产品 API 不得注册进 Arkret operation namespace。
+6. **不泄漏产品面**：`/_arkret/` 只承载协议语义；部署私有管理、运营或产品 API 不得注册进 Arkret operation namespace。

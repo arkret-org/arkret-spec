@@ -478,7 +478,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Event kind renamed to cx.read_cursor.advance so the typed-id (ck:read_cursor:), schema id (cx.schema.read_cursor.v1), event kind and capability action share a single noun root read_cursor. Current parsers MUST hard_reject this kind."
+      "notes": "Event kind renamed to cx.read_cursor.advance so the typed-id (ak:read_cursor:), schema id (cx.schema.read_cursor.v1), event kind and capability action share a single noun root read_cursor. Current parsers MUST hard_reject this kind."
     },
     {
       "id": "cx.strand.discussion_realm_ref",

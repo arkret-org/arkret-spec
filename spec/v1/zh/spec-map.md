@@ -95,7 +95,7 @@ see_also:
 ### 3.3 Principal Server / Events / Sync / Projection
 
 - signed Event Envelope 是唯一 canonical fact。
-- Principal Server 通过 `/_cokret/self/events/*` API 提交、读取、回填和验证 Event frontier。
+- Principal Server 通过 `/_arkret/self/events/*` API 提交、读取、回填和验证 Event frontier。
 - Principal Server 是主体控制或委托的服务边界；Sync Service 是其 Realm 同步能力。
 - 搜索、inbox、notification 和 View projection 默认由客户端本地派生；可选受托服务也不充当真相源（规范约束见 [`overview/architecture.md`](./overview/architecture.md) §3）。
 
@@ -222,7 +222,7 @@ see_also:
 | `crypto-media/webrtc-signaling.md` | 音视频通话 ephemeral 信令、ICE/TURN/STUN、一对一通话、多设备冲突、屏幕共享、推送集成。 |
 | `crypto-media/media-service-binding.md` | 媒体服务发现（`ck.realm.media_service` foci）、token / participant binding 兑换、focus 选举、SFU 权限、媒体 E2EE 帧密钥注入与治理绑定。 |
 | `crypto-media/call-state.md` | 通话模型与状态机、durable `ck.call.state` 字段语义、录制 / 转写生命周期。 |
-| `crypto-media/bindings/arkret-native.md` | （optional sub-profile）Arkret 原生媒体后端 binding，定义 `ck.profile.media_service_binding.cokret_native.v1`，由 `media-service-binding.md` 引用。 |
+| `crypto-media/bindings/arkret-native.md` | （optional sub-profile）Arkret 原生媒体后端 binding，定义 `ck.profile.media_service_binding.arkret_native.v1`，由 `media-service-binding.md` 引用。 |
 | `crypto-media/bindings/livekit.md` | （optional sub-profile）LiveKit 媒体后端 binding，定义 `ck.profile.media_service_binding.livekit.v1`，由 `media-service-binding.md` 引用。 |
 
 ### 4.8 扩展、Agent 与集成

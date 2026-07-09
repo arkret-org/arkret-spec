@@ -48,7 +48,7 @@ Arkret 的合规审计目标是：在不削弱默认 E2EE 的前提下，为明�
 
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
-| `binding_id` | yes | `ck:audit_binding:<uuid>`，binding 的稳定 ID。 |
+| `binding_id` | yes | `ak:audit_binding:<uuid>`，binding 的稳定 ID。 |
 | `realm_id` | yes | 父 Realm。 |
 | `effective_scope` | yes | `{kind:"realm", realm_id}` 或 `{kind:"circle", realm_id, circle_id}`。Realm-scope binding 只覆盖 Realm-default history；Circle history MUST 有 Circle-scoped binding。 |
 | `applet_id` / `service_did` | yes | 审计 applet 与承载服务身份。 |
@@ -143,7 +143,7 @@ Authorization 只授予一个有界 release 窗口，不是一次性永久凭证
 
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
-| `release_id` | yes | `ck:audit_release:<uuid>`。 |
+| `release_id` | yes | `ak:audit_release:<uuid>`。 |
 | `session_id` | yes | 对应 session。 |
 | `binding_id` | yes | 对应 active binding。 |
 | `realm_id` / `effective_scope` | yes | release scope。 |

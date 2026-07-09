@@ -55,9 +55,9 @@ Applet / Agent / Morph / Ghost Actor 的选择边界如下，实现 MUST 按最�
 | user namespace regex | actor namespace claim / DID namespace |
 | room namespace regex | Realm / portal namespace |
 | alias namespace regex | handle / portal alias namespace |
-| `/transactions/{txn_id}` | `POST /_cokret/edge/applet/transactions` + `Idempotency-Key` header |
-| `/users/{user_id}` | `/_cokret/edge/applet/actors/{actor_id}` |
-| `/rooms/{room_alias}` | `/_cokret/edge/applet/realms/{realm_id_or_alias}` |
+| `/transactions/{txn_id}` | `POST /_arkret/edge/applet/transactions` + `Idempotency-Key` header |
+| `/users/{user_id}` | `/_arkret/edge/applet/actors/{actor_id}` |
+| `/rooms/{room_alias}` | `/_arkret/edge/applet/realms/{realm_id_or_alias}` |
 | third-party protocols | external protocol metadata |
 | appservice masquerading | delegated agent / Ghost Actor capability |
 
@@ -104,8 +104,8 @@ Native personal AI agent(由 controller 通过 `ck.self.agent.command.provision`
 | --- | --- | --- |
 | 创建路径 | `ck.self.agent.command.provision` operation,fan-out `ck.profile.create` / `ck.identity.accountability_grant` / `ck.agent.key.authorize` / `ck.capability.grant` | `ck.applet.registration` + Applet bot/Ghost Actor 注册 |
 | `accountable_principal_ids` | 指向 controller principal，显式 `ck.identity.accountability_grant` | 指向 Applet controller / 外部系统 |
-| Runtime credential | 通过 `POST /_cokret/gate/account/agent-key-pair` pairing 得到 `ck.agent.key.authorize` 绑定的 key | Applet 管辖，通常是 Applet service DID + HTTP signature |
-| Session 路径 | `POST /_cokret/gate/account/session-grants` + `proof.proof_kind="agent_key_proof"` | Applet `ck.edge.applet.command.transaction` 与 Applet 的 delegated session |
+| Runtime credential | 通过 `POST /_arkret/gate/account/agent-key-pair` pairing 得到 `ck.agent.key.authorize` 绑定的 key | Applet 管辖，通常是 Applet service DID + HTTP signature |
+| Session 路径 | `POST /_arkret/gate/account/session-grants` + `proof.proof_kind="agent_key_proof"` | Applet `ck.edge.applet.command.transaction` 与 Applet 的 delegated session |
 | 撤销 | `ck.self.agent.command.pause` / `ck.self.agent.command.deactivate` + fan-out key/grant revoke | Applet registration 撤销；Ghost Actor 跟随 Applet 生命周期(经 §4b Revoke,`remove_ghost_membership` 需 active ghost projection 完整否则 MUST fail closed) |
 | Realm policy | Realm policy MUST 单独允许 native personal agent(`ck.profile.personal_agent_provisioning.v1`) | Realm policy MUST 单独允许 Applet base bot-only(`ck.profile.applet_service.v1`)；Ghost Actor / portal bridge 需额外声明 `ck.profile.applet_bridge.v1` |
 
@@ -214,9 +214,9 @@ Applet 安装使用 self/admin aggregate operation。它不创建 install 专用
 
 | operation_id | HTTP | 语义 |
 | --- | --- | --- |
-| `ck.self.applet.install.command.preview` | `POST /_cokret/self/applets/install/preview` | 只读预览，返回 canonical `InstallPlan` 与 `plan_digest`。 |
-| `ck.self.applet.command.install` | `POST /_cokret/self/applets/install` | 提交安装，必须带 `Idempotency-Key` 与 preview 得到的 `plan_digest`。 |
-| `ck.self.applet.command.revoke` | `POST /_cokret/self/applets/{applet_id}/revoke` | 撤销 effective install。 |
+| `ck.self.applet.install.command.preview` | `POST /_arkret/self/applets/install/preview` | 只读预览，返回 canonical `InstallPlan` 与 `plan_digest`。 |
+| `ck.self.applet.command.install` | `POST /_arkret/self/applets/install` | 提交安装，必须带 `Idempotency-Key` 与 preview 得到的 `plan_digest`。 |
+| `ck.self.applet.command.revoke` | `POST /_arkret/self/applets/{applet_id}/revoke` | 撤销 effective install。 |
 
 `effective_scope` 是单次 install 的唯一目标:
 
@@ -346,7 +346,7 @@ Base URL 来自 registration 的 `base_url`。
 
 字段级接口索引：
 
-本表 **surface / 调用方向** 列区分两类 operation:`edge`（节点 → Applet，鉴权主体为 Arkret 节点，路径 `/_cokret/edge/applet/...`）与 `self`（管理员 → 自有 Principal Server aggregate，鉴权主体为管理员 actor，路径 `/_cokret/self/applets/...`）。二者调用方向相反、鉴权主体不同，实现不得套用同一鉴权模型。
+本表 **surface / 调用方向** 列区分两类 operation:`edge`（节点 → Applet，鉴权主体为 Arkret 节点，路径 `/_arkret/edge/applet/...`）与 `self`（管理员 → 自有 Principal Server aggregate，鉴权主体为管理员 actor，路径 `/_arkret/self/applets/...`）。二者调用方向相反、鉴权主体不同，实现不得套用同一鉴权模型。
 
 | operation_id | surface / 调用方向 | 必填字段 | 可选字段 | 响应字段 | 约束 |
 | --- | --- | --- | --- | --- | --- |
@@ -366,7 +366,7 @@ Base URL 来自 registration 的 `base_url`。
 ### 7.1 Ping
 
 ```text
-GET /_cokret/edge/applet/ping
+GET /_arkret/edge/applet/ping
 ```
 
 返回：
@@ -383,7 +383,7 @@ GET /_cokret/edge/applet/ping
 ### 7.2 Describe
 
 ```text
-GET /_cokret/edge/applet/describe
+GET /_arkret/edge/applet/describe
 ```
 
 返回 Applet 支持的协议、profile、namespace、最大交易大小和认证方式。
@@ -391,7 +391,7 @@ GET /_cokret/edge/applet/describe
 ### 7.3 Transaction Push
 
 ```text
-POST /_cokret/edge/applet/transactions
+POST /_arkret/edge/applet/transactions
 Idempotency-Key: <opaque-string>
 ```
 
@@ -446,7 +446,7 @@ Arkret Sync Service / Events API 向 Applet 推送事件批次。
 transaction push 是 service↔service 调用，**两个方向**都 MUST 携带**逐次投递**的 RFC 9421 HTTP Message Signature（per-delivery source signature），接收方 MUST 在处理任何 event / 副作用前先验签；纯 `Authorization: Bearer`（无 `Signature`）的 transaction push MUST 被拒绝。两方向不可只靠 bearer，也不可只在首次握手时验签一次：
 
 - **node → Applet**（§7.3 上文，Arkret 节点向 Applet 推送）：Applet 端 MUST 按 `Source-Service-DID` 解析推送方 Arkret service DID 的当前有效 verification method，并逐次验证 HTTP Message Signature；`Destination-Service-DID` MUST 等于接收 Applet registration 的 `service_did`。Applet registration 的 `webhook_auth` 在该方向声明 transaction endpoint 要求 `http_message_signature` 与可接受算法；`webhook_auth.key_ref` MUST NOT 被解释成任意 Arkret 节点的来源 key。
-- **app/bridge → arkret edge inbound**（`POST /_cokret/edge/applet/transactions` 的入站方向，已安装 Applet service / bridge 向 arkret edge 推送外部网络 transaction）：arkret edge 接收方 MUST 先用 `Source-Service-DID` 找到 active effective install（§4b.1）与当前 effective Applet registration，再要求签名 `keyid` / verification method 等于该 registration 的 `webhook_auth.key_ref`（其 DID 部分 MUST 等于 registration `service_did` / header `Source-Service-DID`），并逐次验签。缺签名、签名无效、`Source-Service-DID` 与 registration 不一致、`webhook_auth.key_ref` 不属于该 Applet service DID 或无 active install 时 MUST fail closed。
+- **app/bridge → arkret edge inbound**（`POST /_arkret/edge/applet/transactions` 的入站方向，已安装 Applet service / bridge 向 arkret edge 推送外部网络 transaction）：arkret edge 接收方 MUST 先用 `Source-Service-DID` 找到 active effective install（§4b.1）与当前 effective Applet registration，再要求签名 `keyid` / verification method 等于该 registration 的 `webhook_auth.key_ref`（其 DID 部分 MUST 等于 registration `service_did` / header `Source-Service-DID`），并逐次验签。缺签名、签名无效、`Source-Service-DID` 与 registration 不一致、`webhook_auth.key_ref` 不属于该 Applet service DID 或无 active install 时 MUST fail closed。
 
 **覆盖 header 集（MUST，与 [`../sync/federation.md` §3.2](../sync/federation.md) service-to-service 签名对称）**：签名 transcript MUST 覆盖以下 RFC 9421 derived components 与 header：
 
@@ -461,7 +461,7 @@ transaction push 是 service↔service 调用，**两个方向**都 MUST 携带*
 
 **来源签名锚点（normative）**：接收方在验签通过后 MUST 形成不可伪造的 `source_signature_anchor` audit value，并把它写入 transaction 幂等 / replay 记录；该值不是 request body 字段。锚点 canonical tuple 至少包含：
 
-- `operation_id="ck.edge.applet.command.transaction"` 与方向（`node_to_applet` 或 `applet_to_cokret_inbound`）；
+- `operation_id="ck.edge.applet.command.transaction"` 与方向（`node_to_applet` 或 `applet_to_arkret_inbound`）；
 - `source_service_did`、`destination_service_did`；
 - 签名使用的 `verification_method` / `keyid` 与签名算法；
 - Applet 相关方向的 effective `registration_epoch` 与 `webhook_auth.key_ref`，或 Arkret node 方向的 source service DID key-state evidence；
@@ -484,7 +484,7 @@ transaction push 的逐次签名是传输层来源认证，**不替代** §8 每
 ### 7.4 Query Actor
 
 ```text
-GET /_cokret/edge/applet/actors/{actor_id}
+GET /_arkret/edge/applet/actors/{actor_id}
 ```
 
 用于 Arkret 节点发现 namespace 内的未知 Ghost Actor 是否存在。
@@ -509,7 +509,7 @@ GET /_cokret/edge/applet/actors/{actor_id}
 ### 7.5 Query Realm
 
 ```text
-GET /_cokret/edge/applet/realms/{realm_id_or_alias}
+GET /_arkret/edge/applet/realms/{realm_id_or_alias}
 ```
 
 用于查询 portal Realm 是否存在或可创建。
@@ -532,7 +532,7 @@ GET /_cokret/edge/applet/realms/{realm_id_or_alias}
 ### 7.6 Protocol Metadata
 
 ```text
-GET /_cokret/edge/applet/protocols/{protocol}
+GET /_arkret/edge/applet/protocols/{protocol}
 ```
 
 返回：
@@ -564,18 +564,18 @@ GET /_cokret/edge/applet/protocols/{protocol}
 ### 7.7 Third-Party Lookup
 
 ```text
-GET /_cokret/edge/applet/third_party/users?protocol=slack&team=T123&user=U123
+GET /_arkret/edge/applet/third_party/users?protocol=slack&team=T123&user=U123
 ```
 
 ```text
-GET /_cokret/edge/applet/third_party/locations?protocol=slack&team=T123&channel=C456
+GET /_arkret/edge/applet/third_party/locations?protocol=slack&team=T123&channel=C456
 ```
 
 用于把外部用户或 location 映射到 Arkret actor / portal Realm。
 
 ## 8. Applet 写入 Arkret
 
-Applet 写入 Arkret MUST 使用常规 `/_cokret/self/events` submit 接口。
+Applet 写入 Arkret MUST 使用常规 `/_arkret/self/events` submit 接口。
 
 每个 Applet-originated 写入 Event MUST 包含下列 signed Event Envelope 字段（这些字段均进入 `proof.event_digest`；不得只放在 `unsigned` 中）：
 
@@ -670,7 +670,7 @@ Ghost Actor MUST NOT 被静默合并到 native DID，除非 native holder 显式
 bridge Applet 第一次遇到某个外部用户（典型触发：该用户在外部网络发出第一条需要桥接的消息）时，通过
 
 ```text
-POST /_cokret/self/applets/{applet_id}/ghosts/provision
+POST /_arkret/self/applets/{applet_id}/ghosts/provision
 Idempotency-Key: <opaque-string>
 ```
 

@@ -22,7 +22,7 @@
   },
   "migration_group_definitions": {
     "agent_session_namespace_collapse": "Superseded by agent_applet_interop_session_rename: the agent capability action namespace and the agent/applet session event kinds now both use the interop_session form.",
-    "typed_id_prefix_unabbreviation": "Abbreviated typed-id prefixes expanded to full snake_case kind. Single rule: ck:<abbrev>: → ck:<full_kind>: (9 entries).",
+    "typed_id_prefix_unabbreviation": "Abbreviated typed-id prefixes expanded to full snake_case kind. Single rule: ak:<abbrev>: → ak:<full_kind>: (9 entries).",
     "realm_lifecycle_segment_realignment": "Realm lifecycle capability actions flattened from 4 segments (cx.realm.lifecycle.<verb>) to 3 segments (cx.realm.<verb>) to match the corresponding event kind (4 entries). target_event_kinds preserved.",
     "did_id_suffix": "Protocol responsibility subjects use the _id suffix even when the value is a DID. actor_did / principal_did / subject_did renamed to actor_id / principal_id / subject_id, and the bare wire fields `actor` (policy check request, bound_to, capability vector request; MIMI consent update request) and `requester` (MIMI consent request) renamed to actor_id / requester_id (6 entries).",
     "agent_key_imperative_verbs": "Event kind verbs use imperative action names, not past participles. cx.agent.key.{authorized,revoked,rotated} → cx.agent.key.{authorize,revoke,rotate} (3 entries).",
@@ -40,7 +40,7 @@
     "grant_constraint_single_kind_ids": "Grant constraint fields that carry one concrete protocol identifier kind use `_ids`; `_refs` remains reserved for causal/proof/schema/content-addressed or polymorphic reference material.",
     "metadata_encryption_floor_rename": "Wire field metadata_encryption_profile renamed to metadata_encryption_floor.",
     "key_backup_kdf_hash_to_digest_algorithm": "Key backup KDF parameter algorithm selectors use digest_algorithm; hash is reserved for actual digest material and internal JSON Schema defs.",
-    "brand_namespace_cx_to_ck": "Wire/brand namespace renamed from the legacy `contrix` brand to `arkret`. Every wire token prefix `cx.` becomes `ck.` and every typed-id prefix `cx:` becomes `ck:` across operation_id, event_kind, schema_id, capability action, id_kind, error code, vector id, and profile id. The bare brand strings `contrix` / `Contrix` and the token prefixes `cx.` / `cx:` are hard_reject on the current wire and in current identifiers (allowed only in CHANGELOG / migration docs / negative drift fixtures). HTTP paths additionally moved to the versionless trust-circle namespace `/_cokret/<segment>/...` (see sync/service-http-binding.md §2.1); the legacy flat paths and `/api/v1` / `/arkret/v1` prefixes are recorded in removed-operation-ids.json. Mechanical, single design decision; the entries below are representative seals, the rule applies to the whole token space.",
+    "brand_namespace_cx_to_ck": "Wire/brand namespace renamed from the legacy `contrix` brand to `arkret`. Every wire token prefix `cx.` becomes `ck.` and every typed-id prefix `cx:` becomes `ak:` across operation_id, event_kind, schema_id, capability action, id_kind, error code, vector id, and profile id. The bare brand strings `contrix` / `Contrix` and the token prefixes `cx.` / `cx:` are hard_reject on the current wire and in current identifiers (allowed only in CHANGELOG / migration docs / negative drift fixtures). HTTP paths additionally moved to the versionless trust-circle namespace `/_arkret/<segment>/...` (see sync/service-http-binding.md §2.1); the legacy flat paths and `/api/v1` / `/arkret/v1` prefixes are recorded in removed-operation-ids.json. Mechanical, single design decision; the entries below are representative seals, the rule applies to the whole token space.",
     "operation_id_trust_surface_segment": "Scheme B: operation_id now encodes its trust-surface classifier as the mandatory leading segment (ck.<surface>.<resource>.<action>, surface in {self,peer,edge,root,find,gate,open}), matching the HTTP path's first segment 1:1. 108 operations gain the surface prefix; peer.* were already compliant and ck.server.describe (pre-auth root meta, no surface segment) is the sole exception. grpc service names gain the PascalCase surface prefix and mq topics the lowercase surface segment in lockstep. Single design decision; entries are mechanical applications.",
     "agent_applet_interop_session_rename": "Agent and applet session surfaces renamed from the ambiguous `protocol_session` (which reads as the ambient Arkret protocol) to `interop_session`, naming the external agent-to-agent interop relationship. Event kinds ck.{agent,applet}.protocol_session.* -> ck.{agent,applet}.interop_session.*; the agent capability action namespace ck.agent.session.* (start/cancel/stream_status/attach_artifact/read_transcript) -> ck.agent.interop_session.*; the typed id and schema payload defs use the agent_interop_session_* / applet_interop_session_* short form. Single design decision.",
     "conformance_verifier_neutralization": "ServiceDescribe.verified_profiles neutralized away from the downstream tool name cotest: claim_kind enum value cotest_verified → conformance_verified, wire fields cotest_run_id → verification_run_id and cotest_issuer_did → verifier_did. The wire contract binds to the neutral Conformance Verifier role (conformance-suite.md §6.2); cotest survives only as an informative reference-implementation name in prose (3 entries).",
@@ -337,7 +337,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Grant constraint field contains concrete ck:view ids, not reference material."
+      "notes": "Grant constraint field contains concrete ak:view ids, not reference material."
     },
     {
       "id": "allowed_strand_refs",
@@ -351,7 +351,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Grant constraint field contains concrete ck:strand ids, not reference material."
+      "notes": "Grant constraint field contains concrete ak:strand ids, not reference material."
     },
     {
       "id": "allowed_circle_refs",
@@ -365,7 +365,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Grant constraint field contains concrete ck:circle ids, not reference material."
+      "notes": "Grant constraint field contains concrete ak:circle ids, not reference material."
     },
     {
       "id": "denied_strand_refs",
@@ -379,7 +379,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Grant constraint field contains concrete ck:strand ids, not reference material."
+      "notes": "Grant constraint field contains concrete ak:strand ids, not reference material."
     },
     {
       "id": "allowed_space_refs",
@@ -393,7 +393,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Grant constraint field contains concrete ck:space ids, not reference material."
+      "notes": "Grant constraint field contains concrete ak:space ids, not reference material."
     },
     {
       "id": "denied_space_refs",
@@ -407,7 +407,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Grant constraint field contains concrete ck:space ids, not reference material."
+      "notes": "Grant constraint field contains concrete ak:space ids, not reference material."
     },
     {
       "id": "realm_refs#grant_constraint",
@@ -422,7 +422,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Grant blob-presign scope contains concrete ck:realm ids, not reference material."
+      "notes": "Grant blob-presign scope contains concrete ak:realm ids, not reference material."
     },
     {
       "id": "approval_actor_refs",
@@ -3112,7 +3112,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Blob metadata digest field now uses content_digest with an algorithm prefix; ck:blob:sha256:<hex> remains valid as a content-addressed blob_ref.",
+      "notes": "Blob metadata digest field now uses content_digest with an algorithm prefix; ak:blob:sha256:<hex> remains valid as a content-addressed blob_ref.",
       "migration_group": "hash_to_digest_vocabulary"
     },
     {
@@ -4644,7 +4644,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Full-ciphertext retrieval requires a ck.schema.key_backup_unlock_proof.v1 object (key-management.md §7.7.1) but plain GET has no spec-conformant proof carrier (no request body; signature material in headers or query is forbidden by service-http-binding.md §2.2). Retrieval is rebound to POST /_cokret/self/keys/backups/{backup_id}/unlock with the proof in the request body; GET /_cokret/self/keys/backups/{backup_id} MUST NOT appear on current wire."
+      "notes": "Full-ciphertext retrieval requires a ck.schema.key_backup_unlock_proof.v1 object (key-management.md §7.7.1) but plain GET has no spec-conformant proof carrier (no request body; signature material in headers or query is forbidden by service-http-binding.md §2.2). Retrieval is rebound to POST /_arkret/self/keys/backups/{backup_id}/unlock with the proof in the request body; GET /_arkret/self/keys/backups/{backup_id} MUST NOT appear on current wire."
     },
     {
       "id": "ck.keys.backups.list",
@@ -5022,7 +5022,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Projection read namespace collapsed into the Realm resource surface (/_cokret/self/projection/spaces -> /_cokret/self/realms/{realm_id}/spaces); the projection-namespaced operation_id MUST NOT appear on current wire."
+      "notes": "Projection read namespace collapsed into the Realm resource surface (/_arkret/self/projection/spaces -> /_arkret/self/realms/{realm_id}/spaces); the projection-namespaced operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ck.self.projection.strands.query.list",
@@ -5036,7 +5036,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Projection read namespace collapsed into the Realm resource surface (/_cokret/self/projection/strands -> /_cokret/self/realms/{realm_id}/strands); the projection-namespaced operation_id MUST NOT appear on current wire."
+      "notes": "Projection read namespace collapsed into the Realm resource surface (/_arkret/self/projection/strands -> /_arkret/self/realms/{realm_id}/strands); the projection-namespaced operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ck.self.projection.morphs.query.list",
@@ -5050,7 +5050,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Projection read namespace collapsed into the Realm resource surface (/_cokret/self/projection/morphs -> /_cokret/self/realms/{realm_id}/morphs); the projection-namespaced operation_id MUST NOT appear on current wire."
+      "notes": "Projection read namespace collapsed into the Realm resource surface (/_arkret/self/projection/morphs -> /_arkret/self/realms/{realm_id}/morphs); the projection-namespaced operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ck.self.projection.document.resource.get",
@@ -5064,7 +5064,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Projection document read namespace collapsed into the Realm Morph resource surface (/_cokret/self/projection/documents/{morph_id} -> /_cokret/self/realms/{realm_id}/morphs/{morph_id}); the projection-namespaced operation_id MUST NOT appear on current wire."
+      "notes": "Projection document read namespace collapsed into the Realm Morph resource surface (/_arkret/self/projection/documents/{morph_id} -> /_arkret/self/realms/{realm_id}/morphs/{morph_id}); the projection-namespaced operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ck.push.notify",

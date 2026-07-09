@@ -12,7 +12,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-`morph`（`ck:morph:`）是 Arkret 协作图中的**开放形态对象**，用于承载协议未固化为标准类型的协作对象。它适合：
+`morph`（`ak:morph:`）是 Arkret 协作图中的**开放形态对象**，用于承载协议未固化为标准类型的协作对象。它适合：
 
 - 插件或业务自定义对象
 - 未来标准类型的实验阶段
@@ -30,7 +30,7 @@ Schema id: `ck.schema.morph.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:morph` | 以 `ck:morph:` 开头。 | Morph ID。 |
+| `id` | yes | `id:morph` | 以 `ak:morph:` 开头。 | Morph ID。 |
 | `schema` | yes | `ck.schema.morph.v1` | const。 | 容器 self-schema。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
 | `schema_refs` | yes | `array<string>` | 至少 1 项，唯一。 | `fields` 与 transition validation 的权威 schema 集合；`morph_type` / `facets` 不能替代。 |

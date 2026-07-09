@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-05",
+  "version": "2026-07-10",
   "codes": [
     {
       "code": "bad_json",
@@ -419,7 +419,7 @@
       "code": "cursor_expired",
       "http_status": 410,
       "scope": "endpoint",
-      "description": "The opaque cursor (ck:cursor:...) has a valid shape but its `x` expiry is in the past. Client MUST request a fresh cursor (initial /account/subscribe, /snapshot/head, or new write barrier)."
+      "description": "The opaque cursor (ak:cursor:...) has a valid shape but its `x` expiry is in the past. Client MUST request a fresh cursor (initial /account/subscribe, /snapshot/head, or new write barrier)."
     },
     {
       "code": "cursor_integrity_invalid",
@@ -851,7 +851,7 @@
       "code": "delivery_binding_unresolvable",
       "http_status": 409,
       "scope": "endpoint",
-      "description": "An accepted member delivery binding could not be resolved to a reachable recipient_service_did after the bounded retry limit; sender MUST NOT fall back to the DID Document CokretPrincipalServer entry. Surfaced to the upstream sender as a diagnostic after the second failure so it can quarantine pending events and await rebind. See zh/governance/join-policy.md \u00a75.1.4."
+      "description": "An accepted member delivery binding could not be resolved to a reachable recipient_service_did after the bounded retry limit; sender MUST NOT fall back to the DID Document ArkretPrincipalServer entry. Surfaced to the upstream sender as a diagnostic after the second failure so it can quarantine pending events and await rebind. See zh/governance/join-policy.md \u00a75.1.4."
     },
     {
       "code": "historical_only",
@@ -1456,6 +1456,23 @@
       "description": "A ck.realm.create event attempted to create a Realm id whose genesis cell is already set. Reducer MUST reject the duplicate create without rewriting create-locked fields."
     },
     {
+      "code": "realm_founding_grant_missing",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution"
+      ],
+      "description": "A ck.realm.create bootstrap batch did not place the required closed-form creator self founding grant immediately after the create event. Reducer MUST reject the entire bootstrap unit atomically without leaving Realm metadata or creator membership. See zh/models/realm-and-space.md section 2.5."
+    },
+    {
+      "code": "invalid_realm_founding_grant",
+      "applies_to": [
+        "event_envelope",
+        "state_resolution",
+        "auth_decision"
+      ],
+      "description": "The purported Realm founding grant was outside the ck.realm.create atomic bootstrap unit, did not target created_by, or widened the closed actions/resources/constraints shape. Reducer MUST reject it and, during bootstrap, roll back the entire unit. See zh/models/realm-and-space.md section 2.5 and zh/authz/capabilities.md section 3.2."
+    },
+    {
       "code": "realm_organization_authorization_invalid",
       "applies_to": [
         "event_envelope",
@@ -1961,7 +1978,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "The inception key age, computed independently by the receiver / Auth Server from the verifiable inception bootstrap timestamp (`did:webvh` entry-0 / continuity proof) against the local clock, exceeds the 24h protocol hard cap. The receiver MUST reject the `ck.device.authorize` / `ck.session.grant` / long-lived capability / ordinary DID update signed by that inception key regardless of any longer `inception_key_max_online_window` self-reported by deployment policy (key-management.md \u00a75)."
+      "description": "The inception key age, computed independently by the receiver / Auth Server from the verifiable inception bootstrap timestamp (`did:webvh` entry-0 / continuity proof) against the local clock, exceeds the 24h protocol hard cap. The receiver MUST reject the `ck.device.authorize` / `ak.session.grant` / long-lived capability / ordinary DID update signed by that inception key regardless of any longer `inception_key_max_online_window` self-reported by deployment policy (key-management.md \u00a75)."
     },
     {
       "code": "audit_release_binding_missing",
@@ -3256,6 +3273,14 @@
       "description": "A ck.moderation.appeal.decision event with verdict=overturn was accepted without a paired ck.moderation.decision.lift event in the same ordered submit batch or equivalent control transaction (targeting the original decision_ref). Reducer MUST reject; appeal overturn is only complete when the lift is observed atomically. See zh/governance/content-moderation.md \u00a75.5.2."
     },
     {
+      "code": "appeal_modify_missing_lift",
+      "applies_to": [
+        "schema_violation",
+        "state_resolution"
+      ],
+      "description": "A ck.moderation.appeal.decision event with verdict=modify did not atomically include both a ck.moderation.decision.lift for the original decision_ref and the replacement decision named by modify_decision_ref. Reducer MUST reject the whole batch so the old and replacement decisions cannot remain active together. See zh/governance/content-moderation.md \u00a75.5.2."
+    },
+    {
       "code": "appeal_self_review_forbidden",
       "applies_to": [
         "auth_decision"
@@ -3605,7 +3630,7 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition when an RRK durability seal cannot resolve a durability_policy.recovery_recipients[].verification_method to a verification method designated by an active CokretRealmHistoryRecoveryKey service entry published by the named principal_id. The sealer MUST fail closed and MUST NOT fall back to any other key. See zh/crypto-media/encryption-and-audit.md \u00a72.10.8 and zh/identity/identity-did.md \u00a78.3."
+      "description": "Sub-reason for failed_precondition when an RRK durability seal cannot resolve a durability_policy.recovery_recipients[].verification_method to a verification method designated by an active ArkretRealmHistoryRecoveryKey service entry published by the named principal_id. The sealer MUST fail closed and MUST NOT fall back to any other key. See zh/crypto-media/encryption-and-audit.md \u00a72.10.8 and zh/identity/identity-did.md \u00a78.3."
     },
     {
       "code": "durability_seal_missing_before_gc",
@@ -3687,7 +3712,7 @@
         "schema_validation",
         "state_resolution"
       ],
-      "description": "A PUT /_cokret/self/keys/backups/{backup_id} request whose `series_seq` is not strictly greater than the current maximum sequence within the same (actor_id, series_id), or whose genesis envelope sets series_seq != 0. See zh/crypto-media/device-lifecycle.md \u00a712.1."
+      "description": "A PUT /_arkret/self/keys/backups/{backup_id} request whose `series_seq` is not strictly greater than the current maximum sequence within the same (actor_id, series_id), or whose genesis envelope sets series_seq != 0. See zh/crypto-media/device-lifecycle.md \u00a712.1."
     },
     {
       "code": "series_predecessor_not_found",
@@ -4076,7 +4101,7 @@
         "schema_validation",
         "state_resolution"
       ],
-      "description": "Sub-reason for schema_violation when a ck.reaction.add / ck.reaction.remove target_ref points at an object kind that the deployment does not allow reactions on. v1 core only allows ck:message: targets; profiles MAY register additional target kinds. See zh/models/strand-and-message.md \u00a79.8.2."
+      "description": "Sub-reason for schema_violation when a ck.reaction.add / ck.reaction.remove target_ref points at an object kind that the deployment does not allow reactions on. v1 core only allows ak:message: targets; profiles MAY register additional target kinds. See zh/models/strand-and-message.md \u00a79.8.2."
     },
     {
       "code": "reaction_scope_mismatch",

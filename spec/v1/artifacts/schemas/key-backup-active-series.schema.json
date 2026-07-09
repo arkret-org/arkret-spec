@@ -154,7 +154,7 @@
     },
     "backup_series_id": {
       "type": "string",
-      "pattern": "^ck:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:backup_series:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "frontier_ref": {
       "type": "object",
@@ -168,7 +168,7 @@
         },
         "seal_ref": {
           "type": "string",
-          "pattern": "^ck:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
+          "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
         },
         "ssk_generation": {
           "type": "integer",

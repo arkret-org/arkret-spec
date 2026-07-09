@@ -59,7 +59,7 @@
         },
         "avatar_blob_ref": {
           "type": "string",
-          "pattern": "^ck:blob:[A-Za-z0-9._:-]+$"
+          "pattern": "^ak:blob:[A-Za-z0-9._:-]+$"
         }
       },
       "additionalProperties": false

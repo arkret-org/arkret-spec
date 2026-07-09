@@ -18,7 +18,7 @@ sidebar:
 
 Arkret 是模块化协议。为了避免“实现了 Arkret”变成不可验证的模糊声明，规范 MUST 定义可测试的实现 profile。
 
-每个实现 MUST 声明自己支持的 profile、协议版本和 feature 集合。  
+每个实现 MUST 声明自己支持的 profile、协议版本和 feature 集合。
 Conformance 测试 SHOULD 以 profile 为单位执行。
 
 Profile / capability 声明也是异构版本互通的协商基础：兼容性是双方声明能力的交集，未声明的 extension 能力 MUST fail closed。该机制在协议演进中的整体角色见 [overview/evolution-and-compatibility.md](../overview/evolution-and-compatibility.md) §5。
@@ -49,7 +49,7 @@ ck.profile.<name>.v<major>
 | --- | --- | --- |
 | Minimal interop floor | 仅声称 v1 Event Store interop 时的最小声明。 | `ck.profile.core_event_store.v1`：Event Envelope、per-actor event chain、events submit/get/list/frontier/backfill、标准错误。 |
 | Stable profile catalog | v1 stable catalog 中可独立声明的实现 profile，不构成默认全量包。 | `chat_mvp`、`kanban_mvp`、`minimal_client`、`full_client`、`principal_server`、`identity_registry`、`blob_node`、`push_gateway`、`federation_minimal`、`sovereign_client` 等。 |
-| Extension（v1 lattice / interop） | 在 v1 stable catalog 中可独立声明，但**只在显式 opt-in 时启用**。未声明的实现遇到这些能力 MUST fail closed。 | `ck.profile.collaborative_text.v1`（lww_register / rga lattice 扩展）、`ck.profile.matrix_compat.v1`（Matrix 兼容声明：to-device / `/_cokret/self/keys/*` / push gateway / cross-signing / SAS 与 Matrix 等价语义；账号聚合不声明 Matrix `/sync` wire parity）。 |
+| Extension（v1 lattice / interop） | 在 v1 stable catalog 中可独立声明，但**只在显式 opt-in 时启用**。未声明的实现遇到这些能力 MUST fail closed。 | `ck.profile.collaborative_text.v1`（lww_register / rga lattice 扩展）、`ck.profile.matrix_compat.v1`（Matrix 兼容声明：to-device / `/_arkret/self/keys/*` / push gateway / cross-signing / SAS 与 Matrix 等价语义；账号聚合不声明 Matrix `/sync` wire parity）。 |
 | Interop staging extension | **不属于 v1 core interop floor**，跟踪外部演进标准；声明 v1 core 的实现 MAY 完全省略。 | MIMI interop、Applet integration、Agent protocol bridge、TSP integration 等；这些 profile 在外部标准定型后将被稳定版本固定取代。 |
 
 Document、File、Poll 在 v1 MVP 中默认是 Morph profile 或 extension profile，不是 core 标准对象。实现不得因为未来可能标准化这些类型，就在 v1 wire contract 中要求对端支持专用对象类型。
@@ -253,7 +253,7 @@ MUST 支持：
 
 - subscribe / sync stream
 - backfill
-- account-aggregate streaming subscription (`GET /_cokret/self/account/subscribe`)
+- account-aggregate streaming subscription (`GET /_arkret/self/account/subscribe`)
 - cursor stability
 - duplicate suppression
 - encrypted payload forwarding
@@ -300,9 +300,9 @@ SHOULD 支持：
 MUST 支持：
 
 - service describe（`ck.server.query.describe`）
-- `ck.gate.account.command.issue_session_grant` / `/_cokret/gate/account/session-grants` 的规范化签发路径
+- `ck.gate.account.command.issue_session_grant` / `/_arkret/gate/account/session-grants` 的规范化签发路径
 - 至少一种登录因子（password / passkey / OIDC / SSO / device pairing / recovery challenge）
-- 短期、audience-bound `ck.session.grant` 签发
+- 短期、audience-bound `ak.session.grant` 签发
 - session_grant TTL 上限远低于 Realm policy review horizon（minutes-to-hours，不得跨越多日）
 - session_grant audience 绑定与拒签陌生 audience
 - `auth_metadata.account_authority`、`auth_metadata.methods[]`、`auth_metadata.did_binding_methods`
@@ -483,7 +483,7 @@ SHOULD 支持：
 
 ### 15.1 Sender-constrained 会话出示
 
-依据 [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700)（OAuth 2.0 Security BCP, BCP 240）"优先使用 sender-constrained token" 的指导，Arkret v1 production protected endpoint 的会话出示必须是 proof-of-possession（PoP）：`/_cokret/self/*` 使用 `ck.session.grant` + DPoP，常规写与敏感读使用会话 `session_public_key` 的 RFC 9421 HTTP Message Signature 或等价 sender-constrained proof。裸 `Authorization: Bearer` 可作为 DPoP / PoP 绑定中的 grant 载体，但不能单独作为受保护 endpoint 的认证成功依据（见 [`../sync/api-conventions.md` §3.2](../sync/api-conventions.md)）。
+依据 [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700)（OAuth 2.0 Security BCP, BCP 240）"优先使用 sender-constrained token" 的指导，Arkret v1 production protected endpoint 的会话出示必须是 proof-of-possession（PoP）：`/_arkret/self/*` 使用 `ak.session.grant` + DPoP，常规写与敏感读使用会话 `session_public_key` 的 RFC 9421 HTTP Message Signature 或等价 sender-constrained proof。裸 `Authorization: Bearer` 可作为 DPoP / PoP 绑定中的 grant 载体，但不能单独作为受保护 endpoint 的认证成功依据（见 [`../sync/api-conventions.md` §3.2](../sync/api-conventions.md)）。
 
 在高安全 deployment profile 下，常规写与敏感读的 sender-constrained 出示必须使用 RFC 9421 HTTP Message Signature 形态并绑定 transcript/body。涉及的 profile 与其 `conformance-profiles.json#profile_requirements` 中的 `additional_requirements.sender_constrained_session_pop_must` 一一对应：
 
@@ -491,7 +491,7 @@ SHOULD 支持：
 - `ck.profile.sovereign_deployment.v1`（`ck.profile.sovereign_enclave.v1` 经 `inherits` 继承）
 - `ck.profile.isolated_sovereign_network.v1`（经 `inherits` 同时继承上述两者，无需重复声明）
 
-这些 profile 下，对常规写（任何推进 `actor_seq` / Realm frontier 或产生持久副作用的请求）与敏感读，实现 MUST 要求 RFC 9421 PoP 出示：签名密钥为 `ck.session.grant` 委托的 `session_public_key`，覆盖 `@method` / `@target-uri` / `@authority`、`content-digest`（带 body 时）与参与幂等的 `Idempotency-Key`，`created` / `expires` 落在既有 replay window 内（量级见 [`../sync/federation.md` §3.2](../sync/federation.md) 与 [`encoding.md` §6](./encoding.md)）。纯 `Authorization: Bearer`（无 DPoP / `Signature` / mTLS 绑定）对任何生产 current-v1 受保护 endpoint MUST 被拒绝；公开 metadata surface 若返回 public response，必须按未认证请求处理，不得授予 session / capability 语义。header 形态见 [`../sync/service-http-binding.md` §2.5](../sync/service-http-binding.md)。
+这些 profile 下，对常规写（任何推进 `actor_seq` / Realm frontier 或产生持久副作用的请求）与敏感读，实现 MUST 要求 RFC 9421 PoP 出示：签名密钥为 `ak.session.grant` 委托的 `session_public_key`，覆盖 `@method` / `@target-uri` / `@authority`、`content-digest`（带 body 时）与参与幂等的 `Idempotency-Key`，`created` / `expires` 落在既有 replay window 内（量级见 [`../sync/federation.md` §3.2](../sync/federation.md) 与 [`encoding.md` §6](./encoding.md)）。纯 `Authorization: Bearer`（无 DPoP / `Signature` / mTLS 绑定）对任何生产 current-v1 受保护 endpoint MUST 被拒绝；公开 metadata surface 若返回 public response，必须按未认证请求处理，不得授予 session / capability 语义。header 形态见 [`../sync/service-http-binding.md` §2.5](../sync/service-http-binding.md)。
 
 ## 16. Sovereign Client
 
@@ -602,8 +602,8 @@ SHOULD 支持：
 `ck.profile.personal_agent_provisioning.v1` 注册 controller-面的 personal native agent management surface,扩展 `ck.profile.agent_runtime.v1`。
 
 MUST 支持:
-- `POST /_cokret/self/agents` (`ck.self.agent.command.provision`) 编排 Actor Profile + `ck.identity.accountability_grant` + 初始 `ck.capability.grant`(带 `effective_after_first_authorized_key=true` flag)+ pairing request
-- `POST /_cokret/gate/account/agent-key-pair` (`ck.gate.account.command.pair_agent_key`) 校验 `verification_method` 与 `agent_principal_id` 一致性后写入 `ck.agent.key.authorize`,清除 effective_after_first_authorized_key
+- `POST /_arkret/self/agents` (`ck.self.agent.command.provision`) 编排 Actor Profile + `ck.identity.accountability_grant` + 初始 `ck.capability.grant`(带 `effective_after_first_authorized_key=true` flag)+ pairing request
+- `POST /_arkret/gate/account/agent-key-pair` (`ck.gate.account.command.pair_agent_key`) 校验 `verification_method` 与 `agent_principal_id` 一致性后写入 `ck.agent.key.authorize`,清除 effective_after_first_authorized_key
 - Provisioning `status` 枚举:`pending_runtime_key` / `active` / `paused` / `pairing_expired` / `deactivated`
 - Pairing expiry 自动 `ck.capability.revoke` pending grants
 - Agent management operations(list/get/pause/resume/deactivate/rotate-key/grant attach/detach)写入 durable lifecycle events
@@ -626,7 +626,7 @@ MUST NOT:
 `ck.profile.agent_auth.v1` 注册 agent runtime 的 authentication surface,与 `ck.profile.personal_agent_provisioning.v1` 解耦。
 
 MUST 支持:
-- 复用 `POST /_cokret/gate/account/session-grants` 通过 `proof.proof_kind="agent_key_proof"` 分支
+- 复用 `POST /_arkret/gate/account/session-grants` 通过 `proof.proof_kind="agent_key_proof"` 分支
 - 独立 schema branch、独立 proof validator、独立 returned scope(交集 from agent key authorization / capability grant / Realm policy / requested scope)
 - `agent_scope_request` overlay 与 `scope_details` response overlay
 - key proof 绑定 `challenge`(也充当 per-request nonce,服务端 MUST 在 replay window 内拒绝同值) / `audience` / `request_canonical_digest` / agent principal(由 `principal_id` + `proof.verification_method` 一致性 enforced) / `expires_at`。Wire 不引入独立的 `nonce` 字段；agent proof schema 仅有 `challenge`,它就是 nonce 概念的承载者
@@ -659,7 +659,7 @@ MUST NOT:
 `ck.profile.agent_sidecar_thread.v1` 注册 controller 与 controller 的 native AI agents 之间的私聊上下文线程。依赖 Circle profile 与 personal agent provisioning / auth profiles。
 
 MUST 支持:
-- `POST /_cokret/self/agent-sidecar-threads:ensure` (`ck.self.agent.sidecar_thread.command.ensure`) idempotent operation,返回 `{ok, private_circle_id, private_strand_id, private_relation_id, pending_member_reconciliations?}`
+- `POST /_arkret/self/agent-sidecar-threads:ensure` (`ck.self.agent.sidecar_thread.command.ensure`) idempotent operation,返回 `{ok, private_circle_id, private_strand_id, private_relation_id, pending_member_reconciliations?}`
 - `context_ref` polymorphic descriptor(`relation_id` 单独 / `strand_id` 加可选 `track_name` + 可选 seal)
 - Closed request schema(reject unknown top-level fields)
 - Fixed reuse:Strand `(controller_principal_id, normalized_context_ref)`、Circle `(realm_id, controller_principal_id)`
@@ -937,7 +937,7 @@ MIMI Interop profile MUST 额外提供：
 - `applet_service`
 - `mimi_interop`
 
-`full_client` 和 `e2ee_client` 是产品可用性的目标 profile。  
+`full_client` 和 `e2ee_client` 是产品可用性的目标 profile。
 `enterprise_client` 和 `agent_runtime` 是高价值扩展 profile，但不应阻塞基础互操作。
 
 ## 23. 库 / SDK 一致性说明

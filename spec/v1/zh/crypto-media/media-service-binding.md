@@ -34,22 +34,22 @@ sidebar:
       "turn",
       "sfu"
     ],
-    "ice_config_endpoint": "https://media.example.com/_cokret/self/rtc/ice-config",
+    "ice_config_endpoint": "https://media.example.com/_arkret/self/rtc/ice-config",
     "foci": [
       {
         "focus_id": "fra-1",
         "type": "livekit",
         "region": "eu-fra",
-        "token_endpoint": "https://media.example.com/_cokret/self/rtc/token",
+        "token_endpoint": "https://media.example.com/_arkret/self/rtc/token",
         "connect_url": "wss://livekit-fra.example.com",
         "capabilities": ["audio", "video", "screen", "e2ee_sframe"],
-        "health_endpoint": "https://media.example.com/_cokret/self/rtc/health/fra-1"
+        "health_endpoint": "https://media.example.com/_arkret/self/rtc/health/fra-1"
       },
       {
         "focus_id": "us-east-1",
         "type": "livekit",
         "region": "us-east",
-        "token_endpoint": "https://media.example.com/_cokret/self/rtc/token",
+        "token_endpoint": "https://media.example.com/_arkret/self/rtc/token",
         "connect_url": "wss://livekit-use.example.com",
         "capabilities": ["audio", "video", "screen", "e2ee_sframe"],
         "cascade_group": "livekit-cloud-mesh-a"
@@ -276,7 +276,7 @@ Conformance vectors for the full media binding framework：
 - `ck.vector.media_binding.participant_binding_required.v1` — 缺失或签名无效的 `participant_binding` 必须拒绝。
 - `ck.vector.media_binding.unknown_type_fail_closed.v1` — §2 未知 `foci[].type` MUST fail closed。
 - `ck.vector.media_binding.participant_identity_unrecognised.v1` — §7 backend 通知的 participant 不在 `ck.call.state` 时拒绝该流。
-- `ck.vector.media_binding.recording_artifact_via_cokret_blob.v1` — [`call-state.md` §5](./call-state.md) backend-generated recording 必须经 Arkret blob pipeline。
+- `ck.vector.media_binding.recording_artifact_via_arkret_blob.v1` — [`call-state.md` §5](./call-state.md) backend-generated recording 必须经 Arkret blob pipeline。
 - `ck.vector.media_binding.recording_exporter_label.v1` — backend-generated recording 必须使用 `"ck-rtc-recording-key/v1"` 与绑定 recording transcript 的 Context，不得复用 SFrame key label。
 
 ### 8.2 治理绑定（normative）

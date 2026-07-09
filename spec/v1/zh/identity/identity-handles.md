@@ -113,7 +113,7 @@ Handle 分两层：**显示形态**面向用户，**canonical handle** 面向协
 
 `handle` 的 wire 形态由 [`artifacts/schemas/handle-claim.schema.json`](../../artifacts/schemas/handle-claim.schema.json) 强制：必须匹配 `<localpart>:<domain>`，且 `<localpart>` 已 canonicalize 为小写。`@<localpart>:<domain>`、`<localpart>@<domain>`、`acct:`、裸 host 等其它形态在 `handle` 中被 schema 拒绝；客户端 MAY 接受这种字符串作为输入捷径，但 normalize 前 MUST NOT 出现在签名 transcript、`alsoKnownAs`、缓存键或 Directory query 中。`acct:` 互通别名只能进入 `handle_aliases[]`。
 
-**与 realm alias 的关系（normative）**：handle 的 `@` sigil 与 realm alias 的 `#` sigil（见 [`discovery/object-addressing.md` §3.3](../discovery/object-addressing.md)）构成同一套人类短地址体系：两者 canonical 形态同为 `<localpart>:<domain>`（不含 sigil），但占据**不相交命名空间**——handle 经 `resolve_handle` 解析为 holder / principal DID，realm alias 经 `resolve_realm` 解析为 `ck:realm:<uuid>`。同一 `<localpart>:<domain>` MAY 同时是一个 handle 与一个 realm alias；协议**不要求**二者全局唯一，sigil 在显示 / 输入期区分类型，线上字段凭其类型上下文消歧。`@` 与 `#` 均为展示 + 输入路由 affordance，strip 后才进 wire。
+**与 realm alias 的关系（normative）**：handle 的 `@` sigil 与 realm alias 的 `#` sigil（见 [`discovery/object-addressing.md` §3.3](../discovery/object-addressing.md)）构成同一套人类短地址体系：两者 canonical 形态同为 `<localpart>:<domain>`（不含 sigil），但占据**不相交命名空间**——handle 经 `resolve_handle` 解析为 holder / principal DID，realm alias 经 `resolve_realm` 解析为 `ak:realm:<uuid>`。同一 `<localpart>:<domain>` MAY 同时是一个 handle 与一个 realm alias；协议**不要求**二者全局唯一，sigil 在显示 / 输入期区分类型，线上字段凭其类型上下文消歧。`@` 与 `#` 均为展示 + 输入路由 affordance，strip 后才进 wire。
 
 ### 3.2 解析结果必含字段
 
@@ -338,7 +338,7 @@ Handle 的 issuer 决定它的信任锚点；同一 canonical handle 形态可�
 
 | Issuer 类型 | 典型场景 | 验证锚点 |
 | --- | --- | --- |
-| **Holder DID（self-issued）** | 用户自己控制 `<domain>`，自己运营单用户 Principal Server 或 well-known endpoint。例：`@alice:alice.dev` 由 Alice 的 DID 签发。 | (a) `<domain>` 解析 `https://<domain>/.well-known/arkret/handle?localpart=<localpart>` 或 DNS TXT `_cokret.<domain>` 返回签名 handle claim；(b) holder DID Document `alsoKnownAs` 含对应 `<localpart>:<domain>`；两侧均验签通过。 |
+| **Holder DID（self-issued）** | 用户自己控制 `<domain>`，自己运营单用户 Principal Server 或 well-known endpoint。例：`@alice:alice.dev` 由 Alice 的 DID 签发。 | (a) `<domain>` 解析 `https://<domain>/.well-known/arkret/handle?localpart=<localpart>` 或 DNS TXT `_arkret.<domain>` 返回签名 handle claim；(b) holder DID Document `alsoKnownAs` 含对应 `<localpart>:<domain>`；两侧均验签通过。 |
 | **Organization DID** | 组织把 handle 签发给员工或受管成员。例：`@alice:acme.example` 由 `did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example` 签发给 Alice 个人 DID。 | issuer claim + holder DID Document `alsoKnownAs`（公开 handle）或受限 presentation；audience / scope 限定到目标 Realm / 组织。 |
 | **Principal Server service DID** | Principal Server 为它承载的用户签发 handle。例：托管平台 `did:webvh:z3omZGak5a5es84Ph2kfPs4UP:principal.acme.example`。 | claim 由 service DID 签发，service DID 由 Organization DID 委派（DID Document service entry 或 governance attestation）；最终归约到 Organization 信任根。 |
 | **受信 Directory DID** | 公共 Directory 索引 handle 并发放短期 routable claim。 | Directory claim + 上游 `source_refs`；Directory 是镜像层，不是真相源。 |
@@ -380,7 +380,7 @@ Handle 按 holder 披露意图分两类：
 | `audience` | string | MUST | 目标 Realm ID 或邀请方 service DID；verifier MUST 校验 audience 与当前 invocation 上下文一致。 |
 | `issued_at` | timestamp | MUST | RFC 3339 `Z` 形式；issuer 签发该 candidate 的时刻。MUST ≤ `expires_at`；与 `expires_at` 一起界定 candidate 的有效窗口并阻止 MITM 把 `issued_at` 改写以扩大重放窗口。 |
 | `expires_at` | timestamp | MUST | RFC 3339 `Z` 形式；过期 candidate MUST 被视为不可用。 |
-| `source_refs[]` | event id 数组 | MUST | 至少一条 `ck:event:<uuid7>`，指向 issuer / Directory / Organization 真相源 event；客户端 SHOULD 据此回真相源验签。 |
+| `source_refs[]` | event id 数组 | MUST | 至少一条 `ak:event:<uuid7>`，指向 issuer / Directory / Organization 真相源 event；客户端 SHOULD 据此回真相源验签。 |
 | `proofs[]` | proof 数组 | MUST | 至少一条 proof，绑定 `handle`、`subject_id`、`member_delivery_binding.recipient_service_did`、`audience`、`issuer_service_did`、`issued_at` 与 `expires_at`。`issued_at` MUST 进入 canonical transcript；缺失即视为重放窗口可篡改并拒绝。 |
 | `claim_digest` | `sha256:<hex>` | SHOULD | candidate 上游 handle claim 的 canonical JSON digest，用于缓存键与 audit chain。 |
 | `intent` | enum | MUST | `member_add` / `invite`，区分 candidate 的 builder 入口；reducer 不依赖该字段，仅用于审计与遥测。 |
@@ -602,8 +602,8 @@ Handle 解析分为两个方向：
      - 受限 handle claim MUST 经 requester / audience 授权后才可由 well-known 返回。授权证据 MAY 是 bearer session、DPoP/device proof、Directory `claim_presentations[]`、Realm invitation / membership context 或 issuer 本地 policy 可验证的等价证明；缺失或验证失败时按上一条不可区分拒绝处理。
      - **纯 resolver（只索引 / 转发、自身签不了 handle claim 的服务）MUST NOT 占用该路径返回未签名的 issuer-probe 结果。** 纯 resolver 在 `.well-known/arkret/handle` 的合规行为只有两种：(a) **不提供该端点 / 返回 `404`**；或 (b) **显式委托**到上游可签发 issuer（例如 HTTP 重定向到该 issuer 的 well-known，或在响应中给出可独立验签的上游 `source_refs` 指向 signed claim）。它 MUST NOT 在该路径返回任何未签名的 handle / subject / probe payload——否则 verifier 会把一个签不了 claim 的服务误当 issuer，污染 §5 的 issuer 选择与 §6 的双向验证。
      - resolver 想暴露"这个 handle 我索引到哪个 subject / issuer"这类 **issuer-probe / 索引查询**，MUST 走产品私有面（私有 API、内部 directory query 等），不得借用 `.well-known/arkret/handle`。需要被 Arkret verifier 采信时，走第 3 步 signed Directory response（`ck.schema.handle_claim.v1` + `source_refs`），而不是未签名 probe。
-2. **DNS TXT**：`_cokret.<domain>` 或 `_cokret.<localpart>.<domain>`。仅当 DNSSEC validation 成功**且** TXT 内含可验证签名时才能作为 issuer 通道；裸 DNS TXT 只是发现 hint。
-3. **Directory / Organization 服务**：`POST /_cokret/find/directory/resolve-handle`（[`discovery/discovery-directory.md` §9.0](../discovery/discovery-directory.md)）或 `POST /_cokret/find/directory/list-handles-for-subject`（已知 subject 时）。response 仍是签名 `ck.schema.handle_claim.v1`。
+2. **DNS TXT**：`_arkret.<domain>` 或 `_arkret.<localpart>.<domain>`。仅当 DNSSEC validation 成功**且** TXT 内含可验证签名时才能作为 issuer 通道；裸 DNS TXT 只是发现 hint。
+3. **Directory / Organization 服务**：`POST /_arkret/find/directory/resolve-handle`（[`discovery/discovery-directory.md` §9.0](../discovery/discovery-directory.md)）或 `POST /_arkret/find/directory/list-handles-for-subject`（已知 subject 时）。response 仍是签名 `ck.schema.handle_claim.v1`。
 4. **Bridge / 外部 issuer**：当 handle 来自 bridge 或外部体系（例如组织自有 IDP），claim 由该体系签发并通过 §7 VC presentation 出示。
 
 解析结果 MUST 包含 §3.2 列出的字段；audience / scope / expiry 决定使用范围。multiple issuer 同时签发同一 handle 时，verifier 按本地 trust policy 选最严格者；issuer 之间冲突（不同 `subject`）MUST fail closed 并交人工处理。
@@ -808,7 +808,7 @@ DID Document MUST NOT 被用作跨组织身份画像。公开或半公开 DID Do
 1. Alice 为 Google 关系使用 `did:key:z6Mkgpairwise...`
 2. Alice 为 Facebook 关系使用 `did:key:z6Mkfpairwise...`
 3. 两个 DID MUST NOT 复用相同 verification method、专用 service endpoint、endpoint 用户名、`alsoKnownAs` 或公开 profile URL
-4. Google 或受信 issuer 给 `did:key:z6Mkgpairwise...` 签发 `CokretOrgMembershipCredential`
+4. Google 或受信 issuer 给 `did:key:z6Mkgpairwise...` 签发 `ArkretOrgMembershipCredential`
 5. Facebook 或受信 issuer 给 `did:key:z6Mkfpairwise...` 签发独立 credential
 6. 面向 Google verifier 时，wallet 只生成 Google 相关 presentation
 7. Google verifier MUST NOT 要求披露 Facebook credential、Facebook DID 或跨域 subject identifier
@@ -819,7 +819,7 @@ DID Document MUST NOT 被用作跨组织身份画像。公开或半公开 DID Do
 
 ```json
 {
-  "type": ["verifiable_credential", "cokret_org_membership_credential"],
+  "type": ["verifiable_credential", "arkret_org_membership_credential"],
   "issuer": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
   "credentialSubject": {
     "id": "did:key:z6Mkgpairwise...",
@@ -855,7 +855,7 @@ Verifier MUST 使用最小披露请求，不得请求“所有 alias”或“所
 
 ```json
 {
-  "type": "cokret_presentation_request",
+  "type": "arkret_presentation_request",
   "audience": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
   "domain": "google.example",
   "challenge": "ck_chal_01J...",
@@ -865,7 +865,7 @@ Verifier MUST 使用最小披露请求，不得请求“所有 alias”或“所
   ],
   "required_claims": [
     {
-      "type": "cokret_org_membership_credential",
+      "type": "arkret_org_membership_credential",
       "constraints": {
         "org": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
         "member": true
@@ -920,7 +920,7 @@ Capability policy MAY 依赖 verified claim，但 grant subject 仍然是 DID。
 
 ```text
 grant subject = did:key:z6Mkgpairwise...
-condition = has valid cokret_org_membership_credential where org = did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example
+condition = has valid arkret_org_membership_credential where org = did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example
 ```
 
 错误：
@@ -975,7 +975,7 @@ grant subject = alice@google.com
   "accepted_issuers": ["did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example"],
   "required_claims": [
     {
-      "claim_type": "cokret_org_membership_credential",
+      "claim_type": "arkret_org_membership_credential",
       "constraints": {
         "org": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
         "member": true
@@ -1107,7 +1107,7 @@ Service authorization claim 示例：
   "issuer": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
   "subject": "did:webvh:zGZ728E4hbEuyDPggPzuioG6n:login.google.example",
   "claim_type": "org_service_authorization",
-  "service": "cokret_verifier",
+  "service": "arkret_verifier",
   "expires_at": "2026-07-26T00:00:00Z"
 }
 ```
@@ -1204,12 +1204,12 @@ Verifier MUST：
   **NFC / UTS#39 检测的作用层与 schema ASCII pattern 的关系(normative，消歧)**：上述 NFC normalization 与 UTS#39 confusable / script-mixing 检测 MUST 作用于 IDNA 转换**之前**的 **U-label**(用户可见的 Unicode 形态，可能含非 ASCII 字符)——这是 homograph 攻击的实际载体。检测通过后，`<domain>` MUST 经 IDNA2008(ToASCII)转为 **A-label**(punycode,`xn--` 前缀的纯 ASCII),`<localpart>` 经本节 lowercase canonical 规则归一为受限 ASCII；只有该 ASCII canonical 形态才是进入 `ck.schema.handle_claim.v1` 等 wire claim `handle` 字段、并由 [`handle-claim.schema.json`](../../artifacts/schemas/handle-claim.schema.json) ASCII-only pattern 校验的值。因此 schema pattern 是 ASCII-only **不是**与 §17 检测矛盾，而是有意分层:UTS#39 confusable 折叠在 U-label 上做(schema 校验不到、也不应在 wire canonical handle 上重复执行),schema pattern 只兜底"进入 wire 的 handle 已是受限 ASCII canonical 形态"。实现 MUST NOT 把含非 ASCII 字符的 U-label 直接作为 wire `handle` 提交(会被 schema 拒绝)，亦 MUST NOT 因 schema 通过就跳过 U-label 阶段的 NFC / UTS#39 检测。
 - **Handle 字符串的 wire-level 作用域**（normative）：handle 字符串作为 wire-level **权威字段**（actor reference、authorization subject、audit attribution、解析输入）MUST 只在以下三类位置出现：
   1. **Handle claim lifecycle 对象与 issuer / Auth Server 本地管理请求**：`ck.schema.handle_claim.v1`、issuer / Auth Server 定义的申请、审批、重签、撤销、Directory withdraw、handle reassignment 等显式管理 handle 生命周期的请求、响应、签名 claim 与 audit receipt。这些管理 API 不属于 Arkret v1 core，但一旦在 Arkret wire 上作为 claim evidence 被消费，必须产出可验证的 `ck.schema.handle_claim.v1` 或明确的 revocation / audit evidence。
-  2. **Discovery / Directory query 请求与响应**：`/.well-known/arkret/handle?localpart=...`、`POST /_cokret/find/directory/resolve-handle`、`POST /_cokret/find/directory/list-handles-for-subject` 等解析路径的输入与输出。
+  2. **Discovery / Directory query 请求与响应**：`/.well-known/arkret/handle?localpart=...`、`POST /_arkret/find/directory/resolve-handle`、`POST /_arkret/find/directory/list-handles-for-subject` 等解析路径的输入与输出。
   3. **客户端入口解析瞬间**：用户键入 handle 字符串到客户端 → 客户端解析为 `subject_id` 的临时过程；解析完成后 handle 字符串 MUST NOT 作为权威字段写入持久化事件、Realm history、grant 记录、ACL 表或缓存键以外的存储。
 
   以下位置是**允许的派生投影 / audit 例外**，handle 字符串在其中不构成权威源：
 
-  - **Roster 内联 handle claim evidence**：`/_cokret/self/account/subscribe` 的 `members[].handle_claims[]` MAY 携带完整签名 `ck.schema.handle_claim.v1`，用于 roster / member picker / mention autocomplete 的本地 claim cache。这里的 handle 字符串属于 claim 本身，不是 roster 自造字段；issuer 重新签发或撤销后，roster digest / claim set 必须随之变化。该 evidence 只能在同一 roster entry 已披露 `subject_id` 时返回；未披露 `subject_id` 时，`handle_claims[]`、`handle_claim_digests[]` 与 `handle_claims_limited` 都必须省略。
+  - **Roster 内联 handle claim evidence**：`/_arkret/self/account/subscribe` 的 `members[].handle_claims[]` MAY 携带完整签名 `ck.schema.handle_claim.v1`，用于 roster / member picker / mention autocomplete 的本地 claim cache。这里的 handle 字符串属于 claim 本身，不是 roster 自造字段；issuer 重新签发或撤销后，roster digest / claim set 必须随之变化。该 evidence 只能在同一 roster entry 已披露 `subject_id` 时返回；未披露 `subject_id` 时，`handle_claims[]`、`handle_claim_digests[]` 与 `handle_claims_limited` 都必须省略。
   - **Mention reference 的 audit metadata**：§3.8.1 定义的 `handle_at_time`、`display_name_at_time`、`controller_subject_id`、`controller_handle_at_time`、`agent_slug_at_time`、`mention_text_original` MAY 出现在 mention / profile reference 等位置，但仅作为 audit / search / fallback 元数据，不参与权威决策（见 §3.8.3）。
 
   `@<controller-handle>/<agent_slug>` 是客户端入口解析瞬间允许的 native personal agent 输入别名；它不是 canonical handle、公开 Directory 搜索 / 列表索引键或 handle claim 形态。客户端 MUST 用 controller handle claim 加 `ck.schema.agent_selector_claim.v1` 把它解析为 agent `subject_id`，未能唯一解析时 fail closed。Agent selector claim 复用 handle 层的 issuer proof、visibility、audience、expiry 与 revocation 姿态，但不改变 canonical handle ABNF，也不得把 `agent_slug` 拼进 `ck.schema.handle_claim.v1.handle`。

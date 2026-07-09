@@ -18,7 +18,7 @@
     "principal_id": { "$ref": "#/$defs/did" },
     "trust_domain": {
       "type": "string",
-      "pattern": "^ck:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$",
+      "pattern": "^ak:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$",
       "description": "Deployment-scope trust domain identifier. MUST match the receiver's current trust_domain and enters the PSK binding transcript so a publish from deployment A cannot be replayed into deployment B."
     },
     "principal_signing_key": { "$ref": "#/$defs/published_key" },

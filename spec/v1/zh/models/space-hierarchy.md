@@ -12,7 +12,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-Space hierarchy 是 Arkret 的产品结构层：组织、workspace、project、folder、board、list、section、calendar bucket 等都可以用 `ck:space:` 节点表达。
+Space hierarchy 是 Arkret 的产品结构层：组织、workspace、project、folder、board、list、section、calendar bucket 等都可以用 `ak:space:` 节点表达。
 
 Space hierarchy 可以跨 Realm 导航，但不改变 Realm 边界。Realm 决定谁能接收事件、读历史、解密内容和参与 federation；Space 决定对象在产品结构中位于哪里。
 
@@ -42,7 +42,7 @@ Space hierarchy 可以跨 Realm 导航，但不改变 Realm 边界。Realm 决�
 Reducer 编译为：
 
 ```text
-cell_id := ck:cell:ck.component.space.parent.v1:<space_id>
+cell_id := ak:cell:ck.component.space.parent.v1:<space_id>
 lattice := cas_register
 bottom  := reject
 effect  := set <parent_space_id | null>

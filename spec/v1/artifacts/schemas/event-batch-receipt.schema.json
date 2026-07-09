@@ -19,7 +19,7 @@
     },
     "receipt_id": {
       "type": "string",
-      "pattern": "^ck:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "issuer": {
       "$ref": "./event-envelope.schema.json#/$defs/did"

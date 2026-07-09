@@ -16,7 +16,7 @@
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
       "const": "ck.schema.space.v1"
@@ -43,7 +43,7 @@
     },
     "parent_space_id": {
       "type": "string",
-      "pattern": "^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Optional parent in the structural hierarchy. Parent MAY live in a different Realm; such a link is navigation only and never propagates membership, capabilities, history, E2EE keys, retention, or federation policy."
     },
     "kind": {
@@ -82,7 +82,7 @@
     },
     "fields": {
       "type": "object",
-      "description": "Space kind-specific fields, e.g., { 'wip_limit': 5 } for kind=list, { 'view_id': 'ck:view:...' } for kind=board's default view. MUST NOT contain a 'rank' key (rank is a top-level Space field; see relation.md §2 for the symmetric Relation constraint and forbidden-wire-fields.json `fields.rank/space_payload`).",
+      "description": "Space kind-specific fields, e.g., { 'wip_limit': 5 } for kind=list, { 'view_id': 'ak:view:...' } for kind=board's default view. MUST NOT contain a 'rank' key (rank is a top-level Space field; see relation.md §2 for the symmetric Relation constraint and forbidden-wire-fields.json `fields.rank/space_payload`).",
       "not": {
         "required": [
           "rank"
@@ -91,7 +91,7 @@
     },
     "avatar_blob_ref": {
       "type": "string",
-      "pattern": "^ck:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
+      "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
     },
     "state": {
       "type": "string",

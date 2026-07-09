@@ -235,7 +235,7 @@ sidebar:
 | `ck.key.verification.mac` | Device key verification MAC |
 | `ck.key.verification.done` | Device key verification completion |
 | `ck.key.verification.cancel` | Device key verification cancellation |
-| `ck.session.grant` | Session grant |
+| `ak.session.grant` | Session grant |
 | `ck.device.authorize` | Device authorization |
 | `ck.device.revoke` | Device revocation |
 | `ck.device.list_update` | Device list update |

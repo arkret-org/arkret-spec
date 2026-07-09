@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/moderation-appeal.schema.json",
   "title": "Arkret Moderation Appeal",
-  "description": "Payload shapes for the four ck.moderation.appeal.* event kinds (submit / review / decision / close) that close the moderation appeal loop. Each kind writes the ck.component.moderation.appeal.v1 cell on a deterministic state machine: (none) → submitted → under_review → decided → closed; close from submitted/under_review is allowed only for appellant withdrawal (closer == appellant and close_reason=appellant_withdrawn). The decided state additionally records the verdict (uphold / overturn / modify); overturn MUST be paired in the same ordered submit batch or equivalent control transaction with a ck.moderation.decision.lift event referencing the original decision. All payloads carry realm_id and reducers MUST require it to equal the enclosing Event.realm_id and the appealed decision's Realm. See zh/governance/content-moderation.md §5.5 (appeal strand). Capability: ck.moderation.appeal.submit (any member, low risk) for submit; ck.moderation.appeal.review (moderator) for review/decision/manual reviewer close after decided; appellant withdrawal is authorized by closer == appellant.",
+  "description": "Payload shapes for the four ck.moderation.appeal.* event kinds (submit / review / decision / close) that close the moderation appeal loop. Each kind writes the ck.component.moderation.appeal.v1 cell on a deterministic state machine: (none) → submitted → under_review → decided → closed; close from submitted/under_review is allowed only for appellant withdrawal (closer == appellant and close_reason=appellant_withdrawn). The decided state additionally records the verdict (uphold / overturn / modify); overturn MUST be paired in the same ordered submit batch or equivalent control transaction with a ck.moderation.decision.lift event referencing the original decision. Modify MUST atomically lift the original decision and add the replacement decision named by modify_decision_ref. Lifting a decision does not resurrect an irreversible redaction tombstone or destroyed content key. All payloads carry realm_id and reducers MUST require it to equal the enclosing Event.realm_id and the appealed decision's Realm. See zh/governance/content-moderation.md §5.5 (appeal strand). Capability: ck.moderation.appeal.submit (any member, low risk) for submit; ck.moderation.appeal.review (moderator) for review/decision/manual reviewer close after decided; appellant withdrawal is authorized by closer == appellant.",
   "type": "object",
   "oneOf": [
     {
@@ -21,11 +21,11 @@
   "$defs": {
     "appeal_id": {
       "type": "string",
-      "pattern": "^ck:appeal:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:appeal:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "decision_ref": {
       "type": "string",
-      "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Reference to the ck.moderation.decision event being appealed."
     },
     "actor_ref": {
@@ -133,7 +133,7 @@
     },
     "decision_payload": {
       "type": "object",
-      "description": "ck.moderation.appeal.decision — reviewer's verdict. Transitions cell state under_review → decided. Verdict semantics: uphold = original decision stands, no further action; overturn = original decision reversed, this event MUST be paired in the same ordered submit batch or equivalent control transaction with a ck.moderation.decision.lift event whose target equals decision_ref (reducer rejects with appeal_overturn_missing_lift otherwise); modify = original decision adjusted (parameters revised), modify_decision_ref MUST point to a new ck.moderation.decision event in the same batch that supersedes the original.",
+      "description": "ck.moderation.appeal.decision — reviewer's verdict. Transitions cell state under_review → decided. Verdict semantics: uphold = original decision stands, no further action; overturn = original decision is lifted for future governance evaluation, this event MUST be paired in the same ordered submit batch or equivalent control transaction with a ck.moderation.decision.lift event whose target equals decision_ref (reducer rejects with appeal_overturn_missing_lift otherwise), and irreversible redaction/key-destruction effects are not resurrected; modify = original decision is atomically replaced, requiring both a same-batch lift of decision_ref and a new ck.moderation.decision whose event id is modify_decision_ref.",
       "required": [
         "appeal_id",
         "realm_id",
@@ -166,8 +166,8 @@
         },
         "modify_decision_ref": {
           "type": "string",
-          "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-          "description": "Required iff verdict=modify. Points to the replacement ck.moderation.decision event in the same ordered submit batch or equivalent control transaction."
+          "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "description": "Required iff verdict=modify. Points to the replacement ck.moderation.decision event in the same ordered submit batch or equivalent control transaction; that transaction MUST also contain a ck.moderation.decision.lift for the original appealed decision."
         },
         "decided_at": {
           "$ref": "#/$defs/timestamp"

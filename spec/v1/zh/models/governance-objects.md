@@ -15,9 +15,9 @@ updated: 2026-07-02
 本文集中定义 Arkret 协作图中的**治理对象**：
 
 - **Schema**：标准对象 / Morph type / facet / event 的结构与约束。
-- **Policy**（`ck:policy:`）：access / encryption / retention / federation / moderation 等运行时策略。
-- **Capability Grant**（`ck:grant:`）：授权委派。
-- **Invite**（`ck:invite:`）：Realm 加入引导。
+- **Policy**（`ak:policy:`）：access / encryption / retention / federation / moderation 等运行时策略。
+- **Capability Grant**（`ak:grant:`）：授权委派。
+- **Invite**（`ak:invite:`）：Realm 加入引导。
 
 这些对象都不直接承载协作内容，但决定了协作内容的合法范围、可见性和权限路径。完整 capability 模型、Policy Server 决策、seal finality profile 等运行时语义在 `authz/`、`governance/` 和 `security/` 章节展开；本文聚焦对象级 schema、字段和生命周期。
 
@@ -129,7 +129,7 @@ Schema id: `ck.schema.capability.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:grant` | `ck:grant:<uuidv7>`；不得使用 `ck:capability:`，后者只表示抽象 capability definition 引用。 | Grant ID。 |
+| `id` | yes | `id:grant` | `ak:grant:<uuidv7>`；不得使用 `ak:capability:`，后者只表示抽象 capability definition 引用。 | Grant ID。 |
 | `schema` | yes | `ck.schema.capability.v1` |  | Schema ID。 |
 | `realm_id` | no | `id:realm` | 全局 grant 可省略但 SHOULD 避免。 | 作用域。 |
 | `issuer` | yes | `did` | 必须持有授予权限。 | 授权方。 |
@@ -137,7 +137,7 @@ Schema id: `ck.schema.capability.v1`
 | `actions` | yes | `array<string>` | 例如 `ck.strand.update`、`ck.message.create`；逐字命中、不接受 wildcard，见 [`../authz/capabilities.md` §5](../authz/capabilities.md)。 | 允许动作。 |
 | `resources` | yes | `array<object>` | 资源 selector array，其 kind 词表、canonical JSON 结构、匹配算法与求值时机由 [`../authz/resource-selector-grammar.md`](../authz/resource-selector-grammar.md) 与 [`resource-selector.schema.json`](../../artifacts/schemas/resource-selector.schema.json) 权威定义；多个 `resources[]` 默认 OR。匹配失败 fail-closed（不命中即不授权）。 | 资源范围。 |
 | `constraints` | no | `array<object>` | 见 [`../authz/constraint-schema.md`](../authz/constraint-schema.md) §20.3 grant 示例。委托控制 MUST 通过 `constraint_type=delegation_control` 的 `max_delegation_depth` 表达；缺省（无 delegation_control 约束）等价于 `max_delegation_depth=0`，即不可转授。 | 约束条件。 |
-| `parent_grant_id` | no | `id:grant` | derived grant 必填；MUST 以 `ck:grant:` 开头，不得指向 `ck:capability:`。 | 父授权。 |
+| `parent_grant_id` | no | `id:grant` | derived grant 必填；MUST 以 `ak:grant:` 开头，不得指向 `ak:capability:`。 | 父授权。 |
 | `issued_at` | no | `timestamp` | 承载 Grant 的"创建时间"语义，取代通用 `created_at`（见 [`common-fields.md` §3.2](./common-fields.md)）；retention / audit / 排序查询 MUST 用 `issued_at` / `expires_at` / `revoked_at`，不回退到通用 `created_at`。缺省时该 Grant 无创建时间真源，签发方 SHOULD 始终提供。 | 签发时间。 |
 | `not_before` | no | `timestamp` |  | 生效时间。 |
 | `expires_at` | no | `timestamp` |  | 过期时间。 |
@@ -172,7 +172,7 @@ Schema id: `ck.schema.invite.v1`
 | `introduction_evidence_digest` | conditional | hash | 直接 DID 邀请中若出现 `invitee` 且不是 `third_party_id` 分支，则 MUST 出现；不得包含 raw locator token。 | 私有 `introduction_evidence` 的审计摘要。 |
 | `third_party_id` | no | `object` | 见 [`../sync/third-party-invites.md`](../sync/third-party-invites.md)。 | 邮箱/手机号等外部标识证明。 |
 | `join_rule_snapshot` | yes | `object` | 防止邀请后规则混淆。 | 邀请时 join rule。 |
-| `capability_grant_refs` | no | `array<id:grant>` | 接受后才生效；每项 MUST 以 `ck:grant:` 开头，不得指向 `ck:capability:`。 | 关联授权。 |
+| `capability_grant_refs` | no | `array<id:grant>` | 接受后才生效；每项 MUST 以 `ak:grant:` 开头，不得指向 `ak:capability:`。 | 关联授权。 |
 | `expires_at` | yes | `timestamp` | 默认不超过 7 天；高安全 Realm SHOULD be no greater than 24 小时。 | 过期时间。 |
 | `state` | yes | `enum(pending, accepted, rejected, revoked, expired, claimed, send_failed, revoked_by_capability_loss, revoked_by_inviter_left, invalidated_by_rate_limit)` | Invite 的流程对象状态；命名例外：Invite 的 `state` 承载流程状态轴，与通用对象的物理 lifecycle 轴不同，不表示通用对象物理 lifecycle。 | 邀请状态。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |

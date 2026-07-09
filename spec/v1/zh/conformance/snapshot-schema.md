@@ -16,7 +16,7 @@ sidebar:
 
 Snapshot 用于快速 bootstrap Realm 当前态。Snapshot 不是真相源；真相源仍然是 signed Event Envelope 和可验证 Event history。
 
-Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `ck:snapshot:*` typed identifier。其他对象、chunk payload、challenge 请求或 API hint 指向该 manifest 时使用 `snapshot_ref`；`_ref` 不用于 manifest 自身 primary identity。
+Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `ak:snapshot:*` typed identifier。其他对象、chunk payload、challenge 请求或 API hint 指向该 manifest 时使用 `snapshot_ref`；`_ref` 不用于 manifest 自身 primary identity。
 
 ## 2. Snapshot Manifest
 

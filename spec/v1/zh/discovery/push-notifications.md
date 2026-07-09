@@ -35,7 +35,7 @@ Blind wakeup **不是可选 extension**，而是 push gateway 的**默认互操�
 - 客户端被唤醒后自行从 Sync Service 拉取并解密实际内容；本地通知文案在客户端解密后生成。
 - **`push_hint` 即使在 `plaintext_visible_services` 下也 MUST 受白名单约束**：受信通知服务 MAY 附加 `push_hint` 字段，其封闭枚举的**权威定义在 §5.1**（取值 `new_message` / `incoming_call` / `mention_self`，或哨兵值 `l10n_key`——后者为「形态选择器」，实际本地化键由独立字段 `push_hint_l10n_key` 承载，由客户端在解密后渲染）；本节及 §4.5 一律交叉引用 §5.1，不另列重复枚举。`push_hint` 与 `wakeup_kind` 是**两个独立字段**：`wakeup_kind`（封闭枚举 `message` / `mention` / `assignment` / `schedule` / `reaction` / `call_invite` / `reminder` / `scheduled_send` / `expiry_invalidation`，后三者为 Phase-P2 生产力唤醒类别，同为粗粒度、不带 Realm / sender 信息）是独立的粗粒度唤醒类别字段，**不是** `push_hint` 的子内容，二者 MUST NOT 互相替代或嵌套。`push_hint` **MUST NOT** 携带：正文（任何形态）、sender DID 或 handle、principal_id、Realm id / 名称 / 头像、Strand id / 名称、Space id / 名称、Message id、reaction emoji 实际值、附件文件名、badge / 未读绝对计数明文（计数走 `notification.counts`，且按 §5.1 / §6.2 最小化约束）、stable correlation key、IP / geolocation。`plaintext_visible_services` 是"允许接收明文"的授权而非"放行 metadata"的授权——push gateway 即使被授权也不得变成跨 Realm 行为追踪点。违反此约束的推送实现 MUST 在 conformance lint 中标记为不合规。
 
-- **Sync Service 转发也必须执行同一白名单**：Sync / notification service 在调用 `/_cokret/edge/push/notify` 前 MUST 校验将要转发给 Push Gateway 的字段集合。默认 `blind_wakeup` profile 下，超出 §5.1 枚举字段的 metadata MUST 被 strip，并写入最小化 audit 记录；若字段属于 event / realm / sender 识别字段且未满足 `visible_notification` profile gate，服务 MUST 拒绝该通知或降级为 blind wakeup，不得原样转发。
+- **Sync Service 转发也必须执行同一白名单**：Sync / notification service 在调用 `/_arkret/edge/push/notify` 前 MUST 校验将要转发给 Push Gateway 的字段集合。默认 `blind_wakeup` profile 下，超出 §5.1 枚举字段的 metadata MUST 被 strip，并写入最小化 audit 记录；若字段属于 event / realm / sender 识别字段且未满足 `visible_notification` profile gate，服务 MUST 拒绝该通知或降级为 blind wakeup，不得原样转发。
 
 ### 2.3 用户完全控制推送规则
 
@@ -59,7 +59,7 @@ Presence 不得作为精确 push timing oracle。服务端把 presence update、
 客户端在上线时 SHOULD 向 Sync Service 注册推送设备：
 
 ```
-POST /_cokret/edge/push/register-device
+POST /_arkret/edge/push/register-device
 ```
 
 请求示例（非完整 schema）：
@@ -67,7 +67,7 @@ POST /_cokret/edge/push/register-device
 ```json
 {
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
-  "push_gateway": "https://push.example.com/_cokret/edge/push/notify",
+  "push_gateway": "https://push.example.com/_arkret/edge/push/notify",
   "push_key": "fcm:eJx9k2...",
   "platform": "android",
   "app_id": "com.arkret.client",
@@ -77,7 +77,7 @@ POST /_cokret/edge/push/register-device
 
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
-| `device_id` | id:device | MUST | 设备的 typed id,形态为 `ck:device:<uuidv7>`(与 push-operations.schema.json `device_id` pattern 一致) |
+| `device_id` | id:device | MUST | 设备的 typed id,形态为 `ak:device:<uuidv7>`(与 push-operations.schema.json `device_id` pattern 一致) |
 | `push_gateway` | string | MUST | 推送网关的 URL |
 | `push_key` | string | MUST | 设备在推送平台上的注册令牌 |
 | `platform` | string | SHOULD | `android`, `ios`, `web`, `desktop` |
@@ -102,14 +102,14 @@ Push registration 的作用域是接收该请求的 Sync Service / Principal Ser
 ### 3.2 注销接口
 
 ```
-POST /_cokret/edge/push/unregister-device
+POST /_arkret/edge/push/unregister-device
 ```
 
 请求字段：
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `device_id` | id:device | required | 要注销的设备标识；形态与 §3.1 register 的 `device_id` 一致（typed id `ck:device:<uuidv7>`，如 `ck:device:01964137-0000-7000-8000-000000000000`），MUST byte-for-byte 等于注册时提交的值 |
+| `device_id` | id:device | required | 要注销的设备标识；形态与 §3.1 register 的 `device_id` 一致（typed id `ak:device:<uuidv7>`，如 `ak:device:01964137-0000-7000-8000-000000000000`），MUST byte-for-byte 等于注册时提交的值 |
 | `push_key` | string | optional | 指定要注销的 push token |
 | `app_id` | string | optional | 指定应用包名 / Bundle ID |
 
@@ -372,7 +372,7 @@ E2EE Realm 中，Sync Service 不持有正文密钥，无法在 server 端评估
 Sync Service 在触发推送规则后，向推送网关发送通知：
 
 ```
-POST /_cokret/edge/push/notify
+POST /_arkret/edge/push/notify
 ```
 
 请求字段（默认 `blind_wakeup` profile；该 profile 永远不得携带 Realm / sender / event 识别字段）：
@@ -416,12 +416,12 @@ POST /_cokret/edge/push/notify
 
 **Notify body / product-private body / provider payload 三层边界（normative）**：
 
-1. `/_cokret/edge/push/notify` 请求体只承载本节表中定义的协议字段，且由 `push-operations.schema.json#/$defs/push_notify_request_body` 的闭合 schema 约束。产品内部 UI 草稿、DND/snooze 状态、push rule 明文、provider adapter 原始字段、APNs/FCM/WebPush 私有 body、`provider_payload`、`content` 或 `content_*` preview 字段 **MUST NOT** 进入该协议 body；实现需要这些信息时，只能在调用方产品私有进程内完成求值，并把结果压缩成本节定义的 `wakeup_kind` / `push_hint` / `reason_code` / `route_tokens` 等最小协议字段。
+1. `/_arkret/edge/push/notify` 请求体只承载本节表中定义的协议字段，且由 `push-operations.schema.json#/$defs/push_notify_request_body` 的闭合 schema 约束。产品内部 UI 草稿、DND/snooze 状态、push rule 明文、provider adapter 原始字段、APNs/FCM/WebPush 私有 body、`provider_payload`、`content` 或 `content_*` preview 字段 **MUST NOT** 进入该协议 body；实现需要这些信息时，只能在调用方产品私有进程内完成求值，并把结果压缩成本节定义的 `wakeup_kind` / `push_hint` / `reason_code` / `route_tokens` 等最小协议字段。
 2. Product-private body 是调用方服务内部状态，不是 Arkret v1 wire surface。它 MAY 包含本地化资源键、UI 文案模板、静默时段、snooze target 或 provider adapter 配置，但这些字段 MUST 在进入 `ck.edge.push.command.notify` 前被消费或丢弃。不得通过 `notification.extra`、`content`、`payload`、`data`、`provider_payload` 或任何自由对象把 product-private body 透传给 Push Gateway。
 3. Provider payload 是 Push Gateway 对 APNs / FCM / WebPush / OEM provider 的出向请求；它由 gateway 根据已验证的 notify body 重新构造。默认 `blind_wakeup` 下 provider payload 的允许集合是 `push_target_id`、`wakeup_kind`、合规的 `push_hint` / `push_hint_l10n_key`、最小化 counts 以及 provider 必需的不可链接 collapse key；`timing_profile_hint`、`route_tokens`、`devices[].target_route_token`、`reason_code`、`event_kind`、`audit_envelope` 和任何 Realm / sender / event / content 字段 MUST 在出 provider 前 strip。
 4. `ck.profile.push_gateway.visible_notification.v1` 只放宽本表列出的 profile-gated 标题/标签/typed-id 字段，不引入自由正文容器。即使 Realm policy 和设备 opt-in 允许 visible notification，`notification.content`、`body`、`preview`、`summary`、provider-specific `data` 或任意 `content_*` 字段仍不属于 v1 notify body；需要完整标题与正文的客户端 SHOULD 由 blind wakeup 唤醒后本地拉取、解密并渲染。
 
-`notification.event_id`、`notification.realm_id`（client-visible 顶层）、`notification.kind`、`notification.sender_actor_id`、`notification.sender_actor_display_name`、`notification.realm_title`、`notification.strand_title` 等识别字段 **MUST NOT** 出现在 `ck.profile.push_gateway.blind_wakeup.v1`（默认互操作隐私基线）的 payload 中。独立第三方 Push Gateway 的路由输入只能使用 `route_tokens` 与 `devices[].target_route_token`；raw Realm id、Circle id、`effective_scope`、actor DID allow-list 或其它可识别路由原文不得进入 `/_cokret/edge/push/notify` wire。若某部署确实需要让受信 Push Gateway 承载可见通知，必须声明独立的 `ck.profile.push_gateway.visible_notification.v1` profile，并满足全部条件：
+`notification.event_id`、`notification.realm_id`（client-visible 顶层）、`notification.kind`、`notification.sender_actor_id`、`notification.sender_actor_display_name`、`notification.realm_title`、`notification.strand_title` 等识别字段 **MUST NOT** 出现在 `ck.profile.push_gateway.blind_wakeup.v1`（默认互操作隐私基线）的 payload 中。独立第三方 Push Gateway 的路由输入只能使用 `route_tokens` 与 `devices[].target_route_token`；raw Realm id、Circle id、`effective_scope`、actor DID allow-list 或其它可识别路由原文不得进入 `/_arkret/edge/push/notify` wire。若某部署确实需要让受信 Push Gateway 承载可见通知，必须声明独立的 `ck.profile.push_gateway.visible_notification.v1` profile，并满足全部条件：
 
 1. Realm policy 显式把该 Push Gateway 列入 `plaintext_visible_services`，且声明允许 `visible_notification`。
 2. 接收设备在其授权状态中显式记录 `visible_notification` opt-in；未 opt-in 的设备 MUST 回退到 `ck.profile.push_gateway.blind_wakeup.v1`。

@@ -101,7 +101,7 @@
         "source_service_did": "did:webvh:z6mkfixture:server-alpha.example",
         "destination_service_did": "did:webvh:z6mkfixture:server-beta.example",
         "method": "POST",
-        "target_uri": "https://server-beta.example/_cokret/peer/events",
+        "target_uri": "https://server-beta.example/_arkret/peer/events",
         "operation_id": "ck.peer.events.command.submit",
         "content_digest_matches_canonical_body": true
       },

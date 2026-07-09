@@ -12,9 +12,9 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-`relation`（`ck:relation:`）是 Arkret 协作图的**一等关系对象**。跨对象语义 MUST 使用 Relation 表达，而不是藏在对象字段里。
+`relation`（`ak:relation:`）是 Arkret 协作图的**一等关系对象**。跨对象语义 MUST 使用 Relation 表达，而不是藏在对象字段里。
 
-Relation 连接的是对象引用：标准字段使用 `from_ref` / `to_ref`，其值可以指向 `realm`、`space`、`actor_profile`、`strand`、`message`、`morph`、`relation`、`event`、`view`、`blob` 的 `ck:<kind>:` typed ID，或一个 DID。Actor 端点没有 actor typed-ID 对象——当端点是 Actor 时直接使用该 actor 的 DID（principal），而不是某个 actor typed-ID（见 [`overview.md` §3.4](./overview.md) 与 [`common-fields.md` §4.1](./common-fields.md#41-did-适用边界)）。
+Relation 连接的是对象引用：标准字段使用 `from_ref` / `to_ref`，其值可以指向 `realm`、`space`、`actor_profile`、`strand`、`message`、`morph`、`relation`、`event`、`view`、`blob` 的 `ak:<kind>:` typed ID，或一个 DID。Actor 端点没有 actor typed-ID 对象——当端点是 Actor 时直接使用该 actor 的 DID（principal），而不是某个 actor typed-ID（见 [`overview.md` §3.4](./overview.md) 与 [`common-fields.md` §4.1](./common-fields.md#41-did-适用边界)）。
 
 > **端点 kind 子集与其它"可引用 kind 子集"字段的关系（informative）**：Relation 端点允许的 kind 集合与 Notification `source_ref`（[`private-objects.md` §3.2](./private-objects.md)）、Read Cursor `read_scope`（[`private-objects.md` §2.2](./private-objects.md)）各自不同；差异由各自语义决定（Relation 端点 = 可连边的图节点，故含 `realm` / `event` / DID；Notification = 可被通知指向的内容对象；Read Cursor = 可定位已读位置的时间线容器）。三处实现 MUST 按各自 schema 校验字段形状，同时以 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 的 `referenceability` 作为 typed-id kind 子集的机读真相源；Relation 端点对应 `relation_endpoint` 类别。Actor DID 端点不属于 typed-id kind，仍由 DID grammar 与 `common-fields.md` §4.1 约束。
 
@@ -28,14 +28,14 @@ Schema id: `ck.schema.relation.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:relation` | 以 `ck:relation:` 开头。 | Relation ID。 |
+| `id` | yes | `id:relation` | 以 `ak:relation:` 开头。 | Relation ID。 |
 | `schema` | yes | `ck.schema.relation.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` | Relation 所在 Realm。 | 所属 Realm。 |
 | `scope_circle_id` | no | `id:circle` | submit payload 提供的 Realm 内 Circle scope；弱语义隐私边（`agent_sidecar_of` / `confidential_discussion_of`）按 §3.1 MUST 提交，指向 private Strand 的 Circle，使 `effective_scope = circle`，non-member 无法从公开端点枚举该边（见 [`circle.md` §6.1](./circle.md)）。 | 该 Relation 事实的 Circle 作用域。 |
 | `effective_scope` | no | `object` | **Reducer-stamped immutable，actor MUST NOT 提交**（reducer-managed，`reason=effective_scope_reducer_managed`）。create 时由 `scope_circle_id` 物化；结构关系 MUST NOT 宽于参与端点中最窄的作用域，且后续 rebind 不变（见 [`circle.md` §6.1-§6.2](./circle.md)）。 | 派生的有效作用域。 |
 | `relation_kind` | yes | `string` | 标准值见 §3。 | 关系语义。 |
-| `from_ref` | yes | `string` | MUST 是 `ck:<kind>:...` 或 DID。 | 起点对象/Actor/Realm 引用。 |
-| `to_ref` | yes | `string` | MUST 是 `ck:<kind>:...` 或 DID。 | 终点对象/Actor/Realm 引用。 |
+| `from_ref` | yes | `string` | MUST 是 `ak:<kind>:...` 或 DID。 | 起点对象/Actor/Realm 引用。 |
+| `to_ref` | yes | `string` | MUST 是 `ak:<kind>:...` 或 DID。 | 终点对象/Actor/Realm 引用。 |
 | `rank` | no | `string` | 见 `encoding.md` §9。**与 Space.rank 顶层字段对齐**——v1 把 rank 提升到顶层，`fields.rank` 在 wire 上 MUST 被拒绝（`schema_violation`），不接受双源并存。 | 有序关系（如 `contains list -> strand`）的稳定 rank。 |
 | `fields` | no | `object` | 可放 role、edge metadata；MUST NOT 包含 `rank`（已提升到顶层）。 | 关系属性。 |
 | `state` | no | `enum(active, tombstoned)` | `tombstoned` 同时覆盖删除与 redaction；原因保存在对应 `ck.relation.tombstone` / `ck.redaction` event 上，物化对象只保留当前状态。 | 关系状态。 |
@@ -86,8 +86,8 @@ confidential_discussion_of
 
 | `relation_kind` | 默认基数 | 作用域与去重规则 |
 | --- | --- | --- |
-| `contains`：`Space(kind=board) -> Space(kind=list)` | **派生投影**(derived projection only) | 一个 Board 可包含多个 List；同一 List 在同一 Realm 内 MUST 至多有一个 active Board parent。**Truth source 是 cas_register cell `ck:cell:ck.component.space.parent.v1:<list_space_id>`，写入路径是 `ck.space.parent` Move，不是 `ck.relation.create`**。直接 `ck.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`(详见 [realm-and-space.md §3.5](./realm-and-space.md#35-ckspaceparent-cas_register-basis))。`contains` Relation 仍出现在标准 kinds 列表中是因为 projection / query / UI 仍按 Relation 视角读它，但**写入路径单一化**到 `ck.space.parent`。 |
-| `contains`：`Space(kind=list) -> Strand` | **派生投影**(derived projection only) with board-exclusive target | 一个 List 可包含多个 Strand；同一 Strand 在同一个 Board 内 MUST 至多处于一个 active List。去重/互斥 key 为 `(board_space_id, strand_id)`，与 [realm-and-space.md §3.6](./realm-and-space.md#36-strand-位置) 的位置唯一性一致。**Truth source 是 cas_register cell `ck:cell:ck.component.strand.position.v1:<board_space_id>:<strand_id>`，写入路径是 `ck.strand.move` / `ck.strand.reorder` Move**，不是 `ck.relation.create`。直接 `ck.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`(与 `watches` derived Relation 同模式)。 |
+| `contains`：`Space(kind=board) -> Space(kind=list)` | **派生投影**(derived projection only) | 一个 Board 可包含多个 List；同一 List 在同一 Realm 内 MUST 至多有一个 active Board parent。**Truth source 是 cas_register cell `ak:cell:ck.component.space.parent.v1:<list_space_id>`，写入路径是 `ck.space.parent` Move，不是 `ck.relation.create`**。直接 `ck.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`(详见 [realm-and-space.md §3.5](./realm-and-space.md#35-ckspaceparent-cas_register-basis))。`contains` Relation 仍出现在标准 kinds 列表中是因为 projection / query / UI 仍按 Relation 视角读它，但**写入路径单一化**到 `ck.space.parent`。 |
+| `contains`：`Space(kind=list) -> Strand` | **派生投影**(derived projection only) with board-exclusive target | 一个 List 可包含多个 Strand；同一 Strand 在同一个 Board 内 MUST 至多处于一个 active List。去重/互斥 key 为 `(board_space_id, strand_id)`，与 [realm-and-space.md §3.6](./realm-and-space.md#36-strand-位置) 的位置唯一性一致。**Truth source 是 cas_register cell `ak:cell:ck.component.strand.position.v1:<board_space_id>:<strand_id>`，写入路径是 `ck.strand.move` / `ck.strand.reorder` Move**，不是 `ck.relation.create`。直接 `ck.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`(与 `watches` derived Relation 同模式)。 |
 | `contains`：其他对象组合(非 Space 容器场景，例如 `Strand -> Strand` subtask / checklist item) | `many_to_many` unless profiled | 默认只按完整 tuple 去重；若对象被当作容器使用，Realm schema/profile MUST 声明更严格基数、排序字段和 cascade 规则。这种非派生形态的 `contains` 由 `ck.relation.create` 直接写入，不得与 Board/List 的派生 `contains` 混用。 |
 | `belongs_to` | `many_to_one` | 作为 `contains` 的显式 parent 关系时，同一 `from_ref` 在同一作用域内至多有一个 active `to_ref`。优先使用 canonical `contains` 表达容器包含。 |
 | `replies_to` | `many_to_one` | 一个 Message 或 reply object SHOULD 只有一个 direct parent；额外链接用 `references` 或 `mentions`。 |

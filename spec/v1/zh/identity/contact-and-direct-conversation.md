@@ -86,14 +86,14 @@ Consent revoke 与 contact tombstone 仍是两条显式事实：单独 revoke co
 
 ## 4. Contact Operation Surface
 
-全部 contact operation 要求 `user_session`，落在 `/_cokret/self/...` trust surface。
+全部 contact operation 要求 `user_session`，落在 `/_arkret/self/...` trust surface。
 
 | operation | HTTP | Body / Response | 说明 |
 | --- | --- | --- | --- |
-| `ck.self.contact.command.request` | `POST /_cokret/self/contacts/request` | `ContactRequestRequestBody` / `ContactRequestOutcome` | 写 requester 侧 request fact，并投递签名请求给 target；request body MAY 含可选 `message`(1..2000,NFC,wire bound 登记于 [`../conformance/scalability-constraints.md` §6.1](../conformance/scalability-constraints.md)),透传到 `ck.contact.requested` 的 `message` 字段作为加好友附言；target 在对端 PS 时 MUST 携带可选 `recipient_service_did`(见 §4.1)以驱动跨端投递；首次接触 MAY 携带 `introduction_evidence`（例如 `locator_ref`、`handle_claim` 或 `explicit_address`），issuer 侧 PS 若无法构造合规 evidence MUST 按 `explicit_address` 低信任处理 |
-| `ck.self.contact.command.respond` | `POST /_cokret/self/contacts/respond` | `ContactRespondRequestBody` / `ContactRespondOutcome` | 由 target 接受 / 拒绝 request；accept 同步写 target consent grants |
-| `ck.self.contact.query.list` | `GET /_cokret/self/contacts` | `ContactList` | 从 contact facts 投影，并附带 consent-derived scopes |
-| `ck.self.contact.command.tombstone` | `POST /_cokret/self/contacts/tombstone` | `ContactTombstoneRequestBody` / `ContactTombstone` | 写 holder 侧 tombstone；默认 revoke holder 给 peer 的 contact-managed consent；request body 含可选 `block_peer`(默认 false),为 true 时额外把 peer DID 写入 holder `invite_receive_policy.blocked_subjects`(硬拉黑) |
+| `ck.self.contact.command.request` | `POST /_arkret/self/contacts/request` | `ContactRequestRequestBody` / `ContactRequestOutcome` | 写 requester 侧 request fact，并投递签名请求给 target；request body MAY 含可选 `message`(1..2000,NFC,wire bound 登记于 [`../conformance/scalability-constraints.md` §6.1](../conformance/scalability-constraints.md)),透传到 `ck.contact.requested` 的 `message` 字段作为加好友附言；target 在对端 PS 时 MUST 携带可选 `recipient_service_did`(见 §4.1)以驱动跨端投递；首次接触 MAY 携带 `introduction_evidence`（例如 `locator_ref`、`handle_claim` 或 `explicit_address`），issuer 侧 PS 若无法构造合规 evidence MUST 按 `explicit_address` 低信任处理 |
+| `ck.self.contact.command.respond` | `POST /_arkret/self/contacts/respond` | `ContactRespondRequestBody` / `ContactRespondOutcome` | 由 target 接受 / 拒绝 request；accept 同步写 target consent grants |
+| `ck.self.contact.query.list` | `GET /_arkret/self/contacts` | `ContactList` | 从 contact facts 投影，并附带 consent-derived scopes |
+| `ck.self.contact.command.tombstone` | `POST /_arkret/self/contacts/tombstone` | `ContactTombstoneRequestBody` / `ContactTombstone` | 写 holder 侧 tombstone；默认 revoke holder 给 peer 的 contact-managed consent；request body 含可选 `block_peer`(默认 false),为 true 时额外把 peer DID 写入 holder `invite_receive_policy.blocked_subjects`(硬拉黑) |
 
 `ContactListRow` MUST 至少区分：
 
@@ -118,7 +118,7 @@ request 到达 `rejected`、`expired` 或 `tombstoned` 后，后续重新发起 
 
 | operation | HTTP | Body / Response | 说明 |
 | --- | --- | --- | --- |
-| `ck.peer.contacts.command.submit` | `POST /_cokret/peer/contacts` | `PeerContactDeliveryRequest` / `PeerContactDeliveryOutcome` | issuer 侧 PS 把签名的 `ck.contact.requested` / `accepted` / `rejected` / `tombstoned` envelope 投递到 target holder 的 PS |
+| `ck.peer.contacts.command.submit` | `POST /_arkret/peer/contacts` | `PeerContactDeliveryRequest` / `PeerContactDeliveryOutcome` | issuer 侧 PS 把签名的 `ck.contact.requested` / `accepted` / `rejected` / `tombstoned` envelope 投递到 target holder 的 PS |
 
 该 peer 端点与 [`../sync/invite-addressing.md`](../sync/invite-addressing.md) §5 的 `ck.peer.invites.command.submit` 同级、风格一致：要求 service-to-service 认证、`Destination-Service-DID` 等于 `contact_address.recipient_service_did`、RFC 9530 `Content-Digest` 与 RFC 9421 message signature。约束如下：
 
@@ -151,7 +151,7 @@ v1 规范采用窄读：private contact discovery 响应 MAY 在 PSI set-members
 
 | operation | HTTP | Body / Response | 说明 |
 | --- | --- | --- | --- |
-| `ck.self.direct_conversation.command.resolve` | `POST /_cokret/self/direct-conversations/resolve` | `DirectConversationResolveRequestBody` / `DirectConversationResolveOutcome` | 解析或创建这对 actor 的 canonical 1:1 DM 入口 |
+| `ck.self.direct_conversation.command.resolve` | `POST /_arkret/self/direct-conversations/resolve` | `DirectConversationResolveRequestBody` / `DirectConversationResolveOutcome` | 解析或创建这对 actor 的 canonical 1:1 DM 入口 |
 
 Resolver MUST：
 

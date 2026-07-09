@@ -35,7 +35,7 @@
     },
     "device_id": {
       "type": "string",
-      "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Originating device. Required for all broadcast ephemeral signals; proof.verification_method fragment MUST equal this full device_id."
     },
     "sent_at": {
@@ -56,7 +56,7 @@
     },
     "proof": {
       "$ref": "#/$defs/ephemeral_proof",
-      "description": "Detached-JWS proof over the canonical ephemeral envelope, structurally isomorphic to the durable Event proof ($defs/event_proof in event-envelope.schema.json / models/event-and-patch.md §3). Required for every broadcast ephemeral kind (ck.presence, ck.typing, ck.receipt.read, ck.call.signal) so receivers can verify origin without trusting relay attribution. Signing input is the canonical proof binding object {context:'ck-ephemeral-proof-v1', event_digest, actor_id, verification_method, created_at, domain?, audience?}; event_digest is canonical_digest of the envelope with `proof` removed (RFC 8785 JCS). verification_method MUST be `{actor_id}#{device_id}` where the fragment is the full `ck:device:<uuidv7>` id, and its controller DID MUST equal envelope actor_id. See crypto-media/webrtc-signaling.md §5."
+      "description": "Detached-JWS proof over the canonical ephemeral envelope, structurally isomorphic to the durable Event proof ($defs/event_proof in event-envelope.schema.json / models/event-and-patch.md §3). Required for every broadcast ephemeral kind (ck.presence, ck.typing, ck.receipt.read, ck.call.signal) so receivers can verify origin without trusting relay attribution. Signing input is the canonical proof binding object {context:'ck-ephemeral-proof-v1', event_digest, actor_id, verification_method, created_at, domain?, audience?}; event_digest is canonical_digest of the envelope with `proof` removed (RFC 8785 JCS). verification_method MUST be `{actor_id}#{device_id}` where the fragment is the full `ak:device:<uuidv7>` id, and its controller DID MUST equal envelope actor_id. See crypto-media/webrtc-signaling.md §5."
     }
   },
   "allOf": [
@@ -83,8 +83,8 @@
             "properties": {
               "call_id": {
                 "type": "string",
-                "pattern": "^ck:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-                "description": "Typed call/session identifier (ck:call:<uuidv7>) scoped to the Realm. Unified with ice-config-response and media-operations so cross-channel join cross-checks key on the same form."
+                "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "description": "Typed call/session identifier (ak:call:<uuidv7>) scoped to the Realm. Unified with ice-config-response and media-operations so cross-channel join cross-checks key on the same form."
               },
               "signal_type": {
                 "type": "string",
@@ -142,7 +142,7 @@
             "properties": {
               "strand_id": {
                 "type": "string",
-                "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
                 "description": "Strand whose timeline the actor is typing into. Fanout MUST be clipped to the Strand effective scope per zh/discovery/profiles-presence.md §3.5."
               },
               "track_name": {
@@ -203,7 +203,7 @@
         "verification_method": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-          "description": "DID URL of the signing device key. MUST be `{actor_id}#{device_id}` where the fragment is the full `ck:device:<uuidv7>` id and equals envelope.device_id; verifier MUST strip the fragment for controller comparison and MUST compare that controller DID bit-identically to the envelope actor_id, then resolve the verify key from the device directory (keys/query device_signing_key, keys-operations.schema.json). Same form as event_proof.verification_method."
+          "description": "DID URL of the signing device key. MUST be `{actor_id}#{device_id}` where the fragment is the full `ak:device:<uuidv7>` id and equals envelope.device_id; verifier MUST strip the fragment for controller comparison and MUST compare that controller DID bit-identically to the envelope actor_id, then resolve the verify key from the device directory (keys/query device_signing_key, keys-operations.schema.json). Same form as event_proof.verification_method."
         },
         "alg": {
           "type": "string",

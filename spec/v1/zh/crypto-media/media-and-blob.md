@@ -47,7 +47,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 | `filename` | `string` | optional | 用户提供或服务生成的文件名；不得用于路径拼接。 |
 | `encryption` | `object/null` | required | 加密附件元数据或 `null`。 |
 
-命名说明：Blob metadata、Media metadata 和 Content Block descriptor 中的字节数统一使用 `size_bytes`；不得使用裸 `size` 表示字节数（见 [`models/common-fields.md` §3.0.1](../models/common-fields.md#301-size-字段命名)）。Blob 内容 digest 统一使用 `content_digest`，不得新增裸 `sha256` 字段；内容寻址 `blob_ref` 继续可携带 `ck:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` 这类 typed-id 形态。
+命名说明：Blob metadata、Media metadata 和 Content Block descriptor 中的字节数统一使用 `size_bytes`；不得使用裸 `size` 表示字节数（见 [`models/common-fields.md` §3.0.1](../models/common-fields.md#301-size-字段命名)）。Blob 内容 digest 统一使用 `content_digest`，不得新增裸 `sha256` 字段；内容寻址 `blob_ref` 继续可携带 `ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` 这类 typed-id 形态。
 
 上传请求 schema 见 [`blob-operations.schema.json#/$defs/upload_request`](../../artifacts/schemas/blob-operations.schema.json)，响应 schema 见 [`blob-operations.schema.json#/$defs/upload_response`](../../artifacts/schemas/blob-operations.schema.json)。
 
@@ -62,7 +62,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 
 ### 2.1 可续传上传（Resumable Upload binding，optional extension）
 
-可续传上传是 `ck.self.blob.upload.create` 操作的**可选替代传输 binding**，面向大文件与弱网下的断点续传。它不是新的 operation_id，也不改变 Blob 的内容寻址与 receipt 语义；§2 的上传规则（声明 metadata 不可信、文件名清理、receipt 签名）对该 binding 同样适用。普通实现 MAY 暴露该 binding；当服务端未在 `/_cokret/describe` 声明该能力时，客户端 MUST 回退到 §2 的 canonical `multipart/form-data` 上传，不得对猜测的 endpoint 直接发起续传。
+可续传上传是 `ck.self.blob.upload.create` 操作的**可选替代传输 binding**，面向大文件与弱网下的断点续传。它不是新的 operation_id，也不改变 Blob 的内容寻址与 receipt 语义；§2 的上传规则（声明 metadata 不可信、文件名清理、receipt 签名）对该 binding 同样适用。普通实现 MAY 暴露该 binding；当服务端未在 `/_arkret/describe` 声明该能力时，客户端 MUST 回退到 §2 的 canonical `multipart/form-data` 上传，不得对猜测的 endpoint 直接发起续传。
 
 **协议绑定（normative）**
 
@@ -77,11 +77,11 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 **能力发现（normative）**
 
 - 该 binding 按 [`sync/transport-bindings.md` §6.1](../sync/transport-bindings.md) 分类为 **per-operation HTTP 伴生 binding**：本节即其 normative binding 文档，不需要独立 `ck.profile.binding.*` profile。
-- 支持该 binding 的服务端 MUST 在 `/_cokret/describe` 同时声明：
+- 支持该 binding 的服务端 MUST 在 `/_arkret/describe` 同时声明：
   - `supported_features` 含 `ck.feature.blob.resumable_upload.tus.v1`；
   - `supported_bindings` 含一条 `kind="tus"` 的 binding，携带 tus endpoint 的 `base_url`、`operations: ["ck.self.blob.upload.create"]`、`extension_profile_required: null`、`tus_version`（支持的协议版本列表）与 `tus_extensions`（支持的扩展列表）；
   - `limits` 携带下文的续传相关上限。
-- 客户端 MUST 先解析 DID Document 并校验 describe 后再使用该 binding（沿用 [`sync/service-surface.md` §2](../sync/service-surface.md) 的服务选择规则）。`/_cokret/describe` 是**服务级**权威发现面；tus `OPTIONS` 响应（`Tus-Resumable`、`Tus-Version`、`Tus-Extension`、`Tus-Max-Size`）是 **endpoint 级**的线上确认。二者 MUST 一致；冲突时客户端以 describe 与服务端实际拒绝为准，不得仅凭对猜测 endpoint 的裸 `OPTIONS` 探测作为发现手段。
+- 客户端 MUST 先解析 DID Document 并校验 describe 后再使用该 binding（沿用 [`sync/service-surface.md` §2](../sync/service-surface.md) 的服务选择规则）。`/_arkret/describe` 是**服务级**权威发现面；tus `OPTIONS` 响应（`Tus-Resumable`、`Tus-Version`、`Tus-Extension`、`Tus-Max-Size`）是 **endpoint 级**的线上确认。二者 MUST 一致；冲突时客户端以 describe 与服务端实际拒绝为准，不得仅凭对猜测 endpoint 的裸 `OPTIONS` 探测作为发现手段。
 
 **隐私（normative）**
 
@@ -268,7 +268,7 @@ Thumbnail descriptor:
 ## 5. Authenticated Download
 
 ```text
-GET /_cokret/self/blob/get?blob_ref=<ref>
+GET /_arkret/self/blob/get?blob_ref=<ref>
 ```
 
 请求字段：
@@ -314,7 +314,7 @@ Retention 与 erasure 规则：
 下载请求 SHOULD 支持：
 
 ```text
-Authorization: Bearer <ck.session.grant>
+Authorization: Bearer <ak.session.grant>
 X-Arkret-Wait-For: <cursor>
 Range: bytes=<start>-<end>
 ```
@@ -325,7 +325,7 @@ Range: bytes=<start>-<end>
 - 下载授权 MUST 绑定 actor DID、device/session、Realm id、blob ref、purpose 和过期时间。服务端不得只凭 URL 随机串放行私有媒体。
 - 受保护下载 MUST NOT 接受 query string 中的 session credential 或长期 capability。浏览器客户端应通过 `Authorization` header、service worker 代理或 device-bound proof 获取媒体。
 - Blob 服务 MAY 返回短期 signed download URL 或 `307/308` redirect 到对象存储，但 redirect token MUST 短时效、单 blob、单 purpose、可撤销，并不得扩大可见性。
-- `Location` 值不得被服务端或客户端长期缓存；未立即下载时 SHOULD 重新请求 `/_cokret/self/blob/get` 获取新的授权上下文。
+- `Location` 值不得被服务端或客户端长期缓存；未立即下载时 SHOULD 重新请求 `/_arkret/self/blob/get` 获取新的授权上下文。
 - 客户端跟随 redirect 后仍 MUST 重新计算内容 digest，并与 `blob_ref` / `content_digest` 比对。
 - 如果内容 hash、`Digest` header、`blob_ref` 或 encrypted attachment `ciphertext_digest` 不匹配，客户端 MUST 拒绝该响应、丢弃已下载字节、不得渲染、不得写入持久缓存，并 SHOULD 记录安全审计事件。服务端在上传、镜像或代理时发现 digest mismatch MUST 返回 `digest_mismatch`，并不得生成可用 blob metadata。
 - Range / HEAD download MUST 绑定同一授权上下文；服务端不得让 Range probe 或 HEAD response 泄露不可见 blob 的大小、MIME、文件名或存在性。
@@ -422,7 +422,7 @@ Cache-Control: public, immutable, max-age=31536000
 #### 5.4.1 流程
 
 ```text
-1. 客户端 → POST /_cokret/self/blob/presign
+1. 客户端 → POST /_arkret/self/blob/presign
    body: { blob_ref, max_age_seconds?, purpose? }
    auth: Authorization (standard bearer / service signature)
 
@@ -433,7 +433,7 @@ Cache-Control: public, immutable, max-age=31536000
 
 3. 浏览器 / 客户端:
    <img src="<url with embedded presign=...>" />
-   → GET /_cokret/self/blob/get?blob_ref=...&presign=...
+   → GET /_arkret/self/blob/get?blob_ref=...&presign=...
    → 服务端验证 presign envelope 后吐 bytes
 ```
 
@@ -476,7 +476,7 @@ Cache-Control: public, immutable, max-age=31536000
 
 #### 5.4.3 接收方校验
 
-`GET /_cokret/self/blob/get?blob_ref=X&presign=<envelope>` 处理时：
+`GET /_arkret/self/blob/get?blob_ref=X&presign=<envelope>` 处理时：
 
 1. **互斥检查**：`Authorization` header 与 `?presign=` 同时出现 MUST 拒绝 `invalid_param`，避免混合 auth 模式
 2. **签名校验**：用 envelope 内 `issuer_service_did` 当前 verification method 验证签名

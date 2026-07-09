@@ -14,9 +14,9 @@ updated: 2026-07-02
 
 本文为 Arkret 协作图中**通过扩展 profile 接入的对象类型**提供模型层入口：
 
-- **Applet**（`ck:applet:`）：bot / bridge / portal / 集成服务（extension profile，非 v1 core 互操作必需）。
+- **Applet**（`ak:applet:`）：bot / bridge / portal / 集成服务（extension profile，非 v1 core 互操作必需）。
 - **Agent**：A2A / ACP / 外部 agent 协议互通运行时。
-- **Blob**（`ck:blob:`）：由 Blob Store 管理的二进制数据，不参与协作图归约。两种 wire 形态：`ck:blob:<uuid>`（metadata row id）与内容寻址特殊形态 `ck:blob:sha256:...`（`sha256:<hex>`，见 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)）。
+- **Blob**（`ak:blob:`）：由 Blob Store 管理的二进制数据，不参与协作图归约。两种 wire 形态：`ak:blob:<uuid>`（metadata row id）与内容寻址特殊形态 `ak:blob:sha256:...`（`sha256:<hex>`，见 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)）。
 
 每个对象的完整规范由对应专项文档承担；本文只给出对象语义概述、字段索引与跳转。
 
@@ -40,7 +40,7 @@ Applet 是受注册、受授权、可审计的集成服务。它可以：
 
 ### 2.2 关键对象
 
-- `ck:applet:<uuid>`：Applet 对象 typed ID。
+- `ak:applet:<uuid>`：Applet 对象 typed ID。
 - `ck.applet.registration`：Applet 注册 event；包含 `applet_id`、`service_did`、`controller_did`、`base_url`、`bot_actor_id`、`protocols`、`namespaces` 等。
 - **Applet Service**：运行集成逻辑的服务端进程（独立 service DID）。
 - **Applet Controller**：管理该 Applet 的主体（组织、开发者、企业管理员）。
@@ -93,7 +93,7 @@ Agent 的对象身份与 Applet 类似（独立 DID 或受托 device DID），�
 
 Blob 是 Arkret 中由 **Blob Store** 管理的内容寻址数据：图片、视频、文件、音频、缩略图等。Blob 是协议中的**内容层对象**，**不参与协作图归约**——它的生命周期、加密、缩略图、权限、保留策略由 media / blob 子系统单独管理。
 
-Blob 在协作图中通过 typed blob ref 引用——内容寻址引用使用 `ck:blob:sha256:...`（即 `sha256:<hex>`，digest-suite 见 [`common-fields.md` §2](./common-fields.md)），metadata row 引用使用 `ck:blob:<uuid>`：
+Blob 在协作图中通过 typed blob ref 引用——内容寻址引用使用 `ak:blob:sha256:...`（即 `sha256:<hex>`，digest-suite 见 [`common-fields.md` §2](./common-fields.md)），metadata row 引用使用 `ak:blob:<uuid>`：
 
 - Message `ck.content.image` / `ck.content.video` / `ck.content.audio` / `ck.content.file` 中的 `blob_ref`。
 - Strand `content` Content Block 中的引用。

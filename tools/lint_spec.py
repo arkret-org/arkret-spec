@@ -72,7 +72,7 @@ CASUAL_HEADING_RE = re.compile(r"^#{1,6}\s.*(" + "|".join(CASUAL_HEADING_PATTERN
 # Half-width comma / semicolon between two CJK characters: a punctuation
 # mix-up rather than a code identifier.
 MIXED_PUNCT_RE = re.compile(r"[一-鿿][,;][一-鿿]")
-ARKRET_PATH_RE = re.compile(r"/_cokret/[A-Za-z0-9_./{}:*-]+")
+ARKRET_PATH_RE = re.compile(r"/_arkret/[A-Za-z0-9_./{}:*-]+")
 
 FRONTMATTER_RE = re.compile(r"\A---\n(.*?)\n---\n", re.DOTALL)
 PROPOSAL_FILE_RE = re.compile(r"^(?P<num>[0-9]{4})-[A-Za-z0-9_.-]+\.md$")
@@ -143,7 +143,7 @@ def parse_frontmatter(text: str) -> tuple[dict | None, int]:
     return data, match.group(0).count("\n")
 
 
-def load_registered_cokret_paths() -> set[str]:
+def load_registered_arkret_paths() -> set[str]:
     if yaml is None or not OPENAPI.exists():
         return set()
     try:
@@ -156,10 +156,10 @@ def load_registered_cokret_paths() -> set[str]:
     return {str(path) for path in paths}
 
 
-REGISTERED_ARKRET_PATHS = load_registered_cokret_paths()
+REGISTERED_ARKRET_PATHS = load_registered_arkret_paths()
 
 
-def normalize_cokret_path_token(token: str) -> str:
+def normalize_arkret_path_token(token: str) -> str:
     return token.rstrip(".,;:，。；：）)]】>")
 
 
@@ -177,8 +177,8 @@ def see_also_target_path(path: Path, value: str) -> Path:
     return (path.parent / target).resolve()
 
 
-def is_registered_cokret_path_or_namespace(token: str) -> bool:
-    if token == "/_cokret/_conformance/*" or token.startswith("/_cokret/_conformance/"):
+def is_registered_arkret_path_or_namespace(token: str) -> bool:
+    if token == "/_arkret/_conformance/*" or token.startswith("/_arkret/_conformance/"):
         return True
     if token in REGISTERED_ARKRET_PATHS:
         return True
@@ -351,14 +351,14 @@ def lint_file(path: Path) -> list[Finding]:
         if "CW001" not in ignored:
             path_scan_text = re.sub(r"<!--.*?-->", "", raw)
             for match in ARKRET_PATH_RE.finditer(path_scan_text):
-                token = normalize_cokret_path_token(match.group(0))
-                if not is_registered_cokret_path_or_namespace(token):
+                token = normalize_arkret_path_token(match.group(0))
+                if not is_registered_arkret_path_or_namespace(token):
                     findings.append(
                         Finding(
                             path,
                             idx,
                             "CW001",
-                            f"unregistered /_cokret path '{token}' in current-v1 prose",
+                            f"unregistered /_arkret path '{token}' in current-v1 prose",
                             "error",
                         )
                     )

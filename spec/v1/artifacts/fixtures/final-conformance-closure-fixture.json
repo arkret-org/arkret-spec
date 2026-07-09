@@ -444,6 +444,8 @@
       "assertions": [
         "overturn_without_same_batch_lift_rejected",
         "overturn_with_lift_accepts_atomically",
+        "overturn_does_not_resurrect_irreversible_effects",
+        "modify_requires_same_batch_lift_and_replacement",
         "modify_ref_must_point_to_same_batch_new_decision",
         "rejected_submit_leaves_appeal_under_review"
       ],
@@ -465,22 +467,141 @@
           "appeal_state": "under_review",
           "verdict": "overturn",
           "same_batch_lift_target_matches": true,
+          "original_irreversible_effect": "redaction_tombstone",
           "expected": {
             "decision": "accept",
             "appeal_state": "decided",
-            "original_decision_active": false
+            "original_decision_active": false,
+            "redaction_tombstone_present": true,
+            "original_content_resurrected": false
           }
         },
         {
           "name": "modify_ref_mismatch",
           "appeal_state": "under_review",
           "verdict": "modify",
+          "same_batch_lift_target_matches": true,
           "modify_decision_ref_in_same_batch": false,
           "new_decision_target_matches_original": false,
           "expected": {
             "decision": "reject",
             "reason": "failed_precondition",
             "partial_state_written": false
+          }
+        },
+        {
+          "name": "modify_missing_original_lift",
+          "appeal_state": "under_review",
+          "verdict": "modify",
+          "same_batch_lift_target_matches": false,
+          "modify_decision_ref_in_same_batch": true,
+          "new_decision_target_matches_original": true,
+          "expected": {
+            "decision": "reject",
+            "reason": "appeal_modify_missing_lift",
+            "appeal_state": "under_review",
+            "original_decision_active": true,
+            "replacement_decision_active": false,
+            "partial_state_written": false
+          }
+        },
+        {
+          "name": "modify_with_lift_and_replacement",
+          "appeal_state": "under_review",
+          "verdict": "modify",
+          "same_batch_lift_target_matches": true,
+          "modify_decision_ref_in_same_batch": true,
+          "new_decision_target_matches_original": true,
+          "expected": {
+            "decision": "accept",
+            "appeal_state": "decided",
+            "original_decision_active": false,
+            "replacement_decision_active": true,
+            "partial_state_written": false
+          }
+        }
+      ]
+    },
+    {
+      "vector_id": "ck.vector.moderation.review_resolution_fold.v1",
+      "assertions": [
+        "multiple_active_decisions_use_strictest_fold_not_split",
+        "require_review_add_is_pending_state_carrier",
+        "allow_resolution_lifts_all_review_gates_then_rechecks_current_authz",
+        "deny_resolution_atomically_lifts_review_and_adds_replacement",
+        "non_joinable_identity_conflict_is_moderation_control_split"
+      ],
+      "cases": [
+        {
+          "name": "two_review_adds_are_joinable",
+          "active_decisions": [
+            "require_review",
+            "require_review"
+          ],
+          "expected": {
+            "effective_verdict": "require_review",
+            "moderation_control_split": false,
+            "candidate_effective": false
+          }
+        },
+        {
+          "name": "quarantine_is_stricter_than_review",
+          "active_decisions": [
+            "require_review",
+            "quarantine"
+          ],
+          "expected": {
+            "effective_verdict": "quarantine",
+            "moderation_control_split": false
+          }
+        },
+        {
+          "name": "allow_lifts_all_review_adds",
+          "active_decisions": [
+            "require_review",
+            "require_review"
+          ],
+          "same_batch_review_lifts": 2,
+          "expected": {
+            "effective_verdict_after_batch": "none",
+            "candidate_auto_accepted": false,
+            "current_authz_recheck_required": true
+          }
+        },
+        {
+          "name": "partial_review_lift_rejected",
+          "active_decisions": [
+            "require_review",
+            "require_review"
+          ],
+          "same_batch_review_lifts": 1,
+          "expected": {
+            "decision": "reject",
+            "effective_verdict": "require_review",
+            "partial_state_written": false
+          }
+        },
+        {
+          "name": "deny_replacement_is_atomic",
+          "active_decisions": [
+            "require_review"
+          ],
+          "same_batch_review_lifts": 1,
+          "same_batch_replacement": "hard_deny",
+          "expected": {
+            "decision": "accept",
+            "effective_verdict_after_batch": "hard_deny",
+            "review_decision_active": false,
+            "replacement_decision_active": true
+          }
+        },
+        {
+          "name": "same_add_identity_different_bytes_is_split",
+          "same_add_identity_conflicting_canonical_bytes": true,
+          "expected": {
+            "decision": "fail_closed",
+            "reason": "moderation_state_conflict",
+            "moderation_control_split": true
           }
         }
       ]

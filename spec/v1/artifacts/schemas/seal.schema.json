@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/seal.schema.json",
   "title": "Arkret Seal",
-  "description": "Wire shape of a Arkret CBA Seal. It finalizes only control-plane Events. `delta[]` is the canonical set of new control-plane event_digest values introduced by this Seal; cumulative coverage is derived recursively as covered_set(S)=set(S.delta) union covered_set(predecessor_refs[]). `control_event_set_root` authenticates that recursive covered_set and is used for basis, inclusion and non-membership proofs. Optional data_* roots are observational only and MUST NOT gate DataEvents. Identity & signature model (see zh/authz/event-auth-state-resolution.md §6): the typed `id` (`ck:seal:<algo>:<hex>`) is content-derived — its hex equals H(seal_canonical_bytes) under the Realm digest_algorithm. Seal canonical bytes are the canonical JSON of every signed top-level field EXCEPT id and notary_signature. The `notary_signature` is NOT part of canonical bytes. Receivers MUST recompute H(seal_canonical_bytes) and verify the notary signature over the same bytes.",
+  "description": "Wire shape of a Arkret CBA Seal. It finalizes only control-plane Events. `delta[]` is the canonical set of new control-plane event_digest values introduced by this Seal; cumulative coverage is derived recursively as covered_set(S)=set(S.delta) union covered_set(predecessor_refs[]). `control_event_set_root` authenticates that recursive covered_set and is used for basis, inclusion and non-membership proofs. Optional data_* roots are observational only and MUST NOT gate DataEvents. Identity & signature model (see zh/authz/event-auth-state-resolution.md §6): the typed `id` (`ak:seal:<algo>:<hex>`) is content-derived — its hex equals H(seal_canonical_bytes) under the Realm digest_algorithm. Seal canonical bytes are the canonical JSON of every signed top-level field EXCEPT id and notary_signature. The `notary_signature` is NOT part of canonical bytes. Receivers MUST recompute H(seal_canonical_bytes) and verify the notary signature over the same bytes.",
   "type": "object",
   "required": [
     "id",
@@ -150,7 +150,7 @@
     },
     "seal_ref": {
       "type": "string",
-      "pattern": "^ck:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
+      "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
     },
     "event_digest": {
       "type": "string",

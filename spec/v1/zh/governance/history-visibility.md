@@ -72,7 +72,7 @@ Reducer MUST 拒绝把 effective Realm 或 Circle history visibility 设置为 `
 | 字段 | 必填 | 类型 | 语义 |
 | --- | --- | --- | --- |
 | `rule_id` | yes | `string`（`^[a-z][a-z0-9_]{0,63}$`） | 规则稳定 id；同一 `restricted_rules[]` 内 MUST 唯一，供审计与 key share diagnostic 关联。 |
-| `receiver_classes` | yes | `array<enum>`（≥1，唯一） | 本 rule 覆盖的接收者类别，取 `active_member` / `invited` / `removed_t0_visible` / `world_readable_requester` / `preview_token_holder`。 |
+| `receiver_classes` | yes | `array<enum>`（≥1，唯一） | 本 rule 的**读取资格匹配类**，取 `active_member` / `invited` / `removed_t0_visible` / `world_readable_requester` / `preview_token_holder`。它不是 key-share receiver state allow-list；尤其 `preview_token_holder` 只能命中受限 preview / history-stub 读取规则，永远不因此取得历史密钥。 |
 | `allowed_history_visibility_values` | yes | `array<history_visibility_value>`（≥1，唯一） | 命中本 rule 时允许的 history visibility 取值集（取自 §3 五值）。 |
 | `range` | yes | `enum(all_visible_at_t0, since_invite, since_join, bounded_epoch_range)` | reader 可读 / 可获 key 的历史下界范围；`bounded_epoch_range` 配合 `max_epoch_span` 限定 epoch 跨度。 |
 | `max_epoch_span` | no | `integer`（≥1） | 仅 `range=bounded_epoch_range` 时有意义，限定允许的最大 epoch 跨度。 |
@@ -81,6 +81,8 @@ Reducer MUST 拒绝把 effective Realm 或 Circle history visibility 设置为 `
 | `audit_required` | no | `boolean`（默认 `true`） | 命中本 rule 的读取 / key share 是否要求审计留痕。 |
 
 匹配语义：reader 对某 Event 的 restricted 资格按 `restricted_rules[]` 逐条求值——rule 的 `receiver_classes` 命中 reader 在 `T0` 的类别、Event 落在该 rule 的 `range`（及可选 `history_scope`）界定的历史范围内、且请求的 visibility 落在 `allowed_history_visibility_values` 内即视为通过；key share 还要求本次请求所用的 key 来源在该 rule 的 `key_sources` 内（见 §6）。无任何 rule 命中时 MUST fail closed（见下方集中声明）。多条 rule 命中时取并集（最宽 `range` / `allowed_history_visibility_values` / `key_sources`），但仍受 §3 表与父 Realm floor 约束，绝不放宽到比 enclosing scope 更宽。
+
+**读取类与 key-share state 是两个正交轴（normative）**：`restricted_rules[].receiver_classes` 用于判断“允许返回哪类授权投影”，因此包含 `preview_token_holder`；`history_sharing_policy.value.allowed_receiver_states` 用于 baseline **历史密钥交付**，只允许 `{ active_member, invited, removed_t0_visible, world_readable_requester }`，有意不包含 preview token。实现 MUST 先分别完成读取类匹配与 key-share state gate，再对允许的 key source 求交；MUST NOT 通过把 `preview_token_holder` 同时写入某条 `restricted_rules[]` 的 `receiver_classes` 与 `key_sources` 来绕过 key-share state gate。若 caller 只有 preview token 而不属于另一个被 `allowed_receiver_states` 接受的 state，key source MUST withhold，reason 使用 `history_not_visible` 或 `policy_denied`。
 
 **`restricted` fail-closed 集中声明（normative）**：上述所有 `restricted` 判定的校验主体是执行读取 / key share 的服务（reducer 或 key source）；校验时点为每次读取 / backfill / key share 请求。任一判定失败 MUST fail closed——无匹配 rule 时返回 `history_not_visible`，policy 未覆盖目标 scope / audience / range 时返回 `policy_denied`，缺少 key share rule 或 proof 时 MUST withhold key material。本节其它处（§3 语义表 `restricted` 行、§3 末尾段落）对 restricted 的描述均引用本声明，不再各自重述 fail-closed 行为。
 
@@ -101,6 +103,7 @@ Preview policy MUST 满足：
 
 - `history_snippet` 只允许在 `encryption_profile="none"` 或对应 content 明确为 plaintext public content 时返回正文片段。
 - E2EE Realm 的 preview MUST NOT 返回 decrypted message body、attachment plaintext、可逆 search token 或 emoji / reaction 明文；只能返回 stripped metadata、密文 envelope、不可逆 digest 或 policy 明确允许的 redacted stub。
+- Preview token 不是成员凭证、history-sharing grant 或 key-delivery proof。仅持 `preview_token_holder` 类的 reader MUST NOT 接收 Welcome、epoch state、`history_secret` 或任何可把 preview stub 还原为正文的 key material；即使某条 `restricted_rules[]` 同时列出该类与一个可用 `key_sources` 值也不例外。
 - preview token MUST audience-bound、target-bound、短 TTL、可撤销；目标绑定规则见 [object-addressing.md](../discovery/object-addressing.md) §4.2。
 - 未授权 preview、不可发现 target、token mismatch、过期 token 和不存在 target 对外 MUST 返回不可区分的 `not_found`。
 - Preview MUST NOT 披露 `join_candidates[]`，除非同一 caller 已按 discovery / invite / restricted proof 获得 join routing 权限。
@@ -129,7 +132,7 @@ Preview policy MUST 满足：
 `ck.realm.history_visibility` 只判定 Event 是否可见；`ck.realm.history_sharing_policy` 判定是否可以交付旧 epoch key / history key share。发送 `ck.realm_key.share` 前，key source MUST 同时满足：
 
 1. 目标 Event range 在 `T0` 下通过 §3 visibility 判定。
-2. effective `ck.realm.history_sharing_policy` 允许该 receiver class、scope、epoch range 和 key source。**对 `restricted` scope，命中的 `restricted_rules[]` rule 还 MUST 在其 `key_sources` 中列出本次请求所用的 key 来源（见 §3.1）——`key_sources` 未覆盖该来源时只放行读取、不授予 key**；仅满足 §3 read 判定不足以放行 key share。
+2. effective `ck.realm.history_sharing_policy` 的 `allowed_receiver_states` 允许该 key-share receiver state，并允许该 scope、epoch range 和 key source。**对 `restricted` scope，命中的 `restricted_rules[]` rule 还 MUST 在其 `key_sources` 中列出本次请求所用的 key 来源（见 §3.1）——`key_sources` 未覆盖该来源时只放行读取、不授予 key**；仅满足 §3 read 判定不足以放行 key share。`preview_token_holder` 只属于读取类，不属于 `allowed_receiver_states`，因此仅凭 preview token 必须 withhold key material。
 3. 交付侧机制校验——对 `share_class="member_device"`，device 未撤销且通过要求的验证、current safety policy（redaction / erasure / retention / ban·remove / legal hold）未禁止继续交付、audit profile 要求的留痕、`key_scope` / `sender_device_signature` 绑定，按 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §13 的 canonical key-share 校验执行；对 `share_class="realm_recovery_key"`，按 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.10.8 的 RRK DID service 与 durability policy 校验执行。本节不再重述。
 
 上述 1–2 是 history-visibility 本身的判定；3 引用 device-lifecycle §13 的 canonical 列表。**ban / remove / legal-hold 后 key withhold 已被该 canonical 列表覆盖**：[`../crypto-media/device-lifecycle.md` §13](../crypto-media/device-lifecycle.md) 的 current safety policy 校验项明确含 "redaction / erasure / retention / **ban·remove** / **legal hold**"（见该节 `current safety policy（redaction / erasure / retention / ban·remove / legal hold）未禁止继续向该 principal / device 交付` 条），且 §13.1 把"接收 principal/device 已处于 ban / leave / removed / account 失权态"列为**主体级拒绝**的终态 fail-closed（`not_member` / `history_not_visible`）。因此本文不重复定义这些项的扣留逻辑，以 device-lifecycle §13 / §13.1 为 canonical 真源。如果任一条件不满足，key source MUST 发送 `ck.realm_key.withheld` 或等价诊断，并使用 `history_not_visible`、`not_member`、`policy_denied` 或更具体 reason。Key source MUST NOT 因为自己持有 backup、Archive Node 副本或 service operator 权限而跳过这些检查。

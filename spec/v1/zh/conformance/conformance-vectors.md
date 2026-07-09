@@ -356,7 +356,7 @@ sha256:7dd89cbf24de3183c28323e5b64e7d0b214cf0d546cb9804d1ef34a17c6410c1
 
 判定规则：
 
-- event digest / proof `event_digest` MUST 从 redaction 前、去除 `proofs` 与 `unsigned` 后的 canonical event bytes 派生；`event_id` 是稳定 `ck:event:*` typed ID，必须进入 digest，但不替代 digest。
+- event digest / proof `event_digest` MUST 从 redaction 前、去除 `proofs` 与 `unsigned` 后的 canonical event bytes 派生；`event_id` 是稳定 `ak:event:*` typed ID，必须进入 digest，但不替代 digest。
 - 实现 MUST NOT 把 transport envelope、HTTP header、Sync Service metadata、local receive time 放入 event digest。
 - 同一事件在不同 Events API 或 Sync Service 上 MUST 得到相同 digest。
 
@@ -569,7 +569,7 @@ ck.vector.encoding.cursor_opaque.core.v1
 输入 cursor（schema-valid v1 core wire 形态；body 是 stateful opaque handle `{v,purpose,t,x,h}`）：
 
 ```text
-ck:cursor:eyJoIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1diIsInB1cnBvc2UiOiJzdHJlYW0iLCJ0IjoiMjA5OS0xMi0zMFQyMzo1OTo1OVoiLCJ2IjoiMSIsIngiOjQxMDI0NDQ3OTkwMDB9
+ak:cursor:eyJoIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1diIsInB1cnBvc2UiOiJzdHJlYW0iLCJ0IjoiMjA5OS0xMi0zMFQyMzo1OTo1OVoiLCJ2IjoiMSIsIngiOjQxMDI0NDQ3OTkwMDB9
 ```
 
 cursor base64url 解码后对应 canonical JSON：
@@ -728,7 +728,7 @@ fixture 同时固化以下向量（2026-07-03 起）：
 
 `vector_id`: `ck.vector.encoding.reject_invalid_cursor.core.v1`（来源：`cursor-negative-fixture.json`）
 
-§1.11 固化 cursor 对客户端的不透明性；本向量固化签发服务侧的拒绝语义。fixture 的每个 case 是一条形似合法的 `ck:cursor:` token，conformant 签发服务在推进任何服务端状态之前 MUST 拒绝：超长 token、非法 base64url、畸形 JSON、重复键、非 NFC 字符串、内联 positions、未知字段、不支持的版本、过短 handle、非 canonical 时间戳、负 TTL、超 TTL 上限（stream / barrier 各一）、已过期。
+§1.11 固化 cursor 对客户端的不透明性；本向量固化签发服务侧的拒绝语义。fixture 的每个 case 是一条形似合法的 `ak:cursor:` token，conformant 签发服务在推进任何服务端状态之前 MUST 拒绝：超长 token、非法 base64url、畸形 JSON、重复键、非 NFC 字符串、内联 positions、未知字段、不支持的版本、过短 handle、非 canonical 时间戳、负 TTL、超 TTL 上限（stream / barrier 各一）、已过期。
 
 Expected：前 13 类 `reason_code = invalid_cursor`（顶层错误码 `invalid_param`），过期 case `reason_code = cursor_expired`；客户端侧行为仍按 §1.11——decode 失败时按不透明字符串处理，MUST NOT 因此中断协议。
 
@@ -998,7 +998,7 @@ ck.vector.strand_tracks_update.atomic.v1
 判定要求：
 
 - patch path 解析 MUST 遵循 [`event-and-patch.md` §4.2`](../models/event-and-patch.md) ABNF grammar；任何 path 形如 `tracks.<name>[key=...]` 的 selector segment MUST `schema_violation`（`tracks` 是 map，不是 unique-key 数组）。
-- `ck.strand.tracks.update` 写入的 cell 是 `ck:cell:ck.component.strand.tracks.v1:<strand_id>`（cas_register），reducer 校验合并后 invariant 在 cell update 之前 完成。
+- `ck.strand.tracks.update` 写入的 cell 是 `ak:cell:ck.component.strand.tracks.v1:<strand_id>`（cas_register），reducer 校验合并后 invariant 在 cell update 之前 完成。
 
 失败条件：
 
@@ -1411,7 +1411,7 @@ ck.vector.redaction.space_target_ref_schema.v1
 
 期望结果：
 
-- Payload schema MUST 接受 `ck:space:*` 作为 `ck.redaction` 的 `target_ref` / `object_ref`。
+- Payload schema MUST 接受 `ak:space:*` 作为 `ck.redaction` 的 `target_ref` / `object_ref`。
 - Reducer 语义仍按 Space 生命周期规则执行：Space 没有独立 `redacted` state，内容清理合并到 Space metadata cleanup / terminal transition；不得因 schema 漏洞把 Space cleanup 路径降级为实现私有扩展。
 
 ### 3.3 Vector: redaction 与 policy scope
@@ -1768,7 +1768,7 @@ ck.vector.capability.revoke_rollback.v1
 
 期望输出：
 
-- 初始解析：`ck:event:0196414c-c04a-7000-8000-000000000000` 因 revoke 生效应拒绝或标记 soft-fail/rejected（取决于实现策略）。
+- 初始解析：`ak:event:0196414c-c04a-7000-8000-000000000000` 因 revoke 生效应拒绝或标记 soft-fail/rejected（取决于实现策略）。
 - 回滚 revoke 后重算：同一事件在回滚前瞻分析中应变为 authorized。
 - 回滚必须产生独立可审计结果，不可直接修改历史事件链的 event_id。
 
@@ -1865,7 +1865,37 @@ ck.vector.capability.membership_is_not_baseline.v1
 - 成员资格（`ck.member.state{join}`）本身**不**隐含任何 action capability——授权核心是 allow-grant + explicit revoke（[`../authz/capabilities.md`](../authz/capabilities.md)、[`../governance/content-moderation.md` §2.4](../governance/content-moderation.md)），不存在"成员即可写"的 baseline 能力。
 - 无匹配 grant 时核心写入 MUST 被拒（`missing_capability`），且**没有任何 deny 层 / 成员身份能补足缺失的 capability**。
 
-### 4.6 Vector: 敏感字段读路径处理
+### 4.6 Vector: Realm Founding Grant Bootstrap
+
+向量名称：
+
+```text
+ck.vector.capability.realm_founding_grant_bootstrap.v1
+```
+
+本向量固化 [`realm-and-space.md`](../models/realm-and-space.md) §2.5 与 [`capabilities.md`](../authz/capabilities.md) §3.2：`ck.realm.create` 必须与紧随其后的封闭 creator self founding grant 原子 bootstrap。合法形态仅授予创建者 Realm-wide 的 `ck.realm.admin` / `ck.capability.grant` / `ck.capability.revoke`；缺失、改序、授予第三方、增加 action / resource / constraint 或在 batch 外重放该例外时，整个 bootstrap unit MUST fail closed，不得留下 Realm、membership 或 grant 半成品。founding grant 写入后是普通可撤销 OR-Set grant；普通 membership 仍不产生 baseline capability。
+
+### 4.7 Vector: Quota Linearizable Authority
+
+向量名称：
+
+```text
+ck.vector.constraint.quota_linearizable_authority.v1
+```
+
+本向量固化 [`constraint-schema.md`](../authz/constraint-schema.md) §8.1：同一 quota key / UTC window 在 enforcing service 的所有节点间共享一个逻辑线性化 authority。counter=99、limit=100 时两个节点并发争抢最后名额，恰一条接受、另一条 `quota_exceeded`，最终 counter=100 且 overshoot=0；同 idempotency identity 的成功重试只计一次；authority 不可达时业务副作用前 fail closed；`period=P1M` 因非固定长度被 schema 拒绝。
+
+### 4.8 Vector: Temporal Action Gate 与 Object Window
+
+向量名称：
+
+```text
+ck.vector.constraint.temporal_action_window.v1
+```
+
+本向量固化 [`constraint-schema.md`](../authz/constraint-schema.md) §14.2 / §16.1：`applies_to_actions` 不命中时，对 allow constraint 返回 neutral true，对 deny / quarantine / review 返回未命中 false；命中 `ck.message.revise.own` / `ck.message.redact.own` 时，从 reducer 已验证的 target `created_at` 加对应 duration 计算 deadline，并与一次固定的 verification time / skew 比较。窗口外、target time 缺失 / 不可验证或 duration 计算失败必须 fail closed；recurrence 命中不得提前返回而跳过 object window。
+
+### 4.9 Vector: 敏感字段读路径处理
 
 向量名称：
 
@@ -2103,8 +2133,8 @@ ck.vector.disappearing.on_last_read_offline_window.v1
 
 期望：
 
-- Collection projection MUST 返回 `object.id = ck:strand:019640c5-0400-7000-8000-000000000000`。
-- 返回项 MUST 位于 `ck:space:01964010-8400-7000-8000-000000000000`。
+- Collection projection MUST 返回 `object.id = ak:strand:019640c5-0400-7000-8000-000000000000`。
+- 返回项 MUST 位于 `ak:space:01964010-8400-7000-8000-000000000000`。
 - View cursor MUST 绑定 projection、view、frontier 与权限上下文。
 
 ### 5.4 Vector: Strand Card Move Read-Your-Writes
@@ -2140,7 +2170,7 @@ ck.vector.disappearing.on_last_read_offline_window.v1
 期望：
 
 - Projection executor 在返回前 MUST 等待本地 frontier 覆盖写入 token，或返回可恢复超时。
-- 查询结果中该 Strand item 的 `list_id` MUST 为 `ck:space:01964010-8800-7000-8000-000000000000`。
+- 查询结果中该 Strand item 的 `list_id` MUST 为 `ak:space:01964010-8800-7000-8000-000000000000`。
 
 ### 5.5 Vector: Strand Discussion Track Visibility
 
@@ -2461,7 +2491,7 @@ ck.vector.disappearing.on_last_read_offline_window.v1
 - rebind 通过 causal frontier handover；
 - 撤销后投递立即停止。
 
-下列向量假设 Realm `ck:realm:7d000000-0000-7000-8000-000000000000`、actor `did:webvh:01HV...:alice` 已存在；具体 id 仅作占位。本节是 normative vector description；机器可执行 fixture 位于 [`../../artifacts/fixtures/membership-delivery-binding-fixture.json`](../../artifacts/fixtures/membership-delivery-binding-fixture.json)，runner MUST 同时消费该 fixture 与本文 prose，不得再依赖未落地的目录约定。
+下列向量假设 Realm `ak:realm:7d000000-0000-7000-8000-000000000000`、actor `did:webvh:01HV...:alice` 已存在；具体 id 仅作占位。本节是 normative vector description；机器可执行 fixture 位于 [`../../artifacts/fixtures/membership-delivery-binding-fixture.json`](../../artifacts/fixtures/membership-delivery-binding-fixture.json)，runner MUST 同时消费该 fixture 与本文 prose，不得再依赖未落地的目录约定。
 
 ### 7.2 Vector: `explicit` Binding 接受
 
@@ -2498,7 +2528,7 @@ Input — `ck.member.state{membership="join"}` Control Move payload：
 
 `vector_id`: `ck.vector.membership.delivery_binding.did_document_default.v1`
 
-Input — Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_did_document_default=true`，其余字段未限制；Alice DID Document service `CokretPrincipalServer` 指向 `did:webvh:z6mkfixture:personal.alice.example`，canonical hash `sha256:abc...`。
+Input — Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_did_document_default=true`，其余字段未限制；Alice DID Document service `ArkretPrincipalServer` 指向 `did:webvh:z6mkfixture:personal.alice.example`，canonical hash `sha256:abc...`。
 
 客户端构造 join Control Move 时 MUST 先解析 DID Document 并物化进 binding：
 
@@ -2693,7 +2723,7 @@ Negative cases：
 
 Steps：
 
-1. Origin service `did:webvh:z6mkfixture:alpha.example` 使用 active service key 向 destination 提交 `POST /_cokret/peer/events`（`ck.peer.events.command.submit`），header 绑定 `Source-Service-DID`、`Destination-Service-DID`、`Source-Trust-Domain`、`Destination-Trust-Domain`、`Request-Canonical-Digest`、`Idempotency-Key`，批次 accepted。
+1. Origin service `did:webvh:z6mkfixture:alpha.example` 使用 active service key 向 destination 提交 `POST /_arkret/peer/events`（`ck.peer.events.command.submit`），header 绑定 `Source-Service-DID`、`Destination-Service-DID`、`Source-Trust-Domain`、`Destination-Trust-Domain`、`Request-Canonical-Digest`、`Idempotency-Key`，批次 accepted。
 2. Realm policy 或 DID Document 随后撤销该 origin service key；destination 的 accepted authorization frontier 前进。
 3. 攻击者重放完全相同的 HTTP body、signature 与 `Idempotency-Key`。
 
@@ -2940,7 +2970,7 @@ Steps：
 
 Expected：
 
-- 每个响应 MUST 带 `has_more`；有后续页时 MUST 带合法 `ck:cursor:*`。
+- 每个响应 MUST 带 `has_more`；有后续页时 MUST 带合法 `ak:cursor:*`。
 - Cursor MUST 绑定调用者、selector 和 projection purpose，不得跨 service / Realm 复用。
 - 缺失分页闭包字段时上游 MUST 归类为 `invalid_response`。
 
@@ -3050,8 +3080,8 @@ Expected：
 
 Steps：
 
-1. 服务签发 stream cursor 并随后接受 `/_cokret/self/account/cursor/revoke`。
-2. 攻击者重放已撤销 cursor 到 `/_cokret/self/account/subscribe?after=`。
+1. 服务签发 stream cursor 并随后接受 `/_arkret/self/account/cursor/revoke`。
+2. 攻击者重放已撤销 cursor 到 `/_arkret/self/account/subscribe?after=`。
 3. 攻击者提交篡改过但未撤销的 cursor。
 
 Expected：
@@ -3533,7 +3563,7 @@ Expected:
 
 Steps:
 
-1. Client POST `/_cokret/self/rtc/token` with the minimum required fields `(realm_id, call_id, actor_id, device_id, focus_id)`。
+1. Client POST `/_arkret/self/rtc/token` with the minimum required fields `(realm_id, call_id, actor_id, device_id, focus_id)`。
 2. Issuer 返回 200 with `backend_token` / `participant_identity` / `participant_binding` / `expires_at` / `service_signature`。
 
 Expected:
@@ -3603,7 +3633,7 @@ Expected:
 
 Steps:
 
-1. Backend signal `ParticipantConnected` with `participant_identity=ck:rtc_participant:<unknown>`，无对应 `ck.call.state.participants[]` 项。
+1. Backend signal `ParticipantConnected` with `participant_identity=ak:rtc_participant:<unknown>`，无对应 `ck.call.state.participants[]` 项。
 
 Expected:
 
@@ -3611,7 +3641,7 @@ Expected:
 
 ### 12.9 Recording Artifact — Via Arkret Blob Pipeline
 
-`vector_id`: `ck.vector.media_binding.recording_artifact_via_cokret_blob.v1`
+`vector_id`: `ck.vector.media_binding.recording_artifact_via_arkret_blob.v1`
 
 Steps:
 
@@ -3963,24 +3993,39 @@ Expected：
 
 `vector_id`: `ck.vector.moderation.appeal_atomicity.v1`
 
-本向量固化 [`content-moderation.md`](../governance/content-moderation.md) §5.5.2 的 reducer 强制约束：“`ck.moderation.appeal.decision` `verdict=overturn` MUST 与一条 `ck.moderation.decision.lift`（target 等于 `decision_ref`）在同一 ordered submit batch 或同一 control transaction 中出现；否则 reducer 用 `appeal_overturn_missing_lift` 拒绝”；“`verdict=modify` MUST 与一条新的 `ck.moderation.decision`（其 `target_ref` 等于原 target）在同一 batch 中出现……reducer 校验 `modify_decision_ref` 与同 batch 新 decision 的 event id 一致”。
+本向量固化 [`content-moderation.md`](../governance/content-moderation.md) §5.5.2 的 reducer 强制约束：“`ck.moderation.appeal.decision` `verdict=overturn` MUST 与一条 `ck.moderation.decision.lift`（target 等于 `decision_ref`）在同一 ordered submit batch 或同一 control transaction 中出现；否则 reducer 用 `appeal_overturn_missing_lift` 拒绝”；“`verdict=modify` MUST 在同一 batch 同时 lift 原 decision 并新增 `modify_decision_ref` 指向的 replacement decision”。该向量同时固定 overturn 不复活不可逆 redaction tombstone / 已销毁 key 的边界。
 
 Steps（前置：appeal cell 已沿 §5.5.1 状态机 `submitted → under_review` 推进，reviewer ≠ 原 decision issuer）：
 
-- **Case A — overturn 缺 lift**：reviewer 提交 `verdict=overturn` 的 `ck.moderation.appeal.decision`，但同一 ordered submit batch / control transaction 中**不**含 target 等于 `decision_ref` 的 `ck.moderation.decision.lift`；随后在另一次提交中补齐同 batch 的 decision + lift 对。
-- **Case B — modify 引用不符**：reviewer 提交 `verdict=modify` 的 decision，`modify_decision_ref` 指向的事件不在同一 batch，或同 batch 新 `ck.moderation.decision` 的 `target_ref` 不等于原 target。
+- **Case A — overturn 缺 lift / 正常 overturn**：reviewer 提交 `verdict=overturn` 的 `ck.moderation.appeal.decision`，但同一 ordered submit batch / control transaction 中**不**含 target 等于 `decision_ref` 的 `ck.moderation.decision.lift`；随后在另一次提交中补齐同 batch 的 decision + lift 对。原 decision 已触发 redaction tombstone 的变体也包含在内。
+- **Case B — modify 原子替换失败**：reviewer 提交 `verdict=modify` 的 decision，但缺少原 decision lift，或 `modify_decision_ref` 指向的事件不在同一 batch，或同 batch新 `ck.moderation.decision` 的 `target_ref` 不等于原 target。
+- **Case C — modify 正路径**：同一 batch 含 appeal decision、指向原 `decision_ref` 的 lift、以及 `modify_decision_ref` 指向且 target 相同的新 moderation decision。
 
 Expected：
 
-- **Case A**：缺 lift 的提交 MUST 被 reducer 以 `appeal_overturn_missing_lift` 拒绝，appeal cell 保持 `under_review`，原 moderation decision 继续生效（不存在“上诉胜诉但原 decision 仍生效”的中间窗口，反向亦然）；补齐后的同 batch decision + lift MUST 原子接受，cell 转入 `decided` 且原 decision 解除。
-- **Case B**：MUST 拒绝整个 modify 提交；不得出现“appeal 已 `decided` 但新 decision 缺失 / 指向错误”的部分状态。
-- 两个 case 中 cell 状态机 MUST 遵循 §5.5.1 转换表（`submitted → under_review → decided → closed`）；跳跃转换 MUST `failed_precondition`。
+- **Case A**：缺 lift 的提交 MUST 被 reducer 以 `appeal_overturn_missing_lift` 拒绝，appeal cell 保持 `under_review`，原 moderation decision 继续生效（不存在“上诉胜诉但原 decision 仍生效”的中间窗口，反向亦然）；补齐后的同 batch decision + lift MUST 原子接受，cell 转入 `decided` 且原 decision 解除。若原 decision 已触发 redaction，tombstone 与 audit fact MUST 保留，原文 / key MUST NOT 被复活。
+- **Case B**：MUST 拒绝整个 modify 提交；缺 lift时 reason=`appeal_modify_missing_lift`。不得出现“appeal 已 `decided` 但旧 decision 未 lift / 新 decision 缺失 / 指向错误”的部分状态。
+- **Case C**：三件套 MUST 原子接受；旧 decision inactive，replacement active，appeal cell 进入 `decided`。
+- 所有 case 中 cell 状态机 MUST 遵循 §5.5.1 转换表（`submitted → under_review → decided → closed`）；跳跃转换 MUST `failed_precondition`。
+
+### 15.2.1 Vector: Moderation Review Resolution 与多 Decision Fold
+
+`vector_id`: `ck.vector.moderation.review_resolution_fold.v1`
+
+本向量固化 [`content-moderation.md`](../governance/content-moderation.md) §2.6 与 [`policy-server.md`](../authz/policy-server.md) §7.1：active moderation decisions 是可 join 的 OR-Set，普通多 entry 必须按 `hard_deny > quarantine > require_review > none` 取最严格 effective verdict；active `require_review` add 是 pending-review 的 canonical carrier，解除必须原子 lift 全部适用 review gates，并在 allow 路径重新执行当前 authz。
+
+Cases / Expected：
+
+- 两条来自不同 issuer 的 active `require_review` add MUST 收敛为 effective `require_review`，不得报 split；同时存在 `quarantine` 时 effective MUST 为 `quarantine`。
+- allow resolution 必须在同一 batch lift 本次 gate 的全部 active review decisions；只 lift 部分 MUST 原子拒绝并保持 pending。全部 lift 后候选仍不得自动接受，MUST 重跑当前 capability / policy / membership / quota。
+- hard-deny / quarantine resolution 必须把 review lifts 与 replacement decision 原子提交；不得留下“review 已解除但 replacement 未写入”的窗口。
+- 只有同一 add identity 对应不同 canonical bytes、remove provenance 不可验证等真正非 joinable 状态才返回 `moderation_control_split` / `moderation_state_conflict`。
 
 ### 15.3 Vector: Policy Decision 重放拒绝
 
 `vector_id`: `ck.vector.policy_server.decision_replay_rejected.v1`
 
-本向量固化 [`policy-server.md`](../authz/policy-server.md) §5 的反重放 / freshness MUST：“节点 MUST 拒绝过期 decision”；frontier 比较中“若本地 accepted authorization / policy / membership frontier 严格晚于 decision 绑定的 frontier……receiver MUST fail closed 并重新请求 `/_cokret/self/policy/check`；不得把旧 decision 复用到更新后的 auth state”。
+本向量固化 [`policy-server.md`](../authz/policy-server.md) §5 的反重放 / freshness MUST：“节点 MUST 拒绝过期 decision”；frontier 比较中“若本地 accepted authorization / policy / membership frontier 严格晚于 decision 绑定的 frontier……receiver MUST fail closed 并重新请求 `/_arkret/self/policy/check`；不得把旧 decision 复用到更新后的 auth state”。
 
 Steps：
 
@@ -4014,7 +4059,7 @@ Expected：
 
 `vector_id`: `ck.vector.key_backup.unlock_proof.v1`
 
-本向量固化 [`key-management.md`](../identity/key-management.md) §7.7.1 / §7.8 的取回校验 MUST：取回完整 ciphertext 的协议操作是 `ck.self.keys.backups.command.unlock`（`POST /_cokret/self/keys/backups/{backup_id}/unlock`），unlock proof MUST 作为 request body 的 `proof` 字段提交；“服务端在返回完整 ciphertext 之前，MUST 校验该 unlock proof 与请求 session、caller、新设备 key、active-series record 和目标 envelope 一致；任一不符 MUST fail closed”；“`POST /_cokret/self/keys/backups/{backup_id}/unlock` 即便对自己的备份也 MUST 要求 fresh device proof……bearer token 单独到达 MUST 被拒绝”。
+本向量固化 [`key-management.md`](../identity/key-management.md) §7.7.1 / §7.8 的取回校验 MUST：取回完整 ciphertext 的协议操作是 `ck.self.keys.backups.command.unlock`（`POST /_arkret/self/keys/backups/{backup_id}/unlock`），unlock proof MUST 作为 request body 的 `proof` 字段提交；“服务端在返回完整 ciphertext 之前，MUST 校验该 unlock proof 与请求 session、caller、新设备 key、active-series record 和目标 envelope 一致；任一不符 MUST fail closed”；“`POST /_arkret/self/keys/backups/{backup_id}/unlock` 即便对自己的备份也 MUST 要求 fresh device proof……bearer token 单独到达 MUST 被拒绝”。
 
 Steps：
 
@@ -4062,7 +4107,7 @@ Expected：所有中间值与输出 MUST byte-for-byte 复现；固定盐 / 参�
 
 Steps：
 
-1. 对同一 federation ingress endpoint（如 `POST /_cokret/peer/events`）分别触发鉴权失败族中的不同原因：(a) 未知 peer（`Source-Service-DID` 无法解析 / 不在任何 binding 中）；(b) 签名可解析但 source 未被目标 Realm policy / 本地 peer policy 授权；(c) 目标 Realm 或资源不存在。
+1. 对同一 federation ingress endpoint（如 `POST /_arkret/peer/events`）分别触发鉴权失败族中的不同原因：(a) 未知 peer（`Source-Service-DID` 无法解析 / 不在任何 binding 中）；(b) 签名可解析但 source 未被目标 Realm policy / 本地 peer policy 授权；(c) 目标 Realm 或资源不存在。
 2. 在同一服务端测量点、同一请求类别与同一部署 profile 下，对每类失败至少采样 30 次，记录 HTTP status、`reason_code`、响应字段集合与服务端处理时延（网络传输时间不计入服务端本地口径）。
 
 Expected：
@@ -4085,7 +4130,7 @@ Expected：
 Steps：
 
 - **Case A — 计算正路径**：取 fixture case `reducer_profile_digest_federation_minimal` 的 `canonical_input`（即 registry 中 `ck.profile.federation_minimal.v1` row 的 `digest_input`），计算 `"sha256:" || lowercase_hex(sha256(canonical_json(digest_input)))`，与 `expected_digest` 逐字节比对。
-- **Case B — 不一致整批拒绝**：按 fixture case `reducer_profile_mismatch` 构造 `POST /_cokret/peer/events` 批次，sender 声明的 `service_binding_ref.reducer_profile_digest` 与 receiver 对同一 Realm 重算结果不一致。
+- **Case B — 不一致整批拒绝**：按 fixture case `reducer_profile_mismatch` 构造 `POST /_arkret/peer/events` 批次，sender 声明的 `service_binding_ref.reducer_profile_digest` 与 receiver 对同一 Realm 重算结果不一致。
 
 Expected：
 
@@ -4258,11 +4303,11 @@ Expected：
 
 `vector_id`: `ck.vector.session.pop_presentation.v1`
 
-本向量固化 §3.2 / §2.5 的 PoP 出示与 transcript 绑定 MUST：客户端用 `ck.session.grant` 委托的 `session_public_key` 对应私钥做 RFC 9421 HTTP Message Signature，covered components MUST 至少覆盖 `@method`、`@target-uri`、`@authority`，带 body 请求 MUST 含 `content-digest`（RFC 9530，覆盖 canonical request body，接收方 MUST 在验签前先校验 body 实际 hash 与 header 一致）；签名 `kid` MUST 指向当前 grant 的 `session_public_key`；出示是否被接受由签名 transcript 而非裸 token 决定。
+本向量固化 §3.2 / §2.5 的 PoP 出示与 transcript 绑定 MUST：客户端用 `ak.session.grant` 委托的 `session_public_key` 对应私钥做 RFC 9421 HTTP Message Signature，covered components MUST 至少覆盖 `@method`、`@target-uri`、`@authority`，带 body 请求 MUST 含 `content-digest`（RFC 9530，覆盖 canonical request body，接收方 MUST 在验签前先校验 body 实际 hash 与 header 一致）；签名 `kid` MUST 指向当前 grant 的 `session_public_key`；出示是否被接受由签名 transcript 而非裸 token 决定。
 
 Steps：
 
-- **Case A — 合法 PoP 写请求**：对常规写 endpoint（如 `POST /_cokret/self/events`）提交，`Signature-Input` covered components 含 `@method` / `@target-uri` / `@authority` / `content-digest`（及参与幂等的 `idempotency-key`），`keyid` 指向当前 grant 委托的 `session_public_key` kid，`created` / `expires` 在 replay window 内，body 实际 hash 与 `Content-Digest` header 一致。
+- **Case A — 合法 PoP 写请求**：对常规写 endpoint（如 `POST /_arkret/self/events`）提交，`Signature-Input` covered components 含 `@method` / `@target-uri` / `@authority` / `content-digest`（及参与幂等的 `idempotency-key`），`keyid` 指向当前 grant 委托的 `session_public_key` kid，`created` / `expires` 在 replay window 内，body 实际 hash 与 `Content-Digest` header 一致。
 - **Case B — transcript / digest 不一致**：(a) 用对 method `M1` / path `P1` / body `B1` 生成的签名出示到 method / path 不同或 body 改为 `B2` 的请求（covered component 实际值与签名 transcript 不符）；(b) `Content-Digest` header 与 body 实际 hash 不一致。
 
 Expected：
@@ -4279,8 +4324,8 @@ Expected：
 
 Steps：
 
-- **Case A — 高安全 profile 纯 bearer 写 / 敏感读**：在 `ck.profile.high_security_organization.v1`（或 `sovereign_deployment`）下，对常规写（推进 actor_seq / Realm frontier）或敏感读（成员列表、私有 projection、key backup、device list、moderation 队列等）只用 `Authorization: Bearer <ck.session.grant>` 出示，无 `Signature` / `Signature-Input`，且无 DPoP / mTLS 绑定。
-- **Case B — 默认 profile 受保护 endpoint 纯 bearer**：默认 profile 下对任一受保护 current-v1 endpoint 只用 `Authorization: Bearer <ck.session.grant>` 出示，无 DPoP / PoP / mTLS 绑定。公开 metadata endpoint 若设计为无需认证的 public surface，MAY 返回公开响应，但 MUST NOT 把裸 bearer 当作认证成功的 session presentation。
+- **Case A — 高安全 profile 纯 bearer 写 / 敏感读**：在 `ck.profile.high_security_organization.v1`（或 `sovereign_deployment`）下，对常规写（推进 actor_seq / Realm frontier）或敏感读（成员列表、私有 projection、key backup、device list、moderation 队列等）只用 `Authorization: Bearer <ak.session.grant>` 出示，无 `Signature` / `Signature-Input`，且无 DPoP / mTLS 绑定。
+- **Case B — 默认 profile 受保护 endpoint 纯 bearer**：默认 profile 下对任一受保护 current-v1 endpoint 只用 `Authorization: Bearer <ak.session.grant>` 出示，无 DPoP / PoP / mTLS 绑定。公开 metadata endpoint 若设计为无需认证的 public surface，MAY 返回公开响应，但 MUST NOT 把裸 bearer 当作认证成功的 session presentation。
 - **Case C — PoP 过窗**：携带合法签名的 PoP 出示，但 `created` / `expires` 超出 replay window（`expires - created` 超上限或 `created` 与本地时钟偏差超上限）。
 
 Expected：
@@ -4301,7 +4346,7 @@ Expected：
 
 Steps：
 
-- **Case A — 合法 app/bridge→arkret inbound**：已安装 Applet registration `service_did=did:webvh:z6mkfixture:bridge.example`，`registration_epoch=sha256:<R>`，`webhook_auth.key_ref=did:webvh:z6mkfixture:bridge.example#tx-1`，install active。Applet 提交 `POST /_cokret/edge/applet/transactions`，header `Source-Service-DID=did:webvh:z6mkfixture:bridge.example`、`Destination-Service-DID=did:webvh:z6mkfixture:principal.example`、`Idempotency-Key=tx-001`、`Content-Digest` 与 body 一致；`Signature-Input` 覆盖 required components，`keyid=did:webvh:z6mkfixture:bridge.example#tx-1`，`created` / `expires` 在窗口内；body `source_service_did` 与 header 一致，`events[]` 中的 `applet_id`、`authorization_ref`、`proofs[]` 与 actor namespace / capability grant 均有效。
+- **Case A — 合法 app/bridge→arkret inbound**：已安装 Applet registration `service_did=did:webvh:z6mkfixture:bridge.example`，`registration_epoch=sha256:<R>`，`webhook_auth.key_ref=did:webvh:z6mkfixture:bridge.example#tx-1`，install active。Applet 提交 `POST /_arkret/edge/applet/transactions`，header `Source-Service-DID=did:webvh:z6mkfixture:bridge.example`、`Destination-Service-DID=did:webvh:z6mkfixture:principal.example`、`Idempotency-Key=tx-001`、`Content-Digest` 与 body 一致；`Signature-Input` 覆盖 required components，`keyid=did:webvh:z6mkfixture:bridge.example#tx-1`，`created` / `expires` 在窗口内；body `source_service_did` 与 header 一致，`events[]` 中的 `applet_id`、`authorization_ref`、`proofs[]` 与 actor namespace / capability grant 均有效。
 - **Case B — 缺签名 / 纯 bearer**：同一 body 只携带 `Authorization: Bearer` 或完全缺少 `Signature` / `Signature-Input`。
 - **Case C — transcript / source 混淆**：签名覆盖的 `source-service-did`、header `Source-Service-DID` 或 body `source_service_did` 三者任一不同；或 `Destination-Service-DID` 不等于实际接收服务；或 `Content-Digest` 与 body 不一致。
 - **Case D — idempotency replay**：重复 Case A 的相同 headers/body/signature anchor；随后再次使用同一 `(operation_id, direction, Source-Service-DID, Destination-Service-DID, Idempotency-Key)`，但改变 body digest、`webhook_auth.key_ref` / `keyid`、`registration_epoch` 或 actor namespace。

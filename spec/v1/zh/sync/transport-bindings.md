@@ -112,11 +112,11 @@ Transport binding MUST 映射到 `artifacts/registry/contract-catalog.json#opera
 | `ck.self.moderation.command.report` | 提交内容或行为举报。 |
 | `ck.edge.applet.command.transaction` | 向 Applet 推送事件批次。 |
 | `ck.edge.applet.query.describe` | 查询 Applet profile、namespace 与限制。 |
-| `ck.self.device_messages.command.send` | 将 to-device message 批次放入目标设备短期队列；HTTP binding 是 `POST /_cokret/self/device_messages`，因其语义是 send/fanout command，而不是 URI 资源替换。 |
+| `ck.self.device_messages.command.send` | 将 to-device message 批次放入目标设备短期队列；HTTP binding 是 `POST /_arkret/self/device_messages`，因其语义是 send/fanout command，而不是 URI 资源替换。 |
 | `ck.self.keys.upload.create` / `ck.self.keys.query.lookup` / `ck.self.keys.command.claim` | E2EE 设备密钥发布、查询与领取。 |
 | `ck.self.keys.backups.resource.replace` / `ck.self.keys.backups.query.list` / `ck.self.keys.backups.command.unlock` / `ck.self.keys.backups.resource.delete` | 加密密钥备份对象存储、枚举、解锁取回与删除。 |
 
-> **Federation peer surface（规范性）**：跨服务器互通必须使用 `/_cokret/peer/*` HTTP trust surface 和 `ck.peer.*` operation_id。`/_cokret/self/*` 只承接当前 principal / 已授权自服务会话的攻击面，不承接 federation server-to-server wire。**联邦接收收敛为单轨**：`POST /_cokret/peer/events`（`ck.peer.events.command.submit`）是唯一的 federation Event 接收轨，DataEvent / Control Move（含 Move / Anchor）统一走该 sealed Event Envelope 通道；实现私有 peer 入站轨 MUST NOT 作为跨 deployment 互通入口（详见 [`federation.md`](./federation.md) §4.0）。详见 [`federation.md`](./federation.md) §4。
+> **Federation peer surface（规范性）**：跨服务器互通必须使用 `/_arkret/peer/*` HTTP trust surface 和 `ck.peer.*` operation_id。`/_arkret/self/*` 只承接当前 principal / 已授权自服务会话的攻击面，不承接 federation server-to-server wire。**联邦接收收敛为单轨**：`POST /_arkret/peer/events`（`ck.peer.events.command.submit`）是唯一的 federation Event 接收轨，DataEvent / Control Move（含 Move / Anchor）统一走该 sealed Event Envelope 通道；实现私有 peer 入站轨 MUST NOT 作为跨 deployment 互通入口（详见 [`federation.md`](./federation.md) §4.0）。详见 [`federation.md`](./federation.md) §4。
 
 HTTP binding MAY 把 `operation_id` 映射成路径；gRPC binding MAY 把它映射成 service method；message queue binding MAY 把它映射成 topic + message type。
 
@@ -134,7 +134,7 @@ HTTP/JSON 是默认 profile：
 - 流式结果 MAY 使用 SSE、WebSocket 或 newline-delimited JSON。
 - 错误使用统一 JSON error object，并映射到 HTTP status。
 
-HTTP binding 的 canonical 路径和请求/响应 shape SHOULD 遵循 `service-http-binding.md`、OpenAPI 以及生成的 `artifacts/reports/operation-schema-index.json`；`service-api-schema.mdx` 只提供 operation 分组与治理说明视图。实现不得把未注册路径宣称为 Arkret canonical binding，不得在 `/_cokret` namespace 中表达版本，也不得包含 `/v1/`、`/api/v1`、`/arkret/v1` 等版本 path 段。v1 core conformance 测试始终以 canonical HTTP/JSON path 与字段为基准。
+HTTP binding 的 canonical 路径和请求/响应 shape SHOULD 遵循 `service-http-binding.md`、OpenAPI 以及生成的 `artifacts/reports/operation-schema-index.json`；`service-api-schema.mdx` 只提供 operation 分组与治理说明视图。实现不得把未注册路径宣称为 Arkret canonical binding，不得在 `/_arkret` namespace 中表达版本，也不得包含 `/v1/`、`/api/v1`、`/arkret/v1` 等版本 path 段。v1 core conformance 测试始终以 canonical HTTP/JSON path 与字段为基准。
 
 ## 6. Non-HTTP Binding Extensions
 

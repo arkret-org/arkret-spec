@@ -34,7 +34,7 @@
           "content_draft": "draft-ietf-mimi-content-08",
           "room_policy_draft": "draft-ietf-mimi-room-policy-03",
           "identifier_draft": "draft-kohbrok-mimi-identifiers-01",
-          "base_url": "https://mimi.example.com/_cokret/open/mimi",
+          "base_url": "https://mimi.example.com/_arkret/open/mimi",
           "provider_id": "mimi://mimi.example.com",
           "features": [
             "key_material",

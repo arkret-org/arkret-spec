@@ -1,5 +1,5 @@
 {
-  "version": "2026-05-23",
+  "version": "2026-07-10",
   "source_of_truth": true,
   "description": "Canonical registry of conformance vector identifiers. Every ck.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
@@ -203,6 +203,36 @@
       "vector_id": "ck.vector.capability.membership_is_not_baseline.v1",
       "status": "active",
       "domain": "capability",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/capability-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.capability.realm_founding_grant_bootstrap.v1",
+      "status": "active",
+      "domain": "capability",
+      "description": "Realm create is atomically paired with one immediately following closed-form self founding grant for created_by; missing, widened, third-party, reordered, or post-bootstrap replayed founding grants fail closed without leaving a partial Realm or membership.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/capability-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.constraint.quota_linearizable_authority.v1",
+      "status": "active",
+      "domain": "constraint",
+      "description": "Hard quota counters use one logical linearizable authority across every service node: a race for the last slot cannot overshoot, idempotent retries count once, unavailable authority fails closed, and calendar-month periods are rejected.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/capability-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.constraint.temporal_action_window.v1",
+      "status": "active",
+      "domain": "constraint",
+      "description": "Temporal action gates are neutral for unrelated actions according to effect, while edit/redact windows use the verified target created_at and the fixed verification time/skew to accept inside the deadline and fail closed outside or on missing target time.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/capability-fixture.json"
@@ -1284,7 +1314,7 @@
       ]
     },
     {
-      "vector_id": "ck.vector.media_binding.recording_artifact_via_cokret_blob.v1",
+      "vector_id": "ck.vector.media_binding.recording_artifact_via_arkret_blob.v1",
       "status": "active",
       "domain": "media_binding",
       "applies_to_profiles": [
@@ -1542,7 +1572,7 @@
       "vector_id": "ck.vector.moderation.appeal_atomicity.v1",
       "status": "active",
       "domain": "moderation",
-      "description": "Appeal verdict transitions are atomic: overturn without a same-batch ck.moderation.decision.lift is rejected with appeal_overturn_missing_lift; modify requires a same-batch new decision matched by modify_decision_ref.",
+      "description": "Appeal verdict transitions are atomic: overturn requires a same-batch ck.moderation.decision.lift and never resurrects irreversible redaction/key-destruction effects; modify requires both a same-batch lift of the original decision and the replacement decision matched by modify_decision_ref.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1553,6 +1583,16 @@
       "status": "active",
       "domain": "moderation",
       "description": "E2EE franking proof construction, report submission, and moderator-side verification roundtrip per content-moderation.md section 3.4; digest mismatch or minimal-disclosure violations downgrade or reject the proof.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ck.vector.moderation.review_resolution_fold.v1",
+      "status": "active",
+      "domain": "moderation",
+      "description": "Multiple active moderation decisions use the deterministic strictest fold instead of being mislabeled as split; require_review is carried by the active decision add and resolution atomically lifts every applicable review gate before current authz is re-evaluated or a stricter replacement is added.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"

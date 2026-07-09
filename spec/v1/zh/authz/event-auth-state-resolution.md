@@ -29,7 +29,7 @@ Arkret v1 的一致性层采用 **CBA（Control-plane Basis-committed Sealing）
 | DataEvent | 只写 data plane cell 的签名 Event。它携带 `seal_ref`，不携带 `seal_basis`。 |
 | Control Move | 只写 control plane cell 的 reducer-input Event。它携带 `seal_basis`，由 Seal 裁决。 |
 | Seal | 控制面 Seal。它用 `predecessor_refs[] + delta[]` 定义递归控制面覆盖集、承诺治理 `state_root`，并可附带数据面观测承诺。 |
-| Cell | 可被 Lattice 合并的最小状态单元，标识为 `ck:cell:<component>:<subject>` 或等价 canonical tuple。 |
+| Cell | 可被 Lattice 合并的最小状态单元，标识为 `ak:cell:<component>:<subject>` 或等价 canonical tuple。 |
 | Plane | Realm schema 对 cell family 的安全分级：`data` 或 `control`。plane 是安全边界，cell 是冲突域。 |
 | Lattice | Realm schema 为每个 cell family 选择的封闭核心代数类型。`join()` 返回值或 bottom (`⊥`)。 |
 | Bottom (`⊥`) | 某个 control cell 或 opt-in control object 在当前 seal view 下无有效单值或存在非法状态。数据面默认不产生协议级 `⊥`；普通冲突暴露为多 head。 |
@@ -236,7 +236,7 @@ Seal {
 
 ### 6.1 Seal id 与签名 transcript
 
-`id = ck:seal:<algo>:<hex>`，hex MUST 等于 `H(seal_canonical_bytes)`。`id` 与 `notary_signature` 不进入 `seal_canonical_bytes`。除这两个字段外，所有顶层字段都进入 canonical bytes 和 signature transcript，包括 `control_event_set_root`、`notary_seq` 与所有 optional observational roots。
+`id = ak:seal:<algo>:<hex>`，hex MUST 等于 `H(seal_canonical_bytes)`。`id` 与 `notary_signature` 不进入 `seal_canonical_bytes`。除这两个字段外，所有顶层字段都进入 canonical bytes 和 signature transcript，包括 `control_event_set_root`、`notary_seq` 与所有 optional observational roots。
 
 Receiver MUST：
 
@@ -272,7 +272,7 @@ leaf 集合与顺序：
 
 - **成员**：`state_root` 覆盖**当前 joined 治理视图 `J(L)`（§6.3.1）下每一个 non-`⊥` 物化值的 control cell**——即至少被 `covered(L)` 中某个 Control Move effect 命中、且按其 lattice join 后得到确定值的 control cell。data plane cell 不进入 `state_root`（数据面承诺走 §6.4 `data_view_root`）。
 - **每个 cell 的 leaf 输入**：`leaf_preimage = canonical_json({ "cell": "<cell_wire_id>", "state": <state_object> })`，其中
-  - `<cell_wire_id>` 是该 cell 的 canonical tuple 引用 `ck:cell:<component>:<subject>`（[`conformance/encoding.md` §4](../conformance/encoding.md)）；
+  - `<cell_wire_id>` 是该 cell 的 canonical tuple 引用 `ak:cell:<component>:<subject>`（[`conformance/encoding.md` §4](../conformance/encoding.md)）；
   - `<state_object>` 在 cell 物化为具体值时为 `{ "value": <lattice_value> }`。`⊥`（`failed_bottom`，§9.1.1）cell **一律不进入** `state_root` leaf 集；它通过失败状态、冲突 heads 与 §9.5 recovery witness 暴露，不作为治理 root 成员编码。
   - `canonical_json` 按 [`conformance/encoding.md` §2](../conformance/encoding.md)（RFC 8785 JCS 同口径）。
 - **leaf hash**：`leaf = H(0x00 || leaf_preimage_utf8_bytes)`（§6.2.2；先取 canonical JSON 的 UTF-8 字节，再前缀 `0x00`）。

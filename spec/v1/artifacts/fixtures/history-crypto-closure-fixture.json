@@ -294,6 +294,7 @@
         "history_visibility_shared_alone_does_not_authorize_key_share",
         "explicit_history_sharing_policy_allows_bound_key_share",
         "read_eligible_unauthorized_source_is_recoverable_not_terminal_and_advertises_retry_sources",
+        "preview_token_holder_is_read_class_not_key_share_state",
         "client_without_key_share_keeps_prejoin_event_decryption_pending"
       ],
       "scenarios": [
@@ -350,6 +351,28 @@
             "retry_key_sources": [
               "key_backup"
             ]
+          }
+        },
+        {
+          "name": "preview_token_rule_cannot_authorize_key_share",
+          "history_visibility": "restricted",
+          "receiver_class": "preview_token_holder",
+          "history_sharing_policy": {
+            "policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "allowed_receiver_states": [
+              "active_member"
+            ],
+            "restricted_rule_matches": true,
+            "restricted_rule_key_sources": [
+              "archive_node"
+            ]
+          },
+          "key_source": "archive_node",
+          "expected": {
+            "decision": "withhold",
+            "reason": "history_not_visible",
+            "read_projection_allowed": true,
+            "plaintext_allowed": false
           }
         },
         {

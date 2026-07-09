@@ -92,7 +92,7 @@ updated: 2026-07-02
 | --- | --- | --- |
 | `schema` | yes | 固定 `ck.schema.applet_package.v1`。 |
 | `package_id` | yes | typed id 或 DID URL；仅用于 package 分发。 |
-| `applet_id` | yes | DID 或 `ck:applet:<uuidv7>`。 |
+| `applet_id` | yes | DID 或 `ak:applet:<uuidv7>`。 |
 | `service_did` | yes | Applet runtime DID。 |
 | `controller_did` | yes | 对 package / registration 负责的 controller DID。 |
 | `base_url` | yes | Applet API base URL。 |
@@ -121,7 +121,7 @@ Package -> registration 派生映射:
 
 | `ck.applet.registration` 字段 | Package 来源 | 规则 |
 | --- | --- | --- |
-| `applet_id` | `applet_id` | 原样复制；只接受 DID 或 `ck:applet:<uuidv7>`。 |
+| `applet_id` | `applet_id` | 原样复制；只接受 DID 或 `ak:applet:<uuidv7>`。 |
 | `service_did` | `service_did` | 原样复制；必须可解析并绑定 Applet endpoint。 |
 | `controller_did` | `controller_did` | 原样复制；必须验证 controller proof。 |
 | `base_url` | `base_url` | 原样复制；必须与 service DID Document binding 一致。 |
@@ -228,7 +228,7 @@ Pattern 语法：
 ## 3. Transaction Endpoint
 
 ```text
-POST /_cokret/edge/applet/transactions
+POST /_arkret/edge/applet/transactions
 Idempotency-Key: <opaque-string>
 ```
 
@@ -275,7 +275,7 @@ Idempotency-Key: <opaque-string>
 ## 4. Query Actor
 
 ```text
-GET /_cokret/edge/applet/actors/{actor_id}
+GET /_arkret/edge/applet/actors/{actor_id}
 ```
 
 响应字段：`exists: boolean` required；`actor_id: did` optional；`display_name: string` optional；`external_ref: object` optional。
@@ -294,7 +294,7 @@ GET /_cokret/edge/applet/actors/{actor_id}
 ## 5. Query Realm
 
 ```text
-GET /_cokret/edge/applet/realms/{realm_id_or_alias}
+GET /_arkret/edge/applet/realms/{realm_id_or_alias}
 ```
 
 响应字段：`exists: boolean` required；`realm_id: id` optional；`title: string` optional；`external_ref: object` optional。
@@ -313,7 +313,7 @@ GET /_cokret/edge/applet/realms/{realm_id_or_alias}
 ## 6. Protocol Metadata
 
 ```text
-GET /_cokret/edge/applet/protocols/{protocol}
+GET /_arkret/edge/applet/protocols/{protocol}
 ```
 
 响应字段：`protocol: string` required；`display_name: string` required；`icon_blob_ref: string` optional；`field_types: object` required；`instances: object[]` optional。

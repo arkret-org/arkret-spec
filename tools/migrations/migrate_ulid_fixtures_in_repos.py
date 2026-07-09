@@ -3,7 +3,7 @@
 (soland, inkson, floria, chime, sodmin, cotest, arkret-rust-sdk).
 
 Reuses the typed-prefix-anchored regex from migrate_ulid_to_uuid7.py to
-restrict replacements to actual `ck:<kind>:<26-char>` references and quoted
+restrict replacements to actual `ak:<kind>:<26-char>` references and quoted
 JSON strings; never touches sha256 hex or other 26-char-looking content.
 
 Skips:
@@ -20,7 +20,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 REPOS = [
-    # Only repos whose ULID examples represent Arkret wire IDs (`ck:<kind>:<id>`).
+    # Only repos whose ULID examples represent Arkret wire IDs (`ak:<kind>:<id>`).
     # starid/coauth are excluded: they have their own ULID-shaped IDs (did:webvh
     # scid, internal admin tokens) that are NOT Arkret typed UUIDs and would
     # break at parse if blanket-converted.
@@ -45,7 +45,7 @@ TYPED_KINDS = (
     "version|cell|webrtc|fr|webhook|push|portal|session|registration|fallback"
 )
 TYPED_ULID_RE = re.compile(
-    rf"(ck:(?:{TYPED_KINDS}):)([0-9a-z]{{26}})(?![0-9a-z])"
+    rf"(ak:(?:{TYPED_KINDS}):)([0-9a-z]{{26}})(?![0-9a-z])"
 )
 QUOTED_ULID_RE = re.compile(r'(["\'])([0-9a-z]{26})\1')
 
@@ -92,7 +92,7 @@ def walk_files(root: Path):
 
 
 def collect_ulids(repos: list[Path]) -> dict[str, str]:
-    """Only collect ULIDs that appear after a known ck:<kind>: typed prefix.
+    """Only collect ULIDs that appear after a known ak:<kind>: typed prefix.
     Bare quoted ULIDs (e.g. inside `Ulid::from_string("...")` arguments,
     raw fixture digests, content-hash bytes) are intentionally NOT collected
     because they may be non-Arkret internal IDs that would break if
@@ -114,7 +114,7 @@ def collect_ulids(repos: list[Path]) -> dict[str, str]:
 
 
 def rewrite_text(text: str, ulid_map: dict[str, str]) -> str:
-    """Replace only typed `ck:<kind>:<ulid>` references. Bare quoted ULIDs
+    """Replace only typed `ak:<kind>:<ulid>` references. Bare quoted ULIDs
     are not touched."""
     def _typed_sub(m: re.Match) -> str:
         prefix, ulid = m.group(1), m.group(2)

@@ -19,7 +19,7 @@ jobs:
         run: npx markdownlint-cli2@0.18.1
       - name: Markdown style advisory
         continue-on-error: true
-        run: npx markdownlint-cli2@0.18.1 --config .markdownlint-style.jsonc "README.md" "CHANGELOG.md" "_cokret-spec_todos.md" "spec/v1/**/*.md"
+        run: npx markdownlint-cli2@0.18.1 --config .markdownlint-style.jsonc "README.md" "CHANGELOG.md" "spec/v1/**/*.md"
 
   typos:
     runs-on: ubuntu-latest
@@ -27,4 +27,4 @@ jobs:
       - uses: actions/checkout@v4
       - uses: crate-ci/typos@master
         with:
-          files: spec/v1/**/*.md README.md CHANGELOG.md _cokret-spec_todos.md
+          files: spec/v1/**/*.md README.md CHANGELOG.md

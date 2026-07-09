@@ -51,7 +51,7 @@
     {
       "operation_id": "ck.edge.applet.actor.query.resolve",
       "tier": "interop_bridge",
-      "http": "GET /_cokret/edge/applet/actors/{actor_id}",
+      "http": "GET /_arkret/edge/applet/actors/{actor_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_actor_view",
@@ -64,7 +64,7 @@
     {
       "operation_id": "ck.edge.applet.command.transaction",
       "tier": "interop_bridge",
-      "http": "POST /_cokret/edge/applet/transactions",
+      "http": "POST /_arkret/edge/applet/transactions",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body",
       "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_outcome",
@@ -78,7 +78,7 @@
     {
       "operation_id": "ck.edge.applet.query.describe",
       "tier": "interop_bridge",
-      "http": "GET /_cokret/edge/applet/describe",
+      "http": "GET /_arkret/edge/applet/describe",
       "success_shape_kind": "service_describe",
       "request_schema_ref": null,
       "response_schema_ref": null,
@@ -91,7 +91,7 @@
     {
       "operation_id": "ck.edge.applet.query.ping",
       "tier": "interop_bridge",
-      "http": "GET /_cokret/edge/applet/ping",
+      "http": "GET /_arkret/edge/applet/ping",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_ping_outcome",
@@ -104,7 +104,7 @@
     {
       "operation_id": "ck.edge.applet.query.protocol_metadata",
       "tier": "interop_bridge",
-      "http": "GET /_cokret/edge/applet/protocols/{protocol}",
+      "http": "GET /_arkret/edge/applet/protocols/{protocol}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_protocol_metadata",
@@ -117,7 +117,7 @@
     {
       "operation_id": "ck.edge.applet.realm.query.resolve",
       "tier": "interop_bridge",
-      "http": "GET /_cokret/edge/applet/realms/{realm_id_or_alias}",
+      "http": "GET /_arkret/edge/applet/realms/{realm_id_or_alias}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view",
@@ -130,7 +130,7 @@
     {
       "operation_id": "ck.edge.applet.third_party_locations.query.list",
       "tier": "interop_bridge",
-      "http": "GET /_cokret/edge/applet/third_party/locations",
+      "http": "GET /_arkret/edge/applet/third_party/locations",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_location_list",
@@ -143,7 +143,7 @@
     {
       "operation_id": "ck.edge.applet.third_party_users.query.list",
       "tier": "interop_bridge",
-      "http": "GET /_cokret/edge/applet/third_party/users",
+      "http": "GET /_arkret/edge/applet/third_party/users",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_user_list",
@@ -156,7 +156,7 @@
     {
       "operation_id": "ck.edge.push.command.notify",
       "tier": "extension",
-      "http": "POST /_cokret/edge/push/notify",
+      "http": "POST /_arkret/edge/push/notify",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_request_body",
       "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_outcome",
@@ -170,7 +170,7 @@
     {
       "operation_id": "ck.edge.push.command.register_device",
       "tier": "extension",
-      "http": "POST /_cokret/edge/push/register-device",
+      "http": "POST /_arkret/edge/push/register-device",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/push-operations.schema.json#/$defs/push_register_device_request_body",
       "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_register_device_outcome",
@@ -184,7 +184,7 @@
     {
       "operation_id": "ck.edge.push.command.unregister_device",
       "tier": "extension",
-      "http": "POST /_cokret/edge/push/unregister-device",
+      "http": "POST /_arkret/edge/push/unregister-device",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/push-operations.schema.json#/$defs/push_unregister_device_request_body",
       "response_schema_ref": "schemas/push-operations.schema.json#/$defs/push_unregister_device_outcome",
@@ -198,7 +198,7 @@
     {
       "operation_id": "ck.find.directory.command.announce",
       "tier": "extension",
-      "http": "POST /_cokret/find/directory/announce",
+      "http": "POST /_arkret/find/directory/announce",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome",
@@ -212,7 +212,7 @@
     {
       "operation_id": "ck.find.directory.command.takedown_appeal",
       "tier": "extension",
-      "http": "POST /_cokret/find/directory/takedown/appeal",
+      "http": "POST /_arkret/find/directory/takedown/appeal",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealOutcome",
@@ -226,7 +226,7 @@
     {
       "operation_id": "ck.find.directory.command.withdraw",
       "tier": "extension",
-      "http": "POST /_cokret/find/directory/withdraw",
+      "http": "POST /_arkret/find/directory/withdraw",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawOutcome",
@@ -240,7 +240,7 @@
     {
       "operation_id": "ck.find.directory.push.command.register",
       "tier": "extension",
-      "http": "POST /_cokret/find/directory/push/register",
+      "http": "POST /_arkret/find/directory/push/register",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_push_register_request_body",
       "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_push_register_outcome",
@@ -254,7 +254,7 @@
     {
       "operation_id": "ck.find.directory.query.describe",
       "tier": "extension",
-      "http": "GET /_cokret/find/directory/describe",
+      "http": "GET /_arkret/find/directory/describe",
       "success_shape_kind": "service_describe",
       "request_schema_ref": null,
       "response_schema_ref": null,
@@ -267,7 +267,7 @@
     {
       "operation_id": "ck.find.directory.query.list_handles_for_subject",
       "tier": "extension",
-      "http": "POST /_cokret/find/directory/list-handles-for-subject",
+      "http": "POST /_arkret/find/directory/list-handles-for-subject",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_list_handles_for_subject_request_body",
       "response_schema_ref": "schemas/list-handles-for-subject-response.schema.json",
@@ -281,7 +281,7 @@
     {
       "operation_id": "ck.find.directory.query.private_contact_discovery",
       "tier": "extension",
-      "http": "POST /_cokret/find/directory/private-contact-discovery",
+      "http": "POST /_arkret/find/directory/private-contact-discovery",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_request_body",
       "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_outcome",
@@ -295,7 +295,7 @@
     {
       "operation_id": "ck.find.directory.query.resolve_agent_selector",
       "tier": "extension",
-      "http": "POST /_cokret/find/directory/resolve-agent-selector",
+      "http": "POST /_arkret/find/directory/resolve-agent-selector",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_agent_selector_request_body",
       "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_agent_selector_resolution_outcome",
@@ -309,7 +309,7 @@
     {
       "operation_id": "ck.find.directory.query.resolve_handle",
       "tier": "extension",
-      "http": "POST /_cokret/find/directory/resolve-handle",
+      "http": "POST /_arkret/find/directory/resolve-handle",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_handle_request_body",
       "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_handle_resolution_outcome",
@@ -323,7 +323,7 @@
     {
       "operation_id": "ck.find.directory.query.resolve_organization",
       "tier": "extension",
-      "http": "POST /_cokret/find/directory/resolve-organization",
+      "http": "POST /_arkret/find/directory/resolve-organization",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_organization_request_body",
       "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_organization_resolution_outcome",
@@ -337,7 +337,7 @@
     {
       "operation_id": "ck.find.directory.query.resolve_realm",
       "tier": "extension",
-      "http": "POST /_cokret/find/directory/resolve-realm",
+      "http": "POST /_arkret/find/directory/resolve-realm",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_realm_request_body",
       "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_resolution_outcome",
@@ -351,7 +351,7 @@
     {
       "operation_id": "ck.find.directory.query.resolve_target",
       "tier": "extension",
-      "http": "POST /_cokret/find/directory/resolve-target",
+      "http": "POST /_arkret/find/directory/resolve-target",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_target_request_body",
       "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_target_resolution_outcome",
@@ -365,7 +365,7 @@
     {
       "operation_id": "ck.find.directory.query.search_actors",
       "tier": "extension",
-      "http": "POST /_cokret/find/directory/search-actors",
+      "http": "POST /_arkret/find/directory/search-actors",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_actors_request_body",
       "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_actor_search_outcome",
@@ -379,7 +379,7 @@
     {
       "operation_id": "ck.find.directory.query.search_organizations",
       "tier": "extension",
-      "http": "POST /_cokret/find/directory/search-organizations",
+      "http": "POST /_arkret/find/directory/search-organizations",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_organizations_request_body",
       "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_organization_search_outcome",
@@ -393,7 +393,7 @@
     {
       "operation_id": "ck.find.directory.query.search_realms",
       "tier": "extension",
-      "http": "POST /_cokret/find/directory/search-realms",
+      "http": "POST /_arkret/find/directory/search-realms",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_realms_request_body",
       "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_search_outcome",
@@ -407,7 +407,7 @@
     {
       "operation_id": "ck.find.directory.query.search_users",
       "tier": "extension",
-      "http": "POST /_cokret/find/directory/search-users",
+      "http": "POST /_arkret/find/directory/search-users",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_users_request_body",
       "response_schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_user_search_outcome",
@@ -421,7 +421,7 @@
     {
       "operation_id": "ck.gate.account.command.enroll_device",
       "tier": "deployment_local",
-      "http": "POST /_cokret/gate/account/device-enroll",
+      "http": "POST /_arkret/gate/account/device-enroll",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_enroll_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_enroll_outcome",
@@ -435,7 +435,7 @@
     {
       "operation_id": "ck.gate.account.command.introspect_session_grant",
       "tier": "deployment_local",
-      "http": "POST /_cokret/gate/account/session-grants/introspect",
+      "http": "POST /_arkret/gate/account/session-grants/introspect",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectOutcome",
@@ -449,7 +449,7 @@
     {
       "operation_id": "ck.gate.account.command.issue_session_grant",
       "tier": "deployment_local",
-      "http": "POST /_cokret/gate/account/session-grants",
+      "http": "POST /_arkret/gate/account/session-grants",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome",
@@ -463,7 +463,7 @@
     {
       "operation_id": "ck.gate.account.command.logout",
       "tier": "deployment_local",
-      "http": "POST /_cokret/gate/account/logout",
+      "http": "POST /_arkret/gate/account/logout",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutOutcome",
@@ -477,7 +477,7 @@
     {
       "operation_id": "ck.gate.account.command.logout_auth_session",
       "tier": "deployment_local",
-      "http": "POST /_cokret/gate/account/auth-sessions/logout",
+      "http": "POST /_arkret/gate/account/auth-sessions/logout",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutOutcome",
@@ -491,7 +491,7 @@
     {
       "operation_id": "ck.gate.account.command.pair_agent_key",
       "tier": "extension",
-      "http": "POST /_cokret/gate/account/agent-key-pair",
+      "http": "POST /_arkret/gate/account/agent-key-pair",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_outcome",
@@ -505,7 +505,7 @@
     {
       "operation_id": "ck.gate.account.command.pair_device",
       "tier": "deployment_local",
-      "http": "POST /_cokret/gate/account/device-pair",
+      "http": "POST /_arkret/gate/account/device-pair",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_outcome",
@@ -519,7 +519,7 @@
     {
       "operation_id": "ck.gate.account.command.refresh_session_grant",
       "tier": "deployment_local",
-      "http": "POST /_cokret/gate/account/session-grants/refresh",
+      "http": "POST /_arkret/gate/account/session-grants/refresh",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshOutcome",
@@ -533,7 +533,7 @@
     {
       "operation_id": "ck.gate.account.command.register",
       "tier": "deployment_local",
-      "http": "POST /_cokret/gate/account/register",
+      "http": "POST /_arkret/gate/account/register",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_request_body",
       "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_outcome",
@@ -547,7 +547,7 @@
     {
       "operation_id": "ck.gate.account.command.revoke_session",
       "tier": "deployment_local",
-      "http": "POST /_cokret/gate/account/session-grants/revoke",
+      "http": "POST /_arkret/gate/account/session-grants/revoke",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/session_revoke_request_body",
       "response_schema_ref": "schemas/account-operations.schema.json#/$defs/session_revoke_outcome",
@@ -561,7 +561,7 @@
     {
       "operation_id": "ck.gate.account.exchange.complete_oidc",
       "tier": "deployment_local",
-      "http": "POST /_cokret/gate/account/oidc/callback",
+      "http": "POST /_arkret/gate/account/oidc/callback",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackOutcome",
@@ -575,7 +575,7 @@
     {
       "operation_id": "ck.open.agent_pairing.command.submit_runtime_key_request",
       "tier": "extension",
-      "http": "POST /_cokret/open/agent-pairing/runtime-key-requests",
+      "http": "POST /_arkret/open/agent-pairing/runtime-key-requests",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_outcome",
@@ -589,7 +589,7 @@
     {
       "operation_id": "ck.open.agent_pairing.query.resolve",
       "tier": "extension",
-      "http": "POST /_cokret/open/agent-pairing/resolve",
+      "http": "POST /_arkret/open/agent-pairing/resolve",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pairing_resolve_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pairing_bootstrap",
@@ -603,7 +603,7 @@
     {
       "operation_id": "ck.open.invite_locator.query.resolve",
       "tier": "extension",
-      "http": "POST /_cokret/open/invite-locators/resolve",
+      "http": "POST /_arkret/open/invite-locators/resolve",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/principal-locator.schema.json#/$defs/principal_locator_resolve_request_body",
       "response_schema_ref": "schemas/principal-locator.schema.json",
@@ -617,7 +617,7 @@
     {
       "operation_id": "ck.open.mimi.command.notify",
       "tier": "interop_bridge",
-      "http": "POST /_cokret/open/mimi/strands/{strand_id}/notify",
+      "http": "POST /_arkret/open/mimi/strands/{strand_id}/notify",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_notify_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_notify_outcome",
@@ -631,7 +631,7 @@
     {
       "operation_id": "ck.open.mimi.command.proxy_download",
       "tier": "interop_bridge",
-      "http": "POST /_cokret/open/mimi/proxy-download",
+      "http": "POST /_arkret/open/mimi/proxy-download",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_outcome",
@@ -645,7 +645,7 @@
     {
       "operation_id": "ck.open.mimi.command.report_abuse",
       "tier": "interop_bridge",
-      "http": "POST /_cokret/open/mimi/report-abuse",
+      "http": "POST /_arkret/open/mimi/report-abuse",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_outcome",
@@ -659,7 +659,7 @@
     {
       "operation_id": "ck.open.mimi.command.request_consent",
       "tier": "interop_bridge",
-      "http": "POST /_cokret/open/mimi/consent/request",
+      "http": "POST /_arkret/open/mimi/consent/request",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_outcome",
@@ -673,7 +673,7 @@
     {
       "operation_id": "ck.open.mimi.command.submit_message",
       "tier": "interop_bridge",
-      "http": "POST /_cokret/open/mimi/strands/{strand_id}/messages",
+      "http": "POST /_arkret/open/mimi/strands/{strand_id}/messages",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_outcome",
@@ -687,7 +687,7 @@
     {
       "operation_id": "ck.open.mimi.command.update_consent",
       "tier": "interop_bridge",
-      "http": "POST /_cokret/open/mimi/consent/update",
+      "http": "POST /_arkret/open/mimi/consent/update",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_outcome",
@@ -701,7 +701,7 @@
     {
       "operation_id": "ck.open.mimi.command.update_room",
       "tier": "interop_bridge",
-      "http": "POST /_cokret/open/mimi/strands/{strand_id}/update",
+      "http": "POST /_arkret/open/mimi/strands/{strand_id}/update",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_outcome",
@@ -715,7 +715,7 @@
     {
       "operation_id": "ck.open.mimi.exchange.request_key_material",
       "tier": "interop_bridge",
-      "http": "POST /_cokret/open/mimi/key-material",
+      "http": "POST /_arkret/open/mimi/key-material",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_outcome",
@@ -729,7 +729,7 @@
     {
       "operation_id": "ck.open.mimi.query.group_info",
       "tier": "interop_bridge",
-      "http": "GET /_cokret/open/mimi/strands/{strand_id}/group-info",
+      "http": "GET /_arkret/open/mimi/strands/{strand_id}/group-info",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_group_info_outcome",
@@ -742,7 +742,7 @@
     {
       "operation_id": "ck.open.mimi.query.identifiers",
       "tier": "interop_bridge",
-      "http": "POST /_cokret/open/mimi/identifiers/query",
+      "http": "POST /_arkret/open/mimi/identifiers/query",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_request_body",
       "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_outcome",
@@ -756,7 +756,7 @@
     {
       "operation_id": "ck.open.mimi.query.provider_directory",
       "tier": "interop_bridge",
-      "http": "GET /_cokret/open/mimi/provider-directory",
+      "http": "GET /_arkret/open/mimi/provider-directory",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/mimi-interop.schema.json",
@@ -769,7 +769,7 @@
     {
       "operation_id": "ck.peer.contacts.command.submit",
       "tier": "extension",
-      "http": "POST /_cokret/peer/contacts",
+      "http": "POST /_arkret/peer/contacts",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/peer-contact-delivery-request.schema.json",
       "response_schema_ref": "schemas/peer-contact-delivery-request.schema.json#/$defs/peer_contact_delivery_outcome",
@@ -783,7 +783,7 @@
     {
       "operation_id": "ck.peer.events.command.submit",
       "tier": "extension",
-      "http": "POST /_cokret/peer/events",
+      "http": "POST /_arkret/peer/events",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome",
@@ -797,7 +797,7 @@
     {
       "operation_id": "ck.peer.events.query.describe",
       "tier": "extension",
-      "http": "GET /_cokret/peer/events/describe",
+      "http": "GET /_arkret/peer/events/describe",
       "success_shape_kind": "service_describe",
       "request_schema_ref": null,
       "response_schema_ref": null,
@@ -810,7 +810,7 @@
     {
       "operation_id": "ck.peer.events.query.frontier",
       "tier": "extension",
-      "http": "GET /_cokret/peer/events/frontier",
+      "http": "GET /_arkret/peer/events/frontier",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerState",
@@ -823,7 +823,7 @@
     {
       "operation_id": "ck.peer.events.query.resolve",
       "tier": "extension",
-      "http": "POST /_cokret/peer/events/resolve",
+      "http": "POST /_arkret/peer/events/resolve",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveOutcome",
@@ -837,7 +837,7 @@
     {
       "operation_id": "ck.peer.events.query.scan",
       "tier": "extension",
-      "http": "GET /_cokret/peer/events",
+      "http": "GET /_arkret/peer/events",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
@@ -850,7 +850,7 @@
     {
       "operation_id": "ck.peer.events.query.scan_body",
       "tier": "extension",
-      "http": "POST /_cokret/peer/events/query",
+      "http": "POST /_arkret/peer/events/query",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
@@ -864,7 +864,7 @@
     {
       "operation_id": "ck.peer.invites.command.submit",
       "tier": "extension",
-      "http": "POST /_cokret/peer/invites",
+      "http": "POST /_arkret/peer/invites",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/invite-delivery-request.schema.json",
       "response_schema_ref": "schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome",
@@ -878,7 +878,7 @@
     {
       "operation_id": "ck.peer.snapshot.query.manifest_head",
       "tier": "extension",
-      "http": "GET /_cokret/peer/snapshot/head",
+      "http": "GET /_arkret/peer/snapshot/head",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/snapshot.schema.json",
@@ -891,7 +891,7 @@
     {
       "operation_id": "ck.root.identity.command.submit_did_operation",
       "tier": "core",
-      "http": "POST /_cokret/root/identity/submit-did-operation",
+      "http": "POST /_arkret/root/identity/submit-did-operation",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitOutcome",
@@ -905,7 +905,7 @@
     {
       "operation_id": "ck.root.identity.document.resource.get",
       "tier": "core",
-      "http": "GET /_cokret/root/identity/document",
+      "http": "GET /_arkret/root/identity/document",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityDocumentView",
@@ -918,7 +918,7 @@
     {
       "operation_id": "ck.root.identity.log.query.list",
       "tier": "core",
-      "http": "GET /_cokret/root/identity/log",
+      "http": "GET /_arkret/root/identity/log",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityLogListOutcome",
@@ -931,7 +931,7 @@
     {
       "operation_id": "ck.root.identity.query.resolve",
       "tier": "core",
-      "http": "POST /_cokret/root/identity/resolve",
+      "http": "POST /_arkret/root/identity/resolve",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveOutcome",
@@ -945,7 +945,7 @@
     {
       "operation_id": "ck.root.identity.receipts.query.list",
       "tier": "core",
-      "http": "GET /_cokret/root/identity/receipts",
+      "http": "GET /_arkret/root/identity/receipts",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityReceiptListOutcome",
@@ -958,7 +958,7 @@
     {
       "operation_id": "ck.root.identity.recovery_policy.command.publish",
       "tier": "core",
-      "http": "POST /_cokret/root/identity/recovery-policy",
+      "http": "POST /_arkret/root/identity/recovery-policy",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/recovery-policy.schema.json",
       "response_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_outcome",
@@ -972,7 +972,7 @@
     {
       "operation_id": "ck.root.identity.recovery_policy.resource.get",
       "tier": "core",
-      "http": "GET /_cokret/root/identity/recovery-policy",
+      "http": "GET /_arkret/root/identity/recovery-policy",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_active_outcome",
@@ -985,7 +985,7 @@
     {
       "operation_id": "ck.root.identity.recovery_session.command.complete",
       "tier": "core",
-      "http": "POST /_cokret/root/identity/recovery-sessions/{recovery_session_id}/complete",
+      "http": "POST /_arkret/root/identity/recovery-sessions/{recovery_session_id}/complete",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body",
       "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_outcome",
@@ -999,7 +999,7 @@
     {
       "operation_id": "ck.root.identity.recovery_session.command.create",
       "tier": "core",
-      "http": "POST /_cokret/root/identity/recovery-sessions",
+      "http": "POST /_arkret/root/identity/recovery-sessions",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body",
       "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_state",
@@ -1013,7 +1013,7 @@
     {
       "operation_id": "ck.root.identity.recovery_session.command.submit_proof",
       "tier": "core",
-      "http": "POST /_cokret/root/identity/recovery-sessions/{recovery_session_id}/proofs",
+      "http": "POST /_arkret/root/identity/recovery-sessions/{recovery_session_id}/proofs",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_request_body",
       "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_outcome",
@@ -1027,7 +1027,7 @@
     {
       "operation_id": "ck.root.identity.recovery_session.resource.get",
       "tier": "core",
-      "http": "GET /_cokret/root/identity/recovery-sessions/{recovery_session_id}",
+      "http": "GET /_arkret/root/identity/recovery-sessions/{recovery_session_id}",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_state",
@@ -1040,7 +1040,7 @@
     {
       "operation_id": "ck.root.identity.registry.query.describe",
       "tier": "core",
-      "http": "GET /_cokret/root/identity/describe",
+      "http": "GET /_arkret/root/identity/describe",
       "success_shape_kind": "service_describe",
       "request_schema_ref": null,
       "response_schema_ref": null,
@@ -1053,7 +1053,7 @@
     {
       "operation_id": "ck.self.account.command.revoke_cursor",
       "tier": "core",
-      "http": "POST /_cokret/self/account/cursor/revoke",
+      "http": "POST /_arkret/self/account/cursor/revoke",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeOutcome",
@@ -1067,7 +1067,7 @@
     {
       "operation_id": "ck.self.account.command.update_profile",
       "tier": "core",
-      "http": "POST /_cokret/self/account/profile",
+      "http": "POST /_arkret/self/account/profile",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_request_body",
       "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_outcome",
@@ -1081,7 +1081,7 @@
     {
       "operation_id": "ck.self.account.query.describe",
       "tier": "core",
-      "http": "GET /_cokret/self/account/describe",
+      "http": "GET /_arkret/self/account/describe",
       "success_shape_kind": "service_describe",
       "request_schema_ref": null,
       "response_schema_ref": null,
@@ -1094,7 +1094,7 @@
     {
       "operation_id": "ck.self.account.query.viewer",
       "tier": "core",
-      "http": "GET /_cokret/self/account/viewer",
+      "http": "GET /_arkret/self/account/viewer",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/account-operations.schema.json#/$defs/account_view",
@@ -1107,7 +1107,7 @@
     {
       "operation_id": "ck.self.account.stream.subscribe",
       "tier": "core",
-      "http": "GET /_cokret/self/account/subscribe",
+      "http": "GET /_arkret/self/account/subscribe",
       "success_shape_kind": "event_stream",
       "request_schema_ref": null,
       "response_schema_ref": null,
@@ -1118,7 +1118,7 @@
     {
       "operation_id": "ck.self.account_data.query.list",
       "tier": "extension",
-      "http": "GET /_cokret/self/account_data",
+      "http": "GET /_arkret/self/account_data",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_list",
@@ -1131,7 +1131,7 @@
     {
       "operation_id": "ck.self.account_data.resource.delete",
       "tier": "extension",
-      "http": "DELETE /_cokret/self/account_data/{data_type}",
+      "http": "DELETE /_arkret/self/account_data/{data_type}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_delete_outcome",
@@ -1144,7 +1144,7 @@
     {
       "operation_id": "ck.self.account_data.resource.get",
       "tier": "extension",
-      "http": "GET /_cokret/self/account_data/{data_type}",
+      "http": "GET /_arkret/self/account_data/{data_type}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_entry",
@@ -1157,7 +1157,7 @@
     {
       "operation_id": "ck.self.account_data.resource.replace",
       "tier": "extension",
-      "http": "PUT /_cokret/self/account_data/{data_type}",
+      "http": "PUT /_arkret/self/account_data/{data_type}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_replace_request_body",
       "response_schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_entry",
@@ -1171,7 +1171,7 @@
     {
       "operation_id": "ck.self.agent.command.deactivate",
       "tier": "extension",
-      "http": "POST /_cokret/self/agents/{agent_principal_id}/deactivate",
+      "http": "POST /_arkret/self/agents/{agent_principal_id}/deactivate",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_deactivate_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state",
@@ -1185,7 +1185,7 @@
     {
       "operation_id": "ck.self.agent.command.pause",
       "tier": "extension",
-      "http": "POST /_cokret/self/agents/{agent_principal_id}/pause",
+      "http": "POST /_arkret/self/agents/{agent_principal_id}/pause",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pause_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state",
@@ -1199,7 +1199,7 @@
     {
       "operation_id": "ck.self.agent.command.provision",
       "tier": "extension",
-      "http": "POST /_cokret/self/agents",
+      "http": "POST /_arkret/self/agents",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_outcome",
@@ -1213,7 +1213,7 @@
     {
       "operation_id": "ck.self.agent.command.resume",
       "tier": "extension",
-      "http": "POST /_cokret/self/agents/{agent_principal_id}/resume",
+      "http": "POST /_arkret/self/agents/{agent_principal_id}/resume",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_resume_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state",
@@ -1227,7 +1227,7 @@
     {
       "operation_id": "ck.self.agent.command.rotate_key",
       "tier": "extension",
-      "http": "POST /_cokret/self/agents/{agent_principal_id}/rotate-key",
+      "http": "POST /_arkret/self/agents/{agent_principal_id}/rotate-key",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_rotate_key_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_rotate_key_outcome",
@@ -1241,7 +1241,7 @@
     {
       "operation_id": "ck.self.agent.grant.command.attach",
       "tier": "extension",
-      "http": "POST /_cokret/self/agents/{agent_principal_id}/grants",
+      "http": "POST /_arkret/self/agents/{agent_principal_id}/grants",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_outcome",
@@ -1255,7 +1255,7 @@
     {
       "operation_id": "ck.self.agent.grant.resource.delete",
       "tier": "extension",
-      "http": "DELETE /_cokret/self/agents/{agent_principal_id}/grants/{grant_id}",
+      "http": "DELETE /_arkret/self/agents/{agent_principal_id}/grants/{grant_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_detach_outcome",
@@ -1268,7 +1268,7 @@
     {
       "operation_id": "ck.self.agent.participation.resource.get",
       "tier": "extension",
-      "http": "GET /_cokret/self/agents/{agent_principal_id}/participation",
+      "http": "GET /_arkret/self/agents/{agent_principal_id}/participation",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
@@ -1281,7 +1281,7 @@
     {
       "operation_id": "ck.self.agent.participation.resource.replace",
       "tier": "extension",
-      "http": "PUT /_cokret/self/agents/{agent_principal_id}/participation",
+      "http": "PUT /_arkret/self/agents/{agent_principal_id}/participation",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_replace_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
@@ -1295,7 +1295,7 @@
     {
       "operation_id": "ck.self.agent.protocol.query.discover",
       "tier": "extension",
-      "http": "POST /_cokret/self/agents/discover",
+      "http": "POST /_arkret/self/agents/discover",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_outcome",
@@ -1309,7 +1309,7 @@
     {
       "operation_id": "ck.self.agent.query.list",
       "tier": "extension",
-      "http": "GET /_cokret/self/agents",
+      "http": "GET /_arkret/self/agents",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_list",
@@ -1322,7 +1322,7 @@
     {
       "operation_id": "ck.self.agent.resource.get",
       "tier": "extension",
-      "http": "GET /_cokret/self/agents/{agent_principal_id}",
+      "http": "GET /_arkret/self/agents/{agent_principal_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_view",
@@ -1335,7 +1335,7 @@
     {
       "operation_id": "ck.self.agent.sidecar_thread.command.ensure",
       "tier": "extension",
-      "http": "POST /_cokret/self/agent-sidecar-threads:ensure",
+      "http": "POST /_arkret/self/agent-sidecar-threads:ensure",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_request_body",
       "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_outcome",
@@ -1349,7 +1349,7 @@
     {
       "operation_id": "ck.self.applet.command.install",
       "tier": "extension",
-      "http": "POST /_cokret/self/applets/install",
+      "http": "POST /_arkret/self/applets/install",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_request_body",
       "response_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_outcome",
@@ -1363,7 +1363,7 @@
     {
       "operation_id": "ck.self.applet.command.revoke",
       "tier": "extension",
-      "http": "POST /_cokret/self/applets/{applet_id}/revoke",
+      "http": "POST /_arkret/self/applets/{applet_id}/revoke",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_request_body",
       "response_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_outcome",
@@ -1377,7 +1377,7 @@
     {
       "operation_id": "ck.self.applet.ghost.command.provision",
       "tier": "interop_bridge",
-      "http": "POST /_cokret/self/applets/{applet_id}/ghosts/provision",
+      "http": "POST /_arkret/self/applets/{applet_id}/ghosts/provision",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body",
       "response_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_outcome",
@@ -1391,7 +1391,7 @@
     {
       "operation_id": "ck.self.applet.install.command.preview",
       "tier": "extension",
-      "http": "POST /_cokret/self/applets/install/preview",
+      "http": "POST /_arkret/self/applets/install/preview",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_preview_request_body",
       "response_schema_ref": "schemas/applet-install-plan.schema.json",
@@ -1405,7 +1405,7 @@
     {
       "operation_id": "ck.self.authz.grants.query.effective",
       "tier": "extension",
-      "http": "GET /_cokret/self/authz/effective-grants",
+      "http": "GET /_arkret/self/authz/effective-grants",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GrantList",
@@ -1418,7 +1418,7 @@
     {
       "operation_id": "ck.self.authz.invites.query.list",
       "tier": "extension",
-      "http": "GET /_cokret/self/authz/invites",
+      "http": "GET /_arkret/self/authz/invites",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/authz-operations.schema.json#/$defs/authz_invite_list",
@@ -1431,7 +1431,7 @@
     {
       "operation_id": "ck.self.authz.query.check",
       "tier": "extension",
-      "http": "POST /_cokret/self/authz/check",
+      "http": "POST /_arkret/self/authz/check",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckOutcome",
@@ -1445,7 +1445,7 @@
     {
       "operation_id": "ck.self.blob.command.presign",
       "tier": "extension",
-      "http": "POST /_cokret/self/blob/presign",
+      "http": "POST /_arkret/self/blob/presign",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignOutcome",
@@ -1459,7 +1459,7 @@
     {
       "operation_id": "ck.self.blob.resource.get",
       "tier": "extension",
-      "http": "GET /_cokret/self/blob/get",
+      "http": "GET /_arkret/self/blob/get",
       "success_shape_kind": "binary_stream",
       "request_schema_ref": null,
       "response_schema_ref": null,
@@ -1470,7 +1470,7 @@
     {
       "operation_id": "ck.self.blob.resource.head",
       "tier": "extension",
-      "http": "HEAD /_cokret/self/blob/get",
+      "http": "HEAD /_arkret/self/blob/get",
       "success_shape_kind": "metadata_headers",
       "request_schema_ref": null,
       "response_schema_ref": null,
@@ -1481,7 +1481,7 @@
     {
       "operation_id": "ck.self.blob.upload.create",
       "tier": "extension",
-      "http": "POST /_cokret/self/blob/upload",
+      "http": "POST /_arkret/self/blob/upload",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/blob-operations.schema.json#/$defs/blob_upload_request_body",
       "response_schema_ref": "schemas/blob-operations.schema.json#/$defs/blob_upload_outcome",
@@ -1495,7 +1495,7 @@
     {
       "operation_id": "ck.self.call.media.exchange.issue_token",
       "tier": "core",
-      "http": "POST /_cokret/self/rtc/token",
+      "http": "POST /_arkret/self/rtc/token",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeOutcome",
@@ -1509,7 +1509,7 @@
     {
       "operation_id": "ck.self.circle.command.archive",
       "tier": "extension",
-      "http": "POST /_cokret/self/circles/{circle_id}/archive",
+      "http": "POST /_arkret/self/circles/{circle_id}/archive",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
@@ -1523,7 +1523,7 @@
     {
       "operation_id": "ck.self.circle.command.create",
       "tier": "extension",
-      "http": "POST /_cokret/self/circles",
+      "http": "POST /_arkret/self/circles",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_create_request_body",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
@@ -1537,7 +1537,7 @@
     {
       "operation_id": "ck.self.circle.command.restore",
       "tier": "extension",
-      "http": "POST /_cokret/self/circles/{circle_id}/restore",
+      "http": "POST /_arkret/self/circles/{circle_id}/restore",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
@@ -1551,7 +1551,7 @@
     {
       "operation_id": "ck.self.circle.command.rotate_scope",
       "tier": "extension",
-      "http": "POST /_cokret/self/circles/{circle_id}/scope-rotate",
+      "http": "POST /_arkret/self/circles/{circle_id}/scope-rotate",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_outcome",
@@ -1564,7 +1564,7 @@
     {
       "operation_id": "ck.self.circle.command.tombstone",
       "tier": "extension",
-      "http": "POST /_cokret/self/circles/{circle_id}/tombstone",
+      "http": "POST /_arkret/self/circles/{circle_id}/tombstone",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
@@ -1578,7 +1578,7 @@
     {
       "operation_id": "ck.self.circle.member.command.add",
       "tier": "extension",
-      "http": "POST /_cokret/self/circles/{circle_id}/members",
+      "http": "POST /_arkret/self/circles/{circle_id}/members",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_member_request_body",
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome",
@@ -1592,7 +1592,7 @@
     {
       "operation_id": "ck.self.circle.member.resource.delete",
       "tier": "extension",
-      "http": "DELETE /_cokret/self/circles/{circle_id}/members/{actor_id}",
+      "http": "DELETE /_arkret/self/circles/{circle_id}/members/{actor_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome",
@@ -1605,7 +1605,7 @@
     {
       "operation_id": "ck.self.circle.query.list",
       "tier": "extension",
-      "http": "GET /_cokret/self/circles",
+      "http": "GET /_arkret/self/circles",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_list",
@@ -1618,7 +1618,7 @@
     {
       "operation_id": "ck.self.circle.resource.get",
       "tier": "extension",
-      "http": "GET /_cokret/self/circles/{circle_id}",
+      "http": "GET /_arkret/self/circles/{circle_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
@@ -1631,7 +1631,7 @@
     {
       "operation_id": "ck.self.consent.command.grant",
       "tier": "extension",
-      "http": "POST /_cokret/self/consent/cells/{holder_did}/grant",
+      "http": "POST /_arkret/self/consent/cells/{holder_did}/grant",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
@@ -1645,7 +1645,7 @@
     {
       "operation_id": "ck.self.consent.command.request",
       "tier": "extension",
-      "http": "POST /_cokret/self/consent/request",
+      "http": "POST /_arkret/self/consent/request",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_request_body",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
@@ -1659,7 +1659,7 @@
     {
       "operation_id": "ck.self.consent.command.revoke",
       "tier": "extension",
-      "http": "POST /_cokret/self/consent/cells/{holder_did}/revoke",
+      "http": "POST /_arkret/self/consent/cells/{holder_did}/revoke",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
@@ -1673,7 +1673,7 @@
     {
       "operation_id": "ck.self.consent.query.list",
       "tier": "extension",
-      "http": "GET /_cokret/self/consent/cells",
+      "http": "GET /_arkret/self/consent/cells",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_list",
@@ -1686,7 +1686,7 @@
     {
       "operation_id": "ck.self.consent.resource.get",
       "tier": "extension",
-      "http": "GET /_cokret/self/consent/cells/{holder_did}",
+      "http": "GET /_arkret/self/consent/cells/{holder_did}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
@@ -1699,7 +1699,7 @@
     {
       "operation_id": "ck.self.contact.command.request",
       "tier": "extension",
-      "http": "POST /_cokret/self/contacts/request",
+      "http": "POST /_arkret/self/contacts/request",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_request_body",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_outcome",
@@ -1713,7 +1713,7 @@
     {
       "operation_id": "ck.self.contact.command.respond",
       "tier": "extension",
-      "http": "POST /_cokret/self/contacts/respond",
+      "http": "POST /_arkret/self/contacts/respond",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_request_body",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_outcome",
@@ -1727,7 +1727,7 @@
     {
       "operation_id": "ck.self.contact.command.tombstone",
       "tier": "extension",
-      "http": "POST /_cokret/self/contacts/tombstone",
+      "http": "POST /_arkret/self/contacts/tombstone",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request_body",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone",
@@ -1741,7 +1741,7 @@
     {
       "operation_id": "ck.self.contact.query.list",
       "tier": "extension",
-      "http": "GET /_cokret/self/contacts",
+      "http": "GET /_arkret/self/contacts",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list",
@@ -1754,7 +1754,7 @@
     {
       "operation_id": "ck.self.device_messages.command.ack",
       "tier": "extension",
-      "http": "POST /_cokret/self/device_messages/ack",
+      "http": "POST /_arkret/self/device_messages/ack",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckOutcome",
@@ -1768,7 +1768,7 @@
     {
       "operation_id": "ck.self.device_messages.command.send",
       "tier": "extension",
-      "http": "POST /_cokret/self/device_messages",
+      "http": "POST /_arkret/self/device_messages",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendOutcome",
@@ -1782,7 +1782,7 @@
     {
       "operation_id": "ck.self.device_messages.query.list",
       "tier": "extension",
-      "http": "GET /_cokret/self/device_messages",
+      "http": "GET /_arkret/self/device_messages",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetOutcome",
@@ -1795,7 +1795,7 @@
     {
       "operation_id": "ck.self.direct_conversation.command.resolve",
       "tier": "extension",
-      "http": "POST /_cokret/self/direct-conversations/resolve",
+      "http": "POST /_arkret/self/direct-conversations/resolve",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_request_body",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
@@ -1809,7 +1809,7 @@
     {
       "operation_id": "ck.self.ephemeral.command.send",
       "tier": "core",
-      "http": "POST /_cokret/self/ephemeral",
+      "http": "POST /_arkret/self/ephemeral",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/ephemeral-envelope.schema.json",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EphemeralSubmitOutcome",
@@ -1823,7 +1823,7 @@
     {
       "operation_id": "ck.self.events.command.submit",
       "tier": "core",
-      "http": "POST /_cokret/self/events",
+      "http": "POST /_arkret/self/events",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome",
@@ -1837,7 +1837,7 @@
     {
       "operation_id": "ck.self.events.query.describe",
       "tier": "core",
-      "http": "GET /_cokret/self/events/describe",
+      "http": "GET /_arkret/self/events/describe",
       "success_shape_kind": "service_describe",
       "request_schema_ref": null,
       "response_schema_ref": null,
@@ -1850,7 +1850,7 @@
     {
       "operation_id": "ck.self.events.query.frontier",
       "tier": "core",
-      "http": "GET /_cokret/self/events/frontier",
+      "http": "GET /_arkret/self/events/frontier",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierState",
@@ -1863,7 +1863,7 @@
     {
       "operation_id": "ck.self.events.query.resolve",
       "tier": "core",
-      "http": "POST /_cokret/self/events/resolve",
+      "http": "POST /_arkret/self/events/resolve",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveOutcome",
@@ -1877,7 +1877,7 @@
     {
       "operation_id": "ck.self.events.query.scan",
       "tier": "core",
-      "http": "GET /_cokret/self/events",
+      "http": "GET /_arkret/self/events",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
@@ -1890,7 +1890,7 @@
     {
       "operation_id": "ck.self.events.query.scan_body",
       "tier": "core",
-      "http": "POST /_cokret/self/events/query",
+      "http": "POST /_arkret/self/events/query",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
@@ -1904,7 +1904,7 @@
     {
       "operation_id": "ck.self.events.resource.get",
       "tier": "core",
-      "http": "GET /_cokret/self/events/{event_id}",
+      "http": "GET /_arkret/self/events/{event_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventView",
@@ -1917,7 +1917,7 @@
     {
       "operation_id": "ck.self.events.stream.subscribe",
       "tier": "core",
-      "http": "GET /_cokret/self/events/subscribe",
+      "http": "GET /_arkret/self/events/subscribe",
       "success_shape_kind": "event_stream",
       "request_schema_ref": null,
       "response_schema_ref": null,
@@ -1928,7 +1928,7 @@
     {
       "operation_id": "ck.self.invite_receive_policy.resource.get",
       "tier": "extension",
-      "http": "GET /_cokret/self/invite-receive-policy",
+      "http": "GET /_arkret/self/invite-receive-policy",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/invite-receive-policy.schema.json",
@@ -1941,7 +1941,7 @@
     {
       "operation_id": "ck.self.invite_receive_policy.resource.replace",
       "tier": "extension",
-      "http": "PUT /_cokret/self/invite-receive-policy",
+      "http": "PUT /_arkret/self/invite-receive-policy",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/invite-receive-policy.schema.json",
       "response_schema_ref": "schemas/invite-receive-policy.schema.json",
@@ -1955,7 +1955,7 @@
     {
       "operation_id": "ck.self.keys.backups.command.unlock",
       "tier": "extension",
-      "http": "POST /_cokret/self/keys/backups/{backup_id}/unlock",
+      "http": "POST /_arkret/self/keys/backups/{backup_id}/unlock",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_request_body",
       "response_schema_ref": "schemas/key-backup.schema.json",
@@ -1969,7 +1969,7 @@
     {
       "operation_id": "ck.self.keys.backups.query.list",
       "tier": "extension",
-      "http": "GET /_cokret/self/keys/backups",
+      "http": "GET /_arkret/self/keys/backups",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_list",
@@ -1982,7 +1982,7 @@
     {
       "operation_id": "ck.self.keys.backups.resource.delete",
       "tier": "extension",
-      "http": "DELETE /_cokret/self/keys/backups/{backup_id}",
+      "http": "DELETE /_arkret/self/keys/backups/{backup_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_request_body",
       "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_outcome",
@@ -1996,7 +1996,7 @@
     {
       "operation_id": "ck.self.keys.backups.resource.replace",
       "tier": "extension",
-      "http": "PUT /_cokret/self/keys/backups/{backup_id}",
+      "http": "PUT /_arkret/self/keys/backups/{backup_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/key-backup.schema.json",
       "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_replace_outcome",
@@ -2010,7 +2010,7 @@
     {
       "operation_id": "ck.self.keys.command.claim",
       "tier": "extension",
-      "http": "POST /_cokret/self/keys/claim",
+      "http": "POST /_arkret/self/keys/claim",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_claim_request_body",
       "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_claim_outcome",
@@ -2024,7 +2024,7 @@
     {
       "operation_id": "ck.self.keys.keypackages.command.claim",
       "tier": "extension",
-      "http": "POST /_cokret/self/keys/keypackages/claim",
+      "http": "POST /_arkret/self/keys/keypackages/claim",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_request_body",
       "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_outcome",
@@ -2038,7 +2038,7 @@
     {
       "operation_id": "ck.self.keys.keypackages.command.consume",
       "tier": "extension",
-      "http": "POST /_cokret/self/keys/keypackages/consume",
+      "http": "POST /_arkret/self/keys/keypackages/consume",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_request_body",
       "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_outcome",
@@ -2052,7 +2052,7 @@
     {
       "operation_id": "ck.self.keys.keypackages.command.revoke",
       "tier": "extension",
-      "http": "POST /_cokret/self/keys/keypackages/revoke",
+      "http": "POST /_arkret/self/keys/keypackages/revoke",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_request_body",
       "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_outcome",
@@ -2066,7 +2066,7 @@
     {
       "operation_id": "ck.self.keys.keypackages.upload.create",
       "tier": "extension",
-      "http": "POST /_cokret/self/keys/keypackages/upload",
+      "http": "POST /_arkret/self/keys/keypackages/upload",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_request_body",
       "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_outcome",
@@ -2080,7 +2080,7 @@
     {
       "operation_id": "ck.self.keys.query.lookup",
       "tier": "extension",
-      "http": "POST /_cokret/self/keys/query",
+      "http": "POST /_arkret/self/keys/query",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_request_body",
       "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_outcome",
@@ -2094,7 +2094,7 @@
     {
       "operation_id": "ck.self.keys.upload.create",
       "tier": "extension",
-      "http": "POST /_cokret/self/keys/upload",
+      "http": "POST /_arkret/self/keys/upload",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_upload_request_body",
       "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_upload_outcome",
@@ -2108,7 +2108,7 @@
     {
       "operation_id": "ck.self.media.query.ice_config",
       "tier": "extension",
-      "http": "POST /_cokret/self/rtc/ice-config",
+      "http": "POST /_arkret/self/rtc/ice-config",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/media-operations.schema.json#/$defs/media_ice_config_request_body",
       "response_schema_ref": "schemas/ice-config-response.schema.json",
@@ -2122,7 +2122,7 @@
     {
       "operation_id": "ck.self.moderation.command.report",
       "tier": "extension",
-      "http": "POST /_cokret/self/moderation/report",
+      "http": "POST /_arkret/self/moderation/report",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/moderation-report.schema.json",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ModerationReportOutcome",
@@ -2136,7 +2136,7 @@
     {
       "operation_id": "ck.self.morph.query.list",
       "tier": "extension",
-      "http": "GET /_cokret/self/realms/{realm_id}/morphs",
+      "http": "GET /_arkret/self/realms/{realm_id}/morphs",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionMorphList",
@@ -2149,7 +2149,7 @@
     {
       "operation_id": "ck.self.morph.resource.get",
       "tier": "extension",
-      "http": "GET /_cokret/self/realms/{realm_id}/morphs/{morph_id}",
+      "http": "GET /_arkret/self/realms/{realm_id}/morphs/{morph_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/view.schema.json#/$defs/document_morph_projection_outcome",
@@ -2162,7 +2162,7 @@
     {
       "operation_id": "ck.self.policy.query.check",
       "tier": "extension",
-      "http": "POST /_cokret/self/policy/check",
+      "http": "POST /_arkret/self/policy/check",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequestBody",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome",
@@ -2176,7 +2176,7 @@
     {
       "operation_id": "ck.self.read_cursor.command.advance",
       "tier": "extension",
-      "http": "POST /_cokret/self/read-cursors",
+      "http": "POST /_arkret/self/read-cursors",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_cursor_advance_request_body",
       "response_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_marker_outcome",
@@ -2190,7 +2190,7 @@
     {
       "operation_id": "ck.self.read_cursor.query.list",
       "tier": "extension",
-      "http": "GET /_cokret/self/read-cursors",
+      "http": "GET /_arkret/self/read-cursors",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_cursor_list",
@@ -2203,7 +2203,7 @@
     {
       "operation_id": "ck.self.realm.command.archive",
       "tier": "extension",
-      "http": "POST /_cokret/self/realms/{realm_id}/archive",
+      "http": "POST /_arkret/self/realms/{realm_id}/archive",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
@@ -2217,7 +2217,7 @@
     {
       "operation_id": "ck.self.realm.command.destroy",
       "tier": "extension",
-      "http": "POST /_cokret/self/realms/{realm_id}/destroy",
+      "http": "POST /_arkret/self/realms/{realm_id}/destroy",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_destroy_payload",
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
@@ -2231,7 +2231,7 @@
     {
       "operation_id": "ck.self.realm.command.freeze",
       "tier": "extension",
-      "http": "POST /_cokret/self/realms/{realm_id}/freeze",
+      "http": "POST /_arkret/self/realms/{realm_id}/freeze",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
@@ -2245,7 +2245,7 @@
     {
       "operation_id": "ck.self.realm.command.tombstone",
       "tier": "extension",
-      "http": "POST /_cokret/self/realms/{realm_id}/tombstone",
+      "http": "POST /_arkret/self/realms/{realm_id}/tombstone",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_tombstone_payload",
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
@@ -2259,7 +2259,7 @@
     {
       "operation_id": "ck.self.realm.moderation_policy.query.effective",
       "tier": "extension",
-      "http": "GET /_cokret/self/realms/{realm_id}/moderation-policy/effective",
+      "http": "GET /_arkret/self/realms/{realm_id}/moderation-policy/effective",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_effective_moderation_policy",
@@ -2272,7 +2272,7 @@
     {
       "operation_id": "ck.self.realm.moderation_policy.resource.replace",
       "tier": "extension",
-      "http": "PUT /_cokret/self/realms/{realm_id}/moderation-policy",
+      "http": "PUT /_arkret/self/realms/{realm_id}/moderation-policy",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_replace_request_body",
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_document",
@@ -2286,7 +2286,7 @@
     {
       "operation_id": "ck.self.realm.query.export",
       "tier": "extension",
-      "http": "GET /_cokret/self/realms/{realm_id}/export",
+      "http": "GET /_arkret/self/realms/{realm_id}/export",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_export",
@@ -2299,7 +2299,7 @@
     {
       "operation_id": "ck.self.realm.resource.get",
       "tier": "extension",
-      "http": "GET /_cokret/self/realms/{realm_id}",
+      "http": "GET /_arkret/self/realms/{realm_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
@@ -2312,7 +2312,7 @@
     {
       "operation_id": "ck.self.realm_link.command.create",
       "tier": "extension",
-      "http": "POST /_cokret/self/realms/{realm_id}/links",
+      "http": "POST /_arkret/self/realms/{realm_id}/links",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_create_request_body",
       "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome",
@@ -2326,7 +2326,7 @@
     {
       "operation_id": "ck.self.realm_link.query.effective_policy",
       "tier": "extension",
-      "http": "GET /_cokret/self/realms/{realm_id}/effective-policy",
+      "http": "GET /_arkret/self/realms/{realm_id}/effective-policy",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_effective_policy_outcome",
@@ -2339,7 +2339,7 @@
     {
       "operation_id": "ck.self.realm_link.query.list",
       "tier": "extension",
-      "http": "GET /_cokret/self/realms/{realm_id}/links",
+      "http": "GET /_arkret/self/realms/{realm_id}/links",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_list",
@@ -2352,7 +2352,7 @@
     {
       "operation_id": "ck.self.realm_link.resource.delete",
       "tier": "extension",
-      "http": "DELETE /_cokret/self/realms/{realm_id}/links/{target_realm_id}",
+      "http": "DELETE /_arkret/self/realms/{realm_id}/links/{target_realm_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome",
@@ -2365,7 +2365,7 @@
     {
       "operation_id": "ck.self.realm_organization.query.list",
       "tier": "extension",
-      "http": "GET /_cokret/self/realms/{realm_id}/organizations",
+      "http": "GET /_arkret/self/realms/{realm_id}/organizations",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list",
@@ -2378,7 +2378,7 @@
     {
       "operation_id": "ck.self.realm_policy_server.resource.delete",
       "tier": "extension",
-      "http": "DELETE /_cokret/self/realms/{realm_id}/policy-server",
+      "http": "DELETE /_arkret/self/realms/{realm_id}/policy-server",
       "success_shape_kind": "empty_response",
       "request_schema_ref": null,
       "response_schema_ref": null,
@@ -2389,7 +2389,7 @@
     {
       "operation_id": "ck.self.realm_policy_server.resource.get",
       "tier": "extension",
-      "http": "GET /_cokret/self/realms/{realm_id}/policy-server",
+      "http": "GET /_arkret/self/realms/{realm_id}/policy-server",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view",
@@ -2402,7 +2402,7 @@
     {
       "operation_id": "ck.self.realm_policy_server.resource.replace",
       "tier": "extension",
-      "http": "PUT /_cokret/self/realms/{realm_id}/policy-server",
+      "http": "PUT /_arkret/self/realms/{realm_id}/policy-server",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_replace_request_body",
       "response_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view",
@@ -2416,7 +2416,7 @@
     {
       "operation_id": "ck.self.snapshot.query.manifest_head",
       "tier": "core",
-      "http": "GET /_cokret/self/snapshot/head",
+      "http": "GET /_arkret/self/snapshot/head",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/snapshot.schema.json",
@@ -2429,7 +2429,7 @@
     {
       "operation_id": "ck.self.space.query.list",
       "tier": "extension",
-      "http": "GET /_cokret/self/realms/{realm_id}/spaces",
+      "http": "GET /_arkret/self/realms/{realm_id}/spaces",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpaceList",
@@ -2442,7 +2442,7 @@
     {
       "operation_id": "ck.self.strand.query.list",
       "tier": "extension",
-      "http": "GET /_cokret/self/realms/{realm_id}/strands",
+      "http": "GET /_arkret/self/realms/{realm_id}/strands",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionStrandList",
@@ -2455,7 +2455,7 @@
     {
       "operation_id": "ck.self.views.collection_projection.command.materialize",
       "tier": "extension",
-      "http": "POST /_cokret/self/views/{view_id}/projection",
+      "http": "POST /_arkret/self/views/{view_id}/projection",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/view.schema.json#/$defs/view_projection_request_body",
       "response_schema_ref": "schemas/view.schema.json#/$defs/collection_projection_view",
@@ -2469,7 +2469,7 @@
     {
       "operation_id": "ck.server.query.describe",
       "tier": "core",
-      "http": "GET /_cokret/describe",
+      "http": "GET /_arkret/describe",
       "success_shape_kind": "service_describe",
       "request_schema_ref": null,
       "response_schema_ref": null,

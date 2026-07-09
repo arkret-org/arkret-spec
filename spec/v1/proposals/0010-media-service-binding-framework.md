@@ -96,16 +96,16 @@ Matrix 走过的弯路给出明确答案（详见 [MSC4143 MatrixRTC](https://gi
         "focus_id": "fra-1",
         "type": "livekit",
         "region": "eu-fra",
-        "token_endpoint": "https://media.example.com/_cokret/self/rtc/token",
+        "token_endpoint": "https://media.example.com/_arkret/self/rtc/token",
         "connect_url": "wss://livekit-fra.example.com",
         "capabilities": ["audio", "video", "screen", "e2ee_sframe"],
-        "health_endpoint": "https://media.example.com/_cokret/self/rtc/health/fra-1"
+        "health_endpoint": "https://media.example.com/_arkret/self/rtc/health/fra-1"
       },
       {
         "focus_id": "us-east-1",
         "type": "livekit",
         "region": "us-east",
-        "token_endpoint": "https://media.example.com/_cokret/self/rtc/token",
+        "token_endpoint": "https://media.example.com/_arkret/self/rtc/token",
         "connect_url": "wss://livekit-use.example.com",
         "capabilities": ["audio", "video", "screen", "e2ee_sframe"]
       }
@@ -304,7 +304,7 @@ Backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等�
 - `ck.vector.media_binding.unknown_type_fail_closed.v1` — 未知 `type` 值客户端 MUST 拒绝加入。
 - `ck.vector.media_binding.e2ee_key_source.v1` — backend 即使支持自家 E2EE，密钥源 MUST 来自 Arkret MLS exporter；backend 自生成 key 时客户端拒绝。
 - `ck.vector.media_binding.participant_identity_unrecognised.v1` — backend 通知 join 的 participant 不在 `ck.call.state` 时客户端拒绝该流。
-- `ck.vector.media_binding.recording_artifact_via_cokret_blob.v1` — backend-generated recording 必须通过 Arkret blob pipeline 入库，并用 `ck.call.state` 发布结果；绕过路径拒绝。
+- `ck.vector.media_binding.recording_artifact_via_arkret_blob.v1` — backend-generated recording 必须通过 Arkret blob pipeline 入库，并用 `ck.call.state` 发布结果；绕过路径拒绝。
 - `ck.vector.media_binding.recording_exporter_label.v1` — recording key 必须使用 `"ck-rtc-recording-key/v1"` 与 recording transcript Context；复用 SFrame label 或空 Context 必须拒绝。
 
 ## 5. Interactions with normative spec
@@ -314,7 +314,7 @@ Backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等�
 | [`zh/crypto-media/webrtc-signaling.md`](../zh/crypto-media/webrtc-signaling.md) | §6.1 schema 扩展（`sfu_endpoint` → `foci[]`，无兼容退化）；§7.2 `focus_join`/`focus_leave` 语义补全；§10.1 SFU join request/response 重新框架化为 type-specific 附录；§11 `ck.call.state` 增加 `session_focus`、`participant_identity`、`participant_binding`；§13 录制结果继续使用 `ck.call.state` |
 | `zh/crypto-media/bindings/livekit.md` | **新文件** — LiveKit binding |
 | `zh/crypto-media/bindings/arkret-native.md` | **新文件** — 把现行 §10.1 自定义 SFU 信令搬入此处作为 reference impl |
-| [`zh/sync/service-http-binding.md`](../zh/sync/service-http-binding.md)、[`zh/sync/service-surface.md`](../zh/sync/service-surface.md) | 登记 token exchange canonical operation 与默认 HTTP binding（建议 `POST /_cokret/self/rtc/token`），并在 media service describe 中暴露 |
+| [`zh/sync/service-http-binding.md`](../zh/sync/service-http-binding.md)、[`zh/sync/service-surface.md`](../zh/sync/service-surface.md) | 登记 token exchange canonical operation 与默认 HTTP binding（建议 `POST /_arkret/self/rtc/token`），并在 media service describe 中暴露 |
 | [`zh/authz/capabilities.md`](../zh/authz/capabilities.md) | 已有 `ck.realm.media_service` 不变；`call.join` / `call.screen_share` / `call.record` 等现行裸名在 accepted 迁移时必须注册或收敛到 `ck.call.*` action，不得只停留在 narrative |
 | `artifacts/registry/operation-registry.json`、`artifacts/openapi/arkret-service-api.openapi.yaml` | 新增 token exchange operation / schema / error response；health endpoint 若保留也要登记 discovery 语义 |
 | `artifacts/registry/event-kind-registry.json` | `ck.realm.media_service` payload schema 更新；不新增 recording artifact event kind |

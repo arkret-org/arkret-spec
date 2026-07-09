@@ -70,13 +70,13 @@ base v1 invite **MUST NOT** 依赖 `ck.find.directory.query.resolve_handle(inten
 推荐 QR / link 文本：
 
 ```text
-https://ps.bob.example/_cokret/open/invite-locators/resolve#token=<locator_token>
+https://ps.bob.example/_arkret/open/invite-locators/resolve#token=<locator_token>
 ```
 
 扫描方客户端读取 fragment 后，向同一 origin 提交：
 
 ```text
-POST /_cokret/open/invite-locators/resolve
+POST /_arkret/open/invite-locators/resolve
 ```
 
 body：
@@ -271,7 +271,7 @@ Rules:
 邀请方 Principal Server 使用：
 
 ```text
-POST /_cokret/peer/invites
+POST /_arkret/peer/invites
 operation_id = ck.peer.invites.command.submit
 ```
 

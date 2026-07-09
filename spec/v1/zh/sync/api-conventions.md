@@ -12,7 +12,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-本文定义 Arkret 默认 HTTP/JSON binding 的线级约定。  
+本文定义 Arkret 默认 HTTP/JSON binding 的线级约定。
 Arkret 协议核心不强绑定 REST API；核心操作、消息 envelope 与 transport binding 的关系见 `transport-bindings.md`。
 
 各服务面可以扩展自己的 HTTP endpoint，但 MUST 遵守本文的基础规则，除非对应文档明确说明例外。非 HTTP binding（例如 gRPC、WebSocket、SSE、libp2p、message queue）MUST 提供语义等价的认证、授权、幂等、分页、错误和流控语义。
@@ -31,7 +31,7 @@ Arkret 协议核心不强绑定 REST API；核心操作、消息 envelope 与 tr
 
 ### 2.1 HTTPS
 
-生产环境 API endpoint MUST 使用 HTTPS。  
+生产环境 API endpoint MUST 使用 HTTPS。
 明文 HTTP 只允许用于本地开发、测试网络或受控内网模拟环境。
 
 ### 2.2 JSON 编码
@@ -108,16 +108,16 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 - `DELETE`：删除一个已知 URI 表示的资源、binding 或 slot；重复删除必须有定义良好的幂等结果。
 - `PATCH`：仅在规范显式定义 patch document 语义、冲突检测和幂等边界时使用；否则 partial update 使用 `POST` command 或 `PUT` slot replacement。
 
-因此，`ck.self.device_messages.command.send` 表示“把 to-device message 批次放入目标设备短期队列”，HTTP binding 必须是 `POST /_cokret/self/device_messages`，并以 `(sender, Idempotency-Key)` 去重：该操作没有单个由 URI 标识、可完整替换的消息资源；队列删除只由 `ck.self.device_messages.command.ack` 触发。相反，`ck.self.keys.backups.resource.replace`、`ck.self.realm_policy_server.resource.replace`、`ck.self.account_data.resource.replace` 和 `ck.self.agent.participation.resource.replace` 都有 path 标识的单一 backup/config/slot，HTTP binding MUST 使用 `PUT`。
+因此，`ck.self.device_messages.command.send` 表示“把 to-device message 批次放入目标设备短期队列”，HTTP binding 必须是 `POST /_arkret/self/device_messages`，并以 `(sender, Idempotency-Key)` 去重：该操作没有单个由 URI 标识、可完整替换的消息资源；队列删除只由 `ck.self.device_messages.command.ack` 触发。相反，`ck.self.keys.backups.resource.replace`、`ck.self.realm_policy_server.resource.replace`、`ck.self.account_data.resource.replace` 和 `ck.self.agent.participation.resource.replace` 都有 path 标识的单一 backup/config/slot，HTTP binding MUST 使用 `PUT`。
 
 ## 3. 认证
 
-受保护 endpoint 的请求 MUST 携带可验证且 sender-constrained 的认证材料。会话出示方式按下列**推荐序**选择（越靠前越优先）。生产 current-v1 受保护 endpoint MUST 要求 DPoP、RFC 9421 HTTP Message Signature、detached JWS、mTLS 或等价 proof-of-possession（PoP）绑定；裸 `Authorization: Bearer <ck.session.grant>` 只证明持有 token，不是合格的 current-v1 受保护 endpoint 会话出示。
+受保护 endpoint 的请求 MUST 携带可验证且 sender-constrained 的认证材料。会话出示方式按下列**推荐序**选择（越靠前越优先）。生产 current-v1 受保护 endpoint MUST 要求 DPoP、RFC 9421 HTTP Message Signature、detached JWS、mTLS 或等价 proof-of-possession（PoP）绑定；裸 `Authorization: Bearer <ak.session.grant>` 只证明持有 token，不是合格的 current-v1 受保护 endpoint 会话出示。
 
-1. **`session_public_key` PoP（RFC 9421 HTTP Message Signature）—— 推荐默认**：请求用 `ck.session.grant` 委托的短期 `session_public_key`（私钥仅持有方掌握）对请求做 HTTP Message Signature。会话凭据与签名密钥绑定，仅截获 `ck.session.grant` 不足以重放。详见 §3.2 与 [`service-http-binding.md` §2.5](./service-http-binding.md)。
+1. **`session_public_key` PoP（RFC 9421 HTTP Message Signature）—— 推荐默认**：请求用 `ak.session.grant` 委托的短期 `session_public_key`（私钥仅持有方掌握）对请求做 HTTP Message Signature。会话凭据与签名密钥绑定，仅截获 `ak.session.grant` 不足以重放。详见 §3.2 与 [`service-http-binding.md` §2.5](./service-http-binding.md)。
 2. **detached JWS request signature** 或等价 signed proof body：栈不便用 RFC 9421 时的等价 sender-constrained 出示。
 3. **mTLS**：用于受控企业或服务间通信。
-4. **`Authorization: Bearer <ck.session.grant>`（裸 bearer，仅可与 PoP 并存）**：可随 DPoP / RFC 9421 / JWS / mTLS 一起携带，用于让服务端定位 session grant；裸 bearer 本身不证明持有绑定密钥，凭据一旦泄露即可重放。生产 current-v1 受保护 endpoint MUST NOT 接受仅含裸 bearer 的请求作为认证成功。公开 metadata endpoint 若被定义为无需认证的 public surface，MAY 按未认证请求返回公开响应，但 MUST NOT 把裸 bearer 当作 session / capability 认证。
+4. **`Authorization: Bearer <ak.session.grant>`（裸 bearer，仅可与 PoP 并存）**：可随 DPoP / RFC 9421 / JWS / mTLS 一起携带，用于让服务端定位 session grant；裸 bearer 本身不证明持有绑定密钥，凭据一旦泄露即可重放。生产 current-v1 受保护 endpoint MUST NOT 接受仅含裸 bearer 的请求作为认证成功。公开 metadata endpoint 若被定义为无需认证的 public surface，MAY 按未认证请求返回公开响应，但 MUST NOT 把裸 bearer 当作 session / capability 认证。
 
 无论采用哪种传输认证方式，协议层权限判断最终 MUST 回到：
 
@@ -137,18 +137,18 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 - 拒绝时 SHOULD 返回 `unauthenticated` 或 `invalid_param`，并且不得把 query 中的敏感值写入普通访问日志。
 - `ck.self.blob.command.presign` 是唯一标准 URL bearer 例外：它只能是单 blob、单用途、短时效、只读、可撤销的派生 token，不得等同于用户 session、API key 或长期 capability；完整约束见 [`../crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)。
 - 第三方邀请的 `#token=` fragment 是客户端 handoff，不是服务端认证入口。服务端不会收到 fragment；客户端读取后 MUST 通过 body / signed proof 提交 claim，并按 [`third-party-invites.md` §3.2](./third-party-invites.md) 清理 URL 与本地状态。
-- online principal locator 的 `#token=` fragment 同样只是客户端 handoff。`locator_token` MUST 通过 `POST /_cokret/open/invite-locators/resolve` JSON body 提交；不得出现在 URL path 或 query string。详见 [`invite-addressing.md`](./invite-addressing.md)。
+- online principal locator 的 `#token=` fragment 同样只是客户端 handoff。`locator_token` MUST 通过 `POST /_arkret/open/invite-locators/resolve` JSON body 提交；不得出现在 URL path 或 query string。详见 [`invite-addressing.md`](./invite-addressing.md)。
 
 ### 3.1 认证服务发现
 
-认证与授权服务器可以分离。Principal Server 的 `/_cokret/describe` MUST 公布 `auth_metadata.account_authority` 与 `auth_metadata.methods[]`。客户端先用 `account_authority.gate_account_base` 定位所有客户端可见的 Arkret `/_cokret/gate/account/*` 操作，再按 `methods[]` 中的标准 discovery 找认证 provider；规范明确标记为部署内部 S2S 的 account 子操作（例如 `ck.gate.account.command.logout_auth_session`）只能由 Account Authority 按对应契约调用，不能由客户端派生。不得把 OAuth/OIDC subject 当作 Arkret principal：
+认证与授权服务器可以分离。Principal Server 的 `/_arkret/describe` MUST 公布 `auth_metadata.account_authority` 与 `auth_metadata.methods[]`。客户端先用 `account_authority.gate_account_base` 定位所有客户端可见的 Arkret `/_arkret/gate/account/*` 操作，再按 `methods[]` 中的标准 discovery 找认证 provider；规范明确标记为部署内部 S2S 的 account 子操作（例如 `ck.gate.account.command.logout_auth_session`）只能由 Account Authority 按对应契约调用，不能由客户端派生。不得把 OAuth/OIDC subject 当作 Arkret principal：
 
 ```json
 {
   "auth_metadata": {
     "account_authority": {
       "origin": "https://account.example",
-      "gate_account_base": "https://account.example/_cokret/gate/account"
+      "gate_account_base": "https://account.example/_arkret/gate/account"
     },
     "methods": [
       {
@@ -172,20 +172,20 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 规则：
 
 - `sub`、email、username 或 OAuth client id MUST NOT 直接作为 `actor_id`、grant subject 或 event sender。
-- 登录成功后，Account Authority MUST 产生可验证的 `SessionGrantOutcome`，把 OAuth/OIDC / passkey / device proof 绑定到 DID principal / device。客户端可见登录凭据是 `ck.session.grant`，Principal 本地 session provisioning 是 Account Authority 内部步骤。
+- 登录成功后，Account Authority MUST 产生可验证的 `SessionGrantOutcome`，把 OAuth/OIDC / passkey / device proof 绑定到 DID principal / device。客户端可见登录凭据是 `ak.session.grant`，Principal 本地 session provisioning 是 Account Authority 内部步骤。
 - Resource server MUST 校验 token audience、issuer、expiry、nonce / replay 防护和 session grant 状态；Principal Server 校验 grant 时通过 Account Authority / Auth-side 内省或等价可信本地状态 fail closed。
 - `methods[]` 只描述 service account 登录或恢复入口；它不改变 DID 控制权规则。密码、邮箱验证码、passkey 和 OIDC session 必须通过 `did_binding_methods` 绑定到 DID / device 后才能用于协议写入。
 - 当认证 metadata 变化时，服务 SHOULD 通过 feature discovery 版本或 DID service metadata hash 暴露变更，客户端不得静默沿用过期 issuer。
 
 ### 3.2 Sender-constrained（proof-of-possession）会话出示
 
-`ck.session.grant` 已把短期 `session_public_key` 绑定到 principal / device / audience / origin（见 [`../crypto-media/device-lifecycle.md` §1 / §3](../crypto-media/device-lifecycle.md)）。若请求只用 `Authorization: Bearer <ck.session.grant>` 出示，凭据被窃即可在 audience 内重放，与 key 绑定设计脱节。按 [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700)（OAuth 2.0 Security BCP, BCP 240）"优先使用 sender-constrained token" 的指导，Arkret v1 对生产受保护 endpoint 要求 PoP。
+`ak.session.grant` 已把短期 `session_public_key` 绑定到 principal / device / audience / origin（见 [`../crypto-media/device-lifecycle.md` §1 / §3](../crypto-media/device-lifecycle.md)）。若请求只用 `Authorization: Bearer <ak.session.grant>` 出示，凭据被窃即可在 audience 内重放，与 key 绑定设计脱节。按 [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700)（OAuth 2.0 Security BCP, BCP 240）"优先使用 sender-constrained token" 的指导，Arkret v1 对生产受保护 endpoint 要求 PoP。
 
 **生产 current-v1 PoP 要求（normative）**：
 
-- `/_cokret/self/*` endpoint MUST 使用 §3.3 的 `Authorization: Bearer <ck.session.grant>` + DPoP 出示。该 bearer header 只是 DPoP 绑定的 grant 载体；缺少有效 DPoP proof 时 MUST 拒绝。
+- `/_arkret/self/*` endpoint MUST 使用 §3.3 的 `Authorization: Bearer <ak.session.grant>` + DPoP 出示。该 bearer header 只是 DPoP 绑定的 grant 载体；缺少有效 DPoP proof 时 MUST 拒绝。
 - 对常规写操作（任何推进 actor_seq / Realm frontier 或产生持久副作用的请求）与敏感读（成员列表、私有 projection、key backup、device list、moderation 队列等），实现 MUST 用 RFC 9421 HTTP Message Signature 或等价 sender-constrained proof 做会话出示；高安全 profile 进一步要求 RFC 9421 形态与 transcript/body 绑定。
-- 对其它受保护 current-v1 endpoint，实现仍 MUST 要求 DPoP、RFC 9421 HTTP Message Signature、detached JWS、mTLS 或等价 sender-constrained proof。裸 `Authorization: Bearer <ck.session.grant>` MUST 以 `unauthenticated` 拒绝。
+- 对其它受保护 current-v1 endpoint，实现仍 MUST 要求 DPoP、RFC 9421 HTTP Message Signature、detached JWS、mTLS 或等价 sender-constrained proof。裸 `Authorization: Bearer <ak.session.grant>` MUST 以 `unauthenticated` 拒绝。
 - 服务 SHOULD 通过 `auth_metadata.did_binding_methods` 公布支持的 sender-constrained 方法（如 `session_dpop`、`session_http_signature`），供客户端选择；未公布任何 sender-constrained 方法的服务 MUST NOT 声明通过 current-v1 production protected-endpoint conformance。
 - 在 §11.2 之外，PoP 出示不改变 §3 其余规则：协议层权限判断仍 MUST 回到 actor DID / capability / Realm policy；PoP 只把"持有 token"升级为"持有绑定密钥"。
 
@@ -196,23 +196,23 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 - 关键 header：`Idempotency-Key`（若参与幂等 / replay key）、`X-Arkret-Wait-For`（若出现）；
 - 签名 parameters MUST 包含 `created` 与 `expires`（不得用 `Date` 替代）。
 
-与 session key 的绑定：签名 `kid` MUST 指向当前 `ck.session.grant` 委托的 `session_public_key`，且该 grant 的 principal / device / audience / origin 约束 MUST 与请求一致；grant 已撤销、过期或 audience / origin 不匹配时，服务端 MUST 拒绝（`unauthenticated`）。
+与 session key 的绑定：签名 `kid` MUST 指向当前 `ak.session.grant` 委托的 `session_public_key`，且该 grant 的 principal / device / audience / origin 约束 MUST 与请求一致；grant 已撤销、过期或 audience / origin 不匹配时，服务端 MUST 拒绝（`unauthenticated`）。
 
 Replay window：PoP 出示**复用既有 replay window 机制**——签名时效窗口与联邦面同口径（`expires - created` 上限、`created` 与本地时钟偏差上限，量级见 [`encoding.md` §6](../conformance/encoding.md) 与 [`federation.md` §3.2](./federation.md) 签名时效窗口），过窗签名即使 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒绝；幂等 / replay key 复用 §6 与 `Idempotency-Key` 机制。
 
 公开 metadata surface：若 endpoint 明确被定义为无需认证的 public surface（例如公开 describe 的 public metadata 子集），服务 MAY 在无认证材料或只有裸 bearer 的情况下返回公开响应；该响应 MUST 按未认证请求处理，不得授予 session / capability 语义，不得返回调用者私有 projection、自身 viewer 字段或任何依赖 session grant 的数据。若同一 endpoint 需要返回已认证视图，调用方 MUST 使用 DPoP / PoP / mTLS 绑定；裸 bearer 仍 MUST 被拒绝。
 
-### 3.3 `/_cokret/self/*` 出示 grant + DPoP（normative，默认会话凭据路径）
+### 3.3 `/_arkret/self/*` 出示 grant + DPoP（normative，默认会话凭据路径）
 
-Account Authority 以 `ck.session.grant` 作为客户端唯一可见的会话凭据；Principal Server **不**为客户端铸发独立的本地 bearer，**不**存在第二个客户端可见的 Principal 本地凭据签发 endpoint。客户端对 `/_cokret/self/*` 的每次请求 MUST 直接出示该 grant，并叠加一份 sender-constrained 的 **DPoP（[RFC 9449](https://www.rfc-editor.org/rfc/rfc9449)）** 持有证明：
+Account Authority 以 `ak.session.grant` 作为客户端唯一可见的会话凭据；Principal Server **不**为客户端铸发独立的本地 bearer，**不**存在第二个客户端可见的 Principal 本地凭据签发 endpoint。客户端对 `/_arkret/self/*` 的每次请求 MUST 直接出示该 grant，并叠加一份 sender-constrained 的 **DPoP（[RFC 9449](https://www.rfc-editor.org/rfc/rfc9449)）** 持有证明：
 
 ```http
-POST /_cokret/self/events
-Authorization: Bearer <ck.session.grant>
+POST /_arkret/self/events
+Authorization: Bearer <ak.session.grant>
 DPoP: <DPoP proof JWT>
 ```
 
-Principal Server 对每次 `/_cokret/self/*` 请求 MUST 校验（任一项失败即 `unauthenticated`，fail closed）：
+Principal Server 对每次 `/_arkret/self/*` 请求 MUST 校验（任一项失败即 `unauthenticated`，fail closed）：
 
 - **DPoP 签名**:DPoP proof JWT MUST 用该 grant 的 grant-binding(DPoP)key 签名，其公钥 JWK thumbprint（[RFC 7638](https://www.rfc-editor.org/rfc/rfc7638)）MUST 等于 grant 的 `cnf.jkt`(Principal Server 通过 session-grant 内省取得 `cnf_jkt`,见 §3.1 与下文)。
 - **DPoP 绑定声明**:`htm` MUST 等于请求方法、`htu` MUST 等于请求 URL、`ath` MUST 等于所出示 grant 的 hash;这些把该 proof 钉死到「本方法 + 本 URL + 本 grant」,防跨 endpoint / 跨 grant 复用。`htu` 比对遵循 [RFC 9449](https://www.rfc-editor.org/rfc/rfc9449) §4.3,先剥离 query 与 fragment 再比 scheme + authority + path。**authority 规范化**:`htu` 的 authority 是客户端看到的 gate origin;当 Principal Server 部署在重写 `Host` 的网关之后(上游 `Host` 可能被改写为内部源),实现 MUST 以网关记录的客户端可见 host(`X-Forwarded-Host` 首跳)为准比对 authority,仅在无任何可信 authority 头时回退到 path-only 绑定(同源直连部署)。
@@ -268,7 +268,7 @@ Principal Server 对每次 `/_cokret/self/*` 请求 MUST 校验（任一项失�
 }
 ```
 
-`message` 用于开发者诊断，不应用于稳定程序逻辑。  
+`message` 用于开发者诊断，不应用于稳定程序逻辑。
 客户端 MUST 以 `code` 作为主要错误分类。
 
 **RFC 9457 problem+json 可协商投影（normative）.** 默认错误 wire 仍是上文的 `{ok: false, error: {...}}` 形态，**不变**。在此之上，本规范定义一个与 [RFC 9457 problem+json](https://www.rfc-editor.org/rfc/rfc9457) 对齐的、可经 content negotiation 协商的标准错误投影：
@@ -294,7 +294,7 @@ CI（`tools/artifact_pipeline.py check`）MUST 校验仓库内所有出现的字
 
 ### 5.2 未知路径与错误方法
 
-对 `/_cokret/*` 之下的请求，服务端 MUST 使用统一错误响应，不得返回 HTML、纯文本框架错误或实现栈信息。
+对 `/_arkret/*` 之下的请求，服务端 MUST 使用统一错误响应，不得返回 HTML、纯文本框架错误或实现栈信息。
 
 规则：
 
@@ -341,18 +341,18 @@ Applet transaction push 的幂等记录（[`applet-integration.md` §7.3](../ext
 
 > **Scope（normative）**：本节只定义 cursor 在 HTTP/JSON binding 上的**使用契约**——出现位置、`purpose` 语义、分页方向（`before` / `after` / `prev_cursor` / `next_cursor`）与不透明性约束;cursor 的内部 canonical 结构、字段 schema、编码与 TTL 硬上限数值见 [`encoding.md` §8](../conformance/encoding.md)。
 
-Arkret v1 在所有需要不透明 token 的位置使用**单一** `cursor` 类型，wire 形态固定为 `ck:cursor:<base64url(canonical_json)>`，schema 见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)。它统一承担增量同步、列表分页和写后读屏障所有用途。
+Arkret v1 在所有需要不透明 token 的位置使用**单一** `cursor` 类型，wire 形态固定为 `ak:cursor:<base64url(canonical_json)>`，schema 见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)。它统一承担增量同步、列表分页和写后读屏障所有用途。
 
 cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing 服务自检）：
 
 | `purpose` | 用途 | 出现位置 |
 | --- | --- | --- |
-| `stream` | 增量同步 / 列表分页的位置承诺。回传方向取决于出现位置（见右列），并非任意位置都支持全部四向。 | **account 聚合流**：`/_cokret/self/account/subscribe` frame 的 `cursor` **仅**作为重连 `after=` 参数回传，是单向 catch-up 起点，**不支持** `before` / `prev_cursor`（account stream 不可反向，见 §7.0 与 [`client-sync.md`](./client-sync.md) §2 / §7.0）。**Realm timeline / 列表分页 / 查询**：`timeline.prev_cursor` / `next_cursor`、列表分页 `prev_cursor` / `next_cursor`、`ck.self.events.query.scan` 与 federation peer `ck.peer.events.query.scan`（`GET /_cokret/peer/events?before=<cursor>`）的 `before` / `after` 请求参数与 `prev_cursor` / `next_cursor` 响应字段——这些位置才支持 `before` / `prev_cursor` 反向延续。 |
+| `stream` | 增量同步 / 列表分页的位置承诺。回传方向取决于出现位置（见右列），并非任意位置都支持全部四向。 | **account 聚合流**：`/_arkret/self/account/subscribe` frame 的 `cursor` **仅**作为重连 `after=` 参数回传，是单向 catch-up 起点，**不支持** `before` / `prev_cursor`（account stream 不可反向，见 §7.0 与 [`client-sync.md`](./client-sync.md) §2 / §7.0）。**Realm timeline / 列表分页 / 查询**：`timeline.prev_cursor` / `next_cursor`、列表分页 `prev_cursor` / `next_cursor`、`ck.self.events.query.scan` 与 federation peer `ck.peer.events.query.scan`（`GET /_arkret/peer/events?before=<cursor>`）的 `before` / `after` 请求参数与 `prev_cursor` / `next_cursor` 响应字段——这些位置才支持 `before` / `prev_cursor` 反向延续。 |
 | `barrier` | 读己之所写（RYW）：要求 reader 在 frontier 覆盖某个具体 event 之前不返回结果。 | 写接口响应中的 `cursor` 字段、`X-Arkret-Wait-For` header。 |
 
 ### 7.0 `prev_cursor` / `next_cursor` 含义（绝对方向）
 
-任何返回 cursor 对的响应（`ck.self.events.query.scan`、列表分页等）使用统一的**绝对方向**约定；`/_cokret/self/account/subscribe` frame 只返回单个 account stream cursor,用于下一次 `after=` 重连：
+任何返回 cursor 对的响应（`ck.self.events.query.scan`、列表分页等）使用统一的**绝对方向**约定；`/_arkret/self/account/subscribe` frame 只返回单个 account stream cursor,用于下一次 `after=` 重连：
 
 | 响应字段 | 含义 | 回传给下一次请求 |
 | --- | --- | --- |
@@ -361,7 +361,7 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 
 绝对方向与请求时所用的参数（`before` / `after` / `order`）和 selector 无关；服务端 MUST 始终按上述含义填充。客户端因此**不**需要记录"上一次请求的 direction"才能正确解释响应 cursor。
 
-HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` 的 cursor 只可出现在 stream / pagination context（例如 `/_cokret/self/account/subscribe` 的 `after=`、`ck.self.events.query.scan` 的 `before` / `after`、响应 `prev_cursor` / `next_cursor`）；`purpose=barrier` 的 cursor 只可出现在 RYW barrier context（写接口响应中的 barrier `cursor` 字段、`X-Arkret-Wait-For` header，或 §7.2 列出的等价投影）。任一 context 收到不匹配的 `purpose` 时，服务端 MUST 返回 `invalid_param`。
+HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` 的 cursor 只可出现在 stream / pagination context（例如 `/_arkret/self/account/subscribe` 的 `after=`、`ck.self.events.query.scan` 的 `before` / `after`、响应 `prev_cursor` / `next_cursor`）；`purpose=barrier` 的 cursor 只可出现在 RYW barrier context（写接口响应中的 barrier `cursor` 字段、`X-Arkret-Wait-For` header，或 §7.2 列出的等价投影）。任一 context 收到不匹配的 `purpose` 时，服务端 MUST 返回 `invalid_param`。
 
 规则：
 
@@ -492,7 +492,7 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 
 ## 11. 版本与 feature discovery
 
-**path 不含版本段。** 所有 HTTP path 都是 `/_cokret/<信任段>/...` 形态的绝对路径，URL 只编码信任拓扑，版本是元数据，绝不放进 path（不存在 `/v1/`、`/api/v1`、`/arkret/v1`）。契约版本的唯一真相源是 `contract-catalog.json` 与 `protocol_version`（固定 `"1.0"`）；wire 级版本由 schema id（`ck.schema.*.v1`）和 event kind 版本后缀承载。
+**path 不含版本段。** 所有 HTTP path 都是 `/_arkret/<信任段>/...` 形态的绝对路径，URL 只编码信任拓扑，版本是元数据，绝不放进 path（不存在 `/v1/`、`/api/v1`、`/arkret/v1`）。契约版本的唯一真相源是 `contract-catalog.json` 与 `protocol_version`（固定 `"1.0"`）；wire 级版本由 schema id（`ck.schema.*.v1`）和 event kind 版本后缀承载。
 
 版本与能力发现走 **`*.describe` 协商**：调用方 MUST 用 `describe.supported_operations` / `supported_profiles`（而非 path 里写死的版本）判断对端支持什么。破坏性变更通过新增 event kind / schema id + `renames.json` 的 `hard_reject` + `forbidden-wire-fields` + profile gating + [`CHANGELOG.md`](../../CHANGELOG.md) 发布门槛承载，从不发生"整面切 v2"。如确需在传输层标注协议版本，用请求/响应 header（`Arkret-Protocol-Version: 1.0`）或 media-type 参数做 content negotiation，**绝不放 path**。
 

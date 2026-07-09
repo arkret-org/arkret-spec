@@ -72,12 +72,13 @@
     },
     "applies_to_actions": {
       "type": "array",
-      "description": "Optional restriction of a temporal constraint to specific capability actions (e.g. ['ck.message.revise.own', 'ck.message.redact.own']).",
+      "description": "Optional restriction of a temporal constraint to specific capability actions (e.g. ['ck.message.revise.own', 'ck.message.redact.own']). Action mismatch is neutral in the effect fold: satisfied for effect=allow and not matched for deny/quarantine/require_review.",
+      "minItems": 1,
+      "uniqueItems": true,
       "items": {
         "type": "string",
         "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
-      },
-      "uniqueItems": true
+      }
     },
     "not_before": {
       "$ref": "#/$defs/timestamp"
@@ -302,14 +303,14 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^ck:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "pattern": "^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       }
     },
     "allowed_strand_ids": {
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       },
       "uniqueItems": true
     },
@@ -317,7 +318,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       },
       "uniqueItems": true
     },
@@ -325,7 +326,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       },
       "uniqueItems": true
     },
@@ -333,7 +334,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       },
       "uniqueItems": true
     },
@@ -347,7 +348,7 @@
     },
     "allowed_session_ids": {
       "type": "array",
-      "description": "Limits agent interop-session status/result/cancel delegation to the listed ck:agent_interop_session ids.",
+      "description": "Limits agent interop-session status/result/cancel delegation to the listed ak:agent_interop_session ids.",
       "items": {
         "$ref": "./common-ids.schema.json#/$defs/agent_interop_session_id"
       },
@@ -391,14 +392,14 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^ck:(space|strand|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "pattern": "^ak:(space|strand|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       }
     },
     "allowed_to_container_refs": {
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^ck:(space|strand|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        "pattern": "^ak:(space|strand|morph):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
       }
     },
     "wip_limit_override": {
@@ -522,15 +523,18 @@
     },
     "max_operations": {
       "type": "integer",
-      "minimum": 0
+      "minimum": 0,
+      "description": "Maximum number of distinct accepted idempotency identities in one UTC epoch-aligned fixed period. Enforcement is a linearizable check-and-reserve at one logical quota authority shared by every node in the enforcing service; per-node duplicated budgets and overshoot are forbidden."
     },
     "period": {
       "type": "string",
-      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
+      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$",
+      "description": "ISO 8601 duration. For quota constraints, a stricter conditional schema permits only a non-zero fixed-length week/day/hour/minute/second duration; year/month durations are forbidden so every authority derives the same UTC epoch-aligned window id."
     },
     "burst": {
       "type": "integer",
-      "minimum": 0
+      "minimum": 0,
+      "description": "Optional token-bucket capacity at the same logical quota authority, capped by max_operations and refilled at max_operations/period. It never increases the fixed-window total budget."
     },
     "constraint_scope": {
       "type": "string",
@@ -540,7 +544,7 @@
         "per_realm",
         "global"
       ],
-      "description": "Closed v1 quota counting scope. Unknown values are schema violations and MUST fail closed. Quota counters are actor-bound; the enum selects the additional slicing dimension: actor only, actor+space, actor+realm, or actor across the enforcing service's global quota domain."
+      "description": "Closed v1 quota counting scope. Unknown values are schema violations and MUST fail closed. Quota counters are actor-bound; the enum selects the additional slicing dimension: actor only, actor+space, actor+realm, or actor across all nodes/regions of the enforcing service's global quota domain. global is not an implicit federation-wide counter. Every node in the service domain MUST share one logical linearizable quota authority."
     },
     "max_resources": {
       "type": "integer",
@@ -790,6 +794,44 @@
       }
     },
     {
+      "$comment": "quota subtype=rate is a complete hard-quota tuple; partial rate constraints are invalid.",
+      "if": {
+        "properties": {
+          "constraint_type": {
+            "const": "quota"
+          },
+          "subtype": {
+            "const": "rate"
+          }
+        },
+        "required": [
+          "constraint_type",
+          "subtype"
+        ]
+      },
+      "then": {
+        "required": [
+          "max_operations",
+          "period",
+          "constraint_scope"
+        ]
+      }
+    },
+    {
+      "$comment": "burst is a modifier of a complete rate quota and cannot stand alone.",
+      "if": {
+        "required": [
+          "burst"
+        ]
+      },
+      "then": {
+        "required": [
+          "max_operations",
+          "period"
+        ]
+      }
+    },
+    {
       "$comment": "Cumulative resource quotas need an explicit counting scope; single-operation fields such as blob_max_bytes do not.",
       "if": {
         "required": [
@@ -812,6 +854,124 @@
       "then": {
         "required": [
           "constraint_scope"
+        ]
+      }
+    },
+    {
+      "$comment": "Quota periods must have a fixed duration so all nodes derive the same UTC epoch-aligned window. Calendar years/months and zero/empty durations are not valid quota periods.",
+      "if": {
+        "properties": {
+          "constraint_type": {
+            "const": "quota"
+          }
+        },
+        "required": [
+          "constraint_type",
+          "period"
+        ]
+      },
+      "then": {
+        "properties": {
+          "period": {
+            "pattern": "^P(?=[0-9A-Z]*[1-9])(?:(?:[0-9]+W)|(?:[0-9]+D(?:T(?=[0-9])(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?)|(?:T(?=[0-9])(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?))$"
+          }
+        }
+      }
+    },
+    {
+      "$comment": "An edit window is only interoperable when its canonical action gate is explicit.",
+      "if": {
+        "required": [
+          "message_edit_window"
+        ]
+      },
+      "then": {
+        "required": [
+          "applies_to_actions"
+        ],
+        "properties": {
+          "applies_to_actions": {
+            "contains": {
+              "const": "ck.message.revise.own"
+            }
+          }
+        }
+      }
+    },
+    {
+      "$comment": "temporal subtype=edit_window requires the edit duration field.",
+      "if": {
+        "properties": {
+          "constraint_type": {
+            "const": "temporal"
+          },
+          "subtype": {
+            "const": "edit_window"
+          }
+        },
+        "required": [
+          "constraint_type",
+          "subtype"
+        ]
+      },
+      "then": {
+        "required": [
+          "message_edit_window"
+        ]
+      }
+    },
+    {
+      "$comment": "A redact window is only interoperable when its canonical action gate is explicit.",
+      "if": {
+        "required": [
+          "message_redact_window"
+        ]
+      },
+      "then": {
+        "required": [
+          "applies_to_actions"
+        ],
+        "properties": {
+          "applies_to_actions": {
+            "contains": {
+              "const": "ck.message.redact.own"
+            }
+          }
+        }
+      }
+    },
+    {
+      "$comment": "temporal subtype=redact_window requires the redact duration field.",
+      "if": {
+        "properties": {
+          "constraint_type": {
+            "const": "temporal"
+          },
+          "subtype": {
+            "const": "redact_window"
+          }
+        },
+        "required": [
+          "constraint_type",
+          "subtype"
+        ]
+      },
+      "then": {
+        "required": [
+          "message_redact_window"
+        ]
+      }
+    },
+    {
+      "$comment": "allow_redact_after_window modifies message_edit_window and is invalid without it.",
+      "if": {
+        "required": [
+          "allow_redact_after_window"
+        ]
+      },
+      "then": {
+        "required": [
+          "message_edit_window"
         ]
       }
     }

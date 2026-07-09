@@ -63,7 +63,7 @@ Consent 表达"我允许某个 peer 发起某类联系动作"，但加入 Realm�
 Consent state 写入 holder 控制的 Realm（默认是 holder 的 principal control Realm）内一个 or_set lattice cell：
 
 ```text
-cell_id  = ck:cell:ck.component.consent.grant.v1:<consent_id>
+cell_id  = ak:cell:ck.component.consent.grant.v1:<consent_id>
 lattice  = or_set
 bottom   = (registry-declared, inert for or_set)  // or_set join never produces ⊥
 ```
@@ -78,13 +78,13 @@ bottom   = (registry-declared, inert for or_set)  // or_set join never produces 
 
 ```text
 ControlMove(ck.consent.grant) {
-  event_id     = ck:event:019640ed-7000-7000-8000-000000000001   // producer-assigned typed UUIDv7
+  event_id     = ak:event:019640ed-7000-7000-8000-000000000001   // producer-assigned typed UUIDv7
   event_digest = sha256:<H(canonical bytes excluding proofs and unsigned)>   // content-addressed fingerprint
   issuer       = holder DID（或 holder DID Document 显式授权的 controller / agent）
   realm_id     = holder principal control Realm
   preconditions = []          // grant 不依赖 cell 既有状态
   effects   = [
-    (ck:cell:ck.component.consent.grant.v1:<consent_id>,
+    (ak:cell:ck.component.consent.grant.v1:<consent_id>,
      {type: "add",
       dot:  "ak:event:019640ed-7000-7000-8000-000000000001:0",   // = "<enclosing event_id>:<effect_index>"
       value: {
@@ -138,19 +138,19 @@ Issuer MUST 是 holder 自己（或 holder DID Document 显式授权的 controll
 
 ```text
 ControlMove(ck.consent.revoke) {
-  event_id     = ck:event:0196414c-3000-7000-8000-000000000003   // producer-assigned typed UUIDv7
+  event_id     = ak:event:0196414c-3000-7000-8000-000000000003   // producer-assigned typed UUIDv7
   event_digest = sha256:<H(canonical bytes excluding proofs and unsigned)>   // content-addressed fingerprint
   issuer       = holder DID
   realm_id  = holder principal control Realm
   preconditions = [
-    (ck:cell:ck.component.consent.grant.v1:<consent_id>,
+    (ak:cell:ck.component.consent.grant.v1:<consent_id>,
      {op: "contains_dots",
       dots: [
         "ak:event:019640ed-7000-7000-8000-000000000001:0"   // seal_basis view 下该 intent 全部 active dots
       ]})
   ]
   effects   = [
-    (ck:cell:ck.component.consent.grant.v1:<consent_id>,
+    (ak:cell:ck.component.consent.grant.v1:<consent_id>,
      {type: "remove",
       observed_dots: [
         "ak:event:019640ed-7000-7000-8000-000000000001:0"

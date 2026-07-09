@@ -19,7 +19,7 @@
   "properties": {
     "event_id": {
       "type": "string",
-      "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "kind": {
       "type": "string",
@@ -52,7 +52,7 @@
           "$ref": "#/$defs/did_delegation_ref"
         }
       ],
-      "description": "Optional. Required when executed_by is present. Prefer a materialized ck:grant:* id; an event id is allowed only when it points to the accepted grant/delegation event that produced the effective authorization; a DID-document delegation URL (did_delegation_ref) is allowed when the delegation is expressed in the principal DID document (e.g. a CokretDeviceEnrollmentAuthority service designating the enrollment authority). Reducer MUST validate the referenced grant/delegation covers the event kind and target resource and is within its effective validity window; for did_delegation_ref the designation is resolved against the principal DID document at the event's accepted-at."
+      "description": "Optional. Required when executed_by is present. Prefer a materialized ak:grant:* id; an event id is allowed only when it points to the accepted grant/delegation event that produced the effective authorization; a DID-document delegation URL (did_delegation_ref) is allowed when the delegation is expressed in the principal DID document (e.g. a ArkretDeviceEnrollmentAuthority service designating the enrollment authority). Reducer MUST validate the referenced grant/delegation covers the event kind and target resource and is within its effective validity window; for did_delegation_ref the designation is resolved against the principal DID document at the event's accepted-at."
     },
     "applet_id": {
       "$ref": "#/$defs/applet_id",
@@ -587,7 +587,7 @@
               "ck.self.agent.pause",
               "ck.self.agent.resume",
               "ck.self.moderation.report",
-              "ck.session.grant",
+              "ak.session.grant",
               "ck.sovereign.did_policy",
               "ck.space.archive",
               "ck.space.create",
@@ -2419,7 +2419,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ck.session.grant"
+            "const": "ak.session.grant"
           }
         },
         "required": [
@@ -3322,7 +3322,7 @@
   "$defs": {
     "applet_id": {
       "type": "string",
-      "pattern": "^ck:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "did": {
       "type": "string",
@@ -3483,19 +3483,19 @@
     },
     "space_id": {
       "type": "string",
-      "pattern": "^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "board_space_id": {
       "type": "string",
-      "pattern": "^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "list_space_id": {
       "type": "string",
-      "pattern": "^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "strand_id": {
       "type": "string",
-      "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "track_name": {
       "type": "string",
@@ -3503,28 +3503,28 @@
     },
     "relation_id": {
       "type": "string",
-      "pattern": "^ck:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "event_ref": {
       "type": "string",
-      "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "grant_ref": {
       "type": "string",
-      "pattern": "^ck:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "did_delegation_ref": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-      "description": "DID URL of a delegation entry in the principal DID document that designates the executed_by principal as authorized for the action (e.g. a CokretDeviceEnrollmentAuthority service entry id, or a capabilityDelegation verification method id). Used as authorization_ref when the delegation lives in the DID document rather than in an on-stream grant/event. Resolved against the principal DID document at the event's accepted-at (point-in-time), so enrollment-authority key rotation does not invalidate prior authorizations."
+      "description": "DID URL of a delegation entry in the principal DID document that designates the executed_by principal as authorized for the action (e.g. a ArkretDeviceEnrollmentAuthority service entry id, or a capabilityDelegation verification method id). Used as authorization_ref when the delegation lives in the DID document rather than in an on-stream grant/event. Resolved against the principal DID document at the event's accepted-at (point-in-time), so enrollment-authority key rotation does not invalidate prior authorizations."
     },
     "seal_ref": {
       "type": "string",
-      "pattern": "^ck:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
+      "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
     },
     "cell_ref": {
       "type": "string",
-      "pattern": "^ck:cell:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*$"
+      "pattern": "^ak:cell:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*$"
     },
     "precondition": {
       "type": "object",
@@ -3705,7 +3705,7 @@
         "verification_method": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-          "description": "DID URL of the Event-signing key. For principal device proofs the fragment MUST be the full device_id (`ck:device:<uuidv7>`), so receivers can resolve `(actor_id, device_id)` through the device directory. Verifier MUST strip fragment/query only for controller comparison and MUST compare that controller DID bit-identically to actor_id or executed_by according to the accountability rules."
+          "description": "DID URL of the Event-signing key. For principal device proofs the fragment MUST be the full device_id (`ak:device:<uuidv7>`), so receivers can resolve `(actor_id, device_id)` through the device directory. Verifier MUST strip fragment/query only for controller comparison and MUST compare that controller DID bit-identically to actor_id or executed_by according to the accountability rules."
         },
         "alg": {
           "type": "string",

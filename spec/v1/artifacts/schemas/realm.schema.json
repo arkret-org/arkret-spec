@@ -156,11 +156,11 @@
     },
     "policy_id": {
       "type": "string",
-      "pattern": "^ck:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "preview_policy_id": {
       "type": "string",
-      "pattern": "^ck:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Optional materialized pointer to the effective preview / peek policy. Canonical writes use ck.realm.preview_policy; absence means directory card / stripped state only, no history stub/snippet preview."
     },
     "default_strand_id": {
@@ -168,7 +168,7 @@
         "string",
         "null"
       ],
-      "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Optional / nullable. AUTHORITATIVE single pointer to the Realm's default discussion Strand (last value projected from ck.realm.set_default_strand; cell ck.component.realm.set_default_strand.v1, cas_register, bottom=reject). A single pointer avoids multi-default dirty state. null / absent means the Realm has no designated default Strand. The reducer rejects a set_default_strand whose strand_id does not resolve to a projected non-tombstoned Strand in this Realm (failed_precondition), so this pointer never dangles. The Strand projection's derived is_default flag is computed as strand_id == this value; clients discover the default Strand deterministically from this field (or the Strand is_default marker) and MUST NOT rely on any Strand-reuses-Realm-UUID implementation detail. See zh/models/strand-and-message.md (default-Strand discovery)."
     },
     "default_discoverability": {
@@ -275,7 +275,7 @@
         },
         "recovery_recipients": {
           "type": "array",
-          "description": "Recovery recipients (RRK holders). MUST be non-empty when mode != none. Each verification_method MUST point to a verification method designated by an active CokretRealmHistoryRecoveryKey service entry published by principal_id, domain-separated from the principal's did_recovery key.",
+          "description": "Recovery recipients (RRK holders). MUST be non-empty when mode != none. Each verification_method MUST point to a verification method designated by an active ArkretRealmHistoryRecoveryKey service entry published by principal_id, domain-separated from the principal's did_recovery key.",
           "items": {
             "$ref": "#/$defs/recovery_recipient"
           },
@@ -534,11 +534,11 @@
     },
     "retention_policy_id": {
       "type": "string",
-      "pattern": "^ck:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "avatar_blob_ref": {
       "type": "string",
-      "pattern": "^ck:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
+      "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
     },
     "created_by": {
       "$ref": "#/$defs/did"
@@ -771,7 +771,7 @@
     },
     "trust_domain": {
       "type": "string",
-      "pattern": "^ck:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
+      "pattern": "^ak:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
     },
     "timestamp": {
       "type": "string",
@@ -796,7 +796,7 @@
         },
         "verification_method": {
           "type": "string",
-          "description": "Reference to a verification method in principal_id's DID Document designated by an active CokretRealmHistoryRecoveryKey service entry (identity/identity-did.md §8.3). The RRK HPKE public key; history-recovery domain, separate from did_recovery."
+          "description": "Reference to a verification method in principal_id's DID Document designated by an active ArkretRealmHistoryRecoveryKey service entry (identity/identity-did.md §8.3). The RRK HPKE public key; history-recovery domain, separate from did_recovery."
         },
         "controller_organization": {
           "$ref": "#/$defs/did",
@@ -858,7 +858,7 @@
         },
         "policy_id": {
           "type": "string",
-          "pattern": "^ck:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"

@@ -209,20 +209,20 @@ strand_part            ::= strand_id | "*"
 
 ### 3.2 词法规则（reference）
 
-- `realm_id`：`ck:realm:` 后接 UUIDv7。
-- `space_id`：`ck:space:` 后接 UUIDv7。
-- `circle_id`：`ck:circle:` 后接 UUIDv7。
-- `strand_id`：`ck:strand:` 后接 UUIDv7。
-- `message_id`：`ck:message:` 后接 UUIDv7。
-- `morph_id`：`ck:morph:` 后接 UUIDv7。
-- `relation_id`：`ck:relation:` 后接 UUIDv7。
-- `view_id`：`ck:view:` 后接 UUIDv7。
-- `event_id`：`ck:event:` 后接 UUIDv7。
-- `policy_id`：`ck:policy:` 后接 UUIDv7。
-- `invite_id`：`ck:invite:` 后接 UUIDv7。
+- `realm_id`：`ak:realm:` 后接 UUIDv7。
+- `space_id`：`ak:space:` 后接 UUIDv7。
+- `circle_id`：`ak:circle:` 后接 UUIDv7。
+- `strand_id`：`ak:strand:` 后接 UUIDv7。
+- `message_id`：`ak:message:` 后接 UUIDv7。
+- `morph_id`：`ak:morph:` 后接 UUIDv7。
+- `relation_id`：`ak:relation:` 后接 UUIDv7。
+- `view_id`：`ak:view:` 后接 UUIDv7。
+- `event_id`：`ak:event:` 后接 UUIDv7。
+- `policy_id`：`ak:policy:` 后接 UUIDv7。
+- `invite_id`：`ak:invite:` 后接 UUIDv7。
 - `schema_ref`：schema registry id，例如 `ck.schema.strand.v1` 或反向域名 schema id。历史 shorthand token 名 `schema_id` MAY 被 parser 接受，但 canonical JSON 字段名 MUST 是 `schema_ref`。
 - `did`：DID URI。
-- `blob_ref`：Blob typed ID，wire form 为 `ck:blob:` 前缀后接 UUIDv7（blob metadata ID），或 `ck:blob:<suite>:<hex>` content-addressed ref（suite ∈ digest-suite registry active rows，v1 即 `sha256` / `blake3`）。
+- `blob_ref`：Blob typed ID，wire form 为 `ak:blob:` 前缀后接 UUIDv7（blob metadata ID），或 `ak:blob:<suite>:<hex>` content-addressed ref（suite ∈ digest-suite registry active rows，v1 即 `sha256` / `blake3`）。
 - `morph_type`：Realm schema 中注册的开放对象类型。
 - `relation_kind`：关系类型，例如 `contains`、`assigned_to`、`promoted_from_discussion`、`summarized_from`。
 - `object_type`：标准对象类型或 `morph`。
@@ -255,7 +255,7 @@ strand_part            ::= strand_id | "*"
 
 ### 4.1 Realm 选择器
 
-`realm:ck:realm:0196419b-0000-7000-8000-000000000000`
+`realm:ak:realm:0196419b-0000-7000-8000-000000000000`
 
 - 匹配：特定 Realm。
 - 适用：该 Realm 中的对象、Event、View、policy、invite、read cursor、notification 和 Blob 引用。
@@ -268,32 +268,32 @@ strand_part            ::= strand_id | "*"
 
 ### 4.2 Space 选择器
 
-`space:ck:realm:0196419b-0000-7000-8000-000000000000:ck:space:019640b6-8000-7000-8000-000000000000`
+`space:ak:realm:0196419b-0000-7000-8000-000000000000:ak:space:019640b6-8000-7000-8000-000000000000`
 
 - 匹配：特定结构 Space。
 - 适用：Space metadata、Space lifecycle、Space parent、board/list 类 workflow container 操作。
 - 不含义：不自动授予该 Space `default_realm_id` 指向 Realm 的 membership、history 或 E2EE key；也不自动授予 Space 下资源的读取权，除非资源 selector / action / constraint 同时命中。
 
-`space:ck:realm:0196419b-0000-7000-8000-000000000000:*`
+`space:ak:realm:0196419b-0000-7000-8000-000000000000:*`
 
 - 匹配：指定 Realm 内所有可评估 Space。
 - 要求：MUST 携带 `realm_id`；SHOULD 配合 `allowed_space_kinds`、短有效期和审计理由。
 
 ### 4.3 Strand 选择器
 
-`strand:ck:realm:...:*`
+`strand:ak:realm:...:*`
 
 - 匹配：该 Realm 中所有 Strand。
 - 若只允许某个 track 范围，必须使用 `allowed_tracks`。
 
-`strand:ck:realm:...:ck:strand:019640c5-0400-7000-8000-000000000000`
+`strand:ak:realm:...:ak:strand:019640c5-0400-7000-8000-000000000000`
 
 - 匹配：特定 Strand。
 - 不匹配：Message、Morph、Relation、View 或 Board/List 容器。
 
 ### 4.4 Message 选择器
 
-`message:ck:realm:...:ck:strand:...:*`
+`message:ak:realm:...:ak:strand:...:*`
 
 - 匹配：某个 Strand `discussion` track 内的所有 Message。
 - 不授予 Strand synthesis 字段写入权限。
@@ -301,12 +301,12 @@ strand_part            ::= strand_id | "*"
 
 ### 4.5 Morph 选择器
 
-`morph:ck:realm:...:customer_case`
+`morph:ak:realm:...:customer_case`
 
 - 匹配：该 Realm 中所有 `morph_type=customer_case` 的 Morph。
 - 不匹配：标准 Strand、Message 或 Relation。
 
-`morph:ck:realm:...:ck:morph:01964140-0000-7000-8000-000000000000`
+`morph:ak:realm:...:ak:morph:01964140-0000-7000-8000-000000000000`
 
 - 匹配：特定 Morph。
 
@@ -314,23 +314,23 @@ strand_part            ::= strand_id | "*"
 
 `object` 是跨对象类型的通用选择器，只应在授权面确实需要同时覆盖多类对象时使用。实现 SHOULD 优先使用更具体的 `realm`、`strand`、`message`、`morph`、`relation` 或 `view` selector。
 
-`object:ck:realm:...:strand`
+`object:ak:realm:...:strand`
 
 - 匹配：该 Realm 中所有 `type=strand` 的对象。
 - 若只允许某个 track 范围，必须额外使用 `allowed_tracks`。
 
-`object:ck:realm:...:ck:strand:019640c5-0400-7000-8000-000000000000`
+`object:ak:realm:...:ak:strand:019640c5-0400-7000-8000-000000000000`
 
 - 匹配：给定对象引用。
 
 ### 4.7 Relation 与 View 选择器
 
-`relation:ck:realm:...:contains`
+`relation:ak:realm:...:contains`
 
 - 匹配：该 Realm 中所有 `contains` 关系。
 - 不授予被 relation 指向对象的读取权；跨 Realm 展开必须重新执行目标 Realm 授权。
 
-`view:ck:realm:...:ck:view:019641be-0000-7000-8000-000000000000`
+`view:ak:realm:...:ak:view:019641be-0000-7000-8000-000000000000`
 
 - 匹配：特定 View 定义。
 - 查询结果仍按底层对象授权裁剪。
@@ -348,14 +348,14 @@ strand_part            ::= strand_id | "*"
 
 ### 5.1 合取 (+)
 
-`realm:ck:realm:...+strand:ck:realm:...:*`
+`realm:ak:realm:...+strand:ak:realm:...:*`
 
 - 表示两个 selector 同时命中时才授权。
 - 常用于把宽泛 selector 与额外资源范围或环境约束组合。
 
 ### 5.2 析取 (,)
 
-`realm:ck:realm:01964195-0000-7000-8000-000000000000,realm:ck:realm:01964195-8000-7000-8000-000000000000`
+`realm:ak:realm:01964195-0000-7000-8000-000000000000,realm:ak:realm:01964195-8000-7000-8000-000000000000`
 
 - 表示任一 selector 命中即可。
 

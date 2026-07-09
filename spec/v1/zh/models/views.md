@@ -152,7 +152,7 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
 | `mode` | yes | `enum(none, field, relation_container, time_bucket, matrix)` |  | 分组模型。 |
 | `field` | conditional | `string` | `mode="field"` 时必填。 | 字段分组路径。 |
 | `lanes` | conditional | `array<object>` | `mode="field"` 时必填。 | 字段值列/泳道定义。 |
-| `board_space_id` | conditional | `id:space` | `mode="relation_container"` 时必填，指向一个 `ck:space: kind=board`。 | Board Space。 |
+| `board_space_id` | conditional | `id:space` | `mode="relation_container"` 时必填，指向一个 `ak:space: kind=board`。 | Board Space。 |
 | `container_relation_kind` | no | `string` | 默认 `contains`。 | root 到 collection/container 的关系。 |
 | `item_relation_kind` | conditional | `string` | `mode="relation_container"` 时必填；不得隐式推断。 | container 到 item 的关系。 |
 | `start_field` | conditional | `string` | `mode="time_bucket"` 时必填。 | 时间窗口起点字段。 |
@@ -372,9 +372,9 @@ Board projection MUST NOT 默认显示 Realm 中的全部 Strand。实现 MUST �
 }
 ```
 
-可选受托 projection 服务若声明 `ck.self.views.collection_projection.command.materialize`，MUST 以 `POST /_cokret/self/views/{view_id}/projection` 暴露上面的 `CollectionProjectionView` 形态，request body 只承载分页参数（`schemas/view.schema.json#/$defs/view_projection_request_body`）。该 operation 只物化 `View{kind="collection"}`，其它 View projection 仍可由客户端本地或未来 profile 定义的受托面计算。
+可选受托 projection 服务若声明 `ck.self.views.collection_projection.command.materialize`，MUST 以 `POST /_arkret/self/views/{view_id}/projection` 暴露上面的 `CollectionProjectionView` 形态，request body 只承载分页参数（`schemas/view.schema.json#/$defs/view_projection_request_body`）。该 operation 只物化 `View{kind="collection"}`，其它 View projection 仍可由客户端本地或未来 profile 定义的受托面计算。
 
-单个 document Morph 的受托读取面是 `GET /_cokret/self/realms/{realm_id}/morphs/{morph_id}`（operation `ck.self.morph.resource.get`）。响应 schema 为 `schemas/view.schema.json#/$defs/document_morph_projection_outcome`，用于返回授权可见的 `document`、`versions`、`relations`、`comments` 与 `cursor_presence` 派生数据；它不是 document 的 canonical state，客户端仍以 Morph/Relation/Message/Event 历史和返回的 projection frontier 做校验。
+单个 document Morph 的受托读取面是 `GET /_arkret/self/realms/{realm_id}/morphs/{morph_id}`（operation `ck.self.morph.resource.get`）。响应 schema 为 `schemas/view.schema.json#/$defs/document_morph_projection_outcome`，用于返回授权可见的 `document`、`versions`、`relations`、`comments` 与 `cursor_presence` 派生数据；它不是 document 的 canonical state，客户端仍以 Morph/Relation/Message/Event 历史和返回的 projection frontier 做校验。
 
 ## 7. Timeline / Chat Projection
 

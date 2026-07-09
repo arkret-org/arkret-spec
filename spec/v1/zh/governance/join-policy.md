@@ -57,7 +57,7 @@ updated: 2026-07-02
 ## 3. Cell Family 与 State Event
 
 ```text
-cell_id     := ck:cell:realm.join_policy.v1:<realm_id>
+cell_id     := ak:cell:realm.join_policy.v1:<realm_id>
 lattice     := cas_register
 bottom      := reject
 value shape := JoinPolicy（见下）
@@ -364,7 +364,7 @@ application 进入 `accepted` 状态后：
 
 Realm 主 MLS group 不包含尚未 join 的 applicant，因此申请正文不能直接走 Realm MLS group。MUST 使用以下机制之一：
 
-1. **Reviewer Sub-Group MLS**：Realm 维护一个独立 MLS group `ck:mls:reviewer_subgroup:<realm_id>:reviewers`，成员是当前所有 `review_capability` 持有方。applicant 通过 reviewer set 中任一成员公布的 KeyPackage 出 group commit + welcome，将 application 正文作为该 sub-group 的 application message 投递。reducer 通过 `ck.mls.commit.governance_binding` 验证 sub-group roster 与 capability 一致。
+1. **Reviewer Sub-Group MLS**：Realm 维护一个独立 MLS group `ak:mls:reviewer_subgroup:<realm_id>:reviewers`，成员是当前所有 `review_capability` 持有方。applicant 通过 reviewer set 中任一成员公布的 KeyPackage 出 group commit + welcome，将 application 正文作为该 sub-group 的 application message 投递。reducer 通过 `ck.mls.commit.governance_binding` 验证 sub-group roster 与 capability 一致。
 
    **新加入 reviewer 的加入前 epoch 解密约束（normative，与 applicant 单向约束对称）**：新加入 reviewer sub-group 的 reviewer 与上方 applicant 单向约束对称——新 reviewer MUST NOT 获得加入其 commit 之前 epoch 的 application 解密能力。MLS forward secrecy 保证每次 reviewer roster 变更推进 epoch 后，新成员仅能解密自其加入 epoch 起的 sub-group 消息，不能解密加入前已投递的历史 application 正文。实现 SHOULD 让每条 application 投递（applicant add+remove）与每次 reviewer roster 变更各推进一次 epoch，使"哪些 reviewer 能看到哪条 application"按 epoch 边界确定。需要让新 reviewer 复核加入前的 pending application 时，MUST 由已持有该 application 明文的现任 reviewer 经显式、受审计的 re-share（如 §8.2(2) Envelope Encryption 重新封装给新 reviewer device）完成，不得依赖 sub-group 历史 key 自动回授；这是对称残留的显式声明，而非隐式放宽。
 
@@ -383,7 +383,7 @@ Realm 主 MLS group 不包含尚未 join 的 applicant，因此申请正文不�
 {
   "encryption_envelope": {
     "scheme": "ck.hpke_x25519_aead_chacha20poly1305.v1",
-    "info": "ck.realm.member_application.envelope.v1 || 0x00 || ck:realm:0196419b-0000-7000-8000-000000000000 || 0x00 || sha256:...",
+    "info": "ck.realm.member_application.envelope.v1 || 0x00 || ak:realm:0196419b-0000-7000-8000-000000000000 || 0x00 || sha256:...",
     "ciphertext": "base64url:...",
     "recipients": [
       {"reviewer_did": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice", "device_id": "ak:device:...", "recipient_hpke_kid": "did:webvh:...#ck_device_01HV_hpke", "enc": "base64url:...", "wrapped_key": "base64url:..."},
@@ -443,7 +443,7 @@ reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applica
 
 ## 11. Policy Server 运行时挑战
 
-Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声明 `applies_to` 包含 `join` 时，对每条 `ck.member.state{join}` Control Move 以及 `member.application` signed receipt / private record 调用 `ck.self.policy.query.check` operation（默认 HTTP binding 为 `POST /_cokret/self/policy/check`）。除既有 `decision` 外，Join 场景新增 obligation 子规范：
+Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声明 `applies_to` 包含 `join` 时，对每条 `ck.member.state{join}` Control Move 以及 `member.application` signed receipt / private record 调用 `ck.self.policy.query.check` operation（默认 HTTP binding 为 `POST /_arkret/self/policy/check`）。除既有 `decision` 外，Join 场景新增 obligation 子规范：
 
 ```json
 {

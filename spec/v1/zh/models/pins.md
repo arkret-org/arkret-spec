@@ -28,7 +28,7 @@ Pin payload 使用 `pin_scope`，MUST NOT 使用裸 `scope` 或旧的 scope-refe
 
 `pin_scope` 是 projection home，不是安全边界。`kind=space` 时，reducer MUST 解析 Space metadata 的 effective scope；Space 不因此获得独立 membership、policy、history visibility 或 MLS boundary。
 
-Cell special form 使用 `ck:cell:ck.component.pin.v1:<pin_scope.id>`。v1 不注册 pin 专用 typed id。
+Cell special form 使用 `ak:cell:ck.component.pin.v1:<pin_scope.id>`。v1 不注册 pin 专用 typed id。
 
 ## 3. Scope Safety
 

@@ -12,7 +12,7 @@ authors:
 
 ## 1. Summary
 
-引入 `ck:field_def:` 一等对象,把 Realm 内的扩展字段从 `fields: object` 黑盒升级为**有类型 / 有校验 / 有显示元数据 / 可在多个 Strand type 之间复用**的目录。CKP-0002 Strand Type、CKP-0004 Form Layout、CKP-0005 Workflow 都建立在此基础上。
+引入 `ak:field_def:` 一等对象,把 Realm 内的扩展字段从 `fields: object` 黑盒升级为**有类型 / 有校验 / 有显示元数据 / 可在多个 Strand type 之间复用**的目录。CKP-0002 Strand Type、CKP-0004 Form Layout、CKP-0005 Workflow 都建立在此基础上。
 
 ## 2. Motivation
 
@@ -27,13 +27,13 @@ Jira 右侧 "Fields" 边栏列出几十个可重复使用的字段(Approvals / G
 
 ## 3. Specification
 
-### 3.1 `ck:field_def:` 对象
+### 3.1 `ak:field_def:` 对象
 
 Schema id: `ck.schema.field_def.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:field_def` | `ck:field_def:<uuid>` | Field def ID。 |
+| `id` | yes | `id:field_def` | `ak:field_def:<uuid>` | Field def ID。 |
 | `realm_id` | yes | `id:realm` | — | 归属 Realm。 |
 | `key` | yes | `string` | `^[a-z][a-z0-9_]{0,63}$`;`(realm_id, key)` 唯一;**create-locked**(字段 key 即对象 `fields.<key>` 路径,silent rename 会破坏 selector / forbidden-wire 守卫)。 | 物理字段 key。 |
 | `name` | yes | `string` | 1..64 chars。 | 显示名(可 i18n,通过 profile)。 |
@@ -74,7 +74,7 @@ Schema id: `ck.schema.field_def.v1`
 | `date` / `datetime` | `min`, `max` |
 | `duration` | `unit`(seconds / minutes / hours),`min`, `max` |
 | `actor_ref` | `actor_kind_allow: array<enum>`(user / agent / service / ...) |
-| `object_ref` | `object_kind_allow: array<string>`(`ck:strand:` / `ck:morph:` / ...) |
+| `object_ref` | `object_kind_allow: array<string>`(`ak:strand:` / `ak:morph:` / ...) |
 | `blob_ref` | `mime_allow: array<string>`, `max_size_bytes` |
 | `select` | `default_option_key` |
 | `multi_select` | `min_selections`, `max_selections` |
@@ -122,7 +122,7 @@ Schema id: `ck.schema.field_def.v1`
 - 新增 event_kinds(8 条)+ capability actions(2 条)。
 - 新增 profile:`ck.profile.field_catalog.v1`。
 - **不**改现有 Strand / Morph / Realm 顶层 schema(本提案是 fields 内部收紧,不引入顶层字段)。
-- `common-fields.md` §3 的 `fields` 行追加 note:"启用 `ck.profile.field_catalog.v1` 时本字段每个 key MUST 引用一个 `ck:field_def:`"。
+- `common-fields.md` §3 的 `fields` 行追加 note:"启用 `ck.profile.field_catalog.v1` 时本字段每个 key MUST 引用一个 `ak:field_def:`"。
 
 ## 5. Rationale & alternatives
 

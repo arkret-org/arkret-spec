@@ -11,7 +11,7 @@
     },
     "device_id": {
       "type": "string",
-      "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "timestamp": {
       "type": "string",
@@ -32,7 +32,7 @@
     },
     "rtc_participant_identity": {
       "type": "string",
-      "pattern": "^ck:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "string_list": {
       "type": "array",
@@ -309,11 +309,11 @@
     },
     "event_ref": {
       "type": "string",
-      "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "strand_id": {
       "type": "string",
-      "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "mls_epoch_range": {
       "type": "object",
@@ -375,25 +375,25 @@
     },
     "space_id": {
       "type": "string",
-      "pattern": "^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "board_space_id": {
       "type": "string",
-      "pattern": "^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "A Space with kind=board. Pattern matches any ck:space:; kind invariant enforced by reducer/profile."
+      "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "A Space with kind=board. Pattern matches any ak:space:; kind invariant enforced by reducer/profile."
     },
     "list_space_id": {
       "type": "string",
-      "pattern": "^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "A Space with kind=list."
     },
     "actor_profile_id": {
       "type": "string",
-      "pattern": "^ck:actor_profile:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:actor_profile:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "message_id": {
       "type": "string",
-      "pattern": "^ck:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "track_name": {
       "type": "string",
@@ -717,23 +717,23 @@
     },
     "relation_id": {
       "type": "string",
-      "pattern": "^ck:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "morph_id": {
       "type": "string",
-      "pattern": "^ck:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "grant_id": {
       "type": "string",
-      "pattern": "^ck:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "invite_id": {
       "type": "string",
-      "pattern": "^ck:invite:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:invite:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "agent_interop_session_id": {
       "type": "string",
-      "pattern": "^ck:agent_interop_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:agent_interop_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "verification_method": {
       "type": "string",
@@ -747,7 +747,7 @@
     },
     "object_ref": {
       "type": "string",
-      "pattern": "^(ck:(realm|circle|space|actor_profile|strand|message|morph|relation|view|policy|grant|invite|call|agent_interop_session|audit_binding|audit_session|audit_release|blob|snapshot|event|franking_proof|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ck:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
+      "pattern": "^(ak:(realm|circle|space|actor_profile|strand|message|morph|relation|view|policy|grant|invite|call|agent_interop_session|audit_binding|audit_session|audit_release|blob|snapshot|event|franking_proof|report):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
     },
     "keypackage_ref": {
       "type": "string",
@@ -756,15 +756,15 @@
     },
     "audit_binding_id": {
       "type": "string",
-      "pattern": "^ck:audit_binding:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:audit_binding:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "audit_session_id": {
       "type": "string",
-      "pattern": "^ck:audit_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:audit_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "audit_release_id": {
       "type": "string",
-      "pattern": "^ck:audit_release:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:audit_release:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "device_or_principal_ref": {
       "oneOf": [
@@ -834,7 +834,7 @@
     },
     "device_enrollment_authority_binding": {
       "type": "object",
-      "description": "Delegated-authority binding for a ck.device.authorize event admitted as service_attested: the device_public_key, hpke_key and algorithms are attested for this principal by an enrollment authority designated in the principal's DID document (CokretDeviceEnrollmentAuthority service, or a capabilityDelegation verification method). Used by the managed-DID (account-authority) onboarding path where no client-held self-signing key (SSK) or DID inception key signs the device binding. The cryptographic signer is the envelope proof (verification_method MUST map to executed_by); this object records the trust root for device-trust-chain consumers. Receivers MUST verify authority_did is the enrollment authority designated by the principal DID document resolved at this event's accepted-at, and that authorization_ref delegation covers device authorization. See zh/crypto-media/device-lifecycle.md §5.4 and zh/identity/key-management.md §5.0.6.",
+      "description": "Delegated-authority binding for a ck.device.authorize event admitted as service_attested: the device_public_key, hpke_key and algorithms are attested for this principal by an enrollment authority designated in the principal's DID document (ArkretDeviceEnrollmentAuthority service, or a capabilityDelegation verification method). Used by the managed-DID (account-authority) onboarding path where no client-held self-signing key (SSK) or DID inception key signs the device binding. The cryptographic signer is the envelope proof (verification_method MUST map to executed_by); this object records the trust root for device-trust-chain consumers. Receivers MUST verify authority_did is the enrollment authority designated by the principal DID document resolved at this event's accepted-at, and that authorization_ref delegation covers device authorization. See zh/crypto-media/device-lifecycle.md §5.4 and zh/identity/key-management.md §5.0.6.",
       "required": [
         "kind",
         "authority_did",
@@ -1092,7 +1092,7 @@
         },
         "seal_ref": {
           "type": "string",
-          "pattern": "^ck:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$",
+          "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$",
           "description": "The Seal that was obliged to include / signed-reject / defer the receipted Control Move."
         },
         "non_membership_proof": {
@@ -1126,7 +1126,7 @@
     },
     "realm_create_payload": {
       "type": "object",
-      "description": "Create payload uses the full Realm object schema for wire validation. Semantic validation MUST require payload.object.created_by to match the top-level actor_id and payload.object.created_at to match the top-level created_at before acceptance.",
+      "description": "Create payload uses the full Realm object schema for wire validation. Semantic validation MUST require payload.object.created_by to match the top-level actor_id and payload.object.created_at to match the top-level created_at before acceptance. Batch-level validation MUST also require this create to be immediately followed by the closed-form creator self-grant defined by zh/models/realm-and-space.md section 2.5; create plus founding grant is one atomic bootstrap unit, and a missing or widened founding grant rejects the whole unit.",
       "required": [
         "object"
       ],
@@ -1558,7 +1558,7 @@
       "properties": {
         "morph_id": {
           "type": "string",
-          "pattern": "^ck:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "stage": {
           "type": "string",
@@ -1636,7 +1636,7 @@
       "properties": {
         "morph_id": {
           "type": "string",
-          "pattern": "^ck:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "from_schema_refs": {
           "type": "array",
@@ -2216,6 +2216,7 @@
             },
             "allowed_receiver_states": {
               "type": "array",
+              "description": "Closed baseline key-share receiver-state allow-list. This is intentionally narrower than restricted_rules[].receiver_classes: preview_token_holder is a read/preview class, not a key-share state, and MUST never be inferred here or receive history key material solely from a preview token.",
               "uniqueItems": true,
               "items": {
                 "type": "string",
@@ -2297,6 +2298,7 @@
         },
         "receiver_classes": {
           "type": "array",
+          "description": "Read-eligibility classes for this restricted rule. This axis intentionally includes preview_token_holder, unlike value.allowed_receiver_states. A preview token may authorize a bounded stub/projection but never satisfies the independent key-share receiver-state gate.",
           "minItems": 1,
           "uniqueItems": true,
           "items": {
@@ -3737,7 +3739,7 @@
       "properties": {
         "event_ref": {
           "$ref": "#/$defs/strand_id",
-          "description": "Calendar event Strand id; encoded as a ck:strand: typed id."
+          "description": "Calendar event Strand id; encoded as a ak:strand: typed id."
         },
         "status": {
           "type": "string",
@@ -4138,7 +4140,7 @@
         },
         "view_id": {
           "type": "string",
-          "pattern": "^ck:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "definition": {
           "type": "object"
@@ -5103,7 +5105,7 @@
     },
     "consent_grant_payload": {
       "type": "object",
-      "description": "Holder-private consent grant. The actor (consenter) is the holder; payload.peer is the counterparty whose contact is consented to. Wire-equivalent to a Move whose effect is add(tag,value) on the cell ck:cell:ck.component.consent.grant.v1:<consent_id> (or_set lattice); ck.consent.revoke writes a remove on the same cell. Lives in the holder's Principal Control Realm (or holder-private actor stream); MUST NOT be written to a shared Collaboration Realm. Realm role taxonomy: zh/models/realm-and-space.md §2.7.",
+      "description": "Holder-private consent grant. The actor (consenter) is the holder; payload.peer is the counterparty whose contact is consented to. Wire-equivalent to a Move whose effect is add(tag,value) on the cell ak:cell:ck.component.consent.grant.v1:<consent_id> (or_set lattice); ck.consent.revoke writes a remove on the same cell. Lives in the holder's Principal Control Realm (or holder-private actor stream); MUST NOT be written to a shared Collaboration Realm. Realm role taxonomy: zh/models/realm-and-space.md §2.7.",
       "required": [
         "consent_id",
         "peer",
@@ -5156,7 +5158,7 @@
     },
     "consent_revoke_payload": {
       "type": "object",
-      "description": "Revoke a previously granted consent. Wire-equivalent to a Control Move whose effect is remove(tag) on the consent cell ck:cell:ck.component.consent.grant.v1:<consent_id> (the same cell written by ck.consent.grant). Payload observed_dots MUST match the Control Move effect's observed_dots so schema validation and audit can see exactly what was removed.",
+      "description": "Revoke a previously granted consent. Wire-equivalent to a Control Move whose effect is remove(tag) on the consent cell ak:cell:ck.component.consent.grant.v1:<consent_id> (the same cell written by ck.consent.grant). Payload observed_dots MUST match the Control Move effect's observed_dots so schema validation and audit can see exactly what was removed.",
       "required": [
         "consent_id",
         "observed_dots"
@@ -5172,7 +5174,7 @@
           "uniqueItems": true,
           "items": {
             "type": "string",
-            "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}:[0-9]+$"
+            "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}:[0-9]+$"
           },
           "description": "Exact add dots being removed. A full revoke, including consent_scope=any cascade, MUST enumerate every active dot that becomes inactive; implicit cascade without dot enumeration is invalid."
         },
@@ -5740,7 +5742,7 @@
         },
         "recovery_session_id": {
           "type": "string",
-          "pattern": "^ck:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "pattern": "^ak:recovery_session:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "Present when this authorization was produced by a device recovery strand (crypto-media/device-lifecycle.md §15). Binds the event to the recovery_session_id used by the proof transcript, backup-decrypt proofs, and the recovery_receipt, so an auditor reading only the control stream can correlate authorization to receipt. Omitted for ordinary pairing-based authorizations. Not part of the cross_signing_binding signing input (§5.2)."
         }
       },
@@ -5907,7 +5909,7 @@
         },
         "trust_domain": {
           "type": "string",
-          "pattern": "^ck:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
+          "pattern": "^ak:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
         },
         "principal_signing_key": {
           "type": "object"
@@ -5948,11 +5950,11 @@
       "properties": {
         "trust_domain": {
           "type": "string",
-          "pattern": "^ck:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
+          "pattern": "^ak:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
         },
         "reset_event_id": {
           "type": "string",
-          "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "principal_id": {
           "$ref": "#/$defs/did"
@@ -6422,7 +6424,7 @@
         "recipient_verification_method": {
           "type": "string",
           "pattern": "^did:[a-z0-9]+:[^\\s]+#[A-Za-z0-9._:-]+$",
-          "description": "Required only for share_class=realm_recovery_key. DID URL of the RRK HPKE public key, equal to durability_policy.recovery_recipients[].verification_method and designated by an active CokretRealmHistoryRecoveryKey service entry in recipient_principal_id's DID Document."
+          "description": "Required only for share_class=realm_recovery_key. DID URL of the RRK HPKE public key, equal to durability_policy.recovery_recipients[].verification_method and designated by an active ArkretRealmHistoryRecoveryKey service entry in recipient_principal_id's DID Document."
         },
         "recovery_recipient_id": {
           "type": "string",
@@ -6919,10 +6921,10 @@
             },
             {
               "type": "string",
-              "pattern": "^ck:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             }
           ],
-          "description": "Stable applet identifier: a DID or the typed-id form ck:applet:<uuidv7>."
+          "description": "Stable applet identifier: a DID or the typed-id form ak:applet:<uuidv7>."
         },
         "service_did": {
           "$ref": "#/$defs/did",
@@ -7007,7 +7009,7 @@
             },
             {
               "type": "string",
-              "pattern": "^ck:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             }
           ]
         },
@@ -7077,7 +7079,7 @@
             },
             {
               "type": "string",
-              "pattern": "^ck:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             }
           ]
         },
@@ -7115,7 +7117,7 @@
             },
             {
               "type": "string",
-              "pattern": "^ck:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             }
           ]
         },
@@ -7283,7 +7285,7 @@
     },
     "moderation_decision_payload": {
       "type": "object",
-      "description": "Payload for ck.moderation.decision. An sealed moderation decision that writes an or_set add effect onto the ck.component.moderation_state.v1 cell whose subject is target_ref (the moderated target_event_id / target_object_id canonical string). See zh/authz/policy-server.md §7.1 and zh/governance/content-moderation.md §2.6 / §8.1. The decision verb is the runtime result set hard_deny / soft_deny / quarantine / require_review (all lower snake_case; allow is never sealed and soft_deny does not itself write the cell). The optional action carries the finer-grained §5.3 moderation_policy action family. The actor MUST independently hold ck.realm.moderation_policy or ck.policy.manage; refs[role=authorized_by] SHOULD reference the Policy Server signed decision for audit (not a capability source).",
+      "description": "Payload for ck.moderation.decision. A sealed moderation decision that writes an or_set add effect onto the ck.component.moderation_state.v1 cell whose subject is target_ref (the moderated target_event_id / target_object_id canonical string). See zh/authz/policy-server.md §7.1 and zh/governance/content-moderation.md §2.6 / §8.1. Multiple active adds are a normal joinable OR-Set value and fold deterministically by hard_deny > quarantine > require_review > none; they are not moderation_control_split merely because more than one entry exists. This sealed payload accepts only hard_deny / quarantine / require_review. Runtime allow and soft_deny remain out-of-band Policy Server outcomes and MUST NOT be persisted as ck.moderation.decision adds. The optional action carries the finer-grained §5.3 moderation_policy action family. The actor MUST independently hold ck.realm.moderation_policy or ck.policy.manage; refs[role=authorized_by] SHOULD reference the Policy Server signed decision for audit (not a capability source).",
       "required": [
         "target_ref",
         "decision",
@@ -7299,11 +7301,10 @@
           "type": "string",
           "enum": [
             "hard_deny",
-            "soft_deny",
             "quarantine",
             "require_review"
           ],
-          "description": "Runtime decision verb (content-moderation.md §2.5 / §8.1). Lower snake_case; implementations MUST NOT introduce uppercase or camelCase variants."
+          "description": "Sealed moderation-state decision verb (content-moderation.md §2.6 / §8.1). Lower snake_case. allow and soft_deny are out-of-band runtime outcomes and are intentionally excluded."
         },
         "issuer": {
           "$ref": "./common-ids.schema.json#/$defs/did",
@@ -7441,7 +7442,7 @@
             },
             {
               "type": "string",
-              "pattern": "^ck:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             }
           ]
         },
@@ -7587,7 +7588,7 @@
             },
             {
               "type": "string",
-              "pattern": "^ck:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             }
           ]
         },
@@ -7854,7 +7855,7 @@
             },
             {
               "type": "string",
-              "pattern": "^ck:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             }
           ]
         },
@@ -8027,7 +8028,7 @@
         },
         "target_cell_id": {
           "type": "string",
-          "pattern": "^ck:cell:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*$"
+          "pattern": "^ak:cell:[A-Za-z0-9._~=-]+(?::[A-Za-z0-9._~=-]+)*$"
         },
         "paired_event_id": {
           "$ref": "#/$defs/event_ref"
@@ -8139,7 +8140,7 @@
       "properties": {
         "call_id": {
           "type": "string",
-          "pattern": "^ck:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "strand_id": {
           "$ref": "#/$defs/strand_id"
@@ -8179,7 +8180,7 @@
         },
         "call_id": {
           "type": "string",
-          "pattern": "^ck:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "focus_id": {
           "$ref": "#/$defs/non_empty_string"
@@ -8270,7 +8271,7 @@
       "properties": {
         "call_id": {
           "type": "string",
-          "pattern": "^ck:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "state": {
           "type": "string",
@@ -8476,7 +8477,7 @@
       "properties": {
         "call_id": {
           "type": "string",
-          "pattern": "^ck:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "final_state": {
           "type": "string",
@@ -8554,7 +8555,7 @@
       "properties": {
         "call_id": {
           "type": "string",
-          "pattern": "^ck:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "recording_id": {
           "type": "string",
@@ -8608,7 +8609,7 @@
         },
         "target_space_id": {
           "$ref": "#/$defs/list_space_id",
-          "description": "Target List Space after move. This is the ONLY payload-level field for the destination; the reducer compiles it into the cas_register cell value as 'list_space_id' on the cell at ck:cell:ck.component.strand.position.v1:<board_space_id>:<strand_id>. Writers MUST NOT put 'list_space_id' directly on the ck.strand.move payload (additionalProperties=false enforces this) — there is exactly one destination input field on the wire."
+          "description": "Target List Space after move. This is the ONLY payload-level field for the destination; the reducer compiles it into the cas_register cell value as 'list_space_id' on the cell at ak:cell:ck.component.strand.position.v1:<board_space_id>:<strand_id>. Writers MUST NOT put 'list_space_id' directly on the ck.strand.move payload (additionalProperties=false enforces this) — there is exactly one destination input field on the wire."
         },
         "rank": {
           "$ref": "#/$defs/rank"

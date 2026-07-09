@@ -93,7 +93,7 @@ export interface SchemaEntry {
 export interface ConformanceProfileMatrix {
   implementation_profiles: string[];
   deployment_profiles: string[];
-  vector_profiles: string[];
+  vector_groups: string[];
   hardening_profiles: string[];
   encoding_extension_profiles?: string[];
   identity_extension_profiles?: string[];

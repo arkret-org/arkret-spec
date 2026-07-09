@@ -77,7 +77,7 @@
           "allow_did_document_default": true
         },
         "did_document_service": {
-          "service_type": "CokretPrincipalServer",
+          "service_type": "ArkretPrincipalServer",
           "recipient_service_did": "did:webvh:z6mkfixture:personal.alice.example",
           "canonical_digest": "sha256:abc0000000000000000000000000000000000000000000000000000000000000"
         }

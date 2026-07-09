@@ -96,12 +96,12 @@ ck.profile.agent_sidecar_thread.v1
 新增 profile operation:
 
 ```text
-POST /_cokret/self/agent-sidecar-threads:ensure
+POST /_arkret/self/agent-sidecar-threads:ensure
 operation_id: ck.self.agent.sidecar_thread.ensure
 profile: ck.profile.agent_sidecar_thread.v1
 ```
 
-该 operation 是幂等编排入口。它创建或复用一条 controller-context sidecar thread,并返回 private Circle / Strand / Relation 的 typed IDs。实现 MAY 提供 `POST /_cokret/self/agents/{agent_principal_id}/sidecar-threads:ensure` 作为单 agent 快捷 binding,但 canonical operation 语义由 `controller_principal_id`、`context_ref` 与 fixed controller-Realm sidecar Circle 决定。
+该 operation 是幂等编排入口。它创建或复用一条 controller-context sidecar thread,并返回 private Circle / Strand / Relation 的 typed IDs。实现 MAY 提供 `POST /_arkret/self/agents/{agent_principal_id}/sidecar-threads:ensure` 作为单 agent 快捷 binding,但 canonical operation 语义由 `controller_principal_id`、`context_ref` 与 fixed controller-Realm sidecar Circle 决定。
 
 请求:
 
@@ -121,7 +121,7 @@ profile: ck.profile.agent_sidecar_thread.v1
 }
 ```
 
-`context_ref` 是本 profile 定义的 polymorphic reference descriptor:它可以锚定 Strand、Message、Relation 或 profile-defined cursor 位置,不是单一具体 object id,所以使用 `_ref` 后缀。descriptor 内部字段仍按自身 value category 命名:`realm_id` / `strand_id` / `message_id` / `relation_id` 是具体 object IDs;`track_name` 是 StrandTrack key;若未来加入 cursor,字段名应使用 `cursor`,值为 `ck:cursor:<base64url>`。
+`context_ref` 是本 profile 定义的 polymorphic reference descriptor:它可以锚定 Strand、Message、Relation 或 profile-defined cursor 位置,不是单一具体 object id,所以使用 `_ref` 后缀。descriptor 内部字段仍按自身 value category 命名:`realm_id` / `strand_id` / `message_id` / `relation_id` 是具体 object IDs;`track_name` 是 StrandTrack key;若未来加入 cursor,字段名应使用 `cursor`,值为 `ak:cursor:<base64url>`。
 
 `context_ref.realm_id` REQUIRED。`context_ref` MUST 解析到唯一 target endpoint,且仅满足以下两种形态之一:
 
@@ -271,7 +271,7 @@ Sidecar Circle 的 active membership MUST 收敛为:
 
 `controller_agent_circle_key` MUST 是 `(realm_id, controller_principal_id)` 的确定性 profile-local key,具体规则:
 
-1. **Canonical realm_id**:按 typed prefix 解析得到 `ck:realm:<uuid>`,uuid 部分按 RFC 4122 lowercase hex 形式归一(去除任意空白)。无法解析为 typed prefix 时 fail closed。
+1. **Canonical realm_id**:按 typed prefix 解析得到 `ak:realm:<uuid>`,uuid 部分按 RFC 4122 lowercase hex 形式归一(去除任意空白)。无法解析为 typed prefix 时 fail closed。
 2. **Canonical controller_principal_id**:按 [W3C DID Core](https://www.w3.org/TR/did-core/) 解析,移除 fragment(`#...`)与 query(`?...`),只保留 `did:<method>:<method-specific-id>` 部分;method-specific-id 内部不做大小写归一(method 自身定义其大小写敏感性)。无法解析为合法 DID URI 时 fail closed。
 3. 对两个 canonical 字符串做 Unicode NFC normalize。
 4. 以 UTF-8 编码以下 canonical string(分隔符是单个 0x0A 字节;不允许 CRLF):
@@ -282,7 +282,7 @@ Sidecar Circle 的 active membership MUST 收敛为:
 
 5. `controller_agent_circle_key = base32(sha256(canonical_bytes))[:24].lower()`(base32 alphabet 按 RFC 4648 §6 标准表,去除 padding,结果转 lowercase)。
 
-该 key 是 profile-local 派生值,不是 canonical object id。实际 Circle 仍使用 `ck:circle:<uuid>`;派生值只用于 deterministic short name、idempotent lookup 与 conformance fixture。
+该 key 是 profile-local 派生值,不是 canonical object id。实际 Circle 仍使用 `ak:circle:<uuid>`;派生值只用于 deterministic short name、idempotent lookup 与 conformance fixture。
 
 不同客户端实现 MUST 对相同 `(realm_id, controller_principal_id)` 输入得到 bit-identical `controller_agent_circle_key`;否则 sidecar Circle 双源——不同设备会创建两个 Circle,破坏 invariant 9。Conformance vector 至少覆盖一组 mixed-case / fragment-bearing DID 输入,保证派生函数收敛。
 

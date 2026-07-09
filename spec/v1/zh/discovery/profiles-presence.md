@@ -157,13 +157,13 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 - 其他参与者的客户端通过 Sync Service 的 Sync Stream 或 Actor Events API 同步获取最新 Profile
 - 客户端 MAY 缓存 Profile 并在本地查询响应中内联展示
 
-`ck.profile.create` 与 `ck.profile.update` 是 principal-scoped profile state。顶层 `realm_id` MUST 是该 actor 的 `principal_control_realm_id`；不得把全局 profile 更新写入任意 Collaboration Realm history（Principal Control Realm 与 Collaboration Realm 的分类见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md)）。两 kind 共写入同一 cell `ck:cell:ck.component.profile.create.v1:<target_actor_profile_id>`（mv_register, bottom=expose），`cell_subject` 由 schema registry 派生（create 用 `payload.object.id`，update 用 `payload.target_ref`，必须等值）。
+`ck.profile.create` 与 `ck.profile.update` 是 principal-scoped profile state。顶层 `realm_id` MUST 是该 actor 的 `principal_control_realm_id`；不得把全局 profile 更新写入任意 Collaboration Realm history（Principal Control Realm 与 Collaboration Realm 的分类见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md)）。两 kind 共写入同一 cell `ak:cell:ck.component.profile.create.v1:<target_actor_profile_id>`（mv_register, bottom=expose），`cell_subject` 由 schema registry 派生（create 用 `payload.object.id`，update 用 `payload.target_ref`，必须等值）。
 
 ### 2.4 Per-Realm Profile 覆写
 
 用户 MAY 为特定 Realm 设置不同的显示名或头像（例如在公司 Realm 用真名，在开源项目 Realm 用昵称）：
 
-`ck.profile.realm_override` 是 Realm-scoped profile override 事件 kind，目标 Realm 由 `payload.target_realm_id` 唯一指定，不指向 `ck:space:` 容器，也不创建 Space 级访问边界。
+`ck.profile.realm_override` 是 Realm-scoped profile override 事件 kind，目标 Realm 由 `payload.target_realm_id` 唯一指定，不指向 `ak:space:` 容器，也不创建 Space 级访问边界。
 
 ```json
 {
@@ -246,7 +246,7 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
   "proof": {
     "kind": "detached_jws",
     "alg": "EdDSA",
-    "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#ck:device:019640dd-8000-7000-8000-000000000000",
+    "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#ak:device:019640dd-8000-7000-8000-000000000000",
     "event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "created_at": "2026-04-26T10:00:00Z",
     "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
@@ -283,7 +283,7 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
   "proof": {
     "kind": "detached_jws",
     "alg": "EdDSA",
-    "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#ck:device:019640dd-8000-7000-8000-000000000000",
+    "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#ak:device:019640dd-8000-7000-8000-000000000000",
     "event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "created_at": "2026-04-26T10:00:00Z",
     "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
@@ -352,7 +352,7 @@ presence 广播内的 `status_message` 是临时覆盖值，展示优先级高�
   "proof": {
     "kind": "detached_jws",
     "alg": "EdDSA",
-    "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#ck:device:019640dd-8000-7000-8000-000000000000",
+    "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#ak:device:019640dd-8000-7000-8000-000000000000",
     "event_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
     "created_at": "2026-04-26T10:00:00Z",
     "jws": "eyJhbGciOiJFZERTQSJ9..c2ln"
@@ -405,7 +405,7 @@ Directory Service 或客户端本地联系人索引 MAY 提供用户搜索功能
 > **Normative 源（normative）**：`search-users` 的 request / response 字段、授权过滤、分页字段（`has_more` / `next_cursor`）以 [`discovery-directory.md` §9](./discovery-directory.md) `ck.find.directory.query.search_users` 为**唯一规范源**；本节只补充 presence / mention 特有的 UI 语义（例如 autocomplete intent、普通 mention 不得请求投递上下文、以及 `results[].membership` 仅作本地展示 hint）。字段名、必填性或分页语义与 directory §9 冲突时，MUST 以 directory §9 为准。
 
 ```
-POST /_cokret/find/directory/search-users
+POST /_arkret/find/directory/search-users
 
 { "query": "alice", "realm_id": "ak:realm:...", "limit": 10 }
 ```

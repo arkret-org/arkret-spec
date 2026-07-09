@@ -73,7 +73,7 @@
     "ck.profile.agent_delegation_policy.v1",
     "ck.profile.media_service_binding.v1",
     "ck.profile.media_service_binding.livekit.v1",
-    "ck.profile.media_service_binding.cokret_native.v1",
+    "ck.profile.media_service_binding.arkret_native.v1",
     "ck.profile.agent_sidecar_thread.v1",
     "ck.profile.agent_participation_policy.v1",
     "ck.profile.mimi_interop.v1",
@@ -145,7 +145,7 @@
       "v1_minimal_interop_floor": "Minimum profile for claiming v1 Event Store interop. Higher-level client, service, federation, blob, push, identity, and sovereign profiles remain independently claimable.",
       "extension_profile_implementation": "Optional. Tracks implementation profiles outside the v1 minimal interop floor, including evolving external standards (MIMI Internet-Drafts; A2A/ACP/MCP unstandardized agent protocols; Applet registry/audit SLA) and opt-in product/privacy features such as productivity, disappearing messages, calendar events, pins, and search. Implementations claiming v1 core MAY omit these entirely; implementations MUST claim only entries they actually support. When an underlying external standard matures, a replacement profile with stable version pinning can supersede that entry."
     },
-    "test_build_stance_rule": "Test/conformance builds are marked solely by the canonical development_mode=true flag on the ServiceDescribe (see zh/sync/service-http-binding.md §2.1.2 and zh/sync/service-surface.md §3.0), which gates the test-only /_cokret/_conformance/* debug namespace and forces verified_profiles=[]. There is no separate ck.profile.* test-build profile: a test build is a deployment stance, not a negotiated interop capability."
+    "test_build_stance_rule": "Test/conformance builds are marked solely by the canonical development_mode=true flag on the ServiceDescribe (see zh/sync/service-http-binding.md §2.1.2 and zh/sync/service-surface.md §3.0), which gates the test-only /_arkret/_conformance/* debug namespace and forces verified_profiles=[]. There is no separate ck.profile.* test-build profile: a test build is a deployment stance, not a negotiated interop capability."
   },
   "identity_extension_profiles": [
     "ck.profile.public_network_identity.v1",
@@ -226,7 +226,7 @@
     "ck.profile.push_gateway.matrix_passthrough.v1": "interop",
     "ck.profile.media_service_binding.v1": "server",
     "ck.profile.media_service_binding.livekit.v1": "server",
-    "ck.profile.media_service_binding.cokret_native.v1": "server",
+    "ck.profile.media_service_binding.arkret_native.v1": "server",
     "ck.profile.applet_service.v1": "server",
     "ck.profile.applet_bridge.v1": "server",
     "ck.profile.applet_delegated.v1": "server",
@@ -775,7 +775,7 @@
         "ck.device.authorize",
         "ck.device.revoke",
         "ck.device.list_update",
-        "ck.session.grant",
+        "ak.session.grant",
         "ck.cross_signing.publish",
         "ck.cross_signing.reset",
         "ck.mls.keypackage",
@@ -831,7 +831,7 @@
           "ck.device.authorize",
           "ck.device.revoke",
           "ck.device.list_update",
-          "ck.session.grant",
+          "ak.session.grant",
           "ck.cross_signing.publish",
           "ck.cross_signing.reset",
           "ck.mls.keypackage",
@@ -1675,13 +1675,13 @@
     },
     "ck.profile.auth_server.v1": {
       "inherits": [],
-      "description": "Arkret v1 Auth Server profile. Auth Servers verify login factors (password / passkey / OIDC / SSO / recovery), issue short-lived audience-bound `ck.session.grant` artefacts, expose session-grant introspection / revocation, and MAY surface a `ck.self.policy.query.check` decision endpoint. Auth Servers are NOT canonical identity registries (DID documents / key logs live in `ck.profile.identity_registry.v1`) and are NOT principal servers (no Realm-authoritative event acceptance). Coauth is the reference implementation. See zh/identity/account-lifecycle.md, zh/crypto-media/device-lifecycle.md §5, zh/conformance/conformance-profiles.md §9a.",
+      "description": "Arkret v1 Auth Server profile. Auth Servers verify login factors (password / passkey / OIDC / SSO / recovery), issue short-lived audience-bound `ak.session.grant` artefacts, expose session-grant introspection / revocation, and MAY surface a `ck.self.policy.query.check` decision endpoint. Auth Servers are NOT canonical identity registries (DID documents / key logs live in `ck.profile.identity_registry.v1`) and are NOT principal servers (no Realm-authoritative event acceptance). Coauth is the reference implementation. See zh/identity/account-lifecycle.md, zh/crypto-media/device-lifecycle.md §5, zh/conformance/conformance-profiles.md §9a.",
       "required_endpoints": [
         "ck.server.query.describe",
         "ck.gate.account.command.issue_session_grant"
       ],
       "required_event_kinds": [
-        "ck.session.grant"
+        "ak.session.grant"
       ],
       "rejected_event_kinds": [
         "wire_scope:actor_private_event"
@@ -2432,7 +2432,7 @@
         "ck.feature.mls_last_resort_keypackage.v1"
       ],
       "additional_requirements": {
-        "sender_constrained_session_pop_must": "Per RFC 9700 (BCP 240) sender-constrained-token guidance, production current-v1 protected endpoints MUST reject bare Authorization: Bearer presentation unless it is bound by DPoP, an RFC 9421 HTTP Message Signature, detached JWS, mTLS, or equivalent sender-constrained proof. For this high-security profile, regular writes (any request advancing actor_seq / Realm frontier or producing durable side effects) and sensitive reads MUST use RFC 9421 HTTP Message Signature whose signing key is the session's session_public_key delegated by ck.session.grant, binding @method/@target-uri/@authority, content-digest (when body present), and participating Idempotency-Key, with created/expires inside the existing replay window. Public metadata surfaces may return only unauthenticated public responses when no valid proof is present; they MUST NOT treat bare bearer as session/capability authentication. See api-conventions.md §3.2 and service-http-binding.md §2.5.",
+        "sender_constrained_session_pop_must": "Per RFC 9700 (BCP 240) sender-constrained-token guidance, production current-v1 protected endpoints MUST reject bare Authorization: Bearer presentation unless it is bound by DPoP, an RFC 9421 HTTP Message Signature, detached JWS, mTLS, or equivalent sender-constrained proof. For this high-security profile, regular writes (any request advancing actor_seq / Realm frontier or producing durable side effects) and sensitive reads MUST use RFC 9421 HTTP Message Signature whose signing key is the session's session_public_key delegated by ak.session.grant, binding @method/@target-uri/@authority, content-digest (when body present), and participating Idempotency-Key, with created/expires inside the existing replay window. Public metadata surfaces may return only unauthenticated public responses when no valid proof is present; they MUST NOT treat bare bearer as session/capability authentication. See api-conventions.md §3.2 and service-http-binding.md §2.5.",
         "mls_last_resort_forbidden_must": "Realms claiming this profile MUST NOT allow last-resort KeyPackage join: services MUST NOT advertise ck.feature.mls_last_resort_keypackage.v1 for those Realms, claim responses MUST NOT return last_resort=true packages, and requesters MUST treat any last_resort=true claim record as profile-forbidden and fail closed."
       }
     },
@@ -2647,7 +2647,7 @@
         "livekit_recorder_claim_must": "Token issuer MUST set video.recorder=false; recording goes through Arkret Egress proxy, not LiveKit recorder claim."
       }
     },
-    "ck.profile.media_service_binding.cokret_native.v1": {
+    "ck.profile.media_service_binding.arkret_native.v1": {
       "role": "server",
       "description": "Arkret-native SFU reference binding sub-profile (CKP-0010 §4.5). Provides a backend-SDK-free reference implementation of the Arkret-native SFU wire format for protocol self-consistency and conformance testing. Reference / conformance binding only: it MUST NOT be claimed as a production media backend, and production deployments MUST use a production-grade media_service_binding sub-profile such as ck.profile.media_service_binding.livekit.v1. Declaring this sub-profile requires declaring ck.profile.media_service_binding.v1. See zh/crypto-media/bindings/arkret-native.md.",
       "depends_on": [
@@ -2673,9 +2673,9 @@
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
-          "cokret_native_sfu_join_request"
+          "arkret_native_sfu_join_request"
         ],
-        "unsupported_optional": "MUST fail closed when cokret_native_sfu_join_request is unavailable."
+        "unsupported_optional": "MUST fail closed when arkret_native_sfu_join_request is unavailable."
       }
     },
     "ck.profile.sovereign_client.v1": {
@@ -2907,7 +2907,7 @@
         "ck.feature.mls_last_resort_keypackage.v1"
       ],
       "additional_requirements": {
-        "sender_constrained_session_pop_must": "Per RFC 9700 (BCP 240) sender-constrained-token guidance, production current-v1 protected endpoints MUST reject bare Authorization: Bearer presentation unless it is bound by DPoP, an RFC 9421 HTTP Message Signature, detached JWS, mTLS, or equivalent sender-constrained proof. For this high-security profile, regular writes (any request advancing actor_seq / Realm frontier or producing durable side effects) and sensitive reads MUST use RFC 9421 HTTP Message Signature whose signing key is the session's session_public_key delegated by ck.session.grant, binding @method/@target-uri/@authority, content-digest (when body present), and participating Idempotency-Key, with created/expires inside the existing replay window. Public metadata surfaces may return only unauthenticated public responses when no valid proof is present; they MUST NOT treat bare bearer as session/capability authentication. See api-conventions.md §3.2 and service-http-binding.md §2.5.",
+        "sender_constrained_session_pop_must": "Per RFC 9700 (BCP 240) sender-constrained-token guidance, production current-v1 protected endpoints MUST reject bare Authorization: Bearer presentation unless it is bound by DPoP, an RFC 9421 HTTP Message Signature, detached JWS, mTLS, or equivalent sender-constrained proof. For this high-security profile, regular writes (any request advancing actor_seq / Realm frontier or producing durable side effects) and sensitive reads MUST use RFC 9421 HTTP Message Signature whose signing key is the session's session_public_key delegated by ak.session.grant, binding @method/@target-uri/@authority, content-digest (when body present), and participating Idempotency-Key, with created/expires inside the existing replay window. Public metadata surfaces may return only unauthenticated public responses when no valid proof is present; they MUST NOT treat bare bearer as session/capability authentication. See api-conventions.md §3.2 and service-http-binding.md §2.5.",
         "mls_last_resort_forbidden_must": "Realms claiming this profile MUST NOT allow last-resort KeyPackage join: services MUST NOT advertise ck.feature.mls_last_resort_keypackage.v1 for those Realms, claim responses MUST NOT return last_resort=true packages, and requesters MUST treat any last_resort=true claim record as profile-forbidden and fail closed."
       },
       "identity": {

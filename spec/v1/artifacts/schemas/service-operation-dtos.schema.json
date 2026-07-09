@@ -279,7 +279,7 @@
     "AuthSessionLogoutRequestBody": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Service-to-service Account Authority to Auth Server request that logs out the Auth-side session owning a ck.session.grant rotation chain.",
+      "description": "Service-to-service Account Authority to Auth Server request that logs out the Auth-side session owning a ak.session.grant rotation chain.",
       "required": [
         "grant_jwt"
       ],
@@ -361,7 +361,7 @@
         "proof": {
           "type": "object",
           "additionalProperties": false,
-          "description": "Optional S2S holder confirmation signed by the session key bound into the grant. Principal Servers validating /_cokret/self/* grant+DPoP requests do not require a client-carried introspection proof; they verify the request DPoP locally against the returned cnf_jkt.",
+          "description": "Optional S2S holder confirmation signed by the session key bound into the grant. Principal Servers validating /_arkret/self/* grant+DPoP requests do not require a client-carried introspection proof; they verify the request DPoP locally against the returned cnf_jkt.",
           "required": [
             "challenge",
             "proof_jwt"
@@ -372,7 +372,7 @@
             },
             "proof_jwt": {
               "type": "string",
-              "description": "JWS over ck.session_grant.introspection_proof.v1 claims (grant_id, grant_jwt_hash, audience, challenge, issued_at, expires_at)."
+              "description": "JWS over ak.session_grant.introspection_proof.v1 claims (grant_id, grant_jwt_hash, audience, challenge, issued_at, expires_at)."
             }
           }
         }
@@ -472,11 +472,11 @@
         },
         "session_public_key": {
           "type": "string",
-          "description": "Session signing key (JWK) for RFC 9421 PoP verification on /_cokret/self/* (api-conventions §3.2). Server-to-server only."
+          "description": "Session signing key (JWK) for RFC 9421 PoP verification on /_arkret/self/* (api-conventions §3.2). Server-to-server only."
         },
         "cnf_jkt": {
           "type": "string",
-          "description": "RFC 7638 JWK SHA-256 thumbprint of the holder (DPoP) key the grant is bound to (cnf.jkt); the Principal Server uses it to verify the per-request DPoP proof on /_cokret/self/* (api-conventions §3.3). Server-to-server only."
+          "description": "RFC 7638 JWK SHA-256 thumbprint of the holder (DPoP) key the grant is bound to (cnf.jkt); the Principal Server uses it to verify the per-request DPoP proof on /_arkret/self/* (api-conventions §3.3). Server-to-server only."
         }
       }
     },
@@ -511,7 +511,7 @@
       "properties": {
         "cursor": {
           "type": "string",
-          "pattern": "^ck:cursor:.+$"
+          "pattern": "^ak:cursor:.+$"
         },
         "reason_code": {
           "type": "string"
@@ -579,7 +579,7 @@
         "redirect_url": {
           "type": "string",
           "format": "uri",
-          "description": "Deployment-controlled browser handoff URL. This outcome MUST NOT contain SessionGrantOutcome, ck.session.grant, or Principal local session material; client-visible grant issuance is only via SessionGrantRequestBody.proof.proof_kind=oidc_code_exchange."
+          "description": "Deployment-controlled browser handoff URL. This outcome MUST NOT contain SessionGrantOutcome, ak.session.grant, or Principal local session material; client-visible grant issuance is only via SessionGrantRequestBody.proof.proof_kind=oidc_code_exchange."
         }
       }
     },
@@ -774,14 +774,14 @@
         },
         "call_id": {
           "type": "string",
-          "pattern": "^ck:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/did"
         },
         "device_id": {
           "type": "string",
-          "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "focus_id": {
           "type": "string",
@@ -792,7 +792,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "pattern": "^ck:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "pattern": "^ak:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           }
         },
         "desired_media": {
@@ -854,7 +854,7 @@
         "participant_identity": {
           "type": "string",
           "description": "SFU-local short handle, scope `(call_id, focus_id, sfu_did)`. UUIDv7-form rtc_participant typed ID.",
-          "pattern": "^ck:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "participant_binding": {
           "type": "object",
@@ -881,7 +881,7 @@
             },
             "call_id": {
               "type": "string",
-              "pattern": "^ck:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              "pattern": "^ak:call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             },
             "focus_id": {
               "type": "string",
@@ -893,11 +893,11 @@
             },
             "device_id": {
               "type": "string",
-              "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             },
             "participant_identity": {
               "type": "string",
-              "pattern": "^ck:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              "pattern": "^ak:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             },
             "issued_at": {
               "type": "string",
@@ -1206,7 +1206,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^ck:(realm|applet):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              "pattern": "^ak:(realm|applet):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             },
             {
               "$ref": "#/$defs/ActorDid"
@@ -1242,7 +1242,7 @@
         },
         "supersedes_announce_id": {
           "type": "string",
-          "pattern": "^ck:announce:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:announce:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         }
       }
     },
@@ -1258,7 +1258,7 @@
       "properties": {
         "announce_id": {
           "type": "string",
-          "pattern": "^ck:announce:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:announce:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "indexed_at": {
           "type": "string",
@@ -1292,7 +1292,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^ck:(realm|applet):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              "pattern": "^ak:(realm|applet):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             },
             {
               "$ref": "#/$defs/ActorDid"
@@ -1328,7 +1328,7 @@
       "properties": {
         "withdrawal_ref": {
           "type": "string",
-          "description": "Directory-local audit reference for the withdrawal; not a registered ck:<kind> typed ID.",
+          "description": "Directory-local audit reference for the withdrawal; not a registered ak:<kind> typed ID.",
           "pattern": "^withdrawal:[A-Za-z0-9._:-]{1,128}$"
         },
         "acked_at": {
@@ -1360,7 +1360,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^ck:(realm|applet):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              "pattern": "^ak:(realm|applet):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             },
             {
               "$ref": "#/$defs/ActorDid"
@@ -1410,7 +1410,7 @@
       "properties": {
         "appeal_id": {
           "type": "string",
-          "description": "Directory-local audit reference for the appeal; not a registered ck:<kind> typed ID.",
+          "description": "Directory-local audit reference for the appeal; not a registered ak:<kind> typed ID.",
           "pattern": "^appeal:[A-Za-z0-9._:-]{1,128}$"
         },
         "received_at": {
@@ -1594,7 +1594,7 @@
               "description": "Event ids of ck.attestation.range_completeness events whose union of scopes covers the returned page. Over-coverage is legal; clients intersect scopes during verification.",
               "items": {
                 "type": "string",
-                "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
               },
               "uniqueItems": true
             },
@@ -1908,7 +1908,7 @@
       "properties": {
         "report_id": {
           "type": "string",
-          "pattern": "^ck:report:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:report:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "status": {
           "type": "string",
@@ -1958,7 +1958,7 @@
         },
         "device_id": {
           "type": "string",
-          "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "source": {
           "type": "object",
@@ -2137,7 +2137,7 @@
         },
         "next_cursor": {
           "type": "string",
-          "pattern": "^ck:cursor:[A-Za-z0-9_-]+$"
+          "pattern": "^ak:cursor:[A-Za-z0-9_-]+$"
         },
         "has_more": {
           "type": "boolean"
@@ -2169,7 +2169,7 @@
         },
         "next_cursor": {
           "type": "string",
-          "pattern": "^ck:cursor:[A-Za-z0-9_-]+$"
+          "pattern": "^ak:cursor:[A-Za-z0-9_-]+$"
         },
         "has_more": {
           "type": "boolean"
@@ -2201,7 +2201,7 @@
         },
         "next_cursor": {
           "type": "string",
-          "pattern": "^ck:cursor:[A-Za-z0-9_-]+$"
+          "pattern": "^ak:cursor:[A-Za-z0-9_-]+$"
         },
         "has_more": {
           "type": "boolean"
@@ -2222,7 +2222,7 @@
         },
         "device_id": {
           "type": "string",
-          "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "requested_scope": {
           "type": "array",
@@ -2233,7 +2233,7 @@
         "agent_key_authorization_ref": {
           "type": "string",
           "description": "`ck.profile.agent_auth.v1` overlay (CKP-0008 §4.6). Event ref of the accepted\n`ck.agent.key.authorize` that authorized the runtime key. REQUIRED when\n`proof.proof_kind=\"agent_key_proof\"`; MUST be omitted for human session grants.\n",
-          "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "agent_scope_request": {
           "type": "object",
@@ -2250,7 +2250,7 @@
               "type": "array",
               "items": {
                 "type": "string",
-                "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
               }
             },
             "track_names": {
@@ -2538,7 +2538,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^ck:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+              "pattern": "^ak:applet:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             },
             {
               "type": "string",
@@ -2561,7 +2561,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "pattern": "^ck:[a-z][a-z0-9_]*:[A-Za-z0-9._:-]+$"
+            "pattern": "^ak:[a-z][a-z0-9_]*:[A-Za-z0-9._:-]+$"
           },
           "uniqueItems": true
         }
@@ -2582,7 +2582,7 @@
         },
         "device_id": {
           "type": "string",
-          "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "session_grant": {
           "type": "string",
@@ -2598,7 +2598,7 @@
         },
         "session_public_key": {
           "type": "string",
-          "description": "JWK of the holder/session key the grant is bound to (the device holder key). The client needs this to perform RFC 9421 PoP and to derive the DPoP cnf.jkt for /_cokret/self/* requests (api-conventions.md §3.2 / §3.3); returning it at issue time avoids a mandatory introspect round-trip before the first self-path request. Equals the grant's bound session_public_key for both human and agent grants. Mirrors SessionGrantRefreshOutcome.session_public_key."
+          "description": "JWK of the holder/session key the grant is bound to (the device holder key). The client needs this to perform RFC 9421 PoP and to derive the DPoP cnf.jkt for /_arkret/self/* requests (api-conventions.md §3.2 / §3.3); returning it at issue time avoids a mandatory introspect round-trip before the first self-path request. Equals the grant's bound session_public_key for both human and agent grants. Mirrors SessionGrantRefreshOutcome.session_public_key."
         },
         "audience": {
           "type": "string",
@@ -2625,7 +2625,7 @@
               "type": "array",
               "items": {
                 "type": "string",
-                "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
               }
             },
             "track_names": {
@@ -2653,7 +2653,7 @@
     },
     "Cursor": {
       "type": "string",
-      "pattern": "^ck:cursor:[A-Za-z0-9_-]+$"
+      "pattern": "^ak:cursor:[A-Za-z0-9_-]+$"
     },
     "DeviceMessageEnvelope": {
       "$ref": "./device-message.schema.json"
@@ -2683,7 +2683,7 @@
     },
     "EventId": {
       "type": "string",
-      "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "EventSubmitEnvelope": {
       "allOf": [
@@ -2991,14 +2991,14 @@
           "type": "array",
           "items": {
             "type": "string",
-            "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           }
         },
         "delivery_binding_frontier": {
           "type": "array",
           "items": {
             "type": "string",
-            "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           }
         },
         "delivery_binding_diagnostics": {
@@ -3027,7 +3027,7 @@
       "properties": {
         "relation_id": {
           "type": "string",
-          "pattern": "^ck:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:relation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "actor_id": {
           "type": "string",
@@ -3047,7 +3047,7 @@
       "properties": {
         "strand_id": {
           "type": "string",
-          "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -3086,7 +3086,7 @@
             "string",
             "null"
           ],
-          "pattern": "^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "Derived board Space id from ck.component.strand.position.v1; not canonical Strand object state."
         },
         "list_space_id": {
@@ -3094,7 +3094,7 @@
             "string",
             "null"
           ],
-          "pattern": "^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "description": "Derived list Space id from ck.component.strand.position.v1; not canonical Strand object state."
         },
         "rank": {
@@ -3163,7 +3163,7 @@
       "properties": {
         "morph_id": {
           "type": "string",
-          "pattern": "^ck:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:morph:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -3227,7 +3227,7 @@
       "properties": {
         "space_id": {
           "type": "string",
-          "pattern": "^ck:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"

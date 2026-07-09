@@ -17,7 +17,7 @@
     },
     "seal_id": {
       "type": "string",
-      "pattern": "^ck:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
+      "pattern": "^ak:seal:(?:(?:sha256|blake3):[0-9a-f]{64})$"
     },
     "data_view_root": {
       "$ref": "#/$defs/hash",
@@ -65,7 +65,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 512,
-          "description": "Canonical cell wire id (ck:cell:<component>:<subject>)."
+          "description": "Canonical cell wire id (ak:cell:<component>:<subject>)."
         },
         "lattice_type": {
           "type": "string",

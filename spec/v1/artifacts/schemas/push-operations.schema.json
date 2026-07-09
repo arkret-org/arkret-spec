@@ -30,19 +30,19 @@
     },
     "device_id": {
       "type": "string",
-      "pattern": "^ck:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "event_id": {
       "type": "string",
-      "pattern": "^ck:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "strand_id": {
       "type": "string",
-      "pattern": "^ck:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "message_id": {
       "type": "string",
-      "pattern": "^ck:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "timestamp": {
       "type": "string",
@@ -58,7 +58,7 @@
     },
     "push_target_id": {
       "type": "string",
-      "pattern": "^ck:pseudonym:push:[A-Za-z0-9_-]{22,128}$",
+      "pattern": "^ak:pseudonym:push:[A-Za-z0-9_-]{22,128}$",
       "description": "Typed pairwise pseudonym for one (recipient_service_did, principal, device, push_route) tuple. It MUST NOT be a DID, DID URL, Realm id, Strand id, Message id, Event id, or stable cross-Realm correlation key."
     },
     "push_route_token": {
@@ -69,7 +69,7 @@
     "registration_id": {
       "type": "string",
       "pattern": "^[A-Za-z0-9._:-]{1,128}$",
-      "description": "Push gateway local registration id. It is not a registered ck:<kind> protocol object id."
+      "description": "Push gateway local registration id. It is not a registered ak:<kind> protocol object id."
     },
     "push_key": {
       "type": "string",

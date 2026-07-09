@@ -122,7 +122,7 @@
     },
     "receipt_id": {
       "type": "string",
-      "pattern": "^ck:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:receipt:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "completed_at": {
       "$ref": "#/$defs/timestamp"
@@ -141,11 +141,11 @@
     },
     "policy_id": {
       "type": "string",
-      "pattern": "^ck:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "subject_ref": {
       "type": "string",
-      "pattern": "^(did:[^\\s]+|ck:(realm|event|seal|blob|device|policy|message|strand|morph|relation|view|snapshot|receipt):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ck:blob:sha256:[0-9a-f]{64}|sha256:[0-9a-f]{64})$"
+      "pattern": "^(did:[^\\s]+|ak:(realm|event|seal|blob|device|policy|message|strand|morph|relation|view|snapshot|receipt):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|ak:blob:sha256:[0-9a-f]{64}|sha256:[0-9a-f]{64})$"
     }
   }
 }

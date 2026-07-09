@@ -112,7 +112,7 @@ LiveKit Cloud SFU mesh 是 backend-internal 概念；Arkret 通过 `foci[].casca
 - `ck.vector.media_binding.unknown_type_fail_closed.v1`
 - `ck.vector.media_binding.e2ee_key_source.v1`
 - `ck.vector.media_binding.participant_identity_unrecognised.v1`
-- `ck.vector.media_binding.recording_artifact_via_cokret_blob.v1`
+- `ck.vector.media_binding.recording_artifact_via_arkret_blob.v1`
 - `ck.vector.media_binding.recording_exporter_label.v1`
 
 LiveKit-specific vectors (JWT claim shape conformance、SFrame key injection cross-check) 在 v1 cycle 内非 normative；录制 exporter label 已由 `ck.vector.media_binding.recording_exporter_label.v1` 固定，任何 label/context 变更都必须开新 profile。

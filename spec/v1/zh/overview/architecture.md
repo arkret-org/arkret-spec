@@ -36,7 +36,7 @@ Arkret 采用 **Principal Server + signed Event + identity registry + client-sid
 
 Arkret 不设置独立的第三方分发服务器角色。跨主体、跨组织传播通过参与方 Principal Server 之间的同步与联邦完成。
 
-协作数据层使用 Realm 作为复制与授权边界，在 Realm 内直接建模 Circle、Strand、Space、Message 等标准对象；Circle（`ck:circle:`）是 Realm 内的子事件边界（见 §2.0 容器选型），看板与列容器是独立的 Space（`ck:space:`），住在 Realm 内但永远不形成自己的 boundary。Morph 只承担开放扩展对象角色；其可选能力由 Realm schema / Morph profile 显式声明，facets 只是这些声明能力的 hint / 查询标签。Morph 不得作为绕过已注册标准对象 kind、capability 与 reducer 规则的 catch-all 容器。
+协作数据层使用 Realm 作为复制与授权边界，在 Realm 内直接建模 Circle、Strand、Space、Message 等标准对象；Circle（`ak:circle:`）是 Realm 内的子事件边界（见 §2.0 容器选型），看板与列容器是独立的 Space（`ak:space:`），住在 Realm 内但永远不形成自己的 boundary。Morph 只承担开放扩展对象角色；其可选能力由 Realm schema / Morph profile 显式声明，facets 只是这些声明能力的 hint / 查询标签。Morph 不得作为绕过已注册标准对象 kind、capability 与 reducer 规则的 catch-all 容器。
 
 ### 2.0 容器选型参考（Container Selection Reference）
 
@@ -48,18 +48,18 @@ Arkret 定义四种"包含 / 边界"语义对象：Realm、Circle、Space、Stra
 
 | 使用场景 | 推荐对象 | 关键边界属性 |
 | --- | --- | --- |
-| 共享 federation / identity、Policy Server、capability registry、Realm-default E2EE group | `ck:realm:`（独立或加入既有） | federation / identity boundary；持有 membership 主源、Policy Server、capability registry、Realm-default MLS group |
-| Realm 内子集成员 + 独立 history / 投递 / 查询裁剪，复用父 Realm federation / policy / capability registry；必要时独立 MLS group | `ck:circle:`，对象通过 `scope_circle_id` 引用 | intra-Realm scoped event boundary；不持有 federation identity 或 Policy Server；约束 `Circle.members ⊆ Realm.members` |
-| Realm 内导航 / 排序 / 结构分组（board / list / folder / project / swimlane / calendar bucket 等） | `ck:space:`，`kind` 表 board / list / folder / project / ... | authorization-transparent 容器；自身不持有 membership / key；`Space.scope_circle_id` 仅决定 Space metadata effective scope，不构成独立 Realm 边界 |
-| Realm 内带 stage / state / fields / track 时间线的协作单元（task / decision / incident / channel 等） | `ck:strand:` | Realm 内协作主体；整 Strand 单一 effective scope（由 `Strand.scope_circle_id` 决定，`null` = Realm-default，否则指向 Circle） |
+| 共享 federation / identity、Policy Server、capability registry、Realm-default E2EE group | `ak:realm:`（独立或加入既有） | federation / identity boundary；持有 membership 主源、Policy Server、capability registry、Realm-default MLS group |
+| Realm 内子集成员 + 独立 history / 投递 / 查询裁剪，复用父 Realm federation / policy / capability registry；必要时独立 MLS group | `ak:circle:`，对象通过 `scope_circle_id` 引用 | intra-Realm scoped event boundary；不持有 federation identity 或 Policy Server；约束 `Circle.members ⊆ Realm.members` |
+| Realm 内导航 / 排序 / 结构分组（board / list / folder / project / swimlane / calendar bucket 等） | `ak:space:`，`kind` 表 board / list / folder / project / ... | authorization-transparent 容器；自身不持有 membership / key；`Space.scope_circle_id` 仅决定 Space metadata effective scope，不构成独立 Realm 边界 |
+| Realm 内带 stage / state / fields / track 时间线的协作单元（task / decision / incident / channel 等） | `ak:strand:` | Realm 内协作主体；整 Strand 单一 effective scope（由 `Strand.scope_circle_id` 决定，`null` = Realm-default，否则指向 Circle） |
 | 客户端导航整洁化（"软隐藏一组 Realm"） | （不新建容器）使用 View / Space hierarchy / Realm linking | Realm 间无树形包含关系，仅有 link graph；产品层"我的工作区"为 client-side 概念 |
 
 判定顺序（normative）：
 
-1. 实现 MUST 先确认是否需要独立的 federation / policy / capability registry 边界；仅在此情形升级到独立 `ck:realm:`。
-2. Realm 内若需要独立 membership、history visibility、投递 / 查询裁剪或独立 MLS group，MUST 使用 `ck:circle:`，对象通过 `scope_circle_id` 引用。
-3. 仅用于导航 / 结构分组的容器 MUST 使用 `ck:space:`，MUST NOT 借此获得 membership 或安全边界。
-4. 带协作语义的最小单元 MUST 使用 `ck:strand:`。
+1. 实现 MUST 先确认是否需要独立的 federation / policy / capability registry 边界；仅在此情形升级到独立 `ak:realm:`。
+2. Realm 内若需要独立 membership、history visibility、投递 / 查询裁剪或独立 MLS group，MUST 使用 `ak:circle:`，对象通过 `scope_circle_id` 引用。
+3. 仅用于导航 / 结构分组的容器 MUST 使用 `ak:space:`，MUST NOT 借此获得 membership 或安全边界。
+4. 带协作语义的最小单元 MUST 使用 `ak:strand:`。
 5. 协议演化引入新容器型概念前 MUST 先证明无法分解为以上四类；governance 层若批准新增，须在 [proposals/](../../proposals/) 留档。
 
 子资源 scope 继承（`child_scope_policy`）取值、冲突解析，以及 `Space.scope_circle_id` 与 `default_realm_id` 同时存在时的优先级，权威定义见 [`models/circle.md`](../models/circle.md)（`child_scope_policy` 与 scope 解析优先级）；overview 不重复承载该解析规则。
@@ -97,7 +97,7 @@ Arkret 记录的是 **协作 Event**——授权状态、协作事实、E2EE han
 Event chain 可以由以下形态承载：
 
 - 用户设备上的本地 append-only log。
-- Principal Server 内置的 Event Store Service 与 `/_cokret/self/events/*` API。
+- Principal Server 内置的 Event Store Service 与 `/_arkret/self/events/*` API。
 - 多个受控 storage replica 保存的只读副本。
 - Principal Server 在 DID Document 中声明的服务 endpoint。
 
@@ -205,7 +205,7 @@ Identity 部署常识（无法在 deployment profile 表中表达）：
 - Auth Server 与 Identity Resolution Infrastructure 不必同源部署：登录服务器证明"这个服务账户 / 设备当前绑定到哪个 DID"，identity resolver 返回或验证该 DID 的控制密钥、key state、method history / KERI log 和服务委托；组织 Policy / Authz 再决定授权。
 - 客户端和服务器必须按本地 trust policy 选择 resolver，MUST NOT 因为 DID 字符串可解析就跳过 method evidence、trust root 和 service delegation 校验；私有部署 MAY 只允许 allowlist 中的 resolver trust domain。
 
-某个节点实际支持哪些服务，必须通过 DID Document service entry、`GET /_cokret/describe`、`supported_operations`、conformance profile 和 Realm policy 共同声明。
+某个节点实际支持哪些服务，必须通过 DID Document service entry、`GET /_arkret/describe`、`supported_operations`、conformance profile 和 Realm policy 共同声明。
 
 ## 3. 架构平面（Architectural Planes）
 

@@ -3812,7 +3812,7 @@
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pairing_bootstrap",
         "schema_kind": "object",
         "required": [
-          "cokret_base_url",
+          "arkret_base_url",
           "service_did",
           "agent_principal_id",
           "pairing_request_id",
@@ -3820,7 +3820,7 @@
           "pairing_expires_at"
         ],
         "properties": [
-          "cokret_base_url",
+          "arkret_base_url",
           "service_did",
           "agent_principal_id",
           "pairing_request_id",

@@ -29,33 +29,33 @@ Arkret 的核心数据模型是一张以 Realm 为边界、以标准对象和开
 
 ## 2. Typed ID 一览
 
-每个 Arkret 对象的种类由 `id` 的 typed-id 前缀（`ck:<kind>:`）唯一决定，canonical object 上不再单独写 `type` 字段。typed-id kind 的完整集合与 wire form 以 [`artifacts/registry/id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)（生成自 contract-catalog）为准；本表仅把协作图核心对象索引到详细文档，不是完整 kind 清单。
+每个 Arkret 对象的种类由 `id` 的 typed-id 前缀（`ak:<kind>:`）唯一决定，canonical object 上不再单独写 `type` 字段。typed-id kind 的完整集合与 wire form 以 [`artifacts/registry/id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)（生成自 contract-catalog）为准；本表仅把协作图核心对象索引到详细文档，不是完整 kind 清单。
 
-DID 的使用边界见 [common-fields.md §4.1](./common-fields.md#41-did-适用边界)：DID 标识 actor / principal / issuer / service / device 等主体，不替代 `ck:<kind>:` 对象 ID。
+DID 的使用边界见 [common-fields.md §4.1](./common-fields.md#41-did-适用边界)：DID 标识 actor / principal / issuer / service / device 等主体，不替代 `ak:<kind>:` 对象 ID。
 
 ### 2.1 协作图核心对象
 
 | Typed ID | 对象 | 说明 | 详情 |
 | --- | --- | --- | --- |
-| `ck:realm:` | Realm | security / sync / auth / E2EE 边界 | [realm-and-space.md](./realm-and-space.md) |
-| `ck:circle:` | Circle | Realm 内子事件 / 子消息边界（子集成员 / 独立 history / 投递裁剪；可选独立 MLS group），对象通过 `scope_circle_id` 引用 | [circle.md](./circle.md) |
-| `ck:space:` | Space | 产品结构容器与导航节点（project / folder / board / list / section ...），通过 `realm_id` / `default_realm_id` 解析安全边界 | [realm-and-space.md](./realm-and-space.md) |
-| `ck:strand:` | Strand | 统一协作主对象（task / decision / incident / channel ...） | [strand-and-message.md](./strand-and-message.md) |
-| `ck:message:` | Message | Strand `discussion` track 时间线消息 | [strand-and-message.md](./strand-and-message.md) |
-| `ck:morph:` | Morph | 开放形态对象，承载扩展业务类型 | [morph.md](./morph.md) |
-| `ck:relation:` | Relation | 一等关系对象（contains / replies_to / depends_on ...） | [relation.md](./relation.md) |
-| `ck:actor_profile:` | Actor Profile | Actor 在协作图中的展示镜像 | [actor.md](./actor.md) |
-| `ck:view:` | View | 投影定义（看板 / 列表 / 时间线 / graph / document ...） | [views.md](./views.md) |
-| `ck:event:` | Event | 签名事件，reducer 输入与审计事实 | [event-and-patch.md](./event-and-patch.md) |
+| `ak:realm:` | Realm | security / sync / auth / E2EE 边界 | [realm-and-space.md](./realm-and-space.md) |
+| `ak:circle:` | Circle | Realm 内子事件 / 子消息边界（子集成员 / 独立 history / 投递裁剪；可选独立 MLS group），对象通过 `scope_circle_id` 引用 | [circle.md](./circle.md) |
+| `ak:space:` | Space | 产品结构容器与导航节点（project / folder / board / list / section ...），通过 `realm_id` / `default_realm_id` 解析安全边界 | [realm-and-space.md](./realm-and-space.md) |
+| `ak:strand:` | Strand | 统一协作主对象（task / decision / incident / channel ...） | [strand-and-message.md](./strand-and-message.md) |
+| `ak:message:` | Message | Strand `discussion` track 时间线消息 | [strand-and-message.md](./strand-and-message.md) |
+| `ak:morph:` | Morph | 开放形态对象，承载扩展业务类型 | [morph.md](./morph.md) |
+| `ak:relation:` | Relation | 一等关系对象（contains / replies_to / depends_on ...） | [relation.md](./relation.md) |
+| `ak:actor_profile:` | Actor Profile | Actor 在协作图中的展示镜像 | [actor.md](./actor.md) |
+| `ak:view:` | View | 投影定义（看板 / 列表 / 时间线 / graph / document ...） | [views.md](./views.md) |
+| `ak:event:` | Event | 签名事件，reducer 输入与审计事实 | [event-and-patch.md](./event-and-patch.md) |
 
 ### 2.2 治理对象
 
 | Typed ID | 对象 | 说明 | 详情 |
 | --- | --- | --- | --- |
-| `ck:policy:` | Policy | access / encryption / retention / federation / moderation 等策略 | [governance-objects.md](./governance-objects.md) |
-| `ck:capability:` | Capability Definition | abstract capability definition reference（非签名 grant；签名 grant 用 `ck:grant:`）。真源见 [`id-kind-registry.json` `capability` 条目](../../artifacts/registry/id-kind-registry.json)。 | [governance-objects.md](./governance-objects.md) |
-| `ck:grant:` | Capability Grant | 授权委派 | [governance-objects.md](./governance-objects.md) |
-| `ck:invite:` | Invite | Realm 加入引导 | [governance-objects.md](./governance-objects.md) |
+| `ak:policy:` | Policy | access / encryption / retention / federation / moderation 等策略 | [governance-objects.md](./governance-objects.md) |
+| `ak:capability:` | Capability Definition | abstract capability definition reference（非签名 grant；签名 grant 用 `ak:grant:`）。真源见 [`id-kind-registry.json` `capability` 条目](../../artifacts/registry/id-kind-registry.json)。 | [governance-objects.md](./governance-objects.md) |
+| `ak:grant:` | Capability Grant | 授权委派 | [governance-objects.md](./governance-objects.md) |
+| `ak:invite:` | Invite | Realm 加入引导 | [governance-objects.md](./governance-objects.md) |
 | `ck.schema.*` | Schema | 标准对象 / Morph type / facet / event 的结构与约束 | [governance-objects.md](./governance-objects.md) |
 
 ### 2.3 派生 / 私有对象
@@ -64,29 +64,29 @@ DID 的使用边界见 [common-fields.md §4.1](./common-fields.md#41-did-适用
 
 | Typed ID | 对象 | 说明 | 详情 |
 | --- | --- | --- | --- |
-| `ck:read_cursor:` | Read Cursor | actor-private 已读位置 | [private-objects.md](./private-objects.md) |
-| `ck:notification:` | Notification | inbox projection | [private-objects.md](./private-objects.md) |
+| `ak:read_cursor:` | Read Cursor | actor-private 已读位置 | [private-objects.md](./private-objects.md) |
+| `ak:notification:` | Notification | inbox projection | [private-objects.md](./private-objects.md) |
 
 ### 2.4 内容 / 媒体 / 扩展对象
 
 | Typed ID | 对象 | 说明 | 详情 |
 | --- | --- | --- | --- |
-| `ck:blob:` | Blob | 由 Blob Store 管理的数据，不参与协作图归约。两种形态：`ck:blob:<uuid>` 是 metadata row id；`ck:blob:sha256:...`（`sha256:<hex>`）是内容寻址特殊形态（详见 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)）。 | [extension-objects.md](./extension-objects.md) |
-| `ck:applet:` | Applet | bot / bridge / portal / 集成服务（extension profile） | [extension-objects.md](./extension-objects.md) |
+| `ak:blob:` | Blob | 由 Blob Store 管理的数据，不参与协作图归约。两种形态：`ak:blob:<uuid>` 是 metadata row id；`ak:blob:sha256:...`（`sha256:<hex>`）是内容寻址特殊形态（详见 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)）。 | [extension-objects.md](./extension-objects.md) |
+| `ak:applet:` | Applet | bot / bridge / portal / 集成服务（extension profile） | [extension-objects.md](./extension-objects.md) |
 | Agent runtime | Agent | A2A / ACP 互通运行时 | [extension-objects.md](./extension-objects.md) |
 
 ### 2.5 辅助标识符
 
 | Typed ID | 对象 | 说明 |
 | --- | --- | --- |
-| `ck:receipt:` | Event Batch Receipt | 可选审计 / 同步加速对象，不是 reducer 输入 |
-| `ck:cell:`、`ck:cursor:`、`ck:seal:` | 状态 / 同步原语 | 不是协作图对象；语义见 `authz/event-auth-state-resolution.md`、`sync/operations-sync.md` 与 `conformance/encoding.md` |
+| `ak:receipt:` | Event Batch Receipt | 可选审计 / 同步加速对象，不是 reducer 输入 |
+| `ak:cell:`、`ak:cursor:`、`ak:seal:` | 状态 / 同步原语 | 不是协作图对象；语义见 `authz/event-auth-state-resolution.md`、`sync/operations-sync.md` 与 `conformance/encoding.md` |
 
 字段级、必填性、枚举值与 wire 约束统一以 [`common-fields.md`](./common-fields.md) 与各对象文件中的字段表为准。Schema 引用见 `artifacts/schemas/`，event/operation registry 见 `artifacts/registry/`。
 
 ### 2.6 对象关系总览
 
-下图把核心 typed-id 之间的归属、容纳、引用、投影关系画成一张图。`ck:event:` 是事实根，所有共享对象都是 Event 集合在某个 reducer profile 下的物化结果。
+下图把核心 typed-id 之间的归属、容纳、引用、投影关系画成一张图。`ak:event:` 是事实根，所有共享对象都是 Event 集合在某个 reducer profile 下的物化结果。
 
 ```mermaid
 flowchart TB
@@ -123,10 +123,10 @@ flowchart TB
 读图要点：
 
 - 实线箭头是结构归属或容纳关系；虚线是引用 / 投影 / scope 窄化。
-- `ck:realm:` 是 federation/identity 硬边界——federation、policy、capability registry、Realm-default MLS 都以它为根。`ck:space:` 永远不是边界，Space metadata 由 `realm_id` 指向的 home Realm 授权。
-- `ck:circle:` 是 Realm 内的子事件 / 子消息边界——子集成员 / 独立 history / 投递裁剪；在 E2EE Realm 或 policy 要求下还拥有独立 MLS group。`Strand.scope_circle_id` 指向 Circle 表示整个 Strand（所有 track）落在该 Circle scope。
-- `ck:relation:` 是一等对象，跨对象语义 MUST 通过 Relation 表达，不藏在字段里。
-- `ck:view:` 拥有投影定义的真相，但不持有被投影对象的协作事实。
+- `ak:realm:` 是 federation/identity 硬边界——federation、policy、capability registry、Realm-default MLS 都以它为根。`ak:space:` 永远不是边界，Space metadata 由 `realm_id` 指向的 home Realm 授权。
+- `ak:circle:` 是 Realm 内的子事件 / 子消息边界——子集成员 / 独立 history / 投递裁剪；在 E2EE Realm 或 policy 要求下还拥有独立 MLS group。`Strand.scope_circle_id` 指向 Circle 表示整个 Strand（所有 track）落在该 Circle scope。
+- `ak:relation:` 是一等对象，跨对象语义 MUST 通过 Relation 表达，不藏在字段里。
+- `ak:view:` 拥有投影定义的真相，但不持有被投影对象的协作事实。
 - Discussion 想要独立 membership / history visibility / 投递裁剪或 E2EE 时，整个 Strand 通过 `scope_circle_id` 落在一个 [Circle](./circle.md)；不再有 per-track 安全边界。
 
 ## 3. 设计原则
@@ -135,7 +135,7 @@ flowchart TB
 
 容器选型的 normative 判定顺序以 [`../overview/architecture.md` §2.0](../overview/architecture.md) 为准；本节仅作为模型目录导览，具体字段与 reducer 规则仍以各对象专属文件为准。
 
-每个 `ck:realm:` 都是 security/sync/auth/E2EE 硬边界——复制、权限、schema、policy、membership、history visibility、加密、federation policy 都以它为根。Realm 不承担产品导航树职责：结构性分组、项目、folder、看板、列、泳道、calendar bucket 等由独立的 **Space** 对象（`ck:space:`）承担，Space 永远不形成独立边界。
+每个 `ak:realm:` 都是 security/sync/auth/E2EE 硬边界——复制、权限、schema、policy、membership、history visibility、加密、federation policy 都以它为根。Realm 不承担产品导航树职责：结构性分组、项目、folder、看板、列、泳道、calendar bucket 等由独立的 **Space** 对象（`ak:space:`）承担，Space 永远不形成独立边界。
 
 `security_class=high_assurance` 是 Realm 的可选标签，进一步收紧 federation policy 与默认审计/E2EE 选项。
 
@@ -166,7 +166,7 @@ Facet 字符串本身不是规范性 reducer 或授权来源。任何会改变�
 
 ### 3.4 Relation 是一等对象
 
-跨对象语义 MUST 使用 `relation` 表达，而不是藏在对象字段里。Relation 连接的是对象引用：标准字段 `from_ref` / `to_ref` 指向 canonical 对象的 `ck:<kind>:` typed ID，合法端点 kind 的权威集合（`realm` / `space` / `actor_profile` / `strand` / `message` / `morph` / `relation` / `event` / `view` / `blob`）见 [relation.md §1](./relation.md) 与 [relation.schema.json](../../artifacts/schemas/relation.schema.json)。Actor 端点可用其协作图展示镜像 `ck:actor_profile:`，也可直接使用该 actor 的 DID（principal）（见 [common-fields.md §4.1](./common-fields.md#41-did-适用边界)）。
+跨对象语义 MUST 使用 `relation` 表达，而不是藏在对象字段里。Relation 连接的是对象引用：标准字段 `from_ref` / `to_ref` 指向 canonical 对象的 `ak:<kind>:` typed ID，合法端点 kind 的权威集合（`realm` / `space` / `actor_profile` / `strand` / `message` / `morph` / `relation` / `event` / `view` / `blob`）见 [relation.md §1](./relation.md) 与 [relation.schema.json](../../artifacts/schemas/relation.schema.json)。Actor 端点可用其协作图展示镜像 `ak:actor_profile:`，也可直接使用该 actor 的 DID（principal）（见 [common-fields.md §4.1](./common-fields.md#41-did-适用边界)）。
 
 跨 Realm 引用规则、结构性 Relation 的本地约束（如 `contains` / `belongs_to` 不可跨 Realm）见 [relation.md](./relation.md)。
 

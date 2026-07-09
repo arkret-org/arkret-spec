@@ -11,7 +11,7 @@
   "$defs": {
     "cursor": {
       "type": "string",
-      "pattern": "^ck:cursor:[A-Za-z0-9_-]+$"
+      "pattern": "^ak:cursor:[A-Za-z0-9_-]+$"
     },
     "authz_invite_list": {
       "type": "object",

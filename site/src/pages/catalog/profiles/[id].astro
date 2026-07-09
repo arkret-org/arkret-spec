@@ -8,7 +8,7 @@ export function getStaticPaths() {
   const ids = new Set<string>([
     ...profileMatrix.implementation_profiles,
     ...profileMatrix.deployment_profiles,
-    ...profileMatrix.vector_profiles,
+    ...profileMatrix.vector_groups,
     ...profileMatrix.hardening_profiles,
   ]);
   return Array.from(ids).map((id) => ({ params: { id } }));

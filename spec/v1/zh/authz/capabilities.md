@@ -55,8 +55,8 @@ Authorization condition: Claim / Attestation
 
 ID 语义：
 
-- `ck:grant:<uuid>` 是签名 Capability Grant object 的规范 ID，`ck.schema.capability.v1` 的 `id`、grant reference 和 revoke payload 均使用它。
-- `ck:capability:<uuid>` 只表示抽象 capability definition 引用；MUST NOT 作为签名 grant object ID 使用。
+- `ak:grant:<uuid>` 是签名 Capability Grant object 的规范 ID，`ck.schema.capability.v1` 的 `id`、grant reference 和 revoke payload 均使用它。
+- `ak:capability:<uuid>` 只表示抽象 capability definition 引用；MUST NOT 作为签名 grant object ID 使用。
 
 示例：
 
@@ -130,7 +130,8 @@ Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
 - 越界（`actions[]` 含 issuer 自身不持有的 action，或 `resources[]` 超出 issuer 自身命中范围）时 reducer **MUST** fail closed：对 actions / resources 越界返回 `schema_violation`（`reason="grant_exceeds_issuer_authority"`），对授权前置不成立（issuer 在该 basis 下不持有所需上界能力）返回 `failed_precondition`（`reason="grant_exceeds_issuer_authority"`）。实现 **MUST NOT** 把"持有 `ck.capability.grant` action"误当作"可凭空铸造任意 capability"。
 - 该校验在 issuer 的有效权限随撤销 / 过期收缩时同样适用：issuer 在签发 basis 下不再持有某 action，则不得据此签发包含该 action 的首发 grant。
 - 此规则关闭"窄 `ck.capability.grant` 持有者凭空签出更宽 grant"的权限提升面，与 §10.1 委派收窄对称；它**不**妨碍合法的 admin 角色分配——持有 `ck.realm.admin` 等 admin capability 的 issuer 本身即持有相应 action 上界，因此可正常把这些 action 授予他人。
-- v1 不定义"可凭空授予自身不持有能力"的 sovereign 豁免。若某部署确需此类豁免边界（如 founding admin bootstrap），MUST 由 Realm policy 显式声明该豁免及其权限来源，且 MUST NOT 默认开启；未显式声明时 reducer 按上述上界校验 fail closed。
+- v1 唯一不从既有 grant / role 读取上界的 core 路径，是 [`realm-and-space.md` §2.5](../models/realm-and-space.md#25-ckrealmcreate-reducer-bootstrapnormative) 定义的 **founding grant**：它必须与 `ck.realm.create` 位于同一 ordered submit batch、必须紧随 create、subject / issuer 必须都是 `created_by`，且 actions 与 Realm-wide resource 必须逐字满足该节的封闭形态。该一次性 genesis authority 只授权写出这条 self grant；它不授权给第三方发 grant，也不授权增加其它 action / resource / constraint。任一字段越界，或 batch 外重放该形态，reducer MUST fail closed（`failed_precondition`，`reason="invalid_realm_founding_grant"`）。
+- 除上述封闭 founding grant 外，v1 不定义“可凭空授予自身不持有能力”的 sovereign 豁免。部署 policy 不得自行放宽本节上界；需要不同 bootstrap authority 的 extension 必须注册独立 profile、完整定义机器可验证的权限来源与收窄规则，未声明 / 不支持该 profile 时 fail closed。
 
 **确定性 basis 与 freshness 解耦（normative）**：首发 grant 的 issuer 上界校验 MUST 有确定性求值 basis，不得退化为对 §18.2 freshness 的循环依赖（"上界够新才算够新"）。具体：
 
@@ -654,7 +655,7 @@ canonical 展开表:
 
 委托表示 subject 可以将其能力的一部分再授予第三方。
 
-若 `max_delegation_depth = 0`，则 MUST NOT 继续委托。  
+若 `max_delegation_depth = 0`，则 MUST NOT 继续委托。
 若大于 0，则：
 
 - 每次再授权 MUST 递减深度。
@@ -706,7 +707,7 @@ Delegation Move SHOULD 同时记录签发时点的 parent `auth_state_digest` / 
 
 上游 revoke 的本地可见性优先于 child grant 的 causal 视图：授权解析 `refs[role="parent_grant"]` / `parent_grant_id` 时，reducer MUST 主动查询本地已 accepted 的 grant/revoke index。若任一 ancestor parent grant 在本地已知为 revoked、superseded、expired 或 tombstoned，则 child grant 及依赖它的 Event MUST 立即 `failed_precondition`，`reason="grant_revoked_upstream"`，不得等待 child 的 `prev_refs` 或某个数据面观测 root 自然包含该 revoke。若本地无法确认 parent freshness，则按 §18.2 风险表处理：高风险与跨域 grant 相关 action MUST fail closed，低风险只可进入 pending / limited 模式。
 
-`grant_id` 是授权图的唯一追踪键。所有 reducer-input Event 的 `refs[role="authorized_by"]` MUST 指向 `ck:grant:<uuid>` 或 profile 注册的不可变 grant record id；MUST NOT 指向一次 `ck.self.policy.query.check`（默认 path `/_cokret/self/policy/check`）decision、human role、Event id alias 或当前 membership cell。节点 MUST 为每个 accepted / pending Event 记录 `authorized_by.grant_id[]` 与 grant canonical digest，用于 revoke 后的影响面枚举。revoke 生效后：
+`grant_id` 是授权图的唯一追踪键。所有 reducer-input Event 的 `refs[role="authorized_by"]` MUST 指向 `ak:grant:<uuid>` 或 profile 注册的不可变 grant record id；MUST NOT 指向一次 `ck.self.policy.query.check`（默认 path `/_arkret/self/policy/check`）decision、human role、Event id alias 或当前 membership cell。节点 MUST 为每个 accepted / pending Event 记录 `authorized_by.grant_id[]` 与 grant canonical digest，用于 revoke 后的影响面枚举。revoke 生效后：
 
 1. 该 grant 直接授权的 pending Event MUST fail closed；
 2. 该 grant 派生出的 child grant MUST 标记 `revoked_upstream`。child grant 的有效性 **MUST** 取其**所有** parent path freshness 的最严格值（min over paths）：只要有**任一**关键 ancestor 在该 child 的某条 parent path 上为 `revoked` / `superseded` / `expired` / `tombstoned` / freshness `unknown`，整个 child grant 即 **MUST** 降级 fail-closed，**MUST NOT** 因为存在另一条"仍有效的 alternate parent path"而保持有效。实现 **MUST NOT** 把 multi-path delegation 当作可漂白单条 path 撤销的冗余授权；多 path 只增加约束、不放宽约束。child grant 仅当其**每一条** parent path 上的全部关键 ancestor 都仍有效时才保持有效；
@@ -747,7 +748,7 @@ v1 canonical `ck.capability.revoke` payload MUST 携带顶层 `grant_id`；regis
 
 capability 授权状态投影到 cell family `ck.component.capability.grant.v1`（见 [`registry/event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 的 `ck.capability.grant` / `ck.capability.revoke`），`cell_subject` 从 `payload.grant_id` 派生（每个 `grant_id` 一个 cell），`lattice = or_set`；`ck.capability.delegate` 投影到 `ck.component.capability.delegate.v1`（同收敛规则，另以 `refs[role="parent_grant"]` 维护 delegation 链，见 §10）。收敛规则：
 
-- **grant** = 对该 grant cell 的 or_set **add**：add dot = 该 `ck.capability.grant` 事件的 `ck:event:<event_id>:<effect_index>`，value = grant 的 canonical 快照。
+- **grant** = 对该 grant cell 的 or_set **add**：add dot = 该 `ck.capability.grant` 事件的 `ak:event:<event_id>:<effect_index>`，value = grant 的 canonical 快照。
 - **revoke** = 对**同一** grant cell 的 or_set **remove**，observe 该 grant 的 add dot（与 [`../identity/consent-model.md`](../identity/consent-model.md) 的 consent revoke `observed_dots` 语义一致）。`ck.capability.revoke` 以顶层 `grant_id` 定位目标 cell；reducer **MUST** 在该 revoke Control Move 的 `seal_basis` view 下把目标 grant 的 add dot 解析为合法 add op 后再 supersede。已被 observe-remove 的 add **MUST NOT** 因同 `grant_id` 的后续 re-add / 重放而复活（remove-after-observed-add 为终态）；多 issuer 并发 revoke 同一 grant 收敛于 or_set 的去重语义。
 - **有效性** = 该 grant cell or_set join 后仍存活（未被 observed-remove）的 add 所对应的 grant 快照。对 `ck.component.capability.grant.v1` 这一 grant cell 而言，`bottom` 对 or_set **inert**：or_set join 永不产生 ⊥，[`registry/event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 中该 cell 的 `bottom = reject` 为 registry 声明的占位值，reducer **MUST NOT** 据其产生任何 reject 语义（与 [`../identity/consent-model.md`](../identity/consent-model.md) 对 consent or_set `bottom` 的 inert 处理一致）；有效权限集合始终由 or_set join 决定。该 inert 规则只适用于 capability / consent 这类普通 observed-remove 集合；`ck.component.moderation_state.v1` 的 `bottom=expose` 是显式领域冲突处理，按 [`policy-server.md` §7.2](./policy-server.md) 的 `moderation_control_split` 规则 fail closed 并暴露冲突状态。
 - **GC / tombstone**：已被 sealed 的 grant / revoke 历史保留审计事实（§10.3 第 4 点）；GC 后 cell **MUST** 保留足以判定"该 `grant_id` 当前是否仍授权"的 tombstone，snapshot / range completeness / export **MUST NOT** 把已 revoke 的 grant 再计为"当前仍授权"。

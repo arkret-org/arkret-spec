@@ -24,7 +24,7 @@ Arkret 的核心抽象是 **signed Event + per-actor event chain + Realm + Circl
 
 | 维度 | Matrix | Arkret |
 | --- | --- | --- |
-| 数据根 | Room 内事件流与 room state。 | Realm 内授权 Event 集合，归约为 Realm、Strand、Message、Morph、Relation、View；看板与列容器是独立的 Space 对象（`ck:space:`），永远住在某 Realm 内。 |
+| 数据根 | Room 内事件流与 room state。 | Realm 内授权 Event 集合，归约为 Realm、Strand、Message、Morph、Relation、View；看板与列容器是独立的 Space 对象（`ak:space:`），永远住在某 Realm 内。 |
 | 主要用途 | 即时通信、群聊、VoIP 信令、桥接通信网络。 | 协作对象、任务/看板、聊天/话题、agent 协作、审计工作流。 |
 | 服务器模型 | Homeserver 是用户账号、room 参与和联邦传播的核心服务。 | Principal Server 是 principal 控制或显式委托的服务边界；Events、Sync、Blob、Policy 分层。 |
 | 真相源 | Room event graph 与状态解析。 | Actor/device/service 签名 Event Envelope，加上 Realm reducer；搜索和 View projection 都是派生层。 |
@@ -102,17 +102,17 @@ Matrix 的 Olm / Megolm 生态成熟、部署广泛、客户端实现经验丰�
 
 | Matrix | Arkret | 说明 |
 | --- | --- | --- |
-| Device Ed25519 fingerprint key | `ck:device:` 记录里的 `verify_key` (Ed25519) | Arkret 把 device 公钥写进 `ck:device:` 记录（详见 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §4），并由 `ck.device.authorize` Event 锚定到 principal DID，而非 homeserver 账号。 |
-| Device Curve25519 identity key | `ck:device:` 记录里的 `hpke_key` (X25519) | 用于 HPKE-based to-device 通道、KeyPackage init key 来源、加密 backup envelope 接收。Matrix Curve25519 用于 Olm 长期 DH，语义对等但用途窄一些。 |
+| Device Ed25519 fingerprint key | `ak:device:` 记录里的 `verify_key` (Ed25519) | Arkret 把 device 公钥写进 `ak:device:` 记录（详见 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §4），并由 `ck.device.authorize` Event 锚定到 principal DID，而非 homeserver 账号。 |
+| Device Curve25519 identity key | `ak:device:` 记录里的 `hpke_key` (X25519) | 用于 HPKE-based to-device 通道、KeyPackage init key 来源、加密 backup envelope 接收。Matrix Curve25519 用于 Olm 长期 DH，语义对等但用途窄一些。 |
 | (homeserver 账号绑定) | DID method controller / inception key | Arkret 在 master 密钥之上多一层：DID method 的初始控制材料（`did:webvh` entry-0 controller、`did:plc` rotation key、KERI inception 等）是身份根。principal signing key 的历史归属由 DID method history / key log 表达，而不是 homeserver 内部状态。详见 [`identity/key-management.md`](../identity/key-management.md) §5.0。 |
 
 #### 4.5.2 Prekey 与会话引导
 
 | Matrix | Arkret | 说明 |
 | --- | --- | --- |
-| `/_matrix/client/v3/keys/upload` Curve25519 OTK | `POST /_cokret/self/keys/upload` 的 `one_time_keys` | 语义一致，用于非 MLS 加密或 MLS 引导。一次性 key 的原子消费规则由 key operation 章节定义。 |
+| `/_matrix/client/v3/keys/upload` Curve25519 OTK | `POST /_arkret/self/keys/upload` 的 `one_time_keys` | 语义一致，用于非 MLS 加密或 MLS 引导。一次性 key 的原子消费规则由 key operation 章节定义。 |
 | Fallback key | `fallback_keys` 字段，`fallback=true` 标记 | Arkret 在会话建立后倾向更快轮换；Matrix 行为类似但描述较弱。 |
-| (Olm OTK 同时承担群组成员引导) | MLS KeyPackage 独立 claim API | Arkret 把 MLS KeyPackage 从 OTK 池里拆出来：`/_cokret/self/keys/keypackages/upload`、`/_cokret/self/keys/keypackages/claim`、`/_cokret/self/keys/keypackages/consume`、`/_cokret/self/keys/keypackages/revoke`，并把 capability 子集校验与反枚举失败形态放在 KeyPackage 规范中。Matrix 无对应概念。 |
+| (Olm OTK 同时承担群组成员引导) | MLS KeyPackage 独立 claim API | Arkret 把 MLS KeyPackage 从 OTK 池里拆出来：`/_arkret/self/keys/keypackages/upload`、`/_arkret/self/keys/keypackages/claim`、`/_arkret/self/keys/keypackages/consume`、`/_arkret/self/keys/keypackages/revoke`，并把 capability 子集校验与反枚举失败形态放在 KeyPackage 规范中。Matrix 无对应概念。 |
 
 #### 4.5.3 群组消息密钥
 
@@ -159,7 +159,7 @@ Matrix pusher 把 (user, device, push token) 映射作为 push gateway 可见标
 
 以下密钥类别在 Matrix 中没有显式协议层定义（属于实现侧或 appservice 侧约定），Arkret 在 [`identity/key-management.md`](../identity/key-management.md) §3 中作为一等协议原语：
 
-- **Session key（`ck.session.grant`）**：浏览器、OIDC、SSO、远程执行环境的短期会话密钥。其 audience / origin / service / scope / 过期时间绑定和 DID control state 复验由 key-management 与 account lifecycle 章节定义。
+- **Session key（`ak.session.grant`）**：浏览器、OIDC、SSO、远程执行环境的短期会话密钥。其 audience / origin / service / scope / 过期时间绑定和 DID control state 复验由 key-management 与 account lifecycle 章节定义。
 - **Agent key**：AI agent / bot / CI / automation 的一等密钥类型，带 scope、`expires_at`、accountable actor 绑定；高风险动作可由 proposal / approval 约束。Matrix bot 复用 user / appservice token，没有这一层 scope/审计结构。
 - **Applet delegated device key**：Applet 代表 Ghost Actor 或桥接用户参与 E2EE 时，使用受限的 delegated device 密钥；`device_id` 标记 `applet_id`，capability 限定 Realm / 协议 / 动作 / 有效期，delegated device 不签发新的人类 device。to-device 权限只覆盖其 namespace 内 actor。Matrix appservice 的 ghost user 没有 device-level 委托语义。
 - **Inception key**：DID method 层的初始控制密钥，是 principal control realm genesis 与首台 `ck.device.authorize` 的信任根。常见部署在使用后把它写入 DID method 轮换链并从首台设备销毁，或作为 recovery share 存入 secret storage；日常 device signing 使用独立设备密钥。
@@ -170,7 +170,7 @@ Matrix to-device 验证（SAS / QR）成功后，客户端实现常常顺势把�
 
 | 操作 | Arkret 允许产出 | Arkret 不自动产出 |
 | --- | --- | --- |
-| 登录因子验证（密码 / passkey / OIDC / SSO） | 短期 `ck.session.grant`、触发 recovery、请求已授权设备授权 | 长期 device、`ck.device.authorize`、E2EE 历史密钥访问 |
+| 登录因子验证（密码 / passkey / OIDC / SSO） | 短期 `ak.session.grant`、触发 recovery、请求已授权设备授权 | 长期 device、`ck.device.authorize`、E2EE 历史密钥访问 |
 | 设备授权 | `ck.device.authorize`、DID key-log operation、`ck.device.list_update`、MLS Welcome 资格 | 仅凭密码 / SSO 通过即视作设备授权 |
 | 设备密钥验证（SAS / QR） | `user_signing_key` 签名（跨 principal）、本地信任标记 | 长期 device grant、Realm capability、登录态 |
 
@@ -197,7 +197,7 @@ Matrix to-device 验证（SAS / QR）成功后，客户端实现常常顺势把�
 - covered: secret storage（降为 client-local，wire 走 backup envelope）
 - covered: 群组加密（以 MLS 取代 Megolm，绑定 governance lattice）
 
-Arkret 比 Matrix 多覆盖的：DID-rooted inception、principal control event stream、`ck.session.grant`、agent key、applet delegated device、push 伪名（`push_target_id`）、KeyPackage capability-subset rule、域隔离 backup、解密能力 ≠ 所有权证明的明确禁令。
+Arkret 比 Matrix 多覆盖的：DID-rooted inception、principal control event stream、`ak.session.grant`、agent key、applet delegated device、push 伪名（`push_target_id`）、KeyPackage capability-subset rule、域隔离 backup、解密能力 ≠ 所有权证明的明确禁令。
 
 因此本节认为 Arkret 在 device 密钥这一层已经完善，且与 Matrix 在关键点上的差异都已在协议中规范化定义。未来若出现新的 attack model 或 Matrix 引入新原语（如 MSC 中的 MLS / Olm hybrid），应在本节继续追加对比。
 
@@ -207,7 +207,7 @@ Arkret 比 Matrix 多覆盖的：DID-rooted inception、principal control event 
 
 Matrix 可以承载很多非聊天数据，但它的协议根仍是 room event。
 
-Arkret 从一开始把 Strand、Realm、Space、Message、Morph 和 Relation 都作为协作对象处理；看板与列容器是 Space（`ck:space:`），住在 Realm 内但本身不是安全边界。聊天只是讨论 projection 的一种常见场景，不是所有业务状态的唯一载体。
+Arkret 从一开始把 Strand、Realm、Space、Message、Morph 和 Relation 都作为协作对象处理；看板与列容器是 Space（`ak:space:`），住在 Realm 内但本身不是安全边界。聊天只是讨论 projection 的一种常见场景，不是所有业务状态的唯一载体。
 
 ### 5.2 Power level 与 capability
 
@@ -250,7 +250,7 @@ Matrix event envelope 顶层有 `state_key` 字段，state event 用 `(type, sta
 替代设计：
 
 - 协议状态写入由 DataEvent 或 Control Move 的 `effects[(cell_id, lattice_op)]` 表达。
-- `cell_id` 是显式 canonical cell，例如 `ck:cell:ck.component.member.state.v1:<actor-did>`。
+- `cell_id` 是显式 canonical cell，例如 `ak:cell:ck.component.member.state.v1:<actor-did>`。
 - 每个 cell family 在 registry / Realm schema 中声明 `lattice` 与 `bottom`。
 - Subject 信息仍存在于 payload 或 effect value 中，并由 explicit cell id 承载。
 
@@ -293,7 +293,7 @@ Matrix 的 E2EE（Olm/Megolm）和 room state 是两条并行轨。Arkret v1 引
 
 ### 6.6 Holder-Private Consent
 
-Matrix 没有显式的 consent state——是否接受 invite / DM 由 client UI 处理，不进入协议账本。Arkret v1 引入独立的 [`identity/consent-model.md`](../identity/consent-model.md)：`ck.consent.grant` / `ck.consent.revoke` 是 holder principal control Realm 中的 Move，写入 `ck:cell:ck.component.consent.grant.v1:<consent_id>` cell（or_set, bottom=reject；or_set 本身不产生 ⊥，该 bottom 值与 registry 保持一致），作为 invite / contact 路径的前置 gate。MIMI `request_consent` / `update_consent` 直接映射到这套机制。
+Matrix 没有显式的 consent state——是否接受 invite / DM 由 client UI 处理，不进入协议账本。Arkret v1 引入独立的 [`identity/consent-model.md`](../identity/consent-model.md)：`ck.consent.grant` / `ck.consent.revoke` 是 holder principal control Realm 中的 Move，写入 `ak:cell:ck.component.consent.grant.v1:<consent_id>` cell（or_set, bottom=reject；or_set 本身不产生 ⊥，该 bottom 值与 registry 保持一致），作为 invite / contact 路径的前置 gate。MIMI `request_consent` / `update_consent` 直接映射到这套机制。
 
 **理由**：去中心化协作中 consent 是合规与隐私的核心机制（GDPR、各种联系人骚扰防护、组织间合作授权）。把它建模为签名 Move on consent cell 而非 client-side 偏好，使其可审计、可签名、可跨 deployment 同步。
 

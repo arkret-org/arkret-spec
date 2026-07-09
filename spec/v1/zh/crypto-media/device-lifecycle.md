@@ -14,7 +14,7 @@ updated: 2026-07-02
 
 去中心化协议摒弃了传统的账号+密码中心化认证模式，身份的本质是持有私钥。Arkret 把以下三件事分开处理：
 
-- **登录因子验证**：Auth Server 验证 password、passkey、OIDC、SSO 或 recovery factor，只能产出短期 `ck.session.grant`、触发恢复流程、请求已有设备授权，或（托管 DID 模型，§5.4）经 `ck.gate.account.command.enroll_device` 请求入册权威签发 `service_attested` 设备授权。
+- **登录因子验证**：Auth Server 验证 password、passkey、OIDC、SSO 或 recovery factor，只能产出短期 `ak.session.grant`、触发恢复流程、请求已有设备授权，或（托管 DID 模型，§5.4）经 `ck.gate.account.command.enroll_device` 请求入册权威签发 `service_attested` 设备授权。
 - **设备授权**：新设备成为长期有效设备，MUST 落成 `ck.device.authorize`、DID/key-log operation 或等价 signed event。只有这一步改变设备集合。
 - **设备密钥验证**：SAS/QR 只确认 device key / identity key 的人工信任。验证成功不得自动创建登录态、长期 device grant 或 Realm capability。
 
@@ -32,11 +32,11 @@ Arkret 可以部署 Auth Server（企业 SSO 场景下的部署形态为 Auth Ga
 
 认证成功后，Auth Server MUST 产出以下至少一种可验证绑定：
 
-- `ck.session.grant`：把短期 `session_public_key` 委托给 DID principal / device。
+- `ak.session.grant`：把短期 `session_public_key` 委托给 DID principal / device。
 - `ck.device.authorize`：把新设备公钥加入当前设备集合。
 - 满足 `recovery_policy` 的 `recover` / key-log event。
 
-`session_public_key` 不仅是会话身份标记，还是会话请求的 proof-of-possession 出示密钥：日常受保护请求 SHOULD 用该 key 对请求做 RFC 9421 HTTP Message Signature（sender-constrained 出示），使会话出示与该 key 绑定，仅截获 `ck.session.grant` 不足以重放。行使该 key 出示的具体形态、覆盖的 components 与 replay window 见 [`../sync/api-conventions.md` §3.2](../sync/api-conventions.md) 与 [`../sync/service-http-binding.md` §2.5](../sync/service-http-binding.md)；高安全 deployment profile 下该 PoP 出示对常规写与敏感读升为 MUST。
+`session_public_key` 不仅是会话身份标记，还是会话请求的 proof-of-possession 出示密钥：日常受保护请求 SHOULD 用该 key 对请求做 RFC 9421 HTTP Message Signature（sender-constrained 出示），使会话出示与该 key 绑定，仅截获 `ak.session.grant` 不足以重放。行使该 key 出示的具体形态、覆盖的 components 与 replay window 见 [`../sync/api-conventions.md` §3.2](../sync/api-conventions.md) 与 [`../sync/service-http-binding.md` §2.5](../sync/service-http-binding.md)；高安全 deployment profile 下该 PoP 出示对常规写与敏感读升为 MUST。
 
 资源服务器验证的是 session grant、device authorization、DID proof、capability 和 Realm policy，而不是“用户刚刚输入了正确密码”。密码、SSO session 和 service account id 都不能直接作为 `actor_id`、event sender 或 capability subject。
 
@@ -46,11 +46,11 @@ Arkret 可以部署 Auth Server（企业 SSO 场景下的部署形态为 Auth Ga
 
 Arkret v1 把三件事分开处理：
 
-- **登录因子验证**：Auth Server 验证 password、passkey、OIDC、SSO 或 recovery factor，只能产出短期 `ck.session.grant`、触发恢复流程、请求已有设备授权，或（托管 DID 模型，§5.4）经 `ck.gate.account.command.enroll_device` 请求入册权威签发 `service_attested` 设备授权。
+- **登录因子验证**：Auth Server 验证 password、passkey、OIDC、SSO 或 recovery factor，只能产出短期 `ak.session.grant`、触发恢复流程、请求已有设备授权，或（托管 DID 模型，§5.4）经 `ck.gate.account.command.enroll_device` 请求入册权威签发 `service_attested` 设备授权。
 - **设备授权**：新设备成为长期有效设备，MUST 落成 `ck.device.authorize`、DID/key-log operation 或等价 signed event。只有这一步改变设备集合。
 - **设备密钥验证**：SAS/QR 只确认 device key / identity key 的人工信任。验证成功不得自动创建登录态、长期 device grant 或 Realm capability。
 
-因此“新设备登录”的推荐实现是：新设备先本地生成 device key，使用登录因子或已授权设备完成交互验证，再由当前有效授权方签发 `ck.device.authorize` 或短期 `ck.session.grant`。短期 Web/OIDC 登录可以只使用 `ck.session.grant`；需要 E2EE 历史、secret storage 或长期离线能力时，仍必须走设备授权和设备密钥验证。
+因此“新设备登录”的推荐实现是：新设备先本地生成 device key，使用登录因子或已授权设备完成交互验证，再由当前有效授权方签发 `ck.device.authorize` 或短期 `ak.session.grant`。短期 Web/OIDC 登录可以只使用 `ak.session.grant`；需要 E2EE 历史、secret storage 或长期离线能力时，仍必须走设备授权和设备密钥验证。
 
 
 ## 2. 多设备配对 (Device Pairing)
@@ -64,7 +64,7 @@ Arkret v1 把三件事分开处理：
 3. **密码学授权**：
    - 主设备验证 pairing challenge 后，签发 `ck.device.authorize`、符合 DID method 的 key-log operation，或触发 recovery policy 允许的设备授权流程。
    - DID Document SHOULD 只承载身份控制密钥和服务发现入口。普通设备列表、设备信任状态、吊销状态和算法更新 SHOULD 由 `ck.device.*` 事件、device key log 或受控 device registry 表达；只有 DID method 本身要求时，才把设备 verification method 写入 DID Document。
-   - 短期浏览器或临时执行环境 MAY 只拿到 `ck.session.grant`，但它不改变长期设备集合，也不得访问 E2EE 历史密钥，除非另有有效设备授权和密钥共享流程。
+   - 短期浏览器或临时执行环境 MAY 只拿到 `ak.session.grant`，但它不改变长期设备集合，也不得访问 E2EE 历史密钥，除非另有有效设备授权和密钥共享流程。
 4. **状态下发**：主设备通过点对点信道或安全的 Sync Service，将必要的工作区快照、加密会话历史（通过 MLS Welcome / Commit 把新设备加入合适的 group）同步给新设备。
 5. **事件广播**：主设备向 principal control stream 广播 `ck.device.authorize` 事件；若封装为 Event Envelope，其 `realm_id` 是目标 principal 的 `principal_control_realm_id`。新设备获得的能力由该事件、session grant、Realm capability 和 policy 共同限制，不是自动获得 principal 的全部权限。
 
@@ -92,7 +92,7 @@ Arkret v1 把三件事分开处理：
 ### 3.2 登录时序
 1. **浏览器会话初始化**：员工在浏览器打开 Web 端应用，本地生成临时会话密钥 `session_key`。
 2. **OIDC 重定向**：浏览器跳转至企业 Okta 完成标准的 OAuth2 / OIDC 身份认证。
-3. **网关授权 (Gateway Delegation)**：Okta 认证成功后回调 Auth Gateway。Gateway 验证员工身份无误后，签发短期、受众绑定、scope 受限的 `ck.session.grant`，把 `session_key_pub` 绑定到目标 DID principal、设备、origin、audience、过期时间和允许的 operation 集合。其中绑定的设备 MUST 是客户端持有的稳定协议 `device_id`（`ck:device:<uuid>`，由客户端在认证时显式声明，例如 OAuth `urn:arkret:client:device:<id>` scope 透传到 introspection 的 `org.arkret.device_id` claim）。资源服务器 MUST NOT 从 token / session 标识（如 `jti` / `session_id`）派生或伪造一个 per-token 的 `device_id`——这违反 §4「服务端不得伪造 device identity」，且会让该值在每次 token 轮换时漂移，静默破坏所有按 `(principal, device)` 绑定的不变量（sync cursor 主体/设备匹配、key backup 写入设备授权）。携带认证材料但缺少稳定 device 绑定的会话 MUST 对 device-scoped 操作 fail-closed 拒绝，而非降级放行。
+3. **网关授权 (Gateway Delegation)**：Okta 认证成功后回调 Auth Gateway。Gateway 验证员工身份无误后，签发短期、受众绑定、scope 受限的 `ak.session.grant`，把 `session_key_pub` 绑定到目标 DID principal、设备、origin、audience、过期时间和允许的 operation 集合。其中绑定的设备 MUST 是客户端持有的稳定协议 `device_id`（`ak:device:<uuid>`，由客户端在认证时显式声明，例如 OAuth `urn:arkret:client:device:<id>` scope 透传到 introspection 的 `org.arkret.device_id` claim）。资源服务器 MUST NOT 从 token / session 标识（如 `jti` / `session_id`）派生或伪造一个 per-token 的 `device_id`——这违反 §4「服务端不得伪造 device identity」，且会让该值在每次 token 轮换时漂移，静默破坏所有按 `(principal, device)` 绑定的不变量（sync cursor 主体/设备匹配、key backup 写入设备授权）。携带认证材料但缺少稳定 device 绑定的会话 MUST 对 device-scoped 操作 fail-closed 拒绝，而非降级放行。
 4. **会话生效**：浏览器操作必须同时附带 session grant、device proof 或等价绑定证明。常规写与敏感读 SHOULD 进一步用 `session_key`（即 grant 委托的 `session_public_key`）对每个请求做 RFC 9421 HTTP Message Signature 出示（sender-constrained / PoP，见 [`../sync/api-conventions.md` §3.2](../sync/api-conventions.md)），使会话请求与该 key 绑定，截获 token 不足以重放；高安全 deployment profile 下该出示升为 MUST。资源服务器仍 MUST 重新验证 DID control state、capability、Realm policy、grant scope、audience、origin 和重放状态；不得因为 OIDC 成功就把请求视为 DID 控制证明。
 5. **平滑过期**：session grant SHOULD 使用分钟到小时级 TTL，并支持即时撤销。
 
@@ -100,20 +100,20 @@ Arkret v1 把三件事分开处理：
 
 为在「会话凭据短期有效」与「设备会话可跨多日免重登」之间取得一致,session grant 采用 **grant-binding key 持有绑定 + 滚动轮换**模型:
 
-- **持有绑定(cnf.jkt)**:签发 `ck.session.grant` 时,Auth Server MUST 要求客户端出示一个由其 **grant-binding key**(即 DPoP key,RFC 9449 DPoP 式持有证明)签名的 proof,并把该 key 的 RFC 7638 JWK 指纹写入 grant 的 `cnf.jkt`(RFC 7800 confirmation)。`cnf.jkt` 把 grant 绑定到「持有该私钥的会话/设备」,而非仅记一个 `device_id` 字符串。
-- **grant 直接出示、短期轮换**:Principal Server 不铸第二个本地会话凭据；客户端以 `ck.session.grant` + DPoP 直接访问 `/_cokret/self/*`。grant 自身为分钟到小时级 TTL，客户端在 grant 临期时用**仍有效的 grant** 与同一 grant-binding key 轮换出新 grant。
+- **持有绑定(cnf.jkt)**:签发 `ak.session.grant` 时,Auth Server MUST 要求客户端出示一个由其 **grant-binding key**(即 DPoP key,RFC 9449 DPoP 式持有证明)签名的 proof,并把该 key 的 RFC 7638 JWK 指纹写入 grant 的 `cnf.jkt`(RFC 7800 confirmation)。`cnf.jkt` 把 grant 绑定到「持有该私钥的会话/设备」,而非仅记一个 `device_id` 字符串。
+- **grant 直接出示、短期轮换**:Principal Server 不铸第二个本地会话凭据；客户端以 `ak.session.grant` + DPoP 直接访问 `/_arkret/self/*`。grant 自身为分钟到小时级 TTL，客户端在 grant 临期时用**仍有效的 grant** 与同一 grant-binding key 轮换出新 grant。
 - **轮换(rotation)**:grant 临近自身过期时，客户端用**同一 grant-binding key** 签 DPoP 持有证明，向 Auth Server 的 session-grant 轮换端点(见 [`../sync/service-http-binding.md` §2.3](../sync/service-http-binding.md))换出一张新 grant。Auth Server MUST 校验 proof 的 JWK 指纹等于旧 grant 的 `cnf.jkt`(证明持有同一 grant-binding 私钥)，新 grant 保持 `cnf.jkt` 不变、刷新过期、继承 subject/scope/audience；旧 grant MUST 单次使用吊销。如此滚动使设备会话存活到天级，**直到设备被吊销、grant 链被吊销、或底层 `browser_session` 被终结(登出)**——三者任一即拒绝继续轮换(见 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md))。
 - **不引入长期离线续期凭据**:本协议以「grant-binding key 轮换 grant」承担续期职责,grant 自身保持分钟到小时级 TTL;不依赖、也不要求签发 OAuth `offline_access` 类长期续期凭据。
 - **登出即终结**:轮换链挂靠在 Auth Server 的 `browser_session` 上；`browser_session` 被登出终结后，即便持有正确的 grant-binding 私钥(指纹匹配 `cnf.jkt`)也 MUST NOT 再轮换出新 grant——续期必须重新走完整认证。
 
-**grant-binding key 与设备身份 key 的生命周期正交(normative)**:`grant-binding key` 是**会话认证凭据**,`cnf.jkt`、`ck.session.grant` 轮换与 hard-logout 清除只作用于它；它按 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md) 在 hard logout 时被清除、下次登录轮换,soft recovery 路径保留。§5.2 的**设备身份 key**(`device_public_key` / `verify_key`,签事件 / KeyPackage / MLS leaf)是 E2EE 信任根，只经 `ck.device.revoke` + 重新入册轮换。二者是两个正交角色:**实现即便复用同一密钥字节，也 MUST 保证 grant-binding key 的轮换或清除不导致设备身份 key 变更或被覆盖**——否则一次重新登录即把该设备静默逐出其 MLS 群组并丢失历史解密能力。会话生命周期(登录 / 登出 / grant 轮换)MUST NOT 触发设备身份 key 的重铸(见 §5.2)。
+**grant-binding key 与设备身份 key 的生命周期正交(normative)**:`grant-binding key` 是**会话认证凭据**,`cnf.jkt`、`ak.session.grant` 轮换与 hard-logout 清除只作用于它；它按 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md) 在 hard logout 时被清除、下次登录轮换,soft recovery 路径保留。§5.2 的**设备身份 key**(`device_public_key` / `verify_key`,签事件 / KeyPackage / MLS leaf)是 E2EE 信任根，只经 `ck.device.revoke` + 重新入册轮换。二者是两个正交角色:**实现即便复用同一密钥字节，也 MUST 保证 grant-binding key 的轮换或清除不导致设备身份 key 变更或被覆盖**——否则一次重新登录即把该设备静默逐出其 MLS 群组并丢失历史解密能力。会话生命周期(登录 / 登出 / grant 轮换)MUST NOT 触发设备身份 key 的重铸(见 §5.2)。
 
 此模式只把 Web2 SSO 作为登录因子和会话授权输入。它不授予 E2EE 密钥访问权，不自动创建长期设备，不替代 `ck.device.authorize`、DID/key-log operation 或 recovery policy。
 
 
 ## 4. Device Identity
 
-每个设备 MUST 有稳定 `device_id` 和设备签名密钥。`device_id` 的类型是 `id:device`，wire form MUST 为完整 `ck:device:<uuid>`；当它出现在 JSON object key 中时也同样适用，不得改写成局部别名：
+每个设备 MUST 有稳定 `device_id` 和设备签名密钥。`device_id` 的类型是 `id:device`，wire form MUST 为完整 `ak:device:<uuid>`；当它出现在 JSON object key 中时也同样适用，不得改写成局部别名：
 
 ```json
 {
@@ -263,7 +263,7 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
 | `principal_signing_key` | required | PSK 当前公钥引用。`kid` MUST 出现在该 principal 当前 DID document 或 key-log head 的 verification methods 中；服务端不接受 `kid` 不在当前控制集中的 publish。 |
-| `trust_domain` | required | 部署级 trust domain（`ck:trust_domain:<scope>`）。Receiver MUST 在验证任一 binding 签名前先检查该值与当前接收上下文一致；不一致 MUST `cross_domain_replay_rejected`。 |
+| `trust_domain` | required | 部署级 trust domain（`ak:trust_domain:<scope>`）。Receiver MUST 在验证任一 binding 签名前先检查该值与当前接收上下文一致；不一致 MUST `cross_domain_replay_rejected`。 |
 | `self_signing_key` | required | SSK 公钥 + 由 PSK 对 canonical SSK record 的签名。`binding.verification_method` MUST 与 `principal_signing_key.kid` 相同 DID 控制集。 |
 | `user_signing_key` | required | USK 公钥 + 由 PSK 对 canonical USK record 的签名；MUST 与 `self_signing_key` 不同 `public_key`。 |
 | `expected_previous_generation` | required | CAS precondition。首次 publish 使用 `0`；后续 publish MUST 等于 receiver 当前 accepted generation。 |
@@ -299,7 +299,7 @@ DID-method history → principal_signing_key (PSK)
                        └── user_signing_key (USK)   ── signs ──► other principal's verify_key
 ```
 
-**设备身份 key 稳定性(normative)**:设备的 `device_public_key`(= `verify_key`,per-device Ed25519)是该设备的 E2EE 信任根，签事件、KeyPackage 与 MLS leaf,并投影进设备验签公钥目录(§8.2)供 receiver 解析。它**只经 `ck.device.revoke` + 以新 key 重新入册(= 新设备)轮换**;会话生命周期——登录、登出、`ck.session.grant` 轮换——**MUST NOT** 触发它的重铸或覆盖。与之相对,§3.3 的 grant-binding(DPoP)key 是会话认证凭据，按 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md) 随登出/重登轮换；二者生命周期正交，实现即便复用同一密钥字节，也 MUST 保证 grant-binding key 的轮换不改变设备身份 key(见 §3.3)。
+**设备身份 key 稳定性(normative)**:设备的 `device_public_key`(= `verify_key`,per-device Ed25519)是该设备的 E2EE 信任根，签事件、KeyPackage 与 MLS leaf,并投影进设备验签公钥目录(§8.2)供 receiver 解析。它**只经 `ck.device.revoke` + 以新 key 重新入册(= 新设备)轮换**;会话生命周期——登录、登出、`ak.session.grant` 轮换——**MUST NOT** 触发它的重铸或覆盖。与之相对,§3.3 的 grant-binding(DPoP)key 是会话认证凭据，按 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md) 随登出/重登轮换；二者生命周期正交，实现即便复用同一密钥字节，也 MUST 保证 grant-binding key 的轮换不改变设备身份 key(见 §3.3)。
 
 每条 `ck.device.authorize` 事件 MUST 在 `payload.cross_signing_binding` 字段携带 SSK 对该设备 `verify_key`、`hpke_key` 与声明算法集合的签名：
 
@@ -430,7 +430,7 @@ receiver 接受 `bootstrap_binding` 当且仅当该 principal 的 control stream
 }
 ```
 
-该 `ck.device.authorize` Event 的信封 MUST 采用 [`models/common-fields.md`](../models/common-fields.md) 的委派执行形态：`actor_id` = principal DID（记录主体），`executed_by` = 入册权威 DID（实际写入方，等于 `authority_did`），`authorization_ref` = principal DID 文档中指派该权威的委派条目（`did_delegation_ref`，即 [`identity/identity-did.md`](../identity/identity-did.md) 的 `CokretDeviceEnrollmentAuthority` service 条目，或一条 `capabilityDelegation` verification method）。Event `proofs[]` 由入册权威的签名密钥签发，其 `verification_method` MUST 映射到 `executed_by`（而非 `actor_id`）。入册权威的签名密钥是一把**持久服务密钥**，与 §5.0.1 step5 必须退场的 inception key 无关；Auth Server 等账号权威 **MUST NOT** 持有或伪造本 principal 的 SSK。
+该 `ck.device.authorize` Event 的信封 MUST 采用 [`models/common-fields.md`](../models/common-fields.md) 的委派执行形态：`actor_id` = principal DID（记录主体），`executed_by` = 入册权威 DID（实际写入方，等于 `authority_did`），`authorization_ref` = principal DID 文档中指派该权威的委派条目（`did_delegation_ref`，即 [`identity/identity-did.md`](../identity/identity-did.md) 的 `ArkretDeviceEnrollmentAuthority` service 条目，或一条 `capabilityDelegation` verification method）。Event `proofs[]` 由入册权威的签名密钥签发，其 `verification_method` MUST 映射到 `executed_by`（而非 `actor_id`）。入册权威的签名密钥是一把**持久服务密钥**，与 §5.0.1 step5 必须退场的 inception key 无关；Auth Server 等账号权威 **MUST NOT** 持有或伪造本 principal 的 SSK。
 
 该 Event payload MUST 显式携带 `device_public_key`、`hpke_key` 与 canonical `algorithms` 数组；入册权威的 Event proof 通过 `event_digest` 覆盖这些字段。`algorithms` MUST 按 UTF-8 bytewise 升序排序并去重。Receiver MUST 拒绝缺失 `hpke_key`、缺失 `algorithms`、或只由入册权威证明 verify key 而未证明 HPKE 密封 key 的 `service_attested` 设备授权。
 
@@ -440,7 +440,7 @@ receiver 接受 `service_attested` 的 `ck.device.authorize` 时 MUST 校验：
 2. `proofs[]` 用入册权威 DID **按时点解析**得到的签名公钥验签通过。
 3. `proofs[]` 覆盖的 canonical Event payload 中的 `device_public_key`、`hpke_key` 与 `algorithms` 必须逐字节等于进入设备集投影的 verify key、HPKE key 与算法集合；任何投影替换或重排后不等 MUST fail closed。
 
-`device_id` 是 principal 作用域内的 typed id（`ck:device:<uuid>`），由客户端在该会话内一致使用；入册产生的 `device_public_key` 投影写入设备行时即以该 `device_id` 为键，与会话/恢复查找口径一致。
+`device_id` 是 principal 作用域内的 typed id（`ak:device:<uuid>`），由客户端在该会话内一致使用；入册产生的 `device_public_key` 投影写入设备行时即以该 `device_id` 为键，与会话/恢复查找口径一致。
 
 被接受后，该 device 的 `device_public_key` 作为 principal DID 下的 verification method 进入**设备集投影**（device-set projection），它**不**写入 DID method 的 key log（如 `did:webvh` 的 `did.jsonl`）。在该 profile 下，设备的信任根即"入册权威背书"；E2EE 设备集成员资格由**入册背书的设备集**派生，§5.2 的 SSK cross-signing 为可选增强而非必需。
 
@@ -453,7 +453,7 @@ receiver 接受 `service_attested` 的 `ck.device.authorize` 时 MUST 校验：
 
 **inception 窗口不适用：** `service_attested` 的 `ck.device.authorize` 不携带 `did_inception` ref，[`identity/key-management.md` §5.0.1 step5](../identity/key-management.md) 的 inception key 24h 在线窗口门对其天然 inert。
 
-**客户端请求入口（normative）：** 客户端经 canonical gate 操作 `ck.gate.account.command.enroll_device`（`POST /_cokret/gate/account/device-enroll`，request `account_device_enroll_request_body {device_id, device_public_key, actor_seq, not_before?}`、response `account_device_enroll_outcome {principal_id, device_id, authority_did, authorized_event}`）向其指派的入册权威请求该 `service_attested` 签名。请求 MUST 以当前 `ck.session.grant`（`Authorization: bearer`）+ DPoP proof（用 grant-binding key 签、绑定 grant `cnf.jkt` 与本 endpoint）认证；入册权威校验该会话拥有目标 principal 后，用其持久 enrollment key 铸造 `ck.device.authorize` 并返回完整 Event，客户端原样提交到 `POST /_cokret/self/events`。该操作是 §2.1 `pair_device`（已授权设备 SAS/QR 审批，携 `pairing_code`）之外、用于无兄弟设备可审批的 bootstrap / 首台设备路径。入册权威 endpoint 与其它 `/_cokret/gate/account/*` 同处一个 Account Authority `gate_account_base`。
+**客户端请求入口（normative）：** 客户端经 canonical gate 操作 `ck.gate.account.command.enroll_device`（`POST /_arkret/gate/account/device-enroll`，request `account_device_enroll_request_body {device_id, device_public_key, actor_seq, not_before?}`、response `account_device_enroll_outcome {principal_id, device_id, authority_did, authorized_event}`）向其指派的入册权威请求该 `service_attested` 签名。请求 MUST 以当前 `ak.session.grant`（`Authorization: bearer`）+ DPoP proof（用 grant-binding key 签、绑定 grant `cnf.jkt` 与本 endpoint）认证；入册权威校验该会话拥有目标 principal 后，用其持久 enrollment key 铸造 `ck.device.authorize` 并返回完整 Event，客户端原样提交到 `POST /_arkret/self/events`。该操作是 §2.1 `pair_device`（已授权设备 SAS/QR 审批，携 `pairing_code`）之外、用于无兄弟设备可审批的 bootstrap / 首台设备路径。入册权威 endpoint 与其它 `/_arkret/gate/account/*` 同处一个 Account Authority `gate_account_base`。
 
 ## 5a. Privacy-Preserving Push
 
@@ -464,7 +464,7 @@ Arkret 推送通道设计的目标是在不向 push gateway / vendor、上游 Sy
 - 作用域：`per (recipient_service_did, principal_id, device_id, push_route)`。`recipient_service_did` 是当前 Realm membership delivery binding 指向的 Principal Server service DID；同一 DID 在个人 Principal Server 与组织 Principal Server 上注册同一物理设备时，MUST 使用互相不可链接的 `push_target_id`。`push_route` 标识同一设备上不同 push 通道（如 `apns_main`, `fcm_voip`, `webpush_default`），允许同一设备针对不同通道发布相互不可链接的伪名。
 - 长度：`push_target_id` MUST 至少 128 bit 熵，编码为 base64url（最少 22 字符）；推荐 256 bit。`high_security_organization`、`sovereign_deployment` / `isolated_sovereign_network` 等高安全 deployment profile MUST 使用 ≥ 256 bit 熵（不可链接性是这些场景的硬隐私属性，128 bit 仅为通用下限）。
 - 不可推导性：`push_target_id` MUST NOT 由公开 DID、`device_id`、平台 push token、handle、邮箱或电话号码可推导。生成方式 SHOULD 是 device-local 随机；设备 MAY 用本地 secret 与 `push_route` 派生，前提是源 secret 不可被服务端取回。
-- 标识形态：典型 wire 形态为 typed ID `ck:pseudonym:push:<base64url>`，由 `id-kind-registry.json` 中 `pseudonym` 项授权使用；也可作为 raw base64url 字符串出现在 `ck.device.push_route` 等 actor-private state event payload 中。
+- 标识形态：典型 wire 形态为 typed ID `ak:pseudonym:push:<base64url>`，由 `id-kind-registry.json` 中 `pseudonym` 项授权使用；也可作为 raw base64url 字符串出现在 `ck.device.push_route` 等 actor-private state event payload 中。
 
 ### 5a.2 注册与撤销
 
@@ -535,12 +535,12 @@ To-device wire object MUST 使用 `DeviceMessageEnvelope`，而不是持久 `Eve
 
 `recipient_principal_id` 和 `recipient_device_id` MUST 被签名、device proof 或加密 AAD 覆盖。发送接口使用 `messages.{principal_id}.{device_id}` 做批量路由时，服务端在入队前 MUST 把路径目标复制进 `DeviceMessageEnvelope`，且接收端 MUST 拒绝 envelope 目标与当前登录设备不一致的消息。
 
-To-device 消息是短期队列对象，不是长期 Event history。发送方 MUST 设置 `expires_at`；服务端 MUST 拒绝缺失 `expires_at`、已经过期、早于 `sent_at` 或超过当前 service / Realm / profile TTL 上限的消息。默认最大队列 TTL 为 24 小时；高安全 profile SHOULD 使用更短值。标准验证请求仍受第 8.2 节约束，`request.expires_at` MUST be no later than `timestamp + 10m`。过期消息 MUST 从投递队列中清除，`GET /_cokret/self/device_messages` 不得返回；服务 MAY 仅保留最小幂等记录和脱敏审计摘要到 `expires_at` 后的短 grace period。
+To-device 消息是短期队列对象，不是长期 Event history。发送方 MUST 设置 `expires_at`；服务端 MUST 拒绝缺失 `expires_at`、已经过期、早于 `sent_at` 或超过当前 service / Realm / profile TTL 上限的消息。默认最大队列 TTL 为 24 小时；高安全 profile SHOULD 使用更短值。标准验证请求仍受第 8.2 节约束，`request.expires_at` MUST be no later than `timestamp + 10m`。过期消息 MUST 从投递队列中清除，`GET /_arkret/self/device_messages` 不得返回；服务 MAY 仅保留最小幂等记录和脱敏审计摘要到 `expires_at` 后的短 grace period。
 
 发送接口：
 
 ```http
-POST /_cokret/self/device_messages
+POST /_arkret/self/device_messages
 Authorization: Bearer <token>
 Idempotency-Key: <opaque-string>
 Content-Type: application/json
@@ -599,7 +599,7 @@ Content-Type: application/json
 }
 ```
 
-同一 principal 的新设备请求旧设备验证/授权时，MUST 使用同一 `POST /_cokret/self/device_messages` wire shape 投递 `ck.key.verification.request`。发送方必须是 gate 签发的 grant-binding session，或受限 fresh-device session grant；后者只能发送 `ck.key.verification.*` bootstrap 消息给同 principal 的已授权设备。请求 content SHOULD 携带 `purpose="same_principal_device_authorization"` 和供 UI 比对/后续 gate finalize 使用的 pairing 材料：
+同一 principal 的新设备请求旧设备验证/授权时，MUST 使用同一 `POST /_arkret/self/device_messages` wire shape 投递 `ck.key.verification.request`。发送方必须是 gate 签发的 grant-binding session，或受限 fresh-device session grant；后者只能发送 `ck.key.verification.*` bootstrap 消息给同 principal 的已授权设备。请求 content SHOULD 携带 `purpose="same_principal_device_authorization"` 和供 UI 比对/后续 gate finalize 使用的 pairing 材料：
 
 ```json
 {
@@ -635,7 +635,7 @@ Content-Type: application/json
 }
 ```
 
-接收旧设备 MUST 把 `purpose`、`pairing_code`、`new_device_pubkey.kid`、`challenge_signature`、`gate_audience` 和 `request_canonical_digest` 纳入用户确认与 SAS/QR transcript 绑定；不得只因收到该请求就把新设备标记为 trusted。用户确认后，旧设备通过 `ck.gate.account.command.pair_device` 完成授权落地；本规范不定义 `/_cokret/self/devices/pairing-requests*` 作为授权批准接口。 <!-- lint-ignore: CW001 - forbidden historical path named only as a negative example. -->
+接收旧设备 MUST 把 `purpose`、`pairing_code`、`new_device_pubkey.kid`、`challenge_signature`、`gate_audience` 和 `request_canonical_digest` 纳入用户确认与 SAS/QR transcript 绑定；不得只因收到该请求就把新设备标记为 trusted。用户确认后，旧设备通过 `ck.gate.account.command.pair_device` 完成授权落地；本规范不定义 `/_arkret/self/devices/pairing-requests*` 作为授权批准接口。 <!-- lint-ignore: CW001 - forbidden historical path named only as a negative example. -->
 
 服务端 MUST 以 `(sender, Idempotency-Key)` 幂等。已投递消息的队列删除只由接收设备的显式确认（`ck.self.device_messages.command.ack`，见下文与 [`client-sync.md` §10.1](../sync/client-sync.md)）驱动；sync cursor 推进 MUST NOT 触发删除。To-device 消息 SHOULD 端到端加密；未加密消息只能用于能力发现和验证引导。
 
@@ -644,7 +644,7 @@ Content-Type: application/json
 接收接口：
 
 ```http
-GET /_cokret/self/device_messages?from=<cursor>&limit=<n>
+GET /_arkret/self/device_messages?from=<cursor>&limit=<n>
 Authorization: Bearer <token>
 ```
 
@@ -670,7 +670,7 @@ Authorization: Bearer <token>
 确认接口：
 
 ```http
-POST /_cokret/self/device_messages/ack
+POST /_arkret/self/device_messages/ack
 Authorization: Bearer <token>
 Content-Type: application/json
 ```
@@ -696,12 +696,12 @@ Content-Type: application/json
 设备支持非 MLS 加密或引导 MLS 时，MUST 发布 one-time / fallback prekey：
 
 ```http
-POST /_cokret/self/keys/upload
-POST /_cokret/self/keys/query
-POST /_cokret/self/keys/claim
+POST /_arkret/self/keys/upload
+POST /_arkret/self/keys/query
+POST /_arkret/self/keys/claim
 ```
 
-`POST /_cokret/self/keys/upload` 请求字段：
+`POST /_arkret/self/keys/upload` 请求字段：
 
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
@@ -729,7 +729,7 @@ POST /_cokret/self/keys/claim
 - 批次内每个 `key_record.signature` 仍按其各自语义独立链接到 self-signing / principal key；`device_signature` 额外对**整批**签名，防止服务端或中间人对批次做增删/重排。
 - `device_signature.kid` MUST 指向该设备身份 key；服务端 MUST 用该设备权威 `device_public_key`(§5.2)验签，失败 MUST 拒绝上传（`invalid_param`）。
 
-`POST /_cokret/self/keys/query` 请求字段：
+`POST /_arkret/self/keys/query` 请求字段：
 
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
@@ -769,7 +769,7 @@ POST /_cokret/self/keys/claim
 - **Cross-signing 硬化面**：返回 `cross_signing_binding`（每设备）与 `cross_signing`（每 principal）的客户端 MUST 按 §8.3 独立验证完整交叉签名链，**不信服务端对 `device_signing_key` 的断言**，仅在链验证通过后才接受该 key。服务端对在效 cross-signing 设备 SHOULD 同时返回这些字段；缺失时客户端 MUST 视为 `unverified` 并 fail-closed。
 - **Service-attested 入册面**：使用 §5.4 托管 DID / enrollment-authority 模型的 principal 不产生 `ck.cross_signing.publish`，其设备授权以 accepted `ck.device.authorize` 的 `enrollment_authority_binding` 为信任根。`keys/query` 对这类 active verified 设备返回 `device_signing_key` 或 `hpke_key` 时 MUST 同时返回 `enrollment_authority_binding` 与 `device_authorize_event_id`。客户端在普通事件热路径和 secret / key envelope 密封路径上 MUST 把这二者视为 current principal-control 设备集投影锚：缺失、`kind != "service_attested"`、`device_authorize_event_id` 不合法、投影中的 `device_public_key` / `hpke_key` / `algorithms` 与 accepted Event payload 不等或设备已吊销时 MUST fail closed；不得因缺少 `cross_signing_binding` 把合法 service-attested 设备误判为 Tier-1 降级。
 
-接收方验 envelope / signal proof 时 MUST 按 `verification_method` = `` `{actor}#{device_id}` ``（fragment 是完整 `ck:device:<uuidv7>`）经本目录解析 `device_signing_key` 得 verify_key；设备**吊销**(`device_status != active` 或目录省略 key)、目录**缺失**该 `(actor, device)`、cross-signing 链验证未通过、service-attested 投影锚缺失/不合法、或验签失败者 MUST **fail-closed**：丢弃信号，MUST NOT 触发 UI，持久消息 MUST 标为不可验证且不得当作已验证明文呈现。该规则同时适用于通话信令(详见 [`webrtc-signaling.md` §5.1](./webrtc-signaling.md))与持久消息接收路径。
+接收方验 envelope / signal proof 时 MUST 按 `verification_method` = `` `{actor}#{device_id}` ``（fragment 是完整 `ak:device:<uuidv7>`）经本目录解析 `device_signing_key` 得 verify_key；设备**吊销**(`device_status != active` 或目录省略 key)、目录**缺失**该 `(actor, device)`、cross-signing 链验证未通过、service-attested 投影锚缺失/不合法、或验签失败者 MUST **fail-closed**：丢弃信号，MUST NOT 触发 UI，持久消息 MUST 标为不可验证且不得当作已验证明文呈现。该规则同时适用于通话信令(详见 [`webrtc-signaling.md` §5.1](./webrtc-signaling.md))与持久消息接收路径。
 
 #### 8.3 客户端交叉签名链验证（Tier-2，normative）
 
@@ -781,7 +781,7 @@ POST /_cokret/self/keys/claim
 4. **接受判据**：仅当 1–3 全部得 `cross_signed` 时，客户端方接受 `device_signing_key` 用于 proof 验签；任一步失败 MUST fail closed（按 `unverified` 处理：丢弃该 `(actor,device)` 的 proof，不触发 UI、不入库）。
 5. `device_public_key` 取自 `device_signing_key`(did:key 内嵌的 Ed25519 公钥)，并 MUST 与第 3 步 binding 输入中的 `device_public_key` 为同一把 key——即客户端验证的正是它将用于 proof 验签的那把 key，闭合"目录给的 key ⇔ 被交叉签名背书的 key"。
 
-`POST /_cokret/self/keys/claim` 请求字段：
+`POST /_arkret/self/keys/claim` 请求字段：
 
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
@@ -805,10 +805,10 @@ MLS KeyPackage 使用独立的 single-use claim API，而不是复用 one-time p
 推荐操作：
 
 ```http
-POST /_cokret/self/keys/keypackages/upload
-POST /_cokret/self/keys/keypackages/claim
-POST /_cokret/self/keys/keypackages/consume
-POST /_cokret/self/keys/keypackages/revoke
+POST /_arkret/self/keys/keypackages/upload
+POST /_arkret/self/keys/keypackages/claim
+POST /_arkret/self/keys/keypackages/consume
+POST /_arkret/self/keys/keypackages/revoke
 ```
 
 `upload` 请求字段：
@@ -883,7 +883,7 @@ POST /_cokret/self/keys/keypackages/revoke
 
 - 同一 principal 的新设备登录，验证成功后仍 MUST 通过 `ck.device.authorize`、DID/key-log operation 或 recovery policy 把设备加入有效设备集合。
 - 跨 principal 验证只表达人工信任；通常由本地 `user_signing_key` 签名对方 identity key 或设备 key，不得改变对方设备授权状态。
-- `ck.session.grant` 只授予短期会话能力；不得因 SAS/QR 成功而自动升级为长期设备授权。
+- `ak.session.grant` 只授予短期会话能力；不得因 SAS/QR 成功而自动升级为长期设备授权。
 
 ### 10.1 标准消息类型
 
@@ -982,7 +982,7 @@ QR payload MUST NOT 包含长期私钥、secret storage key、recovery secret �
 2. 发布 `ck.device.list_update`。
 3. 在用户或 policy 允许时，通过加密 to-device 消息共享 `self_signing_key`、secret storage bootstrap 或 MLS Welcome。
 
-当验证目的为 `same_principal_device_authorization` 时，用户确认后的授权落地 MUST 发生在 `/_cokret/gate/account/*` 认证面，默认使用 `ck.gate.account.command.pair_device`。旧设备把验证 transcript 中绑定的 `pairing_code`、`new_device_pubkey`、`challenge_signature` 以及自身 fresh device proof 提交给 gate；gate 返回的 `authorized_event_ref` 只是 durable `ck.device.authorize` / `ck.device.list_update` 已被接受的引用或等价结果。新设备可通过同一 to-device transcript 的 `ck.key.verification.done` 中的 `authorized_event_ref` hint、后续 full `ck.self.account.stream.subscribe` device list baseline，或重新通过 `ck.gate.account.command.issue_session_grant` 升级会话来观察授权结果；它 MUST 验证 durable device list，而不得把 `done` 消息本身当成授权真相源。
+当验证目的为 `same_principal_device_authorization` 时，用户确认后的授权落地 MUST 发生在 `/_arkret/gate/account/*` 认证面，默认使用 `ck.gate.account.command.pair_device`。旧设备把验证 transcript 中绑定的 `pairing_code`、`new_device_pubkey`、`challenge_signature` 以及自身 fresh device proof 提交给 gate；gate 返回的 `authorized_event_ref` 只是 durable `ck.device.authorize` / `ck.device.list_update` 已被接受的引用或等价结果。新设备可通过同一 to-device transcript 的 `ck.key.verification.done` 中的 `authorized_event_ref` hint、后续 full `ck.self.account.stream.subscribe` device list baseline，或重新通过 `ck.gate.account.command.issue_session_grant` 升级会话来观察授权结果；它 MUST 验证 durable device list，而不得把 `done` 消息本身当成授权真相源。
 
 跨 principal 验证完成后，客户端 MAY 使用 `user_signing_key` 对对方 principal identity key 或 device key 生成信任签名。该签名只影响本 principal 的信任视图，不授予对方 Realm capability。
 
@@ -1064,7 +1064,7 @@ Secret storage 用于保存：
 
 `ck.secret_storage.v1` 是 **client-local** envelope，仅用于设备本地或可信操作系统 keychain；**不得作为线级 (wire) 上传格式**。
 
-Device / Key Server 的 `ck.keys.backups.*` endpoint MUST 只接受 `ck.schema.key_backup.v1` wire envelope。任何不符合 `ck.schema.key_backup.v1` 顶层 `required`（含 `series_id` / `series_seq`）的请求体 MUST 返回 `schema_violation`，原因码 `key_backup_wire_schema_required`。Client-local `ck.secret_storage.v1` 存储不受影响，但 MUST NOT 通过 `PUT /_cokret/self/keys/backups/{backup_id}` 同步。
+Device / Key Server 的 `ck.keys.backups.*` endpoint MUST 只接受 `ck.schema.key_backup.v1` wire envelope。任何不符合 `ck.schema.key_backup.v1` 顶层 `required`（含 `series_id` / `series_seq`）的请求体 MUST 返回 `schema_violation`，原因码 `key_backup_wire_schema_required`。Client-local `ck.secret_storage.v1` 存储不受影响，但 MUST NOT 通过 `PUT /_arkret/self/keys/backups/{backup_id}` 同步。
 
 任何同步到 Device / Key Server 或其它远端服务的 secret，MUST 使用 §12 的 `ck.schema.key_backup.v1` envelope，并设置对应 `backup_class`：
 
@@ -1176,17 +1176,17 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
 Device / Key Server 对 encrypted backup object 提供标准操作：
 
 ```http
-PUT /_cokret/self/keys/backups/{backup_id}
-GET /_cokret/self/keys/backups
-POST /_cokret/self/keys/backups/{backup_id}/unlock
-DELETE /_cokret/self/keys/backups/{backup_id}
+PUT /_arkret/self/keys/backups/{backup_id}
+GET /_arkret/self/keys/backups
+POST /_arkret/self/keys/backups/{backup_id}/unlock
+DELETE /_arkret/self/keys/backups/{backup_id}
 ```
 
 `PUT` 请求体 MUST 是 `ck.schema.key_backup.v1`，且 path 中的 `backup_id` MUST 与 body 中的 `backup_id` 一致。`PUT` 按 `(actor_id, backup_id)` 幂等；同一 `backup_id` 若提交不同 canonical content MUST 返回冲突错误。
 
 `PUT` 还 MUST：(a) 校验 `series_seq` 严格大于该 series 已有的最大 sequence（首条 MUST `series_seq=0`）；(b) 校验 `supersedes` 引用的前一条 envelope 存在、`actor_id` / `series_id` 匹配，并由当前 caller 可见；(c) 校验 `supersedes_digest` 等于服务端持有的前一条 canonical_json digest（排除 `auth_data.signature`）；任一失败 MUST 返回 `409 Conflict`，reason 分别为 `series_seq_not_monotonic` / `series_predecessor_not_found` / `series_chain_broken`。
 
-`GET /_cokret/self/keys/backups` 支持 `?series_id=<series_id>` 与 `?backup_class=<class>` 过滤；响应 MUST 按 `series_seq` 升序返回该 series 的全部 envelope metadata，便于 client 重建链。当仅按 `backup_class` 查询且返回多个 series 时，server / client MUST NOT 用返回顺序、最大 `series_seq` 或最新 `created_at` 推断 active series；恢复方 MUST 使用 `identity/key-management.md` §7.6 的 `ck.key_backup.active_series` / `ck.schema.key_backup_active_series.v1` signed active-series record。`list` 响应只返回调用方可见的 backup metadata、digest 和 retention hints；不得越过 `identity/key-management.md` §7.8 的限速。
+`GET /_arkret/self/keys/backups` 支持 `?series_id=<series_id>` 与 `?backup_class=<class>` 过滤；响应 MUST 按 `series_seq` 升序返回该 series 的全部 envelope metadata，便于 client 重建链。当仅按 `backup_class` 查询且返回多个 series 时，server / client MUST NOT 用返回顺序、最大 `series_seq` 或最新 `created_at` 推断 active series；恢复方 MUST 使用 `identity/key-management.md` §7.6 的 `ck.key_backup.active_series` / `ck.schema.key_backup_active_series.v1` signed active-series record。`list` 响应只返回调用方可见的 backup metadata、digest 和 retention hints；不得越过 `identity/key-management.md` §7.8 的限速。
 
 `unlock` 返回完整 encrypted backup object：request body MUST 携带 `ck.schema.key_backup_unlock_proof.v1`（见 `identity/key-management.md` §7.7.1），并受 §7.8 的 fresh device proof 与 rate limit 约束。`delete` MUST 要求当前设备证明、DID proof 或 recovery policy 允许的高风险证明；active series 内的非尾部 envelope MUST NOT 被单独删除，删除链尾部 envelope MUST 同时附 §15 风格的 high-risk proof（principal_signing / device_quorum / trusted_recovery_service）并写入高风险审计。
 
@@ -1195,7 +1195,7 @@ DELETE /_cokret/self/keys/backups/{backup_id}
 | Profile | `delete_after` 默认 | `legal_hold` 行为 |
 | --- | --- | --- |
 | `ck.profile.personal_node.v1` | `null`（无自动过期） | clients-only flag；服务端不强制 |
-| `ck.profile.small_team.v1` | `null` | 仅在组织声明 `ck:policy:<id>` 允许时可置 `true` |
+| `ck.profile.small_team.v1` | `null` | 仅在组织声明 `ak:policy:<id>` 允许时可置 `true` |
 | `ck.profile.organization.v1` | 365d（可被 Realm policy 覆盖） | 服务端 MUST 在 `legal_hold=true` 时阻塞 user-initiated delete |
 | `ck.profile.high_security_organization.v1` | 90d | 服务端 MUST 强制 `legal_hold` 与审计配对 |
 | `ck.profile.sovereign_deployment.v1` | deployment-defined | 与本地法务合规框架对齐 |
@@ -1279,7 +1279,7 @@ Arkret 使用 `ck.realm_key.share` 共享历史解密材料。`share_class="memb
 
 **服务端能力广告**：服务端 MUST 通过 `ServiceDescribe.supported_features` 声明其支持的历史 key 投递途径：
 
-- `ck.feature.realm_key.backup_retrieval.v1`：托管 key_backup 取回（`POST /_cokret/self/keys/backups/{backup_id}/unlock`，见 [`../identity/key-management.md`](../identity/key-management.md) §7.7）。
+- `ck.feature.realm_key.backup_retrieval.v1`：托管 key_backup 取回（`POST /_arkret/self/keys/backups/{backup_id}/unlock`，见 [`../identity/key-management.md`](../identity/key-management.md) §7.7）。
 - `ck.feature.realm_key.peer_relay.v1`：中继 peer 的 `ck.realm_key.request`（device-to-device，经 device message 队列投递）；授权后的 `ck.realm_key.share` / `ck.realm_key.withheld` 仍是 durable event，队列 MAY 只投递其 event ref / 通知。
 - `ck.feature.realm_key.archive_retrieval.v1`：作为 archive_node 服务历史 key。
 
@@ -1394,8 +1394,8 @@ canonical_json({
 
 **`trust_domain` 与 `reset_event_id` 绑定（normative）**：
 
-- `trust_domain` 是部署级的 trust 域标识，typed string，形如 `ck:trust_domain:<scope>`。它在每个 deployment 的 `ServiceDescribe.trust_domain` 与 Realm create object 的 `trust_domain` 中声明（详见 [`identity-did.md` §3.6 Trust Domain](../identity/identity-did.md)）。canonical input MUST 把当前 receive context 的 `trust_domain` 嵌入 proof transcript，使同一 principal DID 在 deployment A 签发的 reset proof 无法被 deployment B 重放——B 的 `trust_domain` 字符串不同，proof signature transcript 校验立即失败 (`invalid_signature`)。
-- `reset_event_id` 是承载该 reset 的 Event Envelope 的 `event_id`（typed `ck:event:<uuidv7>`），由 producer 在签名前分配。把它纳入 transcript 确保同一 reset proof 不能复用到另一个 Event shell（不同 `event_id` ⇒ 不同 transcript ⇒ 签名失败）。这关闭了"复制 reset proof bytes，包到新 Event 里重放"的攻击面。
+- `trust_domain` 是部署级的 trust 域标识，typed string，形如 `ak:trust_domain:<scope>`。它在每个 deployment 的 `ServiceDescribe.trust_domain` 与 Realm create object 的 `trust_domain` 中声明（详见 [`identity-did.md` §3.6 Trust Domain](../identity/identity-did.md)）。canonical input MUST 把当前 receive context 的 `trust_domain` 嵌入 proof transcript，使同一 principal DID 在 deployment A 签发的 reset proof 无法被 deployment B 重放——B 的 `trust_domain` 字符串不同，proof signature transcript 校验立即失败 (`invalid_signature`)。
+- `reset_event_id` 是承载该 reset 的 Event Envelope 的 `event_id`（typed `ak:event:<uuidv7>`），由 producer 在签名前分配。把它纳入 transcript 确保同一 reset proof 不能复用到另一个 Event shell（不同 `event_id` ⇒ 不同 transcript ⇒ 签名失败）。这关闭了"复制 reset proof bytes，包到新 Event 里重放"的攻击面。
 - 这两个字段同时是 `ck.cross_signing.reset` payload 的必填字段（[`cross-signing-reset.schema.json`](../../artifacts/schemas/cross-signing-reset.schema.json) `trust_domain` / `reset_event_id`）。
 - 接收方验证顺序：(a) 检查 `trust_domain` 与本 receiver 当前 trust 域一致；不一致直接 `cross_domain_replay_rejected`，不进入签名校验。(b) 检查 `reset_event_id == enclosing Event.event_id`；不一致 `reset_event_id_mismatch`。(c) 按上面 canonical input 重算 transcript 并验证每个 proof 的签名；任一不匹配 `invalid_signature`。
 - 多 deployment 部署、sovereign trust domain、recovery service 跨域复用、device quorum 跨 trust domain 都受这两个字段保护——任一变化都会让 transcript 失配。

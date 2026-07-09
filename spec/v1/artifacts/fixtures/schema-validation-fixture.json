@@ -29,7 +29,7 @@
         "auth_metadata": {
           "account_authority": {
             "origin": "https://alice.example.net",
-            "gate_account_base": "https://alice.example.net/_cokret/gate/account"
+            "gate_account_base": "https://alice.example.net/_arkret/gate/account"
           },
           "methods": [
             {
@@ -148,7 +148,7 @@
         "auth_metadata": {
           "account_authority": {
             "origin": "https://alice.example.net",
-            "gate_account_base": "https://alice.example.net/_cokret/gate/account"
+            "gate_account_base": "https://alice.example.net/_arkret/gate/account"
           },
           "methods": [
             {
@@ -198,7 +198,7 @@
         "auth_metadata": {
           "account_authority": {
             "origin": "https://alice.example.net",
-            "gate_account_base": "https://alice.example.net/_cokret/gate/account"
+            "gate_account_base": "https://alice.example.net/_arkret/gate/account"
           },
           "methods": [
             {
@@ -1294,7 +1294,7 @@
         "started_at": "2026-05-30T00:00:00Z",
         "completed_at": "2026-05-30T00:00:01Z",
         "auth_data": {
-          "verification_method": "did:webvh:z6mkfixture:alice.example#ck:device:019a6aa0-0000-7000-8000-000000000099",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:019a6aa0-0000-7000-8000-000000000099",
           "signature_algorithm": "Ed25519",
           "signature": "c2ln",
           "signed_fields": [
@@ -1338,7 +1338,7 @@
         "started_at": "2026-05-30T00:00:00Z",
         "completed_at": "2026-05-30T00:00:01Z",
         "auth_data": {
-          "verification_method": "did:webvh:z6mkfixture:alice.example#ck:device:019a6aa0-0000-7000-8000-000000000099",
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:019a6aa0-0000-7000-8000-000000000099",
           "signature_algorithm": "Ed25519",
           "signature": "c2ln",
           "signed_fields": [

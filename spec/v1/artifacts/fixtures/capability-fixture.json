@@ -147,7 +147,7 @@
           "resource": {
             "kind": "relation",
             "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-            "cell": "ak:cell:ck.component.relation.v1:ck:relation:01964180-1000-7000-8000-000000000000"
+            "cell": "ak:cell:ck.component.relation.v1:ak:relation:01964180-1000-7000-8000-000000000000"
           },
           "expected": {
             "decision": "deny",
@@ -161,7 +161,7 @@
           "resource": {
             "kind": "morph",
             "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-            "cell": "ak:cell:ck.component.morph.v1:ck:morph:01964180-2000-7000-8000-000000000000"
+            "cell": "ak:cell:ck.component.morph.v1:ak:morph:01964180-2000-7000-8000-000000000000"
           },
           "expected": {
             "decision": "deny",
@@ -642,6 +642,188 @@
         "history_event_retained": true,
         "revoked_grant_currently_valid": false
       }
+    },
+    {
+      "name": "realm_founding_grant_bootstrap",
+      "vector_id": "ck.vector.capability.realm_founding_grant_bootstrap.v1",
+      "cases": [
+        {
+          "name": "closed_form_founding_grant",
+          "batch_order": [
+            "ck.realm.create",
+            "ck.capability.grant",
+            "ck.realm.policy_components"
+          ],
+          "created_by": "did:webvh:z6mkfixture:founder.example",
+          "founding_grant": {
+            "issuer": "did:webvh:z6mkfixture:founder.example",
+            "subject": "did:webvh:z6mkfixture:founder.example",
+            "actions": [
+              "ck.realm.admin",
+              "ck.capability.grant",
+              "ck.capability.revoke"
+            ],
+            "resources": [
+              {
+                "kind": "realm",
+                "realm_id": "ak:realm:01964120-0000-7000-8000-000000000000",
+                "match_scope": "realm_wide"
+              }
+            ]
+          },
+          "expected": {
+            "decision": "accept_atomically",
+            "creator_membership": "join",
+            "founding_grant_active": true
+          }
+        },
+        {
+          "name": "missing_founding_grant",
+          "batch_order": [
+            "ck.realm.create",
+            "ck.realm.policy_components"
+          ],
+          "expected": {
+            "decision": "reject_atomically",
+            "reason": "realm_founding_grant_missing",
+            "realm_created": false,
+            "creator_membership_written": false
+          }
+        },
+        {
+          "name": "founding_grant_to_third_party_or_widened",
+          "batch_order": [
+            "ck.realm.create",
+            "ck.capability.grant"
+          ],
+          "created_by": "did:webvh:z6mkfixture:founder.example",
+          "founding_grant": {
+            "issuer": "did:webvh:z6mkfixture:founder.example",
+            "subject": "did:webvh:z6mkfixture:other.example",
+            "actions": [
+              "ck.realm.admin",
+              "ck.capability.grant",
+              "ck.capability.revoke",
+              "ck.audit.export"
+            ]
+          },
+          "expected": {
+            "decision": "reject_atomically",
+            "reason": "invalid_realm_founding_grant",
+            "realm_created": false
+          }
+        },
+        {
+          "name": "founding_shape_replayed_after_bootstrap",
+          "same_batch_as_create": false,
+          "expected": {
+            "decision": "reject",
+            "reason": "invalid_realm_founding_grant"
+          }
+        }
+      ]
+    },
+    {
+      "name": "quota_linearizable_authority",
+      "vector_id": "ck.vector.constraint.quota_linearizable_authority.v1",
+      "constraint": {
+        "constraint_type": "quota",
+        "subtype": "rate",
+        "effect": "allow",
+        "max_operations": 100,
+        "period": "PT1H",
+        "constraint_scope": "per_realm"
+      },
+      "cases": [
+        {
+          "name": "two_nodes_race_for_last_slot",
+          "counter_before": 99,
+          "concurrent_nodes": 2,
+          "distinct_idempotency_identities": 2,
+          "expected": {
+            "accepted": 1,
+            "quota_exceeded": 1,
+            "counter_after": 100,
+            "overshoot": 0
+          }
+        },
+        {
+          "name": "idempotent_retry_counts_once",
+          "counter_before": 40,
+          "replays": 3,
+          "same_idempotency_identity": true,
+          "same_canonical_digest": true,
+          "expected": {
+            "successful_outcomes": 3,
+            "counter_after": 41,
+            "business_side_effects": 1
+          }
+        },
+        {
+          "name": "quota_authority_unavailable",
+          "authority_fresh_state_available": false,
+          "expected": {
+            "decision": "fail_closed",
+            "business_side_effects": 0
+          }
+        },
+        {
+          "name": "calendar_month_period_rejected",
+          "override_period": "P1M",
+          "expected": {
+            "decision": "schema_violation"
+          }
+        }
+      ]
+    },
+    {
+      "name": "temporal_action_window",
+      "vector_id": "ck.vector.constraint.temporal_action_window.v1",
+      "constraint": {
+        "constraint_type": "temporal",
+        "subtype": "edit_window",
+        "applies_to_actions": [
+          "ck.message.revise.own"
+        ],
+        "effect": "allow",
+        "message_edit_window": "PT15M"
+      },
+      "target_created_at": "2026-04-26T00:00:00Z",
+      "cases": [
+        {
+          "name": "matching_action_inside_window",
+          "action": "ck.message.revise.own",
+          "verification_time": "2026-04-26T00:10:00Z",
+          "expected_matches": true
+        },
+        {
+          "name": "matching_action_outside_window",
+          "action": "ck.message.revise.own",
+          "verification_time": "2026-04-26T00:21:00Z",
+          "hard_future_skew_ms": 300000,
+          "expected_matches": false
+        },
+        {
+          "name": "unrelated_action_is_neutral_for_allow",
+          "action": "ck.message.create",
+          "verification_time": "2026-04-27T00:00:00Z",
+          "expected_matches": true
+        },
+        {
+          "name": "unrelated_action_does_not_match_deny",
+          "override_effect": "deny",
+          "action": "ck.message.create",
+          "verification_time": "2026-04-26T00:10:00Z",
+          "expected_matches": false
+        },
+        {
+          "name": "missing_verified_target_created_at_fails_closed",
+          "action": "ck.message.revise.own",
+          "target_created_at": null,
+          "verification_time": "2026-04-26T00:10:00Z",
+          "expected_matches": false
+        }
+      ]
     },
     {
       "name": "sensitive_field_handling",

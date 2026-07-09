@@ -12,7 +12,7 @@ authors:
 
 ## 1. Summary
 
-把当前 `labels: array<string>`(common-fields §3 的裸 string 数组,OR-Set 收敛)升级为一等对象 `ck:label:`(带 id / 颜色 / 标题 / 描述 / scope 的可独立编辑实体),通过 `strand --labeled_with--> label` Relation 应用到 Strand / Morph 等对象。
+把当前 `labels: array<string>`(common-fields §3 的裸 string 数组,OR-Set 收敛)升级为一等对象 `ak:label:`(带 id / 颜色 / 标题 / 描述 / scope 的可独立编辑实体),通过 `strand --labeled_with--> label` Relation 应用到 Strand / Morph 等对象。
 
 ## 2. Motivation
 
@@ -31,13 +31,13 @@ Jira / Linear / Asana 都是一等 label 实体。本提案把这层 gap 补上�
 
 ## 3. Specification
 
-### 3.1 `ck:label:` 对象
+### 3.1 `ak:label:` 对象
 
 Schema id: `ck.schema.label.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
-| `id` | yes | `id:label` | `ck:label:<uuid>`(UUIDv7) | Label 对象 ID。 |
+| `id` | yes | `id:label` | `ak:label:<uuid>`(UUIDv7) | Label 对象 ID。 |
 | `realm_id` | yes | `id:realm` | — | 归属 Realm;能看 Realm 即可看其下 Label。 |
 | `key` | yes | `string` | `^[a-z][a-z0-9_-]{0,63}$`;在 `(realm_id, key)` 上 reducer 强制唯一。 | 机器名(稳定,用于 search filter / API)。**create-locked**,与 morph_type 同理(防止 grant selector 漂移)。 |
 | `name` | yes | `string` | 1..64 chars。 | 显示名(可改,与 key 解耦)。 |
@@ -95,7 +95,7 @@ morph --labeled_with-->  label    cardinality: many-to-many
 
 - 新增文件:`spec/v1/zh/models/label.md`(详尽 normative 描述)。
 - 新增 schema:`spec/v1/artifacts/schemas/label.schema.json`。
-- 新增 id-kind:`label` → `ck:label:` 加入 `id-kind-registry.json`。
+- 新增 id-kind:`label` → `ak:label:` 加入 `id-kind-registry.json`。
 - 新增 event_kinds(catalog + registry 同步)5 条;新增 capability actions 2 条。
 - 新增 relation_kind:`labeled_with`(应该已在 relation profile 里能声明,确认即可)。
 - 新增 profile:`ck.profile.label.typed.v1`,声明启用此提案。

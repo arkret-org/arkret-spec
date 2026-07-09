@@ -170,7 +170,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "The abbreviated media participant typed ID prefix was expanded to the full snake_case kind. Current v1 wire MUST use ck:rtc_participant:<uuid>; ck:rtcpart:<uuid> is rejected."
+      "notes": "The abbreviated media participant typed ID prefix was expanded to the full snake_case kind. Current v1 wire MUST use ak:rtc_participant:<uuid>; ak:rtcpart:<uuid> is rejected."
     },
     {
       "id": "hash#key_backup_kdf_params",
@@ -1550,7 +1550,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Blob metadata uses content_digest with an algorithm prefix. Content-addressed blob_ref values may still use ck:blob:sha256:<hex>."
+      "notes": "Blob metadata uses content_digest with an algorithm prefix. Content-addressed blob_ref values may still use ak:blob:sha256:<hex>."
     },
     {
       "id": "size",
@@ -1752,7 +1752,7 @@
       "context": "actor_profile.actor_kind",
       "since_revision": "2026-06-09",
       "rejection_level": "hard_reject",
-      "replacement": "owning user/org principal DID as actor_id; device identity via device_id (ck:device:<uuid>) + ck.device.authorize",
+      "replacement": "owning user/org principal DID as actor_id; device identity via device_id (ak:device:<uuid>) + ck.device.authorize",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",

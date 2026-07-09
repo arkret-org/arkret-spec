@@ -105,7 +105,7 @@ https://app.arkret.example/invite#token=<invite_token>
 **禁止形态**（reducer / 服务端 MUST 拒绝 inbound claim 携带这种 token 来源声明）：
 
 ```text
-forbidden: https://app.arkret.example/invite?token=<invite_token>&realm=ck:realm:...    token in query
+forbidden: https://app.arkret.example/invite?token=<invite_token>&realm=ak:realm:...    token in query
 forbidden: https://app.arkret.example/invite/<invite_token>                              token in path
 ```
 

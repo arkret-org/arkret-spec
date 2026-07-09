@@ -27,7 +27,7 @@ Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法�
 | 项 | v1 默认上限 | 规则 |
 | --- | ---: | --- |
 | 单个 canonical Event / Operation envelope | 1 MiB | 超过时 MUST reject 为 `payload_too_large` 或 `schema_violation`。正文、附件和大对象必须使用 Blob。 |
-| 单次 `/_cokret/self/events` 批量提交的 Event 数 | 1,000 | 超过时 MUST 拆分请求；接收方 MAY 返回 `rate_limited` 或 `payload_too_large`。 |
+| 单次 `/_arkret/self/events` 批量提交的 Event 数 | 1,000 | 超过时 MUST 拆分请求；接收方 MAY 返回 `rate_limited` 或 `payload_too_large`。 |
 | 单个 federation transaction 的 Event 数 | 500 | 超过时 MUST 拆分 transaction；接收方 MAY 返回 `rate_limited` 或 `payload_too_large`。 |
 | 单次 sync / backfill / projection page 返回项 | 1,000 | 执行方 MUST enforce；客户端不得假设更大 page 可用。 |
 | 单个 Event 的 `prev_refs` 数量 | 128 | 超过时 MUST reject（`schema_violation`，`reason_code=prev_refs_too_large`）或要求提交 snapshot / seal 引用；数组项 MUST 去重。 |
@@ -150,7 +150,7 @@ Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一
 | `ck.invite.third_party.expires_at` base-profile 硬上限 | 7 days | 见 [third-party-invites.md](../sync/third-party-invites.md) §6。超过 base-profile 上限的第三方 invite MUST reject 或要求声明扩展 profile + revalidation proof；高安全 / audited / enterprise Realm 的硬上限为 24 hours。 |
 | 第三方 invite `(invite_id, claim_nonce)` replay set TTL | `invite.expires_at + 24h`（下限） | 验证服务 / 接收 Sync Service MUST 至少保留到该窗口结束；窗口内重复 claim MUST 在 reducer 仲裁前拒绝。replay key SHOULD 以 HMAC / hash 存储，不得持久化明文 invite token。 |
 | expired invite token secret zeroize | 24h 内 | `expires_at <= now` 后，服务端 MUST 在 24h 内 zeroize `token_salt` / lookup pepper material，并 GC active commitment 记录；claim 路径返回 `expired_invite_token` 或等价不可枚举错误。 |
-| inception key 在线签名窗口 | 24h（硬上限；推荐 ≤1h） | 见 [key-management.md](../identity/key-management.md) §5.0.1。receiver / Auth Server MUST 独立计算 inception key age；超过 24h 后必须拒绝该 key 签发的 `ck.device.authorize` / `ck.session.grant` / 长期 capability / ordinary DID update，reason_code=`inception_key_window_exceeded`。deployment policy 不得放宽该硬上限。 |
+| inception key 在线签名窗口 | 24h（硬上限；推荐 ≤1h） | 见 [key-management.md](../identity/key-management.md) §5.0.1。receiver / Auth Server MUST 独立计算 inception key age；超过 24h 后必须拒绝该 key 签发的 `ck.device.authorize` / `ak.session.grant` / 长期 capability / ordinary DID update，reason_code=`inception_key_window_exceeded`。deployment policy 不得放宽该硬上限。 |
 | key backup 每 principal 每 24h 下载上限 | 64（memory-hard profile 可声明 16–256） | 见 [key-management.md](../identity/key-management.md) §7.8。实现 MUST 在 `server/describe.limits` 或 profile 参数中公布实际上限；超限 MUST rate-limit / fail closed，并不得在日志或 telemetry 中泄露 plaintext keybag。 |
 | `push_target_id` rotation 周期 | 默认 ≤ 90 days | 见 [device-lifecycle.md](../crypto-media/device-lifecycle.md) §5a.1。客户端 SHOULD 在 push token 变化、设备恢复、out-of-band 重新登录或自定义 rotation 周期到达时轮换；高安全部署 SHOULD 声明更短周期。 |
 | 旧 / 新 `push_target_id` 可逆映射保留 | ≤ 24h，或单条未投递消息 TTL，取较短者 | 服务方只可在 rotation 时短暂保留映射以迁移未投递消息；超过窗口 MUST 物理删除旧 pseudonym 与索引材料，不得保留能把新旧映射回同一 device 的信息。 |

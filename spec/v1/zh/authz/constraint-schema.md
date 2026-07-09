@@ -20,7 +20,7 @@ updated: 2026-07-07
 
 - **Constraint** 是 grant / policy 内的静态声明，描述“这个能力最多可在什么范围内、以什么附加条件行使”。它可以声明需要某类 claim、approval、device/session 或 challenge，但不直接携带一次运行时 allow 结果。
 - **Control Move precondition** 只表达 cell 原子性、state freshness 和 reducer 可验证的因果条件；它不替代授权，也不负责发起外部 claim 查询。DataEvent 不携带 `preconditions[]`，其数据面约束由 causal refs、`seal_ref` 与 Lattice 规则表达。
-- **Policy Server obligation** 是运行时 claim / approval / challenge 的唯一动态评估出口。任何需要检查 issuer revocation、presentation audience、request hash、approval nonce、challenge proof 或外部状态的 constraint，MUST 被归约为 `ck.self.policy.query.check`（默认 path `/_cokret/self/policy/check`）obligation，并由 Policy Server 返回可签名、可重放防护的 proof；reducer 只验证 obligation proof 与原始 request / DataEvent 或 Control Move canonical hash 绑定一致。
+- **Policy Server obligation** 是运行时 claim / approval / challenge 的唯一动态评估出口。任何需要检查 issuer revocation、presentation audience、request hash、approval nonce、challenge proof 或外部状态的 constraint，MUST 被归约为 `ck.self.policy.query.check`（默认 path `/_arkret/self/policy/check`）obligation，并由 Policy Server 返回可签名、可重放防护的 proof；reducer 只验证 obligation proof 与原始 request / DataEvent 或 Control Move canonical hash 绑定一致。
 
 因此，`claim_based` constraint 中的 `requires_claims[]`、approval 字段和 challenge 字段是声明性要求，不得被实现解释成“只要 grant 中列出就自动通过”。没有对应 Policy Server proof / accepted approval Event / reducer 可验证 claim evidence 时，相关动作 MUST fail closed 或进入 pending。
 
@@ -269,7 +269,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 
 `scope_limitation` 约束中的 `allowed_from_container_refs` / `allowed_to_container_refs` MUST 在授权判定中早于 operation 生效。这里的 container 是结构容器概念，不是新的对象类型或 ID 前缀；v1 标准容器由 Space 承担（例如 Board / List / 泳道）。目标 List 禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`ck.strand.move` / `ck.container.move_item` 不得直接生效。
 
-`allowed_space_ids` / `denied_space_ids` MUST 使用 `ck:space:` ID；`allowed_from_container_refs` / `allowed_to_container_refs` 表达可移出 / 可移入的结构容器，也 MUST 使用 `ck:space:`（或 profile 明确声明的 `ck:strand:` / `ck:morph:` 容器对象）。Realm-wide 范围收窄应写在 resource selector 的 `realm:` 维度，不得把 `ck:realm:` 塞进 Space 或 container 字段。
+`allowed_space_ids` / `denied_space_ids` MUST 使用 `ak:space:` ID；`allowed_from_container_refs` / `allowed_to_container_refs` 表达可移出 / 可移入的结构容器，也 MUST 使用 `ak:space:`（或 profile 明确声明的 `ak:strand:` / `ak:morph:` 容器对象）。Realm-wide 范围收窄应写在 resource selector 的 `realm:` 维度，不得把 `ak:realm:` 塞进 Space 或 container 字段。
 
 ### 6.4 服务出口与 presign 范围
 
@@ -367,7 +367,20 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 | `per_realm` | `(actor_id, realm_id)`；操作无法确定目标 Realm 时 MUST fail closed |
 | `global` | `(actor_id)` across the enforcing service's global quota domain；不得把它解释为不受 actor 约束的部署级总量 |
 
-`max_operations` MUST 携带 `constraint_scope`。`period` 窗口使用 §16.1 的同一 verification time；实现不能用本地不一致时钟为不同节点生成彼此不可比较的窗口边界。
+`max_operations` MUST 携带 `constraint_scope`。`period` 用于 quota 时 MUST 是可换算为固定毫秒数的非零 ISO 8601 duration，只允许 week / day / hour / minute / second；year / month 因长度随日历变化而 MUST 被 schema / reducer 拒绝。固定窗口 id 为 `floor(quota_verification_time_unix_ms / period_ms)`，以 Unix epoch UTC 对齐；实现不得按“该节点首次看到请求的时刻”各自滚动窗口。
+
+`subtype=rate` MUST 同时携带 `max_operations`、`period` 与 `constraint_scope`；任一缺失均为 `schema_violation`。`max_operations=0` 是合法的显式全拒绝窗口。`burst` 不得脱离 `max_operations` / `period` 单独出现。
+
+**权威 counter 与多节点原子性（normative）**：每个 `(grant_id, constraint_id-or-canonical-hash, counter key, window_id)` 只能有一个**逻辑 quota authority**。这里“一个”指可由共识 / 事务数据库复制的单一线性化写入点，不要求单进程。执行该 operation 的 service 是 quota domain 的 owner；同一 service 的所有副本、region 与 worker MUST 在产生业务副作用前，对该 authority 执行原子的 `read current → verify limit → reserve/increment`，隔离级别必须保证两个并发请求不可能都观察同一个剩余额度后同时越界提交。按节点维护互不协调的本地 counter、异步汇总后容忍 overshoot、或把 `max_operations` 完整复制给每个节点均不符合 v1 hard-quota 语义。
+
+quota authority MUST 同时满足：
+
+1. `quota_verification_time` 由 authority 的共享时钟 / transaction timestamp 固定，同一次求值只取一次，并受 §16.1 `hard_future_skew_ms` 运维门禁约束；caller / edge node 不得自报窗口时刻。
+2. 计数单位是 operation registry 为该 operation 声明的 idempotency identity；durable Event 写入以稳定 `event_id` 为 identity。相同 identity 的成功重试返回既有 outcome 且只计一次；同 identity 不同 canonical request digest 必须按 `duplicate_conflict` 拒绝；在进入任何业务副作用前被拒绝的请求不消耗额度。
+3. authority 不可达、无法证明最新 counter、事务冲突重试耗尽或窗口时刻不可确定时，hard quota MUST fail closed（`rate_limited` / `quota_exceeded` 或 `failed_precondition`），不得降级为 advisory allow。
+4. `burst` 若存在，表示在同一 authority 上附加 token-bucket 容量；refill rate 固定为 `max_operations / period`，bucket capacity 为 `min(burst, max_operations)`，且 fixed-window 内 accepted 总数仍不得超过 `max_operations`。`burst` 绝不增加窗口总预算。未声明 `burst` 时只执行 fixed-window 上限。
+
+`constraint_scope="global"` 的“global”边界仍是该 enforcing service 的 quota domain（含其全部副本 / region），不是全联邦所有独立 service 的隐式共享计数器。若一个 quota 必须跨多个互不共享线性化存储的独立 authority 生效，v1 core 要求 policy 指定一个共同 quota authority 并让所有写入向其原子 reservation；否则 MUST fail closed。[`event-auth-state-resolution.md` §9.3](./event-auth-state-resolution.md) 的 issuer-local data-plane counter 不能自动充当该共同 authority，也不能把完整预算复制给各 issuer；只有注册了额度分配、回收、epoch 与总和不超发证明的独立 escrow profile 才能替代上述单 authority，v1 core 不定义这样的 multi-authority profile。
 
 ### 8.2 资源限制（subtype=resource）
 
@@ -387,7 +400,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 
 `blob_presign_max_ttl_seconds` 是 `ck.self.blob.command.presign` 的必需约束之一，服务端 MUST 将请求的 `max_age_seconds` 收窄到该值、deployment policy 上限和协议硬上限 3600 秒三者的最小值。`max_artifact_bytes` 限制 applet / agent / export 等操作可产生或外发的单个 artifact 大小。
 
-`max_resources` 与 `max_total_blob_bytes` 这类累计资源 quota 使用 §8.1 的同一 `constraint_scope` 枚举和 counter key 规则，二者均 MUST 携带 `constraint_scope`。`blob_max_bytes` / `max_artifact_bytes` 是单次操作上限，不需要历史计数，也不需要 `constraint_scope`。
+`max_resources` 与 `max_total_blob_bytes` 这类累计资源 quota 使用 §8.1 的同一 `constraint_scope`、window id 与逻辑 quota authority 规则，二者均 MUST 携带 `constraint_scope`。携带 `period` 时按 UTC epoch-aligned window 重置；省略 `period` 时 `window_id="lifetime"`，从该 grant 首次生效起累计到 grant revoke / expiry，绝不按节点重启或本地 cache eviction 清零。authority MUST 在创建 / 删除 / 调整资源的同一原子事务中按**实际 committed delta** reservation / refund，不能先放行业务写入再异步更新累计值；无法把资源写入与 counter 原子提交时 MUST fail closed 或先取得具有唯一 reservation id 的耐久 reservation，并在失败时幂等释放。`blob_max_bytes` / `max_artifact_bytes` 是单次操作上限，不需要历史计数，也不需要 `constraint_scope`。
 
 ## 9. 审批工作流（claim_based, subtype=approval）
 
@@ -619,12 +632,13 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 
 - `message_edit_window`：发送后可编辑消息（`ck.message.revise.own`）的时间窗口，从被编辑 Message 的 `created_at` 起算。
 - `message_redact_window`：发送后可撤回消息（`ck.message.redact.own`）的时间窗口，从被撤回 Message 的 `created_at` 起算。
+- `applies_to_actions`：本 temporal constraint 的 action gate。数组 MUST 非空；本节两种 subtype 必须至少包含各自的 canonical action（`edit_window` 含 `ck.message.revise.own`，`redact_window` 含 `ck.message.redact.own`）。operation.action 不在该数组时，本 constraint 对该 operation 是**不适用（neutral）**：对 `effect=allow` 视作满足，对 `deny` / `quarantine` / `require_review` 视作未命中，绝不能把 action mismatch 当作 allow 失败而拒绝无关动作。
 - `allow_redact_after_window`（默认 `false`）：控制**编辑窗口关闭后撤回是否仍被允许**。它只在约束声明了 `message_edit_window` 时有意义：
-  - `false`（默认）：未单独声明 `message_redact_window` 时，撤回与编辑共享同一时窗——编辑窗口过期后 `ck.message.redact.own` 一并被拒。
+  - `false`（默认）：当本 constraint 的 `applies_to_actions` **同时包含** `ck.message.redact.own` 且未声明 `message_redact_window` 时，撤回与编辑共享同一时窗——编辑窗口过期后 `ck.message.redact.own` 一并被拒。未列出 redact action 时，本 constraint 对 redact neutral，不能连带锁死它。
   - `true`：编辑窗口过期后仍允许撤回（典型"消息可删但不可改"产品语义）；此时撤回判定回退到 `message_redact_window`（若声明）或无上限（若未声明）。
   - 当 `message_redact_window` 已显式声明时，它对撤回具有权威性，`allow_redact_after_window` 不再改变撤回判定（上例中 `PT24H` 是权威撤回窗，`allow_redact_after_window=true` 仅显式表达"撤回不被 15 分钟编辑窗连带锁死"）。
 
-**双窗口与 subtype**：一个 `temporal` 约束 MAY 同时携带 `message_edit_window` 与 `message_redact_window`；其 `subtype` 取 `edit_window` 或 `redact_window` 之一，`applies_to_actions` MUST 列出它治理的全部 action。求值器按字段各自对应的 action enforce（`message_edit_window` → `ck.message.revise.own`；`message_redact_window` → `ck.message.redact.own`），与 `subtype` 标签本身无关。等价地，部署 MAY 把两者拆成两条独立约束（`subtype=edit_window` 一条 + `subtype=redact_window` 一条）。两种写法语义一致。
+**双窗口与 subtype**：一个 `temporal` 约束 MAY 同时携带 `message_edit_window` 与 `message_redact_window`；其 `subtype` 取 `edit_window` 或 `redact_window` 之一，`applies_to_actions` MUST 列出它治理的全部 action。求值器先执行 action gate，再按字段各自对应的 action enforce（`message_edit_window` → `ck.message.revise.own`；`message_redact_window` → `ck.message.redact.own`），与 `subtype` 标签本身无关。若一条双窗口约束治理两种动作，`applies_to_actions` 必须同时列出两者；等价地，部署 MAY 把两者拆成两条独立约束（`subtype=edit_window` 一条 + `subtype=redact_window` 一条）。两种写法语义一致。
 
 **超时行为**：窗口超时后 `ck.message.revise.own` 或 `ck.message.redact.own` MUST 被拒绝（`failed_precondition`），**除非** actor 持有更高权限的 `ck.message.revise` 或 `ck.message.redact`（不带 `.own` 后缀，典型是 moderator / admin）——后者不受 `.own` 时窗约束，使管理员可在窗口外撤回。
 
@@ -725,15 +739,56 @@ function matches_temporal(operation, constraint):
     now = verification_time_from_server_clock()
     skew = hard_future_skew_ms()
 
+    # "not applicable" is neutral for the enclosing effect fold.
+    # allow constraints use true as neutral; deny/quarantine/review use false.
+    if constraint.applies_to_actions:
+        if operation.action not in constraint.applies_to_actions:
+            return constraint.effect == "allow"
+
+    if constraint.subtype in {"edit_window", "redact_window"} and not constraint.applies_to_actions:
+        return false  # schema_violation in schema-aware receivers
+
     if constraint.not_before and now + skew < constraint.not_before:
         return false
     if constraint.expires_at and now - skew > constraint.expires_at:
         return false
     if constraint.recurrence:
-        return matches_recurrence(now, skew, constraint.recurrence)
+        if not matches_recurrence(now, skew, constraint.recurrence):
+            return false
+
+    if operation.action == "ck.message.revise.own" and constraint.message_edit_window:
+        return matches_object_window(
+            operation.target.created_at,
+            constraint.message_edit_window,
+            now,
+            skew)
+
+    if operation.action == "ck.message.redact.own":
+        if constraint.message_redact_window:
+            return matches_object_window(
+                operation.target.created_at,
+                constraint.message_redact_window,
+                now,
+                skew)
+        if constraint.message_edit_window and not constraint.allow_redact_after_window:
+            return matches_object_window(
+                operation.target.created_at,
+                constraint.message_edit_window,
+                now,
+                skew)
 
     return true
+
+function matches_object_window(created_at, duration, now, skew):
+    if not created_at or not is_verified_canonical_timestamp(created_at):
+        return false
+    deadline = add_iso8601_duration_utc(created_at, duration)
+    if not deadline:
+        return false
+    return now - skew <= deadline
 ```
+
+`operation.target.created_at` MUST 来自 reducer 已验证的 canonical target object / Event，不得信任调用方另传的同名字段。目标不存在、`created_at` 不可验证、duration 无法解析或 UTC 加法溢出时 MUST fail closed。window 是从 target `created_at` 起算的闭区间上界；在 `deadline + skew` 之后不匹配。普通 `not_before` / `expires_at` / `recurrence` 与 object window 同时存在时全部按 AND 求交，伪码不得因 recurrence 命中而提前 `return true` 跳过 edit / redact window。
 
 `matches_recurrence(now, skew, recurrence)` 的 v1 语义：
 
@@ -936,8 +991,8 @@ Grant envelope 字段、签名规则与必填性以
 [`artifacts/schemas/capability-grant.schema.json`](../../artifacts/schemas/capability-grant.schema.json)
 为准；下述示例展示 grant 上下文中的典型 typed constraint 组合，不引入新规则。
 
-> Grant 撤销 MUST 表达为 accepted `ck.capability.revoke` Event 指向 `ck:grant:<uuid>`；
-> Arkret v1 不注册 `ck:revocation-list:*` typed ID。
+> Grant 撤销 MUST 表达为 accepted `ck.capability.revoke` Event 指向 `ak:grant:<uuid>`；
+> Arkret v1 不注册 `ak:revocation-list:*` typed ID。
 
 #### 20.3.1 Field-level 与 Type 限制
 
@@ -973,7 +1028,7 @@ Grant envelope 字段、签名规则与必填性以
   "effect": "allow",
   "requires_claims": [
     {
-      "claim_type": "cokret_org_membership_credential",
+      "claim_type": "arkret_org_membership_credential",
       "trusted_issuers": ["did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example"],
       "subject_matches_actor": true,
       "value_constraints": {

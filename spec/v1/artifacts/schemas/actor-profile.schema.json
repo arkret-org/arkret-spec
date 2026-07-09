@@ -14,7 +14,7 @@
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^ck:actor_profile:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      "pattern": "^ak:actor_profile:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
       "const": "ck.schema.actor_profile.v1"
@@ -35,7 +35,7 @@
         "service",
         "integration"
       ],
-      "description": "Directory / UX classification only. MUST NOT participate in authorization, reducer acceptance, capability resolution, or any wire-protocol decision: those MUST consult DID + Grant + Constraint exclusively. Implementations are free to use actor_kind for icon selection, directory filtering and presentation, but a wrong value MUST NOT widen or narrow what a principal can do. Does NOT include 'device': a device is not an actor principal and has no DID of its own; its identity is device_id (ck:device:<uuid>) plus a verification method under the owning principal DID. See zh/models/actor.md."
+      "description": "Directory / UX classification only. MUST NOT participate in authorization, reducer acceptance, capability resolution, or any wire-protocol decision: those MUST consult DID + Grant + Constraint exclusively. Implementations are free to use actor_kind for icon selection, directory filtering and presentation, but a wrong value MUST NOT widen or narrow what a principal can do. Does NOT include 'device': a device is not an actor principal and has no DID of its own; its identity is device_id (ak:device:<uuid>) plus a verification method under the owning principal DID. See zh/models/actor.md."
     },
     "display_name": {
       "type": "string",
@@ -54,7 +54,7 @@
     },
     "avatar_blob_ref": {
       "type": "string",
-      "pattern": "^ck:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
+      "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
     },
     "status": {
       "type": "string",
