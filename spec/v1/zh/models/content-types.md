@@ -24,7 +24,7 @@ Arkret 的 `message` 标准对象、Strand synthesis / discussion 和可讨论�
 
 ### 2.1 Content 是结构化的，不是裸字符串
 
-Message 的 `content` 字段、`ck.message.create` / `ck.message.revise` Event Envelope 的 `payload.content` 或 `payload.encrypted_content` 字段、Strand 的 `content` / `encrypted_content` 字段、Strand discussion 摘要以及 Morph 的 `content` / `encrypted_content` 字段 MUST 使用本规范定义的结构化 JSON 格式或其 canonical encrypted envelope，而非依赖客户端猜测渲染方式。
+Message 的 `content` 字段、`ak.message.create` / `ak.message.revise` Event Envelope 的 `payload.content` 或 `payload.encrypted_content` 字段、Strand 的 `content` / `encrypted_content` 字段、Strand discussion 摘要以及 Morph 的 `content` / `encrypted_content` 字段 MUST 使用本规范定义的结构化 JSON 格式或其 canonical encrypted envelope，而非依赖客户端猜测渲染方式。
 
 ### 2.2 单一 Content Block 架构
 
@@ -56,7 +56,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 因此本文档示例里的 `kind` / `body` / `format` 等字段都是 **Content Block 内部字段**，位于 Message `content` 之下；不要与 Message 顶层字段混在一层理解。
 
-`ck.message.create` / `ck.message.revise` 的未加密 Event payload MUST 将这个 Content Block 对象放在 `payload.content` 字段中；E2EE payload MUST 将同一对象加密后放在 `payload.encrypted_content`。`strand_id`、`blob_refs` 等字段是 envelope / reducer metadata（Message 主键是顶层 `id`，不是 `message_id`；回复关系由 `replies_to` Relation 表达，物化 Message 对象无 `reply_to` 标量字段——`ck.message.create` payload 可携带 `reply_to` 作为创建便利，reducer 据此记录该消息的回复指向并投影为 `replies_to` 关系，不要求单独的 canonical `ck.relation` 事件），不能把消息正文直接写成 payload 顶层 `body`。
+`ak.message.create` / `ak.message.revise` 的未加密 Event payload MUST 将这个 Content Block 对象放在 `payload.content` 字段中；E2EE payload MUST 将同一对象加密后放在 `payload.encrypted_content`。`strand_id`、`blob_refs` 等字段是 envelope / reducer metadata（Message 主键是顶层 `id`，不是 `message_id`；回复关系由 `replies_to` Relation 表达，物化 Message 对象无 `reply_to` 标量字段——`ak.message.create` payload 可携带 `reply_to` 作为创建便利，reducer 据此记录该消息的回复指向并投影为 `replies_to` 关系，不要求单独的 canonical `ak.relation` 事件），不能把消息正文直接写成 payload 顶层 `body`。
 
 这里的 `payload` 指 Event Envelope 的 kind-specific 业务载荷容器；`content` 指该 payload 内部写入 Message / Strand / Morph 正文字段的 Content Block，不是 `payload` 的同义词。
 
@@ -82,7 +82,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 ## 4. 标准内容类型
 
-### 4.1 文本消息 `ck.content.text`
+### 4.1 文本消息 `ak.content.text`
 
 最基础的消息类型。
 
@@ -100,7 +100,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 | `format` | string | SHOULD | 格式化类型：`plain`, `markdown`, `prosemirror_json` |
 | `formatted_body` | string/object | MAY | 结构化的富文本内容（当 format 不为 plain 时使用） |
 
-### 4.2 图片消息 `ck.content.image`
+### 4.2 图片消息 `ak.content.image`
 
 ```json
 {
@@ -132,7 +132,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 | `thumbnail` | object | SHOULD | 缩略图信息 |
 | `alt_text` | string | SHOULD | 无障碍访问文本描述 |
 
-### 4.3 视频消息 `ck.content.video`
+### 4.3 视频消息 `ak.content.video`
 
 ```json
 {
@@ -157,7 +157,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 |------|------|------|------|
 | `duration_ms` | integer | SHOULD | 视频时长（毫秒） |
 
-### 4.4 音频消息 `ck.content.audio`
+### 4.4 音频消息 `ak.content.audio`
 
 ```json
 {
@@ -175,7 +175,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 |------|------|------|------|
 | `waveform` | integer[] | MAY | 波形预览数据（0-100 的整数数组，用于 UI 渲染） |
 
-### 4.5 文件消息 `ck.content.file`
+### 4.5 文件消息 `ak.content.file`
 
 ```json
 {
@@ -192,7 +192,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 |------|------|------|------|
 | `filename` | string | MUST | 原始文件名 |
 
-### 4.6 位置消息 `ck.content.location`
+### 4.6 位置消息 `ak.content.location`
 
 ```json
 {
@@ -210,7 +210,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 | `label` | string | SHOULD | 地点名称 |
 | `description` | string | MAY | 地点补充描述 |
 
-### 4.7 代码块消息 `ck.content.code`
+### 4.7 代码块消息 `ak.content.code`
 
 用于分享代码片段：
 
@@ -228,7 +228,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 | `language` | string | SHOULD | 编程语言标识（用于语法高亮） |
 | `code` | string | MUST | 代码文本内容 |
 
-### 4.8 通知消息 `ck.content.notice`
+### 4.8 通知消息 `ak.content.notice`
 
 由系统或 Bot/Agent 生成的通知性消息，客户端 SHOULD 通过可感知的 presentation invariant 与用户撰写消息区分；具体样式、控件和文案属于实现自由：
 
@@ -241,7 +241,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 }
 ```
 
-### 4.9 投票消息 `ck.content.poll`
+### 4.9 投票消息 `ak.content.poll`
 
 根据去中心化协作需求，投票也是一种标准内容块：
 
@@ -268,25 +268,25 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 | 字段 | 类型 | 必需 | 说明 |
 | --- | --- | --- | --- |
-| `kind` | const `ck.content.poll` | MUST | content block 判别。 |
+| `kind` | const `ak.content.poll` | MUST | content block 判别。 |
 | `body` | `string` | MUST | fallback 文本，用于不支持 poll 渲染的客户端。 |
-| `poll.kind` | `string` | MUST | 计票披露模式；封闭枚举，v1 仅 `disclosed` 一个取值（schema 为 `const`），以 `ck.content.poll` content-block schema 为权威源，客户端 MUST NOT 自行扩展。 |
+| `poll.kind` | `string` | MUST | 计票披露模式；封闭枚举，v1 仅 `disclosed` 一个取值（schema 为 `const`），以 `ak.content.poll` content-block schema 为权威源，客户端 MUST NOT 自行扩展。 |
 | `poll.max_selections` | `integer`（≥ 1） | MUST | 单次响应最多可选 answer 数。 |
 | `poll.question` | content block | MAY | 题干富文本；省略时以 `body` 为题。 |
 | `poll.answers[]` | `array` | MUST | 候选项数组，每项 `{ id: string, text: content block }`；`id` 在同一 poll 内 MUST 唯一。 |
 
-`ck.content.poll.response` block 字段：
+`ak.content.poll.response` block 字段：
 
 | 字段 | 类型 | 必需 | 说明 |
 | --- | --- | --- | --- |
-| `kind` | const `ck.content.poll.response` | MUST | content block 判别。 |
+| `kind` | const `ak.content.poll.response` | MUST | content block 判别。 |
 | `body` | `string` | MUST | fallback 文本。 |
 | `poll_response.poll_ref` | `id:message` | MUST | 指向承载该 poll 的 Message。 |
 | `poll_response.selections` | `array<string>` | MUST | 所选 answer `id` 列表；数量 MUST ≤ 对应 poll 的 `max_selections`。 |
 
-响应投票时，客户端发送 `ck.content.poll.response` Content Block，最小形态为 `{ "kind": "ak.content.poll.response", "body": <fallback>, "poll_response": { "poll_ref": id:message, "selections": array<string> } }`，其中 `poll_ref` 指向承载该 poll 的 Message，`selections` 列出所选 answer `id`（数量 MUST ≤ 对应 poll 的 `max_selections`）。该 block 的 canonical schema 与 `poll` block 一同定义在 `ck.content.poll` 的 content-block schema（见 [`../conformance/schema-registry.md`](../conformance/schema-registry.md) 与 `artifacts/schemas/` 下的 content-block schema）。投票的权威计票仍按 §9 v1 扩展规则由 `poll` Morph / Relation / event reducer 承担，content block 只作为入口或摘要。
+响应投票时，客户端发送 `ak.content.poll.response` Content Block，最小形态为 `{ "kind": "ak.content.poll.response", "body": <fallback>, "poll_response": { "poll_ref": id:message, "selections": array<string> } }`，其中 `poll_ref` 指向承载该 poll 的 Message，`selections` 列出所选 answer `id`（数量 MUST ≤ 对应 poll 的 `max_selections`）。该 block 的 canonical schema 与 `poll` block 一同定义在 `ak.content.poll` 的 content-block schema（见 [`../conformance/schema-registry.md`](../conformance/schema-registry.md) 与 `artifacts/schemas/` 下的 content-block schema）。投票的权威计票仍按 §9 v1 扩展规则由 `poll` Morph / Relation / event reducer 承担，content block 只作为入口或摘要。
 
-### 4.10 复合消息 `ck.content.composite`
+### 4.10 复合消息 `ak.content.composite`
 
 当一条消息包含多种内容（如文字说明 + 图片 + 文件附件）时使用：
 
@@ -322,7 +322,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
-| `parts` | ContentBlock[] | MUST | 按展示顺序排列的 Content Block 数组。`parts` 是 `ck.content.composite` 的 canonical wire 字段名；旧拼写 `blocks` MUST 被 schema 以 `schema_violation` 拒绝（见 [`spec/v1/artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。 |
+| `parts` | ContentBlock[] | MUST | 按展示顺序排列的 Content Block 数组。`parts` 是 `ak.content.composite` 的 canonical wire 字段名；旧拼写 `blocks` MUST 被 schema 以 `schema_violation` 拒绝（见 [`spec/v1/artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。 |
 
 ## 5. Mixin 机制 (附加属性)
 
@@ -369,7 +369,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 ### 7.1 命名空间约定
 
-- 标准类型使用 `ck.content.*` 前缀
+- 标准类型使用 `ak.content.*` 前缀
 - 第三方扩展使用反向域名前缀，例如 `com.acme.content.poll`
 
 ### 7.2 未知类型的处理
@@ -383,13 +383,13 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 在端到端加密场景下：
 - `content` 字段的完整 JSON 对象被加密为 `encrypted_content`
-- `encrypted_content` MUST 符合 `artifacts/schemas/encrypted-envelope.schema.json`；`ck.message.create` / `ck.message.revise` 和 Strand synthesis `content` 使用同一 canonical envelope；没有 `content` 明文对偶的 payload surface MAY 继续使用通用 `encrypted_payload`
+- `encrypted_content` MUST 符合 `artifacts/schemas/encrypted-envelope.schema.json`；`ak.message.create` / `ak.message.revise` 和 Strand synthesis `content` 使用同一 canonical envelope；没有 `content` 明文对偶的 payload surface MAY 继续使用通用 `encrypted_payload`
 - `body` 字段在密文信封中**不保留明文副本**（防止元数据泄露）
 - 用于推送通知的脱敏摘要由发送者的客户端单独生成并附在明文元数据中（参见 `push-notifications.md`）
 
 ## 9. v1 扩展规则
 
-- Emoji / Sticker MUST 作为 `ck.content.image`、`ck.content.file` 或注册的 `ck.content.sticker` block 表达，并引用 content-addressed blob；客户端不得从未授权 URL 热加载私有表情资源。
+- Emoji / Sticker MUST 作为 `ak.content.image`、`ak.content.file` 或注册的 `ak.content.sticker` block 表达，并引用 content-addressed blob；客户端不得从未授权 URL 热加载私有表情资源。
 - 投票 / 表单等交互式消息 SHOULD 使用 `poll` Morph、Relation 和 event reducer 表达；消息中的 content block 只能作为入口或摘要，不能成为唯一计票真相源。
 - URL 预览 MUST 作为可丢弃的 rendering hint 或受控 preview blob 表达。服务端抓取私有链接前必须有用户或 Realm policy 授权，预览服务若接触正文或页面内容，MUST 列入 `plaintext_visible_services`。
 - E2EE 场景下缩略图 SHOULD 由客户端生成并加密上传；服务端生成缩略图前必须被声明为 plaintext-visible service，并遵守 `media-and-blob.md` 的 MIME、缓存和授权规则。

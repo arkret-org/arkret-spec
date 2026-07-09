@@ -20,56 +20,56 @@
       "input": {
         "initial_cells": [
           {
-            "cell": "ak:cell:ck.component.state_root.fixture.v1:cell.001",
+            "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.001",
             "value": {
               "seq": 1,
               "state": "alpha"
             }
           },
           {
-            "cell": "ak:cell:ck.component.state_root.fixture.v1:cell.002",
+            "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.002",
             "value": {
               "seq": 2,
               "state": "bravo"
             }
           },
           {
-            "cell": "ak:cell:ck.component.state_root.fixture.v1:cell.003",
+            "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.003",
             "value": {
               "seq": 3,
               "state": "charlie"
             }
           },
           {
-            "cell": "ak:cell:ck.component.state_root.fixture.v1:cell.004",
+            "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.004",
             "value": {
               "seq": 4,
               "state": "delta"
             }
           },
           {
-            "cell": "ak:cell:ck.component.state_root.fixture.v1:cell.005",
+            "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.005",
             "value": {
               "seq": 5,
               "state": "echo"
             }
           },
           {
-            "cell": "ak:cell:ck.component.state_root.fixture.v1:cell.006",
+            "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.006",
             "value": {
               "seq": 6,
               "state": "foxtrot"
             }
           },
           {
-            "cell": "ak:cell:ck.component.state_root.fixture.v1:cell.007",
+            "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.007",
             "value": {
               "seq": 7,
               "state": "golf"
             }
           },
           {
-            "cell": "ak:cell:ck.component.state_root.fixture.v1:cell.008",
+            "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.008",
             "value": {
               "seq": 8,
               "state": "hotel"
@@ -81,7 +81,7 @@
             "name": "single_cell_update",
             "delta": [
               {
-                "cell": "ak:cell:ck.component.state_root.fixture.v1:cell.003",
+                "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.003",
                 "op": "set",
                 "value": {
                   "seq": 9,
@@ -99,7 +99,7 @@
             "name": "half_cell_update",
             "delta": [
               {
-                "cell": "ak:cell:ck.component.state_root.fixture.v1:cell.002",
+                "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.002",
                 "op": "set",
                 "value": {
                   "seq": 10,
@@ -107,7 +107,7 @@
                 }
               },
               {
-                "cell": "ak:cell:ck.component.state_root.fixture.v1:cell.004",
+                "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.004",
                 "op": "set",
                 "value": {
                   "seq": 11,
@@ -115,7 +115,7 @@
                 }
               },
               {
-                "cell": "ak:cell:ck.component.state_root.fixture.v1:cell.006",
+                "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.006",
                 "op": "set",
                 "value": {
                   "seq": 12,
@@ -123,7 +123,7 @@
                 }
               },
               {
-                "cell": "ak:cell:ck.component.state_root.fixture.v1:cell.008",
+                "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.008",
                 "op": "set",
                 "value": {
                   "seq": 13,
@@ -141,7 +141,7 @@
             "name": "all_cells_update",
             "delta": [
               {
-                "cell": "ak:cell:ck.component.state_root.fixture.v1:cell.001",
+                "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.001",
                 "op": "set",
                 "value": {
                   "seq": 21,
@@ -149,7 +149,7 @@
                 }
               },
               {
-                "cell": "ak:cell:ck.component.state_root.fixture.v1:cell.002",
+                "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.002",
                 "op": "set",
                 "value": {
                   "seq": 22,
@@ -157,7 +157,7 @@
                 }
               },
               {
-                "cell": "ak:cell:ck.component.state_root.fixture.v1:cell.003",
+                "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.003",
                 "op": "set",
                 "value": {
                   "seq": 23,
@@ -165,7 +165,7 @@
                 }
               },
               {
-                "cell": "ak:cell:ck.component.state_root.fixture.v1:cell.004",
+                "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.004",
                 "op": "set",
                 "value": {
                   "seq": 24,
@@ -173,7 +173,7 @@
                 }
               },
               {
-                "cell": "ak:cell:ck.component.state_root.fixture.v1:cell.005",
+                "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.005",
                 "op": "set",
                 "value": {
                   "seq": 25,
@@ -181,7 +181,7 @@
                 }
               },
               {
-                "cell": "ak:cell:ck.component.state_root.fixture.v1:cell.006",
+                "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.006",
                 "op": "set",
                 "value": {
                   "seq": 26,
@@ -189,7 +189,7 @@
                 }
               },
               {
-                "cell": "ak:cell:ck.component.state_root.fixture.v1:cell.007",
+                "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.007",
                 "op": "set",
                 "value": {
                   "seq": 27,
@@ -197,7 +197,7 @@
                 }
               },
               {
-                "cell": "ak:cell:ck.component.state_root.fixture.v1:cell.008",
+                "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.008",
                 "op": "set",
                 "value": {
                   "seq": 28,
@@ -223,7 +223,7 @@
             "name": "new_cell_plus_tombstone",
             "delta": [
               {
-                "cell": "ak:cell:ck.component.state_root.fixture.v1:cell.009",
+                "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.009",
                 "op": "set",
                 "value": {
                   "seq": 31,
@@ -231,7 +231,7 @@
                 }
               },
               {
-                "cell": "ak:cell:ck.component.state_root.fixture.v1:cell.002",
+                "cell": "ak:cell:ak.component.state_root.fixture.v1:cell.002",
                 "op": "tombstone",
                 "value": {
                   "deleted": true,
@@ -241,8 +241,8 @@
             ],
             "expected": {
               "incremental_equals_full": true,
-              "new_cell_present": "ak:cell:ck.component.state_root.fixture.v1:cell.009",
-              "tombstone_cell_remains": "ak:cell:ck.component.state_root.fixture.v1:cell.002",
+              "new_cell_present": "ak:cell:ak.component.state_root.fixture.v1:cell.009",
+              "tombstone_cell_remains": "ak:cell:ak.component.state_root.fixture.v1:cell.002",
               "final_cell_count": 9
             }
           }
@@ -260,7 +260,7 @@
       ],
       "input": {
         "strand_id": "ak:strand:0196419b-0000-7000-8000-000000000901",
-        "cell_id": "ak:cell:ck.component.strand.tracks.v1:ck.strand.0196419b-0000-7000-8000-000000000901",
+        "cell_id": "ak:cell:ak.component.strand.tracks.v1:ak.strand.0196419b-0000-7000-8000-000000000901",
         "initial_tracks": {
           "synthesis": {
             "enabled": true,

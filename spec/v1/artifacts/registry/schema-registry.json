@@ -26,7 +26,7 @@
     {
       "schema_id": "ak.schema.circle.v1",
       "file": "schemas/circle.schema.json",
-      "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or policy server. Introduced by CKP-0007; see zh/models/circle.md."
+      "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or policy server. Introduced by AKP-0007; see zh/models/circle.md."
     },
     {
       "schema_id": "ak.schema.strand.v1",
@@ -40,7 +40,7 @@
       "schema_id": "ak.schema.content_block_poll.v1",
       "file": "schemas/content-block-poll.schema.json",
       "status": "active",
-      "description": "Canonical content-block schema for ck.content.poll and ck.content.poll.response."
+      "description": "Canonical content-block schema for ak.content.poll and ak.content.poll.response."
     },
     {
       "schema_id": "ak.schema.personal_productivity.v1",
@@ -70,7 +70,7 @@
       "schema_id": "ak.schema.rsvp.v1",
       "file": "schemas/rsvp.schema.json",
       "status": "active",
-      "description": "Payload schema for ck.rsvp.set."
+      "description": "Payload schema for ak.rsvp.set."
     },
     {
       "schema_id": "ak.schema.disappearing_messages.v1",
@@ -97,12 +97,12 @@
     {
       "schema_id": "ak.schema.morph.customer_risk.v1",
       "file": "schemas/morph-customer-risk.schema.json",
-      "description": "Reference business-field schema used by the Morph type-system example. It validates the customer_risk fields.status / fields.severity payload carried inside ck.schema.morph.v1 containers."
+      "description": "Reference business-field schema used by the Morph type-system example. It validates the customer_risk fields.status / fields.severity payload carried inside ak.schema.morph.v1 containers."
     },
     {
       "schema_id": "ak.schema.morph.customer_risk.ext.v1",
       "file": "schemas/morph-customer-risk-ext.schema.json",
-      "description": "Reference additive extension business-field schema for the customer_risk example, used by the ck.morph.schema_migrate transformation conformance vectors (ck.vector.morph.transformation_*). Declares the optional renamed score / backfilled priority fields a transformation migration introduces on top of ck.schema.morph.customer_risk.v1."
+      "description": "Reference additive extension business-field schema for the customer_risk example, used by the ak.morph.schema_migrate transformation conformance vectors (ak.vector.morph.transformation_*). Declares the optional renamed score / backfilled priority fields a transformation migration introduces on top of ak.schema.morph.customer_risk.v1."
     },
     {
       "schema_id": "ak.schema.relation.v1",
@@ -142,7 +142,7 @@
       "schema_id": "ak.schema.peer_contact_delivery_request.v1",
       "file": "schemas/peer-contact-delivery-request.schema.json",
       "status": "active",
-      "description": "Private service-to-service contact fact delivery request carrying a signed ck.contact.* envelope and contact_address for cross-Principal-Server projection."
+      "description": "Private service-to-service contact fact delivery request carrying a signed ak.contact.* envelope and contact_address for cross-Principal-Server projection."
     },
     {
       "schema_id": "ak.schema.authz_operations.v1",
@@ -174,7 +174,7 @@
       "format_aliases": [
         "ak.patch.v1"
       ],
-      "description": "Registered schema for the embedded ck.patch.v1 field-patch wire format."
+      "description": "Registered schema for the embedded ak.patch.v1 field-patch wire format."
     },
     {
       "schema_id": "ak.schema.range_completeness_attestation.v1",
@@ -216,49 +216,49 @@
       "schema_id": "ak.schema.account_data_operations.v1",
       "file": "schemas/account-data-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for self-surface actor-private account_data operations (ck.self.account_data.*); see zh/discovery/client-preferences.md."
+      "description": "Closed request/response DTO bundle for self-surface actor-private account_data operations (ak.self.account_data.*); see zh/discovery/client-preferences.md."
     },
     {
       "schema_id": "ak.schema.circle_operations.v1",
       "file": "schemas/circle-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for self-surface Circle administration operations (ck.self.circle.*); see zh/models/circle.md."
+      "description": "Closed request/response DTO bundle for self-surface Circle administration operations (ak.self.circle.*); see zh/models/circle.md."
     },
     {
       "schema_id": "ak.schema.consent_operations.v1",
       "file": "schemas/consent-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for self-surface holder-private consent cell operations (ck.self.consent.*); see zh/identity/consent-model.md."
+      "description": "Closed request/response DTO bundle for self-surface holder-private consent cell operations (ak.self.consent.*); see zh/identity/consent-model.md."
     },
     {
       "schema_id": "ak.schema.read_cursor_operations.v1",
       "file": "schemas/read-cursor-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for self-surface read cursor operations (ck.self.read_cursor.*); see zh/discovery/read-receipts.md."
+      "description": "Closed request/response DTO bundle for self-surface read cursor operations (ak.self.read_cursor.*); see zh/discovery/read-receipts.md."
     },
     {
       "schema_id": "ak.schema.realm_link_operations.v1",
       "file": "schemas/realm-link-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for self-surface cross-Realm link operations (ck.self.realm_link.*); see zh/models/realm-links.md."
+      "description": "Closed request/response DTO bundle for self-surface cross-Realm link operations (ak.self.realm_link.*); see zh/models/realm-links.md."
     },
     {
       "schema_id": "ak.schema.realm_organization_operations.v1",
       "file": "schemas/realm-organization-operations.schema.json",
       "status": "active",
-      "description": "Closed response DTO bundle for self-surface Realm organization relationship reads (ck.self.realm_organization.*); see zh/models/realm-and-space.md."
+      "description": "Closed response DTO bundle for self-surface Realm organization relationship reads (ak.self.realm_organization.*); see zh/models/realm-and-space.md."
     },
     {
       "schema_id": "ak.schema.realm_policy_server_operations.v1",
       "file": "schemas/realm-policy-server-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for self-surface Realm policy-server config operations (ck.self.realm_policy_server.*); see zh/authz/policy-server.md."
+      "description": "Closed request/response DTO bundle for self-surface Realm policy-server config operations (ak.self.realm_policy_server.*); see zh/authz/policy-server.md."
     },
     {
       "schema_id": "ak.schema.realm_read_operations.v1",
       "file": "schemas/realm-read-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for self-surface Realm read and moderation-policy operations (ck.self.realm.*); see zh/models/realm-and-space.md and zh/governance/content-moderation.md."
+      "description": "Closed request/response DTO bundle for self-surface Realm read and moderation-policy operations (ak.self.realm.*); see zh/models/realm-and-space.md and zh/governance/content-moderation.md."
     },
     {
       "schema_id": "ak.schema.contact_operations.v1",
@@ -312,7 +312,7 @@
       "schema_id": "ak.schema.key_backup_plaintext.v1",
       "file": "schemas/key-backup-plaintext.schema.json",
       "status": "active",
-      "description": "Canonical plaintext keybag opened from a ck.schema.key_backup.v1 envelope."
+      "description": "Canonical plaintext keybag opened from a ak.schema.key_backup.v1 envelope."
     },
     {
       "schema_id": "ak.schema.key_backup_unlock_proof.v1",
@@ -324,7 +324,7 @@
       "schema_id": "ak.schema.recovery_policy.v1",
       "file": "schemas/recovery-policy.schema.json",
       "status": "active",
-      "description": "Wire payload schema for the principal recovery policy. Bound to the Principal Control Realm via signed publish / rotate / share-revoke; receivers MUST reject recovery / rotate / ck.device.authorize and cross-signing-reset evidence whose proof family is not allowed by the currently accepted recovery policy. See identity/key-management.md §3.3 / §7 / §8."
+      "description": "Wire payload schema for the principal recovery policy. Bound to the Principal Control Realm via signed publish / rotate / share-revoke; receivers MUST reject recovery / rotate / ak.device.authorize and cross-signing-reset evidence whose proof family is not allowed by the currently accepted recovery policy. See identity/key-management.md §3.3 / §7 / §8."
     },
     {
       "schema_id": "ak.schema.recovery_session.v1",
@@ -386,7 +386,7 @@
       "schema_id": "ak.schema.member_identity.v1",
       "file": "schemas/member-identity.schema.json",
       "status": "active",
-      "description": "Realm-scoped member display/subject projection carried by ck.member.identity.update; handle lifecycle is carried by ck.schema.handle_claim.v1."
+      "description": "Realm-scoped member display/subject projection carried by ak.member.identity.update; handle lifecycle is carried by ak.schema.handle_claim.v1."
     },
     {
       "schema_id": "ak.schema.handle_claim.v1",
@@ -448,13 +448,13 @@
       "schema_id": "ak.schema.applet.v1",
       "file": "schemas/applet.schema.json",
       "status": "active",
-      "description": "Schema-registry object for applet protocol metadata snapshots. Event payloads for ck.applet.* use typed payload definitions in event-payload.schema.json."
+      "description": "Schema-registry object for applet protocol metadata snapshots. Event payloads for ak.applet.* use typed payload definitions in event-payload.schema.json."
     },
     {
       "schema_id": "ak.schema.applet_package.v1",
       "file": "schemas/applet-package.schema.json",
       "status": "active",
-      "description": "Controller-signed package used by ck.self.applet.command.install preview/commit to derive ck.applet.registration and capability grants. Distribution object only; not Realm history truth and not authorization."
+      "description": "Controller-signed package used by ak.self.applet.command.install preview/commit to derive ak.applet.registration and capability grants. Distribution object only; not Realm history truth and not authorization."
     },
     {
       "schema_id": "ak.schema.applet_widget_declaration.v1",
@@ -466,25 +466,25 @@
       "schema_id": "ak.schema.applet_install_plan.v1",
       "file": "schemas/applet-install-plan.schema.json",
       "status": "active",
-      "description": "Canonical Applet InstallPlan returned by ck.self.applet.install.command.preview and recomputed by ck.self.applet.command.install before commit. plan_digest is calculated over this object with plan_digest omitted."
+      "description": "Canonical Applet InstallPlan returned by ak.self.applet.install.command.preview and recomputed by ak.self.applet.command.install before commit. plan_digest is calculated over this object with plan_digest omitted."
     },
     {
       "schema_id": "ak.schema.applet_install_operations.v1",
       "file": "schemas/applet-install-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for ck.self.applet.install.command.preview and ck.applet.install."
+      "description": "Closed request/response DTO bundle for ak.self.applet.install.command.preview and ak.applet.install."
     },
     {
       "schema_id": "ak.schema.applet_ghost_operations.v1",
       "file": "schemas/applet-ghost-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for ck.self.applet.ghost.command.provision (Applet-managed Ghost Actor provisioning by an installed bridge Applet)."
+      "description": "Closed request/response DTO bundle for ak.self.applet.ghost.command.provision (Applet-managed Ghost Actor provisioning by an installed bridge Applet)."
     },
     {
       "schema_id": "ak.schema.agent.v1",
       "file": "schemas/agent.schema.json",
       "status": "active",
-      "description": "Schema-registry object for agent protocol metadata snapshots. Event payloads for ck.agent.* use typed payload definitions in event-payload.schema.json."
+      "description": "Schema-registry object for agent protocol metadata snapshots. Event payloads for ak.agent.* use typed payload definitions in event-payload.schema.json."
     },
     {
       "schema_id": "ak.schema.audit_ryw_receipt.v1",
@@ -494,7 +494,7 @@
       "schema_id": "ak.schema.erasure_receipt.v1",
       "file": "schemas/erasure-receipt.schema.json",
       "status": "active",
-      "description": "Signed hard-erasure receipt payload for ck.audit.erasure_receipt"
+      "description": "Signed hard-erasure receipt payload for ak.audit.erasure_receipt"
     },
     {
       "schema_id": "ak.schema.erasure_verification_stub.v1",
@@ -506,13 +506,13 @@
       "schema_id": "ak.schema.cross_signing_publish.v1",
       "file": "schemas/cross-signing-publish.schema.json",
       "status": "active",
-      "description": "Wire payload schema for ck.cross_signing.publish — establishes the PSK→{SSK, USK} binding on the principal control stream. See device-lifecycle.md §5.1."
+      "description": "Wire payload schema for ak.cross_signing.publish — establishes the PSK→{SSK, USK} binding on the principal control stream. See device-lifecycle.md §5.1."
     },
     {
       "schema_id": "ak.schema.cross_signing_reset.v1",
       "file": "schemas/cross-signing-reset.schema.json",
       "status": "active",
-      "description": "Wire payload schema for ck.cross_signing.reset — retires the current (SSK, USK) generation under one of four kinds of high-risk proof. See device-lifecycle.md §14.1."
+      "description": "Wire payload schema for ak.cross_signing.reset — retires the current (SSK, USK) generation under one of four kinds of high-risk proof. See device-lifecycle.md §14.1."
     },
     {
       "schema_id": "ak.schema.seal.v1",
@@ -566,19 +566,19 @@
       "schema_id": "ak.schema.keypackage_operations.v1",
       "file": "schemas/keypackage-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for ck.self.keys.keypackages.upload.create, claim, consume, and revoke."
+      "description": "Closed request/response DTO bundle for ak.self.keys.keypackages.upload.create, claim, consume, and revoke."
     },
     {
       "schema_id": "ak.schema.keys_operations.v1",
       "file": "schemas/keys-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for ck.self.keys.upload.create, query, claim, and key backup put/list/delete responses."
+      "description": "Closed request/response DTO bundle for ak.self.keys.upload.create, query, claim, and key backup put/list/delete responses."
     },
     {
       "schema_id": "ak.schema.service_describe.v1",
       "file": "schemas/service-describe.schema.json",
       "status": "active",
-      "description": "Canonical ServiceDescribe response for ck.server.query.describe and per-surface describe operations: base service metadata plus claim-level partitions (supported_operations / implemented_features / claimed_profiles / verified_profiles / experimental_features / compat_surfaces) and the registered directory_service overlay fields used by ck.find.directory.query.describe. Enforces development_mode=true => verified_profiles=[]. compat_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
+      "description": "Canonical ServiceDescribe response for ak.server.query.describe and per-surface describe operations: base service metadata plus claim-level partitions (supported_operations / implemented_features / claimed_profiles / verified_profiles / experimental_features / compat_surfaces) and the registered directory_service overlay fields used by ak.find.directory.query.describe. Enforces development_mode=true => verified_profiles=[]. compat_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
     },
     {
       "schema_id": "ak.schema.common_ids.v1",

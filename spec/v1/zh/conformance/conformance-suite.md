@@ -22,51 +22,51 @@ sidebar:
 - capability 与授权派生规则
 - Principal Server Events API / Sync Service / E2EE / applet / Policy Server 关键接口
 
-所有 schema / profile 变更通过 Event Envelope 的 `requirements.{schema, reducer}` 与 `ck.realm.upgrade` 完成；v1 不使用顶层 `space_version` wire 字段。
+所有 schema / profile 变更通过 Event Envelope 的 `requirements.{schema, reducer}` 与 `ak.realm.upgrade` 完成；v1 不使用顶层 `space_version` wire 字段。
 
 ## 2. 测试角色（Profile）
 
-完整 profile 集合、角色分类和 requirement blocks 的机器真相源是 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json)。本节只列首轮 release gate / 文档阅读优先子集；测试 runner MUST 枚举 JSON 中的 `implementation_profiles`、`deployment_profiles` 与 `hardening_profiles`(capability-negotiation profile)，并单独枚举 `vector_groups`(conformance 向量分组，`ck.vector_group.*` 命名空间，非可协商能力)，不得把下列清单解释为穷尽集合。
+完整 profile 集合、角色分类和 requirement blocks 的机器真相源是 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json)。本节只列首轮 release gate / 文档阅读优先子集；测试 runner MUST 枚举 JSON 中的 `implementation_profiles`、`deployment_profiles` 与 `hardening_profiles`(capability-negotiation profile)，并单独枚举 `vector_groups`(conformance 向量分组，`ak.vector_group.*` 命名空间，非可协商能力)，不得把下列清单解释为穷尽集合。
 
 Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-profiles.md) §6 与 `conformance-profiles.json` 的 `role` 为准）:**实现 profile**（声明实现承担的角色与能力集合）与 **hardening profile**（在某实现 profile 之上叠加的安全加固 overlay,`role=admin`,不单独作为可声明的实现角色）。
 
 **实现 profile**:
 
-- `ck.profile.minimal_client.v1`
-- `ck.profile.core_event_store.v1`（minimal interop floor；分层口径见 [`conformance-profiles.md`](./conformance-profiles.md) §2.1，是仅声称 v1 Event Store interop 时的最小声明层，非完整实现角色）
-- `ck.profile.chat_mvp.v1`
-- `ck.profile.kanban_mvp.v1`
-- `ck.profile.full_client.v1`
-- `ck.profile.e2ee_client.v1`
-- `ck.profile.principal_server_events_api.v1`
-- `ck.profile.principal_server.v1`
-- `ck.profile.auth_server.v1`
-- `ck.profile.federation_minimal.v1`
-- `ck.profile.federation.high_assurance.v1`
-- `ck.profile.identity_registry.v1`
-- `ck.profile.applet_service.v1`
-- `ck.profile.enterprise_client.v1`
-- `ck.profile.agent_runtime.v1`
-- `ck.profile.mimi_interop.v1`
-- `ck.profile.sovereign_deployment.v1`
-- `ck.profile.sovereign_client.v1`
+- `ak.profile.minimal_client.v1`
+- `ak.profile.core_event_store.v1`（minimal interop floor；分层口径见 [`conformance-profiles.md`](./conformance-profiles.md) §2.1，是仅声称 v1 Event Store interop 时的最小声明层，非完整实现角色）
+- `ak.profile.chat_mvp.v1`
+- `ak.profile.kanban_mvp.v1`
+- `ak.profile.full_client.v1`
+- `ak.profile.e2ee_client.v1`
+- `ak.profile.principal_server_events_api.v1`
+- `ak.profile.principal_server.v1`
+- `ak.profile.auth_server.v1`
+- `ak.profile.federation_minimal.v1`
+- `ak.profile.federation.high_assurance.v1`
+- `ak.profile.identity_registry.v1`
+- `ak.profile.applet_service.v1`
+- `ak.profile.enterprise_client.v1`
+- `ak.profile.agent_runtime.v1`
+- `ak.profile.mimi_interop.v1`
+- `ak.profile.sovereign_deployment.v1`
+- `ak.profile.sovereign_client.v1`
 
 **gateway profile**（`role=gateway`;完整定义与子 profile 见 [`conformance-profiles.md`](./conformance-profiles.md) §11）:
 
-- `ck.profile.push_gateway.v1`（`depends_on` `ck.profile.push_gateway.blind_wakeup.v1`;`visible_notification` / `matrix_passthrough` 为 opt-in）。注意 `ck.profile.push_gateway.matrix_passthrough.v1` 的 `role` 机器真源（[`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json)）为 **`interop`**（非 `gateway`），它在此处仅作为 push_gateway 的 opt-in 互通扩展列出；其 role 以 json `role` 字段为准，与 [`conformance-profiles.md`](./conformance-profiles.md) §11 表一致。
-- `ck.profile.blob_node.v1`
+- `ak.profile.push_gateway.v1`（`depends_on` `ak.profile.push_gateway.blind_wakeup.v1`;`visible_notification` / `matrix_passthrough` 为 opt-in）。注意 `ak.profile.push_gateway.matrix_passthrough.v1` 的 `role` 机器真源（[`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json)）为 **`interop`**（非 `gateway`），它在此处仅作为 push_gateway 的 opt-in 互通扩展列出；其 role 以 json `role` 字段为准，与 [`conformance-profiles.md`](./conformance-profiles.md) §11 表一致。
+- `ak.profile.blob_node.v1`
 
 **hardening profile**（overlay,`role=admin`,非独立实现角色；权威全集以 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) 的 `hardening_profiles` 为准）:
 
-- `ck.profile.mls_governance_binding.full.v1`
-- `ck.profile.attested_audit.e2ee.v1`
-- `ck.profile.disclosed_audit.e2ee.v1`
-- `ck.profile.cross_signing.reset.v1`
-- `ck.profile.mls.minimal_metadata_realm.v1`
-- `ck.profile.traffic_metadata_hardened.v1`
-- `ck.profile.key_backup.memory_hard.v1`
-- `ck.profile.circle_seal_cadence.fixed_5m.v1`
-- `ck.profile.accountable_principals.strict_reject.v1`
+- `ak.profile.mls_governance_binding.full.v1`
+- `ak.profile.attested_audit.e2ee.v1`
+- `ak.profile.disclosed_audit.e2ee.v1`
+- `ak.profile.cross_signing.reset.v1`
+- `ak.profile.mls.minimal_metadata_realm.v1`
+- `ak.profile.traffic_metadata_hardened.v1`
+- `ak.profile.key_backup.memory_hard.v1`
+- `ak.profile.circle_seal_cadence.fixed_5m.v1`
+- `ak.profile.accountable_principals.strict_reject.v1`
 
 ## 3. OpenAPI 与 Transport 一致性
 
@@ -75,7 +75,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
 每个实现必须通过以下验收：
 
 - `/_arkret/` 下公开至少包含 `service/identity/events/account/snapshot/blob/authz` 关键 operation。
-- 服务 `operation_id` MUST 以 `artifacts/registry/contract-catalog.json#operation_registry` 为 canonical source，并通过生成的 `artifacts/registry/operation-registry.json` 供实现消费；operation DTO 字段集合 MUST 以 JSON Schema 与生成的 `artifacts/reports/operation-schema-index.json` 为机器索引；标准 `Event.kind` MUST 以 `artifacts/registry/event-kind-registry.json` 为唯一 generated registry view，并遵守其 `wire_scope` / `reducer_input` 分类；协议 typed ID 前缀 MUST 以 `artifacts/registry/id-kind-registry.json` 为唯一 generated registry view；标准 Event payload class MUST 以 `artifacts/schemas/event-payload.schema.json` 的 `$defs` 为唯一 source of truth，但完整 payload validation MUST 通过 `event-envelope.schema.json` 的 Event.kind dispatch 或等价 registry dispatch 执行，不得直接把 `event-payload.schema.json` root generic fallback 当作接受条件。OpenAPI、非 HTTP binding 与说明性 `service-api-schema.mdx` 不得声明 catalog / registry 中不存在的 operation；Event validator、reducer 与 fixture 不得声明 registry 中不存在的标准 `ck.*` event kind，也不得把 `ephemeral_event` 或 `actor_private_event` 当作共享 durable reducer input；schema、fixture、文档示例和 DTO 不得使用未注册的 `ak:<kind>:` typed ID 前缀。
+- 服务 `operation_id` MUST 以 `artifacts/registry/contract-catalog.json#operation_registry` 为 canonical source，并通过生成的 `artifacts/registry/operation-registry.json` 供实现消费；operation DTO 字段集合 MUST 以 JSON Schema 与生成的 `artifacts/reports/operation-schema-index.json` 为机器索引；标准 `Event.kind` MUST 以 `artifacts/registry/event-kind-registry.json` 为唯一 generated registry view，并遵守其 `wire_scope` / `reducer_input` 分类；协议 typed ID 前缀 MUST 以 `artifacts/registry/id-kind-registry.json` 为唯一 generated registry view；标准 Event payload class MUST 以 `artifacts/schemas/event-payload.schema.json` 的 `$defs` 为唯一 source of truth，但完整 payload validation MUST 通过 `event-envelope.schema.json` 的 Event.kind dispatch 或等价 registry dispatch 执行，不得直接把 `event-payload.schema.json` root generic fallback 当作接受条件。OpenAPI、非 HTTP binding 与说明性 `service-api-schema.mdx` 不得声明 catalog / registry 中不存在的 operation；Event validator、reducer 与 fixture 不得声明 registry 中不存在的标准 `ak.*` event kind，也不得把 `ephemeral_event` 或 `actor_private_event` 当作共享 durable reducer input；schema、fixture、文档示例和 DTO 不得使用未注册的 `ak:<kind>:` typed ID 前缀。
 - 相同操作在 gRPC/WebSocket/SSE 等替代 transport 下，语义输入输出一致（可通过对同一 fixture 做幂等重放对比）。
 
 ### 3.2 Canonical envelope tests
@@ -100,13 +100,13 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
 
 本节为优先级示例，完整必测集合以 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 为准。以下为优先必测项：
 
-- `ck.vector.cba_lattice.data_event_accepts_without_seal_finality.v1`
+- `ak.vector.cba_lattice.data_event_accepts_without_seal_finality.v1`
   - 输入带有效 `seal_ref` 与 `auth_context` 的 DataEvent。
   - 期望 reducer 输出：本地接受、可投影、无需被 Seal 覆盖。
-- `ck.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1`
+- `ak.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1`
   - 输入带有效 `seal_basis` 的 Control Move 及缺失/错误 basis 的负向样例。
   - 期望输出：Control Move 先 pending，只有被有效 Seal 覆盖并重算 `state_root` 后进入 `sealed`。
-- `ck.vector.cba_lattice.same_batch_does_not_advance_authorization_basis.v1`
+- `ak.vector.cba_lattice.same_batch_does_not_advance_authorization_basis.v1`
   - 输入同一 ordered submit batch 内相互依赖的 Control Move。
   - 期望输出：同批前序 effect 不提前成为后续授权 basis，依赖方必须等待后续 Seal。
 
@@ -114,10 +114,10 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
 
 本节为优先级示例，完整必测集合以 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 为准。
 
-- `ck.vector.redaction.preserve_fields.v1`
+- `ak.vector.redaction.preserve_fields.v1`
   - 输入 target event + redaction event（不同时序）。
   - 期望输出：仅保留被允许的字段，其余不可逆地清除；事件 envelope 不可被改写。
-- `ck.vector.redaction.policy_scope.v1`
+- `ak.vector.redaction.policy_scope.v1`
   - redaction 对已归档事件、加密事件、外部可见字段的影响。
   - 期望输出：索引与审计可见性一致，不可把 redaction 解读为物理删除。
 
@@ -125,15 +125,15 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
 
 本节为优先级示例，完整必测集合以 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 为准。
 
-- `ck.vector.capability.delegate_chain.v1`
+- `ak.vector.capability.delegate_chain.v1`
   - grant 链条（多层委派）与 selector 条件（时间、对象、速率）冲突场景。
   - 期望输出：可验证且具备时间边界的派生有效性。
-- `ck.vector.capability.revoke_rollback.v1`
+- `ak.vector.capability.revoke_rollbaak.v1`
   - 撤销后既有事件在历史范围内的生效/失效行为。
-- `ck.vector.capability.approval_constraint.v1`
+- `ak.vector.capability.approval_constraint.v1`
   - high risk action 未满足 approval 时应软拒绝或进入 proposal 流程。
 
-**Capability coverage plan（normative gate plan）**：进入 `v1-conformance-certified` 前，capability fixture / runner MUST 增加并执行下列负向与正向覆盖；在对应 `ck.vector.*` 行进入 `vector-registry.json` active 状态前，实现不得声称这些行为已通过 vector gate：
+**Capability coverage plan（normative gate plan）**：进入 `v1-conformance-certified` 前，capability fixture / runner MUST 增加并执行下列负向与正向覆盖；在对应 `ak.vector.*` 行进入 `vector-registry.json` active 状态前，实现不得声称这些行为已通过 vector gate：
 
 - 首发 grant issuer 上界校验：grant 的 `actions[]` / `resources[]` 超出 issuer 当前 effective capability 时 MUST 拒绝（`grant_exceeds_issuer_authority`），并覆盖 freshness unknown fail-closed。
 - effective validity window 归一化：`effective_not_before >= effective_expires_at` MUST 拒绝（`grant_validity_window_empty`）。
@@ -145,7 +145,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
 
 ### 4.5 Client Sync coverage plan
 
-进入 `v1-conformance-certified` 前，sync fixture / runner MUST 增加并执行下列覆盖；在对应 `ck.vector.*` 行进入 `vector-registry.json` active 状态前，实现不得声称这些行为已通过 vector gate：
+进入 `v1-conformance-certified` 前，sync fixture / runner MUST 增加并执行下列覆盖；在对应 `ak.vector.*` 行进入 `vector-registry.json` active 状态前，实现不得声称这些行为已通过 vector gate：
 
 - explicit delivery ack：`ack_token` 签发、累计单调 ack、cross-binding 校验、invalid ack 拒绝，以及服务端丢弃未确认 to-device 消息后 `to_device.lost=true` 的升级路径。
 - cursor binding：`filter_digest` canonical 计算、query-scope digest 绑定、跨 scope 回传 cursor 时返回 `cursor_integrity_invalid`。
@@ -201,6 +201,6 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
 - verifier 的 DID（`verifier_did`）与其对 `profile_id`、`verification_run_id`、`artifact_digest`、`artifact_ref`、verifier 与时间戳的签名；
 - 验证时间戳（与可选 `expires_at`）。
 
-`ServiceDescribe.verified_profiles` 的每个条目（`claim_kind="conformance_verified"`）引用一个这样的 verification artifact；字段约束与客户端校验义务见 [`service-surface.md`](../sync/service-surface.md) §3.0 与 `ck.schema.service_describe.v1`。协议只绑定本节定义的角色与 artifact 形态，不绑定任何具体验证工具或机构名。
+`ServiceDescribe.verified_profiles` 的每个条目（`claim_kind="conformance_verified"`）引用一个这样的 verification artifact；字段约束与客户端校验义务见 [`service-surface.md`](../sync/service-surface.md) §3.0 与 `ak.schema.service_describe.v1`。协议只绑定本节定义的角色与 artifact 形态，不绑定任何具体验证工具或机构名。
 
 > informative：`cotest` 是该角色的一个参考实现。

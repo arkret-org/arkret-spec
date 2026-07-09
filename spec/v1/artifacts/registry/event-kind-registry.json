@@ -17,13 +17,13 @@
     "capability_gated": "Gated by one or more named capability actions listed in admission_capabilities. Reducer MUST verify the actor holds a matching action grant per capability-action-registry. Fail-closed."
   },
   "registry_rules": [
-    "Standard ck.* effect kinds MUST appear in this registry when used by a DataEvent effect, Control Move effect, or Event Envelope payload router.",
+    "Standard ak.* effect kinds MUST appear in this registry when used by a DataEvent effect, Control Move effect, or Event Envelope payload router.",
     "Events API, Sync durable history, Federation, and canonical reducers MUST accept only active entries with wire_scope=durable_event unless an implementation profile explicitly defines a private channel for actor_private_event.",
     "Entries with wire_scope=ephemeral_event MUST be carried only on ephemeral channels and MUST NOT advance Seal coverage, governance state_root, or reducer state.",
     "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into shared Realm data-plane history or control-plane Seal history.",
-    "Reducer-input durable kinds MAY declare cell_family, cell_subject, plane, sealed, lattice, bottom, and (cas_register only) initial_value. cell_family is a stable ck.component.*.v<n> URI; cell_subject is null, a payload field path, or a composite descriptor; plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject or expose. initial_value declares the value the cas_register reports before any DataEvent or Control Move effect has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` Control Move predicates implements singleton-once-set cells.",
-    "Registered exemption: protocol-singleton cells that are not written through a single event_kind are NOT indexed here. Currently the only such cell family is ck.component.notary.v1 (per-Realm notary cell, lattice=cas_register, bottom=reject): its genesis value comes from the ck.realm.create payload notary object and subsequent changes are ordinary notary-finalized Control Moves; its canonical definition lives in zh/authz/event-auth-state-resolution.md section 4.4. Any future cell family without a single writer kind MUST be added to this exemption list explicitly.",
-    "Lattice MUST be one of: core types or_set, mv_register, cas_register, fsm, counter, ordered_log; or extension types lww_register, rga (only declarable on cells with cell_role in {ui_affordance, content, draft, cosmetic} and only valid for receivers that implement ck.profile.collaborative_text.v1; receivers without that profile MUST fail closed with unsupported_lattice_type when an event_kind references a cell using lww_register or rga). Authorization, policy, notary, membership, and lifecycle cells MUST NOT use lww_register or rga.",
+    "Reducer-input durable kinds MAY declare cell_family, cell_subject, plane, sealed, lattice, bottom, and (cas_register only) initial_value. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, a payload field path, or a composite descriptor; plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject or expose. initial_value declares the value the cas_register reports before any DataEvent or Control Move effect has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` Control Move predicates implements singleton-once-set cells.",
+    "Registered exemption: protocol-singleton cells that are not written through a single event_kind are NOT indexed here. Currently the only such cell family is ak.component.notary.v1 (per-Realm notary cell, lattice=cas_register, bottom=reject): its genesis value comes from the ak.realm.create payload notary object and subsequent changes are ordinary notary-finalized Control Moves; its canonical definition lives in zh/authz/event-auth-state-resolution.md section 4.4. Any future cell family without a single writer kind MUST be added to this exemption list explicitly.",
+    "Lattice MUST be one of: core types or_set, mv_register, cas_register, fsm, counter, ordered_log; or extension types lww_register, rga (only declarable on cells with cell_role in {ui_affordance, content, draft, cosmetic} and only valid for receivers that implement ak.profile.collaborative_text.v1; receivers without that profile MUST fail closed with unsupported_lattice_type when an event_kind references a cell using lww_register or rga). Authorization, policy, notary, membership, and lifecycle cells MUST NOT use lww_register or rga.",
     "State convergence is defined by CBA: DataEvent effects are locally accepted against seal_ref, Control Move effects are finalized by Seals, and per-cell Lattice join remains deterministic. Event Envelope routing fields MUST NOT be used as ordering authority.",
     "Every active durable reducer-input event_kind MUST have a machine-readable admission source: either at least one capability action targets it (capability_action_registry.target_event_kinds), or it declares an admission class from admission_class_definitions. capability_gated events MUST list the authorizing action(s) in admission_capabilities. Enforced by lint_artifacts.py; no active durable reducer-input event may lack an admission source (fail-closed)."
   ],
@@ -31,7 +31,7 @@
     "event_envelope_schema": "schemas/event-envelope.schema.json",
     "payload_schema_file": "schemas/event-payload.schema.json",
     "coverage_required": true,
-    "validation_rule": "Every active standard ck.* event kind MUST be validated by the Event Envelope schema and one payload class selected by kind. Unknown standard kind, unmatched active kind, or payload class failure is schema_violation before reducer execution.",
+    "validation_rule": "Every active standard ak.* event kind MUST be validated by the Event Envelope schema and one payload class selected by kind. Unknown standard kind, unmatched active kind, or payload class failure is schema_violation before reducer execution.",
     "non_critical_extension_rule": "Unknown non-critical payload fields are preserved in canonical bytes and MAY be ignored by reducers. Unknown critical payload semantics MUST be declared in Event.requirements.critical_extensions and fail closed when unsupported."
   },
   "event_kinds": [
@@ -236,7 +236,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Sets / changes the Realm's authoritative default discussion Strand pointer. payload = {realm_id, strand_id}; reducer projects payload.strand_id into the Realm projection default_strand_id (single authoritative pointer; avoids multi-default dirty state). Reducer MUST verify the referenced strand_id already exists in this Realm (a projected, non-tombstoned Strand); a dangling reference MUST be rejected with failed_precondition. Strand-side is_default is a derived marker (strand_id == realm.default_strand_id), never independent storage; clients discover the default Strand deterministically from the Realm projection default_strand_id or the Strand projection is_default, NOT from any UUID-reuse implementation detail. Authorization is the standard Realm-admin gate (hold ck.realm.admin, or the same-name action ck.realm.set_default_strand).",
+      "payload": "Sets / changes the Realm's authoritative default discussion Strand pointer. payload = {realm_id, strand_id}; reducer projects payload.strand_id into the Realm projection default_strand_id (single authoritative pointer; avoids multi-default dirty state). Reducer MUST verify the referenced strand_id already exists in this Realm (a projected, non-tombstoned Strand); a dangling reference MUST be rejected with failed_precondition. Strand-side is_default is a derived marker (strand_id == realm.default_strand_id), never independent storage; clients discover the default Strand deterministically from the Realm projection default_strand_id or the Strand projection is_default, NOT from any UUID-reuse implementation detail. Authorization is the standard Realm-admin gate (hold ak.realm.admin, or the same-name action ak.realm.set_default_strand).",
       "cell_family": "ak.component.realm.set_default_strand.v1",
       "cell_subject": null,
       "lattice": "cas_register",
@@ -292,7 +292,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Constraints on member delivery_binding: which binding_source values are admissible, which recipient services are allowed, which endorsers are required, whether DID Document fallback / unroutable membership are permitted, who may sign rebind. Governs reducer acceptance of ck.member.state{membership=join}.delivery_binding (see governance/join-policy.md §5.1).",
+      "payload": "Constraints on member delivery_binding: which binding_source values are admissible, which recipient services are allowed, which endorsers are required, whether DID Document fallback / unroutable membership are permitted, who may sign rebind. Governs reducer acceptance of ak.member.state{membership=join}.delivery_binding (see governance/join-policy.md §5.1).",
       "cell_family": "ak.component.realm.delivery_binding_policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
@@ -481,7 +481,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Circle patch (ck.patch.v1 with path NOT containing realm_id / encryption_profile). Modifies title / summary / display / directory_visibility / join_rule / history_visibility."
+      "payload": "Circle patch (ak.patch.v1 with path NOT containing realm_id / encryption_profile). Modifies title / summary / display / directory_visibility / join_rule / history_visibility."
     },
     {
       "event_kind": "ak.circle.archive",
@@ -520,7 +520,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Circle membership state. Uses the same membership_state enum as ck.member.state (invite/join/knock/leave/ban), scoped to a Circle. Reducer MUST first validate the target actor is a parent Realm `join` member, otherwise failed_precondition reason=circle_member_must_be_realm_member. See zh/models/circle.md §9.1.",
+      "payload": "Circle membership state. Uses the same membership_state enum as ak.member.state (invite/join/knock/leave/ban), scoped to a Circle. Reducer MUST first validate the target actor is a parent Realm `join` member, otherwise failed_precondition reason=circle_member_must_be_realm_member. See zh/models/circle.md §9.1.",
       "cell_family": "ak.component.circle.member.v1",
       "cell_subject": {
         "type": "composite",
@@ -844,7 +844,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Realm-scoped MemberIdentity segment replacement event. Append-only log entry that may supersede prior ck.member.identity.update events via payload.replaces[] without overloading ck.profile.update patch semantics.",
+      "payload": "Realm-scoped MemberIdentity segment replacement event. Append-only log entry that may supersede prior ak.member.identity.update events via payload.replaces[] without overloading ak.profile.update patch semantics.",
       "cell_family": "ak.component.member.identity.v1",
       "cell_subject": {
         "type": "composite",
@@ -906,7 +906,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Strand business-progression stage transition. Single source of truth for mutating Strand.stage / Strand.stage_changed_at; ck.strand.update patch on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on the Strand's discussion track that 'references' this event, and the event log's own actor_id / created_at is the audit source. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=strand_already_terminal; state=archived yields strand_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at. A per-Realm workflow profile MAY narrow which transitions are legal beyond these hard invariants.",
+      "payload": "Strand business-progression stage transition. Single source of truth for mutating Strand.stage / Strand.stage_changed_at; ak.strand.update patch on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on the Strand's discussion track that 'references' this event, and the event log's own actor_id / created_at is the audit source. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=strand_already_terminal; state=archived yields strand_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at. A per-Realm workflow profile MAY narrow which transitions are legal beyond these hard invariants.",
       "cell_family": "ak.component.strand.stage.v1",
       "cell_subject": {
         "type": "id:strand",
@@ -923,7 +923,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Unified Strand tracks patch. payload.patch uses ck.patch.v1 against the Strand.tracks map: keys are track names (e.g. `synthesis`, `discussion`), values are patch ops that may toggle enabled, set is_primary, or modify profile / metadata on a track entry. Atomic across multiple tracks.",
+      "payload": "Unified Strand tracks patch. payload.patch uses ak.patch.v1 against the Strand.tracks map: keys are track names (e.g. `synthesis`, `discussion`), values are patch ops that may toggle enabled, set is_primary, or modify profile / metadata on a track entry. Atomic across multiple tracks.",
       "cell_family": "ak.component.strand.tracks.v1",
       "cell_subject": {
         "type": "id:strand",
@@ -940,7 +940,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Strand move between Spaces (target_space_id in payload). Writes a cas_register cell keyed by (board_space_id, strand_id); the contains Relation list_space_id->strand_id is derived from cell value, not a separate truth source. Plane ruling (CBA): ck.component.strand.position.v1 defaults to sealed=true (control plane), so ck.strand.move is a Control Move carrying seal_basis; Realm schema MAY redeclare the cell family as data-plane mv_register + user-pick or per-object sequencer per authz/event-auth-state-resolution.md section 9.4 and models/realm-and-space.md section 3.6.",
+      "payload": "Strand move between Spaces (target_space_id in payload). Writes a cas_register cell keyed by (board_space_id, strand_id); the contains Relation list_space_id->strand_id is derived from cell value, not a separate truth source. Plane ruling (CBA): ak.component.strand.position.v1 defaults to sealed=true (control plane), so ak.strand.move is a Control Move carrying seal_basis; Realm schema MAY redeclare the cell family as data-plane mv_register + user-pick or per-object sequencer per authz/event-auth-state-resolution.md section 9.4 and models/realm-and-space.md section 3.6.",
       "cell_family": "ak.component.strand.position.v1",
       "cell_subject": {
         "type": "tuple",
@@ -968,7 +968,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Strand reorder within Space. Writes the same cell as ck.strand.move; effect.list_space_id MUST equal head_eq.list_space_id (rank-only update). Plane ruling follows ck.strand.move: same cell family, same default sealed=true control-plane declaration (models/realm-and-space.md section 3.6).",
+      "payload": "Strand reorder within Space. Writes the same cell as ak.strand.move; effect.list_space_id MUST equal head_eq.list_space_id (rank-only update). Plane ruling follows ak.strand.move: same cell family, same default sealed=true control-plane declaration (models/realm-and-space.md section 3.6).",
       "cell_family": "ak.component.strand.position.v1",
       "cell_subject": {
         "type": "tuple",
@@ -996,7 +996,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Set or clear a per-(strand, actor) watch subscription. Writes a cas_register cell keyed by (strand_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds ck.strand.watch.set.others. Cross-actor writes MUST carry refs[role=audit_pair] to a same-batch ck.audit.accessed event with access_kind=watch_set_others. The watches Relation (actor --watches--> strand) is a derived projection of this cell, not a separate truth source — direct ck.relation.create relation_kind=watches MUST schema_violation. See models/strand-and-message.md §8.",
+      "payload": "Set or clear a per-(strand, actor) watch subscription. Writes a cas_register cell keyed by (strand_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds ak.strand.watch.set.others. Cross-actor writes MUST carry refs[role=audit_pair] to a same-batch ak.audit.accessed event with access_kind=watch_set_others. The watches Relation (actor --watches--> strand) is a derived projection of this cell, not a separate truth source — direct ak.relation.create relation_kind=watches MUST schema_violation. See models/strand-and-message.md §8.",
       "cell_family": "ak.component.strand.watch.v1",
       "cell_subject": {
         "type": "tuple",
@@ -1251,7 +1251,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Morph schema_refs[] migration. First-class event for evolving a Morph's schema_refs[] without bypassing audit / capability gates. Carries (from_schema_refs[], to_schema_refs[], compatibility_class, migration_evidence?). Required capability ck.morph.schema_migrate (high risk tier; see capability-action-registry.json). compatibility_class = additive | breaking | transformation; core reducers MUST reject breaking/transformation unless the Realm declares ck.profile.morph.schema_migration_transformations.v1. See zh/models/morph.md §4.1 S3."
+      "payload": "Morph schema_refs[] migration. First-class event for evolving a Morph's schema_refs[] without bypassing audit / capability gates. Carries (from_schema_refs[], to_schema_refs[], compatibility_class, migration_evidence?). Required capability ak.morph.schema_migrate (high risk tier; see capability-action-registry.json). compatibility_class = additive | breaking | transformation; core reducers MUST reject breaking/transformation unless the Realm declares ak.profile.morph.schema_migration_transformations.v1. See zh/models/morph.md §4.1 S3."
     },
     {
       "event_kind": "ak.morph.stage.set",
@@ -1259,7 +1259,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Morph business-progression stage transition. Single source of truth for mutating Morph.stage / Morph.stage_changed_at; ck.morph.update / ck.morph.schema_migrate patches on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on an associated discussion track that 'references' this event. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=morph_already_terminal; state=archived yields morph_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at.",
+      "payload": "Morph business-progression stage transition. Single source of truth for mutating Morph.stage / Morph.stage_changed_at; ak.morph.update / ak.morph.schema_migrate patches on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on an associated discussion track that 'references' this event. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=morph_already_terminal; state=archived yields morph_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at.",
       "cell_family": "ak.component.morph.stage.v1",
       "cell_subject": {
         "type": "id:morph",
@@ -1436,7 +1436,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Agent lifecycle transition to paused state (CKP-0008 §4.11). Auth Server MUST reject new agent session grants for this principal; existing tokens fail closed within the revocation freshness window. Reversible via ck.agent.resume.",
+      "payload": "Agent lifecycle transition to paused state (AKP-0008 §4.11). Auth Server MUST reject new agent session grants for this principal; existing tokens fail closed within the revocation freshness window. Reversible via ak.agent.resume.",
       "cell_family": "ak.component.agent.status.v1",
       "cell_subject": {
         "type": "did",
@@ -1453,7 +1453,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Agent lifecycle transition from paused to active (CKP-0008 §4.11). Reducer MUST re-validate controller, agent, key, capability, Realm policy, and accountability_grant freshness; any failure rejects the resume.",
+      "payload": "Agent lifecycle transition from paused to active (AKP-0008 §4.11). Reducer MUST re-validate controller, agent, key, capability, Realm policy, and accountability_grant freshness; any failure rejects the resume.",
       "cell_family": "ak.component.agent.status.v1",
       "cell_subject": {
         "type": "did",
@@ -1470,7 +1470,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Agent lifecycle terminal state (CKP-0008 §4.11). MUST fan-out ck.agent.key.revoke for all active agent keys, ck.capability.revoke for all active grants, and runtime endpoint revocation. Terminal — no transition out.",
+      "payload": "Agent lifecycle terminal state (AKP-0008 §4.11). MUST fan-out ak.agent.key.revoke for all active agent keys, ak.capability.revoke for all active grants, and runtime endpoint revocation. Terminal — no transition out.",
       "cell_family": "ak.component.agent.status.v1",
       "cell_subject": {
         "type": "did",
@@ -1487,7 +1487,7 @@
       "status": "active",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
-      "payload": "Agent-initiated draft proposal (CKP-0008 §4.8). Submitted by agent runtime; Principal Server materializes accepted drafts into controller-owned ck.agent.draft.v1 account-data after capability / policy / accountability / risk check. MUST NOT enter shared Realm history."
+      "payload": "Agent-initiated draft proposal (AKP-0008 §4.8). Submitted by agent runtime; Principal Server materializes accepted drafts into controller-owned ak.agent.draft.v1 account-data after capability / policy / accountability / risk cheak. MUST NOT enter shared Realm history."
     },
     {
       "event_kind": "ak.agent.action_request",
@@ -1495,7 +1495,7 @@
       "status": "active",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
-      "payload": "Agent-initiated action request (CKP-0008 §4.8). Carries proposed_action, target descriptor, and content digest. Awaits controller approval before generating shared event."
+      "payload": "Agent-initiated action request (AKP-0008 §4.8). Carries proposed_action, target descriptor, and content digest. Awaits controller approval before generating shared event."
     },
     {
       "event_kind": "ak.agent.action_approve",
@@ -1503,7 +1503,7 @@
       "status": "active",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
-      "payload": "Controller approval of a draft / action request (CKP-0008 §4.8.1). Binds draft_id, content digest, target descriptor, proposed_action, approved payload digest, approval expiry, and single-use nonce. Publish executor MUST atomic-consume the nonce; reuse fails closed (reason=approval_already_consumed)."
+      "payload": "Controller approval of a draft / action request (AKP-0008 §4.8.1). Binds draft_id, content digest, target descriptor, proposed_action, approved payload digest, approval expiry, and single-use nonce. Publish executor MUST atomic-consume the nonce; reuse fails closed (reason=approval_already_consumed)."
     },
     {
       "event_kind": "ak.agent.action_reject",
@@ -1511,7 +1511,7 @@
       "status": "active",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
-      "payload": "Controller rejection of a draft / action request (CKP-0008 §4.8.1). Draft transitions to rejected; agent runtime MUST NOT continue publish attempts."
+      "payload": "Controller rejection of a draft / action request (AKP-0008 §4.8.1). Draft transitions to rejected; agent runtime MUST NOT continue publish attempts."
     },
     {
       "event_kind": "ak.agent.interop_session.start",
@@ -1648,7 +1648,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Revoke a previously granted consent (shares the ck.consent.grant cell; semantically a remove on the consent or_set)",
+      "payload": "Revoke a previously granted consent (shares the ak.consent.grant cell; semantically a remove on the consent or_set)",
       "cell_family": "ak.component.consent.grant.v1",
       "cell_subject": {
         "type": "string",
@@ -2173,7 +2173,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Auditable access marker for privileged reads or privacy-sensitive paired writes. E2EE compliance release uses ck.audit.release; ck.audit.accessed remains for non-release audit pairs such as Circle metadata audit, watch_set_others, late recovery, and policy reads."
+      "payload": "Auditable access marker for privileged reads or privacy-sensitive paired writes. E2EE compliance release uses ak.audit.release; ak.audit.accessed remains for non-release audit pairs such as Circle metadata audit, watch_set_others, late recovery, and policy reads."
     },
     {
       "event_kind": "ak.audit.applet_binding",
@@ -2189,7 +2189,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Audit release session request. Must reference an active ck.audit.applet_binding and a bounded historical target range or target_refs."
+      "payload": "Audit release session request. Must reference an active ak.audit.applet_binding and a bounded historical target range or target_refs."
     },
     {
       "event_kind": "ak.audit.session.authorize",
@@ -2245,7 +2245,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": false,
-      "payload": "Range-bound completeness attestation. Distinct from ck.audit.ryw_receipt (per-event read-your-writes hint) and ck.event_batch_receipt (set-bound integrity hint): this attestation asserts completeness over an explicit (from_frontier, to_frontier) + per-actor seq interval range. Issuer commits to having observed every reducer-input event in scope; witness quorum or independent seal backing is required for non-self-attested deployments. See zh/sync/operations-sync.md §6.4."
+      "payload": "Range-bound completeness attestation. Distinct from ak.audit.ryw_receipt (per-event read-your-writes hint) and ak.event_batch_receipt (set-bound integrity hint): this attestation asserts completeness over an explicit (from_frontier, to_frontier) + per-actor seq interval range. Issuer commits to having observed every reducer-input event in scope; witness quorum or independent seal backing is required for non-self-attested deployments. See zh/sync/operations-sync.md §6.4."
     },
     {
       "event_kind": "ak.self.moderation.report",
@@ -2271,7 +2271,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Sealed moderation decision (writes ck.component.moderation_state.v1 cell)",
+      "payload": "Sealed moderation decision (writes ak.component.moderation_state.v1 cell)",
       "cell_family": "ak.component.moderation_state.v1",
       "cell_subject": {
         "type": "string",
@@ -2288,7 +2288,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Lift a previously sealed moderation decision (observed-remove/supersede the referenced decision in ck.component.moderation_state.v1)",
+      "payload": "Lift a previously sealed moderation decision (observed-remove/supersede the referenced decision in ak.component.moderation_state.v1)",
       "cell_family": "ak.component.moderation_state.v1",
       "cell_subject": {
         "type": "string",
@@ -2305,7 +2305,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Submit an appeal against an existing ck.moderation.decision. Writes the appeal cell to state=submitted. Schema: ck.schema.moderation_appeal.v1. See zh/governance/content-moderation.md §5.5 (appeal strand).",
+      "payload": "Submit an appeal against an existing ak.moderation.decision. Writes the appeal cell to state=submitted. Schema: ak.schema.moderation_appeal.v1. See zh/governance/content-moderation.md §5.5 (appeal strand).",
       "cell_family": "ak.component.moderation.appeal.v1",
       "cell_subject": {
         "type": "string",
@@ -2322,7 +2322,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Reviewer acknowledges the appeal and transitions cell state submitted → under_review. Identifies the reviewing actor and target appeal. Schema: ck.schema.moderation_appeal.v1.",
+      "payload": "Reviewer acknowledges the appeal and transitions cell state submitted → under_review. Identifies the reviewing actor and target appeal. Schema: ak.schema.moderation_appeal.v1.",
       "cell_family": "ak.component.moderation.appeal.v1",
       "cell_subject": {
         "type": "string",
@@ -2339,7 +2339,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Reviewer's verdict on the appeal: uphold (decision stands) / overturn (decision reversed, emits ck.moderation.decision.lift) / modify (decision adjusted). Transitions cell state under_review → decided. Schema: ck.schema.moderation_appeal.v1.",
+      "payload": "Reviewer's verdict on the appeal: uphold (decision stands) / overturn (decision reversed, emits ak.moderation.decision.lift) / modify (decision adjusted). Transitions cell state under_review → decided. Schema: ak.schema.moderation_appeal.v1.",
       "cell_family": "ak.component.moderation.appeal.v1",
       "cell_subject": {
         "type": "string",
@@ -2356,7 +2356,7 @@
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Closes the appeal from submitted / under_review / decided via reviewer close, appellant withdrawal, or a deployment's authorized close service. close is a manual/authorized action; the protocol does not mandate any auto-close timer or cool-off duration (deployment/Realm policy decides). Schema: ck.schema.moderation_appeal.v1.",
+      "payload": "Closes the appeal from submitted / under_review / decided via reviewer close, appellant withdrawal, or a deployment's authorized close service. close is a manual/authorized action; the protocol does not mandate any auto-close timer or cool-off duration (deployment/Realm policy decides). Schema: ak.schema.moderation_appeal.v1.",
       "cell_family": "ak.component.moderation.appeal.v1",
       "cell_subject": {
         "type": "string",
@@ -2373,7 +2373,7 @@
       "status": "active",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
-      "payload": "Read cursor advance event (actor-private). Writes the actor's latest read position for a given (realm_id, read_scope) tuple. Was historically named ck.read.cursor; renamed to align the event_kind, capability action, schema id and typed ID prefix on a single noun root read_cursor."
+      "payload": "Read cursor advance event (actor-private). Writes the actor's latest read position for a given (realm_id, read_scope) tuple. Was historically named ak.read.cursor; renamed to align the event_kind, capability action, schema id and typed ID prefix on a single noun root read_cursor."
     },
     {
       "event_kind": "ak.receipt.read",
@@ -2424,7 +2424,7 @@
       "payload": "Third-party invite claim",
       "reducer_authority": "realm",
       "reducer_effects": [
-        "match pending ck.invite.third_party by invite_id and token_commitment",
+        "match pending ak.invite.third_party by invite_id and token_commitment",
         "re-check verification_service_did against current effective Realm allowlist",
         "deduplicate (invite_id, claim_nonce) and token_commitment before accepting",
         "transition invite cell pending -> claimed and materialize subject-bound membership proposal",

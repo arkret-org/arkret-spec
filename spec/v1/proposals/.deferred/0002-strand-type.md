@@ -1,5 +1,5 @@
 ---
-ckp: CKP-0002
+akp: AKP-0002
 title: Strand Type (Work Item Type)
 normative: false
 stability: v1
@@ -8,12 +8,12 @@ status: deferred-to-v1.1
 created: 2026-05-23
 authors:
   - did:webvh:z8kSru9qAfd1G7AvcVjggdEKy:arkret.example
-depends_on: [CKP-0003]
+depends_on: [AKP-0003]
 ---
 
 ## 1. Summary
 
-引入 `ak:strand_type:` 一等对象,声明 Realm 内某个 Strand 业务类型(Task / Sub-task / Bug / Story / Initiative / ...)的字段集合、必填项、允许的 workflow、父子层级。Strand 上新增可选 `strand_type_ref: id:strand_type`,reducer 在 `ck.strand.create` / `ck.strand.update` 时按 type 声明做字段验证。
+引入 `ak:strand_type:` 一等对象,声明 Realm 内某个 Strand 业务类型(Task / Sub-task / Bug / Story / Initiative / ...)的字段集合、必填项、允许的 workflow、父子层级。Strand 上新增可选 `strand_type_ref: id:strand_type`,reducer 在 `ak.strand.create` / `ak.strand.update` 时按 type 声明做字段验证。
 
 ## 2. Motivation
 
@@ -30,7 +30,7 @@ Jira 截图里 "Sub-task / Task" tab 切换 = 每个 Space 内 Strand 的有限*
 
 ### 3.1 `ak:strand_type:` 对象
 
-Schema id: `ck.schema.strand_type.v1`
+Schema id: `ak.schema.strand_type.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -40,12 +40,12 @@ Schema id: `ck.schema.strand_type.v1`
 | `name` | yes | `string` | 1..64 chars。 | 显示名。 |
 | `description` | no | `string` | ≤512 chars。 | 描述。 |
 | `icon` | no | `object` | `{emoji?, blob_ref?}` | 类型图标。 |
-| `color` | no | `object` | 同 [CKP-0001](./0001-label-entity.md) `color`。 | 类型主题色(用于 UI tag 渲染)。 |
-| `parent_type_refs` | no | `array<id:strand_type>` | 允许多个父类型(例如 `subtask` 的父可以是 `task` 也可以是 `bug`)。 | 父子层级:本 type 的 Strand MUST 有 `ck.strand.parent --> strand` Relation 指向一个 `strand_type ∈ parent_type_refs` 的 Strand。 |
-| `field_requirements` | no | `array<FieldRequirement>` | 见 §3.2。 | 字段必填 / 推荐 / 禁止表;**依赖 [CKP-0003 Field Catalog](./0003-field-catalog.md) 的 `ak:field_def:`**。 |
-| `allowed_workflow_ref` | no | `id:workflow` | 见 [CKP-0005](./0005-workflow-state-machine.md)。 | 本 type 默认 / 唯一允许的 workflow。 |
+| `color` | no | `object` | 同 [AKP-0001](./0001-label-entity.md) `color`。 | 类型主题色(用于 UI tag 渲染)。 |
+| `parent_type_refs` | no | `array<id:strand_type>` | 允许多个父类型(例如 `subtask` 的父可以是 `task` 也可以是 `bug`)。 | 父子层级:本 type 的 Strand MUST 有 `ak.strand.parent --> strand` Relation 指向一个 `strand_type ∈ parent_type_refs` 的 Strand。 |
+| `field_requirements` | no | `array<FieldRequirement>` | 见 §3.2。 | 字段必填 / 推荐 / 禁止表;**依赖 [AKP-0003 Field Catalog](./0003-field-catalog.md) 的 `ak:field_def:`**。 |
+| `allowed_workflow_ref` | no | `id:workflow` | 见 [AKP-0005](./0005-workflow-state-machine.md)。 | 本 type 默认 / 唯一允许的 workflow。 |
 | `allowed_relation_kinds` | no | `array<string>` | — | 本 type 的 Strand 允许出现哪些 outgoing Relation kind(白名单收紧)。 |
-| `default_stage` | no | `enum(common-fields §5.3.2 的 8 值)` | — | `ck.strand.create` 未指定 stage 时的 fallback。**注意**:协议级 stage 仍要求 actor 必填(common-fields §5.3.1),本字段仅供 client 端 picker 预填。 |
+| `default_stage` | no | `enum(common-fields §5.3.2 的 8 值)` | — | `ak.strand.create` 未指定 stage 时的 fallback。**注意**:协议级 stage 仍要求 actor 必填(common-fields §5.3.1),本字段仅供 client 端 picker 预填。 |
 | `state` | yes | `enum(active, archived, tombstoned)` | 同 common-fields §5。archive 后已用该 type 的 Strand 不脱钩,但 picker 隐藏。 | 生命周期。 |
 | 公共字段 | — | — | created_by / created_at / updated_by / updated_at / state_changed_at | 见 common-fields。 |
 
@@ -60,8 +60,8 @@ Schema id: `ck.schema.strand_type.v1`
 }
 ```
 
-- `required`:`ck.strand.create` 必须在 `fields` 中提供;缺失 → `schema_violation`
-- `forbidden`:`ck.strand.create` / `update` 出现该字段 → `schema_violation`
+- `required`:`ak.strand.create` 必须在 `fields` 中提供;缺失 → `schema_violation`
+- `forbidden`:`ak.strand.create` / `update` 出现该字段 → `schema_violation`
 - `recommended` / `optional`:reducer 不强制,仅 UI hint
 - `visible_when_empty`:对应 Jira "Hide when empty" 分隔线之上(true)/ 之下(false)
 
@@ -69,7 +69,7 @@ Schema id: `ck.schema.strand_type.v1`
 
 | 字段 | 必填 | 类型 | 约束 |
 | --- | --- | --- | --- |
-| `strand_type_ref` | no | `id:strand_type` | 引用的 `strand_type.realm_id == strand.realm_id`。**create-locked**(避免类型切换导致历史 grant 失效);需要换 type 走显式 `ck.strand.type.migrate`(参见 §3.4)。 |
+| `strand_type_ref` | no | `id:strand_type` | 引用的 `strand_type.realm_id == strand.realm_id`。**create-locked**(避免类型切换导致历史 grant 失效);需要换 type 走显式 `ak.strand.type.migrate`(参见 §3.4)。 |
 
 未设置 `strand_type_ref` 时,Strand 是 anonymous(沿用当前协议行为)。
 
@@ -77,33 +77,33 @@ Schema id: `ck.schema.strand_type.v1`
 
 | event kind | reducer_input | 说明 |
 | --- | --- | --- |
-| `ck.strand_type.create` | yes | 创建 type |
-| `ck.strand_type.update` | yes | patch type(不改 key) |
-| `ck.strand_type.archive` | yes | active → archived |
-| `ck.strand_type.restore` | yes | archived → active |
-| `ck.strand_type.tombstone` | yes | terminal |
-| `ck.strand.type.migrate` | yes | **高 tier**;改一个已存在 Strand 的 `strand_type_ref`;reducer 校验所有 required 字段在新 type 下仍满足;audit-required。 |
+| `ak.strand_type.create` | yes | 创建 type |
+| `ak.strand_type.update` | yes | patch type(不改 key) |
+| `ak.strand_type.archive` | yes | active → archived |
+| `ak.strand_type.restore` | yes | archived → active |
+| `ak.strand_type.tombstone` | yes | terminal |
+| `ak.strand.type.migrate` | yes | **高 tier**;改一个已存在 Strand 的 `strand_type_ref`;reducer 校验所有 required 字段在新 type 下仍满足;audit-required。 |
 
-### 3.5 Reducer 校验流程(`ck.strand.create` / `ck.strand.update`)
+### 3.5 Reducer 校验流程(`ak.strand.create` / `ak.strand.update`)
 
 1. 解析 `strand.strand_type_ref`(若有);找到对应 type 的 `field_requirements`。
 2. 对每个 `required` field_def → `fields[<field_def.key>]` 必须存在且通过 field_def 的 typed 校验。
 3. 对每个 `forbidden` field_def → `fields[<field_def.key>]` 不得出现。
-4. 若 type 声明 `parent_type_refs[]` 非空 → 必须在同一事件 batch 中或事先存在 `ck.relation.create relation_kind=ck.strand.parent` 指向合法父类型 Strand。
-5. 若 type 声明 `allowed_relation_kinds[]` → 后续 `ck.relation.create` 若超出白名单 MUST `schema_violation`。
-6. 若 type 声明 `allowed_workflow_ref` → Strand 的 workflow_state_ref(参见 [CKP-0005](./0005-workflow-state-machine.md))MUST 来自该 workflow。
+4. 若 type 声明 `parent_type_refs[]` 非空 → 必须在同一事件 batch 中或事先存在 `ak.relation.create relation_kind=ak.strand.parent` 指向合法父类型 Strand。
+5. 若 type 声明 `allowed_relation_kinds[]` → 后续 `ak.relation.create` 若超出白名单 MUST `schema_violation`。
+6. 若 type 声明 `allowed_workflow_ref` → Strand 的 workflow_state_ref(参见 [AKP-0005](./0005-workflow-state-machine.md))MUST 来自该 workflow。
 
 ## 4. Interactions with normative spec
 
 - 新增文件:`spec/v1/zh/models/strand-type.md`。
 - 新增 schema:`strand-type.schema.json`。
 - 新增 id-kind:`strand_type`。
-- 新增 event_kinds(6 条)+ capability actions(`ck.strand_type.manage`、`ck.strand.type.migrate` high tier 等)。
-- 新增 Relation kind:`ck.strand.parent`(若未存在),用于父子 Strand。
+- 新增 event_kinds(6 条)+ capability actions(`ak.strand_type.manage`、`ak.strand.type.migrate` high tier 等)。
+- 新增 Relation kind:`ak.strand.parent`(若未存在),用于父子 Strand。
 - `strand.schema.json` 增加 `strand_type_ref` optional property。
 - `strand-and-message.md` §3 表新增 `strand_type_ref` 行;新增章节描述类型校验流程。
 - **不**改 Strand 现有 `fields` 黑盒约束;type 是收紧而非替代。
-- profile gate:`ck.profile.strand_type.v1`,未启用时 `strand_type_ref` MUST 缺省;reducer 不会调用 type-validation 路径。
+- profile gate:`ak.profile.strand_type.v1`,未启用时 `strand_type_ref` MUST 缺省;reducer 不会调用 type-validation 路径。
 
 ## 5. Rationale & alternatives
 
@@ -128,13 +128,13 @@ Schema id: `ck.schema.strand_type.v1`
 
 ### 5.3 为什么 `strand_type_ref` create-locked?
 
-与 morph_type、label.key 同理:type ref 是授权 / selector / workflow gate 的 key,silent rename 会让旧 grant 失效。需要换 type 走显式 `ck.strand.type.migrate`(audit-required, high tier)。
+与 morph_type、label.key 同理:type ref 是授权 / selector / workflow gate 的 key,silent rename 会让旧 grant 失效。需要换 type 走显式 `ak.strand.type.migrate`(audit-required, high tier)。
 
 ## 6. Open questions
 
 - [ ] 是否允许一个 Strand **没有** type(anonymous Strand)?默认允许(profile-gated),否则会破坏现有 v1 行为。
 - [ ] type 是否可以跨 Realm 复用?目前设计是 Realm-scoped。Linked Realm 场景下是否需要继承?
-- [ ] `ck.strand.parent` Relation 是否应该是 cardinality `many_to_one` 强约束(一个 sub-task 只能有一个 parent)?Jira 是 1:N,Linear 是 1:N。建议 cardinality=many_to_one。
+- [ ] `ak.strand.parent` Relation 是否应该是 cardinality `many_to_one` 强约束(一个 sub-task 只能有一个 parent)?Jira 是 1:N,Linear 是 1:N。建议 cardinality=many_to_one。
 - [ ] type 删除后 historical Strand 上的 `strand_type_ref` 如何处理?reducer 不应清除引用(保留 audit),但 picker / projection 把这些 Strand 标记为 "deprecated type"。
 - [ ] 是否需要"system-builtin types"作为 v1 兜底(`task`/`subtask`/`bug`/`story`)?这会引入协议级 type fixed enum,违背"类型由 Realm 声明"的原则。建议**不**做 builtin,留给 default profile。
 
@@ -147,5 +147,5 @@ Schema id: `ck.schema.strand_type.v1`
 - Jira work item type(用户提供截图,2026-05-23):Sub-task / Task tab,parent / subtask 层级
 - Linear issue creation / type context: <https://linear.app/docs/creating-issues>
 - Asana Custom Item Types
-- CKP-0003 Field Catalog(本提案的 field-level 依赖)
-- CKP-0005 Workflow(本提案的 workflow-level 依赖)
+- AKP-0003 Field Catalog(本提案的 field-level 依赖)
+- AKP-0005 Workflow(本提案的 workflow-level 依赖)

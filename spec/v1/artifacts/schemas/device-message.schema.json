@@ -43,7 +43,7 @@
     },
     "device_proof": {
       "type": "object",
-      "description": "Optional per-device transport proof block. Schema-open extension point keyed by device-lifecycle.md §5.2 cross-signing binding (typical sub-fields: cross_signing_binding, sender_device_key_fingerprint, signature_over_content_digest). MUST NOT replace MLS authentication of the enclosing envelope; included only when an additional out-of-band per-device transport binding is required (e.g. SAS verification, dehydrated-device proofs). Receivers MUST treat unknown sub-fields as opaque and MUST NOT trust device_proof in isolation."
+      "description": "Optional per-device transport proof bloak. Schema-open extension point keyed by device-lifecycle.md §5.2 cross-signing binding (typical sub-fields: cross_signing_binding, sender_device_key_fingerprint, signature_over_content_digest). MUST NOT replace MLS authentication of the enclosing envelope; included only when an additional out-of-band per-device transport binding is required (e.g. SAS verification, dehydrated-device proofs). Receivers MUST treat unknown sub-fields as opaque and MUST NOT trust device_proof in isolation."
     },
     "unsigned": {
       "type": "object",
@@ -377,7 +377,7 @@
       "properties": {
         "request_id": {
           "$ref": "#/$defs/transaction_id",
-          "description": "Correlates to the pending ck.secret.request; MUST equal the request_id authenticated inside the sealed plaintext and HPKE AAD. Receivers MUST drop sends that do not match a locally pending request_id."
+          "description": "Correlates to the pending ak.secret.request; MUST equal the request_id authenticated inside the sealed plaintext and HPKE AAD. Receivers MUST drop sends that do not match a locally pending request_id."
         },
         "secret_id": {
           "type": "string",
@@ -399,14 +399,14 @@
         "ciphertext": {
           "type": "string",
           "minLength": 1,
-          "description": "base64url HPKE AEAD ciphertext over the secret plaintext. The plaintext MUST carry the requested secret body, version, request_id and secret_id. The HPKE AAD is the RFC 8785 JCS canonical JSON of {kind, sender_principal_id, sender_device_id, recipient_principal_id, recipient_device_id, request_id, secret_id, expires_at_unix} where request_id/secret_id are the outer ck.secret.send content fields and expires_at_unix is expires_at normalized to integer Unix seconds (device-lifecycle.md §10.7); both sides reconstruct it from the DeviceMessageEnvelope plus content. Freshness for sent_at (server-assigned) is bound by the one-time request_id authenticated inside the sealed plaintext and AAD."
+          "description": "base64url HPKE AEAD ciphertext over the secret plaintext. The plaintext MUST carry the requested secret body, version, request_id and secret_id. The HPKE AAD is the RFC 8785 JCS canonical JSON of {kind, sender_principal_id, sender_device_id, recipient_principal_id, recipient_device_id, request_id, secret_id, expires_at_unix} where request_id/secret_id are the outer ak.secret.send content fields and expires_at_unix is expires_at normalized to integer Unix seconds (device-lifecycle.md §10.7); both sides reconstruct it from the DeviceMessageEnvelope plus content. Freshness for sent_at (server-assigned) is bound by the one-time request_id authenticated inside the sealed plaintext and AAD."
         }
       },
       "additionalProperties": true
     },
     "realm_key_request_content": {
       "type": "object",
-      "description": "ak.realm_key.request to-device content (device-lifecycle.md §13.2). A read-eligible receiver asks a concrete key source to evaluate policy and, if authorized, deliver historical history_secret material via durable ck.realm_key.share or an equivalent policy-authorized recovery path. Carries no key material itself.",
+      "description": "ak.realm_key.request to-device content (device-lifecycle.md §13.2). A read-eligible receiver asks a concrete key source to evaluate policy and, if authorized, deliver historical history_secret material via durable ak.realm_key.share or an equivalent policy-authorized recovery path. Carries no key material itself.",
       "required": [
         "key_scope",
         "recipient_principal_id",
@@ -440,7 +440,7 @@
             "archive_node",
             "recovery_service"
           ],
-          "description": "Source class this request targets. key_backup is intentionally excluded because it is retrieved via ck.self.keys.backups.command.unlock."
+          "description": "Source class this request targets. key_backup is intentionally excluded because it is retrieved via ak.self.keys.backups.command.unloak."
         },
         "target_source_ref": {
           "description": "Concrete source this request is routed to: a device_id for own_device / verified_member_device, or a service DID for archive_node / recovery_service. Service-targeted reuse of this to-device kind is valid only when ServiceDescribe exposes a concrete recipient_device_id / queue target for the service DID; otherwise the service MUST expose a dedicated operation.",
@@ -591,7 +591,7 @@
         },
         "new_device_pubkey": {
           "type": "object",
-          "description": "Public key material for the requesting device when purpose=same_principal_device_authorization. The kid SHOULD equal the requesting device id and the object is later consumed by ck.gate.account.command.pair_device.",
+          "description": "Public key material for the requesting device when purpose=same_principal_device_authorization. The kid SHOULD equal the requesting device id and the object is later consumed by ak.gate.account.command.pair_device.",
           "properties": {
             "kid": {
               "$ref": "#/$defs/device_id"
@@ -610,7 +610,7 @@
         "challenge_signature": {
           "type": "string",
           "minLength": 1,
-          "description": "Fresh requesting-device proof bound to pairing_code, new_device_pubkey, gate_audience, and request_canonical_digest; later submitted to ck.gate.account.command.pair_device."
+          "description": "Fresh requesting-device proof bound to pairing_code, new_device_pubkey, gate_audience, and request_canonical_digest; later submitted to ak.gate.account.command.pair_device."
         },
         "gate_audience": {
           "type": "string",

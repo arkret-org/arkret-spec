@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/realm-read-operations.schema.json",
   "title": "Arkret Realm Read + Moderation-Policy Operation DTOs",
-  "description": "Closed request/response DTOs for the self-surface Realm read operations and moderation-policy management (ck.self.realm.*). Realm read returns the lifecycle projection; export returns a full event-log + operation dump; effective moderation-policy returns the organization-inherited merged view; the moderation-policy override write builds a ck.realm.moderation_policy fact (subject to organization approval). See spec/v1/zh/models/realm-and-space.md and spec/v1/zh/governance/content-moderation.md.",
+  "description": "Closed request/response DTOs for the self-surface Realm read operations and moderation-policy management (ak.self.realm.*). Realm read returns the lifecycle projection; export returns a full event-log + operation dump; effective moderation-policy returns the organization-inherited merged view; the moderation-policy override write builds a ak.realm.moderation_policy fact (subject to organization approval). See spec/v1/zh/models/realm-and-space.md and spec/v1/zh/governance/content-moderation.md.",
   "anyOf": [
     {
       "$ref": "#/$defs/realm_lifecycle_view"
@@ -170,8 +170,8 @@
     },
     "realm_moderation_policy_replace_request_body": {
       "type": "object",
-      "$comment": "Open extension surface: the ck.realm.moderation_policy document body is a free-form governance object (rules[], targets[], allow_override[], organization_approval[]); additionalProperties intentionally true so the override schema can evolve without a wire-breaking change. The document is canonical-JSON validated server-side.",
-      "description": "Realm moderation-policy override body. Free-form ck.realm.moderation_policy document. When the override targets actions an organization policy denies, it requires explicit organization approval embedded in the document.",
+      "$comment": "Open extension surface: the ak.realm.moderation_policy document body is a free-form governance object (rules[], targets[], allow_override[], organization_approval[]); additionalProperties intentionally true so the override schema can evolve without a wire-breaking change. The document is canonical-JSON validated server-side.",
+      "description": "Realm moderation-policy override body. Free-form ak.realm.moderation_policy document. When the override targets actions an organization policy denies, it requires explicit organization approval embedded in the document.",
       "additionalProperties": true
     },
     "realm_moderation_policy_document": {

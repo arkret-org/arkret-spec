@@ -22,9 +22,9 @@ Arkret 不是把某个产品的对象名搬进协议，而是把常见协作产�
 | --- | --- | --- |
 | 聊天群、即时通讯群组、频道 | `Realm` 提供成员与历史边界；一个或多个 `Strand(tracks.discussion)` 承载对话 | `Message` 本身不是房间；`discussion` track 也不是独立 ACL。 |
 | 房间式协作场景 | 通常拆为 `Realm`（状态、成员与历史边界）+ `Strand/Message`（协作主题与消息）+ `View`（时间线 / 话题投影） | v1 core 不使用通用 `Room` 对象根。 |
-| Trello Board / List / Card | `Space(kind=board)` / `Space(kind=list)` / `Strand`，位置由 `ck.strand.move` 与派生 `contains` Relation 表达 | View renderer 不是对象真相；拖拽不能只改 View。 |
+| Trello Board / List / Card | `Space(kind=board)` / `Space(kind=list)` / `Strand`，位置由 `ak.strand.move` 与派生 `contains` Relation 表达 | View renderer 不是对象真相；拖拽不能只改 View。 |
 | Jira issue / workflow status / issue links | `Strand` / `stage` + workflow profile / `Relation(depends_on, blocks, assigned_to, references...)` | Jira-style workflow status 不等于 `state`，也不应塞进 `metadata.fields.status` 作为互操作真相。 |
-| Watchers、订阅、勿扰 | `ck.strand.watch.set` cell + actor-private push rules / DND | Watch 不是访问权；静音不改变别人是否能读对象。 |
+| Watchers、订阅、勿扰 | `ak.strand.watch.set` cell + actor-private push rules / DND | Watch 不是访问权；静音不改变别人是否能读对象。 |
 | 小程序 / Bot / 集成服务 | Applet、Agent、Ghost Actor、Morph / Relation 扩展 | 安装一个客户端或插件不等于创建 protocol principal。 |
 
 ## 2. Strand 是统一协作对象
@@ -33,7 +33,7 @@ Arkret 不是把某个产品的对象名搬进协议，而是把常见协作产�
 
 - `tracks` 的 key：定义 Strand 当前启用的能力轨道（key 是 track 稳定名）
 - `tracks.<name>.is_primary=true`：可显式定义默认主入口；若未显式设置且存在 key `synthesis`，默认主入口派生为 `synthesis`
-- `state`（active/archived/redacted）= 物理生命周期；`stage`（draft/proposed/planned/in_progress/blocked/done/cancelled/superseded，可选）= 业务进度。两者正交，分别由 `ck.strand.archive` 家族与 `ck.strand.stage.set` 维护。详见 [`models/common-fields.md` §5.3](../models/common-fields.md)。
+- `state`（active/archived/redacted）= 物理生命周期；`stage`（draft/proposed/planned/in_progress/blocked/done/cancelled/superseded，可选）= 业务进度。两者正交，分别由 `ak.strand.archive` 家族与 `ak.strand.stage.set` 维护。详见 [`models/common-fields.md` §5.3](../models/common-fields.md)。
 - 业务语义通过 Realm schema/profile、`metadata.fields`、Relation、labels、Morph type 或 facet 表达
 
 Jira / Trello 一类产品里的细粒度 workflow status（例如 QA、Review、Ready for release）不是新的协议字段。跨实现互操作在 Strand 携带 `stage` 时只依赖 8 个粗粒度值；细粒度状态应由 Realm workflow profile、`metadata.fields` 或 Morph schema 声明，并在需要跨 Realm dashboard 聚合时映射回 `stage`。
@@ -48,9 +48,9 @@ Jira / Trello 一类产品里的细粒度 workflow status（例如 QA、Review�
 轨道规则：
 
 - `synthesis` 与 `discussion` 都可独立启用或关闭；`tracks` map 只要求至少有一个 active track。「只聊天不归纳」（仅 `discussion`）和「只承载结构化正文不开讨论」（仅 `synthesis`）都是合法形态。
-- 关闭 track 用 `tracks.<name>.enabled: set false`（冻结新写入、保留历史），或从 map 中删除 key。primary track MUST NOT 空缺：若被关闭的是当前 primary，MUST 在同一 `ck.strand.tracks.update` patch 中把 primary 转给另一个 active track。
+- 关闭 track 用 `tracks.<name>.enabled: set false`（冻结新写入、保留历史），或从 map 中删除 key。primary track MUST NOT 空缺：若被关闭的是当前 primary，MUST 在同一 `ak.strand.tracks.update` patch 中把 primary 转给另一个 active track。
 - `discussion` 的额外护栏：reducer MUST NOT 隐式创建 `discussion` track——切换 primary 到 `discussion` 时，若该 track 尚未 enabled，必须在同一 patch 中同时写 `tracks.discussion.enabled: set true` + `tracks.discussion.is_primary: set true`。`synthesis` 没有此特殊约束（默认即标准 primary 候选，见 [`models/strand-and-message.md` §4.5](../models/strand-and-message.md)）。
-- 任何 track 启用、关停或切换 primary 通过单一 event `ck.strand.tracks.update`（payload 为 `ck.patch.v1` 形态）原子完成，不改变 `strand_id`；详见 [`models/strand-and-message.md` §4.8](../models/strand-and-message.md)。
+- 任何 track 启用、关停或切换 primary 通过单一 event `ak.strand.tracks.update`（payload 为 `ak.patch.v1` 形态）原子完成，不改变 `strand_id`；详见 [`models/strand-and-message.md` §4.8](../models/strand-and-message.md)。
 
 ## 4. 工作流容器
 
@@ -62,24 +62,24 @@ Jira / Trello 一类产品里的细粒度 workflow status（例如 QA、Review�
 - `List Space`（`kind=list`）
 - 未来可扩展：`swimlane` / `calendar_bucket` / `page_group` / …（profile 注册）
 
-Strand 在 `Board Space` / `List Space` 中的位置通过 `contains` relation 与 `ck.strand.move` / `ck.strand.reorder` 维护。Space 之间的层级用 Space 自己的 `parent_space_id` + `ck.space.parent` 表达，可跨 Realm 做导航，但不级联 Realm 权限或密钥。
+Strand 在 `Board Space` / `List Space` 中的位置通过 `contains` relation 与 `ak.strand.move` / `ak.strand.reorder` 维护。Space 之间的层级用 Space 自己的 `parent_space_id` + `ak.space.parent` 表达，可跨 Realm 做导航，但不级联 Realm 权限或密钥。
 
 ## 5. View 的职责
 
 `View` 只负责查询和渲染：
 
 - 看板/列表使用 `View.kind="collection"`，再通过 renderer 表达 `board` / `list` 视图样式
-- View filter / columns / layout 变化写入 `ck.view.update`
-- 拖拽 Strand、切换 List、修改 rank 写入真实对象事件：`ck.strand.move` / `ck.strand.reorder` / `ck.space.update`
+- View filter / columns / layout 变化写入 `ak.view.update`
+- 拖拽 Strand、切换 List、修改 rank 写入真实对象事件：`ak.strand.move` / `ak.strand.reorder` / `ak.space.update`
 
 ## 6. 权限与成员边界
 
 Realm membership、Strand 更新权限与 discussion timeline 可见性使用统一授权模型裁剪：
 
-- `ck.member.state` 控制 Realm membership
-- `ck.strand.*` 控制 Strand 自身与工作流位置
+- `ak.member.state` 控制 Realm membership
+- `ak.strand.*` 控制 Strand 自身与工作流位置
 - Track 不携带独立 access；整 Strand 共享单一 effective scope（`Strand.scope_circle_id`：null = Realm-default scope，否则指向同 Realm 的 [Circle](../models/circle.md)）。
-- 需要让 Strand 拥有独立 membership / history visibility / 投递裁剪或 E2EE 时，把 `Strand.scope_circle_id` 指向一个 Circle；`ck.circle.member.state` 控制 Circle 成员状态（`Circle.members ⊆ Realm.members`）。
+- 需要让 Strand 拥有独立 membership / history visibility / 投递裁剪或 E2EE 时，把 `Strand.scope_circle_id` 指向一个 Circle；`ak.circle.member.state` 控制 Circle 成员状态（`Circle.members ⊆ Realm.members`）。
 - Strand 可见性按整 Strand 单一 scope 判定：`scope_circle_id=null` 按 Realm-default policy；`scope_circle_id` 指向 Circle 时按该 Circle 自身 history visibility 与 membership 独立判断。
 - Strand 可读不代表 Strand synthesis 可写——授权评估始终是 capability ∧ scope membership 两层 AND（详见 [`../models/circle.md` §8](../models/circle.md)）。
 
@@ -122,4 +122,4 @@ Arkret v1 的统一读法是：
 | 自定义字段 | `fields` + Realm schema/profile | 字段名、类型、必填性与迁移必须由 schema 声明；facet 只做 UI hint。 |
 | 自动化 / Butler / Jira automation | Applet / Agent / policy-bound automation profile | 自动化触发的共享变化仍必须落成 signed Event，不能只写投影缓存。 |
 | Saved filter / personal board view | 共享视图用 `View`；个人列宽、折叠、临时 filter 用 actor-private account data | View 是共享投影定义；个人偏好不进入 Realm 共享历史。 |
-| Watchers / assignment / mention | `ck.strand.watch.set`、`Relation(assigned_to)`、结构化 mention node | 访问权先由 Realm/Circle scope 判断，再叠加通知偏好。 |
+| Watchers / assignment / mention | `ak.strand.watch.set`、`Relation(assigned_to)`、结构化 mention node | 访问权先由 Realm/Circle scope 判断，再叠加通知偏好。 |

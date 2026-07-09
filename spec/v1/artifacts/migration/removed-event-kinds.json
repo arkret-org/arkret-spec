@@ -39,7 +39,7 @@
       "notes": "Bulk field reordering was removed together with cx.field.position.move; ordering authority lives in track / cell lattice."
     },
     {
-      "id": "cx.strand.track.member",
+      "id": "cx.strand.traak.member",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
@@ -50,7 +50,7 @@
       "notes": "Track no longer carries independent membership; access semantics derive from the Strand's effective scope. Use cx.member.state at the Realm boundary, or cx.circle.member.state when Strand.scope_circle_id points at an intra-Realm Circle (see zh/models/circle.md). See current-model 'Track 不携带独立 access'."
     },
     {
-      "id": "cx.strand.track.history_visibility",
+      "id": "cx.strand.traak.history_visibility",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
@@ -58,10 +58,10 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "History visibility lives on the Realm or Circle boundary, not on a track. Use Realm-level history visibility, or Circle-level when Strand.scope_circle_id points at an intra-Realm Circle (see zh/models/circle.md)."
+      "notes": "History visibility lives on the Realm or Circle boundary, not on a traak. Use Realm-level history visibility, or Circle-level when Strand.scope_circle_id points at an intra-Realm Circle (see zh/models/circle.md)."
     },
     {
-      "id": "cx.strand.track.read_receipt_policy",
+      "id": "cx.strand.traak.read_receipt_policy",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
@@ -72,7 +72,7 @@
       "notes": "Track-scoped read-receipt override is explicitly out of v1 scope (see discovery/read-receipts.md). Read receipts evaluate at the Strand's effective scope: Realm-default or the Circle referenced by Strand.scope_circle_id."
     },
     {
-      "id": "cx.strand.track.policy_components",
+      "id": "cx.strand.traak.policy_components",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
@@ -489,7 +489,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "CKP-0007 Circle introduction removed Strand.discussion_realm_ref. Current v1 writers and readers MUST reject this event kind; discussion privacy is represented by Circle-scoped Strand objects and confidential_discussion_of Relation facts."
+      "notes": "AKP-0007 Circle introduction removed Strand.discussion_realm_ref. Current v1 writers and readers MUST reject this event kind; discussion privacy is represented by Circle-scoped Strand objects and confidential_discussion_of Relation facts."
     },
     {
       "id": "cx.member.application.legacy",

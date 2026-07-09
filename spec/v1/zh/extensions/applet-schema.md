@@ -54,7 +54,7 @@ updated: 2026-07-02
 > 字段，且 `payload_digest` 覆盖整个 canonical registration object（不含 `proof` 自身）。
 > 空 `"proof": {}` 形态 MUST 被 receiver 以 `schema_violation` 拒绝。
 
-> **`requested_scopes` 是请求声明，不是授权**：该数组只是 Applet 在 registration 时声明它"打算请求的能力范围"，用于 Realm owner / human reviewer 审批 UI 展示。registration 接受**不**等于授予；Applet 实际写入 / 读取任何对象都需要独立的 `ck.capability.grant` event 命中具体 action / resource selector / constraint。reducer **MUST NOT** 因为 `requested_scopes` 包含某 action 而隐式 allow 该 action。详见 [`extensions/applet-integration.md` §11](./applet-integration.md)（末段）与 §4.1。
+> **`requested_scopes` 是请求声明，不是授权**：该数组只是 Applet 在 registration 时声明它"打算请求的能力范围"，用于 Realm owner / human reviewer 审批 UI 展示。registration 接受**不**等于授予；Applet 实际写入 / 读取任何对象都需要独立的 `ak.capability.grant` event 命中具体 action / resource selector / constraint。reducer **MUST NOT** 因为 `requested_scopes` 包含某 action 而隐式 allow 该 action。详见 [`extensions/applet-integration.md` §11](./applet-integration.md)（末段）与 §4.1。
 
 > **`registration_epoch`（registration epoch hash）**：对该 registration 的 canonical security evidence（不含 `proof` 自身）取的稳定 epoch hash，唯一标识本次 registration 的安全版本。它用于 [`applet-integration.md` §11](./applet-integration.md) 的 delegated-agent grant 绑定：grant constraint MUST 绑定 `registration_epoch`。该 epoch 的 canonical 输入 MUST 包含 derived registration object、service DID Document digest/version evidence、accepted signing key set、endpoint/auth material、bot actor/base URL 等安全相关字段。grant 存储与匹配只绑定该 epoch；reducer/verifier 仍 MUST 展开 epoch evidence，重新解析或按 method-specific version evidence 读取 service DID Document，并确认当前 DID Document digest、accepted signing key set 与 epoch 捕获值一致。无版本化 `did:web` MUST re-fetch canonical document 并比对 digest。该字段 required。
 
@@ -84,20 +84,20 @@ updated: 2026-07-02
 
 ## 1a. Applet Package Schema
 
-`ck.schema.applet_package.v1` 是开发者/供应商发布的可安装 package；它不进入 Realm history，不授权写入。安装时 Principal Server / authz service MUST 从 package 派生 canonical `ck.applet.registration` payload，再根据管理员批准生成 grant。
+`ak.schema.applet_package.v1` 是开发者/供应商发布的可安装 package；它不进入 Realm history，不授权写入。安装时 Principal Server / authz service MUST 从 package 派生 canonical `ak.applet.registration` payload，再根据管理员批准生成 grant。
 
 字段参考:
 
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
-| `schema` | yes | 固定 `ck.schema.applet_package.v1`。 |
+| `schema` | yes | 固定 `ak.schema.applet_package.v1`。 |
 | `package_id` | yes | typed id 或 DID URL；仅用于 package 分发。 |
 | `applet_id` | yes | DID 或 `ak:applet:<uuidv7>`。 |
 | `service_did` | yes | Applet runtime DID。 |
 | `controller_did` | yes | 对 package / registration 负责的 controller DID。 |
 | `base_url` | yes | Applet API base URL。 |
 | `bot_actor_id` | yes | 可见 bot actor DID；不得含 `#fragment`。 |
-| `claimed_profiles` | yes | v1 Applet profile id 数组；MUST 至少包含 `ck.profile.applet_service.v1`。 |
+| `claimed_profiles` | yes | v1 Applet profile id 数组；MUST 至少包含 `ak.profile.applet_service.v1`。 |
 | `protocols` | yes | 外部协议标识数组。 |
 | `namespaces` | yes | `actors` / `realms` / `handles` 对象形态 namespace。 |
 | `requested_scopes` | yes | capability action 请求列表；只用于审批 UI。 |
@@ -110,7 +110,7 @@ updated: 2026-07-02
 | `ghost_policy` | yes | Ghost Actor 支持与 accountability 模板。 |
 | `delegation_policy` | yes | delegated native-user acting 请求；默认 false。 |
 | `e2ee_policy` | yes | MLS join 请求；默认 false。 |
-| `widget` | optional | Applet UI widget declaration；若存在，MUST 通过 `ck.schema.applet_widget_declaration.v1`（[`applet-widget-declaration.schema.json`](../../artifacts/schemas/applet-widget-declaration.schema.json)）校验。 |
+| `widget` | optional | Applet UI widget declaration；若存在，MUST 通过 `ak.schema.applet_widget_declaration.v1`（[`applet-widget-declaration.schema.json`](../../artifacts/schemas/applet-widget-declaration.schema.json)）校验。 |
 | `package_digest` | yes | canonical package hash。 |
 | `registration_epoch` | yes | canonical security epoch hash。 |
 | `created_at` | yes | package 创建时间。 |
@@ -119,7 +119,7 @@ updated: 2026-07-02
 
 Package -> registration 派生映射:
 
-| `ck.applet.registration` 字段 | Package 来源 | 规则 |
+| `ak.applet.registration` 字段 | Package 来源 | 规则 |
 | --- | --- | --- |
 | `applet_id` | `applet_id` | 原样复制；只接受 DID 或 `ak:applet:<uuidv7>`。 |
 | `service_did` | `service_did` | 原样复制；必须可解析并绑定 Applet endpoint。 |
@@ -134,7 +134,7 @@ Package -> registration 派生映射:
 | `requested_scopes` | `requested_scopes` | 原样复制；仍只是请求声明。 |
 | `registration_epoch` | `registration_epoch` | 由 canonical derived registration + DID/key/endpoint/auth evidence 计算。 |
 | `webhook_auth` | `webhook_auth` | 原样复制；必须覆盖 transaction push signature 验证锚点。`key_ref` MUST 归属于 `service_did`，绑定当前 `registration_epoch`；key rotate 后必须通过新的 effective registration / install 生效，旧 key 不得继续放行 inbound push。 |
-| `manifest` | `claimed_profiles` + `limits` + policies + optional widget declaration | 作为 snapshot 放入 manifest，但不得替代顶层 required 字段；widget snapshot MUST 保持 `ck.schema.applet_widget_declaration.v1` 的闭合形态。 |
+| `manifest` | `claimed_profiles` + `limits` + policies + optional widget declaration | 作为 snapshot 放入 manifest，但不得替代顶层 required 字段；widget snapshot MUST 保持 `ak.schema.applet_widget_declaration.v1` 的闭合形态。 |
 | `proof` | `proof` | detached proof 覆盖 canonical package 或 derived registration object。 |
 | `created_at` | `created_at` | 原样复制。 |
 
@@ -222,7 +222,7 @@ Pattern 语法：
 **Segment 分隔符（normative）**：segment 边界由 pattern 所属命名空间决定，匹配前 pattern 与目标字符串按相同分隔符集合切分：
 
 - **Actor namespace（DID pattern）**：分隔符为 `:`。`*` 匹配 DID 中由 `:` 分隔的**单一** segment，MUST NOT 跨越 `:`。例如 `did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:*` 匹配 `did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:u123`，但 MUST NOT 匹配 `did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:team:u123`（后者跨了一个额外 `:` segment）。DID pattern 中 `**` 同样不跨 `:`——DID 没有 path-like `/` 结构，因此 DID pattern MUST NOT 依赖 `**` 的跨段语义。`#fragment` 不参与 namespace 匹配。
-- **Realm / portal namespace pattern**：分隔符集合为 `:` 与 `/`。`*` 匹配由 `:` 或 `/` 分隔的单一 segment，不跨任一分隔符；`**` 只对 `/` 分隔的 path-like 尾段生效（匹配一个或多个 `/`-分隔 segment），MUST NOT 跨 `:`。例如 `slack:team:*:channel:*` 匹配 `slack:team:T123:channel:C456`；`slack.acme.example/*` 匹配单层 path，`slack.acme.example/**` 匹配多层 path。
+- **Realm / portal namespace pattern**：分隔符集合为 `:` 与 `/`。`*` 匹配由 `:` 或 `/` 分隔的单一 segment，不跨任一分隔符；`**` 只对 `/` 分隔的 path-like 尾段生效（匹配一个或多个 `/`-分隔 segment），MUST NOT 跨 `:`。例如 `slack:team:*:channel:*` 匹配 `slack:team:T123:channel:C456`；`slaak.acme.example/*` 匹配单层 path，`slaak.acme.example/**` 匹配多层 path。
 - 任一分隔符集合下，`*` / `**` MUST NOT 匹配空 segment；exclusive namespace 的冲突判定按 [`applet-integration.md` §4.1](./applet-integration.md) 在切分后的 segment 序列上进行。
 
 ## 3. Transaction Endpoint
@@ -351,11 +351,11 @@ GET /_arkret/edge/applet/protocols/{protocol}
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `kind` | `string` | required | 固定为 `ck.applet.bridge_error`（wire Event kind，进 Realm history）。 |
+| `kind` | `string` | required | 固定为 `ak.applet.bridge_error`（wire Event kind，进 Realm history）。 |
 | `applet_id` | `id` | required | 产生该错误的 Applet id。 |
 | `realm_id` | `id` | required | 该 bridge error 所属 Realm；reducer / 客户端据此做可见范围与授权判定。 |
 | `failed_transaction_ref` | `ref` | required | 指向失败的 transaction / 源 Event（如 push 中的 `event_id` 或 transaction idempotency 记录），用于审计回溯。MUST NOT 内联未授权外部正文。 |
-| `error_class` | `string`（封闭枚举） | required | 错误类别封闭枚举，取值 **MUST** 属于 `external_network` / `auth` / `schema` / `rate_limit` / `policy`(供聚合与告警)。`error_class` 是粗粒度类别，具体错误码由 `error_code` 承载(例如 `error_class="rate_limit"` 配 `error_code="external_rate_limited"`);二者不得混用。`rate_limit` 是该枚举的 canonical 类别名,[`applet-integration.md` §14](./applet-integration.md) 的重试语境用 `rate_limited` 指同一类错误状态。该枚举的机读 enum 权威源为 [`schemas/event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 的 `ck.applet.bridge_error` payload。 |
+| `error_class` | `string`（封闭枚举） | required | 错误类别封闭枚举，取值 **MUST** 属于 `external_network` / `auth` / `schema` / `rate_limit` / `policy`(供聚合与告警)。`error_class` 是粗粒度类别，具体错误码由 `error_code` 承载(例如 `error_class="rate_limit"` 配 `error_code="external_rate_limited"`);二者不得混用。`rate_limit` 是该枚举的 canonical 类别名,[`applet-integration.md` §14](./applet-integration.md) 的重试语境用 `rate_limited` 指同一类错误状态。该枚举的机读 enum 权威源为 [`schemas/event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 的 `ak.applet.bridge_error` payload。 |
 | `error_code` | `string` | required | 具体错误码（如 `external_rate_limited`）。 |
 | `retriable` | `boolean` | required | 该错误是否可重试；发送方据此决定是否以相同 `Idempotency-Key` 重试（与 [`applet-integration.md` §14](./applet-integration.md) 重试规则一致）。 |
 | `visibility_scope` | `string`（封闭枚举） | required | 该 error event 的可见范围枚举，取值 MUST 属于 `realm_admins` / `applet_controller` / `realm_members`；客户端 MUST 按此限制展示，MUST NOT 把 bridge 内部错误细节暴露给无关成员。 |
@@ -363,13 +363,13 @@ GET /_arkret/edge/applet/protocols/{protocol}
 | `message` | `string` | optional | 人类可读摘要；MUST NOT 泄露未授权外部正文。 |
 | `retry_after_ms` | `int` | optional | 建议重试延迟，仅当 `retriable=true` 时有意义。 |
 
-`ck.applet.bridge_error` MUST 绑定 `realm_id`、`failed_transaction_ref`、`retriable` 和 `visibility_scope`；缺少任一 required 字段的 bridge error event MUST 被以 `schema_violation` 拒绝。该 event MUST NOT 泄露未授权外部正文（与 [`applet-integration.md` §16](./applet-integration.md) 一致）。
+`ak.applet.bridge_error` MUST 绑定 `realm_id`、`failed_transaction_ref`、`retriable` 和 `visibility_scope`；缺少任一 required 字段的 bridge error event MUST 被以 `schema_violation` 拒绝。该 event MUST NOT 泄露未授权外部正文（与 [`applet-integration.md` §16](./applet-integration.md) 一致）。
 
 ## 8. Applet Interop Session Events
 
-Applet 外部会话使用两类 Realm event 回流状态（`ck.applet.interop_session.start` 与 `ck.applet.interop_session.status`）。字段的机器可读真源是 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 中对应 payload `$defs`（`$defs/applet_interop_session_start_payload`、`$defs/applet_interop_session_status_payload`）；本节只列出 wire 语义。与 `ck.agent.interop_session.*` 不同，v1 不为 applet interop session 定义 canonical result 事件或 session 状态机；`runtime_status` 由 applet bridge 实现按 applet manifest 解释。
+Applet 外部会话使用两类 Realm event 回流状态（`ak.applet.interop_session.start` 与 `ak.applet.interop_session.status`）。字段的机器可读真源是 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 中对应 payload `$defs`（`$defs/applet_interop_session_start_payload`、`$defs/applet_interop_session_status_payload`）；本节只列出 wire 语义。与 `ak.agent.interop_session.*` 不同，v1 不为 applet interop session 定义 canonical result 事件或 session 状态机；`runtime_status` 由 applet bridge 实现按 applet manifest 解释。
 
-### 8.1 `ck.applet.interop_session.start`
+### 8.1 `ak.applet.interop_session.start`
 
 | 字段 | 类型 | 必需 | 说明 |
 | --- | --- | --- | --- |
@@ -379,7 +379,7 @@ Applet 外部会话使用两类 Realm event 回流状态（`ck.applet.interop_se
 | `params` | `object` | optional | 启动参数；不得内联未授权外部正文。 |
 | `created_at` | `timestamp` | optional | 会话创建时间。 |
 
-### 8.2 `ck.applet.interop_session.status`
+### 8.2 `ak.applet.interop_session.status`
 
 | 字段 | 类型 | 必需 | 说明 |
 | --- | --- | --- | --- |
@@ -389,4 +389,4 @@ Applet 外部会话使用两类 Realm event 回流状态（`ck.applet.interop_se
 | `detail` | `object` | optional | 最小状态详情；不得泄露未授权外部正文。 |
 | `updated_at` | `timestamp` | optional | 状态更新时间。 |
 
-`ck.applet.interop_session.status` 的 `runtime_status` 只描述 Applet runtime 状态，不替代 Realm capability、policy 或 bridge error 判断。
+`ak.applet.interop_session.status` 的 `runtime_status` 只描述 Applet runtime 状态，不替代 Realm capability、policy 或 bridge error 判断。

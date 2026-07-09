@@ -8,7 +8,7 @@
     "Suites are registered as explicit tuples. Implementations MUST NOT combine canonicalization ids and hash ids freely; only suites present as rows in this registry exist, and only status=active rows are valid on wire.",
     "A suite prefix not present as an active row MUST fail closed with unsupported_digest_algorithm when it appears in a critical field (event_digest, state_root, prev_refs / refs digest, seal id, receipt digest); in non-critical metadata receivers MAY record it as unknown and preserve raw bytes (zh/conformance/encoding.md §3.2).",
     "status=reserved rows pin the wire prefix and profile gate but MUST NOT appear on wire until every activation_requirements entry is met and the row is flipped to active in a registry release.",
-    "Realm digest_algorithm MUST hold exactly one active suite id; every digest produced inside that Realm MUST use the declared suite. A digest whose suite prefix differs from the Realm's declared suite MUST be rejected (schema_violation), except on a Transition Seal's previous_state_root. Suite transition only via ck.profile.hash_transition.v1 (zh/authz/event-auth-state-resolution.md §9.3.2).",
+    "Realm digest_algorithm MUST hold exactly one active suite id; every digest produced inside that Realm MUST use the declared suite. A digest whose suite prefix differs from the Realm's declared suite MUST be rejected (schema_violation), except on a Transition Seal's previous_state_root. Suite transition only via ak.profile.hash_transition.v1 (zh/authz/event-auth-state-resolution.md §9.3.2).",
     "Schema enum values for digest-suite selector fields (e.g. realm.digest_algorithm) MUST be generated from active rows' canonical_id.",
     "The hash_strength_order below is consumed by the suite-transition no-downgrade rule and applies to the hash_algorithm component only; canonicalization component changes are lateral and carry no strength relation.",
     "The registry is intentionally minimal: new hash algorithms (e.g. SHA-3 family for algorithm diversity, post-quantum hash families) and new canonicalizations enter additively as new rows with their own profile gates and conformance vectors; the <suite>:<hex> wire form needs no rewrite. KDF/ciphersuite algorithm selectors elsewhere in the spec (e.g. key-backup PBKDF2 digest_algorithm, VOPRF SHA-512) are separate value spaces and are NOT digest suites."
@@ -27,8 +27,8 @@
     {
       "id": "cbor",
       "status": "reserved",
-      "definition": "CBOR deterministic encoding (RFC 8949 §4.2) under the Arkret profile to be pinned by ck.profile.encoding.cbor.v1 (encoding rules, CDDL, schema-agnostic JSON<->CBOR type mapping, conformance vectors).",
-      "notes": "Reserved until ck.profile.encoding.cbor.v1 is fully specified. The mapping MUST be schema-agnostic (JSON string -> CBOR text string, JSON integer -> CBOR integer); canonicalization MUST NOT depend on schema knowledge."
+      "definition": "CBOR deterministic encoding (RFC 8949 §4.2) under the Arkret profile to be pinned by ak.profile.encoding.cbor.v1 (encoding rules, CDDL, schema-agnostic JSON<->CBOR type mapping, conformance vectors).",
+      "notes": "Reserved until ak.profile.encoding.cbor.v1 is fully specified. The mapping MUST be schema-agnostic (JSON string -> CBOR text string, JSON integer -> CBOR integer); canonicalization MUST NOT depend on schema knowledge."
     }
   ],
   "suites": [

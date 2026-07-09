@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/audit-ryw-receipt.schema.json",
   "title": "Arkret Audit RYW Receipt",
-  "description": "Read-Your-Writes receipt issued by an Events API node, witness, or peer Principal Server confirming that a ck.audit.release or other audit envelope has reached accepted state. Required by ck.profile.attested_audit.e2ee.v1 and ck.profile.disclosed_audit.e2ee.v1 before an audit applet release service may output wrapped material or plaintext evidence (see zh/crypto-media/audited-e2ee.md §6). The audit_assurance_class field MUST match the active Audit Applet Binding; mismatch fail closed.",
+  "description": "Read-Your-Writes receipt issued by an Events API node, witness, or peer Principal Server confirming that a ak.audit.release or other audit envelope has reached accepted state. Required by ak.profile.attested_audit.e2ee.v1 and ak.profile.disclosed_audit.e2ee.v1 before an audit applet release service may output wrapped material or plaintext evidence (see zh/crypto-media/audited-e2ee.md §6). The audit_assurance_class field MUST match the active Audit Applet Binding; mismatch fail closed.",
   "type": "object",
   "required": [
     "schema",
@@ -149,7 +149,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Witness attestation block. The receipt's independence is externally verifiable from the witnesses[] list rather than self-claimed via a single enum. See zh/crypto-media/audited-e2ee.md §4.1 / §4.1.1."
+      "description": "Witness attestation bloak. The receipt's independence is externally verifiable from the witnesses[] list rather than self-claimed via a single enum. See zh/crypto-media/audited-e2ee.md §4.1 / §4.1.1."
     },
     "audit_assurance_class": {
       "type": "string",
@@ -157,12 +157,12 @@
         "attested_hardware",
         "disclosed_policy"
       ],
-      "description": "Audit assurance class propagated from the active Audit Applet Binding. attested_hardware = ck.profile.attested_audit.e2ee.v1 (TEE/HSM/enclave controlled release required). disclosed_policy = ck.profile.disclosed_audit.e2ee.v1 (process-only disclosure, NOT cryptographically enforced). Release services MUST propagate the binding-declared value verbatim; receivers MUST fail closed when this field disagrees with the binding/policy state at the receipt's frontier."
+      "description": "Audit assurance class propagated from the active Audit Applet Binding. attested_hardware = ak.profile.attested_audit.e2ee.v1 (TEE/HSM/enclave controlled release required). disclosed_policy = ak.profile.disclosed_audit.e2ee.v1 (process-only disclosure, NOT cryptographically enforced). Release services MUST propagate the binding-declared value verbatim; receivers MUST fail closed when this field disagrees with the binding/policy state at the receipt's frontier."
     },
     "audit_policy_version_digest": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$",
-      "description": "Canonical hash of the Realm-bound audit release policy tuple from the receipt frontier. Computed as fixed sha256 over canonical JSON {realm_id: <id>, trust_domain: <trust_domain>, audit_binding: <object>, release_policy: <object>, release_window_policy: <object>, activation_frontier_digest: <hash>, first_auditable_epoch: <n>}. Lets verifiers atomically check that the receipt's claim matches the active binding/policy at this frontier without replaying events and prevents cross-Realm reuse or retroactive expansion of identical policy text. MUST match the receipt frontier's policy state and ck.audit.release.eligibility_proof; mismatch MUST fail closed (audit_receipt_invalidated). Required field — missing receipts MUST be rejected to prevent silent policy drift. This field is intentionally not hash-agile in v1; a future algorithm change requires a new schema/profile."
+      "description": "Canonical hash of the Realm-bound audit release policy tuple from the receipt frontier. Computed as fixed sha256 over canonical JSON {realm_id: <id>, trust_domain: <trust_domain>, audit_binding: <object>, release_policy: <object>, release_window_policy: <object>, activation_frontier_digest: <hash>, first_auditable_epoch: <n>}. Lets verifiers atomically check that the receipt's claim matches the active binding/policy at this frontier without replaying events and prevents cross-Realm reuse or retroactive expansion of identical policy text. MUST match the receipt frontier's policy state and ak.audit.release.eligibility_proof; mismatch MUST fail closed (audit_receipt_invalidated). Required field — missing receipts MUST be rejected to prevent silent policy drift. This field is intentionally not hash-agile in v1; a future algorithm change requires a new schema/profile."
     },
     "proofs": {
       "type": "array",
@@ -176,7 +176,7 @@
       "enum": [
         "late_key_arrival"
       ],
-      "description": "Optional machine-readable code, set only when this RYW receipt covers a ck.audit.accessed Event emitted via the Late Key Recovery path (see zh/crypto-media/encryption-and-audit.md §2.3.5 and zh/crypto-media/audited-e2ee.md §4.1). Payload value, not an error-code-registry reason_code. Used by audit projections to distinguish late-key-triggered accesses from first-access reads. When absent, the receipt covers a normal (first-access) ck.audit.accessed Event."
+      "description": "Optional machine-readable code, set only when this RYW receipt covers a ak.audit.accessed Event emitted via the Late Key Recovery path (see zh/crypto-media/encryption-and-audit.md §2.3.5 and zh/crypto-media/audited-e2ee.md §4.1). Payload value, not an error-code-registry reason_code. Used by audit projections to distinguish late-key-triggered accesses from first-access reads. When absent, the receipt covers a normal (first-access) ak.audit.accessed Event."
     }
   },
   "allOf": [

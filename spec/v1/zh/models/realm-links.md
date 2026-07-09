@@ -12,7 +12,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-Realm 是硬安全边界，不承担产品导航树职责。因此 Arkret v1 不定义通用 `Realm hierarchy`、`parent Realm` 或 `child Realm` 结构关系。Realm 内的子事件 / 子消息边界由 [Circle](./circle.md) 承担（intra-Realm，不跨 federation；可按父 Realm floor 启用独立 MLS）；若两个独立 Realm 需要治理、发现、mirror 或 confidential extension 关系，必须使用本文件定义的 `ck.realm.link` 并明确 `link_kind`。
+Realm 是硬安全边界，不承担产品导航树职责。因此 Arkret v1 不定义通用 `Realm hierarchy`、`parent Realm` 或 `child Realm` 结构关系。Realm 内的子事件 / 子消息边界由 [Circle](./circle.md) 承担（intra-Realm，不跨 federation；可按父 Realm floor 启用独立 MLS）；若两个独立 Realm 需要治理、发现、mirror 或 confidential extension 关系，必须使用本文件定义的 `ak.realm.link` 并明确 `link_kind`。
 
 本文定义 Realm 之间的显式 **link graph**：Realm 可以因为治理、发现、导入导出、机密扩展、mirror、迁移或审计需要互相引用，但这些 link 不表达包含关系，也不自动传播权限。
 
@@ -28,7 +28,7 @@ Realm 是硬安全边界，不承担产品导航树职责。因此 Arkret v1 不
 
 ## 3. 标准 Link Kind
 
-`ck.realm.link` 是 Realm link 的统一 state event。Payload：
+`ak.realm.link` 是 Realm link 的统一 state event。Payload：
 
 ```json
 {
@@ -51,9 +51,9 @@ Payload 字段：
 | `link_kind` | yes | `string` | Link 语义，标准值见下表；profile MAY 注册额外值。 |
 | `status` | yes | `enum(active,rejected,tombstoned)` | 本侧声明的 link 状态。 |
 | `label` | no | `string` | 本地显示标签；不参与授权或确认语义。 |
-| `commitment` | no | `hash` | profile-specific 承诺值；需要双方确认、mirror、migration、confidential extension 或 attestation 的 profile MAY 要求它并定义 transcript。core `ck.realm.link` 不给该字段赋予通用授权语义。 |
+| `commitment` | no | `hash` | profile-specific 承诺值；需要双方确认、mirror、migration、confidential extension 或 attestation 的 profile MAY 要求它并定义 transcript。core `ak.realm.link` 不给该字段赋予通用授权语义。 |
 
-`status` MUST 出现在已签名的 `ck.realm.link` Event payload 中。操作 DTO 或 builder 若向调用方暴露 `status="active"` 默认值，MUST 在 Event canonicalization / signing 之前把该默认值 materialize 到 payload；reducer / receiver MUST 拒绝缺少 `status` 的持久 `ck.realm.link` Event。
+`status` MUST 出现在已签名的 `ak.realm.link` Event payload 中。操作 DTO 或 builder 若向调用方暴露 `status="active"` 默认值，MUST 在 Event canonicalization / signing 之前把该默认值 materialize 到 payload；reducer / receiver MUST 拒绝缺少 `status` 的持久 `ak.realm.link` Event。
 
 标准 `link_kind`：
 
@@ -91,7 +91,7 @@ Projection MAY 派生：
 - `rejected`：任一侧拒绝。
 - `tombstoned`：任一侧 tombstone 或 Realm lifecycle 使 link 失效。
 
-默认情况下，`ck.realm.link` 是单侧声明。需要双方确认的 profile MUST 规定目标 Realm 中的 reciprocal event 形态和 commitment 绑定规则。
+默认情况下，`ak.realm.link` 是单侧声明。需要双方确认的 profile MUST 规定目标 Realm 中的 reciprocal event 形态和 commitment 绑定规则。
 
 ## 5. 禁止隐式级联
 
@@ -114,8 +114,8 @@ Projection MAY 派生：
 
 若 Realm 需要从另一个 Realm 派生 capability 或 policy，必须使用目标 Realm 内的显式 policy：
 
-- `ck.realm.inheritance_policy`：声明允许从哪个 source Realm 继承哪些收窄型 policy / capability bundle。
-- `ck.capability.derived`：reducer-only 派生 grant，必须引用 source grant、目标 Realm 的 inheritance policy 和有效 causal frontier。
+- `ak.realm.inheritance_policy`：声明允许从哪个 source Realm 继承哪些收窄型 policy / capability bundle。
+- `ak.capability.derived`：reducer-only 派生 grant，必须引用 source grant、目标 Realm 的 inheritance policy 和有效 causal frontier。
 
 继承规则：
 
@@ -125,7 +125,7 @@ Projection MAY 派生：
 4. `max_depth` 默认 1，禁止无限级联。
 5. source grant revoke 后，derived grant MUST 在 causal 后继中失效。
 
-`ck.capability.derived` MUST NOT 作为普通 actor 可直接 grant 的 action。
+`ak.capability.derived` MUST NOT 作为普通 actor 可直接 grant 的 action。
 
 ## 7. Query
 

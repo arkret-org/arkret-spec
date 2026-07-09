@@ -20,7 +20,7 @@
     "subject_id": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
-      "description": "Principal DID of the addressee. Materialised as payload.actor_id / cell subject in ck.member.state{membership=join}."
+      "description": "Principal DID of the addressee. Materialised as payload.actor_id / cell subject in ak.member.state{membership=join}."
     },
     "handle": {
       "type": "string",

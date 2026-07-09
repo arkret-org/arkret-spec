@@ -38,7 +38,7 @@ HTTP/JSON 是参考绑定；同一操作应能无语义损失映射到其它 tra
 
 - 所有 canonical operation 均使用 `encoding.md` 的 canonical JSON 与签名输入规则。
 - 关键行为不由路径决定，而由 `operation_id` 与数据语义决定。
-- Arkret 协议字段和 feature discovery 使用 `operation_id`，取值使用 `ck.<namespace>.<lower_snake_case>`。OpenAPI 3.1 标准字段名仍为 `operationId`，其值应等于对应的 Arkret `operation_id`。
+- Arkret 协议字段和 feature discovery 使用 `operation_id`，取值使用 `ak.<namespace>.<lower_snake_case>`。OpenAPI 3.1 标准字段名仍为 `operationId`，其值应等于对应的 Arkret `operation_id`。
 - 服务发现使用 canonical `ServiceDescribe` shape；响应 core shape 包含：
   - `service_did`
   - `trust_domain`
@@ -68,24 +68,24 @@ HTTP 路径的第一段是 trust-surface classifier（信任面分类器），�
 
 | 分组 | `operation_id` 前缀 | 默认 HTTP 命名空间 |
 | --- | --- | --- |
-| 服务发现 | `ck.server.*` | `/_arkret/describe` |
-| 身份信任根与 registry | `ck.root.identity.*` | `/_arkret/root/identity/*` |
-| Events | `ck.self.events.*` | `/_arkret/self/events/*` |
-| Federation peer events | `ck.peer.events.*` | `/_arkret/peer/events/*` |
-| 短时信号（ephemeral） | `ck.self.ephemeral.command.send` | `/_arkret/self/ephemeral` |
-| 账号自服务与聚合同步 | `ck.self.account.query.viewer`、`ck.self.account.command.update_profile`、`ck.self.account.stream.subscribe`、`ck.self.account.query.describe`、`ck.self.account.command.revoke_cursor` | `/_arkret/self/account/*` |
-| Realm snapshot 入口 | `ck.self.snapshot.*` | `/_arkret/self/snapshot/*` |
-| Federation peer snapshot 入口 | `ck.peer.snapshot.*` | `/_arkret/peer/snapshot/*` |
-| 目录发现 | `ck.find.directory.*` | `/_arkret/find/directory/*` |
-| Blob / media | `ck.self.blob.*` | `/_arkret/self/blob/*` |
-| 推送 | `ck.edge.push.*` | `/_arkret/edge/push/*` |
-| 设备加密 | `ck.self.device_messages.*`、`ck.self.keys.*` | `/_arkret/self/device_messages/*`、`/_arkret/self/keys/*` |
-| 授权与策略 | `ck.self.authz.*`、`ck.self.policy.*` | `/_arkret/self/authz/*`、`/_arkret/self/policy/check` |
-| 媒体服务 | `ck.self.media.*`、`ck.self.call.media.exchange.issue_token` | `/_arkret/self/rtc/ice-config`、`/_arkret/self/rtc/token` |
-| 审核 | `ck.self.moderation.*` | `/_arkret/self/moderation/*` |
-| Applet | `ck.edge.applet.*` | `/_arkret/edge/applet/*` |
-| MIMI 外部协议互操作 | `ck.open.mimi.*` | `/_arkret/open/mimi/*` |
-| 账户注册、登录与设备配对 | `ck.gate.account.*` | `/_arkret/gate/account/*` |
+| 服务发现 | `ak.server.*` | `/_arkret/describe` |
+| 身份信任根与 registry | `ak.root.identity.*` | `/_arkret/root/identity/*` |
+| Events | `ak.self.events.*` | `/_arkret/self/events/*` |
+| Federation peer events | `ak.peer.events.*` | `/_arkret/peer/events/*` |
+| 短时信号（ephemeral） | `ak.self.ephemeral.command.send` | `/_arkret/self/ephemeral` |
+| 账号自服务与聚合同步 | `ak.self.account.query.viewer`、`ak.self.account.command.update_profile`、`ak.self.account.stream.subscribe`、`ak.self.account.query.describe`、`ak.self.account.command.revoke_cursor` | `/_arkret/self/account/*` |
+| Realm snapshot 入口 | `ak.self.snapshot.*` | `/_arkret/self/snapshot/*` |
+| Federation peer snapshot 入口 | `ak.peer.snapshot.*` | `/_arkret/peer/snapshot/*` |
+| 目录发现 | `ak.find.directory.*` | `/_arkret/find/directory/*` |
+| Blob / media | `ak.self.blob.*` | `/_arkret/self/blob/*` |
+| 推送 | `ak.edge.push.*` | `/_arkret/edge/push/*` |
+| 设备加密 | `ak.self.device_messages.*`、`ak.self.keys.*` | `/_arkret/self/device_messages/*`、`/_arkret/self/keys/*` |
+| 授权与策略 | `ak.self.authz.*`、`ak.self.policy.*` | `/_arkret/self/authz/*`、`/_arkret/self/policy/check` |
+| 媒体服务 | `ak.self.media.*`、`ak.self.call.media.exchange.issue_token` | `/_arkret/self/rtc/ice-config`、`/_arkret/self/rtc/token` |
+| 审核 | `ak.self.moderation.*` | `/_arkret/self/moderation/*` |
+| Applet | `ak.edge.applet.*` | `/_arkret/edge/applet/*` |
+| MIMI 外部协议互操作 | `ak.open.mimi.*` | `/_arkret/open/mimi/*` |
+| 账户注册、登录与设备配对 | `ak.gate.account.*` | `/_arkret/gate/account/*` |
 
 ## 3. OpenAPI 参考快照（非穷尽示例）
 
@@ -96,7 +96,7 @@ openapi: 3.1.0
 info:
   title: Arkret Service API
   version: 1.0.0
-  x-conformance-profile: ck.profile.core_event_store.v1
+  x-conformance-profile: ak.profile.core_event_store.v1
 servers:
   - url: https://{host}
     variables:
@@ -105,305 +105,305 @@ servers:
 paths:
   /_arkret/describe:
     get:
-      operationId: ck.server.query.describe
+      operationId: ak.server.query.describe
       responses:
         '200': { description: service profile }
 
   /_arkret/root/identity/resolve:
     post:
-      operationId: ck.root.identity.query.resolve
+      operationId: ak.root.identity.query.resolve
   /_arkret/root/identity/describe:
     get:
-      operationId: ck.root.identity.registry.query.describe
+      operationId: ak.root.identity.registry.query.describe
   /_arkret/root/identity/document:
     get:
-      operationId: ck.root.identity.document.resource.get
+      operationId: ak.root.identity.document.resource.get
   /_arkret/root/identity/log:
     get:
-      operationId: ck.root.identity.log.query.list
+      operationId: ak.root.identity.log.query.list
   /_arkret/root/identity/submit-did-operation:
     post:
-      operationId: ck.root.identity.command.submit_did_operation
+      operationId: ak.root.identity.command.submit_did_operation
   /_arkret/root/identity/receipts:
     get:
-      operationId: ck.root.identity.receipts.query.list
+      operationId: ak.root.identity.receipts.query.list
 
   /_arkret/self/events/describe:
     get:
-      operationId: ck.self.events.query.describe
+      operationId: ak.self.events.query.describe
   /_arkret/self/events:
     post:
-      operationId: ck.self.events.command.submit
+      operationId: ak.self.events.command.submit
     get:
-      operationId: ck.self.events.query.scan
+      operationId: ak.self.events.query.scan
   /_arkret/self/events/query:
     post:
-      operationId: ck.self.events.query.scan_body
+      operationId: ak.self.events.query.scan_body
   /_arkret/self/events/subscribe:
     get:
-      operationId: ck.self.events.stream.subscribe
+      operationId: ak.self.events.stream.subscribe
   /_arkret/self/events/{event_id}:
     get:
-      operationId: ck.self.events.resource.get
+      operationId: ak.self.events.resource.get
   /_arkret/self/events/resolve:
     post:
-      operationId: ck.self.events.query.resolve
+      operationId: ak.self.events.query.resolve
   /_arkret/self/events/frontier:
     get:
-      operationId: ck.self.events.query.frontier
+      operationId: ak.self.events.query.frontier
   /_arkret/self/ephemeral:
     post:
-      operationId: ck.self.ephemeral.command.send
+      operationId: ak.self.ephemeral.command.send
 
   /_arkret/peer/events/describe:
     get:
-      operationId: ck.peer.events.query.describe
+      operationId: ak.peer.events.query.describe
   /_arkret/peer/events:
     post:
-      operationId: ck.peer.events.command.submit
+      operationId: ak.peer.events.command.submit
     get:
-      operationId: ck.peer.events.query.scan
+      operationId: ak.peer.events.query.scan
   /_arkret/peer/events/query:
     post:
-      operationId: ck.peer.events.query.scan_body
+      operationId: ak.peer.events.query.scan_body
   /_arkret/peer/events/resolve:
     post:
-      operationId: ck.peer.events.query.resolve
+      operationId: ak.peer.events.query.resolve
   /_arkret/peer/events/frontier:
     get:
-      operationId: ck.peer.events.query.frontier
+      operationId: ak.peer.events.query.frontier
 
   /_arkret/self/account/viewer:
     get:
-      operationId: ck.self.account.query.viewer
+      operationId: ak.self.account.query.viewer
   /_arkret/self/account/profile:
     post:
-      operationId: ck.self.account.command.update_profile
+      operationId: ak.self.account.command.update_profile
   /_arkret/self/account/subscribe:
     get:
-      operationId: ck.self.account.stream.subscribe
+      operationId: ak.self.account.stream.subscribe
   /_arkret/self/account/describe:
     get:
-      operationId: ck.self.account.query.describe
+      operationId: ak.self.account.query.describe
   /_arkret/self/account/cursor/revoke:
     post:
-      operationId: ck.self.account.command.revoke_cursor
+      operationId: ak.self.account.command.revoke_cursor
   /_arkret/self/snapshot/head:
     get:
-      operationId: ck.self.snapshot.query.manifest_head
+      operationId: ak.self.snapshot.query.manifest_head
   /_arkret/peer/snapshot/head:
     get:
-      operationId: ck.peer.snapshot.query.manifest_head
+      operationId: ak.peer.snapshot.query.manifest_head
 
   /_arkret/find/directory/describe:
     get:
-      operationId: ck.find.directory.query.describe
+      operationId: ak.find.directory.query.describe
   /_arkret/find/directory/search-realms:
     post:
-      operationId: ck.find.directory.query.search_realms
+      operationId: ak.find.directory.query.search_realms
   /_arkret/find/directory/resolve-realm:
     post:
-      operationId: ck.find.directory.query.resolve_realm
+      operationId: ak.find.directory.query.resolve_realm
   /_arkret/find/directory/search-organizations:
     post:
-      operationId: ck.find.directory.query.search_organizations
+      operationId: ak.find.directory.query.search_organizations
   /_arkret/find/directory/resolve-organization:
     post:
-      operationId: ck.find.directory.query.resolve_organization
+      operationId: ak.find.directory.query.resolve_organization
   /_arkret/find/directory/search-actors:
     post:
-      operationId: ck.find.directory.query.search_actors
+      operationId: ak.find.directory.query.search_actors
   /_arkret/find/directory/search-users:
     post:
-      operationId: ck.find.directory.query.search_users
+      operationId: ak.find.directory.query.search_users
   /_arkret/find/directory/resolve-handle:
     post:
-      operationId: ck.find.directory.query.resolve_handle
+      operationId: ak.find.directory.query.resolve_handle
   /_arkret/find/directory/list-handles-for-subject:
     post:
-      operationId: ck.find.directory.query.list_handles_for_subject
+      operationId: ak.find.directory.query.list_handles_for_subject
   /_arkret/find/directory/private-contact-discovery:
     post:
-      operationId: ck.find.directory.query.private_contact_discovery
+      operationId: ak.find.directory.query.private_contact_discovery
   /_arkret/find/directory/announce:
     post:
-      operationId: ck.find.directory.command.announce
+      operationId: ak.find.directory.command.announce
   /_arkret/find/directory/withdraw:
     post:
-      operationId: ck.find.directory.command.withdraw
+      operationId: ak.find.directory.command.withdraw
   /_arkret/find/directory/push/register:
     post:
-      operationId: ck.find.directory.push.command.register
+      operationId: ak.find.directory.push.command.register
 
   /_arkret/self/blob/upload:
     post:
-      operationId: ck.self.blob.upload.create
+      operationId: ak.self.blob.upload.create
   /_arkret/self/blob/get:
     head:
-      operationId: ck.self.blob.resource.head
+      operationId: ak.self.blob.resource.head
     get:
-      operationId: ck.self.blob.resource.get
+      operationId: ak.self.blob.resource.get
 
   /_arkret/edge/push/register-device:
     post:
-      operationId: ck.edge.push.command.register_device
+      operationId: ak.edge.push.command.register_device
   /_arkret/edge/push/unregister-device:
     post:
-      operationId: ck.edge.push.command.unregister_device
+      operationId: ak.edge.push.command.unregister_device
   /_arkret/edge/push/notify:
     post:
-      operationId: ck.edge.push.command.notify
+      operationId: ak.edge.push.command.notify
 
   /_arkret/self/device_messages:
     post:
-      operationId: ck.self.device_messages.command.send
+      operationId: ak.self.device_messages.command.send
     get:
-      operationId: ck.self.device_messages.query.list
+      operationId: ak.self.device_messages.query.list
   /_arkret/self/keys/upload:
     post:
-      operationId: ck.self.keys.upload.create
+      operationId: ak.self.keys.upload.create
   /_arkret/self/keys/query:
     post:
-      operationId: ck.self.keys.query.lookup
+      operationId: ak.self.keys.query.lookup
   /_arkret/self/keys/claim:
     post:
-      operationId: ck.self.keys.command.claim
+      operationId: ak.self.keys.command.claim
   /_arkret/self/keys/keypackages/upload:
     post:
-      operationId: ck.self.keys.keypackages.upload.create
+      operationId: ak.self.keys.keypackages.upload.create
   /_arkret/self/keys/keypackages/claim:
     post:
-      operationId: ck.self.keys.keypackages.command.claim
+      operationId: ak.self.keys.keypackages.command.claim
   /_arkret/self/keys/keypackages/consume:
     post:
-      operationId: ck.self.keys.keypackages.command.consume
+      operationId: ak.self.keys.keypackages.command.consume
   /_arkret/self/keys/keypackages/revoke:
     post:
-      operationId: ck.self.keys.keypackages.command.revoke
+      operationId: ak.self.keys.keypackages.command.revoke
   /_arkret/self/keys/backups/{backup_id}:
     put:
-      operationId: ck.self.keys.backups.resource.replace
+      operationId: ak.self.keys.backups.resource.replace
     delete:
-      operationId: ck.self.keys.backups.resource.delete
+      operationId: ak.self.keys.backups.resource.delete
   /_arkret/self/keys/backups/{backup_id}/unlock:
     post:
-      operationId: ck.self.keys.backups.command.unlock
+      operationId: ak.self.keys.backups.command.unlock
   /_arkret/self/keys/backups:
     get:
-      operationId: ck.self.keys.backups.query.list
+      operationId: ak.self.keys.backups.query.list
 
   /_arkret/gate/account/register:
     post:
-      operationId: ck.gate.account.command.register
+      operationId: ak.gate.account.command.register
   /_arkret/gate/account/session-grants:
     post:
-      operationId: ck.gate.account.command.issue_session_grant
+      operationId: ak.gate.account.command.issue_session_grant
   /_arkret/gate/account/session-grants/revoke:
     post:
-      operationId: ck.gate.account.command.revoke_session
+      operationId: ak.gate.account.command.revoke_session
   /_arkret/gate/account/auth-sessions/logout:
     post:
-      operationId: ck.gate.account.command.logout_auth_session
+      operationId: ak.gate.account.command.logout_auth_session
   /_arkret/gate/account/logout:
     post:
-      operationId: ck.gate.account.command.logout
+      operationId: ak.gate.account.command.logout
   /_arkret/gate/account/device-pair:
     post:
-      operationId: ck.gate.account.command.pair_device
+      operationId: ak.gate.account.command.pair_device
   /_arkret/gate/account/oidc/callback:
     post:
-      operationId: ck.gate.account.exchange.complete_oidc
+      operationId: ak.gate.account.exchange.complete_oidc
 
   /_arkret/self/authz/check:
     post:
-      operationId: ck.self.authz.query.check
+      operationId: ak.self.authz.query.check
   /_arkret/self/authz/effective-grants:
     get:
-      operationId: ck.self.authz.grants.query.effective
+      operationId: ak.self.authz.grants.query.effective
   /_arkret/self/authz/invites:
     get:
-      operationId: ck.self.authz.invites.query.list
+      operationId: ak.self.authz.invites.query.list
   /_arkret/self/policy/check:
     post:
-      operationId: ck.self.policy.query.check
+      operationId: ak.self.policy.query.check
   /_arkret/self/rtc/ice-config:
     servers:
       - url: https://{host}
     post:
-      operationId: ck.self.media.query.ice_config
+      operationId: ak.self.media.query.ice_config
   /_arkret/self/rtc/token:
     post:
-      operationId: ck.self.call.media.exchange.issue_token
+      operationId: ak.self.call.media.exchange.issue_token
   /_arkret/self/moderation/report:
     post:
-      operationId: ck.self.moderation.command.report
+      operationId: ak.self.moderation.command.report
 
   /_arkret/edge/applet/ping:
     get:
-      operationId: ck.edge.applet.query.ping
+      operationId: ak.edge.applet.query.ping
   /_arkret/edge/applet/describe:
     get:
-      operationId: ck.edge.applet.query.describe
+      operationId: ak.edge.applet.query.describe
   /_arkret/edge/applet/transactions:
     post:
-      operationId: ck.edge.applet.command.transaction
+      operationId: ak.edge.applet.command.transaction
   /_arkret/edge/applet/actors/{actor_id}:
     get:
-      operationId: ck.edge.applet.actor.query.resolve
+      operationId: ak.edge.applet.actor.query.resolve
   /_arkret/edge/applet/realms/{realm_id_or_alias}:
     get:
-      operationId: ck.edge.applet.realm.query.resolve
+      operationId: ak.edge.applet.realm.query.resolve
   /_arkret/edge/applet/protocols/{protocol}:
     get:
-      operationId: ck.edge.applet.query.protocol_metadata
+      operationId: ak.edge.applet.query.protocol_metadata
   /_arkret/edge/applet/third_party/users:
     get:
-      operationId: ck.edge.applet.third_party_users.query.list
+      operationId: ak.edge.applet.third_party_users.query.list
   /_arkret/edge/applet/third_party/locations:
     get:
-      operationId: ck.edge.applet.third_party_locations.query.list
+      operationId: ak.edge.applet.third_party_locations.query.list
 ```
 
 ## 4. Canonical 操作与 transport 映射
 
 | `operation_id` | HTTP 参考绑定 | 其他 transport 映射 |
 | --- | --- | --- |
-| `ck.root.identity.query.resolve` | `POST /_arkret/root/identity/resolve` | gRPC `ResolveIdentity` / MQ `root.identity.query.resolve` |
-| `ck.root.identity.command.submit_did_operation` | `POST /_arkret/root/identity/submit-did-operation` | gRPC `SubmitDidOperation` / libp2p stream |
-| `ck.root.identity.document.resource.get` / `ck.root.identity.log.query.list` / `ck.root.identity.receipts.query.list` | `GET /_arkret/root/identity/document`, `GET /_arkret/root/identity/log`, `GET /_arkret/root/identity/receipts` | gRPC Identity Registry / witness query |
-| `ck.self.events.command.submit` | `POST /_arkret/self/events` | gRPC `SelfEvents/Submit` / 队列 `self.events.command.submit` |
-| `ck.self.events.resource.get` / `ck.self.events.query.resolve` / `ck.self.events.query.scan` / `ck.self.events.query.frontier` | `GET /_arkret/self/events/{event_id}`, `POST /_arkret/self/events/resolve`, `GET /_arkret/self/events`, `GET /_arkret/self/events/frontier` | gRPC `SelfEvents/Get` / `SelfEvents/Resolve` / `SelfEvents/Query` / `SelfEvents/Frontier` |
-| `ck.self.events.query.scan_body` | `POST /_arkret/self/events/query` | HTTP-only body binding variant of `ck.self.events.query.scan` |
-| `ck.self.events.stream.subscribe` | `GET /_arkret/self/events/subscribe` (`application/x-ndjson`) | pubsub topic carrying the same NDJSON frame objects |
-| `ck.peer.events.command.submit` | `POST /_arkret/peer/events` | gRPC `PeerEvents/Submit` / 队列 `peer.events.command.submit` |
-| `ck.peer.events.query.resolve` / `ck.peer.events.query.scan` / `ck.peer.events.query.frontier` | `POST /_arkret/peer/events/resolve`, `GET /_arkret/peer/events`, `GET /_arkret/peer/events/frontier` | gRPC `PeerEvents/Resolve` / `PeerEvents/Query` / `PeerEvents/Frontier` |
-| `ck.peer.events.query.scan_body` | `POST /_arkret/peer/events/query` | HTTP-only body binding variant of `ck.peer.events.query.scan` |
-| `ck.self.account.query.viewer` | `GET /_arkret/self/account/viewer` | gRPC `SelfAccount/Viewer` / MQ `self.account.query.viewer`；响应使用 signed handle claim / ref / digest，不返回未签名裸 handle 作为账号权威字段。 |
-| `ck.self.account.command.update_profile` | `POST /_arkret/self/account/profile` | gRPC `SelfAccount/UpdateProfile` / MQ `self.account.command.update_profile`；`bio` 映射到 `profile_fields.bio`，不接受 `avatar_url`。 |
-| `ck.self.account.stream.subscribe` | `GET /_arkret/self/account/subscribe` | HTTP `Accept: application/json` returns one bounded long-poll `SyncOutcome`; `Accept: application/x-ndjson` / WebSocket-style transports carry account-aggregate frames(`delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`);`dropped` / `resync_required` MAY carry `reconnect_after_ms` |
-| `ck.self.account.command.revoke_cursor` | `POST /_arkret/self/account/cursor/revoke` | gRPC `SelfAccount/CursorRevoke` / MQ `self.account.command.revoke_cursor` |
-| `ck.gate.account.command.register` | `POST /_arkret/gate/account/register` | gRPC `GateAccount/Register` / MQ `gate.account.command.register`；request 字段为 `principal_id`，`handle` 经 signed claim 链路。 |
-| `ck.gate.account.command.revoke_session` | `POST /_arkret/gate/account/session-grants/revoke` | gRPC `GateAccount/SessionRevoke` / MQ `gate.account.command.revoke_session` |
-| `ck.gate.account.command.logout_auth_session` | `POST /_arkret/gate/account/auth-sessions/logout` | Account Authority → Auth Server S2S 子操作；普通客户端不得调用；不提供 gRPC/MQ client binding |
-| `ck.gate.account.command.logout` | `POST /_arkret/gate/account/logout` | Account Authority hard logout 的唯一客户端入口；内部可调用 `logout_auth_session`，不提供 gRPC/MQ client binding |
-| `ck.self.ephemeral.command.send` | `POST /_arkret/self/ephemeral` | gRPC `SelfEphemeral/Send` / MQ `self.ephemeral.command.send`；承载 `ck.schema.ephemeral_envelope.v1`，不写 durable Event |
-| `ck.self.snapshot.query.manifest_head` | `GET /_arkret/self/snapshot/head` | snapshot manifest |
-| `ck.peer.snapshot.query.manifest_head` | `GET /_arkret/peer/snapshot/head` | peer snapshot manifest |
-| `ck.self.space.query.list` / `ck.self.strand.query.list` / `ck.self.morph.query.list` / `ck.self.views.collection_projection.command.materialize` / `ck.self.morph.resource.get` | `GET /_arkret/self/realms/{realm_id}/spaces`, `GET /_arkret/self/realms/{realm_id}/strands`, `GET /_arkret/self/realms/{realm_id}/morphs`, `POST /_arkret/self/views/{view_id}/projection`, `GET /_arkret/self/realms/{realm_id}/morphs/{morph_id}` | gRPC `SelfSpace/List` / `SelfStrand/List` / `SelfMorph/List` / `SelfViews/CollectionProjection` / `SelfMorph/Get`; MQ `self.space.query.list` / `self.strand.query.list` / `self.morph.query.list` / `self.views.collection_projection.command.materialize` / `self.morph.resource.get` |
-| `ck.find.directory.query.search_*` / `ck.find.directory.query.resolve_*` / `ck.find.directory.query.list_handles_for_subject` | `POST /_arkret/find/directory/*`（含 `resolve-handle` 与 `list-handles-for-subject`） | gRPC Discovery Service |
-| `ck.find.directory.command.announce` / `ck.find.directory.command.withdraw` / `ck.find.directory.push.command.register` | `POST /_arkret/find/directory/announce`, `POST /_arkret/find/directory/withdraw`, `POST /_arkret/find/directory/push/register` | gRPC Discovery Ingest Service |
-| `ck.self.blob.upload.create` / `ck.self.blob.resource.head` / `ck.self.blob.resource.get` | `POST /_arkret/self/blob/upload`, `HEAD/GET /_arkret/self/blob/get` | Object-store signed URL binding / gRPC blob service |
-| `ck.edge.push.command.register_device` / `ck.edge.push.command.notify` | `POST /_arkret/edge/push/register-device`, `POST /_arkret/edge/push/notify` | APNs/FCM adapter / MQ wakeup topic |
-| `ck.self.device_messages.command.send` / `ck.self.device_messages.query.list` | `POST /_arkret/self/device_messages`, `GET /_arkret/self/device_messages` | MQ device topic / 本地 IPC |
-| `ck.self.keys.upload.create` / `ck.self.keys.query.lookup` / `ck.self.keys.command.claim` | `POST /_arkret/self/keys/upload`, `POST /_arkret/self/keys/query`, `POST /_arkret/self/keys/claim` | E2EE key service binding |
-| `ck.self.keys.backups.resource.replace` / `ck.self.keys.backups.query.list` / `ck.self.keys.backups.command.unlock` / `ck.self.keys.backups.resource.delete` | `PUT /_arkret/self/keys/backups/{backup_id}`, `GET /_arkret/self/keys/backups`, `POST /_arkret/self/keys/backups/{backup_id}/unlock`, `DELETE /_arkret/self/keys/backups/{backup_id}` | Encrypted key backup storage binding |
-| `ck.self.authz.query.check` / `ck.self.authz.grants.query.effective` / `ck.self.authz.invites.query.list` | `POST /_arkret/self/authz/check`, `GET /_arkret/self/authz/effective-grants`, `GET /_arkret/self/authz/invites` | gRPC / policy 插件回调 |
-| `ck.self.policy.query.check` | `POST /_arkret/self/policy/check` | policy 本地调用 |
-| `ck.self.media.query.ice_config` | `POST /_arkret/self/rtc/ice-config` | Realtime Media Server / TURN credential adapter |
-| `ck.self.call.media.exchange.issue_token` | `POST /_arkret/self/rtc/token` | Realtime Media Server token 兑换 / gRPC `Call/MediaTokenExchange` |
-| `ck.self.moderation.command.report` | `POST /_arkret/self/moderation/report` | Moderation queue / local compliance workflow |
-| `ck.self.applet.install.command.preview` / `ck.self.applet.command.install` / `ck.self.applet.command.revoke` | `POST /_arkret/self/applets/install/preview`, `POST /_arkret/self/applets/install`, `POST /_arkret/self/applets/{applet_id}/revoke` | Applet self/admin aggregate operation；fan-out registration/grant/profile/membership facts，不写 durable install event |
-| `ck.edge.applet.command.transaction` / `ck.edge.applet.actor.query.resolve` / `ck.edge.applet.realm.query.resolve` | `POST /_arkret/edge/applet/transactions`, `GET /_arkret/edge/applet/actors/{actor_id}`, `GET /_arkret/edge/applet/realms/{realm_id_or_alias}` | Applet webhook / bridge adapter |
+| `ak.root.identity.query.resolve` | `POST /_arkret/root/identity/resolve` | gRPC `ResolveIdentity` / MQ `root.identity.query.resolve` |
+| `ak.root.identity.command.submit_did_operation` | `POST /_arkret/root/identity/submit-did-operation` | gRPC `SubmitDidOperation` / libp2p stream |
+| `ak.root.identity.document.resource.get` / `ak.root.identity.log.query.list` / `ak.root.identity.receipts.query.list` | `GET /_arkret/root/identity/document`, `GET /_arkret/root/identity/log`, `GET /_arkret/root/identity/receipts` | gRPC Identity Registry / witness query |
+| `ak.self.events.command.submit` | `POST /_arkret/self/events` | gRPC `SelfEvents/Submit` / 队列 `self.events.command.submit` |
+| `ak.self.events.resource.get` / `ak.self.events.query.resolve` / `ak.self.events.query.scan` / `ak.self.events.query.frontier` | `GET /_arkret/self/events/{event_id}`, `POST /_arkret/self/events/resolve`, `GET /_arkret/self/events`, `GET /_arkret/self/events/frontier` | gRPC `SelfEvents/Get` / `SelfEvents/Resolve` / `SelfEvents/Query` / `SelfEvents/Frontier` |
+| `ak.self.events.query.scan_body` | `POST /_arkret/self/events/query` | HTTP-only body binding variant of `ak.self.events.query.scan` |
+| `ak.self.events.stream.subscribe` | `GET /_arkret/self/events/subscribe` (`application/x-ndjson`) | pubsub topic carrying the same NDJSON frame objects |
+| `ak.peer.events.command.submit` | `POST /_arkret/peer/events` | gRPC `PeerEvents/Submit` / 队列 `peer.events.command.submit` |
+| `ak.peer.events.query.resolve` / `ak.peer.events.query.scan` / `ak.peer.events.query.frontier` | `POST /_arkret/peer/events/resolve`, `GET /_arkret/peer/events`, `GET /_arkret/peer/events/frontier` | gRPC `PeerEvents/Resolve` / `PeerEvents/Query` / `PeerEvents/Frontier` |
+| `ak.peer.events.query.scan_body` | `POST /_arkret/peer/events/query` | HTTP-only body binding variant of `ak.peer.events.query.scan` |
+| `ak.self.account.query.viewer` | `GET /_arkret/self/account/viewer` | gRPC `SelfAccount/Viewer` / MQ `self.account.query.viewer`；响应使用 signed handle claim / ref / digest，不返回未签名裸 handle 作为账号权威字段。 |
+| `ak.self.account.command.update_profile` | `POST /_arkret/self/account/profile` | gRPC `SelfAccount/UpdateProfile` / MQ `self.account.command.update_profile`；`bio` 映射到 `profile_fields.bio`，不接受 `avatar_url`。 |
+| `ak.self.account.stream.subscribe` | `GET /_arkret/self/account/subscribe` | HTTP `Accept: application/json` returns one bounded long-poll `SyncOutcome`; `Accept: application/x-ndjson` / WebSocket-style transports carry account-aggregate frames(`delta` / `catchup_complete` / `frontier` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`);`dropped` / `resync_required` MAY carry `reconnect_after_ms` |
+| `ak.self.account.command.revoke_cursor` | `POST /_arkret/self/account/cursor/revoke` | gRPC `SelfAccount/CursorRevoke` / MQ `self.account.command.revoke_cursor` |
+| `ak.gate.account.command.register` | `POST /_arkret/gate/account/register` | gRPC `GateAccount/Register` / MQ `gate.account.command.register`；request 字段为 `principal_id`，`handle` 经 signed claim 链路。 |
+| `ak.gate.account.command.revoke_session` | `POST /_arkret/gate/account/session-grants/revoke` | gRPC `GateAccount/SessionRevoke` / MQ `gate.account.command.revoke_session` |
+| `ak.gate.account.command.logout_auth_session` | `POST /_arkret/gate/account/auth-sessions/logout` | Account Authority → Auth Server S2S 子操作；普通客户端不得调用；不提供 gRPC/MQ client binding |
+| `ak.gate.account.command.logout` | `POST /_arkret/gate/account/logout` | Account Authority hard logout 的唯一客户端入口；内部可调用 `logout_auth_session`，不提供 gRPC/MQ client binding |
+| `ak.self.ephemeral.command.send` | `POST /_arkret/self/ephemeral` | gRPC `SelfEphemeral/Send` / MQ `self.ephemeral.command.send`；承载 `ak.schema.ephemeral_envelope.v1`，不写 durable Event |
+| `ak.self.snapshot.query.manifest_head` | `GET /_arkret/self/snapshot/head` | snapshot manifest |
+| `ak.peer.snapshot.query.manifest_head` | `GET /_arkret/peer/snapshot/head` | peer snapshot manifest |
+| `ak.self.space.query.list` / `ak.self.strand.query.list` / `ak.self.morph.query.list` / `ak.self.views.collection_projection.command.materialize` / `ak.self.morph.resource.get` | `GET /_arkret/self/realms/{realm_id}/spaces`, `GET /_arkret/self/realms/{realm_id}/strands`, `GET /_arkret/self/realms/{realm_id}/morphs`, `POST /_arkret/self/views/{view_id}/projection`, `GET /_arkret/self/realms/{realm_id}/morphs/{morph_id}` | gRPC `SelfSpace/List` / `SelfStrand/List` / `SelfMorph/List` / `SelfViews/CollectionProjection` / `SelfMorph/Get`; MQ `self.space.query.list` / `self.strand.query.list` / `self.morph.query.list` / `self.views.collection_projection.command.materialize` / `self.morph.resource.get` |
+| `ak.find.directory.query.search_*` / `ak.find.directory.query.resolve_*` / `ak.find.directory.query.list_handles_for_subject` | `POST /_arkret/find/directory/*`（含 `resolve-handle` 与 `list-handles-for-subject`） | gRPC Discovery Service |
+| `ak.find.directory.command.announce` / `ak.find.directory.command.withdraw` / `ak.find.directory.push.command.register` | `POST /_arkret/find/directory/announce`, `POST /_arkret/find/directory/withdraw`, `POST /_arkret/find/directory/push/register` | gRPC Discovery Ingest Service |
+| `ak.self.blob.upload.create` / `ak.self.blob.resource.head` / `ak.self.blob.resource.get` | `POST /_arkret/self/blob/upload`, `HEAD/GET /_arkret/self/blob/get` | Object-store signed URL binding / gRPC blob service |
+| `ak.edge.push.command.register_device` / `ak.edge.push.command.notify` | `POST /_arkret/edge/push/register-device`, `POST /_arkret/edge/push/notify` | APNs/FCM adapter / MQ wakeup topic |
+| `ak.self.device_messages.command.send` / `ak.self.device_messages.query.list` | `POST /_arkret/self/device_messages`, `GET /_arkret/self/device_messages` | MQ device topic / 本地 IPC |
+| `ak.self.keys.upload.create` / `ak.self.keys.query.lookup` / `ak.self.keys.command.claim` | `POST /_arkret/self/keys/upload`, `POST /_arkret/self/keys/query`, `POST /_arkret/self/keys/claim` | E2EE key service binding |
+| `ak.self.keys.backups.resource.replace` / `ak.self.keys.backups.query.list` / `ak.self.keys.backups.command.unlock` / `ak.self.keys.backups.resource.delete` | `PUT /_arkret/self/keys/backups/{backup_id}`, `GET /_arkret/self/keys/backups`, `POST /_arkret/self/keys/backups/{backup_id}/unlock`, `DELETE /_arkret/self/keys/backups/{backup_id}` | Encrypted key backup storage binding |
+| `ak.self.authz.query.check` / `ak.self.authz.grants.query.effective` / `ak.self.authz.invites.query.list` | `POST /_arkret/self/authz/check`, `GET /_arkret/self/authz/effective-grants`, `GET /_arkret/self/authz/invites` | gRPC / policy 插件回调 |
+| `ak.self.policy.query.check` | `POST /_arkret/self/policy/check` | policy 本地调用 |
+| `ak.self.media.query.ice_config` | `POST /_arkret/self/rtc/ice-config` | Realtime Media Server / TURN credential adapter |
+| `ak.self.call.media.exchange.issue_token` | `POST /_arkret/self/rtc/token` | Realtime Media Server token 兑换 / gRPC `Call/MediaTokenExchange` |
+| `ak.self.moderation.command.report` | `POST /_arkret/self/moderation/report` | Moderation queue / local compliance workflow |
+| `ak.self.applet.install.command.preview` / `ak.self.applet.command.install` / `ak.self.applet.command.revoke` | `POST /_arkret/self/applets/install/preview`, `POST /_arkret/self/applets/install`, `POST /_arkret/self/applets/{applet_id}/revoke` | Applet self/admin aggregate operation；fan-out registration/grant/profile/membership facts，不写 durable install event |
+| `ak.edge.applet.command.transaction` / `ak.edge.applet.actor.query.resolve` / `ak.edge.applet.realm.query.resolve` | `POST /_arkret/edge/applet/transactions`, `GET /_arkret/edge/applet/actors/{actor_id}`, `GET /_arkret/edge/applet/realms/{realm_id_or_alias}` | Applet webhook / bridge adapter |
 
 ### 4.1 Generated Full Inventory
 
@@ -422,7 +422,7 @@ paths:
 - OpenAPI 只定义形态，不定义核心语义。核心语义仍由本协议对象模型、授权状态、签名、同步与加密规范给出。
 - 实现不得因为支持 core Event / Account aggregate 就默认声称支持目录、MIMI、账户登录、管理员或 E2EE key-management surface；这些能力必须通过 `supported_operations`、`supported_profiles` 或两者同时显式声明。
 - 所有 path 都是 `/_arkret/<信任段>/...` 形态的绝对路径，不含版本段；`servers` 只声明 `https://{host}`。生成 OpenAPI 时无需 path-level `servers` 覆盖，协议版本通过 `*.describe` / `supported_operations` 协商（可选 `Arkret-Protocol-Version` header），不放进 path。
-- `GET /_arkret/self/account/subscribe`（`ck.self.account.stream.subscribe`）是客户端账号视角聚合同步入口(跨 Realm delta + to_device + account_data + device_lists + presence)，HTTP binding 支持 JSON 长轮询与 NDJSON frame stream；`GET /_arkret/self/events`(`ck.self.events.query.scan`,可双向、分页，默认 limit 100)是按 selector 的事件查询/历史回补；`GET /_arkret/self/events/subscribe`(`ck.self.events.stream.subscribe`,可携 bounded catch-up replay)是按 selector 的事件流订阅。`ck.self.account.stream.subscribe` 与 `ck.self.events.stream.subscribe` 是对称但不等价的订阅(account-aggregate vs per-Realm event log)；三类操作的 selector、auth、frame schema 与 freshness 行为不同,不得互相替代,也不得新增未声明的 canonical account / events endpoint。
+- `GET /_arkret/self/account/subscribe`（`ak.self.account.stream.subscribe`）是客户端账号视角聚合同步入口(跨 Realm delta + to_device + account_data + device_lists + presence)，HTTP binding 支持 JSON 长轮询与 NDJSON frame stream；`GET /_arkret/self/events`(`ak.self.events.query.scan`,可双向、分页，默认 limit 100)是按 selector 的事件查询/历史回补；`GET /_arkret/self/events/subscribe`(`ak.self.events.stream.subscribe`,可携 bounded catch-up replay)是按 selector 的事件流订阅。`ak.self.account.stream.subscribe` 与 `ak.self.events.stream.subscribe` 是对称但不等价的订阅(account-aggregate vs per-Realm event log)；三类操作的 selector、auth、frame schema 与 freshness 行为不同,不得互相替代,也不得新增未声明的 canonical account / events endpoint。
 - 生成的 OpenAPI 引用统一 error envelope，覆盖 `404 unrecognized_endpoint`、`405 method_not_allowed`、`429 rate_limited` 与 `503 temporarily_unavailable` 的标准响应。
 - OpenAPI security scheme 不定义 query string token 认证；受保护 endpoint 使用 header / signature / mTLS / signed proof body 等认证方式。
 - Blob / media endpoint 的 schema 显式声明 `Content-Type`、`Content-Disposition`、`Range`、`Content-Range`、`Location` 和缓存头行为，避免通过 header 泄露不可见资源。

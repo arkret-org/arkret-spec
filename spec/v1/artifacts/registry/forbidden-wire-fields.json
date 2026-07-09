@@ -254,7 +254,7 @@
       "context": "space_payload",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ak.realm.create / ck.realm.update payload",
+      "replacement": "ak.realm.create / ak.realm.update payload",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -267,7 +267,7 @@
       "context": "space_payload",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ak.realm.join_rule or ck.realm.policy_components join policy facet",
+      "replacement": "ak.realm.join_rule or ak.realm.policy_components join policy facet",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -325,7 +325,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "ak.message.create payload MUST NOT carry revision_root. The reducer initializes revision_root to the new message_id; only ck.message.revise (and subsequent revise events) may set revision_root, and only to the create's revision_root. See zh/models/strand-and-message.md §9."
+      "notes": "ak.message.create payload MUST NOT carry revision_root. The reducer initializes revision_root to the new message_id; only ak.message.revise (and subsequent revise events) may set revision_root, and only to the create's revision_root. See zh/models/strand-and-message.md §9."
     },
     {
       "id": "blocks",
@@ -389,33 +389,33 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Strand stage_changed_at is reducer-derived and lives at the top level. It MUST NOT be smuggled under metadata.fields.* and MUST NOT be supplied by actor on wire (reducer overwrites with the triggering ck.strand.stage.set event's created_at). See zh/models/common-fields.md §5.3.3 rule 3."
+      "notes": "Strand stage_changed_at is reducer-derived and lives at the top level. It MUST NOT be smuggled under metadata.fields.* and MUST NOT be supplied by actor on wire (reducer overwrites with the triggering ak.strand.stage.set event's created_at). See zh/models/common-fields.md §5.3.3 rule 3."
     },
     {
       "id": "metadata.fields.stage_reason",
       "context": "strand_payload",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
-      "replacement": "Message on the Strand's discussion track that references the ck.strand.stage.set event",
+      "replacement": "Message on the Strand's discussion track that references the ak.strand.stage.set event",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Reserved-name guard. Strand stage transitions intentionally do NOT carry a reason / note / explanation field anywhere — neither on the object, nor in the ck.strand.stage.set payload, nor under metadata.fields.*. Human-readable rationale belongs in a Message on the Strand's discussion track that 'references' the stage event; audit attribution is provided by the event log's own actor_id / created_at. The metadata.fields.stage_reason path MUST be rejected to prevent implementations from re-introducing the field through a back door."
+      "notes": "Reserved-name guard. Strand stage transitions intentionally do NOT carry a reason / note / explanation field anywhere — neither on the object, nor in the ak.strand.stage.set payload, nor under metadata.fields.*. Human-readable rationale belongs in a Message on the Strand's discussion track that 'references' the stage event; audit attribution is provided by the event log's own actor_id / created_at. The metadata.fields.stage_reason path MUST be rejected to prevent implementations from re-introducing the field through a back door."
     },
     {
       "id": "metadata.fields.stage_note",
       "context": "strand_payload",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
-      "replacement": "Message on the Strand's discussion track that references the ck.strand.stage.set event",
+      "replacement": "Message on the Strand's discussion track that references the ak.strand.stage.set event",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Reserved-name sister-guard for metadata.fields.stage_reason. Closes 'stage_note' / 'stage_comment' / 'stage_explanation' style re-spellings via metadata.fields.*. Same canonical channel: a Message on the discussion track that references the ck.strand.stage.set event."
+      "notes": "Reserved-name sister-guard for metadata.fields.stage_reason. Closes 'stage_note' / 'stage_comment' / 'stage_explanation' style re-spellings via metadata.fields.*. Same canonical channel: a Message on the discussion track that references the ak.strand.stage.set event."
     },
     {
       "id": "metadata.fields.lifecycle",
@@ -523,20 +523,20 @@
       "context": "morph_payload",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
-      "replacement": "Message on an associated discussion track that references the ck.morph.stage.set event",
+      "replacement": "Message on an associated discussion track that references the ak.morph.stage.set event",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Reserved-name guard mirror for Morph. Stage transitions carry no reason field; rationale belongs in a discussion-track Message that references the ck.morph.stage.set event."
+      "notes": "Reserved-name guard mirror for Morph. Stage transitions carry no reason field; rationale belongs in a discussion-track Message that references the ak.morph.stage.set event."
     },
     {
       "id": "fields.stage_note",
       "context": "morph_payload",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
-      "replacement": "Message on an associated discussion track that references the ck.morph.stage.set event",
+      "replacement": "Message on an associated discussion track that references the ak.morph.stage.set event",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -581,14 +581,14 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "ak.strand.update payload's patch MUST NOT include path 'stage' or 'stage_changed_at'. Stage transitions are single-source: only ck.strand.stage.set may mutate these fields. The wire-level guard is the same pattern as forbidding ck.message.create from carrying revision_root — a forbidden patch path on an otherwise-shared payload class. cotest scanners MUST flag any patch op whose path matches /^stage(_changed_at)?$/. See zh/models/strand-and-message.md §3.2 reducer hard constraint 5."
+      "notes": "ak.strand.update payload's patch MUST NOT include path 'stage' or 'stage_changed_at'. Stage transitions are single-source: only ak.strand.stage.set may mutate these fields. The wire-level guard is the same pattern as forbidding ak.message.create from carrying revision_root — a forbidden patch path on an otherwise-shared payload class. cotest scanners MUST flag any patch op whose path matches /^stage(_changed_at)?$/. See zh/models/strand-and-message.md §3.2 reducer hard constraint 5."
     },
     {
       "id": "patch:metadata.fields.assignee",
       "context": "strand_patch_payload",
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
-      "replacement": "ak.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
+      "replacement": "ak.relation.create / ak.relation.tombstone with relation_kind=assigned_to",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "ak.strand.update MUST NOT patch assignment through Strand metadata. Assignment writes create or tombstone assigned_to Relation edges."
     },
@@ -597,7 +597,7 @@
       "context": "strand_patch_payload",
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
-      "replacement": "ak.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
+      "replacement": "ak.relation.create / ak.relation.tombstone with relation_kind=assigned_to",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Plural assignment metadata patch alias is forbidden; multiple assignees are multiple assigned_to Relation edges."
     },
@@ -606,7 +606,7 @@
       "context": "strand_patch_payload",
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
-      "replacement": "ak.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
+      "replacement": "ak.relation.create / ak.relation.tombstone with relation_kind=assigned_to",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "assigned_to is a Relation kind, not a Strand metadata patch path."
     },
@@ -617,14 +617,14 @@
       "rejection_level": "hard_reject",
       "replacement": "read-only projection assigned_actor_ids derived from assigned_to Relations",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "assigned_actor_ids is projection-only and MUST NOT be written through ck.strand.update."
+      "notes": "assigned_actor_ids is projection-only and MUST NOT be written through ak.strand.update."
     },
     {
       "id": "patch:fields.assignee",
       "context": "strand_patch_payload",
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
-      "replacement": "ak.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
+      "replacement": "ak.relation.create / ak.relation.tombstone with relation_kind=assigned_to",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Legacy Strand fields.* patch paths are not the canonical metadata path; assignment is Relation-sourced regardless of spelling."
     },
@@ -633,7 +633,7 @@
       "context": "strand_patch_payload",
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
-      "replacement": "ak.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
+      "replacement": "ak.relation.create / ak.relation.tombstone with relation_kind=assigned_to",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Legacy plural assignment patch alias is forbidden; multiple assignees are multiple assigned_to Relation edges."
     },
@@ -642,7 +642,7 @@
       "context": "strand_patch_payload",
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
-      "replacement": "ak.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
+      "replacement": "ak.relation.create / ak.relation.tombstone with relation_kind=assigned_to",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "assigned_to is a Relation kind, not a Strand metadata patch path."
     },
@@ -666,7 +666,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "ak.morph.update / ck.morph.schema_migrate payload's patch MUST NOT include path 'stage' or 'stage_changed_at'. Stage transitions are single-source: only ck.morph.stage.set may mutate these fields. See zh/models/common-fields.md §5.3.3 reducer hard constraint 6 and zh/models/morph.md §2."
+      "notes": "ak.morph.update / ak.morph.schema_migrate payload's patch MUST NOT include path 'stage' or 'stage_changed_at'. Stage transitions are single-source: only ak.morph.stage.set may mutate these fields. See zh/models/common-fields.md §5.3.3 reducer hard constraint 6 and zh/models/morph.md §2."
     },
     {
       "id": "patch:morph_type",
@@ -679,7 +679,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "ak.morph.update payload's patch MUST NOT include path 'morph_type'. morph_type is create-locked by ck.morph.create; attempts to mutate it after create fail closed with reason morph_type_immutable."
+      "notes": "ak.morph.update payload's patch MUST NOT include path 'morph_type'. morph_type is create-locked by ak.morph.create; attempts to mutate it after create fail closed with reason morph_type_immutable."
     },
     {
       "id": "valid_from",
@@ -978,7 +978,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Relation termination uses ck.relation.tombstone."
+      "notes": "Relation termination uses ak.relation.tombstone."
     },
     {
       "id": "cx.read.marker",
@@ -991,7 +991,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Read position state is read cursor; the canonical event_kind and capability action share the name ck.read_cursor.advance."
+      "notes": "Read position state is read cursor; the canonical event_kind and capability action share the name ak.read_cursor.advance."
     },
     {
       "id": "cx.schema.read_marker.v1",
@@ -1342,7 +1342,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Push-notification payload MUST NOT carry the pre-inversion 'space_name' field. After the Realm/Space inversion the human-readable label that a push gateway might surface comes from either the Realm (realm_title) or plaintext-visible Strand metadata.title (strand_title); both remain forbidden in the ck.profile.push_gateway.blind_wakeup.v1 baseline (privacy default) and are only permitted under the explicit ck.profile.push_gateway.visible_notification.v1 opt-in profile. See zh/discovery/push-notifications.md §3 and fixtures/privacy-security-fixture.json forbidden_fields_absent."
+      "notes": "Push-notification payload MUST NOT carry the pre-inversion 'space_name' field. After the Realm/Space inversion the human-readable label that a push gateway might surface comes from either the Realm (realm_title) or plaintext-visible Strand metadata.title (strand_title); both remain forbidden in the ak.profile.push_gateway.blind_wakeup.v1 baseline (privacy default) and are only permitted under the explicit ak.profile.push_gateway.visible_notification.v1 opt-in profile. See zh/discovery/push-notifications.md §3 and fixtures/privacy-security-fixture.json forbidden_fields_absent."
     },
     {
       "id": "frank_only",
@@ -1732,7 +1732,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Native personal agent is represented by actor_kind=agent and CKP-0008 provisioning/accountability state, not by an expanded actor_kind enum."
+      "notes": "Native personal agent is represented by actor_kind=agent and AKP-0008 provisioning/accountability state, not by an expanded actor_kind enum."
     },
     {
       "id": "actor_kind=agent_ghost",
@@ -1752,7 +1752,7 @@
       "context": "actor_profile.actor_kind",
       "since_revision": "2026-06-09",
       "rejection_level": "hard_reject",
-      "replacement": "owning user/org principal DID as actor_id; device identity via device_id (ak:device:<uuid>) + ck.device.authorize",
+      "replacement": "owning user/org principal DID as actor_id; device identity via device_id (ak:device:<uuid>) + ak.device.authorize",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",

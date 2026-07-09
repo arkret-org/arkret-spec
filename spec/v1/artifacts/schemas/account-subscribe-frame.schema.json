@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/account-subscribe-frame.schema.json",
   "title": "Arkret Account Subscribe Frame",
-  "description": "Single NDJSON frame on the ak.self.account.stream.subscribe streaming channel (GET /_arkret/self/account/subscribe, Content-Type: application/x-ndjson). Each newline-delimited line is one frame object. Discriminated by the `kind` field: `delta` carries account-aggregate data (cross-Realm frontier, to_device, account_data, device_lists, presence, notifications, unread counts); the other kinds are control frames that mirror ck.self.events.stream.subscribe (`catchup_complete`, `frontier`, `heartbeat`, `dropped`, `resync_required`, `unauthorized`). `dropped` and `resync_required` MAY carry `reconnect_after_ms` as a server-directed minimum delay before opening another account subscribe stream for the same principal/device/filter scope.",
+  "description": "Single NDJSON frame on the ak.self.account.stream.subscribe streaming channel (GET /_arkret/self/account/subscribe, Content-Type: application/x-ndjson). Each newline-delimited line is one frame object. Discriminated by the `kind` field: `delta` carries account-aggregate data (cross-Realm frontier, to_device, account_data, device_lists, presence, notifications, unread counts); the other kinds are control frames that mirror ak.self.events.stream.subscribe (`catchup_complete`, `frontier`, `heartbeat`, `dropped`, `resync_required`, `unauthorized`). `dropped` and `resync_required` MAY carry `reconnect_after_ms` as a server-directed minimum delay before opening another account subscribe stream for the same principal/device/filter scope.",
   "type": "object",
   "required": [
     "kind"
@@ -56,7 +56,7 @@
     },
     "partial": {
       "type": "boolean",
-      "description": "When true on a `delta` frame, the per-Realm timelines are limited (truncated); client SHOULD backfill via ck.self.events.query.scan for any Realm whose timeline carries `limited=true`."
+      "description": "When true on a `delta` frame, the per-Realm timelines are limited (truncated); client SHOULD backfill via ak.self.events.query.scan for any Realm whose timeline carries `limited=true`."
     },
     "priority": {
       "type": "string",
@@ -65,7 +65,7 @@
     "reconnect_after_ms": {
       "type": "integer",
       "minimum": 1,
-      "description": "Optional server-directed minimum delay, in milliseconds, before opening another `ck.self.account.stream.subscribe` stream for the same principal/device/filter scope. MAY appear only on `dropped` and `resync_required` frames. This is a stream reconnect hint, not a generic error retry field; it does not apply to unrelated API calls. Clients MUST wait at least this delay before reconnecting, and servers MUST reject earlier reconnect attempts with `429 rate_limited` plus `Retry-After`."
+      "description": "Optional server-directed minimum delay, in milliseconds, before opening another `ak.self.account.stream.subscribe` stream for the same principal/device/filter scope. MAY appear only on `dropped` and `resync_required` frames. This is a stream reconnect hint, not a generic error retry field; it does not apply to unrelated API calls. Clients MUST wait at least this delay before reconnecting, and servers MUST reject earlier reconnect attempts with `429 rate_limited` plus `Retry-After`."
     }
   },
   "$defs": {
@@ -111,7 +111,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 256,
-          "description": "Server-issued opaque acknowledgement token, REQUIRED whenever messages[] is non-empty. Bound server-side to (principal_id, device_id, queue high-water position of this batch) and covering this batch plus all previously delivered messages. NOT a cursor: no ak:cursor: wire form, no cursor schema/TTL/purpose. The client passes it verbatim to ck.self.device_messages.command.ack AFTER durably persisting the batch payloads; queue deletion happens only through that explicit ack, never through stream cursor advancement (client-sync.md §10.1)."
+          "description": "Server-issued opaque acknowledgement token, REQUIRED whenever messages[] is non-empty. Bound server-side to (principal_id, device_id, queue high-water position of this batch) and covering this batch plus all previously delivered messages. NOT a cursor: no ak:cursor: wire form, no cursor schema/TTL/purpose. The client passes it verbatim to ak.self.device_messages.command.ack AFTER durably persisting the batch payloads; queue deletion happens only through that explicit ack, never through stream cursor advancement (client-sync.md §10.1)."
         },
         "lost": {
           "type": "boolean",
@@ -119,11 +119,11 @@
         },
         "limited": {
           "type": "boolean",
-          "description": "True when this account subscribe to_device batch is truncated because the device queue exceeds the stream frame budget. When true, `next_cursor` is REQUIRED and the client MUST continue with ck.self.device_messages.query.list?from=<next_cursor>; the top-level account stream cursor MUST NOT be used as the to-device queue pagination cursor."
+          "description": "True when this account subscribe to_device batch is truncated because the device queue exceeds the stream frame budget. When true, `next_cursor` is REQUIRED and the client MUST continue with ak.self.device_messages.query.list?from=<next_cursor>; the top-level account stream cursor MUST NOT be used as the to-device queue pagination cursor."
         },
         "next_cursor": {
           "$ref": "#/$defs/cursor_value",
-          "description": "Read-only to-device queue continuation cursor for ck.self.device_messages.query.list?from=... . It is not an acknowledgement and MUST NOT delete queued messages; queue deletion happens only through `ack_token` passed to ck.self.device_messages.command.ack."
+          "description": "Read-only to-device queue continuation cursor for ak.self.device_messages.query.list?from=... . It is not an acknowledgement and MUST NOT delete queued messages; queue deletion happens only through `ack_token` passed to ak.self.device_messages.command.aak."
         }
       },
       "allOf": [
@@ -230,7 +230,7 @@
         },
         "members": {
           "type": "array",
-          "description": "Lightweight roster hint derived from effective ck.member.state, effective ck.member.identity.update references, and currently visible handle-claim evidence. Entries MUST NOT carry display fields or naked handle strings directly; handle strings may appear only inside signed ck.schema.handle_claim.v1 objects.",
+          "description": "Lightweight roster hint derived from effective ak.member.state, effective ak.member.identity.update references, and currently visible handle-claim evidence. Entries MUST NOT carry display fields or naked handle strings directly; handle strings may appear only inside signed ak.schema.handle_claim.v1 objects.",
           "items": {
             "$ref": "#/$defs/member_roster_entry"
           }
@@ -340,7 +340,7 @@
         },
         "identity_event_ids": {
           "type": "array",
-          "description": "Effective ck.member.identity.update event ids for this actor after replacement refs are applied.",
+          "description": "Effective ak.member.identity.update event ids for this actor after replacement refs are applied.",
           "items": {
             "type": "string",
             "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -354,14 +354,14 @@
         },
         "identity_events": {
           "type": "array",
-          "description": "Optional inline effective ck.member.identity.update Event envelopes. When present these are the original events, not query-time re-encryption or projection rewrites. MUST be omitted unless subject_id is disclosed, because plaintext or decryptable identity events can disclose the same member subject.",
+          "description": "Optional inline effective ak.member.identity.update Event envelopes. When present these are the original events, not query-time re-encryption or projection rewrites. MUST be omitted unless subject_id is disclosed, because plaintext or decryptable identity events can disclose the same member subject.",
           "items": {
             "$ref": "./event-envelope.schema.json"
           }
         },
         "handle_claim_digests": {
           "type": "array",
-          "description": "Digests of currently visible effective ck.schema.handle_claim.v1 objects for this member in the current Realm context. MUST be omitted unless subject_id is disclosed, because stable claim digests are linkable across contexts. Absence is not proof that the member has no handle.",
+          "description": "Digests of currently visible effective ak.schema.handle_claim.v1 objects for this member in the current Realm context. MUST be omitted unless subject_id is disclosed, because stable claim digests are linkable across contexts. Absence is not proof that the member has no handle.",
           "items": {
             "type": "string",
             "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
@@ -370,7 +370,7 @@
         },
         "handle_claims": {
           "type": "array",
-          "description": "Optional inline signed handle claim evidence. MUST be omitted unless subject_id is disclosed, and every included claim MUST have claim.subject equal to subject_id. Services may omit this for privacy, size, or freshness; clients can backfill by subject via ck.find.directory.query.list_handles_for_subject.",
+          "description": "Optional inline signed handle claim evidence. MUST be omitted unless subject_id is disclosed, and every included claim MUST have claim.subject equal to subject_id. Services may omit this for privacy, size, or freshness; clients can backfill by subject via ak.find.directory.query.list_handles_for_subject.",
           "items": {
             "$ref": "./handle-claim.schema.json"
           }

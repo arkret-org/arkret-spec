@@ -2,8 +2,8 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/morph-customer-risk-ext.schema.json",
   "title": "Arkret Morph Customer Risk Extension Example",
-  "description": "Reference additive extension business-field schema for the morph.md customer_risk example, used by the ck.morph.schema_migrate transformation conformance vectors. It declares the optional fields a transformation migration may introduce (renamed score / backfilled priority) on top of ck.schema.morph.customer_risk.v1.",
-  "$comment": "Logical schema id is ck.schema.morph.customer_risk.ext.v1 (dotted, used in schema_refs[]); the artifact file name uses hyphens (morph-customer-risk-ext.schema.json). Do not derive the id from the file name. This is a v1 additive extension profile, not a version bump of customer_risk.v1.",
+  "description": "Reference additive extension business-field schema for the morph.md customer_risk example, used by the ak.morph.schema_migrate transformation conformance vectors. It declares the optional fields a transformation migration may introduce (renamed score / backfilled priority) on top of ak.schema.morph.customer_risk.v1.",
+  "$comment": "Logical schema id is ak.schema.morph.customer_risk.ext.v1 (dotted, used in schema_refs[]); the artifact file name uses hyphens (morph-customer-risk-ext.schema.json). Do not derive the id from the file name. This is a v1 additive extension profile, not a version bump of customer_risk.v1.",
   "type": "object",
   "properties": {
     "fields": {

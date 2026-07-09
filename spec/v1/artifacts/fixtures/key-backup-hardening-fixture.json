@@ -232,7 +232,7 @@
         "plaintext_metadata_matches_envelope": true
       },
       "assertions": [
-        "unlock proof is submitted in the request body and validates against ck.schema.key_backup_unlock_proof.v1",
+        "unlock proof is submitted in the request body and validates against ak.schema.key_backup_unlock_proof.v1",
         "proof.backup_id, backup_class, series_id, ciphertext_digest, requesting_device_id, and proof_digest are matched against server state before ciphertext is returned",
         "the fixture AEAD transcript opens to plaintext using crypto_transcript.key_b64u, nonce_b64u, and aad_canonical_json",
         "bearer-only access without a fresh device proof is rejected",

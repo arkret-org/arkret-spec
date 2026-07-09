@@ -15,9 +15,9 @@
       "vector_id": "ak.vector.sidecar.ensure_idempotent.v1",
       "runner": "cotest::conformance::sidecar_vectors::run_sidecar_ensure_idempotent_vector",
       "assertions": [
-        "ensure operation id remains ck.self.agent.sidecar_thread.command.ensure",
+        "ensure operation id remains ak.self.agent.sidecar_thread.command.ensure",
         "ensure capability action matches the operation id",
-        "sidecar profile id remains ck.profile.agent_sidecar_thread.v1"
+        "sidecar profile id remains ak.profile.agent_sidecar_thread.v1"
       ]
     },
     {

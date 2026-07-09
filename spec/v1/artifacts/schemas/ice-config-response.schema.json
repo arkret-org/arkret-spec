@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/ice-config-response.schema.json",
   "title": "Arkret Media ICE Config Result",
-  "description": "Result shape for the WebRTC media service ICE config endpoint. Used by ck.profile.webrtc_media.v1; see crypto-media/webrtc-signaling.md §4.",
+  "description": "Result shape for the WebRTC media service ICE config endpoint. Used by ak.profile.webrtc_media.v1; see crypto-media/webrtc-signaling.md §4.",
   "type": "object",
   "required": [
     "realm_id",
@@ -189,7 +189,7 @@
         "signature_input": {
           "type": "string",
           "const": "ak.media.ice_config.v1",
-          "description": "Domain-separation label prepended to the ICE config signing bytes. v1 fixes this to ck.media.ice_config.v1 and it MUST NOT be reused for participant binding signatures."
+          "description": "Domain-separation label prepended to the ICE config signing bytes. v1 fixes this to ak.media.ice_config.v1 and it MUST NOT be reused for participant binding signatures."
         },
         "payload_digest": {
           "type": "string",

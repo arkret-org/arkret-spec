@@ -15,7 +15,7 @@ see_also:
 
 若本文与具体规范冲突，以具体规范中的 `MUST` / `SHOULD` 规则为准。
 
-> **`v1/` 不是 URL 版本号**：本规范树的 `v1/` 目录与 `ck.*.v1` 标识符表示协议代际（`protocol_version="1.0"`），HTTP path 不含任何版本段。消歧说明见 [`index.md` §1](./index.md)，path 规则见 [`sync/api-conventions.md` §11](./sync/api-conventions.md)。
+> **`v1/` 不是 URL 版本号**：本规范树的 `v1/` 目录与 `ak.*.v1` 标识符表示协议代际（`protocol_version="1.0"`），HTTP path 不含任何版本段。消歧说明见 [`index.md` §1](./index.md)，path 规则见 [`sync/api-conventions.md` §11](./sync/api-conventions.md)。
 
 ### 1.1 规范权威层级
 
@@ -27,7 +27,7 @@ see_also:
 - `artifacts/profiles/conformance-profiles.json` 是实现 profile 的机器矩阵；`conformance/conformance-profiles.md` 是其说明视图。
 - 语言权威：本规范权威文本为 `zh/` 下中文；`en/` 仅提供说明性入口，非规范源。`artifacts/` 下机读契约语言中立、跨语言共享。
 
-**ck.\* 命名空间的机读登记边界（导航摘要）**：本段是**导航摘要，非规范源**（与本文 frontmatter `normative: false` 一致）。并非所有 `ck.*` 标识符都要求进入机读 registry；算法 / 编码 profile id、设备验证方法名、client-local scheme id、信封 scheme 常量、hash / transcript 域分隔标签、feature id、DID Document / 外部生态 profile 值、E2EE application message kind 与标准 account-data tag 词表等类别豁免机读登记，其权威定义由各自的定义文档承载。豁免类别全表与配套约束的权威定义见 [`conformance/schema-registry.md` §1.2](./conformance/schema-registry.md)；如本摘要与该权威源有出入，以 schema-registry.md §1.2 为权威。
+**ak.\* 命名空间的机读登记边界（导航摘要）**：本段是**导航摘要，非规范源**（与本文 frontmatter `normative: false` 一致）。并非所有 `ak.*` 标识符都要求进入机读 registry；算法 / 编码 profile id、设备验证方法名、client-local scheme id、信封 scheme 常量、hash / transcript 域分隔标签、feature id、DID Document / 外部生态 profile 值、E2EE application message kind 与标准 account-data tag 词表等类别豁免机读登记，其权威定义由各自的定义文档承载。豁免类别全表与配套约束的权威定义见 [`conformance/schema-registry.md` §1.2](./conformance/schema-registry.md)；如本摘要与该权威源有出入，以 schema-registry.md §1.2 为权威。
 
 ### 1.2 Current-wire artifact map
 
@@ -70,7 +70,7 @@ see_also:
 | 产品概念 | Arkret 读法 | 先读 |
 | --- | --- | --- |
 | 群聊 / 频道类场景 | Realm 负责成员和历史边界；Strand + Message 负责话题和消息；View 负责 timeline / thread 展示。 | `overview/current-model.md`、`models/strand-and-message.md`、`governance/history-visibility.md` |
-| Trello 看板 / 列 / 卡片 | Board/List 是 Space.kind；卡片是 Strand；拖拽位置是 `ck.strand.move` / Relation 派生投影。 | `models/realm-and-space.md`、`models/views.md` |
+| Trello 看板 / 列 / 卡片 | Board/List 是 Space.kind；卡片是 Strand；拖拽位置是 `ak.strand.move` / Relation 派生投影。 | `models/realm-and-space.md`、`models/views.md` |
 | Jira issue / workflow / issue links | Issue 对应 Strand；粗粒度进度是 `stage`；细粒度 workflow 由 Realm profile 声明；依赖、阻塞、指派是 Relation。 | `models/strand-and-message.md`、`models/relation.md`、`models/common-fields.md` |
 | Watchers / 通知规则 / 勿扰 | Watch cell 决定是否关注；push rule 决定如何投递；DND 和 blocklist 属于 actor-private account data。 | `models/strand-and-message.md` §8、`discovery/push-notifications.md`、`discovery/client-preferences.md` |
 | 小程序 / Bot / Agent / 外部集成 | Applet/Agent 是扩展主体或服务；共享结果仍要落为 Event、Strand、Message、Morph 或 Relation。 | `extensions/applet-integration.md`、`extensions/agent-protocol-interop.md`、`models/extension-objects.md` |
@@ -150,7 +150,7 @@ see_also:
 | `models/common-fields.md` | 公共字段、lifecycle / state 对齐、主体引用对照、reducer 总则、类型记法。 |
 | `models/realm-and-space.md` | Realm（security boundary）、Space（看板 / 列 / 容器；`kind=board` / `kind=list` / 其他 profile 注册形态）、位置语义、Space lifecycle / cas_register / cascade。 |
 | `models/strand-and-message.md` | Strand（统一协作主对象）、tracks（synthesis / discussion）、`scope_circle_id`（Strand effective scope）、Watch / 通知订阅模型（`watches` Relation + cas_register cell + 投影脱敏）、Message、chat 模式、冲突收敛、ephemeral 信号。 |
-| `models/calendar-event.md` | Calendar event Strand profile、schedule fields、RRULE v1 子集、attendees 与 `ck.rsvp.set` 收敛。 |
+| `models/calendar-event.md` | Calendar event Strand profile、schedule fields、RRULE v1 子集、attendees 与 `ak.rsvp.set` 收敛。 |
 | `models/circle.md` | Circle（intra-Realm 子事件 / 子消息边界）、`scope_circle_id` / `effective_scope`、Circle encryption profile 与父 Realm floor、`Circle.members ⊆ Realm.members`、Realm-default vs Circle scope、Space `child_scope_policy`、跨 scope Relation、`confidential_discussion_of` 模式、MLS-backed Circle rotate amplification 缓解、Circle UX 视觉一致性要求。 |
 | `models/morph.md` | Morph 开放对象、`morph_type` 合并优先级、标准 facets、schema evolution。 |
 | `models/relation.md` | Relation 一等关系、标准 `relation_kind` 与基数、跨 Realm 规则、RelationProfile、冲突处理。 |
@@ -159,7 +159,7 @@ see_also:
 | `models/private-objects.md` | Read Cursor、Notification、actor-private account data 引导。 |
 | `models/personal-productivity.md` | principal-private reminders、scheduled send、snooze、saved items 与 draft sync account-data key 规则。 |
 | `models/file-transfer.md` | principal-private 跨设备文件传输：encrypted account-data transfer record、Blob ciphertext、to-device key delivery、retention 与共享附件边界。 |
-| `models/event-and-patch.md` | Event Envelope、Proof、Field Patch (`ck.patch.v1`)、Event Batch Receipt、reducer 总则。 |
+| `models/event-and-patch.md` | Event Envelope、Proof、Field Patch (`ak.patch.v1`)、Event Batch Receipt、reducer 总则。 |
 | `models/extension-objects.md` | Applet、Agent、Blob 等通过 extension profile 接入的对象（指向 `extensions/` 与 `crypto-media/`）。 |
 | `models/pins.md` | Shared pin events、`pin_scope` 解析、Space effective scope 安全边界与 pin projection stub。 |
 | `models/views.md` | View kind / renderer、Query、Board / Timeline / Graph / Document projection。 |
@@ -177,7 +177,7 @@ see_also:
 | `authz/event-auth-state-resolution.md` | Move、Seal、Lattice、bottom diagnostics、auth refs、membership、policy cells、history sharing 与 E2EE covered Seals。 |
 | `authz/policy-server.md` | Policy Server 风险判断与签名决策。 |
 | `governance/join-policy.md` | Join Rule、邀请、knock / restricted / approval 流程和 history visibility 联动。 |
-| `governance/member-delivery-binding.md` | 成员 effective delivery binding：接受准则、`binding_source`、`ck.realm.delivery_binding_policy`、路由不可降级、rebind 过渡、单 binding + 多设备策略与隐私边界（与 join gate 正交，从 join-policy.md 拆出）。 |
+| `governance/member-delivery-binding.md` | 成员 effective delivery binding：接受准则、`binding_source`、`ak.realm.delivery_binding_policy`、路由不可降级、rebind 过渡、单 binding + 多设备策略与隐私边界（与 join gate 正交，从 join-policy.md 拆出）。 |
 | `governance/history-visibility.md` | `world_readable` / `shared` / `invited` / `joined` / `restricted` 的精确定义、preview / peek policy、public plaintext Realm 与 E2EE history key share。 |
 | `governance/content-moderation.md` | 举报、E2EE franking、Realm/Organization 审核策略、个人屏蔽入口。 |
 | `security/server-threat-model.md` | 服务端攻击模型与反滥用规则；物理位于 `security/` 安全分析专项目录。 |
@@ -189,7 +189,7 @@ see_also:
 | `sync/operations-sync.md` | Event-first 发布、Event Envelope、snapshot、冲突收敛。 |
 | `sync/client-sync.md` | 客户端增量同步、timeline、state_after、to_device。 |
 | `sync/service-surface.md` | 最小服务面与实际服务组合：Principal Server、identity、events、sync、directory、blob、authz、device/key、push、applet、agent、media、moderation。 |
-| `sync/privacy-preserving-search.md` | 客户端加密索引托管、blind-index token、`ck.realm.search_policy` 与 search result fail-closed 语义。 |
+| `sync/privacy-preserving-search.md` | 客户端加密索引托管、blind-index token、`ak.realm.search_policy` 与 search result fail-closed 语义。 |
 | `sync/service-http-binding.md` | 默认 HTTP/JSON binding 路径、请求/响应和标准错误码。 |
 | `sync/invite-addressing.md` | Realm invite 的显式 invite address、online principal locator、introduction evidence、private invite delivery 与 handle/mention 边界。 |
 | `sync/service-api-schema.mdx` | canonical operation 分组与治理说明视图（含 `<OperationTable />` 组件）；request / response shape 以 OpenAPI、JSON Schema 和 `artifacts/reports/operation-schema-index.json` 为准。 |
@@ -216,14 +216,14 @@ see_also:
 | --- | --- |
 | `crypto-media/device-lifecycle.md` | 设备身份、登录与授权边界、SSO/OIDC gateway、多设备配对、to-device 消息、cross-signing、secret storage、key backup。 |
 | `crypto-media/encryption-and-audit.md` | MLS E2EE、MLS Governance Binding（`governance_binding` payload + `covered_seals_cell`）、KeyPackage lifecycle、minimal-metadata Realm 与 master-agent control 边界（核心机制）。 |
-| `crypto-media/disappearing-messages.md` | Message expiry、`ck.realm.disappearing_policy`、expiry stub、crypto-shredding 与 redaction 区分。 |
-| `crypto-media/audited-e2ee.md` | 可选 hardening profile：Audit Applet Binding、阶段性 release session、sealed historical release、RYW receipt、`ck.profile.attested_audit.e2ee.v1` / `ck.profile.disclosed_audit.e2ee.v1` 保证类别与 forbidden marketing terms。 |
+| `crypto-media/disappearing-messages.md` | Message expiry、`ak.realm.disappearing_policy`、expiry stub、crypto-shredding 与 redaction 区分。 |
+| `crypto-media/audited-e2ee.md` | 可选 hardening profile：Audit Applet Binding、阶段性 release session、sealed historical release、RYW receipt、`ak.profile.attested_audit.e2ee.v1` / `ak.profile.disclosed_audit.e2ee.v1` 保证类别与 forbidden marketing terms。 |
 | `crypto-media/media-and-blob.md` | Blob metadata、thumbnail、authenticated media、asset privacy policy。 |
 | `crypto-media/webrtc-signaling.md` | 音视频通话 ephemeral 信令、ICE/TURN/STUN、一对一通话、多设备冲突、屏幕共享、推送集成。 |
-| `crypto-media/media-service-binding.md` | 媒体服务发现（`ck.realm.media_service` foci）、token / participant binding 兑换、focus 选举、SFU 权限、媒体 E2EE 帧密钥注入与治理绑定。 |
-| `crypto-media/call-state.md` | 通话模型与状态机、durable `ck.call.state` 字段语义、录制 / 转写生命周期。 |
-| `crypto-media/bindings/arkret-native.md` | （optional sub-profile）Arkret 原生媒体后端 binding，定义 `ck.profile.media_service_binding.arkret_native.v1`，由 `media-service-binding.md` 引用。 |
-| `crypto-media/bindings/livekit.md` | （optional sub-profile）LiveKit 媒体后端 binding，定义 `ck.profile.media_service_binding.livekit.v1`，由 `media-service-binding.md` 引用。 |
+| `crypto-media/media-service-binding.md` | 媒体服务发现（`ak.realm.media_service` foci）、token / participant binding 兑换、focus 选举、SFU 权限、媒体 E2EE 帧密钥注入与治理绑定。 |
+| `crypto-media/call-state.md` | 通话模型与状态机、durable `ak.call.state` 字段语义、录制 / 转写生命周期。 |
+| `crypto-media/bindings/arkret-native.md` | （optional sub-profile）Arkret 原生媒体后端 binding，定义 `ak.profile.media_service_binding.arkret_native.v1`，由 `media-service-binding.md` 引用。 |
+| `crypto-media/bindings/livekit.md` | （optional sub-profile）LiveKit 媒体后端 binding，定义 `ak.profile.media_service_binding.livekit.v1`，由 `media-service-binding.md` 引用。 |
 
 ### 4.8 扩展、Agent 与集成
 

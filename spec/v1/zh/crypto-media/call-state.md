@@ -14,11 +14,11 @@ sidebar:
 
 ## 1. 目标与范围
 
-本文件定义通话 / 会议的 **durable 真源**：通话模型与状态机、`ck.call.state` payload 字段语义与 reducer 校验规则、participant 绑定的落地校验，以及录制 / 转写的生命周期。实时媒体本身不进入 Realm Event history；高频信令走 ephemeral 通道。
+本文件定义通话 / 会议的 **durable 真源**：通话模型与状态机、`ak.call.state` payload 字段语义与 reducer 校验规则、participant 绑定的落地校验，以及录制 / 转写的生命周期。实时媒体本身不进入 Realm Event history；高频信令走 ephemeral 通道。
 
 边界：
 
-- ephemeral 信令（offer/answer/candidate、ICE/TURN、一对一通话、推送、`ck.call.*` 权限模型）见 [`webrtc-signaling.md`](./webrtc-signaling.md)。
+- ephemeral 信令（offer/answer/candidate、ICE/TURN、一对一通话、推送、`ak.call.*` 权限模型）见 [`webrtc-signaling.md`](./webrtc-signaling.md)。
 - 媒体服务发现、token / participant binding 兑换、focus 选举、媒体 E2EE 帧密钥注入见 [`media-service-binding.md`](./media-service-binding.md)。
 
 ## 2. 通话模型
@@ -110,23 +110,23 @@ sidebar:
 
 ### 4.1 字段语义（normative）
 
-- `session_focus`：本 call 唯一 authoritative `focus_id`。**reducer 写入规则**：第一个 `ck.call.state` 事件根据 [`media-service-binding.md` §5](./media-service-binding.md) 选举规则把 oldest member 的 `foci_preferred[0]` 写入；后续 `ck.call.state` MUST 保持同值，任何改写 MUST `failed_precondition` `reason="session_focus_already_committed"`。session 结束（所有 participants 离开）后才重置。
-- `participants[]`：单条 `ck.call.state` 事件的 `participants[]` MUST ≤ 1,000 项（v1 wire 上限，见 [`../conformance/scalability-constraints.md` §5](../conformance/scalability-constraints.md)；schema 声明 `maxItems: 1000`）；超过时 MUST reject 或改用采样 / 摘要写入。
+- `session_focus`：本 call 唯一 authoritative `focus_id`。**reducer 写入规则**：第一个 `ak.call.state` 事件根据 [`media-service-binding.md` §5](./media-service-binding.md) 选举规则把 oldest member 的 `foci_preferred[0]` 写入；后续 `ak.call.state` MUST 保持同值，任何改写 MUST `failed_precondition` `reason="session_focus_already_committed"`。session 结束（所有 participants 离开）后才重置。
+- `participants[]`：单条 `ak.call.state` 事件的 `participants[]` MUST ≤ 1,000 项（v1 wire 上限，见 [`../conformance/scalability-constraints.md` §5](../conformance/scalability-constraints.md)；schema 声明 `maxItems: 1000`）；超过时 MUST reject 或改用采样 / 摘要写入。
 - `participants[].foci_preferred`：客户端本地排序的 focus 偏好列表，用于 [`media-service-binding.md` §5](./media-service-binding.md) 选举。后加入者写入的 `foci_preferred` 不影响已 committed 的 `session_focus`。
 - `participants[].participant_identity`：来自 token exchange 响应的 SFU-local handle（见 [`media-service-binding.md` §3](./media-service-binding.md)）；scope 限 `(call_id, focus_id, sfu_did)`。
 - `participants[].participant_binding`：token issuer 对 `(realm_id, call_id, focus_id, actor_id, device_id, participant_identity, expires_at)` 的签名承诺。reducer **MUST** 验证：
-  1. `issuer_kid` 解析到的 service DID 出现在当前 epoch `ck.realm.media_service.service_id`；
+  1. `issuer_kid` 解析到的 service DID 出现在当前 epoch `ak.realm.media_service.service_id`；
   2. binding `realm_id` / `call_id` / `focus_id` / `actor_id` / `device_id` / `participant_identity` 与 participant entry 一致；
   3. `expires_at` > event `created_at`（不接受已过期 binding）；
   4. `sig` 通过签名验证。
   任一失败 → `failed_precondition` `reason="participant_binding_invalid"`。
-- `participant_mute_overrides[]`：主持人强制静音的 durable 当前覆盖集。每项绑定 `(actor_id, device_id)`，携带 `audio_muted` / `video_muted`、`muted_by` 与 `muted_at`；写入者 MUST 持有 `ck.call.moderate`。SFU / token issuer 在签发或刷新 participant token 前 MUST 应用该覆盖集，收紧对应 call leg 的 send permission；客户端本地 UI / track 状态也 MUST 镜像覆盖集。撤销强制静音通过新的 `ck.call.state` 移除或改写对应 entry，而不是依赖旧 `mute_state` 帧过期。
+- `participant_mute_overrides[]`：主持人强制静音的 durable 当前覆盖集。每项绑定 `(actor_id, device_id)`，携带 `audio_muted` / `video_muted`、`muted_by` 与 `muted_at`；写入者 MUST 持有 `ak.call.moderate`。SFU / token issuer 在签发或刷新 participant token 前 MUST 应用该覆盖集，收紧对应 call leg 的 send permission；客户端本地 UI / track 状态也 MUST 镜像覆盖集。撤销强制静音通过新的 `ak.call.state` 移除或改写对应 entry，而不是依赖旧 `mute_state` 帧过期。
 
-高频 speaking、自主 mute/video 状态 SHOULD 走 ephemeral channel；主持人 `by=moderator` 的强制静音不是纯高频 UI 状态，MUST 通过 `participant_mute_overrides[]` 在 durable `ck.call.state` 中留下当前覆盖集并驱动服务端媒体权限。
+高频 speaking、自主 mute/video 状态 SHOULD 走 ephemeral channel；主持人 `by=moderator` 的强制静音不是纯高频 UI 状态，MUST 通过 `participant_mute_overrides[]` 在 durable `ak.call.state` 中留下当前覆盖集并驱动服务端媒体权限。
 
 ### 4.2 `state` 状态机（normative）
 
-`call_state_payload.state` 是通话生命周期的受控枚举。它写入 `ck.component.call.state.v1` cell，`cell_subject = payload.call_id`，lattice 为 `fsm`、`bottom=reject`。合法转换、终态与并发语义如下：
+`call_state_payload.state` 是通话生命周期的受控枚举。它写入 `ak.component.call.state.v1` cell，`cell_subject = payload.call_id`，lattice 为 `fsm`、`bottom=reject`。合法转换、终态与并发语义如下：
 
 | `state` | 语义 | 合法后继 | 终态? |
 | --- | --- | --- | --- |
@@ -139,14 +139,14 @@ sidebar:
 | `failed` | 出错失败 | —（终态） | **是** |
 | `cancelled` | 连接前取消 | —（终态） | **是** |
 
-- **初始 state 集合**：某 `call_id` 的**首条** `ck.call.state` 事件，其 `state` MUST ∈ `{ scheduled, ringing, connecting }`——`scheduled` 对应预先排期，`ringing` 对应即时呼叫发起，`connecting` 对应无振铃阶段的直接加入（如会议直连）。首条事件携带其它取值（`active` 或任一终态）MUST `failed_precondition`，`reason_code="call_state_transition_invalid"`。
+- **初始 state 集合**：某 `call_id` 的**首条** `ak.call.state` 事件，其 `state` MUST ∈ `{ scheduled, ringing, connecting }`——`scheduled` 对应预先排期，`ringing` 对应即时呼叫发起，`connecting` 对应无振铃阶段的直接加入（如会议直连）。首条事件携带其它取值（`active` 或任一终态）MUST `failed_precondition`，`reason_code="call_state_transition_invalid"`。
 - **终态集合**：`{ ended, missed, failed, cancelled }`。reducer MUST 拒绝从任一终态转出（单调推进），违反用 `failed_precondition` `reason="call_state_terminal"`。
 - **非法转换通用规则**：源 state 为非终态时，任何不在上表"合法后继"列内的 `state` 转换 MUST `failed_precondition`，`reason_code="call_state_transition_invalid"`（见 [`artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）；源为终态时用 `call_state_terminal`，二者不混用。
 - **同状态重放**：同一 basis 上重复提交相同 `from -> to` 转换是幂等 no-op；reducer MUST 不产生新的分叉 head，也不得把同值重放当成非法转换。
-- **并发冲突**：同一 `call_id`、同一 CBA basis 下出现两个 sibling `ck.call.state` 转换，且二者的 `to` state 不同，`fsm` join MUST 返回 `Bottom{kind="conflict"}` 并按 `bottom=reject` 暴露 `failed_bottom` / diagnostic。实现 MUST NOT 用 HLC、`created_at`、`event_id`、actor id、event digest、数据库插入顺序或本地接收顺序选择 winner。冲突恢复必须由后续显式 recovery / operator action 在新的 accepted basis 上提交，不能静默回退。
+- **并发冲突**：同一 `call_id`、同一 CBA basis 下出现两个 sibling `ak.call.state` 转换，且二者的 `to` state 不同，`fsm` join MUST 返回 `Bottom{kind="conflict"}` 并按 `bottom=reject` 暴露 `failed_bottom` / diagnostic。实现 MUST NOT 用 HLC、`created_at`、`event_id`、actor id、event digest、数据库插入顺序或本地接收顺序选择 winner。冲突恢复必须由后续显式 recovery / operator action 在新的 accepted basis 上提交，不能静默回退。
 - **终态吸收**：一旦某 accepted head 进入终态，任何后续转出都按 `call_state_terminal` 拒绝；终态不能被并发 winner 规则覆盖，因为本状态机没有 winner 规则。
 
-**`recording_state`（录制维度，与 `state` 正交，normative）**：`{ recording, stopped, ready, failed }`，缺省=未录制。录制随 `ck.call.recording.start` 进入 `recording`；人工停止时通过 `ck.call.state` 写 `recording_state="stopped"`；artifact 入 Arkret blob pipeline 后转 `ready`，失败转 `failed`。录制态**独立于** `state`——通话可在 `active` 期间为 `recording_state="recording"`，通话 `ended` 之后再写 `recording_state="ready"`。`recording_state ∈ { ready, failed, stopped }` 时 SHOULD 携带 `recording_result.recording_start_event_id` 绑定本段录制的 start event；`ready` MUST 携带 `recording_result.artifact`（schema `ck.schema.call_recording_artifact.v1`），并携带 content digest / duration / media type / retention policy 投影字段；`failed` SHOULD 携带 `failure_reason_code`。v1 不为录制注册独立 result/stop event，录制态变化通过 `ck.call.state` 写入（见 §5）。
+**`recording_state`（录制维度，与 `state` 正交，normative）**：`{ recording, stopped, ready, failed }`，缺省=未录制。录制随 `ak.call.recording.start` 进入 `recording`；人工停止时通过 `ak.call.state` 写 `recording_state="stopped"`；artifact 入 Arkret blob pipeline 后转 `ready`，失败转 `failed`。录制态**独立于** `state`——通话可在 `active` 期间为 `recording_state="recording"`，通话 `ended` 之后再写 `recording_state="ready"`。`recording_state ∈ { ready, failed, stopped }` 时 SHOULD 携带 `recording_result.recording_start_event_id` 绑定本段录制的 start event；`ready` MUST 携带 `recording_result.artifact`（schema `ak.schema.call_recording_artifact.v1`），并携带 content digest / duration / media type / retention policy 投影字段；`failed` SHOULD 携带 `failure_reason_code`。v1 不为录制注册独立 result/stop event，录制态变化通过 `ak.call.state` 写入（见 §5）。
 
 #### `recording_state` / `transcript_state` 受控转换（normative）
 
@@ -154,15 +154,15 @@ sidebar:
 
 | `recording_state` | 语义 | 合法后继 | 终态? |
 | --- | --- | --- | --- |
-| （缺省=未录制） | 该 `call_id` 尚无录制段 | `recording`（接受 `ck.call.recording.start` 后） | — |
+| （缺省=未录制） | 该 `call_id` 尚无录制段 | `recording`（接受 `ak.call.recording.start` 后） | — |
 | `recording` | 捕获进行中 | `stopped`、`ready`、`failed` | 否 |
 | `stopped` | 人工停止，可能无 artifact | `ready`（backend 事后产出 artifact） | **是**（除非升级为 `ready`） |
 | `ready` | artifact 已入库 | —（本段终态） | **是** |
 | `failed` | 捕获 / 入库失败 | —（本段终态） | **是** |
 
 - **终态集合**：`{ ready, failed }` 为硬终态；`stopped` 是软终态——只能向 `ready` 升级（同一 `recording_start_event_id`，backend 事后产出可用 artifact），不得转 `failed` 或回 `recording`。`ready` / `failed` 之后对同一捕获段的任何转出 MUST `failed_precondition`，`reason_code="recording_state_transition_invalid"`。
-- **非法转换**：源态为非终态时，任何不在"合法后继"列内的 `recording_state` / `transcript_state` 转换 MUST `failed_precondition`，`reason_code="recording_state_transition_invalid"`（转写用同一 reason_code）。新一段捕获 MUST 先接受新的 `ck.call.recording.start`（新 `recording_id`，见 §5），不得在终态上原地翻回 `recording`。
-- **多正交字段并发 join**：`state` / `recording_state` / `transcript_state` 写入同一 `ck.component.call.state.v1` cell（lattice=`fsm`，`bottom=reject`），但各字段是**独立的正交 fsm 维度**：reducer MUST 按 per-field 判定后继合法性与并发冲突，单条 `ck.call.state` 只写未变更字段的当前值。两个并发 sibling `ck.call.state` 对**同一**字段（如都改 `recording_state`）写入不同 `to` 值时，该字段的 fsm join MUST 返回 `Bottom{kind="conflict"}` 并按 `bottom=reject` 暴露 `failed_bottom`；对**不同**字段的并发写入互不冲突，分别独立 join。实现 MUST NOT 用 HLC、`created_at`、`event_id`、actor id、event digest 或接收顺序为任一字段选择 winner。
+- **非法转换**：源态为非终态时，任何不在"合法后继"列内的 `recording_state` / `transcript_state` 转换 MUST `failed_precondition`，`reason_code="recording_state_transition_invalid"`（转写用同一 reason_code）。新一段捕获 MUST 先接受新的 `ak.call.recording.start`（新 `recording_id`，见 §5），不得在终态上原地翻回 `recording`。
+- **多正交字段并发 join**：`state` / `recording_state` / `transcript_state` 写入同一 `ak.component.call.state.v1` cell（lattice=`fsm`，`bottom=reject`），但各字段是**独立的正交 fsm 维度**：reducer MUST 按 per-field 判定后继合法性与并发冲突，单条 `ak.call.state` 只写未变更字段的当前值。两个并发 sibling `ak.call.state` 对**同一**字段（如都改 `recording_state`）写入不同 `to` 值时，该字段的 fsm join MUST 返回 `Bottom{kind="conflict"}` 并按 `bottom=reject` 暴露 `failed_bottom`；对**不同**字段的并发写入互不冲突，分别独立 join。实现 MUST NOT 用 HLC、`created_at`、`event_id`、actor id、event digest 或接收顺序为任一字段选择 winner。
 
 ## 5. 录制与转写
 
@@ -186,30 +186,30 @@ sidebar:
 
 要求：
 
-- 需要 `ck.call.record` capability。`ck.call.recording.start` 通过 `capture_kind`(`recording` / `transcript`,缺省 `recording`)区分录制与转写两条平行生命周期(转写见 §5.1)。
+- 需要 `ak.call.record` capability。`ak.call.recording.start` 通过 `capture_kind`(`recording` / `transcript`,缺省 `recording`)区分录制与转写两条平行生命周期(转写见 §5.1)。
 - 客户端 MUST 对所有参会者显示录制中。
-- `payload.recording_id` MUST 是该录制 artifact lifecycle 的稳定 opaque string，并进入 recording key exporter Context；缺失时 recording start event MUST `schema_violation` reject。它不是 `ak:*` typed ID；最终持久化产物仍通过 Arkret blob / Morph / artifact 引用暴露。由于 `recording_id` 是跨实现密钥派生输入（进入 §5 第 3 步的 `Context`），其 canonical 形态 MUST 由 `ck.call.state` recording start event 一次性固定并逐字节保留：取值 MUST 为 ASCII 子集 `[A-Za-z0-9._-]`、长度 1–128 字节；发送方写入后该字符串即为 canonical，**接收方 MUST NOT 做任何 normalize**（大小写折叠、Unicode NFC/NFKC、trim、re-encode 等），并 MUST 在所有引用该录制的 event / key 派生中逐字节复用 start event 的原值。任何对 `recording_id` 的本地规范化都会令派生出的 recording key 与发送方分裂、导致解密失败。
-- 手动停止录制不注册独立 `ck.call.recording.stop` event；holder of `ck.call.record` 通过 `ck.call.state` 写 `recording_state="stopped"`，并在 `recording_result.recording_start_event_id` 指向被停止的 `ck.call.recording.start`。`stopped` 是该录制段的终态，不要求产生 artifact；若 backend 已经产出可用 artifact，后续 MAY 以同一 `recording_start_event_id` 写 `ready`，否则保持 `stopped`。
-- 同一通话允许多段录制。`ready` / `failed` / `stopped` 之后再次进入 `recording` 时，MUST 先接受新的 `ck.call.recording.start`，且新的 `recording_id` MUST 不同于该 call 任何既有 recording start 的 `recording_id`。物化投影 MAY 只展示最新 `recording_state`，但历史段以各自 `ck.call.recording.start` 与后续 `ck.call.state` event 保持可审计。
+- `payload.recording_id` MUST 是该录制 artifact lifecycle 的稳定 opaque string，并进入 recording key exporter Context；缺失时 recording start event MUST `schema_violation` reject。它不是 `ak:*` typed ID；最终持久化产物仍通过 Arkret blob / Morph / artifact 引用暴露。由于 `recording_id` 是跨实现密钥派生输入（进入 §5 第 3 步的 `Context`），其 canonical 形态 MUST 由 `ak.call.state` recording start event 一次性固定并逐字节保留：取值 MUST 为 ASCII 子集 `[A-Za-z0-9._-]`、长度 1–128 字节；发送方写入后该字符串即为 canonical，**接收方 MUST NOT 做任何 normalize**（大小写折叠、Unicode NFC/NFKC、trim、re-encode 等），并 MUST 在所有引用该录制的 event / key 派生中逐字节复用 start event 的原值。任何对 `recording_id` 的本地规范化都会令派生出的 recording key 与发送方分裂、导致解密失败。
+- 手动停止录制不注册独立 `ak.call.recording.stop` event；holder of `ak.call.record` 通过 `ak.call.state` 写 `recording_state="stopped"`，并在 `recording_result.recording_start_event_id` 指向被停止的 `ak.call.recording.start`。`stopped` 是该录制段的终态，不要求产生 artifact；若 backend 已经产出可用 artifact，后续 MAY 以同一 `recording_start_event_id` 写 `ready`，否则保持 `stopped`。
+- 同一通话允许多段录制。`ready` / `failed` / `stopped` 之后再次进入 `recording` 时，MUST 先接受新的 `ak.call.recording.start`，且新的 `recording_id` MUST 不同于该 call 任何既有 recording start 的 `recording_id`。物化投影 MAY 只展示最新 `recording_state`，但历史段以各自 `ak.call.recording.start` 与后续 `ak.call.state` event 保持可审计。
 - 录制 artifact MUST 作为 encrypted Blob 或受控 media object 存储。
 - **Backend-generated recording 必经 Arkret blob pipeline**（参见 [`media-service-binding.md` §8.1](./media-service-binding.md)）：backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等），但生成的 artifact MUST：
   1. 作为加密 blob 上传到 Arkret media service（通过 [`media-and-blob.md`](./media-and-blob.md) 的 authenticated upload 端点），不得 backend 自行托管。
-  2. 上传请求携带 `recording_initiator_capability_ref`，证明该 recording 由具备 `ck.call.record` 的 actor 发起。
+  2. 上传请求携带 `recording_initiator_capability_ref`，证明该 recording 由具备 `ak.call.record` 的 actor 发起。
   3. 加密 key MUST 由 Arkret 协议层提供（与 [`media-service-binding.md` §8.1](./media-service-binding.md) 同源，从 MLS exporter 派生），backend 不持久化明文。Recording artifact key label 固定为 `"ak.rtc-recording-key/v1"`，`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id})`，输出 32 bytes；不得复用 SFrame label `"ck-rtc-frame-key/v1"` 或空 Context。
-  4. 入库后通过 `ck.call.state` 发布 lifecycle state，引用 content digest、duration、media type、retention policy、`recording_start_event_id` 与 `recording_result.artifact`。
+  4. 入库后通过 `ak.call.state` 发布 lifecycle state，引用 content digest、duration、media type、retention policy、`recording_start_event_id` 与 `recording_result.artifact`。
   绕过该 pipeline（如 backend 直接对外暴露 recording URL）MUST 被客户端拒绝并报 `recording_artifact_pipeline_bypassed`。这保证 backend 是 "录制执行单元" 而非 "录制档案库"。
-- 录制结果 MUST 通过已注册的 `ck.call.state` 写入**独立的 `recording_state` 字段**（`recording_state="ready"` / `recording_state="failed"` / `recording_state="stopped"`，与通话 `state` 正交，见 §4.2），并在 `recording_result` 中引用 `recording_start_event_id`。`recording_state="ready"` 时，`recording_result.artifact` MUST 符合 [`call-recording-artifact.schema.json`](../../artifacts/schemas/call-recording-artifact.schema.json)，其 `schema` MUST 为 `ck.schema.call_recording_artifact.v1`，且 MUST 绑定同一 `realm_id` / `call_id` / `recording_id` / `recording_start_event_id`、`blob_ref`、`content_digest`、`ciphertext_digest`、`duration_ms`、`media_type`、`encryption.exporter_label="ak.rtc-recording-key/v1"`、`encryption.context`、`retention`、`produced_by` 与 `recording_initiator_capability_ref`。`recording_result.content_digest` / `duration_ms` / `media_type` / `retention_policy_id` / `retention` 是便于投影和查询的镜像字段；若与 `recording_result.artifact` 同名事实不一致，reducer / consumer MUST fail closed `schema_violation`。`recording_state="failed"` 时 SHOULD 携带 `failure_reason_code`，MUST NOT 携带 backend 直出 URL、明文路径或明文片段。v1 不注册独立的 `ck.call.recording.result` 或 `ck.call.recording.stop` event kind；实现不得把这些裸名写入 Event Envelope。
-- 转写需要 `ck.call.transcribe`，转写文本应作为 Morph 或 Artifact，并遵守同一 Realm policy。
+- 录制结果 MUST 通过已注册的 `ak.call.state` 写入**独立的 `recording_state` 字段**（`recording_state="ready"` / `recording_state="failed"` / `recording_state="stopped"`，与通话 `state` 正交，见 §4.2），并在 `recording_result` 中引用 `recording_start_event_id`。`recording_state="ready"` 时，`recording_result.artifact` MUST 符合 [`call-recording-artifact.schema.json`](../../artifacts/schemas/call-recording-artifact.schema.json)，其 `schema` MUST 为 `ak.schema.call_recording_artifact.v1`，且 MUST 绑定同一 `realm_id` / `call_id` / `recording_id` / `recording_start_event_id`、`blob_ref`、`content_digest`、`ciphertext_digest`、`duration_ms`、`media_type`、`encryption.exporter_label="ak.rtc-recording-key/v1"`、`encryption.context`、`retention`、`produced_by` 与 `recording_initiator_capability_ref`。`recording_result.content_digest` / `duration_ms` / `media_type` / `retention_policy_id` / `retention` 是便于投影和查询的镜像字段；若与 `recording_result.artifact` 同名事实不一致，reducer / consumer MUST fail closed `schema_violation`。`recording_state="failed"` 时 SHOULD 携带 `failure_reason_code`，MUST NOT 携带 backend 直出 URL、明文路径或明文片段。v1 不注册独立的 `ak.call.recording.result` 或 `ak.call.recording.stop` event kind；实现不得把这些裸名写入 Event Envelope。
+- 转写需要 `ak.call.transcribe`，转写文本应作为 Morph 或 Artifact，并遵守同一 Realm policy。
 
 ### 5.1 转写生命周期（normative）
 
-转写与录制平行：默认关闭，MUST 由 Realm policy 与 `ck.call.transcribe` capability 显式允许。转写态走 `ck.call.state` 的**独立字段** `transcript_state`（`{ transcribing, stopped, ready, failed }`，缺省=未转写），与 `state` 及 `recording_state` 三者正交。
+转写与录制平行：默认关闭，MUST 由 Realm policy 与 `ak.call.transcribe` capability 显式允许。转写态走 `ak.call.state` 的**独立字段** `transcript_state`（`{ transcribing, stopped, ready, failed }`，缺省=未转写），与 `state` 及 `recording_state` 三者正交。
 
-- 启动转写复用 `ck.call.recording.start` event kind，但 `capture_kind="transcript"`（未携带 `capture_kind` 时的 missing-field default 为 `recording`）；其 `recording_id` 同样是稳定 opaque 句柄，约束与 §5 录制 `recording_id` 完全一致（ASCII 子集 `[A-Za-z0-9._-]`、1–128 字节、逐字节 canonical、接收方 MUST NOT normalize），并进入 transcript key exporter Context。缺少 `ck.call.transcribe` 时 MUST 拒绝，`reason_code="transcription_denied"`。
+- 启动转写复用 `ak.call.recording.start` event kind，但 `capture_kind="transcript"`（未携带 `capture_kind` 时的 missing-field default 为 `recording`）；其 `recording_id` 同样是稳定 opaque 句柄，约束与 §5 录制 `recording_id` 完全一致（ASCII 子集 `[A-Za-z0-9._-]`、1–128 字节、逐字节 canonical、接收方 MUST NOT normalize），并进入 transcript key exporter Context。缺少 `ak.call.transcribe` 时 MUST 拒绝，`reason_code="transcription_denied"`。
 - 客户端 MUST 对所有参会者显示转写进行中提示（与录制提示同等级别）。
 - 转写文本 MUST 作为 **encrypted Blob / 受控 media object** 存储，绝不明文落 backend。转写 artifact 的加密 key MUST 由 Arkret MLS exporter 派生，**label 固定为 ASCII 字符串 `"ak.rtc-transcript-key/v1"`**（与 SFrame `"ck-rtc-frame-key/v1"`、录制 `"ck-rtc-recording-key/v1"` 区分），`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, transcript_start_event_id})`，输出 32 bytes；canonical 登记见 [`../../artifacts/registry/exporter-label-registry.json`](../../artifacts/registry/exporter-label-registry.json)。复用其它 label、空 Context，或接受 backend / KMS 自生成的 transcript key MUST fail closed `transcription_artifact_pipeline_bypassed`。
-- 转写结果通过 `ck.call.state` 写入 `transcript_state`，并在 `transcript_result` 中引用 `transcript_start_event_id`；`ready` / `failed` 还 SHOULD 携带 content digest、media type、language 与 retention policy。手动停止时写 `transcript_state="stopped"`，不要求产生 artifact。
-- v1 不为转写注册独立的 result / stop event kind；转写态变化一律通过 `ck.call.state` 写入。
+- 转写结果通过 `ak.call.state` 写入 `transcript_state`，并在 `transcript_result` 中引用 `transcript_start_event_id`；`ready` / `failed` 还 SHOULD 携带 content digest、media type、language 与 retention policy。手动停止时写 `transcript_state="stopped"`，不要求产生 artifact。
+- v1 不为转写注册独立的 result / stop event kind；转写态变化一律通过 `ak.call.state` 写入。
 
 ### 5.2 录制 / 转写 retention policy（normative）
 
@@ -218,7 +218,7 @@ sidebar:
 - **保留期**：`retention.retention_expires_at` 是协议固定的**最早**可删除时间；缺省时由 `retention_policy_id` 指向的 Realm retention policy 决定。写入时 MUST NOT 为过去时刻。
 - **删除触发**：`retention.deletion_trigger ∈ { retention_expiry, manual, realm_policy, participant_erasure }`。`participant_erasure` 对应某参与者发起 erasure 时对其媒体片段的级联删除（见 account erasure 流程）。实际删除尝试的触发事实写入 `recording_result.artifact.deletion_audit.trigger`（或转写后续定义的等价 artifact 字段）；该值 MUST 与 retention 的 `deletion_trigger` 一致，不得由 Blob 服务或媒体 backend 自行改写。
 - **审计锁定**：`retention.audit_lock=true` 时该 artifact 处于 legal / audit hold，**任何**删除（含 retention 到期、manual）MUST 被拒绝 `legal_hold_active`，直到 audit 级 action 解除锁定；audit_lock 优先于 `retention_expires_at` 与 capability。**解除后删除（normative）**：audit_lock 被 audit 级 action 解除后，删除按**原本适用的** `deletion_trigger` 继续（`retention_expiry` 若已到期、否则按触发来源取 `manual` / `realm_policy` / `participant_erasure`），**不**新增独立 trigger 枚举值；该次删除的 deletion audit MUST 记录解锁来源（`legal_hold_ref` + 对应 `trigger_event_id`），使"曾被 legal hold 阻塞、解锁后按原 trigger 删除"在审计上可追溯。
-- **删除审计**：每次删除尝试 MUST 至少在服务审计日志中记录 `trigger`、`outcome`、`requested_by?`、`trigger_event_id?`、`requested_at`、`completed_at?`、`erasure_receipt_ref?`、`legal_hold_ref?` 与 `failure_reason_code?`，其 wire 形态见 `call-recording-artifact.schema.json#/$defs/call_recording_deletion_audit`。删除完成时 MUST 产出或引用 `ck.schema.erasure_receipt.v1`（可作为 `ck.audit.erasure_receipt` durable event），并把 `erasure_receipt_ref` 绑定到 deletion audit；因 legal hold 阻塞时 MUST 记录 `outcome="blocked_by_legal_hold"` 与 `legal_hold_ref`，不得伪造成已删除。
+- **删除审计**：每次删除尝试 MUST 至少在服务审计日志中记录 `trigger`、`outcome`、`requested_by?`、`trigger_event_id?`、`requested_at`、`completed_at?`、`erasure_receipt_ref?`、`legal_hold_ref?` 与 `failure_reason_code?`，其 wire 形态见 `call-recording-artifact.schema.json#/$defs/call_recording_deletion_audit`。删除完成时 MUST 产出或引用 `ak.schema.erasure_receipt.v1`（可作为 `ak.audit.erasure_receipt` durable event），并把 `erasure_receipt_ref` 绑定到 deletion audit；因 legal hold 阻塞时 MUST 记录 `outcome="blocked_by_legal_hold"` 与 `legal_hold_ref`，不得伪造成已删除。
 - **客户端二次确认**:录制 / 转写从未捕获进入捕获态（`recording_state="recording"` / `transcript_state="transcribing"`）前 MUST 取得用户的第二次显式同意，并将事实记入 `retention.consent_confirmed=true`。reducer 见到捕获态而对应 `retention.consent_confirmed` 不为 true 时 MUST `failed_precondition` `reason_code="recording_consent_required"`。
 - **`consent_confirmed` 的保证类别（normative，诚实标注）**：`consent_confirmed=true` 是**流程性约束**，**不是**密码学同意证明——它由发起方客户端单方面置真，协议层无法强制其真实性（与 audited-e2ee `disclosed_policy` 同类：声明 / 留痕但不提供硬强制）。实现、UI、采购或合规文案 MUST NOT 把 `consent_confirmed=true` 表述为"已获得（被录制方的）密码学同意"或等价措辞，避免 false-positive 合规声明；该字段只表示"发起方声明已在本端取得用户二次确认"。
 - **可选 per-participant consent acknowledgment（更强合规 profile，normative）**：需要可验证同意的部署 MAY 启用更强 profile，要求每个被录制方**设备签名**一条 consent acknowledgment——其 signing input MUST 覆盖 `(call_id, recording_artifact_ref 或 capture epoch, consenting_actor_id, consenting_device_id, consented_at)`，签名身份按 [`device-lifecycle.md` §8.2/§8.3](../crypto-media/device-lifecycle.md) 的设备验签公钥目录解析并 fail-closed 验证。启用该 profile 时，reducer MUST 对缺少所需被录制方 acknowledgment 的捕获态 `failed_precondition` `reason_code="recording_consent_required"`；该签名集合是 `disclosed_policy` 之上的 `attested`-类强保证，可作为可审计同意证据。未启用该 profile 的部署仍只具备上一条的流程性保证，不得声称等价。
@@ -233,19 +233,19 @@ sidebar:
 触发与协商规则:
 
 1. **触发条件**:任一参与设备观察到当前 active 参与者(已 accepted answer 的 leg)将达到 3 人时,MUST 发起升级，不得继续以 P2P / full-mesh 承载 3 人以上(`mesh` 仅 SHOULD 用于 3–4 人且不作为默认，见 §2)。
-2. **focus 协商**:升级 MUST 复用 [`media-service-binding.md` §5](./media-service-binding.md) 的 deterministic, no-vote focus 选举——由 oldest_membership 的 `foci_preferred[0]` 选出 `session_focus` 并写入首个携带 `session_focus` 的 `ck.call.state`。升级**不**引入新的投票或 leader 选举路径。
-3. **加入信令**:各设备通过 `ck.call.signal{signal_type=focus_join}`(见 [`webrtc-signaling.md` §5](./webrtc-signaling.md))向选定 focus 迁移媒体；原 P2P leg 在所有参与者完成 `focus_join` 后 MUST 优雅拆除，迁移期间不得丢媒体(参照 §4.2 credential refresh 的"保留旧 allocation 直到迁移完成"原则)。
-4. **`mode` 写入**:升级落定后，下一条 `ck.call.state` 的 `mode` MUST 写 `sfu`,且一旦 `session_focus` committed 即不可在本生命周期内回退到 `p2p`(回退 P2P 需新 call)。
+2. **focus 协商**:升级 MUST 复用 [`media-service-binding.md` §5](./media-service-binding.md) 的 deterministic, no-vote focus 选举——由 oldest_membership 的 `foci_preferred[0]` 选出 `session_focus` 并写入首个携带 `session_focus` 的 `ak.call.state`。升级**不**引入新的投票或 leader 选举路径。
+3. **加入信令**:各设备通过 `ak.call.signal{signal_type=focus_join}`(见 [`webrtc-signaling.md` §5](./webrtc-signaling.md))向选定 focus 迁移媒体；原 P2P leg 在所有参与者完成 `focus_join` 后 MUST 优雅拆除，迁移期间不得丢媒体(参照 §4.2 credential refresh 的"保留旧 allocation 直到迁移完成"原则)。
+4. **`mode` 写入**:升级落定后，下一条 `ak.call.state` 的 `mode` MUST 写 `sfu`,且一旦 `session_focus` committed 即不可在本生命周期内回退到 `p2p`(回退 P2P 需新 call)。
 5. **单调性**:`session_focus` 一经 committed 即 write-once(改写 MUST `session_focus_already_committed`,见 §4.1);升级到 SFU 后人数回落到 2 人 MUST NOT 自动降级回 P2P。
 6. **升级失败 / 迁移中断（normative）**:升级编排可能在三处失败——focus 不可达(选举出的 `session_focus` 无法建立媒体)、某设备 `focus_join` 中途失败、原 P2P leg 已拆除但 SFU leg 未建成的部分迁移态。处置规则:
    - **focus 不可达且无可选 focus**:发起方 MUST 保留旧 P2P/mesh leg(尚未拆除时)继续承载已有媒体，并 SHOULD 在新的 accepted basis 上以下一候选 focus 重试 §6.2 选举(基于剩余 `foci_preferred`)；候选耗尽后，通话整体 MUST 转 `state="failed"`(`reason_code="call_state_transition_invalid"` 不适用——这是终态推进，按 §4.2 `active → failed` 合法转换)，不得停留在"已拆 P2P 又无 SFU"的不可解释悬挂态。
-   - **单设备 `focus_join` 失败**:不影响其它已迁移设备；该设备 SHOULD 重试 `focus_join`，持续失败则按本地策略以 `ck.call.signal{signal_type=leave}` 退出本通话，通话 `state` 不因单设备迁移失败而回退。
+   - **单设备 `focus_join` 失败**:不影响其它已迁移设备；该设备 SHOULD 重试 `focus_join`，持续失败则按本地策略以 `ak.call.signal{signal_type=leave}` 退出本通话，通话 `state` 不因单设备迁移失败而回退。
    - **迁移期间不得丢媒体**:在所有参与者完成 `focus_join` **之前**,原 leg MUST NOT 被拆除(§6 第 3 条);若实现因故已提前拆除且 SFU 未建成,MUST 视为升级失败并按上面第一条处置(重试 focus 或转 `failed`),MUST NOT 静默丢弃通话状态。
    - `session_focus` 一旦 committed 即 write-once:升级失败重试只能在 `session_focus` 尚未 committed 时切换候选 focus;已 committed 后 focus 不可达只能转 `failed` 并由用户新建通话(§6 第 4 条回退 P2P 需新 call 同理)。
 
 ## 7. 通话摘要（normative）
 
-通话到达终态(`state ∈ { ended, missed, failed, cancelled }`)后,SHOULD 写入一条 durable `ck.call.summary` event,作为无需重放 ephemeral 信令即可呈现的持久通话记录:
+通话到达终态(`state ∈ { ended, missed, failed, cancelled }`)后,SHOULD 写入一条 durable `ak.call.summary` event,作为无需重放 ephemeral 信令即可呈现的持久通话记录:
 
 ```json
 {
@@ -266,15 +266,15 @@ sidebar:
 }
 ```
 
-- `ck.call.summary` 写入 `ck.component.call.summary.v1` cell,`cell_subject = payload.call_id`,lattice 为 `cas_register`、`bottom=reject`(write-once;divergent 重写 MUST `call_summary_invalid`)。
-- `final_state` MUST 是某终态，且该 `call_id` MUST 已存在终态 `ck.call.state` head;否则 reducer MUST `failed_precondition` `reason_code="call_summary_invalid"`。
-- `recording_state` / `transcript_state` 是终态时刻从 `ck.call.state` 镜像的捕获态；缺省表示未录制 / 未转写。
+- `ak.call.summary` 写入 `ak.component.call.summary.v1` cell,`cell_subject = payload.call_id`,lattice 为 `cas_register`、`bottom=reject`(write-once;divergent 重写 MUST `call_summary_invalid`)。
+- `final_state` MUST 是某终态，且该 `call_id` MUST 已存在终态 `ak.call.state` head;否则 reducer MUST `failed_precondition` `reason_code="call_summary_invalid"`。
+- `recording_state` / `transcript_state` 是终态时刻从 `ak.call.state` 镜像的捕获态；缺省表示未录制 / 未转写。
 
-**字段必填 / nullable 语义（normative）**:`ck.call.summary` payload 字段约束如下，reducer / consumer MUST 按此校验，不一致 `schema_violation`:
+**字段必填 / nullable 语义（normative）**:`ak.call.summary` payload 字段约束如下，reducer / consumer MUST 按此校验，不一致 `schema_violation`:
 
 | 字段 | 必填 | nullable | 说明 |
 | --- | --- | --- | --- |
-| `call_id` | 是 | 否 | 引用对应 `ck.call.state` 的 call。 |
+| `call_id` | 是 | 否 | 引用对应 `ak.call.state` 的 call。 |
 | `final_state` | 是 | 否 | MUST ∈ 终态集合且与现存终态 head 一致(见上)。 |
 | `mode` | 是 | 否 | 通话最终 `mode`。 |
 | `started_at` | 否 | 是 | 通话从未进入 `active`(如 `final_state ∈ { missed, cancelled }`)时 MUST 为 `null`;曾 `active` 时 SHOULD 填实际开始时刻。 |
@@ -284,4 +284,4 @@ sidebar:
 | `distinct_participant_count` | 否 | 否 | 整数，缺省 `0`，MUST ≥ `peak_participant_count`。 |
 | `recording_state` | 否 | 否 | 缺省=未录制(见上)。 |
 | `transcript_state` | 否 | 否 | 缺省=未转写(见上)。 |
-- 写入 `ck.call.summary` 需要 `ck.call.join`(参见 [`../../artifacts/registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json));它不替代 `ck.call.state` 终态，而是其上的 durable 摘要投影。
+- 写入 `ak.call.summary` 需要 `ak.call.join`(参见 [`../../artifacts/registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json));它不替代 `ak.call.state` 终态，而是其上的 durable 摘要投影。

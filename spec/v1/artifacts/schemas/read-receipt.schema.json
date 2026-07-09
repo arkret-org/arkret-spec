@@ -70,14 +70,14 @@
         "track_name": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,63}$",
-          "description": "Required when kind='strand' and the receipt scopes a single track."
+          "description": "Required when kind='strand' and the receipt scopes a single traak."
         },
         "track_scope": {
           "type": "string",
           "enum": [
             "all"
           ],
-          "description": "Only valid when kind='strand'. Use track_scope='all' for an entire Strand regardless of track."
+          "description": "Only valid when kind='strand'. Use track_scope='all' for an entire Strand regardless of traak."
         }
       },
       "allOf": [

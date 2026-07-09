@@ -165,7 +165,7 @@
             "access_hiding"
           ],
           "default": "deterministic_token",
-          "description": "Machine-readable search leakage class. ck.profile.search.blind_index.v1 uses deterministic_token; ck.profile.search.forward_private.v1 requires forward_private; access_hiding is reserved for explicit PIR/ORAM-backed profiles."
+          "description": "Machine-readable search leakage class. ak.profile.search.blind_index.v1 uses deterministic_token; ak.profile.search.forward_private.v1 requires forward_private; access_hiding is reserved for explicit PIR/ORAM-backed profiles."
         },
         "token_rotation_cadence_ms": {
           "type": "integer",

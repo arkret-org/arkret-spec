@@ -131,7 +131,7 @@
           }
         }
       },
-      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"actor_seq\":1,\"auth_context\":{\"capability_refs\":[\"ak:grant:0196410c-0000-7000-8000-000000000000\"],\"did\":\"did:webvh:z6mkfixture:alice.example\",\"key_epoch\":1,\"key_id\":\"device-1\"},\"created_at\":\"2026-04-26T00:00:00Z\",\"effects\":[{\"cell\":\"ak:cell:message:019640ed-8000-7000-8000-000000000000\",\"op\":{\"kind\":\"append\",\"value\":{\"message_id\":\"ak:message:019640ed-8000-7000-8000-000000000000\",\"strand_id\":\"ak:strand:01964137-0000-7000-8000-000000000000\",\"track_name\":\"discussion\"}}}],\"event_id\":\"ak:event:019640ed-8000-7000-8000-000000000000\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"ak.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ck.content.text\"},\"message_id\":\"ak:message:019640ed-8000-7000-8000-000000000000\",\"strand_id\":\"ak:strand:01964137-0000-7000-8000-000000000000\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"realm_id\":\"ak:realm:01964137-0000-7000-8000-000000000000\",\"refs\":[],\"seal_ref\":\"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222\"}",
+      "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"actor_seq\":1,\"auth_context\":{\"capability_refs\":[\"ak:grant:0196410c-0000-7000-8000-000000000000\"],\"did\":\"did:webvh:z6mkfixture:alice.example\",\"key_epoch\":1,\"key_id\":\"device-1\"},\"created_at\":\"2026-04-26T00:00:00Z\",\"effects\":[{\"cell\":\"ak:cell:message:019640ed-8000-7000-8000-000000000000\",\"op\":{\"kind\":\"append\",\"value\":{\"message_id\":\"ak:message:019640ed-8000-7000-8000-000000000000\",\"strand_id\":\"ak:strand:01964137-0000-7000-8000-000000000000\",\"track_name\":\"discussion\"}}}],\"event_id\":\"ak:event:019640ed-8000-7000-8000-000000000000\",\"hlc\":\"01970e589d21-0004-a13f9c2e\",\"kind\":\"ak.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ak.content.text\"},\"message_id\":\"ak:message:019640ed-8000-7000-8000-000000000000\",\"strand_id\":\"ak:strand:01964137-0000-7000-8000-000000000000\",\"track_name\":\"discussion\"},\"prev_refs\":[],\"realm_id\":\"ak:realm:01964137-0000-7000-8000-000000000000\",\"refs\":[],\"seal_ref\":\"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222\"}",
       "expected_digest": "sha256:2ce57fd550a84c3613f3e3798349c01bd47213cce8d98e4de389d50a2fc67c08",
       "rules": [
         "event digest MUST be derived from canonical bytes after stripping proofs and unsigned, before redaction",
@@ -461,7 +461,7 @@
       "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"context\":\"ak.event-proof-v1\",\"created_at\":\"2026-04-26T00:00:00Z\",\"domain\":\"sync.service.example\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
       "expected_digest": "sha256:e8bbca4ce1e007230d74cb7cfa328c567be5e5d6b63afc7246dec6ca4e33c80b",
       "rules": [
-        "base binding fields follow ck.vector.encoding.signature_binding_payload.v1 (event_digest, actor DID, verification_method, created_at)",
+        "base binding fields follow ak.vector.encoding.signature_binding_payload.v1 (event_digest, actor DID, verification_method, created_at)",
         "cross-domain verification binds the target service domain via the optional domain field; the canonical bytes sort it between created_at and event_digest",
         "absent optional fields MUST be omitted from the canonical binding object entirely; a null placeholder changes the canonical bytes and MUST NOT be emitted"
       ]
@@ -480,7 +480,7 @@
       "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"audience\":\"did:webvh:z6mkfixture:sync.example\",\"context\":\"ak.event-proof-v1\",\"created_at\":\"2026-04-26T00:00:00Z\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
       "expected_digest": "sha256:e50cba7fb0f6fd33467624773cd8238fade5100a6fc207b6da3e5510d5297bd7",
       "rules": [
-        "base binding fields follow ck.vector.encoding.signature_binding_payload.v1 (event_digest, actor DID, verification_method, created_at)",
+        "base binding fields follow ak.vector.encoding.signature_binding_payload.v1 (event_digest, actor DID, verification_method, created_at)",
         "audience-constrained verification binds a single audience DID via the optional audience field",
         "absent optional fields MUST be omitted from the canonical binding object entirely; a null placeholder changes the canonical bytes and MUST NOT be emitted"
       ]
@@ -503,7 +503,7 @@
       "expected_canonical_bytes_utf8": "{\"actor_id\":\"did:webvh:z6mkfixture:alice.example\",\"audience\":[\"did:webvh:z6mkfixture:sync.example\",\"did:webvh:z6mkfixture:media.example\"],\"context\":\"ak.event-proof-v1\",\"created_at\":\"2026-04-26T00:00:00Z\",\"domain\":\"sync.service.example\",\"event_digest\":\"sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-1\"}",
       "expected_digest": "sha256:6531dcb6ffb64335279f6a4310d2afc7243df7c65e5615e940ecd27c04de1b87",
       "rules": [
-        "base binding fields follow ck.vector.encoding.signature_binding_payload.v1 (event_digest, actor DID, verification_method, created_at)",
+        "base binding fields follow ak.vector.encoding.signature_binding_payload.v1 (event_digest, actor DID, verification_method, created_at)",
         "domain and audience MAY be combined; audience MAY be an array of DIDs whose order is preserved verbatim in the canonical bytes",
         "absent optional fields MUST be omitted from the canonical binding object entirely; a null placeholder changes the canonical bytes and MUST NOT be emitted"
       ]

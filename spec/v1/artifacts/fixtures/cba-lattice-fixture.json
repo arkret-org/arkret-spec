@@ -79,7 +79,7 @@
         },
         "effects": [
           {
-            "cell": "ak:cell:ck.component.strand.discussion.timeline.v1:ck.strand.019640c6-8000-7000-8000-000000000000",
+            "cell": "ak:cell:ak.component.strand.discussion.timeline.v1:ak.strand.019640c6-8000-7000-8000-000000000000",
             "op": {
               "kind": "append",
               "value": {
@@ -133,7 +133,7 @@
         "plane": "control",
         "preconditions": [
           {
-            "cell": "ak:cell:ck.component.member.state.v1:did.web.alice.example",
+            "cell": "ak:cell:ak.component.member.state.v1:did.web.alice.example",
             "predicate": {
               "op": "head_eq",
               "value": "active"
@@ -142,7 +142,7 @@
         ],
         "effects": [
           {
-            "cell": "ak:cell:ck.component.member.state.v1:did.web.alice.example",
+            "cell": "ak:cell:ak.component.member.state.v1:did.web.alice.example",
             "op": {
               "kind": "transition",
               "from": "active",
@@ -197,7 +197,7 @@
     {
       "name": "data_plane_conflict_returns_bottom_without_winner",
       "description": "Concurrent incompatible writes to a data-plane cas_register cell return structured bottom. The reducer must not choose a winner by HLC, actor id, arrival order, or Seal observation order.",
-      "cell": "ak:cell:ck.component.strand.position.v1:ck.strand.0196419b-0000-7000-8000-000000000000",
+      "cell": "ak:cell:ak.component.strand.position.v1:ak.strand.0196419b-0000-7000-8000-000000000000",
       "cell_lattice": {
         "plane": "data",
         "lattice": "cas_register",
@@ -213,7 +213,7 @@
           "bottom": {
             "kind": "conflict",
             "cells": [
-              "ak:cell:ck.component.strand.position.v1:ck.strand.0196419b-0000-7000-8000-000000000000"
+              "ak:cell:ak.component.strand.position.v1:ak.strand.0196419b-0000-7000-8000-000000000000"
             ],
             "event_ids": [
               "ak:event:20080200-8020-7802-8080-200802008020",
@@ -329,7 +329,7 @@
     {
       "name": "cas_mixed_basis",
       "description": "cas_register writes on a non-initial settled value require an explicit CBA basis; null-basis blind overwrites fail closed.",
-      "cell": "ak:cell:ck.component.strand.title.v1:ck.strand.019641c6-8000-7000-8000-000000000001",
+      "cell": "ak:cell:ak.component.strand.title.v1:ak.strand.019641c6-8000-7000-8000-000000000001",
       "cell_lattice": {
         "plane": "control",
         "lattice": "cas_register",
@@ -349,7 +349,7 @@
             "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
             "effects": [
               {
-                "cell": "ak:cell:ck.component.strand.title.v1:ck.strand.019641c6-8000-7000-8000-000000000001",
+                "cell": "ak:cell:ak.component.strand.title.v1:ak.strand.019641c6-8000-7000-8000-000000000001",
                 "op": {
                   "kind": "set",
                   "value": "v2"
@@ -372,7 +372,7 @@
             "plane": "control",
             "preconditions": [
               {
-                "cell": "ak:cell:ck.component.strand.title.v1:ck.strand.019641c6-8000-7000-8000-000000000001",
+                "cell": "ak:cell:ak.component.strand.title.v1:ak.strand.019641c6-8000-7000-8000-000000000001",
                 "predicate": {
                   "op": "head_eq",
                   "value": "v1"
@@ -381,7 +381,7 @@
             ],
             "effects": [
               {
-                "cell": "ak:cell:ck.component.strand.title.v1:ck.strand.019641c6-8000-7000-8000-000000000001",
+                "cell": "ak:cell:ak.component.strand.title.v1:ak.strand.019641c6-8000-7000-8000-000000000001",
                 "op": {
                   "kind": "set",
                   "value": "v2"
@@ -756,7 +756,7 @@
     {
       "name": "conflict_recovery_move",
       "description": "A bottom=reject control cell recovers only through a sealed Control Move with recovery_capability and a pre-conflict state_witness.",
-      "cell": "ak:cell:ck.component.realm.policy.v1:ck.realm.019641d2-1000-7000-8000-000000000000",
+      "cell": "ak:cell:ak.component.realm.policy.v1:ak.realm.019641d2-1000-7000-8000-000000000000",
       "pre_conflict_value": {
         "policy_revision": 7
       },

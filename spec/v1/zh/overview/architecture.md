@@ -124,9 +124,9 @@ Principal Server 不是身份本身，也不能替 principal 伪造 Event，**�
 - Realm 内成员的投递目标由该成员的 effective `delivery_binding.recipient_service_did` 决定；DID Document 中的默认 Principal Server 只可在 join / rebind 时作为 Realm policy 明确允许的 `did_document_default` 物化来源，binding accepted 之后 MUST NOT 再作为投递 fallback。组织 Principal Server 上存在同一 DID 的内部账号，MUST NOT 自动获得该 DID 的其它 Realm 或个人上下文投递权。
 - 凡会接收或保存私有正文、附件预览、全文索引、通知摘要、embedding、可逆派生摘要的服务，都必须在 Realm policy 中声明为 `plaintext_visible_services`。
 - `plaintext_visible_services` 条目 MUST 声明机器可校验的 `data_classes[]`（例如 `message_content`、`attachment_preview`、`full_text_index`、`embedding`、`notification_summary`、`media_plaintext`）和 `visibility`；自由文本 `purposes` 只用于解释，MUST NOT 单独作为明文授权依据。
-- 修改 `plaintext_visible_services` 的事件必须经 `ck.realm.plaintext_visible_services` 授权；普通 `ck.realm.update` 或服务自声明 MUST NOT 隐式扩大明文可见边界。
+- 修改 `plaintext_visible_services` 的事件必须经 `ak.realm.plaintext_visible_services` 授权；普通 `ak.realm.update` 或服务自声明 MUST NOT 隐式扩大明文可见边界。
 - 接收方 Principal Server 对非加密内容是可见方；这属于用户或组织控制边界的一部分，不应被描述成透明转发层。
-- public plaintext Realm 必须同时看四个独立信号：`discoverability` 是否公开可发现、`join_rule` 是否可公开加入、`history_visibility` 是否世界可读、`encryption_profile` 是否未加密；任一项 MUST NOT 自动推导其它项。history snippet / public export 还必须受 `ck.realm.preview_policy` 或等价 export policy 约束；若 Realm 未声明 `preview_policy`，缺省 MUST fail closed（不暴露任何 history snippet / export），MUST NOT 因 `history_visibility=world_readable` 而自动放行。`preview_policy` 取值与缺省规则的权威源见 [`governance/history-visibility.md`](../governance/history-visibility.md)。
+- public plaintext Realm 必须同时看四个独立信号：`discoverability` 是否公开可发现、`join_rule` 是否可公开加入、`history_visibility` 是否世界可读、`encryption_profile` 是否未加密；任一项 MUST NOT 自动推导其它项。history snippet / public export 还必须受 `ak.realm.preview_policy` 或等价 export policy 约束；若 Realm 未声明 `preview_policy`，缺省 MUST fail closed（不暴露任何 history snippet / export），MUST NOT 因 `history_visibility=world_readable` 而自动放行。`preview_policy` 取值与缺省规则的权威源见 [`governance/history-visibility.md`](../governance/history-visibility.md)。
 - 未受信的第三方服务只能接收公开内容、密文 envelope 或不可解析 payload。
 
 ### 2.4 Client Query / Projection
@@ -551,7 +551,7 @@ Arkret v1 固定以下方向：
 
 ## 9. 可落地性要求
 
-Arkret v1 不允许实现用单一聚合服务隐藏已声明的 Principal Server / Policy Server / Directory / Blob / Media / Applet 等协议边界。任何声称支持 `ck.profile.principal_server.v1` 或 `ck.profile.full_client.v1` 的实现 MUST 满足以下要求：
+Arkret v1 不允许实现用单一聚合服务隐藏已声明的 Principal Server / Policy Server / Directory / Blob / Media / Applet 等协议边界。任何声称支持 `ak.profile.principal_server.v1` 或 `ak.profile.full_client.v1` 的实现 MUST 满足以下要求：
 
 - Event digest、event-batch receipt digest、签名绑定、HLC 和 cursor 行为按 `encoding.md` 与 `conformance-vectors.md` 执行。
 - Client sync、subscribe、backfill、snapshot frontier 和 read-your-writes barrier 按 `client-sync.md`、`operations-sync.md`、`conformance-vectors.md` 与 `service-surface.md` 执行。

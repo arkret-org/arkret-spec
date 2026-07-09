@@ -71,7 +71,7 @@ sidebar:
     混淆 `realm_id` / `service scope` / `destination` / `organization` 的绑定域，触发越权写入或错误可见性。
 
 17. **邀请令牌与第三方身份绑定滥用（Third-Party Invite Abuse）**
-    针对 `ck.invite.third_party` / `ck.invite.claim` 的 token 泄露、重放、并发认领进行滥用。
+    针对 `ak.invite.third_party` / `ak.invite.claim` 的 token 泄露、重放、并发认领进行滥用。
 
 18. **会话成员与设备凭证滥用（Session/Device Credential Abuse）**
     复用未及时撤销的 device/session/gateway token 继续提交高敏操作、join、invite 或读取。
@@ -86,13 +86,13 @@ sidebar:
 21. **URL 凭证泄露（URL Credential Leakage）**
     将 session token、API key 或签名材料放入 query string，导致浏览器历史、代理日志、崩溃日志、复制链接或 referrer 泄露。
 
-    *受控例外：`ck.self.blob.command.presign`* — 为兼容浏览器原生标签（`<img src>` / `<video src>` 等无法附 Authorization header）允许由 blob service DID 签发的 pre-signed URL 通过 `?presign=<envelope>` 携带认证。该例外受 §5.4 [`crypto-media/media-and-blob.md`](../crypto-media/media-and-blob.md) 严格收紧：TTL ≤ 1h、单 blob、只读、可撤销、不得用于 E2EE 附件；envelope 内不得包含可重用 credential；服务端用 audit log 追踪签发。**除此一个明确登记的例外外，本威胁项规则不变**：session token / refresh token / capability grant / device key 等任何长期或可重用凭证仍 MUST NOT 进入 URL。
+    *受控例外：`ak.self.blob.command.presign`* — 为兼容浏览器原生标签（`<img src>` / `<video src>` 等无法附 Authorization header）允许由 blob service DID 签发的 pre-signed URL 通过 `?presign=<envelope>` 携带认证。该例外受 §5.4 [`crypto-media/media-and-blob.md`](../crypto-media/media-and-blob.md) 严格收紧：TTL ≤ 1h、单 blob、只读、可撤销、不得用于 E2EE 附件；envelope 内不得包含可重用 credential；服务端用 audit log 追踪签发。**除此一个明确登记的例外外，本威胁项规则不变**：session token / refresh token / capability grant / device key 等任何长期或可重用凭证仍 MUST NOT 进入 URL。
 
 22. **媒体侧信道探测（Media Header / Range Probe）**
     通过 `HEAD`、`Range`、`Content-Length`、`Content-Type`、`Content-Disposition` 或 redirect 差异推断私有 blob 是否存在、大小、类型或文件名。
 
-23. **联邦流量模式旁观（Federation Traffic-Pattern Observer）** —— *conditional：base v1 不直接防御，仅在声明 `ck.profile.traffic_metadata_hardened.v1` 时缓解（见 §2.1a）。*
-    即使 Event body、MLS payload 与 service signatures 都正确，联邦 peer、网络运营方或受托 relay 仍可能通过 fanout 时间、batch 大小、重试节奏、provider 组合和跨 Realm burst 关联组织活动。base v1 不提供针对该侧信道的直接防御。高隐私部署 SHOULD 声明 `ck.profile.traffic_metadata_hardened.v1`（profile 定义见 [`conformance/conformance-profiles.md` §11.1](../conformance/conformance-profiles.md)）；一旦声明，该部署 MUST 使用 OHTTP / relay indirection / decoy traffic 之一，并对批处理 padding、发送延迟抖动、固定大小 federation batch、retry cadence padding 和 blind / batch wakeup 执行该 profile 的可测试参数。未声明该 profile 时，不得把 E2EE 误表述为隐藏 federation traffic metadata。
+23. **联邦流量模式旁观（Federation Traffic-Pattern Observer）** —— *conditional：base v1 不直接防御，仅在声明 `ak.profile.traffic_metadata_hardened.v1` 时缓解（见 §2.1a）。*
+    即使 Event body、MLS payload 与 service signatures 都正确，联邦 peer、网络运营方或受托 relay 仍可能通过 fanout 时间、batch 大小、重试节奏、provider 组合和跨 Realm burst 关联组织活动。base v1 不提供针对该侧信道的直接防御。高隐私部署 SHOULD 声明 `ak.profile.traffic_metadata_hardened.v1`（profile 定义见 [`conformance/conformance-profiles.md` §11.1](../conformance/conformance-profiles.md)）；一旦声明，该部署 MUST 使用 OHTTP / relay indirection / decoy traffic 之一，并对批处理 padding、发送延迟抖动、固定大小 federation batch、retry cadence padding 和 blind / batch wakeup 执行该 profile 的可测试参数。未声明该 profile 时，不得把 E2EE 误表述为隐藏 federation traffic metadata。
 
 24. **出站 URL / SSRF（Server-Side Request Forgery）**
     攻击者通过 DID Document serviceEndpoint、媒体 URL、snapshot chunk、Policy Server endpoint、Webhook、Applet/Agent endpoint 或联邦 peer discovery 引导服务访问 loopback、私网、link-local、metadata endpoint 或内部控制面。
@@ -101,13 +101,13 @@ sidebar:
     攻击者污染 Directory 的发现 / 投影 ingest 写路径（与 [`discovery/discovery-directory.md` §8.10 / §11](../discovery/discovery-directory.md) 交叉引用）。具体向量:**announce replay**(重放过期 announce 让陈旧条目复活)、**`as_of` skew**(伪造 `as_of` 时间使旧状态看似最新)、**policy_revision rollback**(回退 policy_revision 绕过更严策略)、**DID hijack**(劫持 announce 来源 DID 冒名注入条目)、**source-ref 伪造**(伪造来源引用让未授权条目进入 directory)、**takedown spoofing**(伪造下架 / takedown 让合法条目被移除)。防护以 discovery-directory §8.10 / §11 的来源 DID 验签、`as_of` 单调 / 时间锚校验、policy_revision 单调、announce 一次性 / 过期窗口、source-ref 授权核验与 takedown 授权链为权威。
 
 26. **实时活动信号去匿名追踪（Real-time Activity-Signal Deanonymization）**
-    攻击者（外部 world-readable 观察者、受托 Sync Service 或共谋成员）订阅并关联实时活动信号——read receipt（`ck.receipt.read`）已读位置、typing（`ck.typing`）逐键活动、presence（`ck.presence` 的 `dnd` / `idle` / bucket 化 `last_active_at`）以及 push wakeup timing——以重建特定 actor 的活动时间序列、作息画像，甚至在 world-readable scope 下对外部观察者去匿名其阅读 / 输入行为。这些信号单独看是产品功能，关联后成为去匿名 timing oracle。防护以各自正文为权威：read receipt 的 world-readable / forced-public 组合 fail-closed 与 fanout 收口见 [`discovery/read-receipts.md` §2.5.1](../discovery/read-receipts.md)；typing 的 world_readable scope fail-closed 与 presence `dnd`/`idle` 对未授权观察者 MUST 降级见 [`discovery/profiles-presence.md` §3.4 / §3.5](../discovery/profiles-presence.md)；push wakeup 不得成为 presence timing oracle（bucket 化、默认 ≥60s 批处理）见 [`discovery/push-notifications.md` §2.4](../discovery/push-notifications.md)。
+    攻击者（外部 world-readable 观察者、受托 Sync Service 或共谋成员）订阅并关联实时活动信号——read receipt（`ak.receipt.read`）已读位置、typing（`ak.typing`）逐键活动、presence（`ak.presence` 的 `dnd` / `idle` / bucket 化 `last_active_at`）以及 push wakeup timing——以重建特定 actor 的活动时间序列、作息画像，甚至在 world-readable scope 下对外部观察者去匿名其阅读 / 输入行为。这些信号单独看是产品功能，关联后成为去匿名 timing oracle。防护以各自正文为权威：read receipt 的 world-readable / forced-public 组合 fail-closed 与 fanout 收口见 [`discovery/read-receipts.md` §2.5.1](../discovery/read-receipts.md)；typing 的 world_readable scope fail-closed 与 presence `dnd`/`idle` 对未授权观察者 MUST 降级见 [`discovery/profiles-presence.md` §3.4 / §3.5](../discovery/profiles-presence.md)；push wakeup 不得成为 presence timing oracle（bucket 化、默认 ≥60s 批处理）见 [`discovery/push-notifications.md` §2.4](../discovery/push-notifications.md)。
 
 ### 2.1a 需 profile 才能缓解的攻击项（base v1 不直接防御）
 
 §2.1 中以 *conditional* 标注的条目不属于 base v1 可直接防御范围，只有在显式声明对应 hardening profile 时才能缓解。本节是 conditional 项的索引，缓解手段与 normative 约束（含「未声明 profile 时 MUST NOT 把 E2EE 误表述为隐藏 federation traffic metadata」）以被索引条目正文为权威，不在此重述：
 
-- **#23 联邦流量模式旁观** —— 详见 §2.1 #23 正文；profile 定义见 [`conformance/conformance-profiles.md` §11.1](../conformance/conformance-profiles.md)（`ck.profile.traffic_metadata_hardened.v1`）。
+- **#23 联邦流量模式旁观** —— 详见 §2.1 #23 正文；profile 定义见 [`conformance/conformance-profiles.md` §11.1](../conformance/conformance-profiles.md)（`ak.profile.traffic_metadata_hardened.v1`）。
 - **Sender 元数据对承载服务可见（acknowledged residual exposure，informative）** —— v1 baseline 接受 Event Envelope 顶层 `actor_id` 对承载它的 Principal Server / Sync Service **始终明文可见**（见 [`sync/operations-sync.md` §14](../sync/operations-sync.md) 字段可见性分级把 `actor_id` 列为路由 / 签名归属元数据）。即"谁在何时给谁发"对受托承载服务可观测，base v1 不提供 sender-anonymity 通道。这是 acknowledged residual exposure，与 #23 联邦流量旁观同属"承载服务可见的元数据面"；未来加固方向（sealed-sender 风格的对中转服务隐藏 `actor_id` 通道、OHTTP / oblivious relay 提升为 event-submit / push / directory 的可选元数据隐私基线）列为未来 profile，不在 v1 core。实现 MUST NOT 把 E2EE 正文加密误表述为隐藏 sender 元数据。
 
 ### 2.2 当前协议中不成立的攻击项
@@ -122,7 +122,7 @@ sidebar:
 - **身份与来源前置验签**：服务来源先做服务 DID 绑定、签名验证、trust policy 检查，再执行业务授权。
 - **分层限速与退避**：按来源、source service、realm、keyed IP digest（不可链接派生规则见 [`../authz/policy-server.md` §3.1](../authz/policy-server.md)）、tenant、endpoint 限速，超过阈值退避或拒绝。
 
-  > **不可链接限速配套方向（informative，路线图注记，2026-06 评审采纳；不落地 v1）**：现状反滥用主要依赖按来源 / IP hash 限速，而协议在多处推动 OHTTP / relay 路由的不可链接化（见 §2.1 #23、`conformance/conformance-profiles.md` §11.1 的 `ck.profile.traffic_metadata_hardened.v1`，以及 push / preview / blob 下载等 relay 化入口）。流量越走 relay，IP 维度限速越失效，运营方被迫在「放松限速」与「破坏不可链接性」之间二选一。作为该张力的配套方向，本注记登记 **Privacy Pass**（RFC 9576 架构 / RFC 9577 HTTP 认证 scheme `PrivateToken` / RFC 9578 token 签发协议；rate-limited issuance 见 draft-ietf-privacypass-rate-limit-tokens）作为 relay 化 pre-auth 面（OHTTP blob 下载、匿名 preview / peek、3PID claim 等）的**不可链接限速**配套路线。客户端可在不暴露稳定 IP / 身份的前提下向 origin 出示匿名 token，使 origin 在保持来源不可链接的同时仍能限速。本注记**不预注册 token type 或 profile id**；落地需先设计 issuer / attester 信任模型（谁签发、谁背书、何种 attestation），故 v1 仅作占位登记、不落地，不引入新 normative 规则。
+  > **不可链接限速配套方向（informative，路线图注记，2026-06 评审采纳；不落地 v1）**：现状反滥用主要依赖按来源 / IP hash 限速，而协议在多处推动 OHTTP / relay 路由的不可链接化（见 §2.1 #23、`conformance/conformance-profiles.md` §11.1 的 `ak.profile.traffic_metadata_hardened.v1`，以及 push / preview / blob 下载等 relay 化入口）。流量越走 relay，IP 维度限速越失效，运营方被迫在「放松限速」与「破坏不可链接性」之间二选一。作为该张力的配套方向，本注记登记 **Privacy Pass**（RFC 9576 架构 / RFC 9577 HTTP 认证 scheme `PrivateToken` / RFC 9578 token 签发协议；rate-limited issuance 见 draft-ietf-privacypass-rate-limit-tokens）作为 relay 化 pre-auth 面（OHTTP blob 下载、匿名 preview / peek、3PID claim 等）的**不可链接限速**配套路线。客户端可在不暴露稳定 IP / 身份的前提下向 origin 出示匿名 token，使 origin 在保持来源不可链接的同时仍能限速。本注记**不预注册 token type 或 profile id**；落地需先设计 issuer / attester 信任模型（谁签发、谁背书、何种 attestation），故 v1 仅作占位登记、不落地，不引入新 normative 规则。
 - **幂等与重放防护**：`request_id`、`Idempotency-Key`、`event_id` 与 canonical hash 绑定；`event_id` 重复但内容不一致 MUST reject。
 - **统一错误语义**：未授权、不可见、未索引场景返回一致失败形态，避免侧信道。
 - **认证材料不进入 URL**：受保护 endpoint 拒绝 query string / path 中的 token、API key 和签名材料；日志默认脱敏。
@@ -134,7 +134,7 @@ sidebar:
 
 ### 2.4 传输层后量子姿态
 
-> **PQ-hybrid TLS 传输层姿态（威胁论据真相源）**：本节给出该姿态的威胁论据；规范义务的 canonical 表述在 [`../sync/transport-bindings.md` §5](../sync/transport-bindings.md)。生产 v1 的 federation / service-to-service / client-service TLS 1.3 连接 SHOULD 支持并优先协商混合后量子 key exchange group `X25519MLKEM768`（draft-ietf-tls-ecdhe-mlkem；IANA TLS Supported Groups codepoint 已注册，主流浏览器与 OpenSSL 3.5+ 已默认部署）。`ck.profile.high_security_organization.v1`、`ck.profile.sovereign_deployment.v1` 及继承它们的 profile 下，相关连接 MUST 协商 `X25519MLKEM768`，对端不提供时 MUST fail closed。default profile 可回落到经典 TLS 1.3，但必须记录未协商 PQ 的 transport posture，且不得宣称该连接具备 Harvest-Now-Decrypt-Later resistant transport。该姿态把 `crypto-media/encryption-and-audit.md` 既有 PQ 路线图（informative，HNDL / Harvest-Now-Decrypt-Later 优先）对 Harvest-Now-Decrypt-Later 的缓解，扩展到**仅靠 TLS 保护、不进 MLS / E2EE**的传输面——联邦 transaction 元数据、public plaintext Realm 内容、directory / sync 流量。该要求零 wire 字段成本、不触碰任何 wire 字段或 envelope `scheme` / `version`：握手在 TLS 层协商，与请求级 RFC 9421 签名正交，不改 Arkret wire envelope / schema / object model。高安全 / sovereign conformance 验证为 **deployment-profile 握手探针**：握手完成后检查协商出的 TLS named group 是否等于 `X25519MLKEM768`，并验证对端不提供时 fail closed，而非 object-model conformance vector。
+> **PQ-hybrid TLS 传输层姿态（威胁论据真相源）**：本节给出该姿态的威胁论据；规范义务的 canonical 表述在 [`../sync/transport-bindings.md` §5](../sync/transport-bindings.md)。生产 v1 的 federation / service-to-service / client-service TLS 1.3 连接 SHOULD 支持并优先协商混合后量子 key exchange group `X25519MLKEM768`（draft-ietf-tls-ecdhe-mlkem；IANA TLS Supported Groups codepoint 已注册，主流浏览器与 OpenSSL 3.5+ 已默认部署）。`ak.profile.high_security_organization.v1`、`ak.profile.sovereign_deployment.v1` 及继承它们的 profile 下，相关连接 MUST 协商 `X25519MLKEM768`，对端不提供时 MUST fail closed。default profile 可回落到经典 TLS 1.3，但必须记录未协商 PQ 的 transport posture，且不得宣称该连接具备 Harvest-Now-Decrypt-Later resistant transport。该姿态把 `crypto-media/encryption-and-audit.md` 既有 PQ 路线图（informative，HNDL / Harvest-Now-Decrypt-Later 优先）对 Harvest-Now-Decrypt-Later 的缓解，扩展到**仅靠 TLS 保护、不进 MLS / E2EE**的传输面——联邦 transaction 元数据、public plaintext Realm 内容、directory / sync 流量。该要求零 wire 字段成本、不触碰任何 wire 字段或 envelope `scheme` / `version`：握手在 TLS 层协商，与请求级 RFC 9421 签名正交，不改 Arkret wire envelope / schema / object model。高安全 / sovereign conformance 验证为 **deployment-profile 握手探针**：握手完成后检查协商出的 TLS named group 是否等于 `X25519MLKEM768`，并验证对端不提供时 fail closed，而非 object-model conformance vector。
 > 部署交叉引用：传输绑定 canonical 表述见 [`../sync/transport-bindings.md` §5](../sync/transport-bindings.md)；联邦链路见 [`../sync/federation.md` §3.2](../sync/federation.md)；sovereign / 高安全部署的探针落地见 [`../sync/sovereign-deployment.md` §3 / §11](../sync/sovereign-deployment.md)。
 
 ## 3. 对照：协议内映射与处理
@@ -162,7 +162,7 @@ sidebar:
 | MLS epoch 滥用 | 是 | epoch monotonic、移除成员 fail-closed、提交顺序与 commit/proposal 校验。 |
 | 推送网关滥用 | 是 | push gateway 注册与签发源鉴权，推送消息按最小必要字段。**推送侧信道**:collapse/dedup key 跨 window 不可链接、presence push timing bucket 化(默认 ≥60s)、`push_target_id` pairwise 不可跨上下文关联、blind_wakeup counts 不携带明文绝对未读数(见 §2.1 #20 与 [`discovery/push-notifications.md` §2.2 / §2.4 / §5.1](../discovery/push-notifications.md))。 |
 | Directory ingest 滥用 | 是 | announce 来源 DID 验签、`as_of` 单调 / 时间锚、policy_revision 单调防回退、announce 一次性 + 过期窗口、source-ref 授权核验、takedown 授权链(见 §2.1 #25 与 [`discovery/discovery-directory.md` §8.10 / §11](../discovery/discovery-directory.md))。 |
-| URL 凭证泄露 | 是 | 禁止 query string 认证。**单一登记例外**：`ck.self.blob.command.presign` 签发的 pre-signed URL 通过 `?presign=` 携带 server-issued、短时效（≤1h）、单 blob、只读、可撤销的签名 envelope（见 §2.1 #21 与 [`crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)）；E2EE 附件 ciphertext fetch MUST NOT 使用此机制。 |
+| URL 凭证泄露 | 是 | 禁止 query string 认证。**单一登记例外**：`ak.self.blob.command.presign` 签发的 pre-signed URL 通过 `?presign=` 携带 server-issued、短时效（≤1h）、单 blob、只读、可撤销的签名 envelope（见 §2.1 #21 与 [`crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)）；E2EE 附件 ciphertext fetch MUST NOT 使用此机制。 |
 | 媒体侧信道探测 | 是 | 私有 blob 的 HEAD/Range/redirect 统一授权；不可见资源不返回大小、MIME、文件名或 Range header。 |
 | 出站 URL / SSRF | 是 | [`sync/api-conventions.md`](../sync/api-conventions.md) §11.2 的出站网络目标策略；DID、联邦、媒体、snapshot、Policy Server、Webhook、Applet/Agent endpoint 统一做私网/metadata 地址拒绝、DNS rebind 防护和 redirect 复核。 |
 
@@ -213,7 +213,7 @@ sidebar:
 
 ### 4.6 加密状态与通知
 
-- `ck.mls` 提交需保留 `epoch`、`commit`、proposal 关系；移除成员不得解密后续事件。
+- `ak.mls` 提交需保留 `epoch`、`commit`、proposal 关系；移除成员不得解密后续事件。
 - 推送网关仅接收最小唤醒元数据，禁止推送明文内容。
 
 ## 5. 相关文档

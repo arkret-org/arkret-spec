@@ -37,13 +37,13 @@ updated: 2026-07-02
 | Claimable conformance profile | 65 | `artifacts/profiles/conformance-profiles.json` |
 | Profile id references | 91 | `artifacts/profiles/conformance-profiles.json` |
 
-上表的 `Schema` 是 **registered schema id** 计数（113）。`artifacts/schemas/` 下的 raw JSON Schema artifact file 数为 112；`ck.schema.agent_pairing_bootstrap.v1` 是 `agent-operations.schema.json#/$defs/agent_pairing_bootstrap` 中的 bundle schema id,因此 registered schema id 数可大于 raw file 数。以 `schema-registry.json` 与目录实际内容为准，由 `artifact_pipeline.py check` 精确校验；其中 `ck.schema.event.v1` 直接登记到 `event-envelope.schema.json`（schema body 所在文件，不另占独立文件）。发布站点仍然 MUST raw 发布 registry 声明的 JSON Schema 文件及其同目录 `$ref` 目标，registry consumer 也必须递归解析同目录 `$ref`，MUST NOT 只下载 registry 直接列出的文件后停止。
+上表的 `Schema` 是 **registered schema id** 计数（113）。`artifacts/schemas/` 下的 raw JSON Schema artifact file 数为 112；`ak.schema.agent_pairing_bootstrap.v1` 是 `agent-operations.schema.json#/$defs/agent_pairing_bootstrap` 中的 bundle schema id,因此 registered schema id 数可大于 raw file 数。以 `schema-registry.json` 与目录实际内容为准，由 `artifact_pipeline.py check` 精确校验；其中 `ak.schema.event.v1` 直接登记到 `event-envelope.schema.json`（schema body 所在文件，不另占独立文件）。发布站点仍然 MUST raw 发布 registry 声明的 JSON Schema 文件及其同目录 `$ref` 目标，registry consumer 也必须递归解析同目录 `$ref`，MUST NOT 只下载 registry 直接列出的文件后停止。
 
-当前候选基线包含三项 wire 约束：(1) `ck.schema.handle_claim.v1.claim_kind` 的合法取值不含服务 / 资源可读名（服务 / 资源可读名使用独立的服务 / 资源 schema；组织分配给用户或 principal 的 handle 使用 `organization_handle`）；(2) `ck.member.identity.update` payload 使用 `identity_payload_digest` 作为 payload 摘要字段，与 roster `member_display_state_digest` 区分；(3) 直接 DID 邀请（`ck.schema.invite.v1` 中出现 `invitee` 且不属于 `third_party_id` 分支）MUST 携带 `invite_delivery_target` 与 `introduction_evidence_digest`，使 base invite 不依赖 handle resolve 作为投递授权。已退役的 draft 标识符及其拒绝层级由 [`../../artifacts/migration/renames.json`](../../artifacts/migration/renames.json) 登记；current parser MUST 按其 `hard_reject` 层级拒绝旧标识符，离线迁移层负责把旧草案数据正规化后再进入 v1 validator。
+当前候选基线包含三项 wire 约束：(1) `ak.schema.handle_claim.v1.claim_kind` 的合法取值不含服务 / 资源可读名（服务 / 资源可读名使用独立的服务 / 资源 schema；组织分配给用户或 principal 的 handle 使用 `organization_handle`）；(2) `ak.member.identity.update` payload 使用 `identity_payload_digest` 作为 payload 摘要字段，与 roster `member_display_state_digest` 区分；(3) 直接 DID 邀请（`ak.schema.invite.v1` 中出现 `invitee` 且不属于 `third_party_id` 分支）MUST 携带 `invite_delivery_target` 与 `introduction_evidence_digest`，使 base invite 不依赖 handle resolve 作为投递授权。已退役的 draft 标识符及其拒绝层级由 [`../../artifacts/migration/renames.json`](../../artifacts/migration/renames.json) 登记；current parser MUST 按其 `hard_reject` 层级拒绝旧标识符，离线迁移层负责把旧草案数据正规化后再进入 v1 validator。
 
-`conformance-profiles.json` 另含一组 `profile_requirements` block（75）与 `profile_tiers` 分组（3）；这两个计数同样由 pipeline 精确校验（非自由近似值），权威计数以该文件为准，这些矩阵必须与上表中的 claimable profile 集合保持一致。`Profile id references` 是整个 registry graph 内出现的 `ck.profile.*` 字符串去重数，用于交叉引用检查，不等同于实现可直接声明的顶层 profile 数。
+`conformance-profiles.json` 另含一组 `profile_requirements` block（75）与 `profile_tiers` 分组（3）；这两个计数同样由 pipeline 精确校验（非自由近似值），权威计数以该文件为准，这些矩阵必须与上表中的 claimable profile 集合保持一致。`Profile id references` 是整个 registry graph 内出现的 `ak.profile.*` 字符串去重数，用于交叉引用检查，不等同于实现可直接声明的顶层 profile 数。
 
-> `python tools/artifact_pipeline.py check` 输出按实现 / 部署 / vector / hardening 四类 profile 直接汇总 claimable profile；`tools/lint_artifacts.py` 同时校验 registry graph 中所有 `ck.profile.*` 引用，防止 profile requirement、继承或候选 profile 文本漂移。
+> `python tools/artifact_pipeline.py check` 输出按实现 / 部署 / vector / hardening 四类 profile 直接汇总 claimable profile；`tools/lint_artifacts.py` 同时校验 registry graph 中所有 `ak.profile.*` 引用，防止 profile requirement、继承或候选 profile 文本漂移。
 
 执行 `python tools/artifact_pipeline.py check` 时，CLI 输出与上表必须一致；任何不一致都说明
 canonical catalog 或派生工件出现 drift，必须在合并前修复。每次新增或退役 registry 项，MUST 同时
@@ -55,11 +55,11 @@ canonical catalog 或派生工件出现 drift，必须在合并前修复。每�
 
 实现者不需要一次实现全部 v1 surface。推荐按以下 profile 递进，每一阶段只声明自己实际支持的 profile、event kind、schema 和服务 operation。
 
-> 下表「阶段」列使用 profile 短名（如 `core_event_store`、`full_client`），均为全限定 profile id `ck.profile.<name>.v1` 的简写（例如 `full_client` = `ck.profile.full_client.v1`）；wire / describe 声明 MUST 使用全限定 id。
+> 下表「阶段」列使用 profile 短名（如 `core_event_store`、`full_client`），均为全限定 profile id `ak.profile.<name>.v1` 的简写（例如 `full_client` = `ak.profile.full_client.v1`）；wire / describe 声明 MUST 使用全限定 id。
 
 | 阶段 | 必须实现 | 可暂缓 |
 | --- | --- | --- |
-| `core_event_store` | Event Envelope 验证、canonical JSON / proof、`ck.realm.create`、`ck.member.state`、events submit/get/list/frontier、backfill。 | Strand UI、View projection、MLS、federation、blob、push、agent。 |
+| `core_event_store` | Event Envelope 验证、canonical JSON / proof、`ak.realm.create`、`ak.member.state`、events submit/get/list/frontier、backfill。 | Strand UI、View projection、MLS、federation、blob、push、agent。 |
 | `chat_mvp` | Strand discussion track、Message create/revise/redact、reaction、redaction、client sync、history visibility、基础 capability check。 | Board/List、advanced View renderer、MIMI、auditable E2EE、agent runtime。 |
 | `kanban_mvp` | Strand create/update/move/reorder、Relation create、container rebalance、View collection projection、rank conflict handling。 | Discussion track、message timeline、E2EE、push、federation。 |
 | `full_client` | chat + kanban、blob/media、account-private data、read cursor、notification projection、offline queue 和 conflict records。 | Enterprise governance、MIMI、agent interop、高安全 witness。 |
@@ -86,7 +86,7 @@ canonical catalog 或派生工件出现 drift，必须在合并前修复。每�
 
 ## 4. 必须保持的不变量
 
-- 标准 `ck.*` Event kind 必须出现在 `event-kind-registry.json`，MUST NOT 只写在 Markdown 中
+- 标准 `ak.*` Event kind 必须出现在 `event-kind-registry.json`，MUST NOT 只写在 Markdown 中
 - Event Envelope 必须先验证 envelope schema，再验证 kind-selected payload schema，最后才进入 auth / reducer
 - Snapshot 签名不能单独证明无遗漏；实现必须校验 `event_set_commitment`
 - Sync、Directory、Blob、Push、Moderation、Agent 和受托 search / projection 等服务 MUST NOT 绕过 capability、Realm policy、history visibility、plaintext-visible service 或 E2EE 边界

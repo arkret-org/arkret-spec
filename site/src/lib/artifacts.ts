@@ -177,7 +177,7 @@ export const schemaEntries: SchemaEntry[] = schemaRegistry.schemas.slice().sort(
 export const profileMatrix = conformanceProfiles;
 
 /**
- * Distinct `ck.profile.*` ids declared anywhere in conformance-profiles.json.
+ * Distinct `ak.profile.*` ids declared anywhere in conformance-profiles.json.
  * Mirrors what `tools/lint_artifacts.py` reports as "N profiles" so the
  * homepage stat and release-readiness numbers stay in sync.
  */

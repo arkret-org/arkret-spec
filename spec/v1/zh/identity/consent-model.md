@@ -32,7 +32,7 @@ Arkret 的访问授权由 **capability + invite** 两条路径承担。但二者
 
 Consent grant / revoke 表达的是 **holder 自己的决定**。它写入 holder 的 Principal Control Realm（或等价的 actor-private 流），不暴露给任何 Collaboration Realm。Realm 角色分类见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md)。
 
-> **术语**：principal control Realm 是 holder 个人控制下的 Realm（profile = `ck.profile.principal_control_realm.v1`，purpose = `principal_control`），用于承载 consent、device authorization、session grant、push registration 等 holder 私有状态。Realm 的创建、字段、生命周期与 device-key 引导见 [`identity/key-management.md` §4.1](./key-management.md)（bootstrap 见 §5.0）；下文凡是出现"holder principal control Realm"或"等价 actor-private 流"，含义均以此为准。
+> **术语**：principal control Realm 是 holder 个人控制下的 Realm（profile = `ak.profile.principal_control_realm.v1`，purpose = `principal_control`），用于承载 consent、device authorization、session grant、push registration 等 holder 私有状态。Realm 的创建、字段、生命周期与 device-key 引导见 [`identity/key-management.md` §4.1](./key-management.md)（bootstrap 见 §5.0）；下文凡是出现"holder principal control Realm"或"等价 actor-private 流"，含义均以此为准。
 
 - 写入方：holder 自己（或 holder 显式授权的 controller / agent）。
 - 可见方：默认仅 holder；MAY 通过 holder 主动 disclose 给 peer 作为"green light"信号。
@@ -52,7 +52,7 @@ Consent 表达"我允许某个 peer 发起某类联系动作"，但加入 Realm�
 | 持有方 | holder（被联系方） | actor（执行动作方） |
 | 写入位置 | holder principal control Realm | 目标 Realm |
 | 用途 | invite / contact 前置 gate | 执行动作 (read/write/admin/...) 时的权限判断 |
-| 撤销 | `ck.consent.revoke` | `ck.capability.revoke` |
+| 撤销 | `ak.consent.revoke` | `ak.capability.revoke` |
 
 二者可独立存在：peer 持有"对 Alice 的 invite capability"，但 Alice 没 consent → invite 路径仍被 gate；Alice consent 给了 Bob，但 Bob 没 capability → invite 不能执行。
 
@@ -63,7 +63,7 @@ Consent 表达"我允许某个 peer 发起某类联系动作"，但加入 Realm�
 Consent state 写入 holder 控制的 Realm（默认是 holder 的 principal control Realm）内一个 or_set lattice cell：
 
 ```text
-cell_id  = ak:cell:ck.component.consent.grant.v1:<consent_id>
+cell_id  = ak:cell:ak.component.consent.grant.v1:<consent_id>
 lattice  = or_set
 bottom   = (registry-declared, inert for or_set)  // or_set join never produces ⊥
 ```
@@ -72,19 +72,19 @@ bottom   = (registry-declared, inert for or_set)  // or_set join never produces 
 - or_set join 永不产生 ⊥，因此 `bottom` 字段只是 registry 声明的占位值（registry-declared），对 consent 行为 **inert**，不构成任何"reject"语义；effective consent 始终由 or_set join 决定，不读取 `bottom`。
 - **缺省判定（normative，唯一默认）**：一个 `(consent_id, peer, consent_scope)` 没有任何 active grant dot（`active_dots` 为空，或全部 dot 已被 `observed_dots` 撤销，或当前时间不在 `[not_before, expires_at]` 窗口内）时，**effective consent = no-consent**，invite / contact gate MUST NOT 放行（按 §6.1 profile：`require_explicit_consent` profile 下 MUST `failed_precondition` 拒绝；default profile 下 MAY 进入 holder 的 quarantine inbox 暂存待 review，而非直接拒绝或放行）。"无 active dot ⇒ no-consent ⇒ gate 拒绝"是 consent 的唯一默认判定——默认无授权而非默认放行；这不是来自 cell `bottom`，而是来自 §5 effective consent 的存在性要求（至少一条 active dot 才放行）。
 
-### 3.2 `ck.consent.grant` Control Move
+### 3.2 `ak.consent.grant` Control Move
 
 **为什么暴露 dot 模型（normative rationale）**: observe-remove OR-Set 要求 revoker 在 wire 层能枚举将要撤销的具体 dot；否则两个并发 revoke 会因为没有 `observed_dots` 上下文产生分布式 race（一方撤旧 dot，另一方撤新 dot，UI 看似已撤销但 state 仍 active）。把 dot 暴露给客户端是正确性必需，不是冗余复杂度。
 
 ```text
-ControlMove(ck.consent.grant) {
+ControlMove(ak.consent.grant) {
   event_id     = ak:event:019640ed-7000-7000-8000-000000000001   // producer-assigned typed UUIDv7
   event_digest = sha256:<H(canonical bytes excluding proofs and unsigned)>   // content-addressed fingerprint
   issuer       = holder DID（或 holder DID Document 显式授权的 controller / agent）
   realm_id     = holder principal control Realm
   preconditions = []          // grant 不依赖 cell 既有状态
   effects   = [
-    (ak:cell:ck.component.consent.grant.v1:<consent_id>,
+    (ak:cell:ak.component.consent.grant.v1:<consent_id>,
      {type: "add",
       dot:  "ak:event:019640ed-7000-7000-8000-000000000001:0",   // = "<enclosing event_id>:<effect_index>"
       value: {
@@ -130,27 +130,27 @@ Payload-only schema 示例：
 }
 ```
 
-Issuer MUST 是 holder 自己（或 holder DID Document 显式授权的 controller / agent）。被授权的 controller / agent 只有在其授权 scope 明确包含 `ck.consent.grant` / `consent_write` action，且本次 grant payload 携带可重放的 holder approval evidence（例如 holder 签名 approval、有效 approval Event ref 或等价审计证据）时，才可代 holder 写入 consent grant；通用 PCR 写权限、agent 自动化权限或 `ck.self.events.command.submit` 能力本身不得被解释为 consent-write 授权。Reducer MUST 在 holder principal control Realm 中验证该专用 action 与 approval evidence，缺失时 `unauthorized` reject。其他 actor 提交的 grant Control Move 在 holder 的 principal control Realm MUST `unauthorized` reject。
+Issuer MUST 是 holder 自己（或 holder DID Document 显式授权的 controller / agent）。被授权的 controller / agent 只有在其授权 scope 明确包含 `ak.consent.grant` / `consent_write` action，且本次 grant payload 携带可重放的 holder approval evidence（例如 holder 签名 approval、有效 approval Event ref 或等价审计证据）时，才可代 holder 写入 consent grant；通用 PCR 写权限、agent 自动化权限或 `ak.self.events.command.submit` 能力本身不得被解释为 consent-write 授权。Reducer MUST 在 holder principal control Realm 中验证该专用 action 与 approval evidence，缺失时 `unauthorized` reject。其他 actor 提交的 grant Control Move 在 holder 的 principal control Realm MUST `unauthorized` reject。
 
 `dot` 由 `<enclosing event_id>:<effect_index>` 派生，全局唯一。Projection 层按 `intent` 把同一 (consent_id, peer, consent_scope) 下当前 active 的多个 dot 折叠成一条 effective consent。同一 holder 对同一 intent 重复 grant 会产生不同 dot，or_set 视为多个独立 add——effective consent 仍然 active；revoke 时需要枚举该 intent 当前所有 active dot 才能完整撤销（见 §3.3）。
 
-### 3.3 `ck.consent.revoke` Control Move
+### 3.3 `ak.consent.revoke` Control Move
 
 ```text
-ControlMove(ck.consent.revoke) {
+ControlMove(ak.consent.revoke) {
   event_id     = ak:event:0196414c-3000-7000-8000-000000000003   // producer-assigned typed UUIDv7
   event_digest = sha256:<H(canonical bytes excluding proofs and unsigned)>   // content-addressed fingerprint
   issuer       = holder DID
   realm_id  = holder principal control Realm
   preconditions = [
-    (ak:cell:ck.component.consent.grant.v1:<consent_id>,
+    (ak:cell:ak.component.consent.grant.v1:<consent_id>,
      {op: "contains_dots",
       dots: [
         "ak:event:019640ed-7000-7000-8000-000000000001:0"   // seal_basis view 下该 intent 全部 active dots
       ]})
   ]
   effects   = [
-    (ak:cell:ck.component.consent.grant.v1:<consent_id>,
+    (ak:cell:ak.component.consent.grant.v1:<consent_id>,
      {type: "remove",
       observed_dots: [
         "ak:event:019640ed-7000-7000-8000-000000000001:0"
@@ -182,7 +182,7 @@ Payload-only schema 示例：
 
 Payload `observed_dots[]` MUST 与 Control Move effect 中的 `observed_dots` 完全一致；缺失、额外、重复或排序后集合不等都 MUST `schema_violation` / `failed_precondition` 拒绝。这样 schema validation、审计 projection 与 lattice reducer 看到的是同一个撤销集合。
 
-**Regrant**：撤销后 holder 可以再次发出 `ck.consent.grant` Event；新 Event 产生新的 `dot`（来自不同 `event_id`），不在任何先前 `observed_dots` 中，effective consent 重新 active。Regrant 是 normative 支持的行为。
+**Regrant**：撤销后 holder 可以再次发出 `ak.consent.grant` Event；新 Event 产生新的 `dot`（来自不同 `event_id`），不在任何先前 `observed_dots` 中，effective consent 重新 active。Regrant 是 normative 支持的行为。
 
 **完整撤销 vs 部分撤销**：撤销整个 (consent_id, peer, consent_scope) intent 需要 client 在构造 revoke Control Move 前先查询当前 cell 的 or_set join，列出该 intent 下所有 active dot。Missing 一些 dot 是合法操作，但只构成部分撤销，剩余 dot 仍然 active——admin / UI MUST 把这种状态明确提示为 "partial revoke"。
 
@@ -205,7 +205,7 @@ Payload `observed_dots[]` MUST 与 Control Move effect 中的 `observed_dots` �
 
 ### 4.1 Scope 撤销级联 与 缓存失效（normative）
 
-`ck.consent.revoke` 的 scope 语义与缓存失效规则：
+`ak.consent.revoke` 的 scope 语义与缓存失效规则：
 
 #### 4.1.1 Scope 级联
 
@@ -215,7 +215,7 @@ Payload `observed_dots[]` MUST 与 Control Move effect 中的 `observed_dots` �
   - 撤销一条 `consent_scope=any` 的 grant dot MUST 显式枚举该 `(consent_id, peer)` 下当前 active 的 **所有** consent_scope dot（含具体 consent_scope 的 grant dot）。即 `any` revoke 的 cascade 由 payload / Control Move effect 中完整的 `observed_dots[]` 表达；reducer MUST NOT 基于一个 `consent_scope=any` dot 隐式推断并移除未枚举的其他 dot。若 active dot 未被枚举，effective consent 只构成部分撤销，admin / UI MUST 标 `partial_revoke`。
   - 反向不成立：撤销一条 `consent_scope=invite` 的具体 consent_scope dot 仅清空 `invite`，不影响同 `(consent_id, peer)` 下 `consent_scope=any` 的 dot——因为 `any` 是 holder 显式更宽授权，需要 holder 再单独撤销 `any` 才算 cascade。
   - 这条非对称规则 MUST 在 admin / UI 中明示，避免用户误以为"撤销 invite 就等于全撤销"。
-- **conformance vector** `ck.vector.consent.scope_cascade.v1` 覆盖 (a) `any` revoke cascade 到具体 consent_scope；(b) 具体 consent_scope revoke 不影响 `any`；(c) 部分 scope revoke 留下其他 scope active；(d) 完整 revoke 必须列出当前 cell 全部 active dot 否则只构成部分 revoke。
+- **conformance vector** `ak.vector.consent.scope_cascade.v1` 覆盖 (a) `any` revoke cascade 到具体 consent_scope；(b) 具体 consent_scope revoke 不影响 `any`；(c) 部分 scope revoke 留下其他 scope active；(d) 完整 revoke 必须列出当前 cell 全部 active dot 否则只构成部分 revoke。
 
 #### 4.1.1.1 UI / admin 展示要求
 
@@ -231,11 +231,11 @@ consent revoke 被 accepted Seal 覆盖后，下列下游缓存 MUST eager inval
 | MIMI consent check cache（interop 模块） | 按 `(holder_did, peer_did, scope)` 失效；`any` revoke 失效全部 scope | interop bridge 下次跨协议解析 MUST 重新校验。 |
 | Push / contact discovery 缓存（含 PSI 结果） | 按 `(holder_did, peer_did)` 失效；PSI 索引 MUST 在下次轮转时排除 revoked peer | 即使 cache TTL 未到，revoke 后下一次 contact sync MUST 反映新状态。 |
 | Invite gate cache（§6.1 invite 前置 gate） | 按 `(holder_did, peer_did, scope)` 失效 | 即便已缓存"该 peer 有 active consent"，revoke 后下一次 invite MUST 重判，旧 cache MUST NOT 让 invite Control Move 通过 precondition。 |
-| In-flight invite 与 DM Realm | **不**追溯 — 已发出的 invite / 已创建的 DM Realm 不自动撤销（与 §3.3 撤销 Seal 覆盖前不追溯的规则一致）；如需撤销，单独发 `ck.invite.revoke` / member remove。 | 不自动级联撤销已生效邀请或 DM Realm。 |
+| In-flight invite 与 DM Realm | **不**追溯 — 已发出的 invite / 已创建的 DM Realm 不自动撤销（与 §3.3 撤销 Seal 覆盖前不追溯的规则一致）；如需撤销，单独发 `ak.invite.revoke` / member remove。 | 不自动级联撤销已生效邀请或 DM Realm。 |
 
 `consent_scope="any"` 被撤销后 cascade 失效规则：上面 5 类缓存中所有 consent_scope 的 entry 必须一起失效，包括 `invite`、`direct_message`、`voice_call`、`video_call`、`presence`。不允许实现把 `any` revoke 只清单一 scope。
 
-`ck.vector.consent.cache_invalidation.v1` 覆盖 (a) revoke 后 private contact discovery / invite handoff 立即不返回该 peer；(b) revoke 后下一次 invite Control Move 被 precondition 拒绝（capability gate 重判）；(c) `any` revoke cascade 失效所有 consent_scope cache；(d) revoke 后 PSI 索引在下一次轮转时排除该 peer。
+`ak.vector.consent.cache_invalidation.v1` 覆盖 (a) revoke 后 private contact discovery / invite handoff 立即不返回该 peer；(b) revoke 后下一次 invite Control Move 被 precondition 拒绝（capability gate 重判）；(c) `any` revoke cascade 失效所有 consent_scope cache；(d) revoke 后 PSI 索引在下一次轮转时排除该 peer。
 
 ## 5. Cell Join 与 Effective Consent
 
@@ -264,34 +264,34 @@ Peer 发送 invite Control Move 时，invite service / facade 在 Control Move �
 
 1. 调用 holder 的 principal control Realm（或受托 contact discovery service）查询所有候选 consent cell（subject 由 holder consent 命名约定决定），跑 or_set join 后筛选 `value.intent` 匹配 `(peer=requester, scope="invite" OR consent_scope="any")` 当前 active 的 dot 集合。
 2. 若没有匹配的活跃 grant：
-   - **`require_explicit_consent` profile**：invite Control Move MUST `failed_precondition` reject（consent gate 可表达为 invite Control Move 的 precondition：`active_intent_exists((requester, "invite"|"any"))`，由 reducer 把它编译为对 cell `active_dots` 的过滤）。Peer SHOULD 通过 `ck.private_contact_discovery.v1` 等机制请求 holder 显式授权后重试。
+   - **`require_explicit_consent` profile**：invite Control Move MUST `failed_precondition` reject（consent gate 可表达为 invite Control Move 的 precondition：`active_intent_exists((requester, "invite"|"any"))`，由 reducer 把它编译为对 cell `active_dots` 的过滤）。Peer SHOULD 通过 `ak.private_contact_discovery.v1` 等机制请求 holder 显式授权后重试。
    - **default profile**：invite MAY 进入 holder 的 quarantine inbox（"陌生人邀请"），由 holder 在 UI 上 review 后构造 grant Control Move 或丢弃。
 3. 若有匹配活跃 grant 且当前时间在 `[not_before, expires_at]`：invite Control Move 正常 accepted，并等待 accepted Seal 覆盖后生效。
 
-policy MAY 声明 `ck.realm.policy_components` 中的 `preauth` component 包含 `require_consent: true`，对该 Realm 的所有 invite Control Move 强制以 consent cell precondition 表达。
+policy MAY 声明 `ak.realm.policy_components` 中的 `preauth` component 包含 `require_consent: true`，对该 Realm 的所有 invite Control Move 强制以 consent cell precondition 表达。
 
 #### 6.1.1 Quarantine inbox（default profile no-consent invite 暂存）
 
 §3.1 缺省判定与 §6.1 step 2 提到的 **quarantine inbox** 是 default profile 下"无 active consent 的 invite"既不直接拒绝、也不直接放行的暂存区，其最小定义如下：
 
-- **承载位置**：quarantine inbox 不是独立对象类型，而是 holder principal control Realm 内一个 account-data scoped stream（key `ck.account.invite_quarantine`,sync 经 account subscribe 的 `account_data` 流投递，见 [`client-sync.md`](../sync/client-sync.md)）。每条暂存项记录待 review 的 invite 引用（invite event_id / 来源 peer DID / consent_scope / 收到时间）,**MUST NOT** 物化为已接受的 membership 或 DM Realm——它只是"待人工决策"的指针，不构成任何授权。
+- **承载位置**：quarantine inbox 不是独立对象类型，而是 holder principal control Realm 内一个 account-data scoped stream（key `ak.account.invite_quarantine`,sync 经 account subscribe 的 `account_data` 流投递，见 [`client-sync.md`](../sync/client-sync.md)）。每条暂存项记录待 review 的 invite 引用（invite event_id / 来源 peer DID / consent_scope / 收到时间）,**MUST NOT** 物化为已接受的 membership 或 DM Realm——它只是"待人工决策"的指针，不构成任何授权。
 - **生命周期与 TTL**：暂存项停留在 `pending_review` 直到 holder 在 UI review;实现 SHOULD 为暂存项设置 deployment-policy 声明的 TTL（缺省建议 30 天）,超时后 MUST 按"丢弃"处理（等价 holder 未授权，不得自动转 grant）。
-- **review 后转换**：holder review 后只有两种终态——(a) **接受** → holder 构造 §3.2 `ck.consent.grant` Control Move 写入 consent cell（此后该 peer 的 invite 走正常 active-grant 路径）,并 MAY 接受原 invite;(b) **丢弃** → 删除暂存项，不产生任何 consent dot。review 动作本身不绕过 consent cell:授权始终经 grant Control Move 落入 consent cell,quarantine inbox 永远不是授权根。
+- **review 后转换**：holder review 后只有两种终态——(a) **接受** → holder 构造 §3.2 `ak.consent.grant` Control Move 写入 consent cell（此后该 peer 的 invite 走正常 active-grant 路径）,并 MAY 接受原 invite;(b) **丢弃** → 删除暂存项，不产生任何 consent dot。review 动作本身不绕过 consent cell:授权始终经 grant Control Move 落入 consent cell,quarantine inbox 永远不是授权根。
 - **profile 边界**：quarantine inbox 仅在 default profile 生效;`require_explicit_consent` profile 下无 active grant 的 invite 直接 `failed_precondition` 拒绝(§6.1 step 2),不进入 quarantine inbox。
 - **不向 requester 暴露可联系信号（normative）**：invite 进入 quarantine inbox 暂存(§3.1 缺省判定的"非拒绝、非放行")**MUST NOT** 被对 requester 暴露为送达 / 可联系信号。quarantine 期间(暂存项处于 `pending_review`,以及超时丢弃后)服务端与客户端 **MUST NOT** 向 requester 返回任何 deliver / seen / read receipt / presence / typing / "已送达" / "可联系" 等指示，亦不得通过响应码、时序或副作用让 requester 区分"已进入 holder quarantine"与"被直接拒绝 / holder 不存在"。requester 只有在 holder 显式 review 接受并构造 grant Control Move(本节 review 后转换 (a))后，才 MAY 从正常 active-grant 路径观察到可联系状态。否则 quarantine 暂存本身会成为"holder 真实存在且 inbox 可达"的可联系侧信道，违背 consent gate 的"非授权即不可联系"语义。
 - **反滥用限速（normative）**：为闭合"换 pairwise DID 即重新入列"的骚扰放大面，服务端对写入同一 holder quarantine inbox 的**新来源**（此前未见过的 `peer` pairwise DID）首次接触项 MUST 施加 per-holder 速率与总量上限（与 [`../discovery/discovery-directory.md` §6.4](../discovery/discovery-directory.md) 的 private contact discovery 限速同构；具体阈值由 deployment policy 声明，缺省 SHOULD 收敛到与该 PSI quota 同量级）。超过上限的新来源接触 MUST 被静默丢弃——不入列、不向 requester 暴露任何送达 / 可联系信号（遵守上一条不可区分要求）；holder MAY 在 UI 显式放宽。该限速仅针对"新陌生 pairwise 首次接触"；已被 holder grant 过、走正常 active-grant 路径的 peer 不受此限。
 
-**UX 提示（normative for client implementations）**: 撤销 consent 后，客户端 UI MUST 明确披露两点语义：已发出的 invite 不会因 consent revoke 自动失效；如需撤销已发出的 invite，必须单独执行 `ck.invite.revoke`。该提示是非追溯语义的 UX 配套，服务端不强制（consent revoke 不会自动 cascade 到 invite）。
+**UX 提示（normative for client implementations）**: 撤销 consent 后，客户端 UI MUST 明确披露两点语义：已发出的 invite 不会因 consent revoke 自动失效；如需撤销已发出的 invite，必须单独执行 `ak.invite.revoke`。该提示是非追溯语义的 UX 配套，服务端不强制（consent revoke 不会自动 cascade 到 invite）。
 
 ### 6.2 Contact / DM 前置 gate
 
 发起 1:1 message Realm、WebRTC call、presence subscription 时，发起方客户端 **MUST** 在发起前 preflight 目标的 consent state（consent_scope = `direct_message` / `voice_call` / `video_call` / `presence`），但该 preflight **不是**接收侧授权根。目标 holder 的 Principal Server、Sync Service、Call / Media token issuer 与目标客户端在投递、fanout、响铃 UI、presence fanout、media token 签发或入会前 **MUST** 重新执行 consent gate；没有 active 目标 consent（对应 scope 或 `any`）时必须 fail closed / quarantine（按 profile），且不得触发响铃 UI、presence 可见性、typing/receipt 副作用或 call token 签发。接收侧 **MUST NOT** 信任发起方提交的 consent proof 作为唯一依据。
 
-WebRTC `ck.call.signal{signal_type=invite}` 在服务端投递与目标客户端展示前都 MUST 校验 `voice_call` / `video_call` consent；无 consent 的 invite MUST 被丢弃或进入 profile 声明的 quarantine，且不得产生 VoIP push / ringing UI。Presence subscription / fanout 由 Sync Service 在每次订阅建立和每次 fanout 前校验 holder 对 observer 的 `presence` consent；无 consent 时不得泄露在线、离线、last active bucket 或订阅是否存在。
+WebRTC `ak.call.signal{signal_type=invite}` 在服务端投递与目标客户端展示前都 MUST 校验 `voice_call` / `video_call` consent；无 consent 的 invite MUST 被丢弃或进入 profile 声明的 quarantine，且不得产生 VoIP push / ringing UI。Presence subscription / fanout 由 Sync Service 在每次订阅建立和每次 fanout 前校验 holder 对 observer 的 `presence` consent；无 consent 时不得泄露在线、离线、last active bucket 或订阅是否存在。
 
-`ck.self.direct_conversation.command.resolve` 是联系人私聊入口；它 MUST 同时检查 accepted contact projection 与目标 holder 对 requester 的 active `direct_message` / `any` consent。只有 consent、没有 accepted contact 时，resolver MUST fail closed（`failed_precondition` / `contact_not_accepted`）；只有 accepted contact、没有可验证 consent 时，resolver MUST fail closed（`failed_precondition` / `contact_consent_missing`）。非联系人但基于 consent 发起的一次性 DM profile 若未来需要，必须另行注册 operation，不得复用该 resolver。
+`ak.self.direct_conversation.command.resolve` 是联系人私聊入口；它 MUST 同时检查 accepted contact projection 与目标 holder 对 requester 的 active `direct_message` / `any` consent。只有 consent、没有 accepted contact 时，resolver MUST fail closed（`failed_precondition` / `contact_not_accepted`）；只有 accepted contact、没有可验证 consent 时，resolver MUST fail closed（`failed_precondition` / `contact_consent_missing`）。非联系人但基于 consent 发起的一次性 DM profile 若未来需要，必须另行注册 operation，不得复用该 resolver。
 
-`ck.private_contact_discovery.v1` 返回 PSI set-membership 命中位图时，MAY 附带 holder 当前 consent state hash 或最小 invite/consent handoff stub（不暴露具体 consent 内容，只声明 grant/revoke 状态与下一步引导），让发起方在尝试联系前判断是否需要先请求 consent。该响应 MUST NOT 包含 contact request handoff token、reachability proof、handle verified claim、组织成员资格、Realm membership 或读取权限。
+`ak.private_contact_discovery.v1` 返回 PSI set-membership 命中位图时，MAY 附带 holder 当前 consent state hash 或最小 invite/consent handoff stub（不暴露具体 consent 内容，只声明 grant/revoke 状态与下一步引导），让发起方在尝试联系前判断是否需要先请求 consent。该响应 MUST NOT 包含 contact request handoff token、reachability proof、handle verified claim、组织成员资格、Realm membership 或读取权限。
 
 #### 6.2.1 PSI 命中位时序侧信道（normative）
 
@@ -308,7 +308,7 @@ contact discovery / PSI 端点 MUST 按 `(requester, holder)` 维度限速，防
 
 ## 7. MIMI Interop
 
-MIMI 协议有 `request_consent` / `update_consent` 操作（`ck.open.mimi.command.request_consent` / `ck.open.mimi.command.update_consent`），见 [`extensions/mimi-interop.md`](../extensions/mimi-interop.md) §10。Facade 映射规则：
+MIMI 协议有 `request_consent` / `update_consent` 操作（`ak.open.mimi.command.request_consent` / `ak.open.mimi.command.update_consent`），见 [`extensions/mimi-interop.md`](../extensions/mimi-interop.md) §10。Facade 映射规则：
 
 - 接收 MIMI consent update：facade MUST 先验证 actor 是声明 holder 或受授权 controller，然后构造 grant 或 revoke Control Move 写入 holder principal control Realm 的 consent cell。
 - 发送 Arkret consent state 到 MIMI：facade MUST 把当前 consent cell or_set join 值翻译为 MIMI consent message，并保留 consent_id 作为 inter-protocol correlation。
@@ -323,11 +323,11 @@ MIMI 协议有 `request_consent` / `update_consent` 操作（`ck.open.mimi.comma
 
 ### 8.1 Pairwise consent 的反骚扰局限与聚合 revoke（normative for client UI）
 
-consent 的去重 / 撤销键含 `intent.peer`（counterparty DID 或 pairwise DID，见 §3.2）。这带来一个协议层局限：**骚扰者每换一个新 pairwise DID 发起联系，就构成一个全新的 `(consent_id, peer)` 入口**——holder 此前对旧 pairwise DID 的 `ck.consent.revoke` 不会覆盖新 pairwise DID，default profile 下该新 peer 仍可经 §6.1.1 quarantine inbox 暂存，重新出现在 holder 的待 review 列表中。协议层无法在 wire 上判定两个 pairwise DID 是否指向同一真实主体（这正是 pairwise pseudonym 的隐私目标），因此**不能**在 consent cell 语义中强制把多 pairwise DID 折叠到同一撤销键。
+consent 的去重 / 撤销键含 `intent.peer`（counterparty DID 或 pairwise DID，见 §3.2）。这带来一个协议层局限：**骚扰者每换一个新 pairwise DID 发起联系，就构成一个全新的 `(consent_id, peer)` 入口**——holder 此前对旧 pairwise DID 的 `ak.consent.revoke` 不会覆盖新 pairwise DID，default profile 下该新 peer 仍可经 §6.1.1 quarantine inbox 暂存，重新出现在 holder 的待 review 列表中。协议层无法在 wire 上判定两个 pairwise DID 是否指向同一真实主体（这正是 pairwise pseudonym 的隐私目标），因此**不能**在 consent cell 语义中强制把多 pairwise DID 折叠到同一撤销键。
 
 为收敛该局限，对反骚扰能力作如下要求：
 
-- **聚合 revoke（SHOULD）**：当 holder 客户端能够在本地把多个 pairwise DID link 到同一真实主体（例如经 [`identity-did.md` §4.2`](./identity-did.md) continuity proof、holder 本地维护的 contact↔pairwise 映射、或 holder 显式标注"这些都是同一人"）时，反骚扰 / block UI **SHOULD** 提供"聚合 revoke"：一次操作对该主体名下 holder 已知的全部 pairwise `(consent_id, peer)` 入口分别构造 `ck.consent.revoke`，并对后续来自这些已知 pairwise DID 的 quarantine 暂存项默认丢弃，而非逐个 peer 手动撤销。该 link 判定是 holder-side 本地能力，不进入 consent cell 的 wire 语义，也不要求 holder 向任何 peer 或服务端披露 pairwise 关联。
+- **聚合 revoke（SHOULD）**：当 holder 客户端能够在本地把多个 pairwise DID link 到同一真实主体（例如经 [`identity-did.md` §4.2`](./identity-did.md) continuity proof、holder 本地维护的 contact↔pairwise 映射、或 holder 显式标注"这些都是同一人"）时，反骚扰 / block UI **SHOULD** 提供"聚合 revoke"：一次操作对该主体名下 holder 已知的全部 pairwise `(consent_id, peer)` 入口分别构造 `ak.consent.revoke`，并对后续来自这些已知 pairwise DID 的 quarantine 暂存项默认丢弃，而非逐个 peer 手动撤销。该 link 判定是 holder-side 本地能力，不进入 consent cell 的 wire 语义，也不要求 holder 向任何 peer 或服务端披露 pairwise 关联。
 - **协议局限披露（SHOULD）**：UI **SHOULD** 向 holder 明示：单条 consent revoke 只对一个 pairwise DID 生效；对方更换 pairwise DID 后可能重新进入 quarantine inbox，聚合 revoke 仅覆盖 holder 客户端**当前已能 link** 的 pairwise DID，无法阻止 holder 尚未识别为同一主体的全新 pairwise DID。
 - **profile 边界**：`require_explicit_consent` profile 下该反骚扰面更小——无 active grant 的 invite（无论换不换 pairwise DID）一律 §6.1 step 2 `failed_precondition` 直接拒绝、不进入 quarantine inbox，骚扰者换 pairwise DID 也得不到 holder 侧的待 review 入口或任何可联系信号（§6.1.1 不向 requester 暴露可联系信号）。该 profile 因此把 pairwise 切换骚扰面收敛为"必须先获得 holder 显式 grant 才能产生任何 holder-visible 入口"。
 

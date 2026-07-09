@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/keys-operations.schema.json",
   "title": "Arkret Device Key Operation DTOs",
-  "description": "Closed request and response DTOs for ck.keys.{upload,query,claim} and ck.keys.backups.{put,list,delete}. Individual OpenAPI components reference the $defs entries in this bundle.",
+  "description": "Closed request and response DTOs for ak.keys.{upload,query,claim} and ak.keys.backups.{put,list,delete}. Individual OpenAPI components reference the $defs entries in this bundle.",
   "oneOf": [
     {
       "$ref": "#/$defs/keys_upload_request_body"
@@ -141,7 +141,7 @@
     "did_key": {
       "type": "string",
       "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$",
-      "description": "Authoritative device signing key as an Ed25519 did:key (multibase base58btc, multicodec ed25519-pub). Mirrors ck.device.authorize.payload.device_public_key (device-lifecycle.md §5.2 / §5.4). This is the verify key receivers resolve via verification_method `{actor}#{device_id}` where the fragment is the full ak:device:<uuidv7> id, to check ck.call.signal / ephemeral envelope and durable Event proofs."
+      "description": "Authoritative device signing key as an Ed25519 did:key (multibase base58btc, multicodec ed25519-pub). Mirrors ak.device.authorize.payload.device_public_key (device-lifecycle.md §5.2 / §5.4). This is the verify key receivers resolve via verification_method `{actor}#{device_id}` where the fragment is the full ak:device:<uuidv7> id, to check ak.call.signal / ephemeral envelope and durable Event proofs."
     },
     "device_status": {
       "type": "string",
@@ -149,7 +149,7 @@
         "active",
         "revoked"
       ],
-      "description": "Directory status of the (principal_id, device_id) pair at query time. active = device.authorize present and not revoked; revoked = a ck.device.revoke is in effect. Servers MUST omit device_signing_key for any non-active (revoked / unverified) device."
+      "description": "Directory status of the (principal_id, device_id) pair at query time. active = device.authorize present and not revoked; revoked = a ak.device.revoke is in effect. Servers MUST omit device_signing_key for any non-active (revoked / unverified) device."
     },
     "query_device_record": {
       "type": "object",
@@ -166,14 +166,14 @@
         },
         "hpke_key": {
           "$ref": "#/$defs/non_empty_string",
-          "description": "The device HPKE public key used for secret / key envelope sealing, echoed verbatim from the authoritative ck.device.authorize.payload.hpke_key (device-lifecycle.md §5.2/§5.4). MUST only be returned for verified, non-revoked devices; services MUST NOT substitute this value in projection."
+          "description": "The device HPKE public key used for secret / key envelope sealing, echoed verbatim from the authoritative ak.device.authorize.payload.hpke_key (device-lifecycle.md §5.2/§5.4). MUST only be returned for verified, non-revoked devices; services MUST NOT substitute this value in projection."
         },
         "trust_algorithms": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/non_empty_string"
           },
-          "description": "The canonical (UTF-8 bytewise sorted, deduplicated) algorithm ids echoed verbatim from ck.device.authorize.payload.algorithms; together with device_signing_key and hpke_key this is the material the §5.2 ck-device-trust-bind-v1 transcript covers. Distinct from the sibling `algorithms` prekey-bundle map."
+          "description": "The canonical (UTF-8 bytewise sorted, deduplicated) algorithm ids echoed verbatim from ak.device.authorize.payload.algorithms; together with device_signing_key and hpke_key this is the material the §5.2 ck-device-trust-bind-v1 transcript covers. Distinct from the sibling `algorithms` prekey-bundle map."
         },
         "device_status": {
           "$ref": "#/$defs/device_status"
@@ -186,7 +186,7 @@
         },
         "device_authorize_event_id": {
           "$ref": "#/$defs/event_id",
-          "description": "Accepted ck.device.authorize event id anchoring the current device-set projection. For service_attested / enrollment-authority devices this pairs with enrollment_authority_binding and identifies the accepted authorization event whose payload.device_public_key is exposed as device_signing_key."
+          "description": "Accepted ak.device.authorize event id anchoring the current device-set projection. For service_attested / enrollment-authority devices this pairs with enrollment_authority_binding and identifies the accepted authorization event whose payload.device_public_key is exposed as device_signing_key."
         }
       },
       "additionalProperties": false
@@ -483,7 +483,7 @@
         },
         "cross_signing": {
           "type": "object",
-          "description": "Tier-2: {principal_id} -> that principal's current accepted-generation ck.cross_signing.publish payload (device-lifecycle.md §5.1). Lets receivers anchor the SSK to the DID control set before trusting cross_signing_binding. See device-lifecycle.md §8.3.",
+          "description": "Tier-2: {principal_id} -> that principal's current accepted-generation ak.cross_signing.publish payload (device-lifecycle.md §5.1). Lets receivers anchor the SSK to the DID control set before trusting cross_signing_binding. See device-lifecycle.md §8.3.",
           "propertyNames": {
             "$ref": "#/$defs/did"
           },
@@ -572,7 +572,7 @@
     },
     "keys_backups_unlock_request_body": {
       "type": "object",
-      "description": "Request body for ck.self.keys.backups.command.unlock. The unlock proof MUST validate as ck.schema.key_backup_unlock_proof.v1 and MUST be verified against the recovery session, caller, requesting device key, active-series record, and target envelope before the full ciphertext is returned (key-management.md §7.7.1 / §7.8). The path backup_id and proof.backup_id MUST match.",
+      "description": "Request body for ak.self.keys.backups.command.unloak. The unlock proof MUST validate as ak.schema.key_backup_unlock_proof.v1 and MUST be verified against the recovery session, caller, requesting device key, active-series record, and target envelope before the full ciphertext is returned (key-management.md §7.7.1 / §7.8). The path backup_id and proof.backup_id MUST match.",
       "required": [
         "proof"
       ],
@@ -616,7 +616,7 @@
     },
     "cross_signing_binding": {
       "type": "object",
-      "description": "Tier-2 device trust binding echoed from ck.device.authorize.payload.cross_signing_binding (device-lifecycle.md §5.2). The accepted-generation SSK signs `\"ak.device-trust-bind-v1\n\" + canonical_json({principal_id, device_id, device_public_key, ssk_generation})`. Absent for inception bootstrap devices (§5.0.1).",
+      "description": "Tier-2 device trust binding echoed from ak.device.authorize.payload.cross_signing_binding (device-lifecycle.md §5.2). The accepted-generation SSK signs `\"ak.device-trust-bind-v1\n\" + canonical_json({principal_id, device_id, device_public_key, ssk_generation})`. Absent for inception bootstrap devices (§5.0.1).",
       "required": [
         "verification_method",
         "ssk_generation",

@@ -585,7 +585,7 @@
     },
     "AuthzCheckRequestBody": {
       "type": "object",
-      "description": "ak.self.authz.query.check input — local capability projection / preflight / diagnostic query. `resource` is optional because some actions (e.g. `ck.realm.create`, identity-scoped actions) have no Realm-bound target. The result is not a signed Policy Server decision and MUST NOT be used as Event auth_context, reducer accept proof, or cross-service authorization fact; dynamic policy obligations use ck.self.policy.query.check.\n",
+      "description": "ak.self.authz.query.check input — local capability projection / preflight / diagnostic query. `resource` is optional because some actions (e.g. `ak.realm.create`, identity-scoped actions) have no Realm-bound target. The result is not a signed Policy Server decision and MUST NOT be used as Event auth_context, reducer accept proof, or cross-service authorization fact; dynamic policy obligations use ak.self.policy.query.cheak.\n",
       "required": [
         "actor_id",
         "action"
@@ -597,7 +597,7 @@
         },
         "action": {
           "type": "string",
-          "description": "Capability action id (e.g. `ck.strand.update`)."
+          "description": "Capability action id (e.g. `ak.strand.update`)."
         },
         "resource": {
           "type": "object",
@@ -959,7 +959,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 256,
-          "description": "Server-issued opaque acknowledgement token, REQUIRED whenever messages[] is non-empty. Covers this page plus all previously delivered messages for the authenticated device. Queue deletion happens only through ck.self.device_messages.command.ack with this token, never through the from= read cursor (client-sync.md §10.1)."
+          "description": "Server-issued opaque acknowledgement token, REQUIRED whenever messages[] is non-empty. Covers this page plus all previously delivered messages for the authenticated device. Queue deletion happens only through ak.self.device_messages.command.ack with this token, never through the from= read cursor (client-sync.md §10.1)."
         },
         "next_cursor": {
           "type": "string",
@@ -1219,7 +1219,7 @@
         },
         "discovery_state": {
           "type": "object",
-          "description": "Signed ck.{kind}.discovery payload, including its proof.",
+          "description": "Signed ak.{kind}.discovery payload, including its proof.",
           "additionalProperties": true
         },
         "source_refs": {
@@ -1426,7 +1426,7 @@
     },
     "EphemeralSubmitOutcome": {
       "type": "object",
-      "description": "Result of ck.ephemeral.send. `accepted=true` means the Sync Service\nadmitted the short-lived signal into its ephemeral fanout path. No\nEvent ID, actor_seq, Seal coverage, or durable receipt is minted.\n",
+      "description": "Result of ak.ephemeral.send. `accepted=true` means the Sync Service\nadmitted the short-lived signal into its ephemeral fanout path. No\nEvent ID, actor_seq, Seal coverage, or durable receipt is minted.\n",
       "required": [
         "accepted",
         "kind",
@@ -1462,7 +1462,7 @@
     },
     "EventView": {
       "type": "object",
-      "description": "Result of ck.self.events.resource.get — a single complete Event Envelope, RedactedEventView, or ReferenceLockedEventStub with optional visibility / receipt hints. Redacted / locked variants are projection-only evidence and MUST NOT be used as reducer input.",
+      "description": "Result of ak.self.events.resource.get — a single complete Event Envelope, RedactedEventView, or ReferenceLockedEventStub with optional visibility / receipt hints. Redacted / locked variants are projection-only evidence and MUST NOT be used as reducer input.",
       "required": [
         "event"
       ],
@@ -1554,7 +1554,7 @@
     },
     "EventsQueryOutcome": {
       "type": "object",
-      "description": "Result of ck.self.events.query.scan (GET form) and ck.self.events.query.scan_body (POST/body\nform). Ordering follows the \"近邻先返回\" rule unless `order` was\nexplicitly set on the request; see service-http-binding.md §3.3.3.\n",
+      "description": "Result of ak.self.events.query.scan (GET form) and ak.self.events.query.scan_body (POST/body\nform). Ordering follows the \"近邻先返回\" rule unless `order` was\nexplicitly set on the request; see service-http-binding.md §3.3.3.\n",
       "required": [
         "events",
         "has_more"
@@ -1583,7 +1583,7 @@
         },
         "range_completeness": {
           "type": "object",
-          "description": "Optional. Present only when the request set include_completeness=true, the service advertises events_query_range_completeness, and at least one ck.attestation.range_completeness attestation covers the returned page's range (service-http-binding.md §3.3.6). Absence means the range is un-attested — neither an error nor a completeness confirmation. Clients verify per operations-sync.md §6.4.4 (root recompute, actor_seq_ranges check, witness_disagreement fail-closed).",
+          "description": "Optional. Present only when the request set include_completeness=true, the service advertises events_query_range_completeness, and at least one ak.attestation.range_completeness attestation covers the returned page's range (service-http-binding.md §3.3.6). Absence means the range is un-attested — neither an error nor a completeness confirmation. Clients verify per operations-sync.md §6.4.4 (root recompute, actor_seq_ranges check, witness_disagreement fail-closed).",
           "required": [
             "attestation_refs"
           ],
@@ -1591,7 +1591,7 @@
             "attestation_refs": {
               "type": "array",
               "minItems": 1,
-              "description": "Event ids of ck.attestation.range_completeness events whose union of scopes covers the returned page. Over-coverage is legal; clients intersect scopes during verification.",
+              "description": "Event ids of ak.attestation.range_completeness events whose union of scopes covers the returned page. Over-coverage is legal; clients intersect scopes during verification.",
               "items": {
                 "type": "string",
                 "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
@@ -1600,7 +1600,7 @@
             },
             "attestations": {
               "type": "array",
-              "description": "Optional inline complete ck.attestation.range_completeness EventEnvelope objects for the referenced attestations. Every inline event's event_id MUST appear in attestation_refs and clients MUST verify the EventEnvelope signature / event_digest before using its payload. Servers MAY omit this field and let clients backfill the attestation events by id.",
+              "description": "Optional inline complete ak.attestation.range_completeness EventEnvelope objects for the referenced attestations. Every inline event's event_id MUST appear in attestation_refs and clients MUST verify the EventEnvelope signature / event_digest before using its payload. Servers MAY omit this field and let clients backfill the attestation events by id.",
               "items": {
                 "allOf": [
                   {
@@ -1695,7 +1695,7 @@
     },
     "EventsSubmitOutcome": {
       "type": "object",
-      "description": "Result of ck.events.submit. Tracks per-event acceptance / duplication /\nrejection along with the post-write frontier and an optional barrier\ncursor for read-your-writes.\n",
+      "description": "Result of ak.events.submit. Tracks per-event acceptance / duplication /\nrejection along with the post-write frontier and an optional barrier\ncursor for read-your-writes.\n",
       "required": [
         "status",
         "accepted"
@@ -1792,7 +1792,7 @@
     },
     "IdentityDocumentView": {
       "type": "object",
-      "description": "Result of ck.root.identity.document.resource.get — current DID Document plus normalized view hints.",
+      "description": "Result of ak.root.identity.document.resource.get — current DID Document plus normalized view hints.",
       "required": [
         "did_document"
       ],
@@ -1818,7 +1818,7 @@
     },
     "IdentityLogListOutcome": {
       "type": "object",
-      "description": "Result of ck.root.identity.log.query.list — paginated DID key-log entries for the requested DID.",
+      "description": "Result of ak.root.identity.log.query.list — paginated DID key-log entries for the requested DID.",
       "required": [
         "events",
         "has_more"
@@ -1842,7 +1842,7 @@
     },
     "IdentityReceiptListOutcome": {
       "type": "object",
-      "description": "Result of ck.root.identity.receipts.query.list — witness receipts for a DID key-log head.",
+      "description": "Result of ak.root.identity.receipts.query.list — witness receipts for a DID key-log head.",
       "required": [
         "receipts"
       ],
@@ -1999,7 +1999,7 @@
     },
     "PolicyCheckOutcome": {
       "type": "object",
-      "description": "Result of ck.self.policy.query.check — signed decision bound to authorization, policy, and membership frontier hashes.",
+      "description": "Result of ak.self.policy.query.check — signed decision bound to authorization, policy, and membership frontier hashes.",
       "required": [
         "request_id",
         "bound_to",
@@ -2232,12 +2232,12 @@
         },
         "agent_key_authorization_ref": {
           "type": "string",
-          "description": "`ck.profile.agent_auth.v1` overlay (CKP-0008 §4.6). Event ref of the accepted\n`ck.agent.key.authorize` that authorized the runtime key. REQUIRED when\n`proof.proof_kind=\"agent_key_proof\"`; MUST be omitted for human session grants.\n",
+          "description": "`ak.profile.agent_auth.v1` overlay (AKP-0008 §4.6). Event ref of the accepted\n`ak.agent.key.authorize` that authorized the runtime key. REQUIRED when\n`proof.proof_kind=\"agent_key_proof\"`; MUST be omitted for human session grants.\n",
           "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
         },
         "agent_scope_request": {
           "type": "object",
-          "description": "`ck.profile.agent_auth.v1` overlay (CKP-0008 §4.6). Narrowing hints for the\nissued session scope. Service-surface requested_scope values are intersected\nwith the accepted agent_key_scope service ceiling and endpoint/resource policy;\ncontent actions are additionally intersected with effective capability grants,\nmembership, history visibility and E2EE policy. REQUIRED when\n`proof.proof_kind=\"agent_key_proof\"`; MUST be omitted for human session grants.\n`track_names` is a request-side narrowing field only — the materialized session\ngrant MUST express track scope via the canonical `allowed_tracks` constraint,\nnot via a new `track_names` grant.\n",
+          "description": "`ak.profile.agent_auth.v1` overlay (AKP-0008 §4.6). Narrowing hints for the\nissued session scope. Service-surface requested_scope values are intersected\nwith the accepted agent_key_scope service ceiling and endpoint/resource policy;\ncontent actions are additionally intersected with effective capability grants,\nmembership, history visibility and E2EE policy. REQUIRED when\n`proof.proof_kind=\"agent_key_proof\"`; MUST be omitted for human session grants.\n`track_names` is a request-side narrowing field only — the materialized session\ngrant MUST express track scope via the canonical `allowed_tracks` constraint,\nnot via a new `track_names` grant.\n",
           "additionalProperties": false,
           "properties": {
             "realm_ids": {
@@ -2264,7 +2264,7 @@
         },
         "dpop_binding_proof": {
           "$ref": "#/$defs/SessionGrantDpopBindingProof",
-          "description": "`ck.profile.agent_auth.v1` overlay (CKP-0008 §4.6). DPoP proof JWT for the holder key that the issued session grant will bind to. REQUIRED when `proof.proof_kind=\"agent_key_proof\"`; the Account Authority verifies the proof and materializes the resulting JWK thumbprint into the issued grant's `cnf.jkt` / session_public_key binding."
+          "description": "`ak.profile.agent_auth.v1` overlay (AKP-0008 §4.6). DPoP proof JWT for the holder key that the issued session grant will bind to. REQUIRED when `proof.proof_kind=\"agent_key_proof\"`; the Account Authority verifies the proof and materializes the resulting JWK thumbprint into the issued grant's `cnf.jkt` / session_public_key binding."
         },
         "applet_delegation": {
           "$ref": "#/$defs/SessionGrantAppletDelegation",
@@ -2283,7 +2283,7 @@
           "properties": {
             "proof_kind": {
               "type": "string",
-              "description": "`agent_key_proof` selects the `ck.profile.agent_auth.v1` overlay branch (CKP-0008 §4.6).\nImplementations MUST route `agent_key_proof` to an independent validator and MUST NOT\nfall back to password / OIDC / passkey validators for this branch.\n",
+              "description": "`agent_key_proof` selects the `ak.profile.agent_auth.v1` overlay branch (AKP-0008 §4.6).\nImplementations MUST route `agent_key_proof` to an independent validator and MUST NOT\nfall back to password / OIDC / passkey validators for this branch.\n",
               "enum": [
                 "did_bound_signature",
                 "paired_device_proof",
@@ -2345,7 +2345,7 @@
             },
             "verification_method": {
               "type": "string",
-              "description": "`ck.profile.agent_auth.v1` overlay (CKP-0008 §4.6). DID URL of the runtime\nsigning key (`<agent_principal_id>#<key-fragment>`). REQUIRED when\n`proof_kind=\"agent_key_proof\"`; the DID component MUST bit-identically equal\n`principal_id` after stripping the fragment / query — otherwise the endpoint\nreturns `verification_method_principal_mismatch`. MUST be omitted for human\nproof kinds.\n",
+              "description": "`ak.profile.agent_auth.v1` overlay (AKP-0008 §4.6). DID URL of the runtime\nsigning key (`<agent_principal_id>#<key-fragment>`). REQUIRED when\n`proof_kind=\"agent_key_proof\"`; the DID component MUST bit-identically equal\n`principal_id` after stripping the fragment / query — otherwise the endpoint\nreturns `verification_method_principal_mismatch`. MUST be omitted for human\nproof kinds.\n",
               "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
             },
             "signature": {
@@ -2357,7 +2357,7 @@
       },
       "allOf": [
         {
-          "description": "Machine-enforceable agent_key_proof branch selector. When `proof.proof_kind` is\n`agent_key_proof`, the request MUST carry the `ck.profile.agent_auth.v1` overlay\nfields (`agent_key_authorization_ref`, `agent_scope_request`, `dpop_binding_proof`,\n`proof.verification_method`); when it is any other enum value, agent-only fields\nMUST be absent. SDKs and server-side validators MUST reject violations at\nschema-validation time, not at proof-validator time.\n",
+          "description": "Machine-enforceable agent_key_proof branch selector. When `proof.proof_kind` is\n`agent_key_proof`, the request MUST carry the `ak.profile.agent_auth.v1` overlay\nfields (`agent_key_authorization_ref`, `agent_scope_request`, `dpop_binding_proof`,\n`proof.verification_method`); when it is any other enum value, agent-only fields\nMUST be absent. SDKs and server-side validators MUST reject violations at\nschema-validation time, not at proof-validator time.\n",
           "if": {
             "properties": {
               "proof": {
@@ -2612,7 +2612,7 @@
         },
         "scope_details": {
           "type": "object",
-          "description": "`ck.profile.agent_auth.v1` overlay (CKP-0008 §4.6). Materialized narrow scope\nactually granted to the agent runtime session. Service-surface scope is the\nintersection of requested_scope, accepted agent_key_scope and endpoint/resource\npolicy; content actions are additionally constrained by effective capability\ngrants, membership, history visibility and E2EE policy. Present iff the request\nwas the `proof.proof_kind=\"agent_key_proof\"` branch; absent for human session\ngrants.\n",
+          "description": "`ak.profile.agent_auth.v1` overlay (AKP-0008 §4.6). Materialized narrow scope\nactually granted to the agent runtime session. Service-surface scope is the\nintersection of requested_scope, accepted agent_key_scope and endpoint/resource\npolicy; content actions are additionally constrained by effective capability\ngrants, membership, history visibility and E2EE policy. Present iff the request\nwas the `proof.proof_kind=\"agent_key_proof\"` branch; absent for human session\ngrants.\n",
           "additionalProperties": false,
           "properties": {
             "realm_ids": {
@@ -2637,7 +2637,7 @@
             },
             "participation": {
               "type": "array",
-              "description": "`ck.profile.agent_participation_policy.v1` overlay (CKP-0016, service-surface.md §10.1). Present when the agent session scope covers participation-aware scope. Each entry is isomorphic to agent_participation_entry ({participation_scope, selection, ceiling, effective}). The runtime MUST treat this array as a behavioral contract; the server still enforces capability grants, dispatcher gates and reducer checks as the hard boundary.",
+              "description": "`ak.profile.agent_participation_policy.v1` overlay (AKP-0016, service-surface.md §10.1). Present when the agent session scope covers participation-aware scope. Each entry is isomorphic to agent_participation_entry ({participation_scope, selection, ceiling, effective}). The runtime MUST treat this array as a behavioral contract; the server still enforces capability grants, dispatcher gates and reducer checks as the hard boundary.",
               "items": {
                 "$ref": "./agent-operations.schema.json#/$defs/agent_participation_entry"
               }
@@ -2706,13 +2706,13 @@
               }
             ]
           },
-          "description": "Actor-supplied ck.self.events.command.submit input envelope. It reuses the base Event\nshape for actor intent fields but forbids reducer-managed accepted-output\nprojections such as actor_kind and effective_scope. Services stamp those\nfields only after accept and expose them on read/query/sync envelopes.\n"
+          "description": "Actor-supplied ak.self.events.command.submit input envelope. It reuses the base Event\nshape for actor intent fields but forbids reducer-managed accepted-output\nprojections such as actor_kind and effective_scope. Services stamp those\nfields only after accept and expose them on read/query/sync envelopes.\n"
         }
       ]
     },
     "EventsFrontierAccountClientState": {
       "type": "object",
-      "description": "Account-client ck.self.events.query.frontier response.",
+      "description": "Account-client ak.self.events.query.frontier response.",
       "required": [
         "frontier"
       ],
@@ -2732,7 +2732,7 @@
     },
     "EventsFrontierFederationPeerState": {
       "type": "object",
-      "description": "Federation peer ck.peer.events.query.frontier response. Requires S2S signed trust-domain headers.",
+      "description": "Federation peer ak.peer.events.query.frontier response. Requires S2S signed trust-domain headers.",
       "required": [
         "realm_id",
         "heads",
@@ -2932,7 +2932,7 @@
     },
     "EventsSubmitBatchRequestBody": {
       "type": "object",
-      "description": "Batch ck.self.events.command.submit request used by account clients.",
+      "description": "Batch ak.self.events.command.submit request used by account clients.",
       "required": [
         "events"
       ],
@@ -2949,7 +2949,7 @@
     },
     "EventsSubmitFederationRequestBody": {
       "type": "object",
-      "description": "Federation service-to-service ck.peer.events.command.submit request body.",
+      "description": "Federation service-to-service ak.peer.events.command.submit request body.",
       "required": [
         "service_binding_ref",
         "events"
@@ -2970,7 +2970,7 @@
     },
     "FederationServiceBindingRef": {
       "type": "object",
-      "description": "Request-level service binding snapshot carried by federation\nservice-to-service ck.peer.events.command.submit calls. This is metadata for the\nreceiver to verify the sender's delivery decision; client writes omit it.\n",
+      "description": "Request-level service binding snapshot carried by federation\nservice-to-service ak.peer.events.command.submit calls. This is metadata for the\nreceiver to verify the sender's delivery decision; client writes omit it.\n",
       "required": [
         "realm_id",
         "realm_policy_digest",
@@ -3087,7 +3087,7 @@
             "null"
           ],
           "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-          "description": "Derived board Space id from ck.component.strand.position.v1; not canonical Strand object state."
+          "description": "Derived board Space id from ak.component.strand.position.v1; not canonical Strand object state."
         },
         "list_space_id": {
           "type": [
@@ -3095,14 +3095,14 @@
             "null"
           ],
           "pattern": "^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-          "description": "Derived list Space id from ck.component.strand.position.v1; not canonical Strand object state."
+          "description": "Derived list Space id from ak.component.strand.position.v1; not canonical Strand object state."
         },
         "rank": {
           "type": [
             "string",
             "null"
           ],
-          "description": "Derived rank within list_space_id from ck.component.strand.position.v1."
+          "description": "Derived rank within list_space_id from ak.component.strand.position.v1."
         },
         "assigned_actor_ids": {
           "type": "array",
@@ -3147,7 +3147,7 @@
         },
         "is_default": {
           "type": "boolean",
-          "description": "DERIVED, not independent storage: true iff strand_id == the parent Realm projection's default_strand_id (the authoritative pointer written by ck.realm.set_default_strand). The projector computes this from Realm.default_strand_id; a stale/dangling pointer never resolves to is_default=true because the reducer rejects set_default_strand against a non-existent Strand. Clients identify the Realm's default discussion Strand deterministically from this flag (or equivalently from Realm.default_strand_id) and MUST NOT infer the default from any Strand-reuses-Realm-UUID or other implementation detail. See zh/models/strand-and-message.md (default-Strand discovery)."
+          "description": "DERIVED, not independent storage: true iff strand_id == the parent Realm projection's default_strand_id (the authoritative pointer written by ak.realm.set_default_strand). The projector computes this from Realm.default_strand_id; a stale/dangling pointer never resolves to is_default=true because the reducer rejects set_default_strand against a non-existent Strand. Clients identify the Realm's default discussion Strand deterministically from this flag (or equivalently from Realm.default_strand_id) and MUST NOT infer the default from any Strand-reuses-Realm-UUID or other implementation detail. See zh/models/strand-and-message.md (default-Strand discovery)."
         }
       }
     },
@@ -3298,7 +3298,7 @@
     },
     "SnapshotBootstrap": {
       "type": "object",
-      "description": "Optional ck.self.events.query.scan acceleration hint for federation pull / backfill. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).",
+      "description": "Optional ak.self.events.query.scan acceleration hint for federation pull / backfill. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).",
       "required": [
         "snapshot_ref",
         "state_digest",

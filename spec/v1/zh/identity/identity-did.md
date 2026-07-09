@@ -85,7 +85,7 @@ did:webvh:<scid>:<host-and-path>
 
 默认值只表示"当系统需要为新用户创建 principal DID、且用户未明确选择其他 method 时使用 `did:webvh`"。协议仍然允许其他现有 DID method，只要实现能按该 method 的规范完成解析、控制权验证、（可选的）历史验证和服务委托验证。
 
-> **残留暴露面与 Key Transparency profile（informative）**：`did:webvh` 的 `did.jsonl` hash chain + 可选 witness 提供的是**单个 DID 自身**控制权变更的可验证性。它**不**提供跨命名空间、可被任意第三方持续 monitor 的全局 Key Transparency 账本（CONIKS / Apple Contact Key Verification 类）。因此 v1 目录层的 equivocation 检测依赖各 DID 自身的 witness 覆盖与 [`../discovery/discovery-directory.md`](../discovery/discovery-directory.md) 的资源自签名，**hosting domain 对不同 verifier 出示不同 key 的针对性 split-view（尤其 `did:web` service method 与 `personal_node` 降级路径）是已知残留暴露面**。实现 MAY 声明可选 identity extension profile `ck.profile.key_transparency.v1` 来收敛该暴露面：该 profile 为 `handle / principal DID / cross-signing root / active device key set digest / KeyPackage publication digest` 提供 label→value append-only log，entry 必须携带 inclusion proof 与 consistency proof；log fork 以双签或等价 split-view evidence 暴露，monitor/auditor 验证结果可进入目录解析响应或 identity receipt。该 profile 不改变 v1 core Event bytes；未声明该 profile 的实现按普通 DID witness 与 directory 自签名规则互通。
+> **残留暴露面与 Key Transparency profile（informative）**：`did:webvh` 的 `did.jsonl` hash chain + 可选 witness 提供的是**单个 DID 自身**控制权变更的可验证性。它**不**提供跨命名空间、可被任意第三方持续 monitor 的全局 Key Transparency 账本（CONIKS / Apple Contact Key Verification 类）。因此 v1 目录层的 equivocation 检测依赖各 DID 自身的 witness 覆盖与 [`../discovery/discovery-directory.md`](../discovery/discovery-directory.md) 的资源自签名，**hosting domain 对不同 verifier 出示不同 key 的针对性 split-view（尤其 `did:web` service method 与 `personal_node` 降级路径）是已知残留暴露面**。实现 MAY 声明可选 identity extension profile `ak.profile.key_transparency.v1` 来收敛该暴露面：该 profile 为 `handle / principal DID / cross-signing root / active device key set digest / KeyPackage publication digest` 提供 label→value append-only log，entry 必须携带 inclusion proof 与 consistency proof；log fork 以双签或等价 split-view evidence 暴露，monitor/auditor 验证结果可进入目录解析响应或 identity receipt。该 profile 不改变 v1 core Event bytes；未声明该 profile 的实现按普通 DID witness 与 directory 自签名规则互通。
 
 ### 3.1 Method Selection
 
@@ -145,10 +145,10 @@ DID 托管域名、Principal Server 服务域名和 handle 域名是**三个独�
 
 - DID 字符串中出现的域名（例如 `did:webvh:...:users.acme.example` 中的 `users.acme.example`）只表示 `did.jsonl` 历史的托管位置，**不**承诺该域名运行 Principal Server，也**不**是用户公开 handle。
 - 用户/组织搬迁 Principal Server、变更端口、增加 mirror、切换到第三方 host 时，正确路径是更新 DID Document 中的 service entry 并重新签发 service delegation；这条路径会进入可验证历史，不依赖 DNS+TLS 的现时强度。
-- DID Document 中的 `ArkretPrincipalServer` service entry 是该 DID 的默认服务发现入口，不是所有 Realm 的强制投递入口。某个 Realm 中已接受的 `ck.member.state{membership="join"}` 若携带 `delivery_binding.recipient_service_did`，该 Realm 的事件、sync、to-device、push 与 KeyPackage 投递 MUST 优先使用该 binding。只有 Realm policy 允许 `did_document_default` fallback，且 fallback 结果已在 join 时物化为 `delivery_binding`（含 `did_document_digest` / `resolved_at`）时，DID Document 默认 endpoint 才能作为该 Realm 的投递路径。
-- DID Document MAY 用窄关系指派**设备入册权威**（device enrollment authority）：一条 `ArkretDeviceEnrollmentAuthority` service entry（`serviceEndpoint` 指向入册权威 DID，用于托管 DID / account-authority 模型），或一条 `capabilityDelegation` verification method（用于自主权模型，指向 holder 自有控制密钥）。被指派者获授签发 `service_attested` 的 `ck.device.authorize`（见 [`../crypto-media/device-lifecycle.md` §5.4](../crypto-media/device-lifecycle.md) 与 [`key-management.md` §5.0.6](./key-management.md)）。该指派 **MUST NOT** 复用 `controller`（`controller` 是改写身份根的强权，入册权威按最小权限只应能入册）。文档锚定的指派可被任意解析方自证;deployment 信任策略只能收紧或在文档无法表达时补空，**MUST NOT** 并集扩权。
-- **无 history-resolution method 作入册权威时的历史复验（normative）**：当被指派的入册权威 DID 是**无可验证历史 method**（典型 `did:web`，只反映当前 DID Document、无按时点解析能力）时，被它签发并被引用为 actor 的旧 `ck.device.authorize` 无法按签发时点验签——入册密钥轮换后或 hosting domain 被劫持回填当前文档后，历史授权既无法解析当时的 verification method、也可被替换后的当前文档伪造复验。为此，由无 history-resolution method 入册权威签发的 `ck.device.authorize` **MUST** 在 `enrollment_authority_binding` 中 inline 携带签发时刻的 verification method 快照 + 该 key 的 controller proof，使历史复验只依赖事件内自带证据、不依赖对 `did:web` 当前文档的在线按时点解析；**或** deployment policy 禁止 `did:web` 等无历史 method 作入册权威轮换（轮换须先按 §4.2.2 / [`key-management.md` §5.0.5](./key-management.md) 升级到 `did:webvh`）。二者择一，v1 推荐前者。规范细则与 schema 协调见 [`key-management.md` §5.0.6 step4](./key-management.md)。
-- **设备密钥不写入 DID method key log。** 设备的 `device_public_key` 作为所属 principal DID 下的 verification method，由 `ck.device.authorize` 进入**设备集投影**，而非写入 `did:webvh` 的 `did.jsonl`（[`../crypto-media/device-lifecycle.md` §5.4](../crypto-media/device-lifecycle.md)）。因此 resolver 解析该 principal DID 文档得到的 verification method 是控制者/入册权威密钥（如 `#did-key-1`）；设备密钥经设备集投影解析，二者来源不同。**校验普通业务事件 proof 的 receiver MUST NOT 在线解析 DID**，而是按 `{principal_did}#{device_id}` 从当前 control 流 frontier 的设备集投影取 `device_public_key`（缺失或已吊销即拒）；DID 解析只在入册、吊销/轮换 re-sync 与联邦边界出现。历史复验按 Event accepted-at 做按时点解析（`did:webvh` 历史 `versionTime`），故入册权威密钥轮换不使既有授权失效。
+- DID Document 中的 `ArkretPrincipalServer` service entry 是该 DID 的默认服务发现入口，不是所有 Realm 的强制投递入口。某个 Realm 中已接受的 `ak.member.state{membership="join"}` 若携带 `delivery_binding.recipient_service_did`，该 Realm 的事件、sync、to-device、push 与 KeyPackage 投递 MUST 优先使用该 binding。只有 Realm policy 允许 `did_document_default` fallback，且 fallback 结果已在 join 时物化为 `delivery_binding`（含 `did_document_digest` / `resolved_at`）时，DID Document 默认 endpoint 才能作为该 Realm 的投递路径。
+- DID Document MAY 用窄关系指派**设备入册权威**（device enrollment authority）：一条 `ArkretDeviceEnrollmentAuthority` service entry（`serviceEndpoint` 指向入册权威 DID，用于托管 DID / account-authority 模型），或一条 `capabilityDelegation` verification method（用于自主权模型，指向 holder 自有控制密钥）。被指派者获授签发 `service_attested` 的 `ak.device.authorize`（见 [`../crypto-media/device-lifecycle.md` §5.4](../crypto-media/device-lifecycle.md) 与 [`key-management.md` §5.0.6](./key-management.md)）。该指派 **MUST NOT** 复用 `controller`（`controller` 是改写身份根的强权，入册权威按最小权限只应能入册）。文档锚定的指派可被任意解析方自证;deployment 信任策略只能收紧或在文档无法表达时补空，**MUST NOT** 并集扩权。
+- **无 history-resolution method 作入册权威时的历史复验（normative）**：当被指派的入册权威 DID 是**无可验证历史 method**（典型 `did:web`，只反映当前 DID Document、无按时点解析能力）时，被它签发并被引用为 actor 的旧 `ak.device.authorize` 无法按签发时点验签——入册密钥轮换后或 hosting domain 被劫持回填当前文档后，历史授权既无法解析当时的 verification method、也可被替换后的当前文档伪造复验。为此，由无 history-resolution method 入册权威签发的 `ak.device.authorize` **MUST** 在 `enrollment_authority_binding` 中 inline 携带签发时刻的 verification method 快照 + 该 key 的 controller proof，使历史复验只依赖事件内自带证据、不依赖对 `did:web` 当前文档的在线按时点解析；**或** deployment policy 禁止 `did:web` 等无历史 method 作入册权威轮换（轮换须先按 §4.2.2 / [`key-management.md` §5.0.5](./key-management.md) 升级到 `did:webvh`）。二者择一，v1 推荐前者。规范细则与 schema 协调见 [`key-management.md` §5.0.6 step4](./key-management.md)。
+- **设备密钥不写入 DID method key log。** 设备的 `device_public_key` 作为所属 principal DID 下的 verification method，由 `ak.device.authorize` 进入**设备集投影**，而非写入 `did:webvh` 的 `did.jsonl`（[`../crypto-media/device-lifecycle.md` §5.4](../crypto-media/device-lifecycle.md)）。因此 resolver 解析该 principal DID 文档得到的 verification method 是控制者/入册权威密钥（如 `#did-key-1`）；设备密钥经设备集投影解析，二者来源不同。**校验普通业务事件 proof 的 receiver MUST NOT 在线解析 DID**，而是按 `{principal_did}#{device_id}` 从当前 control 流 frontier 的设备集投影取 `device_public_key`（缺失或已吊销即拒）；DID 解析只在入册、吊销/轮换 re-sync 与联邦边界出现。历史复验按 Event accepted-at 做按时点解析（`did:webvh` 历史 `versionTime`），故入册权威密钥轮换不使既有授权失效。
 - Handle（例如 `@alice:acme.example` / `alice@acme.example`，canonical `alice:acme.example`）属于 Handle 层，不属于 DID method 或 DID Document service discovery。它 MAY 解析出 `subject DID + member_delivery_binding`，但该结果只有在加入 Realm 时被物化为 `delivery_binding` 并通过 Realm policy 校验后，才成为 Realm-scoped 投递路径。
 - Handle 域名（含品牌域名）与 DID 托管域名可以完全无关。例如品牌持有者可以使用 `alice:alice.example.com` 作为公开 handle，而 DID 仍然由 `users.someprovider.example` 托管，只要 `alsoKnownAs` 与 issuer claim 双向验证一致。
 - [federation.md §6.3](../sync/federation.md) 的 `https://<domain>/.well-known/arkret/server` 仅作为 bootstrap 候选发现 hint，**不是**身份解析必经路径，也不能授权联邦请求；权威服务发现源仍然是 DID Document 的 service entry。
@@ -187,7 +187,7 @@ Arkret v1 core conformance 要求如下：
   - Allowed: 已缓存对象的本地搜索 / 本地索引查询
   - Allowed: 已收到 snapshot / Seal 的 state_root 重算(用于本地一致性自检)
   - Forbidden: 接收新到达的 Event Envelope / DataEvent / Control Move / Seal 并写入本地 store(即使是只读 store)
-  - Forbidden: 联邦 transaction 接收(`POST /_arkret/peer/events` / `ck.peer.events.command.submit`:含 `Source-Service-DID` / `Destination-Service-DID` header)
+  - Forbidden: 联邦 transaction 接收(`POST /_arkret/peer/events` / `ak.peer.events.command.submit`:含 `Source-Service-DID` / `Destination-Service-DID` header)
   - Forbidden: Push notification wakeup 后的 client sync 拉取
   - Forbidden: 任何 capability cache 重建或 freshness check
   - Forbidden: 任何 `ak.session.grant` 验证或登录态续期
@@ -209,7 +209,7 @@ Arkret v1 core conformance 要求如下：
 
 > **高保障 profile 加固（normative，profile-gated）**：`high_security_organization` 与 `sovereign_deployment` profile 的实现，对 key rotation、recovery、service delegation、membership change 等高风险操作所依据的 `did:webvh` cache entry / witness evidence，**MUST** 提供由 append-only Merkle transparency log 支撑的 witness，而非仅依赖离散 witness 签名；该 log-backed witness **MUST** 同时携带可被独立审计的 inclusion proof（证明该 entry 已纳入 log）与 consistency proof（证明 log 单调 append-only、历史未被改写），以抵抗 split-view、历史分叉与选择性披露攻击。上述任一证明缺失或验证不通过时，对应高风险操作 **MUST** fail closed。该要求是对上一条离散 witness 基线的 profile-gated 加固，仅作用于这两个高保障 profile；它**不改变** base v1（含 `small_team` / `organization` profile）的 witness 语义与强制要求，base v1 实现仍以"≥2 witness from distinct controlling org"的离散 witness 签名为准，**不要求**提供 log-backed witness。
 
-> **`ck.profile.key_transparency.v1` 覆盖范围（informative）**：上述 log-backed witness 覆盖 `did:webvh` cache entry / witness evidence；`ck.profile.key_transparency.v1` 进一步覆盖 principal control stream 内的 device key、cross-signing key 与 KeyPackage 发布，目标是检测"服务器对不同 verifier 出示不同 key 集合"的 key material split-view。该 profile 的最小映射为 principal label → cross-signing root + active device key set digest + KeyPackage publication digest；log 运营方与 auditor 角色可与 did:webvh witness 运营方合并。实现声明该 profile 后，目录解析、identity receipt 或 principal control projection 必须给 verifier 足够的 inclusion / consistency proof 来确认其看到的 key material 与 log head 一致；缺 proof 时，高风险 key material 使用路径 MUST fail closed。
+> **`ak.profile.key_transparency.v1` 覆盖范围（informative）**：上述 log-backed witness 覆盖 `did:webvh` cache entry / witness evidence；`ak.profile.key_transparency.v1` 进一步覆盖 principal control stream 内的 device key、cross-signing key 与 KeyPackage 发布，目标是检测"服务器对不同 verifier 出示不同 key 集合"的 key material split-view。该 profile 的最小映射为 principal label → cross-signing root + active device key set digest + KeyPackage publication digest；log 运营方与 auditor 角色可与 did:webvh witness 运营方合并。实现声明该 profile 后，目录解析、identity receipt 或 principal control projection 必须给 verifier 足够的 inclusion / consistency proof 来确认其看到的 key material 与 log head 一致；缺 proof 时，高风险 key material 使用路径 MUST fail closed。
 >
 > **为什么 fallback 是 "cache-only" 而不是 "did:web 等价行为"**(rationale):允许 fallback "退化为 `did:web` 等价行为(仅当前状态)" 实际等于默许 resolver 在 hosting 不可达时切换到 live `did:web` resolve。攻击模型:hosting domain 在 `did:webvh` 的 SCID hash chain 之上叠加 DNS/TLS 控制，如果只在 unreachable 时退化为 `did:web` live,等于把信任根**主动**从 method-history-sealed 降级到 DNS+TLS 当前状态——攻击者可以**故意**让 hosting 短暂不可达(BGP / CDN / DNS hijack 都可触发),迫使 resolver 切换到攻击者控制的 live document。Cache-only mode 关闭这条降级路径:即使 hosting 不可达,resolver 也只能从此前已 sealed 的 evidence 读取，无新信任根可被攻击者注入。`did:web` 作为 principal method 仅由部署侧主动选择(`personal_node`),不是 outage fallback。
 
@@ -235,7 +235,7 @@ artifact。
 
 - Service Describe 响应的 `trust_domain` 字段（所有 `*/describe` endpoint 返回同一 `ServiceDescribe` shape）；
 - Realm create object 的 `trust_domain` 字段（首次写入后 immutable，跟随 Realm create event 锁定）；
-- 任何跨域可重放的 high-risk proof transcript（例如 `ck.cross_signing.reset` 的 canonical input，见 [`../crypto-media/device-lifecycle.md` §14.1](../crypto-media/device-lifecycle.md)）。
+- 任何跨域可重放的 high-risk proof transcript（例如 `ak.cross_signing.reset` 的 canonical input，见 [`../crypto-media/device-lifecycle.md` §14.1](../crypto-media/device-lifecycle.md)）。
 
 约束：
 
@@ -450,7 +450,7 @@ Auth Server 在以下情况下 MUST NOT 接受 DID proof：
 - `issued_at` 晚于 Auth Server 当前时钟加 skew 容忍（即 proof 自称在未来签发）——此情况 MUST 拒绝，防止签发方把整个 `[issued_at, expires_at]` 窗口推到未来以延长可重放区间
 - DID 已停用或 method history 无效
 
-Conformance vector `ck.vector.identity.did_proof_replay_window.v1` 固定该 replay 边界：同一 challenge 第二次使用、跨 audience/origin 重放、`expires_at - issued_at > 300s`，以及 `issued_at` 超出接收端 skew 窗口的 proof 都必须 fail closed；服务端不得只靠签名正确性接受 DID proof。
+Conformance vector `ak.vector.identity.did_proof_replay_window.v1` 固定该 replay 边界：同一 challenge 第二次使用、跨 audience/origin 重放、`expires_at - issued_at > 300s`，以及 `issued_at` 超出接收端 skew 窗口的 proof 都必须 fail closed；服务端不得只靠签名正确性接受 DID proof。
 
 service account 绑定是组织本地状态。它不会把 DID 所有权转移给组织，也不会允许组织轮换、恢复或停用用户 DID，除非 DID 自身控制状态或 recovery policy 授权该动作。
 
@@ -587,10 +587,10 @@ Organization principal 是一个可控制的 DID principal，有 DID Document、
 
 组织 PCR genesis 只能由下列授权之一创建或接受：
 
-1. 组织 DID method inception / controller key 的证明，且证明绑定 `principal_control_realm_id`、`fields.purpose="principal_control"` 和 `ck.profile.principal_control_realm.v1`。
+1. 组织 DID method inception / controller key 的证明，且证明绑定 `principal_control_realm_id`、`fields.purpose="principal_control"` 和 `ak.profile.principal_control_realm.v1`。
 2. 组织 DID Document / governance profile 显式委派的 Account Authority 或 `ArkretGovernanceService`，其 delegation purpose MUST 覆盖 `principal_control_realm_bootstrap`，事件 MUST 记录实际执行主体（例如 `executed_by` 或组织侧 governance decision id），且接收方必须按事件时间解析该 delegation。
 
-OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证；它本身不是组织 DID 控制证明。Account Authority MAY 在验证企业 IdP 结果后为该自然人签发 `ak.session.grant`，也 MAY 按组织治理策略触发组织 DID / PCR 的托管创建流程；但最终写入组织 PCR、组织 DID delegation 或 `ck.realm.organization` 的事件仍 MUST 绑定组织授权证据。客户端和服务器 MUST NOT 把 IdP 的 `sub`、域名归属、租户管理员 UI 或 Auth-side session 直接等同为 Organization principal 控制权。
+OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证；它本身不是组织 DID 控制证明。Account Authority MAY 在验证企业 IdP 结果后为该自然人签发 `ak.session.grant`，也 MAY 按组织治理策略触发组织 DID / PCR 的托管创建流程；但最终写入组织 PCR、组织 DID delegation 或 `ak.realm.organization` 的事件仍 MUST 绑定组织授权证据。客户端和服务器 MUST NOT 把 IdP 的 `sub`、域名归属、租户管理员 UI 或 Auth-side session 直接等同为 Organization principal 控制权。
 
 #### 标准 service entry 类型
 
@@ -636,7 +636,7 @@ OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证�
 
 1. proposal 绑定 service DID、service endpoint、purpose、scope、plaintext visibility、validFrom / validUntil 和 revocation path。
 2. quorum proof 覆盖完整 proposal。
-3. DID Document service entry 或 Arkret `ck.realm.organization` / policy state 发布 delegation。
+3. DID Document service entry 或 Arkret `ak.realm.organization` / policy state 发布 delegation。
 4. 接收方在接受该 service 的事件、明文可见性或 federation transaction 前，验证 organization DID、quorum proof、service DID 控制权和 Realm policy。
 
 **Emergency recovery**：
@@ -681,7 +681,7 @@ OIDC / SSO / passkey 只能证明某个自然人或服务账号通过了认证�
 - RRK 的 HPKE 公钥 MUST 以标准 `verificationMethod`（`type=Multikey`）承载，并 MUST 同时被 `keyAgreement` 关系引用（它用于 encryption-to / 密钥协商）。`ArkretRealmHistoryRecoveryKey` service entry 的 `serviceEndpoint.verificationMethod` MUST 指向该 VM，`serviceEndpoint.domain` MUST 为 `mls_history`。
 - **域隔离（MUST）**：RRK MUST 独立于该主体 `did_recovery` 域的恢复钥匙（[`key-management.md` §7.1`](./key-management.md)）。同一把 key MUST NOT 既作 `did_recovery` 又作 `ArkretRealmHistoryRecoveryKey`；攻破"能解 Realm 历史"MUST NOT 等于"能改该主体身份"。
 - **引用校验**：Realm `durability_policy.recovery_recipients[].verification_method` MUST 等于某个 `principal_id` 当前 DID Document 中、被一条 active `ArkretRealmHistoryRecoveryKey` service entry 指定的 VM；解析不到、已撤销或未被该 service entry 指定时，封存方 MUST fail closed（`durability_recovery_recipient_unverified`），MUST NOT 回退到任意 key。
-- **轮换按时点解析**:RRK 轮换进入 DID method 可验证历史；receiver 复验历史 RRK 封存的 `ck.realm_key.share` 时 MUST 按封存 Event 的 accepted-at 对该主体 DID 做按时点解析，用当时 active 的 RRK 验证，与 §4.2 / [`key-management.md` §5.0.6`](./key-management.md) 的按时点解析纪律一致。
+- **轮换按时点解析**:RRK 轮换进入 DID method 可验证历史；receiver 复验历史 RRK 封存的 `ak.realm_key.share` 时 MUST 按封存 Event 的 accepted-at 对该主体 DID 做按时点解析，用当时 active 的 RRK 验证，与 §4.2 / [`key-management.md` §5.0.6`](./key-management.md) 的按时点解析纪律一致。
 - RRK 私钥的离线保管、门限拆分与释放走 [`key-management.md` §8`](./key-management.md) recovery policy（24 词 / threshold / hardware），subject 为该 principal、域为 history-recovery。
 
 ## 9. 验证规则

@@ -72,7 +72,7 @@ Blob 上传、媒体下载和二进制 stream MAY 使用其他 content type，�
 标准 `operation_id` 是跨 transport 的语义操作名，不是 HTTP method 的派生名。Operation ID MUST 使用可变长度前缀加固定末两段：
 
 ```text
-ck.<surface>.<domain-or-subject...>.<kind>.<action>
+ak.<surface>.<domain-or-subject...>.<kind>.<action>
 ```
 
 `<kind>` MUST 取下表固定集合。`<action>` 是该 kind 内的业务动作，MUST 描述协议效果，不得为表达 transport binding 而采用只描述传输、不描述协议效果的纯 HTTP method 名称 `post` / `put` / `patch`。`get` / `delete` 作为 `resource` kind 下的 canonical action，描述的是读取 / 删除这一**协议效果**（其 HTTP method 由 `kind` 钉死，见下表），不在此限。
@@ -94,9 +94,9 @@ ck.<surface>.<domain-or-subject...>.<kind>.<action>
 - `command.ack` 表示对已投递数据做显式确认；天然幂等，但不得被 cursor 推进隐式替代。
 - `query.scan_body` 只允许作为 HTTP-only companion binding，MUST 声明 `binding_variant_of` 指向同语义的 canonical `query.scan` operation；非 HTTP transport MUST 使用 canonical operation，不得把 body variant 暴露为独立能力。
 
-HTTP method 不是 operation action 的来源：同一 `query.scan` 语义可以有 GET query string 与 POST/body 两种 HTTP binding；这种情况必须标记为 binding variant，而不是发明新的协议操作。`ck.self.events.query.scan_body` 必须声明 `binding_variant_of="ak.self.events.query.scan"`，非 HTTP transport 仍使用 canonical `ck.self.events.query.scan`。
+HTTP method 不是 operation action 的来源：同一 `query.scan` 语义可以有 GET query string 与 POST/body 两种 HTTP binding；这种情况必须标记为 binding variant，而不是发明新的协议操作。`ak.self.events.query.scan_body` 必须声明 `binding_variant_of="ak.self.events.query.scan"`，非 HTTP transport 仍使用 canonical `ak.self.events.query.scan`。
 
-**`viewer` action（术语定义）**：`ck.self.account.query.viewer` 的含义钉死为：**当前已认证 holder 的主体自读投影**。目标不由 path / query 中的外部 id 定位，而由 holder-bound `user_session` 的会话绑定决定，故不建模为 `resource.get`；命名沿用 GraphQL 生态的 `viewer` 惯例（"viewer = 发起请求的已认证主体"）。它与 `query.describe`（服务能力元数据，可 pre-auth）的区分见 [`service-http-binding.md` §5.1](./service-http-binding.md)。注意区分本规范 prose 中 `viewer` 的另一用法：可见性 / 投影语境（pins、history visibility、conformance vector 的 `viewer_*` 字段）里的 "viewer" 指**正在读取内容、作为可见性评估视角的主体**，不是本 operation；`reviewer`（审核者）与两者均无关，全文检索 `viewer` 时勿混入。
+**`viewer` action（术语定义）**：`ak.self.account.query.viewer` 的含义钉死为：**当前已认证 holder 的主体自读投影**。目标不由 path / query 中的外部 id 定位，而由 holder-bound `user_session` 的会话绑定决定，故不建模为 `resource.get`；命名沿用 GraphQL 生态的 `viewer` 惯例（"viewer = 发起请求的已认证主体"）。它与 `query.describe`（服务能力元数据，可 pre-auth）的区分见 [`service-http-binding.md` §5.1](./service-http-binding.md)。注意区分本规范 prose 中 `viewer` 的另一用法：可见性 / 投影语境（pins、history visibility、conformance vector 的 `viewer_*` 字段）里的 "viewer" 指**正在读取内容、作为可见性评估视角的主体**，不是本 operation；`reviewer`（审核者）与两者均无关，全文检索 `viewer` 时勿混入。
 
 ### 2.5 HTTP method 语义
 
@@ -108,7 +108,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 - `DELETE`：删除一个已知 URI 表示的资源、binding 或 slot；重复删除必须有定义良好的幂等结果。
 - `PATCH`：仅在规范显式定义 patch document 语义、冲突检测和幂等边界时使用；否则 partial update 使用 `POST` command 或 `PUT` slot replacement。
 
-因此，`ck.self.device_messages.command.send` 表示“把 to-device message 批次放入目标设备短期队列”，HTTP binding 必须是 `POST /_arkret/self/device_messages`，并以 `(sender, Idempotency-Key)` 去重：该操作没有单个由 URI 标识、可完整替换的消息资源；队列删除只由 `ck.self.device_messages.command.ack` 触发。相反，`ck.self.keys.backups.resource.replace`、`ck.self.realm_policy_server.resource.replace`、`ck.self.account_data.resource.replace` 和 `ck.self.agent.participation.resource.replace` 都有 path 标识的单一 backup/config/slot，HTTP binding MUST 使用 `PUT`。
+因此，`ak.self.device_messages.command.send` 表示“把 to-device message 批次放入目标设备短期队列”，HTTP binding 必须是 `POST /_arkret/self/device_messages`，并以 `(sender, Idempotency-Key)` 去重：该操作没有单个由 URI 标识、可完整替换的消息资源；队列删除只由 `ak.self.device_messages.command.ack` 触发。相反，`ak.self.keys.backups.resource.replace`、`ak.self.realm_policy_server.resource.replace`、`ak.self.account_data.resource.replace` 和 `ak.self.agent.participation.resource.replace` 都有 path 标识的单一 backup/config/slot，HTTP binding MUST 使用 `PUT`。
 
 ## 3. 认证
 
@@ -135,13 +135,13 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 
 - 带有 `access_token`、`session_credential`、`api_key`、`auth`、`signature` 等 query 参数的受保护 endpoint 请求 MUST 被拒绝，除非对应 endpoint 明确把该字段定义为非认证业务参数。
 - 拒绝时 SHOULD 返回 `unauthenticated` 或 `invalid_param`，并且不得把 query 中的敏感值写入普通访问日志。
-- `ck.self.blob.command.presign` 是唯一标准 URL bearer 例外：它只能是单 blob、单用途、短时效、只读、可撤销的派生 token，不得等同于用户 session、API key 或长期 capability；完整约束见 [`../crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)。
+- `ak.self.blob.command.presign` 是唯一标准 URL bearer 例外：它只能是单 blob、单用途、短时效、只读、可撤销的派生 token，不得等同于用户 session、API key 或长期 capability；完整约束见 [`../crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)。
 - 第三方邀请的 `#token=` fragment 是客户端 handoff，不是服务端认证入口。服务端不会收到 fragment；客户端读取后 MUST 通过 body / signed proof 提交 claim，并按 [`third-party-invites.md` §3.2](./third-party-invites.md) 清理 URL 与本地状态。
 - online principal locator 的 `#token=` fragment 同样只是客户端 handoff。`locator_token` MUST 通过 `POST /_arkret/open/invite-locators/resolve` JSON body 提交；不得出现在 URL path 或 query string。详见 [`invite-addressing.md`](./invite-addressing.md)。
 
 ### 3.1 认证服务发现
 
-认证与授权服务器可以分离。Principal Server 的 `/_arkret/describe` MUST 公布 `auth_metadata.account_authority` 与 `auth_metadata.methods[]`。客户端先用 `account_authority.gate_account_base` 定位所有客户端可见的 Arkret `/_arkret/gate/account/*` 操作，再按 `methods[]` 中的标准 discovery 找认证 provider；规范明确标记为部署内部 S2S 的 account 子操作（例如 `ck.gate.account.command.logout_auth_session`）只能由 Account Authority 按对应契约调用，不能由客户端派生。不得把 OAuth/OIDC subject 当作 Arkret principal：
+认证与授权服务器可以分离。Principal Server 的 `/_arkret/describe` MUST 公布 `auth_metadata.account_authority` 与 `auth_metadata.methods[]`。客户端先用 `account_authority.gate_account_base` 定位所有客户端可见的 Arkret `/_arkret/gate/account/*` 操作，再按 `methods[]` 中的标准 discovery 找认证 provider；规范明确标记为部署内部 S2S 的 account 子操作（例如 `ak.gate.account.command.logout_auth_session`）只能由 Account Authority 按对应契约调用，不能由客户端派生。不得把 OAuth/OIDC subject 当作 Arkret principal：
 
 ```json
 {
@@ -216,7 +216,7 @@ Principal Server 对每次 `/_arkret/self/*` 请求 MUST 校验（任一项失�
 
 - **DPoP 签名**:DPoP proof JWT MUST 用该 grant 的 grant-binding(DPoP)key 签名，其公钥 JWK thumbprint（[RFC 7638](https://www.rfc-editor.org/rfc/rfc7638)）MUST 等于 grant 的 `cnf.jkt`(Principal Server 通过 session-grant 内省取得 `cnf_jkt`,见 §3.1 与下文)。
 - **DPoP 绑定声明**:`htm` MUST 等于请求方法、`htu` MUST 等于请求 URL、`ath` MUST 等于所出示 grant 的 hash;这些把该 proof 钉死到「本方法 + 本 URL + 本 grant」,防跨 endpoint / 跨 grant 复用。`htu` 比对遵循 [RFC 9449](https://www.rfc-editor.org/rfc/rfc9449) §4.3,先剥离 query 与 fragment 再比 scheme + authority + path。**authority 规范化**:`htu` 的 authority 是客户端看到的 gate origin;当 Principal Server 部署在重写 `Host` 的网关之后(上游 `Host` 可能被改写为内部源),实现 MUST 以网关记录的客户端可见 host(`X-Forwarded-Host` 首跳)为准比对 authority,仅在无任何可信 authority 头时回退到 path-only 绑定(同源直连部署)。
-- **grant active**:grant MUST 经 session-grant 内省判定 active(`ck.gate.account.command.introspect_session_grant`)。Principal Server **MAY** 缓存内省结果，但 TTL **SHOULD ≤ 120s**；对敏感操作 MUST 旁路缓存、强制重新内省(吊销生效上界即缓存 TTL，见 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md))。内省的 `proof` 字段是部署内部 S2S 的可选附加确认；默认 self-path 客户端只发送本节的 `Authorization` + `DPoP`，Principal Server MUST 依据内省返回的 `cnf_jkt` 在本地校验该请求的 DPoP，不得要求客户端再发送额外的 session-grant introspection proof header。
+- **grant active**:grant MUST 经 session-grant 内省判定 active(`ak.gate.account.command.introspect_session_grant`)。Principal Server **MAY** 缓存内省结果，但 TTL **SHOULD ≤ 120s**；对敏感操作 MUST 旁路缓存、强制重新内省(吊销生效上界即缓存 TTL，见 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md))。内省的 `proof` 字段是部署内部 S2S 的可选附加确认；默认 self-path 客户端只发送本节的 `Authorization` + `DPoP`，Principal Server MUST 依据内省返回的 `cnf_jkt` 在本地校验该请求的 DPoP，不得要求客户端再发送额外的 session-grant introspection proof header。
 - **audience**:grant 的 audience MUST 等于本 Principal Server 的 service DID。
 - **scope**:grant scope MUST 含 Principal Server 的 session.bind scope 与 device scope。
 - **principal / device 绑定**:grant 绑定的 principal / device MUST 与请求一致。
@@ -260,7 +260,7 @@ Principal Server 对每次 `/_arkret/self/*` 请求 MUST 校验（任一项失�
   "ok": false,
   "error": {
     "code": "capability_denied",
-    "message": "actor does not have ck.strand.update on this strand",
+    "message": "actor does not have ak.strand.update on this strand",
     "retry_after_ms": null,
     "details": {}
   },
@@ -286,7 +286,7 @@ Principal Server 对每次 `/_arkret/self/*` 请求 MUST 校验（任一项失�
 - 错误语义必须使用单一标准 code。若请求体过大使用 `payload_too_large` / 413；若配额策略拒绝使用 `quota_exceeded` / 403。
 - `stale_frontier` / 409 表示服务可用但本地因果前沿落后，客户端可等待或 backfill；服务故障、维护或无法追赶 frontier 时使用 `temporarily_unavailable` / 503 并 SHOULD 返回 `Retry-After`。
 - 格式错误的 cursor 使用 `invalid_param` / 400；格式正确但已过期的 cursor 使用 `cursor_expired` / 410。
-- `unsupported_feature` 用于 `Event.requirements.features[]` 与 `requirements.critical_extensions[]` 中出现该实现未声明支持的 feature 标识；`unsupported_event_kind` 用于该实现声明 profile 不接收的 active 标准 `ck.*` Event kind。二者不得互相替代。
+- `unsupported_feature` 用于 `Event.requirements.features[]` 与 `requirements.critical_extensions[]` 中出现该实现未声明支持的 feature 标识；`unsupported_event_kind` 用于该实现声明 profile 不接收的 active 标准 `ak.*` Event kind。二者不得互相替代。
 - `conflict` / 409 是抽象 base code；实现 SHOULD 返回 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json) 中 `http_status=409` 的更精确 code。本文不维护并行穷尽清单；示例包括 `cas_conflict`、`causal_conflict`、`dependency_missing`、`duplicate_conflict`、`stale_frontier`、`state_mismatch`。
 - 加密 envelope 相关 422 子 code（`aad_digest_mismatch` / `payload_digest_mismatch`）见 `crypto-media/encryption-and-audit.md` §2.3.4。
 
@@ -347,21 +347,21 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 
 | `purpose` | 用途 | 出现位置 |
 | --- | --- | --- |
-| `stream` | 增量同步 / 列表分页的位置承诺。回传方向取决于出现位置（见右列），并非任意位置都支持全部四向。 | **account 聚合流**：`/_arkret/self/account/subscribe` frame 的 `cursor` **仅**作为重连 `after=` 参数回传，是单向 catch-up 起点，**不支持** `before` / `prev_cursor`（account stream 不可反向，见 §7.0 与 [`client-sync.md`](./client-sync.md) §2 / §7.0）。**Realm timeline / 列表分页 / 查询**：`timeline.prev_cursor` / `next_cursor`、列表分页 `prev_cursor` / `next_cursor`、`ck.self.events.query.scan` 与 federation peer `ck.peer.events.query.scan`（`GET /_arkret/peer/events?before=<cursor>`）的 `before` / `after` 请求参数与 `prev_cursor` / `next_cursor` 响应字段——这些位置才支持 `before` / `prev_cursor` 反向延续。 |
+| `stream` | 增量同步 / 列表分页的位置承诺。回传方向取决于出现位置（见右列），并非任意位置都支持全部四向。 | **account 聚合流**：`/_arkret/self/account/subscribe` frame 的 `cursor` **仅**作为重连 `after=` 参数回传，是单向 catch-up 起点，**不支持** `before` / `prev_cursor`（account stream 不可反向，见 §7.0 与 [`client-sync.md`](./client-sync.md) §2 / §7.0）。**Realm timeline / 列表分页 / 查询**：`timeline.prev_cursor` / `next_cursor`、列表分页 `prev_cursor` / `next_cursor`、`ak.self.events.query.scan` 与 federation peer `ak.peer.events.query.scan`（`GET /_arkret/peer/events?before=<cursor>`）的 `before` / `after` 请求参数与 `prev_cursor` / `next_cursor` 响应字段——这些位置才支持 `before` / `prev_cursor` 反向延续。 |
 | `barrier` | 读己之所写（RYW）：要求 reader 在 frontier 覆盖某个具体 event 之前不返回结果。 | 写接口响应中的 `cursor` 字段、`X-Arkret-Wait-For` header。 |
 
 ### 7.0 `prev_cursor` / `next_cursor` 含义（绝对方向）
 
-任何返回 cursor 对的响应（`ck.self.events.query.scan`、列表分页等）使用统一的**绝对方向**约定；`/_arkret/self/account/subscribe` frame 只返回单个 account stream cursor,用于下一次 `after=` 重连：
+任何返回 cursor 对的响应（`ak.self.events.query.scan`、列表分页等）使用统一的**绝对方向**约定；`/_arkret/self/account/subscribe` frame 只返回单个 account stream cursor,用于下一次 `after=` 重连：
 
 | 响应字段 | 含义 | 回传给下一次请求 |
 | --- | --- | --- |
-| `prev_cursor` | 朝**更旧事件 / 更早历史**方向的延续位置 | `ck.self.events.query.scan` 的 `before=` 参数；分页 `before=<prev_cursor>` 取更旧一批 |
-| `next_cursor` | 朝**更新事件 / 更晚未来**方向的延续位置 | `ck.self.events.query.scan` 的 `after=` 参数；分页 `after=<next_cursor>` 取更新一批 |
+| `prev_cursor` | 朝**更旧事件 / 更早历史**方向的延续位置 | `ak.self.events.query.scan` 的 `before=` 参数；分页 `before=<prev_cursor>` 取更旧一批 |
+| `next_cursor` | 朝**更新事件 / 更晚未来**方向的延续位置 | `ak.self.events.query.scan` 的 `after=` 参数；分页 `after=<next_cursor>` 取更新一批 |
 
 绝对方向与请求时所用的参数（`before` / `after` / `order`）和 selector 无关；服务端 MUST 始终按上述含义填充。客户端因此**不**需要记录"上一次请求的 direction"才能正确解释响应 cursor。
 
-HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` 的 cursor 只可出现在 stream / pagination context（例如 `/_arkret/self/account/subscribe` 的 `after=`、`ck.self.events.query.scan` 的 `before` / `after`、响应 `prev_cursor` / `next_cursor`）；`purpose=barrier` 的 cursor 只可出现在 RYW barrier context（写接口响应中的 barrier `cursor` 字段、`X-Arkret-Wait-For` header，或 §7.2 列出的等价投影）。任一 context 收到不匹配的 `purpose` 时，服务端 MUST 返回 `invalid_param`。
+HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` 的 cursor 只可出现在 stream / pagination context（例如 `/_arkret/self/account/subscribe` 的 `after=`、`ak.self.events.query.scan` 的 `before` / `after`、响应 `prev_cursor` / `next_cursor`）；`purpose=barrier` 的 cursor 只可出现在 RYW barrier context（写接口响应中的 barrier `cursor` 字段、`X-Arkret-Wait-For` header，或 §7.2 列出的等价投影）。任一 context 收到不匹配的 `purpose` 时，服务端 MUST 返回 `invalid_param`。
 
 规则：
 
@@ -370,7 +370,7 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 - 同一字符串 cursor 在不同 issuing 服务间不可移植；跨服务复用 MUST `invalid_param`。
 - TTL 硬上限：barrier cursor 与 stream cursor 的 `expires_at - issued_at` 硬上限的**唯一 canonical 数值定义点**见 [`encoding.md` §8.3 规则 9](../conformance/encoding.md)；本节不重复字面毫秒数值。
 - 声明 `cursor_revoke_high_assurance` feature 的服务必须实现 [`client-sync.md` §12.2.1](./client-sync.md) 的 revocation set。已撤销但仍在 TTL 内的 cursor MUST 返回 `cursor_revoked`；完整性失败仍返回 `cursor_integrity_invalid`，不得泄露 revocation set。
-- 声明 `events_query_range_completeness` feature 的服务必须实现 [`service-http-binding.md` §3.3.6](./service-http-binding.md)：`ck.self.events.query.scan` 接受 `include_completeness=true` 并返回覆盖该页范围的 `ck.attestation.range_completeness` 引用。未声明该 feature 的服务 MUST 忽略 `include_completeness` 参数。
+- 声明 `events_query_range_completeness` feature 的服务必须实现 [`service-http-binding.md` §3.3.6](./service-http-binding.md)：`ak.self.events.query.scan` 接受 `include_completeness=true` 并返回覆盖该页范围的 `ak.attestation.range_completeness` 引用。未声明该 feature 的服务 MUST 忽略 `include_completeness` 参数。
 
 ### 7.1 列表分页（normative）
 
@@ -388,7 +388,7 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 - 优先使用资源复数名（`realms[]` / `strands[]` / `morphs[]` / `spaces[]` / `backups[]` / `notifications[]` / `messages[]` 等）；
 - 没有自然资源复数名时使用语义名：全文/混合实体搜索命中使用 `matches[]`，原始查询行使用 `rows[]`，private contact discovery 仍使用 `matches[]`；
 - **MUST NOT** 使用 `results[]` 作为返回字段名，避免与 Rust `Result` 语义和 SDK 类型命名冲突；
-- **MUST NOT** 使用通用占位 `items[]`，也不得使用 `events[]` 作为非 Event 数组的字段名（device_messages 与 account subscribe `to_device` 的 `messages[]` 例外见 `ck.self.device_messages.query.list` 与 `ck.self.account.stream.subscribe`）。
+- **MUST NOT** 使用通用占位 `items[]`，也不得使用 `events[]` 作为非 Event 数组的字段名（device_messages 与 account subscribe `to_device` 的 `messages[]` 例外见 `ak.self.device_messages.query.list` 与 `ak.self.account.stream.subscribe`）。
 
 **`next_cursor` / `has_more`** (normative)：
 - `next_cursor` 是 optional：缺省表示当前批次已经是末尾。
@@ -396,7 +396,7 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 
 **`prev_cursor`**（可选, 双向分页）：仅当接口支持向"更旧"方向翻页时返回。详见 §7.0；不支持双向翻页的接口 MUST NOT 返回 `prev_cursor`。
 
-**Cursor 方向参数** (`before` / `after`)：见 [`service-http-binding.md` §3.3](./service-http-binding.md) 与本文 §7.0。`before` / `after` 是绝对时间方向（朝更旧 / 朝更新），与响应 `prev_cursor` / `next_cursor` 形成一一对应；不应再引入 `from=` / `start_at=` 等同义别名。已有的 `ck.self.device_messages.query.list` `from?: cursor` 是历史例外，新增接口 MUST 用 `before` / `after`。
+**Cursor 方向参数** (`before` / `after`)：见 [`service-http-binding.md` §3.3](./service-http-binding.md) 与本文 §7.0。`before` / `after` 是绝对时间方向（朝更旧 / 朝更新），与响应 `prev_cursor` / `next_cursor` 形成一一对应；不应再引入 `from=` / `start_at=` 等同义别名。已有的 `ak.self.device_messages.query.list` `from?: cursor` 是历史例外，新增接口 MUST 用 `before` / `after`。
 
 服务端 MAY 对 `limit` 设置上限。超过上限时 SHOULD 使用最大允许值或返回 `invalid_param`。
 
@@ -492,7 +492,7 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 
 ## 11. 版本与 feature discovery
 
-**path 不含版本段。** 所有 HTTP path 都是 `/_arkret/<信任段>/...` 形态的绝对路径，URL 只编码信任拓扑，版本是元数据，绝不放进 path（不存在 `/v1/`、`/api/v1`、`/arkret/v1`）。契约版本的唯一真相源是 `contract-catalog.json` 与 `protocol_version`（固定 `"1.0"`）；wire 级版本由 schema id（`ck.schema.*.v1`）和 event kind 版本后缀承载。
+**path 不含版本段。** 所有 HTTP path 都是 `/_arkret/<信任段>/...` 形态的绝对路径，URL 只编码信任拓扑，版本是元数据，绝不放进 path（不存在 `/v1/`、`/api/v1`、`/arkret/v1`）。契约版本的唯一真相源是 `contract-catalog.json` 与 `protocol_version`（固定 `"1.0"`）；wire 级版本由 schema id（`ak.schema.*.v1`）和 event kind 版本后缀承载。
 
 版本与能力发现走 **`*.describe` 协商**：调用方 MUST 用 `describe.supported_operations` / `supported_profiles`（而非 path 里写死的版本）判断对端支持什么。破坏性变更通过新增 event kind / schema id + `renames.json` 的 `hard_reject` + `forbidden-wire-fields` + profile gating + [`CHANGELOG.md`](../../CHANGELOG.md) 发布门槛承载，从不发生"整面切 v2"。如确需在传输层标注协议版本，用请求/响应 header（`Arkret-Protocol-Version: 1.0`）或 media-type 参数做 content negotiation，**绝不放 path**。
 

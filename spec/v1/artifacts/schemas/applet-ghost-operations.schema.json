@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/applet-ghost-operations.schema.json",
   "title": "Arkret Applet Ghost Actor Operation DTOs",
-  "description": "Closed request/response DTOs for ck.self.applet.ghost.command.provision. An installed Applet service / bridge asks the Principal Server to provision (or idempotently re-validate) an Applet-managed Ghost Actor profile plus accountability grant for one external user. The server MUST re-check applet_id / service_did / realm_id / ghost namespace against the active registration before minting anything.",
+  "description": "Closed request/response DTOs for ak.self.applet.ghost.command.provision. An installed Applet service / bridge asks the Principal Server to provision (or idempotently re-validate) an Applet-managed Ghost Actor profile plus accountability grant for one external user. The server MUST re-check applet_id / service_did / realm_id / ghost namespace against the active registration before minting anything.",
   "oneOf": [
     {
       "$ref": "#/$defs/ghost_actor_provision_request_body"
@@ -41,7 +41,7 @@
     },
     "ghost_actor_provision_request_body": {
       "type": "object",
-      "description": "Request body for ck.self.applet.ghost.command.provision. ghost_actor_id MUST fall inside the actor namespace declared by the applet_id registration; protocol / tenant / external_user_id identify the external principal being mirrored.",
+      "description": "Request body for ak.self.applet.ghost.command.provision. ghost_actor_id MUST fall inside the actor namespace declared by the applet_id registration; protocol / tenant / external_user_id identify the external principal being mirrored.",
       "required": [
         "schema",
         "applet_id",
@@ -90,7 +90,7 @@
     },
     "ghost_actor_provision_outcome": {
       "type": "object",
-      "description": "Response for ck.self.applet.ghost.command.provision. Carries the durable event refs the Principal Server minted (or re-confirmed on idempotent re-provision): the Ghost Actor ck.profile.create ref and the ck.identity.accountability_grant ref, the latter also surfaced as the authorization_ref the bridge MUST place on subsequent ghost-authored Event Envelopes.",
+      "description": "Response for ak.self.applet.ghost.command.provision. Carries the durable event refs the Principal Server minted (or re-confirmed on idempotent re-provision): the Ghost Actor ak.profile.create ref and the ak.identity.accountability_grant ref, the latter also surfaced as the authorization_ref the bridge MUST place on subsequent ghost-authored Event Envelopes.",
       "required": [
         "ghost_actor_id",
         "profile_event_ref",

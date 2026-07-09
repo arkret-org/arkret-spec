@@ -26,7 +26,7 @@ Arkret 支持音频通话、视频通话、屏幕共享和多人会议。实时�
 相邻规范：
 
 - 媒体服务发现、token / participant binding 兑换、focus 选举、SFU 权限、媒体 E2EE 帧密钥注入与治理绑定，见 [`media-service-binding.md`](./media-service-binding.md)。
-- 通话模型与状态机、durable `ck.call.state` 字段语义、录制 / 转写生命周期，见 [`call-state.md`](./call-state.md)。
+- 通话模型与状态机、durable `ak.call.state` 字段语义、录制 / 转写生命周期，见 [`call-state.md`](./call-state.md)。
 
 ## 2. 设计原则
 
@@ -51,30 +51,30 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 
 ## 3. 权限模型
 
-标准 actions（canonical 命名以 capability registry / `contract-catalog.json` 为唯一真源；正文与实现 MUST 使用带 `ck.` 前缀的形态，MUST NOT 接受裸 `call.*` 名）：
+标准 actions（canonical 命名以 capability registry / `contract-catalog.json` 为唯一真源；正文与实现 MUST 使用带 `ak.` 前缀的形态，MUST NOT 接受裸 `call.*` 名）：
 
-- `ck.call.join` —— 加入并发起 call。v1 不注册独立的 `call.start`：call 的发起由首个具备 `ck.call.join` 的 actor 写入首个 `ck.call.state` 完成。
-- `ck.call.signal.send` —— 发送 call signaling frame，含邀请（`ck.call.signal{kind=invite}`）。v1 不注册独立的 `call.invite`，邀请通过该 signaling action 表达。
-- `ck.call.screen_share`
-- `ck.call.record`
-- `ck.call.transcribe`
-- `ck.call.moderate` —— 主持 / 管理操作，含对全体结束 call。v1 不注册独立的 `call.end_for_all`，end-for-all 由 `ck.call.moderate` 授权。
-- `ck.realm.media_service`
+- `ak.call.join` —— 加入并发起 call。v1 不注册独立的 `call.start`：call 的发起由首个具备 `ak.call.join` 的 actor 写入首个 `ak.call.state` 完成。
+- `ak.call.signal.send` —— 发送 call signaling frame，含邀请（`ak.call.signal{kind=invite}`）。v1 不注册独立的 `call.invite`，邀请通过该 signaling action 表达。
+- `ak.call.screen_share`
+- `ak.call.record`
+- `ak.call.transcribe`
+- `ak.call.moderate` —— 主持 / 管理操作，含对全体结束 call。v1 不注册独立的 `call.end_for_all`，end-for-all 由 `ak.call.moderate` 授权。
+- `ak.realm.media_service`
 
 默认规则：
 
-- Realm 成员不自动拥有 `ck.call.record`。
-- `ck.call.screen_share` SHOULD 独立授权。
-- `ck.realm.media_service` 只应授予管理员或受信服务。
-- Actor 加入 call 的资格 MUST 按分层 predicate 校验，不得依赖泛化口语状态（如笼统的「被 ban / suspended」）：(a) 在目标 `realm_id` 的 Realm membership 必须为 `join`；(b) 若 call scoped 到某 Circle，该 actor 还必须是该 Circle 的活跃成员；(c) account lifecycle status MUST NOT 为 `suspended` / `deactivated` / `erasure_pending`；(d) 发起设备的 device grant MUST NOT 被 revoked，且其 `ck.call.join` capability grant 未被 revoke。任一条不满足 MUST NOT 加入。
+- Realm 成员不自动拥有 `ak.call.record`。
+- `ak.call.screen_share` SHOULD 独立授权。
+- `ak.realm.media_service` 只应授予管理员或受信服务。
+- Actor 加入 call 的资格 MUST 按分层 predicate 校验，不得依赖泛化口语状态（如笼统的「被 ban / suspended」）：(a) 在目标 `realm_id` 的 Realm membership 必须为 `join`；(b) 若 call scoped 到某 Circle，该 actor 还必须是该 Circle 的活跃成员；(c) account lifecycle status MUST NOT 为 `suspended` / `deactivated` / `erasure_pending`；(d) 发起设备的 device grant MUST NOT 被 revoked，且其 `ak.call.join` capability grant 未被 revoke。任一条不满足 MUST NOT 加入。
 - `signal_type=invite` 还 MUST 通过 [`identity/consent-model.md` §6.2](../identity/consent-model.md) 的 `voice_call` / `video_call` consent gate；服务端投递、目标客户端响铃 UI 与 media token 签发都不得仅信任发起方 preflight。
 - 外部 guest 加入必须通过 invite 或 meeting-specific guest grant。
 
 ### 3a. 主持 / 审核（kick / ban / end-for-all / force-mute，normative）
 
-主持操作统一由 `ck.call.moderate` capability 授权(§3)。无该 capability 的 actor 发出任一主持信令 / 写任一主持字段，接收方与 reducer MUST 拒绝，错误码 `call_moderation_unauthorised`。
+主持操作统一由 `ak.call.moderate` capability 授权(§3)。无该 capability 的 actor 发出任一主持信令 / 写任一主持字段，接收方与 reducer MUST 拒绝，错误码 `call_moderation_unauthorised`。
 
-主持动作通过 `ck.call.signal{signal_type=moderation}` 或 §6.1 的 `mute_state{by=moderator}` 表达瞬时控制，并在 durable `ck.call.state` 留痕：kick / ban 写入 `removed_participants[]`，end-for-all 写入终态 `state="ended"`，force-mute 写入 `participant_mute_overrides[]`。`moderation` payload `data` 形态:
+主持动作通过 `ak.call.signal{signal_type=moderation}` 或 §6.1 的 `mute_state{by=moderator}` 表达瞬时控制，并在 durable `ak.call.state` 留痕：kick / ban 写入 `removed_participants[]`，end-for-all 写入终态 `state="ended"`，force-mute 写入 `participant_mute_overrides[]`。`moderation` payload `data` 形态:
 
 ```json
 {
@@ -90,17 +90,17 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 }
 ```
 
-- `action` MUST 为 `kick` / `ban` / `end_for_all` 之一。强制静音走 §6.1 的 `mute_state{by=moderator}`，不复用本信令，但同样 MUST 由 `ck.call.moderate` 授权并落 `participant_mute_overrides[]`。
+- `action` MUST 为 `kick` / `ban` / `end_for_all` 之一。强制静音走 §6.1 的 `mute_state{by=moderator}`，不复用本信令，但同样 MUST 由 `ak.call.moderate` 授权并落 `participant_mute_overrides[]`。
 - `kick`:移除某 `(target_actor_id, target_device_id)` 的当前 call leg。被点名设备收到后 MUST 立即拆除媒体并退出；SFU 部署中 backend 同时按 token issuer 通知断开该 `participant_identity`。kick 不阻止该 actor 重新发起 join。
 - `ban`:移除某 `target_actor_id`(其全部设备)并在本通话生命周期内禁止其重新加入。被 ban 的 actor 重新兑换 join token 时，token issuer MUST 拒绝 `call_participant_removed`。
-- `end_for_all`:对全体结束通话。它由 `ck.call.moderate` 授权(v1 不注册独立的 `call.end_for_all`)，并 MUST 紧随一条把 `ck.call.state.state` 写入终态 `ended` 的 durable event；收到的客户端 MUST 全部挂断。
-- kick / ban MUST 在 `ck.call.state.removed_participants[]` 留痕(每项 `{ actor_id, device_id?, action, removed_at }`;`ban` 省略 `device_id` 表示按 actor 维度)。token issuer 与 SFU 在签发 / 接纳 participant 前 MUST 校验目标不在 `removed_participants[]` 的 ban 集合内，违反 `call_participant_removed`。
-- force-mute MUST 在 `ck.call.state.participant_mute_overrides[]` 留下当前覆盖集；token issuer 与 SFU 在签发 / 刷新 / 接纳 participant send permission 前 MUST 应用该覆盖集，禁止被静音 track 继续上行。客户端本地强制静音只是 UX 镜像，MUST NOT 是唯一 enforcement。
-- 所有主持信令受 §5 的 `seq` 单调性防回滚；`moderation` 帧 MUST 由具备 `ck.call.moderate` 的 actor 签名。
+- `end_for_all`:对全体结束通话。它由 `ak.call.moderate` 授权(v1 不注册独立的 `call.end_for_all`)，并 MUST 紧随一条把 `ak.call.state.state` 写入终态 `ended` 的 durable event；收到的客户端 MUST 全部挂断。
+- kick / ban MUST 在 `ak.call.state.removed_participants[]` 留痕(每项 `{ actor_id, device_id?, action, removed_at }`;`ban` 省略 `device_id` 表示按 actor 维度)。token issuer 与 SFU 在签发 / 接纳 participant 前 MUST 校验目标不在 `removed_participants[]` 的 ban 集合内，违反 `call_participant_removed`。
+- force-mute MUST 在 `ak.call.state.participant_mute_overrides[]` 留下当前覆盖集；token issuer 与 SFU 在签发 / 刷新 / 接纳 participant send permission 前 MUST 应用该覆盖集，禁止被静音 track 继续上行。客户端本地强制静音只是 UX 镜像，MUST NOT 是唯一 enforcement。
+- 所有主持信令受 §5 的 `seq` 单调性防回滚；`moderation` 帧 MUST 由具备 `ak.call.moderate` 的 actor 签名。
 
 ## 4. ICE Server Discovery
 
-客户端通过 Realm policy、service discovery 或 media service 获取 ICE servers。媒体服务本身的 multi-focus 声明（`ck.realm.media_service`）见 [`media-service-binding.md` §2](./media-service-binding.md)。
+客户端通过 Realm policy、service discovery 或 media service 获取 ICE servers。媒体服务本身的 multi-focus 声明（`ak.realm.media_service`）见 [`media-service-binding.md` §2](./media-service-binding.md)。
 
 ### 4.1 ICE Config Endpoint
 
@@ -114,7 +114,7 @@ Content-Type: application/json
 
 请求 schema 见 [`media-operations.schema.json#/$defs/media_ice_config_request_body`](../../artifacts/schemas/media-operations.schema.json)。字段语义如下：
 
-客户端调用 `ice_config_endpoint` 前 MUST 读取当前 `ck.realm.media_service` state event，并校验该 event 被当前 epoch MLS governance binding 覆盖（见 [`media-service-binding.md` §2.1](./media-service-binding.md)）。覆盖校验失败 MUST fail closed(`media_service_binding_uncovered`)，不得向该 endpoint 请求 ICE/TURN credential。
+客户端调用 `ice_config_endpoint` 前 MUST 读取当前 `ak.realm.media_service` state event，并校验该 event 被当前 epoch MLS governance binding 覆盖（见 [`media-service-binding.md` §2.1](./media-service-binding.md)）。覆盖校验失败 MUST fail closed(`media_service_binding_uncovered`)，不得向该 endpoint 请求 ICE/TURN credential。
 
 **凭证缓存与日志脱敏（normative）**：ICE config 响应体携带短期 TURN `credential` / `username`（bearer 性质）。`POST /_arkret/self/rtc/ice-config` 响应 MUST 携带 `Cache-Control: private, no-store`；服务端 MUST NOT 在 access log / metrics / tracing 中记录响应体中的 `credential` 与 `username` 原文，客户端 MUST NOT 把 TURN credential 持久化到普通日志 / 浏览器历史 / analytics。这与 blob presign bearer URL（[`media-and-blob.md` §5.4.3](./media-and-blob.md)）同级:虽然媒体帧另有 SFrame E2EE 且 credential 短时效 per-call，被缓存 / 落日志的 credential 在 TTL 窗口内仍可被取用以滥用 TURN 中继资源。
 
@@ -125,7 +125,7 @@ Content-Type: application/json
 | `call_id` | body | `id` | required | 通话 ID。 |
 | `actor_id` | body | `did` | required | 请求 ICE 配置的 Actor。 |
 | `device_id` | body | `id` | required | 请求设备。 |
-| `mode` | body | `enum(p2p,sfu,turn)` | required | **传输模式请求**，与 [`call-state.md` §2](./call-state.md) 的会议拓扑 `call_mode`（`{p2p,mesh,sfu,mcu}`）**不是同一枚举、不是同一概念**：本字段表达"客户端希望服务端为本次 ICE 协商返回何种传输面凭证"，`call_mode` 表达"整通会议在 §2 模型下的拓扑形态"。二者同名值（`p2p` / `sfu`）只是巧合，MUST NOT 互相推导或混用。各取值语义：`p2p` = 请求直连 / srflx candidate 优先的对等传输；`sfu` = 请求接入 SFU focus 所需的 ICE/TURN 凭证；`turn` = 请求纯 TURN 中继传输（强制经 TURN server 转发，不暴露 host/srflx candidate，等价于 `force_turn=true` 的传输诉求，用于高隐私 / 受限网络）。本字段不决定也不改写 `ck.call.state.mode`；会议拓扑的权威值始终是 `call-state.md` 的 `call_mode`。**call_mode → 传输 mode 映射（normative）**：`call_mode=mesh` 的各对等腿请求 `mode=p2p`（或受限网络下 `mode=turn`）；`call_mode=mcu` 与 `call_mode=sfu` 均请求 `mode=sfu`（接入 focus 的 ICE/TURN 凭证；纯中继诉求用 `mode=turn`）。即 `mesh` 映射到对等传输、`mcu`/`sfu` 映射到 focus 传输，不存在未覆盖的拓扑→传输空白。 |
+| `mode` | body | `enum(p2p,sfu,turn)` | required | **传输模式请求**，与 [`call-state.md` §2](./call-state.md) 的会议拓扑 `call_mode`（`{p2p,mesh,sfu,mcu}`）**不是同一枚举、不是同一概念**：本字段表达"客户端希望服务端为本次 ICE 协商返回何种传输面凭证"，`call_mode` 表达"整通会议在 §2 模型下的拓扑形态"。二者同名值（`p2p` / `sfu`）只是巧合，MUST NOT 互相推导或混用。各取值语义：`p2p` = 请求直连 / srflx candidate 优先的对等传输；`sfu` = 请求接入 SFU focus 所需的 ICE/TURN 凭证；`turn` = 请求纯 TURN 中继传输（强制经 TURN server 转发，不暴露 host/srflx candidate，等价于 `force_turn=true` 的传输诉求，用于高隐私 / 受限网络）。本字段不决定也不改写 `ak.call.state.mode`；会议拓扑的权威值始终是 `call-state.md` 的 `call_mode`。**call_mode → 传输 mode 映射（normative）**：`call_mode=mesh` 的各对等腿请求 `mode=p2p`（或受限网络下 `mode=turn`）；`call_mode=mcu` 与 `call_mode=sfu` 均请求 `mode=sfu`（接入 focus 的 ICE/TURN 凭证；纯中继诉求用 `mode=turn`）。即 `mesh` 映射到对等传输、`mcu`/`sfu` 映射到 focus 传输，不存在未覆盖的拓扑→传输空白。 |
 
 请求示例（非完整 schema）：
 
@@ -139,7 +139,7 @@ Content-Type: application/json
 }
 ```
 
-响应字段（schema 见 [`ice-config-response.schema.json`](../../artifacts/schemas/ice-config-response.schema.json)，schema id `ck.schema.ice_config_response.v1`）：
+响应字段（schema 见 [`ice-config-response.schema.json`](../../artifacts/schemas/ice-config-response.schema.json)，schema id `ak.schema.ice_config_response.v1`）：
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
@@ -226,8 +226,8 @@ Content-Type: application/json
       canonical_json(<ICE config response 去除 `signature` 字段后的权威对象>)
     ```
 
-    第一段是固定 ASCII 域分隔 label（逐字节等于 `ck.media.ice_config.v1`），随后单字节 `0x00` 分隔，再接去掉 `signature` 自身后的响应对象的 canonical JSON（RFC 8785 JCS：键按字母序、无多余空白，故字段书写顺序无关）。该 label MUST 与 [`media-service-binding.md` §3.1](./media-service-binding.md) 媒体签名 domain label 分离表登记的常量逐字节一致，且 MUST 区别于 `ck.media.participant_binding.v1`——这把 ICE config 签名与 participant binding 签名隔离，防止同一 issuer key 的签名被跨用途重解释。任何 media service MUST 按此构造，任何客户端 MUST 按此验签；实现 MUST NOT 引入私有 domain 前缀，也 MUST NOT 复用 participant_binding label。
-  - `signature.signature_input` MUST 显式携带该固定 label（`ck.media.ice_config.v1`），`signature.payload_digest` MUST 等于 `sha256:` + SHA-256(canonical_json(响应对象去除顶层 `signature` 字段))。这两个字段用于调试、审计与跨实现互操作校验；它们不改变上面的签名字节定义，验签时仍只把顶层 `signature` 字段整体移除。
+    第一段是固定 ASCII 域分隔 label（逐字节等于 `ak.media.ice_config.v1`），随后单字节 `0x00` 分隔，再接去掉 `signature` 自身后的响应对象的 canonical JSON（RFC 8785 JCS：键按字母序、无多余空白，故字段书写顺序无关）。该 label MUST 与 [`media-service-binding.md` §3.1](./media-service-binding.md) 媒体签名 domain label 分离表登记的常量逐字节一致，且 MUST 区别于 `ak.media.participant_binding.v1`——这把 ICE config 签名与 participant binding 签名隔离，防止同一 issuer key 的签名被跨用途重解释。任何 media service MUST 按此构造，任何客户端 MUST 按此验签；实现 MUST NOT 引入私有 domain 前缀，也 MUST NOT 复用 participant_binding label。
+  - `signature.signature_input` MUST 显式携带该固定 label（`ak.media.ice_config.v1`），`signature.payload_digest` MUST 等于 `sha256:` + SHA-256(canonical_json(响应对象去除顶层 `signature` 字段))。这两个字段用于调试、审计与跨实现互操作校验；它们不改变上面的签名字节定义，验签时仍只把顶层 `signature` 字段整体移除。
 - 客户端 MUST 尊重 `ttl_seconds`，过期后重新获取。
 - 高隐私 Realm MAY 设置 `force_turn=true`，禁止 host/srflx candidate 泄露本地或公网 IP。
 
@@ -239,7 +239,7 @@ Content-Type: application/json
 | --- | --- |
 | 当前剩余有效期 ≤ `max(ttl_seconds * 0.25, refresh_lead_seconds)`（响应中携带的 `refresh_lead_seconds` 为权威阈值；由于 §4.1 规定 `refresh_lead_seconds < ttl_seconds`，该阈值始终在 TTL 窗口内，不会触发签发即刷新的风暴) | 在不中断通话的情况下重新调用 ICE config endpoint，获取新一组 `ice_servers[]` 与 credential。 |
 | ICE agent 报告 TURN allocation refresh 失败、收到 `441 Wrong Credentials`、`438 Stale Nonce` 或等价错误 | 立即调用 ICE config endpoint，并对受影响 candidate 触发 ICE restart（`signaling.payload.signal_type = renegotiate`）。 |
-| ICE config endpoint 返回 `turn_credential_expired` | 客户端按服务器返回的 `next_retry_at` / `Retry-After` 退避；超过 30 秒仍无新 credential 时通过 `ck.call.signal` 发出 `error` payload 并以 graceful hangup 收尾。 |
+| ICE config endpoint 返回 `turn_credential_expired` | 客户端按服务器返回的 `next_retry_at` / `Retry-After` 退避；超过 30 秒仍无新 credential 时通过 `ak.call.signal` 发出 `error` payload 并以 graceful hangup 收尾。 |
 
 新 credential 应用规则：
 
@@ -256,7 +256,7 @@ Content-Type: application/json
 
 ## 5. Signaling Envelope
 
-所有 call signaling frame 使用 `ck.schema.ephemeral_envelope.v1` 的 broadcast envelope；`ck.call.signal` 分支 MUST 携带 `device_id` 与 `proof`，并在 `payload` 中携带 call 级字段：
+所有 call signaling frame 使用 `ak.schema.ephemeral_envelope.v1` 的 broadcast envelope；`ak.call.signal` 分支 MUST 携带 `device_id` 与 `proof`，并在 `payload` 中携带 call 级字段：
 
 ```json schema=schemas/ephemeral-envelope.schema.json
 {
@@ -285,7 +285,7 @@ Content-Type: application/json
 
 ### 5.1 Envelope proof（normative）
 
-`ck.call.signal` 的 `proof` 是 detached-JWS，**形态与持久 Event proof 同构**（[`../models/event-and-patch.md` §3](../models/event-and-patch.md) 与 `event-envelope.schema.json` 的 `$defs/event_proof`）：字段为 `kind` = `detached_jws`、`alg`(默认 `EdDSA`)、`verification_method`、`event_digest`、`created_at`、`jws`，schema 见 [`ephemeral-envelope.schema.json`](../../artifacts/schemas/ephemeral-envelope.schema.json) 的 `$defs/ephemeral_proof`。
+`ak.call.signal` 的 `proof` 是 detached-JWS，**形态与持久 Event proof 同构**（[`../models/event-and-patch.md` §3](../models/event-and-patch.md) 与 `event-envelope.schema.json` 的 `$defs/event_proof`）：字段为 `kind` = `detached_jws`、`alg`(默认 `EdDSA`)、`verification_method`、`event_digest`、`created_at`、`jws`，schema 见 [`ephemeral-envelope.schema.json`](../../artifacts/schemas/ephemeral-envelope.schema.json) 的 `$defs/ephemeral_proof`。
 
 - `verification_method` MUST 是 `` `{actor_id}#{device_id}` `` 形式的 DID URL，fragment 是完整 `ak:device:<uuidv7>`；其 controller DID(去 fragment / query 后)MUST 与 envelope `actor_id` 逐字节相等。
 - `event_digest` MUST 等价于 `canonical_digest(envelope_without_proof)`：对**移除 `proof` 字段后**的整个 ephemeral envelope(`kind`、`realm_id`、`actor_id`、`device_id`、`sent_at`、`expires_at`、`payload`)按 RFC 8785 JCS（canonical JSON，见 [`../conformance/encoding.md`](../conformance/encoding.md)）序列化后取 hash，前缀算法名(如 `sha256:`)。
@@ -327,7 +327,7 @@ Content-Type: application/json
 
 ## 6. 一对一通话
 
-以下示例给出 `ck.call.signal` 信令的 `payload` 对象（外层 ephemeral envelope 形态见 §5；`payload` 的封闭字段为 `call_id` / `signal_type` / `seq` / `data`，信令种类由 `payload.signal_type` 选择，取值见 §5）。
+以下示例给出 `ak.call.signal` 信令的 `payload` 对象（外层 ephemeral envelope 形态见 §5；`payload` 的封闭字段为 `call_id` / `signal_type` / `seq` / `data`，信令种类由 `payload.signal_type` 选择，取值见 §5）。
 
 Invite payload:
 
@@ -440,7 +440,7 @@ Candidate payload:
 ```
 
 - `audio_muted` / `video_muted` 为 boolean，required。
-- `by` MUST 为 `self` 或 `moderator`。`by=moderator` MUST 由具备 `ck.call.moderate`（§3）的 actor 发出，并 MUST 携带 `target_actor_id` 与 `target_device_id` 指明被静音方；同一主持操作还 MUST 写入 durable `ck.call.state.participant_mute_overrides[]`，并由 SFU / token issuer 收紧该 call leg 的 audio/video send permission。被静音客户端收到后 MUST 本地强制静音并向用户显示来源；若客户端拒不配合，服务端媒体权限仍必须阻断其继续推送被静音 track。`by=self` 时 MUST NOT 携带 `target_*` 字段，且不写 `participant_mute_overrides[]`。
+- `by` MUST 为 `self` 或 `moderator`。`by=moderator` MUST 由具备 `ak.call.moderate`（§3）的 actor 发出，并 MUST 携带 `target_actor_id` 与 `target_device_id` 指明被静音方；同一主持操作还 MUST 写入 durable `ak.call.state.participant_mute_overrides[]`，并由 SFU / token issuer 收紧该 call leg 的 audio/video send permission。被静音客户端收到后 MUST 本地强制静音并向用户显示来源；若客户端拒不配合，服务端媒体权限仍必须阻断其继续推送被静音 track。`by=self` 时 MUST NOT 携带 `target_*` 字段，且不写 `participant_mute_overrides[]`。
 
 ```json
 {
@@ -481,10 +481,10 @@ Candidate payload:
 
 规则：
 
-- `answer` signaling frame 只是候选应答，不是 winner 真相。winner 必须由接收方的 call admission / media token issuer 写入并接受一条 durable `ck.call.state` participant entry 后才成立；只有该 winner 设备能获得 `participant_binding` 与 media send/receive token。
-- Admission service MUST 按 `(call_id, actor_id)` 串行化 accepted participant entry：若当前 accepted `ck.call.state.participants[]` 已存在同一 actor 的 active call leg，后续 answer MUST 拒绝 `call_already_answered`，并要求该设备停止响铃。
+- `answer` signaling frame 只是候选应答，不是 winner 真相。winner 必须由接收方的 call admission / media token issuer 写入并接受一条 durable `ak.call.state` participant entry 后才成立；只有该 winner 设备能获得 `participant_binding` 与 media send/receive token。
+- Admission service MUST 按 `(call_id, actor_id)` 串行化 accepted participant entry：若当前 accepted `ak.call.state.participants[]` 已存在同一 actor 的 active call leg，后续 answer MUST 拒绝 `call_already_answered`，并要求该设备停止响铃。
 - 若同一 actor 的多个设备基于同一 prior call-state basis 并发 answer，reducer / admission service MUST 使用确定性 tiebreak，而不是本地接收顺序：按 `(device_id, proof.event_digest)` 字典序最小的候选成为唯一 winner；其它候选返回 `call_already_answered` 或发送 `reject{reason="call_already_answered"}`。该 tiebreak 只处理真正并发 sibling；非并发场景仍由已 accepted durable participant entry 吸收后续请求。
-- 发起端、其它接收端与 SFU MUST 以 accepted `ck.call.state.participants[]` 中的 participant entry 为权威，停止同 actor 其它设备的 ringing / offer-answer 流程；它们 MUST NOT 因先收到某个通过签名验证的 answer 就本地承认 winner。
+- 发起端、其它接收端与 SFU MUST 以 accepted `ak.call.state.participants[]` 中的 participant entry 为权威，停止同 actor 其它设备的 ringing / offer-answer 流程；它们 MUST NOT 因先收到某个通过签名验证的 answer 就本地承认 winner。
 - 被拒绝或超时的设备 SHOULD 发送 `reject`，reason 为 `call_already_answered` 或 `timeout`，但拒绝帧本身不改变 durable winner。
 
 ## 8. 屏幕共享
@@ -511,13 +511,13 @@ Candidate payload:
 
 规则：
 
-- 需要 `ck.call.screen_share` capability。
+- 需要 `ak.call.screen_share` capability。
 - 客户端 MUST 在本地展示正在共享状态。
-- 会议主持人 MAY 使用 `ck.call.moderate` 请求停止某人的 screen share。
+- 会议主持人 MAY 使用 `ak.call.moderate` 请求停止某人的 screen share。
 
 ## 9. 推送集成
 
-`ck.call.signal` 中 `signal_type=invite` SHOULD 触发 VoIP push。push 必须遵循 [`crypto-media/device-lifecycle.md` §5a Privacy-Preserving Push](./device-lifecycle.md) 的 pairwise pseudonym 规则；不得在投递给 APNs / FCM / Push Gateway 的 payload 中携带 principal DID、device DID URL、Realm id、call id 或 sender DID。
+`ak.call.signal` 中 `signal_type=invite` SHOULD 触发 VoIP push。push 必须遵循 [`crypto-media/device-lifecycle.md` §5a Privacy-Preserving Push](./device-lifecycle.md) 的 pairwise pseudonym 规则；不得在投递给 APNs / FCM / Push Gateway 的 payload 中携带 principal DID、device DID URL、Realm id、call id 或 sender DID。
 
 脱敏 push payload（推送上游可见部分）:
 
@@ -532,11 +532,11 @@ Candidate payload:
 }
 ```
 
-设备本地 OS 收到唤醒后，App 拉起 P2P / Sync 通道，使用本地密钥解密 `ck.call.signal{signal_type=invite}` envelope，从签名 envelope 中获得真实 `realm_id`、`call_id`、`sender_actor_id` 等字段并展示来电 UI。Push 上游永远看不到这些字段。
+设备本地 OS 收到唤醒后，App 拉起 P2P / Sync 通道，使用本地密钥解密 `ak.call.signal{signal_type=invite}` envelope，从签名 envelope 中获得真实 `realm_id`、`call_id`、`sender_actor_id` 等字段并展示来电 UI。Push 上游永远看不到这些字段。
 
 Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal DID、Realm id、call id 或明文会议标题；provider-facing body 的唯一权威形态是 [`discovery/push-notifications.md` §5.1](../discovery/push-notifications.md) 的 blind notification。WebRTC call invite 只允许使用 `notification.push_target_id`、`notification.wakeup_kind`、`notification.timing_profile_hint`、可选 `notification.push_hint="incoming_call"` 以及该节允许的本地化 / 计数字段；不得携带 `urgency`、`expires_at` 或任何未登记字段。其它一切信息必须通过本地解密获得。
 
-**Push wakeup 与 invite lifetime（normative）**: VoIP push wakeup 仅传 "incoming call" 信号，不携带 invite envelope；客户端唤醒后 MUST fresh fetch 当前 invite envelope。若本地 invite 已过期（超出 `lifetime_ms` = 60s 默认），客户端 MUST 拒绝复用 envelope，触发新的 `ck.call.signal{signal_type=invite}` 邀请流程。push wakeup 自身的 TTL（默认 24h）与 invite signaling lifetime 是不同语义，不构成死锁。
+**Push wakeup 与 invite lifetime（normative）**: VoIP push wakeup 仅传 "incoming call" 信号，不携带 invite envelope；客户端唤醒后 MUST fresh fetch 当前 invite envelope。若本地 invite 已过期（超出 `lifetime_ms` = 60s 默认），客户端 MUST 拒绝复用 envelope，触发新的 `ak.call.signal{signal_type=invite}` 邀请流程。push wakeup 自身的 TTL（默认 24h）与 invite signaling lifetime 是不同语义，不构成死锁。
 
 ## 10. 安全与隐私
 
@@ -572,11 +572,11 @@ Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal D
 | `recording_denied` | 录制未授权或 policy 禁止。 |
 | `transcription_denied` | 转写未授权或 policy 禁止(见 [`call-state.md` §5.1](./call-state.md))。 |
 | `recording_consent_required` | 进入录制 / 转写捕获态但缺少客户端二次确认(见 [`call-state.md` §5.2](./call-state.md))。 |
-| `call_moderation_unauthorised` | 主持动作(kick / ban / end-for-all / force-mute)由不具 `ck.call.moderate` 的 actor 发起(见 §3a)。 |
+| `call_moderation_unauthorised` | 主持动作(kick / ban / end-for-all / force-mute)由不具 `ak.call.moderate` 的 actor 发起(见 §3a)。 |
 | `call_participant_removed` | 被 kick / ban 的参与者尝试重新建立 media leg 或重新兑换 join token(见 §3a)。 |
-| `call_summary_invalid` | `ck.call.summary` 的 `final_state` 非终态、无终态 `ck.call.state` head，或与已存在摘要分叉(见 [`call-state.md` §7](./call-state.md))。 |
+| `call_summary_invalid` | `ak.call.summary` 的 `final_state` 非终态、无终态 `ak.call.state` head，或与已存在摘要分叉(见 [`call-state.md` §7](./call-state.md))。 |
 | `session_focus_already_committed` | 已提交的 call `session_focus` 不可在同一生命周期内改写。 |
-| `call_state_terminal` | `ck.call.state` 不能从 `ended` / `missed` / `failed` / `cancelled` 终态转出。 |
+| `call_state_terminal` | `ak.call.state` 不能从 `ended` / `missed` / `failed` / `cancelled` 终态转出。 |
 
 媒体服务绑定相关错误码（`unknown_focus_type`、`focus_mismatch`、`token_issuer_unauthorised`、`participant_binding_invalid`、`participant_identity_unrecognised`、`e2ee_key_source_unauthorised`、`recording_artifact_pipeline_bypassed`、`media_service_foci_required`、`media_service_binding_uncovered`、`focus_unavailable_for_client`、`media_plaintext_service_not_authorised`、`mls_governance_binding_stale` 等）见 [`media-service-binding.md`](./media-service-binding.md) 与 `error-code-registry.json`。
 
@@ -584,4 +584,4 @@ Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal D
 
 Arkret 借鉴 Matrix call event、VoIP push、group call / SFU 方向，但采用自己的 Realm、capability、device trust、Policy Server 和 transport binding 模型。
 
-Matrix 风格的 call invite/answer/candidates 可通过 Applet/bridge 映射为 `ck.call.signal`，但 durable meeting state、recording artifact 和 Realm policy 必须遵守 Arkret 规则。
+Matrix 风格的 call invite/answer/candidates 可通过 Applet/bridge 映射为 `ak.call.signal`，但 durable meeting state、recording artifact 和 Realm policy 必须遵守 Arkret 规则。

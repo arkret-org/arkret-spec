@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/peer-contact-delivery-request.schema.json",
   "title": "Arkret Peer Contact Delivery Request",
-  "description": "Private service-to-service request used by an issuer-side Principal Server to deliver a signed contact fact (ck.contact.requested / ck.contact.accepted / ck.contact.rejected / ck.contact.tombstoned) to the target holder's Principal Server. The recipient projects the original signed envelope into the target holder's contact projection (pending_incoming / accepted / rejected / tombstoned); it MUST NOT re-sign the fact as its own. Contact facts are principal-scoped and cross-Realm, so this carrier is the federation delivery path for the contact fact log, separate from invite delivery.",
+  "description": "Private service-to-service request used by an issuer-side Principal Server to deliver a signed contact fact (ak.contact.requested / ak.contact.accepted / ak.contact.rejected / ak.contact.tombstoned) to the target holder's Principal Server. The recipient projects the original signed envelope into the target holder's contact projection (pending_incoming / accepted / rejected / tombstoned); it MUST NOT re-sign the fact as its own. Contact facts are principal-scoped and cross-Realm, so this carrier is the federation delivery path for the contact fact log, separate from invite delivery.",
   "type": "object",
   "required": [
     "schema",
@@ -34,7 +34,7 @@
     },
     "introduction_evidence": {
       "$ref": "#/$defs/contact_introduction_evidence",
-      "description": "Required when fact_kind is ck.contact.requested. Explains why the requester may attempt first contact; the recipient applies its subject-private receive policy and deployment constraints before notifying the holder."
+      "description": "Required when fact_kind is ak.contact.requested. Explains why the requester may attempt first contact; the recipient applies its subject-private receive policy and deployment constraints before notifying the holder."
     },
     "idempotency_key": {
       "type": "string",
@@ -152,7 +152,7 @@
         },
         "consent_grant_ref": {
           "$ref": "#/$defs/event_ref",
-          "description": "Event ref of a target-issued ck.consent.grant whose scope covers the requested contact action, or any."
+          "description": "Event ref of a target-issued ak.consent.grant whose scope covers the requested contact action, or any."
         },
         "consent_id": {
           "type": "string",
@@ -252,7 +252,7 @@
             "duplicate",
             "deferred"
           ],
-          "description": "Generic receive status. It MUST NOT reveal whether subject_id exists or whether the holder's receive policy suppressed the fact, beyond the optional disclosed_outcome graded disclosure that mirrors ck.peer.invites.command.submit."
+          "description": "Generic receive status. It MUST NOT reveal whether subject_id exists or whether the holder's receive policy suppressed the fact, beyond the optional disclosed_outcome graded disclosure that mirrors ak.peer.invites.command.submit."
         },
         "disclosed_outcome": {
           "type": "string",

@@ -3,7 +3,7 @@
   "$id": "https://arkret.org/v1/schemas/file-transfer.schema.json",
   "title": "Arkret File Transfer Account Data",
   "type": "object",
-  "description": "Plaintext shape that MUST be encrypted before writing ck.profile.file_transfer.v1 account-data values.",
+  "description": "Plaintext shape that MUST be encrypted before writing ak.profile.file_transfer.v1 account-data values.",
   "required": [
     "kind",
     "transfer_id",

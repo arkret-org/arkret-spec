@@ -65,7 +65,7 @@ site/
 │   ├── remark-mermaid.mjs
 │   └── remark-rel-md-links.mjs
 ├── scripts/
-│   └── crossref-check.mjs           # 预构建校验
+│   └── crossref-cheak.mjs           # 预构建校验
 ├── src/
 │   ├── content.config.ts            # docsLoader 指向 ../spec/
 │   ├── lib/

@@ -37,7 +37,7 @@ Arkret v1 的一致性层采用 **CBA（Control-plane Basis-committed Sealing）
 | seal_basis | Control Move 签名覆盖的控制面基线：`{leaves[], control_event_set_root, state_root}`。 |
 | control_event_set_root | Seal 对递归控制面覆盖集 `covered_set(S)` 的 authenticated root。basis、inclusion、non-membership、receipt obligation 与 censorship evidence 都以它为锚点。 |
 | KeyView | Seal 对某个 data cell 的观测记录，包含 cell、lattice type、heads / value digest 与 last covered event。 |
-| Event Batch Receipt | issuer（relay / notary / witness / Principal Server）对其选择承诺的 Event 集合签发的 receipt object（`ck.schema.event_batch_receipt.v1`）。数据面单事件"已看见"确认是其 `events[]` 单元素用法（原 SeenReceipt，已合并，见 §4.4）。它不是准入证明，不进入 state。 |
+| Event Batch Receipt | issuer（relay / notary / witness / Principal Server）对其选择承诺的 Event 集合签发的 receipt object（`ak.schema.event_batch_receipt.v1`）。数据面单事件"已看见"确认是其 `events[]` 单元素用法（原 SeenReceipt，已合并，见 §4.4）。它不是准入证明，不进入 state。 |
 | AvailabilityReceipt | holder 对某个 Event bytes 在 retention 窗口内可获取的签名承诺。 |
 
 ## 3. Plane 判定
@@ -146,7 +146,7 @@ else:
 
 该规则不判断事件真实签发时间，也不依赖本地接收时间。producer 在本地已知撤销 seal 后仍用旧 `seal_ref` 签 DataEvent，协议不把它单独定义为可证明 fault；但所有已观察到 `R` 且窗口超限的 receiver MUST 拒绝或隐藏这些事件（`stale_seal_ref`，§13）。
 
-**并发分支撤销（normative，`open_set`）**：上面 step 3 的"尚未观察到覆盖该 issuer/capability 的**后续**撤销 seal 即接受"与 step 4 的后继距离判定，**前提都是撤销 Seal `R` 与 `seal_ref` 在 Seal DAG 上构成后继关系**。`single_did` / `threshold` notary profile 要求 Seal 单链唯一（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) `notary_profile`），后继关系恒成立。但 `open_set` profile **显式允许多个并发 Seal leaf**，此时 `R` 与 `seal_ref` 可能**并发**（互不可达，既非后继也非前驱）。并发时 receiver **MUST NOT** 因"`R` 不是 `seal_ref` 的后继 / 后续"就套用 step 3 接受或跳过 step 4——那会让一个其授权 capability 已在并发分支被撤销的 DataEvent 被全体 receiver 接受并 join，撤销在并发窗口内对数据面完全失效（fail-open），并与 merge 后控制面状态矛盾。receiver MUST 改按其**已 join 的控制面视图**重判：取 receiver 已观察的全部 Seal leaf 的 union covered set，按 §6.3 在 predecessor joined governance state 上对该 capability 授权 cell 做 per-cell Lattice join（§9）；若 joined view 中该 capability 已被 `R` 撤销、或承载其授权判定的 cell 进入 `⊥`，receiver MUST 对依赖它的 DataEvent fail closed（`stale_seal_ref`）。并发分支**不计算 `distance`、不享受新鲜度窗口宽限**（等效 window=0），直接按 joined view 的撤销结果处置；`risk_tier=high` capability 在并发分支同样 MUST fail closed。这保证撤销在 `open_set` 并发窗口内对数据面同样生效，且因 joined view 对所有已 join 同一 leaf 集的 receiver 确定相同而跨 receiver 收敛到一致拒绝。轻客户端若无法独立验证 multi-leaf union basis（§4 多 leaf basis 规则），遇到并发撤销 MUST 保守 fail closed 或 hold pending 直到取得可验证的 joined view。该义务由 conformance vector `ck.vector.cba_lattice.open_set_concurrent_revocation_fail_closed.v1` 固定。
+**并发分支撤销（normative，`open_set`）**：上面 step 3 的"尚未观察到覆盖该 issuer/capability 的**后续**撤销 seal 即接受"与 step 4 的后继距离判定，**前提都是撤销 Seal `R` 与 `seal_ref` 在 Seal DAG 上构成后继关系**。`single_did` / `threshold` notary profile 要求 Seal 单链唯一（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json) `notary_profile`），后继关系恒成立。但 `open_set` profile **显式允许多个并发 Seal leaf**，此时 `R` 与 `seal_ref` 可能**并发**（互不可达，既非后继也非前驱）。并发时 receiver **MUST NOT** 因"`R` 不是 `seal_ref` 的后继 / 后续"就套用 step 3 接受或跳过 step 4——那会让一个其授权 capability 已在并发分支被撤销的 DataEvent 被全体 receiver 接受并 join，撤销在并发窗口内对数据面完全失效（fail-open），并与 merge 后控制面状态矛盾。receiver MUST 改按其**已 join 的控制面视图**重判：取 receiver 已观察的全部 Seal leaf 的 union covered set，按 §6.3 在 predecessor joined governance state 上对该 capability 授权 cell 做 per-cell Lattice join（§9）；若 joined view 中该 capability 已被 `R` 撤销、或承载其授权判定的 cell 进入 `⊥`，receiver MUST 对依赖它的 DataEvent fail closed（`stale_seal_ref`）。并发分支**不计算 `distance`、不享受新鲜度窗口宽限**（等效 window=0），直接按 joined view 的撤销结果处置；`risk_tier=high` capability 在并发分支同样 MUST fail closed。这保证撤销在 `open_set` 并发窗口内对数据面同样生效，且因 joined view 对所有已 join 同一 leaf 集的 receiver 确定相同而跨 receiver 收敛到一致拒绝。轻客户端若无法独立验证 multi-leaf union basis（§4 多 leaf basis 规则），遇到并发撤销 MUST 保守 fail closed 或 hold pending 直到取得可验证的 joined view。该义务由 conformance vector `ak.vector.cba_lattice.open_set_concurrent_revocation_fail_closed.v1` 固定。
 
 **高风险 capability 的撤销即时性（normative）**：对 `risk_tier=high` capability（`risk_tier` 的权威源是 [`capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json)，散文镜像见 [`capabilities.md`](./capabilities.md)）授权的 DataEvent，撤销**不享受**新鲜度窗口宽限：receiver 一旦观察到覆盖该 capability 的撤销 Seal `R`，MUST 对 `seal_ref` 早于 `R` 的此类 DataEvent fail closed（等效 `revocation_freshness_window_ms = 0`），无论 `distance`；承载此类 capability 授权判定的 cell family SHOULD 声明 `sealed=true` 升控制面。中低风险 DataEvent 仍按上面的窗口判定。此外，producer 在本地已观察到 `R` 后仍用早于 `R` 的 `seal_ref` 继续签发 DataEvent，虽不构成可证明 fault，receiver / audit **SHOULD** 将其记录为 audit-loggable 可疑信号（stale-after-observed），供事后问责——这与"不可证明 fault"不矛盾：不自动惩罚，但留痕。需要强撤销即时性的 Realm SHOULD 缩短 `revocation_freshness_window_ms`，或将相关 cell family 声明为 `sealed=true`。
 
@@ -156,7 +156,7 @@ Grant 晚于 producer 最新 seal 签发时，producer MUST 等下一个控制�
 
 数据面传播使用 gossip、anti-entropy 或 RBSR 类集合调和。同步摘要可以作为 federation probe 的 data frontier。
 
-Relay / notary / witness 收到 DataEvent 时 SHOULD 返回一个 Event Batch Receipt（receipt object，schema [`event-batch-receipt.schema.json`](../../artifacts/schemas/event-batch-receipt.schema.json)，schema id `ck.schema.event_batch_receipt.v1`，字段与概念分层见 [`../models/event-and-patch.md` §5](../models/event-and-patch.md)）。单事件确认即 `events[]` 只含该 `event_digest` 的单元素 receipt：`scope` 携带 `realm_id`，`created_at` 为 issuer 看见该事件的时间，`frontier` 为签发时 issuer 前沿。
+Relay / notary / witness 收到 DataEvent 时 SHOULD 返回一个 Event Batch Receipt（receipt object，schema [`event-batch-receipt.schema.json`](../../artifacts/schemas/event-batch-receipt.schema.json)，schema id `ak.schema.event_batch_receipt.v1`，字段与概念分层见 [`../models/event-and-patch.md` §5](../models/event-and-patch.md)）。单事件确认即 `events[]` 只含该 `event_digest` 的单元素 receipt：`scope` 携带 `realm_id`，`created_at` 为 issuer 看见该事件的时间，`frontier` 为签发时 issuer 前沿。
 
 > **合并说明（normative）**：v1 早期草案曾把这一用途单列为 "SeenReceipt"（`{realm_id, event_digest, received_at, receipt_seq, expires_at, issuer, signature}`）。它与 Event Batch Receipt 语义同层——issuer 签名的、非 canonical、只保 set integrity 的 hint——且从未注册 schema，故收敛为 Event Batch Receipt 的单元素用法，协议中不再存在独立的 SeenReceipt 对象。旧结构的 `receipt_seq` 与 `expires_at` 一并取消：全规范无消费者——issuer 侧漏发/扣发检测由 [`../sync/operations-sync.md` §6.4](../sync/operations-sync.md) range-completeness attestation 与 frontier probe 承担，equivocation 检测归 Seal 的 `notary_seq`（§7.1）；receipt 是 best-effort hint 且"已看见"是不可撤销的事实陈述，过期语义没有可执行含义，receipt 的保留期属部署本地 retention 决策。
 
@@ -164,7 +164,7 @@ Event Batch Receipt 只证明"issuer 看见并承诺所列事件集合的 integr
 
 ## 5. Control Move
 
-Control Move 是写 control plane cell 的 Event。它仍使用 Event Envelope，但 MUST 携带 `seal_basis`，MUST NOT 携带 `seal_ref`。唯一例外是 [`ck.realm.create`](../models/realm-and-space.md#25-ckrealmcreate-reducer-bootstrapnormative) 所属 Realm bootstrap event set：Realm 创建前不存在可引用的 accepted Seal，因此 create 及同一 submit batch 内由同一 actor 写入同一 Realm 初始配置的 bootstrap follow-up event MAY 携带 bootstrap `effects[]` / `preconditions[]` 而不携带 `seal_basis`；此例外不得推广到 batch 外或非 bootstrap Control Move。
+Control Move 是写 control plane cell 的 Event。它仍使用 Event Envelope，但 MUST 携带 `seal_basis`，MUST NOT 携带 `seal_ref`。唯一例外是 [`ak.realm.create`](../models/realm-and-space.md#25-ckrealmcreate-reducer-bootstrapnormative) 所属 Realm bootstrap event set：Realm 创建前不存在可引用的 accepted Seal，因此 create 及同一 submit batch 内由同一 actor 写入同一 Realm 初始配置的 bootstrap follow-up event MAY 携带 bootstrap `effects[]` / `preconditions[]` 而不携带 `seal_basis`；此例外不得推广到 batch 外或非 bootstrap Control Move。
 
 ```text
 ControlMove {
@@ -186,7 +186,7 @@ ControlMove {
 Control Move 规则：
 
 1. `seal_basis` 的三个字段全部进入 canonical Event bytes，并由 `event_digest` / `proofs[]` 覆盖。
-2. `leaves[]` MUST 只引用 accepted Seal。单 leaf basis 是轻 producer 的默认形态。account client 铸造单 leaf basis 的注册来源是 `ck.self.events.query.frontier` 的 `realm_id` 形响应（Realm Seal view `{realm_id, seal_id, control_event_set_root, state_root, hlc?}`，见 `../sync/service-http-binding.md`）；该来源不可用时 MUST fail closed，不得伪造 basis。
+2. `leaves[]` MUST 只引用 accepted Seal。单 leaf basis 是轻 producer 的默认形态。account client 铸造单 leaf basis 的注册来源是 `ak.self.events.query.frontier` 的 `realm_id` 形响应（Realm Seal view `{realm_id, seal_id, control_event_set_root, state_root, hlc?}`，见 `../sync/service-http-binding.md`）；该来源不可用时 MUST fail closed，不得伪造 basis。
 3. 多 leaf basis 只有完整 verifier 或持有 signed view certificate / state transition proof 的 producer MAY 签；轻客户端 MUST NOT 签自己无法验证的 multi-leaf union basis。
 4. `effects[]` MUST 只引用 control plane cell。若需同时写 data cell，必须拆成后续 DataEvent。
 5. `preconditions[]` 与 `effects[]` 是原子集合；任一 precondition 不成立，整个 Control Move 失败。
@@ -262,7 +262,7 @@ Seal MUST 签 `control_event_set_root`。默认 root 是对 canonical 升序 `co
 
 `control_event_set_root` 是 `seal_basis`、控制面 receipt obligation、inclusion list、censorship evidence 与 seal transparency 的共同锚点。`delta[]` 只是本批新增集合；root 承诺的是递归覆盖集。Compaction Seal MAY 显式携带 `covered_event_digests[]`，但 receiver MUST 验证它等于 `delta[]` 与所有 predecessor 覆盖集的并集。
 
-**Compaction 节律是结构性义务（normative）**：因为累计覆盖集由 `predecessor_refs + delta` 递归定义，compaction Seal（携带 `covered_event_digests[]` 或等价可验证全覆盖 manifest 的 Seal）是新 verifier 唯一的有界 bootstrap 物化点。Realm MUST 在 create payload 中声明 `seal_compaction_max_interval_ms`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json)，默认 86,400,000 ms；`open_set` 部署 MUST ≤ 24h，`threshold` 部署 MUST ≤ 7d，`single_did` SHOULD ≤ 24h）。notary 超出声明间隔仍未签发 compaction Seal 时，receiver SHOULD 触发治理健康告警；新 verifier 此时只能退回从 genesis 走链或从最近已验证 compaction Seal 接链。该义务由 conformance vector `ck.vector.cba_lattice.seal_compaction_interval_enforced.v1` 固定。
+**Compaction 节律是结构性义务（normative）**：因为累计覆盖集由 `predecessor_refs + delta` 递归定义，compaction Seal（携带 `covered_event_digests[]` 或等价可验证全覆盖 manifest 的 Seal）是新 verifier 唯一的有界 bootstrap 物化点。Realm MUST 在 create payload 中声明 `seal_compaction_max_interval_ms`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json)，默认 86,400,000 ms；`open_set` 部署 MUST ≤ 24h，`threshold` 部署 MUST ≤ 7d，`single_did` SHOULD ≤ 24h）。notary 超出声明间隔仍未签发 compaction Seal 时，receiver SHOULD 触发治理健康告警；新 verifier 此时只能退回从 genesis 走链或从最近已验证 compaction Seal 接链。该义务由 conformance vector `ak.vector.cba_lattice.seal_compaction_interval_enforced.v1` 固定。
 
 ### 6.2.1 治理 `state_root` 的 Merkle 计算规则（normative）
 
@@ -326,7 +326,7 @@ Seal 被拒绝时，其 `delta[]` 内 Control Move 不因此有效。节点 MAY 
 1. **覆盖集并集**:`covered(L) = ⋃_i covered_set(S_i)`（§6.2 递归覆盖集的并集）。因 `covered_set` 仅取并集、Control Move digest 内容寻址，`covered(L)` 与 leaf 到达顺序无关。
 2. **Move 应用偏序**:`covered(L)` 内的 Control Move 按其 Seal DAG 因果序构成偏序；线性（有因果先后）的 Move 按因果序应用。
 3. **并发 Move 的确定性定序**:对偏序中**互不可达**（并发）的 Control Move，按 [`../conformance/encoding.md` §4.2](../conformance/encoding.md) 的统一 canonical 全序（`event_digest` bytewise 最大优先的全序展开）线性化。该全序**仅**用于给所有 receiver 一个共享的确定性**应用 / 暴露顺序**（step 4 join 结果的呈现顺序、以及需要"最大 head"消歧的读路径投影），**MUST NOT** 用于推进 `preconditions[]` 的求值基线。
-   - **precondition 求值基线（frozen predecessor，normative）**:每个 Move `M` 的 `preconditions[]` **MUST** 对 `M` 在 `covered(L)` 内**因果前驱**的 joined 治理状态求值——即冻结在"`M` 及所有与 `M` 并发的 Move 尚未应用"的那个 predecessor 基线上；线性化中排在 `M` 之前的**并发** Move 的 effect **MUST NOT** 进入 `M` 的 precondition 求值基线。这与全协议 CBA basis 规则同一（[`policy-server.md` §CBA basis 例外](./policy-server.md)、`ck.vector.cba_lattice.same_batch_does_not_advance_authorization_basis.v1`）:同批 / 并发前序 effect 只提供原子提交便利，不自我满足后续 precondition。
+   - **precondition 求值基线（frozen predecessor，normative）**:每个 Move `M` 的 `preconditions[]` **MUST** 对 `M` 在 `covered(L)` 内**因果前驱**的 joined 治理状态求值——即冻结在"`M` 及所有与 `M` 并发的 Move 尚未应用"的那个 predecessor 基线上；线性化中排在 `M` 之前的**并发** Move 的 effect **MUST NOT** 进入 `M` 的 precondition 求值基线。这与全协议 CBA basis 规则同一（[`policy-server.md` §CBA basis 例外](./policy-server.md)、`ak.vector.cba_lattice.same_batch_does_not_advance_authorization_basis.v1`）:同批 / 并发前序 effect 只提供原子提交便利，不自我满足后续 precondition。
    - **对强一致 cell 的后果**:因此同一 `cas_register` / `fsm` cell 上的两个并发互斥写**都**通过各自 precondition（都看见同一冻结基线），在 step 4 join 到 `⊥`——全序 **MUST NOT** 被用来给强一致治理 cell 静默选出单一 winner。[`../conformance/encoding.md` §4.2](../conformance/encoding.md) 的 `event_digest` bytewise-greatest tie-break **只**用于数据面 / 投影展示的确定性选择（relation / message revision / account status 等 §4.2 列举 domain），**MUST NOT** 用于控制面强一致 cell 的冲突裁决。
 4. **per-cell Lattice join**:每个 control cell 按其声明的 lattice（§9）合并 `covered(L)` 中所有命中该 cell 的 Move 效果；`cas_register` / `fsm` 等强一致 cell 上的并发互斥写按 §9.1.1 进入 `⊥`（`bottom=reject` 则该 cell 物化为 `failed_bottom`，依赖它的后续 Move fail closed，按 §9.5 conflict-recovery 解析）。落 `⊥` 的 cell 是治理终态，**不进入** `state_root`（§6.2.1）;它**不能**被普通后续 Control Move 收敛，唯一出路是 §9.5 的 conflict-recovery Move。
 5. **结果**:`J(L)` 是所有 control cell 的 join 结果集合；它就是 receiver 在 step 8 `verify_control_move` 与所有授权判定（capability / membership / policy）所用的 "predecessor joined governance state"。
@@ -367,7 +367,7 @@ KeyView {
 
 每个 notary signer 维护自己的 `notary_seq`。同一 signer 对同一 `(realm_id, notary_seq)` 签出两个 canonical bytes 不同的 Seal，或 `notary_seq=k+1` 不以自身 `notary_seq=k` 为 DAG 祖先，构成 equivocation。
 
-Equivocation evidence 是普通 Control Move，event kind 为 **`ck.notary.fault.equivocation`**（已注册于 event-kind registry；payload schema 见 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) `notary_fault_equivocation_payload`：`{signer_id, seal_a, seal_b}`），写入专用 `ck.component.notary_fault.v1` control cell（`or_set`，bottom=expose）。授权条件是两个满足 slot 规则的冲突签名本身；验签即授权，无需额外 capability，reducer MUST NOT 要求 grant。
+Equivocation evidence 是普通 Control Move，event kind 为 **`ak.notary.fault.equivocation`**（已注册于 event-kind registry；payload schema 见 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) `notary_fault_equivocation_payload`：`{signer_id, seal_a, seal_b}`），写入专用 `ak.component.notary_fault.v1` control cell（`or_set`，bottom=expose）。授权条件是两个满足 slot 规则的冲突签名本身；验签即授权，无需额外 capability，reducer MUST NOT 要求 grant。
 
 接受 fault 记录后：
 
@@ -382,7 +382,7 @@ Equivocation evidence 是普通 Control Move，event kind 为 **`ck.notary.fault
 
   该处理与 §4.3 撤销新鲜度判定正交（前者针对控制面分叉，后者针对单链撤销），与 [`../sync/operations-sync.md`](../sync/operations-sync.md) 的 observed-only / backfill 保持语义（observed-only 的 DataEvent 不进 canonical join），不引入新状态。
 
-Threshold signer 使用委员会级 slot。若 2k > n，两个 threshold 签名的 quorum 交集可指认至少一个双签成员；否则部署 policy MUST 声明放弃自动指认。该声明是机器可校验项：threshold notary 的 Realm create payload MUST 携带 `notary.forensic_attribution ∈ {quorum_intersection, waived}`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json)），且取值与 `2k>n` 的算术关系由 reducer 校验、由 conformance vector `ck.vector.cba_lattice.threshold_forensic_attribution.v1` 固定。
+Threshold signer 使用委员会级 slot。若 2k > n，两个 threshold 签名的 quorum 交集可指认至少一个双签成员；否则部署 policy MUST 声明放弃自动指认。该声明是机器可校验项：threshold notary 的 Realm create payload MUST 携带 `notary.forensic_attribution ∈ {quorum_intersection, waived}`（[`realm.schema.json`](../../artifacts/schemas/realm.schema.json)），且取值与 `2k>n` 的算术关系由 reducer 校验、由 conformance vector `ak.vector.cba_lattice.threshold_forensic_attribution.v1` 固定。
 
 ### 7.2 控制面 receipt 与 inclusion obligation
 
@@ -405,7 +405,7 @@ CensorshipEvidence {
 }
 ```
 
-Censorship evidence 是普通 Control Move，event kind 为 **`ck.notary.fault.censorship`**（payload schema：`notary_fault_censorship_payload`），写入 `ck.component.notary_fault.v1` cell。它**不**自动罢免 notary：reducer 记录审计 fault 并 MUST 触发治理告警。
+Censorship evidence 是普通 Control Move，event kind 为 **`ak.notary.fault.censorship`**（payload schema：`notary_fault_censorship_payload`），写入 `ak.component.notary_fault.v1` cell。它**不**自动罢免 notary：reducer 记录审计 fault 并 MUST 触发治理告警。
 
 **问责闭环与 recovery 路径的绑定（normative）**：被告 notary 可能审查针对自己的 fault / censorship evidence。为此：
 
@@ -417,7 +417,7 @@ Censorship evidence 是普通 Control Move，event kind 为 **`ck.notary.fault.c
 
 Multi-signer profile MAY 支持 FOCIL 式 inclusion list。非 proposer signer 对通过初检的控制面 Move 签发 inclusion list；下一 Seal MUST include、signed-reject 或证明验证失败，否则 receiver MUST 拒绝该 Seal。`single_did` profile 无法提供该机制。
 
-Wire schema：[`inclusion-list.schema.json`](../../artifacts/schemas/inclusion-list.schema.json)（`ck.schema.inclusion_list.v1`）：`{realm_id, signer_id, list_seq, event_digests[], expiry_seal_count, created_at, signature}`。Receiver 校验规则（normative）：
+Wire schema：[`inclusion-list.schema.json`](../../artifacts/schemas/inclusion-list.schema.json)（`ak.schema.inclusion_list.v1`）：`{realm_id, signer_id, list_seq, event_digests[], expiry_seal_count, created_at, signature}`。Receiver 校验规则（normative）：
 
 1. `signer_id` 在签发时点是 Realm multi-signer notary profile 的合法非 proposer 成员；
 2. `event_digests[]` canonical 升序、去重、每项持有效 receipt 且通过本地 verify；
@@ -425,13 +425,13 @@ Wire schema：[`inclusion-list.schema.json`](../../artifacts/schemas/inclusion-l
 4. 自 list 被观察起的 `expiry_seal_count` 个后续 Seal 内（默认 1），每个列出 digest MUST 被 include、signed-reject 或附 batch pre-state 验证失败证明；任一 digest 三者皆无 → receiver MUST 拒绝该 Seal（`rejected_seal`，reason=`inclusion_list_violation`）；
 5. inclusion list 自身不是 Seal，不推进治理状态；它只是问责对象。
 
-该义务由 conformance vector `ck.vector.cba_lattice.inclusion_list_obligation.v1` 固定。
+该义务由 conformance vector `ak.vector.cba_lattice.inclusion_list_obligation.v1` 固定。
 
 ### 7.4 Seal transparency
 
 Seal tuple SHOULD 发布到 append-only transparency log。独立 auditor 验证 append-only、`control_event_set_root` 单调、`completeness_root` 单调和签名有效性，并签发 attestation。客户端接受 `grade=witnessed` 前 MUST 验证 policy 要求的 witness / auditor attestation。
 
-Wire schema：[`seal-transparency.schema.json`](../../artifacts/schemas/seal-transparency.schema.json)（`ck.schema.seal_transparency.v1`）定义两个对象：
+Wire schema：[`seal-transparency.schema.json`](../../artifacts/schemas/seal-transparency.schema.json)（`ak.schema.seal_transparency.v1`）定义两个对象：
 
 - **log entry**：`{log_id, log_index, realm_id, seal_id, control_event_set_root, completeness_root, state_root, prev_entry_digest, logged_at, log_signature}`——`log_index` append-only，`prev_entry_digest` 形成 hash 链。同一 `(log_id, log_index)` 出现两个签名不同的 entry 即构成**可证明的 log fork**：split-view 攻击者要么一致发布、要么留下可出示的分叉证据。
 - **auditor attestation**（`#/$defs/auditor_attestation`）：`{log_id, realm_id, from_index, to_index, head_entry_digest, auditor_id, checks{append_only, seal_signatures, set_root_monotonic, completeness_monotonic}, attested_at, signature}`——四项 checks 全部为 true 才可签发；auditor 无法断言任一项时 MUST NOT 出具。
@@ -485,7 +485,7 @@ AvailabilityReceipt {
 声明来源与默认值：
 
 - `bottom` policy 是 **cell family 属性**，由 Realm schema 的 cell family 声明（与 `lattice` 同处声明，权威载体为 [`registry/event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 对应 cell 的 `bottom` 字段）。
-- 每个 core lattice type 的默认 `bottom`：`cas_register` / `fsm` 默认 `reject`（强单值治理 cell，冲突即 fail-closed）；`or_set` / `ordered_log` / `counter` 的 join 在数学上永不产生 `⊥`，未显式定义领域冲突语义时其 `bottom` 字段对收敛 **inert**（例如 capability grant 与 consent grant 这类普通 observed-remove 集合，即使 registry 为占位登记 `reject`，reducer 也 MUST NOT 据其产生 reject 语义；见 [`capabilities.md` §12.1](./capabilities.md) 与 [`../identity/consent-model.md`](../identity/consent-model.md)）。若某个 or_set cell family 显式登记 `bottom=expose` 并由领域文档定义 exposed multi-head 处理（例如 `ck.component.moderation_state.v1`），实现 MUST 执行该领域规则，不得用普通 or_set 的 inert 默认覆盖它。`mv_register` 不产生 `⊥`（暴露多 heads 而非 bottom），无 `bottom` 语义。
+- 每个 core lattice type 的默认 `bottom`：`cas_register` / `fsm` 默认 `reject`（强单值治理 cell，冲突即 fail-closed）；`or_set` / `ordered_log` / `counter` 的 join 在数学上永不产生 `⊥`，未显式定义领域冲突语义时其 `bottom` 字段对收敛 **inert**（例如 capability grant 与 consent grant 这类普通 observed-remove 集合，即使 registry 为占位登记 `reject`，reducer 也 MUST NOT 据其产生 reject 语义；见 [`capabilities.md` §12.1](./capabilities.md) 与 [`../identity/consent-model.md`](../identity/consent-model.md)）。若某个 or_set cell family 显式登记 `bottom=expose` 并由领域文档定义 exposed multi-head 处理（例如 `ak.component.moderation_state.v1`），实现 MUST 执行该领域规则，不得用普通 or_set 的 inert 默认覆盖它。`mv_register` 不产生 `⊥`（暴露多 heads 而非 bottom），无 `bottom` 语义。
 - cell family 未显式声明 `bottom` 时，reducer MUST 按上述 per-lattice-type 默认处理；MUST NOT 把未声明当作 `expose` 放宽强单值治理 cell。
 
 > `bottom=reject` cell 进入 `⊥` 后的恢复路径由 §9.5 control cell `⊥` recovery 定义（conflict-recovery Move）。
@@ -549,7 +549,7 @@ conflict-recovery Move 不是新 event kind，而是一条**针对该 cell 的 C
 
 **recovery capability 来源**：`recovery_capability` 由 Realm 的恢复权威持有——即 §7.2 闭环里的 **recovery notary**（genesis `recovery_members` / `mixed` profile 的 fallback notary）所辖的 recovery / fork-resolution 授权；它与 §7.1 的 fork-resolution、[`event-and-patch.md` §2.6](../models/event-and-patch.md) over-fork repair 复用同一恢复权威，不引入新授权主体。`single_did` 且未声明可用 recovery 路径的 Realm，control cell `⊥` 是诚实的死状态（与 §7.2 第 2 点"证据可流转但不可生效"同一限制，也是 genesis 强制 `recovery_members` 组织分离的理由之一）。
 
-**与 §7.1 的层次区分**：§7.1 恢复的是 **Seal-DAG 分叉**（equivocation / `fork_quarantine`）；本节恢复的是**未分叉治理状态内单个 cell 的 `⊥`**。两者由同一恢复权威书写、都经 Seal 接受，但作用对象不同，不可互相替代。该恢复路径由 conformance vector `ck.vector.cba_lattice.conflict_recovery_move.v1` 固定。
+**与 §7.1 的层次区分**：§7.1 恢复的是 **Seal-DAG 分叉**（equivocation / `fork_quarantine`）；本节恢复的是**未分叉治理状态内单个 cell 的 `⊥`**。两者由同一恢复权威书写、都经 Seal 接受，但作用对象不同，不可互相替代。该恢复路径由 conformance vector `ak.vector.cba_lattice.conflict_recovery_move.v1` 固定。
 
 ## 10. 查询语义
 

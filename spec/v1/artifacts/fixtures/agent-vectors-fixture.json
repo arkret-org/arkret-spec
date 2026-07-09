@@ -16,7 +16,7 @@
       "vector_id": "ak.vector.agent.provision.v1",
       "runner": "cotest::conformance::agent_vectors::run_agent_provision_vector",
       "assertions": [
-        "agent provision operation id remains ck.self.agent.command.provision",
+        "agent provision operation id remains ak.self.agent.command.provision",
         "agent provision capability action matches the operation id",
         "agent grants marked effective_after_first_authorized_key remain inactive before key pairing",
         "missing accountability grants fail with accountability_grant_missing"
@@ -27,7 +27,7 @@
       "vector_id": "ak.vector.agent.pairing_expiry.v1",
       "runner": "cotest::conformance::agent_vectors::run_agent_pairing_expiry_vector",
       "assertions": [
-        "agent key-pair operation id remains ck.gate.account.command.pair_agent_key",
+        "agent key-pair operation id remains ak.gate.account.command.pair_agent_key",
         "expired pairing requests fail with pairing_request_expired",
         "DID mismatch, invalid proof, expired pairing, and deactivated agent errors are all pinned"
       ]
@@ -59,7 +59,7 @@
       "vector_id": "ak.vector.agent.session_grant.replay.v1",
       "runner": "cotest::conformance::agent_vectors::run_agent_session_grant_replay_vector",
       "assertions": [
-        "session grant issue operation id remains ck.gate.account.command.issue_session_grant",
+        "session grant issue operation id remains ak.gate.account.command.issue_session_grant",
         "agent_key_proof challenge replay, audience mismatch, and bad signature fail closed",
         "agent session branch rejects invalid proofs, DID mismatch, paused agents, and deactivated agents",
         "accountability grant absence is pinned as accountability_grant_missing"

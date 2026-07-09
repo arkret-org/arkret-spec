@@ -10,7 +10,7 @@ updated: 2026-07-02
 
 本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [normative-language.md](./normative-language.md) 解释；仅大写形式具规范约束力。
 
-> **Wire schema canonical source（informative）**: query / projection 请求体（`query_request`）与 search 请求体（`search_request`）的 wire-level canonical schema 已抽出为独立 JSON Schema [`../../artifacts/schemas/query.schema.json`](../../artifacts/schemas/query.schema.json)（schema id `ck.schema.query.v1`，含 `query_filter` / `field_filter` / `boolean_filter` / `sort_spec` / `relation_query` 等可复用 `$defs`）；[`../../artifacts/openapi/arkret-service-api.openapi.yaml`](../../artifacts/openapi/arkret-service-api.openapi.yaml) 的 `QueryRequestBody` / `SearchRequestBody` / `QueryFilter` / `FieldFilter` / `BooleanFilter` / `SortSpec` / `RelationQuery` 组件均 `$ref` 该文件，故为单一真源。本文为人类可读的语义注释与字段说明，**不**作为 wire validator 的真源；字段（`realm_ids` / `projection` enum / `cursor` / `limit` / `wait_for` / `op` / `direction` 等）以 `query.schema.json` 为准。
+> **Wire schema canonical source（informative）**: query / projection 请求体（`query_request`）与 search 请求体（`search_request`）的 wire-level canonical schema 已抽出为独立 JSON Schema [`../../artifacts/schemas/query.schema.json`](../../artifacts/schemas/query.schema.json)（schema id `ak.schema.query.v1`，含 `query_filter` / `field_filter` / `boolean_filter` / `sort_spec` / `relation_query` 等可复用 `$defs`）；[`../../artifacts/openapi/arkret-service-api.openapi.yaml`](../../artifacts/openapi/arkret-service-api.openapi.yaml) 的 `QueryRequestBody` / `SearchRequestBody` / `QueryFilter` / `FieldFilter` / `BooleanFilter` / `SortSpec` / `RelationQuery` 组件均 `$ref` 该文件，故为单一真源。本文为人类可读的语义注释与字段说明，**不**作为 wire validator 的真源；字段（`realm_ids` / `projection` enum / `cursor` / `limit` / `wait_for` / `op` / `direction` 等）以 `query.schema.json` 为准。
 
 ## 1. 目标
 
@@ -60,7 +60,7 @@ updated: 2026-07-02
 }
 ```
 
-`filters[].op` 的合法取值是下方**封闭枚举**（normative）。`op` 的 canonical 真源是 `artifacts/schemas/query.schema.json`（`ck.schema.query.v1`），本表为人类可读视图；执行方 MUST 拒绝表外取值（`schema_violation` / `invalid_param`）。
+`filters[].op` 的合法取值是下方**封闭枚举**（normative）。`op` 的 canonical 真源是 `artifacts/schemas/query.schema.json`（`ak.schema.query.v1`），本表为人类可读视图；执行方 MUST 拒绝表外取值（`schema_violation` / `invalid_param`）。
 
 | `op`（normative enum） | 语义 |
 | --- | --- |
@@ -108,7 +108,7 @@ updated: 2026-07-02
 }
 ```
 
-`direction` 的合法取值是下方**封闭枚举**（normative）。Relation Query `direction` 的 canonical 真源是 `artifacts/schemas/query.schema.json`（`ck.schema.query.v1`），本表为人类可读视图；执行方 MUST 拒绝表外取值。
+`direction` 的合法取值是下方**封闭枚举**（normative）。Relation Query `direction` 的 canonical 真源是 `artifacts/schemas/query.schema.json`（`ak.schema.query.v1`），本表为人类可读视图；执行方 MUST 拒绝表外取值。
 
 | `direction`（normative enum） | 语义 |
 | --- | --- |

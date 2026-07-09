@@ -39,15 +39,15 @@ sidebar:
 
 | schema id | canonical 文件 | 说明 |
 | --- | --- | --- |
-| `ck.schema.event.v1` | `schemas/event-envelope.schema.json` | schema id 用 `event` 保持协议对象名，文件名用 `event-envelope` 对齐 wire envelope 术语；不得机械推导为 `event.schema.json`。 |
-| `ck.schema.capability.v1` | `schemas/capability-grant.schema.json` | id 简化为 `capability`，文件保留 `capability-grant` 以区别于其他 capability 相关 schema（grant-constraint、resource-selector 等）。 |
-| `ck.schema.morph.customer_risk.v1` | `schemas/morph-customer-risk.schema.json` | id 用 dot 分段（`morph.customer_risk`），文件用 dash（`morph-customer-risk`）；对应规则是 "schema id 里的每段都换成 dash"。其它 dotted-id schema 适用同一规则。 |
+| `ak.schema.event.v1` | `schemas/event-envelope.schema.json` | schema id 用 `event` 保持协议对象名，文件名用 `event-envelope` 对齐 wire envelope 术语；不得机械推导为 `event.schema.json`。 |
+| `ak.schema.capability.v1` | `schemas/capability-grant.schema.json` | id 简化为 `capability`，文件保留 `capability-grant` 以区别于其他 capability 相关 schema（grant-constraint、resource-selector 等）。 |
+| `ak.schema.morph.customer_risk.v1` | `schemas/morph-customer-risk.schema.json` | id 用 dot 分段（`morph.customer_risk`），文件用 dash（`morph-customer-risk`）；对应规则是 "schema id 里的每段都换成 dash"。其它 dotted-id schema 适用同一规则。 |
 
 新增 schema 时如果出现不能机械推导的命名，必须把对应关系登记到 `contract-catalog.json` 的 `schemas[]` 条目，并在此表格补充一行；不得只改文件名。
 
 ### 1.1.1 error code 命名空间例外（normative）
 
-`error-code-registry.json` 中的 `code` / `reason_code` 值有意使用裸名（例如 `bad_json`、`policy_violation`、`failed_precondition`），不加 `ck.` 前缀。错误码只在 service response、batch item 诊断和 reducer reason 上下文中解释，不与 event kind、operation id、schema id 或 capability action 共用命名空间。跨规范聚合错误时，调用方 SHOULD 用 registry 文件或 protocol 名称作为外层 namespace，而不是把 `ck.` 前缀补进 wire code。
+`error-code-registry.json` 中的 `code` / `reason_code` 值有意使用裸名（例如 `bad_json`、`policy_violation`、`failed_precondition`），不加 `ak.` 前缀。错误码只在 service response、batch item 诊断和 reducer reason 上下文中解释，不与 event kind、operation id、schema id 或 capability action 共用命名空间。跨规范聚合错误时，调用方 SHOULD 用 registry 文件或 protocol 名称作为外层 namespace，而不是把 `ak.` 前缀补进 wire code。
 
 新增标准错误码必须继续登记在 `error-code-registry.json`，不得因为本例外而在其它 registry 里注册裸名 action / event / operation。
 
@@ -58,21 +58,21 @@ sidebar:
 
 一个 token 同时扮演两种角色时（既能作顶层服务错误返回、又能作某条目的子原因），**MUST 在两个数组中各登记一次（双注册）**，两处描述 SHOULD 一致并互相点明"dual-registered"。双注册是有意设计、不是漂移；新增码若兼具两种角色，MUST 保持两侧同步。算法-agility fail-closed 三兄弟 `unsupported_digest_algorithm` / `unsupported_signature_alg` / `unsupported_hpke_suite` 即按此模型对称双注册（`codes` 均 `http_status=422` / `scope=both`，且各自在 `reason_codes` 有对应 per-item 条目），确保 digest / signature / HPKE 三类未识别 suite 的处置在 registry 中口径一致。
 
-### 1.2 `ck.*` 命名空间的机读登记边界（normative）
+### 1.2 `ak.*` 命名空间的机读登记边界（normative）
 
-并非所有 `ck.*` 标识符都要求进入机读 registry。下列命名空间类别**豁免机读登记**，其权威定义由各自的定义文档承载；豁免类别之外、被正文当作真实 wire 标识符使用的 `ck.*` id 仍 MUST 有机读归属（registry、schema const 或 profile 矩阵），缺失即为漂移缺陷：
+并非所有 `ak.*` 标识符都要求进入机读 registry。下列命名空间类别**豁免机读登记**，其权威定义由各自的定义文档承载；豁免类别之外、被正文当作真实 wire 标识符使用的 `ak.*` id 仍 MUST 有机读归属（registry、schema const 或 profile 矩阵），缺失即为漂移缺陷：
 
 | 豁免类别 | 例子 | 权威定义位置 |
 | --- | --- | --- |
-| 算法 / 编码 profile id | `ck.rank.lexofractional.v1`、`ck.reducer.v1` | 定义文档（encoding.md §9、snapshot-schema.md）；它们不是 conformance profile，不进 conformance-profiles.json |
-| 设备验证方法名 | `ck.sas.v1`、`ck.qr.v1` | device-lifecycle.md（`ck.key.verification.request.methods` 词表） |
-| client-local scheme id（不进 wire 互操作面） | `ck.secret_storage.v1`、secret storage 的 `ck.mls.v1` | device-lifecycle.md / key-management.md |
-| 信封 scheme 常量 | `ck.blob.presign.v1` | media-and-blob.md §5.4.2（与已进 schema const 的 scheme 并存是允许的；进 schema const 后以 schema 为准）。**例外**：HPKE 封装 suite id（`ck.hpke_*`）已进 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json)，按 registered 算法 agility suite 处理（与 signature / digest / mls-ciphersuite registry 并列），**不属**本豁免类别。 |
-| hash / transcript 域分隔标签 | `ck.agent_sidecar_circle.v1`、`ck.invite.claim.binding_proof.v1`、`ck.invite.claim.subject_proof.v1` | 使用处定义文档（MLS exporter label 除外——它有专属 exporter-label-registry） |
-| feature id（`supported_features` / `experimental_features` 值） | `ck.feature.identity.webvh_native_log.v1`、`ck.feature.mls_governance_binding.full.v1` | service-surface.md 与对应能力文档；feature id 是 describe 协商值，未识别值按各 describe 消费方规则忽略或 fail closed |
-| DID Document / 外部生态 profile 值 | `ck.org.governance.v1` | identity-did.md 示例上下文 |
-| E2EE application message kind | `ck.identity_link` | 定义文档（encryption-and-audit.md）；其 payload schema（`ck.schema.identity_link.v1`）仍 MUST 注册，kind 本身不进 durable event registry（不经 reducer / Seal 路径） |
-| 标准 account-data tag 词表 | `ck.favorite` | client-preferences.md §3.1（标准 tag 词表；tag 是加密 account data 内的私有分组标签，不进 wire registry） |
+| 算法 / 编码 profile id | `ak.rank.lexofractional.v1`、`ak.reducer.v1` | 定义文档（encoding.md §9、snapshot-schema.md）；它们不是 conformance profile，不进 conformance-profiles.json |
+| 设备验证方法名 | `ak.sas.v1`、`ak.qr.v1` | device-lifecycle.md（`ak.key.verification.request.methods` 词表） |
+| client-local scheme id（不进 wire 互操作面） | `ak.secret_storage.v1`、secret storage 的 `ak.mls.v1` | device-lifecycle.md / key-management.md |
+| 信封 scheme 常量 | `ak.blob.presign.v1` | media-and-blob.md §5.4.2（与已进 schema const 的 scheme 并存是允许的；进 schema const 后以 schema 为准）。**例外**：HPKE 封装 suite id（`ak.hpke_*`）已进 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json)，按 registered 算法 agility suite 处理（与 signature / digest / mls-ciphersuite registry 并列），**不属**本豁免类别。 |
+| hash / transcript 域分隔标签 | `ak.agent_sidecar_circle.v1`、`ak.invite.claim.binding_proof.v1`、`ak.invite.claim.subject_proof.v1` | 使用处定义文档（MLS exporter label 除外——它有专属 exporter-label-registry） |
+| feature id（`supported_features` / `experimental_features` 值） | `ak.feature.identity.webvh_native_log.v1`、`ak.feature.mls_governance_binding.full.v1` | service-surface.md 与对应能力文档；feature id 是 describe 协商值，未识别值按各 describe 消费方规则忽略或 fail closed |
+| DID Document / 外部生态 profile 值 | `ak.org.governance.v1` | identity-did.md 示例上下文 |
+| E2EE application message kind | `ak.identity_link` | 定义文档（encryption-and-audit.md）；其 payload schema（`ak.schema.identity_link.v1`）仍 MUST 注册，kind 本身不进 durable event registry（不经 reducer / Seal 路径） |
+| 标准 account-data tag 词表 | `ak.favorite` | client-preferences.md §3.1（标准 tag 词表；tag 是加密 account data 内的私有分组标签，不进 wire registry） |
 
 ### 1.3 Interop 命名空间例外
 
@@ -80,7 +80,7 @@ sidebar:
 
 | 名称 | 当前语义 | 允许理由 | 防护参考 |
 | --- | --- | --- | --- |
-| operation id `ck.open.mimi.command.update_room` | MIMI interop 命名空间内的标准操作；`room_update` 中的 `room` 术语与上游 MIMI 规范对齐 | 仅在 MIMI interop module 内部使用，不污染 core | `forbidden-model-terms.json` 把 `Room` 列为 `interop_module` allowed context |
+| operation id `ak.open.mimi.command.update_room` | MIMI interop 命名空间内的标准操作；`room_update` 中的 `room` 术语与上游 MIMI 规范对齐 | 仅在 MIMI interop module 内部使用，不污染 core | `forbidden-model-terms.json` 把 `Room` 列为 `interop_module` allowed context |
 | `Room visibility` | 外部 Matrix/MIMI 互通文档中引用的上游术语；Arkret core 必须拆成 discoverability / join rule / history visibility 三轴 | 仅允许在 interop module 中说明外部语义映射，不得作为 Arkret core 字段或 policy 名 | `forbidden-model-terms.json` 把 `Room visibility` 列为 `interop_module` allowed context |
 
 新增 interop 命名空间例外必须在此表登记并在对应 schema / registry 内联说明允许理由；不得仅靠口头约定。下游漂移扫描器 SHOULD 把此表作为 interop-only allowlist。
@@ -89,55 +89,55 @@ sidebar:
 
 | schema id | kind |
 | --- | --- |
-| `ck.schema.realm.v1` | Realm |
-| `ck.schema.space.v1` | Space |
-| `ck.schema.actor_profile.v1` | Actor Profile |
-| `ck.schema.agent_selector_claim.v1` | Controller-scoped native personal agent selector claim |
-| `ck.schema.circle.v1` | Circle (intra-Realm scoped event/message boundary; see [`../models/circle.md`](../models/circle.md)) |
-| `ck.schema.strand.v1` | Strand |
-| `ck.schema.message.v1` | Message |
-| `ck.schema.content_block_poll.v1` | Poll Content Block |
-| `ck.schema.morph.v1` | Morph |
-| `ck.schema.relation.v1` | Relation |
-| `ck.schema.view.v1` | View |
-| `ck.schema.policy.v1` | Policy |
-| `ck.schema.invite.v1` | Invite |
-| `ck.schema.read_cursor.v1` | Read Cursor |
-| `ck.schema.notification.v1` | Notification |
-| `ck.schema.capability.v1` | Capability Grant |
-| `ck.schema.event.v1` | Event Envelope |
-| `ck.schema.event_payload.v1` | Standard Event Payload Classes |
-| `ck.schema.event_batch_receipt.v1` | Event Batch Receipt |
-| `ck.schema.cursor.v1` | Cursor |
-| `ck.schema.snapshot.v1` | Snapshot Manifest |
-| `ck.schema.grant_constraint.v1` | Grant Constraint |
-| `ck.schema.resource_selector.v1` | Resource Selector |
-| `ck.schema.did_key_log_entry.v1` | DID Key Log Entry |
-| `ck.schema.did_continuity_proof.v1` | DID Continuity Proof |
-| `ck.schema.identity_receipt.v1` | Identity Receipt |
-| `ck.schema.identity_link.v1` | Minimal-metadata E2EE identity link |
-| `ck.schema.handle_claim.v1` | Handle Claim |
-| `ck.schema.realm_join_candidate.v1` | Realm join candidate routing hint |
-| `ck.schema.media_metadata.v1` | Media Metadata |
-| `ck.schema.read_receipt.v1` | Read Receipt |
-| `ck.schema.blob.v1` | Blob Metadata |
-| `ck.schema.encrypted_envelope.v1` | MLS Encrypted Payload Envelope |
-| `ck.schema.key_backup.v1` | Encrypted Key Backup |
-| `ck.schema.recovery_policy.v1` | Principal Recovery Policy |
-| `ck.schema.recovery_session.v1` | Device Recovery Session |
-| `ck.schema.recovery_receipt.v1` | Recovery Receipt |
-| `ck.schema.account_subscribe_frame.v1` | Account Subscribe Frame |
-| `ck.schema.device_message.v1` | To-device Message Envelope |
-| `ck.schema.mimi_interop.v1` | MIMI Provider Directory / MIMI Room Binding (interop; see [`../extensions/mimi-interop.md`](../extensions/mimi-interop.md)) / Mapping Receipt |
-| `ck.schema.moderation_report.v1` | Moderation Report |
-| `ck.schema.moderation_queue_item.v1` | Moderation Queue Item |
+| `ak.schema.realm.v1` | Realm |
+| `ak.schema.space.v1` | Space |
+| `ak.schema.actor_profile.v1` | Actor Profile |
+| `ak.schema.agent_selector_claim.v1` | Controller-scoped native personal agent selector claim |
+| `ak.schema.circle.v1` | Circle (intra-Realm scoped event/message boundary; see [`../models/circle.md`](../models/circle.md)) |
+| `ak.schema.strand.v1` | Strand |
+| `ak.schema.message.v1` | Message |
+| `ak.schema.content_block_poll.v1` | Poll Content Block |
+| `ak.schema.morph.v1` | Morph |
+| `ak.schema.relation.v1` | Relation |
+| `ak.schema.view.v1` | View |
+| `ak.schema.policy.v1` | Policy |
+| `ak.schema.invite.v1` | Invite |
+| `ak.schema.read_cursor.v1` | Read Cursor |
+| `ak.schema.notification.v1` | Notification |
+| `ak.schema.capability.v1` | Capability Grant |
+| `ak.schema.event.v1` | Event Envelope |
+| `ak.schema.event_payload.v1` | Standard Event Payload Classes |
+| `ak.schema.event_batch_receipt.v1` | Event Batch Receipt |
+| `ak.schema.cursor.v1` | Cursor |
+| `ak.schema.snapshot.v1` | Snapshot Manifest |
+| `ak.schema.grant_constraint.v1` | Grant Constraint |
+| `ak.schema.resource_selector.v1` | Resource Selector |
+| `ak.schema.did_key_log_entry.v1` | DID Key Log Entry |
+| `ak.schema.did_continuity_proof.v1` | DID Continuity Proof |
+| `ak.schema.identity_receipt.v1` | Identity Receipt |
+| `ak.schema.identity_link.v1` | Minimal-metadata E2EE identity link |
+| `ak.schema.handle_claim.v1` | Handle Claim |
+| `ak.schema.realm_join_candidate.v1` | Realm join candidate routing hint |
+| `ak.schema.media_metadata.v1` | Media Metadata |
+| `ak.schema.read_receipt.v1` | Read Receipt |
+| `ak.schema.blob.v1` | Blob Metadata |
+| `ak.schema.encrypted_envelope.v1` | MLS Encrypted Payload Envelope |
+| `ak.schema.key_backup.v1` | Encrypted Key Backup |
+| `ak.schema.recovery_policy.v1` | Principal Recovery Policy |
+| `ak.schema.recovery_session.v1` | Device Recovery Session |
+| `ak.schema.recovery_receipt.v1` | Recovery Receipt |
+| `ak.schema.account_subscribe_frame.v1` | Account Subscribe Frame |
+| `ak.schema.device_message.v1` | To-device Message Envelope |
+| `ak.schema.mimi_interop.v1` | MIMI Provider Directory / MIMI Room Binding (interop; see [`../extensions/mimi-interop.md`](../extensions/mimi-interop.md)) / Mapping Receipt |
+| `ak.schema.moderation_report.v1` | Moderation Report |
+| `ak.schema.moderation_queue_item.v1` | Moderation Queue Item |
 
 ## 3. Event Type 设计约束
 
 ### 3.1 命名规则
 
-- 标准事件必须使用命名空间：`ck.<domain>[.<subdomain>].<verb>`。
-- 所有标准事件必须是 `ck.` 前缀。
+- 标准事件必须使用命名空间：`ak.<domain>[.<subdomain>].<verb>`。
+- 所有标准事件必须是 `ak.` 前缀。
 - 裸名事件（例如 `realm.create`）不是标准事件。
 - 自由字符串事件（如 `custom.*`）不能直接登记标准事件，需要通过自定义 schema + capability / state filter 映射。
 
@@ -157,114 +157,114 @@ sidebar:
 
 | event type | payload |
 | --- | --- |
-| `ck.realm.create` | Realm create |
-| `ck.realm.update` | Realm patch |
-| `ck.realm.upgrade` | Realm version upgrade |
-| `ck.realm.organization` | Organization-authorized Realm relationship statement or revocation |
-| `ck.realm.link` | Typed Realm link graph edge |
-| `ck.realm.inheritance_policy` | Policy inheritance declaration from a source Realm (subject=`payload.source_realm_id`) |
-| `ck.realm.join_rule` | Join rule state |
-| `ck.realm.history_visibility` | History visibility state |
-| `ck.realm.history_sharing_policy` | E2EE history key share policy |
-| `ck.realm.discovery` | Discoverability state |
-| `ck.realm.preview_policy` | Preview / peek policy state |
-| `ck.realm.policy` | Realm policy state |
-| `ck.realm.read_receipt_policy` | Realm read receipt disclosure policy state |
-| `ck.realm.tombstone` | Terminal Realm tombstone or replacement marker |
-| `ck.realm.archive` | Reversible archive state |
-| `ck.realm.freeze` | Temporary freeze state |
-| `ck.realm.destroy` | Terminal decommission marker |
-| `ck.member.state` | Membership state |
+| `ak.realm.create` | Realm create |
+| `ak.realm.update` | Realm patch |
+| `ak.realm.upgrade` | Realm version upgrade |
+| `ak.realm.organization` | Organization-authorized Realm relationship statement or revocation |
+| `ak.realm.link` | Typed Realm link graph edge |
+| `ak.realm.inheritance_policy` | Policy inheritance declaration from a source Realm (subject=`payload.source_realm_id`) |
+| `ak.realm.join_rule` | Join rule state |
+| `ak.realm.history_visibility` | History visibility state |
+| `ak.realm.history_sharing_policy` | E2EE history key share policy |
+| `ak.realm.discovery` | Discoverability state |
+| `ak.realm.preview_policy` | Preview / peek policy state |
+| `ak.realm.policy` | Realm policy state |
+| `ak.realm.read_receipt_policy` | Realm read receipt disclosure policy state |
+| `ak.realm.tombstone` | Terminal Realm tombstone or replacement marker |
+| `ak.realm.archive` | Reversible archive state |
+| `ak.realm.freeze` | Temporary freeze state |
+| `ak.realm.destroy` | Terminal decommission marker |
+| `ak.member.state` | Membership state |
 
-> `realm.join_policy` / `member.application` / `member.application.review` / `member.application.cancel` 是 candidate workflow concept/action 名称，不是 v1 wire `Event.kind`，见 [`../governance/join-policy.md`](../governance/join-policy.md)。未列入本 active registry，正式登记前不得使用 `ck.*` 前缀，也不得作为 Event envelope 的 `kind`。
-| `ck.strand.create` | Strand create |
-| `ck.strand.update` | Strand patch |
-| `ck.strand.archive` | Strand archive |
-| `ck.strand.restore` | Strand restore |
-| `ck.strand.move` | Strand move between Lists |
-| `ck.strand.reorder` | Strand reorder within List |
-| `ck.strand.tracks.update` | Strand tracks map patch（`ck.patch.v1` payload；详见 [`../models/strand-and-message.md` §4.8](../models/strand-and-message.md)） |
-| `ck.strand.watch.set` | Set / clear per-(strand, actor) watch subscription (writes cas_register cell `ck.component.strand.watch.v1`; derives `watches` Relation) |
-| `ck.space.create` | Space create (board / list / swimlane / calendar bucket / ...) |
-| `ck.space.update` | Space metadata patch |
-| `ck.space.parent` | Space parent declaration (cas_register cell) |
-| `ck.space.archive` | Space archive (reversible UI hide) |
-| `ck.space.restore` | Space restore (archived -> active; only valid when current state == archived) |
-| `ck.space.tombstone` | Space tombstone (irreversible; contained Strands MUST be relocated first) |
+> `realm.join_policy` / `member.application` / `member.application.review` / `member.application.cancel` 是 candidate workflow concept/action 名称，不是 v1 wire `Event.kind`，见 [`../governance/join-policy.md`](../governance/join-policy.md)。未列入本 active registry，正式登记前不得使用 `ak.*` 前缀，也不得作为 Event envelope 的 `kind`。
+| `ak.strand.create` | Strand create |
+| `ak.strand.update` | Strand patch |
+| `ak.strand.archive` | Strand archive |
+| `ak.strand.restore` | Strand restore |
+| `ak.strand.move` | Strand move between Lists |
+| `ak.strand.reorder` | Strand reorder within List |
+| `ak.strand.tracks.update` | Strand tracks map patch（`ak.patch.v1` payload；详见 [`../models/strand-and-message.md` §4.8](../models/strand-and-message.md)） |
+| `ak.strand.watch.set` | Set / clear per-(strand, actor) watch subscription (writes cas_register cell `ak.component.strand.watch.v1`; derives `watches` Relation) |
+| `ak.space.create` | Space create (board / list / swimlane / calendar bucket / ...) |
+| `ak.space.update` | Space metadata patch |
+| `ak.space.parent` | Space parent declaration (cas_register cell) |
+| `ak.space.archive` | Space archive (reversible UI hide) |
+| `ak.space.restore` | Space restore (archived -> active; only valid when current state == archived) |
+| `ak.space.tombstone` | Space tombstone (irreversible; contained Strands MUST be relocated first) |
 
 ### 4.2 消息与关系
 
 | event type | payload |
 | --- | --- |
-| `ck.morph.create` | Morph create |
-| `ck.morph.update` | Morph patch |
-| `ck.morph.archive` | Morph archive |
-| `ck.morph.restore` | Morph restore |
-| `ck.container.move_item` | Facet container item move |
-| `ck.container.rebalance` | Facet container rank rebalance |
-| `ck.message.create` | Message create |
-| `ck.message.revise` | Message edit patch |
-| `ck.message.redact` | Message-scoped redaction |
-| `ck.relation.create` | Relation create |
-| `ck.relation.update` | Relation patch |
-| `ck.relation.tombstone` | Relation tombstone |
-| `ck.reaction.add` | Reaction add |
-| `ck.reaction.remove` | Reaction remove |
-| `ck.read_cursor.advance` | Read cursor advance event |
-| `ck.receipt.read` | Read receipt event |
+| `ak.morph.create` | Morph create |
+| `ak.morph.update` | Morph patch |
+| `ak.morph.archive` | Morph archive |
+| `ak.morph.restore` | Morph restore |
+| `ak.container.move_item` | Facet container item move |
+| `ak.container.rebalance` | Facet container rank rebalance |
+| `ak.message.create` | Message create |
+| `ak.message.revise` | Message edit patch |
+| `ak.message.redact` | Message-scoped redaction |
+| `ak.relation.create` | Relation create |
+| `ak.relation.update` | Relation patch |
+| `ak.relation.tombstone` | Relation tombstone |
+| `ak.reaction.add` | Reaction add |
+| `ak.reaction.remove` | Reaction remove |
+| `ak.read_cursor.advance` | Read cursor advance event |
+| `ak.receipt.read` | Read receipt event |
 
 ### 4.3 授权与治理
 
 | event type | payload |
 | --- | --- |
-| `ck.capability.grant` | Grant |
-| `ck.capability.delegate` | Delegate grant |
-| `ck.capability.revoke` | Revocation |
-| `ck.capability.derived` | Derived capability state |
-| `ck.account.status` | Signed account lifecycle status |
-| `ck.profile.create` | Actor profile create |
-| `ck.profile.update` | Actor profile patch |
-| `ck.profile.realm_override` | Realm-scoped profile override |
-| `ck.audit.accessed` | Auditable access |
-| `ck.self.moderation.report` | Moderation report |
-| `ck.key.verification.request` | Device key verification request |
-| `ck.key.verification.ready` | Device key verification ready |
-| `ck.key.verification.start` | Device key verification start |
-| `ck.key.verification.accept` | Device key verification accept |
-| `ck.key.verification.key` | Device key verification ephemeral key |
-| `ck.key.verification.mac` | Device key verification MAC |
-| `ck.key.verification.done` | Device key verification completion |
-| `ck.key.verification.cancel` | Device key verification cancellation |
+| `ak.capability.grant` | Grant |
+| `ak.capability.delegate` | Delegate grant |
+| `ak.capability.revoke` | Revocation |
+| `ak.capability.derived` | Derived capability state |
+| `ak.account.status` | Signed account lifecycle status |
+| `ak.profile.create` | Actor profile create |
+| `ak.profile.update` | Actor profile patch |
+| `ak.profile.realm_override` | Realm-scoped profile override |
+| `ak.audit.accessed` | Auditable access |
+| `ak.self.moderation.report` | Moderation report |
+| `ak.key.verification.request` | Device key verification request |
+| `ak.key.verification.ready` | Device key verification ready |
+| `ak.key.verification.start` | Device key verification start |
+| `ak.key.verification.accept` | Device key verification accept |
+| `ak.key.verification.key` | Device key verification ephemeral key |
+| `ak.key.verification.mac` | Device key verification MAC |
+| `ak.key.verification.done` | Device key verification completion |
+| `ak.key.verification.cancel` | Device key verification cancellation |
 | `ak.session.grant` | Session grant |
-| `ck.device.authorize` | Device authorization |
-| `ck.device.revoke` | Device revocation |
-| `ck.device.list_update` | Device list update |
-| `ck.call.signal` | WebRTC signal message |
+| `ak.device.authorize` | Device authorization |
+| `ak.device.revoke` | Device revocation |
+| `ak.device.list_update` | Device list update |
+| `ak.call.signal` | WebRTC signal message |
 
 ### 4.4 加密、协作与扩展
 
 | event type | payload |
 | --- | --- |
-| `ck.mls.proposal` | MLS proposal |
-| `ck.mls.genesis` | MLS group genesis |
-| `ck.mls.commit` | MLS commit |
-| `ck.mls.commit_failed` | MLS commit or Welcome processing failure diagnostic |
-| `ck.mls.welcome` | MLS Welcome ref |
-| `ck.mls.keypackage` | MLS KeyPackage publication |
-| `ck.realm_key.request` | Realm history key request to-device signal (receiver → key source) |
-| `ck.realm_key.share` | Realm key share（成员设备历史交付或 RRK 持久化封存） |
-| `ck.realm_key.withheld` | Realm key withheld notice |
-| `ck.realm_key.share_audit` | Auditable history key share marker |
-| `ck.agent.endpoint` | Agent protocol endpoint declaration |
-| `ck.agent.interop_session.start` | Agent protocol session start |
-| `ck.agent.interop_session.status` | Agent protocol session status |
-| `ck.agent.interop_session.result` | Agent protocol session result |
-| `ck.applet.bridge_error` | Bridge failure |
-| `ck.applet.registration` | Applet registration |
-| `ck.applet.interop_session.start` | Applet / agent protocol session start |
-| `ck.applet.interop_session.status` | Protocol session status |
-| `ck.mimi.room_binding` | MIMI room binding state |
-| `ck.redaction` | Generic redaction envelope |
+| `ak.mls.proposal` | MLS proposal |
+| `ak.mls.genesis` | MLS group genesis |
+| `ak.mls.commit` | MLS commit |
+| `ak.mls.commit_failed` | MLS commit or Welcome processing failure diagnostic |
+| `ak.mls.welcome` | MLS Welcome ref |
+| `ak.mls.keypackage` | MLS KeyPackage publication |
+| `ak.realm_key.request` | Realm history key request to-device signal (receiver → key source) |
+| `ak.realm_key.share` | Realm key share（成员设备历史交付或 RRK 持久化封存） |
+| `ak.realm_key.withheld` | Realm key withheld notice |
+| `ak.realm_key.share_audit` | Auditable history key share marker |
+| `ak.agent.endpoint` | Agent protocol endpoint declaration |
+| `ak.agent.interop_session.start` | Agent protocol session start |
+| `ak.agent.interop_session.status` | Agent protocol session status |
+| `ak.agent.interop_session.result` | Agent protocol session result |
+| `ak.applet.bridge_error` | Bridge failure |
+| `ak.applet.registration` | Applet registration |
+| `ak.applet.interop_session.start` | Applet / agent protocol session start |
+| `ak.applet.interop_session.status` | Protocol session status |
+| `ak.mimi.room_binding` | MIMI room binding state |
+| `ak.redaction` | Generic redaction envelope |
 
 ## 5. Extension 约定
 
@@ -274,7 +274,7 @@ sidebar:
 com.example.schema.foo.v1
 ```
 
-自定义 event type MUST NOT 使用 `ck.` 前缀，除非被正式纳入标准注册表。
+自定义 event type MUST NOT 使用 `ak.` 前缀，除非被正式纳入标准注册表。
 
 ## 6. 演进约束
 
@@ -304,7 +304,7 @@ OpenAPI DTO MAY 使用 `additionalProperties: false`。若 DTO 内嵌 canonical 
 
 **b. schema 内闭集枚举（closed enum）**——由 JSON Schema `enum` 关键词在 canonical schema 中承载的封闭值集：如 Event Envelope 的 `actor_kind`（`user` / `org` / `team` / `agent` / `service` / `integration`）、cursor 的 `purpose`（`stream` / `barrier`）。
 
-- 向闭集枚举新增值 MUST 伴随对应 schema 版本 bump（新 `ck.schema.*.v<n+1>`，并经 §6 的变更说明流程反映到 `conformance-profiles.json#profile_requirements` 的 `required_schemas`）。不允许"原地扩 enum、版本不动"。
+- 向闭集枚举新增值 MUST 伴随对应 schema 版本 bump（新 `ak.schema.*.v<n+1>`，并经 §6 的变更说明流程反映到 `conformance-profiles.json#profile_requirements` 的 `required_schemas`）。不允许"原地扩 enum、版本不动"。
 - 已发布旧实现对新值按 `schema_violation` 硬拒是**合规行为**，不是互操作缺陷；发起方在对端未声明新 schema 版本前 MUST NOT 发送新值（能力交集原则）。
 - 生成代码 MAY 用封闭 enum 类型（无 Unknown 兜底）表达闭集值；闭集枚举值导致的反序列化失败不违反 a 条的"未知值保留"义务——该义务只适用于开放注册集。
 

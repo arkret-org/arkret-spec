@@ -50,7 +50,7 @@
     "agent_slug": {
       "type": "string",
       "pattern": "^[a-z0-9](?:[a-z0-9_-]{0,62}[a-z0-9])?$",
-      "description": "Projection hint for a controller-scoped selector slug backed by ck.schema.agent_selector_claim.v1. Only valid when actor_kind=agent under ck.profile.personal_agent_provisioning.v1; it is not a global handle and MUST NOT be used for authorization, attribution, or Directory discovery. The mention input token @<controller-handle>/<agent_slug> resolves to this actor's principal_id before persistence only after selector claim validation."
+      "description": "Projection hint for a controller-scoped selector slug backed by ak.schema.agent_selector_claim.v1. Only valid when actor_kind=agent under ak.profile.personal_agent_provisioning.v1; it is not a global handle and MUST NOT be used for authorization, attribution, or Directory discovery. The mention input token @<controller-handle>/<agent_slug> resolves to this actor's principal_id before persistence only after selector claim validation."
     },
     "avatar_blob_ref": {
       "type": "string",
@@ -66,7 +66,7 @@
         "deactivated",
         "erasure_pending"
       ],
-      "description": "Public projection of the account lifecycle status values defined in zh/identity/account-lifecycle.md §3. Implementations MAY hide or coarsen this field in projection views, but the wire enum mirrors ck.account.status."
+      "description": "Public projection of the account lifecycle status values defined in zh/identity/account-lifecycle.md §3. Implementations MAY hide or coarsen this field in projection views, but the wire enum mirrors ak.account.status."
     },
     "accountable_principal_ids": {
       "type": "array",

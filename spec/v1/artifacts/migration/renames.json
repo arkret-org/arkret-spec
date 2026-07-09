@@ -40,11 +40,11 @@
     "grant_constraint_single_kind_ids": "Grant constraint fields that carry one concrete protocol identifier kind use `_ids`; `_refs` remains reserved for causal/proof/schema/content-addressed or polymorphic reference material.",
     "metadata_encryption_floor_rename": "Wire field metadata_encryption_profile renamed to metadata_encryption_floor.",
     "key_backup_kdf_hash_to_digest_algorithm": "Key backup KDF parameter algorithm selectors use digest_algorithm; hash is reserved for actual digest material and internal JSON Schema defs.",
-    "brand_namespace_cx_to_ck": "Wire/brand namespace renamed from the legacy `contrix` brand to `arkret`. Every wire token prefix `cx.` becomes `ck.` and every typed-id prefix `cx:` becomes `ak:` across operation_id, event_kind, schema_id, capability action, id_kind, error code, vector id, and profile id. The bare brand strings `contrix` / `Contrix` and the token prefixes `cx.` / `cx:` are hard_reject on the current wire and in current identifiers (allowed only in CHANGELOG / migration docs / negative drift fixtures). HTTP paths additionally moved to the versionless trust-circle namespace `/_arkret/<segment>/...` (see sync/service-http-binding.md §2.1); the legacy flat paths and `/api/v1` / `/arkret/v1` prefixes are recorded in removed-operation-ids.json. Mechanical, single design decision; the entries below are representative seals, the rule applies to the whole token space.",
-    "operation_id_trust_surface_segment": "Scheme B: operation_id now encodes its trust-surface classifier as the mandatory leading segment (ck.<surface>.<resource>.<action>, surface in {self,peer,edge,root,find,gate,open}), matching the HTTP path's first segment 1:1. 108 operations gain the surface prefix; peer.* were already compliant and ck.server.describe (pre-auth root meta, no surface segment) is the sole exception. grpc service names gain the PascalCase surface prefix and mq topics the lowercase surface segment in lockstep. Single design decision; entries are mechanical applications.",
-    "agent_applet_interop_session_rename": "Agent and applet session surfaces renamed from the ambiguous `protocol_session` (which reads as the ambient Arkret protocol) to `interop_session`, naming the external agent-to-agent interop relationship. Event kinds ck.{agent,applet}.protocol_session.* -> ck.{agent,applet}.interop_session.*; the agent capability action namespace ck.agent.session.* (start/cancel/stream_status/attach_artifact/read_transcript) -> ck.agent.interop_session.*; the typed id and schema payload defs use the agent_interop_session_* / applet_interop_session_* short form. Single design decision.",
+    "brand_namespace_cx_to_ck": "Wire/brand namespace renamed from the legacy `contrix` brand to `arkret`. Every wire token prefix `cx.` becomes `ak.` and every typed-id prefix `cx:` becomes `ak:` across operation_id, event_kind, schema_id, capability action, id_kind, error code, vector id, and profile id. The bare brand strings `contrix` / `Contrix` and the token prefixes `cx.` / `cx:` are hard_reject on the current wire and in current identifiers (allowed only in CHANGELOG / migration docs / negative drift fixtures). HTTP paths additionally moved to the versionless trust-circle namespace `/_arkret/<segment>/...` (see sync/service-http-binding.md §2.1); the legacy flat paths and `/api/v1` / `/arkret/v1` prefixes are recorded in removed-operation-ids.json. Mechanical, single design decision; the entries below are representative seals, the rule applies to the whole token space.",
+    "operation_id_trust_surface_segment": "Scheme B: operation_id now encodes its trust-surface classifier as the mandatory leading segment (ak.<surface>.<resource>.<action>, surface in {self,peer,edge,root,find,gate,open}), matching the HTTP path's first segment 1:1. 108 operations gain the surface prefix; peer.* were already compliant and ak.server.describe (pre-auth root meta, no surface segment) is the sole exception. grpc service names gain the PascalCase surface prefix and mq topics the lowercase surface segment in lockstep. Single design decision; entries are mechanical applications.",
+    "agent_applet_interop_session_rename": "Agent and applet session surfaces renamed from the ambiguous `protocol_session` (which reads as the ambient Arkret protocol) to `interop_session`, naming the external agent-to-agent interop relationship. Event kinds ak.{agent,applet}.protocol_session.* -> ak.{agent,applet}.interop_session.*; the agent capability action namespace ak.agent.session.* (start/cancel/stream_status/attach_artifact/read_transcript) -> ak.agent.interop_session.*; the typed id and schema payload defs use the agent_interop_session_* / applet_interop_session_* short form. Single design decision.",
     "conformance_verifier_neutralization": "ServiceDescribe.verified_profiles neutralized away from the downstream tool name cotest: claim_kind enum value cotest_verified → conformance_verified, wire fields cotest_run_id → verification_run_id and cotest_issuer_did → verifier_did. The wire contract binds to the neutral Conformance Verifier role (conformance-suite.md §6.2); cotest survives only as an informative reference-implementation name in prose (3 entries).",
-    "cba_notary_seal_rename": "CBA terminology family rename (2026-06-11): the Anchor/Anchorer word family is replaced by Seal/Notary across wire fields, typed-id prefixes, cell families, enum values and model names; the Seal cumulative-coverage frontier[] enumeration is retired in favor of predecessor_refs + delta recursion (no direct field successor; the snapshot manifest's boundary `frontier` object and the streaming `frontier` frame kind are true-frontier semantics and keep their names); proposal-era interim spellings (governance_ref, Checkpoint) are forbidden. See authz/event-auth-state-resolution.md and overview/glossary.md."
+    "cba_notary_seal_rename": "CBA terminology family rename (2026-06-11): the Anchor/Anchorer word family is replaced by Seal/Notary across wire fields, typed-id prefixes, cell families, enum values and model names; the Seal cumulative-coverage frontier[] enumeration is retired in favor of predecessor_refs + delta recursion (no direct field successor; the snapshot manifest's boundary `frontier` object and the streaming `frontier` frame kind are true-frontier semantics and keep their names); proposal-era interim spellings (governance_ref, Cheakpoint) are forbidden. See authz/event-auth-state-resolution.md and overview/glossary.md."
   },
   "entries": [
     {
@@ -58,7 +58,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Draft-era ck.member.identity.update payload field renamed to identity_payload_digest (disambiguated from roster member_display_state_digest). Current v1 parsers MUST reject identity_state_digest."
+      "notes": "Draft-era ak.member.identity.update payload field renamed to identity_payload_digest (disambiguated from roster member_display_state_digest). Current v1 parsers MUST reject identity_state_digest."
     },
     {
       "id": "service_handle",
@@ -71,7 +71,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Draft-era ck.schema.handle_claim.v1.claim_kind value removed with no 1:1 replacement: service/resource readable names need their own service/resource schema; organization-assigned user/principal handles use organization_handle. Current v1 parsers MUST reject service_handle."
+      "notes": "Draft-era ak.schema.handle_claim.v1.claim_kind value removed with no 1:1 replacement: service/resource readable names need their own service/resource schema; organization-assigned user/principal handles use organization_handle. Current v1 parsers MUST reject service_handle."
     },
     {
       "id": "metadata_encryption_profile",
@@ -99,7 +99,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Legacy contrix-brand wire token prefix. Every `cx.`-prefixed operation_id / event_kind / schema_id / capability action / error code / vector id / profile id is renamed to the `ck.` prefix. The `cx.` prefix MUST NOT appear on the current wire or in current identifiers."
+      "notes": "Legacy contrix-brand wire token prefix. Every `cx.`-prefixed operation_id / event_kind / schema_id / capability action / error code / vector id / profile id is renamed to the `ak.` prefix. The `cx.` prefix MUST NOT appear on the current wire or in current identifiers."
     },
     {
       "id": "contrix",
@@ -127,7 +127,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Representative operation_id seal for the cx.->ck. brand rename (the rule applies to all 101 operation ids)."
+      "notes": "Representative operation_id seal for the cx.->ak. brand rename (the rule applies to all 101 operation ids)."
     },
     {
       "id": "cx.member.state",
@@ -141,7 +141,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Representative event_kind seal for the cx.->ck. brand rename (the rule applies to all event kinds)."
+      "notes": "Representative event_kind seal for the cx.->ak. brand rename (the rule applies to all event kinds)."
     },
     {
       "id": "cx.schema.event.v1",
@@ -155,10 +155,10 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Representative schema_id seal for the cx.->ck. brand rename (the rule applies to all schema ids)."
+      "notes": "Representative schema_id seal for the cx.->ak. brand rename (the rule applies to all schema ids)."
     },
     {
-      "id": "cx.strand.track.member",
+      "id": "cx.strand.traak.member",
       "kind_class": "event_kind",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
@@ -171,7 +171,7 @@
       "notes": "Deleted: track does not carry independent membership. Use Realm-level cx.member.state for Realm-default access; when narrower cryptographic visibility is required, put the entire Strand in a Circle via Strand.scope_circle_id or split wide/narrow discussion into two Strands linked by confidential_discussion_of."
     },
     {
-      "id": "cx.strand.track.history_visibility",
+      "id": "cx.strand.traak.history_visibility",
       "kind_class": "event_kind",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
@@ -184,7 +184,7 @@
       "notes": "Deleted: history visibility lives at the Realm boundary."
     },
     {
-      "id": "cx.strand.track.read_receipt_policy",
+      "id": "cx.strand.traak.read_receipt_policy",
       "kind_class": "event_kind",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
@@ -197,7 +197,7 @@
       "notes": "Deleted: track-scoped read receipt override is explicitly out of v1 scope."
     },
     {
-      "id": "cx.strand.track.policy_components",
+      "id": "cx.strand.traak.policy_components",
       "kind_class": "event_kind",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
@@ -2259,7 +2259,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Pre-final field name in the key backup auth_data object (ck.schema.key_backup.v1). Since v1 final, auth_data.ssk_generation is the single legitimate field binding the backup to the accepted cross-signing generation (ck.cross_signing.publish generation; see identity/key-management.md). Current v1 parsers MUST reject auth_data.x_ssk_generation without inspecting payload shape."
+      "notes": "Pre-final field name in the key backup auth_data object (ak.schema.key_backup.v1). Since v1 final, auth_data.ssk_generation is the single legitimate field binding the backup to the accepted cross-signing generation (ak.cross_signing.publish generation; see identity/key-management.md). Current v1 parsers MUST reject auth_data.x_ssk_generation without inspecting payload shape."
     },
     {
       "id": "endpoint_set",
@@ -3552,7 +3552,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.account.agent_key_pair -> ck.gate.account.agent_key_pair); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.account.agent_key_pair -> ak.gate.account.agent_key_pair); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.account.cursor_revoke",
@@ -3566,7 +3566,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.account.cursor_revoke -> ck.self.account.cursor_revoke); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.account.cursor_revoke -> ak.self.account.cursor_revoke); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.account.describe",
@@ -3580,7 +3580,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.account.describe -> ck.self.account.describe); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.account.describe -> ak.self.account.describe); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.account.device_pair",
@@ -3594,7 +3594,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.account.device_pair -> ck.gate.account.device_pair); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.account.device_pair -> ak.gate.account.device_pair); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.account.issue_session_grant",
@@ -3608,7 +3608,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.account.issue_session_grant -> ck.gate.account.issue_session_grant); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.account.issue_session_grant -> ak.gate.account.issue_session_grant); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.account.oidc_callback",
@@ -3622,7 +3622,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.account.oidc_callback -> ck.gate.account.oidc_callback); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.account.oidc_callback -> ak.gate.account.oidc_callback); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.account.register",
@@ -3636,7 +3636,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.account.register -> ck.gate.account.register); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.account.register -> ak.gate.account.register); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.account.session_revoke",
@@ -3650,7 +3650,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.account.session_revoke -> ck.gate.account.session_revoke); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.account.session_revoke -> ak.gate.account.session_revoke); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.account.subscribe",
@@ -3664,7 +3664,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.account.subscribe -> ck.self.account.subscribe); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.account.subscribe -> ak.self.account.subscribe); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.account.update_profile",
@@ -3678,7 +3678,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.account.update_profile -> ck.self.account.update_profile); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.account.update_profile -> ak.self.account.update_profile); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.account.viewer",
@@ -3692,7 +3692,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.account.viewer -> ck.self.account.viewer); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.account.viewer -> ak.self.account.viewer); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.agent.deactivate",
@@ -3706,7 +3706,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.agent.deactivate -> ck.self.agent.deactivate); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.agent.deactivate -> ak.self.agent.deactivate); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.agent.get",
@@ -3720,7 +3720,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.agent.get -> ck.self.agent.get); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.agent.get -> ak.self.agent.get); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.agent.grant.attach",
@@ -3734,7 +3734,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.agent.grant.attach -> ck.self.agent.grant.attach); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.agent.grant.attach -> ak.self.agent.grant.attach); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.agent.grant.detach",
@@ -3748,7 +3748,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.agent.grant.detach -> ck.self.agent.grant.detach); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.agent.grant.detach -> ak.self.agent.grant.detach); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.agent.list",
@@ -3762,7 +3762,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.agent.list -> ck.self.agent.list); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.agent.list -> ak.self.agent.list); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.agent.pause",
@@ -3776,7 +3776,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.agent.pause -> ck.self.agent.pause); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.agent.pause -> ak.self.agent.pause); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.agent.provision",
@@ -3790,7 +3790,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.agent.provision -> ck.self.agent.provision); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.agent.provision -> ak.self.agent.provision); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.agent.resume",
@@ -3804,7 +3804,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.agent.resume -> ck.self.agent.resume); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.agent.resume -> ak.self.agent.resume); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.agent.rotate_key",
@@ -3818,7 +3818,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.agent.rotate_key -> ck.self.agent.rotate_key); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.agent.rotate_key -> ak.self.agent.rotate_key); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.agent.sidecar_thread.ensure",
@@ -3832,7 +3832,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.agent.sidecar_thread.ensure -> ck.self.agent.sidecar_thread.ensure); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.agent.sidecar_thread.ensure -> ak.self.agent.sidecar_thread.ensure); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.applet.describe",
@@ -3846,7 +3846,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.applet.describe -> ck.edge.applet.describe); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.applet.describe -> ak.edge.applet.describe); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.applet.install",
@@ -3860,7 +3860,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.applet.install -> ck.self.applet.install); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.applet.install -> ak.self.applet.install); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.applet.install.preview",
@@ -3874,7 +3874,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.applet.install.preview -> ck.self.applet.install.preview); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.applet.install.preview -> ak.self.applet.install.preview); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.applet.ping",
@@ -3888,7 +3888,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.applet.ping -> ck.edge.applet.ping); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.applet.ping -> ak.edge.applet.ping); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.applet.protocol_metadata",
@@ -3902,7 +3902,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.applet.protocol_metadata -> ck.edge.applet.protocol_metadata); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.applet.protocol_metadata -> ak.edge.applet.protocol_metadata); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.applet.resolve_actor",
@@ -3916,7 +3916,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.applet.resolve_actor -> ck.edge.applet.resolve_actor); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.applet.resolve_actor -> ak.edge.applet.resolve_actor); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.applet.resolve_realm",
@@ -3930,7 +3930,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.applet.resolve_realm -> ck.edge.applet.resolve_realm); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.applet.resolve_realm -> ak.edge.applet.resolve_realm); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.applet.revoke",
@@ -3944,7 +3944,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.applet.revoke -> ck.self.applet.revoke); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.applet.revoke -> ak.self.applet.revoke); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.applet.third_party_locations",
@@ -3958,7 +3958,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.applet.third_party_locations -> ck.edge.applet.third_party_locations); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.applet.third_party_locations -> ak.edge.applet.third_party_locations); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.applet.third_party_users",
@@ -3972,7 +3972,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.applet.third_party_users -> ck.edge.applet.third_party_users); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.applet.third_party_users -> ak.edge.applet.third_party_users); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.applet.transaction",
@@ -3986,7 +3986,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.applet.transaction -> ck.edge.applet.transaction); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.applet.transaction -> ak.edge.applet.transaction); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.authz.check",
@@ -4000,7 +4000,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.authz.check -> ck.self.authz.check); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.authz.check -> ak.self.authz.check); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.authz.get_effective_grants",
@@ -4014,7 +4014,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.authz.get_effective_grants -> ck.self.authz.get_effective_grants); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.authz.get_effective_grants -> ak.self.authz.get_effective_grants); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.authz.get_invites",
@@ -4028,7 +4028,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.authz.get_invites -> ck.self.authz.get_invites); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.authz.get_invites -> ak.self.authz.get_invites); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.blob.get",
@@ -4042,7 +4042,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.blob.get -> ck.self.blob.get); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.blob.get -> ak.self.blob.get); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.blob.head",
@@ -4056,7 +4056,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.blob.head -> ck.self.blob.head); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.blob.head -> ak.self.blob.head); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.blob.presign",
@@ -4070,7 +4070,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.blob.presign -> ck.self.blob.presign); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.blob.presign -> ak.self.blob.presign); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.blob.upload",
@@ -4084,7 +4084,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.blob.upload -> ck.self.blob.upload); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.blob.upload -> ak.self.blob.upload); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.call.media.token_exchange",
@@ -4098,7 +4098,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.call.media.token_exchange -> ck.self.call.media.token_exchange); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.call.media.token_exchange -> ak.self.call.media.token_exchange); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.contact.list",
@@ -4112,7 +4112,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.contact.list -> ck.self.contact.list); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.contact.list -> ak.self.contact.list); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.contact.request",
@@ -4126,7 +4126,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.contact.request -> ck.self.contact.request); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.contact.request -> ak.self.contact.request); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.contact.respond",
@@ -4140,7 +4140,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.contact.respond -> ck.self.contact.respond); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.contact.respond -> ak.self.contact.respond); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.contact.tombstone",
@@ -4154,7 +4154,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.contact.tombstone -> ck.self.contact.tombstone); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.contact.tombstone -> ak.self.contact.tombstone); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.device_messages.get",
@@ -4168,7 +4168,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.device_messages.get -> ck.self.device_messages.get); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.device_messages.get -> ak.self.device_messages.get); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.device_messages.put",
@@ -4182,7 +4182,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.device_messages.put -> ck.self.device_messages.put); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.device_messages.put -> ak.self.device_messages.put); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.direct_conversation.resolve",
@@ -4196,7 +4196,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.direct_conversation.resolve -> ck.self.direct_conversation.resolve); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.direct_conversation.resolve -> ak.self.direct_conversation.resolve); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.directory.announce",
@@ -4210,7 +4210,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.directory.announce -> ck.find.directory.announce); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.directory.announce -> ak.find.directory.announce); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.directory.describe",
@@ -4224,7 +4224,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.directory.describe -> ck.find.directory.describe); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.directory.describe -> ak.find.directory.describe); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.directory.list_handles_for_subject",
@@ -4238,7 +4238,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.directory.list_handles_for_subject -> ck.find.directory.list_handles_for_subject); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.directory.list_handles_for_subject -> ak.find.directory.list_handles_for_subject); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.directory.private_contact_discovery",
@@ -4252,7 +4252,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.directory.private_contact_discovery -> ck.find.directory.private_contact_discovery); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.directory.private_contact_discovery -> ak.find.directory.private_contact_discovery); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.directory.push.register",
@@ -4266,7 +4266,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.directory.push.register -> ck.find.directory.push.register); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.directory.push.register -> ak.find.directory.push.register); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.directory.resolve_handle",
@@ -4280,7 +4280,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.directory.resolve_handle -> ck.find.directory.resolve_handle); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.directory.resolve_handle -> ak.find.directory.resolve_handle); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.directory.resolve_organization",
@@ -4294,7 +4294,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.directory.resolve_organization -> ck.find.directory.resolve_organization); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.directory.resolve_organization -> ak.find.directory.resolve_organization); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.directory.resolve_realm",
@@ -4308,7 +4308,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.directory.resolve_realm -> ck.find.directory.resolve_realm); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.directory.resolve_realm -> ak.find.directory.resolve_realm); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.directory.resolve_target",
@@ -4322,7 +4322,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.directory.resolve_target -> ck.find.directory.resolve_target); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.directory.resolve_target -> ak.find.directory.resolve_target); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.directory.search_actors",
@@ -4336,7 +4336,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.directory.search_actors -> ck.find.directory.search_actors); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.directory.search_actors -> ak.find.directory.search_actors); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.directory.search_organizations",
@@ -4350,7 +4350,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.directory.search_organizations -> ck.find.directory.search_organizations); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.directory.search_organizations -> ak.find.directory.search_organizations); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.directory.search_realms",
@@ -4364,7 +4364,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.directory.search_realms -> ck.find.directory.search_realms); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.directory.search_realms -> ak.find.directory.search_realms); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.directory.search_users",
@@ -4378,7 +4378,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.directory.search_users -> ck.find.directory.search_users); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.directory.search_users -> ak.find.directory.search_users); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.directory.withdraw",
@@ -4392,7 +4392,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.directory.withdraw -> ck.find.directory.withdraw); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.directory.withdraw -> ak.find.directory.withdraw); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.ephemeral.send",
@@ -4406,7 +4406,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.ephemeral.send -> ck.self.ephemeral.send); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.ephemeral.send -> ak.self.ephemeral.send); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.events.describe",
@@ -4420,7 +4420,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.events.describe -> ck.self.events.describe); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.events.describe -> ak.self.events.describe); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.events.frontier",
@@ -4434,7 +4434,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.events.frontier -> ck.self.events.frontier); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.events.frontier -> ak.self.events.frontier); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.events.get",
@@ -4448,7 +4448,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.events.get -> ck.self.events.get); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.events.get -> ak.self.events.get); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.events.query",
@@ -4462,7 +4462,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.events.query -> ck.self.events.query); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.events.query -> ak.self.events.query); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.events.query_post",
@@ -4476,7 +4476,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.events.query_post -> ck.self.events.query_post); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.events.query_post -> ak.self.events.query_post); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.events.resolve",
@@ -4490,7 +4490,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.events.resolve -> ck.self.events.resolve); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.events.resolve -> ak.self.events.resolve); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.events.submit",
@@ -4504,7 +4504,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.events.submit -> ck.self.events.submit); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.events.submit -> ak.self.events.submit); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.events.subscribe",
@@ -4518,7 +4518,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended and stream verb made explicit; ck.events.subscribe maps to ck.self.events.stream.subscribe. Old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended and stream verb made explicit; ak.events.subscribe maps to ak.self.events.stream.subscribe. Old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.identity.describe_registry",
@@ -4532,7 +4532,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.identity.describe_registry -> ck.root.identity.describe_registry); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.identity.describe_registry -> ak.root.identity.describe_registry); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.identity.get_document",
@@ -4546,7 +4546,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.identity.get_document -> ck.root.identity.get_document); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.identity.get_document -> ak.root.identity.get_document); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.identity.get_log",
@@ -4560,7 +4560,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.identity.get_log -> ck.root.identity.get_log); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.identity.get_log -> ak.root.identity.get_log); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.identity.get_receipts",
@@ -4574,7 +4574,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.identity.get_receipts -> ck.root.identity.get_receipts); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.identity.get_receipts -> ak.root.identity.get_receipts); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.identity.resolve",
@@ -4588,7 +4588,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.identity.resolve -> ck.root.identity.resolve); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.identity.resolve -> ak.root.identity.resolve); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.identity.submit_did_operation",
@@ -4602,7 +4602,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.identity.submit_did_operation -> ck.root.identity.submit_did_operation); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.identity.submit_did_operation -> ak.root.identity.submit_did_operation); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.keys.backups.delete",
@@ -4616,7 +4616,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.keys.backups.delete -> ck.self.keys.backups.delete); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.keys.backups.delete -> ak.self.keys.backups.delete); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.keys.backups.get",
@@ -4630,7 +4630,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.keys.backups.get -> ck.self.keys.backups.get), then the retrieval operation was rebound to POST .../{backup_id}/unlock with a body-borne unlock proof (ck.self.keys.backups.get -> ck.self.keys.backups.unlock, 2026-06-11); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.keys.backups.get -> ak.self.keys.backups.get), then the retrieval operation was rebound to POST .../{backup_id}/unlock with a body-borne unlock proof (ak.self.keys.backups.get -> ak.self.keys.backups.unlock, 2026-06-11); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.self.keys.backups.get",
@@ -4644,7 +4644,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Full-ciphertext retrieval requires a ck.schema.key_backup_unlock_proof.v1 object (key-management.md §7.7.1) but plain GET has no spec-conformant proof carrier (no request body; signature material in headers or query is forbidden by service-http-binding.md §2.2). Retrieval is rebound to POST /_arkret/self/keys/backups/{backup_id}/unlock with the proof in the request body; GET /_arkret/self/keys/backups/{backup_id} MUST NOT appear on current wire."
+      "notes": "Full-ciphertext retrieval requires a ak.schema.key_backup_unlock_proof.v1 object (key-management.md §7.7.1) but plain GET has no spec-conformant proof carrier (no request body; signature material in headers or query is forbidden by service-http-binding.md §2.2). Retrieval is rebound to POST /_arkret/self/keys/backups/{backup_id}/unlock with the proof in the request body; GET /_arkret/self/keys/backups/{backup_id} MUST NOT appear on current wire."
     },
     {
       "id": "ak.keys.backups.list",
@@ -4658,7 +4658,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.keys.backups.list -> ck.self.keys.backups.list); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.keys.backups.list -> ak.self.keys.backups.list); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.keys.backups.put",
@@ -4672,7 +4672,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.keys.backups.put -> ck.self.keys.backups.put); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.keys.backups.put -> ak.self.keys.backups.put); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.keys.claim",
@@ -4686,7 +4686,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.keys.claim -> ck.self.keys.claim); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.keys.claim -> ak.self.keys.claim); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.keys.keypackages.claim",
@@ -4700,7 +4700,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.keys.keypackages.claim -> ck.self.keys.keypackages.claim); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.keys.keypackages.claim -> ak.self.keys.keypackages.claim); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.keys.keypackages.consume",
@@ -4714,7 +4714,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.keys.keypackages.consume -> ck.self.keys.keypackages.consume); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.keys.keypackages.consume -> ak.self.keys.keypackages.consume); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.keys.keypackages.revoke",
@@ -4728,7 +4728,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.keys.keypackages.revoke -> ck.self.keys.keypackages.revoke); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.keys.keypackages.revoke -> ak.self.keys.keypackages.revoke); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.keys.keypackages.upload",
@@ -4742,7 +4742,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.keys.keypackages.upload -> ck.self.keys.keypackages.upload); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.keys.keypackages.upload -> ak.self.keys.keypackages.upload); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.keys.query",
@@ -4756,7 +4756,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.keys.query -> ck.self.keys.query); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.keys.query -> ak.self.keys.query); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.keys.upload",
@@ -4770,7 +4770,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.keys.upload -> ck.self.keys.upload); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.keys.upload -> ak.self.keys.upload); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.media.ice_config",
@@ -4784,7 +4784,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.media.ice_config -> ck.self.media.ice_config); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.media.ice_config -> ak.self.media.ice_config); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.mimi.group_info",
@@ -4798,7 +4798,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.mimi.group_info -> ck.open.mimi.group_info); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.mimi.group_info -> ak.open.mimi.group_info); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.mimi.identifier_query",
@@ -4812,7 +4812,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.mimi.identifier_query -> ck.open.mimi.identifier_query); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.mimi.identifier_query -> ak.open.mimi.identifier_query); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.mimi.key_material",
@@ -4826,7 +4826,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.mimi.key_material -> ck.open.mimi.key_material); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.mimi.key_material -> ak.open.mimi.key_material); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.mimi.notify",
@@ -4840,7 +4840,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.mimi.notify -> ck.open.mimi.notify); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.mimi.notify -> ak.open.mimi.notify); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.mimi.provider_directory",
@@ -4854,7 +4854,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.mimi.provider_directory -> ck.open.mimi.provider_directory); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.mimi.provider_directory -> ak.open.mimi.provider_directory); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.mimi.proxy_download",
@@ -4868,7 +4868,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.mimi.proxy_download -> ck.open.mimi.proxy_download); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.mimi.proxy_download -> ak.open.mimi.proxy_download); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.mimi.report_abuse",
@@ -4882,7 +4882,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.mimi.report_abuse -> ck.open.mimi.report_abuse); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.mimi.report_abuse -> ak.open.mimi.report_abuse); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.mimi.request_consent",
@@ -4896,7 +4896,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.mimi.request_consent -> ck.open.mimi.request_consent); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.mimi.request_consent -> ak.open.mimi.request_consent); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.mimi.room_update",
@@ -4910,7 +4910,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.mimi.room_update -> ck.open.mimi.room_update); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.mimi.room_update -> ak.open.mimi.room_update); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.mimi.submit_message",
@@ -4924,7 +4924,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.mimi.submit_message -> ck.open.mimi.submit_message); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.mimi.submit_message -> ak.open.mimi.submit_message); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.mimi.update_consent",
@@ -4938,7 +4938,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.mimi.update_consent -> ck.open.mimi.update_consent); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.mimi.update_consent -> ak.open.mimi.update_consent); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.moderation.report",
@@ -4952,7 +4952,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.moderation.report -> ck.self.moderation.report); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.moderation.report -> ak.self.moderation.report); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.policy.check",
@@ -4966,7 +4966,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.policy.check -> ck.self.policy.check); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.policy.check -> ak.self.policy.check); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.projection.strands",
@@ -4980,7 +4980,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.projection.strands -> ck.self.projection.strands); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.projection.strands -> ak.self.projection.strands); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.projection.morphs",
@@ -4994,7 +4994,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.projection.morphs -> ck.self.projection.morphs); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.projection.morphs -> ak.self.projection.morphs); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.projection.spaces",
@@ -5008,7 +5008,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.projection.spaces -> ck.self.projection.spaces); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.projection.spaces -> ak.self.projection.spaces); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.self.projection.spaces.query.list",
@@ -5078,7 +5078,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.push.notify -> ck.edge.push.notify); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.push.notify -> ak.edge.push.notify); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.push.register_device",
@@ -5092,7 +5092,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.push.register_device -> ck.edge.push.register_device); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.push.register_device -> ak.edge.push.register_device); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.push.unregister_device",
@@ -5106,7 +5106,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.push.unregister_device -> ck.edge.push.unregister_device); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.push.unregister_device -> ak.edge.push.unregister_device); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.snapshot.head",
@@ -5120,7 +5120,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Trust-surface segment prepended (ck.snapshot.head -> ck.self.snapshot.head); old un-prefixed operation_id MUST NOT appear on current wire."
+      "notes": "Trust-surface segment prepended (ak.snapshot.head -> ak.self.snapshot.head); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
       "id": "ak.agent.protocol_session.start",
@@ -5175,7 +5175,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Agent interop session capability action; ck.agent.session.* namespace renamed to ck.agent.interop_session.*.",
+      "notes": "Agent interop session capability action; ak.agent.session.* namespace renamed to ak.agent.interop_session.*.",
       "migration_group": "agent_applet_interop_session_rename"
     },
     {
@@ -5189,7 +5189,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Agent interop session capability action; ck.agent.session.* namespace renamed to ck.agent.interop_session.*.",
+      "notes": "Agent interop session capability action; ak.agent.session.* namespace renamed to ak.agent.interop_session.*.",
       "migration_group": "agent_applet_interop_session_rename"
     },
     {
@@ -5203,7 +5203,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Agent interop session capability action; ck.agent.session.* namespace renamed to ck.agent.interop_session.*.",
+      "notes": "Agent interop session capability action; ak.agent.session.* namespace renamed to ak.agent.interop_session.*.",
       "migration_group": "agent_applet_interop_session_rename"
     },
     {
@@ -5217,7 +5217,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Agent interop session capability action; ck.agent.session.* namespace renamed to ck.agent.interop_session.*.",
+      "notes": "Agent interop session capability action; ak.agent.session.* namespace renamed to ak.agent.interop_session.*.",
       "migration_group": "agent_applet_interop_session_rename"
     },
     {
@@ -5231,7 +5231,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Agent interop session capability action; ck.agent.session.* namespace renamed to ck.agent.interop_session.*.",
+      "notes": "Agent interop session capability action; ak.agent.session.* namespace renamed to ak.agent.interop_session.*.",
       "migration_group": "agent_applet_interop_session_rename"
     },
     {
@@ -5371,7 +5371,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Capability action converged to its target event kind (cross-namespace: call config -> ck.realm.media_service).",
+      "notes": "Capability action converged to its target event kind (cross-namespace: call config -> ak.realm.media_service).",
       "migration_group": "verb_noun_bridge_collapse"
     },
     {
@@ -5526,7 +5526,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Snapshot event_set_commitment member list: the members are boundary event ids, not Seal ids, so the interim covered_seals spelling was semantically wrong. Unrelated to the MLS covered_seals_cell / ck.component.covered_seals.v1 cell family, which keeps its name."
+      "notes": "Snapshot event_set_commitment member list: the members are boundary event ids, not Seal ids, so the interim covered_seals spelling was semantically wrong. Unrelated to the MLS covered_seals_cell / ak.component.covered_seals.v1 cell family, which keeps its name."
     },
     {
       "id": "ak:anchor:",
@@ -5599,7 +5599,7 @@
       "notes": "Ordering-authority role renamed with the object family; mechanism unchanged."
     },
     {
-      "id": "Checkpoint",
+      "id": "Cheakpoint",
       "kind_class": "model_identifier",
       "migration_group": "cba_notary_seal_rename",
       "since_revision": "2026-06-11",
@@ -5694,7 +5694,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Deleted payload-level field on device_revoke / agent_key_revoke / agent_deactivate / capability_revoke payloads (pre-CBA leftover; SPEC-SOL-003 ruling). A revocation's control-plane authorization basis is the Control Move envelope seal_basis (signed, canonical bytes); its effective cutoff is the accepted Seal covering the Move. Clients mint a single-leaf seal_basis from the ck.self.events.frontier realm-shape response {realm_id, seal_id, control_event_set_root, state_root, hlc?}. The orphaned event-payload $defs/seal_frontier (event_digest array) was removed with it, and the device revocation conformance vector was restated as ck.vector.device.revocation_seal_binding.v1 (formerly the device revocation_frontier vector)."
+      "notes": "Deleted payload-level field on device_revoke / agent_key_revoke / agent_deactivate / capability_revoke payloads (pre-CBA leftover; SPEC-SOL-003 ruling). A revocation's control-plane authorization basis is the Control Move envelope seal_basis (signed, canonical bytes); its effective cutoff is the accepted Seal covering the Move. Clients mint a single-leaf seal_basis from the ak.self.events.frontier realm-shape response {realm_id, seal_id, control_event_set_root, state_root, hlc?}. The orphaned event-payload $defs/seal_frontier (event_digest array) was removed with it, and the device revocation conformance vector was restated as ak.vector.device.revocation_seal_binding.v1 (formerly the device revocation_frontier vector)."
     }
   ]
 }

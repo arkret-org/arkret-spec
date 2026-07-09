@@ -172,7 +172,7 @@
         },
         "invite_consent_grant_ref": {
           "$ref": "#/$defs/event_id",
-          "description": "Optional. Event ref of the peer-issued ck.consent.grant (scope invite or any) granting the holder the right to send Realm/Strand invites to this peer. Present only when granted_to_me includes invite or any. Used by the holder as consent_grant introduction evidence to invite this contact into a Realm without a locator URL."
+          "description": "Optional. Event ref of the peer-issued ak.consent.grant (scope invite or any) granting the holder the right to send Realm/Strand invites to this peer. Present only when granted_to_me includes invite or any. Used by the holder as consent_grant introduction evidence to invite this contact into a Realm without a locator URL."
         },
         "peer_service_did": {
           "$ref": "#/$defs/did",
@@ -208,7 +208,7 @@
         },
         "recipient_service_did": {
           "$ref": "#/$defs/did",
-          "description": "Optional cross-Principal-Server addressing (see contact-and-direct-conversation.md §4.1). When target is hosted on a different Principal Server, the requester MUST supply the target home service DID so the issuer-side server federates the signed ck.contact.requested fact via ck.peer.contacts.command.submit. Omit for same-server requests."
+          "description": "Optional cross-Principal-Server addressing (see contact-and-direct-conversation.md §4.1). When target is hosted on a different Principal Server, the requester MUST supply the target home service DID so the issuer-side server federates the signed ak.contact.requested fact via ak.peer.contacts.command.submit. Omit for same-server requests."
         },
         "introduction_evidence": {
           "$ref": "./peer-contact-delivery-request.schema.json#/$defs/contact_introduction_evidence",
@@ -263,7 +263,7 @@
         },
         "requester_service_did": {
           "$ref": "#/$defs/did",
-          "description": "Optional cross-Principal-Server addressing (see contact-and-direct-conversation.md §4.1). When the original requester is hosted on a different Principal Server, the responder supplies the requester home service DID so the accept / reject fact is federated back via ck.peer.contacts.command.submit. Omit for same-server responses."
+          "description": "Optional cross-Principal-Server addressing (see contact-and-direct-conversation.md §4.1). When the original requester is hosted on a different Principal Server, the responder supplies the requester home service DID so the accept / reject fact is federated back via ak.peer.contacts.command.submit. Omit for same-server responses."
         }
       },
       "allOf": [
@@ -356,7 +356,7 @@
         },
         "peer_service_did": {
           "$ref": "#/$defs/did",
-          "description": "Optional cross-Principal-Server addressing (see contact-and-direct-conversation.md §4.1). When contact (the peer) is hosted on a different Principal Server, the holder supplies the peer home service DID so the issuer-side server federates the signed ck.contact.tombstoned fact via ck.peer.contacts.command.submit. Omit for same-server tombstones; when absent the issuer falls back to the peer recorded peer_service_did on the stored contact row."
+          "description": "Optional cross-Principal-Server addressing (see contact-and-direct-conversation.md §4.1). When contact (the peer) is hosted on a different Principal Server, the holder supplies the peer home service DID so the issuer-side server federates the signed ak.contact.tombstoned fact via ak.peer.contacts.command.submit. Omit for same-server tombstones; when absent the issuer falls back to the peer recorded peer_service_did on the stored contact row."
         }
       },
       "additionalProperties": false

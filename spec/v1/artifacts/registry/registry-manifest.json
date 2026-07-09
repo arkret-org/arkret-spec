@@ -64,7 +64,7 @@
       "kind": "hpke_suite_registry",
       "source_role": "canonical",
       "source_of_truth": true,
-      "description": "Canonical HPKE (RFC 9180) suite (KEM x KDF x AEAD) vocabulary for non-MLS application-layer public-key sealing (key-backup recovery_public_key, did_recovery, to-device ck.secret.send, member-application and file-transfer key envelopes); unregistered suites fail closed. Fourth algorithm-agility registry alongside signature-alg, digest-suite and mls-ciphersuite."
+      "description": "Canonical HPKE (RFC 9180) suite (KEM x KDF x AEAD) vocabulary for non-MLS application-layer public-key sealing (key-backup recovery_public_key, did_recovery, to-device ak.secret.send, member-application and file-transfer key envelopes); unregistered suites fail closed. Fourth algorithm-agility registry alongside signature-alg, digest-suite and mls-ciphersuite."
     },
     {
       "name": "relation_kinds",
@@ -96,7 +96,7 @@
       "kind": "proposal_merge_manifest",
       "source_role": "canonical",
       "source_of_truth": true,
-      "description": "Canonical accepted-CKP merge manifest mapping historical proposals to formal v1 normative sections, schemas, registries, and fixtures."
+      "description": "Canonical accepted-AKP merge manifest mapping historical proposals to formal v1 normative sections, schemas, registries, and fixtures."
     },
     {
       "name": "event_kinds",
@@ -105,7 +105,7 @@
       "source_role": "generated",
       "source_of_truth": false,
       "generated_from": "registry/contract-catalog.json",
-      "description": "Generated registry view for standard ck.* Event.kind values and wire scopes."
+      "description": "Generated registry view for standard ak.* Event.kind values and wire scopes."
     },
     {
       "name": "id_kinds",
@@ -148,7 +148,7 @@
       "kind": "conformance_vector_registry",
       "source_role": "canonical",
       "source_of_truth": true,
-      "description": "Canonical machine index of ck.vector.* conformance vector identifiers and their defining prose/fixture sources."
+      "description": "Canonical machine index of ak.vector.* conformance vector identifiers and their defining prose/fixture sources."
     },
     {
       "name": "schemas",

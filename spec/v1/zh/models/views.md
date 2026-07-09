@@ -26,7 +26,7 @@ Arkret 必须对人类友好，因此协议必须允许对象自然投影为：
 
 ### 2.1 View 有定义真相，但不是对象真相
 
-View 的 `title`、`query`、`kind`、`renderer`、`visible_fields`、`layout`、typed config 和共享可见性属于 View 自身的 canonical state。它们可以通过 `ck.view.create` / `ck.view.update` 修改、签名、审计和同步。
+View 的 `title`、`query`、`kind`、`renderer`、`visible_fields`、`layout`、typed config 和共享可见性属于 View 自身的 canonical state。它们可以通过 `ak.view.create` / `ak.view.update` 修改、签名、审计和同步。
 
 View 不承载被投影对象的 canonical state。Board Space / List Space / Strand / Message / Morph / Relation 的当前态必须由对应对象事件和 reducer 得到。任何 View projection 输出都必须能追溯到 signed Event、reducer profile 和 causal frontier。
 
@@ -76,7 +76,7 @@ Board Space / List Space 作为容器由 `space.kind` 与 `contains` relation �
 
 View 展示 Strand、Message 或跨 Realm Relation 时，必须先按对象 home Realm / Circle effective scope 判断可见性，再按 capability action scope 裁剪可执行操作。Renderer、track name、View filter 都不能授予读取或写入权限。
 
-- 用户能看某个 Strand，仍不代表能执行 `ck.strand.update`、`ck.strand.stage.set`、`ck.strand.move` 或 `ck.message.create`；每个交互写入都要按对应 action 重新鉴权。
+- 用户能看某个 Strand，仍不代表能执行 `ak.strand.update`、`ak.strand.stage.set`、`ak.strand.move` 或 `ak.message.create`；每个交互写入都要按对应 action 重新鉴权。
 - Message timeline 的可见性来自 Strand 的 single effective scope（Realm-default 或 Circle），不是 `discussion` track 自己的 ACL。
 - `allowed_tracks` / `strand_track` 这类 action 或通知 scope 只能缩小已授权动作和通知匹配范围，不能创造新的读权。
 - Board projection MAY 显示 discussion locked link，但不得泄露未授权 discussion 的消息摘要、成员、统计、最后活动时间或存在性细节，除非 policy 明确允许。
@@ -87,27 +87,27 @@ View 展示 Strand、Message 或跨 Realm Relation 时，必须先按对象 home
 
 | 用户动作 | canonical event |
 | --- | --- |
-| Strand 拖到另一个 List | `ck.strand.move` |
-| Strand 在同一 List 内排序 | `ck.strand.reorder` |
-| 修改 Strand 标题、状态、负责人、截止时间 | `ck.strand.update` |
-| 切换 Strand 默认 track / 开启 / 关闭 track / 修改 track profile | `ck.strand.tracks.update` |
-| 修改 Board Space / List Space 元数据 | `ck.space.update` |
-| 发送、编辑、撤回 discussion 消息 | `ck.message.create` / `ck.message.revise` / `ck.message.redact` |
-| 改变共享 View filter / sort / group / columns / layout | `ck.view.update` |
+| Strand 拖到另一个 List | `ak.strand.move` |
+| Strand 在同一 List 内排序 | `ak.strand.reorder` |
+| 修改 Strand 标题、状态、负责人、截止时间 | `ak.strand.update` |
+| 切换 Strand 默认 track / 开启 / 关闭 track / 修改 track profile | `ak.strand.tracks.update` |
+| 修改 Board Space / List Space 元数据 | `ak.space.update` |
+| 发送、编辑、撤回 discussion 消息 | `ak.message.create` / `ak.message.revise` / `ak.message.redact` |
+| 改变共享 View filter / sort / group / columns / layout | `ak.view.update` |
 | 改变个人 View 偏好、临时 filter、列宽、折叠状态 | actor-private account data |
 
 ## 3. View 对象
 
 ### 3.1 Schema 与字段
 
-Schema id: `ck.schema.view.v1`
+Schema id: `ak.schema.view.v1`
 
 View 是投影定义对象。它的 canonical state 只覆盖"如何看"：query、kind、renderer、typed config、visible fields、layout 和共享配置。它不得作为被投影对象的状态、位置、关系、权限或消息历史的唯一来源。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:view` |  | View ID。 |
-| `schema` | yes | `ck.schema.view.v1` |  | Schema ID。 |
+| `schema` | yes | `ak.schema.view.v1` |  | Schema ID。 |
 | `realm_id` | yes | `id:realm` |  | 所属 Realm。 |
 | `kind` | yes | `enum(collection, timeline, graph, document, composite)` |  | 核心投影原语。 |
 | `renderer` | no | `enum(board, list, table, calendar, gantt, timeline, thread, chat, forum, graph, tree, document, dashboard, custom)` | 不参与真相归约。 | 展示面提示；交互能力仍由对象类型、显式 schema/profile、capability 与 typed config 决定。 |
@@ -372,9 +372,9 @@ Board projection MUST NOT 默认显示 Realm 中的全部 Strand。实现 MUST �
 }
 ```
 
-可选受托 projection 服务若声明 `ck.self.views.collection_projection.command.materialize`，MUST 以 `POST /_arkret/self/views/{view_id}/projection` 暴露上面的 `CollectionProjectionView` 形态，request body 只承载分页参数（`schemas/view.schema.json#/$defs/view_projection_request_body`）。该 operation 只物化 `View{kind="collection"}`，其它 View projection 仍可由客户端本地或未来 profile 定义的受托面计算。
+可选受托 projection 服务若声明 `ak.self.views.collection_projection.command.materialize`，MUST 以 `POST /_arkret/self/views/{view_id}/projection` 暴露上面的 `CollectionProjectionView` 形态，request body 只承载分页参数（`schemas/view.schema.json#/$defs/view_projection_request_body`）。该 operation 只物化 `View{kind="collection"}`，其它 View projection 仍可由客户端本地或未来 profile 定义的受托面计算。
 
-单个 document Morph 的受托读取面是 `GET /_arkret/self/realms/{realm_id}/morphs/{morph_id}`（operation `ck.self.morph.resource.get`）。响应 schema 为 `schemas/view.schema.json#/$defs/document_morph_projection_outcome`，用于返回授权可见的 `document`、`versions`、`relations`、`comments` 与 `cursor_presence` 派生数据；它不是 document 的 canonical state，客户端仍以 Morph/Relation/Message/Event 历史和返回的 projection frontier 做校验。
+单个 document Morph 的受托读取面是 `GET /_arkret/self/realms/{realm_id}/morphs/{morph_id}`（operation `ak.self.morph.resource.get`）。响应 schema 为 `schemas/view.schema.json#/$defs/document_morph_projection_outcome`，用于返回授权可见的 `document`、`versions`、`relations`、`comments` 与 `cursor_presence` 派生数据；它不是 document 的 canonical state，客户端仍以 Morph/Relation/Message/Event 历史和返回的 projection frontier 做校验。
 
 ## 7. Timeline / Chat Projection
 
@@ -417,7 +417,7 @@ Arkret v1 固定：
 
 - View 投影 Strand、Message、Morph 和 Realm workflow。
 - Board Space 和 List Space 是 `Space.kind`，不是 `View.kind`。
-- 看板拖拽使用 `ck.strand.move` / `ck.strand.reorder`。
+- 看板拖拽使用 `ak.strand.move` / `ak.strand.reorder`。
 - discussion chat 使用 `strand + message`。
 - Graph / Tree 遇到跨 Realm 必须 lazy link。
 - View projection 输出不得成为真相源。

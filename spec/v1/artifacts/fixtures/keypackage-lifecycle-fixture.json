@@ -129,7 +129,7 @@
         "cross-Realm reuse fails with last_resort_realm_affinity_violation",
         "servers that do not advertise the feature must not return last_resort=true packages",
         "a missing Realm-local last-resort entry fails closed instead of reusing another Realm's package",
-        "high-security and sovereign Realms forbid ck.feature.mls_last_resort_keypackage.v1 and fail closed on last_resort=true claim records"
+        "high-security and sovereign Realms forbid ak.feature.mls_last_resort_keypackage.v1 and fail closed on last_resort=true claim records"
       ]
     },
     {
@@ -154,7 +154,7 @@
       "assertions": [
         "Welcome keypackage_digest must match the claim record digest",
         "Welcome claim_ref.keypackage_digest must match the same claim record digest",
-        "published ck.mls.keypackage payload digest participates in the same equality check",
+        "published ak.mls.keypackage payload digest participates in the same equality check",
         "a mismatch is rejected before decrypting or accepting the Welcome"
       ]
     }

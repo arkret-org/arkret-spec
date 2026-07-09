@@ -4,7 +4,7 @@
   "suite": "call_state_media_lifecycle",
   "runner": "cotest::conformance::call_state_media_lifecycle",
   "covers_vectors": [
-    "ak.vector.call_state.recording_retention_lock.v1",
+    "ak.vector.call_state.recording_retention_loak.v1",
     "ak.vector.call_state.recording_result_artifact_shape.v1",
     "ak.vector.call_state.transcribe_lifecycle.v1",
     "ak.vector.call_state.moderator_kick_ban.v1",
@@ -13,7 +13,7 @@
   "cases": [
     {
       "name": "recording_retention_lock",
-      "vector_id": "ak.vector.call_state.recording_retention_lock.v1",
+      "vector_id": "ak.vector.call_state.recording_retention_loak.v1",
       "runner": "cotest::conformance::call_state_media_lifecycle::run_recording_retention_lock_vector",
       "assertions": [
         "audit_lock blocks recording deletion regardless of retention_expires_at",
@@ -26,7 +26,7 @@
       "vector_id": "ak.vector.call_state.recording_result_artifact_shape.v1",
       "runner": "cotest::conformance::call_state_media_lifecycle::run_recording_result_artifact_shape_vector",
       "assertions": [
-        "ready recording_result carries ck.schema.call_recording_artifact.v1 metadata",
+        "ready recording_result carries ak.schema.call_recording_artifact.v1 metadata",
         "backend-direct recording URLs fail with recording_artifact_pipeline_bypassed",
         "completed deletion carries deletion_audit and erasure_receipt_ref"
       ]
@@ -36,7 +36,7 @@
       "vector_id": "ak.vector.call_state.transcribe_lifecycle.v1",
       "runner": "cotest::conformance::call_state_media_lifecycle::run_transcribe_lifecycle_vector",
       "assertions": [
-        "transcription requires ck.call.transcribe capability",
+        "transcription requires ak.call.transcribe capability",
         "transcript artifacts use ck-rtc-transcript-key/v1",
         "SFrame or recording exporter labels are rejected for transcripts"
       ]
@@ -46,7 +46,7 @@
       "vector_id": "ak.vector.call_state.moderator_kick_ban.v1",
       "runner": "cotest::conformance::call_state_media_lifecycle::run_moderator_kick_ban_vector",
       "assertions": [
-        "moderation requires ck.call.moderate capability",
+        "moderation requires ak.call.moderate capability",
         "device-scoped kicks block only that device",
         "actor-wide bans block every device for that actor"
       ]

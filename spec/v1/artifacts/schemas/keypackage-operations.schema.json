@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/keypackage-operations.schema.json",
   "title": "Arkret MLS KeyPackage Operation DTOs",
-  "description": "Closed request and response DTOs for ck.keys.keypackages.{upload,claim,consume,revoke}. Individual OpenAPI components reference the $defs entries in this bundle.",
+  "description": "Closed request and response DTOs for ak.keys.keypackages.{upload,claim,consume,revoke}. Individual OpenAPI components reference the $defs entries in this bundle.",
   "oneOf": [
     {
       "$ref": "#/$defs/key_packages_upload_request_body"
@@ -169,7 +169,7 @@
         },
         "last_resort": {
           "type": "boolean",
-          "description": "When true, this entry is a reusable last-resort KeyPackage (RFC 9420 Section 10). It is not consumed single-use; it cycles between published and claimed until rotated, expired, or revoked. Optional capability gated by ck.feature.mls_last_resort_keypackage.v1. See encryption-and-audit.md section 2.6.2."
+          "description": "When true, this entry is a reusable last-resort KeyPackage (RFC 9420 Section 10). It is not consumed single-use; it cycles between published and claimed until rotated, expired, or revoked. Optional capability gated by ak.feature.mls_last_resort_keypackage.v1. See encryption-and-audit.md section 2.6.2."
         }
       },
       "additionalProperties": false
@@ -260,7 +260,7 @@
         },
         "last_resort": {
           "type": "boolean",
-          "description": "When true, this claim record returns a reusable last-resort KeyPackage (RFC 9420 Section 10) because the single-use pool was empty. The package may be reused within the same intended_realm_id and is not transitioned to consumed; the holder MUST rotate it and trigger group updates on next online. Optional capability gated by ck.feature.mls_last_resort_keypackage.v1. See encryption-and-audit.md section 2.6.2."
+          "description": "When true, this claim record returns a reusable last-resort KeyPackage (RFC 9420 Section 10) because the single-use pool was empty. The package may be reused within the same intended_realm_id and is not transitioned to consumed; the holder MUST rotate it and trigger group updates on next online. Optional capability gated by ak.feature.mls_last_resort_keypackage.v1. See encryption-and-audit.md section 2.6.2."
         }
       },
       "additionalProperties": false

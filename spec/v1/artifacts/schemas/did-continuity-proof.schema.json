@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/did-continuity-proof.schema.json",
   "title": "Arkret DID Continuity Proof",
-  "description": "Payload profile for ck.did.proof continuity transitions, including cross-method did:web -> did:webvh upgrades.",
+  "description": "Payload profile for ak.did.proof continuity transitions, including cross-method did:web -> did:webvh upgrades.",
   "type": "object",
   "required": [
     "schema",

@@ -1,7 +1,7 @@
 {
   "version": "2026-07-10",
   "source_of_truth": true,
-  "description": "Canonical registry of conformance vector identifiers. Every ck.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
+  "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
       "vector_id": "ak.vector.agent.act_on_behalf.v1",
@@ -144,7 +144,7 @@
       "vector_id": "ak.vector.blob.stream_aead_roundtrip.v1",
       "status": "active",
       "domain": "blob",
-      "description": "Streaming chunked AEAD (ck.blob.stream_aead.v1) happy path: multi-segment plaintext with a short final segment is split, per-segment AEAD encrypted, segment-wise downloaded and incrementally verified, and the top-level ciphertext_digest is recomputed and matches per media-and-blob.md section 3.3.",
+      "description": "Streaming chunked AEAD (ak.blob.stream_aead.v1) happy path: multi-segment plaintext with a short final segment is split, per-segment AEAD encrypted, segment-wise downloaded and incrementally verified, and the top-level ciphertext_digest is recomputed and matches per media-and-blob.md section 3.3.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/blob-stream-aead-fixture.json"
@@ -248,7 +248,7 @@
       ]
     },
     {
-      "vector_id": "ak.vector.capability.revoke_downstream_recheck.v1",
+      "vector_id": "ak.vector.capability.revoke_downstream_recheak.v1",
       "status": "active",
       "domain": "capability",
       "source_refs": [
@@ -257,7 +257,7 @@
       ]
     },
     {
-      "vector_id": "ak.vector.capability.revoke_rollback.v1",
+      "vector_id": "ak.vector.capability.revoke_rollbaak.v1",
       "status": "active",
       "domain": "capability",
       "source_refs": [
@@ -343,7 +343,7 @@
       ]
     },
     {
-      "vector_id": "ak.vector.call_state.recording_retention_lock.v1",
+      "vector_id": "ak.vector.call_state.recording_retention_loak.v1",
       "status": "active",
       "domain": "call_state",
       "applies_to_profiles": [
@@ -362,7 +362,7 @@
       "applies_to_profiles": [
         "ak.profile.media_service_binding.v1"
       ],
-      "description": "Recording ready results MUST carry ck.schema.call_recording_artifact.v1 metadata bound to the recording start event, Arkret blob pipeline, recording exporter label/context, retention policy, deletion audit trigger, and erasure receipt.",
+      "description": "Recording ready results MUST carry ak.schema.call_recording_artifact.v1 metadata bound to the recording start event, Arkret blob pipeline, recording exporter label/context, retention policy, deletion audit trigger, and erasure receipt.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/call-state-media-lifecycle-fixture.json"
@@ -375,7 +375,7 @@
       "applies_to_profiles": [
         "ak.profile.media_service_binding.v1"
       ],
-      "description": "Transcription requires ck.call.transcribe (transcription_denied otherwise), and transcript artifacts MUST use the ck-rtc-transcript-key/v1 exporter label with a dedicated Context (transcription_artifact_pipeline_bypassed otherwise).",
+      "description": "Transcription requires ak.call.transcribe (transcription_denied otherwise), and transcript artifacts MUST use the ck-rtc-transcript-key/v1 exporter label with a dedicated Context (transcription_artifact_pipeline_bypassed otherwise).",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/call-state-media-lifecycle-fixture.json"
@@ -388,7 +388,7 @@
       "applies_to_profiles": [
         "ak.profile.media_service_binding.v1"
       ],
-      "description": "Moderator kick/ban requires ck.call.moderate (call_moderation_unauthorised otherwise); removed_participants[] gates token re-issue with call_participant_removed.",
+      "description": "Moderator kick/ban requires ak.call.moderate (call_moderation_unauthorised otherwise); removed_participants[] gates token re-issue with call_participant_removed.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/call-state-media-lifecycle-fixture.json"
@@ -401,7 +401,7 @@
       "applies_to_profiles": [
         "ak.profile.media_service_binding.v1"
       ],
-      "description": "P2P calls converge to SFU when participants exceed two, reusing the oldest_membership no-vote session_focus election; mode does not auto-downgrade, and ck.call.summary is gated on a terminal call state (call_summary_invalid otherwise).",
+      "description": "P2P calls converge to SFU when participants exceed two, reusing the oldest_membership no-vote session_focus election; mode does not auto-downgrade, and ak.call.summary is gated on a terminal call state (call_summary_invalid otherwise).",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/call-state-media-lifecycle-fixture.json"
@@ -543,7 +543,7 @@
       ]
     },
     {
-      "vector_id": "ak.vector.directory.policy_revision_rollback.v1",
+      "vector_id": "ak.vector.directory.policy_revision_rollbaak.v1",
       "status": "active",
       "domain": "directory",
       "source_refs": [
@@ -1079,7 +1079,7 @@
       "vector_id": "ak.vector.hpke.x25519_chacha20poly1305_base.v1",
       "status": "active",
       "domain": "hpke",
-      "description": "RFC 9180 base-mode byte-level KAT for ck.hpke_x25519_aead_chacha20poly1305.v1 (DHKEM(X25519, HKDF-SHA256) / HKDF-SHA256 / ChaCha20-Poly1305): DeriveKeyPair, encap, key-schedule intermediates, seq-0/1 ciphertexts and export values MUST reproduce byte-for-byte.",
+      "description": "RFC 9180 base-mode byte-level KAT for ak.hpke_x25519_aead_chacha20poly1305.v1 (DHKEM(X25519, HKDF-SHA256) / HKDF-SHA256 / ChaCha20-Poly1305): DeriveKeyPair, encap, key-schedule intermediates, seq-0/1 ciphertexts and export values MUST reproduce byte-for-byte.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1089,7 +1089,7 @@
       "vector_id": "ak.vector.hpke.x25519_aes256gcm_base.v1",
       "status": "active",
       "domain": "hpke",
-      "description": "RFC 9180 base-mode byte-level KAT for ck.hpke_x25519_aead_aes256gcm.v1 (DHKEM(X25519, HKDF-SHA256) / HKDF-SHA256 / AES-256-GCM): DeriveKeyPair, encap, key-schedule intermediates, seq-0/1 ciphertexts and export values MUST reproduce byte-for-byte.",
+      "description": "RFC 9180 base-mode byte-level KAT for ak.hpke_x25519_aead_aes256gcm.v1 (DHKEM(X25519, HKDF-SHA256) / HKDF-SHA256 / AES-256-GCM): DeriveKeyPair, encap, key-schedule intermediates, seq-0/1 ciphertexts and export values MUST reproduce byte-for-byte.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1102,7 +1102,7 @@
       "applies_to_profiles": [
         "ak.profile.hpke.p256.v1"
       ],
-      "description": "RFC 9180 base-mode byte-level KAT for ck.hpke_p256_aead_aes256gcm.v1 (DHKEM(P-256, HKDF-SHA256) / HKDF-SHA256 / AES-256-GCM, profile-gated interop suite): DeriveKeyPair, encap, key-schedule intermediates, seq-0/1 ciphertexts and export values MUST reproduce byte-for-byte.",
+      "description": "RFC 9180 base-mode byte-level KAT for ak.hpke_p256_aead_aes256gcm.v1 (DHKEM(P-256, HKDF-SHA256) / HKDF-SHA256 / AES-256-GCM, profile-gated interop suite): DeriveKeyPair, encap, key-schedule intermediates, seq-0/1 ciphertexts and export values MUST reproduce byte-for-byte.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/hpke-suite-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1149,7 +1149,7 @@
       "vector_id": "ak.vector.invite.claim_reducer_state_machine.v1",
       "status": "active",
       "domain": "invite",
-      "description": "Realm reducer authority for ck.invite.claim: binding_proof and subject_proof signature transcripts, token_commitment match, verification_service_did allowlist re-check, claim_nonce replay rejection, pending -> claimed membership-proposal conversion, and expiry cleanup are enforced before acceptance.",
+      "description": "Realm reducer authority for ak.invite.claim: binding_proof and subject_proof signature transcripts, token_commitment match, verification_service_did allowlist re-check, claim_nonce replay rejection, pending -> claimed membership-proposal conversion, and expiry cleanup are enforced before acceptance.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-closure-vectors.json",
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -1189,7 +1189,7 @@
       "vector_id": "ak.vector.key_backup.unlock_proof.v1",
       "status": "active",
       "domain": "key_backup",
-      "description": "Key backup retrieval requires a session-bound unlock proof (ck.schema.key_backup_unlock_proof.v1); any binding mismatch or bearer-token-only access fails closed before ciphertext is returned.",
+      "description": "Key backup retrieval requires a session-bound unlock proof (ak.schema.key_backup_unlock_proof.v1); any binding mismatch or bearer-token-only access fails closed before ciphertext is returned.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json"
@@ -1217,7 +1217,7 @@
       "vector_id": "ak.vector.keypackage.last_resort_claim_and_reuse.v1",
       "status": "active",
       "domain": "keypackage",
-      "description": "Last-resort KeyPackage (ck.feature.mls_last_resort_keypackage.v1): when the normal pool is empty, claim MAY return last_resort=true; the package is reused across multiple Welcomes within the same intended_realm_id, consume is idempotent (stays published, never keypackage_already_consumed), and each consumption emits an append-only audit record per encryption-and-audit.md section 2.6.2.",
+      "description": "Last-resort KeyPackage (ak.feature.mls_last_resort_keypackage.v1): when the normal pool is empty, claim MAY return last_resort=true; the package is reused across multiple Welcomes within the same intended_realm_id, consume is idempotent (stays published, never keypackage_already_consumed), and each consumption emits an append-only audit record per encryption-and-audit.md section 2.6.2.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
@@ -1572,7 +1572,7 @@
       "vector_id": "ak.vector.moderation.appeal_atomicity.v1",
       "status": "active",
       "domain": "moderation",
-      "description": "Appeal verdict transitions are atomic: overturn requires a same-batch ck.moderation.decision.lift and never resurrects irreversible redaction/key-destruction effects; modify requires both a same-batch lift of the original decision and the replacement decision matched by modify_decision_ref.",
+      "description": "Appeal verdict transitions are atomic: overturn requires a same-batch ak.moderation.decision.lift and never resurrects irreversible redaction/key-destruction effects; modify requires both a same-batch lift of the original decision and the replacement decision matched by modify_decision_ref.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1616,7 +1616,7 @@
       "applies_to_profiles": [
         "ak.profile.morph.schema_migration_transformations.v1"
       ],
-      "description": "Deterministic ck.morph.schema_migrate transformation: a ck.transform.rename.v1 rule renames a Morph field and leaves unrelated fields untouched; the post-migration fields projection is canonical-JSON byte-equal across replays.",
+      "description": "Deterministic ak.morph.schema_migrate transformation: a ak.transform.rename.v1 rule renames a Morph field and leaves unrelated fields untouched; the post-migration fields projection is canonical-JSON byte-equal across replays.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/morph-schema-migration-fixture.json"
       ]
@@ -1628,7 +1628,7 @@
       "applies_to_profiles": [
         "ak.profile.morph.schema_migration_transformations.v1"
       ],
-      "description": "Deterministic ck.morph.schema_migrate transformation: a ck.transform.default_backfill.v1 rule backfills a new optional field with a fixed default while preserving existing fields; idempotent and replay-deterministic.",
+      "description": "Deterministic ak.morph.schema_migrate transformation: a ak.transform.default_backfill.v1 rule backfills a new optional field with a fixed default while preserving existing fields; idempotent and replay-deterministic.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/morph-schema-migration-fixture.json"
       ]
@@ -1769,7 +1769,7 @@
       "vector_id": "ak.vector.policy_server.decision_replay_rejected.v1",
       "status": "active",
       "domain": "policy_server",
-      "description": "Expired policy decisions and decisions bound to an older auth/policy/membership frontier MUST be rejected on replay; receivers fail closed and re-request the policy check.",
+      "description": "Expired policy decisions and decisions bound to an older auth/policy/membership frontier MUST be rejected on replay; receivers fail closed and re-request the policy cheak.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/policy-server-fixture.json"
@@ -2029,7 +2029,7 @@
       "vector_id": "ak.vector.sync.range_completeness_client_query.v1",
       "status": "active",
       "domain": "sync",
-      "description": "Client events.query backfill with include_completeness=true detects withheld actor branches via ck.attestation.range_completeness verification; feature-less servers ignore the parameter; single_source attestation does not satisfy high-assurance realms.",
+      "description": "Client events.query backfill with include_completeness=true detects withheld actor branches via ak.attestation.range_completeness verification; feature-less servers ignore the parameter; single_source attestation does not satisfy high-assurance realms.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"

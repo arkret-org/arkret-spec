@@ -110,11 +110,11 @@
         "archived",
         "redacted"
       ],
-      "description": "Morph lifecycle state. 'active' is the default. Reducer enforces transitions per common-fields.md §5.1: ck.morph.archive MUST come from 'active' (else failed_precondition reason=morph_not_active); ck.morph.restore MUST come from 'archived' (else morph_not_archived); ck.redaction targeting the morph MUST come from {'active','archived'} (else morph_already_terminal). Same-state self-transitions MUST fail. 'redacted' is the irreversible terminal."
+      "description": "Morph lifecycle state. 'active' is the default. Reducer enforces transitions per common-fields.md §5.1: ak.morph.archive MUST come from 'active' (else failed_precondition reason=morph_not_active); ak.morph.restore MUST come from 'archived' (else morph_not_archived); ak.redaction targeting the morph MUST come from {'active','archived'} (else morph_already_terminal). Same-state self-transitions MUST fail. 'redacted' is the irreversible terminal."
     },
     "state_changed_at": {
       "$ref": "#/$defs/timestamp",
-      "description": "Reducer-derived timestamp of the most recent state transition. MUST be set when state != 'active'; MUST be the created_at of the corresponding ck.morph.archive / ck.morph.restore / redaction Event. Aligns with Space.state_changed_at and the common-fields rule in models/common-fields.md §3."
+      "description": "Reducer-derived timestamp of the most recent state transition. MUST be set when state != 'active'; MUST be the created_at of the corresponding ak.morph.archive / ak.morph.restore / redaction Event. Aligns with Space.state_changed_at and the common-fields rule in models/common-fields.md §3."
     },
     "stage": {
       "type": "string",
@@ -128,11 +128,11 @@
         "cancelled",
         "superseded"
       ],
-      "description": "Morph business-progression stage. Orthogonal to top-level 'state' (physical lifecycle). Required on ck.morph.create (no protocol-level default). The only wire path that mutates stage is the dedicated ck.morph.stage.set event; ck.morph.update / ck.morph.schema_migrate patches on stage / stage_changed_at MUST be rejected (schema_violation, single-source). Stage transitions intentionally do NOT carry a reason / note field — the ck.morph.stage.set event log is the audit source; human-readable explanations belong in a Message on an associated discussion track that references the event. See models/common-fields.md §5.3 for full semantics."
+      "description": "Morph business-progression stage. Orthogonal to top-level 'state' (physical lifecycle). Required on ak.morph.create (no protocol-level default). The only wire path that mutates stage is the dedicated ak.morph.stage.set event; ak.morph.update / ak.morph.schema_migrate patches on stage / stage_changed_at MUST be rejected (schema_violation, single-source). Stage transitions intentionally do NOT carry a reason / note field — the ak.morph.stage.set event log is the audit source; human-readable explanations belong in a Message on an associated discussion track that references the event. See models/common-fields.md §5.3 for full semantics."
     },
     "stage_changed_at": {
       "$ref": "#/$defs/timestamp",
-      "description": "Reducer-derived timestamp of the most recent stage transition. MUST be ignored when present on wire; reducer overwrites with the triggering ck.morph.stage.set event's created_at. Same-value self-transitions MUST NOT update this field."
+      "description": "Reducer-derived timestamp of the most recent stage transition. MUST be ignored when present on wire; reducer overwrites with the triggering ak.morph.stage.set event's created_at. Same-value self-transitions MUST NOT update this field."
     },
     "created_by": {
       "$ref": "#/$defs/did"

@@ -50,14 +50,14 @@
     },
     "trust_domain": {
       "$ref": "#/$defs/trust_domain",
-      "description": "Immutable deployment trust domain captured by ck.realm.create. Receivers MUST require this to match the current Realm trust domain before accepting cross-domain replay-sensitive proofs."
+      "description": "Immutable deployment trust domain captured by ak.realm.create. Receivers MUST require this to match the current Realm trust domain before accepting cross-domain replay-sensitive proofs."
     },
     "owning_organizations": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/did"
       },
-      "description": "Declared or projected organization principals associated with this Realm. Each DID MUST resolve to an Organization principal. This field alone is not a verified ownership/governance endorsement; clients and directories MUST require an active ck.realm.organization statement for verified badges or organization-controlled semantics."
+      "description": "Declared or projected organization principals associated with this Realm. Each DID MUST resolve to an Organization principal. This field alone is not a verified ownership/governance endorsement; clients and directories MUST require an active ak.realm.organization statement for verified badges or organization-controlled semantics."
     },
     "schema_refs": {
       "type": "array",
@@ -161,7 +161,7 @@
     "preview_policy_id": {
       "type": "string",
       "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Optional materialized pointer to the effective preview / peek policy. Canonical writes use ck.realm.preview_policy; absence means directory card / stripped state only, no history stub/snippet preview."
+      "description": "Optional materialized pointer to the effective preview / peek policy. Canonical writes use ak.realm.preview_policy; absence means directory card / stripped state only, no history stub/snippet preview."
     },
     "default_strand_id": {
       "type": [
@@ -169,7 +169,7 @@
         "null"
       ],
       "pattern": "^ak:strand:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Optional / nullable. AUTHORITATIVE single pointer to the Realm's default discussion Strand (last value projected from ck.realm.set_default_strand; cell ck.component.realm.set_default_strand.v1, cas_register, bottom=reject). A single pointer avoids multi-default dirty state. null / absent means the Realm has no designated default Strand. The reducer rejects a set_default_strand whose strand_id does not resolve to a projected non-tombstoned Strand in this Realm (failed_precondition), so this pointer never dangles. The Strand projection's derived is_default flag is computed as strand_id == this value; clients discover the default Strand deterministically from this field (or the Strand is_default marker) and MUST NOT rely on any Strand-reuses-Realm-UUID implementation detail. See zh/models/strand-and-message.md (default-Strand discovery)."
+      "description": "Optional / nullable. AUTHORITATIVE single pointer to the Realm's default discussion Strand (last value projected from ak.realm.set_default_strand; cell ak.component.realm.set_default_strand.v1, cas_register, bottom=reject). A single pointer avoids multi-default dirty state. null / absent means the Realm has no designated default Strand. The reducer rejects a set_default_strand whose strand_id does not resolve to a projected non-tombstoned Strand in this Realm (failed_precondition), so this pointer never dangles. The Strand projection's derived is_default flag is computed as strand_id == this value; clients discover the default Strand deterministically from this field (or the Strand is_default marker) and MUST NOT rely on any Strand-reuses-Realm-UUID implementation detail. See zh/models/strand-and-message.md (default-Strand discovery)."
     },
     "default_discoverability": {
       "type": "string",
@@ -217,7 +217,7 @@
         "mls-rfc9420",
         "mls-exporter-aead-v1"
       ],
-      "description": "Content-envelope encryption scheme for MLS-backed Realms (crypto-media/encryption-and-audit.md §2.10). Orthogonal to encryption_profile, which only declares whether an MLS group exists. mls-rfc9420 = MLS PrivateMessage (per-message forward secrecy, NOT shareable to later joiners; only valid with history_visibility=joined/restricted on MLS-backed Realms). mls-exporter-aead-v1 = MLS-Exporter-derived per-epoch history_secret AEAD (history shareable to authorized later joiners via ck.realm_key.share; per-epoch forward secrecy; does not itself force pre-join delivery). MUST be carried in the MLS governance binding policy_root so receivers can determine, per epoch T0, which scheme applies. Absent: mls-rfc9420 for encryption_profile=mls_rfc9420 Realms; not applicable when encryption_profile=none/external."
+      "description": "Content-envelope encryption scheme for MLS-backed Realms (crypto-media/encryption-and-audit.md §2.10). Orthogonal to encryption_profile, which only declares whether an MLS group exists. mls-rfc9420 = MLS PrivateMessage (per-message forward secrecy, NOT shareable to later joiners; only valid with history_visibility=joined/restricted on MLS-backed Realms). mls-exporter-aead-v1 = MLS-Exporter-derived per-epoch history_secret AEAD (history shareable to authorized later joiners via ak.realm_key.share; per-epoch forward secrecy; does not itself force pre-join delivery). MUST be carried in the MLS governance binding policy_root so receivers can determine, per epoch T0, which scheme applies. Absent: mls-rfc9420 for encryption_profile=mls_rfc9420 Realms; not applicable when encryption_profile=none/external."
     },
     "content_encryption_floor": {
       "type": "string",
@@ -237,7 +237,7 @@
     },
     "agent_participation": {
       "type": "object",
-      "description": "Realm agent participation ceiling: { native_agent: { reply, accept_third_party_mention, act_on_behalf } } — the maximum native personal agent behavior permitted Realm-wide, written by a holder of ck.realm.admin via ck.realm.policy_components. It is the top of the deployment ⊇ Realm ⊇ Circle ⊇ Strand tighten-only chain (inner ceilings MUST NOT widen it; reducer rejects with agent_participation_ceiling_widen). When absent, inherits the deployment-default ceiling (deny-default under sovereign profiles). native_agent and applet_agent ceilings MUST be declared separately. See zh/models/realm-and-space.md.",
+      "description": "Realm agent participation ceiling: { native_agent: { reply, accept_third_party_mention, act_on_behalf } } — the maximum native personal agent behavior permitted Realm-wide, written by a holder of ak.realm.admin via ak.realm.policy_components. It is the top of the deployment ⊇ Realm ⊇ Circle ⊇ Strand tighten-only chain (inner ceilings MUST NOT widen it; reducer rejects with agent_participation_ceiling_widen). When absent, inherits the deployment-default ceiling (deny-default under sovereign profiles). native_agent and applet_agent ceilings MUST be declared separately. See zh/models/realm-and-space.md.",
       "properties": {
         "native_agent": {
           "type": "object",
@@ -259,7 +259,7 @@
     },
     "durability_policy": {
       "type": "object",
-      "description": "Realm Recovery Key (RRK) durability policy (models/realm-and-space.md §2.3.1, crypto-media/encryption-and-audit.md §2.10.8). Declares who can recover Realm history after all member devices are lost or all members leave. Confidentiality-axis durability, orthogonal to notary / notary.recovery_* (finality axis: who signs Seals). Recovery recipients are offline HPKE public keys, NOT MLS members. Only effective (mode != none) when content_scheme=mls-exporter-aead-v1; declaring mode != none on an mls-rfc9420 Realm MUST failed_precondition (durability_scheme_incompatible). Granularity = organization composition (point a sensitive Realm's owning_organizations at a finer org), not a per-Realm knob; parent-org retention = list the parent org RRK in recovery_recipients (explicit, member-visible). Written via ck.realm.policy_components.",
+      "description": "Realm Recovery Key (RRK) durability policy (models/realm-and-space.md §2.3.1, crypto-media/encryption-and-audit.md §2.10.8). Declares who can recover Realm history after all member devices are lost or all members leave. Confidentiality-axis durability, orthogonal to notary / notary.recovery_* (finality axis: who signs Seals). Recovery recipients are offline HPKE public keys, NOT MLS members. Only effective (mode != none) when content_scheme=mls-exporter-aead-v1; declaring mode != none on an mls-rfc9420 Realm MUST failed_precondition (durability_scheme_incompatible). Granularity = organization composition (point a sensitive Realm's owning_organizations at a finer org), not a per-Realm knob; parent-org retention = list the parent org RRK in recovery_recipients (explicit, member-visible). Written via ak.realm.policy_components.",
       "required": [
         "mode"
       ],
@@ -386,7 +386,7 @@
     },
     "sync_endpoints": {
       "type": "array",
-      "description": "Realm-level service binding list for shared notary / sync / mirror / federation peer surfaces. Directory resolve responses expose a requester-filtered join_candidates projection for join-side ingress; raw sync_endpoints are not a public candidate list. Member-level delivery_binding remains on ck.member.state and MUST NOT be inferred from this list.",
+      "description": "Realm-level service binding list for shared notary / sync / mirror / federation peer surfaces. Directory resolve responses expose a requester-filtered join_candidates projection for join-side ingress; raw sync_endpoints are not a public candidate list. Member-level delivery_binding remains on ak.member.state and MUST NOT be inferred from this list.",
       "items": {
         "$ref": "#/$defs/sync_endpoint"
       },
@@ -448,7 +448,7 @@
             "quorum_intersection",
             "waived"
           ],
-          "$comment": "Required for type=threshold (enforced by allOf below). MUST be quorum_intersection when 2*threshold > members.length (two conflicting quorums then intersect in at least one attributable double-signer; see authz/event-auth-state-resolution.md section 7.1 and BFT Protocol Forensics). MUST be waived when 2*threshold <= members.length, declaring that automatic culprit attribution is unavailable. JSON Schema cannot compare threshold against members.length, so the arithmetic side is reducer/conformance validation (ck.vector.cba_lattice.threshold_forensic_attribution.v1).",
+          "$comment": "Required for type=threshold (enforced by allOf below). MUST be quorum_intersection when 2*threshold > members.length (two conflicting quorums then intersect in at least one attributable double-signer; see authz/event-auth-state-resolution.md section 7.1 and BFT Protocol Forensics). MUST be waived when 2*threshold <= members.length, declaring that automatic culprit attribution is unavailable. JSON Schema cannot compare threshold against members.length, so the arithmetic side is reducer/conformance validation (ak.vector.cba_lattice.threshold_forensic_attribution.v1).",
           "description": "Equivocation culprit-attribution mode for threshold notary committees: quorum_intersection (2k>n, automatic attribution available) or waived (k<=n/2, deployment explicitly waives automatic attribution and relies on committee-level handling)."
         },
         "recovery_members": {
@@ -498,7 +498,7 @@
       "minimum": 300000,
       "maximum": 604800000,
       "default": 86400000,
-      "description": "Structural obligation, not advisory: maximum interval between compaction Seals (Seals carrying covered_event_digests[] or an equivalent verifiable full-coverage manifest). Because the cumulative control-plane covered set is defined recursively from predecessor_refs + delta, compaction Seals are the only bounded bootstrap points for new verifiers; a notary that exceeds this interval degrades bootstrap to walking the chain to genesis. open_set deployments MUST use <= 86400000 (24h); threshold deployments MUST use <= 604800000 (7d); single_did SHOULD use <= 86400000. Receivers SHOULD raise governance health alarms when the live chain exceeds the declared interval. See authz/event-auth-state-resolution.md section 6.2 and conformance vector ck.vector.cba_lattice.seal_compaction_interval_enforced.v1."
+      "description": "Structural obligation, not advisory: maximum interval between compaction Seals (Seals carrying covered_event_digests[] or an equivalent verifiable full-coverage manifest). Because the cumulative control-plane covered set is defined recursively from predecessor_refs + delta, compaction Seals are the only bounded bootstrap points for new verifiers; a notary that exceeds this interval degrades bootstrap to walking the chain to genesis. open_set deployments MUST use <= 86400000 (24h); threshold deployments MUST use <= 604800000 (7d); single_did SHOULD use <= 86400000. Receivers SHOULD raise governance health alarms when the live chain exceeds the declared interval. See authz/event-auth-state-resolution.md section 6.2 and conformance vector ak.vector.cba_lattice.seal_compaction_interval_enforced.v1."
     },
     "max_delegation_lifetime_ms": {
       "type": "integer",
@@ -663,7 +663,7 @@
       }
     },
     {
-      "$comment": "Principal control Realms are ordinary ck.schema.realm.v1 objects, but the profile discriminator must be closed at schema level: fields.purpose and schema_refs must appear together, the Realm MUST be MLS-backed, and both encryption floors MUST be pinned to e2ee_required (key-management §4.1 / §5.0.1, realm-and-space §2.8.1). There is no plaintext-floor PCR in v1.",
+      "$comment": "Principal control Realms are ordinary ak.schema.realm.v1 objects, but the profile discriminator must be closed at schema level: fields.purpose and schema_refs must appear together, the Realm MUST be MLS-backed, and both encryption floors MUST be pinned to e2ee_required (key-management §4.1 / §5.0.1, realm-and-space §2.8.1). There is no plaintext-floor PCR in v1.",
       "if": {
         "properties": {
           "fields": {
@@ -942,7 +942,7 @@
             "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
           },
           "uniqueItems": true,
-          "description": "Optional companion to `initial_value` (cas_register only). When `initial_value` is declared, set ops whose effect equals the sentinel are rejected by default (initial_value_reserved). Listing event_kinds here permits those event_kinds to write the sentinel back — typically the cleanup event_kind in a singleton-once-set / explicit-reset workflow. Capability authorization remains a separate independent check. See event-auth-state-resolution.md §9.3.1."
+          "description": "Optional companion to `initial_value` (cas_register only). When `initial_value` is declared, set ops whose effect equals the sentinel are rejected by default (initial_value_reserved). Listing event_kinds here permits those event_kinds to write the sentinel back — typically the cleanup event_kind in a singleton-once-set / explicit-reset workflow. Capability authorization remains a separate independent cheak. See event-auth-state-resolution.md §9.3.1."
         }
       },
       "additionalProperties": false,

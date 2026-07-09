@@ -114,7 +114,7 @@
     "handle_claim_ref": {
       "type": "string",
       "minLength": 1,
-      "description": "Opaque reference to a signed ck.schema.handle_claim.v1 claim, such as an event ref, issuer-local receipt ref, or content-addressed artifact ref."
+      "description": "Opaque reference to a signed ak.schema.handle_claim.v1 claim, such as an event ref, issuer-local receipt ref, or content-addressed artifact ref."
     },
     "handle_claim_digests": {
       "type": "array",

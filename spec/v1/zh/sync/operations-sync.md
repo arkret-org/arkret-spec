@@ -78,9 +78,9 @@ Control Move 的签名、actor chain、basis、precondition 和授权验证通�
 
 | `wire_scope` | 允许 schema | 允许提交路径 |
 | --- | --- | --- |
-| `durable_event` | `ck.schema.event.v1` | `ck.self.events.command.submit`、`ck.peer.events.command.submit` |
-| `actor_private_event` | `ck.schema.event.v1`，但不得携带 CBA reducer 字段 | `ck.self.events.command.submit` 的 actor 私有路径 |
-| `ephemeral_event` | `ck.schema.ephemeral_envelope.v1` 或 `ck.schema.device_message.v1` | ephemeral / to-device 专用路径 |
+| `durable_event` | `ak.schema.event.v1` | `ak.self.events.command.submit`、`ak.peer.events.command.submit` |
+| `actor_private_event` | `ak.schema.event.v1`，但不得携带 CBA reducer 字段 | `ak.self.events.command.submit` 的 actor 私有路径 |
+| `ephemeral_event` | `ak.schema.ephemeral_envelope.v1` 或 `ak.schema.device_message.v1` | ephemeral / to-device 专用路径 |
 
 ## 3. 接收与验证
 
@@ -179,7 +179,7 @@ flowchart TB
 
 ## 5. 批量提交与 partial accept
 
-`ck.self.events.command.submit` 与 `ck.peer.events.command.submit` MAY 接收 `events[]` 批量。批处理的最小原子单元是单个 Event；一个 Event 的失败不得回滚同批已接受 Event。
+`ak.self.events.command.submit` 与 `ak.peer.events.command.submit` MAY 接收 `events[]` 批量。批处理的最小原子单元是单个 Event；一个 Event 的失败不得回滚同批已接受 Event。
 
 `events[]` MUST 按数组顺序处理。同批中已接受的前序 Event 仅可作为后续 Event 的解析材料：
 
@@ -212,7 +212,7 @@ Event 是 canonical history；receipt、attestation、snapshot 与 Seal observat
 
 ### 6.1 Event Batch Receipt
 
-Event Batch Receipt（schema [`event-batch-receipt.schema.json`](../../artifacts/schemas/event-batch-receipt.schema.json)，`ck.schema.event_batch_receipt.v1`，字段与概念分层见 [`../models/event-and-patch.md` §5](../models/event-and-patch.md)）是 best-effort RYW / 加速 / 审计 hint：issuer（服务、客户端或 witness）证明已看到并承诺 `events[]` 所列 Event 集合的 integrity。它可用于 read-your-writes（驱动查询等级 `local → seen`，§8）、跨服务对账、轻客户端同步与 censorship 诊断；它不证明 Event 已进入控制面 finality，只对 issuer 选择承诺的集合提供 integrity，不提供范围 completeness。接收方 MUST 能在没有 batch receipt 的情况下验证单个 Event。
+Event Batch Receipt（schema [`event-batch-receipt.schema.json`](../../artifacts/schemas/event-batch-receipt.schema.json)，`ak.schema.event_batch_receipt.v1`，字段与概念分层见 [`../models/event-and-patch.md` §5](../models/event-and-patch.md)）是 best-effort RYW / 加速 / 审计 hint：issuer（服务、客户端或 witness）证明已看到并承诺 `events[]` 所列 Event 集合的 integrity。它可用于 read-your-writes（驱动查询等级 `local → seen`，§8）、跨服务对账、轻客户端同步与 censorship 诊断；它不证明 Event 已进入控制面 finality，只对 issuer 选择承诺的集合提供 integrity，不提供范围 completeness。接收方 MUST 能在没有 batch receipt 的情况下验证单个 Event。
 
 单事件确认是 `events[]` 单元素的退化形态（原 SeenReceipt，已合并——合并说明与被取消字段的理由见 [`../authz/event-auth-state-resolution.md` §4.4](../authz/event-auth-state-resolution.md)）；协议不再定义独立的单事件 receipt 对象。
 
@@ -222,13 +222,13 @@ AvailabilityReceipt（schema [`availability-receipt.schema.json`](../../artifact
 
 ### 6.3 Audit RYW Receipt
 
-`ck.audit.ryw_receipt`（schema [`audit-ryw-receipt.schema.json`](../../artifacts/schemas/audit-ryw-receipt.schema.json)，`ck.schema.audit_ryw_receipt.v1`）是审计释放路径专用的 per-event RYW witness attestation：它对单个 `ck.audit.accessed` / `ck.audit.release` Event 提供带 witness 背书的 accepted 确认，是 audited-E2EE release gate 的前置条件（见 [`../crypto-media/audited-e2ee.md` §6](../crypto-media/audited-e2ee.md)）。与 §6.1 的通用 hint 不同，它带强制 witness attestation 结构与 fail-closed 校验，并具有 "object + durable event kind" 双形态（[`../models/event-and-patch.md` §5.1](../models/event-and-patch.md)）。
+`ak.audit.ryw_receipt`（schema [`audit-ryw-receipt.schema.json`](../../artifacts/schemas/audit-ryw-receipt.schema.json)，`ak.schema.audit_ryw_receipt.v1`）是审计释放路径专用的 per-event RYW witness attestation：它对单个 `ak.audit.accessed` / `ak.audit.release` Event 提供带 witness 背书的 accepted 确认，是 audited-E2EE release gate 的前置条件（见 [`../crypto-media/audited-e2ee.md` §6](../crypto-media/audited-e2ee.md)）。与 §6.1 的通用 hint 不同，它带强制 witness attestation 结构与 fail-closed 校验，并具有 "object + durable event kind" 双形态（[`../models/event-and-patch.md` §5.1](../models/event-and-patch.md)）。
 
 ### 6.4 Range-bound Completeness Attestation
 
 需要证明“某范围内没有漏给事件”时，必须使用带显式 range 的 attestation：per-actor seq interval、from/to frontier、root、count 与 witness quorum。Set-bound Merkle commitment 只能证明集合未被篡改，不能证明范围未被删减。
 
-`ck.attestation.range_completeness` 是 v1 已注册 active event kind（payload schema `ck.schema.range_completeness_attestation.v1`，artifact [`range-completeness-attestation.schema.json`](../../artifacts/schemas/range-completeness-attestation.schema.json)），用于提供 *completeness* 证明——即“该范围内没有 reducer-input event 被静默丢弃”。它与 `ck.event_batch_receipt`（set-bound integrity）和 `ck.audit.ryw_receipt`（per-event RYW）正交：completeness 需要 range 语义 + per-actor seq interval + witness 背书，缺一不可。
+`ak.attestation.range_completeness` 是 v1 已注册 active event kind（payload schema `ak.schema.range_completeness_attestation.v1`，artifact [`range-completeness-attestation.schema.json`](../../artifacts/schemas/range-completeness-attestation.schema.json)），用于提供 *completeness* 证明——即“该范围内没有 reducer-input event 被静默丢弃”。它与 `ak.event_batch_receipt`（set-bound integrity）和 `ak.audit.ryw_receipt`（per-event RYW）正交：completeness 需要 range 语义 + per-actor seq interval + witness 背书，缺一不可。
 
 #### 6.4.1 Scope 语义
 
@@ -251,7 +251,7 @@ AvailabilityReceipt（schema [`availability-receipt.schema.json`](../../artifact
 
 #### 6.4.3 Witness Attestation 与 sovereign-grade 完整性
 
-`witness_attestation` 复用 `ck.audit.ryw_receipt.witness_attestation` 的语义（见 [`../crypto-media/audited-e2ee.md` §4.1.1](../crypto-media/audited-e2ee.md)）：
+`witness_attestation` 复用 `ak.audit.ryw_receipt.witness_attestation` 的语义（见 [`../crypto-media/audited-e2ee.md` §4.1.1](../crypto-media/audited-e2ee.md)）：
 
 - `witness_attestation.kind="federation_witness_attested"` MUST 满足 `witnesses[].length >= 2`、`(issuer, controlling_organization, verification_method)` 两两 distinct、且每个 `issuer` 在 Realm `audit.range_completeness_witnesses[]` 中已声明。
 - `witness_attestation.kind="single_source"` 是单签发者的诚实声明，MUST `witnesses.length == 1`。
@@ -268,21 +268,21 @@ AvailabilityReceipt（schema [`availability-receipt.schema.json`](../../artifact
 4. 若 verifier 自身持有 scope 内事件，MUST 重算 `root` 并 constant-time 比较；不一致 `range_completeness_root_mismatch`；
 5. 若 verifier 只持有 scope 子集，可以验证 inclusion proof（按 standard Merkle inclusion）；不持有任何 scope 事件时只能记录 attestation 不能确认 completeness；
 6. 校验 `actor_seq_ranges[]` 中每个 actor 的 seq interval 与 verifier 本地视图（partial replication 后）一致；本地视图若发现缺口而 attestation 声称完整，MUST `range_completeness_actor_seq_gap`；
-7. 声明 `security_class=high_assurance` 或 `ck.profile.federation.high_assurance.v1` 的 Realm，若 `witness_attestation` 未达 `federation_witness_attested` quorum 或 witness 集合彼此对 `root` / `actor_seq_ranges[]` 给出不一致背书，MUST 按 `witness_disagreement` fail closed，不得据 `single_source` 自报解除 completeness 关注。
+7. 声明 `security_class=high_assurance` 或 `ak.profile.federation.high_assurance.v1` 的 Realm，若 `witness_attestation` 未达 `federation_witness_attested` quorum 或 witness 集合彼此对 `root` / `actor_seq_ranges[]` 给出不一致背书，MUST 按 `witness_disagreement` fail closed，不得据 `single_source` 自报解除 completeness 关注。
 
 #### 6.4.5 与其它原语的关系
 
 | 原语 | scope | 提供 | 不提供 |
 | --- | --- | --- | --- |
-| `ck.event_batch_receipt` | issuer 选择的 events 集合 | integrity（给的没被改） | completeness（没漏给） |
-| `ck.audit.ryw_receipt` | 单个 `ck.audit.accessed` event | RYW witness attestation | range coverage |
-| `ck.attestation.range_completeness`（本节） | 显式 (from_frontier, to_frontier] + per-actor seq intervals | completeness with witness quorum | per-event payload 解密能力 |
+| `ak.event_batch_receipt` | issuer 选择的 events 集合 | integrity（给的没被改） | completeness（没漏给） |
+| `ak.audit.ryw_receipt` | 单个 `ak.audit.accessed` event | RYW witness attestation | range coverage |
+| `ak.attestation.range_completeness`（本节） | 显式 (from_frontier, to_frontier] + per-actor seq intervals | completeness with witness quorum | per-event payload 解密能力 |
 
 issuer / verifier 应根据需求选取；混用以补强各自边界。客户端读取面的暴露方式见 [`service-http-binding.md` §3.3.6](./service-http-binding.md)（optional feature `events_query_range_completeness`）；联邦面 server-to-server 强制语义见 [`federation.md` §4.5.3](./federation.md)。
 
 #### 6.4.1 Payload 与 root（normative）
 
-`ck.attestation.range_completeness` 的 payload schema 是 [`range-completeness-attestation.schema.json`](../../artifacts/schemas/range-completeness-attestation.schema.json)（schema id `ck.schema.range_completeness_attestation.v1`）。payload MUST 至少声明：
+`ak.attestation.range_completeness` 的 payload schema 是 [`range-completeness-attestation.schema.json`](../../artifacts/schemas/range-completeness-attestation.schema.json)（schema id `ak.schema.range_completeness_attestation.v1`）。payload MUST 至少声明：
 
 - `realm_id`：完整性范围所属 Realm；
 - `event_range.from_frontier.realm_frontier[]`：下界 frontier（exclusive）；
@@ -316,7 +316,7 @@ leaf 顺序按 `(actor_id code point ASC, actor_seq ASC, event_id ASC, event_dig
 3. witness proof 覆盖同一 canonical payload digest；
 4. 任意两个 witness 对同一 range 给出不同 `root`、`count` 或 `actor_seq_ranges[]` 时，verifier MUST 标记 `witness_disagreement`，quarantine 该 range / peer，并 fail closed，不得把任一方结果展示为完整。
 
-声明 `security_class=high_assurance` 或 `ck.profile.federation.high_assurance.v1` 的 Realm，解除 completeness 关注时 MUST 只接受 `federation_witness_attested`；`single_source` 只能作为诊断输入。
+声明 `security_class=high_assurance` 或 `ak.profile.federation.high_assurance.v1` 的 Realm，解除 completeness 关注时 MUST 只接受 `federation_witness_attested`；`single_source` 只能作为诊断输入。
 
 #### 6.4.3 single-source issuer 行为（normative）
 
@@ -326,7 +326,7 @@ leaf 顺序按 `(actor_id code point ASC, actor_seq ASC, event_id ASC, event_dig
 
 客户端或 peer 验证 range-completeness attestation 时 MUST 按下列顺序执行：
 
-1. 验证承载 EventEnvelope 的签名、`event_digest`、`kind="ak.attestation.range_completeness"` 与 payload `schema="ck.schema.range_completeness_attestation.v1"`；payload schema 校验失败即 `schema_violation`。
+1. 验证承载 EventEnvelope 的签名、`event_digest`、`kind="ak.attestation.range_completeness"` 与 payload `schema="ak.schema.range_completeness_attestation.v1"`；payload schema 校验失败即 `schema_violation`。
 2. 校验 `realm_id`、`from_frontier`、`to_frontier` 与查询 / backfill scope 一致；attestation 的 range MAY over-cover 响应页，但 verifier 只能对本地已经 backfill 完成且落在 attestation range 内的交集声明完整。
 3. 校验 `actor_seq_ranges[]` canonical 排序、无重复 actor、每个 `from_seq_exclusive < to_seq_inclusive`；不满足时 `schema_violation`。
 4. 从本地已验证 accepted store 取出 `(from_frontier, to_frontier]` 且匹配 `actor_seq_ranges[]` 的全部 reducer-input Event，按 §6.4.1 重算 Merkle root；不一致 MUST `range_completeness_root_mismatch`。
@@ -373,7 +373,7 @@ Strand Sync MUST NOT 因 actor 可读 Strand synthesis 就自动展开不可读 
 Arkret 不用全局链决定普通协作写入顺序。状态收敛由 cell family 的 Lattice / CRDT 规则定义：
 
 - OR-Set、ordered log、RGA、PN-counter、escrow counter 等可合并 cell MUST 对输入顺序不敏感。
-  > **序列 CRDT 选型注记（informative）**：上面把 **RGA（Replicated Growable Array）** 列为序列 cell 的示例算法。RGA 有学界充分记录的**并发插入交错（interleaving anomaly）**——两个 actor 在同一位置并发插入文本时，字符可能交错成乱序串。RGA 不是协作富文本的"最佳实践"基线：实现协作文本（`ck.profile.collaborative_text.v1`，见 [`../conformance/conformance-profiles.md` §3](../conformance/conformance-profiles.md)）时 SHOULD 优先采用消除 interleaving 的现代序列 CRDT —— **Eg-walker（Event Graph Walker，diamond-types）**、**Fugue/Peritext**（后者并处理富文本 mark 并发）或 **Loro/Yjs(YATA)**。其中 Eg-walker 在 event graph 上重放求值，与本规范的 event/causal-graph 范式天然同构、落地阻抗最小。序列 CRDT 仅活在该 opt-in extension profile、不进 core wire，因此算法升级是 profile 内的加法（新 lattice 标识 + 新 conformance vector / 新 `ck.profile.collaborative_text.v<n>`），不破坏任何 v1 core 签名字节。
+  > **序列 CRDT 选型注记（informative）**：上面把 **RGA（Replicated Growable Array）** 列为序列 cell 的示例算法。RGA 有学界充分记录的**并发插入交错（interleaving anomaly）**——两个 actor 在同一位置并发插入文本时，字符可能交错成乱序串。RGA 不是协作富文本的"最佳实践"基线：实现协作文本（`ak.profile.collaborative_text.v1`，见 [`../conformance/conformance-profiles.md` §3](../conformance/conformance-profiles.md)）时 SHOULD 优先采用消除 interleaving 的现代序列 CRDT —— **Eg-walker（Event Graph Walker，diamond-types）**、**Fugue/Peritext**（后者并处理富文本 mark 并发）或 **Loro/Yjs(YATA)**。其中 Eg-walker 在 event graph 上重放求值，与本规范的 event/causal-graph 范式天然同构、落地阻抗最小。序列 CRDT 仅活在该 opt-in extension profile、不进 core wire，因此算法升级是 profile 内的加法（新 lattice 标识 + 新 conformance vector / 新 `ak.profile.collaborative_text.v<n>`），不破坏任何 v1 core 签名字节。
 - 单值、硬配额、跨 cell 原子性和不可交换操作不得放在 data plane，除非使用专门 sequencer。
 - 并发不可合并时，reducer MUST 产生 structured bottom / conflict diagnostic，而不是用 HLC、actor id、数据库自增 ID、本地到达顺序或 Sync Service 顺序挑选 winner。
 - Timeline 展示顺序是 projection，MUST NOT 反向写入 canonical state、授权判断或 Lattice winner。
@@ -409,7 +409,7 @@ Snapshot 后续恢复流程：
 
 ## 11. 首次加入 Realm
 
-**加入提交目标（normative）**：跨域加入时"向哪台服务提交 join material"的唯一权威来源是 `ck.find.directory.query.resolve_realm` / `ck.find.directory.query.resolve_target` / signed invite metadata 返回的 `join_candidates[]`（规范定义见 [`federation.md` §5.0](./federation.md)）。客户端 / 提交服务 MUST NOT 从 Realm ID、邀请者所在 Principal Server、被邀请者自己的 Principal Server 或 URL 路由提示推导加入提交目标；所有重试 MUST 绑定同一 canonical `realm_id`。
+**加入提交目标（normative）**：跨域加入时"向哪台服务提交 join material"的唯一权威来源是 `ak.find.directory.query.resolve_realm` / `ak.find.directory.query.resolve_target` / signed invite metadata 返回的 `join_candidates[]`（规范定义见 [`federation.md` §5.0](./federation.md)）。客户端 / 提交服务 MUST NOT 从 Realm ID、邀请者所在 Principal Server、被邀请者自己的 Principal Server 或 URL 路由提示推导加入提交目标；所有重试 MUST 绑定同一 canonical `realm_id`。
 
 推荐流程：
 

@@ -2,8 +2,8 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/morph-customer-risk.schema.json",
   "title": "Arkret Morph Customer Risk Example",
-  "description": "Reference business-field schema for the morph.md customer_risk example. It constrains the fields object carried by a ck.schema.morph.v1 container.",
-  "$comment": "Logical schema id is ck.schema.morph.customer_risk.v1 (dotted, used in schema_refs[]); the artifact file name uses hyphens (morph-customer-risk.schema.json). Do not derive the id from the file name.",
+  "description": "Reference business-field schema for the morph.md customer_risk example. It constrains the fields object carried by a ak.schema.morph.v1 container.",
+  "$comment": "Logical schema id is ak.schema.morph.customer_risk.v1 (dotted, used in schema_refs[]); the artifact file name uses hyphens (morph-customer-risk.schema.json). Do not derive the id from the file name.",
   "type": "object",
   "required": [
     "morph_type",

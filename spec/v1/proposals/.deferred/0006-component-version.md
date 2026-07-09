@@ -1,5 +1,5 @@
 ---
-ckp: CKP-0006
+akp: AKP-0006
 title: Component & Version classifiers
 normative: false
 stability: v1
@@ -35,7 +35,7 @@ Jira 截图左栏 "Components" 和 "Versions" 是 first-class 实体而不是 fr
 
 ### 3.1 `ak:component:` 对象
 
-Schema id: `ck.schema.component.v1`
+Schema id: `ak.schema.component.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -45,7 +45,7 @@ Schema id: `ck.schema.component.v1`
 | `name` | yes | `string` | 1..128 chars。 | 显示名。 |
 | `description` | no | `string` | ≤512 chars。 | 描述。 |
 | `icon` | no | `object` | `{emoji?, blob_ref?}` | 图标。 |
-| `color` | no | `object` | 同 [CKP-0001](./0001-label-entity.md) `color`。 | 主题色。 |
+| `color` | no | `object` | 同 [AKP-0001](./0001-label-entity.md) `color`。 | 主题色。 |
 | `lead_actor_id` | no | `did` | 必须解析到 active actor。 | 组件负责人 DID。 |
 | `state` | yes | `enum(active, archived, tombstoned)` | 同 common-fields §5。 | 生命周期。 |
 | 公共字段 | — | — | created_by / created_at / updated_by / updated_at / state_changed_at | — |
@@ -54,7 +54,7 @@ Schema id: `ck.schema.component.v1`
 
 ### 3.2 `ak:version:` 对象
 
-Schema id: `ck.schema.version.v1`
+Schema id: `ak.schema.version.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -65,8 +65,8 @@ Schema id: `ck.schema.version.v1`
 | `description` | no | `string` | ≤512 chars。 | 描述。 |
 | `start_date` | no | `date` | — | 计划启动日。 |
 | `release_date` | no | `date` | — | 计划发布日;`released_at` 实际发布时填写。 |
-| `released_at` | conditional | `timestamp` | `release_state ∈ {released, archived}` 时必填;**reducer-derived**(由 `ck.version.release` event 写入)。 | 实际发布时刻。 |
-| `release_state` | yes | `enum(unreleased, released, archived)` | 转换:unreleased → released(`ck.version.release`)→ archived(`ck.version.archive`);archived 不可逆(用 tombstone 完全清除)。 | 发布状态机。**与对象 `state`(active/archived/tombstoned)正交**:对象 state 是物理生命周期,release_state 是发布周期。 |
+| `released_at` | conditional | `timestamp` | `release_state ∈ {released, archived}` 时必填;**reducer-derived**(由 `ak.version.release` event 写入)。 | 实际发布时刻。 |
+| `release_state` | yes | `enum(unreleased, released, archived)` | 转换:unreleased → released(`ak.version.release`)→ archived(`ak.version.archive`);archived 不可逆(用 tombstone 完全清除)。 | 发布状态机。**与对象 `state`(active/archived/tombstoned)正交**:对象 state 是物理生命周期,release_state 是发布周期。 |
 | `state` | yes | `enum(active, archived, tombstoned)` | 同 common-fields §5。 | 物理生命周期。 |
 | 公共字段 | — | — | created_by / created_at / updated_by / updated_at / state_changed_at | — |
 
@@ -80,21 +80,21 @@ Schema id: `ck.schema.version.v1`
 
 | event kind | reducer_input | 说明 |
 | --- | --- | --- |
-| `ck.component.create` | yes | 创建 |
-| `ck.component.update` | yes | patch(不改 key) |
-| `ck.component.archive` | yes | active → archived |
-| `ck.component.restore` | yes | archived → active |
-| `ck.component.tombstone` | yes | terminal |
+| `ak.component.create` | yes | 创建 |
+| `ak.component.update` | yes | patch(不改 key) |
+| `ak.component.archive` | yes | active → archived |
+| `ak.component.restore` | yes | archived → active |
+| `ak.component.tombstone` | yes | terminal |
 
 #### Version
 
 | event kind | reducer_input | 说明 |
 | --- | --- | --- |
-| `ck.version.create` | yes | 创建,默认 release_state=unreleased |
-| `ck.version.update` | yes | patch 元数据(不改 key、release_state、released_at) |
-| `ck.version.release` | yes | unreleased → released;reducer 写入 `released_at = event.created_at` |
-| `ck.version.archive` | yes | released → archived(release_state);object state 不变 |
-| `ck.version.tombstone` | yes | object state terminal,不可逆 |
+| `ak.version.create` | yes | 创建,默认 release_state=unreleased |
+| `ak.version.update` | yes | patch 元数据(不改 key、release_state、released_at) |
+| `ak.version.release` | yes | unreleased → released;reducer 写入 `released_at = event.created_at` |
+| `ak.version.archive` | yes | released → archived(release_state);object state 不变 |
+| `ak.version.tombstone` | yes | object state terminal,不可逆 |
 
 注:**release_state 与 object state 是两个独立 axis**(与 stage / state 正交的同模式)。release_state 是 component-spec scope 的"对外发布周期",state 是协议物理生命周期。
 
@@ -102,10 +102,10 @@ Schema id: `ck.schema.version.v1`
 
 | action | risk_tier | target event kinds |
 | --- | --- | --- |
-| `ck.component.manage` | medium | component.* |
-| `ck.version.manage` | medium | version.create / update / archive / tombstone |
-| `ck.version.release` | medium | `ck.version.release`(独立切分,因为发布是一次性高影响动作) |
-| `ck.strand.classify` | low | `ck.relation.create / delete` 限 `relation_kind ∈ {in_component, targets_version, fixed_in_version}` |
+| `ak.component.manage` | medium | component.* |
+| `ak.version.manage` | medium | version.create / update / archive / tombstone |
+| `ak.version.release` | medium | `ak.version.release`(独立切分,因为发布是一次性高影响动作) |
+| `ak.strand.classify` | low | `ak.relation.create / delete` 限 `relation_kind ∈ {in_component, targets_version, fixed_in_version}` |
 
 ## 4. Interactions with normative spec
 
@@ -114,7 +114,7 @@ Schema id: `ck.schema.version.v1`
 - 新增 id-kind:`component`、`version`。
 - 新增 event_kinds(component 5 + version 5 = 10 条)+ capability actions(4 条)。
 - 新增 Relation kinds:`in_component`、`targets_version`、`fixed_in_version`。
-- 新增 profile:`ck.profile.engineering_classifiers.v1`(打包 component + version,因为典型用例是工程 issue tracking)。
+- 新增 profile:`ak.profile.engineering_classifiers.v1`(打包 component + version,因为典型用例是工程 issue tracking)。
 
 ## 5. Rationale & alternatives
 
@@ -138,7 +138,7 @@ Schema id: `ck.schema.version.v1`
 
 ### 5.4 为什么 release_state 与 object state 是两个 axis?
 
-与 CKP-0004 之前讨论过的 stage / state 正交是同一原则。released 的 version 仍可被对象 archive(物理停用),archived 物理 state 的 version 也可保留 released_at(历史记录)。两个 axis 不可坍缩。
+与 AKP-0004 之前讨论过的 stage / state 正交是同一原则。released 的 version 仍可被对象 archive(物理停用),archived 物理 state 的 version 也可保留 released_at(历史记录)。两个 axis 不可坍缩。
 
 ## 6. Open questions
 
@@ -146,7 +146,7 @@ Schema id: `ck.schema.version.v1`
 - [ ] Version 是否需要 dependencies(`blocks_release_of`)?engineering team 常用。建议作为 Relation 而非内嵌字段。
 - [ ] release_state archived 是否需要 unarchive?(发布的 version 已是事实,反向只能用 tombstone)
 - [ ] 跨 Realm dashboard 引用 component / version:同 Realm 限制,还是允许 organization-level shared?postpone。
-- [ ] Bug 模板 + component / version 的联动:`ak:strand_type:` 是否声明默认 component / version?这把 CKP-0002 / CKP-0003 / CKP-0006 都耦合起来,留给 form_layout 表达 picker default,不在 schema 层面强联动。
+- [ ] Bug 模板 + component / version 的联动:`ak:strand_type:` 是否声明默认 component / version?这把 AKP-0002 / AKP-0003 / AKP-0006 都耦合起来,留给 form_layout 表达 picker default,不在 schema 层面强联动。
 
 ## 7. Migration plan
 
@@ -157,4 +157,4 @@ Schema id: `ck.schema.version.v1`
 - Jira Components: <https://support.atlassian.com/jira-software-cloud/docs/configure-jira-components/>
 - Jira Versions: <https://support.atlassian.com/jira-cloud-administration/docs/manage-versions/>
 - 用户提供 Jira "Components" / "Versions" 左栏截图,2026-05-23
-- CKP-0001 Label(对照:component / version vs label 的差异)
+- AKP-0001 Label(对照:component / version vs label 的差异)

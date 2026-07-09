@@ -20,7 +20,7 @@
         "duplicate_conflict",
         "failed_precondition"
       ],
-      "description": "Account registration creates or binds a deployment-local account record to principal_id. The request uses principal_id rather than did, does not accept handle, and handle evidence can only be returned as signed ck.schema.handle_claim.v1 data or digest/ref."
+      "description": "Account registration creates or binds a deployment-local account record to principal_id. The request uses principal_id rather than did, does not accept handle, and handle evidence can only be returned as signed ak.schema.handle_claim.v1 data or digest/ref."
     },
     {
       "operation_id": "ak.gate.account.command.pair_device",
@@ -45,7 +45,7 @@
         "agent_deactivated",
         "accountability_grant_missing"
       ],
-      "description": "Account Authority session grant issuance. Shared by human user_session and agent runtime branches (CKP-0008 §4.6): when `proof.proof_kind=\"oidc_code_exchange\"`, `proof_invalid` covers issuer/discovery/state/nonce/redirect_uri/code_verifier/principal/device/audience binding failures; when `proof.proof_kind=\"agent_key_proof\"`, agent-specific failure codes apply — `proof_invalid` for transcript / nonce / audience binding failures of the agent_key_proof, `verification_method_principal_mismatch` when the verification_method DID does not match `principal_id`, `agent_paused` / `agent_deactivated` for lifecycle-gated rejections of the target agent principal, and `accountability_grant_missing` when the controller's accountability grant over the agent has been revoked or lapsed its freshness window so the agent is no longer eligible to receive a session grant (zh/identity/account-lifecycle.md §9.1)."
+      "description": "Account Authority session grant issuance. Shared by human user_session and agent runtime branches (AKP-0008 §4.6): when `proof.proof_kind=\"oidc_code_exchange\"`, `proof_invalid` covers issuer/discovery/state/nonce/redirect_uri/code_verifier/principal/device/audience binding failures; when `proof.proof_kind=\"agent_key_proof\"`, agent-specific failure codes apply — `proof_invalid` for transcript / nonce / audience binding failures of the agent_key_proof, `verification_method_principal_mismatch` when the verification_method DID does not match `principal_id`, `agent_paused` / `agent_deactivated` for lifecycle-gated rejections of the target agent principal, and `accountability_grant_missing` when the controller's accountability grant over the agent has been revoked or lapsed its freshness window so the agent is no longer eligible to receive a session grant (zh/identity/account-lifecycle.md §9.1)."
     },
     {
       "operation_id": "ak.gate.account.command.revoke_session",
@@ -55,7 +55,7 @@
         "session_revoke_selector_conflict",
         "proof_invalid"
       ],
-      "description": "Session grant/access-token revocation. Empty body revokes the current request's session grant; cross grant/device/all_sessions selectors require fresh proof and never revoke device authorization or write durable ck.account.status."
+      "description": "Session grant/access-token revocation. Empty body revokes the current request's session grant; cross grant/device/all_sessions selectors require fresh proof and never revoke device authorization or write durable ak.account.status."
     },
     {
       "operation_id": "ak.gate.account.command.refresh_session_grant",
@@ -74,7 +74,7 @@
       "operation_id": "ak.gate.account.command.logout_auth_session",
       "http_alias": "POST /_arkret/gate/account/auth-sessions/logout",
       "operation_specific": [],
-      "description": "Account Authority to Auth Server S2S Auth-side logout sub-operation (account-lifecycle §4.1): a validated client-visible account /logout is represented by service-to-service authentication, and the Auth Server logs out the Auth-side browser/auth session owning the supplied grant so the rotation chain cannot be resumed. Idempotent: re-presenting an already-logged-out, revoked, unknown, or pruned auth session/grant succeeds with the chain treated as terminated. Ordinary clients MUST NOT call this operation; they retry ck.gate.account.command.logout."
+      "description": "Account Authority to Auth Server S2S Auth-side logout sub-operation (account-lifecycle §4.1): a validated client-visible account /logout is represented by service-to-service authentication, and the Auth Server logs out the Auth-side browser/auth session owning the supplied grant so the rotation chain cannot be resumed. Idempotent: re-presenting an already-logged-out, revoked, unknown, or pruned auth session/grant succeeds with the chain treated as terminated. Ordinary clients MUST NOT call this operation; they retry ak.gate.account.command.logout."
     },
     {
       "operation_id": "ak.gate.account.command.introspect_session_grant",
@@ -86,7 +86,7 @@
       "operation_id": "ak.gate.account.command.logout",
       "http_alias": "POST /_arkret/gate/account/logout",
       "operation_specific": [],
-      "description": "Account Authority ordinary hard logout (account-lifecycle §4.1): the only client-visible logout entry. It validates the current ak.session.grant + DPoP, terminates the Auth-side auth session / grant rotation chain, and completes or durably schedules Principal-side local account/device session cleanup plus to-device/push removal. Does not write ck.account.status, emit ck.device.revoke, or erase durable device authorization. Idempotent — no domain-specific failure beyond the universal surface."
+      "description": "Account Authority ordinary hard logout (account-lifecycle §4.1): the only client-visible logout entry. It validates the current ak.session.grant + DPoP, terminates the Auth-side auth session / grant rotation chain, and completes or durably schedules Principal-side local account/device session cleanup plus to-device/push removal. Does not write ak.account.status, emit ak.device.revoke, or erase durable device authorization. Idempotent — no domain-specific failure beyond the universal surface."
     },
     {
       "operation_id": "ak.gate.account.command.pair_agent_key",
@@ -97,7 +97,7 @@
         "proof_invalid",
         "agent_deactivated"
       ],
-      "description": "Native personal agent runtime key pairing (CKP-0008 §4.5). 412 responses use these codes; pairing into an already-deactivated agent principal is terminal."
+      "description": "Native personal agent runtime key pairing (AKP-0008 §4.5). 412 responses use these codes; pairing into an already-deactivated agent principal is terminal."
     },
     {
       "operation_id": "ak.self.agent.command.provision",
@@ -106,7 +106,7 @@
         "failed_precondition",
         "accountability_grant_missing"
       ],
-      "description": "Provision a native personal agent principal (CKP-0008). The op is the aggregate `ck.self.agent.command.provision` capability action (capability-action-registry.json) and fans out `ck.profile.create` + `ck.identity.accountability_grant` + `ck.agent.key.authorize` + `ck.capability.grant`. `accountability_grant_missing` is returned when the orchestrator cannot write or validate the fan-out `ck.identity.accountability_grant` (controller lacks `ck.self.agent.command.provision` authority or its required constraints, the candidate grant fails accountability schema checks, or a concurrent state cell makes the grant unauditable). Other ineligibility reasons surface as `failed_precondition`."
+      "description": "Provision a native personal agent principal (AKP-0008). The op is the aggregate `ak.self.agent.command.provision` capability action (capability-action-registry.json) and fans out `ak.profile.create` + `ak.identity.accountability_grant` + `ak.agent.key.authorize` + `ak.capability.grant`. `accountability_grant_missing` is returned when the orchestrator cannot write or validate the fan-out `ak.identity.accountability_grant` (controller lacks `ak.self.agent.command.provision` authority or its required constraints, the candidate grant fails accountability schema checks, or a concurrent state cell makes the grant unauditable). Other ineligibility reasons surface as `failed_precondition`."
     },
     {
       "operation_id": "ak.self.agent.query.list",
@@ -121,7 +121,7 @@
       "operation_specific": [
         "not_found"
       ],
-      "description": "not_found is returned both for nonexistent agent principals and for agents not visible to the caller (uniform failure surface, matches ck.self.events.resource.get pattern)."
+      "description": "not_found is returned both for nonexistent agent principals and for agents not visible to the caller (uniform failure surface, matches ak.self.events.resource.get pattern)."
     },
     {
       "operation_id": "ak.self.agent.command.pause",
@@ -163,7 +163,7 @@
         "proof_invalid",
         "failed_precondition"
       ],
-      "description": "Wire op ck.self.agent.command.rotate_key corresponds to event kind ck.agent.key.rotate; rotation MUST NOT widen scope or extend the retiring key's TTL."
+      "description": "Wire op ak.self.agent.command.rotate_key corresponds to event kind ak.agent.key.rotate; rotation MUST NOT widen scope or extend the retiring key's TTL."
     },
     {
       "operation_id": "ak.self.agent.grant.command.attach",
@@ -193,7 +193,7 @@
         "agent_deactivated",
         "failed_precondition"
       ],
-      "description": "Idempotent ensure (CKP-0009 §4.2.1): server-derived dedupe keys are `(realm_id, controller_principal_id)` for the sidecar Circle and `(controller_principal_id, normalized_context_ref)` for the private Strand / reuse identity — `agent_principal_id` is NOT part of either key, so all eligible agents of the same controller share one sidecar per Realm. Clients MUST NOT supply Idempotency-Key. sidecar_create_denied is a deliberately generic precondition that hides whether a sidecar with the same derived short_name already exists (existence privacy)."
+      "description": "Idempotent ensure (AKP-0009 §4.2.1): server-derived dedupe keys are `(realm_id, controller_principal_id)` for the sidecar Circle and `(controller_principal_id, normalized_context_ref)` for the private Strand / reuse identity — `agent_principal_id` is NOT part of either key, so all eligible agents of the same controller share one sidecar per Realm. Clients MUST NOT supply Idempotency-Key. sidecar_create_denied is a deliberately generic precondition that hides whether a sidecar with the same derived short_name already exists (existence privacy)."
     },
     {
       "operation_id": "ak.self.agent.participation.resource.replace",
@@ -213,7 +213,7 @@
       "operation_specific": [
         "not_found"
       ],
-      "description": "Probe the public ck.agent.endpoint registry for an agent's declared external protocol endpoints. Missing, unauthorized, not-visible, or revoked endpoint registrations all collapse into a single not_found surface indistinguishable from nonexistence (matches the ck.find.directory.query.resolve_agent_selector uniform surface); the op never returns candidate endpoints for an agent the caller may not discover."
+      "description": "Probe the public ak.agent.endpoint registry for an agent's declared external protocol endpoints. Missing, unauthorized, not-visible, or revoked endpoint registrations all collapse into a single not_found surface indistinguishable from nonexistence (matches the ak.find.directory.query.resolve_agent_selector uniform surface); the op never returns candidate endpoints for an agent the caller may not discover."
     },
     {
       "operation_id": "ak.gate.account.exchange.complete_oidc",
@@ -287,7 +287,7 @@
         "applet_namespace_mismatch",
         "applet_registration_unauthorized"
       ],
-      "description": "Ghost Actor provisioning mints (or idempotently re-confirms) the external user's Ghost Actor ck.profile.create and ck.identity.accountability_grant. The server fails closed when the caller service DID does not match the applet_id registration, the install is not active, the realm_id is outside effective scope (applet_registration_unauthorized), or ghost_actor_id falls outside the registration's actor namespace (applet_namespace_mismatch). See zh/extensions/applet-integration.md §9.1."
+      "description": "Ghost Actor provisioning mints (or idempotently re-confirms) the external user's Ghost Actor ak.profile.create and ak.identity.accountability_grant. The server fails closed when the caller service DID does not match the applet_id registration, the install is not active, the realm_id is outside effective scope (applet_registration_unauthorized), or ghost_actor_id falls outside the registration's actor namespace (applet_namespace_mismatch). See zh/extensions/applet-integration.md §9.1."
     },
     {
       "operation_id": "ak.edge.applet.third_party_locations.query.list",
@@ -496,7 +496,7 @@
       "operation_specific": [
         "not_found"
       ],
-      "description": "Exact native personal agent selector resolution: Directory resolves controller_handle to a controller DID and verifies the visible ck.schema.agent_selector_claim.v1 (controller_subject, agent_slug) -> subject binding, proof, and accountability grant. Failure, unauthorized, not-visible, revoked / expired / ambiguous, missing controller, or hidden agent all collapse into a single not_found surface indistinguishable from nonexistence (zh/discovery/discovery-directory.md §9); the op never returns selector candidates."
+      "description": "Exact native personal agent selector resolution: Directory resolves controller_handle to a controller DID and verifies the visible ak.schema.agent_selector_claim.v1 (controller_subject, agent_slug) -> subject binding, proof, and accountability grant. Failure, unauthorized, not-visible, revoked / expired / ambiguous, missing controller, or hidden agent all collapse into a single not_found surface indistinguishable from nonexistence (zh/discovery/discovery-directory.md §9); the op never returns selector candidates."
     },
     {
       "operation_id": "ak.find.directory.query.list_handles_for_subject",
@@ -645,7 +645,7 @@
         "realm_frozen",
         "quarantine"
       ],
-      "description": "Event submission. Per-event rejections appear in response.rejected[] with one of these codes. ck.invite.claim-specific reducer reasons remain internal/audit-facing when exposed through non-enumerable invite claim flows."
+      "description": "Event submission. Per-event rejections appear in response.rejected[] with one of these codes. ak.invite.claim-specific reducer reasons remain internal/audit-facing when exposed through non-enumerable invite claim flows."
     },
     {
       "operation_id": "ak.peer.events.query.describe",
@@ -747,7 +747,7 @@
         "media_plaintext_service_not_authorised",
         "media_service_foci_required"
       ],
-      "description": "Media service token exchange (CKP-0010, zh/crypto-media/media-service-binding.md §3). Token issuer validates device proof / bearer, ck.call.join capability, focus_id against current foci[], session_focus persistence, MLS governance binding policy_root freshness, and media_service_decrypts pre-conditions before issuing backend_token + participant_binding. Services return media_service_foci_required when ck.realm.media_service does not declare explicit foci[]."
+      "description": "Media service token exchange (AKP-0010, zh/crypto-media/media-service-binding.md §3). Token issuer validates device proof / bearer, ak.call.join capability, focus_id against current foci[], session_focus persistence, MLS governance binding policy_root freshness, and media_service_decrypts pre-conditions before issuing backend_token + participant_binding. Services return media_service_foci_required when ak.realm.media_service does not declare explicit foci[]."
     },
     {
       "operation_id": "ak.root.identity.registry.query.describe",

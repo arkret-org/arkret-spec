@@ -3,7 +3,7 @@
   "$id": "https://arkret.org/v1/schemas/draft-sync.schema.json",
   "title": "Arkret Draft Sync Account Data",
   "type": "object",
-  "description": "Encrypted account-data plaintext shape for ck.profile.draft_sync.v1.",
+  "description": "Encrypted account-data plaintext shape for ak.profile.draft_sync.v1.",
   "required": [
     "target_ref",
     "kind",

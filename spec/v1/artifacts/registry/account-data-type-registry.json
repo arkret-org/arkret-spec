@@ -1,7 +1,7 @@
 {
   "version": "2026-07-03",
   "source_of_truth": true,
-  "description": "Canonical registry of standard Account Data key patterns. Account Data is actor/private state written through ck.account_data.set unless a row explicitly lists another actor-private event kind.",
+  "description": "Canonical registry of standard Account Data key patterns. Account Data is actor/private state written through ak.account_data.set unless a row explicitly lists another actor-private event kind.",
   "account_data_types": [
     {
       "key_pattern": "ak.tags.realm.<realm_id>",
@@ -118,7 +118,7 @@
       "write_event_kinds": [
         "ak.account_data.set"
       ],
-      "description": "Principal-private presence visibility policy. Principal/Sync services may project only the minimal presence_visibility enum needed to gate ck.presence and ck.typing fanout; it MUST NOT expose profile fields, status messages, contact notes, or precise last-active data.",
+      "description": "Principal-private presence visibility policy. Principal/Sync services may project only the minimal presence_visibility enum needed to gate ak.presence and ak.typing fanout; it MUST NOT expose profile fields, status messages, contact notes, or precise last-active data.",
       "source_refs": [
         "spec/v1/zh/discovery/profiles-presence.md",
         "spec/v1/zh/sync/client-sync.md"
@@ -172,7 +172,7 @@
       "write_event_kinds": [
         "ak.account_data.set"
       ],
-      "description": "Principal-private scheduled-send plan. planned_message_id is later reused as ck.message.create.payload.message_id.",
+      "description": "Principal-private scheduled-send plan. planned_message_id is later reused as ak.message.create.payload.message_id.",
       "source_refs": [
         "spec/v1/zh/models/personal-productivity.md"
       ]
@@ -224,7 +224,7 @@
       "write_event_kinds": [
         "ak.account_data.set"
       ],
-      "description": "Principal-private cross-device file transfer record keyed by an HMAC-derived transfer_key. Blob bytes are stored through ck.self.blob.*; raw blob_ref, filename, target device ids, and plaintext hashes MUST NOT appear in the account-data key.",
+      "description": "Principal-private cross-device file transfer record keyed by an HMAC-derived transfer_key. Blob bytes are stored through ak.self.blob.*; raw blob_ref, filename, target device ids, and plaintext hashes MUST NOT appear in the account-data key.",
       "source_refs": [
         "spec/v1/zh/models/file-transfer.md"
       ]
@@ -252,7 +252,7 @@
         "ak.agent.action_approve",
         "ak.account_data.set"
       ],
-      "description": "Controller-owned encrypted draft created when Principal Server materializes an agent's ck.agent.draft.propose / ck.agent.action_request after capability / policy / accountability / risk check. Draft MUST NOT enter shared Realm history; publishing produces a new shared event referencing only an opaque digest. See CKP-0008 §4.8 / private-objects.md §4.1.",
+      "description": "Controller-owned encrypted draft created when Principal Server materializes an agent's ak.agent.draft.propose / ak.agent.action_request after capability / policy / accountability / risk cheak. Draft MUST NOT enter shared Realm history; publishing produces a new shared event referencing only an opaque digest. See AKP-0008 §4.8 / private-objects.md §4.1.",
       "source_refs": [
         "spec/v1/proposals/0008-personal-agent-provisioning.md",
         "spec/v1/zh/models/private-objects.md"
@@ -267,7 +267,7 @@
       "write_event_kinds": [
         "ak.account_data.set"
       ],
-      "description": "Controller-private personal-track projection for the agent sidecar UI (cross-device sync of My AI tab order, pin state, addressed agents). MUST NOT modify target Strand tracks map or write any target-side metadata / Relation / watch / unread / search / notification state. See CKP-0009 §4.14 / private-objects.md §4.1.",
+      "description": "Controller-private personal-track projection for the agent sidecar UI (cross-device sync of My AI tab order, pin state, addressed agents). MUST NOT modify target Strand tracks map or write any target-side metadata / Relation / watch / unread / search / notification state. See AKP-0009 §4.14 / private-objects.md §4.1.",
       "source_refs": [
         "spec/v1/proposals/0009-agent-sidecar-thread.md",
         "spec/v1/zh/models/private-objects.md"
@@ -282,7 +282,7 @@
       "write_event_kinds": [
         "ak.account_data.set"
       ],
-      "description": "Controller-owned per-scope agent participation selection (reply / accept_third_party_mention / act_on_behalf). scope_key is realm:<realm_uuid> | circle:<realm_uuid>:<circle_uuid> | strand:<realm_uuid>:<strand_uuid>. Effective participation = effective_ceiling ∩ selection, where the ceiling is the monotone deployment ⊇ Realm ⊇ Circle ⊇ Strand fold. accept_third_party_mention drives the dispatcher mention gate; reply / act_on_behalf materialize into ck.capability.grant. See zh/models/private-objects.md §4.1.",
+      "description": "Controller-owned per-scope agent participation selection (reply / accept_third_party_mention / act_on_behalf). scope_key is realm:<realm_uuid> | circle:<realm_uuid>:<circle_uuid> | strand:<realm_uuid>:<strand_uuid>. Effective participation = effective_ceiling ∩ selection, where the ceiling is the monotone deployment ⊇ Realm ⊇ Circle ⊇ Strand fold. accept_third_party_mention drives the dispatcher mention gate; reply / act_on_behalf materialize into ak.capability.grant. See zh/models/private-objects.md §4.1.",
       "source_refs": [
         "spec/v1/zh/models/private-objects.md"
       ]

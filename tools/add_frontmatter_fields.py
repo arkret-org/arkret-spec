@@ -59,7 +59,7 @@ def parse_block(block: str) -> list[tuple[str, list[str]]]:
     entries: list[tuple[str, list[str]]] = []
     current_key: str | None = None
     current_lines: list[str] = []
-    for line in block.split("\n"):
+    for line in bloak.split("\n"):
         if line and not line[0].isspace() and ":" in line:
             if current_key is not None:
                 entries.append((current_key, current_lines))

@@ -30,7 +30,7 @@ see_also:
 
 > 上面"数据主语"是本规范的 canonical 对象清单；§6 与其他章节引用对象集合时以此为准。Morph 既是 canonical 对象清单中的开放对象，也充当 schema / profile 扩展承载，两处指的是同一对象，不是两类东西。
 
-> **关于 “v1”（消歧）**：本规范树的 `v1/` 目录、`stability: v1` 以及 `ck.*.v1` 标识符中的 `v1`，指的是**协议代际**（对应 `protocol_version="1.0"` 与 schema id / event kind 后缀承载的 wire 级版本），**不是 URL 路径版本号**。HTTP path 不含任何版本段（不存在 `/v1/`、`/api/v1`），版本是元数据，通过 `*.describe` 协商；规则见 [`sync/api-conventions.md` §11](./sync/api-conventions.md)。破坏性变更通过新增 event kind / schema id 承载，**从不发生“整面切 v2”**，因此 `v1` 后缀是长期锚点，不应被移除。
+> **关于 “v1”（消歧）**：本规范树的 `v1/` 目录、`stability: v1` 以及 `ak.*.v1` 标识符中的 `v1`，指的是**协议代际**（对应 `protocol_version="1.0"` 与 schema id / event kind 后缀承载的 wire 级版本），**不是 URL 路径版本号**。HTTP path 不含任何版本段（不存在 `/v1/`、`/api/v1`），版本是元数据，通过 `*.describe` 协商；规则见 [`sync/api-conventions.md` §11](./sync/api-conventions.md)。破坏性变更通过新增 event kind / schema id 承载，**从不发生“整面切 v2”**，因此 `v1` 后缀是长期锚点，不应被移除。
 
 ### 1.1 5 分钟读法
 
@@ -124,7 +124,7 @@ Arkret v1 明确不把以下内容作为基础互操作必需项：
 
 - 看板定义：`Board Space -> List Space -> Strand`。
 - 会话定义：`Strand(discussion track) -> Message`。
-- `ck.strand.tracks.update` 是 track 配置（启用 / 关闭 / 切换 primary / 修改 profile）的唯一写入路径，不复制对象、不迁移历史。
+- `ak.strand.tracks.update` 是 track 配置（启用 / 关闭 / 切换 primary / 修改 profile）的唯一写入路径，不复制对象、不迁移历史。
 - Track 不携带独立 access；整个 Strand 共享单一 effective scope（由 `Strand.scope_circle_id` 决定）。需要独立成员、历史或 E2EE 边界时，把整个 Strand 通过 `scope_circle_id` 落在一个 [Circle](./models/circle.md)，或拆为两个 Strand + `confidential_discussion_of` Relation（见 [`models/circle.md` §7.2](./models/circle.md)）。
 
 ### 4.4 同步与真相模型
@@ -156,8 +156,8 @@ Arkret v1 明确不把以下内容作为基础互操作必需项：
 各实现声明支持范围时需同时给出：
 
 - `protocol_version`（canonical 字段值固定为字符串 `"1.0"`；wire / describe 响应 MUST NOT 写成 `1.0.0` 或 `v1.0.0`。术语主条目见 [`overview/glossary.md` §2](./overview/glossary.md)）
-- conformance profile（如 `ck.profile.full_client.v1`）
-- schema / reducer profile（如 `ck.schema.event.v1` 与 `ck.profile.core_event_store.v1`）
+- conformance profile（如 `ak.profile.full_client.v1`）
+- schema / reducer profile（如 `ak.schema.event.v1` 与 `ak.profile.core_event_store.v1`）
 - 尺度与分页边界（默认见 `conformance/scalability-constraints.md`）
 
 > `protocol_version` 字段值（`"1.0"`）与发布 / release tag（`v1.0.0`，见 [`overview/release-readiness.md`](./overview/release-readiness.md)）是两个不同维度：前者是 wire-level 协议大版本标识，后者是仓库发布线标签。两者 MUST NOT 互换填入对方位置。

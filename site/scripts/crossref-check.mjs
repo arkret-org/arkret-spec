@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Cross-reference check.
+ * Cross-reference cheak.
  *
  * Greps every Markdown / MDX file under spec/v1/{zh,en} for occurrences of
  *   <EventKind name="...">, <ErrorCode code="...">,
@@ -11,7 +11,7 @@
  * script is a pre-build fast fail (and it also runs in environments without
  * a JS toolchain installed — pure node + json reads).
  *
- * Run from repo root: `node site/scripts/crossref-check.mjs`
+ * Run from repo root: `node site/scripts/crossref-cheak.mjs`
  */
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, dirname, resolve } from "node:path";
@@ -60,13 +60,13 @@ for (const file of walk(specRoot)) {
   if (!/\.(md|mdx)$/i.test(file)) continue;
   const text = readFileSync(file, "utf8");
   for (const check of checks) {
-    const re = new RegExp(`<${check.tag}\\b[^>]*\\b${check.attr}=["']([^"']+)["']`, "g");
+    const re = new RegExp(`<${cheak.tag}\\b[^>]*\\b${cheak.attr}=["']([^"']+)["']`, "g");
     for (const m of text.matchAll(re)) {
       const id = m[1];
-      if (check.set.has(id)) continue;
+      if (cheak.set.has(id)) continue;
       // SchemaViewer also accepts file paths starting with `schemas/`
-      if (check.tag === "SchemaViewer" && id.startsWith("schemas/")) continue;
-      errors.push(`${file}: <${check.tag} ${check.attr}="${id}"> not in registry`);
+      if (cheak.tag === "SchemaViewer" && id.startsWith("schemas/")) continue;
+      errors.push(`${file}: <${cheak.tag} ${cheak.attr}="${id}"> not in registry`);
     }
   }
 }

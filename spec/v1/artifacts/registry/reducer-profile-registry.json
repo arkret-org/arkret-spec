@@ -46,7 +46,7 @@
           "sync-fixture.json"
         ],
         "reducer_contract_refs": [
-          "artifacts/profiles/conformance-profiles.json#/profile_requirements/ck.profile.core_event_store.v1",
+          "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.core_event_store.v1",
           "artifacts/registry/event-kind-registry.json",
           "artifacts/registry/capability-action-registry.json",
           "zh/authz/event-auth-state-resolution.md",
@@ -102,7 +102,7 @@
           "privacy-security-fixture.json"
         ],
         "reducer_contract_refs": [
-          "artifacts/profiles/conformance-profiles.json#/profile_requirements/ck.profile.chat_mvp.v1",
+          "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.chat_mvp.v1",
           "artifacts/registry/event-kind-registry.json",
           "artifacts/registry/capability-action-registry.json",
           "artifacts/registry/relation-kind-registry.json",
@@ -152,7 +152,7 @@
           "cba-lattice-fixture.json"
         ],
         "reducer_contract_refs": [
-          "artifacts/profiles/conformance-profiles.json#/profile_requirements/ck.profile.kanban_mvp.v1",
+          "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.kanban_mvp.v1",
           "artifacts/registry/event-kind-registry.json",
           "artifacts/registry/relation-kind-registry.json",
           "zh/models/realm-and-space.md",
@@ -215,7 +215,7 @@
           "security-closure-vectors.json"
         ],
         "reducer_contract_refs": [
-          "artifacts/profiles/conformance-profiles.json#/profile_requirements/ck.profile.principal_server.v1",
+          "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.principal_server.v1",
           "artifacts/registry/event-kind-registry.json",
           "artifacts/registry/capability-action-registry.json",
           "artifacts/registry/operations-error-mapping.json",
@@ -227,7 +227,7 @@
         ],
         "reducer_invariants": [
           "ak.invite.claim is accepted only by the destination Realm reducer",
-          "token_commitment must match a pending unexpired ck.invite.third_party invite",
+          "token_commitment must match a pending unexpired ak.invite.third_party invite",
           "verification_service_did allowlist is re-evaluated against current effective Realm policy",
           "(invite_id, claim_nonce) and token_commitment are one-time reducer state constraints",
           "successful claim atomically transitions invite pending -> claimed and materializes a subject-bound membership proposal",
@@ -276,7 +276,7 @@
           "sync-fixture.json"
         ],
         "reducer_contract_refs": [
-          "artifacts/profiles/conformance-profiles.json#/profile_requirements/ck.profile.federation_minimal.v1",
+          "artifacts/profiles/conformance-profiles.json#/profile_requirements/ak.profile.federation_minimal.v1",
           "artifacts/registry/event-kind-registry.json",
           "artifacts/registry/operation-registry.json",
           "zh/sync/federation.md",

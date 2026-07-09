@@ -63,7 +63,7 @@
       "items": {
         "type": "string",
         "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
-        "description": "Canonical action vocabulary. MUST be of the form ck.<segment>.<segment>... matching capabilities.md §5. Bare names without the ck. prefix are not permitted; consult capabilities.md before introducing new action names. Wildcards within a segment are not permitted in this schema; the resource selector controls scope, not action expansion."
+        "description": "Canonical action vocabulary. MUST be of the form ak.<segment>.<segment>... matching capabilities.md §5. Bare names without the ak. prefix are not permitted; consult capabilities.md before introducing new action names. Wildcards within a segment are not permitted in this schema; the resource selector controls scope, not action expansion."
       },
       "minItems": 1
     },
@@ -105,7 +105,7 @@
     },
     "effective_after_first_authorized_key": {
       "type": "boolean",
-      "description": "ak.profile.personal_agent_provisioning.v1 flag (CKP-0008 §4.3.2, identity/key-management.md §3.6.1). When true, the grant is durable but inactive: the capability evaluator MUST fail closed while the agent principal has no accepted, unexpired, unrevoked ck.agent.key.authorize. The reducer MUST clear this flag for every grant under the agent principal once pairing writes the first ck.agent.key.authorize, after which the grant enters normal effective-window evaluation. Set by the provisioning orchestration during the pending_runtime_key phase; MUST NOT be supplied to extend an already-effective grant."
+      "description": "ak.profile.personal_agent_provisioning.v1 flag (AKP-0008 §4.3.2, identity/key-management.md §3.6.1). When true, the grant is durable but inactive: the capability evaluator MUST fail closed while the agent principal has no accepted, unexpired, unrevoked ak.agent.key.authorize. The reducer MUST clear this flag for every grant under the agent principal once pairing writes the first ak.agent.key.authorize, after which the grant enters normal effective-window evaluation. Set by the provisioning orchestration during the pending_runtime_key phase; MUST NOT be supplied to extend an already-effective grant."
     },
     "updated_by": {
       "type": "string",

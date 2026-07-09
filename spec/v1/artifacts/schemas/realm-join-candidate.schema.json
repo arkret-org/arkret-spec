@@ -63,7 +63,7 @@
       },
       "uniqueItems": true,
       "minItems": 1,
-      "description": "Endpoint-callable operation ids available at this candidate. Join-side routing requires ck.events.submit."
+      "description": "Endpoint-callable operation ids available at this candidate. Join-side routing requires ak.events.submit."
     },
     "join_methods": {
       "type": "array",

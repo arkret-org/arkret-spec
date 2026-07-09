@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/personal-productivity.schema.json",
   "title": "Arkret Personal Productivity Account Data",
-  "description": "Plaintext shapes that MUST be encrypted before writing ck.profile.personal_productivity.v1 account-data values.",
+  "description": "Plaintext shapes that MUST be encrypted before writing ak.profile.personal_productivity.v1 account-data values.",
   "oneOf": [
     {
       "$ref": "#/$defs/reminder"

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/ephemeral-envelope.schema.json",
   "title": "Arkret Ephemeral Broadcast Envelope",
-  "description": "Wire shape for broadcast ephemeral signals — ck.presence, ck.typing, ck.receipt.read, ck.call.signal. These signals have wire_scope=ephemeral_event in event-kind-registry.json: they MUST NOT carry CBA reducer fields, MUST NOT advance Seal coverage, governance state_root or actor_seq, MUST NOT enter reducer state, and MUST NOT be submitted via ck.events.submit. All broadcast ephemeral signals require a device_id and detached proof so receivers can verify actor source authenticity without trusting relay attribution. They are carried on dedicated ephemeral channels (sync subscribe live stream, presence/typing fanout, call signaling channel) and are dropped at TTL. Point-to-point to-device signals (ck.key.verification.*) use device-message.schema.json instead — they have a sender+recipient pair and do not match this broadcast shape. See zh/sync/operations-sync.md §2.3 (wire-scope reject rule) and zh/crypto-media/webrtc-signaling.md §5 (ephemeral channel transport).",
+  "description": "Wire shape for broadcast ephemeral signals — ak.presence, ak.typing, ak.receipt.read, ak.call.signal. These signals have wire_scope=ephemeral_event in event-kind-registry.json: they MUST NOT carry CBA reducer fields, MUST NOT advance Seal coverage, governance state_root or actor_seq, MUST NOT enter reducer state, and MUST NOT be submitted via ak.events.submit. All broadcast ephemeral signals require a device_id and detached proof so receivers can verify actor source authenticity without trusting relay attribution. They are carried on dedicated ephemeral channels (sync subscribe live stream, presence/typing fanout, call signaling channel) and are dropped at TTL. Point-to-point to-device signals (ak.key.verification.*) use device-message.schema.json instead — they have a sender+recipient pair and do not match this broadcast shape. See zh/sync/operations-sync.md §2.3 (wire-scope reject rule) and zh/crypto-media/webrtc-signaling.md §5 (ephemeral channel transport).",
   "type": "object",
   "required": [
     "kind",
@@ -23,7 +23,7 @@
         "ak.typing",
         "ak.receipt.read"
       ],
-      "description": "Ephemeral signal kind. MUST be one of the four broadcast ephemeral kinds; ck.key.verification.* point-to-point strands MUST use device-message.schema.json instead."
+      "description": "Ephemeral signal kind. MUST be one of the four broadcast ephemeral kinds; ak.key.verification.* point-to-point strands MUST use device-message.schema.json instead."
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id",
@@ -31,7 +31,7 @@
     },
     "actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/did",
-      "description": "Signaling actor. MUST be a member of the Realm (ck.member.state cell join != ban/leave/remove at receive time) for the broadcast to be admitted by other clients; receivers drop signals from non-members without surfacing them."
+      "description": "Signaling actor. MUST be a member of the Realm (ak.member.state cell join != ban/leave/remove at receive time) for the broadcast to be admitted by other clients; receivers drop signals from non-members without surfacing them."
     },
     "device_id": {
       "type": "string",
@@ -52,11 +52,11 @@
     },
     "payload": {
       "type": "object",
-      "description": "Kind-specific signal payload. Schema per kind is defined by the producing module (e.g. zh/crypto-media/webrtc-signaling.md for ck.call.signal, zh/discovery/profiles-presence.md §3.5 for ck.typing, zh/discovery/read-receipts.md for ck.receipt.read). Payload MUST NOT carry mutable governance state — that belongs in a durable event."
+      "description": "Kind-specific signal payload. Schema per kind is defined by the producing module (e.g. zh/crypto-media/webrtc-signaling.md for ak.call.signal, zh/discovery/profiles-presence.md §3.5 for ak.typing, zh/discovery/read-receipts.md for ak.receipt.read). Payload MUST NOT carry mutable governance state — that belongs in a durable event."
     },
     "proof": {
       "$ref": "#/$defs/ephemeral_proof",
-      "description": "Detached-JWS proof over the canonical ephemeral envelope, structurally isomorphic to the durable Event proof ($defs/event_proof in event-envelope.schema.json / models/event-and-patch.md §3). Required for every broadcast ephemeral kind (ck.presence, ck.typing, ck.receipt.read, ck.call.signal) so receivers can verify origin without trusting relay attribution. Signing input is the canonical proof binding object {context:'ak.ephemeral-proof-v1', event_digest, actor_id, verification_method, created_at, domain?, audience?}; event_digest is canonical_digest of the envelope with `proof` removed (RFC 8785 JCS). verification_method MUST be `{actor_id}#{device_id}` where the fragment is the full `ak:device:<uuidv7>` id, and its controller DID MUST equal envelope actor_id. See crypto-media/webrtc-signaling.md §5."
+      "description": "Detached-JWS proof over the canonical ephemeral envelope, structurally isomorphic to the durable Event proof ($defs/event_proof in event-envelope.schema.json / models/event-and-patch.md §3). Required for every broadcast ephemeral kind (ak.presence, ak.typing, ak.receipt.read, ak.call.signal) so receivers can verify origin without trusting relay attribution. Signing input is the canonical proof binding object {context:'ak.ephemeral-proof-v1', event_digest, actor_id, verification_method, created_at, domain?, audience?}; event_digest is canonical_digest of the envelope with `proof` removed (RFC 8785 JCS). verification_method MUST be `{actor_id}#{device_id}` where the fragment is the full `ak:device:<uuidv7>` id, and its controller DID MUST equal envelope actor_id. See crypto-media/webrtc-signaling.md §5."
     }
   },
   "allOf": [
@@ -108,7 +108,7 @@
               "seq": {
                 "type": "integer",
                 "minimum": 0,
-                "description": "Monotonic per-(realm_id, call_id, actor_id, device_id) sequence. Receivers MUST reject replay or rollback."
+                "description": "Monotonic per-(realm_id, call_id, actor_id, device_id) sequence. Receivers MUST reject replay or rollbaak."
               },
               "data": {
                 "type": "object",

@@ -20,7 +20,7 @@ sidebar:
 
 - sovereign deployment 的边界
 - isolated federation domain
-- 在 sovereign deployment 下 External Collaboration Realm 的强制 policy（`ck.profile.sovereign_deployment.v1`）
+- 在 sovereign deployment 下 External Collaboration Realm 的强制 policy（`ak.profile.sovereign_deployment.v1`）
 - 外部主体进入高安全网络的验证、授权、加密、审计和退出规则
 - sovereign client 与 DID resolver policy
 
@@ -124,7 +124,7 @@ Sovereign client MUST:
 - 支持远程撤销 session、device、grant、Applet delegation 和 cached secret。
 - 支持本地日志、审计导出和密钥擦除策略。
 
-Sovereign client(在 `ck.profile.sovereign_deployment.v1` 语境下)逐条强制度——数据外泄控制为 MUST,运营增强为 SHOULD/MAY:
+Sovereign client(在 `ak.profile.sovereign_deployment.v1` 语境下)逐条强制度——数据外泄控制为 MUST,运营增强为 SHOULD/MAY:
 
 - 对批量导出、外部分享实施本地 policy enforcement(MUST;安全关键项，防止未授权再分发)。
 - 支持 policy-signed configuration update(SHOULD)。
@@ -134,7 +134,7 @@ Sovereign client(在 `ck.profile.sovereign_deployment.v1` 语境下)逐条强制
 
 ## 3. 默认安全姿态
 
-高安全部署的默认姿态在 `ck.profile.sovereign_deployment.v1` 语境下逐条强制度如下——安全关键项为 MUST,可调运营默认为 SHOULD:
+高安全部署的默认姿态在 `ak.profile.sovereign_deployment.v1` 语境下逐条强制度如下——安全关键项为 MUST,可调运营默认为 SHOULD:
 
 - 禁止公共 federation(MUST)。
 - 禁止公共 directory listing(MUST)。
@@ -188,8 +188,8 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
 
 **`did:key` 的 `ephemeral_only` enforcement 语义（normative）**：`method_policy` 把某 method（默认 `did:key`）设为 `ephemeral_only` 时，该取值是可测试约束而非口号。落入 `ephemeral_only` 的 DID **MUST NOT** 被用作：
 
-- principal-level `ck.capability.grant` / `ck.capability.delegate` 的 grant subject；
-- 跨 epoch 的 membership key（即作为 `ck.member.state` 的长期 `actor_id` 跨越 MLS epoch rotation 或 Seal epoch 持续有效）；
+- principal-level `ak.capability.grant` / `ak.capability.delegate` 的 grant subject；
+- 跨 epoch 的 membership key（即作为 `ak.member.state` 的长期 `actor_id` 跨越 MLS epoch rotation 或 Seal epoch 持续有效）；
 - 任何长期身份锚点（DID resolver / witness / OOBI 解析意义上的持久主体）。
 
 `ephemeral_only` DID **只能**作为 per-session / per-device 的 ephemeral binding 出现（一次会话或一台设备生命周期内的临时凭据 / 临时签名 key），其有效期不得跨越所绑定 session / device 的生命周期。reducer / Policy Server 收到以 `ephemeral_only` DID 为 principal-level grant subject 或跨 epoch membership key 的写入时 MUST fail closed。
@@ -198,7 +198,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
 
 ## 4. External Collaboration Realm 在 sovereign deployment 下的强制 policy
 
-启用 `ck.profile.sovereign_deployment.v1` 的部署中，组织 MAY 创建 External Collaboration Realm，允许外部网络的人员或组织加入特定协作范围。该 Realm 是隔离边界，不应让外部主体直接进入组织主网络。Realm 角色分类见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md)。
+启用 `ak.profile.sovereign_deployment.v1` 的部署中，组织 MAY 创建 External Collaboration Realm，允许外部网络的人员或组织加入特定协作范围。该 Realm 是隔离边界，不应让外部主体直接进入组织主网络。Realm 角色分类见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md)。
 
 在该部署下 External Collaboration Realm SHOULD 使用：
 
@@ -245,7 +245,7 @@ Sovereign 部署默认采用 **single_did Notary profile**：每个 Realm 由组
 - `history_visibility=joined`
 - `encryption_profile=mls_rfc9420`，并按 Realm policy 设置 `content_encryption_floor`
 - `federation_policy=restricted`；允许的外部 peer 由 [`federation.md`](./federation.md) §3.4 的部署本地 peer policy / allowlist 控制
-- `ck.realm.discovery.directory_visibility.public_directory=false`
+- `ak.realm.discovery.directory_visibility.public_directory=false`
 - 默认禁用 reshare / export
 - 默认禁用 applet / agent，需显式授权方可使用
 
@@ -257,7 +257,7 @@ Sovereign 部署默认采用 **single_did Notary profile**：每个 Realm 由组
 2. 主组织验证 DID control、handle binding、organization authority chain。
 3. Policy Server 检查 allowlist、risk score、clearance claim、contract claim、device posture。
 4. Realm admin 或 delegated approval actor 发出 invite。
-5. 外部主体接受 invite，并提交 `ck.member.state` join event。
+5. 外部主体接受 invite，并提交 `ak.member.state` join event。
 6. 对 E2EE Realm，管理员客户端或 key service 只向该主体授权设备发 MLS Welcome。
 7. Directory 和客户端本地 projection 只暴露该 Realm 允许的 stripped preview 和加入后历史。
 
@@ -333,7 +333,7 @@ Sovereign deployment 下的 External Collaboration Realm SHOULD 默认：
 
 外部成员 MAY 只在被授予的范围内读取或写入。
 
-导出控制在 `ck.profile.sovereign_deployment.v1` 语境下逐条强制度如下——安全关键项为 MUST,运营手段为 SHOULD/MAY:
+导出控制在 `ak.profile.sovereign_deployment.v1` 语境下逐条强制度如下——安全关键项为 MUST,运营手段为 SHOULD/MAY:
 
 - 阻止公共目录索引(MUST)
 - 阻止跨服务的未授权再分发(MUST)
@@ -367,7 +367,7 @@ Sovereign deployment 下的 External Collaboration Realm SHOULD 默认：
 
 ## 11. 一致性 Profile
 
-`ck.profile.sovereign_deployment.v1` SHOULD 测试：
+`ak.profile.sovereign_deployment.v1` SHOULD 测试：
 
 - 默认 closed federation
 - service DID allowlist
@@ -383,7 +383,7 @@ Sovereign deployment 下的 External Collaboration Realm SHOULD 默认：
 
 ### 11.1 联邦 frontier 主动交换 (high-assurance)
 
-sovereign / regulated / multi-writer federation 部署 **MUST** 同时声明 `ck.profile.federation.high_assurance.v1`，并满足 [`federation.md` §4.5.3](./federation.md) 中定义的硬性要求：
+sovereign / regulated / multi-writer federation 部署 **MUST** 同时声明 `ak.profile.federation.high_assurance.v1`，并满足 [`federation.md` §4.5.3](./federation.md) 中定义的硬性要求：
 
 - 每个 federation-visible Realm 与每个授权 peer 的 frontier probe 间隔 ≤ 1 小时；
 - frontier probe 与 `frontier_root` 主动交换使用固定刷新 bucket、jitter 与 per-peer 限速，刷新节奏不得随 Realm 活动量变化；

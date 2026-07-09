@@ -22,7 +22,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Single-modality profile ids never existed as canonical ck.profile.* entries. Use ck.profile.chat_mvp.v1 + the Realm's actual schema declaration to describe a chat-focused product."
+      "notes": "Single-modality profile ids never existed as canonical ak.profile.* entries. Use ak.profile.chat_mvp.v1 + the Realm's actual schema declaration to describe a chat-focused product."
     },
     {
       "id": "kanban_only_client",
@@ -33,7 +33,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "See chat_only_client. Use ck.profile.kanban_mvp.v1; modality is expressed via Realm schema / morph_type_profiles, not via single-modality profile gating."
+      "notes": "See chat_only_client. Use ak.profile.kanban_mvp.v1; modality is expressed via Realm schema / morph_type_profiles, not via single-modality profile gating."
     },
     {
       "id": "ak.profile.agent_workspace.v1",
@@ -44,7 +44,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Agent workspace profile was withdrawn from v1. Private agent context (mirror Realm + agent_task FSM + mention_redirect / import_attestation) is now treated as a deployment-local concern outside the canonical protocol. Generic agent participation is still supported via ck.member.state + ck.capability.grant + ck.agent.* protocol session events (ck.profile.agent_runtime.v1)."
+      "notes": "Agent workspace profile was withdrawn from v1. Private agent context (mirror Realm + agent_task FSM + mention_redirect / import_attestation) is now treated as a deployment-local concern outside the canonical protocol. Generic agent participation is still supported via ak.member.state + ak.capability.grant + ak.agent.* protocol session events (ak.profile.agent_runtime.v1)."
     },
     {
       "id": "ak.profile.agent_workspace.lite.v1",
@@ -55,7 +55,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed with ck.profile.agent_workspace.v1."
+      "notes": "Removed with ak.profile.agent_workspace.v1."
     },
     {
       "id": "ak.profile.agent_workspace.governed.v1",
@@ -66,7 +66,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Removed with ck.profile.agent_workspace.v1."
+      "notes": "Removed with ak.profile.agent_workspace.v1."
     },
     {
       "id": "ak.profile.agent_workspace.strict.v1",
@@ -77,7 +77,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Reserved placeholder id removed with ck.profile.agent_workspace.v1."
+      "notes": "Reserved placeholder id removed with ak.profile.agent_workspace.v1."
     },
     {
       "id": "ak.profile.mls.minimal_metadata_space.v1",
@@ -88,7 +88,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Realm/Space inversion cleanup. Current v1 uses ck.profile.mls.minimal_metadata_realm.v1 because the profile scope is the Realm E2EE / routing boundary."
+      "notes": "Realm/Space inversion cleanup. Current v1 uses ak.profile.mls.minimal_metadata_realm.v1 because the profile scope is the Realm E2EE / routing boundary."
     },
     {
       "id": "ak.profile.franking.sender_commitment.v1",

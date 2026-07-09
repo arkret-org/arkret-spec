@@ -28,4 +28,4 @@ jobs:
         with:
           node-version: "20"
       - name: Spec ↔ registry crossref check
-        run: node site/scripts/crossref-check.mjs
+        run: node site/scripts/crossref-cheak.mjs

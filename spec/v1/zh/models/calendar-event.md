@@ -18,13 +18,13 @@ see_also:
 
 ## 1. 模型
 
-Calendar event 是一个带 `ck.profile.calendar_event.v1` 的 Strand profile，而不是新的顶层对象 kind。事件标题、描述、议程和附件继续由 Strand / Message / Morph / Relation 表达；日程语义由 Strand metadata 中 profile 声明的 schedule fields 表达。
+Calendar event 是一个带 `ak.profile.calendar_event.v1` 的 Strand profile，而不是新的顶层对象 kind。事件标题、描述、议程和附件继续由 Strand / Message / Morph / Relation 表达；日程语义由 Strand metadata 中 profile 声明的 schedule fields 表达。
 
 实现 MUST NOT 新增 calendar 专用 typed id。可视化日历、gantt 或 agenda 是 View renderer / projection，而不是新的真相源。
 
 ## 2. Schedule 字段
 
-`ck.profile.calendar_event.v1` 的 schedule object MUST 支持以下字段；其中 `start` / `end` / `timezone` / `all_day` 是 `calendar-event.schema.json` 的 required core，`recurrence` / `location` / `call_id` 是可选 profile fields（出现时按本节校验）：
+`ak.profile.calendar_event.v1` 的 schedule object MUST 支持以下字段；其中 `start` / `end` / `timezone` / `all_day` 是 `calendar-event.schema.json` 的 required core，`recurrence` / `location` / `call_id` 是可选 profile fields（出现时按本节校验）：
 
 - `start`（required）：RFC 3339 timestamp 或 all-day date。
 - `end`（required）：RFC 3339 timestamp 或 all-day date，必须晚于 `start`。
@@ -56,14 +56,14 @@ Attendee DID、display name snapshot 和 attendance role 不得替代 Realm memb
 
 ## 5. RSVP
 
-RSVP 通过 `ck.rsvp.set` 写入。payload 必须包含 `event_ref`、`status` 和 `occurrence`；`comment` 若存在 MUST 加密，除非 Realm policy 明确允许该服务接收 plaintext-visible RSVP comment。
+RSVP 通过 `ak.rsvp.set` 写入。payload 必须包含 `event_ref`、`status` 和 `occurrence`；`comment` 若存在 MUST 加密，除非 Realm policy 明确允许该服务接收 plaintext-visible RSVP comment。
 
 RSVP projection 按 actor 对 `(event_ref, occurrence)` 做 LWW 收敛。`occurrence=null` 表示整个 series；实例级 RSVP 使用 recurrence instance key。该 key MUST 是 occurrence 的 local wall-clock start 按事件 `timezone` 展开后写成 `YYYY-MM-DD`（all-day）或 `YYYY-MM-DDTHH:mm:ss[Zone]`（非 all-day，Zone 为 IANA timezone 名）的 canonical 字符串；同一 series instance 在所有实现中必须生成相同 key。重复写同一 status 是 no-op，较新 HLC 的不同 status 替换旧值。
 
-`ck.rsvp.set` 只表达回应，不修改 Strand schedule，不创建 attendees，也不赋予访问权。
+`ak.rsvp.set` 只表达回应，不修改 Strand schedule，不创建 attendees，也不赋予访问权。
 
 ## 6. Schedule notification
 
-Calendar schedule 变更通过 `ck.strand.update` 修改 §2 字段。实现 MUST 按 [`private-objects.md` §3.6](./private-objects.md#36-schedule-notification-派生) 派生 `notification_type=schedule`，并只通知当前有访问权且未被 muted / DND / push rule 抑制的 receiver。
+Calendar schedule 变更通过 `ak.strand.update` 修改 §2 字段。实现 MUST 按 [`private-objects.md` §3.6](./private-objects.md#36-schedule-notification-派生) 派生 `notification_type=schedule`，并只通知当前有访问权且未被 muted / DND / push rule 抑制的 receiver。
 
 Calendar attendees 是 schedule notification 的 receiver set 输入，不是访问权真源；无 Realm / Circle 读取权的 attendee MUST 不收到 notification 或 push wakeup。RSVP 变更默认不产生 schedule notification；RSVP 自身的 UI 状态由 RSVP projection 展示。

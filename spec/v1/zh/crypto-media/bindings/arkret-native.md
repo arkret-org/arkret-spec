@@ -3,7 +3,7 @@ title: Arkret-Native SFU Binding (reference impl)
 status: candidate
 normative: true
 stability: v1
-profile: ck.profile.media_service_binding.arkret_native.v1
+profile: ak.profile.media_service_binding.arkret_native.v1
 updated: 2026-07-02
 sidebar:
   label: Arkret-native Binding
@@ -15,14 +15,14 @@ sidebar:
 
 ## 1. 范围与定位
 
-本附录定义 `ck.realm.media_service.foci[].type = "arkret-native"` 的 backend binding，承载 Arkret 自定义信令，作为：
+本附录定义 `ak.realm.media_service.foci[].type = "arkret-native"` 的 backend binding，承载 Arkret 自定义信令，作为：
 
 1. **Reference impl**：协议自洽性测试与教学用途；
 2. **Conformance baseline**：不依赖任何外部 backend SDK 即可跑完 binding-framework 全套 vector。
 
-本 binding 仅作 reference / conformance 用途，**MUST NOT** 作为生产媒体后端被 claim；生产部署 **MUST** 使用 production-grade 的 `media_service_binding` 子 profile（如 `ck.profile.media_service_binding.livekit.v1`）。
+本 binding 仅作 reference / conformance 用途，**MUST NOT** 作为生产媒体后端被 claim；生产部署 **MUST** 使用 production-grade 的 `media_service_binding` 子 profile（如 `ak.profile.media_service_binding.livekit.v1`）。
 
-声明 `ck.profile.media_service_binding.arkret_native.v1` 的部署 MUST 同时声明 `ck.profile.media_service_binding.v1`。
+声明 `ak.profile.media_service_binding.arkret_native.v1` 的部署 MUST 同时声明 `ak.profile.media_service_binding.v1`。
 
 ## 2. Token Exchange
 
@@ -46,7 +46,7 @@ sidebar:
 
 base64url-编码的 detached JWS，由 token issuer 用 service DID 的 `assertionMethod` key 签名。SFU 在每次 SDP 协商前 MUST 校验该 token：
 
-- `kid` 出现在当前 `ck.realm.media_service.service_id` 锚定的 DID 列表中（与 [`../media-service-binding.md` §3](../media-service-binding.md) issuer DID 锚定一致）；
+- `kid` 出现在当前 `ak.realm.media_service.service_id` 锚定的 DID 列表中（与 [`../media-service-binding.md` §3](../media-service-binding.md) issuer DID 锚定一致）；
 - `call_id` / `focus_id` 与 SFU 当前 session 一致；
 - `expires_at` 未过期；
 - `participant_identity` 唯一性（同 call、同 focus 内不复用）。
@@ -60,7 +60,7 @@ base64url-编码的 detached JWS，由 token issuer 用 service DID 的 `asserti
   "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "realm_id": "ak:realm:...",
   "focus_id": "fra-1",
-  "participant_binding": { "scheme": "ck.media.participant_binding.v1", "...": "..." },
+  "participant_binding": { "scheme": "ak.media.participant_binding.v1", "...": "..." },
   "backend_token": "<token from §2>",
   "capability_refs": ["ak:grant:..."],
   "desired_media": { "audio": true, "video": true, "screen": false }
@@ -110,10 +110,10 @@ Arkret-native SFU 接受标准 WebRTC offer/answer。协议层不约束具体 co
 
 | Arkret capability | Arkret-native SFU 行为 |
 | --- | --- |
-| `ck.call.join` | 接受 SDP offer |
-| `ck.call.screen_share` | 接受 `screen` track 协商；否则拒绝并报 `capability_denied` |
-| `ck.call.record` | 录制由 Arkret-side recorder 触发；SFU 不直接产 artifact |
-| `ck.call.moderate` | SFU 接受 `mute_remote` / `kick_participant` 控制指令，但 MUST 校验 actor 持有该 capability |
+| `ak.call.join` | 接受 SDP offer |
+| `ak.call.screen_share` | 接受 `screen` track 协商；否则拒绝并报 `capability_denied` |
+| `ak.call.record` | 录制由 Arkret-side recorder 触发；SFU 不直接产 artifact |
+| `ak.call.moderate` | SFU 接受 `mute_remote` / `kick_participant` 控制指令，但 MUST 校验 actor 持有该 capability |
 
 ## 7. Cascading
 
@@ -131,9 +131,9 @@ Arkret-native reference impl **不实现** SFU-to-SFU cascading；同一 `cascad
 
 ## 9. Conformance Vectors
 
-实现声明 `ck.profile.media_service_binding.arkret_native.v1` 时，至少通过：
+实现声明 `ak.profile.media_service_binding.arkret_native.v1` 时，至少通过：
 
-- 上游 `ck.profile.media_service_binding.v1` 的 9 个核心 vector（focus_selection / session_focus / token_exchange / token_issuer_unauthorised / participant_binding / unknown_type / e2ee_key_source / participant_identity / recording_artifact）。
+- 上游 `ak.profile.media_service_binding.v1` 的 9 个核心 vector（focus_selection / session_focus / token_exchange / token_issuer_unauthorised / participant_binding / unknown_type / e2ee_key_source / participant_identity / recording_artifact）。
 - arkret-native-specific：实现自由附加，但 wire 不得引入 v1 周期内 unregistered 字段。
 
 具体向量编排见 [`../../../artifacts/registry/vector-registry.json`](../../../artifacts/registry/vector-registry.json)。

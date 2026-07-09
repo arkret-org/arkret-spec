@@ -17,9 +17,9 @@ see_also:
 
 ## 1. 范围
 
-本文定义用户个人生产力状态：提醒、定时发送、稍后处理、收藏 / 保存以及跨设备草稿。它们默认是 principal-private 或 actor-private 状态，**MUST** 通过 `ck.account_data.set` 和 `account-data-type-registry.json` 中登记的 key pattern 表达，MUST NOT 写入共享 Realm history，除非某个功能最终产生一个已授权共享 Event。
+本文定义用户个人生产力状态：提醒、定时发送、稍后处理、收藏 / 保存以及跨设备草稿。它们默认是 principal-private 或 actor-private 状态，**MUST** 通过 `ak.account_data.set` 和 `account-data-type-registry.json` 中登记的 key pattern 表达，MUST NOT 写入共享 Realm history，除非某个功能最终产生一个已授权共享 Event。
 
-实现声明 `ck.profile.personal_productivity.v1` 时，MUST 支持本文 §2-§6 的账户私有状态。实现声明 `ck.profile.draft_sync.v1` 时，MUST 支持 §7 的草稿同步规则。
+实现声明 `ak.profile.personal_productivity.v1` 时，MUST 支持本文 §2-§6 的账户私有状态。实现声明 `ak.profile.draft_sync.v1` 时，MUST 支持 §7 的草稿同步规则。
 
 ## 2. 私有 key 派生
 
@@ -33,13 +33,13 @@ see_also:
 
 ## 3. Reminders
 
-提醒写入 `ck.reminders.v1:<id>`。值必须验证为 `ck.schema.personal_productivity.v1` 中的 reminder plaintext value，并在写入 account-data 前加密。提醒是 holder-private 状态：服务可以按到期时间唤醒 holder 的设备，但不得把提醒内容、目标引用或说明写入共享 Event。
+提醒写入 `ak.reminders.v1:<id>`。值必须验证为 `ak.schema.personal_productivity.v1` 中的 reminder plaintext value，并在写入 account-data 前加密。提醒是 holder-private 状态：服务可以按到期时间唤醒 holder 的设备，但不得把提醒内容、目标引用或说明写入共享 Event。
 
 提醒到期后，客户端 MAY 显示本地通知或生成后续共享动作；后续共享动作必须重新通过对应 Event.kind 的授权检查，不能继承提醒本身的私有状态。
 
 ## 4. Scheduled Send
 
-定时发送写入 `ck.scheduled_send.v1:<planned_message_id>`。值必须验证为 `ck.schema.personal_productivity.v1` 中的 scheduled-send plaintext value，并在写入 account-data 前加密。`planned_message_id` MUST 在创建计划时固定，并在真正发送时作为 `ck.message.create.payload.message_id` 使用；value 内的 `message_payload.message_id` MUST 等于 `planned_message_id`。
+定时发送写入 `ak.scheduled_send.v1:<planned_message_id>`。值必须验证为 `ak.schema.personal_productivity.v1` 中的 scheduled-send plaintext value，并在写入 account-data 前加密。`planned_message_id` MUST 在创建计划时固定，并在真正发送时作为 `ak.message.create.payload.message_id` 使用；value 内的 `message_payload.message_id` MUST 等于 `planned_message_id`。
 
 同一 `planned_message_id` 的幂等规则如下：
 
@@ -47,23 +47,23 @@ see_also:
 - 不同 canonical payload digest 的重复提交 MUST 返回 `duplicate_conflict`，reason 为 `message_id_conflict`。
 - 冲突时 MUST NOT 产生新的发送 Event，也不得替换已接受的消息。
 
-`message_payload_digest` MUST 是 canonical `message_payload` 的 `sha256:<hex>` digest。定时发送计划不是共享事实。只有到期并成功提交的 `ck.message.create` 才进入共享 Realm history。
+`message_payload_digest` MUST 是 canonical `message_payload` 的 `sha256:<hex>` digest。定时发送计划不是共享事实。只有到期并成功提交的 `ak.message.create` 才进入共享 Realm history。
 
 ## 5. Snooze
 
-稍后处理写入 `ck.snooze.v1:<target_key>`，value 使用 `snooze_expires_at` 表达失效时间。它只影响 holder 的 inbox、提醒和本地排序投影，不得改变目标 Strand / Message / Relation / View 的共享状态。
+稍后处理写入 `ak.snooze.v1:<target_key>`，value 使用 `snooze_expires_at` 表达失效时间。它只影响 holder 的 inbox、提醒和本地排序投影，不得改变目标 Strand / Message / Relation / View 的共享状态。
 
 服务端或受托投影如果持有 holder 授权，可以消费该状态为 holder 生成私有投影；对其他 actor 的 shared projection MUST NOT 暴露 snooze 命中。
 
 ## 6. Saved Items
 
-保存 / 收藏写入 `ck.saved.v1:<collection_key>:<target_key>`。每个 item 是独立账户数据项，MUST NOT 使用一个不断增长的大列表作为唯一真相源。集合标题只在加密 value 的 `collection_title` 内出现，key 中只能出现 `collection_key`。
+保存 / 收藏写入 `ak.saved.v1:<collection_key>:<target_key>`。每个 item 是独立账户数据项，MUST NOT 使用一个不断增长的大列表作为唯一真相源。集合标题只在加密 value 的 `collection_title` 内出现，key 中只能出现 `collection_key`。
 
-Saved item 与 shared pin 不同：saved item 是 holder-private collection；shared pin 使用 `ck.pin.*` 并进入共享 Realm reducer。
+Saved item 与 shared pin 不同：saved item 是 holder-private collection；shared pin 使用 `ak.pin.*` 并进入共享 Realm reducer。
 
 ## 7. Draft Sync
 
-草稿写入 `ck.draft.v1:<kind>:<target_key>:<slot_key>`。支持的 v1 key 形态：
+草稿写入 `ak.draft.v1:<kind>:<target_key>:<slot_key>`。支持的 v1 key 形态：
 
 - `kind=message` 时，`slot_key=compose`。
 - `kind=strand_field` 时，`slot_key=field_<sha256(canonical_field_path)>`。

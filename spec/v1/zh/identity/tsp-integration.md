@@ -86,7 +86,7 @@ Arkret DID method adapter SHOULD 暴露某个 principal 或服务是否支持 TS
 
 ### 4.1 Endpoint 反向绑定校验（normative）
 
-DID Document 或 normalized principal view 中出现 `ck.service.tsp` 只是一侧声明。Verifier 在把该 endpoint 作为可信 TSP 通道前，MUST 完成反向绑定校验，二选一：
+DID Document 或 normalized principal view 中出现 `ak.service.tsp` 只是一侧声明。Verifier 在把该 endpoint 作为可信 TSP 通道前，MUST 完成反向绑定校验，二选一：
 
 1. 调用 TSP endpoint 的等价 `/.well-known`、`/holder?did=<holder_did>` 或 profile 声明的 discovery API，取得由 endpoint service key 签名的声明，确认该 endpoint 确实服务该 holder / service DID、支持相同 VID scheme 与 payload set。
 2. 通过 OOBI / trust registry / support system 取得同一 endpoint 与 holder DID 的双向 binding proof，并验证 proof digest 与 DID Document service entry 一致。
@@ -99,18 +99,18 @@ DID Document 或 normalized principal view 中出现 `ck.service.tsp` 只是一�
 
 **Operation id**（取自 `operation-registry.json`）：
 
-- 跨 `trust_domain` 的 `ck.self.events.command.submit`
-- `ck.root.identity.command.submit_did_operation`
+- 跨 `trust_domain` 的 `ak.self.events.command.submit`
+- `ak.root.identity.command.submit_did_operation`
 
-**Durable Event kind carried inside `ck.self.events.command.submit`**：
+**Durable Event kind carried inside `ak.self.events.command.submit`**：
 
-- `ck.cross_signing.publish`
-- `ck.cross_signing.reset`
-- `ck.device.authorize`
-- `ck.device.revoke`
+- `ak.cross_signing.publish`
+- `ak.cross_signing.reset`
+- `ak.device.authorize`
+- `ak.device.revoke`
 - `ak.session.grant`
-- 跨 `trust_domain` 的 `ck.member.state`
-- 跨 `trust_domain` 的 `ck.invite.create`
+- 跨 `trust_domain` 的 `ak.member.state`
+- 跨 `trust_domain` 的 `ak.invite.create`
 
 **Capability action**：
 

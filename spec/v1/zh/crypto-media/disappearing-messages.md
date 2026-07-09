@@ -17,13 +17,13 @@ see_also:
 
 ## 1. 范围
 
-`ck.profile.disappearing.v1` 为 Message 引入可选 expiry 语义。发送者可以在 `ck.message.create.payload.expiry` 中声明 TTL、触发点和 grace window；Realm 管理者可以通过 `ck.realm.disappearing_policy` 限制是否允许、最大 TTL 和默认处理方式。
+`ak.profile.disappearing.v1` 为 Message 引入可选 expiry 语义。发送者可以在 `ak.message.create.payload.expiry` 中声明 TTL、触发点和 grace window；Realm 管理者可以通过 `ak.realm.disappearing_policy` 限制是否允许、最大 TTL 和默认处理方式。
 
-Expiry 是 projection / retention 语义，**不是 redaction**。到期不得伪造 `ck.message.redact`，不得把 message state 设置为 `redacted`，不得生成假的 `redaction_ref`。
+Expiry 是 projection / retention 语义，**不是 redaction**。到期不得伪造 `ak.message.redact`，不得把 message state 设置为 `redacted`，不得生成假的 `redaction_ref`。
 
 ## 2. Message Expiry Payload
 
-`ck.message.create.payload.expiry` 的字段顺序为 `ttl_ms`、`trigger`、`grace_ms`。`trigger` 取值为 `on_send`、`on_first_read` 或 `on_last_read`。
+`ak.message.create.payload.expiry` 的字段顺序为 `ttl_ms`、`trigger`、`grace_ms`。`trigger` 取值为 `on_send`、`on_first_read` 或 `on_last_read`。
 
 - `on_send`: 从 accepted Event 的 canonical send seal 起算。
 - `on_first_read`: 从任一 eligible reader 首次满足 read trigger 起算；实现必须避免把 reader identity 泄露给其他成员、发送者、push provider、搜索服务或无权观察者。
@@ -35,8 +35,8 @@ Expiry anchor 是 reducer / projection 从 accepted send seal 或 read-trigger a
 
 `on_first_read` / `on_last_read` 的触发输入来自两个既有 read surfaces，且二者语义分离：
 
-1. `ck.read_cursor.advance` / `ck.schema.read_cursor.v1` 是 actor-private、多设备持久 read cursor。它是 disappearing read trigger 的首选输入；它不进入共享 Realm history，也不得被转发给其他成员。
-2. `ck.receipt.read` / `ck.schema.read_receipt.v1` 是 policy 允许时的 ephemeral UI hint。只有当 effective `ck.realm.read_receipt_policy` 允许发送并且 receipt 可由 Sync Service 验证为同一 read scope 的单调前进位置时，它 MAY 作为 read trigger 输入。公开 receipt 的存在不得成为 disappearing profile 的必需条件。
+1. `ak.read_cursor.advance` / `ak.schema.read_cursor.v1` 是 actor-private、多设备持久 read cursor。它是 disappearing read trigger 的首选输入；它不进入共享 Realm history，也不得被转发给其他成员。
+2. `ak.receipt.read` / `ak.schema.read_receipt.v1` 是 policy 允许时的 ephemeral UI hint。只有当 effective `ak.realm.read_receipt_policy` 允许发送并且 receipt 可由 Sync Service 验证为同一 read scope 的单调前进位置时，它 MAY 作为 read trigger 输入。公开 receipt 的存在不得成为 disappearing profile 的必需条件。
 
 客户端判定"已读"时 MUST 至少满足：目标 Event 对该 principal 在 send seal 的 effective scope 中可见；目标 Event 已投递到该 principal 的一个授权设备或该设备能通过当前 E2EE / history sharing policy 解密；该设备的可见区域、显式 mark-read 或等价用户动作已经覆盖目标 Event。预取、server-side scan、搜索命中、通知预览、未展示的 backfill、或失败解密后的占位项 MUST NOT 触发 read。
 
@@ -63,9 +63,9 @@ Sync / account aggregate service MAY 观察或持有执行该职责所必需的�
 
 `on_first_read` 的 anchor 是第一个有效 read trigger contribution 的 canonical 稳定 HLC。**canonical 选取规则（normative）**：anchor = `max(position_hlc, accepted_at_hlc)`，其中 `position_hlc` 是该 contribution 的 read position HLC、`accepted_at_hlc` 是聚合服务接受该 contribution 时铸造的 HLC（二者 HLC 相等时取相同值，不产生分歧）。该规则是确定性的、不依赖实现 profile：任何聚合服务 / 客户端对同一第一个有效 contribution MUST 收敛到同一 anchor，使跨实现、跨聚合服务的过期判定一致。同一 message 一旦产生 first-read anchor，后续 contribution、重复投递或 replay MUST NOT 改写 anchor。
 
-`on_last_read` 的 anchor 是冻结 `eligible_reader_set` 中每个 principal 均有一个有效 contribution 后的最大 contribution HLC；若 read-trigger window 先结束，anchor 为该 window 的结束 HLC / timestamp。`read_trigger_window_ms` 由 effective `ck.realm.disappearing_policy` 给出；缺省时 MUST 使用 `max_ttl_ms` 作为上限窗口。`eligible_reader_set` 为空时，`on_first_read` 与 `on_last_read` MUST 退化为 `on_send` anchor，且不得暴露"无人可读"作为成员枚举信号。
+`on_last_read` 的 anchor 是冻结 `eligible_reader_set` 中每个 principal 均有一个有效 contribution 后的最大 contribution HLC；若 read-trigger window 先结束，anchor 为该 window 的结束 HLC / timestamp。`read_trigger_window_ms` 由 effective `ak.realm.disappearing_policy` 给出；缺省时 MUST 使用 `max_ttl_ms` 作为上限窗口。`eligible_reader_set` 为空时，`on_first_read` 与 `on_last_read` MUST 退化为 `on_send` anchor，且不得暴露"无人可读"作为成员枚举信号。
 
-`expired_at = min(anchor + ttl_ms + grace_ms, send_seal_hlc + max_ttl_ms)`；其中 `send_seal_hlc` 是该 message create 被 accepted 的 canonical send seal HLC，`max_ttl_ms` 来自同一 policy frontier 下的 effective `ck.realm.disappearing_policy`。该上限保证 `on_last_read` 的等待窗口和 `grace_ms` 都不会变成额外 plaintext lifetime：`ttl_ms + grace_ms` MUST 受 `max_ttl_ms` 约束。`expired_at` 只控制 projection、local cache 和 key shredding，不得进入 authorization、membership、history visibility 或 reducer acceptance 判定。不同副本在 wall-clock 边界附近的短暂显示差异是允许的；一旦观察到相同 anchor、send seal 和 policy，projection MUST 收敛到相同 stub。
+`expired_at = min(anchor + ttl_ms + grace_ms, send_seal_hlc + max_ttl_ms)`；其中 `send_seal_hlc` 是该 message create 被 accepted 的 canonical send seal HLC，`max_ttl_ms` 来自同一 policy frontier 下的 effective `ak.realm.disappearing_policy`。该上限保证 `on_last_read` 的等待窗口和 `grace_ms` 都不会变成额外 plaintext lifetime：`ttl_ms + grace_ms` MUST 受 `max_ttl_ms` 约束。`expired_at` 只控制 projection、local cache 和 key shredding，不得进入 authorization、membership、history visibility 或 reducer acceptance 判定。不同副本在 wall-clock 边界附近的短暂显示差异是允许的；一旦观察到相同 anchor、send seal 和 policy，projection MUST 收敛到相同 stub。
 
 ### 2.4 幂等、重放与离线多设备
 
@@ -77,7 +77,7 @@ Read trigger contribution MUST 是单调且幂等的：
 - `on_last_read` 按 principal 计数，不按设备计数。一个 principal 的任一授权设备满足 read trigger 即视为该 principal 已读；其它离线设备不得阻塞全局 anchor，但这些设备在重新上线时仍 MUST 应用已过期 stub 并删除本地 plaintext / key material。
 - 离线 principal、不可达 delivery binding、丢失的 to-device 消息或被移除成员不得无限期阻塞 `on_last_read`；read-trigger window 到达时 MUST 关闭等待并计算 anchor。
 
-不支持 private read trigger contribution 的客户端或服务，MUST 对带 `trigger=on_first_read` / `on_last_read` 的消息 fail closed：可以显示不支持 / metadata-only stub，但不得把消息当作永久消息，也不得退化为公开 `ck.receipt.read` 泄露身份。
+不支持 private read trigger contribution 的客户端或服务，MUST 对带 `trigger=on_first_read` / `on_last_read` 的消息 fail closed：可以显示不支持 / metadata-only stub，但不得把消息当作永久消息，也不得退化为公开 `ak.receipt.read` 泄露身份。
 
 ## 3. Projection Stub
 
@@ -99,16 +99,16 @@ Late key recovery 也不得复活已过期 plaintext。该 expiry / retention gu
 
 ## 5. Realm Policy
 
-`ck.realm.disappearing_policy` 写入 Realm policy cell。策略至少定义 enablement、最大 TTL、允许 trigger、默认 grace window 和是否允许 plaintext realms 使用该 profile。
+`ak.realm.disappearing_policy` 写入 Realm policy cell。策略至少定义 enablement、最大 TTL、允许 trigger、默认 grace window 和是否允许 plaintext realms 使用该 profile。
 
-`ck.realm.disappearing_policy.read_trigger_window_ms` 是 `on_last_read` 等待 read contributions 的最大窗口；若省略，effective value MUST 等于 `max_ttl_ms`，且显式配置时 MUST 满足 `read_trigger_window_ms <= max_ttl_ms`。该窗口不是额外 plaintext lifetime：最终过期按 §2.3 的 `min(anchor + ttl_ms + grace_ms, send_seal_hlc + max_ttl_ms)` 计算，且 `ttl_ms + grace_ms` MUST 受 `max_ttl_ms` 约束。Realm 若允许 `on_first_read` 或 `on_last_read`，MUST 在加入 / 进入 scope 时向用户披露：客户端会发送 private read trigger contribution；该 contribution 不显示 reader identity，但发送者可能从最终过期时刻推断粗粒度读取时序，因此它不等同于公开 read receipt。
+`ak.realm.disappearing_policy.read_trigger_window_ms` 是 `on_last_read` 等待 read contributions 的最大窗口；若省略，effective value MUST 等于 `max_ttl_ms`，且显式配置时 MUST 满足 `read_trigger_window_ms <= max_ttl_ms`。该窗口不是额外 plaintext lifetime：最终过期按 §2.3 的 `min(anchor + ttl_ms + grace_ms, send_seal_hlc + max_ttl_ms)` 计算，且 `ttl_ms + grace_ms` MUST 受 `max_ttl_ms` 约束。Realm 若允许 `on_first_read` 或 `on_last_read`，MUST 在加入 / 进入 scope 时向用户披露：客户端会发送 private read trigger contribution；该 contribution 不显示 reader identity，但发送者可能从最终过期时刻推断粗粒度读取时序，因此它不等同于公开 read receipt。
 
-不支持 `ck.profile.disappearing.v1` 的实现 MUST fail closed：可以显示无法解密 / 不支持提示，但不得把带 expiry 的消息当作普通永久消息处理。
+不支持 `ak.profile.disappearing.v1` 的实现 MUST fail closed：可以显示无法解密 / 不支持提示，但不得把带 expiry 的消息当作普通永久消息处理。
 
 ## 6. Conformance Vectors
 
-实现声明 `ck.profile.disappearing.v1` 时 MUST 覆盖以下向量：
+实现声明 `ak.profile.disappearing.v1` 时 MUST 覆盖以下向量：
 
-- `ck.vector.disappearing.read_trigger_anonymous_aggregate.v1`：`on_first_read` / `on_last_read` 只能输出 aggregate expiry anchor / stub；发送者和其他成员不得观察 reader identity、reader count 或可跨消息关联 token。
-- `ck.vector.disappearing.read_trigger_idempotent_replay.v1`：重复 read cursor、重复 receipt、跨消息 replay 和乱序 delivery 不得刷新 anchor、重复计数或提前过期错误消息。
-- `ck.vector.disappearing.on_last_read_offline_window.v1`：离线 principal / 多设备场景按 principal-level contribution 和 `read_trigger_window_ms` 收敛；离线设备上线后必须看到 stub 并 shred key。
+- `ak.vector.disappearing.read_trigger_anonymous_aggregate.v1`：`on_first_read` / `on_last_read` 只能输出 aggregate expiry anchor / stub；发送者和其他成员不得观察 reader identity、reader count 或可跨消息关联 token。
+- `ak.vector.disappearing.read_trigger_idempotent_replay.v1`：重复 read cursor、重复 receipt、跨消息 replay 和乱序 delivery 不得刷新 anchor、重复计数或提前过期错误消息。
+- `ak.vector.disappearing.on_last_read_offline_window.v1`：离线 principal / 多设备场景按 principal-level contribution 和 `read_trigger_window_ms` 收敛；离线设备上线后必须看到 stub 并 shred key。

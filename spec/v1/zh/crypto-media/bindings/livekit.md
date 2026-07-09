@@ -3,7 +3,7 @@ title: LiveKit Backend Binding
 status: candidate
 normative: true
 stability: v1
-profile: ck.profile.media_service_binding.livekit.v1
+profile: ak.profile.media_service_binding.livekit.v1
 updated: 2026-07-02
 sidebar:
   label: LiveKit Binding
@@ -15,9 +15,9 @@ sidebar:
 
 ## 1. 范围
 
-本附录定义 `ck.realm.media_service.foci[].type = "livekit"` 的 backend binding 细节。它 **不替代** [`../media-service-binding.md`](../media-service-binding.md) 与 [`../call-state.md`](../call-state.md)——参见 media-service-binding §2（multi-focus schema）、§3（token exchange 通用契约）、§5（focus selection）、§7（participant identity 校验）、§8.1（E2EE key injection 通用契约），及 call-state §4（ck.call.state 字段）。
+本附录定义 `ak.realm.media_service.foci[].type = "livekit"` 的 backend binding 细节。它 **不替代** [`../media-service-binding.md`](../media-service-binding.md) 与 [`../call-state.md`](../call-state.md)——参见 media-service-binding §2（multi-focus schema）、§3（token exchange 通用契约）、§5（focus selection）、§7（participant identity 校验）、§8.1（E2EE key injection 通用契约），及 call-state §4（ak.call.state 字段）。
 
-声明 `ck.profile.media_service_binding.livekit.v1` 的部署 MUST 同时声明上游 `ck.profile.media_service_binding.v1`。本 binding 在 v1 周期内为 **optional** sub-profile；core conformance 不强制实现 LiveKit binding。
+声明 `ak.profile.media_service_binding.livekit.v1` 的部署 MUST 同时声明上游 `ak.profile.media_service_binding.v1`。本 binding 在 v1 周期内为 **optional** sub-profile；core conformance 不强制实现 LiveKit binding。
 
 ## 2. Token Claims
 
@@ -33,14 +33,14 @@ sidebar:
 | `video.room` | `backend_room_id` | MUST 是 issuer 从 `(realm_id, call_id, focus_id)` 派生的稳定后端 room handle；MUST 与请求的 `call_id` 唯一绑定，但 MUST NOT 等于 raw `call_id` 或暴露 raw Realm/call id（建议 `ck_call_<sha256(realm_id || 0x00 || call_id || 0x00 || focus_id)>` 的短截断形式） |
 | `video.roomJoin` | `true` | join 权限 |
 | `video.canPublish` | `desired_media.audio ∨ video ∨ screen` | issuer 按 capability 派生 |
-| `video.canPublishSources[]` | `["microphone","camera","screen_share"]` 子集 | 与 `ck.call.screen_share` 等子 capability 对齐 |
+| `video.canPublishSources[]` | `["microphone","camera","screen_share"]` 子集 | 与 `ak.call.screen_share` 等子 capability 对齐 |
 | `video.canSubscribe` | `true` | 接收者权限 |
 | `video.hidden` | `false` | Arkret 不使用 LiveKit hidden participant |
 | `video.recorder` | `false` | recording 走 Arkret blob pipeline（§5），不通过 LiveKit recorder claim |
 
 Issuer MUST NOT 注入：
 
-- `metadata`：LiveKit 允许任意 JSON 字符串，但携带 `metadata` 会绕过 Arkret `participant_binding` 真源。Arkret participant metadata MUST 通过 `ck.call.state` 写入。
+- `metadata`：LiveKit 允许任意 JSON 字符串，但携带 `metadata` 会绕过 Arkret `participant_binding` 真源。Arkret participant metadata MUST 通过 `ak.call.state` 写入。
 - `video.canUpdateOwnMetadata`：禁止 client 改写 LiveKit metadata。
 
 ## 3. Connect Handshake
@@ -49,8 +49,8 @@ Issuer MUST NOT 注入：
 
 约束：
 
-- 客户端 SDK 接到 LiveKit `ParticipantConnected` 事件时，MUST 按 [`../media-service-binding.md` §7](../media-service-binding.md) 做 participant identity 交叉校验：以 LiveKit `participant.identity` 为索引在 `ck.call.state.participants[]` 找匹配项，验证 `participant_binding` 签名。未匹配或签名失败 → 拒绝建立媒体流，错误码 `participant_identity_unrecognised`。
-- 客户端 MUST NOT 信任 LiveKit SDK 透传的 `participant.name`、`metadata` 或其它字段作为 actor 身份判定来源；唯一权威来源是 `ck.call.state` + `participant_binding`。
+- 客户端 SDK 接到 LiveKit `ParticipantConnected` 事件时，MUST 按 [`../media-service-binding.md` §7](../media-service-binding.md) 做 participant identity 交叉校验：以 LiveKit `participant.identity` 为索引在 `ak.call.state.participants[]` 找匹配项，验证 `participant_binding` 签名。未匹配或签名失败 → 拒绝建立媒体流，错误码 `participant_identity_unrecognised`。
+- 客户端 MUST NOT 信任 LiveKit SDK 透传的 `participant.name`、`metadata` 或其它字段作为 actor 身份判定来源；唯一权威来源是 `ak.call.state` + `participant_binding`。
 
 ## 4. E2EE Key Injection
 
@@ -69,9 +69,9 @@ LiveKit 通过 [SFrame](https://www.rfc-editor.org/rfc/rfc9605.html) 实现 fram
 | --- | --- |
 | `audio: true` | `video.canPublishSources` 含 `microphone` |
 | `video: true` | `video.canPublishSources` 含 `camera` |
-| `screen: true` + `ck.call.screen_share` | `video.canPublishSources` 含 `screen_share` |
-| `ck.call.record` | recording 走 §6 不签 LiveKit recorder claim |
-| `ck.call.moderate` | issuer MAY 派生 `video.roomAdmin=true`，但生效仅限 LiveKit-level moderation（mute remote、disconnect），不替代 Arkret `ck.call.signal` moderation |
+| `screen: true` + `ak.call.screen_share` | `video.canPublishSources` 含 `screen_share` |
+| `ak.call.record` | recording 走 §6 不签 LiveKit recorder claim |
+| `ak.call.moderate` | issuer MAY 派生 `video.roomAdmin=true`，但生效仅限 LiveKit-level moderation（mute remote、disconnect），不替代 Arkret `ak.call.signal` moderation |
 
 ## 6. Recording
 
@@ -79,9 +79,9 @@ Arkret-LiveKit 部署 MAY 使用 LiveKit Egress 触发录制，但 Egress endpoi
 
 - Egress destination MUST 是 Arkret media service 的 authenticated upload endpoint；不得 LiveKit Cloud 直传 S3 / GCS。
 - 录制加密 key 来自 MLS exporter，label 固定为 ASCII 字符串 `"ak.rtc-recording-key/v1"`（与 SFrame `"ck-rtc-frame-key/v1"` 区分；`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id})`，`KDF.Nh=32`）。实现若复用 SFrame label、空 Context，或接受 LiveKit/KMS 自行生成的 recording key，MUST fail closed；LiveKit 不持久化明文。
-- 录制完成后通过 `ck.call.state` 发布 `recording_state="ready"` + content digest。
+- 录制完成后通过 `ak.call.state` 发布 `recording_state="ready"` + content digest。
 - 客户端检测到 LiveKit Egress 配置指向非 Arkret endpoint → fail closed `recording_artifact_pipeline_bypassed`。
-- 转写(`capture_kind="transcript"`)走同一 Egress / Arkret blob 路径，但加密 key label 固定为 `"ak.rtc-transcript-key/v1"`(`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, transcript_start_event_id})`,`KDF.Nh=32`),与录制 / SFrame label 区分；复用其它 label、空 Context 或 backend 自生成 transcript key MUST fail closed `transcription_artifact_pipeline_bypassed`。转写完成后通过 `ck.call.state` 发布 `transcript_state="ready"`。见 [`../call-state.md` §5.1](../call-state.md)。
+- 转写(`capture_kind="transcript"`)走同一 Egress / Arkret blob 路径，但加密 key label 固定为 `"ak.rtc-transcript-key/v1"`(`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, transcript_start_event_id})`,`KDF.Nh=32`),与录制 / SFrame label 区分；复用其它 label、空 Context 或 backend 自生成 transcript key MUST fail closed `transcription_artifact_pipeline_bypassed`。转写完成后通过 `ak.call.state` 发布 `transcript_state="ready"`。见 [`../call-state.md` §5.1](../call-state.md)。
 
 ## 7. Cascading
 
@@ -102,19 +102,19 @@ LiveKit Cloud SFU mesh 是 backend-internal 概念；Arkret 通过 `foci[].casca
 
 ## 10. Conformance Vectors
 
-实现声明 `ck.profile.media_service_binding.livekit.v1` 时，至少通过 [`../../../zh/conformance/conformance-vectors.md`](../../../zh/conformance/conformance-vectors.md) 中的：
+实现声明 `ak.profile.media_service_binding.livekit.v1` 时，至少通过 [`../../../zh/conformance/conformance-vectors.md`](../../../zh/conformance/conformance-vectors.md) 中的：
 
-- `ck.vector.media_binding.focus_selection_oldest_membership.v1`
-- `ck.vector.media_binding.session_focus_no_split_brain.v1`
-- `ck.vector.media_binding.token_exchange_minimal.v1`
-- `ck.vector.media_binding.token_issuer_unauthorised.v1`
-- `ck.vector.media_binding.participant_binding_required.v1`
-- `ck.vector.media_binding.unknown_type_fail_closed.v1`
-- `ck.vector.media_binding.e2ee_key_source.v1`
-- `ck.vector.media_binding.participant_identity_unrecognised.v1`
-- `ck.vector.media_binding.recording_artifact_via_arkret_blob.v1`
-- `ck.vector.media_binding.recording_exporter_label.v1`
+- `ak.vector.media_binding.focus_selection_oldest_membership.v1`
+- `ak.vector.media_binding.session_focus_no_split_brain.v1`
+- `ak.vector.media_binding.token_exchange_minimal.v1`
+- `ak.vector.media_binding.token_issuer_unauthorised.v1`
+- `ak.vector.media_binding.participant_binding_required.v1`
+- `ak.vector.media_binding.unknown_type_fail_closed.v1`
+- `ak.vector.media_binding.e2ee_key_source.v1`
+- `ak.vector.media_binding.participant_identity_unrecognised.v1`
+- `ak.vector.media_binding.recording_artifact_via_arkret_blob.v1`
+- `ak.vector.media_binding.recording_exporter_label.v1`
 
-LiveKit-specific vectors (JWT claim shape conformance、SFrame key injection cross-check) 在 v1 cycle 内非 normative；录制 exporter label 已由 `ck.vector.media_binding.recording_exporter_label.v1` 固定，任何 label/context 变更都必须开新 profile。
+LiveKit-specific vectors (JWT claim shape conformance、SFrame key injection cross-check) 在 v1 cycle 内非 normative；录制 exporter label 已由 `ak.vector.media_binding.recording_exporter_label.v1` 固定，任何 label/context 变更都必须开新 profile。
 
 具体向量 fixture 与脚本由 [`../../../artifacts/registry/vector-registry.json`](../../../artifacts/registry/vector-registry.json) 编排。

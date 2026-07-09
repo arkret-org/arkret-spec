@@ -48,13 +48,13 @@ Realm 可通过 state event 声明策略服务：
 }
 ```
 
-声明该事件需要 `ck.policy.manage` capability。
+声明该事件需要 `ak.policy.manage` capability。
 
 `policy_sources[]` 中每一项 MUST 是 `{"kind": "<event_kind>"}` 形态的 object（如示例所示）。Reducer / Policy Server canonical transcript 仅接受 object form；不接受裸字符串简写——若实现需要把字符串映射到 object，必须在客户端构造 Event 之前完成，使写到 wire 上的形态始终是 canonical object，避免 signature/hash transcript 在不同实现之间不一致。
 
 ### 2.1 policy_sources 不可解析时 fail-closed（normative）
 
-`policy_sources[]` 中任一 referenced policy event（如 `ck.realm.moderation_policy` / `ck.organization.moderation_policy`）在 Policy Server 评估某请求时，于该请求的当前 seal view 下**缺失、未被任何 accepted Seal 覆盖、被 redact / tombstone、或解析为 `⊥`（多 head 冲突）**时，Policy Server **MUST** 把该 policy source 视为不可解析，并按该 `ck.realm.policy_server` declaration 的 `fail_mode` 处理（§6；未显式声明 `fail_mode` 时缺省即 `closed`），**MUST NOT** 把"policy source 不可解析"等同于"该 source 为空 policy / 无规则"而按 allow 放行。
+`policy_sources[]` 中任一 referenced policy event（如 `ak.realm.moderation_policy` / `ak.organization.moderation_policy`）在 Policy Server 评估某请求时，于该请求的当前 seal view 下**缺失、未被任何 accepted Seal 覆盖、被 redact / tombstone、或解析为 `⊥`（多 head 冲突）**时，Policy Server **MUST** 把该 policy source 视为不可解析，并按该 `ak.realm.policy_server` declaration 的 `fail_mode` 处理（§6；未显式声明 `fail_mode` 时缺省即 `closed`），**MUST NOT** 把"policy source 不可解析"等同于"该 source 为空 policy / 无规则"而按 allow 放行。
 
 - `fail_mode=closed`（含缺省）：不可解析时该路径请求 MUST 拒绝（`hard_deny`，`reason_code="policy_violation"` 或部署声明的更具体码）。
 - `fail_mode=soft_deny`：MUST 阻止默认客户端提交，MAY 允许 proposal / 重试。
@@ -79,7 +79,7 @@ Content-Type: application/json
 | `request_id` | body | `string` | required | 请求 ID，用于日志和幂等追踪。 |
 | `realm_id` | body | `id` | required | 相关 Realm；进入 cache key、policy transcript 和 obligation `bound_to.realm_id`。纯账号级检查 MUST 使用 principal control Realm id。 |
 | `request_canonical_digest` | body | `sha256:<hash>` | required | 被检查请求或事件 preview 的 canonical hash。 |
-| `action` | body | `string` | required | 待检查动作，例如 `ck.message.create`。 |
+| `action` | body | `string` | required | 待检查动作，例如 `ak.message.create`。 |
 | `actor_id` | body | `did` | required | 发起动作的 Actor DID。 |
 | `device_id` | body | `id` | optional | 发起设备。 |
 | `source` | body | `object` | required | 调用来源摘要。 |
@@ -242,7 +242,7 @@ Content-Type: application/json
 }
 ```
 
-> `bound_to.action` 必须等于被授权动作的规范名称。`member.application` / `member.application.review` / `member.application.cancel` 当前是 candidate workflow concept/action 名称（不是 v1 wire `Event.kind`，见 [`../conformance/schema-registry.md` §4.1](../conformance/schema-registry.md)），因此示例与 candidate reducer 校验都用裸名。已注册的 Event（如 `ck.member.state`）则继续使用 `ck.*` 前缀。
+> `bound_to.action` 必须等于被授权动作的规范名称。`member.application` / `member.application.review` / `member.application.cancel` 当前是 candidate workflow concept/action 名称（不是 v1 wire `Event.kind`，见 [`../conformance/schema-registry.md` §4.1](../conformance/schema-registry.md)），因此示例与 candidate reducer 校验都用裸名。已注册的 Event（如 `ak.member.state`）则继续使用 `ak.*` 前缀。
 
 `challenge` obligation 中的 `bound_to.request_canonical_digest` 是**被 challenge 的原始请求 hash**，不是包含 `challenge_proof` 自身的重提 Event hash。计算规则：
 
@@ -277,7 +277,7 @@ reducer 校验顺序：
 
 任一项失败 `failed_precondition`，`reason_code="challenge_proof_invalid"`。
 
-Join 路径上 `challenge` proof 进入 `ck.member.state{join}.gate_proofs[]` 或 candidate `member.application.gate_proofs[]`（`member.application` 当前不是 v1 wire `Event.kind`），使用 `gate_id="runtime:<challenge_id>"`，并以 `challenge_proof.challenge_id` 作为唯一匹配键；verifier MUST NOT 依赖占位 gate id 选择 challenge proof。运行时 challenge 与静态 `challenge_response` gate 共享同一 verifier 实现。详见 [`../governance/join-policy.md` §11](../governance/join-policy.md)。
+Join 路径上 `challenge` proof 进入 `ak.member.state{join}.gate_proofs[]` 或 candidate `member.application.gate_proofs[]`（`member.application` 当前不是 v1 wire `Event.kind`），使用 `gate_id="runtime:<challenge_id>"`，并以 `challenge_proof.challenge_id` 作为唯一匹配键；verifier MUST NOT 依赖占位 gate id 选择 challenge proof。运行时 challenge 与静态 `challenge_response` gate 共享同一 verifier 实现。详见 [`../governance/join-policy.md` §11](../governance/join-policy.md)。
 
 ## 5. Signature and Replay Protection
 
@@ -308,7 +308,7 @@ Policy decision 签名输入 MUST 包含：
 2. `bound_to` 必须存在，且 `bound_to.realm_id` / `bound_to.actor_id` / `bound_to.action` / `bound_to.request_canonical_digest` 与本次 request 完全一致;
 3. `expires_at > now`;
 4. `auth_state_digest`、`policy_frontier_digest`、`membership_frontier_digest` 与本地 accepted authorization / policy / membership frontier 一致；不一致 MUST 回退完整授权判定或重新请求 policy check;
-5. 该 decision 未被同一 policy_server 后续的 `ck.moderation.decision.lift` 或 sealed control override 撤销。
+5. 该 decision 未被同一 policy_server 后续的 `ak.moderation.decision.lift` 或 sealed control override 撤销。
 
 Frontier 比较必须区分“本地落后”和“本地更新”。若本地 accepted authorization / policy / membership frontier 严格晚于 decision 绑定的 frontier（即本地已看到 decision 签发后发生的 grant revoke、membership 变化、policy 变化或相关 state digest 变化），receiver MUST fail closed 并重新请求 `/_arkret/self/policy/check`；不得把旧 decision 复用到更新后的 auth state。只有本地 frontier 可证明小于或等于 decision frontier，且 decision 仍在 `expires_at` 窗口内时，才可把不一致视为本地落后并按完整授权 / 补拉路径处理。
 
@@ -336,7 +336,7 @@ Frontier 比较必须区分“本地落后”和“本地更新”。若本地 a
 - `quarantine`：可提交但进入 quarantine。
 - `closed`：不可用时拒绝提交。
 
-**缺省 fail-closed（normative）**：`ck.realm.policy_server` declaration 未显式声明 `fail_mode` 时，实现 **MUST** 按 `closed` 处理，**MUST NOT** 把缺省解释为 `open`，也 **MUST NOT** 把缺省解释为 `soft_deny`。`soft_deny` 作为 fail mode 只有在 `ck.realm.policy_server` declaration（或部署 profile）**显式声明** `fail_mode=soft_deny` 时才适用——显式声明本身即非"未声明"情形，故不与"缺省即 `closed`"冲突。任何把"未声明"等同 fail-open 的实现 MUST NOT 声明通过 v1 conformance——否则 Policy Server 宕机时全部内容风控（spam、malware_media、replay_suspect、rate_limit）会被静默跳过。
+**缺省 fail-closed（normative）**：`ak.realm.policy_server` declaration 未显式声明 `fail_mode` 时，实现 **MUST** 按 `closed` 处理，**MUST NOT** 把缺省解释为 `open`，也 **MUST NOT** 把缺省解释为 `soft_deny`。`soft_deny` 作为 fail mode 只有在 `ak.realm.policy_server` declaration（或部署 profile）**显式声明** `fail_mode=soft_deny` 时才适用——显式声明本身即非"未声明"情形，故不与"缺省即 `closed`"冲突。任何把"未声明"等同 fail-open 的实现 MUST NOT 声明通过 v1 conformance——否则 Policy Server 宕机时全部内容风控（spam、malware_media、replay_suspect、rate_limit）会被静默跳过。
 
 公共开放 Realm **MUST NOT** 使用 `open`；声明了 `open` 的公开 Realm declaration，reducer / receiver MUST 以 `schema_violation` 拒绝，或要求显式 break-glass + 审计声明后才接受。关键安全 Realm MAY 使用 `closed`，但必须提供人工 break-glass capability。
 
@@ -369,33 +369,33 @@ Policy Server MAY 执行 Realm 级与组织级的 blocklist、allowlist、rate l
 
 Policy Server decision 是 out-of-band 的签名决策，本身不进入 Realm Seal 覆盖集。只有 `allow` 与 `soft_deny`（仅阻止 default client 提交）可以仅在本地或 fast path 上生效；任何会改变其他 peer 对事件可见性、可写性、可分发性判断的 decision——`hard_deny`、`quarantine`、`require_review`——MUST 通过 Control Move 写入控制面并由 accepted Seal 覆盖。否则不同 Principal Server 在同一 Realm 上对同一事件作出不一致决策，会形成跨 peer 的 split-brain：A 把消息 quarantine 隐藏，B 直接 allow，两边客户端看到的 Realm 状态从此分叉。
 
-为此 v1 引入 `ck.component.moderation_state.v1` cell family：
+为此 v1 引入 `ak.component.moderation_state.v1` cell family：
 
-- `cell_family = ck.component.moderation_state.v1`
+- `cell_family = ak.component.moderation_state.v1`
 - `cell_subject` = `payload.target_ref` 的 canonical 字符串；`target_ref` 可指向 event 或 object，但 reducer MUST 只从这一单字段派生 cell subject，避免同一目标因别名字段分裂成不同 cell。
 - `lattice = or_set`，`bottom = expose`。每个 add tag 形如 `<decision_kind>:<issuer_did>:<request_canonical_digest>`，确保不同 issuer 的同类决策可以并存且幂等。
 
 对应 wire event：
 
-- `ck.moderation.decision` — 由持有 `ck.realm.moderation_policy` 或 `ck.policy.manage` 的 actor 签发的 Control Move，在 `ck.component.moderation_state.v1:<target>` control cell 上写一个 `or_set add` effect。
-- `ck.moderation.decision.lift` — 在同一 cell 上写 `or_set remove` effect，针对此前 add 的 tag。
-- 两者的 `refs[role=authorized_by]` SHOULD 引用对应 Policy Server signed decision（role=`policy_decision`）作为风险决策证据；该 ref 不参与签名校验等价性，仅用于审计和回放。Policy Server signed decision 本身不是 capability 来源——签发 Control Move 的 actor 必须独立持有 `ck.realm.moderation_policy` 或 `ck.policy.manage`。
+- `ak.moderation.decision` — 由持有 `ak.realm.moderation_policy` 或 `ak.policy.manage` 的 actor 签发的 Control Move，在 `ak.component.moderation_state.v1:<target>` control cell 上写一个 `or_set add` effect。
+- `ak.moderation.decision.lift` — 在同一 cell 上写 `or_set remove` effect，针对此前 add 的 tag。
+- 两者的 `refs[role=authorized_by]` SHOULD 引用对应 Policy Server signed decision（role=`policy_decision`）作为风险决策证据；该 ref 不参与签名校验等价性，仅用于审计和回放。Policy Server signed decision 本身不是 capability 来源——签发 Control Move 的 actor 必须独立持有 `ak.realm.moderation_policy` 或 `ak.policy.manage`。
 
 Reducer 与所有读路径 MUST：
 
 - 在控制面 Control Move 被 accepted Seal 覆盖后把 moderation state cell 的当前 value 暴露给后续 Control Move precondition、DataEvent 授权判定与 query / projection executor。
 - 对包含 `quarantine` / `hard_deny` 决策的目标，禁止派生层（search、inbox、notification、view）按未 quarantine 处理；命中时返回 `moderated_hidden` 占位符或省略，并保留 audit trail。
 - 对包含 `require_review` 决策的目标，按 review proposal 状态机展示，不允许默认渲染。
-- `ck.moderation.decision.lift` 解除决策时，受影响的 search / projection cache MUST 立即重算。
+- `ak.moderation.decision.lift` 解除决策时，受影响的 search / projection cache MUST 立即重算。
 
-**多 decision fold（normative）**：`ck.component.moderation_state.v1` 是 OR-Set，多个 active add 是正常值。对当前路径适用的 entries 必须按 [`content-moderation.md` §2.6](../governance/content-moderation.md#26-moderation-决策-must-sealed) 的封闭收紧序 `hard_deny > quarantine > require_review > none` 求 effective verdict；同级多 entry 幂等合并并保留全部审计来源。实现不得把普通多 entry 集合误判为 split，也不得用 HLC / 到达顺序选一个 issuer。active `require_review` add 同时是 pending-review 真相源，其 allow / quarantine / hard-deny 解除路径必须使用该节规定的原子 lift / replacement batch。
+**多 decision fold（normative）**：`ak.component.moderation_state.v1` 是 OR-Set，多个 active add 是正常值。对当前路径适用的 entries 必须按 [`content-moderation.md` §2.6](../governance/content-moderation.md#26-moderation-决策-must-sealed) 的封闭收紧序 `hard_deny > quarantine > require_review > none` 求 effective verdict；同级多 entry 幂等合并并保留全部审计来源。实现不得把普通多 entry 集合误判为 split，也不得用 HLC / 到达顺序选一个 issuer。active `require_review` add 同时是 pending-review 真相源，其 allow / quarantine / hard-deny 解除路径必须使用该节规定的原子 lift / replacement batch。
 
 Policy Server fast path 与 sealed control decision 的关系：
 
-- Fast path 上，Policy Server 返回 `quarantine` / `hard_deny` 后，origin Principal Server SHOULD **同步** 提交 `ck.moderation.decision` Control Move。Control Move 提交前 origin 节点 MAY 本地隐藏目标作为优化，但**不得**以 fast-path 决策永久代替 sealed control decision。
+- Fast path 上，Policy Server 返回 `quarantine` / `hard_deny` 后，origin Principal Server SHOULD **同步** 提交 `ak.moderation.decision` Control Move。Control Move 提交前 origin 节点 MAY 本地隐藏目标作为优化，但**不得**以 fast-path 决策永久代替 sealed control decision。
 - 若 origin 节点 24 小时内（或 Realm policy 声明的更短窗口）未能把 fast-path quarantine 提升为 sealed control decision，处理方式 MUST 按未能提升的根因分类，不得对所有失败统一静默解除：
   - **(a) 传输 / 可用性类**——Seal issuer unreachable、`temporarily_unavailable`、控制面 fork quarantine、提交超时等纯可达性故障：窗口到期后 MUST 解除本地隐藏并退回到 sealed control state 实际值。这避免单一 origin 在 Seal 故障期间无限期隔离他人内容。**但自动退回 allow 前，origin MUST 产出可验证的不可达证据**——即按 [`event-auth-state-resolution.md` §7.2](./event-auth-state-resolution.md) 的 receipt SLA 超时证明 / censorship evidence（如对 Seal issuer 的签名提交回执缺失证明、超时计时锚定到 frontier 的可验证记录），并把该证据写入 moderation history trail（§7.1 "Fast-path 退回的协议通知规则" 的独立 moderation history）。仅凭 origin **自报**"传输失败"而无可验证证据时，MUST NOT 享受本（a）类自动退回 allow，而 MUST 按下方（b）类升级为 `require_review`（或保持隐藏并向 Realm 审核方告警）。这避免恶意 origin 通过谎报"传输失败"把一条本应进入 sealed control 的隔离决策静默漂白成 allow。
-  - **(b) reducer 主动拒绝类**——Control Move 被 reducer 以 capability / 权限原因拒绝（例如 origin actor 失去 `ck.realm.moderation_policy` capability，或 `failed_precondition` 源于授权 / 前置条件不成立而非传输故障）：此时窗口到期 SHOULD 升级为 `require_review`，或保持隐藏并向 Realm 审核方告警，**不得**静默解除本地隐藏。理由是该类失败表明决策的授权基础本身存疑，静默解除会让一条可能合规的审核意图被悄悄丢弃。实现 MUST 能区分这两类原因（传输 / 可用性 vs reducer 授权拒绝），并据此选择解除或升级 / 保持隐藏。
+  - **(b) reducer 主动拒绝类**——Control Move 被 reducer 以 capability / 权限原因拒绝（例如 origin actor 失去 `ak.realm.moderation_policy` capability，或 `failed_precondition` 源于授权 / 前置条件不成立而非传输故障）：此时窗口到期 SHOULD 升级为 `require_review`，或保持隐藏并向 Realm 审核方告警，**不得**静默解除本地隐藏。理由是该类失败表明决策的授权基础本身存疑，静默解除会让一条可能合规的审核意图被悄悄丢弃。实现 MUST 能区分这两类原因（传输 / 可用性 vs reducer 授权拒绝），并据此选择解除或升级 / 保持隐藏。
 - Receiver 节点收到 fast-path quarantine signaling（Policy Server 签名）但无对应 sealed Control Move 时，MAY 临时隐藏目标作为风险缓解，但 MUST 在 query / projection / sync surface 中把该目标标记为 `moderation_control_pending`，并在 sealed decision 抵达后按 sealed control state 重新投影。GUI 客户端、CLI、bot 或审计消费者如何呈现该状态属于产品层；协议只要求状态可见、可订阅且不被误投影为最终 sealed decision。
 
 **Fast-path 退回的协议通知规则**：当 fast-path quarantine 因 24h 升级失败而被解除时，receiver MUST：
@@ -410,7 +410,7 @@ Policy Server fast path 与 sealed control decision 的关系：
 引入 sealed moderation control state 后，`reason_code` 集合扩展：
 
 - `moderation_control_pending` — fast-path quarantine 已记录，但 sealed Control Move 未到达。
-- `moderation_control_lifted` — 此前 sealed quarantine 已被 `ck.moderation.decision.lift` 解除。
+- `moderation_control_lifted` — 此前 sealed quarantine 已被 `ak.moderation.decision.lift` 解除。
 - `moderation_control_split` — moderation cell 在当前 control view 下出现真正不可 join 的损坏状态（例如同一 add identity 对应不同 canonical bytes、remove provenance 无法验证或 registry/lattice 证据不一致）；所有引用该 cell 的 read / write / distribute / policy-check 路径 MUST fail closed，`reason="moderation_state_conflict"`，query / projection / sync surface MUST 暴露冲突状态而不得默默选 winner。普通 OR-Set 多 active entries **不是** split，必须按 §7.1 的 deterministic strictest fold 处理。
 
 ## 8. Antifraud Mapping from Server Abuse Practice

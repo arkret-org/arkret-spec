@@ -221,7 +221,7 @@ table.ck-table code {
  *  2. Tables become horizontally scrollable so columns size to content
  *     instead of fighting for a 100% width budget. Sticky `<th>` keeps
  *     working because `overflow-x: auto` is on the table itself, which
- *     is also the sticky containing block.
+ *     is also the sticky containing bloak.
  */
 .sl-markdown-content table {
   display: block;

@@ -2,7 +2,7 @@
   "suite": "reaction",
   "profile": "ak.vector_group.reaction.v1",
   "version": "2026-05-08",
-  "notes": "Reducer-level vectors for ck.reaction.add / ck.reaction.remove. Convergence is OR-Set on (actor_id, target_ref, key); see zh/models/strand-and-message.md §9.8 (Reaction model + authoritative OR-Set semantics) and zh/crypto-media/encryption-and-audit.md §2.9 (plaintext-vs-encrypted visibility).",
+  "notes": "Reducer-level vectors for ak.reaction.add / ak.reaction.remove. Convergence is OR-Set on (actor_id, target_ref, key); see zh/models/strand-and-message.md §9.8 (Reaction model + authoritative OR-Set semantics) and zh/crypto-media/encryption-and-audit.md §2.9 (plaintext-vs-encrypted visibility).",
   "cases": [
     {
       "name": "or_set_basic_add_then_remove",
@@ -81,7 +81,7 @@
     },
     {
       "name": "or_set_concurrent_add_remove_remove_wins_in_default_view",
-      "notes": "Two events from the same actor with no causal_refs between them; default view applies per-actor causal closure — concurrent (add, remove) collapses to the remove because the remove is itself a tombstone for the actor's adds in the concurrent past per OR-Set semantics chosen for ck.reaction.",
+      "notes": "Two events from the same actor with no causal_refs between them; default view applies per-actor causal closure — concurrent (add, remove) collapses to the remove because the remove is itself a tombstone for the actor's adds in the concurrent past per OR-Set semantics chosen for ak.reaction.",
       "events": [
         {
           "event_id": "ak:event:01964185-0c00-7000-8000-000000000000",
@@ -372,7 +372,7 @@
     },
     {
       "name": "capability_revoked_blocks_subsequent_add",
-      "notes": "After ck.capability.revoke removes the actor's ck.reaction.add capability, the next add MUST be rejected before reducer state changes; in-flight events accepted before the revoke causal frontier remain in OR-Set state.",
+      "notes": "After ak.capability.revoke removes the actor's ak.reaction.add capability, the next add MUST be rejected before reducer state changes; in-flight events accepted before the revoke causal frontier remain in OR-Set state.",
       "events": [
         {
           "event_id": "ak:event:01964185-2400-7000-8000-000000000000",
@@ -426,7 +426,7 @@
     },
     {
       "name": "rate_limit_high_rate_reaction_burst",
-      "notes": "Servers MAY rate-limit ck.reaction.add per actor; the reducer MUST treat rate-limited events as either rate_limited or quarantine, never as accepted-then-silently-dropped.",
+      "notes": "Servers MAY rate-limit ak.reaction.add per actor; the reducer MUST treat rate-limited events as either rate_limited or quarantine, never as accepted-then-silently-dropped.",
       "events_meta": {
         "actor_id": "did:webvh:z6mkfixture:bot.example",
         "rate_per_second_observed": 200,

@@ -1,7 +1,7 @@
 # teabay Directory Service Baseline
 
 - Report ID: `teabay-directory-service-baseline-2026-05-10`
-- Profile: `ck.profile.directory_service.v1`
+- Profile: `ak.profile.directory_service.v1`
 - Implementation: `teabay 0.1.0`
 - Generated: `2026-05-10T18:10:58+08:00`
 - Status: baseline passed, with pull/divergence coverage still partial.
@@ -33,6 +33,6 @@
 
 ## Notes
 
-The cotest hook now includes `ck.profile.directory_service.v1` and a `teabay_directory_service_profile_is_discoverable` scenario. The scenario can attach to a running Directory with `TEABAY_BASE_URL` or spawn `../teabay/target/debug/teabay` when `DATABASE_URL` is supplied.
+The cotest hook now includes `ak.profile.directory_service.v1` and a `teabay_directory_service_profile_is_discoverable` scenario. The scenario can attach to a running Directory with `TEABAY_BASE_URL` or spawn `../teabay/target/debug/teabay` when `DATABASE_URL` is supplied.
 
 Shared Directory SQL fixtures live in `../teabay/teabay-testing` so cotest can reuse seeded resource rows without copying them.

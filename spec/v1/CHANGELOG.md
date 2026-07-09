@@ -19,7 +19,7 @@
 | --- | --- |
 | `date` | 变更登记日期（`YYYY-MM-DD`）。 |
 | `change_kind` | `added` / `removed` / `renamed` / `deprecated`。 |
-| `identifier` | 受影响的 canonical 标识符（如 `ck.profile.*.v1`、`ck.<event>.v1`、`operation_id`）。 |
+| `identifier` | 受影响的 canonical 标识符（如 `ak.profile.*.v1`、`ak.<event>.v1`、`operation_id`）。 |
 | `replacement` | 若为 rename / removal，指向替代标识符；否则留空。 |
 | `migration_artifact` | 承载该条的机读 artifact 路径（如 `artifacts/migration/renames.json`）。 |
 | `rejection_level` | 与 migration artifact 一致（`hard_reject` / `migration_only` / `compat_only` / `docs_only`）。 |

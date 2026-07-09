@@ -28,7 +28,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Contrix is the legacy brand name (lowercase `contrix`, wire prefixes `cx.` / `cx:`). Use Arkret / arkret / `ck.` / `ak:` in all current prose, identifiers, file names, and UI copy. See renames.json migration group brand_namespace_cx_to_ck."
+      "notes": "Contrix is the legacy brand name (lowercase `contrix`, wire prefixes `cx.` / `cx:`). Use Arkret / arkret / `ak.` / `ak:` in all current prose, identifiers, file names, and UI copy. See renames.json migration group brand_namespace_cx_to_ak."
     },
     {
       "id": "Room",
@@ -119,7 +119,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Use 'External Collaboration Realm' (the role defined in zh/models/realm-and-space.md §2.7). The sovereign-deployment policy bundle that historically motivated the 'Controlled' prefix is now expressed as 'in sovereign deployment, External Collaboration Realm MUST satisfy …' and lives in zh/sync/sovereign-deployment.md §4 under ck.profile.sovereign_deployment.v1; it is not a Realm subtype. The infrastructure-isolation pattern 'Controlled Collaboration Enclave' is a separate, unchanged concept."
+      "notes": "Use 'External Collaboration Realm' (the role defined in zh/models/realm-and-space.md §2.7). The sovereign-deployment policy bundle that historically motivated the 'Controlled' prefix is now expressed as 'in sovereign deployment, External Collaboration Realm MUST satisfy …' and lives in zh/sync/sovereign-deployment.md §4 under ak.profile.sovereign_deployment.v1; it is not a Realm subtype. The infrastructure-isolation pattern 'Controlled Collaboration Enclave' is a separate, unchanged concept."
     },
     {
       "id": "受控协作 Realm",
@@ -144,7 +144,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Legacy Contrix wire namespace prefix. Current Arkret v1 canonical event/profile names use ck.; cx. may appear only in migration notes or negative tests."
+      "notes": "Legacy Contrix wire namespace prefix. Current Arkret v1 canonical event/profile names use ak.; cx. may appear only in migration notes or negative tests."
     },
     {
       "id": "cx:",

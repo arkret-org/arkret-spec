@@ -638,7 +638,7 @@
             "invariants": [
               "invite cell transitions pending -> claimed",
               "membership proposal is bound to claimed subject_id",
-              "ak.member.state join is not emitted without ck.invite.accept or an explicitly profiled equivalent path"
+              "ak.member.state join is not emitted without ak.invite.accept or an explicitly profiled equivalent path"
             ]
           },
           "runner": {
@@ -668,7 +668,7 @@
               "invariants": [
                 "invite cell transitions pending -> claimed",
                 "membership proposal is bound to claimed subject_id",
-                "ak.member.state join is not emitted without ck.invite.accept or an explicitly profiled equivalent path"
+                "ak.member.state join is not emitted without ak.invite.accept or an explicitly profiled equivalent path"
               ]
             },
             "expected_external_response": {

@@ -69,7 +69,7 @@ v1 wire format 锁定为 canonical JSON。需要更紧凑或更适合受限设�
 
 备用 canonical encoding 通过 **digest suite 机制**（§3.1 / §3.2、[`digest-suite-registry.json`](../../artifacts/registry/digest-suite-registry.json)）进入协议，规则如下：
 
-- 引入备用 encoding 的 profile（id 形如 `ck.profile.encoding.cbor.v1`）MUST 在 digest-suite registry 注册对应 suite（如 `cbor.sha256`），并交付该 suite 的 activation requirements：deterministic 编码细则、CDDL、**schema 无关**的 JSON ↔ 该编码类型映射（string→text string、integer→integer 的哑映射；归一化 MUST NOT 依赖 schema 知识，否则 digest 会随 schema registry 版本漂移）、以及 per-suite conformance vectors。
+- 引入备用 encoding 的 profile（id 形如 `ak.profile.encoding.cbor.v1`）MUST 在 digest-suite registry 注册对应 suite（如 `cbor.sha256`），并交付该 suite 的 activation requirements：deterministic 编码细则、CDDL、**schema 无关**的 JSON ↔ 该编码类型映射（string→text string、integer→integer 的哑映射；归一化 MUST NOT 依赖 schema 知识，否则 digest 会随 schema registry 版本漂移）、以及 per-suite conformance vectors。
 - **归一化编码是 Realm 级声明**：Realm 在 create event 的 `digest_algorithm` 字段锁定唯一 suite（§3.3），该声明是权威；事件 envelope 的 `requirements.features[]` 声明对应 encoding profile 作为能力要求，但 MUST NOT 与 Realm 声明的 suite 冲突。未声明备用 suite 的 Realm 一律按 canonical JSON 解析。
 - 由于 Realm 级 suite 排他（§3.3），同一 Realm 内不存在 JSON 与备用编码两套并行 digest，**跨编码的双向 digest 等价向量不是验证路径的需求**；仅当 profile 提供 json→备用编码的 suite transition 路径时，MUST 给出 transition Seal 双 root 向量（见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.2）。
 - 实现 MAY 出于调试 / 退化传输目的输出备用编码 Realm 中对象的 JSON 渲染视图，但该视图是 informational 投影：MUST NOT 进入签名、digest、`prev_refs` 解析或任何 canonical 路径。
@@ -96,12 +96,12 @@ digest suite 的 canonical 机器来源是 [`digest-suite-registry.json`](../../
 
 | Algo | Digest 长度 | v1 角色 | 抗量子 / future-ready 评估 |
 | --- | ---: | --- | --- |
-| `sha256` | 32 bytes（64 hex） | **v1 default**；所有 receiver MUST 支持。Event digest、Merkle leaf、state_root、blob CID、receipt digest 等核心字段默认使用。 | 不抗量子（Grover 把搜索成本减半到 2^128，仍可用）；通过 `ck.profile.hash_transition.v1` 可平滑迁移到 stronger hash。 |
-| `blake3` | 32 bytes（64 hex） | v1 optional；声明 `ck.profile.hash.blake3.v1` 的实现 MUST 支持。性能最佳（可并行）；blob CID 与高吞吐场景推荐。 | sha256-class 抗碰撞；非 NIST 但被 IRTF / RFC 路径认可。 |
+| `sha256` | 32 bytes（64 hex） | **v1 default**；所有 receiver MUST 支持。Event digest、Merkle leaf、state_root、blob CID、receipt digest 等核心字段默认使用。 | 不抗量子（Grover 把搜索成本减半到 2^128，仍可用）；通过 `ak.profile.hash_transition.v1` 可平滑迁移到 stronger hash。 |
+| `blake3` | 32 bytes（64 hex） | v1 optional；声明 `ak.profile.hash.blake3.v1` 的实现 MUST 支持。性能最佳（可并行）；blob CID 与高吞吐场景推荐。 | sha256-class 抗碰撞；非 NIST 但被 IRTF / RFC 路径认可。 |
 
 v1 active 集合刻意保持最小（`sha256` + `blake3`）。需要 algorithm diversity（如 SHA-3 / Keccak 家族对冲 SHA-2 结构性风险）或抗量子 hash 时，按 registry 规则**加法注册**新行（新 hash profile + conformance vector），wire 形态无需重写；不预注册无实际使用场景的算法。
 
-除上表 active rows 外，registry 还以 **reserved** 状态登记了备用归一化编码 suite（当前为 `cbor.sha256`，deterministic CBOR + SHA-256，gate 为 `ck.profile.encoding.cbor.v1`，见 §2.2）。reserved suite 钉定 wire 前缀与 gate，但在其 `activation_requirements`（编码细则 + CDDL + 类型映射 + conformance vectors）全部满足并在 registry release 中翻为 active 之前，**MUST NOT 出现在 wire 上**——接收方按未识别 suite 前缀 fail closed 处理即可，无需特判。
+除上表 active rows 外，registry 还以 **reserved** 状态登记了备用归一化编码 suite（当前为 `cbor.sha256`，deterministic CBOR + SHA-256，gate 为 `ak.profile.encoding.cbor.v1`，见 §2.2）。reserved suite 钉定 wire 前缀与 gate，但在其 `activation_requirements`（编码细则 + CDDL + 类型映射 + conformance vectors）全部满足并在 registry release 中翻为 active 之前，**MUST NOT 出现在 wire 上**——接收方按未识别 suite 前缀 fail closed 处理即可，无需特判。
 
 扩展 profile MAY 通过新 hash profile 加入抗量子 hash（如 SLH-DSA hash family、SHAKE256 派生），也 MAY 通过新 encoding profile 注册备用归一化 suite；v1 wire 形态 `<suite>:<hex>` 已经为这两类加法准备好——**无需重写 wire**。
 
@@ -117,7 +117,7 @@ v1 active 集合刻意保持最小（`sha256` + `blake3`）。需要 algorithm d
 
 **Realm 级 suite 排他（normative）**：一个 Realm 同一时刻 MUST 只有一个 live digest suite；Realm 内所有后续 Seal / Event digest / state_root / receipt digest MUST 使用同一 suite。接收方在 Realm 上下文中遇到 suite 前缀与该 Realm 声明不符的 digest（Transition Seal 的 `previous_state_root` 除外）MUST 按 schema_violation 拒绝，即使该 suite 本身是 receiver 支持的 active suite——这条排他规则消除"同一语义对象在同一 Realm 内拥有两个合法 digest"的去重 / 重放二义性（`duplicate_conflict` 配对、`prev_refs` 解析、幂等键均依赖单一 digest 定义）。跨 Realm 引用按 digest 值自带的 suite 前缀验证，无需上下文。
 
-切换 suite（hash 分量升级，或归一化编码分量切换）需要通过 `ck.profile.hash_transition.v1` snapshot commitment + signed compaction Seal 在 frontier 上做一次 suite transition Seal，新旧 suite 都能在 transition Seal 上验证 inclusion。详细规则见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.2（digest suite transition）。
+切换 suite（hash 分量升级，或归一化编码分量切换）需要通过 `ak.profile.hash_transition.v1` snapshot commitment + signed compaction Seal 在 frontier 上做一次 suite transition Seal，新旧 suite 都能在 transition Seal 上验证 inclusion。详细规则见 [`event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §9.3.2（digest suite transition）。
 
 ### 3.3.1 Snapshot / Event-set Merkle Root 编码
 
@@ -132,7 +132,7 @@ Snapshot reducer output root 与 snapshot event-set commitment 使用同一 Merk
 
 ### 3.4 Multihash 兼容（profile-gated）
 
-声明 `ck.profile.encoding.multihash.v1` 的实现 MAY 在 wire 上接受 multihash 风格的二进制 hash header（multicodec varint + length + digest）作为额外 reading format，但 canonical JSON 上的 wire value 仍 MUST 使用 §3.1 的 `<suite>:<hex>` 字符串形态。引入 multihash profile 的目的是与 IPFS / libp2p / Iroh 生态做内容寻址互通；它不替换 v1 wire 默认。
+声明 `ak.profile.encoding.multihash.v1` 的实现 MAY 在 wire 上接受 multihash 风格的二进制 hash header（multicodec varint + length + digest）作为额外 reading format，但 canonical JSON 上的 wire value 仍 MUST 使用 §3.1 的 `<suite>:<hex>` 字符串形态。引入 multihash profile 的目的是与 IPFS / libp2p / Iroh 生态做内容寻址互通；它不替换 v1 wire 默认。
 
 ## 4. ID
 
@@ -266,15 +266,15 @@ Verifier 顺序固定为：先从 Event 中移除 `proofs`、`unsigned` 与 redu
 
 签名算法的 canonical 机器来源是 [`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json)(与 §3.2 Hash registered set 对称)，下表是其规范阅读视图。proof `alg` 字段 MUST 取自 registry active row 的 `proof_alg`；raw / non-JWS `signature_algorithm` 字段 MUST 取自 active row 的 `signature_algorithm`。散落于各 schema 的签名算法 enum MUST 由该 registry 校验，MUST NOT 在 schema 中私自引入未登记算法。`detached_jws` 形态的 `alg` 使用 JWS 标准标识(`EdDSA` 对应 Ed25519)；非 JWS 形态(如 raw detached signature)按 registry 的 raw `signature_algorithm` 标识。
 
-对称地，**非-MLS 应用层公钥封装**（key-backup `recovery_public_key` / `did_recovery` envelope、to-device `ck.secret.send`、member-application 与 file-transfer key envelope）的 KEM/KDF/AEAD 算法 agility 由 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json)（HPKE，RFC 9180）承载，与签名、digest、MLS-ciphersuite 并列为第四个算法 agility 面；其 `hpke_suite` / envelope `scheme` 选择字段的 enum MUST 由 registry active rows 生成，未登记 suite MUST fail closed（`unsupported_hpke_suite`）。MLS 群组消息的 HPKE 内核仍由 [`mls-ciphersuite-registry.json`](../../artifacts/registry/mls-ciphersuite-registry.json) 承载，不在该 registry 范围内。
+对称地，**非-MLS 应用层公钥封装**（key-backup `recovery_public_key` / `did_recovery` envelope、to-device `ak.secret.send`、member-application 与 file-transfer key envelope）的 KEM/KDF/AEAD 算法 agility 由 [`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json)（HPKE，RFC 9180）承载，与签名、digest、MLS-ciphersuite 并列为第四个算法 agility 面；其 `hpke_suite` / envelope `scheme` 选择字段的 enum MUST 由 registry active rows 生成，未登记 suite MUST fail closed（`unsupported_hpke_suite`）。MLS 群组消息的 HPKE 内核仍由 [`mls-ciphersuite-registry.json`](../../artifacts/registry/mls-ciphersuite-registry.json) 承载，不在该 registry 范围内。
 
 表列与 registry active row 字段一一对应:`canonical_id`(下表 `Algo`)、`proof_alg`(JWS `alg`，detached_jws 形态用)、`signature_algorithm`(raw / non-JWS detached signature 形态用)。`Ed25519` 行的 `proof_alg`(`EdDSA`)与 `signature_algorithm`(`Ed25519`)不同，二者 MUST 分别取自对应列，不可互相替代。
 
 | Algo（`canonical_id`） | `proof_alg`（JWS `alg`） | `signature_algorithm`（raw / non-JWS） | v1 角色 | 抗量子 / future-ready 评估 |
 | --- | --- | --- | --- | --- |
-| `Ed25519` | `EdDSA`（JWS, crv=Ed25519） | `Ed25519` | **v1 default-MUST**；所有 receiver MUST 支持。Event proof、receipt proof、device cross-signing binding 等核心签名默认使用。 | 不抗量子(Shor 可破)；通过 `ck.profile.signature.pqc.v1` 迁移到后量子 suite。 |
-| `ECDSA-P256-SHA256` | `ES256`（JWS, P-256 + SHA-256） | `ES256` | v1 optional；声明 `ck.profile.signature.ecdsa_p256.v1` 的实现 MUST 支持。用于需要与 WebAuthn / FIDO2 / 既有 PKI 互通的部署。 | 不抗量子(Shor 可破)；选择仅出于生态互通。 |
-| `ML-DSA-65` | `ML-DSA-65`（NIST FIPS 204, Dilithium category 3） | `ML-DSA-65` | v1 profile-gated；声明 `ck.profile.signature.pqc.v1` 的实现 MUST 支持。后量子格基签名，用于长生命周期审计签名与抗量子迁移。 | 抗量子(NIST PQC 标准);wire 形态 `<suite>:<...>` 已为加法准备好，无需重写 wire。 |
+| `Ed25519` | `EdDSA`（JWS, crv=Ed25519） | `Ed25519` | **v1 default-MUST**；所有 receiver MUST 支持。Event proof、receipt proof、device cross-signing binding 等核心签名默认使用。 | 不抗量子(Shor 可破)；通过 `ak.profile.signature.pqc.v1` 迁移到后量子 suite。 |
+| `ECDSA-P256-SHA256` | `ES256`（JWS, P-256 + SHA-256） | `ES256` | v1 optional；声明 `ak.profile.signature.ecdsa_p256.v1` 的实现 MUST 支持。用于需要与 WebAuthn / FIDO2 / 既有 PKI 互通的部署。 | 不抗量子(Shor 可破)；选择仅出于生态互通。 |
+| `ML-DSA-65` | `ML-DSA-65`（NIST FIPS 204, Dilithium category 3） | `ML-DSA-65` | v1 profile-gated；声明 `ak.profile.signature.pqc.v1` 的实现 MUST 支持。后量子格基签名，用于长生命周期审计签名与抗量子迁移。 | 抗量子(NIST PQC 标准);wire 形态 `<suite>:<...>` 已为加法准备好，无需重写 wire。 |
 
 实现 MUST:
 
@@ -282,7 +282,7 @@ Verifier 顺序固定为：先从 Event 中移除 `proofs`、`unsigned` 与 redu
 - 在 `server/describe.crypto` 暴露支持的签名 algo 集合(与 hash algo 集合并列),client 据此选择写入算法。
 - MUST NOT "算法升级"已签名的 canonical bytes:一旦 proof 用某 `alg` 发布，verify 路径永远按该 algo 重验；新算法走新 proof，不重写历史签名字节。
 
-**后量子 / hybrid 前瞻(未来)**:hybrid composite 签名(例如 `Ed25519+ML-DSA-65`，经典 + 后量子双签以在迁移期同时满足两类验证者)登记为 `ck.profile.signature.pqc.v1` 的扩展槽位。它复用本节"不重写历史签名字节、新算法走新 proof"原则——hybrid proof 作为追加的新 proof entry 出现，经典验证者验经典分量、后量子验证者验 ML-DSA 分量，历史 Ed25519 proof bytes 不被改写。该槽位在 v1 不强制，记为未来。
+**后量子 / hybrid 前瞻(未来)**:hybrid composite 签名(例如 `Ed25519+ML-DSA-65`，经典 + 后量子双签以在迁移期同时满足两类验证者)登记为 `ak.profile.signature.pqc.v1` 的扩展槽位。它复用本节"不重写历史签名字节、新算法走新 proof"原则——hybrid proof 作为追加的新 proof entry 出现，经典验证者验经典分量、后量子验证者验 ML-DSA 分量，历史 Ed25519 proof bytes 不被改写。该槽位在 v1 不强制，记为未来。
 
 ## 7. HLC
 
@@ -435,7 +435,7 @@ Barrier cursor body 示例：
 |------|------|------|------|
 | `v` | string | 是 | cursor 版本，v1 固定 `"1"` |
 | `purpose` | enum(`stream`,`barrier`) | 是 | 用途鉴别 |
-| `t` | timestamp | 是 | 生成时间戳（RFC 3339 UTC,MUST 以 `Z` 结尾）。**canonical 精度固定为秒级、不带小数部分**（形如 `2099-12-30T23:59:59Z`，与 [`encoding-fixture.json`](../../artifacts/fixtures/encoding-fixture.json) 向量 `ck.vector.encoding.cursor_opaque.core.v1` 的 `t` 真源一致）：服务端生成 cursor 时 MUST NOT 写入毫秒小数（`.000Z` 等），以消除同一逻辑时刻产生两种 canonical 编码的二义；接收方对带毫秒小数的 `t` MUST reject `invalid_param`。 |
+| `t` | timestamp | 是 | 生成时间戳（RFC 3339 UTC,MUST 以 `Z` 结尾）。**canonical 精度固定为秒级、不带小数部分**（形如 `2099-12-30T23:59:59Z`，与 [`encoding-fixture.json`](../../artifacts/fixtures/encoding-fixture.json) 向量 `ak.vector.encoding.cursor_opaque.core.v1` 的 `t` 真源一致）：服务端生成 cursor 时 MUST NOT 写入毫秒小数（`.000Z` 等），以消除同一逻辑时刻产生两种 canonical 编码的二义；接收方对带毫秒小数的 `t` MUST reject `invalid_param`。 |
 | `x` | integer | 是 | 过期时间戳（Unix ms） |
 | `h` | string | 是 | 服务端 opaque handle（≥ 128 bit 熵），见 §8.3.1。stream positions 或 barrier target 均由 `h` 在服务端绑定表中解析，MUST NOT 内联进 cursor body。 |
 
@@ -489,7 +489,7 @@ Cursor 对客户端不透明，且 v1 core cursor 是 stateful handle。`h` 是 
 
 当用户从 Principal Server A 切换到 Principal Server B 时（service replacement、portability 平面操作），B 收到 A 签发的 cursor 后 MUST 返回 `cursor_unrecognized`（不是 `cursor_expired`），客户端按全新初始同步处理；MUST NOT 猜测、解析或重放 A 的 handle。普通同服务请求中的未知、撤销或 cross-binding handle 仍按 §8.3.1 返回 `cursor_integrity_invalid`。
 
-未来 profile MAY 在 `ck.profile.principal_server.v1` 之上引入显式 cursor translation operation；该 operation 与 transport binding 不属于 v1 强制范围。
+未来 profile MAY 在 `ak.profile.principal_server.v1` 之上引入显式 cursor translation operation；该 operation 与 transport binding 不属于 v1 强制范围。
 
 ### 8.5 测试向量入口
 
@@ -516,7 +516,7 @@ Cursor 对客户端不透明，且 v1 core cursor 是 stateful handle。`h` 是 
 
 ## 9. Rank
 
-列表排序 rank MUST 使用 `ck.rank.lexofractional.v1` profile，除非 Realm schema 显式声明其他 rank profile。
+列表排序 rank MUST 使用 `ak.rank.lexofractional.v1` profile，除非 Realm schema 显式声明其他 rank profile。
 
 规则：
 
@@ -554,16 +554,16 @@ rank_between(left, right):
   return rank_exhausted
 ```
 
-例如 `rank_between("", "0")` MUST 返回 `rank_exhausted`，因为在 start sentinel 与最小 rank `"0"` 之间不存在合法 rank。客户端或 reducer 遇到 `rank_exhausted` MUST 触发 rebalance 或要求调用方提交 `ck.container.rebalance`，MUST NOT 生成非法 rank。
-- 当 rank 长度超过 128，或连续插入导致实现无法生成短 rank，客户端 SHOULD 请求或提交 `ck.container.rebalance`。Reducer MUST NOT 接受超过 128 字符的 rank。
+例如 `rank_between("", "0")` MUST 返回 `rank_exhausted`，因为在 start sentinel 与最小 rank `"0"` 之间不存在合法 rank。客户端或 reducer 遇到 `rank_exhausted` MUST 触发 rebalance 或要求调用方提交 `ak.container.rebalance`，MUST NOT 生成非法 rank。
+- 当 rank 长度超过 128，或连续插入导致实现无法生成短 rank，客户端 SHOULD 请求或提交 `ak.container.rebalance`。Reducer MUST NOT 接受超过 128 字符的 rank。
 - 同一 container 内 rank 完全相同的对象 MUST 按 `rank_source_event_hlc`、`rank_source_actor_id`、`rank_source_event_id`、`object_id` 继续排序；如果 rank source 元数据缺失，MUST 使用 `object_id` 作为最终稳定 tie-break，并在 conformance report 中声明降级。该 tie-break 仅用于 projection 展示序，不进入 canonical state、`state_root` 或授权判断。
-- **并发同 gap 插入抖动（concurrent-insert jitter，normative）**：两个客户端在同一 `(left, right)` gap 并发调用 `rank_between` 会确定性地算出相同 rank，落到上一条的 tie-break，体验上表现为顺序抖动。为降低该碰撞概率，`rank_between` 在该 gap 仍有剩余编码空间时 SHOULD 在所选 rank 尾部追加一段短随机 jitter 尾缀（合法 base-62 字符，不破坏 `left < rank < right` 严格不等式与 1..128 长度上限）；jitter 是 Figma / Observable fractional-indexing 的成熟做法，纯客户端生成，不改 wire 形态、不进入 digest 输入。jitter 只降低碰撞概率、不替代上一条的确定性 tie-break：rank 仍相同时 MUST 回落到 `rank_source_*` 全序。耗尽编码空间时按上一条走 `ck.container.rebalance`，MUST NOT 用 jitter 绕过 128 字符上限。
-- `ck.container.rebalance` 的 assignment 生成 MUST 基于权限裁剪前的 canonical ordered set。先按 reducer 已确定的稳定顺序排列 active edges，再选择最小宽度 `w`，使 `alphabet_length^w >= 2 * (item_count + 1)`；第 `i` 个对象（1-based）的 rank number 为 `floor(i * alphabet_length^w / (item_count + 1))`，以固定宽度 base62 编码并用 alphabet 第一个字符左填充。若所需 `w > 128`，实现 MUST reject 该 rebalance。
+- **并发同 gap 插入抖动（concurrent-insert jitter，normative）**：两个客户端在同一 `(left, right)` gap 并发调用 `rank_between` 会确定性地算出相同 rank，落到上一条的 tie-break，体验上表现为顺序抖动。为降低该碰撞概率，`rank_between` 在该 gap 仍有剩余编码空间时 SHOULD 在所选 rank 尾部追加一段短随机 jitter 尾缀（合法 base-62 字符，不破坏 `left < rank < right` 严格不等式与 1..128 长度上限）；jitter 是 Figma / Observable fractional-indexing 的成熟做法，纯客户端生成，不改 wire 形态、不进入 digest 输入。jitter 只降低碰撞概率、不替代上一条的确定性 tie-break：rank 仍相同时 MUST 回落到 `rank_source_*` 全序。耗尽编码空间时按上一条走 `ak.container.rebalance`，MUST NOT 用 jitter 绕过 128 字符上限。
+- `ak.container.rebalance` 的 assignment 生成 MUST 基于权限裁剪前的 canonical ordered set。先按 reducer 已确定的稳定顺序排列 active edges，再选择最小宽度 `w`，使 `alphabet_length^w >= 2 * (item_count + 1)`；第 `i` 个对象（1-based）的 rank number 为 `floor(i * alphabet_length^w / (item_count + 1))`，以固定宽度 base62 编码并用 alphabet 第一个字符左填充。若所需 `w > 128`，实现 MUST reject 该 rebalance。
 - Rebalance assignments MUST 覆盖 container 内全部 active edges，且 MUST NOT 新增、删除或跨 container 移动 edge。CAS 的 `expected_state_digest` 不匹配时，MUST 拒绝整个 operation，MUST NOT 部分应用。
 
 ## 9.5. Composite Cell Subject
 
-部分 cell 的 subject 由多个 sub-component 复合派生（例如 `ck.device.authorize` 的 `(principal_id, device_id)`）。复合 subject 的 canonical 形态由本节定义；cell id、Control Move precondition、Lattice join 和 fixture 必须使用同一形态。
+部分 cell 的 subject 由多个 sub-component 复合派生（例如 `ak.device.authorize` 的 `(principal_id, device_id)`）。复合 subject 的 canonical 形态由本节定义；cell id、Control Move precondition、Lattice join 和 fixture 必须使用同一形态。
 
 ### 9.5.1 通用规则
 
@@ -582,8 +582,8 @@ rank_between(left, right):
 
 | Cell family / Event kind | components_array 顺序（来源字段） |
 | --- | --- |
-| `ck.component.device.authorization.v1` / `ck.device.authorize` | `[principal_id, device_id]` |
-| `ck.component.device.authorization.v1` / `ck.device.revoke` | `[principal_id, device_id]` |
+| `ak.component.device.authorization.v1` / `ak.device.authorize` | `[principal_id, device_id]` |
+| `ak.component.device.authorization.v1` / `ak.device.revoke` | `[principal_id, device_id]` |
 
 `principal_id` MUST 是无 fragment 的完整 DID URI（见 §4）；`device_id` MUST 是完整 `id:device` typed ID（`ak:device:<uuidv7>`）。
 

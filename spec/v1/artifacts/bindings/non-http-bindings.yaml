@@ -44,220 +44,220 @@ frame_schemas:
 grpc:
   services:
     GateAccount:
-      Register: ck.gate.account.command.register
-      DevicePair: ck.gate.account.command.pair_device
-      DeviceEnroll: ck.gate.account.command.enroll_device
-      IssueSessionGrant: ck.gate.account.command.issue_session_grant
-      SessionRevoke: ck.gate.account.command.revoke_session
-      AgentKeyPair: ck.gate.account.command.pair_agent_key
-      OidcCallback: ck.gate.account.exchange.complete_oidc
+      Register: ak.gate.account.command.register
+      DevicePair: ak.gate.account.command.pair_device
+      DeviceEnroll: ak.gate.account.command.enroll_device
+      IssueSessionGrant: ak.gate.account.command.issue_session_grant
+      SessionRevoke: ak.gate.account.command.revoke_session
+      AgentKeyPair: ak.gate.account.command.pair_agent_key
+      OidcCallback: ak.gate.account.exchange.complete_oidc
     SelfAgent:
-      Provision: ck.self.agent.command.provision
-      List: ck.self.agent.query.list
-      ProtocolDiscover: ck.self.agent.protocol.query.discover
-      Get: ck.self.agent.resource.get
-      Pause: ck.self.agent.command.pause
-      Resume: ck.self.agent.command.resume
-      Deactivate: ck.self.agent.command.deactivate
-      RotateKey: ck.self.agent.command.rotate_key
-      GrantAttach: ck.self.agent.grant.command.attach
-      GrantDetach: ck.self.agent.grant.resource.delete
-      SidecarThreadEnsure: ck.self.agent.sidecar_thread.command.ensure
-      ParticipationSet: ck.self.agent.participation.resource.replace
-      ParticipationGet: ck.self.agent.participation.resource.get
+      Provision: ak.self.agent.command.provision
+      List: ak.self.agent.query.list
+      ProtocolDiscover: ak.self.agent.protocol.query.discover
+      Get: ak.self.agent.resource.get
+      Pause: ak.self.agent.command.pause
+      Resume: ak.self.agent.command.resume
+      Deactivate: ak.self.agent.command.deactivate
+      RotateKey: ak.self.agent.command.rotate_key
+      GrantAttach: ak.self.agent.grant.command.attach
+      GrantDetach: ak.self.agent.grant.resource.delete
+      SidecarThreadEnsure: ak.self.agent.sidecar_thread.command.ensure
+      ParticipationSet: ak.self.agent.participation.resource.replace
+      ParticipationGet: ak.self.agent.participation.resource.get
     EdgeApplet:
-      Describe: ck.edge.applet.query.describe
-      Ping: ck.edge.applet.query.ping
-      ProtocolMetadata: ck.edge.applet.query.protocol_metadata
-      ResolveActor: ck.edge.applet.actor.query.resolve
-      ResolveRealm: ck.edge.applet.realm.query.resolve
-      ThirdPartyLocations: ck.edge.applet.third_party_locations.query.list
-      ThirdPartyUsers: ck.edge.applet.third_party_users.query.list
-      Transaction: ck.edge.applet.command.transaction
+      Describe: ak.edge.applet.query.describe
+      Ping: ak.edge.applet.query.ping
+      ProtocolMetadata: ak.edge.applet.query.protocol_metadata
+      ResolveActor: ak.edge.applet.actor.query.resolve
+      ResolveRealm: ak.edge.applet.realm.query.resolve
+      ThirdPartyLocations: ak.edge.applet.third_party_locations.query.list
+      ThirdPartyUsers: ak.edge.applet.third_party_users.query.list
+      Transaction: ak.edge.applet.command.transaction
     SelfApplet:
-      InstallPreview: ck.self.applet.install.command.preview
-      Install: ck.self.applet.command.install
-      Revoke: ck.self.applet.command.revoke
-      GhostProvision: ck.self.applet.ghost.command.provision
+      InstallPreview: ak.self.applet.install.command.preview
+      Install: ak.self.applet.command.install
+      Revoke: ak.self.applet.command.revoke
+      GhostProvision: ak.self.applet.ghost.command.provision
     SelfAuthz:
-      Check: ck.self.authz.query.check
-      GetEffectiveGrants: ck.self.authz.grants.query.effective
-      GetInvites: ck.self.authz.invites.query.list
+      Check: ak.self.authz.query.check
+      GetEffectiveGrants: ak.self.authz.grants.query.effective
+      GetInvites: ak.self.authz.invites.query.list
     SelfBlob:
-      Get: ck.self.blob.resource.get
-      Head: ck.self.blob.resource.head
-      Upload: ck.self.blob.upload.create
-      Presign: ck.self.blob.command.presign
+      Get: ak.self.blob.resource.get
+      Head: ak.self.blob.resource.head
+      Upload: ak.self.blob.upload.create
+      Presign: ak.self.blob.command.presign
     SelfDeviceMessages:
-      Get: ck.self.device_messages.query.list
-      Send: ck.self.device_messages.command.send
-      Ack: ck.self.device_messages.command.ack
+      Get: ak.self.device_messages.query.list
+      Send: ak.self.device_messages.command.send
+      Ack: ak.self.device_messages.command.ack
     SelfContact:
-      Request: ck.self.contact.command.request
-      Respond: ck.self.contact.command.respond
-      List: ck.self.contact.query.list
-      Tombstone: ck.self.contact.command.tombstone
+      Request: ak.self.contact.command.request
+      Respond: ak.self.contact.command.respond
+      List: ak.self.contact.query.list
+      Tombstone: ak.self.contact.command.tombstone
     SelfCircle:
-      Create: ck.self.circle.command.create
-      List: ck.self.circle.query.list
-      Get: ck.self.circle.resource.get
-      MemberAdd: ck.self.circle.member.command.add
-      MemberRemove: ck.self.circle.member.resource.delete
-      ScopeRotate: ck.self.circle.command.rotate_scope
-      Archive: ck.self.circle.command.archive
-      Restore: ck.self.circle.command.restore
-      Tombstone: ck.self.circle.command.tombstone
+      Create: ak.self.circle.command.create
+      List: ak.self.circle.query.list
+      Get: ak.self.circle.resource.get
+      MemberAdd: ak.self.circle.member.command.add
+      MemberRemove: ak.self.circle.member.resource.delete
+      ScopeRotate: ak.self.circle.command.rotate_scope
+      Archive: ak.self.circle.command.archive
+      Restore: ak.self.circle.command.restore
+      Tombstone: ak.self.circle.command.tombstone
     SelfRealmLink:
-      List: ck.self.realm_link.query.list
-      Create: ck.self.realm_link.command.create
-      Delete: ck.self.realm_link.resource.delete
-      EffectivePolicy: ck.self.realm_link.query.effective_policy
+      List: ak.self.realm_link.query.list
+      Create: ak.self.realm_link.command.create
+      Delete: ak.self.realm_link.resource.delete
+      EffectivePolicy: ak.self.realm_link.query.effective_policy
     SelfRealmOrganization:
-      List: ck.self.realm_organization.query.list
+      List: ak.self.realm_organization.query.list
     SelfRealmPolicyServer:
-      Get: ck.self.realm_policy_server.resource.get
-      Replace: ck.self.realm_policy_server.resource.replace
-      Delete: ck.self.realm_policy_server.resource.delete
+      Get: ak.self.realm_policy_server.resource.get
+      Replace: ak.self.realm_policy_server.resource.replace
+      Delete: ak.self.realm_policy_server.resource.delete
     SelfRealm:
-      Get: ck.self.realm.resource.get
-      Archive: ck.self.realm.command.archive
-      Freeze: ck.self.realm.command.freeze
-      Tombstone: ck.self.realm.command.tombstone
-      Destroy: ck.self.realm.command.destroy
-      Export: ck.self.realm.query.export
-      ModerationPolicyEffective: ck.self.realm.moderation_policy.query.effective
-      ModerationPolicySet: ck.self.realm.moderation_policy.resource.replace
+      Get: ak.self.realm.resource.get
+      Archive: ak.self.realm.command.archive
+      Freeze: ak.self.realm.command.freeze
+      Tombstone: ak.self.realm.command.tombstone
+      Destroy: ak.self.realm.command.destroy
+      Export: ak.self.realm.query.export
+      ModerationPolicyEffective: ak.self.realm.moderation_policy.query.effective
+      ModerationPolicySet: ak.self.realm.moderation_policy.resource.replace
     SelfConsent:
-      List: ck.self.consent.query.list
-      Get: ck.self.consent.resource.get
-      Grant: ck.self.consent.command.grant
-      Revoke: ck.self.consent.command.revoke
-      Request: ck.self.consent.command.request
+      List: ak.self.consent.query.list
+      Get: ak.self.consent.resource.get
+      Grant: ak.self.consent.command.grant
+      Revoke: ak.self.consent.command.revoke
+      Request: ak.self.consent.command.request
     SelfAccountData:
-      List: ck.self.account_data.query.list
-      Get: ck.self.account_data.resource.get
-      Set: ck.self.account_data.resource.replace
-      Delete: ck.self.account_data.resource.delete
+      List: ak.self.account_data.query.list
+      Get: ak.self.account_data.resource.get
+      Set: ak.self.account_data.resource.replace
+      Delete: ak.self.account_data.resource.delete
     SelfReadCursor:
-      Set: ck.self.read_cursor.command.advance
-      List: ck.self.read_cursor.query.list
+      Set: ak.self.read_cursor.command.advance
+      List: ak.self.read_cursor.query.list
     SelfInviteReceivePolicy:
-      Get: ck.self.invite_receive_policy.resource.get
-      Set: ck.self.invite_receive_policy.resource.replace
+      Get: ak.self.invite_receive_policy.resource.get
+      Set: ak.self.invite_receive_policy.resource.replace
     SelfDirectConversation:
-      Resolve: ck.self.direct_conversation.command.resolve
+      Resolve: ak.self.direct_conversation.command.resolve
     FindDirectory:
-      Announce: ck.find.directory.command.announce
-      Describe: ck.find.directory.query.describe
-      PrivateContactDiscovery: ck.find.directory.query.private_contact_discovery
-      ResolveHandle: ck.find.directory.query.resolve_handle
-      ResolveAgentSelector: ck.find.directory.query.resolve_agent_selector
-      ListHandlesForSubject: ck.find.directory.query.list_handles_for_subject
-      ResolveOrganization: ck.find.directory.query.resolve_organization
-      ResolveRealm: ck.find.directory.query.resolve_realm
-      ResolveTarget: ck.find.directory.query.resolve_target
-      SearchActors: ck.find.directory.query.search_actors
-      SearchOrganizations: ck.find.directory.query.search_organizations
-      SearchRealms: ck.find.directory.query.search_realms
-      SearchUsers: ck.find.directory.query.search_users
-      PushRegister: ck.find.directory.push.command.register
-      Withdraw: ck.find.directory.command.withdraw
-      TakedownAppeal: ck.find.directory.command.takedown_appeal
+      Announce: ak.find.directory.command.announce
+      Describe: ak.find.directory.query.describe
+      PrivateContactDiscovery: ak.find.directory.query.private_contact_discovery
+      ResolveHandle: ak.find.directory.query.resolve_handle
+      ResolveAgentSelector: ak.find.directory.query.resolve_agent_selector
+      ListHandlesForSubject: ak.find.directory.query.list_handles_for_subject
+      ResolveOrganization: ak.find.directory.query.resolve_organization
+      ResolveRealm: ak.find.directory.query.resolve_realm
+      ResolveTarget: ak.find.directory.query.resolve_target
+      SearchActors: ak.find.directory.query.search_actors
+      SearchOrganizations: ak.find.directory.query.search_organizations
+      SearchRealms: ak.find.directory.query.search_realms
+      SearchUsers: ak.find.directory.query.search_users
+      PushRegister: ak.find.directory.push.command.register
+      Withdraw: ak.find.directory.command.withdraw
+      TakedownAppeal: ak.find.directory.command.takedown_appeal
     SelfEvents:
-      Describe: ck.self.events.query.describe
-      Frontier: ck.self.events.query.frontier
-      Get: ck.self.events.resource.get
-      Query: ck.self.events.query.scan
-      Resolve: ck.self.events.query.resolve
-      Subscribe: ck.self.events.stream.subscribe
-      Submit: ck.self.events.command.submit
+      Describe: ak.self.events.query.describe
+      Frontier: ak.self.events.query.frontier
+      Get: ak.self.events.resource.get
+      Query: ak.self.events.query.scan
+      Resolve: ak.self.events.query.resolve
+      Subscribe: ak.self.events.stream.subscribe
+      Submit: ak.self.events.command.submit
     PeerEvents:
-      Describe: ck.peer.events.query.describe
-      Frontier: ck.peer.events.query.frontier
-      Query: ck.peer.events.query.scan
-      Resolve: ck.peer.events.query.resolve
-      Submit: ck.peer.events.command.submit
+      Describe: ak.peer.events.query.describe
+      Frontier: ak.peer.events.query.frontier
+      Query: ak.peer.events.query.scan
+      Resolve: ak.peer.events.query.resolve
+      Submit: ak.peer.events.command.submit
     PeerInvites:
-      Submit: ck.peer.invites.command.submit
+      Submit: ak.peer.invites.command.submit
     PeerContacts:
-      Submit: ck.peer.contacts.command.submit
+      Submit: ak.peer.contacts.command.submit
     PeerSnapshot:
-      Head: ck.peer.snapshot.query.manifest_head
+      Head: ak.peer.snapshot.query.manifest_head
     SelfEphemeral:
-      Send: ck.self.ephemeral.command.send
+      Send: ak.self.ephemeral.command.send
     SelfCallMedia:
-      TokenExchange: ck.self.call.media.exchange.issue_token
+      TokenExchange: ak.self.call.media.exchange.issue_token
     RootIdentity:
-      DescribeRegistry: ck.root.identity.registry.query.describe
-      GetDocument: ck.root.identity.document.resource.get
-      GetLog: ck.root.identity.log.query.list
-      GetReceipts: ck.root.identity.receipts.query.list
-      Resolve: ck.root.identity.query.resolve
-      SubmitDidOperation: ck.root.identity.command.submit_did_operation
-      RecoveryPolicyGet: ck.root.identity.recovery_policy.resource.get
-      RecoveryPolicyPublish: ck.root.identity.recovery_policy.command.publish
-      RecoverySessionCreate: ck.root.identity.recovery_session.command.create
-      RecoverySessionGet: ck.root.identity.recovery_session.resource.get
-      RecoverySessionSubmitProof: ck.root.identity.recovery_session.command.submit_proof
-      RecoverySessionComplete: ck.root.identity.recovery_session.command.complete
+      DescribeRegistry: ak.root.identity.registry.query.describe
+      GetDocument: ak.root.identity.document.resource.get
+      GetLog: ak.root.identity.log.query.list
+      GetReceipts: ak.root.identity.receipts.query.list
+      Resolve: ak.root.identity.query.resolve
+      SubmitDidOperation: ak.root.identity.command.submit_did_operation
+      RecoveryPolicyGet: ak.root.identity.recovery_policy.resource.get
+      RecoveryPolicyPublish: ak.root.identity.recovery_policy.command.publish
+      RecoverySessionCreate: ak.root.identity.recovery_session.command.create
+      RecoverySessionGet: ak.root.identity.recovery_session.resource.get
+      RecoverySessionSubmitProof: ak.root.identity.recovery_session.command.submit_proof
+      RecoverySessionComplete: ak.root.identity.recovery_session.command.complete
     SelfKeys:
-      Claim: ck.self.keys.command.claim
-      BackupsDelete: ck.self.keys.backups.resource.delete
-      BackupsUnlock: ck.self.keys.backups.command.unlock
-      BackupsList: ck.self.keys.backups.query.list
-      BackupsReplace: ck.self.keys.backups.resource.replace
-      KeyPackagesClaim: ck.self.keys.keypackages.command.claim
-      KeyPackagesConsume: ck.self.keys.keypackages.command.consume
-      KeyPackagesRevoke: ck.self.keys.keypackages.command.revoke
-      KeyPackagesUpload: ck.self.keys.keypackages.upload.create
-      Query: ck.self.keys.query.lookup
-      Upload: ck.self.keys.upload.create
+      Claim: ak.self.keys.command.claim
+      BackupsDelete: ak.self.keys.backups.resource.delete
+      BackupsUnlock: ak.self.keys.backups.command.unlock
+      BackupsList: ak.self.keys.backups.query.list
+      BackupsReplace: ak.self.keys.backups.resource.replace
+      KeyPackagesClaim: ak.self.keys.keypackages.command.claim
+      KeyPackagesConsume: ak.self.keys.keypackages.command.consume
+      KeyPackagesRevoke: ak.self.keys.keypackages.command.revoke
+      KeyPackagesUpload: ak.self.keys.keypackages.upload.create
+      Query: ak.self.keys.query.lookup
+      Upload: ak.self.keys.upload.create
     SelfMedia:
-      IceConfig: ck.self.media.query.ice_config
+      IceConfig: ak.self.media.query.ice_config
     OpenMimi:
-      GroupInfo: ck.open.mimi.query.group_info
-      IdentifierQuery: ck.open.mimi.query.identifiers
-      KeyMaterial: ck.open.mimi.exchange.request_key_material
-      Notify: ck.open.mimi.command.notify
-      ProviderDirectory: ck.open.mimi.query.provider_directory
-      ProxyDownload: ck.open.mimi.command.proxy_download
-      ReportAbuse: ck.open.mimi.command.report_abuse
-      RequestConsent: ck.open.mimi.command.request_consent
-      RoomUpdate: ck.open.mimi.command.update_room
-      SubmitMessage: ck.open.mimi.command.submit_message
-      UpdateConsent: ck.open.mimi.command.update_consent
+      GroupInfo: ak.open.mimi.query.group_info
+      IdentifierQuery: ak.open.mimi.query.identifiers
+      KeyMaterial: ak.open.mimi.exchange.request_key_material
+      Notify: ak.open.mimi.command.notify
+      ProviderDirectory: ak.open.mimi.query.provider_directory
+      ProxyDownload: ak.open.mimi.command.proxy_download
+      ReportAbuse: ak.open.mimi.command.report_abuse
+      RequestConsent: ak.open.mimi.command.request_consent
+      RoomUpdate: ak.open.mimi.command.update_room
+      SubmitMessage: ak.open.mimi.command.submit_message
+      UpdateConsent: ak.open.mimi.command.update_consent
     OpenAgentPairing:
-      Resolve: ck.open.agent_pairing.query.resolve
-      SubmitRuntimeKeyRequest: ck.open.agent_pairing.command.submit_runtime_key_request
+      Resolve: ak.open.agent_pairing.query.resolve
+      SubmitRuntimeKeyRequest: ak.open.agent_pairing.command.submit_runtime_key_request
     OpenInviteLocator:
-      Resolve: ck.open.invite_locator.query.resolve
+      Resolve: ak.open.invite_locator.query.resolve
     SelfModeration:
-      Report: ck.self.moderation.command.report
+      Report: ak.self.moderation.command.report
     SelfPolicy:
-      Check: ck.self.policy.query.check
+      Check: ak.self.policy.query.check
     SelfSpace:
-      List: ck.self.space.query.list
+      List: ak.self.space.query.list
     SelfStrand:
-      List: ck.self.strand.query.list
+      List: ak.self.strand.query.list
     SelfMorph:
-      List: ck.self.morph.query.list
-      Get: ck.self.morph.resource.get
+      List: ak.self.morph.query.list
+      Get: ak.self.morph.resource.get
     SelfViews:
-      CollectionProjection: ck.self.views.collection_projection.command.materialize
+      CollectionProjection: ak.self.views.collection_projection.command.materialize
     EdgePush:
-      Notify: ck.edge.push.command.notify
-      RegisterDevice: ck.edge.push.command.register_device
-      UnregisterDevice: ck.edge.push.command.unregister_device
+      Notify: ak.edge.push.command.notify
+      RegisterDevice: ak.edge.push.command.register_device
+      UnregisterDevice: ak.edge.push.command.unregister_device
     Server:
-      Describe: ck.server.query.describe
+      Describe: ak.server.query.describe
     SelfAccount:
-      Describe: ck.self.account.query.describe
-      Viewer: ck.self.account.query.viewer
-      UpdateProfile: ck.self.account.command.update_profile
-      Subscribe: ck.self.account.stream.subscribe
-      CursorRevoke: ck.self.account.command.revoke_cursor
+      Describe: ak.self.account.query.describe
+      Viewer: ak.self.account.query.viewer
+      UpdateProfile: ak.self.account.command.update_profile
+      Subscribe: ak.self.account.stream.subscribe
+      CursorRevoke: ak.self.account.command.revoke_cursor
     SelfSnapshot:
-      Head: ck.self.snapshot.query.manifest_head
+      Head: ak.self.snapshot.query.manifest_head
 mq:
   envelope:
     required:
@@ -280,120 +280,120 @@ mq:
       signatures:
         type: array
   topics:
-    self.events.command.submit: ck.self.events.command.submit
-    self.events.query.scan.resolve: ck.self.events.query.resolve
-    self.events.query.scan: ck.self.events.query.scan
-    self.events.stream.subscribe: ck.self.events.stream.subscribe
-    peer.events.query.scan.describe: ck.peer.events.query.describe
-    peer.events.command.submit: ck.peer.events.command.submit
-    peer.events.query.scan.resolve: ck.peer.events.query.resolve
-    peer.events.query.scan: ck.peer.events.query.scan
-    peer.events.query.scan.frontier: ck.peer.events.query.frontier
-    peer.invites.command.submit: ck.peer.invites.command.submit
-    peer.contacts.command.submit: ck.peer.contacts.command.submit
-    peer.snapshot.query.manifest_head: ck.peer.snapshot.query.manifest_head
-    self.ephemeral.command.send: ck.self.ephemeral.command.send
-    self.call.media.exchange.issue_token: ck.self.call.media.exchange.issue_token
-    self.account.stream.subscribe: ck.self.account.stream.subscribe
-    self.account.query.viewer: ck.self.account.query.viewer
-    self.account.command.update_profile: ck.self.account.command.update_profile
-    self.account.command.revoke_cursor: ck.self.account.command.revoke_cursor
-    gate.account.command.register: ck.gate.account.command.register
-    gate.account.command.revoke_session: ck.gate.account.command.revoke_session
-    gate.account.command.pair_agent_key: ck.gate.account.command.pair_agent_key
-    self.agent.command.provision: ck.self.agent.command.provision
-    self.agent.query.list: ck.self.agent.query.list
-    self.agent.protocol.query.discover: ck.self.agent.protocol.query.discover
-    self.agent.resource.get: ck.self.agent.resource.get
-    self.agent.command.pause: ck.self.agent.command.pause
-    self.agent.command.resume: ck.self.agent.command.resume
-    self.agent.command.deactivate: ck.self.agent.command.deactivate
-    self.agent.command.rotate_key: ck.self.agent.command.rotate_key
-    self.agent.grant.command.attach: ck.self.agent.grant.command.attach
-    self.agent.grant.resource.delete: ck.self.agent.grant.resource.delete
-    self.agent.sidecar_thread.command.ensure: ck.self.agent.sidecar_thread.command.ensure
-    self.agent.participation.resource.replace: ck.self.agent.participation.resource.replace
-    self.agent.participation.resource.get: ck.self.agent.participation.resource.get
-    self.contact.command.request: ck.self.contact.command.request
-    self.contact.command.respond: ck.self.contact.command.respond
-    self.contact.query.list: ck.self.contact.query.list
-    self.contact.command.tombstone: ck.self.contact.command.tombstone
-    self.invite_receive_policy.resource.get: ck.self.invite_receive_policy.resource.get
-    self.invite_receive_policy.resource.replace: ck.self.invite_receive_policy.resource.replace
-    self.direct_conversation.command.resolve: ck.self.direct_conversation.command.resolve
-    self.circle.command.create: ck.self.circle.command.create
-    self.circle.query.list: ck.self.circle.query.list
-    self.circle.resource.get: ck.self.circle.resource.get
-    self.circle.member.command.add: ck.self.circle.member.command.add
-    self.circle.member.resource.delete: ck.self.circle.member.resource.delete
-    self.circle.command.rotate_scope: ck.self.circle.command.rotate_scope
-    self.circle.command.archive: ck.self.circle.command.archive
-    self.circle.command.restore: ck.self.circle.command.restore
-    self.circle.command.tombstone: ck.self.circle.command.tombstone
-    self.realm_link.query.list: ck.self.realm_link.query.list
-    self.realm_link.command.create: ck.self.realm_link.command.create
-    self.realm_link.resource.delete: ck.self.realm_link.resource.delete
-    self.realm_link.query.effective_policy: ck.self.realm_link.query.effective_policy
-    self.realm_organization.query.list: ck.self.realm_organization.query.list
-    self.realm_policy_server.resource.get: ck.self.realm_policy_server.resource.get
-    self.realm_policy_server.resource.replace: ck.self.realm_policy_server.resource.replace
-    self.realm_policy_server.resource.delete: ck.self.realm_policy_server.resource.delete
-    self.realm.resource.get: ck.self.realm.resource.get
-    self.realm.command.archive: ck.self.realm.command.archive
-    self.realm.command.freeze: ck.self.realm.command.freeze
-    self.realm.command.tombstone: ck.self.realm.command.tombstone
-    self.realm.command.destroy: ck.self.realm.command.destroy
-    self.realm.query.export: ck.self.realm.query.export
-    self.realm.moderation_policy.query.effective: ck.self.realm.moderation_policy.query.effective
-    self.realm.moderation_policy.resource.replace: ck.self.realm.moderation_policy.resource.replace
-    self.consent.query.list: ck.self.consent.query.list
-    self.consent.resource.get: ck.self.consent.resource.get
-    self.consent.command.grant: ck.self.consent.command.grant
-    self.consent.command.revoke: ck.self.consent.command.revoke
-    self.consent.command.request: ck.self.consent.command.request
-    self.account_data.query.list: ck.self.account_data.query.list
-    self.account_data.resource.get: ck.self.account_data.resource.get
-    self.account_data.resource.replace: ck.self.account_data.resource.replace
-    self.account_data.resource.delete: ck.self.account_data.resource.delete
-    self.read_cursor.command.advance: ck.self.read_cursor.command.advance
-    self.read_cursor.query.list: ck.self.read_cursor.query.list
-    find.directory.query.private_contact_discovery: ck.find.directory.query.private_contact_discovery
-    find.directory.query.resolve_agent_selector: ck.find.directory.query.resolve_agent_selector
-    find.directory.query.list_handles_for_subject: ck.find.directory.query.list_handles_for_subject
-    find.directory.command.announce: ck.find.directory.command.announce
-    find.directory.command.withdraw: ck.find.directory.command.withdraw
-    find.directory.command.takedown_appeal: ck.find.directory.command.takedown_appeal
-    find.directory.push.command.register: ck.find.directory.push.command.register
-    self.keys.keypackages.upload.create: ck.self.keys.keypackages.upload.create
-    self.keys.keypackages.command.claim: ck.self.keys.keypackages.command.claim
-    self.keys.keypackages.command.consume: ck.self.keys.keypackages.command.consume
-    self.keys.keypackages.command.revoke: ck.self.keys.keypackages.command.revoke
-    self.keys.backups.resource.replace: ck.self.keys.backups.resource.replace
-    self.keys.backups.query.list: ck.self.keys.backups.query.list
-    self.keys.backups.command.unlock: ck.self.keys.backups.command.unlock
-    self.keys.backups.resource.delete: ck.self.keys.backups.resource.delete
-    self.moderation.command.report: ck.self.moderation.command.report
-    self.space.query.list: ck.self.space.query.list
-    self.strand.query.list: ck.self.strand.query.list
-    self.morph.query.list: ck.self.morph.query.list
-    self.morph.resource.get: ck.self.morph.resource.get
-    self.views.collection_projection.command.materialize: ck.self.views.collection_projection.command.materialize
-    open.mimi.query.provider_directory: ck.open.mimi.query.provider_directory
-    open.mimi.exchange.request_key_material: ck.open.mimi.exchange.request_key_material
-    open.mimi.command.update_room: ck.open.mimi.command.update_room
-    open.mimi.command.notify: ck.open.mimi.command.notify
-    open.mimi.command.submit_message: ck.open.mimi.command.submit_message
-    open.mimi.query.group_info: ck.open.mimi.query.group_info
-    open.mimi.command.request_consent: ck.open.mimi.command.request_consent
-    open.mimi.command.update_consent: ck.open.mimi.command.update_consent
-    open.mimi.query.identifiers: ck.open.mimi.query.identifiers
-    open.mimi.command.report_abuse: ck.open.mimi.command.report_abuse
-    open.mimi.command.proxy_download: ck.open.mimi.command.proxy_download
-    open.invite_locator.query.resolve: ck.open.invite_locator.query.resolve
-    open.agent_pairing.query.resolve: ck.open.agent_pairing.query.resolve
-    open.agent_pairing.command.submit_runtime_key_request: ck.open.agent_pairing.command.submit_runtime_key_request
-    edge.push.command.notify: ck.edge.push.command.notify
-    self.authz.query.check: ck.self.authz.query.check
+    self.events.command.submit: ak.self.events.command.submit
+    self.events.query.scan.resolve: ak.self.events.query.resolve
+    self.events.query.scan: ak.self.events.query.scan
+    self.events.stream.subscribe: ak.self.events.stream.subscribe
+    peer.events.query.scan.describe: ak.peer.events.query.describe
+    peer.events.command.submit: ak.peer.events.command.submit
+    peer.events.query.scan.resolve: ak.peer.events.query.resolve
+    peer.events.query.scan: ak.peer.events.query.scan
+    peer.events.query.scan.frontier: ak.peer.events.query.frontier
+    peer.invites.command.submit: ak.peer.invites.command.submit
+    peer.contacts.command.submit: ak.peer.contacts.command.submit
+    peer.snapshot.query.manifest_head: ak.peer.snapshot.query.manifest_head
+    self.ephemeral.command.send: ak.self.ephemeral.command.send
+    self.call.media.exchange.issue_token: ak.self.call.media.exchange.issue_token
+    self.account.stream.subscribe: ak.self.account.stream.subscribe
+    self.account.query.viewer: ak.self.account.query.viewer
+    self.account.command.update_profile: ak.self.account.command.update_profile
+    self.account.command.revoke_cursor: ak.self.account.command.revoke_cursor
+    gate.account.command.register: ak.gate.account.command.register
+    gate.account.command.revoke_session: ak.gate.account.command.revoke_session
+    gate.account.command.pair_agent_key: ak.gate.account.command.pair_agent_key
+    self.agent.command.provision: ak.self.agent.command.provision
+    self.agent.query.list: ak.self.agent.query.list
+    self.agent.protocol.query.discover: ak.self.agent.protocol.query.discover
+    self.agent.resource.get: ak.self.agent.resource.get
+    self.agent.command.pause: ak.self.agent.command.pause
+    self.agent.command.resume: ak.self.agent.command.resume
+    self.agent.command.deactivate: ak.self.agent.command.deactivate
+    self.agent.command.rotate_key: ak.self.agent.command.rotate_key
+    self.agent.grant.command.attach: ak.self.agent.grant.command.attach
+    self.agent.grant.resource.delete: ak.self.agent.grant.resource.delete
+    self.agent.sidecar_thread.command.ensure: ak.self.agent.sidecar_thread.command.ensure
+    self.agent.participation.resource.replace: ak.self.agent.participation.resource.replace
+    self.agent.participation.resource.get: ak.self.agent.participation.resource.get
+    self.contact.command.request: ak.self.contact.command.request
+    self.contact.command.respond: ak.self.contact.command.respond
+    self.contact.query.list: ak.self.contact.query.list
+    self.contact.command.tombstone: ak.self.contact.command.tombstone
+    self.invite_receive_policy.resource.get: ak.self.invite_receive_policy.resource.get
+    self.invite_receive_policy.resource.replace: ak.self.invite_receive_policy.resource.replace
+    self.direct_conversation.command.resolve: ak.self.direct_conversation.command.resolve
+    self.circle.command.create: ak.self.circle.command.create
+    self.circle.query.list: ak.self.circle.query.list
+    self.circle.resource.get: ak.self.circle.resource.get
+    self.circle.member.command.add: ak.self.circle.member.command.add
+    self.circle.member.resource.delete: ak.self.circle.member.resource.delete
+    self.circle.command.rotate_scope: ak.self.circle.command.rotate_scope
+    self.circle.command.archive: ak.self.circle.command.archive
+    self.circle.command.restore: ak.self.circle.command.restore
+    self.circle.command.tombstone: ak.self.circle.command.tombstone
+    self.realm_link.query.list: ak.self.realm_link.query.list
+    self.realm_link.command.create: ak.self.realm_link.command.create
+    self.realm_link.resource.delete: ak.self.realm_link.resource.delete
+    self.realm_link.query.effective_policy: ak.self.realm_link.query.effective_policy
+    self.realm_organization.query.list: ak.self.realm_organization.query.list
+    self.realm_policy_server.resource.get: ak.self.realm_policy_server.resource.get
+    self.realm_policy_server.resource.replace: ak.self.realm_policy_server.resource.replace
+    self.realm_policy_server.resource.delete: ak.self.realm_policy_server.resource.delete
+    self.realm.resource.get: ak.self.realm.resource.get
+    self.realm.command.archive: ak.self.realm.command.archive
+    self.realm.command.freeze: ak.self.realm.command.freeze
+    self.realm.command.tombstone: ak.self.realm.command.tombstone
+    self.realm.command.destroy: ak.self.realm.command.destroy
+    self.realm.query.export: ak.self.realm.query.export
+    self.realm.moderation_policy.query.effective: ak.self.realm.moderation_policy.query.effective
+    self.realm.moderation_policy.resource.replace: ak.self.realm.moderation_policy.resource.replace
+    self.consent.query.list: ak.self.consent.query.list
+    self.consent.resource.get: ak.self.consent.resource.get
+    self.consent.command.grant: ak.self.consent.command.grant
+    self.consent.command.revoke: ak.self.consent.command.revoke
+    self.consent.command.request: ak.self.consent.command.request
+    self.account_data.query.list: ak.self.account_data.query.list
+    self.account_data.resource.get: ak.self.account_data.resource.get
+    self.account_data.resource.replace: ak.self.account_data.resource.replace
+    self.account_data.resource.delete: ak.self.account_data.resource.delete
+    self.read_cursor.command.advance: ak.self.read_cursor.command.advance
+    self.read_cursor.query.list: ak.self.read_cursor.query.list
+    find.directory.query.private_contact_discovery: ak.find.directory.query.private_contact_discovery
+    find.directory.query.resolve_agent_selector: ak.find.directory.query.resolve_agent_selector
+    find.directory.query.list_handles_for_subject: ak.find.directory.query.list_handles_for_subject
+    find.directory.command.announce: ak.find.directory.command.announce
+    find.directory.command.withdraw: ak.find.directory.command.withdraw
+    find.directory.command.takedown_appeal: ak.find.directory.command.takedown_appeal
+    find.directory.push.command.register: ak.find.directory.push.command.register
+    self.keys.keypackages.upload.create: ak.self.keys.keypackages.upload.create
+    self.keys.keypackages.command.claim: ak.self.keys.keypackages.command.claim
+    self.keys.keypackages.command.consume: ak.self.keys.keypackages.command.consume
+    self.keys.keypackages.command.revoke: ak.self.keys.keypackages.command.revoke
+    self.keys.backups.resource.replace: ak.self.keys.backups.resource.replace
+    self.keys.backups.query.list: ak.self.keys.backups.query.list
+    self.keys.backups.command.unlock: ak.self.keys.backups.command.unlock
+    self.keys.backups.resource.delete: ak.self.keys.backups.resource.delete
+    self.moderation.command.report: ak.self.moderation.command.report
+    self.space.query.list: ak.self.space.query.list
+    self.strand.query.list: ak.self.strand.query.list
+    self.morph.query.list: ak.self.morph.query.list
+    self.morph.resource.get: ak.self.morph.resource.get
+    self.views.collection_projection.command.materialize: ak.self.views.collection_projection.command.materialize
+    open.mimi.query.provider_directory: ak.open.mimi.query.provider_directory
+    open.mimi.exchange.request_key_material: ak.open.mimi.exchange.request_key_material
+    open.mimi.command.update_room: ak.open.mimi.command.update_room
+    open.mimi.command.notify: ak.open.mimi.command.notify
+    open.mimi.command.submit_message: ak.open.mimi.command.submit_message
+    open.mimi.query.group_info: ak.open.mimi.query.group_info
+    open.mimi.command.request_consent: ak.open.mimi.command.request_consent
+    open.mimi.command.update_consent: ak.open.mimi.command.update_consent
+    open.mimi.query.identifiers: ak.open.mimi.query.identifiers
+    open.mimi.command.report_abuse: ak.open.mimi.command.report_abuse
+    open.mimi.command.proxy_download: ak.open.mimi.command.proxy_download
+    open.invite_locator.query.resolve: ak.open.invite_locator.query.resolve
+    open.agent_pairing.query.resolve: ak.open.agent_pairing.query.resolve
+    open.agent_pairing.command.submit_runtime_key_request: ak.open.agent_pairing.command.submit_runtime_key_request
+    edge.push.command.notify: ak.edge.push.command.notify
+    self.authz.query.check: ak.self.authz.query.check
 libp2p:
   envelope:
     required:
@@ -421,6 +421,6 @@ libp2p:
   suggested_protocols:
     - /arkret/sync/1.0.0
     - /arkret/blob/1.0.0
-  # Federation API 使用 peer events operations 与 ck.peer.snapshot.query.manifest_head。
+  # Federation API 使用 peer events operations 与 ak.peer.snapshot.query.manifest_head。
   # libp2p binding 使用 /arkret/sync/1.0.0 + service-signature envelope，
   # 不另设独立 /arkret/federation/1.0.0 protocol multiplexer。

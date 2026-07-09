@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/event-envelope.schema.json",
   "title": "Arkret Event Envelope",
-  "description": "Single canonical wire object for **durable Event Envelope** — i.e. events with wire_scope=durable_event OR wire_scope=actor_private_event in event-kind-registry.json. Reducer-input events (reducer_input=true) are CBA events: DataEvents carry top-level effects / seal_ref / auth_context; Control Moves carry effects / seal_basis and optional preconditions. Non-reducer events (read cursor, batch receipts, range completeness, audit RYW, etc.) omit effects / seal_ref / seal_basis. Causal refs use prev_refs (actor chain), causal_refs[] and refs[] (semantic refs with role: authorized_by, attestation, parent_event, after, recovery_capability, state_witness, inclusion_proof, ...). proof.event_digest is the hash of canonical producer event bytes after removing proofs, unsigned, and reducer-stamped top-level fields (currently effective_scope and actor_kind); detached_jws signs the canonical proof binding object that includes fixed context='ak.event-proof-v1', event_digest, actor_id, verification_method, created_at, and domain/audience where present. hlc IS included in canonical producer event bytes (integrity-protected) but is semantically advisory — see encoding.md §6-§7.\n\n**Wire-scope boundary (normative)**: ephemeral_event kinds (ck.presence, ck.typing, ck.receipt.read, ck.call.signal) MUST NOT appear with this schema — they use the dedicated ephemeral-envelope.schema.json carried on the ephemeral channel (and MUST NOT advance Seal coverage, governance state_root, or reducer state). Likewise ck.key.verification.* and ck.realm_key.request use device-message.schema.json on the point-to-point to-device channel. ck.self.events.command.submit MUST schema_violation any event whose kind has wire_scope=ephemeral_event in the registry — see operations-sync.md §2.3 (wire-scope reject rule).",
+  "description": "Single canonical wire object for **durable Event Envelope** — i.e. events with wire_scope=durable_event OR wire_scope=actor_private_event in event-kind-registry.json. Reducer-input events (reducer_input=true) are CBA events: DataEvents carry top-level effects / seal_ref / auth_context; Control Moves carry effects / seal_basis and optional preconditions. Non-reducer events (read cursor, batch receipts, range completeness, audit RYW, etc.) omit effects / seal_ref / seal_basis. Causal refs use prev_refs (actor chain), causal_refs[] and refs[] (semantic refs with role: authorized_by, attestation, parent_event, after, recovery_capability, state_witness, inclusion_proof, ...). proof.event_digest is the hash of canonical producer event bytes after removing proofs, unsigned, and reducer-stamped top-level fields (currently effective_scope and actor_kind); detached_jws signs the canonical proof binding object that includes fixed context='ak.event-proof-v1', event_digest, actor_id, verification_method, created_at, and domain/audience where present. hlc IS included in canonical producer event bytes (integrity-protected) but is semantically advisory — see encoding.md §6-§7.\n\n**Wire-scope boundary (normative)**: ephemeral_event kinds (ak.presence, ak.typing, ak.receipt.read, ak.call.signal) MUST NOT appear with this schema — they use the dedicated ephemeral-envelope.schema.json carried on the ephemeral channel (and MUST NOT advance Seal coverage, governance state_root, or reducer state). Likewise ak.key.verification.* and ak.realm_key.request use device-message.schema.json on the point-to-point to-device channel. ak.self.events.command.submit MUST schema_violation any event whose kind has wire_scope=ephemeral_event in the registry — see operations-sync.md §2.3 (wire-scope reject rule).",
   "type": "object",
   "required": [
     "event_id",
@@ -24,7 +24,7 @@
     "kind": {
       "type": "string",
       "pattern": "^ck\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
-      "description": "Standard ck.* effect kinds MUST appear in artifacts/registry/event-kind-registry.json. State convergence is defined by CBA: DataEvents use effects + seal_ref + auth_context; Control Moves use effects + seal_basis and Seal finality; per-cell Lattice join remains deterministic."
+      "description": "Standard ak.* effect kinds MUST appear in artifacts/registry/event-kind-registry.json. State convergence is defined by CBA: DataEvents use effects + seal_ref + auth_context; Control Moves use effects + seal_basis and Seal finality; per-cell Lattice join remains deterministic."
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -56,7 +56,7 @@
     },
     "applet_id": {
       "$ref": "#/$defs/applet_id",
-      "description": "Optional signed Applet provenance. Required by ck.profile.applet_* when the Event is introduced by an Applet, Ghost Actor, bridge, or delegated applet path. Enters canonical event bytes and therefore is covered by proof.event_digest. When present, authorization_ref MUST also be present and MUST bind this applet_id and registration_epoch per zh/extensions/applet-integration.md section 11."
+      "description": "Optional signed Applet provenance. Required by ak.profile.applet_* when the Event is introduced by an Applet, Ghost Actor, bridge, or delegated applet path. Enters canonical event bytes and therefore is covered by proof.event_digest. When present, authorization_ref MUST also be present and MUST bind this applet_id and registration_epoch per zh/extensions/applet-integration.md section 11."
     },
     "external_ref": {
       "$ref": "#/$defs/external_ref",
@@ -84,7 +84,7 @@
     "hlc": {
       "type": "string",
       "pattern": "^[0-9a-f]{12}-[0-9a-f]{4}-[0-9a-f]{8}$",
-      "description": "Advisory hybrid logical clock. INCLUDED in canonical bytes for signing and event digest (so it is integrity-protected and cannot be rewritten by relays), but semantically advisory: used only as a deterministic tiebreaker for timeline display when two events are causally unreachable. MUST NOT influence authorization, lattice join, Control Move precondition comparison, or Seal finality. See encoding.md §7 and event-auth-state-resolution.md §3 rule 1."
+      "description": "Advisory hybrid logical cloak. INCLUDED in canonical bytes for signing and event digest (so it is integrity-protected and cannot be rewritten by relays), but semantically advisory: used only as a deterministic tiebreaker for timeline display when two events are causally unreachable. MUST NOT influence authorization, lattice join, Control Move precondition comparison, or Seal finality. See encoding.md §7 and event-auth-state-resolution.md §3 rule 1."
     },
     "prev_refs": {
       "type": "array",
@@ -97,7 +97,7 @@
     },
     "refs": {
       "type": "array",
-      "description": "Semantic refs with role. Roles include: authorized_by, attestation, parent_event, after, audit_pair, recovery_capability, state_witness, inclusion_proof. audit_pair links a privacy-sensitive business event to its ck.audit.accessed record in the same ordered submit batch or an equivalent sealed control record; state_witness/inclusion_proof are critical for conflict-recovery events; see event-auth-state-resolution.md §7.",
+      "description": "Semantic refs with role. Roles include: authorized_by, attestation, parent_event, after, audit_pair, recovery_capability, state_witness, inclusion_proof. audit_pair links a privacy-sensitive business event to its ak.audit.accessed record in the same ordered submit batch or an equivalent sealed control record; state_witness/inclusion_proof are critical for conflict-recovery events; see event-auth-state-resolution.md §7.",
       "maxItems": 128,
       "items": {
         "$ref": "#/$defs/semantic_ref"
@@ -400,7 +400,7 @@
       }
     },
     {
-      "$comment": "Wire-scope boundary (normative, T02). Kinds with wire_scope=ephemeral_event in event-kind-registry.json MUST NOT appear in the durable Event Envelope. They use ephemeral-envelope.schema.json (broadcast: presence/typing/receipt/call.signal) or device-message.schema.json (point-to-point to-device: ck.key.verification.*, ck.secret.*). ck.self.events.command.submit MUST schema_violation on any wire bytes matching this enum; reducer/state path MUST NOT advance Seal coverage or actor_seq for these kinds.",
+      "$comment": "Wire-scope boundary (normative, T02). Kinds with wire_scope=ephemeral_event in event-kind-registry.json MUST NOT appear in the durable Event Envelope. They use ephemeral-envelope.schema.json (broadcast: presence/typing/receipt/call.signal) or device-message.schema.json (point-to-point to-device: ak.key.verification.*, ak.secret.*). ak.self.events.command.submit MUST schema_violation on any wire bytes matching this enum; reducer/state path MUST NOT advance Seal coverage or actor_seq for these kinds.",
       "not": {
         "properties": {
           "kind": {
@@ -429,7 +429,7 @@
       }
     },
     {
-      "$comment": "Known active reducer-input event kinds MUST carry effects and exactly one CBA basis shape: DataEvent (seal_ref + auth_context, no preconditions/seal_basis), Control Move (seal_basis, no seal_ref/auth_context), the ck.realm.create genesis bootstrap shape, OR a Realm bootstrap follow-up shape (same submit batch after create; batch context is enforced by admission, not JSON Schema). Unknown extension kinds must declare their own critical extension requirements and are not matched by this branch.",
+      "$comment": "Known active reducer-input event kinds MUST carry effects and exactly one CBA basis shape: DataEvent (seal_ref + auth_context, no preconditions/seal_basis), Control Move (seal_basis, no seal_ref/auth_context), the ak.realm.create genesis bootstrap shape, OR a Realm bootstrap follow-up shape (same submit batch after create; batch context is enforced by admission, not JSON Schema). Unknown extension kinds must declare their own critical extension requirements and are not matched by this branch.",
       "if": {
         "properties": {
           "kind": {
@@ -3605,7 +3605,7 @@
             "insert",
             "delete"
           ],
-          "description": "add/remove → or_set; set → mv_register/cas_register/lww_register; transition → fsm; inc/dec → counter; append → ordered_log; insert/delete → rga (rga + lww_register require ck.profile.collaborative_text.v1)."
+          "description": "add/remove → or_set; set → mv_register/cas_register/lww_register; transition → fsm; inc/dec → counter; append → ordered_log; insert/delete → rga (rga + lww_register require ak.profile.collaborative_text.v1)."
         },
         "tag": {
           "type": "string"
@@ -3645,7 +3645,7 @@
         "role": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,63}$",
-          "description": "Common roles include authorized_by, attestation, parent_event, after, audit_pair, recovery_capability, state_witness, inclusion_proof. audit_pair links a privacy-sensitive business event to its ck.audit.accessed record in the same ordered submit batch or an equivalent sealed control record; state_witness/inclusion_proof are critical for conflict-recovery events; see event-auth-state-resolution.md §7."
+          "description": "Common roles include authorized_by, attestation, parent_event, after, audit_pair, recovery_capability, state_witness, inclusion_proof. audit_pair links a privacy-sensitive business event to its ak.audit.accessed record in the same ordered submit batch or an equivalent sealed control record; state_witness/inclusion_proof are critical for conflict-recovery events; see event-auth-state-resolution.md §7."
         },
         "critical": {
           "type": "boolean",

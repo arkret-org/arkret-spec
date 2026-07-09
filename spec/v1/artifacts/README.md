@@ -62,7 +62,7 @@ updated: 2026-05-25
 判定规则：
 
 - canonical artifact（schemas / contract-catalog）是手工真源；generated registry view 必须由 pipeline 重生成，绝不手工补丁。
-- 新增或修改某 `ck.*` event kind 时，`contract-catalog.json`、对应 payload schema `$defs`、由此派生的 `event-kind-registry.json` / `schema-registry.json` 与 `schema-registry.md` 必须在同一变更内一致更新；只改其一即视为 drift。
+- 新增或修改某 `ak.*` event kind 时，`contract-catalog.json`、对应 payload schema `$defs`、由此派生的 `event-kind-registry.json` / `schema-registry.json` 与 `schema-registry.md` 必须在同一变更内一致更新；只改其一即视为 drift。
 - 任意一处的 schema_id / event_kind / typed-ID 出现而其余真源缺失，`artifact_pipeline.py check` 与 `lint_artifacts.py` 会拦截。
 
 ## 2. 维护与校验流水线
@@ -95,7 +95,7 @@ JSON Schema 只验证 wire object 的结构层。一个标准 Event 只有在同
 ## 3. CI 要求
 
 `.github/workflows/artifact-lint.yml` 在 PR 上以同一入口执行 `generate --check` 与 lint，
-保证仓库内协议契约与机器视图一致。任何 PR 修改 `contract-catalog.json`、schemas、fixtures、OpenAPI、profile 或 conformance vector 时，`python tools/artifact_pipeline.py check` 与 `node site/scripts/crossref-check.mjs` 都是发布门禁；不得以手工更新 generated registry 替代 pipeline。
+保证仓库内协议契约与机器视图一致。任何 PR 修改 `contract-catalog.json`、schemas、fixtures、OpenAPI、profile 或 conformance vector 时，`python tools/artifact_pipeline.py check` 与 `node site/scripts/crossref-cheak.mjs` 都是发布门禁；不得以手工更新 generated registry 替代 pipeline。
 
 ### 3.1 下游同步约定（normative）
 

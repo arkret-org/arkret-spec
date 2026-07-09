@@ -20,7 +20,7 @@ updated: 2026-07-07
 
 - **Constraint** 是 grant / policy 内的静态声明，描述“这个能力最多可在什么范围内、以什么附加条件行使”。它可以声明需要某类 claim、approval、device/session 或 challenge，但不直接携带一次运行时 allow 结果。
 - **Control Move precondition** 只表达 cell 原子性、state freshness 和 reducer 可验证的因果条件；它不替代授权，也不负责发起外部 claim 查询。DataEvent 不携带 `preconditions[]`，其数据面约束由 causal refs、`seal_ref` 与 Lattice 规则表达。
-- **Policy Server obligation** 是运行时 claim / approval / challenge 的唯一动态评估出口。任何需要检查 issuer revocation、presentation audience、request hash、approval nonce、challenge proof 或外部状态的 constraint，MUST 被归约为 `ck.self.policy.query.check`（默认 path `/_arkret/self/policy/check`）obligation，并由 Policy Server 返回可签名、可重放防护的 proof；reducer 只验证 obligation proof 与原始 request / DataEvent 或 Control Move canonical hash 绑定一致。
+- **Policy Server obligation** 是运行时 claim / approval / challenge 的唯一动态评估出口。任何需要检查 issuer revocation、presentation audience、request hash、approval nonce、challenge proof 或外部状态的 constraint，MUST 被归约为 `ak.self.policy.query.check`（默认 path `/_arkret/self/policy/check`）obligation，并由 Policy Server 返回可签名、可重放防护的 proof；reducer 只验证 obligation proof 与原始 request / DataEvent 或 Control Move canonical hash 绑定一致。
 
 因此，`claim_based` constraint 中的 `requires_claims[]`、approval 字段和 challenge 字段是声明性要求，不得被实现解释成“只要 grant 中列出就自动通过”。没有对应 Policy Server proof / accepted approval Event / reducer 可验证 claim evidence 时，相关动作 MUST fail closed 或进入 pending。
 
@@ -53,25 +53,25 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 
 约束类型分为 **core** 与 **extension** 两组：
 
-- **core**：所有声明 `ck.profile.core_event_store.v1` 的实现 MUST 支持。这些类型表达最小授权语义。
+- **core**：所有声明 `ak.profile.core_event_store.v1` 的实现 MUST 支持。这些类型表达最小授权语义。
 - **extension**：profile-gated。实现声明对应 profile 时 MUST 支持；未声明 MUST fail closed（不得 silent ignore，避免 grant 在弱实现上语义放宽）。
 
 | 约束 family | subtype（可选） | 类别 | 说明 | 启用 profile |
 |-------------|---------------|------|------|------|
 | `temporal` | （省略 = 普通时间窗口） | core | `not_before` / `expires_at` 时间窗口。 | core |
-| `temporal` | `edit_window` | extension | `applies_to_actions=["ak.message.revise.own"]` + `message_edit_window` 限定自助编辑窗口。 | `ck.profile.chat_mvp.v1` |
-| `temporal` | `redact_window` | extension | `applies_to_actions=["ak.message.redact.own"]` + `message_redact_window` 限定自助撤回窗口。 | `ck.profile.chat_mvp.v1` |
+| `temporal` | `edit_window` | extension | `applies_to_actions=["ak.message.revise.own"]` + `message_edit_window` 限定自助编辑窗口。 | `ak.profile.chat_mvp.v1` |
+| `temporal` | `redact_window` | extension | `applies_to_actions=["ak.message.redact.own"]` + `message_redact_window` 限定自助撤回窗口。 | `ak.profile.chat_mvp.v1` |
 | `field_access` | （省略 = 列表比较） | core | 写入面 `allowed_write_fields` / `denied_write_fields`（§4.1 / §4.2）与读取面 `allowed_read_fields` / `denied_read_fields` / `sensitive_fields` / `sensitive_handling`（§4.3）。 | core |
 | `type_restriction` | — | core | 对象类型 / Realm kind / Morph type / facet 限制。 | core |
 | `scope_limitation` | （省略 = 普通 scope） | core | Realm / Strand / View / track 范围。 | core |
-| `scope_limitation` 带 `allowed_relation_kinds` / `allowed_*_container_refs` | — | extension | 看板 / 容器移动范围。 | `ck.profile.kanban_mvp.v1` |
+| `scope_limitation` 带 `allowed_relation_kinds` / `allowed_*_container_refs` | — | extension | 看板 / 容器移动范围。 | `ak.profile.kanban_mvp.v1` |
 | `delegation_control` | — | core | 委托深度、路径、`delegation_scope` 等。 | core |
 | `quota` | `rate` | core | 操作频率（`max_operations` + `period` + `constraint_scope` + `burst`）。 | core |
-| `quota` | `resource` | extension | 资源大小 / 数量（`blob_max_bytes` / `max_resources` / `max_total_blob_bytes`）。 | `ck.profile.constraint.resource_limit.v1` |
-| `claim_based` | `claim` | extension | `requires_claims[]` 凭证 / 证明要求；包含原 `accountability`（responsible / guardian / controller 通过 claim 表达）和原 `device_session`（device binding 通过 claim issuer = device cross-signing key 表达）。 | `ck.profile.constraint.claim_based.v1` |
-| `claim_based` | `approval` | extension | 预审批 / proposal-then-approve / approval workflow。 | `ck.profile.constraint.approval_workflow.v1` |
-| `confidentiality` | `encryption` | extension | 强制加密、key 轮换、key issuer。 | `ck.profile.constraint.encryption_requirement.v1` |
-| `confidentiality` | `visibility` | extension | 对象 / 消息可见性裁剪、`deny_redacted_history`。 | `ck.profile.constraint.visibility_control.v1` |
+| `quota` | `resource` | extension | 资源大小 / 数量（`blob_max_bytes` / `max_resources` / `max_total_blob_bytes`）。 | `ak.profile.constraint.resource_limit.v1` |
+| `claim_based` | `claim` | extension | `requires_claims[]` 凭证 / 证明要求；包含原 `accountability`（responsible / guardian / controller 通过 claim 表达）和原 `device_session`（device binding 通过 claim issuer = device cross-signing key 表达）。 | `ak.profile.constraint.claim_based.v1` |
+| `claim_based` | `approval` | extension | 预审批 / proposal-then-approve / approval workflow。 | `ak.profile.constraint.approval_workflow.v1` |
+| `confidentiality` | `encryption` | extension | 强制加密、key 轮换、key issuer。 | `ak.profile.constraint.encryption_requirement.v1` |
+| `confidentiality` | `visibility` | extension | 对象 / 消息可见性裁剪、`deny_redacted_history`。 | `ak.profile.constraint.visibility_control.v1` |
 
 > v1 共 8 个核心 typed family，narrow-scoped 子类作为可选 `subtype` 表达：`edit_window` / `redact_window` 走 `temporal` (subtype 标记)；`container_move` 走 `scope_limitation`；`rate_limiting` / `resource_limit` 走 `quota` (`subtype=rate` / `resource`)；`approval_workflow` / `accountability` 走 `claim_based` (`subtype=approval` / `accountability`)；device/session binding **不是独立 subtype**，并入 `claim_based` `subtype=claim`，通过 claim issuer = device cross-signing key 表达；`encryption_requirement` / `visibility_control` 走 `confidentiality` (`subtype=encryption` / `visibility`)。底层字段或 subtype 值——`recurrence` / `max_session_duration` / `condition.kind` / `requires_claims[]` 等都是合法字段（见 §3 / §4 / §10）。canonical 8 family：`temporal` / `field_access` / `type_restriction` / `scope_limitation` / `delegation_control` / `quota` / `claim_based` / `confidentiality`。
 
@@ -234,7 +234,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 
-`allowed_tracks` 只限制 Strand track 范围，不自动授予对应 track 的 message read/write 权限。Message 操作仍必须命中 `ck.message.*` action，并在已有 Realm 授权内满足 `allowed_tracks` action scope、history visibility 和 E2EE key eligibility。
+`allowed_tracks` 只限制 Strand track 范围，不自动授予对应 track 的 message read/write 权限。Message 操作仍必须命中 `ak.message.*` action，并在已有 Realm 授权内满足 `allowed_tracks` action scope、history visibility 和 E2EE key eligibility。
 
 `discussion` 不是独立实体或 selector kind。授权 discussion track 应使用 `allowed_tracks=["discussion"]`。`tracks.<name>.profile` 只是 track-local profile hint，v1 grant constraint 不定义按 profile 名称授权的字段；能否读取、发送或管理消息仍由 action、`allowed_tracks` action scope、history visibility 和 E2EE key eligibility 决定。
 
@@ -267,7 +267,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 
-`scope_limitation` 约束中的 `allowed_from_container_refs` / `allowed_to_container_refs` MUST 在授权判定中早于 operation 生效。这里的 container 是结构容器概念，不是新的对象类型或 ID 前缀；v1 标准容器由 Space 承担（例如 Board / List / 泳道）。目标 List 禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`ck.strand.move` / `ck.container.move_item` 不得直接生效。
+`scope_limitation` 约束中的 `allowed_from_container_refs` / `allowed_to_container_refs` MUST 在授权判定中早于 operation 生效。这里的 container 是结构容器概念，不是新的对象类型或 ID 前缀；v1 标准容器由 Space 承担（例如 Board / List / 泳道）。目标 List 禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`ak.strand.move` / `ak.container.move_item` 不得直接生效。
 
 `allowed_space_ids` / `denied_space_ids` MUST 使用 `ak:space:` ID；`allowed_from_container_refs` / `allowed_to_container_refs` 表达可移出 / 可移入的结构容器，也 MUST 使用 `ak:space:`（或 profile 明确声明的 `ak:strand:` / `ak:morph:` 容器对象）。Realm-wide 范围收窄应写在 resource selector 的 `realm:` 维度，不得把 `ak:realm:` 塞进 Space 或 container 字段。
 
@@ -286,7 +286,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 
-`blob_presign_scope` 是 `ck.self.blob.command.presign` 的必需约束之一，限制可签发的 purpose、Realm 和可选 blob ref pattern。`allowed_endpoints` / `allowed_data_classes` 用于 agent、applet、export、connector 等会把数据发往外部 endpoint 的 action；实现 MUST 对请求中的目标 endpoint 与数据分类做 fail-closed 匹配，未知 data class 或 endpoint 不得按 allow 处理。
+`blob_presign_scope` 是 `ak.self.blob.command.presign` 的必需约束之一，限制可签发的 purpose、Realm 和可选 blob ref pattern。`allowed_endpoints` / `allowed_data_classes` 用于 agent、applet、export、connector 等会把数据发往外部 endpoint 的 action；实现 MUST 对请求中的目标 endpoint 与数据分类做 fail-closed 匹配，未知 data class 或 endpoint 不得按 allow 处理。
 
 ## 7. 委托控制
 
@@ -316,11 +316,11 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 
 ### 7.3 委托控制字段的 reducer 求值规则（normative）
 
-§7.1 / §7.2 的委托控制字段不只是枚举声明；reducer 在 accept `ck.capability.delegate` 派生 grant 时 **MUST** 按下列规则求值，违反即 fail closed。这些规则与 [`capabilities.md` §10.1](./capabilities.md) 的收窄约束表叠加生效（先过 §10.1 的 actions/resources/window 收窄，再过本节字段规则）。
+§7.1 / §7.2 的委托控制字段不只是枚举声明；reducer 在 accept `ak.capability.delegate` 派生 grant 时 **MUST** 按下列规则求值，违反即 fail closed。这些规则与 [`capabilities.md` §10.1](./capabilities.md) 的收窄约束表叠加生效（先过 §10.1 的 actions/resources/window 收窄，再过本节字段规则）。
 
 **`prohibit_subdelegation`**：
 
-- `prohibit_subdelegation=true` ⇒ child grant 的 `max_delegation_depth` **MUST = 0**。reducer 在派生 child 时 MUST 强制把 child 的 `max_delegation_depth` 视为 `0`；若 child grant 声明了 `max_delegation_depth > 0`，reducer **MUST** 返回 `schema_violation`（`reason="subdelegation_prohibited"`）。`prohibit_subdelegation=true` 的 grant 持有者 MUST NOT 再签发任何下游 `ck.capability.delegate`。
+- `prohibit_subdelegation=true` ⇒ child grant 的 `max_delegation_depth` **MUST = 0**。reducer 在派生 child 时 MUST 强制把 child 的 `max_delegation_depth` 视为 `0`；若 child grant 声明了 `max_delegation_depth > 0`，reducer **MUST** 返回 `schema_violation`（`reason="subdelegation_prohibited"`）。`prohibit_subdelegation=true` 的 grant 持有者 MUST NOT 再签发任何下游 `ak.capability.delegate`。
 - `prohibit_subdelegation=false`（默认）时不额外约束，深度仍受 §10.1 `max_delegation_depth ≤ parent - 1` 与 §10.2 DFS 上限 4 治理。
 
 **`allow_scope_expansion`**：
@@ -340,7 +340,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 
 **`require_parent_reference`**：
 
-- `require_parent_reference=true`（委托链上 SHOULD 默认）⇒ child `ck.capability.delegate` event **MUST** 携带 `refs[role="parent_grant"]` 指向 parent grant id（见 [`capabilities.md` §10.2](./capabilities.md)）；缺失 MUST 返回 `failed_precondition`（`reason="missing_parent_reference"`）。该字段使 delegation 链可被 §10.2 cycle detection 与 §10.3 revoke 因果传播追踪。
+- `require_parent_reference=true`（委托链上 SHOULD 默认）⇒ child `ak.capability.delegate` event **MUST** 携带 `refs[role="parent_grant"]` 指向 parent grant id（见 [`capabilities.md` §10.2](./capabilities.md)）；缺失 MUST 返回 `failed_precondition`（`reason="missing_parent_reference"`）。该字段使 delegation 链可被 §10.2 cycle detection 与 §10.3 revoke 因果传播追踪。
 
 ## 8. 配额 (Quota)
 
@@ -398,7 +398,7 @@ quota authority MUST 同时满足：
 }
 ```
 
-`blob_presign_max_ttl_seconds` 是 `ck.self.blob.command.presign` 的必需约束之一，服务端 MUST 将请求的 `max_age_seconds` 收窄到该值、deployment policy 上限和协议硬上限 3600 秒三者的最小值。`max_artifact_bytes` 限制 applet / agent / export 等操作可产生或外发的单个 artifact 大小。
+`blob_presign_max_ttl_seconds` 是 `ak.self.blob.command.presign` 的必需约束之一，服务端 MUST 将请求的 `max_age_seconds` 收窄到该值、deployment policy 上限和协议硬上限 3600 秒三者的最小值。`max_artifact_bytes` 限制 applet / agent / export 等操作可产生或外发的单个 artifact 大小。
 
 `max_resources` 与 `max_total_blob_bytes` 这类累计资源 quota 使用 §8.1 的同一 `constraint_scope`、window id 与逻辑 quota authority 规则，二者均 MUST 携带 `constraint_scope`。携带 `period` 时按 UTC epoch-aligned window 重置；省略 `period` 时 `window_id="lifetime"`，从该 grant 首次生效起累计到 grant revoke / expiry，绝不按节点重启或本地 cache eviction 清零。authority MUST 在创建 / 删除 / 调整资源的同一原子事务中按**实际 committed delta** reservation / refund，不能先放行业务写入再异步更新累计值；无法把资源写入与 counter 原子提交时 MUST fail closed 或先取得具有唯一 reservation id 的耐久 reservation，并在失败时幂等释放。`blob_max_bytes` / `max_artifact_bytes` 是单次操作上限，不需要历史计数，也不需要 `constraint_scope`。
 
@@ -630,21 +630,21 @@ quota authority MUST 同时满足：
 
 **字段语义**：
 
-- `message_edit_window`：发送后可编辑消息（`ck.message.revise.own`）的时间窗口，从被编辑 Message 的 `created_at` 起算。
-- `message_redact_window`：发送后可撤回消息（`ck.message.redact.own`）的时间窗口，从被撤回 Message 的 `created_at` 起算。
-- `applies_to_actions`：本 temporal constraint 的 action gate。数组 MUST 非空；本节两种 subtype 必须至少包含各自的 canonical action（`edit_window` 含 `ck.message.revise.own`，`redact_window` 含 `ck.message.redact.own`）。operation.action 不在该数组时，本 constraint 对该 operation 是**不适用（neutral）**：对 `effect=allow` 视作满足，对 `deny` / `quarantine` / `require_review` 视作未命中，绝不能把 action mismatch 当作 allow 失败而拒绝无关动作。
+- `message_edit_window`：发送后可编辑消息（`ak.message.revise.own`）的时间窗口，从被编辑 Message 的 `created_at` 起算。
+- `message_redact_window`：发送后可撤回消息（`ak.message.redact.own`）的时间窗口，从被撤回 Message 的 `created_at` 起算。
+- `applies_to_actions`：本 temporal constraint 的 action gate。数组 MUST 非空；本节两种 subtype 必须至少包含各自的 canonical action（`edit_window` 含 `ak.message.revise.own`，`redact_window` 含 `ak.message.redact.own`）。operation.action 不在该数组时，本 constraint 对该 operation 是**不适用（neutral）**：对 `effect=allow` 视作满足，对 `deny` / `quarantine` / `require_review` 视作未命中，绝不能把 action mismatch 当作 allow 失败而拒绝无关动作。
 - `allow_redact_after_window`（默认 `false`）：控制**编辑窗口关闭后撤回是否仍被允许**。它只在约束声明了 `message_edit_window` 时有意义：
-  - `false`（默认）：当本 constraint 的 `applies_to_actions` **同时包含** `ck.message.redact.own` 且未声明 `message_redact_window` 时，撤回与编辑共享同一时窗——编辑窗口过期后 `ck.message.redact.own` 一并被拒。未列出 redact action 时，本 constraint 对 redact neutral，不能连带锁死它。
+  - `false`（默认）：当本 constraint 的 `applies_to_actions` **同时包含** `ak.message.redact.own` 且未声明 `message_redact_window` 时，撤回与编辑共享同一时窗——编辑窗口过期后 `ak.message.redact.own` 一并被拒。未列出 redact action 时，本 constraint 对 redact neutral，不能连带锁死它。
   - `true`：编辑窗口过期后仍允许撤回（典型"消息可删但不可改"产品语义）；此时撤回判定回退到 `message_redact_window`（若声明）或无上限（若未声明）。
   - 当 `message_redact_window` 已显式声明时，它对撤回具有权威性，`allow_redact_after_window` 不再改变撤回判定（上例中 `PT24H` 是权威撤回窗，`allow_redact_after_window=true` 仅显式表达"撤回不被 15 分钟编辑窗连带锁死"）。
 
-**双窗口与 subtype**：一个 `temporal` 约束 MAY 同时携带 `message_edit_window` 与 `message_redact_window`；其 `subtype` 取 `edit_window` 或 `redact_window` 之一，`applies_to_actions` MUST 列出它治理的全部 action。求值器先执行 action gate，再按字段各自对应的 action enforce（`message_edit_window` → `ck.message.revise.own`；`message_redact_window` → `ck.message.redact.own`），与 `subtype` 标签本身无关。若一条双窗口约束治理两种动作，`applies_to_actions` 必须同时列出两者；等价地，部署 MAY 把两者拆成两条独立约束（`subtype=edit_window` 一条 + `subtype=redact_window` 一条）。两种写法语义一致。
+**双窗口与 subtype**：一个 `temporal` 约束 MAY 同时携带 `message_edit_window` 与 `message_redact_window`；其 `subtype` 取 `edit_window` 或 `redact_window` 之一，`applies_to_actions` MUST 列出它治理的全部 action。求值器先执行 action gate，再按字段各自对应的 action enforce（`message_edit_window` → `ak.message.revise.own`；`message_redact_window` → `ak.message.redact.own`），与 `subtype` 标签本身无关。若一条双窗口约束治理两种动作，`applies_to_actions` 必须同时列出两者；等价地，部署 MAY 把两者拆成两条独立约束（`subtype=edit_window` 一条 + `subtype=redact_window` 一条）。两种写法语义一致。
 
-**超时行为**：窗口超时后 `ck.message.revise.own` 或 `ck.message.redact.own` MUST 被拒绝（`failed_precondition`），**除非** actor 持有更高权限的 `ck.message.revise` 或 `ck.message.redact`（不带 `.own` 后缀，典型是 moderator / admin）——后者不受 `.own` 时窗约束，使管理员可在窗口外撤回。
+**超时行为**：窗口超时后 `ak.message.revise.own` 或 `ak.message.redact.own` MUST 被拒绝（`failed_precondition`），**除非** actor 持有更高权限的 `ak.message.revise` 或 `ak.message.redact`（不带 `.own` 后缀，典型是 moderator / admin）——后者不受 `.own` 时窗约束，使管理员可在窗口外撤回。
 
-**无时限（unbounded）**：不在任何生效 grant 上声明 `message_redact_window`（且无 `allow_redact_after_window=false` 把撤回连带锁进编辑窗）即等价"撤回无时限"——`ck.message.redact.own` 仅受 capability 本身约束，不受时间限制。Realm 管理员据此可在"设最大撤回时限"（声明 `message_redact_window`）与"无时限"（省略）之间选择；编辑窗口同理。该约束族为 `extension` 类（profile `ck.profile.chat_mvp.v1`），未启用该 profile 的实现遇到这些字段 MUST fail closed（见 §2.2）。
+**无时限（unbounded）**：不在任何生效 grant 上声明 `message_redact_window`（且无 `allow_redact_after_window=false` 把撤回连带锁进编辑窗）即等价"撤回无时限"——`ak.message.redact.own` 仅受 capability 本身约束，不受时间限制。Realm 管理员据此可在"设最大撤回时限"（声明 `message_redact_window`）与"无时限"（省略）之间选择；编辑窗口同理。该约束族为 `extension` 类（profile `ak.profile.chat_mvp.v1`），未启用该 profile 的实现遇到这些字段 MUST fail closed（见 §2.2）。
 
-求值器对这些字段的 enforce 义务由 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 中对应 action 的 `required_constraints` 声明（`ck.message.revise.own` → `message_edit_window`；`ck.message.redact.own` → `message_redact_window`）。非 `.own` 的 `ck.message.revise` / `ck.message.redact` 可由 Realm policy 或 grant 自行声明更窄 temporal constraint，但 v1 core 不把自助窗口作为管理员 / moderator action 的 mandatory constraint。
+求值器对这些字段的 enforce 义务由 [`registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json) 中对应 action 的 `required_constraints` 声明（`ak.message.revise.own` → `message_edit_window`；`ak.message.redact.own` → `message_redact_window`）。非 `.own` 的 `ak.message.revise` / `ak.message.redact` 可由 Realm policy 或 grant 自行声明更窄 temporal constraint，但 v1 core 不把自助窗口作为管理员 / moderator action 的 mandatory constraint。
 
 ## 15. 约束求值
 
@@ -832,7 +832,7 @@ function matches_field_access(operation, constraint):
 - `hash`：以 profile 固定的 keyed/salted digest 替换原值（MUST NOT 使用裸明文哈希，避免低熵字典攻击；摘要构造复用 [`../governance/content-moderation.md` §3.4](../governance/content-moderation.md) 的 keyed/salted digest 纪律）。
 - `omit`：从响应中整体删除该字段键。
 
-未声明 `sensitive_handling` 时默认 `omit`。enforce 方无法对某命中字段施加要求的处理（例如无 key 计算 keyed digest）时 **MUST** 降级为 `omit` 而非返回原值。该义务由 conformance vector `ck.vector.auth.sensitive_field_handling.v1` 与 [`capability-fixture.json`](../../artifacts/fixtures/capability-fixture.json) 固定。
+未声明 `sensitive_handling` 时默认 `omit`。enforce 方无法对某命中字段施加要求的处理（例如无 key 计算 keyed digest）时 **MUST** 降级为 `omit` 而非返回原值。该义务由 conformance vector `ak.vector.auth.sensitive_field_handling.v1` 与 [`capability-fixture.json`](../../artifacts/fixtures/capability-fixture.json) 固定。
 
 ## 17. 安全考虑
 
@@ -874,9 +874,9 @@ function matches_field_access(operation, constraint):
 
 #### 18.1.1 `depends_on_moderation_state`（缓存依赖标记，非求值约束）
 
-`depends_on_moderation_state` 是 constraint object 上的一个 **boolean 缓存失效 hint**，**不是** §2.2 的 8 个 constraint family 之一，也不参与 §15 的 allow/deny 求值。它的唯一作用是声明“本 grant 的授权决策是否依赖 `ck.component.moderation_state.v1` cell（见 [`policy-server.md` §7.1](./policy-server.md)）”，从而决定该 cell 变化时是否 MUST 让 grant 的 fast-path cache entry 失效。
+`depends_on_moderation_state` 是 constraint object 上的一个 **boolean 缓存失效 hint**，**不是** §2.2 的 8 个 constraint family 之一，也不参与 §15 的 allow/deny 求值。它的唯一作用是声明“本 grant 的授权决策是否依赖 `ak.component.moderation_state.v1` cell（见 [`policy-server.md` §7.1](./policy-server.md)）”，从而决定该 cell 变化时是否 MUST 让 grant 的 fast-path cache entry 失效。
 
-- 默认 `false`：普通 grant（`ck.strand.update` / `ck.message.create` / 组织成员 grant 等）不因每次 moderation 决策抖动失效。
+- 默认 `false`：普通 grant（`ak.strand.update` / `ak.message.create` / 组织成员 grant 等）不因每次 moderation 决策抖动失效。
 - 当满足 [`capabilities.md` §18.1](./capabilities.md) 列出的三类触发条件之一（moderator-role grant、condition-selector subject 引用 moderation state、constraint 引用 moderation queue / cell）时，`constraints[]` 中 MUST 显式包含 `depends_on_moderation_state=true`，缺失即 `schema_violation`。其中“条件 (2)（`actions[]` 含 moderation 写入动作）”由 [`capability-grant.schema.json`](../../artifacts/schemas/capability-grant.schema.json) 的 `if/then` 静态强制；条件 (1)、(3) 为 reducer-side lint。
 - 归属：在 [`capabilities.md` §6](./capabilities.md) 约束清单与映射表中登记于“moderation 缓存依赖标记”分组（不归入任一 constraint family）；机读权威源为 [`grant-constraint.schema.json`](../../artifacts/schemas/grant-constraint.schema.json) 的 `depends_on_moderation_state` 属性。
 - 一个 `{"depends_on_moderation_state": true}` 不需要 `constraint_type`/`effect` 之外的求值语义；它与同一 grant 内的其它 typed constraint 并列承载，仅供缓存失效引擎读取。
@@ -914,7 +914,7 @@ function matches_field_access(operation, constraint):
 {
   "grant_id": "ak:grant:...",
   "subject": "did:webvh:z7JFwDcjH8CMYDmNUkUBhGpNN:agent.example.com",
-  "actions": ["ak.object.read", "ck.strand.create", "ck.morph.create"],
+  "actions": ["ak.object.read", "ak.strand.create", "ak.morph.create"],
   "resources": [
     {
       "kind": "strand",
@@ -991,7 +991,7 @@ Grant envelope 字段、签名规则与必填性以
 [`artifacts/schemas/capability-grant.schema.json`](../../artifacts/schemas/capability-grant.schema.json)
 为准；下述示例展示 grant 上下文中的典型 typed constraint 组合，不引入新规则。
 
-> Grant 撤销 MUST 表达为 accepted `ck.capability.revoke` Event 指向 `ak:grant:<uuid>`；
+> Grant 撤销 MUST 表达为 accepted `ak.capability.revoke` Event 指向 `ak:grant:<uuid>`；
 > Arkret v1 不注册 `ak:revocation-list:*` typed ID。
 
 #### 20.3.1 Field-level 与 Type 限制

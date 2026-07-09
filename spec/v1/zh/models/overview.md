@@ -56,7 +56,7 @@ DID 的使用边界见 [common-fields.md §4.1](./common-fields.md#41-did-适用
 | `ak:capability:` | Capability Definition | abstract capability definition reference（非签名 grant；签名 grant 用 `ak:grant:`）。真源见 [`id-kind-registry.json` `capability` 条目](../../artifacts/registry/id-kind-registry.json)。 | [governance-objects.md](./governance-objects.md) |
 | `ak:grant:` | Capability Grant | 授权委派 | [governance-objects.md](./governance-objects.md) |
 | `ak:invite:` | Invite | Realm 加入引导 | [governance-objects.md](./governance-objects.md) |
-| `ck.schema.*` | Schema | 标准对象 / Morph type / facet / event 的结构与约束 | [governance-objects.md](./governance-objects.md) |
+| `ak.schema.*` | Schema | 标准对象 / Morph type / facet / event 的结构与约束 | [governance-objects.md](./governance-objects.md) |
 
 ### 2.3 派生 / 私有对象
 
@@ -139,9 +139,9 @@ flowchart TB
 
 `security_class=high_assurance` 是 Realm 的可选标签，进一步收紧 federation policy 与默认审计/E2EE 选项。
 
-Realm 之间 MAY 通过 `ck.realm.link` 形成显式 link graph（governance、discoverability、confidential_extension、mirror 等），但 v1 不定义通用 Realm hierarchy。membership、capability、history visibility、schema、policy 和 encryption key 不因 link 级联；任何继承都必须由目标 Realm 显式声明。详细规则见 [`realm-links.md`](./realm-links.md)。
+Realm 之间 MAY 通过 `ak.realm.link` 形成显式 link graph（governance、discoverability、confidential_extension、mirror 等），但 v1 不定义通用 Realm hierarchy。membership、capability、history visibility、schema、policy 和 encryption key 不因 link 级联；任何继承都必须由目标 Realm 显式声明。详细规则见 [`realm-links.md`](./realm-links.md)。
 
-Space 层级通过 Space 自己的 `parent_space_id` + `ck.space.parent` 表达，可跨 Realm 做导航，但不得传播 Realm membership、capability、history visibility 或 E2EE key。详细规则见 [`space-hierarchy.md`](./space-hierarchy.md)。
+Space 层级通过 Space 自己的 `parent_space_id` + `ak.space.parent` 表达，可跨 Realm 做导航，但不得传播 Realm membership、capability、history visibility 或 E2EE key。详细规则见 [`space-hierarchy.md`](./space-hierarchy.md)。
 
 ### 3.2 Strand 承载主语义
 

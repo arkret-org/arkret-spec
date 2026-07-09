@@ -135,7 +135,7 @@
     },
     {
       "label": "ak.history-v1",
-      "purpose": "Per-epoch history_secret root for mls-exporter-aead-v1 content encryption; may be retained and re-sealed to authorized later joiners via ck.realm_key.share",
+      "purpose": "Per-epoch history_secret root for mls-exporter-aead-v1 content encryption; may be retained and re-sealed to authorized later joiners via ak.realm_key.share",
       "defined_in": "zh/crypto-media/encryption-and-audit.md §2.10.1",
       "context_fields": [
         "realm_id"

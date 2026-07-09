@@ -15,8 +15,8 @@
     "Receivers MUST default to risk_tier=high when an action submitted in a grant or evaluated in policy is not present in this registry; this is the freshness fail-closed default required by capabilities.md §18.",
     "required_constraints lists typed-constraint shorthand names that the capability evaluator MUST enforce for the action regardless of the grant author's declarations; absence in this list does NOT disable other declared constraints.",
     "required_evaluator_checks lists non-grant-field invariants (for example actor_eq_target_author or audit_pair_required) that admission control MUST enforce from Event context, reducer state, or paired audit evidence. These are not grant-constraint schema fields.",
-    "target_event_kinds links the action to one or more ck.* event_kinds in event_kind_registry. Empty array means the action authorizes a read / projection / signaling path that does not produce a durable reducer-input event. Reducer admission for a listed event_kind MUST verify the actor holds at least one matching action grant.",
-    "profile is null for v1 core actions, or a ck.profile.*.v<n> id when the action is only meaningful inside that profile. Receivers without the named profile MUST treat the action as unknown (risk_tier=high default).",
+    "target_event_kinds links the action to one or more ak.* event_kinds in event_kind_registry. Empty array means the action authorizes a read / projection / signaling path that does not produce a durable reducer-input event. Reducer admission for a listed event_kind MUST verify the actor holds at least one matching action grant.",
+    "profile is null for v1 core actions, or a ak.profile.*.v<n> id when the action is only meaningful inside that profile. Receivers without the named profile MUST treat the action as unknown (risk_tier=high default).",
     "Every action MUST declare event_mapping_kind. action == single target_event_kind uses same_name; empty target_event_kinds uses non_event_surface; any other mapping MUST use one of the allowed deviation categories."
   ],
   "actions": [
@@ -166,7 +166,7 @@
         "ak.circle.member.state"
       ],
       "profile": null,
-      "notes": "Cross-actor write (rare). MUST carry ck.audit.accessed pair (same model as ck.strand.watch.set.others).",
+      "notes": "Cross-actor write (rare). MUST carry ak.audit.accessed pair (same model as ak.strand.watch.set.others).",
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
@@ -179,7 +179,7 @@
       ],
       "target_event_kinds": [],
       "profile": null,
-      "notes": "Read-only audit access for a Realm admin NOT in the target Circle. MUST be paired with ck.audit.accessed event. Does NOT yield historical decryption keys unless the admin is formally added to the Circle.",
+      "notes": "Read-only audit access for a Realm admin NOT in the target Circle. MUST be paired with ak.audit.accessed event. Does NOT yield historical decryption keys unless the admin is formally added to the Circle.",
       "event_mapping_kind": "non_event_surface"
     },
     {
@@ -908,7 +908,7 @@
         "ak.realm.set_default_strand"
       ],
       "profile": null,
-      "notes": "Sets / changes the Realm's authoritative default discussion Strand pointer (ck.realm.set_default_strand event; projects Realm default_strand_id). Same-name discipline. The Realm authz gate is realm-admin: holding ck.realm.admin (aggregate admin coverage) satisfies admission, or grant this specific action directly. Reducer MUST verify the referenced Strand already exists (failed_precondition otherwise). See zh/models/strand-and-message.md default-Strand discovery section.",
+      "notes": "Sets / changes the Realm's authoritative default discussion Strand pointer (ak.realm.set_default_strand event; projects Realm default_strand_id). Same-name discipline. The Realm authz gate is realm-admin: holding ak.realm.admin (aggregate admin coverage) satisfies admission, or grant this specific action directly. Reducer MUST verify the referenced Strand already exists (failed_precondition otherwise). See zh/models/strand-and-message.md default-Strand discovery section.",
       "event_mapping_kind": "same_name"
     },
     {

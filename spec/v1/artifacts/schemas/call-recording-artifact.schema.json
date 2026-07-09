@@ -79,7 +79,7 @@
     },
     "recording_initiator_capability_ref": {
       "$ref": "#/$defs/grant_ref",
-      "description": "Capability grant reference proving the recording was initiated by an actor holding ck.call.record."
+      "description": "Capability grant reference proving the recording was initiated by an actor holding ak.call.record."
     },
     "created_at": {
       "$ref": "#/$defs/timestamp"
@@ -285,7 +285,7 @@
         },
         "erasure_receipt_ref": {
           "$ref": "#/$defs/audit_ref",
-          "description": "ak.audit.erasure_receipt event, ck.schema.erasure_receipt.v1 object, or digest proving the deletion outcome."
+          "description": "ak.audit.erasure_receipt event, ak.schema.erasure_receipt.v1 object, or digest proving the deletion outcome."
         },
         "legal_hold_ref": {
           "$ref": "#/$defs/audit_ref"

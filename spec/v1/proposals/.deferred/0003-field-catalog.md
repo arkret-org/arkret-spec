@@ -1,5 +1,5 @@
 ---
-ckp: CKP-0003
+akp: AKP-0003
 title: Field Catalog (typed custom fields)
 normative: false
 stability: v1
@@ -12,7 +12,7 @@ authors:
 
 ## 1. Summary
 
-引入 `ak:field_def:` 一等对象,把 Realm 内的扩展字段从 `fields: object` 黑盒升级为**有类型 / 有校验 / 有显示元数据 / 可在多个 Strand type 之间复用**的目录。CKP-0002 Strand Type、CKP-0004 Form Layout、CKP-0005 Workflow 都建立在此基础上。
+引入 `ak:field_def:` 一等对象,把 Realm 内的扩展字段从 `fields: object` 黑盒升级为**有类型 / 有校验 / 有显示元数据 / 可在多个 Strand type 之间复用**的目录。AKP-0002 Strand Type、AKP-0004 Form Layout、AKP-0005 Workflow 都建立在此基础上。
 
 ## 2. Motivation
 
@@ -29,7 +29,7 @@ Jira 右侧 "Fields" 边栏列出几十个可重复使用的字段(Approvals / G
 
 ### 3.1 `ak:field_def:` 对象
 
-Schema id: `ck.schema.field_def.v1`
+Schema id: `ak.schema.field_def.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -86,20 +86,20 @@ Schema id: `ck.schema.field_def.v1`
 
 | event kind | reducer_input | 说明 |
 | --- | --- | --- |
-| `ck.field_def.create` | yes | 创建 |
-| `ck.field_def.update` | yes | patch(不改 key、data_type;改 data_type 走 §3.5) |
-| `ck.field_def.archive` | yes | active → archived |
-| `ck.field_def.restore` | yes | archived → active |
-| `ck.field_def.tombstone` | yes | terminal |
-| `ck.field_def.option.add` | yes | select / multi_select 加 option |
-| `ck.field_def.option.update` | yes | 改 label / color / archived / rank |
-| `ck.field_def.type_migrate` | yes | **high tier**;改 data_type 需要 transformation rule;参考 Morph schema_migrate 模式 |
+| `ak.field_def.create` | yes | 创建 |
+| `ak.field_def.update` | yes | patch(不改 key、data_type;改 data_type 走 §3.5) |
+| `ak.field_def.archive` | yes | active → archived |
+| `ak.field_def.restore` | yes | archived → active |
+| `ak.field_def.tombstone` | yes | terminal |
+| `ak.field_def.option.add` | yes | select / multi_select 加 option |
+| `ak.field_def.option.update` | yes | 改 label / color / archived / rank |
+| `ak.field_def.type_migrate` | yes | **high tier**;改 data_type 需要 transformation rule;参考 Morph schema_migrate 模式 |
 
 ### 3.5 与对象 `fields` 黑盒的关系
 
 未启用本提案的 Realm:`fields: object` 仍是 untyped 黑盒,行为不变。
 
-启用 profile `ck.profile.field_catalog.v1` 的 Realm:
+启用 profile `ak.profile.field_catalog.v1` 的 Realm:
 
 - 对象的 `fields.<key>` 中,`<key>` 出现的所有路径 reducer **MAY**(profile-declared)校验该 key 必须等于某个 active `field_def.key`;否则 `schema_violation`,`reason="field_def_not_registered"`。
 - 该 field 的 value MUST 通过 field_def 的 `data_type` + `constraints` 校验。
@@ -109,10 +109,10 @@ Schema id: `ck.schema.field_def.v1`
 
 | action | risk_tier | target event kinds |
 | --- | --- | --- |
-| `ck.field_def.manage` | medium | create / update / archive / restore / tombstone / option.* |
-| `ck.field_def.type_migrate` | high | `ck.field_def.type_migrate` |
+| `ak.field_def.manage` | medium | create / update / archive / restore / tombstone / option.* |
+| `ak.field_def.type_migrate` | high | `ak.field_def.type_migrate` |
 
-字段值的写入仍走原 `ck.strand.update` / `ck.morph.update` capability,不引入新 action。
+字段值的写入仍走原 `ak.strand.update` / `ak.morph.update` capability,不引入新 action。
 
 ## 4. Interactions with normative spec
 
@@ -120,9 +120,9 @@ Schema id: `ck.schema.field_def.v1`
 - 新增 schema:`field-def.schema.json`。
 - 新增 id-kind:`field_def`。
 - 新增 event_kinds(8 条)+ capability actions(2 条)。
-- 新增 profile:`ck.profile.field_catalog.v1`。
+- 新增 profile:`ak.profile.field_catalog.v1`。
 - **不**改现有 Strand / Morph / Realm 顶层 schema(本提案是 fields 内部收紧,不引入顶层字段)。
-- `common-fields.md` §3 的 `fields` 行追加 note:"启用 `ck.profile.field_catalog.v1` 时本字段每个 key MUST 引用一个 `ak:field_def:`"。
+- `common-fields.md` §3 的 `fields` 行追加 note:"启用 `ak.profile.field_catalog.v1` 时本字段每个 key MUST 引用一个 `ak:field_def:`"。
 
 ## 5. Rationale & alternatives
 
@@ -139,7 +139,7 @@ Schema id: `ck.schema.field_def.v1`
 
 Morph 是异质对象的开放扩展层。field_def 是元数据(用于校验其他对象的 `fields`),如果落到 Morph 会丢掉:
 - reducer 在写入对象 `fields` 时引用 field_def 的能力(需要 typed ID)
-- capability action `ck.field_def.manage` 的 selector 表达
+- capability action `ak.field_def.manage` 的 selector 表达
 
 ### 5.3 为什么 data_type 是 fixed enum 而不是 string 任意值?
 
@@ -149,7 +149,7 @@ reducer 必须能 type-aware 校验;允许任意 data_type 字符串就退化成
 
 - [ ] data_type 的核心枚举具体是哪些?草案给出 15 种,可能过宽,需要剪裁。
 - [ ] `actor_ref` 的 cardinality 由谁声明?是 field_def 一个字段(`single` vs `multi`)还是 widget_hint?建议字段本身分 `actor_ref` 与 `multi_actor_ref` 两个 data_type。
-- [ ] select option 的 `archived` 是否要走独立 event `ck.field_def.option.archive`?目前是 `ck.field_def.option.update` 改 `archived=true`,简单但缺少 capability 切分。
+- [ ] select option 的 `archived` 是否要走独立 event `ak.field_def.option.archive`?目前是 `ak.field_def.option.update` 改 `archived=true`,简单但缺少 capability 切分。
 - [ ] field_def `tombstone` 后,使用该 field 的对象上 `fields.<key>` 是清除还是保留?建议保留(audit),但 picker / projection 标记 "deprecated field"。
 - [ ] 跨 Realm field_def 引用是否允许?默认拒绝;但 organization-level shared field catalog(给跨 Realm dashboard 用)可能需要。
 

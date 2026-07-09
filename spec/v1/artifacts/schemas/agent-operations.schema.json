@@ -122,7 +122,7 @@
     "agent_slug": {
       "type": "string",
       "pattern": "^[a-z0-9](?:[a-z0-9_-]{0,62}[a-z0-9])?$",
-      "description": "Controller-scoped native personal agent selector slug. Used only as the right-hand component of @<controller-handle>/<agent_slug>; not a global handle or authorization subject. Provisioning services that accept this field MUST issue or update a ck.schema.agent_selector_claim.v1."
+      "description": "Controller-scoped native personal agent selector slug. Used only as the right-hand component of @<controller-handle>/<agent_slug>; not a global handle or authorization subject. Provisioning services that accept this field MUST issue or update a ak.schema.agent_selector_claim.v1."
     },
     "base64url": {
       "type": "string",
@@ -342,7 +342,7 @@
     },
     "account_device_enroll_request_body": {
       "type": "object",
-      "description": "Request to the account-authority enrollment service to mint a `service_attested` ck.device.authorize for the calling session's own device (device-lifecycle.md §5.4, key-management.md §5.0.6). Used for the bootstrap / first-device path under the managed-DID model, where no existing device can approve via device-pair.",
+      "description": "Request to the account-authority enrollment service to mint a `service_attested` ak.device.authorize for the calling session's own device (device-lifecycle.md §5.4, key-management.md §5.0.6). Used for the bootstrap / first-device path under the managed-DID model, where no existing device can approve via device-pair.",
       "required": [
         "device_id",
         "device_public_key",
@@ -364,7 +364,7 @@
         },
         "hpke_key": {
           "$ref": "#/$defs/non_empty_string",
-          "description": "This device’s HPKE sealing public key (multibase). Enters ck.device.authorize.payload.hpke_key verbatim and is covered by the enrollment-authority Event proof (device-lifecycle.md §5.4)."
+          "description": "This device’s HPKE sealing public key (multibase). Enters ak.device.authorize.payload.hpke_key verbatim and is covered by the enrollment-authority Event proof (device-lifecycle.md §5.4)."
         },
         "algorithms": {
           "type": "array",
@@ -372,7 +372,7 @@
             "$ref": "#/$defs/non_empty_string"
           },
           "minItems": 1,
-          "description": "Canonical (UTF-8 bytewise sorted, deduplicated) algorithm ids the device supports. Enters ck.device.authorize.payload.algorithms verbatim (device-lifecycle.md §5.2/§5.4)."
+          "description": "Canonical (UTF-8 bytewise sorted, deduplicated) algorithm ids the device supports. Enters ak.device.authorize.payload.algorithms verbatim (device-lifecycle.md §5.2/§5.4)."
         },
         "actor_seq": {
           "type": "integer",
@@ -387,7 +387,7 @@
     },
     "account_device_enroll_outcome": {
       "type": "object",
-      "description": "The signed `service_attested` ck.device.authorize Event for the requested device. The account authority does not contact the Principal Server; the caller submits `authorized_event` verbatim to POST /_arkret/self/events.",
+      "description": "The signed `service_attested` ak.device.authorize Event for the requested device. The account authority does not contact the Principal Server; the caller submits `authorized_event` verbatim to POST /_arkret/self/events.",
       "required": [
         "principal_id",
         "device_id",
@@ -409,7 +409,7 @@
           "type": "object",
           "minProperties": 1,
           "additionalProperties": true,
-          "description": "Fully-signed ck.device.authorize Event envelope, carrying enrollment_authority_binding {kind: service_attested}."
+          "description": "Fully-signed ak.device.authorize Event envelope, carrying enrollment_authority_binding {kind: service_attested}."
         }
       },
       "additionalProperties": false
@@ -448,7 +448,7 @@
           "type": "object",
           "minProperties": 1,
           "additionalProperties": true,
-          "description": "Fully-signed ck.agent.key.authorize Event envelope approved by the controller or policy engine. Required so key activation never depends on an unaudited pairing side effect."
+          "description": "Fully-signed ak.agent.key.authorize Event envelope approved by the controller or policy engine. Required so key activation never depends on an unaudited pairing side effect."
         }
       },
       "additionalProperties": false
@@ -472,7 +472,7 @@
     },
     "agent_runtime_approval_request_body": {
       "type": "object",
-      "description": "Runtime-to-controller pending approval request for native personal-agent key pairing. The runtime proves possession of the local key and the short pairing code; the controller still must approve by signing ck.agent.key.authorize and submitting agent_key_pair_request_body.",
+      "description": "Runtime-to-controller pending approval request for native personal-agent key pairing. The runtime proves possession of the local key and the short pairing code; the controller still must approve by signing ak.agent.key.authorize and submitting agent_key_pair_request_body.",
       "required": [
         "pairing_code",
         "pairing_request_id",
@@ -627,7 +627,7 @@
     },
     "agent_protocol_discover_request_body": {
       "type": "object",
-      "description": "Probe the public ck.agent.endpoint registry for an agent's declared external protocol endpoints.",
+      "description": "Probe the public ak.agent.endpoint registry for an agent's declared external protocol endpoints.",
       "required": [
         "agent_id"
       ],
@@ -640,7 +640,7 @@
     },
     "agent_protocol_discover_outcome": {
       "type": "object",
-      "description": "Projection of an accepted ck.agent.endpoint event (agent-protocol-interop.md §5.1); controller-private fields are not surfaced. supported_protocols is constrained to the §11 adapter registry.",
+      "description": "Projection of an accepted ak.agent.endpoint event (agent-protocol-interop.md §5.1); controller-private fields are not surfaced. supported_protocols is constrained to the §11 adapter registry.",
       "required": [
         "agent_id",
         "supported_protocols"

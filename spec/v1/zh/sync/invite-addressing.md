@@ -23,7 +23,7 @@ Realm invite 的基础寻址模型是：
 invite_delivery = invite_address + introduction_evidence
 ```
 
-base v1 invite **MUST NOT** 依赖 `ck.find.directory.query.resolve_handle(intent="invite" | "member_add")` 才能投递。Handle 是人类可读入口，不是邀请投递授权；实现不得把猜到的 `<localpart>:<domain>` 字符串自动升级成可投递邀请。用户 MAY 显式发布 handle 并允许 verified handle 作为 first-contact / invite 入口，但接收方仍必须把解析结果归约为 `subject_id`、可验证 handle claim 与 `invite_receive_policy` 判定。
+base v1 invite **MUST NOT** 依赖 `ak.find.directory.query.resolve_handle(intent="invite" | "member_add")` 才能投递。Handle 是人类可读入口，不是邀请投递授权；实现不得把猜到的 `<localpart>:<domain>` 字符串自动升级成可投递邀请。用户 MAY 显式发布 handle 并允许 verified handle 作为 first-contact / invite 入口，但接收方仍必须把解析结果归约为 `subject_id`、可验证 handle claim 与 `invite_receive_policy` 判定。
 
 邀请目标的规范输入是显式 `invite_address`：
 
@@ -49,7 +49,7 @@ base v1 invite **MUST NOT** 依赖 `ck.find.directory.query.resolve_handle(inten
 | `kind` | 信任强度 | 说明 |
 | --- | --- | --- |
 | `locator_ref` | 高 | 被邀请方主动生成 / 交付的在线 locator ref。默认推荐。 |
-| `consent_grant` | 高 | 邀请者出示被邀请方主动签发给邀请者的 `ck.consent.grant`(scope `invite` 或 `any`)的 `consent_grant_ref`。信任来源与 `locator_ref` 同构:都是被邀请方主动交付给邀请者的授权材料。已是联系人(互授 invite consent)拉群走此 kind,**无需 locator URL**。 |
+| `consent_grant` | 高 | 邀请者出示被邀请方主动签发给邀请者的 `ak.consent.grant`(scope `invite` 或 `any`)的 `consent_grant_ref`。信任来源与 `locator_ref` 同构:都是被邀请方主动交付给邀请者的授权材料。已是联系人(互授 invite consent)拉群走此 kind,**无需 locator URL**。 |
 | `shared_realm` | 中 | 邀请者与被邀请者已经同在某个 Realm；接收方按本地 policy 判断该 Realm 是否可信。 |
 | `handle_claim` | 发现信任 | 邀请者通过 verified handle claim 找到 `subject_id`。它证明 holder 或受信 issuer 将某 handle 披露为可解析入口，但**不**证明 holder 已同意该邀请者联系自己。默认 SHOULD quarantine 或 drop；只有 subject policy 与部署约束都允许时才可 notify。 |
 | `same_principal_server` | 中 / 部署相关 | 双方由同一个 Principal Server 承载；适合组织或个人同域场景。 |
@@ -59,7 +59,7 @@ base v1 invite **MUST NOT** 依赖 `ck.find.directory.query.resolve_handle(inten
 
 引入信任分档(normative):**高信任档** = `{locator_ref, consent_grant, shared_realm}`;**发现信任档** = `{handle_claim}`;**低信任档** = `{same_principal_server, explicit_address, 无 / 非法 evidence}`。该分档同时决定 §5 的分级披露行为。
 
-`consent_grant` evidence 的接收方验证:`consent_grant_ref` 指向的 `ck.consent.grant` 在被邀请方(`invite_address.subject_id`)的 consent cell 中仍是 active grant dot，且 `peer == inviter`、`consent_scope ∈ {invite, any}`、未过期未撤销。验证通过即按高信任处理。`consent_grant_ref` 校验失败时，接收方 MUST 降级按 `explicit_address`(低信任)处理，MUST NOT 因为携带了 evidence 字段就放行。
+`consent_grant` evidence 的接收方验证:`consent_grant_ref` 指向的 `ak.consent.grant` 在被邀请方(`invite_address.subject_id`)的 consent cell 中仍是 active grant dot，且 `peer == inviter`、`consent_scope ∈ {invite, any}`、未过期未撤销。验证通过即按高信任处理。`consent_grant_ref` 校验失败时，接收方 MUST 降级按 `explicit_address`(低信任)处理，MUST NOT 因为携带了 evidence 字段就放行。
 
 `handle_claim` evidence 的接收方验证: `handle_claim.handle == evidence.handle`，`handle_claim.subject == invite_address.subject_id`，`binding_state=verified`，`expires_at` 未过期，`proofs[]` 有效，issuer / Directory / visibility / audience 满足 subject policy 与部署约束。若 handle claim 携带 `member_delivery_binding`，还 MUST 校验 `handle_claim.member_delivery_binding.recipient_service_did == invite_address.recipient_service_did`；若 evidence 携带 `member_delivery_binding_candidate`，还 MUST 校验 `candidate.subject_id == invite_address.subject_id`、`candidate.handle == evidence.handle`、`candidate.member_delivery_binding.recipient_service_did == invite_address.recipient_service_did`、`candidate.intent == "invite"`、`audience` 匹配当前邀请上下文且 proof 有效。任何校验失败 MUST 降级按 `explicit_address` 处理，MUST NOT 因为 handle 字符串可解析就通知用户。
 
@@ -95,12 +95,12 @@ token 要求：
 - `locator_token` MUST 至少 128 bit 熵；base64url 无 padding 编码时 128 bit 约为 22 字符，192 bit 为 32 字符。高安全部署 SHOULD 使用 192 bit 或更高，但 128 bit 已满足 v1 floor。
 - `locator_token` MUST NOT 是明文可解码的 `base64url(JSON)`，也不得在 token 明文中携带 `subject_id`、`recipient_service_did`、`expires_at`、策略状态或其它可识别 invitee 的材料。若部署需要 stateless token，payload MUST 先做 authenticated encryption；调用方仍只把它当 opaque bearer secret。
 - token MUST be unguessable、可撤销、可设置短 TTL，并 MAY 设置一次性使用。
-- endpoint 对不存在、过期、撤销、策略拒绝的对外响应 MUST byte-identical 或等价不可区分（含 status / body / headers）；timing 侧信道按 [`conformance/conformance-vectors.md`](../conformance/conformance-vectors.md) `ck.vector.invite.failure_indistinguishable.v1`（§9.7）收口（timing 差异 SHOULD ≤ 50ms，高安全 profile MUST 用 jitter / padding）。仅服务端 audit log MAY 记录具体 reason_code。
+- endpoint 对不存在、过期、撤销、策略拒绝的对外响应 MUST byte-identical 或等价不可区分（含 status / body / headers）；timing 侧信道按 [`conformance/conformance-vectors.md`](../conformance/conformance-vectors.md) `ak.vector.invite.failure_indistinguishable.v1`（§9.7）收口（timing 差异 SHOULD ≤ 50ms，高安全 profile MUST 用 jitter / padding）。仅服务端 audit log MAY 记录具体 reason_code。
 - endpoint 返回体 MUST 是签名 `principal_locator`；调用方不能只信任 HTTPS URL。
 
 ## 4. `principal_locator`
 
-`principal_locator` 是被邀请方 Principal Server 返回的、可验证的 invite address assertion。schema id 为 `ck.schema.principal_locator.v1`。
+`principal_locator` 是被邀请方 Principal Server 返回的、可验证的 invite address assertion。schema id 为 `ak.schema.principal_locator.v1`。
 
 最小形态：
 
@@ -141,7 +141,7 @@ token 要求：
 
 ## 5. 接收策略
 
-被邀请方 Principal Server 按 subject 私有 `invite_receive_policy` 决定哪些 evidence 可以通知用户。schema id 为 `ck.schema.invite_receive_policy.v1`。
+被邀请方 Principal Server 按 subject 私有 `invite_receive_policy` 决定哪些 evidence 可以通知用户。schema id 为 `ak.schema.invite_receive_policy.v1`。
 
 ```json
 {
@@ -243,7 +243,7 @@ effective_receive_policy =
 
 ## 6. Durable Event Boundary
 
-`ck.invite.create` 是 Realm durable event。它可以携带可公开审计的 delivery target 与 evidence digest，但不得携带 locator token、raw `introduction_evidence` 或 `invite_receive_policy`。
+`ak.invite.create` 是 Realm durable event。它可以携带可公开审计的 delivery target 与 evidence digest，但不得携带 locator token、raw `introduction_evidence` 或 `invite_receive_policy`。
 
 ```json
 {
@@ -263,8 +263,8 @@ Rules:
 - `payload.invite_delivery_target.recipient_service_did` MUST equal `invite_address.recipient_service_did`.
 - `payload.invite_delivery_target.recipient_service_type` MAY appear; if present, it MUST be `principal_server`.
 - `introduction_evidence_digest = digest(canonical_json(private_delivery_introduction_evidence))`，用于审计关联，不得泄露 raw locator token。
-- 普通定向邀请的取消 / 拒绝 MUST 使用 `ck.invite.cancel`，payload 为 `InviteRefPayload`（`invite_id`，可选 `reason`）。被邀请者本人提交时表示拒绝并写入 `rejected`；邀请者或 Realm 管理 actor 提交时表示撤销尚未接受的 pending invite 并写入 `revoked`。
-- `ck.invite.revoke` MUST 用于第三方/token invite 的撤销或等价高风险撤销路径，payload 同样为 `InviteRefPayload`；reducer MUST 将 live invite 写入 `revoked`，并清除可认领 token material。直接 DID 邀请不需要通过 `ck.invite.revoke` 才能从成员管理 UI 撤销。
+- 普通定向邀请的取消 / 拒绝 MUST 使用 `ak.invite.cancel`，payload 为 `InviteRefPayload`（`invite_id`，可选 `reason`）。被邀请者本人提交时表示拒绝并写入 `rejected`；邀请者或 Realm 管理 actor 提交时表示撤销尚未接受的 pending invite 并写入 `revoked`。
+- `ak.invite.revoke` MUST 用于第三方/token invite 的撤销或等价高风险撤销路径，payload 同样为 `InviteRefPayload`；reducer MUST 将 live invite 写入 `revoked`，并清除可认领 token material。直接 DID 邀请不需要通过 `ak.invite.revoke` 才能从成员管理 UI 撤销。
 
 ## 7. 私有 Invite Delivery
 
@@ -272,10 +272,10 @@ Rules:
 
 ```text
 POST /_arkret/peer/invites
-operation_id = ck.peer.invites.command.submit
+operation_id = ak.peer.invites.command.submit
 ```
 
-request body 为 `ck.schema.invite_delivery_request.v1`。接收方 Principal Server MUST：
+request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Principal Server MUST：
 
 1. 验证 service-to-service authentication，绑定 Source/Destination service DID、trust domain、Request-Canonical-Digest、Content-Digest 与 idempotency key。
 2. 验证 `Destination-Service-DID == invite_address.recipient_service_did`。
@@ -290,8 +290,8 @@ request body 为 `ck.schema.invite_delivery_request.v1`。接收方 Principal Se
 
 支持 invite addressing 的 Principal Server SHOULD 在 `ServiceDescribe.supported_operations` 中声明：
 
-- `ck.open.invite_locator.query.resolve`
-- `ck.peer.invites.command.submit`
+- `ak.open.invite_locator.query.resolve`
+- `ak.peer.invites.command.submit`
 
 它 MAY 在 `x_invite_addressing` 扩展字段中给出粗粒度能力：
 
@@ -326,7 +326,7 @@ request body 为 `ck.schema.invite_delivery_request.v1`。接收方 Principal Se
 }
 ```
 
-Directory 服务若支持 handle lookup，也 MAY 在 `ServiceDescribe` 或 `ck.find.directory.query.describe` 的扩展字段中声明：
+Directory 服务若支持 handle lookup，也 MAY 在 `ServiceDescribe` 或 `ak.find.directory.query.describe` 的扩展字段中声明：
 
 ```json
 {
@@ -341,8 +341,8 @@ base clients MUST NOT require `resolve_handle(intent="invite" | "member_add")` t
 
 ## 9. Handle 与 Mention 边界
 
-`ck.find.directory.query.resolve_handle(intent="contact_request" | "invite" | "member_add")` 是可选 Directory 能力，不是 base first-contact / invite / member-add 的安全关键路径。Directory 即使返回 `member_delivery_binding` 或旧式 `MemberDeliveryBindingCandidate`，也只能作为可验证 builder evidence 或 `handle_claim` introduction evidence；reducer 仍 MUST 按 Join Policy 与 [`member-delivery-binding.md`](../governance/member-delivery-binding.md) 重新物化。
+`ak.find.directory.query.resolve_handle(intent="contact_request" | "invite" | "member_add")` 是可选 Directory 能力，不是 base first-contact / invite / member-add 的安全关键路径。Directory 即使返回 `member_delivery_binding` 或旧式 `MemberDeliveryBindingCandidate`，也只能作为可验证 builder evidence 或 `handle_claim` introduction evidence；reducer 仍 MUST 按 Join Policy 与 [`member-delivery-binding.md`](../governance/member-delivery-binding.md) 重新物化。
 
 Realm 内 mention 不依赖公网 handle resolve。客户端在用户输入 `@alice:acme.example` 时 MUST 先从当前 Realm roster、MemberIdentity subject disclosure、内联 signed `handle_claims[]` 或本地已授权 claim cache 中解析到 `subject_id`。发送 Message 前必须持久化 DID-sealed mention reference；handle 字符串只能作为 audit / search metadata。
 
-已知 `subject_id` 需要显示当前 handle 时，客户端 MAY 使用 roster 内联 `handle_claims[]` 或 `ck.find.directory.query.list_handles_for_subject`。这条 subject -> current handles 路径不得反向用来发现未知主体、发起 invite delivery 或构造 membership grant；只有 holder/issuer 已发布 verified handle claim，且 subject policy 与部署约束允许 `handle_claim` evidence 时，客户端才可把 handle 解析结果作为 first-contact / invite 的 introduction evidence。
+已知 `subject_id` 需要显示当前 handle 时，客户端 MAY 使用 roster 内联 `handle_claims[]` 或 `ak.find.directory.query.list_handles_for_subject`。这条 subject -> current handles 路径不得反向用来发现未知主体、发起 invite delivery 或构造 membership grant；只有 holder/issuer 已发布 verified handle claim，且 subject policy 与部署约束允许 `handle_claim` evidence 时，客户端才可把 handle 解析结果作为 first-contact / invite 的 introduction evidence。

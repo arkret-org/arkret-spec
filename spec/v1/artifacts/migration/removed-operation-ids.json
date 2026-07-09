@@ -14,7 +14,7 @@
   },
   "entries": [
     {
-      "id": "cx.strand.track.member.add",
+      "id": "cx.strand.traak.member.add",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
@@ -22,10 +22,10 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Companion to removed cx.strand.track.member event kind. Tracks do not have independent membership."
+      "notes": "Companion to removed cx.strand.traak.member event kind. Tracks do not have independent membership."
     },
     {
-      "id": "cx.strand.track.member.remove",
+      "id": "cx.strand.traak.member.remove",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
@@ -33,10 +33,10 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Companion to removed cx.strand.track.member event kind."
+      "notes": "Companion to removed cx.strand.traak.member event kind."
     },
     {
-      "id": "cx.strand.track.history_visibility.set",
+      "id": "cx.strand.traak.history_visibility.set",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
@@ -44,10 +44,10 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Companion to removed cx.strand.track.history_visibility event kind."
+      "notes": "Companion to removed cx.strand.traak.history_visibility event kind."
     },
     {
-      "id": "cx.strand.track.read_receipt_policy.set",
+      "id": "cx.strand.traak.read_receipt_policy.set",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
@@ -55,10 +55,10 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Companion to removed cx.strand.track.read_receipt_policy event kind."
+      "notes": "Companion to removed cx.strand.traak.read_receipt_policy event kind."
     },
     {
-      "id": "cx.strand.track.policy_components.set",
+      "id": "cx.strand.traak.policy_components.set",
       "since_revision": "0a5ab85",
       "rejection_level": "hard_reject",
       "replacement": null,
@@ -66,7 +66,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Companion to removed cx.strand.track.policy_components event kind."
+      "notes": "Companion to removed cx.strand.traak.policy_components event kind."
     },
     {
       "id": "cx.field.position.move.apply",

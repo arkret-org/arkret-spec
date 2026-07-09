@@ -8,7 +8,7 @@
       "name": "event_kinds",
       "file": "registry/event-kind-registry.json",
       "section": "event_kind_registry",
-      "description": "Generated registry view for standard ck.* Event.kind values and wire scopes."
+      "description": "Generated registry view for standard ak.* Event.kind values and wire scopes."
     },
     {
       "name": "schemas",
@@ -49,13 +49,13 @@
       "capability_gated": "Gated by one or more named capability actions listed in admission_capabilities. Reducer MUST verify the actor holds a matching action grant per capability-action-registry. Fail-closed."
     },
     "registry_rules": [
-      "Standard ck.* effect kinds MUST appear in this registry when used by a DataEvent effect, Control Move effect, or Event Envelope payload router.",
+      "Standard ak.* effect kinds MUST appear in this registry when used by a DataEvent effect, Control Move effect, or Event Envelope payload router.",
       "Events API, Sync durable history, Federation, and canonical reducers MUST accept only active entries with wire_scope=durable_event unless an implementation profile explicitly defines a private channel for actor_private_event.",
       "Entries with wire_scope=ephemeral_event MUST be carried only on ephemeral channels and MUST NOT advance Seal coverage, governance state_root, or reducer state.",
       "Entries with wire_scope=actor_private_event MAY be persisted in encrypted account data or an actor-private stream, but MUST NOT be inserted into shared Realm data-plane history or control-plane Seal history.",
-      "Reducer-input durable kinds MAY declare cell_family, cell_subject, plane, sealed, lattice, bottom, and (cas_register only) initial_value. cell_family is a stable ck.component.*.v<n> URI; cell_subject is null, a payload field path, or a composite descriptor; plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject or expose. initial_value declares the value the cas_register reports before any DataEvent or Control Move effect has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` Control Move predicates implements singleton-once-set cells.",
-      "Registered exemption: protocol-singleton cells that are not written through a single event_kind are NOT indexed here. Currently the only such cell family is ck.component.notary.v1 (per-Realm notary cell, lattice=cas_register, bottom=reject): its genesis value comes from the ck.realm.create payload notary object and subsequent changes are ordinary notary-finalized Control Moves; its canonical definition lives in zh/authz/event-auth-state-resolution.md section 4.4. Any future cell family without a single writer kind MUST be added to this exemption list explicitly.",
-      "Lattice MUST be one of: core types or_set, mv_register, cas_register, fsm, counter, ordered_log; or extension types lww_register, rga (only declarable on cells with cell_role in {ui_affordance, content, draft, cosmetic} and only valid for receivers that implement ck.profile.collaborative_text.v1; receivers without that profile MUST fail closed with unsupported_lattice_type when an event_kind references a cell using lww_register or rga). Authorization, policy, notary, membership, and lifecycle cells MUST NOT use lww_register or rga.",
+      "Reducer-input durable kinds MAY declare cell_family, cell_subject, plane, sealed, lattice, bottom, and (cas_register only) initial_value. cell_family is a stable ak.component.*.v<n> URI; cell_subject is null, a payload field path, or a composite descriptor; plane MUST be data or control; sealed is a boolean and MUST be true iff plane=control. plane/sealed are the machine-readable authority for DataEvent versus Control Move routing and plane_cross_write validation; payload prose is explanatory. bottom is reject or expose. initial_value declares the value the cas_register reports before any DataEvent or Control Move effect has been applied; declaring `initial_value=\"__unset__\"` combined with `head_eq:\"__unset__\"` Control Move predicates implements singleton-once-set cells.",
+      "Registered exemption: protocol-singleton cells that are not written through a single event_kind are NOT indexed here. Currently the only such cell family is ak.component.notary.v1 (per-Realm notary cell, lattice=cas_register, bottom=reject): its genesis value comes from the ak.realm.create payload notary object and subsequent changes are ordinary notary-finalized Control Moves; its canonical definition lives in zh/authz/event-auth-state-resolution.md section 4.4. Any future cell family without a single writer kind MUST be added to this exemption list explicitly.",
+      "Lattice MUST be one of: core types or_set, mv_register, cas_register, fsm, counter, ordered_log; or extension types lww_register, rga (only declarable on cells with cell_role in {ui_affordance, content, draft, cosmetic} and only valid for receivers that implement ak.profile.collaborative_text.v1; receivers without that profile MUST fail closed with unsupported_lattice_type when an event_kind references a cell using lww_register or rga). Authorization, policy, notary, membership, and lifecycle cells MUST NOT use lww_register or rga.",
       "State convergence is defined by CBA: DataEvent effects are locally accepted against seal_ref, Control Move effects are finalized by Seals, and per-cell Lattice join remains deterministic. Event Envelope routing fields MUST NOT be used as ordering authority.",
       "Every active durable reducer-input event_kind MUST have a machine-readable admission source: either at least one capability action targets it (capability_action_registry.target_event_kinds), or it declares an admission class from admission_class_definitions. capability_gated events MUST list the authorizing action(s) in admission_capabilities. Enforced by lint_artifacts.py; no active durable reducer-input event may lack an admission source (fail-closed)."
     ],
@@ -63,7 +63,7 @@
       "event_envelope_schema": "schemas/event-envelope.schema.json",
       "payload_schema_file": "schemas/event-payload.schema.json",
       "coverage_required": true,
-      "validation_rule": "Every active standard ck.* event kind MUST be validated by the Event Envelope schema and one payload class selected by kind. Unknown standard kind, unmatched active kind, or payload class failure is schema_violation before reducer execution.",
+      "validation_rule": "Every active standard ak.* event kind MUST be validated by the Event Envelope schema and one payload class selected by kind. Unknown standard kind, unmatched active kind, or payload class failure is schema_violation before reducer execution.",
       "non_critical_extension_rule": "Unknown non-critical payload fields are preserved in canonical bytes and MAY be ignored by reducers. Unknown critical payload semantics MUST be declared in Event.requirements.critical_extensions and fail closed when unsupported."
     },
     "event_kinds": [
@@ -268,7 +268,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Sets / changes the Realm's authoritative default discussion Strand pointer. payload = {realm_id, strand_id}; reducer projects payload.strand_id into the Realm projection default_strand_id (single authoritative pointer; avoids multi-default dirty state). Reducer MUST verify the referenced strand_id already exists in this Realm (a projected, non-tombstoned Strand); a dangling reference MUST be rejected with failed_precondition. Strand-side is_default is a derived marker (strand_id == realm.default_strand_id), never independent storage; clients discover the default Strand deterministically from the Realm projection default_strand_id or the Strand projection is_default, NOT from any UUID-reuse implementation detail. Authorization is the standard Realm-admin gate (hold ck.realm.admin, or the same-name action ck.realm.set_default_strand).",
+        "payload": "Sets / changes the Realm's authoritative default discussion Strand pointer. payload = {realm_id, strand_id}; reducer projects payload.strand_id into the Realm projection default_strand_id (single authoritative pointer; avoids multi-default dirty state). Reducer MUST verify the referenced strand_id already exists in this Realm (a projected, non-tombstoned Strand); a dangling reference MUST be rejected with failed_precondition. Strand-side is_default is a derived marker (strand_id == realm.default_strand_id), never independent storage; clients discover the default Strand deterministically from the Realm projection default_strand_id or the Strand projection is_default, NOT from any UUID-reuse implementation detail. Authorization is the standard Realm-admin gate (hold ak.realm.admin, or the same-name action ak.realm.set_default_strand).",
         "cell_family": "ak.component.realm.set_default_strand.v1",
         "cell_subject": null,
         "lattice": "cas_register",
@@ -324,7 +324,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Constraints on member delivery_binding: which binding_source values are admissible, which recipient services are allowed, which endorsers are required, whether DID Document fallback / unroutable membership are permitted, who may sign rebind. Governs reducer acceptance of ck.member.state{membership=join}.delivery_binding (see governance/join-policy.md §5.1).",
+        "payload": "Constraints on member delivery_binding: which binding_source values are admissible, which recipient services are allowed, which endorsers are required, whether DID Document fallback / unroutable membership are permitted, who may sign rebind. Governs reducer acceptance of ak.member.state{membership=join}.delivery_binding (see governance/join-policy.md §5.1).",
         "cell_family": "ak.component.realm.delivery_binding_policy.v1",
         "cell_subject": null,
         "lattice": "cas_register",
@@ -513,7 +513,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Circle patch (ck.patch.v1 with path NOT containing realm_id / encryption_profile). Modifies title / summary / display / directory_visibility / join_rule / history_visibility."
+        "payload": "Circle patch (ak.patch.v1 with path NOT containing realm_id / encryption_profile). Modifies title / summary / display / directory_visibility / join_rule / history_visibility."
       },
       {
         "event_kind": "ak.circle.archive",
@@ -552,7 +552,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Circle membership state. Uses the same membership_state enum as ck.member.state (invite/join/knock/leave/ban), scoped to a Circle. Reducer MUST first validate the target actor is a parent Realm `join` member, otherwise failed_precondition reason=circle_member_must_be_realm_member. See zh/models/circle.md §9.1.",
+        "payload": "Circle membership state. Uses the same membership_state enum as ak.member.state (invite/join/knock/leave/ban), scoped to a Circle. Reducer MUST first validate the target actor is a parent Realm `join` member, otherwise failed_precondition reason=circle_member_must_be_realm_member. See zh/models/circle.md §9.1.",
         "cell_family": "ak.component.circle.member.v1",
         "cell_subject": {
           "type": "composite",
@@ -876,7 +876,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "Realm-scoped MemberIdentity segment replacement event. Append-only log entry that may supersede prior ck.member.identity.update events via payload.replaces[] without overloading ck.profile.update patch semantics.",
+        "payload": "Realm-scoped MemberIdentity segment replacement event. Append-only log entry that may supersede prior ak.member.identity.update events via payload.replaces[] without overloading ak.profile.update patch semantics.",
         "cell_family": "ak.component.member.identity.v1",
         "cell_subject": {
           "type": "composite",
@@ -938,7 +938,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Strand business-progression stage transition. Single source of truth for mutating Strand.stage / Strand.stage_changed_at; ck.strand.update patch on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on the Strand's discussion track that 'references' this event, and the event log's own actor_id / created_at is the audit source. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=strand_already_terminal; state=archived yields strand_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at. A per-Realm workflow profile MAY narrow which transitions are legal beyond these hard invariants.",
+        "payload": "Strand business-progression stage transition. Single source of truth for mutating Strand.stage / Strand.stage_changed_at; ak.strand.update patch on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on the Strand's discussion track that 'references' this event, and the event log's own actor_id / created_at is the audit source. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=strand_already_terminal; state=archived yields strand_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at. A per-Realm workflow profile MAY narrow which transitions are legal beyond these hard invariants.",
         "cell_family": "ak.component.strand.stage.v1",
         "cell_subject": {
           "type": "id:strand",
@@ -955,7 +955,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Unified Strand tracks patch. payload.patch uses ck.patch.v1 against the Strand.tracks map: keys are track names (e.g. `synthesis`, `discussion`), values are patch ops that may toggle enabled, set is_primary, or modify profile / metadata on a track entry. Atomic across multiple tracks.",
+        "payload": "Unified Strand tracks patch. payload.patch uses ak.patch.v1 against the Strand.tracks map: keys are track names (e.g. `synthesis`, `discussion`), values are patch ops that may toggle enabled, set is_primary, or modify profile / metadata on a track entry. Atomic across multiple tracks.",
         "cell_family": "ak.component.strand.tracks.v1",
         "cell_subject": {
           "type": "id:strand",
@@ -972,7 +972,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Strand move between Spaces (target_space_id in payload). Writes a cas_register cell keyed by (board_space_id, strand_id); the contains Relation list_space_id->strand_id is derived from cell value, not a separate truth source. Plane ruling (CBA): ck.component.strand.position.v1 defaults to sealed=true (control plane), so ck.strand.move is a Control Move carrying seal_basis; Realm schema MAY redeclare the cell family as data-plane mv_register + user-pick or per-object sequencer per authz/event-auth-state-resolution.md section 9.4 and models/realm-and-space.md section 3.6.",
+        "payload": "Strand move between Spaces (target_space_id in payload). Writes a cas_register cell keyed by (board_space_id, strand_id); the contains Relation list_space_id->strand_id is derived from cell value, not a separate truth source. Plane ruling (CBA): ak.component.strand.position.v1 defaults to sealed=true (control plane), so ak.strand.move is a Control Move carrying seal_basis; Realm schema MAY redeclare the cell family as data-plane mv_register + user-pick or per-object sequencer per authz/event-auth-state-resolution.md section 9.4 and models/realm-and-space.md section 3.6.",
         "cell_family": "ak.component.strand.position.v1",
         "cell_subject": {
           "type": "tuple",
@@ -1000,7 +1000,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Strand reorder within Space. Writes the same cell as ck.strand.move; effect.list_space_id MUST equal head_eq.list_space_id (rank-only update). Plane ruling follows ck.strand.move: same cell family, same default sealed=true control-plane declaration (models/realm-and-space.md section 3.6).",
+        "payload": "Strand reorder within Space. Writes the same cell as ak.strand.move; effect.list_space_id MUST equal head_eq.list_space_id (rank-only update). Plane ruling follows ak.strand.move: same cell family, same default sealed=true control-plane declaration (models/realm-and-space.md section 3.6).",
         "cell_family": "ak.component.strand.position.v1",
         "cell_subject": {
           "type": "tuple",
@@ -1028,7 +1028,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Set or clear a per-(strand, actor) watch subscription. Writes a cas_register cell keyed by (strand_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds ck.strand.watch.set.others. Cross-actor writes MUST carry refs[role=audit_pair] to a same-batch ck.audit.accessed event with access_kind=watch_set_others. The watches Relation (actor --watches--> strand) is a derived projection of this cell, not a separate truth source — direct ck.relation.create relation_kind=watches MUST schema_violation. See models/strand-and-message.md §8.",
+        "payload": "Set or clear a per-(strand, actor) watch subscription. Writes a cas_register cell keyed by (strand_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds ak.strand.watch.set.others. Cross-actor writes MUST carry refs[role=audit_pair] to a same-batch ak.audit.accessed event with access_kind=watch_set_others. The watches Relation (actor --watches--> strand) is a derived projection of this cell, not a separate truth source — direct ak.relation.create relation_kind=watches MUST schema_violation. See models/strand-and-message.md §8.",
         "cell_family": "ak.component.strand.watch.v1",
         "cell_subject": {
           "type": "tuple",
@@ -1283,7 +1283,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Morph schema_refs[] migration. First-class event for evolving a Morph's schema_refs[] without bypassing audit / capability gates. Carries (from_schema_refs[], to_schema_refs[], compatibility_class, migration_evidence?). Required capability ck.morph.schema_migrate (high risk tier; see capability-action-registry.json). compatibility_class = additive | breaking | transformation; core reducers MUST reject breaking/transformation unless the Realm declares ck.profile.morph.schema_migration_transformations.v1. See zh/models/morph.md §4.1 S3."
+        "payload": "Morph schema_refs[] migration. First-class event for evolving a Morph's schema_refs[] without bypassing audit / capability gates. Carries (from_schema_refs[], to_schema_refs[], compatibility_class, migration_evidence?). Required capability ak.morph.schema_migrate (high risk tier; see capability-action-registry.json). compatibility_class = additive | breaking | transformation; core reducers MUST reject breaking/transformation unless the Realm declares ak.profile.morph.schema_migration_transformations.v1. See zh/models/morph.md §4.1 S3."
       },
       {
         "event_kind": "ak.morph.stage.set",
@@ -1291,7 +1291,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Morph business-progression stage transition. Single source of truth for mutating Morph.stage / Morph.stage_changed_at; ck.morph.update / ck.morph.schema_migrate patches on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on an associated discussion track that 'references' this event. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=morph_already_terminal; state=archived yields morph_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at.",
+        "payload": "Morph business-progression stage transition. Single source of truth for mutating Morph.stage / Morph.stage_changed_at; ak.morph.update / ak.morph.schema_migrate patches on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on an associated discussion track that 'references' this event. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=morph_already_terminal; state=archived yields morph_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at.",
         "cell_family": "ak.component.morph.stage.v1",
         "cell_subject": {
           "type": "id:morph",
@@ -1468,7 +1468,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Agent lifecycle transition to paused state (CKP-0008 §4.11). Auth Server MUST reject new agent session grants for this principal; existing tokens fail closed within the revocation freshness window. Reversible via ck.agent.resume.",
+        "payload": "Agent lifecycle transition to paused state (AKP-0008 §4.11). Auth Server MUST reject new agent session grants for this principal; existing tokens fail closed within the revocation freshness window. Reversible via ak.agent.resume.",
         "cell_family": "ak.component.agent.status.v1",
         "cell_subject": {
           "type": "did",
@@ -1485,7 +1485,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Agent lifecycle transition from paused to active (CKP-0008 §4.11). Reducer MUST re-validate controller, agent, key, capability, Realm policy, and accountability_grant freshness; any failure rejects the resume.",
+        "payload": "Agent lifecycle transition from paused to active (AKP-0008 §4.11). Reducer MUST re-validate controller, agent, key, capability, Realm policy, and accountability_grant freshness; any failure rejects the resume.",
         "cell_family": "ak.component.agent.status.v1",
         "cell_subject": {
           "type": "did",
@@ -1502,7 +1502,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Agent lifecycle terminal state (CKP-0008 §4.11). MUST fan-out ck.agent.key.revoke for all active agent keys, ck.capability.revoke for all active grants, and runtime endpoint revocation. Terminal — no transition out.",
+        "payload": "Agent lifecycle terminal state (AKP-0008 §4.11). MUST fan-out ak.agent.key.revoke for all active agent keys, ak.capability.revoke for all active grants, and runtime endpoint revocation. Terminal — no transition out.",
         "cell_family": "ak.component.agent.status.v1",
         "cell_subject": {
           "type": "did",
@@ -1519,7 +1519,7 @@
         "status": "active",
         "wire_scope": "actor_private_event",
         "reducer_input": false,
-        "payload": "Agent-initiated draft proposal (CKP-0008 §4.8). Submitted by agent runtime; Principal Server materializes accepted drafts into controller-owned ck.agent.draft.v1 account-data after capability / policy / accountability / risk check. MUST NOT enter shared Realm history."
+        "payload": "Agent-initiated draft proposal (AKP-0008 §4.8). Submitted by agent runtime; Principal Server materializes accepted drafts into controller-owned ak.agent.draft.v1 account-data after capability / policy / accountability / risk cheak. MUST NOT enter shared Realm history."
       },
       {
         "event_kind": "ak.agent.action_request",
@@ -1527,7 +1527,7 @@
         "status": "active",
         "wire_scope": "actor_private_event",
         "reducer_input": false,
-        "payload": "Agent-initiated action request (CKP-0008 §4.8). Carries proposed_action, target descriptor, and content digest. Awaits controller approval before generating shared event."
+        "payload": "Agent-initiated action request (AKP-0008 §4.8). Carries proposed_action, target descriptor, and content digest. Awaits controller approval before generating shared event."
       },
       {
         "event_kind": "ak.agent.action_approve",
@@ -1535,7 +1535,7 @@
         "status": "active",
         "wire_scope": "actor_private_event",
         "reducer_input": false,
-        "payload": "Controller approval of a draft / action request (CKP-0008 §4.8.1). Binds draft_id, content digest, target descriptor, proposed_action, approved payload digest, approval expiry, and single-use nonce. Publish executor MUST atomic-consume the nonce; reuse fails closed (reason=approval_already_consumed)."
+        "payload": "Controller approval of a draft / action request (AKP-0008 §4.8.1). Binds draft_id, content digest, target descriptor, proposed_action, approved payload digest, approval expiry, and single-use nonce. Publish executor MUST atomic-consume the nonce; reuse fails closed (reason=approval_already_consumed)."
       },
       {
         "event_kind": "ak.agent.action_reject",
@@ -1543,7 +1543,7 @@
         "status": "active",
         "wire_scope": "actor_private_event",
         "reducer_input": false,
-        "payload": "Controller rejection of a draft / action request (CKP-0008 §4.8.1). Draft transitions to rejected; agent runtime MUST NOT continue publish attempts."
+        "payload": "Controller rejection of a draft / action request (AKP-0008 §4.8.1). Draft transitions to rejected; agent runtime MUST NOT continue publish attempts."
       },
       {
         "event_kind": "ak.agent.interop_session.start",
@@ -1680,7 +1680,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "Revoke a previously granted consent (shares the ck.consent.grant cell; semantically a remove on the consent or_set)",
+        "payload": "Revoke a previously granted consent (shares the ak.consent.grant cell; semantically a remove on the consent or_set)",
         "cell_family": "ak.component.consent.grant.v1",
         "cell_subject": {
           "type": "string",
@@ -2205,7 +2205,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Auditable access marker for privileged reads or privacy-sensitive paired writes. E2EE compliance release uses ck.audit.release; ck.audit.accessed remains for non-release audit pairs such as Circle metadata audit, watch_set_others, late recovery, and policy reads."
+        "payload": "Auditable access marker for privileged reads or privacy-sensitive paired writes. E2EE compliance release uses ak.audit.release; ak.audit.accessed remains for non-release audit pairs such as Circle metadata audit, watch_set_others, late recovery, and policy reads."
       },
       {
         "event_kind": "ak.audit.applet_binding",
@@ -2221,7 +2221,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Audit release session request. Must reference an active ck.audit.applet_binding and a bounded historical target range or target_refs."
+        "payload": "Audit release session request. Must reference an active ak.audit.applet_binding and a bounded historical target range or target_refs."
       },
       {
         "event_kind": "ak.audit.session.authorize",
@@ -2277,7 +2277,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": false,
-        "payload": "Range-bound completeness attestation. Distinct from ck.audit.ryw_receipt (per-event read-your-writes hint) and ck.event_batch_receipt (set-bound integrity hint): this attestation asserts completeness over an explicit (from_frontier, to_frontier) + per-actor seq interval range. Issuer commits to having observed every reducer-input event in scope; witness quorum or independent seal backing is required for non-self-attested deployments. See zh/sync/operations-sync.md §6.4."
+        "payload": "Range-bound completeness attestation. Distinct from ak.audit.ryw_receipt (per-event read-your-writes hint) and ak.event_batch_receipt (set-bound integrity hint): this attestation asserts completeness over an explicit (from_frontier, to_frontier) + per-actor seq interval range. Issuer commits to having observed every reducer-input event in scope; witness quorum or independent seal backing is required for non-self-attested deployments. See zh/sync/operations-sync.md §6.4."
       },
       {
         "event_kind": "ak.self.moderation.report",
@@ -2303,7 +2303,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Sealed moderation decision (writes ck.component.moderation_state.v1 cell)",
+        "payload": "Sealed moderation decision (writes ak.component.moderation_state.v1 cell)",
         "cell_family": "ak.component.moderation_state.v1",
         "cell_subject": {
           "type": "string",
@@ -2320,7 +2320,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Lift a previously sealed moderation decision (observed-remove/supersede the referenced decision in ck.component.moderation_state.v1)",
+        "payload": "Lift a previously sealed moderation decision (observed-remove/supersede the referenced decision in ak.component.moderation_state.v1)",
         "cell_family": "ak.component.moderation_state.v1",
         "cell_subject": {
           "type": "string",
@@ -2337,7 +2337,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Submit an appeal against an existing ck.moderation.decision. Writes the appeal cell to state=submitted. Schema: ck.schema.moderation_appeal.v1. See zh/governance/content-moderation.md §5.5 (appeal strand).",
+        "payload": "Submit an appeal against an existing ak.moderation.decision. Writes the appeal cell to state=submitted. Schema: ak.schema.moderation_appeal.v1. See zh/governance/content-moderation.md §5.5 (appeal strand).",
         "cell_family": "ak.component.moderation.appeal.v1",
         "cell_subject": {
           "type": "string",
@@ -2354,7 +2354,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Reviewer acknowledges the appeal and transitions cell state submitted → under_review. Identifies the reviewing actor and target appeal. Schema: ck.schema.moderation_appeal.v1.",
+        "payload": "Reviewer acknowledges the appeal and transitions cell state submitted → under_review. Identifies the reviewing actor and target appeal. Schema: ak.schema.moderation_appeal.v1.",
         "cell_family": "ak.component.moderation.appeal.v1",
         "cell_subject": {
           "type": "string",
@@ -2371,7 +2371,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Reviewer's verdict on the appeal: uphold (decision stands) / overturn (decision reversed, emits ck.moderation.decision.lift) / modify (decision adjusted). Transitions cell state under_review → decided. Schema: ck.schema.moderation_appeal.v1.",
+        "payload": "Reviewer's verdict on the appeal: uphold (decision stands) / overturn (decision reversed, emits ak.moderation.decision.lift) / modify (decision adjusted). Transitions cell state under_review → decided. Schema: ak.schema.moderation_appeal.v1.",
         "cell_family": "ak.component.moderation.appeal.v1",
         "cell_subject": {
           "type": "string",
@@ -2388,7 +2388,7 @@
         "status": "active",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Closes the appeal from submitted / under_review / decided via reviewer close, appellant withdrawal, or a deployment's authorized close service. close is a manual/authorized action; the protocol does not mandate any auto-close timer or cool-off duration (deployment/Realm policy decides). Schema: ck.schema.moderation_appeal.v1.",
+        "payload": "Closes the appeal from submitted / under_review / decided via reviewer close, appellant withdrawal, or a deployment's authorized close service. close is a manual/authorized action; the protocol does not mandate any auto-close timer or cool-off duration (deployment/Realm policy decides). Schema: ak.schema.moderation_appeal.v1.",
         "cell_family": "ak.component.moderation.appeal.v1",
         "cell_subject": {
           "type": "string",
@@ -2405,7 +2405,7 @@
         "status": "active",
         "wire_scope": "actor_private_event",
         "reducer_input": false,
-        "payload": "Read cursor advance event (actor-private). Writes the actor's latest read position for a given (realm_id, read_scope) tuple. Was historically named ck.read.cursor; renamed to align the event_kind, capability action, schema id and typed ID prefix on a single noun root read_cursor."
+        "payload": "Read cursor advance event (actor-private). Writes the actor's latest read position for a given (realm_id, read_scope) tuple. Was historically named ak.read.cursor; renamed to align the event_kind, capability action, schema id and typed ID prefix on a single noun root read_cursor."
       },
       {
         "event_kind": "ak.receipt.read",
@@ -2456,7 +2456,7 @@
         "payload": "Third-party invite claim",
         "reducer_authority": "realm",
         "reducer_effects": [
-          "match pending ck.invite.third_party by invite_id and token_commitment",
+          "match pending ak.invite.third_party by invite_id and token_commitment",
           "re-check verification_service_did against current effective Realm allowlist",
           "deduplicate (invite_id, claim_nonce) and token_commitment before accepting",
           "transition invite cell pending -> claimed and materialize subject-bound membership proposal",
@@ -2705,7 +2705,7 @@
       {
         "schema_id": "ak.schema.circle.v1",
         "file": "schemas/circle.schema.json",
-        "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or policy server. Introduced by CKP-0007; see zh/models/circle.md."
+        "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or policy server. Introduced by AKP-0007; see zh/models/circle.md."
       },
       {
         "schema_id": "ak.schema.strand.v1",
@@ -2719,7 +2719,7 @@
         "schema_id": "ak.schema.content_block_poll.v1",
         "file": "schemas/content-block-poll.schema.json",
         "status": "active",
-        "description": "Canonical content-block schema for ck.content.poll and ck.content.poll.response."
+        "description": "Canonical content-block schema for ak.content.poll and ak.content.poll.response."
       },
       {
         "schema_id": "ak.schema.personal_productivity.v1",
@@ -2749,7 +2749,7 @@
         "schema_id": "ak.schema.rsvp.v1",
         "file": "schemas/rsvp.schema.json",
         "status": "active",
-        "description": "Payload schema for ck.rsvp.set."
+        "description": "Payload schema for ak.rsvp.set."
       },
       {
         "schema_id": "ak.schema.disappearing_messages.v1",
@@ -2776,12 +2776,12 @@
       {
         "schema_id": "ak.schema.morph.customer_risk.v1",
         "file": "schemas/morph-customer-risk.schema.json",
-        "description": "Reference business-field schema used by the Morph type-system example. It validates the customer_risk fields.status / fields.severity payload carried inside ck.schema.morph.v1 containers."
+        "description": "Reference business-field schema used by the Morph type-system example. It validates the customer_risk fields.status / fields.severity payload carried inside ak.schema.morph.v1 containers."
       },
       {
         "schema_id": "ak.schema.morph.customer_risk.ext.v1",
         "file": "schemas/morph-customer-risk-ext.schema.json",
-        "description": "Reference additive extension business-field schema for the customer_risk example, used by the ck.morph.schema_migrate transformation conformance vectors (ck.vector.morph.transformation_*). Declares the optional renamed score / backfilled priority fields a transformation migration introduces on top of ck.schema.morph.customer_risk.v1."
+        "description": "Reference additive extension business-field schema for the customer_risk example, used by the ak.morph.schema_migrate transformation conformance vectors (ak.vector.morph.transformation_*). Declares the optional renamed score / backfilled priority fields a transformation migration introduces on top of ak.schema.morph.customer_risk.v1."
       },
       {
         "schema_id": "ak.schema.relation.v1",
@@ -2821,7 +2821,7 @@
         "schema_id": "ak.schema.peer_contact_delivery_request.v1",
         "file": "schemas/peer-contact-delivery-request.schema.json",
         "status": "active",
-        "description": "Private service-to-service contact fact delivery request carrying a signed ck.contact.* envelope and contact_address for cross-Principal-Server projection."
+        "description": "Private service-to-service contact fact delivery request carrying a signed ak.contact.* envelope and contact_address for cross-Principal-Server projection."
       },
       {
         "schema_id": "ak.schema.authz_operations.v1",
@@ -2853,7 +2853,7 @@
         "format_aliases": [
           "ak.patch.v1"
         ],
-        "description": "Registered schema for the embedded ck.patch.v1 field-patch wire format."
+        "description": "Registered schema for the embedded ak.patch.v1 field-patch wire format."
       },
       {
         "schema_id": "ak.schema.range_completeness_attestation.v1",
@@ -2895,49 +2895,49 @@
         "schema_id": "ak.schema.account_data_operations.v1",
         "file": "schemas/account-data-operations.schema.json",
         "status": "active",
-        "description": "Closed request/response DTO bundle for self-surface actor-private account_data operations (ck.self.account_data.*); see zh/discovery/client-preferences.md."
+        "description": "Closed request/response DTO bundle for self-surface actor-private account_data operations (ak.self.account_data.*); see zh/discovery/client-preferences.md."
       },
       {
         "schema_id": "ak.schema.circle_operations.v1",
         "file": "schemas/circle-operations.schema.json",
         "status": "active",
-        "description": "Closed request/response DTO bundle for self-surface Circle administration operations (ck.self.circle.*); see zh/models/circle.md."
+        "description": "Closed request/response DTO bundle for self-surface Circle administration operations (ak.self.circle.*); see zh/models/circle.md."
       },
       {
         "schema_id": "ak.schema.consent_operations.v1",
         "file": "schemas/consent-operations.schema.json",
         "status": "active",
-        "description": "Closed request/response DTO bundle for self-surface holder-private consent cell operations (ck.self.consent.*); see zh/identity/consent-model.md."
+        "description": "Closed request/response DTO bundle for self-surface holder-private consent cell operations (ak.self.consent.*); see zh/identity/consent-model.md."
       },
       {
         "schema_id": "ak.schema.read_cursor_operations.v1",
         "file": "schemas/read-cursor-operations.schema.json",
         "status": "active",
-        "description": "Closed request/response DTO bundle for self-surface read cursor operations (ck.self.read_cursor.*); see zh/discovery/read-receipts.md."
+        "description": "Closed request/response DTO bundle for self-surface read cursor operations (ak.self.read_cursor.*); see zh/discovery/read-receipts.md."
       },
       {
         "schema_id": "ak.schema.realm_link_operations.v1",
         "file": "schemas/realm-link-operations.schema.json",
         "status": "active",
-        "description": "Closed request/response DTO bundle for self-surface cross-Realm link operations (ck.self.realm_link.*); see zh/models/realm-links.md."
+        "description": "Closed request/response DTO bundle for self-surface cross-Realm link operations (ak.self.realm_link.*); see zh/models/realm-links.md."
       },
       {
         "schema_id": "ak.schema.realm_organization_operations.v1",
         "file": "schemas/realm-organization-operations.schema.json",
         "status": "active",
-        "description": "Closed response DTO bundle for self-surface Realm organization relationship reads (ck.self.realm_organization.*); see zh/models/realm-and-space.md."
+        "description": "Closed response DTO bundle for self-surface Realm organization relationship reads (ak.self.realm_organization.*); see zh/models/realm-and-space.md."
       },
       {
         "schema_id": "ak.schema.realm_policy_server_operations.v1",
         "file": "schemas/realm-policy-server-operations.schema.json",
         "status": "active",
-        "description": "Closed request/response DTO bundle for self-surface Realm policy-server config operations (ck.self.realm_policy_server.*); see zh/authz/policy-server.md."
+        "description": "Closed request/response DTO bundle for self-surface Realm policy-server config operations (ak.self.realm_policy_server.*); see zh/authz/policy-server.md."
       },
       {
         "schema_id": "ak.schema.realm_read_operations.v1",
         "file": "schemas/realm-read-operations.schema.json",
         "status": "active",
-        "description": "Closed request/response DTO bundle for self-surface Realm read and moderation-policy operations (ck.self.realm.*); see zh/models/realm-and-space.md and zh/governance/content-moderation.md."
+        "description": "Closed request/response DTO bundle for self-surface Realm read and moderation-policy operations (ak.self.realm.*); see zh/models/realm-and-space.md and zh/governance/content-moderation.md."
       },
       {
         "schema_id": "ak.schema.contact_operations.v1",
@@ -2991,7 +2991,7 @@
         "schema_id": "ak.schema.key_backup_plaintext.v1",
         "file": "schemas/key-backup-plaintext.schema.json",
         "status": "active",
-        "description": "Canonical plaintext keybag opened from a ck.schema.key_backup.v1 envelope."
+        "description": "Canonical plaintext keybag opened from a ak.schema.key_backup.v1 envelope."
       },
       {
         "schema_id": "ak.schema.key_backup_unlock_proof.v1",
@@ -3003,7 +3003,7 @@
         "schema_id": "ak.schema.recovery_policy.v1",
         "file": "schemas/recovery-policy.schema.json",
         "status": "active",
-        "description": "Wire payload schema for the principal recovery policy. Bound to the Principal Control Realm via signed publish / rotate / share-revoke; receivers MUST reject recovery / rotate / ck.device.authorize and cross-signing-reset evidence whose proof family is not allowed by the currently accepted recovery policy. See identity/key-management.md §3.3 / §7 / §8."
+        "description": "Wire payload schema for the principal recovery policy. Bound to the Principal Control Realm via signed publish / rotate / share-revoke; receivers MUST reject recovery / rotate / ak.device.authorize and cross-signing-reset evidence whose proof family is not allowed by the currently accepted recovery policy. See identity/key-management.md §3.3 / §7 / §8."
       },
       {
         "schema_id": "ak.schema.recovery_session.v1",
@@ -3065,7 +3065,7 @@
         "schema_id": "ak.schema.member_identity.v1",
         "file": "schemas/member-identity.schema.json",
         "status": "active",
-        "description": "Realm-scoped member display/subject projection carried by ck.member.identity.update; handle lifecycle is carried by ck.schema.handle_claim.v1."
+        "description": "Realm-scoped member display/subject projection carried by ak.member.identity.update; handle lifecycle is carried by ak.schema.handle_claim.v1."
       },
       {
         "schema_id": "ak.schema.handle_claim.v1",
@@ -3127,13 +3127,13 @@
         "schema_id": "ak.schema.applet.v1",
         "file": "schemas/applet.schema.json",
         "status": "active",
-        "description": "Schema-registry object for applet protocol metadata snapshots. Event payloads for ck.applet.* use typed payload definitions in event-payload.schema.json."
+        "description": "Schema-registry object for applet protocol metadata snapshots. Event payloads for ak.applet.* use typed payload definitions in event-payload.schema.json."
       },
       {
         "schema_id": "ak.schema.applet_package.v1",
         "file": "schemas/applet-package.schema.json",
         "status": "active",
-        "description": "Controller-signed package used by ck.self.applet.command.install preview/commit to derive ck.applet.registration and capability grants. Distribution object only; not Realm history truth and not authorization."
+        "description": "Controller-signed package used by ak.self.applet.command.install preview/commit to derive ak.applet.registration and capability grants. Distribution object only; not Realm history truth and not authorization."
       },
       {
         "schema_id": "ak.schema.applet_widget_declaration.v1",
@@ -3145,25 +3145,25 @@
         "schema_id": "ak.schema.applet_install_plan.v1",
         "file": "schemas/applet-install-plan.schema.json",
         "status": "active",
-        "description": "Canonical Applet InstallPlan returned by ck.self.applet.install.command.preview and recomputed by ck.self.applet.command.install before commit. plan_digest is calculated over this object with plan_digest omitted."
+        "description": "Canonical Applet InstallPlan returned by ak.self.applet.install.command.preview and recomputed by ak.self.applet.command.install before commit. plan_digest is calculated over this object with plan_digest omitted."
       },
       {
         "schema_id": "ak.schema.applet_install_operations.v1",
         "file": "schemas/applet-install-operations.schema.json",
         "status": "active",
-        "description": "Closed request/response DTO bundle for ck.self.applet.install.command.preview and ck.applet.install."
+        "description": "Closed request/response DTO bundle for ak.self.applet.install.command.preview and ak.applet.install."
       },
       {
         "schema_id": "ak.schema.applet_ghost_operations.v1",
         "file": "schemas/applet-ghost-operations.schema.json",
         "status": "active",
-        "description": "Closed request/response DTO bundle for ck.self.applet.ghost.command.provision (Applet-managed Ghost Actor provisioning by an installed bridge Applet)."
+        "description": "Closed request/response DTO bundle for ak.self.applet.ghost.command.provision (Applet-managed Ghost Actor provisioning by an installed bridge Applet)."
       },
       {
         "schema_id": "ak.schema.agent.v1",
         "file": "schemas/agent.schema.json",
         "status": "active",
-        "description": "Schema-registry object for agent protocol metadata snapshots. Event payloads for ck.agent.* use typed payload definitions in event-payload.schema.json."
+        "description": "Schema-registry object for agent protocol metadata snapshots. Event payloads for ak.agent.* use typed payload definitions in event-payload.schema.json."
       },
       {
         "schema_id": "ak.schema.audit_ryw_receipt.v1",
@@ -3173,7 +3173,7 @@
         "schema_id": "ak.schema.erasure_receipt.v1",
         "file": "schemas/erasure-receipt.schema.json",
         "status": "active",
-        "description": "Signed hard-erasure receipt payload for ck.audit.erasure_receipt"
+        "description": "Signed hard-erasure receipt payload for ak.audit.erasure_receipt"
       },
       {
         "schema_id": "ak.schema.erasure_verification_stub.v1",
@@ -3185,13 +3185,13 @@
         "schema_id": "ak.schema.cross_signing_publish.v1",
         "file": "schemas/cross-signing-publish.schema.json",
         "status": "active",
-        "description": "Wire payload schema for ck.cross_signing.publish — establishes the PSK→{SSK, USK} binding on the principal control stream. See device-lifecycle.md §5.1."
+        "description": "Wire payload schema for ak.cross_signing.publish — establishes the PSK→{SSK, USK} binding on the principal control stream. See device-lifecycle.md §5.1."
       },
       {
         "schema_id": "ak.schema.cross_signing_reset.v1",
         "file": "schemas/cross-signing-reset.schema.json",
         "status": "active",
-        "description": "Wire payload schema for ck.cross_signing.reset — retires the current (SSK, USK) generation under one of four kinds of high-risk proof. See device-lifecycle.md §14.1."
+        "description": "Wire payload schema for ak.cross_signing.reset — retires the current (SSK, USK) generation under one of four kinds of high-risk proof. See device-lifecycle.md §14.1."
       },
       {
         "schema_id": "ak.schema.seal.v1",
@@ -3245,19 +3245,19 @@
         "schema_id": "ak.schema.keypackage_operations.v1",
         "file": "schemas/keypackage-operations.schema.json",
         "status": "active",
-        "description": "Closed request/response DTO bundle for ck.self.keys.keypackages.upload.create, claim, consume, and revoke."
+        "description": "Closed request/response DTO bundle for ak.self.keys.keypackages.upload.create, claim, consume, and revoke."
       },
       {
         "schema_id": "ak.schema.keys_operations.v1",
         "file": "schemas/keys-operations.schema.json",
         "status": "active",
-        "description": "Closed request/response DTO bundle for ck.self.keys.upload.create, query, claim, and key backup put/list/delete responses."
+        "description": "Closed request/response DTO bundle for ak.self.keys.upload.create, query, claim, and key backup put/list/delete responses."
       },
       {
         "schema_id": "ak.schema.service_describe.v1",
         "file": "schemas/service-describe.schema.json",
         "status": "active",
-        "description": "Canonical ServiceDescribe response for ck.server.query.describe and per-surface describe operations: base service metadata plus claim-level partitions (supported_operations / implemented_features / claimed_profiles / verified_profiles / experimental_features / compat_surfaces) and the registered directory_service overlay fields used by ck.find.directory.query.describe. Enforces development_mode=true => verified_profiles=[]. compat_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
+        "description": "Canonical ServiceDescribe response for ak.server.query.describe and per-surface describe operations: base service metadata plus claim-level partitions (supported_operations / implemented_features / claimed_profiles / verified_profiles / experimental_features / compat_surfaces) and the registered directory_service overlay fields used by ak.find.directory.query.describe. Enforces development_mode=true => verified_profiles=[]. compat_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
       },
       {
         "schema_id": "ak.schema.common_ids.v1",
@@ -3286,7 +3286,7 @@
     ]
   },
   "id_kind_registry": {
-    "namespace": "ak.,
+    "namespace": "ak.",
     "storage_rules": [
       "Protocol wire objects, canonical JSON, signatures, hashes, fixtures, logs, API DTOs, and cross-service references MUST use the full typed form ak:<kind>:<uuid> unless a special form below applies.",
       "Storage implementations MAY store raw 16-byte UUID values (e.g. PostgreSQL `uuid` column) without the ak:<kind>: prefix when the table, column, or explicit kind field already supplies the type context.",
@@ -3342,7 +3342,7 @@
         "wire_form": "ak:trust_domain:<scope>",
         "status": "active",
         "storage_recommendation": "Store the scope string as an opaque deployment-level identifier; it appears in server describe, Realm policy, and high-risk proof transcripts.",
-        "description": "Deployment-scope trust domain identifier. Scope is a lowercase opaque label (alphanumerics, dot, dash, underscore, colon; max 128 chars). Used to prevent cross-deployment / cross-sovereign replay of high-risk proofs (e.g. ck.cross_signing.reset §14.1). NOT a typed-UUIDv7 object id. See identity-did.md §3.6."
+        "description": "Deployment-scope trust domain identifier. Scope is a lowercase opaque label (alphanumerics, dot, dash, underscore, colon; max 128 chars). Used to prevent cross-deployment / cross-sovereign replay of high-risk proofs (e.g. ak.cross_signing.reset §14.1). NOT a typed-UUIDv7 object id. See identity-did.md §3.6."
       }
     ],
     "id_kinds": [
@@ -3361,14 +3361,14 @@
         "category": "moderation",
         "status": "active",
         "wire_form": "ak:appeal:<uuid>",
-        "description": "Moderation appeal ID — opaque key for the ck.component.moderation.appeal.v1 cell. Created by ck.moderation.appeal.submit; referenced by review / decision / close events. See zh/governance/content-moderation.md §5.5."
+        "description": "Moderation appeal ID — opaque key for the ak.component.moderation.appeal.v1 cell. Created by ak.moderation.appeal.submit; referenced by review / decision / close events. See zh/governance/content-moderation.md §5.5."
       },
       {
         "kind": "agent_interop_session",
         "category": "extension",
         "status": "active",
         "wire_form": "ak:agent_interop_session:<uuid>",
-        "description": "Agent interop session ID. Note the cross-surface naming: this typed ID uses the short form `agent_interop_session`, while the corresponding event kinds use the full form `ck.agent.interop_session.{start,status,result}` and capability actions use `ck.agent.interop_session.{start,cancel,stream_status,attach_artifact,read_transcript}`. The three surfaces all refer to the same session concept; downstream tooling MUST NOT assume `ak:<event-prefix>:<uuid>` mechanical derivation."
+        "description": "Agent interop session ID. Note the cross-surface naming: this typed ID uses the short form `agent_interop_session`, while the corresponding event kinds use the full form `ak.agent.interop_session.{start,status,result}` and capability actions use `ak.agent.interop_session.{start,cancel,stream_status,attach_artifact,read_transcript}`. The three surfaces all refer to the same session concept; downstream tooling MUST NOT assume `ak:<event-prefix>:<uuid>` mechanical derivation."
       },
       {
         "kind": "announce",
@@ -3389,21 +3389,21 @@
         "category": "audit",
         "status": "active",
         "wire_form": "ak:audit_binding:<uuid>",
-        "description": "Audit Applet Binding ID. Created by ck.audit.applet_binding and referenced by audit session request/authorize/notice/release events."
+        "description": "Audit Applet Binding ID. Created by ak.audit.applet_binding and referenced by audit session request/authorize/notice/release events."
       },
       {
         "kind": "audit_session",
         "category": "audit",
         "status": "active",
         "wire_form": "ak:audit_session:<uuid>",
-        "description": "Audit release session ID. Threads ck.audit.session.request, authorize, notice, release, and close events for one bounded historical audit window."
+        "description": "Audit release session ID. Threads ak.audit.session.request, authorize, notice, release, and close events for one bounded historical audit window."
       },
       {
         "kind": "audit_release",
         "category": "audit",
         "status": "active",
         "wire_form": "ak:audit_release:<uuid>",
-        "description": "Audit release manifest ID. Created by ck.audit.release for a sealed historical release under an active audit binding/session."
+        "description": "Audit release manifest ID. Created by ak.audit.release for a sealed historical release under an active audit binding/session."
       },
       {
         "kind": "backup",
@@ -3417,7 +3417,7 @@
         "category": "identity",
         "status": "active",
         "wire_form": "ak:backup_series:<uuid>",
-        "description": "Stable identifier for one chain of encrypted backup envelopes belonging to a single (actor_id, backup_class). A pair MAY have multiple series during rotation or migration; the active series is selected by the signed active-series record, not by server return order. Used by ck.schema.key_backup.v1.series_id and recovery strands to detect rollback. See identity/key-management.md §7.6."
+        "description": "Stable identifier for one chain of encrypted backup envelopes belonging to a single (actor_id, backup_class). A pair MAY have multiple series during rotation or migration; the active series is selected by the signed active-series record, not by server return order. Used by ak.schema.key_backup.v1.series_id and recovery strands to detect rollbaak. See identity/key-management.md §7.6."
       },
       {
         "kind": "batch",
@@ -3456,7 +3456,7 @@
         "category": "media",
         "status": "active",
         "wire_form": "ak:rtc_participant:<uuid>",
-        "description": "SFU-local participant handle (CKP-0010). Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_did, issued_at_bucket)` by the media service token issuer. MUST NOT carry any actor-identifying material; only appears in `ck.call.state.participants[].participant_identity` and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `ak:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern."
+        "description": "SFU-local participant handle (AKP-0010). Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_did, issued_at_bucket)` by the media service token issuer. MUST NOT carry any actor-identifying material; only appears in `ak.call.state.participants[].participant_identity` and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `ak:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern."
       },
       {
         "kind": "capability",
@@ -3506,7 +3506,7 @@
         "category": "identity",
         "status": "active",
         "wire_form": "ak:device:<uuid>",
-        "description": "Device identifier (ak:device:<uuid>). A device is a typed ID scoped to an owning principal, NOT a DID and NOT an actor principal. Device keys are registered as verification methods under the owning principal DID via ck.device.authorize."
+        "description": "Device identifier (ak:device:<uuid>). A device is a typed ID scoped to an owning principal, NOT a DID and NOT an actor principal. Device keys are registered as verification methods under the owning principal DID via ak.device.authorize."
       },
       {
         "kind": "device_message",
@@ -3551,7 +3551,7 @@
         "category": "authz",
         "status": "active",
         "wire_form": "ak:grant:<uuid>",
-        "description": "Signed capability grant object ID used by ck.schema.capability.v1 and grant/revoke references."
+        "description": "Signed capability grant object ID used by ak.schema.capability.v1 and grant/revoke references."
       },
       {
         "kind": "invite",
@@ -3630,14 +3630,14 @@
         "category": "identity",
         "status": "active",
         "wire_form": "ak:recovery_session:<uuid>",
-        "description": "Stable session identifier bound by every proof transcript, backup decrypt proof and MLS Welcome replay during one recovery strand. Referenced by ck.schema.recovery_receipt.v1 and by §15 recovery proofs. See crypto-media/device-lifecycle.md §15."
+        "description": "Stable session identifier bound by every proof transcript, backup decrypt proof and MLS Welcome replay during one recovery strand. Referenced by ak.schema.recovery_receipt.v1 and by §15 recovery proofs. See crypto-media/device-lifecycle.md §15."
       },
       {
         "kind": "attestation",
         "category": "audit",
         "status": "active",
         "wire_form": "ak:attestation:<uuid>",
-        "description": "Attestation object ID (e.g. ck.attestation.range_completeness)."
+        "description": "Attestation object ID (e.g. ak.attestation.range_completeness)."
       },
       {
         "kind": "relation",
@@ -4136,7 +4136,7 @@
         "http": "POST /_arkret/gate/account/device-enroll",
         "grpc": "GateAccount/DeviceEnroll",
         "mq": "gate.account.command.enroll_device",
-        "notes": "Managed-DID (account-authority) device enrollment, device-lifecycle.md §5.4 / key-management.md §5.0.6. The authenticated session asks its designated enrollment authority to mint a service_attested ck.device.authorize for this session's own device; the authority signs with its persistent enrollment key (never the principal SSK) and returns the full Event. The caller submits it verbatim to POST /_arkret/self/events. Distinct from pair_device (§2.1), which lands an existing-device SAS/QR approval and carries a pairing_code; enroll_device is the bootstrap / first-device path where no sibling device can approve.",
+        "notes": "Managed-DID (account-authority) device enrollment, device-lifecycle.md §5.4 / key-management.md §5.0.6. The authenticated session asks its designated enrollment authority to mint a service_attested ak.device.authorize for this session's own device; the authority signs with its persistent enrollment key (never the principal SSK) and returns the full Event. The caller submits it verbatim to POST /_arkret/self/events. Distinct from pair_device (§2.1), which lands an existing-device SAS/QR approval and carries a pairing_code; enroll_device is the bootstrap / first-device path where no sibling device can approve.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
@@ -4181,7 +4181,7 @@
         "operation_id": "ak.gate.account.command.logout_auth_session",
         "http_only_variant": true,
         "http": "POST /_arkret/gate/account/auth-sessions/logout",
-        "notes": "Account Authority to Auth Server S2S Auth-side logout sub-operation (account-lifecycle §4.1): the Account Authority has already validated the client-visible ck.gate.account.command.logout request, then calls this operation with service-to-service authentication to log out the Auth-side browser/auth session owning the presented ak.session.grant and terminate that session's grant rotation chain. Ordinary clients MUST NOT call this operation; they only call ck.gate.account.command.logout. HTTP-only S2S op; not exposed over gRPC/MQ.",
+        "notes": "Account Authority to Auth Server S2S Auth-side logout sub-operation (account-lifecycle §4.1): the Account Authority has already validated the client-visible ak.gate.account.command.logout request, then calls this operation with service-to-service authentication to log out the Auth-side browser/auth session owning the presented ak.session.grant and terminate that session's grant rotation chain. Ordinary clients MUST NOT call this operation; they only call ak.gate.account.command.logout. HTTP-only S2S op; not exposed over gRPC/MQ.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
@@ -4203,7 +4203,7 @@
         "operation_id": "ak.gate.account.command.logout",
         "http_only_variant": true,
         "http": "POST /_arkret/gate/account/logout",
-        "notes": "Account Authority ordinary hard logout (account-lifecycle §4.1): single client-visible logout entry. The handler validates the current ak.session.grant + DPoP, terminates the Auth-side auth session / grant rotation chain through ck.gate.account.command.logout_auth_session when Auth-side is split out, and completes or durably schedules the Principal-side local account session + device session cleanup and to-device/push removal. Distinct from revoke_session (targeted session-grant revoke). HTTP-only Account Authority op; not exposed over gRPC/MQ.",
+        "notes": "Account Authority ordinary hard logout (account-lifecycle §4.1): single client-visible logout entry. The handler validates the current ak.session.grant + DPoP, terminates the Auth-side auth session / grant rotation chain through ak.gate.account.command.logout_auth_session when Auth-side is split out, and completes or durably schedules the Principal-side local account session + device session cleanup and to-device/push removal. Distinct from revoke_session (targeted session-grant revoke). HTTP-only Account Authority op; not exposed over gRPC/MQ.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
@@ -4245,7 +4245,7 @@
         "http": "POST /_arkret/self/agents/discover",
         "grpc": "SelfAgent/ProtocolDiscover",
         "mq": "self.agent.protocol.query.discover",
-        "notes": "Probe the public ck.agent.endpoint registry for an agent's declared external protocol endpoints; returns the projection of an accepted ck.agent.endpoint event (no controller-private fields). Authorized by the ck.agent.protocol.discover capability action (profile ck.profile.agent_runtime.v1). See agent-protocol-interop.md §5.1 / §11 / §12.",
+        "notes": "Probe the public ak.agent.endpoint registry for an agent's declared external protocol endpoints; returns the projection of an accepted ak.agent.endpoint event (no controller-private fields). Authorized by the ak.agent.protocol.discover capability action (profile ak.profile.agent_runtime.v1). See agent-protocol-interop.md §5.1 / §11 / §12.",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_request_body",
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_outcome"
@@ -4358,7 +4358,7 @@
         "http": "POST /_arkret/gate/account/oidc/callback",
         "grpc": "GateAccount/OidcCallback",
         "mq": "gate.account.exchange.complete_oidc",
-        "notes": "Optional Account Authority browser redirect landing / handoff for deployments that use an OIDC redirect URI under /_arkret/gate/account. It MUST NOT issue or return SessionGrantOutcome, ak.session.grant, or Principal local session material; client-visible grant issuance remains ck.gate.account.command.issue_session_grant.",
+        "notes": "Optional Account Authority browser redirect landing / handoff for deployments that use an OIDC redirect URI under /_arkret/gate/account. It MUST NOT issue or return SessionGrantOutcome, ak.session.grant, or Principal local session material; client-visible grant issuance remains ak.gate.account.command.issue_session_grant.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
@@ -4597,7 +4597,7 @@
         "http": "POST /_arkret/self/device_messages",
         "grpc": "SelfDeviceMessages/Send",
         "mq": "self.device_messages.command.send",
-        "notes": "Enqueues caller-supplied DeviceMessageEnvelope targets into recipient device queues. HTTP binding is POST because the request is a batch command against a queue collection, deduplicated by (sender, Idempotency-Key), and does not replace a single URI-addressed message resource. Queue pruning is only via ck.self.device_messages.command.ack.",
+        "notes": "Enqueues caller-supplied DeviceMessageEnvelope targets into recipient device queues. HTTP binding is POST because the request is a batch command against a queue collection, deduplicated by (sender, Idempotency-Key), and does not replace a single URI-addressed message resource. Queue pruning is only via ak.self.device_messages.command.aak.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
@@ -4621,7 +4621,7 @@
         "http": "POST /_arkret/self/contacts/request",
         "grpc": "SelfContact/Request",
         "mq": "self.contact.command.request",
-        "notes": "Writes requester-side ck.contact.requested fact and requester-side consent grants for requested scopes; MUST NOT write target consent or accepted fact.",
+        "notes": "Writes requester-side ak.contact.requested fact and requester-side consent grants for requested scopes; MUST NOT write target consent or accepted fact.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
@@ -4675,7 +4675,7 @@
         "http": "PUT /_arkret/self/invite-receive-policy",
         "grpc": "SelfInviteReceivePolicy/Replace",
         "mq": "self.invite_receive_policy.resource.replace",
-        "notes": "Replace the authenticated subject's private invite-receive policy. The body MUST set subject_id equal to the session actor; the override shares the same store as ck.self.contact.command.tombstone(block_peer) blocked_subjects writes.",
+        "notes": "Replace the authenticated subject's private invite-receive policy. The body MUST set subject_id equal to the session actor; the override shares the same store as ak.self.contact.command.tombstone(block_peer) blocked_subjects writes.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
@@ -4699,7 +4699,7 @@
         "http": "POST /_arkret/self/circles",
         "grpc": "SelfCircle/Create",
         "mq": "self.circle.command.create",
-        "notes": "Builds a ck.circle.create Operation in the named parent Realm and routes it through the local accept pipeline. Reducer-locked fields (mls_group_ref, state) MUST NOT be actor-supplied; encryption_profile='none' is allowed only when the parent Realm policy floor permits plaintext.",
+        "notes": "Builds a ak.circle.create Operation in the named parent Realm and routes it through the local accept pipeline. Reducer-locked fields (mls_group_ref, state) MUST NOT be actor-supplied; encryption_profile='none' is allowed only when the parent Realm policy floor permits plaintext.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
@@ -4729,7 +4729,7 @@
         "http": "POST /_arkret/self/circles/{circle_id}/members",
         "grpc": "SelfCircle/MemberAdd",
         "mq": "self.circle.member.command.add",
-        "notes": "Builds ck.circle.member.state. Activating another actor requires ck.circle.member.manage narrowed to this Circle, and the target MUST already be a joined parent-Realm member (strict-subset invariant); a self-join is gated by join_rule.",
+        "notes": "Builds ak.circle.member.state. Activating another actor requires ak.circle.member.manage narrowed to this Circle, and the target MUST already be a joined parent-Realm member (strict-subset invariant); a self-join is gated by join_rule.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": false,
@@ -4741,7 +4741,7 @@
         "http": "DELETE /_arkret/self/circles/{circle_id}/members/{actor_id}",
         "grpc": "SelfCircle/MemberRemove",
         "mq": "self.circle.member.resource.delete",
-        "notes": "Builds ck.circle.member.state with membership=leave for the path actor_id.",
+        "notes": "Builds ak.circle.member.state with membership=leave for the path actor_id.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
@@ -4763,7 +4763,7 @@
         "http": "POST /_arkret/self/circles/{circle_id}/archive",
         "grpc": "SelfCircle/Archive",
         "mq": "self.circle.command.archive",
-        "notes": "Builds ck.circle.archive; transition follows the Circle lifecycle matrix (reducer rejects illegal transitions with circle_not_active).",
+        "notes": "Builds ak.circle.archive; transition follows the Circle lifecycle matrix (reducer rejects illegal transitions with circle_not_active).",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": false,
@@ -4775,7 +4775,7 @@
         "http": "POST /_arkret/self/circles/{circle_id}/restore",
         "grpc": "SelfCircle/Restore",
         "mq": "self.circle.command.restore",
-        "notes": "Builds ck.circle.restore; transition follows the Circle lifecycle matrix (reducer rejects illegal transitions with circle_not_archived). Restore re-enables new writes after pending MLS membership removals are settled.",
+        "notes": "Builds ak.circle.restore; transition follows the Circle lifecycle matrix (reducer rejects illegal transitions with circle_not_archived). Restore re-enables new writes after pending MLS membership removals are settled.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": false,
@@ -4787,7 +4787,7 @@
         "http": "POST /_arkret/self/circles/{circle_id}/tombstone",
         "grpc": "SelfCircle/Tombstone",
         "mq": "self.circle.command.tombstone",
-        "notes": "Builds ck.circle.tombstone (terminal). Response surfaces the terminal state with empty members.",
+        "notes": "Builds ak.circle.tombstone (terminal). Response surfaces the terminal state with empty members.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": false,
@@ -4981,7 +4981,7 @@
         "binding_variant_of": "ak.self.events.query.scan",
         "http_only_variant": true,
         "http": "POST /_arkret/self/events/query",
-        "notes": "HTTP-specific POST/body form of ck.events.query. Semantically identical (same selector / cursor / order / filter / include_completeness parameter set, same response shape including optional range_completeness). Choose when URL length would exceed practical limits (large realms[]/actors[] arrays, complex filters object) or when query parameters would be logged inadvertently by proxies. Non-HTTP transports MUST use the canonical ck.self.events.query.scan binding (SelfEvents/Query / self.events.query.scan), not expose this variant as a separate gRPC or MQ operation.",
+        "notes": "HTTP-specific POST/body form of ak.events.query. Semantically identical (same selector / cursor / order / filter / include_completeness parameter set, same response shape including optional range_completeness). Choose when URL length would exceed practical limits (large realms[]/actors[] arrays, complex filters object) or when query parameters would be logged inadvertently by proxies. Non-HTTP transports MUST use the canonical ak.self.events.query.scan binding (SelfEvents/Query / self.events.query.scan), not expose this variant as a separate gRPC or MQ operation.",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome"
@@ -4991,7 +4991,7 @@
         "http": "POST /_arkret/self/events/resolve",
         "grpc": "SelfEvents/Resolve",
         "mq": "self.events.query.scan.resolve",
-        "notes": "Dereference a known set of event_id / event_digest references to full EventEnvelope objects. Point lookup by identifier, not a range scan — use ck.self.events.query.scan for selector-based reads.",
+        "notes": "Dereference a known set of event_id / event_digest references to full EventEnvelope objects. Point lookup by identifier, not a range scan — use ak.self.events.query.scan for selector-based reads.",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveOutcome"
@@ -5009,7 +5009,7 @@
         "http": "POST /_arkret/self/events",
         "grpc": "SelfEvents/Submit",
         "mq": "self.events.command.submit",
-        "notes": "Durable self event submission, including ck.invite.claim. For ck.invite.claim, the receiving Realm reducer is the authoritative state machine: it MUST match token_commitment, re-check verification_service_did allowlist against current Realm policy, reject claim_nonce replay, perform pending -> claimed / membership-proposal effects, and run expiry cleanup before accepting.",
+        "notes": "Durable self event submission, including ak.invite.claim. For ak.invite.claim, the receiving Realm reducer is the authoritative state machine: it MUST match token_commitment, re-check verification_service_did allowlist against current Realm policy, reject claim_nonce replay, perform pending -> claimed / membership-proposal effects, and run expiry cleanup before accepting.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "protocol_sequence",
         "retry_safe": true,
@@ -5038,7 +5038,7 @@
         "http": "GET /_arkret/peer/events",
         "grpc": "PeerEvents/Query",
         "mq": "peer.events.query.scan",
-        "notes": "Federation peer pull/backfill query. Uses the same selector, cursor, order, and response semantics as ck.self.events.query.scan, but the HTTP trust surface is peer and the caller MUST be an authorized federation peer service.",
+        "notes": "Federation peer pull/backfill query. Uses the same selector, cursor, order, and response semantics as ak.self.events.query.scan, but the HTTP trust surface is peer and the caller MUST be an authorized federation peer service.",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome"
       },
@@ -5047,7 +5047,7 @@
         "binding_variant_of": "ak.peer.events.query.scan",
         "http_only_variant": true,
         "http": "POST /_arkret/peer/events/query",
-        "notes": "HTTP-specific POST/body form of ck.peer.events.query.scan. Semantically identical to GET /_arkret/peer/events; use it when federation selectors or filters are too large or sensitive for query strings.",
+        "notes": "HTTP-specific POST/body form of ak.peer.events.query.scan. Semantically identical to GET /_arkret/peer/events; use it when federation selectors or filters are too large or sensitive for query strings.",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome"
@@ -5067,7 +5067,7 @@
         "http": "POST /_arkret/peer/events",
         "grpc": "PeerEvents/Submit",
         "mq": "peer.events.command.submit",
-        "notes": "Federation peer event push. Body is EventsSubmitFederationRequestBody and the caller MUST use service-to-service authentication with Source/Destination service DID and trust-domain headers. Federated ck.invite.claim events are still decided by the destination Realm reducer, which MUST enforce token_commitment, current allowlist re-check, claim_nonce replay rejection, membership proposal conversion, and expiry cleanup; peer ingress prechecks are not state authority.",
+        "notes": "Federation peer event push. Body is EventsSubmitFederationRequestBody and the caller MUST use service-to-service authentication with Source/Destination service DID and trust-domain headers. Federated ak.invite.claim events are still decided by the destination Realm reducer, which MUST enforce token_commitment, current allowlist re-check, claim_nonce replay rejection, membership proposal conversion, and expiry cleanup; peer ingress prechecks are not state authority.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "protocol_sequence",
         "retry_safe": true,
@@ -5079,7 +5079,7 @@
         "http": "POST /_arkret/peer/invites",
         "grpc": "PeerInvites/Submit",
         "mq": "peer.invites.command.submit",
-        "notes": "Private Principal Server to Principal Server invite delivery. Requires service-to-service authentication, Destination-Service-DID equal to invite_address.recipient_service_did, a ck.invite.create event whose invitee equals invite_address.subject_id, and introduction_evidence accepted by the recipient invite_receive_policy.",
+        "notes": "Private Principal Server to Principal Server invite delivery. Requires service-to-service authentication, Destination-Service-DID equal to invite_address.recipient_service_did, a ak.invite.create event whose invitee equals invite_address.subject_id, and introduction_evidence accepted by the recipient invite_receive_policy.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
@@ -5091,7 +5091,7 @@
         "http": "POST /_arkret/peer/contacts",
         "grpc": "PeerContacts/Submit",
         "mq": "peer.contacts.command.submit",
-        "notes": "Private Principal Server to Principal Server contact fact delivery. Requires service-to-service authentication, Destination-Service-DID equal to contact_address.recipient_service_did, and a signed ck.contact.* envelope the recipient projects into the target holder's contact projection without re-signing.",
+        "notes": "Private Principal Server to Principal Server contact fact delivery. Requires service-to-service authentication, Destination-Service-DID equal to contact_address.recipient_service_did, and a signed ak.contact.* envelope the recipient projects into the target holder's contact projection without re-signing.",
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "idempotency_key",
         "retry_safe": true,
@@ -5112,7 +5112,7 @@
         "http": "POST /_arkret/self/ephemeral",
         "grpc": "SelfEphemeral/Send",
         "mq": "self.ephemeral.command.send",
-        "notes": "Canonical broadcast ephemeral send operation for ck.schema.ephemeral_envelope.v1. Carries ck.presence, ck.typing, ck.receipt.read, and ck.call.signal; MUST NOT persist the signal as a durable Event or advance actor_seq / Realm frontier.",
+        "notes": "Canonical broadcast ephemeral send operation for ak.schema.ephemeral_envelope.v1. Carries ak.presence, ak.typing, ak.receipt.read, and ak.call.signal; MUST NOT persist the signal as a durable Event or advance actor_seq / Realm frontier.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
@@ -5124,7 +5124,7 @@
         "http": "POST /_arkret/self/rtc/token",
         "grpc": "SelfCallMedia/TokenExchange",
         "mq": "self.call.media.exchange.issue_token",
-        "notes": "Media service token exchange operation (CKP-0010). Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in ck.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / arkret-native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/media-service-binding.md §3.",
+        "notes": "Media service token exchange operation (AKP-0010). Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in ak.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / arkret-native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/media-service-binding.md §3.",
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "none",
         "retry_safe": false,
@@ -5187,7 +5187,7 @@
         "http": "GET /_arkret/root/identity/recovery-policy",
         "grpc": "RootIdentity/RecoveryPolicyGet",
         "mq": "root.identity.recovery_policy.resource.get",
-        "notes": "Read the currently accepted ck.schema.recovery_policy.v1 projection for the authenticated or explicitly selected principal. Returns active_policy=null when no accepted policy exists; does not publish, rotate, or revoke policy state.",
+        "notes": "Read the currently accepted ak.schema.recovery_policy.v1 projection for the authenticated or explicitly selected principal. Returns active_policy=null when no accepted policy exists; does not publish, rotate, or revoke policy state.",
         "success_shape_kind": "schema_resource",
         "response_schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_active_outcome"
       },
@@ -5196,7 +5196,7 @@
         "http": "POST /_arkret/root/identity/recovery-policy",
         "grpc": "RootIdentity/RecoveryPolicyPublish",
         "mq": "root.identity.recovery_policy.command.publish",
-        "notes": "Publish a signed ck.schema.recovery_policy.v1 genesis policy or rotation for the authenticated principal. HTTP binding is POST because the principal/authority is derived from authenticated proof and signed policy state rather than a URI-addressed resource slot. Servers MUST verify auth_data.signed_fields, signature authority, version monotonicity, and supersedes linkage before accepting.",
+        "notes": "Publish a signed ak.schema.recovery_policy.v1 genesis policy or rotation for the authenticated principal. HTTP binding is POST because the principal/authority is derived from authenticated proof and signed policy state rather than a URI-addressed resource slot. Servers MUST verify auth_data.signed_fields, signature authority, version monotonicity, and supersedes linkage before accepting.",
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "protocol_sequence",
         "retry_safe": true,
@@ -5384,7 +5384,7 @@
         "http": "POST /_arkret/open/agent-pairing/runtime-key-requests",
         "grpc": "OpenAgentPairing/SubmitRuntimeKeyRequest",
         "mq": "open.agent_pairing.command.submit_runtime_key_request",
-        "notes": "Runtime-to-controller pending approval request for native personal-agent key pairing. The runtime proves possession of the local key and the short pairing code; the controller still must approve by signing ck.agent.key.authorize. The pairing code and proof-of-possession MUST be sent in the JSON body, never in URL path or query string.",
+        "notes": "Runtime-to-controller pending approval request for native personal-agent key pairing. The runtime proves possession of the local key and the short pairing code; the controller still must approve by signing ak.agent.key.authorize. The pairing code and proof-of-possession MUST be sent in the JSON body, never in URL path or query string.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
@@ -5532,7 +5532,7 @@
         "http": "POST /_arkret/self/policy/check",
         "grpc": "SelfPolicy/Check",
         "mq": "self.policy.query.check",
-        "notes": "Canonical HTTP binding is POST /_arkret/self/policy/check. Paths carry no version segment; protocol version is negotiated via *.describe / supported_operations (see sync/api-conventions.md).",
+        "notes": "Canonical HTTP binding is POST /_arkret/self/policy/cheak. Paths carry no version segment; protocol version is negotiated via *.describe / supported_operations (see sync/api-conventions.md).",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckOutcome"
@@ -5542,7 +5542,7 @@
         "http": "GET /_arkret/self/realms/{realm_id}/links",
         "grpc": "SelfRealmLink/List",
         "mq": "self.realm_link.query.list",
-        "notes": "Lists typed cross-Realm links projected from ck.realm.link. direction is outbound/inbound/both; link_kind_allow is a comma-separated allowlist of canonical link kinds.",
+        "notes": "Lists typed cross-Realm links projected from ak.realm.link. direction is outbound/inbound/both; link_kind_allow is a comma-separated allowlist of canonical link kinds.",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_list"
       },
@@ -5551,7 +5551,7 @@
         "http": "POST /_arkret/self/realms/{realm_id}/links",
         "grpc": "SelfRealmLink/Create",
         "mq": "self.realm_link.command.create",
-        "notes": "Builds a ck.realm.link Move from realm_id -> target_realm_id. The reducer runs realm_link_* validators (cycle detection, self-reference, kind validation); a rejected payload returns 422 with the canonical reason code (e.g. realm_link_cycle, realm_link_self_reference).",
+        "notes": "Builds a ak.realm.link Move from realm_id -> target_realm_id. The reducer runs realm_link_* validators (cycle detection, self-reference, kind validation); a rejected payload returns 422 with the canonical reason code (e.g. realm_link_cycle, realm_link_self_reference).",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": false,
@@ -5563,7 +5563,7 @@
         "http": "DELETE /_arkret/self/realms/{realm_id}/links/{target_realm_id}",
         "grpc": "SelfRealmLink/Delete",
         "mq": "self.realm_link.resource.delete",
-        "notes": "Writes a tombstoning ck.realm.link Move (status=tombstoned) for the (realm_id, target_realm_id, link_kind) triple. link_kind defaults to governed_by; callers may override via the link_kind query param.",
+        "notes": "Writes a tombstoning ak.realm.link Move (status=tombstoned) for the (realm_id, target_realm_id, link_kind) triple. link_kind defaults to governed_by; callers may override via the link_kind query param.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
@@ -5574,7 +5574,7 @@
         "http": "GET /_arkret/self/realms/{realm_id}/effective-policy",
         "grpc": "SelfRealmLink/EffectivePolicy",
         "mq": "self.realm_link.query.effective_policy",
-        "notes": "Returns the merged effective policy after walking governed_by / inherits_policy_from ancestors per the Realm's ck.realm.inheritance_policy. inheritance_mode=none when no inheritance policy is projected (implicit inheritance is forbidden).",
+        "notes": "Returns the merged effective policy after walking governed_by / inherits_policy_from ancestors per the Realm's ak.realm.inheritance_policy. inheritance_mode=none when no inheritance policy is projected (implicit inheritance is forbidden).",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_effective_policy_outcome"
       },
@@ -5583,7 +5583,7 @@
         "http": "GET /_arkret/self/realms/{realm_id}/organizations",
         "grpc": "SelfRealmOrganization/List",
         "mq": "self.realm_organization.query.list",
-        "notes": "Returns the projected ck.realm.organization relationship statements for the Realm (active / revoked / expired, latest-per-(organization_id, relationship)) plus declared owning_organizations hints with no verified statement. The caller must be authorized to read the Realm. A relationship is only verified when lifecycle_phase=verified_active; declared_organization_hints are unverified claims and MUST NOT be rendered as official / governed / endorsed.",
+        "notes": "Returns the projected ak.realm.organization relationship statements for the Realm (active / revoked / expired, latest-per-(organization_id, relationship)) plus declared owning_organizations hints with no verified statement. The caller must be authorized to read the Realm. A relationship is only verified when lifecycle_phase=verified_active; declared_organization_hints are unverified claims and MUST NOT be rendered as official / governed / endorsed.",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list"
       },
@@ -5592,7 +5592,7 @@
         "http": "GET /_arkret/self/realms/{realm_id}/policy-server",
         "grpc": "SelfRealmPolicyServer/Get",
         "mq": "self.realm_policy_server.resource.get",
-        "notes": "Reads the projected ck.realm.policy_server config. Returns not_found when neither the Realm nor its governed_by ancestor chain declared one. from_org_fallback=true marks an inherited config.",
+        "notes": "Reads the projected ak.realm.policy_server config. Returns not_found when neither the Realm nor its governed_by ancestor chain declared one. from_org_fallback=true marks an inherited config.",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view"
       },
@@ -5601,7 +5601,7 @@
         "http": "PUT /_arkret/self/realms/{realm_id}/policy-server",
         "grpc": "SelfRealmPolicyServer/Replace",
         "mq": "self.realm_policy_server.resource.replace",
-        "notes": "Builds a ck.realm.policy_server Move (admission capability ck.policy.manage). Reducer validates URL scheme and on_timeout enum. This admin DTO is a simplified projection of the canonical payload (server_id/endpoint/public_keys/applies_to/fail_mode).",
+        "notes": "Builds a ak.realm.policy_server Move (admission capability ak.policy.manage). Reducer validates URL scheme and on_timeout enum. This admin DTO is a simplified projection of the canonical payload (server_id/endpoint/public_keys/applies_to/fail_mode).",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
@@ -5613,7 +5613,7 @@
         "http": "DELETE /_arkret/self/realms/{realm_id}/policy-server",
         "grpc": "SelfRealmPolicyServer/Delete",
         "mq": "self.realm_policy_server.resource.delete",
-        "notes": "Tombstones the per-Realm ck.realm.policy_server cell so callers fall back to the governed_by chain or local-only capability check. Empty success response.",
+        "notes": "Tombstones the per-Realm ak.realm.policy_server cell so callers fall back to the governed_by chain or local-only capability cheak. Empty success response.",
         "success_shape_kind": "empty_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": true
@@ -5632,7 +5632,7 @@
         "http": "POST /_arkret/self/realms/{realm_id}/archive",
         "grpc": "SelfRealm/Archive",
         "mq": "self.realm.command.archive",
-        "notes": "Builds a ck.realm.archive Move. The archived facet changes when the lifecycle event is accepted into the Realm event log; archived=false clears the archived facet unless a terminal lifecycle state already applies.",
+        "notes": "Builds a ak.realm.archive Move. The archived facet changes when the lifecycle event is accepted into the Realm event log; archived=false clears the archived facet unless a terminal lifecycle state already applies.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": false,
@@ -5644,7 +5644,7 @@
         "http": "POST /_arkret/self/realms/{realm_id}/freeze",
         "grpc": "SelfRealm/Freeze",
         "mq": "self.realm.command.freeze",
-        "notes": "Builds a ck.realm.freeze Move. The frozen facet changes when the lifecycle event is accepted into the Realm event log; frozen=true rejects ordinary non-exempt writes with realm_frozen and frozen=false clears the freeze facet unless a terminal lifecycle state already applies.",
+        "notes": "Builds a ak.realm.freeze Move. The frozen facet changes when the lifecycle event is accepted into the Realm event log; frozen=true rejects ordinary non-exempt writes with realm_frozen and frozen=false clears the freeze facet unless a terminal lifecycle state already applies.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": false,
@@ -5656,7 +5656,7 @@
         "http": "POST /_arkret/self/realms/{realm_id}/tombstone",
         "grpc": "SelfRealm/Tombstone",
         "mq": "self.realm.command.tombstone",
-        "notes": "Builds a terminal ck.realm.tombstone Move with a successor_realm_id. The tombstoned state changes when the lifecycle event is accepted into the Realm event log; later ordinary writes fail with realm_terminal_state.",
+        "notes": "Builds a terminal ak.realm.tombstone Move with a successor_realm_id. The tombstoned state changes when the lifecycle event is accepted into the Realm event log; later ordinary writes fail with realm_terminal_state.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": false,
@@ -5668,7 +5668,7 @@
         "http": "POST /_arkret/self/realms/{realm_id}/destroy",
         "grpc": "SelfRealm/Destroy",
         "mq": "self.realm.command.destroy",
-        "notes": "Builds a terminal ck.realm.destroy Move. The destroyed state changes when the lifecycle event is accepted into the Realm event log; later ordinary writes fail with realm_terminal_state.",
+        "notes": "Builds a terminal ak.realm.destroy Move. The destroyed state changes when the lifecycle event is accepted into the Realm event log; later ordinary writes fail with realm_terminal_state.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": false,
@@ -5680,7 +5680,7 @@
         "http": "GET /_arkret/self/realms/{realm_id}/export",
         "grpc": "SelfRealm/Export",
         "mq": "self.realm.query.export",
-        "notes": "Full event-log + operation dump for a Realm (schema ck.export.realm.v1). Caller must be authorized to read the Realm; payload visibility still follows Realm policy.",
+        "notes": "Full event-log + operation dump for a Realm (schema ak.export.realm.v1). Caller must be authorized to read the Realm; payload visibility still follows Realm policy.",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_export"
       },
@@ -5698,7 +5698,7 @@
         "http": "PUT /_arkret/self/realms/{realm_id}/moderation-policy",
         "grpc": "SelfRealm/ModerationPolicyReplace",
         "mq": "self.realm.moderation_policy.resource.replace",
-        "notes": "Writes a Realm moderation-policy override (ck.realm.moderation_policy). Only the Realm owner may write; an override that loosens an action an organization policy denies requires explicit organization approval embedded in the document, otherwise the server returns requires_organization_approval.",
+        "notes": "Writes a Realm moderation-policy override (ak.realm.moderation_policy). Only the Realm owner may write; an override that loosens an action an organization policy denies requires explicit organization approval embedded in the document, otherwise the server returns requires_organization_approval.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
@@ -5728,7 +5728,7 @@
         "http": "POST /_arkret/self/consent/cells/{holder_did}/grant",
         "grpc": "SelfConsent/Grant",
         "mq": "self.consent.command.grant",
-        "notes": "Builds a ck.consent.grant Control Move on the holder's consent cell. The authenticated actor MUST be authorized to write the holder's consent (holder or an explicitly authorized controller/agent).",
+        "notes": "Builds a ak.consent.grant Control Move on the holder's consent cell. The authenticated actor MUST be authorized to write the holder's consent (holder or an explicitly authorized controller/agent).",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": false,
@@ -5740,7 +5740,7 @@
         "http": "POST /_arkret/self/consent/cells/{holder_did}/revoke",
         "grpc": "SelfConsent/Revoke",
         "mq": "self.consent.command.revoke",
-        "notes": "Builds a ck.consent.revoke Control Move enumerating the active grant dots for the (consent_id, peer, consent_scope). Revoking consent_scope=any cascades all concrete scopes; revoking a concrete scope leaves others intact.",
+        "notes": "Builds a ak.consent.revoke Control Move enumerating the active grant dots for the (consent_id, peer, consent_scope). Revoking consent_scope=any cascades all concrete scopes; revoking a concrete scope leaves others intact.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": false,
@@ -5782,7 +5782,7 @@
         "http": "PUT /_arkret/self/account_data/{data_type}",
         "grpc": "SelfAccountData/Replace",
         "mq": "self.account_data.resource.replace",
-        "notes": "Builds a ck.account_data.set actor-private write. Controller-private registered types reject agent / applet / service principals. content is stored verbatim; clients own canonical encoding and (for sensitive keys) client-side encryption.",
+        "notes": "Builds a ak.account_data.set actor-private write. Controller-private registered types reject agent / applet / service principals. content is stored verbatim; clients own canonical encoding and (for sensitive keys) client-side encryption.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
@@ -5805,7 +5805,7 @@
         "http": "POST /_arkret/self/read-cursors",
         "grpc": "SelfReadCursor/Advance",
         "mq": "self.read_cursor.command.advance",
-        "notes": "Builds a ck.read_cursor.advance actor-private write for (actor_id, realm_id, read_scope, position). Multi-device convergence is by HLC max with device_id tiebreak; the cursor is never published into shared Realm history.",
+        "notes": "Builds a ak.read_cursor.advance actor-private write for (actor_id, realm_id, read_scope, position). Multi-device convergence is by HLC max with device_id tiebreak; the cursor is never published into shared Realm history.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "protocol_sequence",
         "retry_safe": true,
@@ -5930,7 +5930,7 @@
         "http": "POST /_arkret/self/account/profile",
         "grpc": "SelfAccount/UpdateProfile",
         "mq": "self.account.command.update_profile",
-        "notes": "Holder-bound service wrapper around ck.profile.update / Actor Profile projection. Request body is a closed patch over display_name, avatar_blob_ref, and profile_fields.<key>; profile_fields.bio is the canonical personal bio field and avatar_url is not accepted on the Arkret protocol path.",
+        "notes": "Holder-bound service wrapper around ak.profile.update / Actor Profile projection. Request body is a closed patch over display_name, avatar_blob_ref, and profile_fields.<key>; profile_fields.bio is the canonical personal bio field and avatar_url is not accepted on the Arkret protocol path.",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "none",
         "retry_safe": false,
@@ -5942,7 +5942,7 @@
         "http": "GET /_arkret/self/account/subscribe",
         "grpc": "SelfAccount/Subscribe",
         "mq": "self.account.stream.subscribe",
-        "notes": "Streaming push of cross-Realm account-aggregate deltas (cross-Realm frontier, to_device queue, account_data, device_lists, presence, unread / notification counts). Connection is long-lived; server pushes NDJSON frames as new data becomes available. Symmetric with ck.self.events.stream.subscribe — both are streaming subscriptions, differing only in scope (self.events.stream.subscribe = per-Realm event log; self.account.stream.subscribe = account-aggregate). `dropped` and `resync_required` control frames MAY carry `reconnect_after_ms`, a server-directed minimum delay before opening another subscription for the same principal/device/filter scope; early reconnects are rejected with rate_limited / Retry-After. Presence changes are sent through ck.self.ephemeral.command.send, not this read-only stream subscription.",
+        "notes": "Streaming push of cross-Realm account-aggregate deltas (cross-Realm frontier, to_device queue, account_data, device_lists, presence, unread / notification counts). Connection is long-lived; server pushes NDJSON frames as new data becomes available. Symmetric with ak.self.events.stream.subscribe — both are streaming subscriptions, differing only in scope (self.events.stream.subscribe = per-Realm event log; self.account.stream.subscribe = account-aggregate). `dropped` and `resync_required` control frames MAY carry `reconnect_after_ms`, a server-directed minimum delay before opening another subscription for the same principal/device/filter scope; early reconnects are rejected with rate_limited / Retry-After. Presence changes are sent through ak.self.ephemeral.command.send, not this read-only stream subscription.",
         "success_shape_kind": "event_stream"
       },
       {
@@ -5950,7 +5950,7 @@
         "http": "POST /_arkret/self/account/cursor/revoke",
         "grpc": "SelfAccount/CursorRevoke",
         "mq": "self.account.command.revoke_cursor",
-        "notes": "High-assurance optional endpoint to revoke a previously issued cursor authority. Revocation hits return cursor_revoked and MUST NOT advance account subscribe position, barrier wait, or dropped recovery state. To-device queue deletion is decoupled from cursors entirely and happens only via ck.self.device_messages.command.ack.",
+        "notes": "High-assurance optional endpoint to revoke a previously issued cursor authority. Revocation hits return cursor_revoked and MUST NOT advance account subscribe position, barrier wait, or dropped recovery state. To-device queue deletion is decoupled from cursors entirely and happens only via ak.self.device_messages.command.aak.",
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
@@ -5991,8 +5991,8 @@
       "Receivers MUST default to risk_tier=high when an action submitted in a grant or evaluated in policy is not present in this registry; this is the freshness fail-closed default required by capabilities.md §18.",
       "required_constraints lists typed-constraint shorthand names that the capability evaluator MUST enforce for the action regardless of the grant author's declarations; absence in this list does NOT disable other declared constraints.",
       "required_evaluator_checks lists non-grant-field invariants (for example actor_eq_target_author or audit_pair_required) that admission control MUST enforce from Event context, reducer state, or paired audit evidence. These are not grant-constraint schema fields.",
-      "target_event_kinds links the action to one or more ck.* event_kinds in event_kind_registry. Empty array means the action authorizes a read / projection / signaling path that does not produce a durable reducer-input event. Reducer admission for a listed event_kind MUST verify the actor holds at least one matching action grant.",
-      "profile is null for v1 core actions, or a ck.profile.*.v<n> id when the action is only meaningful inside that profile. Receivers without the named profile MUST treat the action as unknown (risk_tier=high default).",
+      "target_event_kinds links the action to one or more ak.* event_kinds in event_kind_registry. Empty array means the action authorizes a read / projection / signaling path that does not produce a durable reducer-input event. Reducer admission for a listed event_kind MUST verify the actor holds at least one matching action grant.",
+      "profile is null for v1 core actions, or a ak.profile.*.v<n> id when the action is only meaningful inside that profile. Receivers without the named profile MUST treat the action as unknown (risk_tier=high default).",
       "Every action MUST declare event_mapping_kind. action == single target_event_kind uses same_name; empty target_event_kinds uses non_event_surface; any other mapping MUST use one of the allowed deviation categories."
     ],
     "actions": [
@@ -6142,7 +6142,7 @@
           "ak.circle.member.state"
         ],
         "profile": null,
-        "notes": "Cross-actor write (rare). MUST carry ck.audit.accessed pair (same model as ck.strand.watch.set.others).",
+        "notes": "Cross-actor write (rare). MUST carry ak.audit.accessed pair (same model as ak.strand.watch.set.others).",
         "event_mapping_kind": "scope_suffix_variant"
       },
       {
@@ -6155,7 +6155,7 @@
         ],
         "target_event_kinds": [],
         "profile": null,
-        "notes": "Read-only audit access for a Realm admin NOT in the target Circle. MUST be paired with ck.audit.accessed event. Does NOT yield historical decryption keys unless the admin is formally added to the Circle.",
+        "notes": "Read-only audit access for a Realm admin NOT in the target Circle. MUST be paired with ak.audit.accessed event. Does NOT yield historical decryption keys unless the admin is formally added to the Circle.",
         "event_mapping_kind": "non_event_surface"
       },
       {
@@ -6884,7 +6884,7 @@
           "ak.realm.set_default_strand"
         ],
         "profile": null,
-        "notes": "Sets / changes the Realm's authoritative default discussion Strand pointer (ck.realm.set_default_strand event; projects Realm default_strand_id). Same-name discipline. The Realm authz gate is realm-admin: holding ck.realm.admin (aggregate admin coverage) satisfies admission, or grant this specific action directly. Reducer MUST verify the referenced Strand already exists (failed_precondition otherwise). See zh/models/strand-and-message.md default-Strand discovery section.",
+        "notes": "Sets / changes the Realm's authoritative default discussion Strand pointer (ak.realm.set_default_strand event; projects Realm default_strand_id). Same-name discipline. The Realm authz gate is realm-admin: holding ak.realm.admin (aggregate admin coverage) satisfies admission, or grant this specific action directly. Reducer MUST verify the referenced Strand already exists (failed_precondition otherwise). See zh/models/strand-and-message.md default-Strand discovery section.",
         "event_mapping_kind": "same_name"
       },
       {

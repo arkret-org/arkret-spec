@@ -19,23 +19,23 @@ updated: 2026-07-02
 | 术语 | 层级 | 说明 |
 | --- | --- | --- |
 | **Join Policy** | 章节 / 策略域总称 | 本文定义的 gate 组合、解析顺序、加密语义与反滥用约束的统称；不是单一 wire `Event.kind`。 |
-| `ck.realm.join_rule` | wire event / cell（active） | `default_join_rule` 入口模式策略事件，写入 `ck.component.realm.join_rule.v1` cell。 |
-| `ck.realm.delivery_binding_policy` | wire event / cell（active） | 成员投递绑定策略事件，写入 `ck.component.realm.delivery_binding_policy.v1` cell（见 [`member-delivery-binding.md`](member-delivery-binding.md) §4）；约束成员 `delivery_binding.binding_source`，与 join gate 正交。 |
+| `ak.realm.join_rule` | wire event / cell（active） | `default_join_rule` 入口模式策略事件，写入 `ak.component.realm.join_rule.v1` cell。 |
+| `ak.realm.delivery_binding_policy` | wire event / cell（active） | 成员投递绑定策略事件，写入 `ak.component.realm.delivery_binding_policy.v1` cell（见 [`member-delivery-binding.md`](member-delivery-binding.md) §4）；约束成员 `delivery_binding.binding_source`，与 join gate 正交。 |
 | `RealmJoinCandidate`（`realm-join-candidate.schema.json`） | 候选请求 / 评估对象 | 描述本次 join / invite-accept / knock material 可提交到哪些 Realm ingress service；方向与 `delivery_binding` 相反（见 [`member-delivery-binding.md`](member-delivery-binding.md) §2 末尾注意段）。 |
 
-当前 v1 的 active 与 candidate surface 分层如下，base v1 实现只需要实现 active surface；application / review workflow 只在实现声明 `ck.profile.candidate.join_policy.v1` 时成为该实现的自愿承诺。
+当前 v1 的 active 与 candidate surface 分层如下，base v1 实现只需要实现 active surface；application / review workflow 只在实现声明 `ak.profile.candidate.join_policy.v1` 时成为该实现的自愿承诺。
 
 | Surface | v1 状态 | Wire 形态 | 实现要求 |
 | --- | --- | --- | --- |
-| `ck.realm.join_rule` | active | 标准 `Event.kind` / reducer cell | base v1 按 registry 和 reducer 规则实现 |
-| `ck.realm.policy_components` 中的 join policy facet | active | 标准 policy component payload | base v1 可表达 gate、delivery binding policy 与自动解析要求 |
-| `ck.member.state{membership=join}` 自动 gate | active | 标准 membership event + `gate_proofs[]` / delivery binding payload | base v1 必须 fail closed 校验 capability、gate proof 与 delivery binding |
-| `ck.invite.*` + `refs[role="join_authorised_by"]` | active | 标准 invite / member refs | base v1 支持 invite 或 join-authorized grant 时必须校验引用仍有效 |
-| `realm.join_policy` / `member.application` / `member.application.review` / `member.application.cancel` | candidate | 裸名 design-time concept；不得作为 `Event.kind` | 仅 `ck.profile.candidate.join_policy.v1` 实现可用 profile-private signed receipt 或私有 Event kind 承载 |
+| `ak.realm.join_rule` | active | 标准 `Event.kind` / reducer cell | base v1 按 registry 和 reducer 规则实现 |
+| `ak.realm.policy_components` 中的 join policy facet | active | 标准 policy component payload | base v1 可表达 gate、delivery binding policy 与自动解析要求 |
+| `ak.member.state{membership=join}` 自动 gate | active | 标准 membership event + `gate_proofs[]` / delivery binding payload | base v1 必须 fail closed 校验 capability、gate proof 与 delivery binding |
+| `ak.invite.*` + `refs[role="join_authorised_by"]` | active | 标准 invite / member refs | base v1 支持 invite 或 join-authorized grant 时必须校验引用仍有效 |
+| `realm.join_policy` / `member.application` / `member.application.review` / `member.application.cancel` | candidate | 裸名 design-time concept；不得作为 `Event.kind` | 仅 `ak.profile.candidate.join_policy.v1` 实现可用 profile-private signed receipt 或私有 Event kind 承载 |
 
-独立 join-policy Event.kind / schema 仍未进入 active registry。任何未声明 `ck.profile.candidate.join_policy.v1` 的实现 MUST 把 application / review workflow 当作未知高风险 surface，返回 `unsupported_feature`、`unsupported_event_kind`、`capability_denied` 或等价 fail-closed 结果；MUST NOT 把未注册裸名 kind 写入 shared Realm history。
+独立 join-policy Event.kind / schema 仍未进入 active registry。任何未声明 `ak.profile.candidate.join_policy.v1` 的实现 MUST 把 application / review workflow 当作未知高风险 surface，返回 `unsupported_feature`、`unsupported_event_kind`、`capability_denied` 或等价 fail-closed 结果；MUST NOT 把未注册裸名 kind 写入 shared Realm history。
 
-**base v1 knock 不得退化为明文 spam 通道（normative）**：申请材料对外不可见（§2 设计原则 2）与 reviewer-only 加密承载（§8）都属于 candidate surface（`ck.profile.candidate.join_policy.v1`）能力；**未声明该 profile 的 base v1 实现没有任何受保护的申请正文承载层**。为避免 base v1 下 `default_join_rule=knock` 退化为 Matrix `m.room.member{knock}.reason` 那样的默认可见明文 spam 通道，base v1（未声明 candidate profile）下的 `ck.member.state{membership="knock"}` Control Move **MUST NOT 携带任何申请正文 / 自由文本 / answers / 3PID / 附件**——该 Control Move 公开，正文一旦携带即对 Realm 可见侧成员暴露并成为 spam 注入面。reducer 在 base v1 收到携带正文字段的 knock Control Move MUST 拒绝（`schema_violation` 或 `unsupported_feature`）。需要结构化申请材料时，实现 MUST 先声明 `ck.profile.candidate.join_policy.v1` 并通过 §8 的 reviewer-only encryption envelope / profile-private 承载提交正文，而非塞进公开 knock。这一禁止与 §8.2 末尾"申请正文 MUST NOT 进入 `ck.member.state{knock}` Control Move"在 base v1 层同口径，构成两侧闭合。
+**base v1 knock 不得退化为明文 spam 通道（normative）**：申请材料对外不可见（§2 设计原则 2）与 reviewer-only 加密承载（§8）都属于 candidate surface（`ak.profile.candidate.join_policy.v1`）能力；**未声明该 profile 的 base v1 实现没有任何受保护的申请正文承载层**。为避免 base v1 下 `default_join_rule=knock` 退化为 Matrix `m.room.member{knock}.reason` 那样的默认可见明文 spam 通道，base v1（未声明 candidate profile）下的 `ak.member.state{membership="knock"}` Control Move **MUST NOT 携带任何申请正文 / 自由文本 / answers / 3PID / 附件**——该 Control Move 公开，正文一旦携带即对 Realm 可见侧成员暴露并成为 spam 注入面。reducer 在 base v1 收到携带正文字段的 knock Control Move MUST 拒绝（`schema_violation` 或 `unsupported_feature`）。需要结构化申请材料时，实现 MUST 先声明 `ak.profile.candidate.join_policy.v1` 并通过 §8 的 reviewer-only encryption envelope / profile-private 承载提交正文，而非塞进公开 knock。这一禁止与 §8.2 末尾"申请正文 MUST NOT 进入 `ak.member.state{knock}` Control Move"在 base v1 层同口径，构成两侧闭合。
 
 `default_join_rule` 枚举（[`../models/realm-and-space.md` §2.3](../models/realm-and-space.md)）只表达粗粒度的入口模式：`public` 直接进、`invite` 必须有人邀、`knock` 可申请、`restricted` / `knock_restricted` 有附加条件、`closed` 不收新人。但是 `restricted` 的"条件"是什么、`knock` 申请里能否带结构化材料、人工审批的决策是否上链审计、CAPTCHA / proof-of-work 等运行时挑战如何接入——这些都需要本文件统一定义。
 
@@ -48,10 +48,10 @@ updated: 2026-07-02
 ## 2. 设计原则
 
 1. **Gate 是组合的，不是命名的。** Realm 通过 `gates[]` + `combinator` 表达任意 AND/OR 组合；`knock_restricted` 等组合 enum 的语义由 `combinator` 直接表达，避免每加一类 gate 就要再造 enum。
-2. **申请材料对外不可见。** Matrix `m.room.member{knock}` 的 free-text `reason` 因默认可见已成为 spam 通道。实现声明 `ck.profile.candidate.join_policy.v1` 并启用 application / review workflow 时，申请正文 MUST 仅对 `ck.realm.join.review` capability 持有方可见：E2EE Realm 中通过 reviewer-only encryption envelope；非 E2EE Realm 中由 Sync Service 强制访问控制并审计读取（`ck.audit.accessed`）。
-3. **审核决策必须有稳定审计材料。** 实现声明 `ck.profile.candidate.join_policy.v1` 时，所有审核接受 / 拒绝 MUST 是签名且被 accepted Seal 覆盖的 Control Move、profile-private Event 或 signed receipt，记录 reviewer DID、review reason、引用证据 hash。事后审计与申诉（参见 [`./content-moderation.md` §5.5](./content-moderation.md) 申诉流程与 [`./content-moderation.md` §10](./content-moderation.md) 审计要求）依赖该 trail。
-4. **审核必须密码学绑定到 join。** 借鉴 Matrix `join_authorised_via_users_server` 的担保模式：candidate profile 下随后的 `ck.invite.create` MUST 通过 `refs[role="join_authorised_by"]` 引用对应 signed review accept receipt digest；若实现 profile 已注册私有 review Event kind，MAY 引用该 Event id。reducer 校验该 ref 在写入时仍指向有效 capability 持有者。
-5. **自动解析路径不强制走人工。** 当所有 gate 都可自动解析（claim presentation 验证、challenge proof 验证），applicant 可直接提交 `ck.member.state{membership=join}` Control Move，由 reducer 内联校验，无需 application / review Control Move。这条路径替代既有 `restricted` 入口模式的实质语义。
+2. **申请材料对外不可见。** Matrix `m.room.member{knock}` 的 free-text `reason` 因默认可见已成为 spam 通道。实现声明 `ak.profile.candidate.join_policy.v1` 并启用 application / review workflow 时，申请正文 MUST 仅对 `ak.realm.join.review` capability 持有方可见：E2EE Realm 中通过 reviewer-only encryption envelope；非 E2EE Realm 中由 Sync Service 强制访问控制并审计读取（`ak.audit.accessed`）。
+3. **审核决策必须有稳定审计材料。** 实现声明 `ak.profile.candidate.join_policy.v1` 时，所有审核接受 / 拒绝 MUST 是签名且被 accepted Seal 覆盖的 Control Move、profile-private Event 或 signed receipt，记录 reviewer DID、review reason、引用证据 hash。事后审计与申诉（参见 [`./content-moderation.md` §5.5](./content-moderation.md) 申诉流程与 [`./content-moderation.md` §10](./content-moderation.md) 审计要求）依赖该 trail。
+4. **审核必须密码学绑定到 join。** 借鉴 Matrix `join_authorised_via_users_server` 的担保模式：candidate profile 下随后的 `ak.invite.create` MUST 通过 `refs[role="join_authorised_by"]` 引用对应 signed review accept receipt digest；若实现 profile 已注册私有 review Event kind，MAY 引用该 Event id。reducer 校验该 ref 在写入时仍指向有效 capability 持有者。
+5. **自动解析路径不强制走人工。** 当所有 gate 都可自动解析（claim presentation 验证、challenge proof 验证），applicant 可直接提交 `ak.member.state{membership=join}` Control Move，由 reducer 内联校验，无需 application / review Control Move。这条路径替代既有 `restricted` 入口模式的实质语义。
 6. **Capability 仍是 allow 唯一来源。** Join Policy gate 通过即"可以提议加入"，但 reducer 仍按 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 校验 join Control Move 的 capability。Policy Server `obligations[]`（§12）只能在 capability 之上叠加额外要求（如 challenge），不能凭空创造权限。
 
 ## 3. Cell Family 与 State Event
@@ -63,19 +63,19 @@ bottom      := reject
 value shape := JoinPolicy（见下）
 ```
 
-本 cell 的 `cell_subject` 取 `<realm_id>`（每 Realm 一个单例），与 [`member-delivery-binding.md`](member-delivery-binding.md) §4 的 `ck.component.realm.delivery_binding_policy.v1` 使用 `cell_subject=null` 的写法在语义上等价——二者都表达"per-Realm 单例 policy"，差异仅是历史保留的 subject 编码约定：join_policy cell 把 `realm_id` 编入 `cell_subject`，delivery_binding_policy cell 把 Realm 归属隐含在 cell family 并以 `null` subject 标记单例。实现 MUST NOT 据此推断二者作用域不同。
+本 cell 的 `cell_subject` 取 `<realm_id>`（每 Realm 一个单例），与 [`member-delivery-binding.md`](member-delivery-binding.md) §4 的 `ak.component.realm.delivery_binding_policy.v1` 使用 `cell_subject=null` 的写法在语义上等价——二者都表达"per-Realm 单例 policy"，差异仅是历史保留的 subject 编码约定：join_policy cell 把 `realm_id` 编入 `cell_subject`，delivery_binding_policy cell 把 Realm 归属隐含在 cell family 并以 `null` subject 标记单例。实现 MUST NOT 据此推断二者作用域不同。
 
-写入 cell 的候选概念在正式登记前记为 `realm.join_policy`（裸名仅是 design-time concept/action，不是 v1 wire `Event.kind`，也 MUST NOT 作为 Event envelope 的 `kind` 上链或同步），需要 `ck.policy.manage` capability（与 `ck.realm.policy_server` / `ck.realm.policy_components` 同等级）。`ck.realm.create` 时 SHOULD 通过 `ck.realm.policy_components` 一并提供 join policy 初值；省略时 cell 维持 `null`，行为退化为"`default_join_rule` 单独决定"。
+写入 cell 的候选概念在正式登记前记为 `realm.join_policy`（裸名仅是 design-time concept/action，不是 v1 wire `Event.kind`，也 MUST NOT 作为 Event envelope 的 `kind` 上链或同步），需要 `ak.policy.manage` capability（与 `ak.realm.policy_server` / `ak.realm.policy_components` 同等级）。`ak.realm.create` 时 SHOULD 通过 `ak.realm.policy_components` 一并提供 join policy 初值；省略时 cell 维持 `null`，行为退化为"`default_join_rule` 单独决定"。
 
 JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 
-**`candidate_kind` 信封字段（normative）**：§3 与 §14 示例顶层出现的 `candidate_kind`（如 `"candidate_kind": "realm.join_policy"`）是 **candidate surface 专用的 profile-private 信封字段**，用于在实现自有承载（signed receipt / profile-private Event kind）中标注该 payload 对应哪个 candidate concept。它**不是** Event envelope 的 `kind`（[`../models/event-and-patch.md`](../models/event-and-patch.md)），在 [`../models/common-fields.md`](../models/common-fields.md) / [`../overview/glossary.md`](../overview/glossary.md) 中无登记，也 MUST NOT 作为 `Event.kind` 上链或进入 shared Realm wire / federation。`candidate_kind` 取裸名 candidate concept（`realm.join_policy` / `member.application` / `member.application.review` / `member.application.cancel`），仅在声明 `ck.profile.candidate.join_policy.v1` 的实现内部、其 profile-private 承载层有效。§7.2 / §7.3 在 prose 中直接用裸名引用同一组 candidate concept，二者指向一致；区别仅是 §3 / §14 给出带 `candidate_kind` 包装的具体 payload 示例形态。
+**`candidate_kind` 信封字段（normative）**：§3 与 §14 示例顶层出现的 `candidate_kind`（如 `"candidate_kind": "realm.join_policy"`）是 **candidate surface 专用的 profile-private 信封字段**，用于在实现自有承载（signed receipt / profile-private Event kind）中标注该 payload 对应哪个 candidate concept。它**不是** Event envelope 的 `kind`（[`../models/event-and-patch.md`](../models/event-and-patch.md)），在 [`../models/common-fields.md`](../models/common-fields.md) / [`../overview/glossary.md`](../overview/glossary.md) 中无登记，也 MUST NOT 作为 `Event.kind` 上链或进入 shared Realm wire / federation。`candidate_kind` 取裸名 candidate concept（`realm.join_policy` / `member.application` / `member.application.review` / `member.application.cancel`），仅在声明 `ak.profile.candidate.join_policy.v1` 的实现内部、其 profile-private 承载层有效。§7.2 / §7.3 在 prose 中直接用裸名引用同一组 candidate concept，二者指向一致；区别仅是 §3 / §14 给出带 `candidate_kind` 包装的具体 payload 示例形态。
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `gates` | yes | `array<Gate>` | 1..16 项；空数组 MUST schema_violation。 | 必须穿越的 gate 列表。 |
 | `combinator` | yes | `enum(all, any)` | 无默认值；producer MUST 显式写入。 | gate 之间的组合语义。 |
-| `review_capability` | conditional | `string` | 任一 gate `kind ∈ {manual_review, application_form}` 时必填；wire payload MUST 显式写入。 | 审核所需 capability，取 **capability action token** 形态（如 `ck.realm.join.review`），不是 grant id 引用；与 §7.3 `reviewer_capability_proof`（引用授予该 action 的 **grant id** + frontier digest）是两个不同概念。[^review-capability-alias] |
+| `review_capability` | conditional | `string` | 任一 gate `kind ∈ {manual_review, application_form}` 时必填；wire payload MUST 显式写入。 | 审核所需 capability，取 **capability action token** 形态（如 `ak.realm.join.review`），不是 grant id 引用；与 §7.3 `reviewer_capability_proof`（引用授予该 action 的 **grant id** + frontier digest）是两个不同概念。[^review-capability-alias] |
 
 [^review-capability-alias]: 该字段语义是 *被授权 reviewer 所持的 capability action token*，不是 grant id 引用。v1 wire 字段名为 `review_capability`，不会改变。（未来版本对该字段的 prose alias 规划属 roadmap 范畴，不在 v1 normative 范围内。）
 | `reviewer_quorum` | no | `enum(any, majority, all) \| object` | 默认 `any`。`object` 形式 `{ threshold: int, reviewers: did[] }` 表达 N-of-M。 | 审核法定人数。 |
@@ -118,13 +118,13 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 | `challenge_response` | `provider_did: did`、`challenge_kinds: enum(captcha, pow, attested_human, idp_oidc)[]`、`max_proof_age: duration` | applicant MUST 完成 provider 颁发的挑战并提交 signed proof。详见 §12。 | `true` |
 | `application_form` | `questions[]`（见 §3.3） | applicant MUST 在 `member.application` 中提交对应 answer；reviewer 人工评估。 | `false` |
 | `manual_review` | （无额外字段） | reviewer 必须显式签署 accept；不要求结构化问卷。 | `false` |
-| `cooldown` | `min_interval_since_leave: duration` | applicant 上次 `ck.member.state{membership=leave}` 后未达冷却期 MUST 拒绝。仅作为 deny gate（与 `combinator` 无关，单独评估；亦不计入 §5 "applicant 拟使用的 gate 子集"的 `auto_resolve` 全称校验，见 §5）。此 gate 的语义是 **leave-cooldown**（按上次主动 leave 计时），prose / SDK 推荐用 `leave_cooldown` 称呼以区别于 §3 顶层字段 `cooldown_after_reject`（后者按上次 **review reject** 计时，作用于 `member.application` 重提，二者计时锚点、作用对象完全不同）。 | `true` |
+| `cooldown` | `min_interval_since_leave: duration` | applicant 上次 `ak.member.state{membership=leave}` 后未达冷却期 MUST 拒绝。仅作为 deny gate（与 `combinator` 无关，单独评估；亦不计入 §5 "applicant 拟使用的 gate 子集"的 `auto_resolve` 全称校验，见 §5）。此 gate 的语义是 **leave-cooldown**（按上次主动 leave 计时），prose / SDK 推荐用 `leave_cooldown` 称呼以区别于 §3 顶层字段 `cooldown_after_reject`（后者按上次 **review reject** 计时，作用于 `member.application` 重提，二者计时锚点、作用对象完全不同）。 | `true` |
 
 未注册 `kind` MUST schema_violation；未注册的 `(kind, subfield)` 组合按 lattice `bottom=reject` 处理。
 
 #### `principal_admission`
 
-`principal_admission` 是自动解析 gate，用于约束提交 `ck.member.state{membership="join"}` 的 `actor_id` / `payload.actor_id` 所指 principal DID。它只判断 principal DID 本身，不替代 capability、invite、review、claim presentation、DID Document 解析、service delegation 或 [`member-delivery-binding.md`](./member-delivery-binding.md) 的投递绑定校验。
+`principal_admission` 是自动解析 gate，用于约束提交 `ak.member.state{membership="join"}` 的 `actor_id` / `payload.actor_id` 所指 principal DID。它只判断 principal DID 本身，不替代 capability、invite、review、claim presentation、DID Document 解析、service delegation 或 [`member-delivery-binding.md`](./member-delivery-binding.md) 的投递绑定校验。
 
 字段：
 
@@ -138,7 +138,7 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 
 加入失败对外 MUST 使用通用 `gate_check_failed`，不得向 external applicant 区分"method 不允许"、"DID 不在 allowlist"、"DID 在 denylist"等细节；细节 MAY 写入 reviewer / admin 可见审计日志。
 
-**细分原因对 applicant 永不可见是预期，非缝隙（normative，消歧）**：`principal_admission` 是 hard pre-admission gate，在普通 `combinator` 解析、application form、manual review 之前评估，也即在 applicant 提交 stage 1 `ck.member.state{knock}` 进入 §7.3 半信任申请-审核态**之前**就已对其 fail closed。因此被 `principal_admission` 拒绝者**永远到达不了** §7.3 半信任态，§7.3「knock 之后才解锁面向本人的细粒度 review reason」对其不适用——其拒绝细分原因（method / allowlist / denylist 命中）对 applicant **永不可见**（仅 reviewer / admin audit 可见）。这是刻意设计：principal 准入是比半信任申请更靠前的硬门，不向未通过硬门的探测者透露准入名单结构，与 §5「外部 applicant 失败不可枚举」一致，并非 §7.3 半信任披露规则的缝隙或遗漏。
+**细分原因对 applicant 永不可见是预期，非缝隙（normative，消歧）**：`principal_admission` 是 hard pre-admission gate，在普通 `combinator` 解析、application form、manual review 之前评估，也即在 applicant 提交 stage 1 `ak.member.state{knock}` 进入 §7.3 半信任申请-审核态**之前**就已对其 fail closed。因此被 `principal_admission` 拒绝者**永远到达不了** §7.3 半信任态，§7.3「knock 之后才解锁面向本人的细粒度 review reason」对其不适用——其拒绝细分原因（method / allowlist / denylist 命中）对 applicant **永不可见**（仅 reviewer / admin audit 可见）。这是刻意设计：principal 准入是比半信任申请更靠前的硬门，不向未通过硬门的探测者透露准入名单结构，与 §5「外部 applicant 失败不可枚举」一致，并非 §7.3 半信任披露规则的缝隙或遗漏。
 
 示例：
 
@@ -205,16 +205,16 @@ JoinPolicy 候选 schema 名：`realm.join_policy.v1`。
 
 | `default_join_rule` | Join Policy 是否生效 | 等价 gate 组合 |
 | --- | --- | --- |
-| `public` | 不生效 | applicant 提交 `ck.member.state{join}` 即被接受。 |
-| `invite` | 不生效 | 必须有 `ck.invite.create`；Join Policy 不可绕过 invite。 |
+| `public` | 不生效 | applicant 提交 `ak.member.state{join}` 即被接受。 |
+| `invite` | 不生效 | 必须有 `ak.invite.create`；Join Policy 不可绕过 invite。 |
 | `knock` | 生效（任一路径） | gate 集合可包含人工审核；申请-审核路径必走。 |
 | `restricted` | 生效（自动解析路径） | `gates[*].auto_resolve == true` MUST 全为 true；含 `manual_review` 或 `application_form` MUST schema_violation。 |
 | `knock_restricted` | 生效（OR 合成） | `combinator` SHOULD 为 `any`；典型组合：`[claim_required(auto), application_form(manual)]`，凭证持有者直接进，否则走问卷申请。 |
 | `closed` | 不生效 | reducer 拒绝任何 join / knock / application Control Move。 |
 
-reducer 在 `ck.realm.join_rule` 与 join-policy cell 任一变更时 MUST 重新评估上述一致性约束；不一致 MUST `failed_precondition` 拒绝写入，并附带 `reason="join_rule_policy_mismatch"`。
+reducer 在 `ak.realm.join_rule` 与 join-policy cell 任一变更时 MUST 重新评估上述一致性约束；不一致 MUST `failed_precondition` 拒绝写入，并附带 `reason="join_rule_policy_mismatch"`。
 
-**存量 in-flight 申请处置（normative）**：当 `default_join_rule` 收紧为 `closed` 或 `invite`（即新入口模式不再接受 knock / application 路径）时，此前已处于 `knock` / `awaiting_review` / `changes_requested` 的存量未决申请 MUST NOT 因 join_rule 变更被静默保留为可继续审核状态。reducer 在 join_rule 收紧生效的 Seal basis 起 MUST：(a) 对收紧前已写入的未决申请，停止接受针对它们的新 `member.application.review{accept}` 与后续 `ck.invite.create`（除非该 invite 走收紧后仍合法的 `invite` 路径独立签发）；(b) 把这些未决申请转为终态 leave，写入 `reason_code="join_rule_tightened"`（见 [`../../artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)），不计 cooldown。已经 `accepted` 且对应 `ck.invite.create` 已落入 frontier 的申请不受影响（其 join 已由 invite 授权承载）。收紧为 `restricted` / `knock_restricted` 等仍保留 application 路径的模式时，存量未决申请按新 policy 的一致性约束在下次 review / 自动解析时重评，不强制转 leave。
+**存量 in-flight 申请处置（normative）**：当 `default_join_rule` 收紧为 `closed` 或 `invite`（即新入口模式不再接受 knock / application 路径）时，此前已处于 `knock` / `awaiting_review` / `changes_requested` 的存量未决申请 MUST NOT 因 join_rule 变更被静默保留为可继续审核状态。reducer 在 join_rule 收紧生效的 Seal basis 起 MUST：(a) 对收紧前已写入的未决申请，停止接受针对它们的新 `member.application.review{accept}` 与后续 `ak.invite.create`（除非该 invite 走收紧后仍合法的 `invite` 路径独立签发）；(b) 把这些未决申请转为终态 leave，写入 `reason_code="join_rule_tightened"`（见 [`../../artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)），不计 cooldown。已经 `accepted` 且对应 `ak.invite.create` 已落入 frontier 的申请不受影响（其 join 已由 invite 授权承载）。收紧为 `restricted` / `knock_restricted` 等仍保留 application 路径的模式时，存量未决申请按新 policy 的一致性约束在下次 review / 自动解析时重评，不强制转 leave。
 
 ## 5. 自动解析路径
 
@@ -270,7 +270,7 @@ reducer MUST NOT 在自动解析路径上隐式生成 application / review Contr
 
 **外部 applicant 失败不可枚举（normative）**：对尚未 join 的外部 applicant，wire 响应 MUST 统一为 `failed_precondition` + `reason_code=gate_check_failed`（或 invite / directory surface 已定义的统一不可枚举错误），不得区分“claim 从未签发”、“claim 已撤销”、“issuer 暂时不可达”、“parent membership 不满足”或“challenge proof 失效”。Reducer / audit log MAY 记录内部 diagnostic reason、gate_id 与 issuer 状态，但这些字段不得出现在 applicant 可见响应、directory hint 或 push/notification payload 中。Reviewer-only application workflow 可以在加密 reviewer envelope 内展示更细原因。
 
-**Gate predicate 评估时点（normative）**：所有 gate predicate（包括 claim issuer revocation、challenge provider signature、`cooldown`、parent membership、capability presence 检查）MUST 仅对该 join Control Move 的 `seal_basis` 指向的控制面 view 求值，与 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 的 CBA basis 模型一致。同一 ordered submit batch 内并发的 `ck.capability.revoke` / policy 变更 / `ck.realm.join_rule` 更新对**本批次**的 join Control Move **不**生效；它们仅从后续 Seal 起影响 gate 评估。这意味着：
+**Gate predicate 评估时点（normative）**：所有 gate predicate（包括 claim issuer revocation、challenge provider signature、`cooldown`、parent membership、capability presence 检查）MUST 仅对该 join Control Move 的 `seal_basis` 指向的控制面 view 求值，与 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 的 CBA basis 模型一致。同一 ordered submit batch 内并发的 `ak.capability.revoke` / policy 变更 / `ak.realm.join_rule` 更新对**本批次**的 join Control Move **不**生效；它们仅从后续 Seal 起影响 gate 评估。这意味着：
 
 - 同批中"先撤销 review capability，后 join"的攻击模式不会让 join 通过 review-gated 路径——gate 仍按 pre-state 看到完整 capability。
 - 反之，同批中"先发 grant，后用 grant 满足 gate" 也不会被 reducer 当作满足——授权与 Control Move 的可见性以 CBA basis 为单位。
@@ -278,7 +278,7 @@ reducer MUST NOT 在自动解析路径上隐式生成 application / review Contr
 
 ## 6. 成员投递绑定
 
-> 成员投递绑定（effective delivery binding）的接受准则、`binding_source` 与责任方、`ck.realm.delivery_binding_policy` policy 事件、路由不可降级、rebind 过渡、单 binding + 多设备策略与关联性 / 隐私边界，已拆分为独立文件 [`member-delivery-binding.md`](member-delivery-binding.md)。
+> 成员投递绑定（effective delivery binding）的接受准则、`binding_source` 与责任方、`ak.realm.delivery_binding_policy` policy 事件、路由不可降级、rebind 过渡、单 binding + 多设备策略与关联性 / 隐私边界，已拆分为独立文件 [`member-delivery-binding.md`](member-delivery-binding.md)。
 >
 > delivery binding 与 join gate **正交**：join gate（本文）决定“能否加入”，delivery binding 决定“加入后 events / sync / to-device / push / key-package 投递到哪个 Principal Server”。两者方向、生命周期、授权来源均不同，MUST NOT 互相推导。
 
@@ -290,22 +290,22 @@ reducer MUST NOT 在自动解析路径上隐式生成 application / review Contr
 
 | 阶段 | Control Move | 写入方 |
 | --- | --- | --- |
-| 1. 敲门 | `ck.member.state{membership=knock}` | applicant |
+| 1. 敲门 | `ak.member.state{membership=knock}` | applicant |
 | 2. 提交申请 | `member.application` | applicant |
 | 3. 审核决策 | `member.application.review` | reviewer（持 `review_capability`） |
-| 4. 接受邀请（隐式） | `ck.invite.create` + `ck.invite.accept` | reviewer 与 applicant |
+| 4. 接受邀请（隐式） | `ak.invite.create` + `ak.invite.accept` | reviewer 与 applicant |
 
 reducer MUST 接受 stage 1 与 stage 2 在同一 batch 内提交；client SHOULD 把它们打包到同一 Seal request 以减少 round trip。
 
 ### 7.2 `member.application`
 
-候选申请概念；schema 名 `member.application.v1`。正式进入 v1 registry 前，`member.application` 不得作为 Event envelope 的 `kind` 使用，也不得使用 `ck.*` 标准前缀伪装成 active contract；生产实现若启用本 workflow，必须在自有 profile 中声明唯一承载方式，并输出可引用的 signed application receipt（`application_receipt_digest`），供后续 review / invite / audit 引用。
+候选申请概念；schema 名 `member.application.v1`。正式进入 v1 registry 前，`member.application` 不得作为 Event envelope 的 `kind` 使用，也不得使用 `ak.*` 标准前缀伪装成 active contract；生产实现若启用本 workflow，必须在自有 profile 中声明唯一承载方式，并输出可引用的 signed application receipt（`application_receipt_digest`），供后续 review / invite / audit 引用。
 
 | 字段 | 必填 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `realm_id` | yes | `id:realm` | 申请目标 Realm。 |
 | `applicant_did` | yes | `did` | 等于 envelope `actor_id`。 |
-| `knock_ref` | yes | `event_ref` | 引用 stage 1 的 `ck.member.state{knock}` event id。 |
+| `knock_ref` | yes | `event_ref` | 引用 stage 1 的 `ak.member.state{knock}` event id。 |
 | `policy_version_digest` | yes | `hash` | 提交时 `realm.join_policy` cell value 的 canonical digest；reducer 校验 reviewer 决策时是否仍是同一 policy。 |
 | `answers` | conditional | `array<Answer>` | 任一 `application_form` gate 存在时必填，覆盖该 gate 所有 `required=true` 的 question_id。 |
 | `gate_proofs` | conditional | `array<GateProof>` | 任一可自动解析 gate 存在时按需提供（与自动解析路径同形）。 |
@@ -316,7 +316,7 @@ reducer MUST 接受 stage 1 与 stage 2 在同一 batch 内提交；client SHOUL
 
 ### 7.3 `member.application.review`
 
-签名 review workflow record，需要 `review_capability`。在正式注册为 v1 active Event kind 前，它不是 base profile 的 durable `Event.kind`；实现必须把 review 结果承载为自有 profile 声明的 signed review receipt（`review_receipt_digest`），或承载在该 profile 自己注册的私有 Event kind 中。任何 `ck.invite.create` 对 review 的引用 MUST 指向稳定 receipt digest 或该私有 Event id，不得引用未注册的裸名 kind。
+签名 review workflow record，需要 `review_capability`。在正式注册为 v1 active Event kind 前，它不是 base profile 的 durable `Event.kind`；实现必须把 review 结果承载为自有 profile 声明的 signed review receipt（`review_receipt_digest`），或承载在该 profile 自己注册的私有 Event kind 中。任何 `ak.invite.create` 对 review 的引用 MUST 指向稳定 receipt digest 或该私有 Event id，不得引用未注册的裸名 kind。
 
 | 字段 | 必填 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -325,12 +325,12 @@ reducer MUST 接受 stage 1 与 stage 2 在同一 batch 内提交；client SHOUL
 | `decision` | yes | `enum(accept, reject, request_changes)` | review **结果**由本字段承载（accept / reject / request_changes），等价于本文件族 §5.5 appeal 的 `verdict` 角色。`request_changes` 允许 applicant 修订 answer 后重提，不计入 cooldown。 |
 | `reason_code` | conditional | `string` | 稳定**拒绝 / 变更细分原因码**：`incomplete_answers` / `policy_violation` / `claim_invalid` / `challenge_failed` / `duplicate` / `ttl_expired`（reducer 自动超时拒绝，见 §12）/ `other`。`decision ∈ {reject, request_changes}` 时必填；`decision=accept` 时省略或取保留值 `ok`（`ok` 不承载独立语义，成功结果由 `decision=accept` 表达）。本字段遵循 [`../models/common-fields.md` §2](../models/common-fields.md)（受控枚举用 `_code` 后缀），仅承载拒绝 / 变更细分，不兼表成功裁决。 |
 | `reason_text` | no | `string` | 1..1000 chars 自由文本，对 applicant 可见。 |
-| `evidence_refs` | no | `event_ref[]` / `hash[]` | 评审依据的其它 event 或 signed receipt（如 `ck.audit.*` 风险记录）。 |
+| `evidence_refs` | no | `event_ref[]` / `hash[]` | 评审依据的其它 event 或 signed receipt（如 `ak.audit.*` 风险记录）。 |
 | `reviewer_capability_proof` | yes | `object` | 引用授予 reviewer `review_capability`（§3 中那个 capability **action token**）的 **grant id** 与当时 frontier digest；reducer 必须在写入时再校验一次。注意：本字段承载 grant id 引用，`review_capability` 承载 action token，二者勿混用。 |
 
 `reviewer_quorum != "any"` 时，reducer 需收集 N 个独立 reviewer 的 accept 才认为申请进入 `accepted` 状态；任一 reject 即终止。quorum 判定 MUST 遵循 §3 的 `reviewer_quorum` 解析规则：`majority` / `all` 的分母与 reviewer 资格按各 accept Event 的 CBA basis 取值；accept 计入后 reviewer 失去 capability 不追溯使该 accept 失效。
 
-**review reason_code / reason_text 可见性（normative）**：§7.3 的细粒度 `reason_code` 与 `reason_text` 只在 applicant **已提交 stage 1 `ck.member.state{knock}`**（即进入半信任的申请-审核状态机）后，才 MAY 对该 applicant 自身可见。这与 §5 自动解析路径"外部 applicant 失败不可枚举"不冲突：尚未 knock 的外部探测者仍只能看到统一不可枚举错误，细粒度 review 原因 MUST NOT 出现在 directory hint、discovery surface、push / notification payload 或任何未经 knock 的 caller 可见响应中。换言之，半信任边界由"是否已 knock"划定——knock 之前等同自动路径的不可枚举约束，knock 之后才解锁面向本人的 review reason。
+**review reason_code / reason_text 可见性（normative）**：§7.3 的细粒度 `reason_code` 与 `reason_text` 只在 applicant **已提交 stage 1 `ak.member.state{knock}`**（即进入半信任的申请-审核状态机）后，才 MAY 对该 applicant 自身可见。这与 §5 自动解析路径"外部 applicant 失败不可枚举"不冲突：尚未 knock 的外部探测者仍只能看到统一不可枚举错误，细粒度 review 原因 MUST NOT 出现在 directory hint、discovery surface、push / notification payload 或任何未经 knock 的 caller 可见响应中。换言之，半信任边界由"是否已 knock"划定——knock 之前等同自动路径的不可枚举约束，knock 之后才解锁面向本人的 review reason。
 
 ### 7.4 `member.application.cancel`
 
@@ -340,9 +340,9 @@ applicant 可主动撤回；写入独立 `member.application.cancel` record，�
 
 application 进入 `accepted` 状态后：
 
-1. 任一 reviewer 提交 `ck.invite.create`，`refs[role="join_authorised_by"]` MUST 引用对应 `member.application.review{accept}` 的 signed review receipt digest；若实现 profile 已注册私有 review Event kind，MAY 引用该 Event id。`reviewer_quorum` 为 object 形式（N-of-M）时，`refs[role="join_authorised_by"]` MUST 引用**满足 `threshold` 的全部** review accept receipt digest（每条计入 quorum 的 accept 各一条 ref），使 reducer 与审计方可独立复核 quorum 在引用的 accept 集合上成立；
-2. applicant 提交 `ck.invite.accept`；
-3. reducer 在写入 `ck.invite.create` 时再次校验：被引用的 review accept 仍指向尚未消费的 application（防止同一 accept 被复用）、application 未过 `application_ttl`、未被后续 `reject` / `cancel` 覆盖；且每条被引用的 review accept 在**其自身 CBA basis**（该 accept receipt 的 seal_basis）下由当时持有 `review_capability` 的 reviewer 签发。
+1. 任一 reviewer 提交 `ak.invite.create`，`refs[role="join_authorised_by"]` MUST 引用对应 `member.application.review{accept}` 的 signed review receipt digest；若实现 profile 已注册私有 review Event kind，MAY 引用该 Event id。`reviewer_quorum` 为 object 形式（N-of-M）时，`refs[role="join_authorised_by"]` MUST 引用**满足 `threshold` 的全部** review accept receipt digest（每条计入 quorum 的 accept 各一条 ref），使 reducer 与审计方可独立复核 quorum 在引用的 accept 集合上成立；
+2. applicant 提交 `ak.invite.accept`；
+3. reducer 在写入 `ak.invite.create` 时再次校验：被引用的 review accept 仍指向尚未消费的 application（防止同一 accept 被复用）、application 未过 `application_ttl`、未被后续 `reject` / `cancel` 覆盖；且每条被引用的 review accept 在**其自身 CBA basis**（该 accept receipt 的 seal_basis）下由当时持有 `review_capability` 的 reviewer 签发。
 
 **已计入 quorum 的 accept 不追溯失效（normative，竞态衔接）**：reviewer 在签发某条 accept 之后失去 `review_capability`（被撤销 / 离开 Realm），**不**追溯使该条已计入 quorum 的 accept 失效——其有效性锚定在该 accept 自身的 CBA basis（与 §3 "accept 不追溯失效" 一致）。§3 的 quorum **不可达**检测只在 threshold **尚未达成**时，看当前仍合格 reviewer 是否 `< threshold`；一旦 N-of-M 的 threshold 已被合法 accept 集合达成，后续个别 reviewer 失权不回退该 quorum，也不阻塞本节 invite 写入。因此 §7.5(3) 不再要求"全部被引用 reviewer 在写入当前 frontier 仍持有 capability"，只要求每条 accept 在其各自 basis 上成立。
 
@@ -356,15 +356,15 @@ application 进入 `accepted` 状态后：
 
 - 仅向 reviewer set（`review_capability` 持有方）与 applicant 自身投影 application 正文；
 - 对其它 Realm 成员投影占位（`{application_pending: true}`）；
-- 对每次 reviewer 读取写一条 `ck.audit.accessed`（payload 包含 `application_receipt_digest` 或 profile-private application Event id 与读取者 DID）。
+- 对每次 reviewer 读取写一条 `ak.audit.accessed`（payload 包含 `application_receipt_digest` 或 profile-private application Event id 与读取者 DID）。
 
-`applicant_visibility=members_after_join` 仅在 application 进入 `accepted` 且对应 `ck.invite.accept` 已落入 frontier 后，才允许向 Realm 成员投影正文。
+`applicant_visibility=members_after_join` 仅在 application 进入 `accepted` 且对应 `ak.invite.accept` 已落入 frontier 后，才允许向 Realm 成员投影正文。
 
 ### 8.2 E2EE Realm（`encryption_profile=mls_rfc9420`）
 
 Realm 主 MLS group 不包含尚未 join 的 applicant，因此申请正文不能直接走 Realm MLS group。MUST 使用以下机制之一：
 
-1. **Reviewer Sub-Group MLS**：Realm 维护一个独立 MLS group `ak:mls:reviewer_subgroup:<realm_id>:reviewers`，成员是当前所有 `review_capability` 持有方。applicant 通过 reviewer set 中任一成员公布的 KeyPackage 出 group commit + welcome，将 application 正文作为该 sub-group 的 application message 投递。reducer 通过 `ck.mls.commit.governance_binding` 验证 sub-group roster 与 capability 一致。
+1. **Reviewer Sub-Group MLS**：Realm 维护一个独立 MLS group `ak:mls:reviewer_subgroup:<realm_id>:reviewers`，成员是当前所有 `review_capability` 持有方。applicant 通过 reviewer set 中任一成员公布的 KeyPackage 出 group commit + welcome，将 application 正文作为该 sub-group 的 application message 投递。reducer 通过 `ak.mls.commit.governance_binding` 验证 sub-group roster 与 capability 一致。
 
    **新加入 reviewer 的加入前 epoch 解密约束（normative，与 applicant 单向约束对称）**：新加入 reviewer sub-group 的 reviewer 与上方 applicant 单向约束对称——新 reviewer MUST NOT 获得加入其 commit 之前 epoch 的 application 解密能力。MLS forward secrecy 保证每次 reviewer roster 变更推进 epoch 后，新成员仅能解密自其加入 epoch 起的 sub-group 消息，不能解密加入前已投递的历史 application 正文。实现 SHOULD 让每条 application 投递（applicant add+remove）与每次 reviewer roster 变更各推进一次 epoch，使"哪些 reviewer 能看到哪条 application"按 epoch 边界确定。需要让新 reviewer 复核加入前的 pending application 时，MUST 由已持有该 application 明文的现任 reviewer 经显式、受审计的 re-share（如 §8.2(2) Envelope Encryption 重新封装给新 reviewer device）完成，不得依赖 sub-group 历史 key 自动回授；这是对称残留的显式声明，而非隐式放宽。
 
@@ -374,8 +374,8 @@ Realm 主 MLS group 不包含尚未 join 的 applicant，因此申请正文不�
    - 若实现无法保证上述单向移出（例如批处理无法在同一 ordered submit batch 或同一 Control Move 中完成 add+remove），SHOULD 改用 §8.2(2) Envelope Encryption 路径——后者天然单向，applicant 只持有面向 reviewer 的封装能力、无任何 sub-group 解密能力。
 2. **Envelope Encryption to Reviewer Devices**：当 reviewer 数小于阈值（默认 `<=5`）或 sub-group 维护成本不可接受时，applicant 可使用 `encryption_envelope` 字段，对 reviewer set 中每个 reviewer 的每台有效 device 的专用 `hpke_key`（device record 公布的 X25519 HPKE 接收公钥，见 [`../crypto-media/device-lifecycle.md` §4](../crypto-media/device-lifecycle.md)）逐一封装 content key：
 
-   - **接收公钥（normative）**：envelope 接收键 MUST 是目标 device 当前 device record 中的 `hpke_key`。**MUST NOT 以 MLS KeyPackage init key（`ck.mls.keypackage`）作为 envelope 接收键**——KeyPackage init key 是一次性 MLS join 材料，挪作通用 HPKE 接收键会破坏其一次性使用语义并构成跨协议密钥复用。
-   - **scheme（normative）**：`scheme` MUST 为 [`../../artifacts/registry/hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json) 中的 active suite id（v1 default-MUST `ck.hpke_x25519_aead_chacha20poly1305.v1`，用法与 [`../crypto-media/device-lifecycle.md` §10.7](../crypto-media/device-lifecycle.md) 的 `ck.secret.send` 一致）；未登记 / 非 active suite MUST fail closed（`unsupported_hpke_suite`）。
+   - **接收公钥（normative）**：envelope 接收键 MUST 是目标 device 当前 device record 中的 `hpke_key`。**MUST NOT 以 MLS KeyPackage init key（`ak.mls.keypackage`）作为 envelope 接收键**——KeyPackage init key 是一次性 MLS join 材料，挪作通用 HPKE 接收键会破坏其一次性使用语义并构成跨协议密钥复用。
+   - **scheme（normative）**：`scheme` MUST 为 [`../../artifacts/registry/hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json) 中的 active suite id（v1 default-MUST `ak.hpke_x25519_aead_chacha20poly1305.v1`，用法与 [`../crypto-media/device-lifecycle.md` §10.7](../crypto-media/device-lifecycle.md) 的 `ak.secret.send` 一致）；未登记 / 非 active suite MUST fail closed（`unsupported_hpke_suite`）。
    - **HPKE `info` 域分隔与 AAD 绑定（normative）**：每个 recipient 的 HPKE 封装 MUST 使用 `info = "ak.realm.member_application.envelope.v1" || 0x00 || <realm_id> || 0x00 || <application_ref>`（三段以单字节 `0x00` 连接；`application_ref` 取 §7.2 的 `application_receipt_digest`，封装时刻 receipt 尚未生成的实现 MUST 改用 stage 1 `knock_ref` event id，并在 profile 中固定所选形态）。HPKE AAD MUST 是对 `{realm_id, applicant_did, application_ref, device_id}`（`device_id` 为该 recipient 的目标 device）的 canonical JSON（RFC 8785 JCS）。`info` 域分隔与 AAD 共同把密文绑定到目标 Realm、本次申请与接收设备，防止 envelope 被搬运到其它 Realm / application / device 重放或解封。
    - **recipients 上限**：`encryption_envelope.recipients[]` ≤ 64（v1 wire 上限，见 [`../conformance/scalability-constraints.md` §5](../conformance/scalability-constraints.md)）；超过时 MUST `schema_violation`。
 
@@ -399,16 +399,16 @@ reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applica
 
 **Envelope recipient capability 绑定（normative）**：`encryption_envelope.recipients[]` 中列出的每个 reviewer device，applicant / 提交服务在构造 envelope 时 MUST 校验其对应 reviewer DID 在该 Event 的 CBA basis 下仍持有有效 `review_capability`，且该 device 仍是该 reviewer 当前有效 device；MUST NOT 向已撤销 capability 或已退役 device 封装 `wrapped_key`。reducer / 投递服务在投递**新** envelope 时 MUST 对每个 recipient device 重新校验上述两项（reviewer DID 仍持有有效 `review_capability`、device 仍有效未退役），任一不满足 MUST 拒绝向该 device 投递，reason `reviewer_capability_revoked`。注意这是 best-effort 前向控制：**reviewer 退职前已经解密的历史 application 正文无法被协议回收**——一旦某 device 在持有有效 capability 期间收到并解出 `wrapped_key`，撤销 capability 只能阻止后续新 envelope 投递，不能撤销既有明文副本。需要严格前向保密的部署 SHOULD 改用 §8.2(1) Reviewer Sub-Group MLS 并在 reviewer 退职时 rotate epoch。
 
-申请正文 MUST NOT 进入 `ck.member.state{knock}` Control Move（该 Control Move 公开），所有自由文本仅出现在受加密保护的 `member.application.encryption_envelope` 中。Matrix `m.room.member{knock}.reason` 因默认对部分客户端可见而成为 spam 通道——Arkret 通过结构上禁止 knock Control Move 携带正文规避该缺陷。
+申请正文 MUST NOT 进入 `ak.member.state{knock}` Control Move（该 Control Move 公开），所有自由文本仅出现在受加密保护的 `member.application.encryption_envelope` 中。Matrix `m.room.member{knock}.reason` 因默认对部分客户端可见而成为 spam 通道——Arkret 通过结构上禁止 knock Control Move 携带正文规避该缺陷。
 
 ## 9. Membership 状态机扩展
 
-复用既有 `ck.member.state` 枚举（`invite / join / leave / knock / ban`），不引入新值。状态转换补充：
+复用既有 `ak.member.state` 枚举（`invite / join / leave / knock / ban`），不引入新值。状态转换补充：
 
 ```text
         knock ──submit member.application──▶ knock (with application_ref projection)
             │
-            ├─ review.accept ──▶ invite (via ck.invite.create) ──▶ join (via ck.invite.accept)
+            ├─ review.accept ──▶ invite (via ak.invite.create) ──▶ join (via ak.invite.accept)
             ├─ review.request_changes ──▶ knock[changes_requested] (awaiting applicant revision; ttl continues)
             ├─ review.reject ──▶ leave  (with rejected_at + cooldown_until projection)
             ├─ application.cancel ──▶ leave
@@ -429,7 +429,7 @@ reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applica
 
 - `pending`: 未决申请；
 - `awaiting_review`: 已提交但 reviewer 未决；
-- `accepted_pending_invite`: 审核通过但 `ck.invite.create` 尚未签发；
+- `accepted_pending_invite`: 审核通过但 `ak.invite.create` 尚未签发；
 - `recently_decided`: 7 日内的 accept/reject 决策。
 
 ## 10. 联邦语义
@@ -438,12 +438,12 @@ reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applica
 
 - `member.application` 与 `member.application.review` 都是候选 durable workflow 概念；正式登记前不得作为 v1 base profile 的 durable Event.kind 参与 federation push / pull；
 - `policy_version_digest` 字段使 reviewer 与 applicant 显式承认评估时所用的 policy 快照，避免 reviewer 在不同 policy frontier 下决策导致争议；
-- E2EE 场景下 reviewer sub-group MLS commit 通过既有 `ck.mls.*` 联邦机制传播；envelope encryption 由 origin Principal Server 投递到目标 reviewer 的 device list（参见 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md)）。
+- E2EE 场景下 reviewer sub-group MLS commit 通过既有 `ak.mls.*` 联邦机制传播；envelope encryption 由 origin Principal Server 投递到目标 reviewer 的 device list（参见 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md)）。
 - `parent_membership` gate 评估需要其它 Realm 的成员 snapshot；origin reducer MAY 通过 [`../discovery/discovery-directory.md`](../discovery/discovery-directory.md) 的 verified snapshot 接口或直接 backfill；snapshot 不可达时 fail closed。
 
 ## 11. Policy Server 运行时挑战
 
-Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声明 `applies_to` 包含 `join` 时，对每条 `ck.member.state{join}` Control Move 以及 `member.application` signed receipt / private record 调用 `ck.self.policy.query.check` operation（默认 HTTP binding 为 `POST /_arkret/self/policy/check`）。除既有 `decision` 外，Join 场景新增 obligation 子规范：
+Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声明 `applies_to` 包含 `join` 时，对每条 `ak.member.state{join}` Control Move 以及 `member.application` signed receipt / private record 调用 `ak.self.policy.query.check` operation（默认 HTTP binding 为 `POST /_arkret/self/policy/check`）。除既有 `decision` 外，Join 场景新增 obligation 子规范：
 
 ```json
 {
@@ -469,11 +469,11 @@ Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声�
 
 applicant 完成挑战后，重新提交 join / application Control Move，在 `gate_proofs[]` 中追加 `{gate_id: "runtime:<challenge_id>", challenge_proof: {...}}`。`challenge_proof.challenge_id` 是 runtime challenge 的唯一匹配键；verifier MUST 仅按该键选择 challenge proof。Policy Server 重新校验后返回 `decision=allow`。`must_satisfy_before_resubmit=true` 时 reducer MUST 拒绝缺失对应 `challenge_id` proof 的重提。
 
-`bound_to.request_canonical_digest` 按 [`policy-server.md` §4.1](../authz/policy-server.md) 的 proof-stripped transcript 计算：它绑定首次被 challenge 的原始 join / application 请求，而不是包含 `challenge_proof` 自身的最终重提 Control Move。重提 Control Move 除追加 runtime challenge proof 外不得改变原始请求语义；任何字段变更都必须重新走 `ck.self.policy.query.check` 并获取新的 challenge。
+`bound_to.request_canonical_digest` 按 [`policy-server.md` §4.1](../authz/policy-server.md) 的 proof-stripped transcript 计算：它绑定首次被 challenge 的原始 join / application 请求，而不是包含 `challenge_proof` 自身的最终重提 Control Move。重提 Control Move 除追加 runtime challenge proof 外不得改变原始请求语义；任何字段变更都必须重新走 `ak.self.policy.query.check` 并获取新的 challenge。
 
-**`max_proof_age` 过期后的重发流程（normative）**：applicant 拿到 challenge obligation 后未在 `max_proof_age` 内完成、或提交了一个 issued 时刻已超 `max_proof_age` 的 `challenge_proof` 时，reducer / Policy Server MUST 以 `failed_precondition` + `reason_code="challenge_expired"`（见 [`../../artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）拒绝该重提，MUST NOT 把过期 proof 当作满足 obligation。被拒后 applicant MUST 重新提交原始 join / application Control Move 走一次 `ck.self.policy.query.check`，由 Policy Server 签发**新的** `challenge_id`（旧 `challenge_id` 不得复用满足新一轮 obligation）；applicant 对新 challenge 完成后按上文在 `gate_proofs[]` 追加对应新 `challenge_id` 的 proof。reducer MUST NOT 自动续期或自动重发 challenge——challenge 的签发权属 Policy Server，过期即作废、由 applicant 重新发起请求获取。
+**`max_proof_age` 过期后的重发流程（normative）**：applicant 拿到 challenge obligation 后未在 `max_proof_age` 内完成、或提交了一个 issued 时刻已超 `max_proof_age` 的 `challenge_proof` 时，reducer / Policy Server MUST 以 `failed_precondition` + `reason_code="challenge_expired"`（见 [`../../artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）拒绝该重提，MUST NOT 把过期 proof 当作满足 obligation。被拒后 applicant MUST 重新提交原始 join / application Control Move 走一次 `ak.self.policy.query.check`，由 Policy Server 签发**新的** `challenge_id`（旧 `challenge_id` 不得复用满足新一轮 obligation）；applicant 对新 challenge 完成后按上文在 `gate_proofs[]` 追加对应新 `challenge_id` 的 proof。reducer MUST NOT 自动续期或自动重发 challenge——challenge 的签发权属 Policy Server，过期即作废、由 applicant 重新发起请求获取。
 
-`obligations[].type` 注册值（`rate_limit` / `challenge` / `review_hold` / `drop_attachment`）维护在 [`../authz/policy-server.md` §4](../authz/policy-server.md) 表中；本规范是 `challenge` 类型在 join 路径上的 normative wire schema，其它路径（如 `ck.message.create`）若使用 `challenge` 必须遵循同一 envelope。
+`obligations[].type` 注册值（`rate_limit` / `challenge` / `review_hold` / `drop_attachment`）维护在 [`../authz/policy-server.md` §4](../authz/policy-server.md) 表中；本规范是 `challenge` 类型在 join 路径上的 normative wire schema，其它路径（如 `ak.message.create`）若使用 `challenge` 必须遵循同一 envelope。
 
 ## 12. 反滥用约束
 
@@ -482,7 +482,7 @@ applicant 完成挑战后，重新提交 join / application Control Move，在 `
 | `application_ttl` | PT168H | reducer 到期自动转 `reason_code="ttl_expired"`（统一走 §7.3 受控枚举命名约定，`ttl_expired` 见 [`../../artifacts/registry/error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）；不计 cooldown。 |
 | `cooldown_after_reject` | PT72H | reject 后 reducer MUST 拒绝同 actor 在窗口内的新 `member.application`。`request_changes` 不触发 cooldown。 |
 | `max_open_applications_per_actor` | 1 | reducer 校验 actor 当前 pending 数；超出 `failed_precondition`。 |
-| Quota constraint | 由 Realm `ck.realm.policy_components` 声明 | 推荐对 `ck.member.state{knock}` 配置 `quota.subtype=rate`（如 `max_operations=5/day` + `constraint_scope`），通过既有 [`../authz/constraint-schema.md` §7](../authz/constraint-schema.md) 表达。 |
+| Quota constraint | 由 Realm `ak.realm.policy_components` 声明 | 推荐对 `ak.member.state{knock}` 配置 `quota.subtype=rate`（如 `max_operations=5/day` + `constraint_scope`），通过既有 [`../authz/constraint-schema.md` §7](../authz/constraint-schema.md) 表达。 |
 | Policy Server `challenge` | 高风险 Realm 推荐 | Sync Service 面对突发 knock 流量时 SHOULD 通过 Policy Server 注入 challenge obligation。 |
 
 ## 13. 与 MIMI 的映射
@@ -548,14 +548,14 @@ applicant 完成挑战后，重新提交 join / application Control Move，在 `
 }
 ```
 
-对应 `ck.realm.join_rule.value="knock_restricted"`：凭 VC 自动通过的走自动解析路径，其余走申请-审核路径。
+对应 `ak.realm.join_rule.value="knock_restricted"`：凭 VC 自动通过的走自动解析路径，其余走申请-审核路径。
 
 > 注：本示例 `cooldown_after_reject` 显式收紧为 `PT168H`（7 天），高于 §3 字段表默认 `PT72H`；此处恰与 `application_ttl` 取同值仅为示例简洁，二者计时锚点与作用对象不同（`application_ttl` 按申请未决超时，`cooldown_after_reject` 按上次 review reject 计时），并非要求二者相等。生产部署应按需独立取值或回落默认 `PT72H`。
 
 ## 15. 规范性引用
 
 - Realm 对象模型：[`../models/realm-and-space.md`](../models/realm-and-space.md)
-- Capability 与 `ck.realm.join.review` 等 action：[`../authz/capabilities.md`](../authz/capabilities.md)
+- Capability 与 `ak.realm.join.review` 等 action：[`../authz/capabilities.md`](../authz/capabilities.md)
 - Policy Server 与 obligation：[`../authz/policy-server.md`](../authz/policy-server.md)
 - Claim 与 constraint：[`../authz/constraint-schema.md`](../authz/constraint-schema.md)
 - Federation 跨域加入：[`../sync/federation.md` §5.2](../sync/federation.md)

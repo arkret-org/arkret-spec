@@ -25,14 +25,14 @@ info:
 
     operation-specific required fields directly from OpenAPI without consulting
 
-    prose. The typed surface currently covers `ck.self.events.{command.submit, resource.get, query.resolve,
+    prose. The typed surface currently covers `ak.self.events.{command.submit, resource.get, query.resolve,
 
-    query.scan, query.scan_body, query.frontier}`, `ck.peer.events.{command.submit, query.resolve, query.scan,
-    query.scan_body, query.frontier}`, `ck.self.account.{query.viewer, stream.subscribe,
-    command.update_profile}`, `ck.gate.account.{command.register, command.revoke_session}`, `ck.self.snapshot.query.manifest_head`,
-    `ck.peer.snapshot.query.manifest_head`,
+    query.scan, query.scan_body, query.frontier}`, `ak.peer.events.{command.submit, query.resolve, query.scan,
+    query.scan_body, query.frontier}`, `ak.self.account.{query.viewer, stream.subscribe,
+    command.update_profile}`, `ak.gate.account.{command.register, command.revoke_session}`, `ak.self.snapshot.query.manifest_head`,
+    `ak.peer.snapshot.query.manifest_head`,
 
-    `ck.root.identity.{query.resolve, document.resource.get, receipts.query.list, command.submit_did_operation}`, `ck.self.authz.{query.check,
+    `ak.root.identity.{query.resolve, document.resource.get, receipts.query.list, command.submit_did_operation}`, `ak.self.authz.{query.check,
 
     grants.query.effective}`, and the ServiceDescribe envelope. The corresponding
 
@@ -208,11 +208,11 @@ components:
       in: query
       name: presign
       description: |
-        Single-blob, short-TTL pre-signed authorization (ck.self.blob.command.presign).
+        Single-blob, short-TTL pre-signed authorization (ak.self.blob.command.presign).
         Carries a server-signed envelope binding blob_ref / TTL / scope /
         issuance nonce. The nonce is an envelope/audit/revocation key, not a
         one-use media-load replay guard unless a single-use profile is declared.
-        Permitted ONLY on ck.self.blob.resource.get and ck.self.blob.resource.head, and MUST NOT
+        Permitted ONLY on ak.self.blob.resource.get and ak.self.blob.resource.head, and MUST NOT
         co-occur with bearerAuth — implementations enforce mutual exclusion.
         See media-and-blob.md §5.4 and server-threat-model.md §2.1 #21 for the
         carve-out's normative constraints.
@@ -1249,7 +1249,7 @@ components:
       pattern: ^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
     EventsFrontierAccountClientState:
       type: object
-      description: Account-client ck.self.events.query.frontier response.
+      description: Account-client ak.self.events.query.frontier response.
       required:
       - frontier
       properties:
@@ -1282,7 +1282,7 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody
     EventsSubmitBatchRequestBody:
       type: object
-      description: Batch ck.self.events.command.submit request used by account clients.
+      description: Batch ak.self.events.command.submit request used by account clients.
       required:
       - events
       properties:
@@ -1294,7 +1294,7 @@ components:
       additionalProperties: false
     EventsSubmitFederationRequestBody:
       type: object
-      description: Federation service-to-service ck.peer.events.command.submit request body.
+      description: Federation service-to-service ak.peer.events.command.submit request body.
       required:
       - service_binding_ref
       - events
@@ -1311,7 +1311,7 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitOutcome
     EventsSubscribeFrame:
       type: object
-      description: 'One NDJSON line emitted by ck.events.subscribe. Per-kind constraints
+      description: 'One NDJSON line emitted by ak.events.subscribe. Per-kind constraints
         mirror service-http-binding.md §3.4 and align in strictness with account-subscribe-frame.schema.json:
         `event` carries realm_id + cursor + payload; `frontier` / `catchup_complete`
         carry cursor (realm_id present = that Realm''s frontier/catchup, absent =
@@ -1346,7 +1346,7 @@ components:
         reconnect_after_ms:
           type: integer
           minimum: 1
-          description: Optional server-directed minimum delay before opening another ck.self.events.stream.subscribe stream for the same caller/selector scope. MAY appear only on dropped and resync_required frames; clients MUST wait at least this delay before reconnecting, and servers MUST reject earlier reconnect attempts with 429 plus Retry-After.
+          description: Optional server-directed minimum delay before opening another ak.self.events.stream.subscribe stream for the same caller/selector scope. MAY appear only on dropped and resync_required frames; clients MUST wait at least this delay before reconnecting, and servers MUST reject earlier reconnect attempts with 429 plus Retry-After.
       allOf:
       - if:
           properties:
@@ -1510,7 +1510,7 @@ components:
           - required:
             - effective_scope
         description: |
-          Actor-supplied ck.self.events.command.submit input envelope. It reuses the base Event
+          Actor-supplied ak.self.events.command.submit input envelope. It reuses the base Event
           shape for actor intent fields but forbids reducer-managed accepted-output
           projections such as actor_kind and effective_scope. Services stamp those
           fields only after accept and expose them on read/query/sync envelopes.
@@ -1533,7 +1533,7 @@ components:
       type: object
       description: |
         Request-level service binding snapshot carried by federation
-        service-to-service ck.peer.events.command.submit calls. This is metadata for the
+        service-to-service ak.peer.events.command.submit calls. This is metadata for the
         receiver to verify the sender's delivery decision; client writes omit it.
       required:
       - realm_id
@@ -2096,18 +2096,18 @@ components:
           - string
           - 'null'
           pattern: ^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-          description: Derived board Space id from ck.component.strand.position.v1; not canonical Strand object state.
+          description: Derived board Space id from ak.component.strand.position.v1; not canonical Strand object state.
         list_space_id:
           type:
           - string
           - 'null'
           pattern: ^ak:space:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-          description: Derived list Space id from ck.component.strand.position.v1; not canonical Strand object state.
+          description: Derived list Space id from ak.component.strand.position.v1; not canonical Strand object state.
         rank:
           type:
           - string
           - 'null'
-          description: Derived rank within list_space_id from ck.component.strand.position.v1.
+          description: Derived rank within list_space_id from ak.component.strand.position.v1.
         assigned_actor_ids:
           type: array
           items:
@@ -2262,8 +2262,8 @@ components:
     ServiceDescribe:
       type: object
       description: |
-        Service capability descriptor returned by `ck.server.query.describe` and the
-        per-surface `ck.*.describe` operations. Required fields are normatively
+        Service capability descriptor returned by `ak.server.query.describe` and the
+        per-surface `ak.*.describe` operations. Required fields are normatively
         listed in `zh/sync/service-surface.md` §3.0 and §17. Implementations MUST
         emit `plaintext_visibility` so callers can honor the plaintext-boundary
         rule from `zh/overview/architecture.md` §2.3.
@@ -2320,7 +2320,7 @@ components:
         supported_features:
           type: array
           description: |
-            Optional feature identifiers (`ck.feature.*`) this service supports.
+            Optional feature identifiers (`ak.feature.*`) this service supports.
             Mirrors the `supported_features[]` declaration in
             `zh/sync/service-surface.md` §3.0. Distinct from `supported_profiles`:
             features are finer-grained capability tokens that may be required
@@ -2532,7 +2532,7 @@ components:
           type: array
           description: |
             Directory-service resource classes indexed by
-            `ck.find.directory.query.describe`. Required when
+            `ak.find.directory.query.describe`. Required when
             `service_type=directory_service`.
           items:
             type: string
@@ -2546,7 +2546,7 @@ components:
           type: array
           description: |
             Directory discovery profiles and extension profile ids advertised by
-            `ck.find.directory.query.describe`. Required when
+            `ak.find.directory.query.describe`. Required when
             `service_type=directory_service`.
           items:
             type: string
@@ -2616,7 +2616,7 @@ components:
             necessarily claim conformance for. Tooling that builds a
             conformance matrix MUST treat this strictly weaker than
             `claimed_profiles`. See `zh/sync/service-surface.md` §3.0 and
-            `ck.schema.service_describe.v1`.
+            `ak.schema.service_describe.v1`.
           items:
             type: string
         claimed_profiles:
@@ -2647,7 +2647,7 @@ components:
             `verifier_did`, `signature` and `timestamp`.
             When `development_mode=true` this array MUST be
             empty (see `zh/sync/service-surface.md` §3.0 and
-            `ck.schema.service_describe.v1`).
+            `ak.schema.service_describe.v1`).
           items:
             type: object
             required:
@@ -2745,7 +2745,7 @@ components:
       $ref: ../schemas/account-operations.schema.json#/$defs/session_revoke_request_body
     SnapshotBootstrap:
       type: object
-      description: Optional ck.peer.events.query.scan acceleration hint for federation pull / backfill. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).
+      description: Optional ak.peer.events.query.scan acceleration hint for federation pull / backfill. snapshot_ref is an external pointer and MUST equal the Snapshot manifest id. Verifier MUST validate signature, state_digest, snapshot_frontier, chunk digests, created_by, created_at, and authority_binding before use (manifest fields are bound by the manifest signature transcript — see schemas/snapshot.schema.json).
       required:
       - snapshot_ref
       - state_digest
@@ -3077,7 +3077,7 @@ components:
 paths:
   /_arkret/describe:
     get:
-      operationId: ck.server.query.describe
+      operationId: ak.server.query.describe
       security: []
       responses:
         '200':
@@ -3096,7 +3096,7 @@ paths:
           $ref: '#/components/responses/TemporarilyUnavailable'
   /_arkret/root/identity/resolve:
     post:
-      operationId: ck.root.identity.query.resolve
+      operationId: ak.root.identity.query.resolve
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3123,7 +3123,7 @@ paths:
           $ref: '#/components/responses/NotFound'
   /_arkret/root/identity/document:
     get:
-      operationId: ck.root.identity.document.resource.get
+      operationId: ak.root.identity.document.resource.get
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3145,7 +3145,7 @@ paths:
                 $ref: '#/components/schemas/IdentityDocumentView'
   /_arkret/root/identity/log:
     get:
-      operationId: ck.root.identity.log.query.list
+      operationId: ak.root.identity.log.query.list
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3160,7 +3160,7 @@ paths:
                 $ref: '#/components/schemas/IdentityLogListOutcome'
   /_arkret/root/identity/submit-did-operation:
     post:
-      operationId: ck.root.identity.command.submit_did_operation
+      operationId: ak.root.identity.command.submit_did_operation
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -3181,7 +3181,7 @@ paths:
               $ref: '#/components/schemas/DidOperationSubmitRequestBody'
   /_arkret/root/identity/receipts:
     get:
-      operationId: ck.root.identity.receipts.query.list
+      operationId: ak.root.identity.receipts.query.list
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3196,7 +3196,7 @@ paths:
                 $ref: '#/components/schemas/IdentityReceiptListOutcome'
   /_arkret/root/identity/recovery-policy:
     post:
-      operationId: ck.root.identity.recovery_policy.command.publish
+      operationId: ak.root.identity.recovery_policy.command.publish
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3216,7 +3216,7 @@ paths:
               schema:
                 $ref: ../schemas/recovery-policy.schema.json#/$defs/recovery_policy_publish_outcome
     get:
-      operationId: ck.root.identity.recovery_policy.resource.get
+      operationId: ak.root.identity.recovery_policy.resource.get
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3239,7 +3239,7 @@ paths:
                 $ref: ../schemas/recovery-policy.schema.json#/$defs/recovery_policy_active_outcome
   /_arkret/root/identity/recovery-sessions:
     post:
-      operationId: ck.root.identity.recovery_session.command.create
+      operationId: ak.root.identity.recovery_session.command.create
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3260,7 +3260,7 @@ paths:
                 $ref: ../schemas/recovery-session.schema.json#/$defs/recovery_session_state
   /_arkret/root/identity/recovery-sessions/{recovery_session_id}:
     get:
-      operationId: ck.root.identity.recovery_session.resource.get
+      operationId: ak.root.identity.recovery_session.resource.get
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3281,7 +3281,7 @@ paths:
                 $ref: ../schemas/recovery-session.schema.json#/$defs/recovery_session_state
   /_arkret/root/identity/recovery-sessions/{recovery_session_id}/proofs:
     post:
-      operationId: ck.root.identity.recovery_session.command.submit_proof
+      operationId: ak.root.identity.recovery_session.command.submit_proof
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3308,7 +3308,7 @@ paths:
                 $ref: ../schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_outcome
   /_arkret/root/identity/recovery-sessions/{recovery_session_id}/complete:
     post:
-      operationId: ck.root.identity.recovery_session.command.complete
+      operationId: ak.root.identity.recovery_session.command.complete
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3335,7 +3335,7 @@ paths:
                 $ref: ../schemas/recovery-session.schema.json#/$defs/recovery_session_complete_outcome
   /_arkret/self/events:
     post:
-      operationId: ck.self.events.command.submit
+      operationId: ak.self.events.command.submit
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3364,7 +3364,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/EventsSubmitOutcome'
     get:
-      operationId: ck.self.events.query.scan
+      operationId: ak.self.events.query.scan
       x-arkret-required-any-of:
       - - realms
       - - actors
@@ -3471,7 +3471,7 @@ paths:
             `invalid_param` — unrecognized `order` enum value or malformed cursor.
   /_arkret/self/events/query:
     post:
-      operationId: ck.self.events.query.scan_body
+      operationId: ak.self.events.query.scan_body
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3481,9 +3481,9 @@ paths:
         destinationTrustDomain: []
         requestCanonicalDigest: []
         contentDigest: []
-      summary: ck.self.events.query.scan in HTTP POST body form (for long/complex queries).
+      summary: ak.self.events.query.scan in HTTP POST body form (for long/complex queries).
       description: |
-        Semantically identical to `GET /_arkret/self/events` (`ck.self.events.query.scan`); the same
+        Semantically identical to `GET /_arkret/self/events` (`ak.self.events.query.scan`); the same
         selector / cursor / order / filter parameter set is transported as a
         JSON request body instead of URL query parameters. Use this form when
         any of:
@@ -3500,7 +3500,7 @@ paths:
         come from the same source — see zh/sync/service-http-binding.md §3.3.
 
         gRPC / MQ bindings reuse the canonical `SelfEvents/Query` channel; this
-        operation_id is a HTTP-only binding variant of `ck.self.events.query.scan` to keep
+        operation_id is a HTTP-only binding variant of `ak.self.events.query.scan` to keep
         OpenAPI / SDK generators round-trippable.
       requestBody:
         required: true
@@ -3520,7 +3520,7 @@ paths:
             `invalid_param` — unrecognized `order` enum value or malformed cursor.
   /_arkret/self/events/subscribe:
     get:
-      operationId: ck.self.events.stream.subscribe
+      operationId: ak.self.events.stream.subscribe
       x-arkret-required-any-of:
       - - realms
       - - actors
@@ -3567,7 +3567,7 @@ paths:
         explode: true
       - name: after
         in: query
-        description: Subscription start cursor (exclusive). Same semantics as ck.self.events.query.scan's `after=` parameter.
+        description: Subscription start cursor (exclusive). Same semantics as ak.self.events.query.scan's `after=` parameter.
         schema:
           $ref: '#/components/schemas/Cursor'
       - name: catchup
@@ -3585,7 +3585,7 @@ paths:
                 $ref: '#/components/schemas/EventsSubscribeFrame'
   /_arkret/self/events/describe:
     get:
-      operationId: ck.self.events.query.describe
+      operationId: ak.self.events.query.describe
       security: []
       responses:
         '200':
@@ -3596,7 +3596,7 @@ paths:
                 $ref: '#/components/schemas/ServiceDescribe'
   /_arkret/self/events/{event_id}:
     get:
-      operationId: ck.self.events.resource.get
+      operationId: ak.self.events.resource.get
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3622,7 +3622,7 @@ paths:
                 $ref: '#/components/schemas/EventView'
   /_arkret/self/events/resolve:
     post:
-      operationId: ck.self.events.query.resolve
+      operationId: ak.self.events.query.resolve
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3644,7 +3644,7 @@ paths:
                 $ref: '#/components/schemas/EventsResolveOutcome'
   /_arkret/self/events/frontier:
     get:
-      operationId: ck.self.events.query.frontier
+      operationId: ak.self.events.query.frontier
       x-arkret-required-any-of:
       - - actor_id
       - - realm_id
@@ -3671,7 +3671,7 @@ paths:
                 $ref: '#/components/schemas/EventsFrontierState'
   /_arkret/peer/events/describe:
     get:
-      operationId: ck.peer.events.query.describe
+      operationId: ak.peer.events.query.describe
       security: []
       responses:
         '200':
@@ -3682,7 +3682,7 @@ paths:
                 $ref: '#/components/schemas/ServiceDescribe'
   /_arkret/peer/events:
     post:
-      operationId: ck.peer.events.command.submit
+      operationId: ak.peer.events.command.submit
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -3725,7 +3725,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/EventsSubmitOutcome'
     get:
-      operationId: ck.peer.events.query.scan
+      operationId: ak.peer.events.query.scan
       x-arkret-required-any-of:
       - - realms
       - - actors
@@ -3738,7 +3738,7 @@ paths:
       summary: Federation peer event pull / backfill query.
       description: |
         Returns a page of events visible to the authenticated federation peer.
-        Cursor, selector, order, and response semantics match `ck.self.events.query.scan`,
+        Cursor, selector, order, and response semantics match `ak.self.events.query.scan`,
         but this binding is the server-to-server peer trust surface.
       parameters:
       - name: realms
@@ -3803,7 +3803,7 @@ paths:
                 $ref: '#/components/schemas/EventsQueryOutcome'
   /_arkret/peer/events/query:
     post:
-      operationId: ck.peer.events.query.scan_body
+      operationId: ak.peer.events.query.scan_body
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -3812,7 +3812,7 @@ paths:
         destinationTrustDomain: []
         requestCanonicalDigest: []
         contentDigest: []
-      summary: ck.peer.events.query.scan in HTTP POST body form.
+      summary: ak.peer.events.query.scan in HTTP POST body form.
       description: |
         Semantically identical to `GET /_arkret/peer/events`; transports the
         selector / cursor / order / filter parameter set as a JSON body.
@@ -3831,7 +3831,7 @@ paths:
                 $ref: '#/components/schemas/EventsQueryOutcome'
   /_arkret/peer/events/resolve:
     post:
-      operationId: ck.peer.events.query.resolve
+      operationId: ak.peer.events.query.resolve
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -3856,7 +3856,7 @@ paths:
                 $ref: '#/components/schemas/EventsResolveOutcome'
   /_arkret/peer/events/frontier:
     get:
-      operationId: ck.peer.events.query.frontier
+      operationId: ak.peer.events.query.frontier
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -3878,7 +3878,7 @@ paths:
                 $ref: '#/components/schemas/EventsFrontierFederationPeerState'
   /_arkret/peer/invites:
     post:
-      operationId: ck.peer.invites.command.submit
+      operationId: ak.peer.invites.command.submit
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -3889,7 +3889,7 @@ paths:
         contentDigest: []
       summary: Private Principal Server invite delivery.
       description: |
-        Delivers a ck.invite.create event from the inviter-side Principal
+        Delivers a ak.invite.create event from the inviter-side Principal
         Server to the invitee-side Principal Server. The recipient validates
         the signed invite event, explicit invite_address, introduction_evidence,
         destination service DID, and subject-private invite_receive_policy
@@ -3909,7 +3909,7 @@ paths:
                 $ref: '#/components/schemas/InviteDeliveryOutcome'
   /_arkret/peer/contacts:
     post:
-      operationId: ck.peer.contacts.command.submit
+      operationId: ak.peer.contacts.command.submit
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -3920,7 +3920,7 @@ paths:
         contentDigest: []
       summary: Private Principal Server contact fact delivery.
       description: |
-        Delivers a signed ck.contact.* fact (requested / accepted / rejected /
+        Delivers a signed ak.contact.* fact (requested / accepted / rejected /
         tombstoned) from the issuer-side Principal Server to the target holder's
         Principal Server. The recipient validates the signed contact event, the
         explicit contact_address, the destination service DID, and the holder's
@@ -3945,7 +3945,7 @@ paths:
                 $ref: ../schemas/peer-contact-delivery-request.schema.json#/$defs/peer_contact_delivery_outcome
   /_arkret/self/ephemeral:
     post:
-      operationId: ck.self.ephemeral.command.send
+      operationId: ak.self.ephemeral.command.send
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -3954,12 +3954,12 @@ paths:
         contentDigest: []
       summary: Send a broadcast ephemeral signal.
       description: |
-        Sends a `ck.schema.ephemeral_envelope.v1` broadcast signal (`ck.presence`,
-        `ck.typing`, `ck.receipt.read`, or `ck.call.signal`) into the Sync
+        Sends a `ak.schema.ephemeral_envelope.v1` broadcast signal (`ak.presence`,
+        `ak.typing`, `ak.receipt.read`, or `ak.call.signal`) into the Sync
         Service fanout path. This endpoint never persists the signal as a
         durable Event and never advances actor_seq, Seal state, or Realm
         frontier. Point-to-point device verification signals use
-        `ck.self.device_messages.command.send` instead.
+        `ak.self.device_messages.command.send` instead.
       requestBody:
         required: true
         content:
@@ -3981,18 +3981,18 @@ paths:
           description: |
             `capability_denied` or `policy_violation` — caller cannot broadcast
             this signal in the Realm, or the effective read-receipt policy
-            disables `ck.receipt.read`.
+            disables `ak.receipt.read`.
   /_arkret/self/rtc/token:
     post:
-      operationId: ck.self.call.media.exchange.issue_token
+      operationId: ak.self.call.media.exchange.issue_token
       security:
       - bearerAuth: []
       summary: Exchange Arkret capability proof for a backend media token.
       description: |
-        Media service token exchange operation (CKP-0010,
+        Media service token exchange operation (AKP-0010,
         zh/crypto-media/media-service-binding.md §3). Issues a short-lived
         (TTL ≤ 600s, SHOULD ≤ 300s) backend_token + participant_binding for
-        joining a focus declared in `ck.realm.media_service.foci[]`.
+        joining a focus declared in `ak.realm.media_service.foci[]`.
 
         Same wire across all backend types (livekit / mediasoup / janus /
         arkret-native); only `backend_token` shape is type-specific and opaque
@@ -4000,7 +4000,7 @@ paths:
 
         Token issuer MUST be one of the Realm-authorized media service DIDs;
         clients MUST reject otherwise (`token_issuer_unauthorised`). Issuer
-        MUST validate: device proof, `ck.call.join` capability, focus_id
+        MUST validate: device proof, `ak.call.join` capability, focus_id
         membership in current `foci[]`, session_focus persistence, MLS
         governance binding policy_root freshness, and `media_service_decrypts`
         pre-conditions (§10.5.1).
@@ -4019,30 +4019,30 @@ paths:
                 $ref: ../schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeOutcome
         '403':
           description: |
-            `capability_denied` — actor lacks `ck.call.join` or
+            `capability_denied` — actor lacks `ak.call.join` or
             requested `desired_media` exceeds granted sub-capabilities; or
             `token_issuer_unauthorised` when the issuing DID is not registered
-            in `ck.realm.media_service.service_id`.
+            in `ak.realm.media_service.service_id`.
         '409':
           description: |
             `focus_mismatch` — requested `focus_id` differs from the
-            already-committed `ck.call.state.session_focus`; clients MUST
+            already-committed `ak.call.state.session_focus`; clients MUST
             re-target the established focus rather than retrying.
         '412':
           description: |
             `mls_governance_binding_stale` — current MLS epoch policy_root
-            does not cover the `ck.realm.media_service` cell; or
+            does not cover the `ak.realm.media_service` cell; or
             `media_plaintext_service_not_authorised` for SFUs negotiating
             decryption role without `plaintext_visible_services` entry.
         '422':
           description: |
             `unknown_focus_type` — `focus_id` resolves to a `foci[]` entry
             whose `type` is unsupported by this token issuer; or
-            `media_service_foci_required` when `ck.realm.media_service` does
+            `media_service_foci_required` when `ak.realm.media_service` does
             not declare explicit media foci.
   /_arkret/self/account/viewer:
     get:
-      operationId: ck.self.account.query.viewer
+      operationId: ak.self.account.query.viewer
       security:
       - bearerAuth: []
       summary: Holder-bound one-shot read of the current account projection.
@@ -4050,11 +4050,11 @@ paths:
         Returns the authenticated principal's account projection: principal_id,
         lifecycle state, device summaries, optional ActorProfile, and signed
         handle-claim evidence or refs. This endpoint is distinct from
-        ck.self.account.query.describe, which describes service capabilities.
+        ak.self.account.query.describe, which describes service capabilities.
 
         The response MUST NOT use an unsigned bare handle as authoritative
         identity. When present, primary_handle_claim is a complete
-        ck.schema.handle_claim.v1 object; otherwise clients use
+        ak.schema.handle_claim.v1 object; otherwise clients use
         primary_handle_claim_ref and handle_claim_digests to refresh their
         local claim cache.
       responses:
@@ -4066,7 +4066,7 @@ paths:
                 $ref: '#/components/schemas/AccountView'
   /_arkret/self/account/subscribe:
     get:
-      operationId: ck.self.account.stream.subscribe
+      operationId: ak.self.account.stream.subscribe
       security:
       - bearerAuth: []
       summary: Streaming push of account-aggregate deltas (NDJSON frames).
@@ -4080,14 +4080,14 @@ paths:
         `heartbeat`, `catchup_complete`, `dropped`, `resync_required`,
         `unauthorized`).
 
-        Symmetric with ck.self.events.stream.subscribe (per-Realm event log streaming);
+        Symmetric with ak.self.events.stream.subscribe (per-Realm event log streaming);
         both share resume semantics (`after=<cursor>` exclusive start).
         `dropped` requires account-aggregate catch-up by reconnecting with
         `after=<cursor>&catchup=true`; `resync_required` requires local
         rebuild / initial account sync. `dropped` / `resync_required` may
         carry `reconnect_after_ms`, a minimum server-directed delay before
         opening another subscription for the same principal/device/filter
-        scope. Presence changes are submitted with ck.self.ephemeral.command.send,
+        scope. Presence changes are submitted with ak.self.ephemeral.command.send,
         not this read-only streaming subscription.
       parameters:
       - in: header
@@ -4140,12 +4140,12 @@ paths:
                 $ref: '#/components/schemas/AccountSubscribeFrame'
   /_arkret/self/account/profile:
     post:
-      operationId: ck.self.account.command.update_profile
+      operationId: ak.self.account.command.update_profile
       security:
       - bearerAuth: []
       summary: Update the authenticated principal's Actor Profile projection.
       description: |
-        Holder-bound service wrapper around ck.profile.update / Actor Profile
+        Holder-bound service wrapper around ak.profile.update / Actor Profile
         projection. The request body is AccountUpdateProfileRequestBody {patch}; patch
         paths are limited to display_name, avatar_blob_ref, and
         profile_fields.<key>. Personal bio text is represented by
@@ -4169,7 +4169,7 @@ paths:
               $ref: '#/components/schemas/AccountUpdateProfileRequestBody'
   /_arkret/self/account/cursor/revoke:
     post:
-      operationId: ck.self.account.command.revoke_cursor
+      operationId: ak.self.account.command.revoke_cursor
       security:
       - bearerAuth: []
       summary: Revoke a previously issued cursor authority.
@@ -4179,7 +4179,7 @@ paths:
         TTL would have expired. A revoked cursor returns `cursor_revoked` and
         MUST NOT advance account subscribe position, wait-for barrier state,
         or dropped recovery state. To-device queue deletion is decoupled from
-        cursors entirely and happens only via ck.self.device_messages.command.ack.
+        cursors entirely and happens only via ak.self.device_messages.command.aak.
       requestBody:
         required: true
         content:
@@ -4195,7 +4195,7 @@ paths:
                 $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeOutcome
   /_arkret/self/contacts/request:
     post:
-      operationId: ck.self.contact.command.request
+      operationId: ak.self.contact.command.request
       security:
       - bearerAuth: []
       summary: Submit a contact request to another principal.
@@ -4218,7 +4218,7 @@ paths:
                 $ref: '#/components/schemas/ContactRequestOutcome'
   /_arkret/self/contacts/respond:
     post:
-      operationId: ck.self.contact.command.respond
+      operationId: ak.self.contact.command.respond
       security:
       - bearerAuth: []
       summary: Accept or reject an incoming contact request.
@@ -4240,7 +4240,7 @@ paths:
                 $ref: '#/components/schemas/ContactRespondOutcome'
   /_arkret/self/contacts:
     get:
-      operationId: ck.self.contact.query.list
+      operationId: ak.self.contact.query.list
       security:
       - bearerAuth: []
       summary: List the holder's contact projection.
@@ -4278,7 +4278,7 @@ paths:
                 $ref: '#/components/schemas/ContactList'
   /_arkret/self/contacts/tombstone:
     post:
-      operationId: ck.self.contact.command.tombstone
+      operationId: ak.self.contact.command.tombstone
       security:
       - bearerAuth: []
       summary: Tombstone the holder's side of a contact relation.
@@ -4300,7 +4300,7 @@ paths:
                 $ref: '#/components/schemas/ContactTombstone'
   /_arkret/self/circles:
     get:
-      operationId: ck.self.circle.query.list
+      operationId: ak.self.circle.query.list
       security:
       - bearerAuth: []
       summary: List Circles visible to the caller within one parent Realm.
@@ -4322,12 +4322,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/CircleList'
     post:
-      operationId: ck.self.circle.command.create
+      operationId: ak.self.circle.command.create
       security:
       - bearerAuth: []
-      summary: Create a Circle (ck.circle.create).
+      summary: Create a Circle (ak.circle.create).
       description: |
-        Builds a ck.circle.create Operation in the named parent Realm and routes
+        Builds a ak.circle.create Operation in the named parent Realm and routes
         it through the local accept pipeline. Reducer-locked fields
         (mls_group_ref, state) MUST NOT be actor-supplied.
       requestBody:
@@ -4345,7 +4345,7 @@ paths:
                 $ref: '#/components/schemas/CircleView'
   /_arkret/self/circles/{circle_id}:
     get:
-      operationId: ck.self.circle.resource.get
+      operationId: ak.self.circle.resource.get
       security:
       - bearerAuth: []
       summary: Read one Circle by id.
@@ -4367,12 +4367,12 @@ paths:
                 $ref: '#/components/schemas/CircleView'
   /_arkret/self/circles/{circle_id}/members:
     post:
-      operationId: ck.self.circle.member.command.add
+      operationId: ak.self.circle.member.command.add
       security:
       - bearerAuth: []
-      summary: Add or change a Circle member (ck.circle.member.state).
+      summary: Add or change a Circle member (ak.circle.member.state).
       description: |
-        Activating another actor requires ck.circle.member.manage narrowed to
+        Activating another actor requires ak.circle.member.manage narrowed to
         this Circle, and the target MUST already be a joined parent-Realm member
         (strict-subset invariant). A self-join is gated by join_rule.
       parameters:
@@ -4396,10 +4396,10 @@ paths:
                 $ref: '#/components/schemas/CircleMembershipOutcome'
   /_arkret/self/circles/{circle_id}/members/{actor_id}:
     delete:
-      operationId: ck.self.circle.member.resource.delete
+      operationId: ak.self.circle.member.resource.delete
       security:
       - bearerAuth: []
-      summary: Remove a Circle member (ck.circle.member.state -> removed).
+      summary: Remove a Circle member (ak.circle.member.state -> removed).
       parameters:
       - in: path
         name: circle_id
@@ -4420,10 +4420,10 @@ paths:
                 $ref: '#/components/schemas/CircleMembershipOutcome'
   /_arkret/self/circles/{circle_id}/scope-rotate:
     post:
-      operationId: ck.self.circle.command.rotate_scope
+      operationId: ak.self.circle.command.rotate_scope
       security:
       - bearerAuth: []
-      summary: Rotate the Circle's bound MLS group (CKP-0007).
+      summary: Rotate the Circle's bound MLS group (AKP-0007).
       description: |
         MUST NOT acknowledge a rotation without actually changing the
         cryptographic scope. Returns unsupported_feature until the MLS
@@ -4450,10 +4450,10 @@ paths:
                 $ref: '#/components/schemas/CircleScopeRotateOutcome'
   /_arkret/self/circles/{circle_id}/archive:
     post:
-      operationId: ck.self.circle.command.archive
+      operationId: ak.self.circle.command.archive
       security:
       - bearerAuth: []
-      summary: Archive a Circle (ck.circle.archive).
+      summary: Archive a Circle (ak.circle.archive).
       parameters:
       - in: path
         name: circle_id
@@ -4475,10 +4475,10 @@ paths:
                 $ref: '#/components/schemas/CircleView'
   /_arkret/self/circles/{circle_id}/restore:
     post:
-      operationId: ck.self.circle.command.restore
+      operationId: ak.self.circle.command.restore
       security:
       - bearerAuth: []
-      summary: Restore an archived Circle (ck.circle.restore).
+      summary: Restore an archived Circle (ak.circle.restore).
       parameters:
       - in: path
         name: circle_id
@@ -4500,10 +4500,10 @@ paths:
                 $ref: '#/components/schemas/CircleView'
   /_arkret/self/circles/{circle_id}/tombstone:
     post:
-      operationId: ck.self.circle.command.tombstone
+      operationId: ak.self.circle.command.tombstone
       security:
       - bearerAuth: []
-      summary: Tombstone a Circle (ck.circle.tombstone).
+      summary: Tombstone a Circle (ak.circle.tombstone).
       parameters:
       - in: path
         name: circle_id
@@ -4525,7 +4525,7 @@ paths:
                 $ref: '#/components/schemas/CircleView'
   /_arkret/self/invite-receive-policy:
     get:
-      operationId: ck.self.invite_receive_policy.resource.get
+      operationId: ak.self.invite_receive_policy.resource.get
       security:
       - bearerAuth: []
       summary: Get the authenticated subject's invite-receive policy.
@@ -4541,14 +4541,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/InviteReceivePolicy'
     put:
-      operationId: ck.self.invite_receive_policy.resource.replace
+      operationId: ak.self.invite_receive_policy.resource.replace
       security:
       - bearerAuth: []
       summary: Replace the authenticated subject's invite-receive policy.
       description: |
         The request body MUST set subject_id equal to the session actor. The
         override shares the same store as the blocked_subjects written by
-        ck.self.contact.command.tombstone(block_peer).
+        ak.self.contact.command.tombstone(block_peer).
       requestBody:
         required: true
         content:
@@ -4564,7 +4564,7 @@ paths:
                 $ref: '#/components/schemas/InviteReceivePolicy'
   /_arkret/self/direct-conversations/resolve:
     post:
-      operationId: ck.self.direct_conversation.command.resolve
+      operationId: ak.self.direct_conversation.command.resolve
       security:
       - bearerAuth: []
       summary: Resolve or create the canonical 1:1 DM entry for an accepted contact.
@@ -4587,7 +4587,7 @@ paths:
                 $ref: '#/components/schemas/DirectConversationResolveOutcome'
   /_arkret/self/snapshot/head:
     get:
-      operationId: ck.self.snapshot.query.manifest_head
+      operationId: ak.self.snapshot.query.manifest_head
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4615,7 +4615,7 @@ paths:
                 $ref: ../schemas/snapshot.schema.json
   /_arkret/peer/snapshot/head:
     get:
-      operationId: ck.peer.snapshot.query.manifest_head
+      operationId: ak.peer.snapshot.query.manifest_head
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -4634,14 +4634,14 @@ paths:
             The current recommended Snapshot manifest visible to an authorized
             federation peer for snapshot-assisted bootstrap. Same manifest
             shape, verification, and not_implemented rules as
-            ck.self.snapshot.query.manifest_head.
+            ak.self.snapshot.query.manifest_head.
           content:
             application/json:
               schema:
                 $ref: ../schemas/snapshot.schema.json
   /_arkret/self/realms/{realm_id}/spaces:
     get:
-      operationId: ck.self.space.query.list
+      operationId: ak.self.space.query.list
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4690,7 +4690,7 @@ paths:
                 $ref: '#/components/schemas/ProjectionSpaceList'
   /_arkret/self/realms/{realm_id}/strands:
     get:
-      operationId: ck.self.strand.query.list
+      operationId: ak.self.strand.query.list
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4738,7 +4738,7 @@ paths:
                 $ref: '#/components/schemas/ProjectionStrandList'
   /_arkret/self/realms/{realm_id}/morphs:
     get:
-      operationId: ck.self.morph.query.list
+      operationId: ak.self.morph.query.list
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4786,7 +4786,7 @@ paths:
                 $ref: '#/components/schemas/ProjectionMorphList'
   /_arkret/self/views/{view_id}/projection:
     post:
-      operationId: ck.self.views.collection_projection.command.materialize
+      operationId: ak.self.views.collection_projection.command.materialize
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4821,7 +4821,7 @@ paths:
                 $ref: '#/components/schemas/CollectionProjectionView'
   /_arkret/self/realms/{realm_id}/morphs/{morph_id}:
     get:
-      operationId: ck.self.morph.resource.get
+      operationId: ak.self.morph.resource.get
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4856,7 +4856,7 @@ paths:
                 $ref: '#/components/schemas/DocumentMorphProjectionOutcome'
   /_arkret/find/directory/resolve-handle:
     post:
-      operationId: ck.find.directory.query.resolve_handle
+      operationId: ak.find.directory.query.resolve_handle
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4878,7 +4878,7 @@ paths:
               $ref: '#/components/schemas/DirectoryResolveHandleRequestBody'
   /_arkret/find/directory/resolve-agent-selector:
     post:
-      operationId: ck.find.directory.query.resolve_agent_selector
+      operationId: ak.find.directory.query.resolve_agent_selector
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4900,7 +4900,7 @@ paths:
               $ref: '#/components/schemas/DirectoryResolveAgentSelectorRequestBody'
   /_arkret/find/directory/list-handles-for-subject:
     post:
-      operationId: ck.find.directory.query.list_handles_for_subject
+      operationId: ak.find.directory.query.list_handles_for_subject
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4923,7 +4923,7 @@ paths:
                 $ref: '#/components/schemas/DirectorySubjectHandleList'
   /_arkret/find/directory/private-contact-discovery:
     post:
-      operationId: ck.find.directory.query.private_contact_discovery
+      operationId: ak.find.directory.query.private_contact_discovery
       security:
       - bearerAuth: []
       requestBody:
@@ -4941,7 +4941,7 @@ paths:
                 $ref: '#/components/schemas/DirectoryPrivateContactDiscoveryOutcome'
   /_arkret/self/blob/upload:
     post:
-      operationId: ck.self.blob.upload.create
+      operationId: ak.self.blob.upload.create
       security:
       - bearerAuth: []
       responses:
@@ -4965,7 +4965,7 @@ paths:
                 contentType: application/octet-stream
   /_arkret/self/blob/get:
     head:
-      operationId: ck.self.blob.resource.head
+      operationId: ak.self.blob.resource.head
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -4976,7 +4976,7 @@ paths:
         '200':
           description: Blob metadata
     get:
-      operationId: ck.self.blob.resource.get
+      operationId: ak.self.blob.resource.get
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5020,7 +5020,7 @@ paths:
       in: query
       required: false
       description: |
-        Pre-signed authorization token returned by `ck.self.blob.command.presign`. When
+        Pre-signed authorization token returned by `ak.self.blob.command.presign`. When
         present, the request is authenticated solely by this token — the
         `Authorization` header MUST be absent and is rejected if both are
         supplied. Pre-signed mode is a deliberate carve-out of the
@@ -5038,7 +5038,7 @@ paths:
         type: string
   /_arkret/self/blob/presign:
     post:
-      operationId: ck.self.blob.command.presign
+      operationId: ak.self.blob.command.presign
       security:
       - bearerAuth: []
       requestBody:
@@ -5056,7 +5056,7 @@ paths:
                 $ref: ../schemas/service-operation-dtos.schema.json#/$defs/BlobPresignOutcome
         '403':
           description: |
-            `capability_denied` — caller lacks `ck.self.blob.command.presign` for this
+            `capability_denied` — caller lacks `ak.self.blob.command.presign` for this
             blob or this purpose; or the grant's TTL constraint forbids the
             requested `max_age_seconds`; or the target is a minimal-metadata
             Realm-owned blob for which bearer presign is forbidden by
@@ -5068,7 +5068,7 @@ paths:
             visibility.
   /_arkret/edge/push/register-device:
     post:
-      operationId: ck.edge.push.command.register_device
+      operationId: ak.edge.push.command.register_device
       security:
       - bearerAuth: []
       responses:
@@ -5086,7 +5086,7 @@ paths:
               $ref: '#/components/schemas/PushRegisterDeviceRequestBody'
   /_arkret/edge/push/unregister-device:
     post:
-      operationId: ck.edge.push.command.unregister_device
+      operationId: ak.edge.push.command.unregister_device
       security:
       - bearerAuth: []
       responses:
@@ -5104,7 +5104,7 @@ paths:
               $ref: '#/components/schemas/PushUnregisterDeviceRequestBody'
   /_arkret/edge/push/notify:
     post:
-      operationId: ck.edge.push.command.notify
+      operationId: ak.edge.push.command.notify
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5138,7 +5138,7 @@ paths:
               $ref: '#/components/schemas/PushNotifyRequestBody'
   /_arkret/self/authz/check:
     post:
-      operationId: ck.self.authz.query.check
+      operationId: ak.self.authz.query.check
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5160,7 +5160,7 @@ paths:
                 $ref: '#/components/schemas/AuthzCheckOutcome'
   /_arkret/self/authz/effective-grants:
     get:
-      operationId: ck.self.authz.grants.query.effective
+      operationId: ak.self.authz.grants.query.effective
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5175,7 +5175,7 @@ paths:
                 $ref: '#/components/schemas/GrantList'
   /_arkret/self/device_messages:
     post:
-      operationId: ck.self.device_messages.command.send
+      operationId: ak.self.device_messages.command.send
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5202,7 +5202,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/DeviceMessagesSendOutcome'
     get:
-      operationId: ck.self.device_messages.query.list
+      operationId: ak.self.device_messages.query.list
       security:
       - bearerAuth: []
       responses:
@@ -5214,7 +5214,7 @@ paths:
                 $ref: '#/components/schemas/DeviceMessagesGetOutcome'
   /_arkret/self/device_messages/ack:
     post:
-      operationId: ck.self.device_messages.command.ack
+      operationId: ak.self.device_messages.command.ack
       security:
       - bearerAuth: []
       summary: Explicit to-device delivery acknowledgement.
@@ -5240,7 +5240,7 @@ paths:
                 $ref: '#/components/schemas/DeviceMessagesAckOutcome'
   /_arkret/self/keys/upload:
     post:
-      operationId: ck.self.keys.upload.create
+      operationId: ak.self.keys.upload.create
       security:
       - bearerAuth: []
       responses:
@@ -5258,7 +5258,7 @@ paths:
               $ref: '#/components/schemas/KeysUploadRequestBody'
   /_arkret/self/keys/query:
     post:
-      operationId: ck.self.keys.query.lookup
+      operationId: ak.self.keys.query.lookup
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5280,7 +5280,7 @@ paths:
               $ref: '#/components/schemas/KeysQueryRequestBody'
   /_arkret/self/keys/claim:
     post:
-      operationId: ck.self.keys.command.claim
+      operationId: ak.self.keys.command.claim
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5302,7 +5302,7 @@ paths:
               $ref: '#/components/schemas/KeysClaimRequestBody'
   /_arkret/self/keys/keypackages/upload:
     post:
-      operationId: ck.self.keys.keypackages.upload.create
+      operationId: ak.self.keys.keypackages.upload.create
       security:
       - bearerAuth: []
       responses:
@@ -5320,7 +5320,7 @@ paths:
               $ref: '#/components/schemas/KeyPackagesUploadRequestBody'
   /_arkret/self/keys/keypackages/claim:
     post:
-      operationId: ck.self.keys.keypackages.command.claim
+      operationId: ak.self.keys.keypackages.command.claim
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5342,7 +5342,7 @@ paths:
               $ref: '#/components/schemas/KeyPackagesClaimRequestBody'
   /_arkret/self/keys/keypackages/consume:
     post:
-      operationId: ck.self.keys.keypackages.command.consume
+      operationId: ak.self.keys.keypackages.command.consume
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5364,7 +5364,7 @@ paths:
               $ref: '#/components/schemas/KeyPackagesConsumeRequestBody'
   /_arkret/self/keys/keypackages/revoke:
     post:
-      operationId: ck.self.keys.keypackages.command.revoke
+      operationId: ak.self.keys.keypackages.command.revoke
       security:
       - bearerAuth: []
       responses:
@@ -5382,7 +5382,7 @@ paths:
               $ref: '#/components/schemas/KeyPackagesRevokeRequestBody'
   /_arkret/self/keys/backups/{backup_id}:
     put:
-      operationId: ck.self.keys.backups.resource.replace
+      operationId: ak.self.keys.backups.resource.replace
       security:
       - bearerAuth: []
       parameters:
@@ -5406,7 +5406,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/KeysBackupsReplaceOutcome'
     delete:
-      operationId: ck.self.keys.backups.resource.delete
+      operationId: ak.self.keys.backups.resource.delete
       security:
       - bearerAuth: []
       parameters:
@@ -5431,14 +5431,14 @@ paths:
                 $ref: '#/components/schemas/KeysBackupsDeleteOutcome'
   /_arkret/self/keys/backups/{backup_id}/unlock:
     post:
-      operationId: ck.self.keys.backups.command.unlock
+      operationId: ak.self.keys.backups.command.unlock
       security:
       - bearerAuth: []
       x-arkret-auth:
         public_metadata: false
         proof_in_body: true
         proof_field: proof
-        notes: A bearer token alone MUST be rejected. The body MUST carry a ck.schema.key_backup_unlock_proof.v1 object; the server MUST verify it against the recovery session, caller, requesting device key, active-series record, and target envelope before returning the full ciphertext (key-management.md §7.7.1 / §7.8).
+        notes: A bearer token alone MUST be rejected. The body MUST carry a ak.schema.key_backup_unlock_proof.v1 object; the server MUST verify it against the recovery session, caller, requesting device key, active-series record, and target envelope before returning the full ciphertext (key-management.md §7.7.1 / §7.8).
       parameters:
       - in: path
         name: backup_id
@@ -5461,7 +5461,7 @@ paths:
                 $ref: ../schemas/key-backup.schema.json
   /_arkret/self/keys/backups:
     get:
-      operationId: ck.self.keys.backups.query.list
+      operationId: ak.self.keys.backups.query.list
       security:
       - bearerAuth: []
       parameters:
@@ -5491,7 +5491,7 @@ paths:
                 $ref: '#/components/schemas/KeysBackupsList'
   /_arkret/self/moderation/report:
     post:
-      operationId: ck.self.moderation.command.report
+      operationId: ak.self.moderation.command.report
       security:
       - bearerAuth: []
       requestBody:
@@ -5509,7 +5509,7 @@ paths:
                 $ref: '#/components/schemas/ModerationReportOutcome'
   /_arkret/open/invite-locators/resolve:
     post:
-      operationId: ck.open.invite_locator.query.resolve
+      operationId: ak.open.invite_locator.query.resolve
       security: []
       x-arkret-auth:
         public_metadata: false
@@ -5535,7 +5535,7 @@ paths:
                 $ref: '#/components/schemas/PrincipalLocator'
   /_arkret/open/agent-pairing/resolve:
     post:
-      operationId: ck.open.agent_pairing.query.resolve
+      operationId: ak.open.agent_pairing.query.resolve
       security: []
       x-arkret-auth:
         public_metadata: false
@@ -5561,7 +5561,7 @@ paths:
                 $ref: '#/components/schemas/AgentPairingBootstrap'
   /_arkret/open/agent-pairing/runtime-key-requests:
     post:
-      operationId: ck.open.agent_pairing.command.submit_runtime_key_request
+      operationId: ak.open.agent_pairing.command.submit_runtime_key_request
       security: []
       x-arkret-auth:
         public_metadata: false
@@ -5571,7 +5571,7 @@ paths:
         Runtime-to-controller pending approval request for native personal-agent
         key pairing. The runtime proves possession of the local key and the
         short pairing code; the controller still must approve by signing
-        ck.agent.key.authorize and submitting agent_key_pair_request_body. The
+        ak.agent.key.authorize and submitting agent_key_pair_request_body. The
         pairing code and proof-of-possession are sent in the JSON body, never in
         the URL path or query string.
       requestBody:
@@ -5589,7 +5589,7 @@ paths:
                 $ref: '#/components/schemas/AgentRuntimeApprovalOutcome'
   /_arkret/open/mimi/provider-directory:
     get:
-      operationId: ck.open.mimi.query.provider_directory
+      operationId: ak.open.mimi.query.provider_directory
       security: []
       responses:
         '200':
@@ -5600,7 +5600,7 @@ paths:
                 $ref: ../schemas/mimi-interop.schema.json
   /_arkret/open/mimi/key-material:
     post:
-      operationId: ck.open.mimi.exchange.request_key_material
+      operationId: ak.open.mimi.exchange.request_key_material
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5621,7 +5621,7 @@ paths:
               $ref: '#/components/schemas/MimiKeyMaterialRequestBody'
   /_arkret/open/mimi/strands/{strand_id}/update:
     post:
-      operationId: ck.open.mimi.command.update_room
+      operationId: ak.open.mimi.command.update_room
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5648,7 +5648,7 @@ paths:
               $ref: '#/components/schemas/MimiRoomUpdateRequestBody'
   /_arkret/open/mimi/strands/{strand_id}/notify:
     post:
-      operationId: ck.open.mimi.command.notify
+      operationId: ak.open.mimi.command.notify
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5675,7 +5675,7 @@ paths:
               $ref: '#/components/schemas/MimiNotifyRequestBody'
   /_arkret/open/mimi/strands/{strand_id}/messages:
     post:
-      operationId: ck.open.mimi.command.submit_message
+      operationId: ak.open.mimi.command.submit_message
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5702,7 +5702,7 @@ paths:
               $ref: '#/components/schemas/MimiSubmitMessageRequestBody'
   /_arkret/open/mimi/strands/{strand_id}/group-info:
     get:
-      operationId: ck.open.mimi.query.group_info
+      operationId: ak.open.mimi.query.group_info
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5733,7 +5733,7 @@ paths:
                 $ref: '#/components/schemas/MimiGroupInfoOutcome'
   /_arkret/open/mimi/consent/request:
     post:
-      operationId: ck.open.mimi.command.request_consent
+      operationId: ak.open.mimi.command.request_consent
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5754,7 +5754,7 @@ paths:
               $ref: '#/components/schemas/MimiRequestConsentRequestBody'
   /_arkret/open/mimi/consent/update:
     post:
-      operationId: ck.open.mimi.command.update_consent
+      operationId: ak.open.mimi.command.update_consent
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5775,7 +5775,7 @@ paths:
               $ref: '#/components/schemas/MimiUpdateConsentRequestBody'
   /_arkret/open/mimi/identifiers/query:
     post:
-      operationId: ck.open.mimi.query.identifiers
+      operationId: ak.open.mimi.query.identifiers
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5796,7 +5796,7 @@ paths:
               $ref: '#/components/schemas/MimiIdentifierQueryRequestBody'
   /_arkret/open/mimi/report-abuse:
     post:
-      operationId: ck.open.mimi.command.report_abuse
+      operationId: ak.open.mimi.command.report_abuse
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5817,7 +5817,7 @@ paths:
               $ref: '#/components/schemas/MimiReportAbuseRequestBody'
   /_arkret/open/mimi/proxy-download:
     post:
-      operationId: ck.open.mimi.command.proxy_download
+      operationId: ak.open.mimi.command.proxy_download
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -5838,7 +5838,7 @@ paths:
               $ref: '#/components/schemas/MimiProxyDownloadRequestBody'
   /_arkret/root/identity/describe:
     get:
-      operationId: ck.root.identity.registry.query.describe
+      operationId: ak.root.identity.registry.query.describe
       security: []
       responses:
         '200':
@@ -5849,7 +5849,7 @@ paths:
                 $ref: '#/components/schemas/ServiceDescribe'
   /_arkret/self/account/describe:
     get:
-      operationId: ck.self.account.query.describe
+      operationId: ak.self.account.query.describe
       security: []
       responses:
         '200':
@@ -5860,7 +5860,7 @@ paths:
                 $ref: '#/components/schemas/ServiceDescribe'
   /_arkret/find/directory/describe:
     get:
-      operationId: ck.find.directory.query.describe
+      operationId: ak.find.directory.query.describe
       security: []
       responses:
         '200':
@@ -5871,7 +5871,7 @@ paths:
                 $ref: '#/components/schemas/ServiceDescribe'
   /_arkret/find/directory/announce:
     post:
-      operationId: ck.find.directory.command.announce
+      operationId: ak.find.directory.command.announce
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5893,7 +5893,7 @@ paths:
               $ref: '#/components/schemas/DirectoryAnnounceRequestBody'
   /_arkret/find/directory/withdraw:
     post:
-      operationId: ck.find.directory.command.withdraw
+      operationId: ak.find.directory.command.withdraw
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5915,7 +5915,7 @@ paths:
               $ref: '#/components/schemas/DirectoryWithdrawRequestBody'
   /_arkret/find/directory/takedown/appeal:
     post:
-      operationId: ck.find.directory.command.takedown_appeal
+      operationId: ak.find.directory.command.takedown_appeal
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5937,7 +5937,7 @@ paths:
               $ref: '#/components/schemas/DirectoryTakedownAppealRequestBody'
   /_arkret/find/directory/search-realms:
     post:
-      operationId: ck.find.directory.query.search_realms
+      operationId: ak.find.directory.query.search_realms
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5959,7 +5959,7 @@ paths:
               $ref: '#/components/schemas/DirectorySearchRealmsRequestBody'
   /_arkret/find/directory/resolve-realm:
     post:
-      operationId: ck.find.directory.query.resolve_realm
+      operationId: ak.find.directory.query.resolve_realm
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -5981,7 +5981,7 @@ paths:
               $ref: '#/components/schemas/DirectoryResolveRealmRequestBody'
   /_arkret/find/directory/resolve-target:
     post:
-      operationId: ck.find.directory.query.resolve_target
+      operationId: ak.find.directory.query.resolve_target
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -6003,7 +6003,7 @@ paths:
               $ref: '#/components/schemas/DirectoryResolveTargetRequestBody'
   /_arkret/find/directory/search-organizations:
     post:
-      operationId: ck.find.directory.query.search_organizations
+      operationId: ak.find.directory.query.search_organizations
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -6025,7 +6025,7 @@ paths:
               $ref: '#/components/schemas/DirectorySearchOrganizationsRequestBody'
   /_arkret/find/directory/resolve-organization:
     post:
-      operationId: ck.find.directory.query.resolve_organization
+      operationId: ak.find.directory.query.resolve_organization
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -6047,7 +6047,7 @@ paths:
               $ref: '#/components/schemas/DirectoryResolveOrganizationRequestBody'
   /_arkret/find/directory/search-actors:
     post:
-      operationId: ck.find.directory.query.search_actors
+      operationId: ak.find.directory.query.search_actors
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -6069,7 +6069,7 @@ paths:
               $ref: '#/components/schemas/DirectorySearchActorsRequestBody'
   /_arkret/find/directory/search-users:
     post:
-      operationId: ck.find.directory.query.search_users
+      operationId: ak.find.directory.query.search_users
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -6091,7 +6091,7 @@ paths:
               $ref: '#/components/schemas/DirectorySearchUsersRequestBody'
   /_arkret/find/directory/push/register:
     post:
-      operationId: ck.find.directory.push.command.register
+      operationId: ak.find.directory.push.command.register
       security:
       - bearerAuth: []
       - httpMessageSignature: []
@@ -6113,7 +6113,7 @@ paths:
               $ref: '#/components/schemas/DirectoryPushRegisterRequestBody'
   /_arkret/self/authz/invites:
     get:
-      operationId: ck.self.authz.invites.query.list
+      operationId: ak.self.authz.invites.query.list
       security:
       - bearerAuth: []
       parameters:
@@ -6145,7 +6145,7 @@ paths:
                 $ref: '#/components/schemas/AuthzInviteList'
   /_arkret/edge/applet/ping:
     get:
-      operationId: ck.edge.applet.query.ping
+      operationId: ak.edge.applet.query.ping
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -6159,7 +6159,7 @@ paths:
                 $ref: '#/components/schemas/AppletPingOutcome'
   /_arkret/edge/applet/describe:
     get:
-      operationId: ck.edge.applet.query.describe
+      operationId: ak.edge.applet.query.describe
       security: []
       responses:
         '200':
@@ -6170,7 +6170,7 @@ paths:
                 $ref: '#/components/schemas/ServiceDescribe'
   /_arkret/edge/applet/transactions:
     post:
-      operationId: ck.edge.applet.command.transaction
+      operationId: ak.edge.applet.command.transaction
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -6239,7 +6239,7 @@ paths:
               $ref: '#/components/schemas/AppletTransactionRequestBody'
   /_arkret/edge/applet/actors/{actor_id}:
     get:
-      operationId: ck.edge.applet.actor.query.resolve
+      operationId: ak.edge.applet.actor.query.resolve
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -6260,7 +6260,7 @@ paths:
                 $ref: '#/components/schemas/AppletActorView'
   /_arkret/edge/applet/realms/{realm_id_or_alias}:
     get:
-      operationId: ck.edge.applet.realm.query.resolve
+      operationId: ak.edge.applet.realm.query.resolve
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -6281,7 +6281,7 @@ paths:
                 $ref: '#/components/schemas/AppletRealmView'
   /_arkret/edge/applet/protocols/{protocol}:
     get:
-      operationId: ck.edge.applet.query.protocol_metadata
+      operationId: ak.edge.applet.query.protocol_metadata
       security: []
       parameters:
       - in: path
@@ -6299,7 +6299,7 @@ paths:
                 $ref: '#/components/schemas/AppletProtocolMetadata'
   /_arkret/edge/applet/third_party/users:
     get:
-      operationId: ck.edge.applet.third_party_users.query.list
+      operationId: ak.edge.applet.third_party_users.query.list
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -6332,7 +6332,7 @@ paths:
                 $ref: '#/components/schemas/AppletThirdPartyUserList'
   /_arkret/edge/applet/third_party/locations:
     get:
-      operationId: ck.edge.applet.third_party_locations.query.list
+      operationId: ak.edge.applet.third_party_locations.query.list
       security:
       - httpMessageSignature: []
         sourceServiceDid: []
@@ -6365,7 +6365,7 @@ paths:
                 $ref: '#/components/schemas/AppletThirdPartyLocationList'
   /_arkret/self/applets/install/preview:
     post:
-      operationId: ck.self.applet.install.command.preview
+      operationId: ak.self.applet.install.command.preview
       security:
       - bearerAuth: []
       responses:
@@ -6383,7 +6383,7 @@ paths:
               $ref: '#/components/schemas/AppletInstallPreviewRequestBody'
   /_arkret/self/applets/install:
     post:
-      operationId: ck.self.applet.command.install
+      operationId: ak.self.applet.command.install
       security:
       - bearerAuth: []
       parameters:
@@ -6409,7 +6409,7 @@ paths:
               $ref: '#/components/schemas/AppletInstallRequestBody'
   /_arkret/self/applets/{applet_id}/ghosts/provision:
     post:
-      operationId: ck.self.applet.ghost.command.provision
+      operationId: ak.self.applet.ghost.command.provision
       summary: Provision an Applet-managed Ghost Actor for one external user.
       description: |
         Called by an installed bridge Applet (authenticating as its service DID)
@@ -6417,8 +6417,8 @@ paths:
         profile plus accountability grant for one external user. The server MUST
         verify the active registration for `applet_id` covers the caller's
         service DID and that `ghost_actor_id` falls inside the registration's
-        actor namespace before minting `ck.profile.create` /
-        `ck.identity.accountability_grant`. Re-provisioning the same
+        actor namespace before minting `ak.profile.create` /
+        `ak.identity.accountability_grant`. Re-provisioning the same
         `(applet_id, protocol, tenant, external_user_id)` MUST return the
         existing refs instead of minting duplicates.
       security:
@@ -6454,7 +6454,7 @@ paths:
               $ref: '#/components/schemas/GhostActorProvisionRequestBody'
   /_arkret/self/applets/{applet_id}/revoke:
     post:
-      operationId: ck.self.applet.command.revoke
+      operationId: ak.self.applet.command.revoke
       security:
       - bearerAuth: []
       parameters:
@@ -6485,10 +6485,10 @@ paths:
               $ref: '#/components/schemas/AppletRevokeRequestBody'
   /_arkret/self/policy/check:
     post:
-      operationId: ck.self.policy.query.check
+      operationId: ak.self.policy.query.check
       summary: Signed policy decision.
       description: |
-        Canonical HTTP binding for `ck.self.policy.query.check`. The Policy Server returns
+        Canonical HTTP binding for `ak.self.policy.query.check`. The Policy Server returns
         a signed allow/deny/quarantine/require_review decision.
       security:
       - bearerAuth: []
@@ -6511,10 +6511,10 @@ paths:
               $ref: '#/components/schemas/PolicyCheckRequestBody'
   /_arkret/self/realms/{realm_id}/links:
     get:
-      operationId: ck.self.realm_link.query.list
+      operationId: ak.self.realm_link.query.list
       security:
       - bearerAuth: []
-      summary: List typed cross-Realm links projected from ck.realm.link.
+      summary: List typed cross-Realm links projected from ak.realm.link.
       parameters:
       - in: path
         name: realm_id
@@ -6543,12 +6543,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/RealmLinkList'
     post:
-      operationId: ck.self.realm_link.command.create
+      operationId: ak.self.realm_link.command.create
       security:
       - bearerAuth: []
-      summary: Submit a ck.realm.link Move.
+      summary: Submit a ak.realm.link Move.
       description: |
-        Builds a ck.realm.link from realm_id to target_realm_id. The reducer
+        Builds a ak.realm.link from realm_id to target_realm_id. The reducer
         runs realm_link_* validators (cycle detection, self-reference, kind
         validation); a rejected payload returns 422 with the canonical reason
         code.
@@ -6573,10 +6573,10 @@ paths:
                 $ref: '#/components/schemas/RealmLinkMutationOutcome'
   /_arkret/self/realms/{realm_id}/links/{target_realm_id}:
     delete:
-      operationId: ck.self.realm_link.resource.delete
+      operationId: ak.self.realm_link.resource.delete
       security:
       - bearerAuth: []
-      summary: Tombstone a ck.realm.link.
+      summary: Tombstone a ak.realm.link.
       description: |
         Writes a tombstoning Move (status=tombstoned). link_kind defaults to
         governed_by; override via the link_kind query param.
@@ -6605,7 +6605,7 @@ paths:
                 $ref: '#/components/schemas/RealmLinkMutationOutcome'
   /_arkret/self/realms/{realm_id}/effective-policy:
     get:
-      operationId: ck.self.realm_link.query.effective_policy
+      operationId: ak.self.realm_link.query.effective_policy
       security:
       - bearerAuth: []
       summary: Read the merged effective policy after walking inheritance.
@@ -6624,10 +6624,10 @@ paths:
                 $ref: '#/components/schemas/RealmEffectivePolicyOutcome'
   /_arkret/self/realms/{realm_id}/organizations:
     get:
-      operationId: ck.self.realm_organization.query.list
+      operationId: ak.self.realm_organization.query.list
       security:
       - bearerAuth: []
-      summary: List projected ck.realm.organization relationships for a Realm.
+      summary: List projected ak.realm.organization relationships for a Realm.
       parameters:
       - in: path
         name: realm_id
@@ -6643,10 +6643,10 @@ paths:
                 $ref: '#/components/schemas/RealmOrganizationRelationshipList'
   /_arkret/self/realms/{realm_id}/policy-server:
     get:
-      operationId: ck.self.realm_policy_server.resource.get
+      operationId: ak.self.realm_policy_server.resource.get
       security:
       - bearerAuth: []
-      summary: Read the projected ck.realm.policy_server config.
+      summary: Read the projected ak.realm.policy_server config.
       parameters:
       - in: path
         name: realm_id
@@ -6661,10 +6661,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/RealmPolicyServerView'
     put:
-      operationId: ck.self.realm_policy_server.resource.replace
+      operationId: ak.self.realm_policy_server.resource.replace
       security:
       - bearerAuth: []
-      summary: Submit a ck.realm.policy_server Move.
+      summary: Submit a ak.realm.policy_server Move.
       parameters:
       - in: path
         name: realm_id
@@ -6685,10 +6685,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/RealmPolicyServerView'
     delete:
-      operationId: ck.self.realm_policy_server.resource.delete
+      operationId: ak.self.realm_policy_server.resource.delete
       security:
       - bearerAuth: []
-      summary: Tombstone the ck.realm.policy_server cell.
+      summary: Tombstone the ak.realm.policy_server cell.
       parameters:
       - in: path
         name: realm_id
@@ -6700,7 +6700,7 @@ paths:
           description: Realm policy-server config tombstoned (empty body).
   /_arkret/self/realms/{realm_id}:
     get:
-      operationId: ck.self.realm.resource.get
+      operationId: ak.self.realm.resource.get
       security:
       - bearerAuth: []
       summary: Read the Realm lifecycle projection.
@@ -6719,10 +6719,10 @@ paths:
                 $ref: '#/components/schemas/RealmLifecycleView'
   /_arkret/self/realms/{realm_id}/archive:
     post:
-      operationId: ck.self.realm.command.archive
+      operationId: ak.self.realm.command.archive
       security:
       - bearerAuth: []
-      summary: Submit a ck.realm.archive lifecycle Move.
+      summary: Submit a ak.realm.archive lifecycle Move.
       parameters:
       - in: path
         name: realm_id
@@ -6744,10 +6744,10 @@ paths:
                 $ref: '#/components/schemas/RealmLifecycleView'
   /_arkret/self/realms/{realm_id}/freeze:
     post:
-      operationId: ck.self.realm.command.freeze
+      operationId: ak.self.realm.command.freeze
       security:
       - bearerAuth: []
-      summary: Submit a ck.realm.freeze lifecycle Move.
+      summary: Submit a ak.realm.freeze lifecycle Move.
       parameters:
       - in: path
         name: realm_id
@@ -6769,10 +6769,10 @@ paths:
                 $ref: '#/components/schemas/RealmLifecycleView'
   /_arkret/self/realms/{realm_id}/tombstone:
     post:
-      operationId: ck.self.realm.command.tombstone
+      operationId: ak.self.realm.command.tombstone
       security:
       - bearerAuth: []
-      summary: Submit a ck.realm.tombstone lifecycle Move.
+      summary: Submit a ak.realm.tombstone lifecycle Move.
       parameters:
       - in: path
         name: realm_id
@@ -6794,10 +6794,10 @@ paths:
                 $ref: '#/components/schemas/RealmLifecycleView'
   /_arkret/self/realms/{realm_id}/destroy:
     post:
-      operationId: ck.self.realm.command.destroy
+      operationId: ak.self.realm.command.destroy
       security:
       - bearerAuth: []
-      summary: Submit a ck.realm.destroy lifecycle Move.
+      summary: Submit a ak.realm.destroy lifecycle Move.
       parameters:
       - in: path
         name: realm_id
@@ -6819,7 +6819,7 @@ paths:
                 $ref: '#/components/schemas/RealmLifecycleView'
   /_arkret/self/realms/{realm_id}/export:
     get:
-      operationId: ck.self.realm.query.export
+      operationId: ak.self.realm.query.export
       security:
       - bearerAuth: []
       summary: Full event-log + operation dump for a Realm.
@@ -6838,7 +6838,7 @@ paths:
                 $ref: '#/components/schemas/RealmExport'
   /_arkret/self/realms/{realm_id}/moderation-policy/effective:
     get:
-      operationId: ck.self.realm.moderation_policy.query.effective
+      operationId: ak.self.realm.moderation_policy.query.effective
       security:
       - bearerAuth: []
       summary: Read the organization-inherited effective moderation policy.
@@ -6857,12 +6857,12 @@ paths:
                 $ref: '#/components/schemas/RealmEffectiveModerationPolicy'
   /_arkret/self/realms/{realm_id}/moderation-policy:
     put:
-      operationId: ck.self.realm.moderation_policy.resource.replace
+      operationId: ak.self.realm.moderation_policy.resource.replace
       security:
       - bearerAuth: []
       summary: Set a Realm moderation-policy override.
       description: |
-        Writes ck.realm.moderation_policy. Only the Realm owner may write; an
+        Writes ak.realm.moderation_policy. Only the Realm owner may write; an
         override that loosens an action an organization policy denies requires
         explicit organization approval, otherwise requires_organization_approval
         is returned.
@@ -6887,7 +6887,7 @@ paths:
                 $ref: '#/components/schemas/RealmModerationPolicyDocument'
   /_arkret/self/consent/cells:
     get:
-      operationId: ck.self.consent.query.list
+      operationId: ak.self.consent.query.list
       security:
       - bearerAuth: []
       summary: List consent cells where the caller is holder or peer.
@@ -6900,7 +6900,7 @@ paths:
                 $ref: '#/components/schemas/ConsentCellList'
   /_arkret/self/consent/cells/{holder_did}:
     get:
-      operationId: ck.self.consent.resource.get
+      operationId: ak.self.consent.resource.get
       security:
       - bearerAuth: []
       summary: Read one holder-private consent cell.
@@ -6936,7 +6936,7 @@ paths:
                 $ref: '#/components/schemas/ConsentCellView'
   /_arkret/self/consent/cells/{holder_did}/grant:
     post:
-      operationId: ck.self.consent.command.grant
+      operationId: ak.self.consent.command.grant
       security:
       - bearerAuth: []
       summary: Grant scoped consent to a peer DID.
@@ -6961,7 +6961,7 @@ paths:
                 $ref: '#/components/schemas/ConsentCellView'
   /_arkret/self/consent/cells/{holder_did}/revoke:
     post:
-      operationId: ck.self.consent.command.revoke
+      operationId: ak.self.consent.command.revoke
       security:
       - bearerAuth: []
       summary: Revoke scoped consent from a peer DID.
@@ -6986,7 +6986,7 @@ paths:
                 $ref: '#/components/schemas/ConsentCellView'
   /_arkret/self/consent/request:
     post:
-      operationId: ck.self.consent.command.request
+      operationId: ak.self.consent.command.request
       security:
       - bearerAuth: []
       summary: Open a scoped consent request.
@@ -7005,7 +7005,7 @@ paths:
                 $ref: '#/components/schemas/ConsentCellView'
   /_arkret/self/account_data:
     get:
-      operationId: ck.self.account_data.query.list
+      operationId: ak.self.account_data.query.list
       security:
       - bearerAuth: []
       summary: List the authenticated actor's account_data entries.
@@ -7018,7 +7018,7 @@ paths:
                 $ref: '#/components/schemas/AccountDataList'
   /_arkret/self/account_data/{data_type}:
     get:
-      operationId: ck.self.account_data.resource.get
+      operationId: ak.self.account_data.resource.get
       security:
       - bearerAuth: []
       summary: Read one account_data entry.
@@ -7036,7 +7036,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AccountDataEntry'
     put:
-      operationId: ck.self.account_data.resource.replace
+      operationId: ak.self.account_data.resource.replace
       security:
       - bearerAuth: []
       summary: Set an account_data entry.
@@ -7060,7 +7060,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AccountDataEntry'
     delete:
-      operationId: ck.self.account_data.resource.delete
+      operationId: ak.self.account_data.resource.delete
       security:
       - bearerAuth: []
       summary: Delete an account_data entry.
@@ -7079,7 +7079,7 @@ paths:
                 $ref: '#/components/schemas/AccountDataDeleteOutcome'
   /_arkret/self/read-cursors:
     get:
-      operationId: ck.self.read_cursor.query.list
+      operationId: ak.self.read_cursor.query.list
       security:
       - bearerAuth: []
       summary: List the authenticated actor's read markers.
@@ -7097,7 +7097,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ReadCursorList'
     post:
-      operationId: ck.self.read_cursor.command.advance
+      operationId: ak.self.read_cursor.command.advance
       security:
       - bearerAuth: []
       summary: Set the authenticated actor's read marker for a Realm.
@@ -7121,7 +7121,7 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ck.self.media.query.ice_config
+      operationId: ak.self.media.query.ice_config
       security:
       - bearerAuth: []
       responses:
@@ -7144,7 +7144,7 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ck.gate.account.command.register
+      operationId: ak.gate.account.command.register
       security: []
       x-arkret-auth:
         public_metadata: false
@@ -7181,7 +7181,7 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ck.gate.account.command.issue_session_grant
+      operationId: ak.gate.account.command.issue_session_grant
       security: []
       x-arkret-auth:
         public_metadata: false
@@ -7208,13 +7208,13 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ck.gate.account.command.revoke_session
+      operationId: ak.gate.account.command.revoke_session
       security:
       - bearerAuth: []
       summary: Revoke session grant or access-token authority.
       description: |
         Revokes session grant authority, not device
-        authorization and not durable ck.account.status. An omitted request body
+        authorization and not durable ak.account.status. An omitted request body
         revokes the current request's session grant. target_grant_id,
         target_device_id and all_sessions=true are mutually exclusive selectors.
 
@@ -7241,7 +7241,7 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ck.gate.account.command.refresh_session_grant
+      operationId: ak.gate.account.command.refresh_session_grant
       security:
       - dpopProof: []
       summary: Rotate a DPoP-bound session grant.
@@ -7275,7 +7275,7 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ck.gate.account.command.logout_auth_session
+      operationId: ak.gate.account.command.logout_auth_session
       security:
       - bearerAuth: []
       summary: Auth-side session logout sub-operation.
@@ -7312,7 +7312,7 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ck.gate.account.command.introspect_session_grant
+      operationId: ak.gate.account.command.introspect_session_grant
       security:
       - bearerAuth: []
       summary: Server-to-server session-grant introspection.
@@ -7347,7 +7347,7 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ck.gate.account.command.logout
+      operationId: ak.gate.account.command.logout
       security:
       - bearerAuth: []
         dpopProof: []
@@ -7364,8 +7364,8 @@ paths:
         auth-sessions/logout when Auth-side is split out), then terminates or
         durably schedules Principal-side local account/device session cleanup,
         to-device drop, and push registration removal. Does not emit
-        ck.device.revoke, does not erase durable device authorization (re-login
-        restores the device), and does not rewrite ck.account.status. Distinct
+        ak.device.revoke, does not erase durable device authorization (re-login
+        restores the device), and does not rewrite ak.account.status. Distinct
         from revoke_session (targeted session-grant revoke).
       responses:
         '200':
@@ -7387,7 +7387,7 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ck.gate.account.command.pair_device
+      operationId: ak.gate.account.command.pair_device
       security:
       - bearerAuth: []
       responses:
@@ -7410,7 +7410,7 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ck.gate.account.command.enroll_device
+      operationId: ak.gate.account.command.enroll_device
       security:
       - bearerAuth: []
       responses:
@@ -7433,13 +7433,13 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ck.gate.account.command.pair_agent_key
-      description: Native personal agent runtime key pairing (CKP-0008 §4.5). Validates verification_method ↔ agent_principal_id consistency, writes ck.agent.key.authorize on approval.
+      operationId: ak.gate.account.command.pair_agent_key
+      description: Native personal agent runtime key pairing (AKP-0008 §4.5). Validates verification_method ↔ agent_principal_id consistency, writes ak.agent.key.authorize on approval.
       security:
       - bearerAuth: []
       responses:
         '200':
-          description: Agent key pairing accepted; ck.agent.key.authorize event written.
+          description: Agent key pairing accepted; ak.agent.key.authorize event written.
           content:
             application/json:
               schema:
@@ -7454,7 +7454,7 @@ paths:
               $ref: '#/components/schemas/AgentKeyPairRequestBody'
   /_arkret/self/agents:
     get:
-      operationId: ck.self.agent.query.list
+      operationId: ak.self.agent.query.list
       description: List native personal agents visible to the authenticated controller.
       security:
       - bearerAuth: []
@@ -7466,8 +7466,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/AgentList'
     post:
-      operationId: ck.self.agent.command.provision
-      description: Provision a native personal agent principal (CKP-0008).
+      operationId: ak.self.agent.command.provision
+      description: Provision a native personal agent principal (AKP-0008).
       security:
       - bearerAuth: []
       responses:
@@ -7485,8 +7485,8 @@ paths:
               $ref: '#/components/schemas/AgentProvisionRequestBody'
   /_arkret/self/agents/discover:
     post:
-      operationId: ck.self.agent.protocol.query.discover
-      description: Discover an agent runtime's declared external protocol endpoints from the public ck.agent.endpoint registry projection (agent-protocol-interop.md §5.1).
+      operationId: ak.self.agent.protocol.query.discover
+      description: Discover an agent runtime's declared external protocol endpoints from the public ak.agent.endpoint registry projection (agent-protocol-interop.md §5.1).
       security:
       - bearerAuth: []
       responses:
@@ -7504,7 +7504,7 @@ paths:
               $ref: '#/components/schemas/AgentProtocolDiscoverRequestBody'
   /_arkret/self/agents/{agent_principal_id}:
     get:
-      operationId: ck.self.agent.resource.get
+      operationId: ak.self.agent.resource.get
       description: Read one native personal agent projection.
       security:
       - bearerAuth: []
@@ -7523,7 +7523,7 @@ paths:
                 $ref: '#/components/schemas/AgentView'
   /_arkret/self/agents/{agent_principal_id}/pause:
     post:
-      operationId: ck.self.agent.command.pause
+      operationId: ak.self.agent.command.pause
       description: Pause a native personal agent and reject new agent sessions.
       security:
       - bearerAuth: []
@@ -7548,7 +7548,7 @@ paths:
               $ref: '#/components/schemas/AgentPauseRequestBody'
   /_arkret/self/agents/{agent_principal_id}/resume:
     post:
-      operationId: ck.self.agent.command.resume
+      operationId: ak.self.agent.command.resume
       description: Resume a paused native personal agent after freshness and sidecar disclosure checks.
       security:
       - bearerAuth: []
@@ -7573,8 +7573,8 @@ paths:
               $ref: '#/components/schemas/AgentResumeRequestBody'
   /_arkret/self/agents/{agent_principal_id}/deactivate:
     post:
-      operationId: ck.self.agent.command.deactivate
-      description: Terminally deactivate a native personal agent. fan-out ck.agent.key.revoke / ck.capability.revoke / runtime endpoint revocation.
+      operationId: ak.self.agent.command.deactivate
+      description: Terminally deactivate a native personal agent. fan-out ak.agent.key.revoke / ak.capability.revoke / runtime endpoint revocation.
       security:
       - bearerAuth: []
       parameters:
@@ -7598,7 +7598,7 @@ paths:
               $ref: '#/components/schemas/AgentDeactivateRequestBody'
   /_arkret/self/agents/{agent_principal_id}/rotate-key:
     post:
-      operationId: ck.self.agent.command.rotate_key
+      operationId: ak.self.agent.command.rotate_key
       description: Rotate the active runtime key for a native personal agent.
       security:
       - bearerAuth: []
@@ -7623,7 +7623,7 @@ paths:
               $ref: '#/components/schemas/AgentRotateKeyRequestBody'
   /_arkret/self/agents/{agent_principal_id}/grants:
     post:
-      operationId: ck.self.agent.grant.command.attach
+      operationId: ak.self.agent.grant.command.attach
       description: Attach a capability grant to a native personal agent.
       security:
       - bearerAuth: []
@@ -7648,7 +7648,7 @@ paths:
               $ref: '#/components/schemas/AgentGrantAttachRequestBody'
   /_arkret/self/agents/{agent_principal_id}/grants/{grant_id}:
     delete:
-      operationId: ck.self.agent.grant.resource.delete
+      operationId: ak.self.agent.grant.resource.delete
       description: Detach or revoke a capability grant from a native personal agent.
       security:
       - bearerAuth: []
@@ -7672,9 +7672,9 @@ paths:
                 $ref: '#/components/schemas/AgentGrantDetachOutcome'
   /_arkret/self/agent-sidecar-threads:ensure:
     post:
-      operationId: ck.self.agent.sidecar_thread.command.ensure
+      operationId: ak.self.agent.sidecar_thread.command.ensure
       description: |
-        Idempotently ensure the controller-agent sidecar Circle, Strand, and relation (CKP-0009 §4.2.1).
+        Idempotently ensure the controller-agent sidecar Circle, Strand, and relation (AKP-0009 §4.2.1).
         The wire-level idempotency keys are **server-derived**: the sidecar Circle is keyed by
         `(realm_id, controller_principal_id)` and the sidecar private Strand / reuse identity by
         `(controller_principal_id, normalized_context_ref)`. Note that `agent_principal_id` is NOT part of
@@ -7701,7 +7701,7 @@ paths:
               $ref: '#/components/schemas/AgentSidecarThreadEnsureRequestBody'
   /_arkret/self/agents/{agent_principal_id}/participation:
     put:
-      operationId: ck.self.agent.participation.resource.replace
+      operationId: ak.self.agent.participation.resource.replace
       description: Set an agent's participation selection for a scope (controller-self only).
       security:
       - bearerAuth: []
@@ -7725,7 +7725,7 @@ paths:
             schema:
               $ref: '#/components/schemas/AgentParticipationReplaceRequestBody'
     get:
-      operationId: ck.self.agent.participation.resource.get
+      operationId: ak.self.agent.participation.resource.get
       description: Get an agent's resolved participation policy (controller-self only).
       security:
       - bearerAuth: []
@@ -7749,7 +7749,7 @@ paths:
         host:
           default: localhost
     post:
-      operationId: ck.gate.account.exchange.complete_oidc
+      operationId: ak.gate.account.exchange.complete_oidc
       security: []
       x-arkret-auth:
         public_metadata: false

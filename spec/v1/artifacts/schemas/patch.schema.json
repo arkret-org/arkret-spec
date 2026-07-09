@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/patch.schema.json",
-  "title": "Arkret Field Patch (ck.schema.patch.v1)",
-  "description": "Canonical field-patch format embedded in event payloads (typically at payload.patch) for non-create updates. This is a registered schema id (ck.schema.patch.v1) describing the structural form of a patch map; the embedded format identifier 'ak.patch.v1' remains the in-prose name for the same wire shape. Implementations MUST resolve ck.patch.v1 references in spec prose to this schema artifact. Grammar, parser responsibilities, selector semantics, redactable-field protection and reducer-managed-field protection are defined normatively in zh/models/event-and-patch.md §4.",
+  "title": "Arkret Field Patch (ak.schema.patch.v1)",
+  "description": "Canonical field-patch format embedded in event payloads (typically at payload.patch) for non-create updates. This is a registered schema id (ak.schema.patch.v1) describing the structural form of a patch map; the embedded format identifier 'ak.patch.v1' remains the in-prose name for the same wire shape. Implementations MUST resolve ak.patch.v1 references in spec prose to this schema artifact. Grammar, parser responsibilities, selector semantics, redactable-field protection and reducer-managed-field protection are defined normatively in zh/models/event-and-patch.md §4.",
   "type": "object",
   "minProperties": 1,
   "propertyNames": {

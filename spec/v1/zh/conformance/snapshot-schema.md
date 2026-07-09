@@ -118,7 +118,7 @@ Chunk descriptor 中的 `chunk_ref` 指向一个 snapshot chunk payload。Payloa
 - chunk `digest` MUST 是 `<alg>:<hex>` 形态，并覆盖 chunk payload 的 canonical JSON bytes。Manifest `state_digest` 不直接覆盖 descriptor 文本，而覆盖下节定义的 reducer output leaves。
 - `conflict_records`、`soft_failed` 和 `quarantined` 可为空，但 high-assurance snapshot MUST 通过 manifest `verification_hints` 提交这些集合的 digest，不能静默隐藏影响授权、可见性、E2EE epoch 或对象状态的非 accepted 输入。
 
-Chunk 边界 MAY 由实现按本地传输目标大小选择，但 MUST 以完整 `items[]` 元素为边界；实现 MUST NOT 把单个 item 或 JSON token 切开。每个 chunk payload 仍必须是上方 `snapshot_chunk` object 的完整 canonical JSON。把整份 reducer state bytes 先序列化、再按 byte range 切块的 dev bundle 形态不是合法的 `ck.schema.snapshot.v1` chunk payload；这类实现 MUST NOT 把 byte-range chunk 描述为 manifest `chunks[]` 的标准 chunk。
+Chunk 边界 MAY 由实现按本地传输目标大小选择，但 MUST 以完整 `items[]` 元素为边界；实现 MUST NOT 把单个 item 或 JSON token 切开。每个 chunk payload 仍必须是上方 `snapshot_chunk` object 的完整 canonical JSON。把整份 reducer state bytes 先序列化、再按 byte range 切块的 dev bundle 形态不是合法的 `ak.schema.snapshot.v1` chunk payload；这类实现 MUST NOT 把 byte-range chunk 描述为 manifest `chunks[]` 的标准 chunk。
 
 Snapshot-assisted pruning 只能删除或压缩某个存储边界内的 raw payload / derived material；它不删除协议历史事实。若实现因 retention、track archive、Realm tombstone 或 hard erasure 裁剪了对象内容，snapshot chunk MUST 继续包含 reducer profile 声明的最小 verification stub，或在 `soft_failed` / `quarantined` / conflict digest 中提交其存在。Consumer 不得把 snapshot 中缺少 stub 的对象解释为“从未存在”，除非 event-set commitment 和 reducer profile 明确证明该对象不在 covered event set 中。
 
@@ -268,13 +268,13 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
 5. **失败处理**：若任一采样到的 accepted Event 缺失、任一分支验证失败、任一缺口缺少归因，或签名验证失败，client MUST 以错误 `inclusion_proof_failed` 拒绝（见 [`error-code-registry.json`](../../artifacts/registry/error-code-registry.json)）；若签名者在 `created_at` 当时或之前已被撤销，client MUST 以 `snapshot_issuer_revoked` 拒绝。
 6. **新鲜度**：响应 MUST 在 manifest 的 `verification_hints.challenge_window_seconds` 内收到；过期响应 MUST 重试，MUST NOT 静默接受。
 
-> **向量登记状态**：上述采样规则 1（`n ≥ max(20, ceil(log2(covered_event_count)))` 的 event_id 抽样、至少 3 段 `actor_seq_range`）与规则 2 的 merkle branch 验证注册为 active 向量 `ck.vector.snapshot.inclusion_challenge.v1`，并由 [`sync-fixture.json`](../../artifacts/fixtures/sync-fixture.json) 的 `snapshot_inclusion_challenge` fixture 与 `cotest::conformance::sync` runner 断言承载。实现 MUST 按本节 prose 与 fixture 规则执行挑战，并将该 active vector 纳入 high-assurance bootstrap 校验。
+> **向量登记状态**：上述采样规则 1（`n ≥ max(20, ceil(log2(covered_event_count)))` 的 event_id 抽样、至少 3 段 `actor_seq_range`）与规则 2 的 merkle branch 验证注册为 active 向量 `ak.vector.snapshot.inclusion_challenge.v1`，并由 [`sync-fixture.json`](../../artifacts/fixtures/sync-fixture.json) 的 `snapshot_inclusion_challenge` fixture 与 `cotest::conformance::sync` runner 断言承载。实现 MUST 按本节 prose 与 fixture 规则执行挑战，并将该 active vector 纳入 high-assurance bootstrap 校验。
 
 `verification_hints.conflict_records_digest`、`soft_failed_digest` 与 `quarantined_digest` 承诺非 accepted 或未决输入的集合。snapshot MUST NOT 静默隐藏会影响授权、可见性、E2EE epoch 或对象状态的 conflict、soft-fail 或 quarantine 记录。
 
 ## 7. Encrypted Envelope
 
-加密载荷统一使用 `ck.schema.encrypted_envelope.v1`（artifact [`encrypted-envelope.schema.json`](../../artifacts/schemas/encrypted-envelope.schema.json)）。字段语义与约束以 [`../crypto-media/encryption-and-audit.md` §2.3.1](../crypto-media/encryption-and-audit.md) 为权威；snapshot chunk 中的密文 MUST 是同一 envelope 形态：
+加密载荷统一使用 `ak.schema.encrypted_envelope.v1`（artifact [`encrypted-envelope.schema.json`](../../artifacts/schemas/encrypted-envelope.schema.json)）。字段语义与约束以 [`../crypto-media/encryption-and-audit.md` §2.3.1](../crypto-media/encryption-and-audit.md) 为权威；snapshot chunk 中的密文 MUST 是同一 envelope 形态：
 
 ```json
 {

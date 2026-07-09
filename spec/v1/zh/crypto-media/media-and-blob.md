@@ -35,7 +35,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `blob_ref` | `string` | required | 内容地址，通常包含强 hash。 |
-| `schema` | `ck.schema.blob.v1` | required | Blob metadata schema discriminator。 |
+| `schema` | `ak.schema.blob.v1` | required | Blob metadata schema discriminator。 |
 | `realm_id` | `id:realm` | conditional | Owning Realm。普通用户/组织上传 MUST 设置，用于授权、asset privacy policy enforcement、retention 与 GC。仅当 deployment policy 显式声明的全局/跨 Realm 服务 blob（例如 avatar 公共预览）才可省略。 |
 | `content_digest` | `hash` | required | 服务端计算的内容 digest，wire 形态为 `<algo>:<lowercase_hex>`。 |
 | `size_bytes` | `int` | required | 字节大小。 |
@@ -62,23 +62,23 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 
 ### 2.1 可续传上传（Resumable Upload binding，optional extension）
 
-可续传上传是 `ck.self.blob.upload.create` 操作的**可选替代传输 binding**，面向大文件与弱网下的断点续传。它不是新的 operation_id，也不改变 Blob 的内容寻址与 receipt 语义；§2 的上传规则（声明 metadata 不可信、文件名清理、receipt 签名）对该 binding 同样适用。普通实现 MAY 暴露该 binding；当服务端未在 `/_arkret/describe` 声明该能力时，客户端 MUST 回退到 §2 的 canonical `multipart/form-data` 上传，不得对猜测的 endpoint 直接发起续传。
+可续传上传是 `ak.self.blob.upload.create` 操作的**可选替代传输 binding**，面向大文件与弱网下的断点续传。它不是新的 operation_id，也不改变 Blob 的内容寻址与 receipt 语义；§2 的上传规则（声明 metadata 不可信、文件名清理、receipt 签名）对该 binding 同样适用。普通实现 MAY 暴露该 binding；当服务端未在 `/_arkret/describe` 声明该能力时，客户端 MUST 回退到 §2 的 canonical `multipart/form-data` 上传，不得对猜测的 endpoint 直接发起续传。
 
 **协议绑定（normative）**
 
 - 该 binding MUST 采用 tus resumable upload 协议，当前 baseline 为 `tus 1.0.0`。服务端 MUST 支持 `creation` 扩展；SHOULD 支持 `creation-with-upload`、`checksum`、`expiration` 与 `termination`。
-- 创建续传资源（tus `POST`）所需的认证、capability（`ck.self.blob.upload.create`）与 quota（`blob_max_bytes`）与 canonical 上传完全一致。后续 `PATCH`（写入 segment）、`HEAD`（查询 `Upload-Offset` 续传点）、`DELETE`（终止）作用于服务端返回的 upload URL，是 tus 原生 verb，不注册为独立 arkret operation。
+- 创建续传资源（tus `POST`）所需的认证、capability（`ak.self.blob.upload.create`）与 quota（`blob_max_bytes`）与 canonical 上传完全一致。后续 `PATCH`（写入 segment）、`HEAD`（查询 `Upload-Offset` 续传点）、`DELETE`（终止）作用于服务端返回的 upload URL，是 tus 原生 verb，不注册为独立 arkret operation。
 
 **内容寻址不变式（normative）**
 
 - 续传只是字节传输方式。所有 segment 组装完成后，服务端 MUST 对完整字节计算 `content_digest`，最终 `blob_ref` 与 `content_digest` MUST 等于对同一字节序列走 §2 canonical multipart 上传所得的值，并按 §2 规则签发 `upload_receipt`。
-- tus 的 offset 分块（`Upload-Offset` / 每个 `PATCH` chunk）是**传输层切分**，与加密附件 `ck.blob.stream_aead.v1`（§3.3）的 **AEAD segment** 是两个独立维度：实现 MUST NOT 把 tus chunk 边界与 AEAD segment 边界互相约束或混为一谈。续传承载的始终是（可能已在客户端 AEAD 加密的）Blob 字节，加密形态由客户端在上传前决定。
+- tus 的 offset 分块（`Upload-Offset` / 每个 `PATCH` chunk）是**传输层切分**，与加密附件 `ak.blob.stream_aead.v1`（§3.3）的 **AEAD segment** 是两个独立维度：实现 MUST NOT 把 tus chunk 边界与 AEAD segment 边界互相约束或混为一谈。续传承载的始终是（可能已在客户端 AEAD 加密的）Blob 字节，加密形态由客户端在上传前决定。
 
 **能力发现（normative）**
 
-- 该 binding 按 [`sync/transport-bindings.md` §6.1](../sync/transport-bindings.md) 分类为 **per-operation HTTP 伴生 binding**：本节即其 normative binding 文档，不需要独立 `ck.profile.binding.*` profile。
+- 该 binding 按 [`sync/transport-bindings.md` §6.1](../sync/transport-bindings.md) 分类为 **per-operation HTTP 伴生 binding**：本节即其 normative binding 文档，不需要独立 `ak.profile.binding.*` profile。
 - 支持该 binding 的服务端 MUST 在 `/_arkret/describe` 同时声明：
-  - `supported_features` 含 `ck.feature.blob.resumable_upload.tus.v1`；
+  - `supported_features` 含 `ak.feature.blob.resumable_upload.tus.v1`；
   - `supported_bindings` 含一条 `kind="tus"` 的 binding，携带 tus endpoint 的 `base_url`、`operations: ["ak.self.blob.upload.create"]`、`extension_profile_required: null`、`tus_version`（支持的协议版本列表）与 `tus_extensions`（支持的扩展列表）；
   - `limits` 携带下文的续传相关上限。
 - 客户端 MUST 先解析 DID Document 并校验 describe 后再使用该 binding（沿用 [`sync/service-surface.md` §2](../sync/service-surface.md) 的服务选择规则）。`/_arkret/describe` 是**服务级**权威发现面；tus `OPTIONS` 响应（`Tus-Resumable`、`Tus-Version`、`Tus-Extension`、`Tus-Max-Size`）是 **endpoint 级**的线上确认。二者 MUST 一致；冲突时客户端以 describe 与服务端实际拒绝为准，不得仅凭对猜测 endpoint 的裸 `OPTIONS` 探测作为发现手段。
@@ -138,7 +138,7 @@ AEAD nonce 在同一 `key_ref` 下复用会使该 key 下使用相关 nonce 的�
    - HMAC/Hash 输出截断后直接作为完整 nonce 的形态；
    - 任何不绑定 device_id + counter 的形态。
 
-4. **整文件形态(`ck.blob.whole_file_aead.v1`)接收方校验(normative)**: 整文件 envelope 只携单 `nonce` 字段，但该 `nonce` 本就是 encoding §10.1 的自描述结构 `sender_nonce_prefix || device_nonce_counter_be64`，故接收方 **MUST NOT** 把整文件形态的 `nonce` 当作不透明随机串接受，而 MUST 与分块形态(§3.3.2 逐段校验)对称地执行 encoding §10.1 的接收方义务：(a) 按声明 sender 的 `device_id` 重算 `sender_nonce_prefix` 并与 `nonce` 高位字节逐字节比对，不符 MUST fail closed(`aead_nonce_sender_domain_collision`)；(b) 取 `nonce` 低 8 字节为 `device_nonce_counter_be64`，纳入 per-`(key_ref, epoch, device_id, purpose, aead_profile)` 已见 counter 集合，重复 MUST `failed_precondition`(`aead_nonce_counter_replay`)。这样整文件形态获得与流式形态等价的"接收方可独立检测同 `(key_ref,epoch,device)` counter 复用"保证，sender 实现 bug 致 counter 复用不再只能在 AEAD 碰撞时才被发现。
+4. **整文件形态(`ak.blob.whole_file_aead.v1`)接收方校验(normative)**: 整文件 envelope 只携单 `nonce` 字段，但该 `nonce` 本就是 encoding §10.1 的自描述结构 `sender_nonce_prefix || device_nonce_counter_be64`，故接收方 **MUST NOT** 把整文件形态的 `nonce` 当作不透明随机串接受，而 MUST 与分块形态(§3.3.2 逐段校验)对称地执行 encoding §10.1 的接收方义务：(a) 按声明 sender 的 `device_id` 重算 `sender_nonce_prefix` 并与 `nonce` 高位字节逐字节比对，不符 MUST fail closed(`aead_nonce_sender_domain_collision`)；(b) 取 `nonce` 低 8 字节为 `device_nonce_counter_be64`，纳入 per-`(key_ref, epoch, device_id, purpose, aead_profile)` 已见 counter 集合，重复 MUST `failed_precondition`(`aead_nonce_counter_replay`)。这样整文件形态获得与流式形态等价的"接收方可独立检测同 `(key_ref,epoch,device)` counter 复用"保证，sender 实现 bug 致 counter 复用不再只能在 AEAD 碰撞时才被发现。
 
 E2EE 附件 metadata MUST 使用 [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json) 的 wire 形态。Producer 必须提供 `ciphertext_digest`，不得提供明文 hash；若 deployment 出于审计需要保留 plaintext commitment，必须使用每事件随机 salt 的 commitment 或服务持有的 HMAC / pepper commitment，边界见 [`encryption-and-audit.md` §2.3.1](./encryption-and-audit.md)。普通 E2EE 附件 metadata 只暴露 `ciphertext_digest`。
 
@@ -148,15 +148,15 @@ E2EE 附件 metadata MUST 使用 [`blob.schema.json#/$defs/encrypted_attachment`
 
 | `scheme` | 形态 | 适用 |
 | --- | --- | --- |
-| `ck.blob.whole_file_aead.v1` | 整文件单次 AEAD：单 `nonce` + 单 `ciphertext_digest`，整体密文校验通过后才释放明文。 | 默认形态；小文件、缩略图。 |
-| `ck.blob.stream_aead.v1` | 分块流式 AEAD（STREAM / OAE2）：明文切成固定大小 segment，每段独立 AEAD 加密，可边下边验、内存有界。 | 大文件、流式播放、跨设备传输。见 §3.3。 |
+| `ak.blob.whole_file_aead.v1` | 整文件单次 AEAD：单 `nonce` + 单 `ciphertext_digest`，整体密文校验通过后才释放明文。 | 默认形态；小文件、缩略图。 |
+| `ak.blob.stream_aead.v1` | 分块流式 AEAD（STREAM / OAE2）：明文切成固定大小 segment，每段独立 AEAD 加密，可边下边验、内存有界。 | 大文件、流式播放、跨设备传输。见 §3.3。 |
 
-- envelope **MUST** 携带 `scheme` 字段。未携带 `scheme` 字段时的 missing-field default 为 `ck.blob.whole_file_aead.v1`（整文件形态）。
-- 发送方 **MAY** 对任意附件选用 `ck.blob.stream_aead.v1`；大文件 **SHOULD** 选用分块形态（见 [`models/file-transfer.md`](../models/file-transfer.md)）。
+- envelope **MUST** 携带 `scheme` 字段。未携带 `scheme` 字段时的 missing-field default 为 `ak.blob.whole_file_aead.v1`（整文件形态）。
+- 发送方 **MAY** 对任意附件选用 `ak.blob.stream_aead.v1`；大文件 **SHOULD** 选用分块形态（见 [`models/file-transfer.md`](../models/file-transfer.md)）。
 - 接收方 **MUST** 按 envelope 的 `scheme` 字段分派解密路径；遇到未知 `scheme` MUST fail closed（`unsupported_attachment_scheme`），不得回退到任何其它形态尝试解密。
 - 两种形态的 envelope 都 MUST 满足 §3.1 的 AEAD nonce 纪律；分块形态的 nonce 兼容关系见 §3.3.2。
 
-### 3.3 Streaming Chunked AEAD（`ck.blob.stream_aead.v1`，normative）
+### 3.3 Streaming Chunked AEAD（`ak.blob.stream_aead.v1`，normative）
 
 本节定义分块流式 AEAD scheme。其构造采用业界已生产化的 STREAM（OAE2，online authenticated encryption）形态，使接收方能在收到每个 segment 时增量验证并安全释放对应明文段，同时保留顶层单值整体完整性语义。
 
@@ -203,7 +203,7 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
 #### 3.3.4 Content key 与 thumbnail
 
 - 每个附件 object MUST 使用 fresh content key；content key MUST NOT 跨 object / 跨 transfer 复用。key 派生与 key_ref 形态沿用 §3 与 [`encryption-and-audit.md` §2.3.1](./encryption-and-audit.md)。
-- thumbnail 在分块形态下仍走 §4 / §5.3 的**整文件形态**：缩略图通常远小于 `segment_size`，无需分块；其独立 AEAD key / nonce context（`purpose="thumbnail"`、独立 key derivation / AAD，不复用正文 key+nonce）规则不变（见 §5.3）。即正文密文使用 `ck.blob.stream_aead.v1` 时，其缩略图附件 envelope 仍 SHOULD 使用 `ck.blob.whole_file_aead.v1`。
+- thumbnail 在分块形态下仍走 §4 / §5.3 的**整文件形态**：缩略图通常远小于 `segment_size`，无需分块；其独立 AEAD key / nonce context（`purpose="thumbnail"`、独立 key derivation / AAD，不复用正文 key+nonce）规则不变（见 §5.3）。即正文密文使用 `ak.blob.stream_aead.v1` 时，其缩略图附件 envelope 仍 SHOULD 使用 `ak.blob.whole_file_aead.v1`。
 
 #### 3.3.5 ciphertext_digest（分块形态语义，normative）
 
@@ -215,7 +215,7 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
 
 #### 3.3.6 解密 MUST（normative）
 
-接收方解密 `ck.blob.stream_aead.v1` 附件时：
+接收方解密 `ak.blob.stream_aead.v1` 附件时：
 
 1. **按序处理**：MUST 按 segment_index 从 `0` 起严格升序处理 segment；segment_index 跳变、乱序、出现空洞 MUST 拒绝（`segment_sequence_invalid`），并丢弃已缓冲明文。
 2. **逐段 AEAD 校验**：每段 MUST 用 §3.3.2 的 nonce 与 §3.3.3 的 AAD 做 AEAD 解密；tag 校验失败 MUST 拒绝（`segment_aead_failed`）。在第 N 段 AEAD 校验通过前，MUST NOT 释放第 N 段明文。
@@ -249,7 +249,7 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
 }
 ```
 
-整文件形态（`ck.blob.whole_file_aead.v1`）的 envelope 仍按 §3 示例（携带单 `nonce` 而非 `nonce_prefix` / `segment_*`）。
+整文件形态（`ak.blob.whole_file_aead.v1`）的 envelope 仍按 §3 示例（携带单 `nonce` 而非 `nonce_prefix` / `segment_*`）。
 
 ## 4. Thumbnail
 
@@ -329,7 +329,7 @@ Range: bytes=<start>-<end>
 - 客户端跟随 redirect 后仍 MUST 重新计算内容 digest，并与 `blob_ref` / `content_digest` 比对。
 - 如果内容 hash、`Digest` header、`blob_ref` 或 encrypted attachment `ciphertext_digest` 不匹配，客户端 MUST 拒绝该响应、丢弃已下载字节、不得渲染、不得写入持久缓存，并 SHOULD 记录安全审计事件。服务端在上传、镜像或代理时发现 digest mismatch MUST 返回 `digest_mismatch`，并不得生成可用 blob metadata。
 - Range / HEAD download MUST 绑定同一授权上下文；服务端不得让 Range probe 或 HEAD response 泄露不可见 blob 的大小、MIME、文件名或存在性。
-- 对采用 `ck.blob.stream_aead.v1`（§3.3）的加密附件，Range 下载的语义从"密文任意字节分片"升级为"可独立验证的明文分段"：客户端 SHOULD 按 segment 边界（`segment_size` 的整数倍偏移）请求 Range，使每个取回的 segment 能立即用 per-segment AEAD tag 增量校验并安全释放对应明文，无需先下完整文件。客户端仍 MUST 按 §3.3.6 完成按序、末段与整体 `ciphertext_digest` 校验后才认为附件完整；服务端对密文字节本身的 Range 语义不变（仍以 `Content-Range` 描述密文字节区间）。
+- 对采用 `ak.blob.stream_aead.v1`（§3.3）的加密附件，Range 下载的语义从"密文任意字节分片"升级为"可独立验证的明文分段"：客户端 SHOULD 按 segment 边界（`segment_size` 的整数倍偏移）请求 Range，使每个取回的 segment 能立即用 per-segment AEAD tag 增量校验并安全释放对应明文，无需先下完整文件。客户端仍 MUST 按 §3.3.6 完成按序、末段与整体 `ciphertext_digest` 校验后才认为附件完整；服务端对密文字节本身的 Range 语义不变（仍以 `Content-Range` 描述密文字节区间）。
 - 对不可见 blob，服务端 SHOULD 返回与不存在资源一致的 `not_found`，并避免返回 `Content-Length`、`Content-Type`、`Content-Disposition`、`Accept-Ranges` 等可枚举 header。
 
 ### 5.1 Content-Type 与 Content-Disposition
@@ -417,7 +417,7 @@ Cache-Control: public, immutable, max-age=31536000
 
 然而浏览器原生媒体标签（`<img src>`、`<video src>`、`<audio src>`、`<link href>`、CSS `background-image: url(...)` 等）**无法附加 `Authorization` header**——浏览器在解析这些属性时直接对目标 URL 发起未带认证 header 的 GET。`fetch()` API 本身可以附加 `Authorization`，但其返回的 `Response` 仅能转换为 Blob URL 后由 JS 注入 DOM 才能让原生标签消费，无法直接代替原生 src 的同源加载语义。若严格执行"无 URL 认证"规则，受保护媒体只能通过 service worker 代理或 JS Blob URL 间接渲染——这在很多原生体验、邮件预览、跨页面共享场景中是死路。
 
-为此 v1 定义 **`ck.self.blob.command.presign`** 作为该规则的**狭窄定制例外**：发出短 TTL、单对象、只读、可撤销的 pre-signed URL，让浏览器原生标签直接使用，同时通过严格 access_scope 限制把 URL 泄露的最大损失收敛在一个具体 blob 的短时间访问。
+为此 v1 定义 **`ak.self.blob.command.presign`** 作为该规则的**狭窄定制例外**：发出短 TTL、单对象、只读、可撤销的 pre-signed URL，让浏览器原生标签直接使用，同时通过严格 access_scope 限制把 URL 泄露的最大损失收敛在一个具体 blob 的短时间访问。
 
 #### 5.4.1 流程
 
@@ -426,7 +426,7 @@ Cache-Control: public, immutable, max-age=31536000
    body: { blob_ref, max_age_seconds?, purpose? }
    auth: Authorization (standard bearer / service signature)
 
-2. 服务端 (ck.self.blob.command.presign capability 通过后):
+2. 服务端 (ak.self.blob.command.presign capability 通过后):
    - 生成 presign envelope (见 §5.4.2)
    - 用 blob service DID 签名
    - 返回 url、expires_at
@@ -463,7 +463,7 @@ Cache-Control: public, immutable, max-age=31536000
 
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
-| `scheme` | yes | 固定 `ck.blob.presign.v1`；未来版本 MUST 用新 scheme id（不接受 in-space 升级） |
+| `scheme` | yes | 固定 `ak.blob.presign.v1`；未来版本 MUST 用新 scheme id（不接受 in-space 升级） |
 | `blob_ref` | yes | 单一 blob 引用；与请求 `?blob_ref=` 必须完全匹配 |
 | `realm_id` | conditional | 该 presign 授权的 Realm。普通 Realm-owned blob MUST 设置，且必须与 blob metadata 的 `realm_id`、签发时 capability scope 和响应时可见性检查一致。仅 deployment policy 明确声明的 public/global blob MAY 省略。 |
 | `issuer_service_did` | yes | 签发该 presign 的 blob service DID；MUST 是被部署 trust 的 service DID |
@@ -480,7 +480,7 @@ Cache-Control: public, immutable, max-age=31536000
 
 1. **互斥检查**：`Authorization` header 与 `?presign=` 同时出现 MUST 拒绝 `invalid_param`，避免混合 auth 模式
 2. **签名校验**：用 envelope 内 `issuer_service_did` 当前 verification method 验证签名
-3. **scheme 校验**：仅识别注册 scheme id（v1 = `ck.blob.presign.v1`）；未知 scheme MUST 拒绝
+3. **scheme 校验**：仅识别注册 scheme id（v1 = `ak.blob.presign.v1`）；未知 scheme MUST 拒绝
 4. **blob_ref 一致性**：envelope `blob_ref` 与 query `blob_ref` 必须完全相同
 5. **Realm 绑定校验**：若 blob metadata 有 `realm_id`，envelope `realm_id` MUST 存在且完全相同；若 envelope 省略 `realm_id`，该 blob **MUST** 是 deployment public/global 白名单中**显式登记**的 blob。服务端 **MUST NOT** 仅因 blob metadata 缺 `realm_id` 即推断其为 public/global——"缺失 `realm_id`"与"已授权公开"必须解耦：未显式登记在白名单的 realm-less blob（例如因上传 bug 漏设 `realm_id` 的 Realm-owned blob）MUST fail closed（`not_found`），不得为其签发无 Realm 绑定的 bearer URL。为 Realm A 签发的 presign 不能作为 Realm B 的授权使用。
 6. **method 校验**：本次请求方法在 envelope `access_scope.method` 列表内
@@ -495,7 +495,7 @@ Cache-Control: public, immutable, max-age=31536000
 
    实现不得以"性能"为由把 legal-hold / erasure 降级为有界 staleness，也不得对普通 redaction 引入无界 staleness 使已 redact 内容在 presign 整个 TTL 内持续可取。
 10. **blob 状态与签发者校验**：签发时服务端 MUST 已确认请求方有权为该 `blob_ref` mint presign；响应时只能重新确认 envelope 绑定的 Realm / blob 仍一致、blob 未被 redacted / erased / banned / legal hold、issuer service DID 仍被部署信任。v1 bearer presign 无法在响应阶段证明当前请求者属于某个 audience。
-11. **Realm presign 资格实时重判（normative）**：服务端在响应阶段 MUST 重判该 `blob_ref` 所属 Realm 当前是否已收紧为 minimal-metadata（声明 `ck.profile.mls.minimal_metadata_realm.v1` 或 `routing_unlinkability_required=true`）或在 `ck.realm.asset_privacy_policy`（§6）中声明 `direct_download_allowed=false`；命中任一 MUST 拒绝（`not_found`，audit `minimal_metadata_presign_forbidden` / `direct_download_disallowed_presign_forbidden`），不得仅凭签发时该 Realm 尚未收紧就放行。这闭合"签发时 Realm 非 minimal-metadata / 允许 direct download、签发后 policy 收紧、已发 presign 仍在 TTL 内被拉取从而绕过新 policy"的竞态，与 §5.4.4.1 签发侧的同名禁令构成两侧闭合。
+11. **Realm presign 资格实时重判（normative）**：服务端在响应阶段 MUST 重判该 `blob_ref` 所属 Realm 当前是否已收紧为 minimal-metadata（声明 `ak.profile.mls.minimal_metadata_realm.v1` 或 `routing_unlinkability_required=true`）或在 `ak.realm.asset_privacy_policy`（§6）中声明 `direct_download_allowed=false`；命中任一 MUST 拒绝（`not_found`，audit `minimal_metadata_presign_forbidden` / `direct_download_disallowed_presign_forbidden`），不得仅凭签发时该 Realm 尚未收紧就放行。这闭合"签发时 Realm 非 minimal-metadata / 允许 direct download、签发后 policy 收紧、已发 presign 仍在 TTL 内被拉取从而绕过新 policy"的竞态，与 §5.4.4.1 签发侧的同名禁令构成两侧闭合。
 
 任何校验失败 MUST 返回 `not_found`（不区分 envelope 无效 vs blob 不可见，避免暴露存在性）；服务端 MAY 在 audit log 中记录具体 `reason_code` 如 `presign_invalid` / `presign_expired` / `presign_scope_mismatch`。
 
@@ -515,8 +515,8 @@ Cache-Control: public, immutable, max-age=31536000
 **MUST NOT**：
 
 - 用于 E2EE 附件 ciphertext fetch — E2EE 附件的 `blob_ref` + decryption key 都 MUST NOT 出现在服务端可记录的 URL；E2EE 客户端坚持 header auth 路径，由 client-side `fetch()` 配合 `Authorization` 完成
-- 用于 `ck.self.blob.upload.create`、删除、mutation 或任何写/副作用操作；presign 只对 envelope 明确授权的 `ck.self.blob.resource.get` / `ck.self.blob.resource.head` 只读路径有效
-- 由 user device 凭 capability 自签自用（必须经过 `ck.self.blob.command.presign` operation 走一次服务端签发，进 audit log 与 capability check）
+- 用于 `ak.self.blob.upload.create`、删除、mutation 或任何写/副作用操作；presign 只对 envelope 明确授权的 `ak.self.blob.resource.get` / `ak.self.blob.resource.head` 只读路径有效
+- 由 user device 凭 capability 自签自用（必须经过 `ak.self.blob.command.presign` operation 走一次服务端签发，进 audit log 与 capability check）
 
 **SHOULD**：
 
@@ -533,11 +533,11 @@ Cache-Control: public, immutable, max-age=31536000
 - `nonce` 不提供普通媒体 presign 的单次消费语义。浏览器原生标签可能对同一 URL 执行 `HEAD` + `GET`、Range、retry 或解码器重复拉取；v1 `media_inline` / `thumbnail` presign MUST 允许这些重复请求。需要单次下载时必须声明独立 profile（例如 `single_use=true` 或专用 purpose），且不得用于原生媒体标签。
 - **下列 blob 类别 MUST 走 fail-closed 规则，不得发 presign**：
   - **E2EE ciphertext** — 已经在 §5.4.4 MUST NOT 列出。E2EE 附件 fetch 走 client-side `fetch()` + `Authorization` header 路径。
-  - **legal hold blob** — 处于 legal hold 状态的 blob MUST 拒绝 `ck.self.blob.command.presign`（`legal_hold_active`），即便申请方持有 `ck.self.blob.command.presign` capability。原因：legal hold 要求 access 留痕可追溯，bearer URL 让第三方无凭据拉取破坏审计链。
-  - **redacted blob** — `ck.redaction` 已生效 / `ck.audit.erasure_receipt` 已发布的 blob MUST 立即拒绝 presign 请求与已签发但 TTL 未到的 presign 请求（`blob_redacted`）。
-  - **private attachment 私有附件**（`visibility=actor_private` 或附 `ck.actor_private` policy 标签）— MUST NOT 走 presign 路径（`private_attachment`）。该类 blob 只允许 issuing actor 本人通过 header auth fetch。
-  - **minimal-metadata Realm-owned blob** — blob metadata 绑定的 Realm 声明 `ck.profile.mls.minimal_metadata_realm.v1`，或 Realm asset policy 声明 `routing_unlinkability_required=true` 时，服务端 MUST NOT 签发 bearer presign URL（`minimal_metadata_presign_forbidden`）。该类 Realm 的下载必须走 header auth、`provider_proxy`、`ohttp_relay` 或等价的不把 `blob_ref` / bearer envelope 暴露到可转发 URL 的路径。只有 deployment-public/global blob（无 Realm 绑定，且 policy 明确允许 public direct download）可继续使用 presign。
-  - **`direct_download_allowed=false` Realm-owned blob** — blob metadata 绑定的 Realm 在 `ck.realm.asset_privacy_policy`（§6）中声明 `direct_download_allowed=false` 时，服务端 MUST NOT 签发 bearer presign URL（`direct_download_disallowed_presign_forbidden`），即便该 Realm 不是 minimal-metadata Realm、即便申请方持有 `ck.self.blob.command.presign` capability。presign 产出的就是一个可转发的 bearer download URL，与 §6 "`direct_download_allowed=false` 时客户端 MUST NOT 绕过代理直接访问 `Location` 或外部 URL"是同一条禁令的两侧；放行 presign 等于用 presign 通道绕过该 Realm 的强制代理边界。该类 Realm 的媒体必须走 `download_mode` 声明的 `provider_proxy` / `ohttp_relay` / `client_mirror` 路径。只有 `direct_download_allowed=true`（或无 asset privacy policy 且 deployment policy 允许 direct）的 Realm-owned blob 与 deployment-public/global blob 才可继续使用 presign。
+  - **legal hold blob** — 处于 legal hold 状态的 blob MUST 拒绝 `ak.self.blob.command.presign`（`legal_hold_active`），即便申请方持有 `ak.self.blob.command.presign` capability。原因：legal hold 要求 access 留痕可追溯，bearer URL 让第三方无凭据拉取破坏审计链。
+  - **redacted blob** — `ak.redaction` 已生效 / `ak.audit.erasure_receipt` 已发布的 blob MUST 立即拒绝 presign 请求与已签发但 TTL 未到的 presign 请求（`blob_redacted`）。
+  - **private attachment 私有附件**（`visibility=actor_private` 或附 `ak.actor_private` policy 标签）— MUST NOT 走 presign 路径（`private_attachment`）。该类 blob 只允许 issuing actor 本人通过 header auth fetch。
+  - **minimal-metadata Realm-owned blob** — blob metadata 绑定的 Realm 声明 `ak.profile.mls.minimal_metadata_realm.v1`，或 Realm asset policy 声明 `routing_unlinkability_required=true` 时，服务端 MUST NOT 签发 bearer presign URL（`minimal_metadata_presign_forbidden`）。该类 Realm 的下载必须走 header auth、`provider_proxy`、`ohttp_relay` 或等价的不把 `blob_ref` / bearer envelope 暴露到可转发 URL 的路径。只有 deployment-public/global blob（无 Realm 绑定，且 policy 明确允许 public direct download）可继续使用 presign。
+  - **`direct_download_allowed=false` Realm-owned blob** — blob metadata 绑定的 Realm 在 `ak.realm.asset_privacy_policy`（§6）中声明 `direct_download_allowed=false` 时，服务端 MUST NOT 签发 bearer presign URL（`direct_download_disallowed_presign_forbidden`），即便该 Realm 不是 minimal-metadata Realm、即便申请方持有 `ak.self.blob.command.presign` capability。presign 产出的就是一个可转发的 bearer download URL，与 §6 "`direct_download_allowed=false` 时客户端 MUST NOT 绕过代理直接访问 `Location` 或外部 URL"是同一条禁令的两侧；放行 presign 等于用 presign 通道绕过该 Realm 的强制代理边界。该类 Realm 的媒体必须走 `download_mode` 声明的 `provider_proxy` / `ohttp_relay` / `client_mirror` 路径。只有 `direct_download_allowed=true`（或无 asset privacy policy 且 deployment policy 允许 direct）的 Realm-owned blob 与 deployment-public/global blob 才可继续使用 presign。
 - **future audience-bound 机制**（未来评估方向，不属于 v1）：若未来需要真正绑定 audience，方案有 (a) 把 presign 升级为 cookie-bound URL（依赖 `__Host-` cookie + SameSite=Strict + presign 校验 cookie binding），(b) 通过 session-bound token 把 presign 换给 client 后只在该 session 内可用。两条都需要客户端配合，不属于 v1 范围。
 
 #### 5.4.4.2 Bearer URL 泄漏面控制（normative）
@@ -554,22 +554,22 @@ Cache-Control: public, immutable, max-age=31536000
 
 #### 5.4.5 与 capability 的衔接
 
-`ck.self.blob.command.presign` capability action（risk_tier=medium）控制谁可以**为某 blob 签发 presign**。grant 上的两个 constraint 收紧使用范围：
+`ak.self.blob.command.presign` capability action（risk_tier=medium）控制谁可以**为某 blob 签发 presign**。grant 上的两个 constraint 收紧使用范围：
 
 - `blob_presign_max_ttl_seconds`：grant 允许的最大 TTL 上限（硬上限不超过 3600）
 - `blob_presign_scope`：grant 允许的 purpose 集合（`media_inline` / `thumbnail` / `download`）与可选 blob_ref pattern（按 Realm / purpose 细分）
 
-服务端在 `ck.self.blob.command.presign` 调用时按 grant constraint 收窄请求的 `max_age_seconds` / `purpose`；超过 constraint 返回 `capability_denied`。
+服务端在 `ak.self.blob.command.presign` 调用时按 grant constraint 收窄请求的 `max_age_seconds` / `purpose`；超过 constraint 返回 `capability_denied`。
 
 #### 5.4.6 与 §5.2 / §5.3 的关系
 
 - §5 仍是 **认证下载默认路径**；pre-signed 仅作为 §5 的 narrow 例外
-- §5.2 redirect / `Location` 头的"短期 signed download URL"语义可以由 `ck.self.blob.command.presign` 实现，但 redirect URL MUST 同样满足 §5.4 全部约束
+- §5.2 redirect / `Location` 头的"短期 signed download URL"语义可以由 `ak.self.blob.command.presign` 实现，但 redirect URL MUST 同样满足 §5.4 全部约束
 - §5.3 缩略图通常通过 `purpose=thumbnail` presign 让 `<img>` 直接渲染；服务端 SHOULD 设更短 TTL（默认 ≤ 60s）
 
 ## 6. Asset Privacy Policy
 
-私有附件下载本身会暴露元数据，例如调用方 IP、在线时间、服务域名关系、blob 大小和下载频率。Realm SHOULD 使用 `ck.realm.asset_privacy_policy` 声明媒体上传、下载和代理隐私要求：
+私有附件下载本身会暴露元数据，例如调用方 IP、在线时间、服务域名关系、blob 大小和下载频率。Realm SHOULD 使用 `ak.realm.asset_privacy_policy` 声明媒体上传、下载和代理隐私要求：
 
 ```json
 {
@@ -610,12 +610,12 @@ Cache-Control: public, immutable, max-age=31536000
 
 规则：
 
-- 私有 Realm、E2EE 附件和高隐私 minimal-metadata Realm 默认 SHOULD 使用 `provider_proxy` 或 `ohttp_relay`，不得默认 direct download。对 `ck.profile.mls.minimal_metadata_realm.v1` Realm-owned blob，§5.4.4.1 的 presign hard reject 优先于本节的 `download_mode=direct`；deployment 不得用 direct download policy 绕过 minimal-metadata bearer URL 禁令。
-- `direct_download_allowed=false` 时，客户端 MUST NOT 绕过代理直接访问 `Location` 或外部 URL；服务端也不得返回强制 direct 的 redirect。该约束同样禁止 bearer presign：服务端 MUST NOT 为 `direct_download_allowed=false` Realm-owned blob 签发 `ck.self.blob.command.presign` URL（§5.4.4.1 `direct_download_disallowed_presign_forbidden`），因为 presign 就是一个可转发的 direct bearer URL。
+- 私有 Realm、E2EE 附件和高隐私 minimal-metadata Realm 默认 SHOULD 使用 `provider_proxy` 或 `ohttp_relay`，不得默认 direct download。对 `ak.profile.mls.minimal_metadata_realm.v1` Realm-owned blob，§5.4.4.1 的 presign hard reject 优先于本节的 `download_mode=direct`；deployment 不得用 direct download policy 绕过 minimal-metadata bearer URL 禁令。
+- `direct_download_allowed=false` 时，客户端 MUST NOT 绕过代理直接访问 `Location` 或外部 URL；服务端也不得返回强制 direct 的 redirect。该约束同样禁止 bearer presign：服务端 MUST NOT 为 `direct_download_allowed=false` Realm-owned blob 签发 `ak.self.blob.command.presign` URL（§5.4.4.1 `direct_download_disallowed_presign_forbidden`），因为 presign 就是一个可转发的 direct bearer URL。
 - Proxy 服务不因参与下载而获得正文解密权。E2EE 附件必须保持密文，proxy 只能处理密文字节、size bucket、content hash 和授权 envelope。
 - `max_plaintext_metadata` 控制服务可见 metadata。高隐私 Realm SHOULD 使用 bucketed size、MIME family，而不是精确文件名、精确字节数或完整 MIME。
 - 无论采用哪种下载路径，客户端 MUST 校验内容 hash、ciphertext digest 和 E2EE attachment metadata；proxy 成功不等于内容可信。
-- `ck.realm.asset_privacy_policy` SHOULD 被 `ck.realm.policy_components` payload 中的 `components.asset` 引用，并纳入 MLS-bound `policy_root`。
+- `ak.realm.asset_privacy_policy` SHOULD 被 `ak.realm.policy_components` payload 中的 `components.asset` 引用，并纳入 MLS-bound `policy_root`。
 
 ## 7. Safety
 

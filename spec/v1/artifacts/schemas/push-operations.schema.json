@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/push-operations.schema.json",
   "title": "Arkret Push Gateway Operation DTOs",
-  "description": "Closed request and response DTOs for ck.edge.push.command.register_device, ck.edge.push.command.unregister_device, and ck.push.notify.",
+  "description": "Closed request and response DTOs for ak.edge.push.command.register_device, ak.edge.push.command.unregister_device, and ak.push.notify.",
   "anyOf": [
     {
       "$ref": "#/$defs/push_register_device_request_body"
@@ -133,7 +133,7 @@
         "visible_notification_opt_in": {
           "type": "boolean",
           "default": false,
-          "description": "Receiver device authorization state for ck.profile.push_gateway.visible_notification.v1. Missing or false means this device MUST receive only blind_wakeup output even if the caller service is plaintext-visible; visible metadata requires an explicit per-device opt-in."
+          "description": "Receiver device authorization state for ak.profile.push_gateway.visible_notification.v1. Missing or false means this device MUST receive only blind_wakeup output even if the caller service is plaintext-visible; visible metadata requires an explicit per-device opt-in."
         }
       },
       "additionalProperties": false
@@ -167,7 +167,7 @@
     },
     "audit_envelope": {
       "type": "object",
-      "description": "`ck.audit.accessed` envelope routing fragment carried alongside a notify request. When present, the request is an audit-pipeline event (e.g. an `e2ee_late_recovery` access notice), not a push notify: the gateway writes the audit event, acks 200, and skips the push pipeline.",
+      "description": "`ak.audit.accessed` envelope routing fragment carried alongside a notify request. When present, the request is an audit-pipeline event (e.g. an `e2ee_late_recovery` access notice), not a push notify: the gateway writes the audit event, acks 200, and skips the push pipeline.",
       "required": [
         "access_kind"
       ],
@@ -215,7 +215,7 @@
             "default",
             "traffic_metadata_hardened"
           ],
-          "description": "Closed timing/profile hint from Sync Service. traffic_metadata_hardened means the source Realm or route declares ck.profile.traffic_metadata_hardened.v1 and the Push Gateway MUST use a 300s or coarser provider-visible timing bucket. Gateway-internal; MUST be stripped before any provider call. See push-notifications.md §2.4 / §4.5 / §5.1."
+          "description": "Closed timing/profile hint from Sync Service. traffic_metadata_hardened means the source Realm or route declares ak.profile.traffic_metadata_hardened.v1 and the Push Gateway MUST use a 300s or coarser provider-visible timing bucket. Gateway-internal; MUST be stripped before any provider call. See push-notifications.md §2.4 / §4.5 / §5.1."
         },
         "push_hint": {
           "type": "string",
@@ -320,7 +320,7 @@
             "default",
             "traffic_metadata_hardened"
           ],
-          "description": "Closed timing/profile hint from Sync Service. traffic_metadata_hardened means the source Realm or route declares ck.profile.traffic_metadata_hardened.v1 and the Push Gateway MUST use a 300s or coarser provider-visible timing bucket. Gateway-internal; MUST be stripped before any provider call. See push-notifications.md §2.4 / §4.5 / §5.1."
+          "description": "Closed timing/profile hint from Sync Service. traffic_metadata_hardened means the source Realm or route declares ak.profile.traffic_metadata_hardened.v1 and the Push Gateway MUST use a 300s or coarser provider-visible timing bucket. Gateway-internal; MUST be stripped before any provider call. See push-notifications.md §2.4 / §4.5 / §5.1."
         },
         "push_hint": {
           "type": "string",
@@ -513,7 +513,7 @@
         },
         "event_kind": {
           "$ref": "#/$defs/non_empty_string",
-          "description": "Originating Event kind (e.g. `ck.message`) used by the gateway to route Phase-P2 `ck.agent.*` lifecycle / actor-private kinds to a no-fanout ack. Coarse routing selector; carries no Realm / sender / event identifier."
+          "description": "Originating Event kind (e.g. `ak.message`) used by the gateway to route Phase-P2 `ak.agent.*` lifecycle / actor-private kinds to a no-fanout aak. Coarse routing selector; carries no Realm / sender / event identifier."
         },
         "reason_code": {
           "$ref": "#/$defs/non_empty_string",

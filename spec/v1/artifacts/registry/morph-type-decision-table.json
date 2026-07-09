@@ -8,7 +8,7 @@
       "order": 1,
       "source": "morph.schema_refs[]",
       "role": "structural_truth",
-      "writable_by": ["ak.morph.create", "ck.morph.update"],
+      "writable_by": ["ak.morph.create", "ak.morph.update"],
       "consumed_by": ["reducer.field_validation", "schema.lint"],
       "notes": "Declares the field set, types, requiredness, transition rules. Always read for field validation."
     },
@@ -34,7 +34,7 @@
       "order": 4,
       "source": "morph.facets (map)",
       "role": "ui_and_projection_hint",
-      "writable_by": ["ak.morph.create", "ck.morph.update"],
+      "writable_by": ["ak.morph.create", "ak.morph.update"],
       "consumed_by": ["view.default_renderer_pick", "query.item_facets_filter", "graph.node_facets_filter", "ui.fallback_render"],
       "MUST_NOT_consume_by": ["authz.decide", "reducer.state_machine", "reducer.field_validation", "wire.interop"],
       "notes": "Pure hint. Reading facets to make a security / state-machine / interop decision is a conformance bug."

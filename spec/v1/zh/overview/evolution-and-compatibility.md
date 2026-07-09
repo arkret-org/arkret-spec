@@ -44,7 +44,7 @@ v1 内部演进采用以下加性方式：
 - 需要改变对象模型或状态机语义时，必须新增可协商的 schema/profile/kind，并明确与既有 current-v1 语义的边界；
 - 新增 critical extension、required feature 或高风险 profile 时，未声明实现按 [conformance/conformance-profiles.md](../conformance/conformance-profiles.md) 与 `conformance-profiles.json` 的 unknown/unsupported 规则 fail closed。
 
-Profile 命名采用 `ck.profile.<name>.v<major>`。`<major>` 是该 profile 自身的演进轴，不是 HTTP path 版本，也不是另一个协议版本。
+Profile 命名采用 `ak.profile.<name>.v<major>`。`<major>` 是该 profile 自身的演进轴，不是 HTTP path 版本，也不是另一个协议版本。
 
 ### 3.1 破坏性变更的承载（normative）
 
@@ -67,7 +67,7 @@ v1 wire 内 **MUST NOT** in-place 改变任一已接受 event kind / schema / �
 
 默认 HTTP/JSON binding 的 path 都在 negative-space 根 `/_arkret/` 之下且不含版本段；版本与能力发现由 `*.describe` / `supported_operations` / `supported_profiles` / `supported_features` 承载。见 [sync/service-http-binding.md](../sync/service-http-binding.md) §2.1。
 
-pre-auth 的根级能力广告位于 `GET /_arkret/describe`（`ck.server.query.describe`）。实现不得通过 URL path 后缀、私有 header 或部署约定绕开 ServiceDescribe 的能力声明。
+pre-auth 的根级能力广告位于 `GET /_arkret/describe`（`ak.server.query.describe`）。实现不得通过 URL path 后缀、私有 header 或部署约定绕开 ServiceDescribe 的能力声明。
 
 ## 6. 签名位面与 `unsigned` 位面
 

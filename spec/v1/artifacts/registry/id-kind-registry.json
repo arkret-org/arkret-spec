@@ -4,7 +4,7 @@
   "generated_at": "2026-07-02T00:00:00Z",
   "generated_from": "registry/contract-catalog.json",
   "generated_by": "tools/artifact_pipeline.py",
-  "namespace": "ak.,
+  "namespace": "ak.",
   "storage_rules": [
     "Protocol wire objects, canonical JSON, signatures, hashes, fixtures, logs, API DTOs, and cross-service references MUST use the full typed form ak:<kind>:<uuid> unless a special form below applies.",
     "Storage implementations MAY store raw 16-byte UUID values (e.g. PostgreSQL `uuid` column) without the ak:<kind>: prefix when the table, column, or explicit kind field already supplies the type context.",
@@ -60,7 +60,7 @@
       "wire_form": "ak:trust_domain:<scope>",
       "status": "active",
       "storage_recommendation": "Store the scope string as an opaque deployment-level identifier; it appears in server describe, Realm policy, and high-risk proof transcripts.",
-      "description": "Deployment-scope trust domain identifier. Scope is a lowercase opaque label (alphanumerics, dot, dash, underscore, colon; max 128 chars). Used to prevent cross-deployment / cross-sovereign replay of high-risk proofs (e.g. ck.cross_signing.reset §14.1). NOT a typed-UUIDv7 object id. See identity-did.md §3.6."
+      "description": "Deployment-scope trust domain identifier. Scope is a lowercase opaque label (alphanumerics, dot, dash, underscore, colon; max 128 chars). Used to prevent cross-deployment / cross-sovereign replay of high-risk proofs (e.g. ak.cross_signing.reset §14.1). NOT a typed-UUIDv7 object id. See identity-did.md §3.6."
     }
   ],
   "id_kinds": [
@@ -79,14 +79,14 @@
       "category": "moderation",
       "status": "active",
       "wire_form": "ak:appeal:<uuid>",
-      "description": "Moderation appeal ID — opaque key for the ck.component.moderation.appeal.v1 cell. Created by ck.moderation.appeal.submit; referenced by review / decision / close events. See zh/governance/content-moderation.md §5.5."
+      "description": "Moderation appeal ID — opaque key for the ak.component.moderation.appeal.v1 cell. Created by ak.moderation.appeal.submit; referenced by review / decision / close events. See zh/governance/content-moderation.md §5.5."
     },
     {
       "kind": "agent_interop_session",
       "category": "extension",
       "status": "active",
       "wire_form": "ak:agent_interop_session:<uuid>",
-      "description": "Agent interop session ID. Note the cross-surface naming: this typed ID uses the short form `agent_interop_session`, while the corresponding event kinds use the full form `ck.agent.interop_session.{start,status,result}` and capability actions use `ck.agent.interop_session.{start,cancel,stream_status,attach_artifact,read_transcript}`. The three surfaces all refer to the same session concept; downstream tooling MUST NOT assume `ak:<event-prefix>:<uuid>` mechanical derivation."
+      "description": "Agent interop session ID. Note the cross-surface naming: this typed ID uses the short form `agent_interop_session`, while the corresponding event kinds use the full form `ak.agent.interop_session.{start,status,result}` and capability actions use `ak.agent.interop_session.{start,cancel,stream_status,attach_artifact,read_transcript}`. The three surfaces all refer to the same session concept; downstream tooling MUST NOT assume `ak:<event-prefix>:<uuid>` mechanical derivation."
     },
     {
       "kind": "announce",
@@ -107,21 +107,21 @@
       "category": "audit",
       "status": "active",
       "wire_form": "ak:audit_binding:<uuid>",
-      "description": "Audit Applet Binding ID. Created by ck.audit.applet_binding and referenced by audit session request/authorize/notice/release events."
+      "description": "Audit Applet Binding ID. Created by ak.audit.applet_binding and referenced by audit session request/authorize/notice/release events."
     },
     {
       "kind": "audit_session",
       "category": "audit",
       "status": "active",
       "wire_form": "ak:audit_session:<uuid>",
-      "description": "Audit release session ID. Threads ck.audit.session.request, authorize, notice, release, and close events for one bounded historical audit window."
+      "description": "Audit release session ID. Threads ak.audit.session.request, authorize, notice, release, and close events for one bounded historical audit window."
     },
     {
       "kind": "audit_release",
       "category": "audit",
       "status": "active",
       "wire_form": "ak:audit_release:<uuid>",
-      "description": "Audit release manifest ID. Created by ck.audit.release for a sealed historical release under an active audit binding/session."
+      "description": "Audit release manifest ID. Created by ak.audit.release for a sealed historical release under an active audit binding/session."
     },
     {
       "kind": "backup",
@@ -135,7 +135,7 @@
       "category": "identity",
       "status": "active",
       "wire_form": "ak:backup_series:<uuid>",
-      "description": "Stable identifier for one chain of encrypted backup envelopes belonging to a single (actor_id, backup_class). A pair MAY have multiple series during rotation or migration; the active series is selected by the signed active-series record, not by server return order. Used by ck.schema.key_backup.v1.series_id and recovery strands to detect rollback. See identity/key-management.md §7.6."
+      "description": "Stable identifier for one chain of encrypted backup envelopes belonging to a single (actor_id, backup_class). A pair MAY have multiple series during rotation or migration; the active series is selected by the signed active-series record, not by server return order. Used by ak.schema.key_backup.v1.series_id and recovery strands to detect rollbaak. See identity/key-management.md §7.6."
     },
     {
       "kind": "batch",
@@ -174,7 +174,7 @@
       "category": "media",
       "status": "active",
       "wire_form": "ak:rtc_participant:<uuid>",
-      "description": "SFU-local participant handle (CKP-0010). Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_did, issued_at_bucket)` by the media service token issuer. MUST NOT carry any actor-identifying material; only appears in `ck.call.state.participants[].participant_identity` and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `ak:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern."
+      "description": "SFU-local participant handle (AKP-0010). Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_did, issued_at_bucket)` by the media service token issuer. MUST NOT carry any actor-identifying material; only appears in `ak.call.state.participants[].participant_identity` and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `ak:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern."
     },
     {
       "kind": "capability",
@@ -224,7 +224,7 @@
       "category": "identity",
       "status": "active",
       "wire_form": "ak:device:<uuid>",
-      "description": "Device identifier (ak:device:<uuid>). A device is a typed ID scoped to an owning principal, NOT a DID and NOT an actor principal. Device keys are registered as verification methods under the owning principal DID via ck.device.authorize."
+      "description": "Device identifier (ak:device:<uuid>). A device is a typed ID scoped to an owning principal, NOT a DID and NOT an actor principal. Device keys are registered as verification methods under the owning principal DID via ak.device.authorize."
     },
     {
       "kind": "device_message",
@@ -269,7 +269,7 @@
       "category": "authz",
       "status": "active",
       "wire_form": "ak:grant:<uuid>",
-      "description": "Signed capability grant object ID used by ck.schema.capability.v1 and grant/revoke references."
+      "description": "Signed capability grant object ID used by ak.schema.capability.v1 and grant/revoke references."
     },
     {
       "kind": "invite",
@@ -348,14 +348,14 @@
       "category": "identity",
       "status": "active",
       "wire_form": "ak:recovery_session:<uuid>",
-      "description": "Stable session identifier bound by every proof transcript, backup decrypt proof and MLS Welcome replay during one recovery strand. Referenced by ck.schema.recovery_receipt.v1 and by §15 recovery proofs. See crypto-media/device-lifecycle.md §15."
+      "description": "Stable session identifier bound by every proof transcript, backup decrypt proof and MLS Welcome replay during one recovery strand. Referenced by ak.schema.recovery_receipt.v1 and by §15 recovery proofs. See crypto-media/device-lifecycle.md §15."
     },
     {
       "kind": "attestation",
       "category": "audit",
       "status": "active",
       "wire_form": "ak:attestation:<uuid>",
-      "description": "Attestation object ID (e.g. ck.attestation.range_completeness)."
+      "description": "Attestation object ID (e.g. ak.attestation.range_completeness)."
     },
     {
       "kind": "relation",

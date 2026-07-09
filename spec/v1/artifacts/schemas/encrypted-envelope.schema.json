@@ -139,7 +139,7 @@
             {
               "type": "string",
               "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-              "description": "Reference to accepted ck.mls.genesis / winning ck.mls.commit event."
+              "description": "Reference to accepted ak.mls.genesis / winning ak.mls.commit event."
             },
             {
               "type": "string",
@@ -147,7 +147,7 @@
               "description": "Equivalent group state proof hash."
             }
           ],
-          "description": "v1 MLS group state lookup hint. MUST point to accepted ck.mls.genesis / winning ck.mls.commit / equivalent group state proof. Does NOT replace MLS transcript verification. See encryption-and-audit.md §4. Ratchet tree material MUST NOT be carried in the per-message envelope; group state changes strand through ck.mls.genesis / Welcome / Commit events."
+          "description": "v1 MLS group state lookup hint. MUST point to accepted ak.mls.genesis / winning ak.mls.commit / equivalent group state proof. Does NOT replace MLS transcript verification. See encryption-and-audit.md §4. Ratchet tree material MUST NOT be carried in the per-message envelope; group state changes strand through ak.mls.genesis / Welcome / Commit events."
         }
       },
       "additionalProperties": false,

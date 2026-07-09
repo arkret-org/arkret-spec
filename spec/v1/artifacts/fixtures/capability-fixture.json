@@ -147,7 +147,7 @@
           "resource": {
             "kind": "relation",
             "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-            "cell": "ak:cell:ck.component.relation.v1:ak:relation:01964180-1000-7000-8000-000000000000"
+            "cell": "ak:cell:ak.component.relation.v1:ak:relation:01964180-1000-7000-8000-000000000000"
           },
           "expected": {
             "decision": "deny",
@@ -161,7 +161,7 @@
           "resource": {
             "kind": "morph",
             "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-            "cell": "ak:cell:ck.component.morph.v1:ak:morph:01964180-2000-7000-8000-000000000000"
+            "cell": "ak:cell:ak.component.morph.v1:ak:morph:01964180-2000-7000-8000-000000000000"
           },
           "expected": {
             "decision": "deny",
@@ -537,7 +537,7 @@
     },
     {
       "name": "revoke_rollback_forward_recompute",
-      "vector_id": "ak.vector.capability.revoke_rollback.v1",
+      "vector_id": "ak.vector.capability.revoke_rollbaak.v1",
       "events": [
         {
           "event_id": "ak:event:01964101-2800-7000-8000-000000000000",
@@ -597,7 +597,7 @@
     },
     {
       "name": "revoke_downstream_recheck",
-      "vector_id": "ak.vector.capability.revoke_downstream_recheck.v1",
+      "vector_id": "ak.vector.capability.revoke_downstream_recheak.v1",
       "grants": [
         {
           "grant_id": "ak:grant:01964110-0000-7000-8000-000000000000",

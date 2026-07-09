@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/circle-operations.schema.json",
   "title": "Arkret Circle Self-Management Operation DTOs",
-  "description": "Closed request/response DTOs for the self-surface Circle administration operations (ck.self.circle.*). Each operation builds a canonical ck.circle.* Operation and routes it through the standard local accept pipeline; the durable Circle object model is circle.schema.json. See spec/v1/zh/models/circle.md and spec/v1/zh/sync/service-http-binding.md.",
+  "description": "Closed request/response DTOs for the self-surface Circle administration operations (ak.self.circle.*). Each operation builds a canonical ak.circle.* Operation and routes it through the standard local accept pipeline; the durable Circle object model is circle.schema.json. See spec/v1/zh/models/circle.md and spec/v1/zh/sync/service-http-binding.md.",
   "anyOf": [
     {
       "$ref": "#/$defs/circle_create_request_body"
@@ -50,7 +50,7 @@
     },
     "circle_member_state": {
       "type": "string",
-      "description": "Deprecated internal alias name retained only for schema ref stability; values are the canonical membership_state enum shared by ck.member.state and ck.circle.member.state.",
+      "description": "Deprecated internal alias name retained only for schema ref stability; values are the canonical membership_state enum shared by ak.member.state and ak.circle.member.state.",
       "enum": [
         "join",
         "invite",
@@ -170,7 +170,7 @@
     },
     "circle_create_request_body": {
       "type": "object",
-      "description": "Actor-supplied fields for ck.circle.create. Reducer-locked fields (mls_group_ref, state) MUST NOT appear.",
+      "description": "Actor-supplied fields for ak.circle.create. Reducer-locked fields (mls_group_ref, state) MUST NOT appear.",
       "required": [
         "realm_id",
         "title"
@@ -272,7 +272,7 @@
         "membership": {
           "$ref": "#/$defs/circle_member_state",
           "default": "join",
-          "description": "Target canonical ck.circle.member.state membership value. Defaults to join. Joining another actor requires ck.circle.member.manage and the target MUST already be a joined parent-Realm member; knock requires join_rule=request."
+          "description": "Target canonical ak.circle.member.state membership value. Defaults to join. Joining another actor requires ak.circle.member.manage and the target MUST already be a joined parent-Realm member; knock requires join_rule=request."
         }
       },
       "additionalProperties": false
@@ -319,7 +319,7 @@
     },
     "circle_lifecycle_request_body": {
       "type": "object",
-      "description": "Optional body for ck.self.circle.command.archive / ck.self.circle.command.restore / ck.self.circle.command.tombstone. The target circle is taken from the path.",
+      "description": "Optional body for ak.self.circle.command.archive / ak.self.circle.command.restore / ak.self.circle.command.tombstone. The target circle is taken from the path.",
       "properties": {
         "reason_code": {
           "type": "string",

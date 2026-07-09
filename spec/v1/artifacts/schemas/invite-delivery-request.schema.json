@@ -17,7 +17,7 @@
     },
     "invite_event": {
       "$ref": "./event-envelope.schema.json",
-      "description": "The ck.invite.create EventEnvelope or equivalent accepted event view being delivered."
+      "description": "The ak.invite.create EventEnvelope or equivalent accepted event view being delivered."
     },
     "invite_address": {
       "$ref": "#/$defs/invite_address"
@@ -142,7 +142,7 @@
         },
         "consent_grant_ref": {
           "$ref": "#/$defs/event_ref",
-          "description": "Event ref of the invitee-issued ck.consent.grant (scope invite or any) that authorizes the inviter to send Realm/Strand invites. High-trust evidence: it is material the invitee actively issued to the inviter, equivalent in trust to a locator_ref."
+          "description": "Event ref of the invitee-issued ak.consent.grant (scope invite or any) that authorizes the inviter to send Realm/Strand invites. High-trust evidence: it is material the invitee actively issued to the inviter, equivalent in trust to a locator_ref."
         },
         "consent_id": {
           "type": "string",

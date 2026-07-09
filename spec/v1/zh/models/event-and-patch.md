@@ -16,7 +16,7 @@ updated: 2026-07-02
 
 - **Event Envelope**（`ak:event:`）：reducer 输入与审计事实的 wire 表示。
 - **Proof**：签名证明 envelope。
-- **Field Patch (`ck.patch.v1`)**：非 create 类更新的标准字段增量格式。
+- **Field Patch (`ak.patch.v1`)**：非 create 类更新的标准字段增量格式。
 - **Event Batch Receipt**（`ak:receipt:`）：可选审计 / 同步加速对象。
 
 CBA 双平面、DataEvent、Control Move、Seal、Lattice、cell 模型、authority chain 与 state 收敛细节由 [`../authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 承担；本文聚焦对象级 schema、字段、reducer 总则与 patch 语义。
@@ -42,12 +42,12 @@ Event Envelope 是 kind-routed payload 兼容层。v1 的协议状态收敛以 C
 
 ### 2.2 Schema 与字段
 
-Schema id: `ck.schema.event.v1`
+Schema id: `ak.schema.event.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `event_id` | yes | `id:event` | 事件稳定 typed ID。事件 canonical digest / proof hash 见 `conformance-vectors.md`。 | 事件 ID。 |
-| `kind` | yes | `string` | 标准 effect kind SHOULD 使用 `ck.` 前缀。Registry 可声明 `cell_family`、`cell_subject`、`lattice` 和 `bottom`，供 CBA reducer 使用。 | 事件 kind。 |
+| `kind` | yes | `string` | 标准 effect kind SHOULD 使用 `ak.` 前缀。Registry 可声明 `cell_family`、`cell_subject`、`lattice` 和 `bottom`，供 CBA reducer 使用。 | 事件 kind。 |
 | `realm_id` | yes | `id:realm` | Realm create 可在 payload 中建立。 | 所属 Realm。 |
 | `effective_scope` | reducer-stamped | `object` | Reducer 接受 Event 时从 Realm/Circle scope 物化并 immutable 写入 accepted envelope；进入 Seal/sub-seal leaves、E2EE AAD 与 MLS governance binding input。Actor-supplied submit payload MUST NOT 携带该字段，reducer MUST `schema_violation` (`reason=effective_scope_reducer_managed`)。该 reducer-stamped 字段不参与 producer proof 的 `event_digest` 输入（见 §3），其完整性由接受后的 envelope、Seal/sub-seal/AAD 承诺和存储回放规则承担。 | 事件有效作用域。 |
 | `actor_id` | yes | `did` | 必须匹配 proof 控制链(`executed_by` 缺失时);`executed_by` 存在时 proof 控制链对齐 `executed_by`。 | 事件归属的 principal of record。 |
@@ -104,7 +104,7 @@ Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。�
   },
   "effects": [
     {
-      "cell": "ak:cell:ck.component.strand.metadata.v1:ak:strand:019640c6-8000-7000-8000-000000000000",
+      "cell": "ak:cell:ak.component.strand.metadata.v1:ak:strand:019640c6-8000-7000-8000-000000000000",
       "op": { "kind": "set", "value": { "metadata.fields.review_status": "approved" } }
     }
   ],
@@ -133,18 +133,18 @@ Event MUST 被签名。Reducer MUST 拒绝任何 signature、schema、capability
 
 Event Envelope 的顶层 `kind` 是唯一 payload discriminator。State convergence 只能从 CBA effect 显式给出的 cell id 与 lattice op 推导，不从 envelope kind 隐式推导 state slot。
 
-- `payload.type` 不得重复写入 `ck.*` Event kind。
+- `payload.type` 不得重复写入 `ak.*` Event kind。
 - Payload 引用被创建对象时通过 `payload.object.id` 或 `payload.target_ref` 等 typed-id 字段表达，前缀（`ak:strand:` 等）即对象种类，不写单独的 `payload.object.type`。
 - `actor_id` 是该 Event 归属的 principal of record。**当 `executed_by` 存在时**(act-on-behalf),实际签发该 Event 的是 `executed_by` 表示的 agent / applet / delegated service principal,proof.verification_method 解析到 `executed_by`;`actor_id` 仍是 accountable principal,用于审计 / 渲染 / accountable_principal_ids 链。Receiver MUST 同时校验 `executed_by`、`authorization_ref` 指向的 active grant / delegation，以及对应 native agent key authorization 或 Applet registration / registration_epoch 绑定之间的一致性，否则 fail closed。物化对象的 `created_by` / `updated_by` 是 reducer 输出字段，通常来自对应 create/update Event 的 `actor_id`,但不得替代 Event proof、capability 或 CBA basis 校验。
 - `actor_kind` 是 reducer-stamped 投影，由 reducer 在接受 Event 时从 `actor_id` 的 Actor Profile 解析得到 immutable 值；它让审计 / 取证 / offline reader 不必反向解析 Actor Profile 即可判断该 Event 是 agent 行为(`actor_kind="agent"`) 还是 controller 行为。Actor 提交侧 MUST NOT 携带该字段。
-- 启用 `ck.profile.mls.minimal_metadata_realm.v1` 时，`actor_id` MAY 是 Realm / Strand track scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `ck.schema.identity_link.v1` payload（`ck.identity_link` application message / MLS private extension）、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
+- 启用 `ak.profile.mls.minimal_metadata_realm.v1` 时，`actor_id` MAY 是 Realm / Strand track scoped pairwise DID；真实 principal DID 的映射必须通过加密的 `ak.schema.identity_link.v1` payload（`ak.identity_link` application message / MLS private extension）、claim disclosure 或 policy 声明验证，不得把非 DID pseudonym 写入 `actor_id`。
 
 ### 2.5 Create 类 Event 的跨字段语义校验
 
 Create 类 Event 的 `payload.object` MAY 使用完整对象 schema 做 wire validation，但接收方在进入 accepted set 前还必须执行跨字段语义校验：
 
-- `ck.realm.create.payload.object.created_by` MUST 等于顶层 `actor_id`。
-- `ck.strand.create` / `ck.morph.create` / `ck.profile.create` 中的 `payload.object.created_by` 或 `principal_id` MUST 等于顶层 `actor_id` 或被该 profile 明确授权的 controller。
+- `ak.realm.create.payload.object.created_by` MUST 等于顶层 `actor_id`。
+- `ak.strand.create` / `ak.morph.create` / `ak.profile.create` 中的 `payload.object.created_by` 或 `principal_id` MUST 等于顶层 `actor_id` 或被该 profile 明确授权的 controller。
 - `payload.object.created_at` MUST 等于顶层 `created_at`。
 
 校验失败 MUST `schema_violation` 或 `capability_denied`，不得把 payload 中的创建者字段当作 proof、capability 或审计归属的替代来源。
@@ -199,15 +199,15 @@ Verifier MUST 先移除 `proofs`、`unsigned` 与 reducer-stamped 顶层字段�
 
 在 cross-service、cross-trust-domain、federation 或任何 profile 声明的多受众调用中，缺少 `domain` 或缺少所需 `audience` 的 proof MUST fail closed（`proof_binding_missing` 或 profile 声明的更具体 reason）。同一服务内单受众本地写入 MAY 省略其中一项，但 verifier 仍 MUST 把处理上下文中的 Realm / service audience 与 envelope `realm_id`、proof controller 和 capability 绑定分开校验；不得因为 proof 验签通过就跨服务接受同一 Event。
 
-## 4. Field Patch (`ck.patch.v1` / `ck.schema.patch.v1`)
+## 4. Field Patch (`ak.patch.v1` / `ak.schema.patch.v1`)
 
-非 create 类更新建议使用 `ck.patch.v1` 做字段增量；客户端不得自行定义私有 dot-path 语义替代该标准。
+非 create 类更新建议使用 `ak.patch.v1` 做字段增量；客户端不得自行定义私有 dot-path 语义替代该标准。
 
-> **命名注意**：`ck.patch.v1` 是 **embedded format identifier**（spec prose 中的简称，用于指代 `payload.patch` 字段位置的 wire 形态），其结构 schema 已正式注册为 `ck.schema.patch.v1`，artifact 见 [`artifacts/schemas/patch.schema.json`](../../artifacts/schemas/patch.schema.json)。两个标识同源——format identifier 在中文规范与 prose 中保持兼容用法，schema_id 在 registry / SDK / lint 工具中作为可解析的 schema reference。实现 MUST 将 spec 中出现的 `ck.patch.v1` 引用解析到该 schema artifact；本节 §4.1–§4.3 是该 schema 的 normative 语义补充（grammar / parser 责任 / selector / redactable / reducer-managed 字段保护），artifact 自身不重复 normative 文字。
+> **命名注意**：`ak.patch.v1` 是 **embedded format identifier**（spec prose 中的简称，用于指代 `payload.patch` 字段位置的 wire 形态），其结构 schema 已正式注册为 `ak.schema.patch.v1`，artifact 见 [`artifacts/schemas/patch.schema.json`](../../artifacts/schemas/patch.schema.json)。两个标识同源——format identifier 在中文规范与 prose 中保持兼容用法，schema_id 在 registry / SDK / lint 工具中作为可解析的 schema reference。实现 MUST 将 spec 中出现的 `ak.patch.v1` 引用解析到该 schema artifact；本节 §4.1–§4.3 是该 schema 的 normative 语义补充（grammar / parser 责任 / selector / redactable / reducer-managed 字段保护），artifact 自身不重复 normative 文字。
 
 ### 4.1 结构
 
-`ck.patch.v1` 为 map 类型：
+`ak.patch.v1` 为 map 类型：
 
 - `key`：patch path（字段路径）。
 - `value`：patch 操作，支持两种表达：
@@ -262,14 +262,14 @@ reducer / SDK 实现 MUST 使用确定性 parser:遇到任何 ambiguous match、
 
 #### 4.2.4 Op 与 redactable 字段交互（normative）
 
-`ck.patch.v1` 的 `$op="unset"` 路径 MUST NOT 操作以下 redactable 内容字段:
+`ak.patch.v1` 的 `$op="unset"` 路径 MUST NOT 操作以下 redactable 内容字段:
 
 - Message: `content`、`encrypted_content`、`body`
 - Strand: `metadata.summary`、`encrypted_content`、`encrypted_metadata`、用户可写的长文本 `metadata.fields`
 - Morph: `content`、`encrypted_content`、`metadata.summary`、`encrypted_metadata`、`fields.<text-content-shape>` (由 morph profile 声明)
 - 任何在 Realm schema 中标记为 `redactable: true` 的字段。
 
-理由: 这些字段的清除必须走 `ck.<kind>.redact` 或 `ck.redaction` event,以触发 redaction-specific capability check + audit seal + retention policy;允许用 `ck.patch.v1` 直接 `unset` 等价于让任何持有 `ck.<kind>.update` 的 actor 绕过 `ck.<kind>.redact` 的高 tier capability 完成 redaction (redaction escape)。
+理由: 这些字段的清除必须走 `ak.<kind>.redact` 或 `ak.redaction` event,以触发 redaction-specific capability check + audit seal + retention policy;允许用 `ak.patch.v1` 直接 `unset` 等价于让任何持有 `ak.<kind>.update` 的 actor 绕过 `ak.<kind>.redact` 的高 tier capability 完成 redaction (redaction escape)。
 
 reducer MUST 在 patch path 命中 redactable field + `$op="unset"` 时返回 `schema_violation` reason=`patch_unset_redactable_field`。
 
@@ -282,9 +282,9 @@ reducer MUST 在 patch path 命中 redactable field + `$op="unset"` 时返回 `s
 
 ### 4.3 在 Event 中的位置
 
-Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `payload.target_ref`、`payload.relation_id`、`payload.view_id` 或该 kind schema 声明的等价字段表达。`ck.strand.update` 使用 `payload.target_ref` 指向目标 Strand；`ck.strand.tracks.update` 等专用 track 事件仍使用自身 schema 声明的目标字段。详见 [`../sync/operations-sync.md`](../sync/operations-sync.md) §7.2 / §8。
+Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `payload.target_ref`、`payload.relation_id`、`payload.view_id` 或该 kind schema 声明的等价字段表达。`ak.strand.update` 使用 `payload.target_ref` 指向目标 Strand；`ak.strand.tracks.update` 等专用 track 事件仍使用自身 schema 声明的目标字段。详见 [`../sync/operations-sync.md`](../sync/operations-sync.md) §7.2 / §8。
 
-下面是一个 `ck.strand.update` event 中携带 `payload.patch` 字段 delta 的典型示例，覆盖直接 `set` 值（`metadata.fields.review_status` 标量字段）、对象形态 `set`（`metadata.fields.due_date`）、`unset`（`metadata.fields.dropped_field`）与 `add`（`labels.security` 集合追加）四类 op：
+下面是一个 `ak.strand.update` event 中携带 `payload.patch` 字段 delta 的典型示例，覆盖直接 `set` 值（`metadata.fields.review_status` 标量字段）、对象形态 `set`（`metadata.fields.due_date`）、`unset`（`metadata.fields.dropped_field`）与 `add`（`labels.security` 集合追加）四类 op：
 
 ```json schema=schemas/patch.schema.json expect=valid
 {
@@ -322,7 +322,7 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
   },
   "effects": [
     {
-      "cell": "ak:cell:ck.component.strand.metadata.v1:ak:strand:019640c6-8000-7000-8000-000000000000",
+      "cell": "ak:cell:ak.component.strand.metadata.v1:ak:strand:019640c6-8000-7000-8000-000000000000",
       "op": { "kind": "set", "value": { "metadata.fields.review_status": "approved", "metadata.fields.due_date": "2026-06-01", "labels.security": "confidential" } }
     }
   ],
@@ -363,18 +363,18 @@ Event Batch Receipt 是可选审计/同步加速对象，**不是 canonical hist
 
 单事件确认是 `events[]` 单元素的退化形态：relay / notary / witness 对某个数据面 Event 签发"已看见"回执（驱动查询等级 `local → seen`）时，签发的就是一个 `events = [<event_digest>]`、`scope.realm_id` 就位的 Event Batch Receipt。协议不定义独立的单事件 receipt 对象（原 SeenReceipt 已合并至此，合并说明见 [`../authz/event-auth-state-resolution.md` §4.4](../authz/event-auth-state-resolution.md)）。
 
-Receipt 的覆盖语义是 **set-bound**：`events[]` 列出 issuer *选择* 承诺的 event 集合。它提供该集合的 *integrity*（未被中间人篡改），不提供该 `scope` 下的 *completeness*（issuer 未静默丢弃属于该范围的其他 event）。即便实现额外叠加 Merkle / set commitment，恶意 issuer 仍可只承诺自己愿意承诺的子集——所以 batch receipt MUST NOT 被实现解释为 range completeness 证明。range completeness 由已注册的 active attestation event `ck.attestation.range_completeness`（payload schema `ck.schema.range_completeness_attestation.v1`）承担，其 `event_range` 必须有显式 range 语义（per-actor seq interval + frontier 上下界）+ witness quorum 或独立 seal 背书。详见 [`../sync/operations-sync.md`](../sync/operations-sync.md) §6.4 与 [`../overview/glossary.md`](../overview/glossary.md) *integrity vs completeness*。
+Receipt 的覆盖语义是 **set-bound**：`events[]` 列出 issuer *选择* 承诺的 event 集合。它提供该集合的 *integrity*（未被中间人篡改），不提供该 `scope` 下的 *completeness*（issuer 未静默丢弃属于该范围的其他 event）。即便实现额外叠加 Merkle / set commitment，恶意 issuer 仍可只承诺自己愿意承诺的子集——所以 batch receipt MUST NOT 被实现解释为 range completeness 证明。range completeness 由已注册的 active attestation event `ak.attestation.range_completeness`（payload schema `ak.schema.range_completeness_attestation.v1`）承担，其 `event_range` 必须有显式 range 语义（per-actor seq interval + frontier 上下界）+ witness quorum 或独立 seal 背书。详见 [`../sync/operations-sync.md`](../sync/operations-sync.md) §6.4 与 [`../overview/glossary.md`](../overview/glossary.md) *integrity vs completeness*。
 
-> **概念分层**（normative）：`ck.event_batch_receipt` 是 **receipt object 名称**（不是 Event Envelope `kind`）。它的唯一 wire 形态是带 `schema = "ak.schema.event_batch_receipt.v1"` 字段的独立对象；它**不**出现在 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 中，**不**会作为 `Event.kind` 出现在 Events API 提交路径上，也**不**进入 reducer 输入。任何试图把 `ck.event_batch_receipt` 当作 Event kind 提交给 `ck.self.events.command.submit` 的实现 MUST `schema_violation`，因为 Event schema 的 `kind` enum 与 event-kind-registry 同步且不含此名。下游 SDK / cotest scanner 在 prose / fixture 中遇到 `ck.event_batch_receipt` 时 MUST 把它当 schema-id-prefix / receipt-object-name 处理，不进入 active event-kind 检查表。
+> **概念分层**（normative）：`ak.event_batch_receipt` 是 **receipt object 名称**（不是 Event Envelope `kind`）。它的唯一 wire 形态是带 `schema = "ak.schema.event_batch_receipt.v1"` 字段的独立对象；它**不**出现在 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 中，**不**会作为 `Event.kind` 出现在 Events API 提交路径上，也**不**进入 reducer 输入。任何试图把 `ak.event_batch_receipt` 当作 Event kind 提交给 `ak.self.events.command.submit` 的实现 MUST `schema_violation`，因为 Event schema 的 `kind` enum 与 event-kind-registry 同步且不含此名。下游 SDK / cotest scanner 在 prose / fixture 中遇到 `ak.event_batch_receipt` 时 MUST 把它当 schema-id-prefix / receipt-object-name 处理，不进入 active event-kind 检查表。
 
-与之对照：`ck.audit.ryw_receipt` 既是 receipt object 名（schema `ck.schema.audit_ryw_receipt.v1`），同时是 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 中 `status="active"` 的 **durable event kind**。其 object form 与 durable Event form 的触发条件由 Audit Applet Binding / release policy 决定：
+与之对照：`ak.audit.ryw_receipt` 既是 receipt object 名（schema `ak.schema.audit_ryw_receipt.v1`），同时是 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 中 `status="active"` 的 **durable event kind**。其 object form 与 durable Event form 的触发条件由 Audit Applet Binding / release policy 决定：
 >
 > - `disclosed_policy` release MAY 只使用 object form，并把 receipt 作为 actor-private / scoped audit evidence 保存。
-> - `attested_hardware` release SHOULD 将同一 receipt object 也作为 durable Event（`Event.kind = "ak.audit.ryw_receipt"`）写入 audit log，便于事后验证 release service 是否先见到 accepted `ck.audit.release`。详见 [`../crypto-media/audited-e2ee.md` §6](../crypto-media/audited-e2ee.md)。
+> - `attested_hardware` release SHOULD 将同一 receipt object 也作为 durable Event（`Event.kind = "ak.audit.ryw_receipt"`）写入 audit log，便于事后验证 release service 是否先见到 accepted `ak.audit.release`。详见 [`../crypto-media/audited-e2ee.md` §6](../crypto-media/audited-e2ee.md)。
 
 ### 5.2 Schema 与字段
 
-Schema id: `ck.schema.event_batch_receipt.v1`
+Schema id: `ak.schema.event_batch_receipt.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |

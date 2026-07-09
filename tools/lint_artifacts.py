@@ -59,7 +59,7 @@ JSON_FENCE_FIRST_ERROR_ATTR_RE = re.compile(r"\bfirst_error=(?:\"([^\"]+)\"|'([^
 TYPED_ID_PREFIX_TOKEN_RE = re.compile(r"\bak:([a-z0-9_]+):")
 MARKDOWN_LINK_RE = re.compile(r"!?\[[^\]]*\]\(([^)\s]+(?:#[^)]+)?)\)")
 RULE_MARKER_EMOJI_RE = re.compile(r"[✅❌]")
-CKP_ID_RE = re.compile(r"^CKP-[0-9]{4}$")
+AKP_ID_RE = re.compile(r"^AKP-[0-9]{4}$")
 TEXT_ARTIFACT_REF_RE = re.compile(
     r"(?<![A-Za-z0-9_./-])("
     r"zh/[A-Za-z0-9_./-]+\.mdx?|"
@@ -554,14 +554,14 @@ FORBIDDEN_NAMING_STRING_ALIASES = {
     "ak:txn:": "ak:transaction:",
     "ak:frank:": "ak:franking_proof:",
     "ak:rtcpart:": "ak:rtc_participant:",
-    "ak.agent.key.authorized": "ck.agent.key.authorize",
-    "ak.agent.key.revoked": "ck.agent.key.revoke",
-    "ak.agent.key.rotated": "ck.agent.key.rotate",
-    "ak.device.authorized": "ck.device.authorize",
-    "ak.device.revoked": "ck.device.revoke",
-    "ak.relation.delete": "ck.relation.tombstone",
-    "ak.read.marker": "ck.read.cursor",
-    "ak.schema.read_marker.v1": "ck.schema.read_cursor.v1",
+    "ak.agent.key.authorized": "ak.agent.key.authorize",
+    "ak.agent.key.revoked": "ak.agent.key.revoke",
+    "ak.agent.key.rotated": "ak.agent.key.rotate",
+    "ak.device.authorized": "ak.device.authorize",
+    "ak.device.revoked": "ak.device.revoke",
+    "ak.relation.delete": "ak.relation.tombstone",
+    "ak.read.marker": "ak.read.cursor",
+    "ak.schema.read_marker.v1": "ak.schema.read_cursor.v1",
     "or-set": "or_set",
     "mv-register": "mv_register",
     "cas-register": "cas_register",
@@ -595,12 +595,12 @@ FORBIDDEN_NAMING_STRING_ALIASES = {
     "prev_frontier_hash": "prev_frontier_digest",
     "constraint_hash": "constraint_digest",
     # verb_noun_bridge_collapse — capability action MUST equal target event kind
-    "ak.invite.create_third_party": "ck.invite.third_party",
-    "ak.policy.rule.manage": "ck.policy.rule",
-    "ak.policy.action.manage": "ck.policy.action",
-    "ak.realm.link.manage": "ck.realm.link",
-    "ak.realm.plaintext_visible_services.modify": "ck.realm.plaintext_visible_services",
-    "ak.realm.moderate": "ck.realm.moderation_policy",
+    "ak.invite.create_third_party": "ak.invite.third_party",
+    "ak.policy.rule.manage": "ak.policy.rule",
+    "ak.policy.action.manage": "ak.policy.action",
+    "ak.realm.link.manage": "ak.realm.link",
+    "ak.realm.plaintext_visible_services.modify": "ak.realm.plaintext_visible_services",
+    "ak.realm.moderate": "ak.realm.moderation_policy",
     "parent_ref": "parent_space_id",
     "default_realm_ref": "default_realm_id",
     "scope_ref": "scope_circle_id",
@@ -776,9 +776,9 @@ def check_join_policy_gate_id_uniqueness(lint: Lint) -> None:
 
     JSON Schema 2020-12 has no native "unique by property" keyword: ``uniqueItems``
     only catches whole-object duplicates. The wire contract for
-    ``ck.realm.join_policy`` (see zh/governance/join-policy.md §3.1) requires that
+    ``ak.realm.join_policy`` (see zh/governance/join-policy.md §3.1) requires that
     ``gate_id`` be unique across siblings in ``gates[]`` so that audit refs in
-    ``ck.member.state{gate_proofs[gate_id=…]}`` remain unambiguous; the canonical
+    ``ak.member.state{gate_proofs[gate_id=…]}`` remain unambiguous; the canonical
     reject reason is ``schema_violation reason_code=join_policy_duplicate_gate_id``.
 
     This lint walks every JSON artifact and every Markdown ``json`` example,
@@ -860,7 +860,7 @@ def check_join_policy_gate_id_uniqueness(lint: Lint) -> None:
 
 
 def check_content_composite_uses_parts(lint: Lint) -> None:
-    """Reject legacy ``blocks`` spelling on ck.content.composite examples.
+    """Reject legacy ``blocks`` spelling on ak.content.composite examples.
 
     The canonical composite child field is required as ``parts``. ``blocks`` is
     too tied to document layout semantics and is now listed in
@@ -885,13 +885,13 @@ def check_content_composite_uses_parts(lint: Lint) -> None:
             if "blocks" in obj:
                 lint.fail(
                     path,
-                    f"{where}: ck.content.composite uses legacy `blocks`; "
+                    f"{where}: ak.content.composite uses legacy `blocks`; "
                     "canonical wire field is `parts`.",
                 )
             if "parts" not in obj:
                 lint.fail(
                     path,
-                    f"{where}: ck.content.composite is missing required `parts`.",
+                    f"{where}: ak.content.composite is missing required `parts`.",
                 )
 
         walk(value, on_object)
@@ -1062,8 +1062,8 @@ def check_proposal_merge_manifest(lint: Lint) -> None:
 
     if data.get("source_of_truth") is not True:
         lint.fail(path, "source_of_truth must be true")
-    if data.get("scope") != "accepted_merged_ckp_v1":
-        lint.fail(path, "scope must be accepted_merged_ckp_v1")
+    if data.get("scope") != "accepted_merged_akp_v1":
+        lint.fail(path, "scope must be accepted_merged_akp_v1")
 
     policy = data.get("policy")
     if not isinstance(policy, dict):
@@ -1073,15 +1073,15 @@ def check_proposal_merge_manifest(lint: Lint) -> None:
         lint.fail(path, "policy.accepted_proposals_are_historical must be true")
 
     forbidden = policy.get("formal_zh_refs_forbidden")
-    forbidden_ckps: set[str] = set()
+    forbidden_akps: set[str] = set()
     if not isinstance(forbidden, list) or not forbidden:
         lint.fail(path, "policy.formal_zh_refs_forbidden must be a non-empty list")
     else:
         for index, value in enumerate(forbidden):
-            if not isinstance(value, str) or not CKP_ID_RE.fullmatch(value):
-                lint.fail(path, f"policy.formal_zh_refs_forbidden[{index}] must be CKP-NNNN")
+            if not isinstance(value, str) or not AKP_ID_RE.fullmatch(value):
+                lint.fail(path, f"policy.formal_zh_refs_forbidden[{index}] must be AKP-NNNN")
                 continue
-            forbidden_ckps.add(value)
+            forbidden_akps.add(value)
 
     rows = data.get("merged_proposals")
     if not isinstance(rows, list) or not rows:
@@ -1093,51 +1093,51 @@ def check_proposal_merge_manifest(lint: Lint) -> None:
         if not isinstance(row, dict):
             lint.fail(path, f"merged_proposals[{index}] must be an object")
             continue
-        ckp = row.get("ak.")
-        if not isinstance(ckp, str) or not CKP_ID_RE.fullmatch(ckp):
-            lint.fail(path, f"merged_proposals[{index}].ckp must be CKP-NNNN")
+        akp = row.get("akp")
+        if not isinstance(akp, str) or not AKP_ID_RE.fullmatch(akp):
+            lint.fail(path, f"merged_proposals[{index}].akp must be AKP-NNNN")
             continue
-        if ckp in seen:
-            lint.fail(path, f"duplicate proposal merge row for {ckp}")
-        seen.add(ckp)
+        if akp in seen:
+            lint.fail(path, f"duplicate proposal merge row for {akp}")
+        seen.add(akp)
         if row.get("status") != "accepted_merged":
-            lint.fail(path, f"{ckp}.status must be accepted_merged")
+            lint.fail(path, f"{akp}.status must be accepted_merged")
 
         proposal_file = row.get("proposal_file")
         if not isinstance(proposal_file, str) or not proposal_file.startswith("proposals/"):
-            lint.fail(path, f"{ckp}.proposal_file must be a proposals/ path")
+            lint.fail(path, f"{akp}.proposal_file must be a proposals/ path")
         elif Path(proposal_file).is_absolute() or ".." in Path(proposal_file).parts:
-            lint.fail(path, f"{ckp}.proposal_file escapes spec/v1: {proposal_file}")
+            lint.fail(path, f"{akp}.proposal_file escapes spec/v1: {proposal_file}")
         elif not (SPEC_ROOT / proposal_file).exists():
-            lint.fail(path, f"{ckp}.proposal_file does not exist: {proposal_file}")
+            lint.fail(path, f"{akp}.proposal_file does not exist: {proposal_file}")
 
         sections = row.get("merged_sections")
         if not isinstance(sections, list) or not sections:
-            lint.fail(path, f"{ckp}.merged_sections must be a non-empty list")
+            lint.fail(path, f"{akp}.merged_sections must be a non-empty list")
             continue
         for section_index, section in enumerate(sections):
             if not isinstance(section, dict):
-                lint.fail(path, f"{ckp}.merged_sections[{section_index}] must be an object")
+                lint.fail(path, f"{akp}.merged_sections[{section_index}] must be an object")
                 continue
             targets = section.get("targets")
             if not isinstance(targets, list) or not targets:
-                lint.fail(path, f"{ckp}.merged_sections[{section_index}].targets must be non-empty")
+                lint.fail(path, f"{akp}.merged_sections[{section_index}].targets must be non-empty")
                 continue
             for target in targets:
                 if not isinstance(target, str) or not target:
-                    lint.fail(path, f"{ckp}.merged_sections[{section_index}] has non-string target")
+                    lint.fail(path, f"{akp}.merged_sections[{section_index}] has non-string target")
                     continue
                 if Path(target).is_absolute() or ".." in Path(target).parts:
-                    lint.fail(path, f"{ckp} target escapes spec/v1: {target}")
+                    lint.fail(path, f"{akp} target escapes spec/v1: {target}")
                     continue
                 if not (SPEC_ROOT / target).exists():
-                    lint.fail(path, f"{ckp} target does not exist: {target}")
+                    lint.fail(path, f"{akp} target does not exist: {target}")
 
-    if forbidden_ckps != seen:
+    if forbidden_akps != seen:
         lint.fail(
             path,
-            "policy.formal_zh_refs_forbidden must match merged_proposals ckps: "
-            f"forbidden-only={sorted(forbidden_ckps - seen)}, rows-only={sorted(seen - forbidden_ckps)}",
+            "policy.formal_zh_refs_forbidden must match merged_proposals akps: "
+            f"forbidden-only={sorted(forbidden_akps - seen)}, rows-only={sorted(seen - forbidden_akps)}",
         )
 
     accepted_merged_from_frontmatter: set[str] = set()
@@ -1151,14 +1151,14 @@ def check_proposal_merge_manifest(lint: Lint) -> None:
         if not isinstance(fm, dict):
             lint.fail(proposal_path, "proposal missing frontmatter")
             continue
-        ckp = fm.get("ak.")
+        akp = fm.get("akp")
         status = fm.get("status")
         merged_to = fm.get("merged_to")
         if status == "accepted" and isinstance(merged_to, list) and merged_to:
-            if not isinstance(ckp, str) or not CKP_ID_RE.fullmatch(ckp):
-                lint.fail(proposal_path, "accepted merged proposal frontmatter must declare ckp: CKP-NNNN")
+            if not isinstance(akp, str) or not AKP_ID_RE.fullmatch(akp):
+                lint.fail(proposal_path, "accepted merged proposal frontmatter must declare akp: AKP-NNNN")
                 continue
-            accepted_merged_from_frontmatter.add(ckp)
+            accepted_merged_from_frontmatter.add(akp)
 
     missing_from_manifest = accepted_merged_from_frontmatter - seen
     if missing_from_manifest:
@@ -1174,11 +1174,11 @@ def check_proposal_merge_manifest(lint: Lint) -> None:
         except Exception:
             continue
         for line_number, line in enumerate(text.splitlines(), 1):
-            for ckp in sorted(forbidden_ckps):
-                if ckp in line:
+            for akp in sorted(forbidden_akps):
+                if akp in line:
                     lint.fail(
                         zh_path,
-                        f"line {line_number}: accepted merged proposal {ckp} must not be "
+                        f"line {line_number}: accepted merged proposal {akp} must not be "
                         "referenced from formal zh/ normative text; use proposal-merge-manifest.json "
                         "for history and link formal v1 sections instead.",
                     )
@@ -1606,8 +1606,8 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
 
 
 def check_vector_group_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
-    # Conformance-vector groups are fixture/runner groupings, NOT ck.profile.*
-    # capability-negotiation profiles. They live in their own ck.vector_group.*
+    # Conformance-vector groups are fixture/runner groupings, NOT ak.profile.*
+    # capability-negotiation profiles. They live in their own ak.vector_group.*
     # namespace with a dedicated requirements matrix, kept out of profile_roles /
     # profile_requirements so the capability namespace stays pure.
     path = ARTIFACTS / "profiles" / "conformance-profiles.json"
@@ -1861,7 +1861,7 @@ LEGACY_SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
 
 
 def collect_payload_dispatch_pairs(value: Any) -> list[tuple[str, str]]:
-    """Return [(kind, payload_class_name)] for every `if kind=const → then payload $ref` block."""
+    """Return [(kind, payload_class_name)] for every `if kind=const → then payload $ref` bloak."""
     pairs: list[tuple[str, str]] = []
     if isinstance(value, dict):
         if_schema = value.get("if")
@@ -1936,7 +1936,7 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
     # Mis-routed dispatch detector: each (kind, payload_class) pair must either
     # appear in KIND_PAYLOAD_RENAME_EXEMPTIONS verbatim, or embed the kind's
     # last dot-segment as a case-insensitive substring of the class name.
-    # Catches typo / copy-paste errors like `ck.self.agent.command.pause → agent_resume_payload`.
+    # Catches typo / copy-paste errors like `ak.self.agent.command.pause → agent_resume_payload`.
     seen_pairs: set[tuple[str, str]] = set()
     for kind, class_name in collect_payload_dispatch_pairs(data):
         if (kind, class_name) in seen_pairs:
@@ -2481,7 +2481,7 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
     expect_any_of("ak.self.events.query.scan", [["realms"], ["actors"]])
     expect_any_of("ak.self.events.stream.subscribe", [["realms"], ["actors"]])
     expect_any_of("ak.self.events.query.frontier", [["actor_id"], ["realm_id"]])
-    for operation_id in ("ak.self.events.query.scan", "ck.self.events.stream.subscribe"):
+    for operation_id in ("ak.self.events.query.scan", "ak.self.events.stream.subscribe"):
         expect_array_param(operation_id, "realms", "#/components/schemas/RealmId")
         expect_array_param(operation_id, "actors", "#/components/schemas/ActorDid")
     for name in ("before", "after"):
@@ -2892,7 +2892,7 @@ def infer_openapi_success_shape(operation_id: str, method: str, schema: Any) -> 
     if schema is None:
         if method == "head":
             return "metadata_headers"
-        if operation_id in {"ak.self.events.stream.subscribe", "ck.self.account.stream.subscribe"}:
+        if operation_id in {"ak.self.events.stream.subscribe", "ak.self.account.stream.subscribe"}:
             return "event_stream"
         if operation_id == "ak.self.blob.resource.get":
             return "binary_stream"
@@ -3161,7 +3161,7 @@ def schema_ref_mentioned_in_field_constraints(constraints: str, schema_ref: str)
 def collect_operation_field_table_constraints(text: str) -> dict[str, str]:
     rows: dict[str, str] = {}
     for line in text.splitlines():
-        if not line.startswith("| `ck."):
+        if not line.startswith("| `ak."):
             continue
         cells = [cell.strip() for cell in re.split(r"(?<!\\)\|", line.strip().strip("|"))]
         if len(cells) != 5:
@@ -3247,7 +3247,7 @@ def check_design_phase_legacy_compat_removed(lint: Lint) -> None:
         SPEC_ROOT / "zh" / "crypto-media" / "device-lifecycle.md": [
             "legacy_secret_storage_wire_form",
             "Wire deprecation",
-            "现存远端 `ck.secret_storage.v1`",
+            "现存远端 `ak.secret_storage.v1`",
         ],
         SPEC_ROOT / "zh" / "sync" / "service-surface.md": [
             "legacy_alias",
@@ -3504,7 +3504,7 @@ def check_vector_registry(lint: Lint) -> None:
 
         vector_id = row.get("vector_id")
         if not isinstance(vector_id, str) or not VECTOR_ID_TOKEN_RE.fullmatch(vector_id):
-            lint.fail(path, f"{label}.vector_id must be a ck.vector.*.vN identifier")
+            lint.fail(path, f"{label}.vector_id must be a ak.vector.*.vN identifier")
             continue
         if vector_id in registered:
             lint.fail(path, f"{label}.vector_id duplicates {vector_id}")
@@ -3582,7 +3582,7 @@ def check_account_data_type_registry(lint: Lint, known: dict[str, set[str]]) -> 
 
         key_pattern = row.get("key_pattern")
         if not isinstance(key_pattern, str) or not key_pattern.startswith("ak."):
-            lint.fail(path, f"{label}.key_pattern must be a ck.* key pattern")
+            lint.fail(path, f"{label}.key_pattern must be a ak.* key pattern")
             continue
         if key_pattern in seen:
             lint.fail(path, f"{label}.key_pattern duplicates {key_pattern}")
@@ -4188,7 +4188,7 @@ def check_markdown_examples(lint: Lint, known: dict[str, set[str]]) -> None:
         text = path.read_text(encoding="utf-8")
 
         if "ak.moderation.policy_action" in text:
-            lint.fail(path, "markdown references removed Event.kind ck.moderation.policy_action; use ck.policy.action")
+            lint.fail(path, "markdown references removed Event.kind ak.moderation.policy_action; use ak.policy.action")
 
         for schema_id in SCHEMA_ID_TOKEN_RE.findall(text):
             if schema_id not in known["schema_ids"]:
@@ -4570,7 +4570,7 @@ def check_fixture_reject_reason_closure(lint: Lint) -> None:
 
 
 def check_cross_doc_anchors(lint: Lint) -> None:
-    """T4-4: cross-doc anchor check.
+    """T4-4: cross-doc anchor cheak.
 
     Every markdown link `(./foo.md#anchor)` must resolve to a real header in
     foo.md, slugified the same way GitHub-flavored renderers do. Prevents
@@ -5134,10 +5134,10 @@ def check_signature_algorithm_registry(lint: Lint) -> None:
 
 
 # --- STR-002 / OPT-005: action prose-reference closure ------------------------
-# (ck.profile.*.vN prose closure is already enforced for all markdown by
+# (ak.profile.*.vN prose closure is already enforced for all markdown by
 # check_markdown_examples; only the hand-maintained action list lacked a gate.)
 
-# Action tokens that legitimately appear as a `- `ck.<...>`` bullet in
+# Action tokens that legitimately appear as a `- `ak.<...>`` bullet in
 # capabilities.md §5 but are intentionally NOT capability-action-registry
 # entries. Keep empty unless a real exception exists; every addition MUST carry
 # a one-line reason.
@@ -5151,10 +5151,10 @@ def check_action_reference_closure(lint: Lint) -> None:
     """STR-002 / OPT-005: every action declared in capabilities.md §5 (动作集合)
     bullet lists MUST resolve in capability-action-registry.json (the canonical
     action set generated from contract-catalog.json). Scope is deliberately
-    restricted to the §5 action-declaration bullets (`- `ck.<...>``) so that
+    restricted to the §5 action-declaration bullets (`- `ak.<...>``) so that
     event kinds, grandfathered old names in the §5.0 deviation table, and prose
-    `ck.*` tokens elsewhere cannot produce false positives — closing the
-    hand-maintained-list drift (e.g. ck.object.read_history) at its root."""
+    `ak.*` tokens elsewhere cannot produce false positives — closing the
+    hand-maintained-list drift (e.g. ak.object.read_history) at its root."""
     registry_path = ARTIFACTS / "registry" / "capability-action-registry.json"
     data = load_json(lint, registry_path)
     if not isinstance(data, dict):

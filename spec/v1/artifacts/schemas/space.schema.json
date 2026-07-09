@@ -100,7 +100,7 @@
         "archived",
         "tombstoned"
       ],
-      "description": "Space lifecycle state. 'active' is the default. State transitions are reducer-enforced per common-fields.md §5.1: ck.space.archive MUST come from state=='active' (else failed_precondition reason=space_not_active); ck.space.restore MUST come from state=='archived' (else failed_precondition reason=space_not_archived); ck.space.tombstone MUST come from {'active','archived'} AND must have no live dependents (failed_precondition reason=space_already_terminal for terminal source, space_has_live_dependents for live refs). Same-state self-transitions (archive on archived, etc.) MUST fail; clients re-archive by restore-then-archive. Tombstoned is irreversible (MUST NOT be restored). The transition timestamp lives on the writing Move and on state_changed_at."
+      "description": "Space lifecycle state. 'active' is the default. State transitions are reducer-enforced per common-fields.md §5.1: ak.space.archive MUST come from state=='active' (else failed_precondition reason=space_not_active); ak.space.restore MUST come from state=='archived' (else failed_precondition reason=space_not_archived); ak.space.tombstone MUST come from {'active','archived'} AND must have no live dependents (failed_precondition reason=space_already_terminal for terminal source, space_has_live_dependents for live refs). Same-state self-transitions (archive on archived, etc.) MUST fail; clients re-archive by restore-then-archive. Tombstoned is irreversible (MUST NOT be restored). The transition timestamp lives on the writing Move and on state_changed_at."
     },
     "state_changed_at": {
       "type": "string",

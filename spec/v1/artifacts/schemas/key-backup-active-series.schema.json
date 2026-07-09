@@ -116,7 +116,7 @@
         "ssk_generation": {
           "type": "integer",
           "minimum": 1,
-          "description": "Accepted ck.cross_signing.publish.generation used to authorize this active-series selection."
+          "description": "Accepted ak.cross_signing.publish.generation used to authorize this active-series selection."
         }
       },
       "additionalProperties": false

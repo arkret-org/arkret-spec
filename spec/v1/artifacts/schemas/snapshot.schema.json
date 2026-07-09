@@ -112,7 +112,7 @@
             "type": "string",
             "pattern": "^ak:event:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
           },
-          "description": "When present, MUST denote the same event id set as the top-level frontier.event_ids (set equality): both bind the same snapshot frontier. Consumers MUST reject the snapshot on any mismatch (cross-field consistency enforced by snapshot-schema.md section 5, not by JSON Schema). Renamed from covered_seals: the members are boundary event ids, not Seal ids; the old spelling is hard-rejected (migration/renames.json) and is unrelated to the MLS covered_seals_cell (ck.component.covered_seals.v1), which keeps its name."
+          "description": "When present, MUST denote the same event id set as the top-level frontier.event_ids (set equality): both bind the same snapshot frontier. Consumers MUST reject the snapshot on any mismatch (cross-field consistency enforced by snapshot-schema.md section 5, not by JSON Schema). Renamed from covered_seals: the members are boundary event ids, not Seal ids; the old spelling is hard-rejected (migration/renames.json) and is unrelated to the MLS covered_seals_cell (ak.component.covered_seals.v1), which keeps its name."
         },
         "actor_seq_ranges": {
           "type": "array",

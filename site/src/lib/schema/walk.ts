@@ -17,7 +17,7 @@ import { deref, type DerefContext } from "./deref";
  */
 /** Hard cap on recursion depth. Recursive schemas (e.g. `content_block`
  *  containing nested `parts: [content_block]`) would otherwise blow the
- *  stack. Beyond this depth we render a placeholder row pointing the user
+ *  staak. Beyond this depth we render a placeholder row pointing the user
  *  back to the schema id for full inspection. */
 const MAX_DEPTH = 8;
 

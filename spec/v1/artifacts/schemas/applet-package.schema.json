@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/applet-package.schema.json",
   "title": "Arkret Applet Package",
-  "description": "Controller-signed package used to install an Applet. The package is a distribution object, not Realm history truth and not a grant. Principal Server / authz service derives ck.applet.registration and capability grants during ck.applet.install.",
+  "description": "Controller-signed package used to install an Applet. The package is a distribution object, not Realm history truth and not a grant. Principal Server / authz service derives ak.applet.registration and capability grants during ak.applet.install.",
   "type": "object",
   "required": [
     "schema",
@@ -447,7 +447,7 @@
     },
     "widget": {
       "$ref": "./applet-widget-declaration.schema.json",
-      "description": "Optional Applet widget declaration. When present, it MUST validate ck.schema.applet_widget_declaration.v1."
+      "description": "Optional Applet widget declaration. When present, it MUST validate ak.schema.applet_widget_declaration.v1."
     }
   },
   "patternProperties": {

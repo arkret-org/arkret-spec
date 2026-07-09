@@ -1,5 +1,5 @@
 ---
-ckp: CKP-0014
+akp: AKP-0014
 title: Implementation-local HTTP surfaces found in coauth / inkson audit
 normative: false
 stability: v1
@@ -21,7 +21,7 @@ merged_to:
   - artifacts/openapi/arkret-service-api.openapi.yaml
 ---
 
-# CKP-0014: Implementation-local HTTP surfaces found in coauth / inkson audit
+# AKP-0014: Implementation-local HTTP surfaces found in coauth / inkson audit
 
 > **Status: accepted and merged 2026-06-16.** This proposal is now historical
 > rationale. The normative source of truth is `zh/` plus `artifacts/`; do not
@@ -45,9 +45,9 @@ registered Arkret operations:
 - `POST /_arkret/gate/account/auth/oidc/exchange`
 
 Resolved (now registered Arkret operations): `POST /_arkret/gate/account/session-grants/refresh`
-(`ck.gate.account.command.refresh_session_grant`) and
+(`ak.gate.account.command.refresh_session_grant`) and
 `POST /_arkret/gate/account/session-grants/introspect`
-(`ck.gate.account.command.introspect_session_grant`) have been promoted out of
+(`ak.gate.account.command.introspect_session_grant`) have been promoted out of
 the candidate list and into the operation registry / OpenAPI / service-http-binding.
 
 Resolved 2026-06-16: native sign-in MUST NOT standardize the bridge endpoints.
@@ -118,30 +118,30 @@ such as `/_arkret/self/events`, `/_arkret/self/account/subscribe`,
 
 Circle administration was originally listed above as a candidate
 (`POST /_arkret/self/circles`, `GET /_arkret/self/circles`). It has since been
-accepted and is **normative** as of the Circle work (see CKP-0007). The full
+accepted and is **normative** as of the Circle work (see AKP-0007). The full
 self-service Circle surface is registered in the canonical operation registry
-(`ck.self.circle.*`), the contract catalog, the OpenAPI artifact, and the HTTP
+(`ak.self.circle.*`), the contract catalog, the OpenAPI artifact, and the HTTP
 binding (`zh/sync/service-http-binding.md`). Implementations expose it under
 `/_arkret/self/circles*`:
 
-- `POST /_arkret/self/circles` → `ck.self.circle.create`
-- `GET /_arkret/self/circles` → `ck.self.circle.list`
-- `GET /_arkret/self/circles/{circle_id}` → `ck.self.circle.get`
-- `POST /_arkret/self/circles/{circle_id}/members` → `ck.self.circle.member.add`
+- `POST /_arkret/self/circles` → `ak.self.circle.create`
+- `GET /_arkret/self/circles` → `ak.self.circle.list`
+- `GET /_arkret/self/circles/{circle_id}` → `ak.self.circle.get`
+- `POST /_arkret/self/circles/{circle_id}/members` → `ak.self.circle.member.add`
 - `DELETE /_arkret/self/circles/{circle_id}/members/{actor_id}` →
-  `ck.self.circle.member.remove`
+  `ak.self.circle.member.remove`
 - `POST /_arkret/self/circles/{circle_id}/scope-rotate` →
-  `ck.self.circle.scope_rotate`
-- `POST /_arkret/self/circles/{circle_id}/archive` → `ck.self.circle.archive`
+  `ak.self.circle.scope_rotate`
+- `POST /_arkret/self/circles/{circle_id}/archive` → `ak.self.circle.archive`
 - `POST /_arkret/self/circles/{circle_id}/tombstone` →
-  `ck.self.circle.tombstone`
+  `ak.self.circle.tombstone`
 
 The remaining bullets in §5 (devices, recovery read/receipts, WebRTC / call
 recording, view / document projection, MLS rotate, push preferences,
 account-data blocklist, telemetry) stay draft and are deferred to later waves;
-none of them is registered as a `ck.self.*` operation yet. In particular the
+none of them is registered as a `ak.self.*` operation yet. In particular the
 canonical account-data surface is the verbatim, opaque
-`ck.self.account_data.*` family at `/_arkret/self/account_data/{data_type}`,
+`ak.self.account_data.*` family at `/_arkret/self/account_data/{data_type}`,
 which is **not** the same as the inkson `POST /_arkret/self/account-data/blocklist`
 helper listed above.
 
@@ -161,7 +161,7 @@ handovers, notary signing-key GET, spaces hierarchy), plus an ops panel set
 1. None of these endpoints are protocol candidates. Administrative and
    operations consoles are deployment products; the Arkret protocol surface
    (`/_arkret/*`) intentionally does not define an admin plane. They will not
-   be added to the canonical operation registry, and this CKP does not reserve
+   be added to the canonical operation registry, and this AKP does not reserve
    `/_arkret` paths for them.
 2. Whether an implementation (soland) mounts any of them under its vendor
    namespace (`/_soland/admin/*`) is product planning owned by that
@@ -188,7 +188,7 @@ handovers, notary signing-key GET, spaces hierarchy), plus an ops panel set
   Write/configure operations (`POST recovery-policy`, `POST recovery-receipt`)
   stay implementation-local (`/_soland/root/identity/*`, registered as
   `org.arkret.soland.*` extension operations) for v1. Promoting them into
-  `/_arkret` requires a dedicated CKP with closed schemas per §7.
+  `/_arkret` requires a dedicated AKP with closed schemas per §7.
 - *Notary value wire shape (SPEC-SOD-004)*: adjudicated in normative prose —
   `zh/authz/event-auth-state-resolution.md` §4.4 now pins the `type`-tagged
   object from `realm.schema.json` as the only legal wire shape and forbids the

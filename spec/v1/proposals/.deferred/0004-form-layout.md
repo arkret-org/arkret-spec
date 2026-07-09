@@ -1,5 +1,5 @@
 ---
-ckp: CKP-0004
+akp: AKP-0004
 title: Form Layout (per-type detail view arrangement)
 normative: false
 stability: v1
@@ -8,7 +8,7 @@ status: deferred-to-v1.1
 created: 2026-05-23
 authors:
   - did:webvh:z8kSru9qAfd1G7AvcVjggdEKy:arkret.example
-depends_on: [CKP-0002, CKP-0003]
+depends_on: [AKP-0002, AKP-0003]
 ---
 
 ## 1. Summary
@@ -25,7 +25,7 @@ Jira 截图最直观的功能是"Work item layout":per-work-type 拖拽字段顺
 
 ### 3.1 `ak:form_layout:` 对象
 
-Schema id: `ck.schema.form_layout.v1`
+Schema id: `ak.schema.form_layout.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -92,18 +92,18 @@ Schema id: `ck.schema.form_layout.v1`
 
 | event kind | reducer_input | 说明 |
 | --- | --- | --- |
-| `ck.form_layout.create` | yes | 创建 |
-| `ck.form_layout.update` | yes | patch sections / tabs |
-| `ck.form_layout.archive` | yes | active → archived |
-| `ck.form_layout.restore` | yes | archived → active |
-| `ck.form_layout.tombstone` | yes | terminal |
-| `ck.form_layout.copy` | yes | "Copy work item layout"(Jira 截图右下按钮);复制一份新 layout 对象,target 可改 |
+| `ak.form_layout.create` | yes | 创建 |
+| `ak.form_layout.update` | yes | patch sections / tabs |
+| `ak.form_layout.archive` | yes | active → archived |
+| `ak.form_layout.restore` | yes | archived → active |
+| `ak.form_layout.tombstone` | yes | terminal |
+| `ak.form_layout.copy` | yes | "Copy work item layout"(Jira 截图右下按钮);复制一份新 layout 对象,target 可改 |
 
 ### 3.6 Capability
 
 | action | risk_tier | target event kinds |
 | --- | --- | --- |
-| `ck.form_layout.manage` | medium | create / update / archive / restore / tombstone / copy |
+| `ak.form_layout.manage` | medium | create / update / archive / restore / tombstone / copy |
 
 ## 4. Interactions with normative spec
 
@@ -111,7 +111,7 @@ Schema id: `ck.schema.form_layout.v1`
 - 新增 schema:`form-layout.schema.json`。
 - 新增 id-kind:`form_layout`。
 - 新增 event_kinds(6 条)+ capability actions(1 条)。
-- 新增 profile:`ck.profile.form_layout.v1`。
+- 新增 profile:`ak.profile.form_layout.v1`。
 - **reducer 不校验 layout 内容**:layout 是纯展示元数据,wire 上 layout 引用的 field_def / strand_type 不存在时,reducer 在 layout 写入时校验引用合法性,但**不**联动校验 Strand 数据。
 - View(`ak:view:`)与 form_layout 关系:View 服务 collection(多对象列表),form_layout 服务 detail(单对象)。两者职责正交。
 
@@ -127,7 +127,7 @@ Schema id: `ck.schema.form_layout.v1`
 
 ### 5.2 为什么 layout 是 first-class 对象而不是 Realm schema 内嵌?
 
-- 改一份 layout 应该有独立 audit / capability(`ck.form_layout.manage` ≠ `ck.realm.update`)
+- 改一份 layout 应该有独立 audit / capability(`ak.form_layout.manage` ≠ `ak.realm.update`)
 - "Copy layout" 是高频运维操作,需要 first-class event
 - 跨 Realm template marketplace(未来)需要 layout 是可独立分发的对象
 
@@ -152,5 +152,5 @@ layout 是纯 hint,引用的 field_def / strand_type 在 layout 写入时存在�
 - Jira "Work item layout"(用户提供截图,2026-05-23):drag-fields 排列、"Hide when empty" 分隔、Sub-task / Task tab、"Copy work item layout" 按钮、右侧 Fields 边栏 + custom fields 跳转
 - Notion database template
 - Asana task templates
-- CKP-0002 Strand Type(layout 的 type 锚点)
-- CKP-0003 Field Catalog(layout 的字段引用对象)
+- AKP-0002 Strand Type(layout 的 type 锚点)
+- AKP-0003 Field Catalog(layout 的字段引用对象)

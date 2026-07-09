@@ -13,7 +13,7 @@
     "spec/v1/artifacts/registry/event-kind-registry.json",
     "spec/v1/artifacts/registry/error-code-registry.json"
   ],
-  "description": "Conformance vectors for the ck.realm.organization statement payload (organization-authorized Realm relationship endorsement / revocation). Validates schema_validation_cases[] against schemas/event-payload.schema.json#/$defs/realm_organization_payload via tools/lint_artifacts.py. The verified organization relationship has two independent authorization layers (realm-and-space.md §2.3.0): Realm-side acceptance (writer holds ck.realm.admin or rides an allowed create-bootstrap batch) and Organization-side consent (payload.authorization proof verifies to the organization DID control state, a threshold governance quorum, or a delegated Account Authority / governance service whose delegation purpose covers ck.realm.organization, the relationship, and the control_scopes). Placeholder signature/proof strings are intentional and MUST NOT be treated as cryptographic vectors. Cases whose schema_only_valid is true but whose semantic_outcome is reject pass JSON Schema yet MUST be rejected by the reducer for the listed expected_reason_code; downstream SDK validators and cotest negative cases MUST assert that exact registered reason code rather than a bare string.",
+  "description": "Conformance vectors for the ak.realm.organization statement payload (organization-authorized Realm relationship endorsement / revocation). Validates schema_validation_cases[] against schemas/event-payload.schema.json#/$defs/realm_organization_payload via tools/lint_artifacts.py. The verified organization relationship has two independent authorization layers (realm-and-space.md §2.3.0): Realm-side acceptance (writer holds ak.realm.admin or rides an allowed create-bootstrap batch) and Organization-side consent (payload.authorization proof verifies to the organization DID control state, a threshold governance quorum, or a delegated Account Authority / governance service whose delegation purpose covers ak.realm.organization, the relationship, and the control_scopes). Placeholder signature/proof strings are intentional and MUST NOT be treated as cryptographic vectors. Cases whose schema_only_valid is true but whose semantic_outcome is reject pass JSON Schema yet MUST be rejected by the reducer for the listed expected_reason_code; downstream SDK validators and cotest negative cases MUST assert that exact registered reason code rather than a bare string.",
   "schema_validation_cases": [
     {
       "name": "active_organization_did_owner_valid",
@@ -76,7 +76,7 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_organization_payload",
       "expect_valid": true,
       "semantic_outcome": "accept",
-      "notes": "Same governance_service statement with delegation_ref present; delegation purpose MUST cover ck.realm.organization, relationship=governance, and the listed control_scopes.",
+      "notes": "Same governance_service statement with delegation_ref present; delegation purpose MUST cover ak.realm.organization, relationship=governance, and the listed control_scopes.",
       "instance": {
         "statement_id": "org-stmt-00000003",
         "realm_id": "ak:realm:01964137-0000-7000-8000-000000000001",
@@ -380,7 +380,7 @@
       "schema_only_valid": true,
       "semantic_outcome": "reject",
       "expected_reason_code": "realm_organization_realm_acceptance_missing",
-      "notes": "Schema-valid and organization-side proof is well-formed, but the writing principal does not hold ck.realm.admin and the event is not part of an allowed create-bootstrap batch. The Realm-side acceptance layer is independent of the organization-side proof and MUST fail as realm_organization_realm_acceptance_missing.",
+      "notes": "Schema-valid and organization-side proof is well-formed, but the writing principal does not hold ak.realm.admin and the event is not part of an allowed create-bootstrap batch. The Realm-side acceptance layer is independent of the organization-side proof and MUST fail as realm_organization_realm_acceptance_missing.",
       "instance": {
         "statement_id": "org-stmt-00000014",
         "realm_id": "ak:realm:01964137-0000-7000-8000-000000000001",

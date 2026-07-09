@@ -28,18 +28,18 @@ Profile / capability 声明也是异构版本互通的协商基础：兼容性�
 Profile 名称使用：
 
 ```text
-ck.profile.<name>.v<major>
+ak.profile.<name>.v<major>
 ```
 
 示例：
 
-- `ck.profile.minimal_client.v1`
-- `ck.profile.principal_server_events_api.v1`
-- `ck.profile.principal_server.v1`
-- `ck.profile.full_client.v1`
-- `ck.profile.e2ee_client.v1`
-- `ck.profile.federation_minimal.v1`
-- `ck.profile.mimi_interop.v1`
+- `ak.profile.minimal_client.v1`
+- `ak.profile.principal_server_events_api.v1`
+- `ak.profile.principal_server.v1`
+- `ak.profile.full_client.v1`
+- `ak.profile.e2ee_client.v1`
+- `ak.profile.federation_minimal.v1`
+- `ak.profile.mimi_interop.v1`
 
 ## 2.1 v1 MVP 分层
 
@@ -47,20 +47,20 @@ ck.profile.<name>.v<major>
 
 | 层级 | 含义 | 典型内容 |
 | --- | --- | --- |
-| Minimal interop floor | 仅声称 v1 Event Store interop 时的最小声明。 | `ck.profile.core_event_store.v1`：Event Envelope、per-actor event chain、events submit/get/list/frontier/backfill、标准错误。 |
+| Minimal interop floor | 仅声称 v1 Event Store interop 时的最小声明。 | `ak.profile.core_event_store.v1`：Event Envelope、per-actor event chain、events submit/get/list/frontier/backfill、标准错误。 |
 | Stable profile catalog | v1 stable catalog 中可独立声明的实现 profile，不构成默认全量包。 | `chat_mvp`、`kanban_mvp`、`minimal_client`、`full_client`、`principal_server`、`identity_registry`、`blob_node`、`push_gateway`、`federation_minimal`、`sovereign_client` 等。 |
-| Extension（v1 lattice / interop） | 在 v1 stable catalog 中可独立声明，但**只在显式 opt-in 时启用**。未声明的实现遇到这些能力 MUST fail closed。 | `ck.profile.collaborative_text.v1`（lww_register / rga lattice 扩展）、`ck.profile.matrix_compat.v1`（Matrix 兼容声明：to-device / `/_arkret/self/keys/*` / push gateway / cross-signing / SAS 与 Matrix 等价语义；账号聚合不声明 Matrix `/sync` wire parity）。 |
+| Extension（v1 lattice / interop） | 在 v1 stable catalog 中可独立声明，但**只在显式 opt-in 时启用**。未声明的实现遇到这些能力 MUST fail closed。 | `ak.profile.collaborative_text.v1`（lww_register / rga lattice 扩展）、`ak.profile.matrix_compat.v1`（Matrix 兼容声明：to-device / `/_arkret/self/keys/*` / push gateway / cross-signing / SAS 与 Matrix 等价语义；账号聚合不声明 Matrix `/sync` wire parity）。 |
 | Interop staging extension | **不属于 v1 core interop floor**，跟踪外部演进标准；声明 v1 core 的实现 MAY 完全省略。 | MIMI interop、Applet integration、Agent protocol bridge、TSP integration 等；这些 profile 在外部标准定型后将被稳定版本固定取代。 |
 
 Document、File、Poll 在 v1 MVP 中默认是 Morph profile 或 extension profile，不是 core 标准对象。实现不得因为未来可能标准化这些类型，就在 v1 wire contract 中要求对端支持专用对象类型。
 
-Core identity conformance 要求 DID Core 解析 / 验证抽象、`did:webvh`（v1 core 默认 principal method）、`did:web`（service DID / `personal_node` profile principal）与 `did:key`。所有声明 `ck.profile.principal_server.v1` / `ck.profile.full_client.v1` / `ck.profile.e2ee_client.v1` 的实现 MUST 支持 `did:webvh` witness / SCID / entry hash chain 验证。组织高保证实现 SHOULD 声明 `ck.profile.org_high_assurance_identity.v1` 并要求 `did:webvh` witness / watcher evidence 强制 threshold ≥ 1。AT Protocol 互通实现 SHOULD 额外声明 `ck.profile.public_network_identity.v1` 并支持 `did:plc` adapter；该 adapter 是 interop 加项，不是 Arkret Core 强制依赖。
+Core identity conformance 要求 DID Core 解析 / 验证抽象、`did:webvh`（v1 core 默认 principal method）、`did:web`（service DID / `personal_node` profile principal）与 `did:key`。所有声明 `ak.profile.principal_server.v1` / `ak.profile.full_client.v1` / `ak.profile.e2ee_client.v1` 的实现 MUST 支持 `did:webvh` witness / SCID / entry hash chain 验证。组织高保证实现 SHOULD 声明 `ak.profile.org_high_assurance_identity.v1` 并要求 `did:webvh` witness / watcher evidence 强制 threshold ≥ 1。AT Protocol 互通实现 SHOULD 额外声明 `ak.profile.public_network_identity.v1` 并支持 `did:plc` adapter；该 adapter 是 interop 加项，不是 Arkret Core 强制依赖。
 
 v1 的首轮互操作验收 SHOULD 拆成三个可运行闭环：
 
-- `ck.profile.core_event_store.v1`：DID / service discovery、Event Envelope validation、event submit/fetch/backfill、per-actor event chain validation、idempotent duplicate handling、standard error。
-- `ck.profile.chat_mvp.v1`：在 `core_event_store` 之上支持 Realm、`ck.member.state`、启用 discussion track 且可设为 primary 的 Strand、Message、Reaction、Redaction、Client Sync timeline 和 history visibility。
-- `ck.profile.kanban_mvp.v1`：在 `core_event_store` 之上支持 Space（`kind=board/list`）、Strand、`contains` position Relation、`ck.strand.move`、`ck.strand.reorder`、`ck.space.create`、`ck.space.update`、`ck.space.parent`、客户端 Collection projection 和 wait-for query。
+- `ak.profile.core_event_store.v1`：DID / service discovery、Event Envelope validation、event submit/fetch/backfill、per-actor event chain validation、idempotent duplicate handling、standard error。
+- `ak.profile.chat_mvp.v1`：在 `core_event_store` 之上支持 Realm、`ak.member.state`、启用 discussion track 且可设为 primary 的 Strand、Message、Reaction、Redaction、Client Sync timeline 和 history visibility。
+- `ak.profile.kanban_mvp.v1`：在 `core_event_store` 之上支持 Space（`kind=board/list`）、Strand、`contains` position Relation、`ak.strand.move`、`ak.strand.reorder`、`ak.space.create`、`ak.space.update`、`ak.space.parent`、客户端 Collection projection 和 wait-for query。
 
 `minimal_client`、`full_client`、`principal_server` 等实现 profile 通过声明所支持的闭环（`chat_mvp` / `kanban_mvp`）表达能力；未声明的闭环不得被对端视为默认可用。希望仅做聊天产品而不实现 board/list 的客户端，应声明 `chat_mvp` 而不实现 `kanban_mvp`，并在 `rejected_event_kinds` 中明确拒绝 board/list 相关 kind。
 
@@ -103,9 +103,9 @@ SDK 侧构建期守卫的具体实现形态（feature 矩阵测试、声明常�
 
 ## 2.2 场景化 Profile
 
-以下 profile 用于把 v1 启动范围降到可实现的产品子集。它们不是 `minimal_client` 的替代品，而是面向具体产品形态的互操作声明。声明 `ck.profile.chat_mvp.v1` 或 `ck.profile.kanban_mvp.v1` 时，仅实现一个闭环的实现 SHOULD 在 `rejected_event_kinds` 中列出本实现拒绝的另一闭环 wire scope。
+以下 profile 用于把 v1 启动范围降到可实现的产品子集。它们不是 `minimal_client` 的替代品，而是面向具体产品形态的互操作声明。声明 `ak.profile.chat_mvp.v1` 或 `ak.profile.kanban_mvp.v1` 时，仅实现一个闭环的实现 SHOULD 在 `rejected_event_kinds` 中列出本实现拒绝的另一闭环 wire scope。
 
-### `ck.profile.federation_minimal.v1`
+### `ak.profile.federation_minimal.v1`
 
 适用于最小跨 Principal Server 操作交换。
 
@@ -128,8 +128,8 @@ MAY 支持 gossip、snapshot-assisted bootstrap、MIMI facade、Applet bridge �
 
 以下要求不依赖具体角色，必须作为可互操作实现的基础：
 
-- 事件名必须符合 `ck.` 命名规则，且标准 `ck.*` Event kind 必须在 `artifacts/registry/event-kind-registry.json` 注册；schema id 必须在 `artifacts/registry/schema-registry.json` 注册。
-- Event Envelope MUST 先通过 `ck.schema.event.v1`，再按 `Event.kind` 通过 `ck.schema.event_payload.v1` 对应 payload class；active 标准 kind 未匹配 payload class 或 payload 校验失败时 MUST 返回 `schema_violation`，不得进入 reducer。
+- 事件名必须符合 `ak.` 命名规则，且标准 `ak.*` Event kind 必须在 `artifacts/registry/event-kind-registry.json` 注册；schema id 必须在 `artifacts/registry/schema-registry.json` 注册。
+- Event Envelope MUST 先通过 `ak.schema.event.v1`，再按 `Event.kind` 通过 `ak.schema.event_payload.v1` 对应 payload class；active 标准 kind 未匹配 payload class 或 payload 校验失败时 MUST 返回 `schema_violation`，不得进入 reducer。
 - 事件/关系/对象/View 的 `created_at`、`realm_id`、`proof`、`hlc`、`actor_seq`、`prev_refs` / `refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过；版本通过 `Event.requirements.{schema, reducer}` 表达。
 - `auth` 约束必须执行，不得通过客户端配置豁免。
 - State frontier、snapshot frontier、projection frontier 和 wait-for token MUST 以 `event_id` / actor frontier 为语义单位；`operation_id` 只可表示服务 canonical operation。
@@ -139,7 +139,7 @@ MAY 支持 gossip、snapshot-assisted bootstrap、MIMI facade、Applet bridge �
 
 ## 4. Minimal Client
 
-`ck.profile.minimal_client.v1` 适用于只读或轻量写入客户端。
+`ak.profile.minimal_client.v1` 适用于只读或轻量写入客户端。
 
 MUST 支持：
 
@@ -164,7 +164,7 @@ MAY 支持：
 
 ## 5. Full Client
 
-`ck.profile.full_client.v1` 适用于桌面、Web 和移动主客户端。
+`ak.profile.full_client.v1` 适用于桌面、Web 和移动主客户端。
 
 MUST 支持 Minimal Client 的全部能力，并额外支持：
 
@@ -189,7 +189,7 @@ SHOULD 支持：
 
 ## 6. E2EE Client
 
-`ck.profile.e2ee_client.v1` 适用于加密 Realm。
+`ak.profile.e2ee_client.v1` 适用于加密 Realm。
 
 MUST 支持 Full Client 的相关能力，并额外支持：
 
@@ -208,9 +208,9 @@ MUST 支持 Full Client 的相关能力，并额外支持：
 - lost-device response
 - local plaintext search for encrypted content
 
-声明 `ck.profile.mls_governance_binding.full.v1`（即 MLS Governance Binding 的 full 形态，见 `crypto-media/encryption-and-audit.md §2.5`）时，客户端和服务端 MUST 额外验证 commit 携带的 `governance_binding` 覆盖 membership、history visibility、plaintext-visible service、asset privacy、logging、bot / applet / agent policy、moderation policy 与 capability grant / revoke frontier，并 MUST 通过 `covered_seals_cell` coverage gate E2EE DataEvent 的 `seal_ref`。无法验证 `governance_binding` 指向的 Seal view 时，客户端 MUST fail closed，至少不得接受依赖未知应用状态的新 epoch。
+声明 `ak.profile.mls_governance_binding.full.v1`（即 MLS Governance Binding 的 full 形态，见 `crypto-media/encryption-and-audit.md §2.5`）时，客户端和服务端 MUST 额外验证 commit 携带的 `governance_binding` 覆盖 membership、history visibility、plaintext-visible service、asset privacy、logging、bot / applet / agent policy、moderation policy 与 capability grant / revoke frontier，并 MUST 通过 `covered_seals_cell` coverage gate E2EE DataEvent 的 `seal_ref`。无法验证 `governance_binding` 指向的 Seal view 时，客户端 MUST fail closed，至少不得接受依赖未知应用状态的新 epoch。
 
-声明 `ck.profile.attested_audit.e2ee.v1` 时，审计 applet release service MUST 提供可验证 remote attestation，并执行 active binding、session request/authorize/notice、sealed `ck.audit.release`、RYW receipt 等待和成员可见 disclosure；RYW receipt 的 `audit_assurance_class` MUST 等于 `attested_hardware`。声明 `ck.profile.disclosed_audit.e2ee.v1` 时，不要求 TEE attestation，但 Realm / Circle policy 和加入 UI MUST 明确展示这是流程性披露；同样不得绕过 Audit Applet Binding + release session 留痕流程；RYW receipt 的 `audit_assurance_class` MUST 等于 `disclosed_policy`。审计 applet 不是 MLS 成员，也不获得实时消息 fanout。两个 profile 不再共享 family 前缀，对外材料 MUST 遵守 `encryption-and-audit.md §3` / `audited-e2ee.md` 的禁用措辞条款，不得将 disclosed 类宣传为密码学/硬件强制审计。
+声明 `ak.profile.attested_audit.e2ee.v1` 时，审计 applet release service MUST 提供可验证 remote attestation，并执行 active binding、session request/authorize/notice、sealed `ak.audit.release`、RYW receipt 等待和成员可见 disclosure；RYW receipt 的 `audit_assurance_class` MUST 等于 `attested_hardware`。声明 `ak.profile.disclosed_audit.e2ee.v1` 时，不要求 TEE attestation，但 Realm / Circle policy 和加入 UI MUST 明确展示这是流程性披露；同样不得绕过 Audit Applet Binding + release session 留痕流程；RYW receipt 的 `audit_assurance_class` MUST 等于 `disclosed_policy`。审计 applet 不是 MLS 成员，也不获得实时消息 fanout。两个 profile 不再共享 family 前缀，对外材料 MUST 遵守 `encryption-and-audit.md §3` / `audited-e2ee.md` 的禁用措辞条款，不得将 disclosed 类宣传为密码学/硬件强制审计。
 
 MUST NOT：
 
@@ -221,7 +221,7 @@ MUST NOT：
 
 ## 7. Principal Server Events API
 
-`ck.profile.principal_server_events_api.v1` 适用于 Principal Server 暴露的 Event 提交、读取、回填和 frontier 查询 API。
+`ak.profile.principal_server_events_api.v1` 适用于 Principal Server 暴露的 Event 提交、读取、回填和 frontier 查询 API。
 
 MUST 支持：
 
@@ -247,7 +247,7 @@ SHOULD 支持：
 
 ## 8. Principal Server
 
-`ck.profile.principal_server.v1` 适用于用户、组织或 agent principal 控制/委托的服务入口。
+`ak.profile.principal_server.v1` 适用于用户、组织或 agent principal 控制/委托的服务入口。
 
 MUST 支持：
 
@@ -274,7 +274,7 @@ Principal Server MUST NOT 将非 E2EE 的私有内容或可还原的派生明文
 
 ## 9. Identity Registry Node
 
-`ck.profile.identity_registry.v1` 适用于 DID 文档与 key log 服务。
+`ak.profile.identity_registry.v1` 适用于 DID 文档与 key log 服务。
 
 MUST 支持：
 
@@ -295,12 +295,12 @@ SHOULD 支持：
 
 ## 9a. Auth Server
 
-`ck.profile.auth_server.v1` 适用于负责登录因子验证、短期会话授权与 session-grant 生命周期管理的服务（reference implementation：`coauth`）。
+`ak.profile.auth_server.v1` 适用于负责登录因子验证、短期会话授权与 session-grant 生命周期管理的服务（reference implementation：`coauth`）。
 
 MUST 支持：
 
-- service describe（`ck.server.query.describe`）
-- `ck.gate.account.command.issue_session_grant` / `/_arkret/gate/account/session-grants` 的规范化签发路径
+- service describe（`ak.server.query.describe`）
+- `ak.gate.account.command.issue_session_grant` / `/_arkret/gate/account/session-grants` 的规范化签发路径
 - 至少一种登录因子（password / passkey / OIDC / SSO / device pairing / recovery challenge）
 - 短期、audience-bound `ak.session.grant` 签发
 - session_grant TTL 上限远低于 Realm policy review horizon（minutes-to-hours，不得跨越多日）
@@ -310,22 +310,22 @@ MUST 支持：
 SHOULD 支持：
 
 - session-grant introspection 与 revocation
-- `ck.gate.account.command.issue_session_grant` 规范化 HTTP binding
-- `ck.self.policy.query.check`（`PolicyCheckOutcome`）
+- `ak.gate.account.command.issue_session_grant` 规范化 HTTP binding
+- `ak.self.policy.query.check`（`PolicyCheckOutcome`）
 - 多 principal-server delegation target 配置
 - DID binding / claim attestation
 
-Auth Server MUST NOT 声明 `ck.profile.identity_registry.v1`、`ck.profile.principal_server.v1` 或 `ck.profile.directory_service.v1`。任何 DID document / key-log 表面 MUST 通过 `compat_surfaces[]` 以 `delegated_resolver` 形式声明，而非自我声称 canonical 权威。
+Auth Server MUST NOT 声明 `ak.profile.identity_registry.v1`、`ak.profile.principal_server.v1` 或 `ak.profile.directory_service.v1`。任何 DID document / key-log 表面 MUST 通过 `compat_surfaces[]` 以 `delegated_resolver` 形式声明，而非自我声称 canonical 权威。
 
 Auth Server MUST NOT 把成功的 OIDC / SSO / password 验证直接当作 DID 控制证明；下游资源服务器仍 MUST 重新验证 DID control state（见 `guides/migrating-from-matrix.md`）。
 
 `development_mode=true` 时，`verified_profiles[]` MUST 为 `[]`（见 `sync/service-surface.md` §3.0）；cotest 在 verified-profile suite 通过后才能写入 verified entry。
 
-Release readiness MUST 至少覆盖：签发路径拒绝陌生 audience、session grant TTL 上限、proof 绑定 `challenge` / `audience` / `request_canonical_digest` / principal / device、`soft_logged_out` 恢复需要 fresh DID proof，以及 development mode 下不得声明 verified profile。对应 conformance vector 为 `ck.vector.auth.session_grant_audience_binding.v1` 与 `ck.vector.auth.soft_logout_did_proof.v1`。
+Release readiness MUST 至少覆盖：签发路径拒绝陌生 audience、session grant TTL 上限、proof 绑定 `challenge` / `audience` / `request_canonical_digest` / principal / device、`soft_logged_out` 恢复需要 fresh DID proof，以及 development mode 下不得声明 verified profile。对应 conformance vector 为 `ak.vector.auth.session_grant_audience_binding.v1` 与 `ak.vector.auth.soft_logout_did_proof.v1`。
 
 ## 10. Blob Node
 
-`ck.profile.blob_node.v1` 适用于内容寻址存储。
+`ak.profile.blob_node.v1` 适用于内容寻址存储。
 
 MUST 支持：
 
@@ -349,16 +349,16 @@ SHOULD 支持：
 
 ## 11. Push Gateway
 
-> 三个 `ck.profile.push_gateway.*` profile 等价于一个离散 `payload_disclosure_class ∈ {blind, visible, matrix}` 选择（informative）；部署 MUST 通过 profile id 声明，而非自定义 enum，以保留 conformance gate 粒度。
+> 三个 `ak.profile.push_gateway.*` profile 等价于一个离散 `payload_disclosure_class ∈ {blind, visible, matrix}` 选择（informative）；部署 MUST 通过 profile id 声明，而非自定义 enum，以保留 conformance gate 粒度。
 
-`ck.profile.push_gateway.v1` 适用于移动端或桌面通知的推送网关。Push gateway 实现 MUST 同时满足下方拆分的三个子 profile 之一或多个组合（默认基线为 blind wakeup，visible / matrix 互通为 opt-in）。
+`ak.profile.push_gateway.v1` 适用于移动端或桌面通知的推送网关。Push gateway 实现 MUST 同时满足下方拆分的三个子 profile 之一或多个组合（默认基线为 blind wakeup，visible / matrix 互通为 opt-in）。
 
 | Profile id | role | 必选 / 可选 | 强制能力 | Fixture |
 | --- | --- | --- | --- | --- |
-| `ck.profile.push_gateway.v1` | `gateway` | 实现网关时必选；MUST `depends_on` `blind_wakeup` | `register_device` / `unregister_device` / `notify` 三个操作，`ck.schema.notification.v1`，service DID 校验，`rejected[]` 回传，失效 token 回收 | `privacy-security-fixture.json` |
-| `ck.profile.push_gateway.blind_wakeup.v1` | `gateway` | **默认互操作安全基线**：声明 `push_gateway.v1` 即 MUST 声明 | provider 出向 payload 仅含 `push_target_id`（pairwise pseudonym，按 [`crypto-media/device-lifecycle.md` §5a](../crypto-media/device-lifecycle.md)）+ 封闭枚举的 `wakeup_kind` / `badge_count` / `unread_increment` / `l10n_key`；MUST NOT 携带 principal DID、sender DID / handle、Realm / Strand / Message id、event id、device DID URL、reaction 实际值、附件文件名、跨 Realm stable correlation key、IP / geolocation | `privacy-security-fixture.json` |
-| `ck.profile.push_gateway.visible_notification.v1` | `gateway` | Opt-in；仅在 Realm policy 列入 `plaintext_visible_services` 且声明 `visible_notification` allowance、接收设备 opt-in、UI 显式标示时声明 | 维持 blind wakeup 之上扩展的最小可见字段集合；MUST NOT 携带正文、DID URL、跨 Realm stable correlation key、IP / geolocation 或未列入 profile 的自由文本；E2EE 默认实现不得依赖该 profile | `privacy-security-fixture.json` |
-| `ck.profile.push_gateway.matrix_passthrough.v1` | `interop` | Opt-in；Matrix 互通桥接 | 在与 `ck.profile.matrix_compat.v1` 并行的前提下，按 Matrix push gateway 形态承载 passthrough payload；MUST 与 `blind_wakeup.v1` 流量分区，**MUST NOT** 在同一 `(recipient_service_did, device)` 元组上同时声明两者。**选择此 profile 即接受 Matrix-equivalent metadata 可见性**（典型字段如 `room_id` / `sender` / `event_id` 透传到 Matrix push gateway）。该 profile MUST NOT 与 minimal-metadata Realm 共享同一 `(recipient_service_did, device)` 元组。 | `privacy-security-fixture.json` |
+| `ak.profile.push_gateway.v1` | `gateway` | 实现网关时必选；MUST `depends_on` `blind_wakeup` | `register_device` / `unregister_device` / `notify` 三个操作，`ak.schema.notification.v1`，service DID 校验，`rejected[]` 回传，失效 token 回收 | `privacy-security-fixture.json` |
+| `ak.profile.push_gateway.blind_wakeup.v1` | `gateway` | **默认互操作安全基线**：声明 `push_gateway.v1` 即 MUST 声明 | provider 出向 payload 仅含 `push_target_id`（pairwise pseudonym，按 [`crypto-media/device-lifecycle.md` §5a](../crypto-media/device-lifecycle.md)）+ 封闭枚举的 `wakeup_kind` / `badge_count` / `unread_increment` / `l10n_key`；MUST NOT 携带 principal DID、sender DID / handle、Realm / Strand / Message id、event id、device DID URL、reaction 实际值、附件文件名、跨 Realm stable correlation key、IP / geolocation | `privacy-security-fixture.json` |
+| `ak.profile.push_gateway.visible_notification.v1` | `gateway` | Opt-in；仅在 Realm policy 列入 `plaintext_visible_services` 且声明 `visible_notification` allowance、接收设备 opt-in、UI 显式标示时声明 | 维持 blind wakeup 之上扩展的最小可见字段集合；MUST NOT 携带正文、DID URL、跨 Realm stable correlation key、IP / geolocation 或未列入 profile 的自由文本；E2EE 默认实现不得依赖该 profile | `privacy-security-fixture.json` |
+| `ak.profile.push_gateway.matrix_passthrough.v1` | `interop` | Opt-in；Matrix 互通桥接 | 在与 `ak.profile.matrix_compat.v1` 并行的前提下，按 Matrix push gateway 形态承载 passthrough payload；MUST 与 `blind_wakeup.v1` 流量分区，**MUST NOT** 在同一 `(recipient_service_did, device)` 元组上同时声明两者。**选择此 profile 即接受 Matrix-equivalent metadata 可见性**（典型字段如 `room_id` / `sender` / `event_id` 透传到 Matrix push gateway）。该 profile MUST NOT 与 minimal-metadata Realm 共享同一 `(recipient_service_did, device)` 元组。 | `privacy-security-fixture.json` |
 
 MUST 支持（在所有变体上）：
 
@@ -386,7 +386,7 @@ SHOULD 支持：
 
 ### 11.1 Traffic Metadata Hardening
 
-`ck.profile.traffic_metadata_hardened.v1` 是部署 / Realm 级 hardening profile，用于把 federation fanout 时间、batch 大小、Welcome / GroupInfo 大小、push wakeup 和 retry cadence 的侧信道缓解变成可声明、可测试的 MUST 集合。声明该 profile 的服务或 Realm MUST 在 `ServiceDescribe.claimed_profiles` / Realm policy profile 集合中暴露其参数，并按 `artifacts/profiles/conformance-profiles.json#profile_requirements` 执行。
+`ak.profile.traffic_metadata_hardened.v1` 是部署 / Realm 级 hardening profile，用于把 federation fanout 时间、batch 大小、Welcome / GroupInfo 大小、push wakeup 和 retry cadence 的侧信道缓解变成可声明、可测试的 MUST 集合。声明该 profile 的服务或 Realm MUST 在 `ServiceDescribe.claimed_profiles` / Realm policy profile 集合中暴露其参数，并按 `artifacts/profiles/conformance-profiles.json#profile_requirements` 执行。
 
 MUST 支持：
 
@@ -397,7 +397,7 @@ MUST 支持：
 - `retry_cadence_padding`：重试节奏 MUST 使用同一 padding / jitter policy，不得让失败原因产生稳定可测的时间形态。
 - 至少一种 cross-domain route indirection：`ohttp`、`trusted_relay` 或 `decoy_traffic`。
 
-conformance runner MUST 能观测：batch size bucket、Welcome size bucket、jitter 上下界、push payload disclosure class、retry cadence bucket 与 relay/decoy 开关。实现如果不能提供这些可观测参数，MUST NOT 声明 `ck.profile.traffic_metadata_hardened.v1`。
+conformance runner MUST 能观测：batch size bucket、Welcome size bucket、jitter 上下界、push payload disclosure class、retry cadence bucket 与 relay/decoy 开关。实现如果不能提供这些可观测参数，MUST NOT 声明 `ak.profile.traffic_metadata_hardened.v1`。
 
 ## 12. Applet Service / Bridge（概要）
 
@@ -405,12 +405,12 @@ conformance runner MUST 能观测：batch size bucket、Welcome size bucket、ji
 
 ## 13. MIMI Interop Provider Facade
 
-`ck.profile.mimi_interop.v1` 适用于需要与外部 MIMI provider 互通的 facade 服务。
+`ak.profile.mimi_interop.v1` 适用于需要与外部 MIMI provider 互通的 facade 服务。
 
 MUST 支持：
 
 - pinned MIMI draft version discovery
-- `ck.mimi.room_binding` 生命周期校验
+- `ak.mimi.room_binding` 生命周期校验
 - MIMI provider directory 和 endpoint surface
 - KeyPackage claim / consume / revoke lifecycle
 - MIMI message 到 Arkret Event Envelope 的映射
@@ -431,7 +431,7 @@ MUST NOT：
 
 ## 14. Enterprise Client
 
-`ck.profile.enterprise_client.v1` 适用于企业受控客户端。
+`ak.profile.enterprise_client.v1` 适用于企业受控客户端。
 
 MUST 支持 Full Client，并根据 policy 支持：
 
@@ -446,7 +446,7 @@ MUST NOT 在不显示 policy 的情况下静默加入 auditable encrypted Realm�
 
 ## 15. Sovereign Deployment
 
-`ck.profile.sovereign_deployment.v1` 适用于军方、关键基础设施、金融核心、情报或其他高安全组织的自建/专属部署。
+`ak.profile.sovereign_deployment.v1` 适用于军方、关键基础设施、金融核心、情报或其他高安全组织的自建/专属部署。
 
 MUST 支持：
 
@@ -487,15 +487,15 @@ SHOULD 支持：
 
 在高安全 deployment profile 下，常规写与敏感读的 sender-constrained 出示必须使用 RFC 9421 HTTP Message Signature 形态并绑定 transcript/body。涉及的 profile 与其 `conformance-profiles.json#profile_requirements` 中的 `additional_requirements.sender_constrained_session_pop_must` 一一对应：
 
-- `ck.profile.high_security_organization.v1`
-- `ck.profile.sovereign_deployment.v1`（`ck.profile.sovereign_enclave.v1` 经 `inherits` 继承）
-- `ck.profile.isolated_sovereign_network.v1`（经 `inherits` 同时继承上述两者，无需重复声明）
+- `ak.profile.high_security_organization.v1`
+- `ak.profile.sovereign_deployment.v1`（`ak.profile.sovereign_enclave.v1` 经 `inherits` 继承）
+- `ak.profile.isolated_sovereign_network.v1`（经 `inherits` 同时继承上述两者，无需重复声明）
 
 这些 profile 下，对常规写（任何推进 `actor_seq` / Realm frontier 或产生持久副作用的请求）与敏感读，实现 MUST 要求 RFC 9421 PoP 出示：签名密钥为 `ak.session.grant` 委托的 `session_public_key`，覆盖 `@method` / `@target-uri` / `@authority`、`content-digest`（带 body 时）与参与幂等的 `Idempotency-Key`，`created` / `expires` 落在既有 replay window 内（量级见 [`../sync/federation.md` §3.2](../sync/federation.md) 与 [`encoding.md` §6](./encoding.md)）。纯 `Authorization: Bearer`（无 DPoP / `Signature` / mTLS 绑定）对任何生产 current-v1 受保护 endpoint MUST 被拒绝；公开 metadata surface 若返回 public response，必须按未认证请求处理，不得授予 session / capability 语义。header 形态见 [`../sync/service-http-binding.md` §2.5](../sync/service-http-binding.md)。
 
 ## 16. Sovereign Client
 
-`ck.profile.sovereign_client.v1` 适用于接入 sovereign deployment 的受控客户端。
+`ak.profile.sovereign_client.v1` 适用于接入 sovereign deployment 的受控客户端。
 
 MUST 支持：
 
@@ -531,33 +531,33 @@ SHOULD 支持：
 
 Deployment profile 用于发布与验收，不替代实现 profile。完整 deployment profile 集合以 [`artifacts/profiles/conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) 的 `deployment_profiles` 为准；本节为非穷尽说明视图，包括以下 profile 等：
 
-- `ck.profile.personal_node.v1`
-- `ck.profile.small_team.v1`
-- `ck.profile.organization.v1`
-- `ck.profile.high_security_organization.v1`
-- `ck.profile.isolated_sovereign_network.v1`
+- `ak.profile.personal_node.v1`
+- `ak.profile.small_team.v1`
+- `ak.profile.organization.v1`
+- `ak.profile.high_security_organization.v1`
+- `ak.profile.isolated_sovereign_network.v1`
 
-`ck.profile.personal_node.v1` MUST cover：
+`ak.profile.personal_node.v1` MUST cover：
 
 - Principal Server、Events API、Sync Service、Blob Store 可以同机合并
 - 默认最小管理员面
 - 本地备份与恢复
 
-`ck.profile.small_team.v1` MUST cover：
+`ak.profile.small_team.v1` MUST cover：
 
 - 多用户共享 Realm
 - 基础目录与推送
 - moderation queue
 - snapshot / backfill
 
-`ck.profile.organization.v1` MUST cover：
+`ak.profile.organization.v1` MUST cover：
 
 - organization DID 委托
 - OIDC / account integration
 - admin account lifecycle
 - 审计导出
 
-`ck.profile.high_security_organization.v1` MUST cover：
+`ak.profile.high_security_organization.v1` MUST cover：
 
 - service DID allowlist
 - auditable E2EE 或受控 plaintext-visible boundary
@@ -565,18 +565,18 @@ Deployment profile 用于发布与验收，不替代实现 profile。完整 depl
 - server ACL 和 quarantine
 - sender-constrained（PoP）会话出示：常规写与敏感读 MUST 用 `session_public_key` 的 RFC 9421 HTTP Message Signature 出示；生产 current-v1 受保护 endpoint 对裸 bearer 的拒绝规则见 §15.1
 
-`ck.profile.isolated_sovereign_network.v1` MUST cover：
+`ak.profile.isolated_sovereign_network.v1` MUST cover：
 
 - 私有 registry / witness
 - closed federation default
 - 导入导出审查
 - 外部服务与 applet allowlist
 
-`ck.profile.accountable_principals.strict_reject.v1` 是 deployment hardening profile。声明该 profile 的 Realm / deployment MUST 在 `Actor Profile.accountable_principal_ids[]` 中任一 DID 缺少 active `ck.identity.accountability_grant` 时拒绝整个 `ck.profile.create` / `ck.profile.update` Event（`failed_precondition`, reason=`accountability_grant_missing`），不得使用默认的"strip unverifiable entry + audit log"路径。未声明该 profile 时，默认行为仍是 [`models/actor.md` §3.3.1](../models/actor.md) 的剔除 + audit log。
+`ak.profile.accountable_principals.strict_reject.v1` 是 deployment hardening profile。声明该 profile 的 Realm / deployment MUST 在 `Actor Profile.accountable_principal_ids[]` 中任一 DID 缺少 active `ak.identity.accountability_grant` 时拒绝整个 `ak.profile.create` / `ak.profile.update` Event（`failed_precondition`, reason=`accountability_grant_missing`），不得使用默认的"strip unverifiable entry + audit log"路径。未声明该 profile 时，默认行为仍是 [`models/actor.md` §3.3.1](../models/actor.md) 的剔除 + audit log。
 
 ## 18. Agent Runtime
 
-`ck.profile.agent_runtime.v1` 适用于 AI agent、bot、automation。
+`ak.profile.agent_runtime.v1` 适用于 AI agent、bot、automation。
 
 MUST 支持：
 
@@ -599,31 +599,31 @@ SHOULD 支持：
 
 ### 18.1 Personal Agent Provisioning
 
-`ck.profile.personal_agent_provisioning.v1` 注册 controller-面的 personal native agent management surface,扩展 `ck.profile.agent_runtime.v1`。
+`ak.profile.personal_agent_provisioning.v1` 注册 controller-面的 personal native agent management surface,扩展 `ak.profile.agent_runtime.v1`。
 
 MUST 支持:
-- `POST /_arkret/self/agents` (`ck.self.agent.command.provision`) 编排 Actor Profile + `ck.identity.accountability_grant` + 初始 `ck.capability.grant`(带 `effective_after_first_authorized_key=true` flag)+ pairing request
-- `POST /_arkret/gate/account/agent-key-pair` (`ck.gate.account.command.pair_agent_key`) 校验 `verification_method` 与 `agent_principal_id` 一致性后写入 `ck.agent.key.authorize`,清除 effective_after_first_authorized_key
+- `POST /_arkret/self/agents` (`ak.self.agent.command.provision`) 编排 Actor Profile + `ak.identity.accountability_grant` + 初始 `ak.capability.grant`(带 `effective_after_first_authorized_key=true` flag)+ pairing request
+- `POST /_arkret/gate/account/agent-key-pair` (`ak.gate.account.command.pair_agent_key`) 校验 `verification_method` 与 `agent_principal_id` 一致性后写入 `ak.agent.key.authorize`,清除 effective_after_first_authorized_key
 - Provisioning `status` 枚举:`pending_runtime_key` / `active` / `paused` / `pairing_expired` / `deactivated`
-- Pairing expiry 自动 `ck.capability.revoke` pending grants
+- Pairing expiry 自动 `ak.capability.revoke` pending grants
 - Agent management operations(list/get/pause/resume/deactivate/rotate-key/grant attach/detach)写入 durable lifecycle events
-- Native personal agent selector claim `ck.schema.agent_selector_claim.v1`，Actor Profile `agent_slug` 投影 hint，以及 `@<controller-handle>/<agent_slug>` 输入别名到 agent `subject_id` 的唯一解析；slug 不是 handle、公开 Directory search/list key 或授权主体
-- Draft-only family:`ck.agent.draft.propose` / `ck.agent.action_request` / `ck.agent.action_approve` / `ck.agent.action_reject`,materialize 为 controller-owned `ck.agent.draft.v1` encrypted account-data
+- Native personal agent selector claim `ak.schema.agent_selector_claim.v1`，Actor Profile `agent_slug` 投影 hint，以及 `@<controller-handle>/<agent_slug>` 输入别名到 agent `subject_id` 的唯一解析；slug 不是 handle、公开 Directory search/list key 或授权主体
+- Draft-only family:`ak.agent.draft.propose` / `ak.agent.action_request` / `ak.agent.action_approve` / `ak.agent.action_reject`,materialize 为 controller-owned `ak.agent.draft.v1` encrypted account-data
 - Draft approval 状态机:`proposed → approved → published`,approval nonce atomic consume
 - Event Envelope `executed_by` / `authorization_ref` / reducer-stamped `actor_kind` projection
 - Pause/Resume/Deactivate 语义(见 [`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md))
 - Controller deactivate / suspend 时,accountable native agents 的 active sessions revocation 链失效
-- Sidecar exposure 披露:激活新 agent 前 UI MUST 显式披露其将获得现有 sidecar 访问权(联动 `ck.profile.agent_sidecar_thread.v1`)
+- Sidecar exposure 披露:激活新 agent 前 UI MUST 显式披露其将获得现有 sidecar 访问权(联动 `ak.profile.agent_sidecar_thread.v1`)
 
 MUST NOT:
-- 注册独立 `ck.self.agent.command.provision` aggregate provisioning operation(provisioning fan-out 到既有子事件)
+- 注册独立 `ak.self.agent.command.provision` aggregate provisioning operation(provisioning fan-out 到既有子事件)
 - 返回长期 private key、refresh token 或可直接长期调用 Events API 的 bearer token
 - 引入 custom URI scheme(`arkret://` 等)
 - 把 `agent_slug` 当作 grant subject、actor attribution、membership key、delivery key、Directory search key 或 audit attribution source
 
 ### 18.2 Agent Auth
 
-`ck.profile.agent_auth.v1` 注册 agent runtime 的 authentication surface,与 `ck.profile.personal_agent_provisioning.v1` 解耦。
+`ak.profile.agent_auth.v1` 注册 agent runtime 的 authentication surface,与 `ak.profile.personal_agent_provisioning.v1` 解耦。
 
 MUST 支持:
 - 复用 `POST /_arkret/gate/account/session-grants` 通过 `proof.proof_kind="agent_key_proof"` 分支
@@ -641,7 +641,7 @@ MUST NOT:
 
 ### 18.3 Agent Delegation Policy
 
-`ck.profile.agent_delegation_policy.v1` 注册 capability vocabulary 与 act-on-behalf attribution 规则。
+`ak.profile.agent_delegation_policy.v1` 注册 capability vocabulary 与 act-on-behalf attribution 规则。
 
 MUST 支持:
 - Effective permission rule:`controller-approved grant AND controller's own delegable authority AND Realm policy AND resource selector / constraints AND agent key scope AND requested session scope AND current revocation / freshness state`,默认拒绝 wildcard
@@ -656,16 +656,16 @@ MUST NOT:
 
 ### 18.4 Agent Sidecar Thread
 
-`ck.profile.agent_sidecar_thread.v1` 注册 controller 与 controller 的 native AI agents 之间的私聊上下文线程。依赖 Circle profile 与 personal agent provisioning / auth profiles。
+`ak.profile.agent_sidecar_thread.v1` 注册 controller 与 controller 的 native AI agents 之间的私聊上下文线程。依赖 Circle profile 与 personal agent provisioning / auth profiles。
 
 MUST 支持:
-- `POST /_arkret/self/agent-sidecar-threads:ensure` (`ck.self.agent.sidecar_thread.command.ensure`) idempotent operation,返回 `{ok, private_circle_id, private_strand_id, private_relation_id, pending_member_reconciliations?}`
+- `POST /_arkret/self/agent-sidecar-threads:ensure` (`ak.self.agent.sidecar_thread.command.ensure`) idempotent operation,返回 `{ok, private_circle_id, private_strand_id, private_relation_id, pending_member_reconciliations?}`
 - `context_ref` polymorphic descriptor(`relation_id` 单独 / `strand_id` 加可选 `track_name` + 可选 seal)
 - Closed request schema(reject unknown top-level fields)
 - Fixed reuse:Strand `(controller_principal_id, normalized_context_ref)`、Circle `(realm_id, controller_principal_id)`
 - 派生 `controller_agent_circle_key`(canonical realm_id + canonical DID + UTF-8 + SHA-256 + base32 + 24 字符小写)
 - Sidecar Circle `display.short_name = "AI-" + controller_agent_circle_key[:12].upper()`,short_name 碰撞且 caller 非 member 时 generic `failed_precondition` `reason=sidecar_create_denied`
-- `eligible_sidecar_agent(realm, controller, agent)` predicate;Circle membership 主动 fan-out `ck.circle.member.state`(不被动 reconcile)
+- `eligible_sidecar_agent(realm, controller, agent)` predicate;Circle membership 主动 fan-out `ak.circle.member.state`(不被动 reconcile)
 - Eligibility / Circle membership / encryption-readiness 三态(eligible+active / pending join 或 pending key material / not eligible)
 - `addressed_agent_principal_ids[]` per-ensure ephemeral(服务端不持久化);MUST NOT 包含 controller 自身
 - 历史 backfill 经由 application-level resend(显式 plaintext 披露)；MLS-backed Circle 中不得使用 MLS exporter secret / past commit secret
@@ -674,7 +674,7 @@ MUST 支持:
 - Sidecar private Strand 不出现在 Realm-wide navigation / board / list / public search(profile-specific reducer rule:`scope_circle_id` 指向 sidecar Circle 的 Strand 过滤)
 - 多 agent publish 时 `actor_id` / `executed_by` MUST 是单一签发 agent principal
 - Retention 继承目标 Realm,profile 可收紧不可放宽
-- `ck.agent.sidecar_projection.v1` controller-private encrypted account-data SHOULD 注册(跨设备 UI 一致性)
+- `ak.agent.sidecar_projection.v1` controller-private encrypted account-data SHOULD 注册(跨设备 UI 一致性)
 
 MUST NOT:
 - 在目标公开 Strand 写 target-side reverse `agent_sidecar_of` relation
@@ -684,11 +684,11 @@ MUST NOT:
 
 ### 18.5 Agent Participation Policy
 
-`ck.profile.agent_participation_policy.v1` 注册 native personal agent 的分层 participation ceiling 与 controller selection 面。它继承 `ck.profile.personal_agent_provisioning.v1`。
+`ak.profile.agent_participation_policy.v1` 注册 native personal agent 的分层 participation ceiling 与 controller selection 面。它继承 `ak.profile.personal_agent_provisioning.v1`。
 
 MUST 支持:
-- `ck.self.agent.participation.resource.replace`
-- `ck.self.agent.participation.resource.get`
+- `ak.self.agent.participation.resource.replace`
+- `ak.self.agent.participation.resource.get`
 - deployment ⊇ Realm ⊇ Circle ⊇ Strand 的 tighten-only ceiling 校验
 - effective participation = effective ceiling ∩ controller selection
 - 第三方 mention gate：`accept_third_party_mention=false` 时不得向该 agent 派生 mention notification、inbox row、push wakeup 或 agent subscribe 投影；gate 在 message event fanout 时一次性求值，participation 之后翻转不追溯补发或撤销既有派生（[strand-and-message.md §9.4.5](../models/strand-and-message.md)）
@@ -701,9 +701,9 @@ MUST NOT:
 
 ## 19. Applet Service Family
 
-Applet v1 家族适用于运行 Applet 集成服务。`ck.profile.applet_service.v1` 是 base bot-only profile；桥接外部系统、Ghost Actor、portal Realm、delegated acting、E2EE join 和 widget 能力必须通过继承 profile 显式声明。
+Applet v1 家族适用于运行 Applet 集成服务。`ak.profile.applet_service.v1` 是 base bot-only profile；桥接外部系统、Ghost Actor、portal Realm、delegated acting、E2EE join 和 widget 能力必须通过继承 profile 显式声明。
 
-`ck.profile.applet_service.v1` MUST 支持：
+`ak.profile.applet_service.v1` MUST 支持：
 
 - signed `applet_registration`
 - namespace declaration and matching
@@ -716,7 +716,7 @@ Applet v1 家族适用于运行 Applet 集成服务。`ck.profile.applet_service
 - HTTP message signature verification（RFC 9421，覆盖 `@method` / `@target-uri` / `@authority` / `content-digest` / `source-service-did` / `destination-service-did` / `idempotency-key`）
 - event signature verification
 - bot actor attribution
-- `ck.edge.applet.command.transaction` as operation_id only, never as durable Event kind
+- `ak.edge.applet.command.transaction` as operation_id only, never as durable Event kind
 - fail-closed reasons for transaction push: `http_signature_required`、`http_signature_invalid`、`signature_window_invalid`、`duplicate_conflict`、`applet_registration_unauthorized`、`applet_namespace_mismatch`
 
 MUST NOT：
@@ -727,7 +727,7 @@ MUST NOT：
 - 只凭裸 `Idempotency-Key`、body 内 `source_service_did` 或首次握手状态接受 transaction push replay
 - 在未提示边界的情况下把 E2EE 内容桥接到非 E2EE 网络
 
-`ck.profile.applet_bridge.v1` inherits `ck.profile.applet_service.v1` and MUST 支持：
+`ak.profile.applet_bridge.v1` inherits `ak.profile.applet_service.v1` and MUST 支持：
 
 - resolve actor endpoint
 - resolve realm endpoint
@@ -737,11 +737,11 @@ MUST NOT：
 - external event deduplication
 - bridge error event
 
-`ck.profile.applet_delegated.v1` inherits `ck.profile.applet_service.v1` and MUST 支持 delegated native-user acting 的 `executed_by` / `authorization_ref` / `applet_id` 校验、dual-signature attribution 与 `registration_epoch` evidence verification。
+`ak.profile.applet_delegated.v1` inherits `ak.profile.applet_service.v1` and MUST 支持 delegated native-user acting 的 `executed_by` / `authorization_ref` / `applet_id` 校验、dual-signature attribution 与 `registration_epoch` evidence verification。
 
-`ck.profile.applet_e2ee_join.v1` inherits `ck.profile.applet_service.v1` and MUST 支持独立 E2EE join authorization、MLS roster applet-managed 标注，并在缺少授权时 fail closed with `applet_e2ee_join_unauthorized`。
+`ak.profile.applet_e2ee_join.v1` inherits `ak.profile.applet_service.v1` and MUST 支持独立 E2EE join authorization、MLS roster applet-managed 标注，并在缺少授权时 fail closed with `applet_e2ee_join_unauthorized`。
 
-`ck.profile.applet_widget.v1` inherits `ck.profile.applet_service.v1` and MUST 支持 widget origin isolation、CSP、scoped token、consent 与 host session/device-key non-disclosure。
+`ak.profile.applet_widget.v1` inherits `ak.profile.applet_service.v1` and MUST 支持 widget origin isolation、CSP、scoped token、consent 与 host session/device-key non-disclosure。
 
 Applet bridge SHOULD 支持：
 
@@ -752,16 +752,16 @@ Applet bridge SHOULD 支持：
 
 ## 19a. Franking (E2EE Abuse Reporting)
 
-`ck.profile.franking.v1` 适用于在 E2EE Realm 中提供可验证投递证明的服务（典型为 Sync Service / MIMI provider facade / Principal Server）。
+`ak.profile.franking.v1` 适用于在 E2EE Realm 中提供可验证投递证明的服务（典型为 Sync Service / MIMI provider facade / Principal Server）。
 
 参考：`governance/content-moderation.md` §3.4 与 [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) franking 段落。
 
 MUST 支持：
 
-- 在接收 E2EE Event Envelope 时签发 `ck.moderation.franking_proof` 事件，绑定 `event_id`、`ciphertext_digest`、`aad_digest`、`sender_claim` (含 mls_group_id + epoch)、`received_by` (service DID)、`received_at`、`replay_nonce`。
+- 在接收 E2EE Event Envelope 时签发 `ak.moderation.franking_proof` 事件，绑定 `event_id`、`ciphertext_digest`、`aad_digest`、`sender_claim` (含 mls_group_id + epoch)、`received_by` (service DID)、`received_at`、`replay_nonce`。
 - franking proof `signature` 由 service DID 当前有效 verification method 签发，覆盖 franking proof canonical bytes。
 - 每条 franking proof 必须可被独立 verify：service DID Document 解析 + verification method 有效期 + Realm service binding 校验 + payload hash 重算。
-- 接收 reporter 提交的 `ck.self.moderation.command.report` 时，把 franking proof ID 与 report ID 绑定为审计链一部分；不得仅信 reporter 单方声称。
+- 接收 reporter 提交的 `ak.self.moderation.command.report` 时，把 franking proof ID 与 report ID 绑定为审计链一部分；不得仅信 reporter 单方声称。
 - franking proof cache TTL 与 service key rotation 同步：service DID 的 verification method 撤销后，旧 franking proof 仍可历史验证（用历史 key state），但不签发新 franking proof。
 
 MUST NOT：
@@ -779,7 +779,7 @@ SHOULD 支持：
 
 ## 19b. Realtime Media Server
 
-`ck.profile.webrtc_media.v1` 适用于提供 ICE config / TURN / SFU 等 RTC 基础设施的服务。
+`ak.profile.webrtc_media.v1` 适用于提供 ICE config / TURN / SFU 等 RTC 基础设施的服务。
 
 参考：[`crypto-media/webrtc-signaling.md`](../crypto-media/webrtc-signaling.md)（ICE config / TURN）、[`crypto-media/media-service-binding.md`](../crypto-media/media-service-binding.md)（SFU / 媒体服务绑定）与 [`crypto-media/call-state.md`](../crypto-media/call-state.md)（通话状态）。
 
@@ -844,8 +844,8 @@ E2EE profile MUST 额外提供：
 Client Sync 相关 profile MUST/SHOULD 按 `conformance-vectors.md` 执行对应向量：
 
 - Minimal Client MUST 覆盖基础排序、tie break、pagination gap、backfill order 和 token expiry recovery。
-- Chat MVP Client（`ck.profile.chat_mvp.v1`）MUST 覆盖 Strand discussion timeline、message edit/redaction、reaction OR-Set、discussion history visibility 和 membership 裁剪。
-- Kanban MVP Client（`ck.profile.kanban_mvp.v1`）MUST 覆盖 Board projection、Strand move/reorder、position edge conflict、CAS stale reorder 和 wait-for query。
+- Chat MVP Client（`ak.profile.chat_mvp.v1`）MUST 覆盖 Strand discussion timeline、message edit/redaction、reaction OR-Set、discussion history visibility 和 membership 裁剪。
+- Kanban MVP Client（`ak.profile.kanban_mvp.v1`）MUST 覆盖 Board projection、Strand move/reorder、position edge conflict、CAS stale reorder 和 wait-for query。
 - Full Client MUST 额外覆盖 snapshot frontier、state_after 与 decryption_pending 的 UI / cache 恢复行为。
 - E2EE Client MUST 覆盖 MLS epoch backfill、decryption_pending recovery 和 removed member fail closed。
 - Principal Server SHOULD 覆盖 duplicate suppression、backfill order、encrypted payload forwarding 和不能转发解密材料。
@@ -863,9 +863,9 @@ Privacy / security hardening profile MUST 额外覆盖：
 
 Moderation profile MUST 额外覆盖：
 
-- `ck.schema.moderation_report.v1`
-- `ck.schema.moderation_queue_item.v1`
-- `ck.self.moderation.command.report` payload schema validation
+- `ak.schema.moderation_report.v1`
+- `ak.schema.moderation_queue_item.v1`
+- `ak.self.moderation.command.report` payload schema validation
 - E2EE evidence package / franking proof 只向授权 moderation recipient 披露
 
 Identity profile MUST 额外提供：
@@ -960,11 +960,11 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 
 | # | 条款（摘述） | 真相源 | 分级 |
 | --- | --- | --- | --- |
-| 1 | Event Envelope MUST 先过 `ck.schema.event.v1` 与 payload class 校验，失败 MUST `schema_violation`，不得进入 reducer（先验证后消费） | 本文 §3 | **V**（`event-envelope-negative-fixture.json`）；"先于消费"的内部顺序为 U |
+| 1 | Event Envelope MUST 先过 `ak.schema.event.v1` 与 payload class 校验，失败 MUST `schema_violation`，不得进入 reducer（先验证后消费） | 本文 §3 | **V**（`event-envelope-negative-fixture.json`）；"先于消费"的内部顺序为 U |
 | 2 | `proof`、`hlc`、`actor_seq`、`prev_refs`、`refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过 | 本文 §3 | **V**（负例向量拒收）；"库不得暴露跳过入口"为 A |
 | 3 | `auth` 约束必须执行，不得通过客户端配置豁免 | 本文 §3 | **U**（配置面审计）；辅以 A（不提供豁免配置项） |
-| 4 | 对 `causal` 关系、`revoked` 与 `proof` 失效状态 MUST fail-closed，不得静默接受 | 本文 §3；conformance-vectors §2.19 | **V**（`ck.vector.cba_lattice.*` 并发撤销 fail closed 向量） |
-| 5 | cursor MUST 当作不透明字符串保存回传；SDK / 应用层 MUST NOT 解析内部字段构造请求 | conformance-vectors §1.11（`ck.vector.encoding.cursor_opaque.core.v1`） | **A**（不暴露结构化解码 API）；黑盒仅能以变异 handle cursor 抽样旁证 |
+| 4 | 对 `causal` 关系、`revoked` 与 `proof` 失效状态 MUST fail-closed，不得静默接受 | 本文 §3；conformance-vectors §2.19 | **V**（`ak.vector.cba_lattice.*` 并发撤销 fail closed 向量） |
+| 5 | cursor MUST 当作不透明字符串保存回传；SDK / 应用层 MUST NOT 解析内部字段构造请求 | conformance-vectors §1.11（`ak.vector.encoding.cursor_opaque.core.v1`） | **A**（不暴露结构化解码 API）；黑盒仅能以变异 handle cursor 抽样旁证 |
 | 6 | canonicalization 失败（duplicate key、malformed UTF-8、隐式 NFC 归一）MUST reject，不得"修复"后继续 hash / 验签 | conformance-vectors §1.4–1.5 | **V**（encoding 负例向量） |
 | 7 | malformed HLC MUST reject，不得截断、补零或大小写折叠后接受 | conformance-vectors §1.9–1.10 | **V** |
 | 8 | 重试 / 等待期间 `prev_refs`、`refs[role=authorized_by]`、`actor_seq` 约束 MUST NOT 放松 | conformance-vectors §1.10 | **V**（重放向量）；内部重试路径为 U |

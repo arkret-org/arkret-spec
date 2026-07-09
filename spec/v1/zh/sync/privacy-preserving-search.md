@@ -21,15 +21,15 @@ see_also:
 
 本文只定义两类隐私保护 search profile：
 
-- `ck.profile.search.client_index.v1`: 客户端加密索引托管。
-- `ck.profile.search.blind_index.v1`: keyed blind token 服务端候选检索。
-- `ck.profile.search.forward_private.v1`: 在 blind-index 基础上叠加 server-assisted OPRF 与 generation-bound token derivation，降低长期增量泄漏；该 profile 为 opt-in extension，不改变 base blind-index 语义。
+- `ak.profile.search.client_index.v1`: 客户端加密索引托管。
+- `ak.profile.search.blind_index.v1`: keyed blind token 服务端候选检索。
+- `ak.profile.search.forward_private.v1`: 在 blind-index 基础上叠加 server-assisted OPRF 与 generation-bound token derivation，降低长期增量泄漏；该 profile 为 opt-in extension，不改变 base blind-index 语义。
 
-任何接收 plaintext、可逆摘要、embedding 或用户可读 snippet 的服务仍必须通过 `plaintext_visible_services` 授权；本文 profile 不得被用来绕过该要求。Directory search、本文的 privacy-preserving search 与 bridge interop 三类检索面 MUST 保持隔离、互不泄露私有 plaintext；该不变量由 `ck.vector.search.surface_separation_no_plaintext_leakage.v1` 覆盖。
+任何接收 plaintext、可逆摘要、embedding 或用户可读 snippet 的服务仍必须通过 `plaintext_visible_services` 授权；本文 profile 不得被用来绕过该要求。Directory search、本文的 privacy-preserving search 与 bridge interop 三类检索面 MUST 保持隔离、互不泄露私有 plaintext；该不变量由 `ak.vector.search.surface_separation_no_plaintext_leakage.v1` 覆盖。
 
 ## 2. Client Encrypted Index
 
-客户端加密索引的 manifest 写入 `ck.search.index_manifest.v1:<realm_key>`。`realm_key` 等于对 canonical `realm_id` 调用 [`client-preferences.md` §2.2](../discovery/client-preferences.md) 的 `derive_account_data_key`。manifest plaintext shape 使用 `realm_id`，并在 account-data value 中加密；`shard_key` 不得由 plaintext term、object ref、message id 或 strand id 直接派生。
+客户端加密索引的 manifest 写入 `ak.search.index_manifest.v1:<realm_key>`。`realm_key` 等于对 canonical `realm_id` 调用 [`client-preferences.md` §2.2](../discovery/client-preferences.md) 的 `derive_account_data_key`。manifest plaintext shape 使用 `realm_id`，并在 account-data value 中加密；`shard_key` 不得由 plaintext term、object ref、message id 或 strand id 直接派生。
 
 托管服务只能返回 encrypted shard / manifest bytes，MUST NOT 返回 hit、ref、snippet、score 或 term-level metadata。客户端解密后仍必须按当前 Realm policy、history visibility、redaction、expiry 和 local capability state 过滤。
 
@@ -37,7 +37,7 @@ see_also:
 
 Blind index 使用 keyed HMAC token。Posting 必须绑定 `realm_id`、`effective_scope`、`epoch_id`、`index_generation` 和 `blind_tokens[]`；服务端返回的只是候选 ref 集合。客户端 MUST 把所有结果视为 untrusted candidate，并重新验证可见性和内容匹配。
 
-服务端在返回候选前 MUST 执行 current-auth 与 history filter。撤权、history visibility 收紧、redaction、message expiry 或 MLS epoch rotate 后的 stale posting MUST fail closed：可以漏召回，不得越权召回。该不变量由 `ck.vector.search.blind_index_stale_posting_fail_closed.v1` 覆盖。
+服务端在返回候选前 MUST 执行 current-auth 与 history filter。撤权、history visibility 收紧、redaction、message expiry 或 MLS epoch rotate 后的 stale posting MUST fail closed：可以漏召回，不得越权召回。该不变量由 `ak.vector.search.blind_index_stale_posting_fail_closed.v1` 覆盖。
 
 服务端 MUST NOT 返回或暗示过滤前 posting list 的基数。`total`、`has_more`、分页 cursor、bucket / padding 后的 result count、timing bucket 和任何诊断字段都只能基于 current-auth / history filter 之后的候选集合计算；若实现需要暴露结果数量，必须对过滤后集合执行固定上限、padding 或 bucket 化，且不得让"过滤前 N 条、过滤后 0 条"与"过滤前 0 条"在 wire shape 或 timing 上可区分。否则 blind token 会退化为存在性 oracle，泄露 caller 无权看到的对象是否含有该 term。
 
@@ -49,7 +49,7 @@ Blind-index token 是 deterministic keyed token：它不向服务端暴露明文
 
 ### 3.1 Forward-Private Search Extension
 
-`ck.profile.search.forward_private.v1` 继承 `ck.profile.search.blind_index.v1`，但 Realm `ck.realm.search_policy.enabled_profile_refs` 中必须同时启用该 profile，并声明 `leakage_class="forward_private"`。服务端 MUST 在 `*.describe` 或等价 feature discovery 中声明 OPRF suite、generation 轮换上限、revocation behavior 和 stale posting fail-closed 行为；客户端在缺少这些声明时 MUST 返回 `unsupported_feature`，不得把 deterministic blind-index provider 当作 forward-private provider 使用。
+`ak.profile.search.forward_private.v1` 继承 `ak.profile.search.blind_index.v1`，但 Realm `ak.realm.search_policy.enabled_profile_refs` 中必须同时启用该 profile，并声明 `leakage_class="forward_private"`。服务端 MUST 在 `*.describe` 或等价 feature discovery 中声明 OPRF suite、generation 轮换上限、revocation behavior 和 stale posting fail-closed 行为；客户端在缺少这些声明时 MUST 返回 `unsupported_feature`，不得把 deterministic blind-index provider 当作 forward-private provider 使用。
 
 Forward-private profile 的最小 wire 语义：
 
@@ -60,11 +60,11 @@ Forward-private profile 的最小 wire 语义：
 
 ## 4. Realm Search Policy
 
-`ck.realm.search_policy` 写入 Realm policy cell。默认行为是 fail closed：未声明允许的受托 search 服务不得接收 plaintext 或可逆派生数据，也不得接收 blind-index token。
+`ak.realm.search_policy` 写入 Realm policy cell。默认行为是 fail closed：未声明允许的受托 search 服务不得接收 plaintext 或可逆派生数据，也不得接收 blind-index token。
 
 Policy 至少声明允许的 `enabled_profile_refs`、service DID、可接收数据类别、index retention 和 revocation behavior。是否允许 plaintext-visible search MUST 由 `data_classes` 中是否包含 `plaintext` / `reversible_summary` 表达，不得另设未注册的 boolean 字段。
 
-`leakage_class` 是闭合枚举：`deterministic_token`、`forward_private`、`access_hiding`。省略时等价于 `deterministic_token`。`ck.profile.search.blind_index.v1` 的 policy MUST 使用 `deterministic_token` 或更强值；声明 `ck.profile.search.forward_private.v1` 时 MUST 使用 `forward_private`，且 MUST 同时声明 `token_rotation_cadence_ms`。`access_hiding` 为 **reserved leakage class**（PIR / ORAM 类），其状态与 digest-suite / HPKE registry 的 reserved-row 同纪律：钉定枚举值与 fail-closed 语义，但在 activation requirements 全部满足并由一个显式 profile 在 registry release 中转 active 之前，**MUST NOT 出现在 wire 上**——没有满足 activation requirements 的 profile 支持时，实现 MUST fail closed，不得仅凭该字段声称 access-hiding。
+`leakage_class` 是闭合枚举：`deterministic_token`、`forward_private`、`access_hiding`。省略时等价于 `deterministic_token`。`ak.profile.search.blind_index.v1` 的 policy MUST 使用 `deterministic_token` 或更强值；声明 `ak.profile.search.forward_private.v1` 时 MUST 使用 `forward_private`，且 MUST 同时声明 `token_rotation_cadence_ms`。`access_hiding` 为 **reserved leakage class**（PIR / ORAM 类），其状态与 digest-suite / HPKE registry 的 reserved-row 同纪律：钉定枚举值与 fail-closed 语义，但在 activation requirements 全部满足并由一个显式 profile 在 registry release 中转 active 之前，**MUST NOT 出现在 wire 上**——没有满足 activation requirements 的 profile 支持时，实现 MUST fail closed，不得仅凭该字段声称 access-hiding。
 
 **`access_hiding` activation requirements（normative）**：任何把 `leakage_class` 设为 `access_hiding` 的 Realm search policy MUST 同时声明一个满足以下全部条件的 search extension profile，否则 reducer / 受托 search service MUST fail closed（视为未支持）：
 
@@ -77,4 +77,4 @@ Policy 至少声明允许的 `enabled_profile_refs`、service DID、可接收数
 
 ## 5. Result Semantics
 
-Search hit 永远不是权限证明。展示 hit 前，客户端或受托 projection MUST 重新解析目标对象状态，并检查 redaction、expiry、moderation、history visibility、Circle membership 和 capability。检查失败时，结果必须被省略或替换为不可泄露存在性的固定 stub。该不变量由 `ck.vector.search.result_not_authz_proof.v1` 覆盖。
+Search hit 永远不是权限证明。展示 hit 前，客户端或受托 projection MUST 重新解析目标对象状态，并检查 redaction、expiry、moderation、history visibility、Circle membership 和 capability。检查失败时，结果必须被省略或替换为不可泄露存在性的固定 stub。该不变量由 `ak.vector.search.result_not_authz_proof.v1` 覆盖。

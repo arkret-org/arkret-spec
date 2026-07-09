@@ -20,16 +20,16 @@ Relation 连接的是对象引用：标准字段使用 `from_ref` / `to_ref`，�
 
 公共字段、lifecycle、reducer 总则见 [`common-fields.md`](./common-fields.md)。
 
-联系人关系不是 Relation。`ck.relation.*` 是 Realm-scoped 协作图边，`realm_id` 必填；跨 Realm 的联系人请求、接受、拒绝、tombstone 与 direct conversation binding 的真源是 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) 定义的 principal-scoped facts。实现 MUST NOT 用 `relation_kind=contact` 或等价自定义 Relation 替代 `ck.contact.*`。
+联系人关系不是 Relation。`ak.relation.*` 是 Realm-scoped 协作图边，`realm_id` 必填；跨 Realm 的联系人请求、接受、拒绝、tombstone 与 direct conversation binding 的真源是 [`../identity/contact-and-direct-conversation.md`](../identity/contact-and-direct-conversation.md) 定义的 principal-scoped facts。实现 MUST NOT 用 `relation_kind=contact` 或等价自定义 Relation 替代 `ak.contact.*`。
 
 ## 2. Schema 与字段
 
-Schema id: `ck.schema.relation.v1`
+Schema id: `ak.schema.relation.v1`
 
 | 字段 | 必填 | 类型 | 约束 | 说明 |
 | --- | --- | --- | --- | --- |
 | `id` | yes | `id:relation` | 以 `ak:relation:` 开头。 | Relation ID。 |
-| `schema` | yes | `ck.schema.relation.v1` | 固定。 | 对象 schema。 |
+| `schema` | yes | `ak.schema.relation.v1` | 固定。 | 对象 schema。 |
 | `realm_id` | yes | `id:realm` | Relation 所在 Realm。 | 所属 Realm。 |
 | `scope_circle_id` | no | `id:circle` | submit payload 提供的 Realm 内 Circle scope；弱语义隐私边（`agent_sidecar_of` / `confidential_discussion_of`）按 §3.1 MUST 提交，指向 private Strand 的 Circle，使 `effective_scope = circle`，non-member 无法从公开端点枚举该边（见 [`circle.md` §6.1](./circle.md)）。 | 该 Relation 事实的 Circle 作用域。 |
 | `effective_scope` | no | `object` | **Reducer-stamped immutable，actor MUST NOT 提交**（reducer-managed，`reason=effective_scope_reducer_managed`）。create 时由 `scope_circle_id` 物化；结构关系 MUST NOT 宽于参与端点中最窄的作用域，且后续 rebind 不变（见 [`circle.md` §6.1-§6.2](./circle.md)）。 | 派生的有效作用域。 |
@@ -38,14 +38,14 @@ Schema id: `ck.schema.relation.v1`
 | `to_ref` | yes | `string` | MUST 是 `ak:<kind>:...` 或 DID。 | 终点对象/Actor/Realm 引用。 |
 | `rank` | no | `string` | 见 `encoding.md` §9。**与 Space.rank 顶层字段对齐**——v1 把 rank 提升到顶层，`fields.rank` 在 wire 上 MUST 被拒绝（`schema_violation`），不接受双源并存。 | 有序关系（如 `contains list -> strand`）的稳定 rank。 |
 | `fields` | no | `object` | 可放 role、edge metadata；MUST NOT 包含 `rank`（已提升到顶层）。 | 关系属性。 |
-| `state` | no | `enum(active, tombstoned)` | `tombstoned` 同时覆盖删除与 redaction；原因保存在对应 `ck.relation.tombstone` / `ck.redaction` event 上，物化对象只保留当前状态。 | 关系状态。 |
+| `state` | no | `enum(active, tombstoned)` | `tombstoned` 同时覆盖删除与 redaction；原因保存在对应 `ak.relation.tombstone` / `ak.redaction` event 上，物化对象只保留当前状态。 | 关系状态。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `created_by` | yes | `did` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
 | `updated_by` | no | `did` |  | 最近更新者。 |
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
 
-**生命周期（normative）**：Relation 的 `state` 只取 `active` / `tombstoned` 两值，**没有 `archived` 态**——这是有意取舍，区别于含 `archived` 的 Circle / Morph 等对象（[`common-fields.md` §5.2](./common-fields.md) 模板）：Relation 是一等边，要么有效（`active`）要么作废（`tombstoned`，不可逆，由 `ck.relation.tombstone` / `ck.redaction` 写入），不存在"暂时收起、可恢复"的中间态。需要"软隐藏"某条关系时，由查询 / projection 层过滤，不引入额外 canonical 生命周期态。生命周期仅 `active → tombstoned` 单向迁移。
+**生命周期（normative）**：Relation 的 `state` 只取 `active` / `tombstoned` 两值，**没有 `archived` 态**——这是有意取舍，区别于含 `archived` 的 Circle / Morph 等对象（[`common-fields.md` §5.2](./common-fields.md) 模板）：Relation 是一等边，要么有效（`active`）要么作废（`tombstoned`，不可逆，由 `ak.relation.tombstone` / `ak.redaction` 写入），不存在"暂时收起、可恢复"的中间态。需要"软隐藏"某条关系时，由查询 / projection 层过滤，不引入额外 canonical 生命周期态。生命周期仅 `active → tombstoned` 单向迁移。
 
 Canonical 方向由 `from_ref -> to_ref` 定义。反向语义 SHOULD 由查询层或 schema 派生。
 
@@ -86,15 +86,15 @@ confidential_discussion_of
 
 | `relation_kind` | 默认基数 | 作用域与去重规则 |
 | --- | --- | --- |
-| `contains`：`Space(kind=board) -> Space(kind=list)` | **派生投影**(derived projection only) | 一个 Board 可包含多个 List；同一 List 在同一 Realm 内 MUST 至多有一个 active Board parent。**Truth source 是 cas_register cell `ak:cell:ck.component.space.parent.v1:<list_space_id>`，写入路径是 `ck.space.parent` Move，不是 `ck.relation.create`**。直接 `ck.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`(详见 [realm-and-space.md §3.5](./realm-and-space.md#35-ckspaceparent-cas_register-basis))。`contains` Relation 仍出现在标准 kinds 列表中是因为 projection / query / UI 仍按 Relation 视角读它，但**写入路径单一化**到 `ck.space.parent`。 |
-| `contains`：`Space(kind=list) -> Strand` | **派生投影**(derived projection only) with board-exclusive target | 一个 List 可包含多个 Strand；同一 Strand 在同一个 Board 内 MUST 至多处于一个 active List。去重/互斥 key 为 `(board_space_id, strand_id)`，与 [realm-and-space.md §3.6](./realm-and-space.md#36-strand-位置) 的位置唯一性一致。**Truth source 是 cas_register cell `ak:cell:ck.component.strand.position.v1:<board_space_id>:<strand_id>`，写入路径是 `ck.strand.move` / `ck.strand.reorder` Move**，不是 `ck.relation.create`。直接 `ck.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`(与 `watches` derived Relation 同模式)。 |
-| `contains`：其他对象组合(非 Space 容器场景，例如 `Strand -> Strand` subtask / checklist item) | `many_to_many` unless profiled | 默认只按完整 tuple 去重；若对象被当作容器使用，Realm schema/profile MUST 声明更严格基数、排序字段和 cascade 规则。这种非派生形态的 `contains` 由 `ck.relation.create` 直接写入，不得与 Board/List 的派生 `contains` 混用。 |
+| `contains`：`Space(kind=board) -> Space(kind=list)` | **派生投影**(derived projection only) | 一个 Board 可包含多个 List；同一 List 在同一 Realm 内 MUST 至多有一个 active Board parent。**Truth source 是 cas_register cell `ak:cell:ak.component.space.parent.v1:<list_space_id>`，写入路径是 `ak.space.parent` Move，不是 `ak.relation.create`**。直接 `ak.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`(详见 [realm-and-space.md §3.5](./realm-and-space.md#35-ckspaceparent-cas_register-basis))。`contains` Relation 仍出现在标准 kinds 列表中是因为 projection / query / UI 仍按 Relation 视角读它，但**写入路径单一化**到 `ak.space.parent`。 |
+| `contains`：`Space(kind=list) -> Strand` | **派生投影**(derived projection only) with board-exclusive target | 一个 List 可包含多个 Strand；同一 Strand 在同一个 Board 内 MUST 至多处于一个 active List。去重/互斥 key 为 `(board_space_id, strand_id)`，与 [realm-and-space.md §3.6](./realm-and-space.md#36-strand-位置) 的位置唯一性一致。**Truth source 是 cas_register cell `ak:cell:ak.component.strand.position.v1:<board_space_id>:<strand_id>`，写入路径是 `ak.strand.move` / `ak.strand.reorder` Move**，不是 `ak.relation.create`。直接 `ak.relation.create / update / delete relation_kind=contains` 在该 from→to 形状上 MUST `schema_violation`(与 `watches` derived Relation 同模式)。 |
+| `contains`：其他对象组合(非 Space 容器场景，例如 `Strand -> Strand` subtask / checklist item) | `many_to_many` unless profiled | 默认只按完整 tuple 去重；若对象被当作容器使用，Realm schema/profile MUST 声明更严格基数、排序字段和 cascade 规则。这种非派生形态的 `contains` 由 `ak.relation.create` 直接写入，不得与 Board/List 的派生 `contains` 混用。 |
 | `belongs_to` | `many_to_one` | 作为 `contains` 的显式 parent 关系时，同一 `from_ref` 在同一作用域内至多有一个 active `to_ref`。优先使用 canonical `contains` 表达容器包含。 |
 | `replies_to` | `many_to_one` | 一个 Message 或 reply object SHOULD 只有一个 direct parent；额外链接用 `references` 或 `mentions`。 |
 | `depends_on`, `blocks` | `many_to_many` | 按 `(realm_id, relation_kind, from_ref, to_ref)` 去重；循环检测由 workflow/profile 规则决定。 |
 | `mentions`, `references`, `derived_from`, `attached_to`, `summarized_from`, `promoted_from_discussion` | `many_to_many` | 按完整 tuple 去重；多条语义不同的边必须用 `fields.role`、不同 `relation_kind` 或 profile 声明的 multi-edge key 区分。其中语义性较强的 `summarized_from`(摘要 → 来源)与 `promoted_from_discussion`(正式对象 → 来源 discussion)在 v1 不在本表硬编码 from_type→to_type 约束，其 from/to 类型 MUST 由 Realm schema / RelationProfile 显式声明(见 [§5](#5-relationprofile))；未声明 profile 时按通用弱语义引用边处理。 |
 | `assigned_to` | `many_to_many` | Canonical 方向为 `Strand -> DID`（`from_ref=<strand_id>`, `to_ref=<actor DID>`）。默认 `many_to_many`，按完整 tuple `(realm_id, relation_kind, from_ref, to_ref)` 去重(同一 (Strand, Actor) 对至多一条 active edge，即同一 Actor 不重复分配)；一个 Strand MAY 同时分配给多个 Actor。**这是按完整 tuple 去重，不是 per-actor 单值约束。** 需要单负责人语义时，Realm schema/profile MUST 声明 `max_to_per_from=1` 或单独 owner relation——[§5](#5-relationprofile) 的 `many_to_one` 示例即此单负责人 profile 收紧示例，非默认基数。Strand object / `metadata.fields` 不得携带 `assignee` / `assignees` / `assigned_to` 字段作为替代真源；见 [strand-and-message.md §7.1](./strand-and-message.md#71-assignment--assignee-投影)。 |
-| `watches`：`actor (did) -> strand` | **派生投影**（derived from cell, not directly writable） | 每个 `(from_ref, to_ref)` 至多一条 active edge；`from_ref` MUST 是 DID，`to_ref` MUST 指向 Strand（或 profile 声明的 watchable 对象）。**Truth source 是 cas_register cell `ck.component.strand.watch.v1`，写入路径是 `ck.strand.watch.set` durable event，不是 `ck.relation.create`**——直接 `ck.relation.create / update / delete relation_kind=watches` MUST `schema_violation`（与派生 `contains` Relation 的双源约束同模式，见 [`./realm-and-space.md` §3.6](./realm-and-space.md#36-strand-位置)）。写入 invariant：`payload.watcher_actor_id == envelope.actor_id`，除非 actor 持有 `ck.strand.watch.set.others` capability。级别枚举、投影脱敏、通知路由见 [strand-and-message.md §8](./strand-and-message.md)。 |
+| `watches`：`actor (did) -> strand` | **派生投影**（derived from cell, not directly writable） | 每个 `(from_ref, to_ref)` 至多一条 active edge；`from_ref` MUST 是 DID，`to_ref` MUST 指向 Strand（或 profile 声明的 watchable 对象）。**Truth source 是 cas_register cell `ak.component.strand.watch.v1`，写入路径是 `ak.strand.watch.set` durable event，不是 `ak.relation.create`**——直接 `ak.relation.create / update / delete relation_kind=watches` MUST `schema_violation`（与派生 `contains` Relation 的双源约束同模式，见 [`./realm-and-space.md` §3.6](./realm-and-space.md#36-strand-位置)）。写入 invariant：`payload.watcher_actor_id == envelope.actor_id`，除非 actor 持有 `ak.strand.watch.set.others` capability。级别枚举、投影脱敏、通知路由见 [strand-and-message.md §8](./strand-and-message.md)。 |
 | `has_default_view` | `many_to_one` | 同一 `from_ref` 在同一 Realm 内至多有一个 active default View；设置新默认 View MUST 关闭旧 active edge。 |
 | `agent_sidecar_of` | `many_to_one` | weak-semantic、non-structural、non-cascading。`from_ref` MUST 是 sidecar private Strand,`to_ref` 可为目标 Strand / Message / Relation。该 relation fact MUST 提交 `scope_circle_id` 指向 sidecar Circle，使 `effective_scope = circle`;non-sidecar-member 不能从目标侧枚举该边。**实现 MUST NOT 在目标公开 Strand 写 target-side reverse relation**，因为这会泄露 sidecar 存在性。详见 [`circle.md` §6.1](./circle.md) 的 Relation effective_scope invariant 与 [`circle.md` §11.1](./circle.md) 的 sidecar profile 规则。 |
 | `confidential_discussion_of` | `many_to_one` | weak-semantic、non-structural、non-cascading。`from_ref` MUST 是 private Strand，`to_ref` MUST 是其 public seal Strand。该 relation fact MUST 提交在 `from_ref` 所在 Circle scope（即 payload `scope_circle_id` 指向 private Strand 的 Circle，使 `effective_scope = circle`），使 Circle 成员能从 private Strand 回到 public seal，而 non-member 不能从 public seal 侧枚举该边。**实现 MUST NOT 在目标公开 Strand 写 target-side reverse relation**。 |
@@ -119,7 +119,7 @@ Relation 的 `realm_id` 表示关系事实所在的源 Realm；`from_ref` / `to_
 - 公共 Realm 引用私有 Realm 对象时，默认只能展示 opaque ref 或 Lazy Link；除非目标 Realm policy 明确允许 preview，不得泄露目标内容、成员、计数或存在性细节。
 - Sync / projection 层不得因为源 Realm 可见就自动 backfill 目标 Realm；跨 Realm 展开必须重新执行目标 Realm 授权，并在响应 metadata 中标记 `ReferenceProjectionStatus`（见 §4.2.1），或使用能无损映射到该枚举的等价字段。
 
-**Raw Event API 边界（normative）**：源 Realm canonical Event Store Service MAY 保存完整 `from_ref` / `to_ref` 字段以维持签名、dedupe 与 reducer determinism，但 `ck.self.events.query.scan` / `ck.self.events.stream.subscribe` / backfill / federation fanout 不是无条件 byte dump。若目标 Realm policy 对当前 caller / peer 拒绝 reference disclosure，则这些读取 surface MUST 返回与 §4.5 `locked` projection 等价的 redacted event view（保留 event id、kind、realm_id、payload digest / redaction reason 等可验证 stub，隐藏 envelope payload 内的目标 `realm_id` / `to_ref` / preview 字段），或直接按目标 policy 返回不可区分的 `locked` stub；不得把 canonical bytes 直接 forward 给本地客户端。redacted / locked 形态的机器契约是 `service-operation-dtos.schema.json#/$defs/RedactedEventView` 与 `#/$defs/ReferenceLockedEventStub`；`EventsQueryOutcome.events[]`、`EventView.event` 与 federation/backfill 的等价响应项必须能验证为完整 Event Envelope、RedactedEventView 或 ReferenceLockedEventStub 三者之一。只有同时满足源 Realm `ck.event.read` 与目标 reference disclosure 的 caller 才可取得完整 canonical payload bytes。
+**Raw Event API 边界（normative）**：源 Realm canonical Event Store Service MAY 保存完整 `from_ref` / `to_ref` 字段以维持签名、dedupe 与 reducer determinism，但 `ak.self.events.query.scan` / `ak.self.events.stream.subscribe` / backfill / federation fanout 不是无条件 byte dump。若目标 Realm policy 对当前 caller / peer 拒绝 reference disclosure，则这些读取 surface MUST 返回与 §4.5 `locked` projection 等价的 redacted event view（保留 event id、kind、realm_id、payload digest / redaction reason 等可验证 stub，隐藏 envelope payload 内的目标 `realm_id` / `to_ref` / preview 字段），或直接按目标 policy 返回不可区分的 `locked` stub；不得把 canonical bytes 直接 forward 给本地客户端。redacted / locked 形态的机器契约是 `service-operation-dtos.schema.json#/$defs/RedactedEventView` 与 `#/$defs/ReferenceLockedEventStub`；`EventsQueryOutcome.events[]`、`EventView.event` 与 federation/backfill 的等价响应项必须能验证为完整 Event Envelope、RedactedEventView 或 ReferenceLockedEventStub 三者之一。只有同时满足源 Realm `ak.event.read` 与目标 reference disclosure 的 caller 才可取得完整 canonical payload bytes。
 
 #### 4.2.1 `ReferenceProjectionStatus`（normative）
 
@@ -137,8 +137,8 @@ Relation 的 `realm_id` 表示关系事实所在的源 Realm；`from_ref` / `to_
 
 | 授权检查类型 | 在哪一边 enforce | 原因 |
 | --- | --- | --- |
-| Relation **创建**（`ck.relation.create`、`ck.relation.update`、`ck.relation.tombstone`） | **源 Realm**（Relation `realm_id`） | Relation 是源 Realm 的 reducer-input；reducer 在源 Realm 验证 actor 在源 Realm 的 capability 是否覆盖 `ck.relation.*`。 |
-| 引用目标的 **discover / reference 能力** | **目标 Realm**（`from_ref` 或 `to_ref` 指向的 Realm） | 目标 Realm policy 决定是否允许该 Relation 引用自身；典型 capability `ck.object.read_metadata` 或 `ck.realm.discover`。源 Realm reducer 在 accept Relation 前 SHOULD 验证目标 Realm 的 reference 许可（通过 cached attestation / capability grant ref 等）；缺失证据时 Relation 仍可写入源 Realm，但 projection 层在展开时 MUST 重新校验目标授权，校验失败的 Relation 显示为 `locked`。 |
+| Relation **创建**（`ak.relation.create`、`ak.relation.update`、`ak.relation.tombstone`） | **源 Realm**（Relation `realm_id`） | Relation 是源 Realm 的 reducer-input；reducer 在源 Realm 验证 actor 在源 Realm 的 capability 是否覆盖 `ak.relation.*`。 |
+| 引用目标的 **discover / reference 能力** | **目标 Realm**（`from_ref` 或 `to_ref` 指向的 Realm） | 目标 Realm policy 决定是否允许该 Relation 引用自身；典型 capability `ak.object.read_metadata` 或 `ak.realm.discover`。源 Realm reducer 在 accept Relation 前 SHOULD 验证目标 Realm 的 reference 许可（通过 cached attestation / capability grant ref 等）；缺失证据时 Relation 仍可写入源 Realm，但 projection 层在展开时 MUST 重新校验目标授权，校验失败的 Relation 显示为 `locked`。 |
 | 目标对象**内容展开**（标题、字段、preview） | **目标 Realm**（read 时） | 每次展开都用 reader 在目标 Realm 的 capability 重新校验；源 Realm 的可见性不传染到目标。 |
 | **位置 / structural 关系**（如 `contains` 跨 Realm） | **源 Realm + 强制源 == 目标** | `contains` 这类强结构关系在 v1 **MUST NOT 跨 Realm**——结构容器（Space）必须与所属 Strand 同 Realm。跨 Realm 的引用只能用 `references`、`mentions`、`derived_from`、`summarized_from` 等弱语义关系。 |
 
@@ -160,7 +160,7 @@ Relation 的 `realm_id` 表示关系事实所在的源 Realm；`from_ref` / `to_
 
 ### 4.5 反枚举（normative）
 
-**存在性反枚举**：`ReferenceProjectionStatus.locked` 与"目标 Realm 不存在 / 未发现"对外 MUST 保持不可区分。projection 在两种情况下 MUST 返回**相同**的 wire 形态：相同 `status="locked"` 或等价字段、相同 metadata 集合、相同 error 字符串、相同 timing bucket。Timing 判定使用同一服务端测量点、同一请求类别和同一部署 profile 的分布式口径：实现 SHOULD 对每类至少采样 30 次，p95 差异 SHOULD ≤ 50ms；声明高安全 profile 时 MUST 使用 padding / jitter 使 p99 也落入该 bucket。网络传输时间不计入服务端本地口径，但 conformance runner MAY 在同一网络条件下做端到端抽样。MUST NOT 在 `locked` 响应中泄露目标 `realm_id`、`title`、`member_count`、`created_at`、issuer set 或任何能被探测者用于"目标存在 vs 不存在"区分的字段；客户端 UI MAY 显示通用 "reference not accessible" 而不是显示具体目标 ID。源 Realm reducer SHOULD 限制单一 actor 在固定窗口内创建跨 Realm `locked` Relation 的速率（默认 ≤ 20/min），防止枚举攻击。Conformance vector `ck.vector.relation.reference_projection_indistinguishable.v1` 固化该响应 shape、raw event/backfill masking 与 timing bucket。
+**存在性反枚举**：`ReferenceProjectionStatus.locked` 与"目标 Realm 不存在 / 未发现"对外 MUST 保持不可区分。projection 在两种情况下 MUST 返回**相同**的 wire 形态：相同 `status="locked"` 或等价字段、相同 metadata 集合、相同 error 字符串、相同 timing bucket。Timing 判定使用同一服务端测量点、同一请求类别和同一部署 profile 的分布式口径：实现 SHOULD 对每类至少采样 30 次，p95 差异 SHOULD ≤ 50ms；声明高安全 profile 时 MUST 使用 padding / jitter 使 p99 也落入该 bucket。网络传输时间不计入服务端本地口径，但 conformance runner MAY 在同一网络条件下做端到端抽样。MUST NOT 在 `locked` 响应中泄露目标 `realm_id`、`title`、`member_count`、`created_at`、issuer set 或任何能被探测者用于"目标存在 vs 不存在"区分的字段；客户端 UI MAY 显示通用 "reference not accessible" 而不是显示具体目标 ID。源 Realm reducer SHOULD 限制单一 actor 在固定窗口内创建跨 Realm `locked` Relation 的速率（默认 ≤ 20/min），防止枚举攻击。Conformance vector `ak.vector.relation.reference_projection_indistinguishable.v1` 固化该响应 shape、raw event/backfill masking 与 timing bucket。
 
 读取实现 MUST 对 projection caller、raw event caller、backfill consumer 与 federation peer 使用同一 reference-disclosure 决策。对 peer 传输 canonical bytes 仅在 peer 本身被授权接收完整 payload 且承诺对其本地 caller 继续执行本节 masking 时允许；否则发送方 MUST 只传 redacted event view / locked stub。签名验证工具需要证明原始事件存在时，服务端 MAY 返回 `payload_digest`、inclusion proof 与 redaction reason，但不得返回被 target policy 禁止的 target ref 明文字段。RedactedEventView 与 ReferenceLockedEventStub 均为 projection / completeness evidence,`reducer_input` MUST 为 `false`；接收方 MUST NOT 把它们作为 reducer input、canonical event bytes、dedupe authority 或 proof.event_digest 重算材料。
 

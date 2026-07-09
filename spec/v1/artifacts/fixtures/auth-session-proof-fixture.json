@@ -38,7 +38,7 @@
         "proof.audience must match the target resource service audience",
         "request_canonical_digest must cover principal_id, device_id, requested_scope, and audience",
         "requested session grant lifetime is clamped to the Auth Server hard maximum",
-        "development_mode=true must not advertise ck.profile.auth_server.v1 in verified_profiles"
+        "development_mode=true must not advertise ak.profile.auth_server.v1 in verified_profiles"
       ]
     },
     {

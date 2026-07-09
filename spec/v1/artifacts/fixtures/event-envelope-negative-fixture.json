@@ -30,7 +30,7 @@
       "expected": {
         "decision": "reject",
         "error_code": "schema_violation",
-        "reason": "Event.kind MUST use registered ck.* spelling"
+        "reason": "Event.kind MUST use registered ak.* spelling"
       }
     },
     {

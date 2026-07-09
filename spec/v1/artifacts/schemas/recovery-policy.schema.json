@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/recovery-policy.schema.json",
   "title": "Arkret Recovery Policy",
-  "description": "Normative grammar for a principal's recovery policy. Bound to the Principal Control Realm via signed publish / rotate / revoke control events; receivers MUST reject `recover`, `rotate`, `ck.device.authorize` and Cross-Signing Reset evidence whose proof family / threshold / approval requirement is not allowed by the currently accepted recovery policy. See identity/key-management.md §3.3 / §7 / §8 and crypto-media/device-lifecycle.md §15.",
+  "description": "Normative grammar for a principal's recovery policy. Bound to the Principal Control Realm via signed publish / rotate / revoke control events; receivers MUST reject `recover`, `rotate`, `ak.device.authorize` and Cross-Signing Reset evidence whose proof family / threshold / approval requirement is not allowed by the currently accepted recovery policy. See identity/key-management.md §3.3 / §7 / §8 and crypto-media/device-lifecycle.md §15.",
   "type": "object",
   "required": [
     "schema",
@@ -219,7 +219,7 @@
         "receipt_required": {
           "type": "boolean",
           "default": true,
-          "description": "When true, recovery completion MUST produce a ck.schema.recovery_receipt.v1 record."
+          "description": "When true, recovery completion MUST produce a ak.schema.recovery_receipt.v1 record."
         }
       },
       "additionalProperties": false
@@ -748,7 +748,7 @@
     },
     "recovery_policy_summary": {
       "type": "object",
-      "description": "Read-model summary of the currently accepted recovery policy. `policy` carries the original ck.schema.recovery_policy.v1 object when the service can disclose it to the caller.",
+      "description": "Read-model summary of the currently accepted recovery policy. `policy` carries the original ak.schema.recovery_policy.v1 object when the service can disclose it to the caller.",
       "required": [
         "policy_id",
         "principal_id",
@@ -817,7 +817,7 @@
         },
         "policy": {
           "$ref": "#",
-          "description": "Full accepted ck.schema.recovery_policy.v1 object. Omitted only when the caller is authorized to learn that a policy exists but not to receive holder/share details."
+          "description": "Full accepted ak.schema.recovery_policy.v1 object. Omitted only when the caller is authorized to learn that a policy exists but not to receive holder/share details."
         }
       },
       "additionalProperties": false
@@ -844,7 +844,7 @@
     },
     "recovery_policy_active_outcome": {
       "type": "object",
-      "description": "Response for ck.root.identity.recovery_policy.resource.get. `active_policy=null` is a successful read meaning no accepted recovery policy currently exists for the resolved principal.",
+      "description": "Response for ak.root.identity.recovery_policy.resource.get. `active_policy=null` is a successful read meaning no accepted recovery policy currently exists for the resolved principal.",
       "required": [
         "active_policy"
       ],
@@ -878,7 +878,7 @@
     },
     "recovery_policy_publish_outcome": {
       "type": "object",
-      "description": "Response for ck.root.identity.recovery_policy.command.publish after accepting a ck.schema.recovery_policy.v1 publish or rotation.",
+      "description": "Response for ak.root.identity.recovery_policy.command.publish after accepting a ak.schema.recovery_policy.v1 publish or rotation.",
       "required": [
         "ok",
         "policy_id",
