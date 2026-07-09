@@ -1,7 +1,7 @@
 {
   "version": "2026-06-11",
   "source_of_truth": true,
-  "description": "Canonical reducer profile definitions used to compute federation service_binding_ref.reducer_profile_digest. Each digest is SHA-256 over the Cokret canonical JSON bytes of the row's digest_input object.",
+  "description": "Canonical reducer profile definitions used to compute federation service_binding_ref.reducer_profile_digest. Each digest is SHA-256 over the Arkret canonical JSON bytes of the row's digest_input object.",
   "canonicalization": "json_jcs",
   "digest_suite": "sha256",
   "digest_input_rule": "Resolve the row whose profile_id equals the Realm reducer profile, take digest_input exactly as published in this registry, canonicalize it with zh/conformance/encoding.md section 2 canonical JSON, hash the resulting UTF-8 bytes with SHA-256, and encode as sha256:<lowercase_hex>.",

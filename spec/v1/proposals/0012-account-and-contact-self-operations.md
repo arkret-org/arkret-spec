@@ -18,7 +18,7 @@ merged_to:
   - spec/v1/artifacts/registry/error-code-registry.json
   - spec/v1/artifacts/registry/operations-error-mapping.json
   - spec/v1/artifacts/reports/operation-schema-index.json
-  - spec/v1/artifacts/openapi/cokret-service-api.openapi.yaml
+  - spec/v1/artifacts/openapi/arkret-service-api.openapi.yaml
   - spec/v1/artifacts/bindings/non-http-bindings.yaml
   - spec/v1/zh/sync/service-http-binding.md
   - spec/v1/zh/sync/service-api-schema.mdx
@@ -37,7 +37,7 @@ merged_to:
 - **账户一次性自读 / profile 更新**落 `self` 段(`/_cokret/self/account/*`);
 - **账户注册 / 自助 logout**落认证入口段 `gate`(`/_cokret/gate/account/*`)——账户创建与会话撤销属认证生命周期,不落 `self`。
 
-当前 inkson 通过硬编码 soland 私有路径(`/_soland/self/account/me`、`/_soland/gate/auth/logout` 等,见 [`inkson/src/api/account.rs`](../../../../inkson/src/api/account.rs))访问这些能力,使其退化为 **soland 专用客户端**,而非通用 Cokret 客户端。本提案补齐对应协议 operation,消除该耦合。
+当前 inkson 通过硬编码 soland 私有路径(`/_soland/self/account/me`、`/_soland/gate/auth/logout` 等,见 [`inkson/src/api/account.rs`](../../../../inkson/src/api/account.rs))访问这些能力,使其退化为 **soland 专用客户端**,而非通用 Arkret 客户端。本提案补齐对应协议 operation,消除该耦合。
 
 非目标:不引入新 Realm event / reducer 行为;不动 wire 加密路径;不收编 admin 面(`/_soland/admin/*` 按 CHANGELOG 2026-06-04 仍属实现产品面);联系人关系见 CKP-0013。
 
@@ -168,7 +168,7 @@ ck.gate.account.oidc_callback   ck.gate.account.agent_key_pair
 合入需同步:
 
 - `artifacts/registry/contract-catalog.json` operation_registry(+ 派生 `operation-registry.json`);
-- `artifacts/openapi/cokret-service-api.openapi.yaml`(新增 path + schema;`AccountView`、`AccountRegisterRequestBody`、`AccountRegisterOutcome`、`AccountUpdateProfileRequestBody`、`SessionRevokeRequestBody` / response MUST 注册为 schema,不得只留 inline DTO);
+- `artifacts/openapi/arkret-service-api.openapi.yaml`(新增 path + schema;`AccountView`、`AccountRegisterRequestBody`、`AccountRegisterOutcome`、`AccountUpdateProfileRequestBody`、`SessionRevokeRequestBody` / response MUST 注册为 schema,不得只留 inline DTO);
 - `operations-error-mapping.json`(`invalid_avatar_blob_ref`、`unsupported_profile_patch_path`、`session_grant_not_found`、`session_revoke_selector_conflict` 等错误映射);
 - `zh/sync/service-http-binding.md`:`/_cokret/self/account/*` 行扩展 `viewer`/`profile`;`/_cokret/gate/account/*` 行扩展 `register`/`session-grants/revoke`;
 - `zh/sync/service-surface.md` Principal Server / Auth Server surface 列表;

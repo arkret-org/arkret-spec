@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/cross-signing-reset.schema.json",
-  "title": "Cokret Cross-Signing Reset",
+  "$id": "https://arkret.org/v1/schemas/cross-signing-reset.schema.json",
+  "title": "Arkret Cross-Signing Reset",
   "description": "Payload content for ck.cross_signing.reset (schema_id ck.schema.cross_signing_reset.v1). High-risk operation that retires the current (SSK, USK) generation and requires one of four kinds of proof — see device-lifecycle.md §14. A successor ck.cross_signing.publish MUST follow within 24h.",
   "type": "object",
   "required": [

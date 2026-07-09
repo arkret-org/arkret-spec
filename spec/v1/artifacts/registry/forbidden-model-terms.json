@@ -1,5 +1,5 @@
 {
-  "$schema": "https://cokret.dev/spec/v1/artifacts/registry/drift-detection.schema.json",
+  "$schema": "https://arkret.dev/spec/v1/artifacts/registry/drift-detection.schema.json",
   "version": 1,
   "kind": "forbidden_model_terms",
   "source_of_truth": true,
@@ -22,13 +22,13 @@
       "context": "brand_name",
       "since_revision": "2026-06-03",
       "rejection_level": "hard_reject",
-      "replacement": "Cokret",
+      "replacement": "Arkret",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Contrix is the legacy brand name (lowercase `contrix`, wire prefixes `cx.` / `cx:`). Use Cokret / cokret / `ck.` / `ck:` in all current prose, identifiers, file names, and UI copy. See renames.json migration group brand_namespace_cx_to_ck."
+      "notes": "Contrix is the legacy brand name (lowercase `contrix`, wire prefixes `cx.` / `cx:`). Use Arkret / arkret / `ck.` / `ck:` in all current prose, identifiers, file names, and UI copy. See renames.json migration group brand_namespace_cx_to_ck."
     },
     {
       "id": "Room",
@@ -144,19 +144,19 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Legacy Contrix wire namespace prefix. Current Cokret v1 canonical event/profile names use ck.; cx. may appear only in migration notes or negative tests."
+      "notes": "Legacy Contrix wire namespace prefix. Current Arkret v1 canonical event/profile names use ck.; cx. may appear only in migration notes or negative tests."
     },
     {
       "id": "cx:",
       "term": "cx:",
       "rejection_level": "hard_reject",
-      "replacement": "ck:",
+      "replacement": "ak:",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Legacy Contrix typed-ID prefix. Current Cokret v1 typed IDs use ck:; cx: may appear only in migration notes or negative tests."
+      "notes": "Legacy Contrix typed-ID prefix. Current Arkret v1 typed IDs use ck:; cx: may appear only in migration notes or negative tests."
     },
     {
       "id": "cleartext",

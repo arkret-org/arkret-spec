@@ -117,7 +117,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A service-to-service request that MUST carry a per-delivery RFC 9421 HTTP Message Signature presented only Authorization: Bearer with no Signature. Applies to Applet transaction push in both directions (node->Applet and app/bridge->cokret edge inbound). See zh/extensions/applet-integration.md \u00a77.3.1."
+      "description": "A service-to-service request that MUST carry a per-delivery RFC 9421 HTTP Message Signature presented only Authorization: Bearer with no Signature. Applies to Applet transaction push in both directions (node->Applet and app/bridge->arkret edge inbound). See zh/extensions/applet-integration.md \u00a77.3.1."
     },
     {
       "code": "http_signature_invalid",
@@ -907,7 +907,7 @@
         "schema_validation",
         "service_call"
       ],
-      "description": "`ck.self.account.command.update_profile` received an `avatar_blob_ref` that is not a valid Cokret Blob reference, does not resolve under the caller's profile/avatar policy, or points to a blob the server cannot authorize for profile display. Protocol profile updates MUST use `avatar_blob_ref`; `avatar_url` is only a compatibility-layer input outside the Cokret protocol path."
+      "description": "`ck.self.account.command.update_profile` received an `avatar_blob_ref` that is not a valid Arkret Blob reference, does not resolve under the caller's profile/avatar policy, or points to a blob the server cannot authorize for profile display. Protocol profile updates MUST use `avatar_blob_ref`; `avatar_url` is only a compatibility-layer input outside the Arkret protocol path."
     },
     {
       "code": "unsupported_profile_patch_path",
@@ -1710,7 +1710,7 @@
       "applies_to": [
         "encoding"
       ],
-      "description": "Bytes are not valid Cokret canonical JSON (sorted keys, integer-only numbers, escape rules per encoding.md \u00a71)."
+      "description": "Bytes are not valid Arkret canonical JSON (sorted keys, integer-only numbers, escape rules per encoding.md \u00a71)."
     },
     {
       "code": "invalid_encoding",
@@ -1771,7 +1771,7 @@
         "client_sync",
         "encoding"
       ],
-      "description": "Cursor failed the \u00a78.3.1 integrity check: the stateful `h` handle is unknown / revoked / expired / cross-bound, or its stored binding (principal / device / service / filter_digest / purpose) does not match the authenticated request. Distinct from cursor_expired (TTL) and cursor_unrecognized (cross-service portability miss). Triggered before any server-side state advancement (/account/subscribe after= resume, X-Cokret-Wait-For release, dropped/resync_required recovery; to-device queue deletion is decoupled from cursors per client-sync.md \u00a710.1). Client MUST clear local cursor cache and restart from initial /account/subscribe."
+      "description": "Cursor failed the \u00a78.3.1 integrity check: the stateful `h` handle is unknown / revoked / expired / cross-bound, or its stored binding (principal / device / service / filter_digest / purpose) does not match the authenticated request. Distinct from cursor_expired (TTL) and cursor_unrecognized (cross-service portability miss). Triggered before any server-side state advancement (/account/subscribe after= resume, X-Arkret-Wait-For release, dropped/resync_required recovery; to-device queue deletion is decoupled from cursors per client-sync.md \u00a710.1). Client MUST clear local cursor cache and restart from initial /account/subscribe."
     },
     {
       "code": "cursor_revoked",
@@ -2444,7 +2444,7 @@
         "service_call",
         "schema_validation"
       ],
-      "description": "A `ck.realm.media_service.foci[].type` value is not in the v1 registered set (`livekit` / `mediasoup` / `janus` / `cokret-native` / `moq-relay`) or is registered but not supported by this client / issuer. Clients MUST fail closed instead of forwarding the token to an arbitrary SDK. See zh/crypto-media/media-service-binding.md \u00a72."
+      "description": "A `ck.realm.media_service.foci[].type` value is not in the v1 registered set (`livekit` / `mediasoup` / `janus` / `arkret-native` / `moq-relay`) or is registered but not supported by this client / issuer. Clients MUST fail closed instead of forwarding the token to an arbitrary SDK. See zh/crypto-media/media-service-binding.md \u00a72."
     },
     {
       "code": "token_issuer_unauthorised",
@@ -2502,14 +2502,14 @@
       "applies_to": [
         "service_call"
       ],
-      "description": "A backend media SDK supplied an SFrame / frame encryption key from a source other than the Cokret MLS exporter (label `ck-rtc-frame-key/v1`). Clients MUST reject and refuse to publish / subscribe media. Closes the attack where backend cloud key escrow could intercept ostensibly-E2EE media. See zh/crypto-media/media-service-binding.md \u00a78.1."
+      "description": "A backend media SDK supplied an SFrame / frame encryption key from a source other than the Arkret MLS exporter (label `ck-rtc-frame-key/v1`). Clients MUST reject and refuse to publish / subscribe media. Closes the attack where backend cloud key escrow could intercept ostensibly-E2EE media. See zh/crypto-media/media-service-binding.md \u00a78.1."
     },
     {
       "code": "recording_artifact_pipeline_bypassed",
       "applies_to": [
         "service_call"
       ],
-      "description": "A backend (LiveKit Egress / Janus recording plugin / etc.) attempted to deliver a recording artifact outside the Cokret-side blob pipeline \u2014 e.g. an Egress destination pointing to LiveKit Cloud / S3 / GCS direct, instead of the Cokret media service authenticated upload endpoint. Clients MUST fail closed. See zh/crypto-media/call-state.md \u00a75 and zh/crypto-media/media-service-binding.md \u00a78.1."
+      "description": "A backend (LiveKit Egress / Janus recording plugin / etc.) attempted to deliver a recording artifact outside the Arkret-side blob pipeline \u2014 e.g. an Egress destination pointing to LiveKit Cloud / S3 / GCS direct, instead of the Arkret media service authenticated upload endpoint. Clients MUST fail closed. See zh/crypto-media/call-state.md \u00a75 and zh/crypto-media/media-service-binding.md \u00a78.1."
     },
     {
       "code": "transcription_denied",
@@ -2524,7 +2524,7 @@
       "applies_to": [
         "service_call"
       ],
-      "description": "A backend attempted to deliver a transcription artifact outside the Cokret-side blob pipeline, or used a key not derived from the MLS-Exporter label `ck-rtc-transcript-key/v1` (e.g. reused the SFrame / recording label or an empty Context). Clients MUST fail closed. See zh/crypto-media/call-state.md \u00a75.1 and zh/crypto-media/media-service-binding.md \u00a78.1."
+      "description": "A backend attempted to deliver a transcription artifact outside the Arkret-side blob pipeline, or used a key not derived from the MLS-Exporter label `ck-rtc-transcript-key/v1` (e.g. reused the SFrame / recording label or an empty Context). Clients MUST fail closed. See zh/crypto-media/call-state.md \u00a75.1 and zh/crypto-media/media-service-binding.md \u00a78.1."
     },
     {
       "code": "recording_consent_required",
@@ -2592,7 +2592,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A media backend join token presented at connect time is past its `expires_at` (e.g. a LiveKit JWT whose `exp` has elapsed, distinct from `proof_invalid` which covers a structurally bad / wrong-issuer signature). The client MUST re-run the media-service-binding \u00a73 token exchange instead of reusing the stale token; clients MUST NOT extend or replay an expired backend token. See zh/crypto-media/bindings/livekit.md \u00a78 and zh/crypto-media/bindings/cokret-native.md."
+      "description": "A media backend join token presented at connect time is past its `expires_at` (e.g. a LiveKit JWT whose `exp` has elapsed, distinct from `proof_invalid` which covers a structurally bad / wrong-issuer signature). The client MUST re-run the media-service-binding \u00a73 token exchange instead of reusing the stale token; clients MUST NOT extend or replay an expired backend token. See zh/crypto-media/bindings/livekit.md \u00a78 and zh/crypto-media/bindings/arkret-native.md."
     },
     {
       "code": "verification_method_principal_mismatch",
@@ -3083,14 +3083,14 @@
       "applies_to": [
         "service_call"
       ],
-      "description": "An Agent Protocol handoff returned or submitted an artifact that failed Cokret schema, safety, policy, or malware checks. The agent session MAY continue, but the artifact MUST NOT be admitted as accepted Realm content. See zh/extensions/agent-protocol-interop.md."
+      "description": "An Agent Protocol handoff returned or submitted an artifact that failed Arkret schema, safety, policy, or malware checks. The agent session MAY continue, but the artifact MUST NOT be admitted as accepted Realm content. See zh/extensions/agent-protocol-interop.md."
     },
     {
       "code": "remote_rejected",
       "applies_to": [
         "service_call"
       ],
-      "description": "A remote agent or peer explicitly rejected the delegated task / protocol handoff. Cokret records the rejection as a stable handoff outcome rather than retrying blindly. See zh/extensions/agent-protocol-interop.md."
+      "description": "A remote agent or peer explicitly rejected the delegated task / protocol handoff. Arkret records the rejection as a stable handoff outcome rather than retrying blindly. See zh/extensions/agent-protocol-interop.md."
     },
     {
       "code": "webvh_cache_too_stale",
@@ -3321,7 +3321,7 @@
         "service_call",
         "state_resolution"
       ],
-      "description": "A MIMI facade attempted to project room state, groupInfo, key material, or message data into a Cokret Realm without a verifiable Cokret MLS governance binding. Receiver MUST quarantine or reject fail-closed instead of accepting unauthenticated MIMI state as Realm authority. See zh/extensions/mimi-interop.md \u00a74."
+      "description": "A MIMI facade attempted to project room state, groupInfo, key material, or message data into a Arkret Realm without a verifiable Arkret MLS governance binding. Receiver MUST quarantine or reject fail-closed instead of accepting unauthenticated MIMI state as Realm authority. See zh/extensions/mimi-interop.md \u00a74."
     },
     {
       "code": "mimi_governance_binding_mismatch",
@@ -3337,7 +3337,7 @@
         "service_call",
         "state_resolution"
       ],
-      "description": "A MIMI room policy component does not match the Cokret Realm policy_root or ck.realm.policy_components state. Facade MUST reject the update until a fresh policy projection is available. See zh/extensions/mimi-interop.md \u00a74.1."
+      "description": "A MIMI room policy component does not match the Arkret Realm policy_root or ck.realm.policy_components state. Facade MUST reject the update until a fresh policy projection is available. See zh/extensions/mimi-interop.md \u00a74.1."
     },
     {
       "code": "mimi_room_state_incompatible",
@@ -3345,7 +3345,7 @@
         "service_call",
         "schema_validation"
       ],
-      "description": "Incoming MIMI room state uses lifecycle, membership, policy, or extension shape not supported by the declared Cokret MIMI interop profile. Facade MUST reject or require a newer profile. See zh/extensions/mimi-interop.md \u00a74.1."
+      "description": "Incoming MIMI room state uses lifecycle, membership, policy, or extension shape not supported by the declared Arkret MIMI interop profile. Facade MUST reject or require a newer profile. See zh/extensions/mimi-interop.md \u00a74.1."
     },
     {
       "code": "mimi_provider_unreachable",

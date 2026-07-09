@@ -44,21 +44,21 @@
         {
           "label": "missing",
           "body": {
-            "realm_id": "ck:realm:019640a5-0000-7000-8000-000000000000",
+            "realm_id": "ak:realm:019640a5-0000-7000-8000-000000000000",
             "requester": "did:webvh:z6mkfixture:mallory.example"
           }
         },
         {
           "label": "hidden",
           "body": {
-            "realm_id": "ck:realm:019640b5-8000-7000-8000-000000000000",
+            "realm_id": "ak:realm:019640b5-8000-7000-8000-000000000000",
             "requester": "did:webvh:z6mkfixture:mallory.example"
           }
         },
         {
           "label": "invite_only_without_proof",
           "body": {
-            "realm_id": "ck:realm:019640c6-0000-7000-8000-000000000000",
+            "realm_id": "ak:realm:019640c6-0000-7000-8000-000000000000",
             "requester": "did:webvh:z6mkfixture:mallory.example"
           }
         }
@@ -290,11 +290,11 @@
       "inputs": [
         {
           "label": "missing",
-          "blob_ref": "ck:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          "blob_ref": "ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         },
         {
           "label": "hidden",
-          "blob_ref": "ck:blob:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          "blob_ref": "ak:blob:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         }
       ],
       "expected": {
@@ -315,7 +315,7 @@
       "operation_id": "ck.edge.push.command.notify",
       "input": {
         "notification": {
-          "push_target_id": "ck:pseudonym:push:01js0pt0000000000000000000",
+          "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
           "wakeup_kind": "message",
           "push_hint": "new_message",
           "counts": {
@@ -324,7 +324,7 @@
           "devices": [
             {
               "push_key": "fcm:eJx9k2-example",
-              "app_id": "com.cokret.client"
+              "app_id": "com.arkret.client"
             }
           ]
         }
@@ -419,12 +419,12 @@
             "profile": "ck.profile.directory_service.v1",
             "operation_id": "ck.find.directory.query.search_realms",
             "payload": {
-              "realm_id": "ck:realm:01970e58-9d26-7000-8000-000000000001",
+              "realm_id": "ak:realm:01970e58-9d26-7000-8000-000000000001",
               "title": "Launch calendar",
               "summary": "Public discovery metadata only",
               "as_of": "2026-05-02T00:00:00Z",
               "source_refs": [
-                "ck:event:01970e58-9d26-7000-8000-000000000101"
+                "ak:event:01970e58-9d26-7000-8000-000000000101"
               ],
               "policy_revision": "dir-rev-1"
             }
@@ -435,7 +435,7 @@
             "payload": {
               "effective_scope": {
                 "kind": "realm",
-                "realm_id": "ck:realm:01970e58-9d26-7000-8000-000000000001"
+                "realm_id": "ak:realm:01970e58-9d26-7000-8000-000000000001"
               },
               "index_generation": 7,
               "epoch_id": 3,

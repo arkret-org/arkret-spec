@@ -52,9 +52,9 @@ Conformance vectors 是 v1 的当前互操作基线，但它们只能覆盖有�
 
 ### 1.1 目标
 
-本文定义 Cokret canonical JSON、hash、event digest、event-batch receipt digest、signature binding、HLC、cursor 与 encrypted envelope digest 的一致性测试向量。
+本文定义 Arkret canonical JSON、hash、event digest、event-batch receipt digest、signature binding、HLC、cursor 与 encrypted envelope digest 的一致性测试向量。
 
-这些向量是 `encoding.md` 的测试化补充。实现只要在 hash 输入、字段排序、签名绑定或时间排序上产生差异，就不能声称与 Cokret v1 编码 profile 互操作。
+这些向量是 `encoding.md` 的测试化补充。实现只要在 hash 输入、字段排序、签名绑定或时间排序上产生差异，就不能声称与 Arkret v1 编码 profile 互操作。
 
 ### 1.2 通用规则
 
@@ -218,7 +218,7 @@ ck.vector.encoding.reject_duplicate_key.v1
 输入 bytes（UTF-8 文本，未经 parser 去重；同一层出现两个 `event_id`）：
 
 ```text
-{"event_id":"ck:event:019640ed-8000-7000-8000-000000000000","event_id":"ck:event:019640ed-8000-7000-8000-000000000001"}
+{"event_id":"ak:event:019640ed-8000-7000-8000-000000000000","event_id":"ak:event:019640ed-8000-7000-8000-000000000001"}
 ```
 
 期望：
@@ -299,9 +299,9 @@ ck.vector.encoding.event_digest.v1
 
 ```json
 {
-  "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
+  "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
   "kind": "ck.message.create",
-  "realm_id": "ck:realm:01964137-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:01964137-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:z6mkfixture:alice.example",
   "actor_seq": 1,
   "created_at": "2026-04-26T00:00:00Z",
@@ -310,30 +310,30 @@ ck.vector.encoding.event_digest.v1
   "refs": [],
   "effects": [
     {
-      "cell": "ck:cell:message:019640ed-8000-7000-8000-000000000000",
+      "cell": "ak:cell:message:019640ed-8000-7000-8000-000000000000",
       "op": {
         "kind": "append",
         "value": {
-          "strand_id": "ck:strand:01964137-0000-7000-8000-000000000000",
-          "message_id": "ck:message:019640ed-8000-7000-8000-000000000000",
+          "strand_id": "ak:strand:01964137-0000-7000-8000-000000000000",
+          "message_id": "ak:message:019640ed-8000-7000-8000-000000000000",
           "track_name": "discussion"
         }
       }
     }
   ],
-  "seal_ref": "ck:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "seal_ref": "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
   "auth_context": {
     "did": "did:webvh:z6mkfixture:alice.example",
     "key_id": "device-1",
     "key_epoch": 1,
     "capability_refs": [
-      "ck:grant:0196410c-0000-7000-8000-000000000000"
+      "ak:grant:0196410c-0000-7000-8000-000000000000"
     ]
   },
   "payload": {
-    "strand_id": "ck:strand:01964137-0000-7000-8000-000000000000",
+    "strand_id": "ak:strand:01964137-0000-7000-8000-000000000000",
     "track_name": "discussion",
-    "message_id": "ck:message:019640ed-8000-7000-8000-000000000000",
+    "message_id": "ak:message:019640ed-8000-7000-8000-000000000000",
     "content": {
       "kind": "ck.content.text",
       "body": "hello"
@@ -345,7 +345,7 @@ ck.vector.encoding.event_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"did:webvh:z6mkfixture:alice.example","actor_seq":1,"auth_context":{"capability_refs":["ck:grant:0196410c-0000-7000-8000-000000000000"],"did":"did:webvh:z6mkfixture:alice.example","key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00Z","effects":[{"cell":"ck:cell:message:019640ed-8000-7000-8000-000000000000","op":{"kind":"append","value":{"message_id":"ck:message:019640ed-8000-7000-8000-000000000000","strand_id":"ck:strand:01964137-0000-7000-8000-000000000000","track_name":"discussion"}}}],"event_id":"ck:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"ck.message.create","payload":{"content":{"body":"hello","kind":"ck.content.text"},"message_id":"ck:message:019640ed-8000-7000-8000-000000000000","strand_id":"ck:strand:01964137-0000-7000-8000-000000000000","track_name":"discussion"},"prev_refs":[],"realm_id":"ck:realm:01964137-0000-7000-8000-000000000000","refs":[],"seal_ref":"ck:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"}
+{"actor_id":"did:webvh:z6mkfixture:alice.example","actor_seq":1,"auth_context":{"capability_refs":["ak:grant:0196410c-0000-7000-8000-000000000000"],"did":"did:webvh:z6mkfixture:alice.example","key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00Z","effects":[{"cell":"ak:cell:message:019640ed-8000-7000-8000-000000000000","op":{"kind":"append","value":{"message_id":"ak:message:019640ed-8000-7000-8000-000000000000","strand_id":"ak:strand:01964137-0000-7000-8000-000000000000","track_name":"discussion"}}}],"event_id":"ak:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"ck.message.create","payload":{"content":{"body":"hello","kind":"ck.content.text"},"message_id":"ak:message:019640ed-8000-7000-8000-000000000000","strand_id":"ak:strand:01964137-0000-7000-8000-000000000000","track_name":"discussion"},"prev_refs":[],"realm_id":"ak:realm:01964137-0000-7000-8000-000000000000","refs":[],"seal_ref":"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"}
 ```
 
 期望 digest：
@@ -373,7 +373,7 @@ ck.vector.encoding.event_batch_receipt_digest.v1
 ```json
 {
   "schema": "ck.schema.event_batch_receipt.v1",
-  "receipt_id": "ck:receipt:01964186-0000-7000-8000-000000000000",
+  "receipt_id": "ak:receipt:01964186-0000-7000-8000-000000000000",
   "issuer": "did:webvh:z6mkfixture:alice.example",
   "scope": {
     "actor_id": "did:webvh:z6mkfixture:alice.example"
@@ -392,7 +392,7 @@ ck.vector.encoding.event_batch_receipt_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"frontier":{"actor_seq":1,"event_digest":"sha256:1111111111111111111111111111111111111111111111111111111111111111"},"issuer":"did:webvh:z6mkfixture:alice.example","receipt_id":"ck:receipt:01964186-0000-7000-8000-000000000000","schema":"ck.schema.event_batch_receipt.v1","scope":{"actor_id":"did:webvh:z6mkfixture:alice.example"}}
+{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"frontier":{"actor_seq":1,"event_digest":"sha256:1111111111111111111111111111111111111111111111111111111111111111"},"issuer":"did:webvh:z6mkfixture:alice.example","receipt_id":"ak:receipt:01964186-0000-7000-8000-000000000000","schema":"ck.schema.event_batch_receipt.v1","scope":{"actor_id":"did:webvh:z6mkfixture:alice.example"}}
 ```
 
 期望 digest：
@@ -602,7 +602,7 @@ ck.vector.encoding.encrypted_envelope_digest.v1
 `payload_metadata` canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"aad":{"event_kind":"ck.message.create","event_ref_digest":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","realm_id":"ck:realm:0196419b-0000-7000-8000-000000000000"},"aad_visibility_event_id":"routing_digest","content_type":"application/json","epoch":12,"group_id":"Z3JvdXAtMDAx","key_ref":{"algorithm":"MLS","group_state_ref":"ck:event:01964148-0000-7000-8000-000000000000"},"scheme":"mls-rfc9420","version":"1.0"}
+{"aad":{"event_kind":"ck.message.create","event_ref_digest":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","realm_id":"ak:realm:0196419b-0000-7000-8000-000000000000"},"aad_visibility_event_id":"routing_digest","content_type":"application/json","epoch":12,"group_id":"Z3JvdXAtMDAx","key_ref":{"algorithm":"MLS","group_state_ref":"ak:event:01964148-0000-7000-8000-000000000000"},"scheme":"mls-rfc9420","version":"1.0"}
 ```
 
 `ciphertext` 的 base64url wire 值与解码后 UTF-8 测试表示：
@@ -924,7 +924,7 @@ ck.vector.cba_lattice.seal_canonical_no_self_reference.v1
 
 输入与期望（多 case 矩阵）：
 
-1. **Base case**：构造 Seal body fields `{realm_id, predecessor_refs, delta, control_event_set_root, state_root, sealed_at, hlc}`；按 [`encoding.md`](../conformance/encoding.md) §2 编码为 `seal_canonical_bytes`；`id = "ck:seal:sha256:" || hex(H(seal_canonical_bytes))`；`notary_signature.payload_digest == H(seal_canonical_bytes)`。Verifier MUST accept。
+1. **Base case**：构造 Seal body fields `{realm_id, predecessor_refs, delta, control_event_set_root, state_root, sealed_at, hlc}`；按 [`encoding.md`](../conformance/encoding.md) §2 编码为 `seal_canonical_bytes`；`id = "ak:seal:sha256:" || hex(H(seal_canonical_bytes))`；`notary_signature.payload_digest == H(seal_canonical_bytes)`。Verifier MUST accept。
 2. **id-in-canonical-bytes attack**：若 producer 把 `id` 字段也塞进 `seal_canonical_bytes` 重新计算 H，得到的 hash 与原始 `id` 内容不同；verifier 重算后 `digest_mismatch`，MUST reject。该向量证明实现没有把 `id` 当成 transcript field。
 3. **sig-in-canonical-bytes attack**：若 producer 把 `notary_signature` 也进入 canonical bytes，`payload_digest` 重算与 `id` 重算都会失败；verifier MUST reject。证明 signature 不签自己。
 4. **key reorder attack**：取 valid Seal，把 canonical JSON key 顺序打乱（例如 `delta` 放在 `realm_id` 之前）；canonical JSON 规则（key 字典序）下重新编码 → 与原 bytes 相同 → hash 一致 → accept。若 verifier 未按 canonical 规则重新编码就直接 hash wire bytes，attack 会让 `digest_mismatch` 假阴性。本 case 检查 verifier 走 canonical re-encode，不是按收到的 bytes 直接 hash。
@@ -1294,16 +1294,16 @@ ck.vector.redaction.preserve_fields.v1
 ```json
 {
   "target_event": {
-    "event_id": "ck:event:0196414c-3000-7000-8000-000000000000",
+    "event_id": "ak:event:0196414c-3000-7000-8000-000000000000",
     "kind": "ck.message.create",
-    "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
+    "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
     "actor_id": "did:webvh:z6mkfixture:alice.example.com",
     "created_at": "2026-04-26T00:00:00Z",
     "hlc": "01970e589d24-0001-aaaaaaaa",
     "prev_refs": [],
     "refs": [],
     "payload": {
-      "strand_id": "ck:strand:0196414c-3400-7000-8000-000000000000",
+      "strand_id": "ak:strand:0196414c-3400-7000-8000-000000000000",
       "content": {
         "kind": "ck.content.text",
         "body": "private notes"
@@ -1325,20 +1325,20 @@ ck.vector.redaction.preserve_fields.v1
     }
   },
   "redaction_event": {
-    "event_id": "ck:event:0196418a-0360-7000-8000-000000000000",
+    "event_id": "ak:event:0196418a-0360-7000-8000-000000000000",
     "kind": "ck.redaction",
-    "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
+    "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
     "actor_id": "did:webvh:z6mkfixture:alice.example.com",
     "created_at": "2026-04-26T00:00:02Z",
     "hlc": "01970e589d24-0002-bbbbbbbb",
     "prev_refs": [
-      "ck:event:0196414c-3000-7000-8000-000000000000"
+      "ak:event:0196414c-3000-7000-8000-000000000000"
     ],
     "refs": [
-      { "id": "ck:event:019640c5-5800-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+      { "id": "ak:event:019640c5-5800-7000-8000-000000000000", "role": "authorized_by", "critical": true }
     ],
     "payload": {
-      "redacts": "ck:event:0196414c-3000-7000-8000-000000000000",
+      "redacts": "ak:event:0196414c-3000-7000-8000-000000000000",
       "reason_code": "policy_recall"
     }
   }
@@ -1349,7 +1349,7 @@ ck.vector.redaction.preserve_fields.v1
 
 ```json
 {
-  "event_id": "ck:event:0196414c-3000-7000-8000-000000000000",
+  "event_id": "ak:event:0196414c-3000-7000-8000-000000000000",
   "state": "redacted",
   "kept_envelope_fields": [
     "event_id",
@@ -1404,7 +1404,7 @@ ck.vector.redaction.space_target_ref_schema.v1
 
 ```json schema=schemas/event-payload.schema.json#/$defs/object_lifecycle_payload
 {
-  "target_ref": "ck:space:019640b6-8000-7000-8000-000000000000",
+  "target_ref": "ak:space:019640b6-8000-7000-8000-000000000000",
   "reason": "privacy_cleanup"
 }
 ```
@@ -1433,13 +1433,13 @@ ck.vector.redaction.policy_scope.v1
 {
   "timeline": [
     {
-      "event_id": "ck:event:0196417d-8400-7000-8000-000000000000",
+      "event_id": "ak:event:0196417d-8400-7000-8000-000000000000",
       "kind": "ck.message.create",
-      "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
+      "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
       "created_at": "2026-04-26T00:00:00Z",
       "hlc": "01970e589d25-0001-11111111",
       "payload": {
-        "strand_id": "ck:strand:0196417d-8400-7000-8000-000000000000",
+        "strand_id": "ak:strand:0196417d-8400-7000-8000-000000000000",
         "content": {
           "kind": "ck.content.text",
           "body": "bad link: spam.example/phish"
@@ -1447,25 +1447,25 @@ ck.vector.redaction.policy_scope.v1
       }
     },
     {
-      "event_id": "ck:event:0196417d-8980-7000-8000-000000000000",
+      "event_id": "ak:event:0196417d-8980-7000-8000-000000000000",
       "kind": "ck.policy.action",
-      "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
+      "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
       "created_at": "2026-04-26T00:00:01Z",
       "hlc": "01970e589d25-0001-22222222",
       "actor_id": "did:webvh:z6mkfixture:policy-bot.example.com",
       "payload": {
-        "target_id": "ck:event:0196417d-8400-7000-8000-000000000000",
+        "target_id": "ak:event:0196417d-8400-7000-8000-000000000000",
         "policy_scope": "public",
         "decision": "quarantine"
       }
     },
     {
-      "event_id": "ck:event:0196417d-8f00-7000-8000-000000000000",
+      "event_id": "ak:event:0196417d-8f00-7000-8000-000000000000",
       "kind": "ck.redaction",
-      "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
+      "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
       "actor_id": "did:webvh:z6mkfixture:policy-admin.example",
       "payload": {
-        "redacts": "ck:event:0196417d-8400-7000-8000-000000000000",
+        "redacts": "ak:event:0196417d-8400-7000-8000-000000000000",
         "reason_code": "policy_recall"
       }
     }
@@ -1588,17 +1588,17 @@ ck.vector.capability.delegate_chain.v1
   },
   "delegations": [
     {
-      "event_id": "ck:event:019640d0-c000-7000-8000-000000000000",
+      "event_id": "ak:event:019640d0-c000-7000-8000-000000000000",
       "kind": "ck.capability.delegate",
-      "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
+      "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
       "actor_id": "did:webvh:z6mkfixture:root-admin.example.com",
       "payload": {
-        "parent_grant_id": "ck:grant:019640d0-b800-7000-8000-000000000000",
+        "parent_grant_id": "ak:grant:019640d0-b800-7000-8000-000000000000",
         "subject": "did:webvh:z6mkfixture:ops.example.com",
         "resources": [
           {
             "kind": "realm",
-            "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
+            "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
             "match_scope": "realm_wide"
           }
         ],
@@ -1622,21 +1622,21 @@ ck.vector.capability.delegate_chain.v1
         ]
       },
       "refs": [
-      { "id": "ck:event:01964180-0350-72ab-a000-000000000000", "role": "authorized_by", "critical": true }
+      { "id": "ak:event:01964180-0350-72ab-a000-000000000000", "role": "authorized_by", "critical": true }
     ]
     },
     {
-      "event_id": "ck:event:019640d0-c400-7000-8000-000000000000",
+      "event_id": "ak:event:019640d0-c400-7000-8000-000000000000",
       "kind": "ck.capability.delegate",
-      "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
+      "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
       "actor_id": "did:webvh:z6mkfixture:ops.example.com",
       "payload": {
-        "parent_grant_id": "ck:grant:019640d0-c000-7000-8000-000000000000",
+        "parent_grant_id": "ak:grant:019640d0-c000-7000-8000-000000000000",
         "subject": "did:webvh:z6mkfixture:intern.example.com",
         "resources": [
           {
             "kind": "realm",
-            "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
+            "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
             "match_scope": "realm_wide"
           }
         ],
@@ -1661,14 +1661,14 @@ ck.vector.capability.delegate_chain.v1
         ]
       },
       "refs": [
-      { "id": "ck:event:019640d0-c000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+      { "id": "ak:event:019640d0-c000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
     ]
     }
   ],
   "action_query": {
     "actor_id": "did:webvh:z6mkfixture:intern.example.com",
     "action": "ck.invite.create",
-    "resource": "ck:realm:0196414c-8000-7000-8000-000000000000",
+    "resource": "ak:realm:0196414c-8000-7000-8000-000000000000",
     "request_time": "2026-04-26T01:00:00Z",
     "request_audience": "did:webvh:z6mkfixture:vendor.example"
   }
@@ -1681,9 +1681,9 @@ ck.vector.capability.delegate_chain.v1
 {
   "authorized": true,
   "valid_chain": [
-    "ck:event:01964180-0350-72ab-a000-000000000000",
-    "ck:event:019640d0-c000-7000-8000-000000000000",
-    "ck:event:019640d0-c400-7000-8000-000000000000"
+    "ak:event:01964180-0350-72ab-a000-000000000000",
+    "ak:event:019640d0-c000-7000-8000-000000000000",
+    "ak:event:019640d0-c400-7000-8000-000000000000"
   ],
   "constraints_checked": {
     "time": true,
@@ -1714,10 +1714,10 @@ ck.vector.capability.revoke_rollback.v1
 {
   "events": [
     {
-      "event_id": "ck:event:01964101-2800-7000-8000-000000000000",
+      "event_id": "ak:event:01964101-2800-7000-8000-000000000000",
       "kind": "ck.capability.grant",
       "payload": {
-        "grant_id": "ck:grant:01964101-2800-7000-8000-000000000000",
+        "grant_id": "ak:grant:01964101-2800-7000-8000-000000000000",
         "subject": "did:webvh:z6mkfixture:alice.example.com",
         "actions": [
           "ck.message.create"
@@ -1726,15 +1726,15 @@ ck.vector.capability.revoke_rollback.v1
       "created_at": "2026-04-26T00:00:00Z"
     },
     {
-      "event_id": "ck:event:01964181-2800-7000-8000-000000000000",
+      "event_id": "ak:event:01964181-2800-7000-8000-000000000000",
       "kind": "ck.capability.revoke",
       "payload": {
-        "grant_id": "ck:grant:01964101-2800-7000-8000-000000000000"
+        "grant_id": "ak:grant:01964101-2800-7000-8000-000000000000"
       },
       "created_at": "2026-04-26T00:00:01Z"
     },
     {
-      "event_id": "ck:event:019641d1-2800-7000-8000-000000000000",
+      "event_id": "ak:event:019641d1-2800-7000-8000-000000000000",
       "kind": "ck.member.state",
       "payload": {
         "actor_id": "did:webvh:z6mkfixture:alice.example.com",
@@ -1743,24 +1743,24 @@ ck.vector.capability.revoke_rollback.v1
       "created_at": "2026-04-26T00:00:02Z"
     },
     {
-      "event_id": "ck:event:0196414c-c04a-7000-8000-000000000000",
+      "event_id": "ak:event:0196414c-c04a-7000-8000-000000000000",
       "kind": "ck.message.create",
       "actor_id": "did:webvh:z6mkfixture:alice.example.com",
       "created_at": "2026-04-26T00:00:03Z",
       "payload": {
-        "strand_id": "ck:strand:0196418d-cc00-7000-8000-000000000000",
+        "strand_id": "ak:strand:0196418d-cc00-7000-8000-000000000000",
         "content": {
           "kind": "ck.content.text",
           "body": "should_fail_if_revoke_applies"
         }
       },
       "prev_refs": [
-        "ck:event:019641d1-2800-7000-8000-000000000000"
+        "ak:event:019641d1-2800-7000-8000-000000000000"
       ]
     }
   ],
   "rollback": {
-    "target_event_id": "ck:event:01964181-2800-7000-8000-000000000000",
+    "target_event_id": "ak:event:01964181-2800-7000-8000-000000000000",
     "reason": "revoke_undo_invalid_signature"
   }
 }
@@ -1790,19 +1790,19 @@ ck.vector.capability.approval_constraint.v1
 ```json
 {
   "event": {
-    "event_id": "ck:event:01964148-a800-7000-8000-000000000000",
+    "event_id": "ak:event:01964148-a800-7000-8000-000000000000",
     "kind": "ck.policy.action",
     "actor_id": "did:webvh:z6mkfixture:contractor.example",
-    "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
+    "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
     "hlc": "01970e589d26-0001-aaaaaaaa",
     "payload": {
       "action": "ck.realm.admin",
       "approval_required": true,
       "approval_quorum": 2,
-      "policy_scope": "ck:realm:0196419b-0000-7000-8000-000000000000"
+      "policy_scope": "ak:realm:0196419b-0000-7000-8000-000000000000"
     },
     "refs": [
-      { "id": "ck:event:0196419b-298e-7368-9a80-000000000000", "role": "authorized_by", "critical": true }
+      { "id": "ak:event:0196419b-298e-7368-9a80-000000000000", "role": "authorized_by", "critical": true }
     ]
   },
   "capabilities": [
@@ -1909,7 +1909,7 @@ ck.vector.auth.sensitive_field_handling.v1
 
 ```json
 {
-  "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
+  "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
   "actor_id": "did:webvh:z6mkfixture:actor-a.example.com",
   "actor_seq": 1,
   "hlc": "019b76daa800-0000-a13f9c2e",
@@ -1917,7 +1917,7 @@ ck.vector.auth.sensitive_field_handling.v1
   "refs": [],
   "kind": "ck.strand.update",
   "unsigned": {
-    "target_ref_hint": "ck:strand:019640c5-0000-7000-8000-000000000000"
+    "target_ref_hint": "ak:strand:019640c5-0000-7000-8000-000000000000"
   },
   "content_digest": "sha256:..."
 }
@@ -2024,18 +2024,18 @@ ck.vector.disappearing.on_last_read_offline_window.v1
 
 ```json
 {
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "events": [
     {
       "kind": "ck.space.create",
       "unsigned": {
-        "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
+        "target_ref_hint": "ak:space:019640b6-8000-7000-8000-000000000000"
       },
       "payload": {
         "object": {
-          "id": "ck:space:019640b6-8000-7000-8000-000000000000",
+          "id": "ak:space:019640b6-8000-7000-8000-000000000000",
           "schema": "ck.schema.space.v1",
-          "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+          "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
           "kind": "board",
           "title": "Release Board",
           "created_by": "did:webvh:z6mkfixture:alice.example.com",
@@ -2046,14 +2046,14 @@ ck.vector.disappearing.on_last_read_offline_window.v1
     {
       "kind": "ck.space.create",
       "unsigned": {
-        "target_ref_hint": "ck:space:01964010-8400-7000-8000-000000000000"
+        "target_ref_hint": "ak:space:01964010-8400-7000-8000-000000000000"
       },
       "payload": {
         "object": {
-          "id": "ck:space:01964010-8400-7000-8000-000000000000",
+          "id": "ak:space:01964010-8400-7000-8000-000000000000",
           "schema": "ck.schema.space.v1",
-          "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-          "parent_space_id": "ck:space:019640b6-8000-7000-8000-000000000000",
+          "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+          "parent_space_id": "ak:space:019640b6-8000-7000-8000-000000000000",
           "kind": "list",
           "title": "Todo",
           "rank": "U",
@@ -2065,13 +2065,13 @@ ck.vector.disappearing.on_last_read_offline_window.v1
     {
       "kind": "ck.strand.create",
       "unsigned": {
-        "target_ref_hint": "ck:strand:019640c5-0400-7000-8000-000000000000"
+        "target_ref_hint": "ak:strand:019640c5-0400-7000-8000-000000000000"
       },
       "payload": {
         "object": {
-          "id": "ck:strand:019640c5-0400-7000-8000-000000000000",
+          "id": "ak:strand:019640c5-0400-7000-8000-000000000000",
           "schema": "ck.schema.strand.v1",
-          "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+          "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
           "metadata": {
             "title": "Release checklist"
           },
@@ -2087,10 +2087,10 @@ ck.vector.disappearing.on_last_read_offline_window.v1
         "initial_relations": [
           {
             "relation_kind": "contains",
-            "from_ref": "ck:space:01964010-8400-7000-8000-000000000000",
-            "to_ref": "ck:strand:019640c5-0400-7000-8000-000000000000",
+            "from_ref": "ak:space:01964010-8400-7000-8000-000000000000",
+            "to_ref": "ak:strand:019640c5-0400-7000-8000-000000000000",
             "fields": {
-              "board_space_id": "ck:space:019640b6-8000-7000-8000-000000000000",
+              "board_space_id": "ak:space:019640b6-8000-7000-8000-000000000000",
               "rank": "U"
             }
           }
@@ -2116,13 +2116,13 @@ ck.vector.disappearing.on_last_read_offline_window.v1
   "write": {
     "kind": "ck.strand.move",
     "unsigned": {
-      "target_ref_hint": "ck:strand:019640c5-0400-7000-8000-000000000000"
+      "target_ref_hint": "ak:strand:019640c5-0400-7000-8000-000000000000"
     },
     "payload": {
-      "board_space_id": "ck:space:019640b6-8000-7000-8000-000000000000",
-      "strand_id": "ck:strand:019640c5-0400-7000-8000-000000000000",
-      "from_space_id": "ck:space:01964010-8400-7000-8000-000000000000",
-      "target_space_id": "ck:space:01964010-8800-7000-8000-000000000000",
+      "board_space_id": "ak:space:019640b6-8000-7000-8000-000000000000",
+      "strand_id": "ak:strand:019640c5-0400-7000-8000-000000000000",
+      "from_space_id": "ak:space:01964010-8400-7000-8000-000000000000",
+      "target_space_id": "ak:space:01964010-8800-7000-8000-000000000000",
       "rank": "U"
     }
   },
@@ -2148,7 +2148,7 @@ ck.vector.disappearing.on_last_read_offline_window.v1
 
 ```json
 {
-  "strand_id": "ck:strand:019640c5-0400-7000-8000-000000000000",
+  "strand_id": "ak:strand:019640c5-0400-7000-8000-000000000000",
   "viewer": "did:webvh:z6mkfixture:viewer.example.com",
   "viewer_can_read_strand": true,
   "viewer_is_track_member": false
@@ -2167,7 +2167,7 @@ ck.vector.disappearing.on_last_read_offline_window.v1
 
 ```json
 {
-  "strand_id": "ck:strand:01964195-8400-7000-8000-000000000000",
+  "strand_id": "ak:strand:01964195-8400-7000-8000-000000000000",
   "track_name": "discussion",
   "viewer_grants": ["ck.strand.read"],
   "viewer_track_membership": "none"
@@ -2186,15 +2186,15 @@ ck.vector.disappearing.on_last_read_offline_window.v1
 
 ```json
 {
-  "strand_id": "ck:strand:01964180-0400-7000-8000-000000000000",
+  "strand_id": "ak:strand:01964180-0400-7000-8000-000000000000",
   "events": [
     {
       "kind": "ck.message.create",
       "unsigned": {
-        "target_ref_hint": "ck:message:01964147-0400-7000-8000-000000000000"
+        "target_ref_hint": "ak:message:01964147-0400-7000-8000-000000000000"
       },
       "payload": {
-        "strand_id": "ck:strand:01964180-0400-7000-8000-000000000000",
+        "strand_id": "ak:strand:01964180-0400-7000-8000-000000000000",
         "content": {
           "kind": "ck.content.text",
           "body": "discussion message"
@@ -2228,18 +2228,18 @@ ck.vector.disappearing.on_last_read_offline_window.v1
 
 ```json
 {
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "events": [
     {
       "kind": "ck.space.create",
       "unsigned": {
-        "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
+        "target_ref_hint": "ak:space:019640b6-8000-7000-8000-000000000000"
       },
       "payload": {
         "object": {
-          "id": "ck:space:019640b6-8000-7000-8000-000000000000",
+          "id": "ak:space:019640b6-8000-7000-8000-000000000000",
           "schema": "ck.schema.space.v1",
-          "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+          "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
           "kind": "board",
           "title": "Release Board",
           "created_by": "did:webvh:z6mkfixture:alice.example.com",
@@ -2250,22 +2250,22 @@ ck.vector.disappearing.on_last_read_offline_window.v1
     {
       "kind": "ck.space.archive",
       "unsigned": {
-        "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
+        "target_ref_hint": "ak:space:019640b6-8000-7000-8000-000000000000"
       },
       "created_at": "2026-05-15T10:05:00Z",
       "payload": {
-        "space_id": "ck:space:019640b6-8000-7000-8000-000000000000",
+        "space_id": "ak:space:019640b6-8000-7000-8000-000000000000",
         "reason": "release_cycle_complete"
       }
     },
     {
       "kind": "ck.space.restore",
       "unsigned": {
-        "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
+        "target_ref_hint": "ak:space:019640b6-8000-7000-8000-000000000000"
       },
       "created_at": "2026-05-15T10:10:00Z",
       "payload": {
-        "space_id": "ck:space:019640b6-8000-7000-8000-000000000000",
+        "space_id": "ak:space:019640b6-8000-7000-8000-000000000000",
         "reason": "release_reopened"
       }
     }
@@ -2286,21 +2286,21 @@ ck.vector.disappearing.on_last_read_offline_window.v1
 
 ```json
 {
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "pre_state": {
     "space": {
-      "id": "ck:space:019640b6-8000-7000-8000-000000000000",
+      "id": "ak:space:019640b6-8000-7000-8000-000000000000",
       "state": "active"
     }
   },
   "event": {
     "kind": "ck.space.restore",
     "unsigned": {
-      "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
+      "target_ref_hint": "ak:space:019640b6-8000-7000-8000-000000000000"
     },
     "created_at": "2026-05-15T11:00:00Z",
     "payload": {
-      "space_id": "ck:space:019640b6-8000-7000-8000-000000000000"
+      "space_id": "ak:space:019640b6-8000-7000-8000-000000000000"
     }
   }
 }
@@ -2318,10 +2318,10 @@ ck.vector.disappearing.on_last_read_offline_window.v1
 
 ```json
 {
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "pre_state": {
     "space": {
-      "id": "ck:space:019640b6-8000-7000-8000-000000000000",
+      "id": "ak:space:019640b6-8000-7000-8000-000000000000",
       "state": "tombstoned",
       "state_changed_at": "2026-05-15T09:00:00Z"
     }
@@ -2329,11 +2329,11 @@ ck.vector.disappearing.on_last_read_offline_window.v1
   "event": {
     "kind": "ck.space.restore",
     "unsigned": {
-      "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
+      "target_ref_hint": "ak:space:019640b6-8000-7000-8000-000000000000"
     },
     "created_at": "2026-05-15T12:00:00Z",
     "payload": {
-      "space_id": "ck:space:019640b6-8000-7000-8000-000000000000"
+      "space_id": "ak:space:019640b6-8000-7000-8000-000000000000"
     }
   }
 }
@@ -2351,10 +2351,10 @@ ck.vector.disappearing.on_last_read_offline_window.v1
 
 ```json
 {
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "pre_state": {
     "space": {
-      "id": "ck:space:019640b6-8000-7000-8000-000000000000",
+      "id": "ak:space:019640b6-8000-7000-8000-000000000000",
       "state": "archived",
       "state_changed_at": "2026-05-15T10:05:00Z"
     }
@@ -2362,11 +2362,11 @@ ck.vector.disappearing.on_last_read_offline_window.v1
   "event": {
     "kind": "ck.space.archive",
     "unsigned": {
-      "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
+      "target_ref_hint": "ak:space:019640b6-8000-7000-8000-000000000000"
     },
     "created_at": "2026-05-15T11:30:00Z",
     "payload": {
-      "space_id": "ck:space:019640b6-8000-7000-8000-000000000000"
+      "space_id": "ak:space:019640b6-8000-7000-8000-000000000000"
     }
   }
 }
@@ -2385,10 +2385,10 @@ ck.vector.disappearing.on_last_read_offline_window.v1
 
 ```json
 {
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "pre_state": {
     "space": {
-      "id": "ck:space:019640b6-8000-7000-8000-000000000000",
+      "id": "ak:space:019640b6-8000-7000-8000-000000000000",
       "state": "tombstoned",
       "state_changed_at": "2026-05-15T09:00:00Z"
     }
@@ -2396,11 +2396,11 @@ ck.vector.disappearing.on_last_read_offline_window.v1
   "event": {
     "kind": "ck.space.tombstone",
     "unsigned": {
-      "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
+      "target_ref_hint": "ak:space:019640b6-8000-7000-8000-000000000000"
     },
     "created_at": "2026-05-15T12:00:00Z",
     "payload": {
-      "space_id": "ck:space:019640b6-8000-7000-8000-000000000000"
+      "space_id": "ak:space:019640b6-8000-7000-8000-000000000000"
     }
   }
 }
@@ -2418,10 +2418,10 @@ ck.vector.disappearing.on_last_read_offline_window.v1
 
 ```json
 {
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "pre_state": {
     "space": {
-      "id": "ck:space:019640b6-8000-7000-8000-000000000000",
+      "id": "ak:space:019640b6-8000-7000-8000-000000000000",
       "state": "archived",
       "state_changed_at": "2026-05-15T10:05:00Z",
       "title": "Release Board"
@@ -2430,11 +2430,11 @@ ck.vector.disappearing.on_last_read_offline_window.v1
   "event": {
     "kind": "ck.space.update",
     "unsigned": {
-      "target_ref_hint": "ck:space:019640b6-8000-7000-8000-000000000000"
+      "target_ref_hint": "ak:space:019640b6-8000-7000-8000-000000000000"
     },
     "created_at": "2026-05-15T11:45:00Z",
     "payload": {
-      "space_id": "ck:space:019640b6-8000-7000-8000-000000000000",
+      "space_id": "ak:space:019640b6-8000-7000-8000-000000000000",
       "patch": {
         "title": "Renamed while archived"
       }
@@ -2471,7 +2471,7 @@ Input — `ck.member.state{membership="join"}` Control Move payload：
 
 ```json
 {
-  "realm_id": "ck:realm:7d000000-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:7d000000-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:01HV...:alice",
   "membership": "join",
   "delivery_status": "routable",
@@ -2482,7 +2482,7 @@ Input — `ck.member.state{membership="join"}` Control Move payload：
     "binding_source": "explicit",
     "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
     "resolved_at": "2026-05-19T10:00:00Z",
-    "service_acceptance_ref": "ck:event:7d000001-0000-7000-8000-000000000000"
+    "service_acceptance_ref": "ak:event:7d000001-0000-7000-8000-000000000000"
   },
   "gate_proofs": [ "..." ]
 }
@@ -2504,7 +2504,7 @@ Input — Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_did_docu
 
 ```json
 {
-  "realm_id": "ck:realm:...",
+  "realm_id": "ak:realm:...",
   "actor_id": "did:webvh:01HV...:alice",
   "membership": "join",
   "delivery_status": "routable",
@@ -2534,7 +2534,7 @@ Input — Realm policy `ck.realm.delivery_binding_policy` 声明 `allow_unroutab
 
 ```json
 {
-  "realm_id": "ck:realm:...",
+  "realm_id": "ak:realm:...",
   "actor_id": "did:webvh:01HV...:alice",
   "membership": "join",
   "delivery_status": "unroutable"
@@ -2612,7 +2612,7 @@ Input — 邀请方在 Acme 组织 Realm 中添加 `@alice:acme.example`。客�
 {
   "handle": "@alice:acme.example",
   "intent": "member_add",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "requester": "did:webvh:z6mkfixture:bob.example",
   "proof_challenge": "ck-challenge-001"
 }
@@ -2627,7 +2627,7 @@ Directory 返回 verified handle claim：
   "handle": "alice:acme.example",
   "handle_aliases": ["acct:alice@acme.example"],
   "verified": true,
-  "audience": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "audience": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "claims": [{
     "claim_kind": "organization_handle",
     "handle": "alice:acme.example",
@@ -2635,14 +2635,14 @@ Directory 返回 verified handle claim：
     "subject": "did:webvh:z2dmjA1ice:users.acme.example",
     "issuer": "did:webvh:z6mkfixture:acme.example",
     "binding_state": "verified",
-    "audience": "ck:realm:0196419b-0000-7000-8000-000000000000",
+    "audience": "ak:realm:0196419b-0000-7000-8000-000000000000",
     "member_delivery_binding": {
       "recipient_service_did": "did:webvh:z6mkfixture:principal.acme.example",
       "recipient_service_type": "principal_server",
       "binding_source": "organization_policy",
       "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
-      "service_acceptance_ref": "ck:event:0196419b-0000-7000-8000-000000000001",
-      "policy_event_ref": "ck:event:0196419b-0000-7000-8000-000000000002"
+      "service_acceptance_ref": "ak:event:0196419b-0000-7000-8000-000000000001",
+      "policy_event_ref": "ak:event:0196419b-0000-7000-8000-000000000002"
     },
     "created_at": "2026-05-19T00:00:00Z",
     "expires_at": "2026-08-19T00:00:00Z",
@@ -2652,7 +2652,7 @@ Directory 返回 verified handle claim：
       "verification_method": "did:webvh:z6mkfixture:principal.acme.example#key-1",
       "payload_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       "created_at": "2026-05-19T00:00:00Z",
-      "audience": "ck:realm:0196419b-0000-7000-8000-000000000000",
+      "audience": "ak:realm:0196419b-0000-7000-8000-000000000000",
       "jws": "aaa.bbb.ccc"
     }]
   }],
@@ -2661,8 +2661,8 @@ Directory 返回 verified handle claim：
     "recipient_service_type": "principal_server",
     "binding_source": "organization_policy",
     "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
-    "service_acceptance_ref": "ck:event:0196419b-0000-7000-8000-000000000001",
-    "policy_event_ref": "ck:event:0196419b-0000-7000-8000-000000000002"
+    "service_acceptance_ref": "ak:event:0196419b-0000-7000-8000-000000000001",
+    "policy_event_ref": "ak:event:0196419b-0000-7000-8000-000000000002"
   },
   "expires_at": "2026-08-19T00:00:00Z"
 }
@@ -3609,19 +3609,19 @@ Expected:
 
 - Client MUST 拒绝为该 participant 建立媒体流（不收音、不订阅 video），报 `participant_identity_unrecognised`。
 
-### 12.9 Recording Artifact — Via Cokret Blob Pipeline
+### 12.9 Recording Artifact — Via Arkret Blob Pipeline
 
 `vector_id`: `ck.vector.media_binding.recording_artifact_via_cokret_blob.v1`
 
 Steps:
 
-1. LiveKit Egress 配置指向非 Cokret endpoint（如 `s3://livekit-cloud-recordings/...`）。
+1. LiveKit Egress 配置指向非 Arkret endpoint（如 `s3://livekit-cloud-recordings/...`）。
 2. Recording 完成。
 
 Expected:
 
-- Client MUST 检测 Egress destination 不是 Cokret media service authenticated upload endpoint，fail closed `recording_artifact_pipeline_bypassed`。
-- 合法路径：Egress → Cokret blob upload → `ck.call.state` 写 `recording_state="ready"` + content digest。
+- Client MUST 检测 Egress destination 不是 Arkret media service authenticated upload endpoint，fail closed `recording_artifact_pipeline_bypassed`。
+- 合法路径：Egress → Arkret blob upload → `ck.call.state` 写 `recording_state="ready"` + content digest。
 
 ### 12.9.1 Recording Exporter Label — Dedicated Recording Context
 
@@ -3629,14 +3629,14 @@ Expected:
 
 Steps:
 
-1. LiveKit Egress 通过 Cokret proxy 上传合法 recording artifact。
+1. LiveKit Egress 通过 Arkret proxy 上传合法 recording artifact。
 2. Artifact encryption metadata 声称 key 来自 MLS exporter，但使用 SFrame label `"ck-rtc-frame-key/v1"` 或空 Context。
 3. Producer 重新上传同一 artifact，使用 label `"ck-rtc-recording-key/v1"`，Context 为 canonical JSON `{realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id}`。
 
 Expected:
 
 - 第 2 步 MUST 拒绝；SFrame key 和 recording key 不得 label/Context 复用。
-- 第 3 步 MAY accepted，前提是 Cokret blob pipeline、capability proof 与 `ck.call.state` lifecycle 绑定同时通过。
+- 第 3 步 MAY accepted，前提是 Arkret blob pipeline、capability proof 与 `ck.call.state` lifecycle 绑定同时通过。
 
 ### 12.10 Call State — Participant Binding Invalid
 
@@ -3756,7 +3756,7 @@ Steps:
 3. Producer 提交 artifact，`encryption.exporter_label` 不是 `"ck-rtc-recording-key/v1"`，或 `encryption.context` 缺少 `{realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id}` 中任一字段。
 4. Backend 尝试在 result / artifact 中携带直出 recording URL、S3/GCS/LiveKit Cloud destination，或缺失 `recording_initiator_capability_ref`。
 5. Retention 到期或 manual delete 触发删除，artifact `deletion_audit.trigger` 与 `retention.deletion_trigger` 不一致，或 `outcome="completed"` 但缺少 `erasure_receipt_ref`。
-6. Producer 提交合法 artifact：`schema="ck.schema.call_recording_artifact.v1"`，绑定同一 `realm_id` / `call_id` / `recording_id` / `recording_start_event_id`，通过 Cokret blob pipeline，使用 `"ck-rtc-recording-key/v1"` 与完整 Context，携带 retention、capability ref；删除完成时携带同 trigger 的 `deletion_audit` 与 `ck.schema.erasure_receipt.v1` 引用。
+6. Producer 提交合法 artifact：`schema="ck.schema.call_recording_artifact.v1"`，绑定同一 `realm_id` / `call_id` / `recording_id` / `recording_start_event_id`，通过 Arkret blob pipeline，使用 `"ck-rtc-recording-key/v1"` 与完整 Context，携带 retention、capability ref；删除完成时携带同 trigger 的 `deletion_audit` 与 `ck.schema.erasure_receipt.v1` 引用。
 
 Expected:
 
@@ -3778,7 +3778,7 @@ Expected:
 
 - 第 1 步 MUST 拒绝 `transcription_denied`。
 - 第 2 步 MUST 拒绝 `transcription_artifact_pipeline_bypassed`；transcript key 不得与 SFrame / recording label 复用或空 Context。
-- 第 3 步 MAY accepted，前提 Cokret blob pipeline、capability proof 与 `ck.call.state` lifecycle 绑定同时通过。
+- 第 3 步 MAY accepted，前提 Arkret blob pipeline、capability proof 与 `ck.call.state` lifecycle 绑定同时通过。
 
 ### 12.18 Call State — Moderator Kick / Ban
 
@@ -4080,7 +4080,7 @@ Expected：
 
 `vector_id`: `ck.vector.federation.reducer_profile_digest.v1`
 
-本向量固化 [`federation.md`](../sync/federation.md) §4.1.1 的 `service_binding_ref.reducer_profile_digest` 计算规则与不一致时的整批拒绝语义。计算物唯一来源是 [`reducer-profile-registry.json`](../../artifacts/registry/reducer-profile-registry.json) 对应 `profile_id` row 的 `digest_input` 对象；canonical 编码按 [`encoding.md`](encoding.md) §2 的 Cokret canonical JSON。执行数据见 [`federation-fixture.json`](../../artifacts/fixtures/federation-fixture.json) 的 `reducer_profile_digest_federation_minimal` 与 `reducer_profile_mismatch` 两个 case。
+本向量固化 [`federation.md`](../sync/federation.md) §4.1.1 的 `service_binding_ref.reducer_profile_digest` 计算规则与不一致时的整批拒绝语义。计算物唯一来源是 [`reducer-profile-registry.json`](../../artifacts/registry/reducer-profile-registry.json) 对应 `profile_id` row 的 `digest_input` 对象；canonical 编码按 [`encoding.md`](encoding.md) §2 的 Arkret canonical JSON。执行数据见 [`federation-fixture.json`](../../artifacts/fixtures/federation-fixture.json) 的 `reducer_profile_digest_federation_minimal` 与 `reducer_profile_mismatch` 两个 case。
 
 Steps：
 
@@ -4297,11 +4297,11 @@ Expected：
 
 `vector_id`: `ck.vector.applet.transaction_source_signature_anchor.v1`
 
-本向量固化 applet transaction push 的逐次来源签名与幂等 replay MUST：`ck.edge.applet.command.transaction` 在 node→Applet 与 app/bridge→cokret inbound 两个方向都 MUST 携带 RFC 9421 HTTP Message Signature，covered components 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-did`、`destination-service-did`、`idempotency-key`，签名参数含 `created` / `expires` 并满足 300s replay window；接收方 MUST 形成并持久化 `source_signature_anchor`，幂等 identity 绑定 `operation_id`、方向、source/destination service DID 与 `Idempotency-Key`，缓存记录绑定 canonical body digest 与 source anchor。来源 service 签名不替代每条 Event 的 actor / applet / capability 校验。
+本向量固化 applet transaction push 的逐次来源签名与幂等 replay MUST：`ck.edge.applet.command.transaction` 在 node→Applet 与 app/bridge→arkret inbound 两个方向都 MUST 携带 RFC 9421 HTTP Message Signature，covered components 至少包含 `@method`、`@target-uri`、`@authority`、`content-digest`、`source-service-did`、`destination-service-did`、`idempotency-key`，签名参数含 `created` / `expires` 并满足 300s replay window；接收方 MUST 形成并持久化 `source_signature_anchor`，幂等 identity 绑定 `operation_id`、方向、source/destination service DID 与 `Idempotency-Key`，缓存记录绑定 canonical body digest 与 source anchor。来源 service 签名不替代每条 Event 的 actor / applet / capability 校验。
 
 Steps：
 
-- **Case A — 合法 app/bridge→cokret inbound**：已安装 Applet registration `service_did=did:webvh:z6mkfixture:bridge.example`，`registration_epoch=sha256:<R>`，`webhook_auth.key_ref=did:webvh:z6mkfixture:bridge.example#tx-1`，install active。Applet 提交 `POST /_cokret/edge/applet/transactions`，header `Source-Service-DID=did:webvh:z6mkfixture:bridge.example`、`Destination-Service-DID=did:webvh:z6mkfixture:principal.example`、`Idempotency-Key=tx-001`、`Content-Digest` 与 body 一致；`Signature-Input` 覆盖 required components，`keyid=did:webvh:z6mkfixture:bridge.example#tx-1`，`created` / `expires` 在窗口内；body `source_service_did` 与 header 一致，`events[]` 中的 `applet_id`、`authorization_ref`、`proofs[]` 与 actor namespace / capability grant 均有效。
+- **Case A — 合法 app/bridge→arkret inbound**：已安装 Applet registration `service_did=did:webvh:z6mkfixture:bridge.example`，`registration_epoch=sha256:<R>`，`webhook_auth.key_ref=did:webvh:z6mkfixture:bridge.example#tx-1`，install active。Applet 提交 `POST /_cokret/edge/applet/transactions`，header `Source-Service-DID=did:webvh:z6mkfixture:bridge.example`、`Destination-Service-DID=did:webvh:z6mkfixture:principal.example`、`Idempotency-Key=tx-001`、`Content-Digest` 与 body 一致；`Signature-Input` 覆盖 required components，`keyid=did:webvh:z6mkfixture:bridge.example#tx-1`，`created` / `expires` 在窗口内；body `source_service_did` 与 header 一致，`events[]` 中的 `applet_id`、`authorization_ref`、`proofs[]` 与 actor namespace / capability grant 均有效。
 - **Case B — 缺签名 / 纯 bearer**：同一 body 只携带 `Authorization: Bearer` 或完全缺少 `Signature` / `Signature-Input`。
 - **Case C — transcript / source 混淆**：签名覆盖的 `source-service-did`、header `Source-Service-DID` 或 body `source_service_did` 三者任一不同；或 `Destination-Service-DID` 不等于实际接收服务；或 `Content-Digest` 与 body 不一致。
 - **Case D — idempotency replay**：重复 Case A 的相同 headers/body/signature anchor；随后再次使用同一 `(operation_id, direction, Source-Service-DID, Destination-Service-DID, Idempotency-Key)`，但改变 body digest、`webhook_auth.key_ref` / `keyid`、`registration_epoch` 或 actor namespace。

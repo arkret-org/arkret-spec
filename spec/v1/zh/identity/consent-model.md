@@ -12,7 +12,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-Cokret 的访问授权由 **capability + invite** 两条路径承担。但二者都不能完整表达一类语义：
+Arkret 的访问授权由 **capability + invite** 两条路径承担。但二者都不能完整表达一类语义：
 
 > "我同意 / 不同意来自 X 的联系请求。"
 
@@ -24,7 +24,7 @@ Cokret 的访问授权由 **capability + invite** 两条路径承担。但二者
 
 它是 invite / direct contact 路径上的**前置 gate**：在"是否给 Alice 发出 invite"之前，先看"Alice 是否同意接收来自 Bob 的 invite"。
 
-本规范定义 Cokret 的 consent state，与 capability / invite 正交。模型借鉴自 [`draft-ietf-mimi-protocol-06`](https://datatracker.ietf.org/doc/html/draft-ietf-mimi-protocol-06) 的 consent 概念，并完整落在 Cokret 的 CBA / Lattice 模型之上：consent 是 holder 控制的 Realm 内某个 consent cell（or_set lattice）的当前 join 值，由签名 Control Move 维护并在被 accepted Seal 覆盖后生效。
+本规范定义 Arkret 的 consent state，与 capability / invite 正交。模型借鉴自 [`draft-ietf-mimi-protocol-06`](https://datatracker.ietf.org/doc/html/draft-ietf-mimi-protocol-06) 的 consent 概念，并完整落在 Arkret 的 CBA / Lattice 模型之上：consent 是 holder 控制的 Realm 内某个 consent cell（or_set lattice）的当前 join 值，由签名 Control Move 维护并在被 accepted Seal 覆盖后生效。
 
 ## 2. 设计原则
 
@@ -86,7 +86,7 @@ ControlMove(ck.consent.grant) {
   effects   = [
     (ck:cell:ck.component.consent.grant.v1:<consent_id>,
      {type: "add",
-      dot:  "ck:event:019640ed-7000-7000-8000-000000000001:0",   // = "<enclosing event_id>:<effect_index>"
+      dot:  "ak:event:019640ed-7000-7000-8000-000000000001:0",   // = "<enclosing event_id>:<effect_index>"
       value: {
         intent: {                          // projection-level dedupe key
           consent_id: <consent_id>,
@@ -95,12 +95,12 @@ ControlMove(ck.consent.grant) {
         },
         not_before:   "2026-05-07T00:00:00Z",
         expires_at:  "2026-12-31T00:00:00Z",
-        evidence_ref: "ck:event:019640e0-0000-7000-8000-000000000002",
+        evidence_ref: "ak:event:019640e0-0000-7000-8000-000000000002",
         reason:       "Bob completed verified contact discovery"
       }})
   ]
   refs       = [
-    (id="ck:grant:0196411c-b000-7000-8000-000000000000",
+    (id="ak:grant:0196411c-b000-7000-8000-000000000000",
      role="authorized_by")
   ]
   seal_basis = <holder principal control Realm 的当前 Seal basis>
@@ -125,7 +125,7 @@ Payload-only schema 示例：
   "consent_scope": "invite",
   "not_before": "2026-05-07T00:00:00Z",
   "expires_at": "2026-12-31T00:00:00Z",
-  "evidence_ref": "ck:event:019640e0-0000-7000-8000-000000000002",
+  "evidence_ref": "ak:event:019640e0-0000-7000-8000-000000000002",
   "reason": "Bob completed verified contact discovery"
 }
 ```
@@ -146,21 +146,21 @@ ControlMove(ck.consent.revoke) {
     (ck:cell:ck.component.consent.grant.v1:<consent_id>,
      {op: "contains_dots",
       dots: [
-        "ck:event:019640ed-7000-7000-8000-000000000001:0"   // seal_basis view 下该 intent 全部 active dots
+        "ak:event:019640ed-7000-7000-8000-000000000001:0"   // seal_basis view 下该 intent 全部 active dots
       ]})
   ]
   effects   = [
     (ck:cell:ck.component.consent.grant.v1:<consent_id>,
      {type: "remove",
       observed_dots: [
-        "ck:event:019640ed-7000-7000-8000-000000000001:0"
+        "ak:event:019640ed-7000-7000-8000-000000000001:0"
       ],
       value: {
         revoked_at: "2026-06-15T10:00:00Z",
         reason:     "Bob harassment incident #4711"
       }})
   ]
-  refs       = [(id="ck:grant:0196411c-b000-7000-8000-000000000000", role="authorized_by")]
+  refs       = [(id="ak:grant:0196411c-b000-7000-8000-000000000000", role="authorized_by")]
   seal_basis = <holder principal control Realm 的当前 Seal basis>
 }
 ```
@@ -173,7 +173,7 @@ Payload-only schema 示例：
 {
   "consent_id": "consent-alice-bob-invite-001",
   "observed_dots": [
-    "ck:event:019640ed-7000-7000-8000-000000000001:0"
+    "ak:event:019640ed-7000-7000-8000-000000000001:0"
   ],
   "revoked_at": "2026-06-15T10:00:00Z",
   "reason": "Bob harassment incident #4711"
@@ -311,7 +311,7 @@ contact discovery / PSI 端点 MUST 按 `(requester, holder)` 维度限速，防
 MIMI 协议有 `request_consent` / `update_consent` 操作（`ck.open.mimi.command.request_consent` / `ck.open.mimi.command.update_consent`），见 [`extensions/mimi-interop.md`](../extensions/mimi-interop.md) §10。Facade 映射规则：
 
 - 接收 MIMI consent update：facade MUST 先验证 actor 是声明 holder 或受授权 controller，然后构造 grant 或 revoke Control Move 写入 holder principal control Realm 的 consent cell。
-- 发送 Cokret consent state 到 MIMI：facade MUST 把当前 consent cell or_set join 值翻译为 MIMI consent message，并保留 consent_id 作为 inter-protocol correlation。
+- 发送 Arkret consent state 到 MIMI：facade MUST 把当前 consent cell or_set join 值翻译为 MIMI consent message，并保留 consent_id 作为 inter-protocol correlation。
 - consent state 不暴露具体 evidence_ref / reason 跨 provider；只暴露最小 `(peer, scope, granted/revoked)` 三元组。
 
 ## 8. 隐私与审计

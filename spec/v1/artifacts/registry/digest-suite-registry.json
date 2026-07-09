@@ -21,13 +21,13 @@
     {
       "id": "json_jcs",
       "status": "active",
-      "definition": "Cokret canonical JSON (RFC 8785 / JCS narrowed profile), zh/conformance/encoding.md §2.",
+      "definition": "Arkret canonical JSON (RFC 8785 / JCS narrowed profile), zh/conformance/encoding.md §2.",
       "notes": "Implied by bare (dot-free) suite ids; never written as an explicit dotted prefix segment in v1."
     },
     {
       "id": "cbor",
       "status": "reserved",
-      "definition": "CBOR deterministic encoding (RFC 8949 §4.2) under the Cokret profile to be pinned by ck.profile.encoding.cbor.v1 (encoding rules, CDDL, schema-agnostic JSON<->CBOR type mapping, conformance vectors).",
+      "definition": "CBOR deterministic encoding (RFC 8949 §4.2) under the Arkret profile to be pinned by ck.profile.encoding.cbor.v1 (encoding rules, CDDL, schema-agnostic JSON<->CBOR type mapping, conformance vectors).",
       "notes": "Reserved until ck.profile.encoding.cbor.v1 is fully specified. The mapping MUST be schema-agnostic (JSON string -> CBOR text string, JSON integer -> CBOR integer); canonicalization MUST NOT depend on schema knowledge."
     }
   ],

@@ -8,7 +8,7 @@ sidebar:
   label: Audited E2EE
 ---
 
-> **状态：可选 hardening profile**。本文档定义 Cokret v1 中面向政府 / 企业合规的 **Audit Applet Binding + sealed release session** 审计模型。v1 core 互操作 **不要求** 实现本 profile；只有 Realm 或 Circle 显式存在 active `ck.audit.applet_binding` 时才启用。基础 MLS / E2EE 架构见 [`encryption-and-audit.md`](./encryption-and-audit.md)。
+> **状态：可选 hardening profile**。本文档定义 Arkret v1 中面向政府 / 企业合规的 **Audit Applet Binding + sealed release session** 审计模型。v1 core 互操作 **不要求** 实现本 profile；只有 Realm 或 Circle 显式存在 active `ck.audit.applet_binding` 时才启用。基础 MLS / E2EE 架构见 [`encryption-and-audit.md`](./encryption-and-audit.md)。
 >
 > 本 profile 不定义常驻审计成员。审计 applet **不是** MLS 成员，**不是**实时 sync 订阅者，**不会**因为被绑定就持续收到所有聊天信息或历史密钥。
 
@@ -18,7 +18,7 @@ sidebar:
 
 ## 1. 目标与边界
 
-Cokret 的合规审计目标是：在不削弱默认 E2EE 的前提下，为明确声明的 Realm / Circle 提供可见、可追责、按窗口打开的历史审计流程。
+Arkret 的合规审计目标是：在不削弱默认 E2EE 的前提下，为明确声明的 Realm / Circle 提供可见、可追责、按窗口打开的历史审计流程。
 
 本 profile 的核心约束是：
 

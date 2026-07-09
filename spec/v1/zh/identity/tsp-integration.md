@@ -6,7 +6,7 @@ stability: v1
 updated: 2026-07-02
 ---
 
-> **状态：interop extension profile（非 v1 core 互操作必需）**。Cokret v1 core 默认使用
+> **状态：interop extension profile（非 v1 core 互操作必需）**。Arkret v1 core 默认使用
 > HTTPS JWE / MLS DM 进行跨主体可信传输。Trust over IP 框架的 Trust Spanning Protocol
 >（TSP）是可选的 metadata-privacy 增强 transport；v1 core 实现 **不要求** 实现本文档。
 > 当 TSP 实现成熟后将以独立 interop profile 承载稳定 wire 形态。
@@ -17,9 +17,9 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-Cokret MAY 集成 TSP，用于跨 DID、KERI AID、`did:webs`、`did:x509`、`did:peer`、X.509/URN 等 Verifiable Identifier (VID) 体系建立可信消息关系。
+Arkret MAY 集成 TSP，用于跨 DID、KERI AID、`did:webs`、`did:x509`、`did:peer`、X.509/URN 等 Verifiable Identifier (VID) 体系建立可信消息关系。
 
-TSP 在 Cokret 中是可选 transport / trust binding，不是 Realm 状态、capability、reducer 或 MLS 的替代品。
+TSP 在 Arkret 中是可选 transport / trust binding，不是 Realm 状态、capability、reducer 或 MLS 的替代品。
 
 ## 2. TSP 适用位置
 
@@ -42,20 +42,20 @@ TSP 不适合直接承担：
 - capability 授权本身。
 - 高吞吐媒体 RTP 转发。
 
-## 3. 与 Cokret 身份模型的映射
+## 3. 与 Arkret 身份模型的映射
 
-TSP 的 VID 可映射到 Cokret：
+TSP 的 VID 可映射到 Arkret：
 
-| TSP | Cokret |
+| TSP | Arkret |
 | --- | --- |
 | VID | principal DID / service DID / pairwise DID / 受支持的外部 identifier |
 | TSP Endpoint | actor 设备、service 节点、Applet、Policy Server、agent runtime |
 | TSP Relationship | 两个 principal / service 之间的 pairwise 可信通道 |
 | TSP Support System | identity registry、DID method adapter、witness、governance registry |
 | TSP Intermediary | Sync Service、privacy router、store-and-forward 服务 |
-| TSP Message | 承载 Cokret operation 或控制 payload 的已签名 / 加密 transport envelope |
+| TSP Message | 承载 Arkret operation 或控制 payload 的已签名 / 加密 transport envelope |
 
-Cokret DID method adapter SHOULD 暴露某个 principal 或服务是否支持 TSP。
+Arkret DID method adapter SHOULD 暴露某个 principal 或服务是否支持 TSP。
 
 ## 4. TSP Binding Discovery
 
@@ -118,30 +118,30 @@ DID Document 或 normalized principal view 中出现 `ck.service.tsp` 只是一�
 
 实现 MAY 通过引用 capability action registry 的 `risk_tier=high` 子集自动扩展第三类清单；新增的 `risk_tier=high` action 默认进入该清单，不需要在本节单独再列。本节列出的 operation/event kind 与 registry 子集冲突时，本节为准（registry 是 capability action 的 superset，不是 operation registry 的替代品）。
 
-## 5. Cokret over TSP
+## 5. Arkret over TSP
 
-Cokret operation 可作为 TSP application payload：
+Arkret operation 可作为 TSP application payload：
 
 ```json
 {
   "operation": "ck.self.events.command.submit",
-  "content_type": "application/cokret+json",
-  "realm_id": "ck:realm:...",
+  "content_type": "application/arkret+json",
+  "realm_id": "ak:realm:...",
   "payload_digest": "sha256:...",
   "payload": {}
 }
 ```
 
 示例中的 `operation` 字段 MUST 取自 [`artifacts/registry/operation-registry.json`](../../artifacts/registry/operation-registry.json)；
-TSP transport 不引入平行 operation namespace。若 TSP adapter 需要 transport-private 控制消息（例如握手 / heartbeat），SHOULD 用 `tsp.adapter.*` 命名空间并显式声明为 TSP-private，不得进入 Cokret operation registry 或 conformance claim。
+TSP transport 不引入平行 operation namespace。若 TSP adapter 需要 transport-private 控制消息（例如握手 / heartbeat），SHOULD 用 `tsp.adapter.*` 命名空间并显式声明为 TSP-private，不得进入 Arkret operation registry 或 conformance claim。
 
 规则：
 
-- TSP authenticity 不替代 Cokret event signature / operation proof。任何通过 TSP 承载的 Cokret operation（包括非持久 operation、控制消息、Event 提交、capability 驱动动作）在进入 Cokret operation layer 前，receiver MUST 验证对应的 Cokret 签名、payload proof 或 capability-bound proof；仅凭 TSP relationship / channel authentication MUST NOT 放行。没有 Cokret operation 语义的 TSP-private 控制消息必须留在 `tsp.adapter.*` namespace，不得伪装成 Cokret operation。
+- TSP authenticity 不替代 Arkret event signature / operation proof。任何通过 TSP 承载的 Arkret operation（包括非持久 operation、控制消息、Event 提交、capability 驱动动作）在进入 Arkret operation layer 前，receiver MUST 验证对应的 Arkret 签名、payload proof 或 capability-bound proof；仅凭 TSP relationship / channel authentication MUST NOT 放行。没有 Arkret operation 语义的 TSP-private 控制消息必须留在 `tsp.adapter.*` namespace，不得伪装成 Arkret operation。
 - TSP confidentiality 不替代 Realm E2EE；它只保护 transport message payload。
 - TSP relationship 不自动授予 Realm membership 或 capability。
 - TSP routed mode 中 intermediary 不应被视为可信授权方。
-- 若使用 nested TSP message 隐藏内层 VID，外层 endpoint 仍必须满足 Cokret routing 和 policy 要求。
+- 若使用 nested TSP message 隐藏内层 VID，外层 endpoint 仍必须满足 Arkret routing 和 policy 要求。
 
 ## 6. 与 MLS 的差异
 
@@ -158,11 +158,11 @@ TSP transport 不引入平行 operation namespace。若 TSP adapter 需要 trans
 
 ## 7. 推荐组合
 
-Cokret SHOULD 采用以下组合：
+Arkret SHOULD 采用以下组合：
 
 - Pairwise 服务 / 身份控制消息：MAY 使用 TSP。
 - Federation bootstrap：MAY 使用 TSP 验证 service VID 并建立安全通道。
-- Realm 持久事件：MUST 仍使用 Cokret event signature / hash / reducer。
+- Realm 持久事件：MUST 仍使用 Arkret event signature / hash / reducer。
 - 加密 Realm 内容：SHOULD 使用 MLS。
 - Agent handoff：MAY 使用 TSP 认证 endpoint，再按协商使用 A2A / ACP / 自定义 transport。
 - WebRTC 媒体：MUST NOT 用 TSP 加密 RTP 媒体；按需使用 WebRTC SRTP 与 SFrame / Insertable Streams。
@@ -177,14 +177,14 @@ TSP 可以作为选择性披露 presentation 的私密传输层。推荐模式�
 - Presentation payload 使用 SD-JWT VC 或 BBS derived proof。
 - Presentation message MAY 通过 TSP nested / routed mode 发送，以降低 holder 与 verifier、不同 pairwise DID 之间的元数据关联。
 
-TSP 不能单独解决“披露什么”的问题。披露决策仍由 holder wallet、Cokret disclosure policy、VC proof profile、credential status 和 verifier request 共同决定。
+TSP 不能单独解决“披露什么”的问题。披露决策仍由 holder wallet、Arkret disclosure policy、VC proof profile、credential status 和 verifier request 共同决定。
 
 ## 8. Security Requirements
 
 实现使用 TSP 时 MUST：
 
 - 验证 remote VID，记录使用的 support system 和 trust assessment result。
-- 将 TSP relationship 与 Cokret principal/service DID 显式绑定。
+- 将 TSP relationship 与 Arkret principal/service DID 显式绑定。
 - 防止把 TSP channel authentication 当作 Realm authorization。
 - 对 metadata privacy mode 做显式声明，尤其是 public VID、nested VID、routed mode。
 - 对 routed intermediary 做最小信任假设。
@@ -195,7 +195,7 @@ TSP 不能单独解决“披露什么”的问题。披露决策仍由 holder wa
 支持 TSP 的实现 SHOULD 提供：
 
 - DID/VID discovery vector。
-- TSP direct message carrying Cokret payload vector。
+- TSP direct message carrying Arkret payload vector。
 - TSP routed/nested privacy vector。
-- TSP relationship to Cokret service DID binding vector。
-- 负向测试：合法的 TSP 消息在缺少 Cokret capability 时 MUST 在 operation 层被拒绝。
+- TSP relationship to Arkret service DID binding vector。
+- 负向测试：合法的 TSP 消息在缺少 Arkret capability 时 MUST 在 operation 层被拒绝。

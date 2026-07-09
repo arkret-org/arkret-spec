@@ -1,12 +1,12 @@
 ---
-title: Cokret-Native SFU Binding (reference impl)
+title: Arkret-Native SFU Binding (reference impl)
 status: candidate
 normative: true
 stability: v1
 profile: ck.profile.media_service_binding.cokret_native.v1
 updated: 2026-07-02
 sidebar:
-  label: Cokret-native Binding
+  label: Arkret-native Binding
 ---
 
 ## 0. 规范语言
@@ -15,7 +15,7 @@ sidebar:
 
 ## 1. 范围与定位
 
-本附录定义 `ck.realm.media_service.foci[].type = "cokret-native"` 的 backend binding，承载 Cokret 自定义信令，作为：
+本附录定义 `ck.realm.media_service.foci[].type = "arkret-native"` 的 backend binding，承载 Arkret 自定义信令，作为：
 
 1. **Reference impl**：协议自洽性测试与教学用途；
 2. **Conformance baseline**：不依赖任何外部 backend SDK 即可跑完 binding-framework 全套 vector。
@@ -33,9 +33,9 @@ sidebar:
   "alg": "EdDSA",
   "kid": "did:webvh:zCxjAemtszNh7bTFGWFS4m8gv:media.example#key-1",
   "payload": {
-    "call_id": "ck:call:...",
+    "call_id": "ak:call:...",
     "focus_id": "fra-1",
-    "participant_identity": "ck:rtc_participant:...",
+    "participant_identity": "ak:rtc_participant:...",
     "issued_at": "2026-05-27T12:29:56Z",
     "expires_at": "2026-05-27T12:34:56Z",
     "media": { "audio": true, "video": true, "screen": false }
@@ -57,12 +57,12 @@ base64url-编码的 detached JWS，由 token issuer 用 service DID 的 `asserti
 
 ```json
 {
-  "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
-  "realm_id": "ck:realm:...",
+  "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:...",
   "focus_id": "fra-1",
   "participant_binding": { "scheme": "ck.media.participant_binding.v1", "...": "..." },
   "backend_token": "<token from §2>",
-  "capability_refs": ["ck:grant:..."],
+  "capability_refs": ["ak:grant:..."],
   "desired_media": { "audio": true, "video": true, "screen": false }
 }
 ```
@@ -71,7 +71,7 @@ SFU response：
 
 ```json
 {
-  "participant_identity": "ck:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+  "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
   "transport": "webrtc",
   "offer": {
     "type": "offer",
@@ -93,31 +93,31 @@ SFU MUST 在 response 中回显 token exchange 阶段已 issued 的同一 `parti
 
 ## 4. SDP 协商
 
-Cokret-native SFU 接受标准 WebRTC offer/answer。协议层不约束具体 codec / extension 集合，但：
+Arkret-native SFU 接受标准 WebRTC offer/answer。协议层不约束具体 codec / extension 集合，但：
 
 - SFrame ([RFC 9605](https://www.rfc-editor.org/rfc/rfc9605.html)) MUST 在 SDP 中协商；客户端 MUST 拒绝缺 SFrame extension 的 answer，除非 `media_service_decrypts=true` 经 [`../media-service-binding.md` §8.2](../media-service-binding.md) 三层校验通过。
 - SDP `a=fingerprint` MUST 与 token exchange 中绑定的 device cert 一致。
 
 ## 5. E2EE Key Injection
 
-按 [`../media-service-binding.md` §8.1](../media-service-binding.md) 通用契约。Cokret-native SFU 的 reference adapter 直接调 WebRTC Insertable Streams API，把 `key_bytes` 装载到 RTP frame encryptor。
+按 [`../media-service-binding.md` §8.1](../media-service-binding.md) 通用契约。Arkret-native SFU 的 reference adapter 直接调 WebRTC Insertable Streams API，把 `key_bytes` 装载到 RTP frame encryptor。
 
 `media_service_decrypts=false`（默认）：`key_bytes` 不离开客户端，SFU 只看到密文 RTP payload。
 
-`media_service_decrypts=true`（需 [`../media-service-binding.md` §8.2](../media-service-binding.md) 三层校验）：客户端把 `key_bytes` 通过 Cokret-controlled keying path 提交给 SFU；SFU 在受控边界内解密，不得 forward key 到 backend cluster 外。
+`media_service_decrypts=true`（需 [`../media-service-binding.md` §8.2](../media-service-binding.md) 三层校验）：客户端把 `key_bytes` 通过 Arkret-controlled keying path 提交给 SFU；SFU 在受控边界内解密，不得 forward key 到 backend cluster 外。
 
 ## 6. Capability Mapping
 
-| Cokret capability | Cokret-native SFU 行为 |
+| Arkret capability | Arkret-native SFU 行为 |
 | --- | --- |
 | `ck.call.join` | 接受 SDP offer |
 | `ck.call.screen_share` | 接受 `screen` track 协商；否则拒绝并报 `capability_denied` |
-| `ck.call.record` | 录制由 Cokret-side recorder 触发；SFU 不直接产 artifact |
+| `ck.call.record` | 录制由 Arkret-side recorder 触发；SFU 不直接产 artifact |
 | `ck.call.moderate` | SFU 接受 `mute_remote` / `kick_participant` 控制指令，但 MUST 校验 actor 持有该 capability |
 
 ## 7. Cascading
 
-Cokret-native reference impl **不实现** SFU-to-SFU cascading；同一 `cascade_group` 内的 focus 仅做 client-side region preference 排序，不做媒体路径桥接。需要 cascading 的部署 MUST 使用支持 mesh 的 production-grade backend binding。
+Arkret-native reference impl **不实现** SFU-to-SFU cascading；同一 `cascade_group` 内的 focus 仅做 client-side region preference 排序，不做媒体路径桥接。需要 cascading 的部署 MUST 使用支持 mesh 的 production-grade backend binding。
 
 ## 8. Failure Mode
 
@@ -134,6 +134,6 @@ Cokret-native reference impl **不实现** SFU-to-SFU cascading；同一 `cascad
 实现声明 `ck.profile.media_service_binding.cokret_native.v1` 时，至少通过：
 
 - 上游 `ck.profile.media_service_binding.v1` 的 9 个核心 vector（focus_selection / session_focus / token_exchange / token_issuer_unauthorised / participant_binding / unknown_type / e2ee_key_source / participant_identity / recording_artifact）。
-- cokret-native-specific：实现自由附加，但 wire 不得引入 v1 周期内 unregistered 字段。
+- arkret-native-specific：实现自由附加，但 wire 不得引入 v1 周期内 unregistered 字段。
 
 具体向量编排见 [`../../../artifacts/registry/vector-registry.json`](../../../artifacts/registry/vector-registry.json)。

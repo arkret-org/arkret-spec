@@ -1,5 +1,5 @@
 # Status: binding extension profile reference.
-# v1 core 互操作锁定 HTTP/JSON binding (artifacts/openapi/cokret-service-api.openapi.yaml)。
+# v1 core 互操作锁定 HTTP/JSON binding (artifacts/openapi/arkret-service-api.openapi.yaml)。
 # 本文件描述 WebSocket / SSE / gRPC / message queue / libp2p binding 的 frame / topic 形态，
 # 仅在显式声明对应 binding profile 的部署中适用；v1 core 实现不要求实现这些 binding。
 version: "2026-05-08"
@@ -419,8 +419,8 @@ libp2p:
       proof:
         type: object
   suggested_protocols:
-    - /cokret/sync/1.0.0
-    - /cokret/blob/1.0.0
+    - /arkret/sync/1.0.0
+    - /arkret/blob/1.0.0
   # Federation API 使用 peer events operations 与 ck.peer.snapshot.query.manifest_head。
-  # libp2p binding 使用 /cokret/sync/1.0.0 + service-signature envelope，
-  # 不另设独立 /cokret/federation/1.0.0 protocol multiplexer。
+  # libp2p binding 使用 /arkret/sync/1.0.0 + service-signature envelope，
+  # 不另设独立 /arkret/federation/1.0.0 protocol multiplexer。

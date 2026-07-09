@@ -1,5 +1,5 @@
 {
-  "$schema": "https://cokret.dev/spec/v1/artifacts/registry/drift-detection.schema.json",
+  "$schema": "https://arkret.dev/spec/v1/artifacts/registry/drift-detection.schema.json",
   "version": 1,
   "kind": "renames",
   "source_of_truth": true,
@@ -40,9 +40,9 @@
     "grant_constraint_single_kind_ids": "Grant constraint fields that carry one concrete protocol identifier kind use `_ids`; `_refs` remains reserved for causal/proof/schema/content-addressed or polymorphic reference material.",
     "metadata_encryption_floor_rename": "Wire field metadata_encryption_profile renamed to metadata_encryption_floor.",
     "key_backup_kdf_hash_to_digest_algorithm": "Key backup KDF parameter algorithm selectors use digest_algorithm; hash is reserved for actual digest material and internal JSON Schema defs.",
-    "brand_namespace_cx_to_ck": "Wire/brand namespace renamed from the legacy `contrix` brand to `cokret`. Every wire token prefix `cx.` becomes `ck.` and every typed-id prefix `cx:` becomes `ck:` across operation_id, event_kind, schema_id, capability action, id_kind, error code, vector id, and profile id. The bare brand strings `contrix` / `Contrix` and the token prefixes `cx.` / `cx:` are hard_reject on the current wire and in current identifiers (allowed only in CHANGELOG / migration docs / negative drift fixtures). HTTP paths additionally moved to the versionless trust-circle namespace `/_cokret/<segment>/...` (see sync/service-http-binding.md §2.1); the legacy flat paths and `/api/v1` / `/cokret/v1` prefixes are recorded in removed-operation-ids.json. Mechanical, single design decision; the entries below are representative seals, the rule applies to the whole token space.",
+    "brand_namespace_cx_to_ck": "Wire/brand namespace renamed from the legacy `contrix` brand to `arkret`. Every wire token prefix `cx.` becomes `ck.` and every typed-id prefix `cx:` becomes `ck:` across operation_id, event_kind, schema_id, capability action, id_kind, error code, vector id, and profile id. The bare brand strings `contrix` / `Contrix` and the token prefixes `cx.` / `cx:` are hard_reject on the current wire and in current identifiers (allowed only in CHANGELOG / migration docs / negative drift fixtures). HTTP paths additionally moved to the versionless trust-circle namespace `/_cokret/<segment>/...` (see sync/service-http-binding.md §2.1); the legacy flat paths and `/api/v1` / `/arkret/v1` prefixes are recorded in removed-operation-ids.json. Mechanical, single design decision; the entries below are representative seals, the rule applies to the whole token space.",
     "operation_id_trust_surface_segment": "Scheme B: operation_id now encodes its trust-surface classifier as the mandatory leading segment (ck.<surface>.<resource>.<action>, surface in {self,peer,edge,root,find,gate,open}), matching the HTTP path's first segment 1:1. 108 operations gain the surface prefix; peer.* were already compliant and ck.server.describe (pre-auth root meta, no surface segment) is the sole exception. grpc service names gain the PascalCase surface prefix and mq topics the lowercase surface segment in lockstep. Single design decision; entries are mechanical applications.",
-    "agent_applet_interop_session_rename": "Agent and applet session surfaces renamed from the ambiguous `protocol_session` (which reads as the ambient Cokret protocol) to `interop_session`, naming the external agent-to-agent interop relationship. Event kinds ck.{agent,applet}.protocol_session.* -> ck.{agent,applet}.interop_session.*; the agent capability action namespace ck.agent.session.* (start/cancel/stream_status/attach_artifact/read_transcript) -> ck.agent.interop_session.*; the typed id and schema payload defs use the agent_interop_session_* / applet_interop_session_* short form. Single design decision.",
+    "agent_applet_interop_session_rename": "Agent and applet session surfaces renamed from the ambiguous `protocol_session` (which reads as the ambient Arkret protocol) to `interop_session`, naming the external agent-to-agent interop relationship. Event kinds ck.{agent,applet}.protocol_session.* -> ck.{agent,applet}.interop_session.*; the agent capability action namespace ck.agent.session.* (start/cancel/stream_status/attach_artifact/read_transcript) -> ck.agent.interop_session.*; the typed id and schema payload defs use the agent_interop_session_* / applet_interop_session_* short form. Single design decision.",
     "conformance_verifier_neutralization": "ServiceDescribe.verified_profiles neutralized away from the downstream tool name cotest: claim_kind enum value cotest_verified → conformance_verified, wire fields cotest_run_id → verification_run_id and cotest_issuer_did → verifier_did. The wire contract binds to the neutral Conformance Verifier role (conformance-suite.md §6.2); cotest survives only as an informative reference-implementation name in prose (3 entries).",
     "cba_notary_seal_rename": "CBA terminology family rename (2026-06-11): the Anchor/Anchorer word family is replaced by Seal/Notary across wire fields, typed-id prefixes, cell families, enum values and model names; the Seal cumulative-coverage frontier[] enumeration is retired in favor of predecessor_refs + delta recursion (no direct field successor; the snapshot manifest's boundary `frontier` object and the streaming `frontier` frame kind are true-frontier semantics and keep their names); proposal-era interim spellings (governance_ref, Checkpoint) are forbidden. See authz/event-auth-state-resolution.md and overview/glossary.md."
   },
@@ -107,13 +107,13 @@
       "migration_group": "brand_namespace_cx_to_ck",
       "since_revision": "2026-06-03",
       "rejection_level": "hard_reject",
-      "replacement": "cokret",
+      "replacement": "arkret",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Legacy brand name (also `Contrix`). Renamed to `cokret` / `Cokret` in all current prose, identifiers, file names, and UI copy. See forbidden-model-terms.json."
+      "notes": "Legacy brand name (also `Contrix`). Renamed to `arkret` / `Arkret` in all current prose, identifiers, file names, and UI copy. See forbidden-model-terms.json."
     },
     {
       "id": "cx.events.submit",
@@ -439,12 +439,12 @@
       "notes": "Approval actor constraints carry concrete actor DID identifiers. DID-valued subject fields use `_id` in v1."
     },
     {
-      "id": "ck:rtcpart:",
+      "id": "ak:rtcpart:",
       "kind_class": "typed_id_prefix",
       "migration_group": "typed_id_prefix_unabbreviation",
       "since_revision": "2026-05-31",
       "rejection_level": "hard_reject",
-      "replacement": "ck:rtc_participant:",
+      "replacement": "ak:rtc_participant:",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -1081,11 +1081,11 @@
       "notes": "cx.schema.applet.v1 object snapshot field 'status' renamed to 'runtime_status' so that applet registry-object state does not appear interchangeable with the canonical agent session state machine. v1 does not define a canonical applet protocol-session state machine; bridges declare their own enum within {pending,running,completed,failed,cancelled}. cx.schema.agent.v1 keeps its `status` field but its enum was widened to mirror agent_session_status_payload.status (9 values)."
     },
     {
-      "id": "ck:notif:",
+      "id": "ak:notif:",
       "kind_class": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck:notification:",
+      "replacement": "ak:notification:",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -1095,11 +1095,11 @@
       "migration_group": "typed_id_prefix_unabbreviation"
     },
     {
-      "id": "ck:devmsg:",
+      "id": "ak:devmsg:",
       "kind_class": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck:device_message:",
+      "replacement": "ak:device_message:",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -1109,11 +1109,11 @@
       "migration_group": "typed_id_prefix_unabbreviation"
     },
     {
-      "id": "ck:keyevt:",
+      "id": "ak:keyevt:",
       "kind_class": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck:key_event:",
+      "replacement": "ak:key_event:",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -1123,11 +1123,11 @@
       "migration_group": "typed_id_prefix_unabbreviation"
     },
     {
-      "id": "ck:modq:",
+      "id": "ak:modq:",
       "kind_class": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck:moderation_queue_item:",
+      "replacement": "ak:moderation_queue_item:",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -1137,11 +1137,11 @@
       "migration_group": "typed_id_prefix_unabbreviation"
     },
     {
-      "id": "ck:req:",
+      "id": "ak:req:",
       "kind_class": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck:request:",
+      "replacement": "ak:request:",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -1151,11 +1151,11 @@
       "migration_group": "typed_id_prefix_unabbreviation"
     },
     {
-      "id": "ck:txn:",
+      "id": "ak:txn:",
       "kind_class": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck:transaction:",
+      "replacement": "ak:transaction:",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -1165,11 +1165,11 @@
       "migration_group": "typed_id_prefix_unabbreviation"
     },
     {
-      "id": "ck:frank:",
+      "id": "ak:frank:",
       "kind_class": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck:franking_proof:",
+      "replacement": "ak:franking_proof:",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -1796,7 +1796,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Error code returned when the target Realm is frozen / archived / tombstoned / closed to ordinary writes. After the Realm/Space inversion the responsibility for freeze/archive/tombstone/destroy lifecycle lives on the Realm boundary; the legacy name 'space_frozen' could mislead implementations into checking only an in-Realm Space container's lifecycle. See spec/v1/artifacts/registry/error-code-registry.json and spec/v1/artifacts/openapi/cokret-service-api.openapi.yaml EventSubmitResponse.rejected[].reason_code."
+      "notes": "Error code returned when the target Realm is frozen / archived / tombstoned / closed to ordinary writes. After the Realm/Space inversion the responsibility for freeze/archive/tombstone/destroy lifecycle lives on the Realm boundary; the legacy name 'space_frozen' could mislead implementations into checking only an in-Realm Space container's lifecycle. See spec/v1/artifacts/registry/error-code-registry.json and spec/v1/artifacts/openapi/arkret-service-api.openapi.yaml EventSubmitResponse.rejected[].reason_code."
     },
     {
       "id": "space_state",
@@ -1835,7 +1835,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "Schema id aligned with the canonical file basename schemas/encrypted-envelope.schema.json and the schema title 'Cokret Encrypted Payload Envelope'. Strand, Message, and Morph content carriers now use encrypted_content; encrypted_payload remains only on payload surfaces that do not have a content counterpart."
+      "notes": "Schema id aligned with the canonical file basename schemas/encrypted-envelope.schema.json and the schema title 'Arkret Encrypted Payload Envelope'. Strand, Message, and Morph content carriers now use encrypted_content; encrypted_payload remains only on payload surfaces that do not have a content counterpart."
     },
     {
       "id": "encrypted_payload",
@@ -2039,7 +2039,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "MIMI interop HTTP paths /mimi/rooms/{strand_id}/{update,notify,messages,group-info} renamed to /mimi/strands/{strand_id}/.... The path parameter was always {strand_id} (a Cokret Strand), so the literal segment 'rooms' was misleading. MIMI semantics are preserved via the cx.mimi.* operation IDs (room_update, notify, submit_message, group_info) and via the mimi_room_uri / mimi_room_binding fields inside payloads, not via URL path segment."
+      "notes": "MIMI interop HTTP paths /mimi/rooms/{strand_id}/{update,notify,messages,group-info} renamed to /mimi/strands/{strand_id}/.... The path parameter was always {strand_id} (a Arkret Strand), so the literal segment 'rooms' was misleading. MIMI semantics are preserved via the cx.mimi.* operation IDs (room_update, notify, submit_message, group_info) and via the mimi_room_uri / mimi_room_binding fields inside payloads, not via URL path segment."
     },
     {
       "id": "notification.space_name",
@@ -2608,7 +2608,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "MLS ratchet tree digest renamed on Cokret wire. Distinct from RFC 9420's tree_hash inside MLS bytes; this is the Cokret payload field, not the MLS GroupContext extension.",
+      "notes": "MLS ratchet tree digest renamed on Arkret wire. Distinct from RFC 9420's tree_hash inside MLS bytes; this is the Arkret payload field, not the MLS GroupContext extension.",
       "migration_group": "hash_to_digest_vocabulary"
     },
     {
@@ -2622,7 +2622,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "MLS commit digest renamed on Cokret wire.",
+      "notes": "MLS commit digest renamed on Arkret wire.",
       "migration_group": "hash_to_digest_vocabulary"
     },
     {
@@ -2636,7 +2636,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "MLS proposal digest renamed on Cokret wire.",
+      "notes": "MLS proposal digest renamed on Arkret wire.",
       "migration_group": "hash_to_digest_vocabulary"
     },
     {
@@ -2650,7 +2650,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "MLS KeyPackage digest renamed on Cokret wire.",
+      "notes": "MLS KeyPackage digest renamed on Arkret wire.",
       "migration_group": "hash_to_digest_vocabulary"
     },
     {
@@ -5529,12 +5529,12 @@
       "notes": "Snapshot event_set_commitment member list: the members are boundary event ids, not Seal ids, so the interim covered_seals spelling was semantically wrong. Unrelated to the MLS covered_seals_cell / ck.component.covered_seals.v1 cell family, which keeps its name."
     },
     {
-      "id": "ck:anchor:",
+      "id": "ak:anchor:",
       "kind_class": "typed_id_prefix",
       "migration_group": "cba_notary_seal_rename",
       "since_revision": "2026-06-11",
       "rejection_level": "hard_reject",
-      "replacement": "ck:seal:",
+      "replacement": "ak:seal:",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",

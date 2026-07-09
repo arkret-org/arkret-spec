@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lint Cokret artifact/registry consistency.
+"""Lint Arkret artifact/registry consistency.
 
 Canonical registries plus generated registry views under
 ``spec/v1/artifacts/registry`` define the machine-readable wire contract.
@@ -546,14 +546,14 @@ FORBIDDEN_NAMING_ALIAS_KEYS = {
 }
 
 FORBIDDEN_NAMING_STRING_ALIASES = {
-    "ck:notif:": "ck:notification:",
-    "ck:devmsg:": "ck:device_message:",
-    "ck:keyevt:": "ck:key_event:",
-    "ck:modq:": "ck:moderation_queue_item:",
-    "ck:req:": "ck:request:",
-    "ck:txn:": "ck:transaction:",
-    "ck:frank:": "ck:franking_proof:",
-    "ck:rtcpart:": "ck:rtc_participant:",
+    "ak:notif:": "ak:notification:",
+    "ak:devmsg:": "ak:device_message:",
+    "ak:keyevt:": "ak:key_event:",
+    "ak:modq:": "ak:moderation_queue_item:",
+    "ak:req:": "ak:request:",
+    "ak:txn:": "ak:transaction:",
+    "ak:frank:": "ak:franking_proof:",
+    "ak:rtcpart:": "ak:rtc_participant:",
     "ck.agent.key.authorized": "ck.agent.key.authorize",
     "ck.agent.key.revoked": "ck.agent.key.revoke",
     "ck.agent.key.rotated": "ck.agent.key.rotate",
@@ -1271,7 +1271,7 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
         wire_form = row.get("wire_form")
         if isinstance(kind, str) and not re.fullmatch(r"[a-z0-9_]+", kind):
             lint.fail(id_path, f"id kind has invalid format: {kind}")
-        if isinstance(kind, str) and isinstance(wire_form, str) and not wire_form.startswith(f"ck:{kind}:"):
+        if isinstance(kind, str) and isinstance(wire_form, str) and not wire_form.startswith(f"ak:{kind}:"):
             lint.fail(id_path, f"{kind} wire_form must start with ck:{kind}:")
 
     special_id_kinds = unique_values(lint, id_path, id_registry.get("special_forms", []), "kind")
@@ -2067,7 +2067,7 @@ def check_openapi_contract_shape(lint: Lint, path: Path, text: str) -> None:
 
 
 def check_openapi_schema_component_order(lint: Lint) -> None:
-    openapi_path = ARTIFACTS / "openapi" / "cokret-service-api.openapi.yaml"
+    openapi_path = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
     openapi = load_yaml(lint, openapi_path)
     if not isinstance(openapi, dict):
         return
@@ -2095,7 +2095,7 @@ def check_openapi_schema_component_order(lint: Lint) -> None:
 
 
 def check_operation_surfaces(lint: Lint, known: dict[str, set[str]]) -> None:
-    openapi_path = ARTIFACTS / "openapi" / "cokret-service-api.openapi.yaml"
+    openapi_path = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
     openapi_text = openapi_path.read_text(encoding="utf-8")
     check_openapi_contract_shape(lint, openapi_path, openapi_text)
     openapi_operation_ids = OPENAPI_OPERATION_ID_RE.findall(openapi_text)
@@ -2137,7 +2137,7 @@ def check_operation_surfaces(lint: Lint, known: dict[str, set[str]]) -> None:
 
 
 def check_service_describe_alignment(lint: Lint) -> None:
-    openapi_path = ARTIFACTS / "openapi" / "cokret-service-api.openapi.yaml"
+    openapi_path = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
     schema_path = ARTIFACTS / "schemas" / "service-describe.schema.json"
     openapi = load_yaml(lint, openapi_path)
     service_schema = load_json(lint, schema_path)
@@ -2220,7 +2220,7 @@ def check_service_describe_alignment(lint: Lint) -> None:
 
 
 def check_policy_check_alignment(lint: Lint) -> None:
-    openapi_path = ARTIFACTS / "openapi" / "cokret-service-api.openapi.yaml"
+    openapi_path = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
     openapi = load_yaml(lint, openapi_path)
     if not isinstance(openapi, dict):
         return
@@ -2228,8 +2228,8 @@ def check_policy_check_alignment(lint: Lint) -> None:
     components = openapi.get("components", {}).get("schemas", {})
     if not isinstance(paths, dict) or not isinstance(components, dict):
         return
-    if "/cokret/v1/check" in paths:
-        lint.fail(openapi_path, "legacy /cokret/v1/check policy path must not be present; use /_cokret/self/policy/check")
+    if "/arkret/v1/check" in paths:
+        lint.fail(openapi_path, "legacy /arkret/v1/check policy path must not be present; use /_cokret/self/policy/check")
 
     policy_path = paths.get("/_cokret/self/policy/check", {}).get("post", {})
     request_schema = (
@@ -2308,7 +2308,7 @@ def openapi_response_schema(operation: dict[str, Any]) -> Any:
 
 def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
     """Prevent security-sensitive operations from drifting back to generic schemas."""
-    openapi_path = ARTIFACTS / "openapi" / "cokret-service-api.openapi.yaml"
+    openapi_path = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
     openapi = load_yaml(lint, openapi_path)
     if not isinstance(openapi, dict):
         return
@@ -2433,7 +2433,7 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
 
 def check_openapi_core_selector_constraints(lint: Lint) -> None:
     """Core event read operations must machine-declare selector and typed-id rules."""
-    openapi_path = ARTIFACTS / "openapi" / "cokret-service-api.openapi.yaml"
+    openapi_path = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
     openapi = load_yaml(lint, openapi_path)
     if not isinstance(openapi, dict):
         return
@@ -2450,9 +2450,9 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
         operation = op(operation_id)
         if operation is None:
             return
-        actual = operation.get("x-cokret-required-any-of")
+        actual = operation.get("x-arkret-required-any-of")
         if actual != expected:
-            lint.fail(openapi_path, f"{operation_id} x-cokret-required-any-of must be {expected!r}")
+            lint.fail(openapi_path, f"{operation_id} x-arkret-required-any-of must be {expected!r}")
 
     def expect_array_param(operation_id: str, name: str, ref: str) -> None:
         operation = op(operation_id)
@@ -2528,7 +2528,7 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
 
 def check_openapi_auth_semantics(lint: Lint) -> None:
     """Distinguish public metadata, proof-in-body auth, user tokens, and admin tokens."""
-    openapi_path = ARTIFACTS / "openapi" / "cokret-service-api.openapi.yaml"
+    openapi_path = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
     openapi = load_yaml(lint, openapi_path)
     if not isinstance(openapi, dict):
         return
@@ -2556,7 +2556,7 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
     for operation_id, operation in operations.items():
         security = operation.get("security")
         if security == []:
-            auth = operation.get("x-cokret-auth")
+            auth = operation.get("x-arkret-auth")
             proof_in_body = (
                 operation_id in proof_in_body_operations
                 and isinstance(auth, dict)
@@ -2574,9 +2574,9 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
         if not isinstance(operation, dict):
             lint.fail(openapi_path, f"{operation_id} operation missing")
             continue
-        auth = operation.get("x-cokret-auth")
+        auth = operation.get("x-arkret-auth")
         if not isinstance(auth, dict) or auth.get("public_metadata") is not False or auth.get("proof_in_body") is not True:
-            lint.fail(openapi_path, f"{operation_id} must declare x-cokret-auth proof_in_body/public_metadata=false")
+            lint.fail(openapi_path, f"{operation_id} must declare x-arkret-auth proof_in_body/public_metadata=false")
 
     def security_groups(operation: dict[str, Any]) -> list[dict[str, Any]]:
         groups = operation.get("security")
@@ -2585,7 +2585,7 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
     for operation_id, operation in operations.items():
         if not operation_id.startswith("ck.admin."):
             continue
-        lint.fail(openapi_path, f"{operation_id} is product-local and must not be registered in Cokret OpenAPI")
+        lint.fail(openapi_path, f"{operation_id} is product-local and must not be registered in Arkret OpenAPI")
 
 
 def check_read_scope_schema_closure(lint: Lint) -> None:
@@ -2690,7 +2690,7 @@ def check_typed_id_prose_consistency(lint: Lint) -> None:
     for path in [*markdown_files(), *all_json_files()]:
         if path.resolve() in allowed_legacy_paths:
             continue
-        if "ck:txn:" in path.read_text(encoding="utf-8"):
+        if "ak:txn:" in path.read_text(encoding="utf-8"):
             lint.fail(path, "legacy ck:txn: prefix present outside migration/forbidden registries")
 
 
@@ -2756,7 +2756,7 @@ GENERIC_OPERATION_RESULT_REF = "#/components/schemas/OperationResult"
 def check_openapi_error_enum_alignment(lint: Lint) -> None:
     """ErrorEnvelope.error.code must be generated from the canonical error registry."""
     registry_path = ARTIFACTS / "registry" / "error-code-registry.json"
-    openapi_path = ARTIFACTS / "openapi" / "cokret-service-api.openapi.yaml"
+    openapi_path = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
     registry = load_json(lint, registry_path)
     openapi = load_yaml(lint, openapi_path)
     if not isinstance(registry, dict) or not isinstance(openapi, dict):
@@ -2845,7 +2845,7 @@ def check_reducer_payload_closure(lint: Lint) -> None:
 
 def check_did_and_device_constraints(lint: Lint) -> None:
     """Reject ambiguous DID/DID URL and device_id constraints in machine artifacts."""
-    openapi_path = ARTIFACTS / "openapi" / "cokret-service-api.openapi.yaml"
+    openapi_path = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
 
     for path in sorted((ARTIFACTS / "schemas").glob("*.schema.json")):
         data = load_json(lint, path)
@@ -3027,7 +3027,7 @@ def collect_openapi_operation_facts(lint: Lint, openapi_path: Path) -> dict[str,
 def check_operation_binding_metadata(lint: Lint) -> None:
     """Operation registry must machine-declare success shape and governed generic bindings."""
     operation_path = ARTIFACTS / "registry" / "operation-registry.json"
-    openapi_path = ARTIFACTS / "openapi" / "cokret-service-api.openapi.yaml"
+    openapi_path = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
     operation_registry = load_json(lint, operation_path)
     if not isinstance(operation_registry, dict):
         return
@@ -3229,7 +3229,7 @@ def check_design_phase_legacy_compat_removed(lint: Lint) -> None:
             "legacy_alias",
             "deprecated_alias",
         ],
-        ARTIFACTS / "openapi" / "cokret-service-api.openapi.yaml": [
+        ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml": [
             "legacy_single_endpoint_media_service",
             "legacy_secret_storage_wire_form",
             "legacy_alias",
@@ -3462,8 +3462,8 @@ def check_cross_source_drift(lint: Lint, known: dict[str, set[str]]) -> None:
             if STABLE_SECTION_PLACEHOLDER_RE.search(line):
                 lint.fail(path, f"line {line_no}: placeholder section reference must be replaced with a stable heading or real section number")
 
-            if "/cokret/v1/check" in line:
-                lint.fail(path, f"line {line_no}: legacy policy path /cokret/v1/check must be replaced with /_cokret/self/policy/check")
+            if "/arkret/v1/check" in line:
+                lint.fail(path, f"line {line_no}: legacy policy path /arkret/v1/check must be replaced with /_cokret/self/policy/check")
 
             if TRUST_DOMAIN_JSON_DID_RE.search(line):
                 lint.fail(path, f"line {line_no}: trust_domain must use ck:trust_domain:<scope>, not a raw DID")
@@ -4057,11 +4057,11 @@ def resolve_json_pointer(document: Any, fragment: str) -> Any:
 
 
 def load_json_schema_for_uri(uri: str) -> Any:
-    # Canonical schema $id base: https://cokret.org/v1/schemas/<name>.schema.json
+    # Canonical schema $id base: https://arkret.org/v1/schemas/<name>.schema.json
     # (the /v1/ segment pins the spec major version so v2 schemas get distinct
     # $ids). All schemas live on disk under ARTIFACTS/schemas/, so strip the
     # base and resolve the remaining filename there.
-    prefix = "https://cokret.org/v1/schemas/"
+    prefix = "https://arkret.org/v1/schemas/"
     if not uri.startswith(prefix):
         raise ValueError(f"unsupported remote schema URI {uri}")
     path = ARTIFACTS / "schemas" / uri[len(prefix):]
@@ -4643,7 +4643,7 @@ def check_openapi_no_floating_number(lint: Lint) -> None:
     break canonical-bytes interop. The forbidden-fields list below carries
     explicit waivers for known non-canonical surfaces.
     """
-    openapi_path = ARTIFACTS / "openapi" / "cokret-service-api.openapi.yaml"
+    openapi_path = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
     if not openapi_path.exists():
         return
     lines = openapi_path.read_text(encoding="utf-8").splitlines()

@@ -1,7 +1,7 @@
 {
   "version": "2026-06-19",
   "source_of_truth": true,
-  "schema": "cokret.deployment_probes.v1",
+  "schema": "arkret.deployment_probes.v1",
   "description": "Machine-readable deployment probes for transport- and operator-posture requirements that are not object-model conformance vectors.",
   "probes": [
     {
@@ -39,7 +39,7 @@
           "x25519mlkem768",
           "tls13+x25519mlkem768"
         ],
-        "evidence_env": "COKRET_PQ_TLS_DEPLOYMENT_PROBE"
+        "evidence_env": "ARKRET_PQ_TLS_DEPLOYMENT_PROBE"
       }
     }
   ]

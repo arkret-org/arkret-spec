@@ -17,7 +17,7 @@ sidebar:
 1. 读取根目录 [`artifacts/registry/schema-registry.json`](../../artifacts/registry/schema-registry.json)、[`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 与 [`operation-registry.json`](../../artifacts/registry/operation-registry.json)。
    若需要判断 canonical source、surface tier 和 generated view 的关系，先读 [`artifacts/registry/contract-catalog.json`](../../artifacts/registry/contract-catalog.json)。
 2. 用 `artifacts/schemas/` 的 JSON Schema 做结构校验。
-3. 用 [`artifacts/openapi/cokret-service-api.openapi.yaml`](../../artifacts/openapi/cokret-service-api.openapi.yaml) 生成服务 stub、client 或 contract tests。
+3. 用 [`artifacts/openapi/arkret-service-api.openapi.yaml`](../../artifacts/openapi/arkret-service-api.openapi.yaml) 生成服务 stub、client 或 contract tests。
 4. 用 `artifacts/fixtures/` 运行一致性向量。
 5. 依据 [`conformance-profiles.md`](../conformance/conformance-profiles.md) 与 `artifacts/profiles/conformance-profiles.json` 声明实现 profile。
 6. 产测与契约边界应以 active contract fixtures、registry 和 conformance profile 为准。

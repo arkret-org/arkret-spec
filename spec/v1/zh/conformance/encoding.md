@@ -14,13 +14,13 @@ sidebar:
 
 ## 1. 目标
 
-本文定义 Cokret 的 canonical encoding、ID、hash、signature、cursor、HLC 与 rank 编码规则，确保不同实现能得到相同 digest 和验证结果。
+本文定义 Arkret 的 canonical encoding、ID、hash、signature、cursor、HLC 与 rank 编码规则，确保不同实现能得到相同 digest 和验证结果。
 
 ## 2. Canonical JSON
 
-Cokret canonical JSON 是签名、hash、event digest、receipt digest、snapshot commitment 和 cursor 内部状态的唯一编码 profile。实现 MAY 复用 RFC 8785 / JCS 类库，但最终输出必须满足本节的收窄规则和 `conformance-vectors.md` 的测试向量。
+Arkret canonical JSON 是签名、hash、event digest、receipt digest、snapshot commitment 和 cursor 内部状态的唯一编码 profile。实现 MAY 复用 RFC 8785 / JCS 类库，但最终输出必须满足本节的收窄规则和 `conformance-vectors.md` 的测试向量。
 
-Cokret canonical JSON MUST 使用：
+Arkret canonical JSON MUST 使用：
 
 - UTF-8 不带 BOM；输入若包含 UTF-8 BOM（`U+FEFF` 编码 `EF BB BF`，无论出现在 stream 起始还是 string value 内部）、malformed UTF-8、孤立 surrogate 或无法被 JSON parser 唯一解释的字符串，MUST reject。`U+FEFF` 在 string value 中只允许作为 zero-width no-break space 的语义存在，但 v1 canonical JSON MUST NOT 接受此用法——任何 `U+FEFF` 出现都按 schema_violation 拒绝。
 - object key 按 RFC 8785 / JCS 规则排序：先比较属性名的 UTF-16 code unit 序列，按字典序升序排列，并在每一层独立排序。实现 MUST NOT 改用 Unicode code point 排序；对补充平面字符，UTF-16 surrogate pair 顺序是规范结果。
@@ -78,7 +78,7 @@ v1 wire format 锁定为 canonical JSON。需要更紧凑或更适合受限设�
 
 ### 3.1 Wire 形态
 
-Cokret 所有 hash wire value MUST 形如：
+Arkret 所有 hash wire value MUST 形如：
 
 ```text
 <suite>:<lowercase_hex_digest>
@@ -144,7 +144,7 @@ ck:<kind>:<uuid>
 
 标准 `kind` 的机器可读 source of truth 是 `artifacts/registry/id-kind-registry.json`。本文只定义通用规则。
 
-`ck:` 前缀表示 Cokret 协议命名空间；`<kind>` 表示对象或引用类型；`<uuid>` 是该类型下的稳定 ID。完整 typed ID 是 wire value 的一部分，MUST 出现在：
+`ck:` 前缀表示 Arkret 协议命名空间；`<kind>` 表示对象或引用类型；`<uuid>` 是该类型下的稳定 ID。完整 typed ID 是 wire value 的一部分，MUST 出现在：
 
 - Event Envelope、canonical object、receipt、snapshot、fixture 和 OpenAPI / non-HTTP DTO。
 - canonical JSON、签名 payload、`event_digest`、cursor 内部 state、federation payload、audit log。
@@ -202,7 +202,7 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 ```json
 {
   "schema": "ck.schema.event_batch_receipt.v1",
-  "receipt_id": "ck:receipt:01964186-0000-7000-8000-000000000000",
+  "receipt_id": "ak:receipt:01964186-0000-7000-8000-000000000000",
   "issuer": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "scope": {
     "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example"
@@ -305,7 +305,7 @@ Hybrid Logical Clock 编码：
 - `unix_ms_hex` MUST 是 12 位小写十六进制毫秒时间戳。
 - `logical_hex` MUST 是 4 位小写十六进制逻辑计数器，取值范围 `0000..ffff`。
 - `node_id_hash` MUST 是 8 位小写十六进制稳定节点哈希；它只用于同一 `(unix_ms, logical)` 下的确定性 tie-break，MUST NOT 替代因果关系或授权判断。
-- 用户客户端的 `node_id_hash` MUST 从 Realm-scoped 或 deployment-scoped 的本地 node secret 派生，例如 `SHA256("cokret-hlc-v1" || realm_id || device_id || local_node_secret)[0:8]`。MUST NOT 直接使用 principal DID、公开 handle、长期 device id 或跨 Realm 稳定标识作为 hash 输入。
+- 用户客户端的 `node_id_hash` MUST 从 Realm-scoped 或 deployment-scoped 的本地 node secret 派生，例如 `SHA256("arkret-hlc-v1" || realm_id || device_id || local_node_secret)[0:8]`。MUST NOT 直接使用 principal DID、公开 handle、长期 device id 或跨 Realm 稳定标识作为 hash 输入。
 - 服务 DID 产生的公开服务事件 MAY 使用 service-scoped node id，但服务若代表用户或 minimal-metadata Realm 转发/生成事件，MUST 使用 Realm-scoped pseudonymous node id，避免跨 Realm 关联。
 
 排序按 `(unix_ms, logical, node_id_hash)` 字典序。
@@ -501,7 +501,7 @@ Cursor 对客户端不透明，且 v1 core cursor 是 stateful handle。`h` 是 
 
 ### 8.6 一致性
 
-声明支持 Cokret v1 同步的实现 MUST：
+声明支持 Arkret v1 同步的实现 MUST：
 
 - 以不透明字符串形式接受和传输版本 1 cursor。
 - 服务端 MUST 接收时验证所有 cursor 字段。
@@ -627,7 +627,7 @@ payload_digest = sha256(payload_metadata_bytes || encrypted_payload_bytes)
 
 ```text
 sender_nonce_prefix = MLS-Exporter(
-    label   = "cokret-aead-sender-nonce-prefix-v1",
+    label   = "arkret-aead-sender-nonce-prefix-v1",
     context = canonical-bytes({
       "key_ref": <key_ref-canonical>,
       "epoch": <mls-epoch>,
@@ -644,9 +644,9 @@ nonce = sender_nonce_prefix || device_nonce_counter_be64
 - **Nonce 唯一性**：实现 MUST NOT 在同一 `key_ref` 下重用 nonce。AEAD 在 nonce 复用时机密性与完整性同时被打破。
 - **Counter 规则**：`device_nonce_counter_be64` 是 8 字节 unsigned big-endian 单调计数器；同一 `(key_ref, epoch, device_id, purpose, aead_profile)` 下 MUST 单调递增且不得复用。设备 MUST 持久化 counter；若无法恢复该 epoch 的本地 counter，设备 MUST 先发起 MLS Commit 推进到新 epoch，并在新 epoch 从 0 初始化 counter。
 - **跨设备域分离**：同一 `(key_ref, epoch, purpose, aead_profile)` 下，每个 active sender 的 `sender_nonce_prefix` MUST 唯一。接收方按 sender `device_id` 重算前缀并校验；前缀冲突或与声明 sender 不匹配时 MUST fail closed (`aead_nonce_sender_domain_collision`)。
-- **不回退到 random**：实现 MUST NOT fallback 到 random nonce。96-bit AEAD (AES-GCM) 在 ~2^48 次操作上有显著 birthday-bound 碰撞率；Cokret MLS application key 跨多设备共享，naive random nonce 不满足 v1 normative。
+- **不回退到 random**：实现 MUST NOT fallback 到 random nonce。96-bit AEAD (AES-GCM) 在 ~2^48 次操作上有显著 birthday-bound 碰撞率；Arkret MLS application key 跨多设备共享，naive random nonce 不满足 v1 normative。
 - **接收方 replay 防护**：接收方 MUST 维护 per-`(key_ref, epoch, device_id, purpose, aead_profile)` 已见 counter 集合或等价无误判结构，重复 counter MUST 触发 `failed_precondition` reason=`aead_nonce_counter_replay`。
 - **AAD binding**：AEAD AAD MUST 绑定 `(key_ref, ciphertext_digest, nonce)` canonical 形态，防止 (key, nonce) 下的 ciphertext 被与另一 AAD 配对解密。
 - **不同 AEAD 用途独立 nonce 域**：`purpose` MUST 写入 exporter context。标准 purpose 取值由消费域文档声明；未声明 purpose 的 AEAD envelope MUST fail closed。
 
-**Registry 真源（normative）**：上式使用的 MLS-Exporter label `cokret-aead-sender-nonce-prefix-v1` 是 wire-breaking 的安全域分隔参数，MUST 登记于 [`exporter-label-registry.json`](../../artifacts/registry/exporter-label-registry.json)（该 registry 是全部 normative MLS-Exporter label 的 canonical source of truth，`defined_in` 回指本节）；实现 MUST 使用与该 registry 行完全一致的 label 字符串与 `context_fields` 形状（`{key_ref, epoch, device_id, purpose, aead_profile}`），MUST NOT 以空 context 派生，未登记 label MUST fail closed。其中 `aead_profile` 标识所选 AEAD 算法 suite，其合法取值 enum MUST 由 HPKE / AEAD 算法 agility registry（[`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json)，§6.1）派生，未登记 suite MUST fail closed。
+**Registry 真源（normative）**：上式使用的 MLS-Exporter label `arkret-aead-sender-nonce-prefix-v1` 是 wire-breaking 的安全域分隔参数，MUST 登记于 [`exporter-label-registry.json`](../../artifacts/registry/exporter-label-registry.json)（该 registry 是全部 normative MLS-Exporter label 的 canonical source of truth，`defined_in` 回指本节）；实现 MUST 使用与该 registry 行完全一致的 label 字符串与 `context_fields` 形状（`{key_ref, epoch, device_id, purpose, aead_profile}`），MUST NOT 以空 context 派生，未登记 label MUST fail closed。其中 `aead_profile` 标识所选 AEAD 算法 suite，其合法取值 enum MUST 由 HPKE / AEAD 算法 agility registry（[`hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json)，§6.1）派生，未登记 suite MUST fail closed。

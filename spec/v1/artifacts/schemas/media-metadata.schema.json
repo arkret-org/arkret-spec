@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/media-metadata.schema.json",
-  "title": "Cokret Media Metadata",
+  "$id": "https://arkret.org/v1/schemas/media-metadata.schema.json",
+  "title": "Arkret Media Metadata",
   "type": "object",
   "required": [
     "blob_ref",

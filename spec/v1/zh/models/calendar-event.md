@@ -32,7 +32,7 @@ Calendar event 是一个带 `ck.profile.calendar_event.v1` 的 Strand profile，
 - `all_day`（required）：boolean。
 - `recurrence`（optional）：v1 RRULE 子集。
 - `location`（optional）：加密 envelope 或封闭的 plaintext `calendar_location` 对象。
-- `call_id`（optional）：Cokret 通话 / 会议 session ID。
+- `call_id`（optional）：Arkret 通话 / 会议 session ID。
 
 字段顺序在 schema 和 prose 中 MUST 保持上述顺序，避免实现把 `timezone` 或 `all_day` 作为后补语义。
 

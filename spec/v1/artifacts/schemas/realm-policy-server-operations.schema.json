@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/realm-policy-server-operations.schema.json",
-  "title": "Cokret Realm Policy-Server Self-Management Operation DTOs",
+  "$id": "https://arkret.org/v1/schemas/realm-policy-server-operations.schema.json",
+  "title": "Arkret Realm Policy-Server Self-Management Operation DTOs",
   "description": "Closed request/response DTOs for the self-surface Realm policy-server config operations (ck.self.realm_policy_server.*). The PUT builds a ck.realm.policy_server Move (admission capability ck.policy.manage). This admin DTO is a simplified projection of the canonical ck.realm.policy_server payload (server_id/endpoint/public_keys/applies_to/fail_mode); see spec/v1/zh/authz/policy-server.md §2.",
   "anyOf": [
     {

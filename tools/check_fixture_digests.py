@@ -30,7 +30,7 @@ def fixture_entries() -> list[dict[str, str]]:
 
 def manifest() -> dict[str, Any]:
     return {
-        "schema": "cokret.fixture-digests.v1",
+        "schema": "arkret.fixture-digests.v1",
         "fixtures_root": "spec/v1/artifacts/fixtures",
         "hash": "sha256",
         "files": fixture_entries(),

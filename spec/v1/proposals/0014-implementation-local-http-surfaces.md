@@ -18,7 +18,7 @@ merged_to:
   - artifacts/schemas/service-operation-dtos.schema.json
   - artifacts/registry/contract-catalog.json
   - artifacts/registry/operations-error-mapping.json
-  - artifacts/openapi/cokret-service-api.openapi.yaml
+  - artifacts/openapi/arkret-service-api.openapi.yaml
 ---
 
 # CKP-0014: Implementation-local HTTP surfaces found in coauth / inkson audit
@@ -30,21 +30,21 @@ merged_to:
 ## 1. Scope
 
 The 2026-06 coauth / inkson audit found several implementation-local URLs that
-were previously documented, mocked, or called as if they belonged to the Cokret
+were previously documented, mocked, or called as if they belonged to the Arkret
 HTTP namespace. This proposal lists the concrete candidates that need a protocol
 decision before any implementation can expose them as `/_cokret/*`.
 
 ## 2. Account authority and OIDC bridge candidates
 
 These endpoints are useful for native-client sign-in, but they are not currently
-registered Cokret operations:
+registered Arkret operations:
 
 - `GET /_cokret/gate/account/auth/bridge/describe`
 - `POST /_cokret/gate/account/auth/oidc/browser-bridge/session`
 - `GET /_cokret/gate/account/auth/oidc/exchange/describe`
 - `POST /_cokret/gate/account/auth/oidc/exchange`
 
-Resolved (now registered Cokret operations): `POST /_cokret/gate/account/session-grants/refresh`
+Resolved (now registered Arkret operations): `POST /_cokret/gate/account/session-grants/refresh`
 (`ck.gate.account.command.refresh_session_grant`) and
 `POST /_cokret/gate/account/session-grants/introspect`
 (`ck.gate.account.command.introspect_session_grant`) have been promoted out of
@@ -59,7 +59,7 @@ Auth/Principal split is internal deployment routing.
 
 ## 3. WebVH / StarID candidates
 
-These paths are StarID / principal implementation details today. If Cokret wants
+These paths are StarID / principal implementation details today. If Arkret wants
 first-class HTTP bindings for did:webvh inception, update, verification, or
 principal DID registration, define them explicitly:
 
@@ -87,7 +87,7 @@ federation transaction operations instead of receiving dedicated HTTP bindings.
 
 inkson still has product scaffold code for device management, recovery UI,
 media signaling, Circle administration, and local projection helpers. These need
-separate protocol decisions before they can be Cokret HTTP bindings:
+separate protocol decisions before they can be Arkret HTTP bindings:
 
 - `GET /_cokret/self/devices`
 - `POST /_cokret/self/devices/{device_id}/revoke`
@@ -159,7 +159,7 @@ handovers, notary signing-key GET, spaces hierarchy), plus an ops panel set
 **Adjudication (resolves SPEC-SOD-001 / SPEC-SOD-002):**
 
 1. None of these endpoints are protocol candidates. Administrative and
-   operations consoles are deployment products; the Cokret protocol surface
+   operations consoles are deployment products; the Arkret protocol surface
    (`/_cokret/*`) intentionally does not define an admin plane. They will not
    be added to the canonical operation registry, and this CKP does not reserve
    `/_cokret` paths for them.
@@ -187,7 +187,7 @@ handovers, notary signing-key GET, spaces hierarchy), plus an ops panel set
   `GET /_cokret/root/identity/receipts`) and the recovery-session strand.
   Write/configure operations (`POST recovery-policy`, `POST recovery-receipt`)
   stay implementation-local (`/_soland/root/identity/*`, registered as
-  `org.cokret.soland.*` extension operations) for v1. Promoting them into
+  `org.arkret.soland.*` extension operations) for v1. Promoting them into
   `/_cokret` requires a dedicated CKP with closed schemas per §7.
 - *Notary value wire shape (SPEC-SOD-004)*: adjudicated in normative prose —
   `zh/authz/event-auth-state-resolution.md` §4.4 now pins the `type`-tagged

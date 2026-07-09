@@ -6,7 +6,7 @@ stability: v1
 updated: 2026-07-02
 ---
 
-# Cokret v1 Artifact Consumption Guide
+# Arkret v1 Artifact Consumption Guide
 
 本指南定义实现侧消费 `spec/v1/artifacts/` 的边界，避免各项目继续手抄协议事实表。
 
@@ -41,7 +41,7 @@ Markdown catalog 页面可以继续存在于 `/catalog/schemas/`；它是人类�
 
 ## Rust SDK
 
-`cokret-rust-sdk` 是 artifact 消费的第一层。
+`arkret-rust-sdk` 是 artifact 消费的第一层。
 
 - `cokret_core::schema::SpecArtifactBundle` 负责读取 artifact bundle 并提供 drift report。
 - `cokret_core::schema::event_payload_validator_catalog()` 负责从 event kind registry 和 schema registry 构建 payload validator。

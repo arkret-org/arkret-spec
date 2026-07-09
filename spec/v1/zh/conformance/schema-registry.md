@@ -76,12 +76,12 @@ sidebar:
 
 ### 1.3 Interop 命名空间例外
 
-以下名称来自外部互通协议的固有术语，不属于 Cokret core 模型命名。`renames.json` 与 `forbidden-wire-fields.json` 等漂移防护机制只允许它们出现在登记的 interop 模块上下文中，授权 / 解析逻辑不得把这些术语提升为 core model 概念：
+以下名称来自外部互通协议的固有术语，不属于 Arkret core 模型命名。`renames.json` 与 `forbidden-wire-fields.json` 等漂移防护机制只允许它们出现在登记的 interop 模块上下文中，授权 / 解析逻辑不得把这些术语提升为 core model 概念：
 
 | 名称 | 当前语义 | 允许理由 | 防护参考 |
 | --- | --- | --- | --- |
 | operation id `ck.open.mimi.command.update_room` | MIMI interop 命名空间内的标准操作；`room_update` 中的 `room` 术语与上游 MIMI 规范对齐 | 仅在 MIMI interop module 内部使用，不污染 core | `forbidden-model-terms.json` 把 `Room` 列为 `interop_module` allowed context |
-| `Room visibility` | 外部 Matrix/MIMI 互通文档中引用的上游术语；Cokret core 必须拆成 discoverability / join rule / history visibility 三轴 | 仅允许在 interop module 中说明外部语义映射，不得作为 Cokret core 字段或 policy 名 | `forbidden-model-terms.json` 把 `Room visibility` 列为 `interop_module` allowed context |
+| `Room visibility` | 外部 Matrix/MIMI 互通文档中引用的上游术语；Arkret core 必须拆成 discoverability / join rule / history visibility 三轴 | 仅允许在 interop module 中说明外部语义映射，不得作为 Arkret core 字段或 policy 名 | `forbidden-model-terms.json` 把 `Room visibility` 列为 `interop_module` allowed context |
 
 新增 interop 命名空间例外必须在此表登记并在对应 schema / registry 内联说明允许理由；不得仅靠口头约定。下游漂移扫描器 SHOULD 把此表作为 interop-only allowlist。
 

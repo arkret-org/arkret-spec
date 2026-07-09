@@ -12,7 +12,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-本文定义 Cokret 默认 HTTP/JSON binding 的路径、请求形状和错误响应。
+本文定义 Arkret 默认 HTTP/JSON binding 的路径、请求形状和错误响应。
 
 Operation 语义本身可映射到不同 transport；但 **v1 core wire conformance 必须提供本文定义的 HTTP/JSON binding**。其他 transport binding（gRPC、WebSocket、SSE、message queue、libp2p 或 IPC）只能作为 extension profile 出现，并且必须映射到 `service-surface.md` 中定义的等价语义。
 
@@ -28,7 +28,7 @@ Operation 语义本身可映射到不同 transport；但 **v1 core wire conforma
 
 ### 2.1 REST API 命名空间组织
 
-Cokret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织，而不是按某个产品形态拆成固定的 Client API / Server API / Push API 包。客户端、Principal Server、Events API、Directory、Applet、Push Gateway 等都可以暴露自己的服务面；服务发现决定某个节点实际支持哪些命名空间。
+Arkret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织，而不是按某个产品形态拆成固定的 Client API / Server API / Push API 包。客户端、Principal Server、Events API、Directory、Applet、Push Gateway 等都可以暴露自己的服务面；服务发现决定某个节点实际支持哪些命名空间。
 
 所有 path 都在 negative-space 根 `/_cokret/` 之下，且**不含版本段**。`/_cokret/` 之后的第一段是 **trust-surface classifier（信任面分类器）**：它编码"调用方↔服务"的信任关系和攻击面类别。本文保留"信任同心圆"作为解释隐喻，但正式规则是"第一段 = 信任面分类"，不是授权结论。
 
@@ -38,11 +38,11 @@ Cokret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织�
 | `gate` | 认证入口 | account（auth / session-grant） |
 | `root` | 身份信任根：DID / key log / receipt；不是 Unix/root 管理员权限 | identity |
 | `find` | 目录发现 | directory |
-| `peer` | 对等 Cokret 服务器 | federation server↔server wire：`peer.events`、`peer.snapshot`、`peer.invites`、`peer.contacts` |
+| `peer` | 对等 Arkret 服务器 | federation server↔server wire：`peer.events`、`peer.snapshot`、`peer.invites`、`peer.contacts` |
 | `open` | 外部协议互通 / 外部 handoff 面；不表示 public / no-auth access | mimi、invite_locator |
 | `edge` | 推送 / 桥接网关 | push·applet |
 
-读 URL 即读攻击面：`/_cokret/self/...` 是调用方本人的会话面，`/_cokret/open/...` 一眼就是在跟外部协议或外部 provider 打交道。但信任面段本身 **MUST NOT** 被实现解释为授权通过、安全级别达标或明文可见许可。每个 operation 仍必须按自身契约执行 session、capability、DID proof、Realm policy、history visibility、service delegation、rate limit 和最小披露校验；路径段只帮助路由、审计、中间件和读者快速识别攻击面。pre-auth 的根级能力广告位于根 meta 位 `GET /_cokret/describe`（`ck.server.query.describe`）；其余 `*.describe` 各自跟随所在段。版本不进 path，由 `*.describe` / `supported_operations` 协商（可选 `Cokret-Protocol-Version` header）。versionless + 协议内协商如何支撑新旧实现互通，见 [overview/evolution-and-compatibility.md](../overview/evolution-and-compatibility.md) §6。
+读 URL 即读攻击面：`/_cokret/self/...` 是调用方本人的会话面，`/_cokret/open/...` 一眼就是在跟外部协议或外部 provider 打交道。但信任面段本身 **MUST NOT** 被实现解释为授权通过、安全级别达标或明文可见许可。每个 operation 仍必须按自身契约执行 session、capability、DID proof、Realm policy、history visibility、service delegation、rate limit 和最小披露校验；路径段只帮助路由、审计、中间件和读者快速识别攻击面。pre-auth 的根级能力广告位于根 meta 位 `GET /_cokret/describe`（`ck.server.query.describe`）；其余 `*.describe` 各自跟随所在段。版本不进 path，由 `*.describe` / `supported_operations` 协商（可选 `Arkret-Protocol-Version` header）。versionless + 协议内协商如何支撑新旧实现互通，见 [overview/evolution-and-compatibility.md](../overview/evolution-and-compatibility.md) §6。
 
 默认 REST 命名空间如下：
 
@@ -67,10 +67,10 @@ Cokret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织�
 | `/_cokret/self/authz/*`、`/_cokret/self/policy/check` | 客户端、Events API、Sync、Policy Server | capability 预检查、Policy Server 签名决策。Canonical path 是 `/_cokret/self/policy/check`(`ck.self.policy.query.check`)。 | `capabilities.md`、`policy-server.md` |
 | `/_cokret/self/rtc/ice-config` | 通话客户端、Realtime Media Server | TURN/STUN/ICE 短期凭证。 | `webrtc-signaling.md` |
 | `/_cokret/self/moderation/*` | 客户端、审核服务 | 举报、审核队列或扩展审核入口。 | `governance/content-moderation.md` |
-| `/_cokret/edge/applet/*` | Cokret 服务调用 Applet | applet ping / describe、transaction push、Ghost Actor / portal 查询。 | `applet-integration.md` |
+| `/_cokret/edge/applet/*` | Arkret 服务调用 Applet | applet ping / describe、transaction push、Ghost Actor / portal 查询。 | `applet-integration.md` |
 | `/_cokret/open/invite-locators/resolve` | 扫码客户端、Principal Server | 外部 handoff：把 URL fragment / OOB 中取得的 locator token 通过 JSON body 换成签名 `principal_locator`。token MUST NOT 出现在 URL path 或 query。 | `invite-addressing.md` |
 | `/_cokret/open/agent-pairing/resolve`、`/_cokret/open/agent-pairing/runtime-key-requests` | Agent runtime、Principal Server | 外部 handoff：把 URL fragment / OOB 中取得的 pairing token 通过 JSON body 换成 6 字段 `agent_pairing_bootstrap`；随后 runtime 用 bootstrap 中的 `pairing_code` + local key PoP 提交待 controller 审批的 runtime key request。token MUST NOT 出现在 URL path 或 query。 | `../extensions/agent-protocol-interop.md` |
-| `/_cokret/open/mimi/*` | Cokret 服务、MIMI provider facade | 外部协议互通；`open` 表示 interop / handoff surface，不表示公开免认证访问。 | `mimi-interop.md` |
+| `/_cokret/open/mimi/*` | Arkret 服务、MIMI provider facade | 外部协议互通；`open` 表示 interop / handoff surface，不表示公开免认证访问。 | `mimi-interop.md` |
 
 客户端视角的常用 API 集合通常包括 `/_cokret/describe`、`/_cokret/root/identity/*`、`/_cokret/self/events/*`、`/_cokret/self/account/*`、`/_cokret/self/snapshot/*`、`/_cokret/self/realms/*`、`/_cokret/self/views/*`、`/_cokret/find/directory/*`、`/_cokret/self/blob/*`、`/_cokret/edge/push/*`、`/_cokret/self/device_messages/*`、`/_cokret/self/keys/*`、`/_cokret/self/authz/*`。federation / Principal Server 服务间 API 集合包括 `/_cokret/peer/events/*`、`/_cokret/peer/snapshot/*`、`/_cokret/peer/invites` 与 `/_cokret/peer/contacts`；locator 二维码 / 链接 handoff 使用 `/_cokret/open/invite-locators/resolve`，agent pairing 短链接 handoff 使用 `/_cokret/open/agent-pairing/resolve`。policy、applet、push 等非 federation 服务间调用按各自 trust surface 暴露。搜索、inbox、notification 和 View projection 默认是客户端本地派生；Realm 作用域对象读取（`/_cokret/self/realms/{realm_id}/spaces|strands|morphs`、`/_cokret/self/realms/{realm_id}/morphs/{morph_id}`）与 `/_cokret/self/views/*` projection 绑定属于 extension surface，必须由服务显式声明支持，且不得成为 canonical truth source。
 
@@ -86,9 +86,9 @@ Cokret 的 HTTP/JSON binding 按 **服务角色与 canonical operation** 组织�
 
 #### 2.1.2 Account Authority 路由规则
 
-客户端登录 / account flow MUST 先读取 Principal Server 的 `GET /_cokret/describe`，再从 `auth_metadata.account_authority.gate_account_base` 得到唯一的客户端可见 Account Authority base。所有客户端可见的 Cokret `/_cokret/gate/account/*` 请求（包括 `session-grants`、`session-grants/refresh`、`session-grants/revoke`、`logout`、`device-pair`、`device-enroll`、`agent-key-pair`、`oidc/callback`）都 MUST 发往该 base。客户端 MUST NOT 按 operation 名称自行把一部分请求发往 Principal Server、一部分发往 Auth Server。`ck.gate.account.command.introspect_session_grant` 与 `ck.gate.account.command.logout_auth_session` 是部署内部 S2S 操作，不是客户端 account flow；普通客户端 MUST NOT 从 `gate_account_base` 派生或调用它们。
+客户端登录 / account flow MUST 先读取 Principal Server 的 `GET /_cokret/describe`，再从 `auth_metadata.account_authority.gate_account_base` 得到唯一的客户端可见 Account Authority base。所有客户端可见的 Arkret `/_cokret/gate/account/*` 请求（包括 `session-grants`、`session-grants/refresh`、`session-grants/revoke`、`logout`、`device-pair`、`device-enroll`、`agent-key-pair`、`oidc/callback`）都 MUST 发往该 base。客户端 MUST NOT 按 operation 名称自行把一部分请求发往 Principal Server、一部分发往 Auth Server。`ck.gate.account.command.introspect_session_grant` 与 `ck.gate.account.command.logout_auth_session` 是部署内部 S2S 操作，不是客户端 account flow；普通客户端 MUST NOT 从 `gate_account_base` 派生或调用它们。
 
-若 Auth Server 与 Principal Server 分进程或分 origin，部署 MUST 提供一个位于认证 TCB 内的 Account Authority 前置，完整承载 `gate_account_base` 并在内部按 operation 路由。该内部路由是实现细节；`auth_metadata.methods[].issuer` / OIDC discovery 只用于标准认证协议 endpoint，不得被客户端用来推导 Cokret `gate/account` endpoint。
+若 Auth Server 与 Principal Server 分进程或分 origin，部署 MUST 提供一个位于认证 TCB 内的 Account Authority 前置，完整承载 `gate_account_base` 并在内部按 operation 路由。该内部路由是实现细节；`auth_metadata.methods[].issuer` / OIDC discovery 只用于标准认证协议 endpoint，不得被客户端用来推导 Arkret `gate/account` endpoint。
 
 `auth_metadata.methods[]` 中的 OIDC method 使用标准 OIDC discovery。客户端打开 `authorization_endpoint` 取得 authorization code 后，MUST 把 `code`、`code_verifier`、`state`、`nonce`、`redirect_uri`、`issuer`、`client_id` 与设备 proof 绑定到 `SessionGrantRequestBody.proof` 的 `proof_kind="oidc_code_exchange"` 分支并提交给 Account Authority 的 `session-grants`。v1 规定由 Account Authority 代客户端调用 issuer `token_endpoint`，校验 discovery、`id_token` / userinfo、`state`、`nonce`、`redirect_uri`、principal binding、device binding、audience 与 request canonical digest 后签发 `SessionGrantOutcome`。`/_cokret/gate/account/oidc/callback` 若由部署启用，只是浏览器 redirect landing / handoff endpoint，MUST NOT 返回 `SessionGrantOutcome`、`ck.session.grant` 或 Principal 本地 session material。
 
@@ -242,7 +242,7 @@ JSON 示例只用于说明，不构成完整 schema。正式接口定义 MUST �
 | `POST /_cokret/find/directory/resolve-agent-selector` | body `schemas/directory-operations.schema.json#/$defs/directory_resolve_agent_selector_request_body` | 精确解析 `@<controller-handle>/<agent_slug>`；只在 requester / intent / audience / scope 可见时披露 agent DID 和 selector claim。失败必须与不存在不可区分。 | `schemas/directory-operations.schema.json#/$defs/directory_agent_selector_resolution_outcome` |
 | `POST /_cokret/find/directory/list-handles-for-subject` | body `schemas/directory-operations.schema.json#/$defs/directory_list_handles_for_subject_request_body` | 按 subject visibility、issuer trust、audience、requester policy 和 intent 过滤；不得因为共同 Realm membership 单独披露受限组织 handle。 | `ck.schema.list_handles_for_subject_response.v1`：`{subject, claims[], primary_handle?, as_of, next_cursor?, has_more}`；`claims[]` 是当前 context 可见 signed handle claims，且 `claims[].subject` MUST 等于响应 `subject`。 |
 | `POST /_cokret/self/blob/upload` | `multipart/form-data` body `schemas/blob-operations.schema.json#/$defs/blob_upload_request_body`，其中 `content` 是二进制 part。 | `user_session`; upload capability、quota、media policy；私有 blob 绑定 Realm / actor。 | `schemas/blob-operations.schema.json#/$defs/blob_upload_outcome` |
-| `HEAD/GET /_cokret/self/blob/get` | query `{blob_ref: string}` headers `Authorization?`, `Range?`, `X-Cokret-Wait-For?` | 公开 blob 可匿名；header auth 路径必须验证 actor/device/Realm/purpose/expiry；除 [`crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md) `ck.self.blob.command.presign` 的短 TTL bearer URL 例外外，不得 query string 认证。 | bytes 或 headers `{Content-Length?, Digest?, Cache-Control, Content-Type?, Content-Disposition?, Content-Range?}` |
+| `HEAD/GET /_cokret/self/blob/get` | query `{blob_ref: string}` headers `Authorization?`, `Range?`, `X-Arkret-Wait-For?` | 公开 blob 可匿名；header auth 路径必须验证 actor/device/Realm/purpose/expiry；除 [`crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md) `ck.self.blob.command.presign` 的短 TTL bearer URL 例外外，不得 query string 认证。 | bytes 或 headers `{Content-Length?, Digest?, Cache-Control, Content-Type?, Content-Disposition?, Content-Range?}` |
 | `POST /_cokret/self/blob/presign` | body `{blob_ref: string, max_age_seconds?: int (<=3600), purpose?: enum(media_inline, thumbnail, download)}` | `user_session`; 受 `ck.self.blob.command.presign` capability 控制；为单个 blob 签发短 TTL（默认 ≤ 5 min，硬上限 ≤ 1h）、单对象、只读、可撤销 pre-signed URL。仅供浏览器 `<img src>` / `<video src>` 等原生标签渲染受保护媒体；E2EE 附件 ciphertext MUST NOT 经此下发。 | `{url, expires_at, purpose}`；详见 [`crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)。 |
 | `POST /_cokret/edge/push/register-device` | body `{device_id: id, push_gateway: url, push_key: string, platform?: string, app_id?: string, display_name?: string, recipient_service_did?: did}` | `user_session` for same principal/device；registration 作用域绑定当前 Principal Server service DID；push_key 必须被加密或最小披露存储。 | `{ok: true, registration_id?, expires_at?}` |
 | `POST /_cokret/edge/push/unregister-device` | body `{device_id: id, push_key?: string, app_id?: string}` | `user_session` for same device/principal 或 device revocation path。 | `{ok: true}` |
@@ -362,33 +362,33 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 
 ```json schema=schemas/event-envelope.schema.json expect=valid
 {
-  "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "actor_seq": 4,
   "kind": "ck.message.create",
   "created_at": "2026-04-26T00:00:00Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
-  "prev_refs": ["ck:event:019640ed-0000-7000-8000-000000000000"],
+  "prev_refs": ["ak:event:019640ed-0000-7000-8000-000000000000"],
   "refs": [
-    { "id": "ck:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+    { "id": "ak:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
   "causal_refs": [],
   "effects": [
     {
-      "cell": "ck:cell:ck.component.strand.discussion.timeline.v1:ck:strand:019640c6-8000-7000-8000-000000000000",
-      "op": { "kind": "append", "value": { "message_id": "ck:message:019640ed-8000-7000-8000-000000000000" } }
+      "cell": "ak:cell:ck.component.strand.discussion.timeline.v1:ck:strand:019640c6-8000-7000-8000-000000000000",
+      "op": { "kind": "append", "value": { "message_id": "ak:message:019640ed-8000-7000-8000-000000000000" } }
     }
   ],
-  "seal_ref": "ck:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "seal_ref": "ak:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "auth_context": {
     "did": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
     "key_id": "device-1",
     "key_epoch": 1,
-    "capability_refs": ["ck:grant:0196410c-0000-7000-8000-000000000000"]
+    "capability_refs": ["ak:grant:0196410c-0000-7000-8000-000000000000"]
   },
   "payload": {
-    "strand_id": "ck:strand:019640c6-8000-7000-8000-000000000000",
+    "strand_id": "ak:strand:019640c6-8000-7000-8000-000000000000",
     "track_name": "discussion",
     "content": { "kind": "ck.content.text", "body": "Sample message" }
   },
@@ -409,33 +409,33 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 
 ```json schema=schemas/event-envelope.schema.json expect=valid
 {
-  "event_id": "ck:event:019640ed-9000-7000-8000-000000000000",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "event_id": "ak:event:019640ed-9000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example",
   "actor_seq": 7,
   "kind": "ck.message.create",
   "created_at": "2026-04-26T00:01:00Z",
   "hlc": "01970e589d34-0001-c00ff00f",
-  "prev_refs": ["ck:event:019640ed-8500-7000-8000-000000000000"],
+  "prev_refs": ["ak:event:019640ed-8500-7000-8000-000000000000"],
   "refs": [
-    { "id": "ck:grant:0196410c-1000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+    { "id": "ak:grant:0196410c-1000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
   "causal_refs": ["sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"],
   "effects": [
     {
-      "cell": "ck:cell:ck.component.strand.discussion.timeline.v1:ck:strand:019640c6-8000-7000-8000-000000000000",
-      "op": { "kind": "append", "value": { "message_id": "ck:message:019640ed-9000-7000-8000-000000000000" } }
+      "cell": "ak:cell:ck.component.strand.discussion.timeline.v1:ck:strand:019640c6-8000-7000-8000-000000000000",
+      "op": { "kind": "append", "value": { "message_id": "ak:message:019640ed-9000-7000-8000-000000000000" } }
     }
   ],
-  "seal_ref": "ck:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "seal_ref": "ak:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "auth_context": {
     "did": "did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example",
     "key_id": "device-1",
     "key_epoch": 1,
-    "capability_refs": ["ck:grant:0196410c-1000-7000-8000-000000000000"]
+    "capability_refs": ["ak:grant:0196410c-1000-7000-8000-000000000000"]
   },
   "payload": {
-    "strand_id": "ck:strand:019640c6-8000-7000-8000-000000000000",
+    "strand_id": "ak:strand:019640c6-8000-7000-8000-000000000000",
     "track_name": "discussion",
     "content": { "kind": "ck.content.text", "body": "Reply" }
   },
@@ -460,34 +460,34 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 
 ```json schema=schemas/event-envelope.schema.json expect=valid
 {
-  "event_id": "ck:event:019640ee-0000-7000-8000-000000000000",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "event_id": "ak:event:019640ee-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:zCELkEydSckveKumo1eHsfN2G:carol.example",
   "actor_seq": 12,
   "kind": "ck.reaction.add",
   "created_at": "2026-04-26T00:02:00Z",
   "hlc": "01970e589d40-0002-c00fbeef",
-  "prev_refs": ["ck:event:019640ed-9000-7000-8000-000000000000"],
+  "prev_refs": ["ak:event:019640ed-9000-7000-8000-000000000000"],
   "refs": [
-    { "id": "ck:grant:0196410c-2000-7000-8000-000000000000", "role": "authorized_by", "critical": true },
-    { "id": "ck:event:019640ed-8000-7000-8000-000000000000", "role": "parent_event", "critical": false }
+    { "id": "ak:grant:0196410c-2000-7000-8000-000000000000", "role": "authorized_by", "critical": true },
+    { "id": "ak:event:019640ed-8000-7000-8000-000000000000", "role": "parent_event", "critical": false }
   ],
   "causal_refs": ["sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
   "effects": [
     {
-      "cell": "ck:cell:ck.component.message.reactions.v1:ck:message:019640ed-8000-7000-8000-000000000000",
+      "cell": "ak:cell:ck.component.message.reactions.v1:ck:message:019640ed-8000-7000-8000-000000000000",
       "op": { "kind": "add", "value": { "actor_id": "did:webvh:zCELkEydSckveKumo1eHsfN2G:carol.example", "key": "+1" } }
     }
   ],
-  "seal_ref": "ck:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "seal_ref": "ak:seal:sha256:0000000000000000000000000000000000000000000000000000000000000000",
   "auth_context": {
     "did": "did:webvh:zCELkEydSckveKumo1eHsfN2G:carol.example",
     "key_id": "device-2",
     "key_epoch": 1,
-    "capability_refs": ["ck:grant:0196410c-2000-7000-8000-000000000000"]
+    "capability_refs": ["ak:grant:0196410c-2000-7000-8000-000000000000"]
   },
   "payload": {
-    "target_ref": "ck:message:019640ed-8000-7000-8000-000000000000",
+    "target_ref": "ak:message:019640ed-8000-7000-8000-000000000000",
     "key": "+1"
   },
   "proofs": [
@@ -503,7 +503,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 }
 ```
 
-订阅外层帧形如 `{"kind":"event","realm_id":"ck:realm:...","cursor":"<opaque>","payload":<上面 envelope>}`,详见 §2.3 `ck.self.events.stream.subscribe` 行与 [`client-sync.md`](./client-sync.md) §12。
+订阅外层帧形如 `{"kind":"event","realm_id":"ak:realm:...","cursor":"<opaque>","payload":<上面 envelope>}`,详见 §2.3 `ck.self.events.stream.subscribe` 行与 [`client-sync.md`](./client-sync.md) §12。
 
 跨域 actor 验证响应（通过 `/_cokret/root/identity/resolve` 与 holder-approved presentation challenge 获得）只能作为缓存加速或辅助诊断。接收方在接受事件、成员变更或设备绑定前，仍 MUST 独立验证 DID Document、key log、签名 transcript、capability 和 Realm policy；不得把对端"验证通过"当成最终授权依据。
 
@@ -597,8 +597,8 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 | `ck.find.directory.command.takedown_appeal` | `takedown_id: string`; `resource_id: id\|did\|handle`; `appellant_did: did`; `argument_digest: hash`; `requested_outcome: enum(overturn,reduce_scope,reinstate)`; `created_at: timestamp`; `governance_proof: object` | （无可选字段） | `appeal_id: string`; `received_at: timestamp`; `decision_receipt: object` | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealOutcome。资源端对 operator takedown 的申诉；appeal packet MUST 绑定 `takedown_id` / resource id / `appellant_did` / argument digest / `requested_outcome` / `created_at` 并由资源 governance key 或授权 advocate 签名，Directory 返回 signed decision receipt；详见 `../discovery/discovery-directory.md` §8.7。 |
 | `ck.find.directory.push.command.register` | `subscriber_did: did`; `resource_filter: object`; `webhook_endpoint: url` | `secret: string`; `expires_at: timestamp` | `subscription_id: id`; `effective_at: timestamp` | request_schema_ref=schemas/directory-operations.schema.json#/$defs/directory_push_register_request_body; response_schema_ref=schemas/directory-operations.schema.json#/$defs/directory_push_register_outcome。push webhook 注册；仅作为 pull 模式优化，不替代 freshness 协议（§8.6）。 |
 | `ck.self.blob.upload.create` | `content: binary`; `size_bytes: int` | `realm_id: id`; `content_digest: string`; `media_type: string`; `filename: string`; `purpose: string` | `blob_ref: string`; `size_bytes: int`; `media_type: string?`; `content_digest: string`; `upload_receipt: object?` | request_schema_ref=schemas/blob-operations.schema.json#/$defs/blob_upload_request_body; response_schema_ref=schemas/blob-operations.schema.json#/$defs/blob_upload_outcome。upload capability、quota、media policy；`content` part Content-Type 缺省为 `application/octet-stream`。`size_bytes` 可由客户端声明，也可由服务端在响应中按实际接收字节计算后返回；二者不一致时 MUST `digest_mismatch` 或 `invalid_param`。 |
-| `ck.self.blob.resource.head` | `query.blob_ref: string` | `header.Authorization: token` 或 `query.presign: token`（与 `Authorization` 互斥）；`header.X-Cokret-Wait-For: cursor` | headers 包含 `Content-Length?`, `Digest?`, `Cache-Control`, `Content-Type?`, `Content-Disposition?` | Header auth 路径必须验证 actor/device/Realm/purpose/expiry；presign 路径验证 envelope、TTL、scope、Realm/blob 状态和 issuer service DID，但不能验证当前请求者 audience。不得通过 header 泄露不可见资源。`presign` 形态见 `ck.self.blob.command.presign`。 |
-| `ck.self.blob.resource.get` | `query.blob_ref: string` | `header.Authorization: token` 或 `query.presign: token`（与 `Authorization` 互斥）；`header.Range: string`; `header.X-Cokret-Wait-For: cursor` | bytes；headers 包含 `Content-Length?`, `Digest?`, `Cache-Control`, `Content-Type?`, `Content-Disposition?`, `Content-Range?`, `Location?` | Header auth 路径必须验证 actor/device/Realm/purpose/expiry；presign 路径只接受 `ck.self.blob.command.presign` 发出的短 TTL 单对象 bearer token，验证 envelope、TTL、scope、Realm/blob 状态和 issuer service DID。Range 和 redirect 不得泄露不可见资源。两者同时出现 MUST 拒绝。详见 [`crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)。 |
+| `ck.self.blob.resource.head` | `query.blob_ref: string` | `header.Authorization: token` 或 `query.presign: token`（与 `Authorization` 互斥）；`header.X-Arkret-Wait-For: cursor` | headers 包含 `Content-Length?`, `Digest?`, `Cache-Control`, `Content-Type?`, `Content-Disposition?` | Header auth 路径必须验证 actor/device/Realm/purpose/expiry；presign 路径验证 envelope、TTL、scope、Realm/blob 状态和 issuer service DID，但不能验证当前请求者 audience。不得通过 header 泄露不可见资源。`presign` 形态见 `ck.self.blob.command.presign`。 |
+| `ck.self.blob.resource.get` | `query.blob_ref: string` | `header.Authorization: token` 或 `query.presign: token`（与 `Authorization` 互斥）；`header.Range: string`; `header.X-Arkret-Wait-For: cursor` | bytes；headers 包含 `Content-Length?`, `Digest?`, `Cache-Control`, `Content-Type?`, `Content-Disposition?`, `Content-Range?`, `Location?` | Header auth 路径必须验证 actor/device/Realm/purpose/expiry；presign 路径只接受 `ck.self.blob.command.presign` 发出的短 TTL 单对象 bearer token，验证 envelope、TTL、scope、Realm/blob 状态和 issuer service DID。Range 和 redirect 不得泄露不可见资源。两者同时出现 MUST 拒绝。详见 [`crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)。 |
 | `ck.self.blob.command.presign` | `blob_ref: string` | `max_age_seconds: int (<=3600)`; `purpose: enum(media_inline, thumbnail, download)` | `url: uri`; `expires_at: timestamp`; `purpose: string` | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/BlobPresignRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/BlobPresignOutcome。为单个 blob 签发短 TTL（默认 ≤ 5 min，硬上限 ≤ 1h）、单对象、只读、可撤销的 pre-signed URL。**仅用于让浏览器 `<img src>` / `<video src>` 等无法附 Authorization header 的原生标签渲染受保护媒体**。E2EE 附件 ciphertext MUST NOT 通过此机制下发。受 `ck.self.blob.command.presign` capability 控制；TTL / scope / purpose 由 grant constraint 收紧。详见 [`crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)。 |
 | `ck.edge.push.command.register_device` | `device_id: id`; `push_gateway: url`; `push_key: string` | `platform: string`; `app_id: string`; `display_name: string`; `recipient_service_did: did` | `ok: boolean`; `registration_id: id?`; `expires_at: datetime?` | request_schema_ref=schemas/push-operations.schema.json#/$defs/push_register_device_request_body; response_schema_ref=schemas/push-operations.schema.json#/$defs/push_register_device_outcome。只能注册当前 principal/device，且 registration 作用域绑定当前 Principal Server service DID；如显式携带 `recipient_service_did`，MUST 等于目标服务 DID。 |
 | `ck.edge.push.command.unregister_device` | `device_id: id` | `push_key: string`; `app_id: string` | `ok: boolean` | request_schema_ref=schemas/push-operations.schema.json#/$defs/push_unregister_device_request_body; response_schema_ref=schemas/push-operations.schema.json#/$defs/push_unregister_device_outcome。same device/principal 或 device revocation path。 |
@@ -666,7 +666,7 @@ Realm lifecycle 操作以对应 lifecycle Event 被 Realm event log 接受为唯
 | `ck.open.mimi.query.provider_directory` | 无 | `query.provider_id: string`; `query.features: string[]` | `providers: object[]`; `features: object`; `expires_at: datetime?` | response_schema_ref=schemas/mimi-interop.schema.json。只返回公开 provider capability，不泄露 Realm membership。 |
 | `ck.open.mimi.exchange.request_key_material` | `requester: did`; `strand_id: id`; `device_id: id` | `mimi_room_uri: string`; `realm_id: id`; `mls_group_id: string`; `epoch: int`; `proofs: proof[]` | `key_packages: object[]?`; `group_info: object?`; `failures: object[]?`; `signature: signature?` | request_schema_ref=schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body; response_schema_ref=schemas/mimi-operations.schema.json#/$defs/mimi_key_material_outcome。必须存在 accepted `ck.mimi.room_binding` 且 requester 有对应 room / device 权限。 |
 | `ck.open.agent_pairing.command.submit_runtime_key_request` | `pairing_code: string`; `pairing_request_id: string`; `agent_principal_id: did`; `verification_method: did_url`; `public_key`; `proof_of_possession: proof` | 无 | `agent_runtime_approval_outcome` object | request_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_request_body; response_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_outcome。runtime 用 pairing bootstrap 中的 `pairing_code` + local key PoP 提交待 controller 审批的 runtime key request;pairing code 与 PoP MUST 只在 JSON body 中提交，不得出现在 URL path 或 query;controller 仍须签署 `ck.agent.key.authorize` 才最终授权。 |
-| `ck.open.mimi.command.update_room` | `path.strand_id: id`; `mls_group_id: string`; `update: object` | `epoch: int`; `confirmed_transcript_hash: string`; `sender_actor_id: did` | `accepted: boolean`; `room_state_ref: id?`; `rejected: object[]?` | request_schema_ref=schemas/mimi-operations.schema.json#/$defs/mimi_room_update_request_body; response_schema_ref=schemas/mimi-operations.schema.json#/$defs/mimi_room_update_outcome。更新必须映射到 Cokret Strand discussion track / Realm policy 授权范围内；`confirmed_transcript_hash` 沿用 MLS/MIMI 外部标准字段名。 |
+| `ck.open.mimi.command.update_room` | `path.strand_id: id`; `mls_group_id: string`; `update: object` | `epoch: int`; `confirmed_transcript_hash: string`; `sender_actor_id: did` | `accepted: boolean`; `room_state_ref: id?`; `rejected: object[]?` | request_schema_ref=schemas/mimi-operations.schema.json#/$defs/mimi_room_update_request_body; response_schema_ref=schemas/mimi-operations.schema.json#/$defs/mimi_room_update_outcome。更新必须映射到 Arkret Strand discussion track / Realm policy 授权范围内；`confirmed_transcript_hash` 沿用 MLS/MIMI 外部标准字段名。 |
 | `ck.open.mimi.command.notify` | `path.strand_id: id`; `notification: object` | `origin_provider: did`; `routing: object` | `accepted: boolean`; `retry_after_ms: int?` | request_schema_ref=schemas/mimi-operations.schema.json#/$defs/mimi_notify_request_body; response_schema_ref=schemas/mimi-operations.schema.json#/$defs/mimi_notify_outcome。只可传递最小 fanout / delivery signal，不得携带未授权明文。 |
 | `ck.open.mimi.command.submit_message` | `path.strand_id: id`; `sender_actor_id: did`; `device_id: id`; `ciphertext: object` | `mls_group_id: string`; `epoch: int`; `associated_data: object` | `event_ref: id?`; `delivery: object`; `rejected: object[]?` | request_schema_ref=schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_request_body; response_schema_ref=schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_outcome。必须校验 MLS epoch、有效 discussion access、capability 和 `ck.mimi.room_binding`。 |
 | `ck.open.mimi.query.group_info` | `path.strand_id: id` | `query.epoch: int`; `query.include_proof: boolean` | `group_info: object`; `room_binding_ref: id?`; `proofs: proof[]?` | response_schema_ref=schemas/mimi-operations.schema.json#/$defs/mimi_group_info_outcome。只能返回 requester 授权可见的 MLS groupInfo / room projection。 |
@@ -719,7 +719,7 @@ Signature: sig1=:base64...:
 header 规则：
 
 - `Signature-Input` 的 covered components MUST 至少包含 `@method`、`@target-uri`、`@authority`；带 body 的请求 MUST 包含 `content-digest`（编码遵循 RFC 9530，覆盖 canonical request body，接收方 MUST 在验签前先校验 body 实际 hash 与 header 一致）。
-- 参与幂等 / replay key 的 `Idempotency-Key` MUST 进入签名 transcript；出现 `X-Cokret-Wait-For` 时 SHOULD 一并覆盖，避免被替换。
+- 参与幂等 / replay key 的 `Idempotency-Key` MUST 进入签名 transcript；出现 `X-Arkret-Wait-For` 时 SHOULD 一并覆盖，避免被替换。
 - 签名 parameters MUST 包含 `created` 与 `expires`；`keyid` MUST 指向当前会话 `ck.session.grant` 委托的 `session_public_key` kid。
 - 接收方 MUST 校验签名密钥与 grant 绑定的 principal / device / audience / origin 一致，并按既有 replay window（签名时效窗口，量级见 `federation.md` §3.2 / `encoding.md` §6）拒绝过窗或重放出示；时效窗口外的逐字节重放即使 replay cache 已 evict 也 MUST 因 `created` / `expires` 校验失败而拒绝。
 - `Authorization: Bearer` header MAY 与 DPoP / PoP 签名并存（携带 `ck.session.grant` 供服务端定位会话与 grant），但出示是否被接受由 sender-constrained proof transcript 而非裸凭据决定；纯 bearer（无 DPoP / `Signature` / mTLS 绑定）在生产 current-v1 受保护 endpoint 上 MUST 被拒绝。
@@ -738,23 +738,23 @@ POST /_cokret/self/events
 
 ```json
 {
-  "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "actor_seq": 42,
   "kind": "ck.strand.update",
   "created_at": "2026-04-22T08:30:00Z",
   "hlc": "01970e589d21-0007-a13f9c2e",
   "prev_refs": [
-    "ck:event:019640ed-0000-7000-8000-000000000000"
+    "ak:event:019640ed-0000-7000-8000-000000000000"
   ],
   "refs": [
-    { "id": "ck:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+    { "id": "ak:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
   "causal_refs": [],
   "effects": [
     {
-      "cell": "ck:cell:ck.component.strand.metadata.v1:ck:strand:019640c6-8000-7000-8000-000000000000",
+      "cell": "ak:cell:ck.component.strand.metadata.v1:ck:strand:019640c6-8000-7000-8000-000000000000",
       "op": {
         "kind": "set",
         "value": {
@@ -763,15 +763,15 @@ POST /_cokret/self/events
       }
     }
   ],
-  "seal_ref": "ck:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "seal_ref": "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
   "auth_context": {
     "did": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
     "key_id": "device-1",
     "key_epoch": 3,
-    "capability_refs": ["ck:grant:0196410c-0000-7000-8000-000000000000"]
+    "capability_refs": ["ak:grant:0196410c-0000-7000-8000-000000000000"]
   },
   "payload": {
-    "target_ref": "ck:strand:019640c6-8000-7000-8000-000000000000",
+    "target_ref": "ak:strand:019640c6-8000-7000-8000-000000000000",
     "patch": { "metadata.fields.review_status": "approved" }
   },
   "proofs": [
@@ -792,8 +792,8 @@ POST /_cokret/self/events
 ```json
 {
   "events": [
-    { "event_id": "ck:event:...", "realm_id": "ck:realm:...", "actor_id": "did:webvh:z8kSru9qAfd1G7AvcVjggdEKy:...", "actor_seq": 42, "kind": "ck.strand.update", "...": "..." },
-    { "event_id": "ck:event:...", "realm_id": "ck:realm:...", "actor_id": "did:webvh:z8kSru9qAfd1G7AvcVjggdEKy:...", "actor_seq": 43, "kind": "ck.message.create", "...": "..." }
+    { "event_id": "ak:event:...", "realm_id": "ak:realm:...", "actor_id": "did:webvh:z8kSru9qAfd1G7AvcVjggdEKy:...", "actor_seq": 42, "kind": "ck.strand.update", "...": "..." },
+    { "event_id": "ak:event:...", "realm_id": "ak:realm:...", "actor_id": "did:webvh:z8kSru9qAfd1G7AvcVjggdEKy:...", "actor_seq": 43, "kind": "ck.message.create", "...": "..." }
   ]
 }
 ```
@@ -803,13 +803,13 @@ POST /_cokret/self/events
 ```json
 {
   "status": "accepted",
-  "accepted": ["ck:event:019640ed-8000-7000-8000-000000000000"],
+  "accepted": ["ak:event:019640ed-8000-7000-8000-000000000000"],
   "actor_frontier": {
     "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
     "actor_seq": 42,
-    "event_id": "ck:event:019640ed-8000-7000-8000-000000000000"
+    "event_id": "ak:event:019640ed-8000-7000-8000-000000000000"
   },
-  "cursor": "ck:cursor:<opaque-valid-barrier-cursor>"
+  "cursor": "ak:cursor:<opaque-valid-barrier-cursor>"
 }
 ```
 
@@ -837,7 +837,7 @@ POST /_cokret/self/events/resolve
 
 ```json
 {
-  "event_ids": ["ck:event:019640ed-8000-7000-8000-000000000000"],
+  "event_ids": ["ak:event:019640ed-8000-7000-8000-000000000000"],
   "include_payload": true
 }
 ```
@@ -876,7 +876,7 @@ GET /_cokret/self/events?realms=<id>&actors=<did>&after=<Y>&before=<X>   # 区�
 
 规则：
 
-- `before` 与 `after` 都是 **排除** 语义 — Cokret cursor 是位置 token 而不是 event 引用，"位置之前/之后"不包含 cursor 标记的边界本身。这与 Stripe `starting_after`/`ending_before`、Relay GraphQL `after`/`before` 等业界惯例一致。
+- `before` 与 `after` 都是 **排除** 语义 — Arkret cursor 是位置 token 而不是 event 引用，"位置之前/之后"不包含 cursor 标记的边界本身。这与 Stripe `starting_after`/`ending_before`、Relay GraphQL `after`/`before` 等业界惯例一致。
 - 两参数都可省略；都不给时服务端按隐式 `before=<server_head>` 处理（即"最新首屏 + 可继续历史 backfill"）。
 - 两参数都给即为开区间 `(after, before)` 查询。
 - v1 wire 只接受 `before` / `after` / `order`；任何其他游标方向参数 MUST 返回 `invalid_param`。
@@ -926,10 +926,10 @@ POST /_cokret/self/events/query
 Content-Type: application/json
 
 {
-  "realms": ["ck:realm:..."],
+  "realms": ["ak:realm:..."],
   "actors": ["did:webvh:..."],
-  "before": "ck:cursor:...",
-  "after": "ck:cursor:...",
+  "before": "ak:cursor:...",
+  "after": "ak:cursor:...",
   "order": "default",
   "limit": 200,
   "filters": { "kind": ["ck.message.create"] }
@@ -996,14 +996,14 @@ GET /_cokret/self/events/subscribe?realms=<id>&after=<cursor>&catchup=true
 HTTP 200 response `Content-Type` MUST be `application/x-ndjson`。Frame 每行一个独立 JSON 对象：
 
 ```text
-{ "kind": "event", "realm_id": "ck:realm:01...", "cursor": "opaque", "payload": {} }
-{ "kind": "catchup_complete", "realm_id": "ck:realm:01...", "cursor": "opaque" }
-{ "kind": "frontier", "realm_id": "ck:realm:01...", "cursor": "opaque" }
+{ "kind": "event", "realm_id": "ak:realm:01...", "cursor": "opaque", "payload": {} }
+{ "kind": "catchup_complete", "realm_id": "ak:realm:01...", "cursor": "opaque" }
+{ "kind": "frontier", "realm_id": "ak:realm:01...", "cursor": "opaque" }
 { "kind": "heartbeat" }
-{ "kind": "epoch_rotation", "realm_id": "ck:realm:01...", "payload": {"new_epoch": 17} }
-{ "kind": "dropped", "realm_id": "ck:realm:01...", "cursor": "opaque", "reconnect_after_ms": 5000 }
-{ "kind": "unauthorized", "realm_id": "ck:realm:01..." }
-{ "kind": "resync_required", "realm_id": "ck:realm:01...", "reconnect_after_ms": 10000 }
+{ "kind": "epoch_rotation", "realm_id": "ak:realm:01...", "payload": {"new_epoch": 17} }
+{ "kind": "dropped", "realm_id": "ak:realm:01...", "cursor": "opaque", "reconnect_after_ms": 5000 }
+{ "kind": "unauthorized", "realm_id": "ak:realm:01..." }
+{ "kind": "resync_required", "realm_id": "ak:realm:01...", "reconnect_after_ms": 10000 }
 ```
 
 Frame 字段约束（normative，与 OpenAPI `EventsSubscribeFrame` 的机器约束一致；严格度对齐 [`account-subscribe-frame.schema.json`](../../artifacts/schemas/account-subscribe-frame.schema.json)）：
@@ -1050,7 +1050,7 @@ POST /_cokret/root/identity/resolve
     "verificationMethod": [],
     "service": []
   },
-  "key_log_head": "ck:key_event:019642b0-0000-7000-8000-000000000005",
+  "key_log_head": "ak:key_event:019642b0-0000-7000-8000-000000000005",
   "seq": 5
 }
 ```
@@ -1061,7 +1061,7 @@ Resolver MUST 返回下列方法相关证据字段，供客户端验证 control 
 
 `/_cokret/self/account/*` 承载当前 authenticated principal/device 的账号视角能力：一次性 viewer 自读、Actor Profile 自服务更新、account 聚合 streaming（跨 Realm frontier、to_device、account_data、device_lists、presence、unread / notification counts）、account describe 与 cursor revoke。snapshot manifest 入口独立放在 `/_cokret/self/snapshot/*`。逐 Realm 的事件读取与流式订阅走 `/_cokret/self/events/*`（`ck.self.events.query.scan`、`ck.self.events.stream.subscribe`），见 §3.3 / §3.4。
 
-注册与 session revoke 属认证生命周期，落 `/_cokret/gate/account/*`，与 `ck.gate.account.command.issue_session_grant` 共认证面。Handle 申请、审批、预分配、重签、撤销和管理员分配仍属于 issuer / Auth Server / 部署治理流程；Cokret account self-service endpoint 不得接受裸 `handle` 字段，也不得把未签名 handle 字符串返回为权威身份。实现如需管理面 MUST 使用自己的 negative-space root（例如 `/_<impl>/admin/*`），不得放在 `/_cokret/` 协议命名空间下。组织登记行 CRUD、owner-scoped policy document 存储 CRUD、后台策略编辑 UI 等部署本地管理能力不属于 v1 core operation surface；协议层只规定 signed Organization / Realm policy Event、`ck.self.policy.query.check` 的决策 envelope 以及相关 capability / reducer 语义。
+注册与 session revoke 属认证生命周期，落 `/_cokret/gate/account/*`，与 `ck.gate.account.command.issue_session_grant` 共认证面。Handle 申请、审批、预分配、重签、撤销和管理员分配仍属于 issuer / Auth Server / 部署治理流程；Arkret account self-service endpoint 不得接受裸 `handle` 字段，也不得把未签名 handle 字符串返回为权威身份。实现如需管理面 MUST 使用自己的 negative-space root（例如 `/_<impl>/admin/*`），不得放在 `/_cokret/` 协议命名空间下。组织登记行 CRUD、owner-scoped policy document 存储 CRUD、后台策略编辑 UI 等部署本地管理能力不属于 v1 core operation surface；协议层只规定 signed Organization / Realm policy Event、`ck.self.policy.query.check` 的决策 envelope 以及相关 capability / reducer 语义。
 
 ### 5.1 账号 viewer 与 profile 自服务
 
@@ -1137,7 +1137,7 @@ Content type MUST 取 `multipart/form-data`。请求体 MUST 含唯一的 `conte
 
 ```json
 {
-  "blob_ref": "ck:blob:sha256:e3b0...",
+  "blob_ref": "ak:blob:sha256:e3b0...",
   "content_digest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "size_bytes": 102450,
   "media_type": "image/png"

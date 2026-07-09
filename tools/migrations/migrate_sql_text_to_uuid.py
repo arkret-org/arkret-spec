@@ -10,7 +10,7 @@ not emitted because the migration intentionally rewrites the original CREATE
 TABLE statements directly instead of preserving backward compatibility.
 
 Column classification rule:
-  - ULID-typed Cokret wire IDs (per id-kind-registry.json) → UUID
+  - ULID-typed Arkret wire IDs (per id-kind-registry.json) → UUID
   - Soland-internal opaque IDs that store UUID-shape values → UUID
   - DIDs, handles, hashes, JWTs, public keys, status enums, action names,
     polymorphic refs → STAY TEXT
@@ -23,15 +23,15 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 TARGETS = [
-    # soland is the only Cokret wire participant. starid uses multihash scid
+    # soland is the only Arkret wire participant. starid uses multihash scid
     # (z<base58(sha256)>) for receipt_id and is NOT migrated. coauth's
     # device_id is an opaque OAuth scope-derived client string and is also
     # NOT migrated; coauth's other tables are already UUID-native.
     ROOT / "soland" / "migrations",
 ]
 
-# Columns that store Cokret typed UUIDv7 values (per id-kind-registry):
-UUID_COLUMNS_COKRET = {
+# Columns that store Arkret typed UUIDv7 values (per id-kind-registry):
+UUID_COLUMNS_ARKRET = {
     # core wire IDs
     "event_id", "realm_id", "space_id", "strand_id", "morph_id", "view_id",
     "relation_id", "from_entity_id", "to_entity_id",
@@ -54,7 +54,7 @@ UUID_COLUMNS_COKRET = {
     "frame_id", "devmsg_id",
 }
 
-# Soland-internal opaque IDs that are UUID-shape but not in the Cokret
+# Soland-internal opaque IDs that are UUID-shape but not in the Arkret
 # id-kind-registry namespace. These are server-internal but the user wants
 # them stored as native UUID for the same performance reasons.
 UUID_COLUMNS_SOLAND_INTERNAL = {
@@ -67,7 +67,7 @@ UUID_COLUMNS_SOLAND_INTERNAL = {
     "registration_id", "operation_id",
 }
 
-UUID_COLUMNS = UUID_COLUMNS_COKRET | UUID_COLUMNS_SOLAND_INTERNAL
+UUID_COLUMNS = UUID_COLUMNS_ARKRET | UUID_COLUMNS_SOLAND_INTERNAL
 
 # Pattern: column declaration line where TEXT appears as the type.
 # Examples it must match:

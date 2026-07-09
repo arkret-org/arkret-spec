@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/grant-constraint.schema.json",
+  "$id": "https://arkret.org/v1/schemas/grant-constraint.schema.json",
   "$defs": {
     "timestamp": {
       "type": "string",
@@ -8,7 +8,7 @@
       "pattern": "Z$"
     }
   },
-  "title": "Cokret Grant Constraint",
+  "title": "Arkret Grant Constraint",
   "$comment": "Property ordering is grouped by constraint family to match capabilities.md §6 (the human-readable family map): discriminator/meta, then temporal, field_access, type_restriction, scope_limitation, delegation_control, quota, claim_based, confidentiality, then the moderation cache-invalidation hint. Canonical JSON re-sorts keys lexicographically so this ordering is presentation-only and does not affect the wire (see C13-07).",
   "type": "object",
   "required": [

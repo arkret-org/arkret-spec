@@ -57,7 +57,7 @@ normative_source: spec/v1/zh/models/circle.md
 - Slack: workspace ≈ Realm,private channel ≈ 产品层的 scoped audience;Circle 只采纳其中"子圈"产品语义,但在协议层要求独立 MLS 密钥边界。
 - Element/MLS deployments: "subgroup" / "encryption scope" 概念已是行业共识。
 
-Cokret v1 把两层压成一个 Realm 原语,是当前协议设计中的最大单点遗漏。
+Arkret v1 把两层压成一个 Realm 原语,是当前协议设计中的最大单点遗漏。
 
 ## 3. Specification
 
@@ -140,14 +140,14 @@ reducer 规则:
 `effective_scope` wire shape:
 
 ```json
-{ "kind": "realm", "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000" }
+{ "kind": "realm", "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000" }
 ```
 
 ```json
 {
   "kind": "circle",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-  "circle_id": "ck:circle:0196419c-0000-7000-8000-000000000000"
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000"
 }
 ```
 
@@ -170,7 +170,7 @@ Realm **不会**自动创建默认 Circle。Realm-default encryption scope 是 R
 | `realm` | `Realm.encryption_profile` 指定的 Realm-default group / external provider / plaintext mode | `scope_circle_id=null` |
 | `circle` | Circle 独立 MLS group | `scope_circle_id` 指向 Circle |
 
-`Realm.encryption_profile="mls_rfc9420"` 只说明使用 MLS 作为加密机制,**不**说明哪些 Cokret 字段进入密文。加密覆盖范围由 Realm policy floor 独立声明:
+`Realm.encryption_profile="mls_rfc9420"` 只说明使用 MLS 作为加密机制,**不**说明哪些 Arkret 字段进入密文。加密覆盖范围由 Realm policy floor 独立声明:
 
 | policy field | enum | 说明 |
 | --- | --- | --- |
@@ -428,7 +428,7 @@ Membership transition table:
 否决理由:
 - 这与现有 Group、capability constraint、resource selector 重叠,没有足够理由引入一等 primitive。
 - "Circle" 名称会让用户和客户端误以为存在独立密钥边界;实际只是服务端不投递,一旦服务端、镜像或日志路径出错就泄露正文。
-- Cokret 已经有明确的 E2EE / MLS governance binding 语义。新增边界若不能进入该体系,反而会制造比 `discussion_realm_ref` 更隐蔽的安全错觉。
+- Arkret 已经有明确的 E2EE / MLS governance binding 语义。新增边界若不能进入该体系,反而会制造比 `discussion_realm_ref` 更隐蔽的安全错觉。
 
 ### 5.4 为什么不嵌套 Circle
 

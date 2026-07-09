@@ -19,13 +19,13 @@ sidebar:
 
 ## 1. 目标与边界
 
-本文定义 Cokret v1 的协议演进边界：实现如何在不破坏已接受 v1 签名字节、不引入隐式双语义、不让未声明能力跨越信任边界的前提下新增能力。
+本文定义 Arkret v1 的协议演进边界：实现如何在不破坏已接受 v1 签名字节、不引入隐式双语义、不让未声明能力跨越信任边界的前提下新增能力。
 
 本文只约束 **current v1 wire**。current parser、reducer、federation peer、snapshot consumer、conformance runner 与生产 SDK 只处理当前 registry、schema、profile 与 OpenAPI binding 所定义的 v1 形态。任何不在当前真相源中的 operation、event kind、schema、字段、profile 或 critical extension 都按对应源文档定义的 `unsupported_feature`、`unknown_kind`、`unknown_field`、`schema_violation`、`quarantine` 等结果 fail closed；实现不得在实时协议路径中做隐式形态转换、字段猜测或按 payload shape 选择另一套语义。
 
 ## 2. 两个硬约束
 
-Cokret 是联邦化、端到端加密（MLS）、事件溯源协议。客户端、服务端与 federation peer 独立部署，因此协议演进受两个硬约束支配：
+Arkret 是联邦化、端到端加密（MLS）、事件溯源协议。客户端、服务端与 federation peer 独立部署，因此协议演进受两个硬约束支配：
 
 1. **已接受事件是不可变签名字节。** Event Envelope 的签名与 hash 输入是去除 `proofs` 与 `unsigned` 后的 canonical JSON bytes（见 [conformance/encoding.md](../conformance/encoding.md) §2）。改写其中任一字节即破坏签名。
 2. **对端能力必须显式声明。** federation peer、client、service 与 gateway 不能假设对方支持本地新增能力；互通只能基于 describe/profile/feature/operation 交集。
@@ -82,4 +82,4 @@ pre-auth 的根级能力广告位于 `GET /_cokret/describe`（`ck.server.query.
 3. **显式协商**：跨 client/service/federation 的新能力必须能从 describe/profile 交集中判断可用性。
 4. **fail closed**：未知 required feature、critical extension、高风险 action、未登记 operation/kind/field 与不匹配 profile 均按源文档定义的稳定错误或 quarantine 处理。
 5. **可测试**：每个影响 wire、状态机、授权、安全、同步或互操作的新增义务都应配套 conformance vector、fixture 或明确测试计划。
-6. **不泄漏产品面**：`/_cokret/` 只承载协议语义；部署私有管理、运营或产品 API 不得注册进 Cokret operation namespace。
+6. **不泄漏产品面**：`/_cokret/` 只承载协议语义；部署私有管理、运营或产品 API 不得注册进 Arkret operation namespace。

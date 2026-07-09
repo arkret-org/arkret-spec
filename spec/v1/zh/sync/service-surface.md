@@ -20,7 +20,7 @@ see_also:
 
 如果只有对象模型、同步原则和 capability，而没有最小线级服务面，协议仍然很难真正互操作。
 
-因此 Cokret v1 定义：
+因此 Arkret v1 定义：
 
 - identity registry 如何收发 DID 操作与 receipt
 - Events API 如何提交、读取、回填 signed Event
@@ -113,11 +113,11 @@ REST namespace 第一段路径（`self` / `gate` / `root` / `find` / `peer` / `o
 
 #### 2.5.1 Account Authority 与认证方法发现
 
-Principal Server 的根级 `/_cokret/describe` 是客户端登录 / account flow 的启动入口。`auth_metadata.account_authority` MUST 给出一个绝对 `gate_account_base`，客户端发起的 Cokret `/_cokret/gate/account/*` 请求都 MUST 从该 base 派生。客户端 MUST NOT 根据 operation 名称自行判断某个请求该打 Principal Server、某个请求该打 Auth Server；若 Auth Server 与 Principal Server 分进程或分 origin，部署 MUST 提供一个位于认证 TCB 内的 Account Authority 前置（网关、反代或同进程合并）完整承载该 base，并在内部按 operation 路由。`ck.gate.account.command.logout_auth_session` 是 Account Authority → Auth Server 的 S2S 子操作，普通客户端 MUST NOT 调用或从 `gate_account_base` 派生。
+Principal Server 的根级 `/_cokret/describe` 是客户端登录 / account flow 的启动入口。`auth_metadata.account_authority` MUST 给出一个绝对 `gate_account_base`，客户端发起的 Arkret `/_cokret/gate/account/*` 请求都 MUST 从该 base 派生。客户端 MUST NOT 根据 operation 名称自行判断某个请求该打 Principal Server、某个请求该打 Auth Server；若 Auth Server 与 Principal Server 分进程或分 origin，部署 MUST 提供一个位于认证 TCB 内的 Account Authority 前置（网关、反代或同进程合并）完整承载该 base，并在内部按 operation 路由。`ck.gate.account.command.logout_auth_session` 是 Account Authority → Auth Server 的 S2S 子操作，普通客户端 MUST NOT 调用或从 `gate_account_base` 派生。
 
-`auth_metadata.methods[]` 只描述认证方法（例如 `oidc`、`passkey`、`device_pairing`、未来 `gnap`）及其 provider / issuer / discovery，不决定 `gate/account` 的路由。OIDC method MUST 使用标准 discovery 与标准 `authorization_endpoint` / `token_endpoint`；Cokret 不定义 `/_cokret/gate/auth/oauth/*` 这类私有 OAuth endpoint family。标准认证结果进入 Cokret 的桥是 Account Authority 的 `POST {gate_account_base}/session-grants`，响应为 `SessionGrantOutcome`；Principal 本地 session provisioning 属 Account Authority 内部编排，不得暴露第二个客户端可见的 Principal 本地凭据签发 endpoint。 <!-- lint-ignore: CW001 - forbidden historical path named only as a negative example. -->
+`auth_metadata.methods[]` 只描述认证方法（例如 `oidc`、`passkey`、`device_pairing`、未来 `gnap`）及其 provider / issuer / discovery，不决定 `gate/account` 的路由。OIDC method MUST 使用标准 discovery 与标准 `authorization_endpoint` / `token_endpoint`；Arkret 不定义 `/_cokret/gate/auth/oauth/*` 这类私有 OAuth endpoint family。标准认证结果进入 Arkret 的桥是 Account Authority 的 `POST {gate_account_base}/session-grants`，响应为 `SessionGrantOutcome`；Principal 本地 session provisioning 属 Account Authority 内部编排，不得暴露第二个客户端可见的 Principal 本地凭据签发 endpoint。 <!-- lint-ignore: CW001 - forbidden historical path named only as a negative example. -->
 
-本登录 / account flow 最多并存三类 origin：Principal Server（发现启动）、Account Authority（全部 `gate/account` Cokret 操作）和认证 method provider / issuer（标准认证协议）。完整 Cokret 客户端仍可按其它 spec 访问 Directory、Blob、Media、Push 等 service origin；这些不改变 account flow 的路由规则。
+本登录 / account flow 最多并存三类 origin：Principal Server（发现启动）、Account Authority（全部 `gate/account` Arkret 操作）和认证 method provider / issuer（标准认证协议）。完整 Arkret 客户端仍可按其它 spec 访问 Directory、Blob、Media、Push 等 service origin；这些不改变 account flow 的路由规则。
 
 Deployment profile 的 canonical 机器真源是 [`conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json) 的 `deployment_profiles` 集合；本文不得另注册 profile id。下列形态仅是服务角色组合说明，实际部署 MUST 声明 canonical id（如 `ck.profile.personal_node.v1`、`ck.profile.organization.v1`、`ck.profile.high_security_organization.v1`、`ck.profile.sovereign_deployment.v1`）并按 profile registry 校验能力面：
 
@@ -141,7 +141,7 @@ GET /_cokret/describe
 ```json schema=schemas/service-describe.schema.json
 {
   "service_did": "did:webvh:zCm2ZfnfjnNcgaUrSkWyf5UtD:alice.example.net",
-  "trust_domain": "ck:trust_domain:did.webvh.alice.example",
+  "trust_domain": "ak:trust_domain:did.webvh.alice.example",
   "service_type": "principal_server",
   "protocol_version": "1.0",
   "supported_profiles": [
@@ -325,9 +325,9 @@ GET /_cokret/describe
   时，本数组 MUST 为空——dev / placeholder proof 路径不得用来宣告生产 conformance（见本节 §3.0）。
 - `experimental_features: feature_id[]` — 服务暴露但不承诺稳定互操作的 feature；客户端 MUST NOT
   把它当成协议级决策的依据，也不得继承到 `claimed_profiles`。
-- `compat_surfaces: [{name, kind, ...}]` — Cokret v1 conformance 之外的 external interop surface
+- `compat_surfaces: [{name, kind, ...}]` — Arkret v1 conformance 之外的 external interop surface
   （`kind` ∈ {`matrix_passthrough`, `mimi_passthrough`, `external_interop`}）。
-  这些 surface **不构成** Cokret v1 conformance 的一部分。
+  这些 surface **不构成** Arkret v1 conformance 的一部分。
 - `development_mode: boolean` — 必填；为 `true` 时 `verified_profiles` MUST 为空。省略不是 false，SDK / conformance tooling MUST 把缺失视为 invalid describe。
 - `egress_network_policy` — 可选的出站网络策略摘要。会解析 DID、联邦 peer、媒体、snapshot、Policy Server、Webhook、Applet 或 Agent endpoint 的服务 SHOULD 暴露粗粒度策略；完整 SSRF 防护语义见 [`api-conventions.md`](./api-conventions.md) §11.2。
 - `receive_policy_constraints` — Principal Server 可选的部署 / 管理员级接收策略上限。它约束 `ck.peer.invites.command.submit` 与 `ck.peer.contacts.command.submit` 对 `locator_ref`、`handle_claim`、`explicit_address` 等 introduction evidence 的处理；客户端 MUST 把它渲染为“服务器约束”，不得把它当作 subject 自愿公开。语义见 [`invite-addressing.md`](./invite-addressing.md) §5.2。
@@ -440,7 +440,7 @@ GET /_cokret/root/identity/receipts?did=<did>&head=<event-hash>
 
 #### 3.1.6 写入确认建议
 
-Cokret v1 要求：
+Arkret v1 要求：
 
 - writer 客户端同时向多个 registry / witness 提交 `did_operation`
 - 至少拿到 `k-of-n` receipt 才视为提交成功
@@ -452,7 +452,7 @@ Cokret v1 要求：
 
 Events API 是 Principal Server 提供的 signed Event 提交、读取、回填和前沿查询接口。普通部署 SHOULD 由 Principal Server 直接暴露 `/_cokret/self/events/*`。
 
-Cokret v1 不规定 Event 在服务端的物化形态——不要求集中式 record 仓库、提交日志或仓库命名接口。Principal Server 可以托管、复制或索引 Event,但接收方仍必须验证 Event 签名、DID 控制链、canonical hash、`actor_seq` 路径递增、`prev_refs` 与 `refs[role=authorized_by]` 因果依赖和 `event_id` 幂等性。
+Arkret v1 不规定 Event 在服务端的物化形态——不要求集中式 record 仓库、提交日志或仓库命名接口。Principal Server 可以托管、复制或索引 Event,但接收方仍必须验证 Event 签名、DID 控制链、canonical hash、`actor_seq` 路径递增、`prev_refs` 与 `refs[role=authorized_by]` 因果依赖和 `event_id` 幂等性。
 
 Events API 至少应提供以下语义：
 
@@ -574,17 +574,17 @@ State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回�
 
 ```json
 {
-  "cell": "ck:cell:ck.component.realm.policy.v1:ck:realm:0196419b-0000-7000-8000-000000000000",
+  "cell": "ak:cell:ck.component.realm.policy.v1:ck:realm:0196419b-0000-7000-8000-000000000000",
   "status": "bottom",
   "bottom": {
     "kind": "conflict",
-    "cells": ["ck:cell:ck.component.realm.policy.v1:ck:realm:0196419b-0000-7000-8000-000000000000"],
+    "cells": ["ak:cell:ck.component.realm.policy.v1:ck:realm:0196419b-0000-7000-8000-000000000000"],
     "event_ids": [
-      "ck:event:84210000-0000-7000-8000-000000000000…",
-      "ck:event:a5294000-0000-7000-8000-000000000000…"
+      "ak:event:84210000-0000-7000-8000-000000000000…",
+      "ak:event:a5294000-0000-7000-8000-000000000000…"
     ],
     "basis": {
-      "leaves": ["ck:seal:sha256:dddd…"],
+      "leaves": ["ak:seal:sha256:dddd…"],
       "state_root": "sha256:eeee…"
     },
     "heads": [{"…": "candidate-A"}, {"…": "candidate-B"}],
@@ -616,7 +616,7 @@ State query / projection 响应 MUST 在 cell 当前 join 值为 ⊥ 时返回�
 
 ## 6. Search / Projection Semantics
 
-Cokret v1 不定义必需的远端索引或应用视图服务面。当前态查询、View projection、inbox、notification 和全文搜索默认属于客户端或 SDK 的本地派生能力；客户端可以根据已同步且已授权、已解密的 Event 集合自行维护本地索引，也可以完全不提供搜索功能。
+Arkret v1 不定义必需的远端索引或应用视图服务面。当前态查询、View projection、inbox、notification 和全文搜索默认属于客户端或 SDK 的本地派生能力；客户端可以根据已同步且已授权、已解密的 Event 集合自行维护本地索引，也可以完全不提供搜索功能。
 
 实现 MAY 提供协议外或扩展 profile 的受托 search / projection 服务，但该服务不是核心协议角色。任何此类服务都不得成为真相源；其输出必须能追溯到 signed Event、reducer profile、View definition 和 causal frontier。
 
@@ -652,7 +652,7 @@ Inbox 和 notification 可以由客户端从本地 Event、read cursor、mention
 ```json
 {
   "query": "legal review",
-  "realm_ids": ["ck:realm:0196419b-0000-7000-8000-000000000000"],
+  "realm_ids": ["ak:realm:0196419b-0000-7000-8000-000000000000"],
   "object_types": ["message", "strand", "morph"],
   "morph_types": ["comment"],
   "sender_actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
@@ -700,7 +700,7 @@ Search / projection 派生结果可能比 account aggregate surface 更容易查
 
 - Events / Sync / Federation / Push / Blob preview，以及任何受托 search / projection 服务在接收包含明文或可逆派生摘要的请求时，MUST 检查自身 service DID 是否在当前 Realm policy 的 `plaintext_visible_services` 中，且 `visibility` 等级与 `data_classes[]` 均覆盖该内容类型。
 - 未授权服务 MUST 拒绝明文请求并返回 `capability_denied` 或 `schema_violation`，不得静默索引、转发、缓存或降级保存。
-- 恶意客户端把明文发送到协议外服务不属于协议可强制阻止的范围；但任何声称支持 Cokret profile 的服务若接收或处理未授权明文，均视为 profile violation。
+- 恶意客户端把明文发送到协议外服务不属于协议可强制阻止的范围；但任何声称支持 Arkret profile 的服务若接收或处理未授权明文，均视为 profile violation。
 
 ## 7. Blob Surface
 
@@ -840,7 +840,7 @@ Native personal agent 的 management、pairing、session grant 与 sidecar opera
 
 约束:
 
-- 本 surface 不引入 custom URI scheme(`cokret://` 等);所有 deep-link 由客户端用 deployment 已知的 `cokret_base_url` 拼接标准 HTTPS URL,移动端依赖 OS Universal Links / App Links。
+- 本 surface 不引入 custom URI scheme(`arkret://` 等);所有 deep-link 由客户端用 deployment 已知的 `cokret_base_url` 拼接标准 HTTPS URL,移动端依赖 OS Universal Links / App Links。
 - `pairing_request_id` 与 `approval_request_id` 都是 account/auth profile-local opaque UUIDv7 短期 artifact,不是 `ck:<kind>:<uuid>` 协议对象 id;agent runtime 收到 `approval_request_id` MUST NOT 解释成 URL 或尝试打开 UI,只能由 controller 的人类 session 带外查询。
 - `{agent_principal_id}` 是 DID,在 URL path 中 MUST 按 RFC 3986 percent-encoding。
 - `ck.self.agent.command.provision` MAY 接收 `agent_slug`。服务端若接受该字段，MUST 生成或更新当前有效的 `ck.schema.agent_selector_claim.v1`（controller-scoped selector claim），并 MAY 把 `agent_slug` 写入 agent Actor Profile 作为投影 hint。`agent_slug` 只用于 `@<controller-handle>/<agent_slug>` 输入别名到 agent principal DID 的 compose-time 解析;list/get projection SHOULD 返回当前有效 selector claim 的 slug 供 controller UI 与 mention picker 使用。服务端 MUST 拒绝或 fail closed 处理同一 verified controller 下 active native agent 的 selector claim 冲突。
@@ -851,7 +851,7 @@ Native personal agent 的 management、pairing、session grant 与 sidecar opera
 
 ## 11. Realm Bootstrap Strand
 
-Cokret v1 的首次加入流程：
+Arkret v1 的首次加入流程：
 
 1. 用户输入 handle、DID 或 Realm link
 2. 客户端解析 DID，并完成 handle 双向校验
@@ -916,7 +916,7 @@ Cokret v1 的首次加入流程：
 
 ## 15. 设计决定
 
-Cokret v1 固定：
+Arkret v1 固定：
 
 - 定义最小 Principal Server / identity registry / events / account / snapshot / blob / authz 服务面
 - v1 core 互操作 transport 锁定为 HTTP/JSON（见 [`transport-bindings.md` §1](./transport-bindings.md)）；gRPC / WebSocket / SSE / MQ / libp2p 等其他 binding 仅为 extension profile，本节列出的 operation 形态与字段以 HTTP/JSON 为唯一权威。其他 binding 必须语义等价但不构成 v1 core 一致性。

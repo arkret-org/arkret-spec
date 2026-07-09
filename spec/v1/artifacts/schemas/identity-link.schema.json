@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/identity-link.schema.json",
-  "title": "Cokret Minimal-Metadata Identity Link",
+  "$id": "https://arkret.org/v1/schemas/identity-link.schema.json",
+  "title": "Arkret Minimal-Metadata Identity Link",
   "description": "Encrypted application-message or MLS private-extension payload that binds a Realm-scoped pairwise DID to the real principal DID for ck.profile.mls.minimal_metadata_realm.v1. The binding is scoped to both realm_id and trust_domain so the same pairwise mapping cannot be replayed across deployments. This object is never written to public Realm history unless a separate disclosure policy explicitly permits it.",
   "type": "object",
   "required": [

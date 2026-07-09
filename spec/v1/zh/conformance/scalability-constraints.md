@@ -12,7 +12,7 @@ updated: 2026-07-03
 
 ## 1. 目标
 
-Cokret v1 的一致性不仅要求语义正确，也要求实现不会被合法但过大的输入拖垮。本文定义 v1 默认规模上限。实现 MAY 在私有部署中使用更低或更高限制，但对外声明互操作 profile 时 MUST：
+Arkret v1 的一致性不仅要求语义正确，也要求实现不会被合法但过大的输入拖垮。本文定义 v1 默认规模上限。实现 MAY 在私有部署中使用更低或更高限制，但对外声明互操作 profile 时 MUST：
 
 - 在 `server/describe.limits` 暴露实际限制。
 - 对超过限制的输入返回标准错误、`rejected[]` 或 `quarantine[]`，不得无界处理。
@@ -161,7 +161,7 @@ Board position edge 的 canonical key 是 `(board_space_id, strand_id)`。同一
 
 ## 7. Retention、Snapshot Pruning 与 Tombstone 上限
 
-Cokret 的真相源仍是 signed Event Envelope；GC 只能释放某个存储边界内的成本，不能把已接受历史改写成不存在。实现对外声明 v1 profile 时 MUST 在 `server/describe.limits` 或等价 feature discovery 中暴露保留策略摘要，例如 raw event retention、snapshot cadence、tombstone stub retention、dangling redaction retention 和 device-message queue TTL。
+Arkret 的真相源仍是 signed Event Envelope；GC 只能释放某个存储边界内的成本，不能把已接受历史改写成不存在。实现对外声明 v1 profile 时 MUST 在 `server/describe.limits` 或等价 feature discovery 中暴露保留策略摘要，例如 raw event retention、snapshot cadence、tombstone stub retention、dangling redaction retention 和 device-message queue TTL。
 
 | 项 | v1 默认上限 / 下限 | 规则 |
 | --- | ---: | --- |

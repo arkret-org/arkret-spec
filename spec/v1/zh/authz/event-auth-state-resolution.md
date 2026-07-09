@@ -14,7 +14,7 @@ sidebar:
 
 ## 1. 目标
 
-Cokret v1 的一致性层采用 **CBA（Control-plane Basis-committed Sealing）**：
+Arkret v1 的一致性层采用 **CBA（Control-plane Basis-committed Sealing）**：
 
 - **数据面**（data plane）承载消息、内容、reaction、计数、协作文本、草稿和默认业务对象。数据面 Event 是签名因果 hash-DAG + Lattice / CRDT 输入；验签、授权与 `seal_ref` 验证通过后即可本地投影、转发和参与 join。数据面没有事件级 Seal finality 字段、没有 pending→effective 状态机、没有全局排序闸门。
 - **控制面**（control plane）承载 membership、capability、policy、notary、lifecycle、MLS epoch / governance binding 以及显式 `sealed=true` 的对象。控制面 Move 由 Seal 裁决，提供 finality、治理 `state_root`、问责与 transparency。
@@ -440,7 +440,7 @@ Wire schema：[`seal-transparency.schema.json`](../../artifacts/schemas/seal-tra
 
 ## 8. AvailabilityReceipt
 
-Digest membership 不能证明 bytes 可获取。Cokret v1 独立建模 availability：
+Digest membership 不能证明 bytes 可获取。Arkret v1 独立建模 availability：
 
 ```text
 AvailabilityReceipt {
@@ -511,7 +511,7 @@ AvailabilityReceipt {
 
 本节是 Control Move `preconditions[]` 中 `Predicate` 与 core lattice join 规则的散文权威；schema 只给字段形状，不能替代本节的求值语义。
 
-- **`head_eq`**：谓词形态为 `{kind:"head_eq", cell:"ck:cell:...", value:<json>}`。Reducer MUST 在该 Move 的 `seal_basis` 治理 view 下读取目标 cell 的 settled value，并按 canonical JSON whole-value compare 与 `value` 比较；二者 bit-exact 相等时通过。cell 缺失时 settled value 为 `null`，因此省略业务字段与显式缺省不得被当作匹配。若目标 cell 在该 basis 下为 `⊥`，`head_eq` MUST fail closed（failure status `failed_bottom`，`reason=cell_in_bottom_state`，见 §13）。
+- **`head_eq`**：谓词形态为 `{kind:"head_eq", cell:"ak:cell:...", value:<json>}`。Reducer MUST 在该 Move 的 `seal_basis` 治理 view 下读取目标 cell 的 settled value，并按 canonical JSON whole-value compare 与 `value` 比较；二者 bit-exact 相等时通过。cell 缺失时 settled value 为 `null`，因此省略业务字段与显式缺省不得被当作匹配。若目标 cell 在该 basis 下为 `⊥`，`head_eq` MUST fail closed（failure status `failed_bottom`，`reason=cell_in_bottom_state`，见 §13）。
 - **`cas_register`**：set effect 在目标 cell 的 settled 值为非初始态时，Control Move MUST 携带命中本 cell 的 `head_eq` precondition；DataEvent 若声明使用 CAS 语义，MUST 通过 causal refs 与领域 lattice 规则表达同等约束。缺失 CAS basis 时 receiver MUST 以 `failed_precondition` 拒绝该 effect，并按多 cell 原子性拒绝整个 reducer input，不得实现无条件覆盖。并发且互不可达的 CAS set 若都在各自 `seal_basis` 下通过但写入不同值，join 结果为 `⊥`；同值重复 set 幂等。
 - **`fsm`**：transition effect MUST 声明 `from` 与 `to`。同一 CBA basis 内相同 `(from,to)` 的重复 transition 是幂等的；同一 `from` 指向不同 `to` 的 sibling transition 返回 `⊥`。跨 basis 顺序仅由 causal refs 与 Seal DAG 决定；同一 basis 内不得用 HLC、接收顺序或 actor id 选择状态机 winner。
 - **`ordered_log`**：entry MUST 绑定 issuer 与 issuer-local seq。每个 issuer 子链只把从起点开始的连续 prefix 纳入 cell value；issuer 子链出现缺口时，缺口后的 entry MUST 保留为 pending / diagnostic 输入，但不得进入 cell value、`state_root` leaf 或授权判断。依赖补齐后按同一规则确定性重算。

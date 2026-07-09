@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/read-cursor.schema.json",
+  "$id": "https://arkret.org/v1/schemas/read-cursor.schema.json",
   "$defs": {
     "timestamp": {
       "type": "string",
@@ -182,7 +182,7 @@
       "additionalProperties": false
     }
   },
-  "title": "Cokret Read Cursor",
+  "title": "Arkret Read Cursor",
   "description": "Actor-private multi-device read cursor. Stored in encrypted account data or actor-private stream; NEVER published into a shared Realm Event history. Bound to (actor_id, realm_id, read_scope, position, HLC, device_id) per zh/discovery/read-receipts.md §6.6 so that concurrent updates from multiple devices converge by HLC max.",
   "type": "object",
   "required": [

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://cokret.dev/spec/v1/artifacts/registry/operations-error-mapping.schema.json",
+  "$schema": "https://arkret.dev/spec/v1/artifacts/registry/operations-error-mapping.schema.json",
   "version": "2026-07-05",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
@@ -1129,7 +1129,7 @@
         "unsupported_profile_patch_path",
         "failed_precondition"
       ],
-      "description": "Profile self-service update. The protocol request body is AccountUpdateProfileRequestBody {patch}; accepted paths are display_name, avatar_blob_ref, and profile_fields.<key>. Existing bio fields migrate to profile_fields.bio; avatar_url is rejected on the Cokret protocol path."
+      "description": "Profile self-service update. The protocol request body is AccountUpdateProfileRequestBody {patch}; accepted paths are display_name, avatar_blob_ref, and profile_fields.<key>. Existing bio fields migrate to profile_fields.bio; avatar_url is rejected on the Arkret protocol path."
     },
     {
       "operation_id": "ck.self.account.stream.subscribe",

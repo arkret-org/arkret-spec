@@ -14,7 +14,7 @@ sidebar:
 
 ## 1. 目标
 
-Cokret 支持音频通话、视频通话、屏幕共享和多人会议。实时媒体本身不进入 Realm Event history；信令、会议状态、邀请、参与者变化、录制引用和通话摘要按不同持久性处理。
+Arkret 支持音频通话、视频通话、屏幕共享和多人会议。实时媒体本身不进入 Realm Event history；信令、会议状态、邀请、参与者变化、录制引用和通话摘要按不同持久性处理。
 
 本文件定义 **ephemeral 信令与 WebRTC 传输面**：
 
@@ -78,13 +78,13 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 
 ```json
 {
-  "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
+  "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "signal_type": "moderation",
   "seq": 30,
   "data": {
     "action": "kick",
     "target_actor_id": "did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example",
-    "target_device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+    "target_device_id": "ak:device:01964137-0000-7000-8000-000000000000",
     "reason": "policy_violation"
   }
 }
@@ -131,10 +131,10 @@ Content-Type: application/json
 
 ```json
 {
-  "realm_id": "ck:realm:...",
-  "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:...",
+  "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:...",
-  "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+  "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "mode": "p2p"
 }
 ```
@@ -167,10 +167,10 @@ Content-Type: application/json
 
 ```json
 {
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-  "call_id": "ck:call:0196419c-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "call_id": "ak:call:0196419c-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
-  "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+  "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "ttl_seconds": 600,
   "refresh_lead_seconds": 60,
   "issued_at": "2026-04-26T00:00:00Z",
@@ -206,7 +206,7 @@ Content-Type: application/json
 要求：
 
 - TURN credential MUST 短期有效，SHOULD 使用 REST-style ephemeral credential（draft-uberti-rtcweb-turn-rest-00 风格 username = `<expiry-unix>:<pairwise-pseudonym>`，password = `HMAC-SHA256(turn_shared_secret, username)`；实现不得降级为 HMAC-SHA1）。
-- TURN `username` 中的"身份段" MUST 是 **per-call pairwise pseudonym**（建议形态 `ck_pseudonym_call_<random>` 或等价 random tag）。它不得是 principal DID、handle、邮箱或可跨呼叫关联的稳定 ID；该不可关联性只针对 TURN 运营方成立，不对铸造 pseudonym 的 Cokret media service 成立。
+- TURN `username` 中的"身份段" MUST 是 **per-call pairwise pseudonym**（建议形态 `ck_pseudonym_call_<random>` 或等价 random tag）。它不得是 principal DID、handle、邮箱或可跨呼叫关联的稳定 ID；该不可关联性只针对 TURN 运营方成立，不对铸造 pseudonym 的 Arkret media service 成立。
 - Pseudonym 生成 MUST 使用每次通话的新随机种子或 media service 私有密钥派生，且至少绑定 `(realm_id, call_id, actor_id, device_id, issued_at_bucket, media_service_did)`；推荐：
 
   ```text
@@ -261,13 +261,13 @@ Content-Type: application/json
 ```json schema=schemas/ephemeral-envelope.schema.json
 {
   "kind": "ck.call.signal",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
-  "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+  "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "sent_at": "2026-04-26T00:00:00Z",
   "expires_at": "2026-04-26T00:00:30Z",
   "payload": {
-    "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
+    "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
     "signal_type": "invite",
     "seq": 12,
     "data": {}
@@ -302,7 +302,7 @@ Content-Type: application/json
 }
 ```
 
-该 binding object 与 [`../models/event-and-patch.md` §3](../models/event-and-patch.md) 的持久 Event proof binding object **逐字段同构**（同样含 `actor_id` = envelope `actor_id`），从而**同一个** EdDSA detached-JWS verifier（参考实现 `cokret-rust-sdk` 的 `verify_eddsa_detached_jws_proof`）可不加改动地同时服务通话信令与持久消息。`actor_id` 既进 binding object 被签名覆盖，`verification_method` 的 controller DID 又 MUST 与之逐字节相等——双重绑定。
+该 binding object 与 [`../models/event-and-patch.md` §3](../models/event-and-patch.md) 的持久 Event proof binding object **逐字段同构**（同样含 `actor_id` = envelope `actor_id`），从而**同一个** EdDSA detached-JWS verifier（参考实现 `arkret-rust-sdk` 的 `verify_eddsa_detached_jws_proof`）可不加改动地同时服务通话信令与持久消息。`actor_id` 既进 binding object 被签名覆盖，`verification_method` 的 controller DID 又 MUST 与之逐字节相等——双重绑定。
 
 接收方 MUST 在触发 ringing UI（或任何信令副作用）之前验证 `proof`：MUST 先移除 `proof` 计算 canonical envelope hash 并与 `proof.event_digest` 比对，再按上述字段构造 binding object 验证 detached-JWS。验证 verify_key 时 MUST 以 `verification_method` = `` `{actor_id}#{device_id}` `` 经设备目录（[`device-lifecycle.md` §8](./device-lifecycle.md) keys/query 响应的 `device_signing_key`）解析该 `(actor, device)` 的权威验签公钥。设备**吊销**(`device_status != active` 或目录省略 key)、目录**缺失**该 `(actor, device)`、`verification_method` controller 与 `actor_id` 不一致、或 detached-JWS 验签失败者，接收方 MUST **fail-closed**：丢弃该信号，MUST NOT 触发 UI、MUST NOT 入库、MUST NOT 推进 `payload.seq` 状态。
 
@@ -333,7 +333,7 @@ Invite payload:
 
 ```json
 {
-  "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
+  "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "signal_type": "invite",
   "seq": 12,
   "data": {
@@ -356,7 +356,7 @@ Answer payload:
 
 ```json
 {
-  "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
+  "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "signal_type": "answer",
   "seq": 13,
   "data": {
@@ -376,7 +376,7 @@ Candidate payload:
 
 ```json
 {
-  "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
+  "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "signal_type": "candidate",
   "seq": 14,
   "data": {
@@ -391,7 +391,7 @@ Candidate payload:
 }
 ```
 
-字段名在 Cokret envelope 中使用 snake_case；浏览器原生 `sdpMid` / `sdpMLineIndex` MUST 映射为 `sdp_mid` / `sdp_m_line_index`。
+字段名在 Arkret envelope 中使用 snake_case；浏览器原生 `sdpMid` / `sdpMLineIndex` MUST 映射为 `sdp_mid` / `sdp_m_line_index`。
 
 ### 6.1 通话内状态信令（renegotiate / mute_state / speaking）
 
@@ -401,7 +401,7 @@ Candidate payload:
 
 ```json
 {
-  "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
+  "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "signal_type": "renegotiate",
   "seq": 20,
   "data": {
@@ -428,7 +428,7 @@ Candidate payload:
 
 ```json
 {
-  "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
+  "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "signal_type": "mute_state",
   "seq": 21,
   "data": {
@@ -444,7 +444,7 @@ Candidate payload:
 
 ```json
 {
-  "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
+  "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "signal_type": "mute_state",
   "seq": 22,
   "data": {
@@ -452,7 +452,7 @@ Candidate payload:
     "video_muted": true,
     "by": "moderator",
     "target_actor_id": "did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example",
-    "target_device_id": "ck:device:01964137-0000-7000-8000-000000000000"
+    "target_device_id": "ak:device:01964137-0000-7000-8000-000000000000"
   }
 }
 ```
@@ -461,7 +461,7 @@ Candidate payload:
 
 ```json
 {
-  "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
+  "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
   "signal_type": "speaking",
   "seq": 23,
   "data": {
@@ -495,7 +495,7 @@ Candidate payload:
 {
   "kind": "ck.call.signal",
   "payload": {
-    "call_id": "ck:call:...",
+    "call_id": "ak:call:...",
     "signal_type": "media_state",
     "seq": 7,
     "data": {
@@ -524,7 +524,7 @@ Candidate payload:
 ```json
 {
   "notification": {
-    "push_target_id": "ck:pseudonym:push:01js0pu0000000000000000000",
+    "push_target_id": "ak:pseudonym:push:01js0pu0000000000000000000",
     "wakeup_kind": "call_invite",
     "timing_profile_hint": "default",
     "push_hint": "incoming_call"
@@ -582,6 +582,6 @@ Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal D
 
 ## 12. 与 Matrix Call 的关系
 
-Cokret 借鉴 Matrix call event、VoIP push、group call / SFU 方向，但采用自己的 Realm、capability、device trust、Policy Server 和 transport binding 模型。
+Arkret 借鉴 Matrix call event、VoIP push、group call / SFU 方向，但采用自己的 Realm、capability、device trust、Policy Server 和 transport binding 模型。
 
-Matrix 风格的 call invite/answer/candidates 可通过 Applet/bridge 映射为 `ck.call.signal`，但 durable meeting state、recording artifact 和 Realm policy 必须遵守 Cokret 规则。
+Matrix 风格的 call invite/answer/candidates 可通过 Applet/bridge 映射为 `ck.call.signal`，但 durable meeting state、recording artifact 和 Realm policy 必须遵守 Arkret 规则。

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/realm.schema.json",
-  "title": "Cokret Realm",
+  "$id": "https://arkret.org/v1/schemas/realm.schema.json",
+  "title": "Arkret Realm",
   "type": "object",
   "required": [
     "id",
@@ -225,7 +225,7 @@
         "allow_plaintext",
         "e2ee_required"
       ],
-      "description": "Realm-wide content encryption floor (models/circle.md §7, models/realm-and-space.md §4). This is the Realm's actual content-encryption on/off switch. When e2ee_required, the effective_scope of Strand / Message / Morph / Blob content MUST be MLS-backed (Realm-default MLS or Circle MLS); reducer MUST failed_precondition (reason=content_encryption_floor_violation) on plaintext content. Independent of encryption_profile, which only declares the encryption MECHANISM (whether an MLS group exists), not which Cokret fields enter ciphertext. One-way ratchet: once the effective value has reached e2ee_required, a later policy write lowering it back to allow_plaintext MUST be rejected with content_encryption_floor_downgrade. Defaults to allow_plaintext when absent."
+      "description": "Realm-wide content encryption floor (models/circle.md §7, models/realm-and-space.md §4). This is the Realm's actual content-encryption on/off switch. When e2ee_required, the effective_scope of Strand / Message / Morph / Blob content MUST be MLS-backed (Realm-default MLS or Circle MLS); reducer MUST failed_precondition (reason=content_encryption_floor_violation) on plaintext content. Independent of encryption_profile, which only declares the encryption MECHANISM (whether an MLS group exists), not which Arkret fields enter ciphertext. One-way ratchet: once the effective value has reached e2ee_required, a later policy write lowering it back to allow_plaintext MUST be rejected with content_encryption_floor_downgrade. Defaults to allow_plaintext when absent."
     },
     "metadata_encryption_floor": {
       "type": "string",

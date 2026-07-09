@@ -15,7 +15,7 @@ sidebar:
 ## 1. 目标
 
 本文件给出服务端可直接落地的威胁与防护。
-所有条目均按 Cokret 的 Events API / Sync Service / Directory / Policy Server / Identity 平面映射到协议规则。
+所有条目均按 Arkret 的 Events API / Sync Service / Directory / Policy Server / Identity 平面映射到协议规则。
 
 ## 2. 服务端攻击面
 
@@ -38,7 +38,7 @@ sidebar:
 
 6. **钓鱼与品牌仿冒（Phishing / Social Engineering）**
    通过目录、邀请、授权提示、签名展示链条进行误导，引导用户执行高风险动作。
-   **Realm alias 同形 / 抢注细分（与 [`discovery/object-addressing.md` §3.3](../discovery/object-addressing.md) 交叉引用）**:攻击者注册与目标 Realm alias 视觉同形（homograph / confusable）或抢注的 `<localpart>:<domain>` realm alias，借 `web+cokret:` 短地址 / `#alias` 分享链接诱导用户进入冒名 Realm。防护以 object-addressing §3.3「混淆防护」为权威——realm alias 注册 / 解析 MUST 复用 handle §17 的 wire-level canonical 比较纪律（NFC normalization、UTS#39 confusable skeleton 折叠、拒绝 script-mixed label 与 hyphen-disallowed-position 形态），在 realm alias 命名空间内做冲突检测，错误形态 registration 返回 `failed_precondition` `reason="realm_alias_homograph_forbidden"`；且 landing / handler 域名不是信任锚（object-addressing §5.1），客户端 MUST 以解析后的 canonical `realm_id` 为唯一信任锚。
+   **Realm alias 同形 / 抢注细分（与 [`discovery/object-addressing.md` §3.3](../discovery/object-addressing.md) 交叉引用）**:攻击者注册与目标 Realm alias 视觉同形（homograph / confusable）或抢注的 `<localpart>:<domain>` realm alias，借 `web+arkret:` 短地址 / `#alias` 分享链接诱导用户进入冒名 Realm。防护以 object-addressing §3.3「混淆防护」为权威——realm alias 注册 / 解析 MUST 复用 handle §17 的 wire-level canonical 比较纪律（NFC normalization、UTS#39 confusable skeleton 折叠、拒绝 script-mixed label 与 hyphen-disallowed-position 形态），在 realm alias 命名空间内做冲突检测，错误形态 registration 返回 `failed_precondition` `reason="realm_alias_homograph_forbidden"`；且 landing / handler 域名不是信任锚（object-addressing §5.1），客户端 MUST 以解析后的 canonical `realm_id` 为唯一信任锚。
 
 7. **恶意附件与链接传播（Malware / Unsafe Media）**
    上传/分享高风险附件、链接、可疑 blob，诱导后续执行或传播。
@@ -134,7 +134,7 @@ sidebar:
 
 ### 2.4 传输层后量子姿态
 
-> **PQ-hybrid TLS 传输层姿态（威胁论据真相源）**：本节给出该姿态的威胁论据；规范义务的 canonical 表述在 [`../sync/transport-bindings.md` §5](../sync/transport-bindings.md)。生产 v1 的 federation / service-to-service / client-service TLS 1.3 连接 SHOULD 支持并优先协商混合后量子 key exchange group `X25519MLKEM768`（draft-ietf-tls-ecdhe-mlkem；IANA TLS Supported Groups codepoint 已注册，主流浏览器与 OpenSSL 3.5+ 已默认部署）。`ck.profile.high_security_organization.v1`、`ck.profile.sovereign_deployment.v1` 及继承它们的 profile 下，相关连接 MUST 协商 `X25519MLKEM768`，对端不提供时 MUST fail closed。default profile 可回落到经典 TLS 1.3，但必须记录未协商 PQ 的 transport posture，且不得宣称该连接具备 Harvest-Now-Decrypt-Later resistant transport。该姿态把 `crypto-media/encryption-and-audit.md` 既有 PQ 路线图（informative，HNDL / Harvest-Now-Decrypt-Later 优先）对 Harvest-Now-Decrypt-Later 的缓解，扩展到**仅靠 TLS 保护、不进 MLS / E2EE**的传输面——联邦 transaction 元数据、public plaintext Realm 内容、directory / sync 流量。该要求零 wire 字段成本、不触碰任何 wire 字段或 envelope `scheme` / `version`：握手在 TLS 层协商，与请求级 RFC 9421 签名正交，不改 Cokret wire envelope / schema / object model。高安全 / sovereign conformance 验证为 **deployment-profile 握手探针**：握手完成后检查协商出的 TLS named group 是否等于 `X25519MLKEM768`，并验证对端不提供时 fail closed，而非 object-model conformance vector。
+> **PQ-hybrid TLS 传输层姿态（威胁论据真相源）**：本节给出该姿态的威胁论据；规范义务的 canonical 表述在 [`../sync/transport-bindings.md` §5](../sync/transport-bindings.md)。生产 v1 的 federation / service-to-service / client-service TLS 1.3 连接 SHOULD 支持并优先协商混合后量子 key exchange group `X25519MLKEM768`（draft-ietf-tls-ecdhe-mlkem；IANA TLS Supported Groups codepoint 已注册，主流浏览器与 OpenSSL 3.5+ 已默认部署）。`ck.profile.high_security_organization.v1`、`ck.profile.sovereign_deployment.v1` 及继承它们的 profile 下，相关连接 MUST 协商 `X25519MLKEM768`，对端不提供时 MUST fail closed。default profile 可回落到经典 TLS 1.3，但必须记录未协商 PQ 的 transport posture，且不得宣称该连接具备 Harvest-Now-Decrypt-Later resistant transport。该姿态把 `crypto-media/encryption-and-audit.md` 既有 PQ 路线图（informative，HNDL / Harvest-Now-Decrypt-Later 优先）对 Harvest-Now-Decrypt-Later 的缓解，扩展到**仅靠 TLS 保护、不进 MLS / E2EE**的传输面——联邦 transaction 元数据、public plaintext Realm 内容、directory / sync 流量。该要求零 wire 字段成本、不触碰任何 wire 字段或 envelope `scheme` / `version`：握手在 TLS 层协商，与请求级 RFC 9421 签名正交，不改 Arkret wire envelope / schema / object model。高安全 / sovereign conformance 验证为 **deployment-profile 握手探针**：握手完成后检查协商出的 TLS named group 是否等于 `X25519MLKEM768`，并验证对端不提供时 fail closed，而非 object-model conformance vector。
 > 部署交叉引用：传输绑定 canonical 表述见 [`../sync/transport-bindings.md` §5](../sync/transport-bindings.md)；联邦链路见 [`../sync/federation.md` §3.2](../sync/federation.md)；sovereign / 高安全部署的探针落地见 [`../sync/sovereign-deployment.md` §3 / §11](../sync/sovereign-deployment.md)。
 
 ## 3. 对照：协议内映射与处理

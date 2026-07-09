@@ -12,7 +12,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-本文集中定义 Cokret 协作图中的**治理对象**：
+本文集中定义 Arkret 协作图中的**治理对象**：
 
 - **Schema**：标准对象 / Morph type / facet / event 的结构与约束。
 - **Policy**（`ck:policy:`）：access / encryption / retention / federation / moderation 等运行时策略。

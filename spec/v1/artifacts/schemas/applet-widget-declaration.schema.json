@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/applet-widget-declaration.schema.json",
+  "$id": "https://arkret.org/v1/schemas/applet-widget-declaration.schema.json",
   "title": "Applet Widget Declaration",
   "description": "Closed declaration for an Applet UI widget origin, CSP, scoped token capability scope, and consent gate.",
   "type": "object",

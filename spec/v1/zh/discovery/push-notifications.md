@@ -66,11 +66,11 @@ POST /_cokret/edge/push/register-device
 
 ```json
 {
-  "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+  "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "push_gateway": "https://push.example.com/_cokret/edge/push/notify",
   "push_key": "fcm:eJx9k2...",
   "platform": "android",
-  "app_id": "com.cokret.client",
+  "app_id": "com.arkret.client",
   "display_name": "Alice's Pixel 9"
 }
 ```
@@ -97,7 +97,7 @@ Push registration 的作用域是接收该请求的 Sync Service / Principal Ser
 | `registration_id` | id | optional | 服务端分配的注册 ID |
 | `expires_at` | datetime | optional | 本 Sync / Principal Service 上该 push registration 记录的服务端有效期；不表示 APNs / FCM / WebPush provider token 自身过期时间 |
 
-`expires_at` 若出现，MUST 只约束本次 Cokret push registration 记录。Provider token 的平台生命周期、撤销或轮换由 provider adapter 在实现内部处理，或通过新的注册请求提交新的 `push_key`；不得把 provider token 过期时间塞入 `expires_at`。客户端 SHOULD 在 `expires_at` 前主动重注册；到期后服务端 MUST 停止使用该 registration 投递 push，并在下一次注册 / describe / sync 投影中以等价的 `push_registration_expired` 状态或重新注册要求暴露给该 holder。`ck.device.push_route` 的轮换周期仍由 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5a.2 约束；若两者都存在，较早失效者控制实际投递。
+`expires_at` 若出现，MUST 只约束本次 Arkret push registration 记录。Provider token 的平台生命周期、撤销或轮换由 provider adapter 在实现内部处理，或通过新的注册请求提交新的 `push_key`；不得把 provider token 过期时间塞入 `expires_at`。客户端 SHOULD 在 `expires_at` 前主动重注册；到期后服务端 MUST 停止使用该 registration 投递 push，并在下一次注册 / describe / sync 投影中以等价的 `push_registration_expired` 状态或重新注册要求暴露给该 holder。`ck.device.push_route` 的轮换周期仍由 [`../crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5a.2 约束；若两者都存在，较早失效者控制实际投递。
 
 ### 3.2 注销接口
 
@@ -133,7 +133,7 @@ POST /_cokret/edge/push/unregister-device
       "kind": "override",
       "enabled": true,
       "conditions": [
-        { "kind": "field_match", "field": "realm_id", "pattern": "ck:realm:9bd39a00-0000-7000-8000-000000000000..." }
+        { "kind": "field_match", "field": "realm_id", "pattern": "ak:realm:9bd39a00-0000-7000-8000-000000000000..." }
       ],
       "actions": ["dont_notify"]
     },
@@ -332,7 +332,7 @@ E2EE Realm 中，Sync Service 不持有正文密钥，无法在 server 端评估
     ```text
     mention_routing_hmac_v1 =
         HMAC-SHA256(
-            key   = MLS-Exporter("cokret-mention-routing-v1", context = realm_id, length = 32),
+            key   = MLS-Exporter("arkret-mention-routing-v1", context = realm_id, length = 32),
             data  = utf8(mentioned_did)
         )
     ```
@@ -417,7 +417,7 @@ POST /_cokret/edge/push/notify
 **Notify body / product-private body / provider payload 三层边界（normative）**：
 
 1. `/_cokret/edge/push/notify` 请求体只承载本节表中定义的协议字段，且由 `push-operations.schema.json#/$defs/push_notify_request_body` 的闭合 schema 约束。产品内部 UI 草稿、DND/snooze 状态、push rule 明文、provider adapter 原始字段、APNs/FCM/WebPush 私有 body、`provider_payload`、`content` 或 `content_*` preview 字段 **MUST NOT** 进入该协议 body；实现需要这些信息时，只能在调用方产品私有进程内完成求值，并把结果压缩成本节定义的 `wakeup_kind` / `push_hint` / `reason_code` / `route_tokens` 等最小协议字段。
-2. Product-private body 是调用方服务内部状态，不是 Cokret v1 wire surface。它 MAY 包含本地化资源键、UI 文案模板、静默时段、snooze target 或 provider adapter 配置，但这些字段 MUST 在进入 `ck.edge.push.command.notify` 前被消费或丢弃。不得通过 `notification.extra`、`content`、`payload`、`data`、`provider_payload` 或任何自由对象把 product-private body 透传给 Push Gateway。
+2. Product-private body 是调用方服务内部状态，不是 Arkret v1 wire surface。它 MAY 包含本地化资源键、UI 文案模板、静默时段、snooze target 或 provider adapter 配置，但这些字段 MUST 在进入 `ck.edge.push.command.notify` 前被消费或丢弃。不得通过 `notification.extra`、`content`、`payload`、`data`、`provider_payload` 或任何自由对象把 product-private body 透传给 Push Gateway。
 3. Provider payload 是 Push Gateway 对 APNs / FCM / WebPush / OEM provider 的出向请求；它由 gateway 根据已验证的 notify body 重新构造。默认 `blind_wakeup` 下 provider payload 的允许集合是 `push_target_id`、`wakeup_kind`、合规的 `push_hint` / `push_hint_l10n_key`、最小化 counts 以及 provider 必需的不可链接 collapse key；`timing_profile_hint`、`route_tokens`、`devices[].target_route_token`、`reason_code`、`event_kind`、`audit_envelope` 和任何 Realm / sender / event / content 字段 MUST 在出 provider 前 strip。
 4. `ck.profile.push_gateway.visible_notification.v1` 只放宽本表列出的 profile-gated 标题/标签/typed-id 字段，不引入自由正文容器。即使 Realm policy 和设备 opt-in 允许 visible notification，`notification.content`、`body`、`preview`、`summary`、provider-specific `data` 或任意 `content_*` 字段仍不属于 v1 notify body；需要完整标题与正文的客户端 SHOULD 由 blind wakeup 唤醒后本地拉取、解密并渲染。
 
@@ -429,7 +429,7 @@ POST /_cokret/edge/push/notify
 4. payload 不得标记为 `blind_wakeup`，conformance suite 必须按较高隐私风险 profile 测试。
 5. 可见字段仍受最小化约束，不得包含正文、DID URL、跨 Realm stable correlation key、IP / geolocation 或未列入 profile 的自由文本。
 6. E2EE 默认实现不得依赖该 profile；完整通知标题与正文 SHOULD 由客户端被唤醒、拉取并本地解密后渲染。
-7. `visible_notification` 只放宽本表列出的展示字段，不放宽路由元数据边界；独立第三方 Push Gateway 仍只能接收 opaque route token。与 Sync / Principal Service 同一运营、日志、审计和信任边界内的 co-resident gateway 可以在实现内部使用 raw id，但这些 raw id 不属于 Cokret edge notify wire。
+7. `visible_notification` 只放宽本表列出的展示字段，不放宽路由元数据边界；独立第三方 Push Gateway 仍只能接收 opaque route token。与 Sync / Principal Service 同一运营、日志、审计和信任边界内的 co-resident gateway 可以在实现内部使用 raw id，但这些 raw id 不属于 Arkret edge notify wire。
 
 Matrix 互通部署 MAY 声明 `ck.profile.push_gateway.matrix_passthrough.v1` 用于桥接遗留 Matrix push gateway 形态。该 profile 与 `ck.profile.push_gateway.blind_wakeup.v1` **不兼容**：bridge MUST 把流量分区，确保任一基于默认 v1 baseline 协商的 `(recipient_service_did, device)` 元组永远不会收到 matrix_passthrough payload。
 
@@ -438,7 +438,7 @@ Matrix 互通部署 MAY 声明 `ck.profile.push_gateway.matrix_passthrough.v1` �
 ```json
 {
   "notification": {
-    "push_target_id": "ck:pseudonym:push:01js0pt0000000000000000000",
+    "push_target_id": "ak:pseudonym:push:01js0pt0000000000000000000",
     "wakeup_kind": "message",
     "timing_profile_hint": "default",
     "counts": {
@@ -448,7 +448,7 @@ Matrix 互通部署 MAY 声明 `ck.profile.push_gateway.matrix_passthrough.v1` �
     "devices": [
       {
         "push_key": "fcm:eJx9k2...",
-        "app_id": "com.cokret.client"
+        "app_id": "com.arkret.client"
       }
     ]
   }

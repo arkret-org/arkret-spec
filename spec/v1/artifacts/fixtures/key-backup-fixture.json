@@ -10,12 +10,12 @@
       "schema_ref": "schemas/key-backup.schema.json",
       "expect_valid": true,
       "instance": {
-        "backup_id": "ck:backup:01964137-0000-7000-8000-000000000000",
+        "backup_id": "ak:backup:01964137-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-        "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
         "backup_class": "secret_storage",
         "backup_version": "kb_1",
-        "series_id": "ck:backup_series:01964137-1000-7000-8000-000000000000",
+        "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
         "series_seq": 0,
         "created_at": "2026-04-26T00:00:00Z",
         "encryption": {
@@ -38,12 +38,12 @@
           "key_commitment": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
         },
         "domain_separation": {
-          "hkdf_info": "cokret-key-backup/secret_storage/passphrase_kdf/v1",
+          "hkdf_info": "arkret-key-backup/secret_storage/passphrase_kdf/v1",
           "subdomain": "passphrase_kdf",
           "aead_aad": {
             "schema": "ck.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
             "backup_version": "kb_1",
             "created_at": "2026-04-26T00:00:00Z",
@@ -66,7 +66,7 @@
         "ciphertext": "ciphertext-base64url-placeholder",
         "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "auth_data": {
-          "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
@@ -92,15 +92,15 @@
       "schema_ref": "schemas/key-backup.schema.json",
       "expect_valid": true,
       "instance": {
-        "backup_id": "ck:backup:01964138-0000-7000-8000-000000000010",
+        "backup_id": "ak:backup:01964138-0000-7000-8000-000000000010",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-        "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
         "backup_class": "mls_history",
         "backup_version": "kb_1",
-        "series_id": "ck:backup_series:01964138-1000-7000-8000-000000000010",
+        "series_id": "ak:backup_series:01964138-1000-7000-8000-000000000010",
         "series_seq": 0,
         "recovery_policy_ref": {
-          "policy_id": "ck:policy:01964140-0000-7000-8000-000000000000",
+          "policy_id": "ak:policy:01964140-0000-7000-8000-000000000000",
           "policy_version": 1
         },
         "created_at": "2026-04-26T00:00:00Z",
@@ -114,12 +114,12 @@
           }
         },
         "domain_separation": {
-          "hkdf_info": "cokret-key-backup/mls_history/secret_storage_key/v1",
+          "hkdf_info": "arkret-key-backup/mls_history/secret_storage_key/v1",
           "subdomain": "secret_storage_key",
           "aead_aad": {
             "schema": "ck.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "mls_history",
             "backup_version": "kb_1",
             "created_at": "2026-04-26T00:00:00Z",
@@ -137,7 +137,7 @@
         "ciphertext": "ciphertext-base64url-placeholder",
         "ciphertext_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
         "auth_data": {
-          "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
@@ -165,15 +165,15 @@
       "expect_valid": false,
       "first_expected_error": "$.encryption.recipient_method: 'passphrase_kdf' is not one of ['secret_storage_key', 'recovery_public_key']",
       "instance": {
-        "backup_id": "ck:backup:01964138-0000-7000-8000-000000000011",
+        "backup_id": "ak:backup:01964138-0000-7000-8000-000000000011",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-        "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
         "backup_class": "mls_history",
         "backup_version": "kb_1",
-        "series_id": "ck:backup_series:01964138-1000-7000-8000-000000000011",
+        "series_id": "ak:backup_series:01964138-1000-7000-8000-000000000011",
         "series_seq": 0,
         "recovery_policy_ref": {
-          "policy_id": "ck:policy:01964140-0000-7000-8000-000000000000",
+          "policy_id": "ak:policy:01964140-0000-7000-8000-000000000000",
           "policy_version": 1
         },
         "created_at": "2026-04-26T00:00:00Z",
@@ -196,12 +196,12 @@
           "key_commitment": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
         },
         "domain_separation": {
-          "hkdf_info": "cokret-key-backup/mls_history/passphrase_kdf/v1",
+          "hkdf_info": "arkret-key-backup/mls_history/passphrase_kdf/v1",
           "subdomain": "passphrase_kdf",
           "aead_aad": {
             "schema": "ck.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "mls_history",
             "backup_version": "kb_1",
             "created_at": "2026-04-26T00:00:00Z",
@@ -219,7 +219,7 @@
         "ciphertext": "ciphertext-base64url-placeholder",
         "ciphertext_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
         "auth_data": {
-          "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
@@ -246,33 +246,33 @@
       "expect_valid": false,
       "first_expected_error": "$.encryption.recipient_method: 'device_snapshot_secret' is not one of ['passphrase_kdf', 'recovery_public_key', 'secret_storage_key']",
       "instance": {
-        "backup_id": "ck:backup:01964138-0000-7000-8000-000000000012",
+        "backup_id": "ak:backup:01964138-0000-7000-8000-000000000012",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-        "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
         "backup_class": "mls_history",
         "backup_version": "kb_1",
-        "series_id": "ck:backup_series:01964138-1000-7000-8000-000000000012",
+        "series_id": "ak:backup_series:01964138-1000-7000-8000-000000000012",
         "series_seq": 0,
         "recovery_policy_ref": {
-          "policy_id": "ck:policy:01964140-0000-7000-8000-000000000000",
+          "policy_id": "ak:policy:01964140-0000-7000-8000-000000000000",
           "policy_version": 1
         },
         "created_at": "2026-04-26T00:00:00Z",
         "encryption": {
           "recipient_method": "device_snapshot_secret",
-          "recipient_key_ref": "ck:device:01964137-0000-7000-8000-000000000000",
+          "recipient_key_ref": "ak:device:01964137-0000-7000-8000-000000000000",
           "aead": {
             "name": "xchacha20_poly1305",
             "nonce": "nonce-base64url-placeholder"
           }
         },
         "domain_separation": {
-          "hkdf_info": "cokret-key-backup/mls_history/device_snapshot_secret/v1",
+          "hkdf_info": "arkret-key-backup/mls_history/device_snapshot_secret/v1",
           "subdomain": "device_snapshot_secret",
           "aead_aad": {
             "schema": "ck.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "mls_history",
             "backup_version": "kb_1",
             "created_at": "2026-04-26T00:00:00Z",
@@ -290,7 +290,7 @@
         "ciphertext": "ciphertext-base64url-placeholder",
         "ciphertext_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
         "auth_data": {
-          "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
@@ -316,15 +316,15 @@
       "schema_ref": "schemas/key-backup.schema.json",
       "expect_valid": true,
       "instance": {
-        "backup_id": "ck:backup:01964138-0000-7000-8000-000000000013",
+        "backup_id": "ak:backup:01964138-0000-7000-8000-000000000013",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-        "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
         "backup_class": "mls_history",
         "backup_version": "kb_1",
-        "series_id": "ck:backup_series:01964138-1000-7000-8000-000000000013",
+        "series_id": "ak:backup_series:01964138-1000-7000-8000-000000000013",
         "series_seq": 0,
         "recovery_policy_ref": {
-          "policy_id": "ck:policy:01964140-0000-7000-8000-000000000000",
+          "policy_id": "ak:policy:01964140-0000-7000-8000-000000000000",
           "policy_version": 1
         },
         "created_at": "2026-04-26T00:00:00Z",
@@ -338,12 +338,12 @@
           }
         },
         "domain_separation": {
-          "hkdf_info": "cokret-key-backup/mls_history/recovery_public_key/v1",
+          "hkdf_info": "arkret-key-backup/mls_history/recovery_public_key/v1",
           "subdomain": "recovery_public_key",
           "aead_aad": {
             "schema": "ck.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "mls_history",
             "backup_version": "kb_1",
             "created_at": "2026-04-26T00:00:00Z",
@@ -361,7 +361,7 @@
         "ciphertext": "ciphertext-base64url-placeholder",
         "ciphertext_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
         "auth_data": {
-          "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
@@ -389,15 +389,15 @@
       "expect_valid": false,
       "first_expected_error": "$.encryption.aead: 'enc' is a required property",
       "instance": {
-        "backup_id": "ck:backup:01964138-0000-7000-8000-000000000014",
+        "backup_id": "ak:backup:01964138-0000-7000-8000-000000000014",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-        "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
         "backup_class": "mls_history",
         "backup_version": "kb_1",
-        "series_id": "ck:backup_series:01964138-1000-7000-8000-000000000014",
+        "series_id": "ak:backup_series:01964138-1000-7000-8000-000000000014",
         "series_seq": 0,
         "recovery_policy_ref": {
-          "policy_id": "ck:policy:01964140-0000-7000-8000-000000000000",
+          "policy_id": "ak:policy:01964140-0000-7000-8000-000000000000",
           "policy_version": 1
         },
         "created_at": "2026-04-26T00:00:00Z",
@@ -410,12 +410,12 @@
           }
         },
         "domain_separation": {
-          "hkdf_info": "cokret-key-backup/mls_history/recovery_public_key/v1",
+          "hkdf_info": "arkret-key-backup/mls_history/recovery_public_key/v1",
           "subdomain": "recovery_public_key",
           "aead_aad": {
             "schema": "ck.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "mls_history",
             "backup_version": "kb_1",
             "created_at": "2026-04-26T00:00:00Z",
@@ -433,7 +433,7 @@
         "ciphertext": "ciphertext-base64url-placeholder",
         "ciphertext_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
         "auth_data": {
-          "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
@@ -460,15 +460,15 @@
       "expect_valid": false,
       "first_expected_error": "$.encryption.recipient_method: 'passphrase_kdf' is not one of ['recovery_public_key']",
       "instance": {
-        "backup_id": "ck:backup:01964138-0000-7000-8000-000000000015",
+        "backup_id": "ak:backup:01964138-0000-7000-8000-000000000015",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-        "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
         "backup_class": "did_recovery",
         "backup_version": "kb_1",
-        "series_id": "ck:backup_series:01964138-1000-7000-8000-000000000015",
+        "series_id": "ak:backup_series:01964138-1000-7000-8000-000000000015",
         "series_seq": 0,
         "recovery_policy_ref": {
-          "policy_id": "ck:policy:01964140-0000-7000-8000-000000000000",
+          "policy_id": "ak:policy:01964140-0000-7000-8000-000000000000",
           "policy_version": 1
         },
         "created_at": "2026-04-26T00:00:00Z",
@@ -491,12 +491,12 @@
           "key_commitment": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
         },
         "domain_separation": {
-          "hkdf_info": "cokret-key-backup/did_recovery/passphrase_kdf/v1",
+          "hkdf_info": "arkret-key-backup/did_recovery/passphrase_kdf/v1",
           "subdomain": "passphrase_kdf",
           "aead_aad": {
             "schema": "ck.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "did_recovery",
             "backup_version": "kb_1",
             "created_at": "2026-04-26T00:00:00Z",
@@ -514,7 +514,7 @@
         "ciphertext": "ciphertext-base64url-placeholder",
         "ciphertext_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
         "auth_data": {
-          "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
@@ -540,14 +540,14 @@
       "schema_ref": "schemas/key-backup.schema.json",
       "expect_valid": true,
       "instance": {
-        "backup_id": "ck:backup:01964137-1000-7000-8000-000000000001",
+        "backup_id": "ak:backup:01964137-1000-7000-8000-000000000001",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-        "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
         "backup_class": "secret_storage",
         "backup_version": "kb_2",
-        "series_id": "ck:backup_series:01964137-1000-7000-8000-000000000000",
+        "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
         "series_seq": 1,
-        "supersedes": "ck:backup:01964137-0000-7000-8000-000000000000",
+        "supersedes": "ak:backup:01964137-0000-7000-8000-000000000000",
         "supersedes_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
         "frontier_ref": {
           "frontier_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
@@ -574,12 +574,12 @@
           "key_commitment": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
         },
         "domain_separation": {
-          "hkdf_info": "cokret-key-backup/secret_storage/passphrase_kdf/v1",
+          "hkdf_info": "arkret-key-backup/secret_storage/passphrase_kdf/v1",
           "subdomain": "passphrase_kdf",
           "aead_aad": {
             "schema": "ck.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
             "backup_version": "kb_2",
             "created_at": "2026-04-27T00:00:00Z",
@@ -602,7 +602,7 @@
         "ciphertext": "ciphertext-base64url-placeholder",
         "ciphertext_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
         "auth_data": {
-          "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
@@ -632,9 +632,9 @@
       "expect_valid": false,
       "first_expected_error": "$: 'series_id' is a required property",
       "instance": {
-        "backup_id": "ck:backup:01964137-0000-7000-8000-000000000000",
+        "backup_id": "ak:backup:01964137-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-        "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
         "backup_class": "secret_storage",
         "backup_version": "kb_1",
         "series_seq": 0,
@@ -657,12 +657,12 @@
           }
         },
         "domain_separation": {
-          "hkdf_info": "cokret-key-backup/secret_storage/passphrase_kdf/v1",
+          "hkdf_info": "arkret-key-backup/secret_storage/passphrase_kdf/v1",
           "subdomain": "passphrase_kdf",
           "aead_aad": {
             "schema": "ck.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
             "backup_version": "kb_1",
             "created_at": "2026-04-26T00:00:00Z",
@@ -680,7 +680,7 @@
         "ciphertext": "ciphertext-base64url-placeholder",
         "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "auth_data": {
-          "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
@@ -706,12 +706,12 @@
       "expect_valid": false,
       "first_expected_error": "$: 'series_seq' is a required property",
       "instance": {
-        "backup_id": "ck:backup:01964137-0000-7000-8000-000000000000",
+        "backup_id": "ak:backup:01964137-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-        "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
         "backup_class": "secret_storage",
         "backup_version": "kb_1",
-        "series_id": "ck:backup_series:01964137-1000-7000-8000-000000000000",
+        "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
         "supersedes": null,
         "created_at": "2026-04-26T00:00:00Z",
         "encryption": {
@@ -732,12 +732,12 @@
           }
         },
         "domain_separation": {
-          "hkdf_info": "cokret-key-backup/secret_storage/passphrase_kdf/v1",
+          "hkdf_info": "arkret-key-backup/secret_storage/passphrase_kdf/v1",
           "subdomain": "passphrase_kdf",
           "aead_aad": {
             "schema": "ck.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
             "backup_version": "kb_1",
             "created_at": "2026-04-26T00:00:00Z",
@@ -755,7 +755,7 @@
         "ciphertext": "ciphertext-base64url-placeholder",
         "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "auth_data": {
-          "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
@@ -782,12 +782,12 @@
       "expect_valid": false,
       "first_expected_error": "$.encryption.aead: 'nonce_salt' is a required property",
       "instance": {
-        "backup_id": "ck:backup:01964137-0000-7000-8000-000000000000",
+        "backup_id": "ak:backup:01964137-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-        "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
         "backup_class": "secret_storage",
         "backup_version": "kb_1",
-        "series_id": "ck:backup_series:01964137-1000-7000-8000-000000000000",
+        "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
         "series_seq": 0,
         "created_at": "2026-04-26T00:00:00Z",
         "encryption": {
@@ -807,12 +807,12 @@
           }
         },
         "domain_separation": {
-          "hkdf_info": "cokret-key-backup/secret_storage/passphrase_kdf/v1",
+          "hkdf_info": "arkret-key-backup/secret_storage/passphrase_kdf/v1",
           "subdomain": "passphrase_kdf",
           "aead_aad": {
             "schema": "ck.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
             "backup_version": "kb_1",
             "created_at": "2026-04-26T00:00:00Z",
@@ -830,7 +830,7 @@
         "ciphertext": "ciphertext-base64url-placeholder",
         "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "auth_data": {
-          "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
@@ -856,12 +856,12 @@
       "expect_valid": false,
       "first_expected_error": "$.encryption.kdf.params.memory_kib: 8192 is less than the minimum of 65536",
       "instance": {
-        "backup_id": "ck:backup:01964137-0000-7000-8000-000000000000",
+        "backup_id": "ak:backup:01964137-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-        "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
         "backup_class": "secret_storage",
         "backup_version": "kb_1",
-        "series_id": "ck:backup_series:01964137-1000-7000-8000-000000000000",
+        "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
         "series_seq": 0,
         "created_at": "2026-04-26T00:00:00Z",
         "encryption": {
@@ -882,12 +882,12 @@
           }
         },
         "domain_separation": {
-          "hkdf_info": "cokret-key-backup/secret_storage/passphrase_kdf/v1",
+          "hkdf_info": "arkret-key-backup/secret_storage/passphrase_kdf/v1",
           "subdomain": "passphrase_kdf",
           "aead_aad": {
             "schema": "ck.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
             "backup_version": "kb_1",
             "created_at": "2026-04-26T00:00:00Z",
@@ -905,7 +905,7 @@
         "ciphertext": "ciphertext-base64url-placeholder",
         "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "auth_data": {
-          "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
@@ -931,12 +931,12 @@
       "expect_valid": false,
       "first_expected_error": "$.encryption.kdf: 'degraded_profile_reason' is a required property",
       "instance": {
-        "backup_id": "ck:backup:01964137-0000-7000-8000-000000000000",
+        "backup_id": "ak:backup:01964137-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-        "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
         "backup_class": "secret_storage",
         "backup_version": "kb_1",
-        "series_id": "ck:backup_series:01964137-1000-7000-8000-000000000000",
+        "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
         "series_seq": 0,
         "created_at": "2026-04-26T00:00:00Z",
         "encryption": {
@@ -956,12 +956,12 @@
           }
         },
         "domain_separation": {
-          "hkdf_info": "cokret-key-backup/secret_storage/passphrase_kdf/v1",
+          "hkdf_info": "arkret-key-backup/secret_storage/passphrase_kdf/v1",
           "subdomain": "passphrase_kdf",
           "aead_aad": {
             "schema": "ck.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
             "backup_version": "kb_1",
             "created_at": "2026-04-26T00:00:00Z",
@@ -979,7 +979,7 @@
         "ciphertext": "ciphertext-base64url-placeholder",
         "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "auth_data": {
-          "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
@@ -1005,14 +1005,14 @@
       "expect_valid": false,
       "first_expected_error": "$: 'supersedes_digest' is a required property",
       "instance": {
-        "backup_id": "ck:backup:01964137-1000-7000-8000-000000000001",
+        "backup_id": "ak:backup:01964137-1000-7000-8000-000000000001",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-        "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
         "backup_class": "secret_storage",
         "backup_version": "kb_2",
-        "series_id": "ck:backup_series:01964137-1000-7000-8000-000000000000",
+        "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
         "series_seq": 1,
-        "supersedes": "ck:backup:01964137-0000-7000-8000-000000000000",
+        "supersedes": "ak:backup:01964137-0000-7000-8000-000000000000",
         "created_at": "2026-04-27T00:00:00Z",
         "encryption": {
           "recipient_method": "passphrase_kdf",
@@ -1032,12 +1032,12 @@
           }
         },
         "domain_separation": {
-          "hkdf_info": "cokret-key-backup/secret_storage/passphrase_kdf/v1",
+          "hkdf_info": "arkret-key-backup/secret_storage/passphrase_kdf/v1",
           "subdomain": "passphrase_kdf",
           "aead_aad": {
             "schema": "ck.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
             "backup_version": "kb_2",
             "created_at": "2026-04-27T00:00:00Z",
@@ -1055,7 +1055,7 @@
         "ciphertext": "ciphertext-base64url-placeholder",
         "ciphertext_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
         "auth_data": {
-          "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
@@ -1082,13 +1082,13 @@
       "expect_valid": false,
       "first_expected_error": "$.encryption.kdf.params.memory_kib: 65536 is less than the minimum of 262144",
       "instance": {
-        "backup_id": "ck:backup:01964137-0000-7000-8000-000000000000",
+        "backup_id": "ak:backup:01964137-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-        "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
         "backup_class": "secret_storage",
         "mixed_secret_storage": true,
         "backup_version": "kb_mixed",
-        "series_id": "ck:backup_series:01964137-2000-7000-8000-000000000000",
+        "series_id": "ak:backup_series:01964137-2000-7000-8000-000000000000",
         "series_seq": 0,
         "created_at": "2026-04-26T00:00:00Z",
         "encryption": {
@@ -1109,12 +1109,12 @@
           }
         },
         "domain_separation": {
-          "hkdf_info": "cokret-key-backup/secret_storage/passphrase_kdf/v1",
+          "hkdf_info": "arkret-key-backup/secret_storage/passphrase_kdf/v1",
           "subdomain": "passphrase_kdf",
           "aead_aad": {
             "schema": "ck.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-            "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+            "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
             "backup_version": "kb_mixed",
             "created_at": "2026-04-26T00:00:00Z",
@@ -1137,7 +1137,7 @@
         "ciphertext": "ciphertext-base64url-placeholder",
         "ciphertext_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "auth_data": {
-          "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
           "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
           "signature_algorithm": "Ed25519",
           "signature": "signature-base64url-placeholder",
@@ -1163,11 +1163,11 @@
       "expect_valid": true,
       "instance": {
         "schema": "ck.schema.recovery_policy.v1",
-        "policy_id": "ck:policy:01964140-0000-7000-8000-000000000000",
+        "policy_id": "ak:policy:01964140-0000-7000-8000-000000000000",
         "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "version": 1,
         "supersedes": null,
-        "trust_domain": "ck:trust_domain:did.webvh.example",
+        "trust_domain": "ak:trust_domain:did.webvh.example",
         "allowed_proof_kinds": [
           "threshold_recovery"
         ],
@@ -1221,18 +1221,18 @@
       "first_expected_error": "$: 'supersedes' is a required property",
       "instance": {
         "schema": "ck.schema.recovery_policy.v1",
-        "policy_id": "ck:policy:01964140-0000-7000-8000-000000000001",
+        "policy_id": "ak:policy:01964140-0000-7000-8000-000000000001",
         "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "version": 2,
-        "trust_domain": "ck:trust_domain:did.webvh.example",
+        "trust_domain": "ak:trust_domain:did.webvh.example",
         "allowed_proof_kinds": [
           "device_quorum"
         ],
         "device_quorum": {
           "k": 2,
           "members": [
-            "ck:device:01964137-0000-7000-8000-000000000000",
-            "ck:device:01964138-0000-7000-8000-000000000000"
+            "ak:device:01964137-0000-7000-8000-000000000000",
+            "ak:device:01964138-0000-7000-8000-000000000000"
           ]
         },
         "issued_at": "2026-04-27T00:00:00Z",
@@ -1260,11 +1260,11 @@
       "expect_valid": true,
       "instance": {
         "schema": "ck.schema.recovery_policy.v1",
-        "policy_id": "ck:policy:01964140-0000-7000-8000-000000000002",
+        "policy_id": "ak:policy:01964140-0000-7000-8000-000000000002",
         "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "version": 2,
-        "supersedes": "ck:policy:01964140-0000-7000-8000-000000000000",
-        "trust_domain": "ck:trust_domain:did.webvh.example",
+        "supersedes": "ak:policy:01964140-0000-7000-8000-000000000000",
+        "trust_domain": "ak:trust_domain:did.webvh.example",
         "allowed_proof_kinds": [],
         "expires_at": "2026-04-27T00:00:00Z",
         "issued_at": "2026-04-27T00:00:00Z",
@@ -1292,11 +1292,11 @@
       "expect_valid": true,
       "instance": {
         "schema": "ck.schema.recovery_session.v1",
-        "recovery_session_id": "ck:recovery_session:01964142-0000-7000-8000-000000000000",
+        "recovery_session_id": "ak:recovery_session:01964142-0000-7000-8000-000000000000",
         "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-        "requesting_device_id": "ck:device:01964139-0000-7000-8000-000000000000",
-        "trust_domain": "ck:trust_domain:did.webvh.example",
-        "policy_id": "ck:policy:01964140-0000-7000-8000-000000000000",
+        "requesting_device_id": "ak:device:01964139-0000-7000-8000-000000000000",
+        "trust_domain": "ak:trust_domain:did.webvh.example",
+        "policy_id": "ak:policy:01964140-0000-7000-8000-000000000000",
         "policy_version": 1,
         "ssk_generation": 2,
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -1314,11 +1314,11 @@
         "type": "ck.identity.recovery_proof.v1",
         "kind": "principal_signing",
         "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-        "requesting_device_id": "ck:device:01964139-0000-7000-8000-000000000000",
-        "trust_domain": "ck:trust_domain:did.webvh.example",
-        "policy_id": "ck:policy:01964140-0000-7000-8000-000000000000",
+        "requesting_device_id": "ak:device:01964139-0000-7000-8000-000000000000",
+        "trust_domain": "ak:trust_domain:did.webvh.example",
+        "policy_id": "ak:policy:01964140-0000-7000-8000-000000000000",
         "policy_version": 1,
-        "recovery_session_id": "ck:recovery_session:01964142-0000-7000-8000-000000000000",
+        "recovery_session_id": "ak:recovery_session:01964142-0000-7000-8000-000000000000",
         "ssk_generation": 2,
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "created_at": "2026-04-27T00:00:00Z",
@@ -1331,13 +1331,13 @@
       "expect_valid": true,
       "instance": {
         "schema": "ck.schema.recovery_receipt.v1",
-        "receipt_id": "ck:receipt:01964141-0000-7000-8000-000000000000",
+        "receipt_id": "ak:receipt:01964141-0000-7000-8000-000000000000",
         "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-        "recovery_session_id": "ck:recovery_session:01964142-0000-7000-8000-000000000000",
-        "policy_id": "ck:policy:01964140-0000-7000-8000-000000000000",
+        "recovery_session_id": "ak:recovery_session:01964142-0000-7000-8000-000000000000",
+        "policy_id": "ak:policy:01964140-0000-7000-8000-000000000000",
         "policy_version": 1,
-        "trust_domain": "ck:trust_domain:did.webvh.example",
-        "new_device_id": "ck:device:01964139-0000-7000-8000-000000000000",
+        "trust_domain": "ak:trust_domain:did.webvh.example",
+        "new_device_id": "ak:device:01964139-0000-7000-8000-000000000000",
         "proof_summary": {
           "kind": "threshold_recovery",
           "proof_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
@@ -1350,8 +1350,8 @@
         "backup_classes_unlocked": [
           {
             "backup_class": "secret_storage",
-            "backup_id": "ck:backup:01964137-1000-7000-8000-000000000001",
-            "series_id": "ck:backup_series:01964137-1000-7000-8000-000000000000",
+            "backup_id": "ak:backup:01964137-1000-7000-8000-000000000001",
+            "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
             "ciphertext_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
           }
         ],
@@ -1389,13 +1389,13 @@
       "first_expected_error": "$.backup_classes_unlocked[0]: 'series_id' is a required property",
       "instance": {
         "schema": "ck.schema.recovery_receipt.v1",
-        "receipt_id": "ck:receipt:01964141-0000-7000-8000-000000000001",
+        "receipt_id": "ak:receipt:01964141-0000-7000-8000-000000000001",
         "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-        "recovery_session_id": "ck:recovery_session:01964142-0000-7000-8000-000000000001",
-        "policy_id": "ck:policy:01964140-0000-7000-8000-000000000000",
+        "recovery_session_id": "ak:recovery_session:01964142-0000-7000-8000-000000000001",
+        "policy_id": "ak:policy:01964140-0000-7000-8000-000000000000",
         "policy_version": 1,
-        "trust_domain": "ck:trust_domain:did.webvh.example",
-        "new_device_id": "ck:device:01964139-0000-7000-8000-000000000000",
+        "trust_domain": "ak:trust_domain:did.webvh.example",
+        "new_device_id": "ak:device:01964139-0000-7000-8000-000000000000",
         "proof_summary": {
           "kind": "threshold_recovery",
           "proof_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
@@ -1408,7 +1408,7 @@
         "backup_classes_unlocked": [
           {
             "backup_class": "secret_storage",
-            "backup_id": "ck:backup:01964137-1000-7000-8000-000000000001",
+            "backup_id": "ak:backup:01964137-1000-7000-8000-000000000001",
             "ciphertext_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
           }
         ],
@@ -1447,9 +1447,9 @@
         "schema": "ck.schema.key_backup_active_series.v1",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "backup_class": "secret_storage",
-        "active_series_id": "ck:backup_series:01964137-1000-7000-8000-000000000000",
+        "active_series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
         "previous_series_ids": [
-          "ck:backup_series:01964137-1000-7000-8000-000000000001"
+          "ak:backup_series:01964137-1000-7000-8000-000000000001"
         ],
         "frontier_ref": {
           "frontier_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
@@ -1479,12 +1479,12 @@
       "expect_valid": true,
       "instance": {
         "schema": "ck.schema.key_backup_unlock_proof.v1",
-        "recovery_session_id": "ck:recovery_session:01964142-0000-7000-8000-000000000002",
+        "recovery_session_id": "ak:recovery_session:01964142-0000-7000-8000-000000000002",
         "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-        "requesting_device_id": "ck:device:01964139-0000-7000-8000-000000000000",
-        "backup_id": "ck:backup:01964137-1000-7000-8000-000000000001",
+        "requesting_device_id": "ak:device:01964139-0000-7000-8000-000000000000",
+        "backup_id": "ak:backup:01964137-1000-7000-8000-000000000001",
         "backup_class": "secret_storage",
-        "series_id": "ck:backup_series:01964137-1000-7000-8000-000000000000",
+        "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
         "ciphertext_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
         "proof_kind": "threshold_recovery",
         "proof_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
@@ -1515,9 +1515,9 @@
       "expect_valid": true,
       "instance": {
         "schema": "ck.schema.key_backup_plaintext.v1",
-        "backup_id": "ck:backup:01964137-1000-7000-8000-000000000001",
+        "backup_id": "ak:backup:01964137-1000-7000-8000-000000000001",
         "backup_class": "secret_storage",
-        "series_id": "ck:backup_series:01964137-1000-7000-8000-000000000000",
+        "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
         "series_seq": 1,
         "items": [
           {

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Migrate ULID-shaped test/example IDs to UUIDv7 across implementation repos
-(soland, inkson, floria, chime, sodmin, cotest, cokret-rust-sdk).
+(soland, inkson, floria, chime, sodmin, cotest, arkret-rust-sdk).
 
 Reuses the typed-prefix-anchored regex from migrate_ulid_to_uuid7.py to
 restrict replacements to actual `ck:<kind>:<26-char>` references and quoted
@@ -20,9 +20,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 REPOS = [
-    # Only repos whose ULID examples represent Cokret wire IDs (`ck:<kind>:<id>`).
+    # Only repos whose ULID examples represent Arkret wire IDs (`ck:<kind>:<id>`).
     # starid/coauth are excluded: they have their own ULID-shaped IDs (did:webvh
-    # scid, internal admin tokens) that are NOT Cokret typed UUIDs and would
+    # scid, internal admin tokens) that are NOT Arkret typed UUIDs and would
     # break at parse if blanket-converted.
     "soland",
     "inkson",
@@ -30,7 +30,7 @@ REPOS = [
     "chime",
     "sodmin",
     "cotest",
-    "cokret-rust-sdk",
+    "arkret-rust-sdk",
 ]
 SUFFIXES = (".rs", ".ts", ".tsx", ".js", ".jsx", ".dart", ".swift", ".kt",
             ".md", ".mdx", ".json", ".yaml", ".yml", ".toml", ".html")
@@ -95,7 +95,7 @@ def collect_ulids(repos: list[Path]) -> dict[str, str]:
     """Only collect ULIDs that appear after a known ck:<kind>: typed prefix.
     Bare quoted ULIDs (e.g. inside `Ulid::from_string("...")` arguments,
     raw fixture digests, content-hash bytes) are intentionally NOT collected
-    because they may be non-Cokret internal IDs that would break if
+    because they may be non-Arkret internal IDs that would break if
     converted to UUID format.
     """
     mapping: dict[str, str] = {}

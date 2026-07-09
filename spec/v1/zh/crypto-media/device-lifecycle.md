@@ -12,7 +12,7 @@ updated: 2026-07-02
 
 ## 1. Login & Authorization Boundaries
 
-去中心化协议摒弃了传统的账号+密码中心化认证模式，身份的本质是持有私钥。Cokret 把以下三件事分开处理：
+去中心化协议摒弃了传统的账号+密码中心化认证模式，身份的本质是持有私钥。Arkret 把以下三件事分开处理：
 
 - **登录因子验证**：Auth Server 验证 password、passkey、OIDC、SSO 或 recovery factor，只能产出短期 `ck.session.grant`、触发恢复流程、请求已有设备授权，或（托管 DID 模型，§5.4）经 `ck.gate.account.command.enroll_device` 请求入册权威签发 `service_attested` 设备授权。
 - **设备授权**：新设备成为长期有效设备，MUST 落成 `ck.device.authorize`、DID/key-log operation 或等价 signed event。只有这一步改变设备集合。
@@ -20,7 +20,7 @@ updated: 2026-07-02
 
 ### 1.1 认证服务（Auth Server）验证什么
 
-Cokret 可以部署 Auth Server（企业 SSO 场景下的部署形态为 Auth Gateway），但它不是协议身份根。它验证的是“某个登录会话是否可以被绑定到某个 DID principal / device”，而不是用用户名、密码、邮箱或 OIDC subject 直接定义主体所有权。
+Arkret 可以部署 Auth Server（企业 SSO 场景下的部署形态为 Auth Gateway），但它不是协议身份根。它验证的是“某个登录会话是否可以被绑定到某个 DID principal / device”，而不是用用户名、密码、邮箱或 OIDC subject 直接定义主体所有权。
 
 实现 MAY 支持以下登录因子：
 
@@ -44,7 +44,7 @@ Cokret 可以部署 Auth Server（企业 SSO 场景下的部署形态为 Auth Ga
 
 ### 1.2 登录、设备授权与设备验证的边界
 
-Cokret v1 把三件事分开处理：
+Arkret v1 把三件事分开处理：
 
 - **登录因子验证**：Auth Server 验证 password、passkey、OIDC、SSO 或 recovery factor，只能产出短期 `ck.session.grant`、触发恢复流程、请求已有设备授权，或（托管 DID 模型，§5.4）经 `ck.gate.account.command.enroll_device` 请求入册权威签发 `service_attested` 设备授权。
 - **设备授权**：新设备成为长期有效设备，MUST 落成 `ck.device.authorize`、DID/key-log operation 或等价 signed event。只有这一步改变设备集合。
@@ -55,7 +55,7 @@ Cokret v1 把三件事分开处理：
 
 ## 2. 多设备配对 (Device Pairing)
 
-在 Cokret 中，用户的每个物理/逻辑设备都应该拥有本地独立生成的设备级密钥对 (Device Key)。
+在 Arkret 中，用户的每个物理/逻辑设备都应该拥有本地独立生成的设备级密钥对 (Device Key)。
 多设备登录的过程，本质上是“已授权设备将新设备加入身份控制网”的密码学授权过程。
 
 ### 2.1 配对流程 (无密码登录)
@@ -92,7 +92,7 @@ Cokret v1 把三件事分开处理：
 ### 3.2 登录时序
 1. **浏览器会话初始化**：员工在浏览器打开 Web 端应用，本地生成临时会话密钥 `session_key`。
 2. **OIDC 重定向**：浏览器跳转至企业 Okta 完成标准的 OAuth2 / OIDC 身份认证。
-3. **网关授权 (Gateway Delegation)**：Okta 认证成功后回调 Auth Gateway。Gateway 验证员工身份无误后，签发短期、受众绑定、scope 受限的 `ck.session.grant`，把 `session_key_pub` 绑定到目标 DID principal、设备、origin、audience、过期时间和允许的 operation 集合。其中绑定的设备 MUST 是客户端持有的稳定协议 `device_id`（`ck:device:<uuid>`，由客户端在认证时显式声明，例如 OAuth `urn:cokret:client:device:<id>` scope 透传到 introspection 的 `org.cokret.device_id` claim）。资源服务器 MUST NOT 从 token / session 标识（如 `jti` / `session_id`）派生或伪造一个 per-token 的 `device_id`——这违反 §4「服务端不得伪造 device identity」，且会让该值在每次 token 轮换时漂移，静默破坏所有按 `(principal, device)` 绑定的不变量（sync cursor 主体/设备匹配、key backup 写入设备授权）。携带认证材料但缺少稳定 device 绑定的会话 MUST 对 device-scoped 操作 fail-closed 拒绝，而非降级放行。
+3. **网关授权 (Gateway Delegation)**：Okta 认证成功后回调 Auth Gateway。Gateway 验证员工身份无误后，签发短期、受众绑定、scope 受限的 `ck.session.grant`，把 `session_key_pub` 绑定到目标 DID principal、设备、origin、audience、过期时间和允许的 operation 集合。其中绑定的设备 MUST 是客户端持有的稳定协议 `device_id`（`ck:device:<uuid>`，由客户端在认证时显式声明，例如 OAuth `urn:arkret:client:device:<id>` scope 透传到 introspection 的 `org.arkret.device_id` claim）。资源服务器 MUST NOT 从 token / session 标识（如 `jti` / `session_id`）派生或伪造一个 per-token 的 `device_id`——这违反 §4「服务端不得伪造 device identity」，且会让该值在每次 token 轮换时漂移，静默破坏所有按 `(principal, device)` 绑定的不变量（sync cursor 主体/设备匹配、key backup 写入设备授权）。携带认证材料但缺少稳定 device 绑定的会话 MUST 对 device-scoped 操作 fail-closed 拒绝，而非降级放行。
 4. **会话生效**：浏览器操作必须同时附带 session grant、device proof 或等价绑定证明。常规写与敏感读 SHOULD 进一步用 `session_key`（即 grant 委托的 `session_public_key`）对每个请求做 RFC 9421 HTTP Message Signature 出示（sender-constrained / PoP，见 [`../sync/api-conventions.md` §3.2](../sync/api-conventions.md)），使会话请求与该 key 绑定，截获 token 不足以重放；高安全 deployment profile 下该出示升为 MUST。资源服务器仍 MUST 重新验证 DID control state、capability、Realm policy、grant scope、audience、origin 和重放状态；不得因为 OIDC 成功就把请求视为 DID 控制证明。
 5. **平滑过期**：session grant SHOULD 使用分钟到小时级 TTL，并支持即时撤销。
 
@@ -117,7 +117,7 @@ Cokret v1 把三件事分开处理：
 
 ```json
 {
-  "device_id": "ck:device:019640dd-8000-7000-8000-000000000000",
+  "device_id": "ak:device:019640dd-8000-7000-8000-000000000000",
   "principal_id": "did:webvh:...",
   "display_name": "Alice iPhone",
   "algorithms": ["ck.hpke_x25519_aead_chacha20poly1305.v1", "ck.mls.v1"],
@@ -141,7 +141,7 @@ Cokret v1 把三件事分开处理：
 
 ## 5. Signing Hierarchy
 
-Cokret 使用三层签名链：
+Arkret 使用三层签名链：
 
 - `principal_signing_key`：DID 控制层，负责发布和轮换账户级签名根。
 - `self_signing_key`：签名本 principal 的设备。
@@ -182,7 +182,7 @@ Schema id：`ck.schema.cross_signing_publish.v1`
   "actor_id": "did:webvh:...",
   "payload": {
     "principal_id": "did:webvh:...",
-    "trust_domain": "ck:trust_domain:did.webvh.example",
+    "trust_domain": "ak:trust_domain:did.webvh.example",
     "principal_signing_key": {
       "kid": "did:webvh:...#ck_principal_signing_v1",
       "alg": "EdDSA",
@@ -223,7 +223,7 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
 ```json schema=schemas/cross-signing-publish.schema.json
 {
   "principal_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
-  "trust_domain": "ck:trust_domain:did.webvh.example",
+  "trust_domain": "ak:trust_domain:did.webvh.example",
   "principal_signing_key": {
     "kid": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example#ck_principal_signing_v1",
     "alg": "EdDSA",
@@ -308,7 +308,7 @@ DID-method history → principal_signing_key (PSK)
   "kind": "ck.device.authorize",
   "payload": {
     "principal_id": "did:webvh:...",
-    "device_id": "ck:device:...",
+    "device_id": "ak:device:...",
     "device_public_key": "z6Mk...",
     "hpke_key": "z6LS...",
     "algorithms": ["ck.hpke_x25519_aead_chacha20poly1305.v1", "ck.mls.v1"],
@@ -457,7 +457,7 @@ receiver 接受 `service_attested` 的 `ck.device.authorize` 时 MUST 校验：
 
 ## 5a. Privacy-Preserving Push
 
-Cokret 推送通道设计的目标是在不向 push gateway / vendor、上游 Sync Service、网络中间人或第三方 SaaS 控制面泄露身份与可链接信息的前提下，把"有事可投递"的最小信号送达终端。这是 [`discovery/push-notifications.md`](../discovery/push-notifications.md) 与 [`crypto-media/webrtc-signaling.md`](./webrtc-signaling.md) 中"pairwise pseudonym `push_target_id`"语义的协议层定义。
+Arkret 推送通道设计的目标是在不向 push gateway / vendor、上游 Sync Service、网络中间人或第三方 SaaS 控制面泄露身份与可链接信息的前提下，把"有事可投递"的最小信号送达终端。这是 [`discovery/push-notifications.md`](../discovery/push-notifications.md) 与 [`crypto-media/webrtc-signaling.md`](./webrtc-signaling.md) 中"pairwise pseudonym `push_target_id`"语义的协议层定义。
 
 ### 5a.1 `push_target_id` 派生与作用域
 
@@ -501,10 +501,10 @@ Cokret 推送通道设计的目标是在不向 push gateway / vendor、上游 Sy
   "payload": {
     "principal_id": "did:webvh:...",
     "changed": [
-      "ck:device:01964137-0000-7000-8000-000000000000"
+      "ak:device:01964137-0000-7000-8000-000000000000"
     ],
     "left": [
-      "ck:device:01964138-0000-7000-8000-000000000000"
+      "ak:device:01964138-0000-7000-8000-000000000000"
     ],
     "stream_id": "devstream_42"
   }
@@ -580,12 +580,12 @@ Content-Type: application/json
 {
   "messages": {
     "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com": {
-      "ck:device:01964137-0000-7000-8000-000000000000": {
+      "ak:device:01964137-0000-7000-8000-000000000000": {
         "kind": "ck.key.verification.request",
         "expires_at": "2026-04-26T00:10:00Z",
         "content": {
           "transaction_id": "ver_123",
-          "from_device": "ck:device:019641aa-0000-7000-8000-000000000001",
+          "from_device": "ak:device:019641aa-0000-7000-8000-000000000001",
           "timestamp": "2026-04-26T00:00:00Z",
           "expires_at": "2026-04-26T00:10:00Z",
           "methods": [
@@ -605,19 +605,19 @@ Content-Type: application/json
 {
   "messages": {
     "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com": {
-      "ck:device:01964136-8000-7000-8000-000000000000": {
+      "ak:device:01964136-8000-7000-8000-000000000000": {
         "kind": "ck.key.verification.request",
         "expires_at": "2026-04-26T00:10:00Z",
         "content": {
           "transaction_id": "ver_456",
-          "from_device": "ck:device:01964137-0000-7000-8000-000000000000",
+          "from_device": "ak:device:01964137-0000-7000-8000-000000000000",
           "timestamp": "2026-04-26T00:00:00Z",
           "expires_at": "2026-04-26T00:10:00Z",
           "methods": ["ck.sas.v1", "ck.qr.v1"],
           "purpose": "same_principal_device_authorization",
           "pairing_code": "384921",
           "new_device_pubkey": {
-            "kid": "ck:device:01964137-0000-7000-8000-000000000000",
+            "kid": "ak:device:01964137-0000-7000-8000-000000000000",
             "alg": "Ed25519",
             "public_key": "base64url..."
           },
@@ -887,7 +887,7 @@ POST /_cokret/self/keys/keypackages/revoke
 
 ### 10.1 标准消息类型
 
-Cokret 标准验证消息通过 to-device 通道发送：
+Arkret 标准验证消息通过 to-device 通道发送：
 
 - `ck.key.verification.request`
 - `ck.key.verification.ready`
@@ -1075,7 +1075,7 @@ Device / Key Server 的 `ck.keys.backups.*` endpoint MUST 只接受 `ck.schema.k
 | MLS epoch / Realm history secret | `mls_history` |
 | 外部托管或 profile 自定义 account secret | `secret_storage` |
 
-每个 `backup_class` MUST 使用独立 HKDF info 字符串派生 commitment / wrap key，禁止跨 class 共享密钥材料。规范权威表述见 [`../identity/key-management.md` §7.1](../identity/key-management.md)：HKDF info 形如 `cokret-key-backup/<backup_class>/<subdomain>/v1`（`/` 分隔，含 subdomain 维度）。任何 v1 wire 实现 MUST 跟随 `identity/key-management.md` 的 canonical 形式，本节描述只作为引导。
+每个 `backup_class` MUST 使用独立 HKDF info 字符串派生 commitment / wrap key，禁止跨 class 共享密钥材料。规范权威表述见 [`../identity/key-management.md` §7.1](../identity/key-management.md)：HKDF info 形如 `arkret-key-backup/<backup_class>/<subdomain>/v1`（`/` 分隔，含 subdomain 维度）。任何 v1 wire 实现 MUST 跟随 `identity/key-management.md` 的 canonical 形式，本节描述只作为引导。
 
 Client-local secret storage 的存储格式仍可使用本节的 `ck.secret_storage.v1` envelope，但其字段不进入任何 wire / hash / 签名输入；服务端不接受该 envelope。
 
@@ -1087,12 +1087,12 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
 
 ```json
 {
-  "backup_id": "ck:backup:01964138-8000-7000-8000-000000000000",
+  "backup_id": "ak:backup:01964138-8000-7000-8000-000000000000",
   "actor_id": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-  "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+  "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "backup_class": "mls_history",
   "backup_version": "kb_1",
-  "series_id": "ck:backup_series:01964138-1000-7000-8000-000000000000",
+  "series_id": "ak:backup_series:01964138-1000-7000-8000-000000000000",
   "series_seq": 0,
   "supersedes": null,
   "created_at": "2026-04-26T00:00:00Z",
@@ -1106,12 +1106,12 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
     }
   },
   "domain_separation": {
-    "hkdf_info": "cokret-key-backup/mls_history/mls_epoch/v1",
+    "hkdf_info": "arkret-key-backup/mls_history/mls_epoch/v1",
     "subdomain": "mls_epoch",
     "aead_aad": {
       "schema": "ck.schema.key_backup.v1",
       "actor_id": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-      "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+      "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
       "backup_class": "mls_history",
       "backup_version": "kb_1",
       "created_at": "2026-04-26T00:00:00Z",
@@ -1121,17 +1121,17 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
   "contents": [
     {
       "item_type": "mls_epoch_secret",
-      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
       "mls_group_id": "base64url",
       "epoch": 42,
-      "first_event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
-      "last_event_id": "ck:event:019640ee-0000-7000-8000-000000000000"
+      "first_event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
+      "last_event_id": "ak:event:019640ee-0000-7000-8000-000000000000"
     }
   ],
   "ciphertext": "base64url...",
   "ciphertext_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
   "auth_data": {
-    "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+    "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
     "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_device_01964137",
     "signature_algorithm": "Ed25519",
     "signature": "base64url...",
@@ -1210,7 +1210,7 @@ DELETE /_cokret/self/keys/backups/{backup_id}
 
 ## 13. Realm Key Share and Withholding
 
-Cokret 使用 `ck.realm_key.share` 共享历史解密材料。`share_class="member_device"` 是普通成员设备历史交付路径；共享前发送设备 MUST 检查：
+Arkret 使用 `ck.realm_key.share` 共享历史解密材料。`share_class="member_device"` 是普通成员设备历史交付路径；共享前发送设备 MUST 检查：
 
 - 接收设备属于目标 principal。
 - 设备未撤销。
@@ -1328,8 +1328,8 @@ Schema id：`ck.schema.cross_signing_reset.v1`
   "realm_id": "<principal_control_realm_id>",
   "actor_id": "did:webvh:...",
   "payload": {
-    "trust_domain": "ck:trust_domain:did.webvh.example",
-    "reset_event_id": "ck:event:0196414c-5000-7000-8000-000000000000",
+    "trust_domain": "ak:trust_domain:did.webvh.example",
+    "reset_event_id": "ak:event:0196414c-5000-7000-8000-000000000000",
     "principal_id": "did:webvh:...",
     "previous_generation": 1,
     "new_generation": 2,
@@ -1349,8 +1349,8 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
 
 ```json schema=schemas/cross-signing-reset.schema.json
 {
-  "trust_domain": "ck:trust_domain:did.webvh.example",
-  "reset_event_id": "ck:event:0196414c-5000-7000-8000-000000000000",
+  "trust_domain": "ak:trust_domain:did.webvh.example",
+  "reset_event_id": "ak:event:0196414c-5000-7000-8000-000000000000",
   "principal_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "previous_generation": 1,
   "new_generation": 2,
@@ -1478,7 +1478,7 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
      "trust_domain": "<current trust domain>",
      "policy_id": "<active recovery policy id snapshotted by the session>",
      "policy_version": 1,
-     "recovery_session_id": "ck:recovery_session:<uuidv7>",
+     "recovery_session_id": "ak:recovery_session:<uuidv7>",
      "ssk_generation": 1,
      "challenge": "<256-bit base64url session challenge>",
      "created_at": "<session created_at>",

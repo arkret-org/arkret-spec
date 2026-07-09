@@ -332,7 +332,7 @@
       "applies_to_profiles": [
         "ck.profile.media_service_binding.v1"
       ],
-      "description": "Recording ready results MUST carry ck.schema.call_recording_artifact.v1 metadata bound to the recording start event, Cokret blob pipeline, recording exporter label/context, retention policy, deletion audit trigger, and erasure receipt.",
+      "description": "Recording ready results MUST carry ck.schema.call_recording_artifact.v1 metadata bound to the recording start event, Arkret blob pipeline, recording exporter label/context, retention policy, deletion audit trigger, and erasure receipt.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/call-state-media-lifecycle-fixture.json"
@@ -1012,7 +1012,7 @@
       "vector_id": "ck.vector.federation.reducer_profile_digest.v1",
       "status": "active",
       "domain": "federation",
-      "description": "service_binding_ref.reducer_profile_digest is computed per federation.md section 4.1.1 from the reducer-profile-registry.json digest_input row (Cokret canonical JSON, sha256); receiver recomputes and byte-compares, rejecting the whole batch with reducer_profile_mismatch on any divergence.",
+      "description": "service_binding_ref.reducer_profile_digest is computed per federation.md section 4.1.1 from the reducer-profile-registry.json digest_input row (Arkret canonical JSON, sha256); receiver recomputes and byte-compares, rejecting the whole batch with reducer_profile_mismatch on any divergence.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/federation-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
@@ -1415,7 +1415,7 @@
       "applies_to_profiles": [
         "ck.profile.mimi_interop.v1"
       ],
-      "description": "MIMI Provider Facade directory claims are accepted only when the Cokret profile and pinned MIMI Internet-Draft versions match.",
+      "description": "MIMI Provider Facade directory claims are accepted only when the Arkret profile and pinned MIMI Internet-Draft versions match.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
         "spec/v1/zh/extensions/mimi-interop.md",
@@ -1443,7 +1443,7 @@
       "applies_to_profiles": [
         "ck.profile.mimi_interop.v1"
       ],
-      "description": "MIMI key-material exchange maps to the Cokret KeyPackage claim lifecycle: the claimed package is single-use, becomes consumed after Welcome, and enumeration-sensitive failures share one public shape.",
+      "description": "MIMI key-material exchange maps to the Arkret KeyPackage claim lifecycle: the claimed package is single-use, becomes consumed after Welcome, and enumeration-sensitive failures share one public shape.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
         "spec/v1/zh/extensions/mimi-interop.md",
@@ -1457,7 +1457,7 @@
       "applies_to_profiles": [
         "ck.profile.mimi_interop.v1"
       ],
-      "description": "MIMI message/content ingress preserves the original envelope digest and MIMI message identity when mapping into Cokret events.",
+      "description": "MIMI message/content ingress preserves the original envelope digest and MIMI message identity when mapping into Arkret events.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
         "spec/v1/zh/extensions/mimi-interop.md",
@@ -1485,7 +1485,7 @@
       "applies_to_profiles": [
         "ck.profile.mimi_interop.v1"
       ],
-      "description": "MIMI consent state is isolated from Cokret Realm read/write capability grants.",
+      "description": "MIMI consent state is isolated from Arkret Realm read/write capability grants.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/mimi-interop-fixture.json",
         "spec/v1/zh/extensions/mimi-interop.md",

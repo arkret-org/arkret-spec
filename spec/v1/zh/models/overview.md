@@ -19,7 +19,7 @@ see_also:
 
 ## 1. 目标
 
-Cokret 的核心数据模型是一张以 Realm 为边界、以标准对象和开放 Morph 共同组成的可审计协作图。本目录定义协作图中所有标准对象的语义、字段、行为与互相之间的关系。
+Arkret 的核心数据模型是一张以 Realm 为边界、以标准对象和开放 Morph 共同组成的可审计协作图。本目录定义协作图中所有标准对象的语义、字段、行为与互相之间的关系。
 
 阅读建议：
 
@@ -29,7 +29,7 @@ Cokret 的核心数据模型是一张以 Realm 为边界、以标准对象和开
 
 ## 2. Typed ID 一览
 
-每个 Cokret 对象的种类由 `id` 的 typed-id 前缀（`ck:<kind>:`）唯一决定，canonical object 上不再单独写 `type` 字段。typed-id kind 的完整集合与 wire form 以 [`artifacts/registry/id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)（生成自 contract-catalog）为准；本表仅把协作图核心对象索引到详细文档，不是完整 kind 清单。
+每个 Arkret 对象的种类由 `id` 的 typed-id 前缀（`ck:<kind>:`）唯一决定，canonical object 上不再单独写 `type` 字段。typed-id kind 的完整集合与 wire form 以 [`artifacts/registry/id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)（生成自 contract-catalog）为准；本表仅把协作图核心对象索引到详细文档，不是完整 kind 清单。
 
 DID 的使用边界见 [common-fields.md §4.1](./common-fields.md#41-did-适用边界)：DID 标识 actor / principal / issuer / service / device 等主体，不替代 `ck:<kind>:` 对象 ID。
 
@@ -90,15 +90,15 @@ DID 的使用边界见 [common-fields.md §4.1](./common-fields.md#41-did-适用
 
 ```mermaid
 flowchart TB
-    Event["ck:event:<br/>签名事件（事实根）"]
+    Event["ak:event:<br/>签名事件（事实根）"]
 
-    subgraph SP ["ck:realm: — security / sync / auth / E2EE 边界"]
+    subgraph SP ["ak:realm: — security / sync / auth / E2EE 边界"]
         direction TB
-        Space["ck:space:<br/>kind=board / list / ..."]
-        Strand["ck:strand:"]
-        Morph["ck:morph:"]
-        Msg["ck:message:<br/>(discussion 时间线)"]
-        Rel["ck:relation:"]
+        Space["ak:space:<br/>kind=board / list / ..."]
+        Strand["ak:strand:"]
+        Morph["ak:morph:"]
+        Msg["ak:message:<br/>(discussion 时间线)"]
+        Rel["ak:relation:"]
 
         Space -- "contains" --> Strand
         Space -- "parent_space_id（导航，可跨 Realm）" --> Space
@@ -108,10 +108,10 @@ flowchart TB
         Rel -. "from_ref / to_ref" .-> Space
     end
 
-    Circle["ck:circle:<br/>(Realm 内子事件边界)"]
+    Circle["ak:circle:<br/>(Realm 内子事件边界)"]
     Strand -. "scope_circle_id<br/>（窄化 effective scope）" .-> Circle
 
-    View["ck:view:<br/>投影定义（不持有真相）"]
+    View["ak:view:<br/>投影定义（不持有真相）"]
     View -. "投影" .-> Strand
     View -. "投影" .-> Space
     View -. "投影" .-> Msg

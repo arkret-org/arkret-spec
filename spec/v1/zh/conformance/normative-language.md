@@ -11,7 +11,7 @@ see_also:
 
 ## 1. 范围
 
-本文集中定义 Cokret v1 规范使用的规范关键字（normative keywords）。其他规范文档 SHOULD 通过一行引用本文，而不再重复关键字解释。
+本文集中定义 Arkret v1 规范使用的规范关键字（normative keywords）。其他规范文档 SHOULD 通过一行引用本文，而不再重复关键字解释。
 
 ## 2. RFC 2119 / RFC 8174 关键字与中文规范词
 

@@ -22,25 +22,25 @@ Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `c
 
 ```json
 {
-  "id": "ck:snapshot:0196419a-8000-7000-8000-000000000000",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "id": "ak:snapshot:0196419a-8000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "reducer_profile": "ck.reducer.v1",
   "security_class": "high_assurance",
   "schema_profile_refs": ["ck.profile.core_event_store.v1"],
   "frontier": {
-    "event_ids": ["ck:event:019640ed-8000-7000-8000-000000000000"],
+    "event_ids": ["ak:event:019640ed-8000-7000-8000-000000000000"],
     "timeline_hlc": "01970e589d21-0004-a13f9c2e"
   },
   "event_set_commitment": {
     "algorithm": "merkle_event_set_v1",
     "root": "sha256:...",
     "covered_event_count": 42000,
-    "covered_event_ids": ["ck:event:019640ed-8000-7000-8000-000000000000"]
+    "covered_event_ids": ["ak:event:019640ed-8000-7000-8000-000000000000"]
   },
   "state_digest": "sha256:...",
   "chunks": [
     {
-      "chunk_ref": "ck:blob:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "chunk_ref": "ak:blob:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "size_bytes": 524288
     }
@@ -60,7 +60,7 @@ Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `c
     "issuer": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example",
     "authority_kind": "realm_policy_snapshot_issuer",
     "auth_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    "auth_frontier": ["ck:event:019640ed-8000-7000-8000-000000000000"],
+    "auth_frontier": ["ak:event:019640ed-8000-7000-8000-000000000000"],
     "checked_at": "2026-04-26T00:00:00Z"
   },
   "signature": {
@@ -78,7 +78,7 @@ Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `c
 
 ```json
 {
-  "chunk_ref": "ck:blob:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "chunk_ref": "ak:blob:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
   "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
   "size_bytes": 524288
 }
@@ -89,19 +89,19 @@ Chunk descriptor 中的 `chunk_ref` 指向一个 snapshot chunk payload。Payloa
 ```json
 {
   "type": "snapshot_chunk",
-  "snapshot_ref": "ck:snapshot:0196419a-8000-7000-8000-000000000000",
+  "snapshot_ref": "ak:snapshot:0196419a-8000-7000-8000-000000000000",
   "index": 0,
   "reducer_profile": "ck.reducer.v1",
   "items": [
     {
       "kind": "strand",
-      "id": "ck:strand:019640c5-0000-7000-8000-000000000000",
+      "id": "ak:strand:019640c5-0000-7000-8000-000000000000",
       "object": {
-        "id": "ck:strand:019640c5-0000-7000-8000-000000000000",
+        "id": "ak:strand:019640c5-0000-7000-8000-000000000000",
         "kind": "strand",
         "schema": "ck.schema.strand.v1"
       },
-      "source_event_id": "ck:event:019640ed-8000-7000-8000-000000000000"
+      "source_event_id": "ak:event:019640ed-8000-7000-8000-000000000000"
     }
   ],
   "conflict_records": [],
@@ -194,12 +194,12 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
 
 ```json
 {
-  "snapshot_ref": "ck:snapshot:0196419a-8000-7000-8000-000000000000",
-  "challenge_id": "ck:transaction:019640c8-8000-7000-8000-000000000000",
+  "snapshot_ref": "ak:snapshot:0196419a-8000-7000-8000-000000000000",
+  "challenge_id": "ak:transaction:019640c8-8000-7000-8000-000000000000",
   "samples": [
     {
       "kind": "event_id",
-      "event_ids": ["ck:event:019640ed-8000-7000-8000-000000000000", "ck:event:019640ed-8000-7000-8000-000000000001"]
+      "event_ids": ["ak:event:019640ed-8000-7000-8000-000000000000", "ak:event:019640ed-8000-7000-8000-000000000001"]
     },
     {
       "kind": "actor_seq_range",
@@ -216,17 +216,17 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
 
 ```json
 {
-  "snapshot_ref": "ck:snapshot:0196419a-8000-7000-8000-000000000000",
-  "challenge_id": "ck:transaction:019640c8-8000-7000-8000-000000000000",
+  "snapshot_ref": "ak:snapshot:0196419a-8000-7000-8000-000000000000",
+  "challenge_id": "ak:transaction:019640c8-8000-7000-8000-000000000000",
   "commitment_algorithm": "merkle_event_set_v1",
   "commitment_root": "sha256:...",
   "proofs": [
     {
       "kind": "event_id",
-      "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
+      "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
       "merkle_branch": ["sha256:...", "sha256:..."],
       "leaf_canonical_entry": {
-        "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
+        "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
         "event_digest": "sha256:...",
         "actor_id": "did:webvh:...:alice.example",
         "actor_seq": 100,
@@ -239,7 +239,7 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
       "from_seq": 100,
       "to_seq": 199,
       "ordered_set_slice": [
-        {"event_id": "ck:event:...", "event_digest": "sha256:...", "actor_seq": 100, "hlc": "..."},
+        {"event_id": "ak:event:...", "event_digest": "sha256:...", "actor_seq": 100, "hlc": "..."},
         "..."
       ],
       "gap_attribution": [
@@ -286,13 +286,13 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
   "ciphertext": "base64url",
   "aad_visibility_event_id": "routing_digest",
   "aad": {
-    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
     "event_kind": "ck.message.create",
     "event_ref_digest": "sha256:..."
   },
   "key_ref": {
     "algorithm": "MLS",
-    "group_state_ref": "ck:event:..."
+    "group_state_ref": "ak:event:..."
   },
   "payload_digest": "sha256:...",
   "aad_digest": "sha256:..."

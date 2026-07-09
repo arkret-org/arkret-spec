@@ -228,7 +228,7 @@ applicant 直接提交：
 {
   "kind": "ck.member.state",
   "payload": {
-    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
     "actor_id": "did:webvh:z2dmjYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:bob",
     "membership": "join",
     "delivery_status": "routable",
@@ -238,7 +238,7 @@ applicant 直接提交：
       "binding_scope": "realm",
       "binding_source": "explicit",
       "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
-      "service_acceptance_ref": "ck:event:0196419b-0000-7000-8000-000000000001"
+      "service_acceptance_ref": "ak:event:0196419b-0000-7000-8000-000000000001"
     },
     "gate_proofs": [
       {
@@ -386,8 +386,8 @@ Realm 主 MLS group 不包含尚未 join 的 applicant，因此申请正文不�
     "info": "ck.realm.member_application.envelope.v1 || 0x00 || ck:realm:0196419b-0000-7000-8000-000000000000 || 0x00 || sha256:...",
     "ciphertext": "base64url:...",
     "recipients": [
-      {"reviewer_did": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice", "device_id": "ck:device:...", "recipient_hpke_kid": "did:webvh:...#ck_device_01HV_hpke", "enc": "base64url:...", "wrapped_key": "base64url:..."},
-      {"reviewer_did": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:carol", "device_id": "ck:device:...", "recipient_hpke_kid": "did:webvh:...#ck_device_01HW_hpke", "enc": "base64url:...", "wrapped_key": "base64url:..."}
+      {"reviewer_did": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice", "device_id": "ak:device:...", "recipient_hpke_kid": "did:webvh:...#ck_device_01HV_hpke", "enc": "base64url:...", "wrapped_key": "base64url:..."},
+      {"reviewer_did": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:carol", "device_id": "ak:device:...", "recipient_hpke_kid": "did:webvh:...#ck_device_01HW_hpke", "enc": "base64url:...", "wrapped_key": "base64url:..."}
     ]
   }
 }
@@ -399,7 +399,7 @@ reviewer 加 / 退职导致 envelope 失效时，应用层 SHOULD 提示 applica
 
 **Envelope recipient capability 绑定（normative）**：`encryption_envelope.recipients[]` 中列出的每个 reviewer device，applicant / 提交服务在构造 envelope 时 MUST 校验其对应 reviewer DID 在该 Event 的 CBA basis 下仍持有有效 `review_capability`，且该 device 仍是该 reviewer 当前有效 device；MUST NOT 向已撤销 capability 或已退役 device 封装 `wrapped_key`。reducer / 投递服务在投递**新** envelope 时 MUST 对每个 recipient device 重新校验上述两项（reviewer DID 仍持有有效 `review_capability`、device 仍有效未退役），任一不满足 MUST 拒绝向该 device 投递，reason `reviewer_capability_revoked`。注意这是 best-effort 前向控制：**reviewer 退职前已经解密的历史 application 正文无法被协议回收**——一旦某 device 在持有有效 capability 期间收到并解出 `wrapped_key`，撤销 capability 只能阻止后续新 envelope 投递，不能撤销既有明文副本。需要严格前向保密的部署 SHOULD 改用 §8.2(1) Reviewer Sub-Group MLS 并在 reviewer 退职时 rotate epoch。
 
-申请正文 MUST NOT 进入 `ck.member.state{knock}` Control Move（该 Control Move 公开），所有自由文本仅出现在受加密保护的 `member.application.encryption_envelope` 中。Matrix `m.room.member{knock}.reason` 因默认对部分客户端可见而成为 spam 通道——Cokret 通过结构上禁止 knock Control Move 携带正文规避该缺陷。
+申请正文 MUST NOT 进入 `ck.member.state{knock}` Control Move（该 Control Move 公开），所有自由文本仅出现在受加密保护的 `member.application.encryption_envelope` 中。Matrix `m.room.member{knock}.reason` 因默认对部分客户端可见而成为 spam 通道——Arkret 通过结构上禁止 knock Control Move 携带正文规避该缺陷。
 
 ## 9. Membership 状态机扩展
 
@@ -460,7 +460,7 @@ Policy Server（[`../authz/policy-server.md`](../authz/policy-server.md)）声�
         "actor_id": "did:webvh:z2dmjYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:applicant",
         "action": "member.application",
         "request_canonical_digest": "sha256:...",
-        "device_id": "ck:device:01964137-0000-7000-8000-000000000000"
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000000"
       }
     }
   ]
@@ -487,7 +487,7 @@ applicant 完成挑战后，重新提交 join / application Control Move，在 `
 
 ## 13. 与 MIMI 的映射
 
-[`../extensions/mimi-interop.md` §9.1](../extensions/mimi-interop.md) `participation` 中 `join_policy` 子字段 SHOULD 由 facade 在 Cokret `realm.join_policy` component 与 MIMI room policy 之间双向归约；MIMI 侧暂未规范的 gate 类型作为 Cokret 专属 component 标记 `application/vnd.cokret.component+json`。MIMI facade 接收外部 join 请求时 SHOULD 至少强制执行 `claim_required` 与 `parent_membership` gate；`application_form` / `manual_review` / `challenge_response` 在 MIMI 客户端不支持 inline 表达时，facade SHOULD 拒绝跨域请求并指引 applicant 通过 Cokret 原生客户端完成。
+[`../extensions/mimi-interop.md` §9.1](../extensions/mimi-interop.md) `participation` 中 `join_policy` 子字段 SHOULD 由 facade 在 Arkret `realm.join_policy` component 与 MIMI room policy 之间双向归约；MIMI 侧暂未规范的 gate 类型作为 Arkret 专属 component 标记 `application/vnd.arkret.component+json`。MIMI facade 接收外部 join 请求时 SHOULD 至少强制执行 `claim_required` 与 `parent_membership` gate；`application_form` / `manual_review` / `challenge_response` 在 MIMI 客户端不支持 inline 表达时，facade SHOULD 拒绝跨域请求并指引 applicant 通过 Arkret 原生客户端完成。
 
 ## 14. 完整示例
 
@@ -497,7 +497,7 @@ applicant 完成挑战后，重新提交 join / application Control Move，在 `
 {
   "candidate_kind": "realm.join_policy",
   "payload": {
-    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
     "value": {
       "combinator": "any",
       "gates": [

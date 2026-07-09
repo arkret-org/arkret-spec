@@ -59,7 +59,7 @@ merged_into:
 
 ## 2. 动机
 
-当前 Cokret 已经有表达 AI Agent 所需的基础构件:
+当前 Arkret 已经有表达 AI Agent 所需的基础构件:
 
 - Actor Profile 支持 `actor_kind="agent"`。
 - `ck.identity.accountability_grant` 可表达 agent 对谁负责。
@@ -100,7 +100,7 @@ merged_into:
 
 ### 4.2 Native personal agent
 
-Native personal agent 由现有 Cokret primitive 组合表达:
+Native personal agent 由现有 Arkret primitive 组合表达:
 
 1. Agent DID principal。
 2. `actor_kind="agent"` 的 Actor Profile。
@@ -151,7 +151,7 @@ profile: ck.profile.personal_agent_provisioning.v1
           "kind": "object",
           "object_type": "strand",
           "match_scope": "object_refs",
-          "allowed_object_refs": ["ck:strand:01970000-0000-7000-8000-000000000001"]
+          "allowed_object_refs": ["ak:strand:01970000-0000-7000-8000-000000000001"]
         }
       ],
       "constraints": [
@@ -169,7 +169,7 @@ profile: ck.profile.personal_agent_provisioning.v1
           "kind": "object",
           "object_type": "strand",
           "match_scope": "object_refs",
-          "allowed_object_refs": ["ck:strand:01970000-0000-7000-8000-000000000001"]
+          "allowed_object_refs": ["ak:strand:01970000-0000-7000-8000-000000000001"]
         }
       ],
       "constraints": [
@@ -215,9 +215,9 @@ profile: ck.profile.personal_agent_provisioning.v1
 ```json
 {
   "agent_principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
-  "agent_profile_event_id": "ck:event:01970000-0000-7000-8000-000000000010",
-  "accountability_grant_event_id": "ck:event:01970000-0000-7000-8000-000000000011",
-  "initial_capability_grant_ids": ["ck:grant:01970000-0000-7000-8000-000000000012"],
+  "agent_profile_event_id": "ak:event:01970000-0000-7000-8000-000000000010",
+  "accountability_grant_event_id": "ak:event:01970000-0000-7000-8000-000000000011",
+  "initial_capability_grant_ids": ["ak:grant:01970000-0000-7000-8000-000000000012"],
   "pairing": {
     "pairing_request_id": "01970000-0000-7000-8000-000000000020",
     "pairing_code": "R7K9-2M4P",
@@ -229,7 +229,7 @@ profile: ck.profile.personal_agent_provisioning.v1
 
 `pairing_request_id` 是 account/auth profile-local artifact ID,不是 `ck:<kind>:<uuid>` protocol object id。Accepted schema MUST 显式声明其 opaque UUIDv7 wire form、TTL 与单次消费规则;其它 durable Event 或 object 若引用 pairing approval 结果,应引用 accepted event (`*_event_id` / `authorization_ref`),而不是把 pairing request 当作可长期解析的 `_ref`。
 
-响应 MUST NOT 包含长期 private key、refresh token 或可直接长期调用 Events API 的 bearer token。也 MUST NOT 引入 custom URI scheme(例如 `cokret://`)承载 pairing / management / approval 入口。客户端跳转链接由客户端自己用 deployment 已知的 `cokret_base_url` 拼接 HTTPS URL,例如 `https://<cokret_base_url>/auth/account/agent-pair?request=<pairing_request_id>`;移动端依赖 OS Universal Links / App Links 把 HTTPS URL 路由到原生 app。这样 spec 不背 URI scheme 注册债,联邦多实例下 host 也不会丢失。
+响应 MUST NOT 包含长期 private key、refresh token 或可直接长期调用 Events API 的 bearer token。也 MUST NOT 引入 custom URI scheme(例如 `arkret://`)承载 pairing / management / approval 入口。客户端跳转链接由客户端自己用 deployment 已知的 `cokret_base_url` 拼接 HTTPS URL,例如 `https://<cokret_base_url>/auth/account/agent-pair?request=<pairing_request_id>`;移动端依赖 OS Universal Links / App Links 把 HTTPS URL 路由到原生 app。这样 spec 不背 URI scheme 注册债,联邦多实例下 host 也不会丢失。
 
 #### 4.3.1 Provisioning `status` 枚举
 
@@ -268,7 +268,7 @@ Provisioning 完成后,controller 侧应看到管理信息:
   "accountable_principal_ids": ["did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice"],
   "grants": [
     {
-      "grant_id": "ck:grant:01970000-0000-7000-8000-000000000012",
+      "grant_id": "ak:grant:01970000-0000-7000-8000-000000000012",
       "summary": "Read selected Strand and write summary track until 2026-06-26"
     }
   ]
@@ -279,8 +279,8 @@ Agent runtime 只需要 bootstrap material:
 
 ```json
 {
-  "cokret_base_url": "https://cokret.example",
-  "service_did": "did:webvh:z8CokretnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:cokret.example",
+  "cokret_base_url": "https://arkret.example",
+  "service_did": "did:webvh:z8CokretnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:arkret.example",
   "agent_principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
   "pairing_request_id": "01970000-0000-7000-8000-000000000020",
   "pairing_code": "R7K9-2M4P",
@@ -322,7 +322,7 @@ profile: ck.profile.personal_agent_provisioning.v1
   },
   "proof_of_possession": {
     "challenge": "base64url...",
-    "audience": "https://cokret.example",
+    "audience": "https://arkret.example",
     "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "expires_at": "2026-05-26T12:00:00Z",
     "signature": "base64url..."
@@ -333,7 +333,7 @@ profile: ck.profile.personal_agent_provisioning.v1
     "version": "0.1.0"
   },
   "authorize_event": {
-    "event_id": "ck:event:01970000-0000-7000-8000-000000000021",
+    "event_id": "ak:event:01970000-0000-7000-8000-000000000021",
     "kind": "ck.agent.key.authorize",
     "payload": {
       "agent_principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
@@ -376,10 +376,10 @@ profile: ck.profile.agent_auth.v1
 {
   "principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
   "requested_scope": ["ck.self.events.stream.subscribe", "ck.message.create"],
-  "agent_key_authorization_ref": "ck:event:01970000-0000-7000-8000-000000000021",
+  "agent_key_authorization_ref": "ak:event:01970000-0000-7000-8000-000000000021",
   "agent_scope_request": {
-    "realm_ids": ["ck:realm:01970000-0000-7000-8000-000000000000"],
-    "strand_ids": ["ck:strand:01970000-0000-7000-8000-000000000001"],
+    "realm_ids": ["ak:realm:01970000-0000-7000-8000-000000000000"],
+    "strand_ids": ["ak:strand:01970000-0000-7000-8000-000000000001"],
     "track_names": ["summary"]
   },
   "dpop_binding_proof": {
@@ -390,7 +390,7 @@ profile: ck.profile.agent_auth.v1
     "verification_method": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant#runtime-key-1",
     "challenge": "base64url...",
     "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    "audience": "https://cokret.example",
+    "audience": "https://arkret.example",
     "expires_at": "2026-05-26T10:05:00Z",
     "signature": "base64url..."
   }
@@ -412,8 +412,8 @@ Wire 影响:本提案不新增 sibling endpoint,也不引入顶层 `grant_type` 
   "expires_at": "2026-05-26T10:30:00Z",
   "granted_scope": ["ck.self.events.stream.subscribe", "ck.message.create"],
   "scope_details": {
-    "realm_ids": ["ck:realm:01970000-0000-7000-8000-000000000000"],
-    "strand_ids": ["ck:strand:01970000-0000-7000-8000-000000000001"],
+    "realm_ids": ["ak:realm:01970000-0000-7000-8000-000000000000"],
+    "strand_ids": ["ak:strand:01970000-0000-7000-8000-000000000001"],
     "track_names": ["summary"]
   }
 }
@@ -501,8 +501,8 @@ Approval draft SHOULD 存在 controller 的 encrypted account data 或 controlle
   "owner_principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
   "agent_principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
   "target": {
-    "realm_id": "ck:realm:01970000-0000-7000-8000-000000000000",
-    "strand_id": "ck:strand:01970000-0000-7000-8000-000000000001",
+    "realm_id": "ak:realm:01970000-0000-7000-8000-000000000000",
+    "strand_id": "ak:strand:01970000-0000-7000-8000-000000000001",
     "track_name": "summary"
   },
   "proposed_action": "ck.message.create",
@@ -592,7 +592,7 @@ Agent MUST NOT 自动继承 controller 在 Realm 内的最大权限。即便 con
       "kind": "object",
       "object_type": "strand",
       "match_scope": "object_refs",
-      "allowed_object_refs": ["ck:strand:01970000-0000-7000-8000-000000000001"]
+      "allowed_object_refs": ["ak:strand:01970000-0000-7000-8000-000000000001"]
     }
   ],
   "constraints": [
@@ -635,7 +635,7 @@ Act-on-behalf:
 {
   "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
   "executed_by": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
-  "authorization_ref": "ck:grant:01970000-0000-7000-8000-000000000030",
+  "authorization_ref": "ak:grant:01970000-0000-7000-8000-000000000030",
   "kind": "ck.message.create"
 }
 ```
@@ -743,7 +743,7 @@ Agent key rotation SHOULD 复用 `ck.agent.key.rotate`,并要求 replacement key
 
 ### 6.2 为什么不让所有 AI Agent 都使用 Ghost Actor
 
-Ghost Actor 适合 Applet-managed bridge actors 和外部托管 actor 池。但"我的 native AI assistant"需要可被 mention、grant、revoke、管理的一等 Cokret actor principal,因此更适合 native agent principal。
+Ghost Actor 适合 Applet-managed bridge actors 和外部托管 actor 池。但"我的 native AI assistant"需要可被 mention、grant、revoke、管理的一等 Arkret actor principal,因此更适合 native agent principal。
 
 ### 6.3 为什么不让 agent 继承用户权限
 

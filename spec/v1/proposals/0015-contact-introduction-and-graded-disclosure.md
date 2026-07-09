@@ -56,7 +56,7 @@ contact request 没有任何随请求传达的人类可读上下文。真实社�
 ```json
 {
   "kind": "consent_grant",
-  "consent_grant_ref": "ck:event:0190a9c2-1f3e-7a2b-9c4d-1122334455aa",
+  "consent_grant_ref": "ak:event:0190a9c2-1f3e-7a2b-9c4d-1122334455aa",
   "consent_id": "holder-consent-cell-7f3a"
 }
 ```
@@ -155,7 +155,7 @@ D1–D4 设计不变,以下为本轮在实现对齐过程中新增/补登的配�
 - `spec/v1/artifacts/schemas/peer-contact-delivery-request.schema.json`(新增)+ operation `ck.peer.contacts.submit`(`POST /_cokret/peer/contacts`):Principal Server 间私有 contact fact 投递面,承载 `ck.contact.requested/accepted/rejected/tombstoned` envelope;响应默认 opaque,沿用 D2 分级披露边界。新增 schema id 与 operation 已登记进 `contract-catalog.json` 及派生 registry。
 - `spec/v1/artifacts/schemas/contact-operations.schema.json`:`contact_request_request_body` 加可选 `recipient_service_did`、`contact_respond_request_body` 加可选 `requester_service_did`(均为 `$ref` did),用于 closed DTO 显式携带对端投递服务 DID。
 - `spec/v1/artifacts/schemas/contact-operations.schema.json`:`contact_list_row` 加 `invite_consent_grant_ref` 与 `peer_service_did`,把 D1 的 consent_grant 引入证据引用与对端投递服务 DID surface 到 holder 联系人投影。
-- operation `ck.self.invite_receive_policy.get`(`GET /_cokret/self/invite-receive-policy`)与 `ck.self.invite_receive_policy.set`(`POST`):读取/替换 subject 私有 invite-receive policy(D2/D3 的 `disclosure` 与 `blocked_subjects` 即在此 policy 上配置)。两条 operation 已补登 `contract-catalog.json`、`openapi/cokret-service-api.openapi.yaml`、`bindings/non-http-bindings.yaml`、`zh/sync/service-http-binding.md` 操作字段表,并随之更新 `overview/release-readiness.md` operation 计数(123→125)。
+- operation `ck.self.invite_receive_policy.get`(`GET /_cokret/self/invite-receive-policy`)与 `ck.self.invite_receive_policy.set`(`POST`):读取/替换 subject 私有 invite-receive policy(D2/D3 的 `disclosure` 与 `blocked_subjects` 即在此 policy 上配置)。两条 operation 已补登 `contract-catalog.json`、`openapi/arkret-service-api.openapi.yaml`、`bindings/non-http-bindings.yaml`、`zh/sync/service-http-binding.md` 操作字段表,并随之更新 `overview/release-readiness.md` operation 计数(123→125)。
 - `ck.self.direct_conversation.resolve`:DM Realm 解析改为事件化(resolve/create 经 durable 事件而非纯投影),与 D1 accepted-contact + direct_message consent 双 gate 衔接。
 
 ## 5. Rationale & alternatives

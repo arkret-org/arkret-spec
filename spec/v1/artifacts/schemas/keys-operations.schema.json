@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/keys-operations.schema.json",
-  "title": "Cokret Device Key Operation DTOs",
+  "$id": "https://arkret.org/v1/schemas/keys-operations.schema.json",
+  "title": "Arkret Device Key Operation DTOs",
   "description": "Closed request and response DTOs for ck.keys.{upload,query,claim} and ck.keys.backups.{put,list,delete}. Individual OpenAPI components reference the $defs entries in this bundle.",
   "oneOf": [
     {

@@ -7,7 +7,7 @@ updated: 2026-05-25
 status: deferred-to-v1.1
 created: 2026-05-23
 authors:
-  - did:webvh:z8kSru9qAfd1G7AvcVjggdEKy:cokret.example
+  - did:webvh:z8kSru9qAfd1G7AvcVjggdEKy:arkret.example
 depends_on: [CKP-0002]
 ---
 
@@ -88,7 +88,7 @@ Schema id: `ck.schema.workflow.v1`
     },
     {
       "kind": "field_filled",
-      "field_def_ref": "ck:field_def:<reviewer-field>"
+      "field_def_ref": "ak:field_def:<reviewer-field>"
     }
   ],
   "on_enter_event": null

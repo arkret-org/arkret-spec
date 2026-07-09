@@ -58,8 +58,8 @@
           "profile": "ck.profile.mimi_interop.v1",
           "mimi_room_uri": "mimi://mimi.example.com/rooms/01JSMIMI",
           "binding_scope": {
-            "realm_id": "ck:realm:0110c853-1d09-7044-b214-c74240110c85",
-            "strand_id": "ck:strand:0110c853-1d09-7044-b214-c74240110c85"
+            "realm_id": "ak:realm:0110c853-1d09-7044-b214-c74240110c85",
+            "strand_id": "ak:strand:0110c853-1d09-7044-b214-c74240110c85"
           },
           "hub_provider": "did:webvh:z6mkfixture:mimi.example.com",
           "local_provider_role": "hub",
@@ -75,7 +75,7 @@
       "input": {
         "operation_id": "ck.open.mimi.exchange.request_key_material",
         "target_identifier": "mimi://remote.example/alice",
-        "realm_id": "ck:realm:0110c853-1d09-7044-b214-c74240110c85",
+        "realm_id": "ak:realm:0110c853-1d09-7044-b214-c74240110c85",
         "mimi_room_uri": "mimi://mimi.example.com/rooms/01JSMIMI",
         "requester_provider": "did:webvh:z6mkfixture:mimi.example.com",
         "required_content_profile": "ck.profile.mimi_interop.v1",
@@ -89,7 +89,7 @@
         "response": {
           "claim_id": "mls-keypackage-claim-mimi-interop-1",
           "keypackage_ref": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-          "device_binding": "ck:device:0110c853-1d09-7044-b214-c74240110c85",
+          "device_binding": "ak:device:0110c853-1d09-7044-b214-c74240110c85",
           "expires_at": "2026-04-30T01:00:00Z",
           "supported_capabilities": [
             "mls-rfc9420"
@@ -134,7 +134,7 @@
       "input": {
         "consent_state": "accepted",
         "target_identifier": "mimi://remote.example/alice",
-        "realm_id": "ck:realm:0110c853-1d09-7044-b214-c74240110c85"
+        "realm_id": "ak:realm:0110c853-1d09-7044-b214-c74240110c85"
       },
       "expected": "consent_does_not_grant_space_read_or_write_capability"
     },
@@ -142,7 +142,7 @@
       "vector_id": "ck.vector.mimi.proxy_download_policy.v1",
       "name": "proxy_download_policy",
       "input": {
-        "blob_ref": "ck:blob:0110c853-1d09-7044-b214-c74240110c85",
+        "blob_ref": "ak:blob:0110c853-1d09-7044-b214-c74240110c85",
         "asset_privacy_policy": "provider_proxy"
       },
       "expected": "direct_object_store_url_is_not_returned"

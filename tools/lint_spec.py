@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lint Cokret prose specification (`spec/v1/zh/**/*.md`).
+"""Lint Arkret prose specification (`spec/v1/zh/**/*.md`).
 
 P0/P1 checks aligned with `_improve.md`:
 
@@ -42,7 +42,7 @@ except ImportError:  # pragma: no cover - CI installs the dependency.
 ROOT = Path(__file__).resolve().parents[1]
 SPEC_ZH = ROOT / "spec" / "v1" / "zh"
 PROPOSALS = ROOT / "spec" / "v1" / "proposals"
-OPENAPI = ROOT / "spec" / "v1" / "artifacts" / "openapi" / "cokret-service-api.openapi.yaml"
+OPENAPI = ROOT / "spec" / "v1" / "artifacts" / "openapi" / "arkret-service-api.openapi.yaml"
 
 REQUIRED_FRONTMATTER = {"title", "status", "normative", "stability", "updated"}
 ALLOWED_STATUS = {"draft", "candidate", "stable", "deprecated"}
@@ -72,7 +72,7 @@ CASUAL_HEADING_RE = re.compile(r"^#{1,6}\s.*(" + "|".join(CASUAL_HEADING_PATTERN
 # Half-width comma / semicolon between two CJK characters: a punctuation
 # mix-up rather than a code identifier.
 MIXED_PUNCT_RE = re.compile(r"[一-鿿][,;][一-鿿]")
-COKRET_PATH_RE = re.compile(r"/_cokret/[A-Za-z0-9_./{}:*-]+")
+ARKRET_PATH_RE = re.compile(r"/_cokret/[A-Za-z0-9_./{}:*-]+")
 
 FRONTMATTER_RE = re.compile(r"\A---\n(.*?)\n---\n", re.DOTALL)
 PROPOSAL_FILE_RE = re.compile(r"^(?P<num>[0-9]{4})-[A-Za-z0-9_.-]+\.md$")
@@ -156,7 +156,7 @@ def load_registered_cokret_paths() -> set[str]:
     return {str(path) for path in paths}
 
 
-REGISTERED_COKRET_PATHS = load_registered_cokret_paths()
+REGISTERED_ARKRET_PATHS = load_registered_cokret_paths()
 
 
 def normalize_cokret_path_token(token: str) -> str:
@@ -180,15 +180,15 @@ def see_also_target_path(path: Path, value: str) -> Path:
 def is_registered_cokret_path_or_namespace(token: str) -> bool:
     if token == "/_cokret/_conformance/*" or token.startswith("/_cokret/_conformance/"):
         return True
-    if token in REGISTERED_COKRET_PATHS:
+    if token in REGISTERED_ARKRET_PATHS:
         return True
     without_trailing_slash = token.rstrip("/")
-    if without_trailing_slash in REGISTERED_COKRET_PATHS:
+    if without_trailing_slash in REGISTERED_ARKRET_PATHS:
         return True
     if token.endswith("*"):
-        return any(path.startswith(token[:-1]) for path in REGISTERED_COKRET_PATHS)
+        return any(path.startswith(token[:-1]) for path in REGISTERED_ARKRET_PATHS)
     if token.endswith("/"):
-        return any(path.startswith(token) for path in REGISTERED_COKRET_PATHS)
+        return any(path.startswith(token) for path in REGISTERED_ARKRET_PATHS)
     return False
 
 
@@ -350,7 +350,7 @@ def lint_file(path: Path) -> list[Finding]:
 
         if "CW001" not in ignored:
             path_scan_text = re.sub(r"<!--.*?-->", "", raw)
-            for match in COKRET_PATH_RE.finditer(path_scan_text):
+            for match in ARKRET_PATH_RE.finditer(path_scan_text):
                 token = normalize_cokret_path_token(match.group(0))
                 if not is_registered_cokret_path_or_namespace(token):
                     findings.append(
@@ -468,7 +468,7 @@ def iter_targets(paths: Iterable[Path]) -> Iterable[Path]:
 
 
 def main(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(description="Lint Cokret prose spec.")
+    parser = argparse.ArgumentParser(description="Lint Arkret prose spec.")
     parser.add_argument(
         "paths",
         nargs="*",

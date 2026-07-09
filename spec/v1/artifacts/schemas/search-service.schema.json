@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/search-service.schema.json",
-  "title": "Cokret Privacy-Preserving Search",
+  "$id": "https://arkret.org/v1/schemas/search-service.schema.json",
+  "title": "Arkret Privacy-Preserving Search",
   "oneOf": [
     {
       "$ref": "#/$defs/encrypted_index_manifest"

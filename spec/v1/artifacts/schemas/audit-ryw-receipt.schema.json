@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/audit-ryw-receipt.schema.json",
-  "title": "Cokret Audit RYW Receipt",
+  "$id": "https://arkret.org/v1/schemas/audit-ryw-receipt.schema.json",
+  "title": "Arkret Audit RYW Receipt",
   "description": "Read-Your-Writes receipt issued by an Events API node, witness, or peer Principal Server confirming that a ck.audit.release or other audit envelope has reached accepted state. Required by ck.profile.attested_audit.e2ee.v1 and ck.profile.disclosed_audit.e2ee.v1 before an audit applet release service may output wrapped material or plaintext evidence (see zh/crypto-media/audited-e2ee.md §6). The audit_assurance_class field MUST match the active Audit Applet Binding; mismatch fail closed.",
   "type": "object",
   "required": [

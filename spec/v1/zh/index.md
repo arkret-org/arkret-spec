@@ -1,5 +1,5 @@
 ---
-title: Cokret Protocol
+title: Arkret Protocol
 status: candidate
 normative: true
 stability: v1
@@ -19,7 +19,7 @@ see_also:
 
 ## 1. 范围（Scope）
 
-`cokret-spec` 是 **Cokret v1 去中心化协作协议规范**。其核心不是界面，而是"可验证协作事实 + 可投影的对象语义"：
+`arkret-spec` 是 **Arkret v1 去中心化协作协议规范**。其核心不是界面，而是"可验证协作事实 + 可投影的对象语义"：
 
 - 身份主键：DID principal
 - 数据主语（canonical 对象清单）：Realm / Circle / Space（含 Board/List）/ Strand / Message / Relation / Morph / Event / View / Capability
@@ -36,7 +36,7 @@ see_also:
 
 先按下表理解对象边界，再进入字段和 event 细节：
 
-| 问题 | Cokret 对象 | 一句话边界 |
+| 问题 | Arkret 对象 | 一句话边界 |
 | --- | --- | --- |
 | 谁在做事？ | Principal / Actor | Principal 是 DID 身份根；Actor 是该 Principal 在 Realm 内产生 Event 的参与身份。 |
 | 这批协作事实归谁管？ | Realm | 权限、成员、历史可见性、E2EE、同步和联邦都以 Realm 为根。 |
@@ -50,7 +50,7 @@ see_also:
 
 ## 2. 非目标（Non-Goals）
 
-Cokret v1 明确不把以下内容作为基础互操作必需项：
+Arkret v1 明确不把以下内容作为基础互操作必需项：
 
 - 聊天消息作为唯一协议对象根
 - 房间状态机作为全协议统一底座
@@ -176,4 +176,4 @@ Cokret v1 明确不把以下内容作为基础互操作必需项：
 
 ## 7. 摘要（Summary）
 
-Cokret 的目标是统一协作对象语义，建立"可验证审计 + 长期可恢复"的协作基础设施，而不是绑定聊天协议外壳。
+Arkret 的目标是统一协作对象语义，建立"可验证审计 + 长期可恢复"的协作基础设施，而不是绑定聊天协议外壳。

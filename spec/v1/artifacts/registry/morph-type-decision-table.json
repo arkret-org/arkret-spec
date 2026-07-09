@@ -1,7 +1,7 @@
 {
   "version": "2026-05-18",
   "source_of_truth": true,
-  "applies_to": "ck:morph:",
+  "applies_to": "ak:morph:",
   "describes": "Canonical merge precedence for the four declaration sources that can contribute to 'what a Morph is and what it allows'. Mirrors morph.md §4. Reducers, capability checks, query/projection paths, and conformance tests MUST follow this table.",
   "precedence": [
     {

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/handle-claim.schema.json",
+  "$id": "https://arkret.org/v1/schemas/handle-claim.schema.json",
   "$defs": {
     "timestamp": {
       "type": "string",
@@ -8,7 +8,7 @@
       "pattern": "Z$"
     }
   },
-  "title": "Cokret Handle Claim",
+  "title": "Arkret Handle Claim",
   "type": "object",
   "required": [
     "schema",
@@ -27,7 +27,7 @@
     "handle": {
       "type": "string",
       "pattern": "^[a-z0-9._+~-]{1,128}:[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$",
-      "description": "Cokret canonical handle string: <localpart>:<domain>. The @ mention sigil and acct: alias are not part of this field. This pattern is intentionally ASCII-only: it validates the post-IDNA canonical form, where <domain> is the A-label (punycode, xn-- prefix) and <localpart> is the lowercase restricted-ASCII canonical form. Unicode NFC normalization and UTS#39 confusable / script-mixing homograph detection (see zh/identity/identity-handles.md §17) MUST be applied to the U-label BEFORE IDNA conversion; they are not (and cannot be) re-enforced by this ASCII pattern."
+      "description": "Arkret canonical handle string: <localpart>:<domain>. The @ mention sigil and acct: alias are not part of this field. This pattern is intentionally ASCII-only: it validates the post-IDNA canonical form, where <domain> is the A-label (punycode, xn-- prefix) and <localpart> is the lowercase restricted-ASCII canonical form. Unicode NFC normalization and UTS#39 confusable / script-mixing homograph detection (see zh/identity/identity-handles.md §17) MUST be applied to the U-label BEFORE IDNA conversion; they are not (and cannot be) re-enforced by this ASCII pattern."
     },
     "handle_aliases": {
       "type": "array",

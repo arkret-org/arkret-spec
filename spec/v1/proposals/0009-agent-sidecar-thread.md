@@ -113,10 +113,10 @@ profile: ck.profile.agent_sidecar_thread.v1
     "did:webvh:QmYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:agents:research-assistant"
   ],
   "context_ref": {
-    "realm_id": "ck:realm:01970000-0000-7000-8000-000000000000",
-    "strand_id": "ck:strand:01970000-0000-7000-8000-000000000001",
+    "realm_id": "ak:realm:01970000-0000-7000-8000-000000000000",
+    "strand_id": "ak:strand:01970000-0000-7000-8000-000000000001",
     "track": "discussion",
-    "message_id": "ck:message:01970000-0000-7000-8000-000000000071"
+    "message_id": "ak:message:01970000-0000-7000-8000-000000000071"
   }
 }
 ```
@@ -139,9 +139,9 @@ v1 `ck.self.agent.sidecar_thread.ensure` request schema 是 closed schema。除�
 ```json
 {
   "ok": true,
-  "private_circle_id": "ck:circle:01970000-0000-7000-8000-000000000080",
-  "private_strand_id": "ck:strand:01970000-0000-7000-8000-000000000081",
-  "private_relation_id": "ck:relation:01970000-0000-7000-8000-000000000082",
+  "private_circle_id": "ak:circle:01970000-0000-7000-8000-000000000080",
+  "private_strand_id": "ak:strand:01970000-0000-7000-8000-000000000081",
+  "private_relation_id": "ak:relation:01970000-0000-7000-8000-000000000082",
   "pending_member_reconciliations": [
     {
       "agent_principal_id": "did:webvh:QmYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:agents:research-assistant",
@@ -327,8 +327,8 @@ Accepted profile SHOULD 编排以下 durable material:
 {
   "kind": "ck.circle.create",
   "payload": {
-    "realm_id": "ck:realm:01970000-0000-7000-8000-000000000000",
-    "circle_id": "ck:circle:01970000-0000-7000-8000-000000000080",
+    "realm_id": "ak:realm:01970000-0000-7000-8000-000000000000",
+    "circle_id": "ak:circle:01970000-0000-7000-8000-000000000080",
     "title": "Agent sidecar",
     "display": {
       "short_name": "AI-A4F2N1QZ8K9M",
@@ -374,9 +374,9 @@ short_name = "AI-" + controller_agent_circle_key[:12].upper()
   "kind": "ck.strand.create",
   "payload": {
     "object": {
-      "id": "ck:strand:01970000-0000-7000-8000-000000000081",
+      "id": "ak:strand:01970000-0000-7000-8000-000000000081",
       "schema": "ck.schema.strand.v1",
-      "realm_id": "ck:realm:01970000-0000-7000-8000-000000000000",
+      "realm_id": "ak:realm:01970000-0000-7000-8000-000000000000",
       "metadata": {
         "title": "Agent sidecar"
       },
@@ -387,7 +387,7 @@ short_name = "AI-" + controller_agent_circle_key[:12].upper()
           "profile": "agent_sidecar"
         }
       },
-      "scope_circle_id": "ck:circle:01970000-0000-7000-8000-000000000080",
+      "scope_circle_id": "ak:circle:01970000-0000-7000-8000-000000000080",
       "stage": "in_progress",
       "created_by": "did:webvh:z3CtrlrTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:controller.example",
       "created_at": "2026-04-26T00:00:00Z"
@@ -406,15 +406,15 @@ Sidecar 消息是该 private Strand 内的普通 `ck.message.create` event。普
 {
   "kind": "ck.relation.create",
   "payload": {
-    "realm_id": "ck:realm:01970000-0000-7000-8000-000000000000",
-    "relation_id": "ck:relation:01970000-0000-7000-8000-000000000082",
+    "realm_id": "ak:realm:01970000-0000-7000-8000-000000000000",
+    "relation_id": "ak:relation:01970000-0000-7000-8000-000000000082",
     "relation_kind": "agent_sidecar_of",
-    "from_ref": "ck:strand:01970000-0000-7000-8000-000000000081",
-    "to_ref": "ck:message:01970000-0000-7000-8000-000000000071",
+    "from_ref": "ak:strand:01970000-0000-7000-8000-000000000081",
+    "to_ref": "ak:message:01970000-0000-7000-8000-000000000071",
     "fields": {
       "context_track_name": "discussion"
     },
-    "scope_circle_id": "ck:circle:01970000-0000-7000-8000-000000000080"
+    "scope_circle_id": "ak:circle:01970000-0000-7000-8000-000000000080"
   }
 }
 ```
@@ -570,12 +570,12 @@ Strand F
 {
   "type": "ck.agent.sidecar_projection.v1",
   "target": {
-    "realm_id": "ck:realm:01970000-0000-7000-8000-000000000000",
-    "strand_id": "ck:strand:01970000-0000-7000-8000-000000000001"
+    "realm_id": "ak:realm:01970000-0000-7000-8000-000000000000",
+    "strand_id": "ak:strand:01970000-0000-7000-8000-000000000001"
   },
   "entries": [
     {
-      "private_strand_id": "ck:strand:01970000-0000-7000-8000-000000000081",
+      "private_strand_id": "ak:strand:01970000-0000-7000-8000-000000000081",
       "addressed_agent_principal_ids": [
         "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant"
       ],

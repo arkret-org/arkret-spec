@@ -12,7 +12,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-Space hierarchy 是 Cokret 的产品结构层：组织、workspace、project、folder、board、list、section、calendar bucket 等都可以用 `ck:space:` 节点表达。
+Space hierarchy 是 Arkret 的产品结构层：组织、workspace、project、folder、board、list、section、calendar bucket 等都可以用 `ck:space:` 节点表达。
 
 Space hierarchy 可以跨 Realm 导航，但不改变 Realm 边界。Realm 决定谁能接收事件、读历史、解密内容和参与 federation；Space 决定对象在产品结构中位于哪里。
 
@@ -32,8 +32,8 @@ Space hierarchy 可以跨 Realm 导航，但不改变 Realm 边界。Realm 决�
 {
   "kind": "ck.space.parent",
   "payload": {
-    "space_id": "ck:space:019640c0-8000-7000-8000-000000000000",
-    "parent_space_id": "ck:space:019640a0-8000-7000-8000-000000000000",
+    "space_id": "ak:space:019640c0-8000-7000-8000-000000000000",
+    "parent_space_id": "ak:space:019640a0-8000-7000-8000-000000000000",
     "expected_parent_space_id": null
   }
 }

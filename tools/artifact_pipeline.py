@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Unified artifact maintenance pipeline for Cokret spec.
+"""Unified artifact maintenance pipeline for Arkret spec.
 
 Layout (post-restructure):
 

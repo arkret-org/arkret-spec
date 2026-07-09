@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/key-view-proof.schema.json",
-  "title": "Cokret KeyViewProof",
+  "$id": "https://arkret.org/v1/schemas/key-view-proof.schema.json",
+  "title": "Arkret KeyViewProof",
   "description": "Inclusion proof for one KeyView record against a Seal's data_view_root (authz/event-auth-state-resolution.md sections 6.4 and 10). data_view_root is the RFC 6962 Merkle root over canonical KeyView leaves sorted by cell_id; this proof lets a light client verify 'this Seal observed and committed this local join result for this cell' without global state. The proof is observational: absence of a KeyView never invalidates a DataEvent, and verifiers MUST NOT treat it as finality.",
   "type": "object",
   "required": [

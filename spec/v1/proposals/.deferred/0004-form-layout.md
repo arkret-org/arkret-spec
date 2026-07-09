@@ -7,7 +7,7 @@ updated: 2026-05-25
 status: deferred-to-v1.1
 created: 2026-05-23
 authors:
-  - did:webvh:z8kSru9qAfd1G7AvcVjggdEKy:cokret.example
+  - did:webvh:z8kSru9qAfd1G7AvcVjggdEKy:arkret.example
 depends_on: [CKP-0002, CKP-0003]
 ---
 
@@ -49,7 +49,7 @@ Schema id: `ck.schema.form_layout.v1`
   "rank": "a000",
   "fields": [
     {
-      "field_def_ref": "ck:field_def:<uuid>",
+      "field_def_ref": "ak:field_def:<uuid>",
       "width": "full" | "half" | "third",
       "readonly_for_roles": ["viewer"]
     }

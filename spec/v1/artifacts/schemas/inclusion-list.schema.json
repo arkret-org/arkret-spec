@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/inclusion-list.schema.json",
-  "title": "Cokret InclusionList",
+  "$id": "https://arkret.org/v1/schemas/inclusion-list.schema.json",
+  "title": "Arkret InclusionList",
   "description": "FOCIL-style control-plane inclusion list. A non-proposer notary signer lists pending Control Move digests that passed its local verification; the next Seal MUST include, signed-reject, or prove batch pre-state verification failure for every listed digest, otherwise receivers MUST reject that Seal (authz/event-auth-state-resolution.md section 7.3). single_did notary profiles cannot provide this mechanism. The list is an accountability object, not a Seal: it never advances governance state by itself.",
   "type": "object",
   "required": [

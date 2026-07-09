@@ -16,7 +16,7 @@ see_also:
 
 ## 1. 目标
 
-本文集中定义 Cokret 规范中的核心术语。若其他文档使用同一术语，除非所在章节另有说明，以下定义优先于扩展实现约定。
+本文集中定义 Arkret 规范中的核心术语。若其他文档使用同一术语，除非所在章节另有说明，以下定义优先于扩展实现约定。
 
 本文中的英文术语保留为规范关键字；中文解释用于阅读，不能替代字段名、对象名或事件名。
 
@@ -37,7 +37,7 @@ see_also:
 
 | 术语 | 中文说明 | 定义 |
 | --- | --- | --- |
-| Cokret | 协议名称 | 去中心化协作对象协议族，定义 identity、写入、同步、授权、显示与审计规则。 |
+| Arkret | 协议名称 | 去中心化协作对象协议族，定义 identity、写入、同步、授权、显示与审计规则。 |
 | protocol_version | 协议大版本字段 | wire-level 协议代际标识，canonical 字段值固定为字符串 `"1.0"`；它是 describe / 协商响应承载的 wire 版本。MUST NOT 写成 `1.0.0` 或 `v1.0.0`，也 MUST NOT 与发布 release tag（`v1.0.0`）互换填入对方位置。引用其格式与互换约束以本条为单一锚点，见 [`index.md` §5](../index.md)。 |
 | release tag (`v1.0.0`) | 仓库发布线标签 | 规范仓库的发布 / release tag（语义化版本 `v1.0.0`），是文档 / artifact 发布维度的标识，**不**进入 wire。与 `protocol_version`（`"1.0"`）是两个不同维度，两者 MUST NOT 互换。详见 [`release-readiness.md` §2](./release-readiness.md)。 |
 | Principal | 主体 | 协议中的稳定行为者身份；通常由 DID 标识，包含个人主体、组织、agent、Applet 等。 |
@@ -132,10 +132,10 @@ see_also:
 | MLS Governance Binding | MLS 治理绑定 | E2EE Realm 中把 MLS epoch 与 governance state（membership / policy / capability / Seal coverage）强绑定的机制（profile `ck.profile.mls_governance_binding.full.v1`，定义见 `crypto-media/encryption-and-audit.md §2.5`）。由两层 artifact 组成：commit 侧的 *Governance Binding Payload* (`governance_binding`) 提供证据，lattice 侧的 *Covered Seals Cell* (`covered_seals_cell`) 沉淀状态。 |
 | Governance Binding Payload | 治理绑定 payload | MLS Governance Binding 的 **commit-side proof**：每个 `ck.mls.commit` 携带的 `governance_binding` payload（MLS GroupContext extension `mls_governance_binding`，codepoint `0xF1C0`），哈希进 MLS transcript，覆盖 `membership_frontier`、`policy_root`、`capability_root`、`discussion_metadata_digest`。 |
 | Covered Seals | 已覆盖 Seal 集 | MLS Governance Binding 的 **lattice-side accumulator**：`covered_seals_cell`（cell family `ck.component.covered_seals.v1`，or_set，bottom=expose）当前值，累积已被 commit attest 的治理 Seal；E2EE DataEvent 用 `seal_ref` 指向已覆盖的治理基准。 |
-| MLS KeyPackage | MLS 密钥包（durable event payload） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生对象：actor 预先公布、供他人将其加入 MLS group 的单次使用公钥材料。在 Cokret 中作为可声明 / 领取 / 消费 / 撤销的 durable event payload（`ck.mls.keypackage` 等）落地，并被 Realm-scoped claim 生命周期约束。prose 用 `KeyPackage`（PascalCase），wire 字段用 `keypackage_` 前缀（如 `keypackage_id` / `keypackage_digest`）。详见 [`encryption-and-audit.md` §2.6](../crypto-media/encryption-and-audit.md)。 |
-| MLS Welcome | MLS 欢迎消息（durable event） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生消息，把新成员带入当前 epoch。Cokret 扩展：MUST 通过 durable `ck.mls.welcome` Event、durable encrypted pointer 或等价可 backfill 记录交付（Ephemeral Channel 不得是唯一路径）。prose 用 `Welcome`，wire 字段（如 `welcome_digest`）保持小写。详见 [`encryption-and-audit.md` §2.1](../crypto-media/encryption-and-audit.md)。 |
-| MLS Commit | MLS 提交（durable event） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生 epoch 推进消息。Cokret 扩展：作为 `ck.mls.commit` durable Event 进入 Realm history，并 MUST 携带 `governance_binding`（GroupContext extension `mls_governance_binding`）把 governance frontier 哈希进 MLS transcript（见 MLS Governance Binding 行）。详见 [`encryption-and-audit.md` §2.5](../crypto-media/encryption-and-audit.md)。 |
-| MLS Proposal | MLS 提案（durable event） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生提案消息（add / remove / update 等），由后续 Commit 落实。Cokret 中作为 `ck.mls.proposal` durable Event 传输；发送者 MUST 在事件自身 causal auth state 下满足对应 admin set 或成员 self-update 规则。详见 [`encryption-and-audit.md` §2.1](../crypto-media/encryption-and-audit.md)。 |
+| MLS KeyPackage | MLS 密钥包（durable event payload） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生对象：actor 预先公布、供他人将其加入 MLS group 的单次使用公钥材料。在 Arkret 中作为可声明 / 领取 / 消费 / 撤销的 durable event payload（`ck.mls.keypackage` 等）落地，并被 Realm-scoped claim 生命周期约束。prose 用 `KeyPackage`（PascalCase），wire 字段用 `keypackage_` 前缀（如 `keypackage_id` / `keypackage_digest`）。详见 [`encryption-and-audit.md` §2.6](../crypto-media/encryption-and-audit.md)。 |
+| MLS Welcome | MLS 欢迎消息（durable event） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生消息，把新成员带入当前 epoch。Arkret 扩展：MUST 通过 durable `ck.mls.welcome` Event、durable encrypted pointer 或等价可 backfill 记录交付（Ephemeral Channel 不得是唯一路径）。prose 用 `Welcome`，wire 字段（如 `welcome_digest`）保持小写。详见 [`encryption-and-audit.md` §2.1](../crypto-media/encryption-and-audit.md)。 |
+| MLS Commit | MLS 提交（durable event） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生 epoch 推进消息。Arkret 扩展：作为 `ck.mls.commit` durable Event 进入 Realm history，并 MUST 携带 `governance_binding`（GroupContext extension `mls_governance_binding`）把 governance frontier 哈希进 MLS transcript（见 MLS Governance Binding 行）。详见 [`encryption-and-audit.md` §2.5](../crypto-media/encryption-and-audit.md)。 |
+| MLS Proposal | MLS 提案（durable event） | [RFC 9420](https://datatracker.ietf.org/doc/html/rfc9420) 原生提案消息（add / remove / update 等），由后续 Commit 落实。Arkret 中作为 `ck.mls.proposal` durable Event 传输；发送者 MUST 在事件自身 causal auth state 下满足对应 admin set 或成员 self-update 规则。详见 [`encryption-and-audit.md` §2.1](../crypto-media/encryption-and-audit.md)。 |
 | Notary Profile | 锚点 Profile | Realm create 时固定的 Seal finality profile：`single_did`、`threshold`、`open_set` 或 `mixed`。它只决定控制面 Seal 的签发与问责方式。 |
 | Notary Cell | 锚定者 Cell | 定义下一批 Seal 由谁授权的 `cas_register + bottom=reject` cell；冲突时产生 Realm-wide Seal pause。 |
 | Consent | 同意 | Holder-private 决策："我同意接收来自 X 的某种联系"。表达为 consent cell 上的 Event effect，是 invite / contact 路径的前置 gate。 |
@@ -159,7 +159,7 @@ see_also:
 | Native Personal Agent | 原生个人代理（canonical） | Controller 主动 provision 的 personal AI agent。wire 上使用 `actor_kind=agent`，持有独立 DID，作为一等 principal 参与协议；其 native 身份由 `ck.self.agent.command.provision` / `ck.identity.accountability_grant` / `ck.agent.key.authorize` 等 provisioning state 判定，而不是新增 `actor_kind` 枚举；详见 [`actor.md` §3.3](../models/actor.md)。`Personal Agent` 是 informative alias，prose 中遇到时应理解为 Native Personal Agent。 |
 | Personal Agent | _informative alias_ | 非规范别名；canonical 术语为 **Native Personal Agent**。新增 normative 文本 MUST 使用 canonical 术语。 |
 | Agent Runtime | Agent 运行时 | 执行 agent 业务逻辑的进程或容器；通过 `ck.gate.account.command.pair_agent_key` pairing 持有 agent key。Agent Runtime 是部署单元，不是 protocol principal——principal 身份由 Native Personal Agent 或 Ghost Actor 承担。 |
-| Ghost Actor | 幽灵 actor | Applet-managed actor，通常是外部网络用户、账号或 automation 在 Cokret 中的镜像。Ghost Actor 必须使用可审计的独立 Actor DID（`actor_id` 不带 DID URL fragment）；wire `actor_kind` 仍取 `user / org / team / agent / service / integration` 之一（不含 `device`），外部人类/账号镜像 SHOULD 使用 `integration`，Applet 托管 AI/automation MAY 使用 `agent`。Ghost/native 差异由 Applet provenance、`accountable_principal_ids` 与 profile/capability 约束表达，不新增 `agent_ghost` 或 `ghost` enum。 |
+| Ghost Actor | 幽灵 actor | Applet-managed actor，通常是外部网络用户、账号或 automation 在 Arkret 中的镜像。Ghost Actor 必须使用可审计的独立 Actor DID（`actor_id` 不带 DID URL fragment）；wire `actor_kind` 仍取 `user / org / team / agent / service / integration` 之一（不含 `device`），外部人类/账号镜像 SHOULD 使用 `integration`，Applet 托管 AI/automation MAY 使用 `agent`。Ghost/native 差异由 Applet provenance、`accountable_principal_ids` 与 profile/capability 约束表达，不新增 `agent_ghost` 或 `ghost` enum。 |
 | Member | 成员 | 已加入某 Realm 或 Circle 的 actor；具体由 membership cell `ck.component.member.state.v1` 中 `state=active` 的条目定义。Member 是 actor 在某个 security boundary 内的 membership 状态，不是独立主体类型。 |
 | Subject | 授权对象 | Capability grant 的授予对象；`subject` 字段值是 DID（具体 principal）或 condition selector（如 role / actor_kind / federated trust scope）。具体使用约束见 [`common-fields.md` §4.1](../models/common-fields.md#41-did-适用边界)。 |
 | participant | _local-context only_ | 不是通用术语。仅允许在 SFU stream binding、Mermaid sequence 图、call participant_id 等明确局部上下文出现；prose normative 段落 MUST 使用 actor / member / subject 视语义选用，不得用 `participant` 表达通用主体语义。 |
@@ -191,7 +191,7 @@ see_also:
 | MemberDeliveryBindingCandidate | 成员投递绑定候选（builder-side 候选对象） | builder-side 候选对象，把 Handle resolution 输出或可信签发等价物送入 Realm member_add / invite 流水线（schema `ck.schema.member_delivery_binding_candidate.v1`，artifact [`member-delivery-binding-candidate.schema.json`](../../artifacts/schemas/member-delivery-binding-candidate.schema.json)）。它本身不是 wire fact；只有 reducer 依 Join Policy 独立复核后才物化为 Realm-scoped `member_delivery_binding`。详见 [`identity-handles.md` §3.7](../identity/identity-handles.md)。 |
 | eligible_sidecar_agent | Agent sidecar 资格 predicate | `eligible_sidecar_agent(realm, controller, agent)` 是 sidecar Circle membership 的规范 predicate：controller 必须是目标 Realm 的 active member；agent 必须是 active Native Personal Agent、accountable to controller，且 pairing / agent key / accountability grant / lifecycle / policy freshness 均有效；pause、deactivate、revoke、pairing_expired 或 accountability grant 失效 MUST 使 predicate 立即为 false。详见 [`circle.md` §11.1](../models/circle.md)。 |
 | controller_agent_circle_key | sidecar Circle 派生 key | Agent sidecar profile 为 `(realm_id, controller_principal_id)` 派生的 deterministic key：`base32(sha256(canonical("ck.agent_sidecar_circle.v1\n" + realm_id + "\n" + controller_principal_id)))`，小写截取 24 字符；`display.short_name` 使用其前 12 字符的大写形式。详见 [`circle.md` §11.1](../models/circle.md)。 |
-| DeviceMessageEnvelope | 设备消息信封（to-device 队列消息） | 私有点对点设备消息封装（schema artifact [`device-message.schema.json`](../../artifacts/schemas/device-message.schema.json)，title "Cokret Device Message Envelope"）。wire scope = to-device 队列消息（经 `ck.self.device_messages.command.send` / `.get`，account subscribe `to_device`），**不是** durable shared Realm Event，不进入 reducer / Seal history。prose 用 `to-device`，类型用 `DeviceMessageEnvelope`。 |
+| DeviceMessageEnvelope | 设备消息信封（to-device 队列消息） | 私有点对点设备消息封装（schema artifact [`device-message.schema.json`](../../artifacts/schemas/device-message.schema.json)，title "Arkret Device Message Envelope"）。wire scope = to-device 队列消息（经 `ck.self.device_messages.command.send` / `.get`，account subscribe `to_device`），**不是** durable shared Realm Event，不进入 reducer / Seal history。prose 用 `to-device`，类型用 `DeviceMessageEnvelope`。 |
 | Account Data | 账户数据（actor-private account data） | actor-private 的个人偏好 / 状态类别（read marker、saved view personalization、通知偏好、个人 blocklist、agent draft / sidecar projection 等）。wire scope = account data（`wire_scope=actor_private_event`，encrypted account data 或 actor-private stream），MUST NOT 进入 shared Realm data/control history 或 Seal coverage。详见 [`client-preferences.md`](../discovery/client-preferences.md)。 |
 | to-device | 设备直投通道（ephemeral / to-device 队列） | prose 术语：发往特定设备的私有点对点消息通道（正文写小写 `to-device`，章节标题 / title-case 写 `To-Device`，见 CC-06）；类型为 DeviceMessageEnvelope，wire path / 字段为 `device_messages` / `to_device`。wire scope = to-device 队列（非 durable shared event）。详见 [`transport-bindings.md`](../sync/transport-bindings.md)。 |
 | Franking Proof | franking 证明（审核证据对象） | 服务在接收 E2EE 密文事件时生成的不可伪造收讫证明（`ck.moderation.franking_proof`），目标是：证明被举报密文确实对应某条已投递消息、保护举报者、并让审核方在无完整明文下也能验证。MUST 在 routing metadata、ciphertext digest、AAD digest、sender claim、接收服务 DID、接收时间与 `replay_nonce` 之上生成；MUST NOT 包含 plaintext body。详见 [`content-moderation.md` §3.4](../governance/content-moderation.md)。 |
@@ -202,13 +202,13 @@ see_also:
 
 本节给出术语在 prose 与 wire 形态间的 canonical 大小写规则。这些规则与 §1 的术语表维护规则叠加适用，不取代后者；§1 维护规则（canonical 唯一定义、别名标注、禁用词范围等）仍然有效。
 
-通用规则（本节 §3）：缩写在 prose 中 MUST 全大写（如 `E2EE`、`MLS`、`SFU`、`TURN`、`ICE`、`MCU`），在 wire 字段名 / profile ID / enum / schema key 中 MUST 保持 snake_case 小写。Cokret 服务角色专名（CC-05）在 prose 中 MUST 使用 PascalCase 专名；canonical 专名清单见下方 CC-05；泛指"某个 policy 服务"时小写普通名词可接受。
+通用规则（本节 §3）：缩写在 prose 中 MUST 全大写（如 `E2EE`、`MLS`、`SFU`、`TURN`、`ICE`、`MCU`），在 wire 字段名 / profile ID / enum / schema key 中 MUST 保持 snake_case 小写。Arkret 服务角色专名（CC-05）在 prose 中 MUST 使用 PascalCase 专名；canonical 专名清单见下方 CC-05；泛指"某个 policy 服务"时小写普通名词可接受。
 
 - **KeyPackage（CC-01）**：prose 引用 MLS KeyPackage 时 MUST 写 `KeyPackage`（PascalCase）；wire 字段保留 `keypackage_` snake_case 前缀（如 `keypackage_id` / `keypackage_digest`）。prose 中 MUST NOT 写 `key package`（带空格）或 `keypackage`（全小写）。
 - **Welcome（CC-02）**：prose 引用 MLS Welcome 消息时 MUST 写 `Welcome`；字段名（如 `welcome_digest`）MUST 保持小写。
 - **fail closed vs fail-closed（CC-03）**：动词短语用 `fail closed`（如 "Implementations MUST fail closed"）；形容词用连字符 `fail-closed`（如 "fail-closed default"）。
 - **E2EE vs e2ee（CC-04）**：prose MUST 用 `E2EE`；profile ID / enum / schema key 保留小写 `e2ee`（如 `ck.profile.e2ee_client.v1`、`encryption_profile` 取值）。
-- **服务角色专名（CC-05）**：命名 Cokret 服务角色用 PascalCase 专名。canonical 专名清单（prose normative 段落 MUST 使用左列；service-surface 表内别名仅在该表语境内允许）：
+- **服务角色专名（CC-05）**：命名 Arkret 服务角色用 PascalCase 专名。canonical 专名清单（prose normative 段落 MUST 使用左列；service-surface 表内别名仅在该表语境内允许）：
 
   | canonical 专名 | service-surface 表 / 别名形态 |
   | --- | --- |

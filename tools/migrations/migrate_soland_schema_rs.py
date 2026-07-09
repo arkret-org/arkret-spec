@@ -13,7 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 SCHEMA_RS = ROOT / "soland" / "src" / "schema.rs"
 
-UUID_COLUMNS_COKRET = {
+UUID_COLUMNS_ARKRET = {
     "event_id", "realm_id", "space_id", "strand_id", "morph_id", "view_id",
     "relation_id", "from_entity_id", "to_entity_id",
     "message_id", "actor_profile_id",
@@ -32,7 +32,7 @@ UUID_COLUMNS_SOLAND_INTERNAL = {
     "fallback_key_id", "package_id", "portal_id", "session_id",
     "registration_id", "operation_id",
 }
-UUID_COLUMNS = UUID_COLUMNS_COKRET | UUID_COLUMNS_SOLAND_INTERNAL
+UUID_COLUMNS = UUID_COLUMNS_ARKRET | UUID_COLUMNS_SOLAND_INTERNAL
 
 # Column declaration in diesel table! macro:
 #   "        event_id -> Text,"

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/did-key-log-entry.schema.json",
+  "$id": "https://arkret.org/v1/schemas/did-key-log-entry.schema.json",
   "$defs": {
     "timestamp": {
       "type": "string",
@@ -8,7 +8,7 @@
       "pattern": "Z$"
     }
   },
-  "title": "Cokret DID Key Log Entry",
+  "title": "Arkret DID Key Log Entry",
   "type": "object",
   "required": [
     "did",

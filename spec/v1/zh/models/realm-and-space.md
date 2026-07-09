@@ -12,7 +12,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-本文定义 Cokret 协作图中的两个一等对象：
+本文定义 Arkret 协作图中的两个一等对象：
 
 - **Realm**（`ck:realm:`）：security / sync / auth / E2EE / federation 的硬边界。
 - **Space**（`ck:space:`）：用户可理解的结构容器与导航节点，可表达 organization 下的 workspace、project、folder、board、list、section、calendar bucket 等形态；Space 自身不是安全边界。
@@ -87,7 +87,7 @@ Schema id: `ck.schema.realm.v1`
 | `default_join_rule` | yes | `enum(public, invite, knock, restricted, knock_restricted, closed)` | reducer 派生。 | 默认加入规则。 |
 | `history_visibility` | yes | `enum(world_readable, shared, invited, joined, restricted)` | reducer 派生。`world_readable` / `shared` / `invited` 在 MLS-backed Realm 上要求 effective `content_scheme=mls-exporter-aead-v1`；`mls-rfc9420` 只能与 `joined` / `restricted` 同用。 | 历史可见性。 |
 | `preview_policy_id` | no | `id:policy` | reducer 派生或投影字段；canonical 写入路径为 `ck.realm.preview_policy`。 | 加入前 / token-scoped preview 的 policy 引用或摘要。 |
-| `encryption_profile` | yes | `enum(none, mls_rfc9420, external)` | create-locked 的**能力轴**：只声明加密**机制**(有没有 MLS group)，不声明哪些 Cokret 字段进入密文，也不是"内容是否加密"的开关。`none` 是 bridge / 公开广播等"结构上永不 E2EE"scope 的诚实 opt-out；将来可能加密的协作 Realm SHOULD 以 `mls_rfc9420` + `content_encryption_floor=allow_plaintext` 创建，以便后期原地启用加密。完整语义见 [`circle.md` §7](./circle.md)。 | 加密机制声明。 |
+| `encryption_profile` | yes | `enum(none, mls_rfc9420, external)` | create-locked 的**能力轴**：只声明加密**机制**(有没有 MLS group)，不声明哪些 Arkret 字段进入密文，也不是"内容是否加密"的开关。`none` 是 bridge / 公开广播等"结构上永不 E2EE"scope 的诚实 opt-out；将来可能加密的协作 Realm SHOULD 以 `mls_rfc9420` + `content_encryption_floor=allow_plaintext` 创建，以便后期原地启用加密。完整语义见 [`circle.md` §7](./circle.md)。 | 加密机制声明。 |
 | `content_scheme` | no | `enum(mls-rfc9420, mls-exporter-aead-v1)` | reducer 派生（Realm policy 字段，经 `ck.realm.policy_components` 写入并纳入 MLS governance binding `policy_root`）。仅当 `encryption_profile=mls_rfc9420` 时适用；缺省为 `mls-rfc9420`。`mls-rfc9420` 使用 MLS PrivateMessage，join 前历史不可被后加入者解密，故只能配 `history_visibility=joined` / `restricted`；`mls-exporter-aead-v1` 使用 per-epoch `history_secret`，可在 history sharing policy 授权下经 `ck.realm_key.share` 交付，但不自动打开 pre-join delivery。切换只对后续 epoch 生效，完整语义见 [`../crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.10。 | MLS-backed content envelope scheme。 |
 | `content_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | reducer 派生（Realm policy 字段，经 Realm policy facet event 写入，非直接 PATCH）。这是 Realm 真正的"内容加密开关"：`e2ee_required` 时 Strand / Message / Morph / Blob content 的 `effective_scope` MUST 为 MLS-backed，plaintext content reducer MUST `failed_precondition`（reason=`content_encryption_floor_violation`）。缺省 `allow_plaintext`。**单向 ratchet**：一旦 effective 值达到 `e2ee_required`，后续降回 `allow_plaintext` 的写入 MUST `failed_precondition`（reason=`content_encryption_floor_downgrade`）。完整语义见 [`circle.md` §7](./circle.md)。 | Realm 级 content 加密下限。 |
 | `metadata_encryption_floor` | no | `enum(allow_plaintext, e2ee_required)` | reducer 派生（Realm policy 字段，经 Realm policy facet event 写入，非直接 PATCH），与 `content_encryption_floor` 对称。比较序 `allow_plaintext < e2ee_required`；effective 值取父 Realm / Circle / Space `child_scope_policy` / 对象 profile 的最大值，低于 effective 的写入 MUST `failed_precondition`（reason=`metadata_encryption_floor_violation`），MUST NOT 被 Circle / Space / 对象 profile 放宽。**单向 ratchet**：一旦 effective 值达到 `e2ee_required`，后续降回 `allow_plaintext` 的写入 MUST `failed_precondition`（reason=`metadata_encryption_floor_downgrade`）。缺省：`mls_rfc9420` 或 `content_encryption_floor=e2ee_required` 的 Realm 为 `e2ee_required`，否则 `allow_plaintext`。完整语义见 [`circle.md` §7](./circle.md)。 | Realm 级 metadata 加密下限。 |
@@ -164,10 +164,10 @@ Schema id: `ck.schema.realm.v1`
 
 ```json schema=schemas/realm.schema.json
 {
-  "id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "schema": "ck.schema.realm.v1",
   "title": "Launch Plan Confidential Realm",
-  "trust_domain": "ck:trust_domain:did.webvh.acme.example",
+  "trust_domain": "ak:trust_domain:did.webvh.acme.example",
   "schema_refs": ["ck.schema.realm.v1"],
   "default_discoverability": "invite_only",
   "default_join_rule": "invite",
@@ -500,10 +500,10 @@ Project Space：
 
 ```json schema=schemas/space.schema.json
 {
-  "id": "ck:space:019640b6-8000-7000-8000-000000000000",
+  "id": "ak:space:019640b6-8000-7000-8000-000000000000",
   "schema": "ck.schema.space.v1",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-  "default_realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "default_realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "kind": "project",
   "title": "Website Redesign",
   "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
@@ -515,11 +515,11 @@ Confidential sibling Space：
 
 ```json schema=schemas/space.schema.json
 {
-  "id": "ck:space:019640c0-8000-7000-8000-000000000000",
+  "id": "ak:space:019640c0-8000-7000-8000-000000000000",
   "schema": "ck.schema.space.v1",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-  "default_realm_id": "ck:realm:019641aa-0000-7000-8000-000000000000",
-  "parent_space_id": "ck:space:019640a0-8000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "default_realm_id": "ak:realm:019641aa-0000-7000-8000-000000000000",
+  "parent_space_id": "ak:space:019640a0-8000-7000-8000-000000000000",
   "kind": "project",
   "title": "Pricing Strategy",
   "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",

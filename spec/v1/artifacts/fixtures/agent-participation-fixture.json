@@ -155,7 +155,7 @@
       "kind": "session_scope_details",
       "participation_scope": {
         "kind": "realm",
-        "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
       },
       "selection": {
         "reply": true,

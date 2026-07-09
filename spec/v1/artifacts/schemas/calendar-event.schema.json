@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/calendar-event.schema.json",
-  "title": "Cokret Calendar Event Profile Fields",
+  "$id": "https://arkret.org/v1/schemas/calendar-event.schema.json",
+  "title": "Arkret Calendar Event Profile Fields",
   "type": "object",
   "required": [
     "start",

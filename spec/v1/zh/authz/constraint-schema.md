@@ -12,7 +12,7 @@ updated: 2026-07-07
 
 ## 1. 概述
 
-本规范定义了 Cokret v1 能力授权中约束的形式 schema。约束细化了能力授权可以行使的条件和方式。
+本规范定义了 Arkret v1 能力授权中约束的形式 schema。约束细化了能力授权可以行使的条件和方式。
 
 > _Example (informative)._ 本文各小节的 JSON 代码块均为说明性示例，用于展示典型 typed constraint 的语义组合。约束对象的**权威 wire 字段集合**以 [`../../artifacts/schemas/grant-constraint.schema.json`](../../artifacts/schemas/grant-constraint.schema.json)（`additionalProperties:false`）为准；示例中若出现该 schema 未声明的概念性字段名（用于阐述意图）或形如 `"a|b"` 的取值占位，均不构成合法 wire 取值，实现 MUST 以 schema 为准。
 
@@ -225,11 +225,11 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "constraint_type": "scope_limitation",
   "effect": "allow",
   "allowed_strand_ids": [
-    "ck:strand:01964180-0280-7000-8000-000000000000"
+    "ak:strand:01964180-0280-7000-8000-000000000000"
   ],
   "allowed_tracks": ["discussion"],
   "denied_strand_ids": [
-    "ck:strand:01964180-0289-7a52-94a5-294a5294a400"
+    "ak:strand:01964180-0289-7a52-94a5-294a5294a400"
   ]
 }
 ```
@@ -260,9 +260,9 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "constraint_type": "scope_limitation",
   "effect": "allow",
   "allowed_relation_kinds": ["contains"],
-  "allowed_view_ids": ["ck:view:019641be-0000-7000-8000-000000000000"],
-  "allowed_from_container_refs": ["ck:space:019640c0-8000-7000-8000-000000000000"],
-  "allowed_to_container_refs": ["ck:space:019640c1-0000-7000-8000-000000000000"],
+  "allowed_view_ids": ["ak:view:019641be-0000-7000-8000-000000000000"],
+  "allowed_from_container_refs": ["ak:space:019640c0-8000-7000-8000-000000000000"],
+  "allowed_to_container_refs": ["ak:space:019640c1-0000-7000-8000-000000000000"],
   "wip_limit_override": false
 }
 ```
@@ -279,7 +279,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "effect": "allow",
   "blob_presign_scope": {
     "allowed_purposes": ["media_inline", "thumbnail"],
-    "realm_ids": ["ck:realm:0196419b-0000-7000-8000-000000000000"]
+    "realm_ids": ["ak:realm:0196419b-0000-7000-8000-000000000000"]
   },
   "allowed_endpoints": ["https://api.trusted.example"],
   "allowed_data_classes": ["public", "internal"]
@@ -857,13 +857,13 @@ function matches_field_access(operation, constraint):
 
 ```json
 {
-  "grant_id": "ck:grant:...",
+  "grant_id": "ak:grant:...",
   "subject": "did:webvh:z7JFwDcjH8CMYDmNUkUBhGpNN:agent.example.com",
   "actions": ["ck.object.read", "ck.strand.create", "ck.morph.create"],
   "resources": [
     {
       "kind": "strand",
-      "realm_id": "ck:realm:...",
+      "realm_id": "ak:realm:...",
       "strand_id": "*"
     }
   ],
@@ -937,7 +937,7 @@ Grant envelope 字段、签名规则与必填性以
 为准；下述示例展示 grant 上下文中的典型 typed constraint 组合，不引入新规则。
 
 > Grant 撤销 MUST 表达为 accepted `ck.capability.revoke` Event 指向 `ck:grant:<uuid>`；
-> Cokret v1 不注册 `ck:revocation-list:*` typed ID。
+> Arkret v1 不注册 `ck:revocation-list:*` typed ID。
 
 #### 20.3.1 Field-level 与 Type 限制
 
@@ -1024,9 +1024,9 @@ Delegated grant MUST 等于或窄于 parent grant。`max_delegation_depth`、
   "constraint_type": "scope_limitation",
   "effect": "allow",
   "allowed_relation_kinds": ["contains"],
-  "allowed_view_ids": ["ck:view:019641be-0000-7000-8000-000000000000"],
-  "allowed_from_container_refs": ["ck:space:019640c0-8000-7000-8000-000000000000"],
-  "allowed_to_container_refs": ["ck:space:019640c1-0000-7000-8000-000000000000"],
+  "allowed_view_ids": ["ak:view:019641be-0000-7000-8000-000000000000"],
+  "allowed_from_container_refs": ["ak:space:019640c0-8000-7000-8000-000000000000"],
+  "allowed_to_container_refs": ["ak:space:019640c1-0000-7000-8000-000000000000"],
   "wip_limit_override": false
 }
 ```

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/read-cursor-operations.schema.json",
-  "title": "Cokret Read Cursor Self-Management Operation DTOs",
+  "$id": "https://arkret.org/v1/schemas/read-cursor-operations.schema.json",
+  "title": "Arkret Read Cursor Self-Management Operation DTOs",
   "description": "Closed request/response DTOs for the self-surface read cursor operations (ck.self.read_cursor.*). set builds a ck.read_cursor.advance actor-private write; the durable cursor object model and read_scope / position field shapes are read-cursor.schema.json. See spec/v1/zh/discovery/read-receipts.md.",
   "anyOf": [
     {

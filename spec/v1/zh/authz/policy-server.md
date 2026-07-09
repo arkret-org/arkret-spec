@@ -12,7 +12,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-Policy Server 是可插拔的风险判断与治理服务，用于邀请、加入、媒体、消息、Applet、跨域联邦、目录发现、通话邀请等场景的预检查和审计。它类似 Matrix policy server / moderation policy 的思想，但在 Cokret 中不替代 capability authorization。
+Policy Server 是可插拔的风险判断与治理服务，用于邀请、加入、媒体、消息、Applet、跨域联邦、目录发现、通话邀请等场景的预检查和审计。它类似 Matrix policy server / moderation policy 的思想，但在 Arkret 中不替代 capability authorization。
 
 ## 2. Policy Server Declaration
 
@@ -92,14 +92,14 @@ Content-Type: application/json
 
 请求示例（非完整 schema）：
 
-```json schema=openapi/cokret-service-api.openapi.yaml#/components/schemas/PolicyCheckRequestBody
+```json schema=openapi/arkret-service-api.openapi.yaml#/components/schemas/PolicyCheckRequestBody
 {
   "request_id": "polreq_01",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "action": "ck.message.create",
   "actor_id": "did:webvh:...",
-  "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+  "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "source": {
     "service_did": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example",
     "service_type": "principal_server",
@@ -160,11 +160,11 @@ Content-Type: application/json
 
 响应示例（非完整 schema）：
 
-```json schema=openapi/cokret-service-api.openapi.yaml#/components/schemas/PolicyCheckOutcome
+```json schema=openapi/arkret-service-api.openapi.yaml#/components/schemas/PolicyCheckOutcome
 {
   "request_id": "polreq_01",
   "bound_to": {
-    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
     "actor_id": "did:webvh:...",
     "action": "ck.message.create",
     "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -238,7 +238,7 @@ Content-Type: application/json
   "actor_id": "did:webvh:z2dmjYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:bob",
   "action": "member.application",
   "request_canonical_digest": "sha256:...",
-  "device_id": "ck:device:..."
+  "device_id": "ak:device:..."
 }
 ```
 

@@ -14,7 +14,7 @@ updated: 2026-07-02
 
 身份层定义“谁是主体”，加密层定义“如何保护内容”，但真正能让系统安全运行的是密钥管理。
 
-本文定义 Cokret 的密钥生命周期：
+本文定义 Arkret 的密钥生命周期：
 
 - inception key
 - principal signing key
@@ -182,14 +182,14 @@ MLS KeyPackage key 用于加入加密 Realm。
 
 ```json
 {
-  "id": "ck:device:01964137-0000-7000-8000-000000000000",
+  "id": "ak:device:01964137-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "display_name": "Alice MacBook Pro",
   "device_public_key": "z6Mks...",
   "device_key_type": "Multikey",
   "created_at": "2026-04-26T00:00:00Z",
-  "authorized_by": "ck:device:01964136-8000-7000-8000-000000000000",
-  "authorization_ref": "ck:event:01964137-8000-7000-8000-000000000000",
+  "authorized_by": "ak:device:01964136-8000-7000-8000-000000000000",
+  "authorization_ref": "ak:event:01964137-8000-7000-8000-000000000000",
   "status": "active",
   "last_seen_at": "2026-04-26T08:00:00Z",
   "revocation_ref": null
@@ -198,7 +198,7 @@ MLS KeyPackage key 用于加入加密 Realm。
 
 ### 4.1 Principal Control Event Stream
 
-设备、session、recovery 和 KeyPackage 有效性属于 principal 级状态，不属于任意 Collaboration Realm。Cokret v1 使用 **Principal Control Event Stream** 承载这些 durable identity state（其归属的 Realm 即 [Principal Control Realm](../models/realm-and-space.md#28-realm-角色分类normative)，与 Collaboration Realm 在 `models/realm-and-space.md` §2.8 中正式分类）。
+设备、session、recovery 和 KeyPackage 有效性属于 principal 级状态，不属于任意 Collaboration Realm。Arkret v1 使用 **Principal Control Event Stream** 承载这些 durable identity state（其归属的 Realm 即 [Principal Control Realm](../models/realm-and-space.md#28-realm-角色分类normative)，与 Collaboration Realm 在 `models/realm-and-space.md` §2.8 中正式分类）。
 
 当 `ck.device.authorize`、`ck.device.revoke`、`ck.device.list_update` 或 `ck.session.grant` 以 `ck.schema.event.v1` Event Envelope 传播时：
 
@@ -220,7 +220,7 @@ Organization principal 的 control stream 遵守同一 PCR 规则，但它没有
 
 §5.1 假设新设备由"已授权设备"签发 `ck.device.authorize` 才能加入。但 principal 第一次激活时只有一台设备，没有任何已授权 peer 可以扮演这个角色。如果不为这种"无 peer 设备"的初始情形定义协议路径，§5.1 的链条永远无法启动，§4.1 的 control stream 也无法获得 genesis record。
 
-Inception bootstrap MUST 使用 DID method 自身的初始控制密钥作为信任根，把"第一台设备的 device key"和"DID 的 inception controller key"建立可验证绑定。Cokret 不发明新的 DID inception 操作；它把已有 DID method 的 inception 证据**重用**为 principal control stream 的 genesis record 授权依据。
+Inception bootstrap MUST 使用 DID method 自身的初始控制密钥作为信任根，把"第一台设备的 device key"和"DID 的 inception controller key"建立可验证绑定。Arkret 不发明新的 DID inception 操作；它把已有 DID method 的 inception 证据**重用**为 principal control stream 的 genesis record 授权依据。
 
 #### 5.0.1 标准 Inception 路径（v1 core 默认 `did:webvh` principal）
 
@@ -318,7 +318,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
   "old_did": "did:web:<host>",
   "new_did": "did:webvh:<scid>:<host>",
   "purpose": "principal_method_upgrade",
-  "trust_domain": "ck:trust_domain:<deployment-or-realm>",
+  "trust_domain": "ak:trust_domain:<deployment-or-realm>",
   "audience": ["did:webvh:z2Cxbwy2o7AmBLzdfDbix8WAP:registry.example"],
   "issued_at": "2026-05-19T00:00:00Z",
   "transfer_evidence": {
@@ -418,7 +418,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 ```json
 {
   "principal_id": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-  "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+  "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "device_public_key": "z6Mks...",
   "scopes": [
     "ck.self.events.query.describe",
@@ -428,7 +428,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
   ],
   "not_before": "2026-04-26T00:00:00Z",
   "expires_at": null,
-  "authorized_by": "ck:device:01964136-8000-7000-8000-000000000000",
+  "authorized_by": "ak:device:01964136-8000-7000-8000-000000000000",
   "cross_signing_binding": {
     "verification_method": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ck_self_signing_v1",
     "alg": "EdDSA",
@@ -457,14 +457,14 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 ## 6. Session Grant
 
 Session grant 用于 OIDC / SSO、浏览器短会话、远程执行环境。  
-Cokret v1 使用 `ck.session.grant` 作为 principal control stream 中的标准 durable control event 类型。
+Arkret v1 使用 `ck.session.grant` 作为 principal control stream 中的标准 durable control event 类型。
 
 `ck.session.grant.payload` 示例：
 
 ```json
 {
-  "grant_id": "ck:grant:01964198-0000-7000-8000-000000000000",
-  "realm_id": "ck:realm:01964198-7000-7000-8000-000000000000",
+  "grant_id": "ak:grant:01964198-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:01964198-7000-7000-8000-000000000000",
   "issuer": "did:webvh:z99jGJ9cd12QASVtC6r35kV5q:auth-gateway.example.com",
   "subject": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "session_public_key": "z6Mss...",
@@ -497,7 +497,7 @@ Cokret v1 使用 `ck.session.grant` 作为 principal control stream 中的标准
 
 ### 7.1 备份内容
 
-Cokret v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata 中声明备份域，且不得把一个域的解锁材料当作另一个域的授权证明：
+Arkret v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata 中声明备份域，且不得把一个域的解锁材料当作另一个域的授权证明：
 
 - `did_recovery`：恢复 DID 控制链所需的 recovery key share、门限恢复 share metadata 或受信恢复服务证明。它只能用于 `recovery_policy` 允许的 `recover` / `rotate` / `ck.device.authorize` 等操作。
 - `secret_storage`：保存 `self_signing_key`、`user_signing_key`、recovery secret、MLS group secrets backup key、`account_data_namespace_key`、applet delegated device secret 和 encrypted private account data cache。`account_data_namespace_key` 属于 `secret_storage/account_data_namespace/v1` 子域，只用于 [`../discovery/client-preferences.md` §2.2](../discovery/client-preferences.md) 的 account-data key 派生，不得暴露给服务端或跨 principal 复用。其中**承载 SSK 的恢复定向副本**（`recipient_method="recovery_public_key"`）属于 fresh-device 恢复的 recovery-bootstrap unlock set：它的域仍是 `secret_storage`，但因为只用 recovery 公钥加密，可在设备授权之前仅凭 recovery 私钥解锁（见 [`../crypto-media/device-lifecycle.md` §15 step 4](../crypto-media/device-lifecycle.md)）。这不破坏域隔离——SSK 不解密 MLS 历史，攻破该副本不等于攻破 `mls_history` 或 `did_recovery`。
@@ -507,7 +507,7 @@ Cokret v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata 
 
 - 每个 `backup_class` MUST 使用独立 salt、KDF context、HKDF info 和 AEAD associated data；一个域的 derived key、commitment key 或 wrap key 不得直接用于另一个域。
 - AEAD AAD MUST 绑定 `actor_id`、`device_id`、`backup_class`、`backup_version`、item type、created_at 和 schema/profile id，防止把 ciphertext 从一个域重放到另一个域。
-- 即使用户选择同一个 passphrase，客户端也必须先用 KDF 得到 root unlock key，再用 `HKDF(root, info="cokret-key-backup/<backup_class>/<subdomain>/v1")` 派生域内子密钥；不得复用裸 KDF 输出。
+- 即使用户选择同一个 passphrase，客户端也必须先用 KDF 得到 root unlock key，再用 `HKDF(root, info="arkret-key-backup/<backup_class>/<subdomain>/v1")` 派生域内子密钥；不得复用裸 KDF 输出。
 - `did_recovery` 域不得和 `mls_history` 域共享 wrap key、recovery share 或 key commitment。攻破 `mls_history` backup key 不得允许 DID rotate / recover；攻破 DID recovery share 也不得直接解密 MLS 历史。
 - **组织 / Realm Recovery Key（RRK）属 history-recovery 域**：Realm `durability_policy` 引用的 RRK（[`identity-did.md` §8.3](./identity-did.md)、[`../models/realm-and-space.md` §2.3.1](../models/realm-and-space.md)）是 principal（通常为 Organization）持有的、用于解 Realm 历史的 HPKE 接收钥匙，与本域 `mls_history` 同性质而作用域为 Realm。它 MUST 独立于该 principal 的 `did_recovery` 钥匙：同一把 key MUST NOT 既作 `did_recovery` 又作 `CokretRealmHistoryRecoveryKey`。RRK 私钥的离线保管 / 门限 / 硬件释放复用 §8 recovery policy（subject = 该 principal、域 = history-recovery）。
 - `self_signing_key` / `user_signing_key` 与 MLS group secrets backup key MUST 分成不同 backup envelope 或不同 subdomain key，并 SHOULD 要求不同 passphrase、硬件保护或门限恢复策略。**单一 passphrase 同时控制身份签名和 E2EE 历史**的失败模式在任何部署上都不可接受。只有 `ck.profile.personal_node.v1` MAY 接受 `mixed_secret_storage=true` 的本地备份 envelope；`small_team`、`organization`、`high_security_organization`、`sovereign_deployment` 等 profile MUST 拒绝该 flag。mixed 模式若使用 `passphrase_kdf`，MUST 使用 Argon2id 且 `memory_kib >= 262144`、`iterations >= 4`、`parallelism >= 1`。
@@ -537,12 +537,12 @@ Cokret v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata 
 
 ```json
 {
-  "backup_id": "ck:backup:01964137-0000-7000-8000-000000000000",
+  "backup_id": "ak:backup:01964137-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
-  "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+  "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "backup_class": "secret_storage",
   "backup_version": "kb_1",
-  "series_id": "ck:backup_series:01964137-1000-7000-8000-000000000000",
+  "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
   "series_seq": 0,
   "created_at": "2026-04-26T00:00:00Z",
   "encryption": {
@@ -565,12 +565,12 @@ Cokret v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata 
     "key_commitment": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
   },
   "domain_separation": {
-    "hkdf_info": "cokret-key-backup/secret_storage/account_keys/v1",
+    "hkdf_info": "arkret-key-backup/secret_storage/account_keys/v1",
     "subdomain": "account_keys",
     "aead_aad": {
       "schema": "ck.schema.key_backup.v1",
       "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
-      "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+      "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
       "backup_class": "secret_storage",
       "backup_version": "kb_1",
       "created_at": "2026-05-30T00:00:00Z",
@@ -584,7 +584,7 @@ Cokret v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata 
   "ciphertext": "base64url...",
   "ciphertext_digest": "sha256:2108421084217842908421084210842121084210842178429084210842108421",
   "auth_data": {
-    "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+    "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
     "signature": "base64url..."
   }
 }
@@ -595,20 +595,20 @@ Cokret v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata 
 
 FIPS-only 部署若不能批准 Argon2id，MUST 使用显式降级 profile（例如 `fips_pbkdf2` key backup profile），并声明其安全级别低于默认 memory-hard backup profile。该 profile 至少要求 FIPS 批准的 KDF、强口令策略、在线恢复限速、失败审计和备份 metadata 中的 `degraded_profile_reason`；它不得作为公共网络默认 key backup profile。
 
-每个 `ck.schema.key_backup.v1` envelope MUST 携带顶层 `domain_separation`，并在 `auth_data.signed_fields` 中覆盖该字段。`domain_separation.hkdf_info` MUST 等于 `cokret-key-backup/<backup_class>/<subdomain>/v1`，`domain_separation.aead_aad` MUST 绑定 `schema`、`actor_id`、`device_id`、`backup_class`、`backup_version`、`created_at` 与 `contents[].item_type`。接收方 MUST 用该对象的 canonical JSON 作为 AEAD/HPKE AAD，并验证它与外层 envelope 字段逐字节一致；服务端不得生成、修改或补全该对象。
+每个 `ck.schema.key_backup.v1` envelope MUST 携带顶层 `domain_separation`，并在 `auth_data.signed_fields` 中覆盖该字段。`domain_separation.hkdf_info` MUST 等于 `arkret-key-backup/<backup_class>/<subdomain>/v1`，`domain_separation.aead_aad` MUST 绑定 `schema`、`actor_id`、`device_id`、`backup_class`、`backup_version`、`created_at` 与 `contents[].item_type`。接收方 MUST 用该对象的 canonical JSON 作为 AEAD/HPKE AAD，并验证它与外层 envelope 字段逐字节一致；服务端不得生成、修改或补全该对象。
 
-`key_commitment` 的推荐构造（`commitment` 是 §7.1 `cokret-key-backup/<backup_class>/<subdomain>/v1` 体系下的一个 subdomain，因此 commitment 天然按 `backup_class` 域隔离，不会跨域复用）：
+`key_commitment` 的推荐构造（`commitment` 是 §7.1 `arkret-key-backup/<backup_class>/<subdomain>/v1` 体系下的一个 subdomain，因此 commitment 天然按 `backup_class` 域隔离，不会跨域复用）：
 
 ```
 derived_key = KDF(passphrase, salt, kdf_params)
-commitment_key = HKDF(derived_key, info="cokret-key-backup/<backup_class>/commitment/v1")
+commitment_key = HKDF(derived_key, info="arkret-key-backup/<backup_class>/commitment/v1")
 key_commitment = SHA256(commitment_key)
 ```
 
 `recipient_method="passphrase_kdf"` 的 AEAD nonce MUST deterministic derive，但 derivation transcript MUST 包含 producer-generated `aead.nonce_salt`。`nonce_salt` 是随 envelope 新生成的至少 128-bit 随机值，不是 secret，必须进入 signed metadata / AAD；服务端不得生成、覆盖或由用户输入提供该值。
 
 ```text
-nonce_key = HKDF(derived_key, info="cokret-key-backup-aead-nonce-v1")
+nonce_key = HKDF(derived_key, info="arkret-key-backup-aead-nonce-v1")
 nonce = HMAC-SHA256(
   key  = nonce_key,
   data = canonical_json({
@@ -861,11 +861,11 @@ Recovery policy 的标准发布面是 `POST /_cokret/root/identity/recovery-poli
 ```json
 {
   "schema": "ck.schema.recovery_policy.v1",
-  "policy_id": "ck:policy:01964140-0000-7000-8000-000000000000",
+  "policy_id": "ak:policy:01964140-0000-7000-8000-000000000000",
   "principal_id": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "version": 1,
   "supersedes": null,
-  "trust_domain": "ck:trust_domain:did.webvh.example",
+  "trust_domain": "ak:trust_domain:did.webvh.example",
   "allowed_proof_kinds": ["threshold_recovery", "device_quorum"],
   "threshold": {
     "k": 3,
@@ -892,8 +892,8 @@ Recovery policy 的标准发布面是 `POST /_cokret/root/identity/recovery-poli
   "device_quorum": {
     "k": 2,
     "members": [
-      "ck:device:01964137-0000-7000-8000-000000000000",
-      "ck:device:01964138-0000-7000-8000-000000000000"
+      "ak:device:01964137-0000-7000-8000-000000000000",
+      "ak:device:01964138-0000-7000-8000-000000000000"
     ]
   },
   "approval_requirement": {
@@ -989,7 +989,7 @@ share holder（无论是个人 DID、托管服务 DID，还是 hardware module�
 
 ## 11. 一致性要求
 
-Cokret v1 对设备、会话和恢复要求如下：
+Arkret v1 对设备、会话和恢复要求如下：
 
 - Device record JSON Schema 由 `../models/common-fields.md`（`id:device` 类型与 typed-id 规则）与 `../crypto-media/device-lifecycle.md` 共同固定。设备记录 MUST 绑定 principal DID、device id、verification method、算法、创建时间、撤销状态和签名链。
 - `ck.device.authorize` 与 `ck.device.revoke` MUST 进入 schema registry，并按 event auth 规则验证。`ck.device.revoke` 的控制面位置由其 Control Move 信封 `seal_basis`（授权基准，签名覆盖）与覆盖它的 accepted Seal（生效切点）表达，payload 不携带 frontier 字段；撤销后设备不得产生新的有效 session grant、KeyPackage 或 to-device write。

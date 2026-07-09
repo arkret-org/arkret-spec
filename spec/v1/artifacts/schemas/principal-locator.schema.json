@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/principal-locator.schema.json",
-  "title": "Cokret Principal Locator",
+  "$id": "https://arkret.org/v1/schemas/principal-locator.schema.json",
+  "title": "Arkret Principal Locator",
   "description": "Signed online locator returned from a holder-controlled Principal Server locator ref. It asserts the invite address used for private invite delivery; it is not a Realm membership grant and not a member_delivery_binding.",
   "type": "object",
   "required": [

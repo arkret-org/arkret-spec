@@ -1,5 +1,5 @@
 {
-  "$schema": "https://cokret.dev/spec/v1/artifacts/registry/profiles-dependency-graph.schema.json",
+  "$schema": "https://arkret.dev/spec/v1/artifacts/registry/profiles-dependency-graph.schema.json",
   "version": "2026-05-26",
   "kind": "profiles_dependency_graph",
   "source_role": "canonical",

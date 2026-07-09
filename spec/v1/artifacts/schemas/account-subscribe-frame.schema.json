@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/account-subscribe-frame.schema.json",
-  "title": "Cokret Account Subscribe Frame",
+  "$id": "https://arkret.org/v1/schemas/account-subscribe-frame.schema.json",
+  "title": "Arkret Account Subscribe Frame",
   "description": "Single NDJSON frame on the ck.self.account.stream.subscribe streaming channel (GET /_cokret/self/account/subscribe, Content-Type: application/x-ndjson). Each newline-delimited line is one frame object. Discriminated by the `kind` field: `delta` carries account-aggregate data (cross-Realm frontier, to_device, account_data, device_lists, presence, notifications, unread counts); the other kinds are control frames that mirror ck.self.events.stream.subscribe (`catchup_complete`, `frontier`, `heartbeat`, `dropped`, `resync_required`, `unauthorized`). `dropped` and `resync_required` MAY carry `reconnect_after_ms` as a server-directed minimum delay before opening another account subscribe stream for the same principal/device/filter scope.",
   "type": "object",
   "required": [

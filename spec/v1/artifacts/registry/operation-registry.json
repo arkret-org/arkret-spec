@@ -12,7 +12,7 @@
       "role": "Generated machine-readable operation registry view."
     },
     {
-      "file": "openapi/cokret-service-api.openapi.yaml",
+      "file": "openapi/arkret-service-api.openapi.yaml",
       "role": "HTTP/OpenAPI binding shape aligned to the catalog; not a second operation namespace."
     },
     {
@@ -23,7 +23,7 @@
   "registry_rules": [
     "New operation_id values MUST be added here before any OpenAPI, HTTP binding table, SDK generator, or alternative transport binding references them.",
     "Generated views MAY change shape, grouping, or field order, but MUST NOT introduce, rename, or remove operation_id values that are absent from this catalog.",
-    "Supporting Cokret core does not imply support for every registered operation. Implementations MUST advertise supported_operations and supported_profiles explicitly.",
+    "Supporting Arkret core does not imply support for every registered operation. Implementations MUST advertise supported_operations and supported_profiles explicitly.",
     "Each surface_groups entry carries a tier (see capability_tiers); only the core tier is implied by claiming v1 protocol support. Extension, interop_bridge, and deployment_local surfaces require explicit advertisement.",
     "Profile matrices in artifacts/profiles/conformance-profiles.json define role-level MUST/SHOULD requirements; the surface groups below define machine-readable capability families for discovery, docs, and lint.",
     "Each operation MUST declare success_shape_kind so SDKs can determine success handling without endpoint-name hard-coding.",
@@ -35,9 +35,9 @@
     "idempotency_mechanism is the machine-readable source of truth for which idempotency mechanism from api-conventions.md section 6 an operation uses. retry_safe=true means a byte-identical full retry of the same request cannot produce duplicate side effects: it returns the original outcome, an equivalent idempotent no-op, or a deterministic conflict. retry_safe=false means blind retries MAY duplicate side effects or consume one-time material; clients MUST NOT retry such operations without out-of-band reconciliation."
   ],
   "capability_tiers": {
-    "core": "Base interoperable surfaces implied by claiming Cokret v1 protocol support (service discovery, identity registry, events/account aggregate).",
-    "extension": "Optional interoperable surfaces that are part of the Cokret specification but require explicit discovery/profile advertisement.",
-    "interop_bridge": "Adapter surfaces that bridge Cokret to external protocols (MIMI Internet-Drafts, third-party Applet hosts). Implementations advertise these only when the external protocol is supported; bridge operations are not part of any core or extension profile and frequently mirror an in-spec operation via bridges_to.",
+    "core": "Base interoperable surfaces implied by claiming Arkret v1 protocol support (service discovery, identity registry, events/account aggregate).",
+    "extension": "Optional interoperable surfaces that are part of the Arkret specification but require explicit discovery/profile advertisement.",
+    "interop_bridge": "Adapter surfaces that bridge Arkret to external protocols (MIMI Internet-Drafts, third-party Applet hosts). Implementations advertise these only when the external protocol is supported; bridge operations are not part of any core or extension profile and frequently mirror an in-spec operation via bridges_to.",
     "deployment_local": "Deployment-specific, operator, or product-local surfaces that MUST NOT be assumed from core protocol support alone."
   },
   "surface_groups": [
@@ -1405,7 +1405,7 @@
       "http": "POST /_cokret/self/rtc/token",
       "grpc": "SelfCallMedia/TokenExchange",
       "mq": "self.call.media.exchange.issue_token",
-      "notes": "Media service token exchange operation (CKP-0010). Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in ck.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / cokret-native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/media-service-binding.md §3.",
+      "notes": "Media service token exchange operation (CKP-0010). Issues a short-lived (TTL <= 600s) backend_token + participant_binding for joining a focus declared in ck.realm.media_service.foci[]. Same wire across all backend types (livekit / mediasoup / janus / arkret-native); only backend_token shape is type-specific. Token issuer DID MUST be one of the Realm-authorized media service DIDs; clients reject otherwise (token_issuer_unauthorised). See zh/crypto-media/media-service-binding.md §3.",
       "success_shape_kind": "schema_resource",
       "idempotency_mechanism": "none",
       "retry_safe": false,
@@ -2211,7 +2211,7 @@
       "http": "POST /_cokret/self/account/profile",
       "grpc": "SelfAccount/UpdateProfile",
       "mq": "self.account.command.update_profile",
-      "notes": "Holder-bound service wrapper around ck.profile.update / Actor Profile projection. Request body is a closed patch over display_name, avatar_blob_ref, and profile_fields.<key>; profile_fields.bio is the canonical personal bio field and avatar_url is not accepted on the Cokret protocol path.",
+      "notes": "Holder-bound service wrapper around ck.profile.update / Actor Profile projection. Request body is a closed patch over display_name, avatar_blob_ref, and profile_fields.<key>; profile_fields.bio is the canonical personal bio field and avatar_url is not accepted on the Arkret protocol path.",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "none",
       "retry_safe": false,

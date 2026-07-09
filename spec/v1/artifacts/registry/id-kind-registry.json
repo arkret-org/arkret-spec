@@ -15,49 +15,49 @@
   "special_forms": [
     {
       "kind": "cursor",
-      "wire_form": "ck:cursor:<base64url>",
+      "wire_form": "ak:cursor:<base64url>",
       "status": "active",
       "storage_recommendation": "Store as an opaque token or store server-private cursor state keyed by a raw token.",
       "description": "Opaque sync/query cursor; not a typed-UUIDv7 object ID."
     },
     {
       "kind": "blob",
-      "wire_form": "ck:blob:sha256:<digest>",
+      "wire_form": "ak:blob:sha256:<digest>",
       "status": "active",
       "storage_recommendation": "Store digest bytes/hex separately from any logical blob row ID.",
       "description": "Content-addressed blob reference; distinct from ck:blob:<uuid> blob metadata IDs."
     },
     {
       "kind": "mls",
-      "wire_form": "ck:mls:<profile>:<profile_id>",
+      "wire_form": "ak:mls:<profile>:<profile_id>",
       "status": "profile_extension",
       "storage_recommendation": "Store profile and raw profile_id separately.",
       "description": "MLS-profile scoped reference such as KeyPackage IDs; validated by the E2EE profile, not by the generic typed-UUIDv7."
     },
     {
       "kind": "pseudonym",
-      "wire_form": "ck:pseudonym:<scope_id>:<random>",
+      "wire_form": "ak:pseudonym:<scope_id>:<random>",
       "status": "profile_extension",
       "storage_recommendation": "Store scope and random identifier separately when used in credential tables.",
       "description": "Realm-scoped pseudonymous credential reference; validated by the E2EE profile. v1 core uses Realm as the boundary; Matrix-style Room terminology is only allowed in MIMI/Matrix interop modules."
     },
     {
       "kind": "seal",
-      "wire_form": "ck:seal:sha256:<digest>",
+      "wire_form": "ak:seal:sha256:<digest>",
       "status": "active",
       "storage_recommendation": "Store as a content-addressed canonical Seal hash.",
       "description": "Content-addressed Seal identifier."
     },
     {
       "kind": "cell",
-      "wire_form": "ck:cell:<component>:<subject>",
+      "wire_form": "ak:cell:<component>:<subject>",
       "status": "active",
       "storage_recommendation": "Store canonical tuple fields separately when indexing cell state.",
       "description": "Canonical protocol cell identifier."
     },
     {
       "kind": "trust_domain",
-      "wire_form": "ck:trust_domain:<scope>",
+      "wire_form": "ak:trust_domain:<scope>",
       "status": "active",
       "storage_recommendation": "Store the scope string as an opaque deployment-level identifier; it appears in server describe, Realm policy, and high-risk proof transcripts.",
       "description": "Deployment-scope trust domain identifier. Scope is a lowercase opaque label (alphanumerics, dot, dash, underscore, colon; max 128 chars). Used to prevent cross-deployment / cross-sovereign replay of high-risk proofs (e.g. ck.cross_signing.reset §14.1). NOT a typed-UUIDv7 object id. See identity-did.md §3.6."
@@ -68,7 +68,7 @@
       "kind": "actor_profile",
       "category": "core_object",
       "status": "active",
-      "wire_form": "ck:actor_profile:<uuid>",
+      "wire_form": "ak:actor_profile:<uuid>",
       "referenceability": [
         "relation_endpoint"
       ],
@@ -78,77 +78,77 @@
       "kind": "appeal",
       "category": "moderation",
       "status": "active",
-      "wire_form": "ck:appeal:<uuid>",
+      "wire_form": "ak:appeal:<uuid>",
       "description": "Moderation appeal ID — opaque key for the ck.component.moderation.appeal.v1 cell. Created by ck.moderation.appeal.submit; referenced by review / decision / close events. See zh/governance/content-moderation.md §5.5."
     },
     {
       "kind": "agent_interop_session",
       "category": "extension",
       "status": "active",
-      "wire_form": "ck:agent_interop_session:<uuid>",
+      "wire_form": "ak:agent_interop_session:<uuid>",
       "description": "Agent interop session ID. Note the cross-surface naming: this typed ID uses the short form `agent_interop_session`, while the corresponding event kinds use the full form `ck.agent.interop_session.{start,status,result}` and capability actions use `ck.agent.interop_session.{start,cancel,stream_status,attach_artifact,read_transcript}`. The three surfaces all refer to the same session concept; downstream tooling MUST NOT assume `ck:<event-prefix>:<uuid>` mechanical derivation."
     },
     {
       "kind": "announce",
       "category": "discovery",
       "status": "active",
-      "wire_form": "ck:announce:<uuid>",
+      "wire_form": "ak:announce:<uuid>",
       "description": "Directory-local announce ingest record ID. It is typed and UUIDv7-shaped for validator consistency, but it is scoped to the issuing Directory and is not a global federated object authority."
     },
     {
       "kind": "applet",
       "category": "extension",
       "status": "active",
-      "wire_form": "ck:applet:<uuid>",
+      "wire_form": "ak:applet:<uuid>",
       "description": "Applet registration/service ID"
     },
     {
       "kind": "audit_binding",
       "category": "audit",
       "status": "active",
-      "wire_form": "ck:audit_binding:<uuid>",
+      "wire_form": "ak:audit_binding:<uuid>",
       "description": "Audit Applet Binding ID. Created by ck.audit.applet_binding and referenced by audit session request/authorize/notice/release events."
     },
     {
       "kind": "audit_session",
       "category": "audit",
       "status": "active",
-      "wire_form": "ck:audit_session:<uuid>",
+      "wire_form": "ak:audit_session:<uuid>",
       "description": "Audit release session ID. Threads ck.audit.session.request, authorize, notice, release, and close events for one bounded historical audit window."
     },
     {
       "kind": "audit_release",
       "category": "audit",
       "status": "active",
-      "wire_form": "ck:audit_release:<uuid>",
+      "wire_form": "ak:audit_release:<uuid>",
       "description": "Audit release manifest ID. Created by ck.audit.release for a sealed historical release under an active audit binding/session."
     },
     {
       "kind": "backup",
       "category": "identity",
       "status": "active",
-      "wire_form": "ck:backup:<uuid>",
+      "wire_form": "ak:backup:<uuid>",
       "description": "Encrypted backup object ID"
     },
     {
       "kind": "backup_series",
       "category": "identity",
       "status": "active",
-      "wire_form": "ck:backup_series:<uuid>",
+      "wire_form": "ak:backup_series:<uuid>",
       "description": "Stable identifier for one chain of encrypted backup envelopes belonging to a single (actor_id, backup_class). A pair MAY have multiple series during rotation or migration; the active series is selected by the signed active-series record, not by server return order. Used by ck.schema.key_backup.v1.series_id and recovery strands to detect rollback. See identity/key-management.md §7.6."
     },
     {
       "kind": "batch",
       "category": "discovery",
       "status": "active",
-      "wire_form": "ck:batch:<uuid>",
+      "wire_form": "ak:batch:<uuid>",
       "description": "Discovery/private-contact batch ID"
     },
     {
       "kind": "blob",
       "category": "core_object",
       "status": "active",
-      "wire_form": "ck:blob:<uuid>",
+      "wire_form": "ak:blob:<uuid>",
       "referenceability": [
         "relation_endpoint",
         "notification_source"
@@ -159,35 +159,35 @@
       "kind": "block",
       "category": "account_private",
       "status": "active",
-      "wire_form": "ck:block:<uuid>",
+      "wire_form": "ak:block:<uuid>",
       "description": "Actor-private blocklist entry ID"
     },
     {
       "kind": "call",
       "category": "media",
       "status": "active",
-      "wire_form": "ck:call:<uuid>",
+      "wire_form": "ak:call:<uuid>",
       "description": "Call/session ID"
     },
     {
       "kind": "rtc_participant",
       "category": "media",
       "status": "active",
-      "wire_form": "ck:rtc_participant:<uuid>",
+      "wire_form": "ak:rtc_participant:<uuid>",
       "description": "SFU-local participant handle (CKP-0010). Scope limited to `(call_id, focus_id, sfu_did)`; derived from `(realm_id, call_id, focus_id, device_id, issuer_service_did, issued_at_bucket)` by the media service token issuer. MUST NOT carry any actor-identifying material; only appears in `ck.call.state.participants[].participant_identity` and in `participant_binding`. The wire value MUST use the canonical UUIDv7-shaped `ck:rtc_participant:<uuid>` form; implementations MAY derive the random bits from the media-service token input, but the version and variant nibbles MUST satisfy the UUIDv7 pattern."
     },
     {
       "kind": "capability",
       "category": "authz",
       "status": "active",
-      "wire_form": "ck:capability:<uuid>",
+      "wire_form": "ak:capability:<uuid>",
       "description": "Abstract capability definition reference ID; signed grant objects use ck:grant:<uuid>."
     },
     {
       "kind": "circle",
       "category": "core_object",
       "status": "active",
-      "wire_form": "ck:circle:<uuid>",
+      "wire_form": "ak:circle:<uuid>",
       "referenceability": [
         "read_cursor_scope_ref"
       ],
@@ -197,7 +197,7 @@
       "kind": "strand",
       "category": "core_object",
       "status": "active",
-      "wire_form": "ck:strand:<uuid>",
+      "wire_form": "ak:strand:<uuid>",
       "referenceability": [
         "relation_endpoint",
         "notification_source",
@@ -209,35 +209,35 @@
       "kind": "chunk",
       "category": "snapshot",
       "status": "active",
-      "wire_form": "ck:chunk:<uuid>",
+      "wire_form": "ak:chunk:<uuid>",
       "description": "Snapshot/blob chunk ID"
     },
     {
       "kind": "claim",
       "category": "identity_authz",
       "status": "active",
-      "wire_form": "ck:claim:<uuid>",
+      "wire_form": "ak:claim:<uuid>",
       "description": "Claim or attestation ID"
     },
     {
       "kind": "device",
       "category": "identity",
       "status": "active",
-      "wire_form": "ck:device:<uuid>",
+      "wire_form": "ak:device:<uuid>",
       "description": "Device identifier (ck:device:<uuid>). A device is a typed ID scoped to an owning principal, NOT a DID and NOT an actor principal. Device keys are registered as verification methods under the owning principal DID via ck.device.authorize."
     },
     {
       "kind": "device_message",
       "category": "sync",
       "status": "active",
-      "wire_form": "ck:device_message:<uuid>",
+      "wire_form": "ak:device_message:<uuid>",
       "description": "To-device message queue ID"
     },
     {
       "kind": "event",
       "category": "event_history",
       "status": "active",
-      "wire_form": "ck:event:<uuid>",
+      "wire_form": "ak:event:<uuid>",
       "referenceability": [
         "relation_endpoint"
       ],
@@ -247,49 +247,49 @@
       "kind": "filter",
       "category": "policy",
       "status": "active",
-      "wire_form": "ck:filter:<uuid>",
+      "wire_form": "ak:filter:<uuid>",
       "description": "Moderation/filter rule ID"
     },
     {
       "kind": "frame",
       "category": "transport",
       "status": "active",
-      "wire_form": "ck:frame:<uuid>",
+      "wire_form": "ak:frame:<uuid>",
       "description": "Non-HTTP stream frame ID"
     },
     {
       "kind": "franking_proof",
       "category": "moderation",
       "status": "active",
-      "wire_form": "ck:franking_proof:<uuid>",
+      "wire_form": "ak:franking_proof:<uuid>",
       "description": "Message franking proof ID"
     },
     {
       "kind": "grant",
       "category": "authz",
       "status": "active",
-      "wire_form": "ck:grant:<uuid>",
+      "wire_form": "ak:grant:<uuid>",
       "description": "Signed capability grant object ID used by ck.schema.capability.v1 and grant/revoke references."
     },
     {
       "kind": "invite",
       "category": "authz",
       "status": "active",
-      "wire_form": "ck:invite:<uuid>",
+      "wire_form": "ak:invite:<uuid>",
       "description": "Invite object ID"
     },
     {
       "kind": "key_event",
       "category": "identity",
       "status": "active",
-      "wire_form": "ck:key_event:<uuid>",
+      "wire_form": "ak:key_event:<uuid>",
       "description": "DID/key log event ID"
     },
     {
       "kind": "message",
       "category": "core_object",
       "status": "active",
-      "wire_form": "ck:message:<uuid>",
+      "wire_form": "ak:message:<uuid>",
       "referenceability": [
         "relation_endpoint",
         "notification_source",
@@ -301,7 +301,7 @@
       "kind": "morph",
       "category": "core_object",
       "status": "active",
-      "wire_form": "ck:morph:<uuid>",
+      "wire_form": "ak:morph:<uuid>",
       "referenceability": [
         "relation_endpoint",
         "notification_source"
@@ -312,56 +312,56 @@
       "kind": "notification",
       "category": "derived_projection",
       "status": "active",
-      "wire_form": "ck:notification:<uuid>",
+      "wire_form": "ak:notification:<uuid>",
       "description": "Notification projection ID"
     },
     {
       "kind": "read_cursor",
       "category": "account_private",
       "status": "active",
-      "wire_form": "ck:read_cursor:<uuid>",
+      "wire_form": "ak:read_cursor:<uuid>",
       "description": "Actor-private read cursor ID"
     },
     {
       "kind": "policy",
       "category": "policy",
       "status": "active",
-      "wire_form": "ck:policy:<uuid>",
+      "wire_form": "ak:policy:<uuid>",
       "description": "Policy object ID"
     },
     {
       "kind": "presentation",
       "category": "identity",
       "status": "active",
-      "wire_form": "ck:presentation:<uuid>",
+      "wire_form": "ak:presentation:<uuid>",
       "description": "Presentation/proof exchange ID"
     },
     {
       "kind": "receipt",
       "category": "receipt",
       "status": "active",
-      "wire_form": "ck:receipt:<uuid>",
+      "wire_form": "ak:receipt:<uuid>",
       "description": "Receipt object ID"
     },
     {
       "kind": "recovery_session",
       "category": "identity",
       "status": "active",
-      "wire_form": "ck:recovery_session:<uuid>",
+      "wire_form": "ak:recovery_session:<uuid>",
       "description": "Stable session identifier bound by every proof transcript, backup decrypt proof and MLS Welcome replay during one recovery strand. Referenced by ck.schema.recovery_receipt.v1 and by §15 recovery proofs. See crypto-media/device-lifecycle.md §15."
     },
     {
       "kind": "attestation",
       "category": "audit",
       "status": "active",
-      "wire_form": "ck:attestation:<uuid>",
+      "wire_form": "ak:attestation:<uuid>",
       "description": "Attestation object ID (e.g. ck.attestation.range_completeness)."
     },
     {
       "kind": "relation",
       "category": "core_object",
       "status": "active",
-      "wire_form": "ck:relation:<uuid>",
+      "wire_form": "ak:relation:<uuid>",
       "referenceability": [
         "relation_endpoint",
         "notification_source"
@@ -372,35 +372,35 @@
       "kind": "report",
       "category": "moderation",
       "status": "active",
-      "wire_form": "ck:report:<uuid>",
+      "wire_form": "ak:report:<uuid>",
       "description": "Moderation report ID"
     },
     {
       "kind": "moderation_queue_item",
       "category": "moderation",
       "status": "active",
-      "wire_form": "ck:moderation_queue_item:<uuid>",
+      "wire_form": "ak:moderation_queue_item:<uuid>",
       "description": "Moderation queue item ID"
     },
     {
       "kind": "request",
       "category": "transport",
       "status": "active",
-      "wire_form": "ck:request:<uuid>",
+      "wire_form": "ak:request:<uuid>",
       "description": "Request/correlation ID"
     },
     {
       "kind": "snapshot",
       "category": "snapshot",
       "status": "active",
-      "wire_form": "ck:snapshot:<uuid>",
+      "wire_form": "ak:snapshot:<uuid>",
       "description": "Snapshot manifest ID"
     },
     {
       "kind": "space",
       "category": "core_object",
       "status": "active",
-      "wire_form": "ck:space:<uuid>",
+      "wire_form": "ak:space:<uuid>",
       "referenceability": [
         "relation_endpoint",
         "read_cursor_scope_ref"
@@ -411,7 +411,7 @@
       "kind": "realm",
       "category": "core_object",
       "status": "active",
-      "wire_form": "ck:realm:<uuid>",
+      "wire_form": "ak:realm:<uuid>",
       "referenceability": [
         "relation_endpoint",
         "read_cursor_scope_kind"
@@ -422,14 +422,14 @@
       "kind": "transaction",
       "category": "transport",
       "status": "active",
-      "wire_form": "ck:transaction:<uuid>",
+      "wire_form": "ak:transaction:<uuid>",
       "description": "Federation/applet transaction ID"
     },
     {
       "kind": "view",
       "category": "core_object",
       "status": "active",
-      "wire_form": "ck:view:<uuid>",
+      "wire_form": "ak:view:<uuid>",
       "referenceability": [
         "relation_endpoint",
         "notification_source"

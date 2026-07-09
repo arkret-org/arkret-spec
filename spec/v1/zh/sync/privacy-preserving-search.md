@@ -17,7 +17,7 @@ see_also:
 
 ## 1. 范围
 
-搜索不是 Cokret 真相源。客户端本地搜索、受托 search / projection 服务和 directory search 都必须回到 signed Event、reducer profile、Realm policy 与 causal frontier 校验结果。
+搜索不是 Arkret 真相源。客户端本地搜索、受托 search / projection 服务和 directory search 都必须回到 signed Event、reducer profile、Realm policy 与 causal frontier 校验结果。
 
 本文只定义两类隐私保护 search profile：
 

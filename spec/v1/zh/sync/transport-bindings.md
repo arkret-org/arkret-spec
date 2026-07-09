@@ -12,7 +12,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-Cokret 协议核心定义的是：
+Arkret 协议核心定义的是：
 
 - canonical object / event schema
 - DID identity and service discovery
@@ -22,12 +22,12 @@ Cokret 协议核心定义的是：
 - error, pagination, idempotency and stream message envelopes
 
 **v1 core 互操作 transport 锁定为 HTTP/JSON**：默认 binding 由 [`service-http-binding.md`](./service-http-binding.md) 与
-[`cokret-service-api.openapi.yaml`](../../artifacts/openapi/cokret-service-api.openapi.yaml) 规定。声称
+[`arkret-service-api.openapi.yaml`](../../artifacts/openapi/arkret-service-api.openapi.yaml) 规定。声称
 `ck.profile.principal_server.v1` / `ck.profile.full_client.v1` 等 v1 core profile 的实现
 **MUST** 提供 HTTP/JSON binding；其他 transport（gRPC、WebSocket-frame、SSE、message queue、
 libp2p）属于 **binding extension profile**，core 实现 **不要求** 提供。
 
-> Rationale: HTTP/JSON 是 core normative surface（`cokret-service-api.openapi.yaml` ~70 KB
+> Rationale: HTTP/JSON 是 core normative surface（`arkret-service-api.openapi.yaml` ~70 KB
 > 完整描述）。gRPC / WebSocket / MQ / libp2p 由独立 binding extension profile 单独 normative
 > 化，避免在 core 中只给几行说明就声称 transport-agnostic。Sync stream / events feed 的事件
 > 驱动语义可由独立 AsyncAPI 描述补充，但不改变 core 锁定。
@@ -130,11 +130,11 @@ HTTP/JSON 是默认 profile：
 - 生产环境使用 HTTPS。
 - 写操作使用 `Idempotency-Key` header 或 body 内 `idempotency_key`。
 
-> **PQ-hybrid TLS 传输层姿态（canonical 表述）**：本节是 TLS PQ-hybrid 义务的真相源。生产 v1 部署的 service-to-service（federation peer）与 client-service TLS 1.3 连接 SHOULD 支持并优先协商混合后量子 group `X25519MLKEM768`（TLS 1.3 hybrid named group，经典 X25519 + ML-KEM-768 / NIST FIPS 203；draft-ietf-tls-ecdhe-mlkem）。`ck.profile.high_security_organization.v1`、`ck.profile.sovereign_deployment.v1` 及继承它们的 profile 下，service-to-service 与 client-service 连接 MUST 协商 `X25519MLKEM768`；对端不提供该 group 时 MUST fail closed，MUST NOT 静默降级到纯经典 key exchange。default profile MAY 在对端不支持该 group 时回落到经典 TLS 1.3 key exchange，但 MUST 把该连接记录为 `transport_pq=not_negotiated`（或等价部署探针证据），并且 MUST NOT 宣称该连接具备 Harvest-Now-Decrypt-Later resistant transport posture。该姿态把 HNDL 缓解扩到仅靠 TLS 保护、不进 MLS / E2EE 的传输面（联邦 transaction 元数据、public plaintext Realm 内容、directory / sync 流量），不改任何 canonical `operation_id`、binding、Cokret wire envelope / schema / object model，也不触碰 envelope `scheme` / `version`，与请求级 RFC 9421 签名正交。高安全 / sovereign conformance 验证为 deployment-profile 握手探针：握手完成后检查协商出的 TLS named group 是否等于 `X25519MLKEM768`，并验证对端不提供时 fail closed，而非 object-model conformance vector。完整威胁论据见 [`../security/server-threat-model.md` §2.4](../security/server-threat-model.md)；联邦链路呼应见 [`federation.md` §3.2](./federation.md)；sovereign / 高安全部署的探针落地见 [`sovereign-deployment.md` §3 / §11](./sovereign-deployment.md)。
+> **PQ-hybrid TLS 传输层姿态（canonical 表述）**：本节是 TLS PQ-hybrid 义务的真相源。生产 v1 部署的 service-to-service（federation peer）与 client-service TLS 1.3 连接 SHOULD 支持并优先协商混合后量子 group `X25519MLKEM768`（TLS 1.3 hybrid named group，经典 X25519 + ML-KEM-768 / NIST FIPS 203；draft-ietf-tls-ecdhe-mlkem）。`ck.profile.high_security_organization.v1`、`ck.profile.sovereign_deployment.v1` 及继承它们的 profile 下，service-to-service 与 client-service 连接 MUST 协商 `X25519MLKEM768`；对端不提供该 group 时 MUST fail closed，MUST NOT 静默降级到纯经典 key exchange。default profile MAY 在对端不支持该 group 时回落到经典 TLS 1.3 key exchange，但 MUST 把该连接记录为 `transport_pq=not_negotiated`（或等价部署探针证据），并且 MUST NOT 宣称该连接具备 Harvest-Now-Decrypt-Later resistant transport posture。该姿态把 HNDL 缓解扩到仅靠 TLS 保护、不进 MLS / E2EE 的传输面（联邦 transaction 元数据、public plaintext Realm 内容、directory / sync 流量），不改任何 canonical `operation_id`、binding、Arkret wire envelope / schema / object model，也不触碰 envelope `scheme` / `version`，与请求级 RFC 9421 签名正交。高安全 / sovereign conformance 验证为 deployment-profile 握手探针：握手完成后检查协商出的 TLS named group 是否等于 `X25519MLKEM768`，并验证对端不提供时 fail closed，而非 object-model conformance vector。完整威胁论据见 [`../security/server-threat-model.md` §2.4](../security/server-threat-model.md)；联邦链路呼应见 [`federation.md` §3.2](./federation.md)；sovereign / 高安全部署的探针落地见 [`sovereign-deployment.md` §3 / §11](./sovereign-deployment.md)。
 - 流式结果 MAY 使用 SSE、WebSocket 或 newline-delimited JSON。
 - 错误使用统一 JSON error object，并映射到 HTTP status。
 
-HTTP binding 的 canonical 路径和请求/响应 shape SHOULD 遵循 `service-http-binding.md`、OpenAPI 以及生成的 `artifacts/reports/operation-schema-index.json`；`service-api-schema.mdx` 只提供 operation 分组与治理说明视图。实现不得把未注册路径宣称为 Cokret canonical binding，不得在 `/_cokret` namespace 中表达版本，也不得包含 `/v1/`、`/api/v1`、`/cokret/v1` 等版本 path 段。v1 core conformance 测试始终以 canonical HTTP/JSON path 与字段为基准。
+HTTP binding 的 canonical 路径和请求/响应 shape SHOULD 遵循 `service-http-binding.md`、OpenAPI 以及生成的 `artifacts/reports/operation-schema-index.json`；`service-api-schema.mdx` 只提供 operation 分组与治理说明视图。实现不得把未注册路径宣称为 Arkret canonical binding，不得在 `/_cokret` namespace 中表达版本，也不得包含 `/v1/`、`/api/v1`、`/arkret/v1` 等版本 path 段。v1 core conformance 测试始终以 canonical HTTP/JSON path 与字段为基准。
 
 ## 6. Non-HTTP Binding Extensions
 

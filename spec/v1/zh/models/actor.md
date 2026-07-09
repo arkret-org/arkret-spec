@@ -12,7 +12,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-Actor 是 Cokret 协作图中"能执行动作的主体"。Actor identity 的根由 DID 定义；为了让 Actor 能在协作图中被 mention、被 assign、被展示，它 MAY 拥有对应的 `actor_profile` 标准对象。
+Actor 是 Arkret 协作图中"能执行动作的主体"。Actor identity 的根由 DID 定义；为了让 Actor 能在协作图中被 mention、被 assign、被展示，它 MAY 拥有对应的 `actor_profile` 标准对象。
 
 公共字段、lifecycle、reducer 总则见 [`common-fields.md`](./common-fields.md)。Actor 与 Capability、Identity 体系的交互见 [`../identity/identity-did.md`](../identity/identity-did.md) 与 [`../authz/capabilities.md`](../authz/capabilities.md)。
 
@@ -77,7 +77,7 @@ Schema id: `ck.schema.actor_profile.v1`
 - **设备不是 actor 主体（normative）**：`actor_kind` 不含 `device`，设备没有自己的 DID。设备的一切协作-图行动 MUST 以所属 user/org principal DID 作为 `actor_id`；设备身份通过 proof `verification_method`、`device_id`（`ck:device:<uuid>`）、`ck.device.authorize` 或 session grant 表达。需要 pairwise 匿名行动时，MUST 创建临时 pairwise **principal**（`did:key`，`actor_kind` 取 `user`/`agent` 等真实主体类型），而不是把设备当作独立主体；该临时 principal 仍需经正常 actor 登记，其设备同样通过 `ck.device.authorize` 从属于它。
 - `team`、`agent`、`service` 和 `integration` MAY 使用独立 DID，也 MAY 由 `accountable_principal_ids` 指向控制/责任 principal；它们不会因为 `accountable_principal_ids` 自动继承权限。
 - `actor_kind` 的 wire enum 不包含 `agent_native`、`agent_ghost` 或 `ghost`。Native personal agent 使用 `actor_kind="agent"`，并由 `ck.profile.personal_agent_provisioning.v1` provisioning state 区分；Applet-managed Ghost Actor 使用现有 enum 中最贴合其主体类型的值（外部人类/账号镜像 SHOULD 使用 `integration`，Applet 托管 AI/automation MAY 使用 `agent`）。Realm policy 必须能通过 Applet provenance、`accountable_principal_ids`、profile 与 capability 分别控制 native personal agent 与 Applet / Ghost Actor，不得合并为单一 "automation allowed" 开关：
-  - **Native personal agent**:由 controller 通过 `ck.self.agent.command.provision` 直接创建的一等 Cokret actor principal,拥有独立 DID document、`ck.identity.accountability_grant` 指向 controller、`ck.agent.key.authorize` 绑定的运行时 key。可被 mention / grant / revoke / pause / deactivate。
+  - **Native personal agent**:由 controller 通过 `ck.self.agent.command.provision` 直接创建的一等 Arkret actor principal,拥有独立 DID document、`ck.identity.accountability_grant` 指向 controller、`ck.agent.key.authorize` 绑定的运行时 key。可被 mention / grant / revoke / pause / deactivate。
   - **Ghost Actor**([`../extensions/applet-integration.md`](../extensions/applet-integration.md)):Applet 管辖 namespace 下的外部 / 集成 actor 镜像或 Applet 托管 automation。`actor_id` / Actor Profile `principal_id` MUST 是无 fragment 的 DID；DID URL fragment 只用于 `verification_method`。其 `accountable_principal_ids` 指向 Applet controller / 外部系统；生命周期由 Applet registration 管理。
 - `agent_slug` 只为 native personal agent 的 **controller-scoped mention selector** 服务。它与 controller handle 组合成输入 token `@<controller-handle>/<agent_slug>`，发送前必须解析为 agent `principal_id`。权威绑定来自 `ck.schema.agent_selector_claim.v1`，而不是 DID path 或 Actor Profile 字面值；Actor Profile 上的 `agent_slug` 只是 list/get、roster、mention picker 可用的投影 hint。`agent_slug` 本身 MUST NOT 进入 grant subject、actor attribution、membership key、delivery decision、公开 Directory search/list key 或 audit attribution。Reducer / profile projection 在同一 verified controller principal 下发现多个 active native personal agents 使用同一有效 selector claim 时，MUST 把该 selector 解析为 ambiguous 并 fail closed；实现 MAY 拒绝造成冲突的 `ck.profile.create` / `ck.profile.update` 或 selector claim。`agent_slug` 变化只影响未来输入解析，历史 mention 仍按已持久化的 `subject_id` 指向原 agent。
 - Event Envelope 在 reducer 接受时 stamp `actor_kind` projection(见 [`event-and-patch.md`](./event-and-patch.md) §2.2),让审计 / 取证 / offline reader 不必反向解析 Actor Profile 即可分类 event。该字段是 reducer-managed immutable,actor 提交侧 MUST NOT 携带。

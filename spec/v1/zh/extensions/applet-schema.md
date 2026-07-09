@@ -10,14 +10,14 @@ updated: 2026-07-02
 
 本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [conformance/normative-language.md](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
-> **权威 schema / OpenAPI 来源**：本文是 Applet wire 对象与 HTTP 字段的人类可读参考；它**不**是机器可校验的权威定义。Applet registration / transaction / bridge-error 的权威 JSON Schema 见 `artifacts/schemas/applet.schema.json`，HTTP operation 的权威 OpenAPI 定义见 `artifacts/openapi/cokret-service-api.openapi.yaml`（两者由 artifact pipeline 从 contract catalog 生成）。本文与上述 artifacts 冲突时，**以 artifacts 为准**。
+> **权威 schema / OpenAPI 来源**：本文是 Applet wire 对象与 HTTP 字段的人类可读参考；它**不**是机器可校验的权威定义。Applet registration / transaction / bridge-error 的权威 JSON Schema 见 `artifacts/schemas/applet.schema.json`，HTTP operation 的权威 OpenAPI 定义见 `artifacts/openapi/arkret-service-api.openapi.yaml`（两者由 artifact pipeline 从 contract catalog 生成）。本文与上述 artifacts 冲突时，**以 artifacts 为准**。
 
 ## 1. Applet Registration Schema
 
 ```json
 {
   "kind": "ck.applet.registration",
-  "applet_id": "ck:applet:dd552c17-0000-7000-8000-000000000000",
+  "applet_id": "ak:applet:dd552c17-0000-7000-8000-000000000000",
   "service_did": "did:webvh:z5ApPLeTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:applet.example",
   "controller_did": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
   "base_url": "https://applet.example/applet",
@@ -102,7 +102,7 @@ updated: 2026-07-02
 | `namespaces` | yes | `actors` / `realms` / `handles` 对象形态 namespace。 |
 | `requested_scopes` | yes | capability action 请求列表；只用于审批 UI。 |
 | `endpoint_policy` | yes | 实际支持的 Applet API endpoint 与 auth requirement。 |
-| `webhook_auth` | yes | HTTP message signature key ref / accepted algorithms；`key_ref` MUST 是 Applet `service_did` 下的 DID URL，并作为 app/bridge→cokret inbound transaction push 的来源签名锚点。 |
+| `webhook_auth` | yes | HTTP message signature key ref / accepted algorithms；`key_ref` MUST 是 Applet `service_did` 下的 DID URL，并作为 app/bridge→arkret inbound transaction push 的来源签名锚点。 |
 | `receive_events` | yes | 派生 registration 的接收事件声明。 |
 | `receive_ephemeral` | yes | 派生 registration 的 ephemeral 接收声明。 |
 | `rate_limited` | yes | 派生 registration 的服务端限流声明。 |
@@ -149,7 +149,7 @@ Install preview request:
   "applet_package": {},
   "effective_scope": {
     "kind": "realm",
-    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
+    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
   },
   "approval_request": {
     "approve_actions": ["ck.message.create"],
@@ -171,12 +171,12 @@ Install commit request:
   "applet_package": {},
   "effective_scope": {
     "kind": "realm",
-    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
+    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
   },
   "approved_scopes": [
     {
       "actions": ["ck.message.create"],
-      "realm_ids": ["ck:realm:0196419b-0000-7000-8000-000000000000"],
+      "realm_ids": ["ak:realm:0196419b-0000-7000-8000-000000000000"],
       "constraints": []
     }
   ],
@@ -304,7 +304,7 @@ GET /_cokret/edge/applet/realms/{realm_id_or_alias}
 ```json
 {
   "exists": true,
-  "realm_id": "ck:realm:c0c69410-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:c0c69410-0000-7000-8000-000000000000",
   "title": "#general",
   "external_ref": {}
 }
@@ -334,9 +334,9 @@ GET /_cokret/edge/applet/protocols/{protocol}
 ```json
 {
   "kind": "ck.applet.bridge_error",
-  "applet_id": "ck:applet:dd552c17-0000-7000-8000-000000000000",
-  "realm_id": "ck:realm:c0c69410-0000-7000-8000-000000000000",
-  "failed_transaction_ref": "ck:event:019640ed-8000-7000-8000-000000000000",
+  "applet_id": "ak:applet:dd552c17-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:c0c69410-0000-7000-8000-000000000000",
+  "failed_transaction_ref": "ak:event:019640ed-8000-7000-8000-000000000000",
   "error_class": "external_network",
   "error_code": "external_rate_limited",
   "retriable": true,

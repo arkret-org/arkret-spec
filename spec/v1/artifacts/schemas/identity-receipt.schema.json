@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/identity-receipt.schema.json",
+  "$id": "https://arkret.org/v1/schemas/identity-receipt.schema.json",
   "$defs": {
     "timestamp": {
       "type": "string",
@@ -8,7 +8,7 @@
       "pattern": "Z$"
     }
   },
-  "title": "Cokret Identity Receipt",
+  "title": "Arkret Identity Receipt",
   "type": "object",
   "required": [
     "schema",

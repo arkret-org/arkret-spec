@@ -14,7 +14,7 @@ sidebar:
 
 ## 1. 目标与范围
 
-本文件定义 Cokret 多人会议的 **transport-agnostic 媒体服务 backend 绑定**：媒体服务发现（`ck.realm.media_service` 的 multi-focus 描述符）、token / participant binding 兑换、focus 选举与 session 持久化、SFU 权限与 participant identity 交叉校验，以及媒体 E2EE 帧密钥注入与治理绑定。LiveKit / mediasoup / Janus / cokret-native / MoQ-relay 都作为可替换 backend 通过 `foci[].type` 区分，具体 wire 见 [`bindings/<type>.md`](./bindings/) 附录。
+本文件定义 Arkret 多人会议的 **transport-agnostic 媒体服务 backend 绑定**：媒体服务发现（`ck.realm.media_service` 的 multi-focus 描述符）、token / participant binding 兑换、focus 选举与 session 持久化、SFU 权限与 participant identity 交叉校验，以及媒体 E2EE 帧密钥注入与治理绑定。LiveKit / mediasoup / Janus / arkret-native / MoQ-relay 都作为可替换 backend 通过 `foci[].type` 区分，具体 wire 见 [`bindings/<type>.md`](./bindings/) 附录。
 
 边界：
 
@@ -23,7 +23,7 @@ sidebar:
 
 ## 2. Realtime Media Server
 
-`ck.realm.media_service` 把媒体服务声明为 **multi-focus 列表 + transport-agnostic backend 描述符**。协议层永不规定 SFU 内部协议；LiveKit / mediasoup / Janus / cokret-native / MoQ-relay 都作为可替换 backend 通过 `foci[].type` 区分，具体 wire 见 [`bindings/<type>.md`](./bindings/) 附录。
+`ck.realm.media_service` 把媒体服务声明为 **multi-focus 列表 + transport-agnostic backend 描述符**。协议层永不规定 SFU 内部协议；LiveKit / mediasoup / Janus / arkret-native / MoQ-relay 都作为可替换 backend 通过 `foci[].type` 区分，具体 wire 见 [`bindings/<type>.md`](./bindings/) 附录。
 
 ```json
 {
@@ -68,12 +68,12 @@ sidebar:
 字段语义（normative）：
 
 - `foci[].focus_id`：focus 在该 Realm media service 内的稳定 ID；进入签名 canonical bytes 与 `session_focus` 选举（见 [`call-state.md` §4.1](./call-state.md)）。
-- `foci[].type`：backend binding 标识。v1 注册值：`livekit`、`mediasoup`、`janus`、`cokret-native`、`moq-relay`（实验保留位，v1 周期内不提供 normative binding）。客户端遇到未知或 unsupported `type` MUST fail closed（错误码 `unknown_focus_type`），不得尝试把 token 交给任意 SDK。
+- `foci[].type`：backend binding 标识。v1 注册值：`livekit`、`mediasoup`、`janus`、`arkret-native`、`moq-relay`（实验保留位，v1 周期内不提供 normative binding）。客户端遇到未知或 unsupported `type` MUST fail closed（错误码 `unknown_focus_type`），不得尝试把 token 交给任意 SDK。
 - `foci[].token_endpoint`：token 兑换端点；所有 backend 共用同一抽象（见 §3），差异只在 `backend_token` 形态。
 - `foci[].connect_url`：backend 连接入口；具体协议由 type-specific 附录定义。
 - `foci[].capabilities[]`：该 focus 支持的能力子集，用于客户端能力协商。
 - `foci[].health_endpoint`（optional）：客户端预检 endpoint，返回 `200` + `{"status":"ok","load":<0..1>}`。**只用于尚未 commit `session_focus` 前**排序本地 `foci_preferred`；一旦 `ck.call.state.session_focus` 已存在，connect 失败 MUST 暴露为 focus 不可用，不得静默切到另一 focus（`session_focus_no_split_brain`）。
-- `foci[].cascade_group`（optional）：声明属于同一 backend cluster 的 focus 集合；客户端可据此向用户披露"跨区域会议由 backend 内部级联"。协议层不规范 SFU-to-SFU cascading 协议；每个 backend 自行实现 mesh，正式 Cokret wire 只公开 `foci[].cascade_group` 与用户可见披露语义。
+- `foci[].cascade_group`（optional）：声明属于同一 backend cluster 的 focus 集合；客户端可据此向用户披露"跨区域会议由 backend 内部级联"。协议层不规范 SFU-to-SFU cascading 协议；每个 backend 自行实现 mesh，正式 Arkret wire 只公开 `foci[].cascade_group` 与用户可见披露语义。
 
 `ck.realm.media_service` MUST 声明非空 `foci[]`。只提供单个 `sfu_endpoint` 或缺少 `foci[]` 的 payload MUST fail closed，返回 `schema_violation` 或 `failed_precondition`，原因码 `media_service_foci_required`；服务端不得在实时路径中自动补写、normalize 或推断 focus。
 
@@ -89,7 +89,7 @@ sidebar:
 
 ## 3. Token Exchange (normative)
 
-会议加入前，客户端 MUST 先向 `foci[].token_endpoint` 兑换 backend 凭证；issuer 是 Cokret-side 授权组件，对协议层不透明的 `backend_token` 由 backend SDK 解析。Token endpoint 等价于 [MSC4195 `lk-jwt-service`](https://github.com/element-hq/lk-jwt-service)，但绑定到 Cokret 的 capability / Realm policy / MLS governance binding。
+会议加入前，客户端 MUST 先向 `foci[].token_endpoint` 兑换 backend 凭证；issuer 是 Arkret-side 授权组件，对协议层不透明的 `backend_token` 由 backend SDK 解析。Token endpoint 等价于 [MSC4195 `lk-jwt-service`](https://github.com/element-hq/lk-jwt-service)，但绑定到 Arkret 的 capability / Realm policy / MLS governance binding。
 
 请求：
 
@@ -99,12 +99,12 @@ Authorization: <device proof | bearer>
 Content-Type: application/json
 
 {
-  "realm_id": "ck:realm:...",
-  "call_id": "ck:call:...",
+  "realm_id": "ak:realm:...",
+  "call_id": "ak:call:...",
   "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
-  "device_id": "ck:device:...",
+  "device_id": "ak:device:...",
   "focus_id": "fra-1",
-  "capability_refs": ["ck:grant:..."],
+  "capability_refs": ["ak:grant:..."],
   "desired_media": { "audio": true, "video": true, "screen": false }
 }
 ```
@@ -116,16 +116,16 @@ Content-Type: application/json
   "focus_id": "fra-1",
   "type": "livekit",
   "connect_url": "wss://livekit-fra.example.com",
-  "backend_token": "<opaque to Cokret protocol — type-specific>",
-  "participant_identity": "ck:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+  "backend_token": "<opaque to Arkret protocol — type-specific>",
+  "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
   "participant_binding": {
     "scheme": "ck.media.participant_binding.v1",
-    "realm_id": "ck:realm:...",
-    "call_id": "ck:call:...",
+    "realm_id": "ak:realm:...",
+    "call_id": "ak:call:...",
     "focus_id": "fra-1",
     "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
-    "device_id": "ck:device:...",
-    "participant_identity": "ck:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+    "device_id": "ak:device:...",
+    "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
     "issued_at": "2026-05-27T12:29:56Z",
     "expires_at": "2026-05-27T12:34:56Z",
     "issuer_kid": "did:webvh:zCxjAemtszNh7bTFGWFS4m8gv:media.example#key-1",
@@ -154,7 +154,7 @@ Content-Type: application/json
                        focus_id, participant_identity, realm_id })
     ```
 
-    第一段是固定 ASCII 域分隔 label（逐字节等于 `scheme` 值），随后单字节 `0x00` 分隔，再接 7 字段对象的 canonical JSON（RFC 8785 JCS：键按字母序、无多余空白，故字段书写顺序无关）。**签名仅覆盖这 7 个权威字段**；binding 对象另带的 `scheme` / `issuer_kid` / `issued_at` 是**未签名元数据**，MUST NOT 进入 `signing_input`。接收方据 wire 上的 7 个权威字段值重建 `signing_input` 再验签——故篡改任一权威字段都会令验签失败。任何 media service（cokret-native / LiveKit / 第三方）MUST 按此构造，任何客户端 / reducer MUST 按此验签；实现 MUST NOT 引入私有 domain 前缀，也 MUST NOT 把元数据字段并入签名输入，否则破坏跨 service 互通。
+    第一段是固定 ASCII 域分隔 label（逐字节等于 `scheme` 值），随后单字节 `0x00` 分隔，再接 7 字段对象的 canonical JSON（RFC 8785 JCS：键按字母序、无多余空白，故字段书写顺序无关）。**签名仅覆盖这 7 个权威字段**；binding 对象另带的 `scheme` / `issuer_kid` / `issued_at` 是**未签名元数据**，MUST NOT 进入 `signing_input`。接收方据 wire 上的 7 个权威字段值重建 `signing_input` 再验签——故篡改任一权威字段都会令验签失败。任何 media service（arkret-native / LiveKit / 第三方）MUST 按此构造，任何客户端 / reducer MUST 按此验签；实现 MUST NOT 引入私有 domain 前缀，也 MUST NOT 把元数据字段并入签名输入，否则破坏跨 service 互通。
   - **`service_signature`**：`service_signature.sig` 是 issuer 对**同一 `signing_input`**（label 与 7 元组与上完全一致）的 EdDSA 签名，承诺该次 token exchange 响应整体的 issuer 身份；`service_signature.kid` 与 `participant_binding.issuer_kid` 都 MUST 锚定当前 epoch `service_id`（见上「Token issuer DID 锚定」）。客户端在默认验证路径中 **MUST** 同时验 `service_signature.sig` 与 `participant_binding.sig` 通过后才使用该 token——二者任一验签失败即 `token_issuer_unauthorised` 拒绝，MUST NOT 把签名校验降级为可选的 SHOULD。
 
 Token issuer MUST 在签发前校验：
@@ -169,7 +169,7 @@ Token issuer MUST 在签发前校验：
 
 ### 3.1 签名 domain label 分离（normative）
 
-媒体路径上的每一类 **Ed25519 签名** MUST 以一个**独立的 ASCII domain 分隔 label** 前缀其 `signing_input`，再接单字节 `0x00` 分隔与该签名覆盖的 canonical bytes。该 label 是签名的安全域分离参数：它把"同一 issuer key 在不同用途上产生的签名"彼此隔离，使任一签名 MUST NOT 被验证方在另一用途下重新解释（cross-protocol / cross-purpose signature confusion）。任何 media service（cokret-native / LiveKit / 第三方）MUST 按本表构造签名，任何客户端 / reducer MUST 按对应 label 重建 `signing_input` 再验签；验证方 MUST 在重建时使用其**期望用途**对应的 label，签名方使用了不匹配 label 即视为验签失败。
+媒体路径上的每一类 **Ed25519 签名** MUST 以一个**独立的 ASCII domain 分隔 label** 前缀其 `signing_input`，再接单字节 `0x00` 分隔与该签名覆盖的 canonical bytes。该 label 是签名的安全域分离参数：它把"同一 issuer key 在不同用途上产生的签名"彼此隔离，使任一签名 MUST NOT 被验证方在另一用途下重新解释（cross-protocol / cross-purpose signature confusion）。任何 media service（arkret-native / LiveKit / 第三方）MUST 按本表构造签名，任何客户端 / reducer MUST 按对应 label 重建 `signing_input` 再验签；验证方 MUST 在重建时使用其**期望用途**对应的 label，签名方使用了不匹配 label 即视为验签失败。
 
 v1 Ed25519 媒体签名点与其 label 常量（逐字节 ASCII）：
 
@@ -193,7 +193,7 @@ v1 Ed25519 媒体签名点与其 label 常量（逐字节 ASCII）：
 SFU 在 v1 通过 [§2](#2-realtime-media-server) 的 `foci[]` 声明，每个 focus 通过 `type` 选择具体 backend binding：
 
 - `type="livekit"`：见 [`bindings/livekit.md`](./bindings/livekit.md)。
-- `type="cokret-native"`：见 [`bindings/cokret-native.md`](./bindings/cokret-native.md)（reference / conformance binding，不作为生产媒体后端）。
+- `type="arkret-native"`：见 [`bindings/arkret-native.md`](./bindings/arkret-native.md)（reference / conformance binding，不作为生产媒体后端）。
 - `type="mediasoup"` / `type="janus"` / `type="moq-relay"`：保留位，v1 周期内不提供 normative binding；客户端遇到 unsupported `type` MUST fail closed，错误码 `unknown_focus_type`。
 
 不论 backend 类型，client→backend 媒体协商前 MUST 先完成 [§3 Token Exchange](#3-token-exchange-normative)；具体 `backend_token` 形态、connect handshake、SDP 协商由 type-specific 附录定义。下面的 §5 / §6 / §7 是跨 backend 通用约束。
@@ -237,7 +237,7 @@ backend "X 加入会议" 通知到达客户端时，客户端 MUST：
 3. 验证该 participant entry 内的 `participant_binding` 签名（[§3](#3-token-exchange-normative)），确认它覆盖与 §3 签发侧完全相同的权威元组 `(realm_id, call_id, focus_id, actor_id, device_id, participant_identity, expires_at)`（此处当前 `session_focus` 即 §3 元组中的 `focus_id`；签名输入字段集合与名称以 §3 为准，不得省略 `expires_at`）。
 4. 不匹配或签名无效 → 拒绝为该 participant 建立媒体流（不收音、不订阅 video），错误码 `participant_identity_unrecognised`。
 
-这道闸门防止 backend 单方面 "塞入" 未经 Realm 授权的参与者——backend 运营方误配置、被入侵或恶意 inject 都无法绕过 Cokret-side `ck.call.state` 真源。
+这道闸门防止 backend 单方面 "塞入" 未经 Realm 授权的参与者——backend 运营方误配置、被入侵或恶意 inject 都无法绕过 Arkret-side `ck.call.state` 真源。
 
 ## 8. E2EE with SFU
 
@@ -247,7 +247,7 @@ SFU 模式 SHOULD 使用 WebRTC Insertable Streams / SFrame 或等价机制实�
 
 ### 8.1 E2EE Key Injection 通用契约（normative）
 
-无论 backend 自身是否支持 E2EE，所有 binding 附录的 E2EE 章节 MUST 规定一个最小契约，使得 **客户端侧 binding adapter / media SDK** 能从 Cokret 协议层接收 frame key，而不从 backend 自带密钥分发机制取。最小契约：
+无论 backend 自身是否支持 E2EE，所有 binding 附录的 E2EE 章节 MUST 规定一个最小契约，使得 **客户端侧 binding adapter / media SDK** 能从 Arkret 协议层接收 frame key，而不从 backend 自带密钥分发机制取。最小契约：
 
 ```text
 inject_frame_key(key_bytes: 32-byte secret,
@@ -261,7 +261,7 @@ inject_frame_key(key_bytes: 32-byte secret,
 
 约束：
 
-- `key_bytes` MUST 由 Cokret MLS exporter 派生，**label 固定为 ASCII 字符串 `"ck-rtc-frame-key/v1"`**（length=19 bytes，无 trailing newline；RFC 9420 §8 `MLS-Exporter` 的 `Label`，`KDF.Nh` 长度 32 bytes）。`Context` MUST 是 canonical JSON bytes of exactly `{realm_id, call_id, focus_id, epoch_id, participant_identity, device_id}`，其中 `participant_identity` / `device_id` 来自已验证的 `ck.call.state.participants[]` 与 `participant_binding`。`Context = ""`、缺少 sender 字段或只绑定 epoch 的派生 MUST fail closed(`e2ee_key_source_unauthorised`)。`ck-rtc-frame-key/v1` / `ck-rtc-recording-key/v1` 是**固定的 canonical wire label**（密钥派生的安全域分离参数，canonical 登记见 [`exporter-label-registry.json`](../../artifacts/registry/exporter-label-registry.json)）；实现 MUST 逐字节使用登记的 label 字符串，MUST NOT 与其它 label 混用。该 label 的任何变更属于 wire-breaking，必须开新 profile。
+- `key_bytes` MUST 由 Arkret MLS exporter 派生，**label 固定为 ASCII 字符串 `"ck-rtc-frame-key/v1"`**（length=19 bytes，无 trailing newline；RFC 9420 §8 `MLS-Exporter` 的 `Label`，`KDF.Nh` 长度 32 bytes）。`Context` MUST 是 canonical JSON bytes of exactly `{realm_id, call_id, focus_id, epoch_id, participant_identity, device_id}`，其中 `participant_identity` / `device_id` 来自已验证的 `ck.call.state.participants[]` 与 `participant_binding`。`Context = ""`、缺少 sender 字段或只绑定 epoch 的派生 MUST fail closed(`e2ee_key_source_unauthorised`)。`ck-rtc-frame-key/v1` / `ck-rtc-recording-key/v1` 是**固定的 canonical wire label**（密钥派生的安全域分离参数，canonical 登记见 [`exporter-label-registry.json`](../../artifacts/registry/exporter-label-registry.json)）；实现 MUST 逐字节使用登记的 label 字符串，MUST NOT 与其它 label 混用。该 label 的任何变更属于 wire-breaking，必须开新 profile。
 - `epoch_id` 与 Realm MLS epoch 一一对应。
 - `rotation_trigger` 不得被 adapter 当作不透明枚举透传:`rotation_trigger=member_leave`（成员离开 / 被踢 / 被 ban）**MUST** 对应一次 MLS commit（Remove）并推进 `epoch_id`，使新 `key_bytes` 从离开成员不掌握的新 group secret 派生；adapter **MUST NOT** 在 `member_leave` 时仅更换 SFrame KID / keyIndex 而复用旧 epoch 的 group secret，否则离开成员仍能解密后续帧（E2EE 媒体前向保密失效）。`member_join` 同样 MUST 绑定推进后的 `epoch_id`。`manual` / `scheduled` 触发亦 MUST 携带推进后的 `epoch_id`；任何 `rotation_trigger` 下若 `epoch_id` 未相对前一帧密钥推进，客户端 MUST fail closed（`e2ee_key_source_unauthorised`）。
 - backend SDK / adapter 内部如何把该 sender-bound key 映射到 SFrame / 私有帧加密格式由附录指定，但 **MUST NOT** 接受任何非该接口的 key 源（如 backend 自带 KMS、自生成 random key）。SFrame KID / key slot MUST 区分同一 epoch 内的不同 sender；若 adapter 无法为 active sender 集合提供无冲突映射，客户端 MUST 拒绝启用该 binding。除非 Realm policy 明确允许 `media_service_decrypts=true` 且完成 §8.2 三层校验，`key_bytes` MUST NOT 被发送给远端 SFU / MCU。
@@ -276,7 +276,7 @@ Conformance vectors for the full media binding framework：
 - `ck.vector.media_binding.participant_binding_required.v1` — 缺失或签名无效的 `participant_binding` 必须拒绝。
 - `ck.vector.media_binding.unknown_type_fail_closed.v1` — §2 未知 `foci[].type` MUST fail closed。
 - `ck.vector.media_binding.participant_identity_unrecognised.v1` — §7 backend 通知的 participant 不在 `ck.call.state` 时拒绝该流。
-- `ck.vector.media_binding.recording_artifact_via_cokret_blob.v1` — [`call-state.md` §5](./call-state.md) backend-generated recording 必须经 Cokret blob pipeline。
+- `ck.vector.media_binding.recording_artifact_via_cokret_blob.v1` — [`call-state.md` §5](./call-state.md) backend-generated recording 必须经 Arkret blob pipeline。
 - `ck.vector.media_binding.recording_exporter_label.v1` — backend-generated recording 必须使用 `"ck-rtc-recording-key/v1"` 与绑定 recording transcript 的 Context，不得复用 SFrame key label。
 
 ### 8.2 治理绑定（normative）

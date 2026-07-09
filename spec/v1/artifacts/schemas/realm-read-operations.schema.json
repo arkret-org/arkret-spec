@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/realm-read-operations.schema.json",
-  "title": "Cokret Realm Read + Moderation-Policy Operation DTOs",
+  "$id": "https://arkret.org/v1/schemas/realm-read-operations.schema.json",
+  "title": "Arkret Realm Read + Moderation-Policy Operation DTOs",
   "description": "Closed request/response DTOs for the self-surface Realm read operations and moderation-policy management (ck.self.realm.*). Realm read returns the lifecycle projection; export returns a full event-log + operation dump; effective moderation-policy returns the organization-inherited merged view; the moderation-policy override write builds a ck.realm.moderation_policy fact (subject to organization approval). See spec/v1/zh/models/realm-and-space.md and spec/v1/zh/governance/content-moderation.md.",
   "anyOf": [
     {

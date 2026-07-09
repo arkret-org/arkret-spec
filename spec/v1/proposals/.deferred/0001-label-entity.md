@@ -7,7 +7,7 @@ updated: 2026-05-25
 status: deferred-to-v1.1
 created: 2026-05-23
 authors:
-  - did:webvh:z8kSru9qAfd1G7AvcVjggdEKy:cokret.example
+  - did:webvh:z8kSru9qAfd1G7AvcVjggdEKy:arkret.example
 ---
 
 ## 1. Summary

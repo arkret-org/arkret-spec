@@ -12,7 +12,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-本文定义 Cokret 协作图中两个最常用的对象：
+本文定义 Arkret 协作图中两个最常用的对象：
 
 - **Strand**（`ck:strand:`）：Realm 内统一的协作主对象，承载"这件事本身"。
 - **Message**（`ck:message:`）：Strand `discussion` track 时间线中的原子消息。
@@ -78,9 +78,9 @@ Schema id: `ck.schema.strand.v1`
 
 ```json schema=schemas/strand.schema.json
 {
-  "id": "ck:strand:019640f9-8000-7000-8000-000000000000",
+  "id": "ak:strand:019640f9-8000-7000-8000-000000000000",
   "schema": "ck.schema.strand.v1",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "metadata": {
     "title": "支付重构",
     "summary": "统一支付链路、风控回调和退款状态机；同步 owner、决策与 blocker。",
@@ -100,7 +100,7 @@ Schema id: `ck.schema.strand.v1`
     "synthesis": { "is_primary": true },
     "discussion": { "profile": "review" }
   },
-  "scope_circle_id": "ck:circle:019640dc-8000-7000-8000-000000000000",
+  "scope_circle_id": "ak:circle:019640dc-8000-7000-8000-000000000000",
   "state": "active",
   "stage": "in_progress",
   "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
@@ -131,7 +131,7 @@ Schema id: `ck.schema.strand.v1`
 {
   "kind": "ck.strand.stage.set",
   "payload": {
-    "strand_id": "ck:strand:...",
+    "strand_id": "ak:strand:...",
     "stage": "blocked",
     "expected_stage": "in_progress"
   }
@@ -280,7 +280,7 @@ Track 写入路径只有一个 event kind: **`ck.strand.tracks.update`**(注意�
 {
   "kind": "ck.strand.tracks.update",
   "payload": {
-    "strand_id": "ck:strand:...",
+    "strand_id": "ak:strand:...",
     "patch": {
       "tracks.discussion.enabled":   { "$op": "set", "value": true },
       "tracks.discussion.profile":   { "$op": "set", "value": "review" },
@@ -311,7 +311,7 @@ Strand 永远只有**一个** effective scope。整个 Strand（含所有 track�
     "synthesis": { "is_primary": true },
     "discussion": { "profile": "review" }
   },
-  "scope_circle_id": "ck:circle:019640dc-8000-7000-8000-000000000000"
+  "scope_circle_id": "ak:circle:019640dc-8000-7000-8000-000000000000"
 }
 ```
 
@@ -330,12 +330,12 @@ Strand 只有一份 identity；`tracks` map 的 key 决定可用协作面；`sco
 
 ```mermaid
 flowchart LR
-    subgraph Realm ["ck:realm: — 父 Realm（federation / policy / capability registry）"]
+    subgraph Realm ["ak:realm: — 父 Realm（federation / policy / capability registry）"]
         direction TB
-        StrandA["ck:strand: F_A<br/>scope_circle_id = null"]
-        StrandB["ck:strand: F_B<br/>scope_circle_id = ck:circle:0196419c-0000-7000-8000-000000000000"]
+        StrandA["ak:strand: F_A<br/>scope_circle_id = null"]
+        StrandB["ak:strand: F_B<br/>scope_circle_id = ck:circle:0196419c-0000-7000-8000-000000000000"]
         RealmScope["Realm-default scope<br/>+ Realm membership"]
-        subgraph Circle ["ck:circle: C — 子事件边界"]
+        subgraph Circle ["ak:circle: C — 子事件边界"]
             direction TB
             CircleScope["Circle membership（⊆ Realm.members）<br/>+ 独立 history visibility<br/>+ 投递 / 查询裁剪<br/>+ 可选独立 MLS group"]
         end
@@ -591,10 +591,10 @@ Schema id: `ck.schema.message.v1`
 
 ```json schema=schemas/message.schema.json
 {
-  "id": "ck:message:0196414c-8000-7000-8000-000000000000",
+  "id": "ak:message:0196414c-8000-7000-8000-000000000000",
   "schema": "ck.schema.message.v1",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-  "strand_id": "ck:strand:019640f9-8000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "strand_id": "ak:strand:019640f9-8000-7000-8000-000000000000",
   "track_name": "discussion",
   "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "content": {
@@ -604,7 +604,7 @@ Schema id: `ck.schema.message.v1`
     "formatted_body": "<mention did=\"did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example\">@bob</mention> 请确认这个 item 的 legal 风险。"
   },
   "state": "active",
-  "revision_root": "ck:message:0196414c-8000-7000-8000-000000000000",
+  "revision_root": "ak:message:0196414c-8000-7000-8000-000000000000",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
@@ -621,9 +621,9 @@ Schema id: `ck.schema.message.v1`
     "kind": "ck.strand.create",
     "payload": {
       "object": {
-        "id": "ck:strand:019640f9-8000-7000-8000-000000000000",
+        "id": "ak:strand:019640f9-8000-7000-8000-000000000000",
         "schema": "ck.schema.strand.v1",
-        "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
         "metadata": {
           "title": "项目同步"
         },
@@ -639,7 +639,7 @@ Schema id: `ck.schema.message.v1`
   {
     "kind": "ck.message.create",
     "payload": {
-      "strand_id": "ck:strand:019640f9-8000-7000-8000-000000000000",
+      "strand_id": "ak:strand:019640f9-8000-7000-8000-000000000000",
       "track_name": "discussion",
       "content": {
         "kind": "ck.content.text",
@@ -757,11 +757,11 @@ v1 定义 audience mention 作为一等结构化 AST 节点；它不是把所有
 
 字段语义：
 
-- `audience`（必填）：v1 core 允许 `effective_scope_members`、`strand_participants`、`strand_watchers`、`strand_engaged`、`assigned_actors`。`effective_scope_members` 表示该 Message 写入时 effective scope 内可读取该 Message 的 active actors；当 Strand 绑定 Circle 时只包含该 Circle scope 的可见成员。`strand_participants` 表示该 Strand discussion track 中至少发过一条 active Message 的 actors。`strand_watchers` 表示 §8.7.1 定义的当前有效 watcher 集合。`strand_engaged` 是 `strand_participants ∪ strand_watchers`，是 Cokret v1 对常见 UI token `@here` 的 canonical 映射。`assigned_actors` 只包含 active `assigned_to` Relation 的 `to_ref` actors。
+- `audience`（必填）：v1 core 允许 `effective_scope_members`、`strand_participants`、`strand_watchers`、`strand_engaged`、`assigned_actors`。`effective_scope_members` 表示该 Message 写入时 effective scope 内可读取该 Message 的 active actors；当 Strand 绑定 Circle 时只包含该 Circle scope 的可见成员。`strand_participants` 表示该 Strand discussion track 中至少发过一条 active Message 的 actors。`strand_watchers` 表示 §8.7.1 定义的当前有效 watcher 集合。`strand_engaged` 是 `strand_participants ∪ strand_watchers`，是 Arkret v1 对常见 UI token `@here` 的 canonical 映射。`assigned_actors` 只包含 active `assigned_to` Relation 的 `to_ref` actors。
 - `mention_text_original`（可选）：用户键入的原始 token，例如 `@all`、`@participants` 或本地化显示文本；仅用于 audit / debug / 搜索。
 - `resolved_at`（可选）：客户端形成该节点的时间。最终收件人集合仍由 dispatcher 在 source event causal frontier 下计算，不能信任客户端填入的计数或列表。
 
-`@here` 在 Cokret v1 中 **不是 presence-filtered**：它 MUST 映射为 `audience="strand_engaged"`，即“曾经参与当前 Strand discussion 或当前有效 watch 该 Strand 的接收者”。Presence 不能成为第三方 push timing oracle；实现若要提供真正在线态筛选的 `@online` / presence-based mention，MUST 声明独立 profile，并证明不泄露 presence 隐私。未声明该 profile 的接收端 MUST 按未知 critical semantics fail closed 或把该节点降级为普通文本。
+`@here` 在 Arkret v1 中 **不是 presence-filtered**：它 MUST 映射为 `audience="strand_engaged"`，即“曾经参与当前 Strand discussion 或当前有效 watch 该 Strand 的接收者”。Presence 不能成为第三方 push timing oracle；实现若要提供真正在线态筛选的 `@online` / presence-based mention，MUST 声明独立 profile，并证明不泄露 presence 隐私。未声明该 profile 的接收端 MUST 按未知 critical semantics fail closed 或把该节点降级为普通文本。
 
 Audience expansion 的结果只用于 receiver-side notification / inbox / local highlight。它不得扩大访问权：不满足 Message effective scope、history visibility、Circle membership 或 target policy 的 actor MUST NOT 收到 Event、notification 或 push wakeup，也不得通过 recipient count、delivery error 或 timing 观察到该 Message 的存在。
 

@@ -6,7 +6,7 @@
       "name": "direct_card_update_grant_allows_update",
       "grants": [
         {
-          "id": "ck:grant:0196410c-0000-7000-8000-000000000000",
+          "id": "ak:grant:0196410c-0000-7000-8000-000000000000",
           "issuer": "did:webvh:z6mkfixture:owner.example",
           "subject": "did:webvh:z6mkfixture:alice.example",
           "actions": [
@@ -16,8 +16,8 @@
           "resources": [
             {
               "kind": "strand",
-              "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-              "strand_id": "ck:strand:019640c5-0000-7000-8000-000000000000"
+              "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+              "strand_id": "ak:strand:019640c5-0000-7000-8000-000000000000"
             }
           ]
         }
@@ -27,14 +27,14 @@
         "action": "ck.strand.update",
         "resource": {
           "kind": "strand",
-          "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-          "strand_id": "ck:strand:019640c5-0000-7000-8000-000000000000"
+          "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+          "strand_id": "ak:strand:019640c5-0000-7000-8000-000000000000"
         }
       },
       "expected": {
         "decision": "allow",
         "matched_grants": [
-          "ck:grant:0196410c-0000-7000-8000-000000000000"
+          "ak:grant:0196410c-0000-7000-8000-000000000000"
         ]
       }
     },
@@ -42,7 +42,7 @@
       "name": "linked_discussion_realm_permission_is_not_inherited_from_strand",
       "grants": [
         {
-          "id": "ck:grant:0196410c-0400-7000-8000-000000000000",
+          "id": "ak:grant:0196410c-0400-7000-8000-000000000000",
           "issuer": "did:webvh:z6mkfixture:owner.example",
           "subject": "did:webvh:z6mkfixture:alice.example",
           "actions": [
@@ -52,8 +52,8 @@
           "resources": [
             {
               "kind": "strand",
-              "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-              "strand_id": "ck:strand:019640c5-0000-7000-8000-000000000000"
+              "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+              "strand_id": "ak:strand:019640c5-0000-7000-8000-000000000000"
             }
           ]
         }
@@ -63,9 +63,9 @@
         "action": "ck.message.create",
         "resource": {
           "kind": "strand",
-          "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-          "strand_id": "ck:strand:01964180-0000-7000-8000-000000000000",
-          "linked_from_strand_id": "ck:strand:019640c5-0000-7000-8000-000000000000"
+          "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+          "strand_id": "ak:strand:01964180-0000-7000-8000-000000000000",
+          "linked_from_strand_id": "ak:strand:019640c5-0000-7000-8000-000000000000"
         }
       },
       "expected": {
@@ -79,7 +79,7 @@
       "memberships": [
         {
           "actor_id": "did:webvh:z6mkfixture:member.example",
-          "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+          "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
           "membership": "join"
         }
       ],
@@ -91,8 +91,8 @@
           "action": "ck.message.create",
           "resource": {
             "kind": "strand",
-            "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-            "strand_id": "ck:strand:01964180-0000-7000-8000-000000000000"
+            "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+            "strand_id": "ak:strand:01964180-0000-7000-8000-000000000000"
           },
           "expected": {
             "decision": "deny",
@@ -105,8 +105,8 @@
           "action": "ck.pin.add",
           "resource": {
             "kind": "strand",
-            "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-            "strand_id": "ck:strand:01964180-0000-7000-8000-000000000000"
+            "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+            "strand_id": "ak:strand:01964180-0000-7000-8000-000000000000"
           },
           "expected": {
             "decision": "deny",
@@ -119,8 +119,8 @@
           "action": "ck.rsvp.set",
           "resource": {
             "kind": "strand",
-            "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-            "strand_id": "ck:strand:01964180-0000-7000-8000-000000000000"
+            "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+            "strand_id": "ak:strand:01964180-0000-7000-8000-000000000000"
           },
           "expected": {
             "decision": "deny",
@@ -133,7 +133,7 @@
           "action": "ck.policy.manage",
           "resource": {
             "kind": "realm",
-            "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
+            "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
           },
           "expected": {
             "decision": "deny",
@@ -146,8 +146,8 @@
           "action": "ck.relation.create",
           "resource": {
             "kind": "relation",
-            "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-            "cell": "ck:cell:ck.component.relation.v1:ck:relation:01964180-1000-7000-8000-000000000000"
+            "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+            "cell": "ak:cell:ck.component.relation.v1:ck:relation:01964180-1000-7000-8000-000000000000"
           },
           "expected": {
             "decision": "deny",
@@ -160,8 +160,8 @@
           "action": "ck.morph.create",
           "resource": {
             "kind": "morph",
-            "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-            "cell": "ck:cell:ck.component.morph.v1:ck:morph:01964180-2000-7000-8000-000000000000"
+            "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+            "cell": "ak:cell:ck.component.morph.v1:ck:morph:01964180-2000-7000-8000-000000000000"
           },
           "expected": {
             "decision": "deny",
@@ -174,11 +174,11 @@
       "name": "revoked_grant_denies_later_write",
       "events": [
         {
-          "event_id": "ck:event:019640e8-0000-7000-8000-000000000000",
+          "event_id": "ak:event:019640e8-0000-7000-8000-000000000000",
           "kind": "ck.capability.grant",
           "hlc": "01970e589d21-0001-a13f9c2e",
           "payload": {
-            "grant_id": "ck:grant:0196410c-0800-7000-8000-000000000000",
+            "grant_id": "ak:grant:0196410c-0800-7000-8000-000000000000",
             "subject": "did:webvh:z6mkfixture:alice.example",
             "actions": [
               "ck.strand.update"
@@ -186,32 +186,32 @@
             "resources": [
               {
                 "kind": "strand",
-                "strand_id": "ck:strand:019640c5-0000-7000-8000-000000000000"
+                "strand_id": "ak:strand:019640c5-0000-7000-8000-000000000000"
               }
             ]
           }
         },
         {
-          "event_id": "ck:event:019640ec-0000-7000-8000-000000000000",
+          "event_id": "ak:event:019640ec-0000-7000-8000-000000000000",
           "kind": "ck.capability.revoke",
           "hlc": "01970e589d22-0001-a13f9c2e",
           "payload": {
-            "grant_id": "ck:grant:0196410c-0800-7000-8000-000000000000"
+            "grant_id": "ak:grant:0196410c-0800-7000-8000-000000000000"
           }
         },
         {
-          "event_id": "ck:event:019640ee-0000-7000-8000-000000000000",
+          "event_id": "ak:event:019640ee-0000-7000-8000-000000000000",
           "kind": "ck.strand.update",
           "hlc": "01970e589d23-0001-a13f9c2e",
           "refs": [
             {
-              "id": "ck:event:019640e8-0000-7000-8000-000000000000",
+              "id": "ak:event:019640e8-0000-7000-8000-000000000000",
               "role": "authorized_by",
               "critical": true
             }
           ],
           "payload": {
-            "target_ref": "ck:strand:019640c5-0000-7000-8000-000000000000",
+            "target_ref": "ak:strand:019640c5-0000-7000-8000-000000000000",
             "patch": {
               "metadata.title": {
                 "$op": "set",
@@ -222,7 +222,7 @@
         }
       ],
       "expected": {
-        "event_id": "ck:event:019640ee-0000-7000-8000-000000000000",
+        "event_id": "ak:event:019640ee-0000-7000-8000-000000000000",
         "decision": "deny",
         "reason_code": "grant_revoked_before_event_frontier"
       }
@@ -231,11 +231,11 @@
       "name": "repeated_revoke_same_grant_is_idempotent_and_denies",
       "events": [
         {
-          "event_id": "ck:event:019640f0-0000-7000-8000-000000000000",
+          "event_id": "ak:event:019640f0-0000-7000-8000-000000000000",
           "kind": "ck.capability.grant",
           "hlc": "01970e589d30-0001-a13f9c2e",
           "payload": {
-            "grant_id": "ck:grant:0196410c-1000-7000-8000-000000000000",
+            "grant_id": "ak:grant:0196410c-1000-7000-8000-000000000000",
             "subject": "did:webvh:z6mkfixture:alice.example",
             "actions": [
               "ck.strand.update"
@@ -243,40 +243,40 @@
             "resources": [
               {
                 "kind": "strand",
-                "strand_id": "ck:strand:019640c5-0000-7000-8000-000000000000"
+                "strand_id": "ak:strand:019640c5-0000-7000-8000-000000000000"
               }
             ]
           }
         },
         {
-          "event_id": "ck:event:019640f2-0000-7000-8000-000000000000",
+          "event_id": "ak:event:019640f2-0000-7000-8000-000000000000",
           "kind": "ck.capability.revoke",
           "hlc": "01970e589d31-0001-a13f9c2e",
           "payload": {
-            "grant_id": "ck:grant:0196410c-1000-7000-8000-000000000000"
+            "grant_id": "ak:grant:0196410c-1000-7000-8000-000000000000"
           }
         },
         {
-          "event_id": "ck:event:019640f4-0000-7000-8000-000000000000",
+          "event_id": "ak:event:019640f4-0000-7000-8000-000000000000",
           "kind": "ck.capability.revoke",
           "hlc": "01970e589d32-0001-a13f9c2e",
           "payload": {
-            "grant_id": "ck:grant:0196410c-1000-7000-8000-000000000000"
+            "grant_id": "ak:grant:0196410c-1000-7000-8000-000000000000"
           }
         },
         {
-          "event_id": "ck:event:019640f6-0000-7000-8000-000000000000",
+          "event_id": "ak:event:019640f6-0000-7000-8000-000000000000",
           "kind": "ck.strand.update",
           "hlc": "01970e589d33-0001-a13f9c2e",
           "refs": [
             {
-              "id": "ck:event:019640f0-0000-7000-8000-000000000000",
+              "id": "ak:event:019640f0-0000-7000-8000-000000000000",
               "role": "authorized_by",
               "critical": true
             }
           ],
           "payload": {
-            "target_ref": "ck:strand:019640c5-0000-7000-8000-000000000000",
+            "target_ref": "ak:strand:019640c5-0000-7000-8000-000000000000",
             "patch": {
               "metadata.title": {
                 "$op": "set",
@@ -287,7 +287,7 @@
         }
       ],
       "expected": {
-        "event_id": "ck:event:019640f6-0000-7000-8000-000000000000",
+        "event_id": "ak:event:019640f6-0000-7000-8000-000000000000",
         "decision": "deny",
         "reason_code": "grant_revoked_before_event_frontier"
       }
@@ -296,11 +296,11 @@
       "name": "regrant_same_grant_id_after_revoke_stays_revoked",
       "events": [
         {
-          "event_id": "ck:event:019640f8-0000-7000-8000-000000000000",
+          "event_id": "ak:event:019640f8-0000-7000-8000-000000000000",
           "kind": "ck.capability.grant",
           "hlc": "01970e589d34-0001-a13f9c2e",
           "payload": {
-            "grant_id": "ck:grant:0196410c-1400-7000-8000-000000000000",
+            "grant_id": "ak:grant:0196410c-1400-7000-8000-000000000000",
             "subject": "did:webvh:z6mkfixture:alice.example",
             "actions": [
               "ck.strand.update"
@@ -308,25 +308,25 @@
             "resources": [
               {
                 "kind": "strand",
-                "strand_id": "ck:strand:019640c5-0000-7000-8000-000000000000"
+                "strand_id": "ak:strand:019640c5-0000-7000-8000-000000000000"
               }
             ]
           }
         },
         {
-          "event_id": "ck:event:019640fa-0000-7000-8000-000000000000",
+          "event_id": "ak:event:019640fa-0000-7000-8000-000000000000",
           "kind": "ck.capability.revoke",
           "hlc": "01970e589d35-0001-a13f9c2e",
           "payload": {
-            "grant_id": "ck:grant:0196410c-1400-7000-8000-000000000000"
+            "grant_id": "ak:grant:0196410c-1400-7000-8000-000000000000"
           }
         },
         {
-          "event_id": "ck:event:019640fc-0000-7000-8000-000000000000",
+          "event_id": "ak:event:019640fc-0000-7000-8000-000000000000",
           "kind": "ck.capability.grant",
           "hlc": "01970e589d36-0001-a13f9c2e",
           "payload": {
-            "grant_id": "ck:grant:0196410c-1400-7000-8000-000000000000",
+            "grant_id": "ak:grant:0196410c-1400-7000-8000-000000000000",
             "subject": "did:webvh:z6mkfixture:alice.example",
             "actions": [
               "ck.strand.update"
@@ -334,24 +334,24 @@
             "resources": [
               {
                 "kind": "strand",
-                "strand_id": "ck:strand:019640c5-0000-7000-8000-000000000000"
+                "strand_id": "ak:strand:019640c5-0000-7000-8000-000000000000"
               }
             ]
           }
         },
         {
-          "event_id": "ck:event:019640fe-0000-7000-8000-000000000000",
+          "event_id": "ak:event:019640fe-0000-7000-8000-000000000000",
           "kind": "ck.strand.update",
           "hlc": "01970e589d37-0001-a13f9c2e",
           "refs": [
             {
-              "id": "ck:event:019640fc-0000-7000-8000-000000000000",
+              "id": "ak:event:019640fc-0000-7000-8000-000000000000",
               "role": "authorized_by",
               "critical": true
             }
           ],
           "payload": {
-            "target_ref": "ck:strand:019640c5-0000-7000-8000-000000000000",
+            "target_ref": "ak:strand:019640c5-0000-7000-8000-000000000000",
             "patch": {
               "metadata.title": {
                 "$op": "set",
@@ -362,7 +362,7 @@
         }
       ],
       "expected": {
-        "event_id": "ck:event:019640fe-0000-7000-8000-000000000000",
+        "event_id": "ak:event:019640fe-0000-7000-8000-000000000000",
         "decision": "deny",
         "reason_code": "grant_revoked_before_event_frontier"
       }
@@ -371,7 +371,7 @@
       "name": "approval_constraint_requires_controller_approval",
       "vector_id": "ck.vector.capability.approval_constraint.v1",
       "grant": {
-        "id": "ck:grant:0196410c-0c00-7000-8000-000000000000",
+        "id": "ak:grant:0196410c-0c00-7000-8000-000000000000",
         "issuer": "did:webvh:z6mkfixture:owner.example",
         "subject": "did:webvh:z6mkfixture:agent.example",
         "actions": [
@@ -380,7 +380,7 @@
         "resources": [
           {
             "kind": "realm",
-            "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
+            "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
           }
         ],
         "constraints": [
@@ -406,7 +406,7 @@
           "label": "with_approval",
           "context": {
             "approval_refs": [
-              "ck:event:019640ab-0000-7000-8000-000000000000"
+              "ak:event:019640ab-0000-7000-8000-000000000000"
             ]
           },
           "expected": {
@@ -419,8 +419,8 @@
       "name": "delegate_chain_multi_level",
       "vector_id": "ck.vector.capability.delegate_chain.v1",
       "base": {
-        "grant_id": "ck:grant:019640d0-b800-7000-8000-000000000000",
-        "root_event_id": "ck:event:01964180-0350-72ab-a000-000000000000",
+        "grant_id": "ak:grant:019640d0-b800-7000-8000-000000000000",
+        "root_event_id": "ak:event:01964180-0350-72ab-a000-000000000000",
         "subject": "did:webvh:z6mkfixture:root-admin.example.com",
         "actions": [
           "ck.realm.admin"
@@ -428,17 +428,17 @@
       },
       "delegations": [
         {
-          "event_id": "ck:event:019640d0-c000-7000-8000-000000000000",
+          "event_id": "ak:event:019640d0-c000-7000-8000-000000000000",
           "kind": "ck.capability.delegate",
-          "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
+          "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
           "actor_id": "did:webvh:z6mkfixture:root-admin.example.com",
           "payload": {
-            "parent_grant_id": "ck:grant:019640d0-b800-7000-8000-000000000000",
+            "parent_grant_id": "ak:grant:019640d0-b800-7000-8000-000000000000",
             "subject": "did:webvh:z6mkfixture:ops.example.com",
             "resources": [
               {
                 "kind": "realm",
-                "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
+                "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
                 "match_scope": "realm_wide"
               }
             ],
@@ -463,24 +463,24 @@
           },
           "refs": [
             {
-              "id": "ck:event:01964180-0350-72ab-a000-000000000000",
+              "id": "ak:event:01964180-0350-72ab-a000-000000000000",
               "role": "authorized_by",
               "critical": true
             }
           ]
         },
         {
-          "event_id": "ck:event:019640d0-c400-7000-8000-000000000000",
+          "event_id": "ak:event:019640d0-c400-7000-8000-000000000000",
           "kind": "ck.capability.delegate",
-          "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
+          "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
           "actor_id": "did:webvh:z6mkfixture:ops.example.com",
           "payload": {
-            "parent_grant_id": "ck:grant:019640d0-c000-7000-8000-000000000000",
+            "parent_grant_id": "ak:grant:019640d0-c000-7000-8000-000000000000",
             "subject": "did:webvh:z6mkfixture:intern.example.com",
             "resources": [
               {
                 "kind": "realm",
-                "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
+                "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
                 "match_scope": "realm_wide"
               }
             ],
@@ -506,7 +506,7 @@
           },
           "refs": [
             {
-              "id": "ck:event:019640d0-c000-7000-8000-000000000000",
+              "id": "ak:event:019640d0-c000-7000-8000-000000000000",
               "role": "authorized_by",
               "critical": true
             }
@@ -516,16 +516,16 @@
       "action_query": {
         "actor_id": "did:webvh:z6mkfixture:intern.example.com",
         "action": "ck.invite.create",
-        "resource": "ck:realm:0196414c-8000-7000-8000-000000000000",
+        "resource": "ak:realm:0196414c-8000-7000-8000-000000000000",
         "request_time": "2026-04-26T01:00:00Z",
         "request_audience": "did:webvh:z6mkfixture:vendor.example"
       },
       "expected": {
         "authorized": true,
         "valid_chain": [
-          "ck:event:01964180-0350-72ab-a000-000000000000",
-          "ck:event:019640d0-c000-7000-8000-000000000000",
-          "ck:event:019640d0-c400-7000-8000-000000000000"
+          "ak:event:01964180-0350-72ab-a000-000000000000",
+          "ak:event:019640d0-c000-7000-8000-000000000000",
+          "ak:event:019640d0-c400-7000-8000-000000000000"
         ],
         "constraints_checked": {
           "time": true,
@@ -540,11 +540,11 @@
       "vector_id": "ck.vector.capability.revoke_rollback.v1",
       "events": [
         {
-          "event_id": "ck:event:01964101-2800-7000-8000-000000000000",
+          "event_id": "ak:event:01964101-2800-7000-8000-000000000000",
           "kind": "ck.capability.grant",
           "created_at": "2026-04-26T00:00:00Z",
           "payload": {
-            "grant_id": "ck:grant:01964101-2800-7000-8000-000000000000",
+            "grant_id": "ak:grant:01964101-2800-7000-8000-000000000000",
             "subject": "did:webvh:z6mkfixture:alice.example.com",
             "actions": [
               "ck.message.create"
@@ -552,15 +552,15 @@
           }
         },
         {
-          "event_id": "ck:event:01964181-2800-7000-8000-000000000000",
+          "event_id": "ak:event:01964181-2800-7000-8000-000000000000",
           "kind": "ck.capability.revoke",
           "created_at": "2026-04-26T00:00:01Z",
           "payload": {
-            "grant_id": "ck:grant:01964101-2800-7000-8000-000000000000"
+            "grant_id": "ak:grant:01964101-2800-7000-8000-000000000000"
           }
         },
         {
-          "event_id": "ck:event:019641d1-2800-7000-8000-000000000000",
+          "event_id": "ak:event:019641d1-2800-7000-8000-000000000000",
           "kind": "ck.member.state",
           "created_at": "2026-04-26T00:00:02Z",
           "payload": {
@@ -569,25 +569,25 @@
           }
         },
         {
-          "event_id": "ck:event:0196414c-c04a-7000-8000-000000000000",
+          "event_id": "ak:event:0196414c-c04a-7000-8000-000000000000",
           "kind": "ck.message.create",
           "actor_id": "did:webvh:z6mkfixture:alice.example.com",
           "created_at": "2026-04-26T00:00:03Z",
           "payload": {
-            "strand_id": "ck:strand:0196418d-cc00-7000-8000-000000000000",
+            "strand_id": "ak:strand:0196418d-cc00-7000-8000-000000000000",
             "content": {
               "kind": "ck.content.text",
               "body": "should_fail_if_revoke_applies"
             },
-            "authorized_by": "ck:grant:01964101-2800-7000-8000-000000000000"
+            "authorized_by": "ak:grant:01964101-2800-7000-8000-000000000000"
           }
         }
       ],
       "rollback": {
-        "target_event_id": "ck:event:01964181-2800-7000-8000-000000000000",
+        "target_event_id": "ak:event:01964181-2800-7000-8000-000000000000",
         "reason": "revoke_undo_invalid_signature"
       },
-      "subject_event_id": "ck:event:0196414c-c04a-7000-8000-000000000000",
+      "subject_event_id": "ak:event:0196414c-c04a-7000-8000-000000000000",
       "expected": {
         "initial_decision": "deny",
         "post_rollback_decision": "allow",
@@ -600,15 +600,15 @@
       "vector_id": "ck.vector.capability.revoke_downstream_recheck.v1",
       "grants": [
         {
-          "grant_id": "ck:grant:01964110-0000-7000-8000-000000000000",
+          "grant_id": "ak:grant:01964110-0000-7000-8000-000000000000",
           "subject": "did:webvh:z6mkfixture:alice.example.com",
           "actions": [
             "ck.strand.update"
           ]
         },
         {
-          "grant_id": "ck:grant:01964110-0400-7000-8000-000000000000",
-          "parent_grant_id": "ck:grant:01964110-0000-7000-8000-000000000000",
+          "grant_id": "ak:grant:01964110-0400-7000-8000-000000000000",
+          "parent_grant_id": "ak:grant:01964110-0000-7000-8000-000000000000",
           "subject": "did:webvh:z6mkfixture:bob.example.com",
           "actions": [
             "ck.strand.update"
@@ -616,28 +616,28 @@
         }
       ],
       "accepted_event": {
-        "event_id": "ck:event:01964110-0800-7000-8000-000000000000",
+        "event_id": "ak:event:01964110-0800-7000-8000-000000000000",
         "kind": "ck.strand.update",
-        "authorized_by": "ck:grant:01964110-0000-7000-8000-000000000000"
+        "authorized_by": "ak:grant:01964110-0000-7000-8000-000000000000"
       },
       "pending_event": {
-        "event_id": "ck:event:01964110-0c00-7000-8000-000000000000",
+        "event_id": "ak:event:01964110-0c00-7000-8000-000000000000",
         "kind": "ck.strand.update",
-        "authorized_by": "ck:grant:01964110-0400-7000-8000-000000000000"
+        "authorized_by": "ak:grant:01964110-0400-7000-8000-000000000000"
       },
       "revoke": {
-        "grant_id": "ck:grant:01964110-0000-7000-8000-000000000000"
+        "grant_id": "ak:grant:01964110-0000-7000-8000-000000000000"
       },
       "allow_cache_grants": [
-        "ck:grant:01964110-0000-7000-8000-000000000000",
-        "ck:grant:01964110-0400-7000-8000-000000000000"
+        "ak:grant:01964110-0000-7000-8000-000000000000",
+        "ak:grant:01964110-0400-7000-8000-000000000000"
       ],
       "expected": {
         "pending_event_decision": "fail_closed",
         "pending_event_reason": "authorized_grant_revoked",
         "invalidated_cache_grants": [
-          "ck:grant:01964110-0000-7000-8000-000000000000",
-          "ck:grant:01964110-0400-7000-8000-000000000000"
+          "ak:grant:01964110-0000-7000-8000-000000000000",
+          "ak:grant:01964110-0400-7000-8000-000000000000"
         ],
         "history_event_retained": true,
         "revoked_grant_currently_valid": false

@@ -12,7 +12,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-Cokret 必须对人类友好，因此协议必须允许对象自然投影为：
+Arkret 必须对人类友好，因此协议必须允许对象自然投影为：
 
 - 看板、列表、表格、日历、甘特图
 - 时间线、活动流、聊天、话题论坛、单线程讨论
@@ -165,9 +165,9 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
 
 ```json
 {
-  "id": "ck:view:019641be-0000-7000-8000-000000000000",
+  "id": "ak:view:019641be-0000-7000-8000-000000000000",
   "schema": "ck.schema.view.v1",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "created_by": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
   "created_at": "2026-04-26T00:00:00Z",
   "kind": "collection",
@@ -182,7 +182,7 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
     "relation": {
       "kind": "contains",
       "direction": "out",
-      "source_ref": "ck:space:019640b6-8000-7000-8000-000000000000",
+      "source_ref": "ak:space:019640b6-8000-7000-8000-000000000000",
       "depth": 2
     }
   },
@@ -194,7 +194,7 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
     ],
     "grouping": {
       "mode": "relation_container",
-      "board_space_id": "ck:space:019640b6-8000-7000-8000-000000000000",
+      "board_space_id": "ak:space:019640b6-8000-7000-8000-000000000000",
       "container_relation_kind": "contains",
       "item_relation_kind": "contains",
       "hidden_count_policy": "omit"
@@ -259,7 +259,7 @@ View 应通过结构化 query 表达对象范围。
   "relation": {
     "kind": "contains",
     "direction": "out",
-    "source_ref": "ck:space:019640b6-8000-7000-8000-000000000000",
+    "source_ref": "ak:space:019640b6-8000-7000-8000-000000000000",
     "depth": 2
   }
 }
@@ -272,7 +272,7 @@ View 应通过结构化 query 表达对象范围。
   "object_types": ["message"],
   "filters": [
     { "field": "state", "op": "eq", "value": "active" },
-    { "field": "strand_id", "op": "eq", "value": "ck:strand:01964200-0000-7000-8000-000000000000" },
+    { "field": "strand_id", "op": "eq", "value": "ak:strand:01964200-0000-7000-8000-000000000000" },
     { "field": "track_name", "op": "eq", "value": "discussion" }
   ],
   "order_by": [
@@ -285,7 +285,7 @@ View 应通过结构化 query 表达对象范围。
 
 ```json
 {
-  "context_ref": "ck:strand:019640f9-8000-7000-8000-000000000000",
+  "context_ref": "ak:strand:019640f9-8000-7000-8000-000000000000",
   "include": [
     "relations",
     "synthesis",
@@ -332,30 +332,30 @@ Board projection MUST NOT 默认显示 Realm 中的全部 Strand。实现 MUST �
 {
   "projection": "collection",
   "renderer": "board",
-  "view_id": "ck:view:019641be-0000-7000-8000-000000000000",
+  "view_id": "ak:view:019641be-0000-7000-8000-000000000000",
   "frontier": {
     "state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    "event_ids": ["ck:event:019641be-0000-7000-8000-000000000001"]
+    "event_ids": ["ak:event:019641be-0000-7000-8000-000000000001"]
   },
   "groups": [
     {
-      "key": "ck:space:019641be-0000-7000-8000-000000000010",
+      "key": "ak:space:019641be-0000-7000-8000-000000000010",
       "title": "Review",
       "rank": "mV",
       "limited": false,
       "items": [
         {
           "object": {
-            "id": "ck:strand:019641be-0000-7000-8000-000000000011",
+            "id": "ak:strand:019641be-0000-7000-8000-000000000011",
             "type": "strand",
             "title": "Legal review"
           },
           "position": {
             "model": "relation",
-            "scope_container_id": "ck:space:019641be-0000-7000-8000-000000000009",
-            "container_id": "ck:space:019641be-0000-7000-8000-000000000010",
+            "scope_container_id": "ak:space:019641be-0000-7000-8000-000000000009",
+            "container_id": "ak:space:019641be-0000-7000-8000-000000000010",
             "relation_kind": "contains",
-            "relation_id": "ck:relation:019641be-0000-7000-8000-000000000012",
+            "relation_id": "ak:relation:019641be-0000-7000-8000-000000000012",
             "rank": "mV"
           },
           "state": {
@@ -413,7 +413,7 @@ Graph projection 可展开 Strand、Morph、Message、Board 等对象之间的 R
 
 ## 10. 设计决定
 
-Cokret v1 固定：
+Arkret v1 固定：
 
 - View 投影 Strand、Message、Morph 和 Realm workflow。
 - Board Space 和 List Space 是 `Space.kind`，不是 `View.kind`。

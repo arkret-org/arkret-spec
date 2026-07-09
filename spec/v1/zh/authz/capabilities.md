@@ -12,7 +12,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-Cokret 的权限模型采用 capability 思路，而不是只依赖成员关系或模糊角色。
+Arkret 的权限模型采用 capability 思路，而不是只依赖成员关系或模糊角色。
 
 这样做的原因是：
 
@@ -62,9 +62,9 @@ ID 语义：
 
 ```json schema=schemas/capability-grant.schema.json
 {
-  "id": "ck:grant:0196410c-0000-7000-8000-000000000000",
+  "id": "ak:grant:0196410c-0000-7000-8000-000000000000",
   "schema": "ck.schema.capability.v1",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "issuer": "did:webvh:z6qRDFWgaBgTY3UGDLivJztno:acme.example.com",
   "subject": "did:webvh:z8NNMm8UHw7JcDSuuZd34UisF:agent.copy.example.com",
   "actions": [
@@ -77,13 +77,13 @@ ID 语义：
   "resources": [
     {
       "kind": "object",
-      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
       "object_type": "strand",
       "match_scope": "realm_wide"
     },
     {
       "kind": "morph",
-      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
       "morph_type": "document",
       "match_scope": "realm_wide"
     }
@@ -143,7 +143,7 @@ Grant 的 `subject` 可以是具体 DID，也可以是条件选择器。
 
 ## 4. Resource Selector
 
-Cokret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.schema.json`](../../artifacts/schemas/resource-selector.schema.json) 与 [`policy-server.md` §7.0](./policy-server.md) 为准）：
+Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.schema.json`](../../artifacts/schemas/resource-selector.schema.json) 与 [`policy-server.md` §7.0](./policy-server.md) 为准）：
 
 - `realm`
 - `space`
@@ -380,7 +380,7 @@ Audit action 只授权受控审计 applet / release service 执行绑定、阶�
 
 ## 6. Constraints
 
-Cokret v1 支持以下约束字段（按 constraint family 分组，与 `grant-constraint.schema.json` 属性分组一致）。**allow 与 deny 两侧都属于 v1 受支持约束**；deny / `denied_*` / `*_deny` 字段不是扩展私货，它们与对应 allow 字段同源，命中即按 §15 “任一 deny 命中即生效”裁决：
+Arkret v1 支持以下约束字段（按 constraint family 分组，与 `grant-constraint.schema.json` 属性分组一致）。**allow 与 deny 两侧都属于 v1 受支持约束**；deny / `denied_*` / `*_deny` 字段不是扩展私货，它们与对应 allow 字段同源，命中即按 §15 “任一 deny 命中即生效”裁决：
 
 **temporal**
 
@@ -715,7 +715,7 @@ Delegation Move SHOULD 同时记录签发时点的 parent `auth_state_digest` / 
 
 ## 11. 有效权限集合
 
-Cokret v1 采用 allow-grant + explicit revoke 模型。
+Arkret v1 采用 allow-grant + explicit revoke 模型。
 
 也就是说：
 
@@ -733,7 +733,7 @@ Cokret v1 采用 allow-grant + explicit revoke 模型。
 {
   "kind": "ck.capability.revoke",
   "payload": {
-    "grant_id": "ck:grant:0196410c-0000-7000-8000-000000000000",
+    "grant_id": "ak:grant:0196410c-0000-7000-8000-000000000000",
     "reason": "contract ended"
   }
 }
@@ -795,7 +795,7 @@ invite / notification / read-cursor 等用户可见操作 MUST 由对应 capabil
 
 ## 16. Strand / Discussion 场景下的权限建议
 
-Cokret v1 至少区分：
+Arkret v1 至少区分：
 
 - 修改 Strand synthesis。
 - 开启或关闭 discussion track。
@@ -915,7 +915,7 @@ Capability fast path cache MUST 绑定确定性授权状态，而不是只绑定
 
 ## 19. 设计决定
 
-Cokret v1 固定：
+Arkret v1 固定：
 
 - 权限采用 capability 模型。
 - Strand、discussion、agent 执行都使用统一 grant 体系；Strand track 不携带独立 access，整个 Strand 通过 Realm-default scope 或 Circle scope 形成单一安全边界。
@@ -940,15 +940,15 @@ Cokret v1 固定：
 
 ## 附录 B. 与 UCAN / ZCAP 的关系与差异（informative）
 
-> 本附录为 informative 设计背景说明，不构成 normative 约束。它解释 Cokret capability 模型为何采用 grant-as-signed-Event + lattice-revoke，而非 UCAN 风格的 JWT bearer 能力链，并不替换 §2–§12 定义的自有授权模型。
+> 本附录为 informative 设计背景说明，不构成 normative 约束。它解释 Arkret capability 模型为何采用 grant-as-signed-Event + lattice-revoke，而非 UCAN 风格的 JWT bearer 能力链，并不替换 §2–§12 定义的自有授权模型。
 
 UCAN 与 ZCAP-LD 以可携带的 bearer token / 能力链表达授权：持有者出示一条由 root 经 attenuation 逐级签发的 JWT（或 LD proof）链，验证方就地校验链上签名与 caveat 即可放行，无需中心化状态。这种"无状态 bearer 链"在离线签发与去中心信任路由上很优雅。
 
-Cokret 没有采用该路径，核心原因是 **revoke / attenuation 必须进入可重放的控制面 Seal / cell 收敛与 freshness 判定**：
+Arkret 没有采用该路径，核心原因是 **revoke / attenuation 必须进入可重放的控制面 Seal / cell 收敛与 freshness 判定**：
 
-- Cokret 的 grant 是一条 **signed Event**，进入 reducer 后在 registry cell 上以 lattice 收敛；revoke 同样是 Event（`ck.capability.revoke`），其效果通过 cell 收敛对所有副本可重放、可定序、可审计。授权判定因此能绑定到 DataEvent 的 `seal_ref` 或 Control Move 的 `seal_basis`，并施加 freshness 门槛（见 §18、common-fields freshness 约定）。
+- Arkret 的 grant 是一条 **signed Event**，进入 reducer 后在 registry cell 上以 lattice 收敛；revoke 同样是 Event（`ck.capability.revoke`），其效果通过 cell 收敛对所有副本可重放、可定序、可审计。授权判定因此能绑定到 DataEvent 的 `seal_ref` 或 Control Move 的 `seal_basis`，并施加 freshness 门槛（见 §18、common-fields freshness 约定）。
 - bearer-token 链对**集中收敛的 revocation freshness 支持较弱**:撤销一条已签发的 UCAN/ZCAP 链通常依赖短 TTL、外部 revocation list 或带外吊销服务，验证方无法仅凭链本身判断"此刻是否仍有效",也难以纳入统一的 frontier / freshness 收敛。对一个以可重放事件流为真相源、且需要分区下 fail-closed 的系统，这一点是关键短板。
 
-因此 Cokret 在核心层坚持 grant-as-signed-Event + lattice-revoke,使授权状态与对象状态共享同一套收敛与 freshness 语义。
+因此 Arkret 在核心层坚持 grant-as-signed-Event + lattice-revoke,使授权状态与对象状态共享同一套收敛与 freshness 语义。
 
-未来 Cokret MAY 提供单独登记的 UCAN interop profile，把外部 UCAN 作为 claim / attestation 输入桥接进自有模型（外部 UCAN 仅作为 §7 claim/attestation 一类证据被消费，而不替代内生 grant cell）。在该 profile 进入 active conformance 前，实现 MUST NOT 依赖外部 bearer 能力链直接授权。
+未来 Arkret MAY 提供单独登记的 UCAN interop profile，把外部 UCAN 作为 claim / attestation 输入桥接进自有模型（外部 UCAN 仅作为 §7 claim/attestation 一类证据被消费，而不替代内生 grant cell）。在该 profile 进入 active conformance 前，实现 MUST NOT 依赖外部 bearer 能力链直接授权。

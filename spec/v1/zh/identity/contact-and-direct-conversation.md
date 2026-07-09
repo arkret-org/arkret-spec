@@ -17,7 +17,7 @@ see_also:
 
 本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [`../conformance/normative-language.md`](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
 
-本文定义 Cokret v1 中"加联系人 -> 找他聊天"的协议级生命周期。它不是 UI 联系人列表说明，也不是对 consent、Realm 或 Strand 的别名重述，而是把联系人关系、action consent gate、direct conversation binding 与消息载体明确分层。
+本文定义 Arkret v1 中"加联系人 -> 找他聊天"的协议级生命周期。它不是 UI 联系人列表说明，也不是对 consent、Realm 或 Strand 的别名重述，而是把联系人关系、action consent gate、direct conversation binding 与消息载体明确分层。
 
 ## 1. 真相源分层
 

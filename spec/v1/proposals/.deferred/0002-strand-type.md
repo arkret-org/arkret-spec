@@ -7,7 +7,7 @@ updated: 2026-05-25
 status: deferred-to-v1.1
 created: 2026-05-23
 authors:
-  - did:webvh:z8kSru9qAfd1G7AvcVjggdEKy:cokret.example
+  - did:webvh:z8kSru9qAfd1G7AvcVjggdEKy:arkret.example
 depends_on: [CKP-0003]
 ---
 
@@ -53,7 +53,7 @@ Schema id: `ck.schema.strand_type.v1`
 
 ```json
 {
-  "field_def_ref": "ck:field_def:<uuid>",
+  "field_def_ref": "ak:field_def:<uuid>",
   "requirement": "required" | "recommended" | "optional" | "forbidden",
   "visible_when_empty": true,
   "default_value": { "...": "..." }

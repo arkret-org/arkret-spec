@@ -19,9 +19,9 @@ see_also:
 
 ## 1. 目标
 
-Cokret 是面向协作对象的分布式发布、传播、查询与收敛协议。同步层的目标是让各副本在不依赖全局共识链的前提下，验证事件来源、传播可合并状态、暴露冲突，并对治理状态提供可审计 finality。
+Arkret 是面向协作对象的分布式发布、传播、查询与收敛协议。同步层的目标是让各副本在不依赖全局共识链的前提下，验证事件来源、传播可合并状态、暴露冲突，并对治理状态提供可审计 finality。
 
-Cokret v1 采用 **CBA**（Control-plane Basis-committed Sealing）：
+Arkret v1 采用 **CBA**（Control-plane Basis-committed Sealing）：
 
 - 数据面事件（DataEvent）解决普通协作写入：消息、reaction、read cursor 的持久投影、协作对象字段、排序、计数等。DataEvent 由 actor 签名、按 `seal_ref` 验证授权，通过 cell Lattice / CRDT 收敛；它不等待 Seal 才成为本地可接受事实。
 - 控制面事件（Control Move）解决治理写入：membership、capability、policy、notary、lifecycle、MLS epoch、密钥治理，以及 schema 明确声明 `sealed=true` 的对象。Control Move 由 Seal 覆盖后才取得 `sealed` finality。
@@ -31,7 +31,7 @@ Cokret v1 采用 **CBA**（Control-plane Basis-committed Sealing）：
 
 ## 2. 事件类型与 wire 边界
 
-Cokret v1 的共享历史基础单位是 signed Event Envelope（schema [`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)）。Envelope 由 `event_id`、`realm_id`、`kind`、`actor_id`、`actor_seq`、`prev_refs[]`、`refs[]`、`payload`、`proofs[]` 等字段组成，canonical event bytes 与 proof 规则见 [`event-and-patch.md`](../models/event-and-patch.md) 与 [`encoding.md`](../conformance/encoding.md)。
+Arkret v1 的共享历史基础单位是 signed Event Envelope（schema [`event-envelope.schema.json`](../../artifacts/schemas/event-envelope.schema.json)）。Envelope 由 `event_id`、`realm_id`、`kind`、`actor_id`、`actor_seq`、`prev_refs[]`、`refs[]`、`payload`、`proofs[]` 等字段组成，canonical event bytes 与 proof 规则见 [`event-and-patch.md`](../models/event-and-patch.md) 与 [`encoding.md`](../conformance/encoding.md)。
 
 Reducer-input Event 分为两类，二者 wire shape 互斥：
 
@@ -370,7 +370,7 @@ Strand Sync MUST NOT 因 actor 可读 Strand synthesis 就自动展开不可读 
 
 ## 9. 冲突与收敛
 
-Cokret 不用全局链决定普通协作写入顺序。状态收敛由 cell family 的 Lattice / CRDT 规则定义：
+Arkret 不用全局链决定普通协作写入顺序。状态收敛由 cell family 的 Lattice / CRDT 规则定义：
 
 - OR-Set、ordered log、RGA、PN-counter、escrow counter 等可合并 cell MUST 对输入顺序不敏感。
   > **序列 CRDT 选型注记（informative）**：上面把 **RGA（Replicated Growable Array）** 列为序列 cell 的示例算法。RGA 有学界充分记录的**并发插入交错（interleaving anomaly）**——两个 actor 在同一位置并发插入文本时，字符可能交错成乱序串。RGA 不是协作富文本的"最佳实践"基线：实现协作文本（`ck.profile.collaborative_text.v1`，见 [`../conformance/conformance-profiles.md` §3](../conformance/conformance-profiles.md)）时 SHOULD 优先采用消除 interleaving 的现代序列 CRDT —— **Eg-walker（Event Graph Walker，diamond-types）**、**Fugue/Peritext**（后者并处理富文本 mark 并发）或 **Loro/Yjs(YATA)**。其中 Eg-walker 在 event graph 上重放求值，与本规范的 event/causal-graph 范式天然同构、落地阻抗最小。序列 CRDT 仅活在该 opt-in extension profile、不进 core wire，因此算法升级是 profile 内的加法（新 lattice 标识 + 新 conformance vector / 新 `ck.profile.collaborative_text.v<n>`），不破坏任何 v1 core 签名字节。
@@ -456,7 +456,7 @@ MLS / E2EE 语义见 [`encryption-and-audit.md`](../crypto-media/encryption-and-
 
 ## 15. 设计决定
 
-Cokret v1 固定：
+Arkret v1 固定：
 
 - signed Event Envelope 是 actor 发布单元。
 - DataEvent 是普通协作数据面的默认写入单元。

@@ -12,9 +12,9 @@ updated: 2026-07-02
 
 ## 1. 概述
 
-本规范定义 Cokret v1 capability 授权中的资源选择器。资源选择器只回答“授权命中哪些资源”，不单独表达动作、字段、track、claim 或审批约束；这些约束必须由 grant 的 `actions` 与 `constraints` 表达。
+本规范定义 Arkret v1 capability 授权中的资源选择器。资源选择器只回答“授权命中哪些资源”，不单独表达动作、字段、track、claim 或审批约束；这些约束必须由 grant 的 `actions` 与 `constraints` 表达。
 
-Cokret v1 capability 使用以下 canonical resource selector 模型：
+Arkret v1 capability 使用以下 canonical resource selector 模型：
 
 - `strand` 是统一协作主对象，默认入口由 track primary 解析规则得到，不是 selector domain。
 - `message` 总是属于某个 Strand 的 `discussion` track。
@@ -33,16 +33,16 @@ schema、wire grant 与 conformance 测试 MUST 以本节定义的 JSON 形态�
   "resources": [
     {
       "kind": "realm",
-      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
+      "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
     },
     {
       "kind": "strand",
-      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-      "strand_id": "ck:strand:019640c5-0400-7000-8000-000000000000"
+      "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+      "strand_id": "ak:strand:019640c5-0400-7000-8000-000000000000"
     },
     {
       "kind": "morph",
-      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
       "morph_type": "customer_case"
     }
   ],
@@ -66,7 +66,7 @@ Board 与 List 使用 `kind="space"` 选择器，配合 `allowed_space_kinds` �
   "resources": [
     {
       "kind": "space",
-      "space_id": "ck:space:019640b6-8000-7000-8000-000000000000"
+      "space_id": "ak:space:019640b6-8000-7000-8000-000000000000"
     }
   ],
   "constraints": [
@@ -90,15 +90,15 @@ Circle 使用 `kind="circle"` 选择器，配合 `allowed_circle_ids` constraint
   "resources": [
     {
       "kind": "circle",
-      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-      "circle_id": "ck:circle:019640d0-0000-7000-8000-000000000000"
+      "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+      "circle_id": "ak:circle:019640d0-0000-7000-8000-000000000000"
     }
   ],
   "constraints": [
     {
       "constraint_type": "type_restriction",
       "effect": "allow",
-      "allowed_circle_ids": ["ck:circle:019640d0-0000-7000-8000-000000000000"]
+      "allowed_circle_ids": ["ak:circle:019640d0-0000-7000-8000-000000000000"]
     }
   ]
 }
@@ -113,8 +113,8 @@ Strand 的 synthesis / discussion 能力面使用 `kind="strand"` 选择器，�
   "resources": [
     {
       "kind": "strand",
-      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-      "strand_id": "ck:strand:019640c5-0400-7000-8000-000000000000"
+      "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+      "strand_id": "ak:strand:019640c5-0400-7000-8000-000000000000"
     }
   ],
   "constraints": [

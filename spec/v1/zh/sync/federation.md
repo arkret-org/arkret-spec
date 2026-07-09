@@ -12,7 +12,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-Cokret 是去中心化协议，不同用户或组织各自运行受控 Principal Server。当来自不同域的 Actor 需要在同一个 Realm 中协作时，Principal Server 之间需要一套**跨域联邦协议 (Federation Protocol)**，定义：
+Arkret 是去中心化协议，不同用户或组织各自运行受控 Principal Server。当来自不同域的 Actor 需要在同一个 Realm 中协作时，Principal Server 之间需要一套**跨域联邦协议 (Federation Protocol)**，定义：
 
 - 节点之间如何互相发现与认证
 - 如何安全交换签名 Event Envelope
@@ -57,7 +57,7 @@ Cokret 是去中心化协议，不同用户或组织各自运行受控 Principal
   "id": "did:webvh:zCXaWSDv1afiBoxDX5sVBU5an:server.acme.example.com",
   "service": [
     {
-      "id": "#cokret-principal-server",
+      "id": "#arkret-principal-server",
       "type": "CokretPrincipalServer",
       "serviceEndpoint": "https://server.acme.example.com"
     }
@@ -115,7 +115,7 @@ Cokret 是去中心化协议，不同用户或组织各自运行受控 Principal
 
 ### 3.3 域信任模型
 
-Cokret 不要求全局信任列表。每个节点维护自己的**联邦许可列表 (Federation Allow List)**：
+Arkret 不要求全局信任列表。每个节点维护自己的**联邦许可列表 (Federation Allow List)**：
 
 - **开放联邦 (Open)**：接受来自任何域的合法签名请求。适合公共协作场景。
 - **受限联邦 (Restricted)**：仅接受来自预配置域列表的请求。适合企业内部或联盟场景。
@@ -243,23 +243,23 @@ Signature: sig1=:base64...:
 reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(digest_input)))
 ```
 
-其中 `canonical_json` 是 [`encoding.md` §2](../conformance/encoding.md) 的 Cokret canonical JSON。`digest_input` 对象本身包含 profile 继承、required / rejected event-kind 集、schema / fixture / lattice 约束以及对应规范源引用；实现不得改用本地配置对象、ServiceDescribe 摘要或手写 `{domain, profile}` 对象来计算此字段。
+其中 `canonical_json` 是 [`encoding.md` §2](../conformance/encoding.md) 的 Arkret canonical JSON。`digest_input` 对象本身包含 profile 继承、required / rejected event-kind 集、schema / fixture / lattice 约束以及对应规范源引用；实现不得改用本地配置对象、ServiceDescribe 摘要或手写 `{domain, profile}` 对象来计算此字段。
 
 接收方 MUST 用同一 registry 规则重算自己在该 Realm 上实际执行的 reducer profile digest，并与请求字段逐字节比对。缺少 registry row、profile_id 未声明、canonicalization 不支持、digest suite 不是 active `sha256`，或重算结果不一致，均 MUST fail closed；对于 `POST /_cokret/peer/events`，失败结果是整批拒绝并返回 `reducer_profile_mismatch`，不得 partial accept。
 
 
 请求示例（`Source-Service-DID` / `Destination-Service-DID` 由 header 承载，不重复在 body 中）：
 
-```json schema=openapi/cokret-service-api.openapi.yaml#/components/schemas/EventsSubmitFederationRequestBody
+```json schema=openapi/arkret-service-api.openapi.yaml#/components/schemas/EventsSubmitFederationRequestBody
 {
   "service_binding_ref": {
-    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
     "realm_policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "membership_frontier": [
-      "ck:event:0196419b-1000-7000-8000-000000000001"
+      "ak:event:0196419b-1000-7000-8000-000000000001"
     ],
     "delivery_binding_frontier": [
-      "ck:event:0196419b-1000-7000-8000-000000000002"
+      "ak:event:0196419b-1000-7000-8000-000000000002"
     ],
     "delivery_binding_diagnostics": {
       "basis": ["member_delivery_binding"]
@@ -269,37 +269,37 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(digest
   },
   "events": [
     {
-      "event_id": "ck:event:0196419b-2000-7000-8000-000000000001",
+      "event_id": "ak:event:0196419b-2000-7000-8000-000000000001",
       "kind": "ck.message.create",
-      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
       "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
       "actor_seq": 42,
       "created_at": "2026-04-26T00:00:00Z",
       "prev_refs": [],
       "refs": [],
-      "seal_ref": "ck:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
       "auth_context": {
         "did": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
         "key_id": "device-1",
         "key_epoch": 1,
-        "capability_refs": ["ck:grant:0196419b-3000-7000-8000-000000000004"]
+        "capability_refs": ["ak:grant:0196419b-3000-7000-8000-000000000004"]
       },
       "effects": [
         {
-          "cell": "ck:cell:message:0196419b-3000-7000-8000-000000000001",
+          "cell": "ak:cell:message:0196419b-3000-7000-8000-000000000001",
           "op": {
             "kind": "append",
             "value": {
-              "message_id": "ck:message:0196419b-3000-7000-8000-000000000001",
-              "strand_id": "ck:strand:0196419b-3000-7000-8000-000000000003",
+              "message_id": "ak:message:0196419b-3000-7000-8000-000000000001",
+              "strand_id": "ak:strand:0196419b-3000-7000-8000-000000000003",
               "track_name": "discussion"
             }
           }
         }
       ],
       "payload": {
-        "message_id": "ck:message:0196419b-3000-7000-8000-000000000001",
-        "strand_id": "ck:strand:0196419b-3000-7000-8000-000000000003",
+        "message_id": "ak:message:0196419b-3000-7000-8000-000000000001",
+        "strand_id": "ak:strand:0196419b-3000-7000-8000-000000000003",
         "track_name": "discussion",
         "content": {
           "kind": "ck.content.text",
@@ -339,7 +339,7 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(digest
 
 错误响应 MUST 使用 `api-conventions.md` 中的标准 JSON error envelope。批量请求中，单条 Event 的拒绝 SHOULD 进入 `rejected[]`；整个请求无法认证、目的地不匹配、schema 解析失败或被限流时 SHOULD 返回对应 HTTP 错误。`rate_limited` 和可预期恢复的 `temporarily_unavailable` SHOULD 携带 `Retry-After`。
 
-Cokret v1 的联邦批量传播采用依赖感知的 partial accept：最小原子单元是单个 Event 及其已接受依赖，而不是整个请求数组。接收方已经 accepted 的 Event 不因后续 Event 失败而回滚；后续 Event 若依赖同批失败项，必须拒绝或隔离并暴露依赖诊断。需要 all-or-nothing 批处理的部署必须通过 profile / critical extension 显式协商。
+Arkret v1 的联邦批量传播采用依赖感知的 partial accept：最小原子单元是单个 Event 及其已接受依赖，而不是整个请求数组。接收方已经 accepted 的 Event 不因后续 Event 失败而回滚；后续 Event 若依赖同批失败项，必须拒绝或隔离并暴露依赖诊断。需要 all-or-nothing 批处理的部署必须通过 profile / critical extension 显式协商。
 
 `events[]` MUST 按数组顺序处理。同批中已接受的 Event 仅可作为**解析材料**（resolution-only）出现在后续 Event 中：可以满足 `prev_refs` 的 byte / event-id 解析、actor event chain 链接、`causal_refs` 或 payload-level causal reference 等结构性引用；但**不得**作为同批后续 Event 的授权基准。DataEvent MUST 按自身 `seal_ref` 验证；Control Move MUST 按自身 `seal_basis` 验证。同批前序 Event 创建、delegate、恢复、扩权或 revoke 的 grant / policy **不**对后续 Event 提前生效，依赖方必须等待控制面 Seal 更新后重交，否则当前批 MUST 以 `dependency_missing` / `stale_seal_ref` / `capability_denied` 拒绝或隔离（与 [`service-http-binding.md`](./service-http-binding.md) §`POST /_cokret/peer/events` 同批授权可见性规则、[`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) 的 CBA basis 模型一致）。同批中尚未处理、已拒绝或隔离的 Event 不能被视为已接受依赖。单条 Event 失败不得回滚同批已接受 Event；响应 MUST 将成功项放入 `accepted[]`，失败项放入 `rejected[]`，需要异步校验的项放入 `quarantine[]`。依赖同批失败或缺失 Event 的后续项 MUST 以 `dependency_missing`、`causal_conflict` 或等价原因拒绝/隔离。
 
@@ -449,7 +449,7 @@ sequenceDiagram
 
 ### 4.1.1 批量推送与幂等
 
-Cokret v1 联邦推送使用 `POST /_cokret/peer/events`（`ck.peer.events.command.submit`）：
+Arkret v1 联邦推送使用 `POST /_cokret/peer/events`（`ck.peer.events.command.submit`）：
 
 - 幂等以 `(Source-Service-DID, Destination-Service-DID, event_id)` 逐事件去重；接收方对重复 `event_id` 且内容一致 MUST 在 `duplicate[]` 中确认（幂等 no-op）而非报错，内容不一致 MUST 以 `duplicate_conflict`（409）拒绝（参见 §4.3）。
 - 批次级重放检测使用签名 transcript 中的 `Request-Canonical-Digest` 与 `Idempotency-Key` header（详见 §8.5），不引入额外的 path 事务 ID。
@@ -556,7 +556,7 @@ Probe 响应 payload：
 
 ```json
 {
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "heads": ["sha256:..."],
   "max_hlc": "01970e589d21-0004-a13f9c2e",
   "frontier_root": "sha256:...",
@@ -671,7 +671,7 @@ Bob 也可以主动申请加入。具体流程取决于 Realm 的 `ck.realm.join
 
 ```json
 {
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "sync_endpoints": [
     {
       "did": "did:webvh:z4YZEfM4SYVUdnZbosrGu69JK:server-alpha.com",
@@ -711,7 +711,7 @@ DID Document 的 `service[type=CokretPrincipalServer]` 是该 Actor DID 的**默
 DID Document 的 service entry 是联邦服务发现的权威来源。域名级 bootstrap MAY 暴露：
 
 ```text
-GET https://<domain>/.well-known/cokret/server
+GET https://<domain>/.well-known/arkret/server
 ```
 
 该响应只用于找到候选服务 endpoint，不直接授权联邦请求。接收方仍 MUST 校验 service DID、DID Document、describe 响应、TLS 名称、HTTP Message Signature、Realm policy / service delegation 和 `destination` 绑定一致。
@@ -794,7 +794,7 @@ Signature: sig1=:<base64>:
 
 ### 7.4 验证 Actor
 
-跨域 actor 验证复用 `POST /_cokret/root/identity/resolve` 公共服务面（`ck.root.identity.query.resolve`）。该端点本就是公共 DID 解析入口，但 Cokret 实现 MUST 按调用方信任策略限速、缓存、并对私有 / pairwise DID 拒绝匿名公开。
+跨域 actor 验证复用 `POST /_cokret/root/identity/resolve` 公共服务面（`ck.root.identity.query.resolve`）。该端点本就是公共 DID 解析入口，但 Arkret 实现 MUST 按调用方信任策略限速、缓存、并对私有 / pairwise DID 拒绝匿名公开。
 
 下面列出 `holder-approved proof challenge` 高级 query 形态的字段集——这是 `/_cokret/root/identity/resolve` 的一种调用形态，不是独立 operation。
 
@@ -820,7 +820,7 @@ Signature: sig1=:<base64>:
 {
   "actor_id": "did:webvh:...",
   "purpose": "event_source",
-  "realm_id": "ck:realm:...",
+  "realm_id": "ak:realm:...",
   "challenge": "base64url...",
   "signed_payload_digest": "sha256:...",
   "signature": {
@@ -850,7 +850,7 @@ Signature: sig1=:<base64>:
   "valid": true,
   "actor_id": "did:webvh:...",
   "verified_key_id": "did:webvh:...#device-a",
-  "key_log_head": "ck:key_event:...",
+  "key_log_head": "ak:key_event:...",
   "did_document_ref": "sha256:...",
   "expires_at": "2026-04-26T00:05:00Z",
   "warnings": []

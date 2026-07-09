@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/push-operations.schema.json",
-  "title": "Cokret Push Gateway Operation DTOs",
+  "$id": "https://arkret.org/v1/schemas/push-operations.schema.json",
+  "title": "Arkret Push Gateway Operation DTOs",
   "description": "Closed request and response DTOs for ck.edge.push.command.register_device, ck.edge.push.command.unregister_device, and ck.push.notify.",
   "anyOf": [
     {
@@ -496,7 +496,7 @@
     },
     "push_notify_request_body": {
       "type": "object",
-      "description": "Closed Cokret notify body. Product-private notification bodies, provider adapter payloads, APNs/FCM/WebPush data dictionaries, `content`, `content_*`, `provider_payload`, DND/snooze state, and push-rule plaintext are outside this wire surface and MUST be consumed before this body is built. Provider-facing payloads are reconstructed by the gateway from this closed shape and MUST strip route_tokens / reason_code / event_kind / audit_envelope before provider dispatch.",
+      "description": "Closed Arkret notify body. Product-private notification bodies, provider adapter payloads, APNs/FCM/WebPush data dictionaries, `content`, `content_*`, `provider_payload`, DND/snooze state, and push-rule plaintext are outside this wire surface and MUST be consumed before this body is built. Provider-facing payloads are reconstructed by the gateway from this closed shape and MUST strip route_tokens / reason_code / event_kind / audit_envelope before provider dispatch.",
       "required": [
         "notification"
       ],

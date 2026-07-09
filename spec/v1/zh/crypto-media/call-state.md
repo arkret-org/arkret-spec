@@ -39,10 +39,10 @@ sidebar:
 ```json
 {
   "morph_type": "call",
-  "realm_id": "ck:realm:...",
+  "realm_id": "ak:realm:...",
   "title": "Design review",
   "fields": {
-    "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
+    "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
     "mode": "sfu",
     "state": "ringing",
     "started_at": null,
@@ -71,27 +71,27 @@ sidebar:
 ```json
 {
   "kind": "ck.call.state",
-  "realm_id": "ck:realm:...",
+  "realm_id": "ak:realm:...",
   "payload": {
-    "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
+    "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
     "state": "active",
     "mode": "sfu",
     "session_focus": "fra-1",
     "participants": [
       {
         "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
-        "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
         "joined_at": "2026-04-26T00:00:00Z",
         "foci_preferred": ["fra-1", "us-east-1"],
-        "participant_identity": "ck:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+        "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
         "participant_binding": {
           "scheme": "ck.media.participant_binding.v1",
-          "realm_id": "ck:realm:...",
-          "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
+          "realm_id": "ak:realm:...",
+          "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
           "focus_id": "fra-1",
           "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
-          "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
-          "participant_identity": "ck:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
+          "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
           "issued_at": "2026-04-26T00:00:00Z",
           "expires_at": "2026-04-26T00:05:00Z",
           "issuer_kid": "did:webvh:zCxjAemtszNh7bTFGWFS4m8gv:media.example#key-1",
@@ -146,7 +146,7 @@ sidebar:
 - **并发冲突**：同一 `call_id`、同一 CBA basis 下出现两个 sibling `ck.call.state` 转换，且二者的 `to` state 不同，`fsm` join MUST 返回 `Bottom{kind="conflict"}` 并按 `bottom=reject` 暴露 `failed_bottom` / diagnostic。实现 MUST NOT 用 HLC、`created_at`、`event_id`、actor id、event digest、数据库插入顺序或本地接收顺序选择 winner。冲突恢复必须由后续显式 recovery / operator action 在新的 accepted basis 上提交，不能静默回退。
 - **终态吸收**：一旦某 accepted head 进入终态，任何后续转出都按 `call_state_terminal` 拒绝；终态不能被并发 winner 规则覆盖，因为本状态机没有 winner 规则。
 
-**`recording_state`（录制维度，与 `state` 正交，normative）**：`{ recording, stopped, ready, failed }`，缺省=未录制。录制随 `ck.call.recording.start` 进入 `recording`；人工停止时通过 `ck.call.state` 写 `recording_state="stopped"`；artifact 入 Cokret blob pipeline 后转 `ready`，失败转 `failed`。录制态**独立于** `state`——通话可在 `active` 期间为 `recording_state="recording"`，通话 `ended` 之后再写 `recording_state="ready"`。`recording_state ∈ { ready, failed, stopped }` 时 SHOULD 携带 `recording_result.recording_start_event_id` 绑定本段录制的 start event；`ready` MUST 携带 `recording_result.artifact`（schema `ck.schema.call_recording_artifact.v1`），并携带 content digest / duration / media type / retention policy 投影字段；`failed` SHOULD 携带 `failure_reason_code`。v1 不为录制注册独立 result/stop event，录制态变化通过 `ck.call.state` 写入（见 §5）。
+**`recording_state`（录制维度，与 `state` 正交，normative）**：`{ recording, stopped, ready, failed }`，缺省=未录制。录制随 `ck.call.recording.start` 进入 `recording`；人工停止时通过 `ck.call.state` 写 `recording_state="stopped"`；artifact 入 Arkret blob pipeline 后转 `ready`，失败转 `failed`。录制态**独立于** `state`——通话可在 `active` 期间为 `recording_state="recording"`，通话 `ended` 之后再写 `recording_state="ready"`。`recording_state ∈ { ready, failed, stopped }` 时 SHOULD 携带 `recording_result.recording_start_event_id` 绑定本段录制的 start event；`ready` MUST 携带 `recording_result.artifact`（schema `ck.schema.call_recording_artifact.v1`），并携带 content digest / duration / media type / retention policy 投影字段；`failed` SHOULD 携带 `failure_reason_code`。v1 不为录制注册独立 result/stop event，录制态变化通过 `ck.call.state` 写入（见 §5）。
 
 #### `recording_state` / `transcript_state` 受控转换（normative）
 
@@ -173,9 +173,9 @@ sidebar:
 ```json
 {
   "kind": "ck.call.recording.start",
-  "realm_id": "ck:realm:...",
+  "realm_id": "ak:realm:...",
   "payload": {
-    "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
+    "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
     "recording_id": "rtc-recording-0196441d-0000-7000-8000-000000000000",
     "recording_agent": "did:webvh:zCYG7PrN3Yt1TdX4X8gfYFA4R:recorder.example",
     "mode": "audio_video",
@@ -188,14 +188,14 @@ sidebar:
 
 - 需要 `ck.call.record` capability。`ck.call.recording.start` 通过 `capture_kind`(`recording` / `transcript`,缺省 `recording`)区分录制与转写两条平行生命周期(转写见 §5.1)。
 - 客户端 MUST 对所有参会者显示录制中。
-- `payload.recording_id` MUST 是该录制 artifact lifecycle 的稳定 opaque string，并进入 recording key exporter Context；缺失时 recording start event MUST `schema_violation` reject。它不是 `ck:*` typed ID；最终持久化产物仍通过 Cokret blob / Morph / artifact 引用暴露。由于 `recording_id` 是跨实现密钥派生输入（进入 §5 第 3 步的 `Context`），其 canonical 形态 MUST 由 `ck.call.state` recording start event 一次性固定并逐字节保留：取值 MUST 为 ASCII 子集 `[A-Za-z0-9._-]`、长度 1–128 字节；发送方写入后该字符串即为 canonical，**接收方 MUST NOT 做任何 normalize**（大小写折叠、Unicode NFC/NFKC、trim、re-encode 等），并 MUST 在所有引用该录制的 event / key 派生中逐字节复用 start event 的原值。任何对 `recording_id` 的本地规范化都会令派生出的 recording key 与发送方分裂、导致解密失败。
+- `payload.recording_id` MUST 是该录制 artifact lifecycle 的稳定 opaque string，并进入 recording key exporter Context；缺失时 recording start event MUST `schema_violation` reject。它不是 `ck:*` typed ID；最终持久化产物仍通过 Arkret blob / Morph / artifact 引用暴露。由于 `recording_id` 是跨实现密钥派生输入（进入 §5 第 3 步的 `Context`），其 canonical 形态 MUST 由 `ck.call.state` recording start event 一次性固定并逐字节保留：取值 MUST 为 ASCII 子集 `[A-Za-z0-9._-]`、长度 1–128 字节；发送方写入后该字符串即为 canonical，**接收方 MUST NOT 做任何 normalize**（大小写折叠、Unicode NFC/NFKC、trim、re-encode 等），并 MUST 在所有引用该录制的 event / key 派生中逐字节复用 start event 的原值。任何对 `recording_id` 的本地规范化都会令派生出的 recording key 与发送方分裂、导致解密失败。
 - 手动停止录制不注册独立 `ck.call.recording.stop` event；holder of `ck.call.record` 通过 `ck.call.state` 写 `recording_state="stopped"`，并在 `recording_result.recording_start_event_id` 指向被停止的 `ck.call.recording.start`。`stopped` 是该录制段的终态，不要求产生 artifact；若 backend 已经产出可用 artifact，后续 MAY 以同一 `recording_start_event_id` 写 `ready`，否则保持 `stopped`。
 - 同一通话允许多段录制。`ready` / `failed` / `stopped` 之后再次进入 `recording` 时，MUST 先接受新的 `ck.call.recording.start`，且新的 `recording_id` MUST 不同于该 call 任何既有 recording start 的 `recording_id`。物化投影 MAY 只展示最新 `recording_state`，但历史段以各自 `ck.call.recording.start` 与后续 `ck.call.state` event 保持可审计。
 - 录制 artifact MUST 作为 encrypted Blob 或受控 media object 存储。
-- **Backend-generated recording 必经 Cokret blob pipeline**（参见 [`media-service-binding.md` §8.1](./media-service-binding.md)）：backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等），但生成的 artifact MUST：
-  1. 作为加密 blob 上传到 Cokret media service（通过 [`media-and-blob.md`](./media-and-blob.md) 的 authenticated upload 端点），不得 backend 自行托管。
+- **Backend-generated recording 必经 Arkret blob pipeline**（参见 [`media-service-binding.md` §8.1](./media-service-binding.md)）：backend 可能自带录制能力（LiveKit Egress、Janus recording plugin 等），但生成的 artifact MUST：
+  1. 作为加密 blob 上传到 Arkret media service（通过 [`media-and-blob.md`](./media-and-blob.md) 的 authenticated upload 端点），不得 backend 自行托管。
   2. 上传请求携带 `recording_initiator_capability_ref`，证明该 recording 由具备 `ck.call.record` 的 actor 发起。
-  3. 加密 key MUST 由 Cokret 协议层提供（与 [`media-service-binding.md` §8.1](./media-service-binding.md) 同源，从 MLS exporter 派生），backend 不持久化明文。Recording artifact key label 固定为 `"ck-rtc-recording-key/v1"`，`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id})`，输出 32 bytes；不得复用 SFrame label `"ck-rtc-frame-key/v1"` 或空 Context。
+  3. 加密 key MUST 由 Arkret 协议层提供（与 [`media-service-binding.md` §8.1](./media-service-binding.md) 同源，从 MLS exporter 派生），backend 不持久化明文。Recording artifact key label 固定为 `"ck-rtc-recording-key/v1"`，`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id})`，输出 32 bytes；不得复用 SFrame label `"ck-rtc-frame-key/v1"` 或空 Context。
   4. 入库后通过 `ck.call.state` 发布 lifecycle state，引用 content digest、duration、media type、retention policy、`recording_start_event_id` 与 `recording_result.artifact`。
   绕过该 pipeline（如 backend 直接对外暴露 recording URL）MUST 被客户端拒绝并报 `recording_artifact_pipeline_bypassed`。这保证 backend 是 "录制执行单元" 而非 "录制档案库"。
 - 录制结果 MUST 通过已注册的 `ck.call.state` 写入**独立的 `recording_state` 字段**（`recording_state="ready"` / `recording_state="failed"` / `recording_state="stopped"`，与通话 `state` 正交，见 §4.2），并在 `recording_result` 中引用 `recording_start_event_id`。`recording_state="ready"` 时，`recording_result.artifact` MUST 符合 [`call-recording-artifact.schema.json`](../../artifacts/schemas/call-recording-artifact.schema.json)，其 `schema` MUST 为 `ck.schema.call_recording_artifact.v1`，且 MUST 绑定同一 `realm_id` / `call_id` / `recording_id` / `recording_start_event_id`、`blob_ref`、`content_digest`、`ciphertext_digest`、`duration_ms`、`media_type`、`encryption.exporter_label="ck-rtc-recording-key/v1"`、`encryption.context`、`retention`、`produced_by` 与 `recording_initiator_capability_ref`。`recording_result.content_digest` / `duration_ms` / `media_type` / `retention_policy_id` / `retention` 是便于投影和查询的镜像字段；若与 `recording_result.artifact` 同名事实不一致，reducer / consumer MUST fail closed `schema_violation`。`recording_state="failed"` 时 SHOULD 携带 `failure_reason_code`，MUST NOT 携带 backend 直出 URL、明文路径或明文片段。v1 不注册独立的 `ck.call.recording.result` 或 `ck.call.recording.stop` event kind；实现不得把这些裸名写入 Event Envelope。
@@ -207,7 +207,7 @@ sidebar:
 
 - 启动转写复用 `ck.call.recording.start` event kind，但 `capture_kind="transcript"`（未携带 `capture_kind` 时的 missing-field default 为 `recording`）；其 `recording_id` 同样是稳定 opaque 句柄，约束与 §5 录制 `recording_id` 完全一致（ASCII 子集 `[A-Za-z0-9._-]`、1–128 字节、逐字节 canonical、接收方 MUST NOT normalize），并进入 transcript key exporter Context。缺少 `ck.call.transcribe` 时 MUST 拒绝，`reason_code="transcription_denied"`。
 - 客户端 MUST 对所有参会者显示转写进行中提示（与录制提示同等级别）。
-- 转写文本 MUST 作为 **encrypted Blob / 受控 media object** 存储，绝不明文落 backend。转写 artifact 的加密 key MUST 由 Cokret MLS exporter 派生，**label 固定为 ASCII 字符串 `"ck-rtc-transcript-key/v1"`**（与 SFrame `"ck-rtc-frame-key/v1"`、录制 `"ck-rtc-recording-key/v1"` 区分），`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, transcript_start_event_id})`，输出 32 bytes；canonical 登记见 [`../../artifacts/registry/exporter-label-registry.json`](../../artifacts/registry/exporter-label-registry.json)。复用其它 label、空 Context，或接受 backend / KMS 自生成的 transcript key MUST fail closed `transcription_artifact_pipeline_bypassed`。
+- 转写文本 MUST 作为 **encrypted Blob / 受控 media object** 存储，绝不明文落 backend。转写 artifact 的加密 key MUST 由 Arkret MLS exporter 派生，**label 固定为 ASCII 字符串 `"ck-rtc-transcript-key/v1"`**（与 SFrame `"ck-rtc-frame-key/v1"`、录制 `"ck-rtc-recording-key/v1"` 区分），`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, transcript_start_event_id})`，输出 32 bytes；canonical 登记见 [`../../artifacts/registry/exporter-label-registry.json`](../../artifacts/registry/exporter-label-registry.json)。复用其它 label、空 Context，或接受 backend / KMS 自生成的 transcript key MUST fail closed `transcription_artifact_pipeline_bypassed`。
 - 转写结果通过 `ck.call.state` 写入 `transcript_state`，并在 `transcript_result` 中引用 `transcript_start_event_id`；`ready` / `failed` 还 SHOULD 携带 content digest、media type、language 与 retention policy。手动停止时写 `transcript_state="stopped"`，不要求产生 artifact。
 - v1 不为转写注册独立的 result / stop event kind；转写态变化一律通过 `ck.call.state` 写入。
 
@@ -250,9 +250,9 @@ sidebar:
 ```json
 {
   "kind": "ck.call.summary",
-  "realm_id": "ck:realm:...",
+  "realm_id": "ak:realm:...",
   "payload": {
-    "call_id": "ck:call:0196441c-0000-7000-8000-000000000000",
+    "call_id": "ak:call:0196441c-0000-7000-8000-000000000000",
     "final_state": "ended",
     "mode": "sfu",
     "started_at": "2026-04-26T00:00:00Z",

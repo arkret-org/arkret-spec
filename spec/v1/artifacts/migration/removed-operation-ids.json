@@ -1,5 +1,5 @@
 {
-  "$schema": "https://cokret.dev/spec/v1/artifacts/registry/drift-detection.schema.json",
+  "$schema": "https://arkret.dev/spec/v1/artifacts/registry/drift-detection.schema.json",
   "version": 1,
   "kind": "removed_operation_ids",
   "source_of_truth": true,
@@ -275,7 +275,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Admin / operator APIs are product-local and MUST NOT be registered under the Cokret protocol namespace. Servers that expose operator surfaces use their own negative-space root such as /_<deployment>/admin/*."
+      "notes": "Admin / operator APIs are product-local and MUST NOT be registered under the Arkret protocol namespace. Servers that expose operator surfaces use their own negative-space root such as /_<deployment>/admin/*."
     },
     {
       "id": "ck.admin.get_server_status",
@@ -286,7 +286,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Admin / operator APIs are product-local and MUST NOT be registered under the Cokret protocol namespace. Servers that expose operator surfaces use their own negative-space root such as /_<deployment>/admin/*."
+      "notes": "Admin / operator APIs are product-local and MUST NOT be registered under the Arkret protocol namespace. Servers that expose operator surfaces use their own negative-space root such as /_<deployment>/admin/*."
     },
     {
       "id": "ck.admin.revoke_device",
@@ -297,7 +297,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Admin / operator APIs are product-local and MUST NOT be registered under the Cokret protocol namespace. Servers that expose operator surfaces use their own negative-space root such as /_<deployment>/admin/*."
+      "notes": "Admin / operator APIs are product-local and MUST NOT be registered under the Arkret protocol namespace. Servers that expose operator surfaces use their own negative-space root such as /_<deployment>/admin/*."
     },
     {
       "id": "ck.admin.update_account_status",
@@ -308,7 +308,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "Admin / operator APIs are product-local and MUST NOT be registered under the Cokret protocol namespace. Servers that expose operator surfaces use their own negative-space root such as /_<deployment>/admin/*."
+      "notes": "Admin / operator APIs are product-local and MUST NOT be registered under the Arkret protocol namespace. Servers that expose operator surfaces use their own negative-space root such as /_<deployment>/admin/*."
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/actor-profile.schema.json",
-  "title": "Cokret Actor Profile",
+  "$id": "https://arkret.org/v1/schemas/actor-profile.schema.json",
+  "title": "Arkret Actor Profile",
   "type": "object",
   "required": [
     "id",
@@ -45,7 +45,7 @@
     "handle": {
       "type": "string",
       "pattern": "^[a-z0-9._+~-]{1,128}:[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$",
-      "description": "Cokret canonical handle string: <localpart>:<domain>. The @ mention sigil is not part of the handle."
+      "description": "Arkret canonical handle string: <localpart>:<domain>. The @ mention sigil is not part of the handle."
     },
     "agent_slug": {
       "type": "string",

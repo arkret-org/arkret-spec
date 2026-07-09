@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/capability-grant.schema.json",
+  "$id": "https://arkret.org/v1/schemas/capability-grant.schema.json",
   "$defs": {
     "timestamp": {
       "type": "string",
@@ -8,7 +8,7 @@
       "pattern": "Z$"
     }
   },
-  "title": "Cokret Capability Grant",
+  "title": "Arkret Capability Grant",
   "type": "object",
   "required": [
     "id",

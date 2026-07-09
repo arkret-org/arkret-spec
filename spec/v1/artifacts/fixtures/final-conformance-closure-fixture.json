@@ -350,10 +350,10 @@
         {
           "name": "targeted_encrypted_package_valid",
           "target_refs": [
-            "ck:event:01965000-0000-7000-8000-000000000101"
+            "ak:event:01965000-0000-7000-8000-000000000101"
           ],
           "plaintext_event_refs": [
-            "ck:event:01965000-0000-7000-8000-000000000101"
+            "ak:event:01965000-0000-7000-8000-000000000101"
           ],
           "recipient_public_key_ref": "did:webvh:z6mkfixture:moderator.example#key-1",
           "encrypted_to": "did:webvh:z6mkfixture:moderator.example#key-1",
@@ -374,10 +374,10 @@
         {
           "name": "history_key_release_rejected",
           "target_refs": [
-            "ck:event:01965000-0000-7000-8000-000000000101"
+            "ak:event:01965000-0000-7000-8000-000000000101"
           ],
           "plaintext_event_refs": [
-            "ck:event:01965000-0000-7000-8000-000000000101"
+            "ak:event:01965000-0000-7000-8000-000000000101"
           ],
           "recipient_public_key_ref": "did:webvh:z6mkfixture:moderator.example#key-1",
           "encrypted_to": "did:webvh:z6mkfixture:moderator.example#key-1",
@@ -397,11 +397,11 @@
         {
           "name": "unrelated_message_plaintext_rejected",
           "target_refs": [
-            "ck:event:01965000-0000-7000-8000-000000000101"
+            "ak:event:01965000-0000-7000-8000-000000000101"
           ],
           "plaintext_event_refs": [
-            "ck:event:01965000-0000-7000-8000-000000000101",
-            "ck:event:01965000-0000-7000-8000-000000000102"
+            "ak:event:01965000-0000-7000-8000-000000000101",
+            "ak:event:01965000-0000-7000-8000-000000000102"
           ],
           "recipient_public_key_ref": "did:webvh:z6mkfixture:moderator.example#key-1",
           "encrypted_to": "did:webvh:z6mkfixture:moderator.example#key-1",
@@ -419,10 +419,10 @@
         {
           "name": "recipient_binding_missing_rejected",
           "target_refs": [
-            "ck:event:01965000-0000-7000-8000-000000000101"
+            "ak:event:01965000-0000-7000-8000-000000000101"
           ],
           "plaintext_event_refs": [
-            "ck:event:01965000-0000-7000-8000-000000000101"
+            "ak:event:01965000-0000-7000-8000-000000000101"
           ],
           "recipient_public_key_ref": "did:webvh:z6mkfixture:moderator.example#key-1",
           "encrypted_to": "did:webvh:z6mkfixture:other.example#key-1",

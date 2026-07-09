@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/seal-transparency.schema.json",
-  "title": "Cokret SealTransparency",
+  "$id": "https://arkret.org/v1/schemas/seal-transparency.schema.json",
+  "title": "Arkret SealTransparency",
   "description": "Seal transparency wire objects (authz/event-auth-state-resolution.md section 7.4): an append-only log entry binding one accepted Seal tuple, and an independent auditor attestation over a log range. The log makes split-view attacks (showing different Seal chains to different receivers) detectable: an operator must either publish consistently or fork the log, and a log fork is provable from two signed entries with the same log_index. Top-level object is a log entry; auditor attestations use #/$defs/auditor_attestation.",
   "type": "object",
   "required": [

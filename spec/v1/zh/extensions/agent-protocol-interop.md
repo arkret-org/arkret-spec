@@ -10,7 +10,7 @@ sidebar:
 
 > **状态：extension profile（非 v1 core 互操作必需）**。本文档涉及的外部 agent 协议（A2A / ACP /
 > MCP bridge 等）目前都未标准化（IBM Research 已宣布 ACP 并入 Linux Foundation 旗下的
-> A2A）。Cokret v1 core 互操作 **不要求** 实现 agent-protocol upgrade；core v1 中 agent
+> A2A）。Arkret v1 core 互操作 **不要求** 实现 agent-protocol upgrade；core v1 中 agent
 > 仅作为 actor + capability 出现，外协议升级在标准成熟前由 `ck.profile.agent_runtime.v1`
 > 单独承载，且视为可选 interop extension profile（见 `artifacts/profiles/conformance-profiles.json`
 > 的 `profile_tiers.extension_profile_implementation`）。
@@ -21,13 +21,13 @@ sidebar:
 
 ## 1. 目标
 
-Cokret 原生支持 AI agent 作为 Actor 参与协作，但不应假设所有 agent 通信都必须长期停留在 Cokret Event / Realm 模型内。
+Arkret 原生支持 AI agent 作为 Actor 参与协作，但不应假设所有 agent 通信都必须长期停留在 Arkret Event / Realm 模型内。
 
-当两个 agent 都支持专用 agent-to-agent 协议，例如 A2A 或 ACP endpoint，且任务适合高频、流式、长运行或跨框架直接协作时，Cokret MAY 将一次协作从 canonical 协作层升级为外部 agent protocol session。
+当两个 agent 都支持专用 agent-to-agent 协议，例如 A2A 或 ACP endpoint，且任务适合高频、流式、长运行或跨框架直接协作时，Arkret MAY 将一次协作从 canonical 协作层升级为外部 agent protocol session。
 
-这里的“升级”不是替代 Cokret，而是：
+这里的“升级”不是替代 Arkret，而是：
 
-- Cokret 负责身份、授权、任务登记、审计、状态回流和结果归档。
+- Arkret 负责身份、授权、任务登记、审计、状态回流和结果归档。
 - A2A / ACP / 其他 agent protocol 负责高效的实时 agent-to-agent 执行通道。
 
 ## 2. 当前外部协议状态
@@ -39,11 +39,11 @@ Cokret 原生支持 AI agent 作为 Actor 参与协作，但不应假设所有 a
 - BeeAI Framework 仍提供 ACP adapter，可连接 ACP-compliant service。
 - A2A 使用 AgentCard / Task / Message / Artifact 等概念，面向 agent discovery、长任务协作、streaming、async 和跨框架互操作。
 
-因此 Cokret 不应硬编码“ACP-only”路径。实现 MUST 使用 protocol adapter registry，并允许 A2A、ACP、MCP bridge、私有企业 agent protocol 并存。
+因此 Arkret 不应硬编码“ACP-only”路径。实现 MUST 使用 protocol adapter registry，并允许 A2A、ACP、MCP bridge、私有企业 agent protocol 并存。
 
-## 3. 什么时候留在 Cokret
+## 3. 什么时候留在 Arkret
 
-以下场景 SHOULD 留在 Cokret 原生协议：
+以下场景 SHOULD 留在 Arkret 原生协议：
 
 - 需要强审计和长期可验证协作历史。
 - 需要 Realm membership / capability / policy 逐事件判定。
@@ -52,7 +52,7 @@ Cokret 原生支持 AI agent 作为 Actor 参与协作，但不应假设所有 a
 - 对端 agent 不可信、不可发现或没有受支持协议。
 - E2EE / 合规 / Policy Server 要求所有步骤进入 Realm 账本。
 
-Cokret 原生模式更适合作为“协作事实层”和“治理层”。
+Arkret 原生模式更适合作为“协作事实层”和“治理层”。
 
 ## 4. 什么时候升级到外部 Agent Protocol
 
@@ -61,7 +61,7 @@ Cokret 原生模式更适合作为“协作事实层”和“治理层”。
 - 两个 agent 需要高频 token streaming 或事件 streaming。
 - 任务是长运行、分阶段、可暂停/恢复的 agent task。
 - 对端 agent 已经以 A2A AgentCard 或 ACP metadata 暴露能力。
-- 任务执行过程主要是 agent 内部推理、工具调用或跨框架编排，只有最终状态需要回写 Cokret。
+- 任务执行过程主要是 agent 内部推理、工具调用或跨框架编排，只有最终状态需要回写 Arkret。
 - 多 agent 团队跨 LangChain、AutoGen、CrewAI、BeeAI、ADK 等框架协作。
 - 需要临时直连或服务到服务通道，避免把每个 token / tool step 写成 durable Event。
 
@@ -103,21 +103,21 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 
 ### 5.2 Protocol Session
 
-升级会话由 Cokret 事件登记：
+升级会话由 Arkret 事件登记：
 
 ```json
 {
   "kind": "ck.agent.interop_session.start",
-  "realm_id": "ck:realm:...",
+  "realm_id": "ak:realm:...",
   "actor_id": "did:webvh:zJ9BR1Wso7TdHzifQDHtN8HTd:requesting-agent.example.com",
   "payload": {
-    "session_id": "ck:agent_interop_session:019643c0-0000-7000-8000-000000000000",
-    "task_strand_id": "ck:strand:4accc010-0000-7000-8000-000000000000",
+    "session_id": "ak:agent_interop_session:019643c0-0000-7000-8000-000000000000",
+    "task_strand_id": "ak:strand:4accc010-0000-7000-8000-000000000000",
     "counterparty_agent": "did:webvh:zB54CCsfUsS7ywusJTQVGBWVd:remote-agent.example.com",
     "protocol": "a2a",
     "external_protocol_version": "1.x",
     "endpoint_ref": "https://agent.example/.well-known/agent-card.json",
-    "capability_grant": "ck:grant:...",
+    "capability_grant": "ak:grant:...",
     "allowed_artifact_types": [
       "text",
       "file",
@@ -139,14 +139,14 @@ Endpoint 退役也是协议状态，不只是外部连接关闭。Agent owner、
 
 ### 5.3 Status 回流
 
-外部协议执行过程中的状态 MUST 回流为 Cokret event：
+外部协议执行过程中的状态 MUST 回流为 Arkret event：
 
 ```json
 {
   "kind": "ck.agent.interop_session.status",
-  "realm_id": "ck:realm:...",
+  "realm_id": "ak:realm:...",
   "payload": {
-    "session_id": "ck:agent_interop_session:019643c0-0000-7000-8000-000000000000",
+    "session_id": "ak:agent_interop_session:019643c0-0000-7000-8000-000000000000",
     "external_task_id": "a2a-task-123",
     "status": "working",
     "progress_basis_points": 4200,
@@ -199,9 +199,9 @@ Cancellation 是协议状态，不是只关本地 socket。持有 `ck.agent.inte
 ```json
 {
   "kind": "ck.agent.interop_session.status",
-  "realm_id": "ck:realm:...",
+  "realm_id": "ak:realm:...",
   "payload": {
-    "session_id": "ck:agent_interop_session:019643c0-0000-7000-8000-000000000000",
+    "session_id": "ak:agent_interop_session:019643c0-0000-7000-8000-000000000000",
     "external_task_id": "a2a-task-123",
     "status": "cancelled",
     "cancelled_by": "did:webvh:zJ9BR1Wso7TdHzifQDHtN8HTd:requesting-agent.example.com",
@@ -221,19 +221,19 @@ Cancellation 是协议状态，不是只关本地 socket。持有 `ck.agent.inte
 
 ### 5.4 Result 回流
 
-最终结果 MUST 回写 Cokret：
+最终结果 MUST 回写 Arkret：
 
 ```json
 {
   "kind": "ck.agent.interop_session.result",
-  "realm_id": "ck:realm:...",
+  "realm_id": "ak:realm:...",
   "payload": {
-    "session_id": "ck:agent_interop_session:019643c0-0000-7000-8000-000000000000",
+    "session_id": "ak:agent_interop_session:019643c0-0000-7000-8000-000000000000",
     "status": "completed",
     "result_objects": [
       {
         "object_type": "strand",
-        "object_ref": "ck:strand:4accc010-0000-7000-8000-000000000000",
+        "object_ref": "ak:strand:4accc010-0000-7000-8000-000000000000",
         "track": "synthesis",
         "role": "primary_result"
       }
@@ -241,7 +241,7 @@ Cancellation 是协议状态，不是只关本地 socket。持有 `ck.agent.inte
     "artifacts": [
       {
         "artifact_type": "text",
-        "object_ref": "ck:morph:0ecec3a6-8180-7000-8000-000000000000",
+        "object_ref": "ak:morph:0ecec3a6-8180-7000-8000-000000000000",
         "artifact_digest": "sha256:..."
       }
     ],
@@ -260,7 +260,7 @@ Cancellation 是协议状态，不是只关本地 socket。持有 `ck.agent.inte
 
 `ck.agent.interop_session.result` 的 payload MUST 至少包含 `result_objects`、`artifacts` 或失败信息之一。`result_objects` 用于声明协议层可引用的持久化成果；v1 标准对象类型为 `strand`、`message`、`morph` 和 `blob` 引用。
 
-**结果对象 Realm 绑定（normative）**：`result_objects[].object_ref`、`artifacts[].object_ref` 以及任何 profile-defined Cokret object reference MUST 解析到与本 `ck.agent.interop_session.result.realm_id` 相同的 Realm，且 MUST 属于该 session start 时声明的任务 / artifact 允许范围。Reducer 在 accept result 前 MUST 对每个引用执行同 Realm 归属校验、对象可见性校验和 capability / egress policy 校验；跨 Realm 对象不得作为本 Realm session 的直接 `result_objects` 回流。需要记录外部系统或其它 Realm 的输出时，必须使用 `external_artifact_stub`、digest、Relation/reference 事件或显式 profile 注册的跨 Realm 引用机制，并分别通过对应 Realm 的授权路径。
+**结果对象 Realm 绑定（normative）**：`result_objects[].object_ref`、`artifacts[].object_ref` 以及任何 profile-defined Arkret object reference MUST 解析到与本 `ck.agent.interop_session.result.realm_id` 相同的 Realm，且 MUST 属于该 session start 时声明的任务 / artifact 允许范围。Reducer 在 accept result 前 MUST 对每个引用执行同 Realm 归属校验、对象可见性校验和 capability / egress policy 校验；跨 Realm 对象不得作为本 Realm session 的直接 `result_objects` 回流。需要记录外部系统或其它 Realm 的输出时，必须使用 `external_artifact_stub`、digest、Relation/reference 事件或显式 profile 注册的跨 Realm 引用机制，并分别通过对应 Realm 的授权路径。
 
 外部 artifact 清理职责：若 start / status / result 暴露了外部 transcript、临时文件、tool output 或 remote task handle，result 终态 MUST 明确 `artifact_retention`（`retain_by_policy` / `delete_requested` / `deleted` / `unknown`）以及 `artifact_digest` / deletion receipt。`cancelled`、`failed`、`expired` 终态若未能删除外部 artifact，必须保留最小 `external_artifact_stub`（`artifact_digest`、`remote_id_digest`、retention reason、cleanup retry policy），不得把未验证的外部删除当成已完成。
 
@@ -288,13 +288,13 @@ reducer normative：
 
 ## 6. 协商流程
 
-下图把一次升级到外部 agent protocol 的握手画成时序图。**Cokret 始终持有身份 / capability / 任务登记 / 审计**，外部协议只承担高频实时执行通道。
+下图把一次升级到外部 agent protocol 的握手画成时序图。**Arkret 始终持有身份 / capability / 任务登记 / 审计**，外部协议只承担高频实时执行通道。
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant LocalAg as Local Agent
-    participant Cx as Cokret Realm<br>(capability + Seal)
+    participant Cx as Arkret Realm<br>(capability + Seal)
     participant Pol as Policy Server
     participant Remote as Remote Agent<br>(A2A / ACP endpoint)
 
@@ -318,11 +318,11 @@ sequenceDiagram
 
 - 步骤 3-4 的 endpoint validation 是 normative 校验（规范 MUST 条款单点定义于下方编号步骤 4，本概览不重复其 normative 文本）：把 endpoint URL 与目标 agent DID Document 的 `service` entry 完全匹配，并校验 TLS / HTTP Message Signature 与 verificationMethod 绑定。
 - 节流回写 `status` 不要求每个 token 都进 durable Event；具体频率由 `audit_mode` 决定（`status_only` / `summary_and_artifacts` / `full_transcript_digest` / `full_transcript`）。
-- Cokret 不信任外部 task status：只有 `ck.agent.interop_session.result` event 被 reducer accept 后才改变 canonical task 状态。
+- Arkret 不信任外部 task status：只有 `ck.agent.interop_session.result` event 被 reducer accept 后才改变 canonical task 状态。
 
 
 1. Requesting agent 查询目标 agent profile、DID service endpoint、A2A AgentCard 或 ACP metadata。
-2. Requesting agent 在 Cokret 中创建或选择任务 Strand，或选择可承载任务语义的 Morph。
+2. Requesting agent 在 Arkret 中创建或选择任务 Strand，或选择可承载任务语义的 Morph。
 3. Requesting agent 检查自己是否拥有 `ck.agent.interop_session.start` capability。
 4. **Endpoint validation（normative MUST）**：Policy Server MUST 验证目标 endpoint 与目标 agent DID 的 service binding 一致性，至少完成以下检查（任一失败 MUST 拒绝 session start）：
    - 解析目标 agent DID Document，确认其 `service` entry 的 `serviceEndpoint` URL 与 session start 中声明的 endpoint **完全匹配**（包括 scheme / host / port / 路径前缀）。
@@ -335,7 +335,7 @@ sequenceDiagram
 5. Requesting agent 提交 `ck.agent.interop_session.start`。
 6. 双方通过选定外部协议建立 session。
 7. 执行过程按节流策略回写 `status`。
-8. 结果、artifact、transcript hash、错误或取消原因回写 Cokret。
+8. 结果、artifact、transcript hash、错误或取消原因回写 Arkret。
 9. Reducer 将 Strand、Morph、Relation 或 notification 更新为最终状态。
 
 ## 7. Capability
@@ -369,10 +369,10 @@ Capability constraint SHOULD 支持：
 
 | 维度 | Personal agent runtime session | External agent protocol session(本文档) |
 | --- | --- | --- |
-| 用途 | Cokret 内部 native agent runtime 认证 Auth Server 与 Events API | 与外部 A2A / ACP / MCP endpoint 协商执行 task |
+| 用途 | Arkret 内部 native agent runtime 认证 Auth Server 与 Events API | 与外部 A2A / ACP / MCP endpoint 协商执行 task |
 | Endpoint | `/_cokret/gate/account/session-grants` | `ck.agent.interop_session.start` Event + 外部 protocol endpoint |
 | Proof | `agent_key_proof`(短期 `ck.session.grant`) | 由 `ck.agent.endpoint` policy / external protocol auth 决定 |
-| 是否数据外发 | 否——session 只用于在 Cokret 内签发后续 wire write | 是——外发到 external agent network |
+| 是否数据外发 | 否——session 只用于在 Arkret 内签发后续 wire write | 是——外发到 external agent network |
 | Realm policy 闸口 | `ck.profile.personal_agent_provisioning.v1` / `ck.profile.agent_auth.v1` | `ck.profile.agent_runtime.v1` + `audit_mode` |
 
 Agent runtime 拥有 `ck.profile.agent_auth.v1` session grant **不**自动授权其启动外部 agent protocol session;后者仍需独立的 `ck.agent.interop_session.start` 写入、`ck.agent.endpoint` policy 校验、以及 §8 的外发行为约束。实现 MUST 把二者作为独立 capability 与独立 audit 流处理。
@@ -386,7 +386,7 @@ Agent runtime 拥有 `ck.profile.agent_auth.v1` session grant **不**自动授�
 - 外发 E2EE Realm 明文或其派生明文 / 摘要时，session start MUST 命中显式 egress grant（如 capability constraint 中的 `egress_policy` 配合具体 grant）并通过数据分类（`allowed_data_classes`）校验；任一不满足，实现 MUST 拒绝 session start，reason=`egress_policy_denied`，MUST NOT 退回到 SHOULD 形态或静默外发。
 - 对敏感 Realm 默认要求 human approval。
 - 对返回 artifact 做 hash、MIME、size、malware scan 和 policy check。
-- 不信任外部 task status；只有 Cokret result event accepted 后才改变 canonical task 状态。
+- 不信任外部 task status；只有 Arkret result event accepted 后才改变 canonical task 状态。
 - 支持 cancellation 和 timeout。
 
 ## 9. 审计模式
@@ -402,11 +402,11 @@ Agent runtime 拥有 `ck.profile.agent_auth.v1` session grant **不**自动授�
 
 ## 10. 与 MCP 的关系
 
-MCP 主要是 agent 到 tool/data 的协议，不是 Cokret 的 agent-to-agent 升级目标。但外部 A2A / ACP agent 在执行内部 MAY 使用 MCP 调用工具。
+MCP 主要是 agent 到 tool/data 的协议，不是 Arkret 的 agent-to-agent 升级目标。但外部 A2A / ACP agent 在执行内部 MAY 使用 MCP 调用工具。
 
-Cokret 只要求最终状态、artifact、审计证明和授权边界回流，不要求记录远端 agent 内部每次 MCP tool call，除非 Realm policy 要求 full transcript 或 regulated audit。
+Arkret 只要求最终状态、artifact、审计证明和授权边界回流，不要求记录远端 agent 内部每次 MCP tool call，除非 Realm policy 要求 full transcript 或 regulated audit。
 
-> **MCP-as-server 方向的授权映射（informative）**：上文把 MCP 定位为 agent→tool 的下游调用。但当 **Cokret agent 反过来作为 MCP server** 向外部 host 暴露能力时，MCP 在 2025–2026 已标准化出授权轴（OAuth 2.1 resource server + protected resource metadata，RFC 9728）与 elicitation / structured-output。此方向下，外部 host 携带的 OAuth credential 与 Cokret 自身的 capability / `agent_key_scope`（[`../identity/key-management.md` §3.6.1](../identity/key-management.md)）需要一层明确映射，否则各实现会各自发明不兼容的 OAuth↔capability 桥接。建议：`mcp_bridge` adapter 在 MCP-server 方向 SHOULD 把 RFC 9728 protected-resource-metadata 归约到 `ck.agent.endpoint` policy 与 `agent_key_scope`，并沿用与 MIMI 同款的 draft-pinning 纪律（外部协议变更 = 新 profile 版本，不在 wire 内静默扩张）。此为 v2 路线图候选，待 MCP auth spec 稳定后细化；v1 仅登记该映射缺口。
+> **MCP-as-server 方向的授权映射（informative）**：上文把 MCP 定位为 agent→tool 的下游调用。但当 **Arkret agent 反过来作为 MCP server** 向外部 host 暴露能力时，MCP 在 2025–2026 已标准化出授权轴（OAuth 2.1 resource server + protected resource metadata，RFC 9728）与 elicitation / structured-output。此方向下，外部 host 携带的 OAuth credential 与 Arkret 自身的 capability / `agent_key_scope`（[`../identity/key-management.md` §3.6.1](../identity/key-management.md)）需要一层明确映射，否则各实现会各自发明不兼容的 OAuth↔capability 桥接。建议：`mcp_bridge` adapter 在 MCP-server 方向 SHOULD 把 RFC 9728 protected-resource-metadata 归约到 `ck.agent.endpoint` policy 与 `agent_key_scope`，并沿用与 MIMI 同款的 draft-pinning 纪律（外部协议变更 = 新 profile 版本，不在 wire 内静默扩张）。此为 v2 路线图候选，待 MCP auth spec 稳定后细化；v1 仅登记该映射缺口。
 
 ## 11. Adapter Registry
 
@@ -416,7 +416,7 @@ Cokret 只要求最终状态、artifact、审计证明和授权边界回流，�
 | --- | --- |
 | `a2a` | 首选 agent-to-agent 外部协议。 |
 | `acp` | 连接使用 ACP metadata / endpoint 的 BeeAI 或 ACP-compliant service。 |
-| `mcp_bridge` | 将 Cokret task 包装为 MCP tool/resource 调用，适合 agent-to-tool。 |
+| `mcp_bridge` | 将 Arkret task 包装为 MCP tool/resource 调用，适合 agent-to-tool。 |
 | `http_custom` | 企业内部私有 agent API，需要显式 allowlist。 |
 
 Adapter MUST 声明：
@@ -439,7 +439,7 @@ Adapter MUST 声明：
 | `discovery_failed` | 找不到或无法验证对端 metadata / AgentCard。 |
 | `protocol_not_supported` | 双方没有共同协议。 |
 | `auth_failed` | 外部协议认证失败。 |
-| `policy_denied` | Cokret Policy Server 或 capability constraint 拒绝。 |
+| `policy_denied` | Arkret Policy Server 或 capability constraint 拒绝。 |
 | `egress_policy_denied` | 外发 E2EE Realm 明文 / 派生明文未命中显式 egress grant 或未通过数据分类校验；MUST 拒绝 session start（见 §6 步骤 4 与 §8）。 |
 | `remote_rejected` | 对端 agent 拒绝任务。 |
 | `timeout` | 超过最大执行时间。 |
@@ -452,10 +452,10 @@ Adapter MUST 声明：
 
 ## 13. 设计结论
 
-Cokret SHOULD 支持 agent protocol upgrade，但它必须是受控 handoff：
+Arkret SHOULD 支持 agent protocol upgrade，但它必须是受控 handoff：
 
-- Cokret 是 durable coordination / authorization / audit layer。
+- Arkret 是 durable coordination / authorization / audit layer。
 - A2A / ACP 是 optional execution transport。
-- 所有外部执行的输入边界、状态、结果和审计证明必须回到 Cokret。
+- 所有外部执行的输入边界、状态、结果和审计证明必须回到 Arkret。
 
-这样 Cokret 可以连接外部 agent 生态，同时不牺牲 DID、capability、Realm policy、E2EE 和审计模型。
+这样 Arkret 可以连接外部 agent 生态，同时不牺牲 DID、capability、Realm policy、E2EE 和审计模型。

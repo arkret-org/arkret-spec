@@ -131,7 +131,7 @@ Morph.scope_circle_id         : id:circle | null
 
 ```json
 {
-  "scope_circle_id": "ck:circle:0196419c-0000-7000-8000-000000000000"
+  "scope_circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000"
 }
 ```
 
@@ -142,7 +142,7 @@ Morph.scope_circle_id         : id:circle | null
 `effective_scope.kind = "realm"`(对应 submit-payload `scope_circle_id=null`):
 
 ```json
-{ "kind": "realm", "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000" }
+{ "kind": "realm", "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000" }
 ```
 
 `effective_scope.kind = "circle"`(对应 submit-payload `scope_circle_id=ck:circle:...`):
@@ -150,8 +150,8 @@ Morph.scope_circle_id         : id:circle | null
 ```json
 {
   "kind": "circle",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-  "circle_id": "ck:circle:0196419c-0000-7000-8000-000000000000"
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000"
 }
 ```
 
@@ -182,7 +182,7 @@ Realm **不会**自动创建默认 Circle。Realm-default scope 是 Realm 自身
 | `realm` | 父 Realm membership / history visibility / policy floor | `Realm.encryption_profile` 指定的 Realm-default group / external provider / plaintext mode | `scope_circle_id=null` |
 | `circle` | Circle membership / history visibility / projection 裁剪，且受父 Realm policy floor 包裹 | `Circle.encryption_profile=none` 时为 plaintext delivery-only；`mls_rfc9420` 时为 Circle 独立 MLS group | `scope_circle_id` 指向 Circle |
 
-`encryption_profile`（Realm `enum(none, mls_rfc9420, external)` / Circle `enum(none, mls_rfc9420)`）是 **create-locked 的能力轴**：它只声明该 scope 用什么加密**机制**（有没有 MLS group），**不**决定哪些 Cokret 字段进入密文，也**不是**“内容是否加密”的开关。`none` 表示该 scope 结构上不是 / 不可能是 E2EE（bridge 到无 E2EE 外部网络、大型公开广播等诚实 opt-out）；`mls_rfc9420` 表示该 scope 恒有一条 MLS group，具备随时启用 E2EE 的能力。**推荐默认**：任何将来可能加密的协作 Realm / Circle SHOULD 以 `mls_rfc9420` + `content_encryption_floor=allow_plaintext` 创建——钥匙常在手，后期把 floor 抬到 `e2ee_required` 即可原地启用加密，无需 tombstone 重建。
+`encryption_profile`（Realm `enum(none, mls_rfc9420, external)` / Circle `enum(none, mls_rfc9420)`）是 **create-locked 的能力轴**：它只声明该 scope 用什么加密**机制**（有没有 MLS group），**不**决定哪些 Arkret 字段进入密文，也**不是**“内容是否加密”的开关。`none` 表示该 scope 结构上不是 / 不可能是 E2EE（bridge 到无 E2EE 外部网络、大型公开广播等诚实 opt-out）；`mls_rfc9420` 表示该 scope 恒有一条 MLS group，具备随时启用 E2EE 的能力。**推荐默认**：任何将来可能加密的协作 Realm / Circle SHOULD 以 `mls_rfc9420` + `content_encryption_floor=allow_plaintext` 创建——钥匙常在手，后期把 floor 抬到 `e2ee_required` 即可原地启用加密，无需 tombstone 重建。
 
 是否真正加密、加密覆盖哪些字段，由两根 **enforcement floor** 独立声明，二者在 Realm 与 Circle 对称、Circle 不得低于 Realm、且只能单向收紧：
 

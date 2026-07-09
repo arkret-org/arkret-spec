@@ -27,14 +27,14 @@ updated: 2026-07-03
 
 ```json
 {
-  "id": "ck:actor_profile:019640ab-0000-7000-8000-000000000000",
+  "id": "ak:actor_profile:019640ab-0000-7000-8000-000000000000",
   "schema": "ck.schema.actor_profile.v1",
-  "realm_id": "ck:realm:01964166-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:01964166-0000-7000-8000-000000000000",
   "principal_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "actor_kind": "user",
   "display_name": "Alice Chen",
   "handle": "alice",
-  "avatar_blob_ref": "ck:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "avatar_blob_ref": "ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "status": "active",
   "profile_fields": {
     "status_message": "On vacation until May 5",
@@ -78,9 +78,9 @@ Profile 初始状态通过 `ck.profile.create` Move / compatible Event 提交到
 
 ```json
 {
-  "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
+  "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
   "kind": "ck.profile.create",
-  "realm_id": "ck:realm:01964166-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:01964166-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "actor_seq": 1,
   "created_at": "2026-04-26T00:00:00Z",
@@ -89,14 +89,14 @@ Profile 初始状态通过 `ck.profile.create` Move / compatible Event 提交到
   "refs": [],
   "payload": {
     "object": {
-      "id": "ck:actor_profile:019640ab-0000-7000-8000-000000000000",
+      "id": "ak:actor_profile:019640ab-0000-7000-8000-000000000000",
       "schema": "ck.schema.actor_profile.v1",
-      "realm_id": "ck:realm:01964166-0000-7000-8000-000000000000",
+      "realm_id": "ak:realm:01964166-0000-7000-8000-000000000000",
       "principal_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
       "actor_kind": "user",
       "display_name": "Alice Chen",
       "handle": "alice",
-      "avatar_blob_ref": "ck:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "avatar_blob_ref": "ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "status": "active",
       "profile_fields": {
         "timezone": "Asia/Shanghai",
@@ -122,19 +122,19 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 
 ```json
 {
-  "event_id": "ck:event:019640ed-8400-7000-8000-000000000000",
+  "event_id": "ak:event:019640ed-8400-7000-8000-000000000000",
   "kind": "ck.profile.update",
-  "realm_id": "ck:realm:01964166-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:01964166-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "actor_seq": 2,
   "created_at": "2026-04-26T00:01:00Z",
   "hlc": "01970e598d21-0001-a13f9c2e",
-  "prev_refs": ["ck:event:019640ed-8000-7000-8000-000000000000"],
+  "prev_refs": ["ak:event:019640ed-8000-7000-8000-000000000000"],
   "refs": [
-    { "id": "ck:event:019640ed-8000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+    { "id": "ak:event:019640ed-8000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
   "payload": {
-    "target_ref": "ck:actor_profile:019640ab-0000-7000-8000-000000000000",
+    "target_ref": "ak:actor_profile:019640ab-0000-7000-8000-000000000000",
     "patch": {
       "display_name": "Alice C.",
       "profile_fields.status_message": "Back at work!"
@@ -167,20 +167,20 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 
 ```json
 {
-  "event_id": "ck:event:019640ed-8800-7000-8000-000000000000",
+  "event_id": "ak:event:019640ed-8800-7000-8000-000000000000",
   "kind": "ck.profile.realm_override",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "actor_seq": 3,
   "created_at": "2026-04-26T00:02:00Z",
   "hlc": "01970e5a8d21-0001-a13f9c2e",
-  "prev_refs": ["ck:event:019640ed-8400-7000-8000-000000000000"],
+  "prev_refs": ["ak:event:019640ed-8400-7000-8000-000000000000"],
   "refs": [
-    { "id": "ck:event:019640ed-8400-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+    { "id": "ak:event:019640ed-8400-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
   "payload": {
-    "target_ref": "ck:actor_profile:019640ab-0000-7000-8000-000000000000",
-    "target_realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+    "target_ref": "ak:actor_profile:019640ab-0000-7000-8000-000000000000",
+    "target_realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
     "patch": {
       "display_name": "alice-oss",
       "avatar_blob_ref": {
@@ -233,9 +233,9 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 ```json
 {
   "kind": "ck.presence",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
-  "device_id": "ck:device:019640dd-8000-7000-8000-000000000000",
+  "device_id": "ak:device:019640dd-8000-7000-8000-000000000000",
   "sent_at": "2026-04-26T10:00:00Z",
   "expires_at": "2026-04-26T10:01:00Z",
   "payload": {
@@ -270,9 +270,9 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 ```json
 {
   "kind": "ck.presence",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
-  "device_id": "ck:device:019640dd-8000-7000-8000-000000000000",
+  "device_id": "ak:device:019640dd-8000-7000-8000-000000000000",
   "sent_at": "2026-04-26T10:00:00Z",
   "expires_at": "2026-04-26T10:01:00Z",
   "payload": {
@@ -339,12 +339,12 @@ presence 广播内的 `status_message` 是临时覆盖值，展示优先级高�
 {
   "kind": "ck.typing",
   "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-  "device_id": "ck:device:019640dd-8000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "device_id": "ak:device:019640dd-8000-7000-8000-000000000000",
   "sent_at": "2026-04-26T10:00:00Z",
   "expires_at": "2026-04-26T10:00:05Z",
   "payload": {
-    "strand_id": "ck:strand:01964200-0000-7000-8000-000000000001",
+    "strand_id": "ak:strand:01964200-0000-7000-8000-000000000001",
     "track_name": "discussion",
     "typing": true,
     "ttl_ms": 5000
@@ -407,7 +407,7 @@ Directory Service 或客户端本地联系人索引 MAY 提供用户搜索功能
 ```
 POST /_cokret/find/directory/search-users
 
-{ "query": "alice", "realm_id": "ck:realm:...", "limit": 10 }
+{ "query": "alice", "realm_id": "ak:realm:...", "limit": 10 }
 ```
 
 Presence / mention 语义补充：
@@ -424,7 +424,7 @@ Presence / mention 语义补充：
     {
       "handle": "alice:example.com",
       "display_name": "Alice Chen",
-      "avatar_blob_ref": "ck:blob:sha256:a1b2c3...",
+      "avatar_blob_ref": "ak:blob:sha256:a1b2c3...",
       "membership": "joined"
     }
   ],

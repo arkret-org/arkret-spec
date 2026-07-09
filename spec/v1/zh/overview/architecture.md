@@ -19,7 +19,7 @@ see_also:
 
 ## 1. 目标（Goals）
 
-Cokret 的顶层架构要同时满足四件事：
+Arkret 的顶层架构要同时满足四件事：
 
 - 去中心化身份与发布
 - 多主体协作对象共享
@@ -30,17 +30,17 @@ Cokret 的顶层架构要同时满足四件事：
 
 ## 2. 总体模型
 
-Cokret 采用 **Principal Server + signed Event + identity registry + client-side projection** 的分层模型。
+Arkret 采用 **Principal Server + signed Event + identity registry + client-side projection** 的分层模型。
 
 `Principal Server` 是 principal 自己控制或通过 DID / Realm policy 明确委托的服务入口。它可以同机承载 Events API、sync、blob、push、policy 等能力，但协议上仍然把这些能力分层描述。搜索、inbox、notification 和 View projection 默认是客户端或 SDK 的派生能力；若某部署额外提供受托搜索服务，该服务仍是可选扩展，不是协议核心真相源。
 
-Cokret 不设置独立的第三方分发服务器角色。跨主体、跨组织传播通过参与方 Principal Server 之间的同步与联邦完成。
+Arkret 不设置独立的第三方分发服务器角色。跨主体、跨组织传播通过参与方 Principal Server 之间的同步与联邦完成。
 
 协作数据层使用 Realm 作为复制与授权边界，在 Realm 内直接建模 Circle、Strand、Space、Message 等标准对象；Circle（`ck:circle:`）是 Realm 内的子事件边界（见 §2.0 容器选型），看板与列容器是独立的 Space（`ck:space:`），住在 Realm 内但永远不形成自己的 boundary。Morph 只承担开放扩展对象角色；其可选能力由 Realm schema / Morph profile 显式声明，facets 只是这些声明能力的 hint / 查询标签。Morph 不得作为绕过已注册标准对象 kind、capability 与 reducer 规则的 catch-all 容器。
 
 ### 2.0 容器选型参考（Container Selection Reference）
 
-Cokret 定义四种"包含 / 边界"语义对象：Realm、Circle、Space、Strand。
+Arkret 定义四种"包含 / 边界"语义对象：Realm、Circle、Space、Strand。
 
 本节的"判定顺序"是容器选型的唯一 normative 总入口。`overview/current-model.md` 与 `models/overview.md` 只作为读者导览引用本节与各对象专属文件，不重复承载容器升级 / 降级规则。
 
@@ -68,7 +68,7 @@ Cokret 定义四种"包含 / 边界"语义对象：Realm、Circle、Space、Stra
 
 ### 2.1 Organization / Realm 边界
 
-组织在 Cokret 中首先表现为 **Organization principal**，通常由组织 DID 标识，而不是直接表现为 Realm。
+组织在 Arkret 中首先表现为 **Organization principal**，通常由组织 DID 标识，而不是直接表现为 Realm。
 
 Organization principal 可以：
 
@@ -83,7 +83,7 @@ Realm 则是协作数据边界。它定义 membership、capability scope、schem
 
 ### 2.2 Per-Actor Event Chain
 
-Cokret v1 的协议一等概念是 **signed Event** 与 **per-actor event chain**，不是任何形式的内容仓库或公开发布记录。每个 actor 通过自己签名的 Event Envelope、`actor_id`、`actor_seq` 和 `prev_refs` 形成可验证 event chain。
+Arkret v1 的协议一等概念是 **signed Event** 与 **per-actor event chain**，不是任何形式的内容仓库或公开发布记录。每个 actor 通过自己签名的 Event Envelope、`actor_id`、`actor_seq` 和 `prev_refs` 形成可验证 event chain。
 
 它承担：
 
@@ -92,7 +92,7 @@ Cokret v1 的协议一等概念是 **signed Event** 与 **per-actor event chain*
 - 设备离线后重传
 - 审计基线
 
-Cokret 记录的是 **协作 Event**——授权状态、协作事实、E2EE handshake、审计摘要——而非面向公开内容分发的 record 集。是否把 event chain 物化成仓库、append-only log、Merkle tree 或对象存储，完全是实现选择，协议不规定。
+Arkret 记录的是 **协作 Event**——授权状态、协作事实、E2EE handshake、审计摘要——而非面向公开内容分发的 record 集。是否把 event chain 物化成仓库、append-only log、Merkle tree 或对象存储，完全是实现选择，协议不规定。
 
 Event chain 可以由以下形态承载：
 
@@ -158,7 +158,7 @@ Authz / Policy 是一组逻辑职责，不要求独立部署，也不是独立�
 
 ### 2.7 Client / Agent
 
-Cokret 的 client 不只包括 GUI 应用，也包括：
+Arkret 的 client 不只包括 GUI 应用，也包括：
 
 - CLI
 - webhook worker
@@ -170,7 +170,7 @@ Cokret 的 client 不只包括 GUI 应用，也包括：
 
 ### 2.8 Principal Server 部署形态
 
-Cokret 的协议文档按“服务角色”定义能力；实际落地时可以把多个角色合并在同一进程、同一域名或同一节点中。合并部署 MUST NOT 改变各角色的安全边界：service DID、`service_type`、capability、Realm policy、plaintext visibility 和 endpoint 契约仍必须可区分。
+Arkret 的协议文档按“服务角色”定义能力；实际落地时可以把多个角色合并在同一进程、同一域名或同一节点中。合并部署 MUST NOT 改变各角色的安全边界：service DID、`service_type`、capability、Realm policy、plaintext visibility 和 endpoint 契约仍必须可区分。
 
 面向用户和运维文档时，也应直接使用 **Principal Server**。不同部署层级的差异由 deployment profile、内置或拆分的服务角色、委托来源、公共基础设施依赖、合规和明文边界要求表达。
 
@@ -194,7 +194,7 @@ Principal Server                 Account Authority (Auth Server)
 └─ basic app view / inbox
 ```
 
-Account Authority 为什么**不**属于「可外挂的公共基础设施」：账户注册与恢复、设备 enroll、claim attestation 以及无域名用户的 DID 历史链（`did.jsonl`）托管都落在这一角色上——它掌握账户生死与身份连续性。把它委托给共享 / 他方 Auth Server，等于把这些控制权交给对方，与 Cokret 的自我主权前提冲突。因此 `personal_node` / `small_team` 的默认姿态是自建 Account Authority（SHOULD）；确需委托共享 Auth Server 时，MUST 在 `service-describe`（`auth_metadata`）中显式声明该委托，使继承来的信任依赖（对账户恢复、设备 enroll、DID 连续性的控制权）可审计——逃生舱，非默认。此姿态与 [`sync/service-surface.md` §2.5](../sync/service-surface.md) 中 Account Authority「个人部署通常与 Principal Server 同 origin」一致。两个服务各自的 service DID 如何在启动时自动获得（无需人工 mint / 手贴 DID）、以及 config 值如何降级为 fail-closed pin，见 [`identity/identity-did.md` §3.7](../identity/identity-did.md)。
+Account Authority 为什么**不**属于「可外挂的公共基础设施」：账户注册与恢复、设备 enroll、claim attestation 以及无域名用户的 DID 历史链（`did.jsonl`）托管都落在这一角色上——它掌握账户生死与身份连续性。把它委托给共享 / 他方 Auth Server，等于把这些控制权交给对方，与 Arkret 的自我主权前提冲突。因此 `personal_node` / `small_team` 的默认姿态是自建 Account Authority（SHOULD）；确需委托共享 Auth Server 时，MUST 在 `service-describe`（`auth_metadata`）中显式声明该委托，使继承来的信任依赖（对账户恢复、设备 enroll、DID 连续性的控制权）可审计——逃生舱，非默认。此姿态与 [`sync/service-surface.md` §2.5](../sync/service-surface.md) 中 Account Authority「个人部署通常与 Principal Server 同 origin」一致。两个服务各自的 service DID 如何在启动时自动获得（无需人工 mint / 手贴 DID）、以及 config 值如何降级为 fail-closed pin，见 [`identity/identity-did.md` §3.7](../identity/identity-did.md)。
 
 默认仍可使用、且属于低主权风险的公共基础设施（读侧 / 传输侧）：Identity Resolution Infrastructure（DID 解析，只读）、Directory Server、Push Gateway、TURN / Media Relay。普通用户不应被要求单独部署这些或 Moderation Server；搜索、inbox、notification 和 View projection 默认在客户端本地派生。只有身份主权、内网隔离、合规审计、公共网络不可依赖或受控跨组织 federation 场景才应把这些读侧 / 传输侧基础设施也收回自建。
 
@@ -314,7 +314,7 @@ Presentation Plane 消费 Projection Plane 的输出，产生人类或 agent 可
 
 ## 4. 部署拓扑
 
-Cokret 不要求所有角色分离部署。
+Arkret 不要求所有角色分离部署。
 
 ### 4.0 通用网络拓扑（General Network Topology）
 
@@ -444,7 +444,7 @@ Sovereign deployment 不排斥跨组织协作。组织 MAY 创建 **External Col
 
 ## 5. 核心架构取向
 
-Cokret 固定以下架构取向：
+Arkret 固定以下架构取向：
 
 - realm-first
 - object-first
@@ -512,7 +512,7 @@ Realm 构成了协作图的硬性隔离边界：
 
 ## 7. AI 与人类共用同一协议
 
-Cokret 不打算做“两套系统”：
+Arkret 不打算做“两套系统”：
 
 - 一套给人类看板
 - 一套给 agent 上下文
@@ -537,7 +537,7 @@ Agent 代表人类或服务写入 Event 时，payload、`unsigned` 或 profile �
 
 ## 8. 架构决定
 
-Cokret v1 固定以下方向：
+Arkret v1 固定以下方向：
 
 - signed Event Envelope 和 per-actor event chain 是 actor 发布基线
 - identity registry / witness 是 DID 文档的解析与写入层
@@ -551,7 +551,7 @@ Cokret v1 固定以下方向：
 
 ## 9. 可落地性要求
 
-Cokret v1 不允许实现用单一聚合服务隐藏已声明的 Principal Server / Policy Server / Directory / Blob / Media / Applet 等协议边界。任何声称支持 `ck.profile.principal_server.v1` 或 `ck.profile.full_client.v1` 的实现 MUST 满足以下要求：
+Arkret v1 不允许实现用单一聚合服务隐藏已声明的 Principal Server / Policy Server / Directory / Blob / Media / Applet 等协议边界。任何声称支持 `ck.profile.principal_server.v1` 或 `ck.profile.full_client.v1` 的实现 MUST 满足以下要求：
 
 - Event digest、event-batch receipt digest、签名绑定、HLC 和 cursor 行为按 `encoding.md` 与 `conformance-vectors.md` 执行。
 - Client sync、subscribe、backfill、snapshot frontier 和 read-your-writes barrier 按 `client-sync.md`、`operations-sync.md`、`conformance-vectors.md` 与 `service-surface.md` 执行。

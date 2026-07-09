@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/erasure-receipt.schema.json",
-  "title": "Cokret Erasure Receipt",
+  "$id": "https://arkret.org/v1/schemas/erasure-receipt.schema.json",
+  "title": "Arkret Erasure Receipt",
   "description": "Signed attestation that an issuer completed, partially completed, or blocked a hard-erasure request within a declared storage boundary. It proves the issuer's deletion action and retained verification stub, not disappearance of independent third-party copies.",
   "type": "object",
   "required": [

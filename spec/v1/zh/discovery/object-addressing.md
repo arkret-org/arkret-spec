@@ -12,7 +12,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-本文定义 Cokret 的**客户端无关可分享对象地址**：用户把一个 Strand（或 Strand 内某条 Message、或 Realm）通过一串链接分享出去，接收方的任意 Cokret 客户端都能解析并在自己 UI 里打开。
+本文定义 Arkret 的**客户端无关可分享对象地址**：用户把一个 Strand（或 Strand 内某条 Message、或 Realm）通过一串链接分享出去，接收方的任意 Arkret 客户端都能解析并在自己 UI 里打开。
 
 它解决的具体问题：`ck:strand:<uuid>` 是全局唯一 UUIDv7，但**不可路由**——光有 strand_id 不知道它属于哪个 Realm、由哪台 server 托管，因此各客户端只能各自拼私有 URL，换个客户端就打不开。
 
@@ -25,17 +25,17 @@ updated: 2026-07-02
 | Envelope | 形态 | 用途 |
 | --- | --- | --- |
 | **逻辑 ID** | `ck:strand:<uuid>`（不变） | 协议内部 / `resolve_*` 输入。它是不透明 ID，不是 URI，**MUST NOT** 携带 `action` / token。 |
-| **`web+cokret:` URI scheme** | `web+cokret:realm/…/strand/…?action=view` | "在 App 打开"。原生 app 经 OS 级 handler 直接接收；web 客户端经 `navigator.registerProtocolHandler('web+cokret', <https-template>)` 登记（约束见 §5）。 |
+| **`web+arkret:` URI scheme** | `web+arkret:realm/…/strand/…?action=view` | "在 App 打开"。原生 app 经 OS 级 handler 直接接收；web 客户端经 `navigator.registerProtocolHandler('web+arkret', <https-template>)` 登记（约束见 §5）。 |
 | **HTTPS 落地链接** | `https://<landing>/#realm/…/strand/…?action=view` | 用户复制粘贴的默认形态；`#` 之后整体 = 同一 grammar。`<landing>` 域名由部署方选定，本协议**不**指定中心化落地域名。 |
 
-`web+cokret:` 与 HTTPS 落地形态共用同一 §3 grammar parser，只是外壳不同（裸接 scheme vs 接在 `#` 后）。逻辑 ID grammar（`ck:<kind>:<uuid>`）见 [`artifacts/registry/id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)，本文不重复定义。
+`web+arkret:` 与 HTTPS 落地形态共用同一 §3 grammar parser，只是外壳不同（裸接 scheme vs 接在 `#` 后）。逻辑 ID grammar（`ck:<kind>:<uuid>`）见 [`artifacts/registry/id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json)，本文不重复定义。
 
 ## 3. 地址 grammar
 
-canonical 形态（以 `web+cokret:` envelope 表示）：
+canonical 形态（以 `web+arkret:` envelope 表示）：
 
 ```
-web+cokret:realm/<realm>/strand/<strand>/m/<msg>?action=view
+web+arkret:realm/<realm>/strand/<strand>/m/<msg>?action=view
 ```
 
 | 部分 | 承载 | 规则 |
@@ -47,10 +47,10 @@ web+cokret:realm/<realm>/strand/<strand>/m/<msg>?action=view
 合法前缀（短到长均可单独成址）：
 
 ```
-web+cokret:realm/<realm>                              # Realm（解析委托给 resolve_realm）
-web+cokret:realm/<realm>/strand/<strand>                  # Strand
-web+cokret:realm/<realm>/strand/<strand>/m/<msg>          # Strand discussion track 内某条 Message
-web+cokret:realm/<realm>/strand/<strand>?lt=invite&tok=<token>   # invite link
+web+arkret:realm/<realm>                              # Realm（解析委托给 resolve_realm）
+web+arkret:realm/<realm>/strand/<strand>                  # Strand
+web+arkret:realm/<realm>/strand/<strand>/m/<msg>          # Strand discussion track 内某条 Message
+web+arkret:realm/<realm>/strand/<strand>?lt=invite&tok=<token>   # invite link
 ```
 
 ### 3.1 Path 规则（normative）
@@ -76,7 +76,7 @@ web+cokret:realm/<realm>/strand/<strand>?lt=invite&tok=<token>   # invite link
 
 - `<localpart>`：post-IDNA ASCII，字符集 `a-z` / `0-9` / `. _ + ~ -`，长度 1–128，MUST 已 canonicalize 为小写（与 handle localpart 同字母表）。
 - `<domain>`：运营该 alias 的部署 / 组织（realm alias 的 issuer）的权威域，至少两个 label，每 label 的字符规则与 handle `<domain>`（见 [`identity/identity-handles.md` §17](../identity/identity-handles.md)）一致，IDN 经 IDNA2008 ToASCII 转 A-label 后验证。
-- canonical alias **不含** sigil。`#general:acme.example`、`general@acme.example`、裸 `general` 等形态 MUST NOT 作为 canonical alias 出现在 `web+cokret:` path 段、缓存键或 `resolve_*` 规范化结果中（带 sigil 形态仅可作为 §下文「输入路由」的解析输入）。
+- canonical alias **不含** sigil。`#general:acme.example`、`general@acme.example`、裸 `general` 等形态 MUST NOT 作为 canonical alias 出现在 `web+arkret:` path 段、缓存键或 `resolve_*` 规范化结果中（带 sigil 形态仅可作为 §下文「输入路由」的解析输入）。
 
 **人类短地址与 sigil（display + 输入路由）**：面向人的短地址用前导 sigil 标注目标类型：
 
@@ -90,7 +90,7 @@ sigil 承担两个 normative 职责：
 - **输出（display / share）**：客户端渲染、@mention、可分享短文本、二维码 SHOULD 以带 sigil 形态呈现 realm alias（`#`）与 handle（`@`），使人一眼区分「频道 / realm」与「人」。
 - **输入路由（parse）**：客户端接受带 sigil 输入时，MUST 用 sigil 选择解析命名空间（`#` → `resolve_realm`，`@` → `resolve_handle`），并在解析前 strip sigil 还原 canonical `<localpart>:<domain>`。
 
-sigil 是展示与输入层 affordance，**不是 wire 的一部分**：strip 后的 canonical 才进 `resolve_*` 输入、`web+cokret:` path、§4.2 target descriptor、签名 transcript、Directory 缓存键、`handle` / alias 字段。这与 handle 的 `@` 纪律（identity-handles §3.1）一致。
+sigil 是展示与输入层 affordance，**不是 wire 的一部分**：strip 后的 canonical 才进 `resolve_*` 输入、`web+arkret:` path、§4.2 target descriptor、签名 transcript、Directory 缓存键、`handle` / alias 字段。这与 handle 的 `@` 纪律（identity-handles §3.1）一致。
 
 **无 sigil 裸输入的 default（normative）**：通用输入框 / 搜索框收到无 sigil 的裸 `<localpart>:<domain>` 时，客户端 MUST NOT 静默猜测单一类型，而是：
 
@@ -135,9 +135,9 @@ token 签名 payload **MUST** 包含 **target descriptor** + 生命周期字段�
 
 ```json
 {
-  "realm_id": "ck:realm:<uuid>",
-  "strand_id": "ck:strand:<uuid>",
-  "message_id": "ck:message:<uuid>",
+  "realm_id": "ak:realm:<uuid>",
+  "strand_id": "ak:strand:<uuid>",
+  "message_id": "ak:message:<uuid>",
   "link_type": "invite"
 }
 ```
@@ -168,12 +168,12 @@ token 签名 payload **MUST** 包含 **target descriptor** + 生命周期字段�
 
 HTTPS 落地链接中，`strand` / `m` / 尤其 `tok` **MUST** 放在 URL **fragment（`#`）**，不进 path / query。理由：fragment 不发往落地页服务器，服务器日志学不到"谁在打开哪个 Strand / 持有哪个 token"，与 [`discovery-directory.md` §11](./discovery-directory.md) anti-enumeration 立场一致。
 
-`web+cokret:` 的隐私边界按 handler 类型分两支（不可笼统说"不经 web server"）：
+`web+arkret:` 的隐私边界按 handler 类型分两支（不可笼统说"不经 web server"）：
 
 - **原生 OS 级 handler**：URI 由操作系统直接派发给本地 app，不经任何第三方 web server，`tok` 留在 query 无泄露风险。
-- **web `registerProtocolHandler` handler**：浏览器会**导航到注册的 HTTPS handler 模板 URL**，并把原始 `web+cokret:` URI 作为替换值（`%s`）填入。若模板把 `%s` 放在 path / query，则 target 乃至 token 会进入 handler 服务端的请求与日志。因此：
+- **web `registerProtocolHandler` handler**：浏览器会**导航到注册的 HTTPS handler 模板 URL**，并把原始 `web+arkret:` URI 作为替换值（`%s`）填入。若模板把 `%s` 放在 path / query，则 target 乃至 token 会进入 handler 服务端的请求与日志。因此：
   - web handler 模板 **MUST** 把 `%s` 放进**自身 fragment**（例如 `https://app.example/open#%s`），使被替换的 URI 永远落在 fragment、不进服务端；**或**
-  - web 客户端**只**走 HTTPS fragment 落地页，把 `web+cokret:` 留给原生 / 本地 handler，不自行注册 web protocol handler。
+  - web 客户端**只**走 HTTPS fragment 落地页，把 `web+arkret:` 留给原生 / 本地 handler，不自行注册 web protocol handler。
 
 ### 5.1 Landing / handler 域名不是信任锚（normative）
 
@@ -181,7 +181,7 @@ HTTPS 落地链接中，`strand` / `m` / 尤其 `tok` **MUST** 放在 URL **frag
 
 - 客户端 **MUST** 把**解析后**的 canonical 身份（`realm_id` 及 §4.2 target descriptor 中的 `strand_id` / `message_id`，经 §3.1 alias 规范化）作为唯一信任锚，所有后续 access gate / 身份比对一律绑定该 canonical target。
 - 客户端 **MUST NOT** 因 landing 域名、handler 模板域名、或链接外壳与某个已信任部署"看起来相同 / 不同"而授予任何额外权限、放大 token scope、跳过 §6 的 `resolve_target` 校验，或自动向该域名提交 `tok` / 任何授权 material。token 的兑换目标仍由其签名 payload 内的 target descriptor 决定，与承载它的 landing 域无关。
-- 对**未知 / 不在本地信任集合内**的 landing 域名，客户端 **SHOULD** 在解析或兑换前提示用户确认，避免任意域名借 Cokret 链接外壳诱导用户提交 token。
+- 对**未知 / 不在本地信任集合内**的 landing 域名，客户端 **SHOULD** 在解析或兑换前提示用户确认，避免任意域名借 Arkret 链接外壳诱导用户提交 token。
 
 ## 6. 解析 operation：`ck.find.directory.query.resolve_target`
 

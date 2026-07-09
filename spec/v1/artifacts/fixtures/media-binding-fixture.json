@@ -97,7 +97,7 @@
       "vector_id": "ck.vector.media_binding.recording_artifact_via_cokret_blob.v1",
       "runner": "cotest::conformance::media_binding::run_recording_artifact_via_cokret_blob_vector",
       "assertions": [
-        "recording egress lands on a Cokret blob endpoint",
+        "recording egress lands on a Arkret blob endpoint",
         "direct S3, GCS, or arbitrary HTTP recording endpoints fail closed"
       ]
     },

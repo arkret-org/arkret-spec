@@ -14,7 +14,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-Cokret 的 `message` 标准对象、Strand synthesis / discussion 和可讨论的 Morph 需要承载远比纯文本丰富的内容，包括图片、视频、文件、代码块、地理位置等。本规范定义了结构化的**内容类型系统 (Content Type System)**，使得：
+Arkret 的 `message` 标准对象、Strand synthesis / discussion 和可讨论的 Morph 需要承载远比纯文本丰富的内容，包括图片、视频、文件、代码块、地理位置等。本规范定义了结构化的**内容类型系统 (Content Type System)**，使得：
 
 - 所有客户端能够以一致的方式渲染各种消息类型
 - 不支持某种内容类型的客户端能通过 `fallback_text` 优雅降级
@@ -37,9 +37,9 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 ```json
 {
-  "id": "ck:message:...",
-  "realm_id": "ck:realm:...",
-  "strand_id": "ck:strand:...",
+  "id": "ak:message:...",
+  "realm_id": "ak:realm:...",
+  "strand_id": "ak:strand:...",
   "track_name": "discussion",
   "state": "active",
   "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
@@ -106,13 +106,13 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 {
   "kind": "ck.content.image",
   "body": "screenshot.png",
-  "blob_ref": "ck:blob:sha256:a1b2c3...",
+  "blob_ref": "ak:blob:sha256:a1b2c3...",
   "mime_type": "image/png",
   "width": 1920,
   "height": 1080,
   "size_bytes": 204800,
   "thumbnail": {
-    "blob_ref": "ck:blob:sha256:d4e5f6...",
+    "blob_ref": "ak:blob:sha256:d4e5f6...",
     "mime_type": "image/webp",
     "width": 320,
     "height": 180,
@@ -138,14 +138,14 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 {
   "kind": "ck.content.video",
   "body": "demo-recording.mp4",
-  "blob_ref": "ck:blob:sha256:b2c3d4...",
+  "blob_ref": "ak:blob:sha256:b2c3d4...",
   "mime_type": "video/mp4",
   "width": 1280,
   "height": 720,
   "duration_ms": 45000,
   "size_bytes": 10485760,
   "thumbnail": {
-    "blob_ref": "ck:blob:sha256:e5f6a7...",
+    "blob_ref": "ak:blob:sha256:e5f6a7...",
     "mime_type": "image/jpeg",
     "width": 320,
     "height": 180
@@ -163,7 +163,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 {
   "kind": "ck.content.audio",
   "body": "voice-memo.ogg",
-  "blob_ref": "ck:blob:sha256:c3d4e5...",
+  "blob_ref": "ak:blob:sha256:c3d4e5...",
   "mime_type": "audio/ogg",
   "duration_ms": 12000,
   "size_bytes": 96000,
@@ -181,7 +181,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 {
   "kind": "ck.content.file",
   "body": "Q2-financial-report.pdf",
-  "blob_ref": "ck:blob:sha256:d4e5f6...",
+  "blob_ref": "ak:blob:sha256:d4e5f6...",
   "mime_type": "application/pdf",
   "size_bytes": 2097152,
   "filename": "Q2-financial-report.pdf"
@@ -303,7 +303,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
     {
       "kind": "ck.content.image",
       "body": "design-v3.png",
-      "blob_ref": "ck:blob:sha256:aaa...",
+      "blob_ref": "ak:blob:sha256:aaa...",
       "mime_type": "image/png",
       "width": 1920,
       "height": 1080
@@ -311,7 +311,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
     {
       "kind": "ck.content.file",
       "body": "spec-v3.pdf",
-      "blob_ref": "ck:blob:sha256:bbb...",
+      "blob_ref": "ak:blob:sha256:bbb...",
       "mime_type": "application/pdf",
       "size_bytes": 1048576,
       "filename": "spec-v3.pdf"
@@ -352,7 +352,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
   "body": "> Alice: 这个方案可行吗？\n\n我觉得需要再评估一下风险。",
   "format": "markdown",
   "reply_context": {
-    "ref": "ck:message:01964200-0000-7000-8000-000000000129",
+    "ref": "ak:message:01964200-0000-7000-8000-000000000129",
     "sender_actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
     "excerpt": "这个方案可行吗？"
   }

@@ -18,9 +18,9 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 
 ```json
 {
-  "blob_ref": "ck:blob:sha256:...",
+  "blob_ref": "ak:blob:sha256:...",
   "schema": "ck.schema.blob.v1",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "content_digest": "sha256:...",
   "size_bytes": 1234,
   "media_type": "image/png",
@@ -67,7 +67,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 **协议绑定（normative）**
 
 - 该 binding MUST 采用 tus resumable upload 协议，当前 baseline 为 `tus 1.0.0`。服务端 MUST 支持 `creation` 扩展；SHOULD 支持 `creation-with-upload`、`checksum`、`expiration` 与 `termination`。
-- 创建续传资源（tus `POST`）所需的认证、capability（`ck.self.blob.upload.create`）与 quota（`blob_max_bytes`）与 canonical 上传完全一致。后续 `PATCH`（写入 segment）、`HEAD`（查询 `Upload-Offset` 续传点）、`DELETE`（终止）作用于服务端返回的 upload URL，是 tus 原生 verb，不注册为独立 cokret operation。
+- 创建续传资源（tus `POST`）所需的认证、capability（`ck.self.blob.upload.create`）与 quota（`blob_max_bytes`）与 canonical 上传完全一致。后续 `PATCH`（写入 segment）、`HEAD`（查询 `Upload-Offset` 续传点）、`DELETE`（终止）作用于服务端返回的 upload URL，是 tus 原生 verb，不注册为独立 arkret operation。
 
 **内容寻址不变式（normative）**
 
@@ -108,12 +108,12 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 
 ```json
 {
-  "blob_ref": "ck:blob:sha256:...",
+  "blob_ref": "ak:blob:sha256:...",
   "encrypted": true,
   "alg": "xchacha20_poly1305",
   "key_ref": {
     "algorithm": "MLS",
-    "group_state_ref": "ck:event:01964148-0000-7000-8000-000000000000"
+    "group_state_ref": "ak:event:01964148-0000-7000-8000-000000000000"
   },
   "epoch": 42,
   "nonce": "base64url...",
@@ -231,13 +231,13 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
 
 ```json
 {
-  "blob_ref": "ck:blob:sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "blob_ref": "ak:blob:sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
   "encrypted": true,
   "scheme": "ck.blob.stream_aead.v1",
   "alg": "mls_exporter_aead_xchacha20poly1305_stream",
   "key_ref": {
     "algorithm": "MLS",
-    "group_state_ref": "ck:event:01964148-0000-7000-8000-000000000000"
+    "group_state_ref": "ak:event:01964148-0000-7000-8000-000000000000"
   },
   "epoch": 42,
   "nonce_prefix": "base64url-N_AEAD-minus-5-bytes",
@@ -257,8 +257,8 @@ Thumbnail descriptor:
 
 ```json
 {
-  "source_blob_ref": "ck:blob:sha256:...",
-  "thumbnail_blob_ref": "ck:blob:sha256:...",
+  "source_blob_ref": "ak:blob:sha256:...",
+  "thumbnail_blob_ref": "ak:blob:sha256:...",
   "width": 320,
   "height": 180,
   "media_type": "image/webp"
@@ -278,7 +278,7 @@ GET /_cokret/self/blob/get?blob_ref=<ref>
 | `blob_ref` | query | `string` | required | 内容寻址 blob 引用。 |
 | `Authorization` | header | `bearer token` 或 `device proof` | 私有 blob required | 调用者认证。 |
 | `Range` | header | `string` | optional | Range 下载范围。 |
-| `X-Cokret-Wait-For` | header | `cursor` | optional | barrier cursor（`purpose=barrier`）；服务端在 frontier 覆盖该 cursor 描述的 target event 前阻塞响应。 |
+| `X-Arkret-Wait-For` | header | `cursor` | optional | barrier cursor（`purpose=barrier`）；服务端在 frontier 覆盖该 cursor 描述的 target event 前阻塞响应。 |
 
 响应字段 / header：
 
@@ -315,13 +315,13 @@ Retention 与 erasure 规则：
 
 ```text
 Authorization: Bearer <ck.session.grant>
-X-Cokret-Wait-For: <cursor>
+X-Arkret-Wait-For: <cursor>
 Range: bytes=<start>-<end>
 ```
 
 规则：
 
-- `X-Cokret-Wait-For` 接受 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 的 `purpose=barrier` cursor，用于避免客户端刚收到引用但 Blob 服务尚未完成授权物化。Blob 服务 SHOULD 等待本地授权 frontier 覆盖该 cursor 描述的 target event，超时返回 `stale_frontier` 或 `temporarily_unavailable`。
+- `X-Arkret-Wait-For` 接受 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 的 `purpose=barrier` cursor，用于避免客户端刚收到引用但 Blob 服务尚未完成授权物化。Blob 服务 SHOULD 等待本地授权 frontier 覆盖该 cursor 描述的 target event，超时返回 `stale_frontier` 或 `temporarily_unavailable`。
 - 下载授权 MUST 绑定 actor DID、device/session、Realm id、blob ref、purpose 和过期时间。服务端不得只凭 URL 随机串放行私有媒体。
 - 受保护下载 MUST NOT 接受 query string 中的 session credential 或长期 capability。浏览器客户端应通过 `Authorization` header、service worker 代理或 device-bound proof 获取媒体。
 - Blob 服务 MAY 返回短期 signed download URL 或 `307/308` redirect 到对象存储，但 redirect token MUST 短时效、单 blob、单 purpose、可撤销，并不得扩大可见性。
@@ -444,8 +444,8 @@ Cache-Control: public, immutable, max-age=31536000
 ```json
 {
   "scheme": "ck.blob.presign.v1",
-  "blob_ref": "ck:blob:sha256:0123456789abcdef...",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "blob_ref": "ak:blob:sha256:0123456789abcdef...",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "issuer_service_did": "did:webvh:z9L9sKcFqigzdgN2ucF1V6ztq:blob.acme.example",
   "issued_at": "2026-05-18T10:00:00Z",
   "expires_at": "2026-05-18T10:05:00Z",

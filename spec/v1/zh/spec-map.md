@@ -11,7 +11,7 @@ see_also:
 
 ## 1. 目标
 
-本文是 Cokret 规范的阅读入口。它按协议平面组织文档，避免读者在大量单文件中迷失。
+本文是 Arkret 规范的阅读入口。它按协议平面组织文档，避免读者在大量单文件中迷失。
 
 若本文与具体规范冲突，以具体规范中的 `MUST` / `SHOULD` 规则为准。
 
@@ -22,7 +22,7 @@ see_also:
 - `artifacts/registry/contract-catalog.json` 是 event/schema/id/operation contract 的 canonical catalog。
 - `artifacts/registry/event-kind-registry.json`、`schema-registry.json`、`id-kind-registry.json` 和 `operation-registry.json` 是从 canonical catalog 生成的机器视图；实现、SDK 和 lint 应消费这些生成物，而不是手抄 Markdown 表。
 - `artifacts/registry/error-code-registry.json` 是标准 service error 与逐项 `reason_code` 的 canonical registry。
-- `artifacts/openapi/cokret-service-api.openapi.yaml` 是 HTTP/OpenAPI binding shape；它描述 HTTP 形状，不替代抽象 `operation_id`、Event kind、typed ID 或 reducer 语义。
+- `artifacts/openapi/arkret-service-api.openapi.yaml` 是 HTTP/OpenAPI binding shape；它描述 HTTP 形状，不替代抽象 `operation_id`、Event kind、typed ID 或 reducer 语义。
 - `zh/*/*.md` 文档主要承担解释、边界说明和阅读路径；除明确标注“生成视图”外，不应再手工维护穷尽清单。
 - `artifacts/profiles/conformance-profiles.json` 是实现 profile 的机器矩阵；`conformance/conformance-profiles.md` 是其说明视图。
 - 语言权威：本规范权威文本为 `zh/` 下中文；`en/` 仅提供说明性入口，非规范源。`artifacts/` 下机读契约语言中立、跨语言共享。
@@ -38,7 +38,7 @@ see_also:
 - `artifacts/registry/error-code-registry.json`：标准 service error 与 `reason_code` 的 canonical registry。
 - `artifacts/profiles/conformance-profiles.json`：profile、feature、unknown/unsupported 行为和 profile role 的机器矩阵。
 - `artifacts/schemas/*.schema.json`：wire object、DTO、event payload、proof、capability、cursor、seal 与 extension object 的 JSON Schema。
-- `artifacts/openapi/cokret-service-api.openapi.yaml`：HTTP/JSON binding shape；它约束 HTTP 形状，不替代抽象 operation、event kind、typed id 或 reducer 语义。
+- `artifacts/openapi/arkret-service-api.openapi.yaml`：HTTP/JSON binding shape；它约束 HTTP 形状，不替代抽象 operation、event kind、typed id 或 reducer 语义。
 - `artifacts/fixtures/*.json` 与 `artifacts/registry/vector-registry.json`：conformance vector 的机器索引与可执行样例。
 - `artifacts/registry/forbidden-wire-fields.json` 与 `artifacts/registry/forbidden-model-terms.json`：current-wire/current-model 的禁止字段和禁止术语检测源。
 
@@ -67,7 +67,7 @@ see_also:
 
 ### 2.2 从产品概念找章节
 
-| 产品概念 | Cokret 读法 | 先读 |
+| 产品概念 | Arkret 读法 | 先读 |
 | --- | --- | --- |
 | 群聊 / 频道类场景 | Realm 负责成员和历史边界；Strand + Message 负责话题和消息；View 负责 timeline / thread 展示。 | `overview/current-model.md`、`models/strand-and-message.md`、`governance/history-visibility.md` |
 | Trello 看板 / 列 / 卡片 | Board/List 是 Space.kind；卡片是 Strand；拖拽位置是 `ck.strand.move` / Relation 派生投影。 | `models/realm-and-space.md`、`models/views.md` |
@@ -204,7 +204,7 @@ see_also:
 | 文档 | 内容 |
 | --- | --- |
 | `discovery/discovery-directory.md` | Realm / Organization / Actor / Applet discoverability、私密联系人发现与目录服务。 |
-| `discovery/object-addressing.md` | 客户端无关可分享对象地址：`web+cokret:` URI scheme、HTTPS 落地、link 类型与 `resolve_target`。 |
+| `discovery/object-addressing.md` | 客户端无关可分享对象地址：`web+arkret:` URI scheme、HTTPS 落地、link 类型与 `resolve_target`。 |
 | `discovery/profiles-presence.md` | Actor profile、presence、typing、用户目录。 |
 | `discovery/client-preferences.md` | Account data、私有标签、通知偏好、个人 blocklist、联系人 / Realm 本地备注。 |
 | `discovery/push-notifications.md` | 推送规则、推送网关、E2EE 脱敏推送。 |
@@ -222,7 +222,7 @@ see_also:
 | `crypto-media/webrtc-signaling.md` | 音视频通话 ephemeral 信令、ICE/TURN/STUN、一对一通话、多设备冲突、屏幕共享、推送集成。 |
 | `crypto-media/media-service-binding.md` | 媒体服务发现（`ck.realm.media_service` foci）、token / participant binding 兑换、focus 选举、SFU 权限、媒体 E2EE 帧密钥注入与治理绑定。 |
 | `crypto-media/call-state.md` | 通话模型与状态机、durable `ck.call.state` 字段语义、录制 / 转写生命周期。 |
-| `crypto-media/bindings/cokret-native.md` | （optional sub-profile）Cokret 原生媒体后端 binding，定义 `ck.profile.media_service_binding.cokret_native.v1`，由 `media-service-binding.md` 引用。 |
+| `crypto-media/bindings/arkret-native.md` | （optional sub-profile）Arkret 原生媒体后端 binding，定义 `ck.profile.media_service_binding.cokret_native.v1`，由 `media-service-binding.md` 引用。 |
 | `crypto-media/bindings/livekit.md` | （optional sub-profile）LiveKit 媒体后端 binding，定义 `ck.profile.media_service_binding.livekit.v1`，由 `media-service-binding.md` 引用。 |
 
 ### 4.8 扩展、Agent 与集成

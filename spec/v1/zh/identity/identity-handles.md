@@ -13,7 +13,7 @@ updated: 2026-07-02
 ## 1. 目标
 
 Handle 是人类可读入口，不是权限主键。
-Cokret 使用 DID 作为稳定主体，用可验证 claim / attestation 表达 handle、组织成员、邮箱控制权和其他动态属性。
+Arkret 使用 DID 作为稳定主体，用可验证 claim / attestation 表达 handle、组织成员、邮箱控制权和其他动态属性。
 
 本文定义：
 
@@ -109,7 +109,7 @@ Handle 分两层：**显示形态**面向用户，**canonical handle** 面向协
 | `<localpart>:<domain>` | **主形态** | DID Document `alsoKnownAs` 比对、claim proof 输入、Directory 缓存键、`handle` 字段 |
 | `acct:<localpart>@<domain>(:<port>)?` | 互通别名（RFC 7565） | 跨 Fediverse / WebFinger 边界对接；只能出现在 `handle_aliases[]`，不作为本协议内部 canonical 比对 |
 
-每个 handle 都有唯一的 `user:domain` 形态。`acct:` MAY 在 claim 的 `handle_aliases[]` 中作为附加字段出现，但 **alsoKnownAs 比对、Directory 缓存键、Realm `delivery_binding` 物化** 一律 MUST 使用 `user:domain` 形态。verifier 收到只含 `acct:` 而无对应 `user:domain` 的 claim 时，MUST 把它视为外部互通别名，不得用它作 Cokret 内部权威 binding。
+每个 handle 都有唯一的 `user:domain` 形态。`acct:` MAY 在 claim 的 `handle_aliases[]` 中作为附加字段出现，但 **alsoKnownAs 比对、Directory 缓存键、Realm `delivery_binding` 物化** 一律 MUST 使用 `user:domain` 形态。verifier 收到只含 `acct:` 而无对应 `user:domain` 的 claim 时，MUST 把它视为外部互通别名，不得用它作 Arkret 内部权威 binding。
 
 `handle` 的 wire 形态由 [`artifacts/schemas/handle-claim.schema.json`](../../artifacts/schemas/handle-claim.schema.json) 强制：必须匹配 `<localpart>:<domain>`，且 `<localpart>` 已 canonicalize 为小写。`@<localpart>:<domain>`、`<localpart>@<domain>`、`acct:`、裸 host 等其它形态在 `handle` 中被 schema 拒绝；客户端 MAY 接受这种字符串作为输入捷径，但 normalize 前 MUST NOT 出现在签名 transcript、`alsoKnownAs`、缓存键或 Directory query 中。`acct:` 互通别名只能进入 `handle_aliases[]`。
 
@@ -120,13 +120,13 @@ Handle 分两层：**显示形态**面向用户，**canonical handle** 面向协
 Handle 解析结果（无论来自 Directory、Principal Server、Organization claim 还是 holder 自托管 well-known）MUST 至少包含 `handle`、`subject`、`issuer`、`binding_state`、`proofs` 与 `created_at`；`expires_at` 按 `binding_state` 与 delivery binding 条件必填；`handle_aliases[]` 为 **可选**（optional，与 §3.2.1 表及 §3.7.1 的 MAY 一致），不是必含字段：
 
 - `handle`：canonical `user:domain` handle（主形态）。
-- `handle_aliases[]`（可选 / optional）：互通别名，例如 `acct:`；不得参与 Cokret 内部权威比对。缺省时整字段 MAY 省略。
+- `handle_aliases[]`（可选 / optional）：互通别名，例如 `acct:`；不得参与 Arkret 内部权威比对。缺省时整字段 MAY 省略。
 - `subject`：被寻址 handle holder 的 principal DID。
 - `issuer`：签发 handle claim 的 DID。详见 §3.4。
 - `proofs`：至少一条可验证签名，绑定 `handle`、`subject`、`issuer`、`created_at`。
 - `created_at` / `expires_at`：claim 时间边界；`expires_at` 在 `binding_state=verified` 或 claim 携带 `member_delivery_binding` 时 MUST 出现。缺失 `expires_at` 的 claim MUST NOT 计为 `binding_state=verified`，不得进入 verified 候选集。
 
-`subject` 使用 claim / credential 领域的命名，但在 v1 user handle 语义中它是**持有该 handle 的 holder / principal DID**，不是 Realm `actor_id`、Principal Server 内部 `account_id`、组织人事系统 identifier、service DID 或通用资源 id。Cokret v1 core 不把本节的 `handle` 泛化为任意资源 handle；如果后续要定义 organization / service / repository / room 等非用户 handle，必须使用独立 schema 或显式 `resource_kind` profile，不能复用 `ck.schema.handle_claim.v1` 的 `subject` 字段来隐式扩展语义。
+`subject` 使用 claim / credential 领域的命名，但在 v1 user handle 语义中它是**持有该 handle 的 holder / principal DID**，不是 Realm `actor_id`、Principal Server 内部 `account_id`、组织人事系统 identifier、service DID 或通用资源 id。Arkret v1 core 不把本节的 `handle` 泛化为任意资源 handle；如果后续要定义 organization / service / repository / room 等非用户 handle，必须使用独立 schema 或显式 `resource_kind` profile，不能复用 `ck.schema.handle_claim.v1` 的 `subject` 字段来隐式扩展语义。
 
 本节故意不使用 `actor_id` 作为 handle claim 绑定对象：`actor_id` 是 Realm 内 membership / Event actor 标识，在高隐私 Realm 中 MAY 是 Realm-scoped pairwise DID；同一 holder / principal 可以在不同 Realm 使用不同 `actor_id`，也可以在加入任何 Realm 前先获得 handle claim。handle claim 因此绑定到 holder / principal DID，并在 Realm 内通过当前 effective MemberIdentity 或授权 roster disclosure 建立 `actor_id -> subject_id` 的显示投影。
 
@@ -193,7 +193,7 @@ Handle claim 用于 Realm membership（`intent ∈ {invite, member_add}`）时�
 
 实现 SHOULD 通过 Realm policy event 的 append-only 链支撑 as-of policy 重建；缺少历史的实现 MUST NOT 用"当前 policy + 历史 as_of"组合复算，与 `claim_set_snapshot` 同款约束。无法构造 as-of policy snapshot 时，replay MUST fail closed。
 
-主动 replay 调用方 MAY 显式传入目标 policy version（例如 `policy_version_ref: "ck:event:..."`）覆盖默认行为，前提是该 version 在 as_of 时刻确实是当时 effective 的 policy；实现 MUST 验证传入 version 与 as_of 一致，不一致 MUST 拒绝。
+主动 replay 调用方 MAY 显式传入目标 policy version（例如 `policy_version_ref: "ak:event:..."`）覆盖默认行为，前提是该 version 在 as_of 时刻确实是当时 effective 的 policy；实现 MUST 验证传入 version 与 as_of 一致，不一致 MUST 拒绝。
 
 **Step 0 — 候选集预过滤**（normative）：
 
@@ -300,13 +300,13 @@ primary handle 是显示语义；它**不**影响 actor_id 归因、grant subjec
 
 Handle 的权威生命周期属于 issuer，不属于用户 profile 或 Realm MemberIdentity event。`ck.profile.update`、`ck.profile.realm_override`、`ck.member.identity.update` 中不得通过任意字段声明、覆盖、撤销或重分配 handle；这些事件最多影响 display name、avatar、subject disclosure 等 UI projection。验证器遇到这些事件中出现的非标准 handle 字段时 MUST 忽略或 schema-reject，不得把它们提升为 verified handle。
 
-Cokret v1 core **不定义**用户注册、handle 申请、邀请审批、管理员通知、管理员审批队列、重签 / 续期、namespace 保留策略、抢注仲裁、多 handle 策略或组织内部身份治理 API。这些流程属于 issuer / Auth Server / 部署本地治理面；不同 Principal Server、Organization 或自托管 issuer 可以按自己的合规、人事、IDP、邀请和审计要求实现。
+Arkret v1 core **不定义**用户注册、handle 申请、邀请审批、管理员通知、管理员审批队列、重签 / 续期、namespace 保留策略、抢注仲裁、多 handle 策略或组织内部身份治理 API。这些流程属于 issuer / Auth Server / 部署本地治理面；不同 Principal Server、Organization 或自托管 issuer 可以按自己的合规、人事、IDP、邀请和审计要求实现。
 
 协议层只规定 consumption contract：
 
-1. 任何进入 Cokret roster、mention、directory resolve、delivery binding 或 UI verified display 的 handle MUST 来自可验证的 signed `ck.schema.handle_claim.v1`，或该 claim 的 digest / reference。
+1. 任何进入 Arkret roster、mention、directory resolve、delivery binding 或 UI verified display 的 handle MUST 来自可验证的 signed `ck.schema.handle_claim.v1`，或该 claim 的 digest / reference。
 2. issuer / Auth Server / 部署本地 API MAY 让用户选择 handle、提交申请、触发人工审批、由管理员直接分配、续签或撤销；这些 API 的 endpoint、权限模型、通知机制和状态机不属于 v1 core。
-3. 这些外部流程一旦要把结果暴露给 Cokret 客户端或其它服务，MUST 输出 `ck.schema.handle_claim.v1`、明确的 revocation evidence、或足以让 Directory / roster 不再返回该 claim 的 issuer-side 状态；不得输出未签名 profile 字段来替代 claim。
+3. 这些外部流程一旦要把结果暴露给 Arkret 客户端或其它服务，MUST 输出 `ck.schema.handle_claim.v1`、明确的 revocation evidence、或足以让 Directory / roster 不再返回该 claim 的 issuer-side 状态；不得输出未签名 profile 字段来替代 claim。
 
 已知 `subject` DID 但不知道当前 handle 时，客户端 / renderer MUST 使用 `ck.find.directory.query.list_handles_for_subject` 或 roster 内联 `handle_claims[]` 构造 `claim_set_snapshot`。已知 handle 字符串时，显示 / lookup 场景继续使用 `ck.find.directory.query.resolve_handle`。这两个方向不可互相替代：`resolve_handle` 是 handle → subject，`list_handles_for_subject` 是 subject/context → current visible claims。
 
@@ -316,10 +316,10 @@ contact request / invite / member-add 不再把 `resolve_handle(intent="contact_
 
 ### 3.2.3 Registration and Invitation Strands（informative）
 
-常见注册路径都在 Cokret core 之外完成，但进入 Cokret 后遵循同一 claim-led 模型：
+常见注册路径都在 Arkret core 之外完成，但进入 Arkret 后遵循同一 claim-led 模型：
 
 - **系统预分配 handle**：用户完成注册 / 首次登录后，Auth Server / issuer bootstrap MAY 直接把 signed `handle_claims[]` 交给客户端或服务端 roster cache。用户无需发 `set_handle` event。
-- **管理员邀请允许选择 handle**：邀请链接、pre-registration proof、审批通知和人工审核队列属于 Auth Server / issuer 策略。Cokret 只看到最终签发的 `ck.schema.handle_claim.v1`，或看不到任何 claim。
+- **管理员邀请允许选择 handle**：邀请链接、pre-registration proof、审批通知和人工审核队列属于 Auth Server / issuer 策略。Arkret 只看到最终签发的 `ck.schema.handle_claim.v1`，或看不到任何 claim。
 - **管理员后期修改现有用户 handle**：issuer 撤销 / 过期旧 claim 并签发新 claim。Realm history 中既有 messages、mentions 和 `ck.member.identity.update` 不被改写；当前渲染按新的 claim set 展示，历史 replay 按 as-of claim snapshot 展示。
 
 因此，"用户注册后是否必须主动发包含 handle 的 profile"的答案是 **否**。用户 MAY 发 profile / MemberIdentity 来设置 display name、avatar 或 subject disclosure；handle 只来自 issuer-signed claim。
@@ -338,7 +338,7 @@ Handle 的 issuer 决定它的信任锚点；同一 canonical handle 形态可�
 
 | Issuer 类型 | 典型场景 | 验证锚点 |
 | --- | --- | --- |
-| **Holder DID（self-issued）** | 用户自己控制 `<domain>`，自己运营单用户 Principal Server 或 well-known endpoint。例：`@alice:alice.dev` 由 Alice 的 DID 签发。 | (a) `<domain>` 解析 `https://<domain>/.well-known/cokret/handle?localpart=<localpart>` 或 DNS TXT `_cokret.<domain>` 返回签名 handle claim；(b) holder DID Document `alsoKnownAs` 含对应 `<localpart>:<domain>`；两侧均验签通过。 |
+| **Holder DID（self-issued）** | 用户自己控制 `<domain>`，自己运营单用户 Principal Server 或 well-known endpoint。例：`@alice:alice.dev` 由 Alice 的 DID 签发。 | (a) `<domain>` 解析 `https://<domain>/.well-known/arkret/handle?localpart=<localpart>` 或 DNS TXT `_cokret.<domain>` 返回签名 handle claim；(b) holder DID Document `alsoKnownAs` 含对应 `<localpart>:<domain>`；两侧均验签通过。 |
 | **Organization DID** | 组织把 handle 签发给员工或受管成员。例：`@alice:acme.example` 由 `did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example` 签发给 Alice 个人 DID。 | issuer claim + holder DID Document `alsoKnownAs`（公开 handle）或受限 presentation；audience / scope 限定到目标 Realm / 组织。 |
 | **Principal Server service DID** | Principal Server 为它承载的用户签发 handle。例：托管平台 `did:webvh:z3omZGak5a5es84Ph2kfPs4UP:principal.acme.example`。 | claim 由 service DID 签发，service DID 由 Organization DID 委派（DID Document service entry 或 governance attestation）；最终归约到 Organization 信任根。 |
 | **受信 Directory DID** | 公共 Directory 索引 handle 并发放短期 routable claim。 | Directory claim + 上游 `source_refs`；Directory 是镜像层，不是真相源。 |
@@ -562,7 +562,7 @@ Pairwise DID、临时 DID、设备 DID、agent 执行 DID 和隐私敏感关系 
 
 ### 4.1 `alsoKnownAs` 的窄用途
 
-`alsoKnownAs` 在 Cokret v1 协议层**只承担一件事**：为 §3.4 issuer claim 提供 holder 侧的反向背书，使公开 handle 的双向验证（§6）可独立于任何 issuer / Directory 完成。完整链路是：
+`alsoKnownAs` 在 Arkret v1 协议层**只承担一件事**：为 §3.4 issuer claim 提供 holder 侧的反向背书，使公开 handle 的双向验证（§6）可独立于任何 issuer / Directory 完成。完整链路是：
 
 ```text
 issuer claim:        handle → subject_id   (issuer 单方面签名声明)
@@ -595,13 +595,13 @@ Handle 解析分为两个方向：
 
 已知 handle 时，客户端 / verifier 按以下顺序尝试 issuer，第一个成功签发可验证 claim 的就是该 handle 的 issuer：
 
-1. **`<domain>` 的 well-known**：`GET https://<domain>/.well-known/cokret/handle?localpart=<localpart>`。响应是 `ck.schema.handle_claim.v1` 形态的签名 claim。
+1. **`<domain>` 的 well-known**：`GET https://<domain>/.well-known/arkret/handle?localpart=<localpart>`。响应是 `ck.schema.handle_claim.v1` 形态的签名 claim。
    - 用于 holder 自托管（domain 拥有者 == subject DID）与单实例 Principal Server 部署。
-   - **`.well-known/cokret/handle` 是签名 issuer 通道，不是泛 resolver 端点（normative）。** 该路径的语义被钉死为"返回该 `<domain>` 作为 issuer 为 `<localpart>` 签发的 signed `ck.schema.handle_claim.v1`"。任何在该路径作出响应的部署都被 verifier 当作该 handle 的候选 issuer。因此：
+   - **`.well-known/arkret/handle` 是签名 issuer 通道，不是泛 resolver 端点（normative）。** 该路径的语义被钉死为"返回该 `<domain>` 作为 issuer 为 `<localpart>` 签发的 signed `ck.schema.handle_claim.v1`"。任何在该路径作出响应的部署都被 verifier 当作该 handle 的候选 issuer。因此：
      - 能签发 claim 的 issuer（holder 自托管 well-known、单实例 / 组织 Principal Server）MUST 在此返回 200 + 签名 claim，或返回 issuer-side not-found / revoked 状态；但对匿名或未授权调用方，not-found、revoked、restricted、unauthorized 与 rate-limited MUST 使用不可区分响应，避免把该端点变成 handle / 雇佣关系枚举 oracle。只有已认证且按 policy 有权观察该 claim 的调用方 MAY 获得精确 revoked / expired / not-found 诊断。
      - 受限 handle claim MUST 经 requester / audience 授权后才可由 well-known 返回。授权证据 MAY 是 bearer session、DPoP/device proof、Directory `claim_presentations[]`、Realm invitation / membership context 或 issuer 本地 policy 可验证的等价证明；缺失或验证失败时按上一条不可区分拒绝处理。
-     - **纯 resolver（只索引 / 转发、自身签不了 handle claim 的服务）MUST NOT 占用该路径返回未签名的 issuer-probe 结果。** 纯 resolver 在 `.well-known/cokret/handle` 的合规行为只有两种：(a) **不提供该端点 / 返回 `404`**；或 (b) **显式委托**到上游可签发 issuer（例如 HTTP 重定向到该 issuer 的 well-known，或在响应中给出可独立验签的上游 `source_refs` 指向 signed claim）。它 MUST NOT 在该路径返回任何未签名的 handle / subject / probe payload——否则 verifier 会把一个签不了 claim 的服务误当 issuer，污染 §5 的 issuer 选择与 §6 的双向验证。
-     - resolver 想暴露"这个 handle 我索引到哪个 subject / issuer"这类 **issuer-probe / 索引查询**，MUST 走产品私有面（私有 API、内部 directory query 等），不得借用 `.well-known/cokret/handle`。需要被 Cokret verifier 采信时，走第 3 步 signed Directory response（`ck.schema.handle_claim.v1` + `source_refs`），而不是未签名 probe。
+     - **纯 resolver（只索引 / 转发、自身签不了 handle claim 的服务）MUST NOT 占用该路径返回未签名的 issuer-probe 结果。** 纯 resolver 在 `.well-known/arkret/handle` 的合规行为只有两种：(a) **不提供该端点 / 返回 `404`**；或 (b) **显式委托**到上游可签发 issuer（例如 HTTP 重定向到该 issuer 的 well-known，或在响应中给出可独立验签的上游 `source_refs` 指向 signed claim）。它 MUST NOT 在该路径返回任何未签名的 handle / subject / probe payload——否则 verifier 会把一个签不了 claim 的服务误当 issuer，污染 §5 的 issuer 选择与 §6 的双向验证。
+     - resolver 想暴露"这个 handle 我索引到哪个 subject / issuer"这类 **issuer-probe / 索引查询**，MUST 走产品私有面（私有 API、内部 directory query 等），不得借用 `.well-known/arkret/handle`。需要被 Arkret verifier 采信时，走第 3 步 signed Directory response（`ck.schema.handle_claim.v1` + `source_refs`），而不是未签名 probe。
 2. **DNS TXT**：`_cokret.<domain>` 或 `_cokret.<localpart>.<domain>`。仅当 DNSSEC validation 成功**且** TXT 内含可验证签名时才能作为 issuer 通道；裸 DNS TXT 只是发现 hint。
 3. **Directory / Organization 服务**：`POST /_cokret/find/directory/resolve-handle`（[`discovery/discovery-directory.md` §9.0](../discovery/discovery-directory.md)）或 `POST /_cokret/find/directory/list-handles-for-subject`（已知 subject 时）。response 仍是签名 `ck.schema.handle_claim.v1`。
 4. **Bridge / 外部 issuer**：当 handle 来自 bridge 或外部体系（例如组织自有 IDP），claim 由该体系签发并通过 §7 VC presentation 出示。
@@ -645,14 +645,14 @@ Handle 解析示例：
   "claim_kind": "organization_handle",
   "visibility": "restricted",
   "binding_state": "verified",
-  "audience": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "audience": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "member_delivery_binding": {
     "recipient_service_did": "did:webvh:z3omZGak5a5es84Ph2kfPs4UP:principal.acme.example",
     "recipient_service_type": "principal_server",
     "binding_source": "organization_policy",
     "delivery_modes": ["events", "sync", "to_device", "push", "key_packages"],
-    "service_acceptance_ref": "ck:event:0196419b-0000-7000-8000-000000000001",
-    "policy_event_ref": "ck:event:0196419b-0000-7000-8000-000000000002"
+    "service_acceptance_ref": "ak:event:0196419b-0000-7000-8000-000000000001",
+    "policy_event_ref": "ak:event:0196419b-0000-7000-8000-000000000002"
   },
   "created_at": "2026-05-19T00:00:00Z",
   "expires_at": "2026-08-19T00:00:00Z",
@@ -662,7 +662,7 @@ Handle 解析示例：
     "verification_method": "did:webvh:z3omZGak5a5es84Ph2kfPs4UP:principal.acme.example#key-1",
     "payload_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "created_at": "2026-05-19T00:00:00Z",
-    "audience": "ck:realm:0196419b-0000-7000-8000-000000000000",
+    "audience": "ak:realm:0196419b-0000-7000-8000-000000000000",
     "jws": "aaa.bbb.ccc"
   }]
 }
@@ -886,7 +886,7 @@ Wallet SHOULD 拒绝或警告请求无关 handle、global subject identifier、c
 
 ## 13. Proof Profile
 
-Cokret SHOULD 支持：
+Arkret SHOULD 支持：
 
 - `sd_jwt_vc`：适合广泛 JOSE 互操作和 claim 级选择性披露
 - `vc_di_bbs_2023`：适合需要不可链接 derived proof 的高隐私场景
@@ -933,7 +933,7 @@ grant subject = alice@google.com
 
 ## 16. Progressive Disclosure（渐进披露）
 
-本节定义 Cokret 隐私信息渐进披露的端到端实现方案。渐进披露用于让 holder 只向特定 verifier / organization 披露完成某项验证所需的最小身份信息，例如：
+本节定义 Arkret 隐私信息渐进披露的端到端实现方案。渐进披露用于让 holder 只向特定 verifier / organization 披露完成某项验证所需的最小身份信息，例如：
 
 - 对 Google 披露 `alice@google.com`
 - 对 Facebook 披露 `alice@facebook.com`
@@ -966,7 +966,7 @@ grant subject = alice@google.com
 ```json
 {
   "kind": "ck.identity.presentation_request",
-  "request_id": "ck:request:d8764019-0000-7000-8000-000000000000",
+  "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
   "verifier_did": "did:webvh:zGZ728E4hbEuyDPggPzuioG6n:login.google.example",
   "represented_org": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
   "domain": "google.example",
@@ -1008,7 +1008,7 @@ Verifier MUST 对该请求签名，或通过已认证的关系通道发送。Wal
 ```json
 {
   "kind": "ck.identity.disclosure_policy",
-  "policy_id": "ck:policy:a1cb0019-0000-7000-8000-000000000000",
+  "policy_id": "ak:policy:a1cb0019-0000-7000-8000-000000000000",
   "holder_did": "did:webvh:z64Hmi2jCpmp1cUuWEwCgdNn5:holder.example.com",
   "audience": {
     "org_did": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
@@ -1045,7 +1045,7 @@ Disclosure policy 是 holder-private state，默认 MUST NOT 写入公共 Realm�
 ```json
 {
   "kind": "ck.identity.presentation_response",
-  "request_id": "ck:request:d8764019-0000-7000-8000-000000000000",
+  "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
   "holder_subject": "did:key:z6Mkgpairwise...",
   "proof_profile": "vc_di_bbs_2023",
   "presentation": {},
@@ -1066,8 +1066,8 @@ Response MUST NOT 包含未披露字段、base proof、无关的 credential iden
 ```json
 {
   "kind": "ck.identity.disclosure_receipt",
-  "receipt_id": "ck:receipt:a1cb0019-0000-7000-8000-000000000000",
-  "request_id": "ck:request:d8764019-0000-7000-8000-000000000000",
+  "receipt_id": "ak:receipt:a1cb0019-0000-7000-8000-000000000000",
+  "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
   "holder_did": "did:key:z6Mkgpairwise...",
   "verifier_did": "did:webvh:zGZ728E4hbEuyDPggPzuioG6n:login.google.example",
   "represented_org": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
@@ -1146,7 +1146,7 @@ Sync Service 与服务运营方 MUST NOT 获得原始 credential 内容、base p
 1. 双方都支持且 policy 要求元数据隐私时使用 `tsp`。
 2. 使用 verifier DID / 服务密钥的 `http_jwe`。
 3. 双方都支持时使用 `didcomm_like` envelope。
-4. verifier 是已知 Cokret 设备 / 服务端点时使用 `to_device`。
+4. verifier 是已知 Arkret 设备 / 服务端点时使用 `to_device`。
 5. holder 与 verifier 共享加密 DM Realm 时使用 `mls_dm`。
 
 若 policy 要求嵌套 / 路由级元数据隐私，而 verifier 不支持 TSP 或等价能力，wallet MUST 拒绝或请求用户显式覆盖。
@@ -1203,8 +1203,8 @@ Verifier MUST：
 
   **NFC / UTS#39 检测的作用层与 schema ASCII pattern 的关系(normative，消歧)**：上述 NFC normalization 与 UTS#39 confusable / script-mixing 检测 MUST 作用于 IDNA 转换**之前**的 **U-label**(用户可见的 Unicode 形态，可能含非 ASCII 字符)——这是 homograph 攻击的实际载体。检测通过后，`<domain>` MUST 经 IDNA2008(ToASCII)转为 **A-label**(punycode,`xn--` 前缀的纯 ASCII),`<localpart>` 经本节 lowercase canonical 规则归一为受限 ASCII；只有该 ASCII canonical 形态才是进入 `ck.schema.handle_claim.v1` 等 wire claim `handle` 字段、并由 [`handle-claim.schema.json`](../../artifacts/schemas/handle-claim.schema.json) ASCII-only pattern 校验的值。因此 schema pattern 是 ASCII-only **不是**与 §17 检测矛盾，而是有意分层:UTS#39 confusable 折叠在 U-label 上做(schema 校验不到、也不应在 wire canonical handle 上重复执行),schema pattern 只兜底"进入 wire 的 handle 已是受限 ASCII canonical 形态"。实现 MUST NOT 把含非 ASCII 字符的 U-label 直接作为 wire `handle` 提交(会被 schema 拒绝)，亦 MUST NOT 因 schema 通过就跳过 U-label 阶段的 NFC / UTS#39 检测。
 - **Handle 字符串的 wire-level 作用域**（normative）：handle 字符串作为 wire-level **权威字段**（actor reference、authorization subject、audit attribution、解析输入）MUST 只在以下三类位置出现：
-  1. **Handle claim lifecycle 对象与 issuer / Auth Server 本地管理请求**：`ck.schema.handle_claim.v1`、issuer / Auth Server 定义的申请、审批、重签、撤销、Directory withdraw、handle reassignment 等显式管理 handle 生命周期的请求、响应、签名 claim 与 audit receipt。这些管理 API 不属于 Cokret v1 core，但一旦在 Cokret wire 上作为 claim evidence 被消费，必须产出可验证的 `ck.schema.handle_claim.v1` 或明确的 revocation / audit evidence。
-  2. **Discovery / Directory query 请求与响应**：`/.well-known/cokret/handle?localpart=...`、`POST /_cokret/find/directory/resolve-handle`、`POST /_cokret/find/directory/list-handles-for-subject` 等解析路径的输入与输出。
+  1. **Handle claim lifecycle 对象与 issuer / Auth Server 本地管理请求**：`ck.schema.handle_claim.v1`、issuer / Auth Server 定义的申请、审批、重签、撤销、Directory withdraw、handle reassignment 等显式管理 handle 生命周期的请求、响应、签名 claim 与 audit receipt。这些管理 API 不属于 Arkret v1 core，但一旦在 Arkret wire 上作为 claim evidence 被消费，必须产出可验证的 `ck.schema.handle_claim.v1` 或明确的 revocation / audit evidence。
+  2. **Discovery / Directory query 请求与响应**：`/.well-known/arkret/handle?localpart=...`、`POST /_cokret/find/directory/resolve-handle`、`POST /_cokret/find/directory/list-handles-for-subject` 等解析路径的输入与输出。
   3. **客户端入口解析瞬间**：用户键入 handle 字符串到客户端 → 客户端解析为 `subject_id` 的临时过程；解析完成后 handle 字符串 MUST NOT 作为权威字段写入持久化事件、Realm history、grant 记录、ACL 表或缓存键以外的存储。
 
   以下位置是**允许的派生投影 / audit 例外**，handle 字符串在其中不构成权威源：

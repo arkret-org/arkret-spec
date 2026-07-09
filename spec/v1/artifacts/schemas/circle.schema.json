@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/circle.schema.json",
-  "title": "Cokret Circle",
+  "$id": "https://arkret.org/v1/schemas/circle.schema.json",
+  "title": "Arkret Circle",
   "description": "Circle — intra-Realm scoped event/message boundary. Hosts its own membership (strict subset of parent Realm.members), history visibility, and delivery/query/projection boundary. It may be plaintext delivery-only or MLS-backed depending on encryption_profile and parent Realm policy floor. It does NOT carry federation identity, policy server, or capability registry — those remain on the parent Realm. Circle is NOT a principal Group; principal-set capability narrowing belongs on Group / capability constraint / resource selector. See spec/v1/zh/models/circle.md.",
   "type": "object",
   "required": [

@@ -33,7 +33,7 @@ merged_to:
 1. **Contact fact log** 是"双方是不是联系人 / 请求是否 pending / 是否被拒绝或终止"的真源。它是 principal-scoped、跨 Realm 的 signed fact,不归属普通 Collaboration Realm,也不是 `ck.relation.*`。
 2. **Consent cell** 是"某个 peer 是否被 holder 允许发起 invite / direct_message / call / presence"的 gate。它不保存 pending/rejected/tombstoned,因此不能作为联系人关系真源。
 3. **Direct conversation binding + DM Realm** 是"这对联系人当前聊天入口在哪里"的真源。它不决定双方是不是联系人。
-4. **DM 主 Strand** 是消息时间线载体。Cokret 没有独立"消息表";聊天仍然是 Strand 的 `discussion` track 上的 `ck.message.create`。
+4. **DM 主 Strand** 是消息时间线载体。Arkret 没有独立"消息表";聊天仍然是 Strand 的 `discussion` track 上的 `ck.message.create`。
 
 关键收敛:
 

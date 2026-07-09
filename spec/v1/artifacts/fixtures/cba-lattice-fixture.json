@@ -66,24 +66,24 @@
       "name": "data_event_accepts_without_seal_finality",
       "description": "A message DataEvent is locally accepted when signature, actor chain, seal_ref, auth_context, capability and data-plane Lattice validation pass. It does not wait for Seal coverage.",
       "event": {
-        "id": "ck:event:6b5ad6b5-ad6b-7ad6-b5ad-6b5ad6b5ad6b",
+        "id": "ak:event:6b5ad6b5-ad6b-7ad6-b5ad-6b5ad6b5ad6b",
         "plane": "data",
-        "seal_ref": "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "auth_context": {
           "did": "did:webvh:z6mkfixture:alice.example",
           "key_id": "device-1",
           "key_epoch": 1,
           "capability_refs": [
-            "ck:grant:0196410c-0000-7000-8000-000000000000"
+            "ak:grant:0196410c-0000-7000-8000-000000000000"
           ]
         },
         "effects": [
           {
-            "cell": "ck:cell:ck.component.strand.discussion.timeline.v1:ck.strand.019640c6-8000-7000-8000-000000000000",
+            "cell": "ak:cell:ck.component.strand.discussion.timeline.v1:ck.strand.019640c6-8000-7000-8000-000000000000",
             "op": {
               "kind": "append",
               "value": {
-                "message_id": "ck:message:019640ed-8000-7000-8000-000000000000"
+                "message_id": "ak:message:019640ed-8000-7000-8000-000000000000"
               }
             }
           }
@@ -102,7 +102,7 @@
       "description": "A Seal may observe DataEvents through data_event_set_root, but the query grade is observed, not sealed.",
       "data_event_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
       "seal": {
-        "id": "ck:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "id": "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "predecessor_refs": [],
         "delta": [
           "sha256:2222222222222222222222222222222222222222222222222222222222222222"
@@ -123,17 +123,17 @@
       "description": "A membership ban Control Move uses seal_basis for authorization and preconditions. It remains control_pending until covered by a valid Seal.",
       "basis": {
         "leaves": [
-          "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         ],
         "control_event_set_root": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "state_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
       },
       "control_move": {
-        "id": "ck:event:84210842-1084-7108-8210-842108421084",
+        "id": "ak:event:84210842-1084-7108-8210-842108421084",
         "plane": "control",
         "preconditions": [
           {
-            "cell": "ck:cell:ck.component.member.state.v1:did.web.alice.example",
+            "cell": "ak:cell:ck.component.member.state.v1:did.web.alice.example",
             "predicate": {
               "op": "head_eq",
               "value": "active"
@@ -142,7 +142,7 @@
         ],
         "effects": [
           {
-            "cell": "ck:cell:ck.component.member.state.v1:did.web.alice.example",
+            "cell": "ak:cell:ck.component.member.state.v1:did.web.alice.example",
             "op": {
               "kind": "transition",
               "from": "active",
@@ -167,22 +167,22 @@
       "description": "An Event earlier in the same submit batch may resolve bytes and causal refs for later Events, but it cannot create a grant used by a later Event in the same batch.",
       "batch": [
         {
-          "id": "ck:event:a5294a52-94a5-794a-9294-a5294a5294a5",
+          "id": "ak:event:a5294a52-94a5-794a-9294-a5294a5294a5",
           "kind": "ck.capability.grant",
           "plane": "control",
           "state": "control_pending"
         },
         {
-          "id": "ck:event:c6318c63-18c6-718c-a318-c6318c6318c6",
+          "id": "ak:event:c6318c63-18c6-718c-a318-c6318c6318c6",
           "kind": "ck.message.create",
           "plane": "data",
-          "seal_ref": "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "auth_context": {
             "did": "did:webvh:z6mkfixture:bob.example",
             "key_id": "device-1",
             "key_epoch": 1,
             "capability_refs": [
-              "ck:grant:0196410c-9999-7000-8000-000000000000"
+              "ak:grant:0196410c-9999-7000-8000-000000000000"
             ]
           }
         }
@@ -197,15 +197,15 @@
     {
       "name": "data_plane_conflict_returns_bottom_without_winner",
       "description": "Concurrent incompatible writes to a data-plane cas_register cell return structured bottom. The reducer must not choose a winner by HLC, actor id, arrival order, or Seal observation order.",
-      "cell": "ck:cell:ck.component.strand.position.v1:ck.strand.0196419b-0000-7000-8000-000000000000",
+      "cell": "ak:cell:ck.component.strand.position.v1:ck.strand.0196419b-0000-7000-8000-000000000000",
       "cell_lattice": {
         "plane": "data",
         "lattice": "cas_register",
         "bottom": "reject"
       },
       "data_events": [
-        "ck:event:20080200-8020-7802-8080-200802008020",
-        "ck:event:40100401-0040-7004-8100-401004010040"
+        "ak:event:20080200-8020-7802-8080-200802008020",
+        "ak:event:40100401-0040-7004-8100-401004010040"
       ],
       "expected": {
         "query": {
@@ -213,11 +213,11 @@
           "bottom": {
             "kind": "conflict",
             "cells": [
-              "ck:cell:ck.component.strand.position.v1:ck.strand.0196419b-0000-7000-8000-000000000000"
+              "ak:cell:ck.component.strand.position.v1:ck.strand.0196419b-0000-7000-8000-000000000000"
             ],
             "event_ids": [
-              "ck:event:20080200-8020-7802-8080-200802008020",
-              "ck:event:40100401-0040-7004-8100-401004010040"
+              "ak:event:20080200-8020-7802-8080-200802008020",
+              "ak:event:40100401-0040-7004-8100-401004010040"
             ]
           }
         },
@@ -229,7 +229,7 @@
       "name": "seal_delta_excludes_data_event_digest",
       "description": "A Seal delta contains newly sealed control-plane event digests only. Including a DataEvent digest in delta is a seal validation failure.",
       "seal": {
-        "id": "ck:seal:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "id": "ak:seal:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
         "predecessor_refs": [],
         "delta": [
           "sha256:1111111111111111111111111111111111111111111111111111111111111111"
@@ -249,14 +249,14 @@
       "name": "open_set_compaction_preserves_control_roots",
       "description": "A signed compaction Seal must be equivalent to the deterministic control view of its predecessors and preserve control_event_set_root, state_root and fault diagnostics.",
       "predecessor_refs": [
-        "ck:seal:sha256:3030303030303030303030303030303030303030303030303030303030303030",
-        "ck:seal:sha256:4040404040404040404040404040404040404040404040404040404040404040"
+        "ak:seal:sha256:3030303030303030303030303030303030303030303030303030303030303030",
+        "ak:seal:sha256:4040404040404040404040404040404040404040404040404040404040404040"
       ],
       "compaction_seal": {
-        "id": "ck:seal:sha256:5050505050505050505050505050505050505050505050505050505050505050",
+        "id": "ak:seal:sha256:5050505050505050505050505050505050505050505050505050505050505050",
         "predecessor_refs": [
-          "ck:seal:sha256:3030303030303030303030303030303030303030303030303030303030303030",
-          "ck:seal:sha256:4040404040404040404040404040404040404040404040404040404040404040"
+          "ak:seal:sha256:3030303030303030303030303030303030303030303030303030303030303030",
+          "ak:seal:sha256:4040404040404040404040404040404040404040404040404040404040404040"
         ],
         "delta": [],
         "covered_event_digests_must_equal": "union(predecessor covered_set)",
@@ -275,9 +275,9 @@
       "name": "seal_canonical_no_self_reference",
       "description": "Seal canonical bytes are computed from signed top-level body fields only. The Seal id and notary_signature are excluded from the transcript.",
       "seal_body": {
-        "realm_id": "ck:realm:019641c6-8000-7000-8000-000000000000",
+        "realm_id": "ak:realm:019641c6-8000-7000-8000-000000000000",
         "predecessor_refs": [
-          "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         ],
         "delta": [
           "sha256:abababababababababababababababababababababababababababababababab"
@@ -288,7 +288,7 @@
         "hlc": "2026-06-11T00:00:00Z/0000000000000001"
       },
       "expected": {
-        "id": "ck:seal:sha256:6bff426d2a0b0f48a3730eb35fbd0459e1df361ce4de865020093c7a9fc99cc8",
+        "id": "ak:seal:sha256:6bff426d2a0b0f48a3730eb35fbd0459e1df361ce4de865020093c7a9fc99cc8",
         "notary_signature_payload_digest": "sha256:6bff426d2a0b0f48a3730eb35fbd0459e1df361ce4de865020093c7a9fc99cc8",
         "valid_result": "accept"
       },
@@ -329,7 +329,7 @@
     {
       "name": "cas_mixed_basis",
       "description": "cas_register writes on a non-initial settled value require an explicit CBA basis; null-basis blind overwrites fail closed.",
-      "cell": "ck:cell:ck.component.strand.title.v1:ck.strand.019641c6-8000-7000-8000-000000000001",
+      "cell": "ak:cell:ck.component.strand.title.v1:ck.strand.019641c6-8000-7000-8000-000000000001",
       "cell_lattice": {
         "plane": "control",
         "lattice": "cas_register",
@@ -338,18 +338,18 @@
       },
       "pre_state": {
         "settled_value": "v1",
-        "settled_by_seal": "ck:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        "settled_by_seal": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111"
       },
       "cases": [
         {
           "name": "blind_write_without_basis",
           "event": {
-            "id": "ck:event:019641c6-8000-7000-8000-000000000101",
+            "id": "ak:event:019641c6-8000-7000-8000-000000000101",
             "plane": "data",
-            "seal_ref": "ck:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
             "effects": [
               {
-                "cell": "ck:cell:ck.component.strand.title.v1:ck.strand.019641c6-8000-7000-8000-000000000001",
+                "cell": "ak:cell:ck.component.strand.title.v1:ck.strand.019641c6-8000-7000-8000-000000000001",
                 "op": {
                   "kind": "set",
                   "value": "v2"
@@ -368,11 +368,11 @@
         {
           "name": "control_move_with_head_eq_basis",
           "control_move": {
-            "id": "ck:event:019641c6-8000-7000-8000-000000000102",
+            "id": "ak:event:019641c6-8000-7000-8000-000000000102",
             "plane": "control",
             "preconditions": [
               {
-                "cell": "ck:cell:ck.component.strand.title.v1:ck.strand.019641c6-8000-7000-8000-000000000001",
+                "cell": "ak:cell:ck.component.strand.title.v1:ck.strand.019641c6-8000-7000-8000-000000000001",
                 "predicate": {
                   "op": "head_eq",
                   "value": "v1"
@@ -381,7 +381,7 @@
             ],
             "effects": [
               {
-                "cell": "ck:cell:ck.component.strand.title.v1:ck.strand.019641c6-8000-7000-8000-000000000001",
+                "cell": "ak:cell:ck.component.strand.title.v1:ck.strand.019641c6-8000-7000-8000-000000000001",
                 "op": {
                   "kind": "set",
                   "value": "v2"
@@ -407,8 +407,8 @@
           "name": "revoked_key_old_seal_ref_outside_window",
           "key_id": "device-1",
           "key_epoch": 4,
-          "revoked_at_seal": "ck:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
-          "seal_ref": "ck:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "revoked_at_seal": "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "seal_ref_distance_ms": 172800000,
           "expected": {
             "result": "reject_or_hide",
@@ -419,8 +419,8 @@
           "name": "revoked_key_within_freshness_window",
           "key_id": "device-1",
           "key_epoch": 4,
-          "revoked_at_seal": "ck:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
-          "seal_ref": "ck:seal:sha256:2121212121212121212121212121212121212121212121212121212121212121",
+          "revoked_at_seal": "ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "seal_ref": "ak:seal:sha256:2121212121212121212121212121212121212121212121212121212121212121",
           "seal_ref_distance_ms": 3600000,
           "expected": {
             "result": "accept_temporarily",
@@ -431,7 +431,7 @@
           "name": "epoch_not_valid_at_seal_ref",
           "key_id": "device-1",
           "key_epoch": 7,
-          "seal_ref": "ck:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
           "current_did_document_contains_key": true,
           "expected": {
             "result": "failed_precondition",
@@ -445,7 +445,7 @@
       "name": "seal_compaction_interval_enforced",
       "description": "Realm seal_compaction_max_interval_ms is a structural obligation: valid full-coverage compaction enables bootstrap, mismatched coverage rejects, and overdue compaction raises health alarms.",
       "realm": {
-        "id": "ck:realm:019641c6-8000-7000-8000-000000000000",
+        "id": "ak:realm:019641c6-8000-7000-8000-000000000000",
         "notary_type": "open_set",
         "seal_compaction_max_interval_ms": 86400000
       },
@@ -509,7 +509,7 @@
         "signer_id": "did:webvh:z6mkfixture:notary-signer.example"
       },
       "inclusion_list": {
-        "realm_id": "ck:realm:019641c6-8000-7000-8000-000000000000",
+        "realm_id": "ak:realm:019641c6-8000-7000-8000-000000000000",
         "signer_id": "did:webvh:z6mkfixture:notary-signer.example",
         "list_seq": 7,
         "event_digests": [
@@ -573,15 +573,15 @@
       "name": "notary_fault_equivocation_quarantine",
       "description": "Two different Seals signed by the same notary in the same slot authorize public equivocation evidence, quarantine the fork, and reject later Seals from that signer.",
       "fault_pair": {
-        "realm_id": "ck:realm:019641c6-8000-7000-8000-000000000000",
+        "realm_id": "ak:realm:019641c6-8000-7000-8000-000000000000",
         "signer_id": "did:webvh:z6mkfixture:notary.example",
         "notary_seq": 42,
         "seal_a": {
-          "id": "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "id": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "canonical_body_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         },
         "seal_b": {
-          "id": "ck:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "id": "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "canonical_body_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         }
       },
@@ -590,8 +590,8 @@
         "submitter_capability_refs": [],
         "payload": {
           "signer_id": "did:webvh:z6mkfixture:notary.example",
-          "seal_a": "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "seal_b": "ck:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          "seal_a": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "seal_b": "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         }
       },
       "expected": {
@@ -693,21 +693,21 @@
       "name": "open_set_concurrent_revocation_fail_closed",
       "description": "A DataEvent whose seal_ref is locally valid is re-evaluated against the joined multi-leaf control view when a concurrent revocation branch is observed.",
       "notary_profile": "open_set",
-      "seal_ref": "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "joined_leaf_set": [
-        "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "ck:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
       ],
       "data_event": {
-        "id": "ck:event:019641d2-0000-7000-8000-000000000000",
+        "id": "ak:event:019641d2-0000-7000-8000-000000000000",
         "plane": "data",
-        "seal_ref": "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "auth_context": {
           "did": "did:webvh:z6mkfixture:alice.example",
           "key_id": "device-1",
           "key_epoch": 1,
           "capability_refs": [
-            "ck:grant:0196410c-2000-7000-8000-000000000000"
+            "ak:grant:0196410c-2000-7000-8000-000000000000"
           ]
         }
       },
@@ -716,8 +716,8 @@
           "name": "concurrent_revoke_branch",
           "concurrent_control_move": {
             "kind": "ck.capability.revoke",
-            "grant_id": "ck:grant:0196410c-2000-7000-8000-000000000000",
-            "covered_by": "ck:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            "grant_id": "ak:grant:0196410c-2000-7000-8000-000000000000",
+            "covered_by": "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
           },
           "joined_control_view": {
             "capability_grant_live": false,
@@ -756,7 +756,7 @@
     {
       "name": "conflict_recovery_move",
       "description": "A bottom=reject control cell recovers only through a sealed Control Move with recovery_capability and a pre-conflict state_witness.",
-      "cell": "ck:cell:ck.component.realm.policy.v1:ck.realm.019641d2-1000-7000-8000-000000000000",
+      "cell": "ak:cell:ck.component.realm.policy.v1:ck.realm.019641d2-1000-7000-8000-000000000000",
       "pre_conflict_value": {
         "policy_revision": 7
       },
@@ -770,15 +770,15 @@
           {
             "role": "recovery_capability",
             "critical": true,
-            "id": "ck:grant:019641d2-2000-7000-8000-000000000000"
+            "id": "ak:grant:019641d2-2000-7000-8000-000000000000"
           },
           {
             "role": "state_witness",
             "critical": true,
-            "id": "ck:seal:sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            "id": "ak:seal:sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
           }
         ],
-        "sealed_by": "ck:seal:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        "sealed_by": "ak:seal:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
       },
       "cases": [
         {

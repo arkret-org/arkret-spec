@@ -5,30 +5,30 @@
       "name": "request_digest_recompute",
       "vector_id": "ck.vector.policy_server.request_digest_recompute.v1",
       "request_b1": {
-        "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
+        "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
         "actor_id": "did:webvh:z6mkfixture:alice.example.com",
         "action": "ck.message.create",
         "context": {
-          "strand_id": "ck:strand:0196418d-cc00-7000-8000-000000000000",
+          "strand_id": "ak:strand:0196418d-cc00-7000-8000-000000000000",
           "content_class": "text"
         }
       },
       "request_b2": {
-        "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
+        "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
         "actor_id": "did:webvh:z6mkfixture:alice.example.com",
         "action": "ck.message.create",
         "context": {
-          "strand_id": "ck:strand:0196418d-cc00-7000-8000-000000000000",
+          "strand_id": "ak:strand:0196418d-cc00-7000-8000-000000000000",
           "content_class": "attachment"
         }
       },
       "bound_to": {
-        "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
+        "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
         "actor_id": "did:webvh:z6mkfixture:alice.example.com",
         "action": "ck.message.create"
       },
       "cross_context_bound_to": {
-        "realm_id": "ck:realm:0196414c-8000-7000-8000-000000000000",
+        "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
         "actor_id": "did:webvh:z6mkfixture:mallory.example.com",
         "action": "ck.message.create"
       },

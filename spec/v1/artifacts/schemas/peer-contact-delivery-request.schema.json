@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/peer-contact-delivery-request.schema.json",
-  "title": "Cokret Peer Contact Delivery Request",
+  "$id": "https://arkret.org/v1/schemas/peer-contact-delivery-request.schema.json",
+  "title": "Arkret Peer Contact Delivery Request",
   "description": "Private service-to-service request used by an issuer-side Principal Server to deliver a signed contact fact (ck.contact.requested / ck.contact.accepted / ck.contact.rejected / ck.contact.tombstoned) to the target holder's Principal Server. The recipient projects the original signed envelope into the target holder's contact projection (pending_incoming / accepted / rejected / tombstoned); it MUST NOT re-sign the fact as its own. Contact facts are principal-scoped and cross-Realm, so this carrier is the federation delivery path for the contact fact log, separate from invite delivery.",
   "type": "object",
   "required": [

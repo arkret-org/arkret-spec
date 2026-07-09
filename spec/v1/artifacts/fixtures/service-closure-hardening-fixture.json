@@ -23,7 +23,7 @@
         "public_failure_shape_is_not_found_equivalent"
       ],
       "state": {
-        "invite_id": "ck:invite:0196419b-0000-7000-8000-000000001001",
+        "invite_id": "ak:invite:0196419b-0000-7000-8000-000000001001",
         "claim_nonce": "nonce-001",
         "subject_id": "did:webvh:z6mkfixture:alice.example",
         "binding_proof_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -54,7 +54,7 @@
       "reducer_event": {
         "kind": "ck.invite.claim",
         "subject_id": "did:webvh:z6mkfixture:mallory.example",
-        "invite_id": "ck:invite:0196419b-0000-7000-8000-000000001001",
+        "invite_id": "ak:invite:0196419b-0000-7000-8000-000000001001",
         "claim_nonce": "nonce-001",
         "expected": {
           "decision": "reject",
@@ -137,10 +137,10 @@
         {
           "name": "first_page",
           "items": [
-            "ck:space:0196419b-0000-7000-8000-000000002001"
+            "ak:space:0196419b-0000-7000-8000-000000002001"
           ],
           "has_more": true,
-          "next_cursor": "ck:cursor:projection-page-1",
+          "next_cursor": "ak:cursor:projection-page-1",
           "cursor_binding": {
             "caller": "did:webvh:z6mkfixture:alice.example",
             "selector_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
@@ -153,7 +153,7 @@
         {
           "name": "last_page",
           "items": [
-            "ck:space:0196419b-0000-7000-8000-000000002002"
+            "ak:space:0196419b-0000-7000-8000-000000002002"
           ],
           "has_more": false,
           "expected": {
@@ -163,7 +163,7 @@
         {
           "name": "missing_has_more",
           "items": [],
-          "next_cursor": "ck:cursor:projection-page-2",
+          "next_cursor": "ak:cursor:projection-page-2",
           "expected": {
             "decision": "reject",
             "reason": "invalid_response"
@@ -183,7 +183,7 @@
           "name": "cross_caller_cursor_reuse",
           "items": [],
           "has_more": true,
-          "next_cursor": "ck:cursor:projection-page-3",
+          "next_cursor": "ak:cursor:projection-page-3",
           "cursor_binding": {
             "caller": "did:webvh:z6mkfixture:mallory.example",
             "selector_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
@@ -209,14 +209,14 @@
           "witnesses": [
             {
               "witness_id": "did:webvh:z6mkfixture:witness-a.example",
-              "realm_id": "ck:realm:0196419b-0000-7000-8000-000000003001",
+              "realm_id": "ak:realm:0196419b-0000-7000-8000-000000003001",
               "actor_id": "did:webvh:z6mkfixture:alice.example",
               "actor_seq": 7,
               "event_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
             },
             {
               "witness_id": "did:webvh:z6mkfixture:witness-b.example",
-              "realm_id": "ck:realm:0196419b-0000-7000-8000-000000003001",
+              "realm_id": "ak:realm:0196419b-0000-7000-8000-000000003001",
               "actor_id": "did:webvh:z6mkfixture:alice.example",
               "actor_seq": 7,
               "event_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
@@ -271,7 +271,7 @@
       "steps": [
         {
           "name": "replay_revoked_cursor",
-          "cursor": "ck:cursor:stream-001",
+          "cursor": "ak:cursor:stream-001",
           "integrity_valid": true,
           "revoked": true,
           "expected": {
@@ -282,7 +282,7 @@
         },
         {
           "name": "tampered_unrevoked_cursor",
-          "cursor": "ck:cursor:stream-001-tampered",
+          "cursor": "ak:cursor:stream-001-tampered",
           "integrity_valid": false,
           "revoked": false,
           "expected": {
@@ -342,8 +342,8 @@
         "client_without_frontier_fails_closed_before_minting_seal_basis"
       ],
       "revocation": {
-        "device_id": "ck:device:0196419b-0000-7000-8000-000000004001",
-        "sealed_by": "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "device_id": "ak:device:0196419b-0000-7000-8000-000000004001",
+        "sealed_by": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "control_event_set_root": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
       },
       "steps": [
@@ -354,7 +354,7 @@
             "keypackage_publish",
             "to_device_write"
           ],
-          "operation_seal_view": "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "operation_seal_view": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "expected": {
             "decision": "reject",
             "reason": "actor_signature_revoked"

@@ -12,7 +12,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-本文为 Cokret 协作图中**通过扩展 profile 接入的对象类型**提供模型层入口：
+本文为 Arkret 协作图中**通过扩展 profile 接入的对象类型**提供模型层入口：
 
 - **Applet**（`ck:applet:`）：bot / bridge / portal / 集成服务（extension profile，非 v1 core 互操作必需）。
 - **Agent**：A2A / ACP / 外部 agent 协议互通运行时。
@@ -32,11 +32,11 @@ Applet 是受注册、受授权、可审计的集成服务。它可以：
 - 桥接外部网络（IRC / Slack / Discord / GitHub 等）
 - 创建和管理 Ghost Actor
 - 管理 portal realm
-- 接收 Cokret 事件交易
-- 把外部事件转换为 Cokret event
+- 接收 Arkret 事件交易
+- 把外部事件转换为 Arkret event
 - 在获得明确授权时以受托 agent / device 方式执行操作
 
-> **状态：extension profile**。Cokret v1 core 互操作 **不要求** 实现 Applet profile；声称 v1 core 的实现可以完全不接 Applet，仅通过 capability + actor 模型表达 bot / bridge / agent。`ck.profile.applet_service.v1` 视为可选 extension（见 `artifacts/profiles/conformance-profiles.json` 的 `profile_tiers.extension_profile_implementation`）。
+> **状态：extension profile**。Arkret v1 core 互操作 **不要求** 实现 Applet profile；声称 v1 core 的实现可以完全不接 Applet，仅通过 capability + actor 模型表达 bot / bridge / agent。`ck.profile.applet_service.v1` 视为可选 extension（见 `artifacts/profiles/conformance-profiles.json` 的 `profile_tiers.extension_profile_implementation`）。
 
 ### 2.2 关键对象
 
@@ -45,8 +45,8 @@ Applet 是受注册、受授权、可审计的集成服务。它可以：
 - **Applet Service**：运行集成逻辑的服务端进程（独立 service DID）。
 - **Applet Controller**：管理该 Applet 的主体（组织、开发者、企业管理员）。
 - **Bot Actor**：Applet 的主要可见 Actor，可以加入 Realm、被 mention、发送消息或执行自动化。
-- **Ghost Actor**：外部网络用户在 Cokret 中的镜像 Actor；MUST 带有 `accountable_principal_ids` 指向 Applet controller，并用 `profile_fields.external_ref` 记录外部网络来源；MUST NOT 伪装成人类 DID。
-- **Portal Realm**：外部网络 location 在 Cokret 中的镜像 Realm。
+- **Ghost Actor**：外部网络用户在 Arkret 中的镜像 Actor；MUST 带有 `accountable_principal_ids` 指向 Applet controller，并用 `profile_fields.external_ref` 记录外部网络来源；MUST NOT 伪装成人类 DID。
+- **Portal Realm**：外部网络 location 在 Arkret 中的镜像 Realm。
 
 ### 2.3 行为约束
 
@@ -67,7 +67,7 @@ Applet 是受注册、受授权、可审计的集成服务。它可以：
 
 ### 3.1 概念
 
-Agent 是 Cokret 协作图中以 **A2A** / **ACP** 等外部 agent 协议进行任务编排的可委派运行时。它可以：
+Agent 是 Arkret 协作图中以 **A2A** / **ACP** 等外部 agent 协议进行任务编排的可委派运行时。它可以：
 
 - 在 Realm 内以独立 Actor 身份执行受托动作。
 - 接收外部 agent 协议事件并把结果落点到 Strand / Message / Morph。
@@ -91,7 +91,7 @@ Agent 的对象身份与 Applet 类似（独立 DID 或受托 device DID），�
 
 ### 4.1 概念
 
-Blob 是 Cokret 中由 **Blob Store** 管理的内容寻址数据：图片、视频、文件、音频、缩略图等。Blob 是协议中的**内容层对象**，**不参与协作图归约**——它的生命周期、加密、缩略图、权限、保留策略由 media / blob 子系统单独管理。
+Blob 是 Arkret 中由 **Blob Store** 管理的内容寻址数据：图片、视频、文件、音频、缩略图等。Blob 是协议中的**内容层对象**，**不参与协作图归约**——它的生命周期、加密、缩略图、权限、保留策略由 media / blob 子系统单独管理。
 
 Blob 在协作图中通过 typed blob ref 引用——内容寻址引用使用 `ck:blob:sha256:...`（即 `sha256:<hex>`，digest-suite 见 [`common-fields.md` §2](./common-fields.md)），metadata row 引用使用 `ck:blob:<uuid>`：
 

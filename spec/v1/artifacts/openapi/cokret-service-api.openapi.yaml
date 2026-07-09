@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
-  title: Cokret Service API
+  title: Arkret Service API
   version: 1.0.0
-  summary: Canonical Cokret service surface and admin/account bindings
+  summary: Canonical Arkret service surface and admin/account bindings
   description: 'Authoritative source for operations and error codes is the contract catalog at
 
     `artifacts/registry/contract-catalog.json` and the error registry at
@@ -104,7 +104,7 @@ info:
 
     Versioning is NOT expressed in the path. The protocol version is negotiated via
 
-    `*.describe` / `supported_operations` (and optionally a `Cokret-Protocol-Version`
+    `*.describe` / `supported_operations` (and optionally a `Arkret-Protocol-Version`
 
     request/response header); schema ids carry their own `.v1` suffix. The
 
@@ -234,7 +234,7 @@ components:
         Reserved for deployment-controlled internal channels (sovereign /
         enclave operator surfaces). Not used by any registered v1 operation
         in this OpenAPI document; deployments MAY require it on product-local
-        management APIs outside the Cokret protocol namespace.
+        management APIs outside the Arkret protocol namespace.
   headers:
     XCokretRequestId:
       description: Stable request identifier.
@@ -272,7 +272,7 @@ components:
     AccountId:
       type: string
       pattern: ^[A-Za-z0-9._:-]{1,128}$
-      description: Deployment-local account identifier. It is not a Cokret principal DID and not a protocol object typed ID.
+      description: Deployment-local account identifier. It is not a Arkret principal DID and not a protocol object typed ID.
     AccountLogoutOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutOutcome
     AccountLogoutRequestBody:
@@ -296,7 +296,7 @@ components:
     ActorDid:
       type: string
       pattern: ^did:[a-z0-9]+:[^\s#?]+$
-      description: Bare DID used as a Cokret actor/principal identifier. DID URL fragments belong in verification_method, not actor_id/principal_id.
+      description: Bare DID used as a Arkret actor/principal identifier. DID URL fragments belong in verification_method, not actor_id/principal_id.
     ActorProfile:
       $ref: ../schemas/actor-profile.schema.json
     AgentDeactivateRequestBody:
@@ -1567,7 +1567,7 @@ components:
           minLength: 1
         reducer_profile_digest:
           type: string
-          description: SHA-256 over the Cokret canonical JSON bytes of the matching digest_input object in artifacts/registry/reducer-profile-registry.json. Receivers recompute from their effective Realm reducer profile and reject the whole federation batch with reducer_profile_mismatch on mismatch.
+          description: SHA-256 over the Arkret canonical JSON bytes of the matching digest_input object in artifacts/registry/reducer-profile-registry.json. Receivers recompute from their effective Realm reducer profile and reject the whole federation batch with reducer_profile_mismatch on mismatch.
           pattern: ^sha256:[0-9a-f]{64}$
       additionalProperties: false
     FieldFilter:
@@ -2388,7 +2388,7 @@ components:
             Authentication and account-session discovery metadata. Principal
             Server describe responses MUST include account_authority and
             methods[]. Methods describe standard authentication providers and
-            proof kinds only; all Cokret /_cokret/gate/account/* routing is
+            proof kinds only; all Arkret /_cokret/gate/account/* routing is
             derived from account_authority.gate_account_base.
           additionalProperties: true
           properties:
@@ -2701,7 +2701,7 @@ components:
           type: array
           description: |
             External-interop surfaces this service exposes outside its
-            claimed Cokret v1 conformance.
+            claimed Arkret v1 conformance.
             `kind` is one of `matrix_passthrough`, `mimi_passthrough`,
             `external_interop`.
           items:
@@ -3357,7 +3357,7 @@ paths:
           headers:
             Idempotency-Key:
               $ref: '#/components/headers/IdempotencyKey'
-            X-Cokret-Request-Id:
+            X-Arkret-Request-Id:
               $ref: '#/components/headers/XCokretRequestId'
           content:
             application/json:
@@ -3365,7 +3365,7 @@ paths:
                 $ref: '#/components/schemas/EventsSubmitOutcome'
     get:
       operationId: ck.self.events.query.scan
-      x-cokret-required-any-of:
+      x-arkret-required-any-of:
       - - realms
       - - actors
       security:
@@ -3521,7 +3521,7 @@ paths:
   /_cokret/self/events/subscribe:
     get:
       operationId: ck.self.events.stream.subscribe
-      x-cokret-required-any-of:
+      x-arkret-required-any-of:
       - - realms
       - - actors
       security:
@@ -3645,7 +3645,7 @@ paths:
   /_cokret/self/events/frontier:
     get:
       operationId: ck.self.events.query.frontier
-      x-cokret-required-any-of:
+      x-arkret-required-any-of:
       - - actor_id
       - - realm_id
       security:
@@ -3726,7 +3726,7 @@ paths:
                 $ref: '#/components/schemas/EventsSubmitOutcome'
     get:
       operationId: ck.peer.events.query.scan
-      x-cokret-required-any-of:
+      x-arkret-required-any-of:
       - - realms
       - - actors
       security:
@@ -3987,7 +3987,7 @@ paths:
       operationId: ck.self.call.media.exchange.issue_token
       security:
       - bearerAuth: []
-      summary: Exchange Cokret capability proof for a backend media token.
+      summary: Exchange Arkret capability proof for a backend media token.
       description: |
         Media service token exchange operation (CKP-0010,
         zh/crypto-media/media-service-binding.md §3). Issues a short-lived
@@ -3995,7 +3995,7 @@ paths:
         joining a focus declared in `ck.realm.media_service.foci[]`.
 
         Same wire across all backend types (livekit / mediasoup / janus /
-        cokret-native); only `backend_token` shape is type-specific and opaque
+        arkret-native); only `backend_token` shape is type-specific and opaque
         to the protocol layer (parsed by backend SDK only).
 
         Token issuer MUST be one of the Realm-authorized media service DIDs;
@@ -4091,7 +4091,7 @@ paths:
         not this read-only streaming subscription.
       parameters:
       - in: header
-        name: X-Cokret-Wait-For
+        name: X-Arkret-Wait-For
         required: false
         description: Barrier cursor (purpose=barrier) returned from a prior write. Server holds the first delta frame until the local frontier covers target.event_id, or emits an error frame (timeout / stale_frontier / temporarily_unavailable).
         schema:
@@ -4151,7 +4151,7 @@ paths:
         profile_fields.<key>. Personal bio text is represented by
         profile_fields.bio.
 
-        The Cokret protocol path rejects avatar_url and any handle, lifecycle,
+        The Arkret protocol path rejects avatar_url and any handle, lifecycle,
         principal, actor_kind, accountability, authorization, or handle-claim
         path. Avatar images use avatar_blob_ref.
       responses:
@@ -4948,7 +4948,7 @@ paths:
         '200':
           description: Blob accepted
           headers:
-            X-Cokret-Request-Id:
+            X-Arkret-Request-Id:
               $ref: '#/components/headers/XCokretRequestId'
           content:
             application/json:
@@ -5434,7 +5434,7 @@ paths:
       operationId: ck.self.keys.backups.command.unlock
       security:
       - bearerAuth: []
-      x-cokret-auth:
+      x-arkret-auth:
         public_metadata: false
         proof_in_body: true
         proof_field: proof
@@ -5511,7 +5511,7 @@ paths:
     post:
       operationId: ck.open.invite_locator.query.resolve
       security: []
-      x-cokret-auth:
+      x-arkret-auth:
         public_metadata: false
         proof_in_body: true
       summary: Resolve an online invite locator token.
@@ -5537,7 +5537,7 @@ paths:
     post:
       operationId: ck.open.agent_pairing.query.resolve
       security: []
-      x-cokret-auth:
+      x-arkret-auth:
         public_metadata: false
         proof_in_body: true
       summary: Resolve a short-lived agent pairing token.
@@ -5563,7 +5563,7 @@ paths:
     post:
       operationId: ck.open.agent_pairing.command.submit_runtime_key_request
       security: []
-      x-cokret-auth:
+      x-arkret-auth:
         public_metadata: false
         proof_in_body: true
       summary: Submit an agent runtime key request for controller approval.
@@ -6176,7 +6176,7 @@ paths:
         sourceServiceDid: []
         destinationServiceDid: []
         contentDigest: []
-      x-cokret-auth:
+      x-arkret-auth:
         service_signature:
           signature_standard: RFC 9421
           per_delivery: true
@@ -7146,7 +7146,7 @@ paths:
     post:
       operationId: ck.gate.account.command.register
       security: []
-      x-cokret-auth:
+      x-arkret-auth:
         public_metadata: false
         proof_in_body: true
         proof_field: proof
@@ -7183,7 +7183,7 @@ paths:
     post:
       operationId: ck.gate.account.command.issue_session_grant
       security: []
-      x-cokret-auth:
+      x-arkret-auth:
         public_metadata: false
         proof_in_body: true
         proof_field: proof
@@ -7351,7 +7351,7 @@ paths:
       security:
       - bearerAuth: []
         dpopProof: []
-      x-cokret-auth:
+      x-arkret-auth:
         public_metadata: false
         holder_proof: true
         notes: Account hard logout MUST present the current ck.session.grant as Authorization bearer and a DPoP proof whose ath binds that grant and whose htm/htu bind POST /_cokret/gate/account/logout.
@@ -7751,7 +7751,7 @@ paths:
     post:
       operationId: ck.gate.account.exchange.complete_oidc
       security: []
-      x-cokret-auth:
+      x-arkret-auth:
         public_metadata: false
         proof_in_body: true
         proof_field: code

@@ -1,4 +1,4 @@
-# Cokret v1 协议变更登记（CHANGELOG）
+# Arkret v1 协议变更登记（CHANGELOG）
 
 > 本文件是「机器可发现的协议演化记录」的人类可读一面。它与
 > `artifacts/migration/{renames,removed-event-kinds,removed-operation-ids,deprecated-profile-ids}.json`

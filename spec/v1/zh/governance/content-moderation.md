@@ -40,7 +40,7 @@ updated: 2026-07-02
 
 ### 2.4 黑名单不是 capability grant
 
-Cokret 的授权核心仍然是 allow-grant + explicit revoke。黑名单、过滤器和风险策略是额外的 deny/quarantine 层：
+Arkret 的授权核心仍然是 allow-grant + explicit revoke。黑名单、过滤器和风险策略是额外的 deny/quarantine 层：
 
 - 没有 capability 时，黑名单不能创建权限。
 - 有 capability 时，Realm / Organization / Service policy MAY deny、quarantine 或 require review。
@@ -117,13 +117,13 @@ POST /_cokret/self/moderation/report
 
 ```json
 {
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "effective_scope": {
     "kind": "circle",
-    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-    "circle_id": "ck:circle:01964200-0000-7000-8000-000000000001"
+    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+    "circle_id": "ak:circle:01964200-0000-7000-8000-000000000001"
   },
-  "target_ref": "ck:message:01964200-0000-7000-8000-000000000002",
+  "target_ref": "ak:message:01964200-0000-7000-8000-000000000002",
   "report_reason_code": "harassment",
   "description": "This message contains targeted personal attacks.",
   "reporter": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com"
@@ -191,15 +191,15 @@ Evidence package MUST 加密给 `effective_scope` 对应 moderator audience。�
 ```json
 {
   "kind": "ck.moderation.franking_proof",
-  "franking_proof_id": "ck:franking_proof:0196425b-0000-7000-8000-000000000000",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-  "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
+  "franking_proof_id": "ak:franking_proof:0196425b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
   "routing_metadata_digest": "sha256:...",
   "ciphertext_digest": "sha256:...",
   "aad_digest": "sha256:...",
   "sender_claim": {
     "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
-    "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+    "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
     "mls_group_id_digest": "sha256:..."
   },
   "received_by": "did:webvh:z5a3yeFnKQFn6ZqPY1Qgv3RrZ:server.acme.example",
@@ -246,7 +246,7 @@ Franking 信任链：
   "version": 1,
   "entries": [
     {
-      "entry_id": "ck:block:019640b3-cc00-7000-8000-000000000000",
+      "entry_id": "ak:block:019640b3-cc00-7000-8000-000000000000",
       "target": {
         "kind": "actor",
         "did": "did:webvh:zGMfBAbnRTYqW4943CVr9Dcii:spammer.example.com"
@@ -342,7 +342,7 @@ Realm MAY 使用 `ck.realm.moderation_policy` state event 声明黑名单、允�
     ],
     "content_filters": [
       {
-        "filter_id": "ck:filter:3655021a-cf20-7000-8000-000000000000",
+        "filter_id": "ak:filter:3655021a-cf20-7000-8000-000000000000",
         "match": {
           "kind": "url_domain",
           "pattern_digest": "sha256:..."
@@ -352,7 +352,7 @@ Realm MAY 使用 `ck.realm.moderation_policy` state event 声明黑名单、允�
     ],
     "appeal": {
       "enabled": true,
-      "endpoint": "ck:strand:56b39410-0000-7000-8000-000000000000"
+      "endpoint": "ak:strand:56b39410-0000-7000-8000-000000000000"
     }
   }
 }
@@ -433,7 +433,7 @@ Realm SHOULD 支持审核队列 (Moderation Queue) 视图，汇集所有举报�
 
 ### 5.5 上诉流程 (Appeal Strand, normative)
 
-上诉是审核闭环的反向通道。被 `ck.moderation.decision` 影响的 target（成员被 ban、消息被 remove、Strand 被锁等）可以走标准 `ck.moderation.appeal.*` 事件链请求复核，无需脱离 Cokret wire。本节定义事件链、状态机与 reducer 强制约束。
+上诉是审核闭环的反向通道。被 `ck.moderation.decision` 影响的 target（成员被 ban、消息被 remove、Strand 被锁等）可以走标准 `ck.moderation.appeal.*` 事件链请求复核，无需脱离 Arkret wire。本节定义事件链、状态机与 reducer 强制约束。
 
 #### 5.5.1 事件链
 
@@ -563,9 +563,9 @@ Organization MAY 为其控制或背书的 Realm 与服务发布组织级审核�
 {
   "kind": "ck.organization.moderation_policy",
   "organization_did": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
-  "policy_id": "ck:org-policy:abuse-v1",
+  "policy_id": "ak:org-policy:abuse-v1",
   "policy_scope": {
-    "realm_ids": ["ck:realm:01964280-0000-7000-8000-000000000000"],
+    "realm_ids": ["ak:realm:01964280-0000-7000-8000-000000000000"],
     "service_dids": [
       "did:webvh:z5a3yeFnKQFn6ZqPY1Qgv3RrZ:server.acme.example",
       "did:webvh:z9hEFwrg1A6sjcDxhuzWJGKhe:policy.acme.example"

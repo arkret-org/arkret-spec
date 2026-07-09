@@ -12,7 +12,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-在 Cokret 网络中，绝大部分数据是跨节点共享的协作对象（Realm、Space、Strand、Message、Morph、Relation、View）。但每个用户（Actor）也有大量的**私有状态**需要在其各个设备之间同步，但不应该对网络中的其他人可见。
+在 Arkret 网络中，绝大部分数据是跨节点共享的协作对象（Realm、Space、Strand、Message、Morph、Relation、View）。但每个用户（Actor）也有大量的**私有状态**需要在其各个设备之间同步，但不应该对网络中的其他人可见。
 
 本规范定义了这些**客户端偏好与账户数据 (Account Data)** 的存储、同步与标准 Schema。
 
@@ -20,7 +20,7 @@ updated: 2026-07-02
 
 ### 2.1 存储在私有 Account Data
 
-由于 Cokret 采用 signed Event 和 per-actor event chain 作为信任根，账户私有数据 SHOULD 作为加密 account data 或 actor-private Event 保存。
+由于 Arkret 采用 signed Event 和 per-actor event chain 作为信任根，账户私有数据 SHOULD 作为加密 account data 或 actor-private Event 保存。
 
 这些私有数据只有用户本人的受信任设备有权限读写。Sync Service 节点仅负责存储加密或不透明的二进制块，并不解析其中的明文。
 
@@ -101,7 +101,7 @@ account data 默认是 holder-private 加密数据，Sync Service 只存不透�
 {
   "images": {
     "party_parrot": {
-      "blob_ref": "ck:blob:sha256:abcd...",
+      "blob_ref": "ak:blob:sha256:abcd...",
       "mime_type": "image/gif"
     }
   }
@@ -118,8 +118,8 @@ account data 默认是 holder-private 加密数据，Sync Service 只存不透�
 {
   "sidebar_collapsed": false,
   "recent_realms": [
-    "ck:realm:01964195-0000-7000-8000-000000000000",
-    "ck:realm:01964195-8000-7000-8000-000000000000"
+    "ak:realm:01964195-0000-7000-8000-000000000000",
+    "ak:realm:01964195-8000-7000-8000-000000000000"
   ],
   "language": "zh-CN"
 }
@@ -138,7 +138,7 @@ account data 默认是 holder-private 加密数据，Sync Service 只存不透�
   "version": 1,
   "entries": [
     {
-      "entry_id": "ck:block:019640b3-cc00-7000-8000-000000000000",
+      "entry_id": "ak:block:019640b3-cc00-7000-8000-000000000000",
       "target": {
         "kind": "actor",
         "did": "did:webvh:zGMfBAbnRTYqW4943CVr9Dcii:spammer.example.com"
@@ -247,7 +247,7 @@ account data 默认是 holder-private 加密数据，Sync Service 只存不透�
   "version": 1,
   "subject": {
     "kind": "realm",
-    "id": "ck:realm:0196419b-0000-7000-8000-000000000000"
+    "id": "ak:realm:0196419b-0000-7000-8000-000000000000"
   },
   "local_name": "Acme 内部 · 工程",
   "note": "和外包侧 Engineering Realm 同名，注意区分",
@@ -301,12 +301,12 @@ account data 默认是 holder-private 加密数据，Sync Service 只存不透�
     "display": true
   },
   "realms": {
-    "ck:realm:0196419b-0000-7000-8000-000000000000": {
+    "ak:realm:0196419b-0000-7000-8000-000000000000": {
       "send": false
     }
   },
   "strands": {
-    "ck:strand:01964200-0000-7000-8000-000000000001": {
+    "ak:strand:01964200-0000-7000-8000-000000000001": {
       "send": true
     }
   }

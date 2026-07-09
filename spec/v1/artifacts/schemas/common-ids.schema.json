@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/common-ids.schema.json",
-  "title": "Cokret Common ID and Reference Definitions",
+  "$id": "https://arkret.org/v1/schemas/common-ids.schema.json",
+  "title": "Arkret Common ID and Reference Definitions",
   "description": "Shared ID and reference pattern $defs referenced cross-file by multiple object schemas so a single form change propagates without inline drift. Defs-only: not an object or event schema. See zh/models/common-fields.md and artifacts/registry/id-kind-registry.json for the authoritative ID kind registry.",
   "$defs": {
     "realm_id": {

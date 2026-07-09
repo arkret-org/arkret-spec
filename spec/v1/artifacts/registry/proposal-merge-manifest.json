@@ -166,7 +166,7 @@
             "artifacts/registry/contract-catalog.json",
             "artifacts/registry/error-code-registry.json",
             "artifacts/registry/operations-error-mapping.json",
-            "artifacts/openapi/cokret-service-api.openapi.yaml",
+            "artifacts/openapi/arkret-service-api.openapi.yaml",
             "artifacts/bindings/non-http-bindings.yaml"
           ]
         }
@@ -203,7 +203,7 @@
             "artifacts/registry/contract-catalog.json",
             "artifacts/registry/error-code-registry.json",
             "artifacts/registry/operations-error-mapping.json",
-            "artifacts/openapi/cokret-service-api.openapi.yaml",
+            "artifacts/openapi/arkret-service-api.openapi.yaml",
             "artifacts/bindings/non-http-bindings.yaml"
           ]
         }
@@ -232,7 +232,7 @@
             "artifacts/schemas/service-operation-dtos.schema.json",
             "artifacts/registry/contract-catalog.json",
             "artifacts/registry/operations-error-mapping.json",
-            "artifacts/openapi/cokret-service-api.openapi.yaml"
+            "artifacts/openapi/arkret-service-api.openapi.yaml"
           ]
         }
       ]

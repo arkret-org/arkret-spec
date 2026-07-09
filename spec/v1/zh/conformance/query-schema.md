@@ -10,28 +10,28 @@ updated: 2026-07-02
 
 本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [normative-language.md](./normative-language.md) 解释；仅大写形式具规范约束力。
 
-> **Wire schema canonical source（informative）**: query / projection 请求体（`query_request`）与 search 请求体（`search_request`）的 wire-level canonical schema 已抽出为独立 JSON Schema [`../../artifacts/schemas/query.schema.json`](../../artifacts/schemas/query.schema.json)（schema id `ck.schema.query.v1`，含 `query_filter` / `field_filter` / `boolean_filter` / `sort_spec` / `relation_query` 等可复用 `$defs`）；[`../../artifacts/openapi/cokret-service-api.openapi.yaml`](../../artifacts/openapi/cokret-service-api.openapi.yaml) 的 `QueryRequestBody` / `SearchRequestBody` / `QueryFilter` / `FieldFilter` / `BooleanFilter` / `SortSpec` / `RelationQuery` 组件均 `$ref` 该文件，故为单一真源。本文为人类可读的语义注释与字段说明，**不**作为 wire validator 的真源；字段（`realm_ids` / `projection` enum / `cursor` / `limit` / `wait_for` / `op` / `direction` 等）以 `query.schema.json` 为准。
+> **Wire schema canonical source（informative）**: query / projection 请求体（`query_request`）与 search 请求体（`search_request`）的 wire-level canonical schema 已抽出为独立 JSON Schema [`../../artifacts/schemas/query.schema.json`](../../artifacts/schemas/query.schema.json)（schema id `ck.schema.query.v1`，含 `query_filter` / `field_filter` / `boolean_filter` / `sort_spec` / `relation_query` 等可复用 `$defs`）；[`../../artifacts/openapi/arkret-service-api.openapi.yaml`](../../artifacts/openapi/arkret-service-api.openapi.yaml) 的 `QueryRequestBody` / `SearchRequestBody` / `QueryFilter` / `FieldFilter` / `BooleanFilter` / `SortSpec` / `RelationQuery` 组件均 `$ref` 该文件，故为单一真源。本文为人类可读的语义注释与字段说明，**不**作为 wire validator 的真源；字段（`realm_ids` / `projection` enum / `cursor` / `limit` / `wait_for` / `op` / `direction` 等）以 `query.schema.json` 为准。
 
 ## 1. 目标
 
-本文定义 Cokret View projection、客户端本地搜索、inbox 和可选受托 search / projection 扩展可复用的标准查询形状。该形状不是必需的远端索引 API；实现是否提供搜索、如何维护本地索引、是否暴露网络查询接口，均由客户端或扩展 profile 决定。任何查询执行都必须可序列化、可验证、可分页，并且不能绕过 Realm policy、`allowed_tracks` action scope、E2EE 可见性与 capability。
+本文定义 Arkret View projection、客户端本地搜索、inbox 和可选受托 search / projection 扩展可复用的标准查询形状。该形状不是必需的远端索引 API；实现是否提供搜索、如何维护本地索引、是否暴露网络查询接口，均由客户端或扩展 profile 决定。任何查询执行都必须可序列化、可验证、可分页，并且不能绕过 Realm policy、`allowed_tracks` action scope、E2EE 可见性与 capability。
 
 ## 2. Query 对象
 
 ```json
 {
-  "realm_ids": ["ck:realm:0196419b-0000-7000-8000-000000000000"],
+  "realm_ids": ["ak:realm:0196419b-0000-7000-8000-000000000000"],
   "object_types": ["strand", "message", "morph"],
   "morph_types": ["customer_case"],
   "facets": ["assignable"],
-  "context_ref": "ck:strand:019640c5-61a0-7000-8000-000000000000",
+  "context_ref": "ak:strand:019640c5-61a0-7000-8000-000000000000",
   "filters": [],
   "relation": null,
   "order_by": [],
   "projection": [],
   "cursor": null,
   "limit": 50,
-  "wait_for": "ck:cursor:..."
+  "wait_for": "ak:cursor:..."
 }
 ```
 
@@ -166,21 +166,21 @@ Projection 只减少返回字段，不提升权限。
 ```json
 {
   "items": [],
-  "next_cursor": "ck:cursor:...",
+  "next_cursor": "ak:cursor:...",
   "has_more": true,
   "basis": {
-    "seal_ref": "ck:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
     "key_view_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
     "grade": "observed"
   },
   "frontier": {
-    "barrier_cursor": "ck:cursor:...",
+    "barrier_cursor": "ak:cursor:...",
     "max_hlc": "01970e589d21-0004-a13f9c2e"
   }
 }
 ```
 
-`barrier_cursor` 是 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 中 `purpose=barrier` 的 cursor，可作为后续读接口的 `X-Cokret-Wait-For` 来等待 frontier 覆盖目标 event。
+`barrier_cursor` 是 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 中 `purpose=barrier` 的 cursor，可作为后续读接口的 `X-Arkret-Wait-For` 来等待 frontier 覆盖目标 event。
 
 `basis` 是 REQUIRED。`grade` 的合法值与语义如下：
 

@@ -16,14 +16,14 @@ sidebar:
 
 去中心化协作协议面临着复杂的隐私与合规矛盾：一方面，商业数据和私密频道必须提供不可被 Sync Service 或未授权受托服务窃听的端到端加密 (E2EE)；另一方面，在特定组织边界内，数据流又需要受到法律或合规层面的安全审查。
 
-本规范定义了 Cokret 官方推荐的加密标准，旨在实现：
+本规范定义了 Arkret 官方推荐的加密标准，旨在实现：
 - 基于 **MLS (RFC 9420)** 的高效大规模协作加密
 - 强前向安全 (Forward Secrecy) 与后向安全 (Post-Compromise Security)——此为默认 `mls-rfc9420` 内容 scheme 的属性；启用 §2.10 `mls-exporter-aead-v1` 且保留 per-epoch `history_secret` 的 Realm，其 FS / PCS 在被保留 epoch 上按 §2.10.5 退化为限定形态（per-epoch FS、PCS 仅对未被保留的 epoch 成立）
 - **可审查加密 (Auditable E2EE)**，在 TEE / HSM / 等价受控执行 profile 下把合规解密绑定到可验证审计记录；在 software-only profile 下提供透明审计流程，但不声称具备同等密码学强制力。
 
-## 2. 基础加密架构：MLS 与 Cokret 的融合
+## 2. 基础加密架构：MLS 与 Arkret 的融合
 
-Cokret 采用 [RFC 9420 - Message Layer Security (MLS)](https://datatracker.ietf.org/doc/html/rfc9420) 作为官方的群组加密标准。
+Arkret 采用 [RFC 9420 - Message Layer Security (MLS)](https://datatracker.ietf.org/doc/html/rfc9420) 作为官方的群组加密标准。
 不推荐使用传统的 Double Ratchet（双棘轮），因为在包含数十到数百名成员的 discussion track 或大型协作 Realm 中，双棘轮会导致巨大的性能开销与并发处理难题。
 
 ### 2.1 KeyPackage 与服务发现
@@ -32,7 +32,7 @@ Cokret 采用 [RFC 9420 - Message Layer Security (MLS)](https://datatracker.ietf
 - **生命周期验证**：其他客户端在拉取 `KeyPackage` 时，MUST 通过 Actor 的 DID Document 与 Event history 验证该包的公钥签名，确保未被身份盗用。
 
 ### 2.2 握手与组成员管理 (Welcome, Commit)
-MLS 维护了一颗成员密钥树 (Ratchet Tree)。在 Cokret 中，群组的密钥状态变动不依赖于独立的中心化分发服务器，而是映射到原生的 `Realm` 与 Event 模型中：
+MLS 维护了一颗成员密钥树 (Ratchet Tree)。在 Arkret 中，群组的密钥状态变动不依赖于独立的中心化分发服务器，而是映射到原生的 `Realm` 与 Event 模型中：
 
 ```mermaid
 sequenceDiagram
@@ -58,11 +58,11 @@ sequenceDiagram
 - **`ck.mls.commit`**：当拥有权限的 Admin 邀请新成员加入或移除成员时，客户端计算 MLS 的 `Commit` 消息。该 `Commit` 必须作为 `ck.mls.commit` 类型的 Event 提交至 Realm Event history。它作为不可篡改的账本，确保全网节点对群组密钥状态树的演进达成一致。
 - **`Welcome` 分发**：新成员会收到由 Admin 构造的 `Welcome` 消息。Welcome MUST 通过 durable `ck.mls.welcome` Event、durable encrypted pointer 或等价可 backfill 记录交付，直到被消费、撤销或过期。Sync Service 的 Ephemeral Channel 只能作为通知和加速通道，不得是唯一交付路径；否则离线设备、跨域 backfill 和恢复流程无法验证加入历史。
 
-**Welcome 大小侧信道（acknowledged side channel）**：MLS Welcome / GroupInfo 的 ciphertext 长度会与 leaf 数量、ratchet tree 形态、path secret 数量和近期 churn 有相关性。Cokret v1 不声称第三方观察者无法从 Welcome 大小推断粗粒度成员变化。高隐私 Realm SHOULD 声明 `ck.profile.traffic_metadata_hardened.v1`；声明后 Welcome / GroupInfo blob MUST 使用该 profile 声明的 padding bucket（默认 4KiB / 16KiB / 64KiB）并批量投递 welcome pointer。实现不得在 minimal-metadata 或 high-confidentiality 文案中承诺“成员变化不可由消息大小观察”，除非已声明并通过该 profile 的 padding 策略测试。
+**Welcome 大小侧信道（acknowledged side channel）**：MLS Welcome / GroupInfo 的 ciphertext 长度会与 leaf 数量、ratchet tree 形态、path secret 数量和近期 churn 有相关性。Arkret v1 不声称第三方观察者无法从 Welcome 大小推断粗粒度成员变化。高隐私 Realm SHOULD 声明 `ck.profile.traffic_metadata_hardened.v1`；声明后 Welcome / GroupInfo blob MUST 使用该 profile 声明的 padding bucket（默认 4KiB / 16KiB / 64KiB）并批量投递 welcome pointer。实现不得在 minimal-metadata 或 high-confidentiality 文案中承诺“成员变化不可由消息大小观察”，除非已声明并通过该 profile 的 padding 策略测试。
 
 #### 2.2.1 MLS Group Admin 推导
 
-MLS group admin 不是“第一个发 Welcome 的客户端”或“track 的第一个成员”。Cokret v1 按当前 accepted auth state 确定管理集合：
+MLS group admin 不是“第一个发 Welcome 的客户端”或“track 的第一个成员”。Arkret v1 按当前 accepted auth state 确定管理集合：
 
 - Realm-scoped MLS group 的默认 admin set 来自 `ck.realm.create.payload.object.initial_creators` / `created_by`，以及当前有效的 `ck.realm.admin`、`ck.mls.commit`、`ck.mls.welcome` 或 Realm policy 声明的等价 E2EE admin capability。
 - Realm 内的 [Circle](../models/circle.md)（`Strand.scope_circle_id` 指向的子事件边界）只有在 `encryption_profile=mls_rfc9420` 时才拥有 Circle MLS group；其 MLS group admin set 由该 Circle 的 `ck.circle.create` / `ck.circle.member.state` / `ck.mls.commit` / `ck.mls.welcome` 等事件按 Circle 自身的 capability 与 membership 体系收敛，与 Realm-default MLS group admin set 独立；Circle key MUST NOT 从 Realm-default key 派生。
@@ -116,13 +116,13 @@ Realm policy MUST 通过 `ck.realm.policy_components.metadata_encryption_floor` 
     "ciphertext": "base64url",
     "aad_visibility_event_id": "routing_digest",
     "aad": {
-      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
       "event_kind": "ck.message.create",
       "event_ref_digest": "sha256:..."
     },
     "key_ref": {
       "algorithm": "MLS",
-      "group_state_ref": "ck:event:01964148-0000-7000-8000-000000000000"
+      "group_state_ref": "ak:event:01964148-0000-7000-8000-000000000000"
     },
     "payload_digest": "sha256:...",
     "aad_digest": "sha256:..."
@@ -171,10 +171,10 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 
 ```json
 {
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "event_kind": "ck.message.create",
   "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-  "causal_refs": ["ck:event:019640ed-0000-7000-8000-000000000000"]
+  "causal_refs": ["ak:event:019640ed-0000-7000-8000-000000000000"]
 }
 ```
 
@@ -201,13 +201,13 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
   "content_type": "application/json",
   "aad_visibility_event_id": "routing_digest",
   "aad": {
-    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
     "event_kind": "ck.message.create",
     "event_ref_digest": "sha256:..."
   },
   "key_ref": {
     "algorithm": "MLS",
-    "group_state_ref": "ck:event:01964148-0000-7000-8000-000000000000"
+    "group_state_ref": "ak:event:01964148-0000-7000-8000-000000000000"
   }
 }
 ```
@@ -216,7 +216,7 @@ AAD 在计算 `aad_digest` 前必须序列化为规范 JSON：
 4. `encrypted_payload_bytes = base64url_decode(ciphertext)`。v1 `mls-rfc9420` scheme 下 envelope MUST NOT 携带 `authentication_tag`（见 §2.3.1），故该步骤不追加 tag,`payload_digest` 输入无歧义。
 5. `payload_digest = "sha256:" + sha256(payload_metadata_bytes || encrypted_payload_bytes)`。
 
-`mls-rfc9420` profile 中，MLS PrivateMessage 本身还必须把 `aad_bytes` 作为 MLS authenticated data 或 profile 声明的等价 authenticated input；`payload_digest` 是 Cokret envelope 的外层完整性检查，不替代 MLS AEAD。
+`mls-rfc9420` profile 中，MLS PrivateMessage 本身还必须把 `aad_bytes` 作为 MLS authenticated data 或 profile 声明的等价 authenticated input；`payload_digest` 是 Arkret envelope 的外层完整性检查，不替代 MLS AEAD。
 
 #### 2.3.4 解密错误处理
 
@@ -300,7 +300,7 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 - Realm / reducer profile MUST 声明 `max_mls_commit_delay_ms`，**默认 30,000 ms**；profile MAY 覆盖（交互式 profile SHOULD be no greater than 30,000 ms，高延迟 / 批量 profile MAY 声明更大值）。客户端在 commit 滞后超过该 effective 值后 MUST 将该 scope 降级为 read-only / send blocked，服务端 SHOULD 返回 `epoch_update_required` 或 `temporarily_unavailable`。
 - 网络分区期间可以继续 backfill 旧 epoch 历史，但不得把旧 epoch 下的新消息展示为已满足最新 membership policy 的消息。
 
-该窗口规则不改变 MLS Proposal / Commit 两阶段语义；它只定义 Cokret 在 state 已变化但 epoch 尚未收敛时的 UI、发送和解密处理。
+该窗口规则不改变 MLS Proposal / Commit 两阶段语义；它只定义 Arkret 在 state 已变化但 epoch 尚未收敛时的 UI、发送和解密处理。
 
 ### 2.4.2 `ck.profile.e2ee_relaxed.v1`(降级 profile)
 
@@ -339,7 +339,7 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 
 ### 2.5 MLS Governance Binding
 
-**MLS Governance Binding** 是 Cokret v1 把 **MLS epoch 与 governance state（membership / policy / capability / Seal coverage）强绑定** 的机制，相对于 Matrix 把 Olm/Megolm 与 room state 当作两条并行轨而言，它是 v1 的核心新增层。该机制由两个 wire-level artifact 组成，分工固定：
+**MLS Governance Binding** 是 Arkret v1 把 **MLS epoch 与 governance state（membership / policy / capability / Seal coverage）强绑定** 的机制，相对于 Matrix 把 Olm/Megolm 与 room state 当作两条并行轨而言，它是 v1 的核心新增层。该机制由两个 wire-level artifact 组成，分工固定：
 
 | 层 | 名称（wire-level） | 角色 |
 |---|---|---|
@@ -352,7 +352,7 @@ Membership state 与 MLS epoch 推进是异步事件，但可见性规则必须�
 
 ```mermaid
 flowchart TB
-    subgraph GS ["Cokret Governance State (per effective scope: Realm / Circle)"]
+    subgraph GS ["Arkret Governance State (per effective scope: Realm / Circle)"]
         direction TB
         Memb["membership cells"]
         Pol["policy cells (join_rule / history_visibility / plaintext-visible / moderation / lifecycle)"]
@@ -406,15 +406,15 @@ MLS group 的 scope 绑定到 tagged `effective_scope`：`{kind:"realm", realm_i
   "governance_binding": {
     "binding_version": 1,
     "encoding_profile": "cbor-deterministic-rfc8949-v1",
-    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
     "effective_scope": {
       "kind": "realm",
-      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
+      "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
     },
     "mls_group_id": "base64url...",
     "previous_epoch": 41,
     "next_epoch": 42,
-    "membership_frontier": ["ck:event:8ea2dd8c-c436-7b94-9000-000000000000"],
+    "membership_frontier": ["ak:event:8ea2dd8c-c436-7b94-9000-000000000000"],
     "policy_root": "sha256:canonical_state_policy_root",
     "capability_root": "sha256:effective_capability_root",
     "discussion_metadata_digest": "sha256:canonical_discussion_metadata",
@@ -437,7 +437,7 @@ MLS group 的 key scope 由 `effective_scope`（§2.5 开头）唯一决定，**
 - `policy_root` MUST 覆盖本次 Commit 依赖的 policy / join rule / history visibility / history sharing / media service / plaintext-visible service / moderation / lifecycle cell。
 - `capability_root` MUST 覆盖本次 Commit 依赖的 grant / revoke / delegate / derived capability cell。
 - `discussion_metadata_digest` 覆盖成员可见的 discussion 名称、头像、主题、公开标识和 provider/federation 元数据；不应包含只有服务端可见的私有索引状态。
-- 客户端在接受 MLS epoch 前 MUST 独立验证 `governance_binding` 指向的 Cokret Seal view 与 state_root。无法回补 Control Move inclusion proof 或 hash 不匹配时 MUST 标记 epoch 为 `decryption_pending` 或 `state_mismatch`，不得继续用该 epoch 解密新正文。
+- 客户端在接受 MLS epoch 前 MUST 独立验证 `governance_binding` 指向的 Arkret Seal view 与 state_root。无法回补 Control Move inclusion proof 或 hash 不匹配时 MUST 标记 epoch 为 `decryption_pending` 或 `state_mismatch`，不得继续用该 epoch 解密新正文。
 - 并发 Commit 是并发 Control Move。它们只有被 accepted Seal 覆盖，且其 preconditions 在 `seal_basis` 指向的控制面 pre-state 下成立时，才能推进 `mls_epoch_cell`。
 
 #### 2.5.2 Covered Seals Cell (`covered_seals_cell`)
@@ -475,12 +475,12 @@ Control Move 在被 accepted Seal 覆盖前是 pending；进入 `sealed` 后是�
 
 #### 2.5.3 GroupContext Extension 定义
 
-Cokret v1 定义以下 MLS GroupContext extension 绑定形状；codepoint 以 `artifacts/registry/mls-extension-registry.json` 中的 active entry 为准。
+Arkret v1 定义以下 MLS GroupContext extension 绑定形状；codepoint 以 `artifacts/registry/mls-extension-registry.json` 中的 active entry 为准。
 
 | 字段 | 值 |
 |------|-----|
 | ExtensionType（IANA name） | `mls_governance_binding`（与 `artifacts/registry/mls-extension-registry.json` 的 source-of-truth name 一致） |
-| ExtensionType（数值 codepoint） | `0xF1C0` ∈ MLS GroupContext **private-use range `0xF000`–`0xFFFF`**（RFC 9420 §17.6 / IANA MLS registry）。**Cokret v1 wire 形态固定（pinned）为 `0xF1C0`,任何实现 MUST 使用该 codepoint;deployment policy MUST NOT 用其他 codepoint 覆盖该 binding。** `ck.profile.mls_governance_binding.full.v1` MUST 使用 `0xF1C0`。所有 Cokret 私有 MLS 扩展 codepoint 集中登记在 `artifacts/registry/mls-extension-registry.json`。 |
+| ExtensionType（数值 codepoint） | `0xF1C0` ∈ MLS GroupContext **private-use range `0xF000`–`0xFFFF`**（RFC 9420 §17.6 / IANA MLS registry）。**Arkret v1 wire 形态固定（pinned）为 `0xF1C0`,任何实现 MUST 使用该 codepoint;deployment policy MUST NOT 用其他 codepoint 覆盖该 binding。** `ck.profile.mls_governance_binding.full.v1` MUST 使用 `0xF1C0`。所有 Arkret 私有 MLS 扩展 codepoint 集中登记在 `artifacts/registry/mls-extension-registry.json`。 |
 | ExtensionData | `governance_binding` 对象的 CBOR 编码 |
 
 CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)。字段顺序按 lexicographic key 排列；标注为 optional 的字段（如 `capability_root`、`circle_id`、`discussion_metadata_digest`）在不满足出现条件时 **MUST 从 CBOR map 整体省略该 key，MUST NOT 写入 null 占位**——deterministic CBOR 下 null 占位会改变 canonical 字节序，导致不同实现对同一 governance binding 得出不一致编码；lexicographic key 排序只对实际存在（present）的 key 生效。下表中的字段顺序仅为可读性展示，实际 wire 顺序以 present key 的 lexicographic 排序为准：
@@ -511,7 +511,7 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
 | `binding_version` / `encoding_profile` | 否 | **必须**：把 codepoint 之外的 wire version 与 canonical encoding 锁入 signed bytes，使不同实现对同一 governance binding 得出相同 canonical 形态。 |
 | `mls_group_id` | 是（MLS group_id 是 GroupContext 的标准字段） | **保留**：让 binding payload 可离线独立审计——审计员只读取 governance_binding bytes 即可验证它属于哪个 MLS group，无需附带完整 commit envelope 或 GroupContext。 |
 | `next_epoch` / `previous_epoch` | 是（MLS epoch 是 GroupContext 的标准字段） | **保留**：同上，为离线审计提供完整 epoch 上下文；同时让 `covered_seals_cell` reducer 在不访问 MLS 库的情况下也能 join。 |
-| `effective_scope` / `realm_id` / `circle_id` | **否**（Cokret-specific，MLS 不知道 Realm / Circle 概念） | **必须**：`effective_scope` 是把 MLS group 锚定到 Cokret governance state 的核心绑定；Realm-default group 使用 `{kind:"realm", realm_id}`，Circle group 使用 `{kind:"circle", realm_id, circle_id}`。`realm_id` 与可选 `circle_id` 是离线审计冗余字段，MUST 与 `effective_scope` 一致；缺失或不一致会使 governance_binding 可能被错误重绑定到不同 Realm/Circle 的 commit。 |
+| `effective_scope` / `realm_id` / `circle_id` | **否**（Arkret-specific，MLS 不知道 Realm / Circle 概念） | **必须**：`effective_scope` 是把 MLS group 锚定到 Arkret governance state 的核心绑定；Realm-default group 使用 `{kind:"realm", realm_id}`，Circle group 使用 `{kind:"circle", realm_id, circle_id}`。`realm_id` 与可选 `circle_id` 是离线审计冗余字段，MUST 与 `effective_scope` 一致；缺失或不一致会使 governance_binding 可能被错误重绑定到不同 Realm/Circle 的 commit。 |
 | `policy_root` / `capability_root` / `membership_frontier` / `discussion_metadata_digest` | 否 | **必须**：governance state 的核心证据，本规范的根本目的。 |
 | `binding_profile` / `reducer_profile` | 否 | **必须**：profile id 决定接收方如何解释 root hash 与 frontier 集合；不能从 MLS transcript 推导。 |
 
@@ -526,7 +526,7 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
 规则：
 
 - 声明 full binding profile 时，`mls_governance_binding` extension MUST 出现在每次 `ck.mls.commit` 对应的 GroupContext `extensions` 字段中。
-- `confirmed_transcript_hash` 的计算覆盖包含该 extension 的 GroupContext，从而将 Cokret 应用状态绑定到 MLS transcript。
+- `confirmed_transcript_hash` 的计算覆盖包含该 extension 的 GroupContext，从而将 Arkret 应用状态绑定到 MLS transcript。
 - 不能发送或验证该 GroupContext extension 的实现不得声明 `ck.profile.mls_governance_binding.full.v1`，不得参与 MLS-backed federation 互操作下界声明。
 - 接收方在声称 full binding 或 federation MLS 下界的上下文中看不到 `0xF1C0` extension，或看到不同私有 codepoint 时，MUST fail closed：该 commit 不得推进 `mls_epoch_cell` / `covered_seals_cell`，依赖它的 DataEvent 必须保持 `decryption_pending` / `state_mismatch` 或 quarantine。
 - 接收方验证 Commit 时 MUST 解码 `mls_governance_binding` extension 并执行 section 2.5 中的 `governance_binding` 验证规则。
@@ -535,7 +535,7 @@ CBOR 编码 MUST 使用 deterministic canonical encoding (RFC 8949 Section 4.2)�
 
 KeyPackage 不应被建模为可无限次公开拉取的静态材料。E2EE 实现 MUST 将 MLS KeyPackage 作为可声明、可领取、可消费、可撤销的单次使用材料。
 
-> **Cokret 扩展说明**：RFC 9420 Section 10.1 将 KeyPackage 定义为全局单次使用材料（一个 KeyPackage 对应一次 Welcome）。Cokret 的 claim 模型在此基础上增加了 `intended_realm_id` 绑定和 Realm-scoped claim，要求 MLS Delivery Service 跟踪 Realm affinity。这是 Cokret 的有意扩展，理由是：(a) 去中心化环境中没有中心化 Delivery Service 来全局追踪 KeyPackage 消费状态；(b) Realm-scoped claim 使客户端可以控制自己被邀请进入哪些 Realm，而非被动接受任何 Welcome；(c) claim 绑定使审计链可追溯某个 KeyPackage 被哪个 Realm 消费。实现若使用标准 MLS 库（不支持 Realm-scoped claim），MUST 至少在 Cokret 协议层维护 claim 映射表，并在 Welcome 发送/接收时执行 claim 验证。
+> **Arkret 扩展说明**：RFC 9420 Section 10.1 将 KeyPackage 定义为全局单次使用材料（一个 KeyPackage 对应一次 Welcome）。Arkret 的 claim 模型在此基础上增加了 `intended_realm_id` 绑定和 Realm-scoped claim，要求 MLS Delivery Service 跟踪 Realm affinity。这是 Arkret 的有意扩展，理由是：(a) 去中心化环境中没有中心化 Delivery Service 来全局追踪 KeyPackage 消费状态；(b) Realm-scoped claim 使客户端可以控制自己被邀请进入哪些 Realm，而非被动接受任何 Welcome；(c) claim 绑定使审计链可追溯某个 KeyPackage 被哪个 Realm 消费。实现若使用标准 MLS 库（不支持 Realm-scoped claim），MUST 至少在 Arkret 协议层维护 claim 映射表，并在 Welcome 发送/接收时执行 claim 验证。
 
 KeyPackage lifecycle：
 
@@ -550,9 +550,9 @@ published -> claimed -> consumed
 ```json
 {
   "kind": "ck.mls.keypackage",
-  "keypackage_id": "ck:mls:kp:01JS...",
+  "keypackage_id": "ak:mls:kp:01JS...",
   "principal_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
-  "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+  "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "keypackage_ref": "sha256:...",
   "keypackage_digest": "sha256:canonical_keypackage_bytes",
   "cipher_suites": ["MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"],
@@ -619,7 +619,7 @@ KeyPackage `device_signature`(§2.6 上面的字段表)在发布时签名,**早�
 
 §2.6 的默认模型把 KeyPackage 建模为严格单次使用材料：`published -> claimed -> consumed`，"同一 KeyPackage 不得被第二个 Realm / MLS group、第二个 requester 或第二次 Welcome 重复使用"。该纪律带来两个运营缺口：(a) 长期离线设备的预发布 KeyPackage 池耗尽后，该设备**完全不可被邀请 / 加群**，直到下次上线补池；(b) 对端可在 claim 限速预算内逐步 claim 直至抽干池子，制造**定向 DoS**——使目标设备对外不可邀请。
 
-RFC 9420 Section 10 明确承认 last-resort KeyPackage 模式（生产 MLS 部署如 Wire 已采用）。Cokret 采纳该模式为**可选能力**：实现 MAY 在 KeyPackage 池耗尽时提供一个标记 `last_resort=true` 的可复用 KeyPackage 作为回退。该能力**不改变默认 fail-closed 路径**——不支持的实现继续在池空时 claim 失败（见下文协商规则）。
+RFC 9420 Section 10 明确承认 last-resort KeyPackage 模式（生产 MLS 部署如 Wire 已采用）。Arkret 采纳该模式为**可选能力**：实现 MAY 在 KeyPackage 池耗尽时提供一个标记 `last_resort=true` 的可复用 KeyPackage 作为回退。该能力**不改变默认 fail-closed 路径**——不支持的实现继续在池空时 claim 失败（见下文协商规则）。
 
 **前向保密折衷声明（normative）**：last-resort KeyPackage 可被多次消费意味着同一 init/encryption key 被复用于多个 Welcome，**削弱了 Welcome 阶段的前向保密**——在该 KeyPackage 被轮换前，任一被攻破的 last-resort 私钥可解出此前用它封装的全部 Welcome（及其携带的 group secrets 初始注入）。影响范围是经该包加入的每个 group 在对应加入 epoch 及其后续 ratchet 之前可由 Welcome 取得的 application secret / history material；不追溯解密加入前的旧 epoch，但会暴露该加入路径本应由一次性 KeyPackage 隔离的初始历史材料。该折衷是 last-resort 模式的固有代价。实现 MUST 通过下文的强制轮换把弱化限制在一个**有界窗口**内，并 MUST 向启用该能力的部署 / 用户明示此窗口内 Welcome 前向保密被弱化。组建立后的常规消息 ratchet 前向保密不受影响（仅初始 Welcome 注入受影响）。
 
@@ -643,7 +643,7 @@ RFC 9420 Section 10 明确承认 last-resort KeyPackage 模式（生产 MLS 部�
   - `personal_node` profile MAY 放宽该上限（个人设备长期离线场景），但 MUST 向用户披露弱化窗口随之延长。
 - 高保证部署 MUST 禁止 last-resort 回退：`ck.profile.high_security_organization.v1` / `ck.profile.sovereign_deployment.v1` 下的 Realm MUST 通过 profile 禁止 last-resort join（即不声明 `ck.feature.mls_last_resort_keypackage.v1` 或在 Realm profile 中 opt-out），此时该 Realm 的邀请 MUST 走单次包或 fail closed，不接受任何 `last_resort=true` 的包。
 
-**Realm affinity 处理（normative）**：§2.6 的 `intended_realm_id` 是 Realm-scoped claim——普通 KeyPackage 的 claim 绑定单一 `intended_realm_id`。last-resort 包天然要跨多个 Realm 复用，与该绑定存在张力。Cokret 选择**按 Realm 维度的 last-resort 池**而非全局 affinity 豁免：
+**Realm affinity 处理（normative）**：§2.6 的 `intended_realm_id` 是 Realm-scoped claim——普通 KeyPackage 的 claim 绑定单一 `intended_realm_id`。last-resort 包天然要跨多个 Realm 复用，与该绑定存在张力。Arkret 选择**按 Realm 维度的 last-resort 池**而非全局 affinity 豁免：
 
 - 实现 MUST NOT 用单个全局 last-resort 包跨任意 Realm 复用（即不豁免 Realm affinity）；而是 MUST 为每个需要 last-resort 回退的 Realm 维护**Realm-scoped 的 last-resort 池条目**：每个 last-resort `keypackage_claim_record` 仍绑定确定的 `intended_realm_id`，其多次复用**限定在同一 `intended_realm_id` 内**。
 - 因此 last-resort 包的"多次使用"语义是**Realm 内多次**（同一 Realm 的多个 Welcome / 邀请可复用同一 last-resort 包），而非跨 Realm。跨 Realm 的 last-resort 回退 MUST 由各 Realm 各自的 last-resort 池条目分别满足。
@@ -679,9 +679,9 @@ Profile 规则：
   "status": "active",
   "pairwise_did": "did:key:z6Mkpseudonymous",
   "principal_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
-  "device_id": "ck:device:019a6aa0-0000-7000-8000-000000000000",
-  "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
-  "trust_domain": "ck:trust_domain:did.webvh.example",
+  "device_id": "ak:device:019a6aa0-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
+  "trust_domain": "ak:trust_domain:did.webvh.example",
   "mls_group_id": "mls-group-019a7360",
   "mls_leaf_index": 0,
   "mls_epoch": 1,
@@ -753,7 +753,7 @@ Reaction 事件 (`ck.reaction.*`) 的可见性规则：
     ```text
     reaction_routing_hmac_v1 =
         HMAC-SHA256(
-            key   = MLS-Exporter("cokret-reaction-routing-v1", context = realm_id, length = 32),
+            key   = MLS-Exporter("arkret-reaction-routing-v1", context = realm_id, length = 32),
             data  = utf8(canonical_emoji)
         )
     ```
@@ -867,7 +867,7 @@ scheme 选择是 Realm policy 字段 `ck.realm.content_scheme`（[`realm.schema.
 > Audit Applet Binding、release session、RYW receipt 流程、disclosed/attested 区分、forbidden marketing terms
 > 全部由独立的 audited-e2ee profile 文档承载。
 
-Cokret 提供 **"透明留痕审计 (Transparent Audit Trail)"** 机制。审计 applet 是控制面绑定，不是 MLS 成员，也不接收实时 sync fanout；需要访问历史材料时，必须走 active `ck.audit.applet_binding`、`ck.audit.session.request`、`ck.audit.session.authorize`、`ck.audit.session.notice`、`ck.audit.release` 和 `ck.audit.session.close`。Audit Applet Binding 不得追溯生效：消息是否可被审计在加密时由当时已被 MLS commit 覆盖的 binding / release window policy 固定，后续新增 applet 或扩大窗口不得覆盖既有消息。
+Arkret 提供 **"透明留痕审计 (Transparent Audit Trail)"** 机制。审计 applet 是控制面绑定，不是 MLS 成员，也不接收实时 sync fanout；需要访问历史材料时，必须走 active `ck.audit.applet_binding`、`ck.audit.session.request`、`ck.audit.session.authorize`、`ck.audit.session.notice`、`ck.audit.release` 和 `ck.audit.session.close`。Audit Applet Binding 不得追溯生效：消息是否可被审计在加密时由当时已被 MLS commit 覆盖的 binding / release window policy 固定，后续新增 applet 或扩大窗口不得覆盖既有消息。
 
 该机制划分为两类正交保证 hardening profile：
 
@@ -923,11 +923,11 @@ Agent SHOULD 拥有独立 DID、独立 device key 和独立 MLS KeyPackage。Con
 
 ## 5. 组员变动与高可用容错 (Proposal & Commit)
 
-在去中心化网络中，管理员踢人（或邀请人）是一个典型的容易因网络抖动而“在部分完成后导致 epoch advancement 卡死（key tree 锁定）”的操作。为避免单点故障导致群组密钥树锁定，Cokret 严格继承了 MLS (RFC 9420) 的 **“提案与提交分离 (Proposal & Commit)”** 架构。
+在去中心化网络中，管理员踢人（或邀请人）是一个典型的容易因网络抖动而“在部分完成后导致 epoch advancement 卡死（key tree 锁定）”的操作。为避免单点故障导致群组密钥树锁定，Arkret 严格继承了 MLS (RFC 9420) 的 **“提案与提交分离 (Proposal & Commit)”** 架构。
 
 ### 5.1 MLS Group Genesis
 
-`ck.mls.genesis` 创建 Cokret 绑定的 MLS group 初始状态。它不是普通 Commit，也不消费 Proposal；它声明 epoch 0 的 group identity、初始 ratchet tree / GroupInfo proof 和被 MLS GroupContext extension 覆盖的 Cokret application state。
+`ck.mls.genesis` 创建 Arkret 绑定的 MLS group 初始状态。它不是普通 Commit，也不消费 Proposal；它声明 epoch 0 的 group identity、初始 ratchet tree / GroupInfo proof 和被 MLS GroupContext extension 覆盖的 Arkret application state。
 
 `ck.mls.genesis.payload` MUST 至少包含：
 

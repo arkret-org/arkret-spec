@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/consent-operations.schema.json",
-  "title": "Cokret Consent Cell Self-Management Operation DTOs",
+  "$id": "https://arkret.org/v1/schemas/consent-operations.schema.json",
+  "title": "Arkret Consent Cell Self-Management Operation DTOs",
   "description": "Closed request/response DTOs for the self-surface holder-private consent cell operations (ck.self.consent.*). grant / revoke build ck.consent.grant / ck.consent.revoke Control Moves on the holder's consent cell (ck.component.consent.grant.v1); request opens a pending consent request. The consent model is spec/v1/zh/identity/consent-model.md.",
   "anyOf": [
     {

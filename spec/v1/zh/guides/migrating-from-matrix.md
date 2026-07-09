@@ -1,5 +1,5 @@
 ---
-title: 从 Matrix 迁移到 Cokret
+title: 从 Matrix 迁移到 Arkret
 status: candidate
 normative: false
 stability: v1
@@ -10,19 +10,19 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-本文旨在说明 Cokret 与 Matrix 的核心设计差异，阐明 Cokret 为何不是 Matrix 的直接变体，更非对其 room / homeserver / appservice 等概念的简单换名或重写。
+本文旨在说明 Arkret 与 Matrix 的核心设计差异，阐明 Arkret 为何不是 Matrix 的直接变体，更非对其 room / homeserver / appservice 等概念的简单换名或重写。
 
 ## 2. 总体结论
 
 Matrix 的核心抽象是 **room + event graph + homeserver federation**，重点服务实时通信、群聊、桥接和开放联邦。
 
-Cokret 的核心抽象是 **signed Event + per-actor event chain + Realm + Circle + Space + Strand + Message + Morph + Relation + View + capability**（canonical 对象清单以 [`index.md` §1](../index.md) 为准），其中 Realm 是 security boundary、Circle 是 Realm 内的子事件边界、Space 是结构容器（Board / List / 等），重点服务可审计的协作对象、任务、看板、agent 协作和多视图投影。
+Arkret 的核心抽象是 **signed Event + per-actor event chain + Realm + Circle + Space + Strand + Message + Morph + Relation + View + capability**（canonical 对象清单以 [`index.md` §1](../index.md) 为准），其中 Realm 是 security boundary、Circle 是 Realm 内的子事件边界、Space 是结构容器（Board / List / 等），重点服务可审计的协作对象、任务、看板、agent 协作和多视图投影。
 
 因此二者可以互联或桥接，但协议根不同。
 
 ## 3. 核心差异表
 
-| 维度 | Matrix | Cokret |
+| 维度 | Matrix | Arkret |
 | --- | --- | --- |
 | 数据根 | Room 内事件流与 room state。 | Realm 内授权 Event 集合，归约为 Realm、Strand、Message、Morph、Relation、View；看板与列容器是独立的 Space 对象（`ck:space:`），永远住在某 Realm 内。 |
 | 主要用途 | 即时通信、群聊、VoIP 信令、桥接通信网络。 | 协作对象、任务/看板、聊天/话题、agent 协作、审计工作流。 |
@@ -34,7 +34,7 @@ Cokret 的核心抽象是 **signed Event + per-actor event chain + Realm + Circl
 | 扩展集成 | Application Service 主要由 homeserver 注册，按 user / room alias namespace 和 transaction 工作。 | Applet 是可签名、可授权、可审计的 service DID，可按 Realm、Actor、对象范围、用户授权和 capability 细分。 |
 | AI agent | Bot 可作为用户或 appservice 接入，但不是协议根对象。 | Agent 是一等 principal / Actor，可签名 Event，并拥有 capability 和 protocol session。 |
 | 外部 agent 协议 | 无原生 A2A / ACP handoff 语义。 | A2A / ACP / MCP bridge / custom agent API 可作为受控 agent protocol session。 |
-| E2EE | 当前 Matrix E2EE 基于 Olm / Megolm。 | Cokret 推荐 MLS RFC 9420 作为群组 E2EE 基础。 |
+| E2EE | 当前 Matrix E2EE 基于 Olm / Megolm。 | Arkret 推荐 MLS RFC 9420 作为群组 E2EE 基础。 |
 | 查询与视图 | 客户端主要从 sync、state、relations、聚合 API 还原体验。 | View 是一等投影定义；搜索和 projection 默认由客户端本地派生，不能成为真相源。 |
 | 明文服务边界 | Homeserver 和 appservice 的明文可见性依赖部署、加密和桥接配置。 | 非 E2EE 私有内容由 principal 或 Realm policy 明确委托的服务处理；明文可见服务用 `plaintext_visible_services` 声明。 |
 
@@ -44,7 +44,7 @@ Cokret 的核心抽象是 **signed Event + per-actor event chain + Realm + Circl
 
 Matrix Application Service 是成熟的桥接机制，适合让 homeserver 与外部系统或 bot 服务通信。它的核心是 homeserver 侧注册、namespace、transaction、query 和 ping。
 
-Cokret Applet 的差异不是简单“更强”，而是粒度不同：
+Arkret Applet 的差异不是简单“更强”，而是粒度不同：
 
 - Applet registration 是签名声明，可由 Realm owner、Organization、registry 或 authz service 接受。
 - Applet 不因 namespace 自动获得权限；写入授权仍由 capability 表达。
@@ -52,21 +52,21 @@ Cokret Applet 的差异不是简单“更强”，而是粒度不同：
 - 不同用户或组织可以在自己控制的 Realm 中启用不同 Applet，并受 Realm policy 和授权约束（规范见 [`extensions/applet-integration.md`](../extensions/applet-integration.md)）。
 - Applet 可作为 bot、bridge、Ghost Actor controller、portal Realm manager、delegated agent / device 参与审计链。
 
-因此 Cokret 的优势是 **Realm / principal / capability 级别的可组合授权与审计**，不是无条件允许任何用户随意给任何 Realm 安装 Applet。
+因此 Arkret 的优势是 **Realm / principal / capability 级别的可组合授权与审计**，不是无条件允许任何用户随意给任何 Realm 安装 Applet。
 
 ### 4.2 AI 与 agent 支持
 
-Matrix 可以通过 bot、appservice 或 bridge 接入 AI，但 AI 不是 Matrix 的协议根对象。Cokret 从对象模型开始就把 agent 纳入：
+Matrix 可以通过 bot、appservice 或 bridge 接入 AI，但 AI 不是 Matrix 的协议根对象。Arkret 从对象模型开始就把 agent 纳入：
 
 - agent 可以是 principal、Actor、capability subject。
 - agent 输出可以写入 Message、Strand、Morph 或 Relation。
 - agent 权限采用窄范围、短时效、可撤销、可审计（规范见 [`identity/key-management.md`](../identity/key-management.md) §3 agent key）。
-- agent-to-agent 场景可以显式升级到 A2A / ACP / MCP bridge / 企业私有 agent API，并将 session、status、artifact、result 回写 Cokret。
-- Cokret 把协作事实、授权边界、审计摘要和最终结果放入协议账本，不把每个 token 或 tool call 都建模为 durable Event。
+- agent-to-agent 场景可以显式升级到 A2A / ACP / MCP bridge / 企业私有 agent API，并将 session、status、artifact、result 回写 Arkret。
+- Arkret 把协作事实、授权边界、审计摘要和最终结果放入协议账本，不把每个 token 或 tool call 都建模为 durable Event。
 
 ### 4.3 身份系统的演进
 
-Cokret 的身份与发布模型借鉴 atprotocol 的几个方向：
+Arkret 的身份与发布模型借鉴 atprotocol 的几个方向：
 
 - DID 是稳定身份根，handle 是可变入口。
 - handle 采用双向验证模型。
@@ -76,78 +76,78 @@ Cokret 的身份与发布模型借鉴 atprotocol 的几个方向：
 
 这不要求普通用户直接看见或管理 DID。客户端和服务端可以提供类似 Matrix 的 `@user:domain` 体验，把它作为联系人搜索、登录名、组织 handle 或桥接 alias；持久 Event、grant 或 MLS membership 的权威主体仍是 principal DID。
 
-但 Cokret 不等同于 atprotocol：
+但 Arkret 不等同于 atprotocol：
 
-- atprotocol 主要面向公开 record 与 PDS；Cokret 面向多方协作 Realm、授权状态、私有内容、E2EE 和企业治理。
-- Cokret v1 core 默认普通用户身份方法是 `did:webvh`（提供可审计 DID 控制历史，抵御 DNS / TLS 单点失陷），同时支持 `did:web`（service DID / `personal_node` profile）和 `did:key`（bootstrap / 设备）。`did:pkh`（钱包）、`did:plc`（AT Protocol interop）、KERI 等 method 作为 interop extension profile 提供，不属于 v1 core 互操作基线。
-- Cokret 的 Event 记录协作事实，不是公开内容分发 record。
-- Cokret 把 Realm policy、capability、Applet、Agent、MLS 和受托明文服务边界都纳入同一协作协议边界。
+- atprotocol 主要面向公开 record 与 PDS；Arkret 面向多方协作 Realm、授权状态、私有内容、E2EE 和企业治理。
+- Arkret v1 core 默认普通用户身份方法是 `did:webvh`（提供可审计 DID 控制历史，抵御 DNS / TLS 单点失陷），同时支持 `did:web`（service DID / `personal_node` profile）和 `did:key`（bootstrap / 设备）。`did:pkh`（钱包）、`did:plc`（AT Protocol interop）、KERI 等 method 作为 interop extension profile 提供，不属于 v1 core 互操作基线。
+- Arkret 的 Event 记录协作事实，不是公开内容分发 record。
+- Arkret 把 Realm policy、capability、Applet、Agent、MLS 和受托明文服务边界都纳入同一协作协议边界。
 
 ### 4.4 E2EE 架构选择
 
-Matrix 的 Olm / Megolm 生态成熟、部署广泛、客户端实现经验丰富。Cokret 选择 MLS RFC 9420，是因为它更适合作为新的群组 E2EE 基础：
+Matrix 的 Olm / Megolm 生态成熟、部署广泛、客户端实现经验丰富。Arkret 选择 MLS RFC 9420，是因为它更适合作为新的群组 E2EE 基础：
 
 - MLS 是 IETF 标准。
 - MLS 原生建模 group state、epoch、commit、proposal、member add/remove。
-- Cokret 可以把 MLS epoch 与 Realm membership、history visibility、device authorization、auditable E2EE 直接绑定。
+- Arkret 可以把 MLS epoch 与 Realm membership、history visibility、device authorization、auditable E2EE 直接绑定。
 - 被移除成员在新 epoch 上 fail closed（规范见 [`crypto-media/encryption-and-audit.md`](../crypto-media/encryption-and-audit.md) §2.5 MLS Governance Binding）。
 
-因此，Cokret 选择了 **更现代、标准化、适合动态群组协作治理的 MLS 基础**，而不是沿用 Matrix 的 Olm / Megolm。
+因此，Arkret 选择了 **更现代、标准化、适合动态群组协作治理的 MLS 基础**，而不是沿用 Matrix 的 Olm / Megolm。
 
 ### 4.5 Device 密钥层级与生命周期
 
-§4.4 只覆盖了群组 E2EE 算法的选择。但 device-key 是一整套包含身份密钥、prekey、群组密钥、cross-signing、备份、推送、验证状态机的体系。Matrix 在这套体系上有成熟实践（参见 [Matrix E2EE guide](https://matrix.org/docs/matrix-concepts/end-to-end-encryption/) 与 [Megolm spec](https://spec.matrix.org/unstable/olm-megolm/megolm/)），Cokret 在保留多数原语形状的同时，把身份根换到 DID method、把 E2EE 换到 MLS、并把若干在 Matrix 中相对耦合的语义拆开规范化。本节按原语逐项对照。
+§4.4 只覆盖了群组 E2EE 算法的选择。但 device-key 是一整套包含身份密钥、prekey、群组密钥、cross-signing、备份、推送、验证状态机的体系。Matrix 在这套体系上有成熟实践（参见 [Matrix E2EE guide](https://matrix.org/docs/matrix-concepts/end-to-end-encryption/) 与 [Megolm spec](https://spec.matrix.org/unstable/olm-megolm/megolm/)），Arkret 在保留多数原语形状的同时，把身份根换到 DID method、把 E2EE 换到 MLS、并把若干在 Matrix 中相对耦合的语义拆开规范化。本节按原语逐项对照。
 
 #### 4.5.1 设备级身份密钥与信任根
 
-| Matrix | Cokret | 说明 |
+| Matrix | Arkret | 说明 |
 | --- | --- | --- |
-| Device Ed25519 fingerprint key | `ck:device:` 记录里的 `verify_key` (Ed25519) | Cokret 把 device 公钥写进 `ck:device:` 记录（详见 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §4），并由 `ck.device.authorize` Event 锚定到 principal DID，而非 homeserver 账号。 |
+| Device Ed25519 fingerprint key | `ck:device:` 记录里的 `verify_key` (Ed25519) | Arkret 把 device 公钥写进 `ck:device:` 记录（详见 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §4），并由 `ck.device.authorize` Event 锚定到 principal DID，而非 homeserver 账号。 |
 | Device Curve25519 identity key | `ck:device:` 记录里的 `hpke_key` (X25519) | 用于 HPKE-based to-device 通道、KeyPackage init key 来源、加密 backup envelope 接收。Matrix Curve25519 用于 Olm 长期 DH，语义对等但用途窄一些。 |
-| (homeserver 账号绑定) | DID method controller / inception key | Cokret 在 master 密钥之上多一层：DID method 的初始控制材料（`did:webvh` entry-0 controller、`did:plc` rotation key、KERI inception 等）是身份根。principal signing key 的历史归属由 DID method history / key log 表达，而不是 homeserver 内部状态。详见 [`identity/key-management.md`](../identity/key-management.md) §5.0。 |
+| (homeserver 账号绑定) | DID method controller / inception key | Arkret 在 master 密钥之上多一层：DID method 的初始控制材料（`did:webvh` entry-0 controller、`did:plc` rotation key、KERI inception 等）是身份根。principal signing key 的历史归属由 DID method history / key log 表达，而不是 homeserver 内部状态。详见 [`identity/key-management.md`](../identity/key-management.md) §5.0。 |
 
 #### 4.5.2 Prekey 与会话引导
 
-| Matrix | Cokret | 说明 |
+| Matrix | Arkret | 说明 |
 | --- | --- | --- |
 | `/_matrix/client/v3/keys/upload` Curve25519 OTK | `POST /_cokret/self/keys/upload` 的 `one_time_keys` | 语义一致，用于非 MLS 加密或 MLS 引导。一次性 key 的原子消费规则由 key operation 章节定义。 |
-| Fallback key | `fallback_keys` 字段，`fallback=true` 标记 | Cokret 在会话建立后倾向更快轮换；Matrix 行为类似但描述较弱。 |
-| (Olm OTK 同时承担群组成员引导) | MLS KeyPackage 独立 claim API | Cokret 把 MLS KeyPackage 从 OTK 池里拆出来：`/_cokret/self/keys/keypackages/upload`、`/_cokret/self/keys/keypackages/claim`、`/_cokret/self/keys/keypackages/consume`、`/_cokret/self/keys/keypackages/revoke`，并把 capability 子集校验与反枚举失败形态放在 KeyPackage 规范中。Matrix 无对应概念。 |
+| Fallback key | `fallback_keys` 字段，`fallback=true` 标记 | Arkret 在会话建立后倾向更快轮换；Matrix 行为类似但描述较弱。 |
+| (Olm OTK 同时承担群组成员引导) | MLS KeyPackage 独立 claim API | Arkret 把 MLS KeyPackage 从 OTK 池里拆出来：`/_cokret/self/keys/keypackages/upload`、`/_cokret/self/keys/keypackages/claim`、`/_cokret/self/keys/keypackages/consume`、`/_cokret/self/keys/keypackages/revoke`，并把 capability 子集校验与反枚举失败形态放在 KeyPackage 规范中。Matrix 无对应概念。 |
 
 #### 4.5.3 群组消息密钥
 
-| Matrix | Cokret | 说明 |
+| Matrix | Arkret | 说明 |
 | --- | --- | --- |
-| Megolm outbound session（per-sender ratchet） | MLS exporter / application key per epoch | Cokret 没有 per-sender Megolm session；群组密钥状态由 MLS group state、epoch、KeyPackage 演进。 |
+| Megolm outbound session（per-sender ratchet） | MLS exporter / application key per epoch | Arkret 没有 per-sender Megolm session；群组密钥状态由 MLS group state、epoch、KeyPackage 演进。 |
 | Megolm inbound session 缓存 | MLS group state + epoch material 写入 `mls_epoch_cell`、`key_schedule_cell`、`covered_seals_cell` | epoch 被 lattice cell 显式承载，governance 状态通过 §6.5 的 MLS Governance Binding 与 MLS transcript 哈希绑定。 |
 | Megolm Ed25519 签名（per-message） | MLS application message 内嵌签名 + MLS transcript | 完整性来自 MLS 标准；不再额外维护 per-message Megolm 签名链。 |
 
 #### 4.5.4 Cross-Signing 与信任视图
 
-Cokret 沿用 Matrix 的三层 cross-signing 结构（[`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5）：
+Arkret 沿用 Matrix 的三层 cross-signing 结构（[`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5）：
 
-| 角色 | Matrix | Cokret |
+| 角色 | Matrix | Arkret |
 | --- | --- | --- |
 | 用户身份根 | Master key | `principal_signing_key`，轮换历史进入 DID method history / key log |
 | 签名本账号所有设备 | Self-signing key | `self_signing_key`（存 secret storage，跨设备共享） |
 | 签名其他用户身份 key | User-signing key | `user_signing_key`（同上） |
 
-差异：Cokret `principal_signing_key` 的演进绑定到 DID method 链（`did:webvh` entry、`did:plc` operation 等），不是 homeserver 内部状态；`self_signing_key` / `user_signing_key` 在 cross-signing reset 时整条信任链置为 `needs_reverification`，后续恢复材料由 DID 控制证明、recovery 解锁、设备 quorum 签名或受信账户恢复服务签名表达。
+差异：Arkret `principal_signing_key` 的演进绑定到 DID method 链（`did:webvh` entry、`did:plc` operation 等），不是 homeserver 内部状态；`self_signing_key` / `user_signing_key` 在 cross-signing reset 时整条信任链置为 `needs_reverification`，后续恢复材料由 DID 控制证明、recovery 解锁、设备 quorum 签名或受信账户恢复服务签名表达。
 
 线级形态：SSK / USK 公钥与 PSK 绑定通过 `ck.cross_signing.publish`（[`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5.1）公布到 principal control stream；每条 `ck.device.authorize` 在 `content.cross_signing_binding` 中携带 SSK 对设备 `verify_key` 的签名（§5.2），并显式声明 `ssk_generation`。Reset 写 `ck.cross_signing.reset`（§14.1），`new_generation = previous_generation + 1`；publish 恢复窗口、device authorization 接受规则和 `cross_signing_reset` cancel code 由 device lifecycle 章节给出。
 
 #### 4.5.5 Secret Storage 与 Key Backup
 
-| Matrix | Cokret | 说明 |
+| Matrix | Arkret | 说明 |
 | --- | --- | --- |
-| Secure Secret Storage（SSSS）统一保管 cross-signing / megolm backup 等 | `ck.secret_storage.v1`（**client-local only**）+ wire 上传走 `ck.schema.key_backup.v1` | Cokret v1 不再把 secret storage envelope 作为 wire 格式；服务端 wire backup 使用 `ck.schema.key_backup.v1` 与 `backup_class` 分类。 |
+| Secure Secret Storage（SSSS）统一保管 cross-signing / megolm backup 等 | `ck.secret_storage.v1`（**client-local only**）+ wire 上传走 `ck.schema.key_backup.v1` | Arkret v1 不再把 secret storage envelope 作为 wire 格式；服务端 wire backup 使用 `ck.schema.key_backup.v1` 与 `backup_class` 分类。 |
 | 一把 backup key 覆盖所有 secret 类别 | **域隔离**：`did_recovery` / `secret_storage` / `mls_history` 三类 `backup_class`，各自独立 KDF info、HKDF 子密钥、AEAD AAD、wrap key | 防止"一把口令同时控制身份签名和 E2EE 历史"。`self_signing_key` / `user_signing_key` 与 MLS group secrets backup key 归入不同 envelope 或不同 subdomain key。详见 [`identity/key-management.md`](../identity/key-management.md) §7。 |
-| 一把 recovery key 解锁 SSSS | recovery key + 门限 / 社交恢复 share | Cokret 把 recovery 表达为 `recovery_policy`，可声明 threshold、share holder、有效期、approval 条件；share holder 不自动获得读取内容能力。 |
-| (Matrix 未明确约束) | "能解密某段历史" 不单独作为账号所有权证明 | Cokret 把 DID 控制证明与解密能力分开，并定义了固定格式、限速、绑定 audience / service DID 的 challenge 流程。 |
+| 一把 recovery key 解锁 SSSS | recovery key + 门限 / 社交恢复 share | Arkret 把 recovery 表达为 `recovery_policy`，可声明 threshold、share holder、有效期、approval 条件；share holder 不自动获得读取内容能力。 |
+| (Matrix 未明确约束) | "能解密某段历史" 不单独作为账号所有权证明 | Arkret 把 DID 控制证明与解密能力分开，并定义了固定格式、限速、绑定 audience / service DID 的 challenge 流程。 |
 
 #### 4.5.6 Push 通道密钥
 
-Matrix pusher 把 (user, device, push token) 映射作为 push gateway 可见标识符，没有跨设备 / 跨通道 / 跨 Realm 的不可链接性规范。Cokret 在 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5a 引入 `push_target_id`：
+Matrix pusher 把 (user, device, push token) 映射作为 push gateway 可见标识符，没有跨设备 / 跨通道 / 跨 Realm 的不可链接性规范。Arkret 在 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §5a 引入 `push_target_id`：
 
 - per `(recipient_service_did, principal, device, push_route)` 伪名；熵下限和高安全部署参数见 `device-lifecycle.md` §5a.1。
 - 伪名派生不使用公开 DID、`device_id`、平台 push token、handle、邮箱或电话号码作为可观察输入。
@@ -155,9 +155,9 @@ Matrix pusher 把 (user, device, push token) 映射作为 push gateway 可见标
 - gateway / vendor 不保存可逆映射；被 member delivery binding 授权的 Sync Service 在本服务上下文内持有运行时索引。
 - 推送 payload 以加密 envelope 或等价 ephemeral encrypted blob 表达，gateway / vendor 不持有解密语义。
 
-#### 4.5.7 Cokret 新增的密钥类别
+#### 4.5.7 Arkret 新增的密钥类别
 
-以下密钥类别在 Matrix 中没有显式协议层定义（属于实现侧或 appservice 侧约定），Cokret 在 [`identity/key-management.md`](../identity/key-management.md) §3 中作为一等协议原语：
+以下密钥类别在 Matrix 中没有显式协议层定义（属于实现侧或 appservice 侧约定），Arkret 在 [`identity/key-management.md`](../identity/key-management.md) §3 中作为一等协议原语：
 
 - **Session key（`ck.session.grant`）**：浏览器、OIDC、SSO、远程执行环境的短期会话密钥。其 audience / origin / service / scope / 过期时间绑定和 DID control state 复验由 key-management 与 account lifecycle 章节定义。
 - **Agent key**：AI agent / bot / CI / automation 的一等密钥类型，带 scope、`expires_at`、accountable actor 绑定；高风险动作可由 proposal / approval 约束。Matrix bot 复用 user / appservice token，没有这一层 scope/审计结构。
@@ -166,15 +166,15 @@ Matrix pusher 把 (user, device, push token) 映射作为 push gateway 可见标
 
 #### 4.5.8 验证 / 登录 / 设备授权的语义解耦
 
-Matrix to-device 验证（SAS / QR）成功后，客户端实现常常顺势把设备视为"已信任、已授权"，登录与设备授权也较多耦合在 homeserver 的 `/login` 路径上。Cokret 把三件事分开建模（[`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §1.2）：
+Matrix to-device 验证（SAS / QR）成功后，客户端实现常常顺势把设备视为"已信任、已授权"，登录与设备授权也较多耦合在 homeserver 的 `/login` 路径上。Arkret 把三件事分开建模（[`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §1.2）：
 
-| 操作 | Cokret 允许产出 | Cokret 不自动产出 |
+| 操作 | Arkret 允许产出 | Arkret 不自动产出 |
 | --- | --- | --- |
 | 登录因子验证（密码 / passkey / OIDC / SSO） | 短期 `ck.session.grant`、触发 recovery、请求已授权设备授权 | 长期 device、`ck.device.authorize`、E2EE 历史密钥访问 |
 | 设备授权 | `ck.device.authorize`、DID key-log operation、`ck.device.list_update`、MLS Welcome 资格 | 仅凭密码 / SSO 通过即视作设备授权 |
 | 设备密钥验证（SAS / QR） | `user_signing_key` 签名（跨 principal）、本地信任标记 | 长期 device grant、Realm capability、登录态 |
 
-验证消息形状（`ck.key.verification.{request, ready, start, accept, key, mac, done, cancel}`）与 Matrix 一致，但 Cokret 对生命周期和 transcript 绑定给出更明确的规范章节：
+验证消息形状（`ck.key.verification.{request, ready, start, accept, key, mac, done, cancel}`）与 Matrix 一致，但 Arkret 对生命周期和 transcript 绑定给出更明确的规范章节：
 
 - `request.expires_at` 与本地交互超时由 device lifecycle 章节给出。
 - SAS transcript 覆盖双方 principal id、device id、verify key、transaction id、method、算法选择、双方 ephemeral key 与待验证 key id。
@@ -186,7 +186,7 @@ Matrix to-device 验证（SAS / QR）成功后，客户端实现常常顺势把�
 
 > **informative 自评**：本小节是面向 Matrix 迁移读者的对照性自评，**不是** coverage / conformance 的权威真相源。某能力是否构成 v1 一致性要求，以 [`conformance/conformance-profiles.json`](../../artifacts/profiles/conformance-profiles.json)（及 [`conformance/`](../conformance/) 下相关文档）与 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) 为准；本节列举仅供迁移规划参考，MUST NOT 被当作 coverage 结论的权威依据。
 
-按 Matrix device-key 模型逐项比对，Cokret v1 已经覆盖：
+按 Matrix device-key 模型逐项比对，Arkret v1 已经覆盖：
 
 - covered: device identity key（Ed25519 / X25519）
 - covered: OTK / fallback key
@@ -197,9 +197,9 @@ Matrix to-device 验证（SAS / QR）成功后，客户端实现常常顺势把�
 - covered: secret storage（降为 client-local，wire 走 backup envelope）
 - covered: 群组加密（以 MLS 取代 Megolm，绑定 governance lattice）
 
-Cokret 比 Matrix 多覆盖的：DID-rooted inception、principal control event stream、`ck.session.grant`、agent key、applet delegated device、push 伪名（`push_target_id`）、KeyPackage capability-subset rule、域隔离 backup、解密能力 ≠ 所有权证明的明确禁令。
+Arkret 比 Matrix 多覆盖的：DID-rooted inception、principal control event stream、`ck.session.grant`、agent key、applet delegated device、push 伪名（`push_target_id`）、KeyPackage capability-subset rule、域隔离 backup、解密能力 ≠ 所有权证明的明确禁令。
 
-因此本节认为 Cokret 在 device 密钥这一层已经完善，且与 Matrix 在关键点上的差异都已在协议中规范化定义。未来若出现新的 attack model 或 Matrix 引入新原语（如 MSC 中的 MLS / Olm hybrid），应在本节继续追加对比。
+因此本节认为 Arkret 在 device 密钥这一层已经完善，且与 Matrix 在关键点上的差异都已在协议中规范化定义。未来若出现新的 attack model 或 Matrix 引入新原语（如 MSC 中的 MLS / Olm hybrid），应在本节继续追加对比。
 
 ## 5. 其他关键区别
 
@@ -207,13 +207,13 @@ Cokret 比 Matrix 多覆盖的：DID-rooted inception、principal control event 
 
 Matrix 可以承载很多非聊天数据，但它的协议根仍是 room event。
 
-Cokret 从一开始把 Strand、Realm、Space、Message、Morph 和 Relation 都作为协作对象处理；看板与列容器是 Space（`ck:space:`），住在 Realm 内但本身不是安全边界。聊天只是讨论 projection 的一种常见场景，不是所有业务状态的唯一载体。
+Arkret 从一开始把 Strand、Realm、Space、Message、Morph 和 Relation 都作为协作对象处理；看板与列容器是 Space（`ck:space:`），住在 Realm 内但本身不是安全边界。聊天只是讨论 projection 的一种常见场景，不是所有业务状态的唯一载体。
 
 ### 5.2 Power level 与 capability
 
 Matrix power level 适合 room 内角色治理。
 
-Cokret capability 更适合细粒度协作系统：
+Arkret capability 更适合细粒度协作系统：
 
 - 可以限定 Realm、Space、Strand、Message、Morph、Relation，以及 `space.kind`、字段、时间、设备、速率、审批条件。
 - 可以委托给 agent、Applet、设备、组织角色或外部服务。
@@ -223,29 +223,29 @@ Cokret capability 更适合细粒度协作系统：
 
 Matrix homeserver 是用户与 room federation 的核心承载点。
 
-Cokret Principal Server 是受 principal 或 Realm policy 控制的服务边界，不是身份本身，也不是真相源。它可以承载 Events API、Sync、Blob、Push、Policy，但协议仍保持分层。
+Arkret Principal Server 是受 principal 或 Realm policy 控制的服务边界，不是身份本身，也不是真相源。它可以承载 Events API、Sync、Blob、Push、Policy，但协议仍保持分层。
 
-这也是 Cokret 去掉独立第三方分发服务器后的核心边界：未加密私有内容停留在用户、组织或 Realm policy 控制的服务边界内。
+这也是 Arkret 去掉独立第三方分发服务器后的核心边界：未加密私有内容停留在用户、组织或 Realm policy 控制的服务边界内。
 
 ### 5.4 Query / Projection 是客户端派生层
 
 Matrix 客户端通常从 sync、state、relations 和聚合接口构建体验。
 
-Cokret 明确把搜索、通知、inbox、board、table、graph 等作为派生体验。默认由客户端本地完成；可选受托服务不充当真相源，输出可追溯到签名 Event、reducer profile 和授权状态（规范见 [`overview/architecture.md`](../overview/architecture.md) §3）。
+Arkret 明确把搜索、通知、inbox、board、table、graph 等作为派生体验。默认由客户端本地完成；可选受托服务不充当真相源，输出可追溯到签名 Event、reducer profile 和授权状态（规范见 [`overview/architecture.md`](../overview/architecture.md) §3）。
 
 ### 5.5 协作图比通信图更大
 
 Matrix 的强项是通信网络。
 
-Cokret 的目标是协作图：任务依赖、对象引用、结构化 mention、agent action、审计记录、审批和视图投影都属于同一个协议图。
+Arkret 的目标是协作图：任务依赖、对象引用、结构化 mention、agent action、审计记录、审批和视图投影都属于同一个协议图。
 
 ## 6. State Model 与 Writer Model 的明确偏离
 
-Matrix v1/v11 room state model 与 Cokret 的 **CBA · Lattice** 模型有若干关键偏离。本节列出这些偏离，使实现者在概念映射时不被相似命名误导。
+Matrix v1/v11 room state model 与 Arkret 的 **CBA · Lattice** 模型有若干关键偏离。本节列出这些偏离，使实现者在概念映射时不被相似命名误导。
 
 ### 6.1 没有 `state_key` 字段
 
-Matrix event envelope 顶层有 `state_key` 字段，state event 用 `(type, state_key)` 作为 state slot 主键。Cokret v1 **不**继承这个字段——在 Cokret wire 上根本不存在 `state_key`。
+Matrix event envelope 顶层有 `state_key` 字段，state event 用 `(type, state_key)` 作为 state slot 主键。Arkret v1 **不**继承这个字段——在 Arkret wire 上根本不存在 `state_key`。
 
 替代设计：
 
@@ -254,17 +254,17 @@ Matrix event envelope 顶层有 `state_key` 字段，state event 用 `(type, sta
 - 每个 cell family 在 registry / Realm schema 中声明 `lattice` 与 `bottom`。
 - Subject 信息仍存在于 payload 或 effect value 中，并由 explicit cell id 承载。
 
-**理由**：Matrix `state_key` 在实际使用中过载了多种语义。Cokret 把这些语义移动到 cell id 与 lattice schema，使多 cell 原子写、冲突 bottom、Seal finality 和轻客户端 state_root 验证可以共用同一模型。详见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §3–§5。
+**理由**：Matrix `state_key` 在实际使用中过载了多种语义。Arkret 把这些语义移动到 cell id 与 lattice schema，使多 cell 原子写、冲突 bottom、Seal finality 和轻客户端 state_root 验证可以共用同一模型。详见 [`authz/event-auth-state-resolution.md`](../authz/event-auth-state-resolution.md) §3–§5。
 
 ### 6.2 没有 `ck.realm.policy.set` 这种聚合 kind
 
-Matrix 把所有 room 配置塞进 `m.room.*` 一组同 type、不同 state_key 的事件（power_levels、join_rules、history_visibility 等共享同一 prefix）。Cokret v1 把每个配置 facet 拆成独立 kind：`ck.realm.policy`、`ck.realm.join_rule`、`ck.realm.history_visibility`、`ck.realm.discovery`、`ck.realm.media_service`、`ck.realm.archive`、`ck.realm.tombstone` 等；完整 active kind 集合以 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 为权威源。
+Matrix 把所有 room 配置塞进 `m.room.*` 一组同 type、不同 state_key 的事件（power_levels、join_rules、history_visibility 等共享同一 prefix）。Arkret v1 把每个配置 facet 拆成独立 kind：`ck.realm.policy`、`ck.realm.join_rule`、`ck.realm.history_visibility`、`ck.realm.discovery`、`ck.realm.media_service`、`ck.realm.archive`、`ck.realm.tombstone` 等；完整 active kind 集合以 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 为权威源。
 
-**理由**：聚合 kind 没有真实共享：每个 facet 有不同的 capability tier、auth refs、payload schema、reducer 行为。把它们绑成一个 kind 只是 Matrix wire 字段限制的产物，不反映任何模型上的共性。Cokret 的 per-facet kind 让 schema 路由更直、capability 矩阵更清楚、未来 facet 演进可独立版本化。
+**理由**：聚合 kind 没有真实共享：每个 facet 有不同的 capability tier、auth refs、payload schema、reducer 行为。把它们绑成一个 kind 只是 Matrix wire 字段限制的产物，不反映任何模型上的共性。Arkret 的 per-facet kind 让 schema 路由更直、capability 矩阵更清楚、未来 facet 演进可独立版本化。
 
 ### 6.3 没有 Matrix 式 Winner Reconstruction
 
-Matrix room state v2/v11 会在每个 `(type, state_key)` 上重建 auth chain difference 并自动选出 winner。Cokret v1 不再有全局 winner 算法：
+Matrix room state v2/v11 会在每个 `(type, state_key)` 上重建 auth chain difference 并自动选出 winner。Arkret v1 不再有全局 winner 算法：
 
 - Move 是多 cell 原子 CAS，precondition 不成立则整个 Move 失败。
 - Seal 是 ordering authority 对 Move frontier 的承诺，Hub、threshold、peer mesh 都只是 notary cell 的不同 value。
@@ -273,7 +273,7 @@ Matrix room state v2/v11 会在每个 `(type, state_key)` 上重建 auth chain d
 
 ### 6.4 Component Lattice
 
-Matrix state event 没有显式的 cell 代数。Cokret v1 的 registry / Realm schema 为 reducer-input kind 声明：
+Matrix state event 没有显式的 cell 代数。Arkret v1 的 registry / Realm schema 为 reducer-input kind 声明：
 
 - `cell_family`（稳定 `ck.component.*.v<n>` URI）
 - `cell_subject`（null、payload field 或 composite descriptor）
@@ -284,7 +284,7 @@ Receiver 不识别核心 lattice type 时 fail closed，扩展 cell family 通�
 
 ### 6.5 E2EE Realm 的 MLS Governance Binding
 
-Matrix 的 E2EE（Olm/Megolm）和 room state 是两条并行轨。Cokret v1 引入 **MLS Governance Binding**（profile `ck.profile.mls_governance_binding.full.v1`，定义见 `crypto-media/encryption-and-audit.md §2.5`），把 MLS epoch 强绑定到 governance state，由两层 wire-level artifact 协同工作：
+Matrix 的 E2EE（Olm/Megolm）和 room state 是两条并行轨。Arkret v1 引入 **MLS Governance Binding**（profile `ck.profile.mls_governance_binding.full.v1`，定义见 `crypto-media/encryption-and-audit.md §2.5`），把 MLS epoch 强绑定到 governance state，由两层 wire-level artifact 协同工作：
 
 - **Commit 侧** —— 每个 `ck.mls.commit` 携带 `governance_binding`（GroupContext extension `mls_governance_binding`），把 membership / policy / capability / discussion-metadata roots 哈希进 MLS transcript。
 - **Lattice 侧** —— MLS commit 是 Control Move，写入 `mls_epoch_cell`、`key_schedule_cell` 与 `covered_seals_cell`（or_set）。E2EE message DataEvent 用 `seal_ref` 指向已被 MLS governance binding 覆盖的治理 Seal。
@@ -293,19 +293,19 @@ Matrix 的 E2EE（Olm/Megolm）和 room state 是两条并行轨。Cokret v1 引
 
 ### 6.6 Holder-Private Consent
 
-Matrix 没有显式的 consent state——是否接受 invite / DM 由 client UI 处理，不进入协议账本。Cokret v1 引入独立的 [`identity/consent-model.md`](../identity/consent-model.md)：`ck.consent.grant` / `ck.consent.revoke` 是 holder principal control Realm 中的 Move，写入 `ck:cell:ck.component.consent.grant.v1:<consent_id>` cell（or_set, bottom=reject；or_set 本身不产生 ⊥，该 bottom 值与 registry 保持一致），作为 invite / contact 路径的前置 gate。MIMI `request_consent` / `update_consent` 直接映射到这套机制。
+Matrix 没有显式的 consent state——是否接受 invite / DM 由 client UI 处理，不进入协议账本。Arkret v1 引入独立的 [`identity/consent-model.md`](../identity/consent-model.md)：`ck.consent.grant` / `ck.consent.revoke` 是 holder principal control Realm 中的 Move，写入 `ck:cell:ck.component.consent.grant.v1:<consent_id>` cell（or_set, bottom=reject；or_set 本身不产生 ⊥，该 bottom 值与 registry 保持一致），作为 invite / contact 路径的前置 gate。MIMI `request_consent` / `update_consent` 直接映射到这套机制。
 
 **理由**：去中心化协作中 consent 是合规与隐私的核心机制（GDPR、各种联系人骚扰防护、组织间合作授权）。把它建模为签名 Move on consent cell 而非 client-side 偏好，使其可审计、可签名、可跨 deployment 同步。
 
 ## 7. Matrix 仍然更强的地方
 
-Cokret 可以继续吸收 Matrix 的成熟经验：
+Arkret 可以继续吸收 Matrix 的成熟经验：
 
 - Matrix 有更成熟的实时通信和客户端生态。
 - Matrix room federation、state resolution、E2EE 客户端实现、bridge 生态有多年生产经验。
 - Matrix 对聊天、公开房间、桥接传统 IM 网络仍是强参考。
 
-因此 Cokret 应继续吸收 Matrix 的稳定经验，尤其是 room version / auth rules、device trust、client sync、policy server、appservice transaction、authenticated media 等，但不继承 Matrix 的抽象根或 state winner 算法。
+因此 Arkret 应继续吸收 Matrix 的稳定经验，尤其是 room version / auth rules、device trust、client sync、policy server、appservice transaction、authenticated media 等，但不继承 Matrix 的抽象根或 state winner 算法。
 
 ## 8. 相关文档
 
@@ -322,7 +322,7 @@ Cokret 可以继续吸收 Matrix 的成熟经验：
 
 ## 9. 外部参考
 
-本节链接均为 informative reference；`unstable` 路径仅用于 Matrix 互操作背景说明，不构成 Cokret v1 normative dependency。
+本节链接均为 informative reference；`unstable` 路径仅用于 Matrix 互操作背景说明，不构成 Arkret v1 normative dependency。
 
 - Matrix Specification: https://spec.matrix.org/latest/
 - Matrix Application Service API: https://spec.matrix.org/unstable/application-service-api/

@@ -12,7 +12,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-在即时通讯与协作中，“已读”状态是消除信息不对称的关键。Cokret 协议将“已读”分为两种机制：
+在即时通讯与协作中，“已读”状态是消除信息不对称的关键。Arkret 协议将“已读”分为两种机制：
 
 1. **Read Receipt (已读回执)**：公开或共享的，让**其他人**知道某 actor 已读至哪条消息。
 2. **Read Cursor (已读游标)**：私有的，用于 actor **多端设备**之间同步阅读进度。
@@ -44,22 +44,22 @@ updated: 2026-07-02
 ```json
 {
   "kind": "ck.receipt.read",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
-  "device_id": "ck:device:019640dd-8000-7000-8000-000000000000",
+  "device_id": "ak:device:019640dd-8000-7000-8000-000000000000",
   "sent_at": "2026-04-26T10:00:00Z",
   "expires_at": "2026-04-26T10:00:30Z",
   "payload": {
     "receipt_type": "read",
     "schema": "ck.schema.read_receipt.v1",
-    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
     "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
     "read_scope": {
       "kind": "strand",
-      "ref": "ck:strand:01964200-0000-7000-8000-000000000001",
+      "ref": "ak:strand:01964200-0000-7000-8000-000000000001",
       "track_name": "discussion"
     },
-    "event_id": "ck:event:01964387-7000-7000-8000-000000000000",
+    "event_id": "ak:event:01964387-7000-7000-8000-000000000000",
     "hlc": "01970e589d21-0004-a13f9c2e",
     "created_at": "2026-04-26T10:00:00Z"
   },
@@ -182,18 +182,18 @@ Read cursor schema：`ck.schema.read_cursor.v1`。Read Cursor 是 actor-private 
 
 ```json
 {
-  "id": "ck:read_cursor:01964137-0000-7000-8000-000000000001",
+  "id": "ak:read_cursor:01964137-0000-7000-8000-000000000001",
   "schema": "ck.schema.read_cursor.v1",
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
-  "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "read_scope": {
     "kind": "strand",
-    "ref": "ck:strand:01964200-0000-7000-8000-000000000001",
+    "ref": "ak:strand:01964200-0000-7000-8000-000000000001",
     "track_name": "discussion"
   },
   "position": {
-    "event_id": "ck:event:01964386-8000-7000-8000-000000000000",
+    "event_id": "ak:event:01964386-8000-7000-8000-000000000000",
     "hlc": "01970e589d21-0004-a13f9c2e"
   },
   "updated_at": "2026-04-26T10:00:00Z"
@@ -236,15 +236,15 @@ Read Cursor 是 actor-private 状态。最小结构示例：
 ```json
 {
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
-  "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "read_scope": {
     "kind": "strand",
-    "ref": "ck:strand:01964180-0280-7000-8000-000000000000",
+    "ref": "ak:strand:01964180-0280-7000-8000-000000000000",
     "track_name": "discussion"
   },
   "position": {
-    "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
+    "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
     "hlc": "01970e589d21-0004-a13f9c2e"
   },
   "updated_at": "2026-04-26T00:00:00Z"
@@ -261,14 +261,14 @@ Receipt 可以公开或私有，取决于 Realm policy。schema：`ck.schema.rea
 {
   "receipt_type": "read",
   "schema": "ck.schema.read_receipt.v1",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "read_scope": {
     "kind": "strand",
-    "ref": "ck:strand:01964200-0000-7000-8000-000000000001",
+    "ref": "ak:strand:01964200-0000-7000-8000-000000000001",
     "track_name": "discussion"
   },
-  "event_id": "ck:event:01964387-7000-7000-8000-000000000000",
+  "event_id": "ak:event:01964387-7000-7000-8000-000000000000",
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
@@ -279,13 +279,13 @@ Notification 是派生 projection，不是 canonical truth。schema：`ck.schema
 
 ```json
 {
-  "id": "ck:notification:01964157-8000-7000-8000-000000000000",
+  "id": "ak:notification:01964157-8000-7000-8000-000000000000",
   "schema": "ck.schema.notification.v1",
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-  "source_event_id": "ck:event:0196434a-8000-7000-8000-000000000000",
-  "source_ref": "ck:message:0196434c-c000-7000-8000-000000000000",
-  "strand_id": "ck:strand:01964200-0000-7000-8000-000000000001",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+  "source_event_id": "ak:event:0196434a-8000-7000-8000-000000000000",
+  "source_ref": "ak:message:0196434c-c000-7000-8000-000000000000",
+  "strand_id": "ak:strand:01964200-0000-7000-8000-000000000001",
   "track_name": "discussion",
   "notification_type": "mention",
   "priority": "normal",

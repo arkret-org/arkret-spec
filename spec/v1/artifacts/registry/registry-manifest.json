@@ -32,7 +32,7 @@
       "kind": "mls_extension_registry",
       "source_role": "canonical",
       "source_of_truth": true,
-      "description": "Canonical registry of Cokret-defined MLS GroupContext extension codepoints in the private-use range."
+      "description": "Canonical registry of Arkret-defined MLS GroupContext extension codepoints in the private-use range."
     },
     {
       "name": "exporter_labels",

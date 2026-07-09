@@ -1,5 +1,5 @@
 ---
-title: Cokret Protocol (English entry)
+title: Arkret Protocol (English entry)
 status: candidate
 stability: v1
 updated: 2026-06-04
@@ -10,8 +10,8 @@ normative: false
 
 ## Language policy
 
-The authoritative Cokret v1 specification is maintained **in Chinese**, under
-[`spec/v1/zh/`](../zh/). Cokret v1 follows a **single authoritative language**
+The authoritative Arkret v1 specification is maintained **in Chinese**, under
+[`spec/v1/zh/`](../zh/). Arkret v1 follows a **single authoritative language**
 policy: the Chinese text under `zh/` is the only normative, human-readable
 source of protocol truth. There is **no complete English specification**, and
 none is promised.

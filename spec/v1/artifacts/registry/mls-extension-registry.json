@@ -1,7 +1,7 @@
 {
   "version": "2026-06-03",
   "source_of_truth": true,
-  "description": "Canonical registry of Cokret-defined MLS (RFC 9420) GroupContext extensions occupying the MLS private-use ExtensionType range 0xF000-0xFFFF. Maintained so SDKs and conformance tooling have a single machine-readable entry for each active Cokret MLS extension codepoint.",
+  "description": "Canonical registry of Arkret-defined MLS (RFC 9420) GroupContext extensions occupying the MLS private-use ExtensionType range 0xF000-0xFFFF. Maintained so SDKs and conformance tooling have a single machine-readable entry for each active Arkret MLS extension codepoint.",
   "private_use_range": {
     "low": "0xF000",
     "high": "0xFFFF",
@@ -13,7 +13,7 @@
       "codepoint": "0xF1C0",
       "status": "active",
       "profile_id": "ck.profile.mls_governance_binding.full.v1",
-      "carries": "Cokret Realm/Circle governance binding inside the MLS GroupContext",
+      "carries": "Arkret Realm/Circle governance binding inside the MLS GroupContext",
       "iana_codepoint": null,
       "source_refs": [
         "spec/v1/zh/crypto-media/encryption-and-audit.md"

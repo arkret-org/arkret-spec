@@ -2,7 +2,7 @@ import type { JsonSchema } from "./types";
 
 /**
  * Resolve a JSON Pointer against a root schema document. Supports the
- * subset Cokret actually uses: same-doc fragments (`#/$defs/Foo`) and
+ * subset Arkret actually uses: same-doc fragments (`#/$defs/Foo`) and
  * sibling-file fragments (`./event-envelope.schema.json`, `./event-envelope.schema.json#/...`).
  *
  * Cross-file resolution requires the caller to provide a `loadFile` callback

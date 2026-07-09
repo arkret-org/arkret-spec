@@ -115,7 +115,7 @@ ck.agent.participation.v1:<agent_principal_id>:<scope_key>
 {
   "type": "ck.agent.participation.v1",
   "agent_principal_id": "did:webvh:...:agents:summary-assistant",
-  "scope": { "kind": "strand", "realm_id": "ck:realm:...", "strand_id": "ck:strand:..." },
+  "scope": { "kind": "strand", "realm_id": "ak:realm:...", "strand_id": "ak:strand:..." },
   "selection": {
     "reply": true,
     "accept_third_party_mention": false,
@@ -158,11 +158,11 @@ ck.agent.participation.v1:<agent_principal_id>:<scope_key>
 ```json
 {
   "scope_details": {
-    "realm_ids": ["ck:realm:..."],
-    "strand_ids": ["ck:strand:..."],
+    "realm_ids": ["ak:realm:..."],
+    "strand_ids": ["ak:strand:..."],
     "participation": [
       {
-        "scope": { "kind": "strand", "realm_id": "ck:realm:...", "strand_id": "ck:strand:..." },
+        "scope": { "kind": "strand", "realm_id": "ak:realm:...", "strand_id": "ak:strand:..." },
         "reply": true,
         "accept_third_party_mention": false,
         "act_on_behalf": false
@@ -206,7 +206,7 @@ GET  /_cokret/self/agents/{agent_principal_id}/participation   ck.self.agent.par
 
 ```json
 {
-  "scope": { "kind": "strand", "realm_id": "ck:realm:...", "strand_id": "ck:strand:..." },
+  "scope": { "kind": "strand", "realm_id": "ak:realm:...", "strand_id": "ak:strand:..." },
   "selection": { "reply": true, "accept_third_party_mention": false, "act_on_behalf": false }
 }
 ```
@@ -243,7 +243,7 @@ GET  /_cokret/self/agents/{agent_principal_id}/participation   ck.self.agent.par
 
 ### 10.1 为什么复用 ceiling-floor 框架而不是新建权限模型
 
-Cokret 的加密 floor 已经是一条"内层只能收紧"的单调链（circle.md §7）。agent 参与上限在语义上完全同构（governance 设上限、内层不得放宽），复用同一 reducer 校验框架能避免引入第二套继承语义，也让"内层不得大于外层"的不变量与现有 floor 共享 conformance 思路。
+Arkret 的加密 floor 已经是一条"内层只能收紧"的单调链（circle.md §7）。agent 参与上限在语义上完全同构（governance 设上限、内层不得放宽），复用同一 reducer 校验框架能避免引入第二套继承语义，也让"内层不得大于外层"的不变量与现有 floor 共享 conformance 思路。
 
 ### 10.2 为什么 selection 物化为既有 grant 而非新建 enforcement
 

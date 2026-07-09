@@ -88,11 +88,11 @@
       },
       "from_canonical_effective_scope": {
         "kind": "realm",
-        "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
       },
       "to_canonical_effective_scope": {
         "kind": "realm",
-        "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
       },
       "expect_reducer_result": "accepted",
       "rebind_classification": "same_scope_noop"
@@ -101,20 +101,20 @@
       "name": "same_circle_to_same_circle_noop",
       "description": "scope_circle_id=Some(A) -> scope_circle_id=Some(A). No-op rebind; reducer MUST accept.",
       "from_submit_payload": {
-        "scope_circle_id": "ck:circle:0196419c-0000-7000-8000-000000000000"
+        "scope_circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000"
       },
       "to_submit_payload": {
-        "scope_circle_id": "ck:circle:0196419c-0000-7000-8000-000000000000"
+        "scope_circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000"
       },
       "from_canonical_effective_scope": {
         "kind": "circle",
-        "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-        "circle_id": "ck:circle:0196419c-0000-7000-8000-000000000000"
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+        "circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000"
       },
       "to_canonical_effective_scope": {
         "kind": "circle",
-        "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-        "circle_id": "ck:circle:0196419c-0000-7000-8000-000000000000"
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+        "circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000"
       },
       "expect_reducer_result": "accepted",
       "rebind_classification": "same_scope_noop"
@@ -126,16 +126,16 @@
         "scope_circle_id": null
       },
       "to_submit_payload": {
-        "scope_circle_id": "ck:circle:0196419c-0000-7000-8000-000000000000"
+        "scope_circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000"
       },
       "from_canonical_effective_scope": {
         "kind": "realm",
-        "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
       },
       "to_canonical_effective_scope_when_profile_allows": {
         "kind": "circle",
-        "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-        "circle_id": "ck:circle:0196419c-0000-7000-8000-000000000000"
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+        "circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000"
       },
       "expect_reducer_result": "failed_precondition",
       "reason": "scope_rebind_forbidden",
@@ -145,19 +145,19 @@
       "name": "circle_to_none_default_reject",
       "description": "scope_circle_id=Some(A) -> scope_circle_id=null. True rebind; default reducer MUST reject with failed_precondition reason=scope_rebind_forbidden. Profile MAY enable audit-paired high-risk update.",
       "from_submit_payload": {
-        "scope_circle_id": "ck:circle:0196419c-0000-7000-8000-000000000000"
+        "scope_circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000"
       },
       "to_submit_payload": {
         "scope_circle_id": null
       },
       "from_canonical_effective_scope": {
         "kind": "circle",
-        "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-        "circle_id": "ck:circle:0196419c-0000-7000-8000-000000000000"
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+        "circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000"
       },
       "to_canonical_effective_scope_when_profile_allows": {
         "kind": "realm",
-        "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
       },
       "expect_reducer_result": "failed_precondition",
       "reason": "scope_rebind_forbidden",
@@ -167,20 +167,20 @@
       "name": "circle_a_to_circle_b_default_reject",
       "description": "scope_circle_id=Some(A) -> scope_circle_id=Some(B). True rebind across circles; default reducer MUST reject with failed_precondition reason=scope_rebind_forbidden. Profile MAY enable audit-paired high-risk update.",
       "from_submit_payload": {
-        "scope_circle_id": "ck:circle:0196419c-0000-7000-8000-000000000000"
+        "scope_circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000"
       },
       "to_submit_payload": {
-        "scope_circle_id": "ck:circle:0196419d-0000-7000-8000-000000000000"
+        "scope_circle_id": "ak:circle:0196419d-0000-7000-8000-000000000000"
       },
       "from_canonical_effective_scope": {
         "kind": "circle",
-        "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-        "circle_id": "ck:circle:0196419c-0000-7000-8000-000000000000"
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+        "circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000"
       },
       "to_canonical_effective_scope_when_profile_allows": {
         "kind": "circle",
-        "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-        "circle_id": "ck:circle:0196419d-0000-7000-8000-000000000000"
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+        "circle_id": "ak:circle:0196419d-0000-7000-8000-000000000000"
       },
       "expect_reducer_result": "failed_precondition",
       "reason": "scope_rebind_forbidden",
@@ -195,7 +195,7 @@
         "scope_circle_id": null,
         "effective_scope": {
           "kind": "realm",
-          "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
+          "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
         }
       },
       "expect_reducer_result": "schema_violation",
@@ -205,7 +205,7 @@
       "name": "scope_circle_id_targets_inactive_circle",
       "description": "scope_circle_id references a Circle with state != active. Reducer MUST failed_precondition reason=circle_not_active.",
       "submit_payload": {
-        "scope_circle_id": "ck:circle:0196419e-0000-7000-8000-000000000000"
+        "scope_circle_id": "ak:circle:0196419e-0000-7000-8000-000000000000"
       },
       "circle_state_at_evaluation": "archived",
       "expect_reducer_result": "failed_precondition",
@@ -215,10 +215,10 @@
       "name": "scope_circle_id_realm_mismatch",
       "description": "scope_circle_id references a Circle whose realm_id != object.realm_id. Reducer MUST schema_violation reason=circle_realm_mismatch.",
       "submit_payload": {
-        "scope_circle_id": "ck:circle:0196419f-0000-7000-8000-000000000000"
+        "scope_circle_id": "ak:circle:0196419f-0000-7000-8000-000000000000"
       },
-      "object_realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-      "circle_realm_id_at_evaluation": "ck:realm:01964200-0000-7000-8000-000000000000",
+      "object_realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+      "circle_realm_id_at_evaluation": "ak:realm:01964200-0000-7000-8000-000000000000",
       "expect_reducer_result": "schema_violation",
       "reason": "circle_realm_mismatch"
     },
@@ -226,7 +226,7 @@
       "name": "accepted_event_missing_effective_scope",
       "description": "An accepted durable Circle-scoped Event (e.g. ck.message.create whose Strand scope_circle_id is set) MUST carry the reducer-stamped effective_scope on its envelope. An offline validator / cotest MUST reject an accepted event whose object is Circle-scoped but whose effective_scope is absent, otherwise the §9.3 'Circle scoped event not delivered to non-members' invariant cannot be deterministically replayed. event-envelope.schema.json carries effective_scope as a reducer-stamped field; this vector pins that accepted (post-reducer) Circle events MUST populate it.",
       "event_kind": "ck.message.create",
-      "object_scope_circle_id": "ck:circle:0196419c-0000-7000-8000-000000000000",
+      "object_scope_circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000",
       "accepted_event_effective_scope": null,
       "expect_validation_result": "reject",
       "invariant": "accepted_circle_event_requires_effective_scope"
@@ -235,11 +235,11 @@
       "name": "effective_scope_mismatches_scope_circle_id",
       "description": "The reducer-stamped effective_scope MUST be derived from the object's scope_circle_id: scope_circle_id=null -> {kind:realm}; scope_circle_id=C -> {kind:circle, circle_id:C}. A materialized object / accepted event whose effective_scope.circle_id disagrees with its scope_circle_id is corrupt; reducer MUST schema_violation (effective_scope_reducer_managed) on write and a validator MUST reject on read.",
       "event_kind": "ck.message.create",
-      "object_scope_circle_id": "ck:circle:0196419c-0000-7000-8000-000000000000",
+      "object_scope_circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000",
       "stamped_effective_scope": {
         "kind": "circle",
-        "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-        "circle_id": "ck:circle:0196419d-0000-7000-8000-000000000000"
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+        "circle_id": "ak:circle:0196419d-0000-7000-8000-000000000000"
       },
       "expect_reducer_result": "schema_violation",
       "reason": "effective_scope_reducer_managed"
@@ -250,12 +250,12 @@
       "event_kind": "ck.message.create",
       "original_effective_scope": {
         "kind": "circle",
-        "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
-        "circle_id": "ck:circle:0196419c-0000-7000-8000-000000000000"
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
+        "circle_id": "ak:circle:0196419c-0000-7000-8000-000000000000"
       },
       "tampered_effective_scope": {
         "kind": "realm",
-        "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
       },
       "expect_verification_result": "reject",
       "reason": "digest_mismatch"

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://cokret.dev/spec/v1/artifacts/registry/drift-detection.schema.json",
+  "$schema": "https://arkret.dev/spec/v1/artifacts/registry/drift-detection.schema.json",
   "version": 1,
   "kind": "deprecated_profile_ids",
   "source_of_truth": true,

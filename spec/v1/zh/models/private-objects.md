@@ -12,7 +12,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-本文集中定义 Cokret 协作图中的**派生 / actor-private 对象**：
+本文集中定义 Arkret 协作图中的**派生 / actor-private 对象**：
 
 - **Read Cursor**：actor 私有的已读位置状态。
 - **Notification**：从 Event / Strand / Message / Relation 派生的 inbox projection。

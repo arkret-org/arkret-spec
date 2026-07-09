@@ -86,7 +86,7 @@ Reducer MUST 拒绝把 effective Realm 或 Circle history visibility 设置为 `
 
 ## 4. Preview
 
-Preview 是读取授权的一种受限投影，不是加入、写入或完整历史读取。Cokret v1 区分四类 preview：
+Preview 是读取授权的一种受限投影，不是加入、写入或完整历史读取。Arkret v1 区分四类 preview：
 
 | 类别 | 典型 surface | 可披露内容 |
 | --- | --- | --- |

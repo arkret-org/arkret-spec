@@ -14,7 +14,7 @@ sidebar:
 
 ## 1. 目标
 
-把 Cokret v1 规范转化为可复现的实现标准。本套件以 profile 为测试入口，强制验证：
+把 Arkret v1 规范转化为可复现的实现标准。本套件以 profile 为测试入口，强制验证：
 
 - canonical `Event.kind` 与服务 `operation_id` 语义
 - reducer 一致性（特别是 auth/state 重算）
@@ -179,7 +179,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.md`](./conformance-pr
 
 ### 6.1 发布分级
 
-规范文本闭环不等于实现生态已经稳定。Cokret 发布时 SHOULD 使用以下分级：
+规范文本闭环不等于实现生态已经稳定。Arkret 发布时 SHOULD 使用以下分级：
 
 | 标签 | 允许用途 | 必须满足 |
 | --- | --- | --- |

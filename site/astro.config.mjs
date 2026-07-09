@@ -69,7 +69,7 @@ function planeItems(plane, order = []) {
 }
 
 /**
- * Cokret protocol site.
+ * Arkret protocol site.
  *
  * Routing model:
  *   /<locale>/v<version>/<spec-path>          — normative prose (Markdown under spec/<v>/<locale>/)
@@ -80,7 +80,7 @@ function planeItems(plane, order = []) {
  * version is a directory drop + sidebar entry; nothing else changes.
  */
 export default defineConfig({
-  site: "https://cokret.org",
+  site: "https://arkret.org",
   trailingSlash: "always",
   redirects: {
     // Locale roots have no normative prose entry; send visitors to the
@@ -125,9 +125,9 @@ export default defineConfig({
   },
   integrations: [
     starlight({
-      title: "Cokret Spec",
+      title: "Arkret Spec",
       description:
-        "Cokret v1 — decentralized collaboration protocol specification.",
+        "Arkret v1 — decentralized collaboration protocol specification.",
       defaultLocale: "zh",
       // Suppress Starlight's auto-injected /404 route: it issues a
       // `getEntry('docs','404')` lookup at build time to find a user override,

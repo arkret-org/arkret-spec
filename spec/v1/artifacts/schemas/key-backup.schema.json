@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/key-backup.schema.json",
-  "title": "Cokret Encrypted Key Backup",
+  "$id": "https://arkret.org/v1/schemas/key-backup.schema.json",
+  "title": "Arkret Encrypted Key Backup",
   "type": "object",
   "required": [
     "backup_id",
@@ -319,7 +319,7 @@
             "nonce": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]+$",
-              "description": "base64url AEAD nonce. Required for the symmetric methods (passphrase_kdf / secret_storage_key). For recipient_method=passphrase_kdf this MUST equal HMAC-SHA256(HKDF(derived_key, info='cokret-key-backup-aead-nonce-v1'), canonical_json({backup_id, actor_id, device_id, backup_class, backup_version, created_at, aead.name, aead.aead_profile?, aead.nonce_salt}))[0:N_AEAD]; receivers recompute and reject mismatches. Absent for recovery_public_key (HPKE derives its nonce internally)."
+              "description": "base64url AEAD nonce. Required for the symmetric methods (passphrase_kdf / secret_storage_key). For recipient_method=passphrase_kdf this MUST equal HMAC-SHA256(HKDF(derived_key, info='arkret-key-backup-aead-nonce-v1'), canonical_json({backup_id, actor_id, device_id, backup_class, backup_version, created_at, aead.name, aead.aead_profile?, aead.nonce_salt}))[0:N_AEAD]; receivers recompute and reject mismatches. Absent for recovery_public_key (HPKE derives its nonce internally)."
             },
             "nonce_salt": {
               "type": "string",
@@ -434,7 +434,7 @@
       "properties": {
         "hkdf_info": {
           "type": "string",
-          "pattern": "^cokret-key-backup/(did_recovery|secret_storage|mls_history)/[a-z][a-z0-9_]{0,63}/v1$"
+          "pattern": "^arkret-key-backup/(did_recovery|secret_storage|mls_history)/[a-z][a-z0-9_]{0,63}/v1$"
         },
         "subdomain": {
           "type": "string",

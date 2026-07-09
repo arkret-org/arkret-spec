@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/space.schema.json",
-  "title": "Cokret Space",
+  "$id": "https://arkret.org/v1/schemas/space.schema.json",
+  "title": "Arkret Space",
   "description": "A Space is a structural grouping object inside a Realm. Boards, lists, swimlanes, calendar buckets, document outline groups, etc. are all Spaces. Authorization-transparent: never carries its own membership/policy/E2EE group; its metadata may be placed in an existing Realm/Circle effective scope via scope_circle_id.",
   "type": "object",
   "required": [

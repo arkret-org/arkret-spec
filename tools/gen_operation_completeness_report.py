@@ -8,7 +8,7 @@ three sources of truth:
 
   * the operation registry (declared ``request_schema_ref`` /
     ``response_schema_ref`` and ``success_shape_kind``),
-  * the OpenAPI document (``openapi/cokret-service-api.openapi.yaml``) — which
+  * the OpenAPI document (``openapi/arkret-service-api.openapi.yaml``) — which
     request/response component each operation actually binds, and
   * the operation field table in ``zh/sync/service-http-binding.md`` (the prose
     constraint that any declared registry ref must be mentioned there).
@@ -51,7 +51,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / "spec" / "v1" / "artifacts"
 CATALOG = ARTIFACTS / "registry" / "contract-catalog.json"
-OPENAPI = ARTIFACTS / "openapi" / "cokret-service-api.openapi.yaml"
+OPENAPI = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
 BINDING = ROOT / "spec" / "v1" / "zh" / "sync" / "service-http-binding.md"
 REPORT = ARTIFACTS / "reports" / "operation-completeness-report.json"
 
@@ -330,7 +330,7 @@ def build_report() -> dict[str, Any]:
         "generated_at": generated_at,
         "generated_from": [
             "registry/contract-catalog.json",
-            "openapi/cokret-service-api.openapi.yaml",
+            "openapi/arkret-service-api.openapi.yaml",
         ],
         "generated_by": "tools/gen_operation_completeness_report.py",
         "description": (

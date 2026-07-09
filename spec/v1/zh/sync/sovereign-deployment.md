@@ -14,7 +14,7 @@ sidebar:
 
 ## 1. 目标
 
-高安全组织可以运行独立的 Cokret 网络，同时在必要时为外部人员或外部组织开启 **External Collaboration Realm**。
+高安全组织可以运行独立的 Arkret 网络，同时在必要时为外部人员或外部组织开启 **External Collaboration Realm**。
 
 本文定义：
 
@@ -28,7 +28,7 @@ sidebar:
 
 ## 2. 部署模型
 
-Sovereign deployment 是由单一组织或联盟控制的 Cokret 服务域。它通常包含：
+Sovereign deployment 是由单一组织或联盟控制的 Arkret 服务域。它通常包含：
 
 - Organization DID / governance registry / witness
 - Identity Registry
@@ -148,7 +148,7 @@ Sovereign client(在 `ck.profile.sovereign_deployment.v1` 语境下)逐条强制
 - Policy Server 默认 `closed` 或 `quarantine` fail mode(SHOULD)。
 - PQ-hybrid TLS：service-to-service（federation peer）与 client-service 的 TLS 1.3 连接 MUST 支持并协商混合后量子 group `X25519MLKEM768`（draft-ietf-tls-ecdhe-mlkem），对端不提供时 MUST fail closed，MUST NOT 静默降级到纯经典 key exchange（MUST；sovereign / 高安全部署要求，缓解仅靠 TLS 保护的传输面的 Harvest-Now-Decrypt-Later 风险）。
 
-> **PQ-hybrid TLS（sovereign / 高安全 MUST）**：上一条 PQ-hybrid TLS 要求是 sovereign / 高安全 profile 的硬性部署要求。规范义务的 canonical 表述见 [`transport-bindings.md` §5](./transport-bindings.md)。该要求零 wire 字段成本，纯在 TLS 握手层，不改 Cokret wire envelope / schema / object model，与 §3.2 / federation §3.2 的 RFC 9421 请求签名正交。conformance 验证为 deployment-profile 握手探针（握手后检查协商 named group 是否为 `X25519MLKEM768`，见 §11），而非 object-model conformance vector。完整威胁论据见 [`../security/server-threat-model.md` §2.4](../security/server-threat-model.md)；联邦链路见 [`federation.md` §3.2](./federation.md)。
+> **PQ-hybrid TLS（sovereign / 高安全 MUST）**：上一条 PQ-hybrid TLS 要求是 sovereign / 高安全 profile 的硬性部署要求。规范义务的 canonical 表述见 [`transport-bindings.md` §5](./transport-bindings.md)。该要求零 wire 字段成本，纯在 TLS 握手层，不改 Arkret wire envelope / schema / object model，与 §3.2 / federation §3.2 的 RFC 9421 请求签名正交。conformance 验证为 deployment-profile 握手探针（握手后检查协商 named group 是否为 `X25519MLKEM768`，见 §11），而非 object-model conformance vector。完整威胁论据见 [`../security/server-threat-model.md` §2.4](../security/server-threat-model.md)；联邦链路见 [`federation.md` §3.2](./federation.md)。
 
 ## 3.1 DID Policy
 
@@ -159,7 +159,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
 ```json
 {
   "kind": "ck.sovereign.did_policy",
-  "trust_domain": "ck:trust_domain:did.webvh.defense.example",
+  "trust_domain": "ak:trust_domain:did.webvh.defense.example",
   "default_principal_method": "did:webvh",
   "allowed_methods": ["did:webvh", "did:web", "did:plc", "did:key"],
   "trust_roots": [
@@ -207,12 +207,12 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
   "kind": "ck.realm.create",
   "payload": {
     "object": {
-      "id": "ck:realm:019640ea-8000-7000-8000-000000000000",
+      "id": "ak:realm:019640ea-8000-7000-8000-000000000000",
       "schema": "ck.schema.realm.v1",
       "security_class": "high_assurance",
       "title": "External Collaboration",
       "created_by": "did:webvh:zGsmzvyUSDby8As5bHG3kAtWL:defense.example",
-      "trust_domain": "ck:trust_domain:did.webvh.defense.example",
+      "trust_domain": "ak:trust_domain:did.webvh.defense.example",
       "owning_organizations": [
         "did:webvh:zGsmzvyUSDby8As5bHG3kAtWL:defense.example"
       ],
@@ -279,7 +279,7 @@ Sovereign 部署默认采用 **single_did Notary profile**：每个 Realm 由组
   "issuer": "did:webvh:zGsmzvyUSDby8As5bHG3kAtWL:defense.example",
   "subject": "did:webvh:zGTog8Hi4N3h8YrvWRQ2Lr3RP:contractor.example",
   "claim_scope": {
-    "realm_id": "ck:realm:400d7400-0000-7000-8000-000000000000",
+    "realm_id": "ak:realm:400d7400-0000-7000-8000-000000000000",
     "roles": ["contractor_reviewer"],
     "max_members": 20
   },

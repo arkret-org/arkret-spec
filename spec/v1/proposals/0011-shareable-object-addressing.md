@@ -1,6 +1,6 @@
 ---
 ckp: CKP-0011
-title: Shareable Object Addressing — web+cokret URI scheme & deep-link resolution
+title: Shareable Object Addressing — web+arkret URI scheme & deep-link resolution
 normative: false
 stability: v1
 updated: 2026-05-28
@@ -20,12 +20,12 @@ merged_into: spec/v1/zh/discovery/object-addressing.md
 
 ## 1. Summary
 
-定义一套**客户端无关的可分享对象地址**,让用户可以把一个 Strand(或 Strand 内某条 Message、或 Realm)通过一串链接分享出去,接收方任意 Cokret 客户端都能解析并在自己 UI 里打开。
+定义一套**客户端无关的可分享对象地址**,让用户可以把一个 Strand(或 Strand 内某条 Message、或 Realm)通过一串链接分享出去,接收方任意 Arkret 客户端都能解析并在自己 UI 里打开。
 
 核心是把三件被混淆的东西分层:
 
 - **逻辑地址 grammar**(已存在的 `ck:strand:<uuid>` 等不透明 id,不动);
-- **可注册 URI scheme `web+cokret:`**(app-to-app / "在 App 打开");
+- **可注册 URI scheme `web+arkret:`**(app-to-app / "在 App 打开");
 - **HTTPS 落地链接**(matrix.to 模型,用户真正复制粘贴的那串,fragment-based)。
 
 地址层**纯寻址**;授权永远是挂在纯地址上的、可吊销、有 expiry 的签名 token,分 `reference` / `preview` / `invite` 三型。寻址 ≠ 授权:裸地址解析仍受 [`discovery-directory.md`](../zh/discovery/discovery-directory.md) 三 gate 约束,看不见的资源解析成 `not_found`。
@@ -44,8 +44,8 @@ merged_into: spec/v1/zh/discovery/object-addressing.md
 
 Matrix 用**三件套**解决同一问题,值得直接借形:
 
-- 逻辑 id:`!room:server` / `$event`(↔ Cokret `ck:strand:` / `ck:message:`);
-- 注册 URI scheme:`matrix:roomid/<id>/e/<event>?via=`(↔ 本提案 `web+cokret:`);
+- 逻辑 id:`!room:server` / `$event`(↔ Arkret `ck:strand:` / `ck:message:`);
+- 注册 URI scheme:`matrix:roomid/<id>/e/<event>?via=`(↔ 本提案 `web+arkret:`);
 - HTTPS 分享页:`https://matrix.to/#/!room:server/$event?via=`(↔ 本提案 HTTPS 落地)。
 
 三者职责不同、不可合并;早期把它们压成一个 scheme 是 Matrix 踩过的坑。
@@ -54,10 +54,10 @@ Matrix 用**三件套**解决同一问题,值得直接借形:
 
 ### 3.1 地址 grammar(path 表身份,query 表提示)
 
-canonical 形态(`web+cokret:` envelope):
+canonical 形态(`web+arkret:` envelope):
 
 ```
-web+cokret:realm/<realm>/strand/<strand>/m/<msg>?via=<service_did>&via=<service_did>&action=view
+web+arkret:realm/<realm>/strand/<strand>/m/<msg>?via=<service_did>&via=<service_did>&action=view
 ```
 
 | 部分 | 承载 | 规则 |
@@ -69,10 +69,10 @@ web+cokret:realm/<realm>/strand/<strand>/m/<msg>?via=<service_did>&via=<service_
 层级合法前缀(短到长均可单独成址):
 
 ```
-web+cokret:realm/<realm>                              # Realm(退化回 resolve_realm)
-web+cokret:realm/<realm>/strand/<strand>                  # Strand(reference,无 token)
-web+cokret:realm/<realm>/strand/<strand>/m/<msg>          # Strand discussion track 内某条 Message
-web+cokret:realm/<realm>/strand/<strand>?via=<did>&lt=invite&tok=<token>   # invite link
+web+arkret:realm/<realm>                              # Realm(退化回 resolve_realm)
+web+arkret:realm/<realm>/strand/<strand>                  # Strand(reference,无 token)
+web+arkret:realm/<realm>/strand/<strand>/m/<msg>          # Strand discussion track 内某条 Message
+web+arkret:realm/<realm>/strand/<strand>?via=<did>&lt=invite&tok=<token>   # invite link
 ```
 
 规则:
@@ -85,7 +85,7 @@ web+cokret:realm/<realm>/strand/<strand>?via=<did>&lt=invite&tok=<token>   # inv
   - `lt=<reference|preview|invite>`,省略等价 `reference`;
   - `tok=<opaque-token>`,**当且仅当** `lt ∈ {preview, invite}` 出现;直接映射到 `resolve_target.token`。
   - token 的内部类别(preview grant / invite / signed_link 风格)由签名 payload 内的 `link_type` 承载(§3.4),不靠参数名区分。
-  - `tok` 位于 query-suffix,因此在 HTTPS envelope 下随整串落进 fragment(§3.3),自动满足"token MUST 在 fragment";`web+cokret:` 原生 handler 形态同样把它留在 query-suffix。
+  - `tok` 位于 query-suffix,因此在 HTTPS envelope 下随整串落进 fragment(§3.3),自动满足"token MUST 在 fragment";`web+arkret:` 原生 handler 形态同样把它留在 query-suffix。
   - token 存在时**权威 link_type 取自 token 签名 payload**;URL `lt` 仅是解析前展示 hint,**MUST NOT** 用于放大权限,与 token 内 `link_type` 矛盾时以 token 为准。
 - Circle-scoped Strand(`Strand.scope_circle_id != null`)的地址形态**不**额外暴露 circle id:scope 由解析后的访问判定决定,地址层不泄露 Circle 存在性(见 §3.4)。
 
@@ -94,21 +94,21 @@ web+cokret:realm/<realm>/strand/<strand>?via=<did>&lt=invite&tok=<token>   # inv
 | Envelope | 形态 | 用途 |
 | --- | --- | --- |
 | **逻辑 id** | `ck:strand:<uuid>`(不变) | 协议内部 / `resolve_*` 输入;不是 URI,不塞 `?via=`。 |
-| **`web+cokret:`** | `web+cokret:realm/…/strand/…?via=…` | "在 App 打开"。原生 app 经 OS 级 handler 直接接收(真·本地,不经任何 web server)。web 客户端经 `navigator.registerProtocolHandler('web+cokret', <https-template>)` 登记——注意 handler 模板的隐私约束见 §3.3。 |
+| **`web+arkret:`** | `web+arkret:realm/…/strand/…?via=…` | "在 App 打开"。原生 app 经 OS 级 handler 直接接收(真·本地,不经任何 web server)。web 客户端经 `navigator.registerProtocolHandler('web+arkret', <https-template>)` 登记——注意 handler 模板的隐私约束见 §3.3。 |
 | **HTTPS 落地** | `https://<landing>/#realm/…/strand/…?via=…` | 用户复制粘贴的默认形态;`#` 后整体 = 上面同一 grammar。 |
 
-`web+cokret:` 与 HTTPS 落地共用同一 grammar parser,只是外壳不同(裸接 scheme vs 接在 `#` 后)。
+`web+arkret:` 与 HTTPS 落地共用同一 grammar parser,只是外壳不同(裸接 scheme vs 接在 `#` 后)。
 
 ### 3.3 隐私:target 与 token 放 fragment
 
 HTTPS 落地链接中,`strand` / `m` / `via` / 尤其授权 token **MUST** 放在 URL **fragment(`#`)**,不进 path/query。理由:fragment 不发往落地页服务器,服务器日志学不到"谁在打开哪个 Strand",与 [`discovery-directory.md` §11](../zh/discovery/discovery-directory.md) anti-enumeration 立场一致(matrix.to 同款)。
 
-**`web+cokret:` 的隐私边界按 handler 类型分两支(不可笼统说"不经 web server"):**
+**`web+arkret:` 的隐私边界按 handler 类型分两支(不可笼统说"不经 web server"):**
 
 - **原生 OS 级 handler**:URI 由操作系统直接派发给本地 app,确实不经任何第三方 web server,via / token 留在 query 无泄露风险。
-- **web `registerProtocolHandler` handler**:浏览器会**导航到注册的 HTTPS handler 模板 URL**,并把原始 `web+cokret:` URI 作为替换值(`%s`)填入。**若模板把 `%s` 放在 path/query,则 target 乃至 token 会进入 handler 服务端的请求与日志**——这与 §3.3 的隐私目标直接冲突。因此 normative 约束:
+- **web `registerProtocolHandler` handler**:浏览器会**导航到注册的 HTTPS handler 模板 URL**,并把原始 `web+arkret:` URI 作为替换值(`%s`)填入。**若模板把 `%s` 放在 path/query,则 target 乃至 token 会进入 handler 服务端的请求与日志**——这与 §3.3 的隐私目标直接冲突。因此 normative 约束:
   - web handler 模板 **MUST** 把 `%s` 放进**自身 fragment**(例如 `https://app.example/open#%s`),使被替换的 URI 永远落在 fragment、不进服务端;**或**
-  - web 客户端干脆**只走 HTTPS fragment 落地页**,把 `web+cokret:` 留给原生/本地 handler,不自行注册 web protocol handler。
+  - web 客户端干脆**只走 HTTPS fragment 落地页**,把 `web+arkret:` 留给原生/本地 handler,不自行注册 web protocol handler。
 
 ### 3.4 Link 类型(寻址 ≠ 授权)
 
@@ -128,9 +128,9 @@ HTTPS 落地链接中,`strand` / `m` / `via` / 尤其授权 token **MUST** 放�
 
     ```json
     {
-      "realm_id": "ck:realm:<uuid>",
-      "strand_id": "ck:strand:<uuid>",        // 仅 strand / message 目标出现
-      "message_id": "ck:message:<uuid>",  // 仅 message 目标出现
+      "realm_id": "ak:realm:<uuid>",
+      "strand_id": "ak:strand:<uuid>",        // 仅 strand / message 目标出现
+      "message_id": "ak:message:<uuid>",  // 仅 message 目标出现
       "link_type": "preview"              // "preview" | "invite"
     }
     ```
@@ -156,7 +156,7 @@ HTTPS 落地链接中,`strand` / `m` / `via` / 尤其授权 token **MUST** 放�
 
 - **新增 normative 文件**(accepted 后):`spec/v1/zh/discovery/object-addressing.md`(grammar + 三 envelope + 解析契约)。
 - **改动** [`discovery-directory.md` §9](../zh/discovery/discovery-directory.md):operation-registry 增 `ck.find.directory.query.resolve_target`;§9.1 `via_services` 语义复用。
-- **artifact**:source of truth 是 `contract-catalog.json`(`source_of_truth: true`)——`resolve_target` operation_id 先在此新增;`operation-registry.json` 等 `generated_registries` 由 `tools/artifact_pipeline.py generate` 派生,**不得手工改**。`openapi/cokret-service-api.openapi.yaml`(`POST /_cokret/find/directory/resolve-target`)与 HTTP binding / prose 表是对齐 artifact,需要在同一 accepted patch 中同步更新,再由 `tools/artifact_pipeline.py check` 校验它们与 catalog/registry 一致。`id-kind-registry.json` 若需"address grammar"附注,也应通过 `contract-catalog.json` 的 id-kind source 更新后生成(非新 id kind)。
+- **artifact**:source of truth 是 `contract-catalog.json`(`source_of_truth: true`)——`resolve_target` operation_id 先在此新增;`operation-registry.json` 等 `generated_registries` 由 `tools/artifact_pipeline.py generate` 派生,**不得手工改**。`openapi/arkret-service-api.openapi.yaml`(`POST /_cokret/find/directory/resolve-target`)与 HTTP binding / prose 表是对齐 artifact,需要在同一 accepted patch 中同步更新,再由 `tools/artifact_pipeline.py check` 校验它们与 catalog/registry 一致。`id-kind-registry.json` 若需"address grammar"附注,也应通过 `contract-catalog.json` 的 id-kind source 更新后生成(非新 id kind)。
 - **Invite token 生命周期复用**:`invite` token 的签发 / 过期 / 吊销复用 [`join-policy.md`](../zh/governance/join-policy.md) 既有 `invite_token` / `signed_link` 生命周期,本提案**不另发明** revocation 机制;`resolve_target` 在 §3.4 target descriptor 校验通过后,仍 **MUST** 走 join-policy 的 token 有效性 / 吊销检查。`preview` token 的授权与吊销归属属于未决设计点,见 §6。
 - **不触碰** event-kind / capability / schema 的 wire 约束;**不需要** forbidden-wire 守卫(没有新 on-wire 字段进对象 / payload)。
 - **隐私**:地址 grammar 与 anti-enumeration、Circle 存在性隐私([CKP-0007](./0007-circle-primitive.md))、handle 可迁移原则([`identity-handles.md` §3.8](../zh/identity/identity-handles.md))一致——realm alias 是可迁移 label,历史链接靠 realm_id + via 仍可解析。
@@ -164,9 +164,9 @@ HTTPS 落地链接中,`strand` / `m` / `via` / 尤其授权 token **MUST** 放�
 ## 5. Rationale & alternatives
 
 - **扁平 query(`?realm=&strand=&m=`)被否**:丢失解析顺序信号;跨对象类型扩展需每类型一个 param 名且有歧义;把身份(`strand=`)和提示(`via=`)压到同一句法层,抹掉 §3.4 想要的 identity/hint 边界。层级 path 把 containment 与解析顺序写进语法。
-- **裸 `ck:` 作 URI scheme 被否**:浏览器 `registerProtocolHandler` 只允许 `web+` 前缀(或内置安全名单),裸 `ck:` 永远注册不了——而多客户端(含 web PWA)正是本提案前提;且 `ck:strand:019…` 与 id 字面量完全相同会产生歧义;2 字母 scheme IANA 注册基本不可行。`web+cokret:` 丑但几乎不直接露给用户(用户分享 HTTPS 落地链接)。
+- **裸 `ck:` 作 URI scheme 被否**:浏览器 `registerProtocolHandler` 只允许 `web+` 前缀(或内置安全名单),裸 `ck:` 永远注册不了——而多客户端(含 web PWA)正是本提案前提;且 `ck:strand:019…` 与 id 字面量完全相同会产生歧义;2 字母 scheme IANA 注册基本不可行。`web+arkret:` 丑但几乎不直接露给用户(用户分享 HTTPS 落地链接)。
 - **纯路径(via 也进 path)被否**:`via` 真·多值、真·非身份,`/via/<did>/via/<did>` 既丑又混淆物理路由与逻辑身份。
-- **只做原生 scheme(`ck://`)被否**:把 web 客户端排除在链接处理之外,违背"客户端无关"目标。原生 app 仍可私下额外认领,但 spec 祝福的互通 scheme 是 `web+cokret:`。
+- **只做原生 scheme(`ck://`)被否**:把 web 客户端排除在链接处理之外,违背"客户端无关"目标。原生 app 仍可私下额外认领,但 spec 祝福的互通 scheme 是 `web+arkret:`。
 
 ## 6. Open questions（合入决议）
 
@@ -185,13 +185,13 @@ HTTPS 落地链接中,`strand` / `m` / `via` / 尤其授权 token **MUST** 放�
 
 1. 新增 normative `spec/v1/zh/discovery/object-addressing.md`。
 2. `contract-catalog.json` 增 `ck.find.directory.query.resolve_target`,`artifact_pipeline.py generate` 生成 `operation-registry.json` 等视图。
-3. 同步 `openapi/cokret-service-api.openapi.yaml`、`non-http-bindings.yaml`、`operations-error-mapping.json`,`artifact_pipeline.py check` 验证对齐。
+3. 同步 `openapi/arkret-service-api.openapi.yaml`、`non-http-bindings.yaml`、`operations-error-mapping.json`,`artifact_pipeline.py check` 验证对齐。
 4. `discovery-directory.md` §9 / `service-http-binding.md` §2.3 / `release-readiness.md` / `spec-map.md` 同步行与计数(100 → 101)。
 5. CHANGELOG + STATUS_METRICS + 本目录 README 索引更新。
 
 1. 落 `spec/v1/zh/discovery/object-addressing.md` normative。
 2. 在 `contract-catalog.json`(source of truth)增 `resolve_target`,再跑 `tools/artifact_pipeline.py generate` 生成 `operation-registry.json` 等 generated registry view。
-3. 同步补 `openapi/cokret-service-api.openapi.yaml`、HTTP binding/prose 表与必要 conformance profile 引用,再跑 `tools/artifact_pipeline.py check` 验证 catalog / registry / OpenAPI 对齐。
+3. 同步补 `openapi/arkret-service-api.openapi.yaml`、HTTP binding/prose 表与必要 conformance profile 引用,再跑 `tools/artifact_pipeline.py check` 验证 catalog / registry / OpenAPI 对齐。
 4. 在 `discovery-directory.md` 交叉引用新文件。
 5. CHANGELOG + STATUS_METRICS 更新。
 

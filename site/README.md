@@ -1,4 +1,4 @@
-# Cokret Spec Site
+# Arkret Spec Site
 
 Astro Starlight 站点，把 `spec/v1/` 渲染成可浏览的协议规范网站。
 

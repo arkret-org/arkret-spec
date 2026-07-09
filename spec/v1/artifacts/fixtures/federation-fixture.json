@@ -2,7 +2,7 @@
   "suite": "federation",
   "profile": "ck.vector_group.federation.v1",
   "topology": {
-    "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+    "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
     "principal_servers": [
       {
         "service_did": "did:webvh:z6mkfixture:server-alpha.example",
@@ -24,13 +24,13 @@
       }
     ],
     "service_binding_ref": {
-      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
       "realm_policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "membership_frontier": [
-        "ck:event:01964145-8000-7000-8000-000000000000"
+        "ak:event:01964145-8000-7000-8000-000000000000"
       ],
       "delivery_binding_frontier": [
-        "ck:event:01964145-8000-7000-8000-000000000001"
+        "ak:event:01964145-8000-7000-8000-000000000001"
       ],
       "destination_service_type": "principal_server",
       "reducer_profile_digest": "sha256:d7a0d88d075240c9faf28c87b54708788cde1c6a1c4e68c45ee6c8b7e4d3c651"
@@ -128,7 +128,7 @@
     {
       "name": "fork_quarantine",
       "input": {
-        "event_id": "ck:event:019640f9-8000-7000-8000-000000000000",
+        "event_id": "ak:event:019640f9-8000-7000-8000-000000000000",
         "alpha_event_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "beta_event_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
       },
@@ -139,7 +139,7 @@
       "input": {
         "requester": "did:webvh:z6mkfixture:server-beta.example",
         "source": "did:webvh:z6mkfixture:server-alpha.example",
-        "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
         "requested_visibility": "private_plaintext",
         "requester_plaintext_visible": false
       },

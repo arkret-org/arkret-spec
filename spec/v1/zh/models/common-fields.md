@@ -12,7 +12,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-本文定义 Cokret 协作图所有 canonical object 共享的字段、lifecycle 状态机、主体引用语义与 reducer 总则。每个对象自己的字段表（Realm / Strand / Message / ...）放在该对象的专属文件中；本文只承载"所有对象都遵循"的内容。
+本文定义 Arkret 协作图所有 canonical object 共享的字段、lifecycle 状态机、主体引用语义与 reducer 总则。每个对象自己的字段表（Realm / Strand / Message / ...）放在该对象的专属文件中；本文只承载"所有对象都遵循"的内容。
 
 ## 2. 类型记法
 
@@ -36,7 +36,7 @@ updated: 2026-07-02
 
 注：`device_id` 不是例外字段；它的类型是 `id:device`，wire form MUST 为 `ck:device:<uuid>`。只有部分辅助标识符（如 `transaction_id`、`backup_version`、`stream_id`）使用领域特定前缀（如 `ver_`、`kb_`、`devstream_`），不遵循 `ck:<kind>:<uuid>` 格式。这些标识符的编码规则由各自所在章节定义。`recording_id` 是 [`crypto-media/call-state.md` §5](../crypto-media/call-state.md) 定义的 opaque 领域标识（示例形态 `rtc-recording-<uuid>`）：它是 backend 媒体服务（如 LiveKit Egress）生成的 opaque 录制 lifecycle 句柄，进入 recording key exporter Context，**不是** `ck:*` typed ID。
 
-`ck-` / `cx_` 前缀命名约定（normative）：`ck-` / `ck_` 是 Cokret 的正命名前缀；新增或推荐的 canonical 命名 **MUST NOT** 使用 `ck-` / `cx_` 前缀。MLS GroupContext extension 的当前 wire 名是 `mls_governance_binding`（codepoint 0xF1C0，非 ck 名），实现 MUST 用 `mls_governance_binding`、MUST NOT 把 `cx_governance_binding` 作为当前 wire 名。
+`ck-` / `cx_` 前缀命名约定（normative）：`ck-` / `ck_` 是 Arkret 的正命名前缀；新增或推荐的 canonical 命名 **MUST NOT** 使用 `ck-` / `cx_` 前缀。MLS GroupContext extension 的当前 wire 名是 `mls_governance_binding`（codepoint 0xF1C0，非 ck 名），实现 MUST 用 `mls_governance_binding`、MUST NOT 把 `cx_governance_binding` 作为当前 wire 名。
 
 字段默认规则：
 
@@ -229,7 +229,7 @@ expected_<role>_<kind>_id
 
 ### 4.1 DID 适用边界
 
-DID 是 Cokret 的主体标识，不是普通协作对象 ID。标准协作对象（Realm / Circle / Space / Strand / Message / Morph / Relation / View / Policy / Grant / Invite / Blob 等）MUST 使用 `ck:<kind>:` typed ID 作为对象 ID；只有当字段表达 actor / principal / issuer / subject / service / controller / accountable party 时，才使用 DID 或 DID URL。设备不在此列：设备不是 actor 主体、没有自己的 DID，其标识是 `device_id`（`ck:device:<uuid>` typed ID），见 [`../crypto-media/device-lifecycle.md` §4](../crypto-media/device-lifecycle.md)。
+DID 是 Arkret 的主体标识，不是普通协作对象 ID。标准协作对象（Realm / Circle / Space / Strand / Message / Morph / Relation / View / Policy / Grant / Invite / Blob 等）MUST 使用 `ck:<kind>:` typed ID 作为对象 ID；只有当字段表达 actor / principal / issuer / subject / service / controller / accountable party 时，才使用 DID 或 DID URL。设备不在此列：设备不是 actor 主体、没有自己的 DID，其标识是 `device_id`（`ck:device:<uuid>` typed ID），见 [`../crypto-media/device-lifecycle.md` §4](../crypto-media/device-lifecycle.md)。
 
 因此，"需要有 DID"的对象与结构按下表理解：
 
@@ -479,9 +479,9 @@ UUID 部分 MUST 使用 UUIDv7（time-ordered），便于审计与排序；conte
 
 ```json
 {
-  "id": "ck:strand:01964137-0000-7000-8000-000000000000",
+  "id": "ak:strand:01964137-0000-7000-8000-000000000000",
   "schema": "ck.schema.strand.v1",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "created_by": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "created_at": "2026-04-26T00:00:00Z",
   "updated_by": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",

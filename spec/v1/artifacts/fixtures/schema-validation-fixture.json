@@ -10,7 +10,7 @@
       "expect_valid": true,
       "instance": {
         "service_did": "did:webvh:z6mkfixture:alice.example.net",
-        "trust_domain": "ck:trust_domain:did.webvh.alice.example",
+        "trust_domain": "ak:trust_domain:did.webvh.alice.example",
         "service_type": "principal_server",
         "protocol_version": "1.0",
         "supported_profiles": [
@@ -64,7 +64,7 @@
       "expect_valid": true,
       "instance": {
         "service_did": "did:webvh:z6mkfixture:directory.example.net",
-        "trust_domain": "ck:trust_domain:directory.example",
+        "trust_domain": "ak:trust_domain:directory.example",
         "service_type": "directory_service",
         "protocol_version": "1.0",
         "supported_profiles": [
@@ -132,7 +132,7 @@
       "first_expected_error": "$: 'development_mode' is a required property",
       "instance": {
         "service_did": "did:webvh:z6mkfixture:alice.example.net",
-        "trust_domain": "ck:trust_domain:did.webvh.alice.example",
+        "trust_domain": "ak:trust_domain:did.webvh.alice.example",
         "service_type": "principal_server",
         "protocol_version": "1.0",
         "supported_profiles": [],
@@ -232,11 +232,11 @@
       "schema_ref": "schemas/realm.schema.json",
       "expect_valid": true,
       "instance": {
-        "id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+        "id": "ak:realm:0196419b-0000-7000-8000-000000000000",
         "schema": "ck.schema.realm.v1",
         "title": "Launch Plan Confidential Realm",
         "created_by": "did:webvh:z6mkfixture:acme.example",
-        "trust_domain": "ck:trust_domain:did.webvh.acme.example",
+        "trust_domain": "ak:trust_domain:did.webvh.acme.example",
         "schema_refs": [
           "ck.schema.realm.v1"
         ],
@@ -264,11 +264,11 @@
       "schema_ref": "schemas/realm.schema.json",
       "expect_valid": true,
       "instance": {
-        "id": "ck:realm:0196419b-0000-7000-8000-000000000010",
+        "id": "ak:realm:0196419b-0000-7000-8000-000000000010",
         "schema": "ck.schema.realm.v1",
         "title": "Alice Principal Control Realm",
         "created_by": "did:webvh:z6mkfixture:alice.example",
-        "trust_domain": "ck:trust_domain:did.webvh.alice.example",
+        "trust_domain": "ak:trust_domain:did.webvh.alice.example",
         "schema_refs": [
           "ck.schema.realm.v1",
           "ck.profile.principal_control_realm.v1"
@@ -302,11 +302,11 @@
       "schema_ref": "schemas/realm.schema.json",
       "expect_valid": false,
       "instance": {
-        "id": "ck:realm:0196419b-0000-7000-8000-000000000011",
+        "id": "ak:realm:0196419b-0000-7000-8000-000000000011",
         "schema": "ck.schema.realm.v1",
         "title": "Alice Principal Control Realm",
         "created_by": "did:webvh:z6mkfixture:alice.example",
-        "trust_domain": "ck:trust_domain:did.webvh.alice.example",
+        "trust_domain": "ak:trust_domain:did.webvh.alice.example",
         "schema_refs": [
           "ck.schema.realm.v1",
           "ck.profile.principal_control_realm.v1"
@@ -342,7 +342,7 @@
       "expect_valid": false,
       "first_expected_error": "$: 'trust_domain' is a required property",
       "instance": {
-        "id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+        "id": "ak:realm:0196419b-0000-7000-8000-000000000000",
         "schema": "ck.schema.realm.v1",
         "title": "Launch Plan Confidential Realm",
         "created_by": "did:webvh:z6mkfixture:acme.example",
@@ -358,15 +358,15 @@
     },
     {
       "name": "policy_check_request_valid_bound_context",
-      "schema_ref": "openapi/cokret-service-api.openapi.yaml#/components/schemas/PolicyCheckRequestBody",
+      "schema_ref": "openapi/arkret-service-api.openapi.yaml#/components/schemas/PolicyCheckRequestBody",
       "expect_valid": true,
       "instance": {
         "request_id": "polreq_01",
-        "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+        "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
         "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "action": "ck.message.create",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
-        "device_id": "ck:device:01964137-0000-7000-8000-000000000000",
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
         "source": {
           "service_did": "did:webvh:z6mkfixture:server.example",
           "service_type": "principal_server",
@@ -385,7 +385,7 @@
     },
     {
       "name": "policy_check_request_missing_realm_id_rejected",
-      "schema_ref": "openapi/cokret-service-api.openapi.yaml#/components/schemas/PolicyCheckRequestBody",
+      "schema_ref": "openapi/arkret-service-api.openapi.yaml#/components/schemas/PolicyCheckRequestBody",
       "expect_valid": false,
       "first_expected_error": "$: 'realm_id' is a required property",
       "instance": {
@@ -402,12 +402,12 @@
     },
     {
       "name": "policy_check_response_valid_bound_decision",
-      "schema_ref": "openapi/cokret-service-api.openapi.yaml#/components/schemas/PolicyCheckOutcome",
+      "schema_ref": "openapi/arkret-service-api.openapi.yaml#/components/schemas/PolicyCheckOutcome",
       "expect_valid": true,
       "instance": {
         "request_id": "polreq_01",
         "bound_to": {
-          "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+          "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
           "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
           "action": "ck.message.create",
           "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -427,7 +427,7 @@
     },
     {
       "name": "policy_check_response_missing_bound_to_rejected",
-      "schema_ref": "openapi/cokret-service-api.openapi.yaml#/components/schemas/PolicyCheckOutcome",
+      "schema_ref": "openapi/arkret-service-api.openapi.yaml#/components/schemas/PolicyCheckOutcome",
       "expect_valid": false,
       "first_expected_error": "$: 'bound_to' is a required property",
       "instance": {
@@ -449,9 +449,9 @@
       "schema_ref": "schemas/event-envelope.schema.json",
       "expect_valid": true,
       "instance": {
-        "event_id": "ck:event:019a6aa0-0000-7000-8000-000000000000",
+        "event_id": "ak:event:019a6aa0-0000-7000-8000-000000000000",
         "kind": "ck.read_cursor.advance",
-        "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
+        "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "actor_seq": 1,
         "created_at": "2026-05-20T00:00:00Z",
@@ -459,18 +459,18 @@
         "prev_refs": [],
         "refs": [],
         "payload": {
-          "id": "ck:read_cursor:019a6aa0-1000-7000-8000-000000000000",
+          "id": "ak:read_cursor:019a6aa0-1000-7000-8000-000000000000",
           "schema": "ck.schema.read_cursor.v1",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
-          "device_id": "ck:device:019a6aa0-2000-7000-8000-000000000000",
-          "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
+          "device_id": "ak:device:019a6aa0-2000-7000-8000-000000000000",
+          "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
           "read_scope": {
             "kind": "strand",
-            "ref": "ck:strand:019a6aa0-3000-7000-8000-000000000000",
+            "ref": "ak:strand:019a6aa0-3000-7000-8000-000000000000",
             "track_name": "discussion"
           },
           "position": {
-            "event_id": "ck:event:019a6aa0-4000-7000-8000-000000000000",
+            "event_id": "ak:event:019a6aa0-4000-7000-8000-000000000000",
             "hlc": "01970e589d21-0001-a13f9c2e"
           },
           "updated_at": "2026-05-20T00:00:00Z"
@@ -493,9 +493,9 @@
       "expect_valid": false,
       "first_expected_error": "$.payload: 'requested_by' is a required property",
       "instance": {
-        "event_id": "ck:event:019a6aa0-5000-7000-8000-000000000000",
+        "event_id": "ak:event:019a6aa0-5000-7000-8000-000000000000",
         "kind": "ck.audit.session.request",
-        "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
+        "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:z6mkfixture:audit.example",
         "actor_seq": 1,
         "created_at": "2026-06-04T00:00:00Z",
@@ -504,7 +504,7 @@
         "refs": [],
         "preconditions": [
           {
-            "cell": "ck:cell:audit:session:019a6aa0-5000-7000-8000-000000000000",
+            "cell": "ak:cell:audit:session:019a6aa0-5000-7000-8000-000000000000",
             "predicate": {
               "op": "head_eq",
               "value": null
@@ -513,7 +513,7 @@
         ],
         "effects": [
           {
-            "cell": "ck:cell:audit:session:019a6aa0-5000-7000-8000-000000000000",
+            "cell": "ak:cell:audit:session:019a6aa0-5000-7000-8000-000000000000",
             "op": {
               "kind": "set",
               "value": "request"
@@ -522,18 +522,18 @@
         ],
         "seal_basis": {
           "leaves": [
-            "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
           ],
           "control_event_set_root": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "state_root": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
         },
         "payload": {
-          "session_id": "ck:audit_session:019a6aa0-5000-7000-8000-000000000000",
-          "binding_id": "ck:audit_binding:019a6aa0-6000-7000-8000-000000000000",
-          "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
+          "session_id": "ak:audit_session:019a6aa0-5000-7000-8000-000000000000",
+          "binding_id": "ak:audit_binding:019a6aa0-6000-7000-8000-000000000000",
+          "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
           "effective_scope": {
             "kind": "realm",
-            "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000"
+            "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000"
           },
           "stage": "close",
           "occurred_at": "2026-06-04T00:00:00Z"
@@ -555,7 +555,7 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/object_lifecycle_payload",
       "expect_valid": true,
       "instance": {
-        "target_ref": "ck:space:019640b6-8000-7000-8000-000000000000",
+        "target_ref": "ak:space:019640b6-8000-7000-8000-000000000000",
         "reason": "privacy_cleanup"
       }
     },
@@ -564,7 +564,7 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/space_state_transition_payload",
       "expect_valid": true,
       "instance": {
-        "space_id": "ck:space:019640b6-8000-7000-8000-000000000000",
+        "space_id": "ak:space:019640b6-8000-7000-8000-000000000000",
         "reason": "release_cycle_complete"
       }
     },
@@ -574,7 +574,7 @@
       "expect_valid": false,
       "first_expected_error": "$.actions[0]: 'ck.strand.*' does not match '^ck\\\\.[a-z0-9_]+(\\\\.[a-z0-9_]+)*$'",
       "instance": {
-        "id": "ck:grant:0196410c-1000-7000-8000-000000000000",
+        "id": "ak:grant:0196410c-1000-7000-8000-000000000000",
         "schema": "ck.schema.capability.v1",
         "issuer": "did:webvh:z6mkfixture:owner.example",
         "subject": "did:webvh:z6mkfixture:alice.example",
@@ -584,7 +584,7 @@
         "resources": [
           {
             "kind": "realm",
-            "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000"
+            "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
           }
         ],
         "proofs": [
@@ -604,8 +604,8 @@
       "schema_ref": "schemas/seal.schema.json",
       "expect_valid": true,
       "instance": {
-        "id": "ck:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
+        "id": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
         "predecessor_refs": [],
         "delta": [
           "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
@@ -656,9 +656,9 @@
       "expect_valid": true,
       "instance": {
         "kind": "delta",
-        "cursor": "ck:cursor:opaque",
+        "cursor": "ak:cursor:opaque",
         "realms": {
-          "ck:realm:019a7360-0000-7000-8000-000000000000": {
+          "ak:realm:019a7360-0000-7000-8000-000000000000": {
             "timeline": {
               "events": [],
               "limited": false
@@ -676,7 +676,7 @@
       "expect_valid": true,
       "instance": {
         "kind": "dropped",
-        "cursor": "ck:cursor:opaque",
+        "cursor": "ak:cursor:opaque",
         "reconnect_after_ms": 5000
       }
     },
@@ -732,7 +732,7 @@
           "resources": [
             {
               "kind": "realm",
-              "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000"
+              "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000"
             }
           ]
         },
@@ -743,7 +743,7 @@
         "expires_at": "2026-05-21T00:00:00Z",
         "approval_evidence": {
           "kind": "capability_grant",
-          "ref": "ck:grant:019a6aa0-0000-7000-8000-000000000000"
+          "ref": "ak:grant:019a6aa0-0000-7000-8000-000000000000"
         }
       }
     },
@@ -752,9 +752,9 @@
       "schema_ref": "schemas/invite.schema.json",
       "expect_valid": true,
       "instance": {
-        "id": "ck:invite:019a6aa0-0000-7000-8000-000000000000",
+        "id": "ak:invite:019a6aa0-0000-7000-8000-000000000000",
         "schema": "ck.schema.invite.v1",
-        "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
+        "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
         "inviter": "did:webvh:z6mkfixture:alice.example",
         "third_party_id": {
           "display_name_hint": "A.",
@@ -780,9 +780,9 @@
         "schema": "ck.schema.identity_link.v1",
         "pairwise_did": "did:key:z6Mkpseudonymous",
         "principal_id": "did:webvh:z6mkfixture:alice.example",
-        "device_id": "ck:device:019a6aa0-0000-7000-8000-000000000000",
-        "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
-        "trust_domain": "ck:trust_domain:did.webvh.example",
+        "device_id": "ak:device:019a6aa0-0000-7000-8000-000000000000",
+        "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
+        "trust_domain": "ak:trust_domain:did.webvh.example",
         "mls_leaf_index": 0,
         "mls_epoch": 1,
         "effective_at": "2026-05-20T00:00:00Z",
@@ -803,8 +803,8 @@
         "schema": "ck.schema.identity_link.v1",
         "pairwise_did": "did:key:z6Mkpseudonymous",
         "principal_id": "did:webvh:z6mkfixture:alice.example",
-        "device_id": "ck:device:019a6aa0-0000-7000-8000-000000000000",
-        "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
+        "device_id": "ak:device:019a6aa0-0000-7000-8000-000000000000",
+        "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
         "mls_leaf_index": 0,
         "mls_epoch": 1,
         "effective_at": "2026-05-20T00:00:00Z",
@@ -821,13 +821,13 @@
       "schema_ref": "schemas/attestation-evidence.schema.json",
       "expect_valid": true,
       "instance": {
-        "evidence_id": "ck:attestation:019a6aa0-0000-7000-8000-000000000000",
-        "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
+        "evidence_id": "ak:attestation:019a6aa0-0000-7000-8000-000000000000",
+        "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
         "audit_service_actor_id": "did:webvh:z6mkfixture:audit.example",
         "service_did": "did:webvh:z6mkfixture:audit.example",
         "platform": {
           "family": "software_test_only",
-          "vendor": "cokret",
+          "vendor": "arkret",
           "model": "fixture"
         },
         "measurement": {
@@ -871,13 +871,13 @@
       "expect_valid": false,
       "first_expected_error": "$.audit_policy_version_digest: 'blake3:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' does not match '^sha256:[0-9a-f]{64}$'",
       "instance": {
-        "evidence_id": "ck:attestation:019a6aa0-0000-7000-8000-000000000000",
-        "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
+        "evidence_id": "ak:attestation:019a6aa0-0000-7000-8000-000000000000",
+        "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
         "audit_service_actor_id": "did:webvh:z6mkfixture:audit.example",
         "service_did": "did:webvh:z6mkfixture:audit.example",
         "platform": {
           "family": "software_test_only",
-          "vendor": "cokret",
+          "vendor": "arkret",
           "model": "fixture"
         },
         "measurement": {
@@ -960,14 +960,14 @@
       "expect_valid": true,
       "instance": {
         "principal_id": "did:webvh:z6mkfixture:alice.example",
-        "device_id": "ck:device:019a6aa0-0000-7000-8000-000000000000",
+        "device_id": "ak:device:019a6aa0-0000-7000-8000-000000000000",
         "device_public_key": "z6MkDevicePublicKey",
         "hpke_key": "z6MkDeviceHpkePublicKey",
         "algorithms": [
           "ck.device.alg.ed25519.v1",
           "ck.device.hpke.x25519_hkdf_sha256.v1"
         ],
-        "authorized_by": "ck:device:019a6aa0-1000-7000-8000-000000000000",
+        "authorized_by": "ak:device:019a6aa0-1000-7000-8000-000000000000",
         "not_before": "2026-05-20T00:00:00Z",
         "expires_at": null,
         "cross_signing_binding": {
@@ -989,7 +989,7 @@
       "expect_valid": true,
       "instance": {
         "principal_id": "did:webvh:z6mkfixture:alice.example",
-        "device_id": "ck:device:019a6aa0-0000-7000-8000-000000000000",
+        "device_id": "ak:device:019a6aa0-0000-7000-8000-000000000000",
         "device_public_key": "z6MkDevicePublicKey",
         "hpke_key": "z6MkDeviceHpkePublicKey",
         "algorithms": [
@@ -1016,13 +1016,13 @@
       "first_expected_error": "$: 'proof' is a required property",
       "instance": {
         "kind": "ck.call.signal",
-        "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
+        "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
-        "device_id": "ck:device:019a6aa0-0000-7000-8000-000000000000",
+        "device_id": "ak:device:019a6aa0-0000-7000-8000-000000000000",
         "sent_at": "2026-05-20T00:00:00Z",
         "expires_at": "2026-05-20T00:00:30Z",
         "payload": {
-          "call_id": "ck:call:019a7360-0000-7000-8000-000000000001",
+          "call_id": "ak:call:019a7360-0000-7000-8000-000000000001",
           "signal_type": "invite",
           "seq": 1
         }
@@ -1034,12 +1034,12 @@
       "expect_valid": true,
       "instance": {
         "schema": "ck.schema.call_recording_artifact.v1",
-        "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
-        "call_id": "ck:call:019a7360-0000-7000-8000-000000000001",
+        "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
+        "call_id": "ak:call:019a7360-0000-7000-8000-000000000001",
         "recording_id": "rtc-recording-019a7360-0000-7000-8000-000000000002",
-        "recording_start_event_id": "ck:event:019a7360-0000-7000-8000-000000000003",
+        "recording_start_event_id": "ak:event:019a7360-0000-7000-8000-000000000003",
         "artifact_kind": "recording",
-        "blob_ref": "ck:blob:019a7360-0000-7000-8000-000000000004",
+        "blob_ref": "ak:blob:019a7360-0000-7000-8000-000000000004",
         "content_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "ciphertext_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "size_bytes": 1048576,
@@ -1049,16 +1049,16 @@
           "alg": "mls_exporter_aead_xchacha20poly1305_stream",
           "exporter_label": "ck-rtc-recording-key/v1",
           "context": {
-            "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
-            "call_id": "ck:call:019a7360-0000-7000-8000-000000000001",
+            "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
+            "call_id": "ak:call:019a7360-0000-7000-8000-000000000001",
             "focus_id": "fra-1",
             "recording_id": "rtc-recording-019a7360-0000-7000-8000-000000000002",
             "media_service_did": "did:webvh:z6mkfixture:recorder.example",
-            "recording_start_event_id": "ck:event:019a7360-0000-7000-8000-000000000003"
+            "recording_start_event_id": "ak:event:019a7360-0000-7000-8000-000000000003"
           },
           "ciphertext_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         },
-        "retention_policy_id": "ck:policy:019a7360-0000-7000-8000-000000000005",
+        "retention_policy_id": "ak:policy:019a7360-0000-7000-8000-000000000005",
         "retention": {
           "retention_expires_at": "2026-06-20T00:00:00Z",
           "deletion_trigger": "retention_expiry",
@@ -1066,14 +1066,14 @@
           "consent_confirmed": true
         },
         "produced_by": "did:webvh:z6mkfixture:recorder.example",
-        "recording_initiator_capability_ref": "ck:grant:019a7360-0000-7000-8000-000000000006",
+        "recording_initiator_capability_ref": "ak:grant:019a7360-0000-7000-8000-000000000006",
         "created_at": "2026-06-19T00:00:00Z",
         "deletion_audit": {
           "trigger": "retention_expiry",
           "outcome": "completed",
           "requested_at": "2026-06-20T00:00:00Z",
           "completed_at": "2026-06-20T00:00:01Z",
-          "erasure_receipt_ref": "ck:receipt:019a7360-0000-7000-8000-000000000007"
+          "erasure_receipt_ref": "ak:receipt:019a7360-0000-7000-8000-000000000007"
         }
       }
     },
@@ -1083,12 +1083,12 @@
       "expect_valid": false,
       "instance": {
         "schema": "ck.schema.call_recording_artifact.v1",
-        "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
-        "call_id": "ck:call:019a7360-0000-7000-8000-000000000001",
+        "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
+        "call_id": "ak:call:019a7360-0000-7000-8000-000000000001",
         "recording_id": "rtc-recording-019a7360-0000-7000-8000-000000000002",
-        "recording_start_event_id": "ck:event:019a7360-0000-7000-8000-000000000003",
+        "recording_start_event_id": "ak:event:019a7360-0000-7000-8000-000000000003",
         "artifact_kind": "recording",
-        "blob_ref": "ck:blob:019a7360-0000-7000-8000-000000000004",
+        "blob_ref": "ak:blob:019a7360-0000-7000-8000-000000000004",
         "content_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "ciphertext_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "size_bytes": 1048576,
@@ -1098,16 +1098,16 @@
           "alg": "mls_exporter_aead_xchacha20poly1305_stream",
           "exporter_label": "ck-rtc-frame-key/v1",
           "context": {
-            "realm_id": "ck:realm:019a7360-0000-7000-8000-000000000000",
-            "call_id": "ck:call:019a7360-0000-7000-8000-000000000001",
+            "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
+            "call_id": "ak:call:019a7360-0000-7000-8000-000000000001",
             "focus_id": "fra-1",
             "recording_id": "rtc-recording-019a7360-0000-7000-8000-000000000002",
             "media_service_did": "did:webvh:z6mkfixture:recorder.example",
-            "recording_start_event_id": "ck:event:019a7360-0000-7000-8000-000000000003"
+            "recording_start_event_id": "ak:event:019a7360-0000-7000-8000-000000000003"
           },
           "ciphertext_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         },
-        "retention_policy_id": "ck:policy:019a7360-0000-7000-8000-000000000005",
+        "retention_policy_id": "ak:policy:019a7360-0000-7000-8000-000000000005",
         "retention": {
           "retention_expires_at": "2026-06-20T00:00:00Z",
           "deletion_trigger": "retention_expiry",
@@ -1115,7 +1115,7 @@
           "consent_confirmed": true
         },
         "produced_by": "did:webvh:z6mkfixture:recorder.example",
-        "recording_initiator_capability_ref": "ck:grant:019a7360-0000-7000-8000-000000000006",
+        "recording_initiator_capability_ref": "ak:grant:019a7360-0000-7000-8000-000000000006",
         "created_at": "2026-06-19T00:00:00Z"
       },
       "first_expected_error": "$.encryption.exporter_label: 'ck-rtc-recording-key/v1' was expected"
@@ -1126,11 +1126,11 @@
       "expect_valid": true,
       "instance": {
         "schema": "ck.schema.recovery_session.v1",
-        "recovery_session_id": "ck:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
+        "recovery_session_id": "ak:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
         "principal_id": "did:webvh:z6mkfixture:alice.example",
-        "requesting_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
-        "trust_domain": "ck:trust_domain:example.local",
-        "policy_id": "ck:policy:019a6aa0-0000-7000-8000-0000000000bb",
+        "requesting_device_id": "ak:device:019a6aa0-0000-7000-8000-000000000099",
+        "trust_domain": "ak:trust_domain:example.local",
+        "policy_id": "ak:policy:019a6aa0-0000-7000-8000-0000000000bb",
         "policy_version": 1,
         "ssk_generation": 1,
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -1146,11 +1146,11 @@
       "expect_valid": false,
       "instance": {
         "schema": "ck.schema.recovery_session.v1",
-        "recovery_session_id": "ck:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
+        "recovery_session_id": "ak:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
         "principal_id": "did:webvh:z6mkfixture:alice.example",
-        "requesting_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
-        "trust_domain": "ck:trust_domain:example.local",
-        "policy_id": "ck:policy:019a6aa0-0000-7000-8000-0000000000bb",
+        "requesting_device_id": "ak:device:019a6aa0-0000-7000-8000-000000000099",
+        "trust_domain": "ak:trust_domain:example.local",
+        "policy_id": "ak:policy:019a6aa0-0000-7000-8000-0000000000bb",
         "policy_version": 1,
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "state": "pending",
@@ -1166,11 +1166,11 @@
       "expect_valid": false,
       "instance": {
         "schema": "ck.schema.recovery_session.v1",
-        "recovery_session_id": "ck:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
+        "recovery_session_id": "ak:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
         "principal_id": "did:webvh:z6mkfixture:alice.example",
-        "requesting_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
-        "trust_domain": "ck:trust_domain:example.local",
-        "policy_id": "ck:policy:019a6aa0-0000-7000-8000-0000000000bb",
+        "requesting_device_id": "ak:device:019a6aa0-0000-7000-8000-000000000099",
+        "trust_domain": "ak:trust_domain:example.local",
+        "policy_id": "ak:policy:019a6aa0-0000-7000-8000-0000000000bb",
         "policy_version": 1,
         "ssk_generation": 1,
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -1187,8 +1187,8 @@
       "expect_valid": true,
       "instance": {
         "principal_id": "did:webvh:z6mkfixture:alice.example",
-        "requesting_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
-        "trust_domain": "ck:trust_domain:example.local",
+        "requesting_device_id": "ak:device:019a6aa0-0000-7000-8000-000000000099",
+        "trust_domain": "ak:trust_domain:example.local",
         "ssk_generation": 1
       }
     },
@@ -1198,8 +1198,8 @@
       "expect_valid": false,
       "instance": {
         "principal_id": "did:webvh:z6mkfixture:alice.example",
-        "requesting_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
-        "trust_domain": "ck:trust_domain:example.local",
+        "requesting_device_id": "ak:device:019a6aa0-0000-7000-8000-000000000099",
+        "trust_domain": "ak:trust_domain:example.local",
         "ssk_generation": 1,
         "unexpected": "x"
       },
@@ -1234,8 +1234,8 @@
       "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body",
       "expect_valid": true,
       "instance": {
-        "authorization_event_id": "ck:event:01964137-0000-7000-8000-00000000a111",
-        "device_list_update_event_id": "ck:event:01964137-0000-7000-8000-00000000a222"
+        "authorization_event_id": "ak:event:01964137-0000-7000-8000-00000000a111",
+        "device_list_update_event_id": "ak:event:01964137-0000-7000-8000-00000000a222"
       }
     },
     {
@@ -1253,11 +1253,11 @@
         "type": "ck.identity.recovery_proof.v1",
         "kind": "principal_signing",
         "principal_id": "did:webvh:z6mkfixture:alice.example",
-        "requesting_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
-        "trust_domain": "ck:trust_domain:example.local",
-        "policy_id": "ck:policy:019a6aa0-0000-7000-8000-0000000000bb",
+        "requesting_device_id": "ak:device:019a6aa0-0000-7000-8000-000000000099",
+        "trust_domain": "ak:trust_domain:example.local",
+        "policy_id": "ak:policy:019a6aa0-0000-7000-8000-0000000000bb",
         "policy_version": 1,
-        "recovery_session_id": "ck:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
+        "recovery_session_id": "ak:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
         "ssk_generation": 1,
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "created_at": "2026-05-30T00:00:00Z",
@@ -1270,13 +1270,13 @@
       "expect_valid": true,
       "instance": {
         "schema": "ck.schema.recovery_receipt.v1",
-        "receipt_id": "ck:receipt:019a6aa0-0000-7000-8000-0000000000cc",
+        "receipt_id": "ak:receipt:019a6aa0-0000-7000-8000-0000000000cc",
         "principal_id": "did:webvh:z6mkfixture:alice.example",
-        "recovery_session_id": "ck:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
-        "policy_id": "ck:policy:019a6aa0-0000-7000-8000-0000000000bb",
+        "recovery_session_id": "ak:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
+        "policy_id": "ak:policy:019a6aa0-0000-7000-8000-0000000000bb",
         "policy_version": 1,
-        "trust_domain": "ck:trust_domain:example.local",
-        "new_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
+        "trust_domain": "ak:trust_domain:example.local",
+        "new_device_id": "ak:device:019a6aa0-0000-7000-8000-000000000099",
         "proof_summary": {
           "kind": "principal_signing",
           "proof_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -1284,8 +1284,8 @@
         "backup_classes_unlocked": [
           {
             "backup_class": "did_recovery",
-            "backup_id": "ck:backup:019a6aa0-0000-7000-8000-0000000000dd",
-            "series_id": "ck:backup_series:019a6aa0-0000-7000-8000-0000000000ee",
+            "backup_id": "ak:backup:019a6aa0-0000-7000-8000-0000000000dd",
+            "series_id": "ak:backup_series:019a6aa0-0000-7000-8000-0000000000ee",
             "ciphertext_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
           }
         ],
@@ -1322,13 +1322,13 @@
       "expect_valid": false,
       "instance": {
         "schema": "ck.schema.recovery_receipt.v1",
-        "receipt_id": "ck:receipt:019a6aa0-0000-7000-8000-0000000000cc",
+        "receipt_id": "ak:receipt:019a6aa0-0000-7000-8000-0000000000cc",
         "principal_id": "did:webvh:z6mkfixture:alice.example",
-        "recovery_session_id": "ck:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
-        "policy_id": "ck:policy:019a6aa0-0000-7000-8000-0000000000bb",
+        "recovery_session_id": "ak:recovery_session:019a6aa0-0000-7000-8000-0000000000aa",
+        "policy_id": "ak:policy:019a6aa0-0000-7000-8000-0000000000bb",
         "policy_version": 1,
-        "trust_domain": "ck:trust_domain:example.local",
-        "new_device_id": "ck:device:019a6aa0-0000-7000-8000-000000000099",
+        "trust_domain": "ak:trust_domain:example.local",
+        "new_device_id": "ak:device:019a6aa0-0000-7000-8000-000000000099",
         "proof_summary": {
           "kind": "principal_signing",
           "proof_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -1368,7 +1368,7 @@
       "instance": {
         "schema": "ck.schema.applet_package.v1",
         "package_id": "applet-package-demo-1",
-        "applet_id": "ck:applet:019a6aa0-0000-7000-8000-000000000000",
+        "applet_id": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
         "service_did": "did:webvh:z6mkfixture:applet.example",
         "controller_did": "did:webvh:z6mkfixture:vendor.example",
         "base_url": "https://applet.example",
@@ -1441,7 +1441,7 @@
       "instance": {
         "schema": "ck.schema.applet_package.v1",
         "package_id": "applet-package-demo-1",
-        "applet_id": "ck:applet:019a6aa0-0000-7000-8000-000000000000",
+        "applet_id": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
         "service_did": "did:webvh:z6mkfixture:applet.example",
         "controller_did": "did:webvh:z6mkfixture:vendor.example",
         "base_url": "https://applet.example",
@@ -1507,7 +1507,7 @@
       "instance": {
         "schema": "ck.schema.applet_package.v1",
         "package_id": "applet-package-demo-1",
-        "applet_id": "ck:applet:019a6aa0-0000-7000-8000-000000000000",
+        "applet_id": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
         "service_did": "did:webvh:z6mkfixture:applet.example",
         "controller_did": "did:webvh:z6mkfixture:vendor.example",
         "base_url": "https://applet.example",
@@ -1578,7 +1578,7 @@
       "instance": {
         "schema": "ck.schema.applet_package.v1",
         "package_id": "applet-package-demo-1",
-        "applet_id": "ck:applet:019a6aa0-0000-7000-8000-000000000000",
+        "applet_id": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
         "service_did": "did:webvh:z6mkfixture:applet.example",
         "controller_did": "did:webvh:z6mkfixture:vendor.example",
         "base_url": "https://applet.example",

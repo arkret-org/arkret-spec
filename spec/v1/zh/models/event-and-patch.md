@@ -12,7 +12,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-本文集中定义 Cokret 协作图中的**事件 / 签名 / 增量 / 审计 receipt 对象**：
+本文集中定义 Arkret 协作图中的**事件 / 签名 / 增量 / 审计 receipt 对象**：
 
 - **Event Envelope**（`ck:event:`）：reducer 输入与审计事实的 wire 表示。
 - **Proof**：签名证明 envelope。
@@ -79,37 +79,37 @@ Event Envelope 顶层字段集是封闭的（`additionalProperties=false`）。�
 
 ```json schema=schemas/event-envelope.schema.json
 {
-  "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "actor_seq": 4,
   "kind": "ck.strand.update",
   "created_at": "2026-04-26T00:00:00Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
   "prev_refs": [
-    "ck:event:019640ed-0000-7000-8000-000000000000"
+    "ak:event:019640ed-0000-7000-8000-000000000000"
   ],
   "causal_refs": [],
   "refs": [
-    { "id": "ck:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+    { "id": "ak:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
-  "seal_ref": "ck:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
   "auth_context": {
     "did": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
     "key_id": "device-1",
     "key_epoch": 7,
     "capability_refs": [
-      "ck:grant:0196410c-0000-7000-8000-000000000000"
+      "ak:grant:0196410c-0000-7000-8000-000000000000"
     ]
   },
   "effects": [
     {
-      "cell": "ck:cell:ck.component.strand.metadata.v1:ck:strand:019640c6-8000-7000-8000-000000000000",
+      "cell": "ak:cell:ck.component.strand.metadata.v1:ck:strand:019640c6-8000-7000-8000-000000000000",
       "op": { "kind": "set", "value": { "metadata.fields.review_status": "approved" } }
     }
   ],
   "payload": {
-    "target_ref": "ck:strand:019640c6-8000-7000-8000-000000000000",
+    "target_ref": "ak:strand:019640c6-8000-7000-8000-000000000000",
     "patch": {
       "metadata.fields.review_status": "approved"
     }
@@ -299,35 +299,35 @@ Event Envelope 中，patch 永远嵌入 `payload.patch`，目标对象用 `paylo
 
 ```json schema=schemas/event-envelope.schema.json expect=valid
 {
-  "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "actor_seq": 5,
   "kind": "ck.strand.update",
   "created_at": "2026-04-26T00:00:00Z",
   "hlc": "01970e589d21-0004-a13f9c2e",
-  "prev_refs": ["ck:event:019640ed-7000-7000-8000-000000000000"],
+  "prev_refs": ["ak:event:019640ed-7000-7000-8000-000000000000"],
   "causal_refs": [],
   "refs": [
-    { "id": "ck:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
+    { "id": "ak:grant:0196410c-0000-7000-8000-000000000000", "role": "authorized_by", "critical": true }
   ],
-  "seal_ref": "ck:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "seal_ref": "ak:seal:sha256:1111111111111111111111111111111111111111111111111111111111111111",
   "auth_context": {
     "did": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
     "key_id": "device-1",
     "key_epoch": 7,
     "capability_refs": [
-      "ck:grant:0196410c-0000-7000-8000-000000000000"
+      "ak:grant:0196410c-0000-7000-8000-000000000000"
     ]
   },
   "effects": [
     {
-      "cell": "ck:cell:ck.component.strand.metadata.v1:ck:strand:019640c6-8000-7000-8000-000000000000",
+      "cell": "ak:cell:ck.component.strand.metadata.v1:ck:strand:019640c6-8000-7000-8000-000000000000",
       "op": { "kind": "set", "value": { "metadata.fields.review_status": "approved", "metadata.fields.due_date": "2026-06-01", "labels.security": "confidential" } }
     }
   ],
   "payload": {
-    "target_ref": "ck:strand:019640c6-8000-7000-8000-000000000000",
+    "target_ref": "ak:strand:019640c6-8000-7000-8000-000000000000",
     "patch": {
       "metadata.fields.review_status": { "$op": "set", "value": "approved" },
       "metadata.fields.due_date": { "$op": "set", "value": "2026-06-01" },

@@ -1,9 +1,9 @@
 {
-  "$schema": "https://cokret.dev/spec/v1/artifacts/registry/drift-detection.schema.json",
+  "$schema": "https://arkret.dev/spec/v1/artifacts/registry/drift-detection.schema.json",
   "version": 1,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
-  "description": "Field names that MUST NOT appear on the current Cokret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
+  "description": "Field names that MUST NOT appear on the current Arkret v1 wire in the contexts listed below. Each entry pins the context (top-level envelope, specific payload class, etc.) because a name may be legal elsewhere. cotest scanner walks Event Envelope / payload bytes and flags any occurrence outside the entry's allowed_contexts.",
   "rejection_levels": {
     "hard_reject": "Reducer / parser MUST fail with schema_violation when the field appears in the listed context.",
     "migration_only": "Readers MAY tolerate the field during a bounded migration window but writers MUST NOT emit it.",
@@ -160,11 +160,11 @@
       "notes": "Capability grant constraints that contain one concrete identifier kind use `_ids`, not `_refs`. The old fields allowed_view_refs, allowed_strand_refs, allowed_circle_refs, denied_strand_refs, allowed_space_refs, denied_space_refs, realm_refs, and approval_actor_refs MUST NOT appear on current v1 wire. Polymorphic container constraints allowed_from_container_refs / allowed_to_container_refs remain `_refs` because they may identify Space, Strand, or Morph containers."
     },
     {
-      "id": "ck:rtcpart:",
+      "id": "ak:rtcpart:",
       "context": "typed_id_prefix",
       "since_revision": "2026-05-31",
       "rejection_level": "hard_reject",
-      "replacement": "ck:rtc_participant:",
+      "replacement": "ak:rtc_participant:",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -812,11 +812,11 @@
       "notes": "Generic detached-JWS proofs over non-Event canonical payloads (Seal signature, identity-link, did-continuity, erasure receipts, etc.) MUST use payload_digest. This aligns with the v1 hash-vocabulary rule (common-fields.md §2): output bytes use <noun>_digest; algorithm selector uses <noun>_algorithm; tree roots use <noun>_root. _hash is forbidden as a wire field-name suffix."
     },
     {
-      "id": "ck:notif:",
+      "id": "ak:notif:",
       "context": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck:notification:",
+      "replacement": "ak:notification:",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -825,11 +825,11 @@
       "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
     },
     {
-      "id": "ck:devmsg:",
+      "id": "ak:devmsg:",
       "context": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck:device_message:",
+      "replacement": "ak:device_message:",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -838,11 +838,11 @@
       "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
     },
     {
-      "id": "ck:keyevt:",
+      "id": "ak:keyevt:",
       "context": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck:key_event:",
+      "replacement": "ak:key_event:",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -851,11 +851,11 @@
       "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
     },
     {
-      "id": "ck:modq:",
+      "id": "ak:modq:",
       "context": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck:moderation_queue_item:",
+      "replacement": "ak:moderation_queue_item:",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -864,11 +864,11 @@
       "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
     },
     {
-      "id": "ck:req:",
+      "id": "ak:req:",
       "context": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck:request:",
+      "replacement": "ak:request:",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -877,11 +877,11 @@
       "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
     },
     {
-      "id": "ck:txn:",
+      "id": "ak:txn:",
       "context": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck:transaction:",
+      "replacement": "ak:transaction:",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -890,11 +890,11 @@
       "notes": "Abbreviated typed ID prefixes are not valid v1 wire."
     },
     {
-      "id": "ck:frank:",
+      "id": "ak:frank:",
       "context": "typed_id_prefix",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck:franking_proof:",
+      "replacement": "ak:franking_proof:",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",

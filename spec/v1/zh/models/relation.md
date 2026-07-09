@@ -12,7 +12,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-`relation`（`ck:relation:`）是 Cokret 协作图的**一等关系对象**。跨对象语义 MUST 使用 Relation 表达，而不是藏在对象字段里。
+`relation`（`ck:relation:`）是 Arkret 协作图的**一等关系对象**。跨对象语义 MUST 使用 Relation 表达，而不是藏在对象字段里。
 
 Relation 连接的是对象引用：标准字段使用 `from_ref` / `to_ref`，其值可以指向 `realm`、`space`、`actor_profile`、`strand`、`message`、`morph`、`relation`、`event`、`view`、`blob` 的 `ck:<kind>:` typed ID，或一个 DID。Actor 端点没有 actor typed-ID 对象——当端点是 Actor 时直接使用该 actor 的 DID（principal），而不是某个 actor typed-ID（见 [`overview.md` §3.4](./overview.md) 与 [`common-fields.md` §4.1](./common-fields.md#41-did-适用边界)）。
 
@@ -53,12 +53,12 @@ Canonical 方向由 `from_ref -> to_ref` 定义。反向语义 SHOULD 由查询�
 
 ```json schema=schemas/relation.schema.json
 {
-  "id": "ck:relation:01964180-0000-7000-8000-000000000000",
+  "id": "ak:relation:01964180-0000-7000-8000-000000000000",
   "schema": "ck.schema.relation.v1",
-  "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+  "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "relation_kind": "contains",
-  "from_ref": "ck:space:019640b6-8000-7000-8000-000000000000",
-  "to_ref": "ck:strand:019640c6-8000-7000-8000-000000000000",
+  "from_ref": "ak:space:019640b6-8000-7000-8000-000000000000",
+  "to_ref": "ak:strand:019640c6-8000-7000-8000-000000000000",
   "rank": "mV",
   "created_by": "did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example",
   "created_at": "2026-04-26T00:00:00Z"

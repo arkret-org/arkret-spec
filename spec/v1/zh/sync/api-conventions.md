@@ -12,8 +12,8 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-本文定义 Cokret 默认 HTTP/JSON binding 的线级约定。  
-Cokret 协议核心不强绑定 REST API；核心操作、消息 envelope 与 transport binding 的关系见 `transport-bindings.md`。
+本文定义 Arkret 默认 HTTP/JSON binding 的线级约定。  
+Arkret 协议核心不强绑定 REST API；核心操作、消息 envelope 与 transport binding 的关系见 `transport-bindings.md`。
 
 各服务面可以扩展自己的 HTTP endpoint，但 MUST 遵守本文的基础规则，除非对应文档明确说明例外。非 HTTP binding（例如 gRPC、WebSocket、SSE、libp2p、message queue）MUST 提供语义等价的认证、授权、幂等、分页、错误和流控语义。
 
@@ -38,7 +38,7 @@ Cokret 协议核心不强绑定 REST API；核心操作、消息 envelope 与 tr
 
 所有 JSON request / response MUST 使用 UTF-8。
 
-Cokret canonical JSON 字段名 MUST 使用小写字母与下划线连接，例如：
+Arkret canonical JSON 字段名 MUST 使用小写字母与下划线连接，例如：
 
 - `realm_id`
 - `event_id`
@@ -47,7 +47,7 @@ Cokret canonical JSON 字段名 MUST 使用小写字母与下划线连接，例�
 - `retry_after_ms`
 - `reconnect_after_ms`
 
-Raw 外部标准文档 MUST 保留外部标准字段名，例如 W3C DID Core 的 `verificationMethod` / `alsoKnownAs` / `serviceEndpoint` 和 VC 的 `credentialSubject`。Cokret normalized view、索引、policy input 和 reducer input MAY 使用 snake_case 派生字段，但这些派生字段不得作为 raw DID / VC 文档重新输出。
+Raw 外部标准文档 MUST 保留外部标准字段名，例如 W3C DID Core 的 `verificationMethod` / `alsoKnownAs` / `serviceEndpoint` 和 VC 的 `credentialSubject`。Arkret normalized view、索引、policy input 和 reducer input MAY 使用 snake_case 派生字段，但这些派生字段不得作为 raw DID / VC 文档重新输出。
 
 ### 2.3 Content-Type
 
@@ -65,7 +65,7 @@ Content-Type: application/json
 
 Blob 上传、媒体下载和二进制 stream MAY 使用其他 content type，但 metadata response 仍应使用 JSON。
 
-注意：OpenAPI `content:` map 与 HTTP `Content-Type` 只表示 media type / body 编码，不是 Cokret Content Block 字段。协议正文内容仍按对象或 Event payload schema 使用 `content` / `encrypted_content`。
+注意：OpenAPI `content:` map 与 HTTP `Content-Type` 只表示 media type / body 编码，不是 Arkret Content Block 字段。协议正文内容仍按对象或 Event payload schema 使用 `content` / `encrypted_content`。
 
 ### 2.4 Operation ID kind/action taxonomy
 
@@ -141,7 +141,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 
 ### 3.1 认证服务发现
 
-认证与授权服务器可以分离。Principal Server 的 `/_cokret/describe` MUST 公布 `auth_metadata.account_authority` 与 `auth_metadata.methods[]`。客户端先用 `account_authority.gate_account_base` 定位所有客户端可见的 Cokret `/_cokret/gate/account/*` 操作，再按 `methods[]` 中的标准 discovery 找认证 provider；规范明确标记为部署内部 S2S 的 account 子操作（例如 `ck.gate.account.command.logout_auth_session`）只能由 Account Authority 按对应契约调用，不能由客户端派生。不得把 OAuth/OIDC subject 当作 Cokret principal：
+认证与授权服务器可以分离。Principal Server 的 `/_cokret/describe` MUST 公布 `auth_metadata.account_authority` 与 `auth_metadata.methods[]`。客户端先用 `account_authority.gate_account_base` 定位所有客户端可见的 Arkret `/_cokret/gate/account/*` 操作，再按 `methods[]` 中的标准 discovery 找认证 provider；规范明确标记为部署内部 S2S 的 account 子操作（例如 `ck.gate.account.command.logout_auth_session`）只能由 Account Authority 按对应契约调用，不能由客户端派生。不得把 OAuth/OIDC subject 当作 Arkret principal：
 
 ```json
 {
@@ -179,7 +179,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 
 ### 3.2 Sender-constrained（proof-of-possession）会话出示
 
-`ck.session.grant` 已把短期 `session_public_key` 绑定到 principal / device / audience / origin（见 [`../crypto-media/device-lifecycle.md` §1 / §3](../crypto-media/device-lifecycle.md)）。若请求只用 `Authorization: Bearer <ck.session.grant>` 出示，凭据被窃即可在 audience 内重放，与 key 绑定设计脱节。按 [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700)（OAuth 2.0 Security BCP, BCP 240）"优先使用 sender-constrained token" 的指导，Cokret v1 对生产受保护 endpoint 要求 PoP。
+`ck.session.grant` 已把短期 `session_public_key` 绑定到 principal / device / audience / origin（见 [`../crypto-media/device-lifecycle.md` §1 / §3](../crypto-media/device-lifecycle.md)）。若请求只用 `Authorization: Bearer <ck.session.grant>` 出示，凭据被窃即可在 audience 内重放，与 key 绑定设计脱节。按 [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700)（OAuth 2.0 Security BCP, BCP 240）"优先使用 sender-constrained token" 的指导，Arkret v1 对生产受保护 endpoint 要求 PoP。
 
 **生产 current-v1 PoP 要求（normative）**：
 
@@ -193,7 +193,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 
 - `@method`、`@target-uri`、`@authority`（绑定动词、目标 URI 与 host，防止跨 endpoint / 跨 host 复用）；
 - `content-digest`（带 body 的请求必填，编码遵循 RFC 9530，覆盖 canonical request body）；
-- 关键 header：`Idempotency-Key`（若参与幂等 / replay key）、`X-Cokret-Wait-For`（若出现）；
+- 关键 header：`Idempotency-Key`（若参与幂等 / replay key）、`X-Arkret-Wait-For`（若出现）；
 - 签名 parameters MUST 包含 `created` 与 `expires`（不得用 `Date` 替代）。
 
 与 session key 的绑定：签名 `kid` MUST 指向当前 `ck.session.grant` 委托的 `session_public_key`，且该 grant 的 principal / device / audience / origin 约束 MUST 与请求一致；grant 已撤销、过期或 audience / origin 不匹配时，服务端 MUST 拒绝（`unauthenticated`）。
@@ -264,7 +264,7 @@ Principal Server 对每次 `/_cokret/self/*` 请求 MUST 校验（任一项失�
     "retry_after_ms": null,
     "details": {}
   },
-  "request_id": "ck:request:01964137-0000-7000-8000-000000000000"
+  "request_id": "ak:request:01964137-0000-7000-8000-000000000000"
 }
 ```
 
@@ -341,14 +341,14 @@ Applet transaction push 的幂等记录（[`applet-integration.md` §7.3](../ext
 
 > **Scope（normative）**：本节只定义 cursor 在 HTTP/JSON binding 上的**使用契约**——出现位置、`purpose` 语义、分页方向（`before` / `after` / `prev_cursor` / `next_cursor`）与不透明性约束;cursor 的内部 canonical 结构、字段 schema、编码与 TTL 硬上限数值见 [`encoding.md` §8](../conformance/encoding.md)。
 
-Cokret v1 在所有需要不透明 token 的位置使用**单一** `cursor` 类型，wire 形态固定为 `ck:cursor:<base64url(canonical_json)>`，schema 见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)。它统一承担增量同步、列表分页和写后读屏障所有用途。
+Arkret v1 在所有需要不透明 token 的位置使用**单一** `cursor` 类型，wire 形态固定为 `ck:cursor:<base64url(canonical_json)>`，schema 见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)。它统一承担增量同步、列表分页和写后读屏障所有用途。
 
 cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing 服务自检）：
 
 | `purpose` | 用途 | 出现位置 |
 | --- | --- | --- |
 | `stream` | 增量同步 / 列表分页的位置承诺。回传方向取决于出现位置（见右列），并非任意位置都支持全部四向。 | **account 聚合流**：`/_cokret/self/account/subscribe` frame 的 `cursor` **仅**作为重连 `after=` 参数回传，是单向 catch-up 起点，**不支持** `before` / `prev_cursor`（account stream 不可反向，见 §7.0 与 [`client-sync.md`](./client-sync.md) §2 / §7.0）。**Realm timeline / 列表分页 / 查询**：`timeline.prev_cursor` / `next_cursor`、列表分页 `prev_cursor` / `next_cursor`、`ck.self.events.query.scan` 与 federation peer `ck.peer.events.query.scan`（`GET /_cokret/peer/events?before=<cursor>`）的 `before` / `after` 请求参数与 `prev_cursor` / `next_cursor` 响应字段——这些位置才支持 `before` / `prev_cursor` 反向延续。 |
-| `barrier` | 读己之所写（RYW）：要求 reader 在 frontier 覆盖某个具体 event 之前不返回结果。 | 写接口响应中的 `cursor` 字段、`X-Cokret-Wait-For` header。 |
+| `barrier` | 读己之所写（RYW）：要求 reader 在 frontier 覆盖某个具体 event 之前不返回结果。 | 写接口响应中的 `cursor` 字段、`X-Arkret-Wait-For` header。 |
 
 ### 7.0 `prev_cursor` / `next_cursor` 含义（绝对方向）
 
@@ -361,7 +361,7 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 
 绝对方向与请求时所用的参数（`before` / `after` / `order`）和 selector 无关；服务端 MUST 始终按上述含义填充。客户端因此**不**需要记录"上一次请求的 direction"才能正确解释响应 cursor。
 
-HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` 的 cursor 只可出现在 stream / pagination context（例如 `/_cokret/self/account/subscribe` 的 `after=`、`ck.self.events.query.scan` 的 `before` / `after`、响应 `prev_cursor` / `next_cursor`）；`purpose=barrier` 的 cursor 只可出现在 RYW barrier context（写接口响应中的 barrier `cursor` 字段、`X-Cokret-Wait-For` header，或 §7.2 列出的等价投影）。任一 context 收到不匹配的 `purpose` 时，服务端 MUST 返回 `invalid_param`。
+HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` 的 cursor 只可出现在 stream / pagination context（例如 `/_cokret/self/account/subscribe` 的 `after=`、`ck.self.events.query.scan` 的 `before` / `after`、响应 `prev_cursor` / `next_cursor`）；`purpose=barrier` 的 cursor 只可出现在 RYW barrier context（写接口响应中的 barrier `cursor` 字段、`X-Arkret-Wait-For` header，或 §7.2 列出的等价投影）。任一 context 收到不匹配的 `purpose` 时，服务端 MUST 返回 `invalid_param`。
 
 规则：
 
@@ -379,7 +379,7 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 ```json
 {
   "<items_field>": [],
-  "next_cursor": "ck:cursor:...",
+  "next_cursor": "ak:cursor:...",
   "has_more": false
 }
 ```
@@ -407,20 +407,20 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 ```json
 {
   "status": "accepted",
-  "event_id": "ck:event:019640ed-8000-7000-8000-000000000000",
-  "cursor": "ck:cursor:..."
+  "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
+  "cursor": "ak:cursor:..."
 }
 ```
 
 该 cursor 内部 `purpose=barrier`、`target.event_id` 与 `target.event_digest` 绑定到刚提交事件。后续读接口 SHOULD 接受：
 
 ```text
-X-Cokret-Wait-For: <cursor>
+X-Arkret-Wait-For: <cursor>
 ```
 
 如果服务在超时前到达该 cursor 描述的 causal frontier，则返回正常结果；否则 SHOULD 返回 `temporarily_unavailable` 或 `timeout`，并附带当前 frontier。stream cursor 不得用于 wait-for header；服务端遇到 `purpose=stream` 的 cursor 出现在 wait-for 上下文 MUST 返回 `invalid_param`。
 
-**Wait-for canonical 与投影（normative）**：`X-Cokret-Wait-For` HTTP header 是 wait-for barrier 的 wire canonical 形态；[`../conformance/query-schema.md §2`](../conformance/query-schema.md) 嵌套形态 `consistency: { wait_for, timeout_ms }` 与 [`../../artifacts/openapi/cokret-service-api.openapi.yaml`](../../artifacts/openapi/cokret-service-api.openapi.yaml) request body 扁平字段 `wait_for: string` 是同义投影，三者等价绑定到同一 RYW (read-your-writes) barrier 语义。服务端 MUST 接受任一形态并解析为相同 cursor；客户端 MAY 选择任一形态。当同一请求同时出现多种形态且取值不一致时，服务端 MUST 按下列优先级解析：(1) `X-Cokret-Wait-For` header；(2) request body `wait_for`；(3) `consistency.wait_for`。
+**Wait-for canonical 与投影（normative）**：`X-Arkret-Wait-For` HTTP header 是 wait-for barrier 的 wire canonical 形态；[`../conformance/query-schema.md §2`](../conformance/query-schema.md) 嵌套形态 `consistency: { wait_for, timeout_ms }` 与 [`../../artifacts/openapi/arkret-service-api.openapi.yaml`](../../artifacts/openapi/arkret-service-api.openapi.yaml) request body 扁平字段 `wait_for: string` 是同义投影，三者等价绑定到同一 RYW (read-your-writes) barrier 语义。服务端 MUST 接受任一形态并解析为相同 cursor；客户端 MAY 选择任一形态。当同一请求同时出现多种形态且取值不一致时，服务端 MUST 按下列优先级解析：(1) `X-Arkret-Wait-For` header；(2) request body `wait_for`；(3) `consistency.wait_for`。
 
 ## 9. Rate Limit
 
@@ -475,8 +475,8 @@ HTTP response MUST 同时设置 `Retry-After` header。`Retry-After` 的值按 H
 ```text
 Access-Control-Allow-Origin: https://app.example
 Access-Control-Allow-Methods: GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS
-Access-Control-Allow-Headers: Authorization, Content-Type, Content-Digest, Digest, Idempotency-Key, X-Cokret-Wait-For, X-Cokret-Request-Id
-Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disposition, Content-Range, Location, X-Cokret-Request-Id
+Access-Control-Allow-Headers: Authorization, Content-Type, Content-Digest, Digest, Idempotency-Key, X-Arkret-Wait-For, X-Arkret-Request-Id
+Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disposition, Content-Range, Location, X-Arkret-Request-Id
 ```
 
 服务端 MUST NOT 在 `OPTIONS` preflight 请求中执行写入逻辑。
@@ -492,9 +492,9 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 
 ## 11. 版本与 feature discovery
 
-**path 不含版本段。** 所有 HTTP path 都是 `/_cokret/<信任段>/...` 形态的绝对路径，URL 只编码信任拓扑，版本是元数据，绝不放进 path（不存在 `/v1/`、`/api/v1`、`/cokret/v1`）。契约版本的唯一真相源是 `contract-catalog.json` 与 `protocol_version`（固定 `"1.0"`）；wire 级版本由 schema id（`ck.schema.*.v1`）和 event kind 版本后缀承载。
+**path 不含版本段。** 所有 HTTP path 都是 `/_cokret/<信任段>/...` 形态的绝对路径，URL 只编码信任拓扑，版本是元数据，绝不放进 path（不存在 `/v1/`、`/api/v1`、`/arkret/v1`）。契约版本的唯一真相源是 `contract-catalog.json` 与 `protocol_version`（固定 `"1.0"`）；wire 级版本由 schema id（`ck.schema.*.v1`）和 event kind 版本后缀承载。
 
-版本与能力发现走 **`*.describe` 协商**：调用方 MUST 用 `describe.supported_operations` / `supported_profiles`（而非 path 里写死的版本）判断对端支持什么。破坏性变更通过新增 event kind / schema id + `renames.json` 的 `hard_reject` + `forbidden-wire-fields` + profile gating + [`CHANGELOG.md`](../../CHANGELOG.md) 发布门槛承载，从不发生"整面切 v2"。如确需在传输层标注协议版本，用请求/响应 header（`Cokret-Protocol-Version: 1.0`）或 media-type 参数做 content negotiation，**绝不放 path**。
+版本与能力发现走 **`*.describe` 协商**：调用方 MUST 用 `describe.supported_operations` / `supported_profiles`（而非 path 里写死的版本）判断对端支持什么。破坏性变更通过新增 event kind / schema id + `renames.json` 的 `hard_reject` + `forbidden-wire-fields` + profile gating + [`CHANGELOG.md`](../../CHANGELOG.md) 发布门槛承载，从不发生"整面切 v2"。如确需在传输层标注协议版本，用请求/响应 header（`Arkret-Protocol-Version: 1.0`）或 media-type 参数做 content negotiation，**绝不放 path**。
 
 每个服务 SHOULD 暴露 describe endpoint，返回：
 
@@ -513,7 +513,7 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 
 ### 11.1 服务发现缓存与委托
 
-服务 DID Document 中的 service endpoint 是服务身份与 endpoint 绑定的权威来源。域名级 bootstrap MAY 通过 `/.well-known/cokret/server` 或等价 signed metadata 暴露 endpoint 摘要，但接收方仍 MUST 校验：
+服务 DID Document 中的 service endpoint 是服务身份与 endpoint 绑定的权威来源。域名级 bootstrap MAY 通过 `/.well-known/arkret/server` 或等价 signed metadata 暴露 endpoint 摘要，但接收方仍 MUST 校验：
 
 - HTTPS/TLS 名称与返回的 endpoint 一致；
 - service DID、DID Document service entry、describe 响应和 HTTP Message Signature 绑定一致；

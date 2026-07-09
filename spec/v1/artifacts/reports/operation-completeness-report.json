@@ -4,7 +4,7 @@
   "generated_at": "2026-07-02T00:00:00Z",
   "generated_from": [
     "registry/contract-catalog.json",
-    "openapi/cokret-service-api.openapi.yaml"
+    "openapi/arkret-service-api.openapi.yaml"
   ],
   "generated_by": "tools/gen_operation_completeness_report.py",
   "description": "Per-operation machine-readable schema-contract completeness report covering every operation in the operation registry. JSON Schema files and the registry remain canonical; this report is a derived summary for SDK / conformance tooling and schema-coverage review.",

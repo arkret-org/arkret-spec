@@ -7,7 +7,7 @@ updated: 2026-05-25
 status: draft
 created: 2026-05-23
 authors:
-  - did:webvh:z8kSru9qAfd1G7AvcVjggdEKy:cokret.example
+  - did:webvh:z8kSru9qAfd1G7AvcVjggdEKy:arkret.example
 ---
 
 > **本文件是模板,不要直接修改**。新提案 `cp .templates/ckp-template.md NNNN-<slug>.md` 之后填写(`NNNN-<slug>.md` 放在 `spec/v1/proposals/` 顶层)。

@@ -14,7 +14,7 @@ see_also:
 
 ## 1. 目标
 
-Cokret 需要明确区分三件事：
+Arkret 需要明确区分三件事：
 
 - 资源是否可被发现。
 - 资源是否可被预览。
@@ -317,7 +317,7 @@ OPRF 选择：
 {
   "profile": "ck.private_contact_discovery.v1",
   "phase": "blind",
-  "batch_id": "ck:batch:0196429a-0000-7000-8000-000000000000",
+  "batch_id": "ak:batch:0196429a-0000-7000-8000-000000000000",
   "ciphersuite": "OPRF-ristretto255-SHA512",
   "key_epoch": 14,
   "blinded_elements": ["base64url...", "base64url..."]
@@ -330,7 +330,7 @@ OPRF 选择：
 {
   "profile": "ck.private_contact_discovery.v1",
   "phase": "match",
-  "batch_id": "ck:batch:0196429a-0000-7000-8000-000000000000",
+  "batch_id": "ak:batch:0196429a-0000-7000-8000-000000000000",
   "key_epoch": 14,
   "derived_prefixes": ["base64url-16bytes...", "base64url-16bytes..."]
 }
@@ -347,7 +347,7 @@ OPRF 选择：
 
 ## 7. Directory Service Role
 
-Directory Service 是 Cokret 的**发现入口层**：让任意 subject 在不预先知道精确 id / alias / invite 的前提下，从其 trust 范围内**已 opt-in 暴露**的资源中找到目标，并取得**足以独立发起下一步 action（resolve / preview / knock / join / invite / verify / contact）的最小可验证元数据**。
+Directory Service 是 Arkret 的**发现入口层**：让任意 subject 在不预先知道精确 id / alias / invite 的前提下，从其 trust 范围内**已 opt-in 暴露**的资源中找到目标，并取得**足以独立发起下一步 action（resolve / preview / knock / join / invite / verify / contact）的最小可验证元数据**。
 
 它的职责面 normative 限定为三件事，超出以下范围的能力 MUST NOT 被实现为 Directory 的内置职责：
 
@@ -489,7 +489,7 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
   "policy_revision": "01JTV0KQ7K5ZP4VN6C9WEZK2X1",
   "ttl_seconds": 86400,
   "source_refs": [
-    "ck:event:0196419b-0000-7000-8000-000000000000"
+    "ak:event:0196419b-0000-7000-8000-000000000000"
   ],
   "discovery_state": {
     "kind": "ck.organization.discovery",
@@ -694,7 +694,7 @@ Directory MUST NOT：
 
 #### 9.1.1 Realm Join Candidate（normative）
 
-`join_candidates[]` 是 Cokret 对 Matrix `via` / candidate resident servers 模式的 Realm 级对应物：它是路由提示，不是授权证明。客户端 MAY 通过列表中任一合格候选提交 `ck.invite.accept`、`ck.member.state{membership="join"}`、`ck.member.state{membership="knock"}` 或 profile 声明的 application receipt；协议不要求必须经邀请者所在 Principal Server 加入。
+`join_candidates[]` 是 Arkret 对 Matrix `via` / candidate resident servers 模式的 Realm 级对应物：它是路由提示，不是授权证明。客户端 MAY 通过列表中任一合格候选提交 `ck.invite.accept`、`ck.member.state{membership="join"}`、`ck.member.state{membership="knock"}` 或 profile 声明的 application receipt；协议不要求必须经邀请者所在 Principal Server 加入。
 
 每个 candidate MUST 符合 [`ck.schema.realm_join_candidate.v1`](../../artifacts/schemas/realm-join-candidate.schema.json)，并满足：
 
@@ -728,7 +728,7 @@ Directory MUST NOT：
   },
   "requester": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "proofs": [
-    "ck:presentation:..."
+    "ak:presentation:..."
   ],
   "limit": 20,
   "cursor": null
@@ -741,7 +741,7 @@ Result：
 {
   "results": [
     {
-      "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+      "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
       "title": "Release Coordination",
       "summary": "Public release coordination",
       "discoverability": "listed",
@@ -750,10 +750,10 @@ Result：
       "owning_organizations": [
         "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example"
       ],
-      "preview_ref": "ck:event:<uuid>",
+      "preview_ref": "ak:event:<uuid>",
       "join_candidates": [
         {
-          "realm_id": "ck:realm:0196419b-0000-7000-8000-000000000000",
+          "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
           "service_did": "did:webvh:z3omZGak5a5es84Ph2kfPs4UP:principal.acme.example",
           "service_type": "principal_server",
           "role": "primary",
@@ -769,7 +769,7 @@ Result：
           "priority": 0,
           "source": "directory_ingest",
           "source_refs": [
-            "ck:event:36531ccc-395a-7455-9880-000000000000"
+            "ak:event:36531ccc-395a-7455-9880-000000000000"
           ],
           "as_of": "2026-05-10T07:55:12Z",
           "expires_at": "2026-05-10T08:05:12Z"
@@ -778,9 +778,9 @@ Result：
       "as_of": "2026-05-10T07:55:12Z",
       "policy_revision": "01JTV0KQ7K5ZP4VN6C9WEZK2X1",
       "source_refs": [
-        "ck:event:36531ccc-395a-7455-9880-000000000000",
-        "ck:event:36531cd0-e580-7bb1-a8ab-310000000000",
-        "ck:event:36531c0c-4155-7fd5-a082-b15662000000"
+        "ak:event:36531ccc-395a-7455-9880-000000000000",
+        "ak:event:36531cd0-e580-7bb1-a8ab-310000000000",
+        "ak:event:36531c0c-4155-7fd5-a082-b15662000000"
       ]
     }
   ],

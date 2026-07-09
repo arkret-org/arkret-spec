@@ -16,7 +16,7 @@ sidebar:
 
 ## 1. 目标
 
-Cokret 是模块化协议。为了避免“实现了 Cokret”变成不可验证的模糊声明，规范 MUST 定义可测试的实现 profile。
+Arkret 是模块化协议。为了避免“实现了 Arkret”变成不可验证的模糊声明，规范 MUST 定义可测试的实现 profile。
 
 每个实现 MUST 声明自己支持的 profile、协议版本和 feature 集合。  
 Conformance 测试 SHOULD 以 profile 为单位执行。
@@ -54,7 +54,7 @@ ck.profile.<name>.v<major>
 
 Document、File、Poll 在 v1 MVP 中默认是 Morph profile 或 extension profile，不是 core 标准对象。实现不得因为未来可能标准化这些类型，就在 v1 wire contract 中要求对端支持专用对象类型。
 
-Core identity conformance 要求 DID Core 解析 / 验证抽象、`did:webvh`（v1 core 默认 principal method）、`did:web`（service DID / `personal_node` profile principal）与 `did:key`。所有声明 `ck.profile.principal_server.v1` / `ck.profile.full_client.v1` / `ck.profile.e2ee_client.v1` 的实现 MUST 支持 `did:webvh` witness / SCID / entry hash chain 验证。组织高保证实现 SHOULD 声明 `ck.profile.org_high_assurance_identity.v1` 并要求 `did:webvh` witness / watcher evidence 强制 threshold ≥ 1。AT Protocol 互通实现 SHOULD 额外声明 `ck.profile.public_network_identity.v1` 并支持 `did:plc` adapter；该 adapter 是 interop 加项，不是 Cokret Core 强制依赖。
+Core identity conformance 要求 DID Core 解析 / 验证抽象、`did:webvh`（v1 core 默认 principal method）、`did:web`（service DID / `personal_node` profile principal）与 `did:key`。所有声明 `ck.profile.principal_server.v1` / `ck.profile.full_client.v1` / `ck.profile.e2ee_client.v1` 的实现 MUST 支持 `did:webvh` witness / SCID / entry hash chain 验证。组织高保证实现 SHOULD 声明 `ck.profile.org_high_assurance_identity.v1` 并要求 `did:webvh` witness / watcher evidence 强制 threshold ≥ 1。AT Protocol 互通实现 SHOULD 额外声明 `ck.profile.public_network_identity.v1` 并支持 `did:plc` adapter；该 adapter 是 interop 加项，不是 Arkret Core 强制依赖。
 
 v1 的首轮互操作验收 SHOULD 拆成三个可运行闭环：
 
@@ -413,9 +413,9 @@ MUST 支持：
 - `ck.mimi.room_binding` 生命周期校验
 - MIMI provider directory 和 endpoint surface
 - KeyPackage claim / consume / revoke lifecycle
-- MIMI message 到 Cokret Event Envelope 的映射
-- Cokret event 到 MIMI message / receipt 的映射
-- room policy component 到 Cokret capability / policy state 的映射
+- MIMI message 到 Arkret Event Envelope 的映射
+- Arkret event 到 MIMI message / receipt 的映射
+- room policy component 到 Arkret capability / policy state 的映射
 - identifier query 的 private contact discovery
 - consent state isolation
 - E2EE abuse report franking
@@ -425,9 +425,9 @@ MUST 支持：
 MUST NOT：
 
 - 把 MIMI room id 当作 `realm_id`
-- 把 MIMI provider timestamp 当作 Cokret HLC / event creation truth
+- 把 MIMI provider timestamp 当作 Arkret HLC / event creation truth
 - 把 MIMI user identifier 当作 DID
-- 绕过 Cokret auth refs、capability、MLS epoch 或 Realm policy
+- 绕过 Arkret auth refs、capability、MLS epoch 或 Realm policy
 
 ## 14. Enterprise Client
 
@@ -483,7 +483,7 @@ SHOULD 支持：
 
 ### 15.1 Sender-constrained 会话出示
 
-依据 [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700)（OAuth 2.0 Security BCP, BCP 240）"优先使用 sender-constrained token" 的指导，Cokret v1 production protected endpoint 的会话出示必须是 proof-of-possession（PoP）：`/_cokret/self/*` 使用 `ck.session.grant` + DPoP，常规写与敏感读使用会话 `session_public_key` 的 RFC 9421 HTTP Message Signature 或等价 sender-constrained proof。裸 `Authorization: Bearer` 可作为 DPoP / PoP 绑定中的 grant 载体，但不能单独作为受保护 endpoint 的认证成功依据（见 [`../sync/api-conventions.md` §3.2](../sync/api-conventions.md)）。
+依据 [RFC 9700](https://www.rfc-editor.org/rfc/rfc9700)（OAuth 2.0 Security BCP, BCP 240）"优先使用 sender-constrained token" 的指导，Arkret v1 production protected endpoint 的会话出示必须是 proof-of-possession（PoP）：`/_cokret/self/*` 使用 `ck.session.grant` + DPoP，常规写与敏感读使用会话 `session_public_key` 的 RFC 9421 HTTP Message Signature 或等价 sender-constrained proof。裸 `Authorization: Bearer` 可作为 DPoP / PoP 绑定中的 grant 载体，但不能单独作为受保护 endpoint 的认证成功依据（见 [`../sync/api-conventions.md` §3.2](../sync/api-conventions.md)）。
 
 在高安全 deployment profile 下，常规写与敏感读的 sender-constrained 出示必须使用 RFC 9421 HTTP Message Signature 形态并绑定 transcript/body。涉及的 profile 与其 `conformance-profiles.json#profile_requirements` 中的 `additional_requirements.sender_constrained_session_pop_must` 一一对应：
 
@@ -618,7 +618,7 @@ MUST 支持:
 MUST NOT:
 - 注册独立 `ck.self.agent.command.provision` aggregate provisioning operation(provisioning fan-out 到既有子事件)
 - 返回长期 private key、refresh token 或可直接长期调用 Events API 的 bearer token
-- 引入 custom URI scheme(`cokret://` 等)
+- 引入 custom URI scheme(`arkret://` 等)
 - 把 `agent_slug` 当作 grant subject、actor attribution、membership key、delivery key、Directory search key 或 audit attribution source
 
 ### 18.2 Agent Auth

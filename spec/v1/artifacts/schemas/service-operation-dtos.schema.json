@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/service-operation-dtos.schema.json",
-  "title": "Cokret Service Operation DTOs",
+  "$id": "https://arkret.org/v1/schemas/service-operation-dtos.schema.json",
+  "title": "Arkret Service Operation DTOs",
   "description": "Canonical request and response DTOs for service operations. OpenAPI components reference this artifact so SDK and conformance tooling use one schema source.",
   "anyOf": [
     {
@@ -833,12 +833,12 @@
         },
         "type": {
           "type": "string",
-          "description": "Backend binding type identifier (livekit / cokret-native / etc.).",
+          "description": "Backend binding type identifier (livekit / arkret-native / etc.).",
           "enum": [
             "livekit",
             "mediasoup",
             "janus",
-            "cokret-native",
+            "arkret-native",
             "moq-relay"
           ]
         },
@@ -848,7 +848,7 @@
         },
         "backend_token": {
           "type": "string",
-          "description": "Opaque to Cokret protocol; type-specific (e.g. LiveKit JWT).",
+          "description": "Opaque to Arkret protocol; type-specific (e.g. LiveKit JWT).",
           "minLength": 1
         },
         "participant_identity": {
@@ -1803,7 +1803,7 @@
         },
         "normalized_view": {
           "type": "object",
-          "description": "Optional Cokret normalized principal view (snake_case) — derived\nprojection only, NOT a re-publishable DID Document. See\nzh/identity/identity-did.md §6.\n"
+          "description": "Optional Arkret normalized principal view (snake_case) — derived\nprojection only, NOT a re-publishable DID Document. See\nzh/identity/identity-did.md §6.\n"
         },
         "method_evidence": {
           "type": "object",
@@ -2649,7 +2649,7 @@
     "ActorDid": {
       "type": "string",
       "pattern": "^did:[a-z0-9]+:[^\\s#?]+$",
-      "description": "Bare DID used as a Cokret actor/principal identifier. DID URL fragments belong in verification_method, not actor_id/principal_id."
+      "description": "Bare DID used as a Arkret actor/principal identifier. DID URL fragments belong in verification_method, not actor_id/principal_id."
     },
     "Cursor": {
       "type": "string",
@@ -3011,7 +3011,7 @@
         },
         "reducer_profile_digest": {
           "type": "string",
-          "description": "SHA-256 over the Cokret canonical JSON bytes of the matching digest_input object in artifacts/registry/reducer-profile-registry.json. Receivers MUST recompute from their effective Realm reducer profile and reject the whole federation batch with reducer_profile_mismatch on mismatch.",
+          "description": "SHA-256 over the Arkret canonical JSON bytes of the matching digest_input object in artifacts/registry/reducer-profile-registry.json. Receivers MUST recompute from their effective Realm reducer profile and reject the whole federation batch with reducer_profile_mismatch on mismatch.",
           "pattern": "^sha256:[0-9a-f]{64}$"
         }
       },

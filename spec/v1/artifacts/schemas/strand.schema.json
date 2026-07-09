@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cokret.org/v1/schemas/strand.schema.json",
-  "title": "Cokret Strand",
+  "$id": "https://arkret.org/v1/schemas/strand.schema.json",
+  "title": "Arkret Strand",
   "type": "object",
   "required": [
     "id",
