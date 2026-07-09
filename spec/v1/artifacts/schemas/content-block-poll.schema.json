@@ -142,7 +142,7 @@
       ],
       "properties": {
         "kind": {
-          "const": "ck.content.poll"
+          "const": "ak.content.poll"
         },
         "body": {
           "type": "string"
@@ -171,7 +171,7 @@
       ],
       "properties": {
         "kind": {
-          "const": "ck.content.poll.response"
+          "const": "ak.content.poll.response"
         },
         "body": {
           "type": "string"

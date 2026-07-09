@@ -1,15 +1,15 @@
 {
-  "profile": "ck.vector_group.cba_lattice.v1",
+  "profile": "ak.vector_group.cba_lattice.v1",
   "version": "2026-06-19",
   "suite": "state_reducer_hardening",
   "runner": "cotest::conformance::state_reducer_hardening",
   "covers_vectors": [
-    "ck.vector.state_root.incremental.v1",
-    "ck.vector.strand_tracks_update.atomic.v1"
+    "ak.vector.state_root.incremental.v1",
+    "ak.vector.strand_tracks_update.atomic.v1"
   ],
   "cases": [
     {
-      "vector_id": "ck.vector.state_root.incremental.v1",
+      "vector_id": "ak.vector.state_root.incremental.v1",
       "assertions": [
         "incremental_root_equals_full_root",
         "empty_delta_reuses_previous_state_root",
@@ -250,7 +250,7 @@
       }
     },
     {
-      "vector_id": "ck.vector.strand_tracks_update.atomic.v1",
+      "vector_id": "ak.vector.strand_tracks_update.atomic.v1",
       "assertions": [
         "multi_path_patch_is_single_cell_write",
         "primary_switch_validates_after_merge",

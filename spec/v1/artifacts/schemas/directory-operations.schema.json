@@ -188,7 +188,7 @@
       ],
       "properties": {
         "kind": {
-          "const": "ck.directory.restricted_claim_presentation.v1"
+          "const": "ak.directory.restricted_claim_presentation.v1"
         },
         "iss": {
           "$ref": "#/$defs/did"

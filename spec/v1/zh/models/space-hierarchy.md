@@ -30,7 +30,7 @@ Space hierarchy 可以跨 Realm 导航，但不改变 Realm 边界。Realm 决�
 
 ```json
 {
-  "kind": "ck.space.parent",
+  "kind": "ak.space.parent",
   "payload": {
     "space_id": "ak:space:019640c0-8000-7000-8000-000000000000",
     "parent_space_id": "ak:space:019640a0-8000-7000-8000-000000000000",

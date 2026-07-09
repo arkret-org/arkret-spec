@@ -33,7 +33,7 @@ const root = walkSchema(doc as JsonSchema, {
 
 function render(row: SchemaRow, depth: number): string {
   const open = depth < expand ? " open" : "";
-  const required = row.required ? '<span class="ck-required" title="required">*</span> ' : "";
+  const required = row.required ? '<span class="ak.required" title="required">*</span> ' : "";
   const composition = row.composition ? `<em>${row.composition}</em> · ` : "";
   const ref = row.ref ? `<small> · $ref ${escapeHtml(row.ref)}</small>` : "";
   const typeBadge = `<code>${escapeHtml(row.type)}</code>`;
@@ -77,10 +77,10 @@ const html = render(root, 0);
 const title = (doc as JsonSchema).title ?? schemaRef;
 ---
 
-<section class="ck-schema-viewer">
+<section class="ak.schema-viewer">
   {
     showHeader && (
-      <header class="ck-card" style="margin:0 0 .5rem 0">
+      <header class="ak.card" style="margin:0 0 .5rem 0">
         <strong>{title}</strong>
         <div>
           <code>{schemaRef}</code>

@@ -192,7 +192,7 @@
       ],
       "properties": {
         "kind": {
-          "const": "ck.moderation.franking_proof"
+          "const": "ak.moderation.franking_proof"
         },
         "franking_proof_id": {
           "type": "string",

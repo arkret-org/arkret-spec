@@ -154,10 +154,10 @@ const useCases = [
 ---
 
 <MarketingLayout>
-  <section class="ck-hero">
-    <div class="ck-shell ck-hero-inner ck-home-hero">
+  <section class="ak.hero">
+    <div class="ak.shell ck-hero-inner ck-home-hero">
       <img
-        class="ck-hero-brand"
+        class="ak.hero-brand"
         src="/brand/arkret-logo.svg"
         alt="Arkret logo"
         width="148"
@@ -165,39 +165,39 @@ const useCases = [
         loading="eager"
         decoding="async"
       />
-      <div class="ck-hero-eyebrow">
-        <span class="ck-pill ck-pill--accent">
-          <span class="ck-pill-dot" aria-hidden="true"></span>
+      <div class="ak.hero-eyebrow">
+        <span class="ak.pill ck-pill--accent">
+          <span class="ak.pill-dot" aria-hidden="true"></span>
           {specReleaseTag} · {specReleaseLabel}
         </span>
-        <span class="ck-pill ck-pill--license">
-          <span class="ck-pill-mono">Apache 2.0</span>
+        <span class="ak.pill ck-pill--license">
+          <span class="ak.pill-mono">Apache 2.0</span>
           全栈开源 · 商业友好
         </span>
       </div>
       <h1>
         给协作软件的一层<br />
-        <span class="ck-h1-accent">可验证事实协议</span>
+        <span class="ak.h1-accent">可验证事实协议</span>
       </h1>
-      <p class="ck-lead">
+      <p class="ak.lead">
         Arkret 定义消息、任务、文档、关系和 Agent 行为在网络中的共同真相：
         <strong>谁创建</strong>、<strong>基于什么授权</strong>、
         <strong>处于哪个 Space</strong>、<strong>受哪个加密 epoch 保护</strong>。
         它不是聊天 UI, 也不是区块链；它是一套事件、身份、授权、E2EE 和同步规范，
         让不同实现可以共享同一份可验证协作历史。
       </p>
-      <div class="ck-cta-row">
-        <a class="ck-btn ck-btn-primary" href="/zh/v1/spec-map/">
+      <div class="ak.cta-row">
+        <a class="ak.btn ck-btn-primary" href="/zh/v1/spec-map/">
           开始阅读规范
           <span aria-hidden="true">→</span>
         </a>
-        <a class="ck-btn ck-btn-ghost" href="/ecosystem/">浏览参考实现</a>
-        <a class="ck-btn ck-btn-ghost" href={repoUrl} rel="noopener">GitHub</a>
+        <a class="ak.btn ck-btn-ghost" href="/ecosystem/">浏览参考实现</a>
+        <a class="ak.btn ck-btn-ghost" href={repoUrl} rel="noopener">GitHub</a>
       </div>
-      <dl class="ck-hero-stats">
+      <dl class="ak.hero-stats">
         {
           heroStats.map((stat) => (
-            <div class="ck-hero-stat">
+            <div class="ak.hero-stat">
               <dt>{stat.value}</dt>
               <dd>{stat.label}</dd>
             </div>
@@ -207,23 +207,23 @@ const useCases = [
     </div>
   </section>
 
-  <section class="ck-section ck-section-tight">
-    <div class="ck-shell">
-      <div class="ck-section-head">
+  <section class="ak.section ck-section-tight">
+    <div class="ak.shell">
+      <div class="ak.section-head">
         <div>
-          <span class="ck-section-tag">为什么需要新协议</span>
+          <span class="ak.section-tag">为什么需要新协议</span>
           <h2>现实问题不是「有没有功能」,而是「能不能被验证」</h2>
         </div>
-        <p class="ck-section-sub">
+        <p class="ak.section-sub">
           以下问题来自常见系统边界：服务端数据库是事实权威、授权规则留在平台内、
           E2EE 与治理状态分层、自动化身份依赖 token。Arkret 把这些边界提升到协议层处理。
         </p>
       </div>
-      <div class="ck-pain-grid">
+      <div class="ak.pain-grid">
         {
           painPoints.map((p) => (
-            <article class="ck-pain-card">
-              <span class="ck-pain-tag">{p.tag}</span>
+            <article class="ak.pain-card">
+              <span class="ak.pain-tag">{p.tag}</span>
               <h3>{p.title}</h3>
               <p>{p.body}</p>
             </article>
@@ -233,22 +233,22 @@ const useCases = [
     </div>
   </section>
 
-  <section class="ck-section ck-section-elevated">
-    <div class="ck-shell">
-      <div class="ck-section-head">
+  <section class="ak.section ck-section-elevated">
+    <div class="ak.shell">
+      <div class="ak.section-head">
         <div>
-          <span class="ck-section-tag">六根支柱</span>
+          <span class="ak.section-tag">六根支柱</span>
           <h2>Arkret 先定义协作事实，再定义接口和投影</h2>
         </div>
-        <p class="ck-section-sub">
+        <p class="ak.section-sub">
           签名事件、Capability 授权、MLS 治理绑定、去中心化身份、可投影对象图、Agent 责任链。
         </p>
       </div>
-      <div class="ck-pillar-grid">
+      <div class="ak.pillar-grid">
         {
           protocolPillars.map((pillar) => (
-            <article class="ck-pillar-card">
-              <span class="ck-pillar-mark">{pillar.mark}</span>
+            <article class="ak.pillar-card">
+              <span class="ak.pillar-mark">{pillar.mark}</span>
               <h3>{pillar.title}</h3>
               <p>{pillar.body}</p>
             </article>
@@ -258,25 +258,25 @@ const useCases = [
     </div>
   </section>
 
-  <section class="ck-section ck-section-tight">
-    <div class="ck-shell">
-      <div class="ck-section-head">
+  <section class="ak.section ck-section-tight">
+    <div class="ak.shell">
+      <div class="ak.section-head">
         <div>
-          <span class="ck-section-tag">运行时闭环</span>
+          <span class="ak.section-tag">运行时闭环</span>
           <h2>一次写入,沿 4 个确定性环节变成可见状态</h2>
         </div>
-        <p class="ck-section-sub">
+        <p class="ak.section-sub">
           协议规定的不是 UI, 而是「提交事实 → 验证授权 → 锚定状态 → 投影视图」的不可分叉路径。
         </p>
       </div>
-      <ol class="ck-strand-rail">
+      <ol class="ak.strand-rail">
         {
           engineStrand.map((item, i) => (
-            <li class="ck-strand-node">
-              <div class="ck-strand-node-head">
-                <span class="ck-strand-step-no">{item.step}</span>
+            <li class="ak.strand-node">
+              <div class="ak.strand-node-head">
+                <span class="ak.strand-step-no">{item.step}</span>
                 {i < engineStrand.length - 1 && (
-                  <span class="ck-strand-connector" aria-hidden="true" />
+                  <span class="ak.strand-connector" aria-hidden="true" />
                 )}
               </div>
               <h3>{item.title}</h3>
@@ -288,18 +288,18 @@ const useCases = [
     </div>
   </section>
 
-  <section class="ck-section ck-section-os">
-    <div class="ck-shell">
-      <a class="ck-os-banner" href="/ecosystem/">
-        <div class="ck-os-banner-text">
-          <span class="ck-section-tag">官方实现</span>
+  <section class="ak.section ck-section-os">
+    <div class="ak.shell">
+      <a class="ak.os-banner" href="/ecosystem/">
+        <div class="ak.os-banner-text">
+          <span class="ak.section-tag">官方实现</span>
           <h2>协议、SDK、服务端、客户端、一致性测试——全部开源</h2>
           <p>
             spec / rust-sdk / soland (principal server) / coauth / sodmin / floria
             (push gateway) / inkson (跨平台客户端) / chime / cotest——开箱即用的完整参考栈。
           </p>
         </div>
-        <span class="ck-os-banner-cta">
+        <span class="ak.os-banner-cta">
           浏览生态
           <span aria-hidden="true">→</span>
         </span>
@@ -307,42 +307,42 @@ const useCases = [
     </div>
   </section>
 
-  <section class="ck-section">
-    <div class="ck-shell ck-home-grid-2">
+  <section class="ak.section">
+    <div class="ak.shell ck-home-grid-2">
       <div>
-        <div class="ck-section-head ck-section-head--stack">
-          <span class="ck-section-tag">入口</span>
+        <div class="ak.section-head ck-section-head--stack">
+          <span class="ak.section-tag">入口</span>
           <h2>从规范到实现</h2>
-          <p class="ck-section-sub">选择最适合的阅读路径,直接进入你的开发节奏。</p>
+          <p class="ak.section-sub">选择最适合的阅读路径,直接进入你的开发节奏。</p>
         </div>
-        <div class="ck-entry-grid">
+        <div class="ak.entry-grid">
           {
             entryPoints.map((entry) => (
-              <a class="ck-resource" href={entry.href}>
-                <div class="ck-resource-row">
-                  <span class="ck-resource-title">{entry.title}</span>
-                  <span class="ck-resource-badge">{entry.badge}</span>
+              <a class="ak.resource" href={entry.href}>
+                <div class="ak.resource-row">
+                  <span class="ak.resource-title">{entry.title}</span>
+                  <span class="ak.resource-badge">{entry.badge}</span>
                 </div>
-                <span class="ck-resource-desc">{entry.description}</span>
-                <span class="ck-resource-arrow" aria-hidden="true">→</span>
+                <span class="ak.resource-desc">{entry.description}</span>
+                <span class="ak.resource-arrow" aria-hidden="true">→</span>
               </a>
             ))
           }
         </div>
       </div>
       <div>
-        <div class="ck-section-head ck-section-head--stack">
-          <span class="ck-section-tag">应用场景</span>
+        <div class="ak.section-head ck-section-head--stack">
+          <span class="ak.section-tag">应用场景</span>
           <h2>适合需要长期可信边界的产品</h2>
-          <p class="ck-section-sub">
+          <p class="ak.section-sub">
             当协作历史、权限、加密状态和 Agent 行为都需要被复核时，协议层事实比产品内状态更可靠。
           </p>
         </div>
-        <ul class="ck-case-grid">
+        <ul class="ak.case-grid">
           {
             useCases.map((u) => (
               <li>
-                <span class="ck-case-mark" aria-hidden="true">✦</span>
+                <span class="ak.case-mark" aria-hidden="true">✦</span>
                 <div>
                   <strong>{u.title}</strong>
                   <span>{u.body}</span>

@@ -158,7 +158,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
 
 ```json
 {
-  "kind": "ck.sovereign.did_policy",
+  "kind": "ak.sovereign.did_policy",
   "trust_domain": "ak:trust_domain:did.webvh.defense.example",
   "default_principal_method": "did:webvh",
   "allowed_methods": ["did:webvh", "did:web", "did:plc", "did:key"],
@@ -204,11 +204,11 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
 
 ```json
 {
-  "kind": "ck.realm.create",
+  "kind": "ak.realm.create",
   "payload": {
     "object": {
       "id": "ak:realm:019640ea-8000-7000-8000-000000000000",
-      "schema": "ck.schema.realm.v1",
+      "schema": "ak.schema.realm.v1",
       "security_class": "high_assurance",
       "title": "External Collaboration",
       "created_by": "did:webvh:zGsmzvyUSDby8As5bHG3kAtWL:defense.example",
@@ -217,7 +217,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
         "did:webvh:zGsmzvyUSDby8As5bHG3kAtWL:defense.example"
       ],
       "schema_refs": [
-        "ck.schema.realm.v1"
+        "ak.schema.realm.v1"
       ],
       "default_discoverability": "unlisted",
       "default_join_rule": "restricted",

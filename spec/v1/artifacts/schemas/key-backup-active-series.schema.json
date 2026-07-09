@@ -16,7 +16,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "ck.schema.key_backup_active_series.v1"
+      "const": "ak.schema.key_backup_active_series.v1"
     },
     "actor_id": {
       "$ref": "./common-ids.schema.json#/$defs/did"

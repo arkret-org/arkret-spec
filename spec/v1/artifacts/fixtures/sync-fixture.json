@@ -1,5 +1,5 @@
 {
-  "profile": "ck.vector_group.sync.v1",
+  "profile": "ak.vector_group.sync.v1",
   "version": "2026-05-02",
   "collection_projection": {
     "projection": "collection",
@@ -29,8 +29,8 @@
               "rank": "U"
             },
             "permissions": [
-              "ck.strand.read",
-              "ck.strand.update"
+              "ak.strand.read",
+              "ak.strand.update"
             ],
             "pending_events": [],
             "conflict_records": []
@@ -73,7 +73,7 @@
       "code": "cursor_expired",
       "http_status": 410,
       "recovery": {
-        "call": "ck.self.snapshot.query.manifest_head",
+        "call": "ak.self.snapshot.query.manifest_head",
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
       }
     }
@@ -91,26 +91,26 @@
       "allowed_recovery": [
         {
           "branch": "initial_sync",
-          "call": "ck.self.account.stream.subscribe",
+          "call": "ak.self.account.stream.subscribe",
           "after_present": false,
           "catchup": true
         },
         {
           "branch": "snapshot_bootstrap",
-          "call": "ck.self.snapshot.query.manifest_head",
+          "call": "ak.self.snapshot.query.manifest_head",
           "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
         }
       ],
       "forbidden_recovery": [
         {
           "branch": "reuse_failed_cursor",
-          "call": "ck.self.events.query.scan",
+          "call": "ak.self.events.query.scan",
           "after": "ak:cursor:eyJoIjoiWlhod2FYSmxaQzF6ZEhKbFlXMHRhR0Z1Wkd4bCIsInB1cnBvc2UiOiJzdHJlYW0iLCJ0IjoiMjAyNi0wMS0wMVQwMDowMDowMFoiLCJ2IjoiMSIsIngiOjE3NjcyMjU2MDAwMDB9",
           "reject_reason": "failed cursor reused as after="
         },
         {
           "branch": "frontier_as_cursor",
-          "call": "ck.self.events.query.scan",
+          "call": "ak.self.events.query.scan",
           "after": "ak:event:019640ed-8000-7000-8000-000000000000",
           "reject_reason": "invalid_param: snapshot frontier event_id is not a cursor"
         }
@@ -137,7 +137,7 @@
     "expected": {
       "verify_signature": true,
       "verify_event_set_commitment": true,
-      "backfill_call": "ck.self.events.query.scan",
+      "backfill_call": "ak.self.events.query.scan",
       "backfill_direction": "from_head_toward_older",
       "backfill_after_present": false,
       "backfill_stop_frontier": [
@@ -146,7 +146,7 @@
     }
   },
   "snapshot_inclusion_challenge": {
-    "vector_id": "ck.vector.snapshot.inclusion_challenge.v1",
+    "vector_id": "ak.vector.snapshot.inclusion_challenge.v1",
     "assertions": [
       "event_id_sample_count_at_least_max_20_log2_covered_count",
       "actor_seq_range_samples_cover_three_actors",

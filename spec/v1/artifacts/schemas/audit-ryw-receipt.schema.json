@@ -23,7 +23,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "ck.schema.audit_ryw_receipt.v1"
+      "const": "ak.schema.audit_ryw_receipt.v1"
     },
     "receipt_id": {
       "type": "string",

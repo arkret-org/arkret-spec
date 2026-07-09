@@ -270,7 +270,7 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(digest
   "events": [
     {
       "event_id": "ak:event:0196419b-2000-7000-8000-000000000001",
-      "kind": "ck.message.create",
+      "kind": "ak.message.create",
       "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
       "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
       "actor_seq": 42,
@@ -302,7 +302,7 @@ reducer_profile_digest = "sha256:" || lowercase_hex(sha256(canonical_json(digest
         "strand_id": "ak:strand:0196419b-3000-7000-8000-000000000003",
         "track_name": "discussion",
         "content": {
-          "kind": "ck.content.text",
+          "kind": "ak.content.text",
           "body": "hello from alpha"
         }
       },

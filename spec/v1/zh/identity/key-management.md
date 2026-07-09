@@ -314,7 +314,7 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
 
 ```json
 {
-  "schema": "ck.schema.did_continuity_proof.v1",
+  "schema": "ak.schema.did_continuity_proof.v1",
   "old_did": "did:web:<host>",
   "new_did": "did:webvh:<scid>:<host>",
   "purpose": "principal_method_upgrade",
@@ -421,10 +421,10 @@ UI 在升级流程中 MUST 强制要求用户**重新输入或扫描** fingerpri
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "device_public_key": "z6Mks...",
   "scopes": [
-    "ck.self.events.query.describe",
-    "ck.self.events.command.submit",
-    "ck.self.account.stream.subscribe",
-    "ck.self.keys.keypackages.upload.create"
+    "ak.self.events.query.describe",
+    "ak.self.events.command.submit",
+    "ak.self.account.stream.subscribe",
+    "ak.self.keys.keypackages.upload.create"
   ],
   "not_before": "2026-04-26T00:00:00Z",
   "expires_at": null,
@@ -470,11 +470,11 @@ Arkret v1 使用 `ak.session.grant` 作为 principal control stream 中的标准
   "session_public_key": "z6Mss...",
   "audience": "https://app.example.com",
   "scopes": [
-    "ck.self.events.command.submit",
-    "ck.realm.discover",
-    "ck.object.read",
-    "ck.strand.update",
-    "ck.message.create"
+    "ak.self.events.command.submit",
+    "ak.realm.discover",
+    "ak.object.read",
+    "ak.strand.update",
+    "ak.message.create"
   ],
   "not_before": "2026-04-26T00:00:00Z",
   "expires_at": "2026-04-27T00:00:00Z"
@@ -558,7 +558,7 @@ Arkret v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata 
     },
     "aead": {
       "name": "xchacha20_poly1305",
-      "aead_profile": "ck.aead.xchacha20_poly1305.v1",
+      "aead_profile": "ak.aead.xchacha20_poly1305.v1",
       "nonce_salt": "b64uRandom128Bits",
       "nonce": "base64url..."
     },
@@ -568,7 +568,7 @@ Arkret v1 将密钥备份分为三个不同密钥域。实现 MUST 在 metadata 
     "hkdf_info": "arkret-key-backup/secret_storage/account_keys/v1",
     "subdomain": "account_keys",
     "aead_aad": {
-      "schema": "ck.schema.key_backup.v1",
+      "schema": "ak.schema.key_backup.v1",
       "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
       "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
       "backup_class": "secret_storage",
@@ -860,7 +860,7 @@ Recovery policy 的标准发布面是 `POST /_arkret/root/identity/recovery-poli
 
 ```json
 {
-  "schema": "ck.schema.recovery_policy.v1",
+  "schema": "ak.schema.recovery_policy.v1",
   "policy_id": "ak:policy:01964140-0000-7000-8000-000000000000",
   "principal_id": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "version": 1,

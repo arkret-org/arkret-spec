@@ -14,7 +14,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "ck.schema.key_backup_plaintext.v1"
+      "const": "ak.schema.key_backup_plaintext.v1"
     },
     "backup_id": {
       "$ref": "#/$defs/backup_id"

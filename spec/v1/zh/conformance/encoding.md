@@ -201,7 +201,7 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 
 ```json
 {
-  "schema": "ck.schema.event_batch_receipt.v1",
+  "schema": "ak.schema.event_batch_receipt.v1",
   "receipt_id": "ak:receipt:01964186-0000-7000-8000-000000000000",
   "issuer": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "scope": {
@@ -216,7 +216,7 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 }
 ```
 
-`receipt_digest = sha256(canonical_json(receipt_without_proofs))`。`issuer`、`scope`、`frontier`、`events`、`schema` 必须进入 digest，防止 receipt 被跨 actor、跨 Realm 或跨前沿重放。Event Batch Receipt proof 的 detached bytes MUST 是 canonical binding object `{context:"ck-receipt-proof-v1", payload_digest:receipt_digest, issuer, verification_method, created_at, domain?, audience?}`；`context` 是固定 signing-context domain tag，不在 receipt wire body 中单独携带。
+`receipt_digest = sha256(canonical_json(receipt_without_proofs))`。`issuer`、`scope`、`frontier`、`events`、`schema` 必须进入 digest，防止 receipt 被跨 actor、跨 Realm 或跨前沿重放。Event Batch Receipt proof 的 detached bytes MUST 是 canonical binding object `{context:"ak.receipt-proof-v1", payload_digest:receipt_digest, issuer, verification_method, created_at, domain?, audience?}`；`context` 是固定 signing-context domain tag，不在 receipt wire body 中单独携带。
 
 ## 6. Signature
 
@@ -235,7 +235,7 @@ Identifier 字段命名的权威规则见 [`common-fields.md` §2.1](../models/c
 
 Proof MUST bind（下列为绑定字段集合；canonical binding object 的实际字节顺序由 §2 canonical JSON 的 JCS key 排序决定，下方 JSON 示例与本清单的列举顺序仅为可读性，不代表签名字节顺序）:
 
-- `context = "ck-event-proof-v1"`：固定 signing-context domain tag；不从 Event envelope 读取，verifier 构造 binding object 时 MUST 写入该常量。
+- `context = "ak.event-proof-v1"`：固定 signing-context domain tag；不从 Event envelope 读取，verifier 构造 binding object 时 MUST 写入该常量。
 - `event_digest = canonical_digest(envelope_without_proofs_unsigned_reducer_stamps)`
 - `actor_id`
 - `verification_method`
@@ -246,7 +246,7 @@ Proof MUST bind（下列为绑定字段集合；canonical binding object 的实�
 
 ```json
 {
-  "context": "ck-event-proof-v1",
+  "context": "ak.event-proof-v1",
   "event_digest": "sha256:<canonical event hash>",
   "actor_id": "<event.actor_id>",
   "verification_method": "<proof.verification_method>",

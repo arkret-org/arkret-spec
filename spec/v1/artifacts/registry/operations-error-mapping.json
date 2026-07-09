@@ -13,7 +13,7 @@
   },
   "operations": [
     {
-      "operation_id": "ck.gate.account.command.register",
+      "operation_id": "ak.gate.account.command.register",
       "http_alias": "POST /_arkret/gate/account/register",
       "operation_specific": [
         "proof_invalid",
@@ -23,19 +23,19 @@
       "description": "Account registration creates or binds a deployment-local account record to principal_id. The request uses principal_id rather than did, does not accept handle, and handle evidence can only be returned as signed ck.schema.handle_claim.v1 data or digest/ref."
     },
     {
-      "operation_id": "ck.gate.account.command.pair_device",
+      "operation_id": "ak.gate.account.command.pair_device",
       "http_alias": "POST /_arkret/gate/account/device-pair",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.gate.account.command.enroll_device",
+      "operation_id": "ak.gate.account.command.enroll_device",
       "http_alias": "POST /_arkret/gate/account/device-enroll",
       "operation_specific": ["proof_invalid", "duplicate_conflict", "failed_precondition"],
       "description": "Enrolls a device via the principal's designated enrollment authority. proof_invalid when the enrollment proof / controller binding does not verify against the authority designated in the principal DID document; duplicate_conflict when the device record already exists; failed_precondition when the enrollment-authority designation is absent or stale at the accepted-at frontier. See zh/identity/key-management.md §5.0.6 and zh/identity/identity-did.md §3.2."
     },
     {
-      "operation_id": "ck.gate.account.command.issue_session_grant",
+      "operation_id": "ak.gate.account.command.issue_session_grant",
       "http_alias": "POST /_arkret/gate/account/session-grants",
       "operation_specific": [
         "audience_unknown",
@@ -48,7 +48,7 @@
       "description": "Account Authority session grant issuance. Shared by human user_session and agent runtime branches (CKP-0008 §4.6): when `proof.proof_kind=\"oidc_code_exchange\"`, `proof_invalid` covers issuer/discovery/state/nonce/redirect_uri/code_verifier/principal/device/audience binding failures; when `proof.proof_kind=\"agent_key_proof\"`, agent-specific failure codes apply — `proof_invalid` for transcript / nonce / audience binding failures of the agent_key_proof, `verification_method_principal_mismatch` when the verification_method DID does not match `principal_id`, `agent_paused` / `agent_deactivated` for lifecycle-gated rejections of the target agent principal, and `accountability_grant_missing` when the controller's accountability grant over the agent has been revoked or lapsed its freshness window so the agent is no longer eligible to receive a session grant (zh/identity/account-lifecycle.md §9.1)."
     },
     {
-      "operation_id": "ck.gate.account.command.revoke_session",
+      "operation_id": "ak.gate.account.command.revoke_session",
       "http_alias": "POST /_arkret/gate/account/session-grants/revoke",
       "operation_specific": [
         "session_grant_not_found",
@@ -58,7 +58,7 @@
       "description": "Session grant/access-token revocation. Empty body revokes the current request's session grant; cross grant/device/all_sessions selectors require fresh proof and never revoke device authorization or write durable ck.account.status."
     },
     {
-      "operation_id": "ck.gate.account.command.refresh_session_grant",
+      "operation_id": "ak.gate.account.command.refresh_session_grant",
       "http_alias": "POST /_arkret/gate/account/session-grants/refresh",
       "operation_specific": [
         "grant_already_consumed",
@@ -71,25 +71,25 @@
       "description": "DPoP-bound session-grant rotation (account-lifecycle §4.1). Single-use: a consumed grant cannot be rotated again (grant_already_consumed); the audience is locked to the prior grant (audience_mismatch); rotation is refused once the underlying browser session is logged out (session_logged_out). The caller MUST present a holder proof signed by the key bound into the grant's cnf.jkt plus a fresh DID/device proof bound to principal_id, device_id, audience, request_canonical_digest, challenge, issued_at, and expires_at. Missing proof material returns did_proof_required; invalid signature, replay, transcript, device binding, or freshness semantics return proof_invalid."
     },
     {
-      "operation_id": "ck.gate.account.command.logout_auth_session",
+      "operation_id": "ak.gate.account.command.logout_auth_session",
       "http_alias": "POST /_arkret/gate/account/auth-sessions/logout",
       "operation_specific": [],
       "description": "Account Authority to Auth Server S2S Auth-side logout sub-operation (account-lifecycle §4.1): a validated client-visible account /logout is represented by service-to-service authentication, and the Auth Server logs out the Auth-side browser/auth session owning the supplied grant so the rotation chain cannot be resumed. Idempotent: re-presenting an already-logged-out, revoked, unknown, or pruned auth session/grant succeeds with the chain treated as terminated. Ordinary clients MUST NOT call this operation; they retry ck.gate.account.command.logout."
     },
     {
-      "operation_id": "ck.gate.account.command.introspect_session_grant",
+      "operation_id": "ak.gate.account.command.introspect_session_grant",
       "http_alias": "POST /_arkret/gate/account/session-grants/introspect",
       "operation_specific": [],
       "description": "Server-to-server session-grant introspection (RFC 7662-style). Read-only validation: returns active/status/grant-metadata in a 200 body (including not_found / audience_mismatch as statuses, not error replies), so it has no operation-specific error codes beyond the universal failure surface (e.g. bad_json for a malformed id, the universal auth codes when the introspection bearer is missing)."
     },
     {
-      "operation_id": "ck.gate.account.command.logout",
+      "operation_id": "ak.gate.account.command.logout",
       "http_alias": "POST /_arkret/gate/account/logout",
       "operation_specific": [],
       "description": "Account Authority ordinary hard logout (account-lifecycle §4.1): the only client-visible logout entry. It validates the current ak.session.grant + DPoP, terminates the Auth-side auth session / grant rotation chain, and completes or durably schedules Principal-side local account/device session cleanup plus to-device/push removal. Does not write ck.account.status, emit ck.device.revoke, or erase durable device authorization. Idempotent — no domain-specific failure beyond the universal surface."
     },
     {
-      "operation_id": "ck.gate.account.command.pair_agent_key",
+      "operation_id": "ak.gate.account.command.pair_agent_key",
       "http_alias": "POST /_arkret/gate/account/agent-key-pair",
       "operation_specific": [
         "verification_method_principal_mismatch",
@@ -100,7 +100,7 @@
       "description": "Native personal agent runtime key pairing (CKP-0008 §4.5). 412 responses use these codes; pairing into an already-deactivated agent principal is terminal."
     },
     {
-      "operation_id": "ck.self.agent.command.provision",
+      "operation_id": "ak.self.agent.command.provision",
       "http_alias": "POST /_arkret/self/agents",
       "operation_specific": [
         "failed_precondition",
@@ -109,14 +109,14 @@
       "description": "Provision a native personal agent principal (CKP-0008). The op is the aggregate `ck.self.agent.command.provision` capability action (capability-action-registry.json) and fans out `ck.profile.create` + `ck.identity.accountability_grant` + `ck.agent.key.authorize` + `ck.capability.grant`. `accountability_grant_missing` is returned when the orchestrator cannot write or validate the fan-out `ck.identity.accountability_grant` (controller lacks `ck.self.agent.command.provision` authority or its required constraints, the candidate grant fails accountability schema checks, or a concurrent state cell makes the grant unauditable). Other ineligibility reasons surface as `failed_precondition`."
     },
     {
-      "operation_id": "ck.self.agent.query.list",
+      "operation_id": "ak.self.agent.query.list",
       "http_alias": "GET /_arkret/self/agents",
       "operation_specific": [
         "cursor_invalid"
       ]
     },
     {
-      "operation_id": "ck.self.agent.resource.get",
+      "operation_id": "ak.self.agent.resource.get",
       "http_alias": "GET /_arkret/self/agents/{agent_principal_id}",
       "operation_specific": [
         "not_found"
@@ -124,7 +124,7 @@
       "description": "not_found is returned both for nonexistent agent principals and for agents not visible to the caller (uniform failure surface, matches ck.self.events.resource.get pattern)."
     },
     {
-      "operation_id": "ck.self.agent.command.pause",
+      "operation_id": "ak.self.agent.command.pause",
       "http_alias": "POST /_arkret/self/agents/{agent_principal_id}/pause",
       "operation_specific": [
         "agent_paused",
@@ -134,7 +134,7 @@
       "description": "agent_paused is returned for idempotent re-pause; agent_deactivated is terminal."
     },
     {
-      "operation_id": "ck.self.agent.command.resume",
+      "operation_id": "ak.self.agent.command.resume",
       "http_alias": "POST /_arkret/self/agents/{agent_principal_id}/resume",
       "operation_specific": [
         "agent_deactivated",
@@ -145,7 +145,7 @@
       "description": "Resume revalidates controller, agent key, capability, Realm policy, and accountability grant freshness; any stale precondition fails closed. Sidecar exposure re-disclosure failure surfaces as failed_precondition with reason=`sidecar_exposure_ack_required`."
     },
     {
-      "operation_id": "ck.self.agent.command.deactivate",
+      "operation_id": "ak.self.agent.command.deactivate",
       "http_alias": "POST /_arkret/self/agents/{agent_principal_id}/deactivate",
       "operation_specific": [
         "agent_deactivated",
@@ -154,7 +154,7 @@
       "description": "agent_deactivated is returned for idempotent re-deactivation of an already-terminal agent."
     },
     {
-      "operation_id": "ck.self.agent.command.rotate_key",
+      "operation_id": "ak.self.agent.command.rotate_key",
       "http_alias": "POST /_arkret/self/agents/{agent_principal_id}/rotate-key",
       "operation_specific": [
         "agent_paused",
@@ -166,7 +166,7 @@
       "description": "Wire op ck.self.agent.command.rotate_key corresponds to event kind ck.agent.key.rotate; rotation MUST NOT widen scope or extend the retiring key's TTL."
     },
     {
-      "operation_id": "ck.self.agent.grant.command.attach",
+      "operation_id": "ak.self.agent.grant.command.attach",
       "http_alias": "POST /_arkret/self/agents/{agent_principal_id}/grants",
       "operation_specific": [
         "agent_paused",
@@ -176,7 +176,7 @@
       "description": "Attaches a capability grant to the agent. capability_denied surfaces controller-side delegation refusal; agent_paused / agent_deactivated guard the lifecycle gate."
     },
     {
-      "operation_id": "ck.self.agent.grant.resource.delete",
+      "operation_id": "ak.self.agent.grant.resource.delete",
       "http_alias": "DELETE /_arkret/self/agents/{agent_principal_id}/grants/{grant_id}",
       "operation_specific": [
         "not_found",
@@ -185,7 +185,7 @@
       "description": "not_found is returned for nonexistent grant_id and for grants not attached to this agent (uniform failure surface)."
     },
     {
-      "operation_id": "ck.self.agent.sidecar_thread.command.ensure",
+      "operation_id": "ak.self.agent.sidecar_thread.command.ensure",
       "http_alias": "POST /_arkret/self/agent-sidecar-threads:ensure",
       "operation_specific": [
         "sidecar_create_denied",
@@ -196,19 +196,19 @@
       "description": "Idempotent ensure (CKP-0009 §4.2.1): server-derived dedupe keys are `(realm_id, controller_principal_id)` for the sidecar Circle and `(controller_principal_id, normalized_context_ref)` for the private Strand / reuse identity — `agent_principal_id` is NOT part of either key, so all eligible agents of the same controller share one sidecar per Realm. Clients MUST NOT supply Idempotency-Key. sidecar_create_denied is a deliberately generic precondition that hides whether a sidecar with the same derived short_name already exists (existence privacy)."
     },
     {
-      "operation_id": "ck.self.agent.participation.resource.replace",
+      "operation_id": "ak.self.agent.participation.resource.replace",
       "http_alias": "PUT /_arkret/self/agents/{agent_principal_id}/participation",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.agent.participation.resource.get",
+      "operation_id": "ak.self.agent.participation.resource.get",
       "http_alias": "GET /_arkret/self/agents/{agent_principal_id}/participation",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.agent.protocol.query.discover",
+      "operation_id": "ak.self.agent.protocol.query.discover",
       "http_alias": "POST /_arkret/self/agents/discover",
       "operation_specific": [
         "not_found"
@@ -216,19 +216,19 @@
       "description": "Probe the public ck.agent.endpoint registry for an agent's declared external protocol endpoints. Missing, unauthorized, not-visible, or revoked endpoint registrations all collapse into a single not_found surface indistinguishable from nonexistence (matches the ck.find.directory.query.resolve_agent_selector uniform surface); the op never returns candidate endpoints for an agent the caller may not discover."
     },
     {
-      "operation_id": "ck.gate.account.exchange.complete_oidc",
+      "operation_id": "ak.gate.account.exchange.complete_oidc",
       "http_alias": "POST /_arkret/gate/account/oidc/callback",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.edge.applet.query.describe",
+      "operation_id": "ak.edge.applet.query.describe",
       "http_alias": "GET /_arkret/edge/applet/describe",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.applet.install.command.preview",
+      "operation_id": "ak.self.applet.install.command.preview",
       "http_alias": "POST /_arkret/self/applets/install/preview",
       "operation_specific": [
         "applet_registration_unauthorized"
@@ -236,7 +236,7 @@
       "description": "Applet install preview validates controller proof, package schema, DID/key binding, namespace conflicts, requested capability actions, and Realm/Circle policy before returning an InstallPlan."
     },
     {
-      "operation_id": "ck.self.applet.command.install",
+      "operation_id": "ak.self.applet.command.install",
       "http_alias": "POST /_arkret/self/applets/install",
       "operation_specific": [
         "duplicate_conflict",
@@ -246,31 +246,31 @@
       "description": "Applet install commit recomputes the InstallPlan, binds approval to plan_digest, persists fan-out idempotency state, and emits registration/grant/profile/membership facts."
     },
     {
-      "operation_id": "ck.edge.applet.query.ping",
+      "operation_id": "ak.edge.applet.query.ping",
       "http_alias": "GET /_arkret/edge/applet/ping",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.edge.applet.query.protocol_metadata",
+      "operation_id": "ak.edge.applet.query.protocol_metadata",
       "http_alias": "GET /_arkret/edge/applet/protocols/{protocol}",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.edge.applet.actor.query.resolve",
+      "operation_id": "ak.edge.applet.actor.query.resolve",
       "http_alias": "GET /_arkret/edge/applet/actors/{actor_id}",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.edge.applet.realm.query.resolve",
+      "operation_id": "ak.edge.applet.realm.query.resolve",
       "http_alias": "GET /_arkret/edge/applet/realms/{realm_id_or_alias}",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.applet.command.revoke",
+      "operation_id": "ak.self.applet.command.revoke",
       "http_alias": "POST /_arkret/self/applets/{applet_id}/revoke",
       "operation_specific": [
         "duplicate_conflict",
@@ -281,7 +281,7 @@
       "description": "Applet revoke stops future writes by revoking active grants and scoped tokens for the effective install; repeated revoke attempts may surface applet_revoked."
     },
     {
-      "operation_id": "ck.self.applet.ghost.command.provision",
+      "operation_id": "ak.self.applet.ghost.command.provision",
       "http_alias": "POST /_arkret/self/applets/{applet_id}/ghosts/provision",
       "operation_specific": [
         "applet_namespace_mismatch",
@@ -290,19 +290,19 @@
       "description": "Ghost Actor provisioning mints (or idempotently re-confirms) the external user's Ghost Actor ck.profile.create and ck.identity.accountability_grant. The server fails closed when the caller service DID does not match the applet_id registration, the install is not active, the realm_id is outside effective scope (applet_registration_unauthorized), or ghost_actor_id falls outside the registration's actor namespace (applet_namespace_mismatch). See zh/extensions/applet-integration.md §9.1."
     },
     {
-      "operation_id": "ck.edge.applet.third_party_locations.query.list",
+      "operation_id": "ak.edge.applet.third_party_locations.query.list",
       "http_alias": "GET /_arkret/edge/applet/third_party/locations",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.edge.applet.third_party_users.query.list",
+      "operation_id": "ak.edge.applet.third_party_users.query.list",
       "http_alias": "GET /_arkret/edge/applet/third_party/users",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.edge.applet.command.transaction",
+      "operation_id": "ak.edge.applet.command.transaction",
       "http_alias": "POST /_arkret/edge/applet/transactions",
       "operation_specific": [
         "http_signature_required",
@@ -315,26 +315,26 @@
       "description": "Transaction push is a service-to-service operation in both directions. Receivers MUST fail closed when the per-delivery RFC 9421 source signature is missing/invalid/outside the replay window, when the idempotency identity is replayed with a different body or source_signature_anchor, when the source Applet service has no active effective install, or when an Event actor falls outside the registered Applet namespace. See zh/extensions/applet-integration.md §7.3.1."
     },
     {
-      "operation_id": "ck.self.authz.query.check",
+      "operation_id": "ak.self.authz.query.check",
       "http_alias": "POST /_arkret/self/authz/check",
       "operation_specific": [
         "policy_unavailable"
       ]
     },
     {
-      "operation_id": "ck.self.authz.grants.query.effective",
+      "operation_id": "ak.self.authz.grants.query.effective",
       "http_alias": "GET /_arkret/self/authz/effective-grants",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.authz.invites.query.list",
+      "operation_id": "ak.self.authz.invites.query.list",
       "http_alias": "GET /_arkret/self/authz/invites",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.blob.resource.get",
+      "operation_id": "ak.self.blob.resource.get",
       "http_alias": "GET /_arkret/self/blob/get",
       "operation_specific": [
         "not_found",
@@ -343,7 +343,7 @@
       ]
     },
     {
-      "operation_id": "ck.self.blob.resource.head",
+      "operation_id": "ak.self.blob.resource.head",
       "http_alias": "HEAD /_arkret/self/blob/get",
       "operation_specific": [
         "not_found",
@@ -352,7 +352,7 @@
       ]
     },
     {
-      "operation_id": "ck.self.blob.upload.create",
+      "operation_id": "ak.self.blob.upload.create",
       "http_alias": "POST /_arkret/self/blob/upload",
       "operation_specific": [
         "blob_quota_exceeded",
@@ -361,7 +361,7 @@
       ]
     },
     {
-      "operation_id": "ck.self.blob.command.presign",
+      "operation_id": "ak.self.blob.command.presign",
       "http_alias": "POST /_arkret/self/blob/presign",
       "operation_specific": [
         "not_found",
@@ -378,25 +378,25 @@
       ]
     },
     {
-      "operation_id": "ck.self.device_messages.query.list",
+      "operation_id": "ak.self.device_messages.query.list",
       "http_alias": "GET /_arkret/self/device_messages",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.device_messages.command.send",
+      "operation_id": "ak.self.device_messages.command.send",
       "http_alias": "POST /_arkret/self/device_messages",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.device_messages.command.ack",
+      "operation_id": "ak.self.device_messages.command.ack",
       "http_alias": "POST /_arkret/self/device_messages/ack",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface. Unknown / expired / cross-bound ack tokens map to invalid_param (reason invalid_ack_token) and MUST NOT delete any queued message."
     },
     {
-      "operation_id": "ck.self.contact.command.request",
+      "operation_id": "ak.self.contact.command.request",
       "http_alias": "POST /_arkret/self/contacts/request",
       "operation_specific": [
         "failed_precondition",
@@ -406,7 +406,7 @@
       "description": "Contact request writes requester-side contact fact and requester-side consent grants. The requester cannot write target-side consent or accepted state."
     },
     {
-      "operation_id": "ck.self.contact.command.respond",
+      "operation_id": "ak.self.contact.command.respond",
       "http_alias": "POST /_arkret/self/contacts/respond",
       "operation_specific": [
         "not_found",
@@ -416,7 +416,7 @@
       "description": "Only the request target may accept/reject a contact request. Accept writes target-controlled consent grants; reject writes no consent."
     },
     {
-      "operation_id": "ck.self.contact.query.list",
+      "operation_id": "ak.self.contact.query.list",
       "http_alias": "GET /_arkret/self/contacts",
       "operation_specific": [
         "cursor_invalid",
@@ -425,7 +425,7 @@
       "description": "Holder contact projection from contact facts plus consent-derived directional scopes."
     },
     {
-      "operation_id": "ck.self.contact.command.tombstone",
+      "operation_id": "ak.self.contact.command.tombstone",
       "http_alias": "POST /_arkret/self/contacts/tombstone",
       "operation_specific": [
         "failed_precondition",
@@ -434,19 +434,19 @@
       "description": "Holder-side contact tombstone. Default revocation is limited to contact-managed active consent dots."
     },
     {
-      "operation_id": "ck.self.invite_receive_policy.resource.get",
+      "operation_id": "ak.self.invite_receive_policy.resource.get",
       "http_alias": "GET /_arkret/self/invite-receive-policy",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.invite_receive_policy.resource.replace",
+      "operation_id": "ak.self.invite_receive_policy.resource.replace",
       "http_alias": "PUT /_arkret/self/invite-receive-policy",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.direct_conversation.command.resolve",
+      "operation_id": "ak.self.direct_conversation.command.resolve",
       "http_alias": "POST /_arkret/self/direct-conversations/resolve",
       "operation_specific": [
         "not_found",
@@ -457,7 +457,7 @@
       "description": "Idempotent resolver for accepted contacts. Requires accepted contact projection and direct_message consent; create=true creates or repairs the canonical DM Realm/main Strand/binding."
     },
     {
-      "operation_id": "ck.find.directory.command.announce",
+      "operation_id": "ak.find.directory.command.announce",
       "http_alias": "POST /_arkret/find/directory/announce",
       "operation_specific": [
         "directory_not_authorized",
@@ -472,18 +472,18 @@
       ]
     },
     {
-      "operation_id": "ck.find.directory.query.describe",
+      "operation_id": "ak.find.directory.query.describe",
       "http_alias": "GET /_arkret/find/directory/describe",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.find.directory.query.private_contact_discovery",
+      "operation_id": "ak.find.directory.query.private_contact_discovery",
       "http_alias": "POST /_arkret/find/directory/private-contact-discovery",
       "operation_specific": []
     },
     {
-      "operation_id": "ck.find.directory.query.resolve_handle",
+      "operation_id": "ak.find.directory.query.resolve_handle",
       "http_alias": "POST /_arkret/find/directory/resolve-handle",
       "operation_specific": [
         "not_found",
@@ -491,7 +491,7 @@
       ]
     },
     {
-      "operation_id": "ck.find.directory.query.resolve_agent_selector",
+      "operation_id": "ak.find.directory.query.resolve_agent_selector",
       "http_alias": "POST /_arkret/find/directory/resolve-agent-selector",
       "operation_specific": [
         "not_found"
@@ -499,64 +499,64 @@
       "description": "Exact native personal agent selector resolution: Directory resolves controller_handle to a controller DID and verifies the visible ck.schema.agent_selector_claim.v1 (controller_subject, agent_slug) -> subject binding, proof, and accountability grant. Failure, unauthorized, not-visible, revoked / expired / ambiguous, missing controller, or hidden agent all collapse into a single not_found surface indistinguishable from nonexistence (zh/discovery/discovery-directory.md §9); the op never returns selector candidates."
     },
     {
-      "operation_id": "ck.find.directory.query.list_handles_for_subject",
+      "operation_id": "ak.find.directory.query.list_handles_for_subject",
       "http_alias": "POST /_arkret/find/directory/list-handles-for-subject",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.find.directory.query.resolve_organization",
+      "operation_id": "ak.find.directory.query.resolve_organization",
       "http_alias": "POST /_arkret/find/directory/resolve-organization",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.find.directory.query.resolve_realm",
+      "operation_id": "ak.find.directory.query.resolve_realm",
       "http_alias": "POST /_arkret/find/directory/resolve-realm",
       "operation_specific": [
         "not_found"
       ]
     },
     {
-      "operation_id": "ck.find.directory.query.resolve_target",
+      "operation_id": "ak.find.directory.query.resolve_target",
       "http_alias": "POST /_arkret/find/directory/resolve-target",
       "operation_specific": [
         "not_found"
       ]
     },
     {
-      "operation_id": "ck.find.directory.query.search_actors",
+      "operation_id": "ak.find.directory.query.search_actors",
       "http_alias": "POST /_arkret/find/directory/search-actors",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.find.directory.query.search_organizations",
+      "operation_id": "ak.find.directory.query.search_organizations",
       "http_alias": "POST /_arkret/find/directory/search-organizations",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.find.directory.query.search_realms",
+      "operation_id": "ak.find.directory.query.search_realms",
       "http_alias": "POST /_arkret/find/directory/search-realms",
       "operation_specific": [
         "cursor_invalid"
       ]
     },
     {
-      "operation_id": "ck.find.directory.query.search_users",
+      "operation_id": "ak.find.directory.query.search_users",
       "http_alias": "POST /_arkret/find/directory/search-users",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.find.directory.push.command.register",
+      "operation_id": "ak.find.directory.push.command.register",
       "http_alias": "POST /_arkret/find/directory/push/register",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.find.directory.command.withdraw",
+      "operation_id": "ak.find.directory.command.withdraw",
       "http_alias": "POST /_arkret/find/directory/withdraw",
       "operation_specific": [
         "directory_not_authorized",
@@ -565,7 +565,7 @@
       ]
     },
     {
-      "operation_id": "ck.find.directory.command.takedown_appeal",
+      "operation_id": "ak.find.directory.command.takedown_appeal",
       "http_alias": "POST /_arkret/find/directory/takedown/appeal",
       "operation_specific": [
         "not_found",
@@ -578,20 +578,20 @@
       "description": "Resource-side appeal against an operator takedown (discovery-directory.md §8.7). not_found covers an unknown takedown_id; directory_not_authorized / governance_key_invalid / signature_invalid / signature_stale cover an appellant whose governance key or authorized-advocate signature does not validate against the resource the takedown targets; takedown_in_force is returned while the takedown remains effective and the appeal has not been overturned. The Directory returns a signed decision receipt on success."
     },
     {
-      "operation_id": "ck.self.events.query.describe",
+      "operation_id": "ak.self.events.query.describe",
       "http_alias": "GET /_arkret/self/events/describe",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.events.query.frontier",
+      "operation_id": "ak.self.events.query.frontier",
       "http_alias": "GET /_arkret/self/events/frontier",
       "operation_specific": [
         "frontier_unavailable"
       ]
     },
     {
-      "operation_id": "ck.self.events.resource.get",
+      "operation_id": "ak.self.events.resource.get",
       "http_alias": "GET /_arkret/self/events/{event_id}",
       "operation_specific": [
         "not_found"
@@ -599,7 +599,7 @@
       "description": "not_found is returned both for nonexistent events and for events hidden by visibility (uniform failure surface)."
     },
     {
-      "operation_id": "ck.self.events.query.scan",
+      "operation_id": "ak.self.events.query.scan",
       "http_alias": "GET /_arkret/self/events",
       "operation_specific": [
         "cursor_invalid",
@@ -607,7 +607,7 @@
       ]
     },
     {
-      "operation_id": "ck.self.events.query.scan_body",
+      "operation_id": "ak.self.events.query.scan_body",
       "http_alias": "POST /_arkret/self/events/query",
       "operation_specific": [
         "cursor_invalid",
@@ -615,14 +615,14 @@
       ]
     },
     {
-      "operation_id": "ck.self.events.query.resolve",
+      "operation_id": "ak.self.events.query.resolve",
       "http_alias": "POST /_arkret/self/events/resolve",
       "operation_specific": [
         "not_found"
       ]
     },
     {
-      "operation_id": "ck.self.events.stream.subscribe",
+      "operation_id": "ak.self.events.stream.subscribe",
       "http_alias": "GET /_arkret/self/events/subscribe",
       "operation_specific": [
         "cursor_invalid",
@@ -632,7 +632,7 @@
       ]
     },
     {
-      "operation_id": "ck.self.events.command.submit",
+      "operation_id": "ak.self.events.command.submit",
       "http_alias": "POST /_arkret/self/events",
       "operation_specific": [
         "duplicate_conflict",
@@ -648,20 +648,20 @@
       "description": "Event submission. Per-event rejections appear in response.rejected[] with one of these codes. ck.invite.claim-specific reducer reasons remain internal/audit-facing when exposed through non-enumerable invite claim flows."
     },
     {
-      "operation_id": "ck.peer.events.query.describe",
+      "operation_id": "ak.peer.events.query.describe",
       "http_alias": "GET /_arkret/peer/events/describe",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.peer.events.query.frontier",
+      "operation_id": "ak.peer.events.query.frontier",
       "http_alias": "GET /_arkret/peer/events/frontier",
       "operation_specific": [
         "frontier_unavailable"
       ]
     },
     {
-      "operation_id": "ck.peer.events.query.scan",
+      "operation_id": "ak.peer.events.query.scan",
       "http_alias": "GET /_arkret/peer/events",
       "operation_specific": [
         "cursor_invalid",
@@ -669,7 +669,7 @@
       ]
     },
     {
-      "operation_id": "ck.peer.events.query.scan_body",
+      "operation_id": "ak.peer.events.query.scan_body",
       "http_alias": "POST /_arkret/peer/events/query",
       "operation_specific": [
         "cursor_invalid",
@@ -677,14 +677,14 @@
       ]
     },
     {
-      "operation_id": "ck.peer.events.query.resolve",
+      "operation_id": "ak.peer.events.query.resolve",
       "http_alias": "POST /_arkret/peer/events/resolve",
       "operation_specific": [
         "not_found"
       ]
     },
     {
-      "operation_id": "ck.peer.events.command.submit",
+      "operation_id": "ak.peer.events.command.submit",
       "http_alias": "POST /_arkret/peer/events",
       "operation_specific": [
         "duplicate_conflict",
@@ -702,7 +702,7 @@
       ]
     },
     {
-      "operation_id": "ck.peer.invites.command.submit",
+      "operation_id": "ak.peer.invites.command.submit",
       "http_alias": "POST /_arkret/peer/invites",
       "operation_specific": [
         "failed_precondition",
@@ -712,7 +712,7 @@
       ]
     },
     {
-      "operation_id": "ck.peer.contacts.command.submit",
+      "operation_id": "ak.peer.contacts.command.submit",
       "http_alias": "POST /_arkret/peer/contacts",
       "operation_specific": [
         "failed_precondition",
@@ -722,13 +722,13 @@
       ]
     },
     {
-      "operation_id": "ck.peer.snapshot.query.manifest_head",
+      "operation_id": "ak.peer.snapshot.query.manifest_head",
       "http_alias": "GET /_arkret/peer/snapshot/head",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.ephemeral.command.send",
+      "operation_id": "ak.self.ephemeral.command.send",
       "http_alias": "POST /_arkret/self/ephemeral",
       "operation_specific": [
         "ephemeral_kind_not_permitted",
@@ -737,7 +737,7 @@
       ]
     },
     {
-      "operation_id": "ck.self.call.media.exchange.issue_token",
+      "operation_id": "ak.self.call.media.exchange.issue_token",
       "http_alias": "POST /_arkret/self/rtc/token",
       "operation_specific": [
         "focus_mismatch",
@@ -750,13 +750,13 @@
       "description": "Media service token exchange (CKP-0010, zh/crypto-media/media-service-binding.md §3). Token issuer validates device proof / bearer, ck.call.join capability, focus_id against current foci[], session_focus persistence, MLS governance binding policy_root freshness, and media_service_decrypts pre-conditions before issuing backend_token + participant_binding. Services return media_service_foci_required when ck.realm.media_service does not declare explicit foci[]."
     },
     {
-      "operation_id": "ck.root.identity.registry.query.describe",
+      "operation_id": "ak.root.identity.registry.query.describe",
       "http_alias": "GET /_arkret/root/identity/describe",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.root.identity.document.resource.get",
+      "operation_id": "ak.root.identity.document.resource.get",
       "http_alias": "GET /_arkret/root/identity/document",
       "operation_specific": [
         "unsupported_did_method",
@@ -765,7 +765,7 @@
       ]
     },
     {
-      "operation_id": "ck.root.identity.log.query.list",
+      "operation_id": "ak.root.identity.log.query.list",
       "http_alias": "GET /_arkret/root/identity/log",
       "operation_specific": [
         "unsupported_did_method",
@@ -773,13 +773,13 @@
       ]
     },
     {
-      "operation_id": "ck.root.identity.receipts.query.list",
+      "operation_id": "ak.root.identity.receipts.query.list",
       "http_alias": "GET /_arkret/root/identity/receipts",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.root.identity.query.resolve",
+      "operation_id": "ak.root.identity.query.resolve",
       "http_alias": "POST /_arkret/root/identity/resolve",
       "operation_specific": [
         "unsupported_did_method",
@@ -788,7 +788,7 @@
       ]
     },
     {
-      "operation_id": "ck.root.identity.command.submit_did_operation",
+      "operation_id": "ak.root.identity.command.submit_did_operation",
       "http_alias": "POST /_arkret/root/identity/submit-did-operation",
       "operation_specific": [
         "unsupported_did_method",
@@ -797,13 +797,13 @@
       ]
     },
     {
-      "operation_id": "ck.root.identity.recovery_policy.resource.get",
+      "operation_id": "ak.root.identity.recovery_policy.resource.get",
       "http_alias": "GET /_arkret/root/identity/recovery-policy",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface. A missing accepted policy is a successful response with active_policy=null."
     },
     {
-      "operation_id": "ck.root.identity.recovery_policy.command.publish",
+      "operation_id": "ak.root.identity.recovery_policy.command.publish",
       "http_alias": "POST /_arkret/root/identity/recovery-policy",
       "operation_specific": [
         "failed_precondition",
@@ -817,21 +817,21 @@
       "description": "Publishing or rotating a recovery policy requires authenticated principal isolation, valid signed_fields/signature authority, a known proof-kind enum, and strictly monotonic version/supersedes linkage."
     },
     {
-      "operation_id": "ck.root.identity.recovery_session.command.create",
+      "operation_id": "ak.root.identity.recovery_session.command.create",
       "http_alias": "POST /_arkret/root/identity/recovery-sessions",
       "operation_specific": [
         "recovery_policy_mismatch"
       ]
     },
     {
-      "operation_id": "ck.root.identity.recovery_session.resource.get",
+      "operation_id": "ak.root.identity.recovery_session.resource.get",
       "http_alias": "GET /_arkret/root/identity/recovery-sessions/{recovery_session_id}",
       "operation_specific": [
         "not_found"
       ]
     },
     {
-      "operation_id": "ck.root.identity.recovery_session.command.submit_proof",
+      "operation_id": "ak.root.identity.recovery_session.command.submit_proof",
       "http_alias": "POST /_arkret/root/identity/recovery-sessions/{recovery_session_id}/proofs",
       "operation_specific": [
         "failed_precondition",
@@ -841,7 +841,7 @@
       ]
     },
     {
-      "operation_id": "ck.root.identity.recovery_session.command.complete",
+      "operation_id": "ak.root.identity.recovery_session.command.complete",
       "http_alias": "POST /_arkret/root/identity/recovery-sessions/{recovery_session_id}/complete",
       "operation_specific": [
         "not_found",
@@ -853,7 +853,7 @@
       ]
     },
     {
-      "operation_id": "ck.self.keys.command.claim",
+      "operation_id": "ak.self.keys.command.claim",
       "http_alias": "POST /_arkret/self/keys/claim",
       "operation_specific": [
         "one_time_keys_exhausted",
@@ -861,14 +861,14 @@
       ]
     },
     {
-      "operation_id": "ck.self.keys.backups.resource.delete",
+      "operation_id": "ak.self.keys.backups.resource.delete",
       "http_alias": "DELETE /_arkret/self/keys/backups/{backup_id}",
       "operation_specific": [
         "not_found"
       ]
     },
     {
-      "operation_id": "ck.self.keys.backups.command.unlock",
+      "operation_id": "ak.self.keys.backups.command.unlock",
       "http_alias": "POST /_arkret/self/keys/backups/{backup_id}/unlock",
       "operation_specific": [
         "not_found",
@@ -879,14 +879,14 @@
       ]
     },
     {
-      "operation_id": "ck.self.keys.backups.query.list",
+      "operation_id": "ak.self.keys.backups.query.list",
       "http_alias": "GET /_arkret/self/keys/backups",
       "operation_specific": [
         "cursor_invalid"
       ]
     },
     {
-      "operation_id": "ck.self.keys.backups.resource.replace",
+      "operation_id": "ak.self.keys.backups.resource.replace",
       "http_alias": "PUT /_arkret/self/keys/backups/{backup_id}",
       "operation_specific": [
         "key_backup_wire_schema_required",
@@ -896,7 +896,7 @@
       ]
     },
     {
-      "operation_id": "ck.self.keys.keypackages.command.claim",
+      "operation_id": "ak.self.keys.keypackages.command.claim",
       "http_alias": "POST /_arkret/self/keys/keypackages/claim",
       "operation_specific": [
         "one_time_keys_exhausted",
@@ -904,7 +904,7 @@
       ]
     },
     {
-      "operation_id": "ck.self.keys.keypackages.command.consume",
+      "operation_id": "ak.self.keys.keypackages.command.consume",
       "http_alias": "POST /_arkret/self/keys/keypackages/consume",
       "operation_specific": [
         "keypackage_already_consumed",
@@ -912,7 +912,7 @@
       ]
     },
     {
-      "operation_id": "ck.self.keys.keypackages.command.revoke",
+      "operation_id": "ak.self.keys.keypackages.command.revoke",
       "http_alias": "POST /_arkret/self/keys/keypackages/revoke",
       "operation_specific": [
         "keypackage_already_consumed",
@@ -920,19 +920,19 @@
       ]
     },
     {
-      "operation_id": "ck.self.keys.keypackages.upload.create",
+      "operation_id": "ak.self.keys.keypackages.upload.create",
       "http_alias": "POST /_arkret/self/keys/keypackages/upload",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.keys.query.lookup",
+      "operation_id": "ak.self.keys.query.lookup",
       "http_alias": "POST /_arkret/self/keys/query",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.keys.upload.create",
+      "operation_id": "ak.self.keys.upload.create",
       "http_alias": "POST /_arkret/self/keys/upload",
       "operation_specific": [
         "device_unknown",
@@ -940,7 +940,7 @@
       ]
     },
     {
-      "operation_id": "ck.self.media.query.ice_config",
+      "operation_id": "ak.self.media.query.ice_config",
       "http_alias": "POST /_arkret/self/rtc/ice-config",
       "operation_specific": [
         "ice_config_denied",
@@ -949,97 +949,97 @@
       ]
     },
     {
-      "operation_id": "ck.open.agent_pairing.query.resolve",
+      "operation_id": "ak.open.agent_pairing.query.resolve",
       "http_alias": "POST /_arkret/open/agent-pairing/resolve",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.open.agent_pairing.command.submit_runtime_key_request",
+      "operation_id": "ak.open.agent_pairing.command.submit_runtime_key_request",
       "http_alias": "POST /_arkret/open/agent-pairing/runtime-key-requests",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.open.invite_locator.query.resolve",
+      "operation_id": "ak.open.invite_locator.query.resolve",
       "http_alias": "POST /_arkret/open/invite-locators/resolve",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.open.mimi.query.group_info",
+      "operation_id": "ak.open.mimi.query.group_info",
       "http_alias": "GET /_arkret/open/mimi/strands/{strand_id}/group-info",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.open.mimi.query.identifiers",
+      "operation_id": "ak.open.mimi.query.identifiers",
       "http_alias": "POST /_arkret/open/mimi/identifiers/query",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.open.mimi.exchange.request_key_material",
+      "operation_id": "ak.open.mimi.exchange.request_key_material",
       "http_alias": "POST /_arkret/open/mimi/key-material",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.open.mimi.command.notify",
+      "operation_id": "ak.open.mimi.command.notify",
       "http_alias": "POST /_arkret/open/mimi/strands/{strand_id}/notify",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.open.mimi.query.provider_directory",
+      "operation_id": "ak.open.mimi.query.provider_directory",
       "http_alias": "GET /_arkret/open/mimi/provider-directory",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.open.mimi.command.proxy_download",
+      "operation_id": "ak.open.mimi.command.proxy_download",
       "http_alias": "POST /_arkret/open/mimi/proxy-download",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.open.mimi.command.report_abuse",
+      "operation_id": "ak.open.mimi.command.report_abuse",
       "http_alias": "POST /_arkret/open/mimi/report-abuse",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.open.mimi.command.request_consent",
+      "operation_id": "ak.open.mimi.command.request_consent",
       "http_alias": "POST /_arkret/open/mimi/consent/request",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.open.mimi.command.update_room",
+      "operation_id": "ak.open.mimi.command.update_room",
       "http_alias": "POST /_arkret/open/mimi/strands/{strand_id}/update",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.open.mimi.command.submit_message",
+      "operation_id": "ak.open.mimi.command.submit_message",
       "http_alias": "POST /_arkret/open/mimi/strands/{strand_id}/messages",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.open.mimi.command.update_consent",
+      "operation_id": "ak.open.mimi.command.update_consent",
       "http_alias": "POST /_arkret/open/mimi/consent/update",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.moderation.command.report",
+      "operation_id": "ak.self.moderation.command.report",
       "http_alias": "POST /_arkret/self/moderation/report",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.policy.query.check",
+      "operation_id": "ak.self.policy.query.check",
       "http_alias": "POST /_arkret/self/policy/check",
       "operation_specific": [
         "policy_unavailable",
@@ -1047,37 +1047,37 @@
       ]
     },
     {
-      "operation_id": "ck.self.strand.query.list",
+      "operation_id": "ak.self.strand.query.list",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/strands",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.morph.query.list",
+      "operation_id": "ak.self.morph.query.list",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/morphs",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.space.query.list",
+      "operation_id": "ak.self.space.query.list",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/spaces",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.views.collection_projection.command.materialize",
+      "operation_id": "ak.self.views.collection_projection.command.materialize",
       "http_alias": "POST /_arkret/self/views/{view_id}/projection",
       "operation_specific": [],
       "description": "Optional extension read surface that materializes a View{kind=collection} projection bound to the returned frontier; it is a derived read model, not a canonical truth source, and carries no domain-specific reply shape beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.morph.resource.get",
+      "operation_id": "ak.self.morph.resource.get",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/morphs/{morph_id}",
       "operation_specific": [],
       "description": "Optional extension read surface for a single document Morph projection; it is a derived read model, not a canonical truth source, and carries no domain-specific reply shape beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.edge.push.command.notify",
+      "operation_id": "ak.edge.push.command.notify",
       "http_alias": "POST /_arkret/edge/push/notify",
       "operation_specific": [
         "push_gateway_unreachable",
@@ -1087,7 +1087,7 @@
       ]
     },
     {
-      "operation_id": "ck.edge.push.command.register_device",
+      "operation_id": "ak.edge.push.command.register_device",
       "http_alias": "POST /_arkret/edge/push/register-device",
       "operation_specific": [
         "push_gateway_unreachable",
@@ -1095,26 +1095,26 @@
       ]
     },
     {
-      "operation_id": "ck.edge.push.command.unregister_device",
+      "operation_id": "ak.edge.push.command.unregister_device",
       "http_alias": "POST /_arkret/edge/push/unregister-device",
       "operation_specific": [
         "push_token_unknown"
       ]
     },
     {
-      "operation_id": "ck.server.query.describe",
+      "operation_id": "ak.server.query.describe",
       "http_alias": "GET /_arkret/describe",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.account.query.describe",
+      "operation_id": "ak.self.account.query.describe",
       "http_alias": "GET /_arkret/self/account/describe",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.account.query.viewer",
+      "operation_id": "ak.self.account.query.viewer",
       "http_alias": "GET /_arkret/self/account/viewer",
       "operation_specific": [
         "source_refs_unverifiable"
@@ -1122,7 +1122,7 @@
       "description": "Holder-bound account self-read. If signed handle-claim evidence or profile/device source refs cannot be verified, the service MUST fail or omit the unverifiable evidence according to disclosure policy; it MUST NOT return an unsigned bare handle as authoritative identity."
     },
     {
-      "operation_id": "ck.self.account.command.update_profile",
+      "operation_id": "ak.self.account.command.update_profile",
       "http_alias": "POST /_arkret/self/account/profile",
       "operation_specific": [
         "invalid_avatar_blob_ref",
@@ -1132,7 +1132,7 @@
       "description": "Profile self-service update. The protocol request body is AccountUpdateProfileRequestBody {patch}; accepted paths are display_name, avatar_blob_ref, and profile_fields.<key>. Existing bio fields migrate to profile_fields.bio; avatar_url is rejected on the Arkret protocol path."
     },
     {
-      "operation_id": "ck.self.account.stream.subscribe",
+      "operation_id": "ak.self.account.stream.subscribe",
       "http_alias": "GET /_arkret/self/account/subscribe",
       "operation_specific": [
         "cursor_invalid",
@@ -1142,14 +1142,14 @@
       ]
     },
     {
-      "operation_id": "ck.self.account.command.revoke_cursor",
+      "operation_id": "ak.self.account.command.revoke_cursor",
       "http_alias": "POST /_arkret/self/account/cursor/revoke",
       "operation_specific": [
         "cursor_revoked"
       ]
     },
     {
-      "operation_id": "ck.self.snapshot.query.manifest_head",
+      "operation_id": "ak.self.snapshot.query.manifest_head",
       "http_alias": "GET /_arkret/self/snapshot/head",
       "operation_specific": [
         "snapshot_unavailable",
@@ -1157,217 +1157,217 @@
       ]
     },
     {
-      "operation_id": "ck.self.circle.command.create",
+      "operation_id": "ak.self.circle.command.create",
       "http_alias": "POST /_arkret/self/circles",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.circle.query.list",
+      "operation_id": "ak.self.circle.query.list",
       "http_alias": "GET /_arkret/self/circles",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.circle.resource.get",
+      "operation_id": "ak.self.circle.resource.get",
       "http_alias": "GET /_arkret/self/circles/{circle_id}",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.circle.member.command.add",
+      "operation_id": "ak.self.circle.member.command.add",
       "http_alias": "POST /_arkret/self/circles/{circle_id}/members",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.circle.member.resource.delete",
+      "operation_id": "ak.self.circle.member.resource.delete",
       "http_alias": "DELETE /_arkret/self/circles/{circle_id}/members/{actor_id}",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.circle.command.rotate_scope",
+      "operation_id": "ak.self.circle.command.rotate_scope",
       "http_alias": "POST /_arkret/self/circles/{circle_id}/scope-rotate",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.circle.command.archive",
+      "operation_id": "ak.self.circle.command.archive",
       "http_alias": "POST /_arkret/self/circles/{circle_id}/archive",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.circle.command.restore",
+      "operation_id": "ak.self.circle.command.restore",
       "http_alias": "POST /_arkret/self/circles/{circle_id}/restore",
       "operation_specific": ["failed_precondition"],
       "description": "Restores an archived Circle. failed_precondition (carrying a reason in the *_not_archived family) when the target Circle is not in an archived state, or is in a terminal (tombstoned/deleted) state from which restore is illegal. See zh/models/circle.md §9."
     },
     {
-      "operation_id": "ck.self.circle.command.tombstone",
+      "operation_id": "ak.self.circle.command.tombstone",
       "http_alias": "POST /_arkret/self/circles/{circle_id}/tombstone",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.realm_link.query.list",
+      "operation_id": "ak.self.realm_link.query.list",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/links",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.realm_link.command.create",
+      "operation_id": "ak.self.realm_link.command.create",
       "http_alias": "POST /_arkret/self/realms/{realm_id}/links",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.realm_link.resource.delete",
+      "operation_id": "ak.self.realm_link.resource.delete",
       "http_alias": "DELETE /_arkret/self/realms/{realm_id}/links/{target_realm_id}",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.realm_link.query.effective_policy",
+      "operation_id": "ak.self.realm_link.query.effective_policy",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/effective-policy",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.realm_organization.query.list",
+      "operation_id": "ak.self.realm_organization.query.list",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/organizations",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface. Read is gated by Realm read authorization (capability_denied, universal)."
     },
     {
-      "operation_id": "ck.self.realm_policy_server.resource.get",
+      "operation_id": "ak.self.realm_policy_server.resource.get",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/policy-server",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.realm_policy_server.resource.replace",
+      "operation_id": "ak.self.realm_policy_server.resource.replace",
       "http_alias": "PUT /_arkret/self/realms/{realm_id}/policy-server",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.realm_policy_server.resource.delete",
+      "operation_id": "ak.self.realm_policy_server.resource.delete",
       "http_alias": "DELETE /_arkret/self/realms/{realm_id}/policy-server",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.realm.command.archive",
+      "operation_id": "ak.self.realm.command.archive",
       "http_alias": "POST /_arkret/self/realms/{realm_id}/archive",
       "operation_specific": ["failed_precondition"],
       "description": "Archives a Realm. failed_precondition (carrying a reason in the realm-state family) when the Realm is already archived or in a terminal (frozen/tombstoned) state from which archive is not a legal transition. See zh/models/realm-and-space.md §2."
     },
     {
-      "operation_id": "ck.self.realm.command.freeze",
+      "operation_id": "ak.self.realm.command.freeze",
       "http_alias": "POST /_arkret/self/realms/{realm_id}/freeze",
       "operation_specific": ["failed_precondition"],
       "description": "Freezes a Realm (suspends writes while preserving state). failed_precondition when the Realm is already frozen or in a terminal (tombstoned) state. See zh/models/realm-and-space.md §2."
     },
     {
-      "operation_id": "ck.self.realm.command.tombstone",
+      "operation_id": "ak.self.realm.command.tombstone",
       "http_alias": "POST /_arkret/self/realms/{realm_id}/tombstone",
       "operation_specific": ["failed_precondition"],
       "description": "Tombstones a Realm (irreversible terminal state). failed_precondition when the Realm is already in a terminal state, or when an open legal hold / erasure obligation blocks the transition. See zh/models/realm-and-space.md §2 and zh/identity/account-lifecycle.md §8."
     },
     {
-      "operation_id": "ck.self.realm.command.destroy",
+      "operation_id": "ak.self.realm.command.destroy",
       "http_alias": "POST /_arkret/self/realms/{realm_id}/destroy",
       "operation_specific": ["failed_precondition"],
       "description": "Destroys a Realm's residual storage after tombstone (irreversible). failed_precondition when the Realm has not first reached the tombstoned precursor state, or when a legal hold blocks erasure. See zh/models/realm-and-space.md §2 and zh/identity/account-lifecycle.md §8."
     },
     {
-      "operation_id": "ck.self.realm.resource.get",
+      "operation_id": "ak.self.realm.resource.get",
       "http_alias": "GET /_arkret/self/realms/{realm_id}",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.realm.query.export",
+      "operation_id": "ak.self.realm.query.export",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/export",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.realm.moderation_policy.query.effective",
+      "operation_id": "ak.self.realm.moderation_policy.query.effective",
       "http_alias": "GET /_arkret/self/realms/{realm_id}/moderation-policy/effective",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.realm.moderation_policy.resource.replace",
+      "operation_id": "ak.self.realm.moderation_policy.resource.replace",
       "http_alias": "PUT /_arkret/self/realms/{realm_id}/moderation-policy",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.consent.query.list",
+      "operation_id": "ak.self.consent.query.list",
       "http_alias": "GET /_arkret/self/consent/cells",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.consent.resource.get",
+      "operation_id": "ak.self.consent.resource.get",
       "http_alias": "GET /_arkret/self/consent/cells/{holder_did}",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.consent.command.grant",
+      "operation_id": "ak.self.consent.command.grant",
       "http_alias": "POST /_arkret/self/consent/cells/{holder_did}/grant",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.consent.command.revoke",
+      "operation_id": "ak.self.consent.command.revoke",
       "http_alias": "POST /_arkret/self/consent/cells/{holder_did}/revoke",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.consent.command.request",
+      "operation_id": "ak.self.consent.command.request",
       "http_alias": "POST /_arkret/self/consent/request",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.account_data.query.list",
+      "operation_id": "ak.self.account_data.query.list",
       "http_alias": "GET /_arkret/self/account_data",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.account_data.resource.get",
+      "operation_id": "ak.self.account_data.resource.get",
       "http_alias": "GET /_arkret/self/account_data/{data_type}",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.account_data.resource.replace",
+      "operation_id": "ak.self.account_data.resource.replace",
       "http_alias": "PUT /_arkret/self/account_data/{data_type}",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.account_data.resource.delete",
+      "operation_id": "ak.self.account_data.resource.delete",
       "http_alias": "DELETE /_arkret/self/account_data/{data_type}",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.read_cursor.command.advance",
+      "operation_id": "ak.self.read_cursor.command.advance",
       "http_alias": "POST /_arkret/self/read-cursors",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."
     },
     {
-      "operation_id": "ck.self.read_cursor.query.list",
+      "operation_id": "ak.self.read_cursor.query.list",
       "http_alias": "GET /_arkret/self/read-cursors",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface."

@@ -46,7 +46,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
   "created_at": "2026-04-26T00:00:00Z",
 
   "content": {
-    "kind": "ck.content.text",
+    "kind": "ak.content.text",
     "body": "纯文本 fallback",
     "format": "markdown",
     "formatted_body": "..."
@@ -68,7 +68,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 ```json
 {
-  "kind": "ck.content.<kind_name>",
+  "kind": "ak.content.<kind_name>",
   "body": "纯文本 fallback，用于通知、搜索索引和不支持该类型的客户端"
 }
 ```
@@ -88,7 +88,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 ```json
 {
-  "kind": "ck.content.text",
+  "kind": "ak.content.text",
   "body": "@bob 请确认这个 item 的 legal 风险。",
   "format": "markdown",
   "formatted_body": "<mention did=\"did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example\">@bob</mention> 请确认这个 item 的 legal 风险。"
@@ -104,7 +104,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 ```json
 {
-  "kind": "ck.content.image",
+  "kind": "ak.content.image",
   "body": "screenshot.png",
   "blob_ref": "ak:blob:sha256:a1b2c3...",
   "mime_type": "image/png",
@@ -136,7 +136,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 ```json
 {
-  "kind": "ck.content.video",
+  "kind": "ak.content.video",
   "body": "demo-recording.mp4",
   "blob_ref": "ak:blob:sha256:b2c3d4...",
   "mime_type": "video/mp4",
@@ -161,7 +161,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 ```json
 {
-  "kind": "ck.content.audio",
+  "kind": "ak.content.audio",
   "body": "voice-memo.ogg",
   "blob_ref": "ak:blob:sha256:c3d4e5...",
   "mime_type": "audio/ogg",
@@ -179,7 +179,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 ```json
 {
-  "kind": "ck.content.file",
+  "kind": "ak.content.file",
   "body": "Q2-financial-report.pdf",
   "blob_ref": "ak:blob:sha256:d4e5f6...",
   "mime_type": "application/pdf",
@@ -196,7 +196,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 ```json
 {
-  "kind": "ck.content.location",
+  "kind": "ak.content.location",
   "body": "Meeting point: 37.7749° N, 122.4194° W",
   "geo_uri": "geo:37.7749,-122.4194",
   "label": "San Francisco Office",
@@ -216,7 +216,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 ```json
 {
-  "kind": "ck.content.code",
+  "kind": "ak.content.code",
   "body": "fn main() { println!(\"hello\"); }",
   "language": "rust",
   "code": "fn main() {\n    println!(\"hello\");\n}"
@@ -234,7 +234,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 ```json
 {
-  "kind": "ck.content.notice",
+  "kind": "ak.content.notice",
   "body": "Agent completed task: Review legal docs",
   "format": "markdown",
   "formatted_body": "Agent completed task: **Review legal docs** [done]"
@@ -247,18 +247,18 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 ```json
 {
-  "kind": "ck.content.poll",
+  "kind": "ak.content.poll",
   "body": "What should we order for the party?",
   "poll": {
     "kind": "disclosed",
     "max_selections": 1,
     "question": {
-      "kind": "ck.content.text",
+      "kind": "ak.content.text",
       "body": "What should we order for the party?"
     },
     "answers": [
-      { "id": "pizza", "text": { "kind": "ck.content.text", "body": "Pizza 🍕" } },
-      { "id": "poutine", "text": { "kind": "ck.content.text", "body": "Poutine 🍟" } }
+      { "id": "pizza", "text": { "kind": "ak.content.text", "body": "Pizza 🍕" } },
+      { "id": "poutine", "text": { "kind": "ak.content.text", "body": "Poutine 🍟" } }
     ]
   }
 }
@@ -284,7 +284,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 | `poll_response.poll_ref` | `id:message` | MUST | 指向承载该 poll 的 Message。 |
 | `poll_response.selections` | `array<string>` | MUST | 所选 answer `id` 列表；数量 MUST ≤ 对应 poll 的 `max_selections`。 |
 
-响应投票时，客户端发送 `ck.content.poll.response` Content Block，最小形态为 `{ "kind": "ck.content.poll.response", "body": <fallback>, "poll_response": { "poll_ref": id:message, "selections": array<string> } }`，其中 `poll_ref` 指向承载该 poll 的 Message，`selections` 列出所选 answer `id`（数量 MUST ≤ 对应 poll 的 `max_selections`）。该 block 的 canonical schema 与 `poll` block 一同定义在 `ck.content.poll` 的 content-block schema（见 [`../conformance/schema-registry.md`](../conformance/schema-registry.md) 与 `artifacts/schemas/` 下的 content-block schema）。投票的权威计票仍按 §9 v1 扩展规则由 `poll` Morph / Relation / event reducer 承担，content block 只作为入口或摘要。
+响应投票时，客户端发送 `ck.content.poll.response` Content Block，最小形态为 `{ "kind": "ak.content.poll.response", "body": <fallback>, "poll_response": { "poll_ref": id:message, "selections": array<string> } }`，其中 `poll_ref` 指向承载该 poll 的 Message，`selections` 列出所选 answer `id`（数量 MUST ≤ 对应 poll 的 `max_selections`）。该 block 的 canonical schema 与 `poll` block 一同定义在 `ck.content.poll` 的 content-block schema（见 [`../conformance/schema-registry.md`](../conformance/schema-registry.md) 与 `artifacts/schemas/` 下的 content-block schema）。投票的权威计票仍按 §9 v1 扩展规则由 `poll` Morph / Relation / event reducer 承担，content block 只作为入口或摘要。
 
 ### 4.10 复合消息 `ck.content.composite`
 
@@ -292,16 +292,16 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 ```json
 {
-  "kind": "ck.content.composite",
+  "kind": "ak.content.composite",
   "body": "Here's the updated design with the spec PDF attached.",
   "parts": [
     {
-      "kind": "ck.content.text",
+      "kind": "ak.content.text",
       "body": "Here's the updated design with the spec PDF attached.",
       "format": "markdown"
     },
     {
-      "kind": "ck.content.image",
+      "kind": "ak.content.image",
       "body": "design-v3.png",
       "blob_ref": "ak:blob:sha256:aaa...",
       "mime_type": "image/png",
@@ -309,7 +309,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
       "height": 1080
     },
     {
-      "kind": "ck.content.file",
+      "kind": "ak.content.file",
       "body": "spec-v3.pdf",
       "blob_ref": "ak:blob:sha256:bbb...",
       "mime_type": "application/pdf",
@@ -332,10 +332,10 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 ```json
 {
-  "kind": "ck.content.text",
+  "kind": "ak.content.text",
   "body": "Daily build succeeded.",
   "mixins": {
-    "ck.automated": true
+    "ak.automated": true
   }
 }
 ```
@@ -348,7 +348,7 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
 
 ```json
 {
-  "kind": "ck.content.text",
+  "kind": "ak.content.text",
   "body": "> Alice: 这个方案可行吗？\n\n我觉得需要再评估一下风险。",
   "format": "markdown",
   "reply_context": {

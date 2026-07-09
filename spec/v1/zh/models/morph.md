@@ -72,9 +72,9 @@ Schema id: `ck.schema.morph.v1`
 ```json schema=schemas/morph.schema.json
 {
   "id": "ak:morph:0196414b-0000-7000-8000-000000000000",
-  "schema": "ck.schema.morph.v1",
+  "schema": "ak.schema.morph.v1",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-  "schema_refs": ["ck.schema.morph.customer_risk.v1"],
+  "schema_refs": ["ak.schema.morph.customer_risk.v1"],
   "morph_type": "customer_risk",
   "metadata": {
     "title": "ACME procurement risk"

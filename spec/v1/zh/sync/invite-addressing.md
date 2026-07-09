@@ -106,7 +106,7 @@ token 要求：
 
 ```json
 {
-  "schema": "ck.schema.principal_locator.v1",
+  "schema": "ak.schema.principal_locator.v1",
   "subject_id": "did:webvh:z2dmjBobExample:users.bob.example:bob",
   "recipient_service_did": "did:webvh:zGiUQcWG9yy3Z9pMs15w7JHgc:ps.bob.example",
   "issued_at": "2026-06-07T10:00:00Z",
@@ -145,7 +145,7 @@ token 要求：
 
 ```json
 {
-  "schema": "ck.schema.invite_receive_policy.v1",
+  "schema": "ak.schema.invite_receive_policy.v1",
   "subject_id": "did:webvh:z2dmjBobExample:users.bob.example:bob",
   "allowed_introduction_kinds": [
     "locator_ref",
@@ -279,7 +279,7 @@ request body 为 `ck.schema.invite_delivery_request.v1`。接收方 Principal Se
 
 1. 验证 service-to-service authentication，绑定 Source/Destination service DID、trust domain、Request-Canonical-Digest、Content-Digest 与 idempotency key。
 2. 验证 `Destination-Service-DID == invite_address.recipient_service_did`。
-3. 验证 `invite_event.kind == "ck.invite.create"`、Event signature、Realm capability、`invite_id` 与 `realm_id`。
+3. 验证 `invite_event.kind == "ak.invite.create"`、Event signature、Realm capability、`invite_id` 与 `realm_id`。
 4. 验证 `invite_event.payload.invitee == invite_address.subject_id`。
 5. 验证 `invite_event.payload.invite_delivery_target.recipient_service_did == invite_address.recipient_service_did`。
 6. 验证 `introduction_evidence`，并核对 `introduction_evidence_digest`。对 `consent_grant` evidence,MUST 按 §2 校验 `consent_grant_ref` 是被邀请方给 inviter 的 active `invite` / `any` grant dot；校验失败 MUST 降级为低信任 `explicit_address` 处理。对 `handle_claim` evidence,MUST 按 §2 校验 handle claim、issuer / Directory trust、domain allowlist、expiry、audience、handle claim 自带的 `member_delivery_binding`（若存在）和可选 `member_delivery_binding_candidate`；校验失败 MUST 降级为低信任 `explicit_address` 处理。

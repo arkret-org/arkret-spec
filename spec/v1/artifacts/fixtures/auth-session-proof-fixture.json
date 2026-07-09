@@ -1,32 +1,32 @@
 {
-  "profile": "ck.profile.auth_server.v1",
+  "profile": "ak.profile.auth_server.v1",
   "version": "2026-06-19",
   "suite": "auth_session_proof",
   "runner": "cotest::conformance::auth_session_proof",
   "covers_vectors": [
-    "ck.vector.auth.session_grant_audience_binding.v1",
-    "ck.vector.auth.soft_logout_did_proof.v1",
-    "ck.vector.identity.did_proof_replay_window.v1",
-    "ck.vector.session.pop_presentation.v1",
-    "ck.vector.session.bare_bearer_rejected_protected.v1"
+    "ak.vector.auth.session_grant_audience_binding.v1",
+    "ak.vector.auth.soft_logout_did_proof.v1",
+    "ak.vector.identity.did_proof_replay_window.v1",
+    "ak.vector.session.pop_presentation.v1",
+    "ak.vector.session.bare_bearer_rejected_protected.v1"
   ],
   "cases": [
     {
       "name": "session_grant_audience_binding",
-      "vector_id": "ck.vector.auth.session_grant_audience_binding.v1",
+      "vector_id": "ak.vector.auth.session_grant_audience_binding.v1",
       "kind": "session_grant_request_binding",
       "principal_id": "did:webvh:z6mkfixture:alice.example",
       "device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
       "target_audience": "did:webvh:z6mkfixture:service.example",
       "mismatched_audience": "did:webvh:z6mkfixture:other.example",
       "requested_scope": [
-        "ck.self.events.write"
+        "ak.self.events.write"
       ],
       "challenge": "session-grant-challenge-0001",
       "server_max_ttl_seconds": 900,
       "requested_ttl_seconds": 86400,
       "attempted_verified_profiles": [
-        "ck.profile.auth_server.v1"
+        "ak.profile.auth_server.v1"
       ],
       "expected": {
         "audience_mismatch_reason": "audience_mismatch",
@@ -43,7 +43,7 @@
     },
     {
       "name": "soft_logout_did_proof",
-      "vector_id": "ck.vector.auth.soft_logout_did_proof.v1",
+      "vector_id": "ak.vector.auth.soft_logout_did_proof.v1",
       "kind": "soft_logout_resume",
       "principal_id": "did:webvh:z6mkfixture:alice.example",
       "device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
@@ -76,7 +76,7 @@
     },
     {
       "name": "did_proof_replay_window",
-      "vector_id": "ck.vector.identity.did_proof_replay_window.v1",
+      "vector_id": "ak.vector.identity.did_proof_replay_window.v1",
       "kind": "did_proof_replay_window",
       "principal_id": "did:webvh:z6mkfixture:alice.example",
       "device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
@@ -109,7 +109,7 @@
     },
     {
       "name": "pop_presentation",
-      "vector_id": "ck.vector.session.pop_presentation.v1",
+      "vector_id": "ak.vector.session.pop_presentation.v1",
       "kind": "http_message_signature_pop",
       "method": "POST",
       "target_uri": "https://service.example.com/_arkret/self/events",
@@ -140,10 +140,10 @@
     },
     {
       "name": "bare_bearer_rejected_protected",
-      "vector_id": "ck.vector.session.bare_bearer_rejected_protected.v1",
+      "vector_id": "ak.vector.session.bare_bearer_rejected_protected.v1",
       "kind": "protected_endpoint_pop_requirement",
-      "high_security_profile": "ck.profile.high_security_organization.v1",
-      "default_profile": "ck.profile.minimal_client.v1",
+      "high_security_profile": "ak.profile.high_security_organization.v1",
+      "default_profile": "ak.profile.minimal_client.v1",
       "sensitive_action": "regular_write",
       "bare_bearer_action": "protected_current_v1_endpoint",
       "public_metadata_surface": "unauthenticated_public_response_only",

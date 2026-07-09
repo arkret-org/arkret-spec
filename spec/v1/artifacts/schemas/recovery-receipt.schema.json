@@ -23,7 +23,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "ck.schema.recovery_receipt.v1"
+      "const": "ak.schema.recovery_receipt.v1"
     },
     "receipt_id": {
       "type": "string",

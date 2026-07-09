@@ -25,7 +25,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "ck.schema.call_recording_artifact.v1"
+      "const": "ak.schema.call_recording_artifact.v1"
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -174,7 +174,7 @@
           ]
         },
         "exporter_label": {
-          "const": "ck-rtc-recording-key/v1"
+          "const": "ak.rtc-recording-key/v1"
         },
         "context": {
           "type": "object",
@@ -285,7 +285,7 @@
         },
         "erasure_receipt_ref": {
           "$ref": "#/$defs/audit_ref",
-          "description": "ck.audit.erasure_receipt event, ck.schema.erasure_receipt.v1 object, or digest proving the deletion outcome."
+          "description": "ak.audit.erasure_receipt event, ck.schema.erasure_receipt.v1 object, or digest proving the deletion outcome."
         },
         "legal_hold_ref": {
           "$ref": "#/$defs/audit_ref"

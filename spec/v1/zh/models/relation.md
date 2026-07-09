@@ -54,7 +54,7 @@ Canonical 方向由 `from_ref -> to_ref` 定义。反向语义 SHOULD 由查询�
 ```json schema=schemas/relation.schema.json
 {
   "id": "ak:relation:01964180-0000-7000-8000-000000000000",
-  "schema": "ck.schema.relation.v1",
+  "schema": "ak.schema.relation.v1",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "relation_kind": "contains",
   "from_ref": "ak:space:019640b6-8000-7000-8000-000000000000",

@@ -15,7 +15,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "ck.schema.did_continuity_proof.v1"
+      "const": "ak.schema.did_continuity_proof.v1"
     },
     "old_did": {
       "$ref": "#/$defs/did"
@@ -118,7 +118,7 @@
           },
           "payload_digest": {
             "$ref": "#/$defs/hash",
-            "description": "Hash of utf8('ck-did-continuity-proof-v1\\n') || canonical_json(proof object with signature_chain[].payload_digest and signature_chain[].signature omitted)."
+            "description": "Hash of utf8('ak.did-continuity-proof-v1\\n') || canonical_json(proof object with signature_chain[].payload_digest and signature_chain[].signature omitted)."
           },
           "signature": {
             "type": "string",

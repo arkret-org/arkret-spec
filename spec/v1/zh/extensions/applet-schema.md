@@ -16,7 +16,7 @@ updated: 2026-07-02
 
 ```json
 {
-  "kind": "ck.applet.registration",
+  "kind": "ak.applet.registration",
   "applet_id": "ak:applet:dd552c17-0000-7000-8000-000000000000",
   "service_did": "did:webvh:z5ApPLeTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:applet.example",
   "controller_did": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
@@ -152,7 +152,7 @@ Install preview request:
     "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000"
   },
   "approval_request": {
-    "approve_actions": ["ck.message.create"],
+    "approve_actions": ["ak.message.create"],
     "allow_ghost_actors": false,
     "allow_delegated_native_actors": false,
     "allow_e2ee_join": false,
@@ -161,7 +161,7 @@ Install preview request:
 }
 ```
 
-`InstallPlan` 的机器契约是 [`schemas/applet-install-plan.schema.json`](../../artifacts/schemas/applet-install-plan.schema.json)。它 MUST 包含 `schema="ck.schema.applet_install_plan.v1"`、`plan_id`、`applet_id`、`package_digest`、`registration_epoch`、`effective_scope`、`requested_scopes`、`approved_scopes`、`denied_scopes`、`events_to_submit`、`capability_constraints`、`namespace_conflicts`、`e2ee_effect`、`widget_effect`、`warnings`、`plan_digest`。`plan_digest` 的 canonical input 是按 [`encoding.md`](../conformance/encoding.md) canonical JSON 编码的 InstallPlan object，且在计算输入中省略 `plan_digest` 字段本身。
+`InstallPlan` 的机器契约是 [`schemas/applet-install-plan.schema.json`](../../artifacts/schemas/applet-install-plan.schema.json)。它 MUST 包含 `schema="ak.schema.applet_install_plan.v1"`、`plan_id`、`applet_id`、`package_digest`、`registration_epoch`、`effective_scope`、`requested_scopes`、`approved_scopes`、`denied_scopes`、`events_to_submit`、`capability_constraints`、`namespace_conflicts`、`e2ee_effect`、`widget_effect`、`warnings`、`plan_digest`。`plan_digest` 的 canonical input 是按 [`encoding.md`](../conformance/encoding.md) canonical JSON 编码的 InstallPlan object，且在计算输入中省略 `plan_digest` 字段本身。
 
 Install commit request:
 
@@ -175,7 +175,7 @@ Install commit request:
   },
   "approved_scopes": [
     {
-      "actions": ["ck.message.create"],
+      "actions": ["ak.message.create"],
       "realm_ids": ["ak:realm:0196419b-0000-7000-8000-000000000000"],
       "constraints": []
     }
@@ -333,7 +333,7 @@ GET /_arkret/edge/applet/protocols/{protocol}
 
 ```json
 {
-  "kind": "ck.applet.bridge_error",
+  "kind": "ak.applet.bridge_error",
   "applet_id": "ak:applet:dd552c17-0000-7000-8000-000000000000",
   "realm_id": "ak:realm:c0c69410-0000-7000-8000-000000000000",
   "failed_transaction_ref": "ak:event:019640ed-8000-7000-8000-000000000000",

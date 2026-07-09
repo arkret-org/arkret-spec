@@ -19,7 +19,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 ```json
 {
   "blob_ref": "ak:blob:sha256:...",
-  "schema": "ck.schema.blob.v1",
+  "schema": "ak.schema.blob.v1",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "content_digest": "sha256:...",
   "size_bytes": 1234,
@@ -79,7 +79,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 - 该 binding 按 [`sync/transport-bindings.md` §6.1](../sync/transport-bindings.md) 分类为 **per-operation HTTP 伴生 binding**：本节即其 normative binding 文档，不需要独立 `ck.profile.binding.*` profile。
 - 支持该 binding 的服务端 MUST 在 `/_arkret/describe` 同时声明：
   - `supported_features` 含 `ck.feature.blob.resumable_upload.tus.v1`；
-  - `supported_bindings` 含一条 `kind="tus"` 的 binding，携带 tus endpoint 的 `base_url`、`operations: ["ck.self.blob.upload.create"]`、`extension_profile_required: null`、`tus_version`（支持的协议版本列表）与 `tus_extensions`（支持的扩展列表）；
+  - `supported_bindings` 含一条 `kind="tus"` 的 binding，携带 tus endpoint 的 `base_url`、`operations: ["ak.self.blob.upload.create"]`、`extension_profile_required: null`、`tus_version`（支持的协议版本列表）与 `tus_extensions`（支持的扩展列表）；
   - `limits` 携带下文的续传相关上限。
 - 客户端 MUST 先解析 DID Document 并校验 describe 后再使用该 binding（沿用 [`sync/service-surface.md` §2](../sync/service-surface.md) 的服务选择规则）。`/_arkret/describe` 是**服务级**权威发现面；tus `OPTIONS` 响应（`Tus-Resumable`、`Tus-Version`、`Tus-Extension`、`Tus-Max-Size`）是 **endpoint 级**的线上确认。二者 MUST 一致；冲突时客户端以 describe 与服务端实际拒绝为准，不得仅凭对猜测 endpoint 的裸 `OPTIONS` 探测作为发现手段。
 
@@ -190,7 +190,7 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
 
 每个 segment 的 AEAD AAD MUST 绑定以下 canonical 形态，使任一 segment 密文不能被挪用到其它 object、其它位置或另一末段判定：
 
-- `scheme = "ck.blob.stream_aead.v1"`
+- `scheme = "ak.blob.stream_aead.v1"`
 - `key_ref`（canonical 形态，见 §3）
 - `nonce_prefix`（本 object 的随机前缀）
 - `segment_index`
@@ -233,7 +233,7 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
 {
   "blob_ref": "ak:blob:sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
   "encrypted": true,
-  "scheme": "ck.blob.stream_aead.v1",
+  "scheme": "ak.blob.stream_aead.v1",
   "alg": "mls_exporter_aead_xchacha20poly1305_stream",
   "key_ref": {
     "algorithm": "MLS",
@@ -443,7 +443,7 @@ Cache-Control: public, immutable, max-age=31536000
 
 ```json
 {
-  "scheme": "ck.blob.presign.v1",
+  "scheme": "ak.blob.presign.v1",
   "blob_ref": "ak:blob:sha256:0123456789abcdef...",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "issuer_service_did": "did:webvh:z9L9sKcFqigzdgN2ucF1V6ztq:blob.acme.example",
@@ -573,7 +573,7 @@ Cache-Control: public, immutable, max-age=31536000
 
 ```json
 {
-  "kind": "ck.realm.asset_privacy_policy",
+  "kind": "ak.realm.asset_privacy_policy",
   "payload": {
     "download_mode": "provider_proxy",
     "allowed_modes": [

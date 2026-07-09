@@ -63,17 +63,17 @@ Arkret DID method adapter SHOULD 暴露某个 principal 或服务是否支持 TS
 
 ```json
 {
-  "type": "ck.service.tsp",
+  "type": "ak.service.tsp",
   "id": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example#tsp",
   "serviceEndpoint": "https://server.example/tsp",
   "supported_vid_schemes": ["did", "urn"],
   "supported_modes": ["direct", "routed", "nested"],
   "supported_payloads": [
-    "ck.self.events.command.submit",
-    "ck.self.events.query.scan",
-    "ck.identity.presentation_request",
-    "ck.identity.presentation_response",
-    "ck.agent.interop_session.start"
+    "ak.self.events.command.submit",
+    "ak.self.events.query.scan",
+    "ak.identity.presentation_request",
+    "ak.identity.presentation_response",
+    "ak.agent.interop_session.start"
   ],
   "metadata_privacy": {
     "nested_messages": true,
@@ -124,7 +124,7 @@ Arkret operation 可作为 TSP application payload：
 
 ```json
 {
-  "operation": "ck.self.events.command.submit",
+  "operation": "ak.self.events.command.submit",
   "content_type": "application/arkret+json",
   "realm_id": "ak:realm:...",
   "payload_digest": "sha256:...",

@@ -29,7 +29,7 @@
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
     },
     "schema": {
-      "const": "ck.schema.realm.v1"
+      "const": "ak.schema.realm.v1"
     },
     "title": {
       "type": "string",
@@ -698,7 +698,7 @@
           },
           "schema_refs": {
             "contains": {
-              "const": "ck.profile.principal_control_realm.v1"
+              "const": "ak.profile.principal_control_realm.v1"
             }
           }
         }
@@ -710,7 +710,7 @@
         "properties": {
           "schema_refs": {
             "contains": {
-              "const": "ck.profile.principal_control_realm.v1"
+              "const": "ak.profile.principal_control_realm.v1"
             }
           }
         },

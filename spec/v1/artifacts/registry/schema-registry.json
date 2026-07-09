@@ -6,600 +6,600 @@
   "generated_by": "tools/artifact_pipeline.py",
   "schemas": [
     {
-      "schema_id": "ck.schema.realm.v1",
+      "schema_id": "ak.schema.realm.v1",
       "file": "schemas/realm.schema.json"
     },
     {
-      "schema_id": "ck.schema.space.v1",
+      "schema_id": "ak.schema.space.v1",
       "file": "schemas/space.schema.json"
     },
     {
-      "schema_id": "ck.schema.actor_profile.v1",
+      "schema_id": "ak.schema.actor_profile.v1",
       "file": "schemas/actor-profile.schema.json"
     },
     {
-      "schema_id": "ck.schema.agent_selector_claim.v1",
+      "schema_id": "ak.schema.agent_selector_claim.v1",
       "file": "schemas/agent-selector-claim.schema.json",
       "status": "active",
       "description": "Signed controller-scoped native personal agent selector claim for @<controller-handle>/<agent_slug> resolution."
     },
     {
-      "schema_id": "ck.schema.circle.v1",
+      "schema_id": "ak.schema.circle.v1",
       "file": "schemas/circle.schema.json",
       "description": "Circle — intra-Realm scoped event/message boundary. Subset membership, independent history visibility, delivery/query/projection boundary, and optional independent MLS group. Does NOT carry federation identity or policy server. Introduced by CKP-0007; see zh/models/circle.md."
     },
     {
-      "schema_id": "ck.schema.strand.v1",
+      "schema_id": "ak.schema.strand.v1",
       "file": "schemas/strand.schema.json"
     },
     {
-      "schema_id": "ck.schema.message.v1",
+      "schema_id": "ak.schema.message.v1",
       "file": "schemas/message.schema.json"
     },
     {
-      "schema_id": "ck.schema.content_block_poll.v1",
+      "schema_id": "ak.schema.content_block_poll.v1",
       "file": "schemas/content-block-poll.schema.json",
       "status": "active",
       "description": "Canonical content-block schema for ck.content.poll and ck.content.poll.response."
     },
     {
-      "schema_id": "ck.schema.personal_productivity.v1",
+      "schema_id": "ak.schema.personal_productivity.v1",
       "file": "schemas/personal-productivity.schema.json",
       "status": "active",
       "description": "Encrypted account-data value shapes for reminders, scheduled send, snooze, and saved items."
     },
     {
-      "schema_id": "ck.schema.draft_sync.v1",
+      "schema_id": "ak.schema.draft_sync.v1",
       "file": "schemas/draft-sync.schema.json",
       "status": "active",
       "description": "Encrypted account-data plaintext shape for cross-device draft sync."
     },
     {
-      "schema_id": "ck.schema.file_transfer.v1",
+      "schema_id": "ak.schema.file_transfer.v1",
       "file": "schemas/file-transfer.schema.json",
       "status": "active",
       "description": "Encrypted account-data plaintext shape and to-device key message content for principal-private cross-device file transfer."
     },
     {
-      "schema_id": "ck.schema.calendar_event.v1",
+      "schema_id": "ak.schema.calendar_event.v1",
       "file": "schemas/calendar-event.schema.json",
       "status": "active",
       "description": "Profile fields for calendar-event Strands."
     },
     {
-      "schema_id": "ck.schema.rsvp.v1",
+      "schema_id": "ak.schema.rsvp.v1",
       "file": "schemas/rsvp.schema.json",
       "status": "active",
       "description": "Payload schema for ck.rsvp.set."
     },
     {
-      "schema_id": "ck.schema.disappearing_messages.v1",
+      "schema_id": "ak.schema.disappearing_messages.v1",
       "file": "schemas/disappearing-messages.schema.json",
       "status": "active",
       "description": "Message expiry and Realm disappearing-message policy shape."
     },
     {
-      "schema_id": "ck.schema.pin.v1",
+      "schema_id": "ak.schema.pin.v1",
       "file": "schemas/pin.schema.json",
       "status": "active",
       "description": "Payload schemas for shared pin events."
     },
     {
-      "schema_id": "ck.schema.search_service.v1",
+      "schema_id": "ak.schema.search_service.v1",
       "file": "schemas/search-service.schema.json",
       "status": "active",
       "description": "Privacy-preserving search index manifest, blind index query, and policy shapes."
     },
     {
-      "schema_id": "ck.schema.morph.v1",
+      "schema_id": "ak.schema.morph.v1",
       "file": "schemas/morph.schema.json"
     },
     {
-      "schema_id": "ck.schema.morph.customer_risk.v1",
+      "schema_id": "ak.schema.morph.customer_risk.v1",
       "file": "schemas/morph-customer-risk.schema.json",
       "description": "Reference business-field schema used by the Morph type-system example. It validates the customer_risk fields.status / fields.severity payload carried inside ck.schema.morph.v1 containers."
     },
     {
-      "schema_id": "ck.schema.morph.customer_risk.ext.v1",
+      "schema_id": "ak.schema.morph.customer_risk.ext.v1",
       "file": "schemas/morph-customer-risk-ext.schema.json",
       "description": "Reference additive extension business-field schema for the customer_risk example, used by the ck.morph.schema_migrate transformation conformance vectors (ck.vector.morph.transformation_*). Declares the optional renamed score / backfilled priority fields a transformation migration introduces on top of ck.schema.morph.customer_risk.v1."
     },
     {
-      "schema_id": "ck.schema.relation.v1",
+      "schema_id": "ak.schema.relation.v1",
       "file": "schemas/relation.schema.json"
     },
     {
-      "schema_id": "ck.schema.view.v1",
+      "schema_id": "ak.schema.view.v1",
       "file": "schemas/view.schema.json"
     },
     {
-      "schema_id": "ck.schema.policy.v1",
+      "schema_id": "ak.schema.policy.v1",
       "file": "schemas/policy.schema.json"
     },
     {
-      "schema_id": "ck.schema.invite.v1",
+      "schema_id": "ak.schema.invite.v1",
       "file": "schemas/invite.schema.json"
     },
     {
-      "schema_id": "ck.schema.principal_locator.v1",
+      "schema_id": "ak.schema.principal_locator.v1",
       "file": "schemas/principal-locator.schema.json",
       "status": "active",
       "description": "Signed online invite locator asserting subject_id and recipient_service_did for private invite delivery."
     },
     {
-      "schema_id": "ck.schema.invite_delivery_request.v1",
+      "schema_id": "ak.schema.invite_delivery_request.v1",
       "file": "schemas/invite-delivery-request.schema.json",
       "status": "active",
       "description": "Private service-to-service invite delivery request carrying invite_address and introduction_evidence."
     },
     {
-      "schema_id": "ck.schema.invite_receive_policy.v1",
+      "schema_id": "ak.schema.invite_receive_policy.v1",
       "file": "schemas/invite-receive-policy.schema.json",
       "status": "active",
       "description": "Subject-private invite receive policy controlling which introduction evidence kinds may notify the holder."
     },
     {
-      "schema_id": "ck.schema.peer_contact_delivery_request.v1",
+      "schema_id": "ak.schema.peer_contact_delivery_request.v1",
       "file": "schemas/peer-contact-delivery-request.schema.json",
       "status": "active",
       "description": "Private service-to-service contact fact delivery request carrying a signed ck.contact.* envelope and contact_address for cross-Principal-Server projection."
     },
     {
-      "schema_id": "ck.schema.authz_operations.v1",
+      "schema_id": "ak.schema.authz_operations.v1",
       "file": "schemas/authz-operations.schema.json",
       "status": "active",
       "description": "Closed response DTO bundle for authorization query operations."
     },
     {
-      "schema_id": "ck.schema.event.v1",
+      "schema_id": "ak.schema.event.v1",
       "file": "schemas/event-envelope.schema.json"
     },
     {
-      "schema_id": "ck.schema.event_payload.v1",
+      "schema_id": "ak.schema.event_payload.v1",
       "file": "schemas/event-payload.schema.json"
     },
     {
-      "schema_id": "ck.schema.event_batch_receipt.v1",
+      "schema_id": "ak.schema.event_batch_receipt.v1",
       "file": "schemas/event-batch-receipt.schema.json"
     },
     {
-      "schema_id": "ck.schema.availability_receipt.v1",
+      "schema_id": "ak.schema.availability_receipt.v1",
       "file": "schemas/availability-receipt.schema.json",
       "status": "active",
       "description": "Signed holder commitment that Event bytes are available until retention_until; used by CBA Seal availability_root."
     },
     {
-      "schema_id": "ck.schema.patch.v1",
+      "schema_id": "ak.schema.patch.v1",
       "file": "schemas/patch.schema.json",
       "format_aliases": [
-        "ck.patch.v1"
+        "ak.patch.v1"
       ],
       "description": "Registered schema for the embedded ck.patch.v1 field-patch wire format."
     },
     {
-      "schema_id": "ck.schema.range_completeness_attestation.v1",
+      "schema_id": "ak.schema.range_completeness_attestation.v1",
       "file": "schemas/range-completeness-attestation.schema.json"
     },
     {
-      "schema_id": "ck.schema.ice_config_response.v1",
+      "schema_id": "ak.schema.ice_config_response.v1",
       "file": "schemas/ice-config-response.schema.json"
     },
     {
-      "schema_id": "ck.schema.media_operations.v1",
+      "schema_id": "ak.schema.media_operations.v1",
       "file": "schemas/media-operations.schema.json",
       "status": "active",
       "description": "Closed request DTO bundle for realtime media service operations."
     },
     {
-      "schema_id": "ck.schema.capability.v1",
+      "schema_id": "ak.schema.capability.v1",
       "file": "schemas/capability-grant.schema.json"
     },
     {
-      "schema_id": "ck.schema.cursor.v1",
+      "schema_id": "ak.schema.cursor.v1",
       "file": "schemas/cursor.schema.json"
     },
     {
-      "schema_id": "ck.schema.snapshot.v1",
+      "schema_id": "ak.schema.snapshot.v1",
       "file": "schemas/snapshot.schema.json"
     },
     {
-      "schema_id": "ck.schema.account_subscribe_frame.v1",
+      "schema_id": "ak.schema.account_subscribe_frame.v1",
       "file": "schemas/account-subscribe-frame.schema.json"
     },
     {
-      "schema_id": "ck.schema.account_operations.v1",
+      "schema_id": "ak.schema.account_operations.v1",
       "file": "schemas/account-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for account self-service operations: viewer, register, profile update, and session revocation."
     },
     {
-      "schema_id": "ck.schema.account_data_operations.v1",
+      "schema_id": "ak.schema.account_data_operations.v1",
       "file": "schemas/account-data-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for self-surface actor-private account_data operations (ck.self.account_data.*); see zh/discovery/client-preferences.md."
     },
     {
-      "schema_id": "ck.schema.circle_operations.v1",
+      "schema_id": "ak.schema.circle_operations.v1",
       "file": "schemas/circle-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for self-surface Circle administration operations (ck.self.circle.*); see zh/models/circle.md."
     },
     {
-      "schema_id": "ck.schema.consent_operations.v1",
+      "schema_id": "ak.schema.consent_operations.v1",
       "file": "schemas/consent-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for self-surface holder-private consent cell operations (ck.self.consent.*); see zh/identity/consent-model.md."
     },
     {
-      "schema_id": "ck.schema.read_cursor_operations.v1",
+      "schema_id": "ak.schema.read_cursor_operations.v1",
       "file": "schemas/read-cursor-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for self-surface read cursor operations (ck.self.read_cursor.*); see zh/discovery/read-receipts.md."
     },
     {
-      "schema_id": "ck.schema.realm_link_operations.v1",
+      "schema_id": "ak.schema.realm_link_operations.v1",
       "file": "schemas/realm-link-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for self-surface cross-Realm link operations (ck.self.realm_link.*); see zh/models/realm-links.md."
     },
     {
-      "schema_id": "ck.schema.realm_organization_operations.v1",
+      "schema_id": "ak.schema.realm_organization_operations.v1",
       "file": "schemas/realm-organization-operations.schema.json",
       "status": "active",
       "description": "Closed response DTO bundle for self-surface Realm organization relationship reads (ck.self.realm_organization.*); see zh/models/realm-and-space.md."
     },
     {
-      "schema_id": "ck.schema.realm_policy_server_operations.v1",
+      "schema_id": "ak.schema.realm_policy_server_operations.v1",
       "file": "schemas/realm-policy-server-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for self-surface Realm policy-server config operations (ck.self.realm_policy_server.*); see zh/authz/policy-server.md."
     },
     {
-      "schema_id": "ck.schema.realm_read_operations.v1",
+      "schema_id": "ak.schema.realm_read_operations.v1",
       "file": "schemas/realm-read-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for self-surface Realm read and moderation-policy operations (ck.self.realm.*); see zh/models/realm-and-space.md and zh/governance/content-moderation.md."
     },
     {
-      "schema_id": "ck.schema.contact_operations.v1",
+      "schema_id": "ak.schema.contact_operations.v1",
       "file": "schemas/contact-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for contact lifecycle operations and direct conversation resolver."
     },
     {
-      "schema_id": "ck.schema.device_message.v1",
+      "schema_id": "ak.schema.device_message.v1",
       "file": "schemas/device-message.schema.json"
     },
     {
-      "schema_id": "ck.schema.ephemeral_envelope.v1",
+      "schema_id": "ak.schema.ephemeral_envelope.v1",
       "file": "schemas/ephemeral-envelope.schema.json"
     },
     {
-      "schema_id": "ck.schema.blob.v1",
+      "schema_id": "ak.schema.blob.v1",
       "file": "schemas/blob.schema.json"
     },
     {
-      "schema_id": "ck.schema.blob_operations.v1",
+      "schema_id": "ak.schema.blob_operations.v1",
       "file": "schemas/blob-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for Blob service operations."
     },
     {
-      "schema_id": "ck.schema.media_metadata.v1",
+      "schema_id": "ak.schema.media_metadata.v1",
       "file": "schemas/media-metadata.schema.json"
     },
     {
-      "schema_id": "ck.schema.call_recording_artifact.v1",
+      "schema_id": "ak.schema.call_recording_artifact.v1",
       "file": "schemas/call-recording-artifact.schema.json",
       "status": "active",
       "description": "Canonical metadata for call recording artifacts after Arkret blob pipeline ingestion, including recording exporter context, retention policy and deletion audit binding."
     },
     {
-      "schema_id": "ck.schema.encrypted_envelope.v1",
+      "schema_id": "ak.schema.encrypted_envelope.v1",
       "file": "schemas/encrypted-envelope.schema.json"
     },
     {
-      "schema_id": "ck.schema.key_backup.v1",
+      "schema_id": "ak.schema.key_backup.v1",
       "file": "schemas/key-backup.schema.json"
     },
     {
-      "schema_id": "ck.schema.key_backup_active_series.v1",
+      "schema_id": "ak.schema.key_backup_active_series.v1",
       "file": "schemas/key-backup-active-series.schema.json",
       "status": "active",
       "description": "Signed principal-control record selecting the active backup series for one (actor_id, backup_class)."
     },
     {
-      "schema_id": "ck.schema.key_backup_plaintext.v1",
+      "schema_id": "ak.schema.key_backup_plaintext.v1",
       "file": "schemas/key-backup-plaintext.schema.json",
       "status": "active",
       "description": "Canonical plaintext keybag opened from a ck.schema.key_backup.v1 envelope."
     },
     {
-      "schema_id": "ck.schema.key_backup_unlock_proof.v1",
+      "schema_id": "ak.schema.key_backup_unlock_proof.v1",
       "file": "schemas/key-backup-unlock-proof.schema.json",
       "status": "active",
       "description": "Proof binding a key-backup read/decrypt action to one recovery session, requesting device, backup object, selected series, ciphertext digest, and accepted proof transcript."
     },
     {
-      "schema_id": "ck.schema.recovery_policy.v1",
+      "schema_id": "ak.schema.recovery_policy.v1",
       "file": "schemas/recovery-policy.schema.json",
       "status": "active",
       "description": "Wire payload schema for the principal recovery policy. Bound to the Principal Control Realm via signed publish / rotate / share-revoke; receivers MUST reject recovery / rotate / ck.device.authorize and cross-signing-reset evidence whose proof family is not allowed by the currently accepted recovery policy. See identity/key-management.md §3.3 / §7 / §8."
     },
     {
-      "schema_id": "ck.schema.recovery_session.v1",
+      "schema_id": "ak.schema.recovery_session.v1",
       "file": "schemas/recovery-session.schema.json",
       "status": "active",
       "description": "Wire contract for the device recovery session state machine, including create/get session shape, proof submit/complete request and response helpers, and principal_signing recovery proof transcript. See crypto-media/device-lifecycle.md §15."
     },
     {
-      "schema_id": "ck.schema.recovery_receipt.v1",
+      "schema_id": "ak.schema.recovery_receipt.v1",
       "file": "schemas/recovery-receipt.schema.json",
       "status": "active",
       "description": "Signed completion receipt for a principal recovery strand. Bound to recovery_session_id used by every proof, backup unlock, and MLS Welcome replay during the recovery. See crypto-media/device-lifecycle.md §15 step 7."
     },
     {
-      "schema_id": "ck.schema.notification.v1",
+      "schema_id": "ak.schema.notification.v1",
       "file": "schemas/notification.schema.json"
     },
     {
-      "schema_id": "ck.schema.push_operations.v1",
+      "schema_id": "ak.schema.push_operations.v1",
       "file": "schemas/push-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for push device registration and push wakeup delivery."
     },
     {
-      "schema_id": "ck.schema.read_cursor.v1",
+      "schema_id": "ak.schema.read_cursor.v1",
       "file": "schemas/read-cursor.schema.json"
     },
     {
-      "schema_id": "ck.schema.read_receipt.v1",
+      "schema_id": "ak.schema.read_receipt.v1",
       "file": "schemas/read-receipt.schema.json"
     },
     {
-      "schema_id": "ck.schema.did_key_log_entry.v1",
+      "schema_id": "ak.schema.did_key_log_entry.v1",
       "file": "schemas/did-key-log-entry.schema.json"
     },
     {
-      "schema_id": "ck.schema.directory_operations.v1",
+      "schema_id": "ak.schema.directory_operations.v1",
       "file": "schemas/directory-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for Directory discovery search, resolve, private contact discovery, handle lookup, agent selector lookup, and push webhook registration operations."
     },
     {
-      "schema_id": "ck.schema.did_continuity_proof.v1",
+      "schema_id": "ak.schema.did_continuity_proof.v1",
       "file": "schemas/did-continuity-proof.schema.json",
       "status": "active",
       "description": "Signed DID continuity / migration proof payload"
     },
     {
-      "schema_id": "ck.schema.identity_receipt.v1",
+      "schema_id": "ak.schema.identity_receipt.v1",
       "file": "schemas/identity-receipt.schema.json"
     },
     {
-      "schema_id": "ck.schema.identity_link.v1",
+      "schema_id": "ak.schema.identity_link.v1",
       "file": "schemas/identity-link.schema.json",
       "status": "active",
       "description": "Encrypted minimal-metadata binding from Realm-scoped pairwise DID to principal DID, scoped by realm_id and trust_domain."
     },
     {
-      "schema_id": "ck.schema.member_identity.v1",
+      "schema_id": "ak.schema.member_identity.v1",
       "file": "schemas/member-identity.schema.json",
       "status": "active",
       "description": "Realm-scoped member display/subject projection carried by ck.member.identity.update; handle lifecycle is carried by ck.schema.handle_claim.v1."
     },
     {
-      "schema_id": "ck.schema.handle_claim.v1",
+      "schema_id": "ak.schema.handle_claim.v1",
       "file": "schemas/handle-claim.schema.json"
     },
     {
-      "schema_id": "ck.schema.list_handles_for_subject_response.v1",
+      "schema_id": "ak.schema.list_handles_for_subject_response.v1",
       "file": "schemas/list-handles-for-subject-response.schema.json",
       "status": "active",
       "description": "Directory response listing currently visible handle claims for a disclosed subject DID."
     },
     {
-      "schema_id": "ck.schema.member_delivery_binding_candidate.v1",
+      "schema_id": "ak.schema.member_delivery_binding_candidate.v1",
       "file": "schemas/member-delivery-binding-candidate.schema.json",
       "status": "active",
       "description": "Builder-side candidate object for Handle resolution intent=member_add | invite (identity-handles.md §3.7); produces a Realm-scoped member_delivery_binding only after Join Policy re-validation."
     },
     {
-      "schema_id": "ck.schema.realm_join_candidate.v1",
+      "schema_id": "ak.schema.realm_join_candidate.v1",
       "file": "schemas/realm-join-candidate.schema.json",
       "status": "active",
       "description": "Time-bounded routing hint returned by Realm discovery / resolve paths for selecting a qualified service to receive join, invite-accept, knock, or restricted-join submissions. Not an authorization grant and not a member_delivery_binding."
     },
     {
-      "schema_id": "ck.schema.grant_constraint.v1",
+      "schema_id": "ak.schema.grant_constraint.v1",
       "file": "schemas/grant-constraint.schema.json"
     },
     {
-      "schema_id": "ck.schema.resource_selector.v1",
+      "schema_id": "ak.schema.resource_selector.v1",
       "file": "schemas/resource-selector.schema.json"
     },
     {
-      "schema_id": "ck.schema.mimi_interop.v1",
+      "schema_id": "ak.schema.mimi_interop.v1",
       "file": "schemas/mimi-interop.schema.json"
     },
     {
-      "schema_id": "ck.schema.mimi_operations.v1",
+      "schema_id": "ak.schema.mimi_operations.v1",
       "file": "schemas/mimi-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for MIMI provider interop operations."
     },
     {
-      "schema_id": "ck.schema.moderation_report.v1",
+      "schema_id": "ak.schema.moderation_report.v1",
       "file": "schemas/moderation-report.schema.json"
     },
     {
-      "schema_id": "ck.schema.moderation_queue_item.v1",
+      "schema_id": "ak.schema.moderation_queue_item.v1",
       "file": "schemas/moderation-queue-item.schema.json"
     },
     {
-      "schema_id": "ck.schema.moderation_appeal.v1",
+      "schema_id": "ak.schema.moderation_appeal.v1",
       "file": "schemas/moderation-appeal.schema.json"
     },
     {
-      "schema_id": "ck.schema.attestation_evidence.v1",
+      "schema_id": "ak.schema.attestation_evidence.v1",
       "file": "schemas/attestation-evidence.schema.json"
     },
     {
-      "schema_id": "ck.schema.applet.v1",
+      "schema_id": "ak.schema.applet.v1",
       "file": "schemas/applet.schema.json",
       "status": "active",
       "description": "Schema-registry object for applet protocol metadata snapshots. Event payloads for ck.applet.* use typed payload definitions in event-payload.schema.json."
     },
     {
-      "schema_id": "ck.schema.applet_package.v1",
+      "schema_id": "ak.schema.applet_package.v1",
       "file": "schemas/applet-package.schema.json",
       "status": "active",
       "description": "Controller-signed package used by ck.self.applet.command.install preview/commit to derive ck.applet.registration and capability grants. Distribution object only; not Realm history truth and not authorization."
     },
     {
-      "schema_id": "ck.schema.applet_widget_declaration.v1",
+      "schema_id": "ak.schema.applet_widget_declaration.v1",
       "file": "schemas/applet-widget-declaration.schema.json",
       "status": "active",
       "description": "Closed declaration for Applet UI widget origin, CSP, scoped token capability scope, and consent gate."
     },
     {
-      "schema_id": "ck.schema.applet_install_plan.v1",
+      "schema_id": "ak.schema.applet_install_plan.v1",
       "file": "schemas/applet-install-plan.schema.json",
       "status": "active",
       "description": "Canonical Applet InstallPlan returned by ck.self.applet.install.command.preview and recomputed by ck.self.applet.command.install before commit. plan_digest is calculated over this object with plan_digest omitted."
     },
     {
-      "schema_id": "ck.schema.applet_install_operations.v1",
+      "schema_id": "ak.schema.applet_install_operations.v1",
       "file": "schemas/applet-install-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for ck.self.applet.install.command.preview and ck.applet.install."
     },
     {
-      "schema_id": "ck.schema.applet_ghost_operations.v1",
+      "schema_id": "ak.schema.applet_ghost_operations.v1",
       "file": "schemas/applet-ghost-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for ck.self.applet.ghost.command.provision (Applet-managed Ghost Actor provisioning by an installed bridge Applet)."
     },
     {
-      "schema_id": "ck.schema.agent.v1",
+      "schema_id": "ak.schema.agent.v1",
       "file": "schemas/agent.schema.json",
       "status": "active",
       "description": "Schema-registry object for agent protocol metadata snapshots. Event payloads for ck.agent.* use typed payload definitions in event-payload.schema.json."
     },
     {
-      "schema_id": "ck.schema.audit_ryw_receipt.v1",
+      "schema_id": "ak.schema.audit_ryw_receipt.v1",
       "file": "schemas/audit-ryw-receipt.schema.json"
     },
     {
-      "schema_id": "ck.schema.erasure_receipt.v1",
+      "schema_id": "ak.schema.erasure_receipt.v1",
       "file": "schemas/erasure-receipt.schema.json",
       "status": "active",
       "description": "Signed hard-erasure receipt payload for ck.audit.erasure_receipt"
     },
     {
-      "schema_id": "ck.schema.erasure_verification_stub.v1",
+      "schema_id": "ak.schema.erasure_verification_stub.v1",
       "file": "schemas/erasure-verification-stub.schema.json",
       "status": "active",
       "description": "Minimal retained verification stub bound by erasure-receipt.retained_stub_digest"
     },
     {
-      "schema_id": "ck.schema.cross_signing_publish.v1",
+      "schema_id": "ak.schema.cross_signing_publish.v1",
       "file": "schemas/cross-signing-publish.schema.json",
       "status": "active",
       "description": "Wire payload schema for ck.cross_signing.publish — establishes the PSK→{SSK, USK} binding on the principal control stream. See device-lifecycle.md §5.1."
     },
     {
-      "schema_id": "ck.schema.cross_signing_reset.v1",
+      "schema_id": "ak.schema.cross_signing_reset.v1",
       "file": "schemas/cross-signing-reset.schema.json",
       "status": "active",
       "description": "Wire payload schema for ck.cross_signing.reset — retires the current (SSK, USK) generation under one of four kinds of high-risk proof. See device-lifecycle.md §14.1."
     },
     {
-      "schema_id": "ck.schema.seal.v1",
+      "schema_id": "ak.schema.seal.v1",
       "file": "schemas/seal.schema.json",
       "status": "active",
       "description": "Seal control-plane finality commitment schema"
     },
     {
-      "schema_id": "ck.schema.inclusion_list.v1",
+      "schema_id": "ak.schema.inclusion_list.v1",
       "file": "schemas/inclusion-list.schema.json",
       "status": "active",
       "description": "FOCIL-style control-plane inclusion list signed by a non-proposer notary signer; the next Seal MUST include, signed-reject, or prove verification failure for every listed digest"
     },
     {
-      "schema_id": "ck.schema.seal_transparency.v1",
+      "schema_id": "ak.schema.seal_transparency.v1",
       "file": "schemas/seal-transparency.schema.json",
       "status": "active",
       "description": "Seal transparency append-only log entry and independent auditor attestation wire schema"
     },
     {
-      "schema_id": "ck.schema.key_view_proof.v1",
+      "schema_id": "ak.schema.key_view_proof.v1",
       "file": "schemas/key-view-proof.schema.json",
       "status": "active",
       "description": "KeyView inclusion proof against a Seal data_view_root for light-client data-plane queries"
     },
     {
-      "schema_id": "ck.schema.agent_operations.v1",
+      "schema_id": "ak.schema.agent_operations.v1",
       "file": "schemas/agent-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for account pairing and native personal agent management operations."
     },
     {
-      "schema_id": "ck.schema.agent_pairing_bootstrap.v1",
+      "schema_id": "ak.schema.agent_pairing_bootstrap.v1",
       "file": "schemas/agent-operations.schema.json",
       "status": "active",
       "description": "One-time bootstrap DTO for personal agent runtime pairing. Defined as agent-operations.schema.json#/$defs/agent_pairing_bootstrap."
     },
     {
-      "schema_id": "ck.schema.applet_edge_operations.v1",
+      "schema_id": "ak.schema.applet_edge_operations.v1",
       "file": "schemas/applet-edge-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for Applet edge and bridge operations."
     },
     {
-      "schema_id": "ck.schema.bottom.v1",
+      "schema_id": "ak.schema.bottom.v1",
       "file": "schemas/bottom.schema.json",
       "status": "active",
       "description": "Structured Bottom (⊥) diagnostic surfaced on /account/subscribe, /events, and state query responses when a cell's effective Lattice value is undefined"
     },
     {
-      "schema_id": "ck.schema.keypackage_operations.v1",
+      "schema_id": "ak.schema.keypackage_operations.v1",
       "file": "schemas/keypackage-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for ck.self.keys.keypackages.upload.create, claim, consume, and revoke."
     },
     {
-      "schema_id": "ck.schema.keys_operations.v1",
+      "schema_id": "ak.schema.keys_operations.v1",
       "file": "schemas/keys-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for ck.self.keys.upload.create, query, claim, and key backup put/list/delete responses."
     },
     {
-      "schema_id": "ck.schema.service_describe.v1",
+      "schema_id": "ak.schema.service_describe.v1",
       "file": "schemas/service-describe.schema.json",
       "status": "active",
       "description": "Canonical ServiceDescribe response for ck.server.query.describe and per-surface describe operations: base service metadata plus claim-level partitions (supported_operations / implemented_features / claimed_profiles / verified_profiles / experimental_features / compat_surfaces) and the registered directory_service overlay fields used by ck.find.directory.query.describe. Enforces development_mode=true => verified_profiles=[]. compat_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
     },
     {
-      "schema_id": "ck.schema.common_ids.v1",
+      "schema_id": "ak.schema.common_ids.v1",
       "file": "schemas/common-ids.schema.json",
       "status": "active",
       "description": "Defs-only shared typed-ID patterns (e.g. circle_id) referenced cross-file by morph and relation schemas so a single id-form change propagates without inline drift. Not an object/event schema. See zh/models/common-fields.md §6."
     },
     {
-      "schema_id": "ck.schema.delivery_binding_stale.v1",
+      "schema_id": "ak.schema.delivery_binding_stale.v1",
       "file": "schemas/delivery-binding-stale.schema.json",
       "status": "active",
       "description": "Canonical response body for the delivery_binding_stale federation signal (member delivery-binding rebind handover): new_recipient_service_did, handover_frontier, and the verifiable handover_proof. See zh/sync/federation.md §4.1 and error-code-registry.json (delivery_binding_stale / delivery_binding_handover_proof_invalid)."
     },
     {
-      "schema_id": "ck.schema.query.v1",
+      "schema_id": "ak.schema.query.v1",
       "file": "schemas/query.schema.json",
       "status": "active",
       "description": "Canonical wire schema for client query / projection (query_request) and search (search_request) request bodies plus reusable filter / sort / relation-query $defs. The OpenAPI QueryRequestBody / SearchRequestBody / QueryFilter / FieldFilter / BooleanFilter / SortSpec / RelationQuery components $ref this file so there is a single source of truth. Human-readable semantics: zh/conformance/query-schema.md."
     },
     {
-      "schema_id": "ck.schema.service_operation_dtos.v1",
+      "schema_id": "ak.schema.service_operation_dtos.v1",
       "file": "schemas/service-operation-dtos.schema.json",
       "status": "active",
       "description": "Canonical DTO bundle for service operation request/response shapes migrated out of OpenAPI inline components."

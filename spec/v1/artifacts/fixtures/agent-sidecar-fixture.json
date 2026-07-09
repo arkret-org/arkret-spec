@@ -1,18 +1,18 @@
 {
-  "profile": "ck.profile.agent_sidecar_thread.v1",
+  "profile": "ak.profile.agent_sidecar_thread.v1",
   "version": "2026-06-19",
   "suite": "sidecar_vectors",
   "runner": "cotest::conformance::sidecar_vectors",
   "covers_vectors": [
-    "ck.vector.sidecar.ensure_idempotent.v1",
-    "ck.vector.sidecar.eligibility_states.v1",
-    "ck.vector.sidecar.existence_privacy.v1",
-    "ck.vector.sidecar.multi_agent_publish.v1"
+    "ak.vector.sidecar.ensure_idempotent.v1",
+    "ak.vector.sidecar.eligibility_states.v1",
+    "ak.vector.sidecar.existence_privacy.v1",
+    "ak.vector.sidecar.multi_agent_publish.v1"
   ],
   "cases": [
     {
       "name": "sidecar_ensure_idempotent",
-      "vector_id": "ck.vector.sidecar.ensure_idempotent.v1",
+      "vector_id": "ak.vector.sidecar.ensure_idempotent.v1",
       "runner": "cotest::conformance::sidecar_vectors::run_sidecar_ensure_idempotent_vector",
       "assertions": [
         "ensure operation id remains ck.self.agent.sidecar_thread.command.ensure",
@@ -22,7 +22,7 @@
     },
     {
       "name": "sidecar_eligibility_states",
-      "vector_id": "ck.vector.sidecar.eligibility_states.v1",
+      "vector_id": "ak.vector.sidecar.eligibility_states.v1",
       "runner": "cotest::conformance::sidecar_vectors::run_sidecar_eligibility_states_vector",
       "assertions": [
         "paused agents fail sidecar ensure with agent_paused",
@@ -32,7 +32,7 @@
     },
     {
       "name": "sidecar_existence_privacy",
-      "vector_id": "ck.vector.sidecar.existence_privacy.v1",
+      "vector_id": "ak.vector.sidecar.existence_privacy.v1",
       "runner": "cotest::conformance::sidecar_vectors::run_sidecar_existence_privacy_vector",
       "assertions": [
         "callers without sidecar ensure capability receive sidecar_create_denied",
@@ -41,7 +41,7 @@
     },
     {
       "name": "sidecar_multi_agent_publish",
-      "vector_id": "ck.vector.sidecar.multi_agent_publish.v1",
+      "vector_id": "ak.vector.sidecar.multi_agent_publish.v1",
       "runner": "cotest::conformance::sidecar_vectors::run_sidecar_multi_agent_publish_vector",
       "assertions": [
         "ensure, write, and publish capability actions all remain sidecar-thread scoped",

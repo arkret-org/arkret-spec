@@ -1,6 +1,6 @@
 {
   "suite": "federation",
-  "profile": "ck.vector_group.federation.v1",
+  "profile": "ak.vector_group.federation.v1",
   "topology": {
     "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
     "principal_servers": [
@@ -39,25 +39,25 @@
   "cases": [
     {
       "name": "reducer_profile_digest_federation_minimal",
-      "vector_id": "ck.vector.federation.reducer_profile_digest.v1",
+      "vector_id": "ak.vector.federation.reducer_profile_digest.v1",
       "canonical_input": {
-        "profile_id": "ck.profile.federation_minimal.v1",
+        "profile_id": "ak.profile.federation_minimal.v1",
         "inherits": [
-          "ck.profile.core_event_store.v1"
+          "ak.profile.core_event_store.v1"
         ],
         "required_event_kinds": [
-          "ck.realm.create",
-          "ck.member.state"
+          "ak.realm.create",
+          "ak.member.state"
         ],
         "rejected_event_kind_scopes": [
           "wire_scope:actor_private_event",
           "wire_scope:ephemeral_event"
         ],
         "required_schemas": [
-          "ck.schema.event.v1",
-          "ck.schema.event_payload.v1",
-          "ck.schema.cursor.v1",
-          "ck.schema.seal.v1"
+          "ak.schema.event.v1",
+          "ak.schema.event_payload.v1",
+          "ak.schema.cursor.v1",
+          "ak.schema.seal.v1"
         ],
         "required_constraint_types": [
           "temporal",
@@ -90,7 +90,7 @@
     },
     {
       "name": "reducer_profile_mismatch",
-      "vector_id": "ck.vector.federation.reducer_profile_digest.v1",
+      "vector_id": "ak.vector.federation.reducer_profile_digest.v1",
       "sender_reducer_profile_digest": "sha256:d7a0d88d075240c9faf28c87b54708788cde1c6a1c4e68c45ee6c8b7e4d3c651",
       "receiver_reducer_profile_digest": "sha256:9acf68105ee4698368137d3ea070548556bfd6f6ad7771df0fdc77f8c97a5e09",
       "expected": "whole_batch_rejected_with_reducer_profile_mismatch"
@@ -102,7 +102,7 @@
         "destination_service_did": "did:webvh:z6mkfixture:server-beta.example",
         "method": "POST",
         "target_uri": "https://server-beta.example/_arkret/peer/events",
-        "operation_id": "ck.peer.events.command.submit",
+        "operation_id": "ak.peer.events.command.submit",
         "content_digest_matches_canonical_body": true
       },
       "expected": "canonical_request_hash_matches_signature_input"

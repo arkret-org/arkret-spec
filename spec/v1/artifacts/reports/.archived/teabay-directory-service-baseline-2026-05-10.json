@@ -1,6 +1,6 @@
 {
   "report_id": "teabay-directory-service-baseline-2026-05-10",
-  "profile_id": "ck.profile.directory_service.v1",
+  "profile_id": "ak.profile.directory_service.v1",
   "implementation": {
     "name": "teabay",
     "version": "0.1.0",

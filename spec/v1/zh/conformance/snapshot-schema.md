@@ -24,9 +24,9 @@ Snapshot manifest 的自身主标识字段使用通用 `id`，其值 MUST 是 `a
 {
   "id": "ak:snapshot:0196419a-8000-7000-8000-000000000000",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-  "reducer_profile": "ck.reducer.v1",
+  "reducer_profile": "ak.reducer.v1",
   "security_class": "high_assurance",
-  "schema_profile_refs": ["ck.profile.core_event_store.v1"],
+  "schema_profile_refs": ["ak.profile.core_event_store.v1"],
   "frontier": {
     "event_ids": ["ak:event:019640ed-8000-7000-8000-000000000000"],
     "timeline_hlc": "01970e589d21-0004-a13f9c2e"
@@ -91,7 +91,7 @@ Chunk descriptor 中的 `chunk_ref` 指向一个 snapshot chunk payload。Payloa
   "type": "snapshot_chunk",
   "snapshot_ref": "ak:snapshot:0196419a-8000-7000-8000-000000000000",
   "index": 0,
-  "reducer_profile": "ck.reducer.v1",
+  "reducer_profile": "ak.reducer.v1",
   "items": [
     {
       "kind": "strand",
@@ -99,7 +99,7 @@ Chunk descriptor 中的 `chunk_ref` 指向一个 snapshot chunk payload。Payloa
       "object": {
         "id": "ak:strand:019640c5-0000-7000-8000-000000000000",
         "kind": "strand",
-        "schema": "ck.schema.strand.v1"
+        "schema": "ak.schema.strand.v1"
       },
       "source_event_id": "ak:event:019640ed-8000-7000-8000-000000000000"
     }
@@ -287,7 +287,7 @@ Inclusion challenge 的安全保证范围 **MUST** 在 spec 文本与实现 UI �
   "aad_visibility_event_id": "routing_digest",
   "aad": {
     "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-    "event_kind": "ck.message.create",
+    "event_kind": "ak.message.create",
     "event_ref_digest": "sha256:..."
   },
   "key_ref": {

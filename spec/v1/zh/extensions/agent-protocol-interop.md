@@ -75,7 +75,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 
 ```json
 {
-  "kind": "ck.agent.endpoint",
+  "kind": "ak.agent.endpoint",
   "agent_id": "did:webvh:z7JFwDcjH8CMYDmNUkUBhGpNN:agent.example.com",
   "endpoints": [
     {
@@ -107,7 +107,7 @@ Agent 可在 profile 或 DID service endpoint 中声明外部协议能力：
 
 ```json
 {
-  "kind": "ck.agent.interop_session.start",
+  "kind": "ak.agent.interop_session.start",
   "realm_id": "ak:realm:...",
   "actor_id": "did:webvh:zJ9BR1Wso7TdHzifQDHtN8HTd:requesting-agent.example.com",
   "payload": {
@@ -143,7 +143,7 @@ Endpoint 退役也是协议状态，不只是外部连接关闭。Agent owner、
 
 ```json
 {
-  "kind": "ck.agent.interop_session.status",
+  "kind": "ak.agent.interop_session.status",
   "realm_id": "ak:realm:...",
   "payload": {
     "session_id": "ak:agent_interop_session:019643c0-0000-7000-8000-000000000000",
@@ -198,7 +198,7 @@ Cancellation 是协议状态，不是只关本地 socket。持有 `ck.agent.inte
 
 ```json
 {
-  "kind": "ck.agent.interop_session.status",
+  "kind": "ak.agent.interop_session.status",
   "realm_id": "ak:realm:...",
   "payload": {
     "session_id": "ak:agent_interop_session:019643c0-0000-7000-8000-000000000000",
@@ -225,7 +225,7 @@ Cancellation 是协议状态，不是只关本地 socket。持有 `ck.agent.inte
 
 ```json
 {
-  "kind": "ck.agent.interop_session.result",
+  "kind": "ak.agent.interop_session.result",
   "realm_id": "ak:realm:...",
   "payload": {
     "session_id": "ak:agent_interop_session:019643c0-0000-7000-8000-000000000000",

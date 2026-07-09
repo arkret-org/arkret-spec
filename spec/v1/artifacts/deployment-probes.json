@@ -9,10 +9,10 @@
       "status": "active",
       "scope": "high_security_and_sovereign_profiles",
       "applies_to_profiles": [
-        "ck.profile.high_security_organization.v1",
-        "ck.profile.sovereign_deployment.v1",
-        "ck.profile.sovereign_enclave.v1",
-        "ck.profile.isolated_sovereign_network.v1"
+        "ak.profile.high_security_organization.v1",
+        "ak.profile.sovereign_deployment.v1",
+        "ak.profile.sovereign_enclave.v1",
+        "ak.profile.isolated_sovereign_network.v1"
       ],
       "applies_to_connections": [
         "client_service",

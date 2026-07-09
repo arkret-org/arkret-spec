@@ -107,7 +107,7 @@ Arkret 身份由 DID principal 表示，但用户访问通常经过一个或多�
 
 ```json
 {
-  "kind": "ck.account.status",
+  "kind": "ak.account.status",
   "account_id": "acct_...",
   "principal_id": "did:webvh:...",
   "status": "suspended",

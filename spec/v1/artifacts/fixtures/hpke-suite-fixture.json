@@ -1,25 +1,25 @@
 {
   "suite": "hpke_suite_kat",
-  "profile": "ck.profile.e2ee_client.v1",
+  "profile": "ak.profile.e2ee_client.v1",
   "version": "2026-07-03",
   "description": "RFC 9180 byte-level known-answer tests (base mode, single-shot seal semantics) for the active application-layer HPKE suites of hpke-suite-registry.json. Values are the official RFC 9180 / CFRG test-vector bytes, re-verified with an independent HPKE implementation (DeriveKeyPair, SetupBaseR, Open, key-schedule intermediates) before inclusion. Implementations MUST reproduce every listed intermediate (shared_secret, key, base_nonce, exporter_secret) and every ciphertext byte-for-byte.",
   "runner": "cotest::conformance::hpke_suite_kat",
   "covers_vectors": [
-    "ck.vector.hpke.x25519_chacha20poly1305_base.v1",
-    "ck.vector.hpke.x25519_aes256gcm_base.v1",
-    "ck.vector.hpke.p256_aes256gcm_base.v1"
+    "ak.vector.hpke.x25519_chacha20poly1305_base.v1",
+    "ak.vector.hpke.x25519_aes256gcm_base.v1",
+    "ak.vector.hpke.p256_aes256gcm_base.v1"
   ],
   "uncovered_suites": [
     {
-      "canonical_id": "ck.hpke_xwing_aead_chacha20poly1305.v1",
+      "canonical_id": "ak.hpke_xwing_aead_chacha20poly1305.v1",
       "status": "reserved",
       "reason": "Reserved row; per its activation_requirements the per-suite conformance vectors are published at activation time, not before."
     }
   ],
   "vectors": [
     {
-      "vector_id": "ck.vector.hpke.x25519_chacha20poly1305_base.v1",
-      "suite": "ck.hpke_x25519_aead_chacha20poly1305.v1",
+      "vector_id": "ak.vector.hpke.x25519_chacha20poly1305_base.v1",
+      "suite": "ak.hpke_x25519_aead_chacha20poly1305.v1",
       "mode": "base",
       "kem": "dhkem_x25519_hkdf_sha256",
       "kem_rfc9180_id": "0x0020",
@@ -78,8 +78,8 @@
       }
     },
     {
-      "vector_id": "ck.vector.hpke.x25519_aes256gcm_base.v1",
-      "suite": "ck.hpke_x25519_aead_aes256gcm.v1",
+      "vector_id": "ak.vector.hpke.x25519_aes256gcm_base.v1",
+      "suite": "ak.hpke_x25519_aead_aes256gcm.v1",
       "mode": "base",
       "kem": "dhkem_x25519_hkdf_sha256",
       "kem_rfc9180_id": "0x0020",
@@ -138,8 +138,8 @@
       }
     },
     {
-      "vector_id": "ck.vector.hpke.p256_aes256gcm_base.v1",
-      "suite": "ck.hpke_p256_aead_aes256gcm.v1",
+      "vector_id": "ak.vector.hpke.p256_aes256gcm_base.v1",
+      "suite": "ak.hpke_p256_aead_aes256gcm.v1",
       "mode": "base",
       "kem": "dhkem_p256_hkdf_sha256",
       "kem_rfc9180_id": "0x0010",
@@ -201,7 +201,7 @@
   "negative_cases": [
     {
       "name": "reject_tampered_ciphertext",
-      "base_vector": "ck.vector.hpke.x25519_chacha20poly1305_base.v1",
+      "base_vector": "ak.vector.hpke.x25519_chacha20poly1305_base.v1",
       "description": "The last byte of the sequence-0 ciphertext is XORed with 0x01; setup and all keys are unchanged.",
       "tampered_ct_hex": "1c5250d8034ec2b784ba2cfd69dbdb8af406cfe3ff938e131f0def8c8b60b4db21993c62ce81883d2dd1b51a29",
       "expected": {
@@ -212,7 +212,7 @@
     {
       "name": "reject_unregistered_suite_id",
       "description": "An HPKE-sealed surface selects a suite id that is not an active row of hpke-suite-registry.json.",
-      "hpke_suite": "ck.hpke_x448_aead_aes256gcm.v1",
+      "hpke_suite": "ak.hpke_x448_aead_aes256gcm.v1",
       "expected": {
         "decision": "reject",
         "error_code": "unsupported_hpke_suite",

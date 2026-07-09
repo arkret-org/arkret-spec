@@ -138,7 +138,7 @@
       "id": "cx.",
       "term": "cx.",
       "rejection_level": "hard_reject",
-      "replacement": "ck.",
+      "replacement": "ak.",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",

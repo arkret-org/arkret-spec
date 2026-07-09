@@ -20,7 +20,7 @@
   },
   "merged_proposals": [
     {
-      "ckp": "CKP-0007",
+      "ak.": "CKP-0007",
       "title": "Circle primitive",
       "status": "accepted_merged",
       "merged_on": "2026-05-25",
@@ -48,7 +48,7 @@
       ]
     },
     {
-      "ckp": "CKP-0008",
+      "ak.": "CKP-0008",
       "title": "Personal agent provisioning",
       "status": "accepted_merged",
       "merged_on": "2026-05-26",
@@ -78,7 +78,7 @@
       ]
     },
     {
-      "ckp": "CKP-0009",
+      "ak.": "CKP-0009",
       "title": "Agent sidecar thread",
       "status": "accepted_merged",
       "merged_on": "2026-05-26",
@@ -106,7 +106,7 @@
       ]
     },
     {
-      "ckp": "CKP-0010",
+      "ak.": "CKP-0010",
       "title": "Media service binding framework",
       "status": "accepted_merged",
       "merged_on": "2026-05-27",
@@ -133,7 +133,7 @@
       ]
     },
     {
-      "ckp": "CKP-0011",
+      "ak.": "CKP-0011",
       "title": "Shareable object addressing",
       "status": "accepted_merged",
       "merged_on": "2026-05-28",
@@ -150,7 +150,7 @@
       ]
     },
     {
-      "ckp": "CKP-0012",
+      "ak.": "CKP-0012",
       "title": "Account Self-Service Operations",
       "status": "accepted_merged",
       "merged_on": "2026-06-04",
@@ -173,7 +173,7 @@
       ]
     },
     {
-      "ckp": "CKP-0013",
+      "ak.": "CKP-0013",
       "title": "Contact & Direct Conversation Lifecycle",
       "status": "accepted_merged",
       "merged_on": "2026-06-04",
@@ -210,7 +210,7 @@
       ]
     },
     {
-      "ckp": "CKP-0014",
+      "ak.": "CKP-0014",
       "title": "Implementation-local HTTP surfaces found in coauth / inkson audit",
       "status": "accepted_merged",
       "merged_on": "2026-06-16",
@@ -238,7 +238,7 @@
       ]
     },
     {
-      "ckp": "CKP-0016",
+      "ak.": "CKP-0016",
       "title": "Agent Participation Policy",
       "status": "accepted_merged",
       "merged_on": "2026-06-09",
@@ -272,7 +272,7 @@
       ]
     },
     {
-      "ckp": "CKP-0017",
+      "ak.": "CKP-0017",
       "title": "Controller-scoped Agent Mention Selector",
       "status": "accepted_merged",
       "merged_on": "2026-06-11",

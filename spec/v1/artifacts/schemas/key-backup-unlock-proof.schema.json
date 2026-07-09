@@ -20,7 +20,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "ck.schema.key_backup_unlock_proof.v1"
+      "const": "ak.schema.key_backup_unlock_proof.v1"
     },
     "recovery_session_id": {
       "$ref": "#/$defs/recovery_session_id"

@@ -1,21 +1,21 @@
 {
-  "profile": "ck.vector_group.privacy_security.v1",
+  "profile": "ak.vector_group.privacy_security.v1",
   "version": "2026-06-19",
   "suite": "service_closure_hardening",
   "runner": "cotest::conformance::service_closure_hardening",
   "covers_vectors": [
-    "ck.vector.invite.consumed_token_resubject_rejected.v1",
-    "ck.vector.ephemeral.capability_ttl.v1",
-    "ck.vector.projection.pagination_shape.v1",
-    "ck.vector.range_completeness.witness_disagreement.v1",
-    "ck.vector.cursor.revoke_high_assurance.v1",
-    "ck.vector.device_recovery.lifecycle.v1",
-    "ck.vector.device.revocation_seal_binding.v1",
-    "ck.vector.push.wakeup_policy.v1"
+    "ak.vector.invite.consumed_token_resubject_rejected.v1",
+    "ak.vector.ephemeral.capability_ttl.v1",
+    "ak.vector.projection.pagination_shape.v1",
+    "ak.vector.range_completeness.witness_disagreement.v1",
+    "ak.vector.cursor.revoke_high_assurance.v1",
+    "ak.vector.device_recovery.lifecycle.v1",
+    "ak.vector.device.revocation_seal_binding.v1",
+    "ak.vector.push.wakeup_policy.v1"
   ],
   "cases": [
     {
-      "vector_id": "ck.vector.invite.consumed_token_resubject_rejected.v1",
+      "vector_id": "ak.vector.invite.consumed_token_resubject_rejected.v1",
       "assertions": [
         "same_subject_replay_returns_existing_binding_proof",
         "different_subject_resubject_is_rejected",
@@ -52,7 +52,7 @@
         }
       ],
       "reducer_event": {
-        "kind": "ck.invite.claim",
+        "kind": "ak.invite.claim",
         "subject_id": "did:webvh:z6mkfixture:mallory.example",
         "invite_id": "ak:invite:0196419b-0000-7000-8000-000000001001",
         "claim_nonce": "nonce-001",
@@ -63,15 +63,15 @@
       }
     },
     {
-      "vector_id": "ck.vector.ephemeral.capability_ttl.v1",
+      "vector_id": "ak.vector.ephemeral.capability_ttl.v1",
       "assertions": [
         "kind_requires_matching_capability_action",
         "ttl_above_advertised_ceiling_rejected",
         "channel_unavailable_does_not_write_durable_event"
       ],
       "advertised_kinds": {
-        "ck.typing": {
-          "required_action": "ck.typing.send",
+        "ak.typing": {
+          "required_action": "ak.typing.send",
           "max_ttl_ms": 30000
         }
       },
@@ -79,9 +79,9 @@
         {
           "name": "wrong_capability_action",
           "actor_actions": [
-            "ck.presence.broadcast"
+            "ak.presence.broadcast"
           ],
-          "kind": "ck.typing",
+          "kind": "ak.typing",
           "ttl_ms": 5000,
           "channel_available": true,
           "expected": {
@@ -93,9 +93,9 @@
         {
           "name": "ttl_above_kind_ceiling",
           "actor_actions": [
-            "ck.typing.send"
+            "ak.typing.send"
           ],
-          "kind": "ck.typing",
+          "kind": "ak.typing",
           "ttl_ms": 90000,
           "channel_available": true,
           "expected": {
@@ -107,9 +107,9 @@
         {
           "name": "channel_unavailable",
           "actor_actions": [
-            "ck.typing.send"
+            "ak.typing.send"
           ],
-          "kind": "ck.typing",
+          "kind": "ak.typing",
           "ttl_ms": 5000,
           "channel_available": false,
           "expected": {
@@ -123,7 +123,7 @@
       ]
     },
     {
-      "vector_id": "ck.vector.projection.pagination_shape.v1",
+      "vector_id": "ak.vector.projection.pagination_shape.v1",
       "assertions": [
         "page_response_always_has_has_more",
         "has_more_true_requires_ck_cursor",
@@ -132,7 +132,7 @@
       ],
       "caller": "did:webvh:z6mkfixture:alice.example",
       "selector_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-      "purpose": "ck.self.space.query.list",
+      "purpose": "ak.self.space.query.list",
       "responses": [
         {
           "name": "first_page",
@@ -144,7 +144,7 @@
           "cursor_binding": {
             "caller": "did:webvh:z6mkfixture:alice.example",
             "selector_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-            "purpose": "ck.self.space.query.list"
+            "purpose": "ak.self.space.query.list"
           },
           "expected": {
             "decision": "accept"
@@ -187,7 +187,7 @@
           "cursor_binding": {
             "caller": "did:webvh:z6mkfixture:mallory.example",
             "selector_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-            "purpose": "ck.self.space.query.list"
+            "purpose": "ak.self.space.query.list"
           },
           "expected": {
             "decision": "reject",
@@ -197,7 +197,7 @@
       ]
     },
     {
-      "vector_id": "ck.vector.range_completeness.witness_disagreement.v1",
+      "vector_id": "ak.vector.range_completeness.witness_disagreement.v1",
       "assertions": [
         "same_actor_seq_different_digest_quarantines_peer",
         "same_range_different_root_quarantines_range",
@@ -262,7 +262,7 @@
       ]
     },
     {
-      "vector_id": "ck.vector.cursor.revoke_high_assurance.v1",
+      "vector_id": "ak.vector.cursor.revoke_high_assurance.v1",
       "assertions": [
         "revoked_cursor_returns_cursor_revoked",
         "tampered_cursor_returns_integrity_invalid",
@@ -294,7 +294,7 @@
       ]
     },
     {
-      "vector_id": "ck.vector.device_recovery.lifecycle.v1",
+      "vector_id": "ak.vector.device_recovery.lifecycle.v1",
       "assertions": [
         "stale_ssk_generation_rejected",
         "proof_without_secret_unlock_remains_recovery_pending",
@@ -335,7 +335,7 @@
       ]
     },
     {
-      "vector_id": "ck.vector.device.revocation_seal_binding.v1",
+      "vector_id": "ak.vector.device.revocation_seal_binding.v1",
       "assertions": [
         "post_seal_device_operations_fail_closed",
         "mls_remove_without_revocation_frontier_does_not_unblock_e2ee_gate",
@@ -382,7 +382,7 @@
       ]
     },
     {
-      "vector_id": "ck.vector.push.wakeup_policy.v1",
+      "vector_id": "ak.vector.push.wakeup_policy.v1",
       "assertions": [
         "no_notification_default_blocks_single_event_blind_wakeup",
         "client_rule_digest_mismatch_uses_conservative_policy",

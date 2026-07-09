@@ -1,19 +1,19 @@
 {
-  "profile": "ck.profile.personal_agent_provisioning.v1",
+  "profile": "ak.profile.personal_agent_provisioning.v1",
   "version": "2026-06-19",
   "suite": "agent_vectors",
   "runner": "cotest::conformance::agent_vectors",
   "covers_vectors": [
-    "ck.vector.agent.provision.v1",
-    "ck.vector.agent.pairing_expiry.v1",
-    "ck.vector.agent.controller_lifecycle.v1",
-    "ck.vector.agent.act_on_behalf.v1",
-    "ck.vector.agent.session_grant.replay.v1"
+    "ak.vector.agent.provision.v1",
+    "ak.vector.agent.pairing_expiry.v1",
+    "ak.vector.agent.controller_lifecycle.v1",
+    "ak.vector.agent.act_on_behalf.v1",
+    "ak.vector.agent.session_grant.replay.v1"
   ],
   "cases": [
     {
       "name": "agent_provision",
-      "vector_id": "ck.vector.agent.provision.v1",
+      "vector_id": "ak.vector.agent.provision.v1",
       "runner": "cotest::conformance::agent_vectors::run_agent_provision_vector",
       "assertions": [
         "agent provision operation id remains ck.self.agent.command.provision",
@@ -24,7 +24,7 @@
     },
     {
       "name": "agent_pairing_expiry",
-      "vector_id": "ck.vector.agent.pairing_expiry.v1",
+      "vector_id": "ak.vector.agent.pairing_expiry.v1",
       "runner": "cotest::conformance::agent_vectors::run_agent_pairing_expiry_vector",
       "assertions": [
         "agent key-pair operation id remains ck.gate.account.command.pair_agent_key",
@@ -34,7 +34,7 @@
     },
     {
       "name": "agent_controller_lifecycle",
-      "vector_id": "ck.vector.agent.controller_lifecycle.v1",
+      "vector_id": "ak.vector.agent.controller_lifecycle.v1",
       "runner": "cotest::conformance::agent_vectors::run_agent_controller_lifecycle_vector",
       "assertions": [
         "agent lifecycle operation ids retain canonical namespaces",
@@ -45,7 +45,7 @@
     },
     {
       "name": "agent_act_on_behalf",
-      "vector_id": "ck.vector.agent.act_on_behalf.v1",
+      "vector_id": "ak.vector.agent.act_on_behalf.v1",
       "runner": "cotest::conformance::agent_vectors::run_agent_act_on_behalf_vector",
       "assertions": [
         "controller approvals are single-use",
@@ -56,7 +56,7 @@
     },
     {
       "name": "agent_session_grant_replay",
-      "vector_id": "ck.vector.agent.session_grant.replay.v1",
+      "vector_id": "ak.vector.agent.session_grant.replay.v1",
       "runner": "cotest::conformance::agent_vectors::run_agent_session_grant_replay_vector",
       "assertions": [
         "session grant issue operation id remains ck.gate.account.command.issue_session_grant",

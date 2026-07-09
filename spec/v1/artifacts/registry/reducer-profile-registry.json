@@ -7,26 +7,26 @@
   "digest_input_rule": "Resolve the row whose profile_id equals the Realm reducer profile, take digest_input exactly as published in this registry, canonicalize it with zh/conformance/encoding.md section 2 canonical JSON, hash the resulting UTF-8 bytes with SHA-256, and encode as sha256:<lowercase_hex>.",
   "profiles": [
     {
-      "profile_id": "ck.profile.core_event_store.v1",
+      "profile_id": "ak.profile.core_event_store.v1",
       "status": "active",
       "digest_input": {
-        "profile_id": "ck.profile.core_event_store.v1",
+        "profile_id": "ak.profile.core_event_store.v1",
         "inherits": [],
         "required_event_kinds": [
-          "ck.realm.create",
-          "ck.member.state"
+          "ak.realm.create",
+          "ak.member.state"
         ],
         "rejected_event_kind_scopes": [
           "wire_scope:actor_private_event",
           "wire_scope:ephemeral_event"
         ],
         "required_schemas": [
-          "ck.schema.event.v1",
-          "ck.schema.event_payload.v1",
-          "ck.schema.event_batch_receipt.v1",
-          "ck.schema.availability_receipt.v1",
-          "ck.schema.cursor.v1",
-          "ck.schema.seal.v1"
+          "ak.schema.event.v1",
+          "ak.schema.event_payload.v1",
+          "ak.schema.event_batch_receipt.v1",
+          "ak.schema.availability_receipt.v1",
+          "ak.schema.cursor.v1",
+          "ak.schema.seal.v1"
         ],
         "required_constraint_types": [
           "temporal",
@@ -63,30 +63,30 @@
       }
     },
     {
-      "profile_id": "ck.profile.chat_mvp.v1",
+      "profile_id": "ak.profile.chat_mvp.v1",
       "status": "active",
       "digest_input": {
-        "profile_id": "ck.profile.chat_mvp.v1",
+        "profile_id": "ak.profile.chat_mvp.v1",
         "inherits": [
-          "ck.profile.core_event_store.v1"
+          "ak.profile.core_event_store.v1"
         ],
         "required_event_kinds": [
-          "ck.realm.create",
-          "ck.member.state",
-          "ck.strand.create",
-          "ck.message.create",
-          "ck.message.revise",
-          "ck.message.redact",
-          "ck.reaction.add",
-          "ck.reaction.remove",
-          "ck.redaction"
+          "ak.realm.create",
+          "ak.member.state",
+          "ak.strand.create",
+          "ak.message.create",
+          "ak.message.revise",
+          "ak.message.redact",
+          "ak.reaction.add",
+          "ak.reaction.remove",
+          "ak.redaction"
         ],
         "rejected_event_kind_scopes": [],
         "required_schemas": [
-          "ck.schema.realm.v1",
-          "ck.schema.strand.v1",
-          "ck.schema.message.v1",
-          "ck.schema.account_subscribe_frame.v1"
+          "ak.schema.realm.v1",
+          "ak.schema.strand.v1",
+          "ak.schema.message.v1",
+          "ak.schema.account_subscribe_frame.v1"
         ],
         "required_constraint_types": [
           "temporal"
@@ -119,29 +119,29 @@
       }
     },
     {
-      "profile_id": "ck.profile.kanban_mvp.v1",
+      "profile_id": "ak.profile.kanban_mvp.v1",
       "status": "active",
       "digest_input": {
-        "profile_id": "ck.profile.kanban_mvp.v1",
+        "profile_id": "ak.profile.kanban_mvp.v1",
         "inherits": [
-          "ck.profile.core_event_store.v1"
+          "ak.profile.core_event_store.v1"
         ],
         "required_event_kinds": [
-          "ck.realm.create",
-          "ck.member.state",
-          "ck.strand.create",
-          "ck.strand.update",
-          "ck.strand.move",
-          "ck.strand.reorder",
-          "ck.relation.create",
-          "ck.container.rebalance"
+          "ak.realm.create",
+          "ak.member.state",
+          "ak.strand.create",
+          "ak.strand.update",
+          "ak.strand.move",
+          "ak.strand.reorder",
+          "ak.relation.create",
+          "ak.container.rebalance"
         ],
         "rejected_event_kind_scopes": [],
         "required_schemas": [
-          "ck.schema.realm.v1",
-          "ck.schema.strand.v1",
-          "ck.schema.relation.v1",
-          "ck.schema.view.v1"
+          "ak.schema.realm.v1",
+          "ak.schema.strand.v1",
+          "ak.schema.relation.v1",
+          "ak.schema.view.v1"
         ],
         "required_constraint_types": [
           "scope_limitation"
@@ -167,35 +167,35 @@
       }
     },
     {
-      "profile_id": "ck.profile.principal_server.v1",
+      "profile_id": "ak.profile.principal_server.v1",
       "status": "active",
       "digest_input": {
-        "profile_id": "ck.profile.principal_server.v1",
+        "profile_id": "ak.profile.principal_server.v1",
         "inherits": [
-          "ck.profile.principal_server_events_api.v1",
-          "ck.profile.chat_mvp.v1",
-          "ck.profile.kanban_mvp.v1"
+          "ak.profile.principal_server_events_api.v1",
+          "ak.profile.chat_mvp.v1",
+          "ak.profile.kanban_mvp.v1"
         ],
         "required_event_kinds": [
-          "ck.realm.create",
-          "ck.member.state",
-          "ck.strand.create",
-          "ck.message.create",
-          "ck.invite.create",
-          "ck.invite.accept",
-          "ck.invite.third_party",
-          "ck.invite.claim",
-          "ck.invite.revoke",
-          "ck.capability.grant",
-          "ck.capability.revoke"
+          "ak.realm.create",
+          "ak.member.state",
+          "ak.strand.create",
+          "ak.message.create",
+          "ak.invite.create",
+          "ak.invite.accept",
+          "ak.invite.third_party",
+          "ak.invite.claim",
+          "ak.invite.revoke",
+          "ak.capability.grant",
+          "ak.capability.revoke"
         ],
         "rejected_event_kind_scopes": [],
         "required_schemas": [
-          "ck.schema.account_subscribe_frame.v1",
-          "ck.schema.snapshot.v1",
-          "ck.schema.invite.v1",
-          "ck.schema.capability.v1",
-          "ck.schema.grant_constraint.v1"
+          "ak.schema.account_subscribe_frame.v1",
+          "ak.schema.snapshot.v1",
+          "ak.schema.invite.v1",
+          "ak.schema.capability.v1",
+          "ak.schema.grant_constraint.v1"
         ],
         "required_constraint_types": [
           "temporal",
@@ -226,7 +226,7 @@
           "zh/conformance/conformance-vectors.md"
         ],
         "reducer_invariants": [
-          "ck.invite.claim is accepted only by the destination Realm reducer",
+          "ak.invite.claim is accepted only by the destination Realm reducer",
           "token_commitment must match a pending unexpired ck.invite.third_party invite",
           "verification_service_did allowlist is re-evaluated against current effective Realm policy",
           "(invite_id, claim_nonce) and token_commitment are one-time reducer state constraints",
@@ -244,26 +244,26 @@
       }
     },
     {
-      "profile_id": "ck.profile.federation_minimal.v1",
+      "profile_id": "ak.profile.federation_minimal.v1",
       "status": "active",
       "digest_input": {
-        "profile_id": "ck.profile.federation_minimal.v1",
+        "profile_id": "ak.profile.federation_minimal.v1",
         "inherits": [
-          "ck.profile.core_event_store.v1"
+          "ak.profile.core_event_store.v1"
         ],
         "required_event_kinds": [
-          "ck.realm.create",
-          "ck.member.state"
+          "ak.realm.create",
+          "ak.member.state"
         ],
         "rejected_event_kind_scopes": [
           "wire_scope:actor_private_event",
           "wire_scope:ephemeral_event"
         ],
         "required_schemas": [
-          "ck.schema.event.v1",
-          "ck.schema.event_payload.v1",
-          "ck.schema.cursor.v1",
-          "ck.schema.seal.v1"
+          "ak.schema.event.v1",
+          "ak.schema.event_payload.v1",
+          "ak.schema.cursor.v1",
+          "ak.schema.seal.v1"
         ],
         "required_constraint_types": [
           "temporal",

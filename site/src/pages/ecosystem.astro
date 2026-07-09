@@ -145,46 +145,46 @@ const tiers: Tier[] = [
 >
   {
     tiers.map((tier) => (
-      <section class="ck-section" id={tier.id}>
-        <div class="ck-shell">
-          <div class="ck-section-head">
+      <section class="ak.section" id={tier.id}>
+        <div class="ak.shell">
+          <div class="ak.section-head">
             <h2>{tier.title}</h2>
             <p>{tier.blurb}</p>
           </div>
-          <div class="ck-eco-grid">
+          <div class="ak.eco-grid">
             {tier.projects.map((p) =>
               p.href ? (
-                <a class="ck-eco-card ck-eco-card--link" href={p.href}>
-                  <header class="ck-eco-card-head">
-                    <span class="ck-eco-name">{p.name}</span>
+                <a class="ak.eco-card ck-eco-card--link" href={p.href}>
+                  <header class="ak.eco-card-head">
+                    <span class="ak.eco-name">{p.name}</span>
                     <span
                       class={`ck-eco-status ck-eco-status--${p.status}`}
                       title={statusLabel[p.status]}
                     >
-                      <span class="ck-eco-status-dot" aria-hidden="true" />
+                      <span class="ak.eco-status-dot" aria-hidden="true" />
                       {statusLabel[p.status]}
                     </span>
                   </header>
-                  <div class="ck-eco-tag">{p.tag}</div>
-                  <p class="ck-eco-body">{p.body}</p>
-                  <span class="ck-eco-more" aria-hidden="true">
+                  <div class="ak.eco-tag">{p.tag}</div>
+                  <p class="ak.eco-body">{p.body}</p>
+                  <span class="ak.eco-more" aria-hidden="true">
                     浏览 →
                   </span>
                 </a>
               ) : (
-                <article class="ck-eco-card">
-                  <header class="ck-eco-card-head">
-                    <span class="ck-eco-name">{p.name}</span>
+                <article class="ak.eco-card">
+                  <header class="ak.eco-card-head">
+                    <span class="ak.eco-name">{p.name}</span>
                     <span
                       class={`ck-eco-status ck-eco-status--${p.status}`}
                       title={statusLabel[p.status]}
                     >
-                      <span class="ck-eco-status-dot" aria-hidden="true" />
+                      <span class="ak.eco-status-dot" aria-hidden="true" />
                       {statusLabel[p.status]}
                     </span>
                   </header>
-                  <div class="ck-eco-tag">{p.tag}</div>
-                  <p class="ck-eco-body">{p.body}</p>
+                  <div class="ak.eco-tag">{p.tag}</div>
+                  <p class="ak.eco-body">{p.body}</p>
                 </article>
               ),
             )}

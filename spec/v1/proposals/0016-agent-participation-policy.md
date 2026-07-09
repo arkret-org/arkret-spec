@@ -113,7 +113,7 @@ ck.agent.participation.v1:<agent_principal_id>:<scope_key>
 
 ```json
 {
-  "type": "ck.agent.participation.v1",
+  "type": "ak.agent.participation.v1",
   "agent_principal_id": "did:webvh:...:agents:summary-assistant",
   "scope": { "kind": "strand", "realm_id": "ak:realm:...", "strand_id": "ak:strand:..." },
   "selection": {

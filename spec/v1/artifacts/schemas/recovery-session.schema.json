@@ -118,7 +118,7 @@
       ],
       "properties": {
         "schema": {
-          "const": "ck.schema.recovery_session.v1"
+          "const": "ak.schema.recovery_session.v1"
         },
         "recovery_session_id": {
           "$ref": "#/$defs/recovery_session_id"
@@ -678,7 +678,7 @@
       ],
       "properties": {
         "type": {
-          "const": "ck.identity.recovery_proof.v1"
+          "const": "ak.identity.recovery_proof.v1"
         },
         "kind": {
           "const": "principal_signing"
@@ -739,7 +739,7 @@
       ],
       "properties": {
         "type": {
-          "const": "ck.identity.recovery_proof.v1"
+          "const": "ak.identity.recovery_proof.v1"
         },
         "kind": {
           "$ref": "#/$defs/proof_kind"

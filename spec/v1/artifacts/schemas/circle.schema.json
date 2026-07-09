@@ -23,7 +23,7 @@
       "$ref": "./common-ids.schema.json#/$defs/circle_id"
     },
     "schema": {
-      "const": "ck.schema.circle.v1"
+      "const": "ak.schema.circle.v1"
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id",

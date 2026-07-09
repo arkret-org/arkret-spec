@@ -4,7 +4,7 @@
   "generated_at": "2026-07-02T00:00:00Z",
   "generated_from": "registry/contract-catalog.json",
   "generated_by": "tools/artifact_pipeline.py",
-  "namespace": "ck",
+  "namespace": "ak.,
   "storage_rules": [
     "Protocol wire objects, canonical JSON, signatures, hashes, fixtures, logs, API DTOs, and cross-service references MUST use the full typed form ak:<kind>:<uuid> unless a special form below applies.",
     "Storage implementations MAY store raw 16-byte UUID values (e.g. PostgreSQL `uuid` column) without the ak:<kind>: prefix when the table, column, or explicit kind field already supplies the type context.",

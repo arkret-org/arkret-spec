@@ -1,7 +1,7 @@
 {
   "suite": "key_backup_schema_validation",
   "fixture_kind": "schema_only",
-  "profile": "ck.profile.key_backup.memory_hard.v1",
+  "profile": "ak.profile.key_backup.memory_hard.v1",
   "version": "2026-05-26",
   "description": "Schema-only positive and negative wire-form validation cases for key backup and recovery contracts. Placeholder nonce/ciphertext/signature values are intentional and MUST NOT be treated as cryptographic conformance vectors. Covers ck.schema.key_backup.v1 series chain rules (genesis vs successor), passphrase_kdf nonce_salt, Argon2id memory-hard floor, PBKDF2 degraded-profile requirement, mixed_secret_storage policy gate, auth_data.signed_fields coverage required for series fields, and minimal ck.schema.recovery_policy.v1 / ck.schema.recovery_receipt.v1 binding cases. Per identity/key-management.md §7.6 / §8 and crypto-media/device-lifecycle.md §12 / §15. Lint runs tools/lint_artifacts.py against schema_validation_cases[]. Real AEAD/HPKE/signature transcript vectors belong in a separate crypto fixture with reproducible key material and canonical bytes.",
   "schema_validation_cases": [
@@ -31,7 +31,7 @@
           },
           "aead": {
             "name": "xchacha20_poly1305",
-            "aead_profile": "ck.aead.xchacha20_poly1305.v1",
+            "aead_profile": "ak.aead.xchacha20_poly1305.v1",
             "nonce": "nonce-base64url-placeholder",
             "nonce_salt": "noncesaltnoncesaltnoncesalt0000"
           },
@@ -41,7 +41,7 @@
           "hkdf_info": "arkret-key-backup/secret_storage/passphrase_kdf/v1",
           "subdomain": "passphrase_kdf",
           "aead_aad": {
-            "schema": "ck.schema.key_backup.v1",
+            "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
@@ -109,7 +109,7 @@
           "recipient_key_ref": "mls_group_secrets_backup_key",
           "aead": {
             "name": "xchacha20_poly1305",
-            "aead_profile": "ck.aead.xchacha20_poly1305.v1",
+            "aead_profile": "ak.aead.xchacha20_poly1305.v1",
             "nonce": "nonce-base64url-placeholder"
           }
         },
@@ -117,7 +117,7 @@
           "hkdf_info": "arkret-key-backup/mls_history/secret_storage_key/v1",
           "subdomain": "secret_storage_key",
           "aead_aad": {
-            "schema": "ck.schema.key_backup.v1",
+            "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "mls_history",
@@ -199,7 +199,7 @@
           "hkdf_info": "arkret-key-backup/mls_history/passphrase_kdf/v1",
           "subdomain": "passphrase_kdf",
           "aead_aad": {
-            "schema": "ck.schema.key_backup.v1",
+            "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "mls_history",
@@ -270,7 +270,7 @@
           "hkdf_info": "arkret-key-backup/mls_history/device_snapshot_secret/v1",
           "subdomain": "device_snapshot_secret",
           "aead_aad": {
-            "schema": "ck.schema.key_backup.v1",
+            "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "mls_history",
@@ -333,7 +333,7 @@
           "recipient_key_ref": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#recovery",
           "aead": {
             "name": "chacha20_poly1305",
-            "aead_profile": "ck.aead.chacha20_poly1305.v1",
+            "aead_profile": "ak.aead.chacha20_poly1305.v1",
             "enc": "hpke-enc-base64url-placeholder"
           }
         },
@@ -341,7 +341,7 @@
           "hkdf_info": "arkret-key-backup/mls_history/recovery_public_key/v1",
           "subdomain": "recovery_public_key",
           "aead_aad": {
-            "schema": "ck.schema.key_backup.v1",
+            "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "mls_history",
@@ -406,14 +406,14 @@
           "recipient_key_ref": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#recovery",
           "aead": {
             "name": "chacha20_poly1305",
-            "aead_profile": "ck.aead.chacha20_poly1305.v1"
+            "aead_profile": "ak.aead.chacha20_poly1305.v1"
           }
         },
         "domain_separation": {
           "hkdf_info": "arkret-key-backup/mls_history/recovery_public_key/v1",
           "subdomain": "recovery_public_key",
           "aead_aad": {
-            "schema": "ck.schema.key_backup.v1",
+            "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "mls_history",
@@ -494,7 +494,7 @@
           "hkdf_info": "arkret-key-backup/did_recovery/passphrase_kdf/v1",
           "subdomain": "passphrase_kdf",
           "aead_aad": {
-            "schema": "ck.schema.key_backup.v1",
+            "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "did_recovery",
@@ -567,7 +567,7 @@
           },
           "aead": {
             "name": "xchacha20_poly1305",
-            "aead_profile": "ck.aead.xchacha20_poly1305.v1",
+            "aead_profile": "ak.aead.xchacha20_poly1305.v1",
             "nonce": "nonce-base64url-placeholder",
             "nonce_salt": "noncesaltnoncesaltnoncesalt1111"
           },
@@ -577,7 +577,7 @@
           "hkdf_info": "arkret-key-backup/secret_storage/passphrase_kdf/v1",
           "subdomain": "passphrase_kdf",
           "aead_aad": {
-            "schema": "ck.schema.key_backup.v1",
+            "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
@@ -660,7 +660,7 @@
           "hkdf_info": "arkret-key-backup/secret_storage/passphrase_kdf/v1",
           "subdomain": "passphrase_kdf",
           "aead_aad": {
-            "schema": "ck.schema.key_backup.v1",
+            "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
@@ -735,7 +735,7 @@
           "hkdf_info": "arkret-key-backup/secret_storage/passphrase_kdf/v1",
           "subdomain": "passphrase_kdf",
           "aead_aad": {
-            "schema": "ck.schema.key_backup.v1",
+            "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
@@ -810,7 +810,7 @@
           "hkdf_info": "arkret-key-backup/secret_storage/passphrase_kdf/v1",
           "subdomain": "passphrase_kdf",
           "aead_aad": {
-            "schema": "ck.schema.key_backup.v1",
+            "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
@@ -885,7 +885,7 @@
           "hkdf_info": "arkret-key-backup/secret_storage/passphrase_kdf/v1",
           "subdomain": "passphrase_kdf",
           "aead_aad": {
-            "schema": "ck.schema.key_backup.v1",
+            "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
@@ -959,7 +959,7 @@
           "hkdf_info": "arkret-key-backup/secret_storage/passphrase_kdf/v1",
           "subdomain": "passphrase_kdf",
           "aead_aad": {
-            "schema": "ck.schema.key_backup.v1",
+            "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
@@ -1035,7 +1035,7 @@
           "hkdf_info": "arkret-key-backup/secret_storage/passphrase_kdf/v1",
           "subdomain": "passphrase_kdf",
           "aead_aad": {
-            "schema": "ck.schema.key_backup.v1",
+            "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
@@ -1112,7 +1112,7 @@
           "hkdf_info": "arkret-key-backup/secret_storage/passphrase_kdf/v1",
           "subdomain": "passphrase_kdf",
           "aead_aad": {
-            "schema": "ck.schema.key_backup.v1",
+            "schema": "ak.schema.key_backup.v1",
             "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
             "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
             "backup_class": "secret_storage",
@@ -1162,7 +1162,7 @@
       "schema_ref": "schemas/recovery-policy.schema.json",
       "expect_valid": true,
       "instance": {
-        "schema": "ck.schema.recovery_policy.v1",
+        "schema": "ak.schema.recovery_policy.v1",
         "policy_id": "ak:policy:01964140-0000-7000-8000-000000000000",
         "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "version": 1,
@@ -1220,7 +1220,7 @@
       "expect_valid": false,
       "first_expected_error": "$: 'supersedes' is a required property",
       "instance": {
-        "schema": "ck.schema.recovery_policy.v1",
+        "schema": "ak.schema.recovery_policy.v1",
         "policy_id": "ak:policy:01964140-0000-7000-8000-000000000001",
         "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "version": 2,
@@ -1259,7 +1259,7 @@
       "schema_ref": "schemas/recovery-policy.schema.json",
       "expect_valid": true,
       "instance": {
-        "schema": "ck.schema.recovery_policy.v1",
+        "schema": "ak.schema.recovery_policy.v1",
         "policy_id": "ak:policy:01964140-0000-7000-8000-000000000002",
         "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "version": 2,
@@ -1291,7 +1291,7 @@
       "schema_ref": "schemas/recovery-session.schema.json",
       "expect_valid": true,
       "instance": {
-        "schema": "ck.schema.recovery_session.v1",
+        "schema": "ak.schema.recovery_session.v1",
         "recovery_session_id": "ak:recovery_session:01964142-0000-7000-8000-000000000000",
         "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "requesting_device_id": "ak:device:01964139-0000-7000-8000-000000000000",
@@ -1311,7 +1311,7 @@
       "schema_ref": "schemas/recovery-session.schema.json#/$defs/principal_signing_transcript",
       "expect_valid": true,
       "instance": {
-        "type": "ck.identity.recovery_proof.v1",
+        "type": "ak.identity.recovery_proof.v1",
         "kind": "principal_signing",
         "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "requesting_device_id": "ak:device:01964139-0000-7000-8000-000000000000",
@@ -1330,7 +1330,7 @@
       "schema_ref": "schemas/recovery-receipt.schema.json",
       "expect_valid": true,
       "instance": {
-        "schema": "ck.schema.recovery_receipt.v1",
+        "schema": "ak.schema.recovery_receipt.v1",
         "receipt_id": "ak:receipt:01964141-0000-7000-8000-000000000000",
         "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "recovery_session_id": "ak:recovery_session:01964142-0000-7000-8000-000000000000",
@@ -1388,7 +1388,7 @@
       "expect_valid": false,
       "first_expected_error": "$.backup_classes_unlocked[0]: 'series_id' is a required property",
       "instance": {
-        "schema": "ck.schema.recovery_receipt.v1",
+        "schema": "ak.schema.recovery_receipt.v1",
         "receipt_id": "ak:receipt:01964141-0000-7000-8000-000000000001",
         "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "recovery_session_id": "ak:recovery_session:01964142-0000-7000-8000-000000000001",
@@ -1444,7 +1444,7 @@
       "schema_ref": "schemas/key-backup-active-series.schema.json",
       "expect_valid": true,
       "instance": {
-        "schema": "ck.schema.key_backup_active_series.v1",
+        "schema": "ak.schema.key_backup_active_series.v1",
         "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "backup_class": "secret_storage",
         "active_series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
@@ -1478,7 +1478,7 @@
       "schema_ref": "schemas/key-backup-unlock-proof.schema.json",
       "expect_valid": true,
       "instance": {
-        "schema": "ck.schema.key_backup_unlock_proof.v1",
+        "schema": "ak.schema.key_backup_unlock_proof.v1",
         "recovery_session_id": "ak:recovery_session:01964142-0000-7000-8000-000000000002",
         "principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
         "requesting_device_id": "ak:device:01964139-0000-7000-8000-000000000000",
@@ -1514,7 +1514,7 @@
       "schema_ref": "schemas/key-backup-plaintext.schema.json",
       "expect_valid": true,
       "instance": {
-        "schema": "ck.schema.key_backup_plaintext.v1",
+        "schema": "ak.schema.key_backup_plaintext.v1",
         "backup_id": "ak:backup:01964137-1000-7000-8000-000000000001",
         "backup_class": "secret_storage",
         "series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",

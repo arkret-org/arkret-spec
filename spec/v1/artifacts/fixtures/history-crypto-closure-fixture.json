@@ -1,19 +1,19 @@
 {
-  "profile": "ck.profile.e2ee_client.v1",
+  "profile": "ak.profile.e2ee_client.v1",
   "version": "2026-06-19",
   "suite": "history_crypto_closure",
   "runner": "cotest::conformance::history_crypto_closure",
   "covers_vectors": [
-    "ck.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1",
-    "ck.vector.disappearing.read_trigger_anonymous_aggregate.v1",
-    "ck.vector.disappearing.read_trigger_idempotent_replay.v1",
-    "ck.vector.disappearing.on_last_read_offline_window.v1",
-    "ck.vector.preview.token_scoped_stripped_state.v1",
-    "ck.vector.history_sharing.e2ee_prejoin_key_share_policy.v1"
+    "ak.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1",
+    "ak.vector.disappearing.read_trigger_anonymous_aggregate.v1",
+    "ak.vector.disappearing.read_trigger_idempotent_replay.v1",
+    "ak.vector.disappearing.on_last_read_offline_window.v1",
+    "ak.vector.preview.token_scoped_stripped_state.v1",
+    "ak.vector.history_sharing.e2ee_prejoin_key_share_policy.v1"
   ],
   "cases": [
     {
-      "vector_id": "ck.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1",
+      "vector_id": "ak.vector.e2ee.late_key_recovery.t0_deterministic_visibility.v1",
       "assertions": [
         "late_recovery_decision_uses_t0_visibility",
         "arrival_order_does_not_change_decision",
@@ -79,7 +79,7 @@
       ]
     },
     {
-      "vector_id": "ck.vector.disappearing.read_trigger_anonymous_aggregate.v1",
+      "vector_id": "ak.vector.disappearing.read_trigger_anonymous_aggregate.v1",
       "assertions": [
         "first_read_anchor_set_once",
         "projection_contains_only_aggregate_expiry_metadata",
@@ -127,7 +127,7 @@
       }
     },
     {
-      "vector_id": "ck.vector.disappearing.read_trigger_idempotent_replay.v1",
+      "vector_id": "ak.vector.disappearing.read_trigger_idempotent_replay.v1",
       "assertions": [
         "principal_level_contribution_dedupes_devices",
         "duplicate_replay_does_not_refresh_anchor",
@@ -178,7 +178,7 @@
       }
     },
     {
-      "vector_id": "ck.vector.disappearing.on_last_read_offline_window.v1",
+      "vector_id": "ak.vector.disappearing.on_last_read_offline_window.v1",
       "assertions": [
         "multi_device_principal_counts_once",
         "offline_unreachable_reader_does_not_block_after_window",
@@ -220,7 +220,7 @@
       }
     },
     {
-      "vector_id": "ck.vector.preview.token_scoped_stripped_state.v1",
+      "vector_id": "ak.vector.preview.token_scoped_stripped_state.v1",
       "assertions": [
         "preview_token_returns_only_policy_allowed_fields",
         "forbidden_history_and_grant_fields_omitted",
@@ -289,7 +289,7 @@
       ]
     },
     {
-      "vector_id": "ck.vector.history_sharing.e2ee_prejoin_key_share_policy.v1",
+      "vector_id": "ak.vector.history_sharing.e2ee_prejoin_key_share_policy.v1",
       "assertions": [
         "history_visibility_shared_alone_does_not_authorize_key_share",
         "explicit_history_sharing_policy_allows_bound_key_share",

@@ -18,7 +18,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "ck.schema.erasure_receipt.v1"
+      "const": "ak.schema.erasure_receipt.v1"
     },
     "receipt_id": {
       "type": "string",
@@ -270,7 +270,7 @@
       ],
       "properties": {
         "stub_schema": {
-          "const": "ck.schema.erasure_verification_stub.v1"
+          "const": "ak.schema.erasure_verification_stub.v1"
         },
         "subject": {
           "type": "object",

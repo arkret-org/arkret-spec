@@ -20,7 +20,7 @@ Realm 可通过 state event 声明策略服务：
 
 ```json
 {
-  "kind": "ck.realm.policy_server",
+  "kind": "ak.realm.policy_server",
   "payload": {
     "server_id": "did:webvh:z9oyrNdJAoqkAh5Remo6dZUdV:policy.example.com",
     "endpoint": "https://policy.example.com/_arkret/self/policy/check",
@@ -38,10 +38,10 @@ Realm 可通过 state event 声明策略服务：
       "federation"
     ],
     "policy_sources": [
-      {"kind": "ck.realm.moderation_policy"},
-      {"kind": "ck.organization.moderation_policy"}
+      {"kind": "ak.realm.moderation_policy"},
+      {"kind": "ak.organization.moderation_policy"}
     ],
-    "abuse_profile_ref": "ck.policy:abuse-v1",
+    "abuse_profile_ref": "ak.policy:abuse-v1",
     "fail_mode": "soft_deny",
     "cache_ttl_seconds": 300
   }
@@ -97,7 +97,7 @@ Content-Type: application/json
   "request_id": "polreq_01",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-  "action": "ck.message.create",
+  "action": "ak.message.create",
   "actor_id": "did:webvh:...",
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "source": {
@@ -107,7 +107,7 @@ Content-Type: application/json
     "signed_transport": true
   },
   "event_preview": {
-    "kind": "ck.message.create",
+    "kind": "ak.message.create",
     "content_digest": "sha256:...",
     "redacted_content": {
       "mentions": ["did:webvh:z4Uy7eEwDuHWSxMT2dHWEWPip:bob.example.com"],
@@ -166,7 +166,7 @@ Content-Type: application/json
   "bound_to": {
     "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
     "actor_id": "did:webvh:...",
-    "action": "ck.message.create",
+    "action": "ak.message.create",
     "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "policy_server_id": "did:webvh:z9oyrNdJAoqkAh5Remo6dZUdV:policy.example.com"
   },

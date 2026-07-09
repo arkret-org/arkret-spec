@@ -1,6 +1,6 @@
 {
   "suite": "event_envelope_negative",
-  "profile": "ck.profile.core_event_store.v1",
+  "profile": "ak.profile.core_event_store.v1",
   "version": "2026-07-03",
   "notes": "Cases whose input carries a `generator` object instead of a literal event are constructed by the runner at execution time: starting from the embedded `base_event`, the runner applies the generator rule (e.g. inflating one field, key, or value until the canonical envelope reaches `target_canonical_bytes`) and then submits the generated envelope. This keeps megabyte-scale adversarial payloads out of the fixture file while keeping the reject assertion executable. Size limits are defined in zh/conformance/scalability-constraints.md section 2 (1 MiB = 1048576 bytes canonical envelope cap).",
   "cases": [
@@ -20,7 +20,7 @@
           "payload": {
             "strand_id": "ak:strand:019a7140-0000-7000-8000-000000000000",
             "content": {
-              "kind": "ck.content.text",
+              "kind": "ak.content.text",
               "body": "hello"
             }
           },
@@ -38,7 +38,7 @@
       "input": {
         "event": {
           "event_id": "ak:event:019a6ab0-0000-7000-8000-000000000000",
-          "kind": "ck.message.create",
+          "kind": "ak.message.create",
           "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "actor_seq": 2,
@@ -57,7 +57,7 @@
           "payload": {
             "strand_id": "ak:strand:019a7140-0000-7000-8000-000000000000",
             "content": {
-              "kind": "ck.content.text",
+              "kind": "ak.content.text",
               "body": "hello"
             }
           },
@@ -65,7 +65,7 @@
           "requirements": {
             "critical_extensions": [
               {
-                "id": "ck.feature.future_required.v1",
+                "id": "ak.feature.future_required.v1",
                 "extension_scope": "reducer",
                 "fail_closed": true
               }
@@ -73,7 +73,7 @@
           }
         },
         "supported_features": [
-          "ck.feature.detached_jws.v1"
+          "ak.feature.detached_jws.v1"
         ]
       },
       "expected": {
@@ -87,7 +87,7 @@
       "input": {
         "event": {
           "event_id": "ak:event:019a6ac0-0000-7000-8000-000000000000",
-          "kind": "ck.message.create",
+          "kind": "ak.message.create",
           "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "actor_seq": 3,
@@ -106,7 +106,7 @@
           "payload": {
             "strand_id": "ak:strand:019a7140-0000-7000-8000-000000000000",
             "content": {
-              "kind": "ck.content.text",
+              "kind": "ak.content.text",
               "body": "tampered"
             }
           },
@@ -139,7 +139,7 @@
         },
         "event": {
           "event_id": "ak:event:019a6ad0-0000-7000-8000-000000000000",
-          "kind": "ck.message.create",
+          "kind": "ak.message.create",
           "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "actor_seq": 9,
@@ -158,7 +158,7 @@
           "payload": {
             "strand_id": "ak:strand:019a7140-0000-7000-8000-000000000000",
             "content": {
-              "kind": "ck.content.text",
+              "kind": "ak.content.text",
               "body": "rollback"
             }
           },
@@ -176,7 +176,7 @@
       "input": {
         "event": {
           "event_id": "ak:event:019a6ae0-0000-7000-8000-000000000000",
-          "kind": "ck.message.create",
+          "kind": "ak.message.create",
           "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "actor_seq": 11,
@@ -323,7 +323,7 @@
           "payload": {
             "strand_id": "ak:strand:019a7140-0000-7000-8000-000000000000",
             "content": {
-              "kind": "ck.content.text",
+              "kind": "ak.content.text",
               "body": "too many prev refs"
             }
           },
@@ -341,7 +341,7 @@
       "input": {
         "event": {
           "event_id": "ak:event:019a6b00-0000-7000-8000-000000000000",
-          "kind": "ck.message.create",
+          "kind": "ak.message.create",
           "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "actor_seq": 12,
@@ -353,7 +353,7 @@
           "payload": {
             "strand_id": "ak:strand:019a7140-0000-7000-8000-000000000000",
             "content": {
-              "kind": "ck.content.text",
+              "kind": "ak.content.text",
               "body": "missing auth refs"
             }
           },
@@ -371,7 +371,7 @@
       "input": {
         "event": {
           "event_id": "ak:event:019a6bd0-0000-7000-8000-000000000000",
-          "kind": "ck.message.create",
+          "kind": "ak.message.create",
           "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "actor_seq": 13,
@@ -390,7 +390,7 @@
           "payload": {
             "strand_id": "ak:strand:019a7140-0000-7000-8000-000000000000",
             "content": {
-              "kind": "ck.content.text",
+              "kind": "ak.content.text",
               "body": "self ref"
             }
           },
@@ -427,7 +427,7 @@
         "wire_scope": "durable_event",
         "event": {
           "event_id": "ak:event:019a6b30-0000-7000-8000-000000000000",
-          "kind": "ck.read_cursor.advance",
+          "kind": "ak.read_cursor.advance",
           "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "actor_seq": 14,
@@ -461,7 +461,7 @@
         "wire_scope": "durable_event",
         "event": {
           "event_id": "ak:event:019a6b40-0000-7000-8000-000000000000",
-          "kind": "ck.typing",
+          "kind": "ak.typing",
           "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "actor_seq": 15,
@@ -501,7 +501,7 @@
           "rule": "runner repeats filler_char at filler_json_pointer until the canonical envelope byte length reaches target_canonical_bytes (1 MiB + 1)",
           "base_event": {
             "event_id": "ak:event:019a6b50-0000-7000-8000-000000000000",
-            "kind": "ck.message.create",
+            "kind": "ak.message.create",
             "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
             "actor_id": "did:webvh:z6mkfixture:alice.example",
             "actor_seq": 16,
@@ -520,7 +520,7 @@
             "payload": {
               "strand_id": "ak:strand:019a7140-0000-7000-8000-000000000000",
               "content": {
-                "kind": "ck.content.text",
+                "kind": "ak.content.text",
                 "body": ""
               }
             },
@@ -547,7 +547,7 @@
           "rule": "runner inserts into the object at filler_json_pointer a member whose KEY is filler_char repeated until the canonical envelope byte length reaches target_canonical_bytes; the member value is the integer 1",
           "base_event": {
             "event_id": "ak:event:019a6b60-0000-7000-8000-000000000000",
-            "kind": "ck.message.create",
+            "kind": "ak.message.create",
             "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
             "actor_id": "did:webvh:z6mkfixture:alice.example",
             "actor_seq": 17,
@@ -566,7 +566,7 @@
             "payload": {
               "strand_id": "ak:strand:019a7140-0000-7000-8000-000000000000",
               "content": {
-                "kind": "ck.content.text",
+                "kind": "ak.content.text",
                 "body": "oversized key host"
               }
             },
@@ -593,7 +593,7 @@
           "rule": "runner replaces the string at filler_json_pointer with filler_char repeated until the canonical envelope byte length reaches target_canonical_bytes",
           "base_event": {
             "event_id": "ak:event:019a6b70-0000-7000-8000-000000000000",
-            "kind": "ck.message.create",
+            "kind": "ak.message.create",
             "realm_id": "ak:realm:019a7360-0000-7000-8000-000000000000",
             "actor_id": "did:webvh:z6mkfixture:alice.example",
             "actor_seq": 18,
@@ -612,7 +612,7 @@
             "payload": {
               "strand_id": "ak:strand:019a7140-0000-7000-8000-000000000000",
               "content": {
-                "kind": "ck.content.text",
+                "kind": "ak.content.text",
                 "body": ""
               }
             },

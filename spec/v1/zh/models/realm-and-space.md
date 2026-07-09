@@ -165,10 +165,10 @@ Schema id: `ck.schema.realm.v1`
 ```json schema=schemas/realm.schema.json
 {
   "id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-  "schema": "ck.schema.realm.v1",
+  "schema": "ak.schema.realm.v1",
   "title": "Launch Plan Confidential Realm",
   "trust_domain": "ak:trust_domain:did.webvh.acme.example",
-  "schema_refs": ["ck.schema.realm.v1"],
+  "schema_refs": ["ak.schema.realm.v1"],
   "default_discoverability": "invite_only",
   "default_join_rule": "invite",
   "history_visibility": "joined",
@@ -195,7 +195,7 @@ Schema id: `ck.schema.realm.v1`
 3. **写入 `ck.component.realm.create.v1` cell**（ordered_log，bottom=expose，genesis singleton）。该 cell 记录 accepted create 条目用于审计 / backfill；reducer 仍 MUST 把同一 Realm id 的第二条 create 拒绝为 `realm_already_exists`，不得把 duplicate create 作为普通 log append 接受。
 4. **接受显式 founding grant**：同一 ordered submit batch 中紧随 create 的下一条 Event MUST 是一条 `ck.capability.grant`，其 envelope `actor_id` 与 payload `issuer`（若 payload 形态显式承载 issuer）均等于 `payload.object.created_by`，且 grant 必须逐字满足以下封闭形态：
    - `subject == payload.object.created_by`；
-   - `actions[]` 作为集合恰为 `{ "ck.realm.admin", "ck.capability.grant", "ck.capability.revoke" }`，不得增加、缺少或用聚合别名替代；
+   - `actions[]` 作为集合恰为 `{ "ak.realm.admin", "ck.capability.grant", "ck.capability.revoke" }`，不得增加、缺少或用聚合别名替代；
    - `resources[]` 恰含一个 `{ "kind": "realm", "realm_id": <新 Realm id>, "match_scope": "realm_wide" }` selector；
    - 不得携带 `parent_grant_id`，不得携带放宽上述边界的 constraint / extension 字段；`grant_id` 仍按普通 typed-id 与唯一性规则生成。
 
@@ -510,7 +510,7 @@ Project Space：
 ```json schema=schemas/space.schema.json
 {
   "id": "ak:space:019640b6-8000-7000-8000-000000000000",
-  "schema": "ck.schema.space.v1",
+  "schema": "ak.schema.space.v1",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "default_realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "kind": "project",
@@ -525,7 +525,7 @@ Confidential sibling Space：
 ```json schema=schemas/space.schema.json
 {
   "id": "ak:space:019640c0-8000-7000-8000-000000000000",
-  "schema": "ck.schema.space.v1",
+  "schema": "ak.schema.space.v1",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "default_realm_id": "ak:realm:019641aa-0000-7000-8000-000000000000",
   "parent_space_id": "ak:space:019640a0-8000-7000-8000-000000000000",

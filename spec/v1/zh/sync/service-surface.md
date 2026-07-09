@@ -145,22 +145,22 @@ GET /_arkret/describe
   "service_type": "principal_server",
   "protocol_version": "1.0",
   "supported_profiles": [
-    "ck.profile.principal_server.v1"
+    "ak.profile.principal_server.v1"
   ],
   "supported_operations": [
-    "ck.server.query.describe",
-    "ck.self.events.command.submit",
-    "ck.self.events.query.scan",
-    "ck.peer.events.command.submit",
-    "ck.peer.events.query.scan",
-    "ck.peer.events.query.resolve",
-    "ck.peer.events.query.frontier",
-    "ck.peer.invites.command.submit",
-    "ck.peer.snapshot.query.manifest_head",
-    "ck.open.invite_locator.query.resolve",
-    "ck.self.account.query.viewer",
-    "ck.self.account.command.update_profile",
-    "ck.self.account.stream.subscribe"
+    "ak.server.query.describe",
+    "ak.self.events.command.submit",
+    "ak.self.events.query.scan",
+    "ak.peer.events.command.submit",
+    "ak.peer.events.query.scan",
+    "ak.peer.events.query.resolve",
+    "ak.peer.events.query.frontier",
+    "ak.peer.invites.command.submit",
+    "ak.peer.snapshot.query.manifest_head",
+    "ak.open.invite_locator.query.resolve",
+    "ak.self.account.query.viewer",
+    "ak.self.account.command.update_profile",
+    "ak.self.account.stream.subscribe"
   ],
   "supported_bindings": [
     {
@@ -170,7 +170,7 @@ GET /_arkret/describe
     {
       "kind": "tus",
       "base_url": "https://alice.example.net/_arkret/self/blob/resumable",
-      "operations": ["ck.self.blob.upload.create"],
+      "operations": ["ak.self.blob.upload.create"],
       "extension_profile_required": null,
       "tus_version": ["1.0.0"],
       "tus_extensions": ["creation", "creation-with-upload", "checksum", "expiration", "termination"]
@@ -181,11 +181,11 @@ GET /_arkret/describe
     "snapshot",
     "invite_addressing",
     "notifications",
-    "ck.feature.blob.resumable_upload.tus.v1",
-    "ck.feature.realm_key.peer_relay.v1",
-    "ck.feature.realm_key.backup_retrieval.v1",
-    "ck.feature.realm_key.archive_retrieval.v1",
-    "ck.feature.mls_exporter_aead.v1"
+    "ak.feature.blob.resumable_upload.tus.v1",
+    "ak.feature.realm_key.peer_relay.v1",
+    "ak.feature.realm_key.backup_retrieval.v1",
+    "ak.feature.realm_key.archive_retrieval.v1",
+    "ak.feature.mls_exporter_aead.v1"
   ],
   "x_invite_addressing": {
     "supported_introduction_kinds": [
@@ -223,7 +223,7 @@ GET /_arkret/describe
         "method": "oidc",
         "issuer": "https://auth.example.com",
         "openid_configuration": "https://auth.example.com/.well-known/openid-configuration",
-        "client_id": "ck-example-client",
+        "client_id": "ak.example-client",
         "scopes": ["openid", "profile"],
         "grant_exchange": {"proof_kind": "oidc_code_exchange"}
       },
@@ -256,7 +256,7 @@ GET /_arkret/describe
     "policy_version": "2026-05-02",
     "entries": [
       {
-        "operation_id": "ck.self.events.command.submit",
+        "operation_id": "ak.self.events.command.submit",
         "rate_limit_scope": ["service_did", "realm_id"],
         "window_seconds": 60,
         "max_requests": 120,
@@ -270,14 +270,14 @@ GET /_arkret/describe
   ],
   "claimed_profiles": [
     {
-      "profile_id": "ck.profile.principal_server.v1",
+      "profile_id": "ak.profile.principal_server.v1",
       "claim_kind": "self_claimed",
       "claimed_at": "2026-05-02T00:00:00Z"
     }
   ],
   "verified_profiles": [
     {
-      "profile_id": "ck.profile.core_event_store.v1",
+      "profile_id": "ak.profile.core_event_store.v1",
       "claim_kind": "conformance_verified",
       "verification_run_id": "verify-2026-05-02T000000Z",
       "artifact_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",

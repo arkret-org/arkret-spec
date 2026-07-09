@@ -73,19 +73,19 @@ TRUST_DOMAIN_JSON_DID_RE = re.compile(r'"trust_domain"\s*:\s*"did:')
 LEGACY_DID_METHOD_REGEX_RE = re.compile(r"\^did:\[a-z0-9:[.\-_\\]+")
 
 SECURITY_CLOSURE_VECTOR_IDS = {
-    "ck.vector.federation.idempotency_after_key_revoke.v1",
-    "ck.vector.webrtc.media_plaintext_downgrade.v1",
-    "ck.vector.identity_link.eager_invalidation.v1",
-    "ck.vector.identity_link.policy_tightening_invalidation.v1",
-    "ck.vector.late_key_recovery.removed_actor.v1",
-    "ck.vector.invite.oob_code_entropy.v1",
-    "ck.vector.invite.failure_indistinguishable.v1",
-    "ck.vector.invite.claim_reducer_state_machine.v1",
-    "ck.vector.consent.scope_cascade.v1",
-    "ck.vector.consent.cache_invalidation.v1",
-    "ck.vector.sync.soft_fail_reconcile.v1",
-    "ck.vector.lattice.lww_open_set.v1",
-    "ck.vector.e2ee_relaxed.window_exceeds_ceiling.v1",
+    "ak.vector.federation.idempotency_after_key_revoke.v1",
+    "ak.vector.webrtc.media_plaintext_downgrade.v1",
+    "ak.vector.identity_link.eager_invalidation.v1",
+    "ak.vector.identity_link.policy_tightening_invalidation.v1",
+    "ak.vector.late_key_recovery.removed_actor.v1",
+    "ak.vector.invite.oob_code_entropy.v1",
+    "ak.vector.invite.failure_indistinguishable.v1",
+    "ak.vector.invite.claim_reducer_state_machine.v1",
+    "ak.vector.consent.scope_cascade.v1",
+    "ak.vector.consent.cache_invalidation.v1",
+    "ak.vector.sync.soft_fail_reconcile.v1",
+    "ak.vector.lattice.lww_open_set.v1",
+    "ak.vector.e2ee_relaxed.window_exceeds_ceiling.v1",
 }
 
 REGISTRY_LATTICES = {
@@ -554,14 +554,14 @@ FORBIDDEN_NAMING_STRING_ALIASES = {
     "ak:txn:": "ak:transaction:",
     "ak:frank:": "ak:franking_proof:",
     "ak:rtcpart:": "ak:rtc_participant:",
-    "ck.agent.key.authorized": "ck.agent.key.authorize",
-    "ck.agent.key.revoked": "ck.agent.key.revoke",
-    "ck.agent.key.rotated": "ck.agent.key.rotate",
-    "ck.device.authorized": "ck.device.authorize",
-    "ck.device.revoked": "ck.device.revoke",
-    "ck.relation.delete": "ck.relation.tombstone",
-    "ck.read.marker": "ck.read.cursor",
-    "ck.schema.read_marker.v1": "ck.schema.read_cursor.v1",
+    "ak.agent.key.authorized": "ck.agent.key.authorize",
+    "ak.agent.key.revoked": "ck.agent.key.revoke",
+    "ak.agent.key.rotated": "ck.agent.key.rotate",
+    "ak.device.authorized": "ck.device.authorize",
+    "ak.device.revoked": "ck.device.revoke",
+    "ak.relation.delete": "ck.relation.tombstone",
+    "ak.read.marker": "ck.read.cursor",
+    "ak.schema.read_marker.v1": "ck.schema.read_cursor.v1",
     "or-set": "or_set",
     "mv-register": "mv_register",
     "cas-register": "cas_register",
@@ -595,12 +595,12 @@ FORBIDDEN_NAMING_STRING_ALIASES = {
     "prev_frontier_hash": "prev_frontier_digest",
     "constraint_hash": "constraint_digest",
     # verb_noun_bridge_collapse — capability action MUST equal target event kind
-    "ck.invite.create_third_party": "ck.invite.third_party",
-    "ck.policy.rule.manage": "ck.policy.rule",
-    "ck.policy.action.manage": "ck.policy.action",
-    "ck.realm.link.manage": "ck.realm.link",
-    "ck.realm.plaintext_visible_services.modify": "ck.realm.plaintext_visible_services",
-    "ck.realm.moderate": "ck.realm.moderation_policy",
+    "ak.invite.create_third_party": "ck.invite.third_party",
+    "ak.policy.rule.manage": "ck.policy.rule",
+    "ak.policy.action.manage": "ck.policy.action",
+    "ak.realm.link.manage": "ck.realm.link",
+    "ak.realm.plaintext_visible_services.modify": "ck.realm.plaintext_visible_services",
+    "ak.realm.moderate": "ck.realm.moderation_policy",
     "parent_ref": "parent_space_id",
     "default_realm_ref": "default_realm_id",
     "scope_ref": "scope_circle_id",
@@ -880,7 +880,7 @@ def check_content_composite_uses_parts(lint: Lint) -> None:
 
     def check_value(path: Path, value: Any, where: str) -> None:
         def on_object(obj: dict) -> None:
-            if obj.get("kind") != "ck.content.composite":
+            if obj.get("kind") != "ak.content.composite":
                 return
             if "blocks" in obj:
                 lint.fail(
@@ -1093,7 +1093,7 @@ def check_proposal_merge_manifest(lint: Lint) -> None:
         if not isinstance(row, dict):
             lint.fail(path, f"merged_proposals[{index}] must be an object")
             continue
-        ckp = row.get("ckp")
+        ckp = row.get("ak.")
         if not isinstance(ckp, str) or not CKP_ID_RE.fullmatch(ckp):
             lint.fail(path, f"merged_proposals[{index}].ckp must be CKP-NNNN")
             continue
@@ -1151,7 +1151,7 @@ def check_proposal_merge_manifest(lint: Lint) -> None:
         if not isinstance(fm, dict):
             lint.fail(proposal_path, "proposal missing frontmatter")
             continue
-        ckp = fm.get("ckp")
+        ckp = fm.get("ak.")
         status = fm.get("status")
         merged_to = fm.get("merged_to")
         if status == "accepted" and isinstance(merged_to, list) and merged_to:
@@ -1400,10 +1400,10 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
             values = profile_registry.get(key)
             if isinstance(values, list):
                 claimable_profiles.update(
-                    item for item in values if isinstance(item, str) and item.startswith("ck.profile.")
+                    item for item in values if isinstance(item, str) and item.startswith("ak.profile.")
                 )
     for _, value, _ in walk_json(profile_registry):
-        if isinstance(value, str) and value.startswith("ck.profile."):
+        if isinstance(value, str) and value.startswith("ak.profile."):
             if value in event_kinds:
                 continue
             profiles.add(value)
@@ -1533,7 +1533,7 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
     for key in ("implementation_profiles", "deployment_profiles", "hardening_profiles"):
         values = data.get(key, [])
         if isinstance(values, list):
-            declared_profiles.update(item for item in values if isinstance(item, str) and item.startswith("ck.profile."))
+            declared_profiles.update(item for item in values if isinstance(item, str) and item.startswith("ak.profile."))
 
     for profile_id in sorted(declared_profiles - set(requirements.keys())):
         lint.fail(path, f"profile_requirements missing declared profile: {profile_id}")
@@ -1767,10 +1767,10 @@ PAYLOAD_DISPATCH_REF_RE = re.compile(
 # Kind → payload-class pairs where the class name intentionally diverges from
 # the kind's last dot-segment (one-to-one semantic renames).
 KIND_PAYLOAD_RENAME_EXEMPTIONS: dict[str, str] = {
-    "ck.member.state": "membership_payload",
-    "ck.circle.update": "circle_patch_payload",
-    "ck.space.update": "space_patch_payload",
-    "ck.profile.space_override": "profile_realm_override_payload",
+    "ak.member.state": "membership_payload",
+    "ak.circle.update": "circle_patch_payload",
+    "ak.space.update": "space_patch_payload",
+    "ak.profile.space_override": "profile_realm_override_payload",
 }
 
 
@@ -1781,82 +1781,82 @@ KIND_PAYLOAD_RENAME_EXEMPTIONS: dict[str, str] = {
 # object_patch). Adding a new dispatch that doesn't match the last-segment
 # rule MUST add the pair here, forcing reviewer awareness of the rename.
 LEGACY_SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
-    ("ck.actor.discovery", "state_payload"),
-    ("ck.applet.discovery", "state_payload"),
-    ("ck.attestation.range_completeness", "audit_payload"),
-    ("ck.audit.epoch_key_destruction", "audit_payload"),
-    ("ck.audit.ryw_receipt", "audit_payload"),
-    ("ck.call.recording.start", "call_payload"),
-    ("ck.call.state", "call_payload"),
-    ("ck.capability.delegate", "capability_grant_payload"),
-    ("ck.capability.derived", "capability_grant_payload"),
-    ("ck.circle.archive", "object_lifecycle_payload"),
-    ("ck.circle.restore", "object_lifecycle_payload"),
-    ("ck.circle.tombstone", "object_lifecycle_payload"),
-    ("ck.container.move_item", "container_position_payload"),
-    ("ck.container.rebalance", "container_position_payload"),
-    ("ck.did.proof", "state_payload"),
-    ("ck.strand.archive", "object_lifecycle_payload"),
-    ("ck.strand.restore", "object_lifecycle_payload"),
-    ("ck.strand.tracks.update", "strand_patch_payload"),
-    ("ck.strand.update", "strand_patch_payload"),
-    ("ck.handle.discovery", "state_payload"),
-    ("ck.identity.accountability_grant", "state_payload"),
-    ("ck.identity.disclosure_policy", "state_payload"),
-    ("ck.identity.disclosure_receipt", "state_payload"),
-    ("ck.identity.presentation_request", "state_payload"),
-    ("ck.identity.presentation_response", "state_payload"),
-    ("ck.invite.accept", "invite_payload"),
-    ("ck.invite.cancel", "invite_payload"),
-    ("ck.invite.claim", "invite_payload"),
-    ("ck.invite.create", "invite_payload"),
-    ("ck.invite.revoke", "invite_payload"),
-    ("ck.invite.third_party", "invite_payload"),
-    ("ck.moderation.franking_proof", "audit_payload"),
-    ("ck.morph.archive", "object_lifecycle_payload"),
-    ("ck.morph.restore", "object_lifecycle_payload"),
-    ("ck.morph.update", "object_patch_payload"),
-    ("ck.organization.discovery", "state_payload"),
-    ("ck.organization.moderation_policy", "state_payload"),
-    ("ck.policy.action", "state_payload"),
-    ("ck.policy.rule", "state_payload"),
-    ("ck.policy.set", "state_payload"),
-    ("ck.profile.update", "object_patch_payload"),
-    ("ck.reaction.add", "reaction_payload"),
-    ("ck.reaction.remove", "reaction_payload"),
-    ("ck.realm.asset_privacy_policy", "state_payload"),
-    ("ck.realm.audit_policy_downgrade", "audit_payload"),
-    ("ck.realm.delivery_binding_policy", "state_payload"),
-    ("ck.realm.discovery", "state_payload"),
-    ("ck.realm.history_sharing_policy", "state_payload"),
-    ("ck.realm.history_visibility", "state_payload"),
-    ("ck.realm.join_rule", "state_payload"),
-    ("ck.realm.link", "state_payload"),
-    ("ck.realm.media_service", "state_payload"),
-    ("ck.realm.moderation_policy", "state_payload"),
-    ("ck.realm.organization", "state_payload"),
-    ("ck.realm.policy", "state_payload"),
-    ("ck.realm.policy_components", "state_payload"),
-    ("ck.realm.policy_server", "state_payload"),
-    ("ck.realm.read_receipt_policy", "state_payload"),
-    ("ck.realm.schema", "state_payload"),
-    ("ck.realm.update", "object_patch_payload"),
-    ("ck.realm.upgrade", "state_payload"),
-    ("ck.redaction", "message_redact_payload"),
-    ("ck.relation.tombstone", "relation_update_payload"),
-    ("ck.schema.define", "state_payload"),
-    ("ck.schema.update", "state_payload"),
-    ("ck.sovereign.did_policy", "state_payload"),
-    ("ck.space.archive", "generic_standard_payload"),
-    ("ck.space.archive", "space_state_transition_payload"),
-    ("ck.space.create", "generic_standard_payload"),
-    ("ck.space.parent", "generic_standard_payload"),
-    ("ck.space.restore", "generic_standard_payload"),
-    ("ck.space.restore", "space_state_transition_payload"),
-    ("ck.space.tombstone", "generic_standard_payload"),
-    ("ck.view.create", "view_payload"),
-    ("ck.view.reconcile", "view_payload"),
-    ("ck.view.update", "view_payload"),
+    ("ak.actor.discovery", "state_payload"),
+    ("ak.applet.discovery", "state_payload"),
+    ("ak.attestation.range_completeness", "audit_payload"),
+    ("ak.audit.epoch_key_destruction", "audit_payload"),
+    ("ak.audit.ryw_receipt", "audit_payload"),
+    ("ak.call.recording.start", "call_payload"),
+    ("ak.call.state", "call_payload"),
+    ("ak.capability.delegate", "capability_grant_payload"),
+    ("ak.capability.derived", "capability_grant_payload"),
+    ("ak.circle.archive", "object_lifecycle_payload"),
+    ("ak.circle.restore", "object_lifecycle_payload"),
+    ("ak.circle.tombstone", "object_lifecycle_payload"),
+    ("ak.container.move_item", "container_position_payload"),
+    ("ak.container.rebalance", "container_position_payload"),
+    ("ak.did.proof", "state_payload"),
+    ("ak.strand.archive", "object_lifecycle_payload"),
+    ("ak.strand.restore", "object_lifecycle_payload"),
+    ("ak.strand.tracks.update", "strand_patch_payload"),
+    ("ak.strand.update", "strand_patch_payload"),
+    ("ak.handle.discovery", "state_payload"),
+    ("ak.identity.accountability_grant", "state_payload"),
+    ("ak.identity.disclosure_policy", "state_payload"),
+    ("ak.identity.disclosure_receipt", "state_payload"),
+    ("ak.identity.presentation_request", "state_payload"),
+    ("ak.identity.presentation_response", "state_payload"),
+    ("ak.invite.accept", "invite_payload"),
+    ("ak.invite.cancel", "invite_payload"),
+    ("ak.invite.claim", "invite_payload"),
+    ("ak.invite.create", "invite_payload"),
+    ("ak.invite.revoke", "invite_payload"),
+    ("ak.invite.third_party", "invite_payload"),
+    ("ak.moderation.franking_proof", "audit_payload"),
+    ("ak.morph.archive", "object_lifecycle_payload"),
+    ("ak.morph.restore", "object_lifecycle_payload"),
+    ("ak.morph.update", "object_patch_payload"),
+    ("ak.organization.discovery", "state_payload"),
+    ("ak.organization.moderation_policy", "state_payload"),
+    ("ak.policy.action", "state_payload"),
+    ("ak.policy.rule", "state_payload"),
+    ("ak.policy.set", "state_payload"),
+    ("ak.profile.update", "object_patch_payload"),
+    ("ak.reaction.add", "reaction_payload"),
+    ("ak.reaction.remove", "reaction_payload"),
+    ("ak.realm.asset_privacy_policy", "state_payload"),
+    ("ak.realm.audit_policy_downgrade", "audit_payload"),
+    ("ak.realm.delivery_binding_policy", "state_payload"),
+    ("ak.realm.discovery", "state_payload"),
+    ("ak.realm.history_sharing_policy", "state_payload"),
+    ("ak.realm.history_visibility", "state_payload"),
+    ("ak.realm.join_rule", "state_payload"),
+    ("ak.realm.link", "state_payload"),
+    ("ak.realm.media_service", "state_payload"),
+    ("ak.realm.moderation_policy", "state_payload"),
+    ("ak.realm.organization", "state_payload"),
+    ("ak.realm.policy", "state_payload"),
+    ("ak.realm.policy_components", "state_payload"),
+    ("ak.realm.policy_server", "state_payload"),
+    ("ak.realm.read_receipt_policy", "state_payload"),
+    ("ak.realm.schema", "state_payload"),
+    ("ak.realm.update", "object_patch_payload"),
+    ("ak.realm.upgrade", "state_payload"),
+    ("ak.redaction", "message_redact_payload"),
+    ("ak.relation.tombstone", "relation_update_payload"),
+    ("ak.schema.define", "state_payload"),
+    ("ak.schema.update", "state_payload"),
+    ("ak.sovereign.did_policy", "state_payload"),
+    ("ak.space.archive", "generic_standard_payload"),
+    ("ak.space.archive", "space_state_transition_payload"),
+    ("ak.space.create", "generic_standard_payload"),
+    ("ak.space.parent", "generic_standard_payload"),
+    ("ak.space.restore", "generic_standard_payload"),
+    ("ak.space.restore", "space_state_transition_payload"),
+    ("ak.space.tombstone", "generic_standard_payload"),
+    ("ak.view.create", "view_payload"),
+    ("ak.view.reconcile", "view_payload"),
+    ("ak.view.update", "view_payload"),
 }
 
 
@@ -1886,7 +1886,7 @@ def collect_payload_dispatch_pairs(value: Any) -> list[tuple[str, str]]:
                             else None
                         )
                         for kind in collect_kind_selector_tokens(kind_schema):
-                            if kind.startswith("ck."):
+                            if kind.startswith("ak."):
                                 pairs.append((kind, class_name))
         for child in value.values():
             pairs.extend(collect_payload_dispatch_pairs(child))
@@ -1912,7 +1912,7 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
     event_schema_kinds = {
         token
         for token in event_schema_tokens
-        if token.startswith("ck.") and not SCHEMA_ID_RE.fullmatch(token) and not PROFILE_ID_RE.fullmatch(token)
+        if token.startswith("ak.") and not SCHEMA_ID_RE.fullmatch(token) and not PROFILE_ID_RE.fullmatch(token)
     }
     for token in sorted(event_schema_kinds - known["event_kinds"]):
         lint.fail(path, f"event-schema enum references unregistered Event.kind: {token}")
@@ -1928,7 +1928,7 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
     payload_dispatch_kinds = {
         token
         for token in collect_payload_dispatch_kinds(data)
-        if token.startswith("ck.") and not SCHEMA_ID_RE.fullmatch(token) and not PROFILE_ID_RE.fullmatch(token)
+        if token.startswith("ak.") and not SCHEMA_ID_RE.fullmatch(token) and not PROFILE_ID_RE.fullmatch(token)
     }
     for token in sorted(active_envelope_event_kinds - payload_dispatch_kinds):
         lint.fail(path, f"active Event.kind missing payload schema dispatch: {token}")
@@ -2346,11 +2346,11 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
         )
 
     expected = {
-        "ck.root.identity.command.submit_did_operation": ("DidOperationSubmitRequestBody", "DidOperationSubmitOutcome"),
-        "ck.gate.account.command.issue_session_grant": ("SessionGrantRequestBody", "SessionGrantOutcome"),
-        "ck.gate.account.exchange.complete_oidc": ("AccountOidcCallbackRequestBody", "AccountOidcCallbackOutcome"),
-        "ck.find.directory.command.announce": ("DirectoryAnnounceRequestBody", "DirectoryAnnounceOutcome"),
-        "ck.find.directory.command.withdraw": ("DirectoryWithdrawRequestBody", "DirectoryWithdrawOutcome"),
+        "ak.root.identity.command.submit_did_operation": ("DidOperationSubmitRequestBody", "DidOperationSubmitOutcome"),
+        "ak.gate.account.command.issue_session_grant": ("SessionGrantRequestBody", "SessionGrantOutcome"),
+        "ak.gate.account.exchange.complete_oidc": ("AccountOidcCallbackRequestBody", "AccountOidcCallbackOutcome"),
+        "ak.find.directory.command.announce": ("DirectoryAnnounceRequestBody", "DirectoryAnnounceOutcome"),
+        "ak.find.directory.command.withdraw": ("DirectoryWithdrawRequestBody", "DirectoryWithdrawOutcome"),
     }
     expected_response_only = {}
     dedicated_schema_refs = {
@@ -2405,9 +2405,9 @@ def check_openapi_dedicated_operation_schemas(lint: Lint) -> None:
         lint.fail(openapi_path, "SessionGrantRequestBody.proof.required must include audience")
 
     projection_components = {
-        "ck.self.space.query.list": "ProjectionSpaceList",
-        "ck.self.strand.query.list": "ProjectionStrandList",
-        "ck.self.morph.query.list": "ProjectionMorphList",
+        "ak.self.space.query.list": "ProjectionSpaceList",
+        "ak.self.strand.query.list": "ProjectionStrandList",
+        "ak.self.morph.query.list": "ProjectionMorphList",
     }
     for operation_id, component_name in projection_components.items():
         operation = find_operation(operation_id)
@@ -2478,32 +2478,32 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
         if not isinstance(schema, dict) or schema.get("$ref") != ref:
             lint.fail(openapi_path, f"{operation_id}.{name} parameter must reference {ref}")
 
-    expect_any_of("ck.self.events.query.scan", [["realms"], ["actors"]])
-    expect_any_of("ck.self.events.stream.subscribe", [["realms"], ["actors"]])
-    expect_any_of("ck.self.events.query.frontier", [["actor_id"], ["realm_id"]])
-    for operation_id in ("ck.self.events.query.scan", "ck.self.events.stream.subscribe"):
+    expect_any_of("ak.self.events.query.scan", [["realms"], ["actors"]])
+    expect_any_of("ak.self.events.stream.subscribe", [["realms"], ["actors"]])
+    expect_any_of("ak.self.events.query.frontier", [["actor_id"], ["realm_id"]])
+    for operation_id in ("ak.self.events.query.scan", "ck.self.events.stream.subscribe"):
         expect_array_param(operation_id, "realms", "#/components/schemas/RealmId")
         expect_array_param(operation_id, "actors", "#/components/schemas/ActorDid")
     for name in ("before", "after"):
-        expect_param_ref("ck.self.events.query.scan", name, "#/components/schemas/Cursor")
-    expect_param_ref("ck.self.events.stream.subscribe", "after", "#/components/schemas/Cursor")
-    expect_param_ref("ck.self.events.resource.get", "event_id", "#/components/schemas/EventId")
-    expect_param_ref("ck.self.events.query.frontier", "actor_id", "#/components/schemas/ActorDid")
-    expect_param_ref("ck.self.events.query.frontier", "realm_id", "#/components/schemas/RealmId")
-    expect_param_ref("ck.self.snapshot.query.manifest_head", "realm_id", "#/components/schemas/RealmId")
+        expect_param_ref("ak.self.events.query.scan", name, "#/components/schemas/Cursor")
+    expect_param_ref("ak.self.events.stream.subscribe", "after", "#/components/schemas/Cursor")
+    expect_param_ref("ak.self.events.resource.get", "event_id", "#/components/schemas/EventId")
+    expect_param_ref("ak.self.events.query.frontier", "actor_id", "#/components/schemas/ActorDid")
+    expect_param_ref("ak.self.events.query.frontier", "realm_id", "#/components/schemas/RealmId")
+    expect_param_ref("ak.self.snapshot.query.manifest_head", "realm_id", "#/components/schemas/RealmId")
 
-    query_body = op("ck.self.events.query.scan_body")
+    query_body = op("ak.self.events.query.scan_body")
     if query_body is not None:
         schema = resolve_openapi_schema_node(lint, openapi_path, openapi.get("components", {}).get("schemas", {}), openapi_request_schema(query_body))
         if not isinstance(schema, dict):
-            lint.fail(openapi_path, "ck.self.events.query.scan_body requestBody schema missing")
+            lint.fail(openapi_path, "ak.self.events.query.scan_body requestBody schema missing")
         else:
             expected_any_of = [{"required": ["realms"]}, {"required": ["actors"]}]
             if schema.get("anyOf") != expected_any_of:
-                lint.fail(openapi_path, "ck.self.events.query.scan_body requestBody must require realms or actors")
+                lint.fail(openapi_path, "ak.self.events.query.scan_body requestBody must require realms or actors")
             properties = schema.get("properties")
             if not isinstance(properties, dict):
-                lint.fail(openapi_path, "ck.self.events.query.scan_body requestBody properties missing")
+                lint.fail(openapi_path, "ak.self.events.query.scan_body requestBody properties missing")
             else:
                 for name, ref in (
                     ("realms", "#/components/schemas/RealmId"),
@@ -2511,19 +2511,19 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
                 ):
                     property_schema = properties.get(name)
                     if not isinstance(property_schema, dict):
-                        lint.fail(openapi_path, f"ck.events.query.scan_body.{name} property missing")
+                        lint.fail(openapi_path, f"ak.events.query.scan_body.{name} property missing")
                         continue
                     if property_schema.get("type") != "array" or property_schema.get("minItems") != 1:
-                        lint.fail(openapi_path, f"ck.events.query.scan_body.{name} must be a non-empty array")
+                        lint.fail(openapi_path, f"ak.events.query.scan_body.{name} must be a non-empty array")
                     items = property_schema.get("items")
                     if not isinstance(items, dict) or not (
                         items.get("$ref") == ref or schema_ref_targets(items, ref.rsplit("/", 1)[-1])
                     ):
-                        lint.fail(openapi_path, f"ck.events.query.scan_body.{name}.items must reference {ref}")
+                        lint.fail(openapi_path, f"ak.events.query.scan_body.{name}.items must reference {ref}")
                 for name in ("before", "after"):
                     property_schema = properties.get(name)
                     if not schema_ref_targets(property_schema, "Cursor"):
-                        lint.fail(openapi_path, f"ck.events.query.scan_body.{name} must reference Cursor")
+                        lint.fail(openapi_path, f"ak.events.query.scan_body.{name} must reference Cursor")
 
 
 def check_openapi_auth_semantics(lint: Lint) -> None:
@@ -2534,23 +2534,23 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
         return
     operations = openapi_operations_by_id(openapi)
     public_metadata_operations = {
-        "ck.server.query.describe",
-        "ck.self.events.query.describe",
-        "ck.peer.events.query.describe",
-        "ck.open.mimi.query.provider_directory",
-        "ck.root.identity.registry.query.describe",
-        "ck.self.account.query.describe",
-        "ck.find.directory.query.describe",
-        "ck.edge.applet.query.describe",
-        "ck.edge.applet.query.protocol_metadata",
+        "ak.server.query.describe",
+        "ak.self.events.query.describe",
+        "ak.peer.events.query.describe",
+        "ak.open.mimi.query.provider_directory",
+        "ak.root.identity.registry.query.describe",
+        "ak.self.account.query.describe",
+        "ak.find.directory.query.describe",
+        "ak.edge.applet.query.describe",
+        "ak.edge.applet.query.protocol_metadata",
     }
     proof_in_body_operations = {
-        "ck.gate.account.command.register",
-        "ck.gate.account.command.issue_session_grant",
-        "ck.gate.account.exchange.complete_oidc",
-        "ck.open.invite_locator.query.resolve",
-        "ck.open.agent_pairing.query.resolve",
-        "ck.open.agent_pairing.command.submit_runtime_key_request",
+        "ak.gate.account.command.register",
+        "ak.gate.account.command.issue_session_grant",
+        "ak.gate.account.exchange.complete_oidc",
+        "ak.open.invite_locator.query.resolve",
+        "ak.open.agent_pairing.query.resolve",
+        "ak.open.agent_pairing.command.submit_runtime_key_request",
     }
 
     for operation_id, operation in operations.items():
@@ -2583,7 +2583,7 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
         return [group for group in groups if isinstance(group, dict)] if isinstance(groups, list) else []
 
     for operation_id, operation in operations.items():
-        if not operation_id.startswith("ck.admin."):
+        if not operation_id.startswith("ak.admin."):
             continue
         lint.fail(openapi_path, f"{operation_id} is product-local and must not be registered in Arkret OpenAPI")
 
@@ -2738,7 +2738,7 @@ def check_rename_operation_replacements(lint: Lint, known: dict[str, set[str]]) 
         if not isinstance(row, dict) or row.get("kind_class") != "operation_id":
             continue
         replacement = row.get("replacement")
-        if isinstance(replacement, str) and replacement.startswith("ck.") and replacement not in operation_ids:
+        if isinstance(replacement, str) and replacement.startswith("ak.") and replacement not in operation_ids:
             lint.fail(
                 path,
                 f"entries[{index}] operation_id replacement {replacement!r} is not a current operation_id",
@@ -2892,9 +2892,9 @@ def infer_openapi_success_shape(operation_id: str, method: str, schema: Any) -> 
     if schema is None:
         if method == "head":
             return "metadata_headers"
-        if operation_id in {"ck.self.events.stream.subscribe", "ck.self.account.stream.subscribe"}:
+        if operation_id in {"ak.self.events.stream.subscribe", "ck.self.account.stream.subscribe"}:
             return "event_stream"
-        if operation_id == "ck.self.blob.resource.get":
+        if operation_id == "ak.self.blob.resource.get":
             return "binary_stream"
         return "empty_response"
     if isinstance(schema, dict):
@@ -3167,7 +3167,7 @@ def collect_operation_field_table_constraints(text: str) -> dict[str, str]:
         if len(cells) != 5:
             continue
         operation_id = cells[0].strip("`")
-        if operation_id.startswith("ck."):
+        if operation_id.startswith("ak."):
             rows[operation_id] = cells[4]
     return rows
 
@@ -3513,7 +3513,7 @@ def check_vector_registry(lint: Lint) -> None:
         if row.get("status") not in {"active", "reserved", "deprecated"}:
             lint.fail(path, f"{label}.status must be active, reserved, or deprecated")
 
-        expected_domain = vector_id.removeprefix("ck.vector.").rsplit(".v", 1)[0].split(".", 1)[0]
+        expected_domain = vector_id.removeprefix("ak.vector.").rsplit(".v", 1)[0].split(".", 1)[0]
         if row.get("domain") != expected_domain:
             lint.fail(path, f"{label}.domain must match vector id domain {expected_domain!r}")
 
@@ -3581,7 +3581,7 @@ def check_account_data_type_registry(lint: Lint, known: dict[str, set[str]]) -> 
             continue
 
         key_pattern = row.get("key_pattern")
-        if not isinstance(key_pattern, str) or not key_pattern.startswith("ck."):
+        if not isinstance(key_pattern, str) or not key_pattern.startswith("ak."):
             lint.fail(path, f"{label}.key_pattern must be a ck.* key pattern")
             continue
         if key_pattern in seen:
@@ -3821,16 +3821,16 @@ def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
 
             if (
                 key in {"kind", "event_kind", "target_format"}
-                and value.startswith("ck.")
-                and not value.startswith("ck.content.")
+                and value.startswith("ak.")
+                and not value.startswith("ak.content.")
             ):
                 if value not in known["event_kinds"]:
                     lint.fail(path, f"{json_path} references unregistered Event.kind: {value}")
 
-            if key in {"operation_id", "mapped_operation_id"} and value.startswith("ck."):
+            if key in {"operation_id", "mapped_operation_id"} and value.startswith("ak."):
                 if value not in known["operation_ids"]:
                     lint.fail(path, f"{json_path} references unregistered operation_id: {value}")
-            if key == "call" and ".recovery.call" in json_path and value.startswith("ck."):
+            if key == "call" and ".recovery.call" in json_path and value.startswith("ak."):
                 if value not in known["operation_ids"]:
                     lint.fail(path, f"{json_path} references unregistered recovery operation_id: {value}")
             if key == "constraint_type" and value not in known["constraint_types"]:
@@ -3969,13 +3969,13 @@ def check_markdown_json_value(lint: Lint, path: Path, json_path: str, value: Any
 
         if (
             key in {"kind", "event_kind", "target_format"}
-            and value.startswith("ck.")
-            and not value.startswith("ck.content.")
+            and value.startswith("ak.")
+            and not value.startswith("ak.content.")
         ):
             if value not in known["event_kinds"]:
                 lint.fail(path, f"{json_path} markdown JSON references unregistered Event.kind: {value}")
 
-        if key in {"operation_id", "mapped_operation_id", "operationId"} and value.startswith("ck."):
+        if key in {"operation_id", "mapped_operation_id", "operationId"} and value.startswith("ak."):
             if value not in known["operation_ids"]:
                 lint.fail(path, f"{json_path} markdown JSON references unregistered operation_id: {value}")
 
@@ -4187,7 +4187,7 @@ def check_markdown_examples(lint: Lint, known: dict[str, set[str]]) -> None:
     for path in markdown_files():
         text = path.read_text(encoding="utf-8")
 
-        if "ck.moderation.policy_action" in text:
+        if "ak.moderation.policy_action" in text:
             lint.fail(path, "markdown references removed Event.kind ck.moderation.policy_action; use ck.policy.action")
 
         for schema_id in SCHEMA_ID_TOKEN_RE.findall(text):
@@ -4943,47 +4943,47 @@ def check_model_required_field_table_coverage(lint: Lint) -> None:
         (
             "spec/v1/zh/models/realm-and-space.md",
             "spec/v1/artifacts/schemas/realm.schema.json",
-            "ck.schema.realm.v1",
+            "ak.schema.realm.v1",
         ),
         (
             "spec/v1/zh/models/realm-and-space.md",
             "spec/v1/artifacts/schemas/space.schema.json",
-            "ck.schema.space.v1",
+            "ak.schema.space.v1",
         ),
         (
             "spec/v1/zh/models/strand-and-message.md",
             "spec/v1/artifacts/schemas/strand.schema.json",
-            "ck.schema.strand.v1",
+            "ak.schema.strand.v1",
         ),
         (
             "spec/v1/zh/models/strand-and-message.md",
             "spec/v1/artifacts/schemas/message.schema.json",
-            "ck.schema.message.v1",
+            "ak.schema.message.v1",
         ),
         (
             "spec/v1/zh/models/relation.md",
             "spec/v1/artifacts/schemas/relation.schema.json",
-            "ck.schema.relation.v1",
+            "ak.schema.relation.v1",
         ),
         (
             "spec/v1/zh/models/circle.md",
             "spec/v1/artifacts/schemas/circle.schema.json",
-            "ck.schema.circle.v1",
+            "ak.schema.circle.v1",
         ),
         (
             "spec/v1/zh/models/morph.md",
             "spec/v1/artifacts/schemas/morph.schema.json",
-            "ck.schema.morph.v1",
+            "ak.schema.morph.v1",
         ),
         (
             "spec/v1/zh/models/views.md",
             "spec/v1/artifacts/schemas/view.schema.json",
-            "ck.schema.view.v1",
+            "ak.schema.view.v1",
         ),
         (
             "spec/v1/zh/models/actor.md",
             "spec/v1/artifacts/schemas/actor-profile.schema.json",
-            "ck.schema.actor_profile.v1",
+            "ak.schema.actor_profile.v1",
         ),
     ]
 

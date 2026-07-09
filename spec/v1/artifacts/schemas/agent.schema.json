@@ -10,7 +10,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "ck.schema.agent.v1"
+      "const": "ak.schema.agent.v1"
     },
     "agent_id": {
       "type": "string",

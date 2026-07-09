@@ -267,7 +267,7 @@
       "notes": "Removed with cx.profile.agent_workspace.v1."
     },
     {
-      "id": "ck.admin.get_moderation_queue",
+      "id": "ak.admin.get_moderation_queue",
       "since_revision": "2026-06-04",
       "rejection_level": "hard_reject",
       "replacement": null,
@@ -278,7 +278,7 @@
       "notes": "Admin / operator APIs are product-local and MUST NOT be registered under the Arkret protocol namespace. Servers that expose operator surfaces use their own negative-space root such as /_<deployment>/admin/*."
     },
     {
-      "id": "ck.admin.get_server_status",
+      "id": "ak.admin.get_server_status",
       "since_revision": "2026-06-04",
       "rejection_level": "hard_reject",
       "replacement": null,
@@ -289,7 +289,7 @@
       "notes": "Admin / operator APIs are product-local and MUST NOT be registered under the Arkret protocol namespace. Servers that expose operator surfaces use their own negative-space root such as /_<deployment>/admin/*."
     },
     {
-      "id": "ck.admin.revoke_device",
+      "id": "ak.admin.revoke_device",
       "since_revision": "2026-06-04",
       "rejection_level": "hard_reject",
       "replacement": null,
@@ -300,7 +300,7 @@
       "notes": "Admin / operator APIs are product-local and MUST NOT be registered under the Arkret protocol namespace. Servers that expose operator surfaces use their own negative-space root such as /_<deployment>/admin/*."
     },
     {
-      "id": "ck.admin.update_account_status",
+      "id": "ak.admin.update_account_status",
       "since_revision": "2026-06-04",
       "rejection_level": "hard_reject",
       "replacement": null,

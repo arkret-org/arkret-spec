@@ -17,7 +17,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "ck.schema.recovery_policy.v1"
+      "const": "ak.schema.recovery_policy.v1"
     },
     "policy_id": {
       "type": "string",
@@ -167,9 +167,9 @@
             "items": {
               "type": "string",
               "enum": [
-                "ck.device.authorize",
-                "ck.cross_signing.reset",
-                "ck.recovery_policy.rotate"
+                "ak.device.authorize",
+                "ak.cross_signing.reset",
+                "ak.recovery_policy.rotate"
               ]
             },
             "uniqueItems": true

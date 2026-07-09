@@ -185,7 +185,7 @@ export const totalProfileCount: number = (() => {
   const seen = new Set<string>();
   const walk = (value: unknown): void => {
     if (typeof value === "string") {
-      if (value.startsWith("ck.profile.")) seen.add(value);
+      if (value.startsWith("ak.profile.")) seen.add(value);
       return;
     }
     if (Array.isArray(value)) {

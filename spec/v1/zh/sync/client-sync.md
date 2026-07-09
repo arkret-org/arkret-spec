@@ -385,7 +385,7 @@ event_id ASC
       ],
       "handle_claims": [
         {
-          "schema": "ck.schema.handle_claim.v1",
+          "schema": "ak.schema.handle_claim.v1",
           "handle": "alice:acme.example",
           "subject": "did:webvh:zQmPr8...",
           "issuer": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
@@ -453,7 +453,7 @@ event_id ASC
       "aad_visibility_event_id": "routing_digest",
       "aad": {
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-        "event_kind": "ck.member.identity.update",
+        "event_kind": "ak.member.identity.update",
         "event_ref_digest": "sha256:..."
       },
       "key_ref": {
@@ -484,7 +484,7 @@ MemberIdentity 明文对象形态（`identity_payload.member_identity`，或 `en
 
 ```json
 {
-  "schema": "ck.schema.member_identity.v1",
+  "schema": "ak.schema.member_identity.v1",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:key:z6MkRealmPairwise...",
   "subject_id": "did:webvh:zQmPr8...",

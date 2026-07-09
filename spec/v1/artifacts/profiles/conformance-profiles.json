@@ -42,103 +42,103 @@
     }
   },
   "implementation_profiles": [
-    "ck.profile.core_event_store.v1",
-    "ck.profile.chat_mvp.v1",
-    "ck.profile.kanban_mvp.v1",
-    "ck.profile.minimal_client.v1",
-    "ck.profile.full_client.v1",
-    "ck.profile.e2ee_client.v1",
-    "ck.profile.e2ee_relaxed.v1",
-    "ck.profile.enterprise_client.v1",
-    "ck.profile.principal_server_events_api.v1",
-    "ck.profile.principal_server.v1",
-    "ck.profile.directory_service.v1",
-    "ck.profile.federation_minimal.v1",
-    "ck.profile.federation.high_assurance.v1",
-    "ck.profile.identity_registry.v1",
-    "ck.profile.auth_server.v1",
-    "ck.profile.blob_node.v1",
-    "ck.profile.push_gateway.v1",
-    "ck.profile.push_gateway.blind_wakeup.v1",
-    "ck.profile.push_gateway.visible_notification.v1",
-    "ck.profile.push_gateway.matrix_passthrough.v1",
-    "ck.profile.applet_service.v1",
-    "ck.profile.applet_bridge.v1",
-    "ck.profile.applet_delegated.v1",
-    "ck.profile.applet_e2ee_join.v1",
-    "ck.profile.applet_widget.v1",
-    "ck.profile.agent_runtime.v1",
-    "ck.profile.personal_agent_provisioning.v1",
-    "ck.profile.agent_auth.v1",
-    "ck.profile.agent_delegation_policy.v1",
-    "ck.profile.media_service_binding.v1",
-    "ck.profile.media_service_binding.livekit.v1",
-    "ck.profile.media_service_binding.arkret_native.v1",
-    "ck.profile.agent_sidecar_thread.v1",
-    "ck.profile.agent_participation_policy.v1",
-    "ck.profile.mimi_interop.v1",
-    "ck.profile.sovereign_client.v1",
-    "ck.profile.franking.v1",
-    "ck.profile.morph.schema_migration_transformations.v1",
-    "ck.profile.webrtc_media.v1",
-    "ck.profile.circle_conformance.v1",
-    "ck.profile.personal_productivity.v1",
-    "ck.profile.draft_sync.v1",
-    "ck.profile.file_transfer.v1",
-    "ck.profile.disappearing.v1",
-    "ck.profile.calendar_event.v1",
-    "ck.profile.pinned_items.v1",
-    "ck.profile.search.client_index.v1",
-    "ck.profile.search.blind_index.v1",
-    "ck.profile.search.forward_private.v1"
+    "ak.profile.core_event_store.v1",
+    "ak.profile.chat_mvp.v1",
+    "ak.profile.kanban_mvp.v1",
+    "ak.profile.minimal_client.v1",
+    "ak.profile.full_client.v1",
+    "ak.profile.e2ee_client.v1",
+    "ak.profile.e2ee_relaxed.v1",
+    "ak.profile.enterprise_client.v1",
+    "ak.profile.principal_server_events_api.v1",
+    "ak.profile.principal_server.v1",
+    "ak.profile.directory_service.v1",
+    "ak.profile.federation_minimal.v1",
+    "ak.profile.federation.high_assurance.v1",
+    "ak.profile.identity_registry.v1",
+    "ak.profile.auth_server.v1",
+    "ak.profile.blob_node.v1",
+    "ak.profile.push_gateway.v1",
+    "ak.profile.push_gateway.blind_wakeup.v1",
+    "ak.profile.push_gateway.visible_notification.v1",
+    "ak.profile.push_gateway.matrix_passthrough.v1",
+    "ak.profile.applet_service.v1",
+    "ak.profile.applet_bridge.v1",
+    "ak.profile.applet_delegated.v1",
+    "ak.profile.applet_e2ee_join.v1",
+    "ak.profile.applet_widget.v1",
+    "ak.profile.agent_runtime.v1",
+    "ak.profile.personal_agent_provisioning.v1",
+    "ak.profile.agent_auth.v1",
+    "ak.profile.agent_delegation_policy.v1",
+    "ak.profile.media_service_binding.v1",
+    "ak.profile.media_service_binding.livekit.v1",
+    "ak.profile.media_service_binding.arkret_native.v1",
+    "ak.profile.agent_sidecar_thread.v1",
+    "ak.profile.agent_participation_policy.v1",
+    "ak.profile.mimi_interop.v1",
+    "ak.profile.sovereign_client.v1",
+    "ak.profile.franking.v1",
+    "ak.profile.morph.schema_migration_transformations.v1",
+    "ak.profile.webrtc_media.v1",
+    "ak.profile.circle_conformance.v1",
+    "ak.profile.personal_productivity.v1",
+    "ak.profile.draft_sync.v1",
+    "ak.profile.file_transfer.v1",
+    "ak.profile.disappearing.v1",
+    "ak.profile.calendar_event.v1",
+    "ak.profile.pinned_items.v1",
+    "ak.profile.search.client_index.v1",
+    "ak.profile.search.blind_index.v1",
+    "ak.profile.search.forward_private.v1"
   ],
   "profile_tiers": {
     "v1_profile_catalog": [
-      "ck.profile.core_event_store.v1",
-      "ck.profile.chat_mvp.v1",
-      "ck.profile.kanban_mvp.v1",
-      "ck.profile.minimal_client.v1",
-      "ck.profile.full_client.v1",
-      "ck.profile.e2ee_client.v1",
-      "ck.profile.enterprise_client.v1",
-      "ck.profile.principal_server_events_api.v1",
-      "ck.profile.principal_server.v1",
-      "ck.profile.directory_service.v1",
-      "ck.profile.federation_minimal.v1",
-      "ck.profile.federation.high_assurance.v1",
-      "ck.profile.identity_registry.v1",
-      "ck.profile.auth_server.v1",
-      "ck.profile.blob_node.v1",
-      "ck.profile.push_gateway.v1",
-      "ck.profile.push_gateway.blind_wakeup.v1",
-      "ck.profile.push_gateway.visible_notification.v1",
-      "ck.profile.push_gateway.matrix_passthrough.v1",
-      "ck.profile.sovereign_client.v1",
-      "ck.profile.franking.v1",
-      "ck.profile.morph.schema_migration_transformations.v1",
-      "ck.profile.webrtc_media.v1",
-      "ck.profile.circle_conformance.v1"
+      "ak.profile.core_event_store.v1",
+      "ak.profile.chat_mvp.v1",
+      "ak.profile.kanban_mvp.v1",
+      "ak.profile.minimal_client.v1",
+      "ak.profile.full_client.v1",
+      "ak.profile.e2ee_client.v1",
+      "ak.profile.enterprise_client.v1",
+      "ak.profile.principal_server_events_api.v1",
+      "ak.profile.principal_server.v1",
+      "ak.profile.directory_service.v1",
+      "ak.profile.federation_minimal.v1",
+      "ak.profile.federation.high_assurance.v1",
+      "ak.profile.identity_registry.v1",
+      "ak.profile.auth_server.v1",
+      "ak.profile.blob_node.v1",
+      "ak.profile.push_gateway.v1",
+      "ak.profile.push_gateway.blind_wakeup.v1",
+      "ak.profile.push_gateway.visible_notification.v1",
+      "ak.profile.push_gateway.matrix_passthrough.v1",
+      "ak.profile.sovereign_client.v1",
+      "ak.profile.franking.v1",
+      "ak.profile.morph.schema_migration_transformations.v1",
+      "ak.profile.webrtc_media.v1",
+      "ak.profile.circle_conformance.v1"
     ],
     "v1_minimal_interop_floor": [
-      "ck.profile.core_event_store.v1"
+      "ak.profile.core_event_store.v1"
     ],
     "extension_profile_implementation": [
-      "ck.profile.applet_service.v1",
-      "ck.profile.applet_bridge.v1",
-      "ck.profile.applet_delegated.v1",
-      "ck.profile.applet_e2ee_join.v1",
-      "ck.profile.applet_widget.v1",
-      "ck.profile.agent_runtime.v1",
-      "ck.profile.mimi_interop.v1",
-      "ck.profile.personal_productivity.v1",
-      "ck.profile.draft_sync.v1",
-      "ck.profile.file_transfer.v1",
-      "ck.profile.disappearing.v1",
-      "ck.profile.calendar_event.v1",
-      "ck.profile.pinned_items.v1",
-      "ck.profile.search.client_index.v1",
-      "ck.profile.search.blind_index.v1",
-      "ck.profile.search.forward_private.v1"
+      "ak.profile.applet_service.v1",
+      "ak.profile.applet_bridge.v1",
+      "ak.profile.applet_delegated.v1",
+      "ak.profile.applet_e2ee_join.v1",
+      "ak.profile.applet_widget.v1",
+      "ak.profile.agent_runtime.v1",
+      "ak.profile.mimi_interop.v1",
+      "ak.profile.personal_productivity.v1",
+      "ak.profile.draft_sync.v1",
+      "ak.profile.file_transfer.v1",
+      "ak.profile.disappearing.v1",
+      "ak.profile.calendar_event.v1",
+      "ak.profile.pinned_items.v1",
+      "ak.profile.search.client_index.v1",
+      "ak.profile.search.blind_index.v1",
+      "ak.profile.search.forward_private.v1"
     ],
     "tier_rules": {
       "v1_profile_catalog": "Profiles that belong to the v1 stable catalog. This is not a bundle requirement; implementations MUST claim only the profiles, event kinds, schemas, and operations they actually support.",
@@ -148,139 +148,139 @@
     "test_build_stance_rule": "Test/conformance builds are marked solely by the canonical development_mode=true flag on the ServiceDescribe (see zh/sync/service-http-binding.md §2.1.2 and zh/sync/service-surface.md §3.0), which gates the test-only /_arkret/_conformance/* debug namespace and forces verified_profiles=[]. There is no separate ck.profile.* test-build profile: a test build is a deployment stance, not a negotiated interop capability."
   },
   "identity_extension_profiles": [
-    "ck.profile.public_network_identity.v1",
-    "ck.profile.org_high_assurance_identity.v1",
-    "ck.profile.principal_control_realm.v1",
-    "ck.profile.key_transparency.v1"
+    "ak.profile.public_network_identity.v1",
+    "ak.profile.org_high_assurance_identity.v1",
+    "ak.profile.principal_control_realm.v1",
+    "ak.profile.key_transparency.v1"
   ],
   "deployment_profiles": [
-    "ck.profile.personal_node.v1",
-    "ck.profile.small_team.v1",
-    "ck.profile.organization.v1",
-    "ck.profile.high_security_organization.v1",
-    "ck.profile.isolated_sovereign_network.v1",
-    "ck.profile.sovereign_deployment.v1",
-    "ck.profile.sovereign_enclave.v1"
+    "ak.profile.personal_node.v1",
+    "ak.profile.small_team.v1",
+    "ak.profile.organization.v1",
+    "ak.profile.high_security_organization.v1",
+    "ak.profile.isolated_sovereign_network.v1",
+    "ak.profile.sovereign_deployment.v1",
+    "ak.profile.sovereign_enclave.v1"
   ],
   "constraint_extension_profiles": [
-    "ck.profile.constraint.approval_workflow.v1",
-    "ck.profile.constraint.claim_based.v1",
-    "ck.profile.constraint.encryption_requirement.v1",
-    "ck.profile.constraint.visibility_control.v1",
-    "ck.profile.constraint.resource_limit.v1"
+    "ak.profile.constraint.approval_workflow.v1",
+    "ak.profile.constraint.claim_based.v1",
+    "ak.profile.constraint.encryption_requirement.v1",
+    "ak.profile.constraint.visibility_control.v1",
+    "ak.profile.constraint.resource_limit.v1"
   ],
   "lattice_extension_profiles": [
-    "ck.profile.collaborative_text.v1"
+    "ak.profile.collaborative_text.v1"
   ],
   "interop_compat_profiles": [
-    "ck.profile.matrix_compat.v1"
+    "ak.profile.matrix_compat.v1"
   ],
   "encoding_extension_profiles": [
-    "ck.profile.encoding.cbor.v1",
-    "ck.profile.encoding.multihash.v1"
+    "ak.profile.encoding.cbor.v1",
+    "ak.profile.encoding.multihash.v1"
   ],
   "hash_extension_profiles": [
-    "ck.profile.hash.blake3.v1",
-    "ck.profile.hash_transition.v1"
+    "ak.profile.hash.blake3.v1",
+    "ak.profile.hash_transition.v1"
   ],
   "signature_extension_profiles": [
-    "ck.profile.signature.ecdsa_p256.v1",
-    "ck.profile.signature.pqc.v1"
+    "ak.profile.signature.ecdsa_p256.v1",
+    "ak.profile.signature.pqc.v1"
   ],
   "kem_extension_profiles": [
-    "ck.profile.hpke.p256.v1",
-    "ck.profile.kem.hybrid_xwing.v1"
+    "ak.profile.hpke.p256.v1",
+    "ak.profile.kem.hybrid_xwing.v1"
   ],
   "candidate_profiles": [
-    "ck.profile.candidate.join_policy.v1",
-    "ck.profile.ucan_interop.v1",
-    "ck.profile.federation.rbsr.negentropy.v1"
+    "ak.profile.candidate.join_policy.v1",
+    "ak.profile.ucan_interop.v1",
+    "ak.profile.federation.rbsr.negentropy.v1"
   ],
   "candidate_profiles_tier_rule": "Profiles pairing unregistered candidate workflow concept/action names / capabilities with an explicit fail-closed gate. Receivers MUST treat any capability action whose `profile` points to a candidate profile as unknown (risk_tier=high default) unless they implement the profile. Candidate profiles are NOT part of v1 active conformance and SHOULD be promoted (with paired wire Event.kind values registered under `ck.*`) once their underlying surface is formally registered.",
   "profile_roles_rule": "Every profile id MUST be annotated with exactly one role from the enum {client, server, gateway, directory, admin, interop}. Roles partition the profile namespace so that an implementation MUST NOT mistake e.g. a gateway profile (push_gateway, blob_node) for a client profile, or a deployment / hardening / vector profile (admin role) for a wire-conformance client / server profile. SDK manifests, client-side feature negotiation, and conformance harness loaders MUST consult `profile_roles` before claiming a profile as locally implemented. Roles in spec layer metadata; the per-profile object in `profile_requirements` MAY ALSO carry a `role` field for convenience, but `profile_roles` is the canonical source.",
   "profile_roles": {
-    "ck.profile.core_event_store.v1": "server",
-    "ck.profile.chat_mvp.v1": "client",
-    "ck.profile.kanban_mvp.v1": "client",
-    "ck.profile.minimal_client.v1": "client",
-    "ck.profile.full_client.v1": "client",
-    "ck.profile.e2ee_client.v1": "client",
-    "ck.profile.e2ee_relaxed.v1": "client",
-    "ck.profile.enterprise_client.v1": "client",
-    "ck.profile.sovereign_client.v1": "client",
-    "ck.profile.principal_server_events_api.v1": "server",
-    "ck.profile.principal_server.v1": "server",
-    "ck.profile.directory_service.v1": "directory",
-    "ck.profile.federation_minimal.v1": "server",
-    "ck.profile.federation.high_assurance.v1": "server",
-    "ck.profile.federation.rbsr.negentropy.v1": "server",
-    "ck.profile.identity_registry.v1": "directory",
-    "ck.profile.auth_server.v1": "server",
-    "ck.profile.public_network_identity.v1": "directory",
-    "ck.profile.org_high_assurance_identity.v1": "directory",
-    "ck.profile.key_transparency.v1": "directory",
-    "ck.profile.blob_node.v1": "gateway",
-    "ck.profile.push_gateway.v1": "gateway",
-    "ck.profile.push_gateway.blind_wakeup.v1": "gateway",
-    "ck.profile.push_gateway.visible_notification.v1": "gateway",
-    "ck.profile.push_gateway.matrix_passthrough.v1": "interop",
-    "ck.profile.media_service_binding.v1": "server",
-    "ck.profile.media_service_binding.livekit.v1": "server",
-    "ck.profile.media_service_binding.arkret_native.v1": "server",
-    "ck.profile.applet_service.v1": "server",
-    "ck.profile.applet_bridge.v1": "server",
-    "ck.profile.applet_delegated.v1": "server",
-    "ck.profile.applet_e2ee_join.v1": "server",
-    "ck.profile.applet_widget.v1": "server",
-    "ck.profile.agent_runtime.v1": "server",
-    "ck.profile.mimi_interop.v1": "interop",
-    "ck.profile.franking.v1": "server",
-    "ck.profile.morph.schema_migration_transformations.v1": "server",
-    "ck.profile.webrtc_media.v1": "gateway",
-    "ck.profile.circle_conformance.v1": "interop",
-    "ck.profile.personal_node.v1": "admin",
-    "ck.profile.small_team.v1": "admin",
-    "ck.profile.organization.v1": "admin",
-    "ck.profile.high_security_organization.v1": "admin",
-    "ck.profile.isolated_sovereign_network.v1": "admin",
-    "ck.profile.sovereign_deployment.v1": "admin",
-    "ck.profile.sovereign_enclave.v1": "admin",
-    "ck.profile.principal_control_realm.v1": "admin",
-    "ck.profile.constraint.approval_workflow.v1": "admin",
-    "ck.profile.constraint.claim_based.v1": "admin",
-    "ck.profile.constraint.encryption_requirement.v1": "admin",
-    "ck.profile.constraint.visibility_control.v1": "admin",
-    "ck.profile.constraint.resource_limit.v1": "admin",
-    "ck.profile.collaborative_text.v1": "client",
-    "ck.profile.matrix_compat.v1": "interop",
-    "ck.profile.encoding.cbor.v1": "interop",
-    "ck.profile.encoding.multihash.v1": "interop",
-    "ck.profile.hash.blake3.v1": "interop",
-    "ck.profile.hash_transition.v1": "interop",
-    "ck.profile.kem.hybrid_xwing.v1": "admin",
-    "ck.profile.candidate.join_policy.v1": "admin",
-    "ck.profile.mls_governance_binding.full.v1": "admin",
-    "ck.profile.attested_audit.e2ee.v1": "admin",
-    "ck.profile.disclosed_audit.e2ee.v1": "admin",
-    "ck.profile.cross_signing.reset.v1": "admin",
-    "ck.profile.mls.minimal_metadata_realm.v1": "admin",
-    "ck.profile.traffic_metadata_hardened.v1": "admin",
-    "ck.profile.key_backup.memory_hard.v1": "admin",
-    "ck.profile.circle_seal_cadence.fixed_5m.v1": "admin",
-    "ck.profile.accountable_principals.strict_reject.v1": "admin",
-    "ck.profile.notary.single_did.v1": "admin",
-    "ck.profile.notary.threshold.v1": "admin",
-    "ck.profile.notary.open_set.v1": "admin",
-    "ck.profile.notary.mixed_recovery.v1": "admin",
-    "ck.profile.personal_productivity.v1": "client",
-    "ck.profile.draft_sync.v1": "client",
-    "ck.profile.file_transfer.v1": "client",
-    "ck.profile.disappearing.v1": "client",
-    "ck.profile.calendar_event.v1": "client",
-    "ck.profile.pinned_items.v1": "client",
-    "ck.profile.search.client_index.v1": "client",
-    "ck.profile.search.blind_index.v1": "server",
-    "ck.profile.search.forward_private.v1": "server"
+    "ak.profile.core_event_store.v1": "server",
+    "ak.profile.chat_mvp.v1": "client",
+    "ak.profile.kanban_mvp.v1": "client",
+    "ak.profile.minimal_client.v1": "client",
+    "ak.profile.full_client.v1": "client",
+    "ak.profile.e2ee_client.v1": "client",
+    "ak.profile.e2ee_relaxed.v1": "client",
+    "ak.profile.enterprise_client.v1": "client",
+    "ak.profile.sovereign_client.v1": "client",
+    "ak.profile.principal_server_events_api.v1": "server",
+    "ak.profile.principal_server.v1": "server",
+    "ak.profile.directory_service.v1": "directory",
+    "ak.profile.federation_minimal.v1": "server",
+    "ak.profile.federation.high_assurance.v1": "server",
+    "ak.profile.federation.rbsr.negentropy.v1": "server",
+    "ak.profile.identity_registry.v1": "directory",
+    "ak.profile.auth_server.v1": "server",
+    "ak.profile.public_network_identity.v1": "directory",
+    "ak.profile.org_high_assurance_identity.v1": "directory",
+    "ak.profile.key_transparency.v1": "directory",
+    "ak.profile.blob_node.v1": "gateway",
+    "ak.profile.push_gateway.v1": "gateway",
+    "ak.profile.push_gateway.blind_wakeup.v1": "gateway",
+    "ak.profile.push_gateway.visible_notification.v1": "gateway",
+    "ak.profile.push_gateway.matrix_passthrough.v1": "interop",
+    "ak.profile.media_service_binding.v1": "server",
+    "ak.profile.media_service_binding.livekit.v1": "server",
+    "ak.profile.media_service_binding.arkret_native.v1": "server",
+    "ak.profile.applet_service.v1": "server",
+    "ak.profile.applet_bridge.v1": "server",
+    "ak.profile.applet_delegated.v1": "server",
+    "ak.profile.applet_e2ee_join.v1": "server",
+    "ak.profile.applet_widget.v1": "server",
+    "ak.profile.agent_runtime.v1": "server",
+    "ak.profile.mimi_interop.v1": "interop",
+    "ak.profile.franking.v1": "server",
+    "ak.profile.morph.schema_migration_transformations.v1": "server",
+    "ak.profile.webrtc_media.v1": "gateway",
+    "ak.profile.circle_conformance.v1": "interop",
+    "ak.profile.personal_node.v1": "admin",
+    "ak.profile.small_team.v1": "admin",
+    "ak.profile.organization.v1": "admin",
+    "ak.profile.high_security_organization.v1": "admin",
+    "ak.profile.isolated_sovereign_network.v1": "admin",
+    "ak.profile.sovereign_deployment.v1": "admin",
+    "ak.profile.sovereign_enclave.v1": "admin",
+    "ak.profile.principal_control_realm.v1": "admin",
+    "ak.profile.constraint.approval_workflow.v1": "admin",
+    "ak.profile.constraint.claim_based.v1": "admin",
+    "ak.profile.constraint.encryption_requirement.v1": "admin",
+    "ak.profile.constraint.visibility_control.v1": "admin",
+    "ak.profile.constraint.resource_limit.v1": "admin",
+    "ak.profile.collaborative_text.v1": "client",
+    "ak.profile.matrix_compat.v1": "interop",
+    "ak.profile.encoding.cbor.v1": "interop",
+    "ak.profile.encoding.multihash.v1": "interop",
+    "ak.profile.hash.blake3.v1": "interop",
+    "ak.profile.hash_transition.v1": "interop",
+    "ak.profile.kem.hybrid_xwing.v1": "admin",
+    "ak.profile.candidate.join_policy.v1": "admin",
+    "ak.profile.mls_governance_binding.full.v1": "admin",
+    "ak.profile.attested_audit.e2ee.v1": "admin",
+    "ak.profile.disclosed_audit.e2ee.v1": "admin",
+    "ak.profile.cross_signing.reset.v1": "admin",
+    "ak.profile.mls.minimal_metadata_realm.v1": "admin",
+    "ak.profile.traffic_metadata_hardened.v1": "admin",
+    "ak.profile.key_backup.memory_hard.v1": "admin",
+    "ak.profile.circle_seal_cadence.fixed_5m.v1": "admin",
+    "ak.profile.accountable_principals.strict_reject.v1": "admin",
+    "ak.profile.notary.single_did.v1": "admin",
+    "ak.profile.notary.threshold.v1": "admin",
+    "ak.profile.notary.open_set.v1": "admin",
+    "ak.profile.notary.mixed_recovery.v1": "admin",
+    "ak.profile.personal_productivity.v1": "client",
+    "ak.profile.draft_sync.v1": "client",
+    "ak.profile.file_transfer.v1": "client",
+    "ak.profile.disappearing.v1": "client",
+    "ak.profile.calendar_event.v1": "client",
+    "ak.profile.pinned_items.v1": "client",
+    "ak.profile.search.client_index.v1": "client",
+    "ak.profile.search.blind_index.v1": "server",
+    "ak.profile.search.forward_private.v1": "server"
   },
   "federation_hardening": [
     "service_did_authentication",
@@ -289,19 +289,19 @@
     "quarantine_appeal_audit"
   ],
   "e2ee_hardening": [
-    "ck.profile.mls_governance_binding.full.v1",
+    "ak.profile.mls_governance_binding.full.v1",
     "keypackage_claim_lifecycle",
-    "ck.profile.mls.minimal_metadata_realm.v1",
+    "ak.profile.mls.minimal_metadata_realm.v1",
     "aad_visibility_policy",
-    "ck.profile.attested_audit.e2ee.v1",
-    "ck.profile.disclosed_audit.e2ee.v1",
+    "ak.profile.attested_audit.e2ee.v1",
+    "ak.profile.disclosed_audit.e2ee.v1",
     "e2ee_report_framed_franking"
   ],
   "privacy_hardening": [
     "asset_download_privacy_policy",
     "private_contact_discovery",
     "connection_identifier_separation",
-    "ck.profile.traffic_metadata_hardened.v1",
+    "ak.profile.traffic_metadata_hardened.v1",
     "history_sharing_policy",
     "preview_policy"
   ],
@@ -319,49 +319,49 @@
     "unsupported_draft_fail_closed"
   ],
   "hardening_profiles": [
-    "ck.profile.mls_governance_binding.full.v1",
-    "ck.profile.attested_audit.e2ee.v1",
-    "ck.profile.disclosed_audit.e2ee.v1",
-    "ck.profile.cross_signing.reset.v1",
-    "ck.profile.mls.minimal_metadata_realm.v1",
-    "ck.profile.traffic_metadata_hardened.v1",
-    "ck.profile.key_backup.memory_hard.v1",
-    "ck.profile.circle_seal_cadence.fixed_5m.v1",
-    "ck.profile.accountable_principals.strict_reject.v1"
+    "ak.profile.mls_governance_binding.full.v1",
+    "ak.profile.attested_audit.e2ee.v1",
+    "ak.profile.disclosed_audit.e2ee.v1",
+    "ak.profile.cross_signing.reset.v1",
+    "ak.profile.mls.minimal_metadata_realm.v1",
+    "ak.profile.traffic_metadata_hardened.v1",
+    "ak.profile.key_backup.memory_hard.v1",
+    "ak.profile.circle_seal_cadence.fixed_5m.v1",
+    "ak.profile.accountable_principals.strict_reject.v1"
   ],
   "vector_groups": [
-    "ck.vector_group.capability.v1",
-    "ck.vector_group.crypto_signature.v1",
-    "ck.vector_group.encoding.v1",
-    "ck.vector_group.event_envelope_negative.v1",
-    "ck.vector_group.discovery.v1",
-    "ck.vector_group.event_kind_lattice_dispatch.v1",
-    "ck.vector_group.event_kind_payload_coverage.v1",
-    "ck.vector_group.operation_registry_coverage.v1",
-    "ck.vector_group.error_code_registry_coverage.v1",
-    "ck.vector_group.federation.v1",
-    "ck.vector_group.privacy_security.v1",
-    "ck.vector_group.reaction.v1",
-    "ck.vector_group.redaction.v1",
-    "ck.vector_group.cba_lattice.v1",
-    "ck.vector_group.sync.v1",
-    "ck.vector_group.mimi_interop.v1"
+    "ak.vector_group.capability.v1",
+    "ak.vector_group.crypto_signature.v1",
+    "ak.vector_group.encoding.v1",
+    "ak.vector_group.event_envelope_negative.v1",
+    "ak.vector_group.discovery.v1",
+    "ak.vector_group.event_kind_lattice_dispatch.v1",
+    "ak.vector_group.event_kind_payload_coverage.v1",
+    "ak.vector_group.operation_registry_coverage.v1",
+    "ak.vector_group.error_code_registry_coverage.v1",
+    "ak.vector_group.federation.v1",
+    "ak.vector_group.privacy_security.v1",
+    "ak.vector_group.reaction.v1",
+    "ak.vector_group.redaction.v1",
+    "ak.vector_group.cba_lattice.v1",
+    "ak.vector_group.sync.v1",
+    "ak.vector_group.mimi_interop.v1"
   ],
   "vector_group_requirements": {
-    "ck.vector_group.capability.v1": {
+    "ak.vector_group.capability.v1": {
       "required_endpoints": [
-        "ck.self.authz.query.check"
+        "ak.self.authz.query.check"
       ],
       "required_event_kinds": [
-        "ck.capability.grant",
-        "ck.capability.revoke",
-        "ck.member.state"
+        "ak.capability.grant",
+        "ak.capability.revoke",
+        "ak.member.state"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.capability.v1",
-        "ck.schema.grant_constraint.v1",
-        "ck.schema.resource_selector.v1"
+        "ak.schema.capability.v1",
+        "ak.schema.grant_constraint.v1",
+        "ak.schema.resource_selector.v1"
       ],
       "required_fixtures": [
         "capability-fixture.json"
@@ -374,17 +374,17 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "ck.vector_group.crypto_signature.v1": {
+    "ak.vector_group.crypto_signature.v1": {
       "required_endpoints": [],
       "required_event_kinds": [
-        "ck.invite.third_party",
-        "ck.invite.claim",
-        "ck.message.create"
+        "ak.invite.third_party",
+        "ak.invite.claim",
+        "ak.message.create"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.seal.v1"
+        "ak.schema.event.v1",
+        "ak.schema.seal.v1"
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json"
@@ -397,17 +397,17 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "ck.vector_group.encoding.v1": {
+    "ak.vector_group.encoding.v1": {
       "required_endpoints": [],
       "required_event_kinds": [
-        "ck.message.create"
+        "ak.message.create"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.cursor.v1",
-        "ck.schema.event_batch_receipt.v1",
-        "ck.schema.seal.v1"
+        "ak.schema.event.v1",
+        "ak.schema.cursor.v1",
+        "ak.schema.event_batch_receipt.v1",
+        "ak.schema.seal.v1"
       ],
       "required_fixtures": [
         "encoding-fixture.json"
@@ -422,23 +422,23 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "ck.vector_group.event_envelope_negative.v1": {
+    "ak.vector_group.event_envelope_negative.v1": {
       "required_endpoints": [
-        "ck.self.events.command.submit"
+        "ak.self.events.command.submit"
       ],
       "required_event_kinds": [
-        "ck.message.create",
-        "ck.read_cursor.advance",
-        "ck.typing"
+        "ak.message.create",
+        "ak.read_cursor.advance",
+        "ak.typing"
       ],
       "rejected_event_kinds": [
         "wire_scope:actor_private_event",
         "wire_scope:ephemeral_event"
       ],
       "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.event_payload.v1",
-        "ck.schema.seal.v1"
+        "ak.schema.event.v1",
+        "ak.schema.event_payload.v1",
+        "ak.schema.seal.v1"
       ],
       "required_fixtures": [
         "event-envelope-negative-fixture.json"
@@ -457,9 +457,9 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "ck.vector_group.discovery.v1": {
+    "ak.vector_group.discovery.v1": {
       "required_endpoints": [
-        "ck.server.query.describe"
+        "ak.server.query.describe"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -481,7 +481,7 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "ck.vector_group.event_kind_lattice_dispatch.v1": {
+    "ak.vector_group.event_kind_lattice_dispatch.v1": {
       "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -501,15 +501,15 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "ck.vector_group.event_kind_payload_coverage.v1": {
+    "ak.vector_group.event_kind_payload_coverage.v1": {
       "required_endpoints": [
-        "ck.self.events.command.submit"
+        "ak.self.events.command.submit"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.event_payload.v1"
+        "ak.schema.event.v1",
+        "ak.schema.event_payload.v1"
       ],
       "required_fixtures": [],
       "required_cotest_suites": [
@@ -526,7 +526,7 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "ck.vector_group.operation_registry_coverage.v1": {
+    "ak.vector_group.operation_registry_coverage.v1": {
       "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -546,7 +546,7 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "ck.vector_group.error_code_registry_coverage.v1": {
+    "ak.vector_group.error_code_registry_coverage.v1": {
       "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -566,16 +566,16 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "ck.vector_group.federation.v1": {
+    "ak.vector_group.federation.v1": {
       "required_endpoints": [],
       "required_event_kinds": [
-        "ck.realm.create",
-        "ck.member.state"
+        "ak.realm.create",
+        "ak.member.state"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.seal.v1"
+        "ak.schema.event.v1",
+        "ak.schema.seal.v1"
       ],
       "required_fixtures": [
         "federation-fixture.json"
@@ -588,23 +588,23 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "ck.vector_group.privacy_security.v1": {
+    "ak.vector_group.privacy_security.v1": {
       "required_endpoints": [
-        "ck.find.directory.query.resolve_realm",
-        "ck.find.directory.query.private_contact_discovery",
-        "ck.self.events.command.submit",
-        "ck.self.blob.resource.head",
-        "ck.edge.push.command.notify"
+        "ak.find.directory.query.resolve_realm",
+        "ak.find.directory.query.private_contact_discovery",
+        "ak.self.events.command.submit",
+        "ak.self.blob.resource.head",
+        "ak.edge.push.command.notify"
       ],
       "required_event_kinds": [
-        "ck.message.create"
+        "ak.message.create"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.event_payload.v1",
-        "ck.schema.invite.v1",
-        "ck.schema.notification.v1",
-        "ck.schema.blob.v1"
+        "ak.schema.event_payload.v1",
+        "ak.schema.invite.v1",
+        "ak.schema.notification.v1",
+        "ak.schema.blob.v1"
       ],
       "required_fixtures": [
         "membership-delivery-binding-fixture.json",
@@ -620,28 +620,28 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "ck.vector_group.reaction.v1": {
+    "ak.vector_group.reaction.v1": {
       "required_endpoints": [
-        "ck.self.events.command.submit",
-        "ck.self.events.query.scan"
+        "ak.self.events.command.submit",
+        "ak.self.events.query.scan"
       ],
       "required_event_kinds": [
-        "ck.message.create",
-        "ck.message.redact",
-        "ck.reaction.add",
-        "ck.reaction.remove",
-        "ck.capability.revoke"
+        "ak.message.create",
+        "ak.message.redact",
+        "ak.reaction.add",
+        "ak.reaction.remove",
+        "ak.capability.revoke"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.event_payload.v1"
+        "ak.schema.event.v1",
+        "ak.schema.event_payload.v1"
       ],
       "required_fixtures": [
         "reaction-fixture.json"
       ],
       "optional_extensions": [
-        "ck.profile.e2ee_client.v1"
+        "ak.profile.e2ee_client.v1"
       ],
       "feature_discovery": {
         "required": [
@@ -650,21 +650,21 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "ck.vector_group.redaction.v1": {
+    "ak.vector_group.redaction.v1": {
       "required_endpoints": [
-        "ck.self.events.command.submit",
-        "ck.self.events.query.scan"
+        "ak.self.events.command.submit",
+        "ak.self.events.query.scan"
       ],
       "required_event_kinds": [
-        "ck.message.create",
-        "ck.message.redact",
-        "ck.redaction"
+        "ak.message.create",
+        "ak.message.redact",
+        "ak.redaction"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.event_payload.v1",
-        "ck.schema.seal.v1"
+        "ak.schema.event.v1",
+        "ak.schema.event_payload.v1",
+        "ak.schema.seal.v1"
       ],
       "required_fixtures": [
         "redaction-fixture.json"
@@ -677,21 +677,21 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "ck.vector_group.sync.v1": {
+    "ak.vector_group.sync.v1": {
       "required_endpoints": [
-        "ck.self.account.stream.subscribe",
-        "ck.self.events.query.scan",
-        "ck.self.snapshot.query.manifest_head"
+        "ak.self.account.stream.subscribe",
+        "ak.self.events.query.scan",
+        "ak.self.snapshot.query.manifest_head"
       ],
       "required_event_kinds": [
-        "ck.message.create",
-        "ck.member.state"
+        "ak.message.create",
+        "ak.member.state"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.account_subscribe_frame.v1",
-        "ck.schema.cursor.v1",
-        "ck.schema.snapshot.v1"
+        "ak.schema.account_subscribe_frame.v1",
+        "ak.schema.cursor.v1",
+        "ak.schema.snapshot.v1"
       ],
       "required_fixtures": [
         "sync-fixture.json"
@@ -704,19 +704,19 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "ck.vector_group.mimi_interop.v1": {
+    "ak.vector_group.mimi_interop.v1": {
       "required_endpoints": [
-        "ck.open.mimi.query.provider_directory",
-        "ck.open.mimi.command.update_room",
-        "ck.open.mimi.command.submit_message"
+        "ak.open.mimi.query.provider_directory",
+        "ak.open.mimi.command.update_room",
+        "ak.open.mimi.command.submit_message"
       ],
       "required_event_kinds": [
-        "ck.mimi.room_binding",
-        "ck.mls.keypackage"
+        "ak.mimi.room_binding",
+        "ak.mls.keypackage"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.mimi_interop.v1"
+        "ak.schema.mimi_interop.v1"
       ],
       "required_fixtures": [
         "mimi-interop-fixture.json"
@@ -729,21 +729,21 @@
         "unsupported_optional": "not applicable"
       }
     },
-    "ck.vector_group.cba_lattice.v1": {
+    "ak.vector_group.cba_lattice.v1": {
       "required_endpoints": [
-        "ck.self.events.command.submit"
+        "ak.self.events.command.submit"
       ],
       "required_event_kinds": [
-        "ck.member.state",
-        "ck.strand.move",
-        "ck.strand.reorder",
-        "ck.policy.set"
+        "ak.member.state",
+        "ak.strand.move",
+        "ak.strand.reorder",
+        "ak.policy.set"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.seal.v1",
-        "ck.schema.event.v1",
-        "ck.schema.event_payload.v1"
+        "ak.schema.seal.v1",
+        "ak.schema.event.v1",
+        "ak.schema.event_payload.v1"
       ],
       "required_fixtures": [
         "cba-lattice-fixture.json"
@@ -758,54 +758,54 @@
     }
   },
   "profile_requirements": {
-    "ck.profile.principal_control_realm.v1": {
+    "ak.profile.principal_control_realm.v1": {
       "role": "admin",
       "description": "Realm profile for a principal-scoped durable control stream (the Principal Control Realm role; see zh/models/realm-and-space.md §2.7). It is an ordinary Collaboration Realm at the envelope level, but reducers MUST treat fields.purpose=principal_control + this schema_ref as an allowlist-bound control stream, not as a user collaboration space.",
       "required_endpoints": [
-        "ck.self.events.command.submit",
-        "ck.self.events.query.scan",
-        "ck.self.events.resource.get",
-        "ck.self.keys.keypackages.upload.create",
-        "ck.self.keys.keypackages.command.claim",
-        "ck.self.keys.keypackages.command.consume",
-        "ck.self.keys.keypackages.command.revoke"
+        "ak.self.events.command.submit",
+        "ak.self.events.query.scan",
+        "ak.self.events.resource.get",
+        "ak.self.keys.keypackages.upload.create",
+        "ak.self.keys.keypackages.command.claim",
+        "ak.self.keys.keypackages.command.consume",
+        "ak.self.keys.keypackages.command.revoke"
       ],
       "required_event_kinds": [
-        "ck.realm.create",
-        "ck.device.authorize",
-        "ck.device.revoke",
-        "ck.device.list_update",
+        "ak.realm.create",
+        "ak.device.authorize",
+        "ak.device.revoke",
+        "ak.device.list_update",
         "ak.session.grant",
-        "ck.cross_signing.publish",
-        "ck.cross_signing.reset",
-        "ck.mls.keypackage",
-        "ck.account.status",
-        "ck.consent.grant",
-        "ck.consent.revoke"
+        "ak.cross_signing.publish",
+        "ak.cross_signing.reset",
+        "ak.mls.keypackage",
+        "ak.account.status",
+        "ak.consent.grant",
+        "ak.consent.revoke"
       ],
       "rejected_event_kinds": [
-        "ck.strand.create",
-        "ck.strand.update",
-        "ck.strand.move",
-        "ck.strand.reorder",
-        "ck.message.create",
-        "ck.message.revise",
-        "ck.reaction.add",
-        "ck.reaction.remove",
-        "ck.space.create",
-        "ck.relation.create",
-        "ck.view.create",
-        "ck.morph.create",
-        "ck.call.state"
+        "ak.strand.create",
+        "ak.strand.update",
+        "ak.strand.move",
+        "ak.strand.reorder",
+        "ak.message.create",
+        "ak.message.revise",
+        "ak.reaction.add",
+        "ak.reaction.remove",
+        "ak.space.create",
+        "ak.relation.create",
+        "ak.view.create",
+        "ak.morph.create",
+        "ak.call.state"
       ],
       "required_schemas": [
-        "ck.schema.realm.v1",
-        "ck.schema.event.v1",
-        "ck.schema.event_payload.v1",
-        "ck.schema.capability.v1",
-        "ck.schema.key_backup.v1",
-        "ck.schema.cross_signing_publish.v1",
-        "ck.schema.cross_signing_reset.v1"
+        "ak.schema.realm.v1",
+        "ak.schema.event.v1",
+        "ak.schema.event_payload.v1",
+        "ak.schema.capability.v1",
+        "ak.schema.key_backup.v1",
+        "ak.schema.cross_signing_publish.v1",
+        "ak.schema.cross_signing_reset.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json",
@@ -813,8 +813,8 @@
         "schema-validation-fixture.json"
       ],
       "optional_extensions": [
-        "ck.profile.org_high_assurance_identity.v1",
-        "ck.profile.public_network_identity.v1"
+        "ak.profile.org_high_assurance_identity.v1",
+        "ak.profile.public_network_identity.v1"
       ],
       "feature_discovery": {
         "required": [
@@ -827,17 +827,17 @@
       "realm_event_kind_policy": {
         "allowlist_only": true,
         "allowed_event_kinds": [
-          "ck.realm.create",
-          "ck.device.authorize",
-          "ck.device.revoke",
-          "ck.device.list_update",
+          "ak.realm.create",
+          "ak.device.authorize",
+          "ak.device.revoke",
+          "ak.device.list_update",
           "ak.session.grant",
-          "ck.cross_signing.publish",
-          "ck.cross_signing.reset",
-          "ck.mls.keypackage",
-          "ck.account.status",
-          "ck.consent.grant",
-          "ck.consent.revoke"
+          "ak.cross_signing.publish",
+          "ak.cross_signing.reset",
+          "ak.mls.keypackage",
+          "ak.account.status",
+          "ak.consent.grant",
+          "ak.consent.revoke"
         ],
         "reject_categories": [
           "strand",
@@ -869,30 +869,30 @@
         "Control events MUST bind principal_id / device_id / session grant audience to the same principal DID or an explicitly trusted recovery/session issuer."
       ]
     },
-    "ck.profile.core_event_store.v1": {
+    "ak.profile.core_event_store.v1": {
       "required_endpoints": [
-        "ck.server.query.describe",
-        "ck.self.events.query.describe",
-        "ck.self.events.command.submit",
-        "ck.self.events.resource.get",
-        "ck.self.events.query.resolve",
-        "ck.self.events.query.scan",
-        "ck.self.events.query.frontier"
+        "ak.server.query.describe",
+        "ak.self.events.query.describe",
+        "ak.self.events.command.submit",
+        "ak.self.events.resource.get",
+        "ak.self.events.query.resolve",
+        "ak.self.events.query.scan",
+        "ak.self.events.query.frontier"
       ],
       "required_event_kinds": [
-        "ck.realm.create",
-        "ck.member.state"
+        "ak.realm.create",
+        "ak.member.state"
       ],
       "rejected_event_kinds": [
         "wire_scope:actor_private_event",
         "wire_scope:ephemeral_event"
       ],
       "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.event_payload.v1",
-        "ck.schema.event_batch_receipt.v1",
-        "ck.schema.cursor.v1",
-        "ck.schema.seal.v1"
+        "ak.schema.event.v1",
+        "ak.schema.event_payload.v1",
+        "ak.schema.event_batch_receipt.v1",
+        "ak.schema.cursor.v1",
+        "ak.schema.seal.v1"
       ],
       "required_constraint_types": [
         "temporal",
@@ -925,31 +925,31 @@
         "unsupported_optional": "omit optional feature or return unsupported_feature"
       }
     },
-    "ck.profile.chat_mvp.v1": {
+    "ak.profile.chat_mvp.v1": {
       "inherits": [
-        "ck.profile.core_event_store.v1"
+        "ak.profile.core_event_store.v1"
       ],
       "required_endpoints": [
-        "ck.self.account.stream.subscribe",
-        "ck.self.events.query.scan"
+        "ak.self.account.stream.subscribe",
+        "ak.self.events.query.scan"
       ],
       "required_event_kinds": [
-        "ck.realm.create",
-        "ck.member.state",
-        "ck.strand.create",
-        "ck.message.create",
-        "ck.message.revise",
-        "ck.message.redact",
-        "ck.reaction.add",
-        "ck.reaction.remove",
-        "ck.redaction"
+        "ak.realm.create",
+        "ak.member.state",
+        "ak.strand.create",
+        "ak.message.create",
+        "ak.message.revise",
+        "ak.message.redact",
+        "ak.reaction.add",
+        "ak.reaction.remove",
+        "ak.redaction"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.realm.v1",
-        "ck.schema.strand.v1",
-        "ck.schema.message.v1",
-        "ck.schema.account_subscribe_frame.v1"
+        "ak.schema.realm.v1",
+        "ak.schema.strand.v1",
+        "ak.schema.message.v1",
+        "ak.schema.account_subscribe_frame.v1"
       ],
       "required_constraint_types": [
         "temporal"
@@ -994,7 +994,7 @@
         }
       ],
       "optional_extensions": [
-        "ck.profile.e2ee_client.v1",
+        "ak.profile.e2ee_client.v1",
         "read_receipts",
         "push_notifications"
       ],
@@ -1007,29 +1007,29 @@
         "unsupported_optional": "return unsupported_feature without dropping encrypted events"
       }
     },
-    "ck.profile.kanban_mvp.v1": {
+    "ak.profile.kanban_mvp.v1": {
       "inherits": [
-        "ck.profile.core_event_store.v1"
+        "ak.profile.core_event_store.v1"
       ],
       "required_endpoints": [
-        "ck.self.events.query.scan"
+        "ak.self.events.query.scan"
       ],
       "required_event_kinds": [
-        "ck.realm.create",
-        "ck.member.state",
-        "ck.strand.create",
-        "ck.strand.update",
-        "ck.strand.move",
-        "ck.strand.reorder",
-        "ck.relation.create",
-        "ck.container.rebalance"
+        "ak.realm.create",
+        "ak.member.state",
+        "ak.strand.create",
+        "ak.strand.update",
+        "ak.strand.move",
+        "ak.strand.reorder",
+        "ak.relation.create",
+        "ak.container.rebalance"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.realm.v1",
-        "ck.schema.strand.v1",
-        "ck.schema.relation.v1",
-        "ck.schema.view.v1"
+        "ak.schema.realm.v1",
+        "ak.schema.strand.v1",
+        "ak.schema.relation.v1",
+        "ak.schema.view.v1"
       ],
       "required_constraint_types": [
         "scope_limitation"
@@ -1052,27 +1052,27 @@
         "unsupported_optional": "return unsupported_feature or omit projection capability"
       }
     },
-    "ck.profile.minimal_client.v1": {
+    "ak.profile.minimal_client.v1": {
       "inherits": [
-        "ck.profile.core_event_store.v1"
+        "ak.profile.core_event_store.v1"
       ],
       "required_endpoints": [
-        "ck.server.query.describe",
-        "ck.self.events.resource.get",
-        "ck.self.events.query.scan"
+        "ak.server.query.describe",
+        "ak.self.events.resource.get",
+        "ak.self.events.query.scan"
       ],
       "required_event_kinds": [
-        "ck.realm.create",
-        "ck.member.state"
+        "ak.realm.create",
+        "ak.member.state"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.realm.v1",
-        "ck.schema.strand.v1",
-        "ck.schema.message.v1",
-        "ck.schema.morph.v1",
-        "ck.schema.relation.v1",
-        "ck.schema.view.v1"
+        "ak.schema.realm.v1",
+        "ak.schema.strand.v1",
+        "ak.schema.message.v1",
+        "ak.schema.morph.v1",
+        "ak.schema.relation.v1",
+        "ak.schema.view.v1"
       ],
       "required_fixtures": [
         "encoding-fixture.json",
@@ -1112,36 +1112,36 @@
         "unsupported_optional": "render generic fallback or return unsupported_feature"
       }
     },
-    "ck.profile.full_client.v1": {
+    "ak.profile.full_client.v1": {
       "inherits": [
-        "ck.profile.chat_mvp.v1",
-        "ck.profile.kanban_mvp.v1"
+        "ak.profile.chat_mvp.v1",
+        "ak.profile.kanban_mvp.v1"
       ],
       "required_endpoints": [
-        "ck.server.query.describe",
-        "ck.self.events.command.submit",
-        "ck.self.account.stream.subscribe",
-        "ck.self.events.stream.subscribe",
-        "ck.self.blob.upload.create",
-        "ck.self.blob.resource.get",
-        "ck.self.authz.query.check"
+        "ak.server.query.describe",
+        "ak.self.events.command.submit",
+        "ak.self.account.stream.subscribe",
+        "ak.self.events.stream.subscribe",
+        "ak.self.blob.upload.create",
+        "ak.self.blob.resource.get",
+        "ak.self.authz.query.check"
       ],
       "required_event_kinds": [
-        "ck.realm.create",
-        "ck.member.state",
-        "ck.strand.create",
-        "ck.message.create",
-        "ck.reaction.add",
-        "ck.redaction",
-        "ck.account_data.set",
-        "ck.read_cursor.advance"
+        "ak.realm.create",
+        "ak.member.state",
+        "ak.strand.create",
+        "ak.message.create",
+        "ak.reaction.add",
+        "ak.redaction",
+        "ak.account_data.set",
+        "ak.read_cursor.advance"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.account_subscribe_frame.v1",
-        "ck.schema.blob.v1",
-        "ck.schema.notification.v1",
-        "ck.schema.read_cursor.v1"
+        "ak.schema.account_subscribe_frame.v1",
+        "ak.schema.blob.v1",
+        "ak.schema.notification.v1",
+        "ak.schema.read_cursor.v1"
       ],
       "required_fixtures": [
         "encoding-fixture.json",
@@ -1151,9 +1151,9 @@
         "privacy-security-fixture.json"
       ],
       "optional_extensions": [
-        "ck.profile.e2ee_client.v1",
-        "ck.profile.mimi_interop.v1",
-        "ck.profile.agent_runtime.v1"
+        "ak.profile.e2ee_client.v1",
+        "ak.profile.mimi_interop.v1",
+        "ak.profile.agent_runtime.v1"
       ],
       "feature_discovery": {
         "required": [
@@ -1164,39 +1164,39 @@
         "unsupported_optional": "surface unavailable capability before write"
       }
     },
-    "ck.profile.e2ee_client.v1": {
+    "ak.profile.e2ee_client.v1": {
       "inherits": [
-        "ck.profile.full_client.v1",
-        "ck.profile.mls_governance_binding.full.v1"
+        "ak.profile.full_client.v1",
+        "ak.profile.mls_governance_binding.full.v1"
       ],
       "required_endpoints": [
-        "ck.self.keys.upload.create",
-        "ck.self.keys.query.lookup",
-        "ck.self.keys.command.claim",
-        "ck.self.keys.keypackages.upload.create",
-        "ck.self.keys.keypackages.command.claim",
-        "ck.self.keys.keypackages.command.consume",
-        "ck.self.keys.keypackages.command.revoke",
-        "ck.self.keys.backups.resource.replace",
-        "ck.self.keys.backups.query.list",
-        "ck.self.keys.backups.command.unlock",
-        "ck.self.keys.backups.resource.delete"
+        "ak.self.keys.upload.create",
+        "ak.self.keys.query.lookup",
+        "ak.self.keys.command.claim",
+        "ak.self.keys.keypackages.upload.create",
+        "ak.self.keys.keypackages.command.claim",
+        "ak.self.keys.keypackages.command.consume",
+        "ak.self.keys.keypackages.command.revoke",
+        "ak.self.keys.backups.resource.replace",
+        "ak.self.keys.backups.query.list",
+        "ak.self.keys.backups.command.unlock",
+        "ak.self.keys.backups.resource.delete"
       ],
       "required_event_kinds": [
-        "ck.device.authorize",
-        "ck.device.revoke",
-        "ck.mls.proposal",
-        "ck.mls.commit",
-        "ck.mls.welcome",
-        "ck.realm_key.share",
-        "ck.realm_key.withheld",
-        "ck.realm_key.share_audit"
+        "ak.device.authorize",
+        "ak.device.revoke",
+        "ak.mls.proposal",
+        "ak.mls.commit",
+        "ak.mls.welcome",
+        "ak.realm_key.share",
+        "ak.realm_key.withheld",
+        "ak.realm_key.share_audit"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.encrypted_envelope.v1",
-        "ck.schema.media_metadata.v1",
-        "ck.schema.key_backup.v1"
+        "ak.schema.encrypted_envelope.v1",
+        "ak.schema.media_metadata.v1",
+        "ak.schema.key_backup.v1"
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json",
@@ -1204,7 +1204,7 @@
         "sync-fixture.json"
       ],
       "optional_extensions": [
-        "ck.profile.mls.minimal_metadata_realm.v1",
+        "ak.profile.mls.minimal_metadata_realm.v1",
         "aad_visibility_policy"
       ],
       "feature_discovery": {
@@ -1217,13 +1217,13 @@
         "unsupported_optional": "preserve encrypted events and expose key_missing"
       }
     },
-    "ck.profile.e2ee_relaxed.v1": {
+    "ak.profile.e2ee_relaxed.v1": {
       "tier": "extension_profile_implementation",
       "depends_on": [
-        "ck.profile.e2ee_client.v1"
+        "ak.profile.e2ee_client.v1"
       ],
       "mutually_exclusive_with": [
-        "ck.profile.mls_governance_binding.full.v1"
+        "ak.profile.mls_governance_binding.full.v1"
       ],
       "spec_ref": "spec/v1/zh/crypto-media/encryption-and-audit.md#242-cxprofilee2ee_relaxedv1降级-profile",
       "description": "Degraded E2EE profile. Allows `mls_send_pause=\"advisory\"` (cf. §2.4.1) so that low-latency interactive scenarios (real-time AV, collaborative editing, in-game chat) do not block message send on MLS commit completion. Cost: removed members can continue decrypting a small window of subsequent messages. NOT for general chat / collaboration / compliance use. MUTUALLY EXCLUSIVE with ck.profile.mls_governance_binding.full.v1.",
@@ -1236,7 +1236,7 @@
       "required_schemas": [],
       "required_capability_actions": [],
       "required_features": [
-        "ck.feature.e2ee_relaxed.v1"
+        "ak.feature.e2ee_relaxed.v1"
       ],
       "required_constraint_kinds": [],
       "required_cell_namespaces": [],
@@ -1251,7 +1251,7 @@
       "downgrade_declaration_obligation": {
         "policy_declaration_required": "Realm create or ck.realm.policy_components MUST explicitly declare ck.profile.e2ee_relaxed.v1 before mls_send_pause=\"advisory\" is accepted. Out-of-band deployment config, UI-only labels, or a missing governance_binding GroupContext extension MUST NOT be treated as a valid downgrade declaration.",
         "service_describe_required": "The serving implementation MUST advertise ck.feature.e2ee_relaxed.v1 and the claimed profile in ServiceDescribe before accepting advisory writes or projecting the Realm as relaxed to a peer/facade.",
-        "binding_profile_required": "Every MLS governance_binding emitted for a relaxed Realm MUST carry binding_profile=\"ck.profile.e2ee_relaxed.v1\" and the negotiated reducer_profile. Missing binding_profile, binding_profile=\"ck.profile.mls_governance_binding.full.v1\", or an unsupported profile id is a fail-closed mismatch.",
+        "binding_profile_required": "Every MLS governance_binding emitted for a relaxed Realm MUST carry binding_profile=\"ak.profile.e2ee_relaxed.v1\" and the negotiated reducer_profile. Missing binding_profile, binding_profile=\"ck.profile.mls_governance_binding.full.v1\", or an unsupported profile id is a fail-closed mismatch.",
         "export_marker_required": "Sync metadata, snapshots, backups, exports, and interop mapping receipts that summarize the Realm MUST preserve e2ee_relaxed=true and relaxed_window_max_ms. Consumers that observe advisory semantics without this marker MUST assume the downgrade is undeclared and reject new old-epoch decrypt admission."
       },
       "reducer_reject_reasons": [
@@ -1295,26 +1295,26 @@
       ],
       "compliance_unfit": "Compliance / regulatory contexts that require 'kick-out is immediately effective' MUST NOT use this profile. Use non-E2EE Realm (encryption_profile=\"none\") + enclave channels instead. Spec deliberately does not allow further relaxation than this profile; deployments needing more leniency are out of v1 E2EE scope."
     },
-    "ck.profile.enterprise_client.v1": {
+    "ak.profile.enterprise_client.v1": {
       "inherits": [
-        "ck.profile.full_client.v1"
+        "ak.profile.full_client.v1"
       ],
       "required_endpoints": [
-        "ck.find.directory.query.resolve_organization",
-        "ck.find.directory.query.search_organizations",
-        "ck.self.authz.grants.query.effective"
+        "ak.find.directory.query.resolve_organization",
+        "ak.find.directory.query.search_organizations",
+        "ak.self.authz.grants.query.effective"
       ],
       "required_event_kinds": [
-        "ck.organization.discovery",
-        "ck.organization.moderation_policy",
-        "ck.policy.set",
-        "ck.policy.rule"
+        "ak.organization.discovery",
+        "ak.organization.moderation_policy",
+        "ak.policy.set",
+        "ak.policy.rule"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.policy.v1",
-        "ck.schema.handle_claim.v1",
-        "ck.schema.identity_receipt.v1"
+        "ak.schema.policy.v1",
+        "ak.schema.handle_claim.v1",
+        "ak.schema.identity_receipt.v1"
       ],
       "required_fixtures": [
         "capability-fixture.json",
@@ -1332,43 +1332,43 @@
         "unsupported_optional": "return unsupported_feature for managed-only action"
       }
     },
-    "ck.profile.directory_service.v1": {
+    "ak.profile.directory_service.v1": {
       "inherits": [],
       "description": "Arkret v1 Directory Service profile. Directory Services index resource-signed discovery state, expose blinded search/resolve endpoints, and support at least one §8 ingest mode without becoming a source of truth.",
       "required_endpoints": [
-        "ck.find.directory.query.describe",
-        "ck.find.directory.query.search_realms",
-        "ck.find.directory.query.resolve_realm",
-        "ck.find.directory.query.search_organizations",
-        "ck.find.directory.query.resolve_organization",
-        "ck.find.directory.query.search_actors",
-        "ck.find.directory.query.search_users",
-        "ck.find.directory.query.resolve_handle",
-        "ck.find.directory.query.resolve_agent_selector",
-        "ck.find.directory.command.announce",
-        "ck.find.directory.command.withdraw"
+        "ak.find.directory.query.describe",
+        "ak.find.directory.query.search_realms",
+        "ak.find.directory.query.resolve_realm",
+        "ak.find.directory.query.search_organizations",
+        "ak.find.directory.query.resolve_organization",
+        "ak.find.directory.query.search_actors",
+        "ak.find.directory.query.search_users",
+        "ak.find.directory.query.resolve_handle",
+        "ak.find.directory.query.resolve_agent_selector",
+        "ak.find.directory.command.announce",
+        "ak.find.directory.command.withdraw"
       ],
       "required_event_kinds": [
-        "ck.realm.discovery",
-        "ck.organization.discovery",
-        "ck.actor.discovery",
-        "ck.applet.discovery",
-        "ck.handle.discovery"
+        "ak.realm.discovery",
+        "ak.organization.discovery",
+        "ak.actor.discovery",
+        "ak.applet.discovery",
+        "ak.handle.discovery"
       ],
       "rejected_event_kinds": [
         "wire_scope:actor_private_event"
       ],
       "required_schemas": [
-        "ck.schema.actor_profile.v1",
-        "ck.schema.agent_selector_claim.v1",
-        "ck.schema.handle_claim.v1"
+        "ak.schema.actor_profile.v1",
+        "ak.schema.agent_selector_claim.v1",
+        "ak.schema.handle_claim.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json",
         "crypto-signature-fixture.json"
       ],
       "optional_extensions": [
-        "ck.private_contact_discovery.v1",
+        "ak.private_contact_discovery.v1",
         "pull_mode_ingest",
         "webhook_fanout",
         "restricted_query_proofs",
@@ -1388,31 +1388,31 @@
         "unsupported_optional": "omit optional profile or return unsupported_feature without leaking hidden resources"
       }
     },
-    "ck.profile.principal_server_events_api.v1": {
+    "ak.profile.principal_server_events_api.v1": {
       "inherits": [
-        "ck.profile.core_event_store.v1"
+        "ak.profile.core_event_store.v1"
       ],
       "required_endpoints": [
-        "ck.self.events.query.describe",
-        "ck.self.events.command.submit",
-        "ck.self.events.resource.get",
-        "ck.self.events.query.resolve",
-        "ck.self.events.query.scan",
-        "ck.self.events.query.frontier"
+        "ak.self.events.query.describe",
+        "ak.self.events.command.submit",
+        "ak.self.events.resource.get",
+        "ak.self.events.query.resolve",
+        "ak.self.events.query.scan",
+        "ak.self.events.query.frontier"
       ],
       "required_event_kinds": [
-        "ck.realm.create",
-        "ck.member.state"
+        "ak.realm.create",
+        "ak.member.state"
       ],
       "rejected_event_kinds": [
         "wire_scope:actor_private_event",
         "wire_scope:ephemeral_event"
       ],
       "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.event_payload.v1",
-        "ck.schema.cursor.v1",
-        "ck.schema.seal.v1"
+        "ak.schema.event.v1",
+        "ak.schema.event_payload.v1",
+        "ak.schema.cursor.v1",
+        "ak.schema.seal.v1"
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json",
@@ -1432,41 +1432,41 @@
         "unsupported_optional": "return unsupported_feature"
       }
     },
-    "ck.profile.principal_server.v1": {
+    "ak.profile.principal_server.v1": {
       "inherits": [
-        "ck.profile.principal_server_events_api.v1",
-        "ck.profile.chat_mvp.v1",
-        "ck.profile.kanban_mvp.v1"
+        "ak.profile.principal_server_events_api.v1",
+        "ak.profile.chat_mvp.v1",
+        "ak.profile.kanban_mvp.v1"
       ],
       "required_endpoints": [
-        "ck.server.query.describe",
-        "ck.self.account.query.describe",
-        "ck.self.account.stream.subscribe",
-        "ck.self.events.stream.subscribe",
-        "ck.self.events.query.scan",
-        "ck.self.snapshot.query.manifest_head",
-        "ck.self.authz.query.check"
+        "ak.server.query.describe",
+        "ak.self.account.query.describe",
+        "ak.self.account.stream.subscribe",
+        "ak.self.events.stream.subscribe",
+        "ak.self.events.query.scan",
+        "ak.self.snapshot.query.manifest_head",
+        "ak.self.authz.query.check"
       ],
       "required_event_kinds": [
-        "ck.realm.create",
-        "ck.member.state",
-        "ck.strand.create",
-        "ck.message.create",
-        "ck.invite.create",
-        "ck.invite.accept",
-        "ck.invite.third_party",
-        "ck.invite.claim",
-        "ck.invite.revoke",
-        "ck.capability.grant",
-        "ck.capability.revoke"
+        "ak.realm.create",
+        "ak.member.state",
+        "ak.strand.create",
+        "ak.message.create",
+        "ak.invite.create",
+        "ak.invite.accept",
+        "ak.invite.third_party",
+        "ak.invite.claim",
+        "ak.invite.revoke",
+        "ak.capability.grant",
+        "ak.capability.revoke"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.account_subscribe_frame.v1",
-        "ck.schema.snapshot.v1",
-        "ck.schema.invite.v1",
-        "ck.schema.capability.v1",
-        "ck.schema.grant_constraint.v1"
+        "ak.schema.account_subscribe_frame.v1",
+        "ak.schema.snapshot.v1",
+        "ak.schema.invite.v1",
+        "ak.schema.capability.v1",
+        "ak.schema.grant_constraint.v1"
       ],
       "required_fixtures": [
         "event-envelope-negative-fixture.json",
@@ -1477,8 +1477,8 @@
         "security-closure-vectors.json"
       ],
       "optional_extensions": [
-        "ck.profile.federation_minimal.v1",
-        "ck.profile.push_gateway.v1",
+        "ak.profile.federation_minimal.v1",
+        "ak.profile.push_gateway.v1",
         "snapshot_witness"
       ],
       "feature_discovery": {
@@ -1491,7 +1491,7 @@
         "unsupported_optional": "omit optional operation or return unsupported_feature"
       },
       "additional_requirements": {
-        "invite_claim_reducer_authority_must": "ck.invite.claim MUST be decided by the destination Realm reducer, not by Auth Server, verification service, Sync Service ingress, or client projection caches.",
+        "invite_claim_reducer_authority_must": "ak.invite.claim MUST be decided by the destination Realm reducer, not by Auth Server, verification service, Sync Service ingress, or client projection caches.",
         "invite_claim_token_commitment_must": "Reducer MUST match payload.token_commitment to the pending ck.invite.third_party invite and reject mismatch or already-claimed commitments with no membership proposal.",
         "invite_claim_allowlist_recheck_must": "Reducer MUST re-check binding_proof.verification_service_did against the current effective Realm allowlist and any invite-pinned service DID before accepting subject_proof.",
         "invite_claim_nonce_dedup_must": "Reducer MUST treat (invite_id, claim_nonce) and token_commitment as one-time constraints and reject replay with duplicate_conflict.",
@@ -1499,29 +1499,29 @@
         "invite_claim_expiry_cleanup_must": "Reducer MUST expire third-party invites before claim acceptance when expires_at <= now and trigger token material cleanup obligations from third-party-invites.md §6.1."
       }
     },
-    "ck.profile.federation_minimal.v1": {
+    "ak.profile.federation_minimal.v1": {
       "inherits": [
-        "ck.profile.core_event_store.v1"
+        "ak.profile.core_event_store.v1"
       ],
       "required_endpoints": [
-        "ck.peer.events.command.submit",
-        "ck.peer.events.query.scan",
-        "ck.peer.events.query.resolve",
-        "ck.peer.events.query.frontier"
+        "ak.peer.events.command.submit",
+        "ak.peer.events.query.scan",
+        "ak.peer.events.query.resolve",
+        "ak.peer.events.query.frontier"
       ],
       "required_event_kinds": [
-        "ck.realm.create",
-        "ck.member.state"
+        "ak.realm.create",
+        "ak.member.state"
       ],
       "rejected_event_kinds": [
         "wire_scope:actor_private_event",
         "wire_scope:ephemeral_event"
       ],
       "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.event_payload.v1",
-        "ck.schema.event_batch_receipt.v1",
-        "ck.schema.seal.v1"
+        "ak.schema.event.v1",
+        "ak.schema.event_payload.v1",
+        "ak.schema.event_batch_receipt.v1",
+        "ak.schema.seal.v1"
       ],
       "required_fixtures": [
         "federation-fixture.json",
@@ -1539,23 +1539,23 @@
         {
           "requirement": "federation transaction idempotency and per-item accepted/rejected/quarantine results",
           "coverage": [
-            "ck.schema.event_batch_receipt.v1",
+            "ak.schema.event_batch_receipt.v1",
             "federation-fixture.json"
           ]
         },
         {
           "requirement": "signed Event Envelope verification and authorization",
           "coverage": [
-            "ck.schema.event.v1",
-            "ck.schema.event_payload.v1",
+            "ak.schema.event.v1",
+            "ak.schema.event_payload.v1",
             "event-envelope-negative-fixture.json"
           ]
         },
         {
           "requirement": "dependency missing pull/backfill recovery",
           "coverage": [
-            "ck.peer.events.query.scan",
-            "ck.peer.events.query.resolve",
+            "ak.peer.events.query.scan",
+            "ak.peer.events.query.resolve",
             "sync-fixture.json"
           ]
         },
@@ -1587,26 +1587,26 @@
         "unsupported_optional": "reject unsupported profile before accepting events"
       },
       "e2ee_mls_interop_floor": {
-        "minimum_profile": "ck.profile.mls_governance_binding.full.v1",
+        "minimum_profile": "ak.profile.mls_governance_binding.full.v1",
         "applies_when": "Any federation transaction carries or depends on encryption_profile=\"mls_rfc9420\", ck.mls.genesis, ck.mls.commit, ck.mls.welcome, MLS-backed E2EE DataEvents, or covered_seals_cell state.",
         "required_artifacts": [
           "governance_binding.binding_profile",
           "governance_binding.reducer_profile",
           "mls_governance_binding GroupContext extension 0xF1C0",
-          "ck.component.covered_seals.v1"
+          "ak.component.covered_seals.v1"
         ],
-        "downgrade_profile": "ck.profile.e2ee_relaxed.v1",
+        "downgrade_profile": "ak.profile.e2ee_relaxed.v1",
         "downgrade_admission": "Only closed or restricted federation may accept ck.profile.e2ee_relaxed.v1, and restricted federation MUST satisfy the bounded-SLA federation_guard in that profile. Open and quarantine federation MUST reject the relaxed downgrade.",
         "fail_closed_behavior": "A receiver that cannot verify the minimum profile, sees a missing/inconsistent binding_profile or reducer_profile, or cannot prove the relaxed federation guard MUST reject or quarantine the affected MLS artifact/DataEvent before advancing Realm frontier."
       }
     },
-    "ck.profile.federation.high_assurance.v1": {
+    "ak.profile.federation.high_assurance.v1": {
       "inherits": [
-        "ck.profile.federation_minimal.v1"
+        "ak.profile.federation_minimal.v1"
       ],
       "description": "High-assurance / sovereign / regulated / multi-writer federation profile. Adds mandatory proactive frontier exchange with fail-state semantics on top of the ck.profile.federation_minimal.v1 baseline. See zh/sync/federation.md §4.5.3 and zh/sync/sovereign-deployment.md §11.1.",
       "required_endpoints": [
-        "ck.peer.events.query.frontier"
+        "ak.peer.events.query.frontier"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
@@ -1633,27 +1633,27 @@
         "stale_peer_behavior_must": "While a peer is in 'stale_peer' state: MUST quarantine its push payloads (no local frontier advancement); MUST surface state via operator alarm channel; MAY refuse to fanout new Events to that peer. Stale status MUST clear after successful fork resolution (head reconvergence or quorum witness attestation alignment)."
       }
     },
-    "ck.profile.identity_registry.v1": {
+    "ak.profile.identity_registry.v1": {
       "required_endpoints": [
-        "ck.root.identity.registry.query.describe",
-        "ck.root.identity.query.resolve",
-        "ck.root.identity.document.resource.get",
-        "ck.root.identity.log.query.list",
-        "ck.root.identity.receipts.query.list",
-        "ck.root.identity.command.submit_did_operation"
+        "ak.root.identity.registry.query.describe",
+        "ak.root.identity.query.resolve",
+        "ak.root.identity.document.resource.get",
+        "ak.root.identity.log.query.list",
+        "ak.root.identity.receipts.query.list",
+        "ak.root.identity.command.submit_did_operation"
       ],
       "required_event_kinds": [
-        "ck.did.proof",
-        "ck.identity.disclosure_policy",
-        "ck.identity.disclosure_receipt",
-        "ck.identity.presentation_request",
-        "ck.identity.presentation_response"
+        "ak.did.proof",
+        "ak.identity.disclosure_policy",
+        "ak.identity.disclosure_receipt",
+        "ak.identity.presentation_request",
+        "ak.identity.presentation_response"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.did_key_log_entry.v1",
-        "ck.schema.identity_receipt.v1",
-        "ck.schema.handle_claim.v1"
+        "ak.schema.did_key_log_entry.v1",
+        "ak.schema.identity_receipt.v1",
+        "ak.schema.handle_claim.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json",
@@ -1673,12 +1673,12 @@
         "unsupported_optional": "return unsupported_did_method"
       }
     },
-    "ck.profile.auth_server.v1": {
+    "ak.profile.auth_server.v1": {
       "inherits": [],
       "description": "Arkret v1 Auth Server profile. Auth Servers verify login factors (password / passkey / OIDC / SSO / recovery), issue short-lived audience-bound `ak.session.grant` artefacts, expose session-grant introspection / revocation, and MAY surface a `ck.self.policy.query.check` decision endpoint. Auth Servers are NOT canonical identity registries (DID documents / key logs live in `ck.profile.identity_registry.v1`) and are NOT principal servers (no Realm-authoritative event acceptance). Coauth is the reference implementation. See zh/identity/account-lifecycle.md, zh/crypto-media/device-lifecycle.md §5, zh/conformance/conformance-profiles.md §9a.",
       "required_endpoints": [
-        "ck.server.query.describe",
-        "ck.gate.account.command.issue_session_grant"
+        "ak.server.query.describe",
+        "ak.gate.account.command.issue_session_grant"
       ],
       "required_event_kinds": [
         "ak.session.grant"
@@ -1687,16 +1687,16 @@
         "wire_scope:actor_private_event"
       ],
       "required_schemas": [
-        "ck.schema.service_describe.v1",
-        "ck.schema.handle_claim.v1"
+        "ak.schema.service_describe.v1",
+        "ak.schema.handle_claim.v1"
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json",
         "privacy-security-fixture.json"
       ],
       "optional_extensions": [
-        "ck.gate.account.command.issue_session_grant",
-        "ck.self.policy.query.check",
+        "ak.gate.account.command.issue_session_grant",
+        "ak.self.policy.query.check",
         "session_grant_introspection",
         "session_grant_revocation",
         "oidc",
@@ -1728,16 +1728,16 @@
         "verified_profiles_dev_mode_must": "When `development_mode=true`, `verified_profiles[]` MUST be `[]` per sync/service-surface.md §3.0; cotest writes verified entries only after a passing verified-profile suite run."
       }
     },
-    "ck.profile.public_network_identity.v1": {
+    "ak.profile.public_network_identity.v1": {
       "required_endpoints": [
-        "ck.root.identity.query.resolve",
-        "ck.root.identity.document.resource.get"
+        "ak.root.identity.query.resolve",
+        "ak.root.identity.document.resource.get"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.identity_receipt.v1",
-        "ck.schema.handle_claim.v1"
+        "ak.schema.identity_receipt.v1",
+        "ak.schema.handle_claim.v1"
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json"
@@ -1755,18 +1755,18 @@
         "unsupported_optional": "return unsupported_did_method"
       }
     },
-    "ck.profile.org_high_assurance_identity.v1": {
+    "ak.profile.org_high_assurance_identity.v1": {
       "required_endpoints": [
-        "ck.root.identity.query.resolve",
-        "ck.root.identity.document.resource.get",
-        "ck.root.identity.log.query.list"
+        "ak.root.identity.query.resolve",
+        "ak.root.identity.document.resource.get",
+        "ak.root.identity.log.query.list"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.did_key_log_entry.v1",
-        "ck.schema.identity_receipt.v1",
-        "ck.schema.handle_claim.v1"
+        "ak.schema.did_key_log_entry.v1",
+        "ak.schema.identity_receipt.v1",
+        "ak.schema.handle_claim.v1"
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json"
@@ -1785,20 +1785,20 @@
         "unsupported_optional": "return unsupported_did_method"
       }
     },
-    "ck.profile.blob_node.v1": {
+    "ak.profile.blob_node.v1": {
       "required_endpoints": [
-        "ck.self.blob.upload.create",
-        "ck.self.blob.resource.get",
-        "ck.self.blob.resource.head"
+        "ak.self.blob.upload.create",
+        "ak.self.blob.resource.get",
+        "ak.self.blob.resource.head"
       ],
       "required_event_kinds": [
-        "ck.realm.asset_privacy_policy",
-        "ck.realm.media_service"
+        "ak.realm.asset_privacy_policy",
+        "ak.realm.media_service"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.blob.v1",
-        "ck.schema.media_metadata.v1"
+        "ak.schema.blob.v1",
+        "ak.schema.media_metadata.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -1816,28 +1816,28 @@
         "unsupported_optional": "return unsupported_media_policy"
       }
     },
-    "ck.profile.push_gateway.v1": {
+    "ak.profile.push_gateway.v1": {
       "role": "gateway",
       "description": "Push gateway base profile. Provides the device registration / notify operation surface. All implementations claiming this profile MUST also implement ck.profile.push_gateway.blind_wakeup.v1 (default interop privacy baseline) — see zh/discovery/push-notifications.md §2.2 / §5.1. Visible-payload variants are opt-in only via ck.profile.push_gateway.visible_notification.v1.",
       "depends_on": [
-        "ck.profile.push_gateway.blind_wakeup.v1"
+        "ak.profile.push_gateway.blind_wakeup.v1"
       ],
       "required_profiles": [
-        "ck.profile.push_gateway.blind_wakeup.v1"
+        "ak.profile.push_gateway.blind_wakeup.v1"
       ],
       "required_endpoints": [
-        "ck.edge.push.command.register_device",
-        "ck.edge.push.command.unregister_device",
-        "ck.edge.push.command.notify"
+        "ak.edge.push.command.register_device",
+        "ak.edge.push.command.unregister_device",
+        "ak.edge.push.command.notify"
       ],
       "required_event_kinds": [
-        "ck.device.authorize",
-        "ck.device.revoke",
-        "ck.account_data.set"
+        "ak.device.authorize",
+        "ak.device.revoke",
+        "ak.account_data.set"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.notification.v1"
+        "ak.schema.notification.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -1853,16 +1853,16 @@
         "unsupported_optional": "strip unsupported plaintext fields"
       }
     },
-    "ck.profile.push_gateway.blind_wakeup.v1": {
+    "ak.profile.push_gateway.blind_wakeup.v1": {
       "role": "gateway",
       "description": "Default push gateway privacy baseline. Every implementation claiming ck.profile.push_gateway.v1 MUST also claim this profile. Provider-facing payloads MUST NOT carry stable identifying fields (principal DID, sender DID, Realm id / name / avatar, Strand id / name, Message id, event id, device DID URL, reaction value, or any cross-Realm stable correlation key). Payloads MUST be restricted to per-(recipient_service_did, principal, device, push_route) pairwise pseudonym push_target_id + closed-enum wakeup hint fields (wakeup_kind, badge_count, unread_increment, l10n_key). See zh/discovery/push-notifications.md §2.2 / §4.5 / §5.1 and zh/crypto-media/device-lifecycle.md §5a.",
       "required_endpoints": [
-        "ck.edge.push.command.notify"
+        "ak.edge.push.command.notify"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.notification.v1"
+        "ak.schema.notification.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -1882,28 +1882,28 @@
         "default_claim_must": "Any implementation claiming ck.profile.push_gateway.v1 MUST also claim this profile and MUST NOT advertise downgrade switches that disable blind wakeup."
       }
     },
-    "ck.profile.push_gateway.visible_notification.v1": {
+    "ak.profile.push_gateway.visible_notification.v1": {
       "role": "gateway",
       "description": "Opt-in push gateway profile for deployments that require visible notification fields (e.g. titles, sender labels) in provider payloads. Claiming this profile is permitted ONLY when (1) Realm policy explicitly lists the gateway in plaintext_visible_services AND declares visible_notification allowance, (2) per-device opt-in is recorded in ck.device authorization state, and (3) the client UI clearly surfaces that visible-notification mode is active. Even when claimed, payloads MUST stay minimised: no message body, no DID URL, no cross-Realm stable correlation key, no IP / geolocation, no free-form text outside the profile-declared field set. See zh/discovery/push-notifications.md §5.1.",
       "depends_on": [
-        "ck.profile.push_gateway.v1"
+        "ak.profile.push_gateway.v1"
       ],
       "required_profiles": [
-        "ck.profile.push_gateway.v1",
-        "ck.profile.push_gateway.blind_wakeup.v1"
+        "ak.profile.push_gateway.v1",
+        "ak.profile.push_gateway.blind_wakeup.v1"
       ],
       "inherits": [
-        "ck.profile.push_gateway.v1"
+        "ak.profile.push_gateway.v1"
       ],
       "required_endpoints": [
-        "ck.edge.push.command.notify"
+        "ak.edge.push.command.notify"
       ],
       "required_event_kinds": [
-        "ck.device.authorize"
+        "ak.device.authorize"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.notification.v1"
+        "ak.schema.notification.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -1926,23 +1926,23 @@
         "payload_minimisation_must": "Even when claimed, payload MUST NOT carry message body, DID URLs, cross-Realm stable correlation keys, IP / geolocation, or untyped free-form text."
       }
     },
-    "ck.profile.push_gateway.matrix_passthrough.v1": {
+    "ak.profile.push_gateway.matrix_passthrough.v1": {
       "role": "interop",
       "description": "Interop compatibility profile for Matrix push gateway passthrough. Implementations claiming this profile MAY accept Matrix-shaped push gateway payloads as an external interop bridge to Matrix push gateways but MUST NOT mix this profile with ck.profile.push_gateway.blind_wakeup.v1 on the same notify path: the Matrix push gateway shape carries identifying fields incompatible with the default Arkret privacy baseline. Bridges MUST partition traffic so that any peer or device negotiated under ck.profile.push_gateway.blind_wakeup.v1 (i.e. the default v1 baseline) NEVER receives a matrix_passthrough payload. See zh/discovery/push-notifications.md §5.1 and zh/conformance/conformance-profiles.md §11.",
       "depends_on": [
-        "ck.profile.matrix_compat.v1"
+        "ak.profile.matrix_compat.v1"
       ],
       "required_profiles": [
-        "ck.profile.matrix_compat.v1"
+        "ak.profile.matrix_compat.v1"
       ],
       "inherits": [],
       "required_endpoints": [
-        "ck.edge.push.command.notify"
+        "ak.edge.push.command.notify"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.notification.v1"
+        "ak.schema.notification.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -1951,7 +1951,7 @@
         "matrix_push_gateway_passthrough"
       ],
       "incompatible_with": [
-        "ck.profile.push_gateway.blind_wakeup.v1"
+        "ak.profile.push_gateway.blind_wakeup.v1"
       ],
       "feature_discovery": {
         "required": [
@@ -1966,21 +1966,21 @@
         "interop_only_must": "This profile is interop-only; it MUST NOT be used as a substitute for ck.profile.push_gateway.blind_wakeup.v1 in default Arkret deployments."
       }
     },
-    "ck.profile.applet_service.v1": {
+    "ak.profile.applet_service.v1": {
       "required_endpoints": [
-        "ck.edge.applet.query.describe",
-        "ck.edge.applet.query.ping",
-        "ck.edge.applet.command.transaction"
+        "ak.edge.applet.query.describe",
+        "ak.edge.applet.query.ping",
+        "ak.edge.applet.command.transaction"
       ],
       "required_event_kinds": [
-        "ck.applet.registration"
+        "ak.applet.registration"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.event_payload.v1",
-        "ck.schema.seal.v1",
-        "ck.schema.applet_package.v1"
+        "ak.schema.event.v1",
+        "ak.schema.event_payload.v1",
+        "ak.schema.seal.v1",
+        "ak.schema.applet_package.v1"
       ],
       "required_fixtures": [
         "capability-fixture.json",
@@ -2000,7 +2000,7 @@
         "unsupported_optional": "return unsupported_feature"
       },
       "additional_requirements": {
-        "transaction_push_per_delivery_signature_must": "ck.edge.applet.command.transaction MUST require a per-delivery RFC 9421 HTTP Message Signature in both node->Applet and app/bridge->arkret inbound directions; pure bearer-only transaction push MUST be rejected with http_signature_required.",
+        "transaction_push_per_delivery_signature_must": "ak.edge.applet.command.transaction MUST require a per-delivery RFC 9421 HTTP Message Signature in both node->Applet and app/bridge->arkret inbound directions; pure bearer-only transaction push MUST be rejected with http_signature_required.",
         "transaction_push_covered_components_must": "Signature-Input covered components MUST include @method, @target-uri, @authority, content-digest, source-service-did, destination-service-did and idempotency-key; created/expires MUST satisfy the federation.md section 3.2 replay window.",
         "transaction_push_source_anchor_must": "Receivers MUST persist a source_signature_anchor audit value bound to operation_id, direction, source_service_did, destination_service_did, verification_method/keyid, registration_epoch or source key-state evidence, Idempotency-Key, Content-Digest, covered components, created and expires.",
         "transaction_push_replay_binding_must": "The idempotency identity MUST include operation_id, direction, Source-Service-DID, Destination-Service-DID and Idempotency-Key; the cached record MUST bind canonical body digest and source_signature_anchor. A replay with a different body digest or anchor MUST fail closed.",
@@ -2008,25 +2008,25 @@
         "transaction_push_actor_binding_must": "The source service signature authenticates only the Applet service. Each durable Event in the transaction MUST still verify event proofs, applet_id, authorization_ref, actor_id namespace and capability grants; namespace or actor-source confusion MUST fail closed."
       }
     },
-    "ck.profile.applet_bridge.v1": {
+    "ak.profile.applet_bridge.v1": {
       "inherits": [
-        "ck.profile.applet_service.v1"
+        "ak.profile.applet_service.v1"
       ],
       "required_endpoints": [
-        "ck.edge.applet.actor.query.resolve",
-        "ck.edge.applet.realm.query.resolve",
-        "ck.edge.applet.query.protocol_metadata"
+        "ak.edge.applet.actor.query.resolve",
+        "ak.edge.applet.realm.query.resolve",
+        "ak.edge.applet.query.protocol_metadata"
       ],
       "required_event_kinds": [
-        "ck.applet.interop_session.start",
-        "ck.applet.interop_session.status",
-        "ck.applet.bridge_error"
+        "ak.applet.interop_session.start",
+        "ak.applet.interop_session.status",
+        "ak.applet.bridge_error"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.event_payload.v1",
-        "ck.schema.seal.v1"
+        "ak.schema.event.v1",
+        "ak.schema.event_payload.v1",
+        "ak.schema.seal.v1"
       ],
       "required_fixtures": [
         "capability-fixture.json",
@@ -2045,17 +2045,17 @@
         "unsupported_optional": "return unsupported_feature"
       }
     },
-    "ck.profile.applet_delegated.v1": {
+    "ak.profile.applet_delegated.v1": {
       "inherits": [
-        "ck.profile.applet_service.v1"
+        "ak.profile.applet_service.v1"
       ],
       "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.event_payload.v1",
-        "ck.schema.capability.v1"
+        "ak.schema.event.v1",
+        "ak.schema.event_payload.v1",
+        "ak.schema.capability.v1"
       ],
       "required_fixtures": [
         "capability-fixture.json"
@@ -2070,16 +2070,16 @@
         "unsupported_optional": "return unsupported_feature"
       }
     },
-    "ck.profile.applet_e2ee_join.v1": {
+    "ak.profile.applet_e2ee_join.v1": {
       "inherits": [
-        "ck.profile.applet_service.v1"
+        "ak.profile.applet_service.v1"
       ],
       "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.event_payload.v1"
+        "ak.schema.event.v1",
+        "ak.schema.event_payload.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -2094,16 +2094,16 @@
         "unsupported_optional": "return unsupported_feature"
       }
     },
-    "ck.profile.applet_widget.v1": {
+    "ak.profile.applet_widget.v1": {
       "inherits": [
-        "ck.profile.applet_service.v1"
+        "ak.profile.applet_service.v1"
       ],
       "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.event_payload.v1"
+        "ak.schema.event.v1",
+        "ak.schema.event_payload.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -2119,22 +2119,22 @@
         "unsupported_optional": "return unsupported_feature"
       }
     },
-    "ck.profile.agent_runtime.v1": {
+    "ak.profile.agent_runtime.v1": {
       "required_endpoints": [
-        "ck.server.query.describe",
-        "ck.self.events.command.submit",
-        "ck.self.events.query.scan",
-        "ck.self.authz.query.check"
+        "ak.server.query.describe",
+        "ak.self.events.command.submit",
+        "ak.self.events.query.scan",
+        "ak.self.authz.query.check"
       ],
       "required_event_kinds": [
-        "ck.agent.endpoint",
-        "ck.agent.interop_session.start",
-        "ck.agent.interop_session.status",
-        "ck.agent.interop_session.result"
+        "ak.agent.endpoint",
+        "ak.agent.interop_session.start",
+        "ak.agent.interop_session.status",
+        "ak.agent.interop_session.result"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.capability.v1"
+        "ak.schema.capability.v1"
       ],
       "required_fixtures": [
         "capability-fixture.json",
@@ -2153,37 +2153,37 @@
         "unsupported_optional": "require explicit grant before join or tool use"
       }
     },
-    "ck.profile.personal_agent_provisioning.v1": {
+    "ak.profile.personal_agent_provisioning.v1": {
       "inherits": [
-        "ck.profile.agent_runtime.v1"
+        "ak.profile.agent_runtime.v1"
       ],
       "required_endpoints": [
-        "ck.self.agent.command.provision",
-        "ck.gate.account.command.pair_agent_key",
-        "ck.self.events.command.submit",
-        "ck.self.events.query.scan"
+        "ak.self.agent.command.provision",
+        "ak.gate.account.command.pair_agent_key",
+        "ak.self.events.command.submit",
+        "ak.self.events.query.scan"
       ],
       "required_event_kinds": [
-        "ck.profile.create",
-        "ck.identity.accountability_grant",
-        "ck.agent.key.authorize",
-        "ck.agent.key.rotate",
-        "ck.agent.key.revoke",
-        "ck.self.agent.pause",
-        "ck.self.agent.resume",
-        "ck.self.agent.deactivate",
-        "ck.agent.draft.propose",
-        "ck.agent.action_request",
-        "ck.agent.action_approve",
-        "ck.agent.action_reject",
-        "ck.capability.grant",
-        "ck.capability.revoke"
+        "ak.profile.create",
+        "ak.identity.accountability_grant",
+        "ak.agent.key.authorize",
+        "ak.agent.key.rotate",
+        "ak.agent.key.revoke",
+        "ak.self.agent.pause",
+        "ak.self.agent.resume",
+        "ak.self.agent.deactivate",
+        "ak.agent.draft.propose",
+        "ak.agent.action_request",
+        "ak.agent.action_approve",
+        "ak.agent.action_reject",
+        "ak.capability.grant",
+        "ak.capability.revoke"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.actor_profile.v1",
-        "ck.schema.agent_selector_claim.v1",
-        "ck.schema.capability.v1"
+        "ak.schema.actor_profile.v1",
+        "ak.schema.agent_selector_claim.v1",
+        "ak.schema.capability.v1"
       ],
       "required_fixtures": [
         "capability-fixture.json",
@@ -2202,21 +2202,21 @@
         "unsupported_optional": "fail closed; do not return long-lived bearer or private key"
       }
     },
-    "ck.profile.agent_auth.v1": {
+    "ak.profile.agent_auth.v1": {
       "inherits": [
-        "ck.profile.agent_runtime.v1",
-        "ck.profile.auth_server.v1"
+        "ak.profile.agent_runtime.v1",
+        "ak.profile.auth_server.v1"
       ],
       "required_endpoints": [
-        "ck.gate.account.command.issue_session_grant"
+        "ak.gate.account.command.issue_session_grant"
       ],
       "required_event_kinds": [
-        "ck.agent.key.authorize",
-        "ck.agent.key.revoke"
+        "ak.agent.key.authorize",
+        "ak.agent.key.revoke"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.capability.v1"
+        "ak.schema.capability.v1"
       ],
       "required_fixtures": [
         "capability-fixture.json"
@@ -2232,22 +2232,22 @@
         "unsupported_optional": "fail closed; never fallback to password / OIDC / passkey validator"
       }
     },
-    "ck.profile.agent_delegation_policy.v1": {
+    "ak.profile.agent_delegation_policy.v1": {
       "inherits": [
-        "ck.profile.agent_runtime.v1"
+        "ak.profile.agent_runtime.v1"
       ],
       "required_endpoints": [
-        "ck.self.authz.query.check"
+        "ak.self.authz.query.check"
       ],
       "required_event_kinds": [
-        "ck.capability.grant",
-        "ck.capability.delegate",
-        "ck.capability.revoke",
-        "ck.message.create"
+        "ak.capability.grant",
+        "ak.capability.delegate",
+        "ak.capability.revoke",
+        "ak.message.create"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.capability.v1"
+        "ak.schema.capability.v1"
       ],
       "required_fixtures": [
         "capability-fixture.json"
@@ -2265,28 +2265,28 @@
         "unsupported_optional": "fail closed; do not inherit controller permissions"
       }
     },
-    "ck.profile.agent_sidecar_thread.v1": {
+    "ak.profile.agent_sidecar_thread.v1": {
       "inherits": [
-        "ck.profile.personal_agent_provisioning.v1",
-        "ck.profile.circle_conformance.v1"
+        "ak.profile.personal_agent_provisioning.v1",
+        "ak.profile.circle_conformance.v1"
       ],
       "required_endpoints": [
-        "ck.self.agent.sidecar_thread.command.ensure",
-        "ck.self.events.command.submit",
-        "ck.self.events.query.scan"
+        "ak.self.agent.sidecar_thread.command.ensure",
+        "ak.self.events.command.submit",
+        "ak.self.events.query.scan"
       ],
       "required_event_kinds": [
-        "ck.circle.create",
-        "ck.circle.member.state",
-        "ck.strand.create",
-        "ck.relation.create",
-        "ck.message.create"
+        "ak.circle.create",
+        "ak.circle.member.state",
+        "ak.strand.create",
+        "ak.relation.create",
+        "ak.message.create"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.circle.v1",
-        "ck.schema.strand.v1",
-        "ck.schema.relation.v1"
+        "ak.schema.circle.v1",
+        "ak.schema.strand.v1",
+        "ak.schema.relation.v1"
       ],
       "required_fixtures": [
         "capability-fixture.json",
@@ -2308,17 +2308,17 @@
         "unsupported_optional": "fail closed; do not split into multiple sidecar Circles"
       }
     },
-    "ck.profile.agent_participation_policy.v1": {
+    "ak.profile.agent_participation_policy.v1": {
       "inherits": [
-        "ck.profile.personal_agent_provisioning.v1"
+        "ak.profile.personal_agent_provisioning.v1"
       ],
       "required_endpoints": [
-        "ck.self.agent.participation.resource.replace",
-        "ck.self.agent.participation.resource.get"
+        "ak.self.agent.participation.resource.replace",
+        "ak.self.agent.participation.resource.get"
       ],
       "required_event_kinds": [
-        "ck.capability.grant",
-        "ck.capability.revoke"
+        "ak.capability.grant",
+        "ak.capability.revoke"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [],
@@ -2337,24 +2337,24 @@
         "unsupported_optional": "fail closed; deny agent participation when the ceiling is unknown or stale"
       }
     },
-    "ck.profile.mimi_interop.v1": {
+    "ak.profile.mimi_interop.v1": {
       "required_endpoints": [
-        "ck.open.mimi.query.provider_directory",
-        "ck.open.mimi.command.request_consent",
-        "ck.open.mimi.command.update_consent",
-        "ck.open.mimi.command.update_room",
-        "ck.open.mimi.command.submit_message",
-        "ck.open.mimi.query.group_info"
+        "ak.open.mimi.query.provider_directory",
+        "ak.open.mimi.command.request_consent",
+        "ak.open.mimi.command.update_consent",
+        "ak.open.mimi.command.update_room",
+        "ak.open.mimi.command.submit_message",
+        "ak.open.mimi.query.group_info"
       ],
       "required_event_kinds": [
-        "ck.mimi.room_binding",
-        "ck.mls.keypackage",
-        "ck.mls.commit"
+        "ak.mimi.room_binding",
+        "ak.mls.keypackage",
+        "ak.mls.commit"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.mimi_interop.v1",
-        "ck.schema.encrypted_envelope.v1"
+        "ak.schema.mimi_interop.v1",
+        "ak.schema.encrypted_envelope.v1"
       ],
       "required_fixtures": [
         "mimi-interop-fixture.json",
@@ -2374,10 +2374,10 @@
         "unsupported_optional": "fail closed on unsupported draft"
       },
       "e2ee_mls_interop_floor": {
-        "minimum_profile": "ck.profile.mls_governance_binding.full.v1",
+        "minimum_profile": "ak.profile.mls_governance_binding.full.v1",
         "applies_when": "A MIMI room binding is E2EE or carries mls_group_id, groupInfo, key material, or encrypted application messages that will be projected into a Arkret Realm/Strand.",
         "required_checks": [
-          "ck.mimi.room_binding.mls_group_id matches the MLS governance_binding mls_group_id",
+          "ak.mimi.room_binding.mls_group_id matches the MLS governance_binding mls_group_id",
           "governance_binding.binding_profile and reducer_profile are present and supported",
           "covered_seals_cell covers the governance frontier needed by the projected message",
           "MIMI draft/profile fields are ignored for security decisions unless mapped to registered Arkret policy/capability state"
@@ -2391,26 +2391,26 @@
         ]
       }
     },
-    "ck.profile.sovereign_deployment.v1": {
+    "ak.profile.sovereign_deployment.v1": {
       "inherits": [
-        "ck.profile.principal_server.v1",
-        "ck.profile.identity_registry.v1"
+        "ak.profile.principal_server.v1",
+        "ak.profile.identity_registry.v1"
       ],
       "required_endpoints": [
-        "ck.server.query.describe",
-        "ck.root.identity.query.resolve",
-        "ck.self.authz.query.check"
+        "ak.server.query.describe",
+        "ak.root.identity.query.resolve",
+        "ak.self.authz.query.check"
       ],
       "required_event_kinds": [
-        "ck.sovereign.did_policy",
-        "ck.capability.grant",
-        "ck.capability.revoke",
-        "ck.realm.policy"
+        "ak.sovereign.did_policy",
+        "ak.capability.grant",
+        "ak.capability.revoke",
+        "ak.realm.policy"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.policy.v1",
-        "ck.schema.capability.v1"
+        "ak.schema.policy.v1",
+        "ak.schema.capability.v1"
       ],
       "required_fixtures": [
         "federation-fixture.json",
@@ -2429,30 +2429,30 @@
         "unsupported_optional": "deny bridge until explicit policy exists"
       },
       "forbidden_features": [
-        "ck.feature.mls_last_resort_keypackage.v1"
+        "ak.feature.mls_last_resort_keypackage.v1"
       ],
       "additional_requirements": {
         "sender_constrained_session_pop_must": "Per RFC 9700 (BCP 240) sender-constrained-token guidance, production current-v1 protected endpoints MUST reject bare Authorization: Bearer presentation unless it is bound by DPoP, an RFC 9421 HTTP Message Signature, detached JWS, mTLS, or equivalent sender-constrained proof. For this high-security profile, regular writes (any request advancing actor_seq / Realm frontier or producing durable side effects) and sensitive reads MUST use RFC 9421 HTTP Message Signature whose signing key is the session's session_public_key delegated by ak.session.grant, binding @method/@target-uri/@authority, content-digest (when body present), and participating Idempotency-Key, with created/expires inside the existing replay window. Public metadata surfaces may return only unauthenticated public responses when no valid proof is present; they MUST NOT treat bare bearer as session/capability authentication. See api-conventions.md §3.2 and service-http-binding.md §2.5.",
         "mls_last_resort_forbidden_must": "Realms claiming this profile MUST NOT allow last-resort KeyPackage join: services MUST NOT advertise ck.feature.mls_last_resort_keypackage.v1 for those Realms, claim responses MUST NOT return last_resort=true packages, and requesters MUST treat any last_resort=true claim record as profile-forbidden and fail closed."
       }
     },
-    "ck.profile.sovereign_enclave.v1": {
+    "ak.profile.sovereign_enclave.v1": {
       "inherits": [
-        "ck.profile.sovereign_deployment.v1"
+        "ak.profile.sovereign_deployment.v1"
       ],
       "description": "Controlled-collaboration enclave variant of the sovereign deployment profile. The enclave runs alongside (or downstream of) a sovereign main node and hosts external collaborators inside `ck.realm.deployment_profile=enclave` Realms. When this profile is claimed the implementation MUST: (a) disable outbound federation; (b) disable public discovery and public DID resolution; (c) restrict its resolver to DID methods in the configured `allowed_did_methods` allow-list; (d) log every outbound HTTP call under the `sovereign_boundary_audit` target. See `zh/sync/sovereign-deployment.md` §2–§6.",
       "required_endpoints": [
-        "ck.server.query.describe",
-        "ck.root.identity.query.resolve",
-        "ck.self.authz.query.check"
+        "ak.server.query.describe",
+        "ak.root.identity.query.resolve",
+        "ak.self.authz.query.check"
       ],
       "required_event_kinds": [
-        "ck.sovereign.did_policy",
-        "ck.realm.policy"
+        "ak.sovereign.did_policy",
+        "ak.realm.policy"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.policy.v1"
+        "ak.schema.policy.v1"
       ],
       "required_fixtures": [
         "federation-fixture.json"
@@ -2471,19 +2471,19 @@
         "unsupported_optional": "deny outbound HTTP until allowlist contains the destination host"
       }
     },
-    "ck.profile.franking.v1": {
+    "ak.profile.franking.v1": {
       "required_endpoints": [
-        "ck.self.events.command.submit",
-        "ck.self.account.stream.subscribe"
+        "ak.self.events.command.submit",
+        "ak.self.account.stream.subscribe"
       ],
       "required_event_kinds": [
-        "ck.moderation.franking_proof",
-        "ck.self.moderation.report"
+        "ak.moderation.franking_proof",
+        "ak.self.moderation.report"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.event_payload.v1"
+        "ak.schema.event.v1",
+        "ak.schema.event_payload.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -2501,15 +2501,15 @@
         "unsupported_optional": "return franking_proof_unavailable rather than silently dropping"
       }
     },
-    "ck.profile.morph.schema_migration_transformations.v1": {
+    "ak.profile.morph.schema_migration_transformations.v1": {
       "description": "Opt-in Realm profile that permits ck.morph.schema_migrate events with compatibility_class in {breaking, transformation}. Realms not declaring this profile MUST reject such migrations as morph_schema_refs_transformation_unsupported. Profile commits the deployment to deterministic, replay-safe per-field transformation_rules[] and to capability gating ck.morph.schema_migrate at an audit-grade tier. See zh/models/morph.md §4.1 S3.",
       "required_endpoints": [],
       "required_event_kinds": [
-        "ck.morph.schema_migrate"
+        "ak.morph.schema_migrate"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.event_payload.v1"
+        "ak.schema.event_payload.v1"
       ],
       "required_fixtures": [],
       "optional_extensions": [
@@ -2529,17 +2529,17 @@
         "deterministic_transformation_must": "Any transformation_rules[] MUST be replay-deterministic across implementations; profile vectors MUST cover identity, rename, type widening, and default backfill cases."
       }
     },
-    "ck.profile.webrtc_media.v1": {
+    "ak.profile.webrtc_media.v1": {
       "required_endpoints": [
-        "ck.server.query.describe"
+        "ak.server.query.describe"
       ],
       "required_event_kinds": [
-        "ck.call.signal",
-        "ck.call.state"
+        "ak.call.signal",
+        "ak.call.state"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.event.v1"
+        "ak.schema.event.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -2559,25 +2559,25 @@
         "unsupported_optional": "return turn_credential_expired with next_retry_at"
       }
     },
-    "ck.profile.media_service_binding.v1": {
+    "ak.profile.media_service_binding.v1": {
       "role": "server",
       "description": "Transport-agnostic media backend binding framework (CKP-0010). Requires ck.realm.media_service to declare a multi-focus list with backend type discriminator; defines normative token exchange, session focus selection, participant binding, E2EE key injection via MLS-Exporter label ck-rtc-frame-key/v1, and recording artifact pipeline. Specific backends (livekit / arkret-native) declare an additional sub-profile. See zh/crypto-media/media-service-binding.md §2 / §3 / §5–§8 and zh/crypto-media/call-state.md §4.",
       "depends_on": [
-        "ck.profile.webrtc_media.v1"
+        "ak.profile.webrtc_media.v1"
       ],
       "required_profiles": [
-        "ck.profile.webrtc_media.v1"
+        "ak.profile.webrtc_media.v1"
       ],
       "required_endpoints": [
-        "ck.self.call.media.exchange.issue_token"
+        "ak.self.call.media.exchange.issue_token"
       ],
       "required_event_kinds": [
-        "ck.realm.media_service",
-        "ck.call.state"
+        "ak.realm.media_service",
+        "ak.call.state"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.event.v1"
+        "ak.schema.event.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -2601,32 +2601,32 @@
       "additional_requirements": {
         "token_ttl_must": "Token issuer MUST cap backend_token / participant_binding expires_at at 600s after issuance; SHOULD use ≤ 300s.",
         "issuer_did_sealing_must": "service_signature.kid and participant_binding.issuer_kid MUST resolve to a service DID declared in ck.realm.media_service.service_id of the current MLS epoch; otherwise reject with token_issuer_unauthorised.",
-        "session_focus_must": "ck.call.state.session_focus is write-once per call; in-session focus migration is not supported in v1. Token issuer MUST reject focus_id != committed session_focus (focus_mismatch).",
-        "participant_binding_must": "ck.call.state.participants[].participant_binding MUST be verified by both reducer (on event acceptance) and client (on backend ParticipantConnected event). Failure surfaces as participant_binding_invalid (reducer) or participant_identity_unrecognised (client).",
+        "session_focus_must": "ak.call.state.session_focus is write-once per call; in-session focus migration is not supported in v1. Token issuer MUST reject focus_id != committed session_focus (focus_mismatch).",
+        "participant_binding_must": "ak.call.state.participants[].participant_binding MUST be verified by both reducer (on event acceptance) and client (on backend ParticipantConnected event). Failure surfaces as participant_binding_invalid (reducer) or participant_identity_unrecognised (client).",
         "e2ee_key_source_must": "Client binding adapter MUST derive frame keys from Arkret MLS-Exporter with label ck-rtc-frame-key/v1 (length=19 bytes, Context=canonical_json({realm_id, call_id, focus_id, epoch_id, participant_identity, device_id}), KDF.Nh=32 bytes), where participant_identity/device_id come from the verified ck.call.state.participants[] and participant_binding. Empty Context, missing sender fields, or epoch-only binding MUST be rejected with e2ee_key_source_unauthorised. MUST NOT accept keys from backend cloud key escrow; reject with e2ee_key_source_unauthorised.",
         "recording_pipeline_must": "Backend-generated recording artifacts MUST strand through Arkret authenticated blob upload (media-and-blob.md) with recording_initiator_capability_ref. Direct backend-to-storage paths are forbidden (recording_artifact_pipeline_bypassed).",
         "recording_key_source_must": "Recording artifact encryption keys MUST derive from Arkret MLS-Exporter label ck-rtc-recording-key/v1 with Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id}) and 32 output bytes. The SFrame label ck-rtc-frame-key/v1 and empty Context MUST be rejected for recording artifacts."
       }
     },
-    "ck.profile.media_service_binding.livekit.v1": {
+    "ak.profile.media_service_binding.livekit.v1": {
       "role": "server",
       "description": "LiveKit backend binding sub-profile (CKP-0010 §4.5). Maps Arkret token_exchange to LiveKit JWT claims, SFrame-based E2EE via inject_frame_key, capability mapping to video.canPublishSources, and Egress-based recording through Arkret blob pipeline. Declaring this sub-profile requires declaring ck.profile.media_service_binding.v1. Optional in v1 cycle; not part of v1 mandatory conformance set. See zh/crypto-media/bindings/livekit.md.",
       "depends_on": [
-        "ck.profile.media_service_binding.v1"
+        "ak.profile.media_service_binding.v1"
       ],
       "required_profiles": [
-        "ck.profile.media_service_binding.v1"
+        "ak.profile.media_service_binding.v1"
       ],
       "required_endpoints": [
-        "ck.self.call.media.exchange.issue_token"
+        "ak.self.call.media.exchange.issue_token"
       ],
       "required_event_kinds": [
-        "ck.realm.media_service",
-        "ck.call.state"
+        "ak.realm.media_service",
+        "ak.call.state"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.event.v1"
+        "ak.schema.event.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -2647,25 +2647,25 @@
         "livekit_recorder_claim_must": "Token issuer MUST set video.recorder=false; recording goes through Arkret Egress proxy, not LiveKit recorder claim."
       }
     },
-    "ck.profile.media_service_binding.arkret_native.v1": {
+    "ak.profile.media_service_binding.arkret_native.v1": {
       "role": "server",
       "description": "Arkret-native SFU reference binding sub-profile (CKP-0010 §4.5). Provides a backend-SDK-free reference implementation of the Arkret-native SFU wire format for protocol self-consistency and conformance testing. Reference / conformance binding only: it MUST NOT be claimed as a production media backend, and production deployments MUST use a production-grade media_service_binding sub-profile such as ck.profile.media_service_binding.livekit.v1. Declaring this sub-profile requires declaring ck.profile.media_service_binding.v1. See zh/crypto-media/bindings/arkret-native.md.",
       "depends_on": [
-        "ck.profile.media_service_binding.v1"
+        "ak.profile.media_service_binding.v1"
       ],
       "required_profiles": [
-        "ck.profile.media_service_binding.v1"
+        "ak.profile.media_service_binding.v1"
       ],
       "required_endpoints": [
-        "ck.self.call.media.exchange.issue_token"
+        "ak.self.call.media.exchange.issue_token"
       ],
       "required_event_kinds": [
-        "ck.realm.media_service",
-        "ck.call.state"
+        "ak.realm.media_service",
+        "ak.call.state"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.event.v1"
+        "ak.schema.event.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -2678,22 +2678,22 @@
         "unsupported_optional": "MUST fail closed when arkret_native_sfu_join_request is unavailable."
       }
     },
-    "ck.profile.sovereign_client.v1": {
+    "ak.profile.sovereign_client.v1": {
       "inherits": [
-        "ck.profile.full_client.v1"
+        "ak.profile.full_client.v1"
       ],
       "required_endpoints": [
-        "ck.server.query.describe",
-        "ck.root.identity.query.resolve"
+        "ak.server.query.describe",
+        "ak.root.identity.query.resolve"
       ],
       "required_event_kinds": [
-        "ck.sovereign.did_policy",
-        "ck.realm.policy"
+        "ak.sovereign.did_policy",
+        "ak.realm.policy"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.policy.v1",
-        "ck.schema.identity_receipt.v1"
+        "ak.schema.policy.v1",
+        "ak.schema.identity_receipt.v1"
       ],
       "required_fixtures": [
         "federation-fixture.json",
@@ -2711,25 +2711,25 @@
         "unsupported_optional": "mark remote Realm unavailable"
       }
     },
-    "ck.profile.personal_node.v1": {
+    "ak.profile.personal_node.v1": {
       "inherits": [
-        "ck.profile.principal_server_events_api.v1"
+        "ak.profile.principal_server_events_api.v1"
       ],
       "required_endpoints": [
-        "ck.server.query.describe",
-        "ck.self.events.command.submit",
-        "ck.self.account.stream.subscribe"
+        "ak.server.query.describe",
+        "ak.self.events.command.submit",
+        "ak.self.account.stream.subscribe"
       ],
       "required_event_kinds": [
-        "ck.realm.create",
-        "ck.member.state",
-        "ck.account_data.set"
+        "ak.realm.create",
+        "ak.member.state",
+        "ak.account_data.set"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.account_subscribe_frame.v1",
-        "ck.schema.seal.v1"
+        "ak.schema.event.v1",
+        "ak.schema.account_subscribe_frame.v1",
+        "ak.schema.seal.v1"
       ],
       "required_fixtures": [
         "event-envelope-negative-fixture.json",
@@ -2758,34 +2758,34 @@
       },
       "account_authority": {
         "requirement": "recommended_self_hosted",
-        "role_profile": "ck.profile.auth_server.v1",
+        "role_profile": "ak.profile.auth_server.v1",
         "escape_hatch": "external_delegated_declared",
         "note": "personal_node SHOULD co-deploy a self-hosted Account Authority (Auth Server): account registration, recovery, device enrollment, session-grant issuance, and did.jsonl hosting for domainless users. The Account Authority MAY be co-located in the same process/node as the principal server (see architecture.md §2.8) but keeps a distinct service DID and boundary. A deployment MAY delegate to a shared/external auth server, but MUST declare the delegation in service-describe auth_metadata so the inherited trust dependency (control over account recovery, device enrollment, and DID continuity) is explicit and auditable. Service DID is obtained at startup via self-bootstrap (no manual mint) with config as a fail-closed pin; see identity/identity-did.md §3.7. Sources: overview/architecture.md minimal-deployment topology, sync/service-surface.md §2.5, identity/identity-did.md §3.7."
       }
     },
-    "ck.profile.small_team.v1": {
+    "ak.profile.small_team.v1": {
       "inherits": [
-        "ck.profile.principal_server.v1",
-        "ck.profile.chat_mvp.v1",
-        "ck.profile.kanban_mvp.v1"
+        "ak.profile.principal_server.v1",
+        "ak.profile.chat_mvp.v1",
+        "ak.profile.kanban_mvp.v1"
       ],
       "required_endpoints": [
-        "ck.server.query.describe",
-        "ck.self.events.command.submit",
-        "ck.self.account.stream.subscribe"
+        "ak.server.query.describe",
+        "ak.self.events.command.submit",
+        "ak.self.account.stream.subscribe"
       ],
       "required_event_kinds": [
-        "ck.realm.create",
-        "ck.member.state",
-        "ck.strand.create",
-        "ck.message.create"
+        "ak.realm.create",
+        "ak.member.state",
+        "ak.strand.create",
+        "ak.message.create"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.realm.v1",
-        "ck.schema.space.v1",
-        "ck.schema.strand.v1",
-        "ck.schema.message.v1"
+        "ak.schema.realm.v1",
+        "ak.schema.space.v1",
+        "ak.schema.strand.v1",
+        "ak.schema.message.v1"
       ],
       "required_fixtures": [
         "sync-fixture.json",
@@ -2813,31 +2813,31 @@
       },
       "account_authority": {
         "requirement": "recommended_self_hosted",
-        "role_profile": "ck.profile.auth_server.v1",
+        "role_profile": "ak.profile.auth_server.v1",
         "escape_hatch": "external_delegated_declared",
         "note": "small_team SHOULD co-deploy a self-hosted Account Authority (Auth Server): account registration, recovery, device enrollment, session-grant issuance, and did.jsonl hosting for domainless users. The Account Authority MAY be co-located in the same process/node as the principal server (see architecture.md §2.8) but keeps a distinct service DID and boundary. A deployment MAY delegate to a shared/external auth server, but MUST declare the delegation in service-describe auth_metadata so the inherited trust dependency (control over account recovery, device enrollment, and DID continuity) is explicit and auditable. Service DID is obtained at startup via self-bootstrap (no manual mint) with config as a fail-closed pin; see identity/identity-did.md §3.7. Sources: overview/architecture.md minimal-deployment topology, sync/service-surface.md §2.5, identity/identity-did.md §3.7."
       }
     },
-    "ck.profile.organization.v1": {
+    "ak.profile.organization.v1": {
       "inherits": [
-        "ck.profile.principal_server.v1",
-        "ck.profile.identity_registry.v1"
+        "ak.profile.principal_server.v1",
+        "ak.profile.identity_registry.v1"
       ],
       "required_endpoints": [
-        "ck.find.directory.query.resolve_organization",
-        "ck.self.authz.grants.query.effective"
+        "ak.find.directory.query.resolve_organization",
+        "ak.self.authz.grants.query.effective"
       ],
       "required_event_kinds": [
-        "ck.organization.discovery",
-        "ck.organization.moderation_policy",
-        "ck.policy.set",
-        "ck.account.status"
+        "ak.organization.discovery",
+        "ak.organization.moderation_policy",
+        "ak.policy.set",
+        "ak.account.status"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.policy.v1",
-        "ck.schema.handle_claim.v1",
-        "ck.schema.moderation_report.v1"
+        "ak.schema.policy.v1",
+        "ak.schema.handle_claim.v1",
+        "ak.schema.moderation_report.v1"
       ],
       "required_fixtures": [
         "capability-fixture.json",
@@ -2864,27 +2864,27 @@
         "witness_threshold_minimum": 1
       }
     },
-    "ck.profile.high_security_organization.v1": {
+    "ak.profile.high_security_organization.v1": {
       "inherits": [
-        "ck.profile.organization.v1",
-        "ck.profile.e2ee_client.v1",
-        "ck.profile.mls_governance_binding.full.v1"
+        "ak.profile.organization.v1",
+        "ak.profile.e2ee_client.v1",
+        "ak.profile.mls_governance_binding.full.v1"
       ],
       "required_endpoints": [
-        "ck.self.snapshot.query.manifest_head",
-        "ck.self.keys.keypackages.command.revoke"
+        "ak.self.snapshot.query.manifest_head",
+        "ak.self.keys.keypackages.command.revoke"
       ],
       "required_event_kinds": [
-        "ck.device.revoke",
-        "ck.mls.commit",
-        "ck.realm_key.withheld",
-        "ck.realm.moderation_policy"
+        "ak.device.revoke",
+        "ak.mls.commit",
+        "ak.realm_key.withheld",
+        "ak.realm.moderation_policy"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.snapshot.v1",
-        "ck.schema.encrypted_envelope.v1",
-        "ck.schema.moderation_queue_item.v1"
+        "ak.schema.snapshot.v1",
+        "ak.schema.encrypted_envelope.v1",
+        "ak.schema.moderation_queue_item.v1"
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json",
@@ -2904,7 +2904,7 @@
         "unsupported_optional": "fail closed for high-risk action"
       },
       "forbidden_features": [
-        "ck.feature.mls_last_resort_keypackage.v1"
+        "ak.feature.mls_last_resort_keypackage.v1"
       ],
       "additional_requirements": {
         "sender_constrained_session_pop_must": "Per RFC 9700 (BCP 240) sender-constrained-token guidance, production current-v1 protected endpoints MUST reject bare Authorization: Bearer presentation unless it is bound by DPoP, an RFC 9421 HTTP Message Signature, detached JWS, mTLS, or equivalent sender-constrained proof. For this high-security profile, regular writes (any request advancing actor_seq / Realm frontier or producing durable side effects) and sensitive reads MUST use RFC 9421 HTTP Message Signature whose signing key is the session's session_public_key delegated by ak.session.grant, binding @method/@target-uri/@authority, content-digest (when body present), and participating Idempotency-Key, with created/expires inside the existing replay window. Public metadata surfaces may return only unauthenticated public responses when no valid proof is present; they MUST NOT treat bare bearer as session/capability authentication. See api-conventions.md §3.2 and service-http-binding.md §2.5.",
@@ -2921,26 +2921,26 @@
         "require_witness_evidence": true
       }
     },
-    "ck.profile.isolated_sovereign_network.v1": {
+    "ak.profile.isolated_sovereign_network.v1": {
       "inherits": [
-        "ck.profile.sovereign_deployment.v1",
-        "ck.profile.high_security_organization.v1"
+        "ak.profile.sovereign_deployment.v1",
+        "ak.profile.high_security_organization.v1"
       ],
       "required_endpoints": [
-        "ck.server.query.describe",
-        "ck.root.identity.query.resolve"
+        "ak.server.query.describe",
+        "ak.root.identity.query.resolve"
       ],
       "required_event_kinds": [
-        "ck.sovereign.did_policy",
-        "ck.capability.grant",
-        "ck.capability.revoke",
-        "ck.realm.policy"
+        "ak.sovereign.did_policy",
+        "ak.capability.grant",
+        "ak.capability.revoke",
+        "ak.realm.policy"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.policy.v1",
-        "ck.schema.capability.v1",
-        "ck.schema.snapshot.v1"
+        "ak.schema.policy.v1",
+        "ak.schema.capability.v1",
+        "ak.schema.snapshot.v1"
       ],
       "required_fixtures": [
         "federation-fixture.json",
@@ -2960,23 +2960,23 @@
         "unsupported_optional": "deny cross-boundary operation"
       }
     },
-    "ck.profile.mls_governance_binding.full.v1": {
+    "ak.profile.mls_governance_binding.full.v1": {
       "inherits": [],
       "description": "MLS Governance Binding (full): the v1 hardening profile that binds MLS epochs to governance state. Required for E2EE Realms. MLS commits are Control Moves carrying a governance_binding payload (membership_frontier / policy_root / capability_root / discussion_metadata_hash, transcript-hashed via the mls_governance_binding GroupContext extension) and update three control cells (mls_epoch, key_schedule, covered_seals_cell). E2EE message DataEvents must carry a seal_ref covered by the MLS governance binding; governance / recovery Control Moves do not depend on it.",
       "required_endpoints": [
-        "ck.self.keys.keypackages.command.claim",
-        "ck.self.keys.keypackages.command.consume",
-        "ck.self.events.query.scan"
+        "ak.self.keys.keypackages.command.claim",
+        "ak.self.keys.keypackages.command.consume",
+        "ak.self.events.query.scan"
       ],
       "required_event_kinds": [
-        "ck.mls.commit",
-        "ck.realm_key.share",
-        "ck.realm_key.withheld"
+        "ak.mls.commit",
+        "ak.realm_key.share",
+        "ak.realm_key.withheld"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.encrypted_envelope.v1",
-        "ck.schema.snapshot.v1"
+        "ak.schema.encrypted_envelope.v1",
+        "ak.schema.snapshot.v1"
       ],
       "required_fixtures": [
         "crypto-signature-fixture.json",
@@ -2984,7 +2984,7 @@
       ],
       "optional_extensions": [
         "aad_visibility_policy",
-        "ck.profile.mls.minimal_metadata_realm.v1"
+        "ak.profile.mls.minimal_metadata_realm.v1"
       ],
       "feature_discovery": {
         "required": [
@@ -3004,7 +3004,7 @@
       "federation_interop_floor": {
         "is_minimum_for_mls_backed_federation": true,
         "requires_exact_extension_codepoint": "0xF1C0",
-        "requires_binding_profile": "ck.profile.mls_governance_binding.full.v1",
+        "requires_binding_profile": "ak.profile.mls_governance_binding.full.v1",
         "requires_reducer_profile": true,
         "forbids_silent_downgrade": [
           "omitting the GroupContext extension",
@@ -3021,24 +3021,24 @@
         "DataEvent seal_ref not covered by covered_seals_cell for the message governance frontier"
       ]
     },
-    "ck.profile.mls.minimal_metadata_realm.v1": {
+    "ak.profile.mls.minimal_metadata_realm.v1": {
       "inherits": [
-        "ck.profile.e2ee_client.v1"
+        "ak.profile.e2ee_client.v1"
       ],
       "description": "Hardening profile for E2EE Realms that route by Realm-scoped pairwise DID and keep principal DID, device identity, display profile, and relationship graph inside encrypted identity_link payloads.",
       "required_endpoints": [
-        "ck.self.events.command.submit",
-        "ck.self.events.query.scan"
+        "ak.self.events.command.submit",
+        "ak.self.events.query.scan"
       ],
       "required_event_kinds": [
-        "ck.mls.commit",
-        "ck.message.create"
+        "ak.mls.commit",
+        "ak.message.create"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.encrypted_envelope.v1",
-        "ck.schema.identity_link.v1"
+        "ak.schema.event.v1",
+        "ak.schema.encrypted_envelope.v1",
+        "ak.schema.identity_link.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json",
@@ -3056,24 +3056,24 @@
         "unsupported_optional": "fail closed before joining minimal-metadata encrypted Realm"
       }
     },
-    "ck.profile.traffic_metadata_hardened.v1": {
+    "ak.profile.traffic_metadata_hardened.v1": {
       "role": "admin",
       "description": "Deployment hardening profile for high-privacy traffic metadata. When declared for a Realm, deployment, or service route, federation fanout timing, batch size, Welcome size, push wakeups, and retry cadence MUST be padded or randomized enough to satisfy the declared observable bounds.",
       "required_endpoints": [
-        "ck.self.events.command.submit",
-        "ck.self.events.stream.subscribe",
-        "ck.edge.push.command.notify"
+        "ak.self.events.command.submit",
+        "ak.self.events.stream.subscribe",
+        "ak.edge.push.command.notify"
       ],
       "required_event_kinds": [
-        "ck.message.create",
-        "ck.mls.welcome",
-        "ck.mls.commit"
+        "ak.message.create",
+        "ak.mls.welcome",
+        "ak.mls.commit"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.encrypted_envelope.v1",
-        "ck.schema.notification.v1"
+        "ak.schema.event.v1",
+        "ak.schema.encrypted_envelope.v1",
+        "ak.schema.notification.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json",
@@ -3156,21 +3156,21 @@
         }
       }
     },
-    "ck.profile.accountable_principals.strict_reject.v1": {
+    "ak.profile.accountable_principals.strict_reject.v1": {
       "role": "admin",
       "description": "Deployment hardening profile for Actor Profile accountability. When declared, any Actor Profile create/update that contains an accountable_principal_ids[] entry without an active ck.identity.accountability_grant MUST reject the whole Event with failed_precondition/accountability_grant_missing instead of stripping the unverifiable entry.",
       "required_endpoints": [
-        "ck.self.events.command.submit"
+        "ak.self.events.command.submit"
       ],
       "required_event_kinds": [
-        "ck.profile.create",
-        "ck.profile.update",
-        "ck.identity.accountability_grant"
+        "ak.profile.create",
+        "ak.profile.update",
+        "ak.identity.accountability_grant"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.actor_profile.v1",
-        "ck.schema.event.v1"
+        "ak.schema.actor_profile.v1",
+        "ak.schema.event.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -3183,30 +3183,30 @@
         "unsupported_optional": "default to strip + audit log behavior from models/actor.md §3.3.1"
       }
     },
-    "ck.profile.attested_audit.e2ee.v1": {
+    "ak.profile.attested_audit.e2ee.v1": {
       "inherits": [
-        "ck.profile.e2ee_client.v1"
+        "ak.profile.e2ee_client.v1"
       ],
       "required_endpoints": [
-        "ck.self.events.command.submit",
-        "ck.self.account.stream.subscribe"
+        "ak.self.events.command.submit",
+        "ak.self.account.stream.subscribe"
       ],
       "required_event_kinds": [
-        "ck.audit.applet_binding",
-        "ck.audit.session.request",
-        "ck.audit.session.authorize",
-        "ck.audit.session.notice",
-        "ck.audit.release",
-        "ck.audit.session.close",
-        "ck.audit.ryw_receipt",
-        "ck.mls.commit"
+        "ak.audit.applet_binding",
+        "ak.audit.session.request",
+        "ak.audit.session.authorize",
+        "ak.audit.session.notice",
+        "ak.audit.release",
+        "ak.audit.session.close",
+        "ak.audit.ryw_receipt",
+        "ak.mls.commit"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.encrypted_envelope.v1",
-        "ck.schema.audit_ryw_receipt.v1",
-        "ck.schema.seal.v1"
+        "ak.schema.event.v1",
+        "ak.schema.encrypted_envelope.v1",
+        "ak.schema.audit_ryw_receipt.v1",
+        "ak.schema.seal.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json",
@@ -3224,30 +3224,30 @@
         "unsupported_optional": "fail closed before joining auditable encrypted Realm"
       }
     },
-    "ck.profile.disclosed_audit.e2ee.v1": {
+    "ak.profile.disclosed_audit.e2ee.v1": {
       "inherits": [
-        "ck.profile.e2ee_client.v1"
+        "ak.profile.e2ee_client.v1"
       ],
       "required_endpoints": [
-        "ck.self.events.command.submit",
-        "ck.self.account.stream.subscribe"
+        "ak.self.events.command.submit",
+        "ak.self.account.stream.subscribe"
       ],
       "required_event_kinds": [
-        "ck.audit.applet_binding",
-        "ck.audit.session.request",
-        "ck.audit.session.authorize",
-        "ck.audit.session.notice",
-        "ck.audit.release",
-        "ck.audit.session.close",
-        "ck.audit.ryw_receipt",
-        "ck.mls.commit"
+        "ak.audit.applet_binding",
+        "ak.audit.session.request",
+        "ak.audit.session.authorize",
+        "ak.audit.session.notice",
+        "ak.audit.release",
+        "ak.audit.session.close",
+        "ak.audit.ryw_receipt",
+        "ak.mls.commit"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.encrypted_envelope.v1",
-        "ck.schema.audit_ryw_receipt.v1",
-        "ck.schema.seal.v1"
+        "ak.schema.event.v1",
+        "ak.schema.encrypted_envelope.v1",
+        "ak.schema.audit_ryw_receipt.v1",
+        "ak.schema.seal.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -3264,18 +3264,18 @@
         "unsupported_optional": "fail closed before joining auditable encrypted Realm"
       }
     },
-    "ck.profile.notary.single_did.v1": {
+    "ak.profile.notary.single_did.v1": {
       "inherits": [],
       "description": "Notary profile using one DID/service key to issue Seals.",
       "required_endpoints": [
-        "ck.self.events.command.submit",
-        "ck.self.snapshot.query.manifest_head"
+        "ak.self.events.command.submit",
+        "ak.self.snapshot.query.manifest_head"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.seal.v1",
-        "ck.schema.snapshot.v1"
+        "ak.schema.seal.v1",
+        "ak.schema.snapshot.v1"
       ],
       "required_fixtures": [
         "cba-lattice-fixture.json"
@@ -3289,18 +3289,18 @@
         "unsupported_optional": "fail closed or omit profile claim"
       }
     },
-    "ck.profile.notary.threshold.v1": {
+    "ak.profile.notary.threshold.v1": {
       "inherits": [],
       "description": "Notary profile using k-of-n threshold signatures to issue Seals.",
       "required_endpoints": [
-        "ck.self.events.command.submit",
-        "ck.self.snapshot.query.manifest_head"
+        "ak.self.events.command.submit",
+        "ak.self.snapshot.query.manifest_head"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.seal.v1",
-        "ck.schema.snapshot.v1"
+        "ak.schema.seal.v1",
+        "ak.schema.snapshot.v1"
       ],
       "required_fixtures": [
         "cba-lattice-fixture.json"
@@ -3314,18 +3314,18 @@
         "unsupported_optional": "fail closed or omit profile claim"
       }
     },
-    "ck.profile.notary.open_set.v1": {
+    "ak.profile.notary.open_set.v1": {
       "inherits": [],
       "description": "Notary profile allowing multiple leaf Seals and deterministic Seal view joins.",
       "required_endpoints": [
-        "ck.self.events.command.submit",
-        "ck.self.snapshot.query.manifest_head"
+        "ak.self.events.command.submit",
+        "ak.self.snapshot.query.manifest_head"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.seal.v1",
-        "ck.schema.snapshot.v1"
+        "ak.schema.seal.v1",
+        "ak.schema.snapshot.v1"
       ],
       "required_fixtures": [
         "cba-lattice-fixture.json"
@@ -3339,18 +3339,18 @@
         "unsupported_optional": "fail closed or omit profile claim"
       }
     },
-    "ck.profile.notary.mixed_recovery.v1": {
+    "ak.profile.notary.mixed_recovery.v1": {
       "inherits": [],
       "description": "Notary profile with primary notary and fallback recovery notary.",
       "required_endpoints": [
-        "ck.self.events.command.submit",
-        "ck.self.snapshot.query.manifest_head"
+        "ak.self.events.command.submit",
+        "ak.self.snapshot.query.manifest_head"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.seal.v1",
-        "ck.schema.snapshot.v1"
+        "ak.schema.seal.v1",
+        "ak.schema.snapshot.v1"
       ],
       "required_fixtures": [
         "cba-lattice-fixture.json"
@@ -3364,14 +3364,14 @@
         "unsupported_optional": "fail closed or omit profile claim"
       }
     },
-    "ck.profile.collaborative_text.v1": {
+    "ak.profile.collaborative_text.v1": {
       "inherits": [],
       "description": "Lattice extension profile that registers lww_register and rga as legal cell lattice types for content / ui_affordance / draft / cosmetic cells. Implementations not claiming this profile MUST fail closed (unsupported_lattice_type) when they encounter cell schemas declaring these types. lww_register and rga MUST NOT be used for authorization_root / policy_root / notary_root / membership / lifecycle cells (statically rejected by realm.schema.json).",
       "required_endpoints": [],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.realm.v1"
+        "ak.schema.realm.v1"
       ],
       "required_fixtures": [],
       "optional_extensions": [],
@@ -3383,22 +3383,22 @@
         "unsupported_optional": "fail closed or omit profile claim"
       }
     },
-    "ck.profile.matrix_compat.v1": {
+    "ak.profile.matrix_compat.v1": {
       "inherits": [],
       "description": "Optional Matrix interop compatibility profile. Declares wire-shape parity for the Matrix-derived surfaces: to-device queue, /keys/upload|query|claim, push gateway facade, cross-signing key hierarchy, SAS verification message strand. Account-aggregate sync is NOT covered: Arkret v1 chose a streaming push form (ck.self.account.stream.subscribe / GET /account/subscribe with NDJSON frames) over Matrix's long-poll /sync, so wire-shape parity is not claimed for this surface — Matrix clients MUST adapt the account-aggregate consumption loop. Implementations claiming this profile MUST treat the ck.* names of the listed surfaces as semantically equivalent to their Matrix counterparts so that Matrix client SDK code can be reused for those surfaces with only adapter changes. This profile does NOT add new wire fields; it is a conformance assertion about behavioural equivalence on the listed surfaces.",
       "required_endpoints": [
-        "ck.self.device_messages.command.send",
-        "ck.self.device_messages.query.list",
-        "ck.self.device_messages.command.ack",
-        "ck.self.keys.upload.create",
-        "ck.self.keys.query.lookup",
-        "ck.self.keys.command.claim",
-        "ck.edge.push.command.notify"
+        "ak.self.device_messages.command.send",
+        "ak.self.device_messages.query.list",
+        "ak.self.device_messages.command.ack",
+        "ak.self.keys.upload.create",
+        "ak.self.keys.query.lookup",
+        "ak.self.keys.command.claim",
+        "ak.edge.push.command.notify"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.device_message.v1"
+        "ak.schema.device_message.v1"
       ],
       "required_fixtures": [],
       "optional_extensions": [
@@ -3413,7 +3413,7 @@
         "unsupported_optional": "omit profile claim"
       }
     },
-    "ck.profile.candidate.join_policy.v1": {
+    "ak.profile.candidate.join_policy.v1": {
       "inherits": [],
       "tier": "candidate",
       "status": "candidate",
@@ -3425,7 +3425,7 @@
       "required_fixtures": [],
       "optional_extensions": [],
       "required_capability_actions": [
-        "ck.realm.join.review"
+        "ak.realm.join.review"
       ],
       "feature_discovery": {
         "required": [
@@ -3435,22 +3435,22 @@
         "unsupported_optional": "omit profile claim (and reject member.application.* events as unknown)"
       }
     },
-    "ck.profile.key_backup.memory_hard.v1": {
+    "ak.profile.key_backup.memory_hard.v1": {
       "inherits": [],
       "description": "Hardening profile for passphrase-protected key backups. Requires memory-hard Argon2id defaults, explicit PBKDF2 downgrade, domain-separated backup classes, deterministic AEAD nonce recomputation, series-chain freshness (series_id / series_seq / supersedes / supersedes_digest), and server-side rate limiting / fresh device proof on backup access.",
       "required_endpoints": [
-        "ck.self.keys.backups.resource.replace",
-        "ck.self.keys.backups.query.list",
-        "ck.self.keys.backups.command.unlock",
-        "ck.self.keys.backups.resource.delete"
+        "ak.self.keys.backups.resource.replace",
+        "ak.self.keys.backups.query.list",
+        "ak.self.keys.backups.command.unlock",
+        "ak.self.keys.backups.resource.delete"
       ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.key_backup.v1",
-        "ck.schema.recovery_policy.v1",
-        "ck.schema.recovery_session.v1",
-        "ck.schema.recovery_receipt.v1"
+        "ak.schema.key_backup.v1",
+        "ak.schema.recovery_policy.v1",
+        "ak.schema.recovery_session.v1",
+        "ak.schema.recovery_receipt.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json",
@@ -3474,20 +3474,20 @@
         "unsupported_optional": "omit profile claim or reject weak passphrase_kdf backups"
       }
     },
-    "ck.profile.circle_seal_cadence.fixed_5m.v1": {
+    "ak.profile.circle_seal_cadence.fixed_5m.v1": {
       "inherits": [],
       "description": "Named cadence profile for confidential Circle sub-seal commitments. Implementations claiming this profile MUST emit ck.circle.seal_commit on a fixed time cadence (5 minutes, max jitter 30 seconds), MUST include empty-batch commitments, and MUST NOT use event-count or activity-triggered public commitments. Mobile energy saving may batch private sub-seal upload, but MUST NOT relax the public Realm seal cadence.",
       "required_endpoints": [
-        "ck.self.events.command.submit",
-        "ck.self.events.stream.subscribe"
+        "ak.self.events.command.submit",
+        "ak.self.events.stream.subscribe"
       ],
       "required_event_kinds": [
-        "ck.circle.seal_commit"
+        "ak.circle.seal_commit"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.event.v1",
-        "ck.schema.event_payload.v1"
+        "ak.schema.event.v1",
+        "ak.schema.event_payload.v1"
       ],
       "required_fixtures": [
         "circle-scope-fixture.json"
@@ -3520,18 +3520,18 @@
         "unsupported_optional": "omit profile claim; confidential Circle deployments MUST NOT claim an event-count cadence as equivalent"
       }
     },
-    "ck.profile.cross_signing.reset.v1": {
+    "ak.profile.cross_signing.reset.v1": {
       "inherits": [],
       "description": "Hardening profile for high-risk cross-signing reset. Claimants MUST accept ck.cross_signing.reset only with one valid reset proof family, enforce generation monotonicity, clock skew, and replay rejection, and require a successor ck.cross_signing.publish within the recovery window. Verification rules and reason codes are normative in zh/crypto-media/device-lifecycle.md §14.4.",
       "required_endpoints": [],
       "required_event_kinds": [
-        "ck.cross_signing.reset",
-        "ck.cross_signing.publish"
+        "ak.cross_signing.reset",
+        "ak.cross_signing.publish"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.cross_signing_reset.v1",
-        "ck.schema.cross_signing_publish.v1"
+        "ak.schema.cross_signing_reset.v1",
+        "ak.schema.cross_signing_publish.v1"
       ],
       "required_fixtures": [],
       "optional_extensions": [],
@@ -3565,36 +3565,36 @@
         "unsupported_optional": "fail closed or omit profile claim"
       }
     },
-    "ck.profile.circle_conformance.v1": {
+    "ak.profile.circle_conformance.v1": {
       "role": "interop",
       "inherits": [],
       "description": "Conformance profile pinning the machine-contract surface for Circle (intra-Realm scoped event/message boundary; see zh/models/circle.md). Splits actor submit-payload (scope_circle_id only) from canonical reducer-output (tagged effective_scope on Event envelope + materialized object), and pins the Circle event-kind family, member-state transition table, encryption-profile compatibility, and scope-rebind reducer-reject semantics. Required by implementations that emit or consume Circle events or that materialize Circle-scoped Strand / Message / Morph / Relation / Space objects.",
       "required_endpoints": [
-        "ck.self.events.command.submit",
-        "ck.self.events.query.scan"
+        "ak.self.events.command.submit",
+        "ak.self.events.query.scan"
       ],
       "required_event_kinds": [
-        "ck.circle.create",
-        "ck.circle.update",
-        "ck.circle.archive",
-        "ck.circle.restore",
-        "ck.circle.tombstone",
-        "ck.circle.member.state",
-        "ck.circle.seal_commit"
+        "ak.circle.create",
+        "ak.circle.update",
+        "ak.circle.archive",
+        "ak.circle.restore",
+        "ak.circle.tombstone",
+        "ak.circle.member.state",
+        "ak.circle.seal_commit"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.circle.v1",
-        "ck.schema.event.v1",
-        "ck.schema.event_payload.v1"
+        "ak.schema.circle.v1",
+        "ak.schema.event.v1",
+        "ak.schema.event_payload.v1"
       ],
       "required_capability_actions": [
-        "ck.circle.create",
-        "ck.circle.manage",
-        "ck.circle.member.add",
-        "ck.circle.member.manage",
-        "ck.circle.member.add.others",
-        "ck.circle.audit"
+        "ak.circle.create",
+        "ak.circle.manage",
+        "ak.circle.member.add",
+        "ak.circle.member.manage",
+        "ak.circle.member.add.others",
+        "ak.circle.audit"
       ],
       "required_fixtures": [
         "circle-scope-fixture.json",
@@ -3625,28 +3625,28 @@
         "scope_invariant_must": "Sync Service MUST NOT deliver events with effective_scope.kind=circle to actors not in that Circle's member frontier at the event's causal frontier (see zh/models/circle.md §9.3 scope-delivery invariant)."
       }
     },
-    "ck.profile.personal_productivity.v1": {
+    "ak.profile.personal_productivity.v1": {
       "description": "Client profile for principal-private reminders, scheduled send, snooze, and saved items backed by encrypted account data.",
       "required_endpoints": [
-        "ck.self.account.stream.subscribe",
-        "ck.self.events.query.scan",
-        "ck.self.events.command.submit"
+        "ak.self.account.stream.subscribe",
+        "ak.self.events.query.scan",
+        "ak.self.events.command.submit"
       ],
       "required_event_kinds": [
-        "ck.account_data.set",
-        "ck.message.create"
+        "ak.account_data.set",
+        "ak.message.create"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.personal_productivity.v1",
-        "ck.schema.event_payload.v1",
-        "ck.schema.message.v1"
+        "ak.schema.personal_productivity.v1",
+        "ak.schema.event_payload.v1",
+        "ak.schema.message.v1"
       ],
       "required_fixtures": [
         "sync-fixture.json"
       ],
       "optional_extensions": [
-        "ck.profile.draft_sync.v1"
+        "ak.profile.draft_sync.v1"
       ],
       "feature_discovery": {
         "required": [
@@ -3656,17 +3656,17 @@
         "unsupported_optional": "return unsupported_feature for productivity account-data keys without writing shared Realm history"
       }
     },
-    "ck.profile.draft_sync.v1": {
+    "ak.profile.draft_sync.v1": {
       "description": "Client profile for encrypted cross-device draft account data with LWW resolution per draft slot.",
       "required_endpoints": [
-        "ck.self.account.stream.subscribe"
+        "ak.self.account.stream.subscribe"
       ],
       "required_event_kinds": [
-        "ck.account_data.set"
+        "ak.account_data.set"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.draft_sync.v1"
+        "ak.schema.draft_sync.v1"
       ],
       "required_fixtures": [
         "sync-fixture.json"
@@ -3680,26 +3680,26 @@
         "unsupported_optional": "omit remote draft sync rather than writing drafts into shared Realm history"
       }
     },
-    "ck.profile.file_transfer.v1": {
+    "ak.profile.file_transfer.v1": {
       "description": "Client profile for principal-private cross-device file transfer backed by encrypted account data, authenticated Blob storage, and to-device key delivery for device-bound transfers.",
       "required_endpoints": [
-        "ck.self.account.stream.subscribe",
-        "ck.self.events.command.submit",
-        "ck.self.blob.upload.create",
-        "ck.self.blob.resource.head",
-        "ck.self.blob.resource.get",
-        "ck.self.device_messages.command.send",
-        "ck.self.device_messages.query.list",
-        "ck.self.device_messages.command.ack"
+        "ak.self.account.stream.subscribe",
+        "ak.self.events.command.submit",
+        "ak.self.blob.upload.create",
+        "ak.self.blob.resource.head",
+        "ak.self.blob.resource.get",
+        "ak.self.device_messages.command.send",
+        "ak.self.device_messages.query.list",
+        "ak.self.device_messages.command.ack"
       ],
       "required_event_kinds": [
-        "ck.account_data.set"
+        "ak.account_data.set"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.file_transfer.v1",
-        "ck.schema.blob.v1",
-        "ck.schema.device_message.v1"
+        "ak.schema.file_transfer.v1",
+        "ak.schema.blob.v1",
+        "ak.schema.device_message.v1"
       ],
       "required_fixtures": [
         "sync-fixture.json"
@@ -3714,27 +3714,27 @@
         "unsupported_optional": "omit file-transfer UI rather than writing private file-transfer records into shared Realm history or exposing plaintext Blob metadata"
       }
     },
-    "ck.profile.disappearing.v1": {
+    "ak.profile.disappearing.v1": {
       "description": "Message expiry profile with Realm policy, projection stubs, and fail-closed handling for derived plaintext.",
       "required_endpoints": [
-        "ck.self.events.command.submit",
-        "ck.self.events.query.scan"
+        "ak.self.events.command.submit",
+        "ak.self.events.query.scan"
       ],
       "required_event_kinds": [
-        "ck.message.create",
-        "ck.realm.disappearing_policy"
+        "ak.message.create",
+        "ak.realm.disappearing_policy"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.disappearing_messages.v1",
-        "ck.schema.event_payload.v1",
-        "ck.schema.message.v1"
+        "ak.schema.disappearing_messages.v1",
+        "ak.schema.event_payload.v1",
+        "ak.schema.message.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
       ],
       "optional_extensions": [
-        "ck.profile.e2ee_client.v1"
+        "ak.profile.e2ee_client.v1"
       ],
       "feature_discovery": {
         "required": [
@@ -3748,22 +3748,22 @@
         "unsupported_optional": "receivers that cannot enforce expiry MUST NOT treat expiring messages as permanent messages"
       }
     },
-    "ck.profile.calendar_event.v1": {
+    "ak.profile.calendar_event.v1": {
       "description": "Strand profile for calendar events and RSVP convergence.",
       "required_endpoints": [
-        "ck.self.events.command.submit",
-        "ck.self.events.query.scan"
+        "ak.self.events.command.submit",
+        "ak.self.events.query.scan"
       ],
       "required_event_kinds": [
-        "ck.strand.create",
-        "ck.strand.update",
-        "ck.rsvp.set"
+        "ak.strand.create",
+        "ak.strand.update",
+        "ak.rsvp.set"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.strand.v1",
-        "ck.schema.calendar_event.v1",
-        "ck.schema.rsvp.v1"
+        "ak.schema.strand.v1",
+        "ak.schema.calendar_event.v1",
+        "ak.schema.rsvp.v1"
       ],
       "required_fixtures": [
         "sync-fixture.json"
@@ -3778,27 +3778,27 @@
         "unsupported_optional": "return unsupported_feature for calendar profile writes instead of inventing unregistered Relation kinds"
       }
     },
-    "ck.profile.pinned_items.v1": {
+    "ak.profile.pinned_items.v1": {
       "description": "Shared pin profile for Strand/Realm/Circle/Space projection homes using ck.pin.* events.",
       "required_endpoints": [
-        "ck.self.events.command.submit",
-        "ck.self.events.query.scan"
+        "ak.self.events.command.submit",
+        "ak.self.events.query.scan"
       ],
       "required_event_kinds": [
-        "ck.pin.add",
-        "ck.pin.remove",
-        "ck.pin.reorder"
+        "ak.pin.add",
+        "ak.pin.remove",
+        "ak.pin.reorder"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.pin.v1",
-        "ck.schema.event_payload.v1"
+        "ak.schema.pin.v1",
+        "ak.schema.event_payload.v1"
       ],
       "required_fixtures": [
         "cba-lattice-fixture.json"
       ],
       "optional_extensions": [
-        "ck.profile.disappearing.v1"
+        "ak.profile.disappearing.v1"
       ],
       "feature_discovery": {
         "required": [
@@ -3809,19 +3809,19 @@
         "unsupported_optional": "omit shared pin UI or return unsupported_feature; private saved items remain account data"
       }
     },
-    "ck.profile.search.client_index.v1": {
+    "ak.profile.search.client_index.v1": {
       "description": "Client-side encrypted search index hosting profile; service stores encrypted manifest and shards but returns no hits.",
       "required_endpoints": [
-        "ck.self.account.stream.subscribe",
-        "ck.self.blob.upload.create",
-        "ck.self.blob.resource.get"
+        "ak.self.account.stream.subscribe",
+        "ak.self.blob.upload.create",
+        "ak.self.blob.resource.get"
       ],
       "required_event_kinds": [
-        "ck.account_data.set"
+        "ak.account_data.set"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.search_service.v1"
+        "ak.schema.search_service.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
@@ -3835,24 +3835,24 @@
         "unsupported_optional": "fall back to local-only search without exposing plaintext or reversible search terms"
       }
     },
-    "ck.profile.search.blind_index.v1": {
+    "ak.profile.search.blind_index.v1": {
       "description": "Server-assisted blind-index search profile with HMAC tokens, scope/epoch binding, and fail-closed stale posting behavior.",
       "required_endpoints": [
-        "ck.server.query.describe",
-        "ck.self.events.query.scan"
+        "ak.server.query.describe",
+        "ak.self.events.query.scan"
       ],
       "required_event_kinds": [
-        "ck.realm.search_policy"
+        "ak.realm.search_policy"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.search_service.v1"
+        "ak.schema.search_service.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
       ],
       "optional_extensions": [
-        "ck.profile.search.client_index.v1"
+        "ak.profile.search.client_index.v1"
       ],
       "feature_discovery": {
         "required": [
@@ -3863,27 +3863,27 @@
         "unsupported_optional": "return unsupported_feature rather than accepting blind-index tokens outside an explicit Realm search policy"
       }
     },
-    "ck.profile.search.forward_private.v1": {
+    "ak.profile.search.forward_private.v1": {
       "description": "Opt-in forward-private search profile layered on ck.profile.search.blind_index.v1. Service describe and Realm search policy expose leakage_class=forward_private, token rotation cadence, and revocation behavior; stale postings fail closed.",
       "inherits": [
-        "ck.profile.search.blind_index.v1"
+        "ak.profile.search.blind_index.v1"
       ],
       "required_endpoints": [
-        "ck.server.query.describe",
-        "ck.self.events.query.scan"
+        "ak.server.query.describe",
+        "ak.self.events.query.scan"
       ],
       "required_event_kinds": [
-        "ck.realm.search_policy"
+        "ak.realm.search_policy"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
-        "ck.schema.search_service.v1"
+        "ak.schema.search_service.v1"
       ],
       "required_fixtures": [
         "privacy-security-fixture.json"
       ],
       "optional_extensions": [
-        "ck.profile.search.client_index.v1"
+        "ak.profile.search.client_index.v1"
       ],
       "feature_discovery": {
         "required": [
@@ -3897,9 +3897,9 @@
     }
   },
   "notary_profiles": [
-    "ck.profile.notary.single_did.v1",
-    "ck.profile.notary.threshold.v1",
-    "ck.profile.notary.open_set.v1",
-    "ck.profile.notary.mixed_recovery.v1"
+    "ak.profile.notary.single_did.v1",
+    "ak.profile.notary.threshold.v1",
+    "ak.profile.notary.open_set.v1",
+    "ak.profile.notary.mixed_recovery.v1"
   ]
 }

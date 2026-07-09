@@ -233,19 +233,19 @@
       "code": "ephemeral_kind_not_permitted",
       "http_status": 403,
       "scope": "service_call",
-      "description": "ck.self.ephemeral.command.send rejected the envelope because the actor lacks the kind-specific broadcast capability or Realm policy disables that ephemeral kind."
+      "description": "ak.self.ephemeral.command.send rejected the envelope because the actor lacks the kind-specific broadcast capability or Realm policy disables that ephemeral kind."
     },
     {
       "code": "ephemeral_ttl_out_of_range",
       "http_status": 400,
       "scope": "service_call",
-      "description": "ck.self.ephemeral.command.send rejected ttl_ms because it is absent when required or outside the service's advertised kind-specific range."
+      "description": "ak.self.ephemeral.command.send rejected ttl_ms because it is absent when required or outside the service's advertised kind-specific range."
     },
     {
       "code": "ephemeral_channel_unavailable",
       "http_status": 503,
       "scope": "service_call",
-      "description": "ck.self.ephemeral.command.send could not enqueue or fan out the transient signal because the ephemeral channel is temporarily unavailable; durable Event history is not affected."
+      "description": "ak.self.ephemeral.command.send could not enqueue or fan out the transient signal because the ephemeral channel is temporarily unavailable; durable Event history is not affected."
     },
     {
       "code": "not_found",
@@ -876,7 +876,7 @@
       "applies_to": [
         "service_call"
       ],
-      "description": "ck.self.applet.command.install recomputed the canonical InstallPlan from the submitted Applet Package, approved_scopes, effective_scope, and current Realm/Circle policy, and the recomputed plan_digest did not exactly match the submitted plan_digest. Server MUST fail closed and require a fresh preview/approval before fan-out. See zh/extensions/applet-integration.md \u00a74b."
+      "description": "ak.self.applet.command.install recomputed the canonical InstallPlan from the submitted Applet Package, approved_scopes, effective_scope, and current Realm/Circle policy, and the recomputed plan_digest did not exactly match the submitted plan_digest. Server MUST fail closed and require a fresh preview/approval before fan-out. See zh/extensions/applet-integration.md \u00a74b."
     },
     {
       "code": "applet_e2ee_join_unauthorized",
@@ -945,7 +945,7 @@
       "scope": "delivery",
       "description": "Recipient device no longer holds the review capability required for member application review delivery.",
       "applies_to": [
-        "ck.member.application.review"
+        "ak.member.application.review"
       ]
     },
     {
@@ -1995,7 +1995,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "ck.audit.release was evaluated after the referenced ck.audit.applet_binding became suspended or revoked. Reducer and release service MUST recheck binding status at release time and fail closed unless it is still active."
+      "description": "ak.audit.release was evaluated after the referenced ck.audit.applet_binding became suspended or revoked. Reducer and release service MUST recheck binding status at release time and fail closed unless it is still active."
     },
     {
       "code": "audit_release_scope_mismatch",
@@ -2011,7 +2011,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "ck.audit.release lacks a valid prior ck.audit.session.notice for the same session, binding, scope, purpose, and approved range."
+      "description": "ak.audit.release lacks a valid prior ck.audit.session.notice for the same session, binding, scope, purpose, and approved range."
     },
     {
       "code": "audit_release_current_epoch_forbidden",
@@ -2019,7 +2019,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "ck.audit.release attempted to release the current active MLS epoch. Releases may cover only sealed historical epochs and MUST reference sealed_by_commit_ref when epoch material is involved."
+      "description": "ak.audit.release attempted to release the current active MLS epoch. Releases may cover only sealed historical epochs and MUST reference sealed_by_commit_ref when epoch material is involved."
     },
     {
       "code": "audit_release_retroactive_scope_forbidden",
@@ -2027,7 +2027,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "ck.audit.session.* or ck.audit.release attempted to cover messages, targets, or epochs before the binding activation frontier / first_auditable_epoch, or attempted to apply a later-expanded release_window_policy to already encrypted messages. Audit Applet Binding is non-retroactive; reducers MUST fail closed."
+      "description": "ak.audit.session.* or ck.audit.release attempted to cover messages, targets, or epochs before the binding activation frontier / first_auditable_epoch, or attempted to apply a later-expanded release_window_policy to already encrypted messages. Audit Applet Binding is non-retroactive; reducers MUST fail closed."
     },
     {
       "code": "audit_release_manifest_invalid",
@@ -2035,7 +2035,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "ck.audit.release manifest is inconsistent with the authorized session, binding policy, release mode, target_refs, sealed_epoch_range, recipient key, or wrapped_material_digest set."
+      "description": "ak.audit.release manifest is inconsistent with the authorized session, binding policy, release mode, target_refs, sealed_epoch_range, recipient key, or wrapped_material_digest set."
     },
     {
       "code": "audit_release_attestation_invalid",
@@ -2258,7 +2258,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "`recovery_unlock.unlock_commitment` does not equal the receiver-recomputed `SHA-256(utf8('ck-cross-signing-reset-unlock-binding-v1\\n') || recovery_secret_ref || unlock_binding_input_bytes)`, where `unlock_binding_input_bytes` is the \u00a714.1 canonical input with `proof_body` excluding both signature fields and `unlock_commitment`. This is a wire-integrity binding (not a secret-knowledge proof) preventing the same recovery-key signature from being shelled into a different reset envelope. See zh/crypto-media/device-lifecycle.md \u00a714.4."
+      "description": "`recovery_unlock.unlock_commitment` does not equal the receiver-recomputed `SHA-256(utf8('ak.cross-signing-reset-unlock-binding-v1\\n') || recovery_secret_ref || unlock_binding_input_bytes)`, where `unlock_binding_input_bytes` is the \u00a714.1 canonical input with `proof_body` excluding both signature fields and `unlock_commitment`. This is a wire-integrity binding (not a secret-knowledge proof) preventing the same recovery-key signature from being shelled into a different reset envelope. See zh/crypto-media/device-lifecycle.md \u00a714.4."
     },
     {
       "code": "cross_signing_reset_quorum_insufficient",
@@ -3093,7 +3093,7 @@
         "state_resolution",
         "service_call"
       ],
-      "description": "ck.self.agent.command.resume was rejected because the agent gained eligibility for one or more ck.profile.agent_sidecar_thread.v1 sidecar Circles created or joined during pause, and the controller has not yet supplied the matching sidecar_exposure_ack re-disclosure. Returned as a failed_precondition sub-reason; the controller MUST re-read the sidecar exposure disclosure and resubmit resume with the acknowledgement before the agent silently inherits access. See zh/identity/key-management.md \u00a73.6.1."
+      "description": "ak.self.agent.command.resume was rejected because the agent gained eligibility for one or more ck.profile.agent_sidecar_thread.v1 sidecar Circles created or joined during pause, and the controller has not yet supplied the matching sidecar_exposure_ack re-disclosure. Returned as a failed_precondition sub-reason; the controller MUST re-read the sidecar exposure disclosure and resubmit resume with the acknowledgement before the agent silently inherits access. See zh/identity/key-management.md \u00a73.6.1."
     },
     {
       "code": "artifact_rejected",
@@ -3194,14 +3194,14 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "ck.morph.update attempted to modify schema_refs[] without going through the Realm's declared schema-evolution policy (high-tier capability such as ck.morph.schema_migrate, or equivalent) and an explicit audit-grade authorization_ref. See zh/models/morph.md \u00a74.1 S2."
+      "description": "ak.morph.update attempted to modify schema_refs[] without going through the Realm's declared schema-evolution policy (high-tier capability such as ck.morph.schema_migrate, or equivalent) and an explicit audit-grade authorization_ref. See zh/models/morph.md \u00a74.1 S2."
     },
     {
       "code": "morph_schema_refs_transformation_unsupported",
       "applies_to": [
         "event_envelope"
       ],
-      "description": "ck.morph.update attempted a non-additive schema_refs[] transformation (breaking or transformation-class change). Such transformations MUST be expressed as a ck.morph.schema_migrate event and require the Realm to declare the ck.profile.morph.schema_migration_transformations.v1 opt-in profile. See zh/models/morph.md \u00a74.1 S3."
+      "description": "ak.morph.update attempted a non-additive schema_refs[] transformation (breaking or transformation-class change). Such transformations MUST be expressed as a ck.morph.schema_migrate event and require the Realm to declare the ck.profile.morph.schema_migration_transformations.v1 opt-in profile. See zh/models/morph.md \u00a74.1 S3."
     },
     {
       "code": "morph_schema_version_binding_missing",
@@ -3262,7 +3262,7 @@
       "applies_to": [
         "schema_violation"
       ],
-      "description": "ck.cross_signing.reset payload's reset_event_id does not match the enclosing Event Envelope's event_id. Binding reset_event_id into proof transcript prevents wrapping the same proof bytes into a different Event shell; receivers MUST reject the reset on any mismatch. See zh/crypto-media/device-lifecycle.md \u00a714.1."
+      "description": "ak.cross_signing.reset payload's reset_event_id does not match the enclosing Event Envelope's event_id. Binding reset_event_id into proof transcript prevents wrapping the same proof bytes into a different Event shell; receivers MUST reject the reset on any mismatch. See zh/crypto-media/device-lifecycle.md \u00a714.1."
     },
     {
       "code": "appeal_overturn_missing_lift",
@@ -3704,7 +3704,7 @@
         "state_resolution",
         "device_recovery"
       ],
-      "description": "ck.schema.key_backup.v1 envelope chain failed verification: a `supersedes_digest` does not match the canonical_json digest of its predecessor, or a non-genesis envelope is missing a predecessor accessible to the caller. See zh/identity/key-management.md \u00a77.6 and zh/crypto-media/device-lifecycle.md \u00a712 / \u00a712.1."
+      "description": "ak.schema.key_backup.v1 envelope chain failed verification: a `supersedes_digest` does not match the canonical_json digest of its predecessor, or a non-genesis envelope is missing a predecessor accessible to the caller. See zh/identity/key-management.md \u00a77.6 and zh/crypto-media/device-lifecycle.md \u00a712 / \u00a712.1."
     },
     {
       "code": "series_seq_not_monotonic",

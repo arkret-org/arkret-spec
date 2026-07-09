@@ -1,20 +1,20 @@
 {
-  "profile": "ck.profile.blob_node.v1",
+  "profile": "ak.profile.blob_node.v1",
   "version": "2026-07-03",
   "suite": "blob_stream_aead",
   "runner": "cotest::conformance::blob_stream_aead",
   "notes": "Adversarial bound cases are declared-field-only: the runner MUST judge them from the envelope's declared segment_size / segment_count / size_bytes values before deriving keys or downloading any segment, and MUST NOT materialise multi-MiB plaintext or ciphertext to exercise them.",
   "covers_vectors": [
-    "ck.vector.blob.stream_aead_roundtrip.v1",
-    "ck.vector.blob.stream_aead_truncation_rejected.v1",
-    "ck.vector.blob.stream_aead_reorder_rejected.v1",
-    "ck.vector.blob.stream_aead_scheme_closure.v1",
-    "ck.vector.blob.stream_aead_bounds_rejected.v1"
+    "ak.vector.blob.stream_aead_roundtrip.v1",
+    "ak.vector.blob.stream_aead_truncation_rejected.v1",
+    "ak.vector.blob.stream_aead_reorder_rejected.v1",
+    "ak.vector.blob.stream_aead_scheme_closure.v1",
+    "ak.vector.blob.stream_aead_bounds_rejected.v1"
   ],
   "cases": [
     {
       "name": "stream_aead_roundtrip",
-      "vector_id": "ck.vector.blob.stream_aead_roundtrip.v1",
+      "vector_id": "ak.vector.blob.stream_aead_roundtrip.v1",
       "runner": "cotest::conformance::blob_stream_aead::run_stream_aead_roundtrip_vector",
       "assertions": [
         "multi-segment plaintext with a short final segment decrypts byte-for-byte",
@@ -24,7 +24,7 @@
     },
     {
       "name": "stream_aead_truncation_rejected",
-      "vector_id": "ck.vector.blob.stream_aead_truncation_rejected.v1",
+      "vector_id": "ak.vector.blob.stream_aead_truncation_rejected.v1",
       "runner": "cotest::conformance::blob_stream_aead::run_stream_aead_truncation_rejected_vector",
       "assertions": [
         "dropping the final legal segment fails finish with segment_stream_truncated",
@@ -34,7 +34,7 @@
     },
     {
       "name": "stream_aead_reorder_rejected",
-      "vector_id": "ck.vector.blob.stream_aead_reorder_rejected.v1",
+      "vector_id": "ak.vector.blob.stream_aead_reorder_rejected.v1",
       "runner": "cotest::conformance::blob_stream_aead::run_stream_aead_reorder_rejected_vector",
       "assertions": [
         "out-of-order segment_index fails with segment_sequence_invalid",
@@ -44,7 +44,7 @@
     },
     {
       "name": "stream_aead_scheme_closure",
-      "vector_id": "ck.vector.blob.stream_aead_scheme_closure.v1",
+      "vector_id": "ak.vector.blob.stream_aead_scheme_closure.v1",
       "runner": "cotest::conformance::blob_stream_aead::run_stream_aead_scheme_closure_vector",
       "assertions": [
         "unknown stream attachment schemes fail closed with unsupported_attachment_scheme",
@@ -54,7 +54,7 @@
     },
     {
       "name": "stream_aead_bounds_rejected",
-      "vector_id": "ck.vector.blob.stream_aead_bounds_rejected.v1",
+      "vector_id": "ak.vector.blob.stream_aead_bounds_rejected.v1",
       "runner": "cotest::conformance::blob_stream_aead::run_stream_aead_bounds_rejected_vector",
       "declared_only": true,
       "cases": [

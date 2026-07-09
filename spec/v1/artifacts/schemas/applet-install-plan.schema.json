@@ -24,7 +24,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "ck.schema.applet_install_plan.v1"
+      "const": "ak.schema.applet_install_plan.v1"
     },
     "plan_id": {
       "type": "string",

@@ -35,7 +35,7 @@ updated: 2026-07-02
 ### 2.1 临时性与高频特征
 
 与具体的业务数据不同，已读回执变动极其频繁（用户每次滑动屏幕都会产生），并且其历史记录没有长期保留价值。
-因此，Read Receipt MUST 仅作为 **Ephemeral Event** 通过 Sync Service 的 Ephemeral Channel 广播，不写入持久化 Event 因果图中。HTTP/JSON 参考 binding 为 `ck.self.ephemeral.command.send`（`POST /_arkret/self/ephemeral`），请求体使用 `ck.schema.ephemeral_envelope.v1`，其中 `kind="ck.receipt.read"`。
+因此，Read Receipt MUST 仅作为 **Ephemeral Event** 通过 Sync Service 的 Ephemeral Channel 广播，不写入持久化 Event 因果图中。HTTP/JSON 参考 binding 为 `ck.self.ephemeral.command.send`（`POST /_arkret/self/ephemeral`），请求体使用 `ck.schema.ephemeral_envelope.v1`，其中 `kind="ak.receipt.read"`。
 
 ### 2.2 广播格式
 
@@ -43,7 +43,7 @@ updated: 2026-07-02
 
 ```json
 {
-  "kind": "ck.receipt.read",
+  "kind": "ak.receipt.read",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "device_id": "ak:device:019640dd-8000-7000-8000-000000000000",
@@ -51,7 +51,7 @@ updated: 2026-07-02
   "expires_at": "2026-04-26T10:00:30Z",
   "payload": {
     "receipt_type": "read",
-    "schema": "ck.schema.read_receipt.v1",
+    "schema": "ak.schema.read_receipt.v1",
     "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
     "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
     "read_scope": {
@@ -108,7 +108,7 @@ Realm MAY 通过 `ck.realm.read_receipt_policy` 组件 cell 声明本 Realm 内 
 
 ```json
 {
-  "kind": "ck.realm.read_receipt_policy",
+  "kind": "ak.realm.read_receipt_policy",
   "payload": {
     "disclosure": "optional",
     "visibility": "members",
@@ -183,7 +183,7 @@ Read cursor schema：`ck.schema.read_cursor.v1`。Read Cursor 是 actor-private 
 ```json
 {
   "id": "ak:read_cursor:01964137-0000-7000-8000-000000000001",
-  "schema": "ck.schema.read_cursor.v1",
+  "schema": "ak.schema.read_cursor.v1",
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
@@ -260,7 +260,7 @@ Receipt 可以公开或私有，取决于 Realm policy。schema：`ck.schema.rea
 ```json
 {
   "receipt_type": "read",
-  "schema": "ck.schema.read_receipt.v1",
+  "schema": "ak.schema.read_receipt.v1",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "read_scope": {
@@ -280,7 +280,7 @@ Notification 是派生 projection，不是 canonical truth。schema：`ck.schema
 ```json
 {
   "id": "ak:notification:01964157-8000-7000-8000-000000000000",
-  "schema": "ck.schema.notification.v1",
+  "schema": "ak.schema.notification.v1",
   "actor_id": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "source_event_id": "ak:event:0196434a-8000-7000-8000-000000000000",

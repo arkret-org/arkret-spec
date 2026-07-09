@@ -1,5 +1,5 @@
 {
-  "profile": "ck.vector_group.cba_lattice.v1",
+  "profile": "ak.vector_group.cba_lattice.v1",
   "version": "2026-06-11",
   "notes": [
     "These vectors pin CBA dual-plane semantics. DataEvent vectors use effects + seal_ref + auth_context and never use preconditions. Control Move vectors use effects + seal_basis and may use preconditions.",
@@ -10,15 +10,15 @@
     "description": "SDK lattice round-trip runner coverage for CBA lattice family vectors whose semantics are exercised directly through arkret_core::lattice implementations.",
     "runner": "cotest::conformance::run_lattice_round_trip_suite",
     "covers_vectors": [
-      "ck.vector.lattice.mv_register_join.v1",
-      "ck.vector.lattice.counter_join.v1",
-      "ck.vector.lattice.ordered_log_join.v1",
-      "ck.vector.lattice.ordered_log_gap.v1",
-      "ck.vector.lattice.fsm_join.v1"
+      "ak.vector.lattice.mv_register_join.v1",
+      "ak.vector.lattice.counter_join.v1",
+      "ak.vector.lattice.ordered_log_join.v1",
+      "ak.vector.lattice.ordered_log_gap.v1",
+      "ak.vector.lattice.fsm_join.v1"
     ],
     "cases": [
       {
-        "vector_id": "ck.vector.lattice.mv_register_join.v1",
+        "vector_id": "ak.vector.lattice.mv_register_join.v1",
         "lattice": "mv_register",
         "assertions": [
           "concurrent_set_surfaces_all_heads",
@@ -26,7 +26,7 @@
         ]
       },
       {
-        "vector_id": "ck.vector.lattice.counter_join.v1",
+        "vector_id": "ak.vector.lattice.counter_join.v1",
         "lattice": "counter",
         "assertions": [
           "pn_sum_is_deterministic",
@@ -34,7 +34,7 @@
         ]
       },
       {
-        "vector_id": "ck.vector.lattice.ordered_log_join.v1",
+        "vector_id": "ak.vector.lattice.ordered_log_join.v1",
         "lattice": "ordered_log",
         "assertions": [
           "per_issuer_sequence_order",
@@ -42,7 +42,7 @@
         ]
       },
       {
-        "vector_id": "ck.vector.lattice.ordered_log_gap.v1",
+        "vector_id": "ak.vector.lattice.ordered_log_gap.v1",
         "lattice": "ordered_log",
         "assertions": [
           "gap_after_contiguous_prefix_is_pending_diagnostic",
@@ -52,7 +52,7 @@
         ]
       },
       {
-        "vector_id": "ck.vector.lattice.fsm_join.v1",
+        "vector_id": "ak.vector.lattice.fsm_join.v1",
         "lattice": "fsm",
         "assertions": [
           "duplicate_same_transition_idempotent",
@@ -95,7 +95,7 @@
         "seal_required_for_accept": false,
         "query_grade_before_observation": "local"
       },
-      "vector_id": "ck.vector.cba_lattice.data_event_accepts_without_seal_finality.v1"
+      "vector_id": "ak.vector.cba_lattice.data_event_accepts_without_seal_finality.v1"
     },
     {
       "name": "data_event_observation_does_not_seal",
@@ -116,7 +116,7 @@
         "query_grade": "observed",
         "must_not_report_sealed": true
       },
-      "vector_id": "ck.vector.cba_lattice.data_event_observation_does_not_seal.v1"
+      "vector_id": "ak.vector.cba_lattice.data_event_observation_does_not_seal.v1"
     },
     {
       "name": "control_move_requires_seal_basis_and_seal",
@@ -160,7 +160,7 @@
         "event_state": "control_sealed",
         "query_grade": "sealed"
       },
-      "vector_id": "ck.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1"
+      "vector_id": "ak.vector.cba_lattice.control_move_requires_seal_basis_and_seal.v1"
     },
     {
       "name": "same_batch_does_not_advance_authorization_basis",
@@ -168,13 +168,13 @@
       "batch": [
         {
           "id": "ak:event:a5294a52-94a5-794a-9294-a5294a5294a5",
-          "kind": "ck.capability.grant",
+          "kind": "ak.capability.grant",
           "plane": "control",
           "state": "control_pending"
         },
         {
           "id": "ak:event:c6318c63-18c6-718c-a318-c6318c6318c6",
-          "kind": "ck.message.create",
+          "kind": "ak.message.create",
           "plane": "data",
           "seal_ref": "ak:seal:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "auth_context": {
@@ -192,7 +192,7 @@
         "reason": "capability_denied",
         "same_batch_resolution_only": true
       },
-      "vector_id": "ck.vector.cba_lattice.same_batch_does_not_advance_authorization_basis.v1"
+      "vector_id": "ak.vector.cba_lattice.same_batch_does_not_advance_authorization_basis.v1"
     },
     {
       "name": "data_plane_conflict_returns_bottom_without_winner",
@@ -223,7 +223,7 @@
         },
         "dependent_write_result": "failed_bottom"
       },
-      "vector_id": "ck.vector.cba_lattice.data_plane_conflict_returns_bottom_without_winner.v1"
+      "vector_id": "ak.vector.cba_lattice.data_plane_conflict_returns_bottom_without_winner.v1"
     },
     {
       "name": "seal_delta_excludes_data_event_digest",
@@ -243,7 +243,7 @@
         "event_state": "rejected_seal",
         "reason": "delta_contains_data_event"
       },
-      "vector_id": "ck.vector.cba_lattice.seal_delta_excludes_data_event_digest.v1"
+      "vector_id": "ak.vector.cba_lattice.seal_delta_excludes_data_event_digest.v1"
     },
     {
       "name": "open_set_compaction_preserves_control_roots",
@@ -269,7 +269,7 @@
         "preserves_signature_chain": true,
         "compaction_without_signature": "reject"
       },
-      "vector_id": "ck.vector.cba_lattice.open_set_compaction_preserves_control_roots.v1"
+      "vector_id": "ak.vector.cba_lattice.open_set_compaction_preserves_control_roots.v1"
     },
     {
       "name": "seal_canonical_no_self_reference",
@@ -324,7 +324,7 @@
           "reason": "schema_violation"
         }
       ],
-      "vector_id": "ck.vector.cba_lattice.seal_canonical_no_self_reference.v1"
+      "vector_id": "ak.vector.cba_lattice.seal_canonical_no_self_reference.v1"
     },
     {
       "name": "cas_mixed_basis",
@@ -396,7 +396,7 @@
           }
         }
       ],
-      "vector_id": "ck.vector.cba_lattice.cas_mixed_basis.v1"
+      "vector_id": "ak.vector.cba_lattice.cas_mixed_basis.v1"
     },
     {
       "name": "auth_context_epoch_pinning_reject",
@@ -439,7 +439,7 @@
           }
         }
       ],
-      "vector_id": "ck.vector.cba_lattice.auth_context_epoch_pinning_reject.v1"
+      "vector_id": "ak.vector.cba_lattice.auth_context_epoch_pinning_reject.v1"
     },
     {
       "name": "seal_compaction_interval_enforced",
@@ -498,7 +498,7 @@
           }
         }
       ],
-      "vector_id": "ck.vector.cba_lattice.seal_compaction_interval_enforced.v1"
+      "vector_id": "ak.vector.cba_lattice.seal_compaction_interval_enforced.v1"
     },
     {
       "name": "inclusion_list_obligation",
@@ -567,7 +567,7 @@
         }
       ],
       "single_did_profile_expected": "unavailable",
-      "vector_id": "ck.vector.cba_lattice.inclusion_list_obligation.v1"
+      "vector_id": "ak.vector.cba_lattice.inclusion_list_obligation.v1"
     },
     {
       "name": "notary_fault_equivocation_quarantine",
@@ -586,7 +586,7 @@
         }
       },
       "fault_move": {
-        "event_kind": "ck.notary.fault.equivocation",
+        "event_kind": "ak.notary.fault.equivocation",
         "submitter_capability_refs": [],
         "payload": {
           "signer_id": "did:webvh:z6mkfixture:notary.example",
@@ -598,7 +598,7 @@
         "fault_move_result": "accept",
         "authorized_by_signature_evidence": true,
         "requires_submitter_capability": false,
-        "fault_cell": "ck.component.notary_fault.v1",
+        "fault_cell": "ak.component.notary_fault.v1",
         "later_seal_from_signer": "reject",
         "affected_branch_query_grade": "forked",
         "remaining_signer_policy": "continue_if_quorum_else_notary_paused"
@@ -610,7 +610,7 @@
           "result": "failed_precondition"
         }
       },
-      "vector_id": "ck.vector.cba_lattice.notary_fault_equivocation_quarantine.v1"
+      "vector_id": "ak.vector.cba_lattice.notary_fault_equivocation_quarantine.v1"
     },
     {
       "name": "threshold_forensic_attribution",
@@ -687,7 +687,7 @@
           }
         }
       ],
-      "vector_id": "ck.vector.cba_lattice.threshold_forensic_attribution.v1"
+      "vector_id": "ak.vector.cba_lattice.threshold_forensic_attribution.v1"
     },
     {
       "name": "open_set_concurrent_revocation_fail_closed",
@@ -715,7 +715,7 @@
         {
           "name": "concurrent_revoke_branch",
           "concurrent_control_move": {
-            "kind": "ck.capability.revoke",
+            "kind": "ak.capability.revoke",
             "grant_id": "ak:grant:0196410c-2000-7000-8000-000000000000",
             "covered_by": "ak:seal:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
           },
@@ -751,7 +751,7 @@
           }
         }
       ],
-      "vector_id": "ck.vector.cba_lattice.open_set_concurrent_revocation_fail_closed.v1"
+      "vector_id": "ak.vector.cba_lattice.open_set_concurrent_revocation_fail_closed.v1"
     },
     {
       "name": "conflict_recovery_move",
@@ -833,7 +833,7 @@
           }
         }
       ],
-      "vector_id": "ck.vector.cba_lattice.conflict_recovery_move.v1"
+      "vector_id": "ak.vector.cba_lattice.conflict_recovery_move.v1"
     }
   ]
 }

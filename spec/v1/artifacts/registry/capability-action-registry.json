@@ -21,7 +21,7 @@
   ],
   "actions": [
     {
-      "action": "ck.realm.discover",
+      "action": "ak.realm.discover",
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [],
@@ -30,130 +30,130 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.realm.create",
+      "action": "ak.realm.create",
       "category": "general",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.realm.create"
+        "ak.realm.create"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.realm.update",
+      "action": "ak.realm.update",
       "category": "general",
       "risk_tier": "medium",
       "required_constraints": [
         "allowed_write_fields"
       ],
       "target_event_kinds": [
-        "ck.realm.update"
+        "ak.realm.update"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.realm.archive",
+      "action": "ak.realm.archive",
       "category": "general",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.realm.archive"
+        "ak.realm.archive"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.realm.freeze",
+      "action": "ak.realm.freeze",
       "category": "general",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.realm.freeze"
+        "ak.realm.freeze"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.realm.tombstone",
+      "action": "ak.realm.tombstone",
       "category": "general",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.realm.tombstone"
+        "ak.realm.tombstone"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.realm.destroy",
+      "action": "ak.realm.destroy",
       "category": "general",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.realm.destroy"
+        "ak.realm.destroy"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.circle.create",
+      "action": "ak.circle.create",
       "category": "general",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.circle.create"
+        "ak.circle.create"
       ],
       "profile": null,
       "notes": "Creates an intra-Realm Circle (scoped event/message boundary; optionally MLS-backed depending on parent Realm floor). NOT in default member bundle by default — Circles should be few and stable. See zh/models/circle.md §8.",
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.circle.manage",
+      "action": "ak.circle.manage",
       "category": "general",
       "risk_tier": "medium",
       "required_constraints": [
         "allowed_circle_ids"
       ],
       "target_event_kinds": [
-        "ck.circle.update",
-        "ck.circle.archive",
-        "ck.circle.restore",
-        "ck.circle.tombstone"
+        "ak.circle.update",
+        "ak.circle.archive",
+        "ak.circle.restore",
+        "ak.circle.tombstone"
       ],
       "profile": null,
       "notes": "Manage an existing Circle. MUST be constrained to specific circle_id selectors; unconstrained Realm-wide grant is not a normal management permission.",
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "ck.circle.member.add",
+      "action": "ak.circle.member.add",
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.circle.member.state"
+        "ak.circle.member.state"
       ],
       "profile": null,
       "notes": "Self-service: actor accepts an invite, joins a join_rule=open Circle, or leaves. Reducer enforces payload.actor_id == envelope.actor_id and transition legality. Self-unbanning MUST fail closed.",
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "ck.circle.member.manage",
+      "action": "ak.circle.member.manage",
       "category": "general",
       "risk_tier": "medium",
       "required_constraints": [
         "allowed_circle_ids"
       ],
       "target_event_kinds": [
-        "ck.circle.member.state"
+        "ak.circle.member.state"
       ],
       "profile": null,
       "notes": "Invite / remove others. Held by Circle admin. payload.actor_id != envelope.actor_id.",
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "ck.circle.member.add.others",
+      "action": "ak.circle.member.add.others",
       "category": "audit",
       "risk_tier": "high",
       "required_constraints": [
@@ -163,14 +163,14 @@
         "audit_pair_required"
       ],
       "target_event_kinds": [
-        "ck.circle.member.state"
+        "ak.circle.member.state"
       ],
       "profile": null,
       "notes": "Cross-actor write (rare). MUST carry ck.audit.accessed pair (same model as ck.strand.watch.set.others).",
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "ck.circle.audit",
+      "action": "ak.circle.audit",
       "category": "audit",
       "risk_tier": "high",
       "required_constraints": [],
@@ -183,7 +183,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.object.read",
+      "action": "ak.object.read",
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [],
@@ -192,7 +192,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.object.read_metadata",
+      "action": "ak.object.read_metadata",
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [],
@@ -201,7 +201,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.object.read_content",
+      "action": "ak.object.read_content",
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [],
@@ -210,7 +210,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.object.read_history",
+      "action": "ak.object.read_history",
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [],
@@ -220,43 +220,43 @@
       "notes": "Authorizes reading an object's discussion / history events (message timeline, redacted-message metainfo, prior revisions). Read / projection surface only; emits no durable reducer event."
     },
     {
-      "action": "ck.object.archive",
+      "action": "ak.object.archive",
       "category": "general",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.strand.archive",
-        "ck.morph.archive"
+        "ak.strand.archive",
+        "ak.morph.archive"
       ],
       "profile": null,
       "event_mapping_kind": "polymorphic_object"
     },
     {
-      "action": "ck.object.restore",
+      "action": "ak.object.restore",
       "category": "general",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.strand.restore",
-        "ck.morph.restore",
-        "ck.space.restore"
+        "ak.strand.restore",
+        "ak.morph.restore",
+        "ak.space.restore"
       ],
       "profile": null,
       "event_mapping_kind": "polymorphic_object"
     },
     {
-      "action": "ck.strand.create",
+      "action": "ak.strand.create",
       "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.strand.create"
+        "ak.strand.create"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.strand.read",
+      "action": "ak.strand.read",
       "category": "strand",
       "risk_tier": "low",
       "required_constraints": [],
@@ -265,20 +265,20 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.strand.update",
+      "action": "ak.strand.update",
       "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [
         "allowed_write_fields"
       ],
       "target_event_kinds": [
-        "ck.strand.update"
+        "ak.strand.update"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.morph.read",
+      "action": "ak.morph.read",
       "category": "morph",
       "risk_tier": "low",
       "required_constraints": [],
@@ -287,199 +287,199 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.morph.create",
+      "action": "ak.morph.create",
       "category": "morph",
       "risk_tier": "medium",
       "required_constraints": [
         "allowed_morph_types"
       ],
       "target_event_kinds": [
-        "ck.morph.create"
+        "ak.morph.create"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.morph.update",
+      "action": "ak.morph.update",
       "category": "morph",
       "risk_tier": "medium",
       "required_constraints": [
         "allowed_write_fields"
       ],
       "target_event_kinds": [
-        "ck.morph.update"
+        "ak.morph.update"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.morph.schema_migrate",
+      "action": "ak.morph.schema_migrate",
       "category": "morph",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.morph.schema_migrate"
+        "ak.morph.schema_migrate"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.morph.archive",
+      "action": "ak.morph.archive",
       "category": "morph",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.morph.archive"
+        "ak.morph.archive"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.morph.restore",
+      "action": "ak.morph.restore",
       "category": "morph",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.morph.restore"
+        "ak.morph.restore"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.strand.archive",
+      "action": "ak.strand.archive",
       "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.strand.archive"
+        "ak.strand.archive"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.strand.restore",
+      "action": "ak.strand.restore",
       "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.strand.restore"
+        "ak.strand.restore"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.strand.move",
+      "action": "ak.strand.move",
       "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.strand.move"
+        "ak.strand.move"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.strand.reorder",
+      "action": "ak.strand.reorder",
       "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.strand.reorder"
+        "ak.strand.reorder"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.strand.tracks.update",
+      "action": "ak.strand.tracks.update",
       "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.strand.tracks.update"
+        "ak.strand.tracks.update"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.strand.stage.set",
+      "action": "ak.strand.stage.set",
       "category": "strand",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.strand.stage.set"
+        "ak.strand.stage.set"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.morph.stage.set",
+      "action": "ak.morph.stage.set",
       "category": "morph",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.morph.stage.set"
+        "ak.morph.stage.set"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.object.stage.set",
+      "action": "ak.object.stage.set",
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.strand.stage.set",
-        "ck.morph.stage.set"
+        "ak.strand.stage.set",
+        "ak.morph.stage.set"
       ],
       "profile": null,
       "event_mapping_kind": "polymorphic_object"
     },
     {
-      "action": "ck.relation.create",
+      "action": "ak.relation.create",
       "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.relation.create"
+        "ak.relation.create"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.relation.update",
+      "action": "ak.relation.update",
       "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.relation.update"
+        "ak.relation.update"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.relation.tombstone",
+      "action": "ak.relation.tombstone",
       "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.relation.tombstone"
+        "ak.relation.tombstone"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.strand.watch.set",
+      "action": "ak.strand.watch.set",
       "category": "discussion",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.strand.watch.set"
+        "ak.strand.watch.set"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.strand.watch.set.others",
+      "action": "ak.strand.watch.set.others",
       "category": "discussion",
       "risk_tier": "high",
       "required_constraints": [],
@@ -488,13 +488,13 @@
         "audit_pair_required"
       ],
       "target_event_kinds": [
-        "ck.strand.watch.set"
+        "ak.strand.watch.set"
       ],
       "profile": null,
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "ck.realm.notification.audit",
+      "action": "ak.realm.notification.audit",
       "category": "governance",
       "risk_tier": "high",
       "required_constraints": [],
@@ -503,132 +503,132 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.space.create",
+      "action": "ak.space.create",
       "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [
         "allowed_space_kinds"
       ],
       "target_event_kinds": [
-        "ck.space.create"
+        "ak.space.create"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.space.update",
+      "action": "ak.space.update",
       "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [
         "allowed_space_kinds"
       ],
       "target_event_kinds": [
-        "ck.space.update"
+        "ak.space.update"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.space.parent",
+      "action": "ak.space.parent",
       "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.space.parent"
+        "ak.space.parent"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.space.archive",
+      "action": "ak.space.archive",
       "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.space.archive"
+        "ak.space.archive"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.space.restore",
+      "action": "ak.space.restore",
       "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.space.restore"
+        "ak.space.restore"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.space.tombstone",
+      "action": "ak.space.tombstone",
       "category": "strand",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.space.tombstone"
+        "ak.space.tombstone"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.container.move_item",
+      "action": "ak.container.move_item",
       "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.container.move_item"
+        "ak.container.move_item"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.container.rebalance",
+      "action": "ak.container.rebalance",
       "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.container.rebalance"
+        "ak.container.rebalance"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.view.create",
+      "action": "ak.view.create",
       "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.view.create"
+        "ak.view.create"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.view.update",
+      "action": "ak.view.update",
       "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.view.update"
+        "ak.view.update"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.view.reconcile",
+      "action": "ak.view.reconcile",
       "category": "strand",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.view.reconcile"
+        "ak.view.reconcile"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.event.read",
+      "action": "ak.event.read",
       "category": "discussion",
       "risk_tier": "low",
       "required_constraints": [],
@@ -637,18 +637,18 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.message.create",
+      "action": "ak.message.create",
       "category": "discussion",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.message.create"
+        "ak.message.create"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.message.mention.broadcast",
+      "action": "ak.message.mention.broadcast",
       "category": "discussion",
       "risk_tier": "high",
       "required_constraints": [
@@ -662,26 +662,26 @@
         "audience_mention_recipient_count_within_limit"
       ],
       "target_event_kinds": [
-        "ck.message.create",
-        "ck.message.revise"
+        "ak.message.create",
+        "ak.message.revise"
       ],
       "profile": null,
       "event_mapping_kind": "scope_suffix_variant",
       "notes": "Authorizes adding an audience_mention node such as @all or @here to a Message create/revise. @here maps to audience=\"strand_engaged\" and is not presence-filtered. This is an additional gate: the actor MUST also be authorized for the underlying message create/revise action. Effective Realm/Circle policy MUST allow the audience and declare finite max_recipients/quota before notification fanout."
     },
     {
-      "action": "ck.message.revise",
+      "action": "ak.message.revise",
       "category": "discussion",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.message.revise"
+        "ak.message.revise"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.message.revise.own",
+      "action": "ak.message.revise.own",
       "category": "discussion",
       "risk_tier": "low",
       "required_constraints": [
@@ -691,25 +691,25 @@
         "actor_eq_target_author"
       ],
       "target_event_kinds": [
-        "ck.message.revise"
+        "ak.message.revise"
       ],
       "profile": null,
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "ck.message.redact",
+      "action": "ak.message.redact",
       "category": "discussion",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.message.redact",
-        "ck.redaction"
+        "ak.message.redact",
+        "ak.redaction"
       ],
       "profile": null,
       "event_mapping_kind": "operation_verb"
     },
     {
-      "action": "ck.message.redact.own",
+      "action": "ak.message.redact.own",
       "category": "discussion",
       "risk_tier": "low",
       "required_constraints": [
@@ -719,222 +719,222 @@
         "actor_eq_target_author"
       ],
       "target_event_kinds": [
-        "ck.message.redact",
-        "ck.redaction"
+        "ak.message.redact",
+        "ak.redaction"
       ],
       "profile": null,
       "event_mapping_kind": "operation_verb"
     },
     {
-      "action": "ck.reaction.add",
+      "action": "ak.reaction.add",
       "category": "discussion",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.reaction.add"
+        "ak.reaction.add"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.reaction.remove",
+      "action": "ak.reaction.remove",
       "category": "discussion",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.reaction.remove"
+        "ak.reaction.remove"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.rsvp.set",
+      "action": "ak.rsvp.set",
       "category": "discussion",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.rsvp.set"
+        "ak.rsvp.set"
       ],
-      "profile": "ck.profile.calendar_event.v1",
+      "profile": "ak.profile.calendar_event.v1",
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.pin.add",
+      "action": "ak.pin.add",
       "category": "discussion",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.pin.add"
+        "ak.pin.add"
       ],
-      "profile": "ck.profile.pinned_items.v1",
+      "profile": "ak.profile.pinned_items.v1",
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.pin.remove",
+      "action": "ak.pin.remove",
       "category": "discussion",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.pin.remove"
+        "ak.pin.remove"
       ],
-      "profile": "ck.profile.pinned_items.v1",
+      "profile": "ak.profile.pinned_items.v1",
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.pin.reorder",
+      "action": "ak.pin.reorder",
       "category": "discussion",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.pin.reorder"
+        "ak.pin.reorder"
       ],
-      "profile": "ck.profile.pinned_items.v1",
+      "profile": "ak.profile.pinned_items.v1",
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.realm.admin",
+      "action": "ak.realm.admin",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.realm.organization",
-        "ck.realm.link",
-        "ck.realm.policy",
-        "ck.realm.join_rule",
-        "ck.realm.history_visibility",
-        "ck.realm.discovery",
-        "ck.realm.preview_policy",
-        "ck.realm.policy_server",
-        "ck.realm.policy_components",
-        "ck.realm.history_sharing_policy",
-        "ck.realm.delivery_binding_policy",
-        "ck.realm.asset_privacy_policy",
-        "ck.realm.read_receipt_policy",
-        "ck.realm.moderation_policy",
-        "ck.realm.media_service",
-        "ck.realm.schema",
-        "ck.realm.inheritance_policy",
-        "ck.realm.disappearing_policy",
-        "ck.realm.search_policy",
-        "ck.realm.set_default_strand",
-        "ck.applet.registration"
+        "ak.realm.organization",
+        "ak.realm.link",
+        "ak.realm.policy",
+        "ak.realm.join_rule",
+        "ak.realm.history_visibility",
+        "ak.realm.discovery",
+        "ak.realm.preview_policy",
+        "ak.realm.policy_server",
+        "ak.realm.policy_components",
+        "ak.realm.history_sharing_policy",
+        "ak.realm.delivery_binding_policy",
+        "ak.realm.asset_privacy_policy",
+        "ak.realm.read_receipt_policy",
+        "ak.realm.moderation_policy",
+        "ak.realm.media_service",
+        "ak.realm.schema",
+        "ak.realm.inheritance_policy",
+        "ak.realm.disappearing_policy",
+        "ak.realm.search_policy",
+        "ak.realm.set_default_strand",
+        "ak.applet.registration"
       ],
       "profile": null,
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "ck.realm.link",
+      "action": "ak.realm.link",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.realm.link"
+        "ak.realm.link"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.realm.upgrade",
+      "action": "ak.realm.upgrade",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.realm.upgrade"
+        "ak.realm.upgrade"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.realm.moderation_policy",
+      "action": "ak.realm.moderation_policy",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.realm.moderation_policy"
+        "ak.realm.moderation_policy"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.realm.plaintext_visible_services",
+      "action": "ak.realm.plaintext_visible_services",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.realm.plaintext_visible_services"
+        "ak.realm.plaintext_visible_services"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.realm.preview_policy",
+      "action": "ak.realm.preview_policy",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.realm.preview_policy"
+        "ak.realm.preview_policy"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.realm.disappearing_policy",
+      "action": "ak.realm.disappearing_policy",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.realm.disappearing_policy"
+        "ak.realm.disappearing_policy"
       ],
-      "profile": "ck.profile.disappearing.v1",
+      "profile": "ak.profile.disappearing.v1",
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.realm.search_policy",
+      "action": "ak.realm.search_policy",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.realm.search_policy"
+        "ak.realm.search_policy"
       ],
-      "profile": "ck.profile.search.blind_index.v1",
+      "profile": "ak.profile.search.blind_index.v1",
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.realm.set_default_strand",
+      "action": "ak.realm.set_default_strand",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.realm.set_default_strand"
+        "ak.realm.set_default_strand"
       ],
       "profile": null,
       "notes": "Sets / changes the Realm's authoritative default discussion Strand pointer (ck.realm.set_default_strand event; projects Realm default_strand_id). Same-name discipline. The Realm authz gate is realm-admin: holding ck.realm.admin (aggregate admin coverage) satisfies admission, or grant this specific action directly. Reducer MUST verify the referenced Strand already exists (failed_precondition otherwise). See zh/models/strand-and-message.md default-Strand discovery section.",
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.audit.applet_binding",
+      "action": "ak.audit.applet_binding",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.audit.applet_binding"
+        "ak.audit.applet_binding"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.audit.session.authorize",
+      "action": "ak.audit.session.authorize",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.audit.session.authorize"
+        "ak.audit.session.authorize"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.strand.admin",
+      "action": "ak.strand.admin",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
@@ -943,108 +943,108 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.schema.define",
+      "action": "ak.schema.define",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.schema.define"
+        "ak.schema.define"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.schema.update",
+      "action": "ak.schema.update",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.schema.update"
+        "ak.schema.update"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.capability.grant",
+      "action": "ak.capability.grant",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.capability.grant"
+        "ak.capability.grant"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.capability.delegate",
+      "action": "ak.capability.delegate",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [
         "max_delegation_depth"
       ],
       "target_event_kinds": [
-        "ck.capability.delegate"
+        "ak.capability.delegate"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.capability.derived",
+      "action": "ak.capability.derived",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.capability.derived"
+        "ak.capability.derived"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.capability.revoke",
+      "action": "ak.capability.revoke",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.capability.revoke"
+        "ak.capability.revoke"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.agent.key.authorize",
+      "action": "ak.agent.key.authorize",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.agent.key.authorize"
+        "ak.agent.key.authorize"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.agent.key.revoke",
+      "action": "ak.agent.key.revoke",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.agent.key.revoke"
+        "ak.agent.key.revoke"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.agent.key.rotate",
+      "action": "ak.agent.key.rotate",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.agent.key.rotate"
+        "ak.agent.key.rotate"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.self.agent.command.provision",
+      "action": "ak.self.agent.command.provision",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [
@@ -1052,126 +1052,126 @@
         "controller_approval_required"
       ],
       "target_event_kinds": [
-        "ck.profile.create",
-        "ck.identity.accountability_grant",
-        "ck.agent.key.authorize",
-        "ck.capability.grant"
+        "ak.profile.create",
+        "ak.identity.accountability_grant",
+        "ak.agent.key.authorize",
+        "ak.capability.grant"
       ],
-      "profile": "ck.profile.personal_agent_provisioning.v1",
-      "migration_group": "ckp_0008_agent_provisioning",
+      "profile": "ak.profile.personal_agent_provisioning.v1",
+      "migration_group": "ak._0008_agent_provisioning",
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "ck.self.agent.command.pause",
+      "action": "ak.self.agent.command.pause",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.self.agent.pause"
+        "ak.self.agent.pause"
       ],
-      "profile": "ck.profile.personal_agent_provisioning.v1",
+      "profile": "ak.profile.personal_agent_provisioning.v1",
       "event_mapping_kind": "operation_verb"
     },
     {
-      "action": "ck.self.agent.command.resume",
+      "action": "ak.self.agent.command.resume",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.self.agent.resume"
+        "ak.self.agent.resume"
       ],
-      "profile": "ck.profile.personal_agent_provisioning.v1",
+      "profile": "ak.profile.personal_agent_provisioning.v1",
       "event_mapping_kind": "operation_verb"
     },
     {
-      "action": "ck.self.agent.command.deactivate",
+      "action": "ak.self.agent.command.deactivate",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.self.agent.deactivate"
+        "ak.self.agent.deactivate"
       ],
-      "profile": "ck.profile.personal_agent_provisioning.v1",
+      "profile": "ak.profile.personal_agent_provisioning.v1",
       "event_mapping_kind": "operation_verb"
     },
     {
-      "action": "ck.agent.draft.propose",
+      "action": "ak.agent.draft.propose",
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [
         "expires_at"
       ],
       "target_event_kinds": [
-        "ck.agent.draft.propose"
+        "ak.agent.draft.propose"
       ],
-      "profile": "ck.profile.personal_agent_provisioning.v1",
+      "profile": "ak.profile.personal_agent_provisioning.v1",
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.agent.action_request",
+      "action": "ak.agent.action_request",
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [
         "expires_at"
       ],
       "target_event_kinds": [
-        "ck.agent.action_request"
+        "ak.agent.action_request"
       ],
-      "profile": "ck.profile.personal_agent_provisioning.v1",
+      "profile": "ak.profile.personal_agent_provisioning.v1",
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.agent.action_approve",
+      "action": "ak.agent.action_approve",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.agent.action_approve"
+        "ak.agent.action_approve"
       ],
-      "profile": "ck.profile.personal_agent_provisioning.v1",
+      "profile": "ak.profile.personal_agent_provisioning.v1",
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.agent.action_reject",
+      "action": "ak.agent.action_reject",
       "category": "management",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.agent.action_reject"
+        "ak.agent.action_reject"
       ],
-      "profile": "ck.profile.personal_agent_provisioning.v1",
+      "profile": "ak.profile.personal_agent_provisioning.v1",
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.self.agent.sidecar_thread.command.ensure",
+      "action": "ak.self.agent.sidecar_thread.command.ensure",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.circle.create",
-        "ck.circle.member.state",
-        "ck.strand.create",
-        "ck.relation.create"
+        "ak.circle.create",
+        "ak.circle.member.state",
+        "ak.strand.create",
+        "ak.relation.create"
       ],
-      "profile": "ck.profile.agent_sidecar_thread.v1",
-      "migration_group": "ckp_0009_sidecar_ensure",
+      "profile": "ak.profile.agent_sidecar_thread.v1",
+      "migration_group": "ak._0009_sidecar_ensure",
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "ck.agent.sidecar_thread.write",
+      "action": "ak.agent.sidecar_thread.write",
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [
         "allowed_strand_ids"
       ],
       "target_event_kinds": [
-        "ck.message.create"
+        "ak.message.create"
       ],
-      "profile": "ck.profile.agent_sidecar_thread.v1",
+      "profile": "ak.profile.agent_sidecar_thread.v1",
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "ck.agent.sidecar_thread.publish",
+      "action": "ak.agent.sidecar_thread.publish",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [
@@ -1179,35 +1179,35 @@
         "approval_required"
       ],
       "target_event_kinds": [
-        "ck.message.create"
+        "ak.message.create"
       ],
-      "profile": "ck.profile.agent_sidecar_thread.v1",
+      "profile": "ak.profile.agent_sidecar_thread.v1",
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "ck.self.agent.participation.resource.replace",
+      "action": "ak.self.agent.participation.resource.replace",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.capability.grant",
-        "ck.capability.revoke"
+        "ak.capability.grant",
+        "ak.capability.revoke"
       ],
-      "profile": "ck.profile.agent_participation_policy.v1",
-      "migration_group": "ckp_0016_agent_participation",
+      "profile": "ak.profile.agent_participation_policy.v1",
+      "migration_group": "ak._0016_agent_participation",
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "ck.agent.protocol.discover",
+      "action": "ak.agent.protocol.discover",
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": "ck.profile.agent_runtime.v1",
+      "profile": "ak.profile.agent_runtime.v1",
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.agent.interop_session.start",
+      "action": "ak.agent.interop_session.start",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [
@@ -1215,40 +1215,40 @@
         "allowed_data_classes"
       ],
       "target_event_kinds": [
-        "ck.agent.interop_session.start"
+        "ak.agent.interop_session.start"
       ],
-      "profile": "ck.profile.agent_runtime.v1",
+      "profile": "ak.profile.agent_runtime.v1",
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.agent.interop_session.cancel",
+      "action": "ak.agent.interop_session.cancel",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [
         "allowed_session_ids"
       ],
       "target_event_kinds": [
-        "ck.agent.interop_session.status",
-        "ck.agent.interop_session.result"
+        "ak.agent.interop_session.status",
+        "ak.agent.interop_session.result"
       ],
-      "profile": "ck.profile.agent_runtime.v1",
+      "profile": "ak.profile.agent_runtime.v1",
       "event_mapping_kind": "operation_verb"
     },
     {
-      "action": "ck.agent.interop_session.stream_status",
+      "action": "ak.agent.interop_session.stream_status",
       "category": "general",
       "risk_tier": "low",
       "required_constraints": [
         "allowed_session_ids"
       ],
       "target_event_kinds": [
-        "ck.agent.interop_session.status"
+        "ak.agent.interop_session.status"
       ],
-      "profile": "ck.profile.agent_runtime.v1",
+      "profile": "ak.profile.agent_runtime.v1",
       "event_mapping_kind": "operation_verb"
     },
     {
-      "action": "ck.agent.interop_session.attach_artifact",
+      "action": "ak.agent.interop_session.attach_artifact",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [
@@ -1257,201 +1257,201 @@
         "max_artifact_bytes"
       ],
       "target_event_kinds": [
-        "ck.agent.interop_session.status",
-        "ck.agent.interop_session.result"
+        "ak.agent.interop_session.status",
+        "ak.agent.interop_session.result"
       ],
-      "profile": "ck.profile.agent_runtime.v1",
+      "profile": "ak.profile.agent_runtime.v1",
       "event_mapping_kind": "operation_verb"
     },
     {
-      "action": "ck.agent.interop_session.read_transcript",
+      "action": "ak.agent.interop_session.read_transcript",
       "category": "general",
       "risk_tier": "high",
       "required_constraints": [
         "allowed_data_classes"
       ],
       "target_event_kinds": [],
-      "profile": "ck.profile.agent_runtime.v1",
+      "profile": "ak.profile.agent_runtime.v1",
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.policy.manage",
+      "action": "ak.policy.manage",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.policy.set",
-        "ck.policy.rule",
-        "ck.policy.action",
-        "ck.realm.policy",
-        "ck.realm.policy_server",
-        "ck.realm.policy_components",
-        "ck.realm.delivery_binding_policy",
-        "ck.realm.asset_privacy_policy",
-        "ck.realm.read_receipt_policy",
-        "ck.realm.history_sharing_policy",
-        "ck.realm.preview_policy",
-        "ck.realm.moderation_policy",
-        "ck.realm.disappearing_policy",
-        "ck.realm.search_policy"
+        "ak.policy.set",
+        "ak.policy.rule",
+        "ak.policy.action",
+        "ak.realm.policy",
+        "ak.realm.policy_server",
+        "ak.realm.policy_components",
+        "ak.realm.delivery_binding_policy",
+        "ak.realm.asset_privacy_policy",
+        "ak.realm.read_receipt_policy",
+        "ak.realm.history_sharing_policy",
+        "ak.realm.preview_policy",
+        "ak.realm.moderation_policy",
+        "ak.realm.disappearing_policy",
+        "ak.realm.search_policy"
       ],
       "profile": null,
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "ck.policy.set",
+      "action": "ak.policy.set",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.policy.set"
+        "ak.policy.set"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.policy.rule",
+      "action": "ak.policy.rule",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.policy.rule"
+        "ak.policy.rule"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.policy.action",
+      "action": "ak.policy.action",
       "category": "management",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.policy.action"
+        "ak.policy.action"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.invite.create",
+      "action": "ak.invite.create",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.invite.create"
+        "ak.invite.create"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.realm.join.review",
-      "category": "management",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "profile": "ck.profile.candidate.join_policy.v1",
-      "event_mapping_kind": "non_event_surface"
-    },
-    {
-      "action": "ck.invite.cancel",
-      "category": "management",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ck.invite.cancel"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ck.invite.third_party",
-      "category": "management",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ck.invite.third_party"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ck.invite.claim",
-      "category": "management",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ck.invite.claim"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ck.invite.revoke",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ck.invite.revoke"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ck.approval.vote",
+      "action": "ak.realm.join.review",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [],
-      "profile": null,
+      "profile": "ak.profile.candidate.join_policy.v1",
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.moderation.decision",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ck.moderation.decision"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ck.moderation.decision.lift",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ck.moderation.decision.lift"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ck.moderation.appeal.submit",
-      "category": "management",
-      "risk_tier": "low",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ck.moderation.appeal.submit"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ck.moderation.appeal.review",
+      "action": "ak.invite.cancel",
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.moderation.appeal.review",
-        "ck.moderation.appeal.decision",
-        "ck.moderation.appeal.close"
+        "ak.invite.cancel"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.invite.third_party",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.invite.third_party"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.invite.claim",
+      "category": "management",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.invite.claim"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.invite.revoke",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.invite.revoke"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.approval.vote",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "profile": null,
+      "event_mapping_kind": "non_event_surface"
+    },
+    {
+      "action": "ak.moderation.decision",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.moderation.decision"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.moderation.decision.lift",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.moderation.decision.lift"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.moderation.appeal.submit",
+      "category": "management",
+      "risk_tier": "low",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.moderation.appeal.submit"
+      ],
+      "profile": null,
+      "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.moderation.appeal.review",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.moderation.appeal.review",
+        "ak.moderation.appeal.decision",
+        "ak.moderation.appeal.close"
       ],
       "profile": null,
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "ck.self.events.query.scan",
+      "action": "ak.self.events.query.scan",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1460,7 +1460,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.self.events.stream.subscribe",
+      "action": "ak.self.events.stream.subscribe",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1469,7 +1469,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.self.account.stream.subscribe",
+      "action": "ak.self.account.stream.subscribe",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1478,7 +1478,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.self.account.query.describe",
+      "action": "ak.self.account.query.describe",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1487,7 +1487,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.self.snapshot.query.manifest_head",
+      "action": "ak.self.snapshot.query.manifest_head",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1496,7 +1496,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.self.blob.upload.create",
+      "action": "ak.self.blob.upload.create",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [
@@ -1507,7 +1507,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.self.blob.resource.get",
+      "action": "ak.self.blob.resource.get",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1516,7 +1516,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.self.blob.resource.head",
+      "action": "ak.self.blob.resource.head",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1525,7 +1525,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.self.blob.command.presign",
+      "action": "ak.self.blob.command.presign",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [
@@ -1537,129 +1537,129 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.realm.media_service",
+      "action": "ak.realm.media_service",
       "category": "service",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.realm.media_service"
+        "ak.realm.media_service"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.mls.genesis",
+      "action": "ak.mls.genesis",
       "category": "service",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.mls.genesis"
+        "ak.mls.genesis"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.mls.proposal",
+      "action": "ak.mls.proposal",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.mls.proposal"
+        "ak.mls.proposal"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.mls.commit",
+      "action": "ak.mls.commit",
       "category": "service",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.mls.commit",
-        "ck.mls.commit_failed"
+        "ak.mls.commit",
+        "ak.mls.commit_failed"
       ],
       "profile": null,
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "ck.mls.welcome",
+      "action": "ak.mls.welcome",
       "category": "service",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.mls.welcome"
+        "ak.mls.welcome"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.mls.keypackage",
+      "action": "ak.mls.keypackage",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.mls.keypackage"
+        "ak.mls.keypackage"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.audit.accessed",
+      "action": "ak.audit.accessed",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.audit.accessed"
+        "ak.audit.accessed"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.audit.session.request",
+      "action": "ak.audit.session.request",
       "category": "service",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.audit.session.request"
+        "ak.audit.session.request"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.audit.session.notice",
+      "action": "ak.audit.session.notice",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.audit.session.notice"
+        "ak.audit.session.notice"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.audit.release",
+      "action": "ak.audit.release",
       "category": "service",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.audit.release"
+        "ak.audit.release"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.audit.session.close",
+      "action": "ak.audit.session.close",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.audit.session.close"
+        "ak.audit.session.close"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.audit.query",
+      "action": "ak.audit.query",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [],
@@ -1668,7 +1668,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.audit.export",
+      "action": "ak.audit.export",
       "category": "service",
       "risk_tier": "high",
       "required_constraints": [],
@@ -1677,7 +1677,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.presence.broadcast",
+      "action": "ak.presence.broadcast",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1686,7 +1686,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.typing.broadcast",
+      "action": "ak.typing.broadcast",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1695,7 +1695,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.receipt.broadcast",
+      "action": "ak.receipt.broadcast",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1704,7 +1704,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.call.signal.send",
+      "action": "ak.call.signal.send",
       "category": "service",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1713,75 +1713,75 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.call.join",
+      "action": "ak.call.join",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.call.state",
-        "ck.call.summary"
+        "ak.call.state",
+        "ak.call.summary"
       ],
       "profile": null,
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "ck.call.screen_share",
+      "action": "ak.call.screen_share",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.call.state"
+        "ak.call.state"
       ],
       "profile": null,
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "ck.call.record",
+      "action": "ak.call.record",
       "category": "service",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.call.recording.start",
-        "ck.call.state"
+        "ak.call.recording.start",
+        "ak.call.state"
       ],
       "profile": null,
       "event_mapping_kind": "aggregate_admin"
     },
     {
-      "action": "ck.call.transcribe",
+      "action": "ak.call.transcribe",
       "category": "service",
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.call.state"
+        "ak.call.state"
       ],
       "profile": null,
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "ck.call.moderate",
+      "action": "ak.call.moderate",
       "category": "service",
       "risk_tier": "medium",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.call.state"
+        "ak.call.state"
       ],
       "profile": null,
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
-      "action": "ck.read_cursor.advance",
+      "action": "ak.read_cursor.advance",
       "category": "personal",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.read_cursor.advance"
+        "ak.read_cursor.advance"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ck.notification.read",
+      "action": "ak.notification.read",
       "category": "personal",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1790,7 +1790,7 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.notification.ack",
+      "action": "ak.notification.ack",
       "category": "personal",
       "risk_tier": "low",
       "required_constraints": [],
@@ -1799,12 +1799,12 @@
       "event_mapping_kind": "non_event_surface"
     },
     {
-      "action": "ck.invite.accept",
+      "action": "ak.invite.accept",
       "category": "personal",
       "risk_tier": "low",
       "required_constraints": [],
       "target_event_kinds": [
-        "ck.invite.accept"
+        "ak.invite.accept"
       ],
       "profile": null,
       "event_mapping_kind": "same_name"

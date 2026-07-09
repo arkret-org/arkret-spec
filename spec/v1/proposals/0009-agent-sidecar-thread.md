@@ -325,7 +325,7 @@ Accepted profile SHOULD 编排以下 durable material:
 
 ```json
 {
-  "kind": "ck.circle.create",
+  "kind": "ak.circle.create",
   "payload": {
     "realm_id": "ak:realm:01970000-0000-7000-8000-000000000000",
     "circle_id": "ak:circle:01970000-0000-7000-8000-000000000080",
@@ -371,11 +371,11 @@ short_name = "AI-" + controller_agent_circle_key[:12].upper()
 
 ```json
 {
-  "kind": "ck.strand.create",
+  "kind": "ak.strand.create",
   "payload": {
     "object": {
       "id": "ak:strand:01970000-0000-7000-8000-000000000081",
-      "schema": "ck.schema.strand.v1",
+      "schema": "ak.schema.strand.v1",
       "realm_id": "ak:realm:01970000-0000-7000-8000-000000000000",
       "metadata": {
         "title": "Agent sidecar"
@@ -404,7 +404,7 @@ Sidecar 消息是该 private Strand 内的普通 `ck.message.create` event。普
 
 ```json
 {
-  "kind": "ck.relation.create",
+  "kind": "ak.relation.create",
   "payload": {
     "realm_id": "ak:realm:01970000-0000-7000-8000-000000000000",
     "relation_id": "ak:relation:01970000-0000-7000-8000-000000000082",
@@ -568,7 +568,7 @@ Strand F
 
 ```json
 {
-  "type": "ck.agent.sidecar_projection.v1",
+  "type": "ak.agent.sidecar_projection.v1",
   "target": {
     "realm_id": "ak:realm:01970000-0000-7000-8000-000000000000",
     "strand_id": "ak:strand:01970000-0000-7000-8000-000000000001"

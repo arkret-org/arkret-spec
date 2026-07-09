@@ -56,7 +56,7 @@ Issuer MUST NOT 注入：
 
 LiveKit 通过 [SFrame](https://www.rfc-editor.org/rfc/rfc9605.html) 实现 frame-level E2EE。Arkret-LiveKit binding 的 key 注入按 [`../media-service-binding.md` §8.1](../media-service-binding.md) 通用契约：
 
-1. 客户端 binding adapter 从 Arkret MLS exporter 为每个 sender 派生 `key_bytes`（label `"ck-rtc-frame-key/v1"`，`Context=canonical_json({realm_id, call_id, focus_id, epoch_id, participant_identity, device_id})`，`KDF.Nh=32`）。
+1. 客户端 binding adapter 从 Arkret MLS exporter 为每个 sender 派生 `key_bytes`（label `"ak.rtc-frame-key/v1"`，`Context=canonical_json({realm_id, call_id, focus_id, epoch_id, participant_identity, device_id})`，`KDF.Nh=32`）。
 2. 调 LiveKit SDK 的 `Room.setE2EEEnabled(true)` 并通过 `keyProvider` 注入 `key_bytes`。
 3. MLS epoch 或 participant set 变化 → 调 `keyProvider.setKey(keyBytes, keyIndex=<sender-bound-key-index>)` 触发 LiveKit SFrame ratchet。`keyIndex` MUST 是当前 active `(epoch_id, participant_identity)` 集合内无冲突的 adapter-local 映射；MUST NOT 仅用 `epoch_id % 256`。
 4. backend SDK 若试图通过 LiveKit Cloud 的 internal key distribution（如 LiveKit Cloud E2EE Token Service）注入 key，客户端 MUST 拒绝，错误码 `e2ee_key_source_unauthorised`。
@@ -78,10 +78,10 @@ LiveKit 通过 [SFrame](https://www.rfc-editor.org/rfc/rfc9605.html) 实现 fram
 Arkret-LiveKit 部署 MAY 使用 LiveKit Egress 触发录制，但 Egress endpoint MUST 是 Arkret-side proxy；录制 artifact 流向严格按 [`../call-state.md` §5](../call-state.md) 与 [`../media-service-binding.md` §8.1](../media-service-binding.md)：
 
 - Egress destination MUST 是 Arkret media service 的 authenticated upload endpoint；不得 LiveKit Cloud 直传 S3 / GCS。
-- 录制加密 key 来自 MLS exporter，label 固定为 ASCII 字符串 `"ck-rtc-recording-key/v1"`（与 SFrame `"ck-rtc-frame-key/v1"` 区分；`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id})`，`KDF.Nh=32`）。实现若复用 SFrame label、空 Context，或接受 LiveKit/KMS 自行生成的 recording key，MUST fail closed；LiveKit 不持久化明文。
+- 录制加密 key 来自 MLS exporter，label 固定为 ASCII 字符串 `"ak.rtc-recording-key/v1"`（与 SFrame `"ck-rtc-frame-key/v1"` 区分；`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id})`，`KDF.Nh=32`）。实现若复用 SFrame label、空 Context，或接受 LiveKit/KMS 自行生成的 recording key，MUST fail closed；LiveKit 不持久化明文。
 - 录制完成后通过 `ck.call.state` 发布 `recording_state="ready"` + content digest。
 - 客户端检测到 LiveKit Egress 配置指向非 Arkret endpoint → fail closed `recording_artifact_pipeline_bypassed`。
-- 转写(`capture_kind="transcript"`)走同一 Egress / Arkret blob 路径，但加密 key label 固定为 `"ck-rtc-transcript-key/v1"`(`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, transcript_start_event_id})`,`KDF.Nh=32`),与录制 / SFrame label 区分；复用其它 label、空 Context 或 backend 自生成 transcript key MUST fail closed `transcription_artifact_pipeline_bypassed`。转写完成后通过 `ck.call.state` 发布 `transcript_state="ready"`。见 [`../call-state.md` §5.1](../call-state.md)。
+- 转写(`capture_kind="transcript"`)走同一 Egress / Arkret blob 路径，但加密 key label 固定为 `"ak.rtc-transcript-key/v1"`(`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, transcript_start_event_id})`,`KDF.Nh=32`),与录制 / SFrame label 区分；复用其它 label、空 Context 或 backend 自生成 transcript key MUST fail closed `transcription_artifact_pipeline_bypassed`。转写完成后通过 `ck.call.state` 发布 `transcript_state="ready"`。见 [`../call-state.md` §5.1](../call-state.md)。
 
 ## 7. Cascading
 

@@ -25,7 +25,7 @@
       "pattern": "^ak:grant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
-      "const": "ck.schema.capability.v1"
+      "const": "ak.schema.capability.v1"
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -105,7 +105,7 @@
     },
     "effective_after_first_authorized_key": {
       "type": "boolean",
-      "description": "ck.profile.personal_agent_provisioning.v1 flag (CKP-0008 §4.3.2, identity/key-management.md §3.6.1). When true, the grant is durable but inactive: the capability evaluator MUST fail closed while the agent principal has no accepted, unexpired, unrevoked ck.agent.key.authorize. The reducer MUST clear this flag for every grant under the agent principal once pairing writes the first ck.agent.key.authorize, after which the grant enters normal effective-window evaluation. Set by the provisioning orchestration during the pending_runtime_key phase; MUST NOT be supplied to extend an already-effective grant."
+      "description": "ak.profile.personal_agent_provisioning.v1 flag (CKP-0008 §4.3.2, identity/key-management.md §3.6.1). When true, the grant is durable but inactive: the capability evaluator MUST fail closed while the agent principal has no accepted, unexpired, unrevoked ck.agent.key.authorize. The reducer MUST clear this flag for every grant under the agent principal once pairing writes the first ck.agent.key.authorize, after which the grant enters normal effective-window evaluation. Set by the provisioning orchestration during the pending_runtime_key phase; MUST NOT be supplied to extend an already-effective grant."
     },
     "updated_by": {
       "type": "string",
@@ -127,7 +127,7 @@
     },
     "proofs": {
       "type": "array",
-      "description": "Detached grant proofs sign canonical_json({context:'ck-capability-grant-proof-v1', payload_digest, issuer, subject, verification_method, created_at, domain?, audience?}); context is a fixed signing-context domain tag, not a wire field. payload_digest is the canonical hash of the grant body with proofs removed.",
+      "description": "Detached grant proofs sign canonical_json({context:'ak.capability-grant-proof-v1', payload_digest, issuer, subject, verification_method, created_at, domain?, audience?}); context is a fixed signing-context domain tag, not a wire field. payload_digest is the canonical hash of the grant body with proofs removed.",
       "items": {
         "$ref": "./event-envelope.schema.json#/$defs/proof"
       },
@@ -149,9 +149,9 @@
             "contains": {
               "type": "string",
               "enum": [
-                "ck.moderation.decision",
-                "ck.moderation.decision.lift",
-                "ck.realm.moderation_policy"
+                "ak.moderation.decision",
+                "ak.moderation.decision.lift",
+                "ak.realm.moderation_policy"
               ]
             }
           }

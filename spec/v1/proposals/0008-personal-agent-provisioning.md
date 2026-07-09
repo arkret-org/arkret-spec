@@ -145,7 +145,7 @@ profile: ck.profile.personal_agent_provisioning.v1
   },
   "requested_capabilities": [
     {
-      "actions": ["ck.event.read"],
+      "actions": ["ak.event.read"],
       "resources": [
         {
           "kind": "object",
@@ -163,7 +163,7 @@ profile: ck.profile.personal_agent_provisioning.v1
       "expires_at": "2026-06-26T00:00:00Z"
     },
     {
-      "actions": ["ck.message.create"],
+      "actions": ["ak.message.create"],
       "resources": [
         {
           "kind": "object",
@@ -190,7 +190,7 @@ profile: ck.profile.personal_agent_provisioning.v1
   "approval_policy": {
     "default_for_unlisted_actions": "deny",
     "act_on_behalf": "disabled_by_default",
-    "require_controller_approval_for": ["ck.strand.create", "ck.capability.delegate"]
+    "require_controller_approval_for": ["ak.strand.create", "ck.capability.delegate"]
   }
 }
 ```
@@ -334,7 +334,7 @@ profile: ck.profile.personal_agent_provisioning.v1
   },
   "authorize_event": {
     "event_id": "ak:event:01970000-0000-7000-8000-000000000021",
-    "kind": "ck.agent.key.authorize",
+    "kind": "ak.agent.key.authorize",
     "payload": {
       "agent_principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
       "verification_method": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant#runtime-key-1"
@@ -375,7 +375,7 @@ profile: ck.profile.agent_auth.v1
 ```json
 {
   "principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
-  "requested_scope": ["ck.self.events.stream.subscribe", "ck.message.create"],
+  "requested_scope": ["ak.self.events.stream.subscribe", "ck.message.create"],
   "agent_key_authorization_ref": "ak:event:01970000-0000-7000-8000-000000000021",
   "agent_scope_request": {
     "realm_ids": ["ak:realm:01970000-0000-7000-8000-000000000000"],
@@ -410,7 +410,7 @@ Wire 影响:本提案不新增 sibling endpoint,也不引入顶层 `grant_type` 
   "principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
   "session_grant": "opaque-short-lived-token",
   "expires_at": "2026-05-26T10:30:00Z",
-  "granted_scope": ["ck.self.events.stream.subscribe", "ck.message.create"],
+  "granted_scope": ["ak.self.events.stream.subscribe", "ck.message.create"],
   "scope_details": {
     "realm_ids": ["ak:realm:01970000-0000-7000-8000-000000000000"],
     "strand_ids": ["ak:strand:01970000-0000-7000-8000-000000000001"],
@@ -496,7 +496,7 @@ Approval draft SHOULD 存在 controller 的 encrypted account data 或 controlle
 
 ```json
 {
-  "type": "ck.agent.draft.v1",
+  "type": "ak.agent.draft.v1",
   "draft_id": "01970000-0000-7000-8000-000000000070",
   "owner_principal_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
   "agent_principal_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
@@ -505,7 +505,7 @@ Approval draft SHOULD 存在 controller 的 encrypted account data 或 controlle
     "strand_id": "ak:strand:01970000-0000-7000-8000-000000000001",
     "track_name": "summary"
   },
-  "proposed_action": "ck.message.create",
+  "proposed_action": "ak.message.create",
   "content": {
     "body": "Draft text that is not yet visible to the Realm."
   },
@@ -586,7 +586,7 @@ Agent MUST NOT 自动继承 controller 在 Realm 内的最大权限。即便 con
 
 ```json
 {
-  "actions": ["ck.message.create"],
+  "actions": ["ak.message.create"],
   "resources": [
     {
       "kind": "object",
@@ -618,7 +618,7 @@ Reply-as-agent:
 ```json
 {
   "actor_id": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
-  "kind": "ck.message.create"
+  "kind": "ak.message.create"
 }
 ```
 
@@ -636,7 +636,7 @@ Act-on-behalf:
   "actor_id": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice",
   "executed_by": "did:webvh:QmQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:users.example:agents:summary-assistant",
   "authorization_ref": "ak:grant:01970000-0000-7000-8000-000000000030",
-  "kind": "ck.message.create"
+  "kind": "ak.message.create"
 }
 ```
 

@@ -174,7 +174,7 @@
       "properties": {
         "access_kind": {
           "$ref": "#/$defs/non_empty_string",
-          "description": "ck.audit.accessed.access_kind. The gateway branches on `e2ee_late_recovery` to skip the push pipeline."
+          "description": "ak.audit.accessed.access_kind. The gateway branches on `e2ee_late_recovery` to skip the push pipeline."
         },
         "late_recovery_original_event_id": {
           "$ref": "#/$defs/event_id",

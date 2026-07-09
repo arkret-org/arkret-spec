@@ -23,9 +23,9 @@
       "kem_draft": "draft-connolly-cfrg-xwing-kem",
       "status": "reserved",
       "role": "reserved_pqc_hybrid",
-      "profile_gate": "ck.profile.kem.hybrid_xwing.v1",
+      "profile_gate": "ak.profile.kem.hybrid_xwing.v1",
       "activation_requirements": [
-        "ck.profile.kem.hybrid_xwing.v1 fully specified with the X-Wing KEM draft pinned (draft-connolly-cfrg-xwing-kem) under MIMI-style draft-pinning discipline (draft change = new profile version)",
+        "ak.profile.kem.hybrid_xwing.v1 fully specified with the X-Wing KEM draft pinned (draft-connolly-cfrg-xwing-kem) under MIMI-style draft-pinning discipline (draft change = new profile version)",
         "IETF/IANA MLS ciphersuite code point assigned for the X-Wing hybrid suite and recorded here as rfc9420_id (registry release required; receivers MUST NOT improvise a private code point)",
         "Per-suite MLS conformance vectors published (KeyPackage encoding, welcome/commit KEM encap/decap, group key schedule)",
         "Coverage-priority alignment recorded: activates only after the HPKE X-Wing row (hpke-suite-registry.json ck.hpke_xwing_aead_chacha20poly1305.v1) — static ciphertext backups are the primary Harvest-Now-Decrypt-Later target, MLS group KEM is the second wave"

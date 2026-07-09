@@ -18,14 +18,14 @@ const href = `/catalog/operations/${encodeURIComponent(id)}/`;
 
 {
   inline ? (
-    <a class="ck-tag" data-kind="operation" href={href}>
+    <a class="ak.tag" data-kind="operation" href={href}>
       <code>{id}</code>
     </a>
   ) : (
-    <article class="ck-card">
+    <article class="ak.card">
       <header>
-        <span class="ck-tag" data-kind="operation">op</span>
-        <a class="ck-card-title" href={href}>
+        <span class="ak.tag" data-kind="operation">op</span>
+        <a class="ak.card-title" href={href}>
           <code>{id}</code>
         </a>
         {surface && (

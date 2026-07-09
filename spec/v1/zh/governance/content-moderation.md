@@ -199,7 +199,7 @@ Evidence package MUST 加密给 `effective_scope` 对应 moderator audience。�
 
 ```json
 {
-  "kind": "ck.moderation.franking_proof",
+  "kind": "ak.moderation.franking_proof",
   "franking_proof_id": "ak:franking_proof:0196425b-0000-7000-8000-000000000000",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
@@ -325,7 +325,7 @@ Realm MAY 使用 `ck.realm.moderation_policy` state event 声明黑名单、允�
 
 ```json
 {
-  "kind": "ck.realm.moderation_policy",
+  "kind": "ak.realm.moderation_policy",
   "payload": {
     "version": 1,
     "targets": [
@@ -519,7 +519,7 @@ Principal Server 可以配置本地服务器级 ACL，控制哪些 peer 的联�
 
 ```json
 {
-  "kind": "ck.realm.moderation_policy",
+  "kind": "ak.realm.moderation_policy",
   "payload": {
     "value": {
       "version": 1,
@@ -571,7 +571,7 @@ Organization MAY 为其控制或背书的 Realm 与服务发布组织级审核�
 
 ```json
 {
-  "kind": "ck.organization.moderation_policy",
+  "kind": "ak.organization.moderation_policy",
   "organization_did": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
   "policy_id": "ak:org-policy:abuse-v1",
   "policy_scope": {

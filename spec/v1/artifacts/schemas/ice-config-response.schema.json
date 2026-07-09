@@ -188,7 +188,7 @@
         },
         "signature_input": {
           "type": "string",
-          "const": "ck.media.ice_config.v1",
+          "const": "ak.media.ice_config.v1",
           "description": "Domain-separation label prepended to the ICE config signing bytes. v1 fixes this to ck.media.ice_config.v1 and it MUST NOT be reused for participant binding signatures."
         },
         "payload_digest": {

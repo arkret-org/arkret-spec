@@ -79,7 +79,7 @@ Schema id: `ck.schema.strand.v1`
 ```json schema=schemas/strand.schema.json
 {
   "id": "ak:strand:019640f9-8000-7000-8000-000000000000",
-  "schema": "ck.schema.strand.v1",
+  "schema": "ak.schema.strand.v1",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "metadata": {
     "title": "支付重构",
@@ -91,7 +91,7 @@ Schema id: `ck.schema.strand.v1`
     }
   },
   "content": {
-    "kind": "ck.content.text",
+    "kind": "ak.content.text",
     "body": "Please finish the final review.",
     "format": "markdown",
     "formatted_body": "Please finish the final review."
@@ -129,7 +129,7 @@ Schema id: `ck.schema.strand.v1`
 
 ```json
 {
-  "kind": "ck.strand.stage.set",
+  "kind": "ak.strand.stage.set",
   "payload": {
     "strand_id": "ak:strand:...",
     "stage": "blocked",
@@ -278,7 +278,7 @@ Track 写入路径只有一个 event kind: **`ck.strand.tracks.update`**(注意�
 
 ```json
 {
-  "kind": "ck.strand.tracks.update",
+  "kind": "ak.strand.tracks.update",
   "payload": {
     "strand_id": "ak:strand:...",
     "patch": {
@@ -592,13 +592,13 @@ Schema id: `ck.schema.message.v1`
 ```json schema=schemas/message.schema.json
 {
   "id": "ak:message:0196414c-8000-7000-8000-000000000000",
-  "schema": "ck.schema.message.v1",
+  "schema": "ak.schema.message.v1",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "strand_id": "ak:strand:019640f9-8000-7000-8000-000000000000",
   "track_name": "discussion",
   "created_by": "did:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw:alice.example",
   "content": {
-    "kind": "ck.content.text",
+    "kind": "ak.content.text",
     "body": "@bob 请确认这个 item 的 legal 风险。",
     "format": "markdown",
     "formatted_body": "<mention did=\"did:webvh:zHuXvTbhiRsj2KEPE64TLhzG4:bob.example\">@bob</mention> 请确认这个 item 的 legal 风险。"
@@ -618,11 +618,11 @@ Schema id: `ck.schema.message.v1`
 ```json
 [
   {
-    "kind": "ck.strand.create",
+    "kind": "ak.strand.create",
     "payload": {
       "object": {
         "id": "ak:strand:019640f9-8000-7000-8000-000000000000",
-        "schema": "ck.schema.strand.v1",
+        "schema": "ak.schema.strand.v1",
         "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
         "metadata": {
           "title": "项目同步"
@@ -637,12 +637,12 @@ Schema id: `ck.schema.message.v1`
     }
   },
   {
-    "kind": "ck.message.create",
+    "kind": "ak.message.create",
     "payload": {
       "strand_id": "ak:strand:019640f9-8000-7000-8000-000000000000",
       "track_name": "discussion",
       "content": {
-        "kind": "ck.content.text",
+        "kind": "ak.content.text",
         "body": "@bob 请确认这个 strand 的 legal 风险。",
         "format": "markdown"
       }

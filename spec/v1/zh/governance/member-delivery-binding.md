@@ -97,7 +97,7 @@ Realm 通过独立的 `ck.realm.delivery_binding_policy` event 声明对成员�
 
 ```json
 {
-  "kind": "ck.realm.delivery_binding_policy",
+  "kind": "ak.realm.delivery_binding_policy",
   "payload": {
     "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
     "allow_binding_sources": [

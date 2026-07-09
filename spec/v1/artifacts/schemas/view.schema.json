@@ -18,7 +18,7 @@
       "pattern": "^ak:view:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
-      "const": "ck.schema.view.v1"
+      "const": "ak.schema.view.v1"
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"

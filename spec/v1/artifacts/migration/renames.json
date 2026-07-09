@@ -93,7 +93,7 @@
       "migration_group": "brand_namespace_cx_to_ck",
       "since_revision": "2026-06-03",
       "rejection_level": "hard_reject",
-      "replacement": "ck.",
+      "replacement": "ak.",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -121,7 +121,7 @@
       "migration_group": "brand_namespace_cx_to_ck",
       "since_revision": "2026-06-03",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.events.command.submit",
+      "replacement": "ak.self.events.command.submit",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -135,7 +135,7 @@
       "migration_group": "brand_namespace_cx_to_ck",
       "since_revision": "2026-06-03",
       "rejection_level": "hard_reject",
-      "replacement": "ck.member.state",
+      "replacement": "ak.member.state",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -149,7 +149,7 @@
       "migration_group": "brand_namespace_cx_to_ck",
       "since_revision": "2026-06-03",
       "rejection_level": "hard_reject",
-      "replacement": "ck.schema.event.v1",
+      "replacement": "ak.schema.event.v1",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -1963,7 +1963,7 @@
       "kind_class": "capability_action",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck.agent.interop_session.start",
+      "replacement": "ak.agent.interop_session.start",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -1977,7 +1977,7 @@
       "kind_class": "capability_action",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck.agent.interop_session.cancel",
+      "replacement": "ak.agent.interop_session.cancel",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -1991,7 +1991,7 @@
       "kind_class": "capability_action",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck.agent.interop_session.stream_status",
+      "replacement": "ak.agent.interop_session.stream_status",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -2005,7 +2005,7 @@
       "kind_class": "capability_action",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck.agent.interop_session.attach_artifact",
+      "replacement": "ak.agent.interop_session.attach_artifact",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -2019,7 +2019,7 @@
       "kind_class": "capability_action",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck.agent.interop_session.read_transcript",
+      "replacement": "ak.agent.interop_session.read_transcript",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3541,12 +3541,12 @@
       "migration_group": "duration_iso8601"
     },
     {
-      "id": "ck.account.agent_key_pair",
+      "id": "ak.account.agent_key_pair",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.gate.account.command.pair_agent_key",
+      "replacement": "ak.gate.account.command.pair_agent_key",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3555,12 +3555,12 @@
       "notes": "Trust-surface segment prepended (ck.account.agent_key_pair -> ck.gate.account.agent_key_pair); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.account.cursor_revoke",
+      "id": "ak.account.cursor_revoke",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.account.command.revoke_cursor",
+      "replacement": "ak.self.account.command.revoke_cursor",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3569,12 +3569,12 @@
       "notes": "Trust-surface segment prepended (ck.account.cursor_revoke -> ck.self.account.cursor_revoke); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.account.describe",
+      "id": "ak.account.describe",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.account.query.describe",
+      "replacement": "ak.self.account.query.describe",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3583,12 +3583,12 @@
       "notes": "Trust-surface segment prepended (ck.account.describe -> ck.self.account.describe); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.account.device_pair",
+      "id": "ak.account.device_pair",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.gate.account.command.pair_device",
+      "replacement": "ak.gate.account.command.pair_device",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3597,12 +3597,12 @@
       "notes": "Trust-surface segment prepended (ck.account.device_pair -> ck.gate.account.device_pair); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.account.issue_session_grant",
+      "id": "ak.account.issue_session_grant",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.gate.account.command.issue_session_grant",
+      "replacement": "ak.gate.account.command.issue_session_grant",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3611,12 +3611,12 @@
       "notes": "Trust-surface segment prepended (ck.account.issue_session_grant -> ck.gate.account.issue_session_grant); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.account.oidc_callback",
+      "id": "ak.account.oidc_callback",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.gate.account.exchange.complete_oidc",
+      "replacement": "ak.gate.account.exchange.complete_oidc",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3625,12 +3625,12 @@
       "notes": "Trust-surface segment prepended (ck.account.oidc_callback -> ck.gate.account.oidc_callback); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.account.register",
+      "id": "ak.account.register",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.gate.account.command.register",
+      "replacement": "ak.gate.account.command.register",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3639,12 +3639,12 @@
       "notes": "Trust-surface segment prepended (ck.account.register -> ck.gate.account.register); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.account.session_revoke",
+      "id": "ak.account.session_revoke",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.gate.account.command.revoke_session",
+      "replacement": "ak.gate.account.command.revoke_session",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3653,12 +3653,12 @@
       "notes": "Trust-surface segment prepended (ck.account.session_revoke -> ck.gate.account.session_revoke); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.account.subscribe",
+      "id": "ak.account.subscribe",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.account.stream.subscribe",
+      "replacement": "ak.self.account.stream.subscribe",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3667,12 +3667,12 @@
       "notes": "Trust-surface segment prepended (ck.account.subscribe -> ck.self.account.subscribe); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.account.update_profile",
+      "id": "ak.account.update_profile",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.account.command.update_profile",
+      "replacement": "ak.self.account.command.update_profile",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3681,12 +3681,12 @@
       "notes": "Trust-surface segment prepended (ck.account.update_profile -> ck.self.account.update_profile); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.account.viewer",
+      "id": "ak.account.viewer",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.account.query.viewer",
+      "replacement": "ak.self.account.query.viewer",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3695,12 +3695,12 @@
       "notes": "Trust-surface segment prepended (ck.account.viewer -> ck.self.account.viewer); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.agent.deactivate",
+      "id": "ak.agent.deactivate",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.agent.command.deactivate",
+      "replacement": "ak.self.agent.command.deactivate",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3709,12 +3709,12 @@
       "notes": "Trust-surface segment prepended (ck.agent.deactivate -> ck.self.agent.deactivate); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.agent.get",
+      "id": "ak.agent.get",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.agent.resource.get",
+      "replacement": "ak.self.agent.resource.get",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3723,12 +3723,12 @@
       "notes": "Trust-surface segment prepended (ck.agent.get -> ck.self.agent.get); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.agent.grant.attach",
+      "id": "ak.agent.grant.attach",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.agent.grant.command.attach",
+      "replacement": "ak.self.agent.grant.command.attach",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3737,12 +3737,12 @@
       "notes": "Trust-surface segment prepended (ck.agent.grant.attach -> ck.self.agent.grant.attach); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.agent.grant.detach",
+      "id": "ak.agent.grant.detach",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.agent.grant.resource.delete",
+      "replacement": "ak.self.agent.grant.resource.delete",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3751,12 +3751,12 @@
       "notes": "Trust-surface segment prepended (ck.agent.grant.detach -> ck.self.agent.grant.detach); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.agent.list",
+      "id": "ak.agent.list",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.agent.query.list",
+      "replacement": "ak.self.agent.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3765,12 +3765,12 @@
       "notes": "Trust-surface segment prepended (ck.agent.list -> ck.self.agent.list); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.agent.pause",
+      "id": "ak.agent.pause",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.agent.command.pause",
+      "replacement": "ak.self.agent.command.pause",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3779,12 +3779,12 @@
       "notes": "Trust-surface segment prepended (ck.agent.pause -> ck.self.agent.pause); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.agent.provision",
+      "id": "ak.agent.provision",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.agent.command.provision",
+      "replacement": "ak.self.agent.command.provision",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3793,12 +3793,12 @@
       "notes": "Trust-surface segment prepended (ck.agent.provision -> ck.self.agent.provision); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.agent.resume",
+      "id": "ak.agent.resume",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.agent.command.resume",
+      "replacement": "ak.self.agent.command.resume",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3807,12 +3807,12 @@
       "notes": "Trust-surface segment prepended (ck.agent.resume -> ck.self.agent.resume); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.agent.rotate_key",
+      "id": "ak.agent.rotate_key",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.agent.command.rotate_key",
+      "replacement": "ak.self.agent.command.rotate_key",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3821,12 +3821,12 @@
       "notes": "Trust-surface segment prepended (ck.agent.rotate_key -> ck.self.agent.rotate_key); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.agent.sidecar_thread.ensure",
+      "id": "ak.agent.sidecar_thread.ensure",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.agent.sidecar_thread.command.ensure",
+      "replacement": "ak.self.agent.sidecar_thread.command.ensure",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3835,12 +3835,12 @@
       "notes": "Trust-surface segment prepended (ck.agent.sidecar_thread.ensure -> ck.self.agent.sidecar_thread.ensure); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.applet.describe",
+      "id": "ak.applet.describe",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.edge.applet.query.describe",
+      "replacement": "ak.edge.applet.query.describe",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3849,12 +3849,12 @@
       "notes": "Trust-surface segment prepended (ck.applet.describe -> ck.edge.applet.describe); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.applet.install",
+      "id": "ak.applet.install",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.applet.command.install",
+      "replacement": "ak.self.applet.command.install",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3863,12 +3863,12 @@
       "notes": "Trust-surface segment prepended (ck.applet.install -> ck.self.applet.install); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.applet.install.preview",
+      "id": "ak.applet.install.preview",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.applet.install.command.preview",
+      "replacement": "ak.self.applet.install.command.preview",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3877,12 +3877,12 @@
       "notes": "Trust-surface segment prepended (ck.applet.install.preview -> ck.self.applet.install.preview); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.applet.ping",
+      "id": "ak.applet.ping",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.edge.applet.query.ping",
+      "replacement": "ak.edge.applet.query.ping",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3891,12 +3891,12 @@
       "notes": "Trust-surface segment prepended (ck.applet.ping -> ck.edge.applet.ping); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.applet.protocol_metadata",
+      "id": "ak.applet.protocol_metadata",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.edge.applet.query.protocol_metadata",
+      "replacement": "ak.edge.applet.query.protocol_metadata",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3905,12 +3905,12 @@
       "notes": "Trust-surface segment prepended (ck.applet.protocol_metadata -> ck.edge.applet.protocol_metadata); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.applet.resolve_actor",
+      "id": "ak.applet.resolve_actor",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.edge.applet.actor.query.resolve",
+      "replacement": "ak.edge.applet.actor.query.resolve",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3919,12 +3919,12 @@
       "notes": "Trust-surface segment prepended (ck.applet.resolve_actor -> ck.edge.applet.resolve_actor); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.applet.resolve_realm",
+      "id": "ak.applet.resolve_realm",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.edge.applet.realm.query.resolve",
+      "replacement": "ak.edge.applet.realm.query.resolve",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3933,12 +3933,12 @@
       "notes": "Trust-surface segment prepended (ck.applet.resolve_realm -> ck.edge.applet.resolve_realm); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.applet.revoke",
+      "id": "ak.applet.revoke",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.applet.command.revoke",
+      "replacement": "ak.self.applet.command.revoke",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3947,12 +3947,12 @@
       "notes": "Trust-surface segment prepended (ck.applet.revoke -> ck.self.applet.revoke); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.applet.third_party_locations",
+      "id": "ak.applet.third_party_locations",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.edge.applet.third_party_locations.query.list",
+      "replacement": "ak.edge.applet.third_party_locations.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3961,12 +3961,12 @@
       "notes": "Trust-surface segment prepended (ck.applet.third_party_locations -> ck.edge.applet.third_party_locations); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.applet.third_party_users",
+      "id": "ak.applet.third_party_users",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.edge.applet.third_party_users.query.list",
+      "replacement": "ak.edge.applet.third_party_users.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3975,12 +3975,12 @@
       "notes": "Trust-surface segment prepended (ck.applet.third_party_users -> ck.edge.applet.third_party_users); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.applet.transaction",
+      "id": "ak.applet.transaction",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.edge.applet.command.transaction",
+      "replacement": "ak.edge.applet.command.transaction",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -3989,12 +3989,12 @@
       "notes": "Trust-surface segment prepended (ck.applet.transaction -> ck.edge.applet.transaction); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.authz.check",
+      "id": "ak.authz.check",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.authz.query.check",
+      "replacement": "ak.self.authz.query.check",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4003,12 +4003,12 @@
       "notes": "Trust-surface segment prepended (ck.authz.check -> ck.self.authz.check); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.authz.get_effective_grants",
+      "id": "ak.authz.get_effective_grants",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.authz.grants.query.effective",
+      "replacement": "ak.self.authz.grants.query.effective",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4017,12 +4017,12 @@
       "notes": "Trust-surface segment prepended (ck.authz.get_effective_grants -> ck.self.authz.get_effective_grants); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.authz.get_invites",
+      "id": "ak.authz.get_invites",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.authz.invites.query.list",
+      "replacement": "ak.self.authz.invites.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4031,12 +4031,12 @@
       "notes": "Trust-surface segment prepended (ck.authz.get_invites -> ck.self.authz.get_invites); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.blob.get",
+      "id": "ak.blob.get",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.blob.resource.get",
+      "replacement": "ak.self.blob.resource.get",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4045,12 +4045,12 @@
       "notes": "Trust-surface segment prepended (ck.blob.get -> ck.self.blob.get); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.blob.head",
+      "id": "ak.blob.head",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.blob.resource.head",
+      "replacement": "ak.self.blob.resource.head",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4059,12 +4059,12 @@
       "notes": "Trust-surface segment prepended (ck.blob.head -> ck.self.blob.head); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.blob.presign",
+      "id": "ak.blob.presign",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.blob.command.presign",
+      "replacement": "ak.self.blob.command.presign",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4073,12 +4073,12 @@
       "notes": "Trust-surface segment prepended (ck.blob.presign -> ck.self.blob.presign); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.blob.upload",
+      "id": "ak.blob.upload",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.blob.upload.create",
+      "replacement": "ak.self.blob.upload.create",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4087,12 +4087,12 @@
       "notes": "Trust-surface segment prepended (ck.blob.upload -> ck.self.blob.upload); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.call.media.token_exchange",
+      "id": "ak.call.media.token_exchange",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.call.media.exchange.issue_token",
+      "replacement": "ak.self.call.media.exchange.issue_token",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4101,12 +4101,12 @@
       "notes": "Trust-surface segment prepended (ck.call.media.token_exchange -> ck.self.call.media.token_exchange); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.contact.list",
+      "id": "ak.contact.list",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.contact.query.list",
+      "replacement": "ak.self.contact.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4115,12 +4115,12 @@
       "notes": "Trust-surface segment prepended (ck.contact.list -> ck.self.contact.list); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.contact.request",
+      "id": "ak.contact.request",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.contact.command.request",
+      "replacement": "ak.self.contact.command.request",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4129,12 +4129,12 @@
       "notes": "Trust-surface segment prepended (ck.contact.request -> ck.self.contact.request); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.contact.respond",
+      "id": "ak.contact.respond",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.contact.command.respond",
+      "replacement": "ak.self.contact.command.respond",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4143,12 +4143,12 @@
       "notes": "Trust-surface segment prepended (ck.contact.respond -> ck.self.contact.respond); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.contact.tombstone",
+      "id": "ak.contact.tombstone",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.contact.command.tombstone",
+      "replacement": "ak.self.contact.command.tombstone",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4157,12 +4157,12 @@
       "notes": "Trust-surface segment prepended (ck.contact.tombstone -> ck.self.contact.tombstone); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.device_messages.get",
+      "id": "ak.device_messages.get",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.device_messages.query.list",
+      "replacement": "ak.self.device_messages.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4171,12 +4171,12 @@
       "notes": "Trust-surface segment prepended (ck.device_messages.get -> ck.self.device_messages.get); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.device_messages.put",
+      "id": "ak.device_messages.put",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.device_messages.command.send",
+      "replacement": "ak.self.device_messages.command.send",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4185,12 +4185,12 @@
       "notes": "Trust-surface segment prepended (ck.device_messages.put -> ck.self.device_messages.put); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.direct_conversation.resolve",
+      "id": "ak.direct_conversation.resolve",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.direct_conversation.command.resolve",
+      "replacement": "ak.self.direct_conversation.command.resolve",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4199,12 +4199,12 @@
       "notes": "Trust-surface segment prepended (ck.direct_conversation.resolve -> ck.self.direct_conversation.resolve); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.directory.announce",
+      "id": "ak.directory.announce",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.command.announce",
+      "replacement": "ak.find.directory.command.announce",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4213,12 +4213,12 @@
       "notes": "Trust-surface segment prepended (ck.directory.announce -> ck.find.directory.announce); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.directory.describe",
+      "id": "ak.directory.describe",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.query.describe",
+      "replacement": "ak.find.directory.query.describe",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4227,12 +4227,12 @@
       "notes": "Trust-surface segment prepended (ck.directory.describe -> ck.find.directory.describe); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.directory.list_handles_for_subject",
+      "id": "ak.directory.list_handles_for_subject",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.query.list_handles_for_subject",
+      "replacement": "ak.find.directory.query.list_handles_for_subject",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4241,12 +4241,12 @@
       "notes": "Trust-surface segment prepended (ck.directory.list_handles_for_subject -> ck.find.directory.list_handles_for_subject); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.directory.private_contact_discovery",
+      "id": "ak.directory.private_contact_discovery",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.query.private_contact_discovery",
+      "replacement": "ak.find.directory.query.private_contact_discovery",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4255,12 +4255,12 @@
       "notes": "Trust-surface segment prepended (ck.directory.private_contact_discovery -> ck.find.directory.private_contact_discovery); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.directory.push.register",
+      "id": "ak.directory.push.register",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.push.command.register",
+      "replacement": "ak.find.directory.push.command.register",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4269,12 +4269,12 @@
       "notes": "Trust-surface segment prepended (ck.directory.push.register -> ck.find.directory.push.register); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.directory.resolve_handle",
+      "id": "ak.directory.resolve_handle",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.query.resolve_handle",
+      "replacement": "ak.find.directory.query.resolve_handle",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4283,12 +4283,12 @@
       "notes": "Trust-surface segment prepended (ck.directory.resolve_handle -> ck.find.directory.resolve_handle); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.directory.resolve_organization",
+      "id": "ak.directory.resolve_organization",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.query.resolve_organization",
+      "replacement": "ak.find.directory.query.resolve_organization",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4297,12 +4297,12 @@
       "notes": "Trust-surface segment prepended (ck.directory.resolve_organization -> ck.find.directory.resolve_organization); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.directory.resolve_realm",
+      "id": "ak.directory.resolve_realm",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.query.resolve_realm",
+      "replacement": "ak.find.directory.query.resolve_realm",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4311,12 +4311,12 @@
       "notes": "Trust-surface segment prepended (ck.directory.resolve_realm -> ck.find.directory.resolve_realm); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.directory.resolve_target",
+      "id": "ak.directory.resolve_target",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.query.resolve_target",
+      "replacement": "ak.find.directory.query.resolve_target",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4325,12 +4325,12 @@
       "notes": "Trust-surface segment prepended (ck.directory.resolve_target -> ck.find.directory.resolve_target); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.directory.search_actors",
+      "id": "ak.directory.search_actors",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.query.search_actors",
+      "replacement": "ak.find.directory.query.search_actors",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4339,12 +4339,12 @@
       "notes": "Trust-surface segment prepended (ck.directory.search_actors -> ck.find.directory.search_actors); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.directory.search_organizations",
+      "id": "ak.directory.search_organizations",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.query.search_organizations",
+      "replacement": "ak.find.directory.query.search_organizations",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4353,12 +4353,12 @@
       "notes": "Trust-surface segment prepended (ck.directory.search_organizations -> ck.find.directory.search_organizations); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.directory.search_realms",
+      "id": "ak.directory.search_realms",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.query.search_realms",
+      "replacement": "ak.find.directory.query.search_realms",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4367,12 +4367,12 @@
       "notes": "Trust-surface segment prepended (ck.directory.search_realms -> ck.find.directory.search_realms); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.directory.search_users",
+      "id": "ak.directory.search_users",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.query.search_users",
+      "replacement": "ak.find.directory.query.search_users",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4381,12 +4381,12 @@
       "notes": "Trust-surface segment prepended (ck.directory.search_users -> ck.find.directory.search_users); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.directory.withdraw",
+      "id": "ak.directory.withdraw",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.find.directory.command.withdraw",
+      "replacement": "ak.find.directory.command.withdraw",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4395,12 +4395,12 @@
       "notes": "Trust-surface segment prepended (ck.directory.withdraw -> ck.find.directory.withdraw); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.ephemeral.send",
+      "id": "ak.ephemeral.send",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.ephemeral.command.send",
+      "replacement": "ak.self.ephemeral.command.send",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4409,12 +4409,12 @@
       "notes": "Trust-surface segment prepended (ck.ephemeral.send -> ck.self.ephemeral.send); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.events.describe",
+      "id": "ak.events.describe",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.events.query.describe",
+      "replacement": "ak.self.events.query.describe",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4423,12 +4423,12 @@
       "notes": "Trust-surface segment prepended (ck.events.describe -> ck.self.events.describe); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.events.frontier",
+      "id": "ak.events.frontier",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.events.query.frontier",
+      "replacement": "ak.self.events.query.frontier",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4437,12 +4437,12 @@
       "notes": "Trust-surface segment prepended (ck.events.frontier -> ck.self.events.frontier); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.events.get",
+      "id": "ak.events.get",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.events.resource.get",
+      "replacement": "ak.self.events.resource.get",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4451,12 +4451,12 @@
       "notes": "Trust-surface segment prepended (ck.events.get -> ck.self.events.get); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.events.query",
+      "id": "ak.events.query",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.events.query.scan",
+      "replacement": "ak.self.events.query.scan",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4465,12 +4465,12 @@
       "notes": "Trust-surface segment prepended (ck.events.query -> ck.self.events.query); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.events.query_post",
+      "id": "ak.events.query_post",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.events.query.scan_body",
+      "replacement": "ak.self.events.query.scan_body",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4479,12 +4479,12 @@
       "notes": "Trust-surface segment prepended (ck.events.query_post -> ck.self.events.query_post); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.events.resolve",
+      "id": "ak.events.resolve",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.events.query.resolve",
+      "replacement": "ak.self.events.query.resolve",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4493,12 +4493,12 @@
       "notes": "Trust-surface segment prepended (ck.events.resolve -> ck.self.events.resolve); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.events.submit",
+      "id": "ak.events.submit",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.events.command.submit",
+      "replacement": "ak.self.events.command.submit",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4507,12 +4507,12 @@
       "notes": "Trust-surface segment prepended (ck.events.submit -> ck.self.events.submit); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.events.subscribe",
+      "id": "ak.events.subscribe",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.events.stream.subscribe",
+      "replacement": "ak.self.events.stream.subscribe",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4521,12 +4521,12 @@
       "notes": "Trust-surface segment prepended and stream verb made explicit; ck.events.subscribe maps to ck.self.events.stream.subscribe. Old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.identity.describe_registry",
+      "id": "ak.identity.describe_registry",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.root.identity.registry.query.describe",
+      "replacement": "ak.root.identity.registry.query.describe",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4535,12 +4535,12 @@
       "notes": "Trust-surface segment prepended (ck.identity.describe_registry -> ck.root.identity.describe_registry); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.identity.get_document",
+      "id": "ak.identity.get_document",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.root.identity.document.resource.get",
+      "replacement": "ak.root.identity.document.resource.get",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4549,12 +4549,12 @@
       "notes": "Trust-surface segment prepended (ck.identity.get_document -> ck.root.identity.get_document); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.identity.get_log",
+      "id": "ak.identity.get_log",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.root.identity.log.query.list",
+      "replacement": "ak.root.identity.log.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4563,12 +4563,12 @@
       "notes": "Trust-surface segment prepended (ck.identity.get_log -> ck.root.identity.get_log); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.identity.get_receipts",
+      "id": "ak.identity.get_receipts",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.root.identity.receipts.query.list",
+      "replacement": "ak.root.identity.receipts.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4577,12 +4577,12 @@
       "notes": "Trust-surface segment prepended (ck.identity.get_receipts -> ck.root.identity.get_receipts); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.identity.resolve",
+      "id": "ak.identity.resolve",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.root.identity.query.resolve",
+      "replacement": "ak.root.identity.query.resolve",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4591,12 +4591,12 @@
       "notes": "Trust-surface segment prepended (ck.identity.resolve -> ck.root.identity.resolve); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.identity.submit_did_operation",
+      "id": "ak.identity.submit_did_operation",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.root.identity.command.submit_did_operation",
+      "replacement": "ak.root.identity.command.submit_did_operation",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4605,12 +4605,12 @@
       "notes": "Trust-surface segment prepended (ck.identity.submit_did_operation -> ck.root.identity.submit_did_operation); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.keys.backups.delete",
+      "id": "ak.keys.backups.delete",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.keys.backups.resource.delete",
+      "replacement": "ak.self.keys.backups.resource.delete",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4619,12 +4619,12 @@
       "notes": "Trust-surface segment prepended (ck.keys.backups.delete -> ck.self.keys.backups.delete); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.keys.backups.get",
+      "id": "ak.keys.backups.get",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.keys.backups.command.unlock",
+      "replacement": "ak.self.keys.backups.command.unlock",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4633,12 +4633,12 @@
       "notes": "Trust-surface segment prepended (ck.keys.backups.get -> ck.self.keys.backups.get), then the retrieval operation was rebound to POST .../{backup_id}/unlock with a body-borne unlock proof (ck.self.keys.backups.get -> ck.self.keys.backups.unlock, 2026-06-11); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.self.keys.backups.get",
+      "id": "ak.self.keys.backups.get",
       "kind_class": "operation_id",
       "migration_group": "key_backup_unlock_proof_transport",
       "since_revision": "2026-06-11",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.keys.backups.command.unlock",
+      "replacement": "ak.self.keys.backups.command.unlock",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4647,12 +4647,12 @@
       "notes": "Full-ciphertext retrieval requires a ck.schema.key_backup_unlock_proof.v1 object (key-management.md §7.7.1) but plain GET has no spec-conformant proof carrier (no request body; signature material in headers or query is forbidden by service-http-binding.md §2.2). Retrieval is rebound to POST /_arkret/self/keys/backups/{backup_id}/unlock with the proof in the request body; GET /_arkret/self/keys/backups/{backup_id} MUST NOT appear on current wire."
     },
     {
-      "id": "ck.keys.backups.list",
+      "id": "ak.keys.backups.list",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.keys.backups.query.list",
+      "replacement": "ak.self.keys.backups.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4661,12 +4661,12 @@
       "notes": "Trust-surface segment prepended (ck.keys.backups.list -> ck.self.keys.backups.list); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.keys.backups.put",
+      "id": "ak.keys.backups.put",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.keys.backups.resource.replace",
+      "replacement": "ak.self.keys.backups.resource.replace",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4675,12 +4675,12 @@
       "notes": "Trust-surface segment prepended (ck.keys.backups.put -> ck.self.keys.backups.put); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.keys.claim",
+      "id": "ak.keys.claim",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.keys.command.claim",
+      "replacement": "ak.self.keys.command.claim",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4689,12 +4689,12 @@
       "notes": "Trust-surface segment prepended (ck.keys.claim -> ck.self.keys.claim); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.keys.keypackages.claim",
+      "id": "ak.keys.keypackages.claim",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.keys.keypackages.command.claim",
+      "replacement": "ak.self.keys.keypackages.command.claim",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4703,12 +4703,12 @@
       "notes": "Trust-surface segment prepended (ck.keys.keypackages.claim -> ck.self.keys.keypackages.claim); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.keys.keypackages.consume",
+      "id": "ak.keys.keypackages.consume",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.keys.keypackages.command.consume",
+      "replacement": "ak.self.keys.keypackages.command.consume",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4717,12 +4717,12 @@
       "notes": "Trust-surface segment prepended (ck.keys.keypackages.consume -> ck.self.keys.keypackages.consume); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.keys.keypackages.revoke",
+      "id": "ak.keys.keypackages.revoke",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.keys.keypackages.command.revoke",
+      "replacement": "ak.self.keys.keypackages.command.revoke",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4731,12 +4731,12 @@
       "notes": "Trust-surface segment prepended (ck.keys.keypackages.revoke -> ck.self.keys.keypackages.revoke); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.keys.keypackages.upload",
+      "id": "ak.keys.keypackages.upload",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.keys.keypackages.upload.create",
+      "replacement": "ak.self.keys.keypackages.upload.create",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4745,12 +4745,12 @@
       "notes": "Trust-surface segment prepended (ck.keys.keypackages.upload -> ck.self.keys.keypackages.upload); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.keys.query",
+      "id": "ak.keys.query",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.keys.query.lookup",
+      "replacement": "ak.self.keys.query.lookup",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4759,12 +4759,12 @@
       "notes": "Trust-surface segment prepended (ck.keys.query -> ck.self.keys.query); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.keys.upload",
+      "id": "ak.keys.upload",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.keys.upload.create",
+      "replacement": "ak.self.keys.upload.create",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4773,12 +4773,12 @@
       "notes": "Trust-surface segment prepended (ck.keys.upload -> ck.self.keys.upload); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.media.ice_config",
+      "id": "ak.media.ice_config",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.media.query.ice_config",
+      "replacement": "ak.self.media.query.ice_config",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4787,12 +4787,12 @@
       "notes": "Trust-surface segment prepended (ck.media.ice_config -> ck.self.media.ice_config); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.mimi.group_info",
+      "id": "ak.mimi.group_info",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.open.mimi.query.group_info",
+      "replacement": "ak.open.mimi.query.group_info",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4801,12 +4801,12 @@
       "notes": "Trust-surface segment prepended (ck.mimi.group_info -> ck.open.mimi.group_info); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.mimi.identifier_query",
+      "id": "ak.mimi.identifier_query",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.open.mimi.query.identifiers",
+      "replacement": "ak.open.mimi.query.identifiers",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4815,12 +4815,12 @@
       "notes": "Trust-surface segment prepended (ck.mimi.identifier_query -> ck.open.mimi.identifier_query); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.mimi.key_material",
+      "id": "ak.mimi.key_material",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.open.mimi.exchange.request_key_material",
+      "replacement": "ak.open.mimi.exchange.request_key_material",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4829,12 +4829,12 @@
       "notes": "Trust-surface segment prepended (ck.mimi.key_material -> ck.open.mimi.key_material); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.mimi.notify",
+      "id": "ak.mimi.notify",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.open.mimi.command.notify",
+      "replacement": "ak.open.mimi.command.notify",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4843,12 +4843,12 @@
       "notes": "Trust-surface segment prepended (ck.mimi.notify -> ck.open.mimi.notify); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.mimi.provider_directory",
+      "id": "ak.mimi.provider_directory",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.open.mimi.query.provider_directory",
+      "replacement": "ak.open.mimi.query.provider_directory",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4857,12 +4857,12 @@
       "notes": "Trust-surface segment prepended (ck.mimi.provider_directory -> ck.open.mimi.provider_directory); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.mimi.proxy_download",
+      "id": "ak.mimi.proxy_download",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.open.mimi.command.proxy_download",
+      "replacement": "ak.open.mimi.command.proxy_download",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4871,12 +4871,12 @@
       "notes": "Trust-surface segment prepended (ck.mimi.proxy_download -> ck.open.mimi.proxy_download); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.mimi.report_abuse",
+      "id": "ak.mimi.report_abuse",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.open.mimi.command.report_abuse",
+      "replacement": "ak.open.mimi.command.report_abuse",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4885,12 +4885,12 @@
       "notes": "Trust-surface segment prepended (ck.mimi.report_abuse -> ck.open.mimi.report_abuse); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.mimi.request_consent",
+      "id": "ak.mimi.request_consent",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.open.mimi.command.request_consent",
+      "replacement": "ak.open.mimi.command.request_consent",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4899,12 +4899,12 @@
       "notes": "Trust-surface segment prepended (ck.mimi.request_consent -> ck.open.mimi.request_consent); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.mimi.room_update",
+      "id": "ak.mimi.room_update",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.open.mimi.command.update_room",
+      "replacement": "ak.open.mimi.command.update_room",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4913,12 +4913,12 @@
       "notes": "Trust-surface segment prepended (ck.mimi.room_update -> ck.open.mimi.room_update); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.mimi.submit_message",
+      "id": "ak.mimi.submit_message",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.open.mimi.command.submit_message",
+      "replacement": "ak.open.mimi.command.submit_message",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4927,12 +4927,12 @@
       "notes": "Trust-surface segment prepended (ck.mimi.submit_message -> ck.open.mimi.submit_message); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.mimi.update_consent",
+      "id": "ak.mimi.update_consent",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.open.mimi.command.update_consent",
+      "replacement": "ak.open.mimi.command.update_consent",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4941,12 +4941,12 @@
       "notes": "Trust-surface segment prepended (ck.mimi.update_consent -> ck.open.mimi.update_consent); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.moderation.report",
+      "id": "ak.moderation.report",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.moderation.command.report",
+      "replacement": "ak.self.moderation.command.report",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4955,12 +4955,12 @@
       "notes": "Trust-surface segment prepended (ck.moderation.report -> ck.self.moderation.report); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.policy.check",
+      "id": "ak.policy.check",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.policy.query.check",
+      "replacement": "ak.self.policy.query.check",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4969,12 +4969,12 @@
       "notes": "Trust-surface segment prepended (ck.policy.check -> ck.self.policy.check); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.projection.strands",
+      "id": "ak.projection.strands",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.strand.query.list",
+      "replacement": "ak.self.strand.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4983,12 +4983,12 @@
       "notes": "Trust-surface segment prepended (ck.projection.strands -> ck.self.projection.strands); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.projection.morphs",
+      "id": "ak.projection.morphs",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.morph.query.list",
+      "replacement": "ak.self.morph.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -4997,12 +4997,12 @@
       "notes": "Trust-surface segment prepended (ck.projection.morphs -> ck.self.projection.morphs); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.projection.spaces",
+      "id": "ak.projection.spaces",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.space.query.list",
+      "replacement": "ak.self.space.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5011,12 +5011,12 @@
       "notes": "Trust-surface segment prepended (ck.projection.spaces -> ck.self.projection.spaces); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.self.projection.spaces.query.list",
+      "id": "ak.self.projection.spaces.query.list",
       "kind_class": "operation_id",
       "migration_group": "operation_id_projection_namespace_collapse",
       "since_revision": "2026-06-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.space.query.list",
+      "replacement": "ak.self.space.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5025,12 +5025,12 @@
       "notes": "Projection read namespace collapsed into the Realm resource surface (/_arkret/self/projection/spaces -> /_arkret/self/realms/{realm_id}/spaces); the projection-namespaced operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.self.projection.strands.query.list",
+      "id": "ak.self.projection.strands.query.list",
       "kind_class": "operation_id",
       "migration_group": "operation_id_projection_namespace_collapse",
       "since_revision": "2026-06-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.strand.query.list",
+      "replacement": "ak.self.strand.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5039,12 +5039,12 @@
       "notes": "Projection read namespace collapsed into the Realm resource surface (/_arkret/self/projection/strands -> /_arkret/self/realms/{realm_id}/strands); the projection-namespaced operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.self.projection.morphs.query.list",
+      "id": "ak.self.projection.morphs.query.list",
       "kind_class": "operation_id",
       "migration_group": "operation_id_projection_namespace_collapse",
       "since_revision": "2026-06-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.morph.query.list",
+      "replacement": "ak.self.morph.query.list",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5053,12 +5053,12 @@
       "notes": "Projection read namespace collapsed into the Realm resource surface (/_arkret/self/projection/morphs -> /_arkret/self/realms/{realm_id}/morphs); the projection-namespaced operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.self.projection.document.resource.get",
+      "id": "ak.self.projection.document.resource.get",
       "kind_class": "operation_id",
       "migration_group": "operation_id_projection_namespace_collapse",
       "since_revision": "2026-06-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.morph.resource.get",
+      "replacement": "ak.self.morph.resource.get",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5067,12 +5067,12 @@
       "notes": "Projection document read namespace collapsed into the Realm Morph resource surface (/_arkret/self/projection/documents/{morph_id} -> /_arkret/self/realms/{realm_id}/morphs/{morph_id}); the projection-namespaced operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.push.notify",
+      "id": "ak.push.notify",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.edge.push.command.notify",
+      "replacement": "ak.edge.push.command.notify",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5081,12 +5081,12 @@
       "notes": "Trust-surface segment prepended (ck.push.notify -> ck.edge.push.notify); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.push.register_device",
+      "id": "ak.push.register_device",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.edge.push.command.register_device",
+      "replacement": "ak.edge.push.command.register_device",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5095,12 +5095,12 @@
       "notes": "Trust-surface segment prepended (ck.push.register_device -> ck.edge.push.register_device); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.push.unregister_device",
+      "id": "ak.push.unregister_device",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.edge.push.command.unregister_device",
+      "replacement": "ak.edge.push.command.unregister_device",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5109,12 +5109,12 @@
       "notes": "Trust-surface segment prepended (ck.push.unregister_device -> ck.edge.push.unregister_device); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.snapshot.head",
+      "id": "ak.snapshot.head",
       "kind_class": "operation_id",
       "migration_group": "operation_id_trust_surface_segment",
       "since_revision": "2026-06-05",
       "rejection_level": "hard_reject",
-      "replacement": "ck.self.snapshot.query.manifest_head",
+      "replacement": "ak.self.snapshot.query.manifest_head",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5123,11 +5123,11 @@
       "notes": "Trust-surface segment prepended (ck.snapshot.head -> ck.self.snapshot.head); old un-prefixed operation_id MUST NOT appear on current wire."
     },
     {
-      "id": "ck.agent.protocol_session.start",
+      "id": "ak.agent.protocol_session.start",
       "kind_class": "event_kind",
       "since_revision": "2026-06-06",
       "rejection_level": "hard_reject",
-      "replacement": "ck.agent.interop_session.start",
+      "replacement": "ak.agent.interop_session.start",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5137,11 +5137,11 @@
       "migration_group": "agent_applet_interop_session_rename"
     },
     {
-      "id": "ck.agent.protocol_session.status",
+      "id": "ak.agent.protocol_session.status",
       "kind_class": "event_kind",
       "since_revision": "2026-06-06",
       "rejection_level": "hard_reject",
-      "replacement": "ck.agent.interop_session.status",
+      "replacement": "ak.agent.interop_session.status",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5151,11 +5151,11 @@
       "migration_group": "agent_applet_interop_session_rename"
     },
     {
-      "id": "ck.agent.protocol_session.result",
+      "id": "ak.agent.protocol_session.result",
       "kind_class": "event_kind",
       "since_revision": "2026-06-06",
       "rejection_level": "hard_reject",
-      "replacement": "ck.agent.interop_session.result",
+      "replacement": "ak.agent.interop_session.result",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5165,11 +5165,11 @@
       "migration_group": "agent_applet_interop_session_rename"
     },
     {
-      "id": "ck.agent.session.stream_status",
+      "id": "ak.agent.session.stream_status",
       "kind_class": "capability_action",
       "since_revision": "2026-06-06",
       "rejection_level": "hard_reject",
-      "replacement": "ck.agent.interop_session.stream_status",
+      "replacement": "ak.agent.interop_session.stream_status",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5179,11 +5179,11 @@
       "migration_group": "agent_applet_interop_session_rename"
     },
     {
-      "id": "ck.agent.session.start",
+      "id": "ak.agent.session.start",
       "kind_class": "capability_action",
       "since_revision": "2026-06-06",
       "rejection_level": "hard_reject",
-      "replacement": "ck.agent.interop_session.start",
+      "replacement": "ak.agent.interop_session.start",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5193,11 +5193,11 @@
       "migration_group": "agent_applet_interop_session_rename"
     },
     {
-      "id": "ck.agent.session.read_transcript",
+      "id": "ak.agent.session.read_transcript",
       "kind_class": "capability_action",
       "since_revision": "2026-06-06",
       "rejection_level": "hard_reject",
-      "replacement": "ck.agent.interop_session.read_transcript",
+      "replacement": "ak.agent.interop_session.read_transcript",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5207,11 +5207,11 @@
       "migration_group": "agent_applet_interop_session_rename"
     },
     {
-      "id": "ck.agent.session.attach_artifact",
+      "id": "ak.agent.session.attach_artifact",
       "kind_class": "capability_action",
       "since_revision": "2026-06-06",
       "rejection_level": "hard_reject",
-      "replacement": "ck.agent.interop_session.attach_artifact",
+      "replacement": "ak.agent.interop_session.attach_artifact",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5221,11 +5221,11 @@
       "migration_group": "agent_applet_interop_session_rename"
     },
     {
-      "id": "ck.agent.session.cancel",
+      "id": "ak.agent.session.cancel",
       "kind_class": "capability_action",
       "since_revision": "2026-06-06",
       "rejection_level": "hard_reject",
-      "replacement": "ck.agent.interop_session.cancel",
+      "replacement": "ak.agent.interop_session.cancel",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5235,11 +5235,11 @@
       "migration_group": "agent_applet_interop_session_rename"
     },
     {
-      "id": "ck.applet.protocol_session.start",
+      "id": "ak.applet.protocol_session.start",
       "kind_class": "event_kind",
       "since_revision": "2026-06-06",
       "rejection_level": "hard_reject",
-      "replacement": "ck.applet.interop_session.start",
+      "replacement": "ak.applet.interop_session.start",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5249,11 +5249,11 @@
       "migration_group": "agent_applet_interop_session_rename"
     },
     {
-      "id": "ck.applet.protocol_session.status",
+      "id": "ak.applet.protocol_session.status",
       "kind_class": "event_kind",
       "since_revision": "2026-06-06",
       "rejection_level": "hard_reject",
-      "replacement": "ck.applet.interop_session.status",
+      "replacement": "ak.applet.interop_session.status",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5333,11 +5333,11 @@
       "migration_group": "agent_applet_interop_session_rename"
     },
     {
-      "id": "ck.morph.schema.migrate",
+      "id": "ak.morph.schema.migrate",
       "kind_class": "capability_action",
       "since_revision": "2026-06-06",
       "rejection_level": "hard_reject",
-      "replacement": "ck.morph.schema_migrate",
+      "replacement": "ak.morph.schema_migrate",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5347,11 +5347,11 @@
       "migration_group": "verb_noun_bridge_collapse"
     },
     {
-      "id": "ck.strand.tracks.manage",
+      "id": "ak.strand.tracks.manage",
       "kind_class": "capability_action",
       "since_revision": "2026-06-06",
       "rejection_level": "hard_reject",
-      "replacement": "ck.strand.tracks.update",
+      "replacement": "ak.strand.tracks.update",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5361,11 +5361,11 @@
       "migration_group": "verb_noun_bridge_collapse"
     },
     {
-      "id": "ck.call.configure_media_service",
+      "id": "ak.call.configure_media_service",
       "kind_class": "capability_action",
       "since_revision": "2026-06-06",
       "rejection_level": "hard_reject",
-      "replacement": "ck.realm.media_service",
+      "replacement": "ak.realm.media_service",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5543,12 +5543,12 @@
       "notes": "Seal typed ID prefix renamed with the Anchor->Seal family."
     },
     {
-      "id": "ck.component.anchorer.v1",
+      "id": "ak.component.anchorer.v1",
       "kind_class": "model_identifier",
       "migration_group": "cba_notary_seal_rename",
       "since_revision": "2026-06-11",
       "rejection_level": "hard_reject",
-      "replacement": "ck.component.notary.v1",
+      "replacement": "ak.component.notary.v1",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -5557,12 +5557,12 @@
       "notes": "Notary cell family renamed with the Anchorer->Notary family."
     },
     {
-      "id": "ck.component.covered_frontier.v1",
+      "id": "ak.component.covered_frontier.v1",
       "kind_class": "model_identifier",
       "migration_group": "cba_notary_seal_rename",
       "since_revision": "2026-06-11",
       "rejection_level": "hard_reject",
-      "replacement": "ck.component.covered_seals.v1",
+      "replacement": "ak.component.covered_seals.v1",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",

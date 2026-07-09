@@ -109,7 +109,7 @@
       "pattern": "^ak:message:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
-      "const": "ck.schema.message.v1"
+      "const": "ak.schema.message.v1"
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -355,7 +355,7 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "ck.content.composite"
+                "const": "ak.content.composite"
               }
             },
             "required": [

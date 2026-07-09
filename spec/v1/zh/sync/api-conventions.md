@@ -94,7 +94,7 @@ ck.<surface>.<domain-or-subject...>.<kind>.<action>
 - `command.ack` 表示对已投递数据做显式确认；天然幂等，但不得被 cursor 推进隐式替代。
 - `query.scan_body` 只允许作为 HTTP-only companion binding，MUST 声明 `binding_variant_of` 指向同语义的 canonical `query.scan` operation；非 HTTP transport MUST 使用 canonical operation，不得把 body variant 暴露为独立能力。
 
-HTTP method 不是 operation action 的来源：同一 `query.scan` 语义可以有 GET query string 与 POST/body 两种 HTTP binding；这种情况必须标记为 binding variant，而不是发明新的协议操作。`ck.self.events.query.scan_body` 必须声明 `binding_variant_of="ck.self.events.query.scan"`，非 HTTP transport 仍使用 canonical `ck.self.events.query.scan`。
+HTTP method 不是 operation action 的来源：同一 `query.scan` 语义可以有 GET query string 与 POST/body 两种 HTTP binding；这种情况必须标记为 binding variant，而不是发明新的协议操作。`ck.self.events.query.scan_body` 必须声明 `binding_variant_of="ak.self.events.query.scan"`，非 HTTP transport 仍使用 canonical `ck.self.events.query.scan`。
 
 **`viewer` action（术语定义）**：`ck.self.account.query.viewer` 的含义钉死为：**当前已认证 holder 的主体自读投影**。目标不由 path / query 中的外部 id 定位，而由 holder-bound `user_session` 的会话绑定决定，故不建模为 `resource.get`；命名沿用 GraphQL 生态的 `viewer` 惯例（"viewer = 发起请求的已认证主体"）。它与 `query.describe`（服务能力元数据，可 pre-auth）的区分见 [`service-http-binding.md` §5.1](./service-http-binding.md)。注意区分本规范 prose 中 `viewer` 的另一用法：可见性 / 投影语境（pins、history visibility、conformance vector 的 `viewer_*` 字段）里的 "viewer" 指**正在读取内容、作为可见性评估视角的主体**，不是本 operation；`reviewer`（审核者）与两者均无关，全文检索 `viewer` 时勿混入。
 
@@ -155,7 +155,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
         "method": "oidc",
         "issuer": "https://auth.example.com",
         "openid_configuration": "https://auth.example.com/.well-known/openid-configuration",
-        "client_id": "ck-example-client",
+        "client_id": "ak.example-client",
         "scopes": ["openid", "profile"],
         "grant_exchange": {"proof_kind": "oidc_code_exchange"}
       },

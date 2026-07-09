@@ -28,7 +28,7 @@ updated: 2026-07-03
 ```json
 {
   "id": "ak:actor_profile:019640ab-0000-7000-8000-000000000000",
-  "schema": "ck.schema.actor_profile.v1",
+  "schema": "ak.schema.actor_profile.v1",
   "realm_id": "ak:realm:01964166-0000-7000-8000-000000000000",
   "principal_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "actor_kind": "user",
@@ -79,7 +79,7 @@ Profile 初始状态通过 `ck.profile.create` Move / compatible Event 提交到
 ```json
 {
   "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
-  "kind": "ck.profile.create",
+  "kind": "ak.profile.create",
   "realm_id": "ak:realm:01964166-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "actor_seq": 1,
@@ -90,7 +90,7 @@ Profile 初始状态通过 `ck.profile.create` Move / compatible Event 提交到
   "payload": {
     "object": {
       "id": "ak:actor_profile:019640ab-0000-7000-8000-000000000000",
-      "schema": "ck.schema.actor_profile.v1",
+      "schema": "ak.schema.actor_profile.v1",
       "realm_id": "ak:realm:01964166-0000-7000-8000-000000000000",
       "principal_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
       "actor_kind": "user",
@@ -123,7 +123,7 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 ```json
 {
   "event_id": "ak:event:019640ed-8400-7000-8000-000000000000",
-  "kind": "ck.profile.update",
+  "kind": "ak.profile.update",
   "realm_id": "ak:realm:01964166-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "actor_seq": 2,
@@ -168,7 +168,7 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 ```json
 {
   "event_id": "ak:event:019640ed-8800-7000-8000-000000000000",
-  "kind": "ck.profile.realm_override",
+  "kind": "ak.profile.realm_override",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "actor_seq": 3,
@@ -232,7 +232,7 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 
 ```json
 {
-  "kind": "ck.presence",
+  "kind": "ak.presence",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "device_id": "ak:device:019640dd-8000-7000-8000-000000000000",
@@ -269,7 +269,7 @@ Profile 后续变更通过 `ck.profile.update` Move / compatible Event 提交。
 
 ```json
 {
-  "kind": "ck.presence",
+  "kind": "ak.presence",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "device_id": "ak:device:019640dd-8000-7000-8000-000000000000",
@@ -337,7 +337,7 @@ presence 广播内的 `status_message` 是临时覆盖值，展示优先级高�
 
 ```json
 {
-  "kind": "ck.typing",
+  "kind": "ak.typing",
   "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "device_id": "ak:device:019640dd-8000-7000-8000-000000000000",

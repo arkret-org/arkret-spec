@@ -13,7 +13,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "ck.schema.peer_contact_delivery_request.v1"
+      "const": "ak.schema.peer_contact_delivery_request.v1"
     },
     "contact_event": {
       "$ref": "./event-envelope.schema.json",
@@ -25,10 +25,10 @@
     "fact_kind": {
       "type": "string",
       "enum": [
-        "ck.contact.requested",
-        "ck.contact.accepted",
-        "ck.contact.rejected",
-        "ck.contact.tombstoned"
+        "ak.contact.requested",
+        "ak.contact.accepted",
+        "ak.contact.rejected",
+        "ak.contact.tombstoned"
       ],
       "description": "The contact fact kind carried by contact_event. MUST equal contact_event.kind."
     },
@@ -47,7 +47,7 @@
       "if": {
         "properties": {
           "fact_kind": {
-            "const": "ck.contact.requested"
+            "const": "ak.contact.requested"
           }
         },
         "required": [

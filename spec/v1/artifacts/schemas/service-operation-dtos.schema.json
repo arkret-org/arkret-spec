@@ -585,7 +585,7 @@
     },
     "AuthzCheckRequestBody": {
       "type": "object",
-      "description": "ck.self.authz.query.check input — local capability projection / preflight / diagnostic query. `resource` is optional because some actions (e.g. `ck.realm.create`, identity-scoped actions) have no Realm-bound target. The result is not a signed Policy Server decision and MUST NOT be used as Event auth_context, reducer accept proof, or cross-service authorization fact; dynamic policy obligations use ck.self.policy.query.check.\n",
+      "description": "ak.self.authz.query.check input — local capability projection / preflight / diagnostic query. `resource` is optional because some actions (e.g. `ck.realm.create`, identity-scoped actions) have no Realm-bound target. The result is not a signed Policy Server decision and MUST NOT be used as Event auth_context, reducer accept proof, or cross-service authorization fact; dynamic policy obligations use ck.self.policy.query.check.\n",
       "required": [
         "actor_id",
         "action"
@@ -612,7 +612,7 @@
     },
     "AuthzCheckOutcome": {
       "type": "object",
-      "description": "ck.self.authz.query.check diagnostic/preflight decision. See zh/authz/capabilities.md §18. This shape may include freshness and obligation hints, but any obligation that affects reducer admission or external state MUST be re-issued and signed through PolicyCheckOutcome.",
+      "description": "ak.self.authz.query.check diagnostic/preflight decision. See zh/authz/capabilities.md §18. This shape may include freshness and obligation hints, but any obligation that affects reducer admission or external state MUST be re-issued and signed through PolicyCheckOutcome.",
       "required": [
         "decision"
       ],
@@ -874,7 +874,7 @@
           ],
           "properties": {
             "scheme": {
-              "const": "ck.media.participant_binding.v1"
+              "const": "ak.media.participant_binding.v1"
             },
             "realm_id": {
               "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -1439,10 +1439,10 @@
         "kind": {
           "type": "string",
           "enum": [
-            "ck.call.signal",
-            "ck.presence",
-            "ck.typing",
-            "ck.receipt.read"
+            "ak.call.signal",
+            "ak.presence",
+            "ak.typing",
+            "ak.receipt.read"
           ]
         },
         "realm_id": {
@@ -1613,7 +1613,7 @@
                     ],
                     "properties": {
                       "kind": {
-                        "const": "ck.attestation.range_completeness"
+                        "const": "ak.attestation.range_completeness"
                       }
                     }
                   }
@@ -1628,7 +1628,7 @@
     },
     "EventsResolveRequestBody": {
       "type": "object",
-      "description": "ck.self.events.query.resolve request body. At least one of event_ids or event_digests MUST be non-empty.",
+      "description": "ak.self.events.query.resolve request body. At least one of event_ids or event_digests MUST be non-empty.",
       "properties": {
         "event_ids": {
           "type": "array",
@@ -1651,7 +1651,7 @@
     },
     "EventsResolveOutcome": {
       "type": "object",
-      "description": "ck.self.events.query.resolve result. `events[]` and `missing[]` plus optional `unauthorized[]` form a partition of the requested set.",
+      "description": "ak.self.events.query.resolve result. `events[]` and `missing[]` plus optional `unauthorized[]` form a partition of the requested set.",
       "required": [
         "events",
         "missing"
@@ -1929,7 +1929,7 @@
     },
     "PolicyCheckRequestBody": {
       "type": "object",
-      "description": "ck.self.policy.query.check input bound to a Realm authorization context.",
+      "description": "ak.self.policy.query.check input bound to a Realm authorization context.",
       "required": [
         "request_id",
         "realm_id",

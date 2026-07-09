@@ -78,7 +78,7 @@ Schema id: `ck.schema.workflow.v1`
   "label": "Submit for Review",
   "from_state_keys": ["in_progress"],
   "to_state_key": "in_review",
-  "required_capability": "ck.workflow.transition",
+  "required_capability": "ak.workflow.transition",
   "preconditions": [
     {
       "kind": "relation_exists",

@@ -614,7 +614,7 @@ Handle 解析示例：
 
 ```json
 {
-  "schema": "ck.schema.handle_claim.v1",
+  "schema": "ak.schema.handle_claim.v1",
   "handle": "alice:alice.dev",
   "subject": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "issuer": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
@@ -636,7 +636,7 @@ Handle 解析示例：
 
 ```json
 {
-  "schema": "ck.schema.handle_claim.v1",
+  "schema": "ak.schema.handle_claim.v1",
   "handle": "alice:acme.example",
   "handle_aliases": ["acct:alice@acme.example"],
   "subject": "did:webvh:z2dmjA1ice:users.acme.example",
@@ -858,7 +858,7 @@ Verifier MUST 使用最小披露请求，不得请求“所有 alias”或“所
   "type": "arkret_presentation_request",
   "audience": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
   "domain": "google.example",
-  "challenge": "ck_chal_01J...",
+  "challenge": "ak.chal_01J...",
   "accepted_issuers": [
     "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
     "did:webvh:z63bVQgiDj3vkHkgjzVuvJdte:trusted-hr.example"
@@ -965,12 +965,12 @@ grant subject = alice@google.com
 
 ```json
 {
-  "kind": "ck.identity.presentation_request",
+  "kind": "ak.identity.presentation_request",
   "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
   "verifier_did": "did:webvh:zGZ728E4hbEuyDPggPzuioG6n:login.google.example",
   "represented_org": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
   "domain": "google.example",
-  "challenge": "ck_chal_01J...",
+  "challenge": "ak.chal_01J...",
   "purpose": "space_join",
   "accepted_issuers": ["did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example"],
   "required_claims": [
@@ -1007,7 +1007,7 @@ Verifier MUST 对该请求签名，或通过已认证的关系通道发送。Wal
 
 ```json
 {
-  "kind": "ck.identity.disclosure_policy",
+  "kind": "ak.identity.disclosure_policy",
   "policy_id": "ak:policy:a1cb0019-0000-7000-8000-000000000000",
   "holder_did": "did:webvh:z64Hmi2jCpmp1cUuWEwCgdNn5:holder.example.com",
   "audience": {
@@ -1044,7 +1044,7 @@ Disclosure policy 是 holder-private state，默认 MUST NOT 写入公共 Realm�
 
 ```json
 {
-  "kind": "ck.identity.presentation_response",
+  "kind": "ak.identity.presentation_response",
   "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
   "holder_subject": "did:key:z6Mkgpairwise...",
   "proof_profile": "vc_di_bbs_2023",
@@ -1065,7 +1065,7 @@ Response MUST NOT 包含未披露字段、base proof、无关的 credential iden
 
 ```json
 {
-  "kind": "ck.identity.disclosure_receipt",
+  "kind": "ak.identity.disclosure_receipt",
   "receipt_id": "ak:receipt:a1cb0019-0000-7000-8000-000000000000",
   "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
   "holder_did": "did:key:z6Mkgpairwise...",

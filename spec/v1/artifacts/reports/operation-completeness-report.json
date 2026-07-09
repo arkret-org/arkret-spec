@@ -49,7 +49,7 @@
   },
   "operations": [
     {
-      "operation_id": "ck.edge.applet.actor.query.resolve",
+      "operation_id": "ak.edge.applet.actor.query.resolve",
       "tier": "interop_bridge",
       "http": "GET /_arkret/edge/applet/actors/{actor_id}",
       "success_shape_kind": "typed_response",
@@ -62,7 +62,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.edge.applet.command.transaction",
+      "operation_id": "ak.edge.applet.command.transaction",
       "tier": "interop_bridge",
       "http": "POST /_arkret/edge/applet/transactions",
       "success_shape_kind": "typed_response",
@@ -76,7 +76,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.edge.applet.query.describe",
+      "operation_id": "ak.edge.applet.query.describe",
       "tier": "interop_bridge",
       "http": "GET /_arkret/edge/applet/describe",
       "success_shape_kind": "service_describe",
@@ -89,7 +89,7 @@
       "reason": "response is the shared ServiceDescribe contract (bound globally as schemas/service-describe.schema.json)."
     },
     {
-      "operation_id": "ck.edge.applet.query.ping",
+      "operation_id": "ak.edge.applet.query.ping",
       "tier": "interop_bridge",
       "http": "GET /_arkret/edge/applet/ping",
       "success_shape_kind": "typed_response",
@@ -102,7 +102,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.edge.applet.query.protocol_metadata",
+      "operation_id": "ak.edge.applet.query.protocol_metadata",
       "tier": "interop_bridge",
       "http": "GET /_arkret/edge/applet/protocols/{protocol}",
       "success_shape_kind": "typed_response",
@@ -115,7 +115,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.edge.applet.realm.query.resolve",
+      "operation_id": "ak.edge.applet.realm.query.resolve",
       "tier": "interop_bridge",
       "http": "GET /_arkret/edge/applet/realms/{realm_id_or_alias}",
       "success_shape_kind": "typed_response",
@@ -128,7 +128,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.edge.applet.third_party_locations.query.list",
+      "operation_id": "ak.edge.applet.third_party_locations.query.list",
       "tier": "interop_bridge",
       "http": "GET /_arkret/edge/applet/third_party/locations",
       "success_shape_kind": "typed_response",
@@ -141,7 +141,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.edge.applet.third_party_users.query.list",
+      "operation_id": "ak.edge.applet.third_party_users.query.list",
       "tier": "interop_bridge",
       "http": "GET /_arkret/edge/applet/third_party/users",
       "success_shape_kind": "typed_response",
@@ -154,7 +154,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.edge.push.command.notify",
+      "operation_id": "ak.edge.push.command.notify",
       "tier": "extension",
       "http": "POST /_arkret/edge/push/notify",
       "success_shape_kind": "typed_response",
@@ -168,7 +168,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.edge.push.command.register_device",
+      "operation_id": "ak.edge.push.command.register_device",
       "tier": "extension",
       "http": "POST /_arkret/edge/push/register-device",
       "success_shape_kind": "typed_response",
@@ -182,7 +182,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.edge.push.command.unregister_device",
+      "operation_id": "ak.edge.push.command.unregister_device",
       "tier": "extension",
       "http": "POST /_arkret/edge/push/unregister-device",
       "success_shape_kind": "typed_response",
@@ -196,7 +196,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.find.directory.command.announce",
+      "operation_id": "ak.find.directory.command.announce",
       "tier": "extension",
       "http": "POST /_arkret/find/directory/announce",
       "success_shape_kind": "typed_response",
@@ -210,7 +210,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.find.directory.command.takedown_appeal",
+      "operation_id": "ak.find.directory.command.takedown_appeal",
       "tier": "extension",
       "http": "POST /_arkret/find/directory/takedown/appeal",
       "success_shape_kind": "typed_response",
@@ -224,7 +224,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.find.directory.command.withdraw",
+      "operation_id": "ak.find.directory.command.withdraw",
       "tier": "extension",
       "http": "POST /_arkret/find/directory/withdraw",
       "success_shape_kind": "typed_response",
@@ -238,7 +238,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.find.directory.push.command.register",
+      "operation_id": "ak.find.directory.push.command.register",
       "tier": "extension",
       "http": "POST /_arkret/find/directory/push/register",
       "success_shape_kind": "typed_response",
@@ -252,7 +252,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.find.directory.query.describe",
+      "operation_id": "ak.find.directory.query.describe",
       "tier": "extension",
       "http": "GET /_arkret/find/directory/describe",
       "success_shape_kind": "service_describe",
@@ -265,7 +265,7 @@
       "reason": "response is the shared ServiceDescribe contract (bound globally as schemas/service-describe.schema.json)."
     },
     {
-      "operation_id": "ck.find.directory.query.list_handles_for_subject",
+      "operation_id": "ak.find.directory.query.list_handles_for_subject",
       "tier": "extension",
       "http": "POST /_arkret/find/directory/list-handles-for-subject",
       "success_shape_kind": "typed_response",
@@ -279,7 +279,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.find.directory.query.private_contact_discovery",
+      "operation_id": "ak.find.directory.query.private_contact_discovery",
       "tier": "extension",
       "http": "POST /_arkret/find/directory/private-contact-discovery",
       "success_shape_kind": "typed_response",
@@ -293,7 +293,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.find.directory.query.resolve_agent_selector",
+      "operation_id": "ak.find.directory.query.resolve_agent_selector",
       "tier": "extension",
       "http": "POST /_arkret/find/directory/resolve-agent-selector",
       "success_shape_kind": "typed_response",
@@ -307,7 +307,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.find.directory.query.resolve_handle",
+      "operation_id": "ak.find.directory.query.resolve_handle",
       "tier": "extension",
       "http": "POST /_arkret/find/directory/resolve-handle",
       "success_shape_kind": "typed_response",
@@ -321,7 +321,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.find.directory.query.resolve_organization",
+      "operation_id": "ak.find.directory.query.resolve_organization",
       "tier": "extension",
       "http": "POST /_arkret/find/directory/resolve-organization",
       "success_shape_kind": "typed_response",
@@ -335,7 +335,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.find.directory.query.resolve_realm",
+      "operation_id": "ak.find.directory.query.resolve_realm",
       "tier": "extension",
       "http": "POST /_arkret/find/directory/resolve-realm",
       "success_shape_kind": "typed_response",
@@ -349,7 +349,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.find.directory.query.resolve_target",
+      "operation_id": "ak.find.directory.query.resolve_target",
       "tier": "extension",
       "http": "POST /_arkret/find/directory/resolve-target",
       "success_shape_kind": "typed_response",
@@ -363,7 +363,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.find.directory.query.search_actors",
+      "operation_id": "ak.find.directory.query.search_actors",
       "tier": "extension",
       "http": "POST /_arkret/find/directory/search-actors",
       "success_shape_kind": "typed_response",
@@ -377,7 +377,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.find.directory.query.search_organizations",
+      "operation_id": "ak.find.directory.query.search_organizations",
       "tier": "extension",
       "http": "POST /_arkret/find/directory/search-organizations",
       "success_shape_kind": "typed_response",
@@ -391,7 +391,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.find.directory.query.search_realms",
+      "operation_id": "ak.find.directory.query.search_realms",
       "tier": "extension",
       "http": "POST /_arkret/find/directory/search-realms",
       "success_shape_kind": "typed_response",
@@ -405,7 +405,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.find.directory.query.search_users",
+      "operation_id": "ak.find.directory.query.search_users",
       "tier": "extension",
       "http": "POST /_arkret/find/directory/search-users",
       "success_shape_kind": "typed_response",
@@ -419,7 +419,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.gate.account.command.enroll_device",
+      "operation_id": "ak.gate.account.command.enroll_device",
       "tier": "deployment_local",
       "http": "POST /_arkret/gate/account/device-enroll",
       "success_shape_kind": "typed_response",
@@ -433,7 +433,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.gate.account.command.introspect_session_grant",
+      "operation_id": "ak.gate.account.command.introspect_session_grant",
       "tier": "deployment_local",
       "http": "POST /_arkret/gate/account/session-grants/introspect",
       "success_shape_kind": "typed_response",
@@ -447,7 +447,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.gate.account.command.issue_session_grant",
+      "operation_id": "ak.gate.account.command.issue_session_grant",
       "tier": "deployment_local",
       "http": "POST /_arkret/gate/account/session-grants",
       "success_shape_kind": "typed_response",
@@ -461,7 +461,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.gate.account.command.logout",
+      "operation_id": "ak.gate.account.command.logout",
       "tier": "deployment_local",
       "http": "POST /_arkret/gate/account/logout",
       "success_shape_kind": "typed_response",
@@ -475,7 +475,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.gate.account.command.logout_auth_session",
+      "operation_id": "ak.gate.account.command.logout_auth_session",
       "tier": "deployment_local",
       "http": "POST /_arkret/gate/account/auth-sessions/logout",
       "success_shape_kind": "typed_response",
@@ -489,7 +489,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.gate.account.command.pair_agent_key",
+      "operation_id": "ak.gate.account.command.pair_agent_key",
       "tier": "extension",
       "http": "POST /_arkret/gate/account/agent-key-pair",
       "success_shape_kind": "typed_response",
@@ -503,7 +503,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.gate.account.command.pair_device",
+      "operation_id": "ak.gate.account.command.pair_device",
       "tier": "deployment_local",
       "http": "POST /_arkret/gate/account/device-pair",
       "success_shape_kind": "typed_response",
@@ -517,7 +517,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.gate.account.command.refresh_session_grant",
+      "operation_id": "ak.gate.account.command.refresh_session_grant",
       "tier": "deployment_local",
       "http": "POST /_arkret/gate/account/session-grants/refresh",
       "success_shape_kind": "typed_response",
@@ -531,7 +531,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.gate.account.command.register",
+      "operation_id": "ak.gate.account.command.register",
       "tier": "deployment_local",
       "http": "POST /_arkret/gate/account/register",
       "success_shape_kind": "typed_response",
@@ -545,7 +545,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.gate.account.command.revoke_session",
+      "operation_id": "ak.gate.account.command.revoke_session",
       "tier": "deployment_local",
       "http": "POST /_arkret/gate/account/session-grants/revoke",
       "success_shape_kind": "typed_response",
@@ -559,7 +559,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.gate.account.exchange.complete_oidc",
+      "operation_id": "ak.gate.account.exchange.complete_oidc",
       "tier": "deployment_local",
       "http": "POST /_arkret/gate/account/oidc/callback",
       "success_shape_kind": "typed_response",
@@ -573,7 +573,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.open.agent_pairing.command.submit_runtime_key_request",
+      "operation_id": "ak.open.agent_pairing.command.submit_runtime_key_request",
       "tier": "extension",
       "http": "POST /_arkret/open/agent-pairing/runtime-key-requests",
       "success_shape_kind": "typed_response",
@@ -587,7 +587,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.open.agent_pairing.query.resolve",
+      "operation_id": "ak.open.agent_pairing.query.resolve",
       "tier": "extension",
       "http": "POST /_arkret/open/agent-pairing/resolve",
       "success_shape_kind": "typed_response",
@@ -601,7 +601,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.open.invite_locator.query.resolve",
+      "operation_id": "ak.open.invite_locator.query.resolve",
       "tier": "extension",
       "http": "POST /_arkret/open/invite-locators/resolve",
       "success_shape_kind": "typed_response",
@@ -615,7 +615,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.open.mimi.command.notify",
+      "operation_id": "ak.open.mimi.command.notify",
       "tier": "interop_bridge",
       "http": "POST /_arkret/open/mimi/strands/{strand_id}/notify",
       "success_shape_kind": "typed_response",
@@ -629,7 +629,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.open.mimi.command.proxy_download",
+      "operation_id": "ak.open.mimi.command.proxy_download",
       "tier": "interop_bridge",
       "http": "POST /_arkret/open/mimi/proxy-download",
       "success_shape_kind": "typed_response",
@@ -643,7 +643,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.open.mimi.command.report_abuse",
+      "operation_id": "ak.open.mimi.command.report_abuse",
       "tier": "interop_bridge",
       "http": "POST /_arkret/open/mimi/report-abuse",
       "success_shape_kind": "typed_response",
@@ -657,7 +657,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.open.mimi.command.request_consent",
+      "operation_id": "ak.open.mimi.command.request_consent",
       "tier": "interop_bridge",
       "http": "POST /_arkret/open/mimi/consent/request",
       "success_shape_kind": "typed_response",
@@ -671,7 +671,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.open.mimi.command.submit_message",
+      "operation_id": "ak.open.mimi.command.submit_message",
       "tier": "interop_bridge",
       "http": "POST /_arkret/open/mimi/strands/{strand_id}/messages",
       "success_shape_kind": "typed_response",
@@ -685,7 +685,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.open.mimi.command.update_consent",
+      "operation_id": "ak.open.mimi.command.update_consent",
       "tier": "interop_bridge",
       "http": "POST /_arkret/open/mimi/consent/update",
       "success_shape_kind": "typed_response",
@@ -699,7 +699,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.open.mimi.command.update_room",
+      "operation_id": "ak.open.mimi.command.update_room",
       "tier": "interop_bridge",
       "http": "POST /_arkret/open/mimi/strands/{strand_id}/update",
       "success_shape_kind": "typed_response",
@@ -713,7 +713,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.open.mimi.exchange.request_key_material",
+      "operation_id": "ak.open.mimi.exchange.request_key_material",
       "tier": "interop_bridge",
       "http": "POST /_arkret/open/mimi/key-material",
       "success_shape_kind": "typed_response",
@@ -727,7 +727,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.open.mimi.query.group_info",
+      "operation_id": "ak.open.mimi.query.group_info",
       "tier": "interop_bridge",
       "http": "GET /_arkret/open/mimi/strands/{strand_id}/group-info",
       "success_shape_kind": "typed_response",
@@ -740,7 +740,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.open.mimi.query.identifiers",
+      "operation_id": "ak.open.mimi.query.identifiers",
       "tier": "interop_bridge",
       "http": "POST /_arkret/open/mimi/identifiers/query",
       "success_shape_kind": "typed_response",
@@ -754,7 +754,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.open.mimi.query.provider_directory",
+      "operation_id": "ak.open.mimi.query.provider_directory",
       "tier": "interop_bridge",
       "http": "GET /_arkret/open/mimi/provider-directory",
       "success_shape_kind": "schema_resource",
@@ -767,7 +767,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.peer.contacts.command.submit",
+      "operation_id": "ak.peer.contacts.command.submit",
       "tier": "extension",
       "http": "POST /_arkret/peer/contacts",
       "success_shape_kind": "schema_resource",
@@ -781,7 +781,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.peer.events.command.submit",
+      "operation_id": "ak.peer.events.command.submit",
       "tier": "extension",
       "http": "POST /_arkret/peer/events",
       "success_shape_kind": "typed_response",
@@ -795,7 +795,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.peer.events.query.describe",
+      "operation_id": "ak.peer.events.query.describe",
       "tier": "extension",
       "http": "GET /_arkret/peer/events/describe",
       "success_shape_kind": "service_describe",
@@ -808,7 +808,7 @@
       "reason": "response is the shared ServiceDescribe contract (bound globally as schemas/service-describe.schema.json)."
     },
     {
-      "operation_id": "ck.peer.events.query.frontier",
+      "operation_id": "ak.peer.events.query.frontier",
       "tier": "extension",
       "http": "GET /_arkret/peer/events/frontier",
       "success_shape_kind": "typed_response",
@@ -821,7 +821,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.peer.events.query.resolve",
+      "operation_id": "ak.peer.events.query.resolve",
       "tier": "extension",
       "http": "POST /_arkret/peer/events/resolve",
       "success_shape_kind": "typed_response",
@@ -835,7 +835,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.peer.events.query.scan",
+      "operation_id": "ak.peer.events.query.scan",
       "tier": "extension",
       "http": "GET /_arkret/peer/events",
       "success_shape_kind": "typed_response",
@@ -848,7 +848,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.peer.events.query.scan_body",
+      "operation_id": "ak.peer.events.query.scan_body",
       "tier": "extension",
       "http": "POST /_arkret/peer/events/query",
       "success_shape_kind": "typed_response",
@@ -862,7 +862,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.peer.invites.command.submit",
+      "operation_id": "ak.peer.invites.command.submit",
       "tier": "extension",
       "http": "POST /_arkret/peer/invites",
       "success_shape_kind": "typed_response",
@@ -876,7 +876,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.peer.snapshot.query.manifest_head",
+      "operation_id": "ak.peer.snapshot.query.manifest_head",
       "tier": "extension",
       "http": "GET /_arkret/peer/snapshot/head",
       "success_shape_kind": "schema_resource",
@@ -889,7 +889,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.root.identity.command.submit_did_operation",
+      "operation_id": "ak.root.identity.command.submit_did_operation",
       "tier": "core",
       "http": "POST /_arkret/root/identity/submit-did-operation",
       "success_shape_kind": "typed_response",
@@ -903,7 +903,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.root.identity.document.resource.get",
+      "operation_id": "ak.root.identity.document.resource.get",
       "tier": "core",
       "http": "GET /_arkret/root/identity/document",
       "success_shape_kind": "typed_response",
@@ -916,7 +916,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.root.identity.log.query.list",
+      "operation_id": "ak.root.identity.log.query.list",
       "tier": "core",
       "http": "GET /_arkret/root/identity/log",
       "success_shape_kind": "typed_response",
@@ -929,7 +929,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.root.identity.query.resolve",
+      "operation_id": "ak.root.identity.query.resolve",
       "tier": "core",
       "http": "POST /_arkret/root/identity/resolve",
       "success_shape_kind": "typed_response",
@@ -943,7 +943,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.root.identity.receipts.query.list",
+      "operation_id": "ak.root.identity.receipts.query.list",
       "tier": "core",
       "http": "GET /_arkret/root/identity/receipts",
       "success_shape_kind": "typed_response",
@@ -956,7 +956,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.root.identity.recovery_policy.command.publish",
+      "operation_id": "ak.root.identity.recovery_policy.command.publish",
       "tier": "core",
       "http": "POST /_arkret/root/identity/recovery-policy",
       "success_shape_kind": "schema_resource",
@@ -970,7 +970,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.root.identity.recovery_policy.resource.get",
+      "operation_id": "ak.root.identity.recovery_policy.resource.get",
       "tier": "core",
       "http": "GET /_arkret/root/identity/recovery-policy",
       "success_shape_kind": "schema_resource",
@@ -983,7 +983,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.root.identity.recovery_session.command.complete",
+      "operation_id": "ak.root.identity.recovery_session.command.complete",
       "tier": "core",
       "http": "POST /_arkret/root/identity/recovery-sessions/{recovery_session_id}/complete",
       "success_shape_kind": "schema_resource",
@@ -997,7 +997,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.root.identity.recovery_session.command.create",
+      "operation_id": "ak.root.identity.recovery_session.command.create",
       "tier": "core",
       "http": "POST /_arkret/root/identity/recovery-sessions",
       "success_shape_kind": "schema_resource",
@@ -1011,7 +1011,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.root.identity.recovery_session.command.submit_proof",
+      "operation_id": "ak.root.identity.recovery_session.command.submit_proof",
       "tier": "core",
       "http": "POST /_arkret/root/identity/recovery-sessions/{recovery_session_id}/proofs",
       "success_shape_kind": "schema_resource",
@@ -1025,7 +1025,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.root.identity.recovery_session.resource.get",
+      "operation_id": "ak.root.identity.recovery_session.resource.get",
       "tier": "core",
       "http": "GET /_arkret/root/identity/recovery-sessions/{recovery_session_id}",
       "success_shape_kind": "schema_resource",
@@ -1038,7 +1038,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.root.identity.registry.query.describe",
+      "operation_id": "ak.root.identity.registry.query.describe",
       "tier": "core",
       "http": "GET /_arkret/root/identity/describe",
       "success_shape_kind": "service_describe",
@@ -1051,7 +1051,7 @@
       "reason": "response is the shared ServiceDescribe contract (bound globally as schemas/service-describe.schema.json)."
     },
     {
-      "operation_id": "ck.self.account.command.revoke_cursor",
+      "operation_id": "ak.self.account.command.revoke_cursor",
       "tier": "core",
       "http": "POST /_arkret/self/account/cursor/revoke",
       "success_shape_kind": "schema_resource",
@@ -1065,7 +1065,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.account.command.update_profile",
+      "operation_id": "ak.self.account.command.update_profile",
       "tier": "core",
       "http": "POST /_arkret/self/account/profile",
       "success_shape_kind": "typed_response",
@@ -1079,7 +1079,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.account.query.describe",
+      "operation_id": "ak.self.account.query.describe",
       "tier": "core",
       "http": "GET /_arkret/self/account/describe",
       "success_shape_kind": "service_describe",
@@ -1092,7 +1092,7 @@
       "reason": "response is the shared ServiceDescribe contract (bound globally as schemas/service-describe.schema.json)."
     },
     {
-      "operation_id": "ck.self.account.query.viewer",
+      "operation_id": "ak.self.account.query.viewer",
       "tier": "core",
       "http": "GET /_arkret/self/account/viewer",
       "success_shape_kind": "typed_response",
@@ -1105,7 +1105,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.account.stream.subscribe",
+      "operation_id": "ak.self.account.stream.subscribe",
       "tier": "core",
       "http": "GET /_arkret/self/account/subscribe",
       "success_shape_kind": "event_stream",
@@ -1116,7 +1116,7 @@
       "reason": "NDJSON event/account frame stream; frame contract lives in a dedicated frame schema, not a single DTO."
     },
     {
-      "operation_id": "ck.self.account_data.query.list",
+      "operation_id": "ak.self.account_data.query.list",
       "tier": "extension",
       "http": "GET /_arkret/self/account_data",
       "success_shape_kind": "typed_response",
@@ -1129,7 +1129,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.account_data.resource.delete",
+      "operation_id": "ak.self.account_data.resource.delete",
       "tier": "extension",
       "http": "DELETE /_arkret/self/account_data/{data_type}",
       "success_shape_kind": "typed_response",
@@ -1142,7 +1142,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.account_data.resource.get",
+      "operation_id": "ak.self.account_data.resource.get",
       "tier": "extension",
       "http": "GET /_arkret/self/account_data/{data_type}",
       "success_shape_kind": "typed_response",
@@ -1155,7 +1155,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.account_data.resource.replace",
+      "operation_id": "ak.self.account_data.resource.replace",
       "tier": "extension",
       "http": "PUT /_arkret/self/account_data/{data_type}",
       "success_shape_kind": "typed_response",
@@ -1169,7 +1169,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.agent.command.deactivate",
+      "operation_id": "ak.self.agent.command.deactivate",
       "tier": "extension",
       "http": "POST /_arkret/self/agents/{agent_principal_id}/deactivate",
       "success_shape_kind": "typed_response",
@@ -1183,7 +1183,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.agent.command.pause",
+      "operation_id": "ak.self.agent.command.pause",
       "tier": "extension",
       "http": "POST /_arkret/self/agents/{agent_principal_id}/pause",
       "success_shape_kind": "typed_response",
@@ -1197,7 +1197,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.agent.command.provision",
+      "operation_id": "ak.self.agent.command.provision",
       "tier": "extension",
       "http": "POST /_arkret/self/agents",
       "success_shape_kind": "typed_response",
@@ -1211,7 +1211,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.agent.command.resume",
+      "operation_id": "ak.self.agent.command.resume",
       "tier": "extension",
       "http": "POST /_arkret/self/agents/{agent_principal_id}/resume",
       "success_shape_kind": "typed_response",
@@ -1225,7 +1225,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.agent.command.rotate_key",
+      "operation_id": "ak.self.agent.command.rotate_key",
       "tier": "extension",
       "http": "POST /_arkret/self/agents/{agent_principal_id}/rotate-key",
       "success_shape_kind": "typed_response",
@@ -1239,7 +1239,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.agent.grant.command.attach",
+      "operation_id": "ak.self.agent.grant.command.attach",
       "tier": "extension",
       "http": "POST /_arkret/self/agents/{agent_principal_id}/grants",
       "success_shape_kind": "typed_response",
@@ -1253,7 +1253,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.agent.grant.resource.delete",
+      "operation_id": "ak.self.agent.grant.resource.delete",
       "tier": "extension",
       "http": "DELETE /_arkret/self/agents/{agent_principal_id}/grants/{grant_id}",
       "success_shape_kind": "typed_response",
@@ -1266,7 +1266,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.agent.participation.resource.get",
+      "operation_id": "ak.self.agent.participation.resource.get",
       "tier": "extension",
       "http": "GET /_arkret/self/agents/{agent_principal_id}/participation",
       "success_shape_kind": "typed_response",
@@ -1279,7 +1279,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.agent.participation.resource.replace",
+      "operation_id": "ak.self.agent.participation.resource.replace",
       "tier": "extension",
       "http": "PUT /_arkret/self/agents/{agent_principal_id}/participation",
       "success_shape_kind": "typed_response",
@@ -1293,7 +1293,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.agent.protocol.query.discover",
+      "operation_id": "ak.self.agent.protocol.query.discover",
       "tier": "extension",
       "http": "POST /_arkret/self/agents/discover",
       "success_shape_kind": "typed_response",
@@ -1307,7 +1307,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.agent.query.list",
+      "operation_id": "ak.self.agent.query.list",
       "tier": "extension",
       "http": "GET /_arkret/self/agents",
       "success_shape_kind": "typed_response",
@@ -1320,7 +1320,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.agent.resource.get",
+      "operation_id": "ak.self.agent.resource.get",
       "tier": "extension",
       "http": "GET /_arkret/self/agents/{agent_principal_id}",
       "success_shape_kind": "typed_response",
@@ -1333,7 +1333,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.agent.sidecar_thread.command.ensure",
+      "operation_id": "ak.self.agent.sidecar_thread.command.ensure",
       "tier": "extension",
       "http": "POST /_arkret/self/agent-sidecar-threads:ensure",
       "success_shape_kind": "typed_response",
@@ -1347,7 +1347,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.applet.command.install",
+      "operation_id": "ak.self.applet.command.install",
       "tier": "extension",
       "http": "POST /_arkret/self/applets/install",
       "success_shape_kind": "typed_response",
@@ -1361,7 +1361,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.applet.command.revoke",
+      "operation_id": "ak.self.applet.command.revoke",
       "tier": "extension",
       "http": "POST /_arkret/self/applets/{applet_id}/revoke",
       "success_shape_kind": "typed_response",
@@ -1375,7 +1375,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.applet.ghost.command.provision",
+      "operation_id": "ak.self.applet.ghost.command.provision",
       "tier": "interop_bridge",
       "http": "POST /_arkret/self/applets/{applet_id}/ghosts/provision",
       "success_shape_kind": "typed_response",
@@ -1389,7 +1389,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.applet.install.command.preview",
+      "operation_id": "ak.self.applet.install.command.preview",
       "tier": "extension",
       "http": "POST /_arkret/self/applets/install/preview",
       "success_shape_kind": "typed_response",
@@ -1403,7 +1403,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.authz.grants.query.effective",
+      "operation_id": "ak.self.authz.grants.query.effective",
       "tier": "extension",
       "http": "GET /_arkret/self/authz/effective-grants",
       "success_shape_kind": "typed_response",
@@ -1416,7 +1416,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.authz.invites.query.list",
+      "operation_id": "ak.self.authz.invites.query.list",
       "tier": "extension",
       "http": "GET /_arkret/self/authz/invites",
       "success_shape_kind": "typed_response",
@@ -1429,7 +1429,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.authz.query.check",
+      "operation_id": "ak.self.authz.query.check",
       "tier": "extension",
       "http": "POST /_arkret/self/authz/check",
       "success_shape_kind": "typed_response",
@@ -1443,7 +1443,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.blob.command.presign",
+      "operation_id": "ak.self.blob.command.presign",
       "tier": "extension",
       "http": "POST /_arkret/self/blob/presign",
       "success_shape_kind": "schema_resource",
@@ -1457,7 +1457,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.blob.resource.get",
+      "operation_id": "ak.self.blob.resource.get",
       "tier": "extension",
       "http": "GET /_arkret/self/blob/get",
       "success_shape_kind": "binary_stream",
@@ -1468,7 +1468,7 @@
       "reason": "success_shape_kind='binary_stream'; no JSON DTO body by design."
     },
     {
-      "operation_id": "ck.self.blob.resource.head",
+      "operation_id": "ak.self.blob.resource.head",
       "tier": "extension",
       "http": "HEAD /_arkret/self/blob/get",
       "success_shape_kind": "metadata_headers",
@@ -1479,7 +1479,7 @@
       "reason": "success_shape_kind='metadata_headers'; no JSON DTO body by design."
     },
     {
-      "operation_id": "ck.self.blob.upload.create",
+      "operation_id": "ak.self.blob.upload.create",
       "tier": "extension",
       "http": "POST /_arkret/self/blob/upload",
       "success_shape_kind": "typed_response",
@@ -1493,7 +1493,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.call.media.exchange.issue_token",
+      "operation_id": "ak.self.call.media.exchange.issue_token",
       "tier": "core",
       "http": "POST /_arkret/self/rtc/token",
       "success_shape_kind": "schema_resource",
@@ -1507,7 +1507,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.circle.command.archive",
+      "operation_id": "ak.self.circle.command.archive",
       "tier": "extension",
       "http": "POST /_arkret/self/circles/{circle_id}/archive",
       "success_shape_kind": "typed_response",
@@ -1521,7 +1521,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.circle.command.create",
+      "operation_id": "ak.self.circle.command.create",
       "tier": "extension",
       "http": "POST /_arkret/self/circles",
       "success_shape_kind": "typed_response",
@@ -1535,7 +1535,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.circle.command.restore",
+      "operation_id": "ak.self.circle.command.restore",
       "tier": "extension",
       "http": "POST /_arkret/self/circles/{circle_id}/restore",
       "success_shape_kind": "typed_response",
@@ -1549,7 +1549,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.circle.command.rotate_scope",
+      "operation_id": "ak.self.circle.command.rotate_scope",
       "tier": "extension",
       "http": "POST /_arkret/self/circles/{circle_id}/scope-rotate",
       "success_shape_kind": "typed_response",
@@ -1562,7 +1562,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.circle.command.tombstone",
+      "operation_id": "ak.self.circle.command.tombstone",
       "tier": "extension",
       "http": "POST /_arkret/self/circles/{circle_id}/tombstone",
       "success_shape_kind": "typed_response",
@@ -1576,7 +1576,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.circle.member.command.add",
+      "operation_id": "ak.self.circle.member.command.add",
       "tier": "extension",
       "http": "POST /_arkret/self/circles/{circle_id}/members",
       "success_shape_kind": "typed_response",
@@ -1590,7 +1590,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.circle.member.resource.delete",
+      "operation_id": "ak.self.circle.member.resource.delete",
       "tier": "extension",
       "http": "DELETE /_arkret/self/circles/{circle_id}/members/{actor_id}",
       "success_shape_kind": "typed_response",
@@ -1603,7 +1603,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.circle.query.list",
+      "operation_id": "ak.self.circle.query.list",
       "tier": "extension",
       "http": "GET /_arkret/self/circles",
       "success_shape_kind": "typed_response",
@@ -1616,7 +1616,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.circle.resource.get",
+      "operation_id": "ak.self.circle.resource.get",
       "tier": "extension",
       "http": "GET /_arkret/self/circles/{circle_id}",
       "success_shape_kind": "typed_response",
@@ -1629,7 +1629,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.consent.command.grant",
+      "operation_id": "ak.self.consent.command.grant",
       "tier": "extension",
       "http": "POST /_arkret/self/consent/cells/{holder_did}/grant",
       "success_shape_kind": "typed_response",
@@ -1643,7 +1643,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.consent.command.request",
+      "operation_id": "ak.self.consent.command.request",
       "tier": "extension",
       "http": "POST /_arkret/self/consent/request",
       "success_shape_kind": "typed_response",
@@ -1657,7 +1657,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.consent.command.revoke",
+      "operation_id": "ak.self.consent.command.revoke",
       "tier": "extension",
       "http": "POST /_arkret/self/consent/cells/{holder_did}/revoke",
       "success_shape_kind": "typed_response",
@@ -1671,7 +1671,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.consent.query.list",
+      "operation_id": "ak.self.consent.query.list",
       "tier": "extension",
       "http": "GET /_arkret/self/consent/cells",
       "success_shape_kind": "typed_response",
@@ -1684,7 +1684,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.consent.resource.get",
+      "operation_id": "ak.self.consent.resource.get",
       "tier": "extension",
       "http": "GET /_arkret/self/consent/cells/{holder_did}",
       "success_shape_kind": "typed_response",
@@ -1697,7 +1697,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.contact.command.request",
+      "operation_id": "ak.self.contact.command.request",
       "tier": "extension",
       "http": "POST /_arkret/self/contacts/request",
       "success_shape_kind": "typed_response",
@@ -1711,7 +1711,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.contact.command.respond",
+      "operation_id": "ak.self.contact.command.respond",
       "tier": "extension",
       "http": "POST /_arkret/self/contacts/respond",
       "success_shape_kind": "typed_response",
@@ -1725,7 +1725,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.contact.command.tombstone",
+      "operation_id": "ak.self.contact.command.tombstone",
       "tier": "extension",
       "http": "POST /_arkret/self/contacts/tombstone",
       "success_shape_kind": "typed_response",
@@ -1739,7 +1739,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.contact.query.list",
+      "operation_id": "ak.self.contact.query.list",
       "tier": "extension",
       "http": "GET /_arkret/self/contacts",
       "success_shape_kind": "typed_response",
@@ -1752,7 +1752,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.device_messages.command.ack",
+      "operation_id": "ak.self.device_messages.command.ack",
       "tier": "extension",
       "http": "POST /_arkret/self/device_messages/ack",
       "success_shape_kind": "typed_response",
@@ -1766,7 +1766,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.device_messages.command.send",
+      "operation_id": "ak.self.device_messages.command.send",
       "tier": "extension",
       "http": "POST /_arkret/self/device_messages",
       "success_shape_kind": "typed_response",
@@ -1780,7 +1780,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.device_messages.query.list",
+      "operation_id": "ak.self.device_messages.query.list",
       "tier": "extension",
       "http": "GET /_arkret/self/device_messages",
       "success_shape_kind": "typed_response",
@@ -1793,7 +1793,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.direct_conversation.command.resolve",
+      "operation_id": "ak.self.direct_conversation.command.resolve",
       "tier": "extension",
       "http": "POST /_arkret/self/direct-conversations/resolve",
       "success_shape_kind": "typed_response",
@@ -1807,7 +1807,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.ephemeral.command.send",
+      "operation_id": "ak.self.ephemeral.command.send",
       "tier": "core",
       "http": "POST /_arkret/self/ephemeral",
       "success_shape_kind": "typed_response",
@@ -1821,7 +1821,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.events.command.submit",
+      "operation_id": "ak.self.events.command.submit",
       "tier": "core",
       "http": "POST /_arkret/self/events",
       "success_shape_kind": "typed_response",
@@ -1835,7 +1835,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.events.query.describe",
+      "operation_id": "ak.self.events.query.describe",
       "tier": "core",
       "http": "GET /_arkret/self/events/describe",
       "success_shape_kind": "service_describe",
@@ -1848,7 +1848,7 @@
       "reason": "response is the shared ServiceDescribe contract (bound globally as schemas/service-describe.schema.json)."
     },
     {
-      "operation_id": "ck.self.events.query.frontier",
+      "operation_id": "ak.self.events.query.frontier",
       "tier": "core",
       "http": "GET /_arkret/self/events/frontier",
       "success_shape_kind": "typed_response",
@@ -1861,7 +1861,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.events.query.resolve",
+      "operation_id": "ak.self.events.query.resolve",
       "tier": "core",
       "http": "POST /_arkret/self/events/resolve",
       "success_shape_kind": "typed_response",
@@ -1875,7 +1875,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.events.query.scan",
+      "operation_id": "ak.self.events.query.scan",
       "tier": "core",
       "http": "GET /_arkret/self/events",
       "success_shape_kind": "typed_response",
@@ -1888,7 +1888,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.events.query.scan_body",
+      "operation_id": "ak.self.events.query.scan_body",
       "tier": "core",
       "http": "POST /_arkret/self/events/query",
       "success_shape_kind": "typed_response",
@@ -1902,7 +1902,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.events.resource.get",
+      "operation_id": "ak.self.events.resource.get",
       "tier": "core",
       "http": "GET /_arkret/self/events/{event_id}",
       "success_shape_kind": "typed_response",
@@ -1915,7 +1915,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.events.stream.subscribe",
+      "operation_id": "ak.self.events.stream.subscribe",
       "tier": "core",
       "http": "GET /_arkret/self/events/subscribe",
       "success_shape_kind": "event_stream",
@@ -1926,7 +1926,7 @@
       "reason": "NDJSON event/account frame stream; frame contract lives in a dedicated frame schema, not a single DTO."
     },
     {
-      "operation_id": "ck.self.invite_receive_policy.resource.get",
+      "operation_id": "ak.self.invite_receive_policy.resource.get",
       "tier": "extension",
       "http": "GET /_arkret/self/invite-receive-policy",
       "success_shape_kind": "typed_response",
@@ -1939,7 +1939,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.invite_receive_policy.resource.replace",
+      "operation_id": "ak.self.invite_receive_policy.resource.replace",
       "tier": "extension",
       "http": "PUT /_arkret/self/invite-receive-policy",
       "success_shape_kind": "typed_response",
@@ -1953,7 +1953,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.keys.backups.command.unlock",
+      "operation_id": "ak.self.keys.backups.command.unlock",
       "tier": "extension",
       "http": "POST /_arkret/self/keys/backups/{backup_id}/unlock",
       "success_shape_kind": "schema_resource",
@@ -1967,7 +1967,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.keys.backups.query.list",
+      "operation_id": "ak.self.keys.backups.query.list",
       "tier": "extension",
       "http": "GET /_arkret/self/keys/backups",
       "success_shape_kind": "typed_response",
@@ -1980,7 +1980,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.keys.backups.resource.delete",
+      "operation_id": "ak.self.keys.backups.resource.delete",
       "tier": "extension",
       "http": "DELETE /_arkret/self/keys/backups/{backup_id}",
       "success_shape_kind": "typed_response",
@@ -1994,7 +1994,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.keys.backups.resource.replace",
+      "operation_id": "ak.self.keys.backups.resource.replace",
       "tier": "extension",
       "http": "PUT /_arkret/self/keys/backups/{backup_id}",
       "success_shape_kind": "typed_response",
@@ -2008,7 +2008,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.keys.command.claim",
+      "operation_id": "ak.self.keys.command.claim",
       "tier": "extension",
       "http": "POST /_arkret/self/keys/claim",
       "success_shape_kind": "typed_response",
@@ -2022,7 +2022,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.keys.keypackages.command.claim",
+      "operation_id": "ak.self.keys.keypackages.command.claim",
       "tier": "extension",
       "http": "POST /_arkret/self/keys/keypackages/claim",
       "success_shape_kind": "typed_response",
@@ -2036,7 +2036,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.keys.keypackages.command.consume",
+      "operation_id": "ak.self.keys.keypackages.command.consume",
       "tier": "extension",
       "http": "POST /_arkret/self/keys/keypackages/consume",
       "success_shape_kind": "typed_response",
@@ -2050,7 +2050,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.keys.keypackages.command.revoke",
+      "operation_id": "ak.self.keys.keypackages.command.revoke",
       "tier": "extension",
       "http": "POST /_arkret/self/keys/keypackages/revoke",
       "success_shape_kind": "typed_response",
@@ -2064,7 +2064,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.keys.keypackages.upload.create",
+      "operation_id": "ak.self.keys.keypackages.upload.create",
       "tier": "extension",
       "http": "POST /_arkret/self/keys/keypackages/upload",
       "success_shape_kind": "typed_response",
@@ -2078,7 +2078,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.keys.query.lookup",
+      "operation_id": "ak.self.keys.query.lookup",
       "tier": "extension",
       "http": "POST /_arkret/self/keys/query",
       "success_shape_kind": "typed_response",
@@ -2092,7 +2092,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.keys.upload.create",
+      "operation_id": "ak.self.keys.upload.create",
       "tier": "extension",
       "http": "POST /_arkret/self/keys/upload",
       "success_shape_kind": "typed_response",
@@ -2106,7 +2106,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.media.query.ice_config",
+      "operation_id": "ak.self.media.query.ice_config",
       "tier": "extension",
       "http": "POST /_arkret/self/rtc/ice-config",
       "success_shape_kind": "typed_response",
@@ -2120,7 +2120,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.moderation.command.report",
+      "operation_id": "ak.self.moderation.command.report",
       "tier": "extension",
       "http": "POST /_arkret/self/moderation/report",
       "success_shape_kind": "typed_response",
@@ -2134,7 +2134,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.morph.query.list",
+      "operation_id": "ak.self.morph.query.list",
       "tier": "extension",
       "http": "GET /_arkret/self/realms/{realm_id}/morphs",
       "success_shape_kind": "typed_response",
@@ -2147,7 +2147,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.morph.resource.get",
+      "operation_id": "ak.self.morph.resource.get",
       "tier": "extension",
       "http": "GET /_arkret/self/realms/{realm_id}/morphs/{morph_id}",
       "success_shape_kind": "typed_response",
@@ -2160,7 +2160,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.policy.query.check",
+      "operation_id": "ak.self.policy.query.check",
       "tier": "extension",
       "http": "POST /_arkret/self/policy/check",
       "success_shape_kind": "typed_response",
@@ -2174,7 +2174,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.read_cursor.command.advance",
+      "operation_id": "ak.self.read_cursor.command.advance",
       "tier": "extension",
       "http": "POST /_arkret/self/read-cursors",
       "success_shape_kind": "typed_response",
@@ -2188,7 +2188,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.read_cursor.query.list",
+      "operation_id": "ak.self.read_cursor.query.list",
       "tier": "extension",
       "http": "GET /_arkret/self/read-cursors",
       "success_shape_kind": "typed_response",
@@ -2201,7 +2201,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.realm.command.archive",
+      "operation_id": "ak.self.realm.command.archive",
       "tier": "extension",
       "http": "POST /_arkret/self/realms/{realm_id}/archive",
       "success_shape_kind": "typed_response",
@@ -2215,7 +2215,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.realm.command.destroy",
+      "operation_id": "ak.self.realm.command.destroy",
       "tier": "extension",
       "http": "POST /_arkret/self/realms/{realm_id}/destroy",
       "success_shape_kind": "typed_response",
@@ -2229,7 +2229,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.realm.command.freeze",
+      "operation_id": "ak.self.realm.command.freeze",
       "tier": "extension",
       "http": "POST /_arkret/self/realms/{realm_id}/freeze",
       "success_shape_kind": "typed_response",
@@ -2243,7 +2243,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.realm.command.tombstone",
+      "operation_id": "ak.self.realm.command.tombstone",
       "tier": "extension",
       "http": "POST /_arkret/self/realms/{realm_id}/tombstone",
       "success_shape_kind": "typed_response",
@@ -2257,7 +2257,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.realm.moderation_policy.query.effective",
+      "operation_id": "ak.self.realm.moderation_policy.query.effective",
       "tier": "extension",
       "http": "GET /_arkret/self/realms/{realm_id}/moderation-policy/effective",
       "success_shape_kind": "typed_response",
@@ -2270,7 +2270,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.realm.moderation_policy.resource.replace",
+      "operation_id": "ak.self.realm.moderation_policy.resource.replace",
       "tier": "extension",
       "http": "PUT /_arkret/self/realms/{realm_id}/moderation-policy",
       "success_shape_kind": "typed_response",
@@ -2284,7 +2284,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.realm.query.export",
+      "operation_id": "ak.self.realm.query.export",
       "tier": "extension",
       "http": "GET /_arkret/self/realms/{realm_id}/export",
       "success_shape_kind": "typed_response",
@@ -2297,7 +2297,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.realm.resource.get",
+      "operation_id": "ak.self.realm.resource.get",
       "tier": "extension",
       "http": "GET /_arkret/self/realms/{realm_id}",
       "success_shape_kind": "typed_response",
@@ -2310,7 +2310,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.realm_link.command.create",
+      "operation_id": "ak.self.realm_link.command.create",
       "tier": "extension",
       "http": "POST /_arkret/self/realms/{realm_id}/links",
       "success_shape_kind": "typed_response",
@@ -2324,7 +2324,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.realm_link.query.effective_policy",
+      "operation_id": "ak.self.realm_link.query.effective_policy",
       "tier": "extension",
       "http": "GET /_arkret/self/realms/{realm_id}/effective-policy",
       "success_shape_kind": "typed_response",
@@ -2337,7 +2337,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.realm_link.query.list",
+      "operation_id": "ak.self.realm_link.query.list",
       "tier": "extension",
       "http": "GET /_arkret/self/realms/{realm_id}/links",
       "success_shape_kind": "typed_response",
@@ -2350,7 +2350,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.realm_link.resource.delete",
+      "operation_id": "ak.self.realm_link.resource.delete",
       "tier": "extension",
       "http": "DELETE /_arkret/self/realms/{realm_id}/links/{target_realm_id}",
       "success_shape_kind": "typed_response",
@@ -2363,7 +2363,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.realm_organization.query.list",
+      "operation_id": "ak.self.realm_organization.query.list",
       "tier": "extension",
       "http": "GET /_arkret/self/realms/{realm_id}/organizations",
       "success_shape_kind": "typed_response",
@@ -2376,7 +2376,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.realm_policy_server.resource.delete",
+      "operation_id": "ak.self.realm_policy_server.resource.delete",
       "tier": "extension",
       "http": "DELETE /_arkret/self/realms/{realm_id}/policy-server",
       "success_shape_kind": "empty_response",
@@ -2387,7 +2387,7 @@
       "reason": "read-only operation with no request body and no typed JSON response component in OpenAPI."
     },
     {
-      "operation_id": "ck.self.realm_policy_server.resource.get",
+      "operation_id": "ak.self.realm_policy_server.resource.get",
       "tier": "extension",
       "http": "GET /_arkret/self/realms/{realm_id}/policy-server",
       "success_shape_kind": "typed_response",
@@ -2400,7 +2400,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.realm_policy_server.resource.replace",
+      "operation_id": "ak.self.realm_policy_server.resource.replace",
       "tier": "extension",
       "http": "PUT /_arkret/self/realms/{realm_id}/policy-server",
       "success_shape_kind": "typed_response",
@@ -2414,7 +2414,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.self.snapshot.query.manifest_head",
+      "operation_id": "ak.self.snapshot.query.manifest_head",
       "tier": "core",
       "http": "GET /_arkret/self/snapshot/head",
       "success_shape_kind": "schema_resource",
@@ -2427,7 +2427,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.space.query.list",
+      "operation_id": "ak.self.space.query.list",
       "tier": "extension",
       "http": "GET /_arkret/self/realms/{realm_id}/spaces",
       "success_shape_kind": "typed_response",
@@ -2440,7 +2440,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.strand.query.list",
+      "operation_id": "ak.self.strand.query.list",
       "tier": "extension",
       "http": "GET /_arkret/self/realms/{realm_id}/strands",
       "success_shape_kind": "typed_response",
@@ -2453,7 +2453,7 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
-      "operation_id": "ck.self.views.collection_projection.command.materialize",
+      "operation_id": "ak.self.views.collection_projection.command.materialize",
       "tier": "extension",
       "http": "POST /_arkret/self/views/{view_id}/projection",
       "success_shape_kind": "typed_response",
@@ -2467,7 +2467,7 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
-      "operation_id": "ck.server.query.describe",
+      "operation_id": "ak.server.query.describe",
       "tier": "core",
       "http": "GET /_arkret/describe",
       "success_shape_kind": "service_describe",

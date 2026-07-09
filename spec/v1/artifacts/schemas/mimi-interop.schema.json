@@ -42,7 +42,7 @@
       ],
       "properties": {
         "schema": {
-          "const": "ck.schema.mimi_interop.v1"
+          "const": "ak.schema.mimi_interop.v1"
         },
         "service_did": {
           "$ref": "#/$defs/did"
@@ -56,7 +56,7 @@
             "type": "string"
           },
           "contains": {
-            "const": "ck.profile.mimi_interop.v1"
+            "const": "ak.profile.mimi_interop.v1"
           }
         },
         "mimi": {
@@ -164,10 +164,10 @@
       ],
       "properties": {
         "schema": {
-          "const": "ck.schema.mimi_interop.v1"
+          "const": "ak.schema.mimi_interop.v1"
         },
         "kind": {
-          "const": "ck.mimi.room_binding"
+          "const": "ak.mimi.room_binding"
         },
         "payload": {
           "type": "object",
@@ -181,7 +181,7 @@
           ],
           "properties": {
             "profile": {
-              "const": "ck.profile.mimi_interop.v1"
+              "const": "ak.profile.mimi_interop.v1"
             },
             "mimi_room_uri": {
               "$ref": "#/$defs/mimi_uri"
@@ -273,13 +273,13 @@
       ],
       "properties": {
         "schema": {
-          "const": "ck.schema.mimi_interop.v1"
+          "const": "ak.schema.mimi_interop.v1"
         },
         "kind": {
-          "const": "ck.mimi.mapping_receipt"
+          "const": "ak.mimi.mapping_receipt"
         },
         "profile": {
-          "const": "ck.profile.mimi_interop.v1"
+          "const": "ak.profile.mimi_interop.v1"
         },
         "mimi_room_uri": {
           "$ref": "#/$defs/mimi_uri"
@@ -296,12 +296,12 @@
         "target_format": {
           "type": "string",
           "enum": [
-            "ck.message.create",
-            "ck.message.revise",
-            "ck.message.redact",
-            "ck.reaction.add",
-            "ck.reaction.remove",
-            "ck.relation.create",
+            "ak.message.create",
+            "ak.message.revise",
+            "ak.message.redact",
+            "ak.reaction.add",
+            "ak.reaction.remove",
+            "ak.relation.create",
             "application/mimi-content",
             "application/vnd.arkret.content+json"
           ]

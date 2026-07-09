@@ -175,7 +175,7 @@ transport MUST 各自通过 binding profile 单独 normative 化。
     {
       "kind": "http_json",
       "base_url": "https://server.example",
-      "operations": ["ck.self.account.query.viewer", "ck.self.account.command.update_profile", "ck.self.account.stream.subscribe", "ck.self.snapshot.query.manifest_head"],
+      "operations": ["ak.self.account.query.viewer", "ck.self.account.command.update_profile", "ck.self.account.stream.subscribe", "ck.self.snapshot.query.manifest_head"],
       "extension_profile_required": null
     }
   ]

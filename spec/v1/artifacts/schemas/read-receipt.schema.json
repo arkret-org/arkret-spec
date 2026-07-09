@@ -25,7 +25,7 @@
       "const": "read"
     },
     "schema": {
-      "const": "ck.schema.read_receipt.v1"
+      "const": "ak.schema.read_receipt.v1"
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"

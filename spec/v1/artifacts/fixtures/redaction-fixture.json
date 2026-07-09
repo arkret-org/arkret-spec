@@ -3,7 +3,7 @@
   "cases": [
     {
       "name": "preserved_fields",
-      "vector_id": "ck.vector.redaction.preserve_fields.v1",
+      "vector_id": "ak.vector.redaction.preserve_fields.v1",
       "preserve": [
         "event_id",
         "created_at",
@@ -28,12 +28,12 @@
     },
     {
       "name": "snapshot_pruning_stub",
-      "vector_id": "ck.vector.redaction.snapshot_pruning_stub.v1",
+      "vector_id": "ak.vector.redaction.snapshot_pruning_stub.v1",
       "input": "redacted_payload_pruned_after_snapshot",
       "expected": "snapshot_and_backfill_retain_verification_stub",
       "event": {
         "event_id": "ak:event:01970e58-0004-7000-8000-0000000005a1",
-        "kind": "ck.message.create",
+        "kind": "ak.message.create",
         "realm_id": "ak:realm:01970e58-0004-7000-8000-000000000001",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "sender_actor_id": "did:webvh:z6mkfixture:alice.example",
@@ -41,7 +41,7 @@
         "payload": {
           "strand_id": "ak:strand:01970e58-0004-7000-8000-000000000002",
           "content": {
-            "kind": "ck.content.text",
+            "kind": "ak.content.text",
             "body": "pruned snapshot plaintext"
           }
         },
@@ -66,7 +66,7 @@
         "snapshot": {
           "frontier_root": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
           "verification_stub": {
-            "stub_schema": "ck.schema.erasure_verification_stub.v1",
+            "stub_schema": "ak.schema.erasure_verification_stub.v1",
             "subject": {
               "kind": "event",
               "ref": "ak:event:01970e58-0004-7000-8000-0000000005a1"
@@ -84,7 +84,7 @@
       },
       "expected_projection": {
         "event_id": "ak:event:01970e58-0004-7000-8000-0000000005a1",
-        "kind": "ck.message.create",
+        "kind": "ak.message.create",
         "realm_id": "ak:realm:01970e58-0004-7000-8000-000000000001",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "created_at": "2026-04-26T00:00:00Z",
@@ -102,24 +102,24 @@
     },
     {
       "name": "space_target_ref_schema",
-      "vector_id": "ck.vector.redaction.space_target_ref_schema.v1",
+      "vector_id": "ak.vector.redaction.space_target_ref_schema.v1",
       "input": "object_lifecycle_payload_with_space_target_ref",
       "expected": "schema_accepts_ck_space_target_ref_rejects_malformed"
     },
     {
       "name": "policy_scope",
-      "vector_id": "ck.vector.redaction.policy_scope.v1",
+      "vector_id": "ak.vector.redaction.policy_scope.v1",
       "input": "message_quarantine_redaction_timeline",
       "expected": "content_stripped_timeline_position_and_quarantine_fingerprint_retained"
     },
     {
       "name": "hard_erasure_receipt",
-      "vector_id": "ck.vector.redaction.hard_erasure_receipt.v1",
+      "vector_id": "ak.vector.redaction.hard_erasure_receipt.v1",
       "input": "hard_erasure_with_verification_stub",
       "expected": "signed_receipt_and_stub_conform_no_plaintext_fingerprint_legal_hold_blocks",
       "event": {
         "event_id": "ak:event:01970e58-0004-7000-8000-0000000004b1",
-        "kind": "ck.message.create",
+        "kind": "ak.message.create",
         "realm_id": "ak:realm:01970e58-0004-7000-8000-000000000001",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "sender_actor_id": "did:webvh:z6mkfixture:alice.example",
@@ -127,7 +127,7 @@
         "payload": {
           "strand_id": "ak:strand:01970e58-0004-7000-8000-000000000002",
           "content": {
-            "kind": "ck.content.text",
+            "kind": "ak.content.text",
             "body": "hard erased plaintext"
           }
         },
@@ -140,7 +140,7 @@
         ]
       },
       "redaction_receipt": {
-        "schema": "ck.schema.erasure_receipt.v1",
+        "schema": "ak.schema.erasure_receipt.v1",
         "receipt_id": "ak:receipt:01970e58-0004-7000-8000-0000000004b3",
         "issuer": "did:webvh:z6mkfixture:soland.example",
         "subject": {
@@ -161,7 +161,7 @@
         ],
         "retained_stub_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
         "retained_stub": {
-          "stub_schema": "ck.schema.erasure_verification_stub.v1",
+          "stub_schema": "ak.schema.erasure_verification_stub.v1",
           "subject": {
             "kind": "event",
             "ref": "ak:event:01970e58-0004-7000-8000-0000000004b1"
@@ -188,7 +188,7 @@
       },
       "expected_projection": {
         "event_id": "ak:event:01970e58-0004-7000-8000-0000000004b1",
-        "kind": "ck.message.create",
+        "kind": "ak.message.create",
         "realm_id": "ak:realm:01970e58-0004-7000-8000-000000000001",
         "actor_id": "did:webvh:z6mkfixture:alice.example",
         "created_at": "2026-04-26T00:00:00Z",

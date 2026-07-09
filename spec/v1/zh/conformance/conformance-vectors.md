@@ -300,7 +300,7 @@ ck.vector.encoding.event_digest.v1
 ```json
 {
   "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
-  "kind": "ck.message.create",
+  "kind": "ak.message.create",
   "realm_id": "ak:realm:01964137-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:z6mkfixture:alice.example",
   "actor_seq": 1,
@@ -335,7 +335,7 @@ ck.vector.encoding.event_digest.v1
     "track_name": "discussion",
     "message_id": "ak:message:019640ed-8000-7000-8000-000000000000",
     "content": {
-      "kind": "ck.content.text",
+      "kind": "ak.content.text",
       "body": "hello"
     }
   }
@@ -345,7 +345,7 @@ ck.vector.encoding.event_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"actor_id":"did:webvh:z6mkfixture:alice.example","actor_seq":1,"auth_context":{"capability_refs":["ak:grant:0196410c-0000-7000-8000-000000000000"],"did":"did:webvh:z6mkfixture:alice.example","key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00Z","effects":[{"cell":"ak:cell:message:019640ed-8000-7000-8000-000000000000","op":{"kind":"append","value":{"message_id":"ak:message:019640ed-8000-7000-8000-000000000000","strand_id":"ak:strand:01964137-0000-7000-8000-000000000000","track_name":"discussion"}}}],"event_id":"ak:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"ck.message.create","payload":{"content":{"body":"hello","kind":"ck.content.text"},"message_id":"ak:message:019640ed-8000-7000-8000-000000000000","strand_id":"ak:strand:01964137-0000-7000-8000-000000000000","track_name":"discussion"},"prev_refs":[],"realm_id":"ak:realm:01964137-0000-7000-8000-000000000000","refs":[],"seal_ref":"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"}
+{"actor_id":"did:webvh:z6mkfixture:alice.example","actor_seq":1,"auth_context":{"capability_refs":["ak:grant:0196410c-0000-7000-8000-000000000000"],"did":"did:webvh:z6mkfixture:alice.example","key_epoch":1,"key_id":"device-1"},"created_at":"2026-04-26T00:00:00Z","effects":[{"cell":"ak:cell:message:019640ed-8000-7000-8000-000000000000","op":{"kind":"append","value":{"message_id":"ak:message:019640ed-8000-7000-8000-000000000000","strand_id":"ak:strand:01964137-0000-7000-8000-000000000000","track_name":"discussion"}}}],"event_id":"ak:event:019640ed-8000-7000-8000-000000000000","hlc":"01970e589d21-0004-a13f9c2e","kind":"ak.message.create","payload":{"content":{"body":"hello","kind":"ck.content.text"},"message_id":"ak:message:019640ed-8000-7000-8000-000000000000","strand_id":"ak:strand:01964137-0000-7000-8000-000000000000","track_name":"discussion"},"prev_refs":[],"realm_id":"ak:realm:01964137-0000-7000-8000-000000000000","refs":[],"seal_ref":"ak:seal:sha256:2222222222222222222222222222222222222222222222222222222222222222"}
 ```
 
 期望 digest：
@@ -372,7 +372,7 @@ ck.vector.encoding.event_batch_receipt_digest.v1
 
 ```json
 {
-  "schema": "ck.schema.event_batch_receipt.v1",
+  "schema": "ak.schema.event_batch_receipt.v1",
   "receipt_id": "ak:receipt:01964186-0000-7000-8000-000000000000",
   "issuer": "did:webvh:z6mkfixture:alice.example",
   "scope": {
@@ -392,7 +392,7 @@ ck.vector.encoding.event_batch_receipt_digest.v1
 期望 canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"frontier":{"actor_seq":1,"event_digest":"sha256:1111111111111111111111111111111111111111111111111111111111111111"},"issuer":"did:webvh:z6mkfixture:alice.example","receipt_id":"ak:receipt:01964186-0000-7000-8000-000000000000","schema":"ck.schema.event_batch_receipt.v1","scope":{"actor_id":"did:webvh:z6mkfixture:alice.example"}}
+{"created_at":"2026-04-26T00:00:00Z","events":["sha256:1111111111111111111111111111111111111111111111111111111111111111"],"frontier":{"actor_seq":1,"event_digest":"sha256:1111111111111111111111111111111111111111111111111111111111111111"},"issuer":"did:webvh:z6mkfixture:alice.example","receipt_id":"ak:receipt:01964186-0000-7000-8000-000000000000","schema":"ak.schema.event_batch_receipt.v1","scope":{"actor_id":"did:webvh:z6mkfixture:alice.example"}}
 ```
 
 期望 digest：
@@ -602,7 +602,7 @@ ck.vector.encoding.encrypted_envelope_digest.v1
 `payload_metadata` canonical bytes 的 UTF-8 文本表示：
 
 ```json
-{"aad":{"event_kind":"ck.message.create","event_ref_digest":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","realm_id":"ak:realm:0196419b-0000-7000-8000-000000000000"},"aad_visibility_event_id":"routing_digest","content_type":"application/json","epoch":12,"group_id":"Z3JvdXAtMDAx","key_ref":{"algorithm":"MLS","group_state_ref":"ak:event:01964148-0000-7000-8000-000000000000"},"scheme":"mls-rfc9420","version":"1.0"}
+{"aad":{"event_kind":"ak.message.create","event_ref_digest":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","realm_id":"ak:realm:0196419b-0000-7000-8000-000000000000"},"aad_visibility_event_id":"routing_digest","content_type":"application/json","epoch":12,"group_id":"Z3JvdXAtMDAx","key_ref":{"algorithm":"MLS","group_state_ref":"ak:event:01964148-0000-7000-8000-000000000000"},"scheme":"mls-rfc9420","version":"1.0"}
 ```
 
 `ciphertext` 的 base64url wire 值与解码后 UTF-8 测试表示：
@@ -1295,7 +1295,7 @@ ck.vector.redaction.preserve_fields.v1
 {
   "target_event": {
     "event_id": "ak:event:0196414c-3000-7000-8000-000000000000",
-    "kind": "ck.message.create",
+    "kind": "ak.message.create",
     "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
     "actor_id": "did:webvh:z6mkfixture:alice.example.com",
     "created_at": "2026-04-26T00:00:00Z",
@@ -1305,7 +1305,7 @@ ck.vector.redaction.preserve_fields.v1
     "payload": {
       "strand_id": "ak:strand:0196414c-3400-7000-8000-000000000000",
       "content": {
-        "kind": "ck.content.text",
+        "kind": "ak.content.text",
         "body": "private notes"
       },
       "mentions": [
@@ -1326,7 +1326,7 @@ ck.vector.redaction.preserve_fields.v1
   },
   "redaction_event": {
     "event_id": "ak:event:0196418a-0360-7000-8000-000000000000",
-    "kind": "ck.redaction",
+    "kind": "ak.redaction",
     "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
     "actor_id": "did:webvh:z6mkfixture:alice.example.com",
     "created_at": "2026-04-26T00:00:02Z",
@@ -1434,21 +1434,21 @@ ck.vector.redaction.policy_scope.v1
   "timeline": [
     {
       "event_id": "ak:event:0196417d-8400-7000-8000-000000000000",
-      "kind": "ck.message.create",
+      "kind": "ak.message.create",
       "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
       "created_at": "2026-04-26T00:00:00Z",
       "hlc": "01970e589d25-0001-11111111",
       "payload": {
         "strand_id": "ak:strand:0196417d-8400-7000-8000-000000000000",
         "content": {
-          "kind": "ck.content.text",
+          "kind": "ak.content.text",
           "body": "bad link: spam.example/phish"
         }
       }
     },
     {
       "event_id": "ak:event:0196417d-8980-7000-8000-000000000000",
-      "kind": "ck.policy.action",
+      "kind": "ak.policy.action",
       "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
       "created_at": "2026-04-26T00:00:01Z",
       "hlc": "01970e589d25-0001-22222222",
@@ -1461,7 +1461,7 @@ ck.vector.redaction.policy_scope.v1
     },
     {
       "event_id": "ak:event:0196417d-8f00-7000-8000-000000000000",
-      "kind": "ck.redaction",
+      "kind": "ak.redaction",
       "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
       "actor_id": "did:webvh:z6mkfixture:policy-admin.example",
       "payload": {
@@ -1579,17 +1579,17 @@ ck.vector.capability.delegate_chain.v1
 ```json
 {
   "base": {
-    "kind": "ck.capability.grant",
+    "kind": "ak.capability.grant",
     "subject": "did:webvh:z6mkfixture:root-admin.example.com",
     "actions": [
-      "ck.realm.admin"
+      "ak.realm.admin"
     ],
     "constraints": []
   },
   "delegations": [
     {
       "event_id": "ak:event:019640d0-c000-7000-8000-000000000000",
-      "kind": "ck.capability.delegate",
+      "kind": "ak.capability.delegate",
       "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
       "actor_id": "did:webvh:z6mkfixture:root-admin.example.com",
       "payload": {
@@ -1603,8 +1603,8 @@ ck.vector.capability.delegate_chain.v1
           }
         ],
         "actions": [
-          "ck.capability.delegate",
-          "ck.invite.create"
+          "ak.capability.delegate",
+          "ak.invite.create"
         ],
         "constraints": [
           {
@@ -1627,7 +1627,7 @@ ck.vector.capability.delegate_chain.v1
     },
     {
       "event_id": "ak:event:019640d0-c400-7000-8000-000000000000",
-      "kind": "ck.capability.delegate",
+      "kind": "ak.capability.delegate",
       "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
       "actor_id": "did:webvh:z6mkfixture:ops.example.com",
       "payload": {
@@ -1641,7 +1641,7 @@ ck.vector.capability.delegate_chain.v1
           }
         ],
         "actions": [
-          "ck.invite.create"
+          "ak.invite.create"
         ],
         "constraints": [
           {
@@ -1667,7 +1667,7 @@ ck.vector.capability.delegate_chain.v1
   ],
   "action_query": {
     "actor_id": "did:webvh:z6mkfixture:intern.example.com",
-    "action": "ck.invite.create",
+    "action": "ak.invite.create",
     "resource": "ak:realm:0196414c-8000-7000-8000-000000000000",
     "request_time": "2026-04-26T01:00:00Z",
     "request_audience": "did:webvh:z6mkfixture:vendor.example"
@@ -1715,19 +1715,19 @@ ck.vector.capability.revoke_rollback.v1
   "events": [
     {
       "event_id": "ak:event:01964101-2800-7000-8000-000000000000",
-      "kind": "ck.capability.grant",
+      "kind": "ak.capability.grant",
       "payload": {
         "grant_id": "ak:grant:01964101-2800-7000-8000-000000000000",
         "subject": "did:webvh:z6mkfixture:alice.example.com",
         "actions": [
-          "ck.message.create"
+          "ak.message.create"
         ]
       },
       "created_at": "2026-04-26T00:00:00Z"
     },
     {
       "event_id": "ak:event:01964181-2800-7000-8000-000000000000",
-      "kind": "ck.capability.revoke",
+      "kind": "ak.capability.revoke",
       "payload": {
         "grant_id": "ak:grant:01964101-2800-7000-8000-000000000000"
       },
@@ -1735,7 +1735,7 @@ ck.vector.capability.revoke_rollback.v1
     },
     {
       "event_id": "ak:event:019641d1-2800-7000-8000-000000000000",
-      "kind": "ck.member.state",
+      "kind": "ak.member.state",
       "payload": {
         "actor_id": "did:webvh:z6mkfixture:alice.example.com",
         "membership": "leave"
@@ -1744,13 +1744,13 @@ ck.vector.capability.revoke_rollback.v1
     },
     {
       "event_id": "ak:event:0196414c-c04a-7000-8000-000000000000",
-      "kind": "ck.message.create",
+      "kind": "ak.message.create",
       "actor_id": "did:webvh:z6mkfixture:alice.example.com",
       "created_at": "2026-04-26T00:00:03Z",
       "payload": {
         "strand_id": "ak:strand:0196418d-cc00-7000-8000-000000000000",
         "content": {
-          "kind": "ck.content.text",
+          "kind": "ak.content.text",
           "body": "should_fail_if_revoke_applies"
         }
       },
@@ -1791,12 +1791,12 @@ ck.vector.capability.approval_constraint.v1
 {
   "event": {
     "event_id": "ak:event:01964148-a800-7000-8000-000000000000",
-    "kind": "ck.policy.action",
+    "kind": "ak.policy.action",
     "actor_id": "did:webvh:z6mkfixture:contractor.example",
     "realm_id": "ak:realm:0196414c-8000-7000-8000-000000000000",
     "hlc": "01970e589d26-0001-aaaaaaaa",
     "payload": {
-      "action": "ck.realm.admin",
+      "action": "ak.realm.admin",
       "approval_required": true,
       "approval_quorum": 2,
       "policy_scope": "ak:realm:0196419b-0000-7000-8000-000000000000"
@@ -1807,17 +1807,17 @@ ck.vector.capability.approval_constraint.v1
   },
   "capabilities": [
     {
-      "kind": "ck.capability.grant",
+      "kind": "ak.capability.grant",
       "subject": "did:webvh:z6mkfixture:contractor.example",
       "actions": [
-        "ck.realm.admin"
+        "ak.realm.admin"
       ]
     },
     {
-      "kind": "ck.capability.grant",
+      "kind": "ak.capability.grant",
       "subject": "did:webvh:z6mkfixture:approver-1.example.com",
       "actions": [
-        "ck.approval.vote"
+        "ak.approval.vote"
       ]
     }
   ]
@@ -1945,7 +1945,7 @@ ck.vector.auth.sensitive_field_handling.v1
   "hlc": "019b76daa800-0000-a13f9c2e",
   "prev_refs": [],
   "refs": [],
-  "kind": "ck.strand.update",
+  "kind": "ak.strand.update",
   "unsigned": {
     "target_ref_hint": "ak:strand:019640c5-0000-7000-8000-000000000000"
   },
@@ -2057,14 +2057,14 @@ ck.vector.disappearing.on_last_read_offline_window.v1
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "events": [
     {
-      "kind": "ck.space.create",
+      "kind": "ak.space.create",
       "unsigned": {
         "target_ref_hint": "ak:space:019640b6-8000-7000-8000-000000000000"
       },
       "payload": {
         "object": {
           "id": "ak:space:019640b6-8000-7000-8000-000000000000",
-          "schema": "ck.schema.space.v1",
+          "schema": "ak.schema.space.v1",
           "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
           "kind": "board",
           "title": "Release Board",
@@ -2074,14 +2074,14 @@ ck.vector.disappearing.on_last_read_offline_window.v1
       }
     },
     {
-      "kind": "ck.space.create",
+      "kind": "ak.space.create",
       "unsigned": {
         "target_ref_hint": "ak:space:01964010-8400-7000-8000-000000000000"
       },
       "payload": {
         "object": {
           "id": "ak:space:01964010-8400-7000-8000-000000000000",
-          "schema": "ck.schema.space.v1",
+          "schema": "ak.schema.space.v1",
           "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
           "parent_space_id": "ak:space:019640b6-8000-7000-8000-000000000000",
           "kind": "list",
@@ -2093,14 +2093,14 @@ ck.vector.disappearing.on_last_read_offline_window.v1
       }
     },
     {
-      "kind": "ck.strand.create",
+      "kind": "ak.strand.create",
       "unsigned": {
         "target_ref_hint": "ak:strand:019640c5-0400-7000-8000-000000000000"
       },
       "payload": {
         "object": {
           "id": "ak:strand:019640c5-0400-7000-8000-000000000000",
-          "schema": "ck.schema.strand.v1",
+          "schema": "ak.schema.strand.v1",
           "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
           "metadata": {
             "title": "Release checklist"
@@ -2144,7 +2144,7 @@ ck.vector.disappearing.on_last_read_offline_window.v1
 ```json
 {
   "write": {
-    "kind": "ck.strand.move",
+    "kind": "ak.strand.move",
     "unsigned": {
       "target_ref_hint": "ak:strand:019640c5-0400-7000-8000-000000000000"
     },
@@ -2199,7 +2199,7 @@ ck.vector.disappearing.on_last_read_offline_window.v1
 {
   "strand_id": "ak:strand:01964195-8400-7000-8000-000000000000",
   "track_name": "discussion",
-  "viewer_grants": ["ck.strand.read"],
+  "viewer_grants": ["ak.strand.read"],
   "viewer_track_membership": "none"
 }
 ```
@@ -2219,14 +2219,14 @@ ck.vector.disappearing.on_last_read_offline_window.v1
   "strand_id": "ak:strand:01964180-0400-7000-8000-000000000000",
   "events": [
     {
-      "kind": "ck.message.create",
+      "kind": "ak.message.create",
       "unsigned": {
         "target_ref_hint": "ak:message:01964147-0400-7000-8000-000000000000"
       },
       "payload": {
         "strand_id": "ak:strand:01964180-0400-7000-8000-000000000000",
         "content": {
-          "kind": "ck.content.text",
+          "kind": "ak.content.text",
           "body": "discussion message"
         }
       }
@@ -2261,14 +2261,14 @@ ck.vector.disappearing.on_last_read_offline_window.v1
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "events": [
     {
-      "kind": "ck.space.create",
+      "kind": "ak.space.create",
       "unsigned": {
         "target_ref_hint": "ak:space:019640b6-8000-7000-8000-000000000000"
       },
       "payload": {
         "object": {
           "id": "ak:space:019640b6-8000-7000-8000-000000000000",
-          "schema": "ck.schema.space.v1",
+          "schema": "ak.schema.space.v1",
           "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
           "kind": "board",
           "title": "Release Board",
@@ -2278,7 +2278,7 @@ ck.vector.disappearing.on_last_read_offline_window.v1
       }
     },
     {
-      "kind": "ck.space.archive",
+      "kind": "ak.space.archive",
       "unsigned": {
         "target_ref_hint": "ak:space:019640b6-8000-7000-8000-000000000000"
       },
@@ -2289,7 +2289,7 @@ ck.vector.disappearing.on_last_read_offline_window.v1
       }
     },
     {
-      "kind": "ck.space.restore",
+      "kind": "ak.space.restore",
       "unsigned": {
         "target_ref_hint": "ak:space:019640b6-8000-7000-8000-000000000000"
       },
@@ -2324,7 +2324,7 @@ ck.vector.disappearing.on_last_read_offline_window.v1
     }
   },
   "event": {
-    "kind": "ck.space.restore",
+    "kind": "ak.space.restore",
     "unsigned": {
       "target_ref_hint": "ak:space:019640b6-8000-7000-8000-000000000000"
     },
@@ -2357,7 +2357,7 @@ ck.vector.disappearing.on_last_read_offline_window.v1
     }
   },
   "event": {
-    "kind": "ck.space.restore",
+    "kind": "ak.space.restore",
     "unsigned": {
       "target_ref_hint": "ak:space:019640b6-8000-7000-8000-000000000000"
     },
@@ -2390,7 +2390,7 @@ ck.vector.disappearing.on_last_read_offline_window.v1
     }
   },
   "event": {
-    "kind": "ck.space.archive",
+    "kind": "ak.space.archive",
     "unsigned": {
       "target_ref_hint": "ak:space:019640b6-8000-7000-8000-000000000000"
     },
@@ -2424,7 +2424,7 @@ ck.vector.disappearing.on_last_read_offline_window.v1
     }
   },
   "event": {
-    "kind": "ck.space.tombstone",
+    "kind": "ak.space.tombstone",
     "unsigned": {
       "target_ref_hint": "ak:space:019640b6-8000-7000-8000-000000000000"
     },
@@ -2458,7 +2458,7 @@ ck.vector.disappearing.on_last_read_offline_window.v1
     }
   },
   "event": {
-    "kind": "ck.space.update",
+    "kind": "ak.space.update",
     "unsigned": {
       "target_ref_hint": "ak:space:019640b6-8000-7000-8000-000000000000"
     },
@@ -2644,7 +2644,7 @@ Input — 邀请方在 Acme 组织 Realm 中添加 `@alice:acme.example`。客�
   "intent": "member_add",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "requester": "did:webvh:z6mkfixture:bob.example",
-  "proof_challenge": "ck-challenge-001"
+  "proof_challenge": "ak.challenge-001"
 }
 ```
 
@@ -3660,8 +3660,8 @@ Expected:
 Steps:
 
 1. LiveKit Egress 通过 Arkret proxy 上传合法 recording artifact。
-2. Artifact encryption metadata 声称 key 来自 MLS exporter，但使用 SFrame label `"ck-rtc-frame-key/v1"` 或空 Context。
-3. Producer 重新上传同一 artifact，使用 label `"ck-rtc-recording-key/v1"`，Context 为 canonical JSON `{realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id}`。
+2. Artifact encryption metadata 声称 key 来自 MLS exporter，但使用 SFrame label `"ak.rtc-frame-key/v1"` 或空 Context。
+3. Producer 重新上传同一 artifact，使用 label `"ak.rtc-recording-key/v1"`，Context 为 canonical JSON `{realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id}`。
 
 Expected:
 
@@ -3783,10 +3783,10 @@ Steps:
 
 1. Producer 提交 `ck.call.state`，`recording_state="ready"`，但 `recording_result.artifact` 缺失。
 2. Producer 提交 `recording_result.artifact`，但其中 `schema` 不是 `ck.schema.call_recording_artifact.v1`，或 `recording_id` / `recording_start_event_id` 与 `recording_result` 绑定不一致。
-3. Producer 提交 artifact，`encryption.exporter_label` 不是 `"ck-rtc-recording-key/v1"`，或 `encryption.context` 缺少 `{realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id}` 中任一字段。
+3. Producer 提交 artifact，`encryption.exporter_label` 不是 `"ak.rtc-recording-key/v1"`，或 `encryption.context` 缺少 `{realm_id, call_id, focus_id, recording_id, media_service_did, recording_start_event_id}` 中任一字段。
 4. Backend 尝试在 result / artifact 中携带直出 recording URL、S3/GCS/LiveKit Cloud destination，或缺失 `recording_initiator_capability_ref`。
 5. Retention 到期或 manual delete 触发删除，artifact `deletion_audit.trigger` 与 `retention.deletion_trigger` 不一致，或 `outcome="completed"` 但缺少 `erasure_receipt_ref`。
-6. Producer 提交合法 artifact：`schema="ck.schema.call_recording_artifact.v1"`，绑定同一 `realm_id` / `call_id` / `recording_id` / `recording_start_event_id`，通过 Arkret blob pipeline，使用 `"ck-rtc-recording-key/v1"` 与完整 Context，携带 retention、capability ref；删除完成时携带同 trigger 的 `deletion_audit` 与 `ck.schema.erasure_receipt.v1` 引用。
+6. Producer 提交合法 artifact：`schema="ak.schema.call_recording_artifact.v1"`，绑定同一 `realm_id` / `call_id` / `recording_id` / `recording_start_event_id`，通过 Arkret blob pipeline，使用 `"ck-rtc-recording-key/v1"` 与完整 Context，携带 retention、capability ref；删除完成时携带同 trigger 的 `deletion_audit` 与 `ck.schema.erasure_receipt.v1` 引用。
 
 Expected:
 
@@ -3801,8 +3801,8 @@ Expected:
 Steps:
 
 1. 不具 `ck.call.transcribe` 的 actor 发起 `ck.call.recording.start{capture_kind="transcript"}`。
-2. 具 `ck.call.transcribe` 的 actor 发起 transcript start，artifact 加密 key 声称来自 MLS exporter 但复用 SFrame label `"ck-rtc-frame-key/v1"` 或空 Context。
-3. 同一 artifact 改用 label `"ck-rtc-transcript-key/v1"`、`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, transcript_start_event_id})` 重新上传，并通过 `ck.call.state` 写 `transcript_state="ready"`。
+2. 具 `ck.call.transcribe` 的 actor 发起 transcript start，artifact 加密 key 声称来自 MLS exporter 但复用 SFrame label `"ak.rtc-frame-key/v1"` 或空 Context。
+3. 同一 artifact 改用 label `"ak.rtc-transcript-key/v1"`、`Context=canonical_json({realm_id, call_id, focus_id, recording_id, media_service_did, transcript_start_event_id})` 重新上传，并通过 `ck.call.state` 写 `transcript_state="ready"`。
 
 Expected:
 

@@ -10,7 +10,7 @@
   "description": "Generated DTO index for registered operations with request_schema_ref/response_schema_ref. JSON Schema files remain the canonical source; this report is a machine-readable summary for SDK/conformance tooling and prose drift review.",
   "operations": [
     {
-      "operation_id": "ck.gate.account.command.register",
+      "operation_id": "ak.gate.account.command.register",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/account-operations.schema.json#/$defs/account_register_request_body",
@@ -49,7 +49,7 @@
       }
     },
     {
-      "operation_id": "ck.gate.account.command.pair_device",
+      "operation_id": "ak.gate.account.command.pair_device",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body",
@@ -85,7 +85,7 @@
       }
     },
     {
-      "operation_id": "ck.gate.account.command.enroll_device",
+      "operation_id": "ak.gate.account.command.enroll_device",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/account_device_enroll_request_body",
@@ -126,7 +126,7 @@
       }
     },
     {
-      "operation_id": "ck.gate.account.command.issue_session_grant",
+      "operation_id": "ak.gate.account.command.issue_session_grant",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequestBody",
@@ -169,7 +169,7 @@
       }
     },
     {
-      "operation_id": "ck.gate.account.command.revoke_session",
+      "operation_id": "ak.gate.account.command.revoke_session",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/account-operations.schema.json#/$defs/session_revoke_request_body",
@@ -202,7 +202,7 @@
       }
     },
     {
-      "operation_id": "ck.gate.account.command.refresh_session_grant",
+      "operation_id": "ak.gate.account.command.refresh_session_grant",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody",
@@ -247,7 +247,7 @@
       }
     },
     {
-      "operation_id": "ck.gate.account.command.logout_auth_session",
+      "operation_id": "ak.gate.account.command.logout_auth_session",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutRequestBody",
@@ -280,7 +280,7 @@
       }
     },
     {
-      "operation_id": "ck.gate.account.command.introspect_session_grant",
+      "operation_id": "ak.gate.account.command.introspect_session_grant",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectRequestBody",
@@ -314,7 +314,7 @@
       }
     },
     {
-      "operation_id": "ck.gate.account.command.logout",
+      "operation_id": "ak.gate.account.command.logout",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutRequestBody",
@@ -338,7 +338,7 @@
       }
     },
     {
-      "operation_id": "ck.gate.account.command.pair_agent_key",
+      "operation_id": "ak.gate.account.command.pair_agent_key",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_key_pair_request_body",
@@ -377,7 +377,7 @@
       }
     },
     {
-      "operation_id": "ck.self.agent.command.provision",
+      "operation_id": "ak.self.agent.command.provision",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_provision_request_body",
@@ -410,7 +410,7 @@
       }
     },
     {
-      "operation_id": "ck.self.agent.query.list",
+      "operation_id": "ak.self.agent.query.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_list",
@@ -428,7 +428,7 @@
       }
     },
     {
-      "operation_id": "ck.self.agent.protocol.query.discover",
+      "operation_id": "ak.self.agent.protocol.query.discover",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_protocol_discover_request_body",
@@ -459,7 +459,7 @@
       }
     },
     {
-      "operation_id": "ck.self.agent.resource.get",
+      "operation_id": "ak.self.agent.resource.get",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_view",
@@ -478,7 +478,7 @@
       }
     },
     {
-      "operation_id": "ck.self.agent.command.pause",
+      "operation_id": "ak.self.agent.command.pause",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pause_request_body",
@@ -504,7 +504,7 @@
       }
     },
     {
-      "operation_id": "ck.self.agent.command.resume",
+      "operation_id": "ak.self.agent.command.resume",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_resume_request_body",
@@ -530,7 +530,7 @@
       }
     },
     {
-      "operation_id": "ck.self.agent.command.deactivate",
+      "operation_id": "ak.self.agent.command.deactivate",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_deactivate_request_body",
@@ -556,7 +556,7 @@
       }
     },
     {
-      "operation_id": "ck.self.agent.command.rotate_key",
+      "operation_id": "ak.self.agent.command.rotate_key",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_rotate_key_request_body",
@@ -586,7 +586,7 @@
       }
     },
     {
-      "operation_id": "ck.self.agent.grant.command.attach",
+      "operation_id": "ak.self.agent.grant.command.attach",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_attach_request_body",
@@ -614,7 +614,7 @@
       }
     },
     {
-      "operation_id": "ck.self.agent.grant.resource.delete",
+      "operation_id": "ak.self.agent.grant.resource.delete",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_grant_detach_outcome",
@@ -631,7 +631,7 @@
       }
     },
     {
-      "operation_id": "ck.self.agent.sidecar_thread.command.ensure",
+      "operation_id": "ak.self.agent.sidecar_thread.command.ensure",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_sidecar_thread_ensure_request_body",
@@ -667,7 +667,7 @@
       }
     },
     {
-      "operation_id": "ck.self.agent.participation.resource.replace",
+      "operation_id": "ak.self.agent.participation.resource.replace",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_replace_request_body",
@@ -699,7 +699,7 @@
       }
     },
     {
-      "operation_id": "ck.self.agent.participation.resource.get",
+      "operation_id": "ak.self.agent.participation.resource.get",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
@@ -718,7 +718,7 @@
       }
     },
     {
-      "operation_id": "ck.gate.account.exchange.complete_oidc",
+      "operation_id": "ak.gate.account.exchange.complete_oidc",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountOidcCallbackRequestBody",
@@ -748,7 +748,7 @@
       }
     },
     {
-      "operation_id": "ck.self.applet.install.command.preview",
+      "operation_id": "ak.self.applet.install.command.preview",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_preview_request_body",
@@ -808,7 +808,7 @@
       }
     },
     {
-      "operation_id": "ck.self.applet.command.install",
+      "operation_id": "ak.self.applet.command.install",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_request_body",
@@ -865,7 +865,7 @@
       }
     },
     {
-      "operation_id": "ck.edge.applet.query.ping",
+      "operation_id": "ak.edge.applet.query.ping",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_ping_outcome",
@@ -886,7 +886,7 @@
       }
     },
     {
-      "operation_id": "ck.edge.applet.query.protocol_metadata",
+      "operation_id": "ak.edge.applet.query.protocol_metadata",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_protocol_metadata",
@@ -907,7 +907,7 @@
       }
     },
     {
-      "operation_id": "ck.edge.applet.actor.query.resolve",
+      "operation_id": "ak.edge.applet.actor.query.resolve",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_actor_view",
@@ -925,7 +925,7 @@
       }
     },
     {
-      "operation_id": "ck.edge.applet.realm.query.resolve",
+      "operation_id": "ak.edge.applet.realm.query.resolve",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_realm_view",
@@ -943,7 +943,7 @@
       }
     },
     {
-      "operation_id": "ck.self.applet.command.revoke",
+      "operation_id": "ak.self.applet.command.revoke",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_request_body",
@@ -976,7 +976,7 @@
       }
     },
     {
-      "operation_id": "ck.self.applet.ghost.command.provision",
+      "operation_id": "ak.self.applet.ghost.command.provision",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body",
@@ -1026,7 +1026,7 @@
       }
     },
     {
-      "operation_id": "ck.edge.applet.third_party_locations.query.list",
+      "operation_id": "ak.edge.applet.third_party_locations.query.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_location_list",
@@ -1043,7 +1043,7 @@
       }
     },
     {
-      "operation_id": "ck.edge.applet.third_party_users.query.list",
+      "operation_id": "ak.edge.applet.third_party_users.query.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_third_party_user_list",
@@ -1060,7 +1060,7 @@
       }
     },
     {
-      "operation_id": "ck.edge.applet.command.transaction",
+      "operation_id": "ak.edge.applet.command.transaction",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/applet-edge-operations.schema.json#/$defs/applet_transaction_request_body",
@@ -1091,7 +1091,7 @@
       }
     },
     {
-      "operation_id": "ck.self.authz.query.check",
+      "operation_id": "ak.self.authz.query.check",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthzCheckRequestBody",
@@ -1133,7 +1133,7 @@
       }
     },
     {
-      "operation_id": "ck.self.authz.grants.query.effective",
+      "operation_id": "ak.self.authz.grants.query.effective",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GrantList",
@@ -1148,7 +1148,7 @@
       }
     },
     {
-      "operation_id": "ck.self.authz.invites.query.list",
+      "operation_id": "ak.self.authz.invites.query.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/authz-operations.schema.json#/$defs/authz_invite_list",
@@ -1166,7 +1166,7 @@
       }
     },
     {
-      "operation_id": "ck.self.blob.upload.create",
+      "operation_id": "ak.self.blob.upload.create",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/blob-operations.schema.json#/$defs/blob_upload_request_body",
@@ -1205,7 +1205,7 @@
       }
     },
     {
-      "operation_id": "ck.self.blob.command.presign",
+      "operation_id": "ak.self.blob.command.presign",
       "success_shape_kind": "schema_resource",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/BlobPresignRequestBody",
@@ -1237,7 +1237,7 @@
       }
     },
     {
-      "operation_id": "ck.self.device_messages.query.list",
+      "operation_id": "ak.self.device_messages.query.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetOutcome",
@@ -1258,7 +1258,7 @@
       }
     },
     {
-      "operation_id": "ck.self.device_messages.command.send",
+      "operation_id": "ak.self.device_messages.command.send",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendRequestBody",
@@ -1286,7 +1286,7 @@
       }
     },
     {
-      "operation_id": "ck.self.device_messages.command.ack",
+      "operation_id": "ak.self.device_messages.command.ack",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesAckRequestBody",
@@ -1313,7 +1313,7 @@
       }
     },
     {
-      "operation_id": "ck.self.contact.command.request",
+      "operation_id": "ak.self.contact.command.request",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_request_request_body",
@@ -1349,7 +1349,7 @@
       }
     },
     {
-      "operation_id": "ck.self.contact.command.respond",
+      "operation_id": "ak.self.contact.command.respond",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_respond_request_body",
@@ -1384,7 +1384,7 @@
       }
     },
     {
-      "operation_id": "ck.self.contact.query.list",
+      "operation_id": "ak.self.contact.query.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list",
@@ -1402,7 +1402,7 @@
       }
     },
     {
-      "operation_id": "ck.self.contact.command.tombstone",
+      "operation_id": "ak.self.contact.command.tombstone",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request_body",
@@ -1436,7 +1436,7 @@
       }
     },
     {
-      "operation_id": "ck.self.invite_receive_policy.resource.get",
+      "operation_id": "ak.self.invite_receive_policy.resource.get",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/invite-receive-policy.schema.json",
@@ -1469,7 +1469,7 @@
       }
     },
     {
-      "operation_id": "ck.self.invite_receive_policy.resource.replace",
+      "operation_id": "ak.self.invite_receive_policy.resource.replace",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/invite-receive-policy.schema.json",
@@ -1531,7 +1531,7 @@
       }
     },
     {
-      "operation_id": "ck.self.direct_conversation.command.resolve",
+      "operation_id": "ak.self.direct_conversation.command.resolve",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/contact-operations.schema.json#/$defs/direct_conversation_resolve_request_body",
@@ -1563,7 +1563,7 @@
       }
     },
     {
-      "operation_id": "ck.self.circle.command.create",
+      "operation_id": "ak.self.circle.command.create",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_create_request_body",
@@ -1624,7 +1624,7 @@
       }
     },
     {
-      "operation_id": "ck.self.circle.query.list",
+      "operation_id": "ak.self.circle.query.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_list",
@@ -1641,7 +1641,7 @@
       }
     },
     {
-      "operation_id": "ck.self.circle.resource.get",
+      "operation_id": "ak.self.circle.resource.get",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
@@ -1682,7 +1682,7 @@
       }
     },
     {
-      "operation_id": "ck.self.circle.member.command.add",
+      "operation_id": "ak.self.circle.member.command.add",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_member_request_body",
@@ -1713,7 +1713,7 @@
       }
     },
     {
-      "operation_id": "ck.self.circle.member.resource.delete",
+      "operation_id": "ak.self.circle.member.resource.delete",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_membership_outcome",
@@ -1732,7 +1732,7 @@
       }
     },
     {
-      "operation_id": "ck.self.circle.command.rotate_scope",
+      "operation_id": "ak.self.circle.command.rotate_scope",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_outcome",
@@ -1749,7 +1749,7 @@
       }
     },
     {
-      "operation_id": "ck.self.circle.command.archive",
+      "operation_id": "ak.self.circle.command.archive",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
@@ -1799,7 +1799,7 @@
       }
     },
     {
-      "operation_id": "ck.self.circle.command.restore",
+      "operation_id": "ak.self.circle.command.restore",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
@@ -1849,7 +1849,7 @@
       }
     },
     {
-      "operation_id": "ck.self.circle.command.tombstone",
+      "operation_id": "ak.self.circle.command.tombstone",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_lifecycle_request_body",
@@ -1899,7 +1899,7 @@
       }
     },
     {
-      "operation_id": "ck.find.directory.command.announce",
+      "operation_id": "ak.find.directory.command.announce",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody",
@@ -1944,7 +1944,7 @@
       }
     },
     {
-      "operation_id": "ck.find.directory.query.private_contact_discovery",
+      "operation_id": "ak.find.directory.query.private_contact_discovery",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_request_body",
@@ -1977,7 +1977,7 @@
       }
     },
     {
-      "operation_id": "ck.find.directory.query.resolve_handle",
+      "operation_id": "ak.find.directory.query.resolve_handle",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_handle_request_body",
@@ -2021,7 +2021,7 @@
       }
     },
     {
-      "operation_id": "ck.find.directory.query.resolve_agent_selector",
+      "operation_id": "ak.find.directory.query.resolve_agent_selector",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_agent_selector_request_body",
@@ -2067,7 +2067,7 @@
       }
     },
     {
-      "operation_id": "ck.find.directory.query.list_handles_for_subject",
+      "operation_id": "ak.find.directory.query.list_handles_for_subject",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_list_handles_for_subject_request_body",
@@ -2109,7 +2109,7 @@
       }
     },
     {
-      "operation_id": "ck.find.directory.query.resolve_organization",
+      "operation_id": "ak.find.directory.query.resolve_organization",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_organization_request_body",
@@ -2137,7 +2137,7 @@
       }
     },
     {
-      "operation_id": "ck.find.directory.query.resolve_realm",
+      "operation_id": "ak.find.directory.query.resolve_realm",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_realm_request_body",
@@ -2170,7 +2170,7 @@
       }
     },
     {
-      "operation_id": "ck.find.directory.query.resolve_target",
+      "operation_id": "ak.find.directory.query.resolve_target",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_target_request_body",
@@ -2211,7 +2211,7 @@
       }
     },
     {
-      "operation_id": "ck.find.directory.query.search_actors",
+      "operation_id": "ak.find.directory.query.search_actors",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_actors_request_body",
@@ -2242,7 +2242,7 @@
       }
     },
     {
-      "operation_id": "ck.find.directory.query.search_organizations",
+      "operation_id": "ak.find.directory.query.search_organizations",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_organizations_request_body",
@@ -2272,7 +2272,7 @@
       }
     },
     {
-      "operation_id": "ck.find.directory.query.search_realms",
+      "operation_id": "ak.find.directory.query.search_realms",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_realms_request_body",
@@ -2306,7 +2306,7 @@
       }
     },
     {
-      "operation_id": "ck.find.directory.query.search_users",
+      "operation_id": "ak.find.directory.query.search_users",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_users_request_body",
@@ -2339,7 +2339,7 @@
       }
     },
     {
-      "operation_id": "ck.find.directory.push.command.register",
+      "operation_id": "ak.find.directory.push.command.register",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_push_register_request_body",
@@ -2373,7 +2373,7 @@
       }
     },
     {
-      "operation_id": "ck.find.directory.command.withdraw",
+      "operation_id": "ak.find.directory.command.withdraw",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody",
@@ -2405,7 +2405,7 @@
       }
     },
     {
-      "operation_id": "ck.find.directory.command.takedown_appeal",
+      "operation_id": "ak.find.directory.command.takedown_appeal",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryTakedownAppealRequestBody",
@@ -2447,7 +2447,7 @@
       }
     },
     {
-      "operation_id": "ck.self.events.query.frontier",
+      "operation_id": "ak.self.events.query.frontier",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierState",
@@ -2463,7 +2463,7 @@
       }
     },
     {
-      "operation_id": "ck.self.events.resource.get",
+      "operation_id": "ak.self.events.resource.get",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventView",
@@ -2480,7 +2480,7 @@
       }
     },
     {
-      "operation_id": "ck.self.events.query.scan",
+      "operation_id": "ak.self.events.query.scan",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
@@ -2501,7 +2501,7 @@
       }
     },
     {
-      "operation_id": "ck.self.events.query.scan_body",
+      "operation_id": "ak.self.events.query.scan_body",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
@@ -2538,7 +2538,7 @@
       }
     },
     {
-      "operation_id": "ck.self.events.query.resolve",
+      "operation_id": "ak.self.events.query.resolve",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody",
@@ -2567,7 +2567,7 @@
       }
     },
     {
-      "operation_id": "ck.self.events.command.submit",
+      "operation_id": "ak.self.events.command.submit",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitRequestBody",
@@ -2598,7 +2598,7 @@
       }
     },
     {
-      "operation_id": "ck.peer.events.query.frontier",
+      "operation_id": "ak.peer.events.query.frontier",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsFrontierFederationPeerState",
@@ -2626,7 +2626,7 @@
       }
     },
     {
-      "operation_id": "ck.peer.events.query.scan",
+      "operation_id": "ak.peer.events.query.scan",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryOutcome",
@@ -2647,7 +2647,7 @@
       }
     },
     {
-      "operation_id": "ck.peer.events.query.scan_body",
+      "operation_id": "ak.peer.events.query.scan_body",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsQueryPostRequestBody",
@@ -2684,7 +2684,7 @@
       }
     },
     {
-      "operation_id": "ck.peer.events.query.resolve",
+      "operation_id": "ak.peer.events.query.resolve",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsResolveRequestBody",
@@ -2713,7 +2713,7 @@
       }
     },
     {
-      "operation_id": "ck.peer.events.command.submit",
+      "operation_id": "ak.peer.events.command.submit",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventsSubmitFederationRequestBody",
@@ -2750,7 +2750,7 @@
       }
     },
     {
-      "operation_id": "ck.peer.invites.command.submit",
+      "operation_id": "ak.peer.invites.command.submit",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/invite-delivery-request.schema.json",
@@ -2787,7 +2787,7 @@
       }
     },
     {
-      "operation_id": "ck.peer.contacts.command.submit",
+      "operation_id": "ak.peer.contacts.command.submit",
       "success_shape_kind": "schema_resource",
       "request": {
         "schema_ref": "schemas/peer-contact-delivery-request.schema.json",
@@ -2825,7 +2825,7 @@
       }
     },
     {
-      "operation_id": "ck.peer.snapshot.query.manifest_head",
+      "operation_id": "ak.peer.snapshot.query.manifest_head",
       "success_shape_kind": "schema_resource",
       "response": {
         "schema_ref": "schemas/snapshot.schema.json",
@@ -2865,7 +2865,7 @@
       }
     },
     {
-      "operation_id": "ck.self.ephemeral.command.send",
+      "operation_id": "ak.self.ephemeral.command.send",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/ephemeral-envelope.schema.json",
@@ -2911,7 +2911,7 @@
       }
     },
     {
-      "operation_id": "ck.self.call.media.exchange.issue_token",
+      "operation_id": "ak.self.call.media.exchange.issue_token",
       "success_shape_kind": "schema_resource",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeRequestBody",
@@ -2961,7 +2961,7 @@
       }
     },
     {
-      "operation_id": "ck.root.identity.document.resource.get",
+      "operation_id": "ak.root.identity.document.resource.get",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityDocumentView",
@@ -2979,7 +2979,7 @@
       }
     },
     {
-      "operation_id": "ck.root.identity.log.query.list",
+      "operation_id": "ak.root.identity.log.query.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityLogListOutcome",
@@ -2997,7 +2997,7 @@
       }
     },
     {
-      "operation_id": "ck.root.identity.receipts.query.list",
+      "operation_id": "ak.root.identity.receipts.query.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityReceiptListOutcome",
@@ -3013,7 +3013,7 @@
       }
     },
     {
-      "operation_id": "ck.root.identity.query.resolve",
+      "operation_id": "ak.root.identity.query.resolve",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/IdentityResolveRequestBody",
@@ -3041,7 +3041,7 @@
       }
     },
     {
-      "operation_id": "ck.root.identity.command.submit_did_operation",
+      "operation_id": "ak.root.identity.command.submit_did_operation",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody",
@@ -3082,7 +3082,7 @@
       }
     },
     {
-      "operation_id": "ck.root.identity.recovery_policy.resource.get",
+      "operation_id": "ak.root.identity.recovery_policy.resource.get",
       "success_shape_kind": "schema_resource",
       "response": {
         "schema_ref": "schemas/recovery-policy.schema.json#/$defs/recovery_policy_active_outcome",
@@ -3101,7 +3101,7 @@
       }
     },
     {
-      "operation_id": "ck.root.identity.recovery_policy.command.publish",
+      "operation_id": "ak.root.identity.recovery_policy.command.publish",
       "success_shape_kind": "schema_resource",
       "request": {
         "schema_ref": "schemas/recovery-policy.schema.json",
@@ -3159,7 +3159,7 @@
       }
     },
     {
-      "operation_id": "ck.root.identity.recovery_session.command.create",
+      "operation_id": "ak.root.identity.recovery_session.command.create",
       "success_shape_kind": "schema_resource",
       "request": {
         "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_create_request_body",
@@ -3218,7 +3218,7 @@
       }
     },
     {
-      "operation_id": "ck.root.identity.recovery_session.resource.get",
+      "operation_id": "ak.root.identity.recovery_session.resource.get",
       "success_shape_kind": "schema_resource",
       "response": {
         "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_state",
@@ -3259,7 +3259,7 @@
       }
     },
     {
-      "operation_id": "ck.root.identity.recovery_session.command.submit_proof",
+      "operation_id": "ak.root.identity.recovery_session.command.submit_proof",
       "success_shape_kind": "schema_resource",
       "request": {
         "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_proof_submit_request_body",
@@ -3290,7 +3290,7 @@
       }
     },
     {
-      "operation_id": "ck.root.identity.recovery_session.command.complete",
+      "operation_id": "ak.root.identity.recovery_session.command.complete",
       "success_shape_kind": "schema_resource",
       "request": {
         "schema_ref": "schemas/recovery-session.schema.json#/$defs/recovery_session_complete_request_body",
@@ -3329,7 +3329,7 @@
       }
     },
     {
-      "operation_id": "ck.self.keys.command.claim",
+      "operation_id": "ak.self.keys.command.claim",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_claim_request_body",
@@ -3356,7 +3356,7 @@
       }
     },
     {
-      "operation_id": "ck.self.keys.backups.resource.delete",
+      "operation_id": "ak.self.keys.backups.resource.delete",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_delete_request_body",
@@ -3384,7 +3384,7 @@
       }
     },
     {
-      "operation_id": "ck.self.keys.backups.query.list",
+      "operation_id": "ak.self.keys.backups.query.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_list",
@@ -3402,7 +3402,7 @@
       }
     },
     {
-      "operation_id": "ck.self.keys.backups.resource.replace",
+      "operation_id": "ak.self.keys.backups.resource.replace",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/key-backup.schema.json",
@@ -3466,7 +3466,7 @@
       }
     },
     {
-      "operation_id": "ck.self.keys.backups.command.unlock",
+      "operation_id": "ak.self.keys.backups.command.unlock",
       "success_shape_kind": "schema_resource",
       "request": {
         "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_request_body",
@@ -3526,7 +3526,7 @@
       }
     },
     {
-      "operation_id": "ck.self.keys.keypackages.command.claim",
+      "operation_id": "ak.self.keys.keypackages.command.claim",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_claim_request_body",
@@ -3570,7 +3570,7 @@
       }
     },
     {
-      "operation_id": "ck.self.keys.keypackages.command.consume",
+      "operation_id": "ak.self.keys.keypackages.command.consume",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_consume_request_body",
@@ -3607,7 +3607,7 @@
       }
     },
     {
-      "operation_id": "ck.self.keys.keypackages.command.revoke",
+      "operation_id": "ak.self.keys.keypackages.command.revoke",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_revoke_request_body",
@@ -3639,7 +3639,7 @@
       }
     },
     {
-      "operation_id": "ck.self.keys.keypackages.upload.create",
+      "operation_id": "ak.self.keys.keypackages.upload.create",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/key_packages_upload_request_body",
@@ -3677,7 +3677,7 @@
       }
     },
     {
-      "operation_id": "ck.self.keys.query.lookup",
+      "operation_id": "ak.self.keys.query.lookup",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_query_request_body",
@@ -3706,7 +3706,7 @@
       }
     },
     {
-      "operation_id": "ck.self.keys.upload.create",
+      "operation_id": "ak.self.keys.upload.create",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/keys-operations.schema.json#/$defs/keys_upload_request_body",
@@ -3737,7 +3737,7 @@
       }
     },
     {
-      "operation_id": "ck.self.media.query.ice_config",
+      "operation_id": "ak.self.media.query.ice_config",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/media-operations.schema.json#/$defs/media_ice_config_request_body",
@@ -3795,7 +3795,7 @@
       }
     },
     {
-      "operation_id": "ck.open.agent_pairing.query.resolve",
+      "operation_id": "ak.open.agent_pairing.query.resolve",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_pairing_resolve_request_body",
@@ -3831,7 +3831,7 @@
       }
     },
     {
-      "operation_id": "ck.open.agent_pairing.command.submit_runtime_key_request",
+      "operation_id": "ak.open.agent_pairing.command.submit_runtime_key_request",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_request_body",
@@ -3872,7 +3872,7 @@
       }
     },
     {
-      "operation_id": "ck.open.invite_locator.query.resolve",
+      "operation_id": "ak.open.invite_locator.query.resolve",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/principal-locator.schema.json#/$defs/principal_locator_resolve_request_body",
@@ -3913,7 +3913,7 @@
       }
     },
     {
-      "operation_id": "ck.open.mimi.query.group_info",
+      "operation_id": "ak.open.mimi.query.group_info",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_group_info_outcome",
@@ -3930,7 +3930,7 @@
       }
     },
     {
-      "operation_id": "ck.open.mimi.query.identifiers",
+      "operation_id": "ak.open.mimi.query.identifiers",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_identifier_query_request_body",
@@ -3962,7 +3962,7 @@
       }
     },
     {
-      "operation_id": "ck.open.mimi.exchange.request_key_material",
+      "operation_id": "ak.open.mimi.exchange.request_key_material",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_key_material_request_body",
@@ -3998,7 +3998,7 @@
       }
     },
     {
-      "operation_id": "ck.open.mimi.command.notify",
+      "operation_id": "ak.open.mimi.command.notify",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_notify_request_body",
@@ -4027,7 +4027,7 @@
       }
     },
     {
-      "operation_id": "ck.open.mimi.query.provider_directory",
+      "operation_id": "ak.open.mimi.query.provider_directory",
       "success_shape_kind": "schema_resource",
       "response": {
         "schema_ref": "schemas/mimi-interop.schema.json",
@@ -4038,7 +4038,7 @@
       }
     },
     {
-      "operation_id": "ck.open.mimi.command.proxy_download",
+      "operation_id": "ak.open.mimi.command.proxy_download",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_proxy_download_request_body",
@@ -4071,7 +4071,7 @@
       }
     },
     {
-      "operation_id": "ck.open.mimi.command.report_abuse",
+      "operation_id": "ak.open.mimi.command.report_abuse",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_request_body",
@@ -4111,7 +4111,7 @@
       }
     },
     {
-      "operation_id": "ck.open.mimi.command.request_consent",
+      "operation_id": "ak.open.mimi.command.request_consent",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_request_consent_request_body",
@@ -4147,7 +4147,7 @@
       }
     },
     {
-      "operation_id": "ck.open.mimi.command.update_room",
+      "operation_id": "ak.open.mimi.command.update_room",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_room_update_request_body",
@@ -4180,7 +4180,7 @@
       }
     },
     {
-      "operation_id": "ck.open.mimi.command.submit_message",
+      "operation_id": "ak.open.mimi.command.submit_message",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_request_body",
@@ -4215,7 +4215,7 @@
       }
     },
     {
-      "operation_id": "ck.open.mimi.command.update_consent",
+      "operation_id": "ak.open.mimi.command.update_consent",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body",
@@ -4252,7 +4252,7 @@
       }
     },
     {
-      "operation_id": "ck.self.moderation.command.report",
+      "operation_id": "ak.self.moderation.command.report",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/moderation-report.schema.json",
@@ -4296,7 +4296,7 @@
       }
     },
     {
-      "operation_id": "ck.self.policy.query.check",
+      "operation_id": "ak.self.policy.query.check",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/PolicyCheckRequestBody",
@@ -4353,7 +4353,7 @@
       }
     },
     {
-      "operation_id": "ck.self.realm_link.query.list",
+      "operation_id": "ak.self.realm_link.query.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_list",
@@ -4372,7 +4372,7 @@
       }
     },
     {
-      "operation_id": "ck.self.realm_link.command.create",
+      "operation_id": "ak.self.realm_link.command.create",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_create_request_body",
@@ -4409,7 +4409,7 @@
       }
     },
     {
-      "operation_id": "ck.self.realm_link.resource.delete",
+      "operation_id": "ak.self.realm_link.resource.delete",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_link_mutation_outcome",
@@ -4430,7 +4430,7 @@
       }
     },
     {
-      "operation_id": "ck.self.realm_link.query.effective_policy",
+      "operation_id": "ak.self.realm_link.query.effective_policy",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_effective_policy_outcome",
@@ -4451,7 +4451,7 @@
       }
     },
     {
-      "operation_id": "ck.self.realm_organization.query.list",
+      "operation_id": "ak.self.realm_organization.query.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list",
@@ -4470,7 +4470,7 @@
       }
     },
     {
-      "operation_id": "ck.self.realm_policy_server.resource.get",
+      "operation_id": "ak.self.realm_policy_server.resource.get",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_view",
@@ -4499,7 +4499,7 @@
       }
     },
     {
-      "operation_id": "ck.self.realm_policy_server.resource.replace",
+      "operation_id": "ak.self.realm_policy_server.resource.replace",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/realm-policy-server-operations.schema.json#/$defs/realm_policy_server_replace_request_body",
@@ -4544,7 +4544,7 @@
       }
     },
     {
-      "operation_id": "ck.self.realm.resource.get",
+      "operation_id": "ak.self.realm.resource.get",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view",
@@ -4571,7 +4571,7 @@
       }
     },
     {
-      "operation_id": "ck.self.realm.command.archive",
+      "operation_id": "ak.self.realm.command.archive",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_archive_payload",
@@ -4610,7 +4610,7 @@
       }
     },
     {
-      "operation_id": "ck.self.realm.command.freeze",
+      "operation_id": "ak.self.realm.command.freeze",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_freeze_payload",
@@ -4649,7 +4649,7 @@
       }
     },
     {
-      "operation_id": "ck.self.realm.command.tombstone",
+      "operation_id": "ak.self.realm.command.tombstone",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_tombstone_payload",
@@ -4690,7 +4690,7 @@
       }
     },
     {
-      "operation_id": "ck.self.realm.command.destroy",
+      "operation_id": "ak.self.realm.command.destroy",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_destroy_payload",
@@ -4730,7 +4730,7 @@
       }
     },
     {
-      "operation_id": "ck.self.realm.query.export",
+      "operation_id": "ak.self.realm.query.export",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_export",
@@ -4753,7 +4753,7 @@
       }
     },
     {
-      "operation_id": "ck.self.realm.moderation_policy.query.effective",
+      "operation_id": "ak.self.realm.moderation_policy.query.effective",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_effective_moderation_policy",
@@ -4778,7 +4778,7 @@
       }
     },
     {
-      "operation_id": "ck.self.realm.moderation_policy.resource.replace",
+      "operation_id": "ak.self.realm.moderation_policy.resource.replace",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_moderation_policy_replace_request_body",
@@ -4808,7 +4808,7 @@
       }
     },
     {
-      "operation_id": "ck.self.consent.query.list",
+      "operation_id": "ak.self.consent.query.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_list",
@@ -4825,7 +4825,7 @@
       }
     },
     {
-      "operation_id": "ck.self.consent.resource.get",
+      "operation_id": "ak.self.consent.resource.get",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
@@ -4860,55 +4860,7 @@
       }
     },
     {
-      "operation_id": "ck.self.consent.command.grant",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
-        "schema_kind": "object",
-        "required": [
-          "peer_did"
-        ],
-        "properties": [
-          "peer_did",
-          "consent_scope",
-          "expires_at"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
-        "schema_kind": "object",
-        "required": [
-          "ok",
-          "cell_id",
-          "holder_did",
-          "peer_did",
-          "consent_scope",
-          "state",
-          "active_grant_dots",
-          "grant_dots",
-          "revoked_dots",
-          "updated_at"
-        ],
-        "properties": [
-          "ok",
-          "cell_id",
-          "holder_did",
-          "peer_did",
-          "consent_scope",
-          "state",
-          "expires_at",
-          "requested_at",
-          "updated_at",
-          "active_grant_dots",
-          "grant_dots",
-          "revoked_dots"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ck.self.consent.command.revoke",
+      "operation_id": "ak.self.consent.command.grant",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
@@ -4956,7 +4908,55 @@
       }
     },
     {
-      "operation_id": "ck.self.consent.command.request",
+      "operation_id": "ak.self.consent.command.revoke",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_update_request_body",
+        "schema_kind": "object",
+        "required": [
+          "peer_did"
+        ],
+        "properties": [
+          "peer_did",
+          "consent_scope",
+          "expires_at"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_cell_view",
+        "schema_kind": "object",
+        "required": [
+          "ok",
+          "cell_id",
+          "holder_did",
+          "peer_did",
+          "consent_scope",
+          "state",
+          "active_grant_dots",
+          "grant_dots",
+          "revoked_dots",
+          "updated_at"
+        ],
+        "properties": [
+          "ok",
+          "cell_id",
+          "holder_did",
+          "peer_did",
+          "consent_scope",
+          "state",
+          "expires_at",
+          "requested_at",
+          "updated_at",
+          "active_grant_dots",
+          "grant_dots",
+          "revoked_dots"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.consent.command.request",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_request_request_body",
@@ -5004,7 +5004,7 @@
       }
     },
     {
-      "operation_id": "ck.self.account_data.query.list",
+      "operation_id": "ak.self.account_data.query.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_list",
@@ -5019,7 +5019,7 @@
       }
     },
     {
-      "operation_id": "ck.self.account_data.resource.get",
+      "operation_id": "ak.self.account_data.resource.get",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_entry",
@@ -5038,7 +5038,7 @@
       }
     },
     {
-      "operation_id": "ck.self.account_data.resource.replace",
+      "operation_id": "ak.self.account_data.resource.replace",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_replace_request_body",
@@ -5068,7 +5068,7 @@
       }
     },
     {
-      "operation_id": "ck.self.account_data.resource.delete",
+      "operation_id": "ak.self.account_data.resource.delete",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/account-data-operations.schema.json#/$defs/account_data_delete_outcome",
@@ -5085,7 +5085,7 @@
       }
     },
     {
-      "operation_id": "ck.self.read_cursor.command.advance",
+      "operation_id": "ak.self.read_cursor.command.advance",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_cursor_advance_request_body",
@@ -5125,7 +5125,7 @@
       }
     },
     {
-      "operation_id": "ck.self.read_cursor.query.list",
+      "operation_id": "ak.self.read_cursor.query.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_cursor_list",
@@ -5140,7 +5140,7 @@
       }
     },
     {
-      "operation_id": "ck.self.strand.query.list",
+      "operation_id": "ak.self.strand.query.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionStrandList",
@@ -5162,7 +5162,7 @@
       }
     },
     {
-      "operation_id": "ck.self.morph.query.list",
+      "operation_id": "ak.self.morph.query.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionMorphList",
@@ -5184,7 +5184,7 @@
       }
     },
     {
-      "operation_id": "ck.self.space.query.list",
+      "operation_id": "ak.self.space.query.list",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpaceList",
@@ -5206,7 +5206,7 @@
       }
     },
     {
-      "operation_id": "ck.self.views.collection_projection.command.materialize",
+      "operation_id": "ak.self.views.collection_projection.command.materialize",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/view.schema.json#/$defs/view_projection_request_body",
@@ -5242,7 +5242,7 @@
       }
     },
     {
-      "operation_id": "ck.self.morph.resource.get",
+      "operation_id": "ak.self.morph.resource.get",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/view.schema.json#/$defs/document_morph_projection_outcome",
@@ -5266,7 +5266,7 @@
       }
     },
     {
-      "operation_id": "ck.edge.push.command.notify",
+      "operation_id": "ak.edge.push.command.notify",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/push-operations.schema.json#/$defs/push_notify_request_body",
@@ -5295,7 +5295,7 @@
       }
     },
     {
-      "operation_id": "ck.edge.push.command.register_device",
+      "operation_id": "ak.edge.push.command.register_device",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/push-operations.schema.json#/$defs/push_register_device_request_body",
@@ -5331,7 +5331,7 @@
       }
     },
     {
-      "operation_id": "ck.edge.push.command.unregister_device",
+      "operation_id": "ak.edge.push.command.unregister_device",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/push-operations.schema.json#/$defs/push_unregister_device_request_body",
@@ -5359,7 +5359,7 @@
       }
     },
     {
-      "operation_id": "ck.self.account.query.viewer",
+      "operation_id": "ak.self.account.query.viewer",
       "success_shape_kind": "typed_response",
       "response": {
         "schema_ref": "schemas/account-operations.schema.json#/$defs/account_view",
@@ -5383,7 +5383,7 @@
       }
     },
     {
-      "operation_id": "ck.self.account.command.update_profile",
+      "operation_id": "ak.self.account.command.update_profile",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_request_body",
@@ -5409,7 +5409,7 @@
       }
     },
     {
-      "operation_id": "ck.self.account.command.revoke_cursor",
+      "operation_id": "ak.self.account.command.revoke_cursor",
       "success_shape_kind": "schema_resource",
       "request": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AccountCursorRevokeRequestBody",
@@ -5439,7 +5439,7 @@
       }
     },
     {
-      "operation_id": "ck.self.snapshot.query.manifest_head",
+      "operation_id": "ak.self.snapshot.query.manifest_head",
       "success_shape_kind": "schema_resource",
       "response": {
         "schema_ref": "schemas/snapshot.schema.json",

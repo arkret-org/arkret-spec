@@ -32,7 +32,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "ck.schema.applet_package.v1"
+      "const": "ak.schema.applet_package.v1"
     },
     "package_id": {
       "type": "string",
@@ -70,7 +70,7 @@
       "minItems": 1,
       "uniqueItems": true,
       "contains": {
-        "const": "ck.profile.applet_service.v1"
+        "const": "ak.profile.applet_service.v1"
       }
     },
     "protocols": {

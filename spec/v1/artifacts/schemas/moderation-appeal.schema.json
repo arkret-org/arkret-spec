@@ -53,7 +53,7 @@
     },
     "submit_payload": {
       "type": "object",
-      "description": "ck.moderation.appeal.submit — opens the appeal. Writes appeal cell (state=submitted). MUST be issued by an appellant who is the original moderation target's controller (member appealing their own ban / message removal) or by an authorized advocate listed in Realm policy. A Realm member appellant is admitted by baseline membership; a non-member advocate MUST be authorized by Realm policy / ck.moderation.appeal.submit capability.",
+      "description": "ak.moderation.appeal.submit — opens the appeal. Writes appeal cell (state=submitted). MUST be issued by an appellant who is the original moderation target's controller (member appealing their own ban / message removal) or by an authorized advocate listed in Realm policy. A Realm member appellant is admitted by baseline membership; a non-member advocate MUST be authorized by Realm policy / ck.moderation.appeal.submit capability.",
       "required": [
         "appeal_id",
         "realm_id",
@@ -104,7 +104,7 @@
     },
     "review_payload": {
       "type": "object",
-      "description": "ck.moderation.appeal.review — reviewer takes the appeal under review. Transitions cell state submitted → under_review. Reviewer MUST hold ck.moderation.appeal.review capability; the same actor MUST NOT review their own moderation decision (separation of duties enforced by reducer).",
+      "description": "ak.moderation.appeal.review — reviewer takes the appeal under review. Transitions cell state submitted → under_review. Reviewer MUST hold ck.moderation.appeal.review capability; the same actor MUST NOT review their own moderation decision (separation of duties enforced by reducer).",
       "required": [
         "appeal_id",
         "realm_id",
@@ -133,7 +133,7 @@
     },
     "decision_payload": {
       "type": "object",
-      "description": "ck.moderation.appeal.decision — reviewer's verdict. Transitions cell state under_review → decided. Verdict semantics: uphold = original decision stands, no further action; overturn = original decision is lifted for future governance evaluation, this event MUST be paired in the same ordered submit batch or equivalent control transaction with a ck.moderation.decision.lift event whose target equals decision_ref (reducer rejects with appeal_overturn_missing_lift otherwise), and irreversible redaction/key-destruction effects are not resurrected; modify = original decision is atomically replaced, requiring both a same-batch lift of decision_ref and a new ck.moderation.decision whose event id is modify_decision_ref.",
+      "description": "ak.moderation.appeal.decision — reviewer's verdict. Transitions cell state under_review → decided. Verdict semantics: uphold = original decision stands, no further action; overturn = original decision is lifted for future governance evaluation, this event MUST be paired in the same ordered submit batch or equivalent control transaction with a ck.moderation.decision.lift event whose target equals decision_ref (reducer rejects with appeal_overturn_missing_lift otherwise), and irreversible redaction/key-destruction effects are not resurrected; modify = original decision is atomically replaced, requiring both a same-batch lift of decision_ref and a new ck.moderation.decision whose event id is modify_decision_ref.",
       "required": [
         "appeal_id",
         "realm_id",
@@ -234,7 +234,7 @@
     },
     "close_payload": {
       "type": "object",
-      "description": "ck.moderation.appeal.close — closes the appeal from decided, or from submitted/under_review only for appellant withdrawal. Reviewer close and a deployment's authorized close service use the review capability after the appeal is decided; appellant withdrawal is authorized by closer == appellant plus close_reason=appellant_withdrawn while state is submitted or under_review. close is a manual/authorized action: the protocol does not mandate any auto-close timer, timeout duration, or cool-off duration — deployment/Realm policy decides those. Idempotency only: the same (decision_ref, appellant) pair MUST NOT have two non-closed appeals concurrently; a fresh appeal_id is allowed once the prior appeal cell is closed.",
+      "description": "ak.moderation.appeal.close — closes the appeal from decided, or from submitted/under_review only for appellant withdrawal. Reviewer close and a deployment's authorized close service use the review capability after the appeal is decided; appellant withdrawal is authorized by closer == appellant plus close_reason=appellant_withdrawn while state is submitted or under_review. close is a manual/authorized action: the protocol does not mandate any auto-close timer, timeout duration, or cool-off duration — deployment/Realm policy decides those. Idempotency only: the same (decision_ref, appellant) pair MUST NOT have two non-closed appeals concurrently; a fresh appeal_id is allowed once the prior appeal cell is closed.",
       "required": [
         "appeal_id",
         "realm_id",

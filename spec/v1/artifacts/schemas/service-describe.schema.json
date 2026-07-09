@@ -209,7 +209,7 @@
           ],
           "properties": {
             "derivation_profile": {
-              "const": "ck.push_target_id.hmac_sha256.v1"
+              "const": "ak.push_target_id.hmac_sha256.v1"
             },
             "secret_scope": {
               "const": "per_service",
@@ -740,7 +740,7 @@
         "properties": {
           "supported_profiles": {
             "contains": {
-              "const": "ck.profile.directory_service.v1"
+              "const": "ak.profile.directory_service.v1"
             }
           }
         }

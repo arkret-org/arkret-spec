@@ -120,7 +120,7 @@ Arkret v1 把三件事分开处理：
   "device_id": "ak:device:019640dd-8000-7000-8000-000000000000",
   "principal_id": "did:webvh:...",
   "display_name": "Alice iPhone",
-  "algorithms": ["ck.hpke_x25519_aead_chacha20poly1305.v1", "ck.mls.v1"],
+  "algorithms": ["ak.hpke_x25519_aead_chacha20poly1305.v1", "ck.mls.v1"],
   "verify_key": {
     "kty": "OKP",
     "crv": "Ed25519",
@@ -177,7 +177,7 @@ Schema id：`ck.schema.cross_signing_publish.v1`
 
 ```json
 {
-  "kind": "ck.cross_signing.publish",
+  "kind": "ak.cross_signing.publish",
   "realm_id": "<principal_control_realm_id>",
   "actor_id": "did:webvh:...",
   "payload": {
@@ -273,7 +273,7 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
 `binding` 的 canonical signing input：
 
 ```text
-"ck-cross-signing-bind-v1\n"
+"ak.cross-signing-bind-v1\n"
 + canonical_json({
     "principal_id": <did>,
     "trust_domain": <trust_domain>,
@@ -305,13 +305,13 @@ DID-method history → principal_signing_key (PSK)
 
 ```json
 {
-  "kind": "ck.device.authorize",
+  "kind": "ak.device.authorize",
   "payload": {
     "principal_id": "did:webvh:...",
     "device_id": "ak:device:...",
     "device_public_key": "z6Mk...",
     "hpke_key": "z6LS...",
-    "algorithms": ["ck.hpke_x25519_aead_chacha20poly1305.v1", "ck.mls.v1"],
+    "algorithms": ["ak.hpke_x25519_aead_chacha20poly1305.v1", "ck.mls.v1"],
     "cross_signing_binding": {
       "verification_method": "did:webvh:...#ck_self_signing_v1",
       "alg": "EdDSA",
@@ -326,7 +326,7 @@ DID-method history → principal_signing_key (PSK)
 `cross_signing_binding` 的 canonical signing input：
 
 ```text
-"ck-device-trust-bind-v1\n"
+"ak.device-trust-bind-v1\n"
 + canonical_json({
     "principal_id": <did>,
     "device_id": <id:device>,
@@ -344,7 +344,7 @@ DID-method history → principal_signing_key (PSK)
 `device_signature` 的 canonical signing input：
 
 ```text
-"ck-device-authorize-possession-v1\n"
+"ak.device-authorize-possession-v1\n"
 + canonical_json({
     "principal_id": <did>,
     "device_id": <id:device>,
@@ -497,7 +497,7 @@ Arkret 推送通道设计的目标是在不向 push gateway / vendor、上游 Sy
 
 ```json
 {
-  "kind": "ck.device.list_update",
+  "kind": "ak.device.list_update",
   "payload": {
     "principal_id": "did:webvh:...",
     "changed": [
@@ -581,7 +581,7 @@ Content-Type: application/json
   "messages": {
     "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com": {
       "ak:device:01964137-0000-7000-8000-000000000000": {
-        "kind": "ck.key.verification.request",
+        "kind": "ak.key.verification.request",
         "expires_at": "2026-04-26T00:10:00Z",
         "content": {
           "transaction_id": "ver_123",
@@ -589,8 +589,8 @@ Content-Type: application/json
           "timestamp": "2026-04-26T00:00:00Z",
           "expires_at": "2026-04-26T00:10:00Z",
           "methods": [
-            "ck.sas.v1",
-            "ck.qr.v1"
+            "ak.sas.v1",
+            "ak.qr.v1"
           ]
         }
       }
@@ -606,14 +606,14 @@ Content-Type: application/json
   "messages": {
     "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com": {
       "ak:device:01964136-8000-7000-8000-000000000000": {
-        "kind": "ck.key.verification.request",
+        "kind": "ak.key.verification.request",
         "expires_at": "2026-04-26T00:10:00Z",
         "content": {
           "transaction_id": "ver_456",
           "from_device": "ak:device:01964137-0000-7000-8000-000000000000",
           "timestamp": "2026-04-26T00:00:00Z",
           "expires_at": "2026-04-26T00:10:00Z",
-          "methods": ["ck.sas.v1", "ck.qr.v1"],
+          "methods": ["ak.sas.v1", "ck.qr.v1"],
           "purpose": "same_principal_device_authorization",
           "pairing_code": "384921",
           "new_device_pubkey": {
@@ -717,7 +717,7 @@ POST /_arkret/self/keys/claim
 `keys/upload` 的 `device_signature` 由该设备的**设备身份 key**(event-signer 的 Ed25519 `did:key`，即 §5.2 `device_public_key` 对应私钥)对本次上传批次签名，绑定 `device_id` 与所上传的 OTK / fallback 批次。canonical 签名输入：
 
 ```text
-"ck-keys-upload-v1\n"
+"ak.keys-upload-v1\n"
 + canonical_json({
     "device_id": <id:device>,
     "one_time_keys": <one_time_keys or {}>,
@@ -777,7 +777,7 @@ POST /_arkret/self/keys/claim
 
 1. **DID 锚定**：独立解析 `actor` 的 DID，校验 `cross_signing.{actor}.principal_signing_key`（`kid` + `public_key`）等于该 DID 当前控制集中对应 verification method 的密钥（逐字节）；不符 MUST 视为 `unverified`。
 2. **PSK→SSK**：用上一步 DID 锚定的 PSK 校验 `self_signing_key.binding.signature` 覆盖 §5.1 self-signing canonical 输入；不通过 MUST `unverified`。
-3. **SSK→device**：读该设备 `cross_signing_binding`；缺失 MUST `unverified`（除 §5.0.1 inception bootstrap 例外）。比较 `cross_signing_binding.ssk_generation` 与 `cross_signing.{actor}.generation`：相等则用 `self_signing_key.public_key` 校验 `cross_signing_binding.signature` 覆盖 §5.2 `"ck-device-trust-bind-v1\n" + canonical_json({principal_id, device_id, device_public_key, hpke_key, algorithms, ssk_generation})`；小于 MUST `needs_reverification`（降级，不接受）；大于 MUST `unverified` 并触发 re-sync。
+3. **SSK→device**：读该设备 `cross_signing_binding`；缺失 MUST `unverified`（除 §5.0.1 inception bootstrap 例外）。比较 `cross_signing_binding.ssk_generation` 与 `cross_signing.{actor}.generation`：相等则用 `self_signing_key.public_key` 校验 `cross_signing_binding.signature` 覆盖 §5.2 `"ak.device-trust-bind-v1\n" + canonical_json({principal_id, device_id, device_public_key, hpke_key, algorithms, ssk_generation})`；小于 MUST `needs_reverification`（降级，不接受）；大于 MUST `unverified` 并触发 re-sync。
 4. **接受判据**：仅当 1–3 全部得 `cross_signed` 时，客户端方接受 `device_signing_key` 用于 proof 验签；任一步失败 MUST fail closed（按 `unverified` 处理：丢弃该 `(actor,device)` 的 proof，不触发 UI、不入库）。
 5. `device_public_key` 取自 `device_signing_key`(did:key 内嵌的 Ed25519 公钥)，并 MUST 与第 3 步 binding 输入中的 `device_public_key` 为同一把 key——即客户端验证的正是它将用于 proof 验签的那把 key，闭合"目录给的 key ⇔ 被交叉签名背书的 key"。
 
@@ -1101,7 +1101,7 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
     "recipient_key_ref": "mls_group_secrets_backup_key",
     "aead": {
       "name": "xchacha20_poly1305",
-      "aead_profile": "ck.aead.xchacha20_poly1305.v1",
+      "aead_profile": "ak.aead.xchacha20_poly1305.v1",
       "nonce": "base64url..."
     }
   },
@@ -1109,7 +1109,7 @@ Key backup 保存已加密的 Realm / MLS 历史密钥材料。它只覆盖当�
     "hkdf_info": "arkret-key-backup/mls_history/mls_epoch/v1",
     "subdomain": "mls_epoch",
     "aead_aad": {
-      "schema": "ck.schema.key_backup.v1",
+      "schema": "ak.schema.key_backup.v1",
       "actor_id": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
       "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
       "backup_class": "mls_history",
@@ -1324,7 +1324,7 @@ Schema id：`ck.schema.cross_signing_reset.v1`
 
 ```json
 {
-  "kind": "ck.cross_signing.reset",
+  "kind": "ak.cross_signing.reset",
   "realm_id": "<principal_control_realm_id>",
   "actor_id": "did:webvh:...",
   "payload": {
@@ -1378,7 +1378,7 @@ Payload-only schema 示例（即 Event `payload` / 上例 `payload` 的规范形
 所有 proof 签名的 canonical input MUST 是：
 
 ```text
-utf8("ck-cross-signing-reset-v1\n") ||
+utf8("ak.cross-signing-reset-v1\n") ||
 canonical_json({
   "trust_domain": trust_domain,
   "reset_event_id": reset_event_id,
@@ -1437,7 +1437,7 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
 | proof.kind | Receiver MUST 校验 | 失败 reason_code |
 | --- | --- | --- |
 | `principal_signing` | (a) `verification_method` MUST 是该 principal 当前 DID Document 中具备**principal-grade 控制权**的 verification method（即 [`../identity/key-management.md` §3.2](../identity/key-management.md) 定义的 principal signing key 类，例如 `did:webvh:...#ck_principal_signing_v1` 或等价 DID method 控制密钥），且在 `issued_at` 时刻未撤销 / 未轮换；**MUST NOT** 是被本次 reset 重置对象的 `self_signing_key` / `user_signing_key`（让被废止的密钥自我授权废止自身会导致 trust circular）。(b) `signature` 在 `alg` 下覆盖 §14.1 canonical input 验证通过；(c) `previous_generation` 等于 receiver 持有的 accepted publish generation，`new_generation = previous_generation + 1`。 | `cross_signing_reset_proof_authority_invalid` / `cross_signing_reset_signature_invalid` / `cross_signing_reset_generation_mismatch` |
-| `recovery_unlock` | (a) `recovery_secret_ref` 解析到 principal **当前 DID Document recovery 区或 `recovery_policy`** 中声明的 recovery key entry（必须在 `issued_at` 时刻 authoritative，未撤销 / 未过期）；(b) `signature` 验证使用该 entry 绑定的 public key、`alg` 在 entry 的算法白名单内、覆盖 §14.1 canonical input（**密码学强度仅由本签名提供**——拥有 recovery 私钥即视作 unlock 通过）；(c) `unlock_commitment` 等于 `SHA-256(utf8("ck-cross-signing-reset-unlock-binding-v1\n") \|\| recovery_secret_ref \|\| unlock_binding_input_bytes)`；`unlock_binding_input_bytes` 按 §14.1 定义，使用同一组 reset 字段，但 `proof_body` 同时排除 `signature` 与 `unlock_commitment`，避免 commitment 对自身取 hash。这是一个**完全由公开材料派生**的 wire-integrity 哈希，receiver 用事件自身的 `recovery_secret_ref` 与 `unlock_binding_input_bytes` 重算后比对；它**不证明持有 recovery secret**（signature 已承担该证明），但绑定 proof 到具体 ref + reset 内容，阻止把同一 ref 的签名跨 reset 复用为另一组 (principal_id, generation) 的 proof shell。 | `cross_signing_reset_recovery_ref_unknown` / `cross_signing_reset_signature_invalid` / `cross_signing_reset_unlock_commitment_mismatch` |
+| `recovery_unlock` | (a) `recovery_secret_ref` 解析到 principal **当前 DID Document recovery 区或 `recovery_policy`** 中声明的 recovery key entry（必须在 `issued_at` 时刻 authoritative，未撤销 / 未过期）；(b) `signature` 验证使用该 entry 绑定的 public key、`alg` 在 entry 的算法白名单内、覆盖 §14.1 canonical input（**密码学强度仅由本签名提供**——拥有 recovery 私钥即视作 unlock 通过）；(c) `unlock_commitment` 等于 `SHA-256(utf8("ak.cross-signing-reset-unlock-binding-v1\n") \|\| recovery_secret_ref \|\| unlock_binding_input_bytes)`；`unlock_binding_input_bytes` 按 §14.1 定义，使用同一组 reset 字段，但 `proof_body` 同时排除 `signature` 与 `unlock_commitment`，避免 commitment 对自身取 hash。这是一个**完全由公开材料派生**的 wire-integrity 哈希，receiver 用事件自身的 `recovery_secret_ref` 与 `unlock_binding_input_bytes` 重算后比对；它**不证明持有 recovery secret**（signature 已承担该证明），但绑定 proof 到具体 ref + reset 内容，阻止把同一 ref 的签名跨 reset 复用为另一组 (principal_id, generation) 的 proof shell。 | `cross_signing_reset_recovery_ref_unknown` / `cross_signing_reset_signature_invalid` / `cross_signing_reset_unlock_commitment_mismatch` |
 | `device_quorum` | (a) 每个 `signatures[i]` 的 `verification_method` 是当前 principal device set 中**已授权且未撤销**的 device key（按 `signatures[i].device_id` 查找其 `ck.device.authorize` 记录），并验证 `signature` 覆盖 §14.1 canonical input；(b) `signatures[]` 按 `device_id` 去重；(c) 去重后**有效**签名数 ≥ `threshold`；(d) `threshold` 等于 receiver 当前 `recovery_policy.device_quorum.k`（或等价已发布门限策略），小于该值 MUST 拒（`recovery_policy` 自身的发布 / 修改授权——含降低 `device_quorum.k`——受 [`../identity/key-management.md` §8.1](../identity/key-management.md) 的 ratchet 约束:MUST 由当前 principal signing key 或满足旧 policy 门限的 quorum 签名、`version` 严格递增，因此单设备无法单方面调低本门限）。 | `cross_signing_reset_signature_invalid` / `cross_signing_reset_quorum_insufficient` / `cross_signing_reset_quorum_below_policy` |
 | `trusted_recovery_service` | (a) `service_did` 出现在 principal DID Document 的恢复服务声明（或 organization recovery_policy `trusted_services[]`）中、未撤销、`issued_at` 在其有效窗口内；(b) `verification_method` 是该服务**已公布**的 verification method；(c) `signature` 覆盖 §14.1 canonical input；(d) 若 service 声明要求 `attestation_ref`，则该 ref MUST 解析到一条 receiver 可校验的 attestation event，且 attestation 所属 trust domain MUST 等于 reset payload 的 `trust_domain`；跨 trust domain attestation 不得作为恢复服务授权依据。 | `cross_signing_reset_recovery_service_unknown` / `cross_signing_reset_signature_invalid` / `cross_signing_reset_attestation_missing` / `cross_signing_reset_recovery_service_attestation_domain_mismatch` |
 
@@ -1471,7 +1471,7 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
 
    ```json
    {
-     "type": "ck.identity.recovery_proof.v1",
+     "type": "ak.identity.recovery_proof.v1",
      "kind": "principal_signing",
      "principal_id": "<principal DID>",
      "requesting_device_id": "<new device id>",
@@ -1494,7 +1494,7 @@ Receiver 接受 reset 后 MUST 按以下顺序更新本地状态：
 
    - (a) `recovery_secret_ref` MUST 解析到当前 accepted `recovery_policy.recovery_keys[]` 中一条在 session `created_at` 时刻 **authoritative**（`not_before <= created_at`、`created_at < expires_at`、`revoked_at` 为 null 或 `created_at < revoked_at`)的 entry；`verification_method` MUST 等于该 entry 的 `verification_method`。无匹配 entry MUST fail closed（`recovery_evidence_unbound`）。
    - (b) `signature` 在 `alg`（MUST 等于该 entry 的 `alg`，v1 即 `Ed25519`，且在 [`conformance/encoding.md` §6.1](../conformance/encoding.md) 白名单内)下覆盖上述 generic transcript（`proof_body` = 该 `recovery_unlock_proof` 对象**排除 `signature` 与 `unlock_commitment`** 两字段)验证通过，公钥取自 (a) 解析到的 entry。**密码学强度仅由本签名提供**——拥有该 recovery 私钥即视作 unlock 通过。签名不通过 MUST `invalid_signature`。
-   - (c) `unlock_commitment` MUST 等于 `SHA-256(utf8("ck-recovery-session-unlock-binding-v1\n") || utf8(recovery_secret_ref) || unlock_binding_input_bytes)`，其中 `unlock_binding_input_bytes = canonical_json_bytes(generic transcript with proof_body 排除 `signature` 与 `unlock_commitment`)`——即与 (b) 验签覆盖的同一字节。这是一个**完全由公开材料派生**的 wire-integrity 哈希，receiver 用事件自身的 `recovery_secret_ref` 与 transcript 重算后比对；它**不证明持有 recovery secret**（signature 已承担该证明），但把 proof 绑定到具体 ref + session 内容，阻止把同一 ref 的签名跨 session 复用为另一组 (principal_id, recovery_session_id) 的 proof shell。不匹配 MUST `recovery_evidence_unbound`。
+   - (c) `unlock_commitment` MUST 等于 `SHA-256(utf8("ak.recovery-session-unlock-binding-v1\n") || utf8(recovery_secret_ref) || unlock_binding_input_bytes)`，其中 `unlock_binding_input_bytes = canonical_json_bytes(generic transcript with proof_body 排除 `signature` 与 `unlock_commitment`)`——即与 (b) 验签覆盖的同一字节。这是一个**完全由公开材料派生**的 wire-integrity 哈希，receiver 用事件自身的 `recovery_secret_ref` 与 transcript 重算后比对；它**不证明持有 recovery secret**（signature 已承担该证明），但把 proof 绑定到具体 ref + session 内容，阻止把同一 ref 的签名跨 session 复用为另一组 (principal_id, recovery_session_id) 的 proof shell。不匹配 MUST `recovery_evidence_unbound`。
 
    `unlock_commitment` domain-string `ck-recovery-session-unlock-binding-v1\n` 与 §14.4 的 cross-signing-reset 版 `ck-cross-signing-reset-unlock-binding-v1\n` **不同**，确保 recovery-session unlock 与 cross-signing-reset unlock 的承诺不可跨上下文复用。
 3. **设备授权与列表更新**：proof 接受（session 进入 `verified`）后，授权材料 MUST 由**恢复客户端**产出，而不是服务端——服务端既无新设备私钥，也无 SSK，无法伪造合法 `cross_signing_binding`。客户端 MUST：

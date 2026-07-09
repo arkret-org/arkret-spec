@@ -1,6 +1,6 @@
 {
   "suite": "reaction",
-  "profile": "ck.vector_group.reaction.v1",
+  "profile": "ak.vector_group.reaction.v1",
   "version": "2026-05-08",
   "notes": "Reducer-level vectors for ck.reaction.add / ck.reaction.remove. Convergence is OR-Set on (actor_id, target_ref, key); see zh/models/strand-and-message.md §9.8 (Reaction model + authoritative OR-Set semantics) and zh/crypto-media/encryption-and-audit.md §2.9 (plaintext-vs-encrypted visibility).",
   "cases": [
@@ -9,7 +9,7 @@
       "events": [
         {
           "event_id": "ak:event:01964185-0400-7000-8000-000000000000",
-          "kind": "ck.reaction.add",
+          "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
             "target_ref": "ak:message:01964147-0000-7000-8000-000000000000",
@@ -18,7 +18,7 @@
         },
         {
           "event_id": "ak:event:0196418c-0400-7000-8000-000000000000",
-          "kind": "ck.reaction.remove",
+          "kind": "ak.reaction.remove",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "causal_refs": [
             "ak:event:01964185-0400-7000-8000-000000000000"
@@ -45,7 +45,7 @@
       "events": [
         {
           "event_id": "ak:event:01964185-0800-7000-8000-000000000000",
-          "kind": "ck.reaction.add",
+          "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
             "target_ref": "ak:message:01964147-0000-7000-8000-000000000000",
@@ -54,7 +54,7 @@
         },
         {
           "event_id": "ak:event:01964185-0800-7000-8000-000000000001",
-          "kind": "ck.reaction.add",
+          "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
             "target_ref": "ak:message:01964147-0000-7000-8000-000000000000",
@@ -85,7 +85,7 @@
       "events": [
         {
           "event_id": "ak:event:01964185-0c00-7000-8000-000000000000",
-          "kind": "ck.reaction.add",
+          "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:bob.example",
           "payload": {
             "target_ref": "ak:message:01964147-0000-7000-8000-000000000000",
@@ -94,7 +94,7 @@
         },
         {
           "event_id": "ak:event:0196418c-0c00-7000-8000-000000000000",
-          "kind": "ck.reaction.remove",
+          "kind": "ak.reaction.remove",
           "actor_id": "did:webvh:z6mkfixture:bob.example",
           "payload": {
             "target_ref": "ak:message:01964147-0000-7000-8000-000000000000",
@@ -118,7 +118,7 @@
       "events": [
         {
           "event_id": "ak:event:01964185-1000-7000-8000-000000000000",
-          "kind": "ck.reaction.add",
+          "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
             "target_ref": "ak:message:01964147-0000-7000-8000-000000000000",
@@ -127,7 +127,7 @@
         },
         {
           "event_id": "ak:event:01964185-1000-7000-8000-000000000001",
-          "kind": "ck.reaction.add",
+          "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:bob.example",
           "payload": {
             "target_ref": "ak:message:01964147-0000-7000-8000-000000000000",
@@ -155,7 +155,7 @@
       "events": [
         {
           "event_id": "ak:event:01964185-1400-7000-8000-000000000000",
-          "kind": "ck.reaction.add",
+          "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
             "target_ref": "ak:message:8238ad61-2055-7c9d-a502-b4e7844047ce",
@@ -180,7 +180,7 @@
       "events": [
         {
           "event_id": "ak:event:01964185-1800-7000-8000-000000000000",
-          "kind": "ck.reaction.add",
+          "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
             "target_ref": "ak:message:01964147-0000-7000-8000-000000000000",
@@ -189,7 +189,7 @@
         },
         {
           "event_id": "ak:event:01964147-0000-7000-8000-000000000129",
-          "kind": "ck.message.redact",
+          "kind": "ak.message.redact",
           "actor_id": "did:webvh:z6mkfixture:owner.example",
           "payload": {
             "target_ref": "ak:message:01964147-0000-7000-8000-000000000000"
@@ -216,7 +216,7 @@
       "events": [
         {
           "event_id": "ak:event:01964185-1c00-7000-8000-000000000000",
-          "kind": "ck.reaction.add",
+          "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
             "target_ref": "ak:message:01964147-0000-7000-8000-000000000020",
@@ -231,7 +231,7 @@
               "aad_visibility_event_id": "routing_digest",
               "aad": {
                 "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000129",
-                "event_kind": "ck.reaction.add",
+                "event_kind": "ak.reaction.add",
                 "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
               },
               "key_ref": {
@@ -245,7 +245,7 @@
         },
         {
           "event_id": "ak:event:01964185-1c00-7000-8000-000000000001",
-          "kind": "ck.reaction.add",
+          "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
             "target_ref": "ak:message:01964147-0000-7000-8000-000000000020",
@@ -260,7 +260,7 @@
               "aad_visibility_event_id": "routing_digest",
               "aad": {
                 "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000129",
-                "event_kind": "ck.reaction.add",
+                "event_kind": "ak.reaction.add",
                 "event_ref_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
               },
               "key_ref": {
@@ -301,7 +301,7 @@
       "events": [
         {
           "event_id": "ak:event:01964185-2000-7000-8000-000000000000",
-          "kind": "ck.reaction.add",
+          "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
             "target_ref": "ak:message:01964147-0000-7000-8000-000000000020",
@@ -316,7 +316,7 @@
               "aad_visibility_event_id": "hidden",
               "aad": {
                 "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000129",
-                "event_kind": "ck.reaction.add"
+                "event_kind": "ak.reaction.add"
               },
               "key_ref": {
                 "algorithm": "MLS",
@@ -329,7 +329,7 @@
         },
         {
           "event_id": "ak:event:01964185-2000-7000-8000-000000000001",
-          "kind": "ck.reaction.add",
+          "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
             "target_ref": "ak:message:01964147-0000-7000-8000-000000000020",
@@ -344,7 +344,7 @@
               "aad_visibility_event_id": "hidden",
               "aad": {
                 "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000129",
-                "event_kind": "ck.reaction.add"
+                "event_kind": "ak.reaction.add"
               },
               "key_ref": {
                 "algorithm": "MLS",
@@ -376,7 +376,7 @@
       "events": [
         {
           "event_id": "ak:event:01964185-2400-7000-8000-000000000000",
-          "kind": "ck.reaction.add",
+          "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "payload": {
             "target_ref": "ak:message:01964147-0000-7000-8000-000000000000",
@@ -385,18 +385,18 @@
         },
         {
           "event_id": "ak:event:0196418d-a400-7000-8000-000000000000",
-          "kind": "ck.capability.revoke",
+          "kind": "ak.capability.revoke",
           "actor_id": "did:webvh:z6mkfixture:owner.example",
           "payload": {
             "target_ref": "did:webvh:z6mkfixture:alice.example",
             "actions": [
-              "ck.reaction.add"
+              "ak.reaction.add"
             ]
           }
         },
         {
           "event_id": "ak:event:01964185-2400-7000-8000-000000000001",
-          "kind": "ck.reaction.add",
+          "kind": "ak.reaction.add",
           "actor_id": "did:webvh:z6mkfixture:alice.example",
           "causal_refs": [
             "ak:event:0196418d-a400-7000-8000-000000000000"

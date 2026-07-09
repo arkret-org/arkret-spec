@@ -503,10 +503,10 @@
       "notes": "Pre-v1.0 join-policy spike kinds (member.application / member.application.review / member.application.cancel) never reached canonical registry. Current parsers MUST hard_reject the bare names. New writers MUST use the candidate profile surface and MUST NOT re-introduce the bare names."
     },
     {
-      "id": "ck.audit.epoch_key_destruction",
+      "id": "ak.audit.epoch_key_destruction",
       "since_revision": "2026-06-04",
       "rejection_level": "hard_reject",
-      "replacement": "ck.audit.release",
+      "replacement": "ak.audit.release",
       "allowed_contexts": [
         "changelog",
         "negative_test"
@@ -514,10 +514,10 @@
       "notes": "Removed with the standing audit-member model. Arkret v1 audit now uses Audit Applet Binding + sealed historical release sessions; audit applets are not MLS members and no epoch-key-destruction event is accepted."
     },
     {
-      "id": "ck.realm.audit_policy_downgrade",
+      "id": "ak.realm.audit_policy_downgrade",
       "since_revision": "2026-06-04",
       "rejection_level": "hard_reject",
-      "replacement": "ck.audit.applet_binding",
+      "replacement": "ak.audit.applet_binding",
       "allowed_contexts": [
         "changelog",
         "negative_test"

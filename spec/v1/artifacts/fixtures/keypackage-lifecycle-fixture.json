@@ -1,19 +1,19 @@
 {
-  "profile": "ck.profile.mls_governance_binding.full.v1",
+  "profile": "ak.profile.mls_governance_binding.full.v1",
   "version": "2026-06-19",
   "suite": "keypackage_lifecycle",
   "runner": "cotest::conformance::keypackage_lifecycle",
   "covers_vectors": [
-    "ck.vector.keypackage.exhaustion_claim_limits.v1",
-    "ck.vector.keypackage.last_resort_claim_and_reuse.v1",
-    "ck.vector.keypackage.last_resort_forced_rotation.v1",
-    "ck.vector.keypackage.last_resort_affinity_and_optionality.v1",
-    "ck.vector.mls.welcome_keypackage_hash.v1"
+    "ak.vector.keypackage.exhaustion_claim_limits.v1",
+    "ak.vector.keypackage.last_resort_claim_and_reuse.v1",
+    "ak.vector.keypackage.last_resort_forced_rotation.v1",
+    "ak.vector.keypackage.last_resort_affinity_and_optionality.v1",
+    "ak.vector.mls.welcome_keypackage_hash.v1"
   ],
   "cases": [
     {
       "name": "exhaustion_claim_limits",
-      "vector_id": "ck.vector.keypackage.exhaustion_claim_limits.v1",
+      "vector_id": "ak.vector.keypackage.exhaustion_claim_limits.v1",
       "kind": "claim_pool_limits",
       "target_principal_id": "did:webvh:z6mkfixture:alice.example",
       "requester_service_did": "did:webvh:z6mkfixture:ps.example",
@@ -50,9 +50,9 @@
     },
     {
       "name": "last_resort_claim_and_reuse",
-      "vector_id": "ck.vector.keypackage.last_resort_claim_and_reuse.v1",
+      "vector_id": "ak.vector.keypackage.last_resort_claim_and_reuse.v1",
       "kind": "last_resort_claim_reuse",
-      "feature": "ck.feature.mls_last_resort_keypackage.v1",
+      "feature": "ak.feature.mls_last_resort_keypackage.v1",
       "target_principal_id": "did:webvh:z6mkfixture:alice.example",
       "device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
       "intended_realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
@@ -80,9 +80,9 @@
     },
     {
       "name": "last_resort_forced_rotation",
-      "vector_id": "ck.vector.keypackage.last_resort_forced_rotation.v1",
+      "vector_id": "ak.vector.keypackage.last_resort_forced_rotation.v1",
       "kind": "last_resort_rotation",
-      "feature": "ck.feature.mls_last_resort_keypackage.v1",
+      "feature": "ak.feature.mls_last_resort_keypackage.v1",
       "device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
       "old_last_resort_keypackage_ref": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
       "new_last_resort_keypackage_ref": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
@@ -106,9 +106,9 @@
     },
     {
       "name": "last_resort_affinity_and_optionality",
-      "vector_id": "ck.vector.keypackage.last_resort_affinity_and_optionality.v1",
+      "vector_id": "ak.vector.keypackage.last_resort_affinity_and_optionality.v1",
       "kind": "last_resort_affinity_optionality",
-      "feature": "ck.feature.mls_last_resort_keypackage.v1",
+      "feature": "ak.feature.mls_last_resort_keypackage.v1",
       "realm_r1": "ak:realm:0196419b-0000-7000-8000-000000000000",
       "realm_r2": "ak:realm:0196419b-0000-7000-8000-000000000002",
       "last_resort_keypackage_ref": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
@@ -117,10 +117,10 @@
         "unsupported_reason": "last_resort_not_supported",
         "no_cross_realm_fallback_reason": "keypackage_unknown",
         "profile_forbidden_profiles": [
-          "ck.profile.high_security_organization.v1",
-          "ck.profile.sovereign_deployment.v1"
+          "ak.profile.high_security_organization.v1",
+          "ak.profile.sovereign_deployment.v1"
         ],
-        "profile_forbidden_feature": "ck.feature.mls_last_resort_keypackage.v1",
+        "profile_forbidden_feature": "ak.feature.mls_last_resort_keypackage.v1",
         "profile_forbidden_fail_closed": true,
         "claim_realm_matches_intended_realm": true
       },
@@ -134,7 +134,7 @@
     },
     {
       "name": "welcome_keypackage_hash",
-      "vector_id": "ck.vector.mls.welcome_keypackage_hash.v1",
+      "vector_id": "ak.vector.mls.welcome_keypackage_hash.v1",
       "kind": "welcome_keypackage_digest_binding",
       "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
       "keypackage_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",

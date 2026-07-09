@@ -50,7 +50,7 @@ Realm discovery policy SHOULD 由 `ck.realm.discovery` state event 表达：
 
 ```json
 {
-  "kind": "ck.realm.discovery",
+  "kind": "ak.realm.discovery",
   "payload": {
     "discoverability": "listed",
     "directory_visibility": {
@@ -98,7 +98,7 @@ Realm discovery policy SHOULD 由 `ck.realm.discovery` state event 表达：
 - 未授权 subject 对 `invite_only` 与 `secret` Realm 的查询 MUST 返回 `not_found` 或与其不可区分的响应。
 - 在未单独授权时，目录结果 MUST NOT 包含事件历史、成员列表、policy 原文、MLS 状态、隐藏 parent/child edge 或完整组织治理链。
 
-`discoverability=restricted` 的 Realm 查询授权使用 `DirectoryRestrictedClaimPresentation`（wire schema：`directory-operations.schema.json#/$defs/directory_restricted_claim_presentation`），由 `search_realms` / `resolve_realm` 请求体的 `claim_presentations[]` 承载；请求体同时 MAY 携带 `proof_challenge`，presentation 的 `nonce` MUST 等于该 challenge。presentation MUST 绑定 `kind="ck.directory.restricted_claim_presentation.v1"`、签发方 `iss`、`verification_method`、目标 Directory service `audience`、防重放 `nonce`、被披露的 `claim`、可选 `expires_at`、`created_at` 与 `jws`。Directory service MUST 验证 issuer key、JWS、audience、nonce、claim subject/requester、过期时间与 resource policy；任一失败 MUST fail closed，且 `resolve_realm` 对未授权 restricted Realm MUST 返回与不存在不可区分的 `not_found`。Realm restricted discovery MUST NOT 把 Event `Proof` 当作 claim presentation 解析。
+`discoverability=restricted` 的 Realm 查询授权使用 `DirectoryRestrictedClaimPresentation`（wire schema：`directory-operations.schema.json#/$defs/directory_restricted_claim_presentation`），由 `search_realms` / `resolve_realm` 请求体的 `claim_presentations[]` 承载；请求体同时 MAY 携带 `proof_challenge`，presentation 的 `nonce` MUST 等于该 challenge。presentation MUST 绑定 `kind="ak.directory.restricted_claim_presentation.v1"`、签发方 `iss`、`verification_method`、目标 Directory service `audience`、防重放 `nonce`、被披露的 `claim`、可选 `expires_at`、`created_at` 与 `jws`。Directory service MUST 验证 issuer key、JWS、audience、nonce、claim subject/requester、过期时间与 resource policy；任一失败 MUST fail closed，且 `resolve_realm` 对未授权 restricted Realm MUST 返回与不存在不可区分的 `not_found`。Realm restricted discovery MUST NOT 把 Event `Proof` 当作 claim presentation 解析。
 
 `anti_enumeration.member_count_mode` 取值 normative：
 
@@ -221,7 +221,7 @@ Organization discovery policy SHOULD 通过组织 profile 状态或 governance r
 
 ```json
 {
-  "kind": "ck.organization.discovery",
+  "kind": "ak.organization.discovery",
   "organization_did": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
   "discoverability": "public",
   "profile_visibility": {
@@ -315,7 +315,7 @@ OPRF 选择：
 
 ```json
 {
-  "profile": "ck.private_contact_discovery.v1",
+  "profile": "ak.private_contact_discovery.v1",
   "phase": "blind",
   "batch_id": "ak:batch:0196429a-0000-7000-8000-000000000000",
   "ciphersuite": "OPRF-ristretto255-SHA512",
@@ -328,7 +328,7 @@ OPRF 选择：
 
 ```json
 {
-  "profile": "ck.private_contact_discovery.v1",
+  "profile": "ak.private_contact_discovery.v1",
   "phase": "match",
   "batch_id": "ak:batch:0196429a-0000-7000-8000-000000000000",
   "key_epoch": 14,
@@ -492,7 +492,7 @@ Directory MUST 支持 **push (announce)** 与 **pull (refresh)** 两种 ingest �
     "ak:event:0196419b-0000-7000-8000-000000000000"
   ],
   "discovery_state": {
-    "kind": "ck.organization.discovery",
+    "kind": "ak.organization.discovery",
     "organization_did": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
     "discoverability": "public",
     "directory_services": [
@@ -759,8 +759,8 @@ Result：
           "role": "primary",
           "endpoint": "https://principal.acme.example",
           "operations": [
-            "ck.self.events.command.submit",
-            "ck.self.events.query.scan"
+            "ak.self.events.command.submit",
+            "ak.self.events.query.scan"
           ],
           "join_methods": [
             "knock",

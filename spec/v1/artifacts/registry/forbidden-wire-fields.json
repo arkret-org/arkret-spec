@@ -254,7 +254,7 @@
       "context": "space_payload",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck.realm.create / ck.realm.update payload",
+      "replacement": "ak.realm.create / ck.realm.update payload",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -267,7 +267,7 @@
       "context": "space_payload",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck.realm.join_rule or ck.realm.policy_components join policy facet",
+      "replacement": "ak.realm.join_rule or ck.realm.policy_components join policy facet",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -280,7 +280,7 @@
       "context": "space_payload",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck.realm.history_visibility",
+      "replacement": "ak.realm.history_visibility",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -293,7 +293,7 @@
       "context": "space_payload",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck.realm.policy_server",
+      "replacement": "ak.realm.policy_server",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -306,7 +306,7 @@
       "context": "space_payload",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck.realm.delivery_binding_policy",
+      "replacement": "ak.realm.delivery_binding_policy",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -325,7 +325,7 @@
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "ck.message.create payload MUST NOT carry revision_root. The reducer initializes revision_root to the new message_id; only ck.message.revise (and subsequent revise events) may set revision_root, and only to the create's revision_root. See zh/models/strand-and-message.md §9."
+      "notes": "ak.message.create payload MUST NOT carry revision_root. The reducer initializes revision_root to the new message_id; only ck.message.revise (and subsequent revise events) may set revision_root, and only to the create's revision_root. See zh/models/strand-and-message.md §9."
     },
     {
       "id": "blocks",
@@ -575,29 +575,29 @@
       "context": "strand_patch_payload",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
-      "replacement": "ck.strand.stage.set event",
+      "replacement": "ak.strand.stage.set event",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "ck.strand.update payload's patch MUST NOT include path 'stage' or 'stage_changed_at'. Stage transitions are single-source: only ck.strand.stage.set may mutate these fields. The wire-level guard is the same pattern as forbidding ck.message.create from carrying revision_root — a forbidden patch path on an otherwise-shared payload class. cotest scanners MUST flag any patch op whose path matches /^stage(_changed_at)?$/. See zh/models/strand-and-message.md §3.2 reducer hard constraint 5."
+      "notes": "ak.strand.update payload's patch MUST NOT include path 'stage' or 'stage_changed_at'. Stage transitions are single-source: only ck.strand.stage.set may mutate these fields. The wire-level guard is the same pattern as forbidding ck.message.create from carrying revision_root — a forbidden patch path on an otherwise-shared payload class. cotest scanners MUST flag any patch op whose path matches /^stage(_changed_at)?$/. See zh/models/strand-and-message.md §3.2 reducer hard constraint 5."
     },
     {
       "id": "patch:metadata.fields.assignee",
       "context": "strand_patch_payload",
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
-      "replacement": "ck.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
+      "replacement": "ak.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
-      "notes": "ck.strand.update MUST NOT patch assignment through Strand metadata. Assignment writes create or tombstone assigned_to Relation edges."
+      "notes": "ak.strand.update MUST NOT patch assignment through Strand metadata. Assignment writes create or tombstone assigned_to Relation edges."
     },
     {
       "id": "patch:metadata.fields.assignees",
       "context": "strand_patch_payload",
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
-      "replacement": "ck.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
+      "replacement": "ak.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Plural assignment metadata patch alias is forbidden; multiple assignees are multiple assigned_to Relation edges."
     },
@@ -606,7 +606,7 @@
       "context": "strand_patch_payload",
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
-      "replacement": "ck.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
+      "replacement": "ak.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "assigned_to is a Relation kind, not a Strand metadata patch path."
     },
@@ -624,7 +624,7 @@
       "context": "strand_patch_payload",
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
-      "replacement": "ck.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
+      "replacement": "ak.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Legacy Strand fields.* patch paths are not the canonical metadata path; assignment is Relation-sourced regardless of spelling."
     },
@@ -633,7 +633,7 @@
       "context": "strand_patch_payload",
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
-      "replacement": "ck.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
+      "replacement": "ak.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "Legacy plural assignment patch alias is forbidden; multiple assignees are multiple assigned_to Relation edges."
     },
@@ -642,7 +642,7 @@
       "context": "strand_patch_payload",
       "since_revision": "2026-06-07",
       "rejection_level": "hard_reject",
-      "replacement": "ck.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
+      "replacement": "ak.relation.create / ck.relation.tombstone with relation_kind=assigned_to",
       "allowed_contexts": ["changelog", "legacy_migration", "negative_test"],
       "notes": "assigned_to is a Relation kind, not a Strand metadata patch path."
     },
@@ -660,26 +660,26 @@
       "context": "morph_update_payload",
       "since_revision": "2026-05-23",
       "rejection_level": "hard_reject",
-      "replacement": "ck.morph.stage.set event",
+      "replacement": "ak.morph.stage.set event",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "ck.morph.update / ck.morph.schema_migrate payload's patch MUST NOT include path 'stage' or 'stage_changed_at'. Stage transitions are single-source: only ck.morph.stage.set may mutate these fields. See zh/models/common-fields.md §5.3.3 reducer hard constraint 6 and zh/models/morph.md §2."
+      "notes": "ak.morph.update / ck.morph.schema_migrate payload's patch MUST NOT include path 'stage' or 'stage_changed_at'. Stage transitions are single-source: only ck.morph.stage.set may mutate these fields. See zh/models/common-fields.md §5.3.3 reducer hard constraint 6 and zh/models/morph.md §2."
     },
     {
       "id": "patch:morph_type",
       "context": "morph_update_payload",
       "since_revision": "2026-06-22",
       "rejection_level": "hard_reject",
-      "replacement": "ck.morph.create",
+      "replacement": "ak.morph.create",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
         "negative_test"
       ],
-      "notes": "ck.morph.update payload's patch MUST NOT include path 'morph_type'. morph_type is create-locked by ck.morph.create; attempts to mutate it after create fail closed with reason morph_type_immutable."
+      "notes": "ak.morph.update payload's patch MUST NOT include path 'morph_type'. morph_type is create-locked by ck.morph.create; attempts to mutate it after create fail closed with reason morph_type_immutable."
     },
     {
       "id": "valid_from",
@@ -907,7 +907,7 @@
       "context": "event_kind",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck.agent.key.authorize",
+      "replacement": "ak.agent.key.authorize",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -920,7 +920,7 @@
       "context": "event_kind",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck.agent.key.revoke",
+      "replacement": "ak.agent.key.revoke",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -933,7 +933,7 @@
       "context": "event_kind",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck.agent.key.rotate",
+      "replacement": "ak.agent.key.rotate",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -946,7 +946,7 @@
       "context": "event_kind",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck.device.authorize",
+      "replacement": "ak.device.authorize",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -959,7 +959,7 @@
       "context": "event_kind",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck.device.revoke",
+      "replacement": "ak.device.revoke",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -972,7 +972,7 @@
       "context": "event_kind",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck.relation.tombstone",
+      "replacement": "ak.relation.tombstone",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -985,7 +985,7 @@
       "context": "event_kind_or_capability_action",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck.read_cursor.advance",
+      "replacement": "ak.read_cursor.advance",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",
@@ -998,7 +998,7 @@
       "context": "schema_id",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "ck.schema.read_cursor.v1",
+      "replacement": "ak.schema.read_cursor.v1",
       "allowed_contexts": [
         "changelog",
         "legacy_migration",

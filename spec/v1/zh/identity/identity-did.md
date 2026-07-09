@@ -425,7 +425,7 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
 
 ```json
 {
-  "kind": "ck.did.proof",
+  "kind": "ak.did.proof",
   "purpose": "account_binding",
   "did": "did:webvh:zQ3sh7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
   "audience": "did:webvh:zA5MZ8QSzW1MFABBM2ubUPuPY:auth.acme.example",
@@ -552,7 +552,7 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
     }
   ],
   "arkret_governance": {
-    "profile": "ck.org.governance.v1",
+    "profile": "ak.org.governance.v1",
     "threshold": {
       "required": 2,
       "eligible_methods": [

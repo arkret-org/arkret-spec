@@ -91,7 +91,7 @@
       ],
       "properties": {
         "schema": {
-          "const": "ck.export.realm.v1"
+          "const": "ak.export.realm.v1"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
@@ -185,7 +185,7 @@
       ],
       "properties": {
         "kind": {
-          "const": "ck.realm.moderation_policy"
+          "const": "ak.realm.moderation_policy"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"

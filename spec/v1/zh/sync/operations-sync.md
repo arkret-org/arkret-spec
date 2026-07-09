@@ -326,7 +326,7 @@ leaf 顺序按 `(actor_id code point ASC, actor_seq ASC, event_id ASC, event_dig
 
 客户端或 peer 验证 range-completeness attestation 时 MUST 按下列顺序执行：
 
-1. 验证承载 EventEnvelope 的签名、`event_digest`、`kind="ck.attestation.range_completeness"` 与 payload `schema="ck.schema.range_completeness_attestation.v1"`；payload schema 校验失败即 `schema_violation`。
+1. 验证承载 EventEnvelope 的签名、`event_digest`、`kind="ak.attestation.range_completeness"` 与 payload `schema="ck.schema.range_completeness_attestation.v1"`；payload schema 校验失败即 `schema_violation`。
 2. 校验 `realm_id`、`from_frontier`、`to_frontier` 与查询 / backfill scope 一致；attestation 的 range MAY over-cover 响应页，但 verifier 只能对本地已经 backfill 完成且落在 attestation range 内的交集声明完整。
 3. 校验 `actor_seq_ranges[]` canonical 排序、无重复 actor、每个 `from_seq_exclusive < to_seq_inclusive`；不满足时 `schema_violation`。
 4. 从本地已验证 accepted store 取出 `(from_frontier, to_frontier]` 且匹配 `actor_seq_ranges[]` 的全部 reducer-input Event，按 §6.4.1 重算 Merkle root；不一致 MUST `range_completeness_root_mismatch`。

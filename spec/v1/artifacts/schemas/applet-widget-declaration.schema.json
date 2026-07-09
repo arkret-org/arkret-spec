@@ -14,7 +14,7 @@
   "properties": {
     "schema": {
       "type": "string",
-      "const": "ck.schema.applet_widget_declaration.v1"
+      "const": "ak.schema.applet_widget_declaration.v1"
     },
     "widget_origin": {
       "type": "string",

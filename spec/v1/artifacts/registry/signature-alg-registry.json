@@ -31,7 +31,7 @@
       "jwk_crv": "P-256",
       "status": "active",
       "role": "v1_optional_interop",
-      "profile_gate": "ck.profile.signature.ecdsa_p256.v1",
+      "profile_gate": "ak.profile.signature.ecdsa_p256.v1",
       "proof_kinds": [
         "detached_jws"
       ],
@@ -45,7 +45,7 @@
       "jwk_crv": null,
       "status": "active",
       "role": "v1_profile_gated_pqc",
-      "profile_gate": "ck.profile.signature.pqc.v1",
+      "profile_gate": "ak.profile.signature.pqc.v1",
       "proof_kinds": [
         "raw_detached_signature"
       ],

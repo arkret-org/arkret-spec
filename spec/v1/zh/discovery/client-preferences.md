@@ -32,8 +32,8 @@ updated: 2026-07-02
 
 ```json
 {
-  "kind": "ck.account_data.set",
-  "key": "ck.client.ui_state",
+  "kind": "ak.account_data.set",
+  "key": "ak.client.ui_state",
   "body": {
     "mode": "dark",
     "accent_color": "#FF5733"
@@ -65,8 +65,8 @@ account data 默认是 holder-private 加密数据，Sync Service 只存不透�
 ```json
 {
   "tags": {
-    "ck.favorite": { "order": "m" },
-    "ck.low_priority": {},
+    "ak.favorite": { "order": "m" },
+    "ak.low_priority": {},
     "org.example.work": {}
   }
 }

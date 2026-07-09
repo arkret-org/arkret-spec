@@ -1,10 +1,10 @@
 {
-  "profile": "ck.vector_group.encoding.v1",
+  "profile": "ak.vector_group.encoding.v1",
   "version": "2026-07-03",
   "description": "Machine-readable negative cursor vectors mirrored from zh/conformance/conformance-vectors.md section 1.16. Complements the positive opaqueness vector ck.vector.encoding.cursor_opaque.core.v1: every case below is a schema-valid-looking ak:cursor: token that a conformant receiver MUST reject before advancing any server-side state. reason_code values are stable codes from error-code-registry.json (invalid_cursor is surfaced under top-level invalid_param).",
   "vectors": [
     {
-      "vector_id": "ck.vector.encoding.reject_invalid_cursor.core.v1",
+      "vector_id": "ak.vector.encoding.reject_invalid_cursor.core.v1",
       "kind": "cursor_negative",
       "cases": [
         {

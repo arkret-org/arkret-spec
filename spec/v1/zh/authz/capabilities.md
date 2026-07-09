@@ -63,16 +63,16 @@ ID 语义：
 ```json schema=schemas/capability-grant.schema.json
 {
   "id": "ak:grant:0196410c-0000-7000-8000-000000000000",
-  "schema": "ck.schema.capability.v1",
+  "schema": "ak.schema.capability.v1",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "issuer": "did:webvh:z6qRDFWgaBgTY3UGDLivJztno:acme.example.com",
   "subject": "did:webvh:z8NNMm8UHw7JcDSuuZd34UisF:agent.copy.example.com",
   "actions": [
-    "ck.strand.read",
-    "ck.strand.update",
-    "ck.message.create",
-    "ck.morph.read",
-    "ck.morph.update"
+    "ak.strand.read",
+    "ak.strand.update",
+    "ak.message.create",
+    "ak.morph.read",
+    "ak.morph.update"
   ],
   "resources": [
     {
@@ -327,7 +327,7 @@ Morph 权限粒度与 Strand 平行(`ck.morph.read` / `ck.morph.create` / `ck.mo
 - `ck.invite.third_party`（签发 3PID 邀请，target=`ck.invite.third_party`）
 - `ck.invite.claim`
 - `ck.invite.revoke`
-- `ck.realm.join.review`（候选 capability，与 candidate join-policy event 配对：审核 `member.application`、签发 `member.application.review`；详见 [`../governance/join-policy.md` §7](../governance/join-policy.md)。capability-action-registry 中 `profile = "ck.profile.candidate.join_policy.v1"`：未声明该候选 profile 的 receiver MUST 按 registry_rules 把本 action 视为 unknown，default risk_tier=high。Join-policy 正式登记前，本 capability 不属于 v1 active conformance。**Candidate / Profile-only**：`ck.realm.join.review` 不是 v1 base conformance 必需 capability；base v1 实现把 review 结果承载为 signed receipt（`review_receipt_digest`），并把 `ck.invite.create.refs[role='join_authorised_by']` 指向该 receipt digest（见 [`../governance/join-policy.md` §7.5](../governance/join-policy.md)）。只有声明 join-policy candidate profile 的部署才需要注册该 capability。）
+- `ck.realm.join.review`（候选 capability，与 candidate join-policy event 配对：审核 `member.application`、签发 `member.application.review`；详见 [`../governance/join-policy.md` §7](../governance/join-policy.md)。capability-action-registry 中 `profile = "ak.profile.candidate.join_policy.v1"`：未声明该候选 profile 的 receiver MUST 按 registry_rules 把本 action 视为 unknown，default risk_tier=high。Join-policy 正式登记前，本 capability 不属于 v1 active conformance。**Candidate / Profile-only**：`ck.realm.join.review` 不是 v1 base conformance 必需 capability；base v1 实现把 review 结果承载为 signed receipt（`review_receipt_digest`），并把 `ck.invite.create.refs[role='join_authorised_by']` 指向该 receipt digest（见 [`../governance/join-policy.md` §7.5](../governance/join-policy.md)）。只有声明 join-policy candidate profile 的部署才需要注册该 capability。）
 - `ck.approval.vote`
 - `ck.moderation.decision`（写入 sealed moderation state cell；详见 [`policy-server.md` §7.1](./policy-server.md)）
 - `ck.moderation.decision.lift`（解除已 sealed 的 moderation 决策）
@@ -732,7 +732,7 @@ Arkret v1 采用 allow-grant + explicit revoke 模型。
 
 ```json
 {
-  "kind": "ck.capability.revoke",
+  "kind": "ak.capability.revoke",
   "payload": {
     "grant_id": "ak:grant:0196410c-0000-7000-8000-000000000000",
     "reason": "contract ended"

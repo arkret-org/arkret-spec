@@ -16,14 +16,14 @@ Astro Starlight 站点，把 `spec/v1/` 渲染成可浏览的协议规范网站�
   registry，否则直接构建失败：
 
   ```mdx
-  <EventKind name="ck.message.create" />
+  <EventKind name="ak.message.create" />
   <EventKindTable category="message" />
   <ErrorCode code="schema_violation" />
   <ErrorCodeTable scope="both" />
-  <OperationRef id="ck.events.submit" />
+  <OperationRef id="ak.events.submit" />
   <OperationTable tier="core" />
   <ProfileMatrix kind="implementation" />
-  <SchemaViewer schema="ck.schema.event_envelope.v1" expand={2} />
+  <SchemaViewer schema="ak.schema.event_envelope.v1" expand={2} />
   <Fixture name="encoding-fixture" path="vectors[0]" />
   <OpenAPIRef />
   ```

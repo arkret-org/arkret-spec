@@ -13,7 +13,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "ck.schema.invite_receive_policy.v1"
+      "const": "ak.schema.invite_receive_policy.v1"
     },
     "subject_id": {
       "$ref": "#/$defs/did",

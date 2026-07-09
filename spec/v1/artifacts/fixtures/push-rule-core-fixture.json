@@ -1,6 +1,6 @@
 {
   "suite": "push_rule_core_consistency",
-  "profile": "ck.profile.push_gateway.blind_wakeup.v1",
+  "profile": "ak.profile.push_gateway.blind_wakeup.v1",
   "description": "Shared v1 push rule vectors for conforming SDK implementations.",
   "cases": [
     {
@@ -60,7 +60,7 @@
     },
     {
       "name": "broadcast_mention_controls_authorized_audience_delivers",
-      "vector_id": "ck.vector.push.broadcast_mention_controls.v1",
+      "vector_id": "ak.vector.push.broadcast_mention_controls.v1",
       "watch_level": "mentions_only",
       "event": {
         "mentions_actor": true
@@ -85,7 +85,7 @@
     },
     {
       "name": "strand_engaged_here_maps_to_receiver_side_mention",
-      "vector_id": "ck.vector.push.strand_engaged_mention.v1",
+      "vector_id": "ak.vector.push.strand_engaged_mention.v1",
       "watch_level": "mentions_only",
       "event": {
         "mentions_actor": true
@@ -274,7 +274,7 @@
     }
   ],
   "covers_vectors": [
-    "ck.vector.push.broadcast_mention_controls.v1",
-    "ck.vector.push.strand_engaged_mention.v1"
+    "ak.vector.push.broadcast_mention_controls.v1",
+    "ak.vector.push.strand_engaged_mention.v1"
   ]
 }

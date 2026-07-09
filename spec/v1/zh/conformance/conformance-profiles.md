@@ -905,7 +905,7 @@ MIMI Interop profile MUST 额外提供：
   "service_type": "principal_server",
   "protocol_version": "1.0",
   "supported_profiles": [
-    "ck.profile.principal_server.v1"
+    "ak.profile.principal_server.v1"
   ],
   "supported_features": [
     "sync_stream",
@@ -913,10 +913,10 @@ MIMI Interop profile MUST 额外提供：
     "plaintext_visibility_classes"
   ],
   "reducer_profiles": [
-    "ck.profile.federation_minimal.v1"
+    "ak.profile.federation_minimal.v1"
   ],
   "schema_profiles": [
-    "ck.schema.event.v1"
+    "ak.schema.event.v1"
   ]
 }
 ```

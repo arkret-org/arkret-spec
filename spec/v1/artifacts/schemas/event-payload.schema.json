@@ -533,7 +533,7 @@
           "if": {
             "properties": {
               "kind": {
-                "const": "ck.content.composite"
+                "const": "ak.content.composite"
               }
             },
             "required": [
@@ -1756,7 +1756,7 @@
       ],
       "properties": {
         "kind": {
-          "const": "ck.account.blocklist"
+          "const": "ak.account.blocklist"
         },
         "owner": {
           "$ref": "#/$defs/did"
@@ -3393,7 +3393,7 @@
           ]
         },
         {
-          "$comment": "ck.message.create payload MUST NOT carry revision_root. Reducer initializes revision_root := id on create; only ck.message.revise events may set it. See zh/models/strand-and-message.md §9 and forbidden-wire-fields.json `revision_root/message_create_payload`.",
+          "$comment": "ak.message.create payload MUST NOT carry revision_root. Reducer initializes revision_root := id on create; only ck.message.revise events may set it. See zh/models/strand-and-message.md §9 and forbidden-wire-fields.json `revision_root/message_create_payload`.",
           "not": {
             "required": [
               "revision_root"
@@ -3673,9 +3673,9 @@
           "items": {
             "type": "string",
             "enum": [
-              "ck.profile.search.client_index.v1",
-              "ck.profile.search.blind_index.v1",
-              "ck.profile.search.forward_private.v1"
+              "ak.profile.search.client_index.v1",
+              "ak.profile.search.blind_index.v1",
+              "ak.profile.search.forward_private.v1"
             ]
           },
           "uniqueItems": true
@@ -5603,7 +5603,7 @@
             },
             "signature": {
               "$ref": "#/$defs/signature_material",
-              "description": "Signature over utf8(\"ck.invite.claim.binding_proof.v1\\n\") || canonical_json({audience, binding_proof: unsigned_binding_proof, claim_nonce, invite_digest, invite_id, realm_id, subject_id, token_commitment, verification_service_did}); unsigned_binding_proof is this object without signature."
+              "description": "Signature over utf8(\"ak.invite.claim.binding_proof.v1\\n\") || canonical_json({audience, binding_proof: unsigned_binding_proof, claim_nonce, invite_digest, invite_id, realm_id, subject_id, token_commitment, verification_service_did}); unsigned_binding_proof is this object without signature."
             }
           },
           "additionalProperties": false
@@ -7927,7 +7927,7 @@
             },
             "activation_commit_ref": {
               "$ref": "#/$defs/event_ref",
-              "description": "ck.mls.commit that covered the activation frontier and created first_auditable_epoch, when the release covers MLS epoch material."
+              "description": "ak.mls.commit that covered the activation frontier and created first_auditable_epoch, when the release covers MLS epoch material."
             },
             "policy_snapshot_digest": {
               "$ref": "#/$defs/hash",
@@ -8173,7 +8173,7 @@
       "properties": {
         "scheme": {
           "type": "string",
-          "const": "ck.media.participant_binding.v1"
+          "const": "ak.media.participant_binding.v1"
         },
         "realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"

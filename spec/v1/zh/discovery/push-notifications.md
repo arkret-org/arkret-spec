@@ -151,7 +151,7 @@ POST /_arkret/edge/push/unregister-device
       "kind": "underride",
       "enabled": true,
       "conditions": [
-        { "kind": "field_match", "field": "kind", "pattern": "ck.message.create" },
+        { "kind": "field_match", "field": "kind", "pattern": "ak.message.create" },
         { "kind": "is_direct_message" }
       ],
       "actions": ["notify", "sound_default"]

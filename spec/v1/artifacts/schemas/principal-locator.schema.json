@@ -15,7 +15,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "ck.schema.principal_locator.v1"
+      "const": "ak.schema.principal_locator.v1"
     },
     "subject_id": {
       "$ref": "#/$defs/did",

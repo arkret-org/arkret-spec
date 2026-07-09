@@ -17,7 +17,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "ck.schema.agent_selector_claim.v1"
+      "const": "ak.schema.agent_selector_claim.v1"
     },
     "controller_subject": {
       "$ref": "#/$defs/did",

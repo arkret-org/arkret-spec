@@ -55,7 +55,7 @@
       ],
       "properties": {
         "schema": {
-          "const": "ck.applet.ghost_actor.provision_request.v1"
+          "const": "ak.applet.ghost_actor.provision_request.v1"
         },
         "applet_id": {
           "$ref": "#/$defs/applet_id"

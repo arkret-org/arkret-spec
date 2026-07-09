@@ -42,7 +42,7 @@ authors:
 
 ```json
 {
-  "kind": "ck.<kind>.<verb>",
+  "kind": "ak.<kind>.<verb>",
   "payload": { "...": "..." }
 }
 ```

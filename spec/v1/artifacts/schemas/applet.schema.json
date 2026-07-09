@@ -10,7 +10,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "ck.schema.applet.v1"
+      "const": "ak.schema.applet.v1"
     },
     "applet_id": {
       "description": "Stable applet identifier. MUST be either a DID or the registered typed-id form ak:applet:<uuidv7>. Arbitrary opaque strings are not valid wire identifiers; bridge-specific aliases belong in namespace / external_ref fields.",

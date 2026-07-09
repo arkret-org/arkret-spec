@@ -15,7 +15,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "ck.schema.event_batch_receipt.v1"
+      "const": "ak.schema.event_batch_receipt.v1"
     },
     "receipt_id": {
       "type": "string",
@@ -80,7 +80,7 @@
     },
     "proofs": {
       "type": "array",
-      "description": "Detached receipt proofs sign canonical_json({context:'ck-receipt-proof-v1', payload_digest: receipt_digest, issuer, verification_method, created_at, domain?, audience?}); context is a fixed signing-context domain tag, not a wire field.",
+      "description": "Detached receipt proofs sign canonical_json({context:'ak.receipt-proof-v1', payload_digest: receipt_digest, issuer, verification_method, created_at, domain?, audience?}); context is a fixed signing-context domain tag, not a wire field.",
       "items": {
         "$ref": "./event-envelope.schema.json#/$defs/proof"
       },

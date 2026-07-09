@@ -72,7 +72,7 @@
     },
     "applies_to_actions": {
       "type": "array",
-      "description": "Optional restriction of a temporal constraint to specific capability actions (e.g. ['ck.message.revise.own', 'ck.message.redact.own']). Action mismatch is neutral in the effect fold: satisfied for effect=allow and not matched for deny/quarantine/require_review.",
+      "description": "Optional restriction of a temporal constraint to specific capability actions (e.g. ['ak.message.revise.own', 'ck.message.redact.own']). Action mismatch is neutral in the effect fold: satisfied for effect=allow and not matched for deny/quarantine/require_review.",
       "minItems": 1,
       "uniqueItems": true,
       "items": {
@@ -892,7 +892,7 @@
         "properties": {
           "applies_to_actions": {
             "contains": {
-              "const": "ck.message.revise.own"
+              "const": "ak.message.revise.own"
             }
           }
         }
@@ -934,7 +934,7 @@
         "properties": {
           "applies_to_actions": {
             "contains": {
-              "const": "ck.message.redact.own"
+              "const": "ak.message.redact.own"
             }
           }
         }

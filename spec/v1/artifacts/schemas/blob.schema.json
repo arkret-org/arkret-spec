@@ -30,8 +30,8 @@
         "scheme": {
           "type": "string",
           "enum": [
-            "ck.blob.whole_file_aead.v1",
-            "ck.blob.stream_aead.v1"
+            "ak.blob.whole_file_aead.v1",
+            "ak.blob.stream_aead.v1"
           ]
         },
         "alg": {
@@ -94,7 +94,7 @@
           "$comment": "whole-file AEAD form: single nonce, single ciphertext_digest",
           "properties": {
             "scheme": {
-              "const": "ck.blob.whole_file_aead.v1"
+              "const": "ak.blob.whole_file_aead.v1"
             },
             "alg": {
               "enum": [
@@ -134,7 +134,7 @@
           "$comment": "streaming chunked AEAD form (STREAM / OAE2): per-segment AEAD, per-object random nonce_prefix",
           "properties": {
             "scheme": {
-              "const": "ck.blob.stream_aead.v1"
+              "const": "ak.blob.stream_aead.v1"
             },
             "alg": {
               "enum": [
@@ -208,7 +208,7 @@
       "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
     },
     "schema": {
-      "const": "ck.schema.blob.v1"
+      "const": "ak.schema.blob.v1"
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id",

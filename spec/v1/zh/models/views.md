@@ -166,7 +166,7 @@ JSON Schema 对 `kind` 与 typed config 执行互斥约束：`collection` / `tim
 ```json
 {
   "id": "ak:view:019641be-0000-7000-8000-000000000000",
-  "schema": "ck.schema.view.v1",
+  "schema": "ak.schema.view.v1",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "created_by": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
   "created_at": "2026-04-26T00:00:00Z",

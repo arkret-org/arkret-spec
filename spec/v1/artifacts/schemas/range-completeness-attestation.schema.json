@@ -23,7 +23,7 @@
       "pattern": "^ak:attestation:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
     },
     "schema": {
-      "const": "ck.schema.range_completeness_attestation.v1",
+      "const": "ak.schema.range_completeness_attestation.v1",
       "description": "Payload schema id (versioned). The owning Event kind in event-kind-registry.json is ck.attestation.range_completeness (NO .v1 suffix on the event kind)."
     },
     "issuer": {

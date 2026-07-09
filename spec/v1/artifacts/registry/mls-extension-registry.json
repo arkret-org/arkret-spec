@@ -12,7 +12,7 @@
       "name": "mls_governance_binding",
       "codepoint": "0xF1C0",
       "status": "active",
-      "profile_id": "ck.profile.mls_governance_binding.full.v1",
+      "profile_id": "ak.profile.mls_governance_binding.full.v1",
       "carries": "Arkret Realm/Circle governance binding inside the MLS GroupContext",
       "iana_codepoint": null,
       "source_refs": [

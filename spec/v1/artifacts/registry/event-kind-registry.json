@@ -36,13 +36,13 @@
   },
   "event_kinds": [
     {
-      "event_kind": "ck.realm.create",
+      "event_kind": "ak.realm.create",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm create",
-      "cell_family": "ck.component.realm.create.v1",
+      "cell_family": "ak.component.realm.create.v1",
       "cell_subject": null,
       "lattice": "ordered_log",
       "bottom": "expose",
@@ -50,7 +50,7 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.realm.update",
+      "event_kind": "ak.realm.update",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
@@ -58,13 +58,13 @@
       "payload": "Realm patch"
     },
     {
-      "event_kind": "ck.realm.upgrade",
+      "event_kind": "ak.realm.upgrade",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm version upgrade",
-      "cell_family": "ck.component.realm.upgrade.v1",
+      "cell_family": "ak.component.realm.upgrade.v1",
       "cell_subject": {
         "type": "profile_ref",
         "field": "payload.target_reducer_profile"
@@ -75,13 +75,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.realm.organization",
+      "event_kind": "ak.realm.organization",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Organization-authorized Realm relationship statement or revocation",
-      "cell_family": "ck.component.realm.organization.v1",
+      "cell_family": "ak.component.realm.organization.v1",
       "cell_subject": {
         "type": "tuple",
         "components": [
@@ -103,13 +103,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.realm.link",
+      "event_kind": "ak.realm.link",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Typed Realm link graph edge. link_kind declares governance / discoverability / import-export / confidential-extension semantics; it is never generic parent/child containment and never implicitly propagates membership, capabilities, history, E2EE keys, retention, or federation policy.",
-      "cell_family": "ck.component.realm.link.v1",
+      "cell_family": "ak.component.realm.link.v1",
       "cell_subject": {
         "type": "tuple",
         "components": [
@@ -131,13 +131,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.realm.policy",
+      "event_kind": "ak.realm.policy",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm access policy reference (policy_id)",
-      "cell_family": "ck.component.realm.policy.v1",
+      "cell_family": "ak.component.realm.policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject",
@@ -145,13 +145,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.realm.join_rule",
+      "event_kind": "ak.realm.join_rule",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm join rule (public/invite/knock/restricted/closed)",
-      "cell_family": "ck.component.realm.join_rule.v1",
+      "cell_family": "ak.component.realm.join_rule.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject",
@@ -159,13 +159,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.realm.history_visibility",
+      "event_kind": "ak.realm.history_visibility",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm history visibility scope",
-      "cell_family": "ck.component.realm.history_visibility.v1",
+      "cell_family": "ak.component.realm.history_visibility.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject",
@@ -173,13 +173,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.realm.discovery",
+      "event_kind": "ak.realm.discovery",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm discoverability state",
-      "cell_family": "ck.component.realm.discovery.v1",
+      "cell_family": "ak.component.realm.discovery.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject",
@@ -187,13 +187,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.realm.preview_policy",
+      "event_kind": "ak.realm.preview_policy",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm preview / peek policy for directory card, stripped state, history stub, and plaintext history snippet projections",
-      "cell_family": "ck.component.realm.preview_policy.v1",
+      "cell_family": "ak.component.realm.preview_policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject",
@@ -201,14 +201,14 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.realm.disappearing_policy",
+      "event_kind": "ak.realm.disappearing_policy",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm disappearing-message expiry policy",
-      "payload_schema": "ck.schema.disappearing_messages.v1",
-      "cell_family": "ck.component.realm.disappearing_policy.v1",
+      "payload_schema": "ak.schema.disappearing_messages.v1",
+      "cell_family": "ak.component.realm.disappearing_policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject",
@@ -216,14 +216,14 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.realm.search_policy",
+      "event_kind": "ak.realm.search_policy",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm privacy-preserving search policy",
-      "payload_schema": "ck.schema.search_service.v1",
-      "cell_family": "ck.component.realm.search_policy.v1",
+      "payload_schema": "ak.schema.search_service.v1",
+      "cell_family": "ak.component.realm.search_policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject",
@@ -231,13 +231,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.realm.set_default_strand",
+      "event_kind": "ak.realm.set_default_strand",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Sets / changes the Realm's authoritative default discussion Strand pointer. payload = {realm_id, strand_id}; reducer projects payload.strand_id into the Realm projection default_strand_id (single authoritative pointer; avoids multi-default dirty state). Reducer MUST verify the referenced strand_id already exists in this Realm (a projected, non-tombstoned Strand); a dangling reference MUST be rejected with failed_precondition. Strand-side is_default is a derived marker (strand_id == realm.default_strand_id), never independent storage; clients discover the default Strand deterministically from the Realm projection default_strand_id or the Strand projection is_default, NOT from any UUID-reuse implementation detail. Authorization is the standard Realm-admin gate (hold ck.realm.admin, or the same-name action ck.realm.set_default_strand).",
-      "cell_family": "ck.component.realm.set_default_strand.v1",
+      "cell_family": "ak.component.realm.set_default_strand.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject",
@@ -245,13 +245,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.realm.policy_server",
+      "event_kind": "ak.realm.policy_server",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm Policy Server binding",
-      "cell_family": "ck.component.realm.policy_server.v1",
+      "cell_family": "ak.component.realm.policy_server.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject",
@@ -259,13 +259,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.realm.policy_components",
+      "event_kind": "ak.realm.policy_components",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Enabled Realm policy components set. Payload MUST carry monotonic policy_revision; reducer rejects rollback or gaps and policy_frontier_digest MUST cover policy_revision.",
-      "cell_family": "ck.component.realm.policy_components.v1",
+      "cell_family": "ak.component.realm.policy_components.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject",
@@ -273,13 +273,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.realm.history_sharing_policy",
+      "event_kind": "ak.realm.history_sharing_policy",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "E2EE history sharing policy",
-      "cell_family": "ck.component.realm.history_sharing_policy.v1",
+      "cell_family": "ak.component.realm.history_sharing_policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject",
@@ -287,13 +287,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.realm.delivery_binding_policy",
+      "event_kind": "ak.realm.delivery_binding_policy",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Constraints on member delivery_binding: which binding_source values are admissible, which recipient services are allowed, which endorsers are required, whether DID Document fallback / unroutable membership are permitted, who may sign rebind. Governs reducer acceptance of ck.member.state{membership=join}.delivery_binding (see governance/join-policy.md §5.1).",
-      "cell_family": "ck.component.realm.delivery_binding_policy.v1",
+      "cell_family": "ak.component.realm.delivery_binding_policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject",
@@ -301,13 +301,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.realm.asset_privacy_policy",
+      "event_kind": "ak.realm.asset_privacy_policy",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm asset privacy policy",
-      "cell_family": "ck.component.realm.asset_privacy_policy.v1",
+      "cell_family": "ak.component.realm.asset_privacy_policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject",
@@ -315,13 +315,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.realm.read_receipt_policy",
+      "event_kind": "ak.realm.read_receipt_policy",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm read receipt disclosure policy (disclosure / visibility / scope_overrides_allowed / allow_child_privacy_tightening_against_required); see zh/discovery/read-receipts.md §2.5 for the compliance-floor escape switch",
-      "cell_family": "ck.component.realm.read_receipt_policy.v1",
+      "cell_family": "ak.component.realm.read_receipt_policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject",
@@ -329,13 +329,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.realm.moderation_policy",
+      "event_kind": "ak.realm.moderation_policy",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm moderation policy (blocklists, allowlists, content filters)",
-      "cell_family": "ck.component.realm.moderation_policy.v1",
+      "cell_family": "ak.component.realm.moderation_policy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject",
@@ -343,13 +343,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.realm.plaintext_visible_services",
+      "event_kind": "ak.realm.plaintext_visible_services",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Plaintext-visible services declaration outside E2EE boundary",
-      "cell_family": "ck.component.realm.plaintext_visible_services.v1",
+      "cell_family": "ak.component.realm.plaintext_visible_services.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject",
@@ -357,13 +357,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.realm.media_service",
+      "event_kind": "ak.realm.media_service",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Media Service (TURN/SFU/MCU + ICE) binding",
-      "cell_family": "ck.component.realm.media_service.v1",
+      "cell_family": "ak.component.realm.media_service.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject",
@@ -371,13 +371,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.realm.schema",
+      "event_kind": "ak.realm.schema",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm schema_refs declaration",
-      "cell_family": "ck.component.realm.schema.v1",
+      "cell_family": "ak.component.realm.schema.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject",
@@ -385,13 +385,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.realm.inheritance_policy",
+      "event_kind": "ak.realm.inheritance_policy",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Per-parent inheritance policy; one entry per source Realm",
-      "cell_family": "ck.component.realm.inheritance_policy.v1",
+      "cell_family": "ak.component.realm.inheritance_policy.v1",
       "cell_subject": {
         "type": "id:realm",
         "field": "payload.source_realm_id"
@@ -402,14 +402,14 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.realm.archive",
+      "event_kind": "ak.realm.archive",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm archive lifecycle facet (reversible boolean)",
       "lifecycle_modality": "reversible",
-      "cell_family": "ck.component.realm.archive.v1",
+      "cell_family": "ak.component.realm.archive.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject",
@@ -417,14 +417,14 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.realm.freeze",
+      "event_kind": "ak.realm.freeze",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm freeze lifecycle facet (reversible boolean)",
       "lifecycle_modality": "reversible",
-      "cell_family": "ck.component.realm.freeze.v1",
+      "cell_family": "ak.component.realm.freeze.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject",
@@ -432,14 +432,14 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.realm.tombstone",
+      "event_kind": "ak.realm.tombstone",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm tombstone lifecycle facet (terminal pointer to successor)",
       "lifecycle_modality": "terminal",
-      "cell_family": "ck.component.realm.tombstone.v1",
+      "cell_family": "ak.component.realm.tombstone.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject",
@@ -447,14 +447,14 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.realm.destroy",
+      "event_kind": "ak.realm.destroy",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Realm destroy lifecycle facet (terminal decommission marker)",
       "lifecycle_modality": "terminal",
-      "cell_family": "ck.component.realm.destroy.v1",
+      "cell_family": "ak.component.realm.destroy.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject",
@@ -462,13 +462,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.circle.create",
+      "event_kind": "ak.circle.create",
       "category": "circle",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Circle create (intra-Realm scoped event/message boundary). Initializes independent MLS group and epoch-0 governance binding only when encryption_profile=mls_rfc9420. See zh/models/circle.md §3, §5.",
-      "cell_family": "ck.component.circle.create.v1",
+      "cell_family": "ak.component.circle.create.v1",
       "cell_subject": null,
       "lattice": "ordered_log",
       "bottom": "expose",
@@ -476,7 +476,7 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.circle.update",
+      "event_kind": "ak.circle.update",
       "category": "circle",
       "status": "active",
       "wire_scope": "durable_event",
@@ -484,7 +484,7 @@
       "payload": "Circle patch (ck.patch.v1 with path NOT containing realm_id / encryption_profile). Modifies title / summary / display / directory_visibility / join_rule / history_visibility."
     },
     {
-      "event_kind": "ck.circle.archive",
+      "event_kind": "ak.circle.archive",
       "category": "circle",
       "status": "active",
       "wire_scope": "durable_event",
@@ -492,7 +492,7 @@
       "payload": "Circle archive lifecycle facet (active -> archived)."
     },
     {
-      "event_kind": "ck.circle.restore",
+      "event_kind": "ak.circle.restore",
       "category": "circle",
       "status": "active",
       "wire_scope": "durable_event",
@@ -500,14 +500,14 @@
       "payload": "Circle restore lifecycle facet (archived -> active)."
     },
     {
-      "event_kind": "ck.circle.tombstone",
+      "event_kind": "ak.circle.tombstone",
       "category": "circle",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Circle tombstone (terminal). Triggers lifecycle cascade per zh/models/circle.md §9.2.",
       "lifecycle_modality": "terminal",
-      "cell_family": "ck.component.circle.tombstone.v1",
+      "cell_family": "ak.component.circle.tombstone.v1",
       "cell_subject": null,
       "lattice": "cas_register",
       "bottom": "reject",
@@ -515,13 +515,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.circle.member.state",
+      "event_kind": "ak.circle.member.state",
       "category": "circle",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Circle membership state. Uses the same membership_state enum as ck.member.state (invite/join/knock/leave/ban), scoped to a Circle. Reducer MUST first validate the target actor is a parent Realm `join` member, otherwise failed_precondition reason=circle_member_must_be_realm_member. See zh/models/circle.md §9.1.",
-      "cell_family": "ck.component.circle.member.v1",
+      "cell_family": "ak.component.circle.member.v1",
       "cell_subject": {
         "type": "composite",
         "components": [
@@ -535,7 +535,7 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.circle.seal_commit",
+      "event_kind": "ak.circle.seal_commit",
       "category": "circle",
       "status": "active",
       "wire_scope": "durable_event",
@@ -543,7 +543,7 @@
       "payload": "Reducer-derived: Circle sub-seal commits opaque sub_seal_head_digest to the Realm Seal stream at the Circle's profile-defined cadence. MUST use time-based ticks + empty-batch commitment to avoid leaking activity frequency. See zh/models/circle.md §10.2."
     },
     {
-      "event_kind": "ck.organization.discovery",
+      "event_kind": "ak.organization.discovery",
       "category": "organization",
       "status": "active",
       "wire_scope": "durable_event",
@@ -552,7 +552,7 @@
       "payload": "Organization discoverability state"
     },
     {
-      "event_kind": "ck.actor.discovery",
+      "event_kind": "ak.actor.discovery",
       "category": "actor",
       "status": "active",
       "wire_scope": "durable_event",
@@ -561,7 +561,7 @@
       "payload": "Actor discoverability state"
     },
     {
-      "event_kind": "ck.applet.discovery",
+      "event_kind": "ak.applet.discovery",
       "category": "applet",
       "status": "active",
       "wire_scope": "durable_event",
@@ -570,7 +570,7 @@
       "payload": "Applet discoverability state"
     },
     {
-      "event_kind": "ck.handle.discovery",
+      "event_kind": "ak.handle.discovery",
       "category": "handle",
       "status": "active",
       "wire_scope": "durable_event",
@@ -579,19 +579,19 @@
       "payload": "Handle discoverability state"
     },
     {
-      "event_kind": "ck.organization.moderation_policy",
+      "event_kind": "ak.organization.moderation_policy",
       "category": "organization",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "capability_gated",
       "admission_capabilities": [
-        "ck.policy.manage"
+        "ak.policy.manage"
       ],
       "payload": "Organization moderation policy state"
     },
     {
-      "event_kind": "ck.did.proof",
+      "event_kind": "ak.did.proof",
       "category": "identity",
       "status": "active",
       "wire_scope": "durable_event",
@@ -600,7 +600,7 @@
       "payload": "DID proof object or event"
     },
     {
-      "event_kind": "ck.identity.disclosure_policy",
+      "event_kind": "ak.identity.disclosure_policy",
       "category": "identity",
       "status": "active",
       "wire_scope": "durable_event",
@@ -609,7 +609,7 @@
       "payload": "Identity disclosure policy"
     },
     {
-      "event_kind": "ck.identity.disclosure_receipt",
+      "event_kind": "ak.identity.disclosure_receipt",
       "category": "identity",
       "status": "active",
       "wire_scope": "durable_event",
@@ -618,7 +618,7 @@
       "payload": "Identity disclosure receipt"
     },
     {
-      "event_kind": "ck.identity.presentation_request",
+      "event_kind": "ak.identity.presentation_request",
       "category": "identity",
       "status": "active",
       "wire_scope": "durable_event",
@@ -627,7 +627,7 @@
       "payload": "Presentation request"
     },
     {
-      "event_kind": "ck.identity.presentation_response",
+      "event_kind": "ak.identity.presentation_response",
       "category": "identity",
       "status": "active",
       "wire_scope": "durable_event",
@@ -636,7 +636,7 @@
       "payload": "Presentation response"
     },
     {
-      "event_kind": "ck.identity.accountability_grant",
+      "event_kind": "ak.identity.accountability_grant",
       "category": "identity",
       "status": "active",
       "wire_scope": "durable_event",
@@ -644,7 +644,7 @@
       "payload": "Issuer-signed endorsement that a subject DID (typically an agent / service / hosted actor) is accountable_principal_ids the issuer for a declared scope (employment / contracted_service / agent_operator / etc.). Required to verify `Actor Profile.accountable_principal_ids[]` entries; reducer strips unverified DIDs from accountable_principal_ids. See zh/models/actor.md §3.3.1."
     },
     {
-      "event_kind": "ck.schema.define",
+      "event_kind": "ak.schema.define",
       "category": "schema",
       "status": "active",
       "wire_scope": "durable_event",
@@ -652,7 +652,7 @@
       "payload": "Schema definition"
     },
     {
-      "event_kind": "ck.schema.update",
+      "event_kind": "ak.schema.update",
       "category": "schema",
       "status": "active",
       "wire_scope": "durable_event",
@@ -660,7 +660,7 @@
       "payload": "Schema patch"
     },
     {
-      "event_kind": "ck.policy.set",
+      "event_kind": "ak.policy.set",
       "category": "policy",
       "status": "active",
       "wire_scope": "durable_event",
@@ -668,13 +668,13 @@
       "payload": "Policy object set"
     },
     {
-      "event_kind": "ck.policy.rule",
+      "event_kind": "ak.policy.rule",
       "category": "policy",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Policy rule state",
-      "cell_family": "ck.component.policy.rule.v1",
+      "cell_family": "ak.component.policy.rule.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.rule_id"
@@ -685,7 +685,7 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.policy.action",
+      "event_kind": "ak.policy.action",
       "category": "policy",
       "status": "active",
       "wire_scope": "durable_event",
@@ -693,13 +693,13 @@
       "payload": "Policy-gated action proposal or execution"
     },
     {
-      "event_kind": "ck.notary.fault.equivocation",
+      "event_kind": "ak.notary.fault.equivocation",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Notary equivocation evidence (Control Move). Payload carries signer_id plus the two conflicting Seal wire objects: same (realm_id, notary_seq) slot with different canonical bytes, or a notary_seq=k+1 Seal that does not descend from the same signer's notary_seq=k Seal (authz/event-auth-state-resolution.md section 7.1). Admission is verification-only: any Realm member MAY submit and the two conflicting notary signatures are the complete authorization; no capability grant is consulted and reducer MUST NOT require one. Reducer MUST re-verify both signatures and the slot rule, then add a per-signer fault record to the notary_fault cell. Once a fault record is accepted: receivers MUST reject later Seals signed by the fault signer, the two conflicting Seals and their descendants enter fork_quarantine, and Realm-wide pause applies only when no eligible signer remains.",
-      "cell_family": "ck.component.notary_fault.v1",
+      "cell_family": "ak.component.notary_fault.v1",
       "cell_subject": {
         "type": "tuple",
         "components": [
@@ -717,13 +717,13 @@
       "admission": "crypto_verifiable"
     },
     {
-      "event_kind": "ck.notary.fault.censorship",
+      "event_kind": "ak.notary.fault.censorship",
       "category": "realm",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Notary censorship evidence (Control Move). Payload carries signer_id, the signed control-plane receipt, the seal_ref of the Seal that was obliged to include / signed-reject / defer the pending Control Move, a control_event_set_root non-membership proof for the censored event digest, and the missing rejection-or-defer proof (authz/event-auth-state-resolution.md section 7.2). Admission is verification-only: the receipt holder MAY submit; the receipt signature plus the non-membership proof are the complete authorization. This evidence does NOT automatically disqualify the notary: reducer adds an audit fault record that MUST raise governance alarms, feeds inclusion-list / recovery obligations, and is evaluated by governance or the genesis recovery path.",
-      "cell_family": "ck.component.notary_fault.v1",
+      "cell_family": "ak.component.notary_fault.v1",
       "cell_subject": {
         "type": "tuple",
         "components": [
@@ -741,17 +741,17 @@
       "admission": "crypto_verifiable"
     },
     {
-      "event_kind": "ck.member.state",
+      "event_kind": "ak.member.state",
       "category": "membership",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "capability_gated",
       "admission_capabilities": [
-        "ck.realm.admin"
+        "ak.realm.admin"
       ],
       "payload": "Realm membership state",
-      "cell_family": "ck.component.member.state.v1",
+      "cell_family": "ak.component.member.state.v1",
       "cell_subject": {
         "type": "did",
         "field": "payload.actor_id"
@@ -838,14 +838,14 @@
       }
     },
     {
-      "event_kind": "ck.member.identity.update",
+      "event_kind": "ak.member.identity.update",
       "category": "membership",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Realm-scoped MemberIdentity segment replacement event. Append-only log entry that may supersede prior ck.member.identity.update events via payload.replaces[] without overloading ck.profile.update patch semantics.",
-      "cell_family": "ck.component.member.identity.v1",
+      "cell_family": "ak.component.member.identity.v1",
       "cell_subject": {
         "type": "composite",
         "components": [
@@ -860,7 +860,7 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.strand.create",
+      "event_kind": "ak.strand.create",
       "category": "strand",
       "status": "active",
       "wire_scope": "durable_event",
@@ -868,13 +868,13 @@
       "payload": "Strand create"
     },
     {
-      "event_kind": "ck.strand.update",
+      "event_kind": "ak.strand.update",
       "category": "strand",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Strand patch",
-      "cell_family": "ck.component.strand.metadata.v1",
+      "cell_family": "ak.component.strand.metadata.v1",
       "cell_subject": {
         "type": "id:strand",
         "field": "payload.strand_id"
@@ -885,7 +885,7 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.strand.archive",
+      "event_kind": "ak.strand.archive",
       "category": "strand",
       "status": "active",
       "wire_scope": "durable_event",
@@ -893,7 +893,7 @@
       "payload": "Strand archive"
     },
     {
-      "event_kind": "ck.strand.restore",
+      "event_kind": "ak.strand.restore",
       "category": "strand",
       "status": "active",
       "wire_scope": "durable_event",
@@ -901,13 +901,13 @@
       "payload": "Strand restore"
     },
     {
-      "event_kind": "ck.strand.stage.set",
+      "event_kind": "ak.strand.stage.set",
       "category": "strand",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Strand business-progression stage transition. Single source of truth for mutating Strand.stage / Strand.stage_changed_at; ck.strand.update patch on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on the Strand's discussion track that 'references' this event, and the event log's own actor_id / created_at is the audit source. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=strand_already_terminal; state=archived yields strand_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at. A per-Realm workflow profile MAY narrow which transitions are legal beyond these hard invariants.",
-      "cell_family": "ck.component.strand.stage.v1",
+      "cell_family": "ak.component.strand.stage.v1",
       "cell_subject": {
         "type": "id:strand",
         "field": "payload.strand_id"
@@ -918,13 +918,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.strand.tracks.update",
+      "event_kind": "ak.strand.tracks.update",
       "category": "strand",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Unified Strand tracks patch. payload.patch uses ck.patch.v1 against the Strand.tracks map: keys are track names (e.g. `synthesis`, `discussion`), values are patch ops that may toggle enabled, set is_primary, or modify profile / metadata on a track entry. Atomic across multiple tracks.",
-      "cell_family": "ck.component.strand.tracks.v1",
+      "cell_family": "ak.component.strand.tracks.v1",
       "cell_subject": {
         "type": "id:strand",
         "field": "payload.strand_id"
@@ -935,13 +935,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.strand.move",
+      "event_kind": "ak.strand.move",
       "category": "strand",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Strand move between Spaces (target_space_id in payload). Writes a cas_register cell keyed by (board_space_id, strand_id); the contains Relation list_space_id->strand_id is derived from cell value, not a separate truth source. Plane ruling (CBA): ck.component.strand.position.v1 defaults to sealed=true (control plane), so ck.strand.move is a Control Move carrying seal_basis; Realm schema MAY redeclare the cell family as data-plane mv_register + user-pick or per-object sequencer per authz/event-auth-state-resolution.md section 9.4 and models/realm-and-space.md section 3.6.",
-      "cell_family": "ck.component.strand.position.v1",
+      "cell_family": "ak.component.strand.position.v1",
       "cell_subject": {
         "type": "tuple",
         "components": [
@@ -963,13 +963,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.strand.reorder",
+      "event_kind": "ak.strand.reorder",
       "category": "strand",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Strand reorder within Space. Writes the same cell as ck.strand.move; effect.list_space_id MUST equal head_eq.list_space_id (rank-only update). Plane ruling follows ck.strand.move: same cell family, same default sealed=true control-plane declaration (models/realm-and-space.md section 3.6).",
-      "cell_family": "ck.component.strand.position.v1",
+      "cell_family": "ak.component.strand.position.v1",
       "cell_subject": {
         "type": "tuple",
         "components": [
@@ -991,13 +991,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.strand.watch.set",
+      "event_kind": "ak.strand.watch.set",
       "category": "discussion",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Set or clear a per-(strand, actor) watch subscription. Writes a cas_register cell keyed by (strand_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds ck.strand.watch.set.others. Cross-actor writes MUST carry refs[role=audit_pair] to a same-batch ck.audit.accessed event with access_kind=watch_set_others. The watches Relation (actor --watches--> strand) is a derived projection of this cell, not a separate truth source — direct ck.relation.create relation_kind=watches MUST schema_violation. See models/strand-and-message.md §8.",
-      "cell_family": "ck.component.strand.watch.v1",
+      "cell_family": "ak.component.strand.watch.v1",
       "cell_subject": {
         "type": "tuple",
         "components": [
@@ -1019,7 +1019,7 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.space.create",
+      "event_kind": "ak.space.create",
       "category": "space",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1027,7 +1027,7 @@
       "payload": "Space create (board / list / swimlane / calendar bucket / etc.)"
     },
     {
-      "event_kind": "ck.space.update",
+      "event_kind": "ak.space.update",
       "category": "space",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1035,13 +1035,13 @@
       "payload": "Space metadata update (title, rank, kind-specific fields)"
     },
     {
-      "event_kind": "ck.space.parent",
+      "event_kind": "ak.space.parent",
       "category": "space",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Space parent declaration. Parent is another ak:space: or null; cross-Realm parent is navigation only and never propagates Realm membership, capabilities, history, E2EE keys, retention, or federation policy.",
-      "cell_family": "ck.component.space.parent.v1",
+      "cell_family": "ak.component.space.parent.v1",
       "cell_subject": {
         "type": "id:space",
         "field": "payload.space_id"
@@ -1052,7 +1052,7 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.space.archive",
+      "event_kind": "ak.space.archive",
       "category": "space",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1060,7 +1060,7 @@
       "payload": "Space archive (UI-level grouping archive; contained Strands MUST be relocated or follow archive)"
     },
     {
-      "event_kind": "ck.space.restore",
+      "event_kind": "ak.space.restore",
       "category": "space",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1068,7 +1068,7 @@
       "payload": "Space restore (transition state archived -> active; only valid when current state == archived; tombstoned Spaces MUST NOT be restored)"
     },
     {
-      "event_kind": "ck.space.tombstone",
+      "event_kind": "ak.space.tombstone",
       "category": "space",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1076,13 +1076,13 @@
       "payload": "Space tombstone (irreversible; contained Strands MUST be relocated before)"
     },
     {
-      "event_kind": "ck.message.create",
+      "event_kind": "ak.message.create",
       "category": "message",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Message create",
-      "cell_family": "ck.component.strand.discussion.timeline.v1",
+      "cell_family": "ak.component.strand.discussion.timeline.v1",
       "cell_subject": {
         "type": "id:strand",
         "field": "payload.strand_id"
@@ -1093,7 +1093,7 @@
       "sealed": false
     },
     {
-      "event_kind": "ck.message.revise",
+      "event_kind": "ak.message.revise",
       "category": "message",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1101,7 +1101,7 @@
       "payload": "Message edit patch"
     },
     {
-      "event_kind": "ck.message.redact",
+      "event_kind": "ak.message.redact",
       "category": "message",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1109,13 +1109,13 @@
       "payload": "Message-scoped redaction; does not grant generic redaction authority"
     },
     {
-      "event_kind": "ck.reaction.add",
+      "event_kind": "ak.reaction.add",
       "category": "message",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Reaction add",
-      "cell_family": "ck.component.message.reactions.v1",
+      "cell_family": "ak.component.message.reactions.v1",
       "cell_subject": {
         "type": "id:message",
         "field": "payload.target_ref"
@@ -1126,13 +1126,13 @@
       "sealed": false
     },
     {
-      "event_kind": "ck.reaction.remove",
+      "event_kind": "ak.reaction.remove",
       "category": "message",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Reaction remove",
-      "cell_family": "ck.component.message.reactions.v1",
+      "cell_family": "ak.component.message.reactions.v1",
       "cell_subject": {
         "type": "id:message",
         "field": "payload.target_ref"
@@ -1143,23 +1143,23 @@
       "sealed": false
     },
     {
-      "event_kind": "ck.rsvp.set",
+      "event_kind": "ak.rsvp.set",
       "category": "strand",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Calendar event RSVP set",
-      "payload_schema": "ck.schema.rsvp.v1"
+      "payload_schema": "ak.schema.rsvp.v1"
     },
     {
-      "event_kind": "ck.pin.add",
+      "event_kind": "ak.pin.add",
       "category": "discussion",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Shared pin add or update",
-      "payload_schema": "ck.schema.pin.v1",
-      "cell_family": "ck.component.pin.v1",
+      "payload_schema": "ak.schema.pin.v1",
+      "cell_family": "ak.component.pin.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.pin_scope.id"
@@ -1170,14 +1170,14 @@
       "sealed": false
     },
     {
-      "event_kind": "ck.pin.remove",
+      "event_kind": "ak.pin.remove",
       "category": "discussion",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Shared pin remove",
-      "payload_schema": "ck.schema.pin.v1",
-      "cell_family": "ck.component.pin.v1",
+      "payload_schema": "ak.schema.pin.v1",
+      "cell_family": "ak.component.pin.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.pin_scope.id"
@@ -1188,14 +1188,14 @@
       "sealed": false
     },
     {
-      "event_kind": "ck.pin.reorder",
+      "event_kind": "ak.pin.reorder",
       "category": "discussion",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Shared pin rank update",
-      "payload_schema": "ck.schema.pin.v1",
-      "cell_family": "ck.component.pin.v1",
+      "payload_schema": "ak.schema.pin.v1",
+      "cell_family": "ak.component.pin.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.pin_scope.id"
@@ -1206,7 +1206,7 @@
       "sealed": false
     },
     {
-      "event_kind": "ck.redaction",
+      "event_kind": "ak.redaction",
       "category": "message",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1214,7 +1214,7 @@
       "payload": "Generic redaction envelope for non-message objects/events and profile-declared content trimming"
     },
     {
-      "event_kind": "ck.morph.create",
+      "event_kind": "ak.morph.create",
       "category": "morph",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1222,7 +1222,7 @@
       "payload": "Morph create"
     },
     {
-      "event_kind": "ck.morph.update",
+      "event_kind": "ak.morph.update",
       "category": "morph",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1230,7 +1230,7 @@
       "payload": "Morph patch"
     },
     {
-      "event_kind": "ck.morph.archive",
+      "event_kind": "ak.morph.archive",
       "category": "morph",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1238,7 +1238,7 @@
       "payload": "Morph archive"
     },
     {
-      "event_kind": "ck.morph.restore",
+      "event_kind": "ak.morph.restore",
       "category": "morph",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1246,7 +1246,7 @@
       "payload": "Morph restore"
     },
     {
-      "event_kind": "ck.morph.schema_migrate",
+      "event_kind": "ak.morph.schema_migrate",
       "category": "morph",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1254,13 +1254,13 @@
       "payload": "Morph schema_refs[] migration. First-class event for evolving a Morph's schema_refs[] without bypassing audit / capability gates. Carries (from_schema_refs[], to_schema_refs[], compatibility_class, migration_evidence?). Required capability ck.morph.schema_migrate (high risk tier; see capability-action-registry.json). compatibility_class = additive | breaking | transformation; core reducers MUST reject breaking/transformation unless the Realm declares ck.profile.morph.schema_migration_transformations.v1. See zh/models/morph.md §4.1 S3."
     },
     {
-      "event_kind": "ck.morph.stage.set",
+      "event_kind": "ak.morph.stage.set",
       "category": "morph",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Morph business-progression stage transition. Single source of truth for mutating Morph.stage / Morph.stage_changed_at; ck.morph.update / ck.morph.schema_migrate patches on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on an associated discussion track that 'references' this event. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=morph_already_terminal; state=archived yields morph_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at.",
-      "cell_family": "ck.component.morph.stage.v1",
+      "cell_family": "ak.component.morph.stage.v1",
       "cell_subject": {
         "type": "id:morph",
         "field": "payload.morph_id"
@@ -1271,7 +1271,7 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.relation.create",
+      "event_kind": "ak.relation.create",
       "category": "relation",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1279,7 +1279,7 @@
       "payload": "Relation create"
     },
     {
-      "event_kind": "ck.relation.update",
+      "event_kind": "ak.relation.update",
       "category": "relation",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1287,7 +1287,7 @@
       "payload": "Relation patch"
     },
     {
-      "event_kind": "ck.relation.tombstone",
+      "event_kind": "ak.relation.tombstone",
       "category": "relation",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1295,7 +1295,7 @@
       "payload": "Relation tombstone"
     },
     {
-      "event_kind": "ck.container.move_item",
+      "event_kind": "ak.container.move_item",
       "category": "relation",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1303,7 +1303,7 @@
       "payload": "Profile-declared container item move"
     },
     {
-      "event_kind": "ck.container.rebalance",
+      "event_kind": "ak.container.rebalance",
       "category": "relation",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1311,13 +1311,13 @@
       "payload": "Profile-declared container rank rebalance"
     },
     {
-      "event_kind": "ck.view.create",
+      "event_kind": "ak.view.create",
       "category": "view",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "View create",
-      "cell_family": "ck.component.view.create.v1",
+      "cell_family": "ak.component.view.create.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.view_id"
@@ -1328,13 +1328,13 @@
       "sealed": false
     },
     {
-      "event_kind": "ck.view.update",
+      "event_kind": "ak.view.update",
       "category": "view",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "View update",
-      "cell_family": "ck.component.view.update.v1",
+      "cell_family": "ak.component.view.update.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.view_id"
@@ -1345,13 +1345,13 @@
       "sealed": false
     },
     {
-      "event_kind": "ck.view.reconcile",
+      "event_kind": "ak.view.reconcile",
       "category": "view",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "View schema or definition sync",
-      "cell_family": "ck.component.view.reconcile.v1",
+      "cell_family": "ak.component.view.reconcile.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.view_id"
@@ -1362,7 +1362,7 @@
       "sealed": false
     },
     {
-      "event_kind": "ck.agent.endpoint",
+      "event_kind": "ak.agent.endpoint",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1371,13 +1371,13 @@
       "payload": "Agent protocol endpoint declaration"
     },
     {
-      "event_kind": "ck.agent.key.authorize",
+      "event_kind": "ak.agent.key.authorize",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Agent signing key authorization. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_authorize_payload and bind agent_principal_id, key_id, verification_method, accountable_principal_id, agent_key_scope, audience, issued_at, expires_at, and approval_evidence.",
-      "cell_family": "ck.component.agent.key.v1",
+      "cell_family": "ak.component.agent.key.v1",
       "cell_subject": {
         "type": "composite",
         "components": [
@@ -1391,13 +1391,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.agent.key.revoke",
+      "event_kind": "ak.agent.key.revoke",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Agent signing key revocation. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_revoke_payload and bind agent_principal_id, key_id, revoked_at, and revoked_by; the revocation's control-plane basis is the Control Move envelope seal_basis, and its cutoff is the accepted Seal covering the Move.",
-      "cell_family": "ck.component.agent.key.v1",
+      "cell_family": "ak.component.agent.key.v1",
       "cell_subject": {
         "type": "composite",
         "components": [
@@ -1411,13 +1411,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.agent.key.rotate",
+      "event_kind": "ak.agent.key.rotate",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Agent signing key rotation. Payload MUST validate as event-payload.schema.json#/$defs/agent_key_rotate_payload; key_id names the retiring key and replacement_key_id names the new key under the same accountable_principal_id with equivalent or narrower agent_key_scope.",
-      "cell_family": "ck.component.agent.key.v1",
+      "cell_family": "ak.component.agent.key.v1",
       "cell_subject": {
         "type": "composite",
         "components": [
@@ -1431,13 +1431,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.self.agent.pause",
+      "event_kind": "ak.self.agent.pause",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Agent lifecycle transition to paused state (CKP-0008 §4.11). Auth Server MUST reject new agent session grants for this principal; existing tokens fail closed within the revocation freshness window. Reversible via ck.agent.resume.",
-      "cell_family": "ck.component.agent.status.v1",
+      "cell_family": "ak.component.agent.status.v1",
       "cell_subject": {
         "type": "did",
         "field": "payload.agent_principal_id"
@@ -1448,13 +1448,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.self.agent.resume",
+      "event_kind": "ak.self.agent.resume",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Agent lifecycle transition from paused to active (CKP-0008 §4.11). Reducer MUST re-validate controller, agent, key, capability, Realm policy, and accountability_grant freshness; any failure rejects the resume.",
-      "cell_family": "ck.component.agent.status.v1",
+      "cell_family": "ak.component.agent.status.v1",
       "cell_subject": {
         "type": "did",
         "field": "payload.agent_principal_id"
@@ -1465,13 +1465,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.self.agent.deactivate",
+      "event_kind": "ak.self.agent.deactivate",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Agent lifecycle terminal state (CKP-0008 §4.11). MUST fan-out ck.agent.key.revoke for all active agent keys, ck.capability.revoke for all active grants, and runtime endpoint revocation. Terminal — no transition out.",
-      "cell_family": "ck.component.agent.status.v1",
+      "cell_family": "ak.component.agent.status.v1",
       "cell_subject": {
         "type": "did",
         "field": "payload.agent_principal_id"
@@ -1482,7 +1482,7 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.agent.draft.propose",
+      "event_kind": "ak.agent.draft.propose",
       "category": "agent",
       "status": "active",
       "wire_scope": "actor_private_event",
@@ -1490,7 +1490,7 @@
       "payload": "Agent-initiated draft proposal (CKP-0008 §4.8). Submitted by agent runtime; Principal Server materializes accepted drafts into controller-owned ck.agent.draft.v1 account-data after capability / policy / accountability / risk check. MUST NOT enter shared Realm history."
     },
     {
-      "event_kind": "ck.agent.action_request",
+      "event_kind": "ak.agent.action_request",
       "category": "agent",
       "status": "active",
       "wire_scope": "actor_private_event",
@@ -1498,7 +1498,7 @@
       "payload": "Agent-initiated action request (CKP-0008 §4.8). Carries proposed_action, target descriptor, and content digest. Awaits controller approval before generating shared event."
     },
     {
-      "event_kind": "ck.agent.action_approve",
+      "event_kind": "ak.agent.action_approve",
       "category": "agent",
       "status": "active",
       "wire_scope": "actor_private_event",
@@ -1506,7 +1506,7 @@
       "payload": "Controller approval of a draft / action request (CKP-0008 §4.8.1). Binds draft_id, content digest, target descriptor, proposed_action, approved payload digest, approval expiry, and single-use nonce. Publish executor MUST atomic-consume the nonce; reuse fails closed (reason=approval_already_consumed)."
     },
     {
-      "event_kind": "ck.agent.action_reject",
+      "event_kind": "ak.agent.action_reject",
       "category": "agent",
       "status": "active",
       "wire_scope": "actor_private_event",
@@ -1514,7 +1514,7 @@
       "payload": "Controller rejection of a draft / action request (CKP-0008 §4.8.1). Draft transitions to rejected; agent runtime MUST NOT continue publish attempts."
     },
     {
-      "event_kind": "ck.agent.interop_session.start",
+      "event_kind": "ak.agent.interop_session.start",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1522,7 +1522,7 @@
       "payload": "Agent protocol session start"
     },
     {
-      "event_kind": "ck.agent.interop_session.status",
+      "event_kind": "ak.agent.interop_session.status",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1530,7 +1530,7 @@
       "payload": "Agent protocol session status"
     },
     {
-      "event_kind": "ck.agent.interop_session.result",
+      "event_kind": "ak.agent.interop_session.result",
       "category": "agent",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1538,13 +1538,13 @@
       "payload": "Agent protocol session result"
     },
     {
-      "event_kind": "ck.capability.grant",
+      "event_kind": "ak.capability.grant",
       "category": "authz",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Capability grant",
-      "cell_family": "ck.component.capability.grant.v1",
+      "cell_family": "ak.component.capability.grant.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.grant_id"
@@ -1555,13 +1555,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.capability.delegate",
+      "event_kind": "ak.capability.delegate",
       "category": "authz",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Capability delegation",
-      "cell_family": "ck.component.capability.delegate.v1",
+      "cell_family": "ak.component.capability.delegate.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.grant_id"
@@ -1572,13 +1572,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.capability.revoke",
+      "event_kind": "ak.capability.revoke",
       "category": "authz",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Capability revocation",
-      "cell_family": "ck.component.capability.grant.v1",
+      "cell_family": "ak.component.capability.grant.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.grant_id"
@@ -1589,13 +1589,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.capability.derived",
+      "event_kind": "ak.capability.derived",
       "category": "authz",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Derived capability state",
-      "cell_family": "ck.component.capability.derived.v1",
+      "cell_family": "ak.component.capability.derived.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.grant_id"
@@ -1613,7 +1613,7 @@
       "reducer_input": true,
       "admission": "service_attested",
       "payload": "Session grant",
-      "cell_family": "ck.component.session.grant.v1",
+      "cell_family": "ak.component.session.grant.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.grant_id"
@@ -1624,14 +1624,14 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.consent.grant",
+      "event_kind": "ak.consent.grant",
       "category": "consent",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Holder-private consent declaration: 'I consent to receive <consent_scope> from <peer>'",
-      "cell_family": "ck.component.consent.grant.v1",
+      "cell_family": "ak.component.consent.grant.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.consent_id"
@@ -1642,14 +1642,14 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.consent.revoke",
+      "event_kind": "ak.consent.revoke",
       "category": "consent",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Revoke a previously granted consent (shares the ck.consent.grant cell; semantically a remove on the consent or_set)",
-      "cell_family": "ck.component.consent.grant.v1",
+      "cell_family": "ak.component.consent.grant.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.consent_id"
@@ -1660,14 +1660,14 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.contact.requested",
+      "event_kind": "ak.contact.requested",
       "category": "contact",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Principal-scoped contact request fact. Issuer is requester; target holder must respond with accepted/rejected.",
-      "cell_family": "ck.component.contact.fact_log.v1",
+      "cell_family": "ak.component.contact.fact_log.v1",
       "cell_subject": {
         "type": "did",
         "field": "payload.target"
@@ -1678,14 +1678,14 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.contact.accepted",
+      "event_kind": "ak.contact.accepted",
       "category": "contact",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Principal-scoped contact acceptance fact. Issuer is original request target and MUST reference target-controlled consent grants.",
-      "cell_family": "ck.component.contact.fact_log.v1",
+      "cell_family": "ak.component.contact.fact_log.v1",
       "cell_subject": {
         "type": "did",
         "field": "payload.requester"
@@ -1696,14 +1696,14 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.contact.rejected",
+      "event_kind": "ak.contact.rejected",
       "category": "contact",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Principal-scoped contact rejection fact. Issuer is original request target and does not write consent.",
-      "cell_family": "ck.component.contact.fact_log.v1",
+      "cell_family": "ak.component.contact.fact_log.v1",
       "cell_subject": {
         "type": "did",
         "field": "payload.requester"
@@ -1714,14 +1714,14 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.contact.tombstoned",
+      "event_kind": "ak.contact.tombstoned",
       "category": "contact",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Principal-scoped contact tombstone fact. Issuer ends their own side of a contact and may revoke contact-managed consent dots.",
-      "cell_family": "ck.component.contact.fact_log.v1",
+      "cell_family": "ak.component.contact.fact_log.v1",
       "cell_subject": {
         "type": "did",
         "field": "payload.peer"
@@ -1732,14 +1732,14 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.direct_conversation.bound",
+      "event_kind": "ak.direct_conversation.bound",
       "category": "contact",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Principal-scoped binding from unordered participant pair to canonical DM Realm and main Strand.",
-      "cell_family": "ck.component.direct_conversation.binding.v1",
+      "cell_family": "ak.component.direct_conversation.binding.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.pair_key"
@@ -1750,14 +1750,14 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.account.status",
+      "event_kind": "ak.account.status",
       "category": "account",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Signed account lifecycle status",
-      "cell_family": "ck.component.account.status.v1",
+      "cell_family": "ak.component.account.status.v1",
       "cell_subject": {
         "type": "did",
         "field": "payload.principal_id"
@@ -1768,7 +1768,7 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.account.blocklist",
+      "event_kind": "ak.account.blocklist",
       "category": "account",
       "status": "active",
       "wire_scope": "actor_private_event",
@@ -1776,7 +1776,7 @@
       "payload": "Actor-private blocklist state"
     },
     {
-      "event_kind": "ck.account_data.set",
+      "event_kind": "ak.account_data.set",
       "category": "account",
       "status": "active",
       "wire_scope": "actor_private_event",
@@ -1784,7 +1784,7 @@
       "payload": "Actor-private account data update"
     },
     {
-      "event_kind": "ck.presence",
+      "event_kind": "ak.presence",
       "category": "account",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -1792,7 +1792,7 @@
       "payload": "Presence ephemeral or account state"
     },
     {
-      "event_kind": "ck.typing",
+      "event_kind": "ak.typing",
       "category": "account",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -1800,13 +1800,13 @@
       "payload": "Typing ephemeral event"
     },
     {
-      "event_kind": "ck.profile.create",
+      "event_kind": "ak.profile.create",
       "category": "profile",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Actor profile create",
-      "cell_family": "ck.component.profile.create.v1",
+      "cell_family": "ak.component.profile.create.v1",
       "cell_subject": {
         "type": "id:actor_profile",
         "field": "payload.object.id"
@@ -1817,14 +1817,14 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.profile.update",
+      "event_kind": "ak.profile.update",
       "category": "profile",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Actor profile update",
-      "cell_family": "ck.component.profile.create.v1",
+      "cell_family": "ak.component.profile.create.v1",
       "cell_subject": {
         "type": "id:actor_profile",
         "field": "payload.target_ref"
@@ -1835,7 +1835,7 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.profile.realm_override",
+      "event_kind": "ak.profile.realm_override",
       "category": "profile",
       "status": "active",
       "wire_scope": "durable_event",
@@ -1844,14 +1844,14 @@
       "payload": "Realm-scoped profile override. payload.target_realm_id is the target Realm and no Space boundary is created."
     },
     {
-      "event_kind": "ck.device.authorize",
+      "event_kind": "ak.device.authorize",
       "category": "device",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Device authorization",
-      "cell_family": "ck.component.device.authorization.v1",
+      "cell_family": "ak.component.device.authorization.v1",
       "cell_subject": {
         "type": "composite",
         "components": [
@@ -1865,14 +1865,14 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.device.revoke",
+      "event_kind": "ak.device.revoke",
       "category": "device",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Device revocation",
-      "cell_family": "ck.component.device.authorization.v1",
+      "cell_family": "ak.component.device.authorization.v1",
       "cell_subject": {
         "type": "composite",
         "components": [
@@ -1886,14 +1886,14 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.device.list_update",
+      "event_kind": "ak.device.list_update",
       "category": "device",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Device list update",
-      "cell_family": "ck.component.device.list_update.v1",
+      "cell_family": "ak.component.device.list_update.v1",
       "cell_subject": {
         "type": "did",
         "field": "payload.principal_id"
@@ -1904,15 +1904,15 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.key_backup.active_series",
+      "event_kind": "ak.key_backup.active_series",
       "category": "device",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Key backup active series selection for one principal and backup_class.",
-      "payload_schema": "ck.schema.key_backup_active_series.v1",
-      "cell_family": "ck.component.key_backup.active_series.v1",
+      "payload_schema": "ak.schema.key_backup_active_series.v1",
+      "cell_family": "ak.component.key_backup.active_series.v1",
       "cell_subject": {
         "type": "tuple",
         "components": [
@@ -1934,13 +1934,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.device.push_route",
+      "event_kind": "ak.device.push_route",
       "category": "device",
       "status": "active",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
       "payload": "Push route binding for a (recipient_service_did, principal, device, push_route) tuple. Carries push_target_id, push_gateway_did, encryption_key, capabilities. Stored as actor-private state on the recipient Principal Server only; MUST NOT be replicated to Principal Servers outside the binding's recipient_service_did context.",
-      "cell_family": "ck.component.device.push_route.v1",
+      "cell_family": "ak.component.device.push_route.v1",
       "cell_subject": {
         "type": "composite",
         "components": [
@@ -1956,15 +1956,15 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.cross_signing.publish",
+      "event_kind": "ak.cross_signing.publish",
       "category": "device",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Cross-signing publish",
-      "payload_schema": "ck.schema.cross_signing_publish.v1",
-      "cell_family": "ck.component.cross_signing.publish.v1",
+      "payload_schema": "ak.schema.cross_signing_publish.v1",
+      "cell_family": "ak.component.cross_signing.publish.v1",
       "cell_subject": {
         "type": "tuple",
         "components": [
@@ -1986,15 +1986,15 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.cross_signing.reset",
+      "event_kind": "ak.cross_signing.reset",
       "category": "device",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
       "payload": "Cross-signing reset",
-      "payload_schema": "ck.schema.cross_signing_reset.v1",
-      "cell_family": "ck.component.cross_signing.reset.v1",
+      "payload_schema": "ak.schema.cross_signing_reset.v1",
+      "cell_family": "ak.component.cross_signing.reset.v1",
       "cell_subject": {
         "type": "did",
         "field": "payload.principal_id"
@@ -2005,7 +2005,7 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.key.verification.request",
+      "event_kind": "ak.key.verification.request",
       "category": "device",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -2013,7 +2013,7 @@
       "payload": "Device key verification request"
     },
     {
-      "event_kind": "ck.key.verification.ready",
+      "event_kind": "ak.key.verification.ready",
       "category": "device",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -2021,7 +2021,7 @@
       "payload": "Device key verification ready"
     },
     {
-      "event_kind": "ck.key.verification.start",
+      "event_kind": "ak.key.verification.start",
       "category": "device",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -2029,7 +2029,7 @@
       "payload": "Device key verification start"
     },
     {
-      "event_kind": "ck.key.verification.accept",
+      "event_kind": "ak.key.verification.accept",
       "category": "device",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -2037,7 +2037,7 @@
       "payload": "Device key verification accept"
     },
     {
-      "event_kind": "ck.key.verification.key",
+      "event_kind": "ak.key.verification.key",
       "category": "device",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -2045,7 +2045,7 @@
       "payload": "Device key verification ephemeral key"
     },
     {
-      "event_kind": "ck.key.verification.mac",
+      "event_kind": "ak.key.verification.mac",
       "category": "device",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -2053,7 +2053,7 @@
       "payload": "Device key verification MAC"
     },
     {
-      "event_kind": "ck.key.verification.done",
+      "event_kind": "ak.key.verification.done",
       "category": "device",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -2061,7 +2061,7 @@
       "payload": "Device key verification completion"
     },
     {
-      "event_kind": "ck.key.verification.cancel",
+      "event_kind": "ak.key.verification.cancel",
       "category": "device",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -2069,7 +2069,7 @@
       "payload": "Device key verification cancellation"
     },
     {
-      "event_kind": "ck.secret.request",
+      "event_kind": "ak.secret.request",
       "category": "device",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -2077,7 +2077,7 @@
       "payload": "To-device secret share request"
     },
     {
-      "event_kind": "ck.secret.send",
+      "event_kind": "ak.secret.send",
       "category": "device",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -2085,7 +2085,7 @@
       "payload": "To-device encrypted secret share response"
     },
     {
-      "event_kind": "ck.mls.proposal",
+      "event_kind": "ak.mls.proposal",
       "category": "e2ee",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2093,7 +2093,7 @@
       "payload": "MLS proposal"
     },
     {
-      "event_kind": "ck.mls.genesis",
+      "event_kind": "ak.mls.genesis",
       "category": "e2ee",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2101,7 +2101,7 @@
       "payload": "MLS group genesis"
     },
     {
-      "event_kind": "ck.mls.commit",
+      "event_kind": "ak.mls.commit",
       "category": "e2ee",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2109,7 +2109,7 @@
       "payload": "MLS commit"
     },
     {
-      "event_kind": "ck.mls.commit_failed",
+      "event_kind": "ak.mls.commit_failed",
       "category": "e2ee",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2117,7 +2117,7 @@
       "payload": "MLS commit or Welcome processing failure diagnostic"
     },
     {
-      "event_kind": "ck.mls.welcome",
+      "event_kind": "ak.mls.welcome",
       "category": "e2ee",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2125,7 +2125,7 @@
       "payload": "MLS welcome reference"
     },
     {
-      "event_kind": "ck.mls.keypackage",
+      "event_kind": "ak.mls.keypackage",
       "category": "e2ee",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2133,7 +2133,7 @@
       "payload": "MLS KeyPackage publication"
     },
     {
-      "event_kind": "ck.realm_key.request",
+      "event_kind": "ak.realm_key.request",
       "category": "e2ee",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -2141,7 +2141,7 @@
       "payload": "Realm history key request (receiver to key source); ephemeral to-device signal relayed to the target source, not a reducer-input durable event"
     },
     {
-      "event_kind": "ck.realm_key.share",
+      "event_kind": "ak.realm_key.share",
       "category": "e2ee",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2150,7 +2150,7 @@
       "payload": "Realm key share: member-device history key delivery or RRK durability seal"
     },
     {
-      "event_kind": "ck.realm_key.withheld",
+      "event_kind": "ak.realm_key.withheld",
       "category": "e2ee",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2159,7 +2159,7 @@
       "payload": "Realm key withheld notice"
     },
     {
-      "event_kind": "ck.realm_key.share_audit",
+      "event_kind": "ak.realm_key.share_audit",
       "category": "e2ee",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2168,7 +2168,7 @@
       "payload": "Auditable history key share marker"
     },
     {
-      "event_kind": "ck.audit.accessed",
+      "event_kind": "ak.audit.accessed",
       "category": "audit",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2176,7 +2176,7 @@
       "payload": "Auditable access marker for privileged reads or privacy-sensitive paired writes. E2EE compliance release uses ck.audit.release; ck.audit.accessed remains for non-release audit pairs such as Circle metadata audit, watch_set_others, late recovery, and policy reads."
     },
     {
-      "event_kind": "ck.audit.applet_binding",
+      "event_kind": "ak.audit.applet_binding",
       "category": "audit",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2184,7 +2184,7 @@
       "payload": "Audit Applet Binding. Declares that an audit applet/service may request staged historical release sessions for a specific Realm or Circle effective_scope. Binding is control-plane only: it does not add the applet to MLS, does not subscribe it to realtime sync, and does not grant plaintext/history keys. Bindings are non-retroactive: activation_frontier_digest / first_auditable_epoch define the earliest eligible material, and later policy changes MUST NOT expand eligibility for already encrypted messages."
     },
     {
-      "event_kind": "ck.audit.session.request",
+      "event_kind": "ak.audit.session.request",
       "category": "audit",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2192,7 +2192,7 @@
       "payload": "Audit release session request. Must reference an active ck.audit.applet_binding and a bounded historical target range or target_refs."
     },
     {
-      "event_kind": "ck.audit.session.authorize",
+      "event_kind": "ak.audit.session.authorize",
       "category": "audit",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2200,7 +2200,7 @@
       "payload": "Audit release session authorization by a scoped approver. Approves only the intersection of request, binding, policy, and effective_scope."
     },
     {
-      "event_kind": "ck.audit.session.notice",
+      "event_kind": "ak.audit.session.notice",
       "category": "audit",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2208,7 +2208,7 @@
       "payload": "Member-visible notice for an audit release session. Circle-scoped notices are visible only to the target Circle audience and authorized moderators/admins."
     },
     {
-      "event_kind": "ck.audit.release",
+      "event_kind": "ak.audit.release",
       "category": "audit",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2216,7 +2216,7 @@
       "payload": "Sealed audit release manifest. Records exactly which historical target_refs or sealed epochs were released, to whom, under which binding/session/notice/policy. Current active epoch release is forbidden; sealed epoch releases must reference sealed_by_commit_ref."
     },
     {
-      "event_kind": "ck.audit.session.close",
+      "event_kind": "ak.audit.session.close",
       "category": "audit",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2224,7 +2224,7 @@
       "payload": "Close an audit release session and freeze its final release_refs."
     },
     {
-      "event_kind": "ck.audit.ryw_receipt",
+      "event_kind": "ak.audit.ryw_receipt",
       "category": "audit",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2232,7 +2232,7 @@
       "payload": "Audit RYW receipt"
     },
     {
-      "event_kind": "ck.audit.erasure_receipt",
+      "event_kind": "ak.audit.erasure_receipt",
       "category": "audit",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2240,7 +2240,7 @@
       "payload": "Signed hard-erasure receipt. Attests deletion outcome and retained verification stub within an issuer-declared storage boundary; does not prove independent third-party copies disappeared."
     },
     {
-      "event_kind": "ck.attestation.range_completeness",
+      "event_kind": "ak.attestation.range_completeness",
       "category": "audit",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2248,7 +2248,7 @@
       "payload": "Range-bound completeness attestation. Distinct from ck.audit.ryw_receipt (per-event read-your-writes hint) and ck.event_batch_receipt (set-bound integrity hint): this attestation asserts completeness over an explicit (from_frontier, to_frontier) + per-actor seq interval range. Issuer commits to having observed every reducer-input event in scope; witness quorum or independent seal backing is required for non-self-attested deployments. See zh/sync/operations-sync.md §6.4."
     },
     {
-      "event_kind": "ck.self.moderation.report",
+      "event_kind": "ak.self.moderation.report",
       "category": "moderation",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2257,7 +2257,7 @@
       "payload": "Moderation report"
     },
     {
-      "event_kind": "ck.moderation.franking_proof",
+      "event_kind": "ak.moderation.franking_proof",
       "category": "moderation",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2266,13 +2266,13 @@
       "payload": "Moderation franking proof"
     },
     {
-      "event_kind": "ck.moderation.decision",
+      "event_kind": "ak.moderation.decision",
       "category": "moderation",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Sealed moderation decision (writes ck.component.moderation_state.v1 cell)",
-      "cell_family": "ck.component.moderation_state.v1",
+      "cell_family": "ak.component.moderation_state.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.target_ref"
@@ -2283,13 +2283,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.moderation.decision.lift",
+      "event_kind": "ak.moderation.decision.lift",
       "category": "moderation",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Lift a previously sealed moderation decision (observed-remove/supersede the referenced decision in ck.component.moderation_state.v1)",
-      "cell_family": "ck.component.moderation_state.v1",
+      "cell_family": "ak.component.moderation_state.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.target_ref"
@@ -2300,13 +2300,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.moderation.appeal.submit",
+      "event_kind": "ak.moderation.appeal.submit",
       "category": "moderation",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Submit an appeal against an existing ck.moderation.decision. Writes the appeal cell to state=submitted. Schema: ck.schema.moderation_appeal.v1. See zh/governance/content-moderation.md §5.5 (appeal strand).",
-      "cell_family": "ck.component.moderation.appeal.v1",
+      "cell_family": "ak.component.moderation.appeal.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.appeal_id"
@@ -2317,13 +2317,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.moderation.appeal.review",
+      "event_kind": "ak.moderation.appeal.review",
       "category": "moderation",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Reviewer acknowledges the appeal and transitions cell state submitted → under_review. Identifies the reviewing actor and target appeal. Schema: ck.schema.moderation_appeal.v1.",
-      "cell_family": "ck.component.moderation.appeal.v1",
+      "cell_family": "ak.component.moderation.appeal.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.appeal_id"
@@ -2334,13 +2334,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.moderation.appeal.decision",
+      "event_kind": "ak.moderation.appeal.decision",
       "category": "moderation",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Reviewer's verdict on the appeal: uphold (decision stands) / overturn (decision reversed, emits ck.moderation.decision.lift) / modify (decision adjusted). Transitions cell state under_review → decided. Schema: ck.schema.moderation_appeal.v1.",
-      "cell_family": "ck.component.moderation.appeal.v1",
+      "cell_family": "ak.component.moderation.appeal.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.appeal_id"
@@ -2351,13 +2351,13 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.moderation.appeal.close",
+      "event_kind": "ak.moderation.appeal.close",
       "category": "moderation",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Closes the appeal from submitted / under_review / decided via reviewer close, appellant withdrawal, or a deployment's authorized close service. close is a manual/authorized action; the protocol does not mandate any auto-close timer or cool-off duration (deployment/Realm policy decides). Schema: ck.schema.moderation_appeal.v1.",
-      "cell_family": "ck.component.moderation.appeal.v1",
+      "cell_family": "ak.component.moderation.appeal.v1",
       "cell_subject": {
         "type": "string",
         "field": "payload.appeal_id"
@@ -2368,7 +2368,7 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.read_cursor.advance",
+      "event_kind": "ak.read_cursor.advance",
       "category": "read",
       "status": "active",
       "wire_scope": "actor_private_event",
@@ -2376,7 +2376,7 @@
       "payload": "Read cursor advance event (actor-private). Writes the actor's latest read position for a given (realm_id, read_scope) tuple. Was historically named ck.read.cursor; renamed to align the event_kind, capability action, schema id and typed ID prefix on a single noun root read_cursor."
     },
     {
-      "event_kind": "ck.receipt.read",
+      "event_kind": "ak.receipt.read",
       "category": "read",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -2384,7 +2384,7 @@
       "payload": "Read receipt event"
     },
     {
-      "event_kind": "ck.invite.create",
+      "event_kind": "ak.invite.create",
       "category": "invite",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2392,7 +2392,7 @@
       "payload": "Invite create. Directed v1 invite payloads carry invitee plus invite_delivery_target and introduction_evidence_digest; raw locator tokens and invite_receive_policy state are private and MUST NOT enter the durable Realm event."
     },
     {
-      "event_kind": "ck.invite.cancel",
+      "event_kind": "ak.invite.cancel",
       "category": "invite",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2400,7 +2400,7 @@
       "payload": "Invite cancel"
     },
     {
-      "event_kind": "ck.invite.accept",
+      "event_kind": "ak.invite.accept",
       "category": "invite",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2408,7 +2408,7 @@
       "payload": "Invite accept"
     },
     {
-      "event_kind": "ck.invite.third_party",
+      "event_kind": "ak.invite.third_party",
       "category": "invite",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2416,7 +2416,7 @@
       "payload": "Third-party identifier pending invite"
     },
     {
-      "event_kind": "ck.invite.claim",
+      "event_kind": "ak.invite.claim",
       "category": "invite",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2431,13 +2431,13 @@
         "expire and clean pending invite material before claim acceptance when expires_at <= now"
       ],
       "conformance_vectors": [
-        "ck.vector.invite.claim_reducer_state_machine.v1",
-        "ck.vector.invite.consumed_token_resubject_rejected.v1",
-        "ck.vector.invite.failure_indistinguishable.v1"
+        "ak.vector.invite.claim_reducer_state_machine.v1",
+        "ak.vector.invite.consumed_token_resubject_rejected.v1",
+        "ak.vector.invite.failure_indistinguishable.v1"
       ]
     },
     {
-      "event_kind": "ck.invite.revoke",
+      "event_kind": "ak.invite.revoke",
       "category": "invite",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2445,7 +2445,7 @@
       "payload": "Third-party invite revoke"
     },
     {
-      "event_kind": "ck.applet.bridge_error",
+      "event_kind": "ak.applet.bridge_error",
       "category": "applet",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2454,7 +2454,7 @@
       "payload": "Bridge failure"
     },
     {
-      "event_kind": "ck.applet.registration",
+      "event_kind": "ak.applet.registration",
       "category": "applet",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2463,7 +2463,7 @@
       "payload": "Applet registration"
     },
     {
-      "event_kind": "ck.applet.interop_session.start",
+      "event_kind": "ak.applet.interop_session.start",
       "category": "applet",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2472,7 +2472,7 @@
       "payload": "Applet protocol session start"
     },
     {
-      "event_kind": "ck.applet.interop_session.status",
+      "event_kind": "ak.applet.interop_session.status",
       "category": "applet",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2481,18 +2481,18 @@
       "payload": "Applet protocol session status"
     },
     {
-      "event_kind": "ck.mimi.room_binding",
+      "event_kind": "ak.mimi.room_binding",
       "category": "mimi",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "capability_gated",
       "admission_capabilities": [
-        "ck.policy.manage",
-        "ck.realm.admin"
+        "ak.policy.manage",
+        "ak.realm.admin"
       ],
       "payload": "MIMI room binding state",
-      "cell_family": "ck.component.mimi.room_binding.v1",
+      "cell_family": "ak.component.mimi.room_binding.v1",
       "cell_subject": {
         "type": "mimi_uri",
         "field": "payload.mimi_room_uri"
@@ -2503,7 +2503,7 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.call.signal",
+      "event_kind": "ak.call.signal",
       "category": "call",
       "status": "active",
       "wire_scope": "ephemeral_event",
@@ -2511,13 +2511,13 @@
       "payload": "WebRTC signal message"
     },
     {
-      "event_kind": "ck.call.state",
+      "event_kind": "ak.call.state",
       "category": "call",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Call state",
-      "cell_family": "ck.component.call.state.v1",
+      "cell_family": "ak.component.call.state.v1",
       "cell_subject": {
         "type": "typed_id",
         "field": "payload.call_id"
@@ -2615,7 +2615,7 @@
       }
     },
     {
-      "event_kind": "ck.call.recording.start",
+      "event_kind": "ak.call.recording.start",
       "category": "call",
       "status": "active",
       "wire_scope": "durable_event",
@@ -2623,13 +2623,13 @@
       "payload": "Call recording / transcript capture start"
     },
     {
-      "event_kind": "ck.call.summary",
+      "event_kind": "ak.call.summary",
       "category": "call",
       "status": "active",
       "wire_scope": "durable_event",
       "reducer_input": true,
       "payload": "Durable end-of-call summary",
-      "cell_family": "ck.component.call.summary.v1",
+      "cell_family": "ak.component.call.summary.v1",
       "cell_subject": {
         "type": "typed_id",
         "field": "payload.call_id"
@@ -2640,7 +2640,7 @@
       "sealed": true
     },
     {
-      "event_kind": "ck.sovereign.did_policy",
+      "event_kind": "ak.sovereign.did_policy",
       "category": "sovereign",
       "status": "active",
       "wire_scope": "durable_event",

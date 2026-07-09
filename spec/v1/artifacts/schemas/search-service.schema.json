@@ -118,9 +118,9 @@
           "items": {
             "type": "string",
             "enum": [
-              "ck.profile.search.client_index.v1",
-              "ck.profile.search.blind_index.v1",
-              "ck.profile.search.forward_private.v1"
+              "ak.profile.search.client_index.v1",
+              "ak.profile.search.blind_index.v1",
+              "ak.profile.search.forward_private.v1"
             ]
           },
           "uniqueItems": true

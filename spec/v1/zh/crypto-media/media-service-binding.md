@@ -27,7 +27,7 @@ sidebar:
 
 ```json
 {
-  "kind": "ck.realm.media_service",
+  "kind": "ak.realm.media_service",
   "payload": {
     "service_id": "did:webvh:z7ECJ5c1A1o5Xr1AdPqPCBD7L:media.example.com",
     "modes": [
@@ -109,7 +109,7 @@ Content-Type: application/json
 }
 ```
 
-响应（`scheme="ck.media.participant_binding.v1"` 是 v1 唯一 participant binding scheme）：
+响应（`scheme="ak.media.participant_binding.v1"` 是 v1 唯一 participant binding scheme）：
 
 ```json
 {
@@ -119,7 +119,7 @@ Content-Type: application/json
   "backend_token": "<opaque to Arkret protocol — type-specific>",
   "participant_identity": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
   "participant_binding": {
-    "scheme": "ck.media.participant_binding.v1",
+    "scheme": "ak.media.participant_binding.v1",
     "realm_id": "ak:realm:...",
     "call_id": "ak:call:...",
     "focus_id": "fra-1",
@@ -149,7 +149,7 @@ Content-Type: application/json
 
     ```text
     signing_input =
-      "ck.media.participant_binding.v1" || 0x00 ||
+      "ak.media.participant_binding.v1" || 0x00 ||
       canonical_json({ actor_id, call_id, device_id, expires_at,
                        focus_id, participant_identity, realm_id })
     ```
@@ -261,7 +261,7 @@ inject_frame_key(key_bytes: 32-byte secret,
 
 约束：
 
-- `key_bytes` MUST 由 Arkret MLS exporter 派生，**label 固定为 ASCII 字符串 `"ck-rtc-frame-key/v1"`**（length=19 bytes，无 trailing newline；RFC 9420 §8 `MLS-Exporter` 的 `Label`，`KDF.Nh` 长度 32 bytes）。`Context` MUST 是 canonical JSON bytes of exactly `{realm_id, call_id, focus_id, epoch_id, participant_identity, device_id}`，其中 `participant_identity` / `device_id` 来自已验证的 `ck.call.state.participants[]` 与 `participant_binding`。`Context = ""`、缺少 sender 字段或只绑定 epoch 的派生 MUST fail closed(`e2ee_key_source_unauthorised`)。`ck-rtc-frame-key/v1` / `ck-rtc-recording-key/v1` 是**固定的 canonical wire label**（密钥派生的安全域分离参数，canonical 登记见 [`exporter-label-registry.json`](../../artifacts/registry/exporter-label-registry.json)）；实现 MUST 逐字节使用登记的 label 字符串，MUST NOT 与其它 label 混用。该 label 的任何变更属于 wire-breaking，必须开新 profile。
+- `key_bytes` MUST 由 Arkret MLS exporter 派生，**label 固定为 ASCII 字符串 `"ak.rtc-frame-key/v1"`**（length=19 bytes，无 trailing newline；RFC 9420 §8 `MLS-Exporter` 的 `Label`，`KDF.Nh` 长度 32 bytes）。`Context` MUST 是 canonical JSON bytes of exactly `{realm_id, call_id, focus_id, epoch_id, participant_identity, device_id}`，其中 `participant_identity` / `device_id` 来自已验证的 `ck.call.state.participants[]` 与 `participant_binding`。`Context = ""`、缺少 sender 字段或只绑定 epoch 的派生 MUST fail closed(`e2ee_key_source_unauthorised`)。`ck-rtc-frame-key/v1` / `ck-rtc-recording-key/v1` 是**固定的 canonical wire label**（密钥派生的安全域分离参数，canonical 登记见 [`exporter-label-registry.json`](../../artifacts/registry/exporter-label-registry.json)）；实现 MUST 逐字节使用登记的 label 字符串，MUST NOT 与其它 label 混用。该 label 的任何变更属于 wire-breaking，必须开新 profile。
 - `epoch_id` 与 Realm MLS epoch 一一对应。
 - `rotation_trigger` 不得被 adapter 当作不透明枚举透传:`rotation_trigger=member_leave`（成员离开 / 被踢 / 被 ban）**MUST** 对应一次 MLS commit（Remove）并推进 `epoch_id`，使新 `key_bytes` 从离开成员不掌握的新 group secret 派生；adapter **MUST NOT** 在 `member_leave` 时仅更换 SFrame KID / keyIndex 而复用旧 epoch 的 group secret，否则离开成员仍能解密后续帧（E2EE 媒体前向保密失效）。`member_join` 同样 MUST 绑定推进后的 `epoch_id`。`manual` / `scheduled` 触发亦 MUST 携带推进后的 `epoch_id`；任何 `rotation_trigger` 下若 `epoch_id` 未相对前一帧密钥推进，客户端 MUST fail closed（`e2ee_key_source_unauthorised`）。
 - backend SDK / adapter 内部如何把该 sender-bound key 映射到 SFrame / 私有帧加密格式由附录指定，但 **MUST NOT** 接受任何非该接口的 key 源（如 backend 自带 KMS、自生成 random key）。SFrame KID / key slot MUST 区分同一 epoch 内的不同 sender；若 adapter 无法为 active sender 集合提供无冲突映射，客户端 MUST 拒绝启用该 binding。除非 Realm policy 明确允许 `media_service_decrypts=true` 且完成 §8.2 三层校验，`key_bytes` MUST NOT 被发送给远端 SFU / MCU。
@@ -277,7 +277,7 @@ Conformance vectors for the full media binding framework：
 - `ck.vector.media_binding.unknown_type_fail_closed.v1` — §2 未知 `foci[].type` MUST fail closed。
 - `ck.vector.media_binding.participant_identity_unrecognised.v1` — §7 backend 通知的 participant 不在 `ck.call.state` 时拒绝该流。
 - `ck.vector.media_binding.recording_artifact_via_arkret_blob.v1` — [`call-state.md` §5](./call-state.md) backend-generated recording 必须经 Arkret blob pipeline。
-- `ck.vector.media_binding.recording_exporter_label.v1` — backend-generated recording 必须使用 `"ck-rtc-recording-key/v1"` 与绑定 recording transcript 的 Context，不得复用 SFrame key label。
+- `ck.vector.media_binding.recording_exporter_label.v1` — backend-generated recording 必须使用 `"ak.rtc-recording-key/v1"` 与绑定 recording transcript 的 Context，不得复用 SFrame key label。
 
 ### 8.2 治理绑定（normative）
 

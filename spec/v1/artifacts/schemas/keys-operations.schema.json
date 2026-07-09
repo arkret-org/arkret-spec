@@ -616,7 +616,7 @@
     },
     "cross_signing_binding": {
       "type": "object",
-      "description": "Tier-2 device trust binding echoed from ck.device.authorize.payload.cross_signing_binding (device-lifecycle.md §5.2). The accepted-generation SSK signs `\"ck-device-trust-bind-v1\n\" + canonical_json({principal_id, device_id, device_public_key, ssk_generation})`. Absent for inception bootstrap devices (§5.0.1).",
+      "description": "Tier-2 device trust binding echoed from ck.device.authorize.payload.cross_signing_binding (device-lifecycle.md §5.2). The accepted-generation SSK signs `\"ak.device-trust-bind-v1\n\" + canonical_json({principal_id, device_id, device_public_key, ssk_generation})`. Absent for inception bootstrap devices (§5.0.1).",
       "required": [
         "verification_method",
         "ssk_generation",

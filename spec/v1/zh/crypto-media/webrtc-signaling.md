@@ -196,7 +196,7 @@ Content-Type: application/json
   "signature": {
     "alg": "EdDSA",
     "kid": "did:webvh:z7ECJ5c1A1o5Xr1AdPqPCBD7L:media.example.com#key-1",
-    "signature_input": "ck.media.ice_config.v1",
+    "signature_input": "ak.media.ice_config.v1",
     "payload_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "sig": "base64url..."
   }
@@ -210,7 +210,7 @@ Content-Type: application/json
 - Pseudonym 生成 MUST 使用每次通话的新随机种子或 media service 私有密钥派生，且至少绑定 `(realm_id, call_id, actor_id, device_id, issued_at_bucket, media_service_did)`；推荐：
 
   ```text
-  pseudonym = "ck_pseudonym_call_" ||
+  pseudonym = "ak.pseudonym_call_" ||
     base64url(HMAC-SHA256(media_service_pseudonym_secret,
       canonical_json({realm_id, call_id, actor_id, device_id, issued_at_bucket, nonce})
     )[0:16])
@@ -222,7 +222,7 @@ Content-Type: application/json
 
     ```text
     signing_input =
-      "ck.media.ice_config.v1" || 0x00 ||
+      "ak.media.ice_config.v1" || 0x00 ||
       canonical_json(<ICE config response 去除 `signature` 字段后的权威对象>)
     ```
 
@@ -260,7 +260,7 @@ Content-Type: application/json
 
 ```json schema=schemas/ephemeral-envelope.schema.json
 {
-  "kind": "ck.call.signal",
+  "kind": "ak.call.signal",
   "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com",
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
@@ -493,7 +493,7 @@ Candidate payload:
 
 ```json
 {
-  "kind": "ck.call.signal",
+  "kind": "ak.call.signal",
   "payload": {
     "call_id": "ak:call:...",
     "signal_type": "media_state",

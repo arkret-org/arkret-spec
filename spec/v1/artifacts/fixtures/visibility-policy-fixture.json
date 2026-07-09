@@ -1,21 +1,21 @@
 {
-  "profile": "ck.profile.circle_conformance.v1",
+  "profile": "ak.profile.circle_conformance.v1",
   "version": "2026-06-19",
   "suite": "visibility_policy",
   "runner": "cotest::conformance::visibility_policy",
   "covers_vectors": [
-    "ck.vector.e2ee.content_floor_downgrade_rejected.v1",
-    "ck.vector.e2ee.metadata_floor_downgrade_rejected.v1",
-    "ck.vector.e2ee.in_place_enable.v1",
-    "ck.vector.circle.content_floor_below_realm_rejected.v1",
-    "ck.vector.circle.directory_visibility_members_indistinguishable.v1",
-    "ck.vector.circle.directory_visibility_realm_members_indistinguishable.v1",
-    "ck.vector.history_visibility.joined_prejoin_denied.v1"
+    "ak.vector.e2ee.content_floor_downgrade_rejected.v1",
+    "ak.vector.e2ee.metadata_floor_downgrade_rejected.v1",
+    "ak.vector.e2ee.in_place_enable.v1",
+    "ak.vector.circle.content_floor_below_realm_rejected.v1",
+    "ak.vector.circle.directory_visibility_members_indistinguishable.v1",
+    "ak.vector.circle.directory_visibility_realm_members_indistinguishable.v1",
+    "ak.vector.history_visibility.joined_prejoin_denied.v1"
   ],
   "cases": [
     {
       "name": "content_floor_downgrade_rejected",
-      "vector_id": "ck.vector.e2ee.content_floor_downgrade_rejected.v1",
+      "vector_id": "ak.vector.e2ee.content_floor_downgrade_rejected.v1",
       "kind": "floor_ratchet",
       "floor": "content_encryption_floor",
       "previous": "e2ee_required",
@@ -44,7 +44,7 @@
     },
     {
       "name": "metadata_floor_downgrade_rejected",
-      "vector_id": "ck.vector.e2ee.metadata_floor_downgrade_rejected.v1",
+      "vector_id": "ak.vector.e2ee.metadata_floor_downgrade_rejected.v1",
       "kind": "floor_ratchet",
       "floor": "metadata_encryption_floor",
       "previous": "e2ee_required",
@@ -73,7 +73,7 @@
     },
     {
       "name": "in_place_e2ee_enable",
-      "vector_id": "ck.vector.e2ee.in_place_enable.v1",
+      "vector_id": "ak.vector.e2ee.in_place_enable.v1",
       "kind": "floor_ratchet",
       "floor": "content_encryption_floor",
       "previous": "allow_plaintext",
@@ -92,7 +92,7 @@
     },
     {
       "name": "circle_content_floor_below_realm_rejected",
-      "vector_id": "ck.vector.circle.content_floor_below_realm_rejected.v1",
+      "vector_id": "ak.vector.circle.content_floor_below_realm_rejected.v1",
       "kind": "circle_floor",
       "realm_encryption_profile": "mls_rfc9420",
       "realm_content_encryption_floor": "e2ee_required",
@@ -123,7 +123,7 @@
     },
     {
       "name": "circle_directory_visibility_members_indistinguishable",
-      "vector_id": "ck.vector.circle.directory_visibility_members_indistinguishable.v1",
+      "vector_id": "ak.vector.circle.directory_visibility_members_indistinguishable.v1",
       "kind": "directory_visibility",
       "directory_visibility": "members",
       "viewer": "realm_member_not_circle_member",
@@ -156,7 +156,7 @@
     },
     {
       "name": "circle_directory_visibility_realm_members_indistinguishable",
-      "vector_id": "ck.vector.circle.directory_visibility_realm_members_indistinguishable.v1",
+      "vector_id": "ak.vector.circle.directory_visibility_realm_members_indistinguishable.v1",
       "kind": "directory_visibility",
       "directory_visibility": "realm_members",
       "viewer": "realm_member_not_circle_member",
@@ -194,7 +194,7 @@
     },
     {
       "name": "history_visibility_joined_prejoin_denied",
-      "vector_id": "ck.vector.history_visibility.joined_prejoin_denied.v1",
+      "vector_id": "ak.vector.history_visibility.joined_prejoin_denied.v1",
       "kind": "history_visibility_projection",
       "history_visibility": "joined",
       "viewer": {

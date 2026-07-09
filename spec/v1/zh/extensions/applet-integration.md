@@ -129,7 +129,7 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
 
 ```json
 {
-  "kind": "ck.applet.registration",
+  "kind": "ak.applet.registration",
   "applet_id": "ak:applet:21532600-0000-7000-8000-000000000000",
   "service_did": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example",
   "controller_did": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
@@ -162,12 +162,12 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
   "receive_ephemeral": false,
   "rate_limited": true,
   "requested_scopes": [
-    "ck.realm.discover",
-    "ck.object.read",
-    "ck.strand.create",
-    "ck.morph.create",
-    "ck.message.create",
-    "ck.relation.create"
+    "ak.realm.discover",
+    "ak.object.read",
+    "ak.strand.create",
+    "ak.morph.create",
+    "ak.message.create",
+    "ak.relation.create"
   ],
   "registration_epoch": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
   "webhook_auth": {
@@ -307,10 +307,10 @@ Handle namespace 适用于外部用户或 location 的人类入口。
       "ak:realm:0196419b-0000-7000-8000-000000000000"
     ],
     "actions": [
-      "ck.strand.create",
-      "ck.morph.create",
-      "ck.message.create",
-      "ck.relation.create"
+      "ak.strand.create",
+      "ak.morph.create",
+      "ak.message.create",
+      "ak.relation.create"
     ]
   },
   "constraints": [
@@ -406,7 +406,7 @@ Arkret Sync Service / Events API 向 Applet 推送事件批次。
     {
       "event_id": "ak:event:019640ed-8000-7000-8000-000000000000",
       "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
-      "kind": "ck.message.create",
+      "kind": "ak.message.create",
       "actor_id": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:alice.example",
       "payload": {}
     }
@@ -461,7 +461,7 @@ transaction push 是 service↔service 调用，**两个方向**都 MUST 携带*
 
 **来源签名锚点（normative）**：接收方在验签通过后 MUST 形成不可伪造的 `source_signature_anchor` audit value，并把它写入 transaction 幂等 / replay 记录；该值不是 request body 字段。锚点 canonical tuple 至少包含：
 
-- `operation_id="ck.edge.applet.command.transaction"` 与方向（`node_to_applet` 或 `applet_to_arkret_inbound`）；
+- `operation_id="ak.edge.applet.command.transaction"` 与方向（`node_to_applet` 或 `applet_to_arkret_inbound`）；
 - `source_service_did`、`destination_service_did`；
 - 签名使用的 `verification_method` / `keyid` 与签名算法；
 - Applet 相关方向的 effective `registration_epoch` 与 `webhook_auth.key_ref`，或 Arkret node 方向的 source service DID key-state evidence；
@@ -598,7 +598,7 @@ Applet 写入 Arkret MUST 使用常规 `/_arkret/self/events` submit 接口。
   "realm_id": "ak:realm:c0c69410-0000-7000-8000-000000000000",
   "actor_id": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:u123",
   "actor_seq": 17,
-  "kind": "ck.message.create",
+  "kind": "ak.message.create",
   "applet_id": "ak:applet:21532600-0000-7000-8000-000000000000",
   "authorization_ref": "ak:grant:0196410c-0000-7000-8000-000000000000",
   "external_ref": {
@@ -613,7 +613,7 @@ Applet 写入 Arkret MUST 使用常规 `/_arkret/self/events` submit 接口。
     "strand_id": "ak:strand:c0c69410-0000-7000-8000-000000000001",
     "track_name": "discussion",
     "content": {
-      "kind": "ck.content.text",
+      "kind": "ak.content.text",
       "body": "hello from Slack"
     }
   },
@@ -641,7 +641,7 @@ Ghost Actor profile SHOULD 包含（以下为 schema 合法形态；字段与约
 ```json
 {
   "id": "ak:actor_profile:21532600-0000-7000-8000-000000000000",
-  "schema": "ck.schema.actor_profile.v1",
+  "schema": "ak.schema.actor_profile.v1",
   "principal_id": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:u123",
   "actor_kind": "integration",
   "display_name": "Alice on Slack",

@@ -59,8 +59,8 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `subtype` 区分
 | 约束 family | subtype（可选） | 类别 | 说明 | 启用 profile |
 |-------------|---------------|------|------|------|
 | `temporal` | （省略 = 普通时间窗口） | core | `not_before` / `expires_at` 时间窗口。 | core |
-| `temporal` | `edit_window` | extension | `applies_to_actions=["ck.message.revise.own"]` + `message_edit_window` 限定自助编辑窗口。 | `ck.profile.chat_mvp.v1` |
-| `temporal` | `redact_window` | extension | `applies_to_actions=["ck.message.redact.own"]` + `message_redact_window` 限定自助撤回窗口。 | `ck.profile.chat_mvp.v1` |
+| `temporal` | `edit_window` | extension | `applies_to_actions=["ak.message.revise.own"]` + `message_edit_window` 限定自助编辑窗口。 | `ck.profile.chat_mvp.v1` |
+| `temporal` | `redact_window` | extension | `applies_to_actions=["ak.message.redact.own"]` + `message_redact_window` 限定自助撤回窗口。 | `ck.profile.chat_mvp.v1` |
 | `field_access` | （省略 = 列表比较） | core | 写入面 `allowed_write_fields` / `denied_write_fields`（§4.1 / §4.2）与读取面 `allowed_read_fields` / `denied_read_fields` / `sensitive_fields` / `sensitive_handling`（§4.3）。 | core |
 | `type_restriction` | — | core | 对象类型 / Realm kind / Morph type / facet 限制。 | core |
 | `scope_limitation` | （省略 = 普通 scope） | core | Realm / Strand / View / track 范围。 | core |
@@ -613,7 +613,7 @@ quota authority MUST 同时满足：
   {
     "constraint_type": "temporal",
     "subtype": "edit_window",
-    "applies_to_actions": ["ck.message.revise.own"],
+    "applies_to_actions": ["ak.message.revise.own"],
     "effect": "allow",
     "message_edit_window": "PT15M",
     "allow_redact_after_window": true
@@ -621,7 +621,7 @@ quota authority MUST 同时满足：
   {
     "constraint_type": "temporal",
     "subtype": "redact_window",
-    "applies_to_actions": ["ck.message.redact.own"],
+    "applies_to_actions": ["ak.message.redact.own"],
     "effect": "allow",
     "message_redact_window": "PT24H"
   }
@@ -756,14 +756,14 @@ function matches_temporal(operation, constraint):
         if not matches_recurrence(now, skew, constraint.recurrence):
             return false
 
-    if operation.action == "ck.message.revise.own" and constraint.message_edit_window:
+    if operation.action == "ak.message.revise.own" and constraint.message_edit_window:
         return matches_object_window(
             operation.target.created_at,
             constraint.message_edit_window,
             now,
             skew)
 
-    if operation.action == "ck.message.redact.own":
+    if operation.action == "ak.message.redact.own":
         if constraint.message_redact_window:
             return matches_object_window(
                 operation.target.created_at,
@@ -914,7 +914,7 @@ function matches_field_access(operation, constraint):
 {
   "grant_id": "ak:grant:...",
   "subject": "did:webvh:z7JFwDcjH8CMYDmNUkUBhGpNN:agent.example.com",
-  "actions": ["ck.object.read", "ck.strand.create", "ck.morph.create"],
+  "actions": ["ak.object.read", "ck.strand.create", "ck.morph.create"],
   "resources": [
     {
       "kind": "strand",

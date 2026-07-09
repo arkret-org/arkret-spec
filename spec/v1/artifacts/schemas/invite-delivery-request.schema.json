@@ -13,7 +13,7 @@
   ],
   "properties": {
     "schema": {
-      "const": "ck.schema.invite_delivery_request.v1"
+      "const": "ak.schema.invite_delivery_request.v1"
     },
     "invite_event": {
       "$ref": "./event-envelope.schema.json",

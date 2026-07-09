@@ -422,7 +422,7 @@ def lint_proposal_file(path: Path) -> list[Finding]:
 
     match = PROPOSAL_FILE_RE.match(path.name)
     expected_ckp = f"CKP-{match.group('num')}" if match else None
-    actual_ckp = fm.get("ckp")
+    actual_ckp = fm.get("ak.")
     if expected_ckp is not None and actual_ckp != expected_ckp:
         findings.append(
             Finding(

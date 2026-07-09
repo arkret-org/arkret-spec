@@ -226,7 +226,7 @@ applicant 直接提交：
 
 ```json
 {
-  "kind": "ck.member.state",
+  "kind": "ak.member.state",
   "payload": {
     "realm_id": "ak:realm:0196419b-0000-7000-8000-000000000000",
     "actor_id": "did:webvh:z2dmjYwAPJzv5CZsnAzt8auVZRn1GfuxhpK2t3Q3K3rj4B1x:users.example:bob",
@@ -376,14 +376,14 @@ Realm 主 MLS group 不包含尚未 join 的 applicant，因此申请正文不�
 
    - **接收公钥（normative）**：envelope 接收键 MUST 是目标 device 当前 device record 中的 `hpke_key`。**MUST NOT 以 MLS KeyPackage init key（`ck.mls.keypackage`）作为 envelope 接收键**——KeyPackage init key 是一次性 MLS join 材料，挪作通用 HPKE 接收键会破坏其一次性使用语义并构成跨协议密钥复用。
    - **scheme（normative）**：`scheme` MUST 为 [`../../artifacts/registry/hpke-suite-registry.json`](../../artifacts/registry/hpke-suite-registry.json) 中的 active suite id（v1 default-MUST `ck.hpke_x25519_aead_chacha20poly1305.v1`，用法与 [`../crypto-media/device-lifecycle.md` §10.7](../crypto-media/device-lifecycle.md) 的 `ck.secret.send` 一致）；未登记 / 非 active suite MUST fail closed（`unsupported_hpke_suite`）。
-   - **HPKE `info` 域分隔与 AAD 绑定（normative）**：每个 recipient 的 HPKE 封装 MUST 使用 `info = "ck.realm.member_application.envelope.v1" || 0x00 || <realm_id> || 0x00 || <application_ref>`（三段以单字节 `0x00` 连接；`application_ref` 取 §7.2 的 `application_receipt_digest`，封装时刻 receipt 尚未生成的实现 MUST 改用 stage 1 `knock_ref` event id，并在 profile 中固定所选形态）。HPKE AAD MUST 是对 `{realm_id, applicant_did, application_ref, device_id}`（`device_id` 为该 recipient 的目标 device）的 canonical JSON（RFC 8785 JCS）。`info` 域分隔与 AAD 共同把密文绑定到目标 Realm、本次申请与接收设备，防止 envelope 被搬运到其它 Realm / application / device 重放或解封。
+   - **HPKE `info` 域分隔与 AAD 绑定（normative）**：每个 recipient 的 HPKE 封装 MUST 使用 `info = "ak.realm.member_application.envelope.v1" || 0x00 || <realm_id> || 0x00 || <application_ref>`（三段以单字节 `0x00` 连接；`application_ref` 取 §7.2 的 `application_receipt_digest`，封装时刻 receipt 尚未生成的实现 MUST 改用 stage 1 `knock_ref` event id，并在 profile 中固定所选形态）。HPKE AAD MUST 是对 `{realm_id, applicant_did, application_ref, device_id}`（`device_id` 为该 recipient 的目标 device）的 canonical JSON（RFC 8785 JCS）。`info` 域分隔与 AAD 共同把密文绑定到目标 Realm、本次申请与接收设备，防止 envelope 被搬运到其它 Realm / application / device 重放或解封。
    - **recipients 上限**：`encryption_envelope.recipients[]` ≤ 64（v1 wire 上限，见 [`../conformance/scalability-constraints.md` §5](../conformance/scalability-constraints.md)）；超过时 MUST `schema_violation`。
 
 ```json
 {
   "encryption_envelope": {
-    "scheme": "ck.hpke_x25519_aead_chacha20poly1305.v1",
-    "info": "ck.realm.member_application.envelope.v1 || 0x00 || ak:realm:0196419b-0000-7000-8000-000000000000 || 0x00 || sha256:...",
+    "scheme": "ak.hpke_x25519_aead_chacha20poly1305.v1",
+    "info": "ak.realm.member_application.envelope.v1 || 0x00 || ak:realm:0196419b-0000-7000-8000-000000000000 || 0x00 || sha256:...",
     "ciphertext": "base64url:...",
     "recipients": [
       {"reviewer_did": "did:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH:users.example:alice", "device_id": "ak:device:...", "recipient_hpke_kid": "did:webvh:...#ck_device_01HV_hpke", "enc": "base64url:...", "wrapped_key": "base64url:..."},
@@ -531,7 +531,7 @@ applicant 完成挑战后，重新提交 join / application Control Move，在 `
           "max_proof_age": "PT5M"
         }
       ],
-      "review_capability": "ck.realm.join.review",
+      "review_capability": "ak.realm.join.review",
       "reviewer_quorum": "any",
       "application_ttl": "PT168H",
       "cooldown_after_reject": "PT168H",

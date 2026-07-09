@@ -4,12 +4,12 @@
   "description": "Canonical registry of standard Account Data key patterns. Account Data is actor/private state written through ck.account_data.set unless a row explicitly lists another actor-private event kind.",
   "account_data_types": [
     {
-      "key_pattern": "ck.tags.realm.<realm_id>",
+      "key_pattern": "ak.tags.realm.<realm_id>",
       "status": "active",
       "scope": "realm_private_preference",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "ck.account_data.set"
+        "ak.account_data.set"
       ],
       "description": "Private per-Realm tags and ordering hints.",
       "source_refs": [
@@ -17,12 +17,12 @@
       ]
     },
     {
-      "key_pattern": "ck.push_rules",
+      "key_pattern": "ak.push_rules",
       "status": "active",
       "scope": "principal_private_preference",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "ck.account_data.set"
+        "ak.account_data.set"
       ],
       "description": "Principal-private notification and push rule configuration.",
       "source_refs": [
@@ -31,12 +31,12 @@
       ]
     },
     {
-      "key_pattern": "ck.dnd_schedule",
+      "key_pattern": "ak.dnd_schedule",
       "status": "active",
       "scope": "principal_private_preference",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "ck.account_data.set"
+        "ak.account_data.set"
       ],
       "description": "Principal-private do-not-disturb schedule used by notification routing.",
       "source_refs": [
@@ -44,12 +44,12 @@
       ]
     },
     {
-      "key_pattern": "ck.collections.stickers",
+      "key_pattern": "ak.collections.stickers",
       "status": "active",
       "scope": "principal_private_preference",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "ck.account_data.set"
+        "ak.account_data.set"
       ],
       "description": "Principal-private custom emoji and sticker collection metadata.",
       "source_refs": [
@@ -57,12 +57,12 @@
       ]
     },
     {
-      "key_pattern": "ck.client.ui_state",
+      "key_pattern": "ak.client.ui_state",
       "status": "active",
       "scope": "device_or_principal_private_preference",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "ck.account_data.set"
+        "ak.account_data.set"
       ],
       "description": "Private client UI state such as sidebar, recent realms (canonical key recent_realms), language, and layout preferences.",
       "source_refs": [
@@ -70,13 +70,13 @@
       ]
     },
     {
-      "key_pattern": "ck.account.blocklist",
+      "key_pattern": "ak.account.blocklist",
       "status": "active",
       "scope": "principal_private_policy",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "ck.account_data.set",
-        "ck.account.blocklist"
+        "ak.account_data.set",
+        "ak.account.blocklist"
       ],
       "description": "Holder-private personal blocklist. It affects only the holder's local projection, notifications, contact handling, and trusted holder-side filtering.",
       "source_refs": [
@@ -85,12 +85,12 @@
       ]
     },
     {
-      "key_pattern": "ck.contacts.actor.<did>",
+      "key_pattern": "ak.contacts.actor.<did>",
       "status": "active",
       "scope": "principal_private_preference",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "ck.account_data.set"
+        "ak.account_data.set"
       ],
       "description": "Private local remark, note, tag, and pin metadata for an actor, organization, device, or service DID.",
       "source_refs": [
@@ -98,12 +98,12 @@
       ]
     },
     {
-      "key_pattern": "ck.contacts.realm.<realm_id>",
+      "key_pattern": "ak.contacts.realm.<realm_id>",
       "status": "active",
       "scope": "realm_private_preference",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "ck.account_data.set"
+        "ak.account_data.set"
       ],
       "description": "Private local remark, note, tag, and pin metadata for a Realm.",
       "source_refs": [
@@ -111,12 +111,12 @@
       ]
     },
     {
-      "key_pattern": "ck.presence.visibility",
+      "key_pattern": "ak.presence.visibility",
       "status": "active",
       "scope": "principal_private_policy",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "ck.account_data.set"
+        "ak.account_data.set"
       ],
       "description": "Principal-private presence visibility policy. Principal/Sync services may project only the minimal presence_visibility enum needed to gate ck.presence and ck.typing fanout; it MUST NOT expose profile fields, status messages, contact notes, or precise last-active data.",
       "source_refs": [
@@ -125,12 +125,12 @@
       ]
     },
     {
-      "key_pattern": "ck.presence.preference",
+      "key_pattern": "ak.presence.preference",
       "status": "active",
       "scope": "principal_private_preference",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "ck.account_data.set"
+        "ak.account_data.set"
       ],
       "description": "Principal-private manual presence preference: pinned manual_state (online/idle/dnd), temporary status_message override, and clears_at expiry. Enforced client-side at send time across all of the principal's devices; services MUST NOT require plaintext or a projection of this key and MUST NOT treat it as a policy projection surface.",
       "source_refs": [
@@ -138,12 +138,12 @@
       ]
     },
     {
-      "key_pattern": "ck.read_receipt.preferences",
+      "key_pattern": "ak.read_receipt.preferences",
       "status": "active",
       "scope": "principal_private_preference",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "ck.account_data.set"
+        "ak.account_data.set"
       ],
       "description": "Private read-receipt send/display defaults and per-Realm or per-Strand overrides.",
       "source_refs": [
@@ -152,12 +152,12 @@
       ]
     },
     {
-      "key_pattern": "ck.reminders.v1:<id>",
+      "key_pattern": "ak.reminders.v1:<id>",
       "status": "active",
       "scope": "principal_private_productivity_state",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "ck.account_data.set"
+        "ak.account_data.set"
       ],
       "description": "Principal-private reminders keyed by opaque id; target_ref and note remain inside encrypted value.",
       "source_refs": [
@@ -165,12 +165,12 @@
       ]
     },
     {
-      "key_pattern": "ck.scheduled_send.v1:<planned_message_id>",
+      "key_pattern": "ak.scheduled_send.v1:<planned_message_id>",
       "status": "active",
       "scope": "principal_private_productivity_state",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "ck.account_data.set"
+        "ak.account_data.set"
       ],
       "description": "Principal-private scheduled-send plan. planned_message_id is later reused as ck.message.create.payload.message_id.",
       "source_refs": [
@@ -178,12 +178,12 @@
       ]
     },
     {
-      "key_pattern": "ck.snooze.v1:<target_key>",
+      "key_pattern": "ak.snooze.v1:<target_key>",
       "status": "active",
       "scope": "principal_private_productivity_state",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "ck.account_data.set"
+        "ak.account_data.set"
       ],
       "description": "Principal-private snooze state keyed by HMAC-derived target_key.",
       "source_refs": [
@@ -191,12 +191,12 @@
       ]
     },
     {
-      "key_pattern": "ck.saved.v1:<collection_key>:<target_key>",
+      "key_pattern": "ak.saved.v1:<collection_key>:<target_key>",
       "status": "active",
       "scope": "principal_private_productivity_state",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "ck.account_data.set"
+        "ak.account_data.set"
       ],
       "description": "Principal-private saved item in an HMAC-derived collection; each item is an independent account-data value.",
       "source_refs": [
@@ -204,12 +204,12 @@
       ]
     },
     {
-      "key_pattern": "ck.draft.v1:<kind>:<target_key>:<slot_key>",
+      "key_pattern": "ak.draft.v1:<kind>:<target_key>:<slot_key>",
       "status": "active",
       "scope": "principal_private_draft_state",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "ck.account_data.set"
+        "ak.account_data.set"
       ],
       "description": "Principal-private cross-device draft sync key. Raw target_ref MUST NOT appear in the account-data key.",
       "source_refs": [
@@ -217,12 +217,12 @@
       ]
     },
     {
-      "key_pattern": "ck.file_transfer.v1:<transfer_key>",
+      "key_pattern": "ak.file_transfer.v1:<transfer_key>",
       "status": "active",
       "scope": "principal_private_file_transfer_state",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "ck.account_data.set"
+        "ak.account_data.set"
       ],
       "description": "Principal-private cross-device file transfer record keyed by an HMAC-derived transfer_key. Blob bytes are stored through ck.self.blob.*; raw blob_ref, filename, target device ids, and plaintext hashes MUST NOT appear in the account-data key.",
       "source_refs": [
@@ -230,12 +230,12 @@
       ]
     },
     {
-      "key_pattern": "ck.search.index_manifest.v1:<realm_key>",
+      "key_pattern": "ak.search.index_manifest.v1:<realm_key>",
       "status": "active",
       "scope": "principal_private_search_state",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "ck.account_data.set"
+        "ak.account_data.set"
       ],
       "description": "Encrypted client search-index manifest keyed by an HMAC-derived realm_key.",
       "source_refs": [
@@ -243,14 +243,14 @@
       ]
     },
     {
-      "key_pattern": "ck.agent.draft.v1:<agent_principal_id>:<draft_id>",
+      "key_pattern": "ak.agent.draft.v1:<agent_principal_id>:<draft_id>",
       "status": "active",
       "scope": "controller_private_state",
       "storage": "encrypted_account_data",
       "owner_principal": "controller",
       "write_event_kinds": [
-        "ck.agent.action_approve",
-        "ck.account_data.set"
+        "ak.agent.action_approve",
+        "ak.account_data.set"
       ],
       "description": "Controller-owned encrypted draft created when Principal Server materializes an agent's ck.agent.draft.propose / ck.agent.action_request after capability / policy / accountability / risk check. Draft MUST NOT enter shared Realm history; publishing produces a new shared event referencing only an opaque digest. See CKP-0008 §4.8 / private-objects.md §4.1.",
       "source_refs": [
@@ -259,13 +259,13 @@
       ]
     },
     {
-      "key_pattern": "ck.agent.sidecar_projection.v1:<controller_principal_id>:<target_realm_id>:<target_strand_id>",
+      "key_pattern": "ak.agent.sidecar_projection.v1:<controller_principal_id>:<target_realm_id>:<target_strand_id>",
       "status": "active",
       "scope": "controller_private_preference",
       "storage": "encrypted_account_data",
       "owner_principal": "controller",
       "write_event_kinds": [
-        "ck.account_data.set"
+        "ak.account_data.set"
       ],
       "description": "Controller-private personal-track projection for the agent sidecar UI (cross-device sync of My AI tab order, pin state, addressed agents). MUST NOT modify target Strand tracks map or write any target-side metadata / Relation / watch / unread / search / notification state. See CKP-0009 §4.14 / private-objects.md §4.1.",
       "source_refs": [
@@ -274,13 +274,13 @@
       ]
     },
     {
-      "key_pattern": "ck.agent.participation.v1:<agent_principal_id>:<scope_key>",
+      "key_pattern": "ak.agent.participation.v1:<agent_principal_id>:<scope_key>",
       "status": "active",
       "scope": "controller_private_state",
       "storage": "encrypted_account_data",
       "owner_principal": "controller",
       "write_event_kinds": [
-        "ck.account_data.set"
+        "ak.account_data.set"
       ],
       "description": "Controller-owned per-scope agent participation selection (reply / accept_third_party_mention / act_on_behalf). scope_key is realm:<realm_uuid> | circle:<realm_uuid>:<circle_uuid> | strand:<realm_uuid>:<strand_uuid>. Effective participation = effective_ceiling ∩ selection, where the ceiling is the monotone deployment ⊇ Realm ⊇ Circle ⊇ Strand fold. accept_third_party_mention drives the dispatcher mention gate; reply / act_on_behalf materialize into ck.capability.grant. See zh/models/private-objects.md §4.1.",
       "source_refs": [
@@ -288,13 +288,13 @@
       ]
     },
     {
-      "type": "ck.account.invite_quarantine",
+      "type": "ak.account.invite_quarantine",
       "status": "active",
       "scope": "actor_private",
-      "key_pattern": "ck.account.invite_quarantine",
+      "key_pattern": "ak.account.invite_quarantine",
       "storage": "encrypted_account_data",
       "write_event_kinds": [
-        "ck.account_data.set"
+        "ak.account_data.set"
       ],
       "encrypted_at_rest": true,
       "description": "Actor-private quarantine inbox for invites held by consent gate default profile; MUST NOT expose contactability signals to the inviter.",
